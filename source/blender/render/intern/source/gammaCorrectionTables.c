@@ -40,8 +40,8 @@
 #include <config.h>
 #endif
 
-/* There are two parts here: one for the old renderer, one for the unified   */
-/* renderer. we start with the latter.                                       */
+/* WARNING; optimized, cannot be used to do gamma(invgamma()) and expect    */
+/* result remain identical (ton)                                            */   
 
 /* Default gamma. For most CRTs, gamma ranges from 2.2 to 2.5 (Foley), so    */
 /* 2.35 seems appropriate enough. Experience teaches a different number      */

@@ -451,9 +451,9 @@ static void scanlinehaloPS(int *rectz, long *rectdelta, float *rowbuf, short ys)
 							float *buf= rowbuf;
 							int xt;
 							for(xt=0; xt<R.rectx; xt++, buf+=4) {
-								buf[0]= invGammaCorrect(buf[0]);
-								buf[1]= invGammaCorrect(buf[1]);
-								buf[2]= invGammaCorrect(buf[2]);
+								buf[0]= sqrt(buf[0]);	// invers gamma 2.0
+								buf[1]= sqrt(buf[1]);
+								buf[2]= sqrt(buf[2]);
 							}
 							didgamma= 1;
 						}
@@ -526,9 +526,9 @@ static void scanlinehaloPS(int *rectz, long *rectdelta, float *rowbuf, short ys)
 		float *buf= rowbuf;
 		int xt;
 		for(xt=0; xt<R.rectx; xt++, buf+=4) {
-			buf[0]= gammaCorrect(buf[0]);
-			buf[1]= gammaCorrect(buf[1]);
-			buf[2]= gammaCorrect(buf[2]);
+			buf[0]*= (buf[0]);	// gamma 2.0
+			buf[1]*= (buf[1]);
+			buf[2]*= (buf[2]);
 		}
 	}
 
