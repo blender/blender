@@ -414,6 +414,7 @@ int main(int argc, char **argv)
 			}
 		}
 
+printf("before BPY_start_python\n");
 		BPY_start_python();
 		
 		/**
@@ -421,8 +422,9 @@ int main(int argc, char **argv)
 		 * at least on FreeBSD.
 		 */
 
-		sound_init_audio();
-
+//printf("before init_audio\n");
+//		sound_init_audio();
+printf("before BIF_init\n");
 		BIF_init();
 
 		/**
@@ -438,10 +440,12 @@ int main(int argc, char **argv)
 	}
 	else {
 		BPY_start_python();
-		SYS_WriteCommandLineInt(syshandle,"noaudio",1);
-        audio = 0;
-        sound_init_audio();
-        if (G.f & G_DEBUG) printf("setting audio to: %d\n", audio);
+		
+		// (ton) Commented out. I have no idea whats thisfor... will mail around!
+		// SYS_WriteCommandLineInt(syshandle,"noaudio",1);
+        // audio = 0;
+        // sound_init_audio();
+        // if (G.f & G_DEBUG) printf("setting audio to: %d\n", audio);
 	}
 
 	RE_init_filt_mask();

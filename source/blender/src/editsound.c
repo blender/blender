@@ -83,8 +83,8 @@
 /* this might move to the external header */
 void* sound_get_libraryinterface(void);
 
-static SND_SceneHandle ghSoundScene;
-static SND_AudioDeviceInterfaceHandle ghAudioDeviceInterface;
+static SND_SceneHandle ghSoundScene=NULL;
+static SND_AudioDeviceInterfaceHandle ghAudioDeviceInterface=NULL;
 
 /* que? why only here? because of the type define? */
 bSound *sound_find_sound(char *id_name);
@@ -181,16 +181,19 @@ void sound_initialize_sounds(void)
 {
 	bSound* sound;
 
-	/* clear the soundscene */
-	SND_RemoveAllSounds(ghSoundScene);
-	SND_RemoveAllSamples(ghSoundScene);
+	if(ghSoundScene) {
 
-	/* initialize sounds */
-	sound = G.main->sound.first;
-	while (sound)
-	{
-		sound_sample_is_null(sound);
-		sound = (bSound *) sound->id.next;
+		/* clear the soundscene */
+		SND_RemoveAllSounds(ghSoundScene);
+		SND_RemoveAllSamples(ghSoundScene);
+	
+		/* initialize sounds */
+		sound = G.main->sound.first;
+		while (sound)
+		{
+			sound_sample_is_null(sound);
+			sound = (bSound *) sound->id.next;
+		}
 	}
 }
 
@@ -201,6 +204,8 @@ bSound* sound_make_copy(bSound* originalsound)
 	bSound* sound = NULL;
 	char name[160];
 	int len;
+	
+	if(ghSoundScene==NULL) sound_init_audio();
 	
 	/* only copy sounds that are sounds */
 	if (originalsound)
@@ -248,6 +253,8 @@ bSound* sound_make_copy(bSound* originalsound)
 
 void sound_initialize_sample(bSound* sound)
 {
+	if(ghSoundScene==NULL) sound_init_audio();
+
 	if (sound && sound->sample == NULL)
 		sound_sample_is_null(sound);
 }
@@ -569,6 +576,8 @@ int sound_load_sample(bSound* sound)
 	int freePF = FALSE;
 	int buffer = -1;
 
+	if(ghSoundScene==NULL) sound_init_audio();
+
 	/* check the sample (valid?) */
 	if (sound->sample->type == SAMPLE_UNKNOWN || sound->snd_sound == NULL)
 	{
@@ -653,6 +662,8 @@ bSound* sound_new_sound(char* name)
 	int len, file;
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 
+	if(ghSoundScene==NULL) sound_init_audio();
+
 	if (!G.scene->audio.mixrate) G.scene->audio.mixrate = 44100;
 	/* convert the name to absolute path */
 	strcpy(str, name);
@@ -704,6 +715,9 @@ bSound* sound_new_sound(char* name)
 int sound_set_sample(bSound *sound, bSample *sample)
 {
 	int result = TRUE;
+	
+	if(ghSoundScene==NULL) sound_init_audio();
+	
 	/* decrease the usernumber for this sample */
 	if (sound->sample)
 		sound->sample->id.us--;
@@ -822,6 +836,8 @@ int sound_sample_is_null(bSound* sound)
 	int result = FALSE;
 	bSample* sample;
 	
+	if(ghSoundScene==NULL) sound_init_audio();
+	
 	/* find the right sample or else create one */
 	if (sound->sample == NULL)
 	{
@@ -844,8 +860,10 @@ int sound_sample_is_null(bSound* sound)
 void sound_stop_all_sounds(void)
 {
 #if GAMEBLENDER == 1
-	SND_StopAllSounds(ghSoundScene);
-	SND_Proceed(ghAudioDeviceInterface, ghSoundScene);
+	if(ghSoundScene) {
+		SND_StopAllSounds(ghSoundScene);
+		SND_Proceed(ghAudioDeviceInterface, ghSoundScene);
+	}
 #endif 
 }
 
@@ -854,8 +872,10 @@ void sound_stop_all_sounds(void)
 void sound_end_all_sounds(void)
 {
 #if GAMEBLENDER == 1
-	sound_stop_all_sounds();
-	SND_RemoveAllSounds(ghSoundScene);
+	if(ghSoundScene) {
+		sound_stop_all_sounds();
+		SND_RemoveAllSounds(ghSoundScene);
+	}
 #endif
 }
 
@@ -864,6 +884,8 @@ void sound_end_all_sounds(void)
 void sound_play_sound(bSound* sound)
 {
 #if GAMEBLENDER == 1
+	if(ghSoundScene==NULL) sound_init_audio();
+	
 	/* first check if we want sound or not */
 	SND_IsPlaybackWanted(ghSoundScene);
 
@@ -970,36 +992,25 @@ bSound *sound_find_sound(char *id_name)
 	return sound;
 }
 
-
-
-static void sound_init_listener(void)
-{
-	G.listener = MEM_callocN(sizeof(bSoundListener), "soundlistener");
-	G.listener->gain = 1.0;
-	G.listener->dopplerfactor = 1.0;
-	G.listener->dopplervelocity = 1.0;
-}
-
-
-
 void sound_init_audio(void)
 {
 	int noaudio;
 	SYS_SystemHandle hSystem = NULL;
-	ghAudioDeviceInterface = NULL;
 	
-	hSystem = SYS_GetSystem();
-	noaudio = SYS_GetCommandLineInt(hSystem,"noaudio",0);
+	if(ghSoundScene==NULL) {
+		
+		printf("sound init audio\n");
 	
-	if (noaudio)/*(noaudio) intrr: disable game engine audio (openal) */
-		SND_SetDeviceType(snd_e_dummydevice);
-
-	ghAudioDeviceInterface = SND_GetAudioDevice();
-	ghSoundScene = SND_CreateScene(ghAudioDeviceInterface);
-
-	sound_init_listener();
+		hSystem = SYS_GetSystem();
+		noaudio = SYS_GetCommandLineInt(hSystem,"noaudio",0);
+		
+		if (noaudio)/*(noaudio) intrr: disable game engine audio (openal) */
+			SND_SetDeviceType(snd_e_dummydevice);
+	
+		ghAudioDeviceInterface = SND_GetAudioDevice();
+		ghSoundScene = SND_CreateScene(ghAudioDeviceInterface);
+	}
 }
-
 
 
 int sound_get_mixrate(void)
@@ -1008,17 +1019,10 @@ int sound_get_mixrate(void)
 }
 
 
-
-static void sound_exit_listener(void)
-{
-	MEM_freeN(G.listener);
-}
-
-
-
 void sound_exit_audio(void)
 {
-	SND_DeleteScene(ghSoundScene);
-	SND_ReleaseDevice();
-	sound_exit_listener();
+	if(ghSoundScene) {
+		SND_DeleteScene(ghSoundScene);
+		SND_ReleaseDevice();
+	}
 }

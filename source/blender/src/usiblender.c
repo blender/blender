@@ -65,6 +65,7 @@
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_sound_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_curve.h"
@@ -477,13 +478,23 @@ static void initbuttons(void)
 	clear_matcopybuf();
 }
 
+
+static void sound_init_listener(void)
+{
+	G.listener = MEM_callocN(sizeof(bSoundListener), "soundlistener");
+	G.listener->gain = 1.0;
+	G.listener->dopplerfactor = 1.0;
+	G.listener->dopplervelocity = 1.0;
+}
+
 void BIF_init(void)
 {
 
 	initscreen();	/* for (visuele) speed, this first, then setscreen */
 	initbuttons();
 	InitCursorData();
-
+	sound_init_listener();
+	
 	init_draw_rects();	/* drawobject.c */
 	BIF_read_homefile();
 	init_gl_stuff();	/* drawview.c, after homefile */
@@ -538,6 +549,7 @@ void exit_usiblender(void)
 	free_txt_data();
 
 	sound_exit_audio();
+	MEM_freeN(G.listener);
 
 #ifdef WITH_QUICKTIME
 	quicktime_exit();

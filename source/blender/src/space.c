@@ -406,8 +406,10 @@ void start_game(void)
 	
 	BPY_end_python();
 
+	/* sound init is save, only handles once */
+	sound_init_audio();
 	sound_stop_all_sounds();
-
+	
 	/* Before jumping into Ketsji, we configure some settings. */
 	space_set_commmandline_options();
 
