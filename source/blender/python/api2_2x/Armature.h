@@ -132,7 +132,6 @@ static PyObject *Armature_getAttr (BPy_Armature *armature, char *name);
 static int Armature_setAttr (BPy_Armature *armature, char *name, PyObject *v);
 static int Armature_compare (BPy_Armature *a1, BPy_Armature *a2);
 static PyObject *Armature_repr (BPy_Armature *armature);
-static int Armature_print (BPy_Armature *armature, FILE *fp, int flags);
 
 /*****************************************************************************/
 /* Python TypeArmature structure definition:                                 */
@@ -146,7 +145,7 @@ PyTypeObject Armature_Type =
   0,                                      /* tp_itemsize */
   /* methods */
   (destructor)Armature_dealloc,           /* tp_dealloc */
-  (printfunc)Armature_print,              /* tp_print */
+  0,                                      /* tp_print */
   (getattrfunc)Armature_getAttr,          /* tp_getattr */
   (setattrfunc)Armature_setAttr,          /* tp_setattr */
   (cmpfunc)Armature_compare,              /* tp_compare */

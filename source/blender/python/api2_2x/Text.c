@@ -486,21 +486,6 @@ static int Text_compare (BPy_Text *a, BPy_Text *b)
 }
 
 /*****************************************************************************/
-/* Function:    Text_print                                                   */
-/* Description: This is a callback function for the BPy_Text type. It        */
-/*              builds a meaninful string to 'print' text objects.           */
-/*****************************************************************************/
-static int Text_print(BPy_Text *self, FILE *fp, int flags)
-{ 
-  if (self->text && Text_IsLinked(self))
-    fprintf(fp, "[Text \"%s\"]", self->text->id.name+2);
-  else
-    fprintf(fp, "[Text <deleted>]");
-
-  return 0;
-}
-
-/*****************************************************************************/
 /* Function:    Text_repr                                                    */
 /* Description: This is a callback function for the BPy_Text type. It        */
 /*              builds a meaninful string to represent text objects.         */
@@ -508,9 +493,9 @@ static int Text_print(BPy_Text *self, FILE *fp, int flags)
 static PyObject *Text_repr (BPy_Text *self)
 {
   if (self->text && Text_IsLinked(self))
-    return PyString_FromString(self->text->id.name+2);
+    return PyString_FromFormat("[Text \"%s\"]", self->text->id.name+2);
   else
-    return PyString_FromString("<deleted>");
+    return PyString_FromString("[Text <deleted>]");
 }
 
 /* Internal function to confirm if a Text wasn't unlinked.

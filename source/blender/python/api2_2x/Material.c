@@ -422,11 +422,10 @@ static PyMethodDef BPy_Material_methods[] = {
 /*****************************************************************************/
 /* Python Material_Type callback function prototypes:                        */
 /*****************************************************************************/
-static void Material_Dealloc (BPy_Material *self);
-static int Material_Print (BPy_Material *self, FILE *fp, int flags);
-static int Material_SetAttr (BPy_Material *self, char *name, PyObject *v);
-static PyObject *Material_GetAttr (BPy_Material *self, char *name);
-static PyObject *Material_Repr (BPy_Material *self);
+static void Material_dealloc (BPy_Material *self);
+static int Material_setAttr (BPy_Material *self, char *name, PyObject *v);
+static PyObject *Material_getAttr (BPy_Material *self, char *name);
+static PyObject *Material_repr (BPy_Material *self);
 
 /*****************************************************************************/
 /* Python Material_Type structure definition:                                */
@@ -439,12 +438,12 @@ PyTypeObject Material_Type =
   sizeof (BPy_Material),                  /* tp_basicsize */
   0,                                      /* tp_itemsize */
   /* methods */
-  (destructor)Material_Dealloc,           /* tp_dealloc */
-  (printfunc)Material_Print,              /* tp_print */
-  (getattrfunc)Material_GetAttr,          /* tp_getattr */
-  (setattrfunc)Material_SetAttr,          /* tp_setattr */
+  (destructor)Material_dealloc,           /* tp_dealloc */
+  0,                                      /* tp_print */
+  (getattrfunc)Material_getAttr,          /* tp_getattr */
+  (setattrfunc)Material_setAttr,          /* tp_setattr */
   0,                                      /* tp_compare */
-  (reprfunc)Material_Repr,                /* tp_repr */
+  (reprfunc)Material_repr,                /* tp_repr */
   0,                                      /* tp_as_number */
   0,                                      /* tp_as_sequence */
   0,                                      /* tp_as_mapping */
@@ -457,11 +456,11 @@ PyTypeObject Material_Type =
 };
 
 /*****************************************************************************/
-/* Function:    Material_Dealloc                                             */
+/* Function:    Material_dealloc                                             */
 /* Description: This is a callback function for the BPy_Material type. It is */
 /*              the destructor function.                                     */
 /*****************************************************************************/
-static void Material_Dealloc (BPy_Material *self)
+static void Material_dealloc (BPy_Material *self)
 {
   Py_DECREF (self->col);
   Py_DECREF (self->amb);
@@ -1124,12 +1123,12 @@ static PyObject *Material_setNRings(BPy_Material *self, PyObject *args)
 }
 
 /*****************************************************************************/
-/* Function:    Material_GetAttr                                             */
+/* Function:    Material_getAttr                                             */
 /* Description: This is a callback function for the BPy_Material type. It is */
 /*              the function that accesses BPy_Material "member variables"   */
 /*              and methods.                                                 */
 /*****************************************************************************/
-static PyObject *Material_GetAttr (BPy_Material *self, char *name)
+static PyObject *Material_getAttr (BPy_Material *self, char *name)
 {
   PyObject *attr = Py_None;
 
@@ -1207,12 +1206,12 @@ static PyObject *Material_GetAttr (BPy_Material *self, char *name)
 }
 
 /****************************************************************************/
-/* Function:    Material_SetAttr                                            */
+/* Function:    Material_setAttr                                            */
 /* Description: This is a callback function for the BPy_Material type.      */
 /*              It is the function that sets Material attributes (member    */
 /*              variables).                                                 */
 /****************************************************************************/
-static int Material_SetAttr (BPy_Material *self, char *name, PyObject *value)
+static int Material_setAttr (BPy_Material *self, char *name, PyObject *value)
 {
   PyObject *valtuple; 
   PyObject *error = NULL;
@@ -1302,34 +1301,18 @@ static int Material_SetAttr (BPy_Material *self, char *name, PyObject *value)
 }
 
 /*****************************************************************************/
-/* Function:    Material_Print                                               */
-/* Description: This is a callback function for the BPy_Material type. It    */
-/*              builds a meaninful string to 'print' material objects.       */
-/*****************************************************************************/
-static int Material_Print(BPy_Material *self, FILE *fp, int flags)
-{ 
-  fprintf(fp, "[Material \"%s\"]", self->material->id.name+2);
-  return 0;
-}
-
-/*****************************************************************************/
-/* Function:    Material_Repr                                                */
+/* Function:    Material_repr                                                */
 /* Description: This is a callback function for the BPy_Material type. It    */
 /*              builds a meaninful string to represent material objects.     */
 /*****************************************************************************/
-static PyObject *Material_Repr (BPy_Material *self)
+static PyObject *Material_repr (BPy_Material *self)
 {
-  char buf[40];
-
-  PyOS_snprintf(buf, sizeof(buf), "[Material \"%s\"]",
-                                  self->material->id.name+2);
-
-  return PyString_FromString(buf);
+  return PyString_FromFormat ("[Material \"%s\"]", self->material->id.name+2);
 }
 
 
 /*****************************************************************************/
-/* These three functions are used in NMesh.c                                 */
+/* These functions are used in NMesh.c and Object.c                          */
 /*****************************************************************************/
 PyObject *EXPP_PyList_fromMaterialList (Material **matlist, int len)
 {

@@ -42,12 +42,12 @@ PyTypeObject Lamp_Type =
   sizeof (BPy_Lamp),                    /* tp_basicsize */
   0,                                    /* tp_itemsize */
   /* methods */
-  (destructor)Lamp_dealloc,              /* tp_dealloc */
-  (printfunc)Lamp_print,                 /* tp_print */
-  (getattrfunc)Lamp_getAttr,             /* tp_getattr */
-  (setattrfunc)Lamp_setAttr,             /* tp_setattr */
-  (cmpfunc)Lamp_compare,                 /* tp_compare */
-  (reprfunc)Lamp_repr,                   /* tp_repr */
+  (destructor)Lamp_dealloc,             /* tp_dealloc */
+  0,                                    /* tp_print */
+  (getattrfunc)Lamp_getAttr,            /* tp_getattr */
+  (setattrfunc)Lamp_setAttr,            /* tp_setattr */
+  (cmpfunc)Lamp_compare,                /* tp_compare */
+  (reprfunc)Lamp_repr,                  /* tp_repr */
   0,                                    /* tp_as_number */
   0,                                    /* tp_as_sequence */
   0,                                    /* tp_as_mapping */
@@ -1025,22 +1025,11 @@ static int Lamp_compare (BPy_Lamp *a, BPy_Lamp *b)
 }
 
 /*****************************************************************************/
-/* Function:    Lamp_print                                                   */
-/* Description: This is a callback function for the BPy_Lamp type. It        */
-/*              builds a meaninful string to 'print' lamp objects.           */
-/*****************************************************************************/
-static int Lamp_print(BPy_Lamp *self, FILE *fp, int flags)
-{ 
-  fprintf(fp, "[Lamp \"%s\"]", self->lamp->id.name+2);
-  return 0;
-}
-
-/*****************************************************************************/
 /* Function:    Lamp_repr                                                    */
 /* Description: This is a callback function for the BPy_Lamp type. It        */
 /*              builds a meaninful string to represent lamp objects.         */
 /*****************************************************************************/
 static PyObject *Lamp_repr (BPy_Lamp *self)
 {
-  return PyString_FromString(self->lamp->id.name+2);
+  return PyString_FromFormat("[Lamp \"%s\"]", self->lamp->id.name+2);
 }

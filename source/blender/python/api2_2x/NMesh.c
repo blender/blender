@@ -670,9 +670,6 @@ static PyObject *NMesh_update(PyObject *self, PyObject *args)
     nmesh->mesh = Mesh_fromNMesh(nmesh);
   }
 
-  mesh->mat = EXPP_newMaterialList_fromPyList(nmesh->materials);
-  EXPP_incr_mats_us(mesh->mat, PyList_Size (nmesh->materials));
-
   nmesh_updateMaterials(nmesh);
 /**@ This is another ugly fix due to the weird material handling of blender.
   * it makes sure that object material lists get updated (by their length)
@@ -1336,7 +1333,7 @@ Material **nmesh_updateMaterials(BPy_NMesh *nmesh)
 {
   Material **matlist;
   Mesh *mesh = nmesh->mesh;
-  int len = PySequence_Length(nmesh->materials);
+  int len = PyList_Size(nmesh->materials);
 
   if (!mesh) {
     printf("FATAL INTERNAL ERROR: illegal call to updateMaterials()\n");
@@ -1345,9 +1342,12 @@ Material **nmesh_updateMaterials(BPy_NMesh *nmesh)
 
   if (len > 0) {
     matlist = EXPP_newMaterialList_fromPyList(nmesh->materials);
-    if (mesh->mat)
-      MEM_freeN(mesh->mat);
-    mesh->mat = matlist;
+    EXPP_incr_mats_us(matlist, len);
+
+    if (mesh->mat) MEM_freeN(mesh->mat);
+
+		mesh->mat = matlist;
+
   } else {
     matlist = 0;
   }
@@ -1369,11 +1369,13 @@ PyObject *NMesh_assignMaterials_toObject(BPy_NMesh *nmesh, Object *ob)
 
 	nmats = PyList_Size(nmesh->materials);
 
-	if (nmats > 0 && !mesh->mat) { /* explain ... */
+	if (nmats > 0 && !mesh->mat) {
 		ob->totcol = nmats;
 		mesh->totcol = nmats;
 		mesh->mat = MEM_callocN(sizeof(void *)*nmats, "bpy_memats");
-		ob->mat   = MEM_callocN(sizeof(void *)*nmats, "bpy_obmats");
+
+		if (ob->mat) MEM_freeN(ob->mat);
+		ob->mat = MEM_callocN(sizeof(void *)*nmats, "bpy_obmats");
 	}
 
   for (i = 0; i < nmats; i++) {

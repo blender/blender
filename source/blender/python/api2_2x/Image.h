@@ -52,7 +52,7 @@ extern PyTypeObject Image_Type; /* The Image PyType Object */
 /*****************************************************************************/
 /* Module Blender.Image - public functions                                   */
 /*****************************************************************************/
-PyObject *M_Image_Init (void);
+PyObject *Image_Init (void);
 PyObject *Image_CreatePyObject (Image *image);
 int       Image_CheckPyObject (PyObject *pyobj);
 

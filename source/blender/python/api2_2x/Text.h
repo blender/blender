@@ -144,7 +144,6 @@ static PyMethodDef BPy_Text_methods[] = {
 /* Python Text_Type callback function prototypes:                            */
 /*****************************************************************************/
 static void Text_dealloc (BPy_Text *self);
-static int Text_print (BPy_Text *self, FILE *fp, int flags);
 static int Text_setAttr (BPy_Text *self, char *name, PyObject *v);
 static PyObject *Text_getAttr (BPy_Text *self, char *name);
 static int Text_compare (BPy_Text *a, BPy_Text *b);
@@ -162,7 +161,7 @@ PyTypeObject Text_Type =
   0,                                    /* tp_itemsize */
   /* methods */
   (destructor)Text_dealloc,             /* tp_dealloc */
-  (printfunc)Text_print,                /* tp_print */
+  0,                                    /* tp_print */
   (getattrfunc)Text_getAttr,            /* tp_getattr */
   (setattrfunc)Text_setAttr,            /* tp_setattr */
   (cmpfunc)Text_compare,                /* tp_compare */

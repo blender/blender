@@ -163,7 +163,6 @@ static PyMethodDef BPy_Scene_methods[] = {
 /* Python Scene_Type callback function prototypes:                           */
 /*****************************************************************************/
 static void Scene_dealloc (BPy_Scene *self);
-static int Scene_print (BPy_Scene *self, FILE *fp, int flags);
 static int Scene_setAttr (BPy_Scene *self, char *name, PyObject *v);
 static int Scene_compare (BPy_Scene *a, BPy_Scene *b);
 static PyObject *Scene_getAttr (BPy_Scene *self, char *name);
@@ -181,7 +180,7 @@ PyTypeObject Scene_Type =
   0,                                      /* tp_itemsize */
   /* methods */
   (destructor)Scene_dealloc,              /* tp_dealloc */
-  (printfunc)Scene_print,                 /* tp_print */
+  0,                                      /* tp_print */
   (getattrfunc)Scene_getAttr,             /* tp_getattr */
   (setattrfunc)Scene_setAttr,             /* tp_setattr */
   (cmpfunc)Scene_compare,                 /* tp_compare */
@@ -730,15 +729,9 @@ static int Scene_compare (BPy_Scene *a, BPy_Scene *b)
   return (pa == pb) ? 0:-1;
 }
 
-static int Scene_print(BPy_Scene *self, FILE *fp, int flags)
-{ 
-  fprintf(fp, "[Scene \"%s\"]", self->scene->id.name+2);
-  return 0;
-}
-
 static PyObject *Scene_repr (BPy_Scene *self)
 {
-  return PyString_FromString(self->scene->id.name+2);
+  return PyString_FromFormat("[Scene \"%s\"]", self->scene->id.name+2);
 }
 
 Base *EXPP_Scene_getObjectBase(Scene *scene, Object *object)

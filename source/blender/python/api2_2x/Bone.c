@@ -141,7 +141,6 @@ static PyObject *Bone_getAttr (BPy_Bone *bone, char *name);
 static int Bone_setAttr (BPy_Bone *bone, char *name, PyObject *v);
 static int Bone_compare (BPy_Bone *a1, BPy_Bone *a2);
 static PyObject *Bone_repr (BPy_Bone *bone);
-static int Bone_print (BPy_Bone *bone, FILE *fp, int flags);
 
 /*****************************************************************************/
 /* Python TypeBone structure definition:                                     */
@@ -155,7 +154,7 @@ PyTypeObject Bone_Type =
   0,                                    /* tp_itemsize */
   /* methods */
   (destructor)Bone_dealloc,             /* tp_dealloc */
-  (printfunc)Bone_print,                /* tp_print */
+  0,                                    /* tp_print */
   (getattrfunc)Bone_getAttr,            /* tp_getattr */
   (setattrfunc)Bone_setAttr,            /* tp_setattr */
   (cmpfunc)Bone_compare,                /* tp_compare */
@@ -646,25 +645,14 @@ static int Bone_setAttr (BPy_Bone *self, char *name, PyObject *value)
 }
 
 /*****************************************************************************/
-/* Function:    Bone_print                                                   */
-/* Description: This is a callback function for the BPy_Bone type. It        */
-/*              builds a meaninful string to 'print' bone objects.           */
-/*****************************************************************************/
-static int Bone_print(BPy_Bone *self, FILE *fp, int flags)
-{
-  if (self->bone) fprintf(fp, "[Bone \"%s\"]", self->bone->name);
-  else fprintf(fp, "[Bone NULL]");
-  return 0;
-}
-
-/*****************************************************************************/
 /* Function:    Bone_repr                                                    */
 /* Description: This is a callback function for the BPy_Bone type. It        */
 /*              builds a meaninful string to represent bone objects.         */
 /*****************************************************************************/
 static PyObject *Bone_repr (BPy_Bone *self)
 {
-  if (self->bone) return PyString_FromString(self->bone->name);
+  if (self->bone)
+		return PyString_FromFormat("[Bone \"%s\"]", self->bone->name);
   else return PyString_FromString("NULL");
 }
 

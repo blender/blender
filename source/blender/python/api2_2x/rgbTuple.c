@@ -37,11 +37,10 @@
 /*****************************************************************************/
 /* Python rgbTuple_Type callback function prototypes:                        */
 /*****************************************************************************/
-static void rgbTupleDeAlloc (BPy_rgbTuple *self);
-static PyObject *rgbTupleGetAttr (BPy_rgbTuple *self, char *name);
-static int rgbTupleSetAttr (BPy_rgbTuple *self, char *name, PyObject *v);
-static int rgbTuplePrint(BPy_rgbTuple *self, FILE *fp, int flags);
-static PyObject *rgbTupleRepr (BPy_rgbTuple *self);
+static void rgbTuple_dealloc (BPy_rgbTuple *self);
+static PyObject *rgbTuple_getAttr (BPy_rgbTuple *self, char *name);
+static int rgbTuple_setAttr (BPy_rgbTuple *self, char *name, PyObject *v);
+static PyObject *rgbTuple_repr (BPy_rgbTuple *self);
 
 static int rgbTupleLength(BPy_rgbTuple *self);
 
@@ -86,15 +85,15 @@ PyTypeObject rgbTuple_Type =
   PyObject_HEAD_INIT(NULL)
   0,                                      /* ob_size */
   "rgbTuple",                             /* tp_name */
-  sizeof (BPy_rgbTuple),                    /* tp_basicsize */
+  sizeof (BPy_rgbTuple),                  /* tp_basicsize */
   0,                                      /* tp_itemsize */
   /* methods */
-  (destructor)rgbTupleDeAlloc,            /* tp_dealloc */
-  (printfunc)rgbTuplePrint,               /* tp_print */
-  (getattrfunc)rgbTupleGetAttr,           /* tp_getattr */
-  (setattrfunc)rgbTupleSetAttr,           /* tp_setattr */
+  (destructor)rgbTuple_deAlloc,           /* tp_dealloc */
+  0,                                      /* tp_print */
+  (getattrfunc)rgbTuple_getAttr,          /* tp_getattr */
+  (setattrfunc)rgbTuple_setAttr,          /* tp_setattr */
   0,                                      /* tp_compare */
-  (reprfunc)rgbTupleRepr,                 /* tp_repr */
+  (reprfunc)rgbTuple_repr,                /* tp_repr */
   0,                                      /* tp_as_number */
   &rgbTupleAsSequence,                    /* tp_as_sequence */
   &rgbTupleAsMapping,                     /* tp_as_mapping */
@@ -170,22 +169,22 @@ PyObject *rgbTuple_setCol (BPy_rgbTuple *self, PyObject *args)
 }
 
 /*****************************************************************************/
-/* Function:    rgbTupleDeAlloc                                              */
+/* Function:    rgbTuple_deAlloc                                             */
 /* Description: This is a callback function for the BPy_rgbTuple type. It is */
 /*              the destructor function.                                     */
 /*****************************************************************************/
-static void rgbTupleDeAlloc (BPy_rgbTuple *self)
+static void rgbTuple_deAlloc (BPy_rgbTuple *self)
 {
   PyObject_DEL (self);
 }
 
 /*****************************************************************************/
-/* Function:    rgbTupleGetAttr                                              */
+/* Function:    rgbTuple_getAttr                                             */
 /* Description: This is a callback function for the BPy_rgbTuple type. It is */
 /*              the function that accesses BPy_rgbTuple member variables and */
 /*              methods.                                                     */
 /*****************************************************************************/
-static PyObject* rgbTupleGetAttr (BPy_rgbTuple *self, char *name)
+static PyObject* rgbTuple_getAttr (BPy_rgbTuple *self, char *name)
 {
 	int i;
 
@@ -203,11 +202,11 @@ static PyObject* rgbTupleGetAttr (BPy_rgbTuple *self, char *name)
 }
 
 /*****************************************************************************/
-/* Function:    rgbTupleSetAttr                                              */
+/* Function:    rgbTuple_setAttr                                             */
 /* Description: This is a callback function for the BPy_rgbTuple type. It is */
 /*              the function that changes BPy_rgbTuple member variables.     */
 /*****************************************************************************/
-static int rgbTupleSetAttr (BPy_rgbTuple *self, char *name, PyObject *v)
+static int rgbTuple_setAttr (BPy_rgbTuple *self, char *name, PyObject *v)
 {
 	float value;
 
@@ -370,32 +369,17 @@ static int rgbTupleAssSlice(BPy_rgbTuple *self, int begin, int end,
 }
 
 /*****************************************************************************/
-/* Function:    rgbTuplePrint                                                */
-/* Description: This is a callback function for the BPy_rgbTuple type. It    */
-/*              builds a meaninful string to 'print' rgbTuple objects.       */
-/*****************************************************************************/
-static int rgbTuplePrint(BPy_rgbTuple *self, FILE *fp, int flags)
-{ 
-  fprintf(fp, "[%f, %f, %f]",
-					*(self->rgb[0]), *(self->rgb[1]), *(self->rgb[2]));
-  return 0;
-}
-
-/*****************************************************************************/
-/* Function:    rgbTupleRepr                                                 */
+/* Function:    rgbTuple_repr                                                */
 /* Description: This is a callback function for the BPy_rgbTuple type. It    */
 /*              builds a meaninful string to represent rgbTuple objects.     */
 /*****************************************************************************/
-static PyObject *rgbTupleRepr (BPy_rgbTuple *self)
+static PyObject *rgbTuple_repr (BPy_rgbTuple *self)
 {
 	float r, g, b;
-	char buf[64];
 
 	r = *(self->rgb[0]);
 	g = *(self->rgb[1]);
 	b = *(self->rgb[2]);
 
-	PyOS_snprintf(buf, sizeof(buf), "[%f, %f, %f]", r, g, b);
-
-	return PyString_FromString(buf);
+	return PyString_FromFormat("[%f, %f, %f]", r, g, b);
 }

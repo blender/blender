@@ -146,7 +146,7 @@ static PyObject *M_Image_Get(PyObject *self, PyObject *args)
 
 	else { /* () - return a list of all images in the scene */
     int index = 0;
-    PyObject *img_list, *pystr;
+    PyObject *img_list, *pyobj;
 
     img_list = PyList_New (BLI_countlist (&(G.main->image)));
 
@@ -155,13 +155,13 @@ static PyObject *M_Image_Get(PyObject *self, PyObject *args)
               "couldn't create PyList"));
 
 		while (img_iter) {
-      pystr = PyString_FromString (img_iter->id.name+2);
+      pyobj = Image_CreatePyObject (img_iter);
 
-			if (!pystr)
+			if (!pyobj)
 				return (PythonReturnErrorObject (PyExc_MemoryError,
-									"couldn't create PyString"));
+									"couldn't create PyObject"));
 
-			PyList_SET_ITEM (img_list, index, pystr);
+			PyList_SET_ITEM (img_list, index, pyobj);
 
       img_iter = img_iter->id.next;
       index++;
@@ -251,12 +251,11 @@ static PyMethodDef BPy_Image_methods[] = {
 /*****************************************************************************/
 /* Python Image_Type callback function prototypes:                           */
 /*****************************************************************************/
-static void Image_Dealloc (BPy_Image *self);
-static int Image_SetAttr (BPy_Image *self, char *name, PyObject *v);
-static int Image_Compare (BPy_Image *a, BPy_Image *b);
-static int Image_Print (BPy_Image *self, FILE *fp, int flags);
-static PyObject *Image_GetAttr (BPy_Image *self, char *name);
-static PyObject *Image_Repr (BPy_Image *self);
+static void Image_dealloc (BPy_Image *self);
+static int Image_setAttr (BPy_Image *self, char *name, PyObject *v);
+static int Image_compare (BPy_Image *a, BPy_Image *b);
+static PyObject *Image_getAttr (BPy_Image *self, char *name);
+static PyObject *Image_repr (BPy_Image *self);
 
 /*****************************************************************************/
 /* Python Image_Type structure definition:                                   */
@@ -269,12 +268,12 @@ PyTypeObject Image_Type =
   sizeof (BPy_Image),                    /* tp_basicsize */
   0,                                     /* tp_itemsize */
   /* methods */
-  (destructor)Image_Dealloc,             /* tp_dealloc */
-  (printfunc)Image_Print,                /* tp_print */
-  (getattrfunc)Image_GetAttr,            /* tp_getattr */
-  (setattrfunc)Image_SetAttr,            /* tp_setattr */
-  (cmpfunc)Image_Compare,                /* tp_compare */
-  (reprfunc)Image_Repr,                  /* tp_repr */
+  (destructor)Image_dealloc,             /* tp_dealloc */
+  0,                                     /* tp_print */
+  (getattrfunc)Image_getAttr,            /* tp_getattr */
+  (setattrfunc)Image_setAttr,            /* tp_setattr */
+  (cmpfunc)Image_compare,                /* tp_compare */
+  (reprfunc)Image_repr,                  /* tp_repr */
   0,                                     /* tp_as_number */
   0,                                     /* tp_as_sequence */
   0,                                     /* tp_as_mapping */
@@ -287,11 +286,11 @@ PyTypeObject Image_Type =
 };
 
 /*****************************************************************************/
-/* Function:    ImageDealloc                                                 */
+/* Function:    Image_dealloc                                                */
 /* Description: This is a callback function for the BPy_Image type. It is    */
 /*              the destructor function.                                     */
 /*****************************************************************************/
-static void Image_Dealloc (BPy_Image *self)
+static void Image_dealloc (BPy_Image *self)
 {
   PyObject_DEL (self);
 }
@@ -403,12 +402,12 @@ static PyObject *Image_setYRep(BPy_Image *self, PyObject *args)
 }
 
 /*****************************************************************************/
-/* Function:    Image_GetAttr                                                */
+/* Function:    Image_getAttr                                                */
 /* Description: This is a callback function for the BPy_Image type. It is    */
 /*              the function that accesses BPy_Image member variables and    */
 /*              methods.                                                     */
 /*****************************************************************************/
-static PyObject *Image_GetAttr (BPy_Image *self, char *name)
+static PyObject *Image_getAttr (BPy_Image *self, char *name)
 {
   PyObject *attr = Py_None;
 
@@ -436,12 +435,12 @@ static PyObject *Image_GetAttr (BPy_Image *self, char *name)
 }
 
 /*****************************************************************************/
-/* Function:    Image_SetAttr                                                */
+/* Function:    Image_setAttr                                                */
 /* Description: This is a callback function for the BPy_Image type. It is the*/
 /*              function that changes Image Data members values. If this     */
 /*              data is linked to a Blender Image, it also gets updated.     */
 /*****************************************************************************/
-static int Image_SetAttr (BPy_Image *self, char *name, PyObject *value)
+static int Image_setAttr (BPy_Image *self, char *name, PyObject *value)
 {
   PyObject *valtuple; 
   PyObject *error = NULL;
@@ -479,36 +478,25 @@ static int Image_SetAttr (BPy_Image *self, char *name, PyObject *value)
 }
 
 /*****************************************************************************/
-/* Function:    Image_Compare                                                */
+/* Function:    Image_compare                                                */
 /* Description: This is a callback function for the BPy_Image type. It       */
 /*              compares two Image_Type objects. Only the "==" and "!="      */
 /*              comparisons are meaninful. Returns 0 for equality and -1 if  */
 /*              they don't point to the same Blender Image struct.           */
 /*              In Python it becomes 1 if they are equal, 0 otherwise.       */
 /*****************************************************************************/
-static int Image_Compare (BPy_Image *a, BPy_Image *b)
+static int Image_compare (BPy_Image *a, BPy_Image *b)
 {
 	Image *pa = a->image, *pb = b->image;
 	return (pa == pb) ? 0:-1;
 }
 
 /*****************************************************************************/
-/* Function:    Image_Print                                                  */
-/* Description: This is a callback function for the BPy_Image type. It       */
-/*              builds a meaninful string to 'print' image objects.          */
-/*****************************************************************************/
-static int Image_Print(BPy_Image *self, FILE *fp, int flags)
-{ 
-  fprintf(fp, "[Image \"%s\"]", self->image->id.name+2);
-  return 0;
-}
-
-/*****************************************************************************/
-/* Function:    Image_Repr                                                   */
+/* Function:    Image_repr                                                   */
 /* Description: This is a callback function for the BPy_Image type. It       */
 /*              builds a meaninful string to represent image objects.        */
 /*****************************************************************************/
-static PyObject *Image_Repr (BPy_Image *self)
+static PyObject *Image_repr (BPy_Image *self)
 {
-  return PyString_FromString(self->image->id.name+2);
+  return PyString_FromFormat("[Image \"%s\"]", self->image->id.name+2);
 }

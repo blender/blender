@@ -279,7 +279,6 @@ static PyObject *Lamp_getAttr (BPy_Lamp *lamp, char *name);
 static int Lamp_setAttr (BPy_Lamp *lamp, char *name, PyObject *v);
 static int Lamp_compare (BPy_Lamp *a, BPy_Lamp *b);
 static PyObject *Lamp_repr (BPy_Lamp *lamp);
-static int Lamp_print (BPy_Lamp *lamp, FILE *fp, int flags);
 
 
 #endif /* EXPP_LAMP_H */

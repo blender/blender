@@ -572,36 +572,6 @@ PyObject * RunPython(Text *text, PyObject *globaldict)
  * to speed-up execution if the user executes the script multiple times */
 
   if (!text->compiled) { /* if it wasn't already compiled, do it now */
-
-/*#ifdef BLENDER_SANDBOX_MODE
-
-// IGNORE THIS ALL FOR A WHILE, IT'S VERY INCOMPLETE AND WILL CHANGE
-// CONSIDERABLY, SOON.  The #ifdef won't stay, either.
-
-// The import statement is a security risk, so we don't allow it in
-// SANDBOX MODE.  Instead, we import all needed modules ourselves and
-// substitute all 'import' and '__import__' statements in the code by
-// '#mport' and '#_import__', resp., making their lines become comments
-// in Python (to let scripts run without import errors).
-
-// Disable importing only for the safest sandbox mode 
-
-    txt_move_bof(text, 0); // move to the beginning of the script
-
-// Search all occurrences of 'import' in the script
-// XXX Also check for from ... import ...
-    while (txt_find_string (text, "import")) {
-      char *line = text->sell->line;
-
-      if (text->curc > 1) // is it '__import__' ?
-        if (strncmp (&line[text->curc - 2],
-                     "__import__", 10) == 0) text->curc -= 2;
-
-      line[text->curc] = '#'; // change them to '#mport' or '#_import__'
-    }
-
-#endif */
-
     buf = txt_to_buf(text);
 
     text->compiled = Py_CompileString(buf, GetName(text), Py_file_input);
@@ -614,12 +584,6 @@ PyObject * RunPython(Text *text, PyObject *globaldict)
     }
 
   }
-
-/*#ifdef BLENDER_SANDBOX_MODE
-  //save the script as a dict entry and call the eval code for it
-  //then return
-  PyDict_SetItemString(globaldict, "_SB_code", text->compiled);
-#endif */
 
   return PyEval_EvalCode(text->compiled, globaldict, globaldict);
 }

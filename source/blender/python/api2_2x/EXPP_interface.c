@@ -44,6 +44,7 @@
 #include <DNA_scriptlink_types.h>
 #include <DNA_world_types.h>
 
+#include "EXPP_interface.h"
 #include "gen_utils.h"
 #include "modules.h"
 
@@ -54,13 +55,21 @@ void initBlenderApi2_2x (void)
   M_Blender_Init ();
 }
 
+void discardFromBDict (char *key)
+{
+  PyObject *oldval = PyDict_GetItemString(g_blenderdict, key);
+  if (oldval) { Py_DECREF(oldval); }
+}
+
 void clearScriptLinks (void)
 {
+    discardFromBDict ("bylink");
     Py_INCREF (Py_False);
     PyDict_SetItemString (g_blenderdict, "bylink", Py_False);
     /* Old API meant link could be unset. Or even valid when bylink is false.
      * This way, you can import it and check its value afterwards, ignoring
      * bylink. */
+    discardFromBDict ("link");
     Py_INCREF (Py_None);
     PyDict_SetItemString (g_blenderdict, "link", Py_None);
 }
@@ -112,10 +121,12 @@ ScriptLink * setScriptLinks(ID *id, short event)
       link = Py_None;
       break;
     default:
-      Py_INCREF(Py_None);
-      link = Py_None;
+      //Py_INCREF(Py_None);
+      //link = Py_None;
       return NULL;
   }
+
+  discardFromBDict ("bylink");
 
   if (scriptlink == NULL)
   {
@@ -133,7 +144,10 @@ TODO: Check this
     PyDict_SetItemString(g_blenderdict, "bylink", Py_True);
   }
 
+  discardFromBDict ("link");
   PyDict_SetItemString(g_blenderdict, "link", link);
+
+  discardFromBDict ("event");
   PyDict_SetItemString(g_blenderdict, "event",
       Py_BuildValue("s", event_to_name(event)));
 

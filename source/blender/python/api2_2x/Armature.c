@@ -312,24 +312,13 @@ static int Armature_setAttr (BPy_Armature *self, char *name, PyObject *value)
 }
 
 /*****************************************************************************/
-/* Function:    Armature_print                                               */
-/* Description: This is a callback function for the BPy_Armature type. It    */
-/*              builds a meaninful string to 'print' armature objects.       */
-/*****************************************************************************/
-static int Armature_print(BPy_Armature *self, FILE *fp, int flags)
-{ 
-  fprintf(fp, "[Armature \"%s\"]", self->armature->id.name+2);
-  return 0;
-}
-
-/*****************************************************************************/
 /* Function:    Armature_repr                                                */
 /* Description: This is a callback function for the BPy_Armature type. It    */
 /*              builds a meaninful string to represent armature objects.     */
 /*****************************************************************************/
 static PyObject *Armature_repr (BPy_Armature *self)
 {
-  return PyString_FromString(self->armature->id.name+2);
+  return PyString_FromFormat("[Armature \"%s\"]", self->armature->id.name+2);
 }
 
 /*****************************************************************************/

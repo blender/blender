@@ -34,3 +34,4 @@
 void initBlenderApi2_2x (void);
 void clearScriptLinks (void);
 ScriptLink * setScriptLinks(ID *id, short event);
+void discardFromBDict (char *key);

@@ -35,159 +35,159 @@
 /*****************************/
 /*    Vector Python Object   */
 /*****************************/
-#define VectorObject_Check(v)	((v)->ob_type == &vector_Type)
+#define VectorObject_Check(v) ((v)->ob_type == &vector_Type)
 
 static void Vector_dealloc(VectorObject *self)
 {
-	PyObject_DEL (self);
+  PyObject_DEL (self);
 }
 
 static PyObject *Vector_getattr(VectorObject *self, char *name)
 {
-	if (self->size==3 && ELEM3(name[0], 'x', 'y', 'z') && name[1]==0)
-		return PyFloat_FromDouble(self->vec[ name[0]-'x' ]);
+  if (self->size==3 && ELEM3(name[0], 'x', 'y', 'z') && name[1]==0)
+    return PyFloat_FromDouble(self->vec[ name[0]-'x' ]);
 
-	return EXPP_ReturnPyObjError(PyExc_AttributeError, "attribute not found");
+  return EXPP_ReturnPyObjError(PyExc_AttributeError, "attribute not found");
 }
 
 static int Vector_setattr(VectorObject *self, char *name, PyObject *v)
 {
-	float val;
-	
-	if (!PyArg_Parse(v, "f", &val))
-			return EXPP_ReturnIntError(PyExc_TypeError,
-								"expected float argument");
+  float val;
+  
+  if (!PyArg_Parse(v, "f", &val))
+      return EXPP_ReturnIntError(PyExc_TypeError,
+                "expected float argument");
 
-	if (self->size==3 && ELEM3(name[0], 'x', 'y', 'z') && name[1]==0)
-		self->vec[ name[0]-'x' ]= val;
-	else
-		return -1;
-		
-	return 0;
+  if (self->size==3 && ELEM3(name[0], 'x', 'y', 'z') && name[1]==0)
+    self->vec[ name[0]-'x' ]= val;
+  else
+    return -1;
+    
+  return 0;
 }
 
 /* Vectors Sequence methods */
 
 static int Vector_len(VectorObject *self) 
 {
-	return self->size;
+  return self->size;
 }
 
 static PyObject *Vector_item(VectorObject *self, int i)
 {
-	if (i < 0 || i >= self->size)
-			return EXPP_ReturnPyObjError (PyExc_IndexError,
-											"array index out of range");
+  if (i < 0 || i >= self->size)
+      return EXPP_ReturnPyObjError (PyExc_IndexError,
+                      "array index out of range");
 
-	return Py_BuildValue("f", self->vec[i]);
+  return Py_BuildValue("f", self->vec[i]);
 }
 
 static PyObject *Vector_slice(VectorObject *self, int begin, int end)
 {
-	PyObject *list;
-	int count;
-	
-	if (begin < 0) begin= 0;
-	if (end > self->size) end= self->size;
-	if (begin > end) begin= end;
+  PyObject *list;
+  int count;
+  
+  if (begin < 0) begin= 0;
+  if (end > self->size) end= self->size;
+  if (begin > end) begin= end;
 
-	list= PyList_New(end-begin);
+  list= PyList_New(end-begin);
 
-	for (count = begin; count < end; count++)
-		PyList_SetItem(list, count-begin, PyFloat_FromDouble(self->vec[count]));
+  for (count = begin; count < end; count++)
+    PyList_SetItem(list, count-begin, PyFloat_FromDouble(self->vec[count]));
 
-	return list;
+  return list;
 }
 
 static int Vector_ass_item(VectorObject *self, int i, PyObject *ob)
 {
-	if (i < 0 || i >= self->size)
-		return EXPP_ReturnIntError(PyExc_IndexError,
-										"array assignment index out of range");
+  if (i < 0 || i >= self->size)
+    return EXPP_ReturnIntError(PyExc_IndexError,
+                    "array assignment index out of range");
 
-	if (!PyNumber_Check(ob))
-		return EXPP_ReturnIntError(PyExc_IndexError,
-										"vector member must be a number");
+  if (!PyNumber_Check(ob))
+    return EXPP_ReturnIntError(PyExc_IndexError,
+                    "vector member must be a number");
 
-	self->vec[i]= PyFloat_AsDouble(ob);
+  self->vec[i]= PyFloat_AsDouble(ob);
 
-	return 0;
+  return 0;
 }
 
 static int Vector_ass_slice(VectorObject *self, int begin, int end, PyObject *seq)
 {
-	int count;
-	
-	if (begin < 0) begin= 0;
-	if (end > self->size) end= self->size;
-	if (begin > end) begin= end;
+  int count;
+  
+  if (begin < 0) begin= 0;
+  if (end > self->size) end= self->size;
+  if (begin > end) begin= end;
 
-	if (!PySequence_Check(seq))
-		return EXPP_ReturnIntError(PyExc_TypeError,
-										"illegal argument type for built-in operation");
+  if (!PySequence_Check(seq))
+    return EXPP_ReturnIntError(PyExc_TypeError,
+                    "illegal argument type for built-in operation");
 
-	if (PySequence_Length(seq) != (end - begin))
-		return EXPP_ReturnIntError(PyExc_TypeError,
-										"size mismatch in slice assignment");
+  if (PySequence_Length(seq) != (end - begin))
+    return EXPP_ReturnIntError(PyExc_TypeError,
+                    "size mismatch in slice assignment");
 
-	for (count = begin; count < end; count++) {
-		PyObject *ob = PySequence_GetItem(seq, count);
-		
-		if (!PyArg_Parse(ob, "f", &self->vec[count])) {
-			Py_DECREF(ob);
-			return -1;
-		}
-		
-		Py_DECREF(ob);
-	}
+  for (count = begin; count < end; count++) {
+    PyObject *ob = PySequence_GetItem(seq, count);
+    
+    if (!PyArg_Parse(ob, "f", &self->vec[count])) {
+      Py_DECREF(ob);
+      return -1;
+    }
+    
+    Py_DECREF(ob);
+  }
 
-	return 0;
+  return 0;
 }
 
 static PyObject *Vector_repr (VectorObject *self)
 {
-	return EXPP_tuple_repr((PyObject *) self, self->size);
+  return EXPP_tuple_repr((PyObject *) self, self->size);
 }
 
 static PySequenceMethods Vector_SeqMethods =
 {
-	(inquiry)			Vector_len,			          /* sq_length */
-	(binaryfunc)		0,				            	/* sq_concat */
-	(intargfunc)		0,					            /* sq_repeat */
-	(intargfunc)		Vector_item,		        /* sq_item */
-	(intintargfunc)		Vector_slice,	      	/* sq_slice */
-	(intobjargproc)		Vector_ass_item,	    /* sq_ass_item */
-	(intintobjargproc)	Vector_ass_slice,	  /* sq_ass_slice	*/
+  (inquiry)     Vector_len,               /* sq_length */
+  (binaryfunc)    0,                      /* sq_concat */
+  (intargfunc)    0,                      /* sq_repeat */
+  (intargfunc)    Vector_item,            /* sq_item */
+  (intintargfunc)   Vector_slice,         /* sq_slice */
+  (intobjargproc)   Vector_ass_item,      /* sq_ass_item */
+  (intintobjargproc)  Vector_ass_slice,   /* sq_ass_slice */
 };
 
 PyTypeObject vector_Type =
 {
-	PyObject_HEAD_INIT(NULL)
-	0,								           /*ob_size*/
-	"vector",						         /*tp_name*/
-	sizeof(VectorObject),			   /*tp_basicsize*/
-	0,								           /*tp_itemsize*/
-	/* methods */
-	(destructor)	Vector_dealloc,	/*tp_dealloc*/
-	(printfunc)		0,				      /*tp_print*/
-	(getattrfunc)	Vector_getattr,	/*tp_getattr*/
-	(setattrfunc)	Vector_setattr,	/*tp_setattr*/
-	0,								            /*tp_compare*/
-	(reprfunc)		Vector_repr,	  /*tp_repr*/
-	0,								            /*tp_as_number*/
-	&Vector_SeqMethods,			    	/*tp_as_sequence*/
+  PyObject_HEAD_INIT(NULL)
+  0,                           /*ob_size*/
+  "vector",                    /*tp_name*/
+  sizeof(VectorObject),        /*tp_basicsize*/
+  0,                           /*tp_itemsize*/
+  /* methods */
+  (destructor)  Vector_dealloc, /*tp_dealloc*/
+  (printfunc)   0,              /*tp_print*/
+  (getattrfunc) Vector_getattr, /*tp_getattr*/
+  (setattrfunc) Vector_setattr, /*tp_setattr*/
+  0,                            /*tp_compare*/
+  (reprfunc)    Vector_repr,    /*tp_repr*/
+  0,                            /*tp_as_number*/
+  &Vector_SeqMethods,           /*tp_as_sequence*/
 };
 
 PyObject *newVectorObject(float *vec, int size)
 {
-	VectorObject *self;
+  VectorObject *self;
 
   vector_Type.ob_type = &PyType_Type;
 
-	self= PyObject_NEW(VectorObject, &vector_Type);
-	
-	self->vec= vec;
-	self->size= size;
-	
-	return (PyObject*) self;
+  self= PyObject_NEW(VectorObject, &vector_Type);
+  
+  self->vec= vec;
+  self->size= size;
+  
+  return (PyObject*) self;
 }

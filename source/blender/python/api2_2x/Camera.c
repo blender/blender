@@ -50,7 +50,6 @@ PyTypeObject Camera_Type =
   0,                             /* tp_itemsize */
   /* methods */
   (destructor)Camera_dealloc,    /* tp_dealloc */
-//  (printfunc)Camera_print,       /* tp_print */
   0,                             /* tp_print */
 	(getattrfunc)Camera_getAttr,   /* tp_getattr */
   (setattrfunc)Camera_setAttr,   /* tp_setattr */
@@ -76,7 +75,6 @@ static PyObject *M_Camera_New(PyObject *self, PyObject *args, PyObject *kwords)
   Camera      *blcam; /* for actual Camera Data we create in Blender */
   char        buf[21];
 
-  printf ("In Camera_New()\n");
   /* Parse the arguments passed in by the Python interpreter */
   if (!PyArg_ParseTupleAndKeywords(args, kwords, "|ss", kwlist,
                                    &type_str, &name_str))
@@ -583,13 +581,7 @@ static int Camera_compare (BPy_Camera *a, BPy_Camera *b)
   Camera *pa = a->camera, *pb = b->camera;
   return (pa == pb) ? 0:-1;
 }
-/*
-static int Camera_print(BPy_Camera *self, FILE *fp, int flags)
-{ 
-  fprintf(fp, "[Camera \"%s\"]", self->camera->id.name+2);
-  return 0;
-}
-*/
+
 static PyObject *Camera_repr (BPy_Camera *self)
 {
   return PyString_FromFormat("[Camera \"%s\"]", self->camera->id.name+2);
