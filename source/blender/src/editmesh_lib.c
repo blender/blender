@@ -302,13 +302,35 @@ void EM_selectmode_set(void)
 			if(eed->f & SELECT) EM_select_edge(eed, 1);
 		/* selects faces based on edge status */
 		EM_selectmode_flush();
+		
 	}
 	else if(G.scene->selectmode == SCE_SELECT_FACE) {
 		/* deselect eges, and select again based on face select */
 		for(eed= em->edges.first; eed; eed= eed->next) EM_select_edge(eed, 0);
+		
 		for(efa= em->faces.first; efa; efa= efa->next) 
 			if(efa->f & SELECT) EM_select_face(efa, 1);
 	}
+}
+
+/* paranoia check, actually only for entering editmode. rule:
+- vertex hidden, always means edge is hidden too
+- edge hidden, always means face is hidden too
+- face hidden, dont change anything
+*/
+void EM_hide_reset(void)
+{
+	EditMesh *em = G.editMesh;
+	EditEdge *eed;
+	EditFace *efa;
+	
+	for(eed= em->edges.first; eed; eed= eed->next) 
+		if(eed->v1->h || eed->v2->h) eed->h |= 1;
+		
+	for(efa= em->faces.first; efa; efa= efa->next) 
+		if((efa->e1->h & 1) || (efa->e2->h & 1) || (efa->e3->h & 1) || (efa->e4 && (efa->e4->h & 1)))
+			efa->h= 1;
+		
 }
 
 

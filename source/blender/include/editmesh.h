@@ -63,6 +63,7 @@ extern struct EditEdge *findedgelist(struct EditVert *v1, struct EditVert *v2);
 
 /* ******************* editmesh_lib.c */
 extern void EM_fgon_flags(void);
+extern void EM_hide_reset(void);
 
 extern int faceselectedOR(EditFace *efa, int flag);
 extern int faceselectedAND(EditFace *efa, int flag);

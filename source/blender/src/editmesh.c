@@ -777,14 +777,16 @@ void make_editMesh()
 
 	end_editmesh_fastmalloc();	// resets global function pointers
 
-	if (mesh_uses_displist(me))
-		makeDispList(G.obedit);
-
 	/* this creates coherent selections. also needed for older files */
 	EM_selectmode_set();
-	
+	/* paranoia check to enforce hide rules */
+	EM_hide_reset();
+	/* sets helper flags which arent saved */
 	EM_fgon_flags();
+	
 	countall();
+	
+	if (mesh_uses_displist(me)) makeDispList(G.obedit);
 	
 	waitcursor(0);
 }

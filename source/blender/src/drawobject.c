@@ -1030,14 +1030,14 @@ void calc_meshverts_ext_f2(void)
 	EditVert *eve;
 	float mat[4][4];
 	
+	if(em->verts.first==0) return;
+	eve= em->verts.first;
+
 	/* matrices */
 	areawinset(curarea->win);
 	persp(PERSP_VIEW);
 	mymultmatrix(G.obedit->obmat);
 	
-	if(em->verts.first==0) return;
-	eve= em->verts.first;
-
 	MTC_Mat4SwapMat4(G.vd->persmat, mat);
 	mygetsingmatrix(G.vd->persmat);
 
@@ -2484,19 +2484,17 @@ static void draw_static_particle_system(Object *ob, PartEff *paf)
 
 static void glVertex_efa_edges(EditFace *efa)
 {
-	if(efa->e1->h==0) {
-		glVertex3fv(efa->v1->co);
-		glVertex3fv(efa->v2->co);
-	}
-	if(efa->e2->h==0) {
-		glVertex3fv(efa->v2->co);
-		glVertex3fv(efa->v3->co);
-	}
-	if(efa->e3->h==0) {
-		glVertex3fv(efa->e3->v1->co);
-		glVertex3fv(efa->e3->v2->co);
-	}
-	if(efa->e4 && efa->e4->h==0) {
+
+	glVertex3fv(efa->v1->co);
+	glVertex3fv(efa->v2->co);
+
+	glVertex3fv(efa->v2->co);
+	glVertex3fv(efa->v3->co);
+
+	glVertex3fv(efa->e3->v1->co);
+	glVertex3fv(efa->e3->v2->co);
+
+	if(efa->e4) {
 		glVertex3fv(efa->e4->v1->co);
 		glVertex3fv(efa->e4->v2->co);
 	}

@@ -430,6 +430,12 @@ static HyperMesh *hypermesh_from_editmesh(EditMesh *em, int subdivLevels) {
 	float creasefac= (float)subdivLevels;
 	int flag;
 
+	/* hide flags rule: 
+		- face hidden, not do. is easy
+		- edge hidden, always means face is hidden too
+		- vertex hidden, always means edge is hidden too
+	*/
+	
 		/* we only add vertices with edges, 'f1' is a free flag */
 		/* added: check for hide flag in vertices */
 	for (ev= em->verts.first; ev; ev= ev->next) {
@@ -462,22 +468,18 @@ static HyperMesh *hypermesh_from_editmesh(EditMesh *em, int subdivLevels) {
 	}
 	for (ef= em->faces.first; ef; ef= ef->next) {
 		if(ef->h==0) {
-			// this extra check needed, hide flags can be inconsistant
-			if((ef->e1->h & 1) || (ef->e2->h & 1) || (ef->e3->h & 1) || (ef->e4 && (ef->e4->h & 1)));
-			else {
-				int nverts= ef->v4?4:3;
-				HyperVert *verts[4];
-				HyperFace *f;
-				
-				verts[0]= (HyperVert*) ef->v1->prev;
-				verts[1]= (HyperVert*) ef->v2->prev;
-				verts[2]= (HyperVert*) ef->v3->prev;
-				if (nverts>3)
-					verts[3]= (HyperVert*) ef->v4->prev;
-		
-				f= hypermesh_add_face(hme, verts, nverts, DR_OPTIM);
-				f->orig.ef= ef;
-			}
+			int nverts= ef->v4?4:3;
+			HyperVert *verts[4];
+			HyperFace *f;
+			
+			verts[0]= (HyperVert*) ef->v1->prev;
+			verts[1]= (HyperVert*) ef->v2->prev;
+			verts[2]= (HyperVert*) ef->v3->prev;
+			if (nverts>3)
+				verts[3]= (HyperVert*) ef->v4->prev;
+	
+			f= hypermesh_add_face(hme, verts, nverts, DR_OPTIM);
+			f->orig.ef= ef;
 		}
 	}
 

@@ -713,8 +713,11 @@ void hide_mesh(int swap)
 	
 	if(G.obedit==0) return;
 
-	/* hide happens on least dominant select mode */
-	
+	/* hide happens on least dominant select mode, and flushes up, not down! (helps preventing errors in subsurf) */
+	/*  - vertex hidden, always means edge is hidden too
+		- edge hidden, always means face is hidden too
+		- face hidden, only set face hide
+	*/
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 		for(eve= em->verts.first; eve; eve= eve->next) {
 			if((eve->f & SELECT)!=swap) {
@@ -729,15 +732,13 @@ void hide_mesh(int swap)
 				eed->h |= 1;
 				eed->f &= ~SELECT;
 			}
-			else eed->h= 0;
 		}
 	
 		for(efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->v1->h || efa->v2->h || efa->v3->h || (efa->v4 && efa->v4->h)) {
+			if(efa->e1->h || efa->e2->h || efa->e3->h || (efa->e4 && efa->e4->h)) {
 				efa->h= 1;
 				efa->f &= ~SELECT;
 			}
-			else efa->h= 0;
 		}
 	}
 	else if(G.scene->selectmode & SCE_SELECT_EDGE) {
@@ -745,7 +746,6 @@ void hide_mesh(int swap)
 		for(eed= em->edges.first; eed; eed= eed->next) {
 			if((eed->f & SELECT)!=swap) {
 				eed->h |= 1;
-				eed->v1->h= eed->v2->h= 1;
 				EM_select_edge(eed, 0);
 			}
 		}
@@ -755,7 +755,6 @@ void hide_mesh(int swap)
 				efa->h= 1;
 				efa->f &= ~SELECT;
 			}
-			else efa->h= 0;
 		}
 	}
 	else {
@@ -763,15 +762,6 @@ void hide_mesh(int swap)
 		for(efa= em->faces.first; efa; efa= efa->next) {
 			if((efa->f & SELECT)!=swap) {
 				efa->h= 1;
-				
-				efa->e1->h |= 1;
-				efa->e2->h |= 1;
-				efa->e3->h |= 1;
-				if(efa->e4) efa->e4->h |= 1;
-				
-				efa->v1->h= efa->v2->h= efa->v3->h= 1;
-				if(efa->v4) efa->v4->h= 1;
-				
 				EM_select_face(efa, 0);
 			}
 		}
