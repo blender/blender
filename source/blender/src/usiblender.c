@@ -125,6 +125,104 @@
 
 /***/
 
+/* patching UserDef struct, set globals for UI stuff */
+static void init_userdef_file(void)
+{
+	
+	BIF_InitTheme();	// sets default again
+	
+	mainwindow_set_filename_to_title("");	// empty string re-initializes title to "Blender"
+	countall();
+	G.save_over = 0;	// start with save preference untitled.blend
+	
+	/*  disable autoplay in .B.blend... */
+	G.fileflags &= ~G_FILE_AUTOPLAY;
+	
+	/* the UserDef struct is not corrected with do_versions() .... ugh! */
+	if(U.wheellinescroll == 0) U.wheellinescroll = 3;
+	if(U.menuthreshold1==0) {
+		U.menuthreshold1= 5;
+		U.menuthreshold2= 2;
+	}
+	if(U.tb_leftmouse==0) {
+		U.tb_leftmouse= 5;
+		U.tb_rightmouse= 5;
+	}
+	if(U.mixbufsize==0) U.mixbufsize= 2048;
+	if (BLI_streq(U.tempdir, "/")) {
+		char *tmp= getenv("TEMP");
+		
+		strcpy(U.tempdir, tmp?tmp:"/tmp/");
+	}
+	if (U.savetime <= 0) {
+		U.savetime = 1;
+		error(".B.blend is buggy, please consider removing it.\n");
+	}
+	if (G.main->versionfile <= 191) {
+		strcpy(U.plugtexdir, U.textudir);
+		strcpy(U.sounddir, "/");
+	}
+	
+	/* patch to set Dupli Armature */
+	if (G.main->versionfile < 220) {
+		U.dupflag |= USER_DUP_ARM;
+	}
+	
+	/* userdef new option */
+	if (G.main->versionfile <= 222) {
+		U.vrmlflag= USER_VRML_LAYERS;
+	}
+	
+	/* added seam, normal color, undo */
+	if (G.main->versionfile <= 234) {
+		bTheme *btheme;
+		
+		U.uiflag |= USER_GLOBALUNDO;
+		
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* check for alpha==0 is safe, then color was never set */
+			if(btheme->tv3d.edge_seam[3]==0) {
+				btheme->tv3d.edge_seam[0]= 230;
+				btheme->tv3d.edge_seam[1]= 150;
+				btheme->tv3d.edge_seam[2]= 50;
+				btheme->tv3d.edge_seam[3]= 255;
+			}
+			if(btheme->tv3d.normal[3]==0) {
+				btheme->tv3d.normal[0]= 0x22;
+				btheme->tv3d.normal[1]= 0xDD;
+				btheme->tv3d.normal[2]= 0xDD;
+				btheme->tv3d.normal[3]= 255;
+			}
+			if(btheme->tv3d.face_dot[3]==0) {
+				btheme->tv3d.face_dot[0]= 255;
+				btheme->tv3d.face_dot[1]= 138;
+				btheme->tv3d.face_dot[2]= 48;
+				btheme->tv3d.face_dot[3]= 255;
+				btheme->tv3d.facedot_size= 4;
+			}
+		}
+	}
+	if (G.main->versionfile <= 235) {
+		/* illegal combo... */
+		if (U.flag & USER_LMOUSESELECT) 
+			U.flag &= ~USER_TWOBUTTONMOUSE;
+	}
+	
+	if (U.undosteps==0) U.undosteps=32;
+	
+	reset_autosave();
+	
+#ifdef INTERNATIONAL
+	read_languagefile();
+	
+	if(U.transopts & USER_DOTRANSLATE)
+		start_interface_font();
+	else
+		G.ui_international = FALSE;
+#endif // INTERNATIONAL
+	
+}
+
 void BIF_read_file(char *name)
 {
 	extern short winqueue_break; /* editscreen.c */
@@ -137,15 +235,16 @@ void BIF_read_file(char *name)
 		/* we didn't succeed, now try to read Blender file
 		   calls readfile, calls toolbox, throws one more,
 		   on failure calls the stream, and that is stubbed.... */
-		BKE_read_file(name, NULL);
+		int retval= BKE_read_file(name, NULL);
 
-			
 		mainwindow_set_filename_to_title(G.main->name);
 		countall();
 		sound_initialize_sounds();
 
 		winqueue_break= 1;	/* leave queues everywhere */
 
+		if(retval==2) init_userdef_file();	// in case a userdef is read from regular .blend
+		
 		undo_editmode_clear();
 		BKE_reset_undo();
 		BKE_write_undo("original");	/* save current state */
@@ -153,6 +252,7 @@ void BIF_read_file(char *name)
 	else BIF_undo_push("Import file");
 }
 
+/* only here settings for fullscreen */
 int BIF_read_homefile(void)
 {
 	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
@@ -160,15 +260,12 @@ int BIF_read_homefile(void)
 	int success;
 #ifdef _WIN32	// FULLSCREEN
 	static int screenmode = -1;
-
+	
 	screenmode = U.uiflag & USER_FLIPFULLSCREEN;
 #endif
-
+	
 	BLI_make_file_string(G.sce, tstr, home, ".B.blend");
 	strcpy(scestr, G.sce);	/* temporal store */
-
-	/* only here free userdef themes... */
-	BLI_freelistN(&U.themes);
 	
 	/* prevent loading no UI */
 	G.fileflags &= ~G_FILE_NO_UI;
@@ -179,117 +276,36 @@ int BIF_read_homefile(void)
 		success = BKE_read_file_from_memory(datatoc_B_blend, datatoc_B_blend_size, NULL);
 	}
 	strcpy(G.sce, scestr);
-
-	BIF_InitTheme();	// sets default again
-
-	if (success) {
-		mainwindow_set_filename_to_title(tstr);
-		countall();
-		G.save_over = 0;
-
-		/*  disable autoplay in .B.blend... */
-		G.fileflags &= ~G_FILE_AUTOPLAY;
-
-#ifdef _WIN32	// FULLSCREEN
-		/* choose window startmode */
-		switch (G.windowstate){
-			case G_WINDOWSTATE_USERDEF: /* use the usersetting */
-				break;
-			case G_WINDOWSTATE_FULLSCREEN: /* force fullscreen */
-				U.uiflag |= USER_FLIPFULLSCREEN;
-				break;
-			case G_WINDOWSTATE_BORDER: /* force with borders */
-				U.uiflag &= ~USER_FLIPFULLSCREEN;
-		}
-
-		if(screenmode != (U.uiflag & USER_FLIPFULLSCREEN)) {
-			mainwindow_toggle_fullscreen ((U.uiflag & USER_FLIPFULLSCREEN));
-			screenmode = (U.uiflag & USER_FLIPFULLSCREEN);
-		}
-#endif
-
-		if (BLI_streq(U.tempdir, "/")) {
-			char *tmp= getenv("TEMP");
-
-			strcpy(U.tempdir, tmp?tmp:"/tmp/");
-		}
-		if (U.savetime <= 0) {
-			U.savetime = 1;
-			error("%s is buggy, please consider removing it.\n",
-				tstr);
-		}
-		if (G.main->versionfile <= 191) {
-			strcpy(U.plugtexdir, U.textudir);
-			strcpy(U.sounddir, "/");
-		}
-
-			/* patch to set Dupli Armature */
-		if (G.main->versionfile < 220) {
-			U.dupflag |= USER_DUP_ARM;
-		}
-
-			/* userdef new option */
-		if (G.main->versionfile <= 222) {
-			U.vrmlflag= USER_VRML_LAYERS;
-		}
-
-			/* added seam, normal color, undo */
-		if (G.main->versionfile <= 234) {
-			bTheme *btheme;
-			
-			U.uiflag |= USER_GLOBALUNDO;
-			
-			for(btheme= U.themes.first; btheme; btheme= btheme->next) {
-				/* check for alpha==0 is safe, then color was never set */
-				if(btheme->tv3d.edge_seam[3]==0) {
-					btheme->tv3d.edge_seam[0]= 230;
-					btheme->tv3d.edge_seam[1]= 150;
-					btheme->tv3d.edge_seam[2]= 50;
-					btheme->tv3d.edge_seam[3]= 255;
-				}
-				if(btheme->tv3d.normal[3]==0) {
-					btheme->tv3d.normal[0]= 0x22;
-					btheme->tv3d.normal[1]= 0xDD;
-					btheme->tv3d.normal[2]= 0xDD;
-					btheme->tv3d.normal[3]= 255;
-				}
-				if(btheme->tv3d.face_dot[3]==0) {
-					btheme->tv3d.face_dot[0]= 255;
-					btheme->tv3d.face_dot[1]= 138;
-					btheme->tv3d.face_dot[2]= 48;
-					btheme->tv3d.face_dot[3]= 255;
-					btheme->tv3d.facedot_size= 4;
-				}
-			}
-		}
-		if (G.main->versionfile <= 235) {
-			/* illegal combo... */
-			if (U.flag & USER_LMOUSESELECT) 
-				U.flag &= ~USER_TWOBUTTONMOUSE;
-		}
-		
-		space_set_commmandline_options();
-
-		if (U.undosteps==0) U.undosteps=32;
-		undo_editmode_clear();
-		BKE_reset_undo();
-		BKE_write_undo("original");	/* save current state */
-
-		reset_autosave();
-
-#ifdef INTERNATIONAL
-		read_languagefile();
 	
-		if(U.transopts & USER_DOTRANSLATE)
-			start_interface_font();
-		else
-			G.ui_international = FALSE;
-#endif // INTERNATIONAL
-
+#ifdef _WIN32	// FULLSCREEN
+	/* choose window startmode */
+	switch (G.windowstate){
+		case G_WINDOWSTATE_USERDEF: /* use the usersetting */
+			break;
+		case G_WINDOWSTATE_FULLSCREEN: /* force fullscreen */
+			U.uiflag |= USER_FLIPFULLSCREEN;
+			break;
+		case G_WINDOWSTATE_BORDER: /* force with borders */
+			U.uiflag &= ~USER_FLIPFULLSCREEN;
 	}
+	
+	if(screenmode != (U.uiflag & USER_FLIPFULLSCREEN)) {
+		mainwindow_toggle_fullscreen ((U.uiflag & USER_FLIPFULLSCREEN));
+		screenmode = (U.uiflag & USER_FLIPFULLSCREEN);
+	}
+#endif
+	
+	space_set_commmandline_options();
+	
+	init_userdef_file();
 
+	undo_editmode_clear();
+	BKE_reset_undo();
+	BKE_write_undo("original");	/* save current state */
+	
 	return success;
 }
+
 
 static void get_autosave_location(char buf[FILE_MAXDIR+FILE_MAXFILE])
 {

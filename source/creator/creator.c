@@ -72,8 +72,6 @@
 #include "BLO_writefile.h"
 #include "BLO_readfile.h"
 
-#include "BSE_headerbuttons.h" // for BIF_read_homefile
-
 #include "BDR_drawmesh.h"
 
 #include "IMB_imbuf.h"	// for quicktime_init

@@ -303,20 +303,13 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 	
 	G.main= bfd->main;
 	if (bfd->user) {
+		
+		/* only here free userdef themes... */
+		BLI_freelistN(&U.themes);
+
 		U= *bfd->user;
 		MEM_freeN(bfd->user);
 		
-		/* the UserDef struct is not corrected with do_versions() .... ugh! */
-		if(U.wheellinescroll == 0) U.wheellinescroll = 3;
-		if(U.menuthreshold1==0) {
-			U.menuthreshold1= 5;
-			U.menuthreshold2= 2;
-		}
-		if(U.tb_leftmouse==0) {
-			U.tb_leftmouse= 5;
-			U.tb_rightmouse= 5;
-		}
-		if(U.mixbufsize==0) U.mixbufsize= 2048;
 	}
 	
 	/* case G_FILE_NO_UI or no screens in file */
@@ -374,16 +367,24 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 	MEM_freeN(bfd);
 }
 
+/* returns:
+   0: no load file
+   1: OK
+   2: OK, and with new user settings
+*/
+
 int BKE_read_file(char *dir, void *type_r) 
 {
 	BlendReadError bre;
 	BlendFileData *bfd;
+	int retval= 1;
 	
 	if (!G.background)
 		waitcursor(1);
 		
 	bfd= BLO_read_from_file(dir, &bre);
 	if (bfd) {
+		if(bfd->user) retval= 2;
 		if (type_r)
 			*((BlenFileType*)type_r)= bfd->type;
 		
@@ -395,7 +396,7 @@ int BKE_read_file(char *dir, void *type_r)
 	if (!G.background)
 		waitcursor(0);
 	
-	return (bfd?1:0);
+	return (bfd?retval:0);
 }
 
 int BKE_read_file_from_memory(char* filebuf, int filelength, void *type_r)
