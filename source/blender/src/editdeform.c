@@ -204,48 +204,6 @@ void create_dverts(Mesh *me)
 	}
 }
 
-int  get_defgroup_num (Object *ob, bDeformGroup	*dg)
-{
-	/* Fetch the location of this deform group
-	 * within the linked list of deform groups.
-	 * (this number is stored in the deform
-	 * weights of the deform verts to link them
-	 * to this deform group) deform deform
-	 * deform blah blah deform
-	 */
-
-	bDeformGroup	*eg;
-	int def_nr;
-
-	eg = ob->defbase.first;
-	def_nr = 0;
-
-	/* loop through all deform groups
-	 */
-	while (eg != NULL){
-
-		/* if the current deform group is
-		 * the one we are after, return
-		 * def_nr
-		 */
-		if (eg == dg){
-			break;
-		}
-		++def_nr;
-		eg = eg->next;
-	}
-
-	/* if there was no deform group found then
-	 * return -1 (should set up a nice symbolic
-	 * constant for this)
-	 */
-	if (eg == NULL) return -1;
-	
-	return def_nr;
-    
-}
-
-
 void remove_vert_def_nr (Object *ob, int def_nr, int vertnum)
 {
 	/* This routine removes the vertex from the deform
@@ -589,22 +547,6 @@ void verify_defgroups (Object *ob)
 		break;
 	}
 }
-
-bDeformGroup *get_named_vertexgroup(Object *ob, char *name)
-{
-	/* return a pointer to the deform group with this name
-	 * or return NULL otherwise.
-	 */
-	bDeformGroup *curdef;
-
-	for (curdef = ob->defbase.first; curdef; curdef=curdef->next){
-		if (!strcmp(curdef->name, name)){
-			return curdef;
-		}
-	}
-	return NULL;
-}
-
 
 void unique_vertexgroup_name (bDeformGroup *dg, Object *ob)
 {

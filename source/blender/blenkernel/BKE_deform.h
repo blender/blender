@@ -45,6 +45,8 @@ struct bDeformGroup;
 void copy_defgroups (struct ListBase *lb1, struct ListBase *lb2);
 struct bDeformGroup* copy_defgroup (struct bDeformGroup *ingroup);
 void color_temperature (float input, unsigned char *r, unsigned char *g, unsigned char *b);
+struct bDeformGroup *get_named_vertexgroup (Object *ob, char *name);
+int  get_defgroup_num (struct Object *ob, struct bDeformGroup   *dg);
 
 void hook_object_deform(struct Object *ob, int index, float *vec);
 
