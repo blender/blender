@@ -41,6 +41,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"	/* linknode */
+#include "BLI_winstuff.h"
 
 #include "BIF_language.h"
 #include "BIF_space.h"		/* allqueue() */
@@ -174,11 +175,17 @@ void start_interface_font(void) {
 		U.fontsize= 11;
 		U.encoding= 0;
 
-#ifdef __APPLE__
+#if defined (__APPLE__)
 		bundlepath = BLI_getbundle();
 		strcpy(tstr, bundlepath);
 		strcat(tstr, "/Contents/Resources/");
 		strcat(tstr, ".bfont.ttf");
+		result = FTF_SetFont(tstr, U.fontsize);
+
+		sprintf(U.fontname, ".blender/.bfont.ttf\0");
+#elif defined (WIN32)
+		BLI_getInstallationDir(tstr);
+		strcat(tstr, "/.blender/.bfont.ttf\0");
 		result = FTF_SetFont(tstr, U.fontsize);
 
 		sprintf(U.fontname, ".blender/.bfont.ttf\0");
@@ -273,10 +280,14 @@ int read_languagefile(void) {
 	if(lines == NULL) {
 		/* If not found in home, try current dir 
 		 * (Resources folder of app bundle on OS X) */
-#ifdef __APPLE__
+#if defined (__APPLE__)
 		char *bundlePath = BLI_getbundle();
 		strcpy(name, bundlePath);
 		strcat(name, "/Contents/Resources/.Blanguages");
+#elif defined (WIN32)
+		/* Check the installation dir in Windows */
+		BLI_getInstallationDir(name);
+		strcat(name,"/.blender/.Blanguages");
 #else
 		strcpy(name, ".blender/.Blanguages");
 #endif
@@ -287,8 +298,8 @@ int read_languagefile(void) {
 			strcpy(name, ".Blanguages");
 			lines= BLI_read_file_as_lines(name);
 			if(lines == NULL) {
-				error("File \".Blanguages\" not found");
-				return 0;
+					error("File \".Blanguages\" not found");
+					return 0;
 			}
 		}
 	}

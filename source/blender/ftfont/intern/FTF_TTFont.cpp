@@ -43,8 +43,6 @@
 #include "BKE_utildefines.h"
 #endif
 
-#include "BLI_blenlib.h"
-
 #define DOMAIN_NAME "blender"
 
 #define SYSTEM_ENCODING_DEFAULT "UTF-8"
@@ -117,6 +115,13 @@ FTF_TTFont::FTF_TTFont(void)
 		BLI_make_file_string("/", messagepath, BLI_gethome(), ".blender/locale");
 		
 		if(BLI_exist(messagepath) == NULL) {	// locale not in home dir
+
+#ifdef WIN32 
+			/* message catalogs are stored in the installation dir */
+			BLI_getInstallationDir(messagepath);
+			strcat(messagepath, "/.blender/locale");
+			if(BLI_exist(messagepath) == NULL) {
+#endif
 #ifdef __APPLE__
 			/* message catalogs are stored inside the application bundle */
 			bundlepath = BLI_getbundle();
@@ -129,6 +134,9 @@ FTF_TTFont::FTF_TTFont(void)
 				if(BLI_exist(messagepath) == NULL) {	// locale not in LOCALEDIR
 					strcpy(messagepath, "message");		// old compatibility as last
 				}
+#ifdef WIN32
+			}
+#endif
 #ifdef __APPLE__
 			}
 #endif

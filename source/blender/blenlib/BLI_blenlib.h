@@ -211,6 +211,10 @@ void BLI_where_am_i(char *fullname, char *name);
 #ifdef __APPLE__
 char* BLI_getbundle(void);
 #endif
+
+#ifdef WIN32
+int BLI_getInstallationDir( char * str );
+#endif
 		
 /* BLI_storage.h */
 int    BLI_filesize(int file);

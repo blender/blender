@@ -46,15 +46,53 @@
 #include "BLI_util.h"
 #include "BLI_winstuff.h"
 
+#include "BKE_utildefines.h" /* FILE_MAXDIR + FILE_MAXFILE */
+
+int BLI_getInstallationDir( char * str ) {
+	LONG lresult;
+	HKEY hkey = 0;
+	LONG type;
+	char buffer[FILE_MAXDIR+FILE_MAXFILE];
+	DWORD size;
+	
+	size = sizeof(buffer);
+
+	lresult = RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\BlenderFoundation", 0, 
+		KEY_ALL_ACCESS, &hkey);
+
+	if (lresult == ERROR_SUCCESS) {
+		lresult = RegQueryValueEx(hkey, "Install_Dir", 0, NULL, (LPBYTE)buffer, &size);
+		strcpy(str, buffer);
+		RegCloseKey(hkey);
+		return 1;
+	}
+	else
+		return 0;
+}
+
 
 void RegisterBlendExtension(char * str) {
 	LONG lresult;
 	HKEY hkey = 0;
 	DWORD dwd = 0;
+	char *dir;
 	char buffer[128];
+	
+	/* Add installation dir to registry --aphex */
+
+	strncpy(dir, str, strlen(str)-11);
+
+	lresult = RegCreateKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\BlenderFoundation", 0, 
+		"", REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
+
+	if (lresult == ERROR_SUCCESS) {
+		if (dwd != REG_OPENED_EXISTING_KEY)
+			lresult = RegSetValueEx(hkey, "Install_Dir", 0, REG_SZ, dir, strlen(dir)+1);
+		RegCloseKey(hkey);
+	}
 
 	lresult = RegCreateKeyEx(HKEY_CLASSES_ROOT, "blendfile\\shell\\open\\command", 0,
-		"", REG_OPTION_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
+		"", REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
 
 	if (lresult == ERROR_SUCCESS) {
 		sprintf(buffer, "\"%s\" \"%%1\"", str);
@@ -63,7 +101,7 @@ void RegisterBlendExtension(char * str) {
 	}
 
 	lresult = RegCreateKeyEx(HKEY_CLASSES_ROOT, "blendfile\\DefaultIcon", 0,
-		"", REG_OPTION_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
+		"", REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
 
 	if (lresult == ERROR_SUCCESS) {
 		sprintf(buffer, "\"%s\",1", str);
@@ -72,7 +110,7 @@ void RegisterBlendExtension(char * str) {
 	}
 
 	lresult = RegCreateKeyEx(HKEY_CLASSES_ROOT, ".blend", 0,
-		"", REG_OPTION_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
+		"", REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
 
 	if (lresult == ERROR_SUCCESS) {
 		sprintf(buffer, "%s", "blendfile");

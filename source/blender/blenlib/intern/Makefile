@@ -51,6 +51,8 @@ CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 # path to freetype font stuff
 CPPFLAGS += -I$(NAN_FREETYPE)/include
 CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
+# path to blenkernel
+CPPFLAGS += -I$(SRCHOME)/blender/blenkernel
 CPPFLAGS += -I../../include/
 
 ifdef WITH_FREETYPE2
