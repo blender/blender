@@ -36,12 +36,17 @@ SOURCEDIR = extern
 DIR = $(OCGDIR)/extern
 DIRS = ode
 
+TARGET =
+ifneq ($(OS),irix)
+  TARGET=solid
+endif
+
 include nan_subdirs.mk
 
 .PHONY: qhull solid solid_with_qhull
 
 # we're not quite ready with the 'all' target just yet:
-install all:: solid
+install all:: $(TARGET)
 	@for i in $(DIRS); do \
 	    echo "====> $(MAKE) install in $(SOURCEDIR)/$$i" ;\
 	    $(MAKE) -C $$i install || exit 1; \
