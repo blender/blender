@@ -237,7 +237,7 @@ used elsewhere by toolbox.c, so it can be considered 'internal' somewhat.
 void uiBlockSetFlag(uiBlock *block, int flag)	/* block types, can be 'OR'ed */
 	UI_BLOCK_LOOP		1		a sublooping block, drawn in frontbuffer, i.e. menus
 	UI_BLOCK_REDRAW		2		block needs a redraw
-	UI_BLOCK_RET_1		4		if block is closed, returns 1 if it was closed "OK"
+	UI_BLOCK_RET_1		4		block is closed when an event happens with value '1' (press key, not for mouse)
 	UI_BLOCK_BUSY		8		internal
 	UI_BLOCK_NUMSELECT	16		keys 1-2-...-9-0 can be used to select items
 	UI_BLOCK_ENTER_OK	32		enter key closes block with "OK"
