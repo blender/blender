@@ -43,6 +43,9 @@ struct DerivedMesh {
 	int (*getNumVerts)(DerivedMesh *dm);
 	int (*getNumFaces)(DerivedMesh *dm);
 
+			/* Convert to new DispListMesh, should be free'd by caller */
+	struct DispListMesh* (*convertToDispListMesh)(DerivedMesh *dm);
+
 	/* Drawing Operations */
 
 			/* Draw all vertices as bgl points (no options) */

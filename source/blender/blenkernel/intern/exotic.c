@@ -118,6 +118,7 @@
 /*  #include "BKE_error.h" */
 #include "BKE_screen.h"
 #include "BKE_displist.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_curve.h"
 
 #include "BPY_extern.h"
@@ -2552,31 +2553,13 @@ static int write_object_stl(FILE *fpSTL, Object *ob, Mesh *me)
 	int  numfacets = 0;
 
 	if(mesh_uses_displist(me)) {
-		ListBase *dlbase=0;
-		DispList *dl;
-		float *data;
-		dlbase = &me->disp;
+		DerivedMesh *dm = mesh_get_derived(ob);
+		DispListMesh *dlm = dm->convertToDispListMesh(dm);
 
-		if (dlbase==0) return 0;
+		numfacets += write_displistmesh_stl(fpSTL, ob, dlm);
 
-		dl= dlbase->first;
-		while(dl) {
-			data= dl->verts;
-	
-			switch(dl->type) {
-				case DL_MESH:
-					numfacets 
-						+= write_displistmesh_stl(fpSTL, ob, dl->mesh);
-					break;
-#if 0
-				default:
-					numfacets 
-						+= write_displist_stl(fpSTL, ob, dl);
-					break;
-#endif
-			}
-			dl= dl->next;
-		}
+		displistmesh_free(dlm);
+		dm->release(dm);
 	}
 	else {
 		numfacets += write_mesh_stl(fpSTL, ob, me);

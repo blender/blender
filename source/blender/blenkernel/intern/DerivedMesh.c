@@ -375,12 +375,21 @@ static int meshDM_getNumFaces(DerivedMesh *dm)
 	return me->totface;
 }
 
+static DispListMesh *meshDM_convertToDispListMesh(DerivedMesh *dm)
+{
+	MeshDerivedMesh *mdm= (MeshDerivedMesh*) dm;
+
+	return displistmesh_from_mesh(mdm->ob->data, mdm->extverts);
+}
+
+
 static DerivedMesh *getMeshDerivedMesh(Object *ob, float *extverts, float *nors)
 {
 	MeshDerivedMesh *mdm = MEM_mallocN(sizeof(*mdm), "dm");
 
 	mdm->dm.getNumVerts = meshDM_getNumVerts;
 	mdm->dm.getNumFaces = meshDM_getNumFaces;
+	mdm->dm.convertToDispListMesh = meshDM_convertToDispListMesh;
 
 	mdm->dm.drawVerts = meshDM_drawVerts;
 	mdm->dm.drawMappedVertsEM = NULL;
@@ -510,12 +519,20 @@ static int emDM_getNumFaces(DerivedMesh *dm)
 	return BLI_countlist(&emdm->em->faces);
 }
 
+static DispListMesh *emDM_convertToDispListMesh(DerivedMesh *dm)
+{
+	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+
+	return displistmesh_from_editmesh(emdm->em);
+}
+
 static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em)
 {
 	EditMeshDerivedMesh *emdm = MEM_mallocN(sizeof(*emdm), "dm");
 
 	emdm->dm.getNumVerts = emDM_getNumVerts;
 	emdm->dm.getNumFaces = emDM_getNumFaces;
+	emdm->dm.convertToDispListMesh = emDM_convertToDispListMesh;
 
 	emdm->dm.drawVerts = NULL;
 	emdm->dm.drawMappedVertsEM = emDM_drawMappedVertsEM;
@@ -817,12 +834,20 @@ static int ssDM_getNumFaces(DerivedMesh *dm)
 	return ssdm->dlm->totface;
 }
 
+static DispListMesh *ssDM_convertToDispListMesh(DerivedMesh *dm)
+{
+	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
+
+	return displistmesh_copy(ssdm->dlm);
+}
+
 static DerivedMesh *getSSDerivedMesh(EditMesh *em, DispListMesh *dlm, float *nors)
 {
 	SSDerivedMesh *ssdm = MEM_mallocN(sizeof(*ssdm), "dm");
 
 	ssdm->dm.getNumVerts = ssDM_getNumVerts;
 	ssdm->dm.getNumFaces = ssDM_getNumFaces;
+	ssdm->dm.convertToDispListMesh = ssDM_convertToDispListMesh;
 
 	ssdm->dm.drawVerts = ssDM_drawVerts;
 	ssdm->dm.drawMappedVertsEM = ssDM_drawMappedVertsEM;

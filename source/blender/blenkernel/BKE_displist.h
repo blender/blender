@@ -110,6 +110,7 @@ void displistmesh_to_mesh(DispListMesh *dlm, struct Mesh *me);
 
 DispListMesh *displistmesh_from_editmesh(struct EditMesh *em);
 DispListMesh *displistmesh_from_mesh(struct Mesh *mesh, float *extverts);
+DispListMesh *displistmesh_copy(DispListMesh *odlm);
 
 /*
  * All the different DispList.type's use the

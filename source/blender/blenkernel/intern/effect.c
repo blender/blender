@@ -59,6 +59,7 @@
 #include "BKE_constraint.h"
 #include "BKE_deform.h"
 #include "BKE_displist.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_ipo.h"
@@ -1022,7 +1023,7 @@ void init_mv_jit(float *jit, int num,int seed2)
 }
 
 
-static void give_mesh_mvert(Mesh *me, int nr, float *co, short *no, int seed2)
+static void give_mesh_mvert(Mesh *me, DispListMesh *dlm, int nr, float *co, short *no, int seed2)
 {
 	static float *jit=0;
 	static int jitlevel=1;
@@ -1039,16 +1040,11 @@ static void give_mesh_mvert(Mesh *me, int nr, float *co, short *no, int seed2)
 		return;
 	}
 	
-	/* get it from displist? */
-	if(me->disp.first) {
-		DispList *dl= me->disp.first;
-		if(dl->type==DL_MESH) {
-			DispListMesh *dlm= dl->mesh;
-			mvertbase= dlm->mvert;
-			mfacebase= dlm->mface;
-			totface= dlm->totface;
-			totvert= dlm->totvert;
-		}
+	if(dlm) {
+		mvertbase= dlm->mvert;
+		mfacebase= dlm->mface;
+		totface= dlm->totface;
+		totvert= dlm->totvert;
 	}
 	
 	if(totvert==0) {
@@ -1133,6 +1129,7 @@ void build_particle_system(Object *ob)
 	MVert *mvert;
 	MTex *mtexmove=0;
 	Material *ma;
+	DispListMesh *dlm;
 	float framelenont, ftime, dtime, force[3], imat[3][3], vec[3];
 	float fac, prevobmat[4][4], sfraont, co[3];
 	int deform=0, a, cur, cfraont, cfralast, totpart;
@@ -1233,7 +1230,17 @@ void build_particle_system(Object *ob)
 	}
 	
 	/* init */
-	give_mesh_mvert(me, totpart, co, no, paf->seed);
+	if (mesh_uses_displist(me)) {
+		DerivedMesh *dm = mesh_get_derived(ob);
+
+		dlm = dm->convertToDispListMesh(dm);
+
+		dm->release(dm);
+	} else {
+		dlm = NULL;
+	}
+
+	give_mesh_mvert(me, dlm, totpart, co, no, paf->seed);
 	
 	if(G.f & G_DEBUG) {
 		printf("\n");
@@ -1284,7 +1291,7 @@ void build_particle_system(Object *ob)
 			}
 		}
 		/* get coordinates */
-		if(paf->flag & PAF_FACE) give_mesh_mvert(me, a, co, no,paf->seed);
+		if(paf->flag & PAF_FACE) give_mesh_mvert(me, dlm, a, co, no,paf->seed);
 		else {
 			mvert= me->mvert + (a % me->totvert);
 			VECCOPY(co, mvert->co);
@@ -1341,7 +1348,7 @@ void build_particle_system(Object *ob)
 	/* restore */
 	G.scene->r.cfra= cfraont;
 	G.scene->r.framelen= framelenont;
-	give_mesh_mvert(0, 0, 0, 0,paf->seed);
+	give_mesh_mvert(0, 0, 0, 0, 0,paf->seed);
 
 	/* put hierarchy back */
 	par= ob;
@@ -1370,6 +1377,9 @@ void build_particle_system(Object *ob)
 
 	waitcursor(0);
 
+	if (dlm) {
+		displistmesh_free(dlm);
+	}
 }
 
 /* ************* WAVE **************** */
