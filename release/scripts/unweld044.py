@@ -1,6 +1,6 @@
 #!BPY
 """ Registration info for Blender menus: <- these words are ignored
-Name: 'UnWeld'
+Name: 'Unweld'
 Blender: 234
 Group: 'Mesh'
 Tip: 'Unweld all faces from a selected and common vertex. Made vertex bevelling.'
@@ -189,9 +189,9 @@ def D():
   size= size.list 
   glColor3f(0.1, 0.1, 0.15)
   glRasterPos2f(10, size[3]-16)
-  Text("Quit = Qkey")
+  Text("Quit = Q Key")
   glRasterPos2f(10, size[3]-36)
-  Text("Mouse to the Rigth = Increase")
+  Text("Mouse to the Right = Increase")
   glRasterPos2f(10, size[3]-56)
   Text("Mouse to the Left = Decrease")
 
@@ -343,7 +343,7 @@ OBJECT=Blender.Object.GetSelected()
 
 if len(OBJECT)!=0:
    if  OBJECT[0].getType()=='Mesh':
-       name = "Un-Weld, OK ? %t| unbind points %x1| with noise ? %x2| middle face ? %x3| static bevel vertex ? %x4| moving bevel vertex ? %x5|"
+       name = "Unweld %t|Unbind Points %x1|With Noise %x2|Middle Face %x3|Static Bevel Vertex %x4|Moving Bevel Vertex %x5|"
        result = Blender.Draw.PupMenu(name)
        if result:
            me=OBJECT[0].getData()

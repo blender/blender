@@ -34,10 +34,10 @@ Tooltip: 'Apply the chosen rule to rename all selected objects at once.'
 from Blender import *
 
 def replace():
-	replace = Draw.PupStrInput('replace: ', '', 32)
+	replace = Draw.PupStrInput('Replace: ', '', 32)
 	if replace == None: return
 		
-	with = Draw.PupStrInput('with: ', '', 32)
+	with = Draw.PupStrInput('With: ', '', 32)
 	if with == None: return
 	
 	for ob in Object.GetSelected():
@@ -58,20 +58,20 @@ def prefix():
 
 
 def suffix():
-	suffix = Draw.PupStrInput('suffix: ', '', 32)
+	suffix = Draw.PupStrInput('Suffix: ', '', 32)
 	if suffix == None: return
 	
 	for ob in Object.GetSelected():
 		ob.name = ob.name + suffix
 
 def truncate_start():
-	truncate = Draw.PupIntInput('truncate start: ', 0, 0, 31)
+	truncate = Draw.PupIntInput('Truncate Start: ', 0, 0, 31)
 	if truncate != None:
 		for ob in Object.GetSelected():
 			ob.name = ob.name[truncate: ]
 
 def truncate_end():
-	truncate = Draw.PupIntInput('truncate end: ', 0, 0, 31)
+	truncate = Draw.PupIntInput('Truncate End: ', 0, 0, 31)
 	if truncate == None: return
 	
 	for ob in Object.GetSelected():

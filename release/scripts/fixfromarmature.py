@@ -1,7 +1,7 @@
 #!BPY
 
 """ Registration info for Blender menus: <- these words are ignored
-Name: 'Fix from Armature'
+Name: 'Fix From Armature'
 Blender: 232
 Group: 'Mesh'
 Tip: 'Fix armature deformation.'

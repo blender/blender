@@ -1,10 +1,10 @@
 #!BPY
 
 """ Registration info for Blender menus: <- these words are ignored
-Name: 'Name OBJECT changer'
+Name: 'Object Name Editor'
 Blender: 232
 Group: 'Object'
-Tip: 'GUI to select then rename objects.'
+Tip: 'GUI to select and rename objects.'
 """
 
 # ----------------------------------------------------------
@@ -136,10 +136,10 @@ def DRAW():
 
   Button ("Exit",1,20,1,80,ligne)
   Button ("Rename",2,102,1,80,ligne)
-  Button ("renew",3,184,1,80,ligne)
+  Button ("Renew",3,184,1,80,ligne)
 
   glRasterPos2f(20, ligne*2-10)
-  Text(" Poly-RENAME tool")
+  Text("Object Name Editor")
   NEWNAME=String('Add string : ', 4, 150, ligne*2-16, 150, 18, NEWNAME.val,120 )
 
   key=alignment.keys()
