@@ -81,13 +81,6 @@ all debug::
       export NAN_FTGL ?= $(LCGDIR)/ftgl
     endif
 
-   ifneq ($(OS), irix)
-      export NAN_SDL ?= $(shell sdl-config --prefix)
-      export NAN_SDLLIBS ?= $(shell sdl-config --libs)
-      export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
-   endif
-
-
   # Platform Dependent settings go below:
 
   ifeq ($(OS),beos)
@@ -101,7 +94,6 @@ all debug::
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= $(LCGDIR)/jpeg
     export NAN_PNG ?= $(LCGDIR)/png
-    export NAN_SDL ?= $(LCGDIR)/sdl
     export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
@@ -109,8 +101,9 @@ all debug::
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_FREETYPE ?= $(LCGDIR)/freetype
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
-	export NAN_SDLLIBS ?= $(shell sdl-config --libs)
-	export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
+    export NAN_SDL ?= $(shell sdl-config --prefix)
+    export NAN_SDLLIBS ?= $(shell sdl-config --libs)
+    export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -142,7 +135,6 @@ all debug::
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= /sw
     export NAN_PNG ?= /sw
-    export NAN_SDL ?= $(LCGDIR)/sdl
     export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
@@ -150,11 +142,9 @@ all debug::
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_FREETYPE ?= /sw
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
-    ifeq ($(NAN_SDL),)
-		export NAN_SDL = $(LCGDIR)/sdl
-		export NAN_SDLCFLAGS = -I$(NAN_SDL)/include
-		export NAN_SDLLIBS = $(NAN_SDL)/lib/libSDL.a -framework Cocoa
-    endif
+    export NAN_SDL = $(LCGDIR)/sdl
+    export NAN_SDLCFLAGS = -I$(NAN_SDL)/include
+    export NAN_SDLLIBS = $(NAN_SDL)/lib/libSDL.a -framework Cocoa
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -189,7 +179,6 @@ all debug::
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= /usr/local
     export NAN_PNG ?= /usr/local
-    export NAN_SDL ?= /usr/local
     export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
@@ -197,8 +186,9 @@ all debug::
     export NAN_NSPR ?= /usr/local
     export NAN_FREETYPE ?= $(LCGDIR)/freetype
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
-	export NAN_SDLLIBS ?= $(shell sdl-config --libs)
-	export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
+    export NAN_SDL ?= $(shell sdl11-config --prefix)
+    export NAN_SDLLIBS ?= $(shell sdl11-config --libs)
+    export NAN_SDLCFLAGS ?= $(shell sdl11-config --cflags)
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -230,7 +220,6 @@ all debug::
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= $(LCGDIR)/jpeg
     export NAN_PNG ?= $(LCGDIR)/png
-    export NAN_SDL ?= $(LCGDIR)/sdl
     export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
@@ -238,8 +227,9 @@ all debug::
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_FREETYPE ?= /usr/freeware
     export NAN_GETTEXT ?= /usr/freeware
-	export NAN_SDLLIBS ?= $(shell sdl-config --libs)
-	export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
+    export NAN_SDL ?= $(shell sdl-config --prefix)
+    export NAN_SDLLIBS ?= $(shell sdl-config --libs)
+    export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -271,7 +261,6 @@ all debug::
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= /usr
     export NAN_PNG ?= /usr
-#    export NAN_SDL ?= /usr
     export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr
@@ -279,11 +268,9 @@ all debug::
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_FREETYPE ?= /usr
     export NAN_GETTEXT ?= /usr
-	ifeq ($(NAN_SDL),)
-		export NAN_SDL = $(LCGDIR)/sdl
-		export NAN_SDLCFLAGS = -I$(NAN_SDL)/include/SDL
-		export NAN_SDLLIBS = -L$(NAN_SDL)/lib -lSDL
-	endif
+    export NAN_SDL ?= $(shell sdl-config --prefix)
+    export NAN_SDLLIBS ?= $(shell sdl-config --libs)
+    export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
 
     # Uncomment the following line to use Mozilla inplace of netscape
     export CPPFLAGS += -DMOZ_NOT_NET
@@ -316,7 +303,6 @@ all debug::
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= $(LCGDIR)/jpeg
     export NAN_PNG ?= $(LCGDIR)/png
-    export NAN_SDL ?= $(LCGDIR)/sdl
     export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
@@ -324,13 +310,9 @@ all debug::
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_FREETYPE ?= $(LCGDIR)/freetype
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
-	export NAN_SDLLIBS ?= $(shell sdl-config --libs)
-	export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
-	ifeq ($(NAN_SDL),)
-		export NAN_SDL = $(LCGDIR)/sdl
-		export NAN_SDLCFLAGS = -I$(NAN_SDL)/include/SDL
-		export NAN_SDLLIBS = -L$(NAN_SDL)/lib -lSDL
-	endif
+    export NAN_SDL ?= $(shell sdl-config --prefix)
+    export NAN_SDLLIBS ?= $(shell sdl-config --libs)
+    export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -362,7 +344,6 @@ all debug::
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= /usr/local
     export NAN_PNG ?= /usr/local
-    export NAN_SDL ?= /usr/local
     export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?=
     export NAN_MESA ?= /usr/src/Mesa-3.1
@@ -370,11 +351,9 @@ all debug::
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_FREETYPE ?= $(LCGDIR)/freetype
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
-	ifeq ($(NAN_SDL),)
-		export NAN_SDL = $(LCGDIR)/sdl
-		export NAN_SDLCFLAGS = -I$(NAN_SDL)/include/SDL
-		export NAN_SDLLIBS = -L$(NAN_SDL)/lib -lSDL
-	endif
+    export NAN_SDL ?= $(shell sdl-config --prefix)
+    export NAN_SDLLIBS ?= $(shell sdl-config --libs)
+    export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -406,23 +385,22 @@ all debug::
       export NAN_FREETYPE ?= $(LCGDIR)/gcc/freetype
       export NAN_ODE ?= $(LCGDIR)/gcc/ode
       ifeq ($(NAN_SDL),)
-	      export NAN_SDL = $(LCGDIR)/gcc/sdl
-		  export NAN_SDLCFLAGS = -I$(NAN_SDL)/include
-	  endif
+	  export NAN_SDL ?= $(LCGDIR)/gcc/sdl
+	  export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include
+      endif
     else
       export NAN_PYTHON_BINARY ?= python
       export NAN_FREETYPE ?= $(LCGDIR)/freetype
       export NAN_ODE ?= $(LCGDIR)/ode
       ifeq ($(NAN_SDL),)
-	      export NAN_SDL = $(LCGDIR)/sdl
-		  export NAN_SDLCFLAGS = -I$(NAN_SDL)/include
+	  export NAN_SDL ?= $(LCGDIR)/sdl
+	  export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include
       endif
-	endif
-	export NAN_OPENAL ?= $(LCGDIR)/openal
+    endif
+    export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= $(LCGDIR)/jpeg
     export NAN_PNG ?= $(LCGDIR)/png
-    export NAN_SDL ?= $(LCGDIR)/sdl
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= $(LCGDIR)/zlib
@@ -454,7 +432,7 @@ all debug::
 
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_PYTHON_VERSION ?= 2.0
-	export NAN_PYTHON_BINARY ?= python
+    export NAN_PYTHON_BINARY ?= python
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= $(LCGDIR)/jpeg
@@ -467,11 +445,9 @@ all debug::
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_FREETYPE ?= $(LCGDIR)/freetype
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
-	ifeq ($(NAN_SDL),)
-		export NAN_SDL = $(LCGDIR)/sdl
-		export NAN_SDLCFLAGS = -I$(NAN_SDL)/include/SDL
-		export NAN_SDLLIBS = -L$(NAN_SDL)/lib -lSDL
-	endif
+    export NAN_SDL ?= $(shell sdl-config --prefix)
+    export NAN_SDLLIBS ?= $(shell sdl-config --libs)
+    export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
