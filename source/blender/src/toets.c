@@ -269,6 +269,7 @@ void persptoetsen(unsigned short event)
 			G.vd->viewquat[2]= 0.0;
 			G.vd->viewquat[3]= 0.0;
 			G.vd->view= 7;
+			if(G.vd->persp>=2) G.vd->persp= perspo;
 		}
 		else if(event==PAD1) {
 			G.vd->viewquat[0]= 0.0;
@@ -276,6 +277,7 @@ void persptoetsen(unsigned short event)
 			G.vd->viewquat[2]= (float)-cos(M_PI/4.0);
 			G.vd->viewquat[3]= (float)-cos(M_PI/4.0);
 			G.vd->view=1;
+			if(G.vd->persp>=2) G.vd->persp= perspo;
 		}
 		else if(event==PAD3) {
 			G.vd->viewquat[0]= 0.5;
@@ -283,6 +285,7 @@ void persptoetsen(unsigned short event)
 			G.vd->viewquat[2]= 0.5;
 			G.vd->viewquat[3]= 0.5;
 			G.vd->view=3;
+			if(G.vd->persp>=2) G.vd->persp= perspo;
 		}
 		else if(event==PADMINUS) {
 			/* deze min en max staan ook in viewmove() */
