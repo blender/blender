@@ -546,11 +546,11 @@ short get_constraint_target (bConstraint *con, short ownertype, void* ownerdata,
 				curvetime = ctime - data->offset;
 
 				if(calc_ipo_spec(cu->ipo, CU_SPEED, &curvetime)==0) {
-					ctime /= cu->pathlen;
-					CLAMP(ctime, 0.0, 1.0);
+					curvetime /= cu->pathlen;
+					CLAMP(curvetime, 0.0, 1.0);
 				}
 
- 				if(where_on_path(data->tar, curvetime, vec, dir) ) {
+				if(where_on_path(data->tar, curvetime, vec, dir) ) {
 
 					if(data->followflag){
 						quat= vectoquat(dir, (short) data->trackflag, (short) data->upflag);
@@ -566,10 +566,11 @@ short get_constraint_target (bConstraint *con, short ownertype, void* ownerdata,
 
 						QuatToMat4(quat, totmat);
 					}
-				VECCOPY(totmat[3], vec);
+					VECCOPY(totmat[3], vec);
 
-				Mat4MulSerie(mat, data->tar->obmat, totmat, NULL, NULL, NULL, NULL, NULL, NULL);
+					Mat4MulSerie(mat, data->tar->obmat, totmat, NULL, NULL, NULL, NULL, NULL, NULL);
 				}
+
 				valid=1;
 			}
 			else

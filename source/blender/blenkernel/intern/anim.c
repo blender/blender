@@ -212,7 +212,6 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 	float *fp, *p0, *p1, *p2, *p3, fac;
 	float data[4];
 	int cycl=0, s0, s1, s2, s3;
-
 	
 	if(ob==0 || ob->type != OB_CURVE) return 0;
 	cu= ob->data;
