@@ -7175,6 +7175,8 @@ void mirror(short mode) {
 	float mat[3][3], imat[3][3], min[3], max[3];
 	TransVert *tv;
 
+	if(G.obedit->type==OB_MESH) undo_push_mesh("Mirror"); /* If it's a mesh, push it down the undo pipe */
+
 	make_trans_verts(min, max, 0);
 	Mat3CpyMat4(mat, G.obedit->obmat);
 	// Inverting the matrix explicitly, since the inverse is not always correct (then why the heck are we keeping it!)
@@ -7306,8 +7308,6 @@ void mirrormenu(void){
 	mode=pupmenu("Mirror Axis %t|Global X%x1|       Y%x2|       Z%x3|Local X%x4|      Y%x5|      Z%x6|View X%x7|     Y%x8|     Z%x9|");
 
 	if (mode==-1) return; /* return */
-
-	if(G.obedit->type==OB_MESH) undo_push_mesh("Mirror"); /* If it's a mesh, push it down the undo pipe */
 
 	mirror(mode); /* separating functionality from interface | call*/
 }
