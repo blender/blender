@@ -1735,7 +1735,7 @@ static int Object_setAttr (BPy_Object *obj, char *name, PyObject *value)
 	if (StringEqual (name, "dRotZ"))
 		return (!PyArg_Parse (value, "f", &(object->drot[2])));
 	if (StringEqual (name, "drot"))
-		return (!PyArg_Parse (value, "fff", &(object->drot[0]),
+		return (!PyArg_ParseTuple (value, "fff", &(object->drot[0]),
 							  &(object->drot[1]), &(object->drot[2])));
 	if (StringEqual (name, "SizeX"))
 		return (!PyArg_Parse (value, "f", &(object->size[0])));
@@ -1744,7 +1744,7 @@ static int Object_setAttr (BPy_Object *obj, char *name, PyObject *value)
 	if (StringEqual (name, "SizeZ"))
 		return (!PyArg_Parse (value, "f", &(object->size[2])));
 	if (StringEqual (name, "size"))
-		return (!PyArg_Parse (value, "fff", &(object->size[0]),
+		return (!PyArg_ParseTuple  (value, "fff", &(object->size[0]),
 							  &(object->size[1]), &(object->size[2])));
 	if (StringEqual (name, "dSizeX"))
 		return (!PyArg_Parse (value, "f", &(object->dsize[0])));
@@ -1753,7 +1753,7 @@ static int Object_setAttr (BPy_Object *obj, char *name, PyObject *value)
 	if (StringEqual (name, "dSizeZ"))
 		return (!PyArg_Parse (value, "f", &(object->dsize[2])));
 	if (StringEqual (name, "dsize"))
-		return (!PyArg_Parse (value, "fff", &(object->dsize[0]),
+		return (!PyArg_ParseTuple  (value, "fff", &(object->dsize[0]),
 							  &(object->dsize[1]), &(object->dsize[2])));
 	if (strncmp (name,"Eff", 3) == 0)
 	{
