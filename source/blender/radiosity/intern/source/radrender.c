@@ -498,7 +498,7 @@ void make_vertex_rad_values()
 	
 	/* make vertex colors */
 	RG.igamma= 1.0/RG.gamma;
-	RG.radfactor= RG.radfac*pow(64*64, RG.igamma)/256.0; /* compatible with radio-tool */
+	RG.radfactor= RG.radfac*pow(64*64, RG.igamma)/128.0; /* compatible with radio-tool */
 
 	for(a=0; a<R.totvert; a++) {
 		if((a & 255)==0) v1= R.blove[a>>8]; else v1++;

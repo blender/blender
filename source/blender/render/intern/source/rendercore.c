@@ -1897,13 +1897,6 @@ void shade_lamp_loop()
 		}
 	}
 
-	if( ma->mode & MA_RADIO) {
-		ir+= ma->amb*R.rad[0];
-		ig+= ma->amb*R.rad[1];
-		ib+= ma->amb*R.rad[2];
-	}
-
-		
 	if(R.refcol[0]==0.0) {
 		a= 65535.0*( ma->r*ir +ma->ambr +isr +ma->amb*R.rad[0]);
 		if(a>65535) a=65535; else if(a<0) a= 0;
@@ -2327,6 +2320,7 @@ void shadepixel(float x, float y, int vlaknr)
 		}
 		else {
 			VECCOPY(R.vn, vlr->n);
+			R.rad[0]= R.rad[1]= R.rad[2]= 0.0;
 		}
 		if(R.matren->texco & TEXCO_WINDOW) {
 			R.winco[0]= (x+(R.xstart))/(float)R.afmx;

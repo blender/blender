@@ -264,6 +264,7 @@ void add_radio()
 	rad->elmi= 20;
 	rad->nodelim= 0;
 	rad->maxnode= 10000;
+	rad->maxiter= 120;	// arbitrary
 	rad->flag= 2;
 	set_radglobal();
 }
