@@ -166,8 +166,8 @@ ifeq ($(OS),solaris)
     JAVAH = javah
     CFLAGS	+= -pipe -fPIC
     CCFLAGS	+= -pipe -fPIC
-    REL_CFLAGS	+= -O2
-    REL_CCFLAGS += -O2
+    REL_CFLAGS	+= -O1
+    REL_CCFLAGS += -O1
     NAN_DEPEND = true
   ifeq ($(CPU),sparc)
     OPENGL_HEADERS = /usr/openwin/share/include
