@@ -388,6 +388,7 @@ static DerivedMesh *getMeshDerivedMesh(Object *ob, float *extverts, float *nors)
 	mdm->dm.drawEdges = meshDM_drawEdges;
 	mdm->dm.drawMappedEdges = meshDM_drawEdges;
 	mdm->dm.drawLooseEdges = meshDM_drawLooseEdges;
+	mdm->dm.drawMappedEdgeEM = NULL;
 	mdm->dm.drawMappedEdgesEM = NULL;
 
 	mdm->dm.drawFacesSolid = meshDM_drawFacesSolid;
@@ -422,6 +423,16 @@ static void emDM_drawMappedVertsEM(DerivedMesh *dm, int sel)
 			bglVertex3fv(eve->co);
 	}
 	bglEnd();		
+}
+static void emDM_drawMappedEdgeEM(DerivedMesh *dm, void *edge)
+{
+	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditEdge *eed = edge;
+
+	glBegin(GL_LINES);
+	glVertex3fv(eed->v1->co);
+	glVertex3fv(eed->v2->co);
+	glEnd();
 }
 static void emDM_drawMappedEdgesEM(DerivedMesh *dm, int useColor, char *baseCol, char *selCol, int onlySeams) 
 {
@@ -512,6 +523,7 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em)
 	emdm->dm.drawEdges = NULL;
 	emdm->dm.drawMappedEdges = NULL;
 	emdm->dm.drawLooseEdges = NULL;
+	emdm->dm.drawMappedEdgeEM = emDM_drawMappedEdgeEM;
 	emdm->dm.drawMappedEdgesEM = emDM_drawMappedEdgesEM;
 
 	emdm->dm.drawFacesSolid = emDM_drawFacesSolid;
@@ -571,6 +583,25 @@ static void ssDM_drawLooseEdges(DerivedMesh *dm)
 	/* Can't implement currently */ 
 }
 
+static void ssDM_drawMappedEdgeEM(DerivedMesh *dm, void *edge)
+{
+	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
+	DispListMesh *dlm = ssdm->dlm;
+	MEdge *medge= dlm->medge;
+	MVert *mvert= dlm->mvert;
+	int a;
+
+	glBegin(GL_LINES);
+	for (a=0; a<dlm->totedge; a++, medge++) {
+		if (medge->flag&ME_EDGEDRAW) {
+			if (edge==dlm->editedge[a]) {
+				glVertex3fv(mvert[medge->v1].co); 
+				glVertex3fv(mvert[medge->v2].co);
+			}
+		}
+	}
+	glEnd();
+}
 static void ssDM_drawMappedEdgesEM(DerivedMesh *dm, int useColor, unsigned char *baseCol, unsigned char *selCol, int onlySeams) 
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
@@ -799,6 +830,7 @@ static DerivedMesh *getSSDerivedMesh(EditMesh *em, DispListMesh *dlm, float *nor
 	ssdm->dm.drawEdges = ssDM_drawEdges;
 	ssdm->dm.drawMappedEdges = ssDM_drawMappedEdges;
 	ssdm->dm.drawLooseEdges = ssDM_drawLooseEdges;
+	ssdm->dm.drawMappedEdgeEM = ssDM_drawMappedEdgeEM;
 	ssdm->dm.drawMappedEdgesEM = ssDM_drawMappedEdgesEM;
 
 	ssdm->dm.drawFacesSolid = ssDM_drawFacesSolid;

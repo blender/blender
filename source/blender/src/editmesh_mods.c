@@ -63,6 +63,7 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "BLI_rand.h"
 
 #include "BKE_displist.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_material.h"
@@ -628,6 +629,15 @@ static EditFace *findnearestface(short *dist)
 static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 {
 	int optimal= subsurf_optimal(G.obedit);
+	DerivedMesh *dm = NULL;
+	Mesh *me = G.obedit->data;
+
+	if (me->flag&ME_OPT_EDGES) {
+		dm = mesh_get_derived(G.obedit);
+	} 
+	if (!dm) {
+		dm = mesh_get_base_derived(G.obedit);
+	}
 
 	glDrawBuffer(GL_FRONT);
 
@@ -652,39 +662,14 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 		}
 
 		if(G.scene->selectmode & (SCE_SELECT_EDGE|SCE_SELECT_FACE)) {
-			Mesh *me= G.obedit->data;
-			DispList *dl= find_displist(&me->disp, DL_MESH);
-			DispListMesh *dlm= NULL;
-			
 			if(efa->fgonf==0) {
-				if(efa->f & SELECT) BIF_ThemeColor(TH_EDGE_SELECT);
-				else BIF_ThemeColor(TH_WIRE);
-				
-				if(dl) dlm= dl->mesh;
-				if(dlm && optimal) {
-					MEdge *medge= dlm->medge;
-					MVert *mvert= dlm->mvert;
-					int b;
-					
-					glBegin(GL_LINES);
-					for (b=0; b<dlm->totedge; b++, medge++) {
-						if(medge->flag & ME_EDGEDRAW) {
-							EditEdge *eed = dlm->editedge[b];
-							if(efa->e1==eed || efa->e2==eed || efa->e3==eed || (efa->e4 && efa->e4==eed)) {
-								glVertex3fv(mvert[medge->v1].co); 
-								glVertex3fv(mvert[medge->v2].co);
-							}
-						}
-					}
-					glEnd();
-				}
-				else {
-					glBegin(GL_LINE_LOOP);
-					glVertex3fv(efa->v1->co);
-					glVertex3fv(efa->v2->co);
-					glVertex3fv(efa->v3->co);
-					if(efa->v4) glVertex3fv(efa->v4->co);
-					glEnd();
+				BIF_ThemeColor((efa->f & SELECT)?TH_EDGE_SELECT:TH_WIRE);
+	
+				dm->drawMappedEdgeEM(dm, efa->e1);
+				dm->drawMappedEdgeEM(dm, efa->e2);
+				dm->drawMappedEdgeEM(dm, efa->e3);
+				if (efa->e4) {
+					dm->drawMappedEdgeEM(dm, efa->e4);
 				}
 			}
 		}
@@ -705,38 +690,9 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 	/* edge selected */
 	if(eed) {
 		if(G.scene->selectmode & (SCE_SELECT_EDGE|SCE_SELECT_FACE)) {
-			Mesh *me= G.obedit->data;
-			DispList *dl= find_displist(&me->disp, DL_MESH);
-			DispListMesh *dlm= NULL;
-			
-			if(dl) dlm= dl->mesh;
-			
-			if(eed->f & SELECT) BIF_ThemeColor(TH_EDGE_SELECT);
-			else BIF_ThemeColor(TH_WIRE);
+			BIF_ThemeColor((eed->f & SELECT)?TH_EDGE_SELECT:TH_WIRE);
 
-			if(dlm && optimal) {
-				MEdge *medge= dlm->medge;
-				MVert *mvert= dlm->mvert;
-				int b;
-				
-				glBegin(GL_LINES);
-				for (b=0; b<dlm->totedge; b++, medge++) {
-					if(medge->flag & ME_EDGEDRAW) {
-						if(eed == dlm->editedge[b]) {
-							glVertex3fv(mvert[medge->v1].co); 
-							glVertex3fv(mvert[medge->v2].co);
-						}
-					}
-				}
-				glEnd();
-			}
-			else {
-				
-				glBegin(GL_LINES);
-				glVertex3fv(eed->v1->co);
-				glVertex3fv(eed->v2->co);
-				glEnd();
-			}
+			dm->drawMappedEdgeEM(dm, eed);
 		}
 		if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 			glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));
@@ -778,6 +734,8 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 
 	/* signal that frontbuf differs from back */
 	curarea->win_swap= WIN_FRONT_OK;
+
+	dm->release(dm);
 }
 
 

@@ -76,6 +76,9 @@ struct DerivedMesh {
 			 */
 	void (*drawMappedVertsEM)(DerivedMesh *dm, int sel);
 
+			/* Draw single mapped edge as lines (no options) */
+	void (*drawMappedEdgeEM)(DerivedMesh *dm, void *edge);
+
 			/* Draw mapped edges as lines
 			 *  o If useColor==0, don't set color
 			 *  o If useColor==1, set color based on mapped (EditEdge->f&SELECT)
