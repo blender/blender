@@ -97,6 +97,17 @@
 /// \todo moving infinite mass objects should impart extra impulse to objects they collide with
 ///
 /// currently ODE's ERP pushes them apart but doesn't account for their motion.
+/// you have to detect if one body in a collision is a non-dyna. This
+/// requires adding a new accessor method to
+/// KX_IPhysicsInterfaceController to access the hidden m_isDyna variable,
+/// currently it can only be written, not read). If one of the bodies in a
+/// collision is a non-dyna, then impart an extra impulse based on the
+/// motion of the static object (using its last 2 frames as an approximation
+/// of its linear and angular velocity). Linear velocity is easy to
+/// approximate, but angular? you have orientation at this frame and
+/// orientation at previous frame. The question is what is the angular
+/// velocity which would have taken you from the previous frame's orientation
+/// to this frame's orientation?
 /// 
 /// \todo allow tweaking bounding volume size
 ///
