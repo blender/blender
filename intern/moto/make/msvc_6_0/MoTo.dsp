@@ -54,7 +54,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\moto\libmoto.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\moto\include md ..\..\..\..\lib\windows\moto\include	IF NOT EXIST ..\..\..\..\lib\windows\moto\lib\ md ..\..\..\..\lib\windows\moto\lib\	ECHO Copying header files	COPY "..\..\include\*.h" "..\..\..\..\lib\windows\moto\include"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\moto\libmoto.lib" "..\..\..\..\lib\windows\moto\lib\libmoto.a"	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY ..\..\include\*.h ..\..\..\..\lib\windows\moto\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\moto\*.lib ..\..\..\..\lib\windows\moto\lib\*.a	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "MoTo - Win32 Debug"
@@ -83,7 +83,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\moto\debug\libmoto.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\moto\include md ..\..\..\..\lib\windows\moto\include	IF NOT EXIST ..\..\..\..\lib\windows\moto\lib\debug md ..\..\..\..\lib\windows\moto\lib\debug	ECHO Copying header files	COPY "..\..\include\*.h" "..\..\..\..\lib\windows\moto\include"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\moto\debug\libmoto.lib" "..\..\..\..\lib\windows\moto\lib\debug\libmoto.a"	ECHO Copying Debug info.	COPY "..\..\..\..\obj\windows\intern\moto\debug\vc60.*" "..\..\..\..\lib\windows\moto\lib\debug\"	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\include\*.h ..\..\..\..\lib\windows\moto\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\moto\debug\*.lib ..\..\..\..\lib\windows\moto\lib\debug\*.a	ECHO Copying Debug info.	XCOPY ..\..\..\..\obj\windows\intern\moto\debug\vc60.* ..\..\..\..\lib\windows\moto\lib\debug\	ECHO Done
 # End Special Build Tool
 
 !ENDIF 

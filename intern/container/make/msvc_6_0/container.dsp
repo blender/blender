@@ -53,7 +53,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"../../../../obj/windows/intern/container/libcontainer.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\container\include md ..\..\..\..\lib\windows\container\include	IF NOT EXIST ..\..\..\..\lib\windows\container\lib\ md ..\..\..\..\lib\windows\container\lib\	ECHO Copying header files	COPY "..\..\*.h" "..\..\..\..\lib\windows\container\include\"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\container\libcontainer.lib" "..\..\..\..\lib\windows\container\lib\libcontainer.a"	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\*.h ..\..\..\..\lib\windows\container\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\container\*.lib ..\..\..\..\lib\windows\container\lib\*.a	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "container - Win32 Debug"
@@ -81,7 +81,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\container\debug\libcontainer.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\container\include md ..\..\..\..\lib\windows\container\include	IF NOT EXIST ..\..\..\..\lib\windows\container\lib\debug md ..\..\..\..\lib\windows\container\lib\debug	ECHO Copying header files	COPY "..\..\*.h" "..\..\..\..\lib\windows\container\include\"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\container\debug" "..\..\..\..\lib\windows\container\lib\debug\libcontainer.a"	ECHO Copying Debug info.	COPY "..\..\..\..\obj\windows\intern\container\debug\vc60.*" "..\..\..\..\lib\windows\container\lib\debug\"	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\*.h ..\..\..\..\lib\windows\container\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\container\debug\*.lib ..\..\..\..\lib\windows\container\lib\debug\*.a	ECHO Copying Debug info.	XCOPY /E ..\..\..\..\obj\windows\intern\container\debug\vc60.* ..\..\..\..\lib\windows\container\lib\debug\	ECHO Done
 # End Special Build Tool
 
 !ENDIF 

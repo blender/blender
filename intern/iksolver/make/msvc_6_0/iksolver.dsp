@@ -54,7 +54,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\iksolver\include md ..\..\..\..\lib\windows\iksolver\include	IF NOT EXIST ..\..\..\..\lib\windows\iksolver\lib\ md ..\..\..\..\lib\windows\iksolver\lib\	ECHO Copying header files	COPY "..\..\extern\*.h" "..\..\..\..\lib\windows\iksolver\include"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\iksolver\iksolver.lib" "..\..\..\..\lib\windows\iksolver\lib\libiksolver.a"	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\extern\*.h ..\..\..\..\lib\windows\iksolver\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\iksolver\*.lib ..\..\..\..\lib\windows\iksolver\lib\*.a	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "iksolver - Win32 Debug"
@@ -83,7 +83,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\iksolver\include md ..\..\..\..\lib\windows\iksolver\include	IF NOT EXIST ..\..\..\..\lib\windows\iksolver\lib\debug md ..\..\..\..\lib\windows\iksolver\lib\debug	ECHO Copying header files	COPY "..\..\extern\*.h" "..\..\..\..\lib\windows\iksolver\include"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\iksolver\debug\iksolver.lib" "..\..\..\..\lib\windows\iksolver\lib\debug\libiksolver.a"	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\extern\*.h ..\..\..\..\lib\windows\iksolver\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\iksolver\debug\*.lib ..\..\..\..\lib\windows\iksolver\lib\debug\*.a	ECHO Done
 # End Special Build Tool
 
 !ENDIF 

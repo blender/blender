@@ -53,7 +53,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\guardedalloc\include md ..\..\..\..\lib\windows\guardedalloc\include	IF NOT EXIST ..\..\..\..\lib\windows\guardedalloc\lib\ md ..\..\..\..\lib\windows\guardedalloc\lib\	ECHO Copying header files	COPY "..\..\*.h" "..\..\..\..\lib\windows\guardedalloc\include"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\guardedalloc\guardedalloc.lib" "..\..\..\..\lib\windows\guardedalloc\lib\libguardedalloc.a"	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\*.h ..\..\..\..\lib\windows\guardedalloc\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\guardedalloc\*.lib ..\..\..\..\lib\windows\guardedalloc\lib\*.a	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "guardedalloc - Win32 Debug"
@@ -81,7 +81,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\guardedalloc\include md ..\..\..\..\lib\windows\guardedalloc\include	IF NOT EXIST ..\..\..\..\lib\windows\guardedalloc\lib\debug md ..\..\..\..\lib\windows\guardedalloc\lib\debug	ECHO Copying header files	COPY "..\..\*.h" "..\..\..\..\lib\windows\guardedalloc\include"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\guardedalloc\debug\guardedalloc.lib" "..\..\..\..\lib\windows\guardedalloc\lib\debug\libguardedalloc.a"	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\*.h ..\..\..\..\lib\windows\guardedalloc\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\guardedalloc\debug\*.lib ..\..\..\..\lib\windows\guardedalloc\lib\debug\*.a	ECHO Done
 # End Special Build Tool
 
 !ENDIF 

@@ -54,7 +54,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\decimation\libdecimation.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\decimation\include md ..\..\..\..\lib\windows\decimation\include	IF NOT EXIST ..\..\..\..\lib\windows\decimation\lib\ md ..\..\..\..\lib\windows\decimation\lib\	ECHO Copying header files	COPY "..\..\extern\*.h" "..\..\..\..\lib\windows\decimation\include"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\decimation\libdecimation.lib" "..\..\..\..\lib\windows\decimation\lib\libdecimation.a"	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\extern\*.h ..\..\..\..\lib\windows\decimation\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\decimation\*.lib ..\..\..\..\lib\windows\decimation\lib\*.a	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "decimation - Win32 Debug"
@@ -83,7 +83,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\decimation\debug\libdecimation.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\decimation\include md ..\..\..\..\lib\windows\decimation\include	IF NOT EXIST ..\..\..\..\lib\windows\decimation\lib\debug md ..\..\..\..\lib\windows\decimation\lib\debug	ECHO Copying header files	COPY "..\..\extern\*.h" "..\..\..\..\lib\windows\decimation\include"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\decimation\debug\libdecimation.lib" "..\..\..\..\lib\windows\decimation\lib\debug\libdecimation.a"	ECHO Copying Debug info.	COPY "..\..\..\..\obj\windows\intern\decimation\debug\vc60.*" "..\..\..\..\lib\windows\decimation\lib\debug\"	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\extern\*.h ..\..\..\..\lib\windows\decimation\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\decimation\debug\*.lib ..\..\..\..\lib\windows\decimation\lib\debug\*.a	ECHO Copying Debug info.	XCOPY /E ..\..\..\..\obj\windows\intern\decimation\debug\vc60.* ..\..\..\..\lib\windows\decimation\lib\debug\	ECHO Done
 # End Special Build Tool
 
 !ENDIF 

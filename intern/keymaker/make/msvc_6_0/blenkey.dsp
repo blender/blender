@@ -53,7 +53,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\blenkey\include md ..\..\..\..\lib\windows\blenkey\include	IF NOT EXIST ..\..\..\..\lib\windows\blenkey\ md ..\..\..\..\lib\windows\blenkey\lib\	ECHO Copying header files	COPY "..\..\blenkey.h" "..\..\..\..\lib\windows\blenkey\include\"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\blenkey\blenkey.lib" "..\..\..\..\lib\windows\blenkey\lib\libblenkey.a"	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\blenkey.h ..\..\..\..\lib\windows\blenkey\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\blenkey\*.lib ..\..\..\..\lib\windows\blenkey\lib\*.a	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "blenkey - Win32 Debug"
@@ -81,7 +81,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\blenkey\include md ..\..\..\..\lib\windows\blenkey\include	IF NOT EXIST ..\..\..\..\lib\windows\blenkey\lib\debug md ..\..\..\..\lib\windows\blenkey\lib\debug	ECHO Copying header files	COPY "..\..\blenkey.h" "..\..\..\..\lib\windows\blenkey\include"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\blenkey\debug\blenkey.lib" "..\..\..\..\lib\windows\blenkey\lib\debug\libblenkey.a"
+PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\blenkey.h ..\..\..\..\lib\windows\blenkey\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\blenkey\debug\*.lib ..\..\..\..\lib\windows\blenkey\lib\debug\*.a
 # End Special Build Tool
 
 !ENDIF 
