@@ -159,7 +159,7 @@ static void displace_render_vert(ShadeInput *shi, VertRen *vr, float *scale);
 /* ------------------------------------------------------------------------- */
 
 #define UVTOINDEX(u,v) (startvlak + (u) * sizev + (v))
-#define GETNORMAL(face,normal) CalcNormFloat4(face->v1->co, face->v2->co, face->v3->co, face->v4->co, normal)
+#define GETNORMAL(face,normal) CalcNormFloat4(face->v4->co, face->v3->co, face->v2->co, face->v1->co, normal)
 /*
 
 NOTE THAT U/V COORDINATES ARE SOMETIMES SWAPPED !!
@@ -1963,7 +1963,7 @@ static void init_render_surf(Object *ob)
 					v3= RE_findOrAddVert(p3);
 					v4= RE_findOrAddVert(p4);
 
-					flen= CalcNormFloat4(v1->co, v2->co, v3->co, v4->co, n1);
+					flen= CalcNormFloat4(v4->co, v3->co, v2->co, v1->co, n1);
 /* flen can be 0 if there are double nurbs control vertices 
 	so zero area faces can be generated
 	->> there is at the moment no proper way to fix this except
@@ -2722,7 +2722,7 @@ static void set_fullsample_flag(void)
 static void check_non_flat_quads(void)
 {
 	VlakRen *vlr, *vlr1;
-	float nor[3], xn;
+	float nor[3], xn, flen;
 	int a;
 
 	for(a=R.totvlak-1; a>=0; a--) {
@@ -2742,7 +2742,8 @@ static void check_non_flat_quads(void)
 			else {
 				
 				/* render normals are inverted in render! we calculate normal of single tria here */
-				CalcNormFloat(vlr->v4->co, vlr->v3->co, vlr->v1->co, nor);
+				flen= CalcNormFloat(vlr->v4->co, vlr->v3->co, vlr->v1->co, nor);
+				if(flen==0.0) CalcNormFloat(vlr->v4->co, vlr->v2->co, vlr->v1->co, nor);
 				
 				xn= nor[0]*vlr->n[0] + nor[1]*vlr->n[1] + nor[2]*vlr->n[2];
 				if(fabs(xn) < 0.99995 ) {	// checked on noisy fractal grid
