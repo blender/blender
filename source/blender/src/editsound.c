@@ -140,6 +140,7 @@ void winqreadsoundspace(unsigned short event, short val, char ascii)
 		case RIGHTMOUSE:
 			/* mouse_select_seq(); */
 			break;
+		case WHEELDOWNMOUSE:
 		case PADPLUSKEY:
 			dx= (float)(0.1154*(G.v2d->cur.xmax-G.v2d->cur.xmin));
 			G.v2d->cur.xmin+= dx;
@@ -148,6 +149,7 @@ void winqreadsoundspace(unsigned short event, short val, char ascii)
 
 			doredraw= 1;
 			break;
+		case WHEELUPMOUSE:
 		case PADMINUS:
 			dx= (float)(0.15*(G.v2d->cur.xmax-G.v2d->cur.xmin));
 			G.v2d->cur.xmin-= dx;

@@ -1140,6 +1140,16 @@ void winqreadtextspace(unsigned short event, short val, char ascii)
 			screen_skip(st, -st->viewlines);
 			do_draw= 1;
 			break;
+
+		case WHEELUPMOUSE:
+			screen_skip(st, -3);
+			do_draw= 1;
+			break;
+
+		case WHEELDOWNMOUSE:
+			screen_skip(st, 3);
+			do_draw= 1;
+			break;
 		}
 	}
 

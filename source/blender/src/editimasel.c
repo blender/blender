@@ -267,6 +267,31 @@ void winqreadimasel(unsigned short event, short val, char ascii)
 		}
 		break;
 		
+	case WHEELUPMOUSE:
+	case WHEELDOWNMOUSE:
+		switch(area_event){
+		case IMS_INDIRSLI:
+		case IMS_INDIR:
+			if (simasel->dirsli){
+				if (event == WHEELUPMOUSE)	simasel->topdir -= 1;
+				if (event == WHEELDOWNMOUSE)	simasel->topdir += 1; 	
+				queredraw = 1;
+			}
+			break;
+		case IMS_INFILESLI:
+		case IMS_INFILE:
+			if(simasel->imasli){
+				if (event == WHEELUPMOUSE)	simasel->image_slider -= 0.2 * simasel->slider_height;
+				if (event == WHEELDOWNMOUSE)	simasel->image_slider += 0.2 * simasel->slider_height;
+				
+				if(simasel->image_slider < 0.0)	simasel->image_slider = 0.0;
+				if(simasel->image_slider > 1.0)	simasel->image_slider = 1.0;
+				queredraw = 1;
+			}	
+			break;
+		}
+		break;
+
 	case PAGEUPKEY:
 	case PAGEDOWNKEY:
 		switch(area_event){
