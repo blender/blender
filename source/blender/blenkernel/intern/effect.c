@@ -434,7 +434,7 @@ void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *
 	}
 }
 
-void init_mv_jit(float *jit, int num)
+void init_mv_jit(float *jit, int num,float seed2)
 {
 	float *jit2, x, rad1, rad2, rad3;
 	int i, num2;
@@ -445,7 +445,7 @@ void init_mv_jit(float *jit, int num)
 	rad2= (float)(1.0/((float)num));
 	rad3= (float)sqrt((float)num)/((float)num);
 
-	BLI_srand(31415926 + num);
+	BLI_srand(31415926 + num + seed2);
 	x= 0;
         num2 = 2 * num;
 	for(i=0; i<num2; i+=2) {
@@ -471,7 +471,7 @@ void init_mv_jit(float *jit, int num)
 }
 
 
-void give_mesh_mvert(Mesh *me, int nr, float *co, short *no)
+void give_mesh_mvert(Mesh *me, int nr, float *co, short *no, float seed2)
 {
 	static float *jit=0;
 	static int jitlevel=1;
@@ -503,7 +503,7 @@ void give_mesh_mvert(Mesh *me, int nr, float *co, short *no)
 			if(jitlevel>100) jitlevel= 100;
 			
 			jit= MEM_callocN(2+ jitlevel*2*sizeof(float), "jit");
-			init_mv_jit(jit, jitlevel);
+			init_mv_jit(jit, jitlevel,seed2);
 			
 		}
 
@@ -647,7 +647,7 @@ void build_particle_system(Object *ob)
 	if(deform) init_latt_deform(ob->parent, 0);
 	
 	/* init */
-	give_mesh_mvert(me, totpart, co, no);
+	give_mesh_mvert(me, totpart, co, no,paf->seed);
 	
 	for(a=0; a<totpart; a++, ftime+=dtime) {
 		
@@ -680,7 +680,7 @@ void build_particle_system(Object *ob)
 			}
 		}
 		/* get coordinates */
-		if(paf->flag & PAF_FACE) give_mesh_mvert(me, a, co, no);
+		if(paf->flag & PAF_FACE) give_mesh_mvert(me, a, co, no,paf->seed);
 		else {
 			mvert= me->mvert + (a % me->totvert);
 			VECCOPY(co, mvert->co);
@@ -733,7 +733,7 @@ void build_particle_system(Object *ob)
 	/* restore */
 	G.scene->r.cfra= cfraont;
 	G.scene->r.framelen= framelenont;
-	give_mesh_mvert(0, 0, 0, 0);
+	give_mesh_mvert(0, 0, 0, 0,paf->seed);
 
 
 	/* put hierarchy back */
