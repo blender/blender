@@ -1289,8 +1289,8 @@ static void read_inventor(char *str, struct ListBase *listb)
 				/* tel het aantal driehoeken */
 				face= 0;
 				index= iv->data[0];
-                                lll = iv->datalen[0]-2;
-				for(a=0; lll; a++) {
+                lll = iv->datalen[0]-2;
+				for(a=0; a<lll; a++) {
 					if(index[0]!= -1 && index[1]!= -1 && index[2]!= -1) face++;
 					index++;
 				}
