@@ -1950,7 +1950,7 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 	Isect isec;
 	float *vec, *nrm, div, bias, sh=0;
 	float maxdist = wrld->aodist;
-	int j=0, tot, actual=0;
+	int j=0, tot, actual=0, skyadded=0;
 
 	isec.vlrorig= shi->vlr;
 	isec.mode= DDA_SHADOW;
@@ -2031,19 +2031,21 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 					shadfac[1]+= skycol[1];
 					shadfac[2]+= skycol[2];
 				}
+				skyadded++;
 			}
 		}
 		// samples
 		vec+= 3;
 	}
 	
-	div= 1.0/(float)(actual);
-	shadfac[3] = 1.0 - (sh*div);
+	shadfac[3] = 1.0 - sh/((float)actual);
 	
 	if(wrld->aocolor!=WO_AOPLAIN) {
-		shadfac[0] *= div;
-		shadfac[1] *= div;
-		shadfac[2] *= div;
+		div= shadfac[3]/((float)skyadded);
+		
+		shadfac[0]*= div;	// average color times distances/hits formula
+		shadfac[1]*= div;	// average color times distances/hits formula
+		shadfac[2]*= div;	// average color times distances/hits formula
 	}
 }
 
