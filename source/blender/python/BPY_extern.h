@@ -76,7 +76,7 @@ void BPY_free_finished_script(struct Script *script);
 
 void init_syspath(void);
 void syspath_append(char *dir);
-char *bpy_gethome();
+char *bpy_gethome(void);
 
 #ifdef __cplusplus
 } /* extern "C" */
