@@ -431,7 +431,7 @@ void BIF_drawPropCircle()
 
 void startConstraint(TransInfo *t) {
 	t->con.mode |= CON_APPLY;
-	t->num.idx_max = min(getConstraintSpaceDimension(t) - 1, t->idx_max);
+	t->num.idx_max = MIN2(getConstraintSpaceDimension(t) - 1, t->idx_max);
 }
 
 void stopConstraint(TransInfo *t) {
