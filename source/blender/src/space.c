@@ -417,6 +417,17 @@ static void align_view_to_selected(View3D *v3d)
 	}
 }
 
+void select_children(Object *ob)
+{
+	Base *base;
+
+	for (base= FIRSTBASE; base; base= base->next)
+		if (ob == base->object->parent) {
+			base->flag |= SELECT;
+			select_children(base->object);
+		}
+}
+
 void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
@@ -862,6 +873,10 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else if(G.obedit->type==OB_MESH) separate_mesh();
 					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) separate_nurb();
 				}
+				else if (G.qual == LR_SHIFTKEY) {
+					select_children(OBACT);
+					allqueue(REDRAWVIEW3D, 0);					
+				}				
 				else if(G.qual & LR_CTRLKEY) make_parent();
 				else if(G.qual & LR_ALTKEY) clear_parent();
 				else {
