@@ -226,7 +226,7 @@ void FTF_TTFont::SetLanguage(char* str)
 
 
 	bindtextdomain(DOMAIN_NAME, messagepath);
-	bind_textdomain_codeset(DOMAIN_NAME, encoding_name);
+//	bind_textdomain_codeset(DOMAIN_NAME, encoding_name);
 	textdomain(DOMAIN_NAME);
 
 	strcpy(language, str);
@@ -236,7 +236,7 @@ void FTF_TTFont::SetLanguage(char* str)
 void FTF_TTFont::SetEncoding(char* str)
 {
 	strcpy(encoding_name, str);
-	bind_textdomain_codeset(DOMAIN_NAME, encoding_name);
+//	bind_textdomain_codeset(DOMAIN_NAME, encoding_name);
 }
 
 
