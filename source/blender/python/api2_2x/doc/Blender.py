@@ -15,6 +15,7 @@ Blender Python
  Submodules:
  -----------
 
+  - L{Material}
   - L{Camera}
   - L{Lamp}
   - L{BGL}

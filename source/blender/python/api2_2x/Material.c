@@ -167,6 +167,8 @@ static PyObject *M_Material_New(PyObject *self, PyObject *args,
     return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
                             "couldn't create Material Data in Blender"));
 
+  blmat->id.us = 0; /* was incref'ed by add_material() above */
+
   if (pymat == NULL)
     return (EXPP_ReturnPyObjError (PyExc_MemoryError,
                             "couldn't create Material Data object"));

@@ -102,13 +102,13 @@ void BPY_start_python(void)
 
   Py_Initialize ();
 
-	init_ourImport ();
+  init_ourImport ();
 
   initBlenderApi2_2x ();
 
-	init_syspath();
+  init_syspath();
 
-  return; /* We could take away all these return; ... */
+  return;
 }
 
 /*****************************************************************************/
@@ -142,62 +142,58 @@ void syspath_append(PyObject *dir)
 
 void init_syspath(void)
 {
-	PyObject *path;
-	PyObject *mod, *d;
-	PyObject *p;
-	char *c, *progname;
-	char execdir[FILE_MAXDIR + FILE_MAXFILE];/*defines from DNA_space_types.h*/
+  PyObject *path;
+  PyObject *mod, *d;
+  PyObject *p;
+  char *c, *progname;
+  char execdir[FILE_MAXDIR + FILE_MAXFILE];/*defines from DNA_space_types.h*/
 
-	int n;
+  int n;
 
-	path = Py_BuildValue("s", bprogname);
+  path = Py_BuildValue("s", bprogname);
 
-	mod = PyImport_ImportModule("Blender.sys");
+  mod = PyImport_ImportModule("Blender.sys");
 
   if (mod) {
-		d = PyModule_GetDict(mod);
-		PyDict_SetItemString(d, "progname", path);
-		Py_DECREF(mod);
-	}
+    d = PyModule_GetDict(mod);
+    PyDict_SetItemString(d, "progname", path);
+    Py_DECREF(mod);
+  }
   else
     printf("Warning: could not set Blender.sys.progname\n");
 
-	progname = BLI_last_slash(bprogname); /* looks for the last dir separator */
+  progname = BLI_last_slash(bprogname); /* looks for the last dir separator */
 
-	c = Py_GetPath(); /* get python system path */
-	PySys_SetPath(c); /* initialize */
+  c = Py_GetPath(); /* get python system path */
+  PySys_SetPath(c); /* initialize */
 
-	n = progname - bprogname;
-	if (n > 0) {
-		strncpy(execdir, bprogname, n);
-		if (execdir[n-1] == '.') n--; /*fix for when run as ./blender */
-		execdir[n] = '\0';
+  n = progname - bprogname;
+  if (n > 0) {
+    strncpy(execdir, bprogname, n);
+    if (execdir[n-1] == '.') n--; /*fix for when run as ./blender */
+    execdir[n] = '\0';
 
-		p = Py_BuildValue("s", execdir);
-		syspath_append(p);  /* append to module search path */
+    p = Py_BuildValue("s", execdir);
+    syspath_append(p);  /* append to module search path */
 
-		/* set Blender.sys.progname */
-	}
+    /* set Blender.sys.progname */
+  }
   else
     printf ("Warning: could not determine argv[0] path\n");
 
-	if (U.pythondir) { /* XXX not working, U.pythondir is NULL here ?!?*/
-					/* maybe it wasn't defined yet at this point in start-up ...*/
-					/* Update: definitely that is the reason. We need to start python
-					 * after U.pythondir is defined (better after the other U.xxxx are
-					 * too. */
-		p = Py_BuildValue("s", U.pythondir);
-		syspath_append(p);  /* append to module search path */
-	}
+  if (U.pythondir) {
+    p = Py_BuildValue("s", U.pythondir);
+    syspath_append(p);  /* append to module search path */
+  }
 
-	/* set sys.executable to the Blender exe */
+  /* set sys.executable to the Blender exe */
   mod = PyImport_ImportModule("sys"); /* new ref */
 
-	if (mod) {
-		d = PyModule_GetDict(mod); /* borrowed ref */
-	  PyDict_SetItemString(d, "executable", Py_BuildValue("s", bprogname));
-	  Py_DECREF(mod);
-	}
+  if (mod) {
+    d = PyModule_GetDict(mod); /* borrowed ref */
+    PyDict_SetItemString(d, "executable", Py_BuildValue("s", bprogname));
+    Py_DECREF(mod);
+  }
 }
 
 /*****************************************************************************/
@@ -209,7 +205,7 @@ void init_syspath(void)
 /*****************************************************************************/
 void BPY_syspath_append_pythondir(void)
 {
-	syspath_append(Py_BuildValue("s", U.pythondir));
+  syspath_append(Py_BuildValue("s", U.pythondir));
 }
 
 /*****************************************************************************/
@@ -323,6 +319,7 @@ void BPY_Err_Handle(Text *text)
 struct _object *BPY_txt_do_python(struct SpaceText* st)
 {
   PyObject *dict, *ret;
+  PyObject *main_dict = PyModule_GetDict(PyImport_AddModule("__main__"));
 
   //printf ("\nIn BPY_txt_do_python\n");
 
@@ -332,7 +329,7 @@ struct _object *BPY_txt_do_python(struct SpaceText* st)
  * the script with a clean global dictionary or should keep the current one,
  * possibly already "polluted" by other calls to the Python Interpreter.
  * The default is to use a clean one.  To change this the script writer must
- * call Blender.releaseGlobalDict(bool), with bool == 0, in the script */
+ * call Blender.ReleaseGlobalDict(bool), with bool == 0, in the script. */
 
   if (EXPP_releaseGlobalDict) {
     printf("Using a clean Global Dictionary.\n");
@@ -340,7 +337,7 @@ struct _object *BPY_txt_do_python(struct SpaceText* st)
     dict = CreateGlobalDictionary();
   }
   else
-    dict = PyModule_GetDict(PyImport_AddModule("__main__"));
+    dict = main_dict; /* must be careful not to free the main_dict */
 
   clearScriptLinks ();
 
@@ -348,7 +345,8 @@ struct _object *BPY_txt_do_python(struct SpaceText* st)
 
   if (!ret) { /* Failed execution of the script */
 
-    if (EXPP_releaseGlobalDict) ReleaseGlobalDictionary(dict);
+    if (EXPP_releaseGlobalDict && (dict != main_dict))
+      ReleaseGlobalDictionary(dict);
 
     BPY_Err_Handle(st->text);
     BPY_end_python();
@@ -359,22 +357,33 @@ struct _object *BPY_txt_do_python(struct SpaceText* st)
 
   else Py_DECREF (ret);
 
-/* From the old BPY_main.c:
- * 'The following lines clear the global name space of the python
- *  interpreter. This is desired to release objects after execution
- *  of a script (remember that each wrapper object increments the refcount
- *  of the Blender Object. 
- *  Exception: scripts that use the GUI rely on the
- *  persistent global namespace, so they need a workaround: The namespace
- *  is released when the GUI is exit.'
+/* Scripts that use the GUI rely on the persistent global namespace, so
+ * they need a workaround: The namespace is released when the GUI is exit.'
  * See api2_2x/Draw.c: Method_Register() */
 
-  if (EXPP_releaseGlobalDict) {     
-    if (st->flags & ST_CLEAR_NAMESPACE) {
-      ReleaseGlobalDictionary(dict);
-      /*garbage_collect(&G.main); Unfinished in the previous implementation */ 
+/* Block below: The global dict should only be released if:
+ * - a script didn't defined it to be persistent and
+ * - Draw.Register() is not in use (no GUI) and
+ * - it is not the real __main__ dict (if it is, restart to clean it) */
+
+  if (EXPP_releaseGlobalDict) {
+    if (st->flags & ST_CLEAR_NAMESPACE) { /* False if the GUI is in use */
+
+      if (dict != main_dict) ReleaseGlobalDictionary(dict);
+
+      else {
+        BPY_end_python(); /* restart to get a fresh __main__ dict */
+        BPY_start_python();
+      }
+
     }
   }
+  else if (dict != main_dict) PyDict_Update (main_dict, dict);
+
+/* Line above: if it should be kept and it's not already the __main__ dict,
+ * merge it into the __main__ one.  This happens when to release is the
+ * current behavior and the script changes that with
+ * Blender.ReleaseGlobalDict(0). */
 
 /* Edited from old BPY_main.c:
  * 'The return value is the global namespace dictionary of the script
@@ -669,86 +678,86 @@ void DoAllScriptsFromList (ListBase *list, short event)
 
 PyObject *importText(char *name)
 {
-	Text *text;
-	char *txtname;
-	char *buf = NULL;
-	int namelen = strlen(name);
+  Text *text;
+  char *txtname;
+  char *buf = NULL;
+  int namelen = strlen(name);
 
-	txtname = malloc(namelen+3+1);
-	if (!txtname) return NULL;
+  txtname = malloc(namelen+3+1);
+  if (!txtname) return NULL;
 
-	memcpy(txtname, name, namelen);
-	memcpy(&txtname[namelen], ".py", 4);
+  memcpy(txtname, name, namelen);
+  memcpy(&txtname[namelen], ".py", 4);
 
-	text = (Text*) &(G.main->text.first);
+  text = (Text*) &(G.main->text.first);
 
-	while(text) {
-		if (!strcmp (txtname, GetName(text)))
-			break;
-		text = text->id.next;
-	}
+  while(text) {
+    if (!strcmp (txtname, GetName(text)))
+      break;
+    text = text->id.next;
+  }
 
-	if (!text) {
-		free(txtname);
-		return NULL;
-	}
+  if (!text) {
+    free(txtname);
+    return NULL;
+  }
 
-	if (!text->compiled) {
-		buf = txt_to_buf(text);
-		text->compiled = Py_CompileString(buf, GetName(text), Py_file_input);
-		MEM_freeN(buf);
+  if (!text->compiled) {
+    buf = txt_to_buf(text);
+    text->compiled = Py_CompileString(buf, GetName(text), Py_file_input);
+    MEM_freeN(buf);
 
-		if (PyErr_Occurred()) {
-			PyErr_Print();
-			BPY_free_compiled_text(text);
-			free(txtname);
-			return NULL;
-		}
-	}
+    if (PyErr_Occurred()) {
+      PyErr_Print();
+      BPY_free_compiled_text(text);
+      free(txtname);
+      return NULL;
+    }
+  }
 
-	free(txtname);
-	return PyImport_ExecCodeModule(name, text->compiled);
+  free(txtname);
+  return PyImport_ExecCodeModule(name, text->compiled);
 }
 
 static PyMethodDef bimport[] = {
-	{ "blimport", blender_import, METH_VARARGS, "our own import"}
+  { "blimport", blender_import, METH_VARARGS, "our own import"}
 };
 
 PyObject *blender_import(PyObject *self, PyObject *args)
 {
-	PyObject *exception, *err, *tb;
-	char *name;
-	PyObject *globals = NULL, *locals = NULL, *fromlist = NULL;
-	PyObject *m;
+  PyObject *exception, *err, *tb;
+  char *name;
+  PyObject *globals = NULL, *locals = NULL, *fromlist = NULL;
+  PyObject *m;
 
-	if (!PyArg_ParseTuple(args, "s|OOO:bimport",
-	        &name, &globals, &locals, &fromlist))
-	    return NULL;
+  if (!PyArg_ParseTuple(args, "s|OOO:bimport",
+          &name, &globals, &locals, &fromlist))
+      return NULL;
 
-	m = PyImport_ImportModuleEx(name, globals, locals, fromlist);
+  m = PyImport_ImportModuleEx(name, globals, locals, fromlist);
 
-	if (m) 
-		return m;
-	else
-		PyErr_Fetch(&exception, &err, &tb); /*restore for probable later use*/
-	
-	m = importText(name);
-	if (m) { /* found module, ignore above exception*/
-		PyErr_Clear();
-		Py_XDECREF(exception); Py_XDECREF(err); Py_XDECREF(tb);
-		printf("imported from text buffer...\n");
-	} else {
-		PyErr_Restore(exception, err, tb);
-	}
-	return m;
+  if (m) 
+    return m;
+  else
+    PyErr_Fetch(&exception, &err, &tb); /*restore for probable later use*/
+  
+  m = importText(name);
+  if (m) { /* found module, ignore above exception*/
+    PyErr_Clear();
+    Py_XDECREF(exception); Py_XDECREF(err); Py_XDECREF(tb);
+    printf("imported from text buffer...\n");
+  } else {
+    PyErr_Restore(exception, err, tb);
+  }
+  return m;
 }
 
 void init_ourImport(void)
 {
-	PyObject *m, *d;
-	PyObject *import = PyCFunction_New(bimport, NULL);
+  PyObject *m, *d;
+  PyObject *import = PyCFunction_New(bimport, NULL);
 
-	m = PyImport_AddModule("__builtin__");
-	d = PyModule_GetDict(m);
-	PyDict_SetItemString(d, "__import__", import);
+  m = PyImport_AddModule("__builtin__");
+  d = PyModule_GetDict(m);
+  PyDict_SetItemString(d, "__import__", import);
 }
