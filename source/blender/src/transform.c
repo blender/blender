@@ -1443,10 +1443,10 @@ void Transform(int mode)
 		BIF_undo_push("Transform");
 	}
 	
-	printf("before postrans\n");
+//	printf("before postrans\n");
 	/* free data, reset vars */
 	postTrans(&Trans);
-	printf("after postrans\n");
+//	printf("after postrans\n");
 	
 	/* mess from old transform, just for now (ton) */
 	{
@@ -1751,26 +1751,28 @@ int Resize(TransInfo *t, short mval[2])
 				Mat3ToSize(tmat, fsize);
 			}
 			
-			/* handle ipokeys? */
-			if(td->tdi) {
-				TransDataIpokey *tdi= td->tdi;
-				/* calculate delta size (equal for size and dsize) */
-				
-				// commented out for now
-				vec[0]= (tdi->oldsize[0])*(fsize[0] -1.0f) * td->factor;
-				vec[1]= (tdi->oldsize[1])*(fsize[1] -1.0f) * td->factor;
-				vec[2]= (tdi->oldsize[2])*(fsize[2] -1.0f) * td->factor;
-				
-				add_tdi_poin(tdi->sizex, tdi->oldsize,   vec[0]);
-				add_tdi_poin(tdi->sizey, tdi->oldsize+1, vec[1]);
-				add_tdi_poin(tdi->sizez, tdi->oldsize+2, vec[2]);
-				
-			}
-			else {
-				// TEMPORARY NAIVE CODE
-				td->ext->size[0] = td->ext->isize[0] + td->ext->isize[0] * (fsize[0] - 1.0f) * td->factor;
-				td->ext->size[1] = td->ext->isize[1] + td->ext->isize[1] * (fsize[1] - 1.0f) * td->factor;
-				td->ext->size[2] = td->ext->isize[2] + td->ext->isize[2] * (fsize[2] - 1.0f) * td->factor;
+			if ((G.vd->flag & V3D_ALIGN)==0) {	// align mode doesn't rotate objects itself
+				/* handle ipokeys? */
+				if(td->tdi) {
+					TransDataIpokey *tdi= td->tdi;
+					/* calculate delta size (equal for size and dsize) */
+					
+					// commented out for now
+					vec[0]= (tdi->oldsize[0])*(fsize[0] -1.0f) * td->factor;
+					vec[1]= (tdi->oldsize[1])*(fsize[1] -1.0f) * td->factor;
+					vec[2]= (tdi->oldsize[2])*(fsize[2] -1.0f) * td->factor;
+					
+					add_tdi_poin(tdi->sizex, tdi->oldsize,   vec[0]);
+					add_tdi_poin(tdi->sizey, tdi->oldsize+1, vec[1]);
+					add_tdi_poin(tdi->sizez, tdi->oldsize+2, vec[2]);
+					
+				}
+				else {
+					// TEMPORARY NAIVE CODE
+					td->ext->size[0] = td->ext->isize[0] + td->ext->isize[0] * (fsize[0] - 1.0f) * td->factor;
+					td->ext->size[1] = td->ext->isize[1] + td->ext->isize[1] * (fsize[1] - 1.0f) * td->factor;
+					td->ext->size[2] = td->ext->isize[2] + td->ext->isize[2] * (fsize[2] - 1.0f) * td->factor;
+				}
 			}
 		}
 		VecSubf(vec, td->center, t->center);
@@ -2022,7 +2024,7 @@ int Rotation(TransInfo *t, short mval[2])
 				
 				QuatMul(td->ext->quat, quat, td->ext->iquat);
 			}
-			else {
+			else if ((G.vd->flag & V3D_ALIGN)==0) {	// align mode doesn't rotate objects itself
 				float obmat[3][3];
 				
 				/* are there ipo keys? */
