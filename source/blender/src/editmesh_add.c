@@ -291,6 +291,7 @@ void addedgeface_mesh(void)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *eve, *neweve[4];
+	EditEdge *eed;
 	EditFace *efa;
 	float con1, con2, con3;
 	short amount=0;
@@ -308,7 +309,8 @@ void addedgeface_mesh(void)
 		eve= eve->next;
 	}
 	if(amount==2) {
-		addedgelist(neweve[0], neweve[1], NULL);
+		eed= addedgelist(neweve[0], neweve[1], NULL);
+		EM_select_edge(eed, 1);
 		allqueue(REDRAWVIEW3D, 0);
 		makeDispList(G.obedit);
 		return;
@@ -328,7 +330,7 @@ void addedgeface_mesh(void)
 		if(exist_face(neweve[0], neweve[1], neweve[2], 0)==0) {
 			
 			efa= addfacelist(neweve[0], neweve[1], neweve[2], 0, NULL, NULL);
-
+			EM_select_face(efa, 1);
 		}
 		else error("The selected vertices already form a face");
 	}
