@@ -44,11 +44,13 @@ source_files = ['BPY_interface.c',
                 'api2_2x/Mathutils.c',
                 'api2_2x/rgbTuple.c',
                 'api2_2x/gen_utils.c',
+                'api2_2x/sceneRender.c',
                 'api2_2x/EXPP_interface.c']
 
 python_env.Append (CPPPATH = ['api2_2x',
                               '../blenkernel',
                               '../blenlib',
+                              '../render/extern/include',
                               '../makesdna',
                               '#/intern/guardedalloc',
                               '#/intern/bmfont',
