@@ -3052,7 +3052,8 @@ void do_displacement(Object *ob, int startface, int numface, int startvert, int 
 	}
 	else if (ob->type == OB_MBALL) { /* Metaballs have bb but don't seem to use it */
 		mb=(MetaBall *)(ob->data);
-		if ( ob->bb == NULL) tex_space_mball(ob);
+		if (ob->bb == NULL) ob=find_basis_mball(ob);
+		if (ob->bb == NULL) tex_space_mball(ob);
 		bb=ob->bb;
 		texflag=mb->texflag;
 	}
@@ -3215,9 +3216,9 @@ void displace_render_vert(ShadeInput *shi, VertRen *vr, float *scale)
 	//vr->co[0], vr->co[1], vr->co[2]);
 	
 	/* 0.5 could become button once?  */
-	vr->co[0] += 0.5 * shi->displace[0] * scale[0] ; 
-	vr->co[1] += 0.5 * shi->displace[1] * scale[1] ; 
-	vr->co[2] += 0.5 * shi->displace[2] * scale[2] ; 
+	vr->co[0] += 0.25 * shi->displace[0] * scale[0] ; 
+	vr->co[1] += 0.25 * shi->displace[1] * scale[1] ; 
+	vr->co[2] += 0.25 * shi->displace[2] * scale[2] ; 
 	
 	//printf("after co=%f, %f, %f\n", vr->co[0], vr->co[1], vr->co[2]); 
 
