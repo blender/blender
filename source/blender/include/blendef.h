@@ -38,6 +38,18 @@
 #endif
 #endif
 
+/* **************** MAX ********************* */
+
+
+#define MAXLAMP         32766
+/* max length material array, 16 because of bits in matfrom */
+#define MAXPICKBUF      2000
+#define MAXSEQ          32
+/*  in Image struct */
+#define MAXMIPMAP       10
+/* in buttons.c */
+#define MAX_EFFECT      20
+
 #ifndef MAXFLOAT
 #define MAXFLOAT  ((float)3.40282347e+38)
 #endif
@@ -133,22 +145,8 @@
 #define FNT_PDRAW 1
 #define FNT_HAEBERLI 2
 
-
 /* isect and scanfill */
 #define COMPLIMIT	0.0003
-
-
-/* **************** MAX ********************* */
-
-
-#define MAXLAMP		32766
-/* max length material array, 16 because of bits in matfrom */
-#define MAXPICKBUF	2000
-#define MAXSEQ		32
-/*  in Image struct */
-#define MAXMIPMAP	10
-/* in buttons.c */
-#define MAX_EFFECT	20
 
 /* getbutton */
 
@@ -159,34 +157,34 @@
 #define B_ARMLOCAL		26	/* __NLA */
 #define	B_ARMALONE		27	/* __NLA */
 
-#define B_WORLDLOCAL	28
-#define B_WORLDALONE	29
+#define B_WORLDLOCAL		28
+#define B_WORLDALONE		29
 #define B_LATTLOCAL		30
-#define B_MBALLLOCAL	31
-#define B_CAMERALOCAL	32
+#define B_MBALLLOCAL		31
+#define B_CAMERALOCAL		32
 #define B_OBLOCAL		33
 #define B_IPOLOCAL		34
 #define B_LAMPLOCAL		35
 #define B_MATLOCAL		36
 #define B_TEXLOCAL		37
 #define B_MESHLOCAL		38
-#define B_CURVELOCAL	39
+#define B_CURVELOCAL		39
 
 #define B_LATTALONE		40
-#define B_MBALLALONE	41
-#define B_CAMERAALONE	42
+#define B_MBALLALONE		41
+#define B_CAMERAALONE		42
 #define B_OBALONE		43
 #define B_IPOALONE		44
 #define B_LAMPALONE		45
 #define B_MATALONE		46
 #define B_TEXALONE		47
 #define B_MESHALONE		48
-#define B_CURVEALONE	49
+#define B_CURVEALONE		49
 /* EVENT < 50: alones en locals */
 
-#define B_KEEPDATA			60
+#define B_KEEPDATA		60
 #define B_CONSOLETOG		61
-#define B_DRAWINFO			62
+#define B_DRAWINFO		62
 #define B_REDRCURW3D		63
 #define B_FLIPINFOMENU		64
 #define B_FLIPFULLSCREEN	65
@@ -203,26 +201,26 @@
 #define B_LTEXBROWSE		78
 #define B_MESHBROWSE		79
 #define B_EXTEXBROWSE		80
-#define B_LOADTEMP			81
-#define B_MATDELETE			82
-#define B_TEXDELETE			83
-#define B_IPODELETE			84
+#define B_LOADTEMP		81
+#define B_MATDELETE		82
+#define B_TEXDELETE		83
+#define B_IPODELETE		84
 #define B_WORLDDELETE		85
 #define B_WTEXBROWSE		86
 #define B_WORLDBROWSE		87
-#define B_IPOBROWSE			88
-#define B_NEWFRAME			89
+#define B_IPOBROWSE		88
+#define B_NEWFRAME		89
 #define B_LAMPBROWSE		90
-#define B_MATBROWSE			91
-#define	B_TEXBROWSE			92
+#define B_MATBROWSE		91
+#define	B_TEXBROWSE		92
 #define	B_EDITBROWSE		93
 #define B_AUTOTEXNAME		94
 #define B_AUTOMATNAME		95
-#define B_MATLOCK			96
-#define B_IDNAME			97
-#define B_NEWSPACE			98
-#define B_FULL				99
-#define B_REDR				100
+#define B_MATLOCK		96
+#define B_IDNAME		97
+#define B_NEWSPACE		98
+#define B_FULL			99
+#define B_REDR			100
 
 
 /* VIEW3D: 100 */
@@ -232,19 +230,19 @@
 #define B_AUTOKEY		139
 #define B_SCENELOCK		140
 #define B_LOCALVIEW		141
-#define B_U_CAPSLOCK	142
+#define B_U_CAPSLOCK		142
 #define B_EDITMODE		143
 #define B_VPAINT		144
 #define B_FACESEL		145
 #define B_VIEWBUT		146
 #define B_PERSP			147
 #define B_PROPTOOL		148
-#define B_VIEWRENDER	149
+#define B_VIEWRENDER		149
 #define B_VIEWTRANS		150
 #define B_VIEWZOOM		151
 #define B_STARTGAME		152
 #define	B_POSEMODE		153
-#define	B_TEXTUREPAINT	154
+#define	B_TEXTUREPAINT		154
 #define B_WPAINT		155
 
 /* IPO: 200 */
@@ -256,29 +254,29 @@
 #define B_IPOEXTRAP		206
 #define B_IPOCYCLIC		207
 #define B_IPOMAIN		208
-#define B_IPOSHOWKEY	209
-#define B_IPOCYCLICX	210
+#define B_IPOSHOWKEY		209
+#define B_IPOCYCLICX		210
 	/* warn: also used for oops and seq */
-#define B_VIEW2DZOOM	211
+#define B_VIEW2DZOOM		211
 #define B_IPOPIN		212
 
 /* OOPS: 250 */
 #define B_OOPSHOME		251
-#define B_OOPSBORDER	252
+#define B_OOPSBORDER		252
 #define B_NEWOOPS		253
 
 /* INFO: 300 */
 /* watch: also in filesel.c and editobject.c */
 #define B_INFOSCR		301
-#define B_INFODELSCR	302
+#define B_INFODELSCR		302
 #define B_INFOSCE		304
-#define B_INFODELSCE	305
+#define B_INFODELSCE		305
 #define B_FILEMENU		306
 #define B_PACKFILE		307
 
 #define B_CONSOLEOUT		308
 #define B_CONSOLENUMLINES	309
-#define B_USERPREF			310
+#define B_USERPREF		310
 #define B_LOADUIFONT		311
 #define B_SETLANGUAGE		312
 #define B_SETFONTSIZE		313
@@ -302,11 +300,11 @@
 #define B_SIMABROWSE		352
 #define B_SIMAGELOAD		353
 #define B_SIMAGEDRAW		354
-#define B_BE_SQUARE			355
+#define B_BE_SQUARE		355
 #define B_SIMAGEDRAW1		356
-#define B_TWINANIM			357
+#define B_TWINANIM		357
 #define B_SIMAGEREPLACE		358
-#define B_CLIP_UV			359
+#define B_CLIP_UV		359
 #define B_SIMAGELOAD1		360
 #define B_SIMAGEREPLACE1	361
 #define B_SIMAGEPAINTTOOL	362
@@ -315,7 +313,7 @@
 
 /* BUTS: 400 */
 #define B_BUTSHOME		401
-#define B_BUTSPREVIEW	402
+#define B_BUTSPREVIEW		402
 #define B_MATCOPY		403
 #define B_MATPASTE		404
 #define B_MESHTYPE		405
@@ -324,16 +322,16 @@
 /* in imasel.h */
 
 /* TEXT: 500 */
-#define B_TEXTBROWSE	501
+#define B_TEXTBROWSE		501
 #define B_TEXTALONE		502
 #define B_TEXTLOCAL		503
-#define B_TEXTDELETE	504
+#define B_TEXTDELETE		504
 #define B_TEXTFONT		505
 #define B_TEXTSTORE		506
-#define B_TEXTLINENUM	507
+#define B_TEXTLINENUM		507
 
 /* FILE: 550 */
-#define B_SORTFILELIST	551
+#define B_SORTFILELIST		551
 #define B_RELOADDIR		552
 
 /* SEQUENCE: 600 */
@@ -341,10 +339,10 @@
 #define B_SEQCLEAR		602
 
 /* SOUND: 650 */
-#define B_SOUNDBROWSE	651
-#define B_SOUNDBROWSE2  652
+#define B_SOUNDBROWSE		651
+#define B_SOUNDBROWSE2  	652
 #define B_SOUNDHOME		653
-#define B_PACKSOUND	654
+#define B_PACKSOUND		654
 
 /* ACTION: 701 - 800 */
 #define B_ACTHOME		701
