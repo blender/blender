@@ -52,6 +52,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_displist.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_screen.h"
 #include "BKE_object.h"
 #include "BLI_blenlib.h"
@@ -2163,9 +2164,13 @@ static PyObject *M_NMesh_GetRawFromObject( PyObject * self, PyObject * args )
 		Mesh *me = ( Mesh * ) ob->data;
 		DispList *dl;
 
-		if( mesh_uses_displist( me )
-		    && ( dl = find_displist( &me->disp, DL_MESH ) ) )
-			nmesh = new_NMesh_internal( me, dl->mesh, NULL );
+		if( mesh_uses_displist( me ) ) {
+			DerivedMesh *dm = mesh_get_derived(ob);
+			DispListMesh *dlm = dm->convertToDispListMesh(dm);
+			nmesh = new_NMesh_internal( me, dlm, NULL );
+			displistmesh_free(dlm);
+			dm->release(dm);
+		}
 		else if( ( dl = find_displist( &ob->disp, DL_VERTS ) ) )
 			nmesh = new_NMesh_internal( me, NULL, dl->verts );
 		else
