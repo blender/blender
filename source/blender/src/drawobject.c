@@ -673,7 +673,7 @@ void drawcamera(Object *ob)
 	
 	/* that way it's always visible */
 	fac= cam->drawsize;
-	if(G.vd->persp>=2) fac= cam->clipsta+0.1;
+	if(G.vd->persp>=2 && ob==G.vd->camera) fac= cam->clipsta+0.1;
 	
 	depth= - fac*cam->lens/16.0;
 	facx= fac*1.28;
