@@ -149,6 +149,7 @@ PyObject *Curve_Init (void)
 /* name, pathlen totcol flag bevresol                                        */
 /* resolu resolv width ext1 ext2                                             */ 
 /* controlpoint loc rot size                                                 */
+/* numpts                                                                    */
 /*****************************************************************************/
 
 
@@ -215,8 +216,8 @@ static PyObject *Curve_setTotcol(BPy_Curve *self, PyObject *args)
 {
 
   if (!PyArg_ParseTuple(args, "i", &(self->curve->totcol)))
-					return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-																	"expected int argument"));
+    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+				   "expected int argument"));
  
   Py_INCREF(Py_None);
   return Py_None;
@@ -238,8 +239,8 @@ static PyObject *Curve_setMode(BPy_Curve *self, PyObject *args)
 {
 
   if (!PyArg_ParseTuple(args, "i", &(self->curve->flag)))
-					return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-																	"expected int argument"));
+    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+				   "expected int argument"));
  
   Py_INCREF(Py_None);
   return Py_None;
@@ -460,33 +461,52 @@ static PyObject *Curve_setControlPoint(BPy_Curve *self, PyObject *args)
 
 static PyObject *Curve_getControlPoint(BPy_Curve *self, PyObject *args)
 {
-  PyObject* liste = PyList_New(0); 
+  PyObject* liste = PyList_New(0);  /* return values */
 
   Nurb*ptrnurb;
-  int numcourbe,numpoint,i,j;
+  int i,j;
+  /* input args: requested curve and point number on curve */
+  int numcourbe, numpoint; 
     
   if (!PyArg_ParseTuple(args, "ii", &numcourbe,&numpoint))  
     return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-														"expected int int arguments"));
-  //check args ???
-  if (!self->curve->nurb.first)return liste;
+				   "expected int int arguments"));
+  if( (numcourbe < 0) || (numpoint < 0) )
+    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+				   " arguments must be non-negative"));
+
+  /* if no nurbs in this curve obj */
+  if (!self->curve->nurb.first) return liste;
+
+  /* walk the list of nurbs to find requested numcourbe */
   ptrnurb = self->curve->nurb.first;
-  for(i = 0;i< numcourbe;i++)//selection of the first point of the curve
-    ptrnurb=ptrnurb->next;
-    
-  if (ptrnurb->bp)
+  for(i = 0; i < numcourbe; i++) 
     {
-      for(i = 0;i< 4;i++)
+      ptrnurb=ptrnurb->next;
+      if( !ptrnurb ) /* if zero, we ran just ran out of curves */
+	return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+					"curve index out of range"));
+    }
+  
+  /* check numpoint param against pntsu */
+  if( numpoint >= ptrnurb->pntsu )
+    return (EXPP_ReturnPyObjError( PyExc_AttributeError,
+				"point index out of range"));
+
+  if (ptrnurb->bp) /* if we are a nurb curve, you get 4 values */
+    {
+      for(i = 0; i< 4; i++)
 	PyList_Append(liste,  PyFloat_FromDouble( ptrnurb->bp[numpoint].vec[i]));
     }
      
-  if (ptrnurb->bezt)
+  if (ptrnurb->bezt) /* if we are a bezier, you get 9 values */
     {
-      liste = PyList_New(9);
-      for(i = 0;i< 3;i++)
-	for(j = 0;j< 3;j++)
+      /* note to jacques:  I commented out the PyList_New() since we are appending the values below.  this never gets filled and just returns 9 null objs at the front of the list */
+      /* liste = PyList_New(9); */ 
+      for(i = 0; i< 3; i++)
+	for(j = 0; j< 3; j++)
 	  PyList_Append(liste,
-							PyFloat_FromDouble( ptrnurb->bezt[numpoint].vec[i][j]));
+			PyFloat_FromDouble( ptrnurb->bezt[numpoint].vec[i][j]));
     }
 
   return liste;
@@ -572,6 +592,144 @@ if (!PyList_Check(listargs))
   return Py_None;
 }
 
+/* sds */
+/*
+ * Count the number of splines in a Curve Object
+ * int getNumCurves()
+ */
+
+static PyObject *Curve_getNumCurves(BPy_Curve *self)
+{
+  Nurb *ptrnurb;
+  PyObject* ret_val;
+  int num_curves = 0; /* start with no splines */
+
+  /* get curve */
+  ptrnurb = self->curve->nurb.first;
+  if( ptrnurb ) /* we have some nurbs in this curve */
+    {
+      while( 1 )
+	{
+	  ++num_curves;
+	  ptrnurb = ptrnurb->next;
+	  if( !ptrnurb ) /* no more curves */
+	    break;
+	}
+    }
+
+  ret_val = PyInt_FromLong((long) num_curves);
+
+  if (ret_val) return ret_val;
+
+  /* oops! */
+  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
+				 "couldn't get number of curves"));
+}
+
+
+/*
+ * count the number of points in a give spline
+ * int getNumPoints( curve_num=0 )
+ *
+ */
+
+static PyObject *Curve_getNumPoints(BPy_Curve *self, PyObject *args)
+{
+  Nurb *ptrnurb;
+  PyObject* ret_val;
+  int curve_num = 0; /* default spline number */
+  int i;
+
+  /* parse input arg */
+  if( !PyArg_ParseTuple( args, "|i", &curve_num ))
+    return( EXPP_ReturnPyObjError( PyExc_AttributeError,
+				      "expected int argument"));
+
+  /* check arg - must be non-negative */
+  if( curve_num < 0 )
+     return( EXPP_ReturnPyObjError( PyExc_AttributeError,
+				      "argument must be non-negative"));
+     
+				      
+  /* walk the list of curves looking for our curve */
+  ptrnurb = self->curve->nurb.first;
+  if( !ptrnurb ) /* no splines in this Curve */
+    {
+      return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+				      "no splines in this Curve"));
+    }
+      
+  for( i = 0; i < curve_num; i++ )
+    {
+      ptrnurb = ptrnurb->next;
+      if( !ptrnurb ) /* if zero, we ran just ran out of curves */
+	return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+					"curve index out of range"));
+    }
+  
+  /* pntsu is the number of points in curve */
+  ret_val = PyInt_FromLong((long) ptrnurb->pntsu);
+
+  if (ret_val) return ret_val;
+
+  /* oops! */
+  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
+				 "couldn't get number of points for curve"));
+}
+
+/*
+ * Test whether a given spline of a Curve is a nurb
+ *  as opposed to a bezier
+ * int isNurb( curve_num=0 )
+ */
+
+static PyObject *Curve_isNurb( BPy_Curve *self, PyObject *args )
+{
+  int curve_num=0; /* default value */
+  int is_nurb;
+  Nurb *ptrnurb;
+  PyObject* ret_val;
+  int i;
+
+  /* parse and check input args */
+  if( !PyArg_ParseTuple( args, "|i", &curve_num ))
+    {
+      return( EXPP_ReturnPyObjError( PyExc_AttributeError,
+				      "expected int argument"));
+    }
+  if( curve_num < 0 )
+    {
+      return( EXPP_ReturnPyObjError( PyExc_AttributeError,
+				     "curve number must be non-negative"));
+    }
+
+  ptrnurb = self->curve->nurb.first;
+
+  if( !ptrnurb ) /* no splines in this curve */
+    return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+				    "no splines in this Curve"));
+
+  for( i = 0; i < curve_num; i++ )
+    {
+      ptrnurb = ptrnurb->next;
+      if( !ptrnurb ) /* if zero, we ran just ran out of curves */
+	return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+					"curve index out of range"));
+    }
+      
+  /* right now, there are only two curve types, nurb and bezier. */
+  is_nurb = ptrnurb->bp ? 1 : 0;
+  
+  ret_val = PyInt_FromLong( (long) is_nurb );
+  if(  ret_val )
+    return ret_val;
+
+  /* oops */
+  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
+				 "couldn't get curve type"));
+}
+
+      
 
 
 
@@ -621,6 +779,10 @@ static PyObject *CurveGetAttr (BPy_Curve *self, char *name)//getattr
     return Curve_getRot(self);
   if (strcmp(name, "size") == 0)
     return Curve_getSize(self);
+#if 0
+    if (strcmp(name, "numpts") == 0)
+    return Curve_getNumPoints(self);
+#endif
 
 
 
