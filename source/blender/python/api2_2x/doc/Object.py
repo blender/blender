@@ -214,15 +214,15 @@ class Object:
   def getEuler():
     """
     Returns the object's rotation as Euler rotation vector (rotX, rotY, rotZ).  Angles are in radians.
-    @rtype: A vector triple of floats
-    @return: (rotX, rotY, rotZ)
+    @rtype: Py_Euler
+    @return: A python euler 
     """
 
   def getInverseMatrix():
     """
     Returns the object's inverse matrix.
-    @rtype: Blender Matrix object
-    @return: the inverse of the matrix of the Object
+    @rtype: Py_Matrix
+    @return: A python matrix 4x4
     """
 
   def getIpo():
@@ -250,6 +250,13 @@ class Object:
           print obj.getLocation()
     """
 
+  def getAction():
+    """
+    Returns an action if one is associated with this object (only useful for armature types).
+    @rtype: Py_Action
+    @return: a python action.
+    """
+
   def getMaterials():
     """
     Returns a list of materials assigned to the object.
@@ -260,8 +267,8 @@ class Object:
   def getMatrix():
     """
     Returns the object matrix.
-    @rtype: Blender Matrix object.
-    @return: the matrix of the Object.
+    @rtype: Py_Matrix
+    @return: a python matrix 4x4
     """
 
   def getName():
@@ -391,15 +398,11 @@ class Object:
         - 5 - Textured
     """
 
-  def setEuler(x, y, z):
+  def setEuler(euler):
     """
     Sets the object's rotation according to the specified Euler angles.
-    @type x: float
-    @param x: The rotation angle in radians for the X direction.
-    @type y: float
-    @param y: The rotation angle in radians for the Y direction.
-    @type z: float
-    @param z: The rotation angle in radians for the Z direction.
+    @type euler: Py_Euler or a list of floats
+    @param euler: a python euler or x,y,z rotations as floats
     """
 
   def setIpo(ipo):
@@ -425,6 +428,13 @@ class Object:
     Sets the materials. The argument must be a list of valid material objects.
     @type materials: Materials list
     @param materials: A list of Blender material objects.
+    """
+
+  def setMatrix(matrix):
+    """
+    Sets the object's matrix and updates it's tranformation. 
+    @type matrix: Py_Matrix 4x4
+    @param matrix: a python matrix 4x4.
     """
 
   def setName(name):

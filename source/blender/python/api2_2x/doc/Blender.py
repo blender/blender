@@ -20,6 +20,8 @@ The Blender Python API Reference
  -----------
 
   - L{Armature}
+     - L{Bone}
+     - L{NLA} (new)
   - L{BGL}
   - L{Camera}
   - L{Curve}
@@ -38,6 +40,7 @@ The Blender Python API Reference
   - L{Object}
   - L{Registry}
   - L{Scene}
+     - L{Render} (new)
   - L{Text}
   - L{Texture}
   - L{Types}
