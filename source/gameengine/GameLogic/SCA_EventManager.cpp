@@ -29,6 +29,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#include <assert.h>
 #include "SCA_EventManager.h"
 
 #ifdef HAVE_CONFIG_H
@@ -67,7 +68,7 @@ void SCA_EventManager::NextFrame(double curtime, double fixedtime)
 
 void SCA_EventManager::NextFrame()
 {
-	assert(false && "Event managers should override a NextFrame method");
+	assert(false); // && "Event managers should override a NextFrame method");
 }
 
 void SCA_EventManager::EndFrame()
