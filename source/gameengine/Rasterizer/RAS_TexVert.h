@@ -50,7 +50,7 @@ class RAS_TexVert
 	float			m_localxyz[3];	// 3*4 = 12 = 24
 	float			m_uv1[2];	// 2*4 =  8 = 24 + 16 = 40
 	unsigned int	m_rgba;			// 4   = 40 + 4 = 44
-	short			m_normal[3];	// 3*2 =  6 = 50 
+	float			m_normal[3];	// 3*2 =  6 = 50 
 	short			m_flag;		// 32 bytes total size, fits nice = 52 = not fit nice
 
 
@@ -61,41 +61,12 @@ public:
 	RAS_TexVert(const MT_Point3& xyz,
 				const MT_Point2& uv,
 				const unsigned int rgba,
-				const short *normal,
+				const MT_Vector3& normal,
 				const short flag);
 	~RAS_TexVert() {};
 
 	// leave multiline for debugging
 #ifdef RAS_TexVert_INLINE
-	void SetXYZ(const MT_Point3& xyz)
-	{
-		xyz.getValue(m_localxyz);
-	}
-	
-	
-	
-	void SetUV(const MT_Point2& uv)
-	{
-		uv.getValue(m_uv1);
-	}
-	
-	void SetRGBA(const unsigned int rgba)
-	{ 
-		m_rgba = rgba;
-	}
-	
-	void SetFlag(const short flag)
-	{
-		m_flag = flag;
-	}
-	
-	void SetNormal(const MT_Vector3& normal)
-	{
-		m_normal[0] = short(normal.x()*32767.0);
-		m_normal[1] = short(normal.y()*32767.0);
-		m_normal[2] = short(normal.z()*32767.0);
-	}
-
 	const float* getUV1 () const { 
 		return m_uv1;
 	};
@@ -104,7 +75,7 @@ public:
 		return m_localxyz;
 	};
 	
-	const short* getNormal() const {
+	const float* getNormal() const {
 		return m_normal;
 	}
 	
@@ -113,17 +84,17 @@ public:
 	}
 #else
 	const float* getUV1 () const;
-	const short*		getNormal() const;
+	const float*		getNormal() const;
 	const float*		getLocalXYZ() const;
 	const unsigned int&	getRGBA() const;
 
+#endif
 	void				SetXYZ(const MT_Point3& xyz);
 	void				SetUV(const MT_Point2& uv);
 	void				SetRGBA(const unsigned int rgba);
 	void				SetNormal(const MT_Vector3& normal);
 	void				SetFlag(const short flag);
 	
-#endif
 	void				SetRGBA(const MT_Vector4& rgba);
 	const MT_Point3&	xyz();
 

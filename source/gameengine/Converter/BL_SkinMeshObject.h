@@ -142,12 +142,7 @@ public:
 		const unsigned int rgbacolor,
 		const MT_Vector3& normal, int defnr, bool flat, RAS_IPolyMaterial* mat)
 	{
-		short newnormal[3];
-		newnormal[0]=(short)(normal[0] * 32767.0);
-		newnormal[1]=(short)(normal[1] * 32767.0);
-		newnormal[2]=(short)(normal[2] * 32767.0);
-
-		RAS_TexVert tempvert(xyz,uv,rgbacolor,newnormal,flat ? TV_CALCFACENORMAL : 0);
+		RAS_TexVert tempvert(xyz,uv,rgbacolor,normal,flat ? TV_CALCFACENORMAL : 0);
 		
 		//		KX_ArrayOptimizer* ao = GetArrayOptimizer(mat);//*(m_matVertexArrays[*mat]);
 		BL_SkinArrayOptimizer* ao = (BL_SkinArrayOptimizer*)GetArrayOptimizer(mat);//*(m_matVertexArrays[*mat]);

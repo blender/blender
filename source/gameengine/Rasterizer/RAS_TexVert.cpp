@@ -38,21 +38,15 @@
 RAS_TexVert::RAS_TexVert(const MT_Point3& xyz,
 						 const MT_Point2& uv,
 						 const unsigned int rgba,
-						 const short *normal,
+						 const MT_Vector3& normal,
 						 const short flag) 
 {
 	xyz.getValue(m_localxyz);
 	uv.getValue(m_uv1);
 	SetRGBA(rgba);
-	m_normal[0] = normal[0];
-	m_normal[1] = normal[1];
-	m_normal[2] = normal[2];
+	SetNormal(normal);
 	m_flag = flag;
 }
-
-
-
-
 
 const MT_Point3& RAS_TexVert::xyz()
 {
@@ -68,8 +62,6 @@ void RAS_TexVert::SetRGBA(const MT_Vector4& rgba)
 	colp[2] = rgba[2]*255.0;
 	colp[3] = rgba[3]*255.0;
 }
-
-#ifndef RAS_TexVert_INLINE
 
 void RAS_TexVert::SetXYZ(const MT_Point3& xyz)
 {
@@ -97,11 +89,10 @@ void RAS_TexVert::SetFlag(const short flag)
 }
 void RAS_TexVert::SetNormal(const MT_Vector3& normal)
 {
-	m_normal[0] = short(normal.x()*32767.0);
-	m_normal[1] = short(normal.y()*32767.0);
-	m_normal[2] = short(normal.z()*32767.0);
+	normal.getValue(m_normal);
 }
 
+#ifndef RAS_TexVert_INLINE
 
 // leave multiline for debugging
 const float* RAS_TexVert::getUV1 () const
@@ -110,7 +101,7 @@ const float* RAS_TexVert::getUV1 () const
 }
 
 
-const short* RAS_TexVert::getNormal() const
+const float* RAS_TexVert::getNormal() const
 {
 	return m_normal;
 }
@@ -136,29 +127,11 @@ bool RAS_TexVert::closeTo(const RAS_TexVert* other)
 {
 	return (m_flag == other->m_flag &&
 		m_rgba == other->m_rgba &&
-		m_normal[0] == other->m_normal[0] &&
-		m_normal[1] == other->m_normal[1] &&
-		m_normal[2] == other->m_normal[2] &&
-		(MT_Vector2(m_uv1) - MT_Vector2(other->m_uv1)).fuzzyZero() &&
-		(MT_Vector3(m_localxyz) - MT_Vector3(other->m_localxyz)).fuzzyZero()) ;
+		MT_fuzzyEqual(MT_Vector3(m_normal), MT_Vector3(other->m_normal)) &&
+		MT_fuzzyEqual(MT_Vector2(m_uv1), MT_Vector2(other->m_uv1)) &&
+		MT_fuzzyEqual(MT_Vector3(m_localxyz), MT_Vector3(other->m_localxyz))) ;
 	
 }
-
-
-
-bool RAS_TexVert::closeTo(const MT_Point3& otherxyz,
-			 const MT_Point2& otheruv,
-			 const unsigned int otherrgba,
-			 short othernormal[3]) const
-{
-	return (m_rgba == otherrgba &&
-		m_normal[0] == othernormal[0] &&
-		m_normal[1] == othernormal[1] &&
-		m_normal[2] == othernormal[2] &&
-		(MT_Vector2(m_uv1) - otheruv).fuzzyZero() &&
-		(MT_Vector3(m_localxyz) - otherxyz).fuzzyZero()) ;
-}
-
 
 short RAS_TexVert::getFlag() const
 {
@@ -169,6 +142,6 @@ void RAS_TexVert::getOffsets(void* &xyz, void* &uv1, void* &rgba, void* &normal)
 {
 	xyz = (void *) m_localxyz;
 	uv1 = (void *) m_uv1;
-	rgba = (void *) m_rgba;
+	rgba = (void *) &m_rgba;
 	normal = (void *) m_normal;
 }

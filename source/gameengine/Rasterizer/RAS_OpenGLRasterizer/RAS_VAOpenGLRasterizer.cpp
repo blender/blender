@@ -195,10 +195,10 @@ void RAS_VAOpenGLRasterizer::IndexPrimitives( const vecVertexArray& vertexarrays
 		glVertexPointer(3,GL_FLOAT,vtxstride,vertexarray->getLocalXYZ());
 		glTexCoordPointer(2,GL_FLOAT,vtxstride,vertexarray->getUV1());
 		glColorPointer(4,GL_UNSIGNED_BYTE,vtxstride,&vertexarray->getRGBA());
-		glNormalPointer(GL_SHORT,vtxstride,vertexarray->getNormal());
+		glNormalPointer(GL_FLOAT,vtxstride,vertexarray->getNormal());
 		//glLockArraysEXT(0,numverts);
 		// here the actual drawing takes places
-		glDrawElements(drawmode,numindices,GL_UNSIGNED_INT,&(indexarray[0]));
+		glDrawElements(drawmode,numindices,GL_UNSIGNED_SHORT,&(indexarray[0]));
 		//glUnlockArraysEXT();
 	}
 }

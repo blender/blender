@@ -96,8 +96,7 @@ KX_VertexProxy::_getattr(const STR_String& attr)
   
   if (attr == "normal")
   {
-  	MT_Vector3 normal(m_vertex->getNormal()[0], m_vertex->getNormal()[1], m_vertex->getNormal()[2]);
-  	return PyObjectFromMT_Vector3(normal/32767.);
+  	return PyObjectFromMT_Vector3(m_vertex->getNormal());
   }
 
   // pos
@@ -293,9 +292,7 @@ PyObject* KX_VertexProxy::PyGetNormal(PyObject* self,
 			       PyObject* kwds)
 {
 	
-	const short* shortnormal = m_vertex->getNormal();
-	MT_Vector3 normal(shortnormal[0],shortnormal[1],shortnormal[2]);
-	normal.normalize();
+	MT_Vector3 normal(m_vertex->getNormal());
 	
 	PyObject* resultlist = PyList_New(3);
 	int index;

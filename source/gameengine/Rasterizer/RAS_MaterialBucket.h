@@ -44,11 +44,10 @@
 #include <set>
 using namespace std;
 
-typedef vector< vector<class RAS_TexVert>* >  vecVertexArray;
-typedef vector<unsigned int> KX_IndexArray;
+typedef vector<unsigned short> KX_IndexArray;
 typedef vector< KX_IndexArray* > vecIndexArrays;
-
 typedef vector<RAS_TexVert> KX_VertexArray;
+typedef vector< KX_VertexArray* >  vecVertexArray;
 
 
 /**

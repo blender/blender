@@ -254,16 +254,10 @@ int RAS_MeshObject::FindOrAddVertex(int vtxarray,
 									RAS_IPolyMaterial* mat,
 									int orgindex)
 {
-	short newnormal[3];
-	
-	newnormal[0]=(short)((normal[0])*32767.0);
-	newnormal[1]=(short)((normal[1])*32767.0);
-	newnormal[2]=(short)((normal[2])*32767.0);
-	
 	KX_ArrayOptimizer* ao = GetArrayOptimizer(mat);//*(m_matVertexArrays[*mat]);
 	
 	int numverts = ao->m_VertexArrayCache1[vtxarray]->size();//m_VertexArrayCount[vtxarray];
-	RAS_TexVert newvert(xyz,uv,rgbacolor,newnormal, 0);
+	RAS_TexVert newvert(xyz,uv,rgbacolor,normal, 0);
 #define KX_FIND_SHARED_VERTICES
 #ifdef KX_FIND_SHARED_VERTICES
 	
