@@ -178,6 +178,9 @@ void init_syspath(void)
 
 	if (U.pythondir) { /* XXX not working, U.pythondir is NULL here ?!?*/
 					/* maybe it wasn't defined yet at this point in start-up ...*/
+					/* Update: definitely that is the reason. We need to start python
+					 * after U.pythondir is defined (better after the other U.xxxx are
+					 * too. */
 		p = Py_BuildValue("s", U.pythondir);
 		syspath_append(p);  /* append to module search path */
 	}
@@ -190,6 +193,18 @@ void init_syspath(void)
 	  PyDict_SetItemString(d, "executable", Py_BuildValue("s", bprogname));
 	  Py_DECREF(mod);
 	}
+}
+
+/*****************************************************************************/
+/* Description: This function adds the user defined folder for Python        */
+/*              scripts to sys.path.  This is done in init_syspath, too, but */
+/*              when Blender's main() runs BPY_start_python(), U.pythondir   */
+/*              isn't set yet, so we provide this function to be executed    */
+/*              after U.pythondir is defined.                                */
+/*****************************************************************************/
+void BPY_syspath_append_pythondir(void)
+{
+	syspath_append(Py_BuildValue("s", U.pythondir));
 }
 
 /*****************************************************************************/

@@ -388,6 +388,15 @@ int main(int argc, char **argv)
 		sound_init_audio();
 
 		BIF_init();
+
+		/**
+		 * NOTE: the U.pythondir string is NULL until BIF_init() is executed,
+		 * so we provide the BPY_ function below to append the user defined
+		 * pythondir to Python's sys.path at this point.  Simply putting
+		 * BIF_init() before BPY_start_python() crashes Blender at startup.
+		 */
+
+		BPY_syspath_append_pythondir();
 	}
 	else {
 		BPY_start_python();
