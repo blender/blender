@@ -87,7 +87,6 @@ CPPFLAGS += -I$(NAN_BSP)/include
 
 CPPFLAGS += -I../readstreamglue
 CPPFLAGS += -I../include
-CPPFLAGS += -I$(NAN_SDL)/include/SDL
 
 ifdef NAN_BUILDINFO
     CPPFLAGS += -DNAN_BUILDINFO

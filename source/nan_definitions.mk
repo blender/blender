@@ -82,6 +82,7 @@ all debug::
       export NAN_FTGL ?= $(LCGDIR)/ftgl
 	  export NAN_SDL ?= $(LCGDIR)/sdl
     endif
+	export NAN_SDL ?= $(shell sdl-config --prefix)
 	export NAN_SDLLIBS ?= $(shell sdl-config --libs)
 	export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
 
@@ -107,6 +108,9 @@ all debug::
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_FREETYPE ?= $(LCGDIR)/freetype
     export NAN_GETTEXT ?= $(LCGDIR)/gettext	
+	export NAN_SDLLIBS ?= $(shell sdl-config --libs)
+	export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
+
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -146,6 +150,11 @@ all debug::
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_FREETYPE ?= /sw
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
+	ifndef NAN_SDL
+		export NAN_SDL = $(LCGDIR)/sdl
+		export NAN_SDLCFLAGS = -I$(NAN_SDL)/include
+		export NAN_SDLLIBS = $(NAN_SDL)/lib/libSDL.a -framework Cocoa
+	endif
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -188,6 +197,8 @@ all debug::
     export NAN_NSPR ?= /usr/local
     export NAN_FREETYPE ?= $(LCGDIR)/freetype
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
+	export NAN_SDLLIBS ?= $(shell sdl-config --libs)
+	export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -227,6 +238,8 @@ all debug::
     export NAN_NSPR ?= /usr/local/apps/openblender/nspr/target/dist
     export NAN_FREETYPE ?= /usr/freeware
     export NAN_GETTEXT ?= /usr/freeware
+	export NAN_SDLLIBS ?= $(shell sdl-config --libs)
+	export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -258,7 +271,7 @@ all debug::
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= /usr
     export NAN_PNG ?= /usr
-    export NAN_SDL ?= /usr
+#    export NAN_SDL ?= /usr
     export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr
@@ -266,6 +279,11 @@ all debug::
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_FREETYPE ?= /usr
     export NAN_GETTEXT ?= /usr
+	ifndef NAN_SDL
+		export NAN_SDL = $(LCGDIR)/sdl
+		export NAN_SDLCFLAGS = -I$(NAN_SDL)/include/SDL
+		export NAN_SDLLIBS = -L$(NAN_SDL)/lib -lSDL
+	endif
 
     # Uncomment the following line to use Mozilla inplace of netscape
     export CPPFLAGS += -DMOZ_NOT_NET
@@ -306,6 +324,13 @@ all debug::
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_FREETYPE ?= $(LCGDIR)/freetype
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
+	export NAN_SDLLIBS ?= $(shell sdl-config --libs)
+	export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
+	ifndef NAN_SDL
+		export NAN_SDL = $(LCGDIR)/sdl
+		export NAN_SDLCFLAGS = -I$(NAN_SDL)/include/SDL
+		export NAN_SDLLIBS = -L$(NAN_SDL)/lib -lSDL
+	endif
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -345,6 +370,11 @@ all debug::
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_FREETYPE ?= $(LCGDIR)/freetype
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
+	ifndef NAN_SDL
+		export NAN_SDL = $(LCGDIR)/sdl
+		export NAN_SDLCFLAGS = -I$(NAN_SDL)/include/SDL
+		export NAN_SDLLIBS = -L$(NAN_SDL)/lib -lSDL
+	endif
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -375,10 +405,13 @@ all debug::
       export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
       export NAN_FREETYPE ?= $(LCGDIR)/gcc/freetype
       export NAN_ODE ?= $(LCGDIR)/gcc/ode
+	export NAN_SDLLIBS ?= $(shell sdl-config --libs)
+	export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
     else
       export NAN_PYTHON_BINARY ?= python
       export NAN_FREETYPE ?= $(LCGDIR)/freetype
       export NAN_ODE ?= $(LCGDIR)/ode
+	  export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include
     endif
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_FMOD ?= $(LCGDIR)/fmod
@@ -398,7 +431,7 @@ all debug::
     export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
     # Will fall back to look in NAN_MOZILLA_INC/nspr and NAN_MOZILLA_LIB
     # if this is not set.
-export NAN_PYTHON_BINARY ?= python
+	export NAN_PYTHON_BINARY ?= python
     export NAN_BUILDINFO ?= true
     # Be paranoid regarding library creation (do not update archives)
     export NAN_PARANOID ?= true
@@ -429,6 +462,11 @@ export NAN_PYTHON_BINARY ?= python
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_FREETYPE ?= $(LCGDIR)/freetype
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
+	ifndef NAN_SDL
+		export NAN_SDL = $(LCGDIR)/sdl
+		export NAN_SDLCFLAGS = -I$(NAN_SDL)/include/SDL
+		export NAN_SDLLIBS = -L$(NAN_SDL)/lib -lSDL
+	endif
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
