@@ -855,6 +855,8 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 			mface= me->mface;
 			tface= me->tface;
 		}
+		// tface can be NULL
+		if(tface==NULL) return;
 		
 		for (a=0; a<totface; a++, tface++) {
 			int v1idx, v2idx, v3idx, v4idx, mf_smooth, matnr, badtex;
