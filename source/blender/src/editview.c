@@ -236,7 +236,7 @@ int gesture(void)
 	short mcords[MOVES][2];
 	int i= 1, end= 0, a;
 	unsigned short event=0;
-	short mval[2], val, timer=0;
+	short mval[2], val, timer=0, mousebut;
 	
 	glDrawBuffer(GL_FRONT);
 	persp(0);	/*  ortho at pixel level */
@@ -246,7 +246,10 @@ int gesture(void)
 	mcords[0][0] = mval[0];
 	mcords[0][1] = mval[1];
 	
-	while(get_mbut()&L_MOUSE) {
+	if (U.flag & USER_LMOUSESELECT) mousebut = R_MOUSE;
+	else mousebut = L_MOUSE;
+	
+	while(get_mbut() & mousebut) {
 		
 		if(qtest()) event= extern_qread(&val);
 		else if(i==1) {

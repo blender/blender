@@ -2221,6 +2221,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	short	mval[2];
 	unsigned short event= evt->event;
 	short val= evt->val;
+	short mousebut = L_MOUSE;
 
 	if(curarea->win==0) return;
 
@@ -2233,6 +2234,17 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		
 		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
 		
+		/* swap mouse buttons based on user preference */
+		if (U.flag & USER_LMOUSESELECT) {
+			if (evt->event == LEFTMOUSE) {
+				event = RIGHTMOUSE;
+				mousebut = L_MOUSE;
+			} else if (evt->event == RIGHTMOUSE) {
+				event = LEFTMOUSE;
+				mousebut = R_MOUSE;
+			}
+		}
+		
 		getmouseco_areawin(mval);
 
 		key = get_action_mesh_key();
@@ -2241,6 +2253,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case UI_BUT_EVENT:
 			do_actionbuts(val); 	// window itself
 			break;
+		
 		case HOMEKEY:
 			do_action_buttons(B_ACTHOME);	// header
 			break;
@@ -2423,7 +2436,9 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					delete_actionchannel_keys ();
 			}
 			break;
-
+		/* LEFTMOUSE and RIGHTMOUSE event codes can be swapped above,
+		 * based on user preference USER_LMOUSESELECT
+		 */
 		case LEFTMOUSE:
 			if (mval[0]>ACTWIDTH){
 				do {
@@ -2442,12 +2457,11 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						force_draw_plus(SPACE_BUTS);
 					}
 					
-				} while(get_mbut()&L_MOUSE);
-				break;
+				} while(get_mbut() & mousebut);
 			}
-			/* no break here, we allow leftmouse click too */
+			break;
 		case RIGHTMOUSE:
-			/* Right clicking in the channel area selects the
+			/* Clicking in the channel area selects the
 			 * channel or constraint channel
 			 */
 			if (mval[0]<NAMEWIDTH) {
@@ -2460,8 +2474,8 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else numbuts_action();
 			}
 			else if (mval[0]>ACTWIDTH) {
-
-				/* Right clicking in the vertical scrollbar selects
+		
+				/* Clicking in the vertical scrollbar selects
 				 * all of the keys for that channel at that height
 				 */
 				if (IN_2D_VERT_SCROLL(mval)) {
@@ -2472,8 +2486,8 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						select_all_keys_channels(act, mval, NULL, 
 												 SELECT_REPLACE);
 				}
-
-				/* Right clicking in the horizontal scrollbar selects
+		
+				/* Clicking in the horizontal scrollbar selects
 				 * all of the keys within 0.5 of the nearest integer
 				 * frame
 				 */
@@ -2505,7 +2519,6 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 			}
 			break;
-
 		case MIDDLEMOUSE:
 		case WHEELUPMOUSE:
 		case WHEELDOWNMOUSE:

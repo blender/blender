@@ -616,13 +616,21 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	
 	if(curarea->win==0) return;	/* when it comes from sa->headqread() */
 	
-	
 	if(val) {
 
 		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
 		if(event==MOUSEY) return;
 		
 		if(event==UI_BUT_EVENT) do_butspace(val); // temporal, view3d deserves own queue?
+		
+		/* swap mouse buttons based on user preference */
+		if (U.flag & USER_LMOUSESELECT) {
+			if (evt->event == LEFTMOUSE) {
+				event = RIGHTMOUSE;
+			} else if (evt->event == RIGHTMOUSE) {
+				event = LEFTMOUSE;
+			}
+		}
 		
 		/* TEXTEDITING?? */
 		if((G.obedit) && G.obedit->type==OB_FONT) {
@@ -749,12 +757,14 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case BACKBUFDRAW:
 				backdrawview3d(1);
 				break;
-				
-			case LEFTMOUSE:
+						
+			/* LEFTMOUSE and RIGHTMOUSE event codes can be swapped above,
+			 * based on user preference USER_LMOUSESELECT
+			 */
+			case LEFTMOUSE: 
 				if ((G.obedit) || !(G.f&(G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))) {
 					mouse_cursor();
-				}
-				else if (G.f & G_VERTEXPAINT) {
+				} else if (G.f & G_VERTEXPAINT) {
 					vertex_paint();
 				}
 				else if (G.f & G_WEIGHTPAINT){
@@ -813,7 +823,6 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else
 					mouse_select();
 				break;
-
 			case WHEELUPMOUSE:
 				/* Regular:   Zoom in */
 				/* Shift:     Scroll up */
@@ -1632,12 +1641,23 @@ void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	float dx, dy;
 	int cfra, doredraw= 0;
 	short mval[2];
+	short mousebut = L_MOUSE;
 	
-
 	if(sa->win==0) return;
 
 	if(val) {
 		if( uiDoBlocks(&sa->uiblocks, event)!=UI_NOTHING ) event= 0;
+
+		/* swap mouse buttons based on user preference */
+		if (U.flag & USER_LMOUSESELECT) {
+			if (evt->event == LEFTMOUSE) {
+				event = RIGHTMOUSE;
+				mousebut = L_MOUSE;
+			} else if (evt->event == RIGHTMOUSE) {
+				event = LEFTMOUSE;
+				mousebut = R_MOUSE;
+			}
+		}
 
 		switch(event) {
 		case UI_BUT_EVENT:
@@ -1668,9 +1688,13 @@ void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						force_draw_plus(SPACE_BUTS);	/* To make constraint sliders redraw */
 					}
 				
-				} while(get_mbut()&L_MOUSE);
+				} while(get_mbut() & mousebut);
 			}
-			
+			break;
+		case RIGHTMOUSE:
+			mouse_select_ipo();
+			allqueue (REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
 			break;
 		case MIDDLEMOUSE:
 			if(in_ipo_buttons()) {
@@ -1678,16 +1702,9 @@ void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			else view2dmove(event);	/* in drawipo.c */
 			break;
-
 		case WHEELUPMOUSE:
 		case WHEELDOWNMOUSE:
 			view2dmove(event);	/* in drawipo.c */
-			break;
-
-		case RIGHTMOUSE:
-			mouse_select_ipo();
-			allqueue (REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
 			break;
 		case PADPLUSKEY:
 			view2d_zoom(v2d, 0.1154, sa->winx, sa->winy);
@@ -1986,7 +2003,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 	uiBlock *block;
 	static short cur_light=0, cur_light_var=0;
 	float fac, col[3];
-	short xpos, ypos, ypostab,  buth, rspace, dx, y1, y2, y3, y4, y2label, y3label, y4label;
+	short xpos, ypos, ypostab,  buth, rspace, dx, y1, y2, y3, y4, y5, y2label, y3label, y4label, y5label;
 	short smallprefbut, medprefbut, largeprefbut, smfileselbut;
 	short edgespace, midspace;
 	char naam[32];
@@ -2027,10 +2044,12 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 	y2 = ypos+buth+rspace;	/* bottom padding of 2nd button row */
 	y3 = ypos+2*(buth+rspace)+(3*rspace);	/* bottom padding of 3rd button row */
 	y4 = ypos+3*(buth+rspace)+(3*rspace);	/* bottom padding of 4th button row */
+	y5 = ypos+4*(buth+rspace)+(3*rspace);	/* bottom padding of 5th button row */
 
 	y2label = y2-2;		/* adjustments to offset the labels down to align better */
 	y3label = y3-(3*rspace)-2;	/* again for 3rd row */
 	y4label = y4-2;		/* again for 4th row */
+	y5label = y5-2;		/* again for the 5th row */
 
 
 	/* set the colour to blue and draw the main 'tab' controls */
@@ -2183,12 +2202,12 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			"Zooms in and out like scaling the view, mouse movements relative to center.");
 
 		uiDefButBitS(block, TOG, USER_AUTOPERSP, B_DRAWINFO, "Auto Persp",
-			(xpos+edgespace+(3*medprefbut)+(3*midspace)+smallprefbut+2),y3+10,smallprefbut,buth,
+			(xpos+edgespace+(3*medprefbut)+(3*midspace)+smallprefbut+2),y4,smallprefbut,buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Automatically switch between orthographic and perspective");
 			
 		uiDefButBitS(block, TOG, USER_LOCKAROUND, B_DRAWINFO, "Global Pivot",
-			(xpos+edgespace+(4*midspace)+(4*medprefbut)),y3+10,smallprefbut,buth,
+			(xpos+edgespace+(3*medprefbut)+(3*midspace)+smallprefbut+2),y5,smallprefbut,buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Use global pivot setting for all 3d views");			
 
@@ -2206,6 +2225,35 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgespace+(3*midspace)+(3*medprefbut)+smallprefbut+2),y1,(smallprefbut+2),buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Use turntable style rotation with middle mouse button");
+
+		uiDefBut(block, LABEL,0,"Left Mouse Button:",
+			(xpos+edgespace+(3*midspace)+(4*medprefbut)),y5label,medprefbut,buth,
+			0, 0, 0, 0, 0, "");
+		
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOGN, USER_LMOUSESELECT, B_DRAWINFO, "Cursor",
+			(xpos+edgespace+(4*midspace)+(4*medprefbut)),y4,smallprefbut+2,buth,
+			&(U.flag), 0, 0, 0, 0, "Action for the left mouse button");
+		
+		uiDefButBitS(block, TOG, USER_LMOUSESELECT, B_DRAWINFO, "Select",
+			(xpos+edgespace+(4*midspace)+(4*medprefbut)+smallprefbut+2),y4,smallprefbut+2,buth,
+			&(U.flag), 0, 0, 0, 0, "Action for the left mouse button");
+		uiBlockEndAlign(block);
+
+
+		uiDefBut(block, LABEL,0,"Right Mouse Button:",
+			(xpos+edgespace+(4*midspace)+(5*medprefbut)),y5label,medprefbut,buth,
+			0, 0, 0, 0, 0, "");
+		
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOGN, USER_LMOUSESELECT, B_DRAWINFO, "Select",
+			(xpos+edgespace+(5*midspace)+(5*medprefbut)),y4,smallprefbut+2,buth,
+			&(U.flag), 0, 0, 0, 0, "Action for the right mouse button");
+		
+		uiDefButBitS(block, TOG, USER_LMOUSESELECT, B_DRAWINFO, "Cursor",
+			(xpos+edgespace+(5*midspace)+(5*medprefbut)+smallprefbut+2),y4,smallprefbut+2,buth,
+			&(U.flag), 0, 0, 0, 0, "Action for the right mouse button");
+		uiBlockEndAlign(block);
 
 
 
@@ -2939,13 +2987,25 @@ void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	float dx, dy;
 	int doredraw= 0, cfra, first;
 	short mval[2];
+	short mousebut = L_MOUSE;
 	
 	if(curarea->win==0) return;
 
 	if(val) {
 		
 		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
-
+		
+		/* swap mouse buttons based on user preference */
+		if (U.flag & USER_LMOUSESELECT) {
+			if (evt->event == LEFTMOUSE) {
+				event = RIGHTMOUSE;
+				mousebut = L_MOUSE;
+			} else if (evt->event == RIGHTMOUSE) {
+				event = LEFTMOUSE;
+				mousebut = R_MOUSE;
+			}
+		}
+		
 		switch(event) {
 		case UI_BUT_EVENT:
 			do_seqbuttons(val);			
@@ -2972,7 +3032,7 @@ void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						update_for_newframe();	/* for audio scrubbing */						
 					}
 				
-				} while(get_mbut()&L_MOUSE);
+				} while(get_mbut() & mousebut);
 				
 				set_special_seq_update(0);
 				
@@ -3374,10 +3434,23 @@ void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	short xy_prev[2], xy_curr[2];
 	float uv_prev[2], uv_curr[2];
 	extern VPaint Gvp;
-#endif /* NAN_TPT */	
+#endif /* NAN_TPT */
+	short mousebut;
+	
 	if(val==0) return;
 
 	if(uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
+	
+	/* swap mouse buttons based on user preference */
+	if (U.flag & USER_LMOUSESELECT) {
+		if (evt->event == LEFTMOUSE) {
+			event = RIGHTMOUSE;
+			mousebut = R_MOUSE;
+		} else if (evt->event == RIGHTMOUSE) {
+			event = LEFTMOUSE;
+			mousebut = L_MOUSE;
+		}
+	}
 	
 	if (sima->flag & SI_DRAWTOOL) {
 #ifdef NAN_TPT
@@ -3399,7 +3472,7 @@ void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				canvas = IMG_CanvasCreateFromPtr(sima->image->ibuf->rect, sima->image->ibuf->x, sima->image->ibuf->y, rowBytes);
 
 				getmouseco_areawin(xy_prev);
-				while (get_mbut() & L_MOUSE) {
+				while (get_mbut() & mousebut) {
 					getmouseco_areawin(xy_curr);
 					/* Check if mouse position changed */
 					if ((xy_prev[0] != xy_curr[0]) || (xy_prev[1] != xy_curr[1])) {
@@ -3441,7 +3514,7 @@ void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	}
 	else {
 		/* Draw tool is inactive */
-	
+
 		switch(event) {
 			case LEFTMOUSE:
 				if(G.qual & LR_SHIFTKEY) mouseco_to_curtile();
@@ -3608,6 +3681,15 @@ void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if(val==0) return;
 
 	if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
+
+	/* swap mouse buttons based on user preference */
+	if (U.flag & USER_LMOUSESELECT) {
+		if (evt->event == LEFTMOUSE) {
+			event = RIGHTMOUSE;
+		} else if (evt->event == RIGHTMOUSE) {
+			event = LEFTMOUSE;
+		}
+	}
 
 	switch(event) {
 	case LEFTMOUSE:

@@ -1900,7 +1900,7 @@ int view2dmove(unsigned short event)
 {
 	/* return 1 when something was done */
 	float facx=0.0, facy=0.0, dx, dy, left=1.0, right=1.0;
-	short mval[2], mvalo[2], leftret=1;
+	short mval[2], mvalo[2], leftret=1, mousebut;
 	
 	/* init */
 	scrarea_do_windraw(curarea);
@@ -1911,8 +1911,11 @@ int view2dmove(unsigned short event)
 	 * or if the mousewheel is being used.
 	 * Return if zooming was done.
 	 */
-	 
-	 
+	
+	/* check for left mouse / right mouse button select */
+	if (U.flag & USER_LMOUSESELECT) mousebut = R_MOUSE;
+		else mousebut = L_MOUSE;
+	
 	if ( (G.qual & LR_CTRLKEY) || (event==WHEELUPMOUSE) || (event==WHEELDOWNMOUSE) ) {
 		/* patch for buttonswin, standard scroll no zoom */
 		if(curarea->spacetype==SPACE_BUTS && (G.qual & LR_CTRLKEY)==0);
@@ -1933,7 +1936,7 @@ int view2dmove(unsigned short event)
 			}
 			else if(IN_2D_VERT_SCROLL((int)mvalo)) {
 				facy= -(G.v2d->tot.ymax-G.v2d->tot.ymin)/(float)(G.v2d->mask.ymax-G.v2d->mask.ymin);
-				if(get_mbut()&L_MOUSE) {
+				if(get_mbut() & mousebut) {
 					/* which part of scrollbar should move? */
 					if(mvalo[1]< (vertymin+vertymax)/2 ) right= 0.0;
 					else left= 0.0;
@@ -1942,7 +1945,7 @@ int view2dmove(unsigned short event)
 			}
 			else if(IN_2D_HORIZ_SCROLL((int)mvalo)) {
 				facx= -(G.v2d->tot.xmax-G.v2d->tot.xmin)/(float)(G.v2d->mask.xmax-G.v2d->mask.xmin);
-				if(get_mbut()&L_MOUSE) {
+				if(get_mbut() & mousebut) {
 					/* which part of scrollbar should move? */
 					if(mvalo[0]< (horxmin+horxmax)/2 ) right= 0.0;
 					else left= 0.0;
@@ -1959,7 +1962,7 @@ int view2dmove(unsigned short event)
 		/* no y move in audio */
 		if(curarea->spacetype==SPACE_SOUND) facy= 0.0;
 		
-		if(get_mbut()&L_MOUSE && leftret) return 0;
+		if(get_mbut() & mousebut && leftret) return 0;
 		if(facx==0.0 && facy==0.0) return 1;
 		
     while( (get_mbut()&(L_MOUSE|M_MOUSE)) || 

@@ -58,6 +58,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_mesh.h"
@@ -778,7 +779,7 @@ void weight_paint(void)
 	TFace *tface;
 	float mat[4][4], imat[4][4];
 	int index, totindex;
-	short mval[2], mvalo[2], firsttime=1;
+	short mval[2], mvalo[2], firsttime=1, mousebut;
 	MDeformWeight	*dw, *uw;
 	extern float editbutvweight;
 	DispList *dl;
@@ -819,7 +820,10 @@ void weight_paint(void)
 	mvalo[0]= mval[0];
 	mvalo[1]= mval[1];
 	
-	while (get_mbut() & L_MOUSE) {
+	if (U.flag & USER_LMOUSESELECT) mousebut = R_MOUSE;
+	else mousebut = L_MOUSE;
+	
+	while (get_mbut() & mousebut) {
 		getmouseco_areawin(mval);
 		
 		if(firsttime || mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
@@ -942,7 +946,7 @@ void vertex_paint()
 	float mat[4][4], imat[4][4];
 	unsigned int paintcol=0, *mcol, fcol1, fcol2;
 	int index, alpha, totindex, total;
-	short mval[2], mvalo[2], firsttime=1;
+	short mval[2], mvalo[2], firsttime=1, mousebut;
 	
 	if((G.f & G_VERTEXPAINT)==0) return;
 	if(G.obedit) return;
@@ -980,7 +984,10 @@ void vertex_paint()
 	mvalo[0]= mval[0];
 	mvalo[1]= mval[1];
 	
-	while (get_mbut() & L_MOUSE) {
+	if (U.flag & USER_LMOUSESELECT) mousebut = R_MOUSE;
+	else mousebut = L_MOUSE;
+	
+	while (get_mbut() & mousebut) {
 		getmouseco_areawin(mval);
 		
 		if(firsttime || mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {

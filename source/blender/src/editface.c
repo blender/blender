@@ -58,6 +58,7 @@
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_displist.h"
@@ -1410,6 +1411,7 @@ void face_draw()
 	char *warn_packed_file = 0;
 	float uv[2], uv_old[2];
 	extern VPaint Gvp;
+	short mousebut;
 
 	ob = OBACT;
 	if (!ob) {
@@ -1428,10 +1430,13 @@ void face_draw()
 		error("Can't create brush"); return;
 	}
 
+	if (U.flag & USER_LMOUSESELECT) mousebut = R_MOUSE;
+	else mousebut = L_MOUSE;
+
 	persp(PERSP_VIEW);
 
 	getmouseco_areawin(xy_old);
-	while (get_mbut() & L_MOUSE) {
+	while (get_mbut() & mousebut) {
 		getmouseco_areawin(xy);
 		/* Check if cursor has moved */
 		if ((xy[0] != xy_old[0]) || (xy[1] != xy_old[1])) {

@@ -111,6 +111,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	short	mval[2];
 	float dx,dy;
 	int	cfra;
+	short mousebut = L_MOUSE;
 	
 	if (curarea->win==0) return;
 	if (!snla) return;
@@ -118,13 +119,24 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if(val) {
 		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
 		
+		/* swap mouse buttons based on user preference */
+		if (U.flag & USER_LMOUSESELECT) {
+			if (evt->event == LEFTMOUSE) {
+				event = RIGHTMOUSE;
+				mousebut = L_MOUSE;
+			} else if (evt->event == RIGHTMOUSE) {
+				event = LEFTMOUSE;
+				mousebut = R_MOUSE;
+			}
+		}
+		
 		getmouseco_areawin(mval);
 		
 		switch(event) {
 		case UI_BUT_EVENT:
 			do_nlabuts(val); // in drawnla.c
 			break;
-
+		
 		case HOMEKEY:
 			do_nla_buttons(B_NLAHOME);
 			break;
@@ -189,7 +201,10 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				delete_nlachannels();
 			update_for_newframe_muted();
 			break;
-
+		
+		/* LEFTMOUSE and RIGHTMOUSE event codes can be swapped above,
+		 * based on user preference USER_LMOUSESELECT
+		 */
 		case LEFTMOUSE:
 			if (mval[0]>NLAWIDTH){
 				do {
@@ -207,10 +222,9 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						force_draw_plus(SPACE_IPO);
 					}
 					
-				} while(get_mbut()&L_MOUSE);
-				break;
+				} while(get_mbut() & mousebut);
 			}
-			/* no break here, we allow leftmouse select */
+			break;
 		case RIGHTMOUSE:
 			if (mval[0]>=NLAWIDTH) {
 				if(G.qual & LR_SHIFTKEY)

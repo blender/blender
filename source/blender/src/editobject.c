@@ -6074,16 +6074,21 @@ void std_rmouse_transform(void (*xf_func)(int))
 	short mval[2];
 	short xo, yo;
 	short timer=0;
+	short mousebut;
+	
+	/* check for left mouse select/right mouse select user pref */
+	if (U.flag & USER_LMOUSESELECT) mousebut = L_MOUSE;
+		else mousebut = R_MOUSE;
 	
 	getmouseco_areawin(mval);
 	xo= mval[0]; 
 	yo= mval[1];
 	
-	while(get_mbut()&R_MOUSE) {
+	while(get_mbut() & mousebut) {
 		getmouseco_areawin(mval);
 		if(abs(mval[0]-xo)+abs(mval[1]-yo) > 10) {
 			xf_func('g');
-			while(get_mbut()&R_MOUSE) BIF_wait_for_statechange();
+			while(get_mbut() & mousebut) BIF_wait_for_statechange();
 			return;
 		}
 		else {

@@ -58,6 +58,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_packedFile_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
@@ -108,12 +109,24 @@ void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	float dx, dy;
 	int doredraw= 0, cfra, first = 0;
 	short mval[2], nr;
+	short mousebut = L_MOUSE;
 	
 	if(curarea->win==0) return;
 
 	if(val) {
 		
 		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
+
+		/* swap mouse buttons based on user preference */
+		if (U.flag & USER_LMOUSESELECT) {
+			if (evt->event == LEFTMOUSE) {
+				event = RIGHTMOUSE;
+				mousebut = L_MOUSE;
+			} else if (evt->event == RIGHTMOUSE) {
+				event = LEFTMOUSE;
+				mousebut = R_MOUSE;
+			}
+		}
 
 		switch(event) {
 		case LEFTMOUSE:
@@ -133,7 +146,7 @@ void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					force_draw_plus(SPACE_VIEW3D);
 				}
 			
-			} while(get_mbut()&L_MOUSE);
+			} while(get_mbut() & mousebut);
 			ssound->flag &= ~SND_CFRA_NUM;
 			
 			doredraw= 1;
