@@ -82,7 +82,7 @@ void RE_initshadowbuf(LampRen *lar, float mat[][4])
 	shb= (struct ShadBuf *)MEM_callocN( sizeof(struct ShadBuf),"initshadbuf");
 	lar->shb= shb;
 
-	if(shb==0) return;
+	if(shb==NULL) return;
 
 	VECCOPY(shb->co, lar->co);
 	
@@ -195,14 +195,16 @@ void makeshadowbuf(LampRen *lar)
 	float temp, wsize, dist;
 	int *rz, *rz1, verg, verg1;
 	unsigned long *ztile;
-	int a, x, y, minx, miny, byt1, byt2;
+	int a, x, y, minx, miny, byt1, byt2, tempmode;
 	short temprx,tempry, square;
 	char *rc, *rcline, *ctile, *zt;
 
 	panophi = getPanoPhi();
 	
 	/* store viewvars */
-	temprx= R.rectx; tempry= R.recty;
+	temprx= R.rectx; tempry= R.recty; 
+	tempmode= R.r.mode;
+	R.r.mode &= ~R_ORTHO;
 	R.rectx= R.recty= shb->size;
 
 	shb->jit= give_jitter_tab(shb->samp);
@@ -332,9 +334,11 @@ void makeshadowbuf(LampRen *lar)
 	}
 
 	MEM_freeN(rcline);
-	MEM_freeN(R.rectz); R.rectz= 0;
-
+	MEM_freeN(R.rectz); R.rectz= NULL;
+	
+	/* old globals back */
 	R.rectx= temprx; R.recty= tempry;
+	R.r.mode= tempmode;
 	MTC_Mat4SwapMat4(shb->persmat, R.winmat);
 
 	/* printf("lampbuf %d\n", sizeoflampbuf(shb)); */

@@ -46,9 +46,9 @@ struct Ipo;
 typedef struct Camera {
 	ID id;
 	
-	short type, flag, drawzoom, hold;
+	short type, flag;
 	float clipsta, clipend;
-	float lens, drawsize;
+	float lens, ortho_scale, drawsize;
 	
 	/* yafray: dof params */
 	float YF_dofdist, YF_aperture;

@@ -199,14 +199,6 @@ void init_render_world()
 		for(a=0; a<MAX_MTEX; a++) 
 			if(R.wrld.mtex[a] && R.wrld.mtex[a]->tex) R.wrld.skytype |= WO_SKYTEX;
 		
-		if(G.scene->camera && G.scene->camera->type==OB_CAMERA) {
-			Camera *cam= G.scene->camera->data;
-			if(cam->type==CAM_ORTHO) {
-				/* this is an estimation */
-				R.wrld.miststa+= (float)fabs(R.viewmat[3][2]);
-			}
-		}
-		
 	}
 	else {
 		memset(&R.wrld, 0, sizeof(World));

@@ -84,6 +84,37 @@
 /* global for this file. struct render will be more dynamic later, to allow multiple renderers */
 RE_Render R;
 
+float bluroffsx=0.0, bluroffsy=0.0;	// set in initrender.c (bad, ton)
+
+/* x and y are current pixels to be rendered */
+static void calc_view_vector(float *view, float x, float y)
+{
+	
+	if(R.r.mode & R_ORTHO) {
+		view[0]= view[1]= 0.0;
+	}
+	else {
+		view[0]= (x+(R.xstart)+bluroffsx +0.5);
+		
+		if(R.flag & R_SEC_FIELD) {
+			if(R.r.mode & R_ODDFIELD) view[1]= (y+R.ystart)*R.ycor;
+			else view[1]= (y+R.ystart+1.0)*R.ycor;
+		}
+		else view[1]= (y+R.ystart+bluroffsy+0.5)*R.ycor;
+	}	
+	view[2]= -R.viewfac;
+	
+	if(R.r.mode & R_PANORAMA) {
+		float panoco, panosi, u, v;
+		panoco = getPanovCo();
+		panosi = getPanovSi();
+		
+		u= view[0]; v= view[2];
+		view[0]= panoco*u + panosi*v;
+		view[2]= -panosi*u + panoco*v;
+	}
+}
+
 float mistfactor(float zcor, float *co)	/* dist en height, return alpha */
 {
 	float fac, hi;
@@ -158,7 +189,18 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 	*intens= 0.0;
 	haint= lar->haint;
 	
-	VECCOPY(npos, lar->sh_invcampos);	/* in initlamp calculated */
+	if(R.r.mode & R_ORTHO) {
+		/* camera pos (view vector) cannot be used... */
+		/* camera position (cox,coy,0) rotate around lamp */
+		p1[0]= shi->co[0]-lar->co[0];
+		p1[1]= shi->co[1]-lar->co[1];
+		p1[2]= -lar->co[2];
+		MTC_Mat3MulVecfl(lar->imat, p1);
+		VECCOPY(npos, p1);	// npos is double!
+	}
+	else {
+		VECCOPY(npos, lar->sh_invcampos);	/* in initlamp calculated */
+	}
 	
 	/* rotate view */
 	VECCOPY(nray, shi->view);
@@ -1629,6 +1671,8 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 
 }
 
+/* this function sets all coords for render (shared with raytracer) */
+/* warning; exception for ortho render is here, can be done better! */
 void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, int i3)
 {
 	VertRen *v1, *v2, *v3;
@@ -1673,10 +1717,10 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 	if(u==1.0) {
 		/* exception case for wire render of edge */
 		if(vlr->v2==vlr->v3);
-		else if( (vlr->flag & R_SMOOTH) || (texco & NEED_UV)) {
+		else if( (vlr->flag & R_SMOOTH) || (texco & NEED_UV) || (R.r.mode && R_ORTHO)) {
 			float detsh, t00, t10, t01, t11;
 			
-			if(vlr->snproj==0) {
+			if(vlr->snproj==0 || (R.r.mode && R_ORTHO)) {
 				t00= v3->co[0]-v1->co[0]; t01= v3->co[1]-v1->co[1];
 				t10= v3->co[0]-v2->co[0]; t11= v3->co[1]-v2->co[1];
 			}
@@ -1689,11 +1733,11 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 				t10= v3->co[1]-v2->co[1]; t11= v3->co[2]-v2->co[2];
 			}
 			
-			detsh= t00*t11-t10*t01;
-			t00/= detsh; t01/=detsh; 
-			t10/=detsh; t11/=detsh;
+			detsh= 1.0/(t00*t11-t10*t01);
+			t00*= detsh; t01*=detsh; 
+			t10*=detsh; t11*=detsh;
 		
-			if(vlr->snproj==0) {
+			if(vlr->snproj==0 || (R.r.mode && R_ORTHO)) {
 				u= (shi->co[0]-v3->co[0])*t11-(shi->co[1]-v3->co[1])*t10;
 				v= (shi->co[1]-v3->co[1])*t00-(shi->co[0]-v3->co[0])*t01;
 				if(shi->osatex) {
@@ -1701,6 +1745,10 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 					shi->dxuv[1]=  shi->dxco[1]*t00- shi->dxco[0]*t01;
 					shi->dyuv[0]=  shi->dyco[0]*t11- shi->dyco[1]*t10;
 					shi->dyuv[1]=  shi->dyco[1]*t00- shi->dyco[0]*t01;
+				}
+				// exception!!!
+				if(R.r.mode && R_ORTHO) {
+					shi->co[2]= (1.0+u+v)*v3->co[2] - u*v1->co[2] - v*v2->co[2];
 				}
 			}
 			else if(vlr->snproj==1) {
@@ -1955,8 +2003,6 @@ static float isec_view_line(float *view, float *v3, float *v4)
 #endif
 
   
-float bluroffsx=0.0, bluroffsy=0.0;	// set in initrender.c (bad, ton)
-
 /* x,y: window coordinate from 0 to rectx,y */
 /* return pointer to rendered face */
 void *shadepixel(float x, float y, int z, int facenr, int mask, float *col)
@@ -2002,26 +2048,8 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col)
 		v1= vlr->v1;
 		
 		/* COXYZ AND VIEW VECTOR  */
-		shi.view[0]= (x+(R.xstart)+bluroffsx +0.5);
+		calc_view_vector(shi.view, x, y);
 
-		if(R.flag & R_SEC_FIELD) {
-			if(R.r.mode & R_ODDFIELD) shi.view[1]= (y+R.ystart)*R.ycor;
-			else shi.view[1]= (y+R.ystart+1.0)*R.ycor;
-		}
-		else shi.view[1]= (y+R.ystart+bluroffsy+0.5)*R.ycor;
-		
-		shi.view[2]= -R.viewfac;
-
-		if(R.r.mode & R_PANORAMA) {
-			float panoco, panosi, u, v;
-			panoco = getPanovCo();
-			panosi = getPanovSi();
-
-			u= shi.view[0]; v= shi.view[2];
-			shi.view[0]= panoco*u + panosi*v;
-			shi.view[2]= -panosi*u + panoco*v;
-		}
-		
 		/* wire cannot use normal for calculating shi.co */
 		if(shi.mat->mode & MA_WIRE) {
 			float zco;
@@ -2036,36 +2064,61 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col)
 			shi.co[1]= fac*shi.view[1];
 		}
 		else {
-			float div, dface;
+			/* ortho viewplane cannot intersect using view vector originating in (0,0,0) */
+			if(R.r.mode & R_ORTHO) {
+				/* x and y 3d coordinate can be derived from pixel coord and winmat */
+				float fx= 2.0/(R.rectx*R.winmat[0][0]);
+				float fy= 2.0/(R.recty*R.winmat[1][1]);
+				
+				shi.co[0]= (x - 0.5*R.rectx)*fx - R.winmat[3][0]/R.winmat[0][0];
+				shi.co[1]= (y - 0.5*R.recty)*fy - R.winmat[3][1]/R.winmat[1][1];
+				
+				/* for shi.co[2] we cannot use zbuffer value, full-osa doesnt store z's */
+				/* so is calculated in shade_input_set_coords */
+				zcor= 1.0; // only to prevent not-initialize
+				
+				if(shi.osatex || (R.r.mode & R_SHADOW) ) {
+					shi.dxco[0]= fx;
+					shi.dxco[1]= 0.0;
+					shi.dxco[2]= (shi.facenor[0]*fx)/shi.facenor[2];
+					
+					shi.dyco[0]= 0.0;
+					shi.dyco[1]= fy;
+					shi.dyco[2]= (shi.facenor[1]*fy)/shi.facenor[2];
+				}
+			}
+			else {
+				float div, dface;
+				
+				dface= v1->co[0]*shi.facenor[0]+v1->co[1]*shi.facenor[1]+v1->co[2]*shi.facenor[2];
+				div= shi.facenor[0]*shi.view[0] + shi.facenor[1]*shi.view[1] + shi.facenor[2]*shi.view[2];
+				if (div!=0.0) fac= zcor= dface/div;
+				else fac= zcor= 0.0;
+				
+				shi.co[0]= fac*shi.view[0];
+				shi.co[1]= fac*shi.view[1];
+				shi.co[2]= fac*shi.view[2];
 			
-			dface= v1->co[0]*shi.facenor[0]+v1->co[1]*shi.facenor[1]+v1->co[2]*shi.facenor[2];
-			div= shi.facenor[0]*shi.view[0] + shi.facenor[1]*shi.view[1] + shi.facenor[2]*shi.view[2];
-			if (div!=0.0) fac= zcor= dface/div;
-			else fac= zcor= 0.0;
-			
-			shi.co[0]= fac*shi.view[0];
-			shi.co[1]= fac*shi.view[1];
-			shi.co[2]= fac*shi.view[2];
-		
-			/* pixel dx/dy for render coord */
-			if(shi.osatex || (R.r.mode & R_SHADOW) ) {
-				float u= dface/(div-shi.facenor[0]);
-				float v= dface/(div- R.ycor*shi.facenor[1]);
+				/* pixel dx/dy for render coord */
+				if(shi.osatex || (R.r.mode & R_SHADOW) ) {
+					float u= dface/(div-shi.facenor[0]);
+					float v= dface/(div- R.ycor*shi.facenor[1]);
 
-				shi.dxco[0]= shi.co[0]- (shi.view[0]-1.0)*u;
-				shi.dxco[1]= shi.co[1]- (shi.view[1])*u;
-				shi.dxco[2]= shi.co[2]- (shi.view[2])*u;
+					shi.dxco[0]= shi.co[0]- (shi.view[0]-1.0)*u;
+					shi.dxco[1]= shi.co[1]- (shi.view[1])*u;
+					shi.dxco[2]= shi.co[2]- (shi.view[2])*u;
 
-				shi.dyco[0]= shi.co[0]- (shi.view[0])*v;
-				shi.dyco[1]= shi.co[1]- (shi.view[1]-1.0*R.ycor)*v;
-				shi.dyco[2]= shi.co[2]- (shi.view[2])*v;
+					shi.dyco[0]= shi.co[0]- (shi.view[0])*v;
+					shi.dyco[1]= shi.co[1]- (shi.view[1]-1.0*R.ycor)*v;
+					shi.dyco[2]= shi.co[2]- (shi.view[2])*v;
 
+				}
 			}
 		}
 		
 		/* cannot normalise earlier, code above needs it at pixel level */
 		fac= Normalise(shi.view);
-		zcor*= fac;
+		zcor*= fac;	// for mist, distance of point from camera
 		
 		if(shi.osatex) {
 			if( (shi.mat->texco & TEXCO_REFL) ) {
@@ -2183,8 +2236,11 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col)
 		}
 		
 		/* MIST */
-		if( (R.wrld.mode & WO_MIST) && (shi.mat->mode & MA_NOMIST)==0 ){
-			alpha= mistfactor(zcor, shi.co);
+		if( (R.wrld.mode & WO_MIST) && (shi.mat->mode & MA_NOMIST)==0 ) {
+			if(R.r.mode & R_ORTHO)
+				alpha= mistfactor(-shi.co[2], shi.co);
+			else
+				alpha= mistfactor(zcor, shi.co);
 		}
 		else alpha= 1.0;
 
@@ -2208,26 +2264,7 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col)
 	if(R.flag & R_LAMPHALO) {
 		if(facenr<=0) {	/* calc view vector and put shi.co at far */
 		
-			shi.view[0]= (x+(R.xstart)+0.5);
-
-			if(R.flag & R_SEC_FIELD) {
-				if(R.r.mode & R_ODDFIELD) shi.view[1]= (y+R.ystart)*R.ycor;
-				else shi.view[1]= (y+R.ystart+1.0)*R.ycor;
-			}
-			else shi.view[1]= (y+R.ystart+0.5)*R.ycor;
-			
-			shi.view[2]= -R.viewfac;
-			
-			if(R.r.mode & R_PANORAMA) {
-				float u,v, panoco, panosi;
-				panoco = getPanovCo();
-				panosi = getPanovSi();
-				
-				u= shi.view[0]; v= shi.view[2];
-				shi.view[0]= panoco*u + panosi*v;
-				shi.view[2]= -panosi*u + panoco*v;
-			}
-
+			calc_view_vector(shi.view, x, y);
 			shi.co[2]= 0.0;
 			
 		}

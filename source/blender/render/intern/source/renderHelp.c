@@ -256,8 +256,8 @@ void setzbufvlaggen( void (*projectfunc)(float *, float *) )
 void set_normalflags(void)
 {
 	VlakRen *vlr = NULL;
-	float vec[3], xn, yn, zn;
-	int a1;
+	float *v1, xn, yn, zn;
+	int a1, doflip;
 	
 	/* switch normal 'snproj' values (define which axis is the optimal one for calculations) */
 	for(a1=0; a1<R.totvlak; a1++) {
@@ -267,12 +267,16 @@ void set_normalflags(void)
 		/* abuse of this flag... this is code that just sets face normal in direction of camera */
 		/* that convention we should get rid of */
 		if((vlr->flag & R_NOPUNOFLIP)==0) {
-
-			vec[0]= vlr->v1->co[0];
-			vec[1]= vlr->v1->co[1];
-			vec[2]= vlr->v1->co[2];
 			
-			if( (vec[0]*vlr->n[0] +vec[1]*vlr->n[1] +vec[2]*vlr->n[2])<0.0 ) {
+			doflip= 0;
+			if(R.r.mode & R_ORTHO) {
+				if(vlr->n[2]>0.0) doflip= 1;
+			}
+			else {
+				v1= vlr->v1->co;
+				if( (v1[0]*vlr->n[0] +v1[1]*vlr->n[1] +v1[2]*vlr->n[2])<0.0 ) doflip= 1;
+			}
+			if(doflip) {
 				vlr->n[0]= -vlr->n[0];
 				vlr->n[1]= -vlr->n[1];
 				vlr->n[2]= -vlr->n[2];

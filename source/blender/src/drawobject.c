@@ -664,46 +664,48 @@ void drawcamera(Object *ob)
 	float vec[8][4], tmat[4][4], fac, facx, facy, depth;
 
 	cam= ob->data;
-	/* this code only works for perspective */
-	if(G.vd->persp==2 && ob==G.vd->camera && cam->type==CAM_ORTHO) return;
 	
 	glDisable(GL_LIGHTING);
 	glDisable(GL_CULL_FACE);
 	
-	/* that way it's always visible */
-	fac= cam->drawsize;
-	if(G.vd->persp>=2 && ob==G.vd->camera) fac= cam->clipsta+0.1;
+	if(G.vd->persp>=2 && cam->type==CAM_ORTHO && ob==G.vd->camera) {
+		facx= 0.5*cam->ortho_scale*1.28;
+		facy= 0.5*cam->ortho_scale*1.024;
+		depth= -cam->clipsta-0.1;
+	}
+	else {
+		fac= cam->drawsize;
+		if(G.vd->persp>=2 && ob==G.vd->camera) fac= cam->clipsta+0.1; /* that way it's always visible */
+		
+		depth= - fac*cam->lens/16.0;
+		facx= fac*1.28;
+		facy= fac*1.024;
+	}
 	
-	depth= - fac*cam->lens/16.0;
-	facx= fac*1.28;
-	facy= fac*1.024;
-	
-	vec[0][0]= 0; vec[0][1]= 0; vec[0][2]= 0.001;	/* GLBUG: for picking at iris Entry (well thats old!) */
+	vec[0][0]= 0.0; vec[0][1]= 0.0; vec[0][2]= 0.001;	/* GLBUG: for picking at iris Entry (well thats old!) */
 	vec[1][0]= facx; vec[1][1]= facy; vec[1][2]= depth;
 	vec[2][0]= facx; vec[2][1]= -facy; vec[2][2]= depth;
 	vec[3][0]= -facx; vec[3][1]= -facy; vec[3][2]= depth;
 	vec[4][0]= -facx; vec[4][1]= facy; vec[4][2]= depth;
 
 	glBegin(GL_LINE_LOOP);
-		glVertex3fv(vec[0]); 
 		glVertex3fv(vec[1]); 
 		glVertex3fv(vec[2]); 
-		glVertex3fv(vec[0]); 
 		glVertex3fv(vec[3]); 
 		glVertex3fv(vec[4]);
 	glEnd();
 
-	glBegin(GL_LINES);
+	if(G.vd->persp>=2 && ob==G.vd->camera) return;
+	
+	glBegin(GL_LINE_STRIP);
 		glVertex3fv(vec[2]); 
-		glVertex3fv(vec[3]);
-	glEnd();
-
-	glBegin(GL_LINES);
-		glVertex3fv(vec[4]); 
+		glVertex3fv(vec[0]);
 		glVertex3fv(vec[1]);
+		glVertex3fv(vec[4]);
+		glVertex3fv(vec[0]);
+		glVertex3fv(vec[3]); 
 	glEnd();
 
-	if(G.vd->persp>=2) return;
 	
 	/* arrow on top */
 	vec[0][2]= depth;

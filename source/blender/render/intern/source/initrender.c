@@ -488,11 +488,11 @@ void RE_make_existing_file(char *name)
 void RE_setwindowclip(int mode, int jmode)
 {
 	extern float bluroffsx, bluroffsy;	// rendercore.c... hackish (ton)
-	Camera *cam=0;
+	Camera *cam=NULL;
 	float lens, minx, miny, maxx, maxy;
 	float xd, yd, afmx, afmy;
 
-	if(G.scene->camera==0) return;
+	if(G.scene->camera==NULL) return;
 
 	afmx= R.afmx;
 	afmy= R.afmy;
@@ -519,19 +519,28 @@ void RE_setwindowclip(int mode, int jmode)
 			lens= 16.0;
 		}
 
-		if( (R.r.xasp*afmx) >= (R.r.yasp*afmy) ) {
-			R.viewfac= (afmx*lens)/16.0;
+		if(R.r.mode & R_ORTHO) {
+			if( (R.r.xasp*afmx) >= (R.r.yasp*afmy) ) {
+				R.viewfac= 2.0*afmx;
+			}
+			else {
+				R.viewfac= 2.0*R.ycor*afmy;
+			}
+			/* ortho_scale == 1.0 means exact 1 to 1 mapping */
+			R.pixsize= cam->ortho_scale/R.viewfac;
 		}
 		else {
-			R.viewfac= R.ycor*(afmy*lens)/16.0;
+			if( (R.r.xasp*afmx) >= (R.r.yasp*afmy) ) {
+				R.viewfac= (afmx*lens)/16.0;
+			}
+			else {
+				R.viewfac= R.ycor*(afmy*lens)/16.0;
+			}
+			
+			R.pixsize= R.near/R.viewfac;
 		}
-		if(R.r.mode & R_ORTHO) {
-			R.near*= 100.0; 
-			R.viewfac*= 100.0;
-		}
-
-		R.pixsize= R.near/R.viewfac;
-
+		
+		/* pixsize is not a real global... get rid of it! (ton) */
 	}
 
 	/* revision / simplification of subpixel offsets:
@@ -567,11 +576,12 @@ void RE_setwindowclip(int mode, int jmode)
 	miny= R.pixsize*(miny+yd);
 	maxy= R.pixsize*(maxy+yd);
 
-	if(R.r.mode & R_ORTHO) {
-		i_window(minx, maxx, miny, maxy, R.near, 100.0*R.far, R.winmat);
-	}
-	else i_window(minx, maxx, miny, maxy, R.near, R.far, R.winmat);
+	if(R.r.mode & R_ORTHO)
+		i_ortho(minx, maxx, miny, maxy, R.near, R.far, R.winmat);
+	else 
+		i_window(minx, maxx, miny, maxy, R.near, R.far, R.winmat);
 
+//	printmatrix4("win", R.winmat);
 }
 
 

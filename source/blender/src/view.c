@@ -587,8 +587,8 @@ short v3d_windowmode=0;
 void setwinmatrixview3d(rctf *rect)		/* rect: for picking */
 {
 	Camera *cam=0;
-	float d, near, far, winx = 0.0, winy = 0.0;
-	float lens, dfac, fac, x1, y1, x2, y2;
+	float near, far, winx = 0.0, winy = 0.0;
+	float lens, fac, x1, y1, x2, y2;
 	short orth;
 	
 	lens= G.vd->lens;	
@@ -617,12 +617,6 @@ void setwinmatrixview3d(rctf *rect)		/* rect: for picking */
 				lens= cam->lens;
 				near= cam->clipsta;
 				far= cam->clipend;
-				
-				if(cam->type==CAM_ORTHO) {
-					lens*= 100.0;
-					near= (near+1.0)*100.0;	/* otherwise zbuffer troubles. a Patch! */
-					far*= 100.0;
-				}
 			}
 		}
 	}
@@ -636,21 +630,16 @@ void setwinmatrixview3d(rctf *rect)		/* rect: for picking */
 		winy= curarea->winy;
 	}
 	
-	if(winx>winy) d= 0.015625*winx*lens;
-	else d= 0.015625*winy*lens;
-	
-	dfac= near/d;
-
 	if(G.vd->persp==0) {
 		if(winx>winy) x1= -G.vd->dist;
 		else x1= -winx*G.vd->dist/winy;
-		
 		x2= -x1;
 
 		if(winx>winy) y1= -winy*G.vd->dist/winx;
 		else y1= -G.vd->dist;
-		
 		y2= -y1;
+		
+		near= -far;
 		orth= 1;
 	}
 	else {
@@ -660,12 +649,32 @@ void setwinmatrixview3d(rctf *rect)		/* rect: for picking */
 		}
 		else fac= 2.0;
 		
-		x1= -dfac*(winx/fac);
-		x2= -x1;
-		y1= -dfac*(winy/fac);
-		y2= -y1;
-
-		orth= 0;
+		/* viewplane size depends... */
+		if(cam && cam->type==CAM_ORTHO) {
+			/* ortho_scale == 1 means exact 1 to 1 mapping */
+			float dfac= 2.0*cam->ortho_scale/fac;
+			
+			if(winx>winy) x1= -dfac;
+			else x1= -winx*dfac/winy;
+			x2= -x1;
+			
+			if(winx>winy) y1= -winy*dfac/winx;
+			else y1= -dfac;
+			y2= -y1;
+			orth= 1;
+		}
+		else {
+			float dfac;
+			
+			if(winx>winy) dfac= 64.0/(fac*winx*lens);
+			else dfac= 64.0/(fac*winy*lens);
+			
+			x1= - near*winx*dfac;
+			x2= -x1;
+			y1= - near*winy*dfac;
+			y2= -y1;
+			orth= 0;
+		}
 	}
 
 	if(rect) {		/* picking */
@@ -684,18 +693,12 @@ void setwinmatrixview3d(rctf *rect)		/* rect: for picking */
 	}
 	else {
 		if(v3d_windowmode) {
-			if(orth) i_ortho(x1, x2, y1, y2, -far, far, R.winmat);
-			else {
-				if(cam && cam->type==CAM_ORTHO) i_window(x1, x2, y1, y2, near, far, R.winmat);
-				else i_window(x1, x2, y1, y2, near, far, R.winmat);
-			}
+			if(orth) i_ortho(x1, x2, y1, y2, near, far, R.winmat);
+			else i_window(x1, x2, y1, y2, near, far, R.winmat);
 		}
 		else {
-			if(orth) myortho(x1, x2, y1, y2, -far, far);
-			else {
-				if(cam && cam->type==CAM_ORTHO) mywindow(x1, x2, y1, y2, near, far);
-				else mywindow(x1, x2, y1, y2, near, far);
-			}
+			if(orth) myortho(x1, x2, y1, y2, near, far);
+			else mywindow(x1, x2, y1, y2, near, far);
 		}
 	}
 
@@ -734,7 +737,7 @@ void setviewmatrixview3d()
 			
 			if(G.vd->camera->type==OB_CAMERA) {
 				cam= G.vd->camera->data;
-				if(cam->type==CAM_ORTHO) G.vd->viewmat[3][2]*= 100.0;
+				//if(cam->type==CAM_ORTHO) G.vd->viewmat[3][2]*= 100.0;
 			}
 		}
 		else {

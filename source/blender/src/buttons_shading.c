@@ -2790,9 +2790,9 @@ static void material_panel_tramir(Material *ma)
 
 	uiBlockBeginAlign(block);
 	if(ma->mode & MA_RAYTRANSP)
-		uiDefButF(block, NUM, B_MATPRV, "Filt:",				10,110,100,20, &(ma->filter), 0.0, 1.0, 0, 0, "Amount of filtering for transparent raytrace");
+		uiDefButF(block, NUM, B_MATPRV, "Filt:",				10,110,100,20, &(ma->filter), 0.0, 1.0, 10, 0, "Amount of filtering for transparent raytrace");
 	else
-		uiDefButF(block, NUM, B_DIFF, "Zoffs:",				10,110,100,20, &(ma->zoffs), 0.0, 10.0, 0, 0, "Gives faces an artificial offset in the Z buffer for Ztransp option");
+		uiDefButF(block, NUM, B_DIFF, "Zoffs:",				10,110,100,20, &(ma->zoffs), 0.0, 10.0, 100, 0, "Gives faces an artificial offset in the Z buffer for Ztransp option");
 	uiDefButI(block, TOG|BIT|6, B_MATZTRANSP,"ZTransp",	110,110,100,20, &(ma->mode), 0, 0, 0, 0, "Enables Z-Buffering of transparent faces");
 	uiDefButI(block, TOG|BIT|17, B_MATRAYTRANSP,"Ray Transp",210,110,100,20, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for transparency rendering");
 

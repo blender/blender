@@ -1728,11 +1728,12 @@ void RE_projectverto(float *v1, float *adr)
 	x= v1[0]; 
 	y= v1[1]; 
 	z= v1[2];
-	adr[0]= x*R.winmat[0][0]          + z*R.winmat[2][0];
-	adr[1]= 		      y*R.winmat[1][1]+ z*R.winmat[2][1];
-	adr[2]=                             z*R.winmat[2][2] + R.winmat[3][2];
-	adr[3]=                             z*R.winmat[2][3] + R.winmat[3][3];
+	adr[0]= x*R.winmat[0][0]				+	z*R.winmat[2][0] + R.winmat[3][0];
+	adr[1]= 		      y*R.winmat[1][1]	+	z*R.winmat[2][1] + R.winmat[3][1];
+	adr[2]=										z*R.winmat[2][2] + R.winmat[3][2];
+	adr[3]=										z*R.winmat[2][3] + R.winmat[3][3];
 
+	//printf("hoco %f %f %f %f\n", adr[0], adr[1], adr[2], adr[3]);
 }
 
 /* ------------------------------------------------------------------------- */

@@ -4618,10 +4618,18 @@ static void do_versions(Main *main)
 	}
 	if(main->versionfile <= 236) {
 		Scene *sce= main->scene.first;
+		Camera *cam= main->camera.first;
 		
 		while(sce) {
 			if(sce->r.postsat==0.0) sce->r.postsat= 1.0;
 			sce= sce->id.next;
+		}
+		while(cam) {
+			if(cam->ortho_scale==0.0) {
+				cam->ortho_scale= 256.0/cam->lens;
+				if(cam->type==CAM_ORTHO) printf("NOTE: ortho render has changed, tweak new Camera 'scale' value.\n");
+			}
+			cam= cam->id.next;
 		}
 	}
 	

@@ -414,6 +414,7 @@ void *add_camera()
 	cam->clipsta= 0.1f;
 	cam->clipend= 100.0f;
 	cam->drawsize= 0.5f;
+	cam->ortho_scale= 6.0;
 	
 	return cam;
 }

@@ -2956,7 +2956,7 @@ void RE_rotateBlenderScene(void)
 	MTC_Mat4Invert(R.viewmat, R.viewinv);
 
 	/* not so neat: now the viewinv is not equal to viewmat. used for Texcos and such. Improve! */
-	if(R.r.mode & R_ORTHO) R.viewmat[3][2]*= 100.0;
+	//if(R.r.mode & R_ORTHO) R.viewmat[3][2]*= 100.0;
 
 	RE_setwindowclip(1,-1); /*  no jit:(-1) */
 
