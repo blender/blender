@@ -8,7 +8,7 @@ SRCDIR = ../modules
 
 TARGETDIR = $(OCGDIR)/blender/bpython/frozen
 
-PYFLAGS = -S -O
+PYFLAGS=-S -O
 
 default: importer
 
@@ -19,7 +19,7 @@ install: importer
 
 importer: 
 	@[ -d $(TARGETDIR) ] || mkdir -p $(TARGETDIR)
-	python $(PYFLAGS) freeze.py -d -x os -x pprint -x string -x copy -I $(SRCDIR) -o $(TARGETDIR) $(SRCDIR)/VRMLmain.py 
+	$(NAN_PYTHON_BINARY) $(PYFLAGS) freeze.py -d -x os -x pprint -x string -x copy -I $(SRCDIR) -o $(TARGETDIR) $(SRCDIR)/VRMLmain.py 
 	$(MAKE) -C $(TARGETDIR)
 
 clean:
