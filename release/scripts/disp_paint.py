@@ -378,7 +378,7 @@ def draw():
                  
 
 def event(evt, val):    
-    if (evt== QKEY and not val): Exit()
+    if ((evt== QKEY or evt== ESCKEY) and not val): Exit()
 
 def bevent(evt):
     global MODEMenu, NSIZE, ng, TMATList
@@ -430,4 +430,5 @@ def bevent(evt):
 
     Blender.Redraw()
  
+Window.EditMode(0)
 Register(draw, event, bevent)

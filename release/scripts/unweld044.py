@@ -1,7 +1,7 @@
 #!BPY
 """ Registration info for Blender menus: <- these words are ignored
 Name: 'UnWeld'
-Blender: 232
+Blender: 234
 Group: 'Mesh'
 Tip: 'Unweld all faces from a selected and common vertex. Made vertex bevelling.'
 """
@@ -56,6 +56,8 @@ import Blender
 from Blender import Noise
 from Blender.Draw import *
 from Blender.BGL import *
+
+Blender.Window.EditMode(0)
 
 Nr=Noise.random
 decal=0.03
@@ -196,7 +198,7 @@ def D():
 def E(evt,val):
  global mouse_x,x,pl,orig,me,debut
  global mouse_y,y, MouseClickG,MouseClickD,MouseClickM
- if (evt== QKEY): Exit()
+ if (evt== QKEY or evt== ESCKEY): Exit()
  
  if (evt == MOUSEX): 
        mouse_x = val

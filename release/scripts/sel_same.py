@@ -61,13 +61,12 @@ else:
     mesh = object.getData()
     
     # We have a mesh so find AF.
-    for f in mesh.faces:
-      if f.flag & NMesh.FaceFlags['ACTIVE']:
-        af = f
+    af = mesh.getActiveFace()
+    if af: af = mesh.faces[af]
 
 if af == None:
   error('no active face')
-  
+
 else: # Okay everything seems sane
   
   #=====================================
@@ -152,7 +151,7 @@ else: # Okay everything seems sane
         avcolIdx = 0
         while avcolIdx < len(f1.col):
           match = 0
-      
+          
           vcolIdx = 0
           while vcolIdx < len(f2.col):
             if colCompare(f1.col[avcolIdx], f2.col[vcolIdx], limit):
@@ -163,8 +162,6 @@ else: # Okay everything seems sane
             return 0
           avcolIdx += 1
         return 1
-      
-      
       
       # Makes sure face 2 has matching UVs within the limit.
       def faceUvCompare(f1, f2, limit):
@@ -193,7 +190,6 @@ else: # Okay everything seems sane
       #====================#
       
       
-      
       #=============================#
       # Blender functions/shortcuts #
       #=============================#
@@ -212,7 +208,6 @@ else: # Okay everything seems sane
         elif len(f.v) == 3:
           return (measure(f.v[0].co, f.v[1].co), measure(f.v[1].co, f.v[2].co), measure(f.v[2].co, f.v[0].co) )
       
-      
       def faceCent(f):
         x = y = z = 0
         for v in f.v:
@@ -229,7 +224,9 @@ else: # Okay everything seems sane
       #========================================#
       def fShouldCompare(f):
         # Only calculate for faces that will be affected.
-        if faceOp == 1 and f.flag == 1:
+        if len(f.v) < 3: # cant be an edge
+          return 0
+        elif faceOp == 1 and f.flag == 1:
           return 0
         elif faceOp == 0 and f.flag == 0:
           return 0
@@ -247,10 +244,13 @@ else: # Okay everything seems sane
             else:               setFUnSel(f)
       
       def get_same_image():
-        for f in mesh.faces:
-          if fShouldCompare(f):
-            if af.image == f.image: setFSel(f)
-            else:                   setFUnSel(f)
+        if mesh.hasFaceUV() == 0:
+          error('mesh has no uv image')
+        else:
+          for f in mesh.faces:
+            if fShouldCompare(f):
+              if af.image == f.image: setFSel(f)
+              else:                   setFUnSel(f)
       
       def get_same_mode():
         for f in mesh.faces:
@@ -280,9 +280,7 @@ else: # Okay everything seems sane
             if compare(afArea, faceArea(f), limit): setFSel(f)
             else:                                   setFUnSel(f)
       
-        
       def get_same_prop(limit):
-        
         # Here we get the perimeter and use it for a proportional limit modifier.
         afEdgeLens = getEdgeLengths(af)
         perim = 0
@@ -326,10 +324,10 @@ else: # Okay everything seems sane
               setFSel(f)
             else:
               setFUnSel(f)
+      
       #=====================#
       # End Sel same funcs  #
       #=====================#
-      
       limit = 1 # some of these dont use the limit so it needs to be set, to somthing.
       # act on the menu item selected
       if method == 1: # Material
@@ -365,4 +363,4 @@ else: # Okay everything seems sane
       
       # If limit is not set then dont bother
       if limit != None:
-        mesh.update()
+        mesh.update(0)

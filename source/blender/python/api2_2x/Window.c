@@ -42,6 +42,7 @@
 #include <BIF_mywindow.h>
 #include <BSE_headerbuttons.h>
 #include <BSE_filesel.h>
+#include <BIF_editmesh.h> /* for undo_push_mesh() */
 #include <BIF_screen.h>
 #include <BIF_space.h>
 #include <BIF_drawtext.h>
@@ -666,7 +667,6 @@ static PyObject *M_Window_SetViewQuat(PyObject *self, PyObject *args)
 {
 	int ok = 0;
 	float val[4];
-	float *vec;
 
 	if (!G.vd) {
 		Py_INCREF (Py_None);
@@ -715,7 +715,6 @@ static PyObject *M_Window_SetViewOffset(PyObject *self, PyObject *args)
 {
 	int ok = 0;
 	float val[3];
-	float *vec;
 
 	if (!G.vd) {
 		Py_INCREF (Py_None);
@@ -773,7 +772,10 @@ static PyObject *M_Window_EditMode(PyObject *self, PyObject *args)
 		if (status) {
 				if (!G.obedit) enter_editmode();
 		}
-		else if (G.obedit) exit_editmode(1);
+		else if (G.obedit) {
+			undo_push_mesh("From script"); /* use better solution after 2.34 */
+			exit_editmode(1);
+		}
 	}
 
 	return Py_BuildValue("h", G.obedit?1:0);

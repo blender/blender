@@ -3,6 +3,8 @@
 """
 The Blender.Ipo submodule
 
+B{New}: Ipo updates to both the program and bpython acess.
+
 This module provides access to the Ipo Data in Blender. An Ipo is composed of
 several Ipocurves.
 
@@ -91,8 +93,8 @@ class Ipo:
       8. Key Ipo: Speed, 'Key 1' - 'Key 31'.
       9. Action Ipo: LocX, LocY, LocZ, SizeX, SizeY, SizeZ,
       QuatX, QuatY, QuatZ, QuatW.
-      10.Sequence Ipo: Fac.
-      11.Constraint Ipo: Inf.
+      10. Sequence Ipo: Fac.
+      11. Constraint Ipo: Inf.
       
     @type curvename : string
     @rtype: IpoCurve object

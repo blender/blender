@@ -107,4 +107,5 @@ def rvk2rvk():
     Draw.PupMenu('Error| You need to select two meshes.') 
   
 
+Blender.Window.EditMode(0)
 rvk2rvk()

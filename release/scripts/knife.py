@@ -657,7 +657,7 @@ def draw():
 	msg = ''
 	
 def event(evt, val):
-	if evt == Draw.QKEY and not val:
+	if (evt == Draw.QKEY or evt == Draw.ESCKEY) and not val:
 		Draw.Exit()
 	if evt == Draw.CKEY and not val:
 		CutMesh()

@@ -400,7 +400,7 @@ class NMesh:
     @rtype: bool
     @return: True if successful or False if this NMesh wasn't linked to a real
        Blender Mesh yet (or was, but the Mesh had no keys).
-    @warn: Currently the mesh keys from meshs that are grabbed with
+    @warn: Currently the mesh keys from meshes that are grabbed with
        NMesh.GetRaw() or .GetRawFromObject() are preserved, so if you want to
        clear them or don't want them at all, remember to call this method.  Of
        course NMeshes created with NMesh.New() don't have mesh keys until you
