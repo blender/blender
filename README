@@ -50,14 +50,9 @@ libs, same with macos.. right now its a cludge and it doesn't do one explicitly
 probably involves changing the way configure.ac picks stuff)
 
 Get intern/python figured out.
-
-Add the following to configure.ac
-	--with-openssl=dir
+fix the following in configure.ac
 	--with-mozilla=dir	(get it so nspr is autodetected here)
 	--with-nspr=dir		(incase in different dir)
-	--with-jpeg=dir
-	--with-png=dir
-	--with-zlib=dir
 
 *********************************************************************
 *********************************************************************
