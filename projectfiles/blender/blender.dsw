@@ -600,6 +600,18 @@ Package=<4>
 
 ###############################################################################
 
+Project: "PHY_Sumo"="..\gameengine\physics\PHY_Physics\PHY_Sumo\PHY_Sumo.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "RAS_openglrasterizer"="..\gameengine\rasterizer\openglrasterizer\RAS_openglrasterizer.dsp" - Package Owner=<4>
 
 Package=<5>
@@ -637,6 +649,18 @@ Package=<4>
 ###############################################################################
 
 Project: "SG_SceneGraph"="..\gameengine\scenegraph\SG_SceneGraph.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "SM_fuzzics"="..\sumo\fuzzics\SM_fuzzics.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -786,13 +810,16 @@ Package=<4>
     Project_Dep_Name PHY_Physics
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name PHY_Ode
-    End Project Dependency
-    Begin Project Dependency
     Project_Dep_Name FTF_ftfont
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name BPY_python
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SM_fuzzics
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name PHY_Sumo
     End Project Dependency
 }}}
 
