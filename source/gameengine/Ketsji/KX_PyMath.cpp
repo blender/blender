@@ -60,20 +60,19 @@ bool PyObject_IsMT_Matrix(PyObject *pymat, unsigned int rank)
 		if (rows != rank)
 			return false;
 		
-		for (y = 0; y < rank; y++)
+		bool ismatrix = true;
+		for (y = 0; y < rank && ismatrix; y++)
 		{
 			PyObject *pyrow = PySequence_GetItem(pymat, y); /* new ref */
 			if (PySequence_Check(pyrow))
 			{
 				if (PySequence_Size(pyrow) != rank)
-				{
-					Py_DECREF(pyrow);
-					return false;
-				}
-			}
+					ismatrix = false;
+			} else 
+				ismatrix = false;
 			Py_DECREF(pyrow);
 		}
-		return true;
+		return ismatrix;
 	}
 	return false;
 }
