@@ -1788,14 +1788,8 @@ static void do_view3d_edit_propfalloffmenu(void *arg, int event)
 {
 	extern int prop_mode;
 	
-	switch(event) {
-	case 0: /* proportional edit - sharp*/
-		prop_mode = 0;
-		break;
-	case 1: /* proportional edit - smooth*/
-		prop_mode = 1;
-		break;
-		}
+	prop_mode= event;
+	
 	allqueue(REDRAWVIEW3D, 1);
 }
 
@@ -1812,6 +1806,12 @@ static uiBlock *view3d_edit_propfalloffmenu(void *arg_unused)
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Sharp|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	if (prop_mode==1) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Smooth|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Smooth|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	if (prop_mode==2) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Root|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 2, 1, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Root|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 2, 1, "");
+	if (prop_mode==3) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Linear|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 3, 1, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Linear|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 3, 1, "");
+	if (prop_mode==4) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Constant|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 4, 1, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Constant|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 4, 1, "");
 		
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -3429,6 +3429,9 @@ static char *propfalloff_pup(void)
 	strcpy(string, "Falloff:%t"); 
 	strcat(string, "|Sharp Falloff%x0"); 
 	strcat(string, "|Smooth Falloff%x1");
+	strcat(string, "|Root Falloff%x2"); 
+	strcat(string, "|Linear Falloff%x3");
+	strcat(string, "|Constant, No Falloff%x4");
 	return (string);
 }
 

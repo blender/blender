@@ -1917,7 +1917,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		constline_callback();
 #ifdef NEWTRANSFORM
 		BIF_drawConstraint();
-		BIF_drawPropCircle();
+		if(G.obedit) BIF_drawPropCircle();	// only editmode has proportional edit
 #endif
 	}
 
