@@ -598,6 +598,10 @@ static void texture_preview_pixel(Tex *tex, int x, int y, char *rect)
 				if(texvec[1]>1.0) texvec[1] -= (int)(texvec[1]);
 			}
 		}
+		else if(tex->extend==TEX_CHECKER) {
+			texvec[0]= 0.5+1.6*v1*x;
+			texvec[1]= 0.5+1.6*v1*y;
+		}
 	}
 	else if(tex->type==TEX_ENVMAP) {
 		if(tex->env) {
