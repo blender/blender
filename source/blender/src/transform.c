@@ -129,6 +129,52 @@ int	LastMode = TFM_TRANSLATION;
 
 /* ************************** Functions *************************** */
 
+static void qsort_trans_data(TransData *head, TransData *tail) {
+	TransData pivot = *head;
+	TransData *ihead = head;
+	TransData *itail = tail;
+
+	while (head < tail)
+	{
+		while ((tail->dist >= pivot.dist) && (head < tail))
+			tail--;
+
+		if (head != tail)
+		{
+			*head = *tail;
+			head++;
+		}
+
+		while ((head->dist <= pivot.dist) && (head < tail))
+			head++;
+
+		if (head != tail)
+		{
+			*tail = *head;
+			tail--;
+		}
+	}
+
+	*head = pivot;
+	if (ihead < head) {
+		qsort_trans_data(ihead, head-1);
+	}
+	if (itail > head) {
+		qsort_trans_data(head+1, itail);
+	}
+}
+
+static void sort_trans_data_dist(TransInfo *t) {
+	TransData *start = t->data;
+	int i = 1;
+
+	while(i < t->total && start->flag & TD_SELECTED) {
+		start++;
+		i++;
+	}
+	qsort_trans_data(start, t->data + t->total - 1);
+}
+
 static void sort_trans_data(TransInfo *t) 
 {
 	TransData *sel, *unsel;
@@ -1190,8 +1236,9 @@ static void createTransData(TransInfo *t)
 		}
 		
 		if(G.f & G_PROPORTIONAL) {
-			sort_trans_data(&Trans);	// makes selected become first in array
-			set_prop_dist(&Trans);
+			sort_trans_data(t);	// makes selected become first in array
+			set_prop_dist(t);
+			sort_trans_data_dist(t);
 		}
 		
 	}
@@ -1573,7 +1620,7 @@ int Warp(TransInfo *t, short mval[2])
 	for(i = 0 ; i < t->total; i++, td++) {
 		float loc[3];
 		if (td->flag & TD_NOACTION)
-			continue;
+			break;
 
 		/* translate point to centre, rotate in such a way that outline==distance */
 		
@@ -1664,7 +1711,8 @@ int Shear(TransInfo *t, short mval[2])
 	
 	for(i = 0 ; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
-			continue;
+			break;
+
 		if (G.obedit) {
 			float mat3[3][3];
 			Mat3MulMat3(mat3, totmat, td->mtx);
@@ -1779,7 +1827,8 @@ int Resize(TransInfo *t, short mval[2])
 	for(i = 0 ; i < t->total; i++, td++) {
 		float smat[3][3];
 		if (td->flag & TD_NOACTION)
-			continue;
+			break;
+
 
 		if (t->flag & T_EDIT) {
 			Mat3MulMat3(smat, mat, td->mtx);
@@ -1926,7 +1975,8 @@ int ToSphere(TransInfo *t, short mval[2])
 	for(i = 0 ; i < t->total; i++, td++) {
 		float tratio;
 		if (td->flag & TD_NOACTION)
-			continue;
+			break;
+
 		VecSubf(vec, td->iloc, t->center);
 
 		radius = Normalise(vec);
@@ -2037,7 +2087,7 @@ int Rotation(TransInfo *t, short mval[2])
 
 	for(i = 0 ; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
-			continue;
+			break;
 
 		if (t->con.applyRot) {
 			t->con.applyRot(t, td, axis);
@@ -2196,7 +2246,7 @@ static void applyTranslation(TransInfo *t, float vec[3]) {
 
 	for(i = 0 ; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
-			continue;
+			break;
 
 		if (t->con.applyVec) {
 			float pvec[3];
@@ -2280,7 +2330,7 @@ void initShrinkFatten(TransInfo *t)
 
 int ShrinkFatten(TransInfo *t, short mval[2]) 
 {
-	float vec[3], center[3];
+	float vec[3];
 	float ratio;
 	int i;
 	char str[50];
@@ -2321,7 +2371,7 @@ int ShrinkFatten(TransInfo *t, short mval[2])
 	
 	for(i = 0 ; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
-			continue;
+			break;
 
 		VECCOPY(vec, td->axismtx[2]);
 		VecMulf(vec, ratio);

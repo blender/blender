@@ -541,6 +541,13 @@ void calculateCenterMedian(TransInfo *t)
 		if (t->data[i].flag & TD_SELECTED) {
 			VecAddf(partial, partial, t->data[i].center);
 		}
+		else {
+			/* 
+			   All the selected elements are at the head of the array 
+			   which means we can stop when it finds unselected data
+			*/
+			break;
+		}
 	}
 	VecMulf(partial, 1.0f / t->total);
 	VECCOPY(t->center, partial);
@@ -567,6 +574,13 @@ void calculateCenterBound(TransInfo *t)
 		if (i) {
 			if (t->data[i].flag & TD_SELECTED) {
 				MinMax3(min, max, t->data[i].center);
+			}
+			else {
+				/* 
+				   All the selected elements are at the head of the array 
+				   which means we can stop when it finds unselected data
+				*/
+				break;
 			}
 		}
 		else {
@@ -617,9 +631,9 @@ void calculateCenter(TransInfo *t)
 			Normalise(axis);
 			
 			/* 6.0 = 6 grid units */
-			t->center[0]+= -6.0*axis[0];
-			t->center[1]+= -6.0*axis[1];
-			t->center[2]+= -6.0*axis[2];
+			t->center[0]+= -6.0f*axis[0];
+			t->center[1]+= -6.0f*axis[1];
+			t->center[2]+= -6.0f*axis[2];
 		}
 	}	
 	initgrabz(t->center[0], t->center[1], t->center[2]);
@@ -638,8 +652,13 @@ void calculatePropRatio(TransInfo *t)
 				td->factor = 1.0f;
 			}
 			else if (td->dist > t->propsize) {
-				td->flag &= TD_NOACTION;
+				/* 
+				   The elements are sorted according to their dist member in the array,
+				   that means we can stop when it finds one element outside of the propsize.
+				*/
+				td->flag |= TD_NOACTION;
 				td->factor = 0.0f;
+				break;
 			}
 			else {
 				td->flag &= ~TD_NOACTION;
