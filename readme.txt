@@ -46,8 +46,6 @@ After that cd $NANBLENDERHOME/intern
 make
 make install
 
-Then cd $NANBLENDERHOME/intern/python/freeze 
-make
 cd $NANBLENDERHOME/source/blender/bpython/frozen
 make -f Makefile.freeze
 
