@@ -367,23 +367,24 @@ void BIF_previewdraw(void)
 {
 	SpaceButs *sbuts= curarea->spacedata.first;
 	
-	set_previewrect(sbuts->area->win, PR_XMIN, PR_YMIN, PR_XMAX, PR_YMAX);
-
 	if (sbuts->rect==0) BIF_preview_changed(sbuts);
 	else {
 		int y;
 
+		set_previewrect(sbuts->area->win, PR_XMIN, PR_YMIN, PR_XMAX, PR_YMAX);
+		
 		for (y=0; y<PR_RECTY; y++) {
 			display_pr_scanline(sbuts->rect, y);
 		}
 
+		end_previewrect();
+		
 		if (sbuts->mainb==CONTEXT_SHADING && sbuts->tab[CONTEXT_SHADING]==TAB_SHADING_TEX) {
 			draw_tex_crop(sbuts->lockpoin);
 		}
 	}
 	if(sbuts->cury==0) BIF_preview_changed(sbuts);
 	
-	end_previewrect();
 }
 
 static void sky_preview_pixel(float lens, int x, int y, char *rect)
@@ -1277,11 +1278,11 @@ void BIF_previewrender(SpaceButs *sbuts)
 		sbuts->cury++;
 	}
 
+	end_previewrect();
+	
 	if(sbuts->cury>=PR_RECTY && tex) 
 		if (sbuts->tab[CONTEXT_SHADING]==TAB_SHADING_TEX) 
 			draw_tex_crop(sbuts->lockpoin);
-	
-	end_previewrect();
 	
 	glDrawBuffer(GL_BACK);
 	/* draw again for clean swapbufers */
