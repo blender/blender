@@ -482,15 +482,7 @@ int BPY_menu_do_python(short menutype, int event)
 	Script *script = G.main->script.first;
 	int len;
 
-	if ((menutype < 0) || (menutype > PYMENU_TOTAL) || (event < 0))
-		return 0;
-
-	pym = BPyMenuTable[menutype];
-
-	while (event--) {
-		if (pym) pym = pym->next;
-		else break;
-	}
+	pym = BPyMenu_GetEntry(menutype, (short)event);
 
 	if (!pym) return 0;
 
@@ -527,7 +519,7 @@ int BPY_menu_do_python(short menutype, int event)
 	if (pym->dir) /* script is in U.pythondir */
 		BLI_make_file_string("/", filestr, U.pythondir, pym->filename);
 	else { /* script is in ~/.blender/scripts/ */
-		BLI_make_file_string("/", dirname, BLI_gethome(), ".blender/scripts");
+		BLI_make_file_string("/", dirname, bpymenu_gethome(), "scripts");
 		BLI_make_file_string("/", filestr, dirname,	pym->filename);
 	}
 

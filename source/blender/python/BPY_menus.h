@@ -96,5 +96,7 @@ void BPyMenu_RemoveAllEntries(void);
 void BPyMenu_PrintAllEntries(void);
 char *BPyMenu_CreatePupmenuStr(BPyMenu *pym, short group);
 char *BPyMenu_group_itoa (short group);
+char *bpymenu_gethome();
+struct BPyMenu *BPyMenu_GetEntry (short group, short pos);
 
 #endif /* BPY_MENUS_H */
