@@ -679,9 +679,9 @@ static void createTransCurveVerts(void)
 						count++;
 					}
 				}
-				if (propmode)
-					calc_distanceCurveVerts(td-(nu->pntsu*3), td-1);
 			}
+			if (propmode)
+				calc_distanceCurveVerts(td-(nu->pntsu*3), td-1);
 		}
 		else {
 			for(a= nu->pntsu*nu->pntsv, bp= nu->bp; a>0; a--, bp++) {
@@ -704,9 +704,9 @@ static void createTransCurveVerts(void)
 						count++;
 					}
 				}
-				if (propmode)
-					calc_distanceCurveVerts(td-(nu->pntsu*nu->pntsv), td-1);
 			}
+			if (propmode)
+				calc_distanceCurveVerts(td-(nu->pntsu*nu->pntsv), td-1);
 		}
 	}
 }
