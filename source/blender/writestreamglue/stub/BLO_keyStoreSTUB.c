@@ -41,7 +41,7 @@
 
 	void
 keyStoreConstructor(
-	UserStruct *keyUserStruct,
+	struct UserStruct *keyUserStruct,
 	char *privHexKey,
 	char *pubHexKey,
 	unsigned char *ByteChecks,
