@@ -1531,6 +1531,14 @@ static void init_render_mesh(Object *ob)
 		}
 	}
 	
+	if(do_puno) {
+		normalenrender(totverto, totvlako);
+		do_puno= 0;
+	}
+	
+	if (test_for_displace( ob ) ) 
+		do_displacement(ob, totvlako, R.totvlak-totvlako, totverto, R.totvert-totverto);
+
 	if(do_autosmooth || (me->flag & ME_AUTOSMOOTH)) {
 		autosmooth(totverto, totvlako, me->smoothresh);
 		do_puno= 1;
@@ -2547,7 +2555,10 @@ static void init_render_object(Object *ob)
 		MTC_Mat4Invert(ob->imat, mat);
 	}
 	
-	if (test_for_displace( ob ) ) 
+	/* the exception below is because displace code now is in init_render_mesh call, 
+	   I will look at means to have autosmooth enabled for all object types 
+	   and have it as general postprocess, like displace */
+	if (ob->type!=OB_MESH && test_for_displace( ob ) ) 
 		do_displacement(ob, startface, R.totvlak-startface, startvert, R.totvert-startvert);
 }
 
