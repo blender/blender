@@ -325,6 +325,10 @@ void free_texture(Tex *tex)
 
 void default_tex(Tex *tex)
 {
+        PluginTex *pit;
+        VarStruct *varstr;
+        int a;
+
 	tex->stype= 0;
 	tex->imaflag= TEX_INTERPOL+TEX_MIPMAP;
 	tex->extend= TEX_REPEAT;
@@ -344,6 +348,15 @@ void default_tex(Tex *tex)
 	tex->gfac= 1.0;
 	tex->bfac= 1.0;
 
+        pit = tex->plugin;
+        if (pit) {
+             varstr= pit->varstr;
+             if(varstr) {
+                for(a=0; a<pit->vars; a++, varstr++) {
+		      pit->data[a] = varstr->def;
+                }
+             }
+        }
 }
 
 /* ------------------------------------------------------------------------- */

@@ -649,7 +649,6 @@ static void texture_panel_plugin(Tex *tex)
 			for(a=0; a<pit->vars; a++, varstr++) {
 				xco= 140*(a/6)+1;
 				yco= 125 - 20*(a % 6)+1;
-				pit->data[a] = varstr->def;
 				uiDefBut(block, varstr->type, B_PLUGBUT+a, varstr->name, xco,yco,137,19, &(pit->data[a]), varstr->min, varstr->max, 100, 0, varstr->tip);
 			}
 		}
