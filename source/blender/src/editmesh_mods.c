@@ -1704,7 +1704,7 @@ void editmesh_mark_seam(int clear)
 void Edge_Menu() {
 	short ret;
 
-	ret= pupmenu("Edge Specials%t|Mark Seam %x1|Clear Seam %x2|Rotate Edge %x3");
+	ret= pupmenu("Edge Specials%t|Mark Seam %x1|Clear Seam %x2|Rotate Edge CW%x3|Rotate Edge CCW%x4");
 
 	switch(ret)
 	{
@@ -1715,7 +1715,10 @@ void Edge_Menu() {
 		editmesh_mark_seam(1);
 		break;
 	case 3:
-		edge_rotate_selected();
+		edge_rotate_selected(2);
+		break;
+	case 4:
+		edge_rotate_selected(1);
 		break;
 	}
 }

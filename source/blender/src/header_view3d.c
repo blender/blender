@@ -1922,7 +1922,10 @@ void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 		transform('e');
 		break;
 	case 10: /* Rotate Edge */
-		edge_rotate_selected();
+		edge_rotate_selected(2);
+		break;
+	case 11: /* Rotate Edge */
+		edge_rotate_selected(1);
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1963,7 +1966,8 @@ static uiBlock *view3d_edit_mesh_edgesmenu(void *arg_unused)
 	}
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotate Edge|Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotate Edge CW|Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotate Edge CCW|Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");	
 	
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);

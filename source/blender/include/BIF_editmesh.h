@@ -167,7 +167,7 @@ extern void join_triangles(void);
 extern void edge_flip(void);
 extern void fill_mesh(void);
 extern void bevel_menu();
-void edge_rotate_selected(void);
+void edge_rotate_selected(int dir);
  
 #endif
 
