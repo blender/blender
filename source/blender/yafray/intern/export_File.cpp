@@ -233,6 +233,8 @@ void yafrayFileRender_t::displayImage()
 	fp = NULL;
 }
 
+extern "C" { extern char bprogname[]; }
+
 void yafrayFileRender_t::writeTextures()
 {
 	for (map<string, pair<Material*, MTex*> >::const_iterator blendtex=used_textures.begin();
@@ -299,7 +301,6 @@ void yafrayFileRender_t::writeTextures()
           string texpath = ima->name;
           int sp = texpath.find_first_of(":");
           if (sp==-1) {
-            extern char bprogname[];
             string blpath = bprogname;
             sp = blpath.find_first_of(":");
             if (sp!=-1) texpath = blpath.substr(0, sp+1) + texpath;
