@@ -2075,7 +2075,6 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 	float maxdist = wrld->aodist;
 	int j=0, tot, actual=0;
 
-	VECCOPY(isec.start, shi->co);
 	isec.vlrorig= shi->vlr;
 	isec.mode= DDA_SHADOW;
 	coh_test= 0;		// reset coherence optimize
@@ -2122,6 +2121,7 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 			
 			actual++;
 			
+			VECCOPY(isec.start, shi->co);
 			isec.end[0] = shi->co[0] - maxdist*vec[0];
 			isec.end[1] = shi->co[1] - maxdist*vec[1];
 			isec.end[2] = shi->co[2] - maxdist*vec[2];
@@ -2264,7 +2264,6 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 		float vec[3];
 		int a, j=0;
 		
-		VECCOPY(isec.start, shi->co);
 		isec.vlrorig= shi->vlr;
 
 		fac= 0.0;
@@ -2279,6 +2278,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 			vec[2]= 0.0;
 			Mat3MulVecfl(lar->mat, vec);
 			
+			VECCOPY(isec.start, shi->co);
 			isec.end[0]= lampco[0]+vec[0];
 			isec.end[1]= lampco[1]+vec[1];
 			isec.end[2]= lampco[2]+vec[2];
