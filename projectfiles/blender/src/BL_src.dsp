@@ -408,6 +408,18 @@ SOURCE=..\..\..\source\blender\src\writemovie.c
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\include\BIF_editfont.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_editoops.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_imasel.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\include\BIF_previewrender.h
 # End Source File
 # Begin Source File
@@ -421,6 +433,14 @@ SOURCE=..\..\..\source\blender\include\BIF_spacetypes.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\include\BIF_writeavicodec.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\blendef.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BSE_filesel.h
 # End Source File
 # Begin Source File
 

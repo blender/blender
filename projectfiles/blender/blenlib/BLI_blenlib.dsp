@@ -44,7 +44,8 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\bpython\include" /I "..\..\..\source\blender\makesdna" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\..\lib\windows\freetype\include" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\bpython\include" /I "..\..\..\source\blender\makesdna" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "WITH_FREETYPE2" /J /FD /c
+# SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -68,8 +69,8 @@ LIB32=link.exe -lib
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\bpython\include" /I "..\..\..\source\blender\makesdna" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /GZ /c
-# SUBTRACT CPP /Fr
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\bpython\include" /I "..\..\..\source\blender\makesdna" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /J /FD /GZ /c
+# SUBTRACT CPP /Fr /YX
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -165,6 +166,10 @@ SOURCE=..\..\..\source\blender\blenlib\intern\dynlib.c
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\blenlib\intern\fileops.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\blenlib\intern\freetypefont.c
 # End Source File
 # Begin Source File
 
@@ -272,27 +277,11 @@ SOURCE=..\..\..\source\blender\blenlib\BLI_noise.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenlib\BLI_objfnt.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenlib\intern\BLI_objfnt.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\blenlib\BLI_objfnt_types.h
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\blenlib\BLI_packedFile_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenlib\BLI_psfont.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenlib\intern\BLI_psfont.h
 # End Source File
 # Begin Source File
 
@@ -308,19 +297,11 @@ SOURCE=..\..\..\source\blender\blenlib\intern\BLI_scanfill.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenlib\BLI_storage.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\blenlib\intern\BLI_storage.h
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\blenlib\BLI_storage_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenlib\BLI_util.h
 # End Source File
 # Begin Source File
 
