@@ -36,14 +36,14 @@ SOURCEDIR = blender/po
 
 include nan_definitions.mk
 
-LINGUAS = it
+LINGUAS = ca de es fr it ja nl sv
 ifeq ($(OS), darwin)
 DIR = $(OCGDIR)/bin/blender.app/Contents/Resources/locale/$@/LC_MESSAGES/
 else
 DIR = $(OCGDIR)/bin/.blender/locale/$@/LC_MESSAGES/
 endif
 
-all:: $(LINGUAS)
+all debug:: $(LINGUAS)
 
 clean::
 	rm -r $(OCGDIR)/bin/.blender/locale
