@@ -49,7 +49,7 @@
 
 #include "PIL_time.h"
 
-#include "BMF_api.h"
+#include "BMF_Api.h"
 #include "BIF_language.h"
 #ifdef INTERNATIONAL
 #include "FTF_api.h"
