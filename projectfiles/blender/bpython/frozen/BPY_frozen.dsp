@@ -195,10 +195,6 @@ SOURCE=..\..\..\..\source\blender\bpython\frozen\M_Converter__importloader.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\source\blender\bpython\frozen\M_copy.c
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\..\source\blender\bpython\frozen\M_copy_reg.c
 # End Source File
 # Begin Source File
@@ -207,7 +203,27 @@ SOURCE=..\..\..\..\source\blender\bpython\frozen\M_gzip.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\source\blender\bpython\frozen\M_repr.c
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_mcf.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_mcf__utils.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_mcf__utils__hier_rx.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_mcf__utils__hierobj.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_mcf__utils__singletonlist.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_pprint.c
 # End Source File
 # Begin Source File
 
@@ -224,6 +240,10 @@ SOURCE=..\..\..\..\source\blender\bpython\frozen\M_simpleparse__generator.c
 # Begin Source File
 
 SOURCE=..\..\..\..\source\blender\bpython\frozen\M_string.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_StringIO.c
 # End Source File
 # Begin Source File
 
@@ -288,6 +308,26 @@ SOURCE=..\..\..\..\source\blender\bpython\frozen\M_vrml__parser.c
 # Begin Source File
 
 SOURCE=..\..\..\..\source\blender\bpython\frozen\M_vrml__scenegraph.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_vrml__utils.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_vrml__utils__collapse.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_vrml__utils__err.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_vrml__utils__namespace.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_vrml__utils__typeclasses.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
