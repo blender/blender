@@ -492,17 +492,11 @@ void material_panel_material(Object *ob, Material *ma)
 	but= uiDefBut(block, TEX, B_IDNAME, str,		8,174,115,20, id->name+2, 0.0, 18.0, 0, 0, "Show the block the material is linked to");
 	uiButSetFunc(but, test_idbutton_cb, id->name, NULL);
 
-	if(ob->totcol==0) {
-		uiDrawBlock(block);
-		return;
-	}
+	if(ob->totcol==0) return;
+
+	ma= give_current_material(ob, ob->actcol);	
+	if(ma==0) return;
 	
-	ma= give_current_material(ob, ob->actcol);
-	
-	if(ma==0) {
-		uiDrawBlock(block);
-		return;
-	}
 	uiSetButLock(ma->id.lib!=0, "Can't edit library data");
 	
 	
