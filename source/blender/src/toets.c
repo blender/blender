@@ -561,7 +561,8 @@ int blenderqread(unsigned short event, short val)
 			BIF_save_rendered_image();
 			return 0;
 		}
-		else if((G.qual==LR_CTRLKEY)||(G.qual==(LR_CTRLKEY|LR_SHIFTKEY))) {
+		else if(G.qual & LR_CTRLKEY) {
+			/* all alt+ctrl+shift combos are needed here... */
 			BIF_screendump();
 		}
 		break;
@@ -652,7 +653,8 @@ int blenderqread(unsigned short event, short val)
 			newspace(curarea, SPACE_NLA);
 			return 0;
 		}
-		else if(G.qual==0) {
+		else {
+			/* ctrl/alt + f12 should render too, for some macs have f12 assigned to cd eject */
 			BIF_do_render(0);
 		}
 		return 0;
