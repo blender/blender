@@ -754,13 +754,13 @@ PyObject *Matrix_sub( PyObject * m1, PyObject * m2 )
 
 PyObject *Matrix_mul( PyObject * m1, PyObject * m2 )
 {
-	float *mat = NULL;
-	PyObject *retval;;
-	int matSizeV, rowSizeV, colSizeV, rowSizeW, colSizeW, matSizeW, x, y,
-		z;
-	float dot = 0;
+	PyObject *retval;
+	int matSizeV, rowSizeV, colSizeV, rowSizeW, colSizeW, matSizeW, x, y,z;
 	MatrixObject *matV;
 	MatrixObject *matW;
+	float *mat = NULL;
+	float dot = 0;
+	
 
 	if( ( !Matrix_CheckPyObject( m1 ) )
 	    || ( !Matrix_CheckPyObject( m2 ) ) )
