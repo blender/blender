@@ -111,10 +111,6 @@ SOURCE=..\..\..\source\blender\src\butspace.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\src\buttons.c
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\src\buttons_scene.c
 # End Source File
 # Begin Source File
