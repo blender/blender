@@ -580,7 +580,7 @@ void init_render_material(Material *ma)
 		if(R.osa) ma->texco |= TEXCO_OSA;
 	}
 	if(ma->mode & MA_RAYTRANSP) {
-		ma->texco |= NEED_UV;
+		ma->texco |= NEED_UV|TEXCO_NORM;
 		if(R.osa) ma->texco |= TEXCO_OSA;
 	}
 
