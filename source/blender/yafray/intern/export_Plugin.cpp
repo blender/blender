@@ -185,21 +185,20 @@ bool yafrayPluginRender_t::initExport()
 		cout<<"YafRay plugin loaded"<<endl;
 	}
 	
-	if(R.rectot == NULL)
+	if(R.rectot == NULL) {
 		R.rectot = (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
-
-	for (unsigned short y=0;y<R.recty;y++) {
-		unsigned char* bpt = (unsigned char*)R.rectot + ((((R.recty-1)-y)*R.rectx)<<2);
-		for (unsigned short x=0;x<R.rectx;x++) {
-			bpt[2] = 128;
-			bpt[1] = 0;
-			bpt[0] = 0;
-			bpt[3] = 255;
-			bpt += 4;
-		}
+		unsigned int *bpt=R.rectot, count=R.rectx*R.recty;
+		while (--count) bpt[count] = 0xff800000;
+		cout << "Image allocated" << endl;
 	}
-	
-	cout<<"Image allocated"<<endl;
+
+	if (R.rectz == NULL) {
+		R.rectz = (unsigned int *)MEM_mallocN(sizeof(int)*R.rectx*R.recty, "rectz");
+		unsigned int *zbuf=R.rectz, count=R.rectx*R.recty;
+		while (--count) zbuf[count] = 0x7fffffff;
+		cout << "Zbuffer allocated" << endl;
+	}
+
 	return true;
 }
 
@@ -1261,7 +1260,6 @@ void yafrayPluginRender_t::writeAreaLamp(LampRen* lamp, int num, float iview[4][
 	
 	// transform area lamp coords back to world
 	float lpco[4][3];
-	MTC_Mat4Invert(iview, R.viewmat);
 	MTC_cp3Float(a, lpco[0]);
 	MTC_Mat4MulVecfl(iview, lpco[0]);
 	MTC_cp3Float(b, lpco[1]);
@@ -1663,6 +1661,17 @@ bool blenderYafrayOutput_t::putPixel(int x, int y,const yafray::color_t &c,
 	temp=(int)(alpha*255.0+0.5);
 	if(temp>255) temp=255;
 	bpt[4*x+3]=temp;
+
+	// depth values
+	if (R.rectz) {
+		unsigned int* zbuf = R.rectz + ((R.recty-1)-y)*R.rectx;
+		depth -= R.near;
+		float mz = R.far - R.near;
+		if (depth<0) depth=0; else if (depth>mz) depth=mz;
+		if (mz!=0.f) mz = 1.f/mz;
+		zbuf[x] = (unsigned int)(depth*mz*2147483647.f);
+	}
+
 	out++;
 	if(out==4096)
 	{

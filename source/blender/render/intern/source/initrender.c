@@ -746,14 +746,20 @@ void add_to_blurbuf(int blur)
 void yafrayRender()
 {
 	R.flag |= R_RENDERING;	/* !!! */
+
+	if (R.rectz) MEM_freeN(R.rectz);
+	R.rectz = 0;
+
 	// switch must be done before prepareScene()
 	if (!R.r.YFexportxml)
 		YAF_switchFile();
 	else
 		YAF_switchPlugin();
+
 	printf("Starting scene conversion.\n");
 	prepareScene();
 	printf("Scene conversion done.\n");
+
 	YAF_exportScene();
 	finalizeScene();
 }
@@ -764,9 +770,8 @@ void render() {
 	/* yafray: render, see above */
 	if (R.r.renderer==R_YAFRAY)
 		yafrayRender();
-	else {
+	else
 		oldRenderLoop();
-	}
 }
 
 
