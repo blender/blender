@@ -52,6 +52,10 @@ install all:: $(TARGET)
 	    $(MAKE) -C $$i install || exit 1; \
 	done
 
+clean::
+	cd qhull/src && $(MAKE) -f Makefile.txt clean
+	cd solid && ( [ ! -f Makefile ] || $(MAKE) clean )
+
 # challenge: fix the example linking problems with this (until then
 # we must use solid without qhull, which is the next target).
 solid_with_qhull:
