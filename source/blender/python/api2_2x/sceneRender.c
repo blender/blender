@@ -129,6 +129,7 @@ static PyObject *RenderData_EnableOddFieldFirst (BPy_RenderData *self, PyObject 
 static PyObject *RenderData_EnableFieldTimeDisable (BPy_RenderData *self, PyObject *args);
 static PyObject *RenderData_EnableGaussFilter (BPy_RenderData*self, PyObject *args);
 static PyObject *RenderData_EnableBorderRender (BPy_RenderData*self, PyObject *args);
+static PyObject *RenderData_SetBorder(BPy_RenderData *self, PyObject *args);
 static PyObject *RenderData_EnableGammaCorrection (BPy_RenderData *self, PyObject *args);
 static PyObject *RenderData_GaussFilterSize (BPy_RenderData*self, PyObject *args);
 static PyObject *RenderData_StartFrame (BPy_RenderData*self, PyObject *args);
@@ -263,6 +264,8 @@ static PyMethodDef BPy_RenderData_methods[] = {
 				"(bool) - enable/disable Gauss sampling filter for antialiasing\n"},
 	{"enableBorderRender",(PyCFunction)RenderData_EnableBorderRender, METH_VARARGS,
 				"(bool) - enable/disable small cut-out rendering\n"},
+	{"setBorder",(PyCFunction)RenderData_SetBorder, METH_VARARGS,
+				"(f,f,f,f) - set the border for border rendering\n"},
 	{"enableGammaCorrection",(PyCFunction)RenderData_EnableGammaCorrection, METH_VARARGS,
 				"(bool) - enable/disable gamma correction\n"},
 	{"gaussFilterSize",(PyCFunction)RenderData_GaussFilterSize, METH_VARARGS,
@@ -1036,6 +1039,44 @@ PyObject *RenderData_EnableBorderRender(BPy_RenderData *self, PyObject *args)
 {
 	return M_Render_BitToggleInt(args, R_BORDER, &self->renderContext->mode);
 }
+//------------------------------------RenderData.SetBorder() ---------------------------------------------------------
+PyObject *RenderData_SetBorder(BPy_RenderData *self, PyObject *args)
+{
+    float xmin, ymin, xmax, ymax;
+	int status = 0;
+	PyObject *ob_args;
+   
+	//left,botton | right,top coords - in that order
+	if (PyObject_Length (args) == 4) {
+		status = PyArg_ParseTuple (args, "ffff", &xmin, &ymin, &xmax, &ymax);
+ 	}else{ 
+		if ( PyArg_ParseTuple (args, "O", &ob_args)){
+			 if(PyList_Check(ob_args))
+				status = PyArg_ParseTuple (args, "(ffff)", &xmin, &ymin, &xmax, &ymax);
+			else{ 
+				status = 0;
+			}
+		}else{
+			status = 0;
+		}
+	}
+	if( !status) /* parsing args failed */
+		return (  EXPP_ReturnPyObjError( PyExc_AttributeError,
+						 "expected four floats"));
+    if ( xmin > 1.0 || xmin  < 0.0 ||  ymin > 1.0 || ymin  < 0.0 || 
+		 xmax > 1.0 || xmax < 0.0 || ymax > 1.0 || ymax < 0.0)
+    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+                    "all values must be between 0.0 and 1.0"));
+   
+	self->renderContext->border.xmin = xmin;
+	self->renderContext->border.ymin = ymin;
+	self->renderContext->border.xmax = xmax;
+	self->renderContext->border.ymax = ymax;
+
+	allqueue(REDRAWVIEWCAM, 1);
+   
+    return EXPP_incr_ret(Py_None);
+}
 //------------------------------------RenderData.EnableGammaCorrection() ------------------------------------------
 PyObject *RenderData_EnableGammaCorrection(BPy_RenderData *self, PyObject *args)
 {
@@ -1197,35 +1238,43 @@ PyObject *RenderData_SizePreset(BPy_RenderData *self, PyObject *args)
 		M_Render_DoSizePreset(self,720,576,54,51,100, self->renderContext->xparts,
 					  self->renderContext->yparts, 25, 0.1, 0.9, 0.1, 0.9);
 		self->renderContext->mode &= ~R_PANORAMA;
+		BLI_init_rctf(&self->renderContext->safety, 0.1, 0.9, 0.1, 0.9);
 	}else if (type == B_PR_NTSC){
 		M_Render_DoSizePreset(self,720,480,10,11,100, 1, 1, 
 			30, 0.1, 0.9, 0.1, 0.9);
 		self->renderContext->mode &= ~R_PANORAMA;
+		BLI_init_rctf(&self->renderContext->safety, 0.1, 0.9, 0.1, 0.9);
 	}else if (type == B_PR_PRESET){
 		M_Render_DoSizePreset(self,720,576,54,51,100, 1, 1, 
 			self->renderContext->frs_sec, 0.1, 0.9, 0.1, 0.9);
 		self->renderContext->mode= R_OSA+R_SHADOW+R_FIELDS;
 		self->renderContext->imtype= R_TARGA;
+		BLI_init_rctf(&self->renderContext->safety, 0.1, 0.9, 0.1, 0.9);
 	}else if (type == B_PR_PRV){
 		M_Render_DoSizePreset(self,640,512,1,1,50, 1, 1, 
 			self->renderContext->frs_sec, 0.1, 0.9, 0.1, 0.9);
 		self->renderContext->mode &= ~R_PANORAMA;
+		BLI_init_rctf(&self->renderContext->safety, 0.1, 0.9, 0.1, 0.9);
 	}else if (type == B_PR_PC){
 		M_Render_DoSizePreset(self,640,480,100,100,100, 1, 1, 
 			self->renderContext->frs_sec, 0.0, 1.0, 0.0, 1.0);
 		self->renderContext->mode &= ~R_PANORAMA;
+		BLI_init_rctf(&self->renderContext->safety, 0.0, 1.0, 0.0, 1.0);
 	}else if (type == B_PR_PAL169){
 		M_Render_DoSizePreset(self,720,576,64,45,100, 1, 1, 
 			25, 0.1, 0.9, 0.1, 0.9);
 		self->renderContext->mode &= ~R_PANORAMA;
+		BLI_init_rctf(&self->renderContext->safety, 0.1, 0.9, 0.1, 0.9);
 	}else if (type == B_PR_PANO){
 		M_Render_DoSizePreset(self,36,176,115,100,100, 16, 1, 
 			self->renderContext->frs_sec, 0.1, 0.9, 0.1, 0.9);
 		self->renderContext->mode |= R_PANORAMA;
+		BLI_init_rctf(&self->renderContext->safety, 0.1, 0.9, 0.1, 0.9);
 	}else if (type == B_PR_FULL){
 		M_Render_DoSizePreset(self,1280,1024,1,1,100, 1, 1, 
 			self->renderContext->frs_sec, 0.1, 0.9, 0.1, 0.9);
 		self->renderContext->mode &= ~R_PANORAMA;
+		BLI_init_rctf(&self->renderContext->safety, 0.1, 0.9, 0.1, 0.9);
 	}else
  		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 						"unknown constant - see modules dict for help"));
