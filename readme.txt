@@ -37,7 +37,8 @@ to point to where you have it installed)
 
 If you tried to just have a go at making stuff you might wind up with
 an empty file /tmp/.nanguess
-You need to remove the empty file and re run it after you have
+You need to remove the empty file and it will get created automatically
+by $NANBLENDERHOME/source/tools/guess/guessconfig after you have 
 setup the NANBLENDERHOME variable.
 
 After that cd $NANBLENDERHOME/intern 
