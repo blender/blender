@@ -876,6 +876,7 @@ static void draw_manipulator_scale(float mat[][4])
 {
 	float cywid= 0.33f*0.01f*(float)U.tw_handlesize;	
 	float cusize= cywid*0.75;
+	float vec[3];
 	
 	/* when called while moving in mixed mode, do not draw when... */
 	if((Gval & MAN_SCALE_C)==0) return;
@@ -889,35 +890,26 @@ static void draw_manipulator_scale(float mat[][4])
 	}
 	else mymultmatrix(mat);
 
-	/* if not shiftkey, center point as first, for selectbuffer order */
-	if(G.f & G_PICKSEL) {
-		if(!(G.qual & LR_SHIFTKEY)) {
-			glLoadName(MAN_SCALE_C);
-			glBegin(GL_POINTS);
-			glVertex3f(0.0, 0.0, 0.0);
-			glEnd();
-		}
-	}
-	else {
-		float vec[3];
+	/* axis */
+	if( (G.f & G_PICKSEL)==0 ) {
 		
 		glDisable(GL_DEPTH_TEST);
 		
-		/* axis */
 		draw_manipulator_axes(MAN_SCALE_X, MAN_SCALE_Y, MAN_SCALE_Z);
-		
+
 		/* only has to be set when not in picking */
 		glEnable(GL_CULL_FACE);		// backface removal
 		glEnable(GL_LIGHTING);
 		glShadeModel(GL_SMOOTH);
-		
-		/* center cube */
-		BIF_GetThemeColor3fv(TH_TRANSFORM, vec);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, vec);
-		
-		drawsolidcube(cusize);
-	}	
-
+	}
+	
+	/* center cube, do not add to selection when shift is pressed (planar constraint)  */
+	if( (G.f & G_PICKSEL) && (G.qual & LR_SHIFTKEY)==0) glLoadName(MAN_SCALE_C);
+	BIF_GetThemeColor3fv(TH_TRANSFORM, vec);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, vec);
+	
+	drawsolidcube(cusize);
+	
 	/* Z cube */
 	glTranslatef(0.0, 0.0, 1.0+cusize/2);
 	if(Gval & MAN_SCALE_Z) {
@@ -1025,6 +1017,7 @@ static void draw_manipulator_translate_ghost(float mat[][4])
 static void draw_manipulator_translate(float mat[][4])
 {
 	GLUquadricObj *qobj = gluNewQuadric(); 
+	float vec[3];
 	float cylen= 0.01f*(float)U.tw_handlesize;
 	float cywid= 0.33f*cylen;
 	
@@ -1034,37 +1027,27 @@ static void draw_manipulator_translate(float mat[][4])
 	if(G.moving) glTranslatef(Trans.vec[0], Trans.vec[1], Trans.vec[2]);
 	
 	mymultmatrix(mat);
+
+	glDisable(GL_DEPTH_TEST);
 	
-	/* if not shiftkey, center point as first, for selectbuffer order */
-	if(G.f & G_PICKSEL) {
-		if(!(G.qual & LR_SHIFTKEY)) {
-			glLoadName(MAN_TRANS_C);
-			glBegin(GL_POINTS);
-			glVertex3f(0.0, 0.0, 0.0);
-			glEnd();
-		}
-	}
-	else {
-		float vec[3];
-		
-		glDisable(GL_DEPTH_TEST);
-		
-		/* axis */
+	/* axis */
+	if( (G.f & G_PICKSEL)==0 ) {
 		draw_manipulator_axes(MAN_TRANS_X, MAN_TRANS_Y, MAN_TRANS_Z);
-		
+	
 		/* only has to be set when not in picking */
 		gluQuadricDrawStyle(qobj, GLU_FILL); 
 		gluQuadricNormals(qobj, GLU_SMOOTH);
 		glEnable(GL_CULL_FACE);		// backface removal
 		glEnable(GL_LIGHTING);
 		glShadeModel(GL_SMOOTH);
-		
-		/* center sphere */
-		BIF_GetThemeColor3fv(TH_TRANSFORM, vec);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, vec);
+	}
+	
+	/* center sphere, do not add to selection when shift is pressed (planar constraint) */
+	if( (G.f & G_PICKSEL) && (G.qual & LR_SHIFTKEY)==0) glLoadName(MAN_TRANS_C);
+	BIF_GetThemeColor3fv(TH_TRANSFORM, vec);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, vec);
 
-		gluSphere(qobj, cywid, 8, 6); 
-	}	
+	gluSphere(qobj, cywid, 8, 6); 
 	
 	/* Z Cone */
 	glTranslatef(0.0, 0.0, 1.0 - cylen);
@@ -1094,15 +1077,15 @@ static void draw_manipulator_translate(float mat[][4])
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_LIGHTING);
 	
-	/* if shiftkey, center point as last, for selectbuffer order */
+	/* if shiftkey, center point as last, for selectbuffer */
 	if(G.f & G_PICKSEL) {
 		if(G.qual & LR_SHIFTKEY) {
 			glRotatef(90.0, 1.0, 0.0, 0.0);
 			glTranslatef(0.0, -(1.0 - cylen), 0.0);
-			glLoadName(MAN_TRANS_C);
-			glBegin(GL_POINTS);
-			glVertex3f(0.0, 0.0, 0.0);
-			glEnd();
+			//glLoadName(MAN_TRANS_C);
+			//glBegin(GL_POINTS);
+			//glVertex3f(0.0, 0.0, 0.0);
+			//glEnd();
 		}
 	}
 	
@@ -1185,7 +1168,7 @@ static int manipulator_selectbuf(ScrArea *sa, float hotspot)
 {
 	View3D *v3d= sa->spacedata.first;
 	rctf rect;
-	GLuint buffer[32];		// max 4 items per select, so large enuf
+	GLuint buffer[64];		// max 4 items per select, so large enuf
 	short hits, mval[2];
 	
 	G.f |= G_PICKSEL;
@@ -1202,10 +1185,10 @@ static int manipulator_selectbuf(ScrArea *sa, float hotspot)
 	setwinmatrixview3d(&rect);
 	Mat4MulMat4(G.vd->persmat, G.vd->viewmat, sa->winmat);
 	
-	glSelectBuffer( 32, buffer);
+	glSelectBuffer( 64, buffer);
 	glRenderMode(GL_SELECT);
 	glInitNames();	/* these two calls whatfor? It doesnt work otherwise */
-	glPushName(-1);
+	glPushName(-2);
 	
 	/* do the drawing */
 	if(v3d->twtype & V3D_MANIPULATOR_ROTATE)
@@ -1215,6 +1198,7 @@ static int manipulator_selectbuf(ScrArea *sa, float hotspot)
 	if(v3d->twtype & V3D_MANIPULATOR_TRANSLATE)
 		draw_manipulator_translate(v3d->twmat);
 	
+	glPopName();
 	hits= glRenderMode(GL_RENDER);
 	
 	G.f &= ~G_PICKSEL;
@@ -1253,7 +1237,7 @@ int BIF_do_manipulator(ScrArea *sa)
 		if(Gval) val= Gval;
 		else Gval= val;
 	}
-	
+
 	switch(val) {
 		case MAN_TRANS_C:
 			ManipulatorTransform(TFM_TRANSLATION);

@@ -1519,13 +1519,8 @@ void Transform(int mode)
 			}
 			else {
 				switch (event){
-				/* enforce redraw of transform when modifiers are used */
-				case LEFTCTRLKEY:
-				case RIGHTCTRLKEY:
-				case LEFTSHIFTKEY:
-				case RIGHTSHIFTKEY:
-					Trans.redraw = 1;
-					break;
+				/* no redraw on release modifier keys! this makes sure you can assign the 'grid' still 
+				   after releasing modifer key */
 				case MIDDLEMOUSE:
 					postSelectConstraint(&Trans);
 					Trans.redraw = 1;
@@ -1650,7 +1645,7 @@ void ManipulatorTransform(int mode)
 			case RIGHTCTRLKEY:
 			case LEFTSHIFTKEY:
 			case RIGHTSHIFTKEY:
-				Trans.redraw = 1;
+				if(val) Trans.redraw = 1;
 				break;
 				
 			case ESCKEY:
