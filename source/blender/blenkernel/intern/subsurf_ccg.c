@@ -675,11 +675,7 @@ static DispListMesh *ccgDM_convertToDispListMesh(DerivedMesh *dm) {
 }
 
 static void ccgDM_drawVerts(DerivedMesh *dm) {
-	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
-
-	bglBegin(GL_POINTS);
-	// XXX
-	bglEnd();
+//	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 }
 static void ccgDM_drawEdges(DerivedMesh *dm) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
@@ -823,10 +819,10 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, void (*setMaterial)(int)) {
 	ccgFaceIterator_free(fi);
 }
 static void ccgDM_drawFacesColored(DerivedMesh *dm, int useTwoSided, unsigned char *col1, unsigned char *col2) {
-	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
+//	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 }
 static void ccgDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf, int matnr)) {
-	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
+//	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 }
 
 static void ccgDM_drawMappedVertsEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditVert *vert), void *userData) {

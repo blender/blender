@@ -667,12 +667,12 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButS(block, TOG|BIT|7, B_MAKEDISP, "SubSurf",	10,134,70,19, &me->flag, 0, 0, 0, 0, "Treats the active object as a Subdivision Surface");
+	uiDefButS(block, TOG|BIT|7, B_SUBSURFTYPE, "SubSurf",	10,134,70,19, &me->flag, 0, 0, 0, 0, "Treats the active object as a Subdivision Surface");
 	uiDefButS(block, MENU, B_SUBSURFTYPE, subsurfmenu,		80,134,84,19, &(me->subsurftype), 0, 0, 0, 0, "Selects type of Subsurf algorithm.");
 	uiBlockSetCol(block, TH_AUTO);
-	uiDefButS(block, NUM, B_MAKEDISP, "Subdiv:",		10, 114,110,19, &me->subdiv, 0, 6, 0, 0, "Defines the level of subdivision to display in real time interactively");
+	uiDefButS(block, NUM, B_SUBSURFTYPE, "Subdiv:",		10, 114,110,19, &me->subdiv, 0, 6, 0, 0, "Defines the level of subdivision to display in real time interactively");
 	uiDefButS(block, NUM, B_DIFF, "",				120,114, 44, 19, &me->subdivr, 0, 6, 0, 0, "Defines the level of subdivision to apply during rendering");
-	uiDefButS(block, TOG|BIT|8, B_MAKEDISP, "Optimal",	10, 94,154,19, &me->flag, 0, 0, 0, 0, "Only draws optimal wireframe");
+	uiDefButS(block, TOG|BIT|8, B_SUBSURFTYPE, "Optimal",	10, 94,154,19, &me->flag, 0, 0, 0, 0, "Only draws optimal wireframe");
 
 	uiBlockBeginAlign(block);
 
@@ -1087,7 +1087,7 @@ void do_curvebuts(unsigned short event)
 		break;
 	case B_SUBSURFTYPE:
 			/* Icky, find better system */
-		if(ob->type==OB_MESH && ob->data==G.obedit->data) {
+		if(ob->type==OB_MESH && G.obedit && ob->data==G.obedit->data) {
 			if(G.editMesh->derived) {
 				G.editMesh->derived->release(G.editMesh->derived);
 				G.editMesh->derived= NULL;

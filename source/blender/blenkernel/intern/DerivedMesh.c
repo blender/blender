@@ -399,7 +399,7 @@ static DerivedMesh *getMeshDerivedMesh(Object *ob, float *extverts, float *nors)
 	mdm->dm.drawFacesTex = meshDM_drawFacesTex;
 	mdm->dm.drawMappedFacesEM = NULL;
 
-	mdm->dm.release = MEM_freeN;
+	mdm->dm.release = (void(*)(DerivedMesh*)) MEM_freeN;
 	
 	mdm->ob = ob;
 	mdm->extverts = extverts;
@@ -438,7 +438,6 @@ static void emDM_drawMappedVertsEM(DerivedMesh *dm, int (*setDrawOptions)(void *
 }
 static void emDM_drawMappedEdgeEM(DerivedMesh *dm, void *edge)
 {
-	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditEdge *eed = edge;
 
 	glBegin(GL_LINES);
@@ -556,7 +555,7 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em)
 	emdm->dm.drawFacesTex = NULL;
 	emdm->dm.drawMappedFacesEM = emDM_drawMappedFacesEM;
 
-	emdm->dm.release = MEM_freeN;
+	emdm->dm.release = (void(*)(DerivedMesh*)) MEM_freeN;
 	
 	emdm->em = em;
 

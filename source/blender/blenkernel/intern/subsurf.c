@@ -592,13 +592,6 @@ static void hypermesh_calc_smooth_vert(HyperVert *v, float co[3])
 	
 }
 
-static void hypermesh_calc_sharp_vert(HyperVert *v, float co[3])
-{
-	co[0] = v->co[0];
-	co[1] = v->co[1];
-	co[2] = v->co[2];
-}
-
 static void hypermesh_calc_creased_vert(HyperVert *v, float co[3], float w)
 {
 	LinkNode *l;

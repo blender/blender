@@ -104,10 +104,10 @@ static void _ehash_insert(EHash *eh, EHEntry *entry) {
 
 static void *_ehash_lookupWithPrev(EHash *eh, void *key, void ***prevp_r) {
 	int hash = EHASH_hash(eh, key);
-	void **prevp = &eh->buckets[hash];
+	void **prevp = (void**) &eh->buckets[hash];
 	EHEntry *entry;
 	
-	for (; (entry = *prevp); prevp = &entry->next) {
+	for (; (entry = *prevp); prevp = (void**) &entry->next) {
 		if (entry->key==key) {
 			*prevp_r = (void**) prevp;
 			return entry;
@@ -720,7 +720,7 @@ CCGError ccgSubSurf_syncEdgeDel(CCGSubSurf *ss, CCGEdgeHDL eHDL) {
 		return eCCGError_InvalidSyncState;
 	} else {
 		void **prevp;
-		CCGEdge *e = _ehash_lookupWithPrev(ss->eMap, eHDL, (EHEntry***) &prevp);
+		CCGEdge *e = _ehash_lookupWithPrev(ss->eMap, eHDL, &prevp);
 
 		if (!e || e->numFaces) {
 			return eCCGError_InvalidValue;
