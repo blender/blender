@@ -1,4 +1,4 @@
-#include"export_File.h"
+#include "export_File.h"
 
 #include <math.h>
 
@@ -8,7 +8,7 @@ static string command_path = "";
 
 #ifdef WIN32 
 
-#include<windows.h>
+#include <windows.h>
 
 #ifndef FILE_MAXDIR
 #define FILE_MAXDIR  160
@@ -345,8 +345,7 @@ void yafrayFileRender_t::writeTextures()
 	// used to keep track of images already written
 	// (to avoid duplicates if also in imagetex for material TexFace texture)
 	set<Image*> dupimg;
-
-	string ts;
+	
 	for (map<string, MTex*>::const_iterator blendtex=used_textures.begin();
 						blendtex!=used_textures.end();++blendtex) {
 		MTex* mtex = blendtex->second;
@@ -357,17 +356,29 @@ void yafrayFileRender_t::writeTextures()
 
 		// noisebasis type
 		string ntype = noise2string(tex->noisebasis);
+		string ts, hardnoise=(tex->noisetype==TEX_NOISESOFT) ? "off" : "on";
 
 		switch (tex->type) {
 			case TEX_STUCCI:
-				// stucci is clouds as bump, but could be added to yafray to handle both wall in/out as well.
-				// noisedepth must be at least 1 in yafray
+				// stucci is clouds as bump, only difference is an extra parameter to handle wall in/out
+				// turbulence value is not used, so for large values will not match well
 			case TEX_CLOUDS: {
 				ostr.str("");
 				ostr << "<shader type=\"clouds\" name=\"" << blendtex->first << "\" >\n";
 				ostr << "\t<attributes>\n";
-				ostr << "\t\t<depth value=\"" << tex->noisedepth+1 << "\" />\n";
 				ostr << "\t\t<size value=\"" << nsz << "\" />\n";
+				ostr << "\t\t<hard value=\"" << hardnoise << "\" />\n";
+				if (tex->type==TEX_STUCCI) {
+					if (tex->stype==1)
+						ts = "positive";
+					else if (tex->stype==2)
+						ts = "negative";
+					else ts = "none";
+					ostr << "\t\t<bias value=\"" << ts << "\" />\n";
+					ostr << "\t\t<depth value=\"0\" />\n";	// for stucci always 0
+				}
+				else ostr << "\t\t<depth value=\"" << tex->noisedepth << "\" />\n";
+				ostr << "\t\t<color_type value=\"" << tex->stype << "\" />\n";
 				ostr << "\t\t<noise_type value=\"" << ntype << "\" />\n";
 				ostr << "\t</attributes>\n</shader >\n\n";
 				xmlfile << ostr.str();
@@ -377,13 +388,15 @@ void yafrayFileRender_t::writeTextures()
 				ostr.str("");
 				ostr << "<shader type=\"wood\" name=\"" << blendtex->first << "\" >\n";
 				ostr << "\t\t<attributes>\n";
-				ostr << "\t\t<depth value=\"" << tex->noisedepth+1 << "\" />\n";
-				ostr << "\t\t<turbulence value=\"" << tex->turbul << "\" />\n";
-				ostr << "\t\t<ringscale_x value=\"" << mtex->size[0] << "\" />\n";
-				ostr << "\t\t<ringscale_y value=\"" << mtex->size[1] << "\" />\n";
-				ts = "on";
-				if (tex->noisetype==TEX_NOISESOFT) ts = "off";
-				ostr << "\t\t<hard value=\"" << ts << "\" />\n";
+				// blender does not use depth value for wood, always 0
+				ostr << "\t\t<depth value=\"0\" />\n";
+				float turb = (tex->stype<2) ? 0.0 : tex->turbul;
+				ostr << "\t\t<turbulence value=\"" << turb << "\" />\n";
+				ostr << "\t\t<size value=\"" << nsz << "\" />\n";
+				ostr << "\t\t<hard value=\"" << hardnoise << "\" />\n";
+				ts = (tex->stype & 1) ? "rings" : "bands";	//stype 1&3 ringtype
+				ostr << "\t\t<wood_type value=\"" << ts << "\" />\n";
+				ostr << "\t\t<noise_type value=\"" << ntype << "\" />\n";
 				ostr << "\t</attributes>\n</shader>\n\n";
 				xmlfile << ostr.str();
 				break;
@@ -392,14 +405,12 @@ void yafrayFileRender_t::writeTextures()
 				ostr.str("");
 				ostr << "<shader type=\"marble\" name=\"" << blendtex->first << "\" >\n";
 				ostr << "\t<attributes>\n";
-				ostr << "\t\t<depth value=\"" << tex->noisedepth+1 << "\" />\n";
+				ostr << "\t\t<depth value=\"" << tex->noisedepth << "\" />\n";
 				ostr << "\t\t<turbulence value=\"" << tex->turbul << "\" />\n";
-				ts = "on";
-				if (tex->noisetype==TEX_NOISESOFT) ts = "off";
-				ostr << "\t\t<hard value=\"" << ts << "\" />\n";
-				ts = "1";
-				if (tex->stype==1) ts="5"; else if (tex->stype==2) ts="10";
-				ostr << "\t\t<sharpness value=\"" << ts << "\" />\n";
+				ostr << "\t\t<size value=\"" << nsz << "\" />\n";
+				ostr << "\t\t<hard value=\"" << hardnoise << "\" />\n";
+				ostr << "\t\t<sharpness value=\"" << (float)(1<<tex->stype) << "\" />\n";
+				ostr << "\t\t<noise_type value=\"" << ntype << "\" />\n";
 				ostr << "\t</attributes>\n</shader>\n\n";
 				xmlfile << ostr.str();
 				break;
@@ -486,6 +497,35 @@ void yafrayFileRender_t::writeTextures()
 				ostr << "\t\t<size value=\"" << nsz << "\" />\n";
 				ostr << "\t\t<noise_type1 value=\"" << ntype << "\" />\n";
 				ostr << "\t\t<noise_type2 value=\"" << noise2string(tex->noisebasis2) << "\" />\n";
+				ostr << "\t</attributes>\n</shader>\n\n";
+				xmlfile << ostr.str();
+				break;
+			}
+			case TEX_BLEND: {
+				ostr.str("");
+				ostr << "<shader type=\"gradient\" name=\"" << blendtex->first << "\" >\n";
+				ostr << "\t<attributes>\n";
+				switch (tex->stype) {
+					case 1:  ts="quadratic"; break;
+					case 2:  ts="cubic";     break;
+					case 3:  ts="diagonal";  break;
+					case 4:  ts="sphere";    break;
+					case 5:  ts="halo";      break;
+					default:
+					case 0:  ts="linear";    break;
+				}
+				ostr << "\t\t<gradient_type value=\"" << ts << "\" />\n";
+				if (tex->flag & TEX_FLIPBLEND) ts="on"; else ts="off";
+				ostr << "\t\t<flip_xy value=\"" << ts << "\" />\n";
+				ostr << "\t</attributes>\n</shader>\n\n";
+				xmlfile << ostr.str();
+				break;
+			}
+			case TEX_NOISE: {
+				ostr.str("");
+				ostr << "<shader type=\"random_noise\" name=\"" << blendtex->first << "\" >\n";
+				ostr << "\t<attributes>\n";
+				ostr << "\t\t<depth value=\"" << tex->noisedepth << "\" />\n";
 				ostr << "\t</attributes>\n</shader>\n\n";
 				xmlfile << ostr.str();
 				break;
@@ -664,9 +704,10 @@ void yafrayFileRender_t::writeShader(const string &shader_name, Material* matr, 
 
 			// bumpmapping
 			if ((mtex->mapto & MAP_NORM) || (mtex->maptoneg & MAP_NORM)) {
-				// for yafray, bump factor is negated (unless negative option of 'Nor', is not affected by 'Neg')
-				// scaled down quite a bit for yafray
-				float nf = -mtex->norfac;
+				// for yafray, bump factor is negated (unless tex is stucci, not affected by 'Neg')
+				// scaled down quite a bit
+				float nf = mtex->norfac;
+				if (tex->type!=TEX_STUCCI) nf *= -1.f;
 				if (mtex->maptoneg & MAP_NORM) nf *= -1.f;
 				ostr << "\t\t<normal value=\"" << (nf/60.f) << "\" />\n";
 

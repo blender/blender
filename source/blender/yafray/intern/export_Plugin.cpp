@@ -1,4 +1,4 @@
-#include"export_Plugin.h"
+#include "export_Plugin.h"
 
 #include <math.h>
 using namespace std;
@@ -6,7 +6,7 @@ using namespace std;
 
 #ifdef WIN32 
 
-#include<windows.h>
+#include <windows.h>
 
 #ifndef FILE_MAXDIR
 #define FILE_MAXDIR  160
@@ -349,7 +349,6 @@ void yafrayPluginRender_t::writeTextures()
 	// (to avoid duplicates if also in imagetex for material TexFace texture)
 	set<Image*> dupimg;
 
-	string ts;
 	yafray::paramMap_t params;
 	list<yafray::paramMap_t> lparams;
 	for (map<string, MTex*>::const_iterator blendtex=used_textures.begin();
@@ -366,59 +365,53 @@ void yafrayPluginRender_t::writeTextures()
 
 		// noisebasis type
 		string ntype = noise2string(tex->noisebasis);
+		string ts, hardnoise=(tex->noisetype==TEX_NOISESOFT) ? "off" : "on";
 
 		switch (tex->type) {
 			case TEX_STUCCI:
-				// stucci is clouds as bump, but could be added to yafray to handle both wall in/out as well.
-				// noisedepth must be at least 1 in yafray
+				// stucci is clouds as bump, only difference is an extra parameter to handle wall in/out
+				// turbulence value is not used, so for large values will not match well
 			case TEX_CLOUDS: {
 				params["type"] = yafray::parameter_t("clouds");
-				params["depth"] = yafray::parameter_t(tex->noisedepth+1);
 				params["size"] = yafray::parameter_t(nsz);
-				params["noise_type"] = ntype;
+				params["hard"] = yafray::parameter_t(hardnoise);
+				if (tex->type==TEX_STUCCI) {
+					if (tex->stype==1)
+						ts = "positive";
+					else if (tex->stype==2)
+						ts = "negative";
+					else ts = "none";
+					params["bias"] = yafray::parameter_t(ts);
+					params["depth"] = yafray::parameter_t(0);	// for stucci always 0
+				}
+				else params["depth"] = yafray::parameter_t(tex->noisedepth);
+				params["color_type"] = yafray::parameter_t(tex->stype);
+				params["noise_type"] = yafray::parameter_t(ntype);
 				break;
 			}
 			case TEX_WOOD:
 			{
 				params["type"] = yafray::parameter_t("wood");
-				params["depth"] = yafray::parameter_t(tex->noisedepth+1);
-				params["turbulence"] = yafray::parameter_t(tex->turbul);
-				params["ringscale_x"] = yafray::parameter_t(mtex->size[0]);
-				params["ringscale_y"] = yafray::parameter_t(mtex->size[1]);
-				ts = "on";
-				if (tex->noisetype==TEX_NOISESOFT) ts = "off";
-				params["hard"] = yafray::parameter_t(ts);
+				// blender does not use depth value for wood, always 0
+				params["depth"] = yafray::parameter_t(0);
+				float turb = (tex->stype<2) ? 0.0 : tex->turbul;
+				params["turbulence"] = yafray::parameter_t(turb);
+				params["size"] = yafray::parameter_t(nsz);
+				params["hard"] = yafray::parameter_t(hardnoise);
+				ts = (tex->stype & 1) ? "rings" : "bands";	//stype 1&3 ringtype
+				params["wood_type"] = yafray::parameter_t(ts);
+				params["noise_type"] = yafray::parameter_t(ntype);
 				break;
 			}
 			case TEX_MARBLE: 
 			{
-				params["type"]=yafray::parameter_t("marble");
-				params["depth"]=yafray::parameter_t(tex->noisedepth+1);
-				params["turbulence"]=yafray::parameter_t(tex->turbul);
-				ts = "on";
-				if (tex->noisetype==TEX_NOISESOFT) ts = "off";
-				params["hard"]=yafray::parameter_t(ts);
-				if (tex->stype==1)
-					params["sharpness"]=yafray::parameter_t(5);
-				else if (tex->stype==2)
-					params["sharpness"]=yafray::parameter_t(10);
-				else
-					params["sharpness"]=yafray::parameter_t(1);
-				break;
-			}
-			case TEX_IMAGE: 
-			{
-				Image* ima = tex->ima;
-				if (ima) {
-					// remember image to avoid duplicates later if also in imagetex
-					// (formerly done by removing from imagetex, but need image/material link)
-					dupimg.insert(ima);
-					params["type"] = yafray::parameter_t("image");
-					params["name"] = yafray::parameter_t(ima->id.name);
-					string texpath = ima->name;
-					adjustPath(texpath);
-					params["filename"] = yafray::parameter_t(texpath);
-				}
+				params["type"] = yafray::parameter_t("marble");
+				params["depth"] = yafray::parameter_t(tex->noisedepth);
+				params["turbulence"] = yafray::parameter_t(tex->turbul);
+				params["size"] = yafray::parameter_t(nsz);
+				params["hard"] = yafray::parameter_t(hardnoise);
+				params["sharpness"] = yafray::parameter_t((float)(1<<tex->stype));
+				params["noise_type"] = yafray::parameter_t(ntype);
 				break;
 			}
 			case TEX_VORONOI:
@@ -496,6 +489,45 @@ void yafrayPluginRender_t::writeTextures()
 				params["size"] = yafray::parameter_t(nsz);
 				params["noise_type1"] = yafray::parameter_t(ntype);
 				params["noise_type2"] = yafray::parameter_t(noise2string(tex->noisebasis2));
+				break;
+			}
+			case TEX_BLEND:
+			{
+				params["type"] = yafray::parameter_t("gradient");
+				switch (tex->stype) {
+					case 1:  ts="quadratic"; break;
+					case 2:  ts="cubic";     break;
+					case 3:  ts="diagonal";  break;
+					case 4:  ts="sphere";    break;
+					case 5:  ts="halo";      break;
+					default:
+					case 0:  ts="linear";    break;
+				}
+				params["gradient_type"] = yafray::parameter_t(ts);
+				if (tex->flag & TEX_FLIPBLEND) ts="on"; else ts="off";
+				params["flip_xy"] = yafray::parameter_t(ts);
+				break;
+			}
+			case TEX_NOISE:
+			{
+				params["type"] = yafray::parameter_t("random_noise");
+				params["depth"] = yafray::parameter_t(tex->noisedepth);
+				break;
+			}
+			case TEX_IMAGE: 
+			{
+				Image* ima = tex->ima;
+				if (ima) {
+					// remember image to avoid duplicates later if also in imagetex
+					// (formerly done by removing from imagetex, but need image/material link)
+					dupimg.insert(ima);
+					params["type"] = yafray::parameter_t("image");
+					params["name"] = yafray::parameter_t(ima->id.name);
+					string texpath = ima->name;
+					adjustPath(texpath);
+					params["filename"] = yafray::parameter_t(texpath);
+				}
+				break;
 			}
 			default:
 				cout << "Unsupported texture type\n";
@@ -651,10 +683,10 @@ void yafrayPluginRender_t::writeShader(const string &shader_name, Material* matr
 			// bumpmapping
 			if ((mtex->mapto & MAP_NORM) || (mtex->maptoneg & MAP_NORM)) 
 			{
-				// for yafray, bump factor is negated (unless negative option of 'Nor', 
-				// is not affected by 'Neg')
-				// scaled down quite a bit for yafray
-				float nf = -mtex->norfac;
+				// for yafray, bump factor is negated (unless tex is stucci, not affected by 'Neg')
+				// scaled down quite a bit
+				float nf = mtex->norfac;
+				if (tex->type!=TEX_STUCCI) nf *= -1.f;
 				if (mtex->maptoneg & MAP_NORM) nf *= -1.f;
 				mparams["normal"] = yafray::parameter_t(nf/60.f);
 			}
@@ -1668,14 +1700,12 @@ bool blenderYafrayOutput_t::putPixel(int x, int y,const yafray::color_t &c,
 	bpt[4*x+3]=temp;
 
 	// depth values
-	if (R.rectz) {
-		unsigned int* zbuf = R.rectz + ((R.recty-1)-y)*R.rectx;
-		depth -= R.near;
-		float mz = R.far - R.near;
-		if (depth<0) depth=0; else if (depth>mz) depth=mz;
-		if (mz!=0.f) mz = 1.f/mz;
-		zbuf[x] = (unsigned int)(depth*mz*2147483647.f);
-	}
+	unsigned int* zbuf = R.rectz + ((R.recty-1)-y)*R.rectx;
+	depth -= R.near;
+	float mz = R.far - R.near;
+	if (depth<0) depth=0; else if (depth>mz) depth=mz;
+	if (mz!=0.f) mz = 1.f/mz;
+	zbuf[x] = (unsigned int)(depth*mz*2147483647.f);
 
 	out++;
 	if(out==4096)

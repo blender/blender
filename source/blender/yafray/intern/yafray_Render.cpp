@@ -106,8 +106,6 @@ bool yafrayRender_t::getAllMatTexObs()
 				// if texture type not available in yafray, ignore
 				if ((txtp==0) ||
 						(txtp==TEX_MAGIC) ||
-						(txtp==TEX_BLEND) ||
-						(txtp==TEX_NOISE) ||
 						(txtp==TEX_PLUGIN) ||
 						(txtp==TEX_ENVMAP)) continue;
 				// In the case of an image texture, check that there is an actual image, otherwise ignore.
