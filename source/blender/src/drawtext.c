@@ -1332,7 +1332,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		case ZKEY:
-			if (G.qual & LR_ALTKEY || G.qual & LR_CTRLKEY) {
+			if (G.qual & (LR_ALTKEY|LR_CTRLKEY|LR_COMMANDKEY)) {
 				if (G.qual & LR_SHIFTKEY) {
 					txt_do_redo(text);
 				} else {

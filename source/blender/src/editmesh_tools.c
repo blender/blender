@@ -2381,8 +2381,6 @@ static void edge_rotate(EditEdge *eed)
 	for(efa = em->faces.first;efa;efa = efa->next){
 		if((efa->e1 == eed || efa->e2 == eed) || (efa->e3 == eed || efa->e4 == eed)){
 			if(facecount == 2){
-				scrarea_do_windraw(curarea);  /// what is this for? (ton)
-				screen_swapbuffers();
 				return;
 			}
 			if(facecount < 2)
@@ -2391,11 +2389,9 @@ static void edge_rotate(EditEdge *eed)
 		}
 	}
  
-	
 	if(facecount < 2){
 		return;
 	}
-	
 
 	/* how many edges does each face have */
  	if(face[0]->e4 == NULL)
@@ -2407,7 +2403,6 @@ static void edge_rotate(EditEdge *eed)
 	else
 		fac2=4;
 	
-		
 	/*store the face info in a handy array */			
 	faces[0][0] =  face[0]->v1;
 	faces[0][1] =  face[0]->v2;
@@ -2468,7 +2463,6 @@ static void edge_rotate(EditEdge *eed)
 	v2 = eed->v2;
 	v3 = eed->v1;
 	v4 = eed->v2;
-
 
 	/*figure out where the edges verts lie one the 2 faces */
 	for(i=0;i<4;i++){
@@ -2593,18 +2587,9 @@ static void edge_rotate(EditEdge *eed)
 		return;
 	}
 
-	if(fac1 == 3)
-		newFace[0]->e3->f2 |= 2;
-	else if(fac1 == 4)
-		newFace[0]->e4->f2 |= 2;
-	
-	/* added this for proper select flags, probably whats below is obsolete then */
-	EM_select_face(newFace[0], 1);
-	EM_select_face(newFace[1], 1);
-
-	/* mark the f1's of the verts for re-selection */
-	faces[0][(p1+1)%fac1]->f1 |= 1;
-	faces[1][(p3+1)%fac2]->f1 |= 1;	
+	/* redo the selection */
+	faces[0][(p1+1)%fac1]->f |= SELECT;
+	faces[1][(p3+1)%fac2]->f |= SELECT;	
 	
 	/* get rid of the old edge and faces*/
 	remedge(eed);
@@ -2617,52 +2602,62 @@ static void edge_rotate(EditEdge *eed)
 	return;																																																														
 }						
 
-
+/* only accepts 1 selected edge, or 2 selected faces */
 void edge_rotate_selected()
 {
-	EditEdge *eed,*temp;
-	EditVert *ev;
+	EditEdge *eed;
+	EditFace *efa;
 	short edgeCount = 0;
 	
-	/* Clear the f1 flag */
-	for(ev = G.editMesh->verts.first;ev;ev = ev->next)
-		ev->f1 &= ~1;
-
-	/*clear new flag for new edges*/
-	for(eed = G.editMesh->edges.first;eed;eed = eed->next){
+	/*clear new flag for new edges, count selected edges */
+	for(eed= G.editMesh->edges.first; eed; eed= eed->next){
+		eed->f1= 0;
 		eed->f2 &= ~2;
-		edgeCount++;	
+		if(eed->f & SELECT) edgeCount++;	
 	}
-	eed = G.editMesh->edges.first;		
-	while(eed){
-		if(edgeCount-- < 0){
-			/* To prevent an infinite loop */
-			break;	
+	
+	if(edgeCount>1) {
+		/* more selected edges, check faces */
+		for(efa= G.editMesh->faces.first; efa; efa= efa->next) {
+			if(efa->f & SELECT) {
+				efa->e1->f1++;
+				efa->e2->f1++;
+				efa->e3->f1++;
+				if(efa->e4) efa->e4->f1++;
+			}
 		}
-		if(eed->f2 & 2){
-			/* Do not rotate newly created edges */
-			eed = eed->next;
-			continue;
+		edgeCount= 0;
+		for(eed= G.editMesh->edges.first; eed; eed= eed->next) {
+			if(eed->f1==2) edgeCount++;
 		}
-		if(eed->f & SELECT){	// changed this... (ton)
-			temp = eed;
-			eed = eed->next;
-			edge_rotate(temp);	
-		} else
-			eed = eed->next;
-
+		if(edgeCount==1) {
+			for(eed= G.editMesh->edges.first; eed; eed= eed->next) {
+				if(eed->f1==2) {
+					edge_rotate(eed);
+					break;
+				}
+			}
+		}
+		else error("Select one edge or two adjacent faces");
 	}
-		
-	/*clear new edge flags*/
-	for(eed = G.editMesh->edges.first; eed; eed = eed->next)
-		eed->f2 &= ~2;
+	else if(edgeCount==1) {
+		for(eed= G.editMesh->edges.first; eed; eed= eed->next) {
+			if(eed->f & SELECT) {
+				EM_select_edge(eed, 0);
+				edge_rotate(eed);
+				break;
+			}
+		}
+	}
+	else error("Select one edge or two adjacent faces");
+	
 
 	/* flush selected vertices (again) to edges/faces */
 	EM_select_flush();
 	
 	allqueue(REDRAWVIEW3D, 0);
 	
-	BIF_undo_push("Rotate Edges");	
+	BIF_undo_push("Rotate Edge");	
 }
 
 /******************* BEVEL CODE STARTS HERE ********************/
