@@ -989,12 +989,12 @@ float check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
    /*some future stuff
    float hyp3,hyp4,b4,b5	   
    */
-   float temp1,temp2; //some placeholder variables
+   float temp1,temp2,temp3,temp4,hold; //some placeholder variables
    float halfx = xo/2;
    float halfy = yo/2;
-   float output=0;
+   float widthf,output=0;
    SweepVars *sweep = (SweepVars *)seq->effectdata;
-   int width,invert = 0;
+   int width;
 
  	angle = sweep->angle;
  	if(angle < 0){
@@ -1019,7 +1019,7 @@ float check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
          if (angle == 0.0)angle = 0.000001;
          b1 = posy - (-angle)*posx;
          b2 = y - (-angle)*x;
-         hyp  = abs(angle*x+y+(-posy-angle*posx))/sqrt(angle*angle+1);
+         hyp  = fabs(angle*x+y+(-posy-angle*posx))/sqrt(angle*angle+1);
          if(angle < 0){
          	 temp1 = b1;
          	 b1 = b2;
@@ -1074,7 +1074,59 @@ float check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
 				 	 output = in_band(hwidth,hyp2,facf0,1,1) * in_band(hwidth,hyp,facf0,1,1);
 		     }
 		     if(!sweep->forward)output = 1-output;
-	 break;     	  
+	 break;     
+	 case DO_CLOCK_WIPE:
+	 	 	/*
+	 	 		temp1: angle of effect center in rads
+	 	 		temp2: angle of line through (halfx,halfy) and (x,y) in rads
+	 	 		temp3: angle of low side of blur
+	 	 		temp4: angle of high side of blur
+	 	 	*/
+	  	 	output = 1-facf0;
+	 	 	widthf = sweep->edgeWidth*2*3.14159;
+	 	 	temp1 = 2 * 3.14159 * facf0;
+	 	 	
+ 	 		if(sweep->forward){
+ 	 			temp1 = 2*3.14159-temp1;
+ 	 		}
+ 	 		
+	 	 	x = x - halfx;
+	 	 	y = y - halfy;
+
+	 	 	temp2 = asin(abs(y)/sqrt(x*x + y*y));
+	 	 	if(x <= 0 && y >= 0)
+	 	 		temp2 = 3.14159 - temp2;
+	 	 	else if(x<=0 && y <= 0)
+	 	 		temp2 += 3.14159;
+	 	 	else if(x >= 0 && y <= 0)
+	 	 		temp2 = 2*3.14159 - temp2;
+	 	  	
+ 	 		if(sweep->forward){
+	 	 		temp3 = temp1-(widthf/2)*facf0;
+	 	 		temp4 = temp1+(widthf/2)*(1-facf0);
+ 	 		}
+ 	 		else{
+	 	 		temp3 = temp1-(widthf/2)*(1-facf0);
+	 	 		temp4 = temp1+(widthf/2)*facf0;
+			}
+ 	 		if (temp3 < 0)  temp3 = 0;
+ 	 		if (temp4 > 2*3.14159) temp4 = 2*3.14159;
+ 	 		
+ 	 		
+ 	 		if(temp2 < temp3)
+				output = 0;
+ 	 		else if (temp2 > temp4)
+ 	 			output = 1;
+ 	 		else
+ 	 			output = (temp2-temp3)/(temp4-temp3);
+	 	 	if(x == 0 && y == 0){
+	 	 		output = 1;
+	 	 	}
+			if(output != output)
+				output = 1;
+			if(sweep->forward)
+				output = 1 - output;
+  	break;
 	/* BOX WIPE IS NOT WORKING YET */
      /* case DO_CROSS_WIPE: */
 	/* BOX WIPE IS NOT WORKING YET */
