@@ -793,7 +793,6 @@ static void object_panel_constraint(void)
 	char ownerstr[64];
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_constraint", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Effects", "Object");
 	if(uiNewPanel(curarea, block, "Constraints", "Object", 640, 0, 318, 204)==0) return;
 
 	/* this is a variable height panel, newpanel doesnt force new size on existing panels */
@@ -1327,6 +1326,7 @@ void object_panel_effects(Object *ob)
 	short x, y;
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_effects", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Constraints", "Object");
 	if(uiNewPanel(curarea, block, "Effects", "Object", 640, 0, 418, 204)==0) return;
 
 	/* EFFECTS */
@@ -1506,8 +1506,8 @@ void object_panels()
 	if(ob) {
 		object_panel_anim(ob);
 		object_panel_draw(ob);
-		if(ob->type==OB_MESH) object_panel_effects(ob);
 		object_panel_constraint();
+		if(ob->type==OB_MESH) object_panel_effects(ob);
 	}
 }
 

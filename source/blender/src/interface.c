@@ -2794,7 +2794,7 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 		y2 -= G.ui_international ? 5:1;		//tip is from a windowheader
 //	else y2 += 1;							//tip is from button area
 
-	su= ui_bgnpupdraw((int)(x1-1), (int)(y1-1), (int)(x2+4), (int)(y2+4), 0);
+	su= ui_bgnpupdraw((int)(x1-1), (int)(y1-2), (int)(x2+4), (int)(y2+4), 0);
 
 	
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
