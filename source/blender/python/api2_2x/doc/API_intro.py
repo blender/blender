@@ -214,6 +214,75 @@ Blender Data Structures:
  Blender works the way it does, see the U{Blender Architecture document
  <http://www.blender3d.org/cms/Blender_Architecture.336.0.html>}.
 
+Documenting scripts:
+--------------------
+
+ The "Scripts Help Browser" script in the Help menu can parse special variables
+ from registered scripts and display help information for users.  For that,
+ authors only need to add proper information to their scripts, after the
+ registration header.
+
+ The expected variables:
+
+  - __bpydoc__ (or __doc__) (type: string):
+    - The main help text.  Write a first short paragraph explaining what the
+      script does, then add the rest of the help text, leaving a blank line
+      between each new paragraph.  To force line breaks you can use <br> tags.
+
+  - __author__ (type: string or list of strings):
+    - Author name(s).
+
+  - __version__ (type: string):
+    - Script version.
+
+  - __url__ (type: string or list of strings):
+    - Internet links that are shown as buttons in the help screen.  Clicking
+      them opens the user's default browser at the specified location.  The
+      expected format for each url entry is e.g.
+      "Author's site, http://www.somewhere.com".  The first part, before the
+      comma (','), is used as the button's tooltip.  There are two preset
+      options: "blender" and "elysiun", which link to the Python forums at
+      blender.org and elysiun.com, respectively.
+
+  - __email__ (optional, type: string or list of strings):
+    - Equivalent to __url__, but opens the user's default email client.  You
+      can write the email as someone:somewhere*com and the help script will
+      substitute accordingly: someone@somewhere.com.  This is only a minor help
+      to hide emails from spammers, since your script may be available at some
+      site.  "scripts" is the available preset, with the email address of the
+      mailing list devoted to scripting in Blender, bf-scripts-dev@blender.org.
+      You should only use this one if you are subscribed to the list:
+      http://projects.blender.org/mailman/listinfo/bf-scripts-dev for more
+      information.
+
+ Example::
+   __author__ = 'Mr. Author'
+   __version__ = '1.0 11/11/04'
+   __url__ = ["Author's site, http://somewhere.com",
+       "Support forum, http://somewhere.com/forum/", "blender", "elysiun"]
+   __email__ = ["Mr. Author, mrauthor:somewhere*com", "scripts"]
+   __bpydoc__ = \"\"\"\\
+   This script does this and that.
+
+   Explaining better, this script helps you create ...
+
+   You can write as many paragraphs as needed.
+
+   Shortcuts:<br>
+     Esc or Q: quit.<br>
+     etc.
+
+   Supported:<br>
+     Meshes, metaballs.
+
+   Known issues:<br>
+     This is just an example, there's no actual script.
+
+   Notes:<br>
+     You can check scripts bundled with Blender to see more examples of how to
+    add documentation to your own works.
+ \"\"\"
+
 A note to newbie script writers:
 --------------------------------
 
@@ -224,8 +293,8 @@ A note to newbie script writers:
  scripts to get an idea of what can be done, you may be surprised.
 
 @author: The Blender Python Team
-@requires: Blender 2.34 or newer.
-@version: 2.34cvs
+@requires: Blender 2.35 or newer.
+@version: 2.35
 @see: U{www.blender3d.org<http://www.blender3d.org>}: main site
 @see: U{www.blender.org<http://www.blender.org>}: documentation and forum
 @see: U{www.elysiun.com<http://www.elysiun.com>}: user forum

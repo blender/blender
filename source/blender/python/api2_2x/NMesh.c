@@ -2064,8 +2064,10 @@ static int unlink_existingMeshData( Mesh * mesh )
 	EXPP_unlink_mesh( mesh );
 	if( mesh->mvert )
 		MEM_freeN( mesh->mvert );
-	if( mesh->medge )
+	if( mesh->medge ) {
 		MEM_freeN( mesh->medge );
+		mesh->totedge = 0;
+	}
 	if( mesh->mface )
 		MEM_freeN( mesh->mface );
 	if( mesh->mcol )

@@ -710,6 +710,13 @@ void unlink_text(Text *text)
 	ScrArea *area;
 	SpaceLink *sl;
 	
+	/* check if this text was used as script link:
+	 * this check function unsets the pointers and returns how many
+	 * script links used this Text */
+	if (BPY_check_all_scriptlinks (text)) {
+		allqueue(REDRAWBUTSSCRIPT, 0);
+	}
+
 	for (scr= G.main->screen.first; scr; scr= scr->id.next) {
 		for (area= scr->areabase.first; area; area= area->next) {
 			for (sl= area->spacedata.first; sl; sl= sl->next) {

@@ -128,8 +128,13 @@ def GetRawFromObject(name):
   @param name: The name of an Object of type "Mesh".
   @rtype: NMesh
   @return: The NMesh wrapper of the mesh data from the Object called I{name}.
+  @note: For "subsurfed" meshes, it's the B{display} level of subdivision that
+      matters, the rendering one is only processed at the rendering pre-stage
+      and is not available for scripts.  This is not a problem at all, since
+      you can get and set the subdivision levels via scripting, too (see
+      L{NMesh.getSubDivLevels}, L{NMesh.setSubDivLevels}).
   @warn: This function gets I{deformed} mesh data, already modified for
-      rendering (think "display list").  It also doesn't let you overwrite the
+      displaying (think "display list").  It also doesn't let you overwrite the
       original mesh in Blender, so if you try to update it, a new mesh will
       be created.
   """

@@ -1091,6 +1091,46 @@ void BPY_free_scriptlink( struct ScriptLink *slink )
 	return;
 }
 
+int CheckAllScriptsFromList( ListBase * list, Text * text )
+{
+	ID *id;
+	ScriptLink *scriptlink;
+	int index;
+	int fixed = 0;
+
+	id = list->first;
+
+	while( id != NULL ) {
+		scriptlink = ID_getScriptlink( id );
+		if( scriptlink && scriptlink->totscript ) {
+			for( index = 0; index < scriptlink->totscript; index++) {
+				if ((Text *)scriptlink->scripts[index] == text) {
+					scriptlink->scripts[index] = NULL;
+					fixed++;
+				}
+			}
+		}
+		id = id->next;
+	}
+
+	return fixed;
+}
+
+/* When a Text is deleted, we need to unlink it from eventual scriptlinks */
+int BPY_check_all_scriptlinks( Text * text )
+{
+	int fixed = 0;
+	fixed += CheckAllScriptsFromList( &( G.main->object ), text );
+	fixed += CheckAllScriptsFromList( &( G.main->lamp ), text );
+	fixed += CheckAllScriptsFromList( &( G.main->camera ), text );
+	fixed += CheckAllScriptsFromList( &( G.main->mat ), text );
+	fixed += CheckAllScriptsFromList( &( G.main->world ), text );
+	fixed += CheckAllScriptsFromList( &( G.main->scene ), text );
+
+	return fixed;
+}
+
+
 /*****************************************************************************
 * Description: 
 * Notes:

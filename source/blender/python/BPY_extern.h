@@ -61,6 +61,7 @@ extern "C" {
 /*void BPY_clear_bad_scriptlist(struct ListBase *, struct Text *byebye); */
 	int BPY_has_onload_script( void );
 	void BPY_do_all_scripts( short event );
+	int BPY_check_all_scriptlinks( struct Text *text );
 	void BPY_do_pyscript( struct ID *id, short event );
 	void BPY_free_scriptlink( struct ScriptLink *slink );
 	void BPY_copy_scriptlink( struct ScriptLink *scriptlink );
