@@ -247,6 +247,7 @@ static PyObject *Image_getXRep( BPy_Image * self );
 static PyObject *Image_getYRep( BPy_Image * self );
 static PyObject *Image_getBindCode( BPy_Image * self );
 static PyObject *Image_setName( BPy_Image * self, PyObject * args );
+static PyObject *Image_setFilename( BPy_Image * self, PyObject * args );
 static PyObject *Image_setXRep( BPy_Image * self, PyObject * args );
 static PyObject *Image_setYRep( BPy_Image * self, PyObject * args );
 static PyObject *Image_reload( BPy_Image * self );	/* by Campbell */
@@ -282,6 +283,8 @@ static PyMethodDef BPy_Image_methods[] = {
 		see also image.glLoad()."},
 	{"setName", ( PyCFunction ) Image_setName, METH_VARARGS,
 	 "(str) - Change Image object name"},
+	{"setFilename", ( PyCFunction ) Image_setFilename, METH_VARARGS,
+	 "(str) - Change Image file name"},	 
 	{"setXRep", ( PyCFunction ) Image_setXRep, METH_VARARGS,
 	 "(int) - Change Image object x repetition value"},
 	{"setYRep", ( PyCFunction ) Image_setYRep, METH_VARARGS,
@@ -546,6 +549,23 @@ static PyObject *Image_setName( BPy_Image * self, PyObject * args )
 	return Py_None;
 }
 
+static PyObject *Image_setFilename( BPy_Image * self, PyObject * args )
+{
+	char *name;
+	char buf[160];
+
+	if( !PyArg_ParseTuple( args, "s", &name ) )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+			"expected string argument" ) );
+
+	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
+
+	strcpy(self->image->name, buf);
+
+	Py_INCREF( Py_None );
+	return Py_None;
+}
+
 static PyObject *Image_setXRep( BPy_Image * self, PyObject * args )
 {
 	short value;
@@ -648,6 +668,8 @@ static int Image_setAttr( BPy_Image * self, char *name, PyObject * value )
 
 	if( strcmp( name, "name" ) == 0 )
 		error = Image_setName( self, valtuple );
+	if( strcmp( name, "filename" ) == 0 )
+		error = Image_setFilename( self, valtuple );	
 	else if( strcmp( name, "xrep" ) == 0 )
 		error = Image_setXRep( self, valtuple );
 	else if( strcmp( name, "yrep" ) == 0 )

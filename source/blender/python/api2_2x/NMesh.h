@@ -41,8 +41,12 @@
 #include <config.h>
 #endif
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
+#include <DNA_mesh_types.h>
+#include <DNA_meshdata_types.h>
+
+#include <BIF_editview.h> /* for set_active_base */
+#include <BSE_edit.h> /* for countall */
+#include <BDR_vpaint.h> /* for make_vertexcol */
 
 #include "Material.h"
 #include "Image.h"

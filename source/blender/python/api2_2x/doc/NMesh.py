@@ -3,7 +3,8 @@
 """
 The Blender.NMesh submodule.
 
-B{New}: L{NMesh.getMaterials}, L{NMesh.setMaterials}.
+B{New}: edges class (L{NMEdge}) and nmesh methods (L{NMesh.addEdge},
+L{NMesh.addEdgesData}, etc.); new optional arguments to L{NMesh.update}.
 
 Mesh Data
 =========
@@ -13,8 +14,11 @@ This module provides access to B{Mesh Data} objects in Blender.
 Example::
 
   import Blender
-  from Blender import NMesh, Material
-  #
+  from Blender import NMesh, Material, Window
+
+  editmode = Window.EditMode()    # are we in edit mode?  If so ...
+  if editmode: Window.EditMode(0) # leave edit mode before getting the mesh
+
   me = NMesh.GetRaw("Plane")       # get the mesh data called "Plane"
 
   if not me.materials:             # if there are no materials ...
@@ -29,6 +33,8 @@ Example::
     v.co[1] *= 5.0
     v.co[2] *= 2.5
   me.update()                      # update the real mesh in Blender
+
+  if editmode: Window.EditMode(1)  # optional, just being nice
 
 @type Modes: readonly dictionary
 @type FaceFlags: readonly dictionary
@@ -532,16 +538,28 @@ class NMesh:
        add them.
     """
 
-  def update(recalc_normals = 0, store_edges = 0):
+  def update(recalc_normals = 0, store_edges = 0, vertex_shade = 0):
     """
     Update the mesh in Blender.  The changes made are put back to the mesh in
     Blender, if available, or put in a newly created mesh object if this NMesh
     wasn't already linked to one.
-    @type recalc_normals: int
-    @param recalc_normals: If given and equal to 1, the vertex normals are
-        recalculated.
-    @type store_edges: int
-    @param store_edges: if not 0, then edge data are stored.
+    @type recalc_normals: int (bool)
+    @param recalc_normals: if nonzero the vertex normals are recalculated.
+    @type store_edges: int (bool)
+    @param store_edges: if nonzero, then edge data is stored.
+    @type vertex_shade: int (bool)
+    @param vertex_shade: if nonzero vertices are colored based on the
+        current lighting setup.  To use it, be out of edit mode or else
+        an error will be returned.
+    @warn: edit mesh and normal mesh are two different structures in Blender,
+        synchronized upon leaving or entering edit mode.  Always remember to
+        leave edit mode (L{Window.EditMode}) before calling this update
+        method, or your changes will be lost.  Even better: for the same reason
+        programmers should leave EditMode B{before} getting a mesh, or changes
+        made to the editmesh in Blender may not be visible to your script
+        (check the example at the top of NMesh module doc).
+    @note: this method also redraws the 3d view and -- if 'vertex_shade' is
+        nonzero -- the edit buttons window.
     @note: if your mesh disappears after it's updated, try
         L{Object.Object.makeDisplayList}.  'Subsurf' meshes (see L{getMode},
         L{setMode}) need their display lists updated, too.

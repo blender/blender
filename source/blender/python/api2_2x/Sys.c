@@ -303,7 +303,7 @@ static PyObject *M_sys_makename( PyObject * self, PyObject * args,
 	char *path = G.sce, *ext = NULL;
 	int strip = 0;
 	static char *kwlist[] = { "path", "ext", "strip", NULL };
-	char *dot = NULL, *p = NULL, basename[FILE_MAXFILE];
+	char *dot = NULL, *p = NULL, basename[FILE_MAXDIR + FILE_MAXFILE];
 	char sep;
 	int n, len, lenext = 0;
 	PyObject *c;
@@ -317,7 +317,7 @@ static PyObject *M_sys_makename( PyObject * self, PyObject * args,
 	if( ext )
 		lenext = strlen( ext ) + 1;
 
-	if( ( len + lenext ) > FILE_MAXFILE )
+	if( ( len + lenext ) > FILE_MAXDIR + FILE_MAXFILE )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "path too long" );
 

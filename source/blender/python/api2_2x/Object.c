@@ -166,9 +166,9 @@ hierarchy (faster)"},
 mode\n\t2: Keep object transform\nfast\n\t>0: Don't update scene \
 hierarchy (faster)"},
 	{"getData", ( PyCFunction ) Object_getData, METH_VARARGS | METH_KEYWORDS,
-	 "(only_name = 0) - Returns the datablock object containing the object's \
+	 "(name_only = 0) - Returns the datablock object containing the object's \
 data, e.g. Mesh.\n\
-If 'only_name' is nonzero or True, only the name of the datablock is returned"},
+If 'name_only' is nonzero or True, only the name of the datablock is returned"},
 	{"getDeltaLocation", ( PyCFunction ) Object_getDeltaLocation,
 	 METH_NOARGS,
 	 "Returns the object's delta location (x, y, z)"},
@@ -734,12 +734,12 @@ static PyObject *Object_getData( BPy_Object *self, PyObject *a, PyObject *kwd )
 {
 	PyObject *data_object;
 	Object *object = self->object;
-	int only_name = 0;
-	static char *kwlist[] = {"only_name", NULL};
+	int name_only = 0;
+	static char *kwlist[] = {"name_only", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(a, kwd, "|i", kwlist, &only_name))
+	if (!PyArg_ParseTupleAndKeywords(a, kwd, "|i", kwlist, &name_only))
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"expected nothing or an int (keyword 'only_name') as argument" );
+			"expected nothing or an int (keyword 'name_only') as argument" );
 
 	/* if there's no obdata, try to create it */
 	if( object->data == NULL ) {
@@ -750,7 +750,7 @@ static PyObject *Object_getData( BPy_Object *self, PyObject *a, PyObject *kwd )
 	}
 
 	/* user wants only the name of the data object */
-	if (only_name) {
+	if (name_only) {
 		ID *id = &object->id;
 		data_object = Py_BuildValue("s", id->name+2);
 

@@ -115,8 +115,8 @@ static char NMesh_printDebug_doc[] =
 
 static char NMesh_addEdge_doc[] =
   "create an edge between two vertices.\n\
-If an edge already exists between those vertices, it is returned. (in blender, only zero \
-or one edge can link two vertices.\n\
+If an edge already exists between those vertices, it is returned.\n\
+(In Blender, only zero or one edge can link two vertices.)\n\
 Created edge is automatically added to edges list.";
 
 static char NMesh_findEdge_doc[] =
@@ -241,9 +241,12 @@ specified by index. The list contains pairs with the \n\
 bone name and the weight.";
 
 
-static char NMesh_update_doc[] = "(recalc_normals = 0, store_edges = 0) - updates the Mesh.\n\
-if recalc_normals is given and is equal to 1, normal vectors are recalculated.\n\
-if store_edges is given qnd is equal to 1, egdes data are stored.";
+static char NMesh_update_doc[] = \
+"(recalc_normals = 0, store_edges = 0, vertex_shade = 0) - Updates the Mesh.\n\
+Optional arguments: if given and nonzero:\n\
+'recalc_normals': normal vectors are recalculated;\n\
+'store_edges': edges data is stored.\n\
+'vertex_shade': vertex colors are added based on the current lamp setup.";
 
 static char NMesh_getMode_doc[] =
 	"() - get the mode flags of this nmesh as an or'ed int value.";
@@ -1269,19 +1272,19 @@ static PyObject *NMesh_hasVertexColours( PyObject * self, PyObject * args )
 		return EXPP_incr_ret( Py_False );
 }
 
-static PyObject *NMesh_update( PyObject * self, PyObject * args )
+static PyObject *NMesh_update( PyObject *self, PyObject *a, PyObject *kwd )
 {
-	int recalc_normals = 0, store_edges = 0;
 	BPy_NMesh *nmesh = ( BPy_NMesh * ) self;
 	Mesh *mesh = nmesh->mesh;
+	int recalc_normals = 0, store_edges = 0, vertex_shade = 0;
+	static char *kwlist[] = {"recalc_normals", "store_edges",
+		"vertex_shade", NULL};
+	int needs_redraw = 1;
 
-	if( !PyArg_ParseTuple( args, "|ii", &recalc_normals, &store_edges ) )
+	if (!PyArg_ParseTupleAndKeywords(a, kwd, "|iii", kwlist, &recalc_normals,
+		&store_edges, &vertex_shade ) )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "expected nothing, one or two int(s) (0 or 1) as argument" );
-
-	if( recalc_normals && recalc_normals != 1 )
-		return EXPP_ReturnPyObjError( PyExc_ValueError,
-					      "expected 0 or 1 as argument" );
+	    "expected nothing or one to three bool(s) (0 or 1) as argument" );
 
 	if( mesh ) {
 		unlink_existingMeshData( mesh );
@@ -1302,7 +1305,33 @@ static PyObject *NMesh_update( PyObject * self, PyObject * args )
 		new_id( &( G.main->mesh ), &mesh->id,
 			PyString_AsString( nmesh->name ) );
 
-	if( !during_script(  ) )
+	if (vertex_shade) {
+		Base *base = FIRSTBASE;
+
+		if (!nmesh->object)
+			return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+	    	"link this mesh to an object first with ob.link(mesh)" );
+
+		if (G.obedit)
+			return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+	    	"can't shade vertices while in edit mode" );
+
+		while (base) {
+			if (base->object == nmesh->object) {
+				base->flag |= SELECT;
+				nmesh->object->flag = base->flag;
+				set_active_base (base);
+				needs_redraw = 0; /* already done in make_vertexcol */
+				break;
+			}
+			base = base->next;
+		}
+		make_vertexcol();
+
+		countall();
+	}
+
+	if( !during_script(  ) && needs_redraw)
 		allqueue( REDRAWVIEW3D, 0 );
 
 	return PyInt_FromLong( 1 );
@@ -1527,7 +1556,6 @@ static struct PyMethodDef NMesh_methods[] = {
 	MethodDef( addMaterial ),
 	MethodDef( insertKey ),
 	MethodDef( removeAllKeys ),
-	MethodDef( update ),
 	MethodDef( setMode ),
 	MethodDef( setMaxSmoothAngle ),
 	MethodDef( setSubDivLevels ),
@@ -1544,6 +1572,14 @@ static struct PyMethodDef NMesh_methods[] = {
 	MethodDef( getMode ),
 	MethodDef( getMaxSmoothAngle ),
 	MethodDef( getSubDivLevels ),
+
+/* METH_VARARGS | METH_KEYWORDS:
+ * function(PyObject *self, PyObject *args, PyObject *keywords) */
+#undef MethodDef
+#define MethodDef(func) {#func, (PyCFunction)NMesh_##func,\
+	METH_VARARGS | METH_KEYWORDS, NMesh_##func##_doc}
+
+	MethodDef( update ),
 	{NULL, NULL, 0, NULL}
 };
 

@@ -65,7 +65,7 @@ Example::\n\
 \n\
   from Blender import Camera, Object, Scene\n\
   c = Camera.New('ortho')      # create new ortho camera data\n\
-  c.lens = 35.0                # set lens value\n\
+  c.scale = 6.0                # set scale value\n\
   cur = Scene.getCurrent()     # get current Scene\n\
   ob = Object.New('Camera')    # make camera object\n\
   ob.link(c)                   # link camera data with this object\n\
@@ -103,6 +103,7 @@ static PyObject *Camera_getLens( BPy_Camera * self );
 static PyObject *Camera_getClipStart( BPy_Camera * self );
 static PyObject *Camera_getClipEnd( BPy_Camera * self );
 static PyObject *Camera_getDrawSize( BPy_Camera * self );
+static PyObject *Camera_getScale( BPy_Camera * self );
 static PyObject *Camera_setIpo( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_clearIpo( BPy_Camera * self );
 static PyObject *Camera_setName( BPy_Camera * self, PyObject * args );
@@ -114,6 +115,7 @@ static PyObject *Camera_setLens( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_setClipStart( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_setClipEnd( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_setDrawSize( BPy_Camera * self, PyObject * args );
+static PyObject *Camera_setScale( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_getScriptLinks( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_addScriptLink( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_clearScriptLinks( BPy_Camera * self );
@@ -133,7 +135,9 @@ static PyMethodDef BPy_Camera_methods[] = {
 	 "() - Return Camera mode flags (or'ed value) -\n"
 	 "     'showLimits':1, 'showMist':2"},
 	{"getLens", ( PyCFunction ) Camera_getLens, METH_NOARGS,
-	 "() - Return Camera lens value"},
+	 "() - Return *perspective* Camera lens value"},
+	{"getScale", ( PyCFunction ) Camera_getScale, METH_NOARGS,
+	 "() - Return *ortho* Camera scale value"},
 	{"getClipStart", ( PyCFunction ) Camera_getClipStart, METH_NOARGS,
 	 "() - Return Camera clip start value"},
 	{"getClipEnd", ( PyCFunction ) Camera_getClipEnd, METH_NOARGS,
@@ -151,7 +155,9 @@ static PyMethodDef BPy_Camera_methods[] = {
 	{"setMode", ( PyCFunction ) Camera_setMode, METH_VARARGS,
 	 "(<s<,s>>) - Set Camera mode flag(s): 'showLimits' and 'showMist'"},
 	{"setLens", ( PyCFunction ) Camera_setLens, METH_VARARGS,
-	 "(f) - Set Camera lens value"},
+	 "(f) - Set *perpective* Camera lens value"},
+	{"setScale", ( PyCFunction ) Camera_setScale, METH_VARARGS,
+	 "(f) - Set *ortho* Camera scale value"},
 	{"setClipStart", ( PyCFunction ) Camera_setClipStart, METH_VARARGS,
 	 "(f) - Set Camera clip start value"},
 	{"setClipEnd", ( PyCFunction ) Camera_setClipEnd, METH_VARARGS,
@@ -457,6 +463,17 @@ static PyObject *Camera_getLens( BPy_Camera * self )
 				      "couldn't get Camera.lens attribute" );
 }
 
+static PyObject *Camera_getScale( BPy_Camera * self )
+{
+	PyObject *attr = PyFloat_FromDouble( self->camera->ortho_scale );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				      "couldn't get Camera.scale attribute" );
+}
+
 static PyObject *Camera_getClipStart( BPy_Camera * self )
 {
 	PyObject *attr = PyFloat_FromDouble( self->camera->clipsta );
@@ -680,6 +697,22 @@ static PyObject *Camera_setLens( BPy_Camera * self, PyObject * args )
 	return Py_None;
 }
 
+static PyObject *Camera_setScale( BPy_Camera * self, PyObject * args )
+{
+	float value;
+
+	if( !PyArg_ParseTuple( args, "f", &value ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected float argument" );
+
+	self->camera->ortho_scale = EXPP_ClampFloat( value,
+					      EXPP_CAM_SCALE_MIN,
+					      EXPP_CAM_SCALE_MAX );
+
+	Py_INCREF( Py_None );
+	return Py_None;
+}
+
 static PyObject *Camera_setClipStart( BPy_Camera * self, PyObject * args )
 {
 	float value;
@@ -788,6 +821,8 @@ static PyObject *Camera_getAttr( BPy_Camera * self, char *name )
 		attr = PyInt_FromLong( self->camera->flag );
 	else if( strcmp( name, "lens" ) == 0 )
 		attr = PyFloat_FromDouble( self->camera->lens );
+	else if( strcmp( name, "scale" ) == 0 )
+		attr = PyFloat_FromDouble( self->camera->ortho_scale );
 	else if( strcmp( name, "clipStart" ) == 0 )
 		attr = PyFloat_FromDouble( self->camera->clipsta );
 	else if( strcmp( name, "clipEnd" ) == 0 )
@@ -815,8 +850,8 @@ static PyObject *Camera_getAttr( BPy_Camera * self, char *name )
 	}
 
 	else if( strcmp( name, "__members__" ) == 0 ) {
-		attr = Py_BuildValue( "[s,s,s,s,s,s,s,s,s,s,s]",
-				      "name", "type", "mode", "lens",
+		attr = Py_BuildValue( "[s,s,s,s,s,s,s,s,s,s,s,s]",
+				      "name", "type", "mode", "lens", "scale",
 				      "clipStart", "ipo", "clipEnd",
 				      "drawSize", "Types", "Modes", "users" );
 	}
@@ -859,6 +894,8 @@ static int Camera_setAttr( BPy_Camera * self, char *name, PyObject * value )
 		error = Camera_setIntMode( self, valtuple );	/* special case */
 	else if( strcmp( name, "lens" ) == 0 )
 		error = Camera_setLens( self, valtuple );
+	else if( strcmp( name, "scale" ) == 0 )
+		error = Camera_setScale( self, valtuple );
 	else if( strcmp( name, "clipStart" ) == 0 )
 		error = Camera_setClipStart( self, valtuple );
 	else if( strcmp( name, "clipEnd" ) == 0 )

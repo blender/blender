@@ -15,8 +15,8 @@ The Blender Python API Reference
      - L{Bone}
      - L{NLA}
   - L{BGL}
-  - L{Camera}
-  - L{Curve}
+  - L{Camera} (*)
+  - L{Curve} (*)
   - L{Draw}
   - L{Effect}
   - L{Image} (*)
@@ -25,11 +25,11 @@ The Blender Python API Reference
   - L{Lattice}
   - L{Library}
   - L{Material}
-  - L{Mathutils}
+  - L{Mathutils} (*)
   - L{Metaball}
-  - L{NMesh}
+  - L{NMesh} (*)
   - L{Noise}
-  - L{Object}
+  - L{Object} (*)
   - L{Registry}
   - L{Scene}
      - L{Radio}

@@ -3,7 +3,7 @@
 """
 The Blender.Camera submodule.
 
-B{New}: scriptLink methods: L{Camera.getScriptLinks}, ...
+B{New}: L{Camera.getScale}, L{Camera.setScale} for ortho cameras.
 
 Camera Data
 ===========
@@ -14,7 +14,7 @@ Example::
 
   from Blender import Camera, Object, Scene
   c = Camera.New('ortho')     # create new ortho camera data
-  c.lens = 35.0               # set lens value
+  c.scale = 6.0               # set scale value
   cur = Scene.getCurrent()    # get current scene
   ob = Object.New('Camera')   # make camera object
   ob.link(c)                  # link camera data with this object
@@ -52,7 +52,10 @@ class Camera:
   @cvar name: The Camera Data name.
   @cvar type: The Camera type: 'persp':0 or 'ortho':1.
   @cvar mode: The mode flags: B{or'ed value}: 'showLimits':1, 'showMist':2.
-  @cvar lens: The lens value in [1.0, 250.0].
+  @cvar lens: The lens value in [1.0, 250.0], only relevant to *persp*
+      cameras.
+  @cvar scale: The scale value in [0.01, 1000.00], only relevant to *ortho*
+      cameras.
   @cvar clipStart: The clip start value in [0.0, 100.0].
   @cvar clipEnd: The clip end value in [1.0, 5000.0].
   @cvar drawSize: The draw size value in [0.1, 10.0].
@@ -133,6 +136,7 @@ class Camera:
     """
     Get the lens value.
     @rtype: float
+    @warn: lens is only relevant for perspective (L{getType}) cameras.
     """
 
   def setLens(lens):
@@ -140,6 +144,22 @@ class Camera:
     Set the lens value.
     @type lens: float
     @param lens: The new lens value. 
+    @warn: lens is only relevant for perspective (L{getType}) cameras.
+    """
+
+  def getScale():
+    """
+    Get the scale value.
+    @rtype: float
+    @warn: scale is only relevant for ortho (L{getType}) cameras.
+    """
+
+  def setScale(scale):
+    """
+    Set the scale value.
+    @type scale: float
+    @param scale: The new scale value in [0.01, 1000.00]. 
+    @warn: scale is only relevant for ortho (L{getType}) cameras.
     """
 
   def getClipStart():

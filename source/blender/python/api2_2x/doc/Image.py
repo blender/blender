@@ -6,7 +6,7 @@ The Blender.Image submodule.
 Image
 =====
 
-B{New}: L{Image.glLoad}, L{Image.glFree}.
+B{New}: L{Image.setFilename}.
 
 This module provides access to B{Image} objects in Blender.
 
@@ -153,6 +153,15 @@ class Image:
     Set the name of this Image object.
     @type name: string
     @param name: The new name.
+    """
+
+  def setFilename(name):
+    """
+    Change the filename of this Image object.
+    @type name: string
+    @param name: The new full filename.
+    @warn: use this with caution and note that the filename is truncated if
+       larger than 160 characters.
     """
 
   def setXRep(xrep):

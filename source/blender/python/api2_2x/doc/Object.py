@@ -186,16 +186,16 @@ class Object:
         other value, or no value at all will update the scene hierarchy.
     """
 
-  def getData(only_name = False):
+  def getData(name_only = False):
     """
     Returns the Datablock object (new: or just its name) containing the
     object's data. For example the Mesh, Lamp or the Camera.
-    @type only_name: bool
-    @param only_name: if True on nonzero, only the name of the data object
+    @type name_only: bool
+    @param name_only: if True on nonzero, only the name of the data object
         is returned.
     @rtype: Object type specific or string
     @return: Depending on the type of the Object, it returns a specific object
-        for the data requested.  If only_name is True, it returns a string.
+        for the data requested.  If name_only is True, it returns a string.
     """
 
   def getDeltaLocation():
