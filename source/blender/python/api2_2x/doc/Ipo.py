@@ -45,7 +45,7 @@ class Ipo:
   The Ipo object
   ==============
   This object gives access to generic data from all objects in Blender.
-	This object has no attributes.
+  This object has no attribute.
   """
 
   def getName():
@@ -125,7 +125,7 @@ class Ipo:
 		@type pointpos: int
 		@param pointpos: the position of the point in the curve.
 		@type newbeztriple: list of 9 floats
-		@param pointpos: the new value for the point
+		@param newbeztriple: the new value for the point
 		@rtype: PyNone
 		@return: PyNone
     """
