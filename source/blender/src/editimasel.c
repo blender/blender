@@ -199,8 +199,8 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				char name[256];
 				strcpy(name, simasel->dir);
 				strcat(name, simasel->file);
-				simasel->returnfunc(name);
 				filesel_prevspace();
+				simasel->returnfunc(name);
 			}
 			break;
 		case 6:
@@ -242,8 +242,8 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					
 					if(simasel->mode & IMS_STRINGCODE) BLI_makestringcode(G.sce, name);
 					
-					simasel->returnfunc(name);
 					filesel_prevspace();
+					simasel->returnfunc(name);
 				}
 				queredraw = 1;
 			}
@@ -411,8 +411,8 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		if (simasel->returnfunc){
 			strcpy(name, simasel->dir);
 			strcat(name, simasel->file);
-			simasel->returnfunc(name);
 			filesel_prevspace();
+			simasel->returnfunc(name);
 		}
 		break;
 	}

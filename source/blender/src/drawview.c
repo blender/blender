@@ -1039,6 +1039,7 @@ static void load_bgpic_image(char *name)
 	Image *ima;
 	View3D *vd;
 	
+	areawinset(curarea->win);
 	vd= G.vd;
 	if(vd==0 || vd->bgpic==0) return;
 	
