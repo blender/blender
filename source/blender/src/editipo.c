@@ -68,6 +68,7 @@
 #include "DNA_sound_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_material_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_key_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
@@ -83,6 +84,7 @@
 #include "BKE_action.h"
 #include "BKE_anim.h"
 #include "BKE_material.h"
+#include "BKE_texture.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_ika.h"
@@ -137,359 +139,156 @@ extern int cam_ar[];
 extern int snd_ar[];
 extern int ac_ar[];
 extern int co_ar[];
+extern int te_ar[];
 
-void getname_ac_ei(int nr, char *str)
-{
+char *ob_ic_names[OB_TOTNAM] = { "LocX", "LocY", "LocZ", "dLocX", "dLocY", "dLocZ",
+						 "RotX", "RotY", "RotZ", "dRotX", "dRotY", "dRotZ",
+						 "SizeX", "SizeY", "SizeZ", "dSizeX", "dSizeY", "dSizeZ",
+						 "Layer", "Time", "ColR", "ColG", "ColB", "ColA",
+						 "FStreng", "FFall", "Damping", "RDamp", "Perm" };
+char *obeff_ic_names[3] = { "EffX", "EffY", "EffZ" };
+char *co_ic_names[CO_TOTNAM] = { "Inf" };
+char *mtex_ic_names[TEX_TOTNAM] = { "OfsX", "OfsY", "OfsZ", "SizeX", "SizeY", "SizeZ",
+						  "texR", "texG", "texB", "DefVar", "Col", "Nor", "Var",
+						  "Disp" };
+char *tex_ic_names[TE_TOTNAM] = { "NSize", "NDepth", "NType", "Turb", "Vnw1", "Vnw2",
+								   "Vnw3", "Vnw4", "MinkMExp", "DistM", "ColT", "iScale",
+								   "DistA", "MgType", "MgH", "Lacu", "Oct", "MgOff",
+								   "MgGain", "NBase1", "NBase2" };
+char *ma_ic_names[MA_TOTNAM] = { "R", "G", "B", "SpecR", "SpecG", "SpecB", "MirR",
+						 "MirG", "MirB", "Ref", "Alpha", "Emit", "Amb", "Spec",
+						 "Hard", "SpTra", "Ior", "Mode", "HaSize", "Translu",
+						 "RayMir", "FresMir", "FresMirI", "FresTra", "FresTraI",
+						 "TraGlow" };
+char *seq_ic_names[SEQ_TOTNAM] = { "Fac" };
+char *cu_ic_names[CU_TOTNAM] = { "Speed" };
+char *key_ic_names[KEY_TOTNAM] = { "Speed", "Key 1", "Key 2", "Key 3", "Key 4", "Key 5",
+									"Key 6", "Key 7", "Key 8", "Key 9", "Key 10",
+									"Key 11", "Key 12", "Key 13", "Key 14", "Key 15",
+									"Key 16", "Key 17", "Key 18", "Key 19", "Key 20",
+									"Key 21", "Key 22", "Key 23", "Key 24", "Key 25",
+									"Key 26", "Key 27", "Key 28", "Key 29", "Key 30",
+									"Key 31" };
+char *wo_ic_names[WO_TOTNAM] = { "HorR", "HorG" "HorB", "ZenR", "ZenG", "ZenB", "Expos",
+						 "Misi", "MisDi", "MisSta", "MisHi", "StarR", "StarB",
+						 "StarG", "StarDi", "StarSi" };
+char *la_ic_names[LA_TOTNAM] = { "Energ", "R", "G", "B", "Dist", "SpoSi", "SpoBl",
+								  "Quad1", "Quad2", "HaInt" };
+char *cam_ic_names[CAM_TOTNAM] = { "Lens", "ClSta", "ClEnd" };
+char *snd_ic_names[SND_TOTNAM] = { "Vol", "Pitch", "Pan", "Atten" };
+char *ac_ic_names[AC_TOTNAM] = {"LocX", "LocY", "LocZ", "SizeX", "SizeY",
+						  "SizeZ", "QuatX", "QuatY", "QuatZ", "QuatW"};
+char *ic_name_empty[1] ={ "" };
+
+char *getname_ac_ei(int nr) {
 	switch(nr) {
 	case AC_LOC_X:
-		strcpy(str, "LocX"); break;
 	case AC_LOC_Y:
-		strcpy(str, "LocY"); break;
 	case AC_LOC_Z:
-		strcpy(str, "LocZ"); break;
+		return ac_ic_names[nr-1];
 	case AC_SIZE_X:
-		strcpy(str, "SizeX"); break;
 	case AC_SIZE_Y:
-		strcpy(str, "SizeY"); break;
 	case AC_SIZE_Z:
-		strcpy(str, "SizeZ"); break;
+		return ac_ic_names[nr-10];
 	case AC_QUAT_X:
-		strcpy(str, "QuatX"); break;
 	case AC_QUAT_Y:
-		strcpy(str, "QuatY"); break;
 	case AC_QUAT_Z:
-		strcpy(str, "QuatZ"); break;
 	case AC_QUAT_W:
-		strcpy(str, "QuatW"); break;
+		return ac_ic_names[nr-19];
 	default:
-		str[0]= 0;
-	}	
+		return ic_name_empty[0]; /* empty */
+	}
 }
 
-void getname_co_ei(int nr, char *str)
+char *getname_co_ei(int nr)
 {
 	switch(nr){
 	case CO_ENFORCE:
-		strcpy(str, "Inf"); break;
+		return co_ic_names[nr-1];
 	}
+	return ic_name_empty[0];
 }
 
-void getname_ob_ei(int nr, char *str, int colipo)
+char *getname_ob_ei(int nr, int colipo)
 {
-	switch(nr) {
-	case OB_LOC_X:
-		strcpy(str, "LocX"); break;
-	case OB_LOC_Y:
-		strcpy(str, "LocY"); break;
-	case OB_LOC_Z:
-		strcpy(str, "LocZ"); break;
-	case OB_DLOC_X:
-		strcpy(str, "dLocX"); break;
-	case OB_DLOC_Y:
-		strcpy(str, "dLocY"); break;
-	case OB_DLOC_Z:
-		strcpy(str, "dLocZ"); break;
+	if(!colipo && (nr>=OB_EFF_X && nr <=OB_EFF_Z)) {
+		return obeff_ic_names[nr-OB_EFF_X];
+	} else {
+		if(nr>=OB_LOC_X && nr <= OB_PD_PERM) return ob_ic_names[nr-1];
+	}
+	return ic_name_empty[0];
+}
 
-	case OB_ROT_X:
-		strcpy(str, "RotX"); break;
-	case OB_ROT_Y:
-		strcpy(str, "RotY"); break;
-	case OB_ROT_Z:
-		strcpy(str, "RotZ"); break;
-	case OB_DROT_X:
-		strcpy(str, "dRotX"); break;
-	case OB_DROT_Y:
-		strcpy(str, "dRotY"); break;
-	case OB_DROT_Z:
-		strcpy(str, "dRotZ"); break;
-		
-	case OB_SIZE_X:
-		strcpy(str, "SizeX"); break;
-	case OB_SIZE_Y:
-		strcpy(str, "SizeY"); break;
-	case OB_SIZE_Z:
-		strcpy(str, "SizeZ"); break;
-	case OB_DSIZE_X:
-		strcpy(str, "dSizeX"); break;
-	case OB_DSIZE_Y:
-		strcpy(str, "dSizeY"); break;
-	case OB_DSIZE_Z:
-		strcpy(str, "dSizeZ"); break;
+char *getname_tex_ei(int nr)
+{
+	if(nr>=TE_NSIZE && nr<=TE_N_BAS2) return tex_ic_names[nr-1];
+
+	return ic_name_empty[0];
+}
+
+char *getname_mtex_ei(int nr)
+{
+	if(nr>=MAP_OFS_X && nr<=MAP_DISP) return mtex_ic_names[nr-1];
 	
-	case OB_LAY:
-		strcpy(str, "Layer"); break;
-
-	case OB_TIME:
-		strcpy(str, "Time"); break;
-	case OB_EFF_X:
-		if(colipo) strcpy(str, "ColR");
-		else strcpy(str, "EffX");
-		break;
-	case OB_EFF_Y:
-		if(colipo) strcpy(str, "ColG");
-		else strcpy(str, "EffY");
-		break;
-	case OB_EFF_Z:
-		if(colipo) strcpy(str, "ColB");
-		else strcpy(str, "EffZ");
-		break;
-	case OB_COL_A:
-		strcpy(str, "ColA");
-		break;
-	case OB_PD_FSTR:
-		strcpy(str, "FStreng");
-		break;
-	case OB_PD_FFALL:
-		strcpy(str, "FFall");
-		break;
-	case OB_PD_SDAMP:
-		strcpy(str, "Damping");
-		break;
-	case OB_PD_RDAMP:
-		strcpy(str, "RDamp");
-		break;
-	case OB_PD_PERM:
-		strcpy(str, "Perm");
-		break;
-	default:
-		str[0]= 0;
-	}	
+	return ic_name_empty[0];
 }
 
-void getname_tex_ei(int nr, char *str)
+char *getname_mat_ei(int nr)
 {
-	switch(nr) {
-	case MAP_OFS_X:
-		strcpy(str, "OfsX"); break;
-	case MAP_OFS_Y:
-		strcpy(str, "OfsY"); break;
-	case MAP_OFS_Z:
-		strcpy(str, "OfsZ"); break;
-	case MAP_SIZE_X:
-		strcpy(str, "SizeX"); break;
-	case MAP_SIZE_Y:
-		strcpy(str, "SizeY"); break;
-	case MAP_SIZE_Z:
-		strcpy(str, "SizeZ"); break;
-	case MAP_R:
-		strcpy(str, "texR"); break;
-	case MAP_G:
-		strcpy(str, "texG"); break;
-	case MAP_B:
-		strcpy(str, "texB"); break;
-	case MAP_DVAR:
-		strcpy(str, "DefVar"); break;
-	case MAP_COLF:
-		strcpy(str, "Col"); break;
-	case MAP_NORF:
-		strcpy(str, "Nor"); break;
-	case MAP_VARF:
-		strcpy(str, "Var"); break;
-	case MAP_DISP:
-		strcpy(str, "Disp"); break;
-	default:
-		str[0]= 0;
-	}
-}
-
-void getname_mat_ei(int nr, char *str)
-{
-	if(nr>=MA_MAP1) getname_tex_ei((nr & (MA_MAP1-1)), str);
+	if(nr>=MA_MAP1) return getname_mtex_ei((nr & (MA_MAP1-1)));
 	else {
-		switch(nr) {
-		case MA_COL_R:
-			strcpy(str, "R"); break;
-		case MA_COL_G:
-			strcpy(str, "G"); break;
-		case MA_COL_B:
-			strcpy(str, "B"); break;
-		case MA_SPEC_R:
-			strcpy(str, "SpecR"); break;
-		case MA_SPEC_G:
-			strcpy(str, "SpecG"); break;
-		case MA_SPEC_B:
-			strcpy(str, "SpecB"); break;
-		case MA_MIR_R:
-			strcpy(str, "MirR"); break;
-		case MA_MIR_G:
-			strcpy(str, "MirG"); break;
-		case MA_MIR_B:
-			strcpy(str, "MirB"); break;
-		case MA_REF:
-			strcpy(str, "Ref"); break;
-		case MA_ALPHA:
-			strcpy(str, "Alpha"); break;
-		case MA_EMIT:
-			strcpy(str, "Emit"); break;
-		case MA_AMB:
-			strcpy(str, "Amb"); break;
-		case MA_SPEC:
-			strcpy(str, "Spec"); break;
-		case MA_HARD:
-			strcpy(str, "Hard"); break;
-		case MA_SPTR:
-			strcpy(str, "SpTra"); break;
-		case MA_IOR:
-			strcpy(str, "Ior"); break;
-		case MA_MODE:
-			strcpy(str, "Mode"); break;
-		case MA_HASIZE:
-			strcpy(str, "HaSize"); break;
-		case MA_TRANSLU:
-			strcpy(str, "Translu"); break;
-		case MA_RAYM:
-			strcpy(str, "RayMir"); break;
-		case MA_FRESMIR:
-			strcpy(str, "FresMir"); break;
-		case MA_FRESMIRI:
-			strcpy(str, "FresMirI"); break;
-		case MA_FRESTRA:
-			strcpy(str, "FresTra"); break;
-		case MA_FRESTRAI:
-			strcpy(str, "FresTraI"); break;
-		case MA_ADD:
-			strcpy(str, "TraGlow"); break;
-		default:
-			str[0]= 0;
-		}
+		if(nr>=MA_COL_R && nr<=MA_ADD) return ma_ic_names[nr-1];
 	}
+	return ic_name_empty[0];
 }
 
-void getname_world_ei(int nr, char *str)
+char *getname_world_ei(int nr)
 {
-	if(nr>=MA_MAP1) getname_tex_ei((nr & (MA_MAP1-1)), str);
+	if(nr>=MA_MAP1) return getname_mtex_ei((nr & (MA_MAP1-1)));
 	else {
-		switch(nr) {
-		case WO_HOR_R:
-			strcpy(str, "HorR"); break;
-		case WO_HOR_G:
-			strcpy(str, "HorG"); break;
-		case WO_HOR_B:
-			strcpy(str, "HorB"); break;
-		case WO_ZEN_R:
-			strcpy(str, "ZenR"); break;
-		case WO_ZEN_G:
-			strcpy(str, "ZenG"); break;
-		case WO_ZEN_B:
-			strcpy(str, "ZenB"); break;
-
-		case WO_EXPOS:
-			strcpy(str, "Expos"); break;
-
-		case WO_MISI:
-			strcpy(str, "Misi"); break;
-		case WO_MISTDI:
-			strcpy(str, "MisDi"); break;
-		case WO_MISTSTA:
-			strcpy(str, "MisSta"); break;
-		case WO_MISTHI:
-			strcpy(str, "MisHi"); break;
-
-		case WO_STAR_R:
-			strcpy(str, "StarR"); break;
-		case WO_STAR_G:
-			strcpy(str, "StarB"); break;
-		case WO_STAR_B:
-			strcpy(str, "StarG"); break;
-
-		case WO_STARDIST:
-			strcpy(str, "StarDi"); break;
-		case WO_STARSIZE:
-			strcpy(str, "StarSi"); break;
-		default:
-			str[0]= 0;
-		}
+		if(nr>=WO_HOR_R && nr<=WO_STARSIZE) return wo_ic_names[nr-1];
 	}
+	return ic_name_empty[0];
 }
 
-void getname_seq_ei(int nr, char *str)
+char *getname_seq_ei(int nr)
 {
-	switch(nr) {
-	case SEQ_FAC1:
-		strcpy(str, "Fac"); break;
-	default:
-		str[0]= 0;
-	}
+	if(nr == SEQ_FAC1) return seq_ic_names[nr-1];
+	return ic_name_empty[0];
 }
 
-void getname_cu_ei(int nr, char *str)
+char *getname_cu_ei(int nr)
 {
-
-	switch(nr) {
-	case CU_SPEED:
-		strcpy(str, "Speed"); break;
-	default:
-		str[0]= 0;
-	}
+	if(nr==CU_SPEED) return cu_ic_names[nr-1];
+	return ic_name_empty[0];
 }
 
-void getname_key_ei(int nr, char *str)
+char *getname_key_ei(int nr)
 {
-	if(nr==KEY_SPEED) strcpy(str, "Speed");
-	else sprintf(str, "Key %d", nr);
+	if(nr>=KEY_SPEED && nr<=31) return key_ic_names[nr];
+	return ic_name_empty[0];
 }
 
-void getname_la_ei(int nr, char *str)
+char *getname_la_ei(int nr)
 {
-	if(nr>=MA_MAP1) getname_tex_ei((nr & (MA_MAP1-1)), str);
+	if(nr>=MA_MAP1) return getname_mtex_ei((nr & (MA_MAP1-1)));
 	else {
-		switch(nr) {
-		case LA_ENERGY:
-			strcpy(str, "Energ"); break;
-		case LA_COL_R:
-			strcpy(str, "R"); break;
-		case LA_COL_G:
-			strcpy(str, "G"); break;
-		case LA_COL_B:
-			strcpy(str, "B"); break;
-		case LA_DIST:
-			strcpy(str, "Dist"); break;
-		case LA_SPOTSI:
-			strcpy(str, "SpoSi"); break;
-		case LA_SPOTBL:
-			strcpy(str, "SpoBl"); break;
-		case LA_QUAD1:
-			strcpy(str, "Quad1"); break;
-		case LA_QUAD2:
-			strcpy(str, "Quad2"); break;
-		case LA_HALOINT:
-			strcpy(str, "HaInt"); break;
-		default:
-			str[0]= 0;
-		}
+		if(nr>=LA_ENERGY && nr<=LA_HALOINT) return la_ic_names[nr-1];
 	}
+	return ic_name_empty[0];
 }
 
-void getname_cam_ei(int nr, char *str)
+char *getname_cam_ei(int nr)
 {
-	switch(nr) {
-	case CAM_LENS:
-		strcpy(str, "Lens"); break;
-	case CAM_STA:
-		strcpy(str, "ClSta"); break;
-	case CAM_END:
-		strcpy(str, "ClEnd"); break;
-	default:
-		str[0]= 0;
-	}
+	if(nr>=CAM_LENS && nr<=CAM_END) return cam_ic_names[nr-1];
+	return ic_name_empty[0];
 }
 
-void getname_snd_ei(int nr, char *str)
+char *getname_snd_ei(int nr)
 {
-	switch(nr) {
-	case SND_VOLUME:
-		strcpy(str, "Vol"); break;
-	case SND_PITCH:
-		strcpy(str, "Pitch"); break;
-	case SND_PANNING:
-		strcpy(str, "Pan"); break;
-	case SND_ATTEN:
-		strcpy(str, "Atten"); break;
-	default:
-		str[0]= 0;
-	}
+	if(nr>=SND_VOLUME && nr<=SND_ATTEN) return snd_ic_names[nr-1];
+	return ic_name_empty[0];
 }
-
 
 IpoCurve *find_ipocurve(Ipo *ipo, int adrcode)
 {
@@ -666,6 +465,7 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 		}
 
 		else if(si->blocktype==ID_MA) allqueue(REDRAWBUTSSHADING, 0);
+		else if(si->blocktype==ID_TE) allqueue(REDRAWBUTSSHADING, 0);
 		else if(si->blocktype==ID_WO) allqueue(REDRAWBUTSSHADING, 0);
 		else if(si->blocktype==ID_LA) allqueue(REDRAWBUTSSHADING, 0);
 //		else if(si->blocktype==ID_SO) allqueue(REDRAWBUTSSOUND, 0);
@@ -780,6 +580,13 @@ Ipo *get_ipo_to_edit(ID **from)
 			return ob->ipo;
 		}
 	}
+	else if(G.sipo->blocktype==ID_TE) {
+		if(ob) {
+			Tex *tex= give_current_texture(ob, ob->actcol);
+			*from= (ID *)tex;
+			if(tex) return tex->ipo;
+		}
+	}
 	else if(G.sipo->blocktype==ID_MA) {
 		if(ob) {
 			Material *ma= give_current_material(ob, ob->actcol);
@@ -847,6 +654,7 @@ void make_ob_editipo(Object *ob, SpaceIpo *si)
 {
 	EditIpo *ei;
 	int a, len, colipo=0;
+	char *name;
 	
 	if(ob->type==OB_MESH) colipo= 1;
 
@@ -855,7 +663,8 @@ void make_ob_editipo(Object *ob, SpaceIpo *si)
 	si->totipo= OB_TOTIPO;
 	
 	for(a=0; a<OB_TOTIPO; a++) {
-		getname_ob_ei(ob_ar[a], ei->name, colipo);
+		name = getname_ob_ei(ob_ar[a], colipo);
+		strcpy(ei->name, name);
 		ei->adrcode= ob_ar[a];
 		
 		if ELEM6(ei->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z, OB_DROT_X, OB_DROT_Y, OB_DROT_Z) ei->disptype= IPO_DISPDEGR;
@@ -887,6 +696,7 @@ void make_seq_editipo(SpaceIpo *si)
 {
 	EditIpo *ei;
 	int a;
+	char *name;
 	
 	ei= si->editipo= MEM_callocN(SEQ_TOTIPO*sizeof(EditIpo), "editipo");
 	
@@ -894,7 +704,8 @@ void make_seq_editipo(SpaceIpo *si)
 	
 	
 	for(a=0; a<SEQ_TOTIPO; a++) {
-		getname_seq_ei(seq_ar[a], ei->name);
+		name = getname_seq_ei(seq_ar[a]);
+		strcpy(ei->name, name);
 		ei->adrcode= seq_ar[a];
 		
 		ei->col= ipo_rainbow(a, SEQ_TOTIPO);
@@ -913,6 +724,7 @@ void make_cu_editipo(SpaceIpo *si)
 {
 	EditIpo *ei;
 	int a;
+	char *name;
 	
 	ei= si->editipo= MEM_callocN(CU_TOTIPO*sizeof(EditIpo), "editipo");
 	
@@ -920,7 +732,8 @@ void make_cu_editipo(SpaceIpo *si)
 	
 	
 	for(a=0; a<CU_TOTIPO; a++) {
-		getname_cu_ei(cu_ar[a], ei->name);
+		name = getname_cu_ei(cu_ar[a]);
+		strcpy(ei->name, name);
 		ei->adrcode= cu_ar[a];
 		
 		ei->col= ipo_rainbow(a, CU_TOTIPO);
@@ -941,6 +754,7 @@ void make_key_editipo(SpaceIpo *si)
 	KeyBlock *kb=NULL;
 	EditIpo *ei;
 	int a;
+	char *name;
 	
 	ei= si->editipo= MEM_callocN(KEY_TOTIPO*sizeof(EditIpo), "editipo");
 	
@@ -951,7 +765,10 @@ void make_key_editipo(SpaceIpo *si)
 	
 	for(a=0; a<KEY_TOTIPO; a++, ei++) {
 		if(kb && kb->name[0] != 0) strncpy(ei->name, kb->name, 32);	// length both same
-		else getname_key_ei(key_ar[a], ei->name);
+		else {
+			name = getname_key_ei(key_ar[a]);
+			strcpy(ei->name, name);
+		}
 		ei->adrcode= key_ar[a];
 		
 		ei->col= ipo_rainbow(a, KEY_TOTIPO);
@@ -993,6 +810,7 @@ void make_mat_editipo(SpaceIpo *si)
 {
 	EditIpo *ei;
 	int a, len;
+	char *name;
 	
 	if(si->from==0) return;
 	
@@ -1001,7 +819,8 @@ void make_mat_editipo(SpaceIpo *si)
 	si->totipo= MA_TOTIPO;
 	
 	for(a=0; a<MA_TOTIPO; a++) {
-		getname_mat_ei(ma_ar[a], ei->name);
+		name = getname_mat_ei(ma_ar[a]);
+		strcpy(ei->name, name);
 		ei->adrcode= ma_ar[a];
 		
 		if(ei->adrcode & MA_MAP1) {
@@ -1030,10 +849,39 @@ void make_mat_editipo(SpaceIpo *si)
 	}
 }
 
+void make_texture_editipo(SpaceIpo *si)
+{
+	EditIpo *ei;
+	int a;
+	char *name;
+	
+	if(si->from==0) return;    
+	
+	ei= si->editipo= MEM_callocN(TE_TOTIPO*sizeof(EditIpo), "editipo");
+	
+	si->totipo= TE_TOTIPO;
+	
+	for(a=0; a<TE_TOTIPO; a++) {
+		name = getname_tex_ei(te_ar[a]);
+		strcpy(ei->name, name);
+			ei->adrcode= te_ar[a];
+
+		ei->col= ipo_rainbow(a, TE_TOTIPO);
+		
+		ei->icu= find_ipocurve(si->ipo, ei->adrcode);
+		if(ei->icu) {
+			ei->flag= ei->icu->flag;
+		}
+		
+		ei++;
+	}
+}
+
 void make_world_editipo(SpaceIpo *si)
 {
 	EditIpo *ei;
 	int a, len;
+	char *name;
 	
 	if(si->from==0) return;
 	
@@ -1042,7 +890,8 @@ void make_world_editipo(SpaceIpo *si)
 	si->totipo= WO_TOTIPO;
 	
 	for(a=0; a<WO_TOTIPO; a++) {
-		getname_world_ei(wo_ar[a], ei->name);
+		name = getname_world_ei(wo_ar[a]);
+		strcpy(ei->name, name);
 		ei->adrcode= wo_ar[a];
 		
 		if(ei->adrcode & MA_MAP1) {
@@ -1075,6 +924,7 @@ void make_lamp_editipo(SpaceIpo *si)
 {
 	EditIpo *ei;
 	int a;
+	char *name;
 	
 	ei= si->editipo= MEM_callocN(LA_TOTIPO*sizeof(EditIpo), "editipo");
 	
@@ -1082,7 +932,8 @@ void make_lamp_editipo(SpaceIpo *si)
 	
 	
 	for(a=0; a<LA_TOTIPO; a++) {
-		getname_la_ei(la_ar[a], ei->name);
+		name = getname_la_ei(la_ar[a]);
+		strcpy(ei->name, name);
 		ei->adrcode= la_ar[a];
 
 		if(ei->adrcode & MA_MAP1) {
@@ -1105,6 +956,7 @@ void make_camera_editipo(SpaceIpo *si)
 {
 	EditIpo *ei;
 	int a;
+	char *name;
 	
 	ei= si->editipo= MEM_callocN(CAM_TOTIPO*sizeof(EditIpo), "editipo");
 	
@@ -1112,7 +964,8 @@ void make_camera_editipo(SpaceIpo *si)
 	
 	
 	for(a=0; a<CAM_TOTIPO; a++) {
-		getname_cam_ei(cam_ar[a], ei->name);
+		name = getname_cam_ei(cam_ar[a]);
+		strcpy(ei->name, name);
 		ei->adrcode= cam_ar[a];
 
 		ei->col= ipo_rainbow(a, CAM_TOTIPO);
@@ -1130,11 +983,13 @@ int make_constraint_editipo(Ipo *ipo, EditIpo **si)
 {
 	EditIpo *ei;
 	int a;
+	char *name;
 	
 	ei= *si= MEM_callocN(CO_TOTIPO*sizeof(EditIpo), "editipo");
 	
 	for(a=0; a<CO_TOTIPO; a++) {
-		getname_co_ei(co_ar[a], ei->name);
+		name = getname_co_ei(co_ar[a]);
+		strcpy(ei->name, name);
 		ei->adrcode= co_ar[a];
 
 		ei->col= ipo_rainbow(a, CO_TOTIPO);
@@ -1153,11 +1008,13 @@ int make_action_editipo(Ipo *ipo, EditIpo **si)
 {
 	EditIpo *ei;
 	int a;
+	char *name;
 	
 	ei= *si= MEM_callocN(AC_TOTIPO*sizeof(EditIpo), "editipo");
 	
 	for(a=0; a<AC_TOTIPO; a++) {
-		getname_ac_ei(ac_ar[a], ei->name);
+		name = getname_ac_ei(ac_ar[a]);
+		strcpy(ei->name, name);
 		ei->adrcode= ac_ar[a];
 
 		ei->col= ipo_rainbow(a, AC_TOTIPO);
@@ -1177,6 +1034,7 @@ void make_sound_editipo(SpaceIpo *si)
 {
 	EditIpo *ei;
 	int a;
+	char *name;
 	
 	ei= si->editipo= MEM_callocN(SND_TOTIPO*sizeof(EditIpo), "editipo");
 	
@@ -1184,7 +1042,8 @@ void make_sound_editipo(SpaceIpo *si)
 	
 	
 	for(a=0; a<SND_TOTIPO; a++) {
-		getname_snd_ei(snd_ar[a], ei->name);
+		name = getname_snd_ei(snd_ar[a]);
+		strcpy(ei->name, name);
 		ei->adrcode= snd_ar[a];
 
 		ei->col= ipo_rainbow(a, SND_TOTIPO);
@@ -1253,6 +1112,12 @@ void make_editipo()
 			make_lamp_editipo(G.sipo);
 		}
 	}
+	else if(G.sipo->blocktype==ID_TE) {
+		if (ob) {
+			ob->ipowin= ID_TE;
+			make_texture_editipo(G.sipo);
+		}
+	}
 	else if(G.sipo->blocktype==ID_CA) {
 		if (ob) {
 			ob->ipowin= ID_CA;
@@ -1314,6 +1179,12 @@ void make_editipo()
 			G.v2d->cur.ymax= 100.0;
 		}
 		else if ELEM5(G.sipo->blocktype, ID_MA, ID_CU, ID_WO, ID_LA, IPO_CO) {
+			G.v2d->cur.xmin= (float)-0.1;
+			G.v2d->cur.xmax= EFRA;
+			G.v2d->cur.ymin= (float)-0.1;
+			G.v2d->cur.ymax= (float)+1.1;
+		}
+		else if(G.sipo->blocktype==ID_TE) {
 			G.v2d->cur.xmin= (float)-0.1;
 			G.v2d->cur.xmax= EFRA;
 			G.v2d->cur.ymin= (float)-0.1;
@@ -1903,6 +1774,7 @@ Ipo *get_ipo(ID *from, short type, int make)
 {
 	Object *ob;
 	Material *ma;
+	Tex *tex;
 	Curve *cu;
 	Sequence *seq;
 	Key *key;
@@ -1944,7 +1816,13 @@ Ipo *get_ipo(ID *from, short type, int make)
 		
 		if(make && ipo==0) ipo= ma->ipo= add_ipo("MatIpo", ID_MA);
 	}
-
+	else if( type==ID_TE) {
+		tex= (Tex *)from;
+		if(tex->id.lib) return 0;
+		ipo= tex->ipo;
+		
+		if(make && ipo==0) ipo= tex->ipo= add_ipo("TexIpo", ID_TE);
+	}
 	else if( type==ID_SEQ) {
 		seq= (Sequence *)from;
 

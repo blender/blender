@@ -154,7 +154,6 @@ extern void StartKetsjiShell(ScrArea *area, char* startscenename, struct Main* m
  */
 void space_mipmap_button_function(int event);
 
-unsigned short convert_for_nonumpad(unsigned short event);
 void free_soundspace(SpaceSound *ssound);
 
 /* *************************************** */
@@ -1679,7 +1678,7 @@ void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		switch(event) {
 		case UI_BUT_EVENT:
 			/* note: bad bad code, will be cleaned! is because event queues are all shattered */
-			if(val>0 && val < 51) do_ipowin_buts(val-1);
+			if(val>0 && val < 65) do_ipowin_buts(val-1);
 			else do_ipobuts(val);
 			break;
 			

@@ -1040,6 +1040,7 @@ void do_global_buttons(unsigned short event)
 							idtest= (ID *)add_ipo("ObIpo", nr);
 					}
 					else if(nr==ID_MA) idtest= (ID *)add_ipo("MatIpo", nr);
+					else if(nr==ID_TE) idtest= (ID *)add_ipo("TexIpo", nr);
 					else if(nr==ID_SEQ) idtest= (ID *)add_ipo("MatSeq", nr);
 					else if(nr==ID_CU) idtest= (ID *)add_ipo("CuIpo", nr);
 					else if(nr==ID_KE) idtest= (ID *)add_ipo("KeyIpo", nr);
@@ -1081,6 +1082,11 @@ void do_global_buttons(unsigned short event)
 				}
 				else if(ipo->blocktype==ID_MA) {
 					( (Material *)from)->ipo= ipo;
+					id_us_plus(idtest);
+					allqueue(REDRAWBUTSSHADING, 0);
+				}
+				else if(ipo->blocktype==ID_TE) {
+					( (Tex *)from)->ipo= ipo;
 					id_us_plus(idtest);
 					allqueue(REDRAWBUTSSHADING, 0);
 				}
@@ -1142,6 +1148,7 @@ void do_global_buttons(unsigned short event)
 		
 		if(ipo->blocktype==ID_OB) ( (Object *)from)->ipo= 0;
 		else if(ipo->blocktype==ID_MA) ( (Material *)from)->ipo= 0;
+		else if(ipo->blocktype==ID_TE) ( (Tex *)from)->ipo= 0;
 		else if(ipo->blocktype==ID_SEQ) ( (Sequence *)from)->ipo= 0;
 		else if(ipo->blocktype==ID_CU) ( (Curve *)from)->ipo= 0;
 		else if(ipo->blocktype==ID_KE) ( (Key *)from)->ipo= 0;
@@ -1949,6 +1956,7 @@ void do_global_buttons2(short event)
 				if(okee("Single user")) {
 					if(ipo->blocktype==ID_OB) ((Object *)idfrom)->ipo= copy_ipo(ipo);
 					else if(ipo->blocktype==ID_MA) ((Material *)idfrom)->ipo= copy_ipo(ipo);
+					else if(ipo->blocktype==ID_TE) ((Tex *)idfrom)->ipo= copy_ipo(ipo);
 					else if(ipo->blocktype==ID_SEQ) ((Sequence *)idfrom)->ipo= copy_ipo(ipo);
 					else if(ipo->blocktype==ID_CU) ((Curve *)idfrom)->ipo= copy_ipo(ipo);
 					else if(ipo->blocktype==ID_KE) ((Key *)idfrom)->ipo= copy_ipo(ipo);

@@ -71,6 +71,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BSE_drawipo.h"
@@ -624,6 +625,11 @@ static char *ipo_modeselect_pup(void)
 		strcat(string,tmpstr);
 	}
 
+	if(OBACT && give_current_texture(OBACT, OBACT->actcol)) {
+		sprintf(tmpstr,formatstring,"Texture",ID_TE, ICON_TEXTURE);
+		strcat(string,tmpstr);
+	}
+
 	if(OBACT){
 		if ELEM4(OBACT->type, OB_MESH, OB_CURVE, OB_SURF, OB_LATTICE) {
 			sprintf(tmpstr,formatstring,"Vertex",ID_KE, ICON_EDIT);
@@ -858,6 +864,8 @@ void ipo_buttons(void)
 		icon = ICON_CONSTRAINT;
 	else if (G.sipo->blocktype == ID_SEQ)
 		icon = ICON_SEQUENCE;
+	else if(G.sipo->blocktype == ID_TE)
+		icon = ICON_TEXTURE;
 
 	uiDefIconTextButS(block, MENU, B_IPOMAIN, icon, ipo_modeselect_pup(), xco,0,100,20, &(G.sipo->blocktype), 0, 0, 0, 0, "Display IPO type");
 
