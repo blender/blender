@@ -135,6 +135,12 @@ return a python list representing the indeces that are a part of this vertex.\n\
 group. If no association was found for the index passed nothing will be\n\
 return for the index. An optional flag will also return the weights as well";
 
+static char NMesh_renameVertGroup_doc[] =
+"Renames a vertex group";
+
+static char NMesh_getVertGroupNames_doc[] =
+"Returns a list of all the vertex group names";
+
 static char M_NMesh_doc[] =
 "The Blender.NMesh submodule";
 
@@ -306,6 +312,8 @@ static PyObject *NMesh_removeVertGroup(PyObject *self, PyObject *args);
 static PyObject *NMesh_assignVertsToGroup(PyObject *self, PyObject *args);
 static PyObject *NMesh_removeVertsFromGroup(PyObject *self, PyObject *args);
 static PyObject *NMesh_getVertsFromGroup(PyObject *self, PyObject *args);
+static PyObject *NMesh_renameVertGroup (PyObject *self, PyObject *args);
+static PyObject *NMesh_getVertGroupNames (PyObject *self, PyObject *args);
 
 
 #endif /* EXPP_NMESH_H */
