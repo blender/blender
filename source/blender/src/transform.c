@@ -788,7 +788,7 @@ static void editmesh_set_connectivity_distance(int total, float *vectors, EditVe
 			eve->vn = (EditVert *)(i);
 
 			if(eve->f & SELECT) {
-				eve->f2= 1;
+				eve->f2= 2;
 				E_NEAR(eve) = eve;
 				E_VEC(eve)[0] = 0.0f;
 				E_VEC(eve)[1] = 0.0f;
@@ -816,26 +816,34 @@ static void editmesh_set_connectivity_distance(int total, float *vectors, EditVe
 				float *vec2 = E_VEC(v2);
 				float *vec1 = E_VEC(v1);
 
+				if (v1->f2 + v2->f2 == 4)
+					continue;
+
 				if (v1->f2) {
 					if (v2->f2) {
 						float nvec[3];
 						float len1 = VecLength(vec1);
 						float len2 = VecLength(vec2);
 						float lenn;
-						/* for v2 */
-						VecSubf(nvec, v2->co, E_NEAR(v1)->co);
-						lenn = VecLength(nvec);
-						if (lenn - len1 > 0.00001f && len2 - lenn > 0.00001f) {
-							VECCOPY(vec2, nvec);
-							E_NEAR(v2) = E_NEAR(v1);
-							done = 1;
+						/* for v2 if not selected */
+						if (v2->f2 != 2) {
+							VecSubf(nvec, v2->co, E_NEAR(v1)->co);
+							lenn = VecLength(nvec);
+							if (lenn - len1 > 0.00001f && len2 - lenn > 0.00001f) {
+								VECCOPY(vec2, nvec);
+								E_NEAR(v2) = E_NEAR(v1);
+								done = 1;
+							}
 						}
-						/* for v1 */
-						VecSubf(nvec, v1->co, E_NEAR(v2)->co);
-						if (lenn - len2 > 0.00001f && len1 - lenn > 0.00001f) {
-							VECCOPY(vec1, nvec);
-							E_NEAR(v1) = E_NEAR(v2);
-							done = 1;
+						/* for v1 if not selected */
+						if (v1->f2 != 2) {
+							VecSubf(nvec, v1->co, E_NEAR(v2)->co);
+							lenn = VecLength(nvec);
+							if (lenn - len2 > 0.00001f && len1 - lenn > 0.00001f) {
+								VECCOPY(vec1, nvec);
+								E_NEAR(v1) = E_NEAR(v2);
+								done = 1;
+							}
 						}
 					}
 					else {
@@ -1503,10 +1511,10 @@ void Transform(int mode, int context)
 	}
 
 	Trans.context = context;
-	
-	initTransModeFlags(&Trans, mode);	// modal settings in struct Trans
 
 	initTrans(&Trans);					// internal data, mouse, vectors
+
+	initTransModeFlags(&Trans, mode);	// modal settings in struct Trans
 
 	createTransData(&Trans);			// make TransData structs from selection
 
@@ -1599,18 +1607,20 @@ void Transform(int mode, int context)
 					break;
 					
 				case MIDDLEMOUSE:
-					/* exception for switching to dolly, or trackball, in camera view */
-					if (Trans.flag & T_CAMERA) {
-						if (Trans.mode==TFM_TRANSLATION)
-							setLocalConstraint(&Trans, (CON_AXIS2), "along local Z");
-						else if (Trans.mode==TFM_ROTATION) {
-							restoreTransObjects(&Trans);
-							initTransModeFlags(&Trans, TFM_TRACKBALL);
-							initTrackball(&Trans);
+					if ((Trans.flag & T_NO_CONSTRAINT)==0) {
+						/* exception for switching to dolly, or trackball, in camera view */
+						if (Trans.flag & T_CAMERA) {
+							if (Trans.mode==TFM_TRANSLATION)
+								setLocalConstraint(&Trans, (CON_AXIS2), "along local Z");
+							else if (Trans.mode==TFM_ROTATION) {
+								restoreTransObjects(&Trans);
+								initTransModeFlags(&Trans, TFM_TRACKBALL);
+								initTrackball(&Trans);
+							}
 						}
+						else 
+							initSelectConstraint(&Trans);
 					}
-					else 
-						initSelectConstraint(&Trans);
 					Trans.redraw = 1;
 					break;
 				case ESCKEY:
@@ -1649,73 +1659,79 @@ void Transform(int mode, int context)
 					Trans.redraw = 1;
 					break;
 				case XKEY:
-					if (cmode == 'X') {
-						stopConstraint(&Trans);
-						cmode = '\0';
-					}
-					else if(cmode == 'x') {
-						if (G.qual == 0)
-							setLocalConstraint(&Trans, (CON_AXIS0), "along local X");
-						else if (G.qual == LR_SHIFTKEY)
-							setLocalConstraint(&Trans, (CON_AXIS1|CON_AXIS2), "locking local X");
+					if ((Trans.flag & T_NO_CONSTRAINT)==0) {
+						if (cmode == 'X') {
+							stopConstraint(&Trans);
+							cmode = '\0';
+						}
+						else if(cmode == 'x') {
+							if (G.qual == 0)
+								setLocalConstraint(&Trans, (CON_AXIS0), "along local X");
+							else if (G.qual == LR_SHIFTKEY)
+								setLocalConstraint(&Trans, (CON_AXIS1|CON_AXIS2), "locking local X");
 
-						cmode = 'X';
-					}
-					else {
-						if (G.qual == 0)
-							setConstraint(&Trans, mati, (CON_AXIS0), "along global X");
-						else if (G.qual == LR_SHIFTKEY)
-							setConstraint(&Trans, mati, (CON_AXIS1|CON_AXIS2), "locking global X");
+							cmode = 'X';
+						}
+						else {
+							if (G.qual == 0)
+								setConstraint(&Trans, mati, (CON_AXIS0), "along global X");
+							else if (G.qual == LR_SHIFTKEY)
+								setConstraint(&Trans, mati, (CON_AXIS1|CON_AXIS2), "locking global X");
 
-						cmode = 'x';
+							cmode = 'x';
+						}
+						Trans.redraw = 1;
 					}
-					Trans.redraw = 1;
 					break;
 				case YKEY:
-					if (cmode == 'Y') {
-						stopConstraint(&Trans);
-						cmode = '\0';
-					}
-					else if(cmode == 'y') {
-						if (G.qual == 0)
-							setLocalConstraint(&Trans, (CON_AXIS1), "along global Y");
-						else if (G.qual == LR_SHIFTKEY)
-							setLocalConstraint(&Trans, (CON_AXIS0|CON_AXIS2), "locking global Y");
+					if ((Trans.flag & T_NO_CONSTRAINT)==0) {
+						if (cmode == 'Y') {
+							stopConstraint(&Trans);
+							cmode = '\0';
+						}
+						else if(cmode == 'y') {
+							if (G.qual == 0)
+								setLocalConstraint(&Trans, (CON_AXIS1), "along global Y");
+							else if (G.qual == LR_SHIFTKEY)
+								setLocalConstraint(&Trans, (CON_AXIS0|CON_AXIS2), "locking global Y");
 
-						cmode = 'Y';
-					}
-					else {
-						if (G.qual == 0)
-							setConstraint(&Trans, mati, (CON_AXIS1), "along local Y");
-						else if (G.qual == LR_SHIFTKEY)
-							setConstraint(&Trans, mati, (CON_AXIS0|CON_AXIS2), "locking local Y");
+							cmode = 'Y';
+						}
+						else {
+							if (G.qual == 0)
+								setConstraint(&Trans, mati, (CON_AXIS1), "along local Y");
+							else if (G.qual == LR_SHIFTKEY)
+								setConstraint(&Trans, mati, (CON_AXIS0|CON_AXIS2), "locking local Y");
 
-						cmode = 'y';
+							cmode = 'y';
+						}
+						Trans.redraw = 1;
 					}
-					Trans.redraw = 1;
 					break;
 				case ZKEY:
-					if (cmode == 'Z') {
-						stopConstraint(&Trans);
-						cmode = '\0';
-					}
-					else if(cmode == 'z') {
-						if (G.qual == 0)
-							setLocalConstraint(&Trans, (CON_AXIS2), "along local Z");
-						else if (G.qual == LR_SHIFTKEY)
-							setLocalConstraint(&Trans, (CON_AXIS0|CON_AXIS1), "locking local Z");
+					if ((Trans.flag & T_NO_CONSTRAINT)==0) {
+						if (cmode == 'Z') {
+							stopConstraint(&Trans);
+							cmode = '\0';
+						}
+						else if(cmode == 'z') {
+							if (G.qual == 0)
+								setLocalConstraint(&Trans, (CON_AXIS2), "along local Z");
+							else if (G.qual == LR_SHIFTKEY)
+								setLocalConstraint(&Trans, (CON_AXIS0|CON_AXIS1), "locking local Z");
 
-						cmode = 'Z';
-					}
-					else {
-						if (G.qual == 0)
-							setConstraint(&Trans, mati, (CON_AXIS2), "along global Z");
-						else if (G.qual == LR_SHIFTKEY)
-							setConstraint(&Trans, mati, (CON_AXIS0|CON_AXIS1), "locking global Z");
+							cmode = 'Z';
+						}
+						else {
+							if (G.qual == 0)
+								setConstraint(&Trans, mati, (CON_AXIS2), "along global Z");
+							else if (G.qual == LR_SHIFTKEY)
+								setConstraint(&Trans, mati, (CON_AXIS0|CON_AXIS1), "locking global Z");
 
-						cmode = 'z';
+							cmode = 'z';
+						}
+						Trans.redraw = 1;
 					}
-					Trans.redraw = 1;
 					break;
 				case OKEY:
 					if (G.qual==LR_SHIFTKEY) {
@@ -1750,8 +1766,10 @@ void Transform(int mode, int context)
 				/* no redraw on release modifier keys! this makes sure you can assign the 'grid' still 
 				   after releasing modifer key */
 				case MIDDLEMOUSE:
-					postSelectConstraint(&Trans);
-					Trans.redraw = 1;
+					if ((Trans.flag & T_NO_CONSTRAINT)==0) {
+						postSelectConstraint(&Trans);
+						Trans.redraw = 1;
+					}
 					break;
 				case LEFTMOUSE:
 				case RIGHTMOUSE:
@@ -1821,9 +1839,10 @@ void ManipulatorTransform(int mode)
 
 	Trans.context = CTX_NONE;
 
+	initTrans(&Trans);					// internal data, mouse, vectors
+
 	initTransModeFlags(&Trans, mode);	// modal settings in struct Trans
 
-	initTrans(&Trans);					// internal data, mouse, vectors
 	G.moving |= G_TRANSFORM_MANIP;		// signal to draw manipuls while transform
 	createTransData(&Trans);			// make TransData structs from selection
 
@@ -3063,3 +3082,72 @@ int Tilt(TransInfo *t, short mval[2])
 	return 1;
 }
 
+/* ************************** PUSH/PULL *************************** */
+
+void initPushPull(TransInfo *t) 
+{
+	t->idx_max = 0;
+	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = 1.0f;
+	t->snap[2] = t->snap[1] * 0.1f;
+	t->transform = ShrinkFatten;
+}
+
+
+
+int PushPull(TransInfo *t, short mval[2]) 
+{
+	float vec[3];
+	float distance;
+	int i;
+	char str[50];
+	TransData *td = t->data;
+
+	window_to_3d(t->vec, (short)(mval[0] - t->imval[0]), (short)(mval[1] - t->imval[1]));
+	Projf(vec, t->vec, G.vd->viewinv[1]);
+	distance = Inpf(t->viewinv[1], vec) * 2.0f;
+
+	snapGrid(t, &distance);
+
+	applyNumInput(&t->num, &distance);
+
+	/* header print for NumInput */
+	if (hasNumInput(&t->num)) {
+		char c[20];
+
+		outputNumInput(&(t->num), c);
+
+		sprintf(str, "Push/Pull: %s%s %s", c, t->con.text, t->proptext);
+	}
+	else {
+		/* default header print */
+		sprintf(str, "Push/Pull: %.4f%s %s", distance, t->con.text, t->proptext);
+	}
+	
+	
+	for(i = 0 ; i < t->total; i++, td++) {
+		if (td->flag & TD_NOACTION)
+			break;
+
+		VecSubf(vec, t->center, td->center);
+		if (t->con.applyRot) {
+			float axis[3];
+			t->con.applyRot(t, td, axis);
+			Projf(vec, vec, axis);
+		}
+		Normalise(vec);
+		VecMulf(vec, distance);
+		VecMulf(vec, td->factor);
+
+		VecAddf(td->loc, td->iloc, vec);
+	}
+
+	recalcData(t);
+
+	headerprint(str);
+
+	force_draw(0);
+
+	return 1;
+}

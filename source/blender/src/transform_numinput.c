@@ -66,7 +66,7 @@ void outputNumInput(NumInput *n, char *str)
 
 	for (j=0; j<=n->idx_max; j++) {
 		/* if AFFECTALL and no number typed and cursor not on number, use first number */
-		if (n->flag & AFFECTALL && n->idx != j && n->ctrl[j] == 0)
+		if (n->flag & NUM_AFFECT_ALL && n->idx != j && n->ctrl[j] == 0)
 			i = 0;
 		else
 			i = j;
@@ -124,15 +124,15 @@ void applyNumInput(NumInput *n, float *vec)
 	if (hasNumInput(n)) {
 		for (j=0; j<=n->idx_max; j++) {
 			/* if AFFECTALL and no number typed and cursor not on number, use first number */
-			if (n->flag & AFFECTALL && n->idx != j && n->ctrl[j] == 0)
+			if (n->flag & NUM_AFFECT_ALL && n->idx != j && n->ctrl[j] == 0)
 				i = 0;
 			else
 				i = j;
 
-			if (n->ctrl[i] == 0 && n->flag & NULLONE) {
+			if (n->ctrl[i] == 0 && n->flag & NUM_NULL_ONE) {
 				vec[j] = 1.0f;
 			}
-			else if (n->val[i] == 0.0f && n->flag & NOZERO) {
+			else if (n->val[i] == 0.0f && n->flag & NUM_NO_ZERO) {
 				vec[j] = 0.0001f;
 			}
 			else {
@@ -164,7 +164,7 @@ char handleNumInput(NumInput *n, unsigned short event)
 		break;
 	case PERIODKEY:
 	case PADPERIOD:
-		if (n->flag & NOFRACTION)
+		if (n->flag & NUM_NO_FRACTION)
 			break;
 
 		switch (n->ctrl[idx])
@@ -178,7 +178,7 @@ char handleNumInput(NumInput *n, unsigned short event)
 		}
 		break;
 	case MINUSKEY:
-		if (n->flag & NONEGATIVE)
+		if (n->flag & NUM_NO_NEGATIVE)
 			break;
 
 		if (n->ctrl[idx]) {

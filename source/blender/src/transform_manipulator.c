@@ -1177,7 +1177,9 @@ static void draw_manipulator_rotate_cyl(float mat[][4], int moving, int drawflag
 	if(moving) {
 		float matt[4][4];
 		Mat4CpyMat4(matt, mat); // to copy the parts outside of [3][3]
-		Mat4MulMat34(matt, Trans.mat, mat);
+		if (Trans.flag & T_USES_MANIPULATOR) {
+			Mat4MulMat34(matt, Trans.mat, mat);
+		}
 		mymultmatrix(matt);
 	}
 	else {

@@ -314,25 +314,29 @@ void recalcData(TransInfo *t)
 
 void initTransModeFlags(TransInfo *t, int mode) 
 {
-	t->num.flag = 0;
 	t->mode = mode;
+	t->num.flag = 0;
+
+	/* REMOVING RESTRICTIONS FLAGS */
+	t->flag &= ~T_ALL_RESTRICTIONS;
 	
 	switch (mode) {
 	case TFM_RESIZE:
-		t->num.flag |= NULLONE;
-		t->num.flag |= AFFECTALL;
+		t->flag |= T_NULL_ONE;
+		t->num.flag |= NUM_NULL_ONE;
+		t->num.flag |= NUM_AFFECT_ALL;
 		if (!G.obedit) {
-			t->flag |= NOZERO;
-			t->num.flag |= NOZERO;
+			t->flag |= T_NO_ZERO;
+			t->num.flag |= NUM_NO_ZERO;
 		}
 		break;
 	case TFM_TOSPHERE:
-		t->num.flag |= NULLONE;
-		t->num.flag |= NONEGATIVE;
-		t->flag |= NOCONSTRAINT;
+		t->num.flag |= NUM_NULL_ONE;
+		t->num.flag |= NUM_NO_NEGATIVE;
+		t->flag |= T_NO_CONSTRAINT;
 		break;
 	case TFM_SHEAR:
-		t->flag |= NOCONSTRAINT;
+		t->flag |= T_NO_CONSTRAINT;
 		break;
 	}
 }
@@ -381,8 +385,9 @@ void initTrans (TransInfo *t)
 	t->data = NULL;
 	t->ext = NULL;
 
-	getmouseco_areawin(t->imval);
 	t->flag = 0;
+
+	getmouseco_areawin(t->imval);
 	t->con.imval[0] = t->imval[0];
 	t->con.imval[1] = t->imval[1];
 

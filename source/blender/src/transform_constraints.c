@@ -116,7 +116,7 @@ void getConstraintMatrix(TransInfo *t);
 void constraintNumInput(TransInfo *t, float vec[3])
 {
 	int mode = t->con.mode;
-	float nval = (t->num.flag & NULLONE)?1.0f:0.0f;
+	float nval = (t->flag & T_NULL_ONE)?1.0f:0.0f;
 
 	if (getConstraintSpaceDimension(t) == 2) {
 		if (mode & (CON_AXIS0|CON_AXIS1)) {
@@ -157,7 +157,7 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3]) {
 
 	snapGrid(t, vec);
 
-	if (t->num.flag & NULLONE) {
+	if (t->num.flag & T_NULL_ONE) {
 		if (!(t->con.mode & CON_AXIS0))
 			vec[0] = 1.0f;
 

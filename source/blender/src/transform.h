@@ -140,13 +140,12 @@ typedef struct TransInfo {
 
 /* ******************** Macros & Prototypes *********************** */
 
-/* MODE AND NUMINPUT FLAGS */
-#define NOCONSTRAINT	1
-#define NULLONE			2
-#define NONEGATIVE		4
-#define	NOZERO			8
-#define NOFRACTION		16
-#define	AFFECTALL		32
+/* NUMINPUT FLAGS */
+#define NUM_NULL_ONE		2
+#define NUM_NO_NEGATIVE		4
+#define	NUM_NO_ZERO			8
+#define NUM_NO_FRACTION		16
+#define	NUM_AFFECT_ALL		32
 
 /* transinfo->flag */
 #define T_OBJECT		1
@@ -158,6 +157,12 @@ typedef struct TransInfo {
 #define T_SHIFT_MOD		32
 		// for manipulator exceptions, like scaling using center point, drawing help lines
 #define T_USES_MANIPULATOR	128
+
+/* restrictions flags */
+#define T_ALL_RESTRICTIONS	(256|512|1024)
+#define T_NO_CONSTRAINT	256
+#define T_NULL_ONE		512
+#define T_NO_ZERO		1024
 
 
 /* transinfo->con->mode */
