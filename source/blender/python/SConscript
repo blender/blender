@@ -47,7 +47,7 @@ source_files = ['BPY_interface.c',
                 'api2_2x/matrix.c',
 		    'api2_2x/euler.c',
 		    'api2_2x/quat.c',
-                'api2_2x/Mathutils.c'
+                'api2_2x/Mathutils.c',
                 'api2_2x/rgbTuple.c',
                 'api2_2x/gen_utils.c',
                 'api2_2x/EXPP_interface.c']
