@@ -44,7 +44,6 @@
 #define UI_HELVB		1
 
 
-/* MAART: moved from Button.h */
 /* Button types */
 #define CHA	32
 #define SHO	64

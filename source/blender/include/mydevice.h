@@ -3,9 +3,11 @@
 #define __MYDEVICE_H__
 
 /*
- * 
- *   mouse / timer / window: tot 0x020
- *   eigen codes: 0x4...
+ *  This file has its origin at sgi, where all device defines were written down.
+ *  Blender copied this concept quite some, and expanded it with internal new defines (ton)
+ *
+ *   mouse / timer / window: until 0x020
+ *   custom codes: 0x4...
  * 
  * $Id$
  *
@@ -198,7 +200,7 @@
 #define UI_BUT_EVENT		0x4008
 #define AUTOSAVE_FILE		0x4009
 
-/* REDRAWVIEW3D moet de eerste zijn (laagste nummer) voor buttons! */
+/* REDRAWVIEW3D has to be the first one (lowest number) for buttons! */
 #define REDRAWVIEW3D		0x4010
 
 #define REDRAWBUTSHEAD		0x4011
