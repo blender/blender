@@ -764,15 +764,11 @@ static PyObject *Object_getParent (BPy_Object *self)
     PyObject *attr;
 
     if (self->parent)
-    {
-        Py_INCREF ((PyObject*)self->parent);
-        return ((PyObject*)self->parent);
-    }
+        return EXPP_incr_ret ((PyObject*) self->parent);
 
     if (self->object->parent == NULL)
-    {
-        return (EXPP_incr_ret (Py_None));
-    }
+        return EXPP_incr_ret (Py_None);
+
     attr = Object_CreatePyObject (self->object->parent);
 
     if (attr)
@@ -790,12 +786,11 @@ static PyObject *Object_getTracked (BPy_Object *self)
     PyObject    *attr;
 
     if (self->track)
-    {
-        Py_INCREF ((PyObject*)self->track);
-        return ((PyObject*)self->track);
-    }
+        return EXPP_incr_ret ((PyObject*)self->track);
 
-    /* TODO: what if self->object->track==NULL? Should we return Py_None? */
+    if (self->object->track == NULL)
+        return EXPP_incr_ret (Py_None);
+    
     attr = Object_CreatePyObject (self->object->track);
 
     if (attr)
