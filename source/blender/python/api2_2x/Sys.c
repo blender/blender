@@ -41,6 +41,7 @@
 /*****************************************************************************/
 static PyObject *M_sys_basename (PyObject *self, PyObject *args);
 static PyObject *M_sys_dirname (PyObject *self, PyObject *args);
+static PyObject *M_sys_join (PyObject *self, PyObject *args);
 static PyObject *M_sys_splitext (PyObject *self, PyObject *args);
 static PyObject *M_sys_makename (PyObject *self, PyObject *args, PyObject *kw);
 static PyObject *M_sys_exists (PyObject *self, PyObject *args);
@@ -64,6 +65,10 @@ Return the filename.";
 static char M_sys_dirname_doc[] =
 "(path) - Split 'path' in dir and filename.\n\
 Return the dir.";
+
+static char M_sys_join_doc[] =
+"(dir, file) - Join dir and file to form a full filename.\n\
+Return the filename.";
 
 static char M_sys_splitext_doc[] =
 "(path) - Split 'path' in root and extension:\n\
@@ -95,6 +100,7 @@ static char M_sys_exists_doc[] =
 struct PyMethodDef M_sys_methods[] = {
   {"basename",    M_sys_basename,        METH_VARARGS, M_sys_basename_doc},
   {"dirname",     M_sys_dirname,         METH_VARARGS, M_sys_dirname_doc},
+  {"join",        M_sys_join,            METH_VARARGS, M_sys_join_doc},
   {"splitext",    M_sys_splitext,        METH_VARARGS, M_sys_splitext_doc},
   {"makename", (PyCFunction)M_sys_makename, METH_VARARGS|METH_KEYWORDS,
 		M_sys_makename_doc},
@@ -158,8 +164,7 @@ static PyObject *M_sys_basename (PyObject *self, PyObject *args)
 		if (n > FILE_MAXFILE)
 			return EXPP_ReturnPyObjError(PyExc_RuntimeError, "path too long");
 
-		BLI_strncpy(basename, p+1, n); /* + 1 to skip the sep */
-		basename[n] = '\0';
+		BLI_strncpy(basename, p + 1, n + 1);
 		return Py_BuildValue("s", basename);
 	}
 
@@ -190,12 +195,45 @@ static PyObject *M_sys_dirname (PyObject *self, PyObject *args)
 		if (n > FILE_MAXDIR)
 			return EXPP_ReturnPyObjError (PyExc_RuntimeError, "path too long");
 
-		BLI_strncpy(dirname, name, n);
-		dirname[n] = '\0';
+		BLI_strncpy(dirname, name, n + 1);
 		return Py_BuildValue("s", dirname);
 	}
 
 	return Py_BuildValue("s", ".");
+}
+
+static PyObject *M_sys_join (PyObject *self, PyObject *args)
+{
+	PyObject *c = NULL;
+	char *name = NULL, *path = NULL;
+	char filename[FILE_MAXDIR+FILE_MAXFILE];
+	char sep;
+	int pathlen = 0, namelen = 0;
+
+	if (!PyArg_ParseTuple(args, "ss", &path, &name))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+							"expected string argument");
+
+	pathlen = strlen(path) + 1;
+	namelen = strlen(name) + 1; /* + 1 to account for '\0' for BLI_strncpy */
+
+	if (pathlen + namelen > FILE_MAXDIR+FILE_MAXFILE - 1)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError, "filename is too long.");
+
+	c = PyObject_GetAttrString (g_sysmodule, "dirsep");
+	sep = PyString_AsString(c)[0];
+	Py_DECREF(c);
+	
+	BLI_strncpy(filename, path, pathlen);
+
+	if (filename[pathlen - 2] != sep) {
+		filename[pathlen - 1] = sep;
+		pathlen += 1;
+	}
+
+	BLI_strncpy(filename + pathlen - 1, name, namelen);
+
+	return Py_BuildValue("s", filename);
 }
 
 static PyObject *M_sys_splitext (PyObject *self, PyObject *args)
@@ -233,10 +271,8 @@ static PyObject *M_sys_splitext (PyObject *self, PyObject *args)
 	if (n > FILE_MAXFILE || (len - n ) > FILE_MAXFILE)
 		EXPP_ReturnPyObjError(PyExc_RuntimeError, "path too long");
 
-	BLI_strncpy(ext, dot, n);
-	ext[n] = '\0';
-	BLI_strncpy(path, name, dot - name);
-	path[dot - name] = '\0';
+	BLI_strncpy(ext, dot, n + 1);
+	BLI_strncpy(path, name, dot - name + 1);
 
 	return Py_BuildValue("ss", path, ext);
 }
@@ -256,8 +292,8 @@ static PyObject *M_sys_makename(PyObject *self, PyObject *args, PyObject *kw)
 		return EXPP_ReturnPyObjError (PyExc_TypeError,
 			"expected one or two strings and an int (or nothing) as arguments");
 
-	len = strlen(path);
-	if (ext) lenext = strlen(ext);
+	len = strlen(path) + 1; /* + 1 to consider ending '\0' */
+	if (ext) lenext = strlen(ext) + 1;
 
 	if ((len + lenext) > FILE_MAXFILE)
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError, "path too long");
@@ -269,16 +305,11 @@ static PyObject *M_sys_makename(PyObject *self, PyObject *args, PyObject *kw)
 	p = strrchr(path, sep);
 
 	if (p && strip) {
-		n = path + len - p - 1; /* - 1 because we don't want the sep */
-
-		BLI_strncpy(basename, p+1, n); /* + 1 to skip the sep */
-		basename[n] = 0;
+		n = path + len - p;
+		BLI_strncpy(basename, p + 1, n); /* + 1 to skip the sep */
 	}
-	else {
+	else
 		BLI_strncpy(basename, path, len);
-		n = len;
-		basename[n] = '\0';
-	}
 
 	dot = strrchr(basename, '.');
 
@@ -291,8 +322,7 @@ static PyObject *M_sys_makename(PyObject *self, PyObject *args, PyObject *kw)
 			if (dot) n = dot - basename;
 			else n = strlen(basename);
 
-			BLI_strncpy(basename + n, ext, lenext + 1);
-			basename[n+lenext] = '\0';
+			BLI_strncpy(basename + n, ext, lenext);
 		}
 	}
 

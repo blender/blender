@@ -6,7 +6,7 @@ The Blender.sys submodule.
 sys
 ===
 
-B{New}: L{exists}, L{makename}.
+B{New}: L{exists}, L{makename}, L{join}.
 
 This module provides a minimal set of helper functions and data.  Its purpose
 is to avoid the need for the standard Python module 'os', in special 'os.path',
@@ -57,6 +57,20 @@ def dirname (path):
   @param path: a path name
   @rtype: string
   @return: the dir name
+  """
+
+def join (dir, file):
+  """
+  Join the given dir and file paths, using the proper separator for each
+  platform.
+  @type dir: string
+  @type file: string
+  @param dir: the dir name, like returned from L{dirname}.
+  @param file: the bare filename, like returned from L{basename}.
+  @rtype: string
+  @return: the resulting filename.
+  @warn: this simple function isn't intended to be a complete replacement for
+     the standard os.path.join() one, which handles more general cases.
   """
 
 def splitext (path):

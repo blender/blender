@@ -368,13 +368,13 @@ static int Button_setattr (PyObject *self, char *name, PyObject *v)
 			/* if the length of the new string is the same as */
 			/* the old one, just copy, else delete and realloc. */
 			if (but->slen == strlen (newstr)) {
-				BLI_strncpy (but->val.asstr, newstr, but->slen);
+				BLI_strncpy (but->val.asstr, newstr, but->slen + 1);
 			}
 			else {
 				MEM_freeN (but->val.asstr);
 				but->slen = strlen (newstr);
 				but->val.asstr = MEM_mallocN (but->slen + 1, "button setattr");
-				strcpy (but->val.asstr, newstr);
+				BLI_strncpy (but->val.asstr, newstr, but->slen + 1);
 			}
 		}
 	}
@@ -1153,7 +1153,7 @@ static PyObject *Method_PupStrInput (PyObject *self, PyObject *args)
 	/* copying the text string handles both cases:
 	 * max < strlen(text) (by truncating) and
 	 * max > strlen(text) (by expanding to strlen(tmp)) */
-	BLI_strncpy(tmp, text, max);
+	BLI_strncpy(tmp, text, max + 1);
 
 	if (sbutton (tmp, 0, max, textMsg) == 0) {
 		Py_INCREF (Py_None);
