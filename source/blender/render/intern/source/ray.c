@@ -1250,7 +1250,8 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr, int mask)
 			vlr->n[0]= -vlr->n[0];
 			vlr->n[1]= -vlr->n[1];
 			vlr->n[2]= -vlr->n[2];
-			vlr->puno= ~(vlr->puno);
+			// only flip lower 4 bits
+			vlr->puno= vlr->puno ^ 15;
 		}
 	}
 	
@@ -1291,7 +1292,8 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr, int mask)
 		vlr->n[0]= -vlr->n[0];
 		vlr->n[1]= -vlr->n[1];
 		vlr->n[2]= -vlr->n[2];
-		vlr->puno= ~(vlr->puno);
+		// only flip lower 4 bits
+		vlr->puno= vlr->puno ^ 15;
 	}
 }
 

@@ -580,8 +580,22 @@ static int cubemap(MTex *mtex, VlakRen *vlr, float x, float y, float z, float *a
 {
 	int proj[4], ret= 0;
 	
-	if(vlr && vlr->mface) {
+	if(vlr) {
 		int index;
+		
+		/* Mesh vertices have such flags, for others we calculate it once based on orco */
+		if((vlr->puno & (ME_PROJXY|ME_PROJXZ|ME_PROJYZ))==0) {
+			if(vlr->v1->orco) {
+				float nor[3];
+				CalcNormFloat(vlr->v1->orco, vlr->v2->orco, vlr->v3->orco, nor);
+				
+				if( fabs(nor[0])<fabs(nor[2]) && fabs(nor[1])<fabs(nor[2]) ) vlr->puno |= ME_PROJXY;
+				else if( fabs(nor[0])<fabs(nor[1]) && fabs(nor[2])<fabs(nor[1]) ) vlr->puno |= ME_PROJXZ;
+				else vlr->puno |= ME_PROJYZ;
+			}
+			else return cubemap_glob(mtex, vlr, x, y, z, adr1, adr2);
+		}
+		
 		/* the mtex->proj{xyz} have type char. maybe this should be wider? */
 		/* casting to int ensures that the index type is right.            */
 		index = (int) mtex->projx;
@@ -593,11 +607,11 @@ static int cubemap(MTex *mtex, VlakRen *vlr, float x, float y, float z, float *a
 		index = (int) mtex->projz;
 		proj[index]= ME_PROJYZ;
 		
-		if(vlr->mface->puno & proj[1]) {
+		if(vlr->puno & proj[1]) {
 			*adr1 = (x + 1.0) / 2.0;
 			*adr2 = (y + 1.0) / 2.0;	
 		}
-		else if(vlr->mface->puno & proj[2]) {
+		else if(vlr->puno & proj[2]) {
 			*adr1 = (x + 1.0) / 2.0;
 			*adr2 = (z + 1.0) / 2.0;
 			ret= 1;
@@ -607,9 +621,11 @@ static int cubemap(MTex *mtex, VlakRen *vlr, float x, float y, float z, float *a
 			*adr2 = (z + 1.0) / 2.0;
 			ret= 2;
 		}		
-	} else
+	} 
+	else {
 		return cubemap_glob(mtex, vlr, x, y, z, adr1, adr2);
-
+	}
+	
 	return ret;
 }
 

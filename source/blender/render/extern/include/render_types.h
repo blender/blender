@@ -171,7 +171,6 @@ struct halosort {
 
 /* ------------------------------------------------------------------------- */
 struct Material;
-struct MFace;
 struct TFace;
 
 typedef struct RadFace {
@@ -185,7 +184,6 @@ typedef struct VlakRen
 	struct VertRen *v1, *v2, *v3, *v4;
 	float n[3], len;
 	struct Material *mat;
-	struct MFace *mface;
 	struct TFace *tface;
 	unsigned int *vcol;
 	char snproj, puno;

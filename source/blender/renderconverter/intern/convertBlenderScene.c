@@ -570,7 +570,7 @@ static void normalenrender(int startvert, int startvlak)
 			adrve3= vlr->v3;
 			adrve4= vlr->v4;
 	
-			vlr->puno= 0;
+			vlr->puno &= ~15;
 			fac= vlr->n[0]*adrve1->n[0]+vlr->n[1]*adrve1->n[1]+vlr->n[2]*adrve1->n[2];
 			if(fac<0.0) vlr->puno= 1;
 			fac= vlr->n[0]*adrve2->n[0]+vlr->n[1]*adrve2->n[1]+vlr->n[2]*adrve2->n[2];
@@ -1390,7 +1390,6 @@ static void init_render_mball(Object *ob)
 		/* render normal are inverted */
 		vlr->len= CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->n);
 
-		vlr->mface= 0;
 		vlr->mat= ma;
 		vlr->puno= 0;
 		vlr->flag= ME_SMOOTH+R_NOPUNOFLIP;
@@ -1603,13 +1602,13 @@ static void init_render_mesh(Object *ob)
 							    vlr->v1->co, vlr->n);
 							else vlr->len= CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co,
 							    vlr->n);
-							vlr->mface= mface;
+
 							vlr->mat= ma;
 							vlr->puno= mface->puno;
 							vlr->flag= mface->flag;
 							if((me->flag & ME_NOPUNOFLIP) || (ma->mode & MA_RAYTRANSP)) {
 								vlr->flag |= R_NOPUNOFLIP;
-								vlr->puno= 15;
+								vlr->puno |= 15;  // no flip
 							}
 							vlr->ec= mface->edcode;
 							vlr->lay= ob->lay;
@@ -1645,7 +1644,6 @@ static void init_render_mesh(Object *ob)
 
 							vlr->n[0]=vlr->n[1]=vlr->n[2]= 0.0;
 
-							vlr->mface= mface;
 							vlr->mat= ma;
 							vlr->puno= mface->puno;
 							vlr->flag= mface->flag;
@@ -2591,7 +2589,6 @@ static void init_render_curve(Object *ob)
 
 				VECCOPY(vlr->n, n);
 
-				vlr->mface= 0;
 				vlr->mat= matar[ dl->col ];
 				vlr->puno= 0;
 				vlr->flag= 0;

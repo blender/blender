@@ -279,7 +279,8 @@ void set_normalflags(void)
 			vec[2]= vlr->v1->co[2];
 
 			if( (vec[0]*vlr->n[0] +vec[1]*vlr->n[1] +vec[2]*vlr->n[2])<0.0 ) {
-				vlr->puno= ~(vlr->puno);
+				// only flip lower 4 bits
+				vlr->puno= vlr->puno ^ 15;
 				vlr->n[0]= -vlr->n[0];
 				vlr->n[1]= -vlr->n[1];
 				vlr->n[2]= -vlr->n[2];
