@@ -66,8 +66,12 @@
 
 #define MAXPATHLEN MAX_PATH
 
+#ifndef S_ISREG
 #define S_ISREG(x) ((x&S_IFMT) == S_IFREG)
+#endif
+#ifndef S_ISDIR
 #define S_ISDIR(x) ((x&S_IFMT) == S_IFDIR)
+#endif
 
 typedef unsigned int mode_t;
 
