@@ -116,7 +116,6 @@
 
 /****/
 
-static void free_editverts(ListBase *edve);
 static float convex(float *v1, float *v2, float *v3, float *v4);
 
 /* EditMesh Undo */
@@ -128,12 +127,6 @@ void load_editMesh_real(Mesh *me, int);
 /* extern ListBase fillvertbase, filledgebase; */ /* scanfill.c, in
     the lib... already in BLI_blenlib.h */
 
-/*  for debug:
-#define free(a)			freeN(a)
-#define malloc(a)		mallocN(a, "malloc")
-#define calloc(a, b)	callocN((a)*(b), "calloc")
-#define freelist(a)		freelistN(a)
-*/
 
 extern short editbutflag;
 
@@ -231,41 +224,13 @@ static int vergvlak(const void *v1, const void *v2)
 #define EDHASH(a, b)	( (a)*256 + (b) )
 #define EDHASHSIZE	65536
 
-#if 0
-static void check_hashedge(void)
-{
-	int i, i2,  doubedge=0;
-	struct HashEdge *he,  *he2;
-	
-	for (i=0; i<64; i++) {
-		he= hashedgetab+i;
-		
-		while (he && he->eed) {
-			for (i2=i+1; i2<64; i2++) {
-				he2= hashedgetab+i2;
-				
-				while (he2) {
-					if (he->eed == he2->eed) doubedge++;
-									
-					he2= he2->next;
-				}	
-			}
-			
-			he= he->next;
-		}	
-	}
-	
-	if (doubedge) printf("%d double edges!\n", doubedge);
-}
-#endif
-
 EditVert *addvertlist(float *vec)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	static unsigned char hashnr= 0;
 
-	eve= calloc(sizeof(EditVert),1);
+	eve= calloc(sizeof(EditVert), 1);
 	BLI_addtail(&em->verts, eve);
 	
 	if(vec) VECCOPY(eve->co, vec);
@@ -411,32 +376,69 @@ EditEdge *addedgelist(EditVert *v1, EditVert *v2)
 	return eed;
 }
 
+static void free_editvert (EditVert *eve)
+{
+	if (eve->dw) MEM_freeN (eve->dw);
+	free (eve);
+}
 
 void remedge(EditEdge *eed)
 {
 	EditMesh *em = G.editMesh;
 
 	BLI_remlink(&em->edges, eed);
-
 	remove_hashedge(eed);
 }
 
-static void freevlak(EditVlak *evl)
+static void free_editedge(EditEdge *eed)
+{
+	free(eed);
+}
+
+static void free_editvlak(EditVlak *evl)
 {
 	free(evl);
 }
 
-static void freevlaklist(ListBase *lb)
+static void free_vertlist(ListBase *edve) 
+{
+	EditVert *eve, *next;
+
+	if (!edve) return;
+
+	eve= edve->first;
+	while(eve) {
+		next= eve->next;
+		free_editvert(eve);
+		eve= next;
+	}
+	edve->first= edve->last= NULL;
+}
+
+static void free_edgelist(ListBase *lb)
+{
+	EditEdge *eed, *next;
+	
+	eed= lb->first;
+	while(eed) {
+		next= eed->next;
+		free_editedge(eed);
+		eed= next;
+	}
+	lb->first= lb->last= NULL;
+}
+
+static void free_vlaklist(ListBase *lb)
 {
 	EditVlak *evl, *next;
 	
 	evl= lb->first;
 	while(evl) {
 		next= evl->next;
-		freevlak(evl);
+		free_editvlak(evl);
 		evl= next;
 	}
-	lb->first= lb->last= 0;
+	lb->first= lb->last= NULL;
 }
 
 EditVlak *addvlaklist(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, EditVlak *example)
@@ -488,6 +490,8 @@ EditVlak *addvlaklist(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, Ed
 	return evl;
 }
 
+/* ********* end add / new / find */
+
 static int comparevlak(EditVlak *vl1, EditVlak *vl2)
 {
 	EditVert *v1, *v2, *v3, *v4;
@@ -524,24 +528,6 @@ static int comparevlak(EditVlak *vl1, EditVlak *vl2)
 
 	return 0;
 }
-
-
-#if 0
-static int dubbelvlak(EditVlak *evltest)
-{
-	
-	EditVlak *evl;
-	
-	evl= em->faces.first;
-	while(evl) {
-		if(evl!=evltest) {
-			if(comparevlak(evltest, evl)) return 1;
-		}
-		evl= evl->next;
-	}
-	return 0;
-}
-#endif
 
 static int exist_vlak(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4)
 {
@@ -919,44 +905,13 @@ void vertexnormals(int testflip)
 
 void free_editMesh(void)
 {
+	
 	EditMesh *em = G.editMesh;
-//	if(em->verts.first) BLI_freelist(&em->verts);
-	if(em->verts.first) free_editverts(&em->verts);
-	if(em->edges.first) BLI_freelist(&em->edges);
-	if(em->faces.first) freevlaklist(&em->faces);
+	if(em->verts.first) free_vertlist(&em->verts);
+	if(em->edges.first) free_edgelist(&em->edges);
+	if(em->faces.first) free_vlaklist(&em->faces);
 	free_hashedgetab();
 	G.totvert= G.totface= 0;
-}
-
-static void free_editverts(ListBase *edve) {
-#ifdef __NLA
-	EditVert *eve;
-#endif
-
-	if (!edve)
-		return;
-
-	if (!edve->first)
-		return;
-
-#ifdef __NLA
-	for (eve= edve->first; eve; eve=eve->next){
-		if (eve->dw)
-			MEM_freeN (eve->dw);
-	}
-#endif
-
-	BLI_freelist (edve);
-
-}
-
-static void free_editvert (EditVert *eve)
-{
-#ifdef __NLA
-	if (eve->dw)
-		MEM_freeN (eve->dw);
-#endif
-	free (eve);
 }
 
 void make_editMesh(void)
@@ -1755,7 +1710,7 @@ void convert_to_triface(int all)
 				evln->tf.col[2]= evln->tf.col[3];
 				
 				BLI_remlink(&em->faces, evl);
-				freevlak(evl);
+				free_editvlak(evl);
 			}
 		}
 		evl= next;
@@ -2711,8 +2666,8 @@ void loopoperations(char mode)
 				ect++;
 		}		
 		
-		tagged = malloc(ect*sizeof(EditEdge*));
-		taggedsrch = malloc(ect*sizeof(EditEdge*));
+		tagged = MEM_mallocN(ect*sizeof(EditEdge*), "tagged");
+		taggedsrch = MEM_mallocN(ect*sizeof(EditEdge*), "taggedsrch");
 		for(i=0;i<ect;i++)
 		{
 			tagged[i] = NULL;
@@ -2810,7 +2765,7 @@ void loopoperations(char mode)
 		}
 			
 		/* create a dynamic array for those face pointers */
-		percentfacesloop = malloc(percentfaces*sizeof(EditVlak*));
+		percentfacesloop = MEM_mallocN(percentfaces*sizeof(EditVlak*), "percentage");
 
 		/* put those faces in the array */
 		i=0;
@@ -2826,7 +2781,7 @@ void loopoperations(char mode)
 			
 			/* For the % calculation */
 			short mval[2];			
-			float labda, rc[2], len, slen;
+			float labda, rc[2], len, slen=0.0;
 			float v1[2], v2[2], v3[2];
 
 			/*------------- Percent Cut Preview Lines--------------- */
@@ -3262,11 +3217,11 @@ void loopoperations(char mode)
 	countall();
 
 	if(tagged)
-		free(tagged);
+		MEM_freeN(tagged);
 	if(taggedsrch)
-		free(taggedsrch);
+		MEM_freeN(taggedsrch);
 	if(percentfacesloop)
-		free(percentfacesloop);
+		MEM_freeN(percentfacesloop);
 	
 	/* send event to redraw this window, does header too */	
 	SetBlenderCursor(SYSCURSOR);
@@ -3676,7 +3631,7 @@ short extrudeflag(short flag,short type)
 			nexted= eed->next;
 			if(eed->f==3 && eed->f1==1) {
 				remedge(eed);
-				free(eed);
+				free_editedge(eed);
 			}
 			eed= nexted;
 		}
@@ -3696,7 +3651,7 @@ short extrudeflag(short flag,short type)
 			
 			if(deloud) {
 				BLI_remlink(&em->faces, evl);
-				freevlak(evl);
+				free_editvlak(evl);
 			}
 			if (smooth) evl2->flag |= ME_SMOOTH;			
 		}
@@ -3714,7 +3669,6 @@ short extrudeflag(short flag,short type)
 			else if( (eve->f & 128)==0) {
 				if(deloud) {
 					BLI_remlink(&em->verts,eve);
-//					free(eve);
 					free_editvert(eve);
 					eve= NULL;
 				}
@@ -3855,7 +3809,7 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 				e1= addedgelist(eed->v1,eed->v2);
 				
 				if(e1) e1->f= 1;
-				if(e1!=eed) free(eed);
+				if(e1!=eed) free_editedge(eed);
 			}
 		}
 		eed= nexted;
@@ -3908,13 +3862,13 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 					}
 					else {
 						BLI_remlink(&em->faces, evl);
-						freevlak(evl);
+						free_editvlak(evl);
 						aantal--;
 					}
 				}
 				else {
 					BLI_remlink(&em->faces, evl);
-					freevlak(evl);
+					free_editvlak(evl);
 					aantal--;
 				}
 			}
@@ -3997,7 +3951,7 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 			nextvl= evl->next;
 			if(evl->f & 128) {
 				BLI_remlink(&em->faces, evl);
-				freevlak(evl);
+				free_editvlak(evl);
 			}
 			evl= nextvl;
 		}
@@ -4012,8 +3966,6 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 			if(eve->f & 128) {
 				a++;
 				BLI_remlink(&em->verts, eve);
-				
-//				free(eve);
 				free_editvert(eve);
 			}
 		}
@@ -4774,7 +4726,7 @@ void subdivideflag(int flag, float rad, int beauty)
 				addedgelist(eed->vn,eed->v2);
 			}						
 			remedge(eed);
-			free(eed);
+			free_editedge(eed);
 		}
 		eed= nexted;
 	}
@@ -4877,7 +4829,7 @@ static void delvlakflag(int flag)
 			}
 								
 			BLI_remlink(&em->faces, evl);
-			freevlak(evl);
+			free_editvlak(evl);
 		}
 		evl= nextvl;
 	}
@@ -4900,7 +4852,7 @@ static void delvlakflag(int flag)
 		nexted= eed->next;
 		if(eed->f==1) {
 			remedge(eed);
-			free(eed);
+			free_editedge(eed);
 		}
 		else if( (eed->v1->f & flag) || (eed->v2->f & flag) ) {
 			eed->v1->f&= ~flag;
@@ -4914,7 +4866,6 @@ static void delvlakflag(int flag)
 		nextve= eve->next;
 		if(eve->f & flag) {
 			BLI_remlink(&em->verts, eve);
-//			free(eve);
 			free_editvert(eve);
 		}
 		eve= nextve;
@@ -5451,7 +5402,6 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 			nextve= eve->next;
 			if(eve->f & 1) {
 				BLI_remlink(&em->verts,eve);
-//				free(eve);
 				free_editvert(eve);
 			}
 			eve= nextve;
@@ -5682,7 +5632,7 @@ static void erase_edges(ListBase *l)
 		nexted= ed->next;
 		if( (ed->v1->f & 1) || (ed->v2->f & 1) ) {
 			remedge(ed);
-			free(ed);
+			free_editedge(ed);
 		}
 		ed= nexted;
 	}
@@ -5698,7 +5648,7 @@ static void erase_faces(ListBase *l)
 		nextf= f->next;
 		if( vlakselectedOR(f, 1) ) {
 			BLI_remlink(l, f);
-			freevlak(f);
+			free_editvlak(f);
 		}
 		f = nextf;
 	}
@@ -5752,7 +5702,7 @@ void delete_mesh(void)
 			if(evl->v4 && (evl->v4->f & 1)) count++;
 			if(count>1) {
 				BLI_remlink(&em->faces, evl);
-				freevlak(evl);
+				free_editvlak(evl);
 			}
 			evl= nextvl;
 		}
@@ -5761,7 +5711,7 @@ void delete_mesh(void)
 			nexted= eed->next;
 			if( (eed->v1->f & 1) && (eed->v2->f & 1) ) {
 				remedge(eed);
-				free(eed);
+				free_editedge(eed);
 			}
 			eed= nexted;
 		}
@@ -5776,7 +5726,7 @@ void delete_mesh(void)
 			
 			if(event>1) {
 				BLI_remlink(&em->faces, evl);
-				freevlak(evl);
+				free_editvlak(evl);
 			}
 			evl= nextvl;
 		}
@@ -5788,7 +5738,7 @@ void delete_mesh(void)
 			nexted= eed->next;
 			if( (eed->v1->f & 1) && (eed->v2->f & 1) ) {
 				remedge(eed);
-				free(eed);
+				free_editedge(eed);
 			}
 			eed= nexted;
 		}
@@ -5803,7 +5753,7 @@ void delete_mesh(void)
 			
 			if(event>1) {
 				BLI_remlink(&em->faces, evl);
-				freevlak(evl);
+				free_editvlak(evl);
 			}
 			evl= nextvl;
 		}
@@ -5819,7 +5769,6 @@ void delete_mesh(void)
 			nextve= eve->next;
 			if(eve->f & 1) {
 				BLI_remlink(&em->verts,eve);
-//				free(eve);
 				free_editvert(eve);
 			}
 			eve= nextve;
@@ -5832,10 +5781,9 @@ void delete_mesh(void)
 	}
 	else if(event==3) {
 		undo_push_mesh("Erase All");
-//		if(em->verts.first) BLI_freelist(&em->verts);
-		if(em->verts.first) free_editverts(&em->verts);
-		if(em->edges.first) BLI_freelist(&em->edges);
-		if(em->faces.first) freevlaklist(&em->faces);
+		if(em->verts.first) free_vertlist(&em->verts);
+		if(em->edges.first) free_edgelist(&em->edges);
+		if(em->faces.first) free_vlaklist(&em->faces);
 	}
 	else if(event==5) {
 		undo_push_mesh("Erase Only Faces");
@@ -5844,7 +5792,7 @@ void delete_mesh(void)
 			nextvl= evl->next;
 			if(vlakselectedAND(evl, 1)) {
 				BLI_remlink(&em->faces, evl);
-				freevlak(evl);
+				free_editvlak(evl);
 			}
 			evl= nextvl;
 		}
@@ -6586,7 +6534,7 @@ static void free_tagged_edgelist(EditEdge *eed)
 		nexted= eed->next;
 		if(eed->f1) {
 			remedge(eed);
-			free(eed);
+			free_editedge(eed);
 		}
 		eed= nexted;
 	}	
@@ -6602,7 +6550,7 @@ static void free_tagged_facelist(EditVlak *evl)
 		nextvl= evl->next;
 		if(evl->f1) {
 			BLI_remlink(&em->faces, evl);
-			freevlak(evl);
+			free_editvlak(evl);
 		}
 		evl= nextvl;
 	}
@@ -7368,13 +7316,13 @@ static void permutate(void *list, int num, int size, int *index)
 
 	len = num * size;
 
-	buf = malloc(len);
+	buf = MEM_mallocN(len, "permutate");
 	memcpy(buf, list, len);
 	
 	for (i = 0; i < num; i++) {
 		memcpy((char *)list + (i * size), (char *)buf + (index[i] * size), size);
 	}
-	free(buf);
+	MEM_freeN(buf);
 }
 
 static MVert *mvertbase;
@@ -7418,7 +7366,7 @@ void sort_faces(void)
 	if(me->totface==0) return;
 
 /*	create index list */
-	index = (int *) malloc(sizeof(int) * me->totface);
+	index = (int *) MEM_mallocN(sizeof(int) * me->totface, "sort faces");
 	for (i = 0; i < me->totface; i++) {
 		index[i] = i;
 	}
@@ -7434,7 +7382,7 @@ void sort_faces(void)
 	if (me->tface) 
 		permutate(me->tface, me->totface, sizeof(TFace), index);
 
-	free(index);
+	MEM_freeN(index);
 
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);
@@ -9134,7 +9082,7 @@ void bevel_menu()
 {
 	char Finished = 0, Canceled = 0, str[100], Recalc = 0;
 	short mval[2], oval[2], curval[2], event = 0, recurs = 1, nr;
-	float vec[3], d, drawd, centre[3], fac = 1;
+	float vec[3], d, drawd=0.0, centre[3], fac = 1;
 
 	getmouseco_areawin(mval);
 	oval[0] = mval[0]; oval[1] = mval[1];
