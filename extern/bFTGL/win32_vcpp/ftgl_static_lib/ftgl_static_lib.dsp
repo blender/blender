@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release_ST"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "D:\cots\freetype-2.0.5\include" /I "..\..\include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "FTGL_LIBRARY_STATIC" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\lib\windows\freetype\include" /I "..\..\include" /I "..\..\..\..\..\lib\windows\freetype\include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "FTGL_LIBRARY_STATIC" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -51,7 +51,11 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"..\Build\ftgl_static_MT.lib"
+# ADD LIB32 /nologo /out:"..\Build\ftgl_static_ST.lib"
+# Begin Special Build Tool
+SOURCE="$(InputPath)"
+PostBuild_Cmds=ECHO Copying lib to lib\windows\ftgl\lib	XCOPY /Y ..\Build\*lib ..\..\..\..\..\lib\windows\ftgl\lib
+# End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "ftgl_static_lib - Win32 Debug"
 
