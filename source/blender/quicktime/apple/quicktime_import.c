@@ -51,6 +51,7 @@
 #endif /* _WIN32 */
 
 #include "quicktime_import.h"
+#include "quicktime_export.h"
 
 
 #define	RECT_WIDTH(r)	(r.right-r.left)
@@ -652,16 +653,21 @@ bail:
 	}
 
 	if(ibuf) {
+
 #ifdef _WIN32
-		// add alpha layer, might also be nescessary for OSX
+// add non transparent alpha layer, so images without alpha show up in the sequence editor
+// exception for GIF images since these can be transparent without being 32 bit
+// (might also be nescessary for OSX)
 		int i;
 		int box = x * y;
 		unsigned char *arect = (unsigned char *) ibuf->rect;
 
-		if(depth < 32)
+		if( depth < 32 && (**desc).cType != kGIFCodecType) {
 			for(i = 0; i < box; i++, arect+=4)
 				 arect[3] = 0xFF;
+		}
 #endif
+
 		IMB_flipy(ibuf);
 		ibuf->ftype = QUICKTIME;
 	}
