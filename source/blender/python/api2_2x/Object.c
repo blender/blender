@@ -439,6 +439,12 @@ static PyObject *M_Object_GetSelected (PyObject *self, PyObject *args)
 	PyObject		* list;
 	Base			* base_iter;
 
+    if (G.vd == NULL)
+    {
+        // No 3d view has been initialized yet, simply return None
+        Py_INCREF (Py_None);
+        return Py_None;
+    }
 	list = PyList_New (0);
 	if ((G.scene->basact) &&
 		((G.scene->basact->flag & SELECT) &&
