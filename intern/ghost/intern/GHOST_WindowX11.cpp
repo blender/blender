@@ -492,13 +492,13 @@ GHOST_WindowX11::
 		XFreeCursor(m_display, m_custom_cursor);
 	}
 	
-	XDestroyWindow(m_display, m_window);
 	if (m_context) {
 		if (m_context == s_firstContext) {
 			s_firstContext = NULL;
 		}
 		glXDestroyContext(m_display, m_context);
 	}
+	XDestroyWindow(m_display, m_window);
 	XFree(m_visual);
 }
 
