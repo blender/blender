@@ -171,7 +171,7 @@ static PyObject *M_NMesh_Face(PyObject *self, PyObject *args)
 
   if (!PyArg_ParseTuple(args, "|O!", &PyList_Type, &vertlist))
         return EXPP_ReturnPyObjError (PyExc_TypeError,
-                        "expected a list of vertices or nothing as argument");
+             "expected a list of vertices or nothing as argument");
 
   if (!vertlist) vertlist = PyList_New(0);
 
@@ -760,15 +760,19 @@ static PyObject *NMesh_update(PyObject *self, PyObject *args)
       return EXPP_ReturnPyObjError (PyExc_AttributeError,
         "expected nothing or an int (0 or 1) as argument");
 
+	if (recalc_normals && recalc_normals != 1)
+      return EXPP_ReturnPyObjError (PyExc_ValueError,
+        "expected 0 or 1 as argument");
+
   if (mesh) {
     unlink_existingMeshData(mesh);
     convert_NMeshToMesh(mesh, nmesh);
   } else { 
     nmesh->mesh = Mesh_fromNMesh(nmesh);
-  }
+		mesh = nmesh->mesh;
+	}
 
-  if(recalc_normals == 1)
-    vertexnormals_mesh(mesh, 0);
+  if (recalc_normals) vertexnormals_mesh(mesh, 0);
 
   mesh_update(mesh);
 
@@ -1350,17 +1354,17 @@ static void mface_from_data(MFace *mf, TFace *tf, MCol *col, BPy_NMFace *from)
   BPy_NMVert *nmv;
 
   int i = PyList_Size(from->v);
-  if(i >= 1) {
+  if (i >= 1) {
     nmv = (BPy_NMVert *)PyList_GetItem(from->v, 0);
     if (BPy_NMVert_Check(nmv) && nmv->index != -1) mf->v1 = nmv->index;
     else mf->v1 = 0;
   }
-  if(i >= 2) {
+  if (i >= 2) {
     nmv = (BPy_NMVert *)PyList_GetItem(from->v, 1);
     if (BPy_NMVert_Check(nmv) && nmv->index != -1) mf->v2 = nmv->index;
     else mf->v2 = 0;
   }
-  if(i >= 3) {
+  if (i >= 3) {
     nmv = (BPy_NMVert *)PyList_GetItem(from->v, 2);
     if (BPy_NMVert_Check(nmv) && nmv->index != -1) mf->v3 = nmv->index;
     else mf->v3= 0;
@@ -1448,8 +1452,10 @@ void EXPP_unlink_mesh(Mesh *me)
     if(me->mat[a]) me->mat[a]->id.us--;
     me->mat[a]= 0;
   }
-/*  ... here we want to preserve mesh keys
-  if(me->key) me->key->id.us--;
+/*  ... here we want to preserve mesh keys */
+/* if users want to get rid of them, they can use mesh.removeAllKeys() */
+/*
+	if(me->key) me->key->id.us--;
   me->key= 0;
 */
   if(me->texcomesh) me->texcomesh= 0;
@@ -1712,8 +1718,7 @@ static PyObject *M_NMesh_PutRaw(PyObject *self, PyObject *args)
   convert_NMeshToMesh(mesh, nmesh);
   nmesh->mesh = mesh;
 
-  if(recalc_normals)
-    vertexnormals_mesh(mesh, 0);
+  if (recalc_normals) vertexnormals_mesh(mesh, 0);
 
   mesh_update(mesh);
   
