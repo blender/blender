@@ -536,8 +536,8 @@ void select_children(Object *ob, int recursive)
 void select_parent(void)	/* Makes parent active and de-selected OBACT */
 {
 	Base *base, *startbase, *basact=NULL, *oldbasact;
-
-	if (!(OBACT->parent)) return;
+	
+	if (!(OBACT) || !(OBACT->parent)) return;
 	BASACT->flag &= (~SELECT);
 	BASACT->object->flag &= (~SELECT);
 	startbase=  FIRSTBASE;
