@@ -113,7 +113,7 @@ int saveover (char *filename);
 int okee (char *fmt, ...);
 
 short button (short *var, short min, short max, char *str);
-short fbutton (float *var, float min, float max, char *str);
+short fbutton (float *var, float min, float max, float a1, float a2, char *str);
 short sbutton (char *var, float min, float max, char *str);	/* __NLA */
 int movetolayer_buts (unsigned int *lay);
 void draw_numbuts_tip (char *str, int x1, int y1, int x2, int y2);

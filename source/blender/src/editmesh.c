@@ -3273,7 +3273,6 @@ void loopoperations(char mode)
 	addqueue(curarea->win, REDRAW, 1); 
 }
 
-
 void edge_select(void)
 {
 	EditMesh *em = G.editMesh;
@@ -6306,7 +6305,6 @@ void vertexsmooth(void)
 	makeDispList(G.obedit);
 }
 
-
 void vertexnoise(void)
 {
 	EditMesh *em = G.editMesh;
@@ -9134,7 +9132,7 @@ void bevel_mesh_recurs(float bsize, short recurs, int allfaces)
 
 void bevel_menu()
 {
-	char Finished = 0, Canceled = 0, str[100];
+	char Finished = 0, Canceled = 0, str[100], Recalc = 0;
 	short mval[2], oval[2], curval[2], event = 0, recurs = 1, nr;
 	float vec[3], d, drawd, centre[3], fac = 1;
 
@@ -9158,8 +9156,9 @@ void bevel_menu()
 	while (Finished == 0)
 	{
 		getmouseco_areawin(mval);
-		if (mval[0] != curval[0] || mval[1] != curval[1])
+		if (mval[0] != curval[0] || mval[1] != curval[1] || (Recalc == 1))
 		{
+			Recalc = 0;
 			curval[0] = mval[0];
 			curval[1] = mval[1];
 
@@ -9227,8 +9226,14 @@ void bevel_menu()
 				Finished = 1;
 			}
 			else if (val && event==SPACEKEY) {
-				if (fbutton(&d, 0.000, 10.000, "Width:")!=0)
+				if (fbutton(&d, 0.000, 10.000, 10, 0, "Width:")!=0) {
+					drawd = d * fac;
 					Finished = 1;
+				}
+			}
+			else if (val) {
+				/* On any other keyboard event, recalc */
+				Recalc = 1;
 			}
 
 		}	

@@ -1169,7 +1169,7 @@ short sbutton(char *var, float min, float max, char *str)
 	return 0;
 }
 
-short fbutton(float *var, float min, float max, char *str)
+short fbutton(float *var, float min, float max, float a1, float a2, char *str)
 {
 	uiBlock *block;
 	ListBase listb={0, 0};
@@ -1191,7 +1191,7 @@ short fbutton(float *var, float min, float max, char *str)
 	x1=mval[0]-150; 
 	y1=mval[1]-20; 
 	
-	uiDefButF(block, NUM, 0, str,(short)(x1+5),(short)(y1+10),125,20, var, min, max, 0, 0, "");
+	uiDefButF(block, NUM, 0, str,(short)(x1+5),(short)(y1+10),125,20, var, min, max, a1, a2, "");
 	uiDefBut(block, BUT, 1, "OK",(short)(x1+136),(short)(y1+10), 35, 20, NULL, 0, 0, 0, 0, "");
 
 	uiBoundsBlock(block, 2);
