@@ -37,6 +37,15 @@
 
 #ifdef WIN32
 	#pragma warning (disable:4786) // suppress stl-MSVC debug info warning
+	#include <windows.h>
+#endif
+
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#else
+#include <GL/gl.h>
+#include <GL/glu.h>
 #endif
 
 #include "GPG_Application.h"

@@ -6,7 +6,7 @@ class SCA_KeyboardSensor(SCA_ISensor):
 	"""
 	A keyboard sensor detects player key presses.
 	
-	See module GameKeys for keycode values.
+	See module L{GameKeys} for keycode values.
 	"""
 	
 	def getKey():
@@ -18,7 +18,7 @@ class SCA_KeyboardSensor(SCA_ISensor):
 		"""
 		Set the key this sensor should listen for.
 		
-		@type keycode: keycode from GameKeys module
+		@type keycode: keycode from L{GameKeys} module
 		"""
 	
 	def getHold1():

@@ -247,18 +247,7 @@ PyObject* KX_SceneActuator::PySetUseRestart(PyObject* self,
 		return NULL;
 	}
 	
-	if (boolArg == KX_TRUE)
-	{
-		m_restart = true;
-	}
-	else if (boolArg == KX_FALSE)
-	{
-		m_restart = false;
-	}
-	else
-	{
-		; /* internal error */
-	}
+	m_restart = boolArg != 0;
 	
 	Py_Return;
 }

@@ -34,6 +34,19 @@
 #include <config.h>
 #endif
 
+#ifdef WIN32
+#include <windows.h>
+#endif // WIN32
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#else
+#include <GL/gl.h>
+#include <GL/glu.h>
+#endif
+
+
+
 #include "GPC_PolygonMaterial.h"
 #include "MT_Vector3.h"
 #include "RAS_IRasterizer.h"
@@ -65,17 +78,6 @@
 
 #include "IMB_imbuf_types.h"
 /* end of blender include block */
-
-#ifdef WIN32
-#include <windows.h>
-#endif // WIN32
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
 
 static Image *fCurpage=0;
 static int fCurtile=0, fCurmode=0, fCurTileXRep=0, fCurTileYRep=0;

@@ -34,6 +34,8 @@ class KX_Scene:
 		
 		# Depth is negative and decreasing further from the camera
 		depth = obj.position[0]*cam.world_to_camera[2][0] + obj.position[1]*cam.world_to_camera[2][1] + obj.position[2]*cam.world_to_camera[2][2] + cam.world_to_camera[2][3]
+	
+	@bug: All attributes are read only at the moment.
 		
 	@ivar name: The scene's name
 	@type name: string

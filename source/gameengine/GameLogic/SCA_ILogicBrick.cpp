@@ -309,12 +309,9 @@ PyObject* SCA_ILogicBrick::PyGetExecutePriority(PyObject* self,
 /* Conversions for making life better. */
 bool SCA_ILogicBrick::PyArgToBool(int boolArg)
 {
-	if (boolArg == KX_TRUE) {
+	if (boolArg) {
 		return true;
-	} else if (boolArg == KX_FALSE){
-		return false;
 	} else {
-		; /* error: bad conversion: how to catch this? */
 		return false;
 	}
 }

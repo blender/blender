@@ -70,10 +70,11 @@ public:
 class KX_MeshSlot
 {
 public:
-	void*					m_clientObj;
+	void*				m_clientObj;
 	RAS_Deformer*			m_pDeformer;	//	__NLA
-	double*					m_OpenGLMatrix;
-	class RAS_MeshObject*	m_mesh;
+	double*				m_OpenGLMatrix;
+	class RAS_MeshObject*		m_mesh;
+	
 	mutable bool			m_bVisible; // for visibility
 	mutable bool  		    m_bObjectColor;
 	mutable MT_Vector4		m_RGBAcolor;

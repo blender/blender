@@ -369,15 +369,7 @@ PyObject* KX_TouchSensor::PyGetTouchMaterial(PyObject* self,
 											 PyObject* args, 
 											 PyObject* kwds)
 {
-	int retval = 0;
-	
-	if (m_bFindMaterial) {
-		retval = KX_TRUE;
-	} else {
-		retval = KX_FALSE;
-	}
-
-	return PyInt_FromLong(retval);
+	return PyInt_FromLong(m_bFindMaterial);
 }
 
 /* 6. setTouchMaterial */
@@ -394,13 +386,7 @@ PyObject* KX_TouchSensor::PySetTouchMaterial(PyObject* self, PyObject* args, PyO
 		return NULL;
 	}
 	
-	if (pulseArg == KX_TRUE) {
-		m_bFindMaterial = true;
-	} else if (pulseArg == KX_FALSE){
-		m_bFindMaterial = false;
-	} else {
-		; /* internal error */
-	}
+	m_bFindMaterial = pulseArg != 0;
 
 	Py_Return;
 }

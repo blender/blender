@@ -464,7 +464,7 @@ PyObject* SCA_RandomActuator::PySetBoolConst(PyObject* self,
 	}
 	
 	m_distribution = KX_RANDOMACT_BOOL_CONST;
-	if (paraArg == KX_TRUE) {
+	if (paraArg) {
 		m_parameter1 = 1;
 	}
 	

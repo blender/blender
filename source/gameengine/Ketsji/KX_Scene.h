@@ -57,38 +57,38 @@
 struct SM_MaterialProps;
 struct SM_ShapeProps;
 
+class GEN_HashedPtr;
 class CListValue;
-class RAS_BucketManager;
-class KX_Camera;
+class CValue;
 class SCA_LogicManager;
 class SCA_KeyboardManager;
 class SCA_TimeEventManager;
 class SCA_MouseManager;
-class KX_WorldInfo;
+class SCA_ISystem;
+class SCA_IInputDevice;
 class SND_Scene;
 class SND_IAudioDevice;
 class NG_NetworkDeviceInterface;
 class NG_NetworkScene;
+class SG_IObject;
 class SG_Node;
 class SG_Tree;
+class KX_WorldInfo;
 class KX_Camera;
-class GEN_HashedPtr;
 class KX_GameObject;
-class SCA_ISystem;
-class SCA_IInputDevice;
+class KX_LightObject;
+class RAS_BucketManager;
 class RAS_BucketManager;
 class RAS_MaterialBucket;
 class RAS_IPolyMaterial;
 class RAS_IRasterizer;
 class RAS_IRenderTools;
-class CValue;
-class SG_IObject;
 
 /**
  * The KX_Scene holds all data for an independent scene. It relates
  * KX_Objects to the specific objects in the modules.
  * */
-class KX_Scene : public SCA_IScene, public PyObjectPlus
+class KX_Scene : public PyObjectPlus, public SCA_IScene
 {
 	Py_Header;
 protected:

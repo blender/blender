@@ -564,14 +564,14 @@ RAS_MeshObject::polygonSlot::polygonSlot(const MT_Vector3 &pnorm, const MT_Scala
 	{
 		vert = mesh->GetVertex(base.m_vtxarray, base.m_indexarray[i], poly->GetMaterial()->GetPolyMaterial());
 		float z = MT_dot(pnorm, vert->getLocalXYZ()) + pval;
-		if (z > m_z)
+		if (z < m_z)
 			m_z = z;
 	}
 }
 
 void RAS_MeshObject::SortPolygons(const MT_Transform &transform)
 {
-	
+	// Extract camera Z plane...
 	const MT_Vector3 pnorm(transform.getBasis()[2]);
 	const MT_Scalar pval = transform.getOrigin()[2];
 	
@@ -593,6 +593,7 @@ void RAS_MeshObject::SortPolygons(const MT_Transform &transform)
 		}
 	}
 	
+	// Clear current array data.
 	for (RAS_MaterialBucket::Set::iterator it = m_materials.begin();it!=m_materials.end();++it)
 	{
 		vector<KX_IndexArray*> *indexcache = &GetArrayOptimizer((*it)->GetPolyMaterial())->m_IndexArrayCache1;
@@ -600,8 +601,6 @@ void RAS_MeshObject::SortPolygons(const MT_Transform &transform)
 			(*iit)->clear();
 	}
 
-	//ClearArrayData();
-	
 	std::multiset<polygonSlot, fronttoback>::iterator sit = solidpolyset.begin();
 	for (; sit != solidpolyset.end(); ++sit)
 		SchedulePoly((*sit).m_poly->GetVertexIndexBase(), (*sit).m_poly->VertexCount(), (*sit).m_poly->GetMaterial()->GetPolyMaterial());
@@ -659,7 +658,7 @@ void RAS_MeshObject::SchedulePolygons(const MT_Transform &transform, int drawing
 		m_bModified = false;
 	} 
 	
-	if (m_zsort)
+	if (m_zsort && rasty->GetDrawingMode() >= RAS_IRasterizer::KX_SOLID)
 	{
 		SortPolygons(transform);
 	}
