@@ -29,7 +29,7 @@
  *
  *
  * Contributor(s): Michel Selten, Willian Germano, Jacques Guignot,
- * Joseph Gilbert, Stephen Swaney, Bala Gi, Campbell Barton
+ * Joseph Gilbert, Stephen Swaney, Bala Gi, Campbell Barton, Johnny Matthews
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -47,6 +47,7 @@
 #include <BKE_mball.h>
 #include <BKE_font.h>
 #include <BIF_editview.h>
+#include <BSE_editipo.h>
 
 #include "Ipo.h"
 #include "Lattice.h"
@@ -57,6 +58,14 @@
 #include "DNA_space_types.h"
 
 #include <string.h>
+
+/* Defines for insertIpoKey */
+
+#define IPOKEY_LOC          0
+#define IPOKEY_ROT          1
+#define IPOKEY_SIZE         2
+#define IPOKEY_LOCROT       3
+#define IPOKEY_LOCROTSIZE   4
 
 /*****************************************************************************/
 /* Python API function prototypes for the Blender module.		 */
@@ -141,6 +150,7 @@ static PyObject *Object_setDrawType( BPy_Object * self, PyObject * args );
 static PyObject *Object_setEuler( BPy_Object * self, PyObject * args );
 static PyObject *Object_setMatrix( BPy_Object * self, PyObject * args );
 static PyObject *Object_setIpo( BPy_Object * self, PyObject * args );
+static PyObject *Object_insertIpoKey( BPy_Object * self, PyObject * args );
 static PyObject *Object_setLocation( BPy_Object * self, PyObject * args );
 static PyObject *Object_setMaterials( BPy_Object * self, PyObject * args );
 static PyObject *Object_setName( BPy_Object * self, PyObject * args );
@@ -291,6 +301,8 @@ works only if self and the object specified are of the same type."},
 	 "(Blender Ipo) - Sets the object's ipo"},
 	{"clearIpo", ( PyCFunction ) Object_clearIpo, METH_NOARGS,
 	 "() - Unlink ipo from this object"},
+	 {"insertIpoKey", ( PyCFunction ) Object_insertIpoKey, METH_VARARGS,
+	 "( Object IPO type ) - Inserts a key into IPO"},
 	{"getAllProperties", ( PyCFunction ) Object_getAllProperties,
 	 METH_NOARGS,
 	 "() - Get all the properties from this object"},
@@ -596,6 +608,12 @@ PyObject *Object_Init( void )
 
 	module = Py_InitModule3( "Blender.Object", M_Object_methods,
 				 M_Object_doc );
+
+	PyModule_AddIntConstant( module, "LOC", IPOKEY_LOC );
+	PyModule_AddIntConstant( module, "ROT", IPOKEY_ROT );
+	PyModule_AddIntConstant( module, "SIZE", IPOKEY_SIZE );
+	PyModule_AddIntConstant( module, "LOCROT", IPOKEY_LOCROT );
+	PyModule_AddIntConstant( module, "LOCROTSIZE", IPOKEY_LOCROTSIZE );
 
 	return ( module );
 }
@@ -1549,6 +1567,46 @@ static PyObject *Object_setIpo( BPy_Object * self, PyObject * args )
 	Py_INCREF( Py_None );
 	return Py_None;
 }
+
+/*
+ * Object_insertIpoKey()
+ *  inserts Object IPO key for LOC, ROT, SIZE, LOCROT, or LOCROTSIZE
+ */
+
+static PyObject *Object_insertIpoKey( BPy_Object * self, PyObject * args )
+{
+    int key = 0;
+    
+	if( !PyArg_ParseTuple( args, "i", &( key ) ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+										"expected int argument" ) );
+
+	if (key == IPOKEY_LOC || key == IPOKEY_LOCROT || key == IPOKEY_LOCROTSIZE){
+		insertkey((ID *)self->object,OB_LOC_X);
+		insertkey((ID *)self->object,OB_LOC_Y);
+		insertkey((ID *)self->object,OB_LOC_Z);      
+	}
+    if (key == IPOKEY_ROT || key == IPOKEY_LOCROT || key == IPOKEY_LOCROTSIZE){
+		insertkey((ID *)self->object,OB_ROT_X);
+		insertkey((ID *)self->object,OB_ROT_Y);
+		insertkey((ID *)self->object,OB_ROT_Z);      
+	}
+    if (key == IPOKEY_SIZE || key == IPOKEY_LOCROTSIZE ){
+		insertkey((ID *)self->object,OB_SIZE_X);
+		insertkey((ID *)self->object,OB_SIZE_Y);
+		insertkey((ID *)self->object,OB_SIZE_Z);      
+	}
+
+	allspace(REMAKEIPO, 0);
+	EXPP_allqueue(REDRAWIPO, 0);
+	EXPP_allqueue(REDRAWVIEW3D, 0);
+	EXPP_allqueue(REDRAWACTION, 0);
+	EXPP_allqueue(REDRAWNLA, 0);
+
+	return EXPP_incr_ret( Py_None );
+}
+
+
 
 static PyObject *Object_setLocation( BPy_Object * self, PyObject * args )
 {
