@@ -610,19 +610,21 @@ void object_apply_deform(Object *ob)
 		Mesh *me= ob->data;
 		if(me->id.us>1) {
 			err= "Can't apply deformation to Mesh with other users";
+		} else {
+			mesh_modifier(ob, 's'); // start
+			mesh_modifier(ob, 'a'); // apply and end
+			freedisplist(&ob->disp);
 		}
-		mesh_modifier(ob, 's'); // start
-		mesh_modifier(ob, 'a'); // apply and end
-		freedisplist(&ob->disp);
 	}
 	else if (ob->type==OB_CURVE || ob->type==OB_SURF) {
 		Curve *cu= ob->data;
 		if(cu->id.us>1) {
 			err= "Can't apply deformation to Curve with other users";
+		} else {
+			curve_modifier(ob, 's'); // start
+			curve_modifier(ob, 'a'); // apply and end
+			freedisplist(&ob->disp);
 		}
-		curve_modifier(ob, 's'); // start
-		curve_modifier(ob, 'a'); // apply and end
-		freedisplist(&ob->disp);
 	}
 
 	if(err) error(err);
