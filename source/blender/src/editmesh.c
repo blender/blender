@@ -4539,7 +4539,7 @@ void add_primitiveMesh(int type)
 	allqueue(REDRAWIPO, 0);
 	allqueue(REDRAWHEADERS, 0);
 	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */	
-	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWBUTSALL, 0);
 	makeDispList(G.obedit);
 
 	if (type==13) notice("Oooh Oooh Oooh");

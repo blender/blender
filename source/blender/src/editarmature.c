@@ -1523,7 +1523,7 @@ void add_primitiveArmature(int type)
 	
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWBUTSALL, 0);
 	allqueue(REDRAWBUTSHEAD, 0);
 	allqueue(REDRAWBUTSCONSTRAINT, 0);
 	allqueue(REDRAWNLA, 0);
