@@ -327,7 +327,7 @@ void RE_make_stars(void (*initfunc)(void),
 }
 
 /* ------------------------------------------------------------------------ */
-/* more star stuff */
+/* more star stuff, here used to be a cliptest, removed for envmap render or panorama... */
 static HaloRen *initstar(float *vec, float hasize)
 {
 	HaloRen *har;
@@ -335,18 +335,15 @@ static HaloRen *initstar(float *vec, float hasize)
 
 	RE_projectverto(vec, hoco);
 
-	if(	(R.r.mode & R_PANORAMA) || (R.r.xparts*R.r.yparts>1) || RE_testclip(hoco)==0 ) {
-		har= RE_findOrAddHalo(R.tothalo++);
-	
-		/* projectvert is done in function zbufvlaggen again, because of parts */
-		VECCOPY(har->co, vec);
-		har->hasize= hasize;
-	
-		har->zd= 0.0;
-	
-		return har;
-	}
-	return NULL;
+	har= RE_findOrAddHalo(R.tothalo++);
+
+	/* projectvert is done in function zbufvlaggen again, because of parts */
+	VECCOPY(har->co, vec);
+	har->hasize= hasize;
+
+	har->zd= 0.0;
+
+	return har;
 }
 
 

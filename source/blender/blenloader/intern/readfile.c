@@ -5314,8 +5314,12 @@ static void append_named_part(FileData *fd, Main *mainvar, Scene *scene, char *n
 
 					if(id==0) ob= mainvar->object.last;
 					else ob= (Object *)id;
-
-					if((flag & FILE_ACTIVELAY)) ob->lay = G.scene->lay;
+					
+					/* this is bad code... G.vd nor G.scene should be used on this level... */
+					if((flag & FILE_ACTIVELAY)) {
+						if(G.vd) ob->lay= G.vd->layact;
+						else ob->lay = G.scene->lay;
+					}
 					base->lay= ob->lay;
 					base->object= ob;
 					ob->id.us++;

@@ -1202,10 +1202,19 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 	/* IS RENDERING ALLOWED? */
 	
 	/* forbidden combination */
-	if((R.r.mode & R_BORDER) && (R.r.mode & R_PANORAMA)) {
-		error("No border supported for Panorama");
-		G.afbreek= 1;
-		return;
+	if(R.r.mode & R_PANORAMA) {
+		if(R.r.mode & R_BORDER) {
+			error("No border supported for Panorama");
+			G.afbreek= 1;
+		}
+		if(R.r.yparts>1) {
+			error("No Y-Parts supported for Panorama");
+			G.afbreek= 1;
+		}
+		if(R.r.mode & R_ORTHO) {
+			error("No Ortho render possible for Panorama");
+			G.afbreek= 1;
+		}
 	}
 	
 	if(R.r.xparts*R.r.yparts>=2 && (R.r.mode & R_MOVIECROP) && (R.r.mode & R_BORDER)) {
@@ -1226,6 +1235,7 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 		return;
 	}
 	
+	if(G.afbreek==1) return;
 	
 	/* TEST BACKBUF */
 	/* If an image is specified for use as backdrop, that image is loaded    */
@@ -1368,8 +1378,12 @@ void RE_animrender(struct View3D *ogl_render_view3d)
 	int cfrao;
 	char name[256];
 
-	if(G.scene==0) return;
-
+	if(G.scene==NULL) return;
+	if(G.scene->r.sfra > G.scene->r.efra) {
+		error("Startframe larger than Endframe");
+		return;
+	}
+	
 	/* scenedata to R: (for backbuf, R.rectx etc) */
 	R.r= G.scene->r;
 
