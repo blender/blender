@@ -974,18 +974,27 @@ static PyObject *Bone_getChildren( BPy_Bone * self )
 static PyObject *Bone_setName( BPy_Bone * self, PyObject * args )
 {
 	char *name;
+	char buf[25];
 
 	if( !PyArg_ParseTuple( args, "s", &name ) )
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_AttributeError,
 			   "expected string argument" ) );
+	/* 
+	   note:
+	   a nicer way to do this is to have #defines for the size of names.
+	   stivs  25-jan-200
+	*/
+
+	/* guarantee a null terminated string of reasonable size */
+	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
 
 	if( !self->bone ) {	//test to see if linked to armature
 		//use python vars
-		BLI_strncpy( self->name, name, strlen( name ) + 1 );
+		BLI_strncpy( self->name, buf, sizeof( buf ) );
 	} else {
 		//use bone datastruct
-		BLI_strncpy( self->bone->name, name, strlen( name ) + 1 );
+		BLI_strncpy( self->bone->name, buf, sizeof( buf )  );
 	}
 	return EXPP_incr_ret( Py_None );
 }
