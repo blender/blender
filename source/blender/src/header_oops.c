@@ -86,6 +86,7 @@ void do_oops_buttons(short event)
 
 	switch(event) {
 	case B_OOPSHOME:
+		init_v2d_oops(curarea, curarea->spacedata.first);	// forces min/max to be reset
 		boundbox_oops();
 		G.v2d->cur= G.v2d->tot;
 		dx= 0.15*(G.v2d->cur.xmax-G.v2d->cur.xmin);

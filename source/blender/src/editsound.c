@@ -119,10 +119,10 @@ void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		/* swap mouse buttons based on user preference */
 		if (U.flag & USER_LMOUSESELECT) {
-			if (evt->event == LEFTMOUSE) {
+			if (event == LEFTMOUSE) {
 				event = RIGHTMOUSE;
 				mousebut = L_MOUSE;
-			} else if (evt->event == RIGHTMOUSE) {
+			} else if (event == RIGHTMOUSE) {
 				event = LEFTMOUSE;
 				mousebut = R_MOUSE;
 			}

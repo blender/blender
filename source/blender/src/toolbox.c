@@ -1813,7 +1813,7 @@ static TBitem tb_mesh[]= {
 {	0, "Show/Hide Faces", 			3, 		NULL},
 {	0, "Show/Hide Normals", 		4, 		NULL},
 {	0, "SEPR", 						0, 	NULL},
-{	0, "Subdivision Surface|Shift O", 		5, 		NULL},
+{	0, "Subdivision Surface", 		5, 		NULL},
 {	0, "SubSurf Optimal", 			6, 		NULL},
 {	0, "SEPR", 						0, NULL},
 {	0, "Show/Hide Vertices", 	0, 		tb_obdata_hide},

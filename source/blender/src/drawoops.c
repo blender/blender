@@ -396,7 +396,6 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 	SpaceOops *soops= spacedata;
 	Oops *oops;
 	float col[3];
-	int ofsx, ofsy;
 	
 	BIF_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
@@ -407,16 +406,6 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 	else {
 		boundbox_oops();
 		calc_scrollrcts(G.v2d, curarea->winx, curarea->winy);
-
-		if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
-			if(G.v2d->scroll) {	
-				ofsx= curarea->winrct.xmin;	/* because of mywin */
-				ofsy= curarea->winrct.ymin;
-
-				glViewport(ofsx+G.v2d->mask.xmin,  ofsy+G.v2d->mask.ymin, ( ofsx+G.v2d->mask.xmax-1)-(ofsx+G.v2d->mask.xmin)+1, ( ofsy+G.v2d->mask.ymax-1)-( ofsy+G.v2d->mask.ymin)+1); 
-				glScissor(ofsx+G.v2d->mask.xmin,  ofsy+G.v2d->mask.ymin, ( ofsx+G.v2d->mask.xmax-1)-(ofsx+G.v2d->mask.xmin)+1, ( ofsy+G.v2d->mask.ymax-1)-( ofsy+G.v2d->mask.ymin)+1);
-			}
-		}
 
 		myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 
@@ -453,8 +442,10 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 	/* ortho at pixel level curarea */
 	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
 
-	if(sa->winx>SCROLLB+10 && sa->winy>SCROLLH+10) {
-		if(G.v2d->scroll) drawscroll(0);		
+	if(soops->type==SO_OUTLINER) {
+		if(sa->winx>SCROLLB+10 && sa->winy>SCROLLH+10) {
+			if(G.v2d->scroll) drawscroll(0);		
+		}
 	}
 	draw_area_emboss(sa);	
 	
