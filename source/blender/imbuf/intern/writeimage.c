@@ -49,6 +49,7 @@
 #include "IMB_hamx.h"
 #include "IMB_amiga.h"
 #include "IMB_png.h"
+#include "IMB_bmp.h"
 
 #include "IMB_iff.h"
 #include "IMB_bitplanes.h"
