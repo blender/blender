@@ -74,7 +74,7 @@ typedef struct BevPoint {
 typedef struct BezTriple {
 	float vec[3][3];
 	float alfa;
-	short s[3][2];
+	short s[3][2];  /* screen coordinates */
 	short h1, h2;
 	char f1, f2, f3, hide;
 } BezTriple;
