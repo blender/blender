@@ -58,6 +58,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_texture_types.h"
+#include "DNA_text_types.h"
 #include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
@@ -70,6 +71,7 @@
 
 #include "BIF_butspace.h"
 #include "BIF_drawscene.h"
+#include "BIF_drawtext.h"
 #include "BIF_editaction.h"
 #include "BIF_editarmature.h"
 #include "BIF_editnla.h"
@@ -223,6 +225,19 @@ static void outliner_height(SpaceOops *soops, ListBase *lb, int *h)
 	}
 }
 
+static ID *outliner_search_back(SpaceOops *soops, TreeElement *te, short idcode)
+{
+	TreeStoreElem *tselem;
+	te= te->parent;
+	
+	while(te) {
+		tselem= TREESTORE(te);
+		if(te->idcode==idcode && tselem->type==0) return tselem->id;
+		te= te->parent;
+	}
+	return NULL;
+}
+
 struct treesort {
 	TreeElement *te;
 	ID *id;
@@ -363,6 +378,14 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			{
 				Scene *sce= (Scene *)id;
 				outliner_add_element(soops, &te->subtree, sce->world, te, 0, 0);
+				if(sce->scriptlink.scripts) {
+					TreeElement *tenla= outliner_add_element(soops, &te->subtree, sce, te, TE_SCRIPT_BASE, 0);
+					int a= 0;
+					tenla->name= "Scripts";
+					for (a=0; a<sce->scriptlink.totscript; a++) {
+						outliner_add_element(soops, &tenla->subtree, sce->scriptlink.scripts[a], te, 0, 0);
+					}
+				}
 			}
 			break;
 		case ID_OB:
@@ -415,6 +438,15 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 						ten->name= defgroup->name;
 					}
 				}
+				if(ob->scriptlink.scripts) {
+					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TE_SCRIPT_BASE, 0);
+					int a= 0;
+					
+					tenla->name= "Scripts";
+					for (a=0; a<ob->scriptlink.totscript; a++) {
+						outliner_add_element(soops, &tenla->subtree, ob->scriptlink.scripts[a], te, 0, 0);
+					}
+				}
 				if(ob->nlastrips.first) {
 					bActionStrip *strip;
 					TreeElement *ten;
@@ -437,6 +469,8 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				outliner_add_element(soops, &te->subtree, me->key, te, 0, 0);
 				for(a=0; a<me->totcol; a++) 
 					outliner_add_element(soops, &te->subtree, me->mat[a], te, 0, a);
+				/* could do tfaces with image links, but the images are not grouped nicely.
+				   would require going over all tfaces, sort images in use. etc... */
 			}
 			break;
 		case ID_CU:
@@ -454,13 +488,21 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			}
 			break;
 		case ID_MA:
-			{
-				Material *ma= (Material *)id;
+		{
+			Material *ma= (Material *)id;
 			
-				outliner_add_element(soops, &te->subtree, ma->ipo, te, 0, 0);
-				for(a=0; a<8; a++) {
-					if(ma->mtex[a]) outliner_add_element(soops, &te->subtree, ma->mtex[a]->tex, te, 0, a);
-				}
+			outliner_add_element(soops, &te->subtree, ma->ipo, te, 0, 0);
+			for(a=0; a<8; a++) {
+				if(ma->mtex[a]) outliner_add_element(soops, &te->subtree, ma->mtex[a]->tex, te, 0, a);
+			}
+		}
+			break;
+		case ID_TE:
+			{
+				Tex *tex= (Tex *)id;
+				
+				outliner_add_element(soops, &te->subtree, tex->ipo, te, 0, 0);
+				outliner_add_element(soops, &te->subtree, tex->ima, te, 0, 0);
 			}
 			break;
 		case ID_CA:
@@ -577,12 +619,10 @@ static void outliner_build_tree(SpaceOops *soops)
 			te= outliner_add_element(soops, &soops->tree, sce, NULL, 0, 0);
 			tselem= TREESTORE(te);
 
-			if((tselem->flag & TSE_CLOSED)==0) {
-				for(base= sce->base.first; base; base= base->next) {
-					outliner_add_element(soops, &te->subtree, base->object, te, 0, 0);
-				}
-				outliner_make_hierarchy(soops, &te->subtree);
+			for(base= sce->base.first; base; base= base->next) {
+				outliner_add_element(soops, &te->subtree, base->object, te, 0, 0);
 			}
+			outliner_make_hierarchy(soops, &te->subtree);
 		}
 	}
 	else if(soops->outlinevis == SO_CUR_SCENE) {
@@ -629,16 +669,31 @@ static void outliner_build_tree(SpaceOops *soops)
 
 /* **************** INTERACTIVE ************* */
 
-static int outliner_has_one_closed(SpaceOops *soops, ListBase *lb)
+static int outliner_count_levels(SpaceOops *soops, ListBase *lb, int curlevel)
+{
+	TreeElement *te;
+	int level=curlevel, lev;
+	
+	for(te= lb->first; te; te= te->next) {
+		
+		lev= outliner_count_levels(soops, &te->subtree, curlevel+1);
+		if(lev>level) level= lev;
+	}
+	return level;
+}
+
+static int outliner_has_one_closed(SpaceOops *soops, ListBase *lb, int curlevel)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
+	int level;
 	
 	for(te= lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
-		if(tselem->flag & TSE_CLOSED) return 1;
+		if(tselem->flag & TSE_CLOSED) return curlevel;
 		
-		if(outliner_has_one_closed(soops, &te->subtree)) return 1;
+		level= outliner_has_one_closed(soops, &te->subtree, curlevel+1);
+		if(level) return level;
 	}
 	return 0;
 }
@@ -652,7 +707,6 @@ static void outliner_open_close(SpaceOops *soops, ListBase *lb, int open)
 		tselem= TREESTORE(te);
 		if(open) tselem->flag &= ~TSE_CLOSED;
 		else tselem->flag |= TSE_CLOSED;
-
 		outliner_open_close(soops, &te->subtree, open);
 	}
 }
@@ -661,7 +715,7 @@ void outliner_toggle_visible(struct ScrArea *sa)
 {
 	SpaceOops *soops= sa->spacedata.first;
 	
-	if( outliner_has_one_closed(soops, &soops->tree))
+	if( outliner_has_one_closed(soops, &soops->tree, 1))
 		outliner_open_close(soops, &soops->tree, 1);
 	else 
 		outliner_open_close(soops, &soops->tree, 0);
@@ -669,28 +723,65 @@ void outliner_toggle_visible(struct ScrArea *sa)
 	scrarea_queue_redraw(curarea);
 }
 
+static void outliner_openclose_level(SpaceOops *soops, ListBase *lb, int curlevel, int level, int open)
+{
+	TreeElement *te;
+	TreeStoreElem *tselem;
+	
+	for(te= lb->first; te; te= te->next) {
+		tselem= TREESTORE(te);
+		
+		if(open) {
+			if(curlevel<=level) tselem->flag &= ~TSE_CLOSED;
+		}
+		else {
+			if(curlevel>=level) tselem->flag |= TSE_CLOSED;
+		}
+		
+		outliner_openclose_level(soops, &te->subtree, curlevel+1, level, open);
+	}
+}
+
+void outliner_one_level(struct ScrArea *sa, int add)
+{
+	SpaceOops *soops= sa->spacedata.first;
+	int level;
+	
+	level= outliner_has_one_closed(soops, &soops->tree, 1);
+	if(add==1) {
+		if(level) outliner_openclose_level(soops, &soops->tree, 1, level, 1);
+	}
+	else {
+		if(level==0) level= outliner_count_levels(soops, &soops->tree, 0);
+		if(level) outliner_openclose_level(soops, &soops->tree, 1, level-1, 0);
+	}
+	
+	scrarea_queue_redraw(curarea);
+}
+
+
+/* **** do clicks on items ******* */
+
 static void tree_element_active_object(SpaceOops *soops, TreeElement *te)
 {
 	TreeStoreElem *tselem= TREESTORE(te);
+	Scene *sce;
 	Base *base;
 	Object *ob= NULL;
 	
 	/* if id is not object, we search back */
 	if(te->idcode==ID_OB) ob= (Object *)tselem->id;
 	else {
-		TreeElement *tes= te->parent;
-		TreeStoreElem *tselems=NULL;
-		
-		while(tes) {
-			tselems= TREESTORE(tes);
-			if(tes->idcode==ID_OB) break;
-			tes= tes->parent;
-		}
-		if(tes) ob= (Object *)tselems->id;
-		
+		ob= (Object *)outliner_search_back(soops, te, ID_OB);
 		if(ob==OBACT) return;
 	}
 	if(ob==NULL) return;
+	
+	sce= (Scene *)outliner_search_back(soops, te, ID_SCE);
+	if(G.scene != sce) {
+		if(G.obedit) exit_editmode(2);
+		set_scene(sce);
+	}
 	
 	/* find associated base */
 	for(base= FIRSTBASE; base; base= base->next) 
@@ -724,17 +815,11 @@ static void tree_element_active_object(SpaceOops *soops, TreeElement *te)
 
 static int tree_element_active_material(SpaceOops *soops, TreeElement *te, int set)
 {
-	TreeElement *tes= te->parent;
-	TreeStoreElem *tselems=NULL;
-	Object *ob=NULL;
+	TreeElement *tes;
+	Object *ob;
 	
 	/* we search for the object parent */
-	while(tes) {
-		tselems= TREESTORE(tes);
-		if(tes->idcode==ID_OB) break;
-		tes= tes->parent;
-	}
-	if(tes) ob= (Object *)tselems->id;
+	ob= (Object *)outliner_search_back(soops, te, ID_OB);
 	if(ob!=OBACT) return 0;	// just paranoia
 	
 	/* searching in ob mat array? */
@@ -849,17 +934,10 @@ static int tree_element_active_texture(SpaceOops *soops, TreeElement *te, int se
 
 static int tree_element_active_lamp(SpaceOops *soops, TreeElement *te, int set)
 {
-	TreeElement *tes= te->parent;
-	TreeStoreElem *tselems=NULL;
-	Object *ob=NULL;
+	Object *ob;
 	
 	/* we search for the object parent */
-	while(tes) {
-		tselems= TREESTORE(tes);
-		if(tes->idcode==ID_OB) break;
-		tes= tes->parent;
-	}
-	if(tes) ob= (Object *)tselems->id;
+	ob= (Object *)outliner_search_back(soops, te, ID_OB);
 	if(ob!=OBACT) return 0;	// just paranoia
 	
 	if(set) {
@@ -894,17 +972,12 @@ static int tree_element_active_world(SpaceOops *soops, TreeElement *te, int set)
 
 static int tree_element_active_ipo(SpaceOops *soops, TreeElement *te, int set)
 {
-	TreeElement *tes= te->parent;
+	TreeElement *tes;
 	TreeStoreElem *tselems=NULL;
-	Object *ob=NULL;
+	Object *ob;
 	
 	/* we search for the object parent */
-	while(tes) {
-		tselems= TREESTORE(tes);
-		if(tes->idcode==ID_OB) break;
-		tes= tes->parent;
-	}
-	if(tes) ob= (Object *)tselems->id;
+	ob= (Object *)outliner_search_back(soops, te, ID_OB);
 	if(ob!=OBACT) return 0;	// just paranoia
 	
 	/* the parent of ipo */
@@ -1004,6 +1077,26 @@ static int tree_element_active_bone(TreeElement *te, TreeStoreElem *tselem, int 
 	return 0;
 }
 
+static int tree_element_active_text(SpaceOops *soops, TreeElement *te, int set)
+{
+	ScrArea *sa=NULL;
+	
+	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+		if(sa->spacetype==SPACE_TEXT) break;
+	}
+	if(sa) {
+		SpaceText *st= sa->spacedata.first;
+		TreeStoreElem *tselem= TREESTORE(te);
+		
+		if(set) {
+			st->text= (Text *)tselem->id;
+			pop_space_text(st);
+			scrarea_queue_redraw(sa);
+		}
+		else if(st->text==(Text *)tselem->id) return 1;
+	}
+	return 0;
+}
 
 /* generic call for ID data check or make/check active in UI */
 static int tree_element_active(SpaceOops *soops, TreeElement *te, int set)
@@ -1020,6 +1113,8 @@ static int tree_element_active(SpaceOops *soops, TreeElement *te, int set)
 			return tree_element_active_ipo(soops, te, set);
 		case ID_TE:
 			return tree_element_active_texture(soops, te, set);
+		case ID_TXT:
+			return tree_element_active_text(soops, te, set);
 	}
 	return 0;
 }
@@ -1062,7 +1157,7 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 			/* all below close/open? */
 			if( (G.qual & LR_SHIFTKEY) ) {
 				tselem->flag &= ~TSE_CLOSED;
-				outliner_open_close(soops, &te->subtree, outliner_has_one_closed(soops, &te->subtree));
+				outliner_open_close(soops, &te->subtree, outliner_has_one_closed(soops, &te->subtree, 1));
 			}
 			else {
 				if(tselem->flag & TSE_CLOSED) tselem->flag &= ~TSE_CLOSED;
@@ -1236,6 +1331,8 @@ static void tselem_draw_icon(TreeStoreElem *tselem)
 				BIF_draw_icon(ICON_HOOK); break;
 			case TE_HOOK:
 				BIF_draw_icon(ICON_OBJECT); break;
+			case TE_SCRIPT_BASE:
+				BIF_draw_icon(ICON_TEXT); break;
 			default:
 				BIF_draw_icon(ICON_DOT); break;
 		}
@@ -1278,11 +1375,13 @@ static void tselem_draw_icon(TreeStoreElem *tselem)
 				BIF_draw_icon(ICON_ACTION); break;
 			case ID_NLA:
 				BIF_draw_icon(ICON_NLA); break;
+			case ID_TXT:
+				BIF_draw_icon(ICON_SCRIPT); break;
 		}
 	}
 }
 
-static void outliner_draw_iconrow(SpaceOops *soops, TreeElement *parent, ListBase *lb, int *offsx, int ys)
+static void outliner_draw_iconrow(SpaceOops *soops, ListBase *lb, int level, int *offsx, int ys)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -1291,8 +1390,8 @@ static void outliner_draw_iconrow(SpaceOops *soops, TreeElement *parent, ListBas
 	for(te= lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
 		
-		/* if hierarchy, we draw all linked data to object, and only object icons for children trees */
-		if(parent || (tselem->type==0 && te->idcode==ID_OB)) {
+		/* object hierarchy always, further constrained on level */
+		if(level<1 || (tselem->type==0 && te->idcode==ID_OB)) {
 
 			/* active blocks get white circle */
 			active= 0;
@@ -1321,12 +1420,7 @@ static void outliner_draw_iconrow(SpaceOops *soops, TreeElement *parent, ListBas
 			(*offsx) += OL_X;
 		}
 		
-		// if object subtree, just object children icons
-		if(tselem->type);
-		else if(te->idcode==ID_OB)
-			outliner_draw_iconrow(soops, NULL, &te->subtree, offsx, ys);
-		else
-			outliner_draw_iconrow(soops, parent, &te->subtree, offsx, ys);
+		outliner_draw_iconrow(soops, &te->subtree, level+1, offsx, ys);
 	}
 	
 }
@@ -1424,7 +1518,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		/* closed item, we draw the icons, not when it's a scene though */
 		if(tselem->flag & TSE_CLOSED) {
 			if(te->subtree.first) {
-				if( te->idcode==ID_SCE);
+				if(tselem->type==0 && te->idcode==ID_SCE);
 				else {
 					int tempx= startx+offsx;
 					// divider
@@ -1433,7 +1527,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 
 					glEnable(GL_BLEND);
 					glPixelTransferf(GL_ALPHA_SCALE, 0.5);
-					outliner_draw_iconrow(soops, te, &te->subtree, &tempx, *starty+2);
+					outliner_draw_iconrow(soops, &te->subtree, 0, &tempx, *starty+2);
 					glPixelTransferf(GL_ALPHA_SCALE, 1.0);
 					glDisable(GL_BLEND);
 				}
@@ -1462,14 +1556,14 @@ static void outliner_draw_hierarchy(SpaceOops *soops, ListBase *lb, int startx, 
 	
 	if(lb->first==NULL) return;
 	
-	
 	y1=y2= *starty; /* for vertical lines between objects */
 	for(te=lb->first; te; te= te->next) {
 		y2= *starty;
 		tselem= TREESTORE(te);
 		
 		/* horizontal line? */
-		if(tselem->type==0 && te->idcode==ID_OB) glRecti(startx, *starty, startx+OL_X, *starty-1);
+		if(tselem->type==0 && (te->idcode==ID_OB || te->idcode==ID_SCE)) 
+			glRecti(startx, *starty, startx+OL_X, *starty-1);
 			
 		*starty-= OL_H;
 		
@@ -1477,12 +1571,11 @@ static void outliner_draw_hierarchy(SpaceOops *soops, ListBase *lb, int startx, 
 			outliner_draw_hierarchy(soops, &te->subtree, startx+OL_X, starty);
 	}
 	
-	if(lb->first!=lb->last) { // more than 1 element
-		te= lb->last;
+	te= lb->last;
+	if(te->parent || lb->first!=lb->last) {
 		tselem= TREESTORE(te);
 		if(tselem->type==0 && te->idcode==ID_OB) glRecti(startx, y1+OL_H, startx+1, y2);
 	}
-	
 }
 
 static void outliner_draw_tree(SpaceOops *soops)

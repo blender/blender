@@ -3819,6 +3819,12 @@ static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case PADPERIOD:
 			outliner_show_active(sa);
 			break;
+		case PADPLUSKEY:
+			outliner_one_level(sa, 1);
+			break;
+		case PADMINUS:
+			outliner_one_level(sa, -1);
+			break;
 		}
 	}
 	else {	
