@@ -375,6 +375,7 @@ void unlink_object(Object *ob)
 							if(tselem->id==(ID *)ob) tselem->id= NULL;
 						}
 					}
+					so->lockpoin= NULL;
 				}
 			}
 
