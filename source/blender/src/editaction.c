@@ -2327,26 +2327,30 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 
 		case DKEY:
-			if (key) {
-				if (G.qual & LR_SHIFTKEY && mval[0]>ACTWIDTH) {
-					duplicate_meshchannel_keys(key);
+			if (act) {
+				if (key) {
+					if (G.qual & LR_SHIFTKEY && mval[0]>ACTWIDTH) {
+						duplicate_meshchannel_keys(key);
+					}
 				}
-			}
-			else {
-				if (G.qual & LR_SHIFTKEY && mval[0]>ACTWIDTH){
-					duplicate_actionchannel_keys();
-					remake_action_ipos(act);
+				else {
+					if (G.qual & LR_SHIFTKEY && mval[0]>ACTWIDTH){
+						duplicate_actionchannel_keys();
+						remake_action_ipos(act);
+					}
 				}
 			}
 			break;
 
 		case GKEY:
-			if (mval[0]>=ACTWIDTH) {
-				if (key) {
-					transform_meshchannel_keys('g', key);
-				}
-				else {
-					transform_actionchannel_keys ('g');
+			if (act) {
+				if (mval[0]>=ACTWIDTH) {
+					if (key) {
+						transform_meshchannel_keys('g', key);
+					}
+					else {
+						transform_actionchannel_keys ('g');
+					}
 				}
 			}
 			break;
@@ -2380,13 +2384,15 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 			
-		case SKEY:
-			if (mval[0]>=ACTWIDTH) {
-				if (key) {
-					transform_meshchannel_keys('s', key);
-				}
-				else {
-					transform_actionchannel_keys ('s');
+		case SKEY: 
+			if (act) {
+				if (mval[0]>=ACTWIDTH) {
+					if (key) {
+						transform_meshchannel_keys('s', key);
+					}
+					else {
+						transform_actionchannel_keys ('s');
+					}
 				}
 			}
 			break;

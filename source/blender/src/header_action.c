@@ -383,23 +383,33 @@ static uiBlock *action_selectmenu(void *arg_unused)
 
 static void do_action_keymenu_transformmenu(void *arg, int event)
 {
+	SpaceAction *saction;
+	bAction	*act;
 	Key *key;
+	
 	key = get_action_mesh_key();
-
+	saction= curarea->spacedata.first;
+	
+	act=saction->action;
+	
 	switch(event)
 	{
 		case ACTMENU_KEY_TRANSFORM_MOVE:
-			if (key) {
+			if (act) {	
+				if (key) {
 					transform_meshchannel_keys('g', key);
-			} else {
+				} else {
 					transform_actionchannel_keys ('g');
+				}
 			}
 			break;
 		case ACTMENU_KEY_TRANSFORM_SCALE:
-			if (key) {
+			if (act) {
+				if (key) {
 					transform_meshchannel_keys('s', key);
-			} else {
+				} else {
 					transform_actionchannel_keys ('s');
+				}
 			}
 			break;
 	}
@@ -574,19 +584,20 @@ static void do_action_keymenu(void *arg, int event)
 	if (!saction)
 		return;
 
-
 	act = saction->action;
 	key = get_action_mesh_key();
 
 	switch(event)
 	{
 		case ACTMENU_KEY_DUPLICATE:
-			if (key) {
-				duplicate_meshchannel_keys(key);
-			}
-			else {
-				duplicate_actionchannel_keys();
-				remake_action_ipos(act);
+			if (act) {
+				if (key) {
+					duplicate_meshchannel_keys(key);
+				}
+				else {
+					duplicate_actionchannel_keys();
+					remake_action_ipos(act);
+				}
 			}
  			break;
 
@@ -600,8 +611,6 @@ static void do_action_keymenu(void *arg, int event)
 			break;
 		case ACTMENU_KEY_BAKE:
 			bake_action_with_client (G.saction->action, OBACT, 0.01);
-			break;
-
 			break;
 	}
 }
