@@ -264,7 +264,7 @@ static void createTransPose(void)
 	Mat3Inv(smtx, mtx);
 	
     td = Trans.data = MEM_mallocN(Trans.total*sizeof(TransData), "TransPoseBone");
-	
+
 	Mat3CpyMat4(mtx, G.obpose->obmat);
 	Mat3Inv(smtx, mtx);
 	
@@ -304,8 +304,7 @@ static void createTransArmatureVerts(void)
 			Mat3CpyMat3(td->smtx, smtx);
 			Mat3CpyMat3(td->mtx, mtx);
 
-			td->size = NULL;
-			td->rot = NULL;
+			td->ext = NULL;
 
 			td->dist = 0.0f;
 			
@@ -319,8 +318,7 @@ static void createTransArmatureVerts(void)
 			Mat3CpyMat3(td->smtx, smtx);
 			Mat3CpyMat3(td->mtx, mtx);
 
-			td->size = NULL;
-			td->rot = NULL;
+			td->ext = NULL;
 
 			td->dist = 0.0f;
 		
@@ -334,11 +332,14 @@ static void createTransMBallVerts(void)
 {
  	MetaElem *ml;
 	TransData *td;
+	TransDataExtension *tx;
 	float mtx[3][3], smtx[3][3];
 	int count;
 
 	count = allocTransData();
 	if (!count) return;
+
+	tx = MEM_mallocN(Trans.total*sizeof(TransDataExtension), "MetaElement_TransExtension");
 
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
@@ -355,16 +356,19 @@ static void createTransMBallVerts(void)
 			Mat3CpyMat3(td->smtx, smtx);
 			Mat3CpyMat3(td->mtx, mtx);
 
-			td->size = &ml->expx;
-			td->isize[0] = ml->expx;
-			td->isize[1] = ml->expy;
-			td->isize[2] = ml->expz;
+			td->ext = tx;
 
-			td->rot = NULL;
+			tx->size = &ml->expx;
+			tx->isize[0] = ml->expx;
+			tx->isize[1] = ml->expy;
+			tx->isize[2] = ml->expz;
+
+			tx->rot = NULL;
 
 			td->dist = 0.0f;
 
 			td++;
+			tx++;
 		}
 		ml= ml->next;
 	}
@@ -401,8 +405,7 @@ static void createTransCurveVerts(void)
 						td->loc= bezt->vec[0];
 						VECCOPY(td->center, td->loc);
 						td->flag= TD_SELECTED;
-						td->rot = NULL;
-						td->size = NULL;
+						td->ext = NULL;
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
@@ -417,8 +420,7 @@ static void createTransCurveVerts(void)
 						td->loc= bezt->vec[1];
 						VECCOPY(td->center, td->loc);
 						td->flag= TD_SELECTED;
-						td->rot = NULL;
-						td->size = NULL;
+						td->ext = NULL;
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
@@ -433,8 +435,7 @@ static void createTransCurveVerts(void)
 						td->loc= bezt->vec[2];
 						VECCOPY(td->center, td->loc);
 						td->flag= TD_SELECTED;
-						td->rot = NULL;
-						td->size = NULL;
+						td->ext = NULL;
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
@@ -458,8 +459,7 @@ static void createTransCurveVerts(void)
 						td->loc= bp->vec;
 						VECCOPY(td->center, td->loc);
 						td->flag= TD_SELECTED;
-						td->rot = NULL;
-						td->size = NULL;
+						td->ext = NULL;
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
@@ -512,8 +512,7 @@ static void createTransLatticeVerts(void)
 				Mat3CpyMat3(td->smtx, smtx);
 				Mat3CpyMat3(td->mtx, mtx);
 
-				td->size = NULL;
-				td->rot = NULL;
+				td->ext = NULL;
 
 				td->dist = 0.0f;
 
@@ -531,9 +530,7 @@ static void VertsToTransData(TransData *tob, EditVert *eve)
 	tob->loc = eve->co;
 	VECCOPY(tob->center, tob->loc);
 	VECCOPY(tob->iloc, tob->loc);
-	tob->rot = NULL; 
-	tob->size = NULL;
-	tob->quat = NULL;
+	tob->ext = NULL;
 }
 
 static void createTransEditVerts(void)
@@ -679,11 +676,11 @@ static void ObjectToTransData(TransData *tob, Object *ob)
 	tob->loc = ob->loc;
 	VECCOPY(tob->iloc, tob->loc);
 	
-	tob->rot = ob->rot;
-	VECCOPY(tob->irot, ob->rot);
+	tob->ext->rot = ob->rot;
+	VECCOPY(tob->ext->irot, ob->rot);
 	
-	tob->size = ob->size;
-	VECCOPY(tob->isize, ob->size);
+	tob->ext->size = ob->size;
+	VECCOPY(tob->ext->isize, ob->size);
 
 	VECCOPY(tob->center, ob->obmat[3]);
 
@@ -691,9 +688,21 @@ static void ObjectToTransData(TransData *tob, Object *ob)
 
 	object_to_mat3(ob, obmtx);
 
+	/*
 	Mat3CpyMat4(totmat, ob->obmat);
 	Mat3Inv(obinv, totmat);
 	Mat3MulMat3(tob->smtx, obmtx, obinv);
+	*/
+	if (ob->parent)
+	{
+		Mat3CpyMat4(tob->mtx, ob->parent->obmat);
+		Mat3Inv(tob->smtx, tob->mtx);
+	}
+	else
+	{
+		Mat3One(tob->smtx);
+		Mat3One(tob->mtx);
+	}
 }
 
 /* only used in function below, stuff to be removed */
@@ -856,6 +865,7 @@ static void clear_trans_object_base_flags(void)
 static void createTransObject(void)
 {
 	TransData *tob = NULL;
+	TransDataExtension *tx;
 	Object *ob;
 	Base *base;
 	int totsel= 0;
@@ -880,21 +890,24 @@ static void createTransObject(void)
 	}
 	
 	tob = Trans.data = MEM_mallocN(Trans.total*sizeof(TransData), "TransOb");
+	tx = MEM_mallocN(Trans.total*sizeof(TransDataExtension), "TransObExtension");
 
 	for(base= FIRSTBASE; base; base= base->next) {
 		if TESTBASELIB(base) {
 			ob= base->object;
 			
-			tob->flag= TD_SELECTED;
+			tob->flag= TD_SELECTED|TD_OBJECT;
+
+			tob->ext = tx;
 
 			ObjectToTransData(tob, ob);
 
 			tob->dist = 0.0f;
 
 			tob++;
+			tx++;
 		}
 	}
-
 /*
 	KICK OUT CHILDS OF OBJECTS THAT ARE BEING TRANSFORMED
 	SINCE TRANSFORMATION IS ALREADY APPLIED ON PARENT
@@ -1202,10 +1215,6 @@ int Shear(TransInfo *t, short mval[2])
 	Mat3CpyMat4(persmat, G.vd->viewmat);
 	Mat3Inv(persinv, persmat);
 
-	if (G.obedit) {
-		Mat3CpyMat4(omat, G.obedit->obmat);
-	}
-
 	value = -0.005f * ((float)(t->center2d[0] - mval[0]) - t->fac);
 
 	apply_grid1(&value, t->num.idx_max, 0.1f);
@@ -1235,18 +1244,18 @@ int Shear(TransInfo *t, short mval[2])
 			continue;
 		if (G.obedit) {
 			float mat3[3][3];
-			Mat3MulMat3(mat3, totmat, omat);
+			Mat3MulMat3(mat3, totmat, td->mtx);
 			Mat3MulMat3(tmat, td->smtx, mat3);
 		}
 		else {
 			Mat3CpyMat3(tmat, totmat);
 		}
-		VecSubf(vec, td->iloc, t->center);
+		VecSubf(vec, td->center, t->center);
 
 		Mat3MulVecfl(tmat, vec);
 
 		VecAddf(vec, vec, t->center);
-		VecSubf(vec, vec, td->iloc);
+		VecSubf(vec, vec, td->center);
 
 		VecMulf(vec, td->factor);
 
@@ -1283,14 +1292,10 @@ int Resize(TransInfo *t, short mval[2])
 {
 	TransData *td = t->data;
 	float vec[3];
-	float size[3], tsize[3], mat[3][3], tmat[3][3], omat[3][3];
+	float size[3], tsize[3], mat[3][3], tmat[3][3];
 	float ratio;
 	int i;
 	char str[50];
-
-	if (G.obedit) {
-		Mat3CpyMat4(omat, G.obedit->obmat);
-	}
 
 	ratio = (float)sqrt( (float)
 		(
@@ -1325,32 +1330,46 @@ int Resize(TransInfo *t, short mval[2])
 	
 	SizeToMat3(size, mat);
 	for(i = 0 ; i < t->total; i++, td++) {
+		float smat[3][3];
 		if (td->flag & TD_NOACTION)
 			continue;
 
-		if (G.obedit) {
-			float smat[3][3];
-			Mat3MulMat3(smat, td->smtx, mat);
-			Mat3MulMat3(tmat, smat, omat);
+		if (!(td->flag & TD_OBJECT)) {
+			Mat3MulMat3(smat, mat, td->smtx);
+			Mat3MulMat3(tmat, td->mtx, smat);
 		}
 		else {
 			Mat3CpyMat3(tmat, mat);
 		}
 
-		if (td->size) {
+		if (td->ext) {
+			float fsize[3];
+
+			if (td->flag & TD_OBJECT) {
+				float obsizemat[3][3];
+				Mat3IsMat3MulMat4(obsizemat, tmat, td->ob->obmat);
+				Mat3ToSize(obsizemat, fsize);
+			}
+			else {
+				Mat3ToSize(tmat, fsize);
+			}
 			// TEMPORARY NAIVE CODE
-			td->size[0] = td->isize[0] + td->isize[0] * (size[0] - 1.0f) * td->factor;
-			td->size[1] = td->isize[1] + td->isize[1] * (size[1] - 1.0f) * td->factor;
-			td->size[2] = td->isize[2] + td->isize[2] * (size[2] - 1.0f) * td->factor;
+			td->ext->size[0] = td->ext->isize[0] + td->ext->isize[0] * (fsize[0] - 1.0f) * td->factor;
+			td->ext->size[1] = td->ext->isize[1] + td->ext->isize[1] * (fsize[1] - 1.0f) * td->factor;
+			td->ext->size[2] = td->ext->isize[2] + td->ext->isize[2] * (fsize[2] - 1.0f) * td->factor;
 		}
-		VecSubf(vec, td->iloc, t->center);
+		VecSubf(vec, td->center, t->center);
 
 		Mat3MulVecfl(tmat, vec);
 
 		VecAddf(vec, vec, t->center);
-		VecSubf(vec, vec, td->iloc);
+		VecSubf(vec, vec, td->center);
 
 		VecMulf(vec, td->factor);
+
+		if (td->flag & TD_OBJECT) {
+			Mat3MulVecfl(td->smtx, vec);
+		}
 
 		VecAddf(td->loc, td->iloc, vec);
 	}
@@ -1578,11 +1597,13 @@ int Rotation(TransInfo *t, short mval[2])
 				QuatMul(td->quat, quat, td->iquat);
 			}
 			else {
-				Mat3MulMat3(totmat, mat, td->mtx);
-				Mat3MulMat3(fmat, td->smtx, totmat);
+				float obmat[3][3];
+				EulToMat3(td->ext->irot, obmat);
+
+				Mat3MulMat3(fmat, mat, obmat);
 				
 				Mat3ToEul(fmat, eul);
-				VECCOPY(td->rot, eul);
+				VECCOPY(td->ext->rot, eul);
 			}
 		}
 	}

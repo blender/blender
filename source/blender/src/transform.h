@@ -55,22 +55,35 @@ typedef struct TransCon {
                          /* Apply function pointer for rotation transformation (prototype will change */
 } TransCon;
 
-typedef struct TransData {
-	float  dist;         /* Distance to the nearest element (for Proportionnal Editing)                    */
-	float  factor;       /* Factor of the transformation (for Proportionnal Editing)                       */
-    float *loc;          /* Location of the data to transform                                              */
-    float  iloc[3];      /* Initial location                                                               */
+typedef struct TransDataExtension {
     float *rot;          /* Rotation of the data to transform (Faculative)                                 */
     float  irot[3];      /* Initial rotation                                                               */
     float *quat;         /* Rotation quaternion of the data to transform (Faculative)                      */
     float  iquat[4];	 /* Initial rotation quaternion                                                    */
     float *size;         /* Size of the data to transform (Faculative)                                     */
     float  isize[3];	 /* Initial size                                                                   */
+	float  obmat[3][3];	 /* Object matrix */
+} TransDataExtension;
+
+typedef struct TransData {
+	float  dist;         /* Distance to the nearest element (for Proportionnal Editing)                    */
+	float  factor;       /* Factor of the transformation (for Proportionnal Editing)                       */
+    float *loc;          /* Location of the data to transform                                              */
+    float  iloc[3];      /* Initial location                                                               */
     float  center[3];
-    float  mtx[3][3];    /* Matrix of the data to transform                                                */
-    float  smtx[3][3];   /* Matrix needed to apply the changes (in most case, the inverse of the parent)   */
+    float  mtx[3][3];    /* Transformation matrix from data space to global space                          */
+    float  smtx[3][3];   /* Transformation matrix from global space to data space                          */
 	struct Object *ob;
+	struct TransDataExtension *ext;
     int    flag;         /* Various flags */
+
+/* NOTE TO TON: THESE MOVES TO TransDataExtension. NEED TO CHANGE POSEMODE */
+    float *rot;          /* Rotation of the data to transform (Faculative)                                 */
+    float  irot[3];      /* Initial rotation                                                               */
+    float *quat;         /* Rotation quaternion of the data to transform (Faculative)                      */
+    float  iquat[4];	 /* Initial rotation quaternion                                                    */
+    float *size;         /* Size of the data to transform (Faculative)                                     */
+    float  isize[3];	 /* Initial size                                                                   */
 	
 	void *bone;			/* BWARGH! old transform demanded it, added for now (ton) */
 } TransData;
@@ -128,6 +141,7 @@ typedef struct TransInfo {
 #define TD_SELECTED		1
 #define	TD_NOACTION		2
 #define	TD_USEQUAT		4
+#define TD_OBJECT		8
 
 void Transform(int mode);
 

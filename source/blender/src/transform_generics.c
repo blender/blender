@@ -350,11 +350,15 @@ void drawLine(float *center, float *dir, char axis)
 /* Here I would suggest only TransInfo related issues, like free data & reset vars. Not redraws */
 void postTrans (TransInfo *t) 
 {
-
+	TransDataExtension *tx = t->data->ext;
 	G.moving = 0; // Set moving flag off (display as usual)
 
 	MEM_freeN(t->data);
 	t->data = NULL;
+
+	if (tx) {
+		MEM_freeN(tx);
+	}
 	
 }
 
@@ -435,15 +439,17 @@ void restoreTransObjects(TransInfo *t)
     TransData *tob;
 	for (tob = t->data; tob < t->data + t->total; tob++) {
         VECCOPY(tob->loc, tob->iloc);
-		if (tob->rot) {
-			VECCOPY(tob->rot, tob->irot);
-		}
-		if (tob->size) {
-			VECCOPY(tob->size, tob->isize);
-		}
-		if(tob->flag & TD_USEQUAT) {
-			if (tob->quat) {
-				QUATCOPY(tob->quat, tob->iquat);
+		if (tob->ext) {
+			if (tob->ext->rot) {
+				VECCOPY(tob->ext->rot, tob->ext->irot);
+			}
+			if (tob->ext->size) {
+				VECCOPY(tob->ext->size, tob->ext->isize);
+			}
+			if(tob->flag & TD_USEQUAT) {
+				if (tob->ext->quat) {
+					QUATCOPY(tob->ext->quat, tob->ext->iquat);
+				}
 			}
 		}
     }    

@@ -114,6 +114,46 @@ void recalcData();
 /* ************************** CONSTRAINTS ************************* */
 void getConstraintMatrix(TransInfo *t);
 
+void axisProjection(float axis[3], float in[3], float out[3]) {
+	float n[3], vec[3], factor;
+	Normalise(axis);
+
+	VECCOPY(n, axis);
+	Mat4MulVecfl(G.vd->viewmat, n);
+	n[2] = G.vd->viewmat[3][2];
+	Mat4MulVecfl(G.vd->viewinv, n);
+
+	if (Inpf(axis, G.vd->viewinv[2]) != 1.0f) {
+		Projf(vec, in, n);
+		factor = Normalise(vec);
+		factor /= Inpf(axis, vec);
+
+		VecMulf(axis, factor);
+		VECCOPY(out, axis);
+
+	}
+	else {
+		out[0] = out[1] = out[2] = 0.0f;
+	}
+}
+
+void planeProjection(float in[3], float out[3]) {
+	float vec[3], factor, angle;
+
+	VecSubf(vec, out, in);
+	factor = Normalise(vec);
+	angle = Inpf(vec, G.vd->viewinv[2]);
+
+	if (angle * angle >= 0.000001f) {
+		factor /= angle;
+
+		VECCOPY(vec, G.vd->viewinv[2]);
+		VecMulf(vec, factor);
+
+		VecAddf(out, in, vec);
+	}
+}
+
 void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], float out[3])
 {
 	VECCOPY(out, in);
@@ -121,23 +161,10 @@ void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], float out[
 		Mat3MulVecfl(t->con.imtx, out);
 		if (!(out[0] == out[1] == out[2] == 0.0f)) {
 			if (getConstraintSpaceDimension(t) == 2) {
-				float vec[3], factor, angle;
-
-				VecSubf(vec, out, in);
-				factor = Normalise(vec);
-				angle = Inpf(vec, G.vd->viewinv[2]);
-
-				if (angle * angle >= 0.000001f) {
-					factor /= angle;
-
-					VECCOPY(vec, G.vd->viewinv[2]);
-					VecMulf(vec, factor);
-
-					VecAddf(out, in, vec);
-				}
+				planeProjection(in, out);
 			}
 			else if (getConstraintSpaceDimension(t) == 1) {
-				float c[3], n[3], vec[3], factor;
+				float c[3];
 
 				if (t->con.mode & CONAXIS0) {
 					VECCOPY(c, t->con.mtx[0]);
@@ -148,29 +175,11 @@ void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], float out[
 				else if (t->con.mode & CONAXIS2) {
 					VECCOPY(c, t->con.mtx[2]);
 				}
-				Normalise(c);
-
-				VECCOPY(n, c);
-				Mat4MulVecfl(G.vd->viewmat, n);
-				n[2] = G.vd->viewmat[3][2];
-				Mat4MulVecfl(G.vd->viewinv, n);
-
-				if (Inpf(c, G.vd->viewinv[2]) != 1.0f) {
-					Projf(vec, in, n);
-					factor = Normalise(vec);
-					factor /= Inpf(c, vec);
-
-					VecMulf(c, factor);
-					VECCOPY(out, c);
-
-				}
-				else {
-					out[0] = out[1] = out[2] = 0.0f;
-				}
-
+				axisProjection(c, in, out);
 			}
 		}
-
+		
+		/* THIS IS NO GOOD, only works with global axis constraint */
 		if (t->num.flags & NULLONE && !(t->con.mode & CONAXIS0))
 			out[0] = 1.0f;
 

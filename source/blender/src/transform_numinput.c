@@ -62,41 +62,41 @@
 
 void outputNumInput(NumInput *n, char *str)
 {
-	char Cur;
+	char cur;
 	short i;
 
 	for (i=0; i<=n->idx_max; i++) {
 
 		if (n->idx != i)
-			Cur = ' ';
+			cur = ' ';
 		else
-			Cur = '|';
+			cur = '|';
 
 		switch (n->ctrl[i]) {
 		case 0:
-			sprintf(&str[i*20], "NONE%c", Cur);
+			sprintf(&str[i*20], "NONE%c", cur);
 			break;
 		case 1:
 		case -1:
-			sprintf(&str[i*20], "%.0f%c", n->val[i], Cur);
+			sprintf(&str[i*20], "%.0f%c", n->val[i], cur);
 			break;
 		case 10:
 		case -10:
-			sprintf(&str[i*20], "%.f.%c", n->val[i], Cur);
+			sprintf(&str[i*20], "%.f.%c", n->val[i], cur);
 			break;
 		case 100:
 		case -100:
-			sprintf(&str[i*20], "%.1f%c", n->val[i], Cur);
+			sprintf(&str[i*20], "%.1f%c", n->val[i], cur);
 			break;
 		case 1000:
 		case -1000:
-			sprintf(&str[i*20], "%.2f%c", n->val[i], Cur);
+			sprintf(&str[i*20], "%.2f%c", n->val[i], cur);
 		case 10000:
 		case -10000:
-			sprintf(&str[i*20], "%.3f%c", n->val[i], Cur);
+			sprintf(&str[i*20], "%.3f%c", n->val[i], cur);
 			break;
 		default:
-			sprintf(&str[i*20], "%.4f%c", n->val[i], Cur);
+			sprintf(&str[i*20], "%.4f%c", n->val[i], cur);
 		}
 	}
 }
