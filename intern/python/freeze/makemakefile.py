@@ -57,6 +57,10 @@ def makemakefile(outfp, makevars, files, target):
 	outfp.write("\n%s: $(OBJS)\n" % (libtarget))
 	outfp.write("\t$(AR) ruv %s%s $(OBJS)\n" % 
 		("$(OCGDIR)/blender/bpython/$(DEBUG_DIR)", targetlib))
+	outfp.write("ifeq ($(OS), darwin)\n")
+	outfp.write("\tranlib %s%s\n" %
+		("$(OCGDIR)/blender/bpython/$(DEBUG_DIR)", targetlib))
+	outfp.write("endif\n")
 
 	outfp.write("\n%s: %s $(OBJS)\n" % (target, mainfile))
 	outfp.write("\t$(CC) %s %s -o %s $(LDLAST)\n" % 
