@@ -404,7 +404,6 @@ void start_game(void)
     
 	scene_cfra_store= save_and_reset_all_scene_cfra();
 	
-	BPY_end_python();
 
 	/* sound init is save, only handles once */
 	sound_init_audio();
@@ -417,6 +416,8 @@ void start_game(void)
 	StartKetsjiShell(curarea, startscene->id.name+2, G.main, 1);
 	RestoreState();
 
+	/* Restart BPY - unload the game engine modules. */
+	BPY_end_python();
 	BPY_start_python();
 
 	restore_all_scene_cfra(scene_cfra_store);
