@@ -719,8 +719,9 @@ void calculatePropRatio(TransInfo *t)
 				restoreElement(td);
 			}
 			else {
+				/* Use rdist for falloff calculations, it is the real distance */
 				td->flag &= ~TD_NOACTION;
-				dist= (t->propsize-td->dist)/t->propsize;
+				dist= (t->propsize-td->rdist)/t->propsize;
 				switch(prop_mode) {
 				case PROP_SHARP:
 					td->factor= dist*dist;
@@ -757,8 +758,8 @@ void calculatePropRatio(TransInfo *t)
 			strcpy(t->proptext, "(Linear)");
 			break;
 		case PROP_CONST:
-			//strcpy(t->proptext, "(Sphere)");
 			strcpy(t->proptext, "(Constant)");
+			//strcpy(t->proptext, "(Sphere)");
 			break;
 		default:
 			strcpy(t->proptext, "");

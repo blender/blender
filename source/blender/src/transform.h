@@ -89,7 +89,8 @@ typedef struct TransDataExtension {
 } TransDataExtension;
 
 typedef struct TransData {
-	float  dist;         /* Distance to the nearest element (for Proportionnal Editing)                    */
+	float  dist;         /* Distance needed to affect element (for Proportionnal Editing)                  */
+	float  rdist;        /* Distance to the nearest element (for Proportionnal Editing)                    */
 	float  factor;       /* Factor of the transformation (for Proportionnal Editing)                       */
     float *loc;          /* Location of the data to transform                                              */
     float  iloc[3];      /* Initial location                                                               */
@@ -171,8 +172,6 @@ typedef struct TransInfo {
 #define TD_SELECTED		1
 #define	TD_NOACTION		2
 #define	TD_USEQUAT		4
-
-void Transform(int mode);
 
 void initWarp(TransInfo *t);
 int Warp(TransInfo *t, short mval[2]);

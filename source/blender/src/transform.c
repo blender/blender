@@ -235,6 +235,7 @@ static void set_prop_dist(TransInfo *t)
 				}
 				else break;	// by definition transdata has selected items in beginning
 			}
+			tob->rdist = tob->dist;
 		}	
 	}
 }
@@ -536,6 +537,51 @@ static void createTransMBallVerts(void)
 	}
 } 
 
+static void calc_distanceCurveVerts(TransData *head, TransData *tail) {
+	TransData *td, *td_near = NULL;
+	for (td = head; td<=tail; td++) {
+		if (td->flag & TD_SELECTED) {
+			td_near = td;
+			td->dist = 0.0f;
+		}
+		else if(td_near) {
+			float dist;
+			dist = VecLenf(td_near->center, td->center);
+			if (dist < (td-1)->dist) {
+				td->dist = (td-1)->dist;
+			}
+			else {
+				td->dist = dist;
+			}
+		}
+		else {
+			td->dist = 1000000000.0f;
+		}
+	}
+	td_near = NULL;
+	for (td = tail; td>=head; td--) {
+		if (td->flag & TD_SELECTED) {
+			td_near = td;
+			td->dist = 0.0f;
+		}
+		else if(td_near) {
+			float dist;
+			dist = VecLenf(td_near->center, td->center);
+			if (dist < td->dist || (td+1)->dist < td->dist) {
+				if (dist < (td+1)->dist) {
+					td->dist = (td+1)->dist;
+				}
+				else {
+					td->dist = dist;
+				}
+			}
+		}
+		/* TEMPORARY
+		   Eventually, will have to call other code to set REAL distance */
+		td->rdist = td->dist;
+	}
+}
+
 static void createTransCurveVerts(void)
 {
 	TransData *td = NULL;
@@ -586,7 +632,7 @@ static void createTransCurveVerts(void)
 					if(propmode || (bezt->f1 & 1)) {
 						VECCOPY(td->iloc, bezt->vec[0]);
 						td->loc= bezt->vec[0];
-						VECCOPY(td->center, td->loc);
+						VECCOPY(td->center, bezt->vec[1]);
 						if(bezt->f1 & 1) td->flag= TD_SELECTED;
 						else td->flag= 0;
 						td->ext = NULL;
@@ -620,7 +666,7 @@ static void createTransCurveVerts(void)
 					if(propmode || (bezt->f3 & 1)) {
 						VECCOPY(td->iloc, bezt->vec[2]);
 						td->loc= bezt->vec[2];
-						VECCOPY(td->center, td->loc);
+						VECCOPY(td->center, bezt->vec[1]);
 						if(bezt->f3 & 1) td->flag= TD_SELECTED;
 						else td->flag= 0;
 						td->ext = NULL;
@@ -634,6 +680,8 @@ static void createTransCurveVerts(void)
 						count++;
 					}
 				}
+				if (propmode)
+					calc_distanceCurveVerts(td-(nu->pntsu*3), td-1);
 			}
 		}
 		else {
@@ -657,10 +705,11 @@ static void createTransCurveVerts(void)
 						count++;
 					}
 				}
+				if (propmode)
+					calc_distanceCurveVerts(td-(nu->pntsu*nu->pntsv), td-1);
 			}
 		}
 	}
-	
 }
 
 static void createTransLatticeVerts(void)
@@ -1256,9 +1305,14 @@ static void createTransData(TransInfo *t)
 		}
 		
 		if(G.f & G_PROPORTIONAL) {
-			sort_trans_data(t);	// makes selected become first in array
-			set_prop_dist(t);
-			sort_trans_data_dist(t);
+			if (G.obedit->type==OB_CURVE) {
+				sort_trans_data_dist(t);
+			}
+			else {
+				sort_trans_data(t);	// makes selected become first in array
+				set_prop_dist(t);
+				sort_trans_data_dist(t);
+			}
 		}
 		t->flag |= T_EDIT;
 	}
