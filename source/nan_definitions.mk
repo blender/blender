@@ -42,12 +42,24 @@ all debug::
     endif
   endif
     export SRCHOME ?= $(NANBLENDERHOME)/source
+
+    export CONFIG_GUESS := $(shell ${SRCHOME}/tools/guess/guessconfig)
+    export OS := $(shell echo ${CONFIG_GUESS} | sed -e 's/-.*//')
+    export OS_VERSION := $(shell echo ${CONFIG_GUESS} | sed -e 's/^[^-]*-//' -e 's/-[^-]*//')
+    export CPU := $(shell echo ${CONFIG_GUESS} | sed -e 's/^[^-]*-[^-]*-//')
+    export MAKE_START := $(shell date "+%H:%M:%S %d-%b-%Y")
+
     export NAN_LIBDIR ?= $(NANBLENDERHOME)/lib
     export NAN_OBJDIR ?= $(NANBLENDERHOME)/obj
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_PYTHON_VERSION ?= 2.0
+  ifeq ($(OS),freebsd)
+    export NAN_PYTHON_BINARY ?= 
+    export NAN_MXTEXTTOOLS ?= 
+  else
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_MXTEXTTOOLS ?= $(shell $(NAN_PYTHON_BINARY) -c 'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so 
+  endif
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= $(LCGDIR)/jpeg
@@ -60,7 +72,11 @@ all debug::
     export NAN_SUMO ?= $(SRCHOME)/gameengine/Physics/Sumo
     export NAN_FUZZICS ?= $(SRCHOME)/gameengine/Physics/Sumo/Fuzzics
     export NAN_ODE ?= $(SRCHOME)/ode
+  ifeq ($(OS),freebsd)
+    export NAN_OPENSSL ?= /usr
+  else
     export NAN_OPENSSL ?= $(LCGDIR)/openssl
+  endif
     export NAN_BLENKEY ?= $(LCGDIR)/blenkey
     export NAN_DECIMATION ?= $(LCGDIR)/decimation
     export NAN_GUARDEDALLOC ?= $(LCGDIR)/guardedalloc
@@ -94,12 +110,6 @@ all debug::
 
     # Object Config_Guess DIRectory
     export OCGDIR = $(NAN_OBJDIR)/$(CONFIG_GUESS)
-
-    export CONFIG_GUESS := $(shell ${SRCHOME}/tools/guess/guessconfig)
-    export OS := $(shell echo ${CONFIG_GUESS} | sed -e 's/-.*//')
-    export OS_VERSION := $(shell echo ${CONFIG_GUESS} | sed -e 's/^[^-]*-//' -e 's/-[^-]*//')
-    export CPU := $(shell echo ${CONFIG_GUESS} | sed -e 's/^[^-]*-[^-]*-//')
-    export MAKE_START := $(shell date "+%H:%M:%S %d-%b-%Y")
 
   ifeq ($(OS),beos)
     ID = $(USER)
