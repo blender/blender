@@ -2170,14 +2170,14 @@ int vergzvlak(const void *a1, const void *a2)
 	return 0;
 }
 
-void shadetrapixel(float x, float y, int vlak)
+void shadetrapixel(float x, float y, int vlak, int mask)
 {
 	if( (vlak & 0x7FFFFF) > R.totvlak) {
 		printf("error in shadetrapixel nr: %d\n", (vlak & 0x7FFFFF));
 		return;
 	}
 
-	shadepixel(x, y, vlak);
+	shadepixel(x, y, vlak, mask);
 }
 
 extern unsigned short usegamtab;
@@ -2253,7 +2253,7 @@ void abufsetrow(int y)
 				else {
 					xs= x; ys= y;
 				}
-				shadetrapixel(xs, ys, ap->p[0]);
+				shadetrapixel(xs, ys, ap->p[0], ap->mask[0]);
 	
 				nr= count_mask(ap->mask[0]);
 				if( (R.r.mode & R_OSA) && nr<R.osa) {
@@ -2297,7 +2297,7 @@ void abufsetrow(int y)
 					else {
 						xs= x; ys= y;
 					}
-					shadetrapixel(xs, ys, zrow[totvlak][1]);
+					shadetrapixel(xs, ys, zrow[totvlak][1], 0xFFFF);
 					
 					a= count_mask(zrow[totvlak][2]);
 					if( (R.r.mode & R_OSA ) && a<R.osa) {
@@ -2316,7 +2316,7 @@ void abufsetrow(int y)
                        xs= (float)x+centLut[b & 15];
                        ys= (float)y+centLut[b>>4];
                        
-                       shadetrapixel(xs, ys, zrow[totvlak][1]);
+                       shadetrapixel(xs, ys, zrow[totvlak][1], zrow[totvlak][2]);
                        sval= addtosampcol(sampcol, shortcol, zrow[totvlak][2]);
                      }
 							scol= sampcol;

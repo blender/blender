@@ -189,6 +189,7 @@ typedef struct VlakRen
 	char snproj, puno;
 	char flag, ec;
 	unsigned int lay;
+	unsigned int raycount;
 	RadFace *radface;
 	Object *ob;
 } VlakRen;
@@ -246,6 +247,9 @@ typedef struct LampRen
 	float clipend;
 	/** A small depth offset to prevent self-shadowing. */
 	float bias;
+	
+	float ray_soft;
+	short ray_samp;
 	
 	/** If the lamp casts shadows, one of these is filled. For the old
      * renderer, shb is used, for the new pipeline the shadowBufOb,

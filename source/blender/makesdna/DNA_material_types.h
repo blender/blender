@@ -54,9 +54,10 @@ typedef struct Material {
 	float mirr, mirg, mirb;
 	float ambr, ambb, ambg;
 	
-	float amb, emit, ang, spectra;
+	float amb, emit, ang, spectra, ray_mirror;
 	float alpha, ref, spec, zoffs, add;
 	float kfac; /* for transparent solids */
+	short ray_depth, pad1;
 	short har;
 	char seed1, seed2;
 	
@@ -82,7 +83,7 @@ typedef struct Material {
 	/* dynamic properties */
 	float friction, fh, reflect;
 	float fhdist, xyfrict;
-	short dynamode, pad;
+	short dynamode, pad2;
 	
 	ScriptLink scriptlink;
 } Material;

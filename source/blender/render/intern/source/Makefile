@@ -41,7 +41,7 @@ ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris windo
     CCFLAGS += -funsigned-char
 endif
 
-# CFLAGS += $(LEVEL_2_C_WARNINGS)
+CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 # first /include is my own includes, second is the external interface. 
 # The external modules follow after. There should be a nicer way to say this.

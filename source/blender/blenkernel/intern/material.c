@@ -577,6 +577,15 @@ void init_render_material(Material *ma)
 	}
 	if(needuv) ma->texco |= NEED_UV;
 
+	if(R.r.mode & R_RAYTRACE) {
+		if(ma->ray_mirror!=0.0) { 
+			ma->texco |= NEED_UV|TEXCO_REFL;
+			if(R.osa) ma->texco |= TEXCO_OSA;
+		}
+	}
+
+
+
 	ma->ambr= ma->amb*R.wrld.ambr;
 	ma->ambg= ma->amb*R.wrld.ambg;
 	ma->ambb= ma->amb*R.wrld.ambb;

@@ -56,6 +56,9 @@ typedef struct Lamp {
 	float clipsta, clipend, shadspotsize;
 	float bias, soft;
 	
+	short ray_samp, pad;
+	float ray_soft;
+	
 	/* texact is for buttons */
 	short texact, shadhalostep;
 	
@@ -88,6 +91,7 @@ typedef struct Lamp {
 #define LA_DEEP_SHADOW  1024
 #define LA_NO_DIFF		2048
 #define LA_NO_SPEC		4096
+#define LA_SHAD_RAY		8192
 
 /* mapto */
 #define LAMAP_COL		1

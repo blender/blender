@@ -1552,7 +1552,8 @@ void RE_calc_R_ref()
 
 }
 
-void shade_lamp_loop()
+/* mask is used to define the amount of rays/samples */
+void shade_lamp_loop(int mask)
 {
 	LampRen *lar;
 	Material *ma;
@@ -1615,7 +1616,7 @@ void shade_lamp_loop()
 		ma->b= R.vcol[2];
 	}
 
-	/* mirror reflection colour */
+	/* mirror reflection colour textures (envmap) */
 	R.refcol[0]= R.refcol[1]= R.refcol[2]= R.refcol[3]= 0.0;
 
 	if(ma->texco) {
@@ -1807,16 +1808,29 @@ void shade_lamp_loop()
 		/* shadow and spec */
 		if(inp> -0.41) {			/* heuristic value */
 			shadfac= 1.0;
-			if(lar->shb) {
+			if(i>0.0 && (R.r.mode & R_SHADOW)) {
 				if(ma->mode & MA_SHADOW) {
-					shadfac = testshadowbuf(lar->shb, inp);
-					if(shadfac==0.0) continue;
-					i*= shadfac;
+					
+					if(lar->shb) {
+						shadfac = testshadowbuf(lar->shb, inp);
+						if(shadfac==0.0) continue;
+						i*= shadfac;
+					}
+					else if(lar->mode & LA_SHAD_RAY) {
+						if(R.r.mode & R_RAYTRACE) {
+							extern float ray_shadow(LampRen *, int);
+							/* hurms, single sided? */
+							if( R.vlr->n[0]*lv[0] + R.vlr->n[1]*lv[1] + R.vlr->n[2]*lv[2] > -0.01) {
+								shadfac= (1.0-ray_shadow(lar, mask));
+								i*= shadfac;
+							}
+						}
+					}
 				}
 			}
+		
 			/* specularity */
-			
-			if(ma->spec!=0.0 && !(lar->mode & LA_NO_SPEC)) {
+			if(shadfac>0.0 && ma->spec!=0.0 && !(lar->mode & LA_NO_SPEC)) {
 				
 				if(lar->type==LA_HEMI) {
 					/* hemi uses no spec shaders (yet) */
@@ -1859,6 +1873,7 @@ void shade_lamp_loop()
 				}
 			}
 		}
+		
 		/* in case 'no diffuse' we still do most calculus, spec can be in shadow */
 		if(i>0.0 && !(lar->mode & LA_NO_DIFF)) {
 			ir+= i*lar->r;
@@ -1916,7 +1931,7 @@ void shade_lamp_loop()
 }
 
 
-void shadepixel(float x, float y, int vlaknr)
+void shadepixel(float x, float y, int vlaknr, int mask)
   /* x,y: window coordinate from 0 to rectx,y */
 {
 	static VlakRen *vlr;
@@ -2035,12 +2050,7 @@ void shadepixel(float x, float y, int vlaknr)
 		}
 
 		/* COXYZ  */
-		if( (G.special1 & G_HOLO) && ((Camera *)G.scene->camera->data)->flag & CAM_HOLO2) {
-			R.view[0]= (x+(R.xstart)+1.0+holoofs);
-		}
-		else {
-			R.view[0]= (x+(R.xstart)+1.0);
-		}
+		R.view[0]= (x+(R.xstart)+1.0);
 
 		if(R.flag & R_SEC_FIELD) {
 			if(R.r.mode & R_ODDFIELD) R.view[1]= (y+R.ystart+0.5)*R.ycor;
@@ -2133,7 +2143,7 @@ void shadepixel(float x, float y, int vlaknr)
 
 				Normalise(R.vn);
 				if(R.osatex && (R.matren->texco & (TEXCO_NORM+TEXCO_REFL)) ) {
-               dl= O.dxuv[0]+O.dxuv[1];
+					dl= O.dxuv[0]+O.dxuv[1];
 					O.dxno[0]= dl*n3[0]-O.dxuv[0]*n1[0]-O.dxuv[1]*n2[0];
 					O.dxno[1]= dl*n3[1]-O.dxuv[0]*n1[1]-O.dxuv[1]*n2[1];
 					O.dxno[2]= dl*n3[2]-O.dxuv[0]*n1[2]-O.dxuv[1]*n2[2];
@@ -2315,8 +2325,7 @@ void shadepixel(float x, float y, int vlaknr)
 			R.winco[1]= (y+(R.ystart))/(float)R.afmy;
 		}
 	
-
-		shade_lamp_loop();
+		shade_lamp_loop(mask);
 
 		/* MIST */
 		if( (R.wrld.mode & WO_MIST) && (R.matren->mode & MA_NOMIST)==0 ){
@@ -2324,8 +2333,12 @@ void shadepixel(float x, float y, int vlaknr)
 		}
 		else alpha= 1.0;
 
-		/* RAYTRACE WAS HERE! */
-
+		/* RAYTRACE IS BACK HERE! */
+		if(R.r.mode & R_RAYTRACE) {
+			extern void ray_mirror(int);
+			if(R.matren->ray_mirror!=0.0) ray_mirror(mask);
+		}
+		
 		if(R.matren->alpha!=1.0 || alpha!=1.0) {
 			fac= alpha*(R.matren->alpha);
 			
@@ -2714,7 +2727,7 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 						xs= (float)x+centLut[b & 15];
 						ys= (float)y+centLut[b>>4];
 
-						shadepixel(xs, ys, ps->vlak);
+						shadepixel(xs, ys, ps->vlak, ps->mask);
 
 						if(shortcol[3]) {
 							add_filt_mask(ps->mask, shortcol, rb1, rb2, rb3);
@@ -2730,14 +2743,14 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 					xs= (float)x+centLut[b & 15];
 					ys= (float)y+centLut[b>>4];
 
-					shadepixel(xs, ys, ps->vlak0);
+					shadepixel(xs, ys, ps->vlak0, mask);
 
 					if(shortcol[3]) {
 						add_filt_mask(mask, shortcol, rb1, rb2, rb3);
 					}
 				}
 				else {
-					shadepixel((float)x, (float)y, (int)*rd);
+					shadepixel((float)x, (float)y, (int)*rd, fullmask);
 					if(shortcol[3]) {
 						add_filt_mask(fullmask, shortcol, rb1, rb2, rb3);
 					}
@@ -2863,7 +2876,7 @@ void zbufshade(void)
 			
 			for(x=0; x<R.rectx; x++, rp++, acol+= 4) {
 				/* spothalo's added here... *rp is the target colour? */
-  				shadepixel((float)x, fy, *rp);
+  				shadepixel((float)x, fy, *rp, 0);
 				
 				if(acol[3]) addAlphaOverShort(shortcol, acol);
 				
@@ -2879,7 +2892,7 @@ void zbufshade(void)
 		}
 		else {
 			for(x=0; x<R.rectx; x++, rp++) {
-				shadepixel((float)x, fy, *rp);
+				shadepixel((float)x, fy, *rp, 0);
 				if(shortcol[3]) {
 					rt= (char *)rp;
 					rt[0]= charcol[0];

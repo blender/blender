@@ -45,7 +45,6 @@ unsigned int    calchalo_z(struct HaloRen *har, unsigned int zz);
 
 float spec(float inp, int hard);
 
-void shade_lamp_loop(void);
 void add_halo_flare(void);
 
 /**
@@ -85,7 +84,7 @@ void zbufshadeDA(void);	/* Delta Accum Pixel Struct */
 /**
  * Also called in: zbuf.c
  */
-void shadepixel(float x, float y, int vlaknr);
+void shadepixel(float x, float y, int vlaknr, int mask);
 
 /**
  * Shade the pixel at xn, yn for halo har, and write the result to col. 

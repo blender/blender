@@ -174,12 +174,13 @@ typedef struct RenderData {
 	 * 9: borders                                                            
 	 * 10: panorama                                                          
 	 * 11: crop                                                              
-	 * 12: save SGI movies with Cosmo hardware (????)                        
-	 * 13: odd field first rendering                                         
-	 * 14: motion blur                                                       
-	 * 15: use unified renderer for this pic!                                
+	 * 12: save SGI movies with Cosmo hardware
+	 * 13: odd field first rendering                  
+	 * 14: motion blur                                         
+	 * 15: use unified renderer for this pic
+	 * 16. enable raytracing
 	 */
-	short mode;
+	int mode;
 
 	/**
 	 * What to do with the sky/background. Picks sky/premul/key
@@ -199,7 +200,7 @@ typedef struct RenderData {
 
 	/** For unified renderer: reduce intensity on boundaries with
 	 * identical materials with this number.*/
-	short same_mat_redux, pad_3[3];
+	short same_mat_redux, pad_3[2];
 	
 	/**
 	 * The gamma for the normal rendering. Used when doing
@@ -263,7 +264,7 @@ typedef struct Scene {
 #define R_FRONTBUF		4
 #define R_FRONTBUFANIM	8
 
-/* mode */
+/* mode (int now) */
 #define R_OSA			0x0001	
 #define R_SHADOW		0x0002	
 #define R_GAMMA			0x0004
@@ -277,10 +278,10 @@ typedef struct Scene {
 #define R_PANORAMA		0x0400
 #define R_MOVIECROP		0x0800
 #define R_COSMO			0x1000
-/* these difines were different between IrisGL and OpenGL!!! */
 #define R_ODDFIELD		0x2000
 #define R_MBLUR			0x4000
 #define R_UNIFIED       0x8000
+#define R_RAYTRACE      0x10000
 
 /* scemode */
 #define R_DOSEQ			0x0001

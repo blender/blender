@@ -997,7 +997,7 @@ static void render_panel_output()
 
 	/* Toon shading buttons */
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|5, 0,"Edge",	154, 70, 47, 19, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon shading");
+	uiDefButI(block, TOG|BIT|5, 0,"Edge",	154, 70, 47, 19, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon shading");
 	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings |>> ", 204, 70, 93, 19, "Display edge settings");
 	uiBlockEndAlign(block);
 	
@@ -1023,14 +1023,14 @@ static void render_panel_render()
  	uiDefBut(block, BUT,B_DORENDER,"RENDER",	369,142,192,47, 0, 0, 0, 0, 0, "Start the rendering");
 	
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|0, 0, "OSA",		369,114,122,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");
+	uiDefButI(block, TOG|BIT|0, 0, "OSA",		369,114,122,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");
 	uiDefButS(block, ROW,B_DIFF,"5",			369,90,28,20,&G.scene->r.osa,2.0,5.0, 0, 0, "Sets oversample level to 5");
 	uiDefButS(block, ROW,B_DIFF,"8",			397,90,28,20,&G.scene->r.osa,2.0,8.0, 0, 0, "Sets oversample level to 8 (Recommended)");
 	uiDefButS(block, ROW,B_DIFF,"11",			425,90,33,20,&G.scene->r.osa,2.0,11.0, 0, 0, "Sets oversample level to 11");
 	uiDefButS(block, ROW,B_DIFF,"16",			458,90,33,20,&G.scene->r.osa,2.0,16.0, 0, 0, "Sets oversample level to 16");
 	
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|14, 0, "MBLUR",	495,114,66,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Motion Blur calculation");
+	uiDefButI(block, TOG|BIT|14, 0, "MBLUR",	495,114,66,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Motion Blur calculation");
 	uiDefButF(block, NUM,B_DIFF,"Bf:",			495,90,65,20,&G.scene->r.blurfac, 0.01, 5.0, 10, 0, "Sets motion blur factor");
 
 	uiBlockBeginAlign(block);
@@ -1043,10 +1043,11 @@ static void render_panel_render()
 	uiDefButS(block, ROW,800,"Key",		467,11,44,24,&G.scene->r.alphamode,3.0,2.0, 0, 0, "Alpha and colour values remain unchanged");
 	
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|1,0,"Shadow",	565,167,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
-	uiDefButS(block, TOG|BIT|4,0,"EnvMap",	626,167,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable environment map renering");
-	uiDefButS(block, TOG|BIT|10,0,"Pano",	565,142,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable panorama rendering (output width is multiplied by Xparts)");
-	uiDefButS(block, TOG|BIT|8,0,"Radio",	626,142,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable radiosity rendering");
+	uiDefButI(block, TOG|BIT|1,0,"Shadow",	565,167,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
+	uiDefButI(block, TOG|BIT|4,0,"EnvMap",	626,167,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable environment map renering");
+	uiDefButI(block, TOG|BIT|10,0,"Pano",	565,142,41,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable panorama rendering (output width is multiplied by Xparts)");
+	uiDefButI(block, TOG|BIT|16,0,"Ray",	606,142,35,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable ray tracing");
+	uiDefButI(block, TOG|BIT|8,0,"Radio",	641,142,46,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable radiosity rendering");
 	
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW,B_DIFF,"100%",			565,114,121,20,&G.scene->r.size,1.0,100.0, 0, 0, "Set render size to defined size");
@@ -1055,14 +1056,14 @@ static void render_panel_render()
 	uiDefButS(block, ROW,B_DIFF,"25%",			647,90,39,20,&G.scene->r.size,1.0,25.0, 0, 0, "Set render size to 1/4 of defined size");
 	uiBlockEndAlign(block);
 	
-	uiDefButS(block, TOG|BIT|6,0,"Fields", 564,42,90,31,&G.scene->r.mode, 0, 0, 0, 0, "Enables field rendering");
+	uiDefButI(block, TOG|BIT|6,0,"Fields", 564,42,90,31,&G.scene->r.mode, 0, 0, 0, 0, "Enables field rendering");
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|13,0,"Odd",	655,57,30,16,&G.scene->r.mode, 0, 0, 0, 0, "Enables Odd field first rendering (Default: Even field)");
-	uiDefButS(block, TOG|BIT|7,0,"x",		655,42,30,15,&G.scene->r.mode, 0, 0, 0, 0, "Disables time difference in field calculations");
+	uiDefButI(block, TOG|BIT|13,0,"Odd",	655,57,30,16,&G.scene->r.mode, 0, 0, 0, 0, "Enables Odd field first rendering (Default: Even field)");
+	uiDefButI(block, TOG|BIT|7,0,"x",		655,42,30,15,&G.scene->r.mode, 0, 0, 0, 0, "Disables time difference in field calculations");
 	uiBlockEndAlign(block);
 	
-	uiDefButS(block, TOG|BIT|9,REDRAWVIEWCAM, "Border",	565,11,58,24, &G.scene->r.mode, 0, 0, 0, 0, "Render a small cut-out of the image");
-	uiDefButS(block, TOG|BIT|2,0, "Gamma",	626,11,58,24, &G.scene->r.mode, 0, 0, 0, 0, "Enable gamma correction");
+	uiDefButI(block, TOG|BIT|9,REDRAWVIEWCAM, "Border",	565,11,58,24, &G.scene->r.mode, 0, 0, 0, 0, "Render a small cut-out of the image");
+	uiDefButI(block, TOG|BIT|2,0, "Gamma",	626,11,58,24, &G.scene->r.mode, 0, 0, 0, 0, "Enable gamma correction");
 
 
 }
@@ -1117,11 +1118,11 @@ static void render_panel_format()
 #ifdef __sgi
 	yofs = 76;
 	uiDefButS(block, NUM,B_DIFF,"MaxSize:", 892,32,165,20, &G.scene->r.maximsize, 0.0, 500.0, 0, 0, "Maximum size per frame to save in an SGI movie");
-	uiDefButS(block, TOG|BIT|12,0,"Cosmo", 1059,32,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Attempt to save SGI movies using Cosmo hardware");
+	uiDefButI(block, TOG|BIT|12,0,"Cosmo", 1059,32,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Attempt to save SGI movies using Cosmo hardware");
 #endif
 
 	uiDefButS(block, MENU,B_FILETYPEMENU,imagetype_pup(),	892,yofs,174,20, &G.scene->r.imtype, 0, 0, 0, 0, "Images are saved in this file format");
-	uiDefButS(block, TOG|BIT|11,0, "Crop",          1068,yofs,51,20, &G.scene->r.mode, 0, 0, 0, 0, "Exclude border rendering from total image");
+	uiDefButI(block, TOG|BIT|11,0, "Crop",          1068,yofs,51,20, &G.scene->r.mode, 0, 0, 0, 0, "Exclude border rendering from total image");
 
 	yofs -= 22;
 
@@ -1189,7 +1190,7 @@ static void render_panel_format()
 	uiDefBut(block, BUT,B_PR_PAL169, "PAL 16:9",1146,70,100,18, 0, 0, 0, 0, 0, "Size preset: Image size - 720x576, Aspect ratio - 64x45");
 	uiDefBut(block, BUT,B_PR_PANO, "PANO",		1146,50,100,18, 0, 0, 0, 0, 0, "Standard panorama settings");
 	uiDefBut(block, BUT,B_PR_FULL, "FULL",		1146,30,100,18, 0, 0, 0, 0, 0, "Size preset: Image size - 1280x1024, Aspect ratio - 1x1");
-	uiDefButS(block, TOG|BIT|15, B_REDR, "Unified Renderer", 1146,10,100,18,  &G.scene->r.mode, 0, 0, 0, 0, "Use the unified renderer.");
+	uiDefButI(block, TOG|BIT|15, B_REDR, "Unified Renderer", 1146,10,100,18,  &G.scene->r.mode, 0, 0, 0, 0, "Use the unified renderer.");
 	uiBlockEndAlign(block);
 }
 

@@ -55,7 +55,7 @@
 void prepareScene()
 {
 	int a;
-
+	extern void makeoctree(void);
 	
 	if(R.rectot) MEM_freeN(R.rectot);
 	R.rectot= 0;
@@ -85,12 +85,18 @@ void prepareScene()
 
 	/* ENVIRONMENT MAPS */
 	make_envmaps();
+	
+	/* octree */
+	if(R.r.mode & R_RAYTRACE) makeoctree();
 }
 
 void finalizeScene(void)
 {
+	extern void freeoctree(void);
+	
 	/* Among other things, it releases the shadow buffers. */
 	RE_local_free_renderdata();
+	if(R.r.mode & R_RAYTRACE) freeoctree();
 }
 
 

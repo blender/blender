@@ -186,7 +186,7 @@ void         zbuffer_abuf(void);
 /**
  * Shade this face at this location in SCS.
  */
-void         shadetrapixel(float x, float y, int vlak);
+void         shadetrapixel(float x, float y, int vlak, int mask);
 
 /**
  * Determine the distance to the camera of this halo, in ZCS.

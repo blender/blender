@@ -1445,7 +1445,7 @@ static void init_render_mball(Object *ob)
 		vlr->v4= 0;
 
 		/* render normal are inverted */
-		vlr->len= CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+		vlr->len= CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->n);
 
 		vlr->mface= 0;
 		vlr->mat= ma;
@@ -1460,7 +1460,7 @@ static void init_render_mball(Object *ob)
 			*vlr1= *vlr;
 			vlr1->v2= vlr1->v3;
 			vlr1->v3= RE_findOrAddVert(startvert+index[3]);
-			vlr->len= CalcNormFloat(vlr1->v3->co, vlr1->v2->co, vlr1->v1->co, vlr1->n);
+			vlr->len= CalcNormFloat(vlr1->v1->co, vlr1->v2->co, vlr1->v3->co, vlr1->n);
 		}
 	}
 
@@ -1794,6 +1794,9 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 	lar->clipend = la->clipend;
 	lar->bias = la->bias;
 	
+	lar->ray_soft= la->ray_soft;
+	lar->ray_samp= la->ray_samp;
+	
 	lar->type= la->type;
 	lar->mode= la->mode;
 
@@ -1881,12 +1884,8 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 		}
 	}
 
-	if( (R.r.mode & R_SHADOW)
-		&& (lar->mode & LA_SHAD)
-		&& (la->type==LA_SPOT)
-		&& doshadbuf
-		)
-	{
+	if( (R.r.mode & R_SHADOW) && (lar->mode & LA_SHAD)
+		&& (la->type==LA_SPOT) && doshadbuf ) {
 		/* Per lamp, one shadow buffer is made. */
 		if (R.r.mode & R_UNIFIED) {
 			int mode;
