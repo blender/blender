@@ -1399,14 +1399,14 @@ void load_editMesh(void)
 			/* mat_nr in vertex */
 			if(me->totcol>1) {
 				mvert= me->mvert+mface->v1;
-				if(mvert->mat_nr == 255) mvert->mat_nr= mface->mat_nr;
+				if(mvert->mat_nr == (char)255) mvert->mat_nr= mface->mat_nr;
 				mvert= me->mvert+mface->v2;
-				if(mvert->mat_nr == 255) mvert->mat_nr= mface->mat_nr;
+				if(mvert->mat_nr == (char)255) mvert->mat_nr= mface->mat_nr;
 				mvert= me->mvert+mface->v3;
-				if(mvert->mat_nr == 255) mvert->mat_nr= mface->mat_nr;
+				if(mvert->mat_nr == (char)255) mvert->mat_nr= mface->mat_nr;
 				if(mface->v4) {
 					mvert= me->mvert+mface->v4;
-					if(mvert->mat_nr == 255) mvert->mat_nr= mface->mat_nr;
+					if(mvert->mat_nr == (char)255) mvert->mat_nr= mface->mat_nr;
 				}
 			}
 			
