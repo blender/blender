@@ -1653,7 +1653,7 @@ static void ambient_occlusion(World *wrld, ShadeInput *shi, ShadeResult *shr)
 {
 	float f, shadfac[4];
 	
-	if((wrld->mode & WO_AMB_OCC) && (R.r.mode & R_RAYTRACE)) {
+	if((wrld->mode & WO_AMB_OCC) && (R.r.mode & R_RAYTRACE) && shi->matren->amb!=0.0) {
 		ray_ao(shi, wrld, shadfac);
 
 		if(wrld->aocolor==WO_AOPLAIN) {
