@@ -1,8 +1,4 @@
 /**
- * blenlib/DNA_mesh_types.h (mar-2001 nzc)
- *
- * Mesh stuff.
- *
  * $Id$ 
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****

@@ -3228,21 +3228,21 @@ void ob_to_tex_transob(Object *ob, TransOb *tob)
 	if(id==0);
 	else if( GS(id->name)==ID_ME) {
 		me= ob->data;
-		me->texflag &= ~AUTOSPACE;
+		me->texflag &= ~ME_AUTOSPACE;
 		tob->loc= me->loc;
 		tob->rot= me->rot;
 		tob->size= me->size;
 	}
 	else if( GS(id->name)==ID_CU) {
 		cu= ob->data;
-		cu->texflag &= ~AUTOSPACE;
+		cu->texflag &= ~CU_AUTOSPACE;
 		tob->loc= cu->loc;
 		tob->rot= cu->rot;
 		tob->size= cu->size;
 	}
 	else if( GS(id->name)==ID_MB) {
 		mb= ob->data;
-		mb->texflag &= ~AUTOSPACE;
+		mb->texflag &= ~MB_AUTOSPACE;
 		tob->loc= mb->loc;
 		tob->rot= mb->rot;
 		tob->size= mb->size;

@@ -63,7 +63,6 @@
 #include "DNA_sound_types.h"
 #include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_mesh_types.h"
 
 #include "BKE_library.h"
 #include "BKE_global.h"

@@ -62,7 +62,6 @@
 #include "DNA_ika_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_group_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_userdef_types.h"

@@ -82,6 +82,9 @@ typedef struct MetaBall {
 
 #define MB_MAXELEM		1024
 
+/* texflag */
+#define MB_AUTOSPACE	1
+
 /* mb->flag */
 #define MB_UPDATE_ALWAYS	0
 #define MB_UPDATE_HALFRES	1

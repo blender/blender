@@ -162,6 +162,9 @@ typedef struct IpoCurve {
 
 /* **************** CURVE ********************* */
 
+/* texflag */
+#define CU_AUTOSPACE	1
+
 /* flag */
 #define CU_3D			1
 #define CU_FRONT		2

@@ -60,7 +60,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_key_types.h"
 
 #include "BKE_action.h"

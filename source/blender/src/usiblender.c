@@ -65,7 +65,6 @@
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_mesh_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_curve.h"

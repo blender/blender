@@ -48,7 +48,6 @@
 #include "DNA_object_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_mesh_types.h"
 
 
 #include "BLI_blenlib.h"
@@ -104,7 +103,7 @@ MetaBall *add_mball()
 	mb= alloc_libblock(&G.main->mball, ID_MB, "Meta");
 	
 	mb->size[0]= mb->size[1]= mb->size[2]= 1.0;
-	mb->texflag= AUTOSPACE;
+	mb->texflag= MB_AUTOSPACE;
 	
 	mb->wiresize= 0.4f;
 	mb->rendersize= 0.2f;

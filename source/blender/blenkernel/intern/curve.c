@@ -53,7 +53,6 @@
 #include "DNA_object_types.h"  
 #include "DNA_curve_types.h"  
 #include "DNA_material_types.h"  
-#include "DNA_mesh_types.h"
 
 /* for dereferencing pointers */
 #include "DNA_ID.h"  
@@ -171,7 +170,7 @@ Curve *add_curve(int type)
 	cu->width= 1.0;
 	cu->spacing= cu->linedist= 1.0;
 	cu->fsize= 1.0;
-	cu->texflag= AUTOSPACE;
+	cu->texflag= CU_AUTOSPACE;
 	
 	cu->bb= unit_boundbox();
 	
@@ -339,7 +338,7 @@ void tex_space_curve(Curve *cu)
 	bb->vec[0][2]=bb->vec[3][2]=bb->vec[4][2]=bb->vec[7][2]= loc[2]-size[2];
 	bb->vec[1][2]=bb->vec[2][2]=bb->vec[5][2]=bb->vec[6][2]= loc[2]+size[2];
 
-	if(cu->texflag & AUTOSPACE) {
+	if(cu->texflag & CU_AUTOSPACE) {
 		VECCOPY(cu->loc, loc);
 		VECCOPY(cu->size, size);
 		cu->rot[0]= cu->rot[1]= cu->rot[2]= 0.0;
