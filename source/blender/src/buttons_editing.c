@@ -1332,9 +1332,9 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	uiDefButI(block, TOG|BIT|ARM_DRAWAXESBIT,REDRAWVIEW3D, "Draw Axes", bx,by-46,97,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
 	uiDefButI(block, TOG|BIT|ARM_DRAWNAMESBIT,REDRAWVIEW3D, "Draw Names", bx,by-69,97,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
 	uiDefButI(block, TOG|BIT|ARM_DRAWXRAYBIT,REDRAWVIEW3D, "X-Ray", bx,by-92,97,20, &arm->flag, 0, 0, 0, 0, "Draw armature in front of shaded objects");
-	
-	
-
+	uiDefButI(block, TOG|BIT|ARM_DELAYBIT,REDRAWVIEW3D, 
+			  "Delay Deform", bx,by-115,97,20, &arm->flag, 0, 0, 0, 0, 
+			  "Don't deform children when manipulating bones in pose mode");
 }
 
 static void editing_panel_armature_bones(Object *ob, bArmature *arm)

@@ -3393,7 +3393,8 @@ void special_trans_update(int keyflags)
 #if 1
 	if (G.obpose && G.obpose->type == OB_ARMATURE)
 		clear_pose_constraint_status(G.obpose);
-		make_displists_by_armature(G.obpose);
+
+	if (!is_delay_deform()) make_displists_by_armature(G.obpose);
 #endif
 
 	if(G.vd->drawtype == OB_SHADED) reshadeall_displist();
@@ -3466,6 +3467,11 @@ void special_aftertrans_update(char mode, int flip, short canceled, int keyflags
 			allqueue(REDRAWIPO, 0);
 			allqueue(REDRAWNLA, 0);
 		}
+		if (!canceled && is_delay_deform()){
+			clear_pose_constraint_status(G.obpose);
+			make_displists_by_armature(G.obpose);
+		}
+
 	}
 	else {
 		base= FIRSTBASE;

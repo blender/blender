@@ -2707,3 +2707,15 @@ void create_vgroups_from_armature(Object *ob, Object *par)
 
 	}
 } 
+
+int is_delay_deform(void)
+{
+	bArmature               *arm;
+
+	arm=get_armature (G.obpose);
+
+	if (!arm)
+		return 0;
+
+	return (arm->flag & ARM_DELAYDEFORM);
+}

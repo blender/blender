@@ -110,6 +110,7 @@ void    unique_editbone_name (char* name);
 struct	Bone *get_first_selected_bone (void);
 void auto_align_armature(void);
 void create_vgroups_from_armature(Object *ob, Object *par);
+int is_delay_deform(void);
 
 #define	BONESEL_TIP		0x08000000
 #define	BONESEL_ROOT	0x04000000
