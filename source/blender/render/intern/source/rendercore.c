@@ -1873,9 +1873,16 @@ void shade_lamp_loop(int mask)
 		}
 	}
 	
+	/* sum shading here, to make all variables local (because of raytrace) */
 	if(ir<0.0) ir= 0.0; else ir*= ma->r;
+	ir+= ma->ambr +ma->amb*R.rad[0];
+	
 	if(ig<0.0) ig= 0.0; else ig*= ma->g;
+	ig+= ma->ambg +ma->amb*R.rad[1];
+	
 	if(ib<0.0) ib= 0.0; else ib*= ma->b;
+	ib+= ma->ambb +ma->amb*R.rad[2];
+	
 	if(isr<0.0) isr= 0.0;
 	if(isg<0.0) isg= 0.0;
 	if(isb<0.0) isb= 0.0;
@@ -1911,24 +1918,24 @@ void shade_lamp_loop(int mask)
 	}
 	
 	if(R.refcol[0]==0.0) {
-		a= 65535.0*( ir +ma->ambr +isr +ma->amb*R.rad[0]);
+		a= 65535.0*( ir + isr);
 		if(a>65535) a=65535; else if(a<0) a= 0;
 		shortcol[0]= a;
-		a= 65535.0*(ig +ma->ambg +isg +ma->amb*R.rad[1]);
+		a= 65535.0*(ig + isg);
 		if(a>65535) a=65535; else if(a<0) a= 0;
 		shortcol[1]= a;
-		a= 65535*(ib +ma->ambb +isb + ma->amb*R.rad[2]);
+		a= 65535*(ib + isb);
 		if(a>65535) a=65535; else if(a<0) a= 0;
 		shortcol[2]= a;
 	}
 	else {
-		a= 65535.0*( ma->mirr*R.refcol[1] + (1.0 - ma->mirr*R.refcol[0])*(ir +ma->ambr +ma->amb*R.rad[0]) +isr);
+		a= 65535.0*( ma->mirr*R.refcol[1] + (1.0 - ma->mirr*R.refcol[0])*ir +isr);
 		if(a>65535) a=65535; else if(a<0) a= 0;
 		shortcol[0]= a;
-		a= 65535.0*( ma->mirg*R.refcol[2] + (1.0 - ma->mirg*R.refcol[0])*(ig +ma->ambg +ma->amb*R.rad[1]) +isg);
+		a= 65535.0*( ma->mirg*R.refcol[2] + (1.0 - ma->mirg*R.refcol[0])*ig +isg);
 		if(a>65535) a=65535; else if(a<0) a= 0;
 		shortcol[1]= a;
-		a= 65535.0*( ma->mirb*R.refcol[3] + (1.0 - ma->mirb*R.refcol[0])*(ib +ma->ambb +ma->amb*R.rad[2]) +isb);
+		a= 65535.0*( ma->mirb*R.refcol[3] + (1.0 - ma->mirb*R.refcol[0])*ib +isb);
 		if(a>65535) a=65535; else if(a<0) a= 0;
 		shortcol[2]= a;
 	}
