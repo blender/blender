@@ -1591,33 +1591,41 @@ static void editing_panel_mesh_tools(Object *ob, Mesh *me)
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_tools", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Mesh Tools", "Editing", 640, 0, 318, 204)==0) return;
 	
+	uiBlockBeginAlign(block);
 	uiDefButS(block, TOG|BIT|2, 0, "Beauty",		477,195,80,19, &editbutflag, 0, 0, 0, 0, "Causes 'Subdivide' to split faces in halves instead of quarters");
-	uiDefBut(block, BUT,B_SPLIT,"Split",			477,175,80,19, 0, 0, 0, 0, 0, "Separates selected faces from unselected faces");
+	uiDefBut(block, BUT,B_SUBDIV,"Subdivide",		557,195,80,19, 0, 0, 0, 0, 0, "Splits selected faces into halves or quarters");
+	uiDefBut(block, BUT,B_FRACSUBDIV, "Fract Subd",	637,195,85,19, 0, 0, 0, 0, 0, "Subdivides selected faces with a random factor");
+
+	uiDefBut(block, BUT,B_VERTEXNOISE,"Noise",		477,175,80,19, 0, 0, 0, 0, 0, "Use vertex coordinate as texture coordinate");
+	uiDefBut(block, BUT,B_HASH,"Hash",				557,175,80,19, 0, 0, 0, 0, 0, "Randomizes selected vertice sequence data");
+	uiDefBut(block, BUT,B_XSORT,"Xsort",			637,175,85,19, 0, 0, 0, 0, 0, "Sorts selected vertice data in the X direction");
+
 	uiDefBut(block, BUT,B_TOSPHERE,"To Sphere",		477,155,80,19, 0, 0, 0, 0, 0, "Moves selected vertices outwards into a spherical shape");
-	uiDefBut(block, BUT,B_SUBDIV,"Subdivide",		477,135,80,19, 0, 0, 0, 0, 0, "Splits selected faces into halves or quarters");
-
-	uiDefBut(block, BUT,B_FRACSUBDIV, "Fract Subd",	557,195,80,19, 0, 0, 0, 0, 0, "Subdivides selected faces with a random factor");
-	uiDefBut(block, BUT,B_VERTEXNOISE,"Noise",		557,175,80,19, 0, 0, 0, 0, 0, "Use vertex coordinate as texture coordinate");
 	uiDefBut(block, BUT,B_VERTEXSMOOTH,"Smooth",	557,155,80,19, 0, 0, 0, 0, 0, "Flattens angles of selected faces");
-	uiDefBut(block, BUT,B_XSORT,"Xsort",			557,135,80,19, 0, 0, 0, 0, 0, "Sorts selected vertice data in the X direction");
+	uiDefBut(block, BUT,B_SPLIT,"Split",			637,155,85,19, 0, 0, 0, 0, 0, "Flattens angles of selected faces");
 
-	uiDefBut(block, BUT,B_HASH,"Hash",				637,195,80,19, 0, 0, 0, 0, 0, "Randomizes selected vertice sequence data");
-	uiDefButF(block, NUM, B_DIFF, "Limit:",			637,175,80,19, &doublimit, 0.0001, 1.0, 10, 0, "Specifies the max distance 'Rem Doubles' will consider vertices as 'doubled'");
-	uiDefBut(block, BUT,B_REMDOUB,"Rem Doubles",	637,155,80,19, 0, 0, 0, 0, 0, "Removes duplicates from selected vertices");
-	uiDefBut(block, BUT,B_FLIPNORM,"Flip Normals",	637,135,80,19, 0, 0, 0, 0, 0, "Toggles the direction of the selected face's normals");
+	uiDefBut(block, BUT,B_FLIPNORM,"Flip Normals",	477,135,80,19, 0, 0, 0, 0, 0, "Toggles the direction of the selected face's normals");
+	uiDefBut(block, BUT,B_REMDOUB,"Rem Doubles",	557,135,80,19, 0, 0, 0, 0, 0, "Removes duplicates from selected vertices");
+	uiDefButF(block, NUM, B_DIFF, "Limit:",			637,135,85,19, &doublimit, 0.0001, 1.0, 10, 0, "Specifies the max distance 'Rem Doubles' will consider vertices as 'doubled'");
+	uiBlockEndAlign(block);
 
-	uiDefBut(block, BUT,B_EXTR,"Extrude",			477,100,249,24, 0, 0, 0, 0, 0, "Converts selected edges to faces and selects the new vertices");
-	uiDefBut(block, BUT,B_SPINDUP,"Spin Dupe",		639,75,87,24, 0, 0, 0, 0, 0, "Creates copies of the selected vertices in a circle around the cursor in the indicated viewport");
-	uiDefBut(block, BUT,B_SPIN, "Spin",				558,75,78,24, 0, 0, 0, 0, 0, "Extrudes the selected vertices in a circle around the cursor in the indicated viewport");
+	uiDefBut(block, BUT,B_EXTR,"Extrude",			477,105,249,24, 0, 0, 0, 0, 0, "Converts selected edges to faces and selects the new vertices");
+
+	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_SCREW,"Screw",			477,75,79,24, 0, 0, 0, 0, 0, "Activates the screw tool");  // Bish - This could use some more definition
-	uiDefBut(block, BUT,B_EXTREP, "Extrude Dupe",	477,15,128,19, 0, 0, 0, 0, 0, "Creates copies of the selected vertices in a straight line away from the current viewport");
+	uiDefBut(block, BUT,B_SPIN, "Spin",				558,75,78,24, 0, 0, 0, 0, 0, "Extrudes the selected vertices in a circle around the cursor in the indicated viewport");
+	uiDefBut(block, BUT,B_SPINDUP,"Spin Dup",		639,75,87,24, 0, 0, 0, 0, 0, "Creates copies of the selected vertices in a circle around the cursor in the indicated viewport");
 
 	uiDefButS(block, NUM, B_DIFF, "Degr:",		477,55,78,19, &degr,10.0,360.0, 0, 0, "Specifies the number of degrees 'Spin' revolves");
 	uiDefButS(block, NUM, B_DIFF, "Steps:",		558,55,78,19, &step,1.0,180.0, 0, 0, "Specifies the total number of 'Spin' slices");
 	uiDefButS(block, NUM, B_DIFF, "Turns:",		639,55,86,19, &turn,1.0,360.0, 0, 0, "Specifies the number of revolutions the screw turns");
+	uiDefButS(block, TOG|BIT|1, B_DIFF, "Keep Original",477,35,156,19, &editbutflag, 0, 0, 0, 0, "Keeps a copy of the original vertices and faces after executing tools");
 	uiDefButS(block, TOG|BIT|0, B_DIFF, "Clockwise",	639,35,86,19, &editbutflag, 0, 0, 0, 0, "Specifies the direction for 'Screw' and 'Spin'");
-	uiDefButS(block, TOG|BIT|1, B_DIFF, "Keep Original",	477,35,156,19, &editbutflag, 0, 0, 0, 0, "Keeps a copy of the original vertices and faces after executing tools");
-	uiDefButF(block, NUM, B_DIFF, "Offset:",		608,15,117,19, &extr_offs, 0.01, 10.0, 100, 0, "Sets the distance between each copy for 'Extrude Dupe'");
+
+	uiBlockBeginAlign(block);
+	uiDefBut(block, BUT,B_EXTREP, "Extrude Dup",	477,15,128,19, 0, 0, 0, 0, 0, "Creates copies of the selected vertices in a straight line away from the current viewport");
+	uiDefButF(block, NUM, B_DIFF, "Offset:",		608,15,117,19, &extr_offs, 0.01, 10.0, 100, 0, "Sets the distance between each copy for 'Extrude Dup'");
+	uiBlockEndAlign(block);
 
 
 }
@@ -1638,68 +1646,20 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 	if(uiNewPanel(curarea, block, "Mesh Tools 1", "Editing", 960, 0, 318, 204)==0) return;
 
 	uiDefBut(block, BUT,B_DOCENTRE, "Centre",				1091, 200, 100, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
+	uiBlockBeginAlign(block);
+	uiDefBut(block, BUT,B_HIDE,		"Hide",		1091,155,77,24, 0, 0, 0, 0, 0, "Hides selected faces");
+	uiDefBut(block, BUT,B_REVEAL,	"Reveal",	1171,155,86,24, 0, 0, 0, 0, 0, "Reveals selected faces");
+	uiBlockEndAlign(block);
 
-	uiDefBut(block, BUT,B_HIDE,		"Hide",		1091,152,77,18, 0, 0, 0, 0, 0, "Hides selected faces");
-	uiDefBut(block, BUT,B_REVEAL,	"Reveal",	1171,152,86,18, 0, 0, 0, 0, 0, "Reveals selected faces");
-	uiDefBut(block, BUT,B_SELSWAP,	"Select Swap",	1091,129,166,18, 0, 0, 0, 0, 0, "Selects unselected faces, and deselects selected faces");
+	uiDefBut(block, BUT,B_SELSWAP,	"Select Swap",	1091,124,166,24, 0, 0, 0, 0, 0, "Selects unselected faces, and deselects selected faces");
 
+	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM,		  REDRAWVIEW3D, "NSize:",		1090, 90, 164, 19, &editbutsize, 0.001, 2.0, 10, 0, "Sets the length to use when displaying face normals");
 	uiDefButI(block, TOG|BIT|6, REDRAWVIEW3D, "Draw Normals",	1090,70,164,19, &G.f, 0, 0, 0, 0, "Displays face normals as lines");
 	uiDefButI(block, TOG|BIT|7, REDRAWVIEW3D, "Draw Faces",	1090,50,164,19, &G.f, 0, 0, 0, 0, "Displays all faces as shades");
 	uiDefButI(block, TOG|BIT|18, REDRAWVIEW3D, "Draw Edges", 1090,30,164,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights");
 	uiDefButI(block, TOG|BIT|11, 0, "All edges",				1090,10,164,19, &G.f, 0, 0, 0, 0, "Displays all edges in object mode without optimization");
-
-
-	/* Draw Vertex grouping buttons mostly if we're in editmode */
-	{
-		uiBut *but;
-		int	defCount;
-		bDeformGroup	*defGroup;
-		char *s, *menustr;
-		bDeformGroup *dg;
-		int min, by=210, index;
-		
-		uiDefBut(block, LABEL,0,"Vertex Groups",	940,by-=19,113,18, 0, 0, 0, 0, 0, "");
-
-		defCount=BLI_countlist(&ob->defbase);
-
-		if (!defCount) min=0;
-		else min=1;
-		
-		s= menustr = MEM_callocN((32 * defCount)+20, "menustr");
-
-		for (index = 1, dg = ob->defbase.first; dg; index++, dg=dg->next) {
-			int cnt= sprintf (s, "%s%%x%d|", dg->name, index);
-			
-			if (cnt>0) s+= cnt;
-		}
-		
-		by-=22;
-		if (defCount) uiDefButS(block, MENU, REDRAWBUTSEDIT, menustr,	940, by,18,18, &ob->actdef, min, defCount, 0, 0, "Browses available vertex groups");
-
-		MEM_freeN (menustr);
-
-		if (ob->actdef){
-			defGroup = BLI_findlink(&ob->defbase, ob->actdef-1);
-			but= uiDefBut(block, TEX,REDRAWBUTSEDIT,"",		958,by,93-18,18, defGroup->name, 0, 32, 0, 0, "Displays current vertex group name. Click to change. (Match bone name for deformation.)");
-			uiButSetFunc(but, verify_vertexgroup_name_func, defGroup, NULL);
-		}
-
-		uiDefButF(block, NUM, REDRAWVIEW3D, "Weight:",		940, by-=22, 93, 18, &editbutvweight, 0, 1, 10, 0, "Sets the current vertex group's bone deformation strength");
-
-		if (G.obedit && G.obedit==ob){
-
-	/*		uiDefBut(block, BUT,B_AUTOVGROUP,"Auto Weight",			740,by-=22,93,18, 0, 0, 0, 0, 0, "Automatically assigns deformation groups"); */
-			uiDefBut(block, BUT,B_NEWVGROUP,"New",				940,by-=22,45,18, 0, 0, 0, 0, 0, "Creates a new vertex group");
-			uiDefBut(block, BUT,B_DELVGROUP,"Delete",			988,by,45,18, 0, 0, 0, 0, 0, "Removes the current vertex group");
-	
-			uiDefBut(block, BUT,B_ASSIGNVGROUP,"Assign",		940,by-=22,93,18, 0, 0, 0, 0, 0, "Assigns selected vertices to the current vertex group");
-			uiDefBut(block, BUT,B_REMOVEVGROUP,"Remove",		940,by-=22,93,18, 0, 0, 0, 0, 0, "Removes selected vertices from the current vertex group");
-	
-			uiDefBut(block, BUT,B_SELVGROUP,"Select",			940,by-=22,93,18, 0, 0, 0, 0, 0, "Selects vertices belonging to the current vertex group");
-			uiDefBut(block, BUT,B_DESELVGROUP,"Deselect",		940,by-=22,93,18, 0, 0, 0, 0, 0, "Deselects vertices belonging to the current vertex group");
-		}
-	}
+	uiBlockEndAlign(block);
 
 }
 
@@ -1781,20 +1741,76 @@ static void editing_panel_links(Object *ob)
 	
 	if(ma) {
 		uiDefButF(block, COL, 0, "",			291,123,24,30, &(ma->r), 0, 0, 0, 0, "");
-		uiDefBut(block, LABEL, 0, ma->id.name+2, 318,146, 103, 30, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, ma->id.name+2, 318,153, 103, 20, 0, 0, 0, 0, 0, "");
 	}
 	uiDefButC(block, NUM, B_REDR,	str,		318,123,103,30, &ob->actcol, min, (float)(ob->totcol), 0, 0, "Displays total number of material indices and the current index");
 	uiDefBut(block, BUT,B_MATWICH,	"?",		423,123,31,30, 0, 0, 0, 0, 0, "In EditMode, sets the active material index from selected faces");
 	
-	uiDefBut(block, BUT,B_MATNEW,	"New",		292,101,80,21, 0, 0, 0, 0, 0, "Adds a new Material index");
-	uiDefBut(block, BUT,B_MATDEL,	"Delete",	374,101,80,21, 0, 0, 0, 0, 0, "Deletes this Material index");
-	uiDefBut(block, BUT,B_MATASS,	"Assign",	291,47,162,26, 0, 0, 0, 0, 0, "In EditMode, assigns the active index to selected faces");
+	uiBlockBeginAlign(block);
+	uiDefBut(block, BUT,B_MATNEW,	"New",		292,101,80,20, 0, 0, 0, 0, 0, "Adds a new Material index");
+	uiDefBut(block, BUT,B_MATDEL,	"Delete",	374,101,80,20, 0, 0, 0, 0, 0, "Deletes this Material index");
+	uiDefBut(block, BUT,B_MATSEL,	"Select",	292,76,80,22, 0, 0, 0, 0, 0, "In EditMode, selects faces that have the active index");
+	uiDefBut(block, BUT,B_MATDESEL,	"Deselect",	374,76,80,22, 0, 0, 0, 0, 0, "Deselects everything with current indexnumber");
+	uiDefBut(block, BUT,B_MATASS,	"Assign",	292,47,162,26, 0, 0, 0, 0, 0, "In EditMode, assigns the active index to selected faces");
 
-	uiDefBut(block, BUT,B_MATSEL,	"Select",	292,76,79,22, 0, 0, 0, 0, 0, "In EditMode, selects faces that have the active index");
-	uiDefBut(block, BUT,B_MATDESEL,	"Deselect",	373,76,79,21, 0, 0, 0, 0, 0, "Deselects everything with current indexnumber");
-
-	uiDefBut(block, BUT,B_SETSMOOTH,	"Set Smooth",	291,15,80,20, 0, 0, 0, 0, 0, "In EditMode, sets 'smooth' rendering of selected faces");
+	uiBlockBeginAlign(block);
+	uiDefBut(block, BUT,B_SETSMOOTH,"Set Smooth",	291,15,80,20, 0, 0, 0, 0, 0, "In EditMode, sets 'smooth' rendering of selected faces");
 	uiDefBut(block, BUT,B_SETSOLID,	"Set Solid",	373,15,80,20, 0, 0, 0, 0, 0, "In EditMode, sets 'solid' rendering of selected faces");
+	uiBlockEndAlign(block);
+
+	/* vertex group... partially editmode... */
+	{
+		uiBut *but;
+		int	defCount;
+		bDeformGroup	*defGroup;
+		char *s, *menustr;
+		bDeformGroup *dg;
+		int min, index;
+		
+		uiDefBut(block, LABEL,0,"Vertex Groups",	143,153,130,20, 0, 0, 0, 0, 0, "");
+
+		defCount=BLI_countlist(&ob->defbase);
+
+		if (!defCount) min=0;
+		else min=1;
+		
+		s= menustr = MEM_callocN((32 * defCount)+20, "menustr");
+
+		for (index = 1, dg = ob->defbase.first; dg; index++, dg=dg->next) {
+			int cnt= sprintf (s, "%s%%x%d|", dg->name, index);
+			
+			if (cnt>0) s+= cnt;
+		}
+		
+		uiBlockBeginAlign(block);
+		if (defCount) uiDefButS(block, MENU, REDRAWBUTSEDIT, menustr,	143, 132,18,21, &ob->actdef, min, defCount, 0, 0, "Browses available vertex groups");
+
+		MEM_freeN (menustr);
+
+		if (ob->actdef){
+			defGroup = BLI_findlink(&ob->defbase, ob->actdef-1);
+			but= uiDefBut(block, TEX,REDRAWBUTSEDIT,"",		161,132,140-18,21, defGroup->name, 0, 32, 0, 0, "Displays current vertex group name. Click to change. (Match bone name for deformation.)");
+			uiButSetFunc(but, verify_vertexgroup_name_func, defGroup, NULL);
+
+			uiDefButF(block, NUM, REDRAWVIEW3D, "Weight:",		143, 111, 140, 21, &editbutvweight, 0, 1, 10, 0, "Sets the current vertex group's bone deformation strength");
+		}
+		uiBlockEndAlign(block);
+
+		if (G.obedit && G.obedit==ob){
+			uiBlockBeginAlign(block);
+	/*		uiDefBut(block, BUT,B_AUTOVGROUP,"Auto Weight",			740,by-=22,93,18, 0, 0, 0, 0, 0, "Automatically assigns deformation groups"); */
+			uiDefBut(block, BUT,B_NEWVGROUP,"New",			143,90,70,21, 0, 0, 0, 0, 0, "Creates a new vertex group");
+			uiDefBut(block, BUT,B_DELVGROUP,"Delete",		213,90,70,21, 0, 0, 0, 0, 0, "Removes the current vertex group");
+	
+			uiDefBut(block, BUT,B_ASSIGNVGROUP,"Assign",	143,69,70,21, 0, 0, 0, 0, 0, "Assigns selected vertices to the current vertex group");
+			uiDefBut(block, BUT,B_REMOVEVGROUP,"Remove",	213,69,70,21, 0, 0, 0, 0, 0, "Removes selected vertices from the current vertex group");
+	
+			uiDefBut(block, BUT,B_SELVGROUP,"Select",		143,48,70,21, 0, 0, 0, 0, 0, "Selects vertices belonging to the current vertex group");
+			uiDefBut(block, BUT,B_DESELVGROUP,"Desel.",		213,48,70,21, 0, 0, 0, 0, 0, "Deselects vertices belonging to the current vertex group");
+			uiBlockEndAlign(block);
+		}
+	}
+
 	
 }
 

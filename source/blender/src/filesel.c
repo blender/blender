@@ -1126,10 +1126,9 @@ static void draw_filetext(SpaceFile *sfile)
 	}
 
 	/* clear drawing errors, with text at the right hand side: */
-	uiEmboss(textrct.xmin, textrct.ymin, textrct.xmax, textrct.ymax, 1);
-	
 	BIF_ThemeColor(TH_HEADER);
-	glRecti(textrct.xmax+2,  textrct.ymin,  textrct.xmax+10,  textrct.ymax);
+	glRecti(textrct.xmax,  textrct.ymin,  textrct.xmax+10,  textrct.ymax);
+	uiEmboss(textrct.xmin, textrct.ymin, textrct.xmax, textrct.ymax, 1);
 }
 
 void drawfilespace(ScrArea *sa, void *spacedata)
