@@ -19,7 +19,7 @@ if os.path.isdir (root_build_dir) == 0:
 config_file = ARGUMENTS.get('CONFIG', 'config.opts')
 
 # Blender version.
-version='2.33'
+version='2.33a'
 
 sdl_env = Environment ()
 freetype_env = Environment ()
