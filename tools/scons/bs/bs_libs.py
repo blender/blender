@@ -12,10 +12,10 @@ def common_libs(env):
 	Append to env all libraries that are common to Blender and Blenderplayer
 	"""
 	env.Append (LIBS=[
-		'blender_blenloader',
 		'blender_readblenfile',
 		'blender_img',
 		'blender_blenkernel',
+		'blender_blenloader',
 		'blender_blenpluginapi',
 		'blender_imbuf',
 		'blender_avi',
