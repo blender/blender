@@ -5290,10 +5290,12 @@ void transform(int mode)
 
 					if(mode=='n') {
 						tv= transvmain;
-						dot= tv->nor[0]*dvecp[0] + tv->nor[1]*dvecp[1] + tv->nor[2]*dvecp[2];
-						apply_keyb_grid(&dot, 0.0, G.vd->grid, 0.1*G.vd->grid, gridflag & USER_AUTOGRABGRID);
-						dvec[0] = dot;
-						dvec[1] = dvec[2] = 0.0;
+						if(tv->nor) {
+							dot= tv->nor[0]*dvecp[0] + tv->nor[1]*dvecp[1] + tv->nor[2]*dvecp[2];
+							apply_keyb_grid(&dot, 0.0, G.vd->grid, 0.1*G.vd->grid, gridflag & USER_AUTOGRABGRID);
+							dvec[0] = dot;
+							dvec[1] = dvec[2] = 0.0;
+						}
 					}
 
 					/* apply */
