@@ -698,6 +698,7 @@ void make_ob_editipo(Object *ob, SpaceIpo *si)
 			ei->flag= ei->icu->flag;
 		}
 		
+		
 		ei++;
 	}
 }
@@ -1162,9 +1163,6 @@ void make_editipo()
 	
 	ei= G.sipo->editipo;
 	for(a=0; a<G.sipo->totipo; a++, ei++) {
-		
-		if(ei->flag & IPO_VISIBLE) ei->flag |= IPO_SELECT;
-		
 		if(ei->icu) ei->icu->flag= ei->flag;
 	}
 	editipo_changed(G.sipo, 0);
@@ -1408,7 +1406,6 @@ void swap_selectall_editipo()
 	BezTriple *bezt;
 	int a, b; /*  , sel=0; */
 	
-	
 	deselectall_key();
 
 	get_status_editipo();
@@ -1429,6 +1426,7 @@ void swap_selectall_editipo()
 	}
 	else if(totipo_edit==0) {
 		ei= G.sipo->editipo;
+		printf("before totipo_sel %d\n", totipo_sel);
 		if (ei){
 			for(a=0; a<G.sipo->totipo; a++) {
 				if( ei->flag & IPO_VISIBLE ) {
@@ -1439,6 +1437,8 @@ void swap_selectall_editipo()
 			}
 			update_editipo_flags();
 		}
+		get_status_editipo();
+		printf("after totipo_sel %d\n", totipo_sel);
 	}
 	else {
 		ei= G.sipo->editipo;

@@ -1967,7 +1967,9 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(in_ipo_buttons()) {
 					swap_visible_editipo();
 				}
-				else swap_selectall_editipo();
+				else {
+					swap_selectall_editipo();
+				}
 				allspace (REMAKEIPO, 0);
 				allqueue (REDRAWNLA, 0);
 				allqueue (REDRAWACTION, 0);
