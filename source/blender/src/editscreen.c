@@ -1605,6 +1605,8 @@ void BIF_wait_for_statechange(void)
 		}
 		statechanged= 0;
 	}
+	else PIL_sleep_ms(3);	/* statechanged can be set '1' while holding mousebutton, causing locks */
+
 }
 void getmouse(short *mval)
 {

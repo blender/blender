@@ -521,8 +521,10 @@ void viewmove(int mode)
 			scrarea_do_windraw(curarea);
 			screen_swapbuffers();
 		}
-		else BIF_wait_for_statechange();
-
+		else {
+			BIF_wait_for_statechange();
+		}
+		
 		/* this in the end, otherwise get_mbut does not work on a PC... */
 		if( !(get_mbut() & (L_MOUSE|M_MOUSE))) break;
 	}
