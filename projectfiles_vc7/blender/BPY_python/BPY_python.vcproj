@@ -252,6 +252,9 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Text.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\Text3d.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Texture.c">
 			</File>
 			<File
@@ -407,6 +410,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Text.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\Text3d.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Texture.h">
