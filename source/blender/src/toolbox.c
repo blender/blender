@@ -82,6 +82,7 @@
 #include "BIF_toolbox.h"
 #include "BIF_mywindow.h"
 #include "BIF_editarmature.h"
+#include "BIF_editdeform.h"
 #include "BIF_editfont.h"
 #include "BIF_editmesh.h"
 #include "BIF_editseq.h"
@@ -1943,8 +1944,7 @@ static void tb_do_transform_clearapply(void *arg, int event)
 			apply_object();
 			break;
 		case 4: /* apply deformation */
-			if (ob->parent && ob->parent->type==OB_LATTICE) apply_lattice();
-			else error("The active object is not the child of a lattice");
+			object_apply_deform(ob);
 			break;
 		case 5: /* make duplicates real */
 			if (ob->transflag & OB_DUPLI) make_duplilist_real();

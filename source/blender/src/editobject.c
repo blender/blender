@@ -812,9 +812,7 @@ void clear_parent(void)
 			}
 			
 			if(par) {
-				if(par->type==OB_LATTICE) makeDispList(base->object);
-				if(par->type==OB_IKA) makeDispList(base->object);
-				if(par->type==OB_ARMATURE) makeDispList(base->object);
+				makeDispList(base->object);	// just always..., checks are not available well (ton)
 			}
 		}
 		base= base->next;
@@ -2865,9 +2863,13 @@ void apply_object()
 		if(ob==0) return;
 		
 		if(ob->transflag & OB_DUPLI) make_duplilist_real();
-		else if(ob->parent && ob->parent->type==OB_LATTICE) apply_lattice();
-		
-		return;
+		else {
+			if(okee("Apply deformation")==0) return;
+			object_apply_deform(ob);
+			allqueue(REDRAWVIEW3D, 0);
+
+			return;
+		}
 	}
 
 	if(okee("Apply size and rotation")==0) return;

@@ -199,7 +199,7 @@ void hook_object_deform(Object *ob, int index, float *vec)
 
 
 /* modifiers: hooks, deform, softbody 
-   mode=='s' is start, 'e' end 
+   mode=='s' is start, 'e' is end , 'a' is apply
 */
 
 int mesh_modifier(Object *ob, char mode)
@@ -258,12 +258,16 @@ int mesh_modifier(Object *ob, char mode)
 		}
 		
 	}
-	else { // end
+	else if(mode=='e') { // end
 		if(mvert) {
-			MEM_freeN(me->mvert);
+			if(me->mvert) MEM_freeN(me->mvert);
 			me->mvert= mvert;
 			mvert= NULL;
 		}
+	}
+	else if(mode=='a') { // apply
+		if(mvert) MEM_freeN(mvert);
+		mvert= NULL;
 	}
 	
 	return done;
@@ -327,10 +331,13 @@ int curve_modifier(Object *ob, char mode)
 			}
 		}
 	}
-	else {
+	else if(mode=='e') {
 		/* paste */
 		freeNurblist(&cu->nurb);
 		cu->nurb= nurb;
+	}
+	else if(mode=='a') {
+		freeNurblist(&nurb);
 	}
 	
 	return done;

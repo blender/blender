@@ -663,10 +663,6 @@ int object_deform(Object *ob)
 {
 	return _object_deform(ob, 0);
 }
-int object_apply_deform(Object *ob)
-{
-	return _object_deform(ob, 1);
-}
 
 
 BPoint *latt_bp(Lattice *lt, int u, int v, int w)

@@ -33,7 +33,6 @@
 #ifndef BIF_EDITLATTICE_H
 #define BIF_EDITLATTICE_H
 
-void apply_lattice(void);
 void free_editLatt(void);
 void make_editLatt(void);
 void load_editLatt(void);

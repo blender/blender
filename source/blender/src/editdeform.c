@@ -29,12 +29,14 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  * Creator-specific support for vertex deformation groups
+ * Added: apply deform function (ton)
  */
 
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_curve_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -44,6 +46,7 @@
 
 #include "BKE_global.h"
 #include "BKE_deform.h"
+#include "BKE_displist.h"
 #include "BKE_mesh.h"
 
 #include "BIF_editdeform.h"
@@ -645,3 +648,33 @@ void unique_vertexgroup_name (bDeformGroup *dg, Object *ob)
 		}
 	}	
 }
+
+/* ******************* other deform edit stuff ********** */
+
+void object_apply_deform(Object *ob)
+{
+	char *err= NULL;
+	
+	if(ob->type==OB_MESH) {
+		Mesh *me= ob->data;
+		if(me->id.us>1) {
+			err= "Can't apply deformation to Mesh with other users";
+		}
+		mesh_modifier(ob, 's'); // start
+		mesh_modifier(ob, 'a'); // apply and end
+		freedisplist(&ob->disp);
+	}
+	else if (ob->type==OB_CURVE || ob->type==OB_SURF) {
+		Curve *cu= ob->data;
+		if(cu->id.us>1) {
+			err= "Can't apply deformation to Curve with other users";
+		}
+		curve_modifier(ob, 's'); // start
+		curve_modifier(ob, 'a'); // apply and end
+		freedisplist(&ob->disp);
+	}
+
+	if(err) error(err);
+
+}
+

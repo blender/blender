@@ -76,34 +76,7 @@
 
 #include "BKE_armature.h"
 
-void apply_lattice(void)
-{
-	Base *base;
-	Object *par;
-	
-	if(okee("Apply lattice deformation")==0) return;
-	
-	base= FIRSTBASE;
-	while(base) {
-		if TESTBASELIB(base) {
-			if( (par= base->object->parent) ) {
-				if(par->type==OB_LATTICE) {
-					object_apply_deform(base->object);
-					
-					base->object->parent= 0;
-				}
-			}
-		}
-		base= base->next;
-	}
-	
-	allqueue(REDRAWVIEW3D, 0);
-}
-
 /* ***************************** */
-
-
-
 
 void free_editLatt(void)
 {
