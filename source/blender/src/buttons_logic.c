@@ -85,6 +85,7 @@
 #include "BDR_editcurve.h"
 #include "BSE_buttons.h"
 #include "BSE_headerbuttons.h"
+#include "BSE_filesel.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -560,14 +561,14 @@ void do_logic_buts(unsigned short event)
 					bSoundActuator *sa= act->data;
 					if(sa->sndnr)
 					{
+						bSound *sound= G.main->sound.first;
+						int nr= 1;
+
 						if(sa->sndnr == -2) {
 							activate_databrowse((ID *)G.main->sound.first, ID_SO, 0, B_SOUNDACT_BROWSE,
 											&sa->sndnr, do_logic_buts);
 							break;
 						}
-
-						bSound *sound= G.main->sound.first;
-						int nr= 1;
 
 						while(sound)
 						{
