@@ -5282,10 +5282,10 @@ static void append_named_part(FileData *fd, Main *mainvar, Scene *scene, char *n
 					base->object= ob;
 					ob->id.us++;
 					
-					if(!(flag & FILE_AUTOSELECT)) { /* inverse logic here, because we want it to be the default action */
+					if(flag & FILE_AUTOSELECT) { 
 						base->flag |= SELECT;
 						base->object->flag = base->flag;
-						G.scene->basact = base;
+						/* do NOT make base active here! screws up GUI stuff, if you want it do it on src/ level */
 					}
 				}
 				afbreek= 1;
@@ -5388,7 +5388,7 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	}
 	/* now we have or selected, or an indicated file */
 	
-	if(!(sfile->flag & FILE_AUTOSELECT)) scene_deselect_all(G.scene);
+	if(sfile->flag & FILE_AUTOSELECT) scene_deselect_all(G.scene);
 
 	mainlist.first= mainlist.last= G.main;
 	G.main->next= NULL;
