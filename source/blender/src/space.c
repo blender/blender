@@ -1132,6 +1132,8 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						if(G.obedit->type==OB_MESH) {
 							undo_push_mesh("Merge");
 							mergemenu();
+								
+							makeDispList(G.obedit);
 						}
 					}
 					else if((G.qual==0)) {
