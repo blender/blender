@@ -143,14 +143,6 @@ PyObject *Curve_Init (void)
   return (submodule);
 }
 
-int Curve_CheckPyObject (PyObject *pyobj)
-{
-  return (pyobj->ob_type == &Curve_Type);
-}
-Curve *Curve_FromPyObject (PyObject *pyobj)
-{
-  return ((BPy_Curve *)pyobj)->curve;
-}
 /*****************************************************************************/
 /* Python BPy_Curve methods:                                                   */
 /* gives access to                                                           */
@@ -395,7 +387,7 @@ static PyObject *Curve_setExt2(BPy_Curve *self, PyObject *args)
 }
 
 
-
+/*
 static PyObject *Curve_setControlPoint(BPy_Curve *self, PyObject *args)
 {
   Nurb*ptrnurb = self->curve->nurb.first;
@@ -430,6 +422,37 @@ static PyObject *Curve_setControlPoint(BPy_Curve *self, PyObject *args)
 	for(j = 0;j<3;j++)
 	  ptrnurb->bezt[numpoint].vec[i][j] = bez[i*3+j];
     }
+	
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+*/
+
+
+static PyObject *Curve_setControlPoint(BPy_Curve *self, PyObject *args)
+{	PyObject *listargs=0;
+  Nurb*ptrnurb = self->curve->nurb.first;
+  int numcourbe,numpoint,i,j;
+  if (!ptrnurb){ Py_INCREF(Py_None);return Py_None;}
+
+  if (ptrnurb->bp)
+    if (!PyArg_ParseTuple(args, "iiO", &numcourbe,&numpoint,&listargs))  
+      return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+								"expected int int list arguments"));
+  if (ptrnurb->bezt)
+    if (!PyArg_ParseTuple(args, "iiO", &numcourbe,&numpoint,&listargs))  
+      return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+																		 "expected int int list arguments"));
+
+  for(i = 0;i< numcourbe;i++)
+    ptrnurb=ptrnurb->next;
+  if (ptrnurb->bp)
+		for(i = 0;i<4;i++)
+			ptrnurb->bp[numpoint].vec[i] = PyFloat_AsDouble(PyList_GetItem(listargs,i));
+  if (ptrnurb->bezt)
+		for(i = 0;i<3;i++)
+			for(j = 0;j<3;j++)
+				ptrnurb->bezt[numpoint].vec[i][j] = PyFloat_AsDouble(PyList_GetItem(listargs,i*3+j));
 	
   Py_INCREF(Py_None);
   return Py_None;
@@ -482,15 +505,16 @@ static PyObject *Curve_getLoc(BPy_Curve *self)
 
 static PyObject *Curve_setLoc(BPy_Curve *self, PyObject *args)
 {
-  float x,y,z;
-  
-  if (!PyArg_ParseTuple(args, "fff",&x,&y,&z))  
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-														"expected  float float float arguments"));
-
-  self->curve->loc[0] = x;
-  self->curve->loc[1] = y;
-  self->curve->loc[2] = z;
+	PyObject *listargs=0;
+	int i;
+  if (!PyArg_ParseTuple(args, "O", &listargs)) 
+    return EXPP_ReturnPyObjError(PyExc_AttributeError,"expected list argument"); 
+if (!PyList_Check(listargs))
+    return (EXPP_ReturnPyObjError(PyExc_TypeError,"expected a list"));
+	for(i = 0;i<3;i++){
+		PyObject * xx = PyList_GetItem(listargs,i);
+		self->curve->loc[i] =PyFloat_AsDouble(xx);
+	}
   Py_INCREF(Py_None);
   return Py_None;
 }
@@ -508,15 +532,16 @@ static PyObject *Curve_getRot(BPy_Curve *self)
 
 static PyObject *Curve_setRot(BPy_Curve *self, PyObject *args)
 {
-  float x,y,z;
-  
-  if (!PyArg_ParseTuple(args, "fff",&x,&y,&z))  
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-														"expected  float float float arguments"));
-
-  self->curve->rot[0] = x;
-  self->curve->rot[1] = y;
-  self->curve->rot[2] = z;
+	PyObject *listargs=0;
+	int i;
+  if (!PyArg_ParseTuple(args, "O", &listargs)) 
+    return EXPP_ReturnPyObjError(PyExc_AttributeError,"expected list argument"); 
+if (!PyList_Check(listargs))
+    return (EXPP_ReturnPyObjError(PyExc_TypeError,"expected a list"));
+	for(i = 0;i<3;i++){
+		PyObject * xx = PyList_GetItem(listargs,i);
+		self->curve->rot[i] =PyFloat_AsDouble(xx);
+	}
   Py_INCREF(Py_None);
   return Py_None;
 
@@ -533,18 +558,18 @@ static PyObject *Curve_getSize(BPy_Curve *self)
 
 static PyObject *Curve_setSize(BPy_Curve *self, PyObject *args)
 {
-  float x,y,z;
-  
-  if (!PyArg_ParseTuple(args, "fff",&x,&y,&z))  
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-														"expected  float float float arguments"));
-
-  self->curve->size[0] = x;
-  self->curve->size[1] = y;
-  self->curve->size[2] = z;
+	PyObject *listargs=0;
+	int i;
+  if (!PyArg_ParseTuple(args, "O", &listargs)) 
+    return EXPP_ReturnPyObjError(PyExc_AttributeError,"expected list argument"); 
+if (!PyList_Check(listargs))
+    return (EXPP_ReturnPyObjError(PyExc_TypeError,"expected a list"));
+	for(i = 0;i<3;i++){
+		PyObject * xx = PyList_GetItem(listargs,i);
+		self->curve->size[i] =PyFloat_AsDouble(xx);
+	}
   Py_INCREF(Py_None);
   return Py_None;
-
 }
 
 
@@ -590,6 +615,12 @@ static PyObject *CurveGetAttr (BPy_Curve *self, char *name)//getattr
     attr = PyFloat_FromDouble(self->curve->ext1);
   if (strcmp(name, "ext2") == 0)
     attr = PyFloat_FromDouble(self->curve->ext2);
+  if (strcmp(name, "loc") == 0)
+    return Curve_getLoc(self);
+  if (strcmp(name, "rot") == 0)
+    return Curve_getRot(self);
+  if (strcmp(name, "size") == 0)
+    return Curve_getSize(self);
 
 
 
@@ -633,6 +664,12 @@ static int CurveSetAttr (BPy_Curve *self, char *name, PyObject *value)
     error = Curve_setExt1 (self, valtuple);
   else if (strcmp (name, "ext2") == 0)
     error = Curve_setExt2 (self, valtuple);
+  else if (strcmp (name, "loc") == 0)
+    error = Curve_setLoc (self, valtuple);
+  else if (strcmp (name, "rot") == 0)
+    error = Curve_setRot (self, valtuple);
+  else if (strcmp (name, "size") == 0)
+    error = Curve_setSize (self, valtuple);
 
   else { /* Error */
     Py_DECREF(valtuple);
@@ -654,20 +691,6 @@ static int CurveSetAttr (BPy_Curve *self, char *name, PyObject *value)
   return 0; 
 }
 
-/*****************************************************************************/
-/* Function:    CurvePrint                                                   */
-/* Description: This is a callback function for the BPy_Curve type. It         */
-/*              builds a meaninful string to 'print' curve objects.          */
-/*****************************************************************************/
-/*
-static int CurvePrint(BPy_Curve *self, FILE *fp, int flags) //print
-{ 
-
-  fprintf(fp, "[Curve \"%s\"]\n", self->curve->id.name+2);
-  	
-  return 0;
-}
-*/
 
 /*****************************************************************************/
 /* Function:    CurveRepr                                                    */
@@ -680,7 +703,7 @@ static PyObject *CurveRepr (BPy_Curve *self) //used by 'repr'
   return PyString_FromFormat("[Curve \"%s\"]", self->curve->id.name+2);
 }
 
-PyObject* CurveCreatePyObject (struct Curve *curve)
+PyObject* Curve_CreatePyObject (struct Curve *curve)
 {
  BPy_Curve    * blen_object;
 
@@ -695,13 +718,13 @@ PyObject* CurveCreatePyObject (struct Curve *curve)
 
 }
 
-int CurveCheckPyObject (PyObject *py_obj)
+int Curve_CheckPyObject (PyObject *py_obj)
 {
 return (py_obj->ob_type == &Curve_Type);
 }
 
 
-struct Curve* CurveFromPyObject (PyObject *py_obj)
+struct Curve* Curve_FromPyObject (PyObject *py_obj)
 {
  BPy_Curve    * blen_obj;
 
