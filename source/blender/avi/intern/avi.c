@@ -46,10 +46,6 @@
 
 #include "endian.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 static int AVI_DEBUG=0;
 static char DEBUG_FCC[4];
 
@@ -215,7 +211,7 @@ int AVI_is_avi (char *name) {
 }
 
 AviError AVI_open_movie (char *name, AviMovie *movie) {
-	int temp, fcca, size;
+	int temp, fcca, size, j;
 	
 	DEBUG("opening movie\n");
 
@@ -326,7 +322,8 @@ AviError AVI_open_movie (char *name, AviMovie *movie) {
 
 		movie->streams[temp].sf_size= GET_FCC(movie->fp);
 		if (movie->streams[temp].sh.Type == FCC("vids")) {
-			if (movie->streams[temp].sf_size == sizeof(AviBitmapInfoHeader)-8) {
+			j = movie->streams[temp].sf_size - (sizeof(AviBitmapInfoHeader) - 8);
+			if (j >= 0) {
 				AviBitmapInfoHeader *bi;
 				
 				movie->streams[temp].sf= MEM_mallocN(sizeof(AviBitmapInfoHeader), "streamformat");
@@ -350,18 +347,23 @@ AviError AVI_open_movie (char *name, AviMovie *movie) {
 				
 				fcca = bi->Compression;
 
-				if (fcca == FCC ("DIB ") ||
-					fcca == FCC ("RGB ") ||
-					fcca == FCC ("rgb ") ||
-					fcca == FCC ("RAW ") ||
-					fcca == FCC ("mjpg") ||
-					fcca == FCC ("MJPG") ||
-					fcca == 0) {
-				} else {
-					return AVI_ERROR_COMPRESSION;
+                                if ( movie->streams[temp].format ==
+					 AVI_FORMAT_AVI_RGB) {
+					if (fcca == FCC ("DIB ") ||
+						fcca == FCC ("RGB ") ||
+						fcca == FCC ("rgb ") ||
+						fcca == FCC ("RAW ") ||
+						fcca == 0 ) {
+					} else if ( fcca == FCC ("mjpg") || 
+						fcca == FCC ("MJPG")) {
+							movie->streams[temp].format = AVI_FORMAT_MJPEG;
+					} else {
+						return AVI_ERROR_COMPRESSION;
+					}
 				}
 
-			} else fseek (movie->fp, movie->streams[temp].sf_size, SEEK_CUR);
+			} 
+			if (j > 0) fseek (movie->fp, j, SEEK_CUR);
 		} else fseek (movie->fp, movie->streams[temp].sf_size, SEEK_CUR);
 		
 		/* Walk to the next LIST */		
