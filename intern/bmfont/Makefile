@@ -48,5 +48,9 @@ install: all debug
 	@[ -d $(NAN_BMFONT)/lib/debug ] || mkdir $(NAN_BMFONT)/lib/debug
 	cp -f $(DIR)/libbmfont.a $(NAN_BMFONT)/lib/
 	cp -f $(DIR)/debug/libbmfont.a $(NAN_BMFONT)/lib/debug/
+ifeq ($(OS),darwin)
+	ranlib $(NAN_BMFONT)/lib/libbmfont.a
+	ranlib $(NAN_BMFONT)/lib/debug/libbmfont.a
+endif
 	cp -f *.h $(NAN_BMFONT)/include/
 

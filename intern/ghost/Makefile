@@ -48,5 +48,9 @@ install: all debug
 	@[ -d $(NAN_GHOST)/lib/debug ] || mkdir $(NAN_GHOST)/lib/debug
 	cp -f $(DIR)/libghost.a $(NAN_GHOST)/lib/
 	cp -f $(DIR)/debug/libghost.a $(NAN_GHOST)/lib/debug/
+ifeq ($(OS),darwin)
+	ranlib $(NAN_GHOST)/lib/libghost.a
+	ranlib $(NAN_GHOST)/lib/debug/libghost.a
+endif
 	cp -f *.h $(NAN_GHOST)/include/
 

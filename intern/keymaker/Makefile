@@ -73,6 +73,9 @@ install: all debug
 	@[ -d $(LCGDIR)/$(LIBNAME)/lib ] || mkdir $(LCGDIR)/$(LIBNAME)/lib
 	cp -f blenkey.h $(LCGDIR)/$(LIBNAME)/include/blenkey.h
 	cp -f $(LIB_a) $(LCGDIR)/$(LIBNAME)/lib/
+ifeq ($(OS),darwin)
+	ranlib $(LCGDIR)/$(LIBNAME)/lib/lib$(LIBNAME).a
+endif
 
 $(DIR)/$(DEBUG_DIR)keyloader: $(LOADER_OBJS) $(LIB_a)
 	$(CC) $(LDFLAGS) -o $@ $(LOADER_OBJS) $(LIB_a) $(LIBS)

@@ -48,5 +48,9 @@ install: all debug
 	@[ -d $(NAN_STRING)/lib/debug ] || mkdir $(NAN_STRING)/lib/debug
 	cp -f $(DIR)/libstring.a $(NAN_STRING)/lib/
 	cp -f $(DIR)/debug/libstring.a $(NAN_STRING)/lib/debug/
+ifeq ($(OS),darwin)
+	ranlib $(NAN_STRING)/lib/libstring.a
+	ranlib $(NAN_STRING)/lib/debug/libstring.a
+endif
 	cp -f *.h $(NAN_STRING)/include/
 

@@ -48,5 +48,9 @@ install: all debug
 	@[ -d $(NAN_GUARDEDALLOC)/lib/debug ] || mkdir $(NAN_GUARDEDALLOC)/lib/debug
 	cp -f $(DIR)/libguardedalloc.a $(NAN_GUARDEDALLOC)/lib/
 	cp -f $(DIR)/debug/libguardedalloc.a $(NAN_GUARDEDALLOC)/lib/debug/
+ifeq ($(OS),darwin)
+	ranlib $(NAN_GUARDEDALLOC)/lib/libguardedalloc.a
+	ranlib $(NAN_GUARDEDALLOC)/lib/debug/libguardedalloc.a
+endif
 	cp -f *.h $(NAN_GUARDEDALLOC)/include/
 

@@ -48,5 +48,9 @@ install: all debug
 	@[ -d $(NAN_IKSOLVER)/lib/debug ] || mkdir $(NAN_IKSOLVER)/lib/debug
 	cp -f $(DIR)/libiksolver.a $(NAN_IKSOLVER)/lib/
 	cp -f $(DIR)/debug/libiksolver.a $(NAN_IKSOLVER)/lib/debug/
+ifeq ($(OS),darwin)
+	ranlib $(NAN_IKSOLVER)/lib/libiksolver.a
+	ranlib $(NAN_IKSOLVER)/lib/debug/libiksolver.a
+endif
 	cp -f extern/*.h $(NAN_IKSOLVER)/include/
 

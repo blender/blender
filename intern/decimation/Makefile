@@ -48,5 +48,9 @@ install: all debug
 	@[ -d $(NAN_DECIMATION)/lib/debug ] || mkdir $(NAN_DECIMATION)/lib/debug
 	cp -f $(DIR)/libdecimation.a $(NAN_DECIMATION)/lib/
 	cp -f $(DIR)/debug/libdecimation.a $(NAN_DECIMATION)/lib/debug/
+ifeq ($(OS),darwin)
+	ranlib $(NAN_DECIMATION)/lib/libdecimation.a
+	ranlib $(NAN_DECIMATION)/lib/debug/libdecimation.a
+endif
 	cp -f extern/*.h $(NAN_DECIMATION)/include/
 

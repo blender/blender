@@ -48,5 +48,9 @@ install: all debug
 	@[ -d $(NAN_MOTO)/lib/debug ] || mkdir $(NAN_MOTO)/lib/debug
 	cp -f $(DIR)/libmoto.a $(NAN_MOTO)/lib/
 	cp -f $(DIR)/debug/libmoto.a $(NAN_MOTO)/lib/debug/
+ifeq ($(OS),darwin)
+	ranlib $(NAN_MOTO)/lib/libmoto.a
+	ranlib $(NAN_MOTO)/lib/debug/libmoto.a
+endif
 	cp -f include/*.h $(NAN_MOTO)/include/
 

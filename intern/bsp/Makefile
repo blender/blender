@@ -48,6 +48,10 @@ install: all debug
 	@[ -d $(NAN_BSP)/lib/debug ] || mkdir $(NAN_BSP)/lib/debug
 	cp -f $(DIR)/libbsp.a $(NAN_BSP)/lib/
 	cp -f $(DIR)/debug/libbsp.a $(NAN_BSP)/lib/debug/
+ifeq ($(OS),darwin)
+	ranlib $(NAN_BSP)/lib/libbsp.a
+	ranlib $(NAN_BSP)/lib/debug/libbsp.a
+endif
 	cp -f extern/*.h $(NAN_BSP)/include/
 
 
