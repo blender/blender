@@ -145,11 +145,12 @@ static PyMethodDef C_Curve_methods[] = {
   {"getExt2", (PyCFunction)Curve_getExt2, METH_NOARGS,"() - Return ext2"},
   {"setExt2", (PyCFunction)Curve_setExt2, METH_VARARGS,"(int) - Sets ext2"},
   {"getControlPoint", (PyCFunction)Curve_getControlPoint, METH_VARARGS,
-          "(int numcurve,int numpoint) - Gets a control point.Depending upon\
- the curve type, returne a list of 4 or 9 floats"},
+          "(int numcurve,int numpoint) - Gets a control point.Depending upon"
+          " the curve type, returne a list of 4 or 9 floats"},
   {"setControlPoint", (PyCFunction)Curve_setControlPoint, METH_VARARGS,
-          "(int numcurve,int numpoint,float x,float y,float z, float w)(nurbs)\
- or  (int numcurve,int numpoint,float x1,...,x9(bezier) Sets a control point "},
+          "(int numcurve,int numpoint,float x,float y,float z, float w)(nurbs)"
+          " or  (int numcurve,int numpoint,float x1,...,x9(bezier) "
+					"Sets a control point "},
   {"getLoc", (PyCFunction)Curve_getLoc, METH_NOARGS,"() - Gets Location"},
   {"setLoc", (PyCFunction)Curve_setLoc, METH_VARARGS,
           "(float x,float y,float z) - Sets Location"},
@@ -170,6 +171,9 @@ static int CurvePrint (C_Curve *msh, FILE *fp, int flags);
 static int CurveSetAttr (C_Curve *msh, char *name, PyObject *v);
 static PyObject *CurveGetAttr (C_Curve *msh, char *name);
 static PyObject *CurveRepr (C_Curve *msh);
+PyObject* CurveCreatePyObject (struct Curve *curve);
+int CurveCheckPyObject (PyObject *py_obj);
+struct Curve* CurveFromPyObject (PyObject *py_obj);
 
 /*****************************************************************************/
 /* Python Curve_Type structure definition:                                  */

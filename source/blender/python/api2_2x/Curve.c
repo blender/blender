@@ -605,3 +605,39 @@ static PyObject *CurveRepr (C_Curve *self) /* used by 'repr' */
  
   return PyString_FromString(self->curve->id.name+2);
 }
+
+/*****************************************************************************/
+/* Functions:   CurveCreatePyObject, CurveCheckPyObject, CurveFromPyObject   */
+/* Description: These helper functions are needed by the Object module to    */
+/*              work with its specific object.data, Curve Data in this case. */
+/*****************************************************************************/
+PyObject* CurveCreatePyObject (struct Curve *curve)
+{
+ C_Curve    * blen_object;
+
+    printf ("In CurveCreatePyObject\n");
+
+    blen_object = (C_Curve*)PyObject_NEW (C_Curve, &Curve_Type);
+
+    if (blen_object == NULL)
+    {
+        return (NULL);
+    }
+    blen_object->curve = curve;
+    return ((PyObject*)blen_object);
+
+}
+
+int CurveCheckPyObject (PyObject *py_obj)
+{
+    return (py_obj->ob_type == &Curve_Type);
+}
+
+struct Curve* CurveFromPyObject (PyObject *py_obj)
+{
+ C_Curve    * blen_obj;
+
+    blen_obj = (C_Curve*)py_obj;
+    return (blen_obj->curve);
+
+}
