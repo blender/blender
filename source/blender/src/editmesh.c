@@ -7160,12 +7160,13 @@ void join_mesh(void)
 							for (j=0; j<dvert[i].totweight; j++){
 								//	Find the old vertex group
 								odg = BLI_findlink (&base->object->defbase, dvert[i].dw[j].def_nr);
-								
-								//	Search for a match in the new object
-								for (dg=ob->defbase.first, index=0; dg; dg=dg->next, index++){
-									if (!strcmp(dg->name, odg->name)){
-										dvert[i].dw[j].def_nr = index;
-										break;
+								if(odg) {
+									//	Search for a match in the new object
+									for (dg=ob->defbase.first, index=0; dg; dg=dg->next, index++){
+										if (!strcmp(dg->name, odg->name)){
+											dvert[i].dw[j].def_nr = index;
+											break;
+										}
 									}
 								}
 							}
