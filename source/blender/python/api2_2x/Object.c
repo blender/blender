@@ -1324,26 +1324,35 @@ static PyObject* Object_getAttr (BPy_Object *obj, char *name)
                     return (PyFloat_FromDouble (ika->effg[1]));
                 case 'Z':
                     return (PyFloat_FromDouble (ika->effg[2]));
-                default:
-                    /* Do we need to display a sensible error message here? */
-                    return (NULL);
+						default:
+							/* Do we need to display a sensible error message here? */
+							return (NULL);
             }
         }
         return (NULL);
     }
     if (StringEqual (name, "Layer"))
-        return (PyInt_FromLong(object->lay));
+			return (PyInt_FromLong(object->lay));
     if (StringEqual (name, "parent"))
+			if (object->parent)
         return (Object_CreatePyObject (object->parent));
+			else 
+				{
+					Py_INCREF (Py_None);
+					return (Py_None);
+				}
+
     if (StringEqual (name, "track"))
-        return (Object_CreatePyObject (object->track));
+			return (Object_CreatePyObject (object->track));
     if (StringEqual (name, "data"))
-        return (Object_getData (obj));
+			return (Object_getData (obj));
     if (StringEqual (name, "ipo"))
     {
         if (obj->ipo == NULL)
         {
-            obj->ipo = Ipo_CreatePyObject (object->ipo);
+            
+					Py_INCREF (Py_None);
+					return (Py_None);
         }
         else
         {
