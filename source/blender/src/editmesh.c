@@ -7020,7 +7020,7 @@ CutCurve *get_mouse_trail(int *len, char mode){
 	persp(PERSP_WIN);
 	
 	event=extern_qread(&val);
-	while((event != RETKEY ) && (event != RIGHTMOUSE) ){  
+	while((event != RETKEY ) && (event != PADENTER ) && (event != RIGHTMOUSE) ){  
 		event=extern_qread(&val);	/* Enter or RMB indicates finish */
 		
 		if (event==ESCKEY){
