@@ -2435,7 +2435,7 @@ static void material_panel_texture(Material *ma)
 	if(id) {
 		uiDefBut(block, TEX, B_IDNAME, "TE:",	100,150,163,20, id->name+2, 0.0, 18.0, 0, 0, "Displays name of the texture block: click to change");
 		sprintf(str, "%d", id->us);
-		uiDefBut(block, BUT, 0, str,				196,130,21,20, 0, 0, 0, 0, 0, "Displays number of users of texture: click to make single user");
+		uiDefBut(block, BUT, 0, str,				196,130,21,20, 0, 0, 0, 0, 0, "Displays number of users of texture");
 		uiDefIconBut(block, BUT, B_AUTOTEXNAME, ICON_AUTO, 241,130,21,20, 0, 0, 0, 0, 0, "Auto-assigns name to texture");
 		if(id->lib) {
 			if(ma->id.lib) uiDefIconBut(block, BUT, 0, ICON_DATALIB,	219,130,21,20, 0, 0, 0, 0, 0, "");
