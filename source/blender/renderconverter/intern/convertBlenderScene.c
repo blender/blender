@@ -67,7 +67,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
-#include "DNA_space_types.h"
 
 #include "BKE_anim.h"
 #include "BKE_armature.h"
@@ -2964,9 +2963,7 @@ void RE_rotateBlenderScene(void)
 		ob= ob->id.next;
 	}
 
-	/* layers: render in foreground current 3D window */
 	lay= G.scene->lay;
-	if(G.vd) lay= G.vd->lay;
 	sce= G.scene;
 
 	base= G.scene->base.first;
