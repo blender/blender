@@ -2176,6 +2176,102 @@ int ToSphere(TransInfo *t, short mval[2])
 
 /* ************************** ROTATION *************************** */
 
+static void ApplyRotation(TransInfo *t, float mat[][3]) 
+{
+	TransData *td = t->data;
+	float vec[3], totmat[3][3], smat[3][3];
+	int i;
+
+	for(i = 0 ; i < t->total; i++, td++) {
+		if (td->flag & TD_NOACTION)
+			break;
+		
+		if (G.vd->around == V3D_LOCAL) {
+			VECCOPY(t->center, td->center);
+		}
+		
+		if (t->flag & T_EDIT) {
+			Mat3MulMat3(totmat, mat, td->mtx);
+			Mat3MulMat3(smat, td->smtx, totmat);
+			
+			VecSubf(vec, td->iloc, t->center);
+			Mat3MulVecfl(smat, vec);
+			
+			VecAddf(td->loc, vec, t->center);
+		}
+		else {
+			float eul[3], fmat[3][3];
+			
+			/* translation */
+			VecSubf(vec, td->center, t->center);
+			Mat3MulVecfl(mat, vec);
+			VecAddf(vec, vec, t->center);
+			/* vec now is the location where the object has to be */
+			VecSubf(vec, vec, td->center);
+			Mat3MulVecfl(td->smtx, vec);
+			
+			VecAddf(td->loc, td->iloc, vec);
+			
+			if(td->flag & TD_USEQUAT) {
+				float quat[4];
+				
+				Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
+				
+				Mat3ToQuat(fmat, quat);	// Actual transform
+				
+				QuatMul(td->ext->quat, quat, td->ext->iquat);
+			}
+			else if ((G.vd->flag & V3D_ALIGN)==0) {	// align mode doesn't rotate objects itself
+				float obmat[3][3];
+				
+				/* are there ipo keys? */
+				if(td->tdi) {
+					TransDataIpokey *tdi= td->tdi;
+					float rot[3];
+					
+					/* calculate the total rotatation in eulers */
+					VecAddf(eul, td->ext->irot, td->ext->drot);
+					EulToMat3(eul, obmat);
+					/* mat = transform, obmat = object rotation */
+					Mat3MulMat3(fmat, mat, obmat);
+					Mat3ToEul(fmat, eul);
+					compatible_eul(eul, td->ext->irot);
+					
+					/* correct back for delta rot */
+					if(tdi->flag & TOB_IPODROT) {
+						VecSubf(rot, eul, td->ext->irot);
+					}
+					else {
+						VecSubf(rot, eul, td->ext->drot);
+					}
+					
+					VecMulf(rot, (float)(9.0/M_PI_2));
+					VecSubf(rot, rot, tdi->oldrot);
+					
+					add_tdi_poin(tdi->rotx, tdi->oldrot, rot[0]);
+					add_tdi_poin(tdi->roty, tdi->oldrot+1, rot[1]);
+					add_tdi_poin(tdi->rotz, tdi->oldrot+2, rot[2]);
+				}
+				else {
+					
+					/* calculate the total rotatation in eulers */
+					VecAddf(eul, td->ext->irot, td->ext->drot); /* we have to correct for delta rot */
+					EulToMat3(eul, obmat);
+					/* mat = transform, obmat = object rotation */
+					Mat3MulMat3(fmat, mat, obmat);
+					Mat3ToEul(fmat, eul);
+					compatible_eul(eul, td->ext->irot);
+					
+					/* correct back for delta rot */
+					VecSubf(eul, eul, td->ext->drot);
+					/* and apply */
+					VECCOPY(td->ext->rot, eul);
+				}
+			}
+		}
+	}
+}
+
 void initRotation(TransInfo *t) 
 {
 	t->idx_max = 0;
@@ -2190,7 +2286,6 @@ void initRotation(TransInfo *t)
 int Rotation(TransInfo *t, short mval[2]) 
 {
 	TransData *td = t->data;
-	int i;
 	char str[50];
 
 	float final;
@@ -2211,8 +2306,8 @@ int Rotation(TransInfo *t, short mval[2])
 
 	float dphi;
 
-	float vec[3], axis[3];
-	float mat[3][3], totmat[3][3], smat[3][3];
+	float axis[3];
+	float mat[3][3];
 
 	VECCOPY(axis, G.vd->persinv[2]);
 	Normalise(axis);
@@ -2262,103 +2357,8 @@ int Rotation(TransInfo *t, short mval[2])
 
 	Mat3CpyMat3(t->mat, mat);	// used in manipulator
 	
-	for(i = 0 ; i < t->total; i++, td++) {
-		if (td->flag & TD_NOACTION)
-			break;
-
-		if (t->con.applyRot) {
-			t->con.applyRot(t, td, axis);
-			VecRotToMat3(axis, final * td->factor, mat);
-		}
-		else if (G.f & G_PROPORTIONAL) {
-			VecRotToMat3(axis, final * td->factor, mat);
-		}
-
-		if (G.vd->around == V3D_LOCAL) {
-			VECCOPY(t->center, td->center);
-		}
-
-		if (t->flag & T_EDIT) {
-			Mat3MulMat3(totmat, mat, td->mtx);
-			Mat3MulMat3(smat, td->smtx, totmat);
-
-			VecSubf(vec, td->iloc, t->center);
-			Mat3MulVecfl(smat, vec);
-
-			VecAddf(td->loc, vec, t->center);
-		}
-		else {
-			float eul[3], fmat[3][3];
-
-			/* translation */
-			VecSubf(vec, td->center, t->center);
-			Mat3MulVecfl(mat, vec);
-			VecAddf(vec, vec, t->center);
-			/* vec now is the location where the object has to be */
-			VecSubf(vec, vec, td->center);
-			Mat3MulVecfl(td->smtx, vec);
-
-			VecAddf(td->loc, td->iloc, vec);
-			
-			if(td->flag & TD_USEQUAT) {
-				float quat[4];
-				
-				Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
-				
-				Mat3ToQuat(fmat, quat);	// Actual transform
-				
-				QuatMul(td->ext->quat, quat, td->ext->iquat);
-			}
-			else if ((G.vd->flag & V3D_ALIGN)==0) {	// align mode doesn't rotate objects itself
-				float obmat[3][3];
-				
-				/* are there ipo keys? */
-				if(td->tdi) {
-					TransDataIpokey *tdi= td->tdi;
-					float rot[3];
-					
-					/* calculate the total rotatation in eulers */
-					VecAddf(eul, td->ext->irot, td->ext->drot);
-					EulToMat3(eul, obmat);
-					/* mat = transform, obmat = object rotation */
-					Mat3MulMat3(fmat, mat, obmat);
-					Mat3ToEul(fmat, eul);
-					compatible_eul(eul, td->ext->irot);
-					
-					/* correct back for delta rot */
-					if(tdi->flag & TOB_IPODROT) {
-						VecSubf(rot, eul, td->ext->irot);
-					}
-					else {
-						VecSubf(rot, eul, td->ext->drot);
-					}
-					
-					VecMulf(rot, (float)(9.0/M_PI_2));
-					VecSubf(rot, rot, tdi->oldrot);
-					
-					add_tdi_poin(tdi->rotx, tdi->oldrot, rot[0]);
-					add_tdi_poin(tdi->roty, tdi->oldrot+1, rot[1]);
-					add_tdi_poin(tdi->rotz, tdi->oldrot+2, rot[2]);
-				}
-				else {
-					
-					/* calculate the total rotatation in eulers */
-					VecAddf(eul, td->ext->irot, td->ext->drot); /* we have to correct for delta rot */
-					EulToMat3(eul, obmat);
-					/* mat = transform, obmat = object rotation */
-					Mat3MulMat3(fmat, mat, obmat);
-					Mat3ToEul(fmat, eul);
-					compatible_eul(eul, td->ext->irot);
-					
-					/* correct back for delta rot */
-					VecSubf(eul, eul, td->ext->drot);
-					/* and apply */
-					VECCOPY(td->ext->rot, eul);
-				}
-			}
-		}
-	}
-
+	ApplyRotation(t, mat);
+	
 	recalcData(t);
 
 	headerprint(str);
@@ -2386,10 +2386,8 @@ void initTrackball(TransInfo *t)
 
 int Trackball(TransInfo *t, short mval[2]) 
 {
-	TransData *td = t->data;
-	int i;
 	char str[50];
-	float vec[3], axis1[3], axis2[3];
+	float axis1[3], axis2[3];
 	float mat[3][3], totmat[3][3], smat[3][3];
 	float phi[2];
 	
@@ -2429,94 +2427,7 @@ int Trackball(TransInfo *t, short mval[2])
 	
 	Mat3CpyMat3(t->mat, mat);	// used in manipulator
 	
-	for(i = 0 ; i < t->total; i++, td++) {
-		if (td->flag & TD_NOACTION)
-			break;
-		
-		if (G.vd->around == V3D_LOCAL) {
-			VECCOPY(t->center, td->center);
-		}
-		
-		if (t->flag & T_EDIT) {
-			Mat3MulMat3(totmat, mat, td->mtx);
-			Mat3MulMat3(smat, td->smtx, totmat);
-			
-			VecSubf(vec, td->iloc, t->center);
-			Mat3MulVecfl(smat, vec);
-			
-			VecAddf(td->loc, vec, t->center);
-		}
-		else {
-			float eul[3], fmat[3][3];
-			
-			/* translation */
-			VecSubf(vec, td->center, t->center);
-			Mat3MulVecfl(mat, vec);
-			VecAddf(vec, vec, t->center);
-			/* vec now is the location where the object has to be */
-			VecSubf(vec, vec, td->center);
-			Mat3MulVecfl(td->smtx, vec);
-			
-			VecAddf(td->loc, td->iloc, vec);
-			
-			if(td->flag & TD_USEQUAT) {
-				float quat[4];
-				
-				Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
-				
-				Mat3ToQuat(fmat, quat);	// Actual transform
-				
-				QuatMul(td->ext->quat, quat, td->ext->iquat);
-			}
-			else if ((G.vd->flag & V3D_ALIGN)==0) {	// align mode doesn't rotate objects itself
-				float obmat[3][3];
-				
-				/* are there ipo keys? */
-				if(td->tdi) {
-					TransDataIpokey *tdi= td->tdi;
-					float rot[3];
-					
-					/* calculate the total rotatation in eulers */
-					VecAddf(eul, td->ext->irot, td->ext->drot);
-					EulToMat3(eul, obmat);
-					/* mat = transform, obmat = object rotation */
-					Mat3MulMat3(fmat, mat, obmat);
-					Mat3ToEul(fmat, eul);
-					compatible_eul(eul, td->ext->irot);
-					
-					/* correct back for delta rot */
-					if(tdi->flag & TOB_IPODROT) {
-						VecSubf(rot, eul, td->ext->irot);
-					}
-					else {
-						VecSubf(rot, eul, td->ext->drot);
-					}
-					
-					VecMulf(rot, (float)(9.0/M_PI_2));
-					VecSubf(rot, rot, tdi->oldrot);
-					
-					add_tdi_poin(tdi->rotx, tdi->oldrot, rot[0]);
-					add_tdi_poin(tdi->roty, tdi->oldrot+1, rot[1]);
-					add_tdi_poin(tdi->rotz, tdi->oldrot+2, rot[2]);
-				}
-				else {
-					
-					/* calculate the total rotatation in eulers */
-					VecAddf(eul, td->ext->irot, td->ext->drot); /* we have to correct for delta rot */
-					EulToMat3(eul, obmat);
-					/* mat = transform, obmat = object rotation */
-					Mat3MulMat3(fmat, mat, obmat);
-					Mat3ToEul(fmat, eul);
-					compatible_eul(eul, td->ext->irot);
-					
-					/* correct back for delta rot */
-					VecSubf(eul, eul, td->ext->drot);
-					/* and apply */
-					VECCOPY(td->ext->rot, eul);
-				}
-			}
-		}
-	}
+	ApplyRotation(t, mat);
 	
 	recalcData(t);
 	

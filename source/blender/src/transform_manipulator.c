@@ -281,8 +281,8 @@ static int calc_manipulator(ScrArea *sa)
 	if(ob) {
 		// local....
 		if(totsel==1 || v3d->around==V3D_LOCAL || G.obedit || G.obpose) {
-			//Mat4CpyMat4(v3d->twmat, ob->obmat);
-			//Mat4Ortho(v3d->twmat);
+			Mat4CpyMat4(v3d->twmat, ob->obmat);
+			Mat4Ortho(v3d->twmat);
 		}		
 	}
 	   
@@ -352,7 +352,7 @@ static void draw_manipulator_rotate(float mat[][4])
 	glShadeModel(GL_SMOOTH);
 	
 	
-	/* Screen aligned help circle */
+	/* prepare for screen aligned draw */
 	VECCOPY(vec, mat[0]);
 	size= Normalise(vec);
 	glPushMatrix();
@@ -364,9 +364,10 @@ static void draw_manipulator_rotate(float mat[][4])
 		plane[3]= -0.001; // clip full circle
 		glClipPlane(GL_CLIP_PLANE0, plane);
 	}
-	
+	/* sets view screen aligned */
 	glRotatef( -360.0*saacos(G.vd->viewquat[0])/M_PI, G.vd->viewquat[1], G.vd->viewquat[2], G.vd->viewquat[3]);
 	
+	/* Screen aligned help circle */
 	if(arcs) {
 		if((G.f & G_PICKSEL)==0) {
 			BIF_ThemeColorShade(TH_BACK, -30);
@@ -378,6 +379,19 @@ static void draw_manipulator_rotate(float mat[][4])
 		if(G.f & G_PICKSEL) glLoadName(MAN_ROT_V);
 		BIF_ThemeColor(TH_TRANSFORM);
 		drawcircball(unitmat[3], 1.2*size, unitmat);
+		
+		if(G.moving) {	
+			float vec[3];
+			vec[0]= Trans.imval[0] - Trans.center2d[0];
+			vec[1]= Trans.imval[1] - Trans.center2d[1];
+			vec[2]= 0.0;
+			Normalise(vec);
+			VecMulf(vec, 1.2*size);
+			glBegin(GL_LINES);
+			glVertex3f(0.0, 0.0, 0.0);
+			glVertex3fv(vec);
+			glEnd();
+		}
 	}
 	glPopMatrix();
 	
@@ -395,17 +409,17 @@ static void draw_manipulator_rotate(float mat[][4])
 		if(!(G.f & G_PICKSEL)) {
 			/* axis */
 			glBegin(GL_LINES);
-			if(Gval & MAN_ROT_X) {
+			if( (Gval & MAN_ROT_X) || (G.moving && (Gval & MAN_ROT_Y)) ) {
 				manipulator_setcolor('x');
 				glVertex3f(0.0, 0.0, 0.0);
 				glVertex3f(1.0, 0.0, 0.0);
 			}		
-			if(Gval & MAN_ROT_Y) {
+			if( (Gval & MAN_ROT_Y) || (G.moving && (Gval & MAN_ROT_Z)) ) {
 				manipulator_setcolor('y');
 				glVertex3f(0.0, 0.0, 0.0);
 				glVertex3f(0.0, 1.0, 0.0);
 			}		
-			if(Gval & MAN_ROT_Z) {
+			if( (Gval & MAN_ROT_Z) || (G.moving && (Gval & MAN_ROT_X)) ) {
 				manipulator_setcolor('z');
 				glVertex3f(0.0, 0.0, 0.0);
 				glVertex3f(0.0, 0.0, 1.0);
@@ -416,24 +430,32 @@ static void draw_manipulator_rotate(float mat[][4])
 	
 	/* Trackball center */
 	if(Gval & MAN_ROT_T) {
+		float smat[3][3], imat[3][3], tmat[3][3];
 		
 		if(G.f & G_PICKSEL) glLoadName(MAN_ROT_T);
+		
+		Mat3CpyMat4(smat, mat);
+		Mat3Inv(imat, smat);
+		Mat3CpyMat4(smat, G.vd->viewinv);
+		Mat3MulMat3(tmat, imat, smat);
+		Normalise(tmat[2]);
 		
 		BIF_ThemeColor(TH_TRANSFORM);
 		glBegin(GL_LINES);
 		glVertex3f(0.0, 0.0, 0.0);
-		glVertex3fv(G.vd->viewinv[2]);
+		glVertex3fv(tmat[2]);
 		glEnd();
 		
 		glEnable(GL_LIGHTING);
 		BIF_GetThemeColor3fv(TH_TRANSFORM, vec);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, vec);
 		
-		glTranslatef(G.vd->viewinv[2][0], G.vd->viewinv[2][1], G.vd->viewinv[2][2]);
+		VECCOPY(vec, tmat[2]);
+		glTranslatef(vec[0], vec[1], vec[2]);
 		gluSphere(qobj, CYWID, 8, 6);
 		
 		/* restore */
-		glTranslatef(-G.vd->viewinv[2][0], -G.vd->viewinv[2][1], -G.vd->viewinv[2][2]);
+		glTranslatef(-vec[0], -vec[1], -vec[2]);
 		glDisable(GL_LIGHTING);
 	}
 	
