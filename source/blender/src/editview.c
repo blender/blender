@@ -239,6 +239,7 @@ static void do_lasso_select_objects(short mcords[][2], short moves, short select
 	
 	for(base= G.scene->base.first; base; base= base->next) {
 		if(base->lay & G.vd->lay) {
+			project_short(base->object->obmat[3], &base->sx);
 			if(lasso_inside(mcords, moves, base->sx, base->sy)) {
 				
 				if(select) base->flag |= SELECT;

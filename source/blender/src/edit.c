@@ -700,6 +700,23 @@ void countall()
 	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */
 }
 
+/* selected things moved, and might need update in displists */
+static void update_select_dependency(void)
+{
+	Base *base;
+	Object *ob;
+	for(base= (G.scene->base.first); base; base= base->next) {
+		ob= base->object;
+		if(ob->hooks.first) {
+			ObHook *hook= ob->hooks.first;
+			while(hook) {
+				if(hook->parent->flag & SELECT) freedisplist(&ob->disp);
+				hook= hook->next;
+			}
+		}
+	}
+	
+}
 
 void snap_sel_to_grid()
 {
@@ -786,6 +803,7 @@ void snap_sel_to_grid()
 
 			base= base->next;
 		}
+		update_select_dependency();
 		allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -871,6 +889,7 @@ void snap_sel_to_curs()
 
 			base= base->next;
 		}
+		update_select_dependency();
 		allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -1181,7 +1200,7 @@ void snap_to_center()
 
 			base= base->next;
 		}
-
+		update_select_dependency();
 		allqueue(REDRAWVIEW3D, 0);
 }
 
