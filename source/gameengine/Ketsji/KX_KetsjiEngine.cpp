@@ -736,6 +736,7 @@ void KX_KetsjiEngine::SetupRenderFrame(KX_Scene *scene)
 void KX_KetsjiEngine::RenderFrame(KX_Scene* scene)
 {
 	float left, right, bottom, top, nearfrust, farfrust;
+	const float ortho = 100.0;
 	KX_Camera* cam = scene->GetActiveCamera();
 	
 	if (!cam)
@@ -752,14 +753,24 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene)
 	} else
 	{
 		RAS_FrameFrustum frustum;
+		float lens = cam->GetLens();
+		nearfrust = cam->GetCameraNear();
+		farfrust = cam->GetCameraFar();
 
+		if (!cam->GetCameraData()->m_perspective)
+		{
+			lens *= ortho;
+			nearfrust = (nearfrust + 1.0)*ortho;
+			farfrust *= ortho;
+		}
+		
 		RAS_FramingManager::ComputeFrustum(
 			scene->GetFramingType(),
 			m_canvas->GetDisplayArea(),
 			scene->GetSceneViewport(),
-			cam->GetLens(),
-			cam->GetCameraNear(),
-			cam->GetCameraFar(),
+			lens,
+			nearfrust,
+			farfrust,
 			frustum
 		);
 
@@ -773,17 +784,14 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene)
 		MT_Matrix4x4 projmat = m_rasterizer->GetFrustumMatrix(
 			left, right, bottom, top, nearfrust, farfrust);
 	
-		m_rasterizer->SetProjectionMatrix(projmat);
 		cam->SetProjectionMatrix(projmat);	
 	}
 
-	MT_Scalar cammat[16];
-	cam->GetWorldToCamera().getValue(cammat);
-	MT_Matrix4x4 viewmat;
-	viewmat.setValue(cammat); // this _should transpose ... 
-	                          // if finally transposed take care of correct usage
-	                          // in RAS_OpenGLRasterizer ! (row major vs column major)
-
+	MT_Transform camtrans(cam->GetWorldToCamera());
+	if (!cam->GetCameraData()->m_perspective)
+		camtrans.getOrigin()[2] *= ortho;
+	MT_Matrix4x4 viewmat(camtrans);
+	
 	m_rasterizer->SetViewMatrix(viewmat, cam->NodeGetWorldPosition(),
 		cam->GetCameraLocation(), cam->GetCameraOrientation());
 	cam->SetModelviewMatrix(viewmat);
@@ -796,7 +804,7 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene)
 	// runs through the individual objects.
 	scene->CalculateVisibleMeshes(m_rasterizer);
 
-	scene->RenderBuckets(cam->GetWorldToCamera(), m_rasterizer, m_rendertools);
+	scene->RenderBuckets(camtrans, m_rasterizer, m_rendertools);
 }
 
 

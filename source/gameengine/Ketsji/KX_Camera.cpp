@@ -49,7 +49,7 @@ KX_Camera::KX_Camera(void* sgReplicationInfo,
 					m_camdata(camdata),
 					m_dirty(true),
 					m_normalised(false),
-					m_frustum_culling(frustum_culling),
+					m_frustum_culling(frustum_culling && camdata.m_perspective),
 					m_set_projection_matrix(false),
 					m_set_frustum_centre(false)
 {
@@ -70,12 +70,7 @@ KX_Camera::~KX_Camera()
 MT_Transform KX_Camera::GetWorldToCamera() const
 { 
 	MT_Transform camtrans;
-	MT_Transform trans;
-	
-	trans.setBasis(NodeGetWorldOrientation());
-	trans.setOrigin(NodeGetWorldPosition());
-	
-	camtrans.invert(trans);
+	camtrans.invert(MT_Transform(NodeGetWorldPosition(), NodeGetWorldOrientation()));
 	
 	return camtrans;
 }
@@ -84,11 +79,7 @@ MT_Transform KX_Camera::GetWorldToCamera() const
 	 
 MT_Transform KX_Camera::GetCameraToWorld() const
 {
-	MT_Transform trans;
-	trans.setBasis(NodeGetWorldOrientation());
-	trans.setOrigin(NodeGetWorldPosition());
-	
-	return trans;
+	return MT_Transform(NodeGetWorldPosition(), NodeGetWorldOrientation());
 }
 
 
@@ -116,11 +107,7 @@ const MT_Point3 KX_Camera::GetCameraLocation() const
 /* I want the camera orientation as well. */
 const MT_Quaternion KX_Camera::GetCameraOrientation() const
 {
-	MT_Transform trans;
-	trans.setBasis(NodeGetWorldOrientation());
-	trans.setOrigin(NodeGetWorldPosition());
-
-	return trans.getRotation();
+	return NodeGetWorldOrientation().getRotation();
 }
 
 
@@ -208,7 +195,7 @@ void KX_Camera::ExtractClipPlanes()
 	if (!m_dirty)
 		return;
 
-	MT_Matrix4x4 m = m_projection_matrix * GetWorldToCamera();
+	MT_Matrix4x4 m = m_projection_matrix * m_modelview_matrix;
 	// Left clip plane
 	m_planes[0] = m[3] + m[0];
 	// Right clip plane
@@ -434,6 +421,8 @@ PyObject* KX_Camera::_getattr(const STR_String& attr)
 		return PyFloat_FromDouble(GetCameraFar()); /* new ref */
 	if (attr == "frustum_culling")
 		return PyInt_FromLong(m_frustum_culling); /* new ref */
+	if (attr == "perspective")
+		return PyInt_FromLong(m_camdata.m_perspective); /* new ref */
 	if (attr == "projection_matrix")
 		return PyObjectFrom(GetProjectionMatrix()); /* new ref */
 	if (attr == "modelview_matrix")
@@ -453,6 +442,12 @@ int KX_Camera::_setattr(const STR_String &attr, PyObject *pyvalue)
 		if (attr == "frustum_culling")
 		{
 			m_frustum_culling = PyInt_AsLong(pyvalue);
+			return 0;
+		}
+		
+		if (attr == "perspective")
+		{
+			m_camdata.m_perspective = PyInt_AsLong(pyvalue);
 			return 0;
 		}
 	}

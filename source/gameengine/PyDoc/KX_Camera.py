@@ -17,6 +17,15 @@ class KX_Camera(KX_GameObject):
 	@type near: float
 	@ivar far: The camera's far clip distance.
 	@type far: float
+	@ivar perspective: True if this camera has a perspective transform. 
+	
+		If perspective is False, this camera has an orthographic transform.
+		
+		Note that the orthographic transform is faked by multiplying the lens attribute
+		by 100.0 and translating the camera 100.0 along the z axis.
+		
+		This is the same as Blender.  If you want a true orthographic transform, see L{setProjectionMatrix}.
+	@type perspective: boolean
 	@ivar frustum_culling: True if this camera is frustum culling. 
 	@type frustum_culling: boolean
 	@ivar projection_matrix: This camera's 4x4 projection matrix.
