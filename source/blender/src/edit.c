@@ -1026,7 +1026,7 @@ void snap_to_center()
 	centroid[0]= centroid[1]= centroid[2]= 0.0;
 
 		if(G.obedit) {
-			tottrans=0;
+			/*tottrans=0;*/
 #ifdef __NLA
 			if ELEM5(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) make_trans_verts(bmat[0], bmat[1], 0);
 #else
@@ -1035,6 +1035,7 @@ void snap_to_center()
 			if(tottrans==0) return;
 
 			Mat3CpyMat4(bmat, G.obedit->obmat);
+			Mat3Inv(imat, bmat);
 
 			tv= transvmain;
 			for(a=0; a<tottrans; a++, tv++) {
@@ -1054,6 +1055,9 @@ void snap_to_center()
 				snaploc[1]= (min[1]+max[1])/2;
 				snaploc[2]= (min[2]+max[2])/2;
 			}
+			
+			MEM_freeN(transvmain);
+			transvmain= 0;
 
 		}
 		else {
