@@ -1492,7 +1492,7 @@ void do_global_buttons(unsigned short event)
 		break;
 
 	case B_SETFONTSIZE:		/* is button from space.c  *info* */
-		FTF_SetSize(U.fontsize);
+		FTF_SetSize(U.fontsize); 
 		allqueue(REDRAWALL, 0);
 		break;
 		

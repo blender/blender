@@ -128,6 +128,13 @@ FTF_EXPORT int FTF_SetFont(char* str, int size)
   return ttfont.SetFont(str, size);
 }
 
+/* added bt ton */
+
+FTF_EXPORT void FTF_SetFontSize(char size)
+{
+  ttfont.SetFontSize( size);
+}
+
 /**
   * added by phase
   *

@@ -118,8 +118,14 @@ FTF_EXPORT float FTF_GetStringWidth(char* str, unsigned int flag);
 FTF_EXPORT void FTF_GetBoundingBox(char* str, float*llx, float *lly, float *llz, float *urx, float *ury, float *urz, unsigned int flag);
 
 /**
- * Following stuff added by phase
+ * Following stuff added by phase, ton
  */
+
+/**
+ * SetFontSize
+ * @param size
+ */
+FTF_EXPORT void FTF_SetFontSize(char size);
 
 /**
  * SetFont

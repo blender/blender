@@ -79,9 +79,11 @@ public:
 	void GetBoundingBox(char* str, float *llx, float *lly, float *llz, float *urx, float *ury, float *urz, unsigned int flag);
 
 	/**
-	 * added by phase
+	 * added by phase, ton
 	 * functions to communicate with the preference menu
 	 */
+	void SetFontSize(char size);
+
 	int SetFont(char* str, int size);
 
 	void SetLanguage(char* str);
@@ -97,7 +99,11 @@ protected:
 	int font_size;
 
 	/** FTGL's */
-	FTFont* font;
+	FTFont* font;	/* active */
+	
+	FTFont* fonts;	/* opened, small medium and large */
+	FTFont* fontm;
+	FTFont* fontl;
 
 	/** from system encoding in .locale to UNICODE */
 //	iconv_t cd;

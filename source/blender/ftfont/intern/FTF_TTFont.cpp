@@ -147,28 +147,51 @@ FTF_TTFont::FTF_TTFont(void)
 
 FTF_TTFont::~FTF_TTFont(void)
 {
-	if (font) delete font;
+	if (fonts) delete fonts;
+	if (fontm) delete fontm;
+	if (fontl) delete fontl;
 }
 
+void FTF_TTFont::SetFontSize(char size)
+{
+	if(size=='s') font=fonts;
+	else if(size=='l') font=fontl;
+	else font=fontm;
+
+}
 
 int FTF_TTFont::SetFont(char* str, int size)
 {
 	int err = 0;
 	bool success = 0;
 
-	delete font;
+	delete fonts;
+	fonts= NULL;
+	delete fontm;
+	fontm= NULL;
+	delete fontl;
+	fontl= NULL;
 
 	font = new FTGLPixmapFont(str);
 	err = font->Error();
 
 	if(err) {
-//		printf("Failed to open font %s\n", str);
+		printf("Failed to open font %s\n", str);
 		return 0;
 	} else {
-		success = font->FaceSize(size);
+		
+		fontm= font;
+		fonts = new FTGLPixmapFont(str);
+		fontl = new FTGLPixmapFont(str);
+		
+		success = fonts->FaceSize(size-2<8?8:size-2);
+		success = fontm->FaceSize(size);
+		success = fontl->FaceSize(size+2);
 		if(!success) return 0;
 
-		success = font->CharMap(ft_encoding_unicode);
+		success = fonts->CharMap(ft_encoding_unicode);
+		success = fontm->CharMap(ft_encoding_unicode);
+		success = fontl->CharMap(ft_encoding_unicode);
 		if(!success) return 0;
 
 		return 1;
@@ -214,7 +237,10 @@ void FTF_TTFont::SetEncoding(char* str)
 
 void FTF_TTFont::SetSize(int size)
 {
-	font->FaceSize(size);
+	fonts->FaceSize(size-2<8?8:size-2);
+	fontm->FaceSize(size);
+	fontl->FaceSize(size+2);
+
 	font_size = size;
 }
 

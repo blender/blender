@@ -2379,6 +2379,8 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 		}
 	}		
 
+	ui_set_ftf_font(block);	// sets just a pointer in ftf lib... the button dont have ftf handles
+	
 	Mat4CpyMat4(UIwinmat, block->winmat);
 	uiPanelPush(block); // push matrix; no return without pop!
 
@@ -3052,11 +3054,28 @@ static void ui_set_but_val(uiBut *but, double value)
 
 }
 
-void uiSetCurFont(uiBlock *block, int index)
+static void ui_set_ftf_font(uiBlock *block)
 {
 
+	if(block->aspect<1.05) {
+		FTF_SetFontSize('l');
+	}
+	else if(block->aspect<1.59) {
+		FTF_SetFontSize('m');
+	}
+	else {
+		FTF_SetFontSize('s');
+	}
+
+}
+
+void uiSetCurFont(uiBlock *block, int index)
+{
+	
+	ui_set_ftf_font(block);
+	
 	if(block->aspect<0.60) {
-		block->curfont= UIfont[index].xl;		
+		block->curfont= UIfont[index].xl;
 	}
 	else if(block->aspect<1.15) {
 		block->curfont= UIfont[index].large;
@@ -3071,6 +3090,7 @@ void uiSetCurFont(uiBlock *block, int index)
 	if(block->curfont==NULL) block->curfont= UIfont[index].large;	
 	if(block->curfont==NULL) block->curfont= UIfont[index].medium;	
 	if(block->curfont==NULL) printf("error block no font %s\n", block->name);
+	
 }
 
 void uiDefFont(unsigned int index, void *xl, void *large, void *medium, void *small)
