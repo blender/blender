@@ -10,7 +10,7 @@ sdl_lenv = Environment ()
 link_env = Environment ()
 
 if sys.platform == 'linux2':
-    use_international = 'false'
+    use_international = 'true'
     use_gameengine = 'false'
     use_openal = 'false'
     use_fmod = 'false'
@@ -39,6 +39,14 @@ if sys.platform == 'linux2':
     python_include = sysconfig.get_python_inc ()
     python_libpath = sysconfig.get_python_lib (0, 1) + '/config'
     python_lib = 'python%d.%d' % sys.version_info[0:2]
+    # International stuff
+    if (use_international == 'true'):
+        defines += ['INTERNATIONAL', 'FTGL_STATIC_LIBRARY', 'WITH_FREETYPE2']
+        platform_libpath += ['#../lib/linux-glibc2.2.5-i386/ftgl',
+                             '#../lib/linux-glibc2.2.5-i386/freetype/lib']
+        platform_libs += ['ftgl', 'freetype']
+        extra_includes += ['#../lib/linux-glibc2.2.5-i386/ftgl/include',
+                           '#../lib/linux-glibc2.2.5-i386/freetype/include']
 
 elif sys.platform == 'darwin':
     use_international = 'false'

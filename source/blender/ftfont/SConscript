@@ -12,8 +12,6 @@ include_paths = ['.',
                  '../blenlib',
                  '../makesdna']
                  
-print defines
-
 ftf_env = Environment()
 ftf_env.Append(CPPPATH = extra_includes)
 ftf_env.Append(CPPPATH = include_paths)

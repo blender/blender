@@ -2880,7 +2880,8 @@ static void check_non_flat_quads(void)
 					vlr1= RE_findOrAddVlak(R.totvlak++);
 					*vlr1= *vlr;
 					vlr1->flag |= R_FACE_SPLIT;
-					VECCOPY(vlr1->n, nor);			/* why not flipnorm here?! */
+					if(flipnorm) VecMulf(nor, -1.0);
+					VECCOPY(vlr1->n, nor);
 					vlr1->v2= vlr->v3;
 					vlr1->v3= vlr->v4;
 					vlr->v4= vlr1->v4= 0;
