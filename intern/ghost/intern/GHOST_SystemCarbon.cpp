@@ -493,7 +493,9 @@ GHOST_TSuccess GHOST_SystemCarbon::setCursorPosition(GHOST_TInt32 x, GHOST_TInt3
 {
 	float xf=(float)x, yf=(float)y;
 
-	CGPostMouseEvent(CGPointMake(xf, yf), TRUE, 1, FALSE, 0);
+	CGWarpMouseCursorPosition(CGPointMake(xf, yf));
+	// this call below sends event, but empties other events (like shift)
+	// CGPostMouseEvent(CGPointMake(xf, yf), TRUE, 1, FALSE, 0);
 
     return GHOST_kSuccess;
 }
