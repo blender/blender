@@ -751,17 +751,21 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 	char* matname = VLR_list[0]->mat->id.name;
 	bool shadow=VLR_list[0]->mat->mode & MA_TRACEBLE;
 	ostr <<" shadow=\""<< (shadow ? "on" : "off" )<<"\" ";
-	if (VLR_list[0]->mat->mode & MA_RAYTRANSP) 
-		ostr << "caus_IOR=\"" << VLR_list[0]->mat->ang << "\" ";
+	bool caus = (((VLR_list[0]->mat->mode & MA_RAYTRANSP) | (VLR_list[0]->mat->mode & MA_RAYMIRROR))!=0);
+	if (caus) ostr << "caus_IOR=\"" << VLR_list[0]->mat->ang << "\"";
 	if (strlen(matname)==0) matname = "blender_default"; 
 	ostr << " shader_name=\"" << matname << "\" >\n";
 	ostr << "\t<attributes>\n";
-	if (VLR_list[0]->mat->mode & MA_RAYTRANSP) 
+	if (caus)
 	{
-			float tr=1.0-VLR_list[0]->mat->alpha;
-			ostr << "\t\t<caus_tcolor r=\"" << VLR_list[0]->mat->r * tr 
-					 << "\" g=\"" << VLR_list[0]->mat->g * tr 
-					 << "\" b=\"" << VLR_list[0]->mat->b * tr << "\" />\n";
+			float tr = 1.0-VLR_list[0]->mat->alpha;
+			ostr << "\t\t<caus_tcolor r=\"" << VLR_list[0]->mat->r*tr
+					 << "\" g=\"" << VLR_list[0]->mat->g*tr
+					 << "\" b=\"" << VLR_list[0]->mat->b*tr << "\" />\n";
+			tr = VLR_list[0]->mat->ray_mirror;
+			ostr << "\t\t<caus_rcolor r=\"" << VLR_list[0]->mat->mirr*tr
+					 << "\" g=\"" << VLR_list[0]->mat->mirg*tr
+					 << "\" b=\"" << VLR_list[0]->mat->mirb*tr << "\" />\n";
 	}
 	ostr << "\t</attributes>\n";
 	xmlfile << ostr.str();

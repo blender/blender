@@ -917,15 +917,15 @@ void yafrayPluginRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_
 	bool castShadows=VLR_list[0]->mat->mode & MA_TRACEBLE;
 	float caus_IOR=1.0;
 	yafray::color_t caus_tcolor(0.0,0.0,0.0),caus_rcolor(0.0,0.0,0.0);
-	bool caus=false;
-	if (VLR_list[0]->mat->mode & MA_RAYTRANSP) 
-	{
-		caus_IOR=VLR_list[0]->mat->ang;
-		float tr=1.0-VLR_list[0]->mat->alpha;
+	bool caus = (((VLR_list[0]->mat->mode & MA_RAYTRANSP) | (VLR_list[0]->mat->mode & MA_RAYMIRROR))!=0);
+	if (caus) {
+		caus_IOR = VLR_list[0]->mat->ang;
+		float tr = 1.0-VLR_list[0]->mat->alpha;
 		caus_tcolor.set(VLR_list[0]->mat->r*tr, VLR_list[0]->mat->g*tr, VLR_list[0]->mat->b*tr);
-		caus=true;
+		tr = VLR_list[0]->mat->ray_mirror;
+		caus_rcolor.set(VLR_list[0]->mat->mirr*tr, VLR_list[0]->mat->mirg*tr, VLR_list[0]->mat->mirb*tr);
 	}
-	bool has_orco=(VLR_list[0]->v1->orco!=NULL);
+	bool has_orco = (VLR_list[0]->v1->orco!=NULL);
 	bool no_auto = true;	//in case non-mesh, or mesh has no autosmooth
 	float sm_angle = 0.1f;
 	if (obj->type==OB_MESH) 
