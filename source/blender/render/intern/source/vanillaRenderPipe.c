@@ -229,10 +229,7 @@ void zBufShadeAdvanced()
 		renderZBufLine(y);
 		transferColourBufferToOutput(y);
 		
-		if((y & 1) && G.background!=1) RE_local_render_display(y-1, y,
-															   imageWidth, 
-															   imageHeight,
-															   R.rectot);		
+		if(y & 1) RE_local_render_display(y-1, y, imageWidth, imageHeight, R.rectot);		
 
 		if(RE_local_test_break()) keepLooping = 0;
 		y++; 

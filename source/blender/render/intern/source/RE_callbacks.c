@@ -32,6 +32,7 @@
  */
 
 #include <stdlib.h> /* for NULL??? */
+#include <stdio.h>
 #include "render.h"
 #include "render_intern.h"
 #include "RE_callbacks.h"
@@ -104,6 +105,11 @@ void RE_local_timecursor(int i) {
 
 void RE_local_render_display(int i, int j, int k, int l, unsigned int* m) {
 	if (RE_local_renderdisplay_function) RE_local_renderdisplay_function(i, j, k, l, m);
+	else {
+		if(j-i >= l-1) printf("\n");// full picture
+		else printf("\rRender %d%% ", (100*i)/l); 
+		fflush(stdout);
+	}
 }
 void RE_local_init_render_display(void) {
 	if (RE_local_initrenderdisplay_function) RE_local_initrenderdisplay_function();

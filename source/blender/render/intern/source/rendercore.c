@@ -2867,7 +2867,7 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 		Zjitx= -xd;
 		Zjity= -yd;
 
-		RE_local_printrenderinfo(0.0, v);
+		if((R.r.mode & R_MBLUR)==0) RE_local_printrenderinfo(0.0, v);
 
 		/* RECTDELTA  */
 		fillrect(R.rectot,R.rectx,R.recty,0);
@@ -2907,7 +2907,7 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 		Zjitx= -xd;
 		Zjity= -yd;
 		RE_setwindowclip(0, 0);
-		RE_local_printrenderinfo(0.0, v);
+		if((R.r.mode & R_MBLUR)==0) RE_local_printrenderinfo(0.0, v);
 		zbufferall();
 	}
 
@@ -3018,7 +3018,7 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 			rowbuf2= rowbuf1;
 			rowbuf1= rb3;
 
-			if( y>0 && G.background==0) {
+			if( y>0) {
 				if((y & 1)==0) {
 					RE_local_render_display(y-2, y-1,  R.rectx, R.recty, R.rectot);
 				}
@@ -3118,7 +3118,7 @@ void zbufshade(void)
   		}
 		scanlinesky( (char *)(rp-R.rectx), y);
 		
-		if((y & 1) && G.background!=1) {
+		if(y & 1) {
 			RE_local_render_display(y-1, y, R.rectx, R.recty, R.rectot);
 		}
 		

@@ -441,12 +441,12 @@ void freeoctree(void)
 		a++;
 	}
 	
-
-//	printf("branches %d nodes %d\n", branchcount, nodecount);
-	printf("raycount %d \n", raycount);	
-	printf("ray coherent %d \n", coherent_ray);
-//	printf("accepted %d rejected %d\n", accepted, rejected);
-
+	if(G.f & G_DEBUG) {
+		printf("branches %d nodes %d\n", branchcount, nodecount);
+		printf("raycount %d \n", raycount);	
+		printf("ray coherent %d \n", coherent_ray);
+	//	printf("accepted %d rejected %d\n", accepted, rejected);
+	}
 	branchcount= 0;
 	nodecount= 0;
 }
@@ -1447,6 +1447,7 @@ static void reflection(float *ref, float *n, float *view, float *orn)
 	}
 }
 
+#if 0
 static void color_combine(float *result, float fac1, float fac2, float *col1, float *col2)
 {
 	float col1t[3], col2t[3];
@@ -1465,6 +1466,7 @@ static void color_combine(float *result, float fac1, float fac2, float *col1, fl
 	result[2]= (fac1*col1t[2] + fac2*col2t[2]);
 	result[2]*= result[2];
 }
+#endif
 
 /* the main recursive tracer itself */
 static void traceray(short depth, float *start, float *vec, float *col, VlakRen *vlr, int mask)

@@ -666,7 +666,7 @@ static void renderview_progress_display_cb(int y1, int y2, int w, int h, unsigne
 
 
 /* callback for print info in top header in interface */
-static void printrenderinfo_cb(double time, int sample)
+static void printrenderinfo_cb(double time, int sample, int blur)
 {
 	extern int mem_in_use;
 	float megs_used_memory= mem_in_use/(1024.0*1024.0);
@@ -679,8 +679,11 @@ static void printrenderinfo_cb(double time, int sample)
 	if (R.r.mode & R_FIELDS) {
 		spos+= sprintf(spos, "Field %c ", (R.flag&R_SEC_FIELD)?'B':'A');
 	}
+	if (blur!=-1) {
+		spos+= sprintf(spos, "Blur: %d ", blur);
+	}
 	if (sample!=-1) {
-		spos+= sprintf(spos, "Sample: %d ", sample);
+		spos+= sprintf(spos, "Sample: %d    ", sample);
 	}
 	
 	screen_draw_info_text(G.curscreen, str);

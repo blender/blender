@@ -549,7 +549,7 @@ void exit_usiblender(void)
 	free_txt_data();
 
 	sound_exit_audio();
-	MEM_freeN(G.listener);
+	if(G.listener) MEM_freeN(G.listener);
 
 #ifdef WITH_QUICKTIME
 	quicktime_exit();

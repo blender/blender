@@ -860,7 +860,10 @@ void oldRenderLoop(void)  /* here the PART and FIELD loops */
 				R.rectot= (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
 				R.rectz =  (unsigned int *)MEM_mallocN(sizeof(int)*R.rectx*R.recty, "rectz");
 
-				if(R.r.mode & R_MBLUR) RE_local_printrenderinfo(0.0, R.osa - blur);
+				if(R.r.mode & R_MBLUR) {
+					RE_local_printrenderinfo(0.0, R.osa - blur);
+					if(G.background && blur<R.osa) printf("\n"); // newline for percentage print
+				}
 				else RE_local_printrenderinfo(0.0, -1);
 
 				/* choose render pipeline type, and whether or not to use the */
