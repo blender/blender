@@ -1667,7 +1667,8 @@ static char *get_runtime_path(char *exename) {
 
 #ifdef __APPLE__
 
-static int recursive_copy_runtime(char *outname, char *exename, char **cause_r) {
+static int recursive_copy_runtime(char *outname, char *exename, char **cause_r) 
+{
 	char *cause = NULL, *runtime = get_runtime_path(exename);
 	char command[2 * (FILE_MAXDIR+FILE_MAXFILE) + 32];
 	int progfd = -1;
@@ -1676,14 +1677,16 @@ static int recursive_copy_runtime(char *outname, char *exename, char **cause_r) 
 		cause= "Unable to find runtime";
 		goto cleanup;
 	}
-
+	//printf("runtimepath %s\n", runtime);
+		
 	progfd= open(runtime, O_BINARY|O_RDONLY, 0);
 	if (progfd==-1) {
 		cause= "Unable to find runtime";
 		goto cleanup;
 	}
 
-	sprintf(command, "/bin/cp -R %s %s", runtime, outname);
+	sprintf(command, "/bin/cp -R \"%s\" \"%s\"", runtime, outname);
+	//printf("command %s\n", command);
 	if (system(command) == -1) {
 		cause = "Couldn't copy runtime";
 	}
@@ -1707,6 +1710,7 @@ void BLO_write_runtime(char *file, char *exename) {
 	char *cause= NULL;
 
 	// remove existing file / bundle
+	//printf("Delete file %s\n", file);
 	BLI_delete(file, NULL, TRUE);
 
 	if (!recursive_copy_runtime(file, exename, &cause))
@@ -1714,7 +1718,7 @@ void BLO_write_runtime(char *file, char *exename) {
 
 	strcpy(gamename, file);
 	strcat(gamename, "/Contents/Resources/game.blend");
-
+	//printf("gamename %s\n", gamename);
 	outfd= open(gamename, O_BINARY|O_WRONLY|O_CREAT|O_TRUNC, 0777);
 	if (outfd != -1) {
 

@@ -222,12 +222,19 @@ int BLI_rename(char *from, char *to) {
  * */
 static char str[MAXPATHLEN+12];
 
-int BLI_delete(char *file, int dir, int recursive) {
-	if (recursive) sprintf(str, "/bin/rm -rf %s", file);
-	else if (dir) sprintf(str, "/bin/rmdir \"%s\"", file);
-	else sprintf(str, "/bin/rm -f \"%s\"", file);
+int BLI_delete(char *file, int dir, int recursive) 
+{
+	if(strchr(file, '"')) {
+		printf("Error: not deleted file %s because of quote!\n", file);
+	}
+	else {
+		if (recursive) sprintf(str, "/bin/rm -rf \"%s\"", file);
+		else if (dir) sprintf(str, "/bin/rmdir \"%s\"", file);
+		else sprintf(str, "/bin/rm -f \"%s\"", file);
 
-	return system(str);
+		return system(str);
+	}
+	return -1;
 }
 
 int BLI_touch(char *file) 
@@ -242,19 +249,19 @@ int BLI_touch(char *file)
 }
 
 int BLI_move(char *file, char *to) {
-	sprintf(str, "/bin/mv -f %s %s", file, to);
+	sprintf(str, "/bin/mv -f \"%s\" \"%s\"", file, to);
 
 	return system(str);
 }
 
 int BLI_copy_fileops(char *file, char *to) {
-	sprintf(str, "/bin/cp -rf \"%s\" %s", file, to);
+	sprintf(str, "/bin/cp -rf \"%s\" \"%s\"", file, to);
 
 	return system(str);
 }
 
 int BLI_link(char *file, char *to) {
-	sprintf(str, "/bin/ln -f %s %s", file, to);
+	sprintf(str, "/bin/ln -f \"%s\" \"%s\"", file, to);
 	
 	return system(str);
 }
