@@ -143,7 +143,7 @@ void fdrawXORcirc(float xofs, float yofs, float rad)
 
 	glPushMatrix();
 	glTranslatef(xofs, yofs, 0.0);
-	glutil_draw_lined_arc(0.0, M_PI*2.1, rad, 20);
+	glutil_draw_lined_arc(0.0, M_PI*2.0, rad, 20);
 	glPopMatrix();
 
 	set_inverted_drawing(0);
