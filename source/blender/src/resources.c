@@ -389,9 +389,9 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 			case TH_HEADERDESEL:
 				/* we calculate a dynamic builtin header deselect color, also for pulldowns... */
 				cp= ts->header; 
-				headerdesel[0]= cp[0]>20?cp[0]-20:0;
-				headerdesel[1]= cp[1]>20?cp[1]-20:0;
-				headerdesel[2]= cp[2]>20?cp[2]-20:0;
+				headerdesel[0]= cp[0]>10?cp[0]-10:0;
+				headerdesel[1]= cp[1]>10?cp[1]-10:0;
+				headerdesel[2]= cp[2]>10?cp[2]-10:0;
 				cp= headerdesel;
 				break;
 			case TH_PANEL:
@@ -672,6 +672,9 @@ char *BIF_ThemeColorsPup(int spacetype)
 		}
 		else if(spacetype==SPACE_SOUND) {
 			sprintf(str, "Window slider %%x%d|", TH_SHADE1); strcat(cp, str);
+		}
+		else if(spacetype==SPACE_BUTS) {
+			sprintf(str, "Panel %%x%d|", TH_PANEL); strcat(cp, str);
 		}
 		else if(spacetype==SPACE_IMASEL) {
 			sprintf(str, "Main Shade %%x%d|", TH_SHADE1); strcat(cp, str);

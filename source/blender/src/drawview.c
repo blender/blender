@@ -1748,7 +1748,9 @@ void drawview3d_render(struct View3D *v3d)
 	if (v3d->drawtype==OB_TEXTURE && G.scene->world) {
 		glClearColor(G.scene->world->horr, G.scene->world->horg, G.scene->world->horb, 0.0); 
 	} else {
-		glClearColor(0.45, 0.45, 0.45, 0.0); 
+		float col[3];
+		BIF_GetThemeColor3fv(TH_BACK, col);
+		glClearColor(col[0], col[1], col[2], 0.0); 
 	}
 	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
