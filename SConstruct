@@ -1167,7 +1167,7 @@ if user_options_dict['BUILD_BLENDER_PLAYER'] == 1 and user_options_dict['BUILD_G
 	player_blender.Append (CPPPATH=user_options_dict['OPENGL_INCLUDE'])
 	d_obj = buildinfo(player_blender, "player")
 	if sys.platform == 'win32':
-		player_blender.Program (target='blender',
+		player_blender.Program (target='blenderplayer',
 					source=d_obj + ['source/icons/winblender.res'])
 	else:
 		if sys.platform == 'cygwin':
