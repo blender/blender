@@ -2781,7 +2781,15 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 	
 	myortho2(-0.375, (float)(sa->winx)-0.375, -0.375, (float)(sa->winy)-0.375);
 	draw_area_emboss(sa);
-	myortho2(0.0, 1280.0, 0.0, curarea->winy/fac);
+
+	/* restore buttons transform */
+	if(curarea->winx<=1280.0) {
+		fac= ((float)curarea->winx)/1280.0f;
+		myortho2(0.0, 1280.0, 0.0, curarea->winy/fac);
+	}
+	else {
+		myortho2(0.0, (float)curarea->winx, 0.0, (float)curarea->winy);
+	}
 	sa->win_swap= WIN_BACK_OK;
 	
 }

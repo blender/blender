@@ -494,6 +494,7 @@ static EditEdge *findnearestedge_f(short *dist)
 		if( !((eed->v1->f & 2) && (eed->v2->f & 2)) && eed->h==0){
 			
 			distance= dist_mval_edge(mval, eed);
+			if(eed->f & SELECT) distance+=5;
 			if(distance < *dist) {
 				*dist= distance;
 				closest= eed;
