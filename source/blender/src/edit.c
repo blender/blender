@@ -595,45 +595,45 @@ void countall()
 					bezt= nu->bezt;
 					a= nu->pntsu;
 					while(a--) {
-					G.totvert+=3;
-					if(bezt->f1) G.totvertsel++;
-					if(bezt->f2) G.totvertsel++;
-					if(bezt->f3) G.totvertsel++;
-					bezt++;
+						G.totvert+=3;
+						if(bezt->f1) G.totvertsel++;
+						if(bezt->f2) G.totvertsel++;
+						if(bezt->f3) G.totvertsel++;
+						bezt++;
+					}
 				}
-			}
-			else {
-				bp= nu->bp;
-				a= nu->pntsu*nu->pntsv;
-				while(a--) {
-					G.totvert++;
-					if(bp->f1 & 1) G.totvertsel++;
-					bp++;
+				else {
+					bp= nu->bp;
+					a= nu->pntsu*nu->pntsv;
+					while(a--) {
+						G.totvert++;
+						if(bp->f1 & 1) G.totvertsel++;
+						bp++;
+					}
 				}
+				nu= nu->next;
 			}
-			nu= nu->next;
 		}
-	}
-	else if(G.obedit->type==OB_MBALL) {
-		ml= editelems.first;
-		while(ml) {
-			G.totvert++;
-			if(ml->flag & SELECT) G.totvertsel++;
-			ml= ml->next;
+		else if(G.obedit->type==OB_MBALL) {
+			ml= editelems.first;
+			while(ml) {
+				G.totvert++;
+				if(ml->flag & SELECT) G.totvertsel++;
+				ml= ml->next;
+			}
 		}
-	}
-	else if(G.obedit->type==OB_LATTICE) {
-		bp= editLatt->def;
+		else if(G.obedit->type==OB_LATTICE) {
+			bp= editLatt->def;
+			
+			a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+			while(a--) {
+				G.totvert++;
+				if(bp->f1 & 1) G.totvertsel++;
+				bp++;
+			}
+		}
 		
-		a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-		while(a--) {
-			G.totvert++;
-			if(bp->f1 & 1) G.totvertsel++;
-			bp++;
-		}
-	}
-	
-	allqueue(REDRAWINFO, 1);	/* 1, because header->win==0! */
+		allqueue(REDRAWINFO, 1);	/* 1, because header->win==0! */
 		return;
 	}
 	else if(G.f & (G_FACESELECT + G_VERTEXPAINT + G_TEXTUREPAINT +G_WEIGHTPAINT)) {

@@ -3269,7 +3269,7 @@ static void draw_vertices_special(int mode, EditVert *act) /* teken = draw */
 {
 	/* (only this view, no other windows) */
 	/* hackish routine for visual speed:
-	 * mode 0: deselect the selected ones, draw then, except act
+	 * mode 0: deselect the selected ones, draw them, except act
 	 * mode 1: only draw act
 	 */
 	EditMesh *em = G.editMesh;
@@ -3284,7 +3284,7 @@ static void draw_vertices_special(int mode, EditVert *act) /* teken = draw */
 	mymultmatrix(G.obedit->obmat);
 
 	if(mode==0) {
-		BIF_GetThemeColor3ubv(TH_VERTEX, col);
+		BIF_ThemeColor(TH_VERTEX);
 		
 		/* set zbuffer on, its default off outside main drawloops */
 		if(G.vd->drawtype > OB_WIRE) {
@@ -3298,7 +3298,7 @@ static void draw_vertices_special(int mode, EditVert *act) /* teken = draw */
 			if(eve->h==0) {
 				if(eve!=act && (eve->f & 1)) {
 					eve->f -= 1;
-					glVertex3fv(act->co);
+					glVertex3fv(eve->co);
 				}
 			}
 			eve= eve->next;
