@@ -2,7 +2,7 @@
 
 """ Registration info for Blender menus:
 Name: 'AC3D (.ac)...'
-Blender: 232
+Blender: 233
 Group: 'Export'
 Submenu: 'All meshes...' all
 Submenu: 'Only selected...' sel
@@ -13,8 +13,9 @@ Tip: 'Export to AC3D (.ac) format.'
 # $Id$
 #
 # --------------------------------------------------------------------------
-# AC3DExport version 2.32-1 Jan 21, 2004
-# Program versions: Blender 2.32+ and AC3Db files (means version 0xb)
+# AC3DExport version 2.34
+# Program versions: Blender 2.34 and AC3Db files (means version 0xb)
+# new: minor tweaks, exporter didn't change
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -420,4 +421,5 @@ def fs_callback(filename):
 if __script__['arg'] == 'config':
   Draw.Register(gui, event, b_event)
 else:
-  Blender.Window.FileSelector(fs_callback, "Export AC3D")
+  fname = Blender.sys.makename(ext=".ac")
+  Blender.Window.FileSelector(fs_callback, "Export AC3D", fname)

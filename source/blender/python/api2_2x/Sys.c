@@ -42,6 +42,7 @@
 static PyObject *M_sys_basename (PyObject *self, PyObject *args);
 static PyObject *M_sys_dirname (PyObject *self, PyObject *args);
 static PyObject *M_sys_splitext (PyObject *self, PyObject *args);
+static PyObject *M_sys_makename (PyObject *self, PyObject *args, PyObject *kw);
 static PyObject *M_sys_exists (PyObject *self, PyObject *args);
 static PyObject *M_sys_time (PyObject *self);
 
@@ -69,6 +70,17 @@ static char M_sys_splitext_doc[] =
 /this/that/file.ext -> ('/this/that/file','.ext').\n\
 Return the pair (root, extension).";
 
+static char M_sys_makename_doc[] =
+"(path = Blender.Get('filename'), ext = \"\", strip = 0) -\n\
+Strip dir and extension from path, leaving only a name, then append 'ext'\n\
+to it (if given) and return the resulting string.\n\n\
+(path) - string: a pathname -- Blender.Get('filename') if 'path' isn't given;\n\
+(ext = \"\") - string: the extension to append.\n\
+(strip = 0) - int: strip dirname from 'path' if given and non-zero.\n\
+Ex: makename('/path/to/file/myfile.foo','-01.abc') returns 'myfile-01.abc'\n\
+Ex: makename(ext='.txt') returns 'untitled.txt' if Blender.Get('filename')\n\
+returns a path to the file 'untitled.blend'";
+
 static char M_sys_time_doc[] =
 "() - Return a float representing time elapsed in seconds.\n\
 Each successive call is garanteed to return values greater than or\n\
@@ -84,6 +96,8 @@ struct PyMethodDef M_sys_methods[] = {
   {"basename",    M_sys_basename,        METH_VARARGS, M_sys_basename_doc},
   {"dirname",     M_sys_dirname,         METH_VARARGS, M_sys_dirname_doc},
   {"splitext",    M_sys_splitext,        METH_VARARGS, M_sys_splitext_doc},
+  {"makename", (PyCFunction)M_sys_makename, METH_VARARGS|METH_KEYWORDS,
+		M_sys_makename_doc},
   {"exists",      M_sys_exists,          METH_VARARGS, M_sys_exists_doc},
   {"time", (PyCFunction)M_sys_time,      METH_NOARGS,  M_sys_time_doc},
   {NULL, NULL, 0, NULL}
@@ -145,7 +159,7 @@ static PyObject *M_sys_basename (PyObject *self, PyObject *args)
 			return EXPP_ReturnPyObjError(PyExc_RuntimeError, "path too long");
 
 		strncpy(basename, p+1, n); /* + 1 to skip the sep */
-		basename[n] = 0;
+		basename[n] = '\0';
 		return Py_BuildValue("s", basename);
 	}
 
@@ -177,11 +191,11 @@ static PyObject *M_sys_dirname (PyObject *self, PyObject *args)
 			return EXPP_ReturnPyObjError (PyExc_RuntimeError, "path too long");
 
 		strncpy(dirname, name, n);
-		dirname[n] = 0;
+		dirname[n] = '\0';
 		return Py_BuildValue("s", dirname);
 	}
 
-	return Py_BuildValue("s", "."); /* XXX need to fix this? (is crossplatform?)*/
+	return Py_BuildValue("s", ".");
 }
 
 static PyObject *M_sys_splitext (PyObject *self, PyObject *args)
@@ -220,11 +234,69 @@ static PyObject *M_sys_splitext (PyObject *self, PyObject *args)
 		EXPP_ReturnPyObjError(PyExc_RuntimeError, "path too long");
 
 	strncpy(ext, dot, n);
-	ext[n] = 0;
+	ext[n] = '\0';
 	strncpy(path, name, dot - name);
-	path[dot - name] = 0;
+	path[dot - name] = '\0';
 
 	return Py_BuildValue("ss", path, ext);
+}
+
+static PyObject *M_sys_makename(PyObject *self, PyObject *args, PyObject *kw)
+{
+	char *path = G.sce, *ext = NULL;
+	int strip = 0;
+	static char *kwlist[] = {"path", "ext", "strip", NULL};
+	char *dot = NULL, *p = NULL, basename[FILE_MAXFILE];
+	char sep;
+	int n, len, lenext = 0;
+	PyObject *c;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "|ssi", kwlist,
+			&path, &ext, &strip))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected one or two strings and an int (or nothing) as arguments");
+
+	len = strlen(path);
+	if (ext) lenext = strlen(ext);
+
+	if ((len + lenext) > FILE_MAXFILE)
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError, "path too long");
+
+	c = PyObject_GetAttrString (g_sysmodule, "dirsep");
+	sep = PyString_AsString(c)[0];
+	Py_DECREF(c);
+
+	p = strrchr(path, sep);
+
+	if (p && strip) {
+		n = path + len - p - 1; /* - 1 because we don't want the sep */
+
+		strncpy(basename, p+1, n); /* + 1 to skip the sep */
+		basename[n] = 0;
+	}
+	else {
+		strncpy(basename, path, len);
+		n = len;
+		basename[n] = '\0';
+	}
+
+	dot = strrchr(basename, '.');
+
+	/* now the extension: always remove the one in basename */
+	if (dot || ext) {
+		if (!ext)
+			basename[dot - basename] = '\0';
+		else { /* if user gave an ext, append it */
+
+			if (dot) n = dot - basename;
+			else n = strlen(basename);
+
+			strncpy(basename + n, ext, lenext);
+			basename[n+lenext] = '\0';
+		}
+	}
+
+	return PyString_FromString(basename);
 }
 
 static PyObject *M_sys_time (PyObject *self)

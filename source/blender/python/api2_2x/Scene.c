@@ -37,6 +37,7 @@
 #include <BSE_headerbuttons.h> /* for copy_scene */
 #include <BIF_drawscene.h>		 /* for set_scene */
 #include <BIF_space.h>				 /* for copy_view3d_lock() */
+#include <DNA_scriptlink_types.h>
 #include <MEM_guardedalloc.h>  /* for MEM_callocN */
 #include <mydevice.h>					 /* for #define REDRAW */
 
@@ -97,6 +98,7 @@ static PyObject *Scene_getChildren(BPy_Scene *self);
 static PyObject *Scene_getCurrentCamera(BPy_Scene *self);
 static PyObject *Scene_setCurrentCamera(BPy_Scene *self, PyObject *args);
 static PyObject *Scene_getRenderingContext(BPy_Scene *self);
+static PyObject *Scene_getScriptlinks(BPy_Scene *self, PyObject *args);
 
 //deprecated methods
 static PyObject *Scene_currentFrame(BPy_Scene *self, PyObject *args);
@@ -140,6 +142,9 @@ static PyMethodDef BPy_Scene_methods[] = {
 					"() - Return list of all objects linked to scene self"},
 	{"getCurrentCamera", (PyCFunction)Scene_getCurrentCamera, METH_NOARGS,
 					"() - Return current active Camera"},
+	{"getScriptlinks", (PyCFunction)Scene_getScriptlinks, METH_VARARGS,
+					"(eventname) - Get a list of this scene's scriptlinks (Text names) of the given type\n"
+	"(eventname) - string: FrameChanged, OnLoad or Redraw."},
 	{"setCurrentCamera", (PyCFunction)Scene_setCurrentCamera, METH_VARARGS,
 					"() - Set the currently active Camera"},
 	//DEPRECATED
@@ -693,7 +698,7 @@ static PyObject *Scene_setCurrentCamera (BPy_Scene *self, PyObject *args)
 {
 	Object *object;
 	BPy_Object *cam_obj;
-	Scene  *scene = self->scene;
+	Scene *scene = self->scene;
 
 	if (!scene)
 		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
@@ -725,6 +730,55 @@ static PyObject *Scene_getRenderingContext (BPy_Scene *self)
 
 	return RenderData_CreatePyObject(self->scene);
 }
+
+/* Scene.getScriptlinks */
+static PyObject *Scene_getScriptlinks (BPy_Scene *self, PyObject *args)
+{
+	Scene *scene = self->scene;
+	char *eventname = NULL;
+	int event = 0;
+	ScriptLink *slink = &(scene)->scriptlink;
+
+	if (!scene)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+						"Blender Scene was deleted!");
+
+	if (!PyArg_ParseTuple(args, "s", &eventname))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+						"expected event name (string) as argument");
+
+	if (!strcmp(eventname, "FrameChanged"))
+		event = SCRIPT_FRAMECHANGED;
+	else if (!strcmp(eventname, "OnLoad"))
+		event = SCRIPT_ONLOAD;
+	else if (!strcmp(eventname, "Redraw"))
+		event = SCRIPT_REDRAW;
+	else
+		return EXPP_ReturnPyObjError (PyExc_AttributeError,
+						"unknown event");
+
+	/* actually !scriptlink shouldn't happen ... */
+	if (!slink || !slink->totscript) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
+	else {
+		PyObject *list = PyList_New(0);
+		int i;
+
+		if (!list)
+			return EXPP_ReturnPyObjError (PyExc_MemoryError,
+				"couldn't create PyList!");
+
+		for (i = 0; i < slink->totscript; i++) {
+			if ((slink->flag[i] == event) && slink->scripts[i])
+				PyList_Append(list, PyString_FromString(slink->scripts[i]->name+2));
+		}
+
+		return list;
+	}
+}
+
 /*****************************************************************************/
 // DEPRECATED 	
 /*****************************************************************************/

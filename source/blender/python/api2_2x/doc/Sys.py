@@ -68,6 +68,35 @@ def splitext (path):
   @return: (root, ext)
   """
 
+def makename (path = "Blender.Get('filename')", ext = "", strip = 0):
+  """
+  Remove extension from 'path', append extension 'ext' (if given)
+  to the result and return it.  If 'strip' is non-zero, also remove
+  dirname from path.
+
+  Example::
+    import Blender
+    from Blender.sys import *
+    print makename('/path/to/myfile.txt','.abc', 1) # returns 'myfile.abc'
+
+    print makename('/path/to/myfile.obj', '-01.obj') # '/path/to/myfile-01.obj'
+
+    print makename('/path/to/myfile.txt', strip = 1) # 'myfile'
+
+    # note that:
+    print makename(ext = '.txt')
+    # is equivalent to:
+    print sys.splitext(Blender.Get('filename'))[0]) + '.txt'
+
+  @type path: string
+  @param path: a path name or Blender.Get('filename'), if not given.
+  @type ext: string
+  @param ext: an extension to append.  For flexibility, a dot ('.') is
+      not automatically included.
+  @rtype: string
+  @return: the resulting string
+  """
+
 def exists(path):
   """
   Tell if the given pathname (file or dir) exists.
