@@ -61,7 +61,7 @@ public:
 	
 		// kinematic methods
 	virtual void		RelativeTranslate(float dlocX,float dlocY,float dlocZ,bool local);
-	virtual void		RelativeRotate(const float drot[9],bool local);
+	virtual void		RelativeRotate(const float drot[12],bool local);
 	virtual	void		getOrientation(float &quatImag0,float &quatImag1,float &quatImag2,float &quatReal);
 	virtual	void		setOrientation(float quatImag0,float quatImag1,float quatImag2,float quatReal);
 	virtual	void		setPosition(float posX,float posY,float posZ);
@@ -72,6 +72,7 @@ public:
 	virtual void		ApplyForce(float forceX,float forceY,float forceZ,bool local);
 	virtual void		SetAngularVelocity(float ang_velX,float ang_velY,float ang_velZ,bool local);
 	virtual void		SetLinearVelocity(float lin_velX,float lin_velY,float lin_velZ,bool local);
+	virtual void		resolveCombinedVelocities(const MT_Vector3 & lin_vel, const MT_Vector3 & ang_vel );
 	virtual void		applyImpulse(float attachX,float attachY,float attachZ, float impulseX,float impulseY,float impulseZ);
 	virtual void		SetActive(bool active){};
 	virtual void		SuspendDynamics();

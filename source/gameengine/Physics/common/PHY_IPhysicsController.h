@@ -32,6 +32,8 @@
 #ifndef PHY_IPHYSICSCONTROLLER_H
 #define PHY_IPHYSICSCONTROLLER_H
 
+#include "MT_Vector3.h"
+
 /**
 	PHY_IPhysicsController is the abstract simplified Interface to a physical object.
 	It contains the IMotionState and IDeformableMesh Interfaces.
@@ -70,6 +72,7 @@ class PHY_IPhysicsController
 		virtual void		ApplyForce(float forceX,float forceY,float forceZ,bool local)=0;
 		virtual void		SetAngularVelocity(float ang_velX,float ang_velY,float ang_velZ,bool local)=0;
 		virtual void		SetLinearVelocity(float lin_velX,float lin_velY,float lin_velZ,bool local)=0;
+		virtual void		resolveCombinedVelocities(const MT_Vector3 & lin_vel, const MT_Vector3 & ang_vel ) = 0;
 		virtual void		applyImpulse(float attachX,float attachY,float attachZ, float impulseX,float impulseY,float impulseZ)=0;
 		virtual void		SetActive(bool active)=0;
 

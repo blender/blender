@@ -82,20 +82,13 @@ bool KX_ObjectActuator::Update(double curtime,double deltatime)
 		// it should reconcile the externally set velocity with it's 
 		// own velocity.
 		if (m_active_combined_velocity) {
-			static bool update_resolve_warning = 0;
-			if (!update_resolve_warning) {
-				update_resolve_warning = 1;
-				std::cout << "FIXME: KX_ObjectActuator::Update ResolveCombinedVelocities undefined!" << std::endl;
-			}
-			//if (parent->GetSumoObject()) {
-				//parent->GetPhysicsController()->ResolveCombinedVelocities(
-				//	m_linear_velocity,
-				//	m_angular_velocity,
-				//	(m_bitLocalFlag.LinearVelocity) != 0,
-				//	(m_bitLocalFlag.AngularVelocity) != 0
-				//);
-				m_active_combined_velocity = false;
-			//}
+			parent->ResolveCombinedVelocities(
+					m_linear_velocity,
+					m_angular_velocity,
+					(m_bitLocalFlag.LinearVelocity) != 0,
+					(m_bitLocalFlag.AngularVelocity) != 0
+				);
+			m_active_combined_velocity = false;
 			return false;
 		} else {
 			return false; 

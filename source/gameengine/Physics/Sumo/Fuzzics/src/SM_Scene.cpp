@@ -303,8 +303,13 @@ DT_Bool SM_Scene::boing(
 
 SM_Scene::~SM_Scene()
 { 
-/*	if (m_objectList.begin() != m_objectList.end())
-		std::cout << "SM_Scene::~SM_Scene: There are still objects in the Sumo scene!" << std::endl; */
+//	if (m_objectList.begin() != m_objectList.end()) 
+//		std::cout << "SM_Scene::~SM_Scene: There are still objects in the Sumo scene!" << std::endl;
+	for (T_ObjectList::iterator it = m_objectList.begin() ; it != m_objectList.end() ; it++)
+		delete *it;
+	
 	DT_DestroyRespTable(m_respTable);
+	DT_DestroyRespTable(m_secondaryRespTable);
+	DT_DestroyRespTable(m_fixRespTable);
 	DT_DestroyScene(m_scene);
 }

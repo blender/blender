@@ -237,12 +237,10 @@ void KX_GameObject::ApplyRotation(const MT_Vector3& drot,bool local)
 	MT_Matrix3x3 rotmat(drot);
 	rotmat.transpose();
 	
-	//if (m_pPhysicsController1) // (IsDynamic())
-	//	m_pPhysicsController1->RelativeRotate(rotmat_,local); 
+	if (m_pPhysicsController1) // (IsDynamic())
+		m_pPhysicsController1->RelativeRotate(rotmat,local); 
 	// in worldspace
 	GetSGNode()->RelativeRotate(rotmat,local);
-	if (m_pPhysicsController1)
-		m_pPhysicsController1->setOrientation(NodeGetWorldOrientation().getRotation());
 }
 
 
@@ -459,6 +457,20 @@ void KX_GameObject::setAngularVelocity(const MT_Vector3& ang_vel,bool local)
 		m_pPhysicsController1->SetAngularVelocity(ang_vel,local);
 }
 
+void KX_GameObject::ResolveCombinedVelocities(
+	const MT_Vector3 & lin_vel,
+	const MT_Vector3 & ang_vel,
+	bool lin_vel_local,
+	bool ang_vel_local
+){
+	if (m_pPhysicsController1)
+	{
+		m_pPhysicsController1->resolveCombinedVelocities(
+			lin_vel_local ? NodeGetWorldOrientation() * lin_vel : lin_vel,
+			ang_vel_local ? NodeGetWorldOrientation() * ang_vel : ang_vel			
+		);		
+	}
+}
 
 
 void KX_GameObject::SetObjectColor(const MT_Vector4& rgbavec)

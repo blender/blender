@@ -76,6 +76,8 @@ public:
 	MT_Vector3 GetVelocity(const MT_Point3& pos);
 	void	SetAngularVelocity(const MT_Vector3& ang_vel,bool local);
 	void	SetLinearVelocity(const MT_Vector3& lin_vel,bool local);
+	void	resolveCombinedVelocities(const MT_Vector3 & lin_vel, const MT_Vector3 & ang_vel);
+
 
 	void	SuspendDynamics();
 	void	RestoreDynamics();

@@ -24,17 +24,17 @@ void	KX_SumoPhysicsController::RelativeTranslate(const MT_Vector3& dloc,bool loc
 }
 void	KX_SumoPhysicsController::RelativeRotate(const MT_Matrix3x3& drot,bool local)
 {
-	double oldmat[12];
+	float oldmat[12];
 	drot.getValue(oldmat);
-	float newmat[9];
+/*	float newmat[9];
 	float *m = &newmat[0];
 	double *orgm = &oldmat[0];
 
 	 *m++ = *orgm++;*m++ = *orgm++;*m++ = *orgm++;orgm++;
 	 *m++ = *orgm++;*m++ = *orgm++;*m++ = *orgm++;orgm++;
-	 *m++ = *orgm++;*m++ = *orgm++;*m++ = *orgm++;orgm++;
+	 *m++ = *orgm++;*m++ = *orgm++;*m++ = *orgm++;orgm++; */
 
-	SumoPhysicsController::RelativeRotate(newmat,local);
+	SumoPhysicsController::RelativeRotate(oldmat,local);
 }
 
 void	KX_SumoPhysicsController::SetLinearVelocity(const MT_Vector3& lin_vel,bool local)
@@ -62,6 +62,15 @@ MT_Vector3 KX_SumoPhysicsController::GetLinearVelocity()
 	return GetVelocity(MT_Point3(0,0,0));
 	
 }
+
+void KX_SumoPhysicsController::resolveCombinedVelocities(
+		const MT_Vector3 & lin_vel,
+		const MT_Vector3 & ang_vel
+	)
+{
+	SumoPhysicsController::resolveCombinedVelocities(lin_vel, ang_vel);
+}
+
 void	KX_SumoPhysicsController::ApplyTorque(const MT_Vector3& torque,bool local)
 {
 	SumoPhysicsController::ApplyTorque(torque[0],torque[1],torque[2],local);

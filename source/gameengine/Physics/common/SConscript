@@ -8,7 +8,8 @@ source_files = ['PHY_IMotionState.cpp',
                 'PHY_IPhysicsEnvironment.cpp']
 
 phy_physics_env.Append (CPPPATH = ['.',
-                                   '../Dummy'
+                                   '../Dummy',
+                                   '#intern/moto/include'
                                   ])
 
 phy_physics_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/PHY_Physics', source=source_files)

@@ -68,6 +68,8 @@ public:
 	virtual MT_Vector3 GetVelocity(const MT_Point3& pos)=0;
 	virtual void	SetAngularVelocity(const MT_Vector3& ang_vel,bool local)=0;
 	virtual void	SetLinearVelocity(const MT_Vector3& lin_vel,bool local)=0;
+	virtual void	resolveCombinedVelocities(const MT_Vector3 & lin_vel, const MT_Vector3 & ang_vel) = 0;
+
 	virtual	void	getOrientation(MT_Quaternion& orn)=0;
 	virtual	void setOrientation(const MT_Quaternion& orn)=0;
 	virtual	void setPosition(const MT_Point3& pos)=0;

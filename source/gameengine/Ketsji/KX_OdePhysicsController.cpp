@@ -225,6 +225,9 @@ SG_Controller*	KX_OdePhysicsController::GetReplica(class SG_Node* destnode)
 	
 }
 
+void	KX_OdePhysicsController::resolveCombinedVelocities(const MT_Vector3 & lin_vel, const MT_Vector3 & ang_vel )
+{
+}
 
 	
 void	KX_OdePhysicsController::SetSumoTransform(bool nondynaonly)

@@ -160,7 +160,7 @@ integrateMomentum(
 	}
 }
 
-bool SM_Object::dynamicCollision(const MT_Point3 &local2, 
+void SM_Object::dynamicCollision(const MT_Point3 &local2, 
 	const MT_Vector3 &normal, 
 	MT_Scalar dist, 
 	const MT_Vector3 &rel_vel,
@@ -297,7 +297,6 @@ bool SM_Object::dynamicCollision(const MT_Point3 &local2,
 		notifyClient();
 
 	}
-	return false;
 }
 
 DT_Bool SM_Object::boing(

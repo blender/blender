@@ -247,6 +247,13 @@ public:
 	);
 
 
+		void 
+	ResolveCombinedVelocities(
+		const MT_Vector3 & lin_vel,
+		const MT_Vector3 & ang_vel,
+		bool lin_vel_local,
+		bool ang_vel_local
+	);
 
 
 	/**

@@ -169,7 +169,7 @@ void		SumoPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dlo
 	}
 
 }
-void		SumoPhysicsController::RelativeRotate(const float drot[9],bool local)
+void		SumoPhysicsController::RelativeRotate(const float drot[12],bool local)
 {
 
 	if (m_sumoObj )
@@ -185,9 +185,10 @@ void		SumoPhysicsController::RelativeRotate(const float drot[9],bool local)
 }
 void		SumoPhysicsController::setOrientation(float quatImag0,float quatImag1,float quatImag2,float quatReal)
 {
-	float orn [4]={quatImag0,quatImag1,quatImag2,quatReal};
-	MT_Quaternion quat(orn);
-	m_sumoObj->setOrientation(orn);
+//	float orn [4]={quatImag0,quatImag1,quatImag2,quatReal};
+//	MT_Quaternion quat;
+	m_sumoObj->setOrientation(MT_Quaternion(quatImag0,quatImag1,quatImag2,quatReal));
+	
 }
 
 void		SumoPhysicsController::getOrientation(float &quatImag0,float &quatImag1,float &quatImag2,float &quatReal)
@@ -270,6 +271,16 @@ void		SumoPhysicsController::SetLinearVelocity(float lin_velX,float lin_velY,flo
 							   lin_vel);
 	}
 }
+
+void SumoPhysicsController::resolveCombinedVelocities(
+		const MT_Vector3 & lin_vel,
+		const MT_Vector3 & ang_vel
+	)
+{
+	if (m_sumoObj)
+		m_sumoObj->resolveCombinedVelocities(lin_vel, ang_vel);
+}
+
 
 void		SumoPhysicsController::applyImpulse(float attachX,float attachY,float attachZ, float impulseX,float impulseY,float impulseZ)
 {
