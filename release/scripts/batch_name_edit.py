@@ -4,7 +4,7 @@
 Name: 'Batch Object Name Edit'
 Blender: 232
 Group: 'Object'
-Tooltip: 'Apply the chosen rule to rename all selected objects at once'
+Tooltip: 'Apply the chosen rule to rename all selected objects at once.'
 """
 
 __author__ = "Campbell Barton"
@@ -22,6 +22,7 @@ Usage:
 Select the objects to be renamed and run this script from the Object->Scripts
 menu of the 3d View.
 """
+
 
 # $Id$
 #
@@ -49,6 +50,12 @@ menu of the 3d View.
 
 from Blender import *
 
+def new():
+	newname = Draw.PupStrInput('Name: ', '', 32)
+	if newname == None: return
+	for ob in Object.GetSelected():
+		ob.name = newname
+	
 def replace():
 	replace = Draw.PupStrInput('Replace: ', '', 32)
 	if replace == None: return
@@ -96,20 +103,21 @@ def truncate_end():
 
 
 
-name = "Selected Object Names%t|Replace Text|Add Prefix|Add Suffix|Truncate Start|Truncate End"
+name = "Selected Object Names%t|New Name|Replace Text|Add Prefix|Add Suffix|Truncate Start|Truncate End"
 result = Draw.PupMenu(name)
 
 if result == -1:
 	pass
 elif result == 1:
-	replace()
+	new()
 elif result == 2:
-	prefix()
+	replace()
 elif result == 3:
-	suffix()
+	prefix()
 elif result == 4:
-	truncate_start()
+	suffix()
 elif result == 5:
+	truncate_start()
+elif result == 6:
 	truncate_end()
-
 

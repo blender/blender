@@ -135,7 +135,7 @@ def save_obj(filename):
 		# modify the open file.
 		for f in m.faces:
 			if len(f.v) < 3:
-				mesh.faces.remove(f)
+				m.faces.remove(f)
   
 		if len(m.faces) == 0: # Make sure there is somthing to write.
 			continue #dont bother with this mesh.

@@ -1,7 +1,7 @@
 #!BPY
 
 """
-Name: 'Cleanup Meshes'
+Name: 'Clean Mesh'
 Blender: 234
 Group: 'Mesh'
 Tooltip: 'Clean unused data from all selected meshes'
@@ -9,7 +9,7 @@ Tooltip: 'Clean unused data from all selected meshes'
 
 __author__ = "Campbell Barton"
 __url__ = ("blender", "elysiun")
-__version__ = "1.0 04/25/04"
+__version__ = "1.1 04/25/04"
 
 __bpydoc__ = """\
 This script cleans specific data from all selected meshes.
@@ -28,6 +28,7 @@ you what you want to remove:
 After choosing one of the above alternatives, if your choice requires a
 threshold value you'll be prompted with a number pop-up to set it.
 """
+
 
 # $Id$
 #
@@ -59,6 +60,8 @@ threshold value you'll be prompted with a number pop-up to set it.
 import Blender
 from Blender import *
 from math import sqrt
+
+time1 = Blender.sys.time()
 
 VRemNum = ERemNum = FRemNum = 0 # Remember for statistics
 
@@ -112,7 +115,7 @@ def delFreeVert(mesh):
   vIdx = 0
   for bool in usedList:
     if bool == False:
-      mesh.verts.remove(mesh.verts[vIdx])
+      mesh.verts.pop(vIdx)
       vIdx -= 1
       VRemNum += 1
     vIdx += 1
@@ -124,7 +127,7 @@ def delEdge(mesh):
   fIdx = 0
   while fIdx < len(mesh.faces):
     if len(mesh.faces[fIdx].v) == 2:
-      mesh.faces.remove(mesh.faces[fIdx])
+      mesh.faces.pop(fIdx)
       ERemNum += 1
       fIdx -= 1
     fIdx +=1
@@ -136,7 +139,7 @@ def delEdgeLen(mesh, limit):
   while fIdx < len(mesh.faces):
     if len(mesh.faces[fIdx].v) == 2:
       if measure(mesh.faces[fIdx].v[0].co, mesh.faces[fIdx].v[1].co) <= limit:
-        mesh.faces.remove(mesh.faces[fIdx])
+        mesh.faces(fIdx)
         ERemNum += 1
         fIdx -= 1
     fIdx +=1	
@@ -148,7 +151,7 @@ def delFaceArea(mesh, limit):
   while fIdx < len(mesh.faces):
     if len(mesh.faces[fIdx].v) > 2:
       if faceArea(mesh.faces[fIdx]) <= limit:
-        mesh.faces.remove(mesh.faces[fIdx])
+        mesh.faces.pop(fIdx)
         FRemNum += 1
         fIdx -= 1
     fIdx +=1
@@ -203,7 +206,7 @@ else:
       
       mesh.update(0)
       Redraw()
-
+print 'mesh cleanup time',Blender.sys.time() - time1
 if is_editmode: Window.EditMode(1)
 
 if method != -1:

@@ -497,14 +497,13 @@ def load_obj(file):
 
 Window.FileSelector(load_obj, 'Import Wavefront OBJ')
 
-'''
-# For testing compatability
-import os
-for obj in os.listdir('/obj/'):
-	if obj[-3:] == 'obj':
-		print obj
-		newScn = Scene.New(obj)
-		newScn.makeCurrent()
-		load_obj('/obj/' + obj)
-	
-'''
+
+# For testing compatibility
+#import os
+#for obj in os.listdir('/obj/'):
+#	if obj[-3:] == 'obj':
+#		print obj
+#		newScn = Scene.New(obj)
+#		newScn.makeCurrent()
+#		load_obj('/obj/' + obj)
+
