@@ -66,6 +66,7 @@ bool DummyPhysicsEnvironment::proceed(double timeStep)
 	//solve constraints
 	//integrate solution
 	// return true if an update was done.
+	return true;
 }
 
 void DummyPhysicsEnvironment::setGravity(float x,float y,float z)
