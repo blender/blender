@@ -225,6 +225,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenloader\intern\undofile.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenloader\intern\readblenentry.c">
 			</File>
 			<File
@@ -293,6 +296,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenloader\BLO_soundfile.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenloader\BLO_undofile.h">
 			</File>
 		</Filter>
 	</Files>
