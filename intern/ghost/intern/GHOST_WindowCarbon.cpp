@@ -329,7 +329,8 @@ GHOST_TSuccess GHOST_WindowCarbon::setOrder(GHOST_TWindowOrder order)
 {
 	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::setOrder(): window invalid")
     if (order == GHOST_kWindowOrderTop) {
-        ::BringToFront(m_windowRef);
+        //::BringToFront(m_windowRef); is wrong, front window should be active for input too
+		::SelectWindow(m_windowRef);
     }
     else {
         ::SendBehind(m_windowRef, nil);
