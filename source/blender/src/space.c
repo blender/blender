@@ -1596,7 +1596,7 @@ void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 	uiDefBut(block, TEX, B_NAME_THEME, "", 			255,y3,200,20, btheme->name, 1.0, 30.0, 0, 0, "Rename theme");
 
 	/* main choices pup */
-	uiDefButS(block, MENU, B_CHANGE_THEME, "UI and Buttons %x1|3D View %x2|Ipo Window %x3|Buttons Window %x4|File Select %x5",
+	uiDefButS(block, MENU, B_CHANGE_THEME, "UI and Buttons %x1|3D View %x2|Ipo Window %x3|Buttons Window %x4",
 													255,y2,200,20, &curmain, 0, 0, 0, 0, "Specify theme for...");
 	if(curmain==2) spacetype= SPACE_VIEW3D;
 	if(curmain==3) spacetype= SPACE_IPO;

@@ -358,14 +358,11 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 			case SPACE_VIEW3D:
 				ts= &btheme->tv3d;
 				break;
-			case SPACE_FILE:
-				ts= &btheme->tfile;
-				break;
 			case SPACE_IPO:
 				ts= &btheme->tipo;
 				break;
 			default:
-				ts= &btheme->tbuts;
+				ts= &btheme->tv3d;
 				break;
 			}
 			
@@ -447,6 +444,9 @@ void BIF_InitThemeColors(void)
 	SETCOL(btheme->tv3d.header, 195, 195, 195, 255);
 	SETCOL(btheme->tv3d.panel, 	165, 165, 165, 100);
 	
+	SETCOL(btheme->tv3d.shade1,  160, 160, 160, 100);
+	SETCOL(btheme->tv3d.shade2,  0x7f, 0x70, 0x70, 100);
+
 	SETCOL(btheme->tv3d.grid, 	0x60, 0x60, 0x60, 255);
 	SETCOL(btheme->tv3d.wire, 	0x0, 0x0, 0x0, 255);
 	SETCOL(btheme->tv3d.select, 0xff, 0x88, 0xff, 255);
@@ -461,10 +461,39 @@ void BIF_InitThemeColors(void)
 	SETCOL(btheme->tv3d.face_select, 200, 100, 200, 60);
 
 	/* copy this to the others, to have something initialized */
-	
 	btheme->tbuts= btheme->tv3d;
-	btheme->tfile= btheme->tv3d;
+
+	SETCOL(btheme->tbuts.back, 	180, 180, 180, 255);
+	SETCOL(btheme->tbuts.header, 195, 195, 195, 255);
+	SETCOL(btheme->tbuts.panel,  255, 255, 255, 100);
+
 	btheme->tipo= btheme->tv3d;
+
+	SETCOL(btheme->tipo.grid, 	94, 94, 94, 255);
+	SETCOL(btheme->tipo.back, 	120, 120, 120, 255);
+	SETCOL(btheme->tipo.header, 195, 195, 195, 255);
+	SETCOL(btheme->tipo.panel,  255, 255, 255, 100);
+	SETCOL(btheme->tipo.shade1,  140, 140, 140, 100);
+	SETCOL(btheme->tipo.shade2,  0x7f, 0x70, 0x70, 100);
+	SETCOL(btheme->tipo.vertex, 0xff, 0x70, 0xff, 255);
+	SETCOL(btheme->tipo.vertex_select, 0xff, 0xff, 0x70, 255);
+	SETCOL(btheme->tipo.hilite, 0x60, 0xc0, 0x40, 255); // green cfra line
+
+	btheme->tfile= btheme->tv3d;
+
+	btheme->tinfo= btheme->tv3d;
+	
+	btheme->tsnd= btheme->tv3d;
+	SETCOL(btheme->tsnd.grid,0x70, 0x70, 0x60, 255);
+	
+	btheme->tact= btheme->tv3d;
+	btheme->tnla= btheme->tv3d;
+	btheme->tseq= btheme->tv3d;
+	btheme->tima= btheme->tv3d;
+	btheme->timasel= btheme->tv3d;
+	btheme->text= btheme->tv3d;
+	btheme->toops= btheme->tv3d;
+
 
 }
 
@@ -483,9 +512,9 @@ char *BIF_ThemeColorsPup(int spacetype)
 		sprintf(str, "Text Hilite %%x%d|", TH_TEXT_HI); strcat(cp, str);
 		sprintf(str, "Header %%x%d|", TH_HEADER); strcat(cp, str);
 		sprintf(str, "Panel %%x%d|", TH_PANEL); strcat(cp, str);
-		strcat(cp,"%l|");
 		
 		if(spacetype==SPACE_VIEW3D) {
+			strcat(cp,"%l|");
 			sprintf(str, "Grid %%x%d|", TH_GRID); strcat(cp, str);
 			sprintf(str, "Wire %%x%d|", TH_WIRE); strcat(cp, str);
 			sprintf(str, "Object Selected %%x%d|", TH_SELECT); strcat(cp, str);
@@ -501,11 +530,14 @@ char *BIF_ThemeColorsPup(int spacetype)
 			// last item without '|'
 			sprintf(str, "Face Selected %%x%d", TH_FACE_SELECT); strcat(cp, str);
 		}
-		else {
+		else if(spacetype==SPACE_IPO) {
+			strcat(cp,"%l|");
 			sprintf(str, "Main Shade %%x%d|", TH_SHADE1); strcat(cp, str);
 			sprintf(str, "Alt Shade %%x%d|", TH_SHADE2); strcat(cp, str);
+			sprintf(str, "Vertex %%x%d|", TH_VERTEX); strcat(cp, str);
+			sprintf(str, "Vertex Selected %%x%d|", TH_VERTEX_SELECT); strcat(cp, str);
+			sprintf(str, "Current frame %%x%d", TH_HILITE); strcat(cp, str);
 			// last item without '|'
-			sprintf(str, "General Hilite %%x%d", TH_HILITE); strcat(cp, str);
 		}
 	}
 	return cp;

@@ -373,11 +373,13 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 {
 	SpaceButs *sbuts= sa->spacedata.first;
 	View2D *v2d= &sbuts->v2d;
+	float col[3];
 	int tab, align=0;
 	
 	myortho2(v2d->cur.xmin, v2d->cur.xmax, v2d->cur.ymin, v2d->cur.ymax);
 
-	glClearColor(0.73, 0.73, 0.73, 0.0);
+	BIF_GetThemeColor3fv(sa, TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0); 
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	uiSetButLock(G.scene->id.lib!=0, "Can't edit library data");	

@@ -677,7 +677,7 @@ static void ui_draw_tria_icon(float x, float y, float aspect, char dir)
 {
 
 	
-	glColor3ub(240, 240, 240);
+	BIF_ThemeColor(curarea, TH_TEXT_HI);
 	
 	if(dir=='h') {
 		ui_draw_anti_tria( x, y, x, y+10.0, x+8.75, y+5.25);
@@ -685,8 +685,6 @@ static void ui_draw_tria_icon(float x, float y, float aspect, char dir)
 	else {
 		ui_draw_anti_tria( x-2, y+8.75,  x+10-2, y+8.75, x+5.25-2, y);	
 	}
-	
-	
 }
 
 #if 0
@@ -758,7 +756,7 @@ static void ui_draw_panel_header(uiBlock *block)
 	if(panel->control & UI_PNL_CLOSE) pnl_icons+= PNL_ICON;
 
 	if(nr==1) {
-		glColor3ub(255,255,255);
+		BIF_ThemeColor(curarea, TH_TEXT_HI);
 		glRasterPos2f(block->minx+pnl_icons, block->maxy+5);
 		BIF_DrawString(block->curfont, block->panel->panelname, (U.transopts & TR_BUTTONS), 0);
 		return;
@@ -772,10 +770,10 @@ static void ui_draw_panel_header(uiBlock *block)
 		else if(pa==panel) {
 			/* active tab */
 			uiSetRoundBox(15);
-			glColor3ub(140, 140, 147);
+			BIF_ThemeColorShade(curarea, TH_HEADER, -60);
 			uiRoundBox(2+pnl_icons+a*width, panel->sizey+3, pnl_icons+(a+1)*width, panel->sizey+PNL_HEADER-3, 8);
 
-			glColor3ub(255,255,255);
+			BIF_ThemeColor(curarea, TH_TEXT_HI);
 			glRasterPos2f(10+pnl_icons+a*width, panel->sizey+5);
 			str= ui_block_cut_str(block, pa->panelname, (short)(width-10));
 			BIF_DrawString(block->curfont, str, (U.transopts & TR_BUTTONS), 0);
@@ -785,7 +783,7 @@ static void ui_draw_panel_header(uiBlock *block)
 		else if(pa->paneltab==panel) {
 			/* not active tab */
 			
-			glColor3ub(95,95,95);
+			BIF_ThemeColorShade(curarea, TH_HEADER, -130);
 			glRasterPos2f(10+pnl_icons+a*width, panel->sizey+5);
 			str= ui_block_cut_str(block, pa->panelname, (short)(width-10));
 			BIF_DrawString(block->curfont, str, (U.transopts & TR_BUTTONS), 0);
@@ -797,7 +795,7 @@ static void ui_draw_panel_header(uiBlock *block)
 	
 	// dragger
 	uiSetRoundBox(15);
-	glColor3ub(140, 140, 147);
+	BIF_ThemeColorShade(curarea, TH_HEADER, -70);
 	uiRoundBox(panel->sizex-PNL_ICON+5, panel->sizey+5, panel->sizex-5, panel->sizey+PNL_HEADER-5, 5);
 	
 }
@@ -816,23 +814,23 @@ void ui_draw_panel(uiBlock *block)
 	
 	if(panel->flag & PNL_CLOSEDY) {
 		uiSetRoundBox(15);
-		BIF_ThemeColor(curarea, TH_HEADER);
+		BIF_ThemeColorShade(curarea, TH_HEADER, -30);
 		uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
 		
 		// title
 		ofsx= 2*PNL_ICON;
 		if(panel->control & UI_PNL_CLOSE) ofsx+= PNL_ICON;
-		glColor3ub(255,255,255);
+		BIF_ThemeColor(curarea, TH_TEXT_HI);
 		glRasterPos2f(block->minx+40, block->maxy+5);
 		BIF_DrawString(block->curfont, panel->panelname, (U.transopts & TR_BUTTONS), 0);
 
 		//  border
 		if(panel->flag & PNL_SELECT) {
-			glColor3ub(64, 64, 64);
+			BIF_ThemeColorShade(curarea, TH_HEADER, -120);
 			uiRoundRect(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
 		}
 		if(panel->flag & PNL_OVERLAP) {
-			glColor3ub(240, 240, 240);
+			BIF_ThemeColor(curarea, TH_TEXT_HI);
 			uiRoundRect(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
 		}
 	
@@ -842,11 +840,11 @@ void ui_draw_panel(uiBlock *block)
 		int a, end, ofs;
 		
 		uiSetRoundBox(15);
-		BIF_ThemeColor(curarea, TH_HEADER);
+		BIF_ThemeColorShade(curarea, TH_HEADER, -30);
 		uiRoundBox(block->minx, block->miny, block->minx+PNL_HEADER, block->maxy+PNL_HEADER, 10);
 	
 		// title, only capitals for now
-		glColor3ub(255,255,255);
+		BIF_ThemeColor(curarea, TH_TEXT_HI);
 		str[1]= 0;
 		end= strlen(panel->panelname);
 		ofs= 20;
@@ -861,11 +859,11 @@ void ui_draw_panel(uiBlock *block)
 		
 		//  border
 		if(panel->flag & PNL_SELECT) {
-			glColor3ub(64, 64, 64);
+			BIF_ThemeColorShade(curarea, TH_HEADER, -120);
 			uiRoundRect(block->minx, block->miny, block->minx+PNL_HEADER, block->maxy+PNL_HEADER, 10);
 		}
 		if(panel->flag & PNL_OVERLAP) {
-			glColor3ub(240, 240, 240);
+			BIF_ThemeColor(curarea, TH_TEXT_HI);
 			uiRoundRect(block->minx, block->miny, block->minx+PNL_HEADER, block->maxy+PNL_HEADER, 10);
 		}
 	
@@ -875,7 +873,7 @@ void ui_draw_panel(uiBlock *block)
 		uiSetRoundBox(3);
 
 		if(panel->control & UI_PNL_SOLID) {
-			BIF_ThemeColor(curarea, TH_HEADER);
+			BIF_ThemeColorShade(curarea, TH_HEADER, -30);
 			uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
 			// blend now for panels in 3d window, test...
 			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
@@ -894,7 +892,7 @@ void ui_draw_panel(uiBlock *block)
 			glDisable(GL_BLEND);
 		}
 		else if(panel->control & UI_PNL_TRANSP) {
-			glColor3ub(218, 218, 218);
+			BIF_ThemeColorShade(curarea, TH_BACK, 32);
 			uiRoundRect(block->minx, block->miny, block->maxx, block->maxy+PNL_HEADER, 10);
 		}
 		
@@ -904,11 +902,11 @@ void ui_draw_panel(uiBlock *block)
 		//  border
 		uiSetRoundBox(3);
 		if(panel->flag & PNL_SELECT) {
-			glColor3ub(64, 64, 64);
+			BIF_ThemeColorShade(curarea, TH_HEADER, -120);
 			uiRoundRect(block->minx, block->miny, block->maxx, block->maxy+PNL_HEADER, 10);
 		}
 		if(panel->flag & PNL_OVERLAP) {
-			glColor3ub(240, 240, 240);
+			BIF_ThemeColor(curarea, TH_TEXT_HI);
 			uiRoundRect(block->minx, block->miny, block->maxx, block->maxy+PNL_HEADER, 10);
 		}
 		

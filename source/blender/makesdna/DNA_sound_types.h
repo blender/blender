@@ -133,6 +133,7 @@ typedef struct bSoundListener {
 
 /* spacesound->flag */
 #define SND_DRAWFRAMES	1
+#define SND_CFRA_NUM	2
 
 typedef struct SpaceSound {
 	struct SpaceLink *next, *prev;

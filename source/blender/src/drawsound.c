@@ -148,7 +148,7 @@ static void draw_cfra_sound(SpaceSound *ssound)
 {
 	float vec[2];
 	
-	if(get_mbut()&L_MOUSE) {
+	if(ssound->flag & SND_CFRA_NUM) {
 		short mval[2];
 		float x,  y;
 		char str[32];

@@ -113,7 +113,7 @@ void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		switch(event) {
 		case LEFTMOUSE:
-			
+			ssound->flag |= SND_CFRA_NUM;
 			do {
 				getmouseco_areawin(mval);
 				areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
@@ -130,6 +130,8 @@ void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 			
 			} while(get_mbut()&L_MOUSE);
+			ssound->flag &= ~SND_CFRA_NUM;
+			
 			doredraw= 1;
 
 			break;
