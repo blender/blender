@@ -384,11 +384,9 @@ static uiBlock *sbuts_context_menu(void *arg_unused)
 
 void buts_buttons(void)
 {
-	ID *id, *idfrom;
-	Object *ob;
 	uiBlock *block;
-//	uiBut *but;
-	short xco, t_base= -2;
+	ID *id, *idfrom;
+	short xco, t_base= 0;
 	char naam[20];
 
 	sprintf(naam, "header %d", curarea->headwin);
@@ -432,7 +430,7 @@ void buts_buttons(void)
 	uiDefIconButS(block, ROW, B_REDR,	ICON_SCENE_DEHLT,	xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SCENE, 0, 0, "Scene (F10) ");
 	xco+=XIC;
 	
-	if(curarea->headertype==HEADERTOP)  t_base= -3; else t_base= 4;
+	// if(curarea->headertype==HEADERTOP)  t_base= -3; else t_base= 4;
 	
 	/* select the context to be drawn, per contex/tab the actual context is tested */
 	uiBlockSetEmboss(block, UI_EMBOSSX);	// normal
@@ -464,46 +462,13 @@ void buts_buttons(void)
 		
 		break;
 	}
-
-
-	xco+=XIC+XIC;
-	ob= OBACT;
+	
+	xco+=XIC;
+	uiDefButS(block, NUM, B_NEWFRAME, "",	(short)(xco+20),0,60,YIC, &(G.scene->r.cfra), 1.0, 18000.0, 0, 0, "Displays Current Frame of animation. Click to change.");
+	xco+= 80;
 
 	buttons_active_id(&id, &idfrom);
 	G.buts->lockpoin= id;
-	
-	if(G.buts->mainb==CONTEXT_SHADING) {
-	
-	}
-	else if(G.buts->mainb==CONTEXT_EDITING) {
-
-	}
-
-#if 0
-	else if(G.buts->mainb==BUTS_CONSTRAINT){
-		if(id) {
-
-	short type;
-	void *data=NULL;
-	char str[256];
-
-
-			xco= std_libbuttons(block, xco, 0, 0, NULL, 0, id, idfrom, &(G.buts->menunr), B_OBALONE, B_OBLOCAL, 0, 0, 0);
-
-			get_constraint_client(NULL, &type, &data);
-			if (data && type==TARGET_BONE){
-				sprintf(str, "BO:%s", ((Bone*)data)->name);
-				but= uiDefBut(block, LABEL, 1, str,	xco, 0, 0, 135, YIC, ((Bone*)data)->name, 0.0, 19.0, 0, 0, "Displays Active Bone name. Click to change.");
-				xco+= 135;
-			}
-		}
-	}
-	else if(G.buts->mainb==BUTS_SCRIPT) {
-	}
-	
-	uiDefButS(block, NUM, B_NEWFRAME, "",	(short)(xco+20),0,60,YIC, &(G.scene->r.cfra), 1.0, 18000.0, 0, 0, "Displays Current Frame of animation. Click to change.");
-	xco+= 80;
-#endif
 
 	/* always do as last */
 	uiDrawBlock(block);
