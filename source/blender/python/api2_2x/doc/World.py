@@ -55,6 +55,22 @@ class World:
   @type ipo: Blender Ipo
   @cvar ipo: The world type ipo linked to this world object.
   """
+ 
+  def getRange():
+    """
+    Retrieves the range parameter of a world object.
+    @rtype: float
+    @return: the range
+    """
+
+  def setRange(range):
+    """
+    Sets the range parameter of a world object.
+    @type range: float
+    @param range: the new range parameter
+    @rtype: PyNone
+    @return: PyNone
+    """
 
   def getName():
     """

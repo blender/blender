@@ -80,6 +80,8 @@ struct PyMethodDef M_World_methods[] = {
 /*****************************************************************************/
 /* Python BPy_World methods declarations:                                   */
 /*****************************************************************************/
+static PyObject *World_getRange(BPy_World *self);
+static PyObject *World_setRange(BPy_World *self, PyObject *args);
 static PyObject *World_getIpo(BPy_World *self);
 static PyObject *World_setIpo(BPy_World *self, PyObject *args);
 static PyObject *World_clearIpo(BPy_World *self);
@@ -104,6 +106,10 @@ static PyObject *World_setMist(BPy_World *self, PyObject *args );
 /* Python BPy_World methods table:                                          */
 /*****************************************************************************/
 static PyMethodDef BPy_World_methods[] = {
+  {"getRange", (PyCFunction)World_getRange, METH_NOARGS,
+      "() - Return World Range"},
+  {"setRange", (PyCFunction)World_setRange, METH_VARARGS,
+      "() - Change this World's range"}, 
   {"getIpo", (PyCFunction)World_getIpo, METH_NOARGS,
       "() - Return World Ipo"},
   {"setIpo", (PyCFunction)World_setIpo, METH_VARARGS,

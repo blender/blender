@@ -229,6 +229,21 @@ PyObject *World_Init (void)
 /*****************************************************************************/
 /* Python BPy_World methods:																								*/
 /*****************************************************************************/
+static PyObject *World_getRange(BPy_World *self)
+{
+    return PyFloat_FromDouble(self->world->range);
+}
+
+static PyObject *World_setRange(BPy_World *self, PyObject *args)
+{
+      float range=0.f;
+      if (!PyArg_ParseTuple(args, "f", &range))
+              return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected a float argument"));
+    self->world->range = range;
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 
 static PyObject *World_getIpo(BPy_World *self)
 {
