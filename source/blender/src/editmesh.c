@@ -1275,7 +1275,7 @@ void load_editMesh_real(Mesh *me, int undo)
 
 	if(me->medge) MEM_freeN(me->medge);
 	me->medge= medge;
-	me->totedge= totedge;
+	if(medge) me->totedge= totedge; else me->totedge= 0;
 	
 	if(me->mface) MEM_freeN(me->mface);
 	me->mface= mface;

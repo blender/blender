@@ -1840,7 +1840,10 @@ void do_meshbuts(unsigned short event)
 		
 		case B_MAKEEDGES:
 			/* in editmode we only have to set edge pointer */
-			if(ob==G.obedit) me->medge= MEM_callocN(sizeof(MEdge), "fake mesh edge");
+			if(ob==G.obedit) {
+				me->medge= MEM_callocN(sizeof(MEdge), "fake mesh edge");
+				me->totedge= 1;
+			}
 			else make_edges(me);
 			allqueue(REDRAWBUTSEDIT, 0);
 			break;
