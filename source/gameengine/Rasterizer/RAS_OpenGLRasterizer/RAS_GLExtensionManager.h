@@ -364,7 +364,7 @@ namespace bgl
 	 */
 	void InitExtensions(int debug);
 
-#if defined(GL_ATI_pn_triangles)
+#if defined(PFNGLPNTRIANGLESIATIPROC)
 extern PFNGLPNTRIANGLESIATIPROC glPNTrianglesiATI;
 extern PFNGLPNTRIANGLESFATIPROC glPNTrianglesfATI;
 #endif

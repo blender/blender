@@ -311,7 +311,7 @@ to their source.  Cunning like a weasel.
 
  ******************************************************************************/
 
-#if defined(GL_ATI_pn_triangles)
+#if defined(PFNGLPNTRIANGLESIATIPROC)
 PFNGLPNTRIANGLESIATIPROC glPNTrianglesiATI;
 PFNGLPNTRIANGLESFATIPROC glPNTrianglesfATI;
 #endif
@@ -335,7 +335,7 @@ static void LinkExtensions()
 	static bool doDebugMessages = m_debug;
 	extensions = STR_String((const char *) glGetString(GL_EXTENSIONS)).Explode(' ');
 
-#if defined(GL_ATI_pn_triangles)
+#if defined(PFNGLPNTRIANGLESIATIPROC)
 	if (QueryExtension("GL_ATI_pn_triangles"))
 	{
 		glPNTrianglesiATI = reinterpret_cast<PFNGLPNTRIANGLESIATIPROC>(bglGetProcAddress((const GLubyte *) "glPNTrianglesiATI"));
