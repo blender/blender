@@ -1808,9 +1808,12 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 	lar->r= lar->energy*la->r;
 	lar->g= lar->energy*la->g;
 	lar->b= lar->energy*la->b;
-	lar->spotsi= 0.5;
-
-	lar->spotsi= cos( M_PI*la->spotsize/360.0 );
+	
+	lar->spotsi= la->spotsize;
+	if(lar->mode & LA_HALO) {
+		if(lar->spotsi>170.0) lar->spotsi= 170.0;
+	}
+	lar->spotsi= cos( M_PI*lar->spotsi/360.0 );
 	lar->spotbl= (1.0-lar->spotsi)*la->spotblend;
 
 	memcpy(lar->mtex, la->mtex, 8*4);
