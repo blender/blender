@@ -190,14 +190,17 @@ of the external libraries:
 1. openssl (fink install openssl)
 2. openssl-dev (fink install openssl-dev)
 3. jpeg    (fink install libjpeg)
-4. png     (fink install libpng)
+4. png     (fink install libpng3)
 5. cvs	   (fixes some bugs in the shipped cvs: fink install cvs)
 6. python22 ((addes the static lib for python) fink install python22)
-	You will probably want to select python22-nox-shlibs when
+	You will probably want to select python-nox when
 	it asks you.
+7. freetype (fink install freetype2)
 
-	After you have done this you should install the mx lib from:
-	http://www.egenix.com/files/python/mxTextTools.html
+After you have done this you should install the mx lib from:
+http://www.egenix.com/files/python/mxTextTools.html
+
+(we are currently in the process removing openssl and mxTextTools from Blender)
 
 Step 3:
 The rest of the external libraries are present in CVS in binary format so you
