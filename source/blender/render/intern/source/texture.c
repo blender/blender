@@ -1190,7 +1190,10 @@ int multitex_ext(Tex *tex, float *texvec, float *tin, float *tr, float *tg, floa
 	else texr.nor= NULL;
 	
 	retval= multitex(tex, texvec, NULL, NULL, 0, &texr);
-	if(tex->type==TEX_STUCCI) *tin= texr.nor[0];
+	if(tex->type==TEX_STUCCI) {
+		*tin= 0.5 + 0.7*texr.nor[0];
+		CLAMP(*tin, 0.0, 1.0);
+	}
 	else *tin= texr.tin;
 	*tr= texr.tr;
 	*tg= texr.tg;
