@@ -321,3 +321,17 @@ class World:
     @rtype: PyNone
     @return:  PyNone    
     """	
+    
+  def insertIpoKey(keytype):
+    """
+    Inserts keytype values in world ipo at curframe. Uses module constants.
+    @type keytype: Integer
+    @param keytype:
+           -ZENTIH
+           -HORIZON
+           -MIST
+           -STARS
+           -OFFSET
+           -SIZE
+    @return: py_none
+    """   

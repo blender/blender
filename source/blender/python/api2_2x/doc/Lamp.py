@@ -370,3 +370,16 @@ class Lamp:
     Unlink the ipo from this Lamp object.
     @return: True if there was an ipo linked or False otherwise.
     """
+    
+  def insertIpoKey(keytype):
+    """
+    Inserts keytype values in lamp ipo at curframe. Uses module constants.
+    @type keytype: Integer
+    @param keytype:
+           -RGB
+           -ENERGY
+           -SPOTSIZE
+           -OFFSET
+           -SIZE
+    @return: py_none
+    """    
