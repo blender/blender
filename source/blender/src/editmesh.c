@@ -1447,42 +1447,45 @@ void load_editMesh_real(Mesh *me, int undo)
 		 * with the way things were before editmode */
 		currkey = me->key->block.first;
 		while(currkey) {
-			if(currkey->data) {
-				fp=newkey= MEM_callocN(me->key->elemsize*G.totvert, 
-									   "currkey->data");
-				oldkey = currkey->data;
+			
+			fp= newkey= MEM_callocN(me->key->elemsize*G.totvert,  "currkey->data");
+			oldkey = currkey->data;
 
-				eve= em->verts.first;
+			eve= em->verts.first;
 
-				i = 0;
-				mvert = me->mvert;
-				while(eve) {
-					if (eve->keyindex >= 0) {
-						if(currkey == actkey) {
-							if (actkey == me->key->refkey) {
-								VECCOPY(fp, mvert->co);
-							}
-							else {
-								VECCOPY(fp, mvert->co);
+			i = 0;
+			mvert = me->mvert;
+			while(eve) {
+				if (eve->keyindex >= 0) { // old vertex
+					if(currkey == actkey) {
+						if (actkey == me->key->refkey) {
+							VECCOPY(fp, mvert->co);
+						}
+						else {
+							VECCOPY(fp, mvert->co);
+							if(oldverts) {
 								VECCOPY(mvert->co, oldverts[eve->keyindex].co);
 							}
 						}
-						else {
+					}
+					else {
+						if(oldkey) {
 							VECCOPY(fp, oldkey + 3 * eve->keyindex);
 						}
 					}
-					else {
-						VECCOPY(fp, mvert->co);
-					}
-					fp+= 3;
-					++i;
-					++mvert;
-					eve= eve->next;
 				}
-				currkey->totelem= G.totvert;
-				MEM_freeN(currkey->data);
-				currkey->data = newkey;
+				else {
+					VECCOPY(fp, mvert->co);
+				}
+				fp+= 3;
+				++i;
+				++mvert;
+				eve= eve->next;
 			}
+			currkey->totelem= G.totvert;
+			if(currkey->data) MEM_freeN(currkey->data);
+			currkey->data = newkey;
+			
 			currkey= currkey->next;
 		}
 
