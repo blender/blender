@@ -472,7 +472,7 @@ static char *ipo_modeselect_pup(void)
 	}
 
 	if(OBACT && OBACT->type==OB_CURVE) {
-		sprintf(tmpstr,formatstring,"Curve",ID_CU, ICON_CURVE);
+		sprintf(tmpstr,formatstring,"Path",ID_CU, ICON_CURVE);
 		strcat(string,tmpstr);
 	}
 

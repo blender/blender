@@ -919,18 +919,18 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_curve_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Curve and Surface", "Editing", 320, 0, 318, 204)==0) return;
 	
-	uiDefButS(block, TOG|BIT|5, 0, "UV Orco",					543,160,130,18, &cu->flag, 0, 0, 0, 0, "");
+	uiDefButS(block, TOG|BIT|5, 0, "UV Orco",					600,160,150,19, &cu->flag, 0, 0, 0, 0, "");
 	if(ob->type==OB_SURF) 
-		uiDefButS(block, TOG|BIT|6, REDRAWVIEW3D, "No Puno Flip",	543,140,130,18, &cu->flag, 0, 0, 0, 0, "");
+		uiDefButS(block, TOG|BIT|6, REDRAWVIEW3D, "No Puno Flip",	600,150,140,19, &cu->flag, 0, 0, 0, 0, "");
 
-	uiDefBut(block, BUT,B_DOCENTRE, "Centre",					543, 115, 140, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
-	uiDefBut(block, BUT,B_DOCENTRENEW, "Centre New",			543, 95, 140, 19, 0, 0, 0, 0, 0, "Shifts object's origin to center of object data");
-	uiDefBut(block, BUT,B_DOCENTRECURSOR, "Centre Cursor",		543, 75, 140, 19, 0, 0, 0, 0, 0, "Shifts object's origin to cursor location");
+	uiDefBut(block, BUT,B_DOCENTRE, "Centre",					600, 115, 150, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
+	uiDefBut(block, BUT,B_DOCENTRENEW, "Centre New",			600, 95, 150, 19, 0, 0, 0, 0, 0, "Shifts object's origin to center of object data");
+	uiDefBut(block, BUT,B_DOCENTRECURSOR, "Centre Cursor",		600, 75, 150, 19, 0, 0, 0, 0, 0, "Shifts object's origin to cursor location");
 
 	if(ob->type==OB_SURF) {
 		if(cu->key) {
-			/* uiDefButS(block, NUM, B_DIFF, "Slurph:",			543,25,140,19, &(cu->key->slurph), -500.0, 500.0,0,0); ,""*/
-			uiDefButS(block, TOG, B_RELKEY, "Relative Keys",	543,45,140,19, &cu->key->type, 0, 0, 0, 0, "");
+			/* uiDefButS(block, NUM, B_DIFF, "Slurph:",			600,25,140,19, &(cu->key->slurph), -500.0, 500.0,0,0); ,""*/
+			uiDefButS(block, TOG, B_RELKEY, "Relative Keys",	600,45,140,19, &cu->key->type, 0, 0, 0, 0, "");
 		}
 	}
 
@@ -939,27 +939,27 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 		if(ob->type==OB_CURVE) {
 			static float prlen;
 			char str[32];
-			uiDefButS(block, NUM, B_RECALCPATH, "PathLen:",			543,50,140,19, &cu->pathlen, 1.0, 9000.0, 0, 0, "");
-			uiDefButS(block, TOG|BIT|3, B_RECALCPATH, "CurvePath",	543,30,70,19 , &cu->flag, 0, 0, 0, 0, "");
-			uiDefButS(block, TOG|BIT|4, REDRAWVIEW3D, "CurveFollow",613,30,70,19, &cu->flag, 0, 0, 0, 0, "");
+			uiDefButS(block, NUM, B_RECALCPATH, "PathLen:",			600,50,150,19, &cu->pathlen, 1.0, 9000.0, 0, 0, "");
+			uiDefButS(block, TOG|BIT|3, B_RECALCPATH, "CurvePath",	600,30,75,19 , &cu->flag, 0, 0, 0, 0, "");
+			uiDefButS(block, TOG|BIT|4, REDRAWVIEW3D, "CurveFollow",675,30,75,19, &cu->flag, 0, 0, 0, 0, "");
 			sprintf(str, "%.4f", prlen);
-			uiDefBut(block, BUT, B_PRINTLEN,		"PrintLen",	543,10,70,19, 0, 0, 0, 0, 0, "");
-			uiDefBut(block, LABEL, 0, str,						613,10,70,19, 0, 1.0, 0, 0, 0, "");
+			uiDefBut(block, BUT, B_PRINTLEN,		"PrintLen",	600,10,75,19, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, str,						675,10,75,19, 0, 1.0, 0, 0, 0, "");
 		}
-		uiDefButS(block, NUM, B_MAKEDISP, "DefResolU:",	752,163,132,21, &cu->resolu, 1.0, 128.0, 0, 0, "");
-		uiDefBut(block, BUT, B_SETRESOLU, "Set",				887,163,29,21, 0, 0, 0, 0, 0, "");
+		uiDefButS(block, NUM, B_MAKEDISP, "DefResolU:",	760,160,120,19, &cu->resolu, 1.0, 128.0, 0, 0, "");
+		uiDefBut(block, BUT, B_SETRESOLU, "Set",		880,160,30,19, 0, 0, 0, 0, 0, "");
 		
-		uiDefButS(block, NUM, B_MAKEDISP, "BevResol:",	753,30,163,18, &cu->bevresol, 0.0, 10.0, 0, 0, "");
+		uiDefButS(block, NUM, B_MAKEDISP, "BevResol:",	760,30,150,19, &cu->bevresol, 0.0, 10.0, 0, 0, "");
 
-		uiDefIDPoinBut(block, test_obcurpoin_but, B_MAKEDISP, "BevOb:",		753,10,163,18, &cu->bevobj, "");
-		uiDefButF(block, NUM, B_MAKEDISP, "Width:",		753,90,163,18, &cu->width, 0.0, 2.0, 1, 0, "");
-		uiDefButF(block, NUM, B_MAKEDISP, "Ext1:",		753,70,163,18, &cu->ext1, 0.0, 5.0, 10, 0, "");
-		uiDefButF(block, NUM, B_MAKEDISP, "Ext2:",		753,50,163,18, &cu->ext2, 0.0, 2.0, 1, 0, "");
+		uiDefIDPoinBut(block, test_obcurpoin_but, B_MAKEDISP, "BevOb:",		760,10,150,19, &cu->bevobj, "");
+		uiDefButF(block, NUM, B_MAKEDISP, "Width:",		760,90,150,19, &cu->width, 0.0, 2.0, 1, 0, "");
+		uiDefButF(block, NUM, B_MAKEDISP, "Ext1:",		760,70,150,19, &cu->ext1, 0.0, 5.0, 10, 0, "");
+		uiDefButF(block, NUM, B_MAKEDISP, "Ext2:",		760,50,150,19, &cu->ext2, 0.0, 2.0, 1, 0, "");
 
 		uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiDefButS(block, TOG|BIT|0, B_CU3D, "3D",			867,130,47,18, &cu->flag, 0, 0, 0, 0, "");
-		uiDefButS(block, TOG|BIT|1, B_MAKEDISP, "Front",	810,130,55,18, &cu->flag, 0, 0, 0, 0, "");
-		uiDefButS(block, TOG|BIT|2, B_MAKEDISP, "Back",	753,130,53,18, &cu->flag, 0, 0, 0, 0, "");
+		uiDefButS(block, TOG|BIT|2, B_MAKEDISP, "Back",	760,130,50,19, &cu->flag, 0, 0, 0, 0, "");
+		uiDefButS(block, TOG|BIT|1, B_MAKEDISP, "Front",810,130,50,19, &cu->flag, 0, 0, 0, 0, "");
+		uiDefButS(block, TOG|BIT|0, B_CU3D, "3D",		860,130,50,19, &cu->flag, 0, 0, 0, 0, "");
 
 		
 	}
