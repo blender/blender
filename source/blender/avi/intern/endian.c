@@ -41,6 +41,10 @@
 #include "AVI_avi.h"
 #include "endian.h"
 
+#if defined(__sgi) || defined (__sparc) || defined (__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
+#define WORDS_BIGENDIAN
+#endif
+
 static void invert (int *num) {
 	int new=0,i,j;
 

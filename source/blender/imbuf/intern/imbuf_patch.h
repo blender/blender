@@ -53,7 +53,7 @@ typedef unsigned char  uchar;
 
 /* Endianness: flip the byte order. It's strange that this is needed..
  * After all, there is an internal endian.{c,h}... */
-#if defined(__sgi) || defined (__sparc) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
+#if defined(__sgi) || defined (__sparc) || defined(__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
 #define MAKE_ID(a,b,c,d) ( (int)(a)<<24 | (int)(b)<<16 | (c)<<8 | (d) )
 #else
 #define MAKE_ID(a,b,c,d) ( (int)(d)<<24 | (int)(c)<<16 | (b)<<8 | (a) )

@@ -71,7 +71,7 @@ MODNAME(BLENDERMODULE) -> "_Blender"
 #define MODNAME(x) _MODNAME(x)
 
 // module configuration -- TODO: this should be set later from the Makefile...
-#if defined(__FreeBSD__) || defined(__linux__) || defined (__sgi) || defined(__sparc)
+#if defined(__FreeBSD__) || defined(__linux__) || defined (__sgi) || defined(__sparc) || defined(__sparc__)
 #define STATIC_TEXTTOOLS 1
 #endif
 

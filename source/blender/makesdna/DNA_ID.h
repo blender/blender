@@ -84,7 +84,7 @@ typedef struct Library {
  *
  **/
 
-#if defined(__sgi) || defined(__sparc) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
+#if defined(__sgi) || defined(__sparc) || defined(__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
 /* big endian */
 #define MAKE_ID2(c, d)		( (c)<<8 | (d) )
 #define MOST_SIG_BYTE				0

@@ -42,6 +42,11 @@
 #include "MEM_guardedalloc.h"
 #include "avirgb.h"
 
+#if defined(__sgi) || defined (__sparc) || defined (__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
+#define WORDS_BIGENDIAN
+#endif
+
+
 /* implementation */
 
 void *avi_converter_from_avi_rgb (AviMovie *movie, int stream, unsigned char *buffer, int *size) {

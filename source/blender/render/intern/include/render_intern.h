@@ -37,7 +37,7 @@
 	 * regular (non-file related) endian dependant
 	 * code.
 	 */
-#if defined(__sgi) || defined(__sparc) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
+#if defined(__sgi) || defined(__sparc) || defined(__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
 #define RCOMP	3
 #define GCOMP	2
 #define BCOMP	1

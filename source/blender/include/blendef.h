@@ -90,7 +90,7 @@
 
 #define LONGCOPY(a, b, c)	{int lcpc=c, *lcpa=(int *)a, *lcpb=(int *)b; while(lcpc-->0) *(lcpa++)= *(lcpb++);}
 
-#if defined(__sgi) || defined(__sparc) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
+#if defined(__sgi) || defined(__sparc) || defined(__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
 /* big endian */
 #define MAKE_ID2(c, d)		( (c)<<8 | (d) )
 #define MOST_SIG_BYTE				0
@@ -381,7 +381,7 @@
 
 
 
-#if defined(__sgi) || defined(__sparc) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
+#if defined(__sgi) || defined(__sparc) || defined(__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
 #define RCOMP	3
 #define GCOMP	2
 #define BCOMP	1

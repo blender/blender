@@ -69,7 +69,7 @@
 
 #define ENDIAN_NOP(x) (x)
 
-#if defined(__sgi) || defined(__sparc) || defined (__PPC__) || defined (__APPLE__)
+#if defined(__sgi) || defined(__sparc) || defined(__sparc__) || defined (__PPC__) || defined (__APPLE__)
 #define LITTLE_SHORT SWAP_SHORT
 #define LITTLE_LONG SWAP_LONG
 #define BIG_SHORT ENDIAN_NOP
