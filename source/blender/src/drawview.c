@@ -335,9 +335,8 @@ static void draw_bgpic(void)
 {
 	BGpic *bgpic;
 	Image *ima;
-	float vec[3], fac, asp, zoomx, zoomy;
+	float vec[4], fac, asp, zoomx, zoomy;
 	int x1, y1, x2, y2, cx, cy;
-	short mval[2];
 	
 	bgpic= G.vd->bgpic;
 	if(bgpic==0) return;
@@ -401,11 +400,17 @@ static void draw_bgpic(void)
 		fac= 1.0/fac;
 	
 		asp= ( (float)ima->ibuf->y)/(float)ima->ibuf->x;
-	
-		vec[0]= vec[1]= vec[2]= 0.0;
-		project_short_noclip(vec, mval);
-		cx= mval[0];
-		cy= mval[1];
+
+			/* This code below was lifted from project_short_noclip
+			 * because that code fails if the point is to close to
+			 * the near clipping plane but we don't really care about
+			 * that here.
+			 */
+		vec[0]= vec[1]= vec[2]= 0.0; vec[3]= 1.0;
+		Mat4MulVec4fl(G.vd->persmat, vec);
+
+		cx= (curarea->winx/2.0)*(1 + vec[0]/vec[3]);	
+		cy= (curarea->winy/2.0)*(1 + vec[1]/vec[3]);
 	
 		x1=  cx+ fac*(bgpic->xof-bgpic->size);
 		y1=  cy+ asp*fac*(bgpic->yof-bgpic->size);
@@ -439,7 +444,7 @@ static void draw_bgpic(void)
 	glPixelZoom(zoomx, zoomy);
 	glaDrawPixelsSafe(x1, y1, ima->ibuf->x, ima->ibuf->y, bgpic->rect);
 	glPixelZoom(1.0, 1.0);
-	
+
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
