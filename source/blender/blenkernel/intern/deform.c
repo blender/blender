@@ -36,6 +36,7 @@
  */
 
 #include <string.h>
+#include <math.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -178,14 +179,21 @@ void hook_object_deform(Object *ob, int index, float *vec)
 			}
 			
 			if( hook->indexar[hook->curindex]==index ) {
-				float fac= hook->force;
-				
-				totforce+= fac;
+				float fac= hook->force, len;
 				
 				VecMat4MulVecfl(vect, hook->mat, vec);
-				vectot[0]+= fac*vect[0];
-				vectot[1]+= fac*vect[1];
-				vectot[2]+= fac*vect[2];
+
+				if(hook->falloff!=0.0) {
+					len= VecLenf(vect, hook->parent->obmat[3]);
+					if(len > hook->falloff) fac= 0.0;
+					else if(len>0.0) fac*= sqrt(1.0 - len/hook->falloff);
+				}
+				if(fac!=0.0) {
+					totforce+= fac;
+					vectot[0]+= fac*vect[0];
+					vectot[1]+= fac*vect[1];
+					vectot[2]+= fac*vect[2];
+				}
 			}
 		}
 	}
@@ -256,6 +264,7 @@ int mesh_modifier(Object *ob, char mode)
 			float *fp;
 			
 			if(dl->verts) MEM_freeN(dl->verts);
+			if(dl->nors) MEM_freeN(dl->nors);
 			dl->nr= me->totvert;
 			if(dl->nr) {
 				

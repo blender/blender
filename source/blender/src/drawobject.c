@@ -2179,11 +2179,12 @@ static void drawDispList(Object *ob, int dt)
 		if(dt==OB_SOLID ) {
 			
 			lb= &me->disp;
-			if(lb->first==0) addnormalsDispList(ob, lb);
+			if(lb->first==NULL) addnormalsDispList(ob, lb);
 			
 			dl= lb->first;
-			if(dl==0) return;
-
+			if(dl==NULL) return;
+			if(dl->nors==NULL) addnormalsDispList(ob, lb);
+			
 			if(mesh_uses_displist(me)) {
 				int vertexpaint= (G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT)) && (ob==((G.scene->basact) ? (G.scene->basact->object) : 0));
 

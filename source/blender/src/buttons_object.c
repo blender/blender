@@ -1063,7 +1063,8 @@ void object_panel_hooks(Object *ob)
 	if(hook->active<1 || hook->active > tothook) hook->active= 1;
 	active= hook->active;
 	
-	uiDefButS(block, MENU, B_REDR, cp, 10,180,150,19, &hook->active, 0, 0, 0, 0, "Set active hook");
+	uiBlockBeginAlign(block);
+	uiDefButS(block, MENU, B_REDR, cp,					10,180,150,19, &hook->active, 0, 0, 0, 0, "Set active hook");
 	MEM_freeN(cp);
 
 	for(nr=1, hook= ob->hooks.first; hook; hook= hook->next, nr++) {
@@ -1071,14 +1072,18 @@ void object_panel_hooks(Object *ob)
 	}
 	if(hook==NULL) printf("error in object_panel_hooks\n");
 	
-	uiBlockBeginAlign(block);
-	uiDefButC(block, TEX, B_REDR, "Name: ", 				160,180,150,19, hook->name, 0, 32, 0, 0, "Set name of hook");
-	uiDefIDPoinBut(block, test_obpoin_but, B_CLR_HOOK, "Parent:", 	160, 160, 150, 19, &hook->parent, "Parent Object for hook, also recalculates and clears offset"); 
-	uiDefButF(block, NUMSLI, B_MAKEDISP, "Force: ", 		160,140,150,19, &hook->force, 0.0, 1.0, 100, 0, "Set force of hook");
+	uiDefBut(block, TEX, B_REDR, "Name: ", 				160,180,150,19, hook->name, 0, 31, 0, 0, "Set name of hook");
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT, B_DEL_HOOK, "Delete", 				10,100,150,19, NULL, 0.0, 0.0, 0, 0, "Delete hook");
-	uiDefBut(block, BUT, B_CLR_HOOK, "Clear offset", 		160,100,150,19, NULL, 0.0, 0.0, 0, 0, "Recalculate and clear offset (transform) of hook");
+	uiDefButF(block, NUM, B_MAKEDISP, "Falloff: ",		160,140,150,19, &hook->falloff, 0.0, 100.0, 100, 0, "If not zero, the distance from hook where influence ends");
+	uiDefButF(block, NUMSLI, B_MAKEDISP, "Force: ", 	160,120,150,19, &hook->force, 0.0, 1.0, 100, 0, "Set relative force of hook");
+	uiBlockEndAlign(block);
+
+	uiDefIDPoinBut(block, test_obpoin_but, B_CLR_HOOK, "Parent:", 	10, 120, 150, 19, &hook->parent, "Parent Object for hook, also recalculates and clears offset"); 
+
+	uiBlockBeginAlign(block);
+	uiDefBut(block, BUT, B_DEL_HOOK, "Delete", 				10,80,150,19, NULL, 0.0, 0.0, 0, 0, "Delete hook");
+	uiDefBut(block, BUT, B_CLR_HOOK, "Clear offset", 		160,80,150,19, NULL, 0.0, 0.0, 0, 0, "Recalculate and clear offset (transform) of hook");
 }
 
 

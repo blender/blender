@@ -210,7 +210,7 @@ typedef struct ObHook {
 	float parentinv[4][4];	/* matrix making current transform unmodified */
 	float mat[4][4];		/* temp matrix while hooking */
 	float cent[3];			/* visualization of hook */
-	int pad;
+	float falloff;			/* if not zero, falloff is distance where influence zero */
 	
 	char name[32];
 

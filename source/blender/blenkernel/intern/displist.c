@@ -817,6 +817,7 @@ void addnormalsDispList(Object *ob, ListBase *lb)
 				dl->nr= me->totface;
 				BLI_addtail(&me->disp, dl);
 			}
+			else return;
 			
 			if(dl->nors==0) {
 				dl->nors= MEM_mallocN(sizeof(float)*3*me->totface, "meshnormals");
