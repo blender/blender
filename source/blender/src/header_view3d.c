@@ -2942,10 +2942,8 @@ static uiBlock *view3d_faceselmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Copy Draw Mode",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	/* for some reason calling this from the header messes up the 'from window'
-		* UV calculation :(
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unwrap UVs",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	*/
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unwrap UVs",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotate UVs|R",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");

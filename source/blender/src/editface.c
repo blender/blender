@@ -639,6 +639,7 @@ void uv_autocalc_tface()
 	int a, b;
 	short cox, coy, mode, adr[2];
 	
+	areawinset(curarea->win);
 	persp(PERSP_VIEW);
 	
 	me= get_mesh(ob=OBACT);

@@ -1847,7 +1847,7 @@ void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 	/* color choices pup */
 	if(curmain==1) {
 		strp= BIF_ThemeColorsPup(0);
-		if(th_curcol==TH_BACK) th_curcol= TH_BUT_NEUTRAL;  // switching main choices...
+		if(th_curcol==TH_BACK) th_curcol= TH_BUT_OUTLINE;  // switching main choices...
 	}
 	else strp= BIF_ThemeColorsPup(spacetype);
 	

@@ -668,7 +668,6 @@ static void texture_panel_magic(Tex *tex)
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_TEXPRV, "Size :",		10, 110, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets the dimension of the pattern");
 	uiDefButS(block, NUM, B_TEXPRV, "Depth:",		10, 90, 150, 19, &tex->noisedepth, 0.0, 10.0, 0, 0, "Sets the depth of the pattern");
 	uiDefButF(block, NUM, B_TEXPRV, "Turbulence:",	10, 70, 150, 19, &tex->turbul, 0.0, 200.0, 10, 0, "Sets the strength of the pattern");
 }
