@@ -10,7 +10,7 @@
 """
 The main Blender module.
 
-B{New}: 'homedir', 'scriptsdir' and 'uscriptsdir' parameters in L{Get}.
+B{New}: L{UpdateMenus}.
 
 Blender
 =======
@@ -106,6 +106,15 @@ def Save (filename, overwrite = 0):
 
   @note: The substring ".B.blend" is not accepted inside 'filename'.
   @note: DXF, STL and Videoscape export only B{selected} meshes.
+  """
+
+def UpdateMenus ():
+  """
+  Update the menus that list registered scripts.  This will scan the default
+  and user defined (if available) folder(s) for scripts that have registration
+  data and will make them accessible via menus.
+  @note: only scripts that save other new scripts in the default or user
+    defined folders need to call this function.
   """
 
 def Quit ():

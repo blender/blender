@@ -65,6 +65,7 @@
 #include "gen_utils.h"
 #include "modules.h"
 #include "../BPY_extern.h"	/* for bpy_gethome() */
+#include "../BPY_menus.h"	/* to update menus */
 
 
 /**********************************************************/
@@ -73,10 +74,10 @@
 static PyObject *Blender_Set( PyObject * self, PyObject * args );
 static PyObject *Blender_Get( PyObject * self, PyObject * args );
 static PyObject *Blender_Redraw( PyObject * self, PyObject * args );
-static PyObject *Blender_ReleaseGlobalDict( PyObject * self, PyObject * args );
 static PyObject *Blender_Quit( PyObject * self );
 static PyObject *Blender_Load( PyObject * self, PyObject * args );
 static PyObject *Blender_Save( PyObject * self, PyObject * args );
+static PyObject *Blender_UpdateMenus( PyObject * self);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.	 */
@@ -105,9 +106,6 @@ static char Blender_Get_doc[] = "(request) - Retrieve settings from Blender\n\
 
 static char Blender_Redraw_doc[] = "() - Redraw all 3D windows";
 
-static char Blender_ReleaseGlobalDict_doc[] =
-	"Deprecated, please use the Blender.Registry module solution instead.";
-
 static char Blender_Quit_doc[] =
 	"() - Quit Blender.  The current data is saved as 'quit.blend' before leaving.";
 
@@ -134,6 +132,10 @@ Note 2: only .blend raises an error if file wasn't saved.\n\
 \tYou can use Blender.sys.exists(filename) to make sure the file was saved\n\
 \twhen writing to one of the other formats.";
 
+static char Blender_UpdateMenus_doc[] =
+	"() - Update the menus where scripts are registered.  Only needed for\n\
+scripts that save other new scripts in the default or user defined folders.";
+
 /*****************************************************************************/
 /* Python method structure definition.		 */
 /*****************************************************************************/
@@ -144,8 +146,8 @@ static struct PyMethodDef Blender_methods[] = {
 	{"Quit", ( PyCFunction ) Blender_Quit, METH_NOARGS, Blender_Quit_doc},
 	{"Load", Blender_Load, METH_VARARGS, Blender_Load_doc},
 	{"Save", Blender_Save, METH_VARARGS, Blender_Save_doc},
-	{"ReleaseGlobalDict", &Blender_ReleaseGlobalDict,
-	 METH_VARARGS, Blender_ReleaseGlobalDict_doc},
+	{"UpdateMenus", ( PyCFunction ) Blender_UpdateMenus, METH_NOARGS,
+	 Blender_UpdateMenus_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -305,17 +307,6 @@ static PyObject *Blender_Redraw( PyObject * self, PyObject * args )
 	}
 
 	return M_Window_Redraw( self, Py_BuildValue( "(i)", wintype ) );
-}
-
-/*****************************************************************************/
-/* Function:	Blender_ReleaseGlobalDict		 */
-/* Python equivalent:	Blender.ReleaseGlobalDict			 */
-/* Description:		Deprecated function.			 */
-/*****************************************************************************/
-static PyObject *Blender_ReleaseGlobalDict( PyObject * self, PyObject * args )
-{
-	Py_INCREF( Py_None );
-	return Py_None;
 }
 
 /*****************************************************************************/
@@ -492,6 +483,19 @@ static PyObject *Blender_Save( PyObject * self, PyObject * args )
 	}
 
 	disable_where_script( 0 );
+
+	Py_INCREF( Py_None );
+	return Py_None;
+}
+
+static PyObject * Blender_UpdateMenus( PyObject * self )
+{
+
+	BPyMenu_RemoveAllEntries();
+
+	if (BPyMenu_Init(1) == -1)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"invalid scripts dir");
 
 	Py_INCREF( Py_None );
 	return Py_None;

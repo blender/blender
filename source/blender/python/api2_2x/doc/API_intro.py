@@ -14,12 +14,12 @@ The Blender Python API Reference
   - L{Armature}
      - L{Bone}
      - L{NLA}
-  - L{BGL} (*)
+  - L{BGL}
   - L{Camera}
   - L{Curve}
   - L{Draw}
-  - L{Effect} (*)
-  - L{Image}
+  - L{Effect}
+  - L{Image} (*)
   - L{Ipo}
   - L{Lamp}
   - L{Lattice}
@@ -29,18 +29,18 @@ The Blender Python API Reference
   - L{Metaball}
   - L{NMesh}
   - L{Noise}
-  - L{Object} (*)
+  - L{Object}
   - L{Registry}
-  - L{Scene} (*)
+  - L{Scene}
      - L{Radio}
      - L{Render}
-  - L{Sound} (new)
+  - L{Sound}
   - L{Text}
   - L{Texture}
   - L{Types}
-  - L{Window} (*)
+  - L{Window}
      - L{Theme} (new)
-  - L{World} (*)
+  - L{World}
   - L{sys<Sys>}
 
  (*) - marks updated.

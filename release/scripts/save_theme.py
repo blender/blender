@@ -2,14 +2,14 @@
 
 """
 Name: 'Save Current Theme'
-Blender: 234
+Blender: 236
 Group: 'Export'
 Tooltip: 'Save current theme as a bpython script'
 """
 
 __author__ = "Willian P. Germano"
 __url__ = ("blender", "elysiun")
-__version__ = "1.0 11/05/04"
+__version__ = "1.1 2005/13/01"
 
 __bpydoc__ = """\
 This script saves the current Theme in Blender as a Blender Python script.
@@ -114,3 +114,8 @@ theme = Theme.New('%s')
 	fout.close()
 
 FileSelector(write_theme, "Save Current Theme", default_fname)
+
+try:
+	Blender.UpdateMenus()
+except:
+	Blender.Draw.PupMenu("Warning - check console!%t|Menus could not be automatically updated")
