@@ -154,7 +154,7 @@ all debug::
     export WITH_QUICKTIME ?= true
 
     # enable l10n
-    #export INTERNATIONAL ?= true
+    export INTERNATIONAL ?= true
 
   else
   ifeq ($(OS),freebsd)
@@ -263,7 +263,7 @@ all debug::
     export NAN_PARANOID ?= true
 
     #i10n
-    export INTERNATIONAL ?= true
+    #export INTERNATIONAL ?= true
 
   else
   ifeq ($(OS),openbsd)
