@@ -316,9 +316,24 @@ GHOST_TSuccess GHOST_WindowWin32::setState(GHOST_TWindowState state)
 	wp.length = sizeof(WINDOWPLACEMENT);
 	::GetWindowPlacement(m_hWnd, &wp);
 	switch (state) {
-	case GHOST_kWindowStateMinimized: wp.showCmd = SW_SHOWMAXIMIZED; break;
-	case GHOST_kWindowStateMaximized: wp.showCmd = SW_SHOWMINIMIZED; break;
-	case GHOST_kWindowStateNormal: default: wp.showCmd = SW_SHOWNORMAL; break;
+	case GHOST_kWindowStateMinimized: 
+		wp.showCmd = SW_SHOWMINIMIZED; 
+		break;
+	case GHOST_kWindowStateMaximized: 
+		ShowWindow(m_hWnd, SW_HIDE); //fe. HACK!
+				//Solves redraw problems when switching from fullscreen to normal.
+				
+		wp.showCmd = SW_SHOWMAXIMIZED; 
+		SetWindowLong(m_hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
+		break;
+	case GHOST_kWindowStateFullScreen:
+		wp.showCmd = SW_SHOWMAXIMIZED;
+		SetWindowLong(m_hWnd, GWL_STYLE, WS_POPUP | WS_MAXIMIZE);
+		break;
+	case GHOST_kWindowStateNormal: 
+	default: 
+		wp.showCmd = SW_SHOWNORMAL; 
+		break;
 	}
 	return ::SetWindowPlacement(m_hWnd, &wp) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
 }
