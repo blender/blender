@@ -248,7 +248,12 @@ static PyObject *Text_getName(BPy_Text *self)
 
 static PyObject *Text_getFilename(BPy_Text *self)
 {
-  PyObject *attr = PyString_FromString(self->text->name);
+  PyObject *attr;
+	char *name = self->text->name;
+	
+	if (name) attr = PyString_FromString(self->text->name);
+	else
+		attr = Py_None;
 
   if (attr) return attr;
 
@@ -408,7 +413,7 @@ static PyObject *Text_getAttr (BPy_Text *self, char *name)
   if (strcmp(name, "name") == 0)
     attr = PyString_FromString(self->text->id.name+2);
   else if (strcmp(name, "filename") == 0)
-    attr = PyString_FromString(self->text->name);
+    return Text_getFilename(self); /* special: can be null */
   else if (strcmp(name, "mode") == 0)
     attr = PyInt_FromLong(self->text->flags);
   else if (strcmp(name, "nlines") == 0)
