@@ -2183,7 +2183,7 @@ static void do_palette1_cb(void *bt1, void *col1)
 void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, char mode)
 {
 	uiBut *bt;
-	float h;
+	float h, offs;
 	int a, retval=B_NOP;
 
 	if(mode=='p') {
@@ -2218,7 +2218,7 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 	// buttons
 	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
 
-	float offs= FPICK+2*DPICK+BPICK;
+	offs= FPICK+2*DPICK+BPICK;
 
 	uiBlockBeginAlign(block);
 	bt= uiDefButF(block, NUM, retval, "R ",	offs, 110, 80,20, col, 0.0, 1.0, 10, 2, "");
