@@ -117,6 +117,8 @@ install: package
     ifneq ($(NOPLUGINS),true)
 	@echo "----> Copy and compile plugins"
 	@cp -r plugins $(DISTDIR)/plugins
+	@mkdir -p $(DISTDIR)/plugins/include
+	@cp ../source/blender/blenpluginapi/*.h $(DISTDIR)/plugins/include/
 	@chmod 755 $(DISTDIR)/plugins/bmake
 	@$(MAKE) -C $(DISTDIR)/plugins all  > /dev/null || exit 1;
 	@rm -fr $(DISTDIR)/plugins/CVS $(DISTDIR)/plugins/*/CVS \

@@ -169,18 +169,25 @@ extern struct ImBuf *scalefastImBuf(struct ImBuf *, short, short);
 extern struct ImBuf *scalefieldImBuf(struct ImBuf *, short, short);
 extern struct ImBuf *scalefastfieldImBuf(struct ImBuf *, short, short);
 
-extern void de_interlace(struct ImBuf *ib);
+/* Not sure if needed or not... was in the release version of this header.
+I think its old but figured I'd leave it for a bit just incase.
+mein@cs.umn.edu
+extern void floyd(struct ImBuf *, short, short);
+extern void dit3(struct ImBuf *, short, short);
+extern void dit4(struct ImBuf *, short, short);
+extern void (*ditherfunc)(struct ImBuf *, short, short);
+extern long getdither();
+*/
 
-extern void rectop(struct ImBuf *dbuf,
-				   struct ImBuf *sbuf,
-				   int destx,
-				   int desty,
-				   int srcx,
-				   int srcy,
-				   int width,
-				   int height,
-				   void (*operation)(unsigned int *, unsigned int*, int, int),
-				   int value);
+extern void de_interlace(struct ImBuf *ib);
+extern void interlace(struct ImBuf *ib);
+extern void gamwarp(struct ImBuf *ibuf, double gamma);
+
+extern void rectop(struct ImBuf *dbuf, struct ImBuf *sbuf,
+		   int destx, int desty, int srcx,
+		   int srcy, int width, int height,
+		   void (*operation)(unsigned int *, unsigned int*, int, int),
+		   int value);
 
 #endif /* IFF_H */
 
