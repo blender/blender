@@ -32,6 +32,9 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#ifdef WIN32
+#include <io.h>
+#endif
 #include "imbuf.h"
 #include "imbuf_patch.h"
 

@@ -32,6 +32,10 @@
  * $Id$
  */
 
+#ifdef WIN32
+#include <io.h>
+#endif
+
 #include "BLI_blenlib.h"
 
 #include "imbuf.h"
