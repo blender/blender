@@ -1377,7 +1377,10 @@ static void ui_draw_pulldown_item(int type, int colorid, float asp, float x1, fl
 	char col[4];
 	
 	BIF_GetThemeColor4ubv(TH_MENU_BACK, col);
-	if(col[3]!=255) glEnable(GL_BLEND);
+	if(col[3]!=255) {
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
 	
 	if((flag & UI_ACTIVE) && type!=LABEL) {
 		BIF_ThemeColor4(TH_MENU_HILITE);
