@@ -8,9 +8,10 @@ source_files = ['intern/FTF_Api.cpp',
                 'intern/FTF_TTFont.cpp']
 
 include_paths = ['.',
-                 'intern',
-                 '../blenlib',
-                 '../makesdna']
+		'intern',
+		'../blenkernel',
+		'../blenlib',
+		'../makesdna']
                  
 ftf_env.Append(CPPPATH = extra_includes)
 ftf_env.Append(CPPPATH = include_paths)
