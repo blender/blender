@@ -46,7 +46,7 @@ class Armature:
   ===================
     This object gives access to Armature-specific data in Blender.
   @cvar name: The Armature name.
-  @cvar bones: The Armature root bones (cannot be set yet).
+  @cvar bones: A List of Bones that make up this armature.
   """
 
   def getName():
@@ -64,15 +64,19 @@ class Armature:
 
   def getBones():
     """
-    Get the Armature root bones.
-    @rtype: list of Blender Bones
-    @return: a list of Armature bones.
+    Get all the Armature bones.
+    @rtype: PyList
+    @return: a list of PyBone objects that make up the armature.
     """
 
-  def setBones(bones):
+  def addBone(bone):
     """
-    Set the Armature root bones (still unimplemented).
-    @warn: This method wasn't implemented yet.
+    Add a bone to the armature.
+    @type bone: PyBone
+    @param bone: The Python Bone to add to the armature.
+    @warn: If a bone is added to the armature with no parent
+    if will not be parented. You should set the parent of the bone
+    before adding to the armature.
     """
 
 class Bone:
@@ -101,6 +105,8 @@ class Bone:
     """
     Get the roll value.
     @rtype: float
+    @warn: Roll values are local to parent's objectspace when
+    bones are parented.
     """
 
   def getHead():
@@ -163,6 +169,8 @@ class Bone:
     Set the roll value.
     @type roll: float
     @param roll: The new value.
+    @warn: Roll values are local to parent's objectspace when
+    bones are parented.
     """
 
   def setHead(x,y,z):
@@ -220,4 +228,11 @@ class Bone:
     @param imag_i: The new quat[1] value.
     @param imag_j: The new quat[2] value.
     @param imag_k: The new quat[3] value.
+    """
+
+  def setParent(bone):
+    """
+    Set the bones's parent in the armature.
+    @type bone: PyBone
+    @param bone: The Python bone that is the parent to this bone.
     """
