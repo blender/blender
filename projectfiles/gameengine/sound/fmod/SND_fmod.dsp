@@ -88,8 +88,8 @@ LIB32=link.exe -lib
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "..\..\..\..\..\obj\windows\gameengine\soundsystem\fmod\mtdll\debug"
-# PROP Intermediate_Dir "..\..\..\..\..\obj\windows\gameengine\soundsystem\fmod\mtdll\debug"
+# PROP Output_Dir "..\..\..\..\obj\windows\gameengine\soundsystem\fmod\mtdll\debug"
+# PROP Intermediate_Dir "..\..\..\..\obj\windows\gameengine\soundsystem\fmod\mtdll\debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I "../../../../lib/windows/moto/include" /I "..\..\..\..\source\kernel\gen_system" /I "..\..\..\..\source\gameengine\soundsystem" /I "..\..\..\..\lib\windows\fmod\340\include" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
@@ -101,7 +101,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo /out:"..\..\..\..\..\obj\windows\gameengine\soundsystem\fmod\debug\SND_fmod.lib"
-# ADD LIB32 /nologo /out:"..\..\..\..\..\obj\windows\gameengine\soundsystem\fmod\debug\SND_fmod.lib"
+# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\gameengine\soundsystem\fmod\mtdll_debug\SND_fmod.lib"
 
 !ELSEIF  "$(CFG)" == "SND_fmod - Win32 MT DLL Release"
 
@@ -112,8 +112,8 @@ LIB32=link.exe -lib
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "..\..\..\..\..\obj\windows\gameengine\soundsystem\fmod\mtdll"
-# PROP Intermediate_Dir "..\..\..\..\..\obj\windows\gameengine\soundsystem\fmod\mtdll"
+# PROP Output_Dir "..\..\..\..\obj\windows\gameengine\soundsystem\fmod\mtdll"
+# PROP Intermediate_Dir "..\..\..\..\obj\windows\gameengine\soundsystem\fmod\mtdll"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /I "../../../../lib/windows/moto/include" /I "..\..\..\..\source\kernel\gen_system" /I "..\..\..\..\source\gameengine\soundsystem" /I "..\..\..\..\lib\windows\fmod\340\include" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
@@ -125,7 +125,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo /out:"..\..\..\..\..\obj\windows\gameengine\soundsystem\fmod\SND_fmod.lib"
-# ADD LIB32 /nologo /out:"..\..\..\..\..\obj\windows\gameengine\soundsystem\fmod\SND_fmod.lib"
+# ADD LIB32 /nologo
 
 !ENDIF 
 

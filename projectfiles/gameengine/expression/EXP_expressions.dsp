@@ -87,12 +87,12 @@ LIB32=link.exe -lib
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "..\..\..\..\obj\windows\gameengine\expressions\mtdll_debug"
-# PROP Intermediate_Dir "..\..\..\..\obj\windows\gameengine\expressions\mtdll_debug"
+# PROP Output_Dir "..\..\..\obj\windows\gameengine\expressions\mtdll_debug"
+# PROP Intermediate_Dir "..\..\..\obj\windows\gameengine\expressions\mtdll_debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /MDd /Gm /GX /ZI /Od /I "..\..\..\source\kernel\gen_system" /I "..\..\..\lib\windows\python\include\python1.5" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "EXP_PYTHON_EMBEDDING" /YX /J /FD /GZ /c
-# ADD CPP /nologo /MDd /Gm /GX /ZI /Od /I "..\..\..\lib\windows\python\include\python2.0" /I "..\..\..\..\lib\windows\python\include\python2.0" /I "..\..\..\lib\windows\string\include" /I "..\..\..\source\kernel\gen_system" /D "WIN32" /D "_MBCS" /D "_LIB" /D "EXP_PYTHON_EMBEDDING" /U "_DEBUG" /YX /J /FD /GZ /c
+# ADD CPP /nologo /MDd /Gm /GX /ZI /Od /I "..\..\..\lib\windows\python\include\python2.0" /I "..\..\..\..\lib\windows\python\include\python2.0" /I "..\..\..\lib\windows\python\include\python2.2" /I "..\..\..\lib\windows\string\include" /I "..\..\..\source\kernel\gen_system" /D "WIN32" /D "_MBCS" /D "_LIB" /D "EXP_PYTHON_EMBEDDING" /U "_DEBUG" /YX /J /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -111,12 +111,12 @@ LIB32=link.exe -lib
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "..\..\..\..\obj\windows\gameengine\expressions\mtdll"
-# PROP Intermediate_Dir "..\..\..\..\obj\windows\gameengine\expressions\mtdll"
+# PROP Output_Dir "..\..\..\obj\windows\gameengine\expressions\mtdll"
+# PROP Intermediate_Dir "..\..\..\obj\windows\gameengine\expressions\mtdll"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /GX /O2 /I "..\..\..\source\kernel\gen_system" /I "..\..\..\lib\windows\python\include\python2.0" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "EXP_PYTHON_EMBEDDING" /YX /J /FD /c
-# ADD CPP /nologo /MD /GX /O2 /I "..\..\..\lib\windows\python\include\python2.0" /I "..\..\..\..\lib\windows\python\include\python2.0" /I "..\..\..\lib\windows\string\include" /I "..\..\..\source\kernel\gen_system" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "EXP_PYTHON_EMBEDDING" /YX /J /FD /c
+# ADD CPP /nologo /MD /GX /O2 /I "..\..\..\lib\windows\python\include\python2.0" /I "..\..\..\..\lib\windows\python\include\python2.0" /I "..\..\..\lib\windows\python\include\python2.2" /I "..\..\..\lib\windows\string\include" /I "..\..\..\source\kernel\gen_system" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "EXP_PYTHON_EMBEDDING" /YX /J /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe

@@ -455,6 +455,12 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name SND_fmod
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name PHY_Dummy
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name PHY_Physics
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -526,9 +532,6 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name SG_SceneGraph
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name SND_openal
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name SND_sound
@@ -1065,9 +1068,6 @@ Package=<4>
     Project_Dep_Name SND_Dummy
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name SND_openal
-    End Project Dependency
-    Begin Project Dependency
     Project_Dep_Name SND_sound
     End Project Dependency
     Begin Project Dependency
@@ -1099,9 +1099,6 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name BPY_frozen
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name PHY_Ode
     End Project Dependency
 }}}
 

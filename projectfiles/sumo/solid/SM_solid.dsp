@@ -89,8 +89,8 @@ LIB32=link.exe -lib
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "..\..\..\..\obj\windows\sumo\solid\mtdll_debug"
-# PROP Intermediate_Dir "..\..\..\..\obj\windows\sumo\solid\mtdll_debug"
+# PROP Output_Dir "..\..\..\obj\windows\sumo\solid\mtdll_debug"
+# PROP Intermediate_Dir "..\..\..\obj\windows\sumo\solid\mtdll_debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /Gm /GX /ZI /Od /I "..\..\..\source\sumo\SOLID-3.0\include" /I "../../../../lib/windows/moto/include" /I "..\..\..\source\sumo\include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /GZ /c
@@ -113,8 +113,8 @@ LIB32=link.exe -lib
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "..\..\..\..\obj\windows\sumo\solid\mtdll"
-# PROP Intermediate_Dir "..\..\..\..\obj\windows\sumo\solid\mtdll"
+# PROP Output_Dir "..\..\..\obj\windows\sumo\solid\mtdll"
+# PROP Intermediate_Dir "..\..\..\obj\windows\sumo\solid\mtdll"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /GX /O2 /I "..\..\..\source\sumo\SOLID-3.0\include" /I "../../../../lib/windows/moto/include" /I "..\..\..\source\sumo\include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c

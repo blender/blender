@@ -87,8 +87,8 @@ LIB32=link.exe -lib
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "..\..\..\..\obj\windows\gameengine\ketsji\mtdll_debug"
-# PROP Intermediate_Dir "..\..\..\..\obj\windows\gameengine\ketsji\mtdll_debug"
+# PROP Output_Dir "..\..\..\obj\windows\gameengine\ketsji\mtdll_debug"
+# PROP Intermediate_Dir "..\..\..\obj\windows\gameengine\ketsji\mtdll_debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /Gm /GX /ZI /Od /I "..\..\..\source\kernel\gen_system" /I "..\..\..\source\gameengine\soundsystem" /I "..\..\..\source\gameengine\rasterizer" /I "..\..\..\source\gameengine\scenegraph" /I "..\..\..\source\gameengine\gamelogic" /I "..\..\..\source\gameengine\expressions" /I "..\..\..\source\sumo\include" /I "..\..\..\source\sumo\fuzzics\include" /I "..\..\..\lib\windows\moto\include" /I "..\..\..\lib\windows\python\include\python1.5" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "EXP_PYTHON_EMBEDDING" /YX /J /FD /GZ /c
@@ -111,8 +111,8 @@ LIB32=link.exe -lib
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "..\..\..\..\obj\windows\gameengine\ketsji\mtdll"
-# PROP Intermediate_Dir "..\..\..\..\obj\windows\gameengine\ketsji\mtdll"
+# PROP Output_Dir "..\..\..\obj\windows\gameengine\ketsji\mtdll"
+# PROP Intermediate_Dir "..\..\..\obj\windows\gameengine\ketsji\mtdll"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /GX /O2 /I "..\..\..\source\kernel\gen_system" /I "..\..\..\source\gameengine\soundsystem" /I "..\..\..\source\gameengine\rasterizer" /I "..\..\..\source\gameengine\scenegraph" /I "..\..\..\source\gameengine\gamelogic" /I "..\..\..\source\gameengine\expressions" /I "..\..\..\source\sumo\include" /I "..\..\..\source\sumo\fuzzics\include" /I "..\..\..\lib\windows\moto\include" /I "..\..\..\lib\windows\python\include\python2.0" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "EXP_PYTHON_EMBEDDING" /YX /J /FD /c
