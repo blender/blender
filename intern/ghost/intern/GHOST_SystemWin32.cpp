@@ -317,11 +317,8 @@ GHOST_TSuccess GHOST_SystemWin32::init()
 		wc.cbClsExtra= 0;
 		wc.cbWndExtra= 0;
 		wc.hInstance= ::GetModuleHandle(0);
-		#ifndef FREE_WINDOWS
   		wc.hIcon = ::LoadIcon(wc.hInstance, "APPICON");
-		#else
-		wc.hIcon = ::LoadIcon(NULL, "APPICON");
-		#endif
+  		
 		if (!wc.hIcon) {
 			::LoadIcon(NULL, IDI_APPLICATION);
 		}
