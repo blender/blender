@@ -320,7 +320,7 @@ def QRead ():
    # the left mouse button.
    from Blender import Draw, Window
 
-   v3d = Window.ScreenInfo(Window.Types.VIEW3D)
+   v3d = Window.GetScreenInfo(Window.Types.VIEW3D)
    id = v3d[0]['id'] # get the (first) VIEW3D's id
 
    done = 0
