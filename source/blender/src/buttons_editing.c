@@ -369,6 +369,8 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 {
 	uiBlock *block;
 	float val;
+	/* Hope to support more than two subsurf algorithms */
+	char subsurfmenu[]="Subsurf Type%t|Catmul Clark%x0|Simple Subdiv.%x1";
 	
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if( uiNewPanel(curarea, block, "Mesh", "Editing", 320, 0, 318, 204)==0) return;
@@ -379,8 +381,8 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButS(block, TOG|BIT|7, B_MAKEDISP, "SubSurf",		10,124,90,19, &me->flag, 0, 0, 0, 0, "Treats the active object as a Catmull-Clark Subdivision Surface");
-	uiDefButS(block, TOG|BIT|9, B_MAKEDISP, "Simple",		100,124,64,19, &me->flag, 0, 0, 0, 0, "Treats the active object as a Simple Subdivision Surface for Radio/Displacement");
+	uiDefButS(block, TOG|BIT|7, B_MAKEDISP, "SubSurf",		10,124,70,19, &me->flag, 0, 0, 0, 0, "Treats the active object as a Subdivision Surface");
+	uiDefButS(block, MENU, B_MAKEDISP, subsurfmenu,		80,124,84,19, &(me->subsurftype), 0, 0, 0, 0, "Selects type of Subsurf algorithm.");
 	uiBlockSetCol(block, TH_AUTO);
 	uiDefButS(block, NUM, B_MAKEDISP, "Subdiv:",			10,104,110,19, &me->subdiv, 0, 6, 0, 0, "Defines the level of subdivision to display in real time interactively");
 	uiDefButS(block, NUM, B_MAKEDISP, "",					120, 104, 44, 19, &me->subdivr, 0, 6, 0, 0, "Defines the level of subdivision to apply during rendering");

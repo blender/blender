@@ -142,7 +142,8 @@ typedef struct Mesh {
 	short smoothresh, flag;
 	short subdiv, subdivr, subdivdone;
 	short totcol;
-	short reserved1, reserved2;	/* Padding */
+	short subsurftype; 
+	short reserved1;	/* Padding */
 
 	float cubemapsize, rtf;
 
@@ -165,7 +166,10 @@ typedef struct Mesh {
 #define ME_SMESH		64
 #define ME_SUBSURF		128
 #define ME_OPT_EDGES	256
-#define ME_SIMPLE_DIV   512
+
+/* Subsurf Type */
+#define ME_CC_SUBSURF 		0
+#define ME_SIMPLE_SUBSURF 	1
 
 /* puno = vertexnormal (mface) */
 #define ME_FLIPV1		1

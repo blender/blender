@@ -37,8 +37,10 @@ struct Displist;
 struct DispListMesh;
 struct ListBase;
 
-struct DispListMesh *subsurf_make_dispListMesh_from_editmesh(struct ListBase *verts, struct ListBase *edges, struct ListBase *faces, int subdivLevels, int flags);
-struct DispListMesh *subsurf_make_dispListMesh_from_mesh(struct Mesh *me, float *extverts, int subdivLevels, int flags);
+struct DispListMesh *subsurf_make_dispListMesh_from_editmesh(struct ListBase *verts, struct ListBase *edges, 
+										struct ListBase *faces, int subdivLevels, int flags, short type);
+struct DispListMesh *subsurf_make_dispListMesh_from_mesh(struct Mesh *me, 
+										float *extverts, int subdivLevels, int flags);
 
 void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3]);
 

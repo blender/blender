@@ -1650,10 +1650,12 @@ void makeDispList(Object *ob)
 			DispListMesh *dlm;
 
 			if (ob==G.obedit) {
-				dlm= subsurf_make_dispListMesh_from_editmesh(&G.edve, &G.eded, &G.edvl, me->subdiv, me->flag);
+				dlm= subsurf_make_dispListMesh_from_editmesh(&G.edve, &G.eded, &G.edvl, 
+													me->subdiv, me->flag, me->subsurftype);
 			} else {
 				DispList *dlVerts= find_displist(&ob->disp, DL_VERTS);
-				dlm= subsurf_make_dispListMesh_from_mesh(me, dlVerts?dlVerts->verts:NULL, me->subdiv, me->flag);
+				dlm= subsurf_make_dispListMesh_from_mesh(me, dlVerts?dlVerts->verts:NULL, 
+													me->subdiv, me->flag);
 			}
 
 			dl= MEM_callocN(sizeof(*dl), "dl");
