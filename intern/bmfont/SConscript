@@ -18,4 +18,5 @@ source_files = ['intern/BMF_Api.cpp',
 bmfont_env.Append (CPPPATH = ['.',
                               'intern'])
 
+bmfont_env.Append (CPPPATH = user_options_dict['OPENGL_INCLUDE'])
 bmfont_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_BMF', source=source_files)

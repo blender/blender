@@ -36,4 +36,5 @@ else:
 ghost_env.Append (CPPPATH = ['.',
                              '../string'])
 
+ghost_env.Append (CPPPATH = user_options_dict['OPENGL_INCLUDE'])
 ghost_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_GHOST', source=source_files)

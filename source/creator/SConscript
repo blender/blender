@@ -17,6 +17,7 @@ creator_env.Append (CPPPATH = ['#/intern/guardedalloc',
                                '../blender/makesdna',
                                '../kernel/gen_messaging',
                                '../kernel/gen_system'])
+creator_env.Append (CPPPATH = user_options_dict['OPENGL_INCLUDE'])
 
 if user_options_dict['USE_QUICKTIME'] == 1:
     creator_env.Append (CPPDEFINES = ['WITH_QUICKTIME'])

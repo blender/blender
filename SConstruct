@@ -503,8 +503,87 @@ elif string.find (sys.platform, 'hp-ux') != -1:
     window_system = 'X11'
     defines = []
 
+elif sys.platform=='openbsd3':
+    print "Building for OpenBSD 3.x"
+    use_international = 'false'
+    use_gameengine = 'false'
+    use_openal = 'false'
+    use_fmod = 'false'
+    use_quicktime = 'false'
+    use_sumo = 'false'
+    use_ode = 'false'
+    use_buildinfo = 'true'
+    build_blender_dynamic = 'true'
+    build_blender_static = 'false'
+    build_blender_player = 'false'
+    build_blender_plugin = 'false'
+    release_flags = ['-O2']
+    debug_flags = ['-O2', '-g']
+    extra_flags = ['-pipe', '-fPIC', '-funsigned-char']
+    cxxflags = []
+    defines = []
+    warn_flags = ['-Wall','-W']
+    window_system = 'X11'
+    platform_libs = ['m', 'stdc++', 'pthread', 'util']
+    platform_libpath = []
+    platform_linkflags = []
+    extra_includes = []
+    z_lib = ['z']
+    z_libpath = ['/usr/lib']
+    z_include = ['/usr/include']
+    # png library information
+    png_lib = ['png']
+    png_libpath = ['/usr/local/lib']
+    png_include = ['/usr/local/include']
+    # jpeg library information
+    jpeg_lib = ['jpeg']
+    jpeg_libpath = ['/usr/local/lib']
+    jpeg_include = ['/usr/local/include']
+    # OpenGL library information
+    opengl_lib = ['GL', 'GLU']
+    opengl_static = ['/usr/lib/libGL.a', '/usr/lib/libGLU.a']
+    opengl_libpath = ['/usr/lib', '/usr/X11R6/lib']
+    opengl_include = ['/usr/X11R6/include/']
+    # SDL library information
+    sdl_env.ParseConfig ('sdl-config --cflags --libs')
+    sdl_cflags = sdl_env.Dictionary()['CCFLAGS']
+    sdl_include = sdl_env.Dictionary()['CPPPATH']
+    sdl_libpath = sdl_env.Dictionary()['LIBPATH']
+    sdl_lib = sdl_env.Dictionary()['LIBS']
+    # SOLID library information
+    solid_lib = []                     # TODO
+    solid_libpath = []        # TODO
+    solid_include = ['#extern/solid/include']
+    qhull_lib = []       # TODO
+    qhull_libpath = []  # TODO
+    qhull_include = ['#extern/qhull/include']
+    # ODE library information
+    ode_lib = ['ode']
+    ode_libpath = ['#../lib/linux-glibc2.2.5-i386/ode/lib']
+    ode_include = ['#../lib/linux-glibc2.2.5-i386/ode/include']
+    # Python library information
+    python_lib = ['python%d.%d' % sys.version_info[0:2]]
+    python_libpath = [sysconfig.get_python_lib (0, 1) + '/config']
+    python_include = [sysconfig.get_python_inc ()]
+    # International support information
+    ftgl_lib = ['ftgl']
+    ftgl_libpath = ['#../lib/linux-glibc2.2.5-i386/ftgl/lib']
+    ftgl_include = ['#../lib/linux-glibc2.2.5-i386/ftgl/include']
+    freetype_env.ParseConfig('pkg-config --cflags --libs freetype2')
+    freetype_lib = freetype_env.Dictionary()['LIBS']
+    freetype_libpath = freetype_env.Dictionary()['LIBPATH']
+    freetype_include = freetype_env.Dictionary()['CPPPATH']
+    gettext_lib = []
+    gettext_libpath = []
+    gettext_include = []
+    # OpenAL library information
+    openal_lib = ['openal']
+    openal_libpath = ['/usr/lib']
+    openal_include = ['/usr/include']
+
 else:
-    print "Unknown platform"
+    print "Unknown platform %s"%sys.platform
+    exit
 
 #-----------------------------------------------------------------------------
 # End of platform specific section
@@ -862,6 +941,7 @@ if user_options_dict['BUILD_BLENDER_DYNAMIC'] == 1:
     dy_blender = link_env.Copy ()
     dy_blender.Append (LIBS=user_options_dict['OPENGL_LIBRARY'])
     dy_blender.Append (LIBPATH=user_options_dict['OPENGL_LIBPATH'])
+    dy_blender.Append (CPPPATH=user_options_dict['OPENGL_INCLUDE'])
     if user_options_dict['USE_BUILDINFO'] == 1:
         dy_blender.Append (CPPDEFINES = ['BUILD_TIME=\'"%s"\''%(build_time),
                                          'BUILD_DATE=\'"%s"\''%(build_date),
@@ -888,6 +968,7 @@ if user_options_dict['BUILD_BLENDER_STATIC'] == 1:
                                          'NAN_BUILDINFO',
                                          'BUILD_PLATFORM=\'"%s"\''%(sys.platform)])
     st_blender.Append (LINKFLAGS=user_options_dict['OPENGL_STATIC'])
+    st_blender.Append (CPPPATH=user_options_dict['OPENGL_INCLUDE'])
     s_obj = [st_blender.Object (root_build_dir+'source/creator/s_buildinfo',
                                 [root_build_dir+'source/creator/buildinfo.c'])]
     st_blender.Prepend (LIBPATH=['/usr/lib/opengl/xfree/lib'])
