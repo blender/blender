@@ -67,6 +67,35 @@ public:
 
 	// leave multiline for debugging
 #ifdef RAS_TexVert_INLINE
+	void SetXYZ(const MT_Point3& xyz)
+	{
+		xyz.getValue(m_localxyz);
+	}
+	
+	
+	
+	void SetUV(const MT_Point2& uv)
+	{
+		uv.getValue(m_uv1);
+	}
+	
+	void SetRGBA(const unsigned int rgba)
+	{ 
+		m_rgba = rgba;
+	}
+	
+	void SetFlag(const short flag)
+	{
+		m_flag = flag;
+	}
+	
+	void SetNormal(const MT_Vector3& normal)
+	{
+		m_normal[0] = short(normal.x()*32767.0);
+		m_normal[1] = short(normal.y()*32767.0);
+		m_normal[2] = short(normal.z()*32767.0);
+	}
+
 	const float* getUV1 () const { 
 		return m_uv1;
 	};
@@ -87,9 +116,6 @@ public:
 	const short*		getNormal() const;
 	const float*		getLocalXYZ() const;
 	const unsigned int&	getRGBA() const;
-#endif
-
-	const MT_Point3&	xyz();
 
 	void				SetXYZ(const MT_Point3& xyz);
 	void				SetUV(const MT_Point2& uv);
@@ -97,6 +123,9 @@ public:
 	void				SetNormal(const MT_Vector3& normal);
 	void				SetFlag(const short flag);
 	
+#endif
+	const MT_Point3&	xyz();
+
 	// compare two vertices, and return TRUE if both are almost identical (they can be shared)
 	bool				closeTo(const RAS_TexVert* other);
 

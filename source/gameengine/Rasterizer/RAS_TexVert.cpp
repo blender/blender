@@ -60,6 +60,8 @@ const MT_Point3& RAS_TexVert::xyz()
 	return g_pt3;
 }
 
+#ifndef RAS_TexVert_INLINE
+
 void RAS_TexVert::SetXYZ(const MT_Point3& xyz)
 {
 	xyz.getValue(m_localxyz);
@@ -92,7 +94,6 @@ void RAS_TexVert::SetNormal(const MT_Vector3& normal)
 }
 
 
-#ifndef RAS_TexVert_INLINE
 // leave multiline for debugging
 const float* RAS_TexVert::getUV1 () const
 {
@@ -124,13 +125,13 @@ const unsigned int& RAS_TexVert::getRGBA() const
 // compare two vertices, and return TRUE if both are almost identical (they can be shared)
 bool RAS_TexVert::closeTo(const RAS_TexVert* other)
 {
-	return ((MT_Vector3(m_localxyz) - MT_Vector3(other->m_localxyz)).fuzzyZero() &&
-		(MT_Vector2(m_uv1) - MT_Vector2(other->m_uv1)).fuzzyZero() &&
+	return (m_flag == other->m_flag &&
+		m_rgba == other->m_rgba &&
 		m_normal[0] == other->m_normal[0] &&
 		m_normal[1] == other->m_normal[1] &&
 		m_normal[2] == other->m_normal[2] &&
-		m_flag == other->m_flag &&
-		m_rgba == other->m_rgba) ;
+		(MT_Vector2(m_uv1) - MT_Vector2(other->m_uv1)).fuzzyZero() &&
+		(MT_Vector3(m_localxyz) - MT_Vector3(other->m_localxyz)).fuzzyZero()) ;
 	
 }
 
@@ -141,12 +142,12 @@ bool RAS_TexVert::closeTo(const MT_Point3& otherxyz,
 			 const unsigned int otherrgba,
 			 short othernormal[3]) const
 {
-	return ((MT_Vector3(m_localxyz) - otherxyz).fuzzyZero() &&
-		(MT_Vector2(m_uv1) - otheruv).fuzzyZero() &&
+	return (m_rgba == otherrgba &&
 		m_normal[0] == othernormal[0] &&
 		m_normal[1] == othernormal[1] &&
 		m_normal[2] == othernormal[2] &&
-		m_rgba == otherrgba) ;
+		(MT_Vector2(m_uv1) - otheruv).fuzzyZero() &&
+		(MT_Vector3(m_localxyz) - otherxyz).fuzzyZero()) ;
 }
 
 
