@@ -2136,6 +2136,7 @@ static PyObject *NMesh_assignVertsToGroup (PyObject *self, PyObject *args)
 	//assignmode = "replace", "add", "subtract"
 	//							replace weight - add addition weight to vertex for this group
 	//				- remove group influence from this vertex
+	//the function will not like it if your in editmode...
 
 	char* groupStr;
 	char* assignmodeStr = NULL;
@@ -2202,21 +2203,6 @@ static PyObject *NMesh_assignVertsToGroup (PyObject *self, PyObject *args)
 		add_vert_defnr(object, nIndex, tempInt, weight, assignmode);
 	}
 
-	//enter editmode
-	if((G.obedit == 0))	{	
-		BASACT->object = object;
-		G.obedit= BASACT->object;
-	}
-
-	//update the mesh
-	make_editMesh();
-	load_editMesh();
-
-	//exit editmode
-	G.obedit= 0;	
-
-	allqueue (REDRAWVIEW3D, 1);
-
 	return EXPP_incr_ret (Py_None);
 }
 
@@ -2234,8 +2220,6 @@ static PyObject *NMesh_removeVertsFromGroup (PyObject *self, PyObject *args)
 
 	/* argc is the number of parameters passed in: 1 (no list given) or 2: */
 	argc = PyObject_Length(args);
-
-	//listObject = (void*)-2054456;	//uninitialized
 
 	if (!PyArg_ParseTuple(args, "s|O!", &groupStr, &PyList_Type, &listObject))
 		return EXPP_ReturnPyObjError (PyExc_TypeError,
@@ -2265,11 +2249,9 @@ static PyObject *NMesh_removeVertsFromGroup (PyObject *self, PyObject *args)
 			return EXPP_ReturnPyObjError (PyExc_AttributeError,
 				"no deform groups assigned to mesh");
 
-//	if (listObject == (void*)-2054456)	/*if uninitialized*/ {
-
-		if (argc == 1) /* no list given */ {
+	if (argc == 1) /* no list given */ {
 		//enter editmode
-		if((G.obedit == 0))					
+		if((G.obedit == 0))	
 		{	
 			//set current object
 			BASACT->object = object;
