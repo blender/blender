@@ -452,8 +452,8 @@ float testshadowbuf(struct ShadBuf *shb, float *rco, float inp)  	/* return 1.0:
 
 	MTC_Mat4MulVec4fl(shb->persmat, co);	/* rational hom co */
 
-	xs1= siz*(0.5+co[0]/co[3]);
-	ys1= siz*(0.5+co[1]/co[3]);
+	xs1= siz*(1.0+co[0]/co[3]);
+	ys1= siz*(1.0+co[1]/co[3]);
 
 	/* Clip for z: near and far clip values of the shadow buffer. We
 		* can test for -1.0/1.0 because of the properties of the
@@ -484,16 +484,16 @@ float testshadowbuf(struct ShadBuf *shb, float *rco, float inp)  	/* return 1.0:
 	co[2]= rco[2]+O.dxco[2];
 	co[3]= 1.0;
 	MTC_Mat4MulVec4fl(shb->persmat,co);	/* rational hom co */
-	dx[0]= xs1- siz*(0.5+co[0]/co[3]);
-	dx[1]= ys1- siz*(0.5+co[1]/co[3]);
+	dx[0]= xs1- siz*(1.0+co[0]/co[3]);
+	dx[1]= ys1- siz*(1.0+co[1]/co[3]);
 
 	co[0]= rco[0]+O.dyco[0];
 	co[1]= rco[1]+O.dyco[1];
 	co[2]= rco[2]+O.dyco[2];
 	co[3]= 1.0;
 	MTC_Mat4MulVec4fl(shb->persmat,co);	/* rational hom co */
-	dy[0]= xs1- siz*(0.5+co[0]/co[3]);
-	dy[1]= ys1- siz*(0.5+co[1]/co[3]);
+	dy[0]= xs1- siz*(1.0+co[0]/co[3]);
+	dy[1]= ys1- siz*(1.0+co[1]/co[3]);
 
 	xres= fac*( fabs(dx[0])+fabs(dy[0]) );
 	yres= fac*( fabs(dx[1])+fabs(dy[1]) );
@@ -622,8 +622,8 @@ float shadow_halo(LampRen *lar, float *p1, float *p2)
 	co[2]= p1[2]/lar->sh_zfac;
 	co[3]= 1.0;
 	MTC_Mat4MulVec4fl(shb->winmat, co);	/* rational hom co */
-	xf1= siz*(0.5+co[0]/co[3]);
-	yf1= siz*(0.5+co[1]/co[3]);
+	xf1= siz*(1.0+co[0]/co[3]);
+	yf1= siz*(1.0+co[1]/co[3]);
 	zf1= (co[2]/co[3]);
 
 
@@ -632,8 +632,8 @@ float shadow_halo(LampRen *lar, float *p1, float *p2)
 	co[2]= p2[2]/lar->sh_zfac;
 	co[3]= 1.0;
 	MTC_Mat4MulVec4fl(shb->winmat, co);	/* rational hom co */
-	xf2= siz*(0.5+co[0]/co[3]);
-	yf2= siz*(0.5+co[1]/co[3]);
+	xf2= siz*(1.0+co[0]/co[3]);
+	yf2= siz*(1.0+co[1]/co[3]);
 	zf2= (co[2]/co[3]);
 
 	/* the 2dda (a pixel line formula) */
