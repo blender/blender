@@ -2125,6 +2125,7 @@ void copy_attr(short event)
 						Mesh *sourceme= ob->data;
 
 						targetme->flag= (targetme->flag&~ME_SUBSURF) | (sourceme->flag&ME_SUBSURF);
+						targetme->subsurftype = sourceme->subsurftype;
 						targetme->subdiv= sourceme->subdiv;
 						targetme->subdivr= sourceme->subdivr;
 						makeDispList(base->object);
