@@ -4472,7 +4472,6 @@ void transform(int mode)
 	float *edge_creases=NULL;	/* edge transform isnt really supported... */
 	float vec[3], min[3], max[3], dvec[3], d_dvec[3], dvecp[3], rot0[3], rot1[3], rot2[3], axis[3];
 	float totmat[3][3], omat[3][3], imat[3][3], mat[3][3], tmat[3][3], phi, dphi;
-	float oldcurs[3];
 
 	float persinv[3][3], persmat[3][3], viewinv[4][4], imat4[4][4];
 	float *curs, dx1, dx2, dy1, dy2, eul[3], quat[4], rot[3], phi0, phi1, deler, rad = 0.0;
@@ -4566,50 +4565,42 @@ void transform(int mode)
 	}
 
 	if(tottrans==0) {
-		if (mode!='g') {
-			if(G.obedit==0) clearbaseflags_for_editing();
-			return;
-		}
-		mode='0';
-		curs = give_cursor();
-		VECCOPY(oldcurs, curs);		
+		if(G.obedit==0) clearbaseflags_for_editing();
+		return;
 	}
 
 	if(G.obedit==0 && mode=='S') return;
 	
-	if (mode!='0') {
+	if(G.vd->around==V3D_LOCAL) {
+		if(G.obedit) {
+			centre[0]= centre[1]= centre[2]= 0.0;
+		}
 
-        if(G.vd->around==V3D_LOCAL) {
-        	if(G.obedit) {
-        		centre[0]= centre[1]= centre[2]= 0.0;
-        	}
+	}
+	if(G.vd->around==V3D_CENTROID) {
+		VECCOPY(centre, centroid);
+	}
+	else if(G.vd->around==V3D_CURSOR) {
+		curs= give_cursor();
+		VECCOPY(centre, curs);
 
-        }
-        if(G.vd->around==V3D_CENTROID) {
-        	VECCOPY(centre, centroid);
-        }
-        else if(G.vd->around==V3D_CURSOR) {
-        	curs= give_cursor();
-        	VECCOPY(centre, curs);
+		if(G.obedit) {
+			VecSubf(centre, centre, G.obedit->obmat[3]);
+			Mat3CpyMat4(mat, G.obedit->obmat);
+			Mat3Inv(imat, mat);
+			Mat3MulVecfl(imat, centre);
+		}
 
-        	if(G.obedit) {
-        		VecSubf(centre, centre, G.obedit->obmat[3]);
-        		Mat3CpyMat4(mat, G.obedit->obmat);
-        		Mat3Inv(imat, mat);
-        		Mat3MulVecfl(imat, centre);
-        	}
+	}
 
-        }
+	/* Always rotate around object centroid */
+	if (G.obpose){
+		VECCOPY (centre, centroid);
+	}
 
-        /* Always rotate around object centroid */
-        if (G.obpose){
-        	VECCOPY (centre, centroid);
-        }
-
-        /* moving: is shown in drawobject() */
-        if(G.obedit) G.moving= 2;
-        else G.moving= 1;
-    }
+	/* moving: is shown in drawobject() */
+	if(G.obedit) G.moving= 2;
+	else G.moving= 1;
 
 	areawinset(curarea->win);
 
@@ -4740,7 +4731,7 @@ void transform(int mode)
 			}
 			firsttime= 0;
 
-			if(mode=='g' || mode=='G' || mode=='0') {
+			if(mode=='g' || mode=='G') {
 				char gmode[10] = "";
 
 				keyflags |= KEYFLAG_LOC;
@@ -4816,46 +4807,42 @@ void transform(int mode)
 					/* apply */
 					tob= transmain;
 					tv= transvmain;
-					if (mode!='0') {
-            			for(a=0; a<tottrans; a++, tob++, tv++) {
 
-            				if(transmain) {
-            					VECCOPY(dvecp, dvec);
-            					if(axismode & TRANSLOCAL)
-            						Mat3MulVecfl(tob->axismat, dvecp);
+					for(a=0; a<tottrans; a++, tob++, tv++) {
 
-            					if(transmode==TRANS_TEX) Mat3MulVecfl(tob->obinv, dvecp);
+						if(transmain) {
+							VECCOPY(dvecp, dvec);
+							if(axismode & TRANSLOCAL)
+								Mat3MulVecfl(tob->axismat, dvecp);
 
-            					if(tob->flag & TOB_IKA) {
-            						VecAddf(tob->eff, tob->oldeff, dvecp);
-            					}
-            					else
-            						Mat3MulVecfl(tob->parinv, dvecp);
+							if(transmode==TRANS_TEX) Mat3MulVecfl(tob->obinv, dvecp);
 
-            					if(tob->flag & TOB_IPO) {
-            						add_ipo_tob_poin(tob->locx, tob->oldloc, dvecp[0]);
-            						add_ipo_tob_poin(tob->locy, tob->oldloc+1, dvecp[1]);
-            						add_ipo_tob_poin(tob->locz, tob->oldloc+2, dvecp[2]);
-            					}
-            					else if(tob->loc) {
-            						VecAddf(tob->loc, tob->oldloc, dvecp);
-            					}
-            				}
-            				else {
-            					if(mode=='G') {
-            						tv->loc[0]= tv->oldloc[0]+tv->fac*dvecp[0];
-            						tv->loc[1]= tv->oldloc[1]+tv->fac*dvecp[1];
-            						tv->loc[2]= tv->oldloc[2]+tv->fac*dvecp[2];
-            					}
-            					else VecAddf(tv->loc, tv->oldloc, dvecp);
-            				}
+							if(tob->flag & TOB_IKA) {
+								VecAddf(tob->eff, tob->oldeff, dvecp);
+							}
+							else
+								Mat3MulVecfl(tob->parinv, dvecp);
 
-            			}
-            		}
-            		else {
-    	           		VecAddf(curs, oldcurs, dvec);
-        	       		allqueue(REDRAWVIEW3D, 1);            		
-            		}
+							if(tob->flag & TOB_IPO) {
+								add_ipo_tob_poin(tob->locx, tob->oldloc, dvecp[0]);
+								add_ipo_tob_poin(tob->locy, tob->oldloc+1, dvecp[1]);
+								add_ipo_tob_poin(tob->locz, tob->oldloc+2, dvecp[2]);
+							}
+							else if(tob->loc) {
+								VecAddf(tob->loc, tob->oldloc, dvecp);
+							}
+						}
+						else {
+							if(mode=='G') {
+								tv->loc[0]= tv->oldloc[0]+tv->fac*dvecp[0];
+								tv->loc[1]= tv->oldloc[1]+tv->fac*dvecp[1];
+								tv->loc[2]= tv->oldloc[2]+tv->fac*dvecp[2];
+							}
+							else VecAddf(tv->loc, tv->oldloc, dvecp);
+						}
+
+					}
+
 					if (typemode){
 						switch (ax){
 						case 0:
@@ -4973,7 +4960,7 @@ void transform(int mode)
 
 				}
 				
-				if(doit && (mode!='0')) {
+				if(doit) {
 					/* apply */
 					tob= transmain;
 					tv= transvmain;
@@ -5665,7 +5652,6 @@ void transform(int mode)
 					}
 					firsttime= 1;
 					break;
-				case CKEY:
 				case GKEY:
 				case RKEY:
 				case SKEY:
@@ -5690,13 +5676,7 @@ void transform(int mode)
 						else if(event==RKEY) mode= 'R';
 						else if(event==SKEY) mode= 'C';
 					} else {
-						if (event==CKEY) {
-        					mode='0'; 
-        					G.moving = 0;
-        					curs = give_cursor();
-        					VECCOPY(oldcurs, curs);									
-        				}
-						else if(event==GKEY) mode= 'g';
+						if(event==GKEY) mode= 'g';
 						else if(event==RKEY) mode= 'r';
 						else if(event==SKEY) mode= 's';
 					}
@@ -6108,7 +6088,6 @@ void transform(int mode)
 			if(G.obedit) calc_trans_verts();
 		}
 		special_trans_update(keyflags);
-		if (mode == '0') VECCOPY(curs, oldcurs);		
 	}
 
 	a= 0;
