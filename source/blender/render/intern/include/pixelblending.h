@@ -73,22 +73,6 @@ void sampleFloatColV2FloatColVFilter(float *sample, float *dest1, float *dest2, 
 void sampleShortColV2ShortColV(unsigned short *sample, unsigned short *dest, int osaNr);
 
 /**
- * Take colour <bron>, and apply it to <doel> using the alpha value of
- * <bron>. 
- * @param doel
- * @param bron
- */
-void addAlphaOverShort(unsigned short *doel, unsigned short *bron);   
-
-/**
- * Take colour <bron>, and apply it to <doel> using the alpha value of
- * <doel>. 
- * @param doel
- * @param bron
- */
-void addAlphaUnderShort(unsigned short *doel, unsigned short *bron);  
-
-/**
  * Alpha-over blending for floats.
  */
 void addAlphaOverFloat(float *dest, float *source);  
@@ -144,28 +128,9 @@ void cpShortColV(unsigned short *source, unsigned short *dest);
 void cpCharColV(char *source, char *dest);
 
 /**
- * Add a fraction of <source> to <dest>. Result ends up in <dest>.
- * The internal calculation is done with floats.
- * 
- * col(dest)   = (1 - alpha(source)*(1 - addfac)) * dest + source
- * alpha(dest) = alpha(source) + alpha (dest)
- */
-void addalphaAddfacShort(unsigned short *dest, unsigned short *source, char addfac);
-
-/**
  * Same for floats
  */
 void addalphaAddfacFloat(float *dest, float *source, char addfac);
-
-/**
- * Add two halos. Result ends up in <dest>. This should be the 
- * addition of two light sources. So far, I use normal alpha-under blending here.
- * The internal calculation is done with floats. The add-factors have to be 
- * compensated outside this routine.
- * col(dest)   = s + (1 - alpha(s))d
- * alpha(dest) = alpha(s) + (1 - alpha(s))alpha (d)
- */
-void addHaloToHaloShort(unsigned short *dest, unsigned short *source);
 
 /**
  * dest = dest + source
@@ -192,11 +157,6 @@ void addalphaUnder(char *doel, char *bron);
 void addalphaUnderGamma(char *doel, char *bron);
 void addalphaOver(char *doel, char *bron);
 void addalphaAdd(char *doel, char *bron);
-void addalphaAddshort(unsigned short *doel, unsigned short *bron);
-/*  void addalphaAddfac(char *doel, char *bron, char addfac); to ext, temporarily */
-void addalphaAddfacshort(unsigned short *doel,
-						 unsigned short *bron,
-						 short addfac);    
 
 #endif /* PIXELBLENDING_EXT_H */
 

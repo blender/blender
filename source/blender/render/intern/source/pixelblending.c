@@ -153,62 +153,6 @@ int addUnderSampColF(float *sampvec, float *source, int mask, int osaNr)
 	return retval;
 }
 
-/* ------------------------------------------------------------------------- */
-
-void addAlphaOverShort(unsigned short *doel, unsigned short *bron) 
-/* fills in bron (source) over doel (target) with alpha from bron */
-{
-	unsigned int c;
-	unsigned int mul;
-
-	mul= 0xFFFF-bron[3];
-
-	c= ((mul*doel[0])>>16)+bron[0];
-	if(c>=0xFFF0) doel[0]=0xFFF0; 
-	else doel[0]= c;
-	c= ((mul*doel[1])>>16)+bron[1];
-	if(c>=0xFFF0) doel[1]=0xFFF0; 
-	else doel[1]= c;
-	c= ((mul*doel[2])>>16)+bron[2];
-	if(c>=0xFFF0) doel[2]=0xFFF0; 
-	else doel[2]= c;
-	c= ((mul*doel[3])>>16)+bron[3];
-	if(c>=0xFFF0) doel[3]=0xFFF0; 
-	else doel[3]= c;
-
-}
-
-/* ------------------------------------------------------------------------- */
-
-void addAlphaUnderShort(unsigned short *doel, unsigned short *bron)   
-/* fills in bron (source) under doel (target) using alpha from doel */
-{
-	unsigned int c;
-	unsigned int mul;
-
-	if(doel[3]>=0xFFF0) return;
-	if( doel[3]==0 ) {	/* was tested */
-		*((unsigned int *)doel)= *((unsigned int *)bron);
-		*((unsigned int *)(doel+2))= *((unsigned int *)(bron+2));
-		return;
-	}
-
-	mul= 0xFFFF-doel[3];
-
-	c= ((mul*bron[0])>>16)+doel[0];
-	if(c>=0xFFF0) doel[0]=0xFFF0; 
-	else doel[0]= c;
-	c= ((mul*bron[1])>>16)+doel[1];
-	if(c>=0xFFF0) doel[1]=0xFFF0; 
-	else doel[1]= c;
-	c= ((mul*bron[2])>>16)+doel[2];
-	if(c>=0xFFF0) doel[2]=0xFFF0;
-	else doel[2]= c;
-	c= ((mul*bron[3])>>16)+doel[3];
-	if(c>=0xFFF0) doel[3]=0xFFF0;
-	else doel[3]= c;
-
-}
 
 /* ------------------------------------------------------------------------- */
 
@@ -400,100 +344,12 @@ void addalphaAddfacFloat(float *dest, float *source, char addfac)
 #endif
         dest[2]= c;
 
-	c= dest[3] + source[3];
+	c= (m * dest[3]) + source[3];
 #ifdef RE_ALPHA_CLIPPING
 	if(c >= RE_FULL_COLOUR_FLOAT) dest[3] = RE_FULL_COLOUR_FLOAT; 
 	else 
 #endif
        dest[3]= c;
-
-}
-
-/* ------------------------------------------------------------------------- */
-
-void addalphaAddfacShort(unsigned short *doel, unsigned short *bron, char addfac)
-  /* doel= bron over doel  */
-{
-    float m; /* weiging factor of destination */
-    float c; /* intermediate colour           */
-
-    /* 1. copy bron straight away if doel has zero alpha */
-    if( doel[3] == 0) {
-        *((unsigned int *)doel)     = *((unsigned int *)bron);
-        *((unsigned int *)(doel+2)) = *((unsigned int *)(bron+2));
-        return;
-    }
-    
-    /* Addfac is a number between 0 and 1: rescale */
-    /* final target is to diminish the influence of dest when addfac rises */
-    m = 1.0 - ( bron[3] * ((255.0 - addfac) / 255.0));
-
-    /* blend colours*/
-    c = (m * doel[0]) + bron[0];
-    if( c > 65535.0 ) doel[0]=65535; 
-    else doel[0] = floor(c);
-    c = (m * doel[1]) + bron[1];
-    if( c > 65535.0 ) doel[1]=65535; 
-    else doel[1] = floor(c);
-    c = (m * doel[2]) + bron[2];
-    if( c > 65535.0 ) doel[2]=65535; 
-    else doel[2] = floor(c);
-
-    c = doel[3] + bron[3];
-    if(c > 65535.0) doel[3] = 65535; 
-    else doel[3]=  floor(c);
-
-}
-
-/* ------------------------------------------------------------------------- */
-
-void addHaloToHaloShort(unsigned short *d, unsigned short *s)
-{
-    /*  float m; */ /* weiging factor of destination */
-    float c[4]; /* intermediate colour           */
-    float rescale = 1.0;
-
-    /* 1. copy <s> straight away if <d> has zero alpha */
-    if( d[3] == 0) {
-        *((unsigned int *) d)      = *((unsigned int *) s);
-        *((unsigned int *)(d + 2)) = *((unsigned int *)(s + 2));
-        return;
-    }
-
-    /* 2. halo blending  */
-    /* no blending, just add */
-    c[0] = s[0] + d[0];
-    c[1] = s[1] + d[1];
-    c[2] = s[2] + d[2];
-    c[3] = s[3] + d[3];
-    /* One thing that may happen is that this pixel is over-saturated with light - */
-    /* i.e. too much light comes out, and the pixel is clipped. Currently, this    */
-    /* leads to artifacts such as overproportional undersampling of background     */
-    /* colours.                                                                    */
-    /* Compensating for over-saturation:                                           */
-    /* - increase alpha                                                            */
-    /* - increase alpha and rescale colours                                        */
-
-    /* let's try alpha increase and clipping */
-
-    /* calculate how much rescaling we need */
-    if( c[0] > 65535.0 ) { 
-      rescale *= c[0] /65535.0;
-      d[0] = 65535; 
-    } else d[0] = floor(c[0]);
-    if( c[1] > 65535.0 ) { 
-      rescale *= c[1] /65535.0;
-      d[1] = 65535; 
-    } else d[1] = floor(c[1]);
-    if( c[2] > 65535.0 ) { 
-      rescale *= c[2] /65535.0;
-      d[2] = 65535; 
-    } else d[2] = floor(c[2]);
-
-    /* a bit too hefty I think */
-    c[3] *= rescale;
-
-    if( c[3] > 65535.0 ) d[3] = 65535; else d[3]=  floor(c[3]);
 
 }
 
@@ -753,29 +609,6 @@ void addalphaAdd(char *doel, char *bron)   /* adds bron (source) to doel (target
 	if(c>255) doel[3]=255; 
 	else doel[3]= c;
 }
-/* ------------------------------------------------------------------------- */
-void addalphaAddshort(unsigned short *doel, unsigned short *bron)   /* adds bron (source) to doel (target) */
-{
-	int c;
-
-	if( doel[3]==0) {
-		*((unsigned int *)doel)= *((unsigned int *)bron);
-		*((unsigned int *)(doel+2))= *((unsigned int *)(bron+2));
-		return;
-	}
-	c= doel[0]+bron[0];
-	if(c>65535) doel[0]=65535; 
-	else doel[0]= c;
-	c= doel[1]+bron[1];
-	if(c>65535) doel[1]=65535; 
-	else doel[1]= c;
-	c= doel[2]+bron[2];
-	if(c>65535) doel[2]=65535; 
-	else doel[2]= c;
-	c= doel[3]+bron[3];
-	if(c>65535) doel[3]=65535; 
-	else doel[3]= c;
-}
 
 /* ------------------------------------------------------------------------- */
 void addalphaAddFloat(float *dest, float *source)
@@ -834,30 +667,6 @@ void RE_addalphaAddfac(char *doel, char *bron, char addfac)
 	else doel[3]= c;
 }
 
-/* ------------------------------------------------------------------------- */
-/* doel= bron over doel  */
-void addalphaAddfacshort(unsigned short *doel,
-						 unsigned short *bron,
-						 short addfac)    
-{
-	int c, mul;
-
-	mul= 0xFFFF - (bron[0]*(255-addfac))/255;
-	
-	c= ((mul*doel[0])>>16)+bron[0];
-	if(c>=0xFFF0) doel[0]=0xFFF0; 
-	else doel[0]= c;
-	c= ((mul*doel[1])>>16)+bron[1];
-	if(c>=0xFFF0) doel[1]=0xFFF0; 
-	else doel[1]= c;
-	c= ((mul*doel[2])>>16)+bron[2];
-	if(c>=0xFFF0) doel[2]=0xFFF0; 
-	else doel[2]= c;
-	c= ((mul*doel[3])>>16)+bron[3];
-	if(c>=0xFFF0) doel[3]=0xFFF0; 
-	else doel[3]= c;
-
-}
 
 /* ------------------------------------------------------------------------- */
 

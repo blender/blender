@@ -120,7 +120,7 @@ static int accepted, rejected, coherent_ray;
 /* within one octree node, a set of 3x15 bits defines a 'boundbox' to OR with */
 
 #define OCVALRES	15
-#define BROW(min, max)      (((max)>=OCVALRES? 0xFFFF: (1<<(max+1))-1) - ((min>0)? ((1<<(min))-1):0) )
+#define BROW16(min, max)      (((max)>=OCVALRES? 0xFFFF: (1<<(max+1))-1) - ((min>0)? ((1<<(min))-1):0) )
 
 static void calc_ocval_face(float *v1, float *v2, float *v3, float *v4, short x, short y, short z, OcVal *ov)
 {
@@ -137,15 +137,15 @@ static void calc_ocval_face(float *v1, float *v2, float *v3, float *v4, short x,
 	
 	ocmin= OCVALRES*(min[0]-x); 
 	ocmax= OCVALRES*(max[0]-x);
-	ov->ocx= BROW(ocmin, ocmax);
+	ov->ocx= BROW16(ocmin, ocmax);
 	
 	ocmin= OCVALRES*(min[1]-y); 
 	ocmax= OCVALRES*(max[1]-y);
-	ov->ocy= BROW(ocmin, ocmax);
+	ov->ocy= BROW16(ocmin, ocmax);
 	
 	ocmin= OCVALRES*(min[2]-z); 
 	ocmax= OCVALRES*(max[2]-z);
-	ov->ocz= BROW(ocmin, ocmax);
+	ov->ocz= BROW16(ocmin, ocmax);
 
 }
 
@@ -160,7 +160,7 @@ static void calc_ocval_ray(OcVal *ov, float xo, float yo, float zo, float *vec1,
 		ocmin= OCVALRES*(vec2[0] - xo);
 		ocmax= OCVALRES*(vec1[0] - xo);
 	}
-	ov->ocx= BROW(ocmin, ocmax);
+	ov->ocx= BROW16(ocmin, ocmax);
 
 	if(vec1[1]<vec2[1]) {
 		ocmin= OCVALRES*(vec1[1] - yo);
@@ -169,7 +169,7 @@ static void calc_ocval_ray(OcVal *ov, float xo, float yo, float zo, float *vec1,
 		ocmin= OCVALRES*(vec2[1] - yo);
 		ocmax= OCVALRES*(vec1[1] - yo);
 	}
-	ov->ocy= BROW(ocmin, ocmax);
+	ov->ocy= BROW16(ocmin, ocmax);
 
 	if(vec1[2]<vec2[2]) {
 		ocmin= OCVALRES*(vec1[2] - zo);
@@ -178,7 +178,7 @@ static void calc_ocval_ray(OcVal *ov, float xo, float yo, float zo, float *vec1,
 		ocmin= OCVALRES*(vec2[2] - zo);
 		ocmax= OCVALRES*(vec1[2] - zo);
 	}
-	ov->ocz= BROW(ocmin, ocmax);
+	ov->ocz= BROW16(ocmin, ocmax);
 }
 
 /* ************* octree ************** */
