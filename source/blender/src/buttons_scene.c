@@ -1214,11 +1214,12 @@ static void render_panel_yafrayGI()
 	uiDefBut(block, LABEL, 0, "Method", 5,175,70,20, 0, 1.0, 0, 0, 0, "");
 	uiDefButS(block, MENU, B_REDR, "GiMethod %t|None %x0|SkyDome %x1|Full %x2 |", 70,175,89,20, &G.scene->r.GImethod, 0, 0, 0, 0, "Global Illumination Method");
 	uiDefBut(block, LABEL, 0, "Quality", 5,150,70,20, 0, 1.0, 0, 0, 0, "");
-	uiDefButS(block, MENU, B_REDR, "GiQuality %t|None %x0|Low %x1|Medium %x2 |High %x3|Best %x4|", 70,150,89,20, &G.scene->r.GIquality, 0, 0, 0, 0, "Global Illumination Quality");
+	uiDefButS(block, MENU, B_REDR, "GiQuality %t|None %x0|Low %x1|Medium %x2 |High %x3|Higher %x4|Best %x5|", 
+			70,150,89,20, &G.scene->r.GIquality, 0, 0, 0, 0, "Global Illumination Quality");
 
 	if (G.scene->r.GImethod>0) {
 		if (G.scene->r.GIpower==0) G.scene->r.GIpower=1;
-		uiDefButF(block, NUM, 0, "Power:", 5,10,154,20, &G.scene->r.GIpower, 0.01, 10.0, 10, 0, "GI lighting intensity scale, 1 is normal");
+		uiDefButF(block, NUM, 0, "Power:", 5,10,154,20, &G.scene->r.GIpower, 0.01, 100.0, 10, 0, "GI lighting intensity scale, 1 is normal");
 	}
         
 

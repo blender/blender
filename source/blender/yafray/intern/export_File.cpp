@@ -530,7 +530,7 @@ void yafrayFileRender_t::writeMaterialsAndModulators()
 		ostr << "\t\t<specular_amount value=\"" << matr->spec << "\" />\n";
 		ostr << "\t\t<hard value=\"" << matr->har << "\" />\n";
 		ostr << "\t\t<alpha value=\"" << matr->alpha << "\" />\n";
-		ostr << "\t\t<emit value=\"" << matr->emit << "\" />\n";
+		ostr << "\t\t<emit value=\"" << (matr->emit * R.r.GIpower) << "\" />\n";
 
 		// reflection/refraction
 		if ( (matr->mode & MA_RAYMIRROR) || (matr->mode & MA_RAYTRANSP) )
@@ -1001,10 +1001,12 @@ void yafrayFileRender_t::writeAreaLamp(LampRen* lamp, int num)
 {
 	if (lamp->area_shape!=LA_AREA_SQUARE) return;
 	float *a=lamp->area[0], *b=lamp->area[1], *c=lamp->area[2], *d=lamp->area[3];
+	float power=lamp->energy;
+	
 	ostr.str("");
 	string md = "off";
-	if (R.r.GIphotons) md = "on";
-	ostr << "<light type=\"arealight\" name=\"LAMP" << num+1 << "\" dummy=\""<< md << "\" power=\"" << lamp->energy << "\" ";
+	if (R.r.GIphotons) {md = "on";power*=R.r.GIpower;}
+	ostr << "<light type=\"arealight\" name=\"LAMP" << num+1 << "\" dummy=\""<< md << "\" power=\"" << power << "\" ";
 	if (!R.r.GIphotons) {
 		int psm=0, sm = lamp->ray_totsamp;
 		if (sm>=64) psm = sm/4;
@@ -1146,13 +1148,14 @@ void yafrayFileRender_t::writeCamera()
 void yafrayFileRender_t::writeHemilight()
 {
 	ostr.str("");
-	ostr << "<light type=\"hemilight\" name=\"hemi_LT\" power=\"" << R.r.GIpower << "\" ";
+	ostr << "<light type=\"hemilight\" name=\"hemi_LT\" power=\"1.0\" ";
 	switch (R.r.GIquality)
 	{
 		case 1 :
 		case 2 : ostr << " samples=\"16\" >\n";  break;
 		case 3 : ostr << " samples=\"36\" >\n";  break;
 		case 4 : ostr << " samples=\"64\" >\n";  break;
+		case 5 : ostr << " samples=\"128\" >\n";  break;
 		default: ostr << " samples=\"25\" >\n";
 	}
 	ostr << "</light>\n\n";
@@ -1169,7 +1172,7 @@ void yafrayFileRender_t::writePathlight()
 				 << "\" caus_depth=\""<<R.r.GIcausdepth<< "\" search=\""<< R.r.GImixphotons<<"\" >"<<endl;
 		ostr << "</light>"<<endl;
 	}
-	ostr << "<light type=\"pathlight\" name=\"path_LT\" power=\"" << R.r.GIpower << "\" ";
+	ostr << "<light type=\"pathlight\" name=\"path_LT\" power=\"1.0\" ";
 	ostr << " depth=\"" <<((R.r.GIphotons) ? 1 : R.r.GIdepth)<< "\" caus_depth=\"" << R.r.GIcausdepth <<"\"\n";
 	if(R.r.GIdirect && R.r.GIphotons) ostr << "direct=\"on\"" << endl;
 	if (R.r.GIcache && ! (R.r.GIdirect && R.r.GIphotons))
@@ -1180,6 +1183,7 @@ void yafrayFileRender_t::writePathlight()
 			case 2 : ostr << " samples=\"256\" \n";   break;
 			case 3 : ostr << " samples=\"512\" \n";   break;
 			case 4 : ostr << " samples=\"1024\" \n";  break;
+			case 5 : ostr << " samples=\"2048\" \n";  break;
 			default: ostr << " samples=\"512\" \n";
 		}
 		float aspect = 1;
@@ -1198,6 +1202,7 @@ void yafrayFileRender_t::writePathlight()
 			case 2 : ostr << " samples=\"36\" >\n";   break;
 			case 3 : ostr << " samples=\"64\" >\n";   break;
 			case 4 : ostr << " samples=\"128\" >\n";  break;
+			case 5 : ostr << " samples=\"256\" >\n";  break;
 			default: ostr << " samples=\"25\" >\n";
 		}
 	}
@@ -1221,7 +1226,9 @@ bool yafrayFileRender_t::writeWorld()
 
 	ostr.str("");
 	ostr << "<background type=\"constant\" name=\"world_background\" >\n";
-	ostr << "\t<color r=\"" << world->horr << "\" g=\"" << world->horg << "\" b=\"" << world->horb << "\" />\n";
+	ostr << "\t<color r=\"" << (world->horr * R.r.GIpower) << 
+								"\" g=\"" << (world->horg * R.r.GIpower) << 
+								"\" b=\"" << (world->horb * R.r.GIpower) << "\" />\n";
 	ostr << "</background>\n\n";
 	xmlfile << ostr.str();
 
