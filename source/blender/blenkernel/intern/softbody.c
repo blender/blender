@@ -57,6 +57,7 @@ typedef struct Object {
 
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -76,6 +77,11 @@ typedef struct Object {
 #include "BKE_displist.h"
 
 #include  "BIF_editdeform.h"
+
+extern bDeformGroup *get_named_vertexgroup(Object *ob, char *name);
+extern int  get_defgroup_num (Object *ob, bDeformGroup        *dg);
+
+
 /* ********** soft body engine ******* */
 #define SOFTGOALSNAP  0.999f 
 // if bp-> goal is above make it a *forced follow original* and skip all ODE stuff for this bp
@@ -618,21 +624,23 @@ int get_scalar_from_named_vertexgroup(Object *ob, char *name, int vertID, float 
 	int i,groupindex;
 	bDeformGroup *locGroup = NULL;
 	MDeformVert *dv;
-	locGroup=get_named_vertexgroup (ob,name);
+	locGroup = get_named_vertexgroup(ob,name);
 	if(locGroup){
 		/* retrieve index for that group */
-		groupindex =  get_defgroup_num (ob,locGroup); 
+		groupindex =  get_defgroup_num(ob,locGroup); 
 		/* spot the vert in deform vert list at mesh */
 		/* todo (coder paranoya) what if ob->data is not a mesh .. */ 
 		/* hrms.. would like to have the same for lattices anyhoo */
-		dv = ((Mesh*)ob->data)->dvert + vertID;				
-		/* Lets see if this vert is in the weight group */
-		for (i=0; i<dv->totweight; i++){
-			if (dv->dw[i].def_nr == groupindex){
-				*target=dv->dw[i].weight; /* got it ! */
-				return 0;
+		if (((Mesh *)ob->data)->dvert) {
+			dv = ((Mesh*)ob->data)->dvert + vertID;	
+			/* Lets see if this vert is in the weight group */
+			for (i=0; i<dv->totweight; i++){
+				if (dv->dw[i].def_nr == groupindex){
+					*target=dv->dw[i].weight; /* got it ! */
+					return 0;
+				}
 			}
-		}/*for*/
+		}
 		return 2;
 	}/*if(locGroup)*/
 	return 1;
