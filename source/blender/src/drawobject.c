@@ -241,8 +241,9 @@ static void draw_icon_centered(float *pos, unsigned int *rect, int rectsize)
 	
 		/* use bitmap to shift rasterpos in pixels */
 	glBitmap(0, 0, 0.0, 0.0, -hsize, -hsize, &dummy);
-	glFinish(); /* for sun */
-	
+#ifdef __sun__
+	glFinish(); 
+#endif	
 	glDrawPixels(rectsize, rectsize, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 }
 
@@ -2113,7 +2114,7 @@ static void drawDispList(Object *ob, int dt)
 				MFace *curface;
 				int i;
 				unsigned char r,g,b;
-				float val1,val2,val3,val4;
+				float val1,val2,val3,val4=0;
 				
 				wtcol = curwt= MEM_callocN (sizeof (unsigned char) * me->totface*4*4, "weightmap");
 				
@@ -3646,7 +3647,7 @@ void draw_object_ext(Base *base)
 	ScrArea *tempsa, *sa;
 	View3D *vd;
 	
-	if(G.vd==0) return;
+	if(G.vd==NULL || base==NULL) return;
 	
 	if(G.vd->drawtype > OB_WIRE) {
 		G.zbuf= 1;
@@ -3679,7 +3680,6 @@ void draw_object_ext(Base *base)
 	
 	G.f &= ~G_DRAW_EXT;
 
-	glFinish();
 	glDrawBuffer(GL_BACK);
 	
 	if(G.zbuf) {

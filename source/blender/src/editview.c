@@ -379,22 +379,23 @@ void deselectall(void)	/* is toggle */
 
 }
 
-static void deselectall_ex(Base *b)   /* deselect all except b */
+static void deselectall_except(Base *b)   /* deselect all except b */
 {
 	Base *base;
+	int redraw=0;
 
 	base= FIRSTBASE;
 	while(base) {
 		if (base->flag & SELECT) {
 			if(b!=base) {
-			
 				base->flag &= ~SELECT;
 				base->object->flag= base->flag;
-				draw_object_ext(base);	/* this test for layer */
+				redraw= 1;
 			}
 		}
 		base= base->next;
 	}
+	if(redraw) allqueue(REDRAWVIEW3D, 0);
 	countall();
 }
 
@@ -484,7 +485,7 @@ void set_active_object(Object *ob)
 
 void mouse_select(void)
 {
-	Base *base, *startbase=0, *basact=0, *oldbasact;
+	Base *base, *startbase=NULL, *basact=NULL, *oldbasact=NULL;
 	unsigned int buffer[MAXPICKBUF];
 	int temp, a, dist=100;
 	short hits, mval[2];
@@ -547,7 +548,7 @@ void mouse_select(void)
 	if(basact) {
 		if(G.obedit) {
 			/* only do select */
-			deselectall_ex(BASACT);
+			deselectall_except(BASACT);
 			basact->flag |= SELECT;
 			draw_object_ext(basact);
 		}
@@ -556,28 +557,26 @@ void mouse_select(void)
 			BASACT= basact;
 			
 			if((G.qual & LR_SHIFTKEY)==0) {
-				deselectall_ex(basact);
+				deselectall_except(basact);
 				basact->flag |= SELECT;
 			}
 			else {
-				if(oldbasact) if(oldbasact != basact) draw_object_ext(oldbasact);
-				
 				if(basact->flag & SELECT) {
 					if(basact==oldbasact)
 						basact->flag &= ~SELECT;
 				}
 				else basact->flag |= SELECT;
 			}
-			
-			/* if((basact->flag & SELECT)==0) BASACT= 0; */
+
+			// copy
 			basact->object->flag= basact->flag;
 			
+			// for visual speed
+			if(oldbasact != basact) draw_object_ext(oldbasact);
 			draw_object_ext(basact);
 
 			if(oldbasact != basact) {
-			
 				set_active_base(basact);
-				
 			}
 			
 			if(basact->object->type!=OB_MESH) {
@@ -599,7 +598,9 @@ void mouse_select(void)
 			allqueue(REDRAWNLA, 0);
 			allqueue(REDRAWHEADERS, 0);	/* To force display update for the posebutton */
 		}
-		
+
+		glFinish();		/* reveil frontbuffer drawing */
+
 	}
 
 	countall();

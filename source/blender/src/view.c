@@ -453,6 +453,7 @@ void viewmove(int mode)
 				si= sqrt(dvec[0]*dvec[0]+ dvec[1]*dvec[1]+ dvec[2]*dvec[2]);
 				si/= (2.0*TRACKBALLSIZE);
 				
+				/* is there an acceptable solution? (180 degrees limitor) */
 				if(si<1.0) {
 					Crossf(q1+1, firstvec, newvec);
 
@@ -467,20 +468,20 @@ void viewmove(int mode)
 					q1[3]*= si;
 					
 					QuatMul(G.vd->viewquat, q1, oldquat);
-				}
-				
-				if( (U.flag & TRACKBALL)==0 ) {
-				
-					/* rotate around z-axis (mouse x moves)  */
+
+					if( (U.flag & TRACKBALL)==0 ) {
 					
-					phi= 2*(mval[0]-mvalball[0]);
-					phi/= (float)curarea->winx;
-					si= sin(phi);
-					q1[0]= cos(phi);
-					q1[1]= q1[2]= 0.0;
-					q1[3]= si;
-					
-					QuatMul(G.vd->viewquat, G.vd->viewquat, q1);
+						/* rotate around z-axis (mouse x moves)  */
+						
+						phi= 2*(mval[0]-mvalball[0]);
+						phi/= (float)curarea->winx;
+						si= sin(phi);
+						q1[0]= cos(phi);
+						q1[1]= q1[2]= 0.0;
+						q1[3]= si;
+						
+						QuatMul(G.vd->viewquat, G.vd->viewquat, q1);
+					}
 				}
 			}
 			else if(mode==1) {	/* translate */
