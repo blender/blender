@@ -30,7 +30,7 @@
 	<key>CFBundleIconFile</key>
 	<string>blender player icon.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.nantechnologies.blenderplayer</string>
+	<string>org.blenderfoundation.blenderplayer</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>

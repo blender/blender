@@ -19,7 +19,7 @@
 	<key>CFBundleName</key>
 	<string>Blender</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.nantechnologies.blender</string>
+	<string>org.blenderfoundation.blender</string>
 	
 	<key>CFBundleVersion</key>
 	<string>VERSION, DATE, Blender Foundation</string>
