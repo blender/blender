@@ -238,16 +238,23 @@ void uiRoundBoxEmboss(float minx, float miny, float maxx, float maxy, float rad)
 	glEnable( GL_BLEND );
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
+	/* top shade */
 	gl_round_box_topshade(minx+1, miny+1, maxx-1, maxy-1, rad);
 
+	/* total outline */
 	if(roundboxtype & UI_RB_ALPHA) glColor4ub(0,0,0, 128); else glColor4ub(0,0,0, 255);
 	glBegin(GL_LINE_LOOP);
 	gl_round_box(minx, miny, maxx, maxy, rad);
 	glEnd();
    
-	glDisable( GL_BLEND );
 	glDisable( GL_LINE_SMOOTH );
 
+	/* bottom shade for header down */
+	if((roundboxtype & 12)==12) {
+		glColor4ub(0,0,0, 80);
+		fdrawline(minx+rad-1.0, miny+1.0, maxx-rad+1.0, miny+1.0);
+	}
+	glDisable( GL_BLEND );
 }
 
 
