@@ -120,6 +120,7 @@
 #define EXPP_TEX_IMAGEFLAG_MOVIE            TEX_ANIM5
 #define EXPP_TEX_IMAGEFLAG_STFIELD          TEX_STD_FIELD
 #define EXPP_TEX_IMAGEFLAG_ANTI             TEX_ANTIALI
+#define EXPP_TEX_IMAGEFLAG_NORMALMAP        TEX_NORMALMAP
 
 #define EXPP_TEX_EXTEND_EXTEND              TEX_EXTEND
 #define EXPP_TEX_EXTEND_CLIP                TEX_CLIP
@@ -213,6 +214,7 @@ static const EXPP_map_pair tex_imageflag_map[] = {
 	{"Movie", EXPP_TEX_IMAGEFLAG_MOVIE},
 	{"StField", EXPP_TEX_IMAGEFLAG_STFIELD},
 	{"Anti", EXPP_TEX_IMAGEFLAG_ANTI},
+	{"NormalMap", EXPP_TEX_IMAGEFLAG_NORMALMAP},
 	{NULL, 0}
 };
 
@@ -799,6 +801,7 @@ static PyObject *M_Texture_ImageFlagsDict( void )
 		EXPP_ADDCONST( STFIELD );
 		EXPP_ADDCONST( MOVIE );
 		EXPP_ADDCONST( CYCLIC );
+		EXPP_ADDCONST( NORMALMAP );
 	}
 	return ImageFlags;
 }

@@ -64,6 +64,7 @@ Example::
     - MOVIE - Use a movie for an image
     - CYCLIC - Repeat animation image
     - ANTI - Use anti-aliasing
+    - NORMALMAP - Use image RGB values for normal mapping
 
 @type ExtendModes: readonly dictionary
 @var ExtendModes: Extend, clamp or repeat modes for images
