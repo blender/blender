@@ -3861,19 +3861,22 @@ static void drawSolidSelect(Object *ob, ListBase *lb)
 		if(ob->type==OB_MESH) {
 			/* optimal draw gives ugly outline, so we temporally disable it */
 			Mesh *me= ob->data;
-			DispList *dl= me->disp.first;
-			DispListMesh *dlm=NULL;
-			short flag= 0;
 			
-			if(dl && dl->mesh) {
-				dlm= dl->mesh;
-				flag= dlm->flag & ME_OPT_EDGES;
-				dlm->flag &= ~ME_OPT_EDGES;
-			}
-			
-			drawmeshwire(ob);
+			if(me->totface) {
+				DispList *dl= me->disp.first;
+				DispListMesh *dlm=NULL;
+				short flag= 0;
+				
+				if(dl && dl->mesh) {
+					dlm= dl->mesh;
+					flag= dlm->flag & ME_OPT_EDGES;
+					dlm->flag &= ~ME_OPT_EDGES;
+				}
+				
+				drawmeshwire(ob);
 
-			if(dlm && flag) dlm->flag |= flag;
+				if(dlm && flag) dlm->flag |= flag;
+			}
 		}
 		else drawDispListwire(lb);
 		
@@ -4197,7 +4200,7 @@ void draw_object(Base *base)
 
 			if(ob_from_decimator(ob)) drawDispListwire(&ob->disp);
 			else if(dt==OB_BOUNDBOX) draw_bounding_volume(ob);
-			else if(dt==OB_WIRE) drawmeshwire(ob);
+			else if(dt==OB_WIRE || me->totface==0) drawmeshwire(ob);
 			else if(ma && (ma->mode & MA_HALO)) drawmeshwire(ob);
 			else if(me->tface) {
 				if(G.f & G_FACESELECT || G.vd->drawtype==OB_TEXTURE) {

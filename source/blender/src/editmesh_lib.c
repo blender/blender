@@ -1594,6 +1594,12 @@ void EM_fgon_flags(void)
 		BLI_addtail(&em->faces, efa);
 		efa= efan;
 	}
+	
+	// remove fgon flags when edge not in fgon (anymore)
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		if(eed->fgoni==0) eed->h &= ~EM_FGON;
+	}
+	
 }
 
 
