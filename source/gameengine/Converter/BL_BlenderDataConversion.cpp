@@ -160,6 +160,8 @@
 #include "BL_ArmatureObject.h"
 #include "BL_DeformableGameObject.h"
 
+static int default_face_mode = TF_DYNAMIC;
+
 static unsigned int KX_rgbaint2uint_new(unsigned int icol)
 {
 	union
@@ -195,6 +197,21 @@ static unsigned int KX_Mcol2uint_new(MCol col)
 	out_colour.cp[3] = in_colour.cp[0]; // alpha
 	
 	return out_colour.integer;
+}
+
+static void SetDefaultFaceType(Scene* scene)
+{
+	default_face_mode = TF_DYNAMIC;
+	Base *base = static_cast<Base*>(scene->base.first);
+	while(base)
+	{
+		if (base->object->type == OB_LAMP)
+		{
+			default_face_mode = TF_DYNAMIC|TF_LIGHT;
+			return;
+		}
+		base = base->next;
+	}
 }
 
 RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools* rendertools, KX_Scene* scene, KX_BlenderSceneConverter *converter)
@@ -332,7 +349,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 						// If there are no vertex colors OR texfaces,
 						// Initialize face to white and set COLLSION true and everything else FALSE
 						unsigned int colour = 0xFFFFFFFFL;
-						mode = TF_DYNAMIC;	
+						mode = default_face_mode;	
 						transp = TF_SOLID;
 						tile = 0;
 						if (ma)
@@ -1076,6 +1093,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	{
 		logicmgr->RegisterActionName(curAct->id.name, curAct);
 	}
+	
+	SetDefaultFaceType(blenderscene);
 	
 	Base *base = static_cast<Base*>(blenderscene->base.first);
 	while(base)
