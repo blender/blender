@@ -126,6 +126,10 @@ typedef struct TransInfo {
     float       val;            /* init value for some transformations  */
     float       fac;            /* factor for distance based transform  */
 	
+	float		viewmat[4][4];	/* copy from G.vd, prevents feedback    */
+	float		viewinv[4][4];
+	float		persinv[4][4];
+	
 	float		vec[3];			/* translation, to show for widget   	*/
 	float		mat[3][3];		/* rot/rescale, to show for widget   	*/
 } TransInfo;

@@ -406,6 +406,10 @@ void initTrans (TransInfo *t)
 		t->vec[2]		= 0.0f;
 	
 	Mat3One(t->mat);
+	
+	Mat4CpyMat4(t->viewmat, G.vd->viewmat);
+	Mat4CpyMat4(t->viewinv, G.vd->viewinv);
+	Mat4CpyMat4(t->persinv, G.vd->persinv);
 }
 
 /* Here I would suggest only TransInfo related issues, like free data & reset vars. Not redraws */
@@ -680,9 +684,11 @@ void calculateCenter(TransInfo *t)
 			Normalise(axis);
 			
 			/* 6.0 = 6 grid units */
-			t->center[0]+= -6.0f*axis[0];
-			t->center[1]+= -6.0f*axis[1];
-			t->center[2]+= -6.0f*axis[2];
+			t->center[0]+= 6.0f*axis[0];
+			t->center[1]+= 6.0f*axis[1];
+			t->center[2]+= 6.0f*axis[2];
+			
+			project_short_noclip(t->center, t->center2d);
 		}
 	}	
 	initgrabz(t->center[0], t->center[1], t->center[2]);

@@ -1387,9 +1387,15 @@ void Transform(int mode)
 					break;
 					
 				case MIDDLEMOUSE:
-					/* exception for switching to dolly, in camera view */
-					if( (Trans.flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp>1) {
-					//	setLocalConstraint(&Trans, (CON_AXIS2), "along local Z");
+					/* exception for switching to dolly, or trackball, in camera view */
+					if((Trans.flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp>1) {
+						if(Trans.mode==TFM_TRANSLATION)
+							setLocalConstraint(&Trans, (CON_AXIS2), "along local Z");
+						else if(Trans.mode==TFM_ROTATION) {
+							restoreTransObjects(&Trans);
+							initTransModeFlags(&Trans, TFM_TRACKBALL);
+							initTrackball(&Trans);
+						}
 					}
 					else 
 						initSelectConstraint(&Trans);
@@ -2362,7 +2368,7 @@ int Rotation(TransInfo *t, short mval[2])
 	float axis[3];
 	float mat[3][3];
 
-	VECCOPY(axis, G.vd->persinv[2]);
+	VECCOPY(axis, t->persinv[2]);
 	Normalise(axis);
 
 	dphi = saacos(deler);
@@ -2474,8 +2480,8 @@ int Trackball(TransInfo *t, short mval[2])
 	float mat[3][3], totmat[3][3], smat[3][3];
 	float phi[2];
 	
-	VECCOPY(axis1, G.vd->persinv[0]);
-	VECCOPY(axis2, G.vd->persinv[1]);
+	VECCOPY(axis1, t->persinv[0]);
+	VECCOPY(axis2, t->persinv[1]);
 	Normalise(axis1);
 	Normalise(axis2);
 	

@@ -200,17 +200,33 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 	n[2] = G.vd->viewmat[3][2];
 	Mat4MulVecfl(G.vd->viewinv, n);
 
-	if (Inpf(axis, norm) != 1.0f) {
-		Projf(vec, in, n);
-		factor = Normalise(vec);
-		factor /= Inpf(axis, vec);
-
-		VecMulf(axis, factor);
+	/* For when view is parallel to constraint... will cause NaNs otherwise
+	   So; we mix mouse motion with size of 'in' (unconstrainted motion),
+	   which gives a sorta exponentional effect, nice for camera grab + MMB */
+	if(n[0]*n[0] + n[1]*n[1] + n[2]*n[2] < 0.000001) {
+		short mval[2];
+		getmouseco_areawin(mval);
+		VECCOPY(vec, in);
+		factor= Normalise(vec);		// len original delta
+		factor*= 0.05*(t->imval[1] - mval[1]);	// 5% of vertical mouse motion
 		VECCOPY(out, axis);
+		Normalise(out);
+		VecMulf(out, factor);
 	}
 	else {
-		out[0] = out[1] = out[2] = 0.0f;
-	}
+
+		if (Inpf(axis, norm) != 1.0f) {
+			Projf(vec, in, n);
+			factor = Normalise(vec);
+			factor /= Inpf(axis, vec);
+
+			VecMulf(axis, factor);
+			VECCOPY(out, axis);
+		}
+		else {
+			out[0] = out[1] = out[2] = 0.0f;
+		}
+	}	
 }
 
 static void planeProjection(TransInfo *t, float in[3], float out[3]) {
@@ -615,6 +631,10 @@ void BIF_drawConstraint(void)
 	if (!(tc->mode & CON_APPLY))
 		return;
 	if (t->flag & T_USES_MANIPULATOR)
+		return;
+	
+	/* nasty exception for Z constraint in camera view */
+	if( (t->flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp>1) 
 		return;
 
 	if (tc->drawExtra) {
