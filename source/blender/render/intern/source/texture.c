@@ -1625,7 +1625,7 @@ void do_material_tex(ShadeInput *shi)
 					
 					if(tex->type==TEX_IMAGE && (tex->imaflag & TEX_NORMALMAP)) {
 						fact= Tnor*tex->norfac;
-						if(fact>1.0) fact= 1.0;
+						if(fact>1.0) fact= 1.0; else if(fact<-1.0) fact= -1.0;
 						facm= 1.0- fact;
 						shi->vn[0]= facm*shi->vn[0] + fact*texres.nor[0];
 						shi->vn[1]= facm*shi->vn[1] + fact*texres.nor[1];
