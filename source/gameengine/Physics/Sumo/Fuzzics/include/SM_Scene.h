@@ -104,7 +104,6 @@ public:
 	// 'subSampling' can be used to control aliasing effects
 	// (fast moving objects traversing through walls and such). 
 	bool proceed(MT_Scalar curtime, MT_Scalar ticrate);
-	void proceed(MT_Scalar subStep);
 
 	/**
 	 * Test whether any objects lie on the line defined by from and
@@ -168,7 +167,7 @@ private:
 	 * collision tests. */
 	T_ObjectList        m_objectList;
 	
-	unsigned int        m_frames;
+	MT_Scalar           m_lastTime;
 };
 
 #endif

@@ -112,13 +112,14 @@ KX_IpoActuator::KX_IpoActuator(SCA_IObject* gameobj,
 	m_endframe(endtime),
 	m_recurse(recurse),
 	m_localtime(starttime),
+	m_starttime(-1.0),
 	m_direction(1),
 	m_propname(propname),
 	m_ipo_as_force(ipo_as_force),
 	m_force_ipo_local(force_ipo_local),
 	m_type((IpoActType)acttype)
 {
-	m_starttime = -2.0*fabs(m_endframe - m_startframe) - 1.0;
+	// intentionally empty
 }
 
 void KX_IpoActuator::SetStart(float starttime) 
@@ -188,11 +189,10 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 	// result = true if animation has to be continued, false if animation stops
 	// maybe there are events for us in the queue !
 	bool bNegativeEvent = false;
-	int numevents = 0;
+	int numevents = m_events.size();
 
 	if (frame)
 	{
-		numevents = m_events.size();
 		for (vector<CValue*>::iterator i=m_events.end(); !(i==m_events.begin());)
 		{
 			--i;
@@ -204,13 +204,15 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 		m_events.clear();
 	
 		if (bNegativeEvent)
+		{
 			RemoveAllEvents();
+		}
 	}
 	
 	double  start_smaller_then_end = ( m_startframe < m_endframe ? 1.0 : -1.0);
 
 	bool result=true;
-	if (m_starttime < -2.0*start_smaller_then_end*(m_endframe - m_startframe))
+	if (m_starttime < 0.0)
 		m_starttime = curtime;
 	
 	switch (m_type)
@@ -271,7 +273,7 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 	}
 	case KX_ACT_IPO_FLIPPER:
 	{
-		result = !(bNegativeEvent && (m_localtime == m_startframe));
+		result = true;
 		if (numevents)
 		{
 			if (bNegativeEvent)
@@ -367,7 +369,20 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 		CValue* propval = GetParent()->GetProperty(m_propname);
 		if (propval)
 		{
-			m_localtime = propval->GetNumber(); 
+			float target = propval->GetNumber(); 
+			float delta_time = (curtime - m_starttime)*KX_FIXED_FRAME_PER_SEC;
+			if (target > m_localtime)
+			{
+				m_localtime += delta_time;
+				if (m_localtime > target)
+					m_localtime = target;
+			}
+			else
+			{
+				m_localtime -= delta_time;
+				if (m_localtime < target)
+					m_localtime = target;
+			}
 	
 			CIpoAction ipoaction(
 				(KX_GameObject*) GetParent(),
@@ -389,7 +404,7 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 	}
 	
 	if (!result && m_type != KX_ACT_IPO_LOOPSTOP)
-		m_starttime = -2.0*start_smaller_then_end*(m_endframe - m_startframe) - 1.0;
+		m_starttime = -1.0;
 
 	return result;
 }

@@ -61,7 +61,6 @@ public:
 	void integrateBackward(MT_Scalar timeStep, const MT_Vector3 &velocity, const MT_Quaternion& ang_vel);
 	void integrateForward(MT_Scalar timeStep, const SM_MotionState &prev_state);
 	
-	void lerp(const SM_MotionState &prev, const SM_MotionState &next);
 	void lerp(MT_Scalar t, const SM_MotionState &other);
 	
 	virtual MT_Transform getTransform() const {

@@ -600,23 +600,21 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 
 	MT_Matrix3x3 newori = ((KX_GameObject*) parentobject)->NodeGetWorldOrientation();
 	replica->NodeSetLocalOrientation(newori);
-	
-	// get the rootnode's scale
-	MT_Vector3 newscale = parentobj->GetSGNode()->GetRootSGParent()->GetLocalScale();
-
-	// set the replica's relative scale with the rootnode's scale
-	replica->NodeSetRelativeScale(newscale);
 
 	if (replica->GetPhysicsController())
 	{
 		replica->GetPhysicsController()->setPosition(newpos);
 		replica->GetPhysicsController()->setOrientation(newori.getRotation());
-		replica->GetPhysicsController()->setScaling(newscale);
 	}
 
 	// here we want to set the relative scale: the rootnode's scale will override all other
 	// scalings, so lets better prepare for it
 
+	// get the rootnode's scale
+	MT_Vector3 newscale = parentobj->GetSGNode()->GetRootSGParent()->GetLocalScale();
+
+	// set the replica's relative scale with the rootnode's scale
+	replica->NodeSetRelativeScale(newscale);
 
 	replica->GetSGNode()->UpdateWorldData(0);
 	replica->GetSGNode()->SetBBox(originalobj->GetSGNode()->BBox());
