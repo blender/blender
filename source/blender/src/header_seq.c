@@ -346,6 +346,8 @@ static uiBlock *seq_editmenu(void *arg_unused)
 
 	block= uiNewBlock(&curarea->uiblocks, "seq_editmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_seq_editmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Strip Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move|G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Snap to Current Frame|Shift S, 1", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
@@ -381,25 +383,7 @@ static uiBlock *seq_editmenu(void *arg_unused)
 			uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Enter/Exit Meta Strip|Tab", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
 		}
 	}
-	if(last_seq != NULL) {
-		if(last_seq->type == SEQ_META) {
-			uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Meta Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
-		}
-		else if(last_seq->type == SEQ_PLUGIN) {
-			uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Plugin Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
-		}
-		else if(last_seq->type == SEQ_MOVIE) {
-			uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Movie Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
-		}
-		else if(last_seq->type == SEQ_SOUND) {
-			uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Sound Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
-		}
-
-	}
+	
 
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
