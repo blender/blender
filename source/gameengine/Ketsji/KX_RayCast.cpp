@@ -31,6 +31,8 @@
  * KX_MouseFocusSensor determines mouse in/out/over events.
  */
 
+#include <stdlib.h>
+
 #include "KX_RayCast.h"
 
 #include "MT_Point3.h"
