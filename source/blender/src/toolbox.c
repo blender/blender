@@ -1519,6 +1519,7 @@ ListBase tb_listb= {NULL, NULL};
 #define TB_ALT	512
 #define TB_CTRL	1024
 #define TB_PAD	2048
+#define TB_SHIFT 4096
 
 typedef struct TBitem {
 	int icon;
@@ -1538,6 +1539,10 @@ static void tb_do_hotkey(void *arg, int event)
 	if(event & TB_ALT) {
 		qual1= LEFTALTKEY;
 		event &= ~TB_ALT;
+	}
+	if(event & TB_SHIFT) {
+		qual1= LEFTSHIFTKEY;
+		event &= ~TB_SHIFT;
 	}
 	
 	if(event & TB_TAB) key= TABKEY;
@@ -1568,13 +1573,84 @@ static void tb_do_hotkey(void *arg, int event)
 
 /* *************Select ********** */
 
-static TBitem tb_object_select[]= {
-{	0, "Border Select|B", 	'b', NULL},
-{	0, "(De)select All|A", 	'a', NULL},
-{	0, "Linked...|Shift L", 	'L', NULL},
-{	0, "Grouped...|Shift G", 	'G', NULL},
+static TBitem tb_object_select_layer1_5[]= {
+{	0, "1", 	1, NULL},
+{	0, "2", 	2, NULL},
+{	0, "3", 	3, NULL},
+{	0, "4", 	4, NULL},
+{	0, "5", 	5, NULL},
+{  -1, "", 		0, do_view3d_select_object_layermenu}};
+
+static TBitem tb_object_select_layer6_10[]= {
+{	0, "6", 	6, NULL},
+{	0, "7", 	7, NULL},
+{	0, "8", 	8, NULL},
+{	0, "9", 	9, NULL},
+{	0, "10", 	10, NULL},
+{  -1, "", 		0, do_view3d_select_object_layermenu}};
+
+static TBitem tb_object_select_layer11_15[]= {
+{	0, "11", 	11, NULL},
+{	0, "12",	12, NULL},
+{	0, "13", 	13, NULL},
+{	0, "14", 	14, NULL},
+{	0, "15", 	15, NULL},
+{  -1, "", 		0, do_view3d_select_object_layermenu}};
+
+static TBitem tb_object_select_layer16_20[]= {
+{	0, "16", 	16, NULL},
+{	0, "17", 	17, NULL},
+{	0, "18", 	18, NULL},
+{	0, "19", 	19, NULL},
+{	0, "20", 	20, NULL},
+{  -1, "", 		0, do_view3d_select_object_layermenu}};
+
+static TBitem tb_object_select_layer[]= {
+{	0, "Layers 1-5", 	0, 		tb_object_select_layer1_5},
+{	0, "Layers 6-10", 	0, 		tb_object_select_layer6_10},
+{	0, "Layers 11-15", 	0, 		tb_object_select_layer11_15},
+{	0, "Layers 16-20", 	0, 		tb_object_select_layer16_20},
 {  -1, "", 			0, tb_do_hotkey}};
 
+static TBitem tb_object_select_type[]= {
+{	0, "Mesh", 		1, NULL},
+{	0, "Curve", 	2, NULL},
+{	0, "Surface", 	3, NULL},
+{	0, "Meta", 		4, NULL},
+{	0, "SEPR",		0, NULL},
+{	0, "Armature", 	5, NULL},
+{	0, "Lattice", 	6, NULL},
+{	0, "Text", 		7, NULL},
+{	0, "Empty", 	8, NULL},
+{	0, "SEPR",		0, NULL},
+{	0, "Camera", 	9, NULL},
+{	0, "Lamp", 		10, NULL},
+{  -1, "", 			0, do_view3d_select_object_typemenu}};
+
+static TBitem tb_object_select_linked[]= {
+{	0, "Object Ipo|Shift L, 1", 	1, NULL},
+{	0, "ObData|Shift L, 2", 	2, NULL},
+{	0, "Material|Shift L, 3", 	3, NULL},
+{	0, "Texture|Shift L, 4", 	4, NULL},
+{  -1, "", 			0, do_view3d_select_object_linkedmenu}};
+
+static TBitem tb_object_select_grouped[]= {
+{	0, "Children|Shift G, 1", 	1, NULL},
+{	0, "Immediate Children|Shift G, 2", 	2, NULL},
+{	0, "Parent|Shift G, 3", 	3, NULL},
+{	0, "Objects on Shared Layers|Shift G, 4", 	4, NULL},
+{  -1, "", 			0, do_view3d_select_object_groupedmenu}};
+
+static TBitem tb_object_select[]= {
+{	0, "Border Select|B", 	'b', NULL},
+{	0, "SEPR",				0, NULL},
+{	0, "Select/Deselect All|A", 	'a', NULL},
+{	0, "Select All by Layer", 	0, 		tb_object_select_layer},
+{	0, "Select All by Type", 	0, 		tb_object_select_type},
+{	0, "SEPR",				0, NULL},
+{	0, "Linked", 	0, 	tb_object_select_linked},
+{	0, "Grouped", 	0, 	tb_object_select_grouped},
+{  -1, "", 			0, tb_do_hotkey}};
 
 static TBitem tb_mesh_select[]= {
 {	0, "Border Select|B",               0, NULL},
@@ -1585,8 +1661,8 @@ static TBitem tb_mesh_select[]= {
 {	0, "Random...",			            5, NULL},
 {	0, "Non-Manifold|Shift Ctrl Alt M", 9, NULL},
 {	0, "SEPR",                          0, NULL},
-{	0, "More|Ctrl Numpad +",            7, NULL},
-{	0, "Less|Ctrl Numpad -",            8, NULL},
+{	0, "More|Ctrl NumPad +",            7, NULL},
+{	0, "Less|Ctrl NumPad -",            8, NULL},
 {	0, "SEPR",                          0, NULL},
 {	0, "Face Loop...|Shift R",          6, NULL},
 {	0, "Linked Vertices|Ctrl L",        4, NULL},
@@ -1613,12 +1689,6 @@ static TBitem tb_edit[]= {
 {	0, "Exit Editmode|Tab", 	TB_TAB, NULL},
 {  -1, "", 			0, tb_do_hotkey}};
 
-static TBitem tb_edit_hide[]= {
-{	0, "Show Hidden|Alt H", 		TB_ALT|'h', 		NULL},
-{	0, "Hide Selected|H", 			'h', 		NULL},
-{	0, "Hide Deselected|Shift H", 	'H', 		NULL},
-{  -1, "", 			0, tb_do_hotkey}};
-
 static TBitem tb_curve_edit_seg[]= {
 {	0, "Subdivide", 		0, NULL},
 {	0, "Switch directoin", 	1, NULL},
@@ -1638,14 +1708,15 @@ static TBitem tb_curve_edit_cv[]= {
 
 static TBitem tb_curve_edit[]= {
 {	0, "Exit Editmode|Tab", 	TB_TAB, NULL},
+{	0, "SEPR", 								0, NULL},
 {	0, "Extrude|E", 		'e', 		NULL},
+{	0, "Duplicate|Shift D", 'D', 		NULL},
 {	0, "Make Segment|F", 	'f', 		NULL},
 {	0, "Toggle Cyclic|F", 	'c', 		NULL},
+{	0, "Delete...|X", 		'x', 		NULL},
 {	0, "SEPR", 								0, NULL},
 {	0, "Control Points", 	0, 		tb_curve_edit_cv},
 {	0, "Segments", 	0, 		tb_curve_edit_seg},
-{	0, "SEPR", 								0, NULL},
-{	0, "Show/Hide", 	0, 		tb_edit_hide},
 {  -1, "", 			0, tb_do_hotkey}};
 
 
@@ -1653,13 +1724,17 @@ static TBitem tb_mesh_edit_vertex[]= {
 {	0, "Merge...|Alt M", 		5, NULL},
 {	0, "Split|Y", 				4, 		NULL},
 {	0, "Separate|P", 			3, 		NULL},
+{	0, "SEPR",					0, NULL},
 {	0, "Smooth|Alt M", 			2, NULL},
 {	0, "Remove Doubles|Alt M", 			1, NULL},
+{	0, "SEPR",					0, NULL},
 {	0, "Make Vertex Parent|Ctrl P", 	0, NULL},
 {  -1, "", 			0, do_view3d_edit_mesh_verticesmenu}};
 
 static TBitem tb_mesh_edit_edge[]= {
 {	0, "Make Edge/Face|F", 			5, 		NULL},
+{	0, "SEPR",					0, NULL},
+{	0, "Bevel", 				6, 		NULL},
 {	0, "Loop Subdivide|Ctrl R", 		4, 		NULL},
 {	0, "Knife Subdivide...|Shift K", 	3, 		NULL},
 {	0, "SEPR", 								0, NULL},
@@ -1672,6 +1747,7 @@ static TBitem tb_mesh_edit_face[]= {
 {	0, "Make Edge/Face|F", 			'f', 		NULL},
 {	0, "Fill|Shift F", 				'F', 		NULL},
 {	0, "Beaty Fill|Alt F", 			TB_ALT|'f', 		NULL},
+{	0, "SEPR",					0, NULL},
 {	0, "Convert to Triangles|Ctrl T", 	TB_CTRL|'t', 		NULL},
 {	0, "Convert to Quads|Alt J", 		TB_ALT|'j', 		NULL},
 {	0, "Flip Triangle Edges|Ctrl F", 	TB_CTRL|'f', 		NULL},
@@ -1679,23 +1755,25 @@ static TBitem tb_mesh_edit_face[]= {
 
 
 static TBitem tb_mesh_edit_normal[]= {
+{	0, "Recalculate Outside", 	2, 		NULL},
+{	0, "Recalculate Inside", 	1, 		NULL},
+{	0, "SEPR",					0, NULL},
 {	0, "Flip", 				0, 		NULL},
-{	0, "Recalc Inside", 	1, 		NULL},
-{	0, "Recalc Outside", 	2, 		NULL},
 {  -1, "", 			0, do_view3d_edit_mesh_normalsmenu}};
-
 
 static TBitem tb_mesh_edit[]= {
 {	0, "Exit Editmode|Tab", 	TB_TAB, NULL},
 {	0, "Undo|U", 			'u', 		NULL},
 {	0, "Redo|Shift U", 		'U', 		NULL},
-{	0, "Extrude|E", 	'e', 		NULL},
+{	0, "SEPR", 				0, 			NULL},
+{	0, "Extrude|E", 		'e', 		NULL},
+{	0, "Duplicate|Shift D", 'D', 		NULL},
+{	0, "Delete...|X", 		'x', 		NULL},
+{	0, "SEPR", 				0, 			NULL},
 {	0, "Vertices", 		0, 		tb_mesh_edit_vertex},
 {	0, "Edges", 		0, 		tb_mesh_edit_edge},
 {	0, "Faces", 		0, 		tb_mesh_edit_face},
 {	0, "Normals", 		0, 		tb_mesh_edit_normal},
-{	0, "SEPR", 			0, NULL},
-{	0, "Show/Hide", 	0, 		tb_edit_hide},
 {  -1, "", 			0, tb_do_hotkey}};
 
 
@@ -1709,63 +1787,89 @@ static TBitem tb_object_ipo[]= {
 static TBitem tb_object_edit[]= {
 {	0, "Enter Editmode|Tab", 	TB_TAB, NULL},
 {	0, "SEPR", 								0, NULL},
-{	0, "Insert Key...|I", 	'i', NULL},
-{	0, "Object Keys", 	0, tb_object_ipo},
+{	0, "Duplicate|Shift D", 		'D', 		NULL},
+{	0, "Duplicate Linked|Alt D", 	TB_ALT|'d', NULL},
+{	0, "Delete|X", 					'x', 		NULL},
 {	0, "SEPR", 								0, NULL},
-{	0, "Boolean...|W", 			'w', NULL},
-{	0, "Join Objects|Ctrl J", 	TB_CTRL|'j', NULL},
-{	0, "Convert Object...|Alt C", TB_ALT|'c', NULL},
+{	0, "Object Keys", 	0, tb_object_ipo},
 {  -1, "", 			0, tb_do_hotkey}};
 
 
 /* ************* Type  ********** */
 
+static TBitem tb_obdata_hide[]= {
+{	0, "Show Hidden|Alt H", 		TB_ALT|'h', 		NULL},
+{	0, "Hide Selected|H", 			'h', 		NULL},
+{	0, "Hide Deselected|Shift H", 	'H', 		NULL},
+{  -1, "", 			0, tb_do_hotkey}};
+
 static void tb_do_mesh(void *arg, int event){
 	Mesh *me= get_mesh(OBACT);
 	switch(event) {
-	case 1: duplicate_context_selected(); break;
-	case 2: delete_context_selected(); break;
-	case 3: G.f ^= G_DRAWEDGES; break;
-	case 4: G.f ^= G_DRAWFACES; break;
-	case 5: G.f ^= G_DRAWNORMALS; break;
-	case 6: me->flag ^= ME_SUBSURF; makeDispList(OBACT); break;
-	case 7: me->flag ^= ME_OPT_EDGES; makeDispList(OBACT); break;
+	case 1: common_insertkey(); break;
+	case 2: G.f ^= G_DRAWEDGES; break;
+	case 3: G.f ^= G_DRAWFACES; break;
+	case 4: G.f ^= G_DRAWNORMALS; break;
+	case 5: me->flag ^= ME_SUBSURF; makeDispList(OBACT); break;
+	case 6: me->flag ^= ME_OPT_EDGES; makeDispList(OBACT); break;
 	}
 	addqueue(curarea->win, REDRAW, 1);
 }
 
 static TBitem tb_mesh[]= {
-{	0, "Duplicate|Shift D", 		1, 		NULL},
-{	0, "Delete|X", 					2, 		NULL},
+{	0, "Insert Keyframe|I", 		1, 		NULL},
 {	0, "SEPR", 						0, NULL},
-{	0, "Show/Hide Edges", 			3, 		NULL},
-{	0, "Show/Hide Faces", 			4, 		NULL},
-{	0, "Show/Hide Normals", 		5, 		NULL},
+{	0, "Show/Hide Edges", 			2, 		NULL},
+{	0, "Show/Hide Faces", 			3, 		NULL},
+{	0, "Show/Hide Normals", 		4, 		NULL},
 {	0, "SEPR", 						0, NULL},
-{	0, "Subdivision Surface", 		6, 		NULL},
-{	0, "Subd.Surf. Optimal", 		7, 		NULL},
+{	0, "Subdivision Surface", 		5, 		NULL},
+{	0, "SubSurf Optimal", 			6, 		NULL},
+{	0, "SEPR", 						0, NULL},
+{	0, "Show/Hide Vertices", 	0, 		tb_obdata_hide},
 {  -1, "", 			0, tb_do_mesh}};
+
+static TBitem tb_curve_hide[]= {
+{	0, "Show Hidden|Alt H", 		10, 		NULL},
+{	0, "Hide Selected|H", 			11, 		NULL},
+{  -1, "", 			0, do_view3d_edit_curve_showhidemenu}};
+
+
+static TBitem tb_curve[]= {
+{	0, "Insert Keyframe|I", 		'i', 		NULL},
+{	0, "SEPR", 						0, NULL},
+{	0, "Show/Hide Points", 	0, 		tb_curve_hide},
+{  -1, "", 			0, tb_do_hotkey}};
 
 static TBitem tb_obdata[]= {
 {	0, "Duplicate|Shift D", 		'D', 		NULL},
 {	0, "Delete|X", 					'x', 		NULL},
-
 {  -1, "", 			0, tb_do_hotkey}};
 
+static TBitem tb_object_parent[]= {
+{	0, "Make Parent...|Ctrl P", 		TB_CTRL|'p', NULL},
+{	0, "Clear Parent...|Alt P", 		TB_ALT|'p', NULL},
+{  -1, "", 			0, tb_do_hotkey}};
 
-static TBitem tb_object[]= {
-{	0, "Duplicate|Shift D", 		'D', 		NULL},
-{	0, "Duplicate Linked|Alt D", 	TB_ALT|'D', NULL},
-{	0, "Delete|X", 					'x', 		NULL},
-{	0, "Copy Links...|Ctrl L", 		TB_CTRL|'l', NULL},
-{	0, "Make Single User...|U", 	'u', 		NULL},
-{	0, "SEPR", 								0, NULL},
-{	0, "Make Parent|Ctrl P", 		TB_CTRL|'p', NULL},
-{	0, "Clear Parent|Alt P", 		TB_ALT|'p', NULL},
+static TBitem tb_object_track[]= {
 {	0, "Make Track|Ctrl T", 		TB_CTRL|'t', NULL},
 {	0, "Clear Track|Alt T", 		TB_ALT|'t', NULL},
+{  -1, "", 			0, tb_do_hotkey}};
+
+static TBitem tb_object[]= {
+{	0, "Insert Keyframe|I", 		'i', 		NULL},
 {	0, "SEPR", 								0, NULL},
+{	0, "Copy Links...|Ctrl L", 		TB_CTRL|'l', NULL},
+{	0, "Make Single User...|U", 	'u', 		NULL},
 {	0, "Copy Properties...|Ctrl C", TB_CTRL|'c', NULL},
+{	0, "SEPR", 								0, NULL},
+{	0, "Parent", 	0, 		tb_object_parent},
+{	0, "Track", 	0, 		tb_object_track},
+{	0, "SEPR", 								0, NULL},
+{	0, "Boolean Operation|W", 	'w', NULL},
+{	0, "Join Objects...|Ctrl J", 	TB_CTRL|'j', NULL},
+{	0, "Convert Object Type...|Alt C", 	TB_ALT|'c', NULL},
+{	0, "SEPR", 								0, NULL},
 {	0, "Move to Layer...|M", 		'm', NULL},
 {  -1, "", 			0, tb_do_hotkey}};
 
@@ -1778,65 +1882,263 @@ static void tb_do_view_dt(void *arg, int event){
 }
 
 static TBitem tb_view_dt[]= {
-{	ICON_BBOX, "Bounding box", 	1, NULL},
+{	ICON_BBOX, "Bounding Box", 	1, NULL},
 {	ICON_WIRE, "Wireframe", 	2, NULL},
 {	ICON_SOLID, "Solid", 		3, NULL},
 {	ICON_SMOOTH, "Shaded", 		5, NULL},
 {	ICON_POTATO, "Textured", 	5, NULL},
 {  -1, "", 			0, tb_do_view_dt}};
 
+static TBitem tb_view_alignview[]= {
+{	0, "Centre View to Cursor|C", 		'c', NULL},
+{	0, "Align Active Camera to View|Shift NumPad 0", 		TB_SHIFT|TB_PAD|'0', NULL},
+{	0, "Align View to Selected|NumPad *", 		TB_PAD|'*', NULL},
+{  -1, "", 			0, tb_do_hotkey}};
+
 static TBitem tb_view[]= {
 {	0, "Viewport Shading", 			0, tb_view_dt},
 {	0, "SEPR", 						0, NULL},
-{	0, "Ortho/Persp|Pad 5", 	TB_PAD|'5', NULL},
-{	0, "Local View|Pad /", 	TB_PAD|'/', NULL},
-{	0, "Frame All|Home", 		TB_PAD|'h', NULL},
-{	0, "Frame Selected|Pad .", 	TB_PAD|'.', NULL},
-{	0, "Centre Cursor|C", 		'c', NULL},
+{	0, "Ortho/Perspective|NumPad 5", 	TB_PAD|'5', NULL},
+{	0, "Local/Global View|NumPad /", 	TB_PAD|'/', NULL},
+{	0, "SEPR", 						0, NULL},
+{	0, "Align View", 			0, tb_view_alignview},
 {	0, "SEPR", 		0, NULL},
-{	0, "Play Back |Alt A", TB_ALT|'a', NULL},
+{	0, "View Selected|NumPad .", 	TB_PAD|'.', NULL},
+{	0, "View All|Home", 		TB_PAD|'h', NULL},
+{	0, "SEPR", 		0, NULL},
+{	0, "Play Back Animation|Alt A", TB_ALT|'a', NULL},
 {  -1, "", 			0, tb_do_hotkey}};
 
 
 /* *************TRANSFORM ********** */
 
+
+static void tb_do_transform_moveaxis(void *arg, int event)
+{
+	switch(event)
+	{
+	    case 0: /* X Global */
+		    transform('g'*'X');
+			break;
+		case 1: /* Y Global */
+			transform('g'*'Y');
+			break;
+		case 2: /* Z Global */
+			transform('g'*'Z');
+			break;
+		case 3: /* X Local */
+			transform('g'*'x');
+			break;
+		case 4: /* Y Local */
+			transform('g'*'y');
+			break;
+		case 5: /* Z Local */
+			transform('g'*'z');
+			break;
+	}
+}
+
+static TBitem tb_transform_moveaxis[]= {
+{	0, "X Global|G, X", 	0, NULL},
+{	0, "Y Global|G, Y", 	1, NULL},
+{	0, "Z Global|G, Z", 	2, NULL},
+{	0, "SEPR", 					0, NULL},
+{	0, "X Local|G, X, X", 	3, NULL},
+{	0, "Y Local|G, Y, Y", 	4, NULL},
+{	0, "Z Local|G, Z, Z", 	5, NULL},
+{  -1, "", 			0, tb_do_transform_moveaxis}};
+
+static void tb_do_transform_rotateaxis(void *arg, int event)
+{
+	switch(event)
+	{
+	    case 0: /* X Global */
+		    transform('r'*'X');
+			break;
+		case 1: /* Y Global */
+			transform('r'*'Y');
+			break;
+		case 2: /* Z Global */
+			transform('r'*'Z');
+			break;
+		case 3: /* X Local */
+			transform('r'*'x');
+			break;
+		case 4: /* Y Local */
+			transform('r'*'y');
+			break;
+		case 5: /* Z Local */
+			transform('r'*'z');
+			break;
+	}
+}
+
+static TBitem tb_transform_rotateaxis[]= {
+{	0, "X Global|G, X", 	0, NULL},
+{	0, "Y Global|G, Y", 	1, NULL},
+{	0, "Z Global|G, Z", 	2, NULL},
+{	0, "SEPR", 					0, NULL},
+{	0, "X Local|G, X, X", 	3, NULL},
+{	0, "Y Local|G, Y, Y", 	4, NULL},
+{	0, "Z Local|G, Z, Z", 	5, NULL},
+
+{  -1, "", 			0, tb_do_transform_rotateaxis}};
+
+
+static void tb_do_transform_scaleaxis(void *arg, int event)
+{
+	switch(event)
+	{
+	    case 0: /* X Global */
+		    transform('s'*'X');
+			break;
+		case 1: /* Y Global */
+			transform('s'*'Y');
+			break;
+		case 2: /* Z Global */
+			transform('s'*'Z');
+			break;
+		case 3: /* X Local */
+			transform('s'*'x');
+			break;
+		case 4: /* Y Local */
+			transform('s'*'y');
+			break;
+		case 5: /* Z Local */
+			transform('s'*'z');
+			break;
+	}
+}
+
+static TBitem tb_transform_scaleaxis[]= {
+{	0, "X Global|G, X", 	0, NULL},
+{	0, "Y Global|G, Y", 	1, NULL},
+{	0, "Z Global|G, Z", 	2, NULL},
+{	0, "SEPR", 					0, NULL},
+{	0, "X Local|G, X, X", 	3, NULL},
+{	0, "Y Local|G, Y, Y", 	4, NULL},
+{	0, "Z Local|G, Z, Z", 	5, NULL},
+{  -1, "", 			0, tb_do_transform_scaleaxis}};
+
+static void tb_do_transform_clearapply(void *arg, int event)
+{
+	switch(event)
+	{
+	    case 0: /* clear location */
+			clear_object('g');
+			break;
+		case 1: /* clear rotation */
+			clear_object('r');
+			break;
+		case 2: /* clear size */
+			clear_object('s');
+			break;
+		case 3: /* apply size/rotation */
+			apply_object();
+			break;
+		case 4: /* apply deformation */
+			make_duplilist_real();
+			break;
+	}
+}
+
+static TBitem tb_transform_clearapply[]= {
+{	0, "Clear Location", 		0, NULL},
+{	0, "Clear Rotation", 		1, NULL},
+{	0, "Clear Size", 			2, NULL},
+{	0, "SEPR", 					0, NULL},
+{	0, "Apply Size/Rotation|Ctrl A", 3, NULL},
+{	0, "Apply Deform|Shift Ctrl A", 4, NULL},
+{  -1, "", 			0, tb_do_transform_clearapply}};
+
+static TBitem tb_transform_snap[]= {
+{	0, "Selection -> Grid|Shift S, 1", 		1, NULL},
+{	0, "Selection -> Cursor|Shift S, 2", 	2, NULL},
+{	0, "Cursor -> Grid|Shift S, 3", 		3, NULL},
+{	0, "Cursor -> Selection|Shift S, 4", 4, NULL},
+{	0, "Selection -> Center|Shift S, 5", 5, NULL},
+{  -1, "", 			0, do_view3d_edit_snapmenu}};
+
+static void tb_do_transform(void *arg, int event)
+{
+	switch(event)
+	{
+		case 0: /* Grab/move */
+			transform('g');
+			break;
+		case 1: /* Rotate */
+			transform('r');
+			break;
+		case 2: /* Scale */
+			transform('s');
+			break;
+		case 3: /* transform properties */
+			mainqenter(NKEY, 1);
+			break;
+		case 4: /* snap */
+			snapmenu();
+			break;
+	}
+}
+
 static TBitem tb_transform[]= {
-{	0, "Grabber|g", 	'g', NULL},
-{	0, "Rotate|r", 		'r', NULL},
-{	0, "Scale|s", 		's', NULL},
+{	0, "Grab/Move|G", 	0, NULL},
+{	0, "Grab/Move on Axis| ", 	0, tb_transform_moveaxis},
+{	0, "Rotate|R", 		1, NULL},
+{	0, "Rotate on Axis", 	0, tb_transform_rotateaxis},
+{	0, "Scale|S", 		2, NULL},
+{	0, "Scale on Axis", 	0, tb_transform_scaleaxis},
 {	0, "SEPR", 					0, NULL},
-{	ICON_MENU_PANEL, "Properties|n", 'n', NULL},
-{	0, "Snap...|Shift S", 		'S', NULL},
+{	ICON_MENU_PANEL, "Properties|N", 3, NULL},
+{	0, "Snap", 		0, tb_transform_snap},
 {	0, "SEPR", 					0, NULL},
-{	0, "Clear Location", 		TB_ALT|'g', NULL},
-{	0, "Clear Rotation", 		TB_ALT|'r', NULL},
-{	0, "Clear Size", 			TB_ALT|'s', NULL},
-{	0, "Apply Rot/Size|Ctrl A", TB_CTRL|'a', NULL},
-{	0, "Apply Deform|Shift Ctrl A", 	TB_CTRL|'A', NULL},
-{  -1, "", 			0, tb_do_hotkey}};
+{	0, "Clear/Apply", 	0, tb_transform_clearapply},
+{  -1, "", 			0, tb_do_transform}};
+
+static TBitem tb_transform_mirror[]= {
+{	0, "X Global|M, 1", 	1, NULL},
+{	0, "Y Global|M, 2", 	2, NULL},
+{	0, "Z Global|M, 3", 	3, NULL},
+{	0, "SEPR", 					0, NULL},
+{	0, "X Local|M, 4", 	4, NULL},
+{	0, "Y Local|M, 5", 	5, NULL},
+{	0, "Z Local|M, 6", 	6, NULL},
+{	0, "SEPR", 					0, NULL},
+{	0, "X View|M, 7", 	7, NULL},
+{	0, "Y View|M, 8", 	8, NULL},
+{	0, "Z View|M, 9", 	9, NULL},
+{  -1, "", 			0, do_view3d_edit_mesh_mirrormenu}};
 
 static TBitem tb_transform_editmode1[]= {
-{	0, "Grabber|g", 	'g', NULL},
-{	0, "Rotate|r", 		'r', NULL},
-{	0, "Scale|s", 		's', NULL},
+{	0, "Grab/Move|G", 	0, NULL},
+{	0, "Grab/Move on Axis| ", 	0, tb_transform_moveaxis},
+{	0, "Rotate|R", 		1, NULL},
+{	0, "Rotate on Axis", 	0, tb_transform_rotateaxis},
+{	0, "Scale|S", 		2, NULL},
+{	0, "Scale on Axis", 	0, tb_transform_scaleaxis},
 {	0, "SEPR", 					0, NULL},
+{	0, "Mirror", 	0, tb_transform_mirror},
 {	0, "Shrink/Fatten|Alt S", TB_ALT|'s', NULL},
 {	0, "Shear|Ctrl S", TB_CTRL|'s', NULL},
 {	0, "Warp|Shift W", 	'W', NULL},
 {	0, "SEPR", 					0, NULL},
 {	ICON_MENU_PANEL, "Properties|n", 'n', NULL},
-{	0, "Snap...|Shift S", 		'S', NULL},
+{	0, "Snap", 		0, tb_transform_snap},
+{	0, "SEPR", 					0, NULL},
 {	0, "Proportional Edit|O", 	'o', 		NULL},
 {  -1, "", 			0, tb_do_hotkey}};
 
 
 static TBitem tb_transform_editmode2[]= {
-{	0, "Grabber|g", 	'g', NULL},
-{	0, "Rotate|r", 		'r', NULL},
-{	0, "Scale|s", 		's', NULL},
+{	0, "Grab/Move|G", 	0, NULL},
+{	0, "Grab/Move on Axis| ", 	0, tb_transform_moveaxis},
+{	0, "Rotate|R", 		1, NULL},
+{	0, "Rotate on Axis", 	0, tb_transform_rotateaxis},
+{	0, "Scale|S", 		2, NULL},
+{	0, "Scale on Axis", 	0, tb_transform_scaleaxis},
 {	0, "SEPR", 					0, NULL},
 {	ICON_MENU_PANEL, "Properties|n", 'n', NULL},
-{	0, "Snap...|Shift S", 		'S', NULL},
+{	0, "Snap", 		0, tb_transform_snap},
 {  -1, "", 			0, tb_do_hotkey}};
 
 
@@ -1851,6 +2153,7 @@ static TBitem addmenu_mesh[]= {
 {	0, "Cylinder", 	5, NULL},
 {	0, "Tube", 		6, NULL},
 {	0, "Cone", 		7, NULL},
+{	0, "SEPR",		0, NULL},
 {	0, "Grid", 		8, NULL},
 {	0, "Monkey", 	9, NULL},
 {  -1, "", 			0, do_info_add_meshmenu}};
@@ -1889,7 +2192,7 @@ static TBitem tb_add[]= {
 {	0, "Mesh", 		0, addmenu_mesh},
 {	0, "Curve", 	1, addmenu_curve},
 {	0, "Surface", 	2, addmenu_surf},
-{	0, "MBall", 	3, addmenu_meta},
+{	0, "Meta", 	3, addmenu_meta},
 {	0, "Text", 		4, NULL},
 {	0, "Empty", 	5, NULL},
 {	0, "SEPR", 		0, NULL},
@@ -1932,17 +2235,17 @@ static uiBlock *tb_makemenu(void *arg)
 			uiDefBut(block, SEPR, 0, "", 0, yco-=6, 50, 6, NULL, 0.0, 0.0, 0, 0, "");
 		}
 		else if(item->icon) {
-			uiDefIconTextBut(block, BUTM, 1, item->icon, item->name, 0, yco-=20, 50, 19, NULL, 0.0, 0.0, 0, item->retval, "");
+			uiDefIconTextBut(block, BUTM, 1, item->icon, item->name, 0, yco-=20, 80, 19, NULL, 0.0, 0.0, 0, item->retval, "");
 		}
 		else if(item->poin) {
-			uiDefIconTextBlockBut(block, tb_makemenu, item->poin, ICON_RIGHTARROW_THIN, item->name, 0, yco-=20, 50, 19, "");
+			uiDefIconTextBlockBut(block, tb_makemenu, item->poin, ICON_RIGHTARROW_THIN, item->name, 0, yco-=20, 80, 19, "");
 		}
 		else {
-			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, item->name, 0, yco-=20, 50, 19, NULL, 0.0, 0.0, 0, item->retval, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, item->name, 0, yco-=20, 80, 19, NULL, 0.0, 0.0, 0, item->retval, "");
 		}
 		item++;
 	}
-	uiTextBoundsBlock(block, 50);
+	uiTextBoundsBlock(block, 80);
 	
 	/* direction is also set in the function that calls this */
 	uiBlockSetDirection(block, UI_RIGHT|UI_CENTRE);
@@ -1994,7 +2297,7 @@ void toolbox_n(void)
 				menu5= tb_transform_editmode1;
 			}
 			else if(G.obedit->type==OB_CURVE) {
-				menu1= tb_obdata; str1= "Curve";
+				menu1= tb_curve; str1= "Curve";
 				menu2= addmenu_curve;
 				menu3= tb_curve_select;
 				menu4= tb_curve_edit;

@@ -102,7 +102,8 @@ extern       void winqreadnlaspace(struct ScrArea *sa, void *spacedata, struct B
 extern       void winqreadseqspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 extern       void test_butspace(void);
 extern       void start_game(void);
-extern 		 void group_menu(void);
+extern		 void select_group_menu(void);
+extern		 void select_group(short nr);
 
 
 #ifdef _WIN32	// FULLSCREEN

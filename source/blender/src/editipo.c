@@ -2278,23 +2278,36 @@ void remove_doubles_ipo()
 	deselectall_editipo();
 }
 
-void join_ipo()
+void join_ipo_menu(void)
+{
+	int mode = 0;
+	mode= pupmenu("Join %t|All Selected %x1|Selected Doubles %x2");
+	
+	if (mode == -1) return;
+	
+	join_ipo(mode);
+}
+
+void join_ipo(int mode)
 {
 	EditIpo *ei;
 	IpoKey *ik;
 	IpoCurve *icu;
 	BezTriple *bezt, *beztn, *newb;
 	float val;
-	int mode, tot, a, b;
+	int tot, a, b;
 	
 	get_status_editipo();
 	
-	mode= pupmenu("Join %t|All Selected %x1|Selected doubles %x2");
+	/* Mode events:
+	 * All Selected: 1
+	 * Selected Doubles: 2
+	 */
+	
 	if( mode==2 ) {
 		remove_doubles_ipo();
 		return;
 	}
-	else if(mode!=1) return;
 	
 	/* first: multiple selected verts in 1 curve */
 	ei= G.sipo->editipo;
@@ -2395,17 +2408,31 @@ void join_ipo()
 	deselectall_editipo();
 }
 
-void ipo_snapmenu()
+void ipo_snap_menu(void)
+{
+	short event;
+	
+	event= pupmenu("Snap %t|Horizontal %x1|To Next %x2|To Frame %x3|To Current Frame%x4");
+	if(event < 1) return;
+
+	ipo_snap(event);
+}
+
+void ipo_snap(short event)
 {
 	EditIpo *ei;
 	BezTriple *bezt;
 	float dx = 0.0;
 	int a, b;
-	short event, ok, ok2;
+	short ok, ok2;
 	
-	event= pupmenu("Snap %t|Horizontal %x1|To next %x2|To frame %x3|To current frame%x4");
-	if(event < 1) return;
-	
+	/* events:
+	 * Horizontal : 1
+	 * To Next: 2
+	 * To Frame: 3
+	 * To Current Frame: 4
+	 */
+	 
 	get_status_editipo();
 
 	ei= G.sipo->editipo;

@@ -185,6 +185,8 @@ void do_action_buttons(unsigned short event)
 
 static void do_action_viewmenu(void *arg, int event)
 {
+	extern int play_anim(int mode);
+
 	switch(event) {
 		case ACTMENU_VIEW_CENTERVIEW: /* Center View to Current Frame */
 			center_currframe();

@@ -442,7 +442,7 @@ static void changeview3dspace(ScrArea *sa, void *spacedata)
 	 */
 static void align_view_to_selected(View3D *v3d)
 {
-	int nr= pupmenu("Align view%t|To selection (top)%x2|To selection (front)%x1|To selection (side)%x0");
+	int nr= pupmenu("Align View%t|To Selected (top)%x2|To Selected (front)%x1|To Selected (side)%x0");
 
 	if (nr!=-1) {
 		int axis= nr;
@@ -501,23 +501,30 @@ void select_parent(void)	/* Makes parent active and de-selected OBACT */
 	set_active_base(basact);
 }
 
-void group_menu(void)
+
+void select_group_menu(void)
 {
-	Base *base;
-	short nr;
 	char *str;
+	short nr;
 
 	/* make menu string */
 	
 	str= MEM_mallocN(160, "groupmenu");
-	strcpy(str, "Group selection%t|Children%x1|"
-	            "Immediate children%x2|Parent%x3|"
-	            "Objects on shared layers%x4");
+	strcpy(str, "Select Grouped%t|Children%x1|"
+	            "Immediate Children%x2|Parent%x3|"
+	            "Objects on Shared Layers%x4");
 
 	/* here we go */
 	
 	nr= pupmenu(str);
 	MEM_freeN(str);
+	
+	select_group(nr);
+}
+
+void select_group(short nr)
+{
+	Base *base;
 
 	if(nr==4) {
 		base= FIRSTBASE;
@@ -558,7 +565,6 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		if(event==MOUSEY) return;
 		
 		if(event==UI_BUT_EVENT) do_butspace(val); // temporal, view3d deserves own queue?
-
 		
 		/* TEXTEDITING?? */
 		if((G.obedit) && G.obedit->type==OB_FONT) {
@@ -913,7 +919,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case CKEY:
 				if(G.qual==LR_CTRLKEY) {
-					copymenu();
+					copy_attr_menu();
 				}
 				else if(G.qual==LR_ALTKEY) {
 					convertmenu();	/* editobject.c */
@@ -1008,7 +1014,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if(G.qual & LR_ALTKEY) rem_selected_from_group(); */
 				
 				if((G.qual==LR_SHIFTKEY))
-					group_menu();
+					select_group_menu();
 				else if(G.qual==LR_ALTKEY)
 					clear_object('g');
 				else if((G.qual==0))
@@ -1124,9 +1130,9 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else {
 					if((G.qual==LR_SHIFTKEY))
-						selectlinks();
+						selectlinks_menu();
 					else if(G.qual==LR_CTRLKEY)
-						linkmenu();
+						make_links_menu();
 					else if(G.f & G_FACESELECT)
 						select_linked_tfaces();
 					else if((G.qual==0))
@@ -1655,7 +1661,7 @@ void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case JKEY:
 			if((G.qual==0))
-				join_ipo();
+				join_ipo_menu();
 			break;
 		case KKEY:
 			if((G.qual==0)) {
@@ -1674,9 +1680,9 @@ void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				ipo_record();
 			break;
 		case SKEY:
-			if((G.qual==LR_SHIFTKEY))
-				ipo_snapmenu();
-			else if((G.qual==0))
+			if((G.qual==LR_SHIFTKEY)) {		
+				ipo_snap_menu();
+			} else if((G.qual==0))
 				transform_ipo('s');
 			break;
 		case TKEY:

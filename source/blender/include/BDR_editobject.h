@@ -64,9 +64,11 @@ void movetolayer(void);
 void special_editmenu(void);
 void convertmenu(void);
 void copymenu_properties(struct Object *ob);
-void copymenu(void);
+void copy_attr_menu(void);
+void copy_attr(short event);
 void link_to_scene(unsigned short nr);
-void linkmenu(void);
+void make_links_menu(void);
+void make_links(short event);
 void make_duplilist_real(void);
 void apply_object(void);
 void ob_to_transob(struct Object *ob, struct TransOb *tob);
@@ -102,7 +104,8 @@ void single_mat_users_expand(void);
 void single_user(void);
 void make_local(void);
 void adduplicate(float *dtrans);
-void selectlinks(void);
+void selectlinks_menu(void);
+void selectlinks(int nr);
 void image_aspect(void);
 void set_ob_ipoflags(void);
 void select_select_keys(void);
@@ -115,6 +118,7 @@ void first_base(void);
 void make_displists_by_obdata(void *obdata);
 void flip_subdivison(struct Object *ob, int);
 void mirrormenu(void);
+void mirror(short mode);
 
 #endif /*  BDR_EDITOBJECT_H */
 

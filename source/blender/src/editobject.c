@@ -1932,32 +1932,23 @@ void copymenu_logicbricks(Object *ob)
 	}
 }
 
-void copymenu()
+void copy_attr_menu()
 {
-	Object *ob, *obt;
-	Base *base;
-	Curve *cu, *cu1;
-	void *poin1, *poin2=0;
+	Object *ob;
 	short event;
 	char str[256];
-	
-	if(G.scene->id.lib) return;
 
-	if(OBACT==0) return;
-	if(G.obedit) {
-		/* obedit_copymenu(); */
-		return;
-	}
-	
-	strcpy(str, "COPY %t|Loc%x1|Rot%x2|Size%x3|Drawtype%x4|TimeOffs%x5|Dupli%x6|%l|Mass%x7|Damping%x8|Properties%x9|Logic Bricks%x10");
+	/* If you change this menu, don't forget to update the menu in header_view3d.c
+	 * view3d_edit_object_copyattrmenu() and in toolbox.c
+	 */
+	strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Drawtype%x4|Time Offset%x5|Dupli%x6|%l|Mass%x7|Damping%x8|Properties%x9|Logic Bricks%x10|%l");
 
 	ob= OBACT;
 	
+	strcat (str, "|Object Constraints%x22");
+	
 	if ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL) {
-		strcat(str, "|Tex Space%x17");
-		if(ob->type==OB_MESH) poin2= &(((Mesh *)ob->data)->texflag);
-		else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) poin2= &(((Curve *)ob->data)->texflag);
-		else if(ob->type==OB_MBALL) poin2= &(((MetaBall *)ob->data)->texflag);
+		strcat(str, "|Texture Space%x17");
 	}	
 	
 	if(ob->type == OB_FONT) strcat(str, "|Font Settings%x18|Bevel Settings%x19");
@@ -1969,10 +1960,34 @@ void copymenu()
 
 	if( give_parteff(ob) ) strcat(str, "|Particle Settings%x20");
 
-	strcat (str, "|Object Constraints%x22");
-
 	event= pupmenu(str);
 	if(event<= 0) return;
+	
+	copy_attr(event);
+}
+
+void copy_attr(short event)
+{
+	Object *ob, *obt;
+	Base *base;
+	Curve *cu, *cu1;
+	void *poin1, *poin2=0;
+	
+	if(G.scene->id.lib) return;
+
+	ob= OBACT;
+	
+	if(OBACT==0) return;
+	if(G.obedit) {
+		/* obedit_copymenu(); */
+		return;
+	}
+	
+	if ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL) {
+		if(ob->type==OB_MESH) poin2= &(((Mesh *)ob->data)->texflag);
+		else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) poin2= &(((Curve *)ob->data)->texflag);
+		else if(ob->type==OB_MBALL) poin2= &(((MetaBall *)ob->data)->texflag);
+	}	
 
 	if(event==9) {
 		copymenu_properties(ob);
@@ -2163,7 +2178,44 @@ void link_to_scene(unsigned short nr)
 	}
 }
 
-void linkmenu()
+void make_links_menu()
+{
+	Object *ob;
+	short event=0;
+	char str[140];
+	
+	if(OBACT==0) return;
+	ob= OBACT;
+	
+	strcpy(str, "Make Links %t|To Scene...%x1|%l|Object Ipo%x4");
+	
+	if(ob->type==OB_MESH)
+		strcat(str, "|Mesh Data%x2|Materials%x3");
+	else if(ob->type==OB_CURVE)
+		strcat(str, "|Curve Data%x2|Materials%x3");
+	else if(ob->type==OB_FONT)
+		strcat(str, "|Text Data%x2|Materials%x3");
+	else if(ob->type==OB_SURF)
+		strcat(str, "|Surface Data%x2|Materials%x3");
+	else if(ob->type==OB_MBALL)
+		strcat(str, "|Materials%x3");
+	else if(ob->type==OB_CAMERA)
+		strcat(str, "|Camera Data%x2");
+	else if(ob->type==OB_LAMP)
+		strcat(str, "|Lamp Data%x2");
+	else if(ob->type==OB_LATTICE)
+		strcat(str, "|Lattice Data%x2");
+	else if(ob->type==OB_ARMATURE)
+		strcat(str, "|Armature Data%x2");
+
+	event= pupmenu(str);
+
+	if(event<= 0) return;
+	
+	make_links(event);
+}
+
+void make_links(short event)
 {
 	Object *ob, *obt;
 	Base *base, *nbase, *sbase;
@@ -2171,35 +2223,11 @@ void linkmenu()
 	ID *id;
 	Material ***matarar, ***obmatarar, **matar1, **matar2;
 	int a;
-	short event, *totcolp, nr;
-	char str[140], *strp;
-	
+	short *totcolp, nr;
+	char *strp;
 
 	if(OBACT==0) return;
 	ob= OBACT;
-	
-	strcpy(str, "MAKE LINKS %t|To scene...%x1|Object Ipo%x4");
-	
-	if(ob->type==OB_MESH)
-		strcat(str, "|Mesh data%x2|Materials%x3");
-	else if(ob->type==OB_CURVE)
-		strcat(str, "|Curve data%x2|Materials%x3");
-	else if(ob->type==OB_FONT)
-		strcat(str, "|Font data%x2|Materials%x3");
-	else if(ob->type==OB_SURF)
-		strcat(str, "|Surf data%x2|Materials%x3");
-	else if(ob->type==OB_MBALL)
-		strcat(str, "|Materials%x3");
-	else if(ob->type==OB_CAMERA)
-		strcat(str, "|Camera data%x2");
-	else if(ob->type==OB_LAMP)
-		strcat(str, "|Lamp data%x2");
-	else if(ob->type==OB_LATTICE)
-		strcat(str, "|Lattice data%x2");
-	else if(ob->type==OB_ARMATURE)
-		strcat(str, "|Armature data%x2");
-	event= pupmenu(str);
-	if(event<= 0) return;
 
 	if(event==1) {
 		IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->scene), 0, &nr);
@@ -2723,7 +2751,7 @@ static void figure_bone_nocalc_constraint(Bone *conbone, bConstraint *con,
 	char *subtar;
 
 	subtar = get_con_subtarget_name(con, ob);
-						
+
 	if (subtar) {
 		if ( (subtarbone = get_named_bone(arm, subtar)) ) {
 			if ( (~subtarbone->flag & BONE_NOCALC) ||
@@ -6780,8 +6808,25 @@ void adduplicate(float *dtrans)
 	allqueue(REDRAWIPO, 0);	/* also oops */
 }
 
+void selectlinks_menu(void)
+{
+	Object *ob;
+	int nr;
+	
+	ob= OBACT;
+	if(ob==0) return;
+	
+	/* If you modify this menu, please remember to update view3d_select_linksmenu
+	 * in header_view3d.c and the menu in toolbox.c
+	 */
+	nr= pupmenu("Select Linked%t|Object Ipo%x1|ObData%x2|Material%x3|Texture%x4");
+	
+	if (nr <= 0) return;
+	
+	selectlinks(nr);
+}
 
-void selectlinks(void)
+void selectlinks(int nr)
 {
 	Object *ob;
 	Base *base;
@@ -6789,11 +6834,18 @@ void selectlinks(void)
 	Ipo *ipo = NULL;
 	Material *mat = NULL, *mat1;
 	Tex *tex=0;
-	int a, b, nr;
+	int a, b;
+	
+	/* events (nr):
+	 * Object Ipo: 1
+	 * ObData: 2
+	 * Current Material: 3
+	 * Current Texture: 4
+	 */
+	
 	
 	ob= OBACT;
 	if(ob==0) return;
-	nr= pupmenu("Select links%t|Object Ipo|Object Data|Current Material|Current texture");
 	
 	if(nr==1) {
 		ipo= ob->ipo;
@@ -7305,7 +7357,7 @@ void mirrormenu(void){
 
 	if (G.obedit==0) return;
 
-	mode=pupmenu("Mirror Axis %t|Global X%x1|       Y%x2|       Z%x3|Local X%x4|      Y%x5|      Z%x6|View X%x7|     Y%x8|     Z%x9|");
+	mode=pupmenu("Mirror Axis %t|X Global%x1|Y Global%x2|Z Global%x3|%l|X Local%x4|Y local%x5|Z Local%x6|%l|X View%x7|Y View%x8|Z View%x9|");
 
 	if (mode==-1) return; /* return */
 

@@ -46,5 +46,11 @@ void duplicate_context_selected(void);
 void toggle_shading(void);
 void minmax_verts(float *min, float *max);
 
+void snap_sel_to_grid(void);
+void snap_sel_to_curs(void);
+void snap_curs_to_grid(void);
+void snap_curs_to_sel(void);
+void snap_to_center(void);
+
 #endif /*  BSE_EDIT_H */
 

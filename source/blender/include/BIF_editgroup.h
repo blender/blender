@@ -34,7 +34,7 @@ struct Group;
 void set_active_group(void);
 void add_selected_to_group(void);
 void rem_selected_from_group(void);
-void group_menu(void);
 void prev_group_key(struct Group *group);
 void next_group_key(struct Group *group);
-
+void select_group_menu(void);
+void select_group(short nr);

@@ -86,6 +86,65 @@
 static int viewmovetemp = 0;
 extern int totipo_edit, totipo_sel;
 
+
+static void do_ipo_editmenu_snapmenu(void *arg, int event)
+{
+	switch(event) {
+	case 1: /* Horizontal */
+	case 2: /* To Next */
+	case 3: /* To Frame */
+	case 4: /* To Current Frame */
+		ipo_snap(event);
+	    break;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *ipo_editmenu_snapmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "ipo_editmenu_snapmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_ipo_editmenu_snapmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Horizontal|Shift S, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "To Next|Shift S, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "To Frame|Shift S, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "To Current Frame|Shift S, 4",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");	
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
+static void do_ipo_editmenu_joinmenu(void *arg, int event)
+{
+	switch(event) {
+	case 1: /* All Selected */
+	case 2: /* Selected Doubles */
+		join_ipo(event);
+	    break;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *ipo_editmenu_joinmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "ipo_editmenu_joinmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_ipo_editmenu_joinmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "All Selected|J, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Selected Doubles|J, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
 static void do_ipo_editmenu_keymenu(void *arg, int event)
 {
 	Key *key;
@@ -286,6 +345,9 @@ static void do_ipo_editmenu(void *arg, int event)
 	case 4 :
 		add_blockhandler(curarea, IPO_HANDLER_PROPERTIES, UI_PNL_UNSTOW);
 		break;
+	case 5:
+		//join_ipo();
+		break;
 	}
 }
 
@@ -303,6 +365,7 @@ static uiBlock *ipo_editmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_ipo_editmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	uiDefIconTextBlockBut(block, ipo_editmenu_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");	
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -311,8 +374,9 @@ static uiBlock *ipo_editmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate|Shift D", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete|X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Record Mouse Movement|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete|X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBlockBut(block, ipo_editmenu_joinmenu, NULL, ICON_RIGHTARROW_THIN, "Join", 0, yco-=20, 120, 19, "");	
 
 	if (!G.sipo->showkey){
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
