@@ -472,6 +472,16 @@ void do_textedit(unsigned short event, short val, char _ascii)
 			}
 			doit= 1;
 			break;
+
+		case DELKEY:
+			if(cu->len!=0) {
+				if(cu->pos<cu->len) {
+					for(x=cu->pos;x<cu->len;x++) textbuf[x]= textbuf[x+1];
+					textbuf[--cu->len]='\0';
+				}
+			}
+			doit= 1;
+			break;
 		}
 			
 		if(cursmove) {
