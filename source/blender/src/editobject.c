@@ -7518,6 +7518,7 @@ void adduplicate(float *dtrans)
 	while(base) {
 		if TESTBASELIB(base) {
 			
+			relink_constraints(&base->object->constraints);
 			if (base->object->pose){
 				bPoseChannel *chan;
 				for (chan = base->object->pose->chanbase.first; chan; chan=chan->next){
