@@ -3908,7 +3908,7 @@ void texbuts(void)
 						uiDefBut(block, varstr->type, B_PLUGBUT+a, varstr->name, (short)xco,(short)yco,137,19, &(pit->data[a]), varstr->min, varstr->max, 100, 0, varstr->tip);
 					}
 				}
-				uiDefBut(block, TEX, B_NAMEPLUGIN, "",			520,137,412,24, pit->name, 0.0, 79.0, 0, 0, "Browse");
+				uiDefBut(block, TEX, B_NAMEPLUGIN, "",			520,137,412,24, pit->name, 0.0, 159.0, 0, 0, "Browse");
 			}
 	
 			uiBlockSetCol(block, BUTSALMON);
@@ -7390,7 +7390,7 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 	uiClearButLock();
 	
 	test_butspace();
-	
+
 	curarea->win_swap= WIN_BACK_OK;
 }
 
