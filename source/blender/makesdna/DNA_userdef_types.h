@@ -187,6 +187,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_FLIPFULLSCREEN		128
 #define USER_ALLWINCODECS		256
 #define USER_MENUOPENAUTO		512
+#define USER_PANELPINNED		1024
 
 /* transopts */
 

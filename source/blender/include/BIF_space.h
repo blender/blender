@@ -80,6 +80,7 @@ void	scrarea_do_headchange	(struct ScrArea *sa);
 /* space.c */
 extern		void add_blockhandler(struct ScrArea *sa, short eventcode, short action);
 extern		void rem_blockhandler(struct ScrArea *sa, short eventcode);
+extern		void toggle_blockhandler(struct ScrArea *sa, short eventcode, short action);
 
 extern		 void space_set_commmandline_options(void);
 extern       void allqueue(unsigned short event, short val);

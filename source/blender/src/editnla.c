@@ -170,7 +170,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		case NKEY:
 			if(G.qual==0) {
-				add_blockhandler(curarea, NLA_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
+				toggle_blockhandler(curarea, NLA_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
 				scrarea_queue_winredraw(curarea);
 			}
 			break;

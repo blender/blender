@@ -194,6 +194,20 @@ void rem_blockhandler(ScrArea *sa, short eventcode)
 	}
 }
 
+void toggle_blockhandler(ScrArea *sa, short eventcode, short val)
+{
+	SpaceLink *sl= sa->spacedata.first;
+	short a, addnew=1;
+	
+	// find if it exists
+	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
+		if( sl->blockhandler[a]==eventcode ) {
+			sl->blockhandler[a]= 0;
+			addnew= 0;
+		}
+	}
+	if(addnew) add_blockhandler(sa, eventcode, val);
+}
 
 
 
@@ -1179,7 +1193,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
  				break;
 			case NKEY:
 				if((G.qual==0)) {
-					add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, UI_PNL_TO_MOUSE);
+					toggle_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, UI_PNL_TO_MOUSE);
 					allqueue(REDRAWVIEW3D, 0);
 				}
 				else if(G.obedit) {
@@ -1695,7 +1709,7 @@ void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		case NKEY:
-			add_blockhandler(sa, IPO_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
+			toggle_blockhandler(sa, IPO_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
 			doredraw= 1;
 			break;
 		case RKEY:
@@ -2033,24 +2047,33 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 
 		uiDefBut(block, LABEL,0,"Snap to grid:",
-			(xpos+edgespace+medprefbut),y3label,medprefbut,buth,
+			(xpos+edgespace+medprefbut),y4label,medprefbut,buth,
 			0, 0, 0, 0, 0, "");
 
 		uiDefButBitS(block, TOG, USER_AUTOGRABGRID, 0, "Grab",
-			(xpos+edgespace+medprefbut+midspace),y2,smallprefbut,buth,
+			(xpos+edgespace+medprefbut+midspace),y3,smallprefbut,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Move objects to grid units");
 
 		uiDefButBitS(block, TOG, USER_AUTOSIZEGRID, 0, "Size",
-			(xpos+edgespace+medprefbut+midspace),y1,smallprefbut,buth,
+			(xpos+edgespace+medprefbut+midspace),y2,smallprefbut,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Scale objects to grid units");
 
 		uiDefButBitS(block, TOG, USER_AUTOROTGRID, 0, "Rotate",
-			(xpos+edgespace+medprefbut+(2*midspace)+smallprefbut),y2,smallprefbut,buth,
+			(xpos+edgespace+medprefbut+midspace),y1,smallprefbut,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Rotate objects to grid units");
 
+
+		uiDefBut(block, LABEL, 0, "Panel",
+			(xpos+edgespace+medprefbut+(2*midspace)+smallprefbut),y4label,smallprefbut,buth,
+			NULL, 0, 0, 0, 0,
+			"");
+		uiDefButBitS(block, TOG, USER_PANELPINNED, 0, "Pinned",
+			(xpos+edgespace+medprefbut+(2*midspace)+smallprefbut),y3,smallprefbut,buth,
+			&(U.uiflag), 0, 0, 0, 0,
+			"Hotkey enabled floating panels (e.g. NKEY) open at old location");
 
 
 		uiDefBut(block, LABEL,0,"Menu Buttons:",
@@ -3017,7 +3040,7 @@ void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case NKEY:
 			if(G.qual==0) {
-				add_blockhandler(curarea, SEQ_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
+				toggle_blockhandler(curarea, SEQ_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
 				scrarea_queue_winredraw(curarea);
 			}
 			break;
@@ -3470,7 +3493,7 @@ void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		break;
 	case NKEY:
 		if(G.qual==0) {
-			add_blockhandler(curarea, IMAGE_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
+			toggle_blockhandler(curarea, IMAGE_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
 			scrarea_queue_winredraw(curarea);
 		}
 		break;

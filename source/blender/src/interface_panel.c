@@ -420,7 +420,9 @@ int uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int 
 	pa->active= 1;
 	pa->control= pnl_control;
 	
-	if(pnl_control & UI_PNL_TO_MOUSE) {
+	/* global control over this feature; UI_PNL_TO_MOUSE only called for hotkey panels */
+	if(U.uiflag & USER_PANELPINNED);
+	else if(pnl_control & UI_PNL_TO_MOUSE) {
 		short mval[2];
 		
 		Mat4CpyMat4(UIwinmat, block->winmat);	// can be first event here

@@ -306,7 +306,7 @@ static void do_seq_editmenu(void *arg, int event)
 		un_meta();
 		break;
 	case 4: /* Properties... */
-		add_blockhandler(curarea, SEQ_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
+		add_blockhandler(curarea, SEQ_HANDLER_PROPERTIES, UI_PNL_UNSTOW);
 		break;
 	case 5: /* Duplicate */
 		add_duplicate_seq();
