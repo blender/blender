@@ -2262,7 +2262,8 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 				
 				shi->uv[0]= -1.0 + 2.0*(l*uv3[0]-u*uv1[0]-v*uv2[0]);
 				shi->uv[1]= -1.0 + 2.0*(l*uv3[1]-u*uv1[1]-v*uv2[1]);
-	
+				shi->uv[2]= 0.0;	// texture.c assumes there are 3 coords
+				
 				if(shi->osatex) {
 					float duv[2];
 					
@@ -2293,6 +2294,7 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 			else {
 				shi->uv[0]= 2.0*(u+.5);
 				shi->uv[1]= 2.0*(v+.5);
+				shi->uv[2]= 0.0;	// texture.c assumes there are 3 coords
 			}
 		}
 		if(texco & TEXCO_NORM) {
