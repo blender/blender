@@ -121,17 +121,12 @@ def setEyeSeparation(eyesep):
 	Sets the eye separation for stereo mode.
 	
 	@param eyesep: The distance between the left and right eye.
-		If eyesep < 0.0, eye separation will be automatically determined from the projection
-		matrix.
 	@type eyesep: float
 	"""
 
 def getEyeSeparation():
 	"""
 	Gets the current eye separation for stereo mode.
-	
-	If the returned eye separation is < 0.0, the eye separation will be
-	automatically set on the next frame.
 	
 	@rtype: float
 	"""
@@ -140,17 +135,13 @@ def setFocalLength(focallength):
 	"""
 	Sets the focal length for stereo mode.
 	
-	@param focallength: The focal length.  If focallength < 0.0, the focal length will
-		be automatically determined.
+	@param focallength: The focal length.  
 	@type focallength: float
 	"""
 
 def getFocalLength():
 	"""
 	Gets the current focal length for stereo mode.
-	
-	If the returned focal length is < 0.0, the focal length will be
-	automatically set on the next frame.
 	
 	@rtype: float
 	"""

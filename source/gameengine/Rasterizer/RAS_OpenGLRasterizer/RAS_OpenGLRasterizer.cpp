@@ -28,6 +28,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+ 
+#include <math.h>
+ 
 #include "RAS_OpenGLRasterizer.h"
 
 #ifdef HAVE_CONFIG_H
@@ -50,6 +53,18 @@
 
 #include "RAS_GLExtensionManager.h"
 
+/**
+ *  32x32 bit masks for vinterlace stereo mode
+ */
+static GLuint left_eye_vinterlace_mask[32];
+static GLuint right_eye_vinterlace_mask[32];
+
+/**
+ *  32x32 bit masks for hinterlace stereo mode.
+ *  Left eye = &hinterlace_mask[0]
+ *  Right eye = &hinterlace_mask[1]
+ */
+static GLuint hinterlace_mask[33];
 
 RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas)
 	:RAS_IRasterizer(canvas),
@@ -58,12 +73,22 @@ RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas)
 	m_time(0.0),
 	m_stereomode(RAS_STEREO_NOSTEREO),
 	m_curreye(RAS_STEREO_LEFTEYE),
-	m_eyeseparation(-1.0f),
-	m_focallength(-1.0f),
+	m_eyeseparation(0.0),
+	m_seteyesep(false),
+	m_focallength(0.0),
+	m_setfocallength(false),
 	m_noOfScanlines(32),
 	m_materialCachingInfo(0)
 {
 	m_viewmatrix.Identity();
+	
+	for (int i = 0; i < 32; i++)
+	{
+		left_eye_vinterlace_mask[i] = 0x55555555;
+		right_eye_vinterlace_mask[i] = 0xAAAAAAAA;
+		hinterlace_mask[i] = (i&1)*0xFFFFFFFF;
+	}
+	hinterlace_mask[32] = 0;
 }
 
 
@@ -461,8 +486,6 @@ void RAS_OpenGLRasterizer::SetEye(StereoEye eye)
 			if (m_curreye == RAS_STEREO_LEFTEYE)
 			{
 				glColorMask(GL_FALSE, GL_TRUE, GL_TRUE, GL_FALSE);
-				m_2DCanvas->ClearBuffer(RAS_ICanvas::COLOR_BUFFER);
-				glColorMask(GL_FALSE, GL_FALSE, GL_TRUE, GL_FALSE);
 			} else {
 				//glAccum(GL_LOAD, 1.0);
 				glColorMask(GL_TRUE, GL_FALSE, GL_FALSE, GL_FALSE);
@@ -471,26 +494,16 @@ void RAS_OpenGLRasterizer::SetEye(StereoEye eye)
 			break;
 		case RAS_STEREO_VINTERLACE:
 		{
-			GLuint pat[32];
-			const unsigned char mask = 0x55;  // 01010101
-			memset(pat, m_curreye == RAS_STEREO_RIGHTEYE?~mask:mask, sizeof(pat));
 			glEnable(GL_POLYGON_STIPPLE);
-			glPolygonStipple((const GLubyte*) pat);
+			glPolygonStipple((const GLubyte*) ((m_curreye == RAS_STEREO_LEFTEYE) ? left_eye_vinterlace_mask : right_eye_vinterlace_mask));
 			if (m_curreye == RAS_STEREO_RIGHTEYE)
 				ClearDepthBuffer();
 			break;
 		}
 		case RAS_STEREO_INTERLACED:
 		{
-			GLuint pat[32];
-			GLuint mask = m_curreye == RAS_STEREO_LEFTEYE?~0:0;
-			for (int y = 0; y < 32; y+=2)
-			{
-				pat[y] = mask;
-				pat[y+1] = ~mask;
-			}
 			glEnable(GL_POLYGON_STIPPLE);
-			glPolygonStipple((const GLubyte*) pat);
+			glPolygonStipple((const GLubyte*) &hinterlace_mask[m_curreye == RAS_STEREO_LEFTEYE?0:1]);
 			if (m_curreye == RAS_STEREO_RIGHTEYE)
 				ClearDepthBuffer();
 			break;
@@ -509,6 +522,7 @@ RAS_IRasterizer::StereoEye RAS_OpenGLRasterizer::GetEye()
 void RAS_OpenGLRasterizer::SetEyeSeparation(float eyeseparation)
 {
 	m_eyeseparation = eyeseparation;
+	m_seteyesep = true;
 }
 
 float RAS_OpenGLRasterizer::GetEyeSeparation()
@@ -519,6 +533,7 @@ float RAS_OpenGLRasterizer::GetEyeSeparation()
 void RAS_OpenGLRasterizer::SetFocalLength(float focallength)
 {
 	m_focallength = focallength;
+	m_setfocallength = true;
 }
 
 float RAS_OpenGLRasterizer::GetFocalLength()
@@ -1159,9 +1174,9 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 	{
 			float near_div_focallength;
 			// next 2 params should be specified on command line and in Blender publisher
-			if (m_focallength < 0.0f)
+			if (!m_setfocallength)
 				m_focallength = 1.5 * right;  // derived from example
-			if (m_eyeseparation < 0.0f)
+			if (!m_seteyesep)
 				m_eyeseparation = 0.18 * right;  // just a guess...
 
 			near_div_focallength = frustnear / m_focallength;
