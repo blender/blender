@@ -34,7 +34,7 @@ include nan_definitions.mk
 
 SOURCEDIR = extern
 DIR = $(OCGDIR)/extern
-DIRS = qhull/src solid/src ode
+DIRS = qhull/src solid
 
 TARGET =
 ifneq ($(OS),irix)

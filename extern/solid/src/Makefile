@@ -45,23 +45,3 @@ CPPFLAGS += -DQHULL -DUSE_DOUBLES
 
 include nan_compile.mk 
 
-install: all debug
-	@[ -d $(NAN_SOLID) ] || mkdir -p $(NAN_SOLID)
-	@[ -d $(NAN_SOLID)/include/SOLID ] || mkdir -p $(NAN_SOLID)/include/SOLID
-	@[ -d $(NAN_SOLID)/include/SOLID/MT ] || mkdir -p $(NAN_SOLID)/include/SOLID/MT
-	@[ -d $(NAN_SOLID)/lib ] || mkdir -p $(NAN_SOLID)/lib
-	@[ -d $(NAN_SOLID)/lib/debug ] || mkdir -p $(NAN_SOLID)/lib/debug
-	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh $(DIR)/lib$(LIBNAME).a $(NAN_SOLID)/lib/
-#	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh $(DIR)/debug/lib$(LIBNAME).a $(NAN_SOLID)/lib/debug/
-ifeq ($(OS),darwin)
-	ranlib $(NAN_SOLID)/lib/lib$(LIBNAME).a
-	ranlib $(NAN_SOLID)/lib/debug/lib$(LIBNAME).a
-endif
-	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh ../include/*.h $(NAN_SOLID)/include/SOLID
-	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh ../include/MT/*.h $(NAN_SOLID)/include/SOLID/MT
-	@for i in $(DIRS); do \
-	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\
-	    $(MAKE) -C $$i install || exit 1; \
-	done
-
-

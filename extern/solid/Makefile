@@ -31,14 +31,27 @@
 #
 #
 
-LIBNAME = solid_convex
-DIR = $(OCGDIR)/extern/$(LIBNAME)
+LIBNAMES = solid solid_broad solid_convex solid_complex
+DIR = $(OCGDIR)/extern/
+DIRS = src
 
-CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
+include nan_subdirs.mk
 
-CPPFLAGS += -I../../include -I$(NAN_QHULL)/include
-CPPFLAGS += -DQHULL -DUSE_DOUBLES
-
-include nan_compile.mk 
+install: all debug
+	@[ -d $(NAN_SOLID) ] || mkdir -p $(NAN_SOLID)
+	@[ -d $(NAN_SOLID)/include/SOLID ] || mkdir -p $(NAN_SOLID)/include/SOLID
+	@[ -d $(NAN_SOLID)/include/SOLID/MT ] || mkdir -p $(NAN_SOLID)/include/SOLID/MT
+	@[ -d $(NAN_SOLID)/lib ] || mkdir -p $(NAN_SOLID)/lib
+	@[ -d $(NAN_SOLID)/lib/debug ] || mkdir -p $(NAN_SOLID)/lib/debug
+	@for i in $(LIBNAMES); do \
+	    $(NANBLENDERHOME)/intern/tools/cpifdiff.sh $(DIR)/$$i/lib$$i.a $(NAN_SOLID)/lib/ ; \
+	    $(NANBLENDERHOME)/intern/tools/cpifdiff.sh $(DIR)/$$i/debug/lib$$i.a $(NAN_SOLID)/lib/debug/ ; \
+	    if [ $(OS) = darwin ] ; then \
+            ranlib $(NAN_SOLID)/lib/lib$$i.a ; \
+            ranlib $(NAN_SOLID)/lib/debug/lib$$i.a ; \
+        fi ; \
+	done
+	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh include/*.h $(NAN_SOLID)/include/SOLID
+	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh include/MT/*.h $(NAN_SOLID)/include/SOLID/MT
 
 
