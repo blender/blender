@@ -254,7 +254,7 @@ void do_butspace(unsigned short event)
 		//do_viewbuts(event);
 	}
 	else if(event<=B_LAMPBUTS) {
-		//do_lampbuts(event);
+		do_lampbuts(event);
 	}
 	else if(event<=B_MATBUTS) {
 		do_matbuts(event);
@@ -266,7 +266,7 @@ void do_butspace(unsigned short event)
 		do_object_panels(event);
 	}
 	else if(event<=B_WORLDBUTS) {
-		//do_worldbuts(event);
+		do_worldbuts(event);
 	}
 	else if(event<=B_RENDERBUTS) {
 		do_render_panels(event);	// buttons_scene.c
@@ -334,18 +334,29 @@ void redraw_test_buttons(Base *new)
 				
 				// change type automatically
 				if(new) {
-					if(buts->tab[CONTEXT_SHADING] == TAB_SHADING_WORLD);
-					else if(buts->tab[CONTEXT_SHADING] == TAB_SHADING_TEX);
+					int tab= buts->tab[CONTEXT_SHADING];
+					
+					if(tab == TAB_SHADING_WORLD) {
+						if(new->object->type==OB_LAMP) {
+							buts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
+						}
+						else buts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
+						
+					}
+					else if(tab == TAB_SHADING_TEX) {
+					}
+					else if(tab == TAB_SHADING_RAD) {
+					}
+					else if(new->object->type==OB_CAMERA) {
+						buts->tab[CONTEXT_SHADING]= TAB_SHADING_WORLD;
+					}
 					else if(new->object->type==OB_LAMP) {
 						buts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
-						BIF_preview_changed(buts);
-						addqueue(sa->win, REDRAW, 1);
 					}
 					else {
 						buts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
-						BIF_preview_changed(buts);
-						addqueue(sa->win, REDRAW, 1);
 					}
+					BIF_preview_changed(buts);
 				}
 			}
 		}
@@ -393,7 +404,12 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 		
 		if(tab==TAB_SHADING_MAT)
 			material_panels();
-		
+		else if(tab==TAB_SHADING_LAMP)
+			lamp_panels();
+		else if(tab==TAB_SHADING_WORLD)
+			world_panels();
+			
+			
 		break;
 	case CONTEXT_EDITING:
 		/* no tabs */

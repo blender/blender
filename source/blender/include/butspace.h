@@ -73,8 +73,12 @@ extern void do_latticebuts(unsigned short event);
 extern void do_fpaintbuts(unsigned short event);
 
 /* shading */
-extern void do_matbuts(unsigned short event);
 extern void material_panels(void);
+extern void do_matbuts(unsigned short event);
+extern void lamp_panels(void);
+extern void do_lampbuts(unsigned short event);
+extern void world_panels(void);
+extern void do_worldbuts(unsigned short event);
 
 /* logic */
 extern void do_logic_buts(unsigned short event);
@@ -196,6 +200,9 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_WORLDBUTS		1600
 
 #define B_TEXCLEARWORLD	1501
+#define B_COLHOR		1502
+#define B_COLZEN		1503
+
 
 /* *********************** */
 #define B_RENDERBUTS	1700

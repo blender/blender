@@ -1476,7 +1476,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 	if(curarea->win==0) return;
 
-	glClearColor(0.5, 0.5, 0.5, 0.0); 
+	glClearColor(0.6, 0.6, 0.6, 0.0); 
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	fac= ((float)curarea->winx)/1280.0;
@@ -1581,17 +1581,40 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			&(U.flag), 0, 0, 0, 0,
 			"Move objects to grid units");
 
+		uiDefButS(block, TOG|BIT|3, 0, "Size",
+			(xpos+edgespace+medprefbut+midspace),y1,smallprefbut,buth,
+			&(U.flag), 0, 0, 0, 0,
+			"Scale objects to grid units");
+
 		uiDefButS(block, TOG|BIT|2, 0, "Rotate",
 			(xpos+edgespace+medprefbut+(2*midspace)+smallprefbut),y2,smallprefbut,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Rotate objects to grid units");
 
-		uiDefButS(block, TOG|BIT|3, 0, "Size",
+
+
+		uiBlockSetCol(block, BUTGREEN);
+
+		uiDefBut(block, LABEL,0,"Menu Buttons:",
+			(xpos+edgespace+medprefbut+(3*midspace)+(2*smallprefbut)),y3label,medprefbut,buth,
+			0, 0, 0, 0, 0, "");
+
+		uiDefButS(block, TOG|BIT|9, 0, "Auto Open",
 			(xpos+edgespace+medprefbut+(3*midspace)+(2*smallprefbut)),y2,smallprefbut,buth,
-			&(U.flag), 0, 0, 0, 0,
-			"Scale objects to grid units");
+			&(U.uiflag), 0, 0, 0, 0,
+			"Automatic opening of menu buttons");
 
+		uiBlockSetCol(block, BUTGREY);
 
+		uiDefButS(block, NUM, 0, "ThresA:",
+			(xpos+edgespace+medprefbut+(3*midspace)+(2*smallprefbut)),y1,smallprefbut,buth,
+			&(U.menuthreshold1), 1, 40, 0, 0,
+			"Time in 1/10 seconds for auto open");
+
+		uiDefButS(block, NUM, 0, "ThresB:",
+			(xpos+edgespace+medprefbut+(4*midspace)+(3*smallprefbut)),y1,smallprefbut,buth,
+			&(U.menuthreshold2), 1, 40, 0, 0,
+			"Time in 1/10 seconds for auto open sublevels");
 			
 
 		uiBlockSetCol(block, BUTGREEN);
@@ -2047,7 +2070,6 @@ void winqreadbutspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if (nr>=0) {
 				sbuts->align= nr;
 				if(nr) {
-					//uiAnimatePanels(sa);	
 					uiAlignPanelStep(sa, 1.0);
 					do_buts_buttons(B_BUTSHOME);
 				}
@@ -2173,12 +2195,19 @@ void extern_set_butspace(int fkey)
 	sbuts= sa->spacedata.first;
 	
 	if(fkey==F4KEY) {
-		sbuts->mainb= CONTEXT_SHADING;
-		sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
+		sbuts->mainb= CONTEXT_LOGIC;
 	}
 	else if(fkey==F5KEY) {
 		sbuts->mainb= CONTEXT_SHADING;
-		sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
+		if(OBACT) {
+			if(OBACT->type==OB_CAMERA) 
+				sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_WORLD;
+			else if(OBACT->type==OB_LAMP) 
+				sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
+			else  
+				sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
+		}
+		else sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
 	}
 	else if(fkey==F6KEY) {
 		sbuts->mainb= CONTEXT_SHADING;

@@ -265,7 +265,13 @@ static void setup_app_data(BlendFileData *bfd, char *filename) {
 	if (bfd->user) {
 		U= *bfd->user;
 		MEM_freeN(bfd->user);
+		
+		/* the UserDef struct is not corrected with do_versions() .... ugh! */
 		if(U.wheellinescroll == 0) U.wheellinescroll = 3;
+		if(U.menuthreshold1==0) {
+			U.menuthreshold1= 5;
+			U.menuthreshold2= 2;
+		}
 	}
 	
 	R.winpos= bfd->winpos;

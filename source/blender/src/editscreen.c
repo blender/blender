@@ -972,8 +972,12 @@ void screenmain(void)
 				set_cursor(newactarea->cursor);
 				g_activearea= newactarea;
 			}
-
+			/* when you move mouse from header to window, buttons can remain hilited otherwise */
+			if(newactwin != G.curscreen->winakt) {
+				if (g_activearea) scrarea_queue_headredraw(g_activearea);
+			}
 			G.curscreen->winakt= newactwin;
+			
 			if (G.curscreen->winakt) {
 				areawinset(G.curscreen->winakt);
 				set_cursor(choose_cursor(g_activearea));

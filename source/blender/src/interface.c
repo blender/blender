@@ -4723,15 +4723,16 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 					}
 					else if(but->type==BLOCK || but->type==MENU) {	// automatic opens block button (pulldown)
 						int time;
-						if(uevent->event!=LEFTMOUSE) {
-							if(block->auto_open) time= 14;
-							else time= 0;
+						if(uevent->event!=LEFTMOUSE ) {
+							if(block->auto_open) time= 5*U.menuthreshold2;
+							else if(U.uiflag & MENUOPENAUTO) time= 5*U.menuthreshold1;
+							else time= -1;
 							
-							for (; time<20; time++) {
+							for (; time>0; time--) {
 								if (anyqtest()) break;
 								else PIL_sleep_ms(20);
 							}
-							if(time==20) ui_do_button(block, but, uevent);
+							if(time==0) ui_do_button(block, but, uevent);
 						}
 					}
 					if(but->flag & UI_ACTIVE) active= 1;

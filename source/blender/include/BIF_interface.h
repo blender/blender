@@ -154,7 +154,7 @@ void uiPanelPush(uiBlock *block);
 void uiPanelPop(uiBlock *block);
 extern uiBlock *uiFindOpenPanelBlockName(ListBase *lb, char *name);
 extern void uiMatchPanel_view2d(struct ScrArea *sa);
-
+extern int uiAlignPanelStep(struct ScrArea *sa, float fac);
 
 
 

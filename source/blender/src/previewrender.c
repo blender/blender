@@ -331,9 +331,8 @@ void BIF_previewdraw(void)
 	
 	set_previewrect(sbuts->area->win, PR_XMIN, PR_YMIN, PR_XMAX, PR_YMAX);
 
-	if (sbuts->rect==0 || sbuts->cury==0) {
-		BIF_preview_changed(sbuts);
-	} else {
+	if (sbuts->rect==0) BIF_preview_changed(sbuts);
+	else {
 		int y;
 
 		for (y=0; y<PR_RECTY; y++) {
@@ -344,7 +343,7 @@ void BIF_previewdraw(void)
 			draw_tex_crop(sbuts->lockpoin);
 		}
 	}
-
+	if(sbuts->cury==0) BIF_preview_changed(sbuts);
 }
 
 static void sky_preview_pixel(float lens, int x, int y, char *rect)
@@ -1098,9 +1097,10 @@ void BIF_previewrender(SpaceButs *sbuts)
 		draw_tex_crop(sbuts->lockpoin);
 	
 	glDrawBuffer(GL_BACK);
-	uiPanelPop(block);
-
+	/* draw again for clean swapbufers */
 	BIF_previewdraw();
+
+	uiPanelPop(block);
 	
 	if(mat) {
 		end_render_material(mat);

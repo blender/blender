@@ -452,29 +452,10 @@ void buts_buttons(void)
 	G.buts->lockpoin= id;
 	
 	if(G.buts->mainb==CONTEXT_SHADING) {
+#if 0
 		int tab= G.buts->tab[CONTEXT_SHADING];
 		
 		if(tab==TAB_SHADING_MAT) {
-#if 0
-moved to buttonswin!
-
-			if(ob && (ob->type<OB_LAMP) && ob->type) {
-				xco= std_libbuttons(block, xco, 0, 0, NULL, B_MATBROWSE, id, idfrom, &(G.buts->menunr), B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
-			}
-		
-			/* COPY PASTE */
-			if(curarea->headertype==HEADERTOP) {
-				uiDefIconBut(block, BUT, B_MATCOPY, ICON_COPYUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies Material to the buffer");
-				uiSetButLock(id && id->lib, "Can't edit library data");
-				uiDefIconBut(block, BUT, B_MATPASTE, ICON_PASTEUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes Material from the buffer");
-			}
-			else {
-				uiDefIconBut(block, BUT, B_MATCOPY, ICON_COPYDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies Material to the buffer");
-				uiSetButLock(id && id->lib, "Can't edit library data");
-				uiDefIconBut(block, BUT, B_MATPASTE, ICON_PASTEDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes Material from the buffer");
-			}
-			xco+=XIC;
-#endif			
 		}
 		else if(tab==TAB_SHADING_TEX) {
 			if(G.buts->texfrom==0) {
@@ -501,6 +482,7 @@ moved to buttonswin!
 		else if(tab==TAB_SHADING_WORLD) {
 			xco= std_libbuttons(block, xco, 0, 0, NULL, B_WORLDBROWSE, id, idfrom, &(G.buts->menunr), B_WORLDALONE, B_WORLDLOCAL, B_WORLDDELETE, 0, B_KEEPDATA);
 		}
+#endif
 	}
 	else if(G.buts->mainb==CONTEXT_EDITING) {
 

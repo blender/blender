@@ -57,6 +57,7 @@ typedef struct UserDef {
 	int fontsize;
 	short encoding;
 	short transopts;
+	short menuthreshold1, menuthreshold2;
 	char fontname[64];
 } UserDef;
 
@@ -91,6 +92,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define FLIPINFOMENU	64
 #define FLIPFULLSCREEN	128
 #define ALLWINCODECS	256
+#define MENUOPENAUTO	512
 
 /* transopts */
 
