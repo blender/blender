@@ -1422,7 +1422,7 @@ void flip_editnormals(void)
 	
 	efa= em->faces.first;
 	while(efa) {
-		if( faceselectedAND(efa, 1) ) {
+		if( efa->f & SELECT ){
 			flipface(efa);
 		}
 		efa= efa->next;
