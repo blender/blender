@@ -1058,13 +1058,11 @@ void yafrayPluginRender_t::writeAreaLamp(LampRen* lamp, int num, float iview[4][
 	params["name"]=yafray::parameter_t(temp);
 	params["dummy"]=yafray::parameter_t(md);
 	params["power"]=yafray::parameter_t(power);
-	if (!R.r.GIphotons) 
-	{
-		int psm=0, sm = lamp->ray_totsamp;
-		if (sm>=25) psm = sm/5;
-		params["samples"]=yafray::parameter_t(sm);
-		params["psamples"]=yafray::parameter_t(psm);
-	}
+	// samples not used for GI with photons, can still be exported, is ignored
+	int psm=0, sm = lamp->ray_totsamp;
+	if (sm>=25) psm = sm/5;
+	params["samples"]=yafray::parameter_t(sm);
+	params["psamples"]=yafray::parameter_t(psm);
 	
 	// transform area lamp coords back to world
 	float lpco[4][3];
@@ -1147,7 +1145,16 @@ void yafrayPluginRender_t::writeLamps()
 				//decay = 1;
 			}
 		}
-		params["power"] = yafray::parameter_t(pwr);
+
+		if (is_sphereL) {
+			// 'dummy' mode for spherelight when used with gpm
+			string md = "off";
+			// if no GI used, the GIphotons flag can still be set, so only use when 'full' selected
+			if ((R.r.GImethod==2) && (R.r.GIphotons)) { md="on";  pwr*=R.r.GIpower; }
+			params["power"] = yafray::parameter_t(pwr);
+			params["dummy"] = yafray::parameter_t(md);
+		}
+		else params["power"] = yafray::parameter_t(pwr);
 		
 		// cast_shadows flag not used with softlight, spherelight or photonlight
 		if ((!is_softL) && (!is_sphereL) && (lamp->type!=LA_YF_PHOTON)) {
@@ -1299,7 +1306,7 @@ void yafrayPluginRender_t::writeHemilight()
 
 void yafrayPluginRender_t::writePathlight()
 {
-	if(R.r.GIphotons)
+	if (R.r.GIphotons)
 	{
 		yafray::paramMap_t params;
 		params["type"]=yafray::parameter_t("globalphotonlight");

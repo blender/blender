@@ -1052,11 +1052,10 @@ void yafrayFileRender_t::writeAreaLamp(LampRen* lamp, int num, float iview[4][4]
 	// if no GI used, the GIphotons flag can still be set, so only use when 'full' selected
 	if ((R.r.GImethod==2) && (R.r.GIphotons)) { md="on";  power*=R.r.GIpower; }
 	ostr << "<light type=\"arealight\" name=\"LAMP" << num+1 << "\" dummy=\""<< md << "\" power=\"" << power << "\" ";
-	if (!R.r.GIphotons) {
-		int psm=0, sm = lamp->ray_totsamp;
-		if (sm>=25) psm = sm/5;
-		ostr << "samples=\"" << sm << "\" psamples=\"" << psm << "\" ";
-	}
+	// samples not used for GI with photons, can still be exported, is ignored
+	int psm=0, sm = lamp->ray_totsamp;
+	if (sm>=25) psm = sm/5;
+	ostr << "samples=\"" << sm << "\" psamples=\"" << psm << "\" ";
 	ostr << ">\n";
 	
 	// transform area lamp coords back to world
@@ -1138,7 +1137,15 @@ void yafrayFileRender_t::writeLamps()
 				//decay = 1;
 			}
 		}
-		ostr << "\" power=\"" << pwr << "\"";
+
+		if (is_sphereL) {
+			// 'dummy' mode for spherelight when used with gpm
+			string md = "off";
+			// if no GI used, the GIphotons flag can still be set, so only use when 'full' selected
+			if ((R.r.GImethod==2) && (R.r.GIphotons)) { md="on";  pwr*=R.r.GIpower; }
+			ostr << "\" power=\"" <<  pwr << "\" dummy=\"" << md << "\"";
+		}
+		else ostr << "\" power=\"" << pwr << "\"";
 		
 		// cast_shadows flag not used with softlight, spherelight or photonlight
 		if ((!is_softL) && (!is_sphereL) && (lamp->type!=LA_YF_PHOTON)) {
@@ -1297,7 +1304,7 @@ void yafrayFileRender_t::writeHemilight()
 void yafrayFileRender_t::writePathlight()
 {
 	ostr.str("");
-	if(R.r.GIphotons)
+	if (R.r.GIphotons)
 	{
 		ostr << "<light type=\"globalphotonlight\" name=\"gpm\" photons=\""<<R.r.GIphotoncount<<"\""<<endl;
 		ostr << "\tradius=\"" <<R.r.GIphotonradius << "\" depth=\""<< ((R.r.GIdepth>2) ? (R.r.GIdepth-1) : 1)
@@ -1305,7 +1312,7 @@ void yafrayFileRender_t::writePathlight()
 		ostr << "</light>"<<endl;
 	}
 	ostr << "<light type=\"pathlight\" name=\"path_LT\" power=\"1.0\" ";
-	ostr << " depth=\"" <<((R.r.GIphotons) ? 1 : R.r.GIdepth)<< "\" caus_depth=\"" << R.r.GIcausdepth <<"\"\n";
+	ostr << " depth=\"" << ((R.r.GIphotons) ? 1 : R.r.GIdepth) << "\" caus_depth=\"" << R.r.GIcausdepth <<"\"\n";
 	if(R.r.GIdirect && R.r.GIphotons) ostr << "direct=\"on\"" << endl;
 	if (R.r.GIcache && ! (R.r.GIdirect && R.r.GIphotons))
 	{

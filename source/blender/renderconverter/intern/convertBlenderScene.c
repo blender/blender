@@ -2966,14 +2966,14 @@ void RE_rotateBlenderScene(void)
 					   yafray only needs to know about one, the rest can be instanciated.
 					   The dupliMtx list is used for this purpose */
 					if (R.r.renderer==R_YAFRAY) {
-						/* Special case, parent object dupli's: ignore lattices */
+						/* Special case, parent object dupli's: ignore lattices & empty's */
 						if (ob->parent) {
-							if ((ob->parent->type!=OB_LATTICE) && (YAF_objectKnownData(ob)))
+							if ((ob->parent->type!=OB_EMPTY) && (ob->parent->type!=OB_LATTICE) && YAF_objectKnownData(ob))
 								printf("From parent: Added dupli matrix for linked data object %s\n", ob->id.name);
 							else
 								init_render_object(ob);
 						}
-						else if ((ob->type!=OB_EMPTY) && (ob->type!=OB_LAMP) && (YAF_objectKnownData(ob)))
+						else if ((ob->type!=OB_EMPTY) && (ob->type!=OB_LAMP) && YAF_objectKnownData(ob))
 							printf("Added dupli matrix for linked data object %s\n", ob->id.name);
 						else
 							init_render_object(ob);
