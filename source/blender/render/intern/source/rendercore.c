@@ -1543,7 +1543,7 @@ float OrenNayar_Diff_i(float nl, float *n, float *l, float *v, float rough )
 float OrenNayar_Diff(float *n, float *l, float *v, float rough )
 {
 	float nl= n[0]*l[0] + n[1]*l[1] + n[2]*l[2];
-	OrenNayar_Diff_i(nl, n, l, v, rough);
+	return OrenNayar_Diff_i(nl, n, l, v, rough);
 }
 
 
