@@ -5,12 +5,11 @@ class KX_GameObject:
 	"""
 	All game objects are derived from this class.
 	
-	Properties assigned to game objects are accessible as attributes
-	in objects of this class.
+	Properties assigned to game objects are accessible as attributes of this class.
 	
 	@ivar mass: The object's mass (provided the object has a physics controller). float. read only
 	@ivar parent: The object's parent object. (Read only)
-	@type parent: KX_GameObject
+	@type parent: L{KX_GameObject}
 	@ivar visible: visibility flag. boolean.
 	@ivar position: The object's position. 
 	@type position: list [x, y, z]
@@ -129,7 +128,7 @@ class KX_GameObject:
 		"""
 		Gets this object's parent.
 		
-		@rtype: game object
+		@rtype: L{KX_GameObject}
 		@return: this object's parent object, or None if this object has no parent.
 		"""
 	def getMesh(mesh):
@@ -138,7 +137,7 @@ class KX_GameObject:
 		
 		@type mesh: integer
 		@param mesh: the mesh object to return (optional: default mesh = 0)
-		@rtype: mesh object
+		@rtype: L{KX_MeshProxy}
 		@return: the first mesh object associated with this game object, or None if this object has no meshs.
 		"""
 	def getPhysicsId():

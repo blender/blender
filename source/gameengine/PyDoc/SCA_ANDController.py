@@ -1,8 +1,8 @@
 # $Id$
 # Documentation for SCA_ANDController
-from SCA_ILogicBrick import *
+from SCA_IController import *
 
-class SCA_ANDController(SCA_ILogicBrick):
+class SCA_ANDController(SCA_IController):
 	"""
 	An AND controller activates only when all linked sensors are activated.
 	

@@ -27,7 +27,7 @@ class KX_Camera(KX_GameObject):
 	@ivar camera_to_world: This camera's camera to world transform. (read only)
 	                       Regenerated every frame from the camera's position and orientation.
 	@type camera_to_world: 4x4 Matrix [[float]]
-	@ivar world_to_camera: This camera's world to camera transform. [[float]] (read only)
+	@ivar world_to_camera: This camera's world to camera transform. (read only)
 	                       Regenerated every frame from the camera's position and orientation.
 	                       This is camera_to_world inverted.
 	@type world_to_camera: 4x4 Matrix [[float]]
@@ -138,10 +138,12 @@ class KX_Camera(KX_GameObject):
 		
 		Example::
 			import GameLogic
-			
-			# Generate an identiy matrix.
-			def Identity():
-				return [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]
+
+			def Scale(matrix, size):
+				for y in range(4):
+					for x in range(4):
+						matrix[y][x] = matrix[y][x] * size[y]
+				return matrix
 			
 			# Generate a perspective projection matrix
 			def Perspective(cam):
@@ -159,21 +161,16 @@ class KX_Camera(KX_GameObject):
 					[0.0               , 0.0               ,  0.0                   ,  1.0                                  ]]
 			
 			# Generate an isometric projection matrix
-			def Isometric():
-				return [[0.866, 0.0  , 0.866, 0.0],
-					[0.25 , 0.866,-0.25 , 0.0],
-					[0.0  , 0.0  ,-1.0  , 0.0],
-					[0.0  , 0.0  , 0.0  , 1.0]]
-				m = Identity()
-				m[0][0] = m[0][2] = m[1][1] = 0.8660254037844386
-				m[1][0] = 0.25
-				m[1][2] = -0.25
-				m[3][3] = 1.0
-				return m
+			def Isometric(cam):
+				return Scale([[0.707, 0.0  , 0.707, 0.0],
+					      [0.408, 0.816,-0.408, 0.0],
+					      [0.0  , 0.0  , 0.0  , 0.0],
+					      [0.0  , 0.0  , 0.0  , 1.0]],
+					      [1.0/cam.scaling[0], 1.0/cam.scaling[1], 1.0/cam.scaling[2], 1.0])
 			
 			co = GameLogic.getCurrentController()
 			cam = co.getOwner()
-			cam.setProjectionMatrix(Perspective()))
+			cam.setProjectionMatrix(Perspective(cam)))
 		
 		@type matrix: 4x4 matrix.
 		@param matrix: The new projection matrix for this camera.

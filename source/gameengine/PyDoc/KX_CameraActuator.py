@@ -1,8 +1,8 @@
 # $Id$
 # Documentation for KX_CameraActuator
-from SCA_ILogicBrick import *
+from SCA_IActuator import *
 
-class KX_CameraActuator(SCA_ILogicBrick):
+class KX_CameraActuator(SCA_IActuator):
 	"""
 	Applies changes to a camera.
 	

@@ -1,6 +1,34 @@
 # $Id$
 """
 Documentation for the GameLogic Module.
+=======================================
+
+	There are only three importable modules in the game engine:
+		- GameLogic
+		- L{GameKeys}
+		- L{Rasterizer}
+	
+	All the other modules are accessibly through the methods in GameLogic.
+	
+	Examples::
+		# To get a controller:
+		import GameLogic
+		co = GameLogic.getCurrentController()
+		
+		# To get the game object associated with this controller:
+		obj = co.getOwner()
+	L{KX_GameObject} and possibly L{KX_Camera} and L{KX_Light} methods are
+	available depending on the type of object::
+		# To get a sensor linked to this controller.
+		# "sensorname" is the name of the sensor as defined in the Blender interface.
+		sens = co.getSensor("sensorname")
+	L{KX_NetworkMessageSensor}, L{KX_RaySensor}, L{KX_TouchSensor}, L{SCA_KeyboardSensor}, 
+	L{SCA_MouseSensor}, L{SCA_PropertySensor} and L{SCA_RandomSensor} methods are available, 
+	depending on the type of sensor::
+		# To get a list of all sensors:
+		sensors = co.B{getSensors}()
+
+
 
 Constants
 =========
@@ -9,16 +37,16 @@ Constants
 
 Property Sensor
 ---------------
-	Tests that the property sensor is able to perform.
+	Tests that the property sensor is able to perform. See L{SCA_PropertySensor}
 		- KX_PROPSENSOR_EQUAL:		Activate when the property is equal to the sensor value.
-		- KX_PROPSENSOR_NOTEQUAL		Activate when the property is not equal to the sensor value.
-		- KX_PROPSENSOR_INTERVAL		Activate when the property is between the specified limits.
-		- KX_PROPSENSOR_CHANGED		Activate when the property changes
-		- KX_PROPSENSOR_EXPRESSION	Activate when the expression matches
+		- KX_PROPSENSOR_NOTEQUAL:	Activate when the property is not equal to the sensor value.
+		- KX_PROPSENSOR_INTERVAL:	Activate when the property is between the specified limits.
+		- KX_PROPSENSOR_CHANGED:	Activate when the property changes
+		- KX_PROPSENSOR_EXPRESSION:	Activate when the expression matches
 
 Constraint Actuator
 -------------------
-	The axis and type (location/rotation) of constraint
+	The axis and type (location/rotation) of constraint. See L{KX_ConstraintActuator}
 		- KX_CONSTRAINTACT_LOCX
 		- KX_CONSTRAINTACT_LOCY
 		- KX_CONSTRAINTACT_LOCZ
@@ -28,7 +56,7 @@ Constraint Actuator
 
 IPO Actuator
 ------------
-	IPO Types
+	IPO Types.  See L{KX_IpoActuator}
 		- KX_IPOACT_PLAY
 		- KX_IPOACT_PINGPONG
 		- KX_IPOACT_FLIPPER
@@ -37,16 +65,17 @@ IPO Actuator
 
 Random Distributions
 --------------------
-	- KX_RANDOMACT_BOOL_CONST
-	- KX_RANDOMACT_BOOL_UNIFORM
-	- KX_RANDOMACT_BOOL_BERNOUILLI
-	- KX_RANDOMACT_INT_CONST
-	- KX_RANDOMACT_INT_UNIFORM
-	- KX_RANDOMACT_INT_POISSON
-	- KX_RANDOMACT_FLOAT_CONST
-	- KX_RANDOMACT_FLOAT_UNIFORM
-	- KX_RANDOMACT_FLOAT_NORMAL
-	- KX_RANDOMACT_FLOAT_NEGATIVE_EXPONENTIAL
+	See L{SCA_RandomActuator}
+		- KX_RANDOMACT_BOOL_CONST
+		- KX_RANDOMACT_BOOL_UNIFORM
+		- KX_RANDOMACT_BOOL_BERNOUILLI
+		- KX_RANDOMACT_INT_CONST
+		- KX_RANDOMACT_INT_UNIFORM
+		- KX_RANDOMACT_INT_POISSON
+		- KX_RANDOMACT_FLOAT_CONST
+		- KX_RANDOMACT_FLOAT_UNIFORM
+		- KX_RANDOMACT_FLOAT_NORMAL
+		- KX_RANDOMACT_FLOAT_NEGATIVE_EXPONENTIAL
 
 """
 
@@ -55,13 +84,13 @@ def getCurrentController():
 	"""
 	Gets the Python controller associated with this Python script.
 	
-	@rtype: SCA_PythonController
+	@rtype: L{SCA_PythonController}
 	"""
 def addActiveActuator(actuator, activate):
 	"""
 	Activates the given actuator.
 	
-	@type actuator: SCA_IActuator
+	@type actuator: L{SCA_IActuator}
 	@type activate: boolean
 	@param activate: whether to activate or deactivate the given actuator.
 	"""

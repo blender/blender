@@ -1,8 +1,8 @@
 # $Id$
 # Documentation for BL_ActionActuator
-from SCA_ILogicBrick import *
+from SCA_IActuator import *
 
-class BL_ActionActuator(SCA_ILogicBrick):
+class BL_ActionActuator(SCA_IActuator):
 	"""
 	Action Actuators apply an action to an actor.
 	"""

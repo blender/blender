@@ -1,8 +1,8 @@
 # $Id$
 # Documentation for SCA_PythonController
-from SCA_ILogicBrick import *
+from SCA_IController import *
 
-class SCA_PythonController(SCA_ILogicBrick):
+class SCA_PythonController(SCA_IController):
 	"""
 	A Python controller uses a Python script to activate it's actuators,
 	based on it's sensors.
@@ -12,27 +12,27 @@ class SCA_PythonController(SCA_ILogicBrick):
 		"""
 		Gets a list of all sensors attached to this controller.
 		
-		@rtype: list [SCA_ISensor]
+		@rtype: list [L{SCA_ISensor}]
 		"""
 	def getSensor(name):
 		"""
 		Gets the named linked sensor.
 		
 		@type name: string
-		@rtype: SCA_ISensor
+		@rtype: L{SCA_ISensor}
 		"""
 	def getActuators():
 		"""
 		Gets a list of all actuators linked to this controller.
 		
-		@rtype: list [SCA_IActuator]
+		@rtype: list [L{SCA_IActuator}]
 		"""
 	def getActuator(name):
 		"""
 		Gets the named linked actuator.
 		
 		@type name: string
-		@rtype: SCA_IActuator
+		@rtype: L{SCA_IActuator}
 		"""
 	def getScript():
 		"""

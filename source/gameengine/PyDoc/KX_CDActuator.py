@@ -1,8 +1,8 @@
 # $Id$
 # Documentation for CD Actuator
-from SCA_ILogicBrick import *
+from SCA_IActuator import *
 
-class KX_CDActuator(SCA_ILogicBrick):
+class KX_CDActuator(SCA_IActuator):
 	def startCD():
 		"""
 		Starts the CD playing.

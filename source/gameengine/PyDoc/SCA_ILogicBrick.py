@@ -4,14 +4,14 @@ from KX_GameObject import *
 
 class SCA_ILogicBrick:
 	"""
-	Logic brick base class.
+	Base class for all logic bricks.
 	"""
 	
 	def getOwner():
 		"""
 		Gets the game object associated with this logic brick.
 		
-		@rtype: KX_GameObject
+		@rtype: L{KX_GameObject}
 		"""
 	def setExecutePriority(priority):
 		"""

@@ -1,8 +1,8 @@
 # $Id$
 # Documentation for SCA_ORController
-from SCA_ILogicBrick import *
+from SCA_IController import *
 
-class SCA_ORController(SCA_ILogicBrick):
+class SCA_ORController(SCA_IController):
 	"""
 	An OR controller activates when any connected sensor activates.
 	

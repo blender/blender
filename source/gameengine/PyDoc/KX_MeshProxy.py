@@ -52,7 +52,7 @@ class KX_MeshProxy:
 		@param matid: the specified material
 		@type index: integer
 		@param index: the index into the vertex array.
-		@rtype: KX_VertexProxy
+		@rtype: L{KX_VertexProxy}
 		@return: a vertex object.
 		"""
 

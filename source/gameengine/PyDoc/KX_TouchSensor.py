@@ -26,7 +26,7 @@ class KX_TouchSensor(SCA_ISensor):
 		"""
 		Returns the last object hit by this touch sensor.
 		
-		@rtype: KX_GameObject
+		@rtype: L{KX_GameObject}
 		"""
 	def getHitObjectList():
 		"""
@@ -34,7 +34,7 @@ class KX_TouchSensor(SCA_ISensor):
 		
 		Only objects that have the requisite material/property are listed.
 		
-		@rtype: list [KX_GameObject]
+		@rtype: list [L{KX_GameObject}]
 		"""
 	def getTouchMaterial():
 		"""
