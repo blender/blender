@@ -200,7 +200,7 @@ void write_videoscape_fs()
 	}
 	else {
 		if(videosc_dir[0]==0) strcpy(videosc_dir, G.sce);
-		activate_fileselect(FILE_SPECIAL, "SAVE VIDEOSCAPE", videosc_dir,
+		activate_fileselect(FILE_SPECIAL, "Saave Videoscape", videosc_dir,
 										write_videoscape);
 	}
 }
@@ -213,7 +213,7 @@ void write_vrml_fs()
 	else {
 		if(videosc_dir[0]==0) strcpy(videosc_dir, G.sce);
 	
-		activate_fileselect(FILE_SPECIAL, "SAVE VRML1", videosc_dir, write_vrml);
+		activate_fileselect(FILE_SPECIAL, "Save VRML 1", videosc_dir, write_vrml);
 	}  
 }
 
@@ -226,7 +226,7 @@ void write_dxf_fs()
 
 		if(videosc_dir[0]==0) strcpy(videosc_dir, G.sce);
 
-		activate_fileselect(FILE_SPECIAL, "SAVE DXF", videosc_dir, write_dxf);	
+		activate_fileselect(FILE_SPECIAL, "Save DXF", videosc_dir, write_dxf);	
 	}
 }
 /* ------------ */
@@ -683,8 +683,9 @@ static uiBlock *info_file_importmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_info_file_importmenu, NULL);
 	//uiBlockSetXOfs(block, -50);  // offset to parent button
 	
-	uiDefBut(block, BUTM, 1, "Python scripts go here somehow!",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-
+	// uiDefBut(block, BUTM, 1, "Python scripts go here somehow!",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
 
@@ -1556,7 +1557,11 @@ static uiBlock *info_helpmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "info_helpmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_info_helpmenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "-- Placeholders only --",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, B_SHOWSPLASH, ICON_BLANK1, "About Blender...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	/*	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "-- Placeholders only --",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -1569,14 +1574,13 @@ static uiBlock *info_helpmenu(void *arg_unused)
 	uiDefIconTextBlockBut(block, info_help_websitesmenu, NULL, ICON_RIGHTARROW_THIN, "Websites", 0, yco-=20, 120, 19, "");
 
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-
+*/
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Benchmark",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+/*	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiDefIconTextBut(block, BUTM, B_SHOWSPLASH, ICON_BLANK1, "About Blender...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Release Notes *",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	
+*/
 	uiBlockSetDirection(block, UI_DOWN);
 	uiTextBoundsBlock(block, 80);
 

@@ -110,7 +110,7 @@ void do_text_buttons(unsigned short event)
 			allqueue(REDRAWHEADERS, 0); 
 		}
 		else if (st->menunr==32766) {
-			activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE", G.sce, add_text_fs); 
+			activate_fileselect(FILE_SPECIAL, "Open Text File", G.sce, add_text_fs); 
 			return;
 		}
 		else {		
@@ -123,7 +123,7 @@ void do_text_buttons(unsigned short event)
 				idtest= idtest->next;
 			}
 			if(idtest==0) { /* new text */
-				activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE",
+				activate_fileselect(FILE_SPECIAL, "Open Text File",
 												G.sce, add_text_fs); 
 				return;
 			}
@@ -200,7 +200,7 @@ static void do_text_filemenu(void *arg, int event)
 		allqueue(REDRAWHEADERS, 0);
 		break;
 	case 2:
-		activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE", G.sce, add_text_fs);
+		activate_fileselect(FILE_SPECIAL, "Open Text File", G.sce, add_text_fs);
 		break;
 	case 3:
 		if (text->compiled) BPY_free_compiled_text(text);
@@ -396,7 +396,7 @@ static uiBlock *text_editmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find...|Alt Ctrl F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find Again|Alt F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Convert to 3d text|Alt M", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Convert to 3D Text|Alt M", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -427,9 +427,9 @@ static uiBlock *text_filemenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reopen|Alt R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save as...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save As...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Run|Alt P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Run Python Script|Alt P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	}
 
 	if(curarea->headertype==HEADERTOP) {
