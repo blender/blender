@@ -215,11 +215,7 @@ SOURCE=..\..\..\source\blender\imbuf\intern\jpeg.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\imbuf\intern\png_decode.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\imbuf\intern\png_encode.c
+SOURCE=..\..\..\source\blender\imbuf\intern\png.c
 # End Source File
 # Begin Source File
 
