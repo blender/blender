@@ -76,11 +76,11 @@
 #include "BSE_drawipo.h"
 #include "BSE_view.h"
 #include "BSE_editipo.h"
+#include "BSE_editipo_types.h"
 #include "BSE_editaction_types.h"
 #include "BSE_editnla_types.h"
 
 #include "mydevice.h"
-#include "ipo.h" /* retains old stuff */
 #include "blendef.h"
 #include "butspace.h"	// shouldnt be...
 

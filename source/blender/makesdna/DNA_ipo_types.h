@@ -57,6 +57,9 @@ typedef short IPO_Channel;
 
 #define IPOBUTY	17
 
+#define TOB_IPO	1
+#define TOB_IPODROT	2
+#define TOB_IKA	4
 
 /* disptype */
 #define IPO_DISPDEGR	1
@@ -111,7 +114,7 @@ typedef short IPO_Channel;
 
 /* ******************** */
 
-#define MA_TOTIPO	32
+#define MA_TOTIPO	35
 
 #define MA_COL_R	1
 #define MA_COL_G	2
@@ -129,9 +132,11 @@ typedef short IPO_Channel;
 #define MA_SPEC		14
 #define MA_HARD		15
 #define MA_SPTR		16
-#define MA_ANG		17
+#define MA_IOR		17
 #define MA_MODE		18
 #define MA_HASIZE	19
+#define MA_TRANSLU	20
+#define MA_RAYM		21
 
 #define MA_MAP1		0x20
 #define MA_MAP2		0x40
@@ -156,6 +161,7 @@ typedef short IPO_Channel;
 #define MAP_COLF	11
 #define MAP_NORF	12
 #define MAP_VARF	13
+#define MAP_DISP	14
 
 /* ******************** */
 

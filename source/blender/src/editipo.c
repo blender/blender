@@ -285,6 +285,8 @@ void getname_tex_ei(int nr, char *str)
 		strcpy(str, "Nor"); break;
 	case MAP_VARF:
 		strcpy(str, "Var"); break;
+	case MAP_DISP:
+		strcpy(str, "Disp"); break;
 	default:
 		str[0]= 0;
 	}
@@ -327,12 +329,16 @@ void getname_mat_ei(int nr, char *str)
 			strcpy(str, "Hard"); break;
 		case MA_SPTR:
 			strcpy(str, "SpTra"); break;
-		case MA_ANG:
-			strcpy(str, "Ang"); break;
+		case MA_IOR:
+			strcpy(str, "Ior"); break;
 		case MA_MODE:
 			strcpy(str, "Mode"); break;
 		case MA_HASIZE:
 			strcpy(str, "HaSize"); break;
+		case MA_TRANSLU:
+			strcpy(str, "Translu"); break;
+		case MA_RAYM:
+			strcpy(str, "RayMir"); break;
 		default:
 			str[0]= 0;
 		}
@@ -3708,6 +3714,8 @@ void common_insertkey()
 						insertkey(id, MA_SPEC);
 						insertkey(id, MA_HARD);
 						insertkey(id, MA_MODE);
+						insertkey(id, MA_TRANSLU);
+						insertkey(id, MA_RAYM);
 					}
 					if(event==12 || event==11) {
 						insertkey(id, map+MAP_OFS_X);
@@ -3727,6 +3735,7 @@ void common_insertkey()
 						insertkey(id, map+MAP_COLF);
 						insertkey(id, map+MAP_NORF);
 						insertkey(id, map+MAP_VARF);
+						insertkey(id, map+MAP_DISP);
 					}
 				}
 			}

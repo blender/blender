@@ -4116,7 +4116,7 @@ static void do_versions(Main *main)
 				ma->fresnel_mir= 0.0;
 			}
 			else if(ma->ang<1.0) {		// temporal, because of IOR & fresnel change
-				ma-> ang= 1.0/ma->ang;
+				ma->ang= 1.0/ma->ang;
 				ma->fresnel_tra= ma->ang;
 				ma->fresnel_mir= ma->ang;
 			}

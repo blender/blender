@@ -74,11 +74,11 @@
 #include "BKE_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BSE_drawipo.h"
+#include "BSE_editipo_types.h"
 #include "BSE_edit.h"
 #include "BSE_editipo.h"
 #include "BSE_headerbuttons.h"
 
-#include "ipo.h"
 #include "nla.h"
 
 #include "blendef.h"

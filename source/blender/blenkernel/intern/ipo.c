@@ -105,13 +105,13 @@ int ma_ar[MA_TOTIPO]= {
 	MA_SPEC_R, MA_SPEC_G, MA_SPEC_B, 
 	MA_MIR_R, MA_MIR_G, MA_MIR_B,
 	MA_REF, MA_ALPHA, MA_EMIT, MA_AMB, 
-	MA_SPEC, MA_HARD, MA_SPTR, MA_ANG, 
-	MA_MODE, MA_HASIZE, 
+	MA_SPEC, MA_HARD, MA_SPTR, MA_IOR, 
+	MA_MODE, MA_HASIZE, MA_TRANSLU, MA_RAYM,
 	
 	MA_MAP1+MAP_OFS_X, MA_MAP1+MAP_OFS_Y, MA_MAP1+MAP_OFS_Z, 
 	MA_MAP1+MAP_SIZE_X, MA_MAP1+MAP_SIZE_Y, MA_MAP1+MAP_SIZE_Z, 
 	MA_MAP1+MAP_R, MA_MAP1+MAP_G, MA_MAP1+MAP_B,
-	MA_MAP1+MAP_DVAR, MA_MAP1+MAP_COLF, MA_MAP1+MAP_NORF, MA_MAP1+MAP_VARF
+	MA_MAP1+MAP_DVAR, MA_MAP1+MAP_COLF, MA_MAP1+MAP_NORF, MA_MAP1+MAP_VARF, MA_MAP1+MAP_DISP
 };
 
 int seq_ar[SEQ_TOTIPO]= {
@@ -890,6 +890,8 @@ void *give_mtex_poin(MTex *mtex, int adrcode )
 		poin= &(mtex->norfac); break;
 	case MAP_VARF:
 		poin= &(mtex->varfac); break;
+	case MAP_DISP:
+		poin= &(mtex->dispfac); break;
 	}
 	
 	return poin;
@@ -1066,12 +1068,16 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			poin= &(ma->har); *type= IPO_SHORT; break;
 		case MA_SPTR:
 			poin= &(ma->spectra); break;
-		case MA_ANG:
+		case MA_IOR:
 			poin= &(ma->ang); break;
 		case MA_MODE:
 			poin= &(ma->mode); *type= IPO_INT_BIT; break;
 		case MA_HASIZE:
 			poin= &(ma->hasize); break;
+		case MA_TRANSLU:
+			poin= &(ma->translucency); break;
+		case MA_RAYM:
+			poin= &(ma->ray_mirror); break;
 		}
 		
 		if(poin==0) {
@@ -1292,6 +1298,7 @@ void set_icu_vars(IpoCurve *icu)
 			case MAP_DVAR:
 			case MAP_COLF:
 			case MAP_VARF:
+			case MAP_DISP:
 				icu->ymax= 1.0;
 				break;
 			case MAP_NORF:
@@ -1347,6 +1354,7 @@ void set_icu_vars(IpoCurve *icu)
 			case MAP_COLF:
 			case MAP_NORF:
 			case MAP_VARF:
+			case MAP_DISP:
 				icu->ymax= 1.0;
 			}
 		}
@@ -1389,6 +1397,7 @@ void set_icu_vars(IpoCurve *icu)
 			case MAP_COLF:
 			case MAP_NORF:
 			case MAP_VARF:
+			case MAP_DISP:
 				icu->ymax= 1.0;
 			}
 		}
