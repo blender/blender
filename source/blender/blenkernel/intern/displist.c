@@ -2352,6 +2352,16 @@ void test_all_displists(void)
 	/* background */	
 	lay= G.scene->lay;
 	
+	/* clear flags, we use them because parent->parents are evaluated too */
+	base= G.scene->base.first;
+	while(base) {
+		if(base->lay & lay) {
+			base->object->flag &= ~(BA_DISP_UPDATE|BA_WHERE_UPDATE);
+		}
+		if(base->next==0 && G.scene->set && base==G.scene->base.last) base= G.scene->set->base.first;
+		else base= base->next;
+	}
+	
 	base= G.scene->base.first;
 	while(base) {
 		if(base->lay & lay) {
@@ -2377,6 +2387,10 @@ void test_all_displists(void)
 					makedisp= 1;
 				else if ((ob->parent->type==OB_CURVE) && (ob->partype == PARSKEL))
 					freedisp= 1;
+				else if(ob->partype==PARVERT1 || ob->partype==PARVERT3) {
+					if(ob->parent->parent)
+						ob->parent->flag |= BA_DISP_UPDATE;
+				}
 			}
 
 			if(ob->hooks.first) {
@@ -2431,12 +2445,25 @@ void test_all_displists(void)
 						freedisp= 1;
 				}
 			}
-			if(freedisp) freedisplist_object(ob);
-			if(makedisp) makeDispList(ob);
+			if(freedisp) ob->flag |= BA_WHERE_UPDATE;
+			if(makedisp) ob->flag |= BA_DISP_UPDATE;
 		}
 		if(base->next==0 && G.scene->set && base==G.scene->base.last) base= G.scene->set->base.first;
 		else base= base->next;
 	}
+	
+	/* going over the flags to free or make displists */
+	base= G.scene->base.first;
+	while(base) {
+		if(base->lay & lay) {
+			ob= base->object;
+			if(ob->flag & BA_DISP_UPDATE) makeDispList(ob);
+			else if(ob->flag & BA_WHERE_UPDATE) freedisplist_object(ob);
+		}
+		if(base->next==0 && G.scene->set && base==G.scene->base.last) base= G.scene->set->base.first;
+		else base= base->next;
+	}
+	
 }
 
 
