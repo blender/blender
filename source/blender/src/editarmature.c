@@ -2277,6 +2277,7 @@ void make_trans_bones (char mode)
 	}
 	else{
 		MEM_freeN (transmain);
+		transmain = NULL;
 	}
 	return;
 
