@@ -1970,6 +1970,8 @@ int view2dmove(unsigned short event)
 				else return 0;
 				break;
 			}
+			mval[0]= mvalo[0]+1; // force redraw below
+			mval[1]= mvalo[1]+1;
 		}
 		else {
 			getmouseco_areawin(mval);
