@@ -51,18 +51,6 @@ Package=<4>
 
 ###############################################################################
 
-Project: "blenkey"="..\..\keymaker\make\msvc_6_0\blenkey.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
 Project: "bmfont"="..\..\bmfont\make\msvc_6_0\bmfont.dsp" - Package Owner=<4>
 
 Package=<5>
@@ -133,9 +121,6 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name bmfont
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name blenkey
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name DummySoundSystem
