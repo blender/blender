@@ -1800,9 +1800,6 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 
 void do_meshbuts(unsigned short event)
 {
-	void decimate_faces(void);
-	void decimate_cancel(void);
-	void decimate_apply(void);
 	Object *ob;
 	Mesh *me;
 	float fac;
