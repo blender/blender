@@ -1589,6 +1589,8 @@ void vertexsmooth(void)
 	}
 	MEM_freeN(adror);
 
+	recalc_editnormals();
+
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);
 	BIF_undo_push("Vertex Smooth");
@@ -1637,6 +1639,7 @@ void vertexnoise(void)
 		eve= eve->next;
 	}
 
+	recalc_editnormals();
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);
 	BIF_undo_push("Vertex Noise");
@@ -1700,6 +1703,7 @@ void vertices_to_sphere(void)
 		eve= eve->next;
 	}
 	
+	recalc_editnormals();
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);
 	BIF_undo_push("To Sphere");

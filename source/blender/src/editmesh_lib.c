@@ -150,6 +150,16 @@ int EM_nfaces_selected(void)
 	return count;
 }
 
+int EM_nedges(void)
+{
+	EditMesh *em = G.editMesh;
+	EditEdge *eed;
+	int count= 0;
+
+	for (eed= em->edges.first; eed; eed= eed->next) count++;
+	return count;
+}
+
 int EM_nvertices_selected(void)
 {
 	EditMesh *em = G.editMesh;
@@ -340,7 +350,7 @@ static short extrudeflag_edge(short flag)
 	EditMesh *em = G.editMesh;
 	EditVert *eve, *nextve;
 	EditEdge *eed, *nexted;
-	EditFace *efa, *nextfa;
+	EditFace *efa, *nextfa, *efa2;
 	float nor[3]={0.0, 0.0, 0.0};
 	short del_old= 0;
 	
@@ -372,6 +382,7 @@ static short extrudeflag_edge(short flag)
 			eed->v1->f1= 1; // we call this 'selected vertex' now
 			eed->v2->f1= 1;
 		}
+		eed->vn= NULL;		// here we tuck face pointer, as sample
 	}
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		if(efa->f & SELECT) {
@@ -386,6 +397,11 @@ static short extrudeflag_edge(short flag)
 			efa->e3->f2++;
 			if(efa->e4) efa->e4->f2++;
 		}
+		// sample for next loop
+		efa->e1->vn= (EditVert *)efa;
+		efa->e2->vn= (EditVert *)efa;
+		efa->e3->vn= (EditVert *)efa;
+		if(efa->e4) efa->e4->vn= (EditVert *)efa;
 	}
 	
 	set_edge_directions();
@@ -399,8 +415,16 @@ static short extrudeflag_edge(short flag)
 				if(eed->v2->vn==NULL)
 					eed->v2->vn= addvertlist(eed->v2->co);
 					
-				if(eed->dir==1) addfacelist(eed->v1, eed->v2, eed->v2->vn, eed->v1->vn, NULL);
-				else addfacelist(eed->v2, eed->v1, eed->v1->vn, eed->v2->vn, NULL);
+				if(eed->dir==1) efa2= addfacelist(eed->v1, eed->v2, eed->v2->vn, eed->v1->vn, NULL);
+				else efa2= addfacelist(eed->v2, eed->v1, eed->v1->vn, eed->v2->vn, NULL);
+
+				if(eed->vn) {
+					/* btw, we dont do it in addfacelist, it copies edges too */
+					efa= (EditFace *)eed->vn;
+					efa2->mat_nr= efa->mat_nr;
+					efa2->tf= efa->tf;
+					efa2->flag= efa->flag;
+				}
 			}
 		}
 	}
@@ -505,7 +529,7 @@ short extrudeflag_vert(short flag)
 	EditEdge *eed, *e1, *e2, *e3, *e4, *nexted;
 	EditFace *efa, *efa2, *nextvl;
 	float nor[3]={0.0, 0.0, 0.0};
-	short sel=0, del_old= 0, smooth= 0;
+	short sel=0, del_old= 0;
 
 	if(G.obedit==0 || get_mesh(G.obedit)==0) return 0;
 
@@ -527,6 +551,7 @@ short extrudeflag_vert(short flag)
 		else eed->f2= 0;
 		
 		eed->f1= 1;		/* this indicates it is an 'old' edge (in this routine we make new ones) */
+		eed->vn= NULL;	/* abused as sample */
 		
 		eed= eed->next;
 	}
@@ -537,10 +562,6 @@ short extrudeflag_vert(short flag)
 	while(efa) {
 		efa->f1= 0;
 
-		if (efa->flag & ME_SMOOTH) {
-			if (faceselectedOR(efa, 1)) smooth= 1;
-		}
-		
 		if(faceselectedAND(efa, flag)) {
 			e1= efa->e1;
 			e2= efa->e2;
@@ -566,6 +587,12 @@ short extrudeflag_vert(short flag)
 			if( e4 && (e4->v1->f & flag) && (e4->v2->f & flag) ) e4->f1= 2;
 		}
 		
+		// sample for next loop
+		efa->e1->vn= (EditVert *)efa;
+		efa->e2->vn= (EditVert *)efa;
+		efa->e3->vn= (EditVert *)efa;
+		if(efa->e4) efa->e4->vn= (EditVert *)efa;
+
 		efa= efa->next;
 	}
 
@@ -627,8 +654,14 @@ short extrudeflag_vert(short flag)
 			
 			if(eed->dir==1) efa2= addfacelist(eed->v1, eed->v2, eed->v2->vn, eed->v1->vn, NULL);
 			else efa2= addfacelist(eed->v2, eed->v1, eed->v1->vn, eed->v2->vn, NULL);
-			if (smooth) efa2->flag |= ME_SMOOTH;
-
+			
+			if(eed->vn) {
+				efa= (EditFace *)eed->vn;
+				efa2->mat_nr= efa->mat_nr;
+				efa2->tf= efa->tf;
+				efa2->flag= efa->flag;
+			}
+			
 			/* Needs smarter adaption of existing creases.
 			 * If addedgelist is used, make sure seams are set to 0 on these
 			 * new edges, since we do not want to add any seams on extrusion.
@@ -672,7 +705,6 @@ short extrudeflag_vert(short flag)
 				BLI_remlink(&em->faces, efa);
 				free_editface(efa);
 			}
-			if (smooth) efa2->flag |= ME_SMOOTH;			
 		}
 		efa= nextvl;
 	}
