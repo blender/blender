@@ -764,8 +764,7 @@ void snap_sel_to_grid()
 			
 			calc_trans_verts(); // does test2d, makedisplist too */
 
-			if (G.obedit->type == OB_ARMATURE)
-				special_trans_update(0);
+			special_trans_update(0);
 
 			allqueue(REDRAWVIEW3D, 0);
 			return;
@@ -849,8 +848,7 @@ void snap_sel_to_curs()
 
 			calc_trans_verts(); // does test2d, makedisplist too */
 
-			if (G.obedit->type == OB_ARMATURE)
-				special_trans_update(0);
+			special_trans_update(0);
 
 			allqueue(REDRAWVIEW3D, 0);
 			return;
@@ -1160,8 +1158,7 @@ void snap_to_center()
 
 			if ELEM(G.obedit->type, OB_SURF, OB_CURVE) makeDispList(G.obedit);
 
-			if (G.obedit->type == OB_ARMATURE)
-				special_trans_update(0);
+			special_trans_update(0);
 
 			allqueue(REDRAWVIEW3D, 0);
 			return;
