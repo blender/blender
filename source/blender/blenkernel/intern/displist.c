@@ -1671,7 +1671,7 @@ void set_displist_onlyzero(int val)
   - first point left, last point right
   - based on subdivided points in original curve, not on points in taper curve (still)
 */
-static float calc_taper(Object *taperobj, int cur, int tot)
+float calc_taper(Object *taperobj, int cur, int tot)
 {
 	Curve *cu;
 	DispList *dl;
