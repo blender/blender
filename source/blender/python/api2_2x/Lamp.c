@@ -53,10 +53,23 @@
 
 /* Lamp types */
 
+/* NOTE:
+ these are the same values as LA_* from DNA_lamp_types.h
+ is there some reason we are not simply using those #defines?
+ s. swaney 8-oct-2004
+*/
+
 #define EXPP_LAMP_TYPE_LAMP 0
 #define EXPP_LAMP_TYPE_SUN  1
 #define EXPP_LAMP_TYPE_SPOT 2
 #define EXPP_LAMP_TYPE_HEMI 3
+#define EXPP_LAMP_TYPE_AREA 4
+#define EXPP_LAMP_TYPE_YF_PHOTON 5
+/*
+  define a constant to keep magic numbers out of the code
+  this value should be equal to the last EXPP_LAMP_TYPE_*
+*/
+#define EXPP_LAMP_TYPE_MAX  5
 
 /* Lamp mode flags */
 
@@ -204,7 +217,7 @@ static PyMethodDef BPy_Lamp_methods[] = {
 	{"getName", ( PyCFunction ) Lamp_getName, METH_NOARGS,
 	 "() - return Lamp name"},
 	{"getType", ( PyCFunction ) Lamp_getType, METH_NOARGS,
-	 "() - return Lamp type - 'Lamp':0, 'Sun':1, 'Spot':2, 'Hemi':3"},
+	 "() - return Lamp type - 'Lamp':0, 'Sun':1, 'Spot':2, 'Hemi':3, 'Area':4, 'Photon':5"},
 	{"getMode", ( PyCFunction ) Lamp_getMode, METH_NOARGS,
 	 "() - return Lamp mode flags (or'ed value)"},
 	{"getSamples", ( PyCFunction ) Lamp_getSamples, METH_NOARGS,
@@ -240,7 +253,7 @@ static PyMethodDef BPy_Lamp_methods[] = {
 	{"setName", ( PyCFunction ) Lamp_setName, METH_VARARGS,
 	 "(str) - rename Lamp"},
 	{"setType", ( PyCFunction ) Lamp_setType, METH_VARARGS,
-	 "(str) - change Lamp type, which can be 'persp' or 'ortho'"},
+	 "(str) - change Lamp type, which can be 'Lamp', 'Sun', 'Spot', 'Hemi', 'Area', 'Photon'"},
 	{"setMode", ( PyCFunction ) Lamp_setMode, METH_VARARGS,
 	 "([up to eight str's]) - Set Lamp mode flag(s)"},
 	{"setSamples", ( PyCFunction ) Lamp_setSamples, METH_VARARGS,
@@ -371,6 +384,10 @@ static PyObject *M_Lamp_New( PyObject * self, PyObject * args,
 		bl_lamp->type = ( short ) EXPP_LAMP_TYPE_SPOT;
 	else if( strcmp( type_str, "Hemi" ) == 0 )
 		bl_lamp->type = ( short ) EXPP_LAMP_TYPE_HEMI;
+	else if( strcmp( type_str, "Area" ) == 0 )
+		bl_lamp->type = ( short ) EXPP_LAMP_TYPE_AREA;
+	else if( strcmp( type_str, "Photon" ) == 0 )
+		bl_lamp->type = ( short ) EXPP_LAMP_TYPE_YF_PHOTON;
 	else
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"unknown lamp type" ) );
@@ -472,7 +489,10 @@ static PyObject *Lamp_TypesDict( void )
 				 PyInt_FromLong( EXPP_LAMP_TYPE_SPOT ) );
 		constant_insert( c, "Hemi",
 				 PyInt_FromLong( EXPP_LAMP_TYPE_HEMI ) );
-
+		constant_insert( c, "Area",
+				 PyInt_FromLong( EXPP_LAMP_TYPE_AREA ) );
+		constant_insert( c, "Photon",
+				 PyInt_FromLong( EXPP_LAMP_TYPE_YF_PHOTON ) );
 	}
 
 	return Types;
@@ -835,6 +855,10 @@ static PyObject *Lamp_setType( BPy_Lamp * self, PyObject * args )
 		self->lamp->type = ( short ) EXPP_LAMP_TYPE_SPOT;
 	else if( strcmp( type, "Hemi" ) == 0 )
 		self->lamp->type = ( short ) EXPP_LAMP_TYPE_HEMI;
+	else if( strcmp( type, "Area" ) == 0 )
+		self->lamp->type = ( short ) EXPP_LAMP_TYPE_AREA;
+	else if( strcmp( type, "Photon" ) == 0 )
+		self->lamp->type = ( short ) EXPP_LAMP_TYPE_YF_PHOTON;
 	else
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"unknown lamp type" ) );
@@ -846,7 +870,7 @@ static PyObject *Lamp_setType( BPy_Lamp * self, PyObject * args )
 /* This one is 'private'. It is not really a method, just a helper function for
  * when script writers use Lamp.type = t instead of Lamp.setType(t), since in
  * the first case t shoud be an int and in the second it should be a string. So
- * while the method setType expects a string ('persp' or 'ortho') or an empty
+ * while the method setType expects a string  or an empty
  * argument, this function should receive an int (0 or 1). */
 static PyObject *Lamp_setIntType( BPy_Lamp * self, PyObject * args )
 {
@@ -854,13 +878,13 @@ static PyObject *Lamp_setIntType( BPy_Lamp * self, PyObject * args )
 
 	if( !PyArg_ParseTuple( args, "h", &value ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected int argument in [0,3]" ) );
+						"expected int argument in [0,5]" ) );
 
-	if( value >= 0 && value <= 3 )
+	if( value >= 0 && value <= EXPP_LAMP_TYPE_MAX )
 		self->lamp->type = value;
 	else
 		return ( EXPP_ReturnPyObjError( PyExc_ValueError,
-						"expected int argument in [0,3]" ) );
+						"expected int argument in [0,5]" ) );
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -1289,11 +1313,14 @@ static PyObject *Lamp_getAttr( BPy_Lamp * self, char *name )
 		attr = PyFloat_FromDouble( self->lamp->att2 );
 
 	else if( strcmp( name, "Types" ) == 0 ) {
-		attr = Py_BuildValue( "{s:h,s:h,s:h,s:h}",
+		attr = Py_BuildValue( "{s:h,s:h,s:h,s:h,s:h,s:h}",
 				      "Lamp", EXPP_LAMP_TYPE_LAMP,
 				      "Sun", EXPP_LAMP_TYPE_SUN,
 				      "Spot", EXPP_LAMP_TYPE_SPOT,
-				      "Hemi", EXPP_LAMP_TYPE_HEMI );
+				      "Hemi", EXPP_LAMP_TYPE_HEMI, 
+				      "Area", EXPP_LAMP_TYPE_AREA, 
+				      "Photon", EXPP_LAMP_TYPE_YF_PHOTON 
+			);
 	}
 
 	else if( strcmp( name, "Modes" ) == 0 ) {

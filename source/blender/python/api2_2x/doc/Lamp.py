@@ -23,7 +23,7 @@ def New (type = 'Lamp', name = 'LampData'):
   """
   Create a new Lamp Data object.
   @type type: string
-  @param type: The Lamp type: 'Lamp', 'Sun', 'Spot' or 'Hemi'.
+  @param type: The Lamp type: 'Lamp', 'Sun', 'Spot', 'Hemi', 'Area', or 'Photon'.
   @type name: string
   @param name: The Lamp Data name.
   @rtype: Blender Lamp
@@ -53,6 +53,8 @@ class Lamp:
       - 'Sun' : 1
       - 'Spot': 2
       - 'Hemi': 3
+      - 'Area': 4
+      - 'Photon': 5
   @cvar mode: The mode flags: B{or'ed value} of the flags in the Modes dict.
   @cvar Modes: The Modes dictionary.
       - 'Shadows'
@@ -110,7 +112,7 @@ class Lamp:
     """
     Set this Lamp's type.
     @type type: string
-    @param type: The Lamp type: 'Lamp', 'Sun', 'Spot' or 'Hemi'.
+    @param type: The Lamp type: 'Lamp', 'Sun', 'Spot', 'Hemi', 'Area', or 'Photon'
     """
 
   def getMode():
