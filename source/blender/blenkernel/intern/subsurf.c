@@ -170,7 +170,6 @@ struct _HyperVert {
 	HyperVert *next;
 	
 	float co[3];
-	int flag;		// added for drawing optim
 	float *orig;	// if set, pointer to original vertex, for handles
 	HyperVert *nmv;
 	LinkNode *edges, *faces;
@@ -615,9 +614,8 @@ static void hypermesh_simple_subdivide(HyperMesh *me, HyperMesh *nme) {
 	HyperVert *v;
 	HyperEdge *e;
 	HyperFace *f;
-	LinkNode *link;
 	float co[3];
-	int j, k, count;
+	int j, k;
 
 	for (f= me->faces; f; f= f->next) { /* Adds vert at center of each existing face */
 		Vec3CpyI(co, 0.0, 0.0, 0.0);
@@ -719,41 +717,6 @@ static void hypermesh_free(HyperMesh *me) {
 
 /*****/
 
-static void add_mvert_normals_from_mfaces(MVert *mverts, int nmverts, MFaceInt *mfaces, int nmfaces) {
-	float (*tnorms)[3]= MEM_callocN(nmverts*sizeof(*tnorms), "tnorms");
-	int i;
-	
-	for (i=0; i<nmfaces; i++) {
-		MFaceInt *mf= &mfaces[i];
-		float f_no[3];
-
-		if (!mf->v3)
-			continue;
-			
-		if (mf->v4)
-			CalcNormFloat4(mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, mverts[mf->v4].co, f_no);
-		else
-			CalcNormFloat(mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, f_no);
-		
-		Vec3Add(tnorms[mf->v1], f_no);
-		Vec3Add(tnorms[mf->v2], f_no);
-		Vec3Add(tnorms[mf->v3], f_no);
-		if (mf->v4)
-			Vec3Add(tnorms[mf->v4], f_no);
-	}
-	for (i=0; i<nmverts; i++) {
-		MVert *mv= &mverts[i];
-		float *no= tnorms[i];
-		
-		Normalise(no);
-		mv->no[0]= (short)(no[0]*32767.0);
-		mv->no[1]= (short)(no[1]*32767.0);
-		mv->no[2]= (short)(no[2]*32767.0);
-	}
-	
-	MEM_freeN(tnorms);
-}
-
 static int hypermesh_get_nverts(HyperMesh *hme) {
 	HyperVert *v;
 	int count= 0;
@@ -850,7 +813,11 @@ static DispList *hypermesh_to_displist(HyperMesh *hme, short flag) {
 	/* calloc for clear flag and nor in mvert */
 	dlm->mvert= MEM_callocN(dlm->totvert*sizeof(*dlm->mvert), "dlm->mvert");
 	dlm->mface= MEM_mallocN(dlm->totface*sizeof(*dlm->mface), "dlm->mface");
-	if(hme->orig_me) dlm->flag= hme->orig_me->flag;
+	if (hme->orig_me) {
+		dlm->flag= hme->orig_me->flag;
+	} else {
+		dlm->flag= flag;
+	}
 	
 	if (hme->hasuvco)
 		dlm->tface= MEM_callocN(dlm->totface*sizeof(*dlm->tface), "dlm->tface");
@@ -865,19 +832,22 @@ static DispList *hypermesh_to_displist(HyperMesh *hme, short flag) {
 	
 	mf= dlm->mface;
 	for (i=0, f= hme->faces; f; i++, f= f->next) {
-		int voff= (((int) f->verts[3]->nmv)==0)?1:0;
-		
 		if (!hme->orig_me && editface_is_hidden(f->orig.ef))
 			continue;
 			
-			/* compensate for blender's [braindead] way of encoding
-			 * nverts by face vertices, if necessary.
+			/* There is a complicated dependancy here:
+			 * After a subdivision the points that were shifted will always be
+			 * first in the hme->verts list (because they are added last, but to
+			 * the head). This means that the HVert with index 0 will always be
+			 * a shifted vertice, and the shifted vertices (corners) are always
+			 * HFace->verts[0]. Therefore it is guaranteed that if any vertice
+			 * index is 0, it will always be in mf->v1, so we do not have to worry
+			 * about tweaking the indices.
 			 */
-		
-		mf->v1= (int) f->verts[(0+voff)]->nmv;
-		mf->v2= (int) f->verts[(1+voff)]->nmv;
-		mf->v3= (int) f->verts[(2+voff)]->nmv;
-		mf->v4= (int) f->verts[(3+voff)%4]->nmv;
+		mf->v1= (int) f->verts[0]->nmv;
+		mf->v2= (int) f->verts[1]->nmv;
+		mf->v3= (int) f->verts[2]->nmv;
+		mf->v4= (int) f->verts[3]->nmv;
 
 		if (hme->orig_me) {			
 			MFace *origmf= &mfaces[f->orig.ind];
@@ -885,8 +855,6 @@ static DispList *hypermesh_to_displist(HyperMesh *hme, short flag) {
 			mf->mat_nr= origmf->mat_nr;
 			mf->flag= origmf->flag;
 			mf->puno= 0;
-			
-			
 		} else {
 			EditVlak *origef= f->orig.ef;
 			
@@ -895,40 +863,12 @@ static DispList *hypermesh_to_displist(HyperMesh *hme, short flag) {
 			mf->puno= 0;
 		}
 		
-		{ 	// draw flag			
-			mf->edcode= 0;
-			
-			f->verts[0]->flag= 0;
-			f->verts[1]->flag= 0;
-			f->verts[2]->flag= 0;
-			f->verts[3]->flag= 0;
-			
-			if(f->edges[0]->flag) {
-				f->edges[0]->flag= 0;
-				f->edges[0]->v[0]->flag++;
-				f->edges[0]->v[1]->flag++;
-			}
-			if(f->edges[1]->flag) {
-				f->edges[1]->flag= 0;
-				f->edges[1]->v[0]->flag++;
-				f->edges[1]->v[1]->flag++;
-			}
-			if(f->edges[2]->flag) {
-				f->edges[2]->flag= 0;
-				f->edges[2]->v[0]->flag++;
-				f->edges[2]->v[1]->flag++;
-			}
-			if(f->edges[3]->flag) {
-				f->edges[3]->flag= 0;
-				f->edges[3]->v[0]->flag++;
-				f->edges[3]->v[1]->flag++;
-			}
-			if( f->verts[0+voff]->flag && f->verts[1+voff]->flag ) mf->edcode|=ME_V1V2;
-			if( f->verts[1+voff]->flag && f->verts[2+voff]->flag ) mf->edcode|=ME_V2V3;
-			if( f->verts[2+voff]->flag && f->verts[(3+voff)%4]->flag ) mf->edcode|=ME_V3V4;
-			if( f->verts[(3+voff)%4]->flag && f->verts[0+voff]->flag ) mf->edcode|=ME_V4V1;
-		}
-			
+		mf->edcode= 0;
+		if (f->edges[0]->flag) mf->edcode|= ME_V4V1;
+		if (f->edges[1]->flag) mf->edcode|= ME_V1V2;
+		if (f->edges[2]->flag) mf->edcode|= ME_V2V3;
+		if (f->edges[3]->flag) mf->edcode|= ME_V3V4;
+
 		if (hme->hasuvco) {
 			TFace *origtf, *tf= &dlm->tface[i];
 			
@@ -938,8 +878,8 @@ static DispList *hypermesh_to_displist(HyperMesh *hme, short flag) {
 			//	origtf= f->orig.ef->tface;
 			
 			for (j=0; j<4; j++) {
-				Vec2Cpy(tf->uv[j], f->uvco[(j+voff)%4]);
-				tf->col[j]= *((unsigned int*) f->vcol[(j+voff)%4]);
+				Vec2Cpy(tf->uv[j], f->uvco[j]);
+				tf->col[j]= *((unsigned int*) f->vcol[j]);
 			}
 			
 			tf->tpage= origtf->tpage;
@@ -951,7 +891,7 @@ static DispList *hypermesh_to_displist(HyperMesh *hme, short flag) {
 			MCol *mcolbase= &dlm->mcol[i*4];
 			
 			for (j=0; j<4; j++)
-				*((unsigned int*) &mcolbase[j])= *((unsigned int*) f->vcol[(j+voff)%4]);
+				*((unsigned int*) &mcolbase[j])= *((unsigned int*) f->vcol[j]);
 		}
 		
 		mf++;
@@ -999,7 +939,7 @@ static DispList *hypermesh_to_displist(HyperMesh *hme, short flag) {
 		}
 	}	
 	
-	add_mvert_normals_from_mfaces(dlm->mvert, dlm->totvert, dlm->mface, dlm->totface);
+	displistmesh_calc_vert_normals(dlm);
 
 	return dl;
 }
@@ -1029,19 +969,13 @@ static DispList *subsurf_subdivide_to_displist(HyperMesh *hme, short subdiv, sho
 }
 
 void subsurf_make_editmesh(Object *ob) {
-	DispList *dl;
-	
 	if (G.eded.first) {
 		Mesh *me= ob->data;
 		HyperMesh *hme= hypermesh_from_editmesh(G.edve.first, G.eded.first, G.edvl.first);
 
 		free_displist_by_type(&me->disp, DL_MESH);
 		BLI_addtail(&me->disp, subsurf_subdivide_to_displist(hme, me->subdiv, me->flag));
-		
-		dl= me->disp.first;
-		if(dl && dl->mesh) dl->mesh->flag= me->flag;
 	}
-	
 }
 
 void subsurf_make_mesh(Object *ob, short subdiv) {

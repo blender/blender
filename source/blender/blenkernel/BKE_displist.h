@@ -67,6 +67,8 @@ struct DispListMesh {
 	int flag;
 };
 
+void displistmesh_calc_vert_normals(DispListMesh *dlm);
+
 /*
  * All the different DispList.type's use the
  * data in the displist structure in fairly

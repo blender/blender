@@ -125,6 +125,45 @@ static DispListMesh *displistmesh_copy(DispListMesh *odlm) {
 	return ndlm;
 }
 
+void displistmesh_calc_vert_normals(DispListMesh *dlm) {
+	MVert *mverts= dlm->mvert;
+	int nmverts= dlm->totvert;
+	MFaceInt *mfaces= dlm->mface;
+	int nmfaces= dlm->totface;
+	float (*tnorms)[3]= MEM_callocN(nmverts*sizeof(*tnorms), "tnorms");
+	int i;
+	
+	for (i=0; i<nmfaces; i++) {
+		MFaceInt *mf= &mfaces[i];
+		float f_no[3];
+
+		if (!mf->v3)
+			continue;
+			
+		if (mf->v4)
+			CalcNormFloat4(mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, mverts[mf->v4].co, f_no);
+		else
+			CalcNormFloat(mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, f_no);
+		
+		VecAddf(tnorms[mf->v1], tnorms[mf->v1], f_no);
+		VecAddf(tnorms[mf->v2], tnorms[mf->v2], f_no);
+		VecAddf(tnorms[mf->v3], tnorms[mf->v3], f_no);
+		if (mf->v4)
+			VecAddf(tnorms[mf->v4], tnorms[mf->v4], f_no);
+	}
+	for (i=0; i<nmverts; i++) {
+		MVert *mv= &mverts[i];
+		float *no= tnorms[i];
+		
+		Normalise(no);
+		mv->no[0]= (short)(no[0]*32767.0);
+		mv->no[1]= (short)(no[1]*32767.0);
+		mv->no[2]= (short)(no[2]*32767.0);
+	}
+	
+	MEM_freeN(tnorms);
+}
+
 void free_disp_elem(DispList *dl)
 {
 	if(dl) {
