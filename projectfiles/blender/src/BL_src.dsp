@@ -183,6 +183,10 @@ SOURCE=..\..\..\source\blender\src\drawscene.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\drawscript.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\drawseq.c
 # End Source File
 # Begin Source File
@@ -347,6 +351,10 @@ SOURCE=..\..\..\source\blender\src\header_oops.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\header_script.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\header_seq.c
 # End Source File
 # Begin Source File
@@ -496,6 +504,10 @@ SOURCE=..\..\..\source\blender\src\writemovie.c
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\include\BIF_butspace.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_drawscript.h
 # End Source File
 # Begin Source File
 
