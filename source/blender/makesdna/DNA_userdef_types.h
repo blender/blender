@@ -126,6 +126,8 @@ typedef struct UserDef {
 	char plugseqdir[160];
 	char pythondir[160];
 	char sounddir[160];
+	/* yafray: temporary xml export directory */
+	char yfexportdir[160];
 	short versions, vrmlflag;	// tmp for export, will be replaced by strubi
 	int gameflags;
 	int wheellinescroll;

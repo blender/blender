@@ -102,7 +102,7 @@ typedef struct AudioData {
 typedef struct RenderData {
 	struct AviCodecData *avicodecdata;
 	struct QuicktimeCodecData *qtcodecdata;
-	
+
 	short cfra, sfra, efra;	/* fames as in 'images' */
 	short images, framapto, flag;
 	float ctime;			/* use for calcutions */
@@ -162,23 +162,24 @@ typedef struct RenderData {
 	/**
 	 * Flags for render settings. Use bit-masking to access the settings.
 	 * The bits have these meanings:
-	 * 0: do oversampling                                                    
-	 * 1: do shadows                                                         
-	 * 2: do gamma correction                                                
-	 * 3: ortho (not used?)                                                  
-	 * 4: do envmap                                                 
-	 * 5: edge shading                                                       
-	 * 6: field rendering                                                    
-	 * 7: Disables time difference in field calculations                     
-	 * 8: radio rendering                                      
-	 * 9: borders                                                            
-	 * 10: panorama                                                          
-	 * 11: crop                                                              
+	 * 0: do oversampling
+	 * 1: do shadows
+	 * 2: do gamma correction
+	 * 3: ortho (not used?)
+	 * 4: do envmap
+	 * 5: edge shading
+	 * 6: field rendering
+	 * 7: Disables time difference in field calculations
+	 * 8: radio rendering
+	 * 9: borders
+	 * 10: panorama
+	 * 11: crop
 	 * 12: save SGI movies with Cosmo hardware
-	 * 13: odd field first rendering                  
-	 * 14: motion blur                                         
+	 * 13: odd field first rendering
+	 * 14: motion blur
 	 * 15: use unified renderer for this pic
-	 * 16. enable raytracing
+	 * 16: enable raytracing
+	 * 18: use YafRay for rendering
 	 */
 	int mode;
 
@@ -208,9 +209,14 @@ typedef struct RenderData {
 	float gamma, gauss;
 	/** post-production settings. Don't really belong here */
 	float postmul, postgamma, postadd, postigamma;
-	
+
+	/* yafray: global panel params */
+	short GIquality, GIcache, GImethod, GIgradient;
+	int GIdepth, GIpixelspersample;
+	float GIshadowquality, GIpower, YF_gamma, YF_exposure;
+
 	char backbuf[160], pic[160], ftype[160];
-	
+
 } RenderData;
 
 
@@ -265,8 +271,8 @@ typedef struct Scene {
 #define R_FRONTBUFANIM	8
 
 /* mode (int now) */
-#define R_OSA			0x0001	
-#define R_SHADOW		0x0002	
+#define R_OSA			0x0001
+#define R_SHADOW		0x0002
 #define R_GAMMA			0x0004
 #define R_ORTHO			0x0008
 #define R_ENVMAP		0x0010
@@ -283,6 +289,8 @@ typedef struct Scene {
 #define R_UNIFIED       0x8000
 #define R_RAYTRACE      0x10000
 #define R_GAUSS      	0x20000
+/* yafray: render flag */
+#define R_YAFRAY	0x40000
 
 /* scemode */
 #define R_DOSEQ			0x0001

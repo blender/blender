@@ -99,6 +99,7 @@ typedef struct World {
 	struct MTex *mtex[8];
 
 	ScriptLink scriptlink;
+
 } World;
 
 /* **************** WORLD ********************* */

@@ -131,9 +131,9 @@ void BIF_read_file(char *name)
 	// first try to read exotic file formats...
 	if (BKE_read_exotic(name) == 0) { /* throws first error box */
 		/* we didn't succeed, now try to read Blender file
-		   calls readfile, calls toolbox, throws one more, 
+		   calls readfile, calls toolbox, throws one more,
 		   on failure calls the stream, and that is stubbed.... */
-		BKE_read_file(name, NULL); 
+		BKE_read_file(name, NULL);
 	}
 
 	mainwindow_set_filename_to_title(G.main->name);
@@ -157,19 +157,19 @@ int BIF_read_homefile(void)
 
 	BLI_make_file_string(G.sce, tstr, home, ".B.blend");
 	strcpy(scestr, G.sce);	/* temporal store */
-	
+
 	/* only here free userdef themes... */
 	BLI_freelistN(&U.themes);
-	
+
 	if (BLI_exists(tstr)) {
 		success = BKE_read_file(tstr, NULL);
 	} else {
 		success = BKE_read_file_from_memory(datatoc_B_blend, datatoc_B_blend_size, NULL);
 	}
 	strcpy(G.sce, scestr);
-	
+
 	BIF_InitTheme();	// sets default again
-	
+
 	if (success) {
 		G.save_over = 0;
 
@@ -196,19 +196,19 @@ int BIF_read_homefile(void)
 
 		if (BLI_streq(U.tempdir, "/")) {
 			char *tmp= getenv("TEMP");
-				
+
 			strcpy(U.tempdir, tmp?tmp:"/tmp/");
 		}
 		if (U.savetime <= 0) {
 			U.savetime = 1;
-			error("%s is buggy, please cosider removing it.\n", 
+			error("%s is buggy, please cosider removing it.\n",
 				tstr);
 		}
 		if (G.main->versionfile <= 191) {
 			strcpy(U.plugtexdir, U.textudir);
 			strcpy(U.sounddir, "/");
 		}
-	
+
 			/* patch to set Dupli Armature */
 		if (G.main->versionfile < 220) {
 			U.dupflag |= DUPARM;
@@ -227,7 +227,7 @@ int BIF_read_homefile(void)
 #endif
 
 		space_set_commmandline_options();
-		
+
 		if (U.undosteps==0) U.undosteps=32;
 
 		reset_autosave();
@@ -492,9 +492,9 @@ void BIF_init(void)
 	initscreen();	/* for (visuele) speed, this first, then setscreen */
 	initbuttons();
 	InitCursorData();
-	
+
 	init_draw_rects();	/* drawobject.c */
-	BIF_read_homefile(); 
+	BIF_read_homefile();
 	init_gl_stuff();	/* drawview.c, after homefile */
 	readBlog();
 	strcpy(G.lib, G.sce);

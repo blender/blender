@@ -806,7 +806,7 @@ static void texture_panel_envmap(Tex *tex)
 		uiDefButS(block, ROW, B_REDR, 	"Static", 	10, 180, 100, 19, &env->stype, 2.0, 0.0, 0, 0, "Calculates environment map only once");
 		uiDefButS(block, ROW, B_REDR, 	"Anim", 	110, 180, 100, 19, &env->stype, 2.0, 1.0, 0, 0, "Calculates environment map at each rendering");
 		uiDefButS(block, ROW, B_ENV_FREE, "Load", 	210, 180, 100, 19, &env->stype, 2.0, 2.0, 0, 0, "Loads saved environment map from disk");
-		
+
 		if(env->stype==ENV_LOAD) {
 			/* file input */
 			id= (ID *)tex->ima;
@@ -1006,8 +1006,8 @@ static void texture_panel_colors(Tex *tex)
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel_colors", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Texture", "Texture");
 	if(uiNewPanel(curarea, block, "Colors", "Texture", 1280, 0, 318, 204)==0) return;
-		
-	
+
+
 	/* COLORBAND */
 	uiBlockBeginAlign(block);
 	uiDefButS(block, TOG|BIT|0, B_COLORBAND, "Colorband",10,180,100,20, &tex->flag, 0, 0, 0, 0, "Toggles colorband operations");
@@ -1148,7 +1148,7 @@ static void texture_panel_preview(int preview)
 
 	// label to force a boundbox for buttons not to be centered
 	uiDefBut(block, LABEL, 0, " ",	20,20,10,10, 0, 0, 0, 0, 0, "");
-	
+
 	uiBlockBeginAlign(block);
 	uiDefButC(block, ROW, B_TEXREDR_PRV, "Mat",		200,175,80,25, &G.buts->texfrom, 3.0, 0.0, 0, 0, "Displays the textures of the active material");
 	uiDefButC(block, ROW, B_TEXREDR_PRV, "World",	200,150,80,25, &G.buts->texfrom, 3.0, 1.0, 0, 0, "Displays the textures of the world block");
@@ -1518,7 +1518,7 @@ static void world_panel_texture(World *wrld)
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_MATPRV, "sizeX",	200,50,100,19, mtex->size, -10.0, 10.0, 10, 0, "Sets scaling for the texture's X size");
 	uiDefButF(block, NUM, B_MATPRV, "sizeY",	200,30,100,19, mtex->size+1, -10.0, 10.0, 10, 0, "Sets scaling for the texture's Y size");
-	uiDefButF(block, NUM, B_MATPRV, "sizeZ",	200,10,100,19, mtex->size+2, -10.0, 10.0, 10, 0, "Sets scaling for the texture's Z size");	
+	uiDefButF(block, NUM, B_MATPRV, "sizeZ",	200,10,100,19, mtex->size+2, -10.0, 10.0, 10, 0, "Sets scaling for the texture's Z size");
 	
 }
 
@@ -1628,15 +1628,14 @@ static void world_panel_preview(World *wrld)
 
 	// label to force a boundbox for buttons not to be centered
 	uiDefBut(block, LABEL, 0, " ",	20,20,10,10, 0, 0, 0, 0, 0, "");
-	
+
 	uiBlockBeginAlign(block);
 	uiDefButS(block, TOG|BIT|1,B_MATPRV,"Real",	200,175,80,25, &wrld->skytype, 0, 0, 0, 0, "Renders background with a real horizon");
 	uiDefButS(block, TOG|BIT|0,B_MATPRV,"Blend",200,150,80,25, &wrld->skytype, 0, 0, 0, 0, "Renders background with natural progression from horizon to zenith");
 	uiDefButS(block, TOG|BIT|2,B_MATPRV,"Paper",200,125,80,25, &wrld->skytype, 0, 0, 0, 0, "Flattens blend or texture coordinates");
 	uiBlockEndAlign(block);
+
 }
-
-
 
 /* ************************ LAMP *************************** */
 
@@ -1644,7 +1643,7 @@ void do_lampbuts(unsigned short event)
 {
 	Lamp *la;
 	MTex *mtex;
-		
+
 	switch(event) {
 	case B_LAMPREDRAW:
 		BIF_preview_changed(G.buts);
@@ -1663,8 +1662,8 @@ void do_lampbuts(unsigned short event)
 			BIF_preview_changed(G.buts);
 		}
 		break;
-	case B_SBUFF: 
-		la= G.buts->lockpoin; 
+	case B_SBUFF:
+		la= G.buts->lockpoin;
 		la->bufsize = la->bufsize&=(~15); 
 		allqueue(REDRAWBUTSSHADING, 0); 
 		allqueue(REDRAWOOPS, 0); 
@@ -1678,7 +1677,7 @@ void do_lampbuts(unsigned short event)
 	case B_SHADRAY:
 		la= G.buts->lockpoin; 
 		la->mode &= ~LA_SHAD;
-		allqueue(REDRAWBUTSSHADING, 0); 
+		allqueue(REDRAWBUTSSHADING, 0);
 		break;
 	}
 	
@@ -2097,7 +2096,7 @@ static void material_panel_map_to(Material *ma)
 	uiDefButS(block, TOG|BIT|2, B_MATPRV, "Neg",		956,120,39,19, &(mtex->texflag), 0, 0, 0, 0, "Inverts the values of the texture to reverse its effect");
 	uiDefButS(block, TOG|BIT|0, B_MATPRV, "No RGB",		997,120,71,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
 	uiBlockEndAlign(block);
-	
+
 	uiDefButF(block, COL, B_MTEXCOL, "",				900,100,168,18, &(mtex->r), 0, 0, 0, 0, "Browses existing datablocks");
 	
 	uiBlockBeginAlign(block);

@@ -106,6 +106,14 @@
 #include <config.h>
 #endif
 
+/* yafray: VertRen vertices are not transformed, transform is replaced with the identity matrix,
+ * since yafray needs the untransformed meshes to calculate orco texture space as in Blender.
+ * This is not true for lamps however, which use a copy of the original object matrix instead.
+ * Duplicated data objects & dupliframe/duplivert objects are only stored once,
+ * only the matrix is stored for all others, in yafray these objects are instances of the original.
+ * The main changes are in RE_rotateBlenderScene().
+ */
+
 /* ------------------------------------------------------------------------- */
 /* Local functions                                                           */
 /* ------------------------------------------------------------------------- */
@@ -1014,7 +1022,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 		
 		for(ctime= pa->time; ctime<mtime; ctime+=paf->staticstep) {
 			
-			/* make sure hair grows until the end.. */ 
+			/* make sure hair grows until the end.. */
 			if(ctime>pa->time+pa->lifetime) ctime= pa->time+pa->lifetime;
 			
 
@@ -1096,7 +1104,11 @@ static void init_render_displist_mesh(Object *ob)
 
 	me= ob->data;
 
-	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
+	/* yafray: set transform to identity matrix */
+	if (R.r.mode & R_YAFRAY)
+		MTC_Mat4One(mat);
+	else
+		MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);
 	MTC_Mat3CpyMat4(imat, ob->imat);
 
@@ -1280,7 +1292,7 @@ static void init_render_displist_mesh(Object *ob)
 					vlr->puno= mf->puno;
 					
 					if(flipnorm== -1) flipnorm= test_flipnorm(v1->co, v2->co, v3->co, vlr, imat);
-					
+
 					if(flipnorm) {
 						vlr->n[0]= -vlr->n[0];
 						vlr->n[1]= -vlr->n[1];
@@ -1388,10 +1400,14 @@ static void init_render_mball(Object *ob)
 	float *data, *nors, mat[4][4], imat[3][3], xn, yn, zn;
 	int a, need_orco, startvert, *index;
 
-	if (ob!=find_basis_mball(ob)) 
+	if (ob!=find_basis_mball(ob))
 		return;
 
-	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
+	/* yafray: set transform to identity matrix */
+	if (R.r.mode & R_YAFRAY)
+		MTC_Mat4One(mat);
+	else
+		MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);
 	MTC_Mat3CpyMat4(imat, ob->imat);
 
@@ -1511,10 +1527,14 @@ static void init_render_mesh(Object *ob)
 	/* object_deform changes imat */
 	do_puno= object_deform(ob);
 
-	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
+	/* yafray: set transform to identity matrix */
+	if (R.r.mode & R_YAFRAY)
+		MTC_Mat4One(mat);
+	else
+		MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);
 	MTC_Mat3CpyMat4(imat, ob->imat);
-	
+
 	if(me->totvert==0) return;
 	mvert= me->mvert;
 
@@ -1809,12 +1829,16 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 	lar= (LampRen *)MEM_callocN(sizeof(LampRen),"lampren");
 	R.la[R.totlamp++]= lar;
 
-	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
+	/* yafray: in this case the lamp matrix is a copy of the object matrix */
+	if (R.r.mode & R_YAFRAY)
+		MTC_Mat4CpyMat4(mat, ob->obmat);
+	else
+		MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);
 
 	MTC_Mat3CpyMat4(lar->mat, mat);
 	MTC_Mat3CpyMat4(lar->imat, ob->imat);
-	
+
 	lar->bufsize = la->bufsize;
 	lar->samp = la->samp;
 	lar->soft = la->soft;
@@ -1822,7 +1846,7 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 	lar->clipsta = la->clipsta;
 	lar->clipend = la->clipend;
 	lar->bias = la->bias;
-		
+
 	lar->type= la->type;
 	lar->mode= la->mode;
 
@@ -1844,8 +1868,8 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 	lar->g= lar->energy*la->g;
 	lar->b= lar->energy*la->b;
 	lar->k= la->k;
-	
-	// area 
+
+	// area
 	lar->ray_samp= la->ray_samp;
 	lar->ray_sampy= la->ray_sampy;
 	lar->ray_sampz= la->ray_sampz;
@@ -1853,10 +1877,10 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 	lar->area_size= la->area_size;
 	lar->area_sizey= la->area_sizey;
 	lar->area_sizez= la->area_sizez;
-	
+
 	lar->area_shape= la->area_shape;
 	lar->ray_samp_type= la->ray_samp_type;
-	
+
 	if(lar->type==LA_AREA) {
 		switch(lar->area_shape) {
 		case LA_AREA_SQUARE:
@@ -1878,7 +1902,7 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 			lar->ray_totsamp= lar->ray_samp*lar->ray_sampy*lar->ray_sampz;
 			break;
 		}
-		
+
 		area_lamp_vectors(lar);
 	}
 	else lar->ray_totsamp= 0;
@@ -1947,12 +1971,16 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 			}
 		}
 	}
-	
-	if( (R.r.mode & R_SHADOW) && (lar->mode & LA_SHAD) && (la->type==LA_SPOT) && doshadbuf ) {
+
+	/* yafray: shadowbuffers only needed for internal render */
+	if ((R.r.mode & R_YAFRAY)==0)
+	{
+		if( (R.r.mode & R_SHADOW) && (lar->mode & LA_SHAD) && (la->type==LA_SPOT) && doshadbuf ) {
 		/* Per lamp, one shadow buffer is made. */
-		RE_initshadowbuf(lar, ob->obmat);
+			RE_initshadowbuf(lar, ob->obmat);
+		}
 	}
-	
+
 	lar->org= MEM_dupallocN(lar);
 }
 
@@ -1980,7 +2008,11 @@ static void init_render_surf(Object *ob)
 	nu= cu->nurb.first;
 	if(nu==0) return;
 
-	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
+	/* yafray: set transform to identity matrix */
+	if (R.r.mode & R_YAFRAY)
+		MTC_Mat4One(mat);
+	else
+		MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);
 
 	/* material array */
@@ -2383,7 +2415,11 @@ static void init_render_curve(Object *ob)
 
 	firststartvert= R.totvert;
 
-	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
+	/* yafray: set transform to identity matrix */
+	if (R.r.mode & R_YAFRAY)
+		MTC_Mat4One(mat);
+	else
+		MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);
 
 	/* material array */
@@ -2418,7 +2454,7 @@ static void init_render_curve(Object *ob)
 				}
 				bl= bl->next;
 			}
-			
+
 			if(totvert) {
 				fp= cu->orco= MEM_mallocN(3*sizeof(float)*totvert, "cu->orco");
 	
@@ -2729,7 +2765,11 @@ static void init_render_object(Object *ob)
 	else if(ob->type==OB_MBALL)
 		init_render_mball(ob);
 	else {
-		MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
+		/* yafray: set transform to identity matrix */
+		if (R.r.mode & R_YAFRAY)
+			MTC_Mat4One(mat);
+		else
+			MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 		MTC_Mat4Invert(ob->imat, mat);
 	}
 }
@@ -2901,6 +2941,8 @@ void RE_rotateBlenderScene(void)
 	ob= G.main->object.first;
 	while(ob) {
 		ob->flag &= ~OB_DONE;
+		/* yafray: OB_YAF_DUPLISOURCE flag should be cleared as well here, otherwise is saved in .blend */
+		ob->flag &= ~OB_YAF_DUPLISOURCE;
 		ob= ob->id.next;
 	}
 
@@ -2912,10 +2954,24 @@ void RE_rotateBlenderScene(void)
 
 	base= G.scene->base.first;
 	while(base) {
-		
+
 		ob= base->object;
-		
-		if(ob->flag & OB_DONE);
+
+		if(ob->flag & OB_DONE) {
+			/* yafray: this object needs to be included in renderlist for duplivert instancing.
+				 This only works for dupliverts, dupliframes handled below.
+				 This is based on the assumption that OB_DONE is only set for duplivert objects,
+				 before scene conversion, there are no other flags set to indicate it's use as far as I know...
+				 A special flag only used by yafray is set to indicate this object is the 'source' object
+				 of which all other duplivert objects are an instance of. */
+			if (R.r.mode & R_YAFRAY) {
+				printf("Adding %s to renderlist\n", ob->id.name);
+				ob->flag &= ~OB_DONE;
+				init_render_object(ob);
+				ob->flag |= OB_DONE;
+				ob->flag |= OB_YAF_DUPLISOURCE;
+			}
+		}
 		else {
 			where_is_object(ob);
 
@@ -2923,6 +2979,15 @@ void RE_rotateBlenderScene(void)
 
 				if(ob->transflag & OB_DUPLI) {
 					/* exception: mballs! */
+					/* yafray: Include at least one copy of a dupliframe object for yafray in the renderlist.
+					   mballs comment above true as well for yafray, they are not included, only all other object types */
+					if (R.r.mode & R_YAFRAY) {
+						if ((ob->type!=OB_MBALL) && ((ob->transflag & OB_DUPLIFRAMES)!=0)) {
+							printf("Object %s has OB_DUPLIFRAMES set, adding to renderlist\n", ob->id.name);
+							init_render_object(ob);
+							ob->flag |= OB_YAF_DUPLISOURCE;
+						}
+					}
 					make_duplilist(sce, ob);
 					if(ob->type==OB_MBALL) {
 						init_render_object(ob);
@@ -2933,7 +2998,7 @@ void RE_rotateBlenderScene(void)
 							/* exception, in background render it doesnt make the displist */
 							if ELEM(obd->type, OB_CURVE, OB_SURF) {
 								Curve *cu;
-							
+
 								cu= obd->data;
 								if(cu->disp.first==0) {
 									obd->flag &= ~OB_FROMDUPLI;
@@ -2942,20 +3007,45 @@ void RE_rotateBlenderScene(void)
 								}
 							}
 						}
-					
+
 						obd= duplilist.first;
 						while(obd) {
-							if(obd->type!=OB_MBALL) init_render_object(obd);
+							if(obd->type!=OB_MBALL) {
+								/* yafray: special handling of duplivert objects for yafray:
+								   only the matrix is stored, together with the source object name.
+									 Since the original object is needed as well, it is included in the renderlist (see above) */
+								if (R.r.mode & R_YAFRAY) {
+									printf("Adding dupli matrix for object %s\n", obd->id.name);
+									YAF_addDupliMtx(obd);
+								}
+								else init_render_object(obd);
+							}
 							obd= obd->id.next;
 						}
 					}
 					free_duplilist();
 				}
-				else init_render_object(ob);
+				else {
+					/* yafray: if there are linked data objects (except lamps),
+					   yafray only needs to know about one, the rest can be instanciated.
+					   The dupliMtx list is used for this purpose, so the test function sets the OB_YAF_DUPLISOURCE
+						 flag when for the already known object as well. */
+					if (R.r.mode & R_YAFRAY) {
+						if ((ob->type!=OB_LAMP) && (YAF_objectKnownData(ob)))
+							printf("Added dupli matrix for linked data object %s\n", ob->id.name);
+						else
+							init_render_object(ob);
+					}
+					else init_render_object(ob);
+				}
 
 			}
 			else {
-				MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
+				/* yafray: set transform to identity matrix, not sure if this is needed here */
+				if (R.r.mode & R_YAFRAY)
+					MTC_Mat4One(mat);
+				else
+					MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 				MTC_Mat4Invert(ob->imat, mat);
 			}
 
@@ -2977,8 +3067,11 @@ void RE_rotateBlenderScene(void)
 		if(ob->flag & OB_DO_IMAT) {
 
 			ob->flag &= ~OB_DO_IMAT;
-
-			MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
+			/* yafray: set transform to identity matrix, not sure if this is needed here */
+			if (R.r.mode & R_YAFRAY)
+				MTC_Mat4One(mat);
+			else
+				MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 			MTC_Mat4Invert(ob->imat, mat);
 		}
 		ob= ob->id.next;
@@ -2993,7 +3086,7 @@ void RE_rotateBlenderScene(void)
 	if(blender_test_break()) return;
 
 	/* if(R.totlamp==0) defaultlamp(); */
-	
+
 	set_normalflags();
 }
 

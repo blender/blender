@@ -176,7 +176,7 @@ void do_soundbuts(unsigned short event)
 		}
 		break;
 
-	case B_SOUND_MENU_SAMPLE: 
+	case B_SOUND_MENU_SAMPLE:
 		if (G.buts->menunr == -2) {
 			if (sound) {
 				activate_databrowse((ID *)sound->sample, ID_SAMPLE, 0, B_SOUND_MENU_SAMPLE, &G.buts->menunr, do_soundbuts);
@@ -491,7 +491,7 @@ void do_render_panels(unsigned short event)
 		break;
 	case B_PLAYANIM:
 #ifdef WITH_QUICKTIME
-		if(G.scene->r.imtype == R_QUICKTIME) 
+		if(G.scene->r.imtype == R_QUICKTIME)
 			makeqtstring(file);
 		else
 #endif
@@ -981,15 +981,18 @@ static void render_panel_output(void)
 	uiBlockSetCol(block, TH_AUTO);
 		
 	uiBlockBeginAlign(block);
-	for(b=2; b>=0; b--) 
+	for(b=2; b>=0; b--)
 		for(a=0; a<3; a++)
 			uiDefButS(block, TOG|BIT|(3*b+a), 800,"",	(short)(9+18*a),(short)(7+12*b),16,10, &R.winpos, 0, 0, 0, 0, "Render window placement on screen");
-	
+
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_REDR, "DispView",	72, 7, 65, 19, &R.displaymode, 0.0, (float)R_DISPLAYVIEW, 0, 0, "Sets render output to display in 3D view");
 	uiDefButS(block, ROW, B_REDR, "DispWin",	139, 7, 62, 19, &R.displaymode, 0.0, (float)R_DISPLAYWIN, 0, 0, "Sets render output to display in a seperate window");
 	uiBlockEndAlign(block);
-	
+
+	/* yafray: enable/disable button */
+	uiDefButI(block, TOG|BIT|18, B_REDR, "YafRay", 154, 28, 141, 18, &G.scene->r.mode, 0, 0, 0, 0, "Use YafRay for rendering");
+
 	uiDefButS(block, TOG|BIT|4, 0, "Extensions",	228, 8, 67, 18, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds extensions to the output when rendering animations");
 
 	/* Toon shading buttons */
@@ -997,7 +1000,7 @@ static void render_panel_output(void)
 	uiDefButI(block, TOG|BIT|5, 0,"Edge",	154, 70, 47, 19, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon shading");
 	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings |>> ", 204, 70, 93, 19, "Display edge settings");
 	uiBlockEndAlign(block);
-	
+
 	/* unified render buttons */
 	if(G.scene->r.mode & R_UNIFIED) {
 		uiDefBlockBut(block, post_render_menu, NULL, "Post process |>> ", 205, 48, 92, 19, "Only for unified render");
@@ -1005,7 +1008,7 @@ static void render_panel_output(void)
 			uiDefButF(block, NUMSLI, 0,"Gamma:",		8, 48, 143, 19,
 					 &(G.scene->r.gamma), 0.2, 5.0, B_GAMMASLI, 0,
 					 "The gamma value for blending oversampled images (1.0 = no correction).");
-		}		
+		}
 	}
 }
 
@@ -1018,14 +1021,14 @@ static void render_panel_render(void)
 	if(uiNewPanel(curarea, block, "Render", "Render", 320, 0, 318, 204)==0) return;
 
  	uiDefBut(block, BUT,B_DORENDER,"RENDER",	369,142,192,47, 0, 0, 0, 0, 0, "Start the rendering");
-	
+
 	uiBlockBeginAlign(block);
 	uiDefButI(block, TOG|BIT|0, 0, "OSA",		369,114,122,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");
 	uiDefButS(block, ROW,B_DIFF,"5",			369,90,28,20,&G.scene->r.osa,2.0,5.0, 0, 0, "Sets oversample level to 5");
 	uiDefButS(block, ROW,B_DIFF,"8",			397,90,28,20,&G.scene->r.osa,2.0,8.0, 0, 0, "Sets oversample level to 8 (Recommended)");
 	uiDefButS(block, ROW,B_DIFF,"11",			425,90,33,20,&G.scene->r.osa,2.0,11.0, 0, 0, "Sets oversample level to 11");
 	uiDefButS(block, ROW,B_DIFF,"16",			458,90,33,20,&G.scene->r.osa,2.0,16.0, 0, 0, "Sets oversample level to 16");
-	
+
 	uiBlockBeginAlign(block);
 	uiDefButI(block, TOG|BIT|14, 0, "MBLUR",	495,114,66,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Motion Blur calculation");
 	uiDefButF(block, NUM,B_DIFF,"Bf:",			495,90,65,20,&G.scene->r.blurfac, 0.01, 5.0, 10, 2, "Sets motion blur factor");
@@ -1038,7 +1041,7 @@ static void render_panel_render(void)
 	uiDefButS(block, ROW,800,"Sky",		369,11,38,24,&G.scene->r.alphamode,3.0,0.0, 0, 0, "Fill background with sky");
 	uiDefButS(block, ROW,800,"Premul",	410,11,54,24,&G.scene->r.alphamode,3.0,1.0, 0, 0, "Multiply alpha in advance");
 	uiDefButS(block, ROW,800,"Key",		467,11,44,24,&G.scene->r.alphamode,3.0,2.0, 0, 0, "Alpha and colour values remain unchanged");
-	
+
 	uiBlockBeginAlign(block);
 	uiDefButI(block, TOG|BIT|1,0,"Shadow",	565,167,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
 	uiDefButI(block, TOG|BIT|4,0,"EnvMap",	626,167,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable environment map renering");
@@ -1051,7 +1054,7 @@ static void render_panel_render(void)
 	uiDefButS(block, ROW,B_DIFF,"75%",			565,90,36,20,&G.scene->r.size,1.0,75.0, 0, 0, "Set render size to 3/4 of defined size");
 	uiDefButS(block, ROW,B_DIFF,"50%",			604,90,40,20,&G.scene->r.size,1.0,50.0, 0, 0, "Set render size to 1/2 of defined size");
 	uiDefButS(block, ROW,B_DIFF,"25%",			647,90,39,20,&G.scene->r.size,1.0,25.0, 0, 0, "Set render size to 1/4 of defined size");
-	
+
 	uiBlockBeginAlign(block);
 	uiDefButI(block, TOG|BIT|6,0,"Fields",  564,50,60,23,&G.scene->r.mode, 0, 0, 0, 0, "Enables field rendering");
 	uiDefButI(block, TOG|BIT|13,0,"Odd",	624,50,40,23,&G.scene->r.mode, 0, 0, 0, 0, "Enables Odd field first rendering (Default: Even field)");
@@ -1150,7 +1153,7 @@ static void render_panel_format(void)
 				G.scene->r.qtcodecdata->fourcc = qtcodecidx_to_fcc(qtcodec_idx-1);
 				qt_init_codecdata(G.scene->r.qtcodecdata);	
 			}
-			
+
 			yofs -= 22;
 			uiDefBlockBut(block, qtcodec_menu, NULL, "Codec Settings |>> ", 892,yofs, 227, 20, "Edit Codec settings for QuickTime");
 			yofs +=22;
@@ -1193,6 +1196,46 @@ static void render_panel_format(void)
 }
 
 
+/* yafray: global illumination options panel */
+static void render_panel_yafrayGI()
+{
+	uiBlock *block;
+
+	block= uiNewBlock(&curarea->uiblocks, "render_panel_yafrayGI", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Render", "Render");
+	if(uiNewPanel(curarea, block, "YafRay GI", "Render", 320, 0, 318, 204)==0) return;
+
+	// label to force a boundbox for buttons not to be centered
+	uiDefBut(block, LABEL, 0, " ", 305,180,10,10, 0, 0, 0, 0, 0, "");
+
+	uiDefBut(block, LABEL, 0, "Method", 5,175,70,20, 0, 1.0, 0, 0, 0, "");
+	uiDefButS(block, MENU, B_REDR, "GiMethod %t|None %x0|SkyDome %x1|Full %x2 |", 70,175,89,20, &G.scene->r.GImethod, 0, 0, 0, 0, "Global Illumination Method");
+	uiDefBut(block, LABEL, 0, "Quality", 5,150,70,20, 0, 1.0, 0, 0, 0, "");
+	uiDefButS(block, MENU, B_REDR, "GiQuality %t|None %x0|Low %x1|Medium %x2 |High %x3|Best %x4|", 70,150,89,20, &G.scene->r.GIquality, 0, 0, 0, 0, "Global Illumination Quality");
+
+	if (G.scene->r.GImethod>0) {
+		if (G.scene->r.GIpower==0) G.scene->r.GIpower=1;
+		uiDefButF(block, NUM, 0, "Power:", 5,35,154,20, &G.scene->r.GIpower, 0.01, 100.0, 0, 0, "GI lighting intensity scale, 1 is normal");
+	}
+	uiDefButF(block, NUMSLI, 0, "Gam ", 5,10,154,20, &G.scene->r.YF_gamma, 0.001, 5.0, 0, 0, "Gamma correction, 1 is off");
+	uiDefButF(block, NUMSLI, 0, "Exp ", 159,10,154,20, &G.scene->r.YF_exposure, 0.0, 10.0, 0, 0, "Exposure adjustment, 0 is off");
+
+	if (G.scene->r.GImethod==2) {
+		if (G.scene->r.GIdepth==0) G.scene->r.GIdepth=2;
+		uiDefButI(block, NUM, 0, "Depth:", 180,175,110,20, &G.scene->r.GIdepth, 1.0, 8.0, 10, 10, "Number of bounces of the indirect light");
+		uiDefButS(block,TOG|BIT|0, B_REDR, "Cache",70,125,89,20, &G.scene->r.GIcache, 0, 0, 0, 0, "Cache irradiance samples (faster)");
+		if (G.scene->r.GIcache) {
+			uiDefBut(block, LABEL, 0, "Cache parameters:", 5,105,130,20, 0, 1.0, 0, 0, 0, "");
+			if (G.scene->r.GIshadowquality==0.0) G.scene->r.GIshadowquality=0.9;
+			uiDefButF(block, NUMSLI, 0,"ShadQu ", 5,85,154,20,	&(G.scene->r.GIshadowquality), 0.0, 1.0 ,0,0, "Sets the shadow quality, keep it under 0.95 :-) ");
+			if (G.scene->r.GIpixelspersample==0) G.scene->r.GIpixelspersample=10;
+			uiDefButI(block, NUM, 0, "Pixel Precision:",	5,60,154,20, &G.scene->r.GIpixelspersample, 1, 50, 10, 10, "Maximum number of pixels without samples, the lower the better and slower");
+			uiDefButS(block,TOG|BIT|0, 0, "UseGradient",180,85,110,20, &G.scene->r.GIgradient, 0, 0, 0, 0, "Try to smooth lighting using a gradient");
+		}
+	}
+}
+
+
 void render_panels()
 {
 
@@ -1200,7 +1243,12 @@ void render_panels()
 	render_panel_render();
 	render_panel_anim();
 	render_panel_format();
-	
+	/* yafray: GI panel only available when yafray enabled for rendering */
+	if (G.scene->r.mode & R_YAFRAY) {
+		if (G.scene->r.YF_gamma==0.0) G.scene->r.YF_gamma=1.0;
+		render_panel_yafrayGI();
+	}
+
 }
 
 /* --------------------------------------------- */
@@ -1208,7 +1256,7 @@ void render_panels()
 void anim_panels()
 {
 	uiBlock *block;
-	
+
 	block= uiNewBlock(&curarea->uiblocks, "anim_panel", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Anim", "Anim", 0, 0, 318, 204)==0) return;
 
@@ -1219,7 +1267,7 @@ void anim_panels()
 	uiDefButS(block, NUM,B_FRAMEMAP,"Map New:",	416,69,95,22,&G.scene->r.images,1.0,900.0, 0, 0, "Specify new map value in frames");
 
 	uiDefButS(block, NUM,REDRAWSEQ,"Frs/sec:",   320,47,93,19, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
-	
+
 	uiDefButS(block, TOG|BIT|1, B_SOUND_CHANGED, "Sync",	416,47,95,19, &G.scene->audio.flag, 0, 0, 0, 0, "Use sample clock for syncing animation to audio");
 
 
@@ -1230,7 +1278,7 @@ void anim_panels()
 void sound_panels()
 {
 	bSound *sound;
-	
+
 	sound = G.buts->lockpoin;
 	if ((sound) && (sound->flags & SOUND_FLAGS_SEQUENCE)) sound = NULL;
 

@@ -443,8 +443,14 @@ static void renderwin_handler(Window *win, void *user_data, short evt, short val
 static void open_renderwin(int winpos[2], int winsize[2])
 {
 	Window *win;
+	/* yafray: Window title change for yafray, totally unnecessary of course, but... */
+	char* title;
+	if (G.scene->r.mode & R_YAFRAY)
+		title = "YafRay:Render";
+	else
+		title = "Blender:Render";
 
-	win= window_open("Blender:Render", winpos[0], winpos[1], winsize[0], winsize[1], 0);
+	win= window_open(title, winpos[0], winpos[1], winsize[0], winsize[1], 0);
 
 	render_win= renderwin_alloc(win);
 

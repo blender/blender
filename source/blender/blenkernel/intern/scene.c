@@ -147,7 +147,7 @@ void free_scene(Scene *sce)
 Scene *add_scene(char *name)
 {
 	Scene *sce;
-	
+
 	sce= alloc_libblock(&G.main->scene, ID_SCE, name);
 	sce->lay= 1;
 
@@ -443,13 +443,13 @@ int next_object(int val, Base **base, Object **ob)
 		dupob= 0;
 	}
 	else {
-		
+
 		/* run_again is set when a duplilist has been ended */
 		while(run_again) {
 			run_again= 0;
 			
 				
-				
+
 			/* the first base */
 			if(fase==F_START) {
 				*base= G.scene->base.first;

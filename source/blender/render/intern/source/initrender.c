@@ -101,8 +101,11 @@
 /* Own includes */
 #include "initrender.h"
 
+/* yafray: include for yafray export/render */
+#include "yafray_Render.h"
+
 /* Some crud :/ */
-#define ELEM3(a, b, c, d)       ( ELEM(a, b, c) || (a)==(d) ) 
+#define ELEM3(a, b, c, d)       ( ELEM(a, b, c) || (a)==(d) )
 
 
 /* from render.c */
@@ -535,7 +538,7 @@ void RE_setwindowclip(int mode, int jmode)
 	/* Since the SCS-s map directly to the pixel center coordinates, we need */
 	/* to stretch the clip area a bit, not just shift it. However, this gives*/
 	/* nasty problems for parts...                                           */
-	   
+
 	if(R.flag & R_SEC_FIELD) {
 		if(R.r.mode & R_ODDFIELD) {
 			miny-= .5*R.ycor;
@@ -739,13 +742,30 @@ void add_to_blurbuf(int blur)
 }
 
 
+/* yafray: main yafray render/export call */
+void yafrayRender()
+{
+	R.flag |= R_RENDERING;	/* !!! */
+	printf("Starting scene conversion.\n");
+	prepareScene();
+	printf("Scene conversion done.\n");
+	YAF_exportScene();
+	finalizeScene();
+}
+
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 void render() {
-	/* not too neat... should improve... */
-	if(R.r.mode & R_UNIFIED) {
-		unifiedRenderingLoop();
-	} else {
-		oldRenderLoop();
+	/* yafray: render, see above */
+	if (R.r.mode & R_YAFRAY)
+		yafrayRender();
+	else {
+		/* not too neat... should improve... */
+		if(R.r.mode & R_UNIFIED) {
+			unifiedRenderingLoop();
+		} else {
+			oldRenderLoop();
+		}
 	}
 }
 
@@ -756,7 +776,7 @@ void oldRenderLoop(void)  /* here the PART and FIELD loops */
 	unsigned int *rt, *rt1, *rt2;
 	int len, y;
 	short blur, a,fields,fi,parts;  /* pa is a global because of print */
-	
+
 	if (R.rectz) MEM_freeN(R.rectz);
 	R.rectz = 0;
 
@@ -786,7 +806,6 @@ void oldRenderLoop(void)  /* here the PART and FIELD loops */
 		/* MOTIONBLUR loop */
 		if(R.r.mode & R_MBLUR) blur= R.osa;
 		else blur= 1;
-	
 		while(blur--) {
 
 			/* WINDOW */
@@ -797,24 +816,24 @@ void oldRenderLoop(void)  /* here the PART and FIELD loops */
 			R.xend= R.xstart+R.rectx-1;
 			R.yend= R.ystart+R.recty-1;
 
-	
+
 			if(R.r.mode & R_MBLUR) set_mblur_offs(R.osa-blur);
 
 			initparts(); /* always do, because of border */
 			setpart(0);
-	
+
 			RE_local_init_render_display();
 			RE_local_clear_render_display(R.win);
 			RE_local_timecursor((G.scene->r.cfra));
 
 			prepareScene();
-			
+
 			/* PARTS */
 			R.parts.first= R.parts.last= 0;
 			for(pa=0; pa<parts; pa++) {
-				
+
 				if(RE_local_test_break()) break;
-				
+
 				if(pa) {	/* because case pa==0 has been done */
 					if(setpart(pa)==0) break;
 				}
@@ -831,32 +850,32 @@ void oldRenderLoop(void)  /* here the PART and FIELD loops */
 				doClipping(RE_projectverto);
 				if(RE_local_test_break()) break;
 
-				
+
 				/* ZBUFFER & SHADE: zbuffer stores integer distances, and integer face indices */
 				R.rectot= (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
 				R.rectz =  (unsigned int *)MEM_mallocN(sizeof(int)*R.rectx*R.recty, "rectz");
 
 				if(R.r.mode & R_MBLUR) RE_local_printrenderinfo(0.0, R.osa - blur);
 				else RE_local_printrenderinfo(0.0, -1);
-				
+
 				/* choose render pipeline type, and whether or not to use the */
 				/* delta accumulation buffer. 3 choices.                      */
 				if(R.r.mode & R_OSA) zbufshadeDA();
 				else                 zbufshade();
-				
+
 				if(RE_local_test_break()) break;
-				
+
 				/* exception */
 				if( (R.r.mode & R_BORDER) && (R.r.mode & R_MOVIECROP));
 				else {
 					/* HANDLE PART OR BORDER */
 					if(parts>1 || (R.r.mode & R_BORDER)) {
-						
+
 						part= MEM_callocN(sizeof(Part), "part");
 						BLI_addtail(&R.parts, part);
 						part->rect= R.rectot;
 						R.rectot= NULL;
-						
+
 						if (R.rectz) {
 							MEM_freeN(R.rectz);
 							R.rectz= NULL;
@@ -1050,7 +1069,7 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 		return;
 	}
 
-	
+
 	/* TEST BACKBUF */
 	/* If an image is specified for use as backdrop, that image is loaded    */
 	/* here.                                                                 */
@@ -1078,7 +1097,7 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 		}
 	}
 
-	
+
 	usegamtab= 0; /* see also further */
 
 	if(R.r.mode & (R_OSA|R_MBLUR)) {
@@ -1100,7 +1119,7 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 	R.near= 0.1;
 	R.far= 1000.0;
 
-	
+
 	if(R.afmx<1 || R.afmy<1) {
 		error("Image too small");
 		return;
@@ -1155,18 +1174,22 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 			render(); /* returns with complete rect xsch-ysch */
 		}
 	}
-	
+
 	/* display again: fields/seq/parts/pano etc */
-	if(R.rectot) {	
+	if(R.rectot) {
 		RE_local_init_render_display();
 		RE_local_render_display(0, R.recty-1,
 								R.rectx, R.recty,
-								R.rectot); 
+								R.rectot);
 	}
 	else RE_local_clear_render_display(R.win);
 
 	RE_local_printrenderinfo((PIL_check_seconds_timer() - start_time), -1);
 	
+	/* restore variables */
+	//R.osatex= 0;
+	//R.vlr= 0;	
+	///* at cubemap */
 	R.flag= 0;
 }
 

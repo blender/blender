@@ -1,4 +1,4 @@
-/* 
+/*
  * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -152,7 +152,7 @@ static void print_help(void)
 				
 	printf ("\nRender options:\n");
 	printf ("  -b <file>\tRender <file> in background\n");
-	printf ("    -S <name>\tSet scene <name>\n");				
+	printf ("    -S <name>\tSet scene <name>\n");
 	printf ("    -f <frame>\tRender frame <frame> and save it\n");				
 	printf ("    -s <frame>\tSet start to frame <frame> (use with -a)\n");
 	printf ("    -e <frame>\tSet end to frame (use with -a)<frame>\n");
@@ -167,7 +167,7 @@ static void print_help(void)
 	printf ("  -w\t\tForce opening with borders\n");
 #ifdef WIN32
 	printf ("  -W\t\tForce opening without borders\n");
-#endif				
+#endif
 	printf ("  -p <sx> <sy> <w> <h>\tOpen with lower left corner at <sx>, <sy>\n");
 	printf ("                      \tand width and height <w>, <h>\n");
 	printf ("\nGame Engine specific options:\n");
@@ -176,7 +176,7 @@ static void print_help(void)
 	printf ("  -g noaudio\t\tNo audio in Game Engine\n");
 	printf ("  -g nomipmap\t\tNo Texture Mipmapping\n");
 	printf ("  -g linearmipmap\tLinear Texture Mipmapping instead of Nearest (default)\n");
-				
+
 	printf ("\nMisc options:\n");
 	printf ("  -d\t\tTurn debugging on\n");
 	printf ("  -noaudio\tDisable audio on systems that support audio\n");
@@ -191,7 +191,7 @@ static void print_help(void)
 
 double PIL_check_seconds_timer(void);
 extern void winlay_get_screensize(int *width_r, int *height_r);
-int main(int argc, char **argv)	
+int main(int argc, char **argv)
 {
 	int a, i, stax, stay, sizx, sizy;
 	SYS_SystemHandle syshandle;
@@ -210,12 +210,12 @@ int main(int argc, char **argv)
 		extern int GHOST_HACK_getFirstFile(char buf[]);
 		static char firstfilebuf[512];
 		int scr_x,scr_y;
-		
+
 		argc= 1;
-		
+
 		/* 40 + 684 + (headers) 22 + 22 = 768, the powerbook screen height */
 		setprefsize(120, 40, 850, 684);
-		
+
 		winlay_get_screensize(&scr_x, &scr_y);
 		winlay_process_events(0);
 		if (GHOST_HACK_getFirstFile(firstfilebuf)) {
@@ -223,7 +223,7 @@ int main(int argc, char **argv)
 			argv[1]= firstfilebuf;
 		}
 	}
-	
+
 #endif
 
 #ifdef __FreeBSD__
@@ -334,7 +334,7 @@ int main(int argc, char **argv)
 	BKE_font_register_builtin(datatoc_Bfont, datatoc_Bfont_size);
 		/* must be called here because R.winpos from default file */
 	RE_init_render_data();
-	
+
 	if(G.background==0) {
 		for(a=1; a<argc; a++) {
 			if(argv[a][0] == '-') {
@@ -352,7 +352,7 @@ int main(int argc, char **argv)
 					sizx= atoi(argv[a]);
 					a++;
 					sizy= atoi(argv[a]);
-	
+
 					setprefsize(stax, stay, sizx, sizy);
 					break;
 				case 'd':
@@ -442,13 +442,13 @@ int main(int argc, char **argv)
 	}
 
 	RE_init_filt_mask();
-	
+
 #ifdef WITH_QUICKTIME
 
 	quicktime_init();
 
 #endif /* WITH_QUICKTIME */
-		
+
 	/* OK we are ready for it */
 
 	for(a=1; a<argc; a++) {
@@ -471,7 +471,7 @@ int main(int argc, char **argv)
 				-g maxvertexarraysize = 512
 				*/
 
-					if(++a < argc) 
+					if(++a < argc)
 					{
 						char* paramname = argv[a];
 						/* check for single value versus assignment */
@@ -488,12 +488,12 @@ int main(int argc, char **argv)
 								printf("error: argument assignment (%s) without value.\n",paramname);
 							}
 							/* name arg eaten */
-							
+
 						} else
 						{
-							
+
 							SYS_WriteCommandLineInt(syshandle,argv[a],1);
-							
+
 							/* doMipMap */
 							if (!strcmp(argv[a],"nomipmap"))
 							{
@@ -504,7 +504,7 @@ int main(int argc, char **argv)
 							{
 								set_linear_mipmap(1); //linearMipMap = 1;
 							}
-						
+
 
 						} /* if (*(argv[a+1]) == '=') */
 					} /*	if(++a < argc)  */
@@ -551,19 +551,19 @@ int main(int argc, char **argv)
 			sound_initialize_sounds();
 		}
 	}
-	
-	if(G.background) 
+
+	if(G.background)
 	{
 		exit_usiblender();
 	}
 
 	setscreen(G.curscreen);
-	
+
 	if(G.main->scene.first==0) {
 		sce= add_scene("1");
 		set_scene(sce);
 	}
-	
+
 	screenmain();
 
 	return 0;
@@ -579,9 +579,9 @@ void setCallbacks(void)
 	/* Error output from the alloc routines: */
 	MEM_set_error_stream(stderr);
 
-	
+
 	/* BLI_blenlib: */
-	
+
 	BLI_setErrorCallBack(error_cb); /* */
 	BLI_setInterruptCallBack(blender_test_break);
 
