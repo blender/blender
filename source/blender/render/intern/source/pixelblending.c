@@ -461,7 +461,7 @@ void sampleFloatColV2FloatColVFilter(float *sample, float *dest1, float *dest2, 
 		}
 	}
 	
-} /* end void sampleFloatColVToFloatColV(unsigned short *, unsigned short *) */
+} 
 
 /* ------------------------------------------------------------------------- */
 /* The following functions are 'old' blending functions:                     */

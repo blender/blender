@@ -203,9 +203,10 @@ void setzbufvlaggen( void (*projectfunc)(float *, float *) )
 			har->ys= 0.5*R.recty*(1.0+hoco[1]/zn);
 		
 			/* this should be the zbuffer coordinate */
-			har->zs= 0x7FFFFF*(1.0+hoco[2]/zn);
+			har->zs= 0x7FFFFF*(hoco[2]/zn);
 			/* taking this from the face clip functions? seems ok... */
 			har->zBufDist = 0x7FFFFFFF*(hoco[2]/zn);
+			
 			vec[0]+= har->hasize;
 			projectfunc(vec, hoco);
 			vec[0]-= har->hasize;
@@ -227,13 +228,8 @@ void setzbufvlaggen( void (*projectfunc)(float *, float *) )
 			vec[2]-= har->hasize;	/* z negative, otherwise it's clipped */
 			projectfunc(vec, hoco);
 			zn= hoco[3];
-			zn= fabs(har->zs - 0x7FFFFF*(1.0+hoco[2]/zn));
+			zn= fabs( (float)har->zs - 0x7FFFFF*(hoco[2]/zn));
 			har->zd= CLAMPIS(zn, 0, INT_MAX);
-		
-			/* if( har->zs < 2*har->zd) { */
-			/* PRINT2(d, d, har->zs, har->zd); */
-			/* har->alfa= har->mat->alpha * ((float)(har->zs))/(float)(2*har->zd); */
-			/* } */
 		
 		}
 		

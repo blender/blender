@@ -259,7 +259,7 @@ void RE_renderflare(struct HaloRen *har);
 	*/
 void RE_shadehalo(struct HaloRen *har,
 				char *col, float *colf, 
-				unsigned int zz,
+				int zz,
 				float dist,
 				float x,
 				float y,

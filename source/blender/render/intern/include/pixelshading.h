@@ -59,7 +59,7 @@ void *renderHaloPixel(RE_COLBUFTYPE *collector, float x, float y, int haloNr) ;
 void setSkyBlendingMode(enum RE_SkyAlphaBlendingType mode);
 
 void shadeHaloFloat(HaloRen *har, 
-					float *col, unsigned int zz, 
+					float *col, int zz, 
 					float dist, float xn, 
 					float yn, short flarec);
 

@@ -346,7 +346,7 @@ static void renderspothalo(ShadeInput *shi, float *col)
 }
 
 
-static unsigned int calchalo_z(HaloRen *har, unsigned int zz)
+static int calchalo_z(HaloRen *har, int zz)
 {
 
 	if(har->type & HA_ONLYSKY) {
@@ -354,22 +354,20 @@ static unsigned int calchalo_z(HaloRen *har, unsigned int zz)
 	}
 	else {
 		zz= (zz>>8);
-		if(zz<0x800000) zz= (zz+0x7FFFFF);
-		else zz= (zz-0x800000);
 	}
 	return zz;
 }
 
-static void scanlinehaloPS(unsigned int *rectz, long *rectdelta, float *rowbuf, short ys)
+static void scanlinehaloPS(int *rectz, long *rectdelta, float *rowbuf, short ys)
 {
 	HaloRen *har = NULL;
 	PixStr *ps;
 	float dist, xsq, ysq, xn, yn;
 	float *rb;
 	float col[4], accol[4];
-	unsigned int a, *rz, zz;
+	int a, *rz, zz, didgamma=0;
 	long *rd;
-	short minx, maxx, x, aantal, aantalm, flarec;
+	short minx, maxx, x, amount, amountm, flarec;
 
 	for(a=0; a<R.tothalo; a++) {
 		if((a & 255)==0) {
@@ -398,28 +396,44 @@ static void scanlinehaloPS(unsigned int *rectz, long *rectdelta, float *rowbuf, 
 				ysq= yn*yn;
 				for(x=minx; x<=maxx; x++) {
 					
-					flarec= har->flarec;	/* har->pixels is inly allowd to count once */
-
-					if( IS_A_POINTER_CODE(*rd)) {
-						xn= x-har->xs;
-						xsq= xn*xn;
-						dist= xsq+ysq;
-						if(dist<har->radsq) {
+					xn= x-har->xs;
+					xsq= xn*xn;
+					dist= xsq+ysq;
+					
+					if(dist<har->radsq) {
+						
+						/* well yah, halo adding shouldnt be done gamma corrected, have to bypass it this way */
+						/* alternative is moving it outside of thread renderlineDA */
+						/* on positive side; the invert correct cancels out correcting halo color */
+						if(do_gamma && didgamma==0) {
+							float *buf= rowbuf;
+							int xt;
+							for(xt=0; xt<R.rectx; xt++, buf+=4) {
+								buf[0]= invGammaCorrect(buf[0]);
+								buf[1]= invGammaCorrect(buf[1]);
+								buf[2]= invGammaCorrect(buf[2]);
+							}
+							didgamma= 1;
+						}
+						
+						flarec= har->flarec;	/* har->pixels is only allowed to count once */
+						
+						if(*rd) {				/* theres a pixel struct */
 							
-							ps= (PixStr *) POINTER_FROM_CODE(*rd);
-							aantal= 0;
+							ps= (PixStr *)(*rd);
+							amount= 0;
 							accol[0]=accol[1]=accol[2]=accol[3]= 0.0;
 							
 							while(ps) {
-								aantalm= count_mask(ps->mask);
-								aantal+= aantalm;
+								amountm= count_mask(ps->mask);
+								amount+= amountm;
 
 								zz= calchalo_z(har, ps->z);
 								if(zz> har->zs) {
 									float fac;
 									
 									shadeHaloFloat(har, col, zz, dist, xn, yn, flarec);
-									fac= ((float)aantalm)/(float)R.osa;
+									fac= ((float)amountm)/(float)R.osa;
 									accol[0]+= fac*col[0];
 									accol[1]+= fac*col[1];
 									accol[2]+= fac*col[2];
@@ -429,48 +443,30 @@ static void scanlinehaloPS(unsigned int *rectz, long *rectdelta, float *rowbuf, 
 
 								ps= ps->next;
 							}
-							ps= (PixStr *) POINTER_FROM_CODE(*rd);
-							aantal= R.osa-aantal;
-							
-							zz= calchalo_z(har, *rz);
-							if(zz> har->zs) {
+							/* now do the sky sub-pixels */
+							amount= R.osa-amount;
+							if(amount) {
 								float fac;
 
-								shadeHaloFloat(har, col, zz, dist, xn, yn, flarec);
-								fac= ((float)aantal)/(float)R.osa;
+								shadeHaloFloat(har, col, 0x7FFFFF, dist, xn, yn, flarec);
+								fac= ((float)amount)/(float)R.osa;
 								accol[0]+= fac*col[0];
 								accol[1]+= fac*col[1];
 								accol[2]+= fac*col[2];
 								accol[3]+= fac*col[3];
 							}
-
 							col[0]= accol[0];
 							col[1]= accol[1];
 							col[2]= accol[2];
 							col[3]= accol[3];
 
-							/* if(behind > (R.osa>>1)) addalphaUnder(rt,col); */
-							if(do_gamma) {
-								col[0]= gammaCorrect(col[0]);
-								col[1]= gammaCorrect(col[1]);
-								col[2]= gammaCorrect(col[2]);
-							}
 							addalphaAddfacFloat(rb, col, har->add);
 						}
-					}
-					else {
-						zz= calchalo_z(har, *rz);
-						if(zz> har->zs) {
-							xn= x- har->xs;
-							xsq= xn*xn;
-							dist= xsq+ysq;
-							if(dist<har->radsq) {
+						else {
+							zz= calchalo_z(har, *rz);
+							if(zz> har->zs) {
+
 								shadeHaloFloat(har, col, zz, dist, xn, yn, flarec);
-								if(do_gamma) {
-									col[0]= gammaCorrect(col[0]);
-									col[1]= gammaCorrect(col[1]);
-									col[2]= gammaCorrect(col[2]);
-								}
 								addalphaAddfacFloat(rb, col, har->add);
 							}
 						}
@@ -482,14 +478,26 @@ static void scanlinehaloPS(unsigned int *rectz, long *rectdelta, float *rowbuf, 
 			}
 		}
 	}
+
+	/* the entire scanline has to be put back in gammaspace */
+	if(didgamma) {
+		float *buf= rowbuf;
+		int xt;
+		for(xt=0; xt<R.rectx; xt++, buf+=4) {
+			buf[0]= gammaCorrect(buf[0]);
+			buf[1]= gammaCorrect(buf[1]);
+			buf[2]= gammaCorrect(buf[2]);
+		}
+	}
+
 }
 
-static void scanlinehalo(unsigned int *rectz, float *rowbuf, short ys)
+static void scanlinehalo(int *rectz, float *rowbuf, short ys)
 {
 	HaloRen *har = NULL;
 	float dist, xsq, ysq, xn, yn, *rb;
 	float col[4];
-	unsigned int a, *rz, zz;
+	int a, *rz, zz;
 	short minx, maxx, x;
 
 	for(a=0; a<R.tothalo; a++) {
@@ -1918,21 +1926,49 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 	}
 }
 
-  /* x,y: window coordinate from 0 to rectx,y */
-  /* return pointer to rendered face */
-  
-float bluroffsx, bluroffsy;	// set in initrender.c (ton)
+#if 0
+/* return labda for view vector being closest to line v3-v4 */
+/* was used for wire render */
+static float isec_view_line(float *view, float *v3, float *v4)
+{
+	float vec[3];
+	float dot0, dot1, dot2, veclen, viewlen;
+	float fac, div;
+	
+	vec[0]= v4[0] - v3[0];
+	vec[1]= v4[1] - v3[1];
+	vec[2]= v4[2] - v3[2];
+	
+	dot0 = v3[0]*vec[0] + v3[1]*vec[1] + v3[2]*vec[2];
+	dot1 = vec[0]*view[0] + vec[1]*view[1] + vec[2]*view[2];
+	dot2 = v3[0]*view[0] + v3[1]*view[1] + v3[2]*view[2];
+	
+	veclen = vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2];
+	viewlen = view[0]*view[0] + view[1]*view[1] + view[2]*view[2];
+	
+	div = viewlen*veclen - dot1*dot1;
+	if (div==0.0) return 0.0;
+	
+	fac = dot2*veclen - dot0*dot1;
+	return fac/div;
+}
+#endif
 
-void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
+  
+float bluroffsx=0.0, bluroffsy=0.0;	// set in initrender.c (bad, ton)
+
+/* x,y: window coordinate from 0 to rectx,y */
+/* return pointer to rendered face */
+void *shadepixel(float x, float y, int z, int facenr, int mask, float *col)
 {
 	ShadeResult shr;
 	ShadeInput shi;
 	VlakRen *vlr=NULL;
 	
-	if(vlaknr< 0) {	/* error */
+	if(facenr< 0) {	/* error */
 		return NULL;
 	}
-	/* currently in use for dithering soft shadow */
+	/* currently in use for dithering (soft shadow) and detecting thread */
 	shi.xs= x;
 	shi.ys= y;
 	
@@ -1940,14 +1976,14 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 	shi.mask= mask;
 	shi.depth= 0;	// means first hit, not raytracing
 	
-	if(vlaknr==0) {	/* sky */
+	if(facenr==0) {	/* sky */
 		col[0]= 0.0; col[1]= 0.0; col[2]= 0.0; col[3]= 0.0;
 	}
-	else if( (vlaknr & 0x7FFFFF) <= R.totvlak) {
+	else if( (facenr & 0x7FFFFF) <= R.totvlak) {
 		VertRen *v1, *v2, *v3;
-		float alpha, fac, dvlak, deler, zcor;
+		float alpha, fac, zcor;
 		
-		vlr= RE_findOrAddVlak( (vlaknr-1) & 0x7FFFFF);
+		vlr= RE_findOrAddVlak( (facenr-1) & 0x7FFFFF);
 		
 		shi.vlr= vlr;
 		shi.mat= vlr->mat;
@@ -1964,7 +2000,6 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 		shi.puno= vlr->puno;
 		
 		v1= vlr->v1;
-		dvlak= v1->co[0]*shi.facenor[0]+v1->co[1]*shi.facenor[1]+v1->co[2]*shi.facenor[2];
 		
 		/* COXYZ AND VIEW VECTOR  */
 		shi.view[0]= (x+(R.xstart)+bluroffsx +0.5);
@@ -1986,32 +2021,8 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 			shi.view[0]= panoco*u + panosi*v;
 			shi.view[2]= -panosi*u + panoco*v;
 		}
-
-		deler= shi.facenor[0]*shi.view[0] + shi.facenor[1]*shi.view[1] + shi.facenor[2]*shi.view[2];
-		if (deler!=0.0) fac= zcor= dvlak/deler;
-		else fac= zcor= 0.0;
 		
-		shi.co[0]= fac*shi.view[0];
-		shi.co[1]= fac*shi.view[1];
-		shi.co[2]= fac*shi.view[2];
-		
-		/* pixel dx/dy for render coord */
-		if(shi.osatex || (R.r.mode & R_SHADOW) ) {
-			float u= dvlak/(deler-shi.facenor[0]);
-			float v= dvlak/(deler- R.ycor*shi.facenor[1]);
-
-			shi.dxco[0]= shi.co[0]- (shi.view[0]-1.0)*u;
-			shi.dxco[1]= shi.co[1]- (shi.view[1])*u;
-			shi.dxco[2]= shi.co[2]- (shi.view[2])*u;
-
-			shi.dyco[0]= shi.co[0]- (shi.view[0])*v;
-			shi.dyco[1]= shi.co[1]- (shi.view[1]-1.0*R.ycor)*v;
-			shi.dyco[2]= shi.co[2]- (shi.view[2])*v;
-
-		}
-
 		fac= Normalise(shi.view);
-		zcor*= fac;	/* for mist */
 		
 		if(shi.osatex) {
 			if( (shi.mat->texco & TEXCO_REFL) ) {
@@ -2020,8 +2031,49 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 			}
 		}
 		
+		/* wire cannot use normal for calculating shi.co */
+		if(shi.mat->mode & MA_WIRE) {
+			float zco;
+			/* inverse of zbuf calc: zbuf = MAXZ*hoco_z/hoco_w */
+			
+			zco= ((float)z)/(float)0x7FFFFFFF;
+			shi.co[2]= R.winmat[3][2]/( R.winmat[2][3]*zco - R.winmat[2][2] );
+			
+			fac= zcor= shi.co[2]/shi.view[2];
+			
+			shi.co[0]= fac*shi.view[0];
+			shi.co[1]= fac*shi.view[1];
+		}
+		else {
+			float div, dface;
+			
+			dface= v1->co[0]*shi.facenor[0]+v1->co[1]*shi.facenor[1]+v1->co[2]*shi.facenor[2];
+			div= shi.facenor[0]*shi.view[0] + shi.facenor[1]*shi.view[1] + shi.facenor[2]*shi.view[2];
+			if (div!=0.0) fac= zcor= dface/div;
+			else fac= zcor= 0.0;
+			
+			shi.co[0]= fac*shi.view[0];
+			shi.co[1]= fac*shi.view[1];
+			shi.co[2]= fac*shi.view[2];
+		
+			/* pixel dx/dy for render coord */
+			if(shi.osatex || (R.r.mode & R_SHADOW) ) {
+				float u= dface/(div-shi.facenor[0]);
+				float v= dface/(div- R.ycor*shi.facenor[1]);
+
+				shi.dxco[0]= shi.co[0]- (shi.view[0]-1.0)*u;
+				shi.dxco[1]= shi.co[1]- (shi.view[1])*u;
+				shi.dxco[2]= shi.co[2]- (shi.view[2])*u;
+
+				shi.dyco[0]= shi.co[0]- (shi.view[0])*v;
+				shi.dyco[1]= shi.co[1]- (shi.view[1]-1.0*R.ycor)*v;
+				shi.dyco[2]= shi.co[2]- (shi.view[2])*v;
+
+			}
+		}
+		
 		/* calcuate normals, texture coords, vertex colors, etc */
-		if(vlaknr & 0x800000)
+		if(facenr & 0x800000)
 			shade_input_set_coords(&shi, 1.0, 1.0, 0, 2, 3);
 		else 
 			shade_input_set_coords(&shi, 1.0, 1.0, 0, 1, 2);
@@ -2045,7 +2097,7 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 				float *o1, *o2, *o3, hox, hoy, l, dl, u, v;
 				float s00, s01, s10, s11, detsh;
 				
-				if(vlaknr & 0x800000) {
+				if(facenr & 0x800000) {
 					v2= vlr->v3; v3= vlr->v4;
 				} else {
 					v2= vlr->v2; v3= vlr->v3;
@@ -2146,7 +2198,7 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 	}
 	
 	if(R.flag & R_LAMPHALO) {
-		if(vlaknr<=0) {	/* calc view vector and put shi.co at far */
+		if(facenr<=0) {	/* calc view vector and put shi.co at far */
 		
 			shi.view[0]= (x+(R.xstart)+0.5);
 
@@ -2177,11 +2229,11 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 	return vlr;
 }
 
-static void shadepixel_sky(float x, float y, int vlaknr, int mask, float *colf)
+static void shadepixel_sky(float x, float y, int z, int facenr, int mask, float *colf)
 {
 	float collector[4];
 	
-	shadepixel(x, y, vlaknr, mask, colf);
+	shadepixel(x, y, z, facenr, mask, colf);
 	if(colf[3] != 1.0) {
 		renderSkyPixelFloat(collector, x, y);
 		addAlphaOverFloat(collector, colf);
@@ -2191,8 +2243,8 @@ static void shadepixel_sky(float x, float y, int vlaknr, int mask, float *colf)
 
 /* ************* pixel struct ******** */
 
-PixStrMain psmfirst;
-int psmteller;
+static PixStrMain psmfirst;
+static int psmteller;
 
 static PixStr *addpsmain(void)
 {
@@ -2234,51 +2286,36 @@ static void freeps(void)
 	psmfirst.ps= 0;
 }
 
-static void addps(long *rd, int vlak, unsigned int z, short ronde)
+static void addps(long *rd, int facenr, int z, unsigned short mask)
 {
-	static PixStr *prev;
+	static PixStr *cur;
 	PixStr *ps, *last = NULL;
 
-	if( IS_A_POINTER_CODE(*rd)) {	
-		ps= (PixStr *) POINTER_FROM_CODE(*rd);
-		
-		if(ps->vlak0==vlak) return; 
+	if(*rd) {	
+		ps= (PixStr *)(*rd);
 		
 		while(ps) {
-			if( ps->vlak == vlak ) {
-				ps->mask |= (1<<ronde);
+			if( ps->facenr == facenr ) {
+				ps->mask |= mask;
 				return;
 			}
 			last= ps;
 			ps= ps->next;
 		}
-
-		if((psmteller & 4095)==0) prev= addpsmain();
-		else prev++;
-		psmteller++;
-
-		last->next= prev;
-		prev->next= 0;
-		prev->vlak= vlak;
-		prev->z= z;
-		prev->mask = (1<<ronde);
-		prev->ronde= ronde;
-		
-		return;
 	}
 
-	/* make first PS (pixel struct) */
-	if((psmteller & 4095)==0) prev= addpsmain();
-	else prev++;
+	/* make new PS (pixel struct) */
+	if((psmteller & 4095)==0) cur= addpsmain();
+	else cur++;
 	psmteller++;
 
-	prev->next= 0;
-	prev->vlak0= (int) *rd;
-	prev->vlak= vlak;
-	prev->z= z;
-	prev->mask = (1<<ronde);
-	prev->ronde= ronde;
-	*rd= POINTER_TO_CODE(prev);
+	if(last) last->next= cur;
+	else *rd= (long)cur;
+
+	cur->next= NULL;
+	cur->facenr= facenr;
+	cur->z= z;
+	cur->mask = mask;
 }
 
 
@@ -2361,7 +2398,7 @@ static void edge_enhance(void)
 /* ********************* MAINLOOPS ******************** */
 struct renderlineDA {
 	long *rd;
-	unsigned int *rz;
+	int *rz;
 	float *rb1, *rb2, *rb3;
 	float *acol;
 	int y;
@@ -2374,8 +2411,8 @@ static int do_renderlineDA(void *poin)
 	float xs, ys;
 	float fcol[4], *acol=NULL;
 	long *rd= rl->rd;
-	int samp, curmask, face, mask, fullmask;
-	int b, x, full_osa, face0;
+	int zbuf, samp, curmask, face, mask, fullmask;
+	int b, x, full_osa;
 		
 	fullmask= (1<<R.osa)-1;
 	
@@ -2386,24 +2423,21 @@ static int do_renderlineDA(void *poin)
 
 	for(x=0; x<R.rectx; x++, rd++) {
 				
-		if( IS_A_POINTER_CODE(*rd))
-			ps= (PixStr *) POINTER_FROM_CODE(*rd);
-		else ps= NULL;
-		
-		if(ps) face0= ps->vlak0;
-		else face0= (int)*rd;
+		ps= (PixStr *)(*rd);
 		mask= 0;
 		
-		/* complex loop, because first pixelstruct has a vlak0, without mask */
+		/* complex loop, because empty spots are sky, without mask */
 		while(TRUE) {
 			
 			if(ps==NULL) {
-				face= face0;
+				face= 0;
 				curmask= (~mask) & fullmask;
+				zbuf= *(rl->rz+x);
 			}
 			else {
-				face= ps->vlak;
+				face= ps->facenr;
 				curmask= ps->mask;
+				zbuf= ps->z;
 			}
 			
 			/* check osa level */
@@ -2418,7 +2452,7 @@ static int do_renderlineDA(void *poin)
 					if(curmask & (1<<samp)) {
 						xs= (float)x + jit[samp][0];
 						ys= (float)rl->y + jit[samp][1];
-						shadepixel_sky(xs, ys, face, (1<<samp), fcol);
+						shadepixel_sky(xs, ys, zbuf, face, (1<<samp), fcol);
 						
 						if(acol && acol[3]!=0.0) addAlphaOverFloat(fcol, acol);
 						if(do_gamma) {
@@ -2437,7 +2471,7 @@ static int do_renderlineDA(void *poin)
 				b= centmask[curmask];
 				xs= (float)x+centLut[b & 15];
 				ys= (float)rl->y+centLut[b>>4];
-				shadepixel_sky(xs, ys, face, curmask, fcol);
+				shadepixel_sky(xs, ys, zbuf, face, curmask, fcol);
 				
 				if(acol && acol[3]!=0.0) addAlphaOverFloat(fcol, acol);
 				
@@ -2462,7 +2496,6 @@ static int do_renderlineDA(void *poin)
 	}
 
 	if(R.flag & R_HALO) {
-		/* from these pixels the pixstr is 1 scanline old */
 		scanlinehaloPS(rl->rz, rl->rd, rl->rb2-4*R.rectx + 4, rl->y);
 	}
 
@@ -2475,7 +2508,7 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 	struct renderlineDA rl1, rl2;
 	float xd, yd, *rf;
 	long *rd;
-	unsigned int *rz, *rp, *rt;
+	int *rz, *rp, *rt;
 	float  *rowbuf1, *rowbuf2, *rowbuf3, *rowbuf0, *rowbuf1a, *rowbuf2a, *rb3;
 	int a;
 	short v, x, y;
@@ -2491,7 +2524,7 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 	psmteller= 0;
 
 	if(R.r.mode & R_EDGE) {
-		R.rectaccu= (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty,"zbufshadeDA");
+		R.rectaccu= (int *)MEM_callocN(sizeof(int)*R.rectx*R.recty,"zbufshadeDA");
 	}
 
 	for(v=0; v<R.osa; v++) {
@@ -2508,29 +2541,18 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 
 		zbufferall();
 
-		if(v==0) {
-			a= R.rectx*R.recty;
-			rt= R.rectot;
-			rd= R.rectdaps;
-			while(a--) {
-				*rd= (long)*rt;
-				rd++; rt++;
-			}
-		}
-		else {
-			rd= R.rectdaps;
-			rp= R.rectot;
-			rz= R.rectz;
-			for(y=0; y<R.recty; y++) {
-				for(x=0; x<R.rectx; x++, rp++, rd++) {
-					if(*rd!= (long) *rp) {
-						addps(rd, *rp, *(rz+x), v);
-					}
+		rd= R.rectdaps;
+		rp= R.rectot;
+		rz= R.rectz;
+		for(y=0; y<R.recty; y++) {
+			for(x=0; x<R.rectx; x++, rp++, rd++) {
+				if(*rp) {
+					addps(rd, *rp, *(rz+x), 1<<v);
 				}
-				rz+= R.rectx;
 			}
+			rz+= R.rectx;
 		}
-			/* 1 is for osa */
+
 		if(R.r.mode & R_EDGE) edge_enhance();
 		
 		if(RE_local_test_break()) break; 
@@ -2608,7 +2630,7 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 			else do_renderlineDA(&rl1);
 			
 		}
-		/* convert 4x32 bits buffer to 4x8, add halos. this can't be threaded due to gauss */
+		/* convert 4x32 bits buffer to 4x8, this can't be threaded due to gauss */
 		if(y>0) {
 			transferColourBufferToOutput(rowbuf3+4, y-1);
 			if(R.rectftot) {
@@ -2677,7 +2699,8 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 
 struct renderline {
 	float *rowbuf, *acol;
-	unsigned int *rp, *rz;
+	int *rp;
+	int *rz;
 	short ys;
 	float y;
 };
@@ -2687,16 +2710,15 @@ static int do_renderline(void *poin)
 	struct renderline *rl= poin;
 	float *fcol= rl->rowbuf;
 	float *acol=NULL;
-	int x;
+	int x, *rz, *rp;
 	
 	if(R.flag & R_ZTRA) {		/* zbuf tra */
 		abufsetrow(rl->acol, rl->ys); 
 		acol= rl->acol;
 	}
-
-	for(x=0; x<R.rectx; x++, (rl->rp)++, fcol+=4) {
-		
-		shadepixel_sky((float)x, rl->y, *(rl->rp), 0, fcol);
+	
+	for(x=0, rz= rl->rz, rp= rl->rp; x<R.rectx; x++, rz++, rp++, fcol+=4) {
+		shadepixel_sky((float)x, rl->y, *rz, *rp, 0, fcol);
 		if(acol) {
 			if(acol[3]!=0.0) addAlphaOverFloat(fcol, acol);
 			acol+= 4;
@@ -2721,7 +2743,7 @@ void zbufshade(void)
 {
 	struct renderline rl1, rl2;
 	extern float Zjitx,Zjity;
-	unsigned int *rz,*rp;
+	int *rz, *rp;
 	float fy;
 	int y;
 
@@ -2802,7 +2824,7 @@ void zbufshade(void)
 
 /* ------------------------------------------------------------------------ */
 
-void RE_shadehalo(HaloRen *har, char *col, float *colf, unsigned int zz, float dist, float xn, float yn, short flarec)
+void RE_shadehalo(HaloRen *har, char *col, float *colf, int zz, float dist, float xn, float yn, short flarec)
 {
 
 	shadeHaloFloat(har, colf, zz, dist, xn, yn, flarec);
@@ -2818,7 +2840,7 @@ static void renderhalo(HaloRen *har)	/* postprocess version */
 {
 	
 	float dist, xsq, ysq, xn, yn, colf[4], *rectft, *rtf;
-	unsigned int *rectt, *rt;
+	int *rectt, *rt;
 	int minx, maxx, miny, maxy, x, y;
 	char col[4];
 

@@ -79,25 +79,25 @@ float Zjitx; /* Jitter offset in x. When jitter is disabled, this   */
 float Zjity; /* Jitter offset in y. When jitter is disabled, this   */
              /* should be 0.5. (used in render.c, zbuf.c)           */
 
-unsigned int Zsample;
+int Zsample;
 void (*zbuffunc)(int, float *, float *, float *);
 void (*zbuflinefunc)(int, float *, float *);
 
-APixstr       *APixbuf;      /* Zbuffer: linked list of face indices       */
-int           *Arectz;       /* Zbuffer: distance buffer, almost obsolete  */
-int            Aminy;        /* y value of first line in the accu buffer   */
-int            Amaxy;        /* y value of last line in the accu buffer    */
-int            Azvoordeel  = 0;
-APixstrMain    apsmfirst;
-short          apsmteller  = 0;
+static APixstr       *APixbuf;      /* Zbuffer: linked list of face indices       */
+static int           *Arectz;       /* Zbuffer: distance buffer, almost obsolete  */
+static int            Aminy;        /* y value of first line in the accu buffer   */
+static int            Amaxy;        /* y value of last line in the accu buffer    */
+static int            Azvoordeel  = 0;
+static APixstrMain    apsmfirst;
+static short          apsmteller  = 0;
 
 /*-----------------------------------------------------------*/ 
 /* Functions                                                 */
 /*-----------------------------------------------------------*/ 
 
-void fillrect(unsigned int *rect, int x, int y, unsigned int val)
+void fillrect(int *rect, int x, int y, int val)
 {
-	unsigned int len,*drect;
+	int len, *drect;
 
 	len= x*y;
 	drect= rect;
@@ -481,9 +481,9 @@ void zbufinvulAc(int zvlnr, float *v1, float *v2, float *v3)
 void zbuflineAc(int zvlnr, float *vec1, float *vec2)
 {
 	APixstr *ap, *apn;
-	unsigned int *rectz;
+	int *rectz;
 	int start, end, x, y, oldx, oldy, ofs;
-	int dz, vergz, mask;
+	int dz, vergz, mask, maxtest=0;
 	float dx, dy;
 	float v1[3], v2[3];
 	
@@ -513,8 +513,9 @@ void zbuflineAc(int zvlnr, float *vec1, float *vec2)
 		vergz= v1[2];
 		vergz-= Azvoordeel;
 		dz= (v2[2]-v1[2])/dx;
+		if(vergz>0x70000000 && dz>0) maxtest= 1;		// prevent overflow
 		
-		rectz= (unsigned int *)(Arectz+R.rectx*(oldy-Aminy) +start);
+		rectz= (int *)(Arectz+R.rectx*(oldy-Aminy) +start);
 		ap= (APixbuf+ R.rectx*(oldy-Aminy) +start);
 		mask= 1<<Zsample;	
 		
@@ -552,6 +553,7 @@ void zbuflineAc(int zvlnr, float *vec1, float *vec2)
 			
 			v1[1]+= dy;
 			vergz+= dz;
+			if(maxtest && vergz<0) vergz= 0x7FFFFFF0;
 		}
 	}
 	else {
@@ -580,8 +582,9 @@ void zbuflineAc(int zvlnr, float *vec1, float *vec2)
 		vergz= v1[2];
 		vergz-= Azvoordeel;
 		dz= (v2[2]-v1[2])/dy;
+		if(vergz>0x70000000 && dz>0) maxtest= 1;		// prevent overflow
 
-		rectz= (unsigned int *)( Arectz+ (start-Aminy)*R.rectx+ oldx );
+		rectz= (int *)( Arectz+ (start-Aminy)*R.rectx+ oldx );
 		ap= (APixbuf+ R.rectx*(start-Aminy) +oldx);
 		mask= 1<<Zsample;
 				
@@ -619,6 +622,7 @@ void zbuflineAc(int zvlnr, float *vec1, float *vec2)
 			
 			v1[0]+= dx;
 			vergz+= dz;
+			if(maxtest && vergz<0) vergz= 0x7FFFFFF0;
 		}
 	}
 }
@@ -648,9 +652,9 @@ static void hoco_to_zco(float *zco, float *hoco)
 
 void zbufline(int zvlnr, float *vec1, float *vec2)
 {
-	unsigned int *rectz, *rectp;
+	int *rectz, *rectp;
 	int start, end, x, y, oldx, oldy, ofs;
-	int dz, vergz;
+	int dz, vergz, maxtest= 0;
 	float dx, dy;
 	float v1[3], v2[3];
 	
@@ -677,8 +681,9 @@ void zbufline(int zvlnr, float *vec1, float *vec2)
 		oldy= floor(v1[1]);
 		dy/= dx;
 		
-		vergz= v1[2];
-		dz= (v2[2]-v1[2])/dx;
+		vergz= floor(v1[2]);
+		dz= floor((v2[2]-v1[2])/dx);
+		if(vergz>0x70000000 && dz>0) maxtest= 1;		// prevent overflow
 		
 		rectz= R.rectz+ oldy*R.rectx+ start;
 		rectp= R.rectot+ oldy*R.rectx+ start;
@@ -704,6 +709,7 @@ void zbufline(int zvlnr, float *vec1, float *vec2)
 			
 			v1[1]+= dy;
 			vergz+= dz;
+			if(maxtest && vergz<0) vergz= 0x7FFFFFF0;
 		}
 	}
 	else {
@@ -726,9 +732,10 @@ void zbufline(int zvlnr, float *vec1, float *vec2)
 		oldx= floor(v1[0]);
 		dx/= dy;
 		
-		vergz= v1[2];
-		dz= (v2[2]-v1[2])/dy;
-
+		vergz= floor(v1[2]);
+		dz= floor((v2[2]-v1[2])/dy);
+		if(vergz>0x70000000 && dz>0) maxtest= 1;		// prevent overflow
+		
 		rectz= R.rectz+ start*R.rectx+ oldx;
 		rectp= R.rectot+ start*R.rectx+ oldx;
 		
@@ -753,6 +760,7 @@ void zbufline(int zvlnr, float *vec1, float *vec2)
 			
 			v1[0]+= dx;
 			vergz+= dz;
+			if(maxtest && vergz<0) vergz= 0x7FFFFFF0;
 		}
 	}
 }
@@ -945,7 +953,7 @@ static void zbufinvulGLinv(int zvlnr, float *v1, float *v2, float *v3)
 	double x0,y0,z0,x1,y1,z1,x2,y2,z2,xx1;
 	double zxd,zyd,zy0,tmp;
 	float *minv,*maxv,*midv;
-	unsigned int *rectpofs,*rp;
+	int *rectpofs,*rp;
 	int *rz,zverg,zvlak,x;
 	int my0,my2,sn1,sn2,rectx,zd,*rectzofs;
 	int y,omsl,xs0,xs1,xs2,xs3, dx0,dx1,dx2;
@@ -1176,7 +1184,7 @@ static void zbufinvulGL(int zvlnr, float *v1, float *v2, float *v3)
 	double x1,y1,z1,x2,y2,z2,xx1;
 	double zxd,zyd,zy0,tmp, zverg, zd;
 	float *minv,*maxv,*midv;
-	unsigned int *rectpofs,*rp;
+	int *rectpofs,*rp;
 	int *rz,zvlak,x;
 	int my0,my2,sn1,sn2,rectx,*rectzofs;
 	int y,omsl,xs0,xs1,xs2,xs3, dx0,dx1,dx2;
@@ -1947,7 +1955,7 @@ void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem)
 	float hoco[4][4];
 	int a, zvlnr;
 	int c1, c2, c3, c4= 0;
-	unsigned int *rectoto, *rectzo;
+	int *rectoto, *rectzo;
 	int rectxo, rectyo;
 
 	if(rg_totelem==0) return;
@@ -2131,8 +2139,8 @@ static void copyto_abufz(int sample)
 	for(y=Aminy; y<=Amaxy; y++) {
 		for(x=0; x<R.rectx; x++) {
 			
-			if( IS_A_POINTER_CODE(*rd)) {	
-				ps= (PixStr *) POINTER_FROM_CODE(*rd);
+			if(*rd) {	
+				ps= (PixStr *)(*rd);
 
 				while(ps) {
 					if(sample & ps->mask) {
@@ -2242,22 +2250,22 @@ int vergzvlak(const void *a1, const void *a2)
 /**
 * Shade this face at this location in SCS.
  */
-static void shadetrapixel(float x, float y, int face, int mask, float *fcol)
+static void shadetrapixel(float x, float y, int z, int facenr, int mask, float *fcol)
 {
 	
-	if( (face & 0x7FFFFF) > R.totvlak) {
-		printf("error in shadetrapixel nr: %d\n", (face & 0x7FFFFF));
+	if( (facenr & 0x7FFFFF) > R.totvlak) {
+		printf("error in shadetrapixel nr: %d\n", (facenr & 0x7FFFFF));
 		return;
 	}
 	if(R.r.mode & R_OSA) {
-		VlakRen *vlr= RE_findOrAddVlak( (face-1) & 0x7FFFFF);
+		VlakRen *vlr= RE_findOrAddVlak( (facenr-1) & 0x7FFFFF);
 		float accumcol[4]={0,0,0,0}, tot=0.0;
 		int a;
 		
 		if(vlr->flag & R_FULL_OSA) {
 			for(a=0; a<R.osa; a++) {
 				if(mask & (1<<a)) {
-					shadepixel(x+jit[a][0], y+jit[a][1], face, 1<<a, fcol);
+					shadepixel(x+jit[a][0], y+jit[a][1], z, facenr, 1<<a, fcol);
 					accumcol[0]+= fcol[0];
 					accumcol[1]+= fcol[1];
 					accumcol[2]+= fcol[2];
@@ -2278,11 +2286,11 @@ static void shadetrapixel(float x, float y, int face, int mask, float *fcol)
 			int b= centmask[mask];
 			x= x+centLut[b & 15];
 			y= y+centLut[b>>4];
-			shadepixel(x, y, face, mask, fcol);
+			shadepixel(x, y, z, facenr, mask, fcol);
 	
 		}
 	}
-	else shadepixel(x, y, face, mask, fcol);
+	else shadepixel(x, y, z, facenr, mask, fcol);
 }
 
 static int addtosampcol(float *sampcol, float *fcol, int mask)
@@ -2371,7 +2379,7 @@ void abufsetrow(float *acolrow, int y)
 			}
 			if(totvlak==1) {
 				
-				shadetrapixel((float)x, (float)y, ap->p[0], ap->mask[0], fcol);
+				shadetrapixel((float)x, (float)y, ap->z[0], ap->p[0], ap->mask[0], fcol);
 	
 				nr= count_mask(ap->mask[0]);
 				if( (R.r.mode & R_OSA) && nr<R.osa) {
@@ -2407,7 +2415,7 @@ void abufsetrow(float *acolrow, int y)
 				while(totvlak>0) {
 					totvlak--;
 					
-					shadetrapixel((float)x, (float)y, zrow[totvlak][1], zrow[totvlak][2], fcol);
+					shadetrapixel((float)x, (float)y, zrow[totvlak][0], zrow[totvlak][1], zrow[totvlak][2], fcol);
 					
 					a= count_mask(zrow[totvlak][2]);
 					if( (R.r.mode & R_OSA ) && a<R.osa) {
@@ -2421,7 +2429,7 @@ void abufsetrow(float *acolrow, int y)
 								if(a==R.osa) break;
 								totvlak--;
 							
-								shadetrapixel((float)x, (float)y, zrow[totvlak][1], zrow[totvlak][2], fcol);
+								shadetrapixel((float)x, (float)y, zrow[totvlak][0], zrow[totvlak][1], zrow[totvlak][2], fcol);
 								sval= addtosampcol(sampcol, fcol, zrow[totvlak][2]);
 							}
 							scol= sampcol;

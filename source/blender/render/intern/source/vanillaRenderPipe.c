@@ -408,7 +408,7 @@ static void zBufferFillEdge(unsigned int zvlnr, float *vec1, float *vec2)
 {
 	int apteller;
 	int start, end, x, y, oldx, oldy, ofs;
-	int dz, vergz, mask;
+	int dz, vergz, mask, maxtest=0;
 	float dx, dy;
 	float v1[3], v2[3];
 	
@@ -438,6 +438,7 @@ static void zBufferFillEdge(unsigned int zvlnr, float *vec1, float *vec2)
 		vergz= v1[2];
 		vergz-= Azvoordeel;
 		dz= (v2[2]-v1[2])/dx;
+		if(vergz>0x70000000 && dz>0) maxtest= 1;		// prevent overflow
 		
 		apteller = zBufferWidth*(oldy-Aminy) +start;
 		mask  = 1<<Zsample;	
@@ -459,6 +460,7 @@ static void zBufferFillEdge(unsigned int zvlnr, float *vec1, float *vec2)
 			
 			v1[1]+= dy;
 			vergz+= dz;
+			if(maxtest && vergz<0) vergz= 0x7FFFFFF0;
 		}
 	}
 	else {
@@ -487,6 +489,7 @@ static void zBufferFillEdge(unsigned int zvlnr, float *vec1, float *vec2)
 		vergz= v1[2];
 		vergz-= Azvoordeel;
 		dz= (v2[2]-v1[2])/dy;
+		if(vergz>0x70000000 && dz>0) maxtest= 1;		// prevent overflow
 		
 		apteller = zBufferWidth*(start-Aminy) +oldx;
 		
@@ -509,6 +512,7 @@ static void zBufferFillEdge(unsigned int zvlnr, float *vec1, float *vec2)
 			
 			v1[0]+= dx;
 			vergz+= dz;
+			if(maxtest && vergz<0) vergz= 0x7FFFFFF0;
 		}
 	}
 }

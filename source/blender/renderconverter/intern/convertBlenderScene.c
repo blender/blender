@@ -847,8 +847,8 @@ static void make_render_halos(Object *ob, Mesh *me, int totvert, MVert *mvert, M
 				else hasize*= zn*zn*zn*zn;
 			}
 
-			if(orco) har= RE_inithalo(ma, vec, 0, orco, hasize, 0, seed);
-			else har= RE_inithalo(ma, vec, 0, mvert->co, hasize, 0, seed);
+			if(orco) har= RE_inithalo(ma, vec, NULL, orco, hasize, 0.0, seed);
+			else har= RE_inithalo(ma, vec, NULL, mvert->co, hasize, 0.0, seed);
 			if(har) har->lay= ob->lay;
 		}
 		if(orco) orco+= 3;
@@ -941,7 +941,7 @@ static void render_particle_system(Object *ob, PartEff *paf)
 
 				if(paf->stype==PAF_VECT) har= RE_inithalo(ma, vec, vec1, pa->co, hasize, paf->vectsize, seed);
 				else {
-					har= RE_inithalo(ma, vec, 0, pa->co, hasize, 0, seed);
+					har= RE_inithalo(ma, vec, NULL, pa->co, hasize, 0.0, seed);
 					if(har && ma->mode & MA_HALO_SHADE) {
 						VecSubf(har->no, vec, vec1);
 						Normalise(har->no);
@@ -1081,7 +1081,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 
 				if(paf->stype==PAF_VECT) har= RE_inithalo(ma, vec, vec1, pa->co, hasize, paf->vectsize, seed);
 				else {
-					har= RE_inithalo(ma, vec, 0, pa->co, hasize, 0, seed);
+					har= RE_inithalo(ma, vec, NULL, pa->co, hasize, 0.0, seed);
 					if(har && (ma->mode & MA_HALO_SHADE)) {
 						VecSubf(har->no, vec, vec1);
 						Normalise(har->no);

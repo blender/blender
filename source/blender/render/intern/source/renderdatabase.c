@@ -183,20 +183,20 @@ HaloRen *RE_inithalo(Material *ma,   float *vec,   float *vec1,
 	float tin, tr, tg, tb, ta;
 	float xn, yn, zn, texvec[3], hoco[4], hoco1[4];
 
-	if(hasize==0) return 0;
+	if(hasize==0.0) return NULL;
 
 	RE_projectverto(vec, hoco);
-	if(hoco[3]==0.0) return 0;
+	if(hoco[3]==0.0) return NULL;
 	if(vec1) {
 		RE_projectverto(vec1, hoco1);
-		if(hoco1[3]==0.0) return 0;
+		if(hoco1[3]==0.0) return NULL;
 	}
 
 	har= RE_findOrAddHalo(R.tothalo++);
 	VECCOPY(har->co, vec);
 	har->hasize= hasize;
 
-	/* projectvert is done function 'zbufvlaggen' because of parts/border/pano */
+	/* projectvert is done in function 'zbufvlaggen' because of parts/border/pano */
 
 	/* halovect */
 	if(vec1) {
@@ -206,7 +206,7 @@ HaloRen *RE_inithalo(Material *ma,   float *vec,   float *vec1,
 		zn= hoco[3];
 		har->xs= 0.5*R.rectx*(hoco[0]/zn);
 		har->ys= 0.5*R.recty*(hoco[1]/zn);
-		har->zs= 0x7FFFFF*(1.0+hoco[2]/zn);
+		har->zs= 0x7FFFFF*(hoco[2]/zn);
 
 		har->zBufDist = 0x7FFFFFFF*(hoco[2]/zn); 
 

@@ -1345,6 +1345,8 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 	if ((G.scene->r.scemode & R_OGL)==0) /* header gets scrabled if renderwindow holds OGL context */	
 		RE_local_printrenderinfo((PIL_check_seconds_timer() - start_time), -1);
 	
+	/* grms... this is a nasty global */
+	do_gamma= 0;
 	
 	/* these flags remain on, until reset in caller to render (renderwin.c) */
 	R.flag &= (R_RENDERING|R_ANIMRENDER|R_REDRAW_PRV);

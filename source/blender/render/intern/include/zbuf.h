@@ -67,7 +67,7 @@ struct VlakRen;
  * @param y     The height of the rectangle
  * @param val   The value used to fill the rectangle.
  */
-void fillrect(unsigned int *rect, int x, int y, unsigned int val);
+void fillrect(int *rect, int x, int y, int val);
 
 /**
  * Converts a world coordinate into a homogenous coordinate in view

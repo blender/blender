@@ -82,7 +82,7 @@ void *renderPixel(RE_COLBUFTYPE *collector, float x, float y, int *obdata, int m
     void* data = NULL;
     
     if (obdata[3] & RE_POLY) {
-		data = shadepixel(x, y, obdata[1], mask, collector);
+		data = shadepixel(x, y, obdata[0], obdata[1], mask, collector);
     }
     else if (obdata[3] & RE_HALO) {
         data = renderHaloPixel(collector, x, y, obdata[1]);
@@ -90,7 +90,7 @@ void *renderPixel(RE_COLBUFTYPE *collector, float x, float y, int *obdata, int m
 	else if( obdata[1] == 0 ) {	
 		/* for lamphalo, but doesn't seem to be called? Actually it is, and  */
 		/* it returns NULL pointers. */
-        data = shadepixel(x, y, obdata[1], mask, collector);
+        data = shadepixel(x, y, obdata[0], obdata[1], mask, collector);
  	}
     return data;
    
@@ -100,12 +100,12 @@ void *renderPixel(RE_COLBUFTYPE *collector, float x, float y, int *obdata, int m
 
 void renderSpotHaloPixel(float x, float y, float* target)
 {
-	shadepixel(x, y, 0, 0, target);
+	shadepixel(x, y, 0, 0, 0, target);
 }
 
 
 /* ------------------------------------------------------------------------- */
-static unsigned int calcHaloZ(HaloRen *har, unsigned int zz)
+static int calcHaloZ(HaloRen *har, int zz)
 {
 
 	if(har->type & HA_ONLYSKY) {
@@ -113,8 +113,6 @@ static unsigned int calcHaloZ(HaloRen *har, unsigned int zz)
 	}
 	else {
 		zz= (zz>>8);
-		if(zz<0x800000) zz= (zz+0x7FFFFF);
-		else zz= (zz-0x800000);
 	}
 	return zz;
 }
@@ -123,7 +121,7 @@ void *renderHaloPixel(RE_COLBUFTYPE *collector, float x, float y, int haloNr)
 {
     HaloRen *har = NULL;
     float dist = 0.0;
-    unsigned int zz = 0;
+    int zz = 0;
 
     /* Find har to go with haloNr */
     har = RE_findOrAddHalo(haloNr);
@@ -325,7 +323,7 @@ static void render_lighting_halo(HaloRen *har, float *colf)
 
 
 
-void shadeHaloFloat(HaloRen *har,  float *col, unsigned int zz, 
+void shadeHaloFloat(HaloRen *har,  float *col, int zz, 
 					float dist, float xn,  float yn, short flarec)
 {
 	/* fill in col */

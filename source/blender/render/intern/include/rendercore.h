@@ -57,10 +57,8 @@ typedef struct ShadeResult
 typedef struct PixStr
 {
 	struct PixStr *next;
-	int vlak0, vlak;
-	unsigned int z;
-	unsigned int mask;
-	short aantal, ronde;
+	int facenr, z;
+	unsigned short mask, amount;
 } PixStr;
 
 /* ------------------------------------------------------------------------- */
@@ -104,21 +102,13 @@ void zbufshadeDA(void);	/* Delta Accum Pixel Struct */
 /**
  * Also called in: zbuf.c
  */
-void *shadepixel(float x, float y, int vlaknr, int mask, float *col);
+void *shadepixel(float x, float y, int z, int facenr, int mask, float *col);
 
 /**
  * A cryptic but very efficient way of counting the number of bits that 
  * is set in the unsigned short.
  */
 int count_mask(unsigned short mask);
-
-/* These defines are only used internally :) */
-/* dirty hack: pointers are negative, indices positive */
-/* pointers should be converted to positive numbers */
-	
-#define IS_A_POINTER_CODE(a)		((a)<0)
-#define POINTER_FROM_CODE(a)		((void *)(-(a)))
-#define POINTER_TO_CODE(a)			(-(long)(a))
 
 #endif /* RENDER_EXT_H */
 

@@ -140,8 +140,8 @@ typedef struct RE_Render
 	struct VertRen **blove;
 	struct HaloRen **bloha;
 	
-	unsigned int *rectaccu;
-	unsigned int *rectz; /* z buffer: distance buffer */
+	int *rectaccu;
+	int *rectz; /* z buffer: distance buffer */
 	unsigned int *rectf1, *rectf2;
 	unsigned int *rectot; /* z buffer: face index buffer, recycled as colour buffer! */
 	unsigned int *rectspare; /*  */
@@ -170,7 +170,7 @@ typedef struct ShadBuf {
 	float d,far,pixsize,soft;
 	int co[3];
 	int size,bias;
-	unsigned long *zbuf;
+	long *zbuf;
 	char *cbuf;
 } ShadBuf;
 
@@ -194,7 +194,7 @@ typedef struct VertRen
 
 struct halosort {
 	struct HaloRen *har;
-	unsigned int z;
+	int z;
 };
 
 /* ------------------------------------------------------------------------- */
@@ -229,8 +229,8 @@ typedef struct HaloRen
     short miny, maxy;
     float alfa, xs, ys, rad, radsq, sin, cos, co[3], no[3];
 	float hard, b, g, r;
-    unsigned int zs, zd;
-    unsigned int zBufDist;	/* depth in the z-buffer coordinate system */
+    int zs, zd;
+    int zBufDist;	/* depth in the z-buffer coordinate system */
     char starpoints, type, add, tex;
     char linec, ringc, seed;
 	short flarec; /* used to be a char. why ?*/
