@@ -247,6 +247,9 @@ void do_butspace(unsigned short event)
 	if(event<=100) {
 		do_global_buttons(event);
 	}
+	else if(event < 1000) {
+		do_headerbuttons(event);
+	}
 	else if(event<=B_VIEWBUTS) {
 		//do_viewbuts(event);
 	}
@@ -408,6 +411,8 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 
 	uiClearButLock();
 
+	/* since panels give different layouts, we have to make sure v2d.tot matches */
+	uiMatchPanel_view2d(sa);
 
 	/* when align changes, also do this for new panels */
 	/* don't always align, this function is called during AnmatePanels too */

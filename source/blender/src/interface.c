@@ -1235,7 +1235,7 @@ static void ui_emboss_TABL(BIFColorID bc, float asp, float x1, float y1, float x
 	glEnd();
 	
 
-
+	glShadeModel(GL_FLAT);
 
 }
 static void ui_emboss_TABM(BIFColorID bc, float asp, float x1, float y1, float x2, float y2, int flag)
@@ -1492,6 +1492,7 @@ static void ui_emboss_slider(uiBut *but, float fac)
 	BIF_set_color(BUTGREY, COLORSHADE_GREY);
 	fdrawline(x1+fac, y2-2, x1+fac, y1+2);
 
+	glShadeModel(GL_FLAT);
 }
 
 static void ui_draw_but_BUT(uiBut *but)
@@ -2651,12 +2652,13 @@ void uiDrawBlock(uiBlock *block)
 	}
 	else if(block->panel) ui_draw_panel(block);
 	
+	if(block->drawextra) block->drawextra();
+
 	for (but= block->buttons.first; but; but= but->next) {
 		ui_draw_but(but);
 	}
 
 	ui_draw_links(block);
-	if(block->drawextra) block->drawextra();
 	
 	uiPanelPop(block); // matrix restored
 }
@@ -6085,6 +6087,14 @@ short pupmenu_col(char *instr, int maxrow)
 
 /* ************** panels ************* */
 
+/* ugly global... but will be NULLed after each 'newPanel' call */
+static char *panel_tabbed=NULL, *group_tabbed=NULL;
+
+void uiNewPanelTabbed(char *panelname, char *groupname)
+{
+	panel_tabbed= panelname;
+	group_tabbed= groupname;
+}
 
 /* ofsx/ofsy only used for new panel definitions */
 /* return 1 if visible (create buttons!) */
@@ -6128,6 +6138,20 @@ int uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int 
 				pa->ofsx= palign->ofsx + palign->sizex;
 			}
 		}
+		/* make new Panel tabbed? */
+		if(panel_tabbed && group_tabbed) {
+			Panel *papar;
+			for(papar= sa->panels.first; papar; papar= papar->next) {
+				if(papar->active && papar->paneltab==NULL) {
+					if( strncmp(panel_tabbed, papar->panelname, UI_MAX_NAME_STR)==0) {
+						if( strncmp(group_tabbed, papar->tabname, UI_MAX_NAME_STR)==0) {
+							pa->paneltab= papar;
+							break;
+						}
+					}
+				}
+			} 
+		}
 	}
 	
 	block->panel= pa;
@@ -6136,6 +6160,9 @@ int uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int 
 	if(block->panel->paneltab) return 0;
 	if(block->panel->flag & PNL_CLOSED) return 0;
 
+	/* clear global */
+	panel_tabbed= group_tabbed= NULL;
+	
 	return 1;
 }
 
@@ -6240,6 +6267,24 @@ void uiSetPanel_view2d(ScrArea *sa)
 		G.v2d->tot.ymax= 228;
 	}
 	
+}
+
+void uiMatchPanel_view2d(ScrArea *sa)
+{
+	Panel *pa;
+	
+	pa= sa->panels.first;
+	while(pa) {
+		if(pa->active) {
+			if(pa->ofsx < G.v2d->tot.xmin) G.v2d->tot.xmin= pa->ofsx;
+			if(pa->ofsx+pa->sizex > G.v2d->tot.xmax) 
+				G.v2d->tot.xmax= pa->ofsx+pa->sizex;
+			if(pa->ofsy < G.v2d->tot.ymin) G.v2d->tot.ymin= pa->ofsy;
+			if(pa->ofsy+pa->sizey+PNL_HEADER > G.v2d->tot.ymax) 
+				G.v2d->tot.ymax= pa->ofsy+pa->sizey+PNL_HEADER;
+		}
+		pa= pa->next;
+	}	
 }
 
 /* extern used ny previewrender */
@@ -6482,9 +6527,6 @@ static int find_leftmost_panel(const void *a1, const void *a2)
 	
 	if( ps1->pa->ofsx > ps2->pa->ofsx) return 1;
 	else if( ps1->pa->ofsx < ps2->pa->ofsx) return -1;
-	else if( ps1->pa->next == ps2->pa) return -1;
-	else if( ((long)ps1->pa) < ((long)ps2->pa)) return -1;
-	else if( ((long)ps1->pa) > ((long)ps2->pa)) return 1;
 
 	return 0;
 }
@@ -6496,8 +6538,6 @@ static int find_highest_panel(const void *a1, const void *a2)
 	
 	if( ps1->pa->ofsy < ps2->pa->ofsy) return 1;
 	else if( ps1->pa->ofsy > ps2->pa->ofsy) return -1;
-	else if( ((long)ps1->pa) < ((long)ps2->pa)) return -1;
-	else if( ((long)ps1->pa) > ((long)ps2->pa)) return 1;
 	
 	return 0;
 }

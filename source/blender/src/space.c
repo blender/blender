@@ -2047,7 +2047,7 @@ void winqreadbutspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if (nr>=0) {
 				sbuts->align= nr;
 				if(nr) {
-					// uiAnimatePanels(sa);	
+					//uiAnimatePanels(sa);	
 					uiAlignPanelStep(sa, 1.0);
 					do_buts_buttons(B_BUTSHOME);
 				}

@@ -530,14 +530,15 @@ static void previewflare(SpaceButs *sbuts, HaloRen *har, unsigned int *rect)
 	R.rectot= rect;
 
 	waitcursor(1);
-
 	RE_renderflare(har);
+	waitcursor(0);
+	// not sure why, either waitcursor or renderflare screws up
+	areawinset(curarea->win);
 	
 	uiPanelPush(block);
 	BIF_previewdraw();
 	uiPanelPop(block);
 	
-	waitcursor(0);
 	
 	/* temps */
 	R.ycor= ycor;
