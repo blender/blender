@@ -57,7 +57,7 @@
 #define FONT_SIZE_DEFAULT 12
 //#define FONT_PATH_DEFAULT ".bfont.ttf"
 
-#define FTF_MAX_STR_SIZE 256
+#define FTF_MAX_STR_SIZE 512
 
 int utf8towchar(wchar_t *w, char *c)
 {
@@ -240,8 +240,7 @@ int FTF_TTFont::TransConvString(char* str, char* ustr, unsigned int flag)
 
 float FTF_TTFont::DrawString(char* str, unsigned int flag, int select)
 {
-	char ustr[FTF_MAX_STR_SIZE*2]={0};
-	wchar_t wstr[255]={'\0'};
+	wchar_t wstr[FTF_MAX_STR_SIZE-1]={'\0'};
 	int len=0;
   
 	if (FTF_USE_GETTEXT & flag) 
@@ -269,8 +268,7 @@ float FTF_TTFont::DrawString(char* str, unsigned int flag, int select)
 
 float FTF_TTFont::DrawStringRGB(char* str, unsigned int flag, float r, float g, float b)
 {
-	char ustr[FTF_MAX_STR_SIZE*2]={0};
-	wchar_t wstr[255]={'\0'};
+	wchar_t wstr[FTF_MAX_STR_SIZE-1]={'\0'};
 	int len=0;
   
 	if (FTF_USE_GETTEXT & flag) 
@@ -294,8 +292,7 @@ float FTF_TTFont::DrawStringRGB(char* str, unsigned int flag, float r, float g, 
 
 float FTF_TTFont::GetStringWidth(char* str, unsigned int flag)
 {
-	char ustr[FTF_MAX_STR_SIZE*2]={0};
-	wchar_t wstr[511]={'\0'};
+	wchar_t wstr[FTF_MAX_STR_SIZE-1]={'\0'};
 	int len=0;
 
 	if (FTF_USE_GETTEXT & flag) 
@@ -309,8 +306,7 @@ float FTF_TTFont::GetStringWidth(char* str, unsigned int flag)
 
 void FTF_TTFont::GetBoundingBox(char* str, float *llx, float *lly, float *llz, float *urx, float *ury, float *urz, unsigned int flag)
 {
-	char ustr[FTF_MAX_STR_SIZE*2]={0};
-	wchar_t wstr[255]={'\0'};
+	wchar_t wstr[FTF_MAX_STR_SIZE-1]={'\0'};
 	int len=0;
   
 	if (FTF_USE_GETTEXT & flag) 
