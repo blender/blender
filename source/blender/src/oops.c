@@ -323,8 +323,6 @@ void shuffle_oops()
 	
 	if(G.soops==0) return;
 	
-	if(okee("Shuffle oops")==0) return;
-	
 	waitcursor(1);
 	
 	/* to make it 100% OK and fast: temporal insert

@@ -3444,13 +3444,17 @@ void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			select_linked_oops();
 		break;
 	case SKEY:
-		
-		if(G.qual==LR_ALTKEY)
-			shrink_oops();
-		else if((G.qual==LR_SHIFTKEY))
-			shuffle_oops();
-		else if((G.qual==0))
+		if((G.qual==LR_ALTKEY)) {
+			if (okee("Shrink blocks")) {
+				shrink_oops();
+			}
+		} else if((G.qual==LR_SHIFTKEY)) {
+			if (okee("Shuffle blocks")) {
+				shuffle_oops();
+			}
+		} else if((G.qual==0)) {
 			transform_oops('s');
+		}
 		break;
 
 	case ONEKEY:
