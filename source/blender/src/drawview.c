@@ -336,7 +336,7 @@ static void draw_bgpic(void)
 	BGpic *bgpic;
 	Image *ima;
 	float vec[4], fac, asp, zoomx, zoomy;
-	int x1, y1, x2, y2, cx, cy;
+	float x1, y1, x2, y2, cx, cy;
 	
 	bgpic= G.vd->bgpic;
 	if(bgpic==0) return;
@@ -425,10 +425,8 @@ static void draw_bgpic(void)
 	if(x1 > curarea->winx ) return;
 	if(y1 > curarea->winy ) return;
 	
-	zoomx= x2-x1;
-	zoomx /= (float)ima->ibuf->x;
-	zoomy= y2-y1;
-	zoomy /= (float)ima->ibuf->y;
+	zoomx= (x2-x1)/ima->ibuf->x;
+	zoomy= (y2-y1)/ima->ibuf->y;
 
 	glEnable(GL_BLEND);
 	if(G.zbuf) glDisable(GL_DEPTH_TEST);
