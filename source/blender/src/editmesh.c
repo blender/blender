@@ -9206,3 +9206,233 @@ void selectrandom_mesh(void) /* randomly selects a user-set % of vertices */
 		allqueue(REDRAWVIEW3D, 0);
 	}
 }
+
+/* this utility function checks to see if 2 edit edges share a face,
+	returns 1 if they do
+	returns 0 if they do not, or if the function is passed the same edge 2 times
+*/
+short sharesFace(EditEdge* e1, EditEdge* e2)
+{
+	EditVlak *search=NULL;
+	search = G.edvl.first;
+	if (e1 == e2){
+		return 0 ;
+	}
+	while(search){
+		if(
+			((search->e1 == e1 || search->e2 == e1) || (search->e3 == e1 || search->e4 == e1)) &&
+			((search->e1 == e2 || search->e2 == e2) || (search->e3 == e2 || search->e4 == e2))
+			) {
+			return 1;
+		}
+		search = search->next;
+	}
+	return 0;
+}
+/* This function selects a vertex loop based on a each succesive edge having a valance of 4
+   and not sharing a face with the previous edge */
+void vertex_loop_select() 
+{
+	EditVert *v1=NULL,*v2=NULL,*curVert=NULL;
+	EditEdge *search=NULL,*startEdge=NULL,*valSearch = NULL,*nearest,*compEdge;
+	EditEdge *EdgeVal[5] = {NULL,NULL,NULL,NULL,NULL};
+	short numEdges=0,curEdge = 0,looking = 1,edgeValCount = 0,i=0,looped = 0,choosing = 1,event,noloop=0,cancel=0;
+
+	short mvalo[2] = {0,0}, mval[2], val;
+
+	undo_push_mesh("Vertex Loop Select");
+	SetBlenderCursor(BC_VLOOPCURSOR);
+	for(search=G.eded.first;search;search=search->next)
+		numEdges++;
+
+	/* start with v1 and go in one direction. */
+	while(choosing){
+
+		getmouseco_areawin(mval);
+		if (mval[0] != mvalo[0] || mval[1] != mvalo[1]) {
+
+			mvalo[0] = mval[0];
+			mvalo[1] = mval[1];
+
+			scrarea_do_windraw(curarea);
+			nearest = findnearestedge();
+			if (nearest) {
+				for(search = G.eded.first;search;search=search->next)
+					search->f &= ~32;
+					
+				compEdge = startEdge = nearest;
+				nearest->f |= 32;
+				curEdge = 0;
+				v1 = startEdge->v1;
+				v2 = startEdge->v2;
+				looking = 1;
+				while(looking){
+					/*Find Edges that have v1*/
+					edgeValCount = -1;
+					EdgeVal[0] = EdgeVal[1] = EdgeVal[2] = NULL;
+					
+					for(valSearch = G.eded.first;valSearch;valSearch = valSearch->next){
+						if(valSearch->v1 == v1 || valSearch->v2 == v1){
+							if(valSearch != compEdge){
+								if((valSearch->v1->h == 0) && (valSearch->v2->h == 0)){
+									edgeValCount++;							
+									EdgeVal[edgeValCount] = valSearch;
+								}
+							}
+						}
+						if(edgeValCount == 3)break;
+					}
+					/* Check that there was a valance of 4*/
+					if(edgeValCount != 2){
+						noloop = 1;
+						looking = 0;
+						break;
+					}
+					else{
+					/* There were 3 edges, so find the one that does not share the previous edge */
+						for(i=0;i<3;i++){
+							if(sharesFace(compEdge,EdgeVal[i]) == 0){
+								/* We went all the way around the loop */
+								if(EdgeVal[i] == nearest){
+									looking = 0;
+									looped = 1;
+									break;
+								}
+								else{
+									/* we are still in the loop, so add the next edge*/
+									curEdge++;
+									EdgeVal[i]->f |= 32;
+									compEdge = EdgeVal[i];
+									if(compEdge->v1 == v1)
+										v1 = compEdge->v2;
+									else
+										v1 = compEdge->v1;
+								}
+							}
+						}
+					}
+				}	
+				compEdge = nearest;
+				looking = 1;
+				while(looking/* && !looped*/){
+					/*Find Edges that have v1*/
+					edgeValCount = -1;
+					EdgeVal[0] = EdgeVal[1] = EdgeVal[2] = NULL;
+					
+					for(valSearch = G.eded.first;valSearch;valSearch = valSearch->next){
+						if(valSearch->v1 == v2 || valSearch->v2 == v2){
+							if(valSearch != compEdge){
+								if((valSearch->v1->h == 0) && (valSearch->v2->h == 0)){
+									edgeValCount++;							
+									EdgeVal[edgeValCount] = valSearch;
+								}
+							}
+						}
+						if(edgeValCount == 3)break;
+					}
+					/* Check that there was a valance of 4*/
+					if(edgeValCount != 2){
+						noloop = 1;
+						looking = 0;
+						break;
+					}
+					else{
+					/* There were 3 edges, so find the one that does not share the previous edge */
+						for(i=0;i<3;i++){
+							if(sharesFace(compEdge,EdgeVal[i]) == 0){
+								/* We went all the way around the loop */
+								if(EdgeVal[i] == nearest){
+									looking = 0;
+									looped = 1;
+									break;
+								}
+								else{
+									/* we are still in the loop, so add the next edge*/
+									curEdge++;
+									EdgeVal[i]->f |= 32;
+									compEdge = EdgeVal[i];
+									if(compEdge->v1 == v2)
+										v2 = compEdge->v2;
+									else
+										v2 = compEdge->v1;
+								}
+							}
+						}
+					}
+				}
+				/* set up for opengl drawing in the 3d window */
+				persp(PERSP_VIEW);
+				glPushMatrix();
+				mymultmatrix(G.obedit->obmat);
+				glColor3ub(0, 255, 255);
+				for(search = G.eded.first;search;search= search->next){
+					if(search->f & 32){
+						glBegin(GL_LINES);			
+						glVertex3f(search->v1->co[0],search->v1->co[1],search->v1->co[2]);
+						glVertex3f(search->v2->co[0],search->v2->co[1],search->v2->co[2]);
+						glEnd();
+					}
+				}		
+
+				glPopMatrix();
+			}
+		}
+
+		screen_swapbuffers();
+
+
+		while(qtest()) 
+		{
+			unsigned short val=0;
+			event= extern_qread(&val);
+			if(val && ((event==LEFTMOUSE || event==RETKEY) || event == MIDDLEMOUSE))
+			{
+				if (nearest==NULL)
+					cancel = 1;
+				choosing=0;
+				break;
+			}
+			if(val && (event==ESCKEY || event==RIGHTMOUSE ))
+			{
+				choosing=0;
+				cancel = 1;
+				break;
+			}
+		}
+	}
+	if(!cancel){
+		/* If this is a unmodified select, clear the selection */
+		if(!(G.qual & LR_SHIFTKEY) && !(G.qual & LR_ALTKEY)){
+			for(search = G.eded.first;search;search= search->next){
+				search->v1->f &= !1;
+				search->v2->f &= !1;
+			}
+		}
+		/* Alt was not pressed, so add to the selection */
+		if(!(G.qual & LR_ALTKEY)){
+			for(search = G.eded.first;search;search= search->next){
+				if(search->f & 32){
+					search->v1->f |= 1;
+					search->v2->f |= 1;
+				}
+				search->f &= ~32;
+			}
+		}
+		/* alt was pressed, so subtract from the selection */
+		else
+		{
+			for(search = G.eded.first;search;search= search->next){
+				if(search->f & 32){
+					search->v1->f &= !1;
+					search->v2->f &= !1;
+				}
+				search->f &= ~32;
+			}
+		}
+	}
+	else
+		undo_pop_mesh(1);
+	addqueue(curarea->win, REDRAW, 1); 
+	SetBlenderCursor(SYSCURSOR);
+	return;
+}

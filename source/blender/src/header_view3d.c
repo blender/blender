@@ -731,6 +731,9 @@ void do_view3d_select_meshmenu(void *arg, int event)
 		case 9: /* select less */
 			select_non_manifold();
 			break;
+		case 10: /* select vertexloop */
+			vertex_loop_select();
+			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -771,6 +774,7 @@ static uiBlock *view3d_select_meshmenu(void *arg_unused)
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Face Loop...|Shift R",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Vertex Loop",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Linked Vertices|Ctrl L",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 		
 	if(curarea->headertype==HEADERTOP) {
