@@ -603,7 +603,10 @@ Ipo_addCurve (BPy_Ipo * self, PyObject * args)
   if (!ok)
     return (EXPP_ReturnPyObjError (PyExc_ValueError, "Not a valid param."));
 
-  icu = get_ipocurve (&(object->id), ID_OB, param, 0);
+  /* add a new curve to the ipo.  we pass in self->ipo so a new one does 
+     not get created */ 
+  icu = get_ipocurve (&(object->id), ID_OB, param, self->ipo );
+
 
 #define REMAKEIPO		1
 #define REDRAWIPO			0x4023
@@ -836,9 +839,11 @@ Ipo_EvaluateCurveOn (BPy_Ipo * self, PyObject * args)
 
   if (!PyArg_ParseTuple (args, "if", &num, &time))
     return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected int argument"));
+
   icu = self->ipo->curve.first;
   if (!icu)
     return (EXPP_ReturnPyObjError (PyExc_TypeError, "No IPO curve"));
+
   for (i = 0; i < num; i++)
     {
       if (!icu)
