@@ -371,11 +371,7 @@ static void drawcolorband_cb(void)
 
 static void do_colorbandbuts(ColorBand *coba, unsigned short event)
 {
-	uiBlock *block;
-	CBData *cbd;
-	float dx;
 	int a;
-	short mvalo[2], mval[2];
 	
 	if(coba==NULL) return;
 	
@@ -424,40 +420,63 @@ static void do_colorbandbuts(ColorBand *coba, unsigned short event)
 		
 	case B_DOCOLORBAND:
 		
-		/* weak; find panel where colorband is */
-		block= uiFindOpenPanelBlockName(&curarea->uiblocks, "Colors");
-		if(block==NULL) block= uiFindOpenPanelBlockName(&curarea->uiblocks, "Ramps");
-		
-		if(block) {
-			cbd= coba->data + coba->cur;
-			uiGetMouse(mywinget(), mvalo);
-	
-			while(get_mbut() & L_MOUSE) {
-				uiGetMouse(mywinget(), mval);
-				if(mval[0]!=mvalo[0]) {
-					dx= mval[0]-mvalo[0];
-					dx/= 345.0;
-					cbd->pos+= dx;
-					CLAMP(cbd->pos, 0.0, 1.0);
-	
-					glDrawBuffer(GL_FRONT);
-					uiPanelPush(block);
-					drawcolorband_cb();
-					uiPanelPop(block);
-					glDrawBuffer(GL_BACK);
-					
-					do_colorbandbuts(coba, B_CALCCBAND2);
-					cbd= coba->data + coba->cur;	/* because qsort */
-					
-					mvalo[0]= mval[0];
-				}
-				BIF_wait_for_statechange();
-			}
-			allqueue(REDRAWBUTSSHADING, 0);
-			BIF_all_preview_changed();
-			shade_buttons_change_3d();
-		}
 		break;
+	}
+}
+
+/* callback for label button... the size of the button (300) still hardcoded! */
+static void do_colorband_cb(void *namev, void *arg2_unused)
+{	
+	ColorBand *coba= namev;
+	CBData *cbd;
+	uiBlock *block;
+	float dx;
+	int a;
+	short mval[2], mvalo[2];
+	
+	/* weak; find panel where colorband is */
+	block= uiFindOpenPanelBlockName(&curarea->uiblocks, "Colors");
+	if(block==NULL) block= uiFindOpenPanelBlockName(&curarea->uiblocks, "Ramps");
+	
+	if(coba && block) {
+		int mindist= 12, xco;
+		uiGetMouse(mywinget(), mvalo);
+		
+		/* first, activate new key when mouse is close */
+		for(a=0, cbd= coba->data; a<coba->tot; a++, cbd++) {
+			xco= 12 + (cbd->pos*300.0);
+			xco= ABS(xco-mvalo[0]);
+			if(a==coba->cur) xco+= 5; // selected one disadvantage
+			if(xco<mindist) {
+				coba->cur= a;
+				mindist= xco;
+			}
+		}
+		
+		cbd= coba->data + coba->cur;
+		
+		while(get_mbut() & L_MOUSE) {
+			uiGetMouse(mywinget(), mval);
+			if(mval[0]!=mvalo[0]) {
+				dx= mval[0]-mvalo[0];
+				dx/= 300.0;
+				cbd->pos+= dx;
+				CLAMP(cbd->pos, 0.0, 1.0);
+				
+				glDrawBuffer(GL_FRONT);
+				drawcolorband_cb();
+				glDrawBuffer(GL_BACK);
+				
+				do_colorbandbuts(coba, B_CALCCBAND2);
+				cbd= coba->data + coba->cur;	/* because qsort */
+				
+				mvalo[0]= mval[0];
+			}
+			BIF_wait_for_statechange();
+		}
+		allqueue(REDRAWBUTSSHADING, 0);
+		BIF_all_preview_changed();
+		shade_buttons_change_3d();
 	}
 }
 
@@ -1251,6 +1270,7 @@ static void texture_panel_image(Tex *tex)
 static void draw_colorband_buts(uiBlock *block, ColorBand *coba, int offs, int redraw)
 {
 	CBData *cbd;
+	uiBut *bt;
 
 	if(coba==NULL) return;
 	
@@ -1261,8 +1281,9 @@ static void draw_colorband_buts(uiBlock *block, ColorBand *coba, int offs, int r
 	uiDefButS(block, ROW, B_TEXREDR_PRV, "L",		277,180+offs,16,20, &coba->ipotype, 5.0, 0.0, 0, 0, "Sets interpolation type Linear");
 	uiDefButS(block, ROW, B_TEXREDR_PRV, "S",		293,180+offs,17,20, &coba->ipotype, 5.0, 2.0, 0, 0, "Sets interpolation type B-Spline");
 
-	uiDefBut(block, LABEL, B_DOCOLORBAND, "", 		10,150+offs,300,30, 0, 0, 0, 0, 0, "Colorband"); /* only for event! */
-	
+	bt=uiDefBut(block, LABEL, B_DOCOLORBAND, "", 		10,150+offs,300,30, 0, 0, 0, 0, 0, "Colorband"); /* only for event! */
+	uiButSetFunc(bt, do_colorband_cb, coba, NULL);
+
 	uiBlockSetDrawExtraFunc(block, drawcolorband_cb);
 	cbd= coba->data + coba->cur;
 	
