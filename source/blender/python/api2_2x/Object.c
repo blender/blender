@@ -828,6 +828,8 @@ static PyObject *Object_link (BPy_Object *self, PyObject *args)
         data = (void *)Camera_FromPyObject (py_data);
     if (Lamp_CheckPyObject (py_data))
         data = (void *)Lamp_FromPyObject (py_data);
+    if (Curve_CheckPyObject (py_data))
+        data = (void *)Curve_FromPyObject (py_data);
     /* TODO: add the (N)Mesh check and from functions here when finished. */
 
     oldid = (ID*) self->object->data;
@@ -852,6 +854,13 @@ static PyObject *Object_link (BPy_Object *self, PyObject *args)
             break;
         case ID_ME:
             if (self->object->type != OB_MESH)
+            {
+                return (PythonReturnErrorObject (PyExc_AttributeError,
+                    "The 'link' object is incompatible with the base object"));
+            }
+            break;
+        case ID_CU:
+            if (self->object->type != OB_CURVE)
             {
                 return (PythonReturnErrorObject (PyExc_AttributeError,
                     "The 'link' object is incompatible with the base object"));

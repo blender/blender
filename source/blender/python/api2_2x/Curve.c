@@ -143,6 +143,14 @@ PyObject *Curve_Init (void)
   return (submodule);
 }
 
+int Curve_CheckPyObject (PyObject *pyobj)
+{
+  return (pyobj->ob_type == &Curve_Type);
+}
+Curve *Curve_FromPyObject (PyObject *pyobj)
+{
+  return ((BPy_Curve *)pyobj)->curve;
+}
 /*****************************************************************************/
 /* Python BPy_Curve methods:                                                   */
 /* gives access to                                                           */
