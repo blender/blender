@@ -283,7 +283,7 @@ void env_rotate_scene(float mat[][4], int mode)
 	VertRen *ver = NULL;
 	LampRen *lar = NULL;
 	HaloRen *har = NULL;
-	float xn, yn, zn, imat[3][3], pmat[4][4], smat[4][4], tmat[4][4];
+	float xn, yn, zn, imat[3][3], pmat[4][4], smat[4][4], tmat[4][4], cmat[3][3];
 	int a;
 	
 	if(mode==0) {
@@ -336,19 +336,13 @@ void env_rotate_scene(float mat[][4], int mode)
 	
 	for(a=0; a<R.totlamp; a++) {
 		lar= R.la[a];
-
-		/* smat should actually be a 3x3 matrix, the 4x4 declaration is  */
-		/* just for confusion.                                           */
 		
-		/* Only the left-top 3x3 is copied...? smat is 4by4! imat is 3x3 */
-		/* Actually, it is not: Mat3CpyMat3 copies the first 9 floats!   */
-		/* What should happen is mat4cpymat3                             */
-/*          Mat3CpyMat3(smat, lar->imat); */
-  		MTC_Mat4CpyMat3nc(smat, lar->imat); 
-		/* This would be lar->imat = smat * imat, so 3d = 4d * 3d?       */
-		/* the mat3mulmat3 does a multiply on the wrong elements....     */
-/*    		Mat3MulMat3(lar->imat, smat, imat);  */
-  		MTC_Mat4MulMat33(lar->imat, smat, imat); 
+		/* removed here some horrible code of someone in NaN who tried to fix
+		   prototypes... just solved by introducing a correct cmat[3][3] instead
+		   of using smat. this works, check square spots in reflections  (ton) */
+		Mat3CpyMat3(cmat, lar->imat); 
+		Mat3MulMat3(lar->imat, cmat, imat); 
+
 		MTC_Mat3MulVecfl(imat, lar->vec);
 		MTC_Mat4MulVecfl(tmat, lar->co);
 
