@@ -76,6 +76,7 @@
 
 #include "BKE_library.h"
 #include "BKE_image.h"
+#include "BKE_material.h"
 #include "BKE_texture.h"
 #include "BKE_key.h"
 #include "BKE_ipo.h"
@@ -600,5 +601,43 @@ void autotexname(Tex *tex)
 
 /* ------------------------------------------------------------------------- */
 
-
-/* eof */
+Tex *give_current_texture(Object *ob, int act)
+{
+	Material ***matarar, *ma;
+	Lamp *la = 0;
+	MTex *mtex = 0;
+	Tex *tex = 0;
+	
+	if(ob==0) return 0;
+	if(ob->totcol==0) return 0;
+	
+	if(ob->type==OB_LAMP) {
+		la=(Lamp *)ob->data;
+		if(la) {
+			mtex= la->mtex[(int)(la->texact)];
+			if(mtex) tex= mtex->tex;
+		}
+		else tex= 0;
+	} else {
+		if(act>ob->totcol) act= ob->totcol;
+		else if(act==0) act= 1;
+		
+		if( BTST(ob->colbits, act-1) ) {	/* in object */
+			ma= ob->mat[act-1];
+		}
+		else {								/* in data */
+			matarar= give_matarar(ob);
+			
+			if(matarar && *matarar) ma= (*matarar)[act-1];
+			else ma= 0;
+			
+		}
+		if(ma) {
+			mtex= ma->mtex[(int)(ma->texact)];
+			if(mtex) tex= mtex->tex;
+		}
+		else tex= 0;
+	}
+	
+	return tex;
+}

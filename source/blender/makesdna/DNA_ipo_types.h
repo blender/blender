@@ -69,6 +69,7 @@ typedef short IPO_Channel;
 /* ******************** */
 
 #define OB_TOTIPO	29
+#define OB_TOTNAM	29
 
 #define OB_LOC_X	1
 #define OB_LOC_Y	2
@@ -115,6 +116,7 @@ typedef short IPO_Channel;
 /* ******************** */
 
 #define MA_TOTIPO	40
+#define MA_TOTNAM	26
 
 #define MA_COL_R	1
 #define MA_COL_G	2
@@ -152,6 +154,8 @@ typedef short IPO_Channel;
 #define MA_MAP7		0x800
 #define MA_MAP8		0x1000
 
+#define TEX_TOTNAM	14
+
 #define MAP_OFS_X	1
 #define MAP_OFS_Y	2
 #define MAP_OFS_Z	3
@@ -170,19 +174,53 @@ typedef short IPO_Channel;
 
 /* ******************** */
 
+#define TE_TOTIPO	21
+#define TE_TOTNAM	21
+
+#define TE_NSIZE	1
+#define TE_NDEPTH	2
+#define TE_NTYPE	3
+#define TE_TURB		4
+
+#define TE_VNW1		5
+#define TE_VNW2		6
+#define TE_VNW3		7
+#define TE_VNW4		8
+#define TE_VNMEXP	9
+#define TE_VN_DISTM	10
+#define TE_VN_COLT	11
+
+#define TE_ISCA		12
+#define TE_DISTA	13
+
+#define TE_MG_TYP	14
+#define TE_MGH		15
+#define TE_MG_LAC	16
+#define TE_MG_OCT	17
+#define TE_MG_OFF	18
+#define TE_MG_GAIN	19
+
+#define TE_N_BAS1	20
+#define TE_N_BAS2	21
+
+/* ******************** */
+
 #define SEQ_TOTIPO	1
+#define SEQ_TOTNAM	1
 
 #define SEQ_FAC1	1
 
 /* ******************** */
 
 #define CU_TOTIPO	1
+#define CU_TOTNAM	1
 
 #define CU_SPEED	1
 
 /* ******************** */
 
 #define KEY_TOTIPO	32
+#define KEY_TOTNAM	32
 
 #define KEY_SPEED	0
 #define KEY_NR		1
@@ -190,6 +228,7 @@ typedef short IPO_Channel;
 /* ******************** */
 
 #define WO_TOTIPO	29
+#define WO_TOTNAM	16
 
 #define WO_HOR_R	1
 #define WO_HOR_G	2
@@ -214,6 +253,7 @@ typedef short IPO_Channel;
 /* ******************** */
 
 #define LA_TOTIPO	23
+#define LA_TOTNAM	10
 
 #define LA_ENERGY	1
 #define LA_COL_R	2
@@ -229,6 +269,7 @@ typedef short IPO_Channel;
 /* ******************** */
 
 #define CAM_TOTIPO	3
+#define CAM_TOTNAM	3
 
 #define CAM_LENS	1
 #define CAM_STA		2
@@ -238,6 +279,7 @@ typedef short IPO_Channel;
 /* ******************** */
 
 #define SND_TOTIPO	4
+#define SND_TOTNAM	4
 
 #define SND_VOLUME	1
 #define SND_PITCH	2
@@ -247,6 +289,7 @@ typedef short IPO_Channel;
 /* ******************** */
 
 #define AC_TOTIPO	10	/* __NLA */
+#define AC_TOTNAM	10
 
 #define AC_LOC_X	1
 #define AC_LOC_Y	2
@@ -263,6 +306,7 @@ typedef short IPO_Channel;
 
 /* ******************** */
 #define CO_TOTIPO	1	/* Constraint Ipos */
+#define CO_TOTNAM	1
 
 #define CO_ENFORCE	1
 /*

@@ -115,6 +115,20 @@ int ma_ar[MA_TOTIPO]= {
 	MA_MAP1+MAP_DVAR, MA_MAP1+MAP_COLF, MA_MAP1+MAP_NORF, MA_MAP1+MAP_VARF, MA_MAP1+MAP_DISP
 };
 
+int te_ar[TE_TOTIPO] ={
+	
+	TE_NSIZE, TE_NDEPTH, TE_NTYPE, TE_TURB,
+	
+	TE_VNW1, TE_VNW2, TE_VNW3, TE_VNW4,
+	TE_VNMEXP, TE_VN_COLT, TE_VN_DISTM,
+	
+	TE_ISCA, TE_DISTA,
+	
+	TE_MG_TYP, TE_MGH, TE_MG_LAC, TE_MG_OCT, TE_MG_OFF, TE_MG_GAIN,
+	
+	TE_N_BAS1, TE_N_BAS2
+};
+
 int seq_ar[SEQ_TOTIPO]= {
 	SEQ_FAC1
 };
@@ -860,6 +874,58 @@ float read_ipo_poin(void *poin, int type)
 	return val;
 }
 
+void *give_tex_poin(Tex *tex, int adrcode, int *type )
+{
+	void *poin=0;
+
+	switch(adrcode) {
+	case TE_NSIZE:
+		poin= &(tex->noisesize); break;
+	case TE_TURB:
+		poin= &(tex->turbul); break;
+	case TE_NDEPTH:
+		poin= &(tex->noisedepth); *type= IPO_SHORT; break;
+	case TE_NTYPE:
+		poin= &(tex->noisetype); *type= IPO_SHORT; break;
+	case TE_VNW1:
+		poin= &(tex->vn_w1); break;
+	case TE_VNW2:
+		poin= &(tex->vn_w2); break;
+	case TE_VNW3:
+		poin= &(tex->vn_w3); break;
+	case TE_VNW4:
+		poin= &(tex->vn_w4); break;
+	case TE_VNMEXP:
+		poin= &(tex->vn_mexp); break;
+	case TE_ISCA:
+		poin= &(tex->ns_outscale); break;
+	case TE_DISTA:
+		poin= &(tex->dist_amount); break;
+	case TE_VN_COLT:
+		poin= &(tex->vn_coltype); *type= IPO_SHORT; break;
+	case TE_VN_DISTM:
+		poin= &(tex->vn_distm); *type= IPO_SHORT; break;
+	case TE_MG_TYP:
+		poin= &(tex->stype); *type= IPO_SHORT; break;
+	case TE_MGH:
+		poin= &(tex->mg_H); break;
+	case TE_MG_LAC:
+		poin= &(tex->mg_lacunarity); break;
+	case TE_MG_OCT:
+		poin= &(tex->mg_octaves); break;
+	case TE_MG_OFF:
+		poin= &(tex->mg_offset); break;
+	case TE_MG_GAIN:
+		poin= &(tex->mg_gain); break;
+	case TE_N_BAS1:
+		poin= &(tex->noisebasis); *type= IPO_SHORT; break;
+	case TE_N_BAS2:
+		poin= &(tex->noisebasis2); *type= IPO_SHORT; break;
+	}
+	
+	return poin;
+}
+
 void *give_mtex_poin(MTex *mtex, int adrcode )
 {
 	void *poin=0;
@@ -917,6 +983,7 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 	Object *ob;
 	Material *ma;
 	MTex *mtex;
+	Tex *tex;
 	Lamp *la;
 	Sequence *seq;
 	World *wo;
@@ -1106,6 +1173,11 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 				poin= give_mtex_poin(mtex, icu->adrcode & (MA_MAP1-1) );
 			}
 		}
+	}
+	else if( GS(id->name)==ID_TE) {
+		tex= (Tex *)id;
+		
+		if(tex) poin= give_tex_poin(tex, icu->adrcode, type);
 	}
 	else if( GS(id->name)==ID_SEQ) {
 		seq= (Sequence *)id;
@@ -1334,6 +1406,63 @@ void set_icu_vars(IpoCurve *icu)
 			}
 		}
 	}
+	else if(icu->blocktype==ID_TE) {
+		switch(icu->adrcode & (MA_MAP1-1)) {
+			case TE_NSIZE:
+				icu->ymin= 0.0001;
+				icu->ymax= 2.0; break;
+			case TE_NDEPTH:
+				icu->vartype= IPO_SHORT;
+				icu->ipo= IPO_CONST;
+				icu->ymax= 6.0; break;
+			case TE_NTYPE:
+				icu->vartype= IPO_SHORT;
+				icu->ipo= IPO_CONST;
+				icu->ymax= 1.0; break;
+			case TE_TURB:
+				icu->ymax= 200.0; break;
+			case TE_VNW1:
+			case TE_VNW2:
+			case TE_VNW3:
+			case TE_VNW4:
+				icu->ymax= 2.0;
+				icu->ymin= -2.0; break;
+			case TE_VNMEXP:
+				icu->ymax= 10.0;
+				icu->ymin= 0.01; break;
+			case TE_VN_DISTM:
+				icu->vartype= IPO_SHORT;
+				icu->ipo= IPO_CONST;
+				icu->ymax= 6.0; break;
+			case TE_VN_COLT:
+				icu->vartype= IPO_SHORT;
+				icu->ipo= IPO_CONST;
+				icu->ymax= 3.0; break;
+			case TE_ISCA:
+				icu->ymax= 10.0;
+				icu->ymin= 0.01; break;
+			case TE_DISTA:
+				icu->ymax= 10.0; break;
+			case TE_MG_TYP:
+				icu->vartype= IPO_SHORT;
+				icu->ipo= IPO_CONST;
+				icu->ymax= 4.0; break;
+			case TE_MGH:
+				icu->ymin= 0.0001;
+				icu->ymax= 2.0; break;
+			case TE_MG_LAC:
+			case TE_MG_OFF:
+			case TE_MG_GAIN:
+				icu->ymax= 6.0; break;
+			case TE_MG_OCT:
+				icu->ymax= 8.0; break;
+			case TE_N_BAS1:
+			case TE_N_BAS2:
+				icu->vartype= IPO_SHORT;
+				icu->ipo= IPO_CONST;
+				icu->ymax= 8.0; break;
+		}
+	}
 	else if(icu->blocktype==ID_SEQ) {
 	
 		icu->ymax= 1.0;
@@ -1489,6 +1618,7 @@ void do_ipo_nocalc(Ipo *ipo)
 {
 	Object *ob;
 	Material *ma;
+	Tex *tex;
 	World *wo;
 	Lamp *la;
 	Camera *ca;
@@ -1512,6 +1642,13 @@ void do_ipo_nocalc(Ipo *ipo)
 		while(ma) {
 			if(ma->ipo==ipo) execute_ipo((ID *)ma, ipo);
 			ma= ma->id.next;
+		}
+		break;
+	case ID_TE:
+		tex= G.main->tex.first;
+		while(tex) {
+			if(tex->ipo==ipo) execute_ipo((ID *)tex, ipo);
+			tex=tex->id.next;
 		}
 		break;
 	case ID_WO:
@@ -1643,6 +1780,7 @@ void do_all_ipos()
 {
 	Base *base;
 	Material *ma;
+	Tex *tex;
 	World *wo;
 	Ipo *ipo;
 	Lamp *la;
@@ -1682,6 +1820,12 @@ void do_all_ipos()
 			set= 1;
 			base= G.scene->set->base.first;
 		}
+	}
+
+	tex= G.main->tex.first;
+	while(tex) {
+		if(tex->ipo) execute_ipo((ID *)tex, tex->ipo);
+		tex= tex->id.next;
 	}
 
 	ma= G.main->mat.first;

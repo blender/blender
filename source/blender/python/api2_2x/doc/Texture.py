@@ -302,3 +302,22 @@ class MTex:
     @cvar mapto: "Map to" field of texture. OR'd values of L{MapTo}
     """
 
+  def getIpo():
+    """
+    Get the Ipo associated with this texture object, if any.
+    @rtype: Ipo
+    @return: the wrapped ipo or None.
+    """
+
+  def setIpo(ipo):
+    """
+    Link an ipo to this texture object.
+    @type ipo: Blender Ipo
+    @param ipo: a "texture data" ipo.
+    """
+
+  def clearIpo():
+    """
+    Unlink the ipo from this texture object.
+    @return: True if there was an ipo linked or False otherwise.
+    """

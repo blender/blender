@@ -26,7 +26,8 @@ def New (type, name):
   @type type: string
   @type name: string
   @param type: The Ipo's blocktype. Depends on the object the ipo will be
-      linked to. Currently supported types are Object, Camera, World, Material.
+      linked to. Currently supported types are Object, Camera, World,
+      Material, Texture, Lamp, Curve, Key.
   @param name: The name for this Ipo.
   @rtype: Blender Ipo
   @return: The created Ipo.
@@ -71,14 +72,26 @@ class Ipo:
     'curvename' are:
       1. Camera Ipo:  Lens, ClSta, ClEnd.
       2. Material Ipo: R, G, B, SpecR, SpecG, SpecB, MirR, MirG, MirB, Ref,
-         Alpha, Emit, Amb, Spec, Hard, SpTra, Ang, Mode, HaSize, OfsX, OfsY,
+         Alpha, Emit, Amb, Spec, Hard, SpTra, Ang, Mode, HaSize, Translu,
+         RayMir, FresMir, FresMirI, FresTra, FresTraI, TraGlow, OfsX, OfsY,
          OfsZ, SizeX, SizeY, SizeZ, TexR, TexG, TexB, DefVar, Col, Nor, Var;
       3. Object Ipo: LocX, LocY, LocZ, dLocX, dLocY, dLocZ, RotX, RotY, RotZ,
          dRotX, dRotY, dRotZ, SizeX, SizeY, SizeZ, dSizeX, dSizeY, dSizeZ,
-         Layer, Time, ColR, ColG, ColB, ColA;
-      4. World Ipo: HorR, HorG, HorB, ZenR, ZenG, ZenB, Expos, Misi, MisDi,
+         Layer, Time, ColR, ColG, ColB, ColA, FStreng, FFOff, Damping,
+         RDamp, Perm;
+      4. Lamp Ipo: Energ, R, G, B, Dist, SpoSi, SpoBl, Quad1, Quad2, HaIntl;
+      5. World Ipo: HorR, HorG, HorB, ZenR, ZenG, ZenB, Expos, Misi, MisDi,
          MisSta, MisHi, StaR, StaG, StaB, StarDi, StarSi, OfsX, OfsY, OfsZ,
          SizeX, SizeY, SizeZ, TexR, TexG, TexB, DefVar, Col, Nor, Var;
+      6. Texture Ipo: NSize, NDepth, NType, Turb, Vnw1, Vnw2, Vnw3, Vnw4,
+         MinkMExp, DistM, ColT, iScale, DistA, MgType, MgH, Lacu, Oct,
+         MgOff, MgGan, NBase1, NBase2;
+      7. Curve Ipo: Speed;
+      8. Key Ipo: Speed, 'Key 1' - 'Key 31';
+      9. Action Ipo: LocX, LocY, LocZ, SizeX, SizeY, SizeZ,
+         QuatX, QuatY, QuatZ, QuatW;
+      10.Sequence Ipo: Fac;
+      11.Constraint Ipo: Inf.
     @type curvename : string
     @rtype: IpoCurve object
     @return: the corresponding IpoCurve, or None.
@@ -89,7 +102,21 @@ class Ipo:
     Add a new curve to the IPO object. The possible values for 'curvename' are:
       1. Object Ipo: LocX, LocY, LocZ, dLocX, dLocY, dLocZ, RotX, RotY, RotZ,
          dRotX, dRotY, dRotZ, SizeX, SizeY, SizeZ, dSizeX, dSizeY, dSizeZ,
-         Layer, Time, ColR, ColG, ColB, ColA.
+         Layer, Time, ColR, ColG, ColB, ColA, FStreng, FFOff, Damping, RDamp,
+         Perm;
+      2. Camera Ipo: Lens, ClSta, ClEnd;
+      3. Lamp Ipo: Energ, R, G, B, Dist, SpoSi, SpoBl, Quad1, Quad2, HaIntl
+      4. Texture Ipo: NSize, NDepth, NType, Turb, Vnw1, Vnw2, Vnw3, Vnw4,
+         MinkMExp, DistM, ColT, iScale, DistA, MgType, MgH, Lacu, Oct,
+         MgOff, MgGan, NBase1, NBase2;
+      5. World Ipo: HorR, HorG, HorB, ZenR, ZenG, ZenB, Expos, Misi, MisDi,
+         MisSta, MisHi, StaR, StaG, StaB, StarDi, StarSi, OfsX, OfsY, OfsZ,
+         SizeX, SizeY, SizeZ, TexR, TexG, TexB, DefVar, Col, Nor, Var;
+      6. Material Ipo: R, G, B, SpecR, SpecG, SpecB, MirR, MirG, MirB, Ref,
+         Alpha, Emit, Amb, Spec, Hard, SpTra, Ior, Mode, HaSize, Translu,
+         RayMir, FresMir, FresMirI, FresTra, FresTraI, TraGlow;
+      7. Curve Ipo: Speed;
+      8. Key Ipo: Speed, 'Key 1' - 'Key 31'
     @type curvename : string
     @rtype: IpoCurve object
     @return: the corresponding IpoCurve, or None.
@@ -265,10 +292,28 @@ class IpoCurve:
   def getName():
     """
     Returns the name of the ipo curve. This name can be:
-      1. LocX, LocY, LocZ, dLocX, dLocY, dLocZ, RotX, RotY, RotZ,
+      1. Camera Ipo:  Lens, ClSta, ClEnd.
+      2. Material Ipo: R, G, B, SpecR, SpecG, SpecB, MirR, MirG, MirB, Ref,
+         Alpha, Emit, Amb, Spec, Hard, SpTra, Ang, Mode, HaSize, Translu,
+         RayMir, FresMir, FresMirI, FresTra, FresTraI, TraGlow, OfsX, OfsY,
+         OfsZ, SizeX, SizeY, SizeZ, TexR, TexG, TexB, DefVar, Col, Nor, Var;
+      3. Object Ipo: LocX, LocY, LocZ, dLocX, dLocY, dLocZ, RotX, RotY, RotZ,
          dRotX, dRotY, dRotZ, SizeX, SizeY, SizeZ, dSizeX, dSizeY, dSizeZ,
-         Layer, Time, ColR, ColG, ColB, ColA, QuatX, QuatY, QuatZ or QuatW.
-    @warn: currently this only works with object and action IPO's..
+         Layer, Time, ColR, ColG, ColB, ColA, FStreng, FFOff, Damping,
+         RDamp, Perm;
+      4. Lamp Ipo: Energ, R, G, B, Dist, SpoSi, SpoBl, Quad1, Quad2, HaIntl;
+      5. World Ipo: HorR, HorG, HorB, ZenR, ZenG, ZenB, Expos, Misi, MisDi,
+         MisSta, MisHi, StaR, StaG, StaB, StarDi, StarSi, OfsX, OfsY, OfsZ,
+         SizeX, SizeY, SizeZ, TexR, TexG, TexB, DefVar, Col, Nor, Var;
+      6. Texture Ipo: NSize, NDepth, NType, Turb, Vnw1, Vnw2, Vnw3, Vnw4,
+         MinkMExp, DistM, ColT, iScale, DistA, MgType, MgH, Lacu, Oct,
+         MgOff, MgGan, NBase1, NBase2;
+      7. Curve Ipo: Speed;
+      8. Key Ipo: Speed, 'Key 1' - 'Key 31';
+      9. Action Ipo: LocX, LocY, LocZ, SizeX, SizeY, SizeZ,
+         QuatX, QuatY, QuatZ, QuatW;
+      10.Sequence Ipo: Fac;
+      11.Constraint Ipo: Inf.
     @rtype: string
     @return: the name of the ipo curve.
     """

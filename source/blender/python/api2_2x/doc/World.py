@@ -71,7 +71,7 @@ class World:
   ================
   This object gives access to generic data from all worlds in Blender.
   Its attributes depend upon its type.
-	
+
   @cvar name: the name of the world.
   @cvar skytype: type of the sky. Bit 0 : Blend; Bit 1 : Real; Bit 2 : paper.
   @cvar mode:
@@ -145,7 +145,6 @@ class World:
     @return:  the skytype of the world object.
     """
 
-	
   def setSkytype(skytype):
     """
     Sets the skytype of a world object.
@@ -164,7 +163,6 @@ class World:
     @return:  the mode of the world object.
     """
 
-	
   def setMode(mode):
     """
     Sets the mode of a world object.
@@ -183,7 +181,6 @@ class World:
     @return:  the mistype of the world object.
     """
 
-	
   def setMistype(mistype):
     """
     Sets the mist type of a world object.
@@ -202,7 +199,6 @@ class World:
     @return:  the horizon color of the world object.
     """
 
-	
   def setHor(hor):
     """
     Sets the horizon color of a world object.
@@ -220,7 +216,6 @@ class World:
     @return:  the zenith color of the world object.
     """
 
-	
   def setZen(zen):
     """
     Sets the zenith color of a world object.
@@ -238,7 +233,6 @@ class World:
     @return:  the ambient color of the world object.
     """
 
-	
   def setAmb(amb):
     """
     Sets the ambient color of a world object.
@@ -263,7 +257,6 @@ class World:
     @return:  the star parameters
     """
 
-	
   def setStar(star):
     """
     Sets the star parameters  of a world object.
@@ -286,7 +279,6 @@ class World:
     @return:  the mist parameters
     """
 
-	
   def setMist(mist):
     """
     Sets the mist parameters  of a world object.

@@ -24,7 +24,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Jacques Guignot
+ * Contributor(s): Jacques Guignot, Nathan Letwory
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -37,6 +37,7 @@
 #include <BKE_library.h>
 #include <BKE_ipo.h>
 #include <BLI_blenlib.h>
+#include <BSE_editipo.h>
 
 #include "constant.h"
 #include "gen_utils.h"
@@ -349,46 +350,35 @@ IpoCurve_Recalc (C_IpoCurve * self)
 static PyObject *
 IpoCurve_getName (C_IpoCurve * self)
 {
-  const int objectType=self->ipocurve->blocktype;
-  const int trackType=self->ipocurve->adrcode;
-  
-  const char * ob_nametab[24] = {"LocX","LocY","LocZ","dLocX","dLocY","dLocZ",
-    "RotX","RotY","RotZ","dRotX","dRotY","dRotZ","SizeX","SizeY","SizeZ",
-    "dSizeX","dSizeY","dSizeZ","Layer","Time","ColR","ColG","ColB","ColA"};
-    
-  const char * ac_nametab[5] = {"QuatW", "QuatX", "QuatY", "QuatZ"};
-  
-  switch (objectType) {
-  case ID_OB: {
-    if (self->ipocurve->adrcode <= 0 ) {
-      return PyString_FromString("Index too small");
-    } else if (self->ipocurve->adrcode >= 25 ) {
-      return PyString_FromString("Index too big");
-    } else {  
-      return PyString_FromString(ob_nametab[trackType-1]);
-    }
-  }
-  break;
-  
-  case ID_AC: {
-    switch (trackType) {
-    case 1: case 2: case 3: case 13: case 14: case 15:
-      return PyString_FromString(ob_nametab[trackType-1]);
-    break;
-    
-    case 25: case 26: case 27: case 28:
-      return PyString_FromString(ac_nametab[trackType-25]);
-      break;
-    default:
-      return PyString_FromString("Index out of range");
-    }
-  }
-  break;
-
+  switch (self->ipocurve->blocktype) {
+  case ID_OB:
+    return PyString_FromString(getname_ob_ei(self->ipocurve->adrcode, 1)); /* solve: what if EffX/Y/Z are wanted? */
+  case ID_TE:
+    return PyString_FromString(getname_tex_ei(self->ipocurve->adrcode));
+  case ID_LA:
+    return PyString_FromString(getname_la_ei(self->ipocurve->adrcode));
+  case ID_MA:
+    return PyString_FromString(getname_mat_ei(self->ipocurve->adrcode));
+  case ID_CA:
+    return PyString_FromString(getname_cam_ei(self->ipocurve->adrcode));
+  case ID_WO:
+    return PyString_FromString(getname_world_ei(self->ipocurve->adrcode));
+  case ID_AC:
+    return PyString_FromString(getname_ac_ei(self->ipocurve->adrcode));
+  case ID_CU:
+    return PyString_FromString(getname_cu_ei(self->ipocurve->adrcode));
+  case ID_KE:
+    return PyString_FromString(getname_key_ei(self->ipocurve->adrcode));
+  case ID_SEQ:
+    return PyString_FromString(getname_seq_ei(self->ipocurve->adrcode));
+  case IPO_CO:
+    return PyString_FromString(getname_co_ei(self->ipocurve->adrcode));
   default:
     return EXPP_ReturnPyObjError (PyExc_TypeError,
                     "This function doesn't support this ipocurve type yet");
   }
+  
+  return PyString_FromString(""); 
 }
 
 static void

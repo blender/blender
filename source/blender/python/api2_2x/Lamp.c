@@ -24,7 +24,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano
+ * Contributor(s): Willian P. Germano, Nathan Letwory
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -167,6 +167,9 @@ static PyObject *Lamp_getHaloInt(BPy_Lamp *self);
 static PyObject *Lamp_getQuad1(BPy_Lamp *self);
 static PyObject *Lamp_getQuad2(BPy_Lamp *self);
 static PyObject *Lamp_getCol(BPy_Lamp *self);
+static PyObject *Lamp_getIpo(BPy_Lamp *self);
+static PyObject *Lamp_clearIpo(BPy_Lamp *self);
+static PyObject *Lamp_setIpo(BPy_Lamp *self, PyObject *args);
 static PyObject *Lamp_setName(BPy_Lamp *self, PyObject *args);
 static PyObject *Lamp_setType(BPy_Lamp *self, PyObject *args);
 static PyObject *Lamp_setIntType(BPy_Lamp *self, PyObject *args);
@@ -1369,4 +1372,77 @@ static int Lamp_compare (BPy_Lamp *a, BPy_Lamp *b)
 static PyObject *Lamp_repr (BPy_Lamp *self)
 {
   return PyString_FromFormat("[Lamp \"%s\"]", self->lamp->id.name+2);
+}
+
+static PyObject *
+Lamp_getIpo (BPy_Lamp * self)
+{
+  struct Ipo *ipo = self->lamp->ipo;
+
+  if (!ipo)
+    {
+      Py_INCREF (Py_None);
+      return Py_None;
+    }
+
+  return Ipo_CreatePyObject (ipo);
+}
+
+extern PyTypeObject Ipo_Type;
+
+static PyObject *
+Lamp_setIpo (BPy_Lamp * self, PyObject * args)
+{
+  PyObject *pyipo = 0;
+  Ipo *ipo = NULL;
+  Ipo *oldipo;
+
+  if (!PyArg_ParseTuple (args, "O!", &Ipo_Type, &pyipo))
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+				  "expected Ipo as argument");
+
+  ipo = Ipo_FromPyObject (pyipo);
+
+  if (!ipo)
+    return EXPP_ReturnPyObjError (PyExc_RuntimeError, "null ipo!");
+
+  if (ipo->blocktype != ID_TE)
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+				  "this ipo is not a lamp data ipo");
+
+  oldipo = self->lamp->ipo;
+  if (oldipo)
+    {
+      ID *id = &oldipo->id;
+      if (id->us > 0)
+	id->us--;
+    }
+
+  ((ID *) & ipo->id)->us++;
+
+  self->lamp->ipo = ipo;
+
+  Py_INCREF (Py_None);
+  return Py_None;
+}
+
+static PyObject *
+Lamp_clearIpo (BPy_Lamp * self)
+{
+  Lamp *lamp = self->lamp;
+  Ipo *ipo = (Ipo *) lamp->ipo;
+
+  if (ipo)
+    {
+      ID *id = &ipo->id;
+      if (id->us > 0)
+        id->us--;
+      lamp->ipo = NULL;
+
+      Py_INCREF (Py_True);
+      return Py_True;
+    }
+
+  Py_INCREF (Py_False);		/* no ipo found */
+  return Py_False;
 }

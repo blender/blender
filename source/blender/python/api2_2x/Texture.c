@@ -24,7 +24,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Alex Mole
+ * Contributor(s): Alex Mole, Nathan Letwory
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -59,9 +59,12 @@
 #define EXPP_TEX_TYPE_IMAGE                 TEX_IMAGE
 #define EXPP_TEX_TYPE_PLUGIN                TEX_PLUGIN
 #define EXPP_TEX_TYPE_ENVMAP                TEX_ENVMAP
+#define EXPP_TEX_TYPE_MUSGRAVE              TEX_MUSGRAVE
+#define EXPP_TEX_TYPE_VORONOI               TEX_VORONOI
+#define EXPP_TEX_TYPE_DISTNOISE             TEX_DISTNOISE
 
 #define EXPP_TEX_TYPE_MIN                   EXPP_TEX_TYPE_NONE
-#define EXPP_TEX_TYPE_MAX                   EXPP_TEX_TYPE_ENVMAP
+#define EXPP_TEX_TYPE_MAX                   EXPP_TEX_TYPE_DISTNOISE
 
 /* i can't find these defined anywhere- they're just taken from looking at   */
 /* the button creation code in source/blender/src/buttons_shading.c          */
@@ -90,6 +93,12 @@
 #define EXPP_TEX_STYPE_ENV_STATIC           0
 #define EXPP_TEX_STYPE_ENV_ANIM             1
 #define EXPP_TEX_STYPE_ENV_LOAD             2
+/* musgrave stype */
+#define EXPP_TEX_STYPE_MUS_MFRACTAL         0
+#define EXPP_TEX_STYPE_MUS_RIDGEDMF         1
+#define EXPP_TEX_STYPE_MUS_HYBRIDMF         2
+#define EXPP_TEX_STYPE_MUS_FBM              3
+#define EXPP_TEX_STYPE_MUS_HTERRAIN         4
 
 #define EXPP_TEX_FLAG_COLORBAND             TEX_COLORBAND
 #define EXPP_TEX_FLAG_FLIPBLEND             TEX_FLIPBLEND
@@ -150,6 +159,9 @@ static const EXPP_map_pair tex_type_map[] = {
     { "Image",  EXPP_TEX_TYPE_IMAGE },
     { "Plugin", EXPP_TEX_TYPE_PLUGIN },
     { "EnvMap", EXPP_TEX_TYPE_ENVMAP },
+    { "Musgrave", EXPP_TEX_TYPE_MUSGRAVE },
+    { "Voronoi", EXPP_TEX_TYPE_VORONOI },
+    { "DistortedNoise", EXPP_TEX_TYPE_DISTNOISE },
     { NULL, 0 }
 };
 
@@ -234,6 +246,16 @@ static const EXPP_map_pair tex_stype_envmap_map[] = {
     { NULL , 0 }
 };
 
+static const EXPP_map_pair tex_stype_musg_map[] = {
+    { "Default",            0},
+    { "MultiFractal",       EXPP_TEX_STYPE_MUS_MFRACTAL },
+    { "HeteroTerrain",      EXPP_TEX_STYPE_MUS_HTERRAIN },
+    { "RidgedMultiFractal", EXPP_TEX_STYPE_MUS_RIDGEDMF },
+    { "HybridMultiFractal", EXPP_TEX_STYPE_MUS_HYBRIDMF },
+    { "fBM",                EXPP_TEX_STYPE_MUS_FBM },
+    { NULL , 0 }
+};
+
 static const EXPP_map_pair *tex_stype_map[] = {
     tex_stype_default_map,    /* none */
     tex_stype_clouds_map,
@@ -245,7 +267,8 @@ static const EXPP_map_pair *tex_stype_map[] = {
     tex_stype_default_map,    /* noise */
     tex_stype_default_map,    /* image */
     tex_stype_default_map,    /* plugin */
-    tex_stype_envmap_map
+    tex_stype_envmap_map,
+    tex_stype_musg_map        /* musgrave */
 };
 
 
@@ -298,6 +321,9 @@ GETFUNC (getImage);
 GETFUNC (getName);
 GETFUNC (getType);
 GETFUNC (getSType);
+GETFUNC (getIpo);
+GETFUNC (clearIpo);
+SETFUNC (setIpo);
 SETFUNC (setAnimFrames);
 SETFUNC (setAnimLength);
 SETFUNC (setAnimMontage);
@@ -342,6 +368,12 @@ static PyMethodDef BPy_Texture_methods[] = {
                             "() - Return Texture stype as string"},
   {"getType", (PyCFunction)Texture_getType, METH_NOARGS,
                             "() - Return Texture type as string"},
+  {"getIpo", (PyCFunction)Texture_getIpo, METH_NOARGS,
+                            "() - Return Texture Ipo"},
+  {"setIpo", (PyCFunction)Texture_setIpo, METH_VARARGS,
+                            "(Blender Ipo) - Set Texture Ipo"},
+  {"clearIpo", (PyCFunction) Texture_clearIpo, METH_NOARGS,
+                            "() - Unlink Ipo from this Texture."},
   {"setExtend", (PyCFunction)Texture_setExtend, METH_VARARGS,
                             "(s) - Set Texture extend mode"},
   {"setFlags", (PyCFunction)Texture_setFlags, METH_VARARGS,
@@ -508,6 +540,9 @@ static PyObject *M_Texture_TypesDict (void)
         EXPP_ADDCONST (IMAGE);
         EXPP_ADDCONST (PLUGIN);
         EXPP_ADDCONST (ENVMAP);
+        EXPP_ADDCONST (MUSGRAVE);
+        EXPP_ADDCONST (VORONOI);
+        EXPP_ADDCONST (DISTNOISE);
     }
     return Types;
 }
@@ -547,6 +582,11 @@ static PyObject *M_Texture_STypesDict (void)
         EXPP_ADDCONST(ENV_STATIC);
         EXPP_ADDCONST(ENV_ANIM);
         EXPP_ADDCONST(ENV_LOAD);
+        EXPP_ADDCONST(MUS_MFRACTAL);
+        EXPP_ADDCONST(MUS_RIDGEDMF);
+        EXPP_ADDCONST(MUS_HYBRIDMF);
+        EXPP_ADDCONST(MUS_FBM);
+        EXPP_ADDCONST(MUS_HTERRAIN);
     }
     return STypes;
 }
@@ -1509,5 +1549,78 @@ static int Texture_compare (BPy_Texture *a, BPy_Texture *b)
 static PyObject *Texture_repr (BPy_Texture *self)
 {
     return PyString_FromFormat("[Texture \"%s\"]", self->texture->id.name+2);
+}
+
+static PyObject *
+Texture_getIpo (BPy_Texture * self)
+{
+  struct Ipo *ipo = self->texture->ipo;
+
+  if (!ipo)
+    {
+      Py_INCREF (Py_None);
+      return Py_None;
+    }
+
+  return Ipo_CreatePyObject (ipo);
+}
+
+extern PyTypeObject Ipo_Type;
+
+static PyObject *
+Texture_setIpo (BPy_Texture * self, PyObject * args)
+{
+  PyObject *pyipo = 0;
+  Ipo *ipo = NULL;
+  Ipo *oldipo;
+
+  if (!PyArg_ParseTuple (args, "O!", &Ipo_Type, &pyipo))
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+				  "expected Ipo as argument");
+
+  ipo = Ipo_FromPyObject (pyipo);
+
+  if (!ipo)
+    return EXPP_ReturnPyObjError (PyExc_RuntimeError, "null ipo!");
+
+  if (ipo->blocktype != ID_TE)
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+				  "this ipo is not a texture data ipo");
+
+  oldipo = self->texture->ipo;
+  if (oldipo)
+    {
+      ID *id = &oldipo->id;
+      if (id->us > 0)
+	id->us--;
+    }
+
+  ((ID *) & ipo->id)->us++;
+
+  self->texture->ipo = ipo;
+
+  Py_INCREF (Py_None);
+  return Py_None;
+}
+
+static PyObject *
+Texture_clearIpo (BPy_Texture * self)
+{
+  Tex *tex = self->texture;
+  Ipo *ipo = (Ipo *) tex->ipo;
+
+  if (ipo)
+    {
+      ID *id = &ipo->id;
+      if (id->us > 0)
+        id->us--;
+      tex->ipo = NULL;
+
+      Py_INCREF (Py_True);
+      return Py_True;
+    }
+
+  Py_INCREF (Py_False);		/* no ipo found */
+  return Py_False;
 }
 

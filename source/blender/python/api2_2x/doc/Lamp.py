@@ -348,3 +348,23 @@ class Lamp:
     @type event: string
     @param event: "FrameChanged" or "Redraw".
     """
+
+    def getIpo():
+    """
+    Get the Ipo associated with this Lamp object, if any.
+    @rtype: Ipo
+    @return: the wrapped ipo or None.
+    """
+
+  def setIpo(ipo):
+    """
+    Link an ipo to this Lamp object.
+    @type ipo: Blender Ipo
+    @param ipo: a "lamp data" ipo.
+    """
+
+  def clearIpo():
+    """
+    Unlink the ipo from this Lamp object.
+    @return: True if there was an ipo linked or False otherwise.
+    """

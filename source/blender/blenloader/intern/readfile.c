@@ -4473,6 +4473,7 @@ static void expand_key(FileData *fd, Main *mainvar, Key *key)
 static void expand_texture(FileData *fd, Main *mainvar, Tex *tex)
 {
 	expand_doit(fd, mainvar, tex->ima);
+	expand_doit(fd, mainvar, tex->ipo);
 }
 
 static void expand_material(FileData *fd, Main *mainvar, Material *ma)

@@ -24,7 +24,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano
+ * Contributor(s): Willian P. Germano, Nathan Letwory
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
