@@ -3883,8 +3883,9 @@ void make_trans_verts(float *min, float *max, int mode)
 	TransVert *tv=NULL;
 	MetaElem *ml;
 	EditVert *eve;
-	int a;
 	EditBone	*ebo;
+	float total;
+	int a;
 
 	tottrans= 0; // global!
 	
@@ -4086,18 +4087,21 @@ void make_trans_verts(float *min, float *max, int mode)
 	
 	/* cent etc */
 	tv= transvmain;
+	total= 0.0;
 	for(a=0; a<tottrans; a++, tv++) {
 		if(tv->flag & SELECT) {
 			centroid[0]+= tv->oldloc[0];
 			centroid[1]+= tv->oldloc[1];
 			centroid[2]+= tv->oldloc[2];
-
+			total+= 1.0;
 			DO_MINMAX(tv->oldloc, min, max);
 		}
 	}
-	centroid[0]/= G.totvertsel;
-	centroid[1]/= G.totvertsel;
-	centroid[2]/= G.totvertsel;
+	if(total!=0.0) {
+		centroid[0]/= total;
+		centroid[1]/= total;
+		centroid[2]/= total;
+	}
 
 	centre[0]= (min[0]+max[0])/2.0;
 	centre[1]= (min[1]+max[1])/2.0;
