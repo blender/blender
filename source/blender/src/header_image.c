@@ -473,16 +473,16 @@ static uiBlock *image_selectmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "image_selectmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_image_selectmenu, NULL);
 
-	if(G.sima->flag & SI_SELACTFACE) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Active Face Select|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Active Face Select|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	if(G.sima->flag & SI_SELACTFACE) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Active Face Select|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Active Face Select|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 
-	if(G.sima->flag & SI_LOCALSTICKY) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Stick Local UVs to Mesh Vertex|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Stick Local UVs to Mesh Vertex|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	if(G.sima->flag & SI_LOCALSTICKY) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Stick Local UVs to Mesh Vertex|Shift C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Stick Local UVs to Mesh Vertex|Shift C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 
-	if(G.sima->flag & SI_STICKYUVS) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Stick UVs to Mesh Vertex|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Stick UVs to Mesh Vertex|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+	if(G.sima->flag & SI_STICKYUVS) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Stick UVs to Mesh Vertex|Ctrl C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Stick UVs to Mesh Vertex|Ctrl C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 
@@ -731,8 +731,7 @@ static void do_image_uvs_propfalloffmenu(void *arg, int event)
 	case 1: /* proportional edit - smooth*/
 		prop_mode = 1;
 		break;
-		}
-	allqueue(REDRAWVIEW3D, 0);
+	}
 }
 
 static uiBlock *image_uvs_propfalloffmenu(void *arg_unused)
@@ -753,6 +752,50 @@ static uiBlock *image_uvs_propfalloffmenu(void *arg_unused)
 	uiTextBoundsBlock(block, 60);
 	return block;
 }
+
+static void do_image_uvs_transformmenu(void *arg, int event)
+{
+	extern int prop_mode;
+	
+	switch(event) {
+	case 0: /* Grab */
+		transform_tface_uv('g');
+		break;
+	case 1: /* Rotate */
+		transform_tface_uv('r');
+		break;
+	case 2: /* Scale */
+		transform_tface_uv('s');
+		break;
+	case 3: /* Weld / Align */
+		transform_tface_uv('w');
+		break;
+	case 4: /* Mirror */
+		mirrormenu_tface_uv();
+		break;
+	}
+}
+
+static uiBlock *image_uvs_transformmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+	extern int prop_mode;
+
+	block= uiNewBlock(&curarea->uiblocks, "image_uvs_transformmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_image_uvs_transformmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab...|G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotate...|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale...|S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Weld / Align...|W", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mirror...|M", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
 
 static void do_image_uvsmenu(void *arg, int event)
 {
@@ -782,9 +825,6 @@ static void do_image_uvsmenu(void *arg, int event)
 		if(BTST(G.sima->flag, 7)) G.sima->flag = BCLR(G.sima->flag, 7);
 		else G.sima->flag = BSET(G.sima->flag, 7);
 		break;
-	case 8:
-		transform_tface_uv('w');
-		break;
 	}
 }
 
@@ -798,8 +838,8 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 
 	// uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Transform Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	// uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	if(BTST(G.sima->flag, 7)) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "UVs Snap To Pixels|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "UVs Snap To Pixels|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	if(BTST(G.sima->flag, 7)) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap to Pixels|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap to Pixels|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 
 	if(BTST(G.sima->flag, 0)) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Quads Constrained Rectangular|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Quads Constrained Rectangular|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
@@ -809,17 +849,17 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Weld / Align...|W", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Limit Stitch...|Shift V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Stitch|V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	uiDefIconTextBlockBut(block, image_uvs_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	if(G.f & G_PROPORTIONAL) {
+	if(G.f & G_PROPORTIONAL)
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Proportional Editing|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	} else {
+	else
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Proportional Editing|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	}
+
 	uiDefIconTextBlockBut(block, image_uvs_propfalloffmenu, NULL, ICON_RIGHTARROW_THIN, "Proportional Falloff", 0, yco-=20, 120, 19, "");
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	

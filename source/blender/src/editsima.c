@@ -336,7 +336,7 @@ void transform_tface_uv(int mode)
 
  	float dist, xdist, ydist, aspx, aspy;
 	float asp, dx1, dx2, dy1, dy2, phi, dphi, co, si;
-	float xref=1.0, yref=1.0, size[2], sizefac;
+	float size[2], sizefac;
 	float dx, dy, dvec2[2], dvec[2], div, cent[2];
 	float x, y, min[2], max[2], vec[2], xtra[2], ivec[2];
 	int xim, yim, tot=0, a, b, firsttime=1, afbreek=0, align= 0;
@@ -587,9 +587,6 @@ void transform_tface_uv(int mode)
 				apply_keyb_grid(size, 0.0, 0.1, 0.01, U.flag & USER_AUTOSIZEGRID);
 				apply_keyb_grid(size+1, 0.0, 0.1, 0.01, U.flag & USER_AUTOSIZEGRID);
 
-				size[0]*= xref;
-				size[1]*= yref;
-				
 				xtra[0]= xtra[1]= 0;
 
 				if(G.sima->flag & SI_CLIP_UV) {
@@ -730,14 +727,32 @@ void transform_tface_uv(int mode)
 				case WKEY:
 				case XKEY:
 				case YKEY:
-					if(mode!='w') {
-						if(event==XKEY) xref= -xref;
-						else yref= -yref;
-					}
-					else {
+					if(mode=='w') {
 						if(event==WKEY) align= 0;
 						else if(event==XKEY) align= 1;
 						else align= 2;
+					}
+					else {
+						if(midtog) {
+							if(event==XKEY) {
+								if(proj==1) midtog= ~midtog;
+								else if(proj==0) proj= 1;
+							}
+							else if(event==YKEY) {
+								if(proj==0) midtog= ~midtog;
+								else if(proj==1) proj= 0;
+							}
+						}
+						else {
+							if(event==XKEY) {
+								midtog= ~midtog;
+								proj= 1;
+							}
+							else if(event==YKEY) {
+								midtog= ~midtog;
+								proj= 0;
+							}
+						}
 					}
 					firsttime= 1;
 					break;
@@ -745,28 +760,8 @@ void transform_tface_uv(int mode)
 					arrows_move_cursor(event);
 				}
 			}
-			if(afbreek) {
-				if(!(event==ESCKEY || event == RIGHTMOUSE) &&
-				   mode=='w' && align>0) {
-					/* implicit commit */
-					tv= transmain;
-					for(a=0; a<tot; a++, tv++) {
-						tv->oldloc[0]= tv->loc[0];
-						tv->oldloc[1]= tv->loc[1];
-						firsttime=1;
-					}
-					midtog= 1;
-					if(align==1) proj= 0;
-					else proj= 1;
-					mode= 'g';
-					getmouseco_areawin(mval);
-					xo= mval[0];
-					yo= mval[1];
-					afbreek= 0;
-				}
-				else
-					break;
-			}
+
+			if(afbreek) break;
 		}
 	}
 	
@@ -789,6 +784,73 @@ void transform_tface_uv(int mode)
 	scrarea_queue_headredraw(curarea);
 	scrarea_queue_winredraw(curarea);
 }
+
+static void mirror_tface_uv(char mirroraxis)
+{
+	MFace *mface;
+	TFace *tface;
+	Mesh *me;
+	float min[2], max[2], cent[2];
+	int a, axis;
+	
+	if( is_uv_tface_editing_allowed()==0 ) return;
+	me= get_mesh(OBACT);
+	
+	min[0]= min[1]= 10000.0;
+	max[0]= max[1]= -10000.0;
+	
+	tface= me->tface;
+	mface= me->mface;
+	for(a=me->totface; a>0; a--, tface++, mface++) {
+		if(tface->flag & TF_SELECT) {
+			if(tface->flag & TF_SEL1) { DO_MINMAX2(tface->uv[0], min, max); }
+			if(tface->flag & TF_SEL2) { DO_MINMAX2(tface->uv[1], min, max); }
+			if(tface->flag & TF_SEL3) { DO_MINMAX2(tface->uv[2], min, max); }
+			if(mface->v4 && (tface->flag & TF_SEL4)) {
+				DO_MINMAX2(tface->uv[3], min, max);
+			}
+		}
+	}
+
+	cent[0]= (min[0]+max[0])/2.0;
+	cent[1]= (min[1]+max[1])/2.0;
+
+	if(mirroraxis=='x') axis= 0;
+	else axis= 1;
+
+	tface= me->tface;
+	mface= me->mface;
+	for(a=me->totface; a>0; a--, tface++, mface++) {
+		if(tface->flag & TF_SELECT) {
+			if(tface->flag & TF_SEL1)
+				tface->uv[0][axis]= 2*cent[axis] - tface->uv[0][axis];
+			if(tface->flag & TF_SEL2)
+				tface->uv[1][axis]= 2*cent[axis] - tface->uv[1][axis];
+			if(tface->flag & TF_SEL3)
+				tface->uv[2][axis]= 2*cent[axis] - tface->uv[2][axis];
+			if(mface->v4 && (tface->flag & TF_SEL4))
+				tface->uv[3][axis]= 2*cent[axis] - tface->uv[3][axis];
+		}
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWIMAGE, 0);
+}
+
+void mirrormenu_tface_uv(void)
+{
+	short mode= 0;
+
+	if( is_uv_tface_editing_allowed()==0 ) return;
+
+	mode= pupmenu("Mirror%t|X Axis%x1|Y Axis%x2|");
+
+	if(mode==-1) return;
+
+	if(mode==1) mirror_tface_uv('x');
+	else if(mode==2) mirror_tface_uv('y');
+}
+
 
 void select_swap_tface_uv(void)
 {
@@ -1598,5 +1660,27 @@ void unlink_selection(void)
 	}
 	
 	scrarea_queue_winredraw(curarea);
+}
+
+void toggle_uv_select(int mode)
+{
+	switch(mode){
+	case 'f':
+		G.sima->flag ^= SI_SELACTFACE;
+		break;
+	case 's':
+		G.sima->flag ^= SI_STICKYUVS; 
+		if (G.sima->flag & SI_STICKYUVS) G.sima->flag &= ~SI_LOCALSTICKY;
+		break;
+	case 'l': 
+		 G.sima->flag ^= SI_LOCALSTICKY;
+		 if (G.sima->flag & SI_LOCALSTICKY) G.sima->flag &= ~SI_STICKYUVS;
+		break;
+	case 'o':
+		G.sima->flag &= ~SI_STICKYUVS; 
+		G.sima->flag &= ~SI_LOCALSTICKY;
+		break;
+	}
+	allqueue(REDRAWIMAGE, 0);
 }
 

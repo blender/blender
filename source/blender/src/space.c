@@ -3341,6 +3341,16 @@ void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if((G.qual==0))
 					borderselect_sima();
 				break;
+			case CKEY:
+				if(G.qual==LR_CTRLKEY)
+					toggle_uv_select('s');
+				else if(G.qual==LR_SHIFTKEY)
+					toggle_uv_select('l');
+				else if(G.qual==LR_ALTKEY)
+					toggle_uv_select('o');
+				else
+					toggle_uv_select('f');
+				break;
 			case GKEY:
 				if((G.qual==0))
 					transform_tface_uv('g');
@@ -3355,10 +3365,14 @@ void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case LKEY:
 				if((G.qual==0))
-				select_linked_tface_uv();
-			else if(G.qual==LR_ALTKEY)
-				unlink_selection();
-			break;
+					select_linked_tface_uv();
+				else if(G.qual==LR_ALTKEY)
+					unlink_selection();
+				break;
+			case MKEY:
+				if((G.qual==0))
+					mirrormenu_tface_uv();
+				break;
 			case NKEY:
 				if(G.qual==LR_CTRLKEY)
 					replace_names_but();
