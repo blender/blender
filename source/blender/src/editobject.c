@@ -2081,7 +2081,7 @@ void special_editmenu(void)
 
 void convertmenu(void)
 {
-	Base *base, *basen, *basact;
+	Base *base, *basen, *basact, *basedel=NULL;
 	Object *ob, *ob1;
 	Curve *cu;
 	MetaBall *mb;
@@ -2102,7 +2102,7 @@ void convertmenu(void)
 		if(nr>0) ok= 1;
 	}
 	else if(ob->type==OB_MBALL) {
-		nr= pupmenu("Convert Metaball to%t|Mesh (keep original)");
+		nr= pupmenu("Convert Metaball to%t|Mesh (keep original)%x1|Mesh (Delete Original)%x2");
 		if(nr>0) ok= 1;
 	}
 	else if(ob->type==OB_CURVE) {
@@ -2114,7 +2114,7 @@ void convertmenu(void)
 		if(nr>0) ok= 1;
 	}
 	else if(ob->type==OB_MESH && mesh_uses_displist((Mesh*) ob->data)) {
-		nr= pupmenu("Convert SubSurf to%t|Mesh (Keep Original)");
+		nr= pupmenu("Convert SubSurf to%t|Mesh (Keep Original)%x1|Mesh (Delete Original)%x2");
 		if(nr>0) ok= 1;
 	}
 	if(ok==0) return;
@@ -2142,6 +2142,8 @@ void convertmenu(void)
 				
 				if (mesh_uses_displist(oldme)) {
 					DispListMesh *dlm;
+
+					basedel = base;
 
 					ob->flag |= OB_DONE;
 
@@ -2176,6 +2178,7 @@ void convertmenu(void)
 					enter_editmode();
 					exit_editmode(1); // freedata, but no undo
 					BASACT= basact;
+					
 				}
 			}
 			else if(ob->type==OB_FONT) {
@@ -2220,10 +2223,11 @@ void convertmenu(void)
 			}
 			else if(ob->type==OB_MBALL) {
 			
-				if(nr==1) {
+				if(nr==1 || nr == 2) {
 					ob= find_basis_mball(ob);
 					
 					if(ob->disp.first && !(ob->flag&OB_DONE)) {
+						basedel = base;
 					
 						ob->flag |= OB_DONE;
 
@@ -2256,8 +2260,11 @@ void convertmenu(void)
 			}
 		}
 		base= base->next;
+		if(basedel != NULL && nr == 2)
+			free_and_unlink_base(basedel);	
+		basedel = NULL;				
 	}
-	
+	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
