@@ -2008,7 +2008,6 @@ void seq_snap(short event)
 {
 	Editing *ed;
 	Sequence *seq;
-	short event;
 	
 	ed= G.scene->ed;
 	if(ed==0) return;
