@@ -58,7 +58,7 @@ typedef struct ShadeInput
 	struct VlakRen *vlr;
 	float co[3];
 	float lo[3], gl[3], uv[3], ref[3], orn[3], winco[3], sticky[3], vcol[3], rad[3];
-	float vn[3], view[3], refcol[4];
+	float vn[3], view[3], refcol[4], displace[3];
 	short osatex;
 } ShadeInput;
 

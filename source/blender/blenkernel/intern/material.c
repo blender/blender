@@ -548,16 +548,6 @@ void init_render_material(Material *ma)
 	for(a=0; a<8; a++) {
 		mtex= ma->mtex[a];
 		if(mtex && mtex->tex) {
-		
-			/* force std. ref mapping for envmap */
-			if(mtex->tex->type==TEX_ENVMAP) {
-/* 				mtex->texco= TEXCO_REFL; */
-/* 				mtex->projx= PROJ_X; */
-/* 				mtex->projy= PROJ_Y; */
-/* 				mtex->projz= PROJ_Z; */
-/* 				mtex->mapping= MTEX_FLAT; */
-			}
-			/* do not test for mtex->object and set mtex->texco at TEXCO_ORCO: mtex is linked! */
 			
 			ma->texco |= mtex->texco;
 			ma->mapto |= mtex->mapto;

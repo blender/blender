@@ -918,7 +918,7 @@ void do_material_tex(ShadeInput *shi)
 			}
 			
 			/* de pointer defines if bumping happens */
-			if(mtex->mapto & MAP_NORM) {
+			if(mtex->mapto & (MAP_NORM|MAP_DISPLACE)) {
 				tex->nor= norvec;
 				norvec[0]= norvec[1]= norvec[2]= 0.0;
 			}
@@ -1157,6 +1157,53 @@ void do_material_tex(ShadeInput *shi)
 					
 					/* reflection vector */
 					calc_R_ref(shi);
+				}
+			}
+			
+			if( mtex->mapto & MAP_DISPLACE ) {
+				/* we check for == here, not '&', to limit it to stucci for now */
+				/* otherwise image texture bump is used, which is plain ugly */
+				if(rgbnor == TEX_NOR) {
+					if(tex->nor) {
+						if(mtex->maptoneg & MAP_DISPLACE) tex->norfac= -mtex->norfac;
+						else tex->norfac= mtex->norfac;
+	
+						shi->displace[0]+= Tnor*tex->norfac*tex->nor[0];
+						shi->displace[1]+= Tnor*tex->norfac*tex->nor[1];
+						shi->displace[2]+= Tnor*tex->norfac*tex->nor[2];
+					}
+				}
+				else {
+					if(rgbnor & TEX_RGB) {
+						if(Talpha) Tin= Ta;
+						else Tin= (0.35*Tr+0.45*Tg+0.2*Tb);
+					}
+					
+					if(mtex->maptoneg & MAP_DISPLACE) {
+						factt= 1.0-mtex->varfac; facmm= mtex->varfac;
+					}
+					else {
+						factt= mtex->varfac; facmm= 1.0-mtex->varfac;
+					}
+					factt*= (Tin-0.5);
+					
+					if(mtex->blendtype==MTEX_BLEND) {
+						shi->displace[0]= factt*shi->vn[0] + facmm*shi->displace[0];
+						shi->displace[1]= factt*shi->vn[1] + facmm*shi->displace[1];
+						shi->displace[2]= factt*shi->vn[2] + facmm*shi->displace[2];
+					}
+					else if(mtex->blendtype==MTEX_MUL) {
+						shi->displace[0]*= factt*shi->vn[0];
+						shi->displace[1]*= factt*shi->vn[1];
+						shi->displace[2]*= factt*shi->vn[2];
+					}
+					else { /* add or sub */
+						if(mtex->blendtype==MTEX_SUB) factt= -factt;
+						else factt= factt;
+						shi->displace[0]+= factt*shi->vn[0];
+						shi->displace[1]+= factt*shi->vn[1];
+						shi->displace[2]+= factt*shi->vn[2];
+					}
 				}
 			}
 
