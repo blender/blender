@@ -1836,6 +1836,7 @@ static void draw_mesh_object(Object *ob, int dt)
 	}
 
 	baseDM->release(baseDM);
+	
 }
 
 /* ************** DRAW DISPLIST ****************** */
@@ -3733,7 +3734,7 @@ static int bbs_mesh_verts(DerivedMesh *dm, int offset)
 	glPointSize(1.0);
 
 	for (preveve=NULL, eve=G.editMesh->verts.first; eve; preveve=eve, eve= eve->next)
-		eve->prev = eve;
+		eve->prev = preveve;
 
 	return offset;
 }		
