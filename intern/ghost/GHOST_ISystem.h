@@ -74,7 +74,7 @@ class GHOST_IEventConsumer;
  * </ul>
  * Font management has been moved to a separate library.
  *
- * \section Platforms
+ * \section platforms Platforms
  *
  * \section Building GHOST
  *
