@@ -1973,31 +1973,31 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiBlockBeginAlign(block);
 	
-	uiDefButI(block, ROW,B_USERPREF,"View & Controls",
+	uiDefButS(block, ROW,B_USERPREF,"View & Controls",
 		xpos,ypostab,(short)dx,buth,
 		&U.userpref,1.0,0.0, 0, 0,"");
 		
-	uiDefButI(block, ROW,B_USERPREF,"Edit Methods",
+	uiDefButS(block, ROW,B_USERPREF,"Edit Methods",
 		(short)(xpos+dx),ypostab,(short)dx,buth,
 		&U.userpref,1.0,1.0, 0, 0,"");
 
-	uiDefButI(block, ROW,B_USERPREF,"Language & Font",
+	uiDefButS(block, ROW,B_USERPREF,"Language & Font",
 		(short)(xpos+2*dx),ypostab,(short)dx,buth,
 		&U.userpref,1.0,2.0, 0, 0,"");
 
-	uiDefButI(block, ROW,B_USERPREF,"Themes",
+	uiDefButS(block, ROW,B_USERPREF,"Themes",
 		(short)(xpos+3*dx),ypostab,(short)dx,buth,
 		&U.userpref,1.0,6.0, 0, 0,"");
 
-	uiDefButI(block, ROW,B_USERPREF,"Auto Save",
+	uiDefButS(block, ROW,B_USERPREF,"Auto Save",
 		(short)(xpos+4*dx),ypostab,(short)dx,buth,
 		&U.userpref,1.0,3.0, 0, 0,"");
 
-	uiDefButI(block, ROW,B_USERPREF,"System & OpenGL",
+	uiDefButS(block, ROW,B_USERPREF,"System & OpenGL",
 		(short)(xpos+5*dx),ypostab,(short)dx,buth,
 		&U.userpref,1.0,4.0, 0, 0,"");
 		
-	uiDefButI(block, ROW,B_USERPREF,"File Paths",
+	uiDefButS(block, ROW,B_USERPREF,"File Paths",
 		(short)(xpos+6*dx),ypostab,(short)dx,buth,
 		&U.userpref,1.0,5.0, 0, 0,"");
 
@@ -2054,38 +2054,60 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 
 		uiDefBut(block, LABEL,0,"Menu Buttons:",
-			(xpos+edgespace+medprefbut+(3*midspace)+(2*smallprefbut)),y3label,medprefbut,buth,
+			(xpos+edgespace+medprefbut+(3*midspace)+(2*smallprefbut)),y4label,medprefbut,buth,
 			0, 0, 0, 0, 0, "");
 
 		uiDefButBitS(block, TOG, USER_MENUOPENAUTO, 0, "Auto Open",
-			(xpos+edgespace+medprefbut+(3*midspace)+(2*smallprefbut)),y2,smallprefbut,buth,
+			(xpos+edgespace+medprefbut+(3*midspace)+(2*smallprefbut)),y3,smallprefbut,buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Automatic opening of menu buttons");
 
 		uiDefButS(block, NUM, 0, "ThresA:",
-			(xpos+edgespace+medprefbut+(3*midspace)+(2*smallprefbut)),y1,smallprefbut,buth,
+			(xpos+edgespace+medprefbut+(3*midspace)+(2*smallprefbut)),y2,smallprefbut,buth,
 			&(U.menuthreshold1), 1, 40, 0, 0,
 			"Time in 1/10 seconds for auto open");
 
 		uiDefButS(block, NUM, 0, "ThresB:",
-			(xpos+edgespace+medprefbut+(4*midspace)+(3*smallprefbut)),y1,smallprefbut,buth,
+			(xpos+edgespace+medprefbut+(3*midspace)+(2*smallprefbut)),y1,smallprefbut,buth,
 			&(U.menuthreshold2), 1, 40, 0, 0,
 			"Time in 1/10 seconds for auto open sublevels");
 
 
-		uiDefBut(block, LABEL,0,"Toolbox Thresh.:",
-			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y3label,medprefbut,buth,
+
+		uiDefBut(block, LABEL,0,"Toolb. Thresh.:",
+			(xpos+edgespace+medprefbut+(3*midspace)+(3*smallprefbut)),y4label,medprefbut,buth,
 			0, 0, 0, 0, 0, "");
 
 		uiDefButS(block, NUM, 0, "LMB:",
-			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y2,smallprefbut,buth,
+			(xpos+edgespace+medprefbut+(3*midspace)+(3*smallprefbut)),y2,smallprefbut,buth,
 			&(U.tb_leftmouse), 2, 40, 0, 0,
 			"Time in 1/10 seconds leftmouse hold to open toolbox");
 
 		uiDefButS(block, NUM, 0, "RMB:",
-			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y1,smallprefbut,buth,
+			(xpos+edgespace+medprefbut+(3*midspace)+(3*smallprefbut)),y1,smallprefbut,buth,
 			&(U.tb_rightmouse), 2, 40, 0, 0,
 			"Time in 1/10 seconds for rightmouse to open toolbox");
+
+
+		uiDefBut(block, LABEL,0,"View zoom:",
+			(xpos+edgespace+medprefbut+(3*midspace)+(4*smallprefbut)),y4label,medprefbut,buth,
+			0, 0, 0, 0, 0, "");
+
+		uiDefButS(block, ROW, 0, "Continue",
+			(xpos+edgespace+medprefbut+(3*midspace)+(4*smallprefbut)),y3,smallprefbut,buth,
+			&(U.viewzoom), 40, USER_ZOOM_CONT, 0, 0,
+			"Old style zoom, continues while moving mouse up or down");
+
+		uiDefButS(block, ROW, 0, "Dolly",
+			(xpos+edgespace+medprefbut+(3*midspace)+(4*smallprefbut)),y2,smallprefbut,buth,
+			&(U.viewzoom), 40, USER_ZOOM_DOLLY, 0, 0,
+			"Zooms in and out based on vertical mouse movement.");
+
+		uiDefButS(block, ROW, 0, "Scale",
+			(xpos+edgespace+medprefbut+(3*midspace)+(4*smallprefbut)),y1,smallprefbut,buth,
+			&(U.viewzoom), 40, USER_ZOOM_SCALE, 0, 0,
+			"Zooms in and out like scaling the view, mouse movements relative to center.");
+
 
 			
 		uiDefBut(block, LABEL,0,"View rotation:",
@@ -2104,6 +2126,9 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 
 
+		uiDefBut(block, LABEL,0,"Middle mouse button:",
+			(xpos+edgespace+(3*midspace)+(4*medprefbut)),y3label,medprefbut,buth,
+			0, 0, 0, 0, 0, "");
 		uiDefButBitS(block, TOGN, USER_VIEWMOVE, B_DRAWINFO, "Rotate View",
 			(xpos+edgespace+(4*midspace)+(4*medprefbut)),y2,(smallprefbut+2),buth,
 			&(U.flag), 0, 0, 0, 0, "Default action for the middle mouse button");
@@ -2112,14 +2137,10 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgespace+(4*midspace)+(4*medprefbut)+smallprefbut+2),y2,(smallprefbut+2),buth,
 			&(U.flag), 0, 0, 0, 0, "Default action for the middle mouse button");
 
-		uiDefBut(block, LABEL,0,"Middle mouse button:",
-			(xpos+edgespace+(3*midspace)+(4*medprefbut)),y3label,medprefbut,buth,
-			0, 0, 0, 0, 0, "");
 		uiDefButBitS(block, TOG, USER_TWOBUTTONMOUSE, 0, "Emulate 3 Buttons",
 			(xpos+edgespace+(4*midspace)+(4*medprefbut)),y1,medprefbut,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Emulates a middle mouse button with ALT+LeftMouse");
-
 
 
 

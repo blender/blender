@@ -134,7 +134,7 @@ typedef struct UserDef {
 	int gameflags;
 	int wheellinescroll;
 	short uiflag, language;
-	int userpref;
+	short userpref, viewzoom;
 	short console_buffer;	//console vars here for tuhopuu compat, --phase
 	short console_out;
 	int mixbufsize;
@@ -169,6 +169,11 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_TOOLTIPS			2048
 #define USER_TWOBUTTONMOUSE		4096
 #define USER_NONUMPAD			8192
+
+/* viewzom */
+#define USER_ZOOM_CONT			0
+#define USER_ZOOM_SCALE			1
+#define USER_ZOOM_DOLLY			2
 
 /* uiflag */
 

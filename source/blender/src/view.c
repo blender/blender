@@ -511,17 +511,28 @@ void viewmove(int mode)
 				}
 			}
 			else if(mode==2) {
-				//the old method
-				//G.vd->dist*= 1.0+(float)(mvalo[0]-mval[0]+mvalo[1]-mval[1])/1000.0;
-				//my method which zooms based on how far you move the mouse
-				int ctr[2], len1, len2;
-				ctr[0] = (curarea->winrct.xmax + curarea->winrct.xmin)/2;
-				ctr[1] = (curarea->winrct.ymax + curarea->winrct.ymin)/2;
-				
-				len1 = (int)sqrt((ctr[0] - mval[0])*(ctr[0] - mval[0]) + (ctr[1] - mval[1])*(ctr[1] - mval[1])) + 5;
-				len2 = (int)sqrt((ctr[0] - mvalo[0])*(ctr[0] - mvalo[0]) + (ctr[1] - mvalo[1])*(ctr[1] - mvalo[1])) + 5;
-				
-				G.vd->dist= dist0 * ((float)len2/len1);
+				if(U.viewzoom==USER_ZOOM_CONT) {
+					// oldstyle zoom
+					G.vd->dist*= 1.0+(float)(mvalo[0]-mval[0]+mvalo[1]-mval[1])/1000.0;
+				}
+				else if(U.viewzoom==USER_ZOOM_SCALE) {
+					int ctr[2], len1, len2;
+					// method which zooms based on how far you move the mouse
+					
+					ctr[0] = (curarea->winrct.xmax + curarea->winrct.xmin)/2;
+					ctr[1] = (curarea->winrct.ymax + curarea->winrct.ymin)/2;
+					
+					len1 = (int)sqrt((ctr[0] - mval[0])*(ctr[0] - mval[0]) + (ctr[1] - mval[1])*(ctr[1] - mval[1])) + 5;
+					len2 = (int)sqrt((ctr[0] - mvalo[0])*(ctr[0] - mvalo[0]) + (ctr[1] - mvalo[1])*(ctr[1] - mvalo[1])) + 5;
+					
+					G.vd->dist= dist0 * ((float)len2/len1);
+				}
+				else {	/* USER_ZOOM_DOLLY */
+					float len1 = (curarea->winrct.ymax - mval[1]) + 5;
+					float len2 = (curarea->winrct.ymax - mvalo[1]) + 5;
+					
+					G.vd->dist= dist0 * (2.0*((len2/len1)-1.0) + 1.0);
+				}
 				
 				/* these limits are in toets.c too */
 				if(G.vd->dist<0.001*G.vd->grid) G.vd->dist= 0.001*G.vd->grid;
