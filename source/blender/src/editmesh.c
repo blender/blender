@@ -2118,7 +2118,7 @@ static EditEdge *findnearestvisibleedge()
 	EditMesh *em = G.editMesh;
 	EditEdge *closest, *eed;
 	EditVert *eve;
-	short foundedge=0, found=0, mval[2];
+	short found=0, mval[2];
 	float distance[2], v1[2], v2[2], mval2[2];
 		
 	if(em->edges.first==0) return NULL;
@@ -3192,7 +3192,7 @@ void loopoperations(char mode)
 		/* Build the Header Line */ 
 
 		if(inset)
-			sprintf(mesg,"Cut: %0.2f% ",slen*percentcut);
+			sprintf(mesg,"Cut: %0.2f%% ",slen*percentcut);
 		else
 			sprintf(mesg,"Cut: %0.2f%% ",outcut);
 		
@@ -9489,12 +9489,12 @@ short sharesFace(EditEdge* e1, EditEdge* e2)
 void vertex_loop_select() 
 {
 	EditMesh *em = G.editMesh;
-	EditVert *v1=NULL,*v2=NULL,*curVert=NULL;
-	EditEdge *search=NULL,*startEdge=NULL,*valSearch = NULL,*nearest,*compEdge;
+	EditVert *v1=NULL,*v2=NULL;
+	EditEdge *search=NULL,*startEdge=NULL,*valSearch = NULL,*nearest = NULL,*compEdge;
 	EditEdge *EdgeVal[5] = {NULL,NULL,NULL,NULL,NULL};
-	short numEdges=0,curEdge = 0,looking = 1,edgeValCount = 0,i=0,looped = 0,choosing = 1,event,noloop=0,cancel=0;
+	short numEdges=0,curEdge = 0,looking = 1,edgeValCount = 0,i=0,looped = 0,choosing = 1,event,noloop=0,cancel=0, val;
 
-	short mvalo[2] = {0,0}, mval[2], val;
+	short mvalo[2] = {0,0}, mval[2];
 
 	undo_push_mesh("Vertex Loop Select");
 	SetBlenderCursor(BC_VLOOPCURSOR);
@@ -9639,7 +9639,7 @@ void vertex_loop_select()
 
 		while(qtest()) 
 		{
-			unsigned short val=0;
+			val=0;
 			event= extern_qread(&val);
 			if(val && ((event==LEFTMOUSE || event==RETKEY) || event == MIDDLEMOUSE))
 			{
