@@ -56,7 +56,6 @@ static PyObject *M_Ipo_New(PyObject *self, PyObject *args)
   if (idcode == -1)
     return (EXPP_ReturnPyObjError (PyExc_TypeError,"Bad code"));
   
-  printf("%d %d %d \n", ID_OB, ID_CA, ID_WO);
   
   blipo = add_ipo(name,idcode);
 
@@ -276,30 +275,75 @@ static PyObject *Ipo_getNcurves(BPy_Ipo *self)
 
 
 static PyObject *Ipo_addCurve(BPy_Ipo *self, PyObject *args)
-{ 
-	void *MEM_callocN(unsigned int len, char *str);
-    IpoCurve *ptr;
-	int typenumber = -1;
-	char*type = 0;
-	static char *name="mmmppp";
-	puts("kkk");
-	if (!PyArg_ParseTuple(args, "s",&type))
-		return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected string argument"));
-	typenumber = self->ipo->blocktype;
-	if (typenumber == -1)
-		return (EXPP_ReturnPyObjError (PyExc_TypeError, "unknown type"));
+{
+	IpoCurve *get_ipocurve(ID *from, short type, int adrcode, Ipo *useipo);
+	void allspace(unsigned short event, short val) ;
+	void allqueue(unsigned short event, short val);
+	int param,ok = 0;
+	char*s = 0;
+	IpoCurve*icu;
+ 	Link		* link;
 
-	ptr = (IpoCurve*)MEM_callocN(sizeof(IpoCurve),name);
-	ptr->blocktype = ID_OB;
-	ptr->totvert = 0;
-	ptr->adrcode = typenumber;
-	ptr->ipo = 2;
-	ptr->flag = 7;
-			
-	BLI_addhead(&(self->ipo->curve),ptr);
+  if (!PyArg_ParseTuple(args, "s",&s))
+    return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected string argument"));
+	
+	/* insertkey demande un pointeur sur l'objet pour lequel on veut ajouter 
+		 une courbe IPO*/
+	struct Object	* object;
+	link = G.main->object.first;
+	while (link)
+		{
+			object = (Object*)link;
+			if (object->ipo == self->ipo)break;
+			link = link->next;
+		}
+	/* todo : what kind of object....
+#define GS(a)	(*((short *)(a)))
+	printf("object %p\n",object);
+	printf("type %d\n",GS(object->id.name));
+	*/
 
-	return IpoCurve_CreatePyObject (ptr);
+	if (!strcmp(s,"LocX")){param = OB_LOC_X;ok = 1;}
+	if (!strcmp(s,"LocY")){param = OB_LOC_Y;ok = 1;}
+	if (!strcmp(s,"LocZ")){param = OB_LOC_Z;ok = 1;}
+	if (!strcmp(s,"RotX")){param = OB_ROT_X;ok = 1;}
+	if (!strcmp(s,"RotY")){param = OB_ROT_Y;ok = 1;}
+	if (!strcmp(s,"RotZ")){param = OB_ROT_Z;ok = 1;}
+	if (!strcmp(s,"SizeX")){param = OB_SIZE_X;ok = 1;}
+	if (!strcmp(s,"SizeY")){param = OB_SIZE_Y;ok = 1;}
+	if (!strcmp(s,"SizeZ")){param = OB_SIZE_Z;ok = 1;}
+
+	if (!strcmp(s,"DLocX")){param = OB_DLOC_X;ok = 1;}
+	if (!strcmp(s,"DLocY")){param = OB_DLOC_Y;ok = 1;}
+	if (!strcmp(s,"DLocZ")){param = OB_DLOC_Z;ok = 1;}
+	if (!strcmp(s,"DRotX")){param = OB_DROT_X;ok = 1;}
+	if (!strcmp(s,"DRotY")){param = OB_DROT_Y;ok = 1;}
+	if (!strcmp(s,"DRotZ")){param = OB_DROT_Z;ok = 1;}
+	if (!strcmp(s,"DSizeX")){param = OB_DSIZE_X;ok = 1;}
+	if (!strcmp(s,"DSizeY")){param = OB_DSIZE_Y;ok = 1;}
+	if (!strcmp(s,"DSizeZ")){param = OB_DSIZE_Z;ok = 1;}
+
+	if (!strcmp(s,"Layer")){param = OB_LAY;ok = 1;}
+	if (!strcmp(s,"Time")){param = OB_TIME;ok = 1;}
+
+	if (!strcmp(s,"ColR")){param = OB_COL_R;ok = 1;}
+	if (!strcmp(s,"ColG")){param = OB_COL_G;ok = 1;}
+	if (!strcmp(s,"ColB")){param = OB_COL_B;ok = 1;}
+	if (!strcmp(s,"ColA")){param = OB_COL_A;ok = 1;}
+	if(!ok) return (EXPP_ReturnPyObjError (PyExc_ValueError, "Not a valid param."));
+
+	icu = get_ipocurve(&(object->id),ID_OB, param, 0);
+
+#define REMAKEIPO		1
+#define REDRAWIPO			0x4023
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWIPO, 0);
+
+	return IpoCurve_CreatePyObject(icu);
 }
+
+
+
 
 void GetIpoCurveName(IpoCurve *icu,char*s);
 void getname_mat_ei(int nr, char *str);
@@ -473,7 +517,6 @@ return (EXPP_ReturnPyObjError (PyExc_TypeError,"3rd arg should be a tuple"));
         for(i=0;i<9;i++)
                 {
                         PyObject * xx = PyTuple_GetItem(listargs,i);
-												printf("%f\n", PyFloat_AsDouble(xx));
                         ptrbt->vec[i/3][i%3] = PyFloat_AsDouble(xx);
                 }
 
