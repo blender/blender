@@ -874,7 +874,9 @@ int make_structDNA(FILE *file)
 	// the defines above shouldn't be output in the padding file...
 	firststruct = nr_types;
 	
+#ifndef BASE_HEADER
 #define BASE_HEADER "../"
+#endif
 
 	/* add all include files defined in the global array                     */
 	/* Since the internal file+path name buffer has limited length, I do a   */
