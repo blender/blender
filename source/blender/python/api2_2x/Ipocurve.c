@@ -152,15 +152,16 @@ short MEM_freeN(void *vmemh)	;
 	PyObject*popo = 0;
   if (!PyArg_ParseTuple(args, "O", &popo))
     return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected tuple argument"));
+
 	x = PyFloat_AsDouble(PyTuple_GetItem(popo,0));
 	y = PyFloat_AsDouble(PyTuple_GetItem(popo,1));
-  icu = self->ipocurve;
+	icu = self->ipocurve;
 	npoints = icu->totvert;
 	tmp = icu->bezt;
 	icu->bezt = MEM_mallocN(sizeof(BezTriple)*(npoints+1),name);
 	if(tmp){
-	memmove(icu->bezt,tmp,sizeof(BezTriple)*npoints);
-	MEM_freeN(tmp);
+	  memmove(icu->bezt,tmp,sizeof(BezTriple)*npoints);
+	  MEM_freeN(tmp);
 	}
 	memmove(icu->bezt+npoints,icu->bezt,sizeof(BezTriple));
 	icu->totvert++;
@@ -171,6 +172,10 @@ short MEM_freeN(void *vmemh)	;
 	bzt->vec[0][1] = y-1;
 	bzt->vec[1][1] = y;
 	bzt->vec[2][1] = y+1;
+	/* set handle type to Auto */
+	bzt->h1= HD_AUTO; 
+	bzt->h2= HD_AUTO; 
+
   Py_INCREF(Py_None);
   return Py_None;
 }
