@@ -1723,7 +1723,8 @@ void drawipospace(ScrArea *sa, void *spacedata)
 
 	/* it is important to end a view in a transform compatible with buttons */
 	bwin_scalematrix(sa->win, sipo->blockscale, sipo->blockscale, sipo->blockscale);
-	ipo_blockhandlers(sa);
+	/* only draw panels when relevant */
+	if(sipo->editipo) ipo_blockhandlers(sa);
 
 	sa->win_swap= WIN_BACK_OK;
 }
