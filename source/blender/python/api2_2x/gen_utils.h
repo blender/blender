@@ -24,7 +24,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Michel Selten, Willian P. Germano
+ * Contributor(s): Michel Selten, Willian P. Germano, Alex Mole
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -44,7 +44,7 @@
 #include <DNA_scriptlink_types.h>
 #include <DNA_listBase.h>
 
-int StringEqual (char * string1, char * string2);
+int StringEqual (const char * string1, const char * string2);
 char * GetIdName (ID *id);
 ID *GetIdFromList(ListBase *list, char *name);
 
@@ -62,5 +62,20 @@ int EXPP_ReturnIntError (PyObject *type, char *error_msg);
 
 int EXPP_check_sequence_consistency (PyObject *seq, PyTypeObject *against);
 PyObject *EXPP_tuple_repr(PyObject *self, int size);
+
+
+/* mapping utilities - see Texture.c for an example of how to use these */
+typedef struct {
+    const char *sval;
+    int ival;
+} EXPP_map_pair;
+
+/* maps must end with a pair that has NULL as sval */
+int EXPP_map_getIntVal (const EXPP_map_pair *map, 
+                                        const char *sval, int *ival);
+int EXPP_map_getShortVal (const EXPP_map_pair *map, 
+                                        const char *sval, short *ival);
+int EXPP_map_getStrVal (const EXPP_map_pair *map,
+                                        int ival, const char **sval);
 
 #endif /* EXPP_gen_utils_h */

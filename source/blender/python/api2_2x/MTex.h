@@ -24,33 +24,42 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano, Alex Mole
+ * Contributor(s): Alex Mole
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#ifndef EXPP_TYPES_H
-#define EXPP_TYPES_H
+#ifndef EXPP_MTEX_H
+#define EXPP_MTEX_H
 
-#include "Python.h"
+#include <Python.h>
 
-extern PyTypeObject Button_Type, Material_Type;
+#include <DNA_texture_types.h>
 
-extern PyTypeObject Texture_Type;
 
-extern PyTypeObject Object_Type;
-extern PyTypeObject Scene_Type;
-extern PyTypeObject NMesh_Type, NMFace_Type, NMVert_Type, NMCol_Type;
-extern PyTypeObject Camera_Type, Lamp_Type, Image_Type, Text_Type;
-extern PyTypeObject Armature_Type, Bone_Type;
-extern PyTypeObject Curve_Type, Ipo_Type, Metaball_Type;
-extern PyTypeObject Lattice_Type;
+/*****************************************************************************/
+/* Python BPy_MTex structure definition                                      */
+/*****************************************************************************/
 
-extern PyTypeObject vector_Type, buffer_Type, rgbTuple_Type,
-				            constant_Type;
+typedef struct {
+  PyObject_HEAD
+  MTex *mtex;
+} BPy_MTex;
 
-static char M_Types_doc[] =
-"The Blender Types module\n\n\
-This module is a dictionary of all Blender Python types";
+extern PyTypeObject MTex_Type; 
 
-#endif /* EXPP_TYPES_H */
+#define BPy_MTex_Check(v)  ((v)->ob_type == &MTex_Type)
+
+
+/*****************************************************************************/
+/* Module Blender.Texture.MTex - public functions                            */
+/*****************************************************************************/
+
+PyObject *MTex_Init (void);
+PyObject* MTex_CreatePyObject (struct MTex *obj);
+int MTex_CheckPyObject (PyObject *py_obj);
+MTex* MTex_FromPyObject (PyObject *py_obj);
+
+
+#endif  /* EXPP_MTEX_H */
+

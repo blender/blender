@@ -24,7 +24,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano
+ * Contributor(s): Willian P. Germano, Alex Mole
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -55,5 +55,6 @@ extern PyTypeObject Image_Type; /* The Image PyType Object */
 PyObject *Image_Init (void);
 PyObject *Image_CreatePyObject (Image *image);
 int       Image_CheckPyObject (PyObject *pyobj);
+Image    *Image_FromPyObject (PyObject *pyobj);
 
 #endif /* EXPP_IMAGE_H */

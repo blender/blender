@@ -57,7 +57,7 @@ float EXPP_ClampFloat (float value, float min, float max)
 /* Description: This function returns true if both given strings are equal,  */
 /*              otherwise it returns false.                                  */
 /*****************************************************************************/
-int StringEqual (char * string1, char * string2)
+int StringEqual (const char * string1, const char * string2)
 {
 	return (strcmp(string1, string2)==0);
 }
@@ -188,3 +188,70 @@ PyObject *EXPP_tuple_repr(PyObject *self, int size)
 	return repr;
 
 }
+
+
+
+/****************************************************************************/
+/* Description: searches through a map for a pair with a given name. If the */
+/*              pair is present, its ival is stored in *ival and nonzero is */
+/*              returned. If the pair is absent, zero is returned.          */
+/****************************************************************************/
+int EXPP_map_getIntVal (const EXPP_map_pair *map, const char *sval, int *ival)
+{
+    while (map->sval)
+    {
+        if (StringEqual(sval, map->sval))
+        {
+            *ival = map->ival;
+            return 1;
+        }
+        ++map;
+    }
+    return 0;
+}
+
+/****************************************************************************/
+/* Description: searches through a map for a pair with a given name. If the */
+/*              pair is present, its ival is stored in *ival and nonzero is */
+/*              returned. If the pair is absent, zero is returned.          */
+/* note: this function is identical to EXPP_map_getIntVal except that the   */
+/*       output is stored in a short value.                                 */
+/****************************************************************************/
+int EXPP_map_getShortVal (const EXPP_map_pair *map, 
+                                        const char *sval, short *ival)
+{
+    while (map->sval)
+    {
+        if (StringEqual(sval, map->sval))
+        {
+            *ival = map->ival;
+            return 1;
+        }
+        ++map;
+    }
+    return 0;
+}
+
+/****************************************************************************/
+/* Description: searches through a map for a pair with a given ival. If the */
+/*              pair is present, a pointer to its name is stored in *sval   */
+/*              and nonzero is returned. If the pair is absent, zero is     */
+/*              returned.                                                   */
+/****************************************************************************/
+int EXPP_map_getStrVal (const EXPP_map_pair *map,
+                                        int ival, const char **sval)
+{
+    while (map->sval)
+    {
+        if (ival == map->ival)
+        {
+            *sval = map->sval;
+            return 1;
+        }
+        ++map;
+    }
+    return 0;
+}
+
+
+

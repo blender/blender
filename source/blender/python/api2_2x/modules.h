@@ -102,6 +102,9 @@ void       EXPP_incr_mats_us (Material **matlist, int len);
 PyObject * EXPP_PyList_fromMaterialList(Material **matlist, int len);
 Material * GetMaterialByName (char * name);
 
+/* Texture */
+PyObject * Texture_Init (void);
+
 /* Camera Data */
 PyObject * Camera_Init (void);
 PyObject * Camera_CreatePyObject (struct Camera *cam);

@@ -338,6 +338,15 @@ int Image_CheckPyObject (PyObject *pyobj)
 }
 
 /*****************************************************************************/
+/* Function:    Image_FromPyObject                                           */
+/* Description: Returns the Blender Image associated with this object        */
+/*****************************************************************************/
+Image *Image_FromPyObject (PyObject *pyobj)
+{
+	return ((BPy_Image *)pyobj)->image;
+}
+
+/*****************************************************************************/
 /* Python BPy_Image methods:                                                 */
 /*****************************************************************************/
 static PyObject *Image_getName(BPy_Image *self)

@@ -24,6 +24,7 @@ The Blender Python API Reference
   - L{Object}
   - L{NMesh}
   - L{Material}
+  - L{Texture}
   - L{Armature}
   - L{Camera}
   - L{Lamp}

@@ -24,33 +24,44 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano, Alex Mole
+ * Contributor(s): Alex Mole
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#ifndef EXPP_TYPES_H
-#define EXPP_TYPES_H
+/* based on Image.h */
 
-#include "Python.h"
+#ifndef EXPP_TEXTURE_H
+#define EXPP_TEXTURE_H
 
-extern PyTypeObject Button_Type, Material_Type;
+#include <Python.h>
+#include <DNA_texture_types.h>
+#include <BKE_texture.h>
 
-extern PyTypeObject Texture_Type;
 
-extern PyTypeObject Object_Type;
-extern PyTypeObject Scene_Type;
-extern PyTypeObject NMesh_Type, NMFace_Type, NMVert_Type, NMCol_Type;
-extern PyTypeObject Camera_Type, Lamp_Type, Image_Type, Text_Type;
-extern PyTypeObject Armature_Type, Bone_Type;
-extern PyTypeObject Curve_Type, Ipo_Type, Metaball_Type;
-extern PyTypeObject Lattice_Type;
+/*****************************************************************************/
+/* Python BPy_Texture structure definition                                   */
+/*****************************************************************************/
 
-extern PyTypeObject vector_Type, buffer_Type, rgbTuple_Type,
-				            constant_Type;
+typedef struct {
+  PyObject_HEAD
+  Tex *texture;
+} BPy_Texture;
 
-static char M_Types_doc[] =
-"The Blender Types module\n\n\
-This module is a dictionary of all Blender Python types";
+extern PyTypeObject Texture_Type; 
 
-#endif /* EXPP_TYPES_H */
+#define BPy_Texture_Check(v)  ((v)->ob_type == &Texture_Type)
+
+
+/*****************************************************************************/
+/* Module Blender.Texture - public functions                                 */
+/*****************************************************************************/
+
+PyObject * Texture_Init(void);
+PyObject * Texture_CreatePyObject(struct Tex *tex);
+int        Texture_CheckPyObject(PyObject *pyobj);
+Tex      * Texture_FromPyObject (PyObject *pyobj);
+
+
+#endif /* EXPP_TEXTURE_H */
+

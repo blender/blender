@@ -24,7 +24,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano
+ * Contributor(s): Willian P. Germano, Alex Mole
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -52,6 +52,8 @@ PyObject *Types_Init (void)
 
 	/* Another one that needs to be here: */
 	Text_Type.ob_type = &PyType_Type;
+
+        Texture_Type.ob_type = &PyType_Type;
 
   submodule = Py_InitModule3 ("Blender.Types", Null_methods, M_Types_doc);
 
