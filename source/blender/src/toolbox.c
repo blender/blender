@@ -1228,7 +1228,7 @@ int movetolayer_buts(unsigned int *lay)
 	y1= pivot[1]-sizey/2; 
 
 	block= uiNewBlock(&listb, "button", UI_EMBOSS, UI_HELV, G.curscreen->mainwin);
-	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT|UI_BLOCK_RET_1);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT|UI_BLOCK_ENTER_OK);
 	
 	dx= (sizex-5)/12;
 	dy= sizey/2;

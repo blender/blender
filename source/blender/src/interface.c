@@ -2609,10 +2609,14 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 				if(count==act) {
 					but->flag |= UI_ACTIVE;
 					if(uevent->val==1) ui_draw_but(but);
-					else {
+					else if(block->flag & UI_BLOCK_RET_1) { /* to make UI_BLOCK_RET_1 working */
 						uevent->event= RETKEY;
-						uevent->val= 1;			/* patch: to avoid UI_BLOCK_RET_1 type not working */
-						addqueue(block->winq, RIGHTARROWKEY, 1);
+						uevent->val= 1;			
+						//addqueue(block->winq, RIGHTARROWKEY, 1); (why! (ton))
+					}
+					else { 
+						uevent->event= LEFTMOUSE;	/* to make sure the button is handled further on */
+						uevent->val= 1;			
 					}
 				}
 				else if(but->flag & UI_ACTIVE) {
