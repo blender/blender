@@ -59,27 +59,44 @@
 #define QTIME_DEBUG 0
 
 
-void init_quicktime(void)
+void quicktime_init(void)
 {
 #ifdef _WIN32
-        if (InitializeQTML(0) != noErr)
-            G.have_quicktime = FALSE;
-        else
-            G.have_quicktime = TRUE;
+	if (InitializeQTML(0) != noErr)
+		G.have_quicktime = FALSE;
+	else
+		G.have_quicktime = TRUE;
 #endif /* _WIN32 */
 
-        /* Initialize QuickTime */
+	/* Initialize QuickTime */
 #if defined(_WIN32) || defined (__APPLE__)
-        if (EnterMovies() != noErr)
-            G.have_quicktime = FALSE;
-        else
+	if (EnterMovies() != noErr)
+		G.have_quicktime = FALSE;
+	else
 #endif /* _WIN32 || __APPLE__ */
 #ifdef __linux__
-			/* inititalize quicktime codec registry */
-			lqt_registry_init();
+	/* inititalize quicktime codec registry */
+		lqt_registry_init();
 #endif
-			G.have_quicktime = TRUE;
+	G.have_quicktime = TRUE;
 }
+
+
+void quicktime_exit(void)
+{
+#if defined(_WIN32) || defined(__APPLE__)
+#ifdef WITH_QUICKTIME
+	if(G.have_quicktime) {
+		free_qtcodecdataExt();
+		ExitMovies();
+#ifdef _WIN32
+		TerminateQTML();
+#endif /* _WIN32 */
+	}
+#endif /* WITH_QUICKTIME */
+#endif /* _WIN32 || __APPLE__ */
+}
+
 
 int anim_is_quicktime (char *name)
 {

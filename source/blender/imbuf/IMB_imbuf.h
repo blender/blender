@@ -521,7 +521,13 @@ void IMB_rectfill(unsigned int *drect, unsigned int *srect, int x, int value);
  *
  * @attention Defined in quicktime_import.c
  */
-void init_quicktime(void);
+void quicktime_init(void);
+
+/**
+ *
+ * @attention Defined in quicktime_import.c
+ */
+void quicktime_exit(void);
 
 #endif //WITH_QUICKTIME
 

@@ -75,7 +75,7 @@
 
 #include "BDR_drawmesh.h"
 
-//#include "IMB_imbuf.h"
+#include "IMB_imbuf.h"	// for quicktime_init
 
 #include "RE_renderconverter.h"
 
@@ -424,7 +424,7 @@ int main(int argc, char **argv)
 	
 #ifdef WITH_QUICKTIME
 
-	init_quicktime();
+	quicktime_init();
 
 #endif /* WITH_QUICKTIME */
 		
