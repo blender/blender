@@ -117,7 +117,7 @@ void BKE_font_register_builtin(void *mem, int size)
 static PackedFile *get_builtin_packedfile(void)
 {
 	if (!builtin_font_data) {
-		printf("Internal error, builtin font not loaded");
+		printf("Internal error, builtin font not loaded\n");
 
 		return NULL;
 	} else {

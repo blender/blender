@@ -484,7 +484,6 @@ static void initbuttons(void)
 
 void BIF_init(void)
 {
-	BKE_font_register_builtin(datatoc_Bfont, datatoc_Bfont_size);
 
 	initscreen();	/* for (visuele) speed, this first, then setscreen */
 	initbuttons();
