@@ -3805,18 +3805,19 @@ void common_insertkey()
 	else if(curarea->spacetype==SPACE_VIEW3D) {
 		
 
-		base= FIRSTBASE;
-		while(base) {
-			if TESTBASELIB(base) break;
-			base= base->next;
-		}
-		if(base==0) return;
-		
-		if (G.obpose)
+		if (G.obpose) {
 			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Size%x2|LocRot%x3|LocRotSize%x4|Avail%x9");
-		else
+		}
+		else {
+			base= FIRSTBASE;
+			while(base) {
+				if TESTBASELIB(base) break;
+				base= base->next;
+			}
+			if(base==0) return;
+		
 			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Size%x2|LocRot%x3|LocRotSize%x4|Layer%x5|Avail%x9");
-
+		}
 		
 		if( (ob = OBACT)) {
 			if(ob->type==OB_MESH) strcat(menustr, "| %x6|Mesh%x7");

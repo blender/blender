@@ -149,7 +149,7 @@ void swap_select_all_oops(void)
 	
 	oops_to_select_objects();	/* also redraw */
 	
-	G.soops->lockpoin= 0;
+	G.soops->lockpoin= NULL;
 }
 
 /* never used... check CVS 1.12 for the code */
@@ -168,7 +168,7 @@ static void deselect_all_oops(void)
 		}
 		oops= oops->next;
 	}
-	G.soops->lockpoin= 0;
+	G.soops->lockpoin= NULL;
 }
 
 void set_select_flag_oops(void)	/* all areas */
@@ -184,7 +184,7 @@ void set_select_flag_oops(void)	/* all areas */
 		}
 		sa= sa->next;
 	}
-	if(G.soops) G.soops->lockpoin= 0;
+	if(G.soops) G.soops->lockpoin= NULL;
 }
 
 void deselect_all_area_oops(void)	/* all areas */
@@ -207,7 +207,7 @@ void deselect_all_area_oops(void)	/* all areas */
 		sa= sa->next;
 	}
 	
-	if(G.soops) G.soops->lockpoin= 0;
+	if(G.soops) G.soops->lockpoin= NULL;
 }
 
 void transform_oops(int mode)
@@ -412,6 +412,7 @@ static void do_activate_oops(Oops *oops)
 		if(base) {
 			set_active_base(base);	/* editview.c */
 			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWOOPS, 0);
 			allqueue(REDRAWINFO, 1);
 		}
 		break;
