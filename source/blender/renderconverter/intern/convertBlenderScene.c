@@ -3097,37 +3097,37 @@ void do_displacement(Object *ob, int startface, int numface, int startvert, int 
 	float min[3]={1e30, 1e30, 1e30}, max[3]={-1e30, -1e30, -1e30};
 	float scale[3]={1.0f, 1.0f, 1.0f}, temp[3];
 	int i, texflag=0;
-	BoundBox bb; 
+	BoundBox *bb; 
 	Mesh *me;
 	Curve *cu;
 	MetaBall *mb; 
 	Object *obt;
 
-	/* Calculate Texture space scale factor  - Still needs work.  */
-	if (ob->type & OB_MESH) {
+	/* Calculate Texture space scale factor */
+	if (ob->type == OB_MESH) {
 		me=(Mesh *)(ob->data);
 		if (me->bb == NULL) tex_space_mesh(me);
-		memcpy(&bb, me->bb, sizeof(BoundBox) );
+		bb=me->bb;
 		texflag=me->texflag;
 	}
-	else if (ob->type & OB_CURVE | OB_SURF | OB_FONT) {
+	else if ((ob->type == OB_CURVE)||(ob->type == OB_SURF)||(ob->type == OB_FONT)) {
 		cu=(Curve *)(ob->data);
 		if (cu->bb == NULL) tex_space_curve(cu);
-		memcpy(&bb, cu->bb, sizeof(BoundBox) );
+		bb=cu->bb;
 		texflag=cu->texflag;
 	}
-	else if (ob->type & OB_MBALL) {
+	else if (ob->type == OB_MBALL) {
 		mb=(MetaBall *)(ob->data);
 		if ( mb->bb == NULL) tex_space_mball(ob);
-		memcpy(&bb, mb->bb, sizeof(BoundBox) );
+		bb=mb->bb;
 		texflag=mb->texflag;
 	}
-	else memcpy(&bb, ob->bb, sizeof(BoundBox) ); /* Need to test? */	
+	else bb=ob->bb; /* Need to test? */	
 	
-	/* Relative scale of Data  Treat amount of displ. */
-	/* We treat the amout of displacement the same as other texture coords */
+	/* Relative scale of Data  We reat amount of displacement */
+	/* the same as other texture coords.  Scale with data id AutoTexSpace is on. */
 	if ( texflag & 1) { /* Bit 0 = Autotex */
-		for(i=0; i<8; i++){ DO_MINMAX(bb.vec[i], min, max); }
+		for(i=0; i<8; i++){ DO_MINMAX(bb->vec[i], min, max); }
 		VecSubf(scale, max, min);
 		printf("data scale=%f, %f, %f\n", scale[0], scale[1], scale[2]);
 	}
@@ -3143,7 +3143,7 @@ void do_displacement(Object *ob, int startface, int numface, int startvert, int 
 	printf("ob scale=%f, %f, %f\n", scale[0], scale[1], scale[2]);
 	
 	/* Clear all flags */
-	for(i=startvert; i<startvert+numvert; i++){ /* Clear vert flags */
+	for(i=startvert; i<startvert+numvert; i++){ 
 		vr= RE_findOrAddVert(i);
 		vr->flag= 0;
 	}
@@ -3153,14 +3153,14 @@ void do_displacement(Object *ob, int startface, int numface, int startvert, int 
 
 		displace_render_face(vlr, scale);
 		
-		/* Recaluclate the face normal */
+		/* Recalculate the face normal */
 		if(vlr->v4) vlr->len= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co,
 							    vlr->v1->co, vlr->n);
 		else vlr->len= CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co,
 							    vlr->n);
 		
 	}
-	
+	/* Recalc vertex normals */
 	normalenrender(startvert, startface);
 }
 
