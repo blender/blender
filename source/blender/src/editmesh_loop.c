@@ -746,7 +746,7 @@ void loopoperations(char mode)
 	if ((G.obedit==0) || (em->faces.first==0)) return;
 	
 	SetBlenderCursor(BC_VLOOPCURSOR);
-
+	
 	/* Clear flags */
 	for(eed=em->edges.first; eed; eed=eed->next) eed->f2= 0;
 	for(efa= em->faces.first; efa; efa=efa->next) efa->f1= 0;
@@ -1646,6 +1646,9 @@ void loopoperations(char mode)
 				
 			}			
 			
+			/* window coords, no clip with vertices f2 flags set (not used) */
+			calc_meshverts_ext_f2();
+
 
 			/* Determine the % on wich the loop should be cut */
 			getmouseco_areawin(mval);			

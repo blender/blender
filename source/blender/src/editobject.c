@@ -1130,7 +1130,7 @@ void make_parent(void)
 		bFollowPathConstraint *data;
 
 		mode= pupmenu("Make Parent %t|Normal Parent %x1|Follow Path %x2|Curve Deform %x3");
-		if(mode==0){
+		if(mode<=0){
 			return;
 		}
 		else if(mode==1) {
@@ -1228,7 +1228,7 @@ void make_parent(void)
 				return;
 			}
 	}
-		else {
+	else {
 		if(qual & LR_SHIFTKEY) {
 			if(okee("Make parent without inverse")==0) return;
 		}

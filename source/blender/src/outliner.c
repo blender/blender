@@ -1225,7 +1225,7 @@ static int tree_element_active_text(SpaceOops *soops, TreeElement *te, int set)
 		
 		if(set) {
 			st->text= (Text *)tselem->id;
-			pop_space_text(st);
+			st->top= 0;
 			scrarea_queue_redraw(sa);
 		}
 		else if(st->text==(Text *)tselem->id) return 1;
