@@ -11,13 +11,17 @@ This module provides access to B{Mesh Data} objects in Blender.
 Example::
 
   import Blender
-  from Blender import NMesh, Object, Scene
+  from Blender import NMesh, Material
   #
   me = NMesh.GetRaw("Plane")       # get the mesh data called "Plane"
-  if me.materials:
-    print me.materials             # print the list of materials
-    mat = me.materials[0]          # grab the first material in the list
-    mat.R = 1.0                    # redefine its red component
+
+  if not me.materials:             # if there are no materials ...
+    newmat = Material.New()        # create one ...
+    me.materials.append(newmat)    # and append it to the mesh's list of mats
+
+  print me.materials               # print the list of materials
+  mat = me.materials[0]            # grab the first material in the list
+  mat.R = 1.0                      # redefine its red component
   for v in me.verts:               # loop the list of vertices
     v.co[0] *= 2.5                 # multiply the coordinates
     v.co[1] *= 5.0

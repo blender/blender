@@ -4,18 +4,17 @@
 # Doc system used: epydoc - http://epydoc.sf.net
 # command line:
 
-# epydoc -t Blender.py -n "Blender" --no-private --no-frames Blender.py \
-# Camera.py Lamp.py Material.py BGL.py Window.py Text.py Image.py NMesh.py \
-# Scene.py Draw.py Armature.py Types.py Curve.py Effect.py Ipo.py Metaball.py \
-# World.py
+# epydoc -o BPY_API_228 --url "http://www.blender.org" -t Blender.py \
+# -n "Blender" --no-private --no-frames Blender.py \
+# Types.py Scene.py Object.py NMesh.py Material.py Camera.py Lamp.py \
+# Armature.py Metaball.py Effect.py Curve.py Ipo.py World.py BGL.py Window.py \
+# Draw.py Image.py Text.py
 
 """
-This is the main Blender module.
+The main Blender module.
 
-Blender Python
-==============
-
-  - The L{Blender} module
+The Blender Python API Reference
+================================
 
  Submodules:
  -----------
@@ -25,33 +24,40 @@ Blender Python
   - L{Object}
   - L{NMesh}
   - L{Material}
+  - L{Armature}
   - L{Camera}
   - L{Lamp}
-  - L{Armature}
+  - L{World}
   - L{Metaball}
   - L{Effect}
   - L{Curve}
   - L{Ipo}
-  - L{World}
   - L{BGL}
-  - L{Window}
   - L{Draw}
+  - L{Window}
   - L{Image}
   - L{Text}
 
  Introduction:
  -------------
-  - What scripting is, why have it
-  - What Python is, links
-  - More about what scripting can give us
-  - Overview of the Blender Python modules
-  - Links to Blender, Blender Python, later: script lists
+
+ This Reference documents the Blender Python API, a growing collection of
+ Python modules (libs) that give access to part of the program's internal data
+ and functions.
+ 
+ Through scripting, Blender can be extended in realtime.  Possibilities range
+ from simple functionality to importers / exporters and even more complex
+ "applications".  Blender scripts are written in
+ U{Python <www.python.org>}, an impressive high level, multi-paradigm,
+ open-source language.
 
 @author: The Blender Python Team
-@requires: Blender 2.27-NewPy (2.28 pre-release) or newer.
+@requires: Blender 2.28 pre-release or newer.
 @version: 0.1
 @see: U{www.blender.org<http://www.blender.org>}
 @see: U{projects.blender.org<http://projects.blender.org>}
+@see: U{www.python.org<http://www.python.org>}
+@see: U{www.python.org/docs<http://www.python.org/docs>}
 """
 
 def Set (request, data):
