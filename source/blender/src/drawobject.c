@@ -3366,6 +3366,8 @@ static void draw_solid_select(Object *ob)
 {
 	Curve *cu;
 
+	if(ob->dtx & OB_DRAWWIRE) return;
+
 	switch(ob->type) {
 	case OB_MESH:
 		drawSolidSelect(ob, NULL);
