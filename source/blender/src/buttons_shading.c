@@ -729,8 +729,8 @@ static void texture_panel_stucci(Tex *tex)
 
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_TEXPRV, "Plastic",		10, 180, 75, 19, &tex->stype, 2.0, 0.0, 0, 0, "Use standard stucci");
-	uiDefButS(block, ROW, B_TEXPRV, "Wall In",		85, 180, 75, 19, &tex->stype, 2.0, 1.0, 0, 0, "Set start value"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Wall Out",		160, 180, 75, 19, &tex->stype, 2.0, 2.0, 0, 0, "Set end value"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Wall In",		85, 180, 75, 19, &tex->stype, 2.0, 1.0, 0, 0, "Creates Dimples"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Wall Out",		160, 180, 75, 19, &tex->stype, 2.0, 2.0, 0, 0, "Creates Ridges"); 
 	
 	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	10, 160, 112, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Use soft noise");
 	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	122, 160, 113, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Use hard noise");
@@ -937,7 +937,7 @@ static void texture_panel_image(Tex *tex)
 	uiDefButS(block, TOG|BIT|4, B_TEXPRV, "Rot90",		120, 160, 50, 18, &tex->imaflag, 0, 0, 0, 0, "Rotate image 90 degrees when rendered");
 	uiDefButS(block, TOG|BIT|7, B_RELOADIMA, "Movie",	170, 160, 50, 18, &tex->imaflag, 0, 0, 0, 0, "Use a movie for an image");
 	uiDefButS(block, TOG|BIT|8, 0, "Anti",				220, 160, 40, 18, &tex->imaflag, 0, 0, 0, 0, "Use anti-aliasing");
-	uiDefButS(block, TOG|BIT|10, 0, "StField",			260, 160, 50, 18, &tex->imaflag, 0, 0, 0, 0, "");
+	uiDefButS(block, TOG|BIT|10, 0, "StField",			260, 160, 50, 18, &tex->imaflag, 0, 0, 0, 0, "Standard Field Toggle");
 	uiBlockEndAlign(block);
 	
 	/* file input */
@@ -1023,7 +1023,7 @@ static void texture_panel_colors(Tex *tex)
 		
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUM, B_CALCCBAND, "Pos",	10,120,80,20, &cbd->pos, 0.0, 1.0, 10, 0, "Set the position of the active colour");
-		uiDefButS(block, ROW, B_TEXREDR_PRV, "E",		90,120,20,20, &tex->coba->ipotype, 5.0, 1.0, 0, 0, "Interpolation type Ease");
+		uiDefButS(block, ROW, B_TEXREDR_PRV, "E",		90,120,20,20, &tex->coba->ipotype, 5.0, 1.0, 0, 0, "More complicated Interpolation");
 		uiDefButS(block, ROW, B_TEXREDR_PRV, "L",		110,120,20,20, &tex->coba->ipotype, 5.0, 0.0, 0, 0, "Interpolation type Linear");
 		uiDefButS(block, ROW, B_TEXREDR_PRV, "S",		130,120,20,20, &tex->coba->ipotype, 5.0, 2.0, 0, 0, "Interpolation type Spline");
 		uiDefButF(block, COL, B_BANDCOL, "",		150,120,30,20, &(cbd->r), 0, 0, 0, 0, "");
