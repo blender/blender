@@ -90,6 +90,7 @@
 
 #include "BIF_editlattice.h"
 #include "BIF_editarmature.h"
+#include "BIF_editdeform.h"
 #include "BIF_editfont.h"
 #include "BIF_editmesh.h"
 #include "BIF_editmode_undo.h"
@@ -1349,10 +1350,13 @@ static void do_view3d_edit_object_transformmenu(void *arg, int event)
 	case 3: /* clear location */
 		clear_object('g');
 		break;
-	case 4: /* apply deformation */
+	case 4:
+		object_apply_deform(OBACT);
+		break;
+	case 5: /* make duplis real */
 		make_duplilist_real();
 		break;
-	case 5: /* apply size/rotation */
+	case 6: /* apply size/rotation or deformation */
 		apply_object();
 		break;	
 	}
@@ -1367,9 +1371,9 @@ static uiBlock *view3d_edit_object_transformmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_object_transformmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_edit_object_transformmenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Size/Rotation|Ctrl A",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Size/Rotation|Ctrl A",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Deformation|Ctrl Shift A",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Duplicates Real|Ctrl Shift A",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Duplicates Real|Ctrl Shift A",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	
 	uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
