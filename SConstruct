@@ -915,24 +915,24 @@ def common_libs(env):
 	Append to env all libraries that are common to Blender and Blenderplayer
 	"""
 	env.Append (LIBS=[
-              'blender_blenloader',
-              'blender_readblenfile',
-              'blender_img',
-              'blender_blenkernel',
-              'blender_blenpluginapi',
-              'blender_imbuf',
-              'blender_avi',
-              'blender_blenlib',
-              'blender_makesdna',
-              'blender_kernel',
-              'blender_GHOST',
-              'blender_STR',
-              'blender_guardedalloc',
-              'blender_CTR',
-              'blender_MEM',
-              'blender_MT',
-              'blender_BMF',
-              'soundsystem'])
+		'blender_blenloader',
+		'blender_readblenfile',
+		'blender_img',
+		'blender_blenkernel',
+		'blender_blenpluginapi',
+		'blender_imbuf',
+		'blender_avi',
+		'blender_blenlib',
+		'blender_makesdna',
+		'blender_kernel',
+		'blender_GHOST',
+		'blender_STR',
+		'blender_guardedalloc',
+		'blender_CTR',
+		'blender_MEM',
+		'blender_MT',
+		'blender_BMF',
+		'soundsystem'])
 	if user_options_dict['USE_QUICKTIME'] == 1:
 		env.Append (LIBS=['blender_quicktime'])
 
@@ -953,7 +953,7 @@ def blender_libs(env):
 	"""
 	Blender only libs (not in player)
 	"""
-        env.Append(LIBS=['blender_creator',
+	env.Append( LIBS=['blender_creator',
 		'blender_blendersrc',
 		'blender_render',
 		'blender_yafray',
@@ -1047,7 +1047,7 @@ def system_libs(env):
 	else:
 		env.Append (LINKFLAGS=user_options_dict['PLATFORM_LINKFLAGS'])
 	if sys.platform == 'win32':
-		env.RES(['source/icons/winblender.rc'])
+		env.Append (RES = ['source/icons/winblender.rc'])
 	env.BuildDir (root_build_dir, '.', duplicate=0)
 
 def buildinfo(env, build_type):
@@ -1108,40 +1108,40 @@ def BlenderBundle(target):
 
 
 if user_options_dict['BUILD_BLENDER_DYNAMIC'] == 1:
-    dy_blender = link_env.Copy ()
-    blender_libs(dy_blender)
-    common_libs(dy_blender)
-    international_libs(dy_blender)
-    ketsji_libs(dy_blender)
-    system_libs(dy_blender)
-    dy_blender.Append (LIBS=user_options_dict['OPENGL_LIBRARY'])
-    dy_blender.Append (LIBPATH=user_options_dict['OPENGL_LIBPATH'])
-    dy_blender.Append (CPPPATH=user_options_dict['OPENGL_INCLUDE'])
-    d_obj = buildinfo(dy_blender, "dynamic")
-    if sys.platform == 'win32':
-        dy_blender.Program (target='blender',
-                            source=d_obj + ['source/icons/winblender.res'])
-    else:
-        if sys.platform == 'cygwin':
-            dy_blender.Replace (CC='g++')
-        dy_blender.Program (target='blender', source=d_obj)
-	
+	dy_blender = link_env.Copy ()
+	blender_libs(dy_blender)
+	common_libs(dy_blender)
+	international_libs(dy_blender)
+	ketsji_libs(dy_blender)
+	system_libs(dy_blender)
+	dy_blender.Append (LIBS=user_options_dict['OPENGL_LIBRARY'])
+	dy_blender.Append (LIBPATH=user_options_dict['OPENGL_LIBPATH'])
+	dy_blender.Append (CPPPATH=user_options_dict['OPENGL_INCLUDE'])
+	d_obj = buildinfo(dy_blender, "dynamic")
+	if sys.platform == 'win32':
+		dy_blender.Program (target='blender',
+					source=d_obj + ['source/icons/winblender.res'])
+	else:
+		if sys.platform == 'cygwin':
+			dy_blender.Replace (CC='g++')
+		dy_blender.Program (target='blender', source=d_obj)
+
 if user_options_dict['BUILD_BLENDER_STATIC'] == 1:
-    st_blender = link_env.Copy ()
-    blender_libs(st_blender)
-    common_libs(st_blender)
-    international_libs(st_blender)
-    ketsji_libs(dst_blender)
-    system_libs(st_blender)
-    # The next line is to make sure that the LINKFLAGS are appended at the end
-    # of the link command. This 'trick' is needed because the GL and GLU static
-    # libraries need to be at the end of the command.
-    st_blender.Replace(LINKCOM="$LINK -o $TARGET $SOURCES $_LIBDIRFLAGS $_LIBFLAGS $LINKFLAGS")
-    s_obj = buildinfo(st_blender, "static")
-    st_blender.Append (LINKFLAGS=user_options_dict['OPENGL_STATIC'])
-    st_blender.Append (CPPPATH=user_options_dict['OPENGL_INCLUDE'])
-    st_blender.Prepend (LIBPATH=['/usr/lib/opengl/xfree/lib'])
-    st_blender.Program (target='blenderstatic', source=s_obj)
+	st_blender = link_env.Copy ()
+	blender_libs(st_blender)
+	common_libs(st_blender)
+	international_libs(st_blender)
+	ketsji_libs(dst_blender)
+	system_libs(st_blender)
+	# The next line is to make sure that the LINKFLAGS are appended at the end
+	# of the link command. This 'trick' is needed because the GL and GLU static
+	# libraries need to be at the end of the command.
+	st_blender.Replace(LINKCOM="$LINK -o $TARGET $SOURCES $_LIBDIRFLAGS $_LIBFLAGS $LINKFLAGS")
+	s_obj = buildinfo(st_blender, "static")
+	st_blender.Append (LINKFLAGS=user_options_dict['OPENGL_STATIC'])
+	st_blender.Append (CPPPATH=user_options_dict['OPENGL_INCLUDE'])
+	st_blender.Prepend (LIBPATH=['/usr/lib/opengl/xfree/lib'])
+	st_blender.Program (target='blenderstatic', source=s_obj)
 
 BlenderBundle('blender')
 
