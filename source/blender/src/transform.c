@@ -1231,7 +1231,6 @@ static void createTransData(TransInfo *t)
 		createTransPose();
 	}
 	else if (G.obedit) {
-		t->flag |= T_EDIT;
 		if (G.obedit->type == OB_MESH) {
 			createTransEditVerts();	
    		}
@@ -1256,7 +1255,7 @@ static void createTransData(TransInfo *t)
 			set_prop_dist(t);
 			sort_trans_data_dist(t);
 		}
-		
+		t->flag |= T_EDIT;
 	}
 	else {
 		createTransObject();
@@ -1351,7 +1350,7 @@ void Transform(int mode)
 	Trans.redraw = 1;
 
 	while (ret_val == 0) {
-		
+
 		getmouseco_areawin(mval);
 		
 		if (mval[0] != pmval[0] || mval[1] != pmval[1]) {
@@ -1549,10 +1548,8 @@ void Transform(int mode)
 		BIF_undo_push("Transform");
 	}
 	
-//	printf("before postrans\n");
 	/* free data, reset vars */
 	postTrans(&Trans);
-//	printf("after postrans\n");
 	
 	/* mess from old transform, just for now (ton) */
 	{
@@ -1722,41 +1719,55 @@ void initWarp(TransInfo *t)
 	
 	/* we need min/max in view space */
 	for(i = 0; i < t->total; i++) {
+		float center[3];
+		VECCOPY(center, t->data[i].center);
+		Mat3MulVecfl(t->data[i].mtx, center);
+		Mat4MulVecfl(G.vd->viewmat, center);
+		VecSubf(center, center, G.vd->viewmat[3]);
 		if (i)
-			MinMax3(min, max, t->data[i].center);
+			MinMax3(min, max, center);
 		else {
-			VECCOPY(max, t->data[i].center);
-			VECCOPY(min, t->data[i].center);
+			VECCOPY(max, center);
+			VECCOPY(min, center);
 		}
 	}
 
-	if (t->flag & T_EDIT) {
-		Mat4MulVecfl(G.obedit->obmat, min);
-		Mat4MulVecfl(G.obedit->obmat, max);
-	}
-	Mat4MulVecfl(G.vd->viewmat, min);
-	Mat4MulVecfl(G.vd->viewmat, max);
-	
 	t->center[0]= (min[0]+max[0])/2.0f;
 	t->center[1]= (min[1]+max[1])/2.0f;
 	t->center[2]= (min[2]+max[2])/2.0f;
 	
 	t->val= (max[0]-min[0])/2.0f;	// t->val is free variable
-	
 }
 
 
 int Warp(TransInfo *t, short mval[2])
 {
 	TransData *td = t->data;
-	float vec[3], circumfac, dist, phi0, co, si, *curs, cursor[3];
+	float vec[3], circumfac, dist, phi0, co, si, *curs, cursor[3], gcursor[3];
 	int i;
 	char str[50];
 	
 	curs= give_cursor();
+	/*
+	 * gcursor is the one used for helpline.
+	 * It has to be in the same space as the drawing loop
+	 * (that means it needs to be in the object's space when in edit mode and
+	 *  in global space in object mode)
+	 *
+	 * cursor is used for calculations.
+	 * It needs to be in view space, but we need to take object's offset
+	 * into account if in Edit mode.
+	 */
 	VECCOPY(cursor, curs);
+	VECCOPY(gcursor, cursor);	
+	if (t->flag & T_EDIT) {
+		VecSubf(cursor, cursor, G.obedit->obmat[3]);
+		VecSubf(gcursor, gcursor, G.obedit->obmat[3]);
+		Mat3MulVecfl(t->data->smtx, gcursor);
+	}
 	Mat4MulVecfl(G.vd->viewmat, cursor);
-	
+	VecSubf(cursor, cursor, G.vd->viewmat[3]);
+
 	// amount of degrees for warp, 450 = allow to create 360 degree warp
 	circumfac= 450.0f*(mval[1] - t->imval[1]) / (float)(curarea->winy);
 	circumfac+= 90.0f;
@@ -1787,24 +1798,25 @@ int Warp(TransInfo *t, short mval[2])
 		/* translate point to centre, rotate in such a way that outline==distance */
 		
 		VECCOPY(vec, td->iloc);
-		Mat3MulVecfl(td->smtx, vec);
+		Mat3MulVecfl(td->mtx, vec);
 		Mat4MulVecfl(G.vd->viewmat, vec);
+		VecSubf(vec, vec, G.vd->viewmat[3]);
 		
 		dist= vec[0]-cursor[0];
-		
+
 		phi0= (circumfac*dist/t->val);	// t->val is X dimension projected boundbox
 		
-		vec[0]= (-cursor[0]);
 		vec[1]= (vec[1]-cursor[1]);
 		
 		co= (float)cos(phi0);
 		si= (float)sin(phi0);
-		loc[0]= co*vec[0]-si*vec[1]+cursor[0];
-		loc[1]= si*vec[0]+co*vec[1]+cursor[1];
+		loc[0]= -si*vec[1]+cursor[0];
+		loc[1]= co*vec[1]+cursor[1];
 		loc[2]= vec[2];
 		
 		Mat4MulVecfl(G.vd->viewinv, loc);
-		Mat3MulVecfl(td->mtx, loc);
+		VecSubf(loc, loc, G.vd->viewinv[3]);
+		Mat3MulVecfl(td->smtx, loc);
 
 		VecSubf(loc, loc, td->iloc);
 		VecMulf(loc, td->factor);
@@ -1817,7 +1829,7 @@ int Warp(TransInfo *t, short mval[2])
 	
 	force_draw(0);
 	
-	helpline(curs);
+	helpline(gcursor);
 	
 	return 1;
 }
@@ -2647,7 +2659,7 @@ int ShrinkFatten(TransInfo *t, short mval[2])
 	if (ratio < 0.0f)
 		ratio = 0.0f;
 
-	if (mval[0] < t->center2d[0])
+	if (mval[1] < t->center2d[1])
 		ratio *= -1;
 
 	snapGrid(t, &ratio);

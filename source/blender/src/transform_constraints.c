@@ -726,11 +726,6 @@ void initSelectConstraint(TransInfo *t)
 	Mat3One(t->con.pmtx);
 	t->con.mode |= CON_APPLY;
 	t->con.mode |= CON_SELECT;
-	VECCOPY(t->con.center, t->center);
-
-	if (t->flag & T_EDIT) {
-		Mat4MulVecfl(G.obedit->obmat, t->con.center);
-	}
 
 	setNearestAxis(t);
 	t->con.drawExtra = NULL;
@@ -742,6 +737,7 @@ void initSelectConstraint(TransInfo *t)
 void selectConstraint(TransInfo *t) {
 	if (t->con.mode & CON_SELECT) {
 		setNearestAxis(t);
+		startConstraint(t);
 	}
 }
 
@@ -764,7 +760,7 @@ void postSelectConstraint(TransInfo *t)
 void setNearestAxis(TransInfo *t)
 {
 	short coord[2];
-	float mvec[3], axis[3], center[3], proj[3];
+	float mvec[3], axis[3], proj[3];
 	float len[3];
 	int i;
 
@@ -772,24 +768,14 @@ void setNearestAxis(TransInfo *t)
 	t->con.mode &= ~CON_AXIS1;
 	t->con.mode &= ~CON_AXIS2;
 
-	VECCOPY(center, t->center);
-	if (G.obedit) {
-		Mat4MulVecfl(G.obedit->obmat, center);
-	}
-
 	getmouseco_areawin(coord);
-#if 1
 	mvec[0] = (float)(coord[0] - t->con.imval[0]);
 	mvec[1] = (float)(coord[1] - t->con.imval[1]);
-#else
-	mvec[0] = (float)(coord[0] - t->center2d[0]);
-	mvec[1] = (float)(coord[1] - t->center2d[1]);
-#endif
 	mvec[2] = 0.0f;
 
 	for (i = 0; i<3; i++) {
 		VECCOPY(axis, t->con.mtx[i]);
-		VecAddf(axis, axis, center);
+		VecAddf(axis, axis, t->con.center);
 		project_short_noclip(axis, coord);
 		axis[0] = (float)(coord[0] - t->center2d[0]);
 		axis[1] = (float)(coord[1] - t->center2d[1]);

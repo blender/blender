@@ -314,7 +314,6 @@ void recalcData(TransInfo *t)
 
 void initTransModeFlags(TransInfo *t, int mode) 
 {
-	t->flag = 0;
 	t->num.flag = 0;
 	t->mode = mode;
 	
@@ -383,6 +382,7 @@ void initTrans (TransInfo *t)
 	t->ext = NULL;
 
 	getmouseco_areawin(t->imval);
+	t->flag = 0;
 	t->con.imval[0] = t->imval[0];
 	t->con.imval[1] = t->imval[1];
 
