@@ -163,6 +163,7 @@ static void print_help(void)
 #endif
 }
 double PIL_check_seconds_timer(void);
+extern void winlay_get_screensize(int *width_r, int *height_r);
 int main(int argc, char **argv)	
 {
 	int a, i, stax, stay, sizx, sizy;

@@ -37,6 +37,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>	/* memcpy */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
