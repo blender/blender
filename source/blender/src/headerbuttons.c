@@ -5329,7 +5329,6 @@ void load_sound_buttons(char *str)	/* called from fileselect */
 
 void do_action_buttons(unsigned short event)
 {
-	View2D	*v2d;
 
 	switch(event){
 #ifdef __NLA_BAKE
@@ -5351,24 +5350,29 @@ void do_action_buttons(unsigned short event)
 //		break;
 	case B_ACTHOME:
 		//	Find X extents
-		v2d= &(G.saction->v2d);
+		//v2d= &(G.saction->v2d);
 
-//		v2d->cur.xmin = 0;
-		v2d->cur.ymin=-SCROLLB;
+		G.v2d->cur.xmin = 0;
+		G.v2d->cur.ymin=-SCROLLB;
 		
-		if (!G.saction->action){
-			v2d->cur.xmax=100;
+		if (!G.saction->action){	// here the mesh rvk?
+			G.v2d->cur.xmax=100;
 		}
-		else
-		{
-			v2d->cur.xmin=calc_action_start(G.saction->action)-1;
-			v2d->cur.xmax=calc_action_end(G.saction->action)+1;
+		else {
+			float extra;
+			G.v2d->cur.xmin= calc_action_start(G.saction->action);
+			G.v2d->cur.xmax= calc_action_end(G.saction->action);
+			extra= 0.05*(G.v2d->cur.xmax - G.v2d->cur.xmin);
+			G.v2d->cur.xmin-= extra;
+			G.v2d->cur.xmax+= extra;
 		}
-		
-		
-//		G.v2d->cur= G.v2d->tot;
+
+		G.v2d->tot= G.v2d->cur;
 		test_view2d(G.v2d, curarea->winx, curarea->winy);
+
+
 		addqueue (curarea->win, REDRAW, 1);
+
 		break;
 	case B_ACTCOPY:
 		copy_posebuf();

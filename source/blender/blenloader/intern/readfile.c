@@ -3698,11 +3698,13 @@ static void do_versions(Main *main)
 	if(main->versionfile <= 227) {
 		Scene *sce;
 		Material *ma;
+		bScreen *sc;
 
 		for (sce= main->scene.first; sce; sce= sce->id.next) {
 			sce->audio.mixrate = 44100;
 			sce->audio.flag |= (AUDIO_SYNC + AUDIO_SCRUB);
 		}
+		// init new shader vars
 		for (ma= main->mat.first; ma; ma= ma->id.next) {
 			ma->refrac= 4.0;
 			ma->roughness= 0.5;
@@ -3711,6 +3713,26 @@ static void do_versions(Main *main)
 			ma->param[2]= 0.1;
 			ma->param[3]= 0.05;
 		}
+		// patch for old wrong max view2d settings, allows zooming out more
+		for (sc= main->screen.first; sc; sc= sc->id.next) {
+			ScrArea *sa;
+
+			for (sa= sc->areabase.first; sa; sa= sa->next) {
+				SpaceLink *sl;
+
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if (sl->spacetype==SPACE_ACTION) {
+						SpaceAction *sac= (SpaceAction *) sl;
+						sac->v2d.max[0]= 32000;
+					}
+					else if (sl->spacetype==SPACE_NLA) {
+						SpaceNla *sla= (SpaceNla *) sl;
+						sla->v2d.max[0]= 32000;
+					}
+				}
+			}
+		}
+		
 	}	
 
 	/* don't forget to set version number in blender.c! */
