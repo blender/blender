@@ -32,8 +32,9 @@
 
 /* Abstract window operations */
 
+struct BCursor;
+
 typedef struct _Window Window;
-typedef struct BCursor BCursor;
 typedef void	(*WindowHandlerFP)	(Window *win, void *user_data, short evt, short val, char ascii);
 
 Window*	window_open			(char *title, int x, int y, int width, int height, int start_maximized);
@@ -67,7 +68,7 @@ void	window_set_title	(Window *win, char *title);
 void	window_set_cursor	(Window *win, int cursor);
 void	window_set_custom_cursor	(Window *win, unsigned char mask[16][2], 
 				unsigned char bitmap[16][2], int hotx, int hoty );
-void	window_set_custom_cursor_ex	(Window *win, BCursor *cursor, int useBig);
+void	window_set_custom_cursor_ex	(Window *win, struct BCursor *cursor, int useBig);
 
 void	window_warp_pointer	(Window *win, int x, int y);
 
