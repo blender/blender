@@ -187,30 +187,30 @@ void RE_make_stars(void (*initfunc)(void),
 
 	if(initfunc) R.wrld= *(G.scene->world);
 
-	stargrid = R.wrld.stardist;		/* om de hoeveel een ster ? */
-	maxrand = 2.0;						/* hoeveel mag een ster verschuiven (uitgedrukt in grid eenheden) */
-	maxjit = (256.0* R.wrld.starcolnoise);			/* hoeveel mag een kleur veranderen */
+	stargrid = R.wrld.stardist;		/* distance between stars */
+	maxrand = 2.0;						/* amount a star can be shifted (in grid units) */
+	maxjit = (256.0* R.wrld.starcolnoise);			/* amount a color is being shifted */
 
 /* 	loc_far_var = R.far; */
 /* 	loc_near_var = R.near; */
 
 
-	/* afmeting sterren */
+	/* size of stars */
 	force = ( R.wrld.starsize );
 
-	/* minimale vrije ruimte */
+	/* minimal free space (starting at camera) */
 	starmindist= R.wrld.starmindist;
 
 	if (stargrid <= 0.10) return;
 
 	if (!initfunc) R.flag |= R_HALO;
-	else stargrid *= 1.0;				/* tekent er minder */
+	else stargrid *= 1.0;				/* then it draws fewer */
 
 
 	MTC_Mat4Invert(mat, R.viewmat);
 
-	/* BOUNDINGBOX BEREKENING
-	 * bbox loopt van z = loc_near_var | loc_far_var,
+	/* BOUNDING BOX CALCULATION
+	 * bbox goes from z = loc_near_var | loc_far_var,
 	 * x = -z | +z,
 	 * y = -z | +z
 	 */
@@ -218,7 +218,7 @@ void RE_make_stars(void (*initfunc)(void),
 	camera = G.scene->camera->data;
 	clipend = camera->clipend;
 
-	/* omzetten naar grid coordinaten */
+	/* convert to grid coordinates */
 
 	sx = ((mat[3][0] - clipend) / stargrid) - maxrand;
 	sy = ((mat[3][1] - clipend) / stargrid) - maxrand;
@@ -252,9 +252,9 @@ void RE_make_stars(void (*initfunc)(void),
 				else {
 					MTC_Mat4MulVecfl(R.viewmat, vec);
 
-					/* in vec staan globale coordinaten
-					 * bereken afstand tot de kamera
-					 * en bepaal aan de hand daarvan de alpha
+					/* in vec are global coordinates
+					 * calculate distance to camera
+					 * and using that, define the alpha
 					 */
 
 					{
@@ -325,7 +325,7 @@ static HaloRen *initstar(float *vec, float hasize)
 	if(	(R.r.mode & R_PANORAMA) ||  RE_testclip(hoco)==0 ) {
 		har= RE_findOrAddHalo(R.tothalo++);
 	
-		/* projectvert wordt in zbufvlaggen overgedaan ivm parts */
+		/* projectvert is done in function zbufvlaggen again, because of parts */
 		VECCOPY(har->co, vec);
 		har->hasize= hasize;
 	
@@ -348,7 +348,7 @@ static void split_u_renderfaces(int startvlak, int startvert, int usize, int ple
 
 	if(cyclu) cyclu= 1;
 
-	/* geef eerst alle betreffende vertices een pointer naar de nieuwe mee */
+	/* first give all involved vertices a pointer to the new one */
 	v= startvert+ plek*usize;
 	for(a=0; a<usize; a++) {
 		v2= RE_findOrAddVert(R.totvert++);
@@ -357,7 +357,7 @@ static void split_u_renderfaces(int startvlak, int startvert, int usize, int ple
 		v1->sticky= (float *)v2;
 	}
 
-	/* loop betreffende vlakken af en vervang pointers */
+	/* check involved faces and replace pointers */
 	v= startvlak+plek*(usize-1+cyclu);
 	for(a=1-cyclu; a<usize; a++) {
 		vlr= RE_findOrAddVlak(v++);
@@ -377,9 +377,9 @@ static void split_v_renderfaces(int startvlak, int startvert, int usize, int vsi
 
 	if(vsize<2) return;
 
-	/* loop betreffende vlakken af en maak dubbels */
-	/* omdat (evt) split_u al gedaan is kan niet met vertex->sticky pointers worden gewerkt  */
-	/* want vlakken delen al geen punten meer */
+	/* check involved faces and create doubles */
+	/* because (evt) split_u already has been done, you cannot work with vertex->sticky pointers */
+	/* because faces do not share vertices anymore */
 
 	if(plek+cyclu==usize) plek= -1;
 
@@ -389,7 +389,7 @@ static void split_v_renderfaces(int startvlak, int startvert, int usize, int vsi
 	for(a=1; a<vsize; a++) {
 
 		vlr= RE_findOrAddVlak(vlak);
-		if (vlr->v1 == 0) return; /* OEPS, als niet cyclic */
+		if (vlr->v1 == 0) return; /* OOPS, when not cyclic */
 
 		v1= RE_findOrAddVert(R.totvert++);
 		*v1= *(vlr->v1);
@@ -452,7 +452,7 @@ static void normalenrender(int startvert, int startvlak)
 	adrco= (float *)MEM_callocN(12+4*sizeof(float)*(R.totvlak-startvlak), "normalen1");
 
 	tfl= adrco;
-	/* berekenen cos hoeken en puntmassa's */
+	/* calculate cos of angles and point-masses */
 	for(a= startvlak; a<R.totvlak; a++) {
 		vlr= RE_findOrAddVlak(a);
 
@@ -486,14 +486,14 @@ static void normalenrender(int startvert, int startvlak)
 		}
 	}
 
-	/* alle puntnormalen leegmaken */
+	/* clear all vertex normals */
 	for(a=startvert; a<R.totvert; a++) {
 		ver= RE_findOrAddVert(a);
 
 		ver->n[0]=ver->n[1]=ver->n[2]= 0.0;
 	}
 
-	/* berekenen normalen en optellen bij puno's */
+	/* calculate normals and add it to the vertex normals (dutch: punt normaal) */
 	tfl= adrco;
 	for(a=startvlak; a<R.totvlak; a++) {
 		vlr= RE_findOrAddVlak(a);
@@ -538,14 +538,14 @@ static void normalenrender(int startvert, int startvlak)
 		}
 	}
 
-	/* normaliseren puntnormalen */
+	/* normalise vertex normals */
 	for(a=startvert; a<R.totvert; a++) {
 		ver= RE_findOrAddVert(a);
 
 		Normalise(ver->n);
 	}
 
-	/* puntnormaal omklap-vlaggen voor bij shade */
+	/* vertex normal (puno) switch flags for during render */
 	for(a=startvlak; a<R.totvlak; a++) {
 		vlr= RE_findOrAddVlak(a);
 
@@ -891,9 +891,9 @@ static void render_particle_system(Object *ob, PartEff *paf)
 	if(ma==0) ma= &defmaterial;
 
 	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
-	MTC_Mat4Invert(ob->imat, mat);	/* hoort zo, voor imat texture */
+	MTC_Mat4Invert(ob->imat, mat);	/* this is correct, for imat texture */
 
-	MTC_Mat4Invert(mat, R.viewmat);	/* particles hebben geen ob transform meer */
+	MTC_Mat4Invert(mat, R.viewmat);	/* particles do not have a ob transform anymore */
 	MTC_Mat3CpyMat4(imat, mat);
 
 	R.flag |= R_HALO;
@@ -908,7 +908,7 @@ static void render_particle_system(Object *ob, PartEff *paf)
 		if(ctime > pa->time) {
 			if(ctime < pa->time+pa->lifetime) {
 
-				/* let op: ook nog de normaal van de particle berekenen */
+				/* watch it: also calculate the normal of a particle */
 				if(paf->stype==PAF_VECT || ma->mode & MA_HALO_SHADE) {
 					where_is_particle(paf, pa, ctime, vec);
 					MTC_Mat4MulVecfl(R.viewmat, vec);
@@ -927,7 +927,7 @@ static void render_particle_system(Object *ob, PartEff *paf)
 				}
 
 				if(ma->ipo) {
-					/* correctie voor lifetime */
+					/* correction for lifetime */
 					ptime= 100.0*(ctime-pa->time)/pa->lifetime;
 					calc_ipo(ma->ipo, ptime);
 					execute_ipo((ID *)ma, ma->ipo);
@@ -993,7 +993,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 	if(ma==0) ma= &defmaterial;
 
 	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
-	MTC_Mat4Invert(ob->imat, mat);	/* hoort zo, voor imat texture */
+	MTC_Mat4Invert(ob->imat, mat);	/* need to be that way, for imat texture */
 
 	MTC_Mat3CpyMat4(imat, ob->imat);
 
@@ -1017,7 +1017,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 			if(ctime>pa->time+pa->lifetime) ctime= pa->time+pa->lifetime;
 			
 
-			/* let op: ook nog de normaal van de particle berekenen */
+			/* watch it: also calc the normal of a particle */
 			if(paf->stype==PAF_VECT || ma->mode & MA_HALO_SHADE) {
 				where_is_particle(paf, pa, ctime+1.0, vec);
 				MTC_Mat4MulVecfl(mat, vec);
@@ -1034,7 +1034,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 			}
 
 			if(ma->ipo) {
-				/* correctie voor lifetime */
+				/* correction for lifetime */
 				ptime= 100.0*(ctime-pa->time)/pa->lifetime;
 				calc_ipo(ma->ipo, ptime);
 				execute_ipo((ID *)ma, ma->ipo);
@@ -1331,7 +1331,7 @@ static void sort_halos(void)
 
 	if(R.tothalo==0) return;
 
-	/* datablok maken met halopointers, sorteren */
+	/* make datablock with halo pointers, sort */
 	haso= hablock= MEM_mallocN(sizeof(struct halosort)*R.tothalo, "hablock");
 
 	for(a=0; a<R.tothalo; a++) {
@@ -1344,7 +1344,7 @@ static void sort_halos(void)
 
 	qsort(hablock, R.tothalo, sizeof(struct halosort), verghalo);
 
-	/* opnieuw samenstellen van R.bloha */
+	/* re-assamble R.bloha */
 
 	bloha= R.bloha;
 	R.bloha= (HaloRen **)MEM_callocN(sizeof(void *)*(MAXVERT>>8),"Bloha");
@@ -1357,7 +1357,7 @@ static void sort_halos(void)
 		haso++;
 	}
 
-	/* vrijgeven */
+	/* free */
 	a= 0;
 	while(bloha[a]) {
 		MEM_freeN(bloha[a]);
@@ -1426,7 +1426,7 @@ static void init_render_mball(Object *ob)
 		VECCOPY(ver->co, data);
 		MTC_Mat4MulVecfl(mat, ver->co);
 
-		/* rendernormalen zijn omgekeerd */
+		/* render normals are inverted in render */
 		xn= -nors[0];
 		yn= -nors[1];
 		zn= -nors[2];
@@ -1449,7 +1449,7 @@ static void init_render_mball(Object *ob)
 		vlr->v3= RE_findOrAddVert(startvert+index[2]);
 		vlr->v4= 0;
 
-		/* rendernormalen zijn omgekeerd */
+		/* render normal are inverted */
 		vlr->len= CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
 
 		vlr->mface= 0;
@@ -1459,7 +1459,7 @@ static void init_render_mball(Object *ob)
 		vlr->ec= 0;
 		vlr->lay= ob->lay;
 
-		/* mball -helaas- altijd driehoeken maken omdat vierhoeken erg onregelmatig zijn */
+		/* mball -too bad- always has triangles, because quads can be non-planar */
 		if(index[3]) {
 			vlr1= RE_findOrAddVlak(R.totvlak++);
 			*vlr1= *vlr;
@@ -1470,7 +1470,7 @@ static void init_render_mball(Object *ob)
 	}
 
 	if(need_orco) {
-		/* displist bewaren en scalen */
+		/* store displist and scale */
 		make_orco_mball(ob);
 		if(dlo) BLI_addhead(&ob->disp, dlo);
 
@@ -1601,23 +1601,23 @@ static void init_render_mesh(Object *ob)
 				ms++;
 			}
 		}
-		/* nog doen bij keys: de juiste lokale textu coordinaat */
+		/* still to do for keys: the correct local texture coordinate */
 
 		flipnorm= -1;
-		/* Testen of er een flip in de matrix zit: dan vlaknormaal ook flippen */
+		/* test for a flip in the matrix: then flip face normal as well */
 
-		/* vlakken in volgorde colblocks */
+		/* faces in order of color blocks */
 		vertofs= R.totvert- me->totvert;
 		for(a1=0; (a1<ob->totcol || (a1==0 && ob->totcol==0)); a1++) {
 
 			ma= give_render_material(ob, a1+1);
 			if(ma==0) ma= &defmaterial;
 
-			/* testen op 100% transparant */
+			/* test for 100% transparant */
 			ok= 1;
 			if(ma->alpha==0.0 && ma->spectra==0.0) {
 				ok= 0;
-				/* texture op transp? */
+				/* texture on transparency? */
 				for(a=0; a<8; a++) {
 					if(ma->mtex[a] && ma->mtex[a]->tex) {
 						if(ma->mtex[a]->mapto & MAP_ALPHA) ok= 1;
@@ -1651,7 +1651,7 @@ static void init_render_mesh(Object *ob)
 							if(mface->v4) vlr->v4= RE_findOrAddVert(vertofs+mface->v4);
 							else vlr->v4= 0;
 
-							/* rendernormalen zijn omgekeerd */
+							/* render normalen are inverted in render */
 							if(vlr->v4) vlr->len= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co,
 							    vlr->v1->co, vlr->n);
 							else vlr->len= CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co,
@@ -1669,7 +1669,7 @@ static void init_render_mesh(Object *ob)
 
 							if(vlr->len==0) R.totvlak--;
 							else {
-								if(flipnorm== -1) {	/* per object 1 x testen */
+								if(flipnorm== -1) {	/* per object test once */
 									flipnorm= mesh_test_flipnorm(ob, mface, vlr, imat);
 								}
 								if(flipnorm) {
@@ -1686,7 +1686,7 @@ static void init_render_mesh(Object *ob)
 								
 								vlr->tface= tface;
 								
-								/* testen of een vierhoek als driehoek gerenderd moet */
+								/* test if rendering as a quad or triangle */
 								if(vlr->v4) {
 
 									if(ma->mode & MA_WIRE);
@@ -1835,26 +1835,24 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 
 	}
 
-	/* imat bases */
 
-
-	/* flag zetten voor spothalo en initvars */
+	/* set flag for spothalo en initvars */
 	if(la->type==LA_SPOT && (la->mode & LA_HALO)) {
 		if(la->haint>0.0) {
 			R.flag |= R_LAMPHALO;
 
-			/* camerapos (0,0,0) roteren rondom lamp */
+			/* camera position (0,0,0) rotate around lamp */
 			lar->sh_invcampos[0]= -lar->co[0];
 			lar->sh_invcampos[1]= -lar->co[1];
 			lar->sh_invcampos[2]= -lar->co[2];
 			MTC_Mat3MulVecfl(lar->imat, lar->sh_invcampos);
 
-			/* z factor, zodat het volume genormaliseerd is */
+			/* z factor, for a normalized volume */
 			hoek= saacos(lar->spotsi);
 			xn= lar->spotsi;
 			yn= sin(hoek);
 			lar->sh_zfac= yn/xn;
-			/* alvast goed scalen */
+			/* pre-scale */
 			lar->sh_invcampos[2]*= lar->sh_zfac;
 
 		}
@@ -1947,20 +1945,20 @@ static void init_render_surf(Object *ob)
 	if(cu->orco==0 && need_orco) make_orco_surf(cu);
 	orco= cu->orco;
 
-	/* een complete displist maken, de basedisplist kan compleet anders zijn */
+	/* make a complete new displist, the base-displist can be different */
 	displist.first= displist.last= 0;
 	nu= cu->nurb.first;
 	while(nu) {
 		if(nu->pntsv>1) {
 	//		if (dl->flag & DL_CYCLIC_V) {
 			len= nu->resolu*nu->resolv;
-			/* makeNurbfaces wil nullen */
+			/* makeNurbfaces wants zeros */
 
 			dl= MEM_callocN(sizeof(DispList)+len*3*sizeof(float), "makeDispList1");
 			dl->verts= MEM_callocN(len*3*sizeof(float), "makeDispList01");
 			BLI_addtail(&displist, dl);
 
-			dl->parts= nu->resolu;	/* andersom want makeNurbfaces gaat zo */
+			dl->parts= nu->resolu;	/* switched order, makeNurbfaces works that way... */
 			dl->nr= nu->resolv;
 			dl->col= nu->mat_nr;
 			dl->rt= nu->flag;
@@ -2316,7 +2314,7 @@ static void init_render_curve(Object *ob)
 	nu= cu->nurb.first;
 	if(nu==0) return;
 
-	/* displist testen */
+	/* test displist */
 	if(cu->disp.first==0) makeDispList(ob);
 	dl= cu->disp.first;
 	if(cu->disp.first==0) return;
@@ -2350,7 +2348,7 @@ static void init_render_curve(Object *ob)
 		makebevelcurve(ob, &dlbev);
 	}
 
-	/* uv orco's? aantal punten tellen en malloccen */
+	/* uv orcos? count amount of points and malloc */
 	if(need_orco && (cu->flag & CU_UV_ORCO)) {
 		if(cu->flag & CU_PATH);
 		else {
@@ -2405,27 +2403,27 @@ static void init_render_curve(Object *ob)
 		need_orco= 1;
 	}
 
-	/* keypos doen? NOTITIE: pas op : orco's */
+	/* do keypos? NOTE: watch it : orcos */
 
-	/* effect op text? */
+	/* effect on text? */
 
-	/* boundboxclip nog doen */
+	/* boundboxclip still todo */
 
-	/* polyzijvlakken:  met bevellist werken */
+	/* side faces of poly:  work with bevellist */
 	widfac= (cu->width-1.0);
 
 	bl= cu->bev.first;
 	nu= cu->nurb.first;
 	while(bl) {
 
-		if(dlbev.first) {    /* anders alleen een poly */
+		if(dlbev.first) {    /* otherwise just a poly */
 
-			dlb= dlbev.first;   /* bevel lus */
+			dlb= dlbev.first;   /* bevel loop */
 			while(dlb) {
 				data= MEM_mallocN(3*sizeof(float)*dlb->nr*bl->nr, "init_render_curve3");
 				fp= data;
 
-				/* voor ieder punt van bevelcurve de hele poly doen */
+				/* for each point at bevelcurve do the entire poly */
 				fp1= dlb->verts;
 				b= dlb->nr;
 				while(b--) {
@@ -2450,7 +2448,7 @@ static void init_render_curve(Object *ob)
 							fp[0]= bevp->x+ (widfac+fp1[1])*bevp->sina;
 							fp[1]= bevp->y+ (widfac+fp1[1])*bevp->cosa;
 							fp[2]= bevp->z+ fp1[2];
-							/* hier niet al MatMullen: polyfill moet uniform werken, ongeacht frame */
+							/* do not MatMul here: polyfill should work uniform, independent which frame */
 						}
 						fp+= 3;
 						bevp++;
@@ -2458,7 +2456,7 @@ static void init_render_curve(Object *ob)
 					fp1+=3;
 				}
 
-				/* rendervertices maken */
+				/* make render vertices */
 				fp= data;
 				startvert= R.totvert;
 				nr= dlb->nr*bl->nr;
@@ -2499,8 +2497,9 @@ static void init_render_curve(Object *ob)
 						vlr->flag= nu->flag;
 						vlr->lay= ob->lay;
 
-						/* dit is niet echt wetenschappelijk: de vertices
-						 * 2, 3 en 4 geven betere puno's dan 1 2 3: voor en achterkant anders!!
+						/* this is not really scientific: the vertices
+						 * 2, 3 en 4 seem to give better vertexnormals than 1 2 3:
+						 * front and backside treated different!!
 						 */
 
 						if(frontside)
@@ -2519,12 +2518,12 @@ static void init_render_curve(Object *ob)
 
 				}
 
-				/* dubbele punten maken: POLY SPLITSEN */
+				/* make double points: SPLIT POLY */
 				if(dlb->nr==4 && cu->bevobj==0) {
 					split_u_renderfaces(startvlak, startvert, bl->nr, 1, bl->poly>0);
 					split_u_renderfaces(startvlak, startvert, bl->nr, 2, bl->poly>0);
 				}
-				/* dubbele punten maken: BEVELS SPLITSEN */
+				/* make double points: SPLIT BEVELS */
 				bevp= (BevPoint *)(bl+1);
 				for(a=0; a<bl->nr; a++) {
 					if(bevp->f1)
@@ -2533,7 +2532,7 @@ static void init_render_curve(Object *ob)
 					bevp++;
 				}
 
-				/* puntnormalen */
+				/* vertex normals */
 				for(a= startvlak; a<R.totvlak; a++) {
 					vlr= RE_findOrAddVlak(a);
 
@@ -2572,7 +2571,7 @@ static void init_render_curve(Object *ob)
 
 	if(cu->flag & CU_PATH) return;
 
-	/* uit de displist kunnen de vulvlakken worden gehaald */
+	/* from displist the filled faces can be extracted */
 	dl= cu->disp.first;
 
 	while(dl) {
@@ -2623,7 +2622,7 @@ static void init_render_curve(Object *ob)
 		end_latt_deform();
 	}
 
-	if(need_orco) {	/* de domme methode: snel vervangen; rekening houden met keys! */
+	if(need_orco) {	/* the stupid way: should be replaced; taking account for keys! */
 
 		VECCOPY(size, cu->size);
 
@@ -2689,7 +2688,7 @@ void RE_freeRotateBlenderScene(void)
 	int a, b, v;
 	char *ctile;
 
-	/* VRIJGEVEN */
+	/* FREE */
 
 	for(a=0; a<R.totlamp; a++) {
 
@@ -2733,7 +2732,7 @@ void RE_freeRotateBlenderScene(void)
 		a++;
 	}
 
-	/* orco vrijgeven. ALle ob's aflopen ivm dupli's en sets */
+	/* free orco. check all obejcts because of duplis and sets */
 	ob= G.main->object.first;
 	while(ob) {
 
@@ -2800,7 +2799,7 @@ void RE_rotateBlenderScene(void)
 	do_all_ikas();
 	test_all_displists();
 
-	/* niet erg nette calc_ipo en where_is forceer */
+	/* not really neat forcing of calc_ipo and where_is */
 	ob= G.main->object.first;
 	while(ob) {
 		ob->ctime= -123.456;
@@ -2809,7 +2808,7 @@ void RE_rotateBlenderScene(void)
 
 	if(G.special1 & G_HOLO) RE_holoview();
 
-	/* ivm met optimale berekening track / lattices / etc: extra where_is_ob */
+	/* because of optimal calculation tracking/lattices/etc: and extra where_is_ob here */
 
 	base= G.scene->base.first;
 	while(base) {
@@ -2828,25 +2827,25 @@ void RE_rotateBlenderScene(void)
 	MTC_Mat4Ortho(R.viewinv);
 	MTC_Mat4Invert(R.viewmat, R.viewinv);
 
-	/* is niet netjes: nu is de viewinv ongelijk aan de viewmat. voor Texco's enzo. Beter doen! */
+	/* not so neat: now the viewinv is not equal to viewmat. used for Texcos and such. Improve! */
 	if(R.r.mode & R_ORTHO) R.viewmat[3][2]*= 100.0;
 
-	RE_setwindowclip(1,-1); /*  geen jit:(-1) */
+	RE_setwindowclip(1,-1); /*  no jit:(-1) */
 
-	/* imatflags wissen */
+	/* clear imat flags */
 	ob= G.main->object.first;
 	while(ob) {
 		ob->flag &= ~OB_DO_IMAT;
 		ob= ob->id.next;
 	}
 
-	init_render_world();	/* moet eerst ivm ambient */
+	init_render_world();	/* do first, because of ambient */
 	init_render_textures();
 	init_render_materials();
 
-	/* MAAK RENDERDATA */
+	/* MAKE RENDER DATA */
 
-	/* elk object maar 1 x renderen */
+	/* each object should only be rendered once */
 	ob= G.main->object.first;
 	while(ob) {
 		ob->flag &= ~OB_DONE;
@@ -2854,7 +2853,7 @@ void RE_rotateBlenderScene(void)
 	}
 
 
-	/* layers: in foreground current 3D window renderen */
+	/* layers: render in foreground current 3D window */
 	lay= G.scene->lay;
 	sce= G.scene;
 
@@ -2919,7 +2918,7 @@ void RE_rotateBlenderScene(void)
 
 	}
 
-	/* imat objecten */
+	/* imat objects */
 	ob= G.main->object.first;
 	while(ob) {
 		if(ob->flag & OB_DO_IMAT) {
