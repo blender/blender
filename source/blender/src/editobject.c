@@ -5735,6 +5735,7 @@ void transform(int mode)
 						break;
 					}
 				case PERIODKEY:
+				case PADPERIOD:
 					{
 						typemode = 1;
 						del = 0;
