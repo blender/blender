@@ -2405,7 +2405,7 @@ void test_all_displists(void)
 				}
 			}
 			
-			if(ob->softflag) freedisplist_object(ob);
+			if(ob->softflag & 0x01) freedisplist_object(ob);
 			/* warn, ob pointer changed in case of OB_MALL */
 
 			if ELEM(ob->type, OB_CURVE, OB_SURF) {

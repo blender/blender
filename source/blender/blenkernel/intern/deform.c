@@ -227,7 +227,7 @@ int mesh_modifier(Object *ob, char mode)
 	else if(ob->effect.first);	// weak... particles too
 	else if(ob->parent && ob->parent->type==OB_LATTICE);
 	else if(ob->parent && ob->partype==PARSKEL); 
-	else if(ob->softflag);
+	else if(ob->softflag & 0x01);
 	else return 0;
 	
 	if(me->totvert==0) return 0;
@@ -249,15 +249,21 @@ int mesh_modifier(Object *ob, char mode)
 		}
 		
 		if(ob->effect.first) done |= object_wave(ob);
-		
-		if(ob->softflag) {
+
+		if((ob->softflag & 0x01) && !(ob->softflag & 0x08)) {
 			float ctime= bsystem_time(ob, NULL, (float)G.scene->r.cfra, 0.0);
 			done= 1;
 			object_softbody_step(ob, ctime);
 		}
-		
+
 		/* deform: input mesh, output ob dl_verts. is used by subsurf (output should be in mesh ton!) */
 		done |= object_deform(ob);	
+
+		if((ob->softflag & 0x01) && (ob->softflag & 0x08)) {
+			float ctime= bsystem_time(ob, NULL, (float)G.scene->r.cfra, 0.0);
+			done= 1;
+			object_softbody_step(ob, ctime);
+		}
 		
 		/* put deformed vertices in dl->verts, optional subsurf will replace that */
 		if(done) {

@@ -1063,6 +1063,54 @@ void fill_mesh(void)
 /* ******************** SUBDIVIDE ********************************** */
 
 
+static void merge_weights(EditVert * vt, EditVert *vs )
+{
+	MDeformWeight *newdw;
+	int i,j,done;
+	for (j=0; j<vs->totweight; j++){
+		done=0;
+		/* Is vertex memeber of group */
+		/* If so: Change its weight */
+		for (i=0; i<vt->totweight; i++){
+			if (vt->dw[i].def_nr == vs->dw[j].def_nr)
+			{   /* taking the maximum makes it independant from order of occurance */
+				if (vt->dw[i].weight < vs->dw[j].weight) vt->dw[i].weight = vs->dw[j].weight;
+				done=1;
+				break;
+			}
+		}
+		/* If not: Add the group and set its weight */
+		if (!done){
+			newdw = MEM_callocN (sizeof(MDeformWeight)*(vt->totweight+1), "deformWeight");
+			if (vt->dw){
+				memcpy (newdw, vt->dw, sizeof(MDeformWeight)*vt->totweight);
+				MEM_freeN (vt->dw);
+			}
+			vt->dw=newdw;
+			vt->dw[vt->totweight].weight=vs->dw[j].weight;
+			vt->dw[vt->totweight].def_nr=vs->dw[j].def_nr;
+			vt->totweight++;
+		}
+	}
+}
+
+
+static void set_weights(EditVert * vt, EditVert *vs1,EditVert *vs2,EditVert *vs3,EditVert *vs4 )
+{
+/*
+vt is a new generated vertex with empty deform group information
+vs1..v4 are egde neighbours holding group information
+so let the information ooze into the new one
+*/
+	if (vs1) merge_weights(vt,vs1);
+	if (vs2) merge_weights(vt,vs2);
+	if (vs3) merge_weights(vt,vs3);
+	if (vs4) merge_weights(vt,vs4);
+}
+
+
+
+
 static unsigned int cpack_fact(unsigned int col1, unsigned int col2, float fact)
 {
 	char *cp1, *cp2, *cp;
@@ -1104,6 +1152,9 @@ static void face_pin_vertex(EditFace *efa, EditVert *vertex)
 	else if(efa->v3 == vertex) efa->tf.unwrap |= TF_PIN3;
 	else if(efa->v4 && vertex && efa->v4 == vertex) efa->tf.unwrap |= TF_PIN4;
 }
+
+
+
 
 static void set_wuv(int tot, EditFace *efa, int v1, int v2, int v3, int v4, EditFace *efapin)
 {
@@ -1486,6 +1537,7 @@ void subdivideflag(int flag, float rad, int beauty)
 				/* add edges here, to copy correct edge data */
 				eed= addedgelist(e1->v1, e1->vn, e1);
 				eed= addedgelist(e1->vn, e1->v2, e1);
+				set_weights(e1->vn, e1->v1,e1->v2,NULL,NULL);
 			}
 			if(e2 && e2->vn) {
 				test+= 2;
@@ -1493,6 +1545,7 @@ void subdivideflag(int flag, float rad, int beauty)
 				/* add edges here, to copy correct edge data */
 				eed= addedgelist(e2->v1, e2->vn, e2);
 				eed= addedgelist(e2->vn, e2->v2, e2);
+				set_weights(e2->vn, e2->v1,e2->v2,NULL,NULL);
 			}
 			if(e3 && e3->vn) {
 				test+= 4;
@@ -1500,6 +1553,7 @@ void subdivideflag(int flag, float rad, int beauty)
 				/* add edges here, to copy correct edge data */
 				eed= addedgelist(e3->v1, e3->vn, e3);
 				eed= addedgelist(e3->vn, e3->v2, e3);
+				set_weights(e3->vn, e3->v1,e3->v2,NULL,NULL);
 			}
 			if(e4 && e4->vn) {
 				test+= 8;
@@ -1507,6 +1561,7 @@ void subdivideflag(int flag, float rad, int beauty)
 				/* add edges here, to copy correct edge data */
 				eed= addedgelist(e4->v1, e4->vn, e4);
 				eed= addedgelist(e4->vn, e4->v2, e4);
+				set_weights(e4->vn, e4->v1,e4->v2,NULL,NULL);
 			}
 			if(test) {
 				if(efa->v4==0) {  /* All the permutations of 3 edges*/
@@ -1564,7 +1619,7 @@ void subdivideflag(int flag, float rad, int beauty)
 							smooth_subdiv_quad(efa, vec);	/* adds */
 						}
 						eve= addvertlist(vec);
-						
+						set_weights(eve, efa->v1,efa->v2,efa->v3,efa->v4);
 						eve->f |= flag;
 
 						addface_subdiv(efa, 2, 2+4, 9, 1+4, eve, &efapin);
@@ -1621,6 +1676,7 @@ void subdivideflag(int flag, float rad, int beauty)
 							vec[1]=(e1->vn->co[1]+e2->vn->co[1])/2;
 							vec[2]=(e1->vn->co[2]+e2->vn->co[2])/2;
 							eve= addvertlist(vec);
+							set_weights(eve, e1->vn,e2->vn,NULL,NULL);
 							eve->f |= flag;
 							/* Add new faces */
 							addface_subdiv(efa, 4, 10, 2+4, 3, eve, &efapin);
@@ -1639,6 +1695,7 @@ void subdivideflag(int flag, float rad, int beauty)
 							vec[1]=(e2->vn->co[1]+e3->vn->co[1])/2;
 							vec[2]=(e2->vn->co[2]+e3->vn->co[2])/2;
 							eve= addvertlist(vec);
+							set_weights(eve, e2->vn,e3->vn,NULL,NULL);
 							eve->f |= flag;
 							/*New faces*/
 							addface_subdiv(efa, 1, 11, 3+4, 4, eve, &efapin);
@@ -1657,6 +1714,7 @@ void subdivideflag(int flag, float rad, int beauty)
 							vec[1]=(e3->vn->co[1]+e4->vn->co[1])/2;
 							vec[2]=(e3->vn->co[2]+e4->vn->co[2])/2;
 							eve= addvertlist(vec);
+							set_weights(eve, e3->vn,e4->vn,NULL,NULL);
 							eve->f |= flag;
 							/*New Faces*/
 							addface_subdiv(efa, 2, 12, 4+4, 1, eve, &efapin);
@@ -1675,6 +1733,7 @@ void subdivideflag(int flag, float rad, int beauty)
 							vec[1]=(e1->vn->co[1]+e4->vn->co[1])/2;
 							vec[2]=(e1->vn->co[2]+e4->vn->co[2])/2;
 							eve= addvertlist(vec);
+							set_weights(eve, e1->vn,e4->vn,NULL,NULL);
 							eve->f |= flag;
 							/*New Faces*/
 							addface_subdiv(efa, 3, 13, 1+4, 2, eve, &efapin);

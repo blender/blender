@@ -1399,7 +1399,8 @@ void RE_animrender(struct View3D *ogl_render_view3d)
 		}
 		start_avi();
 	}
-
+// set initial conditions for softbodies here
+// ******************************************
 	for((G.scene->r.cfra)=(G.scene->r.sfra); (G.scene->r.cfra)<=(G.scene->r.efra); (G.scene->r.cfra)++) {
 		double starttime= PIL_check_seconds_timer();
 

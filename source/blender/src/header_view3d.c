@@ -3919,6 +3919,7 @@ void view3d_buttons(void)
 	uiBlockEndAlign(block);
 	
 	xco+= XIC+8;
+
 	
 	/* LAYERS */
 	if(G.vd->localview==0) {
@@ -4001,6 +4002,11 @@ void view3d_buttons(void)
 						 xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
 						 "Pastes the mirrored pose from the buffer");
 		}
+	}
+    {
+	extern short SB_ENABLE;
+	xco+= XIC+8;
+	uiDefButS(block, TOG|BIT|1, B_DIFF, "Soft",	xco,0,XIC*3,YIC, &SB_ENABLE, 0, 0, 0, 0, "Force Softbodies to goal");
 	}
 
 	/* Always do this last */

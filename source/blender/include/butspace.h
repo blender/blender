@@ -451,6 +451,19 @@ enum {
 #define B_SHOWTEX		2832
 #define B_ASSIGNMESH	2833
 
+#define B_WEIGHT0_0	    2840
+#define B_WEIGHT1_4	    2841
+#define B_WEIGHT1_2	    2842
+#define B_WEIGHT3_4	    2843
+#define B_WEIGHT1_0	    2844
+
+#define B_OPA0_0	    2845
+#define B_OPA1_4	    2846
+#define B_OPA1_2	    2847
+#define B_OPA3_4	    2848
+#define B_OPA1_0	    2849
+
+
 
 /* *********************** */
 #define B_RADIOBUTS		3000

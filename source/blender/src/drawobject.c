@@ -4322,7 +4322,7 @@ void draw_object(Base *base)
 			if(ob->parent && ob->partype==PARSKEL) makeDispList(ob);
 			else if(ob->parent && ob->parent->type==OB_LATTICE) makeDispList(ob);
 			else if(ob->hooks.first) makeDispList(ob);
-			else if(ob->softflag) makeDispList(ob);
+			else if(ob->softflag & 0x01) makeDispList(ob);
 			else if(me->disp.first==NULL && mesh_uses_displist(me)) makeDispList(ob);
 			else if(ob->effect.first) {	// as last check
 				Effect *eff= ob->effect.first;

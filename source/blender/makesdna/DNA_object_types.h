@@ -150,7 +150,7 @@ typedef struct Object {
 	 * For a Sphere, the form factor is by default = 0.4
 	 */
 
-	float formfactor, springf;		/* springf temp for softbody */
+	float formfactor, softtime;		/* springf temp for softbody */
 	float rdamping, sizefac;
 	
 	char dt, dtx;
@@ -186,7 +186,7 @@ typedef struct Object {
 	 * bit 15: Always ignore activity culling 
 	 */
 	int gameflag2;
-	short softflag, pad;			/* temporal stuff softbody experiment */
+	short softflag, dummy;			/* temporal stuff softbody experiment */
 	float anisotropicFriction[3];
 
 	ListBase constraints;
@@ -201,6 +201,20 @@ typedef struct Object {
 	LBuf port;
 
 	float toonedge, smoothresh;	/* smoothresh is phong interpolation ray_shadow correction in render */
+/* this stuff MUST NOT be here
+   is here for softbody devel purpose 
+*/
+	float sb_goalspring; /* softbody goal springs */
+	float sb_goalfrict;   /* softbody goal springs friction */
+	float sb_inspring;	 /* softbody inner springs */
+	float sb_infrict;   /* softbody inner springs friction */
+	float sb_nodemass;	 /* softbody mass of *vertex* */
+	float sb_grav;      /* softbody amount of gravitaion to apply */
+	float sb_mingoal;   /* quick limits for goal */
+	float sb_maxgoal;
+	float sb_mediafrict;   /* friction to env */
+	float sb_pad1;        /* free */
+    
 } Object;
 
 typedef struct ObHook {

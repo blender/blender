@@ -35,8 +35,10 @@
 #define BKE_SOFTBODY_H
 
 typedef struct BodyPoint {
-	float orig[3], pos[3], vec[3], force[3];
+	float origS[3], origE[3], origT[3], pos[3], vec[3], force[3];
 	float weight, goal;
+	float prevpos[3], prevvec[3], prevdx[3], prevdv[3]; /* used for Heun integration */
+    int nofsprings; int *springs;
 } BodyPoint;
 
 typedef struct BodySpring {
@@ -57,7 +59,7 @@ typedef struct SoftBody {
 extern void free_softbody(SoftBody *sb);
 
 /* makes totally fresh start situation */
-extern void object_to_softbody(Object *ob);
+extern void object_to_softbody(Object *ob,float ctime);
 
 /* copy original (but new) situation in softbody, as result of matrices or deform */
 void object_update_softbody(Object *ob);

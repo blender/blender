@@ -1434,12 +1434,72 @@ static void object_panel_deflectors(Object *ob)
 		}
 		uiBlockEndAlign(block);
 	}
-
+/*
 	if(strncmp(ob->id.name+2, "soft", 4)==0) {
-		uiDefButS(block, TOG|BIT|0, B_DIFF, "Soft Body",	220,160,200,20, &ob->softflag, 0, 0, 0, 0, "Sets object to become soft body");
-		uiDefButF(block, NUM, B_DIFF, "Spring: ",			220,140,200,20, &ob->springf, 0.0, 1.0, 10, 0, "Spring constant");
-		uiDefButF(block, NUM, B_DIFF, "Damp: ",				220,120,200,20, &ob->damping, 0.0, 1.0, 10, 0, "General damping in softbody on point movements");
+		int ypos = 220;
+		uiBlockBeginAlign(block);
+		uiDefButS(block, TOG|BIT|0, B_DIFF, "Soft Body",	220,ypos,200,20, &ob->softflag, 0, 0, 0, 0, "Sets object to become soft body");
+
+		uiDefButS(block, TOG|BIT|1, B_DIFF, "Stiff Quads",	220,ypos -= 20,100,20, &ob->softflag, 0, 0, 0, 0, "Sets object to have diagonal springs on 4-gons");
+		uiDefButS(block, TOG|BIT|2, B_DIFF, "R sol 1",	    320,ypos,100,20, &ob->softflag, 0, 0, 0, 0, "Use Robust 2nd order solver");
+		
+		uiDefButF(block, NUMSLI, B_DIFF, "GSpring:", 220,ypos -= 20,200,20, &ob->sb_goalspring, 0.0, 0.999, 10, 0, "Goal Spring Constant");
+		uiDefButF(block, NUM, B_DIFF, "GFrict:", 220,ypos -= 20,200,20, &ob->sb_goalfrict  , 0.0, 10.0, 10, 0, "Goal Friction Constant");
+		uiDefButF(block, NUMSLI, B_DIFF, "ISpring:", 220,ypos -= 20,200,20, &ob->sb_inspring, 0.0,  0.999, 10, 0, "Inner Spring Constant");
+		uiDefButF(block, NUM, B_DIFF, "IFrict:", 220,ypos -= 20,200,20, &ob->sb_infrict, 0.0,  10.0, 10, 0, "Inner Friction Constant");
+		uiDefButF(block, NUM, B_DIFF, "MFrict:", 220,ypos -= 20,200,20, &ob->sb_mediafrict, 0.0, 10.0, 10, 0, "Friction in media");
+
+		if (ob->softflag & 0x4)
+		uiDefButF(block, NUMSLI, B_DIFF, "RKL:", 220,ypos -= 20,200,20, &ob->softtime , 0.01, 1.0, 10, 0, "ODE solver error limit");
+		else
+		uiDefButF(block, NUM, B_DIFF, "Steps:", 220,ypos -= 20,200,20, &ob->softtime , 1.0, 500.0, 10, 0, "Softbody time");
+
+		uiDefButF(block, NUM, B_DIFF, "NMass:", 220,ypos -= 20,200,20, &ob->sb_nodemass , 0.001, 50.0, 10, 0, "Node Mass");
+		uiDefButF(block, NUM, B_DIFF, "Grav:", 220,ypos -= 20,200,20, &ob->sb_grav , 0.0, 10.0, 10, 0, "Gravitation");
+		uiDefButF(block, NUMSLI, B_DIFF, "GMin:", 220,ypos -= 20,200,20, &ob->sb_mingoal, 0.0, 1.0, 10, 0, "Min Goal bound");
+		uiDefButF(block, NUMSLI, B_DIFF, "GMax:", 220,ypos -= 20,200,20, &ob->sb_maxgoal, 0.0, 1.0, 10, 0, "Max Goal bound");
+		uiDefButS(block, TOG|BIT|3, B_DIFF, "PostDef",220,ypos-= 20,100,20, &ob->softflag, 0, 0, 0, 0, "Apply Soft AFTER Deform");
+		uiBlockEndAlign(block);
 	}
+*/
+}
+
+/* Panel for softbodies */
+
+static void object_softbodies(Object *ob)
+{
+	uiBlock *block;
+	int ypos = 220;
+	if(strncmp(ob->id.name+2, "soft", 4)!=0) {return;}
+	block= uiNewBlock(&curarea->uiblocks, "object_softbodies", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Constraints", "Object");
+	if(uiNewPanel(curarea, block, "Softbodies", "Object", 640, 0, 318, 204)==0) return;
+
+	uiBlockBeginAlign(block);
+		uiDefButS(block, TOG|BIT|0, REDRAWBUTSOBJECT, "Soft Body",	220,ypos,200,20, &ob->softflag, 0, 0, 0, 0, "Sets object to become soft body");
+		if ( ob->softflag & 0x01) {
+		uiDefButS(block, TOG|BIT|1, B_DIFF, "Stiff Quads",	220,ypos -= 20,100,20, &ob->softflag, 0, 0, 0, 0, "Sets object to have diagonal springs on 4-gons");
+		uiDefButS(block, TOG|BIT|2, B_DIFF, "R sol 1",	    320,ypos,100,20, &ob->softflag, 0, 0, 0, 0, "Use Robust 2nd order solver");
+		
+		uiDefButF(block, NUMSLI, B_DIFF, "GSpring:", 220,ypos -= 20,200,20, &ob->sb_goalspring, 0.0, 0.999, 10, 0, "Goal Spring Constant");
+		uiDefButF(block, NUM, B_DIFF, "GFrict:", 220,ypos -= 20,200,20, &ob->sb_goalfrict  , 0.0, 10.0, 10, 0, "Goal Friction Constant");
+		uiDefButF(block, NUMSLI, B_DIFF, "ISpring:", 220,ypos -= 20,200,20, &ob->sb_inspring, 0.0,  0.999, 10, 0, "Inner Spring Constant");
+		uiDefButF(block, NUM, B_DIFF, "IFrict:", 220,ypos -= 20,200,20, &ob->sb_infrict, 0.0,  10.0, 10, 0, "Inner Friction Constant");
+		uiDefButF(block, NUM, B_DIFF, "MFrict:", 220,ypos -= 20,200,20, &ob->sb_mediafrict, 0.0, 10.0, 10, 0, "Friction in media");
+
+		if (ob->softflag & 0x4)
+		uiDefButF(block, NUMSLI, B_DIFF, "RKL:", 220,ypos -= 20,200,20, &ob->softtime , 0.01, 1.0, 10, 0, "ODE solver error limit");
+		else
+		uiDefButF(block, NUM, B_DIFF, "Steps:", 220,ypos -= 20,200,20, &ob->softtime , 1.0, 500.0, 10, 0, "Softbody time");
+
+		uiDefButF(block, NUM, B_DIFF, "NMass:", 220,ypos -= 20,200,20, &ob->sb_nodemass , 0.001, 50.0, 10, 0, "Node Mass");
+		uiDefButF(block, NUM, B_DIFF, "Grav:", 220,ypos -= 20,200,20, &ob->sb_grav , 0.0, 10.0, 10, 0, "Gravitation");
+		uiDefButF(block, NUMSLI, B_DIFF, "GMin:", 220,ypos -= 20,200,20, &ob->sb_mingoal, 0.0, 1.0, 10, 0, "Min Goal bound");
+		uiDefButF(block, NUMSLI, B_DIFF, "GMax:", 220,ypos -= 20,200,20, &ob->sb_maxgoal, 0.0, 1.0, 10, 0, "Max Goal bound");
+		uiDefButS(block, TOG|BIT|3, B_DIFF, "PostDef",220,ypos-= 20,100,20, &ob->softflag, 0, 0, 0, 0, "Apply Soft AFTER Deform");
+		}
+		uiBlockEndAlign(block);
+
 }
 
 void object_panel_effects(Object *ob)
@@ -1451,7 +1511,7 @@ void object_panel_effects(Object *ob)
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_effects", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Constraints", "Object");
-	if(uiNewPanel(curarea, block, "Effects", "Object", 640, 0, 418, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Effects", "Object", 640, 0, 318, 204)==0) return;
 
 	/* EFFECTS */
 	
@@ -1604,6 +1664,7 @@ void object_panels()
 			object_panel_effects(ob);
 		}
 		object_panel_deflectors(ob);
+		object_softbodies(ob);
 
 		uiClearButLock();
 	}
