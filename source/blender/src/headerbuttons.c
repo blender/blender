@@ -3426,7 +3426,8 @@ static void info_text(int x, int y)
 	if (g_progress_bar && g_progress_info) {
 		headerstr= g_progress_info;
 	} else {
-		headerstr= versionstr;
+        headerstr = "2.27.NewPy1";
+		/* headerstr= versionstr; */
 	}
 	
 	swatch_color= hsv_to_cpack(fac1, fac2, fac3);
