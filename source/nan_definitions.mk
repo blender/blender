@@ -216,27 +216,26 @@ all debug::
 
     export ID = $(shell whoami)
     export HOST = $(shell hostname -s)
-    export NAN_PYTHON ?= $(LCGDIR)/python
-    export NAN_PYTHON_VERSION ?= 2.0
-    export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-    export NAN_MXTEXTTOOLS ?= $(shell $(NAN_PYTHON_BINARY) -c \
-        'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so
-    export NAN_OPENAL ?= $(LCGDIR)/openal
+    export NAN_PYTHON ?= /usr
+    export NAN_PYTHON_VERSION ?= 2.2
+    export NAN_PYTHON_BINARY ?=
+    export NAN_MXTEXTTOOLS ?=
+    export NAN_OPENAL ?= /usr
     export NAN_FMOD ?= $(LCGDIR)/fmod
-    export NAN_JPEG ?= $(LCGDIR)/jpeg
-    export NAN_PNG ?= $(LCGDIR)/png
-    export NAN_SDL ?= $(LCGDIR)/sdl
+    export NAN_JPEG ?= /usr
+    export NAN_PNG ?= /usr
+    export NAN_SDL ?= /usr
     export NAN_ODE ?= $(LCGDIR)/ode
-    export NAN_OPENSSL ?= $(LCGDIR)/openssl
+    export NAN_OPENSSL ?= /usr
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
-    export NAN_MESA ?= /usr/src/Mesa-3.1
-    export NAN_ZLIB ?= $(LCGDIR)/zlib
+    export NAN_MESA ?= /usr
+    export NAN_ZLIB ?= /usr
     export NAN_NSPR ?= $(LCGDIR)/nspr
 
     # Uncomment the following line to use Mozilla inplace of netscape
-    # CPPFLAGS +=-DMOZ_NOT_NET
+    export CPPFLAGS += -DMOZ_NOT_NET
     # Location of MOZILLA/Netscape header files...
-    export NAN_MOZILLA_INC ?= $(LCGDIR)/mozilla/include
+    export NAN_MOZILLA_INC ?= /usr/include/mozilla
     export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
     # Will fall back to look in NAN_MOZILLA_INC/nspr and NAN_MOZILLA_LIB
     # if this is not set.
