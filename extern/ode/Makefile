@@ -77,6 +77,9 @@ install: all
 	@$(CP) $(DISTDIR)/ode/src/joint.h $(NAN_ODE)/ode/src/
 	@$(CP) $(DISTDIR)/ode/src/objects.h $(NAN_ODE)/ode/src/
 	@$(CP) $(DISTDIR)/ode/src/obstack.h $(NAN_ODE)/ode/src/
+    ifeq ($(OS),darwin)
+	ranlib $(NAN_ODE)/lib/libode.a
+    endif
     endif
     ifeq ($(OS),windows)
 	@echo "====> $(MAKE) $@ in $(SOURCEDIR)"
