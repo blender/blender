@@ -300,7 +300,7 @@ static void do_view3d_view_alignviewmenu(void *arg, int event)
 		 */
 		G.qual |= LR_CTRLKEY|LR_ALTKEY;
 		persptoetsen(PAD0);
-		G.qual &= ~LR_CTRLKEY|LR_ALTKEY;
+		G.qual &= ~(LR_CTRLKEY|LR_ALTKEY);
 		break;
 	case 5: /* Align View to Selected (object mode) */
 		mainqenter(PADASTERKEY, 1);
