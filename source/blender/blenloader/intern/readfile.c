@@ -445,11 +445,20 @@ static Main *blo_find_main(ListBase *mainlist, char *name)
 {
 	Main *m;
 	Library *lib;
+	char name1[FILE_MAXDIR+FILE_MAXFILE];
+	char libname1[FILE_MAXDIR+FILE_MAXFILE];
+
+	/* name can be stringcode too */
+	strcpy(name1, name);
+	BLI_convertstringcode(name1, G.sce, 0);
 
 	for (m= mainlist->first; m; m= m->next) {
 		char *libname= (m->curlib)?m->curlib->name:m->name;
-
-		if (BLI_streq(name, libname))
+		
+		strcpy(libname1, libname);
+		BLI_convertstringcode(libname1, G.sce, 0);
+		
+		if (BLI_streq(name1, libname1))
 			return m;
 	}
 
@@ -781,7 +790,14 @@ static FileData *filedata_new(void)
 
 FileData *blo_openblenderfile(char *name)
 {
-	int file= open(name, O_BINARY|O_RDONLY);
+	int file;
+	char name1[FILE_MAXDIR+FILE_MAXFILE];
+	
+	/* library files can have stringcodes */
+	strcpy(name1, name);
+	BLI_convertstringcode(name1, G.sce, 0);
+	
+	file= open(name1, O_BINARY|O_RDONLY);
 
 	if (file == -1) {
 		return NULL;
@@ -5047,6 +5063,8 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 		blo_freefiledata((FileData*) sfile->libfiledata);
 		sfile->libfiledata= 0;
 	}
+	
+	if(sfile->flag & FILE_STRINGCODE) BLI_makestringcode(G.sce, mainl->curlib->name);
 }
 
 /* ************* READ LIBRARY ************** */
