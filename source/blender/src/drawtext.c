@@ -735,7 +735,7 @@ void unlink_text(Text *text)
 	}
 }
 
-static int jumptoline_interactive(SpaceText *st) {
+int jumptoline_interactive(SpaceText *st) {
 	short nlines= txt_get_span(st->text->lines.first, st->text->lines.last)+1;
 	short tmp= txt_get_span(st->text->lines.first, st->text->curl)+1;
 
@@ -874,6 +874,66 @@ void txt_copy_clipboard(Text *text) {
 		copybuffer= NULL;
 	}
 #endif
+}
+
+/*
+ * again==0 show find panel or find
+ * again==1 find text again */
+void txt_find_panel(SpaceText *st, int again)
+{
+	Text *text=st->text;
+	char *findstr= last_txt_find_string;
+			
+	if (again==0) {
+		findstr= txt_sel_to_buf(text);
+	} else if (again==1) {
+		char buf[256];
+
+	if (findstr && strlen(findstr)<(sizeof(buf)-1))
+		strcpy(buf, findstr);
+	else
+		buf[0]= 0;
+		
+	if (sbutton(buf, 0, sizeof(buf)-1, "Find: ") && buf[0])
+		findstr= BLI_strdup(buf);
+	else
+		findstr= NULL;
+	}
+
+	if (findstr!=last_txt_find_string) {
+		if (last_txt_find_string)
+			MEM_freeN(last_txt_find_string);
+		last_txt_find_string= findstr;
+	}
+				
+	if (findstr) {
+		if (txt_find_string(text, findstr))
+			pop_space_text(st);
+		else
+			error("Not found: %s", findstr);
+	}
+}
+
+void run_python_script(SpaceText *st)
+{
+	char *py_filename;
+	Text *text=st->text;
+	if (!BPY_txt_do_python(st)) {
+		int lineno = BPY_Err_getLinenumber();
+		// jump to error if happened in current text:
+		py_filename = (char*) BPY_Err_getFilename();
+		if (!strcmp(py_filename, st->text->id.name+2)) {
+			error("Python script error, check console");
+		if (lineno >= 0) {
+			txt_move_toline(text, lineno-1, 0);
+			txt_sel_line(text);
+			pop_space_text(st);
+		}	
+	} else {
+		error("Error in other (possibly external) file, "\
+		"check console");
+	}	
+	}
 }
 
 
@@ -1016,37 +1076,12 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					break;
 				}
 			} else if (G.qual & LR_ALTKEY) {
-				char *findstr= last_txt_find_string;
-				
-				if (txt_has_sel(text) && !(G.qual & LR_CTRLKEY)) {
-					findstr= txt_sel_to_buf(text);
+					if (txt_has_sel(text) && !(G.qual & LR_CTRLKEY)) {
+					txt_find_panel(st,0);
 				} else if (!last_txt_find_string || (G.qual & LR_CTRLKEY)) {
-					char buf[256];
-
-					if (findstr && strlen(findstr)<(sizeof(buf)-1))
-						strcpy(buf, findstr);
-					else
-						buf[0]= 0;
-					
-					if (sbutton(buf, 0, sizeof(buf)-1, "Find: ") && buf[0])
-						findstr= BLI_strdup(buf);
-					else
-						findstr= NULL;
+					txt_find_panel(st,1);
 				}
-
-				if (findstr!=last_txt_find_string) {
-					if (last_txt_find_string)
-						MEM_freeN(last_txt_find_string);
-					last_txt_find_string= findstr;
-				}
-				
-				if (findstr) {
-					if (txt_find_string(text, findstr))
-						pop_space_text(st);
-					else
-						error("Not found: %s", findstr);
-				}
-					
+	
 				do_draw= 1;
 			}
 			
@@ -1199,25 +1234,21 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 
+		case NKEY:
+			if (G.qual & LR_ALTKEY) {
+					st->text= add_empty_text();
+					st->top= 0;
+				
+					allqueue(REDRAWTEXT, 0);
+					allqueue(REDRAWHEADERS, 0);
+
+			}
+			break;
+
 		case PKEY:
 			if (G.qual & LR_ALTKEY) {
-				if (!BPY_txt_do_python(st)) {
-					int lineno = BPY_Err_getLinenumber();
-					// jump to error if happened in current text:
-					py_filename = (char*) BPY_Err_getFilename();
-					if (!strcmp(py_filename, st->text->id.name+2)) {
-						error("Python script error, check console");
-						if (lineno >= 0) {
-							txt_move_toline(text, lineno-1, 0);
-							txt_sel_line(text);
-							do_draw= 1;
-							pop_space_text(st);
-						}	
-					} else {
-						error("Error in other (possibly external) file, "\
-						"check console");
-					}	
-				}
+				run_python_script(st);
+				do_draw= 1;
 			}
 			break;
 			

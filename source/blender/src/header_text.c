@@ -182,11 +182,275 @@ void do_text_buttons(unsigned short event)
 	}
 }
 
+/* action executed after clicking in File menu */
+static void do_text_filemenu(void *arg, int event)
+{
+	SpaceText *st= curarea->spacedata.first;
+	Text *text= st->text;
+	ScrArea *sa;
+
+	switch(event) {
+	case 1:
+		st->text= add_empty_text();
+		st->top=0;
+
+		allqueue(REDRAWTEXT, 0);
+		allqueue(REDRAWHEADERS, 0);
+		break;
+	case 2:
+		activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE", G.sce, add_text_fs);
+		break;
+	case 3:
+		if (text->compiled) BPY_free_compiled_text(text);
+		        text->compiled = NULL;
+			if (okee("Reopen Text")) {
+				if (!reopen_text(text)) {
+					error("Could not reopen file");
+				}
+			}
+		break;
+	case 5:
+		text->flags |= TXT_ISMEM;
+	case 4:
+		txt_write_file(text);
+		break;
+	case 6:
+		run_python_script(st);
+		break;
+	default:
+		break;
+	}
+	for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+		SpaceText *st= sa->spacedata.first;
+		if (st && st->spacetype==SPACE_TEXT) {
+			scrarea_queue_redraw(sa);
+		}
+	}
+}
+
+/* action executed after clicking in Edit menu */
+static void do_text_editmenu(void *arg, int event)
+{
+	SpaceText *st= curarea->spacedata.first;
+	Text *text= st->text;
+	ScrArea *sa;
+	
+	switch(event) {
+	case 1:
+		txt_do_undo(text);
+		break;
+	case 2:
+		txt_do_redo(text);
+		break;
+	case 3:
+		txt_cut_sel(text);
+		pop_space_text(st);
+		break;
+	case 4:
+		txt_copy_sel(text);
+		break;
+	case 5:
+		txt_paste(text);
+		break;
+	case 6:
+		txt_print_cutbuffer();
+		break;
+	case 7:
+		jumptoline_interactive(st);
+		break;
+	case 8:
+		txt_find_panel(st,1);
+		break;
+	case 9:
+		txt_find_panel(st,0);
+		break;
+	case 10:
+		txt_export_to_object(text);
+		break;
+	default:
+		break;
+	}
+
+	for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+		SpaceText *st= sa->spacedata.first;
+		if (st && st->spacetype==SPACE_TEXT) {
+			scrarea_queue_redraw(sa);
+		}
+	}
+}
+
+/* action executed after clicking in View menu */
+static void do_text_editmenu_viewmenu(void *arg, int event)
+{
+	SpaceText *st= curarea->spacedata.first;
+	Text *text= st->text;
+	ScrArea *sa;
+	
+	switch(event) {
+		case 1:
+			txt_move_bof(text, 0);
+			pop_space_text(st);
+			break;
+		case 2:
+			txt_move_eof(text, 0);
+			pop_space_text(st);
+			break;
+		default:
+			break;
+	}
+
+	for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+		SpaceText *st= sa->spacedata.first;
+		if (st && st->spacetype==SPACE_TEXT) {
+			scrarea_queue_redraw(sa);
+		}
+	}
+}
+
+/* action executed after clicking in Select menu */
+static void do_text_editmenu_selectmenu(void *arg, int event)
+{
+	SpaceText *st= curarea->spacedata.first;
+	Text *text= st->text;
+	ScrArea *sa;
+	
+	switch(event) {
+	case 1:
+		txt_sel_all(text);
+		break;
+			
+	case 2:
+		txt_sel_line(text);
+		break;
+	default:
+		break;
+	}
+
+	for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+		SpaceText *st= sa->spacedata.first;
+		if (st && st->spacetype==SPACE_TEXT) {
+			scrarea_queue_redraw(sa);
+		}
+	}
+}
+
+/* View menu */
+static uiBlock *text_editmenu_viewmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "text_editmenu_viewmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_text_editmenu_viewmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Top of file", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "Go to the top of this file");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Bottom of file", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "Go to the bottom of this file");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	
+	return block;
+}
+
+/* Select menu */
+static uiBlock *text_editmenu_selectmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "text_editmenu_selectmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_text_editmenu_selectmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select All|Ctrl A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "Select whole text in current file");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Line", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "Select current line");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	
+	return block;
+}
+
+/* Edit menu */
+static uiBlock *text_editmenu(void *arg_unused)
+{
+	SpaceText *st= curarea->spacedata.first;
+	Text *text= st->text;
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "text_editmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_text_editmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo|Alt U", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "Undo last change");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Redo|Alt Shift U", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "Redo last change");
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cut|Alt X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "Cut selected text to the clipboard");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Copy|Alt C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "Copy selected text to the clipboard");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Paste|Alt V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "Paste text from clipboard");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Print Cut Buffer", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "Print clipboard to the console");
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBlockBut(block, text_editmenu_viewmenu, NULL, ICON_RIGHTARROW_THIN, "View|Alt Shift V   ", 0, yco-=20, 120, 19, "");
+	uiDefIconTextBlockBut(block, text_editmenu_selectmenu, NULL, ICON_RIGHTARROW_THIN, "Select|Alt Shift S   ", 0, yco-=20, 120, 19, "");
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Jump...|Alt J", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "Jump to line");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find...|Alt Ctrl F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "Find text");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find Again|Alt F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "Find text again");
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Export|Alt M", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "Export text into the 3dview");
+	
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+	return block;
+}
+
+/* File menu */
+static uiBlock *text_filemenu(void *arg_unused)
+{
+	SpaceText *st= curarea->spacedata.first;
+	Text *text= st->text;
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "text_filemenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_text_filemenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "New|Alt N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "Create new file");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Open...|Alt O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "Open existing file");
+	if(text) {
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reopen|Alt R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "Reopen current file");
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "Save current file");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save as...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "Save current file to another file");
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Run|Alt P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "Run current python script");
+	}
+
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+	return block;
+}
+
+/* header */
 void text_buttons(void)
 {
 	uiBlock *block;
 	SpaceText *st= curarea->spacedata.first;
-	short xco;
+	Text *text= st->text;
+	short xco, xmax;
 	char naam[256];
 	
 	if (!st || st->spacetype != SPACE_TEXT) return;
@@ -204,6 +468,22 @@ void text_buttons(void)
 	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), xco,0,XIC+10,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
 
 	xco+= XIC+22;
+	
+	/* pull down menus */
+	uiBlockSetEmboss(block, UI_EMBOSSP);
+
+	xmax= GetButStringLength("File");
+	uiDefBlockBut(block,text_filemenu, NULL, "File", xco, 0, xmax, 20, "");
+	xco+=xmax;
+
+	if(text) {
+	xmax= GetButStringLength("Edit");
+	uiDefBlockBut(block,text_editmenu, NULL, "Edit", xco, 0, xmax, 20, "");
+	xco+=xmax;
+	}
+
+	uiBlockSetEmboss(block, UI_EMBOSSX);
+	xco += 10;
 	
 	/* FULL WINDOW */
 	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
