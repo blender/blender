@@ -224,12 +224,19 @@ static ScrEdge *screen_find_active_scredge(bScreen *sc, short *mval)
 	
 	for (se= sc->edgebase.first; se; se= se->next) {
 		if (scredge_is_horizontal(se)) {
-			if (abs(mval[1]-se->v1->vec.y)<=2 &&
-					abs(mval[0]-se->v1->vec.x)<=abs(se->v2->vec.x-se->v1->vec.x))
+			short min, max;
+			min= MIN2(se->v1->vec.x, se->v2->vec.x);
+			max= MAX2(se->v1->vec.x, se->v2->vec.x);
+			
+			if (abs(mval[1]-se->v1->vec.y)<=2 && mval[0] >= min && mval[0]<=max)
 				return se;
-		} else {
-			if (abs(mval[0]-se->v1->vec.x)<=2 &&
-					abs(mval[1]-se->v1->vec.y)<=abs(se->v2->vec.y-se->v1->vec.y))
+		} 
+		else {
+			short min, max;
+			min= MIN2(se->v1->vec.y, se->v2->vec.y);
+			max= MAX2(se->v1->vec.y, se->v2->vec.y);
+
+			if (abs(mval[0]-se->v1->vec.x)<=2 && mval[1] >= min && mval[1]<=max)
 				return se;
 		}
 	}
