@@ -295,6 +295,12 @@ class Object:
     @return: (SizeX, SizeY, SizeZ)
     """
 
+  def getTimeOffset():
+    """
+    Returns the time offset of the object's animation.
+    @return: TimeOffset
+    """
+
   def getTracked():
     """
     Returns the object's tracked object.
@@ -439,6 +445,13 @@ class Object:
     @param z: The Z size multiplier.
     """
 
+  def setTimeOffset(timeOffset):
+    """
+    Sets the time offset of the object's animation.
+    @type timeOffset: float
+    @param timeOffset: The new time offset for the object's animation.
+    """
+	
   def shareFrom(object):
     """
     Link data of self with object specified in the argument. This works only

@@ -234,7 +234,7 @@ class IpoCurve:
 
   def getName():
     """
-		Returns the name of the ipo curve.This name can be : LocX,LocY,LocZ,dLocX,dLocY,dLocZ,RotX,RotY,RotZ,dRotX,dRotY,dRotZ,SizeX,SizeY,SizeZ,dSizeX,dSizeY,dSizeZ,Layer,Time,ColR,ColG,ColB, or ColA.
+		Returns the name of the ipo curve.This name can be : LocX,LocY,LocZ,dLocX,dLocY,dLocZ,RotX,RotY,RotZ,dRotX,dRotY,dRotZ,SizeX,SizeY,SizeZ,dSizeX,dSizeY,dSizeZ,Layer,Time,ColR,ColG,ColB,ColA,QuatX,QuatY,QuatZ,QuatW or TotIpo. Currently only works with object and action IPO's..
 		@rtype: string
 		@return: the name of the ipo curve.
     """
