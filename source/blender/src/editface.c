@@ -53,6 +53,7 @@
 
 #include "DNA_image_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"

@@ -42,6 +42,7 @@
 #include "BLI_blenlib.h"
 
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"
 #include "DNA_object_types.h"

@@ -93,6 +93,7 @@
 
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_material_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_curve_types.h"

@@ -56,6 +56,7 @@
 #include "DNA_image_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "BKE_main.h"
 #include "BKE_global.h"

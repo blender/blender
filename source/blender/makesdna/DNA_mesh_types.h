@@ -43,13 +43,6 @@ struct MCol;
 struct MSticky;
 struct Mesh;
 struct OcInfo;
-struct bDeformGroup;
-
-typedef struct MFace {
-	unsigned int v1, v2, v3, v4;
-	char puno, mat_nr;
-	char edcode, flag;
-} MFace;
 
 typedef struct TFace {
 
@@ -61,36 +54,6 @@ typedef struct TFace {
 	char flag, transp;
 	short mode, tile, pad;
 } TFace;
-
-typedef struct MDeformWeight {	/* __NLA */
-	int				def_nr;		/* __NLA */
-	float			weight;		/* __NLA */
-	struct Bone		*data;		/* __NLA */	/* Runtime: Does not need to be valid in file */
-} MDeformWeight;				/* __NLA */
-
-typedef struct MDeformVert {	/* __NLA */
-	struct MDeformWeight *dw;	/* __NLA */
-	int totweight;				/* __NLA */
-	int reserved1;				/* __NLA */	
-} MDeformVert;					/* __NLA */
-
-
-typedef struct MVert {
-	float	co[3];
-	short	no[3];
-	char flag, mat_nr;
-} MVert;
-
-
-typedef struct MCol {
-	char a, r, g, b;
-} MCol;
-
-
-typedef struct MSticky {
-	float co[2];
-} MSticky;
-
 
 typedef struct Mesh {
 	ID id;

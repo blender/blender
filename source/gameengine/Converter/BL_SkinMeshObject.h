@@ -44,6 +44,7 @@
 #include "BL_MeshDeformer.h"
 
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 typedef vector<struct MVert*> BL_MVertArray;
 typedef vector<struct MDeformVert*> BL_DeformVertArray;

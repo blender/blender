@@ -46,6 +46,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_global.h"

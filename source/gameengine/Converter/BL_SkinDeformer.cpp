@@ -48,6 +48,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "BKE_armature.h"
 #include "BKE_action.h"
 #include "MT_Point3.h"

@@ -115,6 +115,7 @@
 #include "DNA_controller_types.h"
 #include "DNA_actuator_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 #include "DNA_sound_types.h"

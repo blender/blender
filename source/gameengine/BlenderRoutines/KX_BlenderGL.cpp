@@ -56,6 +56,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_world_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_image_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_material_types.h"

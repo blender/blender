@@ -78,6 +78,7 @@
 #include "DNA_world_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"
 #include "DNA_curve_types.h"
