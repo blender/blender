@@ -901,7 +901,7 @@ void ui_draw_panel(uiBlock *block)
 	}
 	/* an open panel */
 	else {
-		/* panel in the buttons window */
+		/* all panels now... */
 		if(panel->control & UI_PNL_SOLID) {
 			BIF_ThemeColorShade(TH_HEADER, -30);
 
@@ -913,8 +913,8 @@ void ui_draw_panel(uiBlock *block)
 			glEnable(GL_BLEND);
 			BIF_ThemeColor4(TH_PANEL);
 			
-			uiSetRoundBox(15);
-			uiRoundBox(block->minx, block->miny, block->maxx, block->maxy+PNL_HEADER, 8);
+			uiSetRoundBox(12);
+			uiRoundBox(block->minx, block->miny, block->maxx, block->maxy, 8);
 
 			// glRectf(block->minx, block->miny, block->maxx, block->maxy);
 			
