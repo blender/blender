@@ -31,10 +31,6 @@
 
 #include "KX_BlenderRenderTools.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 // OpenGL gl.h needs 'windows.h' on windows platforms 
 #include <windows.h>
@@ -442,6 +438,7 @@ RAS_IPolyMaterial* KX_BlenderRenderTools::CreateBlenderPolyMaterial(
 		texname,
 		ba,matname,tile,tilexrep,tileyrep,mode,transparant,zsort, lightlayer
 		,bIsTriangle,clientobject,(struct TFace*)tface);*/
+	return NULL;
 }
 
 unsigned int KX_BlenderRenderTools::m_numgllights;

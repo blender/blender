@@ -30,10 +30,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <assert.h>
 
 #ifdef WIN32
@@ -338,6 +334,7 @@ RAS_IPolyMaterial* GPC_RenderTools::CreateBlenderPolyMaterial(
 /*	return new GPC_PolygonMaterial(texname, ba,matname,tile,tilexrep,tileyrep,
 			mode,transparant,zsort,lightlayer,bIsTriangle,clientobject,tface);
 			*/
+	return NULL;
 }
 
 
