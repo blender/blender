@@ -51,8 +51,9 @@
 #include "DNA_packedFile_types.h"
 #include "DNA_curve_types.h"
 
+// increased max to 255, including extended charset (ton)
 #define myMIN_ASCII 	32
-#define myMAX_ASCII 	126
+#define myMAX_ASCII 	255
 
 // should come from arithb.c
 #define MIN2(x,y)               ( (x)<(y) ? (x) : (y) )
