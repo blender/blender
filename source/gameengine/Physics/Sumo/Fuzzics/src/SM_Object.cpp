@@ -49,7 +49,7 @@
 
 #include "MT_MinMax.h"
 
-MT_Scalar SM_Object::ImpulseThreshold = -0.01;
+MT_Scalar SM_Object::ImpulseThreshold = -1.0;
 
 struct Contact
 {
@@ -278,12 +278,12 @@ void SM_Object::dynamicCollision(const MT_Point3 &local2,
 	/**
 	 * if rel_vel_normal > 0, the objects are moving apart! 
 	 */
-	if (rel_vel_normal < 0.) {
+	if (rel_vel_normal < -MT_EPSILON) {
 		/**
 		 * if rel_vel_normal < ImpulseThreshold, scale the restitution down.
 		 * This should improve the simulation where the object is stacked.
-		 */
-		restitution *= MT_min(MT_Scalar(1.0), m_shapeProps->m_mass*rel_vel_normal/ImpulseThreshold);
+		 */	
+		restitution *= MT_min(MT_Scalar(1.0), rel_vel_normal/ImpulseThreshold);
 				
 		MT_Scalar impulse = -(1.0 + restitution) * rel_vel_normal;
 		
@@ -607,9 +607,6 @@ SM_Object::SM_Object() :
 	m_scaling(1.0, 1.0, 1.0),
 	m_reaction_impulse(0.0, 0.0, 0.0),
 	m_reaction_force(0.0, 0.0, 0.0),
-	m_kinematic(false),
-	m_prev_kinematic(false),
-	m_is_rigid_body(false),
 	m_lin_mom(0.0, 0.0, 0.0),
 	m_ang_mom(0.0, 0.0, 0.0),
 	m_force(0.0, 0.0, 0.0),
@@ -617,7 +614,10 @@ SM_Object::SM_Object() :
 	m_error(0.0, 0.0, 0.0),
 	m_combined_lin_vel (0.0, 0.0, 0.0),
 	m_combined_ang_vel (0.0, 0.0, 0.0),
-	m_fh_object(0) 
+	m_fh_object(0),
+	m_kinematic(false),
+	m_prev_kinematic(false),
+	m_is_rigid_body(false)
 {
 	// warning no initialization of variables done by moto.
 }
