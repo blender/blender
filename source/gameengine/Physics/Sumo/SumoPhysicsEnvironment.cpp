@@ -38,8 +38,7 @@
 #include <config.h>
 #endif
 
-//#include <SOLID/SOLID.h>
-
+MT_Scalar SumoPhysicsEnvironment::UpperBoundForFuzzicsIntegrator = 0.01;
 
 SumoPhysicsEnvironment::SumoPhysicsEnvironment()
 {

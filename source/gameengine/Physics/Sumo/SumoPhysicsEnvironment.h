@@ -68,7 +68,7 @@ public:
 
 protected:
 	// At least 100Hz (isn't this CPU hungry ?)
-	static const MT_Scalar UpperBoundForFuzzicsIntegrator = 0.01;
+	static MT_Scalar UpperBoundForFuzzicsIntegrator;
 
 };
 
