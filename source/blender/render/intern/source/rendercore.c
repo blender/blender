@@ -1906,65 +1906,91 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	if(ma->mode & MA_ONLYSHADOW) {
 		float ir;
 		
-		shadfac[3]= ir= 0.0;
-		for(a=0; a<R.totlamp; a++) {
-			lar= R.la[a];
-			/* yafray: ignore shading by photonlights, not used in Blender */
-			if (lar->type==LA_YF_PHOTON) continue;
+		if(R.r.mode & R_SHADOW) {
 			
-			if(lar->mode & LA_LAYER) if((lar->lay & vlr->lay)==0) continue;
-			
-			lv[0]= shi->co[0]-lar->co[0];
-			lv[1]= shi->co[1]-lar->co[1];
-			lv[2]= shi->co[2]-lar->co[2];
-
-			if(lar->type==LA_SPOT) {
-				/* only test within spotbundel */
-				if(lar->shb || (lar->mode & LA_SHAD_RAY)) {
-
-					Normalise(lv);
-					inpr= lv[0]*lar->vec[0]+lv[1]*lar->vec[1]+lv[2]*lar->vec[2];
-					if(inpr>lar->spotsi) {
-						
-						inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
-						
-						if(lar->shb) i = testshadowbuf(lar->shb, shi->co, inp);
-						else {
-							float shad[4];
-							ray_shadow(shi, lar, shad);
-							i= shad[3];
-						}
-						
-						t= inpr - lar->spotsi;
-						if(t<lar->spotbl && lar->spotbl!=0.0) {
-							t/= lar->spotbl;
-							t*= t;
-							i= t*i+(1.0-t);
-						}
-						
-						shadfac[3]+= i;
-						ir+= 1.0;
-					}
-					else {
-						shadfac[3]+= 1.0;
-						ir+= 1.0;
-					}
-				}
-			}
-			else if(lar->mode & LA_SHAD_RAY) {
-				float shad[4];
+			shadfac[3]= ir= 0.0;
+			for(a=0; a<R.totlamp; a++) {
+				lar= R.la[a];
+				/* yafray: ignore shading by photonlights, not used in Blender */
+				if (lar->type==LA_YF_PHOTON) continue;
 				
-				/* single sided? */
-				if( vlr->n[0]*lv[0] + vlr->n[1]*lv[1] + vlr->n[2]*lv[2] > -0.01) {
-					ray_shadow(shi, lar, shad);
-					shadfac[3]+= shad[3];
-					ir+= 1.0;
-				}
-			}
+				if(lar->mode & LA_LAYER) if((lar->lay & vlr->lay)==0) continue;
+				
+				lv[0]= shi->co[0]-lar->co[0];
+				lv[1]= shi->co[1]-lar->co[1];
+				lv[2]= shi->co[2]-lar->co[2];
 
+				if(lar->type==LA_SPOT) {
+					/* only test within spotbundel */
+					if(lar->shb || (lar->mode & LA_SHAD_RAY)) {
+
+						Normalise(lv);
+						inpr= lv[0]*lar->vec[0]+lv[1]*lar->vec[1]+lv[2]*lar->vec[2];
+						if(inpr>lar->spotsi) {
+							
+							inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
+							
+							if(lar->shb) i = testshadowbuf(lar->shb, shi->co, inp);
+							else {
+								float shad[4];
+								ray_shadow(shi, lar, shad);
+								i= shad[3];
+							}
+							
+							t= inpr - lar->spotsi;
+							if(t<lar->spotbl && lar->spotbl!=0.0) {
+								t/= lar->spotbl;
+								t*= t;
+								i= t*i+(1.0-t);
+							}
+							
+							shadfac[3]+= i;
+							ir+= 1.0;
+						}
+						else {
+							shadfac[3]+= 1.0;
+							ir+= 1.0;
+						}
+					}
+				}
+				else if(lar->mode & LA_SHAD_RAY) {
+					float shad[4];
+					
+					/* single sided? */
+					if( vlr->n[0]*lv[0] + vlr->n[1]*lv[1] + vlr->n[2]*lv[2] > -0.01) {
+						ray_shadow(shi, lar, shad);
+						shadfac[3]+= shad[3];
+						ir+= 1.0;
+					}
+				}
+
+			}
+			if(ir>0.0) {
+				shadfac[3]/= ir;
+				shr->alpha= (shi->mat->alpha)*(1.0-shadfac[3]);
+			}
 		}
-		if(ir>0.0) shadfac[3]/= ir;
-		shr->alpha= (shi->mat->alpha)*(1.0-shadfac[3]);
+		
+		if((R.wrld.mode & WO_AMB_OCC) && (R.r.mode & R_RAYTRACE) && shi->matren->amb!=0.0) {
+			float f;
+
+			ray_ao(shi, &R.wrld, shadfac);	// shadfac==0: full light
+			shadfac[3]= 1.0-shadfac[3];
+			
+			f= R.wrld.aoenergy*shadfac[3]*shi->matren->amb;
+			
+			if(R.wrld.aomix==WO_AOADD) {
+				shr->alpha += f;
+				shr->alpha *= f;
+			}
+			else if(R.wrld.aomix==WO_AOSUB) {
+				shr->alpha += f;
+			}
+			else {
+				shr->alpha *= f;
+				shr->alpha += f;
+			}
+		}
 		
 		return;
 	}
@@ -2856,6 +2882,7 @@ void shadepixel_short(float x, float y, int vlaknr, int mask, unsigned short *sh
 		shortcol[0]= igamtab2[ shortcol[0] ];
 		shortcol[1]= igamtab2[ shortcol[1] ];
 		shortcol[2]= igamtab2[ shortcol[2] ];
+		shortcol[3]= igamtab2[ shortcol[3] ];
 	}
 	
 	if(R.r.dither_intensity!=0.0) {
