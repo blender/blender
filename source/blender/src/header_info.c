@@ -230,6 +230,19 @@ void write_dxf_fs()
 		activate_fileselect(FILE_SPECIAL, "Save DXF", videosc_dir, write_dxf);	
 	}
 }
+
+void write_stl_fs()
+{
+	if(G.obedit) {
+		error("Can't save STL. Press TAB to leave EditMode");
+	}
+	else {
+
+		if(videosc_dir[0]==0) strcpy(videosc_dir, G.sce);
+
+		activate_fileselect(FILE_SPECIAL, "SAVE STL", videosc_dir, write_stl);
+	}
+}
 /* ------------ */
 
 int buttons_do_unpack()
@@ -735,17 +748,63 @@ static uiBlock *info_file_exportmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "exportmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_file_exportmenu, NULL);
 	//uiBlockSetXOfs(block, -50);  // offset to parent button
-	
-	uiDefBut(block, BUTM, 1, "VRML 1.0...|Ctrl F2",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefBut(block, BUTM, 1, "DXF...|Shift F2",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefBut(block, BUTM, 1, "Videoscape...|Alt W",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, BUTM, 1, "VRML 1.0...|Ctrl F2",
+			 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, 1, "DXF...|Shift F2",
+			 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefBut(block, BUTM, 1, "Videoscape...|Alt W",
+			 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 2, "");
 
-/* note that we acount for the 3 previous entries with i+3: */
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 
+			 0.0, 0.0, 0, 0, "");
+
+	/* note that we acount for the 3 previous entries with i+3: */
 	for (pym = BPyMenuTable[PYMENU_EXPORT]; pym; pym = pym->next, i++) {
-		uiDefBut(block, BUTM, 1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i+3, pym->tooltip?pym->tooltip:pym->filename);
+		uiDefBut(block, BUTM, 1, pym->name, 0, yco-=20, menuwidth, 19, 
+				 NULL, 0.0, 0.0, 1, i+3, 
+				 pym->tooltip?pym->tooltip:pym->filename);
 	}
+
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+
+	return block;
+}
+
+static void do_info_file_exportselmenu(void *arg, int event)
+{
+	ScrArea *sa;
+
+	if(curarea->spacetype==SPACE_INFO) {
+		sa= closest_bigger_area();
+		areawinset(sa->win);
+	}
+
+	/* these are no defines, easier this way (yeah right!), 
+	   the codes are in the function below */
+	switch(event) {
+									
+	case 0:
+		write_stl_fs();
+		break;
+	}
+	allqueue(REDRAWINFO, 0);
+}
+
+static uiBlock *info_file_exportselmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20;
+
+	block= uiNewBlock(&curarea->uiblocks, "exportselectedmenu", UI_EMBOSSP, 
+					  UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_info_file_exportselmenu, NULL);
+	//uiBlockSetXOfs(block, -50);  // offset to parent button
+	
+	uiDefBut(block, BUTM, 1, "STL...",
+			 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 0, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -875,6 +934,7 @@ static uiBlock *info_filemenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Append...|Shift F1",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	uiDefIconTextBlockBut(block, info_file_importmenu, NULL, ICON_RIGHTARROW_THIN, "Import", 0, yco-=20, menuwidth, 19, "");
 	uiDefIconTextBlockBut(block, info_file_exportmenu, NULL, ICON_RIGHTARROW_THIN, "Export", 0, yco-=20, menuwidth, 19, "");
+	uiDefIconTextBlockBut(block, info_file_exportselmenu, NULL, ICON_RIGHTARROW_THIN, "Export Selected", 0, yco-=20, menuwidth, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 

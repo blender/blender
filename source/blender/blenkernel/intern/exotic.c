@@ -127,8 +127,314 @@
 
 static int is_dxf(char *str);
 static void dxf_read(char *filename);
+static int is_stl(char *str);
 
 /***/
+
+
+static int is_stl_ascii(char *str)
+{	
+	FILE *fpSTL;
+	char solid[6];
+
+	fpSTL = fopen(str, "r");
+	if (!fgets(solid, 6, fpSTL)) { fclose(fpSTL); return 0; }
+	solid[5] = '\0';
+
+	if ( !(strstr(solid, "solid")) 
+		 && !(strstr(solid, "SOLID")) ) { fclose(fpSTL); return 0; }
+
+	fclose(fpSTL);
+	
+	return 1;
+}
+
+static int is_stl(char *str)
+{
+	int i;
+	i = strlen(str) - 3;
+	if ( (str[i] !='s') && (str[i] !='S'))
+		return 0;
+	i++;
+	if ( (str[i] !='t') && (str[i] !='T'))
+		return 0;
+	i++;
+	if ( (str[i] !='l') && (str[i] !='L'))
+		return 0;
+
+	return 1;
+}
+
+#define READSTLVERT {                                   \
+  if (fread(mvert->co, sizeof(float), 3, fpSTL) != 3) { \
+    char error_msg[255];                                \
+    MEM_freeN(vertdata);                                \
+    MEM_freeN(facedata);                                \
+    fclose(fpSTL);                                      \
+    sprintf(error_msg, "Problems reading face %d!", i); \
+    error(error_msg);                                   \
+    return;                                             \
+  }                                                     \
+  else {                                                \
+    if (G.order==B_ENDIAN) {                            \
+      SWITCH_INT(mvert->co[0]);                         \
+      SWITCH_INT(mvert->co[1]);                         \
+      SWITCH_INT(mvert->co[2]);                         \
+    }                                                   \
+  }                                                     \
+}
+
+static void read_stl_mesh_binary(char *str)
+{
+	FILE   *fpSTL;
+	Object *ob;
+	Mesh   *me;
+	MVert  *mvert, *vertdata;
+	MFace  *mface, *facedata;
+	unsigned int numfacets = 0, i, j, vertnum;
+	unsigned int maxmeshsize, nummesh, lastmeshsize;
+	unsigned int totvert, totface;
+
+	fpSTL= fopen(str, "rb");
+	if(fpSTL==NULL) {
+		error("Can't read file");
+		return;
+	}
+
+	fseek(fpSTL, 80, SEEK_SET);
+	fread(&numfacets, 4*sizeof(char), 1, fpSTL);
+	if (G.order==B_ENDIAN) {
+                SWITCH_INT(numfacets);
+        }
+
+	maxmeshsize = MESH_MAX_VERTS/3;
+
+	nummesh      = (numfacets / maxmeshsize) + 1;
+	lastmeshsize = numfacets % maxmeshsize;
+
+	if (numfacets) {
+		for (j=0; j < nummesh; ++j) {
+			/* new object */
+			if (j == nummesh-1) {
+				totface = lastmeshsize;
+			}
+			else {
+				totface = maxmeshsize;
+			}
+			totvert = 3 * totface;
+	
+			vertdata = MEM_callocN(totvert*sizeof(MVert), "mverts");
+			facedata = MEM_callocN(totface*sizeof(MFace), "mface");
+
+			vertnum = 0;
+			mvert= vertdata;
+			mface = facedata;
+			for (i=0; i < totface; i++) {
+				fseek(fpSTL, 12, SEEK_CUR); /* skip the face normal */
+				READSTLVERT;
+				mvert++;
+				READSTLVERT;
+				mvert++;
+				READSTLVERT;
+				mvert++;
+
+				mface->v1 = vertnum++;
+				mface->v2 = vertnum++;
+				mface->v3 = vertnum++;
+				mface++;
+
+				fseek(fpSTL, 2, SEEK_CUR);
+			}
+
+			ob= add_object(OB_MESH);
+			me= ob->data;
+			me->mvert = vertdata;
+			me->mface = facedata;
+			me->totface = totface;
+			me->totvert = totvert;
+
+			G.obedit= ob;
+			make_editMesh();
+			load_editMesh();
+			free_editMesh();
+			G.obedit= 0;
+			tex_space_mesh(me);
+		}
+		waitcursor(1);
+	}
+	fclose(fpSTL);
+
+}
+#undef READSTLVERT
+
+#define STLALLOCERROR { \
+	char error_msg[255]; \
+	fclose(fpSTL); \
+	sprintf(error_msg, "Can't allocate storage for %d faces!", \
+			numtenthousand * 10000); \
+	error(error_msg); \
+	return; \
+}
+
+#define STLBAILOUT(message) { \
+	char error_msg[255]; \
+	fclose(fpSTL); \
+	free(vertdata); \
+	sprintf(error_msg, "Line %d: %s", linenum, message); \
+	error(message); \
+	return; \
+}
+
+#define STLREADLINE { \
+	if (!fgets(buffer, 2048, fpSTL)) STLBAILOUT("Can't read line!"); \
+	linenum++; \
+}
+
+#define STLREADVERT { \
+	STLREADLINE; \
+	if ( !(cp = strstr(buffer, "vertex")) && \
+		 !(cp = strstr(buffer, "VERTEX")) ) STLBAILOUT("Bad vertex!"); \
+	vp = vertdata + 3 * totvert; \
+	if (sscanf(cp + 6, "%f %f %f", vp, vp+1, vp+2) != 3) \
+		STLBAILOUT("Bad vertex!"); \
+	++totvert; \
+}
+static void read_stl_mesh_ascii(char *str)
+{
+	FILE   *fpSTL;
+	char   buffer[2048], *cp;
+	Object *ob;
+	Mesh   *me;
+	MVert  *mvert;
+	MFace  *mface;
+	float  *vertdata, *vp;
+	unsigned int numtenthousand, linenum;
+	unsigned int i, vertnum;
+	unsigned int totvert, totface;
+
+	/* ASCII stl sucks ... we don't really know how many faces there
+	   are until the file is done, so lets allocate faces 10000 at a time */
+
+	fpSTL= fopen(str, "r");
+	if(fpSTL==NULL) {
+		error("Can't read file");
+		return;
+	}
+	
+	/* we'll use the standard malloc/realloc for now ... 
+	 * lets allocate enough storage to hold 10000 triangles,
+	 * i.e. 30000 verts, i.e., 90000 floats.
+	 */
+	numtenthousand = 1;
+	vertdata = malloc(numtenthousand*3*30000*sizeof(float));
+	if (!vertdata) STLALLOCERROR;
+
+	linenum = 1;
+	/* Get rid of the first line */
+	STLREADLINE;
+
+	totvert = 0;
+	totface = 0;
+	while(1) {
+		/* Read in the next line */
+		STLREADLINE;
+
+		/* lets check if this is the end of the file */
+		if ( strstr(buffer, "endsolid") || strstr(buffer, "ENDSOLID") ) 
+			break;
+
+		/* Well, guess that wasn't the end, so lets make
+		 * sure we have enough storage for some more faces
+		 */
+		if ( (totface) && ( (totface % 10000) == 0 ) ) {
+			++numtenthousand;
+			vertdata = realloc(vertdata, 
+							   numtenthousand*3*30000*sizeof(float));
+			if (!vertdata) STLALLOCERROR;
+		}
+		
+		/* Don't read normal, but check line for proper syntax anyway
+		 */
+		if ( !(cp = strstr(buffer, "facet")) && 
+			 !(cp = strstr(buffer, "FACET")) ) STLBAILOUT("Bad normal line!");
+		if ( !(strstr(cp+5, "normal")) && 
+			 !(strstr(cp+5, "NORMAL")) )       STLBAILOUT("Bad normal line!");
+
+		/* Read in what should be the outer loop line 
+		 */
+		STLREADLINE;
+		if ( !(cp = strstr(buffer, "outer")) &&
+			 !(cp = strstr(buffer, "OUTER")) ) STLBAILOUT("Bad outer loop!");
+		if ( !(strstr(cp+5, "loop")) &&
+			 !(strstr(cp+5, "LOOP")) )         STLBAILOUT("Bad outer loop!");
+
+		/* Read in the face */
+		STLREADVERT;
+		STLREADVERT;
+		STLREADVERT;
+
+		/* Read in what should be the endloop line 
+		 */
+		STLREADLINE;
+		if ( !strstr(buffer, "endloop") && !strstr(buffer, "ENDLOOP") ) 
+			STLBAILOUT("Bad endloop!");
+
+		/* Read in what should be the endfacet line 
+		 */
+		STLREADLINE;
+		if ( !strstr(buffer, "endfacet") && !strstr(buffer, "ENDFACET") ) 
+			STLBAILOUT("Bad endfacet!");
+
+		/* Made it this far? Increment face count */
+		++totface;
+	}
+	fclose(fpSTL);
+
+	/* OK, lets create our mesh */
+	ob = add_object(OB_MESH);
+	me = ob->data;
+	me->mvert = MEM_callocN(totvert*sizeof(MVert), "mverts");
+	me->mface = MEM_callocN(totface*sizeof(MFace), "mface");
+	me->totface = totface;
+	me->totvert = totvert;
+
+	/* Copy vert coords and create topology */
+	mvert = me->mvert;
+	mface =	me->mface;
+	vertnum = 0;
+	for (i=0; i < totface; ++i) {
+		memcpy(mvert->co, vertdata+3*vertnum, 3*sizeof(float) );
+		mface->v1 = vertnum;
+		mvert++;
+		vertnum++;
+
+		memcpy(mvert->co, vertdata+3*vertnum, 3*sizeof(float) );
+		mface->v2 = vertnum;
+		mvert++;
+		vertnum++;
+
+		memcpy(mvert->co, vertdata+3*vertnum, 3*sizeof(float) );
+		mface->v3 = vertnum;
+		mvert++;
+		vertnum++;
+
+		mface++;
+	}
+	free(vertdata);
+
+	G.obedit= ob;
+	make_editMesh();
+	load_editMesh();
+	free_editMesh();
+	G.obedit= 0;
+	tex_space_mesh(me);
+	waitcursor(1);
+}
+
+#undef STLALLOCERROR
+#undef STLBAILOUT
+#undef STLREADLINE
+#undef STLREADVERT
 
 static void read_videoscape_mesh(char *str)
 {
@@ -2091,6 +2397,13 @@ int BKE_read_exotic(char *name)
 					dxf_read(name);
 					retval = 1;
 				}
+				else if(is_stl(name)) {
+					if (is_stl_ascii(name))
+						read_stl_mesh_ascii(name);
+					else
+						read_stl_mesh_binary(name);
+					retval = 1;
+				}
 				// TODO: this should not be in the kernel...
 				else { // unknown format, call Python importloader 
 					if (BPY_call_importloader(name)) {
@@ -2118,6 +2431,184 @@ int BKE_read_exotic(char *name)
 
 char videosc_dir[160]= {0, 0};
 
+#define WRITEVERT(verts, ind) {           \
+  VECCOPY(vert, verts[(ind)].co);         \
+  Mat4MulVecfl(ob->obmat, vert);          \
+  if (G.order==B_ENDIAN) {                \
+    SWITCH_INT(vert[0]);                \
+    SWITCH_INT(vert[1]);                \
+    SWITCH_INT(vert[2]);                \
+  }                                       \
+  fwrite(vert, sizeof(float), 3, fpSTL);  \
+}
+
+static int write_mesh_stl(FILE *fpSTL, Object *ob, Mesh *me)
+{
+	MVert *mvert;
+	MFace *mface;
+	int i, numfacets = 0;
+	float zero[3] = {0.0f, 0.0f, 0.0f};
+	float vert[3];
+
+	mvert = me->mvert;
+	mface = me->mface;
+
+	for (i=0; i<me->totface; i++) {
+
+		if (mface->v4 || mface->v3) {
+			fwrite(zero, sizeof(float), 3, fpSTL); /* <-- v. normal lazy */
+			WRITEVERT(mvert, mface->v1);
+			WRITEVERT(mvert, mface->v2);
+			WRITEVERT(mvert, mface->v3);
+			fprintf(fpSTL, "  "); /* <-- spec puts 2 spaces after facet */
+			numfacets++;
+
+			if(mface->v4) { /* quad = 2 tri's */
+				fwrite(zero, sizeof(float), 3, fpSTL);
+				WRITEVERT(mvert, mface->v1);
+				WRITEVERT(mvert, mface->v3);
+				WRITEVERT(mvert, mface->v4);
+				fprintf(fpSTL, "  ");
+				numfacets++;
+			}
+		}
+		mface++;
+	}
+
+	return numfacets;
+}
+
+static int write_displistmesh_stl(FILE *fpSTL, Object *ob, DispListMesh *dlm)
+{
+
+	MFace *mface;
+	int  i, numfacets = 0;
+	float zero[3] = {0.0f, 0.0f, 0.0f};
+	float vert[3];
+
+	for (i=0; i<dlm->totface; i++) {
+		mface = &dlm->mface[i];
+
+		fwrite(zero, sizeof(float), 3, fpSTL);
+		WRITEVERT(dlm->mvert, mface->v1);
+		WRITEVERT(dlm->mvert, mface->v2);
+		WRITEVERT(dlm->mvert, mface->v3);
+		fprintf(fpSTL, "  ");
+		numfacets++;
+
+		if(mface->v4) { /* quad = 2 tri's */
+			fwrite(zero, sizeof(float), 3, fpSTL);
+			WRITEVERT(dlm->mvert, mface->v1);
+			WRITEVERT(dlm->mvert, mface->v3);
+			WRITEVERT(dlm->mvert, mface->v4);
+			fprintf(fpSTL, "  ");
+			numfacets++;
+		}
+	}
+
+	return numfacets;
+}
+
+static int write_object_stl(FILE *fpSTL, Object *ob, Mesh *me)
+{
+	int  numfacets = 0;
+
+	if(mesh_uses_displist(me)) {
+		ListBase *dlbase=0;
+		DispList *dl;
+		float *data;
+		dlbase = &me->disp;
+
+		if (dlbase==0) return 0;
+
+		dl= dlbase->first;
+		while(dl) {
+			data= dl->verts;
+	
+			switch(dl->type) {
+				case DL_MESH:
+					numfacets 
+						+= write_displistmesh_stl(fpSTL, ob, dl->mesh);
+					break;
+#if 0
+				default:
+					numfacets 
+						+= write_displist_stl(fpSTL, ob, dl);
+					break;
+#endif
+			}
+			dl= dl->next;
+		}
+	}
+	else {
+		numfacets += write_mesh_stl(fpSTL, ob, me);
+	}
+	return numfacets;
+}
+
+void write_stl(char *str)
+{
+	Object *ob;
+	Mesh   *me;
+	Base   *base;
+	FILE   *fpSTL;
+	int    numfacets = 0;
+	
+	if(BLI_testextensie(str,".blend")) str[ strlen(str)-6]= 0;
+	if(BLI_testextensie(str,".ble")) str[ strlen(str)-4]= 0;
+	if(BLI_testextensie(str,".stl")==0) strcat(str, ".stl");
+
+	if (BLI_exists(str))
+		if(saveover(str)==0)
+			return;
+	
+	fpSTL= fopen(str, "wb");
+	
+	if(fpSTL==NULL) {
+		error("Can't write file");
+		return;
+	}
+	strcpy(videosc_dir, str);
+	
+	waitcursor(1);
+	
+	/* The header part of the STL */
+	/* First 80 characters are a title or whatever you want.
+	   Lets make the first 32 of those spam and the rest the filename.
+	   Those first 80 characters will be followed by 4 bytes
+	   which will be overwritten later with an integer holding
+	   how many facets are written (we set them to ' ' for now).
+	*/
+	fprintf(fpSTL, "Binary STL output from Blender: %-48.48s    ", str);
+
+	/* Write all selected mesh objects */
+	base= G.scene->base.first;
+	while(base) {
+		if (base->flag & SELECT) {
+			ob = base->object;
+			if (ob->type == OB_MESH) {
+				me = ob->data;
+				if (me)
+					numfacets += write_object_stl(fpSTL, ob, me);
+			}
+		}
+		base= base->next;
+	}
+
+	/* time to write the number of facets in the 4 bytes
+	   starting at byte 81
+	*/
+	fseek(fpSTL, 80, SEEK_SET);
+
+	if (G.order==B_ENDIAN) {
+                SWITCH_INT(numfacets);
+        }
+	fwrite(&numfacets, 4*sizeof(char), 1, fpSTL);
+
+	fclose(fpSTL);
+	
+	waitcursor(0);
+}
 
 static void write_videoscape_mesh(Object *ob, char *str)
 {

@@ -60,6 +60,7 @@ void clear_matcopybuf(void);
 void write_videoscape_fs(void);
 void write_vrml_fs(void);
 void write_dxf_fs(void);
+void write_stl_fs(void);
 int buttons_do_unpack(void);
 struct Scene *copy_scene(struct Scene *sce, int level);
 
