@@ -1261,8 +1261,8 @@ static void editing_panel_deflectors(Object *ob)
 	
 	if(ob->pd) {
 		uiBlockBeginAlign(block);
-		uiDefButS(block, TOG|BIT|0, B_DIFF, "Force field",	10,160,200,20, &ob->pd->forcefield, 0, 0, 0, 0, "Object center attracts or repels particles");
-		uiDefButS(block, TOG|BIT|1, B_DIFF, "Vortex field",	10,140,200,20, &ob->pd->forcefield, 0, 0, 0, 0, "Particles swirl around Z-axis of the object");
+		uiDefButS(block, TOG|BIT|0, REDRAWVIEW3D, "Force field",	10,160,200,20, &ob->pd->forcefield, 0, 0, 0, 0, "Object center attracts or repels particles");
+		uiDefButS(block, TOG|BIT|1, REDRAWVIEW3D, "Vortex field",	10,140,200,20, &ob->pd->forcefield, 0, 0, 0, 0, "Particles swirl around Z-axis of the object");
 
 		uiDefButF(block, NUM, B_DIFF, "Strength: ",	10,120,200,20, &ob->pd->f_strength, -1000, 1000, 1000, 0, "Strength of force field");
 		uiDefButF(block, NUM, B_DIFF, "Fall-off: ",	10,100,200,20, &ob->pd->f_power, 0, 10, 100, 0, "Falloff power (real gravitational fallof = 2)");
