@@ -463,7 +463,7 @@ void assign_verts_defgroup (void)
 		}
 		break;
 	default:
-		printf ("Assigning deformation groups to unknown object type: Warn <reevan@blender.nl>\n");
+		printf ("Assigning deformation groups to unknown object type\n");
 		break;
 	}
 
@@ -547,7 +547,7 @@ void remove_verts_defgroup (int allverts)
 		}
 		break;
 	default:
-		printf ("Removing deformation groups from unknown object type: Warn <reevan@blender.nl>\n");
+		printf ("Removing deformation groups from unknown object type\n");
 		break;
 	}
 }

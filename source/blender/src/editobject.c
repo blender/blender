@@ -732,7 +732,7 @@ void make_parent(void)
 				apply_pose_armature(get_armature(par), par->pose, 0);
 				bone=get_indexed_bone(get_armature(par), bonenr); 
 				if (!bone){
-		//			error ("Invalid bone!  Warn reevan@blender.nl");
+		//			error ("Invalid bone!");
 					allqueue(REDRAWVIEW3D, 0);
 					return;
 				}
