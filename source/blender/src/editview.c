@@ -629,7 +629,8 @@ void mouse_select(void)
 			}
 
 			// for visual speed
-			if(oldbasact != basact && (oldbasact->lay & G.vd->lay)) draw_object_ext(oldbasact);
+			if(oldbasact && oldbasact != basact && (oldbasact->lay & G.vd->lay)) 
+				draw_object_ext(oldbasact);
 			draw_object_ext(basact);
 
 			if(basact->object->type!=OB_MESH) {

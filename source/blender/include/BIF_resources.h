@@ -284,6 +284,7 @@ enum {
 	TH_BUT_DRAWTYPE,
 	
 	TH_REDALERT,
+	TH_CUSTOM,
 	
 	TH_THEMEUI,
 // common colors among spaces

@@ -283,6 +283,7 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 	static char error[4]={240, 0, 240, 255};
 	static char alert[4]={240, 60, 60, 255};
 	static char headerdesel[4]={0,0,0,255};
+	static char custom[4]={0,0,0,255};
 	
 	char *cp= error;
 	
@@ -328,6 +329,8 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 			
 			case TH_REDALERT:
 				cp= alert; break;
+			case TH_CUSTOM:
+				cp= custom; break;
 			}
 		}
 		else {

@@ -1247,7 +1247,6 @@ static void round_button(float x1, float y1, float x2, float y2, float asp, int 
 	glEnd();
 	
 	BIF_ThemeColorBlendShade(colorid, TH_BACK, 0.5, -70);
-	//BIF_ThemeColorShade(colorid, -70);
 	
 	glBegin(GL_LINE_LOOP);
 	gl_round_box(x1, y1, x2, y2, rad);
@@ -1261,7 +1260,6 @@ static void round_button_mid(float x1, float y1, float x2, float y2, float asp, 
 {
 	glRectf(x1, y1, x2, y2);
 	
-	//BIF_ThemeColorShade(colorid, -70);
 	BIF_ThemeColorBlendShade(colorid, TH_BACK, 0.5, -70);
 	// we draw full outline, its not AA, and it works better button mouse-over hilite
 	
@@ -1669,11 +1667,21 @@ static void ui_draw_but_COL(uiBut *but)
 		colg= cp[1];
 		colb= cp[2];
 	}
-	glColor3ub(colr,  colg,  colb);
-	glRectf((but->x1), (but->y1), (but->x2), (but->y2));
-	glColor3ub(0,  0,  0);
-	fdrawbox((but->x1), (but->y1), (but->x2), (but->y2));
-
+	
+	/* exception... hrms, but can't simply use the emboss callback for this now. */
+	/* this button type needs review, and nice integration with rest of API here */
+	if(but->embossfunc == ui_draw_round) {
+		char *cp= BIF_ThemeGetColorPtr(U.themes.first, 0, TH_CUSTOM);
+		cp[0]= colr; cp[1]= colg; cp[2]= colb;
+		but->embossfunc(but->type, TH_CUSTOM, but->aspect, but->x1, but->y1, but->x2, but->y2, but->flag);
+	}
+	else {
+		
+		glColor3ub(colr,  colg,  colb);
+		glRectf((but->x1), (but->y1), (but->x2), (but->y2));
+		glColor3ub(0,  0,  0);
+		fdrawbox((but->x1), (but->y1), (but->x2), (but->y2));
+	}
 }
 
 
