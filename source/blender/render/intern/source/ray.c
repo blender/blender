@@ -500,8 +500,11 @@ void makeoctree()
 	if(g_oc.min[0] > g_oc.max[0]) return;	/* empty octree */
 
 	g_oc.adrbranch[0]=(Branch *)MEM_callocN(4096*sizeof(Branch), "makeoctree");
-	ocvlak= MEM_callocN( 3*ocres2 + 8, "ocvlak");
 	
+	/* the lookup table, per face, for which nodes to fill in */
+	ocvlak= MEM_callocN( 3*ocres2 + 8, "ocvlak");
+	memset(ocvlak, 0, 3*ocres2);
+
 	for(c=0;c<3;c++) {	/* octree enlarge, still needed? */
 		g_oc.min[c]-= 0.01;
 		g_oc.max[c]+= 0.01;
@@ -542,7 +545,7 @@ void makeoctree()
 				}
 			}
 			
-			memset(ocvlak, 0, 3*ocres2);
+			
 			
 			for(c=0;c<3;c++) {
 				oc1= rts[0][c];
@@ -591,11 +594,28 @@ void makeoctree()
 			for(x=ocmin[0];x<=ocmax[0];x++) {
 				a= g_oc.ocres*x;
 				for(y=ocmin[1];y<=ocmax[1];y++) {
-					b= g_oc.ocres*y;
 					if(ocvlak[a+y+ocres2]) {
+						b= g_oc.ocres*y+2*ocres2;
 						for(z=ocmin[2];z<=ocmax[2];z++) {
-							if(ocvlak[b+z+2*ocres2] && ocvlak[a+z]) ocwrite(vlr, x,y,z, rtf);
+							if(ocvlak[b+z] && ocvlak[a+z]) ocwrite(vlr, x,y,z, rtf);
 						}
+					}
+				}
+			}
+			
+			/* same loops to clear octree, doubt it can be done smarter */
+			for(x=ocmin[0];x<=ocmax[0];x++) {
+				a= g_oc.ocres*x;
+				for(y=ocmin[1];y<=ocmax[1];y++) {
+					/* x-y */
+					ocvlak[a+y+ocres2]= 0;
+
+					b= g_oc.ocres*y + 2*ocres2;
+					for(z=ocmin[2];z<=ocmax[2];z++) {
+						/* y-z */
+						ocvlak[b+z]= 0;
+						/* x-z */
+						ocvlak[a+z]= 0;
 					}
 				}
 			}
