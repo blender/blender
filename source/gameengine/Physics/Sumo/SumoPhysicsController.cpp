@@ -174,7 +174,8 @@ void		SumoPhysicsController::setPosition(float posX,float posY,float posZ)
 
 void		SumoPhysicsController::setScaling(float scaleX,float scaleY,float scaleZ)
 {
-	m_sumoObj->setScaling(MT_Vector3(scaleX,scaleY,scaleZ));
+	if (!m_bDyna)
+		m_sumoObj->setScaling(MT_Vector3(scaleX,scaleY,scaleZ));
 }
 	
 	// physics methods
