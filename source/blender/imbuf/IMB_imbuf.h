@@ -344,6 +344,8 @@ int imb_get_anim_type(char * name);
  * @attention Defined in divers.c
  */
 void IMB_de_interlace(struct ImBuf *ibuf);
+void IMB_interlace(struct ImBuf *ibuf);
+void IMB_gamwarp(struct ImBuf *ibuf, double gamma);
 
 /**
  * Change the ordering of the colour bytes pointed to by rect from

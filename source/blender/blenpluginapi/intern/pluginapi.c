@@ -234,6 +234,16 @@ struct ImBuf *scalefastfieldImBuf(struct ImBuf *ib,
 	/* Extra ones that some NaN (read Ton) plugins use,
 	 * even though they aren't in the header
 	 */
+
+void interlace(struct ImBuf *ibuf)
+{
+	IMB_interlace(ibuf);
+}
+
+void gamwarp(struct ImBuf *ibuf, double gamma)
+{
+	IMB_gamwarp(ibuf,gamma);
+}
 	 
 void de_interlace(struct ImBuf *ib)
 {
@@ -341,5 +351,7 @@ int pluginapi_force_ref(void)
 		(int) turbulence +
 		(int) turbulence1 +
 		(int) de_interlace +
+		(int) interlace +
+		(int) gamwarp +
 		(int) rectop;
 }
