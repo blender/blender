@@ -1807,13 +1807,17 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 		}
 	}
 	
-	/* to make sure we can check ray shadow easily in the render code */
-	if(lar->mode & LA_SHAD_RAY) {
-		if( (R.r.mode & R_RAYTRACE)==0)
-			lar->mode &= ~LA_SHAD_RAY;
+	/* yafray: shadow flag should not be cleared, only used with internal renderer */
+	if ((R.r.mode & R_YAFRAY)==0) {
+		/* to make sure we can check ray shadow easily in the render code */
+		if(lar->mode & LA_SHAD_RAY) {
+			if( (R.r.mode & R_RAYTRACE)==0)
+				lar->mode &= ~LA_SHAD_RAY;
+		}
 	}
 
 	lar->org= MEM_dupallocN(lar);
+
 }
 
 /* ------------------------------------------------------------------------- */

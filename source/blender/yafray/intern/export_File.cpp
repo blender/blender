@@ -1007,11 +1007,10 @@ void yafrayFileRender_t::writeAreaLamp(LampRen* lamp, int num)
 	ostr << "<light type=\"arealight\" name=\"LAMP" << num+1 << "\" dummy=\""<< md << "\" power=\"" << lamp->energy << "\" ";
 	if (!R.r.GIphotons) {
 		int psm=0, sm = lamp->ray_totsamp;
-		if (sm>=16) psm = sm/4;
+		if (sm>=64) psm = sm/4;
 		ostr << "samples=\"" << sm << "\" psamples=\"" << psm << "\" ";
 	}
 	ostr << ">\n";
-
 	ostr << "\t<a x=\""<< a[0] <<"\" y=\""<< a[1] <<"\" z=\"" << a[2] <<"\" />\n";
 	ostr << "\t<b x=\""<< b[0] <<"\" y=\""<< b[1] <<"\" z=\"" << b[2] <<"\" />\n";
 	ostr << "\t<c x=\""<< c[0] <<"\" y=\""<< c[1] <<"\" z=\"" << c[2] <<"\" />\n";
@@ -1046,8 +1045,8 @@ void yafrayFileRender_t::writeLamps()
 		// color already premultiplied by energy, so only need distance here
 		float pwr;
 		if (lamp->mode & LA_SPHERE) {
-			// best approx. as used in LFexport script, however, in yafray it seems incorrect, so LF must use another model
-			pwr = lamp->dist*(lamp->dist+1)*0.125;
+			// best approx. as used in LFexport script (LF d.f.m. 4pi?)
+			pwr = lamp->dist*(lamp->dist+1)*0.25*M_1_PI;
 			//decay = 2;
 		}
 		else {
@@ -1059,7 +1058,9 @@ void yafrayFileRender_t::writeLamps()
 		}
 		ostr << "\" power=\"" << pwr;
 		string lpmode="off";
-		if ((lamp->mode & LA_SHAD) || (lamp->mode & LA_SHAD_RAY)) lpmode="on";;
+		// shadows only when Blender has shadow button enabled, only spots use LA_SHAD flag
+		if (R.r.mode & R_SHADOW)
+			if (((lamp->type==LA_SPOT) && (lamp->mode & LA_SHAD)) || (lamp->mode & LA_SHAD_RAY)) lpmode="on";;
 		ostr << "\" cast_shadows=\"" << lpmode << "\"";
 		// spot specific stuff
 		if (lamp->type==LA_SPOT) {
