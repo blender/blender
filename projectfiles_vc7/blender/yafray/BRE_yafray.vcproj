@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\python,..\..\..\source\blender\misc,..\..\..\source\blender\renderconverter,..\..\..\source\blender\include,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\blenlib,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\imbuf"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\python,..\..\..\source\blender\misc,..\..\..\source\blender\renderconverter,..\..\..\source\blender\include,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\blenlib,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\render\intern\include,..\..\..\source\blender\imbuf"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -68,7 +68,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\python,..\..\..\source\blender\misc,..\..\..\source\blender\renderconverter,..\..\..\source\blender\include,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\blenlib,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\imbuf"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\python,..\..\..\source\blender\misc,..\..\..\source\blender\renderconverter,..\..\..\source\blender\include,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\blenlib,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\render\intern\include,..\..\..\source\blender\imbuf"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -115,6 +115,12 @@
 				RelativePath="..\..\..\source\blender\yafray\intern\export_File.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\yafray\intern\export_Plugin.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\yafray\intern\yafexternal.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\yafray\intern\yafray_Render.cpp">
 			</File>
 		</Filter>
@@ -126,6 +132,12 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\yafray\intern\export_File.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\yafray\intern\export_Plugin.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\yafray\intern\yafexternal.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\yafray\intern\yafray_Render.h">
