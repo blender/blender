@@ -136,10 +136,10 @@ void RE_init_render_data(void)
 	O.dxwin[0]= 1.0;
 	O.dywin[1]= 1.0;
 	
-	R.blove= (VertRen **)MEM_callocN(sizeof(void *)*(MAXVERT>>8),"Blove");
-	R.blovl= (VlakRen **)MEM_callocN(sizeof(void *)*(MAXVLAK>>8),"Blovl");
-	R.bloha= (HaloRen **)MEM_callocN(sizeof(void *)*(MAXVERT>>8),"Bloha");
-	R.la= (LampRen **)MEM_mallocN(MAXLAMP*sizeof(void *),"renderlamparray");
+	R.blove= (VertRen **)MEM_callocN(sizeof(void *)*(TABLEINITSIZE),"Blove");
+	R.blovl= (VlakRen **)MEM_callocN(sizeof(void *)*(TABLEINITSIZE),"Blovl");
+	R.bloha= (HaloRen **)MEM_callocN(sizeof(void *)*(TABLEINITSIZE),"Bloha");
+	R.la= (LampRen **)MEM_mallocN(LAMPINITSIZE*sizeof(void *),"renderlamparray");
 
 	init_def_material();
 }

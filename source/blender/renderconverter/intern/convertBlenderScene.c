@@ -301,13 +301,13 @@ void RE_make_stars(void (*initfunc)(void),
 					}
 				}
 			}
-			if(done > MAXVERT) {
-				printf("Too many stars\n");
-				break;
-			}
+//			if(done > MAXVERT) {
+//				printf("Too many stars\n");
+//				break;
+//			}
 			if(blender_test_break()) break;
 		}
-		if(done > MAXVERT) break;
+//		if(done > MAXVERT) break;
 
 		if(blender_test_break()) break;
 	}
@@ -1325,7 +1325,7 @@ static int verghalo(const void *a1, const void *a2)
 }
 
 /* ------------------------------------------------------------------------- */
-
+extern int rblohalen;
 static void sort_halos(void)
 {
 	struct halosort *hablock, *haso;
@@ -1350,7 +1350,7 @@ static void sort_halos(void)
 	/* re-assamble R.bloha */
 
 	bloha= R.bloha;
-	R.bloha= (HaloRen **)MEM_callocN(sizeof(void *)*(MAXVERT>>8),"Bloha");
+	R.bloha= (HaloRen **)MEM_callocN(sizeof(void *)*(rblohalen),"Bloha");
 
 	haso= hablock;
 	for(a=0; a<R.tothalo; a++) {
@@ -1767,15 +1767,23 @@ static void init_render_mesh(Object *ob)
 /* If lar takes more lamp data, the decoupling will be better. */
 void RE_add_render_lamp(Object *ob, int doshadbuf)
 {
-	Lamp *la;
+	Lamp *la, **temp;
 	LampRen *lar;
 	float mat[4][4], hoek, xn, yn;
 	int c;
-
-	if(R.totlamp>=MAXLAMP) {
-		printf("lamp overflow\n");
-		return;
+	static int rlalen=LAMPINITSIZE; /*number of currently allocated lampren pointers*/
+	
+	if(R.totlamp>=rlalen) { /* Need more Lamp pointers....*/
+		printf("Alocating %i more lamp groups, %i total.\n", 
+			LAMPINITSIZE, rlalen+LAMPINITSIZE);
+		temp=R.la;
+		R.la=(LampRen**)MEM_callocN(sizeof(void*)*(rlalen+LAMPINITSIZE) , "renderlamparray");
+		memcpy(R.la, temp, rlalen*sizeof(void*));
+		memset(&(R.la[R.totlamp]), 0, LAMPINITSIZE*sizeof(void*));
+		rlalen+=LAMPINITSIZE;  
+		MEM_freeN(temp);	
 	}
+	
 	la= ob->data;
 	lar= (LampRen *)MEM_callocN(sizeof(LampRen),"lampren");
 	R.la[R.totlamp++]= lar;

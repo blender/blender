@@ -75,14 +75,27 @@
 
 VertRen *RE_findOrAddVert(int nr)
 {
-	VertRen *v;
+	VertRen *v, **temp;
+	static int rblovelen=TABLEINITSIZE;
 	int a;
 
-	if(nr<0 || nr>MAXVERT ) {
+	if(nr<0) {
 		printf("error in findOrAddVert: %d\n",nr);
 		return R.blove[0];
 	}
 	a= nr>>8;
+	
+	if (a>=rblovelen){  /* Need to allocate more columns...*/
+		printf("Allocating %i more vert groups.  %i total.\n", 
+			TABLEINITSIZE, rblovelen+TABLEINITSIZE );
+		temp=R.blove;
+		R.blove=(VertRen**)MEM_callocN(sizeof(void*)*(rblovelen+TABLEINITSIZE) , "Blove");
+		memcpy(R.blove, temp, rblovelen*sizeof(void*));
+		memset(&(R.blove[a]), 0, TABLEINITSIZE*sizeof(void*));
+		rblovelen+=TABLEINITSIZE; 
+		MEM_freeN(temp);	
+	}
+	
 	v= R.blove[a];
 	if(v==0) {
 		v= (VertRen *)MEM_callocN(256*sizeof(VertRen),"findOrAddVert");
@@ -93,17 +106,29 @@ VertRen *RE_findOrAddVert(int nr)
 }
 
 /* ------------------------------------------------------------------------ */
-
+int rblohalen=TABLEINITSIZE;
 HaloRen *RE_findOrAddHalo(int nr)
 {
-	HaloRen *h;
+	HaloRen *h, **temp;
 	int a;
 
-	if(nr<0 || nr>MAXVERT ) {
+	if(nr<0) {
 		printf("error in findOrAddHalo: %d\n",nr);
 		return R.bloha[0];
 	}
 	a= nr>>8;
+	
+	if (a>=rblohalen){  /* Need to allocate more columns...*/
+		printf("Allocating %i more halo groups.  %i total.\n", 
+			TABLEINITSIZE, rblohalen+TABLEINITSIZE );
+		temp=R.bloha;
+		R.bloha=(HaloRen**)MEM_callocN(sizeof(void*)*(rblohalen+TABLEINITSIZE) , "Blove");
+		memcpy(R.bloha, temp, rblohalen*sizeof(void*));
+		memset(&(R.bloha[a]), 0, TABLEINITSIZE*sizeof(void*));
+		rblohalen+=TABLEINITSIZE;  /*Does this really need to be power of 2?*/
+		MEM_freeN(temp);	
+	}
+	
 	h= R.bloha[a];
 	if(h==0) {
 		h= (HaloRen *)MEM_callocN(256*sizeof(HaloRen),"findOrAdHalo");
@@ -117,15 +142,29 @@ HaloRen *RE_findOrAddHalo(int nr)
 
 VlakRen *RE_findOrAddVlak(int nr)
 {
-	VlakRen *v;
+	VlakRen *v, **temp;
+	static int rblovllen=TABLEINITSIZE;
 	int a;
 
-	if(nr<0 || nr>MAXVLAK ) {
+	if(nr<0) {
 		printf("error in findOrAddVlak: %d\n",nr);
 		return R.blovl[0];
 	}
 	a= nr>>8;
+	
+	if (a>=rblovllen){  /* Need to allocate more columns...*/
+		printf("Allocating %i more face groups.  %i total.\n", 
+			TABLEINITSIZE, rblovllen+TABLEINITSIZE );
+		temp=R.blovl;
+		R.blovl=(VlakRen**)MEM_callocN(sizeof(void*)*(rblovllen+TABLEINITSIZE) , "Blove");
+		memcpy(R.blovl, temp, rblovllen*sizeof(void*));
+		memset(&(R.blovl[a]), 0, TABLEINITSIZE*sizeof(void*));
+		rblovllen+=TABLEINITSIZE;  /*Does this really need to be power of 2?*/
+		MEM_freeN(temp);	
+	}
+	
 	v= R.blovl[a];
+	
 	if(v==0) {
 		v= (VlakRen *)MEM_callocN(256*sizeof(VlakRen),"findOrAddVlak");
 		R.blovl[a]= v;

@@ -37,9 +37,8 @@
 #include "DNA_world_types.h"
 #include "DNA_object_types.h"
 
-/* Definitely weird: this equals 1<<21... so wtf?*/
-#define MAXVERT (2<<20)
-#define MAXVLAK (2<<20)
+#define TABLEINITSIZE 1024
+#define LAMPINITSIZE 256
 
 /* This is needed to not let VC choke on near and far... old
  * proprietary MS extensions... */
