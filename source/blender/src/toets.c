@@ -968,8 +968,8 @@ int blenderqread(unsigned short event, short val)
 		}
 		break;
 	case ZKEY:	// undo
-		if(G.qual & LR_CTRLKEY) { // all combos with ctrl/cammandkey are accepted
-			if(G.qual==LR_CTRLKEY) BIF_undo();
+		if(G.qual & (LR_CTRLKEY|LR_COMMANDKEY)) { // all combos with ctrl/cammandkey are accepted
+			if ELEM(G.qual, LR_CTRLKEY, LR_COMMANDKEY) BIF_undo();
 			else BIF_redo(); // all combos with ctrl is redo
 			return 0;
 		}

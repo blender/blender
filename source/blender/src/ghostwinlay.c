@@ -83,7 +83,7 @@ struct _Window {
 	
 		/* Last known mouse/button/qualifier state */
 	int		lmouse[2];
-	int		lqual;		/* (LR_SHFTKEY, LR_CTRLKEY, LR_ALTKEY) */
+	int		lqual;		/* (LR_SHFTKEY, LR_CTRLKEY, LR_ALTKEY, LR_COMMANDKEY) */
 	int		lmbut;		/* (L_MOUSE, M_MOUSE, R_MOUSE) */
 	int		commandqual;
 
@@ -238,7 +238,7 @@ static int convert_key(GHOST_TKey key) {
 		case GHOST_kKeyRightShift:		return RIGHTSHIFTKEY;
 		case GHOST_kKeyLeftControl:		return LEFTCTRLKEY;
 		case GHOST_kKeyRightControl:	return RIGHTCTRLKEY;
-		case GHOST_kKeyCommand:			return LEFTCTRLKEY;
+		case GHOST_kKeyCommand:			return COMMANDKEY;
 		case GHOST_kKeyLeftAlt:			return LEFTALTKEY;
 		case GHOST_kKeyRightAlt:		return RIGHTALTKEY;
 
@@ -560,6 +560,8 @@ static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 					win->lqual= change_bit(win->lqual, LR_CTRLKEY, val);
 				} else if (bkey==LEFTALTKEY || bkey==RIGHTALTKEY) {
 					win->lqual= change_bit(win->lqual, LR_ALTKEY, val);
+				} else if (bkey==COMMANDKEY) {
+					win->lqual= change_bit(win->lqual, LR_COMMANDKEY, val);
 				}
 
 				window_handle_ext(win, bkey, val, kd->ascii);
@@ -596,6 +598,11 @@ static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 					win->lqual= change_bit(win->lqual, LR_ALTKEY, 0);
 					window_handle(win, LEFTALTKEY, 0);
 				}
+				if ((win->lqual & LR_COMMANDKEY) && !query_qual('C')) {
+					win->lqual= change_bit(win->lqual, LR_COMMANDKEY, 0);
+					window_handle(win, LR_COMMANDKEY, 0);
+				}
+				/* probably redundant now (ton) */
 				win->commandqual= query_qual('C');
 
 				/* 

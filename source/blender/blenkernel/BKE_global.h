@@ -233,15 +233,16 @@ typedef struct Global {
 #define G_FLAGS_AUTOPLAY		(1 << G_FLAGS_AUTOPLAY_BIT)
 
 /* G.qual */
-#define R_SHIFTKEY	1
-#define L_SHIFTKEY	2
-#define LR_SHIFTKEY 3
-#define R_ALTKEY	4
-#define L_ALTKEY	8
-#define LR_ALTKEY	12
-#define R_CTRLKEY	16
-#define L_CTRLKEY	32
-#define LR_CTRLKEY  48
+#define R_SHIFTKEY		1
+#define L_SHIFTKEY		2
+#define LR_SHIFTKEY 	3
+#define R_ALTKEY		4
+#define L_ALTKEY		8
+#define LR_ALTKEY		12
+#define R_CTRLKEY		16
+#define L_CTRLKEY		32
+#define LR_CTRLKEY  	48
+#define LR_COMMANDKEY 	64
 
 /* G.order: indicates what endianness the platform where the file was
  * written had. */

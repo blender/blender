@@ -832,6 +832,10 @@ unsigned short screen_qread(short *val, char *ascii)
 		if(*val) G.qual |= LR_CTRLKEY;
 		else G.qual &= ~LR_CTRLKEY;
 	}
+	else if(event==COMMANDKEY) {		// OSX
+		if(*val) G.qual |= LR_COMMANDKEY;
+		else G.qual &= ~LR_COMMANDKEY;
+	}
 
 	return event;
 }

@@ -186,6 +186,7 @@
 #define	ENDKEY		170
 
 #define UNKNOWNKEY	171
+#define COMMANDKEY	172
 
 /* **************** BLENDER QUEUE EVENTS ********************* */
 
