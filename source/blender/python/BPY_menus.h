@@ -70,7 +70,7 @@ typedef struct BPyMenu {
 /* Scripts can be added to only a few pre-defined places in menus, like
  * File->Import, File->Export, etc. (for speed and better control).
  * To make a new menu 'slot' available for scripts:
- * - add an entry to the enum below, right before PYMENU_TOTAL, of course;
+ * - add an entry to the enum below, before PYMENU_TOTAL, of course;
  * - update the bpymenu_group_atoi() and BPyMenu_group_itoa() functions in
  * BPY_menus.c; 
  * - add the necessary code to the header_***.c file in
@@ -79,15 +79,15 @@ typedef struct BPyMenu {
 typedef enum {
 	PYMENU_WIZARDS, /* complex 'app' scripts */
 	PYMENU_UV, /* UV editing tools, to go in UV/Image editor space, 'UV' menu */
-	PYMENU_TOOLS,
-	PYMENU_MODIFIERS, /* modifies existing obj *data* */
+	PYMENU_OBJECT,
 	PYMENU_MISC,
+	PYMENU_MESH,
 	PYMENU_MATERIALS,
 	PYMENU_HELP, /* inserted in the info header 'Help' menu */
-	PYMENU_GENERATORS, /* creates new objects */
 	PYMENU_IMPORT,
 	PYMENU_EXPORT,
 	PYMENU_ANIMATION,
+	PYMENU_ADD, /* creates new objects */
 	PYMENU_TOTAL
 } PYMENUHOOKS;
 

@@ -78,13 +78,13 @@ static int bpymenu_group_atoi (char *str)
 	if (!strcmp(str, "Import")) return PYMENU_IMPORT;
 	else if (!strcmp(str, "Export")) return PYMENU_EXPORT;
 	else if (!strcmp(str, "Help")) return PYMENU_HELP;
-	else if (!strcmp(str, "Generators")) return PYMENU_GENERATORS;
-	else if (!strcmp(str, "Modifiers")) return PYMENU_MODIFIERS;
+	else if (!strcmp(str, "Add")) return PYMENU_ADD;
+	else if (!strcmp(str, "Mesh")) return PYMENU_MESH;
 	else if (!strcmp(str, "Wizards")) return PYMENU_WIZARDS;
 	else if (!strcmp(str, "Animation")) return PYMENU_ANIMATION;
 	else if (!strcmp(str, "Materials")) return PYMENU_MATERIALS;
 	else if (!strcmp(str, "UV")) return PYMENU_UV;
-	else if (!strcmp(str, "Tools")) return PYMENU_TOOLS;
+	else if (!strcmp(str, "Object")) return PYMENU_OBJECT;
 	/* "Misc" or an inexistent group name: use misc */
 	else return PYMENU_MISC;
 }
@@ -98,14 +98,14 @@ char *BPyMenu_group_itoa (short menugroup)
 		case PYMENU_EXPORT:
 			return "Export";
 			break;
-		case PYMENU_GENERATORS:
-			return "Generators";
+		case PYMENU_ADD:
+			return "Add";
 			break;
 		case PYMENU_HELP:
 			return "Help";
 			break;
-		case PYMENU_MODIFIERS:
-			return "Modifiers";
+		case PYMENU_MESH:
+			return "Mesh";
 			break;
 		case PYMENU_WIZARDS:
 			return "Wizards";
@@ -119,8 +119,8 @@ char *BPyMenu_group_itoa (short menugroup)
 		case PYMENU_UV:
 			return "UV";
 			break;
-		case PYMENU_TOOLS:
-			return "Tools";
+		case PYMENU_OBJECT:
+			return "Object";
 			break;
 		case PYMENU_MISC:
 			return "Misc";

@@ -3,7 +3,7 @@
 """ Registration info for Blender menus: <- these words are ignored
 Name: 'Dispaint'
 Blender: 233
-Group: 'Modifiers'
+Group: 'Mesh'
 Tip: 'use vertex paint color value to modify shape displacing vertices along normal.'
 """
 

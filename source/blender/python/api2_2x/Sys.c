@@ -291,7 +291,7 @@ static PyObject *M_sys_makename(PyObject *self, PyObject *args, PyObject *kw)
 			if (dot) n = dot - basename;
 			else n = strlen(basename);
 
-			BLI_strncpy(basename + n, ext, lenext);
+			BLI_strncpy(basename + n, ext, lenext + 1);
 			basename[n+lenext] = '\0';
 		}
 	}

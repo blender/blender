@@ -1,5 +1,5 @@
 #!BPY
-
+ 
 """
 Name: 'Wavefront (.obj)...'
 Blender: 232
@@ -32,6 +32,7 @@ Tooltip: 'Load a Wavefront OBJ File'
 # --------------------------------------------------------------------------
 
 NULL_MAT = '(null)' # Name for mesh's that have no mat set.
+NULL_IMG = '(null)' # Name for mesh's that have no mat set.
 
 MATLIMIT = 16 # This isnt about to change but probably should not be hard coded.
 
@@ -79,10 +80,28 @@ def getMat(matName):
    except:
       return Material.New(matName)
 
+
 #==================================================================================#
 # This function sets textures defined in .mtl file                                 #
 #==================================================================================#
-def load_image(mat, img_fileName, type, mesh):
+def getImg(img_fileName):
+   for i in Image.Get():
+      if i.filename == img_fileName:
+         return i
+   
+   # if we are this far it means the image hasnt been loaded.
+   try:
+      return Image.Load(img_fileName)
+   except:
+      print "unable to open", img_fileName
+      return
+
+
+
+#==================================================================================#
+# This function sets textures defined in .mtl file                                 #
+#==================================================================================#
+def load_mat_image(mat, img_fileName, type, mesh):
    try:
       image = Image.Load(img_fileName)
    except:
@@ -94,9 +113,14 @@ def load_image(mat, img_fileName, type, mesh):
    texture.image = image
 
    # adds textures to faces (Textured/Alt-Z mode)
-   for f in mesh.faces:
-      if mesh.materials[f.mat].name == mat.name:
-         f.image = image
+   # Only apply the diffuse texture to the face if the image has not been set with the inline usemat func.
+   if type == 'Kd':
+      for f in mesh.faces:
+         if mesh.materials[f.mat].name == mat.name:
+         
+            # the inline usemat command overides the material Image
+            if not f.image:
+               f.image = image
 
    # adds textures for materials (rendering)
    if type == 'Ka':
@@ -135,20 +159,20 @@ def load_mtl(dir, mtl_file, mesh):
       elif l[0] == 'Ks':
          currentMat.setSpecCol(eval(l[1]), eval(l[2]), eval(l[3]))
       elif l[0] == 'Ns':
-         currentMat.setEmit(eval(l[1])/100.0)
+         currentMat.setHardness( int((eval(l[1])*0.51)) )
       elif l[0] == 'd':
          currentMat.setAlpha(eval(l[1]))
       elif l[0] == 'Tr':
          currentMat.setAlpha(eval(l[1]))
       elif l[0] == 'map_Ka':
          img_fileName = dir + l[1]
-         load_image(currentMat, img_fileName, 'Ka', mesh)
-      elif l[0] == 'map_Kd':
-         img_fileName = dir + l[1]
-         load_image(currentMat, img_fileName, 'Kd', mesh)
+         load_mat_image(currentMat, img_fileName, 'Ka', mesh)
       elif l[0] == 'map_Ks':
          img_fileName = dir + l[1]
-         load_image(currentMat, img_fileName, 'Ks', mesh)
+         load_mat_image(currentMat, img_fileName, 'Ks', mesh)
+      elif l[0] == 'map_Kd':
+         img_fileName = dir + l[1]
+         load_mat_image(currentMat, img_fileName, 'Kd', mesh)
       lIdx+=1
 
 #==================================================================================#
@@ -191,7 +215,8 @@ def load_obj(file):
    nullMat = getMat(NULL_MAT)
      
    currentMat = nullMat # Use this mat.
-     
+   currentImg = NULL_IMG # Null image is a string, otherwise this should be set to an image object.
+
    # Main loop
    lIdx = 0
    while lIdx < len(fileLines):
@@ -256,8 +281,12 @@ def load_obj(file):
                   f.uv.append( uvMapList[ vtIdxLs[2] ] )
                if vtIdxLs[3] < len(uvMapList):
                   f.uv.append( uvMapList[ vtIdxLs[3] ] )
+            
             mesh.faces.append(f) # move the face onto the mesh
-
+            # Apply the current image to the face
+            if currentImg != NULL_IMG:
+               mesh.faces[-1].image = currentImg
+         
          elif len(vIdxLs) >= 3: # This handles tri's and fans
             for i in range(len(vIdxLs)-2):
                f = NMesh.Face()
@@ -273,12 +302,20 @@ def load_obj(file):
                      f.uv.append( uvMapList[ vtIdxLs[i+1] ] )
                   if vtIdxLs[2] < len(uvMapList):
                      f.uv.append( uvMapList[ vtIdxLs[i+2] ] )
-                 
+               
                mesh.faces.append(f) # move the face onto the mesh
-       
+               # Apply the current image to the face
+               if currentImg != NULL_IMG:
+                  mesh.faces[-1].image = currentImg
+
+
       # is o the only vert/face delimeter?
       # if not we could be screwed.
       elif l[0] == 'o':
+         # Some material stuff
+         if mtl_fileName != '':
+            load_mtl(DIR, mtl_fileName, mesh)
+         
          # Make sure the objects is worth puttong
          if len(mesh.verts) > 0:
             NMesh.PutRaw(mesh, fileName + '_' + objectName)
@@ -290,12 +327,19 @@ def load_obj(file):
            
          # New texture list
          uvMapList = []
-       
+      
       elif l[0] == 'usemtl':
          if l[1] == '(null)':
             currentMat = getMat(NULL_MAT)
          else:
             currentMat = getMat(' '.join(l[1:])) # Use join in case of spaces
+      
+      elif l[0] == 'usemat':
+         if l[1] == '(null)':
+            currentImg = NULL_IMG
+         else:
+            currentImg = getImg(DIR + ' '.join(l[1:])) # Use join in case of spaces       
+       
        
       elif l[0] == 'mtllib':
          mtl_fileName = l[1]
@@ -311,5 +355,4 @@ def load_obj(file):
    if len(mesh.verts) > 0:
       NMesh.PutRaw(mesh, fileName + '_' + objectName)
 
-Window.FileSelector(load_obj, 'Import OBJ')
-
+Window.FileSelector(load_obj, 'Import OBJ') 

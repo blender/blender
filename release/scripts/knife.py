@@ -3,7 +3,7 @@
 """
 Name: 'Blender Knife Tool'
 Blender: 232
-Group: 'Modifiers'
+Group: 'Mesh'
 Tooltip: 'Cut a mesh along a plane w/o creating doubles'
 """
 

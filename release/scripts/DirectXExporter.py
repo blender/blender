@@ -1,17 +1,18 @@
 #!BPY
 
 """ Registration info for Blender menus:
-Name: 'DirectX (.X)...'
-Blender: 232
+Name: 'DirectX'
+Blender: 234
 Group: 'Export'
-Submenu: 'Only Mesh Data...' mesh
-Submenu: 'Animation (not armature yet)...' anim
+Submenu: 'Only mesh data...' mesh
+Submenu: 'Animation(not armature yet)...' anim
 Tip: 'Export to DirectX text file format format.'
 """
+
 # $Id$
 #
 # DirectX.py version 1.0
-# Copyright (C) 2003  Arben OMARI -- aromari@tin.it 
+# Copyright (C) 2003  Arben OMARI -- omariarben@everyday.com  
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,6 +31,7 @@ Tip: 'Export to DirectX text file format format.'
 
 import Blender
 from Blender import Types, Object, NMesh, Material
+#import string
 from math import *
 
 
@@ -55,7 +57,7 @@ class xExport:
 		for name in Object.Get():
 			obj = name.getData()
 			if type(obj) == Types.NMeshType :
-				self.writeMaterials(name,tex)	
+					
 				self.writeFrames(name, obj)	
 				self.writeMeshcoord(name, obj )
 				self.writeMeshMaterialList(name, obj, tex)
@@ -76,8 +78,7 @@ class xExport:
 		self.writeHeader()
 		for name in Object.Get():
 			obj = name.getData()
-			if type(obj) == Types.NMeshType :
-				self.writeMaterials(name,tex)		
+			if type(obj) == Types.NMeshType :		
 				self.writeMeshcoord(name, obj )
 				self.writeMeshMaterialList(name, obj, tex)
 				self.writeMeshNormals(name, obj)
@@ -102,21 +103,7 @@ class xExport:
 	def writeEnd(self):
 		self.file.close()
 		print "... finished"
-	#***********************************************
-	#EXPORT MATERIALS
-	#***********************************************
-	def writeMaterials(self,name,tex):
-		for mat in Material.Get():
-			self.file.write("Material")
-			self.file.write(" %s "% (mat.name))
-			self.file.write("{\n")
-			self.file.write("%s; %s; %s;" % (mat.R, mat.G, mat.B))
-			self.file.write("%s;;\n" % (mat.alpha))
-			self.file.write("%s;\n" % (mat.spec))
-			self.file.write("%s; %s; %s;;\n" % (mat.specR, mat.specG, mat.specB))
-			self.file.write("0.0; 0.0; 0.0;;\n")
-			self.file.write("}\n") 
-		self.writeTextures(name, tex)
+	
 		
 
 	#***********************************************
@@ -127,18 +114,7 @@ class xExport:
 		for face in mesh.faces:
 			if face.image and face.image.name not in tex:
 				tex.append(face.image.name)
-				self.file.write("Material Mat")
-				self.file.write("%s "% (len(tex)))
-				self.file.write("{\n")
-				self.file.write("1.0; 1.0; 1.0; 1.0;;\n")
-				self.file.write("1.0;\n")
-				self.file.write("1.0; 1.0; 1.0;;\n")
-				self.file.write("0.0; 0.0; 0.0;;\n")
-				self.file.write("TextureFilename {\n")
-				self.file.write('"%s" ;'% (face.image.name))
-				self.file.write("}\n")
-				self.file.write("}\n") 
-		
+				
 
 	#***********************************************
 	#EXPORT MESH DATA
@@ -196,21 +172,24 @@ class xExport:
 			coun += 1
 			if coun == numface:
 				if len(face.v) == 3:
-					self.file.write("3; %s, %s, %s;;\n" % (counter, counter + 1, counter + 2))
+					self.file.write("3; %s; %s; %s;;\n" % (counter, counter + 1, counter + 2))
 					counter += 3
-				else :
-					self.file.write("4; %s, %s, %s, %s;;\n" % (counter, counter + 1, counter + 2, counter + 3))
+				elif len(face.v) == 4:
+					self.file.write("4; %s; %s; %s; %s;;\n" % (counter, counter + 1, counter + 2, counter + 3))
 					counter += 4
+				elif len(face.v) == 2:
+					print "WARNING:the mesh has faces with less then 3 vertices"
 			else:
 				
 				if len(face.v) == 3:
-					self.file.write("3; %s, %s, %s;,\n" % (counter, counter + 1, counter + 2))
+					self.file.write("3; %s; %s; %s;,\n" % (counter, counter + 1, counter + 2))
 					counter += 3
-				else :
-					self.file.write("4; %s, %s, %s, %s;,\n" % (counter, counter + 1, counter + 2, counter + 3))
+				elif len(face.v) == 4:
+					self.file.write("4; %s; %s; %s; %s;,\n" % (counter, counter + 1, counter + 2, counter + 3))
 					counter += 4
-		
-
+				elif len(face.v) == 2:
+					print "WARNING:the mesh has faces with less then 3 vertices"
+				
 		
 		
 		
@@ -219,16 +198,15 @@ class xExport:
 	#MESH MATERIAL LIST
 	#***********************************************
 	def writeMeshMaterialList(self, name, obj, tex):
-		self.file.write("//LET'S BEGIN WITH OPTIONAL DATA\n")
-		self.file.write(" MeshMaterialList {\n")
+		self.file.write("  MeshMaterialList {\n")
 		#HOW MANY MATERIALS ARE USED
 		count = 0
 		for mat in Material.Get():
 			count+=1
-		self.file.write("%s;\n" % (len(tex) + count))
+		self.file.write("    %s;\n" % (len(tex) + count))
 		#HOW MANY FACES IT HAS
 		numfaces=len(obj.faces)
-		self.file.write("%s;\n" % (numfaces))
+		self.file.write("    %s;\n" % (numfaces))
 		##MATERIALS INDEX FOR EVERY FACE
 		counter = 0
 		for face in obj.faces :
@@ -236,23 +214,43 @@ class xExport:
 			mater = face.materialIndex
 			if counter == numfaces:
 				if face.image and face.image.name in tex :
-					self.file.write("%s;;\n" % (tex.index(face.image.name) + count))
+					self.file.write("    %s;;\n" % (tex.index(face.image.name) + count))
 				else :
-					self.file.write("%s;;\n" % (mater))
+					self.file.write("    %s;;\n" % (mater))
 			else :
 				if face.image and face.image.name in tex :
-					self.file.write("%s,\n" % (tex.index(face.image.name) + count))
+					self.file.write("    %s,\n" % (tex.index(face.image.name) + count))
 				else :
-					self.file.write("%s,\n" % (mater))
+					self.file.write("    %s,\n" % (mater))
 			
 		##MATERIAL NAME
 		for mat in Material.Get():
-			self.file.write("{%s}\n"% (mat.name))
+			self.file.write("  Material")
+			for a in range(0,len(mat.name)):
+				if mat.name[a] == ".":
+					print "WARNING:the material " + mat.name + " contains '.' within.Many viewers may refuse to read the exported file"
+			self.file.write(" %s "% (mat.name))
+			self.file.write("{\n")
+			self.file.write("    %s; %s; %s;" % (mat.R, mat.G, mat.B))
+			self.file.write("%s;;\n" % (mat.alpha))
+			self.file.write("    %s;\n" % (mat.spec))
+			self.file.write("    %s; %s; %s;;\n" % (mat.specR, mat.specG, mat.specB))
+			self.file.write("    0.0; 0.0; 0.0;;\n")
+			self.file.write("  }\n") 
 		
 		for mat in tex:
-			self.file.write("{Mat")
-			self.file.write("%s}\n"% (tex.index(mat) + 1))
-		self.file.write("}\n")
+			self.file.write("  Material Mat")
+			self.file.write("%s "% (len(tex)))
+			self.file.write("{\n")
+			self.file.write("    1.0; 1.0; 1.0; 1.0;;\n")
+			self.file.write("    1.0;\n")
+			self.file.write("    1.0; 1.0; 1.0;;\n")
+			self.file.write("    0.0; 0.0; 0.0;;\n")
+			self.file.write("  TextureFilename {\n")
+			self.file.write('    "%s" ;'% (face.image.name))
+			self.file.write("  }\n")
+			self.file.write("  }\n") 
+		self.file.write("    }\n")
 	#***********************************************
 	#MESH NORMALS
 	#***********************************************
@@ -278,14 +276,14 @@ class xExport:
 			counter += 1
 			if counter == numfaces:
 				if len(face.v) == 3:
-					self.file.write("3; %s, %s, %s;;\n" % (face[0].index, face[1].index, face[2].index))
+					self.file.write("3; %s; %s; %s;;\n" % (face[0].index, face[1].index, face[2].index))
 				elif len(face.v) == 4:
-					self.file.write("4; %s, %s, %s, %s;;\n" % (face[0].index, face[1].index, face[2].index, face[3].index))
+					self.file.write("4; %s; %s; %s; %s;;\n" % (face[0].index, face[1].index, face[2].index, face[3].index))
 			else:
 				if len(face.v) == 3:
-					self.file.write("3; %s, %s, %s;,\n" % (face[0].index, face[1].index, face[2].index))
+					self.file.write("3; %s; %s; %s;,\n" % (face[0].index, face[1].index, face[2].index))
 				elif len(face.v) == 4 :
-					self.file.write("4; %s, %s, %s, %s;,\n" % (face[0].index, face[1].index, face[2].index, face[3].index))
+					self.file.write("4; %s; %s; %s; %s;,\n" % (face[0].index, face[1].index, face[2].index, face[3].index))
 		self.file.write("}\n")
 	#***********************************************
 	#MESH TEXTURE COORDS
@@ -296,7 +294,6 @@ class xExport:
 				#VERTICES NUMBER
 				mesh = name.data
 				numvert = 0
-				numfaces=len(obj.faces)
 				for face in mesh.faces:
 					numvert = numvert + len(face.v)
 				self.file.write("%s;\n" % (numvert))
@@ -304,26 +301,15 @@ class xExport:
 				counter = -1
 				for face in mesh.faces:
 					counter += 1
-					if counter == numfaces - 1:
-						if len(face.v) == 4:
-							self.file.write("%s;%s;,\n" % (mesh.faces[counter].uv[0][0], -mesh.faces[counter].uv[0][1]))
-							self.file.write("%s;%s;,\n" % (mesh.faces[counter].uv[1][0], -mesh.faces[counter].uv[1][1]))
-							self.file.write("%s;%s;,\n" % (mesh.faces[counter].uv[2][0], -mesh.faces[counter].uv[2][1]))
-							self.file.write("%s;%s;;\n" % (mesh.faces[counter].uv[3][0], -mesh.faces[counter].uv[3][1]))
-						elif len(face.v) == 3:
-							self.file.write("%s;%s;,\n" % (mesh.faces[counter].uv[0][0], -mesh.faces[counter].uv[0][1]))
-							self.file.write("%s;%s;,\n" % (mesh.faces[counter].uv[1][0], -mesh.faces[counter].uv[1][1]))
-							self.file.write("%s;%s;;\n" % (mesh.faces[counter].uv[2][0], -mesh.faces[counter].uv[2][1]))
-					else :
-						if len(face.v) == 4:
-							self.file.write("%s;%s;,\n" % (mesh.faces[counter].uv[0][0], -mesh.faces[counter].uv[0][1]))
-							self.file.write("%s;%s;,\n" % (mesh.faces[counter].uv[1][0], -mesh.faces[counter].uv[1][1]))
-							self.file.write("%s;%s;,\n" % (mesh.faces[counter].uv[2][0], -mesh.faces[counter].uv[2][1]))
-							self.file.write("%s;%s;,\n" % (mesh.faces[counter].uv[3][0], -mesh.faces[counter].uv[3][1]))
-						elif len(face.v) == 3:
-							self.file.write("%s;%s;,\n" % (mesh.faces[counter].uv[0][0], -mesh.faces[counter].uv[0][1]))
-							self.file.write("%s;%s;,\n" % (mesh.faces[counter].uv[1][0], -mesh.faces[counter].uv[1][1]))
-							self.file.write("%s;%s;,\n" % (mesh.faces[counter].uv[2][0], -mesh.faces[counter].uv[2][1]))
+					if len(face.v) == 4:
+						self.file.write("%s;%s;,\n" % (mesh.faces[counter].uv[0][0], -mesh.faces[counter].uv[0][1]))
+						self.file.write("%s;%s;,\n" % (mesh.faces[counter].uv[1][0], -mesh.faces[counter].uv[1][1]))
+						self.file.write("%s;%s;,\n" % (mesh.faces[counter].uv[2][0], -mesh.faces[counter].uv[2][1]))
+						self.file.write("%s;%s;,\n" % (mesh.faces[counter].uv[3][0], -mesh.faces[counter].uv[3][1]))
+					elif len(face.v) == 3:
+						self.file.write("%s;%s;,\n" % (mesh.faces[counter].uv[0][0], -mesh.faces[counter].uv[0][1]))
+						self.file.write("%s;%s;,\n" % (mesh.faces[counter].uv[1][0], -mesh.faces[counter].uv[1][1]))
+						self.file.write("%s;%s;,\n" % (mesh.faces[counter].uv[2][0], -mesh.faces[counter].uv[2][1]))
 
 				self.file.write("}\n")
 
@@ -441,4 +427,5 @@ def my_callback(filename):
 	else:
 		xexport.exportTex()
 
-Blender.Window.FileSelector(my_callback, "Export DirectX")
+fname = Blender.sys.makename(ext = ".x")
+Blender.Window.FileSelector(my_callback, "Export DirectX",fname)

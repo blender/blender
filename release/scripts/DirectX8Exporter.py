@@ -1,14 +1,18 @@
 #!BPY
 
 """ Registration info for Blender menus:
-Name: 'DirectX'
-Blender: 233
+Name: 'DirectX8'
+Blender: 234
 Group: 'Export'
-Submenu: 'Mesh,armatures,animations' mesh
+Submenu: 'Export to DX8 file format' export
+Submenu: 'How to use this exporter?' help
 Tip: 'Export to DirectX8 text file format format.'
 """
-# DirectX.py version 2.0
-# Copyright (C) 2003  Arben OMARI -- aromari@tin.it 
+
+# $Id$
+#
+# DirectX8Exporter.py version 1.0
+# Copyright (C) 2003  Arben OMARI -- omariarben@everyday.com 
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -34,6 +38,48 @@ bon_list = []
 new_bon = {}
 mat_flip = Matrix([1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1])
 
+def draw():
+	
+	# clearing screen
+	Blender.BGL.glClearColor(0.5, 0.5, 0.5, 1)
+	Blender.BGL.glColor3f(1.,1.,1.)
+	Blender.BGL.glClear(Blender.BGL.GL_COLOR_BUFFER_BIT)
+	
+	# Buttons
+	Blender.Draw.Button("Exit", 1, 10, 40, 100, 25)
+
+	#Text
+	Blender.BGL.glColor3f(1, 1, 1)
+	Blender.BGL.glRasterPos2d(10, 310)
+	Blender.Draw.Text("1.Only one mesh and one armature in the scene")
+	Blender.BGL.glRasterPos2d(10, 290)
+	Blender.Draw.Text("2.Before parenting set:")
+ 
+	
+	
+	Blender.BGL.glRasterPos2d(10, 270)
+	Blender.Draw.Text("     a)Armature and mesh must have the same origin location")
+	Blender.BGL.glRasterPos2d(10, 255)
+	Blender.Draw.Text("       (press N for both and set the same LocX,LocY and LocZ)")
+	Blender.BGL.glRasterPos2d(10, 230)
+	Blender.Draw.Text("      b)Armature and mesh must have the same to rotation")
+	Blender.BGL.glRasterPos2d(10, 215)
+	Blender.Draw.Text("        (select them and press Ctrl + A)")
+	Blender.BGL.glRasterPos2d(10, 195)
+	Blender.Draw.Text("3.Flip Normals ")
+	Blender.BGL.glRasterPos2d(10, 175)
+	Blender.Draw.Text("4.Set the number of the animation frames to export ")
+	Blender.BGL.glRasterPos2d(10, 155)
+	Blender.Draw.Text("5.Read warnings in console(if any)")
+
+def event(evt, val):
+	if evt == Blender.Draw.ESCKEY and not val: Blender.Draw.Exit()
+
+def bevent(evt):
+	
+	if evt == 1: Blender.Draw.Exit()
+	
+		
 
 #***********************************************
 #***********************************************
@@ -80,7 +126,12 @@ class xExport:
 				Blender.Set('curframe',1)
 				am_ob = Object.Get(name.name)
 				mat_ob = mat_flip * am_ob.getMatrix()
-				self.writeArmFrames(mat_ob, "RootFrame", 0)
+				mat_o = Matrix([mat_ob[0][0],mat_ob[0][1],mat_ob[0][2],mat_ob[0][3]],
+								[mat_ob[1][0],mat_ob[1][1],mat_ob[1][2],mat_ob[1][3]],
+								[mat_ob[2][0],mat_ob[2][1],mat_ob[2][2],mat_ob[2][3]],
+								[0, 0, 0, 1])
+
+				self.writeArmFrames(mat_o, "RootFrame", 0)
 				root_bon = arm.getBones()
 				bon_list.append(root_bon[0])
 				mat_r = self.writeCombineMatrix(root_bon[0])  
@@ -348,6 +399,7 @@ template SkinWeights {\n\
 		mat_ob = name.getMatrix() 
 		mat_ar = armat.getInverseMatrix()
 		mat_f = mat_ob * mat_ar
+		
 		self.writeArmFrames(mat_f, "body", 1)
 
 		self.file.write("  Mesh object {\n")     
@@ -432,9 +484,6 @@ template SkinWeights {\n\
 			self.file.write("    %s;\n" % (mat.spec))
 			self.file.write("    %s; %s; %s;;\n" % (mat.specR, mat.specG, mat.specB))
 			self.file.write("    0.0; 0.0; 0.0;;\n")
-			self.file.write("  TextureFilename {\n")
-			self.file.write('    "none" ;')
-			self.file.write("  }\n")
 			self.file.write("  }\n") 
 		
 		for mat in tex:
@@ -485,6 +534,7 @@ template SkinWeights {\n\
 				elif len(face.v) == 4 :
 					self.file.write("    4; %s, %s, %s, %s;,\n" % (face[0].index, face[1].index, face[2].index, face[3].index))
 		self.file.write("}\n")
+
 	#***********************************************
 	#MESH TEXTURE COORDS
 	#***********************************************
@@ -565,15 +615,22 @@ template SkinWeights {\n\
 		self.file.write("}\n")
 		
 #***********************************************#***********************************************#***********************************************
+
+
+
 #***********************************************
 # MAIN
 #***********************************************
 
-	
 def my_callback(filename):
-	if filename.find('.x', -2) <= 0: filename += '.x' # add '.x' if the user didn't
+	if filename.find('.x', -2) <= 0: filename += '.x' 
 	xexport = xExport(filename)
 	xexport.writeRootBone()
-	
 
-Blender.Window.FileSelector(my_callback, "Export DirectX8")	
+
+arg = __script__['arg']
+if arg == 'help':
+	Blender.Draw.Register(draw,event,bevent)
+else:
+	fname = Blender.sys.makename(ext = ".x")
+	Blender.Window.FileSelector(my_callback, "Export DirectX8", fname)

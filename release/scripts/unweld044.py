@@ -2,7 +2,7 @@
 """ Registration info for Blender menus: <- these words are ignored
 Name: 'UnWeld'
 Blender: 232
-Group: 'Modifiers'
+Group: 'Mesh'
 Tip: 'unweld all faces from one selected and commun vertex. Made vertex bevelling'
 """
 
