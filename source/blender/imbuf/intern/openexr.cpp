@@ -29,6 +29,9 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  *
  */
+
+#ifdef WITH_OPENEXR
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string>
@@ -390,3 +393,5 @@ extern "C"
 	}
 
 }												  // export "C"
+
+#endif  // #ifdef WITH_OPENEXR
