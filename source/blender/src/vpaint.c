@@ -110,9 +110,6 @@ int *indexar= NULL;
 int totwpaintundo;
 MDeformVert *wpaintundobuf=NULL;
 
-/* Function prototypes */
-int calc_vp_alpha_dl(DispList *disp, MVert *mvert, int vert, short *mval);
-
 /* in contradiction to cpack drawing colors, the MCOL colors (vpaint colors) are per byte! 
    so not endian sensitive. Mcol = ABGR!!! so be cautious with cpack calls */
 
@@ -690,7 +687,7 @@ static int calc_vp_alpha(MVert *mvert, short *mval)
 
 }
 
-int calc_vp_alpha_dl(DispList *disp, MVert *mvert, int vert, short *mval)
+static int calc_vp_alpha_dl(DispList *disp, MVert *mvert, int vert, short *mval)
 /* Lets us do soft vertex painting onto a deformed mesh */
 {
 	float fac, dx, dy, nor[3];
@@ -943,6 +940,7 @@ void vertex_paint()
 	Mesh *me;
 	MFace *mface;
 	TFace *tface;
+	DispList *dl;
 	float mat[4][4], imat[4][4];
 	unsigned int paintcol=0, *mcol, fcol1, fcol2;
 	int index, alpha, totindex, total;
@@ -1031,6 +1029,8 @@ void vertex_paint()
 				}
 			}
 
+			dl= find_displist(&ob->disp, DL_VERTS);
+
 			for(index=0; index<totindex; index++) {
 
 				if(indexar[index] && indexar[index]<=me->totface) {
@@ -1052,17 +1052,17 @@ void vertex_paint()
 					
 					total= 0;
 					
-					total+= alpha= calc_vp_alpha(me->mvert+mface->v1, mval);
+					total+= alpha= calc_vp_alpha_dl(dl, me->mvert, mface->v1, mval);
 					if(alpha) vpaint_blend( mcol, paintcol, alpha);
 					
-					total+= alpha= calc_vp_alpha(me->mvert+mface->v2, mval);
+					total+= alpha= calc_vp_alpha_dl(dl, me->mvert, mface->v2, mval);
 					if(alpha) vpaint_blend( mcol+1, paintcol, alpha);
 	
-					total+= alpha= calc_vp_alpha(me->mvert+mface->v3, mval);
+					total+= alpha= calc_vp_alpha_dl(dl, me->mvert, mface->v3, mval);
 					if(alpha) vpaint_blend( mcol+2, paintcol, alpha);
 
 					if(mface->v4) {
-						total+= alpha= calc_vp_alpha(me->mvert+mface->v4, mval);
+						total+= alpha= calc_vp_alpha_dl(dl, me->mvert, mface->v4, mval);
 						if(alpha) vpaint_blend( mcol+3, paintcol, alpha);
 					}
 					

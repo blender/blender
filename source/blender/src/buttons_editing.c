@@ -2405,9 +2405,9 @@ static void editing_panel_mesh_paint(void)
 	uiDefButS(block, ROW, B_DIFF, "Filter",		1212, 80,63,19, &Gvp.mode, 1.0, 4.0, 0, 0, "Mix the colours with an alpha factor");
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|1, 0, "Area", 		979,50,81,19, &Gvp.flag, 0, 0, 0, 0, "Set the area the brush covers");
+	uiDefButS(block, TOG|BIT|1, 0, "Area", 		979,50,81,19, &Gvp.flag, 0, 0, 0, 0, "Vertex paint evaluates the area of the face the brush covers (otherwise vertices only)");
 	uiDefButS(block, TOG|BIT|2, 0, "Soft", 		1061,50,112,19, &Gvp.flag, 0, 0, 0, 0, "Use a soft brush");
-	uiDefButS(block, TOG|BIT|3, 0, "Normals", 	1174,50,102,19, &Gvp.flag, 0, 0, 0, 0, "Use vertex normal for painting");
+	uiDefButS(block, TOG|BIT|3, 0, "Normals", 	1174,50,102,19, &Gvp.flag, 0, 0, 0, 0, "Vertex paint applies the vertex normal before painting");
 
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT, B_VPGAMMA, "Set", 	979,30,81,19, 0, 0, 0, 0, 0, "Apply Mul and Gamma to vertex colours");

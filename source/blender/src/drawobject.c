@@ -4600,6 +4600,8 @@ static int bbs_mesh_solid(Object *ob, int facecol)
 		MVert *mvert;
 		MFace *mface;
 		TFace *tface;
+		DispList *dl;
+		float *extverts=NULL;
 		int a, totface, hastface, i;
 		
 		mvert= me->mvert;
@@ -4607,6 +4609,9 @@ static int bbs_mesh_solid(Object *ob, int facecol)
 		tface= me->tface;
 		hastface = (me->tface != NULL);
 		totface= me->totface;
+
+		dl= find_displist(&ob->disp, DL_VERTS);
+		if(dl) extverts= dl->verts;
 		
 		glBegin(GL_QUADS);
 		glmode= GL_QUADS;
@@ -4622,10 +4627,18 @@ static int bbs_mesh_solid(Object *ob, int facecol)
 				if(mface->v4) {if(glmode==GL_TRIANGLES) {glmode= GL_QUADS; glEnd(); glBegin(GL_QUADS);}}
 				else {if(glmode==GL_QUADS) {glmode= GL_TRIANGLES; glEnd(); glBegin(GL_TRIANGLES);}}
 				
-				glVertex3fv( (mvert+mface->v1)->co );
-				glVertex3fv( (mvert+mface->v2)->co );
-				glVertex3fv( (mvert+mface->v3)->co );
-				if(mface->v4) glVertex3fv( (mvert+mface->v4)->co );
+				if(extverts) {
+					glVertex3fv( extverts+3*mface->v1 );
+					glVertex3fv( extverts+3*mface->v2 );
+					glVertex3fv( extverts+3*mface->v3 );
+					if(mface->v4) glVertex3fv( extverts+3*mface->v4 );
+				}
+				else {
+					glVertex3fv( (mvert+mface->v1)->co );
+					glVertex3fv( (mvert+mface->v2)->co );
+					glVertex3fv( (mvert+mface->v3)->co );
+					if(mface->v4) glVertex3fv( (mvert+mface->v4)->co );
+				}
 			}
 		}
 		glEnd();
