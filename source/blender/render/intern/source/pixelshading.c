@@ -1051,7 +1051,7 @@ void shadeLampLusFloat()
 		/* test for lamplayer */
 		if(lar->mode & LA_LAYER) if((lar->lay & R.vlr->lay)==0) continue;
 
-		/* lampdist calculation */
+		/* lampdist calculation */
 		if(lar->type==LA_SUN || lar->type==LA_HEMI) {
 			VECCOPY(lv, lar->vec);
 			lampdist= 1.0;
