@@ -126,9 +126,7 @@ struct PyMethodDef M_Camera_methods[] = {
 /*****************************************************************************/
 typedef struct {
   PyObject_HEAD
-  PyObject *dict;
   Camera   *camera;
-  int      linked;
 } C_Camera;
 
 /*****************************************************************************/

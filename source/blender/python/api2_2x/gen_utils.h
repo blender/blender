@@ -37,9 +37,11 @@ int StringEqual (char * string1, char * string2);
 char * GetIdName (ID *id);
 PyObject * PythonReturnErrorObject (PyObject * type, char * error_msg);
 PyObject * PythonIncRef (PyObject *object);
-char * event_to_name(short event);
-float EXPP_ClampFloat(float value, float min, float max);
-int EXPP_intError(PyObject *type, char *error_msg);
+PyObject * EXPP_incr_ret (PyObject *object);
+char * event_to_name (short event);
+float EXPP_ClampFloat (float value, float min, float max);
+int EXPP_ReturnIntError (PyObject *type, char *error_msg);
+PyObject *EXPP_ReturnPyObjError (PyObject * type, char * error_msg);
 
 /* The following functions may need to be moved to the respective BKE or */
 /* DNA modules. */

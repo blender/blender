@@ -28,24 +28,8 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
-#include <Python.h>
 
-#include <DNA_object_types.h>
-#include <DNA_camera_types.h>
-#include <DNA_lamp_types.h>
-#include <DNA_image_types.h>
+#include <DNA_ID.h>
 
-/*****************************************************************************/
-/* Global variables                                                          */
-/*****************************************************************************/
-extern PyObject *g_blenderdict;
-
-void initBlender (void);
-PyObject *initObject (void);
-PyObject *ObjectCreatePyObject (struct Object *obj);
-PyObject *M_Camera_Init (void);
-PyObject *M_Lamp_Init (void);
-PyObject *M_Image_Init (void);
-PyObject *M_Window_Init (void);
-PyObject *M_Draw_Init (void);
-PyObject *M_BGL_Init (void);
+void initBlenderApi2_2x (void);
+ScriptLink * setScriptLinks(ID *id, short event);

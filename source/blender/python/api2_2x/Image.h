@@ -55,7 +55,7 @@
 /* Python API function prototypes for the Image module.                     */
 /*****************************************************************************/
 static PyObject *M_Image_New (PyObject *self, PyObject *args,
-								PyObject *keywords);
+                PyObject *keywords);
 static PyObject *M_Image_Get (PyObject *self, PyObject *args);
 static PyObject *M_Image_Load (PyObject *self, PyObject *args);
 
@@ -96,8 +96,7 @@ struct PyMethodDef M_Image_methods[] = {
 /*****************************************************************************/
 typedef struct {
   PyObject_HEAD
-  PyObject *dict;
-  Image    *image;
+  Image *image;
 } C_Image;
 
 /*****************************************************************************/
@@ -115,15 +114,15 @@ static PyObject *Image_setYRep(C_Image *self, PyObject *args);
 static PyMethodDef C_Image_methods[] = {
  /* name, method, flags, doc */
   {"getName", (PyCFunction)Image_getName, METH_NOARGS,
-					"() - Return Image Data name"},
+          "() - Return Image Data name"},
   {"getFilename", (PyCFunction)Image_getFilename, METH_VARARGS,
-					"() - Return Image Data filename"},
+          "() - Return Image Data filename"},
   {"rename", (PyCFunction)Image_rename, METH_VARARGS,
-					"(str) - Change Image Data name"},
+          "(str) - Change Image Data name"},
   {"setXRep", (PyCFunction)Image_setXRep, METH_VARARGS,
-					"(int) - Change Image Data x repetition value"},
+          "(int) - Change Image Data x repetition value"},
   {"setYRep", (PyCFunction)Image_setYRep, METH_VARARGS,
-					"(int) - Change Image Data y repetition value"},
+          "(int) - Change Image Data y repetition value"},
   {0}
 };
 

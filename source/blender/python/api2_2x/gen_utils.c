@@ -78,7 +78,13 @@ PyObject * PythonReturnErrorObject (PyObject * type, char * error_msg)
 	return (NULL);
 }
 
-int EXPP_intError (PyObject *type, char *error_msg)
+PyObject *EXPP_ReturnPyObjError (PyObject * type, char * error_msg)
+{ /* same as above, just to change its name smoothly */
+	PyErr_SetString (type, error_msg);
+	return NULL;
+}
+
+int EXPP_ReturnIntError (PyObject *type, char *error_msg)
 {
 	PyErr_SetString (type, error_msg);
 	return -1;
@@ -86,7 +92,7 @@ int EXPP_intError (PyObject *type, char *error_msg)
 
 /*****************************************************************************/
 /* Description: This function increments the reference count of the given    */
-/*              Python object.                                               */
+/*              Python object (usually Py_None) and returns it.              */
 /*****************************************************************************/
 PyObject * PythonIncRef (PyObject *object)
 {
@@ -94,6 +100,11 @@ PyObject * PythonIncRef (PyObject *object)
 	return (object);
 }
 
+PyObject *EXPP_incr_ret (PyObject *object)
+{
+	Py_INCREF (object);
+	return (object);
+}
 /*****************************************************************************/
 /* Description: This function maps the event identifier to a string.         */
 /*****************************************************************************/

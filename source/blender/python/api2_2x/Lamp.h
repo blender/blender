@@ -109,7 +109,7 @@
 #define EXPP_LAMP_HALOSTEP      0
 #define EXPP_LAMP_HALOSTEP_MIN  0
 #define EXPP_LAMP_HALOSTEP_MAX 12
-#define EXPP_LAMP_QUAD1     0.0 /* Not implemented yet ( and not in 2.25) */
+#define EXPP_LAMP_QUAD1     0.0
 #define EXPP_LAMP_QUAD1_MIN 0.0
 #define EXPP_LAMP_QUAD1_MAX 1.0
 #define EXPP_LAMP_QUAD2     1.0
@@ -162,9 +162,7 @@ struct PyMethodDef M_Lamp_methods[] = {
 /*****************************************************************************/
 typedef struct {
   PyObject_HEAD
-  PyObject *dict;
-  Lamp     *lamp;
-	int      linked;
+  Lamp *lamp;
 } C_Lamp;
 
 /*****************************************************************************/
@@ -185,6 +183,8 @@ static PyObject *Lamp_getClipEnd(C_Lamp *self);
 static PyObject *Lamp_getBias(C_Lamp *self);
 static PyObject *Lamp_getSoftness(C_Lamp *self);
 static PyObject *Lamp_getHaloInt(C_Lamp *self);
+static PyObject *Lamp_getQuad1(C_Lamp *self);
+static PyObject *Lamp_getQuad2(C_Lamp *self);
 static PyObject *Lamp_rename(C_Lamp *self, PyObject *args);
 static PyObject *Lamp_setType(C_Lamp *self, PyObject *args);
 static PyObject *Lamp_setIntType(C_Lamp *self, PyObject *args);
@@ -202,8 +202,10 @@ static PyObject *Lamp_setClipEnd(C_Lamp *self, PyObject *args);
 static PyObject *Lamp_setBias(C_Lamp *self, PyObject *args);
 static PyObject *Lamp_setSoftness(C_Lamp *self, PyObject *args);
 static PyObject *Lamp_setHaloInt(C_Lamp *self, PyObject *args);
+static PyObject *Lamp_setQuad1(C_Lamp *self, PyObject *args);
+static PyObject *Lamp_setQuad2(C_Lamp *self, PyObject *args);
 static PyObject *Lamp_setColorComponent(C_Lamp *self, char *key,
-								PyObject *args);
+                PyObject *args);
 
 /*****************************************************************************/
 /* Python C_Lamp methods table:                                              */
@@ -211,64 +213,72 @@ static PyObject *Lamp_setColorComponent(C_Lamp *self, char *key,
 static PyMethodDef C_Lamp_methods[] = {
  /* name, method, flags, doc */
   {"getName", (PyCFunction)Lamp_getName, METH_NOARGS,
-					"() - return Lamp name"},
+          "() - return Lamp name"},
   {"getType", (PyCFunction)Lamp_getType, METH_NOARGS,
-					"() - return Lamp type -\n\t\
+          "() - return Lamp type -\n\t\
 'Lamp':0, 'Sun':1, 'Spot':2, 'Hemi':3"},
   {"getMode", (PyCFunction)Lamp_getMode, METH_NOARGS,
-					"() - return Lamp mode flags (or'ed value)"},
+          "() - return Lamp mode flags (or'ed value)"},
   {"getSamples", (PyCFunction)Lamp_getSamples, METH_NOARGS,
-					"() - return Lamp samples value"},
+          "() - return Lamp samples value"},
   {"getBufferSize", (PyCFunction)Lamp_getBufferSize, METH_NOARGS,
-					"() - return Lamp buffer size value"},
+          "() - return Lamp buffer size value"},
   {"getHaloStep", (PyCFunction)Lamp_getHaloStep, METH_NOARGS,
-					"() - return Lamp halo step value"},
+          "() - return Lamp halo step value"},
   {"getEnergy", (PyCFunction)Lamp_getEnergy, METH_NOARGS,
-					"() - return Lamp energy value"},
+          "() - return Lamp energy value"},
   {"getDist", (PyCFunction)Lamp_getDist, METH_NOARGS,
-					"() - return Lamp clipping distance value"},
+          "() - return Lamp clipping distance value"},
   {"getSpotSize", (PyCFunction)Lamp_getSpotSize, METH_NOARGS,
-					"() - return Lamp spot size value"},
+          "() - return Lamp spot size value"},
   {"getSpotBlend", (PyCFunction)Lamp_getSpotBlend, METH_NOARGS,
-					"() - return Lamp spot blend value"},
+          "() - return Lamp spot blend value"},
   {"getClipStart", (PyCFunction)Lamp_getClipStart, METH_NOARGS,
-					"() - return Lamp clip start value"},
+          "() - return Lamp clip start value"},
   {"getClipEnd", (PyCFunction)Lamp_getClipEnd, METH_NOARGS,
-					"() - return Lamp clip end value"},
+          "() - return Lamp clip end value"},
   {"getBias", (PyCFunction)Lamp_getBias, METH_NOARGS,
-					"() - return Lamp bias value"},
+          "() - return Lamp bias value"},
   {"getSoftness", (PyCFunction)Lamp_getSoftness, METH_NOARGS,
-					"() - return Lamp softness value"},
+          "() - return Lamp softness value"},
   {"getHaloInt", (PyCFunction)Lamp_getHaloInt, METH_NOARGS,
-					"() - return Lamp halo intensity value"},
+          "() - return Lamp halo intensity value"},
+  {"getQuad1", (PyCFunction)Lamp_getQuad1, METH_NOARGS,
+          "() - return light intensity value #1 for a Quad Lamp"},
+  {"getQuad2", (PyCFunction)Lamp_getQuad2, METH_NOARGS,
+          "() - return light intensity value #2 for a Quad Lamp"},
   {"rename", (PyCFunction)Lamp_rename, METH_VARARGS,
-					"(str) - rename Lamp"},
+          "(str) - rename Lamp"},
   {"setType", (PyCFunction)Lamp_setType, METH_VARARGS,
-					"(str) - change Lamp type, which can be 'persp' or 'ortho'"},
+          "(str) - change Lamp type, which can be 'persp' or 'ortho'"},
   {"setMode", (PyCFunction)Lamp_setMode, METH_VARARGS,
-					"([up to eight str's]) - Set Lamp mode flag(s)"},
+          "([up to eight str's]) - Set Lamp mode flag(s)"},
   {"setSamples", (PyCFunction)Lamp_setSamples, METH_VARARGS,
-					"(int) - change Lamp samples value"},
+          "(int) - change Lamp samples value"},
   {"setBufferSize", (PyCFunction)Lamp_setBufferSize, METH_VARARGS,
-					"(int) - change Lamp buffer size value"},
+          "(int) - change Lamp buffer size value"},
   {"setHaloStep", (PyCFunction)Lamp_setHaloStep, METH_VARARGS,
-					"(int) - change Lamp halo step value"},
+          "(int) - change Lamp halo step value"},
   {"setEnergy", (PyCFunction)Lamp_setEnergy, METH_VARARGS,
-					"(float) - change Lamp energy value"},
+          "(float) - change Lamp energy value"},
   {"setSpotSize", (PyCFunction)Lamp_setSpotSize, METH_VARARGS,
-					"(float) - change Lamp spot size value"},
+          "(float) - change Lamp spot size value"},
   {"setSpotBlend", (PyCFunction)Lamp_setHaloStep, METH_VARARGS,
-					"(float) - change Lamp spot blend value"},
+          "(float) - change Lamp spot blend value"},
   {"setClipStart", (PyCFunction)Lamp_setClipStart, METH_VARARGS,
-					"(float) - change Lamp clip start value"},
+          "(float) - change Lamp clip start value"},
   {"setClipEnd", (PyCFunction)Lamp_setClipEnd, METH_VARARGS,
-					"(float) - change Lamp clip end value"},
+          "(float) - change Lamp clip end value"},
   {"setBias", (PyCFunction)Lamp_setBias, METH_VARARGS,
-					"(float) - change Lamp draw size value"},
+          "(float) - change Lamp draw size value"},
   {"setSoftness", (PyCFunction)Lamp_setSoftness, METH_VARARGS,
-					"(float) - change Lamp softness value"},
+          "(float) - change Lamp softness value"},
   {"setHaloInt", (PyCFunction)Lamp_setHaloInt, METH_VARARGS,
-					"(float) - change Lamp halo intensity value"},
+          "(float) - change Lamp halo intensity value"},
+  {"setQuad1", (PyCFunction)Lamp_setQuad1, METH_VARARGS,
+          "(float) - change light intensity value #1 for a Quad Lamp"},
+  {"setQuad2", (PyCFunction)Lamp_setQuad2, METH_VARARGS,
+          "(float) - change light intensity value #2 for a Quad Lamp"},
   {0}
 };
 
