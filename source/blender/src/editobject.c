@@ -1556,7 +1556,7 @@ void special_editmenu(void)
 	}
 	else if(G.obedit->type==OB_MESH) {
 
-		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Fractal%x2|Subdivide Smooth%x3|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select swap%x8|Flip Normals %x9|Smooth %x10");
+		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Fractal%x2|Subdivide Smooth%x3|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select swap%x8|Flip Normals %x9|Smooth %x10|Bevel %x11");
 		if(nr>0) waitcursor(1);
 		
 		switch(nr) {
@@ -1599,6 +1599,10 @@ void special_editmenu(void)
 		case 10:
 			undo_push_mesh("Smooth");
 			vertexsmooth();
+			break;
+		case 11:
+			undo_push_mesh("Bevel");
+			bevel_menu();
 			break;
 		}		
 		

@@ -7751,3 +7751,824 @@ void undo_menu_mesh(void)
 	if (event==1) remake_editMesh();
 	else undo_pop_mesh(G.undo_edit_level-event+3);
 }
+
+/******************* BEVEL CODE STARTS HERE ********************/
+void bevel_displace_vec(float *midvec, float *v1, float *v2, float *v3, float d, float no[3])
+{
+	float a[3], c[3], n_a[3], n_c[3], mid[3], ac, ac2, fac;
+
+	VecSubf(a, v1, v2);
+	VecSubf(c, v3, v2);
+
+	Crossf(n_a, a, no);
+	Normalise(n_a);
+	Crossf(n_c, no, c);
+	Normalise(n_c);
+
+	Normalise(a);
+	Normalise(c);
+	ac = Inpf(a, c);
+
+	if (ac == 1 || ac == -1) {
+		midvec[0] = midvec[1] = midvec[2] = 0;
+		return;
+	}
+	ac2 = ac * ac;
+	fac = sqrt((ac2 + 2*ac + 1)/(1 - ac2) + 1);
+	VecAddf(mid, n_c, n_a);
+	Normalise(mid);
+	VecMulf(mid, d * fac);
+	VecAddf(mid, mid, v2);
+	VecCopyf(midvec, mid);
+}
+
+/*	Finds the new point using the sinus law to extrapolate a triangle
+	Lots of sqrts which would not be good for a real time algo
+	Using the mid  point of the extrapolation of both sides 
+	Useless for coplanar quads, but that doesn't happen too often */
+void fix_bevel_wrap(float *midvec, float *v1, float *v2, float *v3, float *v4, float d, float no[3]) {
+	float a[3], b[3], c[3], l_a, l_b, l_c, s_a, s_b, s_c, Pos1[3], Pos2[3], Dir[3];
+
+	VecSubf(a, v3, v2);
+	l_a = Normalise(a);
+	VecSubf(b, v4, v3);
+	Normalise(b);
+	VecSubf(c, v1, v2);
+	Normalise(c);
+
+	s_b = Inpf(a, c);
+	s_b = sqrt(1 - (s_b * s_b));
+	s_a = Inpf(b, c);
+	s_a = sqrt(1 - (s_a * s_a));
+	VecMulf(a, -1);
+	s_c = Inpf(a, b);
+	s_c = sqrt(1 - (s_c * s_c));
+
+	l_b = s_b * l_a / s_a;
+	l_c = s_c * l_a / s_a;
+
+	VecMulf(b, l_b);
+	VecMulf(c, l_c);
+
+	VecAddf(Pos1, v2, c);
+	VecAddf(Pos2, v3, b);
+
+	VecAddf(Dir, Pos1, Pos2);
+	VecMulf(Dir, 0.5);
+
+	bevel_displace_vec(midvec, v3, Dir, v2, d, no);
+
+}
+
+// Detects a quad partial wrapping after the resize
+char detect_partial_wrap(float *v1, float *v2, float *v3, float no[3]) {
+	float tri_no[3], a[3], c[3];
+
+	VecSubf(a, v1, v2);
+	VecSubf(c, v3, v2);
+
+	Crossf(tri_no, c, a);
+
+	if (Inpf(no, tri_no) < 0)
+		return 1;
+	else
+		return 0;
+}
+
+char detect_axial_quad_wrap(float *orig_edge_v1, float *orig_edge_v2, float *edge_v1, float *edge_v2, float *other_edge_v1, float *other_edge_v2) {
+	float orig_mid[3], mid[3], other_mid[3], vec1[3], vec2[3];
+
+	VecAddf(orig_mid, orig_edge_v1, orig_edge_v2);
+	VecAddf(mid, edge_v1, edge_v2);
+	VecAddf(other_mid, other_edge_v1, other_edge_v2);
+
+	VecSubf(vec1, orig_mid, mid); 
+	VecSubf(vec2, other_mid, mid); 
+
+	if (vec2[0] == 0 && vec2[1] == 0 && vec2[2] == 0)
+		return 0;
+
+	if (Inpf(vec1, vec2) >= 0)
+		return 1;
+	else
+		return 0;
+}
+
+// Detects and fix a quad wrapping after the resize
+// Arguments are the orginal verts followed by the final verts and then the bevel size and the normal
+void fix_bevel_quad_wrap(float *o_v1, float *o_v2, float *o_v3, float *o_v4, float *v1, float *v2, float *v3, float *v4, float d, float no[3]) {
+	float vec[3];
+	char wrap[4];
+	char Axis1, Axis2;
+	// Quads can wrap partially. Watch out
+	wrap[0] = detect_partial_wrap(v4, v1, v2, no);
+	wrap[1] = detect_partial_wrap(v1, v2, v3, no);
+	wrap[2] = detect_partial_wrap(v2, v3, v4, no);
+	wrap[3] = detect_partial_wrap(v3, v4, v1, no);
+
+	if (wrap[0] == 1 && wrap[1] == 1 && wrap[2] == 0 && wrap[3] == 0) {
+		fix_bevel_wrap(vec, o_v2, o_v3, o_v4, o_v1, d, no);
+		VECCOPY(v1, vec);
+		VECCOPY(v2, vec);
+	}
+	else if (wrap[0] == 0 && wrap[1] == 1 && wrap[2] == 1 && wrap[3] == 0) {
+		fix_bevel_wrap(vec, o_v3, o_v4, o_v1, o_v2, d, no);
+		VECCOPY(v2, vec);
+		VECCOPY(v3, vec);
+	}
+	else if (wrap[0] == 0 && wrap[1] == 0 && wrap[2] == 1 && wrap[3] == 1) {
+		fix_bevel_wrap(vec, o_v4, o_v1, o_v2, o_v3, d, no);
+		VECCOPY(v3, vec);
+		VECCOPY(v4, vec);
+	}
+	else if (wrap[0] == 1 && wrap[1] == 0 && wrap[2] == 0 && wrap[3] == 1) {
+		fix_bevel_wrap(vec, o_v1, o_v2, o_v3, o_v4, d, no);
+		VECCOPY(v4, vec);
+		VECCOPY(v1, vec);
+	}
+	else if (wrap[0] == 1 && wrap[1] == 1 && wrap[2] == 1 && wrap[3] == 1){
+		// even though the whole face could be inverted, doesn't mean it's inverted on all axis
+		Axis1 = detect_axial_quad_wrap(o_v1, o_v2, v1, v2, v3, v4);
+		Axis2 = detect_axial_quad_wrap(o_v2, o_v3, v2, v3, v4, v1);
+
+		// Inverted on one of the axis
+		if (Axis1==1 && Axis2==0) {
+			VecAddf(vec, v2, v3);
+			VecMulf(vec, 0.5);
+			VECCOPY(v2, vec);
+			VECCOPY(v3, vec);
+			VecAddf(vec, v1, v4);
+			VecMulf(vec, 0.5);
+			VECCOPY(v1, vec);
+			VECCOPY(v4, vec);
+		}
+		// Inverted on the other axis
+		else if (Axis1==0 && Axis2==1) {
+			VecAddf(vec, v1, v2);
+			VecMulf(vec, 0.5);
+			VECCOPY(v1, vec);
+			VECCOPY(v2, vec);
+			VecAddf(vec, v3, v4);
+			VecMulf(vec, 0.5);
+			VECCOPY(v3, vec);
+			VECCOPY(v4, vec);
+		}
+		// Totally inverted
+		else if (Axis1==1 && Axis2==1) {
+			VecAddf(vec, v1, v2);
+			VecAddf(vec, vec, v3);
+			VecAddf(vec, vec, v4);
+			VecMulf(vec, 0.25);
+			VECCOPY(v1, vec);
+			VECCOPY(v2, vec);
+			VECCOPY(v3, vec);
+			VECCOPY(v4, vec);
+		}
+	}
+	printf("\n");
+
+}
+
+// Detects and fix a tri wrapping after the resize
+// Arguments are the orginal verts followed by the final verts
+void fix_bevel_tri_wrap(float *o_v1, float *o_v2, float *o_v3, float *v1, float *v2, float *v3) {
+	float a[3], b[3];
+
+	VecSubf(a, o_v1, v1);
+	VecSubf(b, v2, v1);
+
+	if (Inpf(a, b) >= 0) {
+		float vec[3];
+		VecAddf(vec, o_v1, o_v2);
+		VecAddf(vec, vec, o_v3);
+		VecMulf(vec, 1.0/3.0);
+		VECCOPY(v1, vec);
+		VECCOPY(v2, vec);
+		VECCOPY(v3, vec);
+	}
+}
+
+void bevel_shrink_faces(float d, int flag)
+{
+	EditVlak *evl;
+	float vec[3], no[3], v1[3], v2[3], v3[3], v4[3];
+	
+	/* move edges of all faces with evl->f1 & flag closer towards their centres */
+	evl= G.edvl.first;
+	while (evl) {
+		VECCOPY(v1, evl->v1->co);
+		VECCOPY(v2, evl->v2->co);			
+		VECCOPY(v3, evl->v3->co);	
+		VECCOPY(no, evl->n);
+		if (evl->v4 == NULL) {
+			bevel_displace_vec(vec, v1, v2, v3, d, no);
+			VECCOPY(evl->v2->co, vec);
+			bevel_displace_vec(vec, v2, v3, v1, d, no);
+			VECCOPY(evl->v3->co, vec);		
+			bevel_displace_vec(vec, v3, v1, v2, d, no);
+			VECCOPY(evl->v1->co, vec);
+
+			fix_bevel_tri_wrap(v1, v2, v3, evl->v1->co, evl->v2->co, evl->v3->co);
+		} else {
+			VECCOPY(v4, evl->v4->co);
+			bevel_displace_vec(vec, v1, v2, v3, d, no);
+			VECCOPY(evl->v2->co, vec);
+			bevel_displace_vec(vec, v2, v3, v4, d, no);
+			VECCOPY(evl->v3->co, vec);		
+			bevel_displace_vec(vec, v3, v4, v1, d, no);
+			VECCOPY(evl->v4->co, vec);		
+			bevel_displace_vec(vec, v4, v1, v2, d, no);
+			VECCOPY(evl->v1->co, vec);
+
+			fix_bevel_quad_wrap(v1, v2, v3, v4, evl->v1->co, evl->v2->co, evl->v3->co, evl->v4->co, d, no);
+		}
+		evl= evl->next;
+	}	
+}
+
+void bevel_shrink_draw(float d, int flag)
+{
+	EditVlak *evl;
+	float vec[3], no[3], v1[3], v2[3], v3[3], v4[3], fv1[3], fv2[3], fv3[3], fv4[3];
+	
+	/* move edges of all faces with evl->f1 & flag closer towards their centres */
+	evl= G.edvl.first;
+	while (evl) {
+		VECCOPY(v1, evl->v1->co);
+		VECCOPY(v2, evl->v2->co);			
+		VECCOPY(v3, evl->v3->co);	
+		VECCOPY(no, evl->n);
+		if (evl->v4 == NULL) {
+			bevel_displace_vec(vec, v1, v2, v3, d, no);
+			VECCOPY(fv2, vec);
+			bevel_displace_vec(vec, v2, v3, v1, d, no);
+			VECCOPY(fv3, vec);		
+			bevel_displace_vec(vec, v3, v1, v2, d, no);
+			VECCOPY(fv1, vec);
+
+			fix_bevel_tri_wrap(v1, v2, v3, fv1, fv2, fv3);
+
+			glBegin(GL_LINES);
+			glVertex3fv(fv1);
+			glVertex3fv(fv2);
+			glEnd();						
+			glBegin(GL_LINES);
+			glVertex3fv(fv2);
+			glVertex3fv(fv3);
+			glEnd();						
+			glBegin(GL_LINES);
+			glVertex3fv(fv1);
+			glVertex3fv(fv3);
+			glEnd();						
+		} else {
+			VECCOPY(v4, evl->v4->co);
+			bevel_displace_vec(vec, v1, v2, v3, d, no);
+			VECCOPY(fv2, vec);
+			bevel_displace_vec(vec, v2, v3, v4, d, no);
+			VECCOPY(fv3, vec);		
+			bevel_displace_vec(vec, v3, v4, v1, d, no);
+			VECCOPY(fv4, vec);		
+			bevel_displace_vec(vec, v4, v1, v2, d, no);
+			VECCOPY(fv1, vec);
+
+			fix_bevel_quad_wrap(v1, v2, v3, v4, fv1, fv2, fv3, fv4, d, no);
+
+			glBegin(GL_LINES);
+			glVertex3fv(fv1);
+			glVertex3fv(fv2);
+			glEnd();						
+			glBegin(GL_LINES);
+			glVertex3fv(fv2);
+			glVertex3fv(fv3);
+			glEnd();						
+			glBegin(GL_LINES);
+			glVertex3fv(fv3);
+			glVertex3fv(fv4);
+			glEnd();						
+			glBegin(GL_LINES);
+			glVertex3fv(fv1);
+			glVertex3fv(fv4);
+			glEnd();						
+		}
+		evl= evl->next;
+	}	
+}
+
+void bevel_shrink_faces_test()
+{
+	EditVlak *evl;
+	
+	evl= G.edvl.first;
+	while (evl) {
+		evl->f1 |= 1;
+		evl= evl->next;
+	}
+	bevel_shrink_faces(0.1, 1);
+}
+
+void bevel_mesh(float bsize, int allfaces)
+{
+//#define BEV_DEBUG
+/* Enables debug printfs and assigns material indices: */
+/* 2 = edge quad                                       */
+/* 3 = fill polygon (vertex clusters)                  */
+
+	EditVlak *evl, *nextvl, *example;
+	EditEdge *eed, *eed2;
+	EditVert *neweve[1024], *eve, *eve2, *eve3, *eve4, *v1, *v2, *v3, *v4;
+	float con1, con2, con3;
+	short found4, search;
+	float f1, f2, f3, f4;
+	float cent[3], min[3], max[3];
+	int a, b, c;
+	float limit= 0.001;
+
+	waitcursor(1);
+
+	removedoublesflag(1, limit);
+
+	/* tag all original faces */
+	evl= G.edvl.first;
+	while (evl) {
+		if (vlakselectedAND(evl, 1)||allfaces) {
+			evl->f1= 1;
+			evl->v1->f |= 128;
+			evl->v2->f |= 128;
+			evl->v3->f |= 128;
+			if (evl->v4) evl->v4->f |= 128;			
+		}
+		evl->v1->f &= ~64;
+		evl->v2->f &= ~64;
+		evl->v3->f &= ~64;
+		if (evl->v4) evl->v4->f &= ~64;		
+
+		evl= evl->next;
+	}
+
+#ifdef BEV_DEBUG
+	fprintf(stderr,"bevel_mesh: split\n");
+#endif
+	
+	evl= G.edvl.first;
+	while (evl) {
+		if (evl->f1 & 1) {
+			evl->f1-= 1;
+			v1= addvertlist(evl->v1->co);
+			v1->f= evl->v1->f & ~128;
+   			evl->v1->vn= v1;
+#ifdef __NLA
+   			v1->totweight = evl->v1->totweight;
+   			if (evl->v1->totweight){
+   				v1->dw = MEM_mallocN (evl->v1->totweight * sizeof(MDeformWeight), "deformWeight");
+   				memcpy (v1->dw, evl->v1->dw, evl->v1->totweight * sizeof(MDeformWeight));
+   			}
+   			else
+   				v1->dw=NULL;
+#endif
+			v1= addvertlist(evl->v2->co);
+			v1->f= evl->v2->f & ~128;
+   			evl->v2->vn= v1;
+#ifdef __NLA
+   			v1->totweight = evl->v2->totweight;
+   			if (evl->v2->totweight){
+   				v1->dw = MEM_mallocN (evl->v2->totweight * sizeof(MDeformWeight), "deformWeight");
+   				memcpy (v1->dw, evl->v2->dw, evl->v2->totweight * sizeof(MDeformWeight));
+   			}
+   			else
+   				v1->dw=NULL;
+#endif
+			v1= addvertlist(evl->v3->co);
+			v1->f= evl->v3->f & ~128;
+   			evl->v3->vn= v1;
+#ifdef __NLA
+   			v1->totweight = evl->v3->totweight;
+   			if (evl->v3->totweight){
+   				v1->dw = MEM_mallocN (evl->v3->totweight * sizeof(MDeformWeight), "deformWeight");
+   				memcpy (v1->dw, evl->v3->dw, evl->v3->totweight * sizeof(MDeformWeight));
+   			}
+   			else
+   				v1->dw=NULL;
+#endif
+			if (evl->v4) {
+				v1= addvertlist(evl->v4->co);
+				v1->f= evl->v4->f & ~128;
+	   			evl->v4->vn= v1;
+#ifdef __NLA
+	   			v1->totweight = evl->v4->totweight;
+	   			if (evl->v4->totweight){
+	   				v1->dw = MEM_mallocN (evl->v4->totweight * sizeof(MDeformWeight), "deformWeight");
+	   				memcpy (v1->dw, evl->v4->dw, evl->v4->totweight * sizeof(MDeformWeight));
+	   			}
+	   			else
+	   				v1->dw=NULL;
+#endif
+			}
+
+   			addedgelist(evl->e1->v1->vn,evl->e1->v2->vn);
+   			addedgelist(evl->e2->v1->vn,evl->e2->v2->vn);   			
+   			addedgelist(evl->e3->v1->vn,evl->e3->v2->vn);   			
+   			if (evl->e4) addedgelist(evl->e4->v1->vn,evl->e4->v2->vn);   			   			
+
+   			if(evl->v4) {
+				v1= evl->v1->vn;
+				v2= evl->v2->vn;
+				v3= evl->v3->vn;
+				v4= evl->v4->vn;
+				addvlaklist(v1, v2, v3, v4, evl);
+   			} else {
+   				v1= evl->v1->vn;
+   				v2= evl->v2->vn;
+   				v3= evl->v3->vn;
+   				addvlaklist(v1, v2, v3, 0, evl);
+   			}
+
+			evl= evl-> next;
+		} else {
+			evl= evl->next;
+		}
+	}
+	
+	delvlakflag(128);
+
+	/* tag all faces for shrink*/
+	evl= G.edvl.first;
+	while (evl) {
+		if (vlakselectedAND(evl, 1)||allfaces) evl->f1= 2;
+		evl= evl->next;
+	}
+
+#ifdef BEV_DEBUG
+	fprintf(stderr,"bevel_mesh: make edge quads\n");
+#endif
+
+	/* find edges that are on each other and make quads between them */
+
+	eed= G.eded.first;
+	while(eed) {
+		eed->f= eed->f1= 0;
+		if ( ((eed->v1->f & eed->v2->f) & 1) || allfaces) eed->f1 |= 4;	/* original edges */
+		eed->vn= 0;
+		eed= eed->next;
+	}
+
+	eed= G.eded.first;
+	while (eed) {
+		if ( ((eed->f1 & 2)==0) && (eed->f1 & 4) ) {
+			eed2= G.eded.first;
+			while (eed2) {
+				if ( (eed2 != eed) && ((eed2->f1 & 2)==0) && (eed->f1 & 4) ) {
+					if (
+					   (eed->v1 != eed2->v1) &&
+					   (eed->v1 != eed2->v2) &&					   
+					   (eed->v2 != eed2->v1) &&
+					   (eed->v2 != eed2->v2) &&	(
+					   ( VecCompare(eed->v1->co, eed2->v1->co, limit) &&
+						 VecCompare(eed->v2->co, eed2->v2->co, limit) ) ||
+					   ( VecCompare(eed->v1->co, eed2->v2->co, limit) &&
+						 VecCompare(eed->v2->co, eed2->v1->co, limit) ) ) )
+						{
+						
+#ifdef BEV_DEBUG						
+						fprintf(stderr, "bevel_mesh: edge quad\n");
+#endif						
+						
+						eed->f1 |= 2;	/* these edges are finished */
+						eed2->f1 |= 2;
+						
+						example= NULL;
+						evl= G.edvl.first;	/* search example vlak (for mat_nr, ME_SMOOTH, ...) */
+						while (evl) {
+							if ( (evl->e1 == eed) ||
+							     (evl->e2 == eed) ||
+							     (evl->e3 == eed) ||
+							     (evl->e4 && (evl->e4 == eed)) ) {
+							    example= evl;
+								evl= NULL;
+							}
+							if (evl) evl= evl->next;
+						}
+						
+						neweve[0]= eed->v1; neweve[1]= eed->v2;
+						neweve[2]= eed2->v1; neweve[3]= eed2->v2;
+						
+						if(exist_vlak(neweve[0], neweve[1], neweve[2], neweve[3])==0) {
+							evl= NULL;
+
+							if (VecCompare(eed->v1->co, eed2->v2->co, limit)) {
+								evl= addvlaklist(neweve[0], neweve[1], neweve[2], neweve[3], example);
+							} else {
+								evl= addvlaklist(neweve[0], neweve[2], neweve[3], neweve[1], example);
+							}
+						
+							if(evl) {
+								float inp;	
+								CalcNormFloat(evl->v1->co, evl->v2->co, evl->v3->co, evl->n);
+								inp= evl->n[0]*G.vd->viewmat[0][2] + evl->n[1]*G.vd->viewmat[1][2] + evl->n[2]*G.vd->viewmat[2][2];
+								if(inp < 0.0) flipvlak(evl);
+#ifdef BEV_DEBUG
+								evl->mat_nr= 1;
+#endif
+							} else fprintf(stderr,"bevel_mesh: error creating face\n");
+						}
+						eed2= NULL;
+					}
+				}
+				if (eed2) eed2= eed2->next;
+			}
+		}
+		eed= eed->next;
+	}
+
+	eed= G.eded.first;
+	while(eed) {
+		eed->f= eed->f1= 0;
+		eed->f1= 0;
+		eed->v1->f1 &= ~1;
+		eed->v2->f1 &= ~1;		
+		eed->vn= 0;
+		eed= eed->next;
+	}
+
+#ifdef BEV_DEBUG
+	fprintf(stderr,"bevel_mesh: find clusters\n");
+#endif	
+
+	/* Look for vertex clusters */
+
+	eve= G.edve.first;
+	while (eve) {
+		eve->f &= ~(64|128);
+		eve->vn= NULL;
+		eve= eve->next;
+	}
+	
+	/* eve->f: 128: first vertex in a list (->vn) */
+	/*          64: vertex is in a list */
+	
+	eve= G.edve.first;
+	while (eve) {
+		eve2= G.edve.first;
+		eve3= NULL;
+		while (eve2) {
+			if ((eve2 != eve) && ((eve2->f & (64|128))==0)) {
+				if (VecCompare(eve->co, eve2->co, limit)) {
+					if ((eve->f & (128|64)) == 0) {
+						/* fprintf(stderr,"Found vertex cluster:\n  *\n  *\n"); */
+						eve->f |= 128;
+						eve->vn= eve2;
+						eve3= eve2;
+					} else if ((eve->f & 64) == 0) {
+						/* fprintf(stderr,"  *\n"); */
+						if (eve3) eve3->vn= eve2;
+						eve2->f |= 64;
+						eve3= eve2;
+					}
+				}
+			}
+			eve2= eve2->next;
+			if (!eve2) {
+				if (eve3) eve3->vn= NULL;
+			}
+		}
+		eve= eve->next;
+	}
+
+#ifdef BEV_DEBUG
+	fprintf(stderr,"bevel_mesh: shrink faces\n");
+#endif	
+
+	bevel_shrink_faces(bsize, 2);
+
+#ifdef BEV_DEBUG
+	fprintf(stderr,"bevel_mesh: fill clusters\n");
+#endif
+	
+	/* Make former vertex clusters faces */
+
+	eve= G.edve.first;
+	while (eve) {
+		eve->f &= ~64;
+		eve= eve->next;
+	}
+
+	eve= G.edve.first;
+	while (eve) {
+		if (eve->f & 128) {
+			eve->f &= ~128;
+			a= 0;
+			neweve[a]= eve;
+			eve2= eve->vn;
+			while (eve2) {
+				a++;
+				neweve[a]= eve2;
+				eve2= eve2->vn;
+			}
+			a++;
+			evl= NULL;
+			if (a>=3) {
+				example= NULL;
+				evl= G.edvl.first;	/* search example vlak */
+				while (evl) {
+					if ( (evl->v1 == neweve[0]) ||
+					     (evl->v2 == neweve[0]) ||
+					     (evl->v3 == neweve[0]) ||
+					     (evl->v4 && (evl->v4 == neweve[0])) ) {
+					    example= evl;
+						evl= NULL;
+					}
+					if (evl) evl= evl->next;
+				}
+#ifdef BEV_DEBUG				
+				fprintf(stderr,"bevel_mesh: Making %d-gon\n", a);
+#endif				
+				if (a>4) {
+					cent[0]= cent[1]= cent[2]= 0.0;				
+					INIT_MINMAX(min, max);				
+					for (b=0; b<a; b++) {
+						VecAddf(cent, cent, neweve[b]->co);
+						DO_MINMAX(neweve[b]->co, min, max);
+					}
+					cent[0]= (min[0]+max[0])/2;
+					cent[1]= (min[1]+max[1])/2;
+					cent[2]= (min[2]+max[2])/2;
+					eve2= addvertlist(cent);
+					eve2->f |= 1;
+					eed= G.eded.first;
+					while (eed) {
+						c= 0;
+						for (b=0; b<a; b++) 
+							if ((neweve[b]==eed->v1) || (neweve[b]==eed->v2)) c++;
+						if (c==2) {
+							if(exist_vlak(eed->v1, eed->v2, eve2, 0)==0) {
+								evl= addvlaklist(eed->v1, eed->v2, eve2, 0, example);
+#ifdef BEV_DEBUG
+								evl->mat_nr= 2;
+#endif								
+							}
+						}
+						eed= eed->next;
+					}
+				} else if (a==4) {
+					if(exist_vlak(neweve[0], neweve[1], neweve[2], neweve[3])==0) {
+						con1= convex(neweve[0]->co, neweve[1]->co, neweve[2]->co, neweve[3]->co);
+						con2= convex(neweve[0]->co, neweve[2]->co, neweve[3]->co, neweve[1]->co);
+						con3= convex(neweve[0]->co, neweve[3]->co, neweve[1]->co, neweve[2]->co);
+						if(con1>=con2 && con1>=con3)
+							evl= addvlaklist(neweve[0], neweve[1], neweve[2], neweve[3], example);
+						else if(con2>=con1 && con2>=con3)
+							evl= addvlaklist(neweve[0], neweve[2], neweve[3], neweve[1], example);
+						else 
+							evl= addvlaklist(neweve[0], neweve[2], neweve[1], neweve[3], example);
+					}				
+				}
+				else if (a==3) {
+					if(exist_vlak(neweve[0], neweve[1], neweve[2], 0)==0)
+						evl= addvlaklist(neweve[0], neweve[1], neweve[2], 0, example);
+				}
+				if(evl) {
+					float inp;	
+					CalcNormFloat(neweve[0], neweve[1], neweve[2], evl->n);
+					inp= evl->n[0]*G.vd->viewmat[0][2] + evl->n[1]*G.vd->viewmat[1][2] + evl->n[2]*G.vd->viewmat[2][2];
+					if(inp < 0.0) flipvlak(evl);
+#ifdef BEV_DEBUG
+						evl->mat_nr= 2;
+#endif												
+				}				
+			}
+		}
+		eve= eve->next;
+	}
+
+	eve= G.edve.first;
+	while (eve) {
+		eve->f1= 0;
+		eve->f &= ~(128|64);
+		eve->vn= NULL;
+		eve= eve->next;
+	}
+	
+	recalc_editnormals();
+	waitcursor(0);
+	countall();
+	allqueue(REDRAWVIEW3D, 0);
+	makeDispList(G.obedit);
+	
+	removedoublesflag(1, limit);
+
+#undef BEV_DEBUG
+}
+
+void bevel_mesh_recurs(float bsize, short recurs, int allfaces) 
+{
+	float d;
+	short nr;
+
+	d= bsize;
+	for (nr=0; nr<recurs; nr++) {
+		bevel_mesh(d, allfaces);
+		if (nr==0) d /= 3; else d /= 2;
+	}
+}
+
+void bevel_menu()
+{
+	EditVlak *evl;
+	char Finished = 0, Canceled = 0;
+	short mval[2], oval[2], curval[2], event = 0, recurs = 1;
+	float vec[3], d, drawd, centre[3];
+	char str[100];
+
+	getmouseco_areawin(mval);
+	curval[0] = oval[0] = mval[0];
+	curval[1] = oval[1] = mval[1];
+	window_to_3d(centre, mval[0], mval[1]);
+
+	if(button(&recurs, 1, 4, "Recurs:")==0) return;
+
+	while (Finished == 0)
+	{
+		short nr;
+
+		getmouseco_areawin(mval);
+		if (mval[0] != curval[0] || mval[1] != curval[1])
+		{
+			curval[0] = mval[0];
+			curval[1] = mval[1];
+
+			window_to_3d(vec, mval[0]-oval[0], mval[1]-oval[1]);
+			d = Normalise(vec) / 10;
+
+			if (G.qual & LR_CTRLKEY)
+				d = (float) floor(d * 10.0)/10.0;
+			if (G.qual & LR_SHIFTKEY)
+				d /= 10;
+
+			drawd = d;
+			for (nr=0; nr<recurs-1; nr++) {
+				if (nr==0) drawd += drawd/3; else drawd += drawd/2;
+			}
+
+			/*------------- Preview lines--------------- */
+			
+			/* uses callback mechanism to draw it all in current area */
+			scrarea_do_windraw(curarea);			
+			
+			/* set window matrix to perspective, default an area returns with buttons transform */
+			persp(PERSP_VIEW);
+			/* make a copy, for safety */
+			glPushMatrix();
+			/* multiply with the object transformation */
+			mymultmatrix(G.obedit->obmat);
+			
+			glColor3ub(255, 255, 0);
+
+			// PREVIEW CODE GOES HERE
+			bevel_shrink_draw(drawd, 2);
+
+			/* restore matrix transform */
+			glPopMatrix();
+			
+			sprintf(str, "Bevel Size: %.4f        LMB to confirm, RMB to cancel, SPACE to input directly.", drawd);
+			headerprint(str);
+
+			/* this also verifies other area/windows for clean swap */
+			screen_swapbuffers();
+
+			persp(PERSP_WIN);
+			
+			glDrawBuffer(GL_FRONT);
+			
+			BIF_ThemeColor(TH_WIRE);
+
+			setlinestyle(3);
+			glBegin(GL_LINE_STRIP); 
+				glVertex2sv(mval); 
+				glVertex2sv(oval); 
+			glEnd();
+			setlinestyle(0);
+			
+			persp(PERSP_VIEW);
+			glFinish(); // flush display for frontbuffer
+			glDrawBuffer(GL_BACK);
+		}
+		while(qtest()) {
+			unsigned short val=0;			
+			event= extern_qread(&val);	// extern_qread stores important events for the mainloop to handle 
+
+			/* val==0 on key-release event */
+			if(val && (event==ESCKEY || event==RIGHTMOUSE || event==LEFTMOUSE || event==RETKEY || event==ESCKEY)){
+				if (event==RIGHTMOUSE || event==ESCKEY)
+					Canceled = 1;
+				Finished = 1;
+			}
+			else if (val && event==SPACEKEY) {
+				if (fbutton(&d, 0.000, 10.000, "Width:")!=0)
+					Finished = 1;
+			}
+
+		}	
+	}
+	if (Canceled==0) {
+		bevel_mesh_recurs(d, recurs, 1);
+	}
+}

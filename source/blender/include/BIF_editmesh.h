@@ -145,6 +145,8 @@ void sort_faces(void);
 void vertices_to_sphere(void);
 void fill_mesh(void);
 
+void bevel_menu();
+
 /* Editmesh Undo code */
 void undo_free_mesh(struct Mesh *me);
 void undo_push_mesh(char *name);
