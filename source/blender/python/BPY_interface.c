@@ -997,7 +997,11 @@ int BPY_has_onload_script( void )
 
 void BPY_do_pyscript( ID * id, short event )
 {
-	ScriptLink *scriptlink = ID_getScriptlink( id );
+	ScriptLink *scriptlink;
+
+	if( !id ) return;
+
+	scriptlink = ID_getScriptlink( id );
 
 	if( scriptlink && scriptlink->totscript ) {
 		PyObject *dict;

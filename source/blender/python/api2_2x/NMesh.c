@@ -26,7 +26,7 @@
  * This is a new part of Blender.
  *
  * Contributor(s): Willian P. Germano, Jordi Rovira i Bonet, Joseph Gilbert,
- * Bala Gi
+ * Bala Gi, Alexander Szakaly
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -2045,6 +2045,7 @@ void EXPP_unlink_mesh( Mesh * me )
 			me->mat[a]->id.us--;
 		me->mat[a] = 0;
 	}
+
 /*	... here we want to preserve mesh keys */
 /* if users want to get rid of them, they can use mesh.removeAllKeys() */
 /*
@@ -2053,6 +2054,8 @@ void EXPP_unlink_mesh( Mesh * me )
 */
 	if( me->texcomesh )
 		me->texcomesh = 0;
+
+	me->totcol = 0;
 }
 
 static int unlink_existingMeshData( Mesh * mesh )

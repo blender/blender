@@ -25,7 +25,8 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano, Michel Selten, Alex Mole
+ * Contributor(s): Willian P. Germano, Michel Selten, Alex Mole,
+ * Alexander Szakaly
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -2194,6 +2195,8 @@ Material **EXPP_newMaterialList_fromPyList( PyObject * list )
 	len = PySequence_Length( list );
 	if( len > 16 )
 		len = 16;
+	else if( len <= 0 )
+		return NULL;
 
 	matlist = EXPP_newMaterialList( len );
 
