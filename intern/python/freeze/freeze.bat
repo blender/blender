@@ -1,1 +1,0 @@
-python.exe -S -O freeze.py -d -x os -x pprint -I ../modules -o ../../../source/blender/bpython/frozen ../modules/VRMLmain.py

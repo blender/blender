@@ -1,1 +1,0 @@
-"""The VRML import module"""
