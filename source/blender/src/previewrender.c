@@ -277,7 +277,9 @@ static void end_previewrect(void)
 	
 	glPixelZoom(1.0, 1.0);
 	
-	areawinset(curarea->win);	// restore viewport / scissor
+	// restore viewport / scissor which was set by glaDefine2DArea
+	glViewport(curarea->winrct.xmin, curarea->winrct.ymin, curarea->winx, curarea->winy);
+	glScissor(curarea->winrct.xmin, curarea->winrct.ymin, curarea->winx, curarea->winy);
 
 }
 
