@@ -17,21 +17,6 @@ struct _CCGMeshIFC {
 	void		(*vertDataSub)		(CCGMeshHDL m, void *ta, void *b);
 	void		(*vertDataMulN)		(CCGMeshHDL m, void *ta, double n);
 	void		(*vertDataAvg4)		(CCGMeshHDL m, void *t, void *a, void *b, void *c, void *d);
-
-	int			(*getNumVerts)		(CCGMeshHDL m);
-	int			(*getNumEdges)		(CCGMeshHDL m);
-	int			(*getNumFaces)		(CCGMeshHDL m);
-	CCGVertHDL	(*getVert)			(CCGMeshHDL m, int idx);
-	CCGEdgeHDL	(*getEdge)			(CCGMeshHDL m, int idx);
-	CCGFaceHDL	(*getFace)			(CCGMeshHDL m, int idx);
-
-	void		(*getVertData)		(CCGMeshHDL m, CCGVertHDL v, void *data_r);
-
-	CCGVertHDL	(*getEdgeVert0)		(CCGMeshHDL m, CCGEdgeHDL e);
-	CCGVertHDL	(*getEdgeVert1)		(CCGMeshHDL m, CCGEdgeHDL e);
-
-	int			(*getFaceNumVerts)	(CCGMeshHDL m, CCGFaceHDL f);
-	CCGVertHDL	(*getFaceVert)		(CCGMeshHDL m, CCGFaceHDL f, int idx);
 };
 
 /***/

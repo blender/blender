@@ -106,11 +106,12 @@ static void _ehash_insert(EHash *eh, EHEntry *entry) {
 
 static void *_ehash_lookupWithPrev(EHash *eh, void *key, void ***prevp_r) {
 	int hash = EHASH_hash(eh, key);
-	EHEntry *entry, **prevp = &eh->buckets[hash];
+	void **prevp = &eh->buckets[hash];
+	EHEntry *entry;
 	
 	for (; (entry = *prevp); prevp = &entry->next) {
 		if (entry->key==key) {
-			*prevp_r = prevp;
+			*prevp_r = (void**) prevp;
 			return entry;
 		}
 	}
@@ -702,7 +703,8 @@ CCGError ccgSubSurf_syncVertDel(CCGSubSurf *ss, CCGVertHDL vHDL) {
 	if (ss->syncState!=eSyncState_Partial) {
 		return eCCGError_InvalidSyncState;
 	} else {
-		CCGVert **prevp, *v = _ehash_lookupWithPrev(ss->vMap, vHDL, &prevp);
+		void **prevp;
+		CCGVert *v = _ehash_lookupWithPrev(ss->vMap, vHDL, &prevp);
 
 		if (!v || v->numFaces || v->numEdges) {
 			return eCCGError_InvalidValue;
@@ -719,7 +721,8 @@ CCGError ccgSubSurf_syncEdgeDel(CCGSubSurf *ss, CCGEdgeHDL eHDL) {
 	if (ss->syncState!=eSyncState_Partial) {
 		return eCCGError_InvalidSyncState;
 	} else {
-		CCGEdge **prevp, *e = _ehash_lookupWithPrev(ss->eMap, eHDL, &prevp);
+		void **prevp;
+		CCGEdge *e = _ehash_lookupWithPrev(ss->eMap, eHDL, (EHEntry***) &prevp);
 
 		if (!e || e->numFaces) {
 			return eCCGError_InvalidValue;
@@ -736,7 +739,8 @@ CCGError ccgSubSurf_syncFaceDel(CCGSubSurf *ss, CCGFaceHDL fHDL) {
 	if (ss->syncState!=eSyncState_Partial) {
 		return eCCGError_InvalidSyncState;
 	} else {
-		CCGFace **prevp, *f = _ehash_lookupWithPrev(ss->fMap, fHDL, &prevp);
+		void **prevp;
+		CCGFace *f = _ehash_lookupWithPrev(ss->fMap, fHDL, &prevp);
 
 		if (!f) {
 			return eCCGError_InvalidValue;
@@ -750,7 +754,8 @@ CCGError ccgSubSurf_syncFaceDel(CCGSubSurf *ss, CCGFaceHDL fHDL) {
 }
 
 CCGError ccgSubSurf_syncVert(CCGSubSurf *ss, CCGVertHDL vHDL, void *vertData) {
-	CCGVert **prevp, *v;
+	void **prevp;
+	CCGVert *v;
 	
 	if (ss->syncState==eSyncState_Partial) {
 		v = _ehash_lookupWithPrev(ss->vMap, vHDL, &prevp);
@@ -804,7 +809,8 @@ CCGError ccgSubSurf_syncVert(CCGSubSurf *ss, CCGVertHDL vHDL, void *vertData) {
 }
 
 CCGError ccgSubSurf_syncEdge(CCGSubSurf *ss, CCGEdgeHDL eHDL, CCGVertHDL e_vHDL0, CCGVertHDL e_vHDL1) {
-	CCGEdge **prevp, *e, *eNew;
+	void **prevp;
+	CCGEdge *e, *eNew;
 
 	if (ss->syncState==eSyncState_Partial) {
 		e = _ehash_lookupWithPrev(ss->eMap, eHDL, &prevp);
@@ -856,7 +862,8 @@ CCGError ccgSubSurf_syncEdge(CCGSubSurf *ss, CCGEdgeHDL eHDL, CCGVertHDL e_vHDL0
 }
 
 CCGError ccgSubSurf_syncFace(CCGSubSurf *ss, CCGFaceHDL fHDL, int numVerts, CCGVertHDL *vHDLs) {
-	CCGFace **prevp, *f, *fNew;
+	void **prevp;
+	CCGFace *f, *fNew;
 	int j, k, topologyChanged = 0;
 
 	if (numVerts>ss->lenTempArrays) {
@@ -982,49 +989,6 @@ CCGError ccgSubSurf_processSync(CCGSubSurf *ss) {
 	} else {
 		return eCCGError_InvalidSyncState;
 	}
-
-	return eCCGError_None;
-}
-
-CCGError ccgSubSurf_sync2(CCGSubSurf *ss) {
-	int numVerts = ss->meshIFC.getNumVerts(ss->meshData);
-	int numEdges = ss->meshIFC.getNumEdges(ss->meshData);
-	int numFaces = ss->meshIFC.getNumFaces(ss->meshData);
-	CCGVertHDL *tmpVertHDLs =  CCGSUBSURF_alloc(ss, sizeof(*tmpVertHDLs)*20);
-	void *tempData = CCGSUBSURF_alloc(ss, ss->meshIFC.vertDataSize);
-	int i,j;
-
-	ccgSubSurf_initFullSync(ss);
-
-	for (i=0; i<numVerts; i++) {
-		CCGVertHDL vHDL = ss->meshIFC.getVert(ss->meshData, i);
-
-		ss->meshIFC.getVertData(ss->meshData, vHDL, tempData);
-
-		ccgSubSurf_syncVert(ss, vHDL, tempData);
-	}
-	for (i=0; i<numEdges; i++) {
-		CCGEdgeHDL eHDL = ss->meshIFC.getEdge(ss->meshData, i);
-		CCGVertHDL e_vHDL0 = ss->meshIFC.getEdgeVert0(ss->meshData, eHDL);
-		CCGVertHDL e_vHDL1 = ss->meshIFC.getEdgeVert1(ss->meshData, eHDL);
-
-		ccgSubSurf_syncEdge(ss, eHDL, e_vHDL0, e_vHDL1);
-	}
-	for (i=0; i<numFaces; i++) {
-		CCGFaceHDL fHDL = ss->meshIFC.getFace(ss->meshData, i);
-		int numVerts = ss->meshIFC.getFaceNumVerts(ss->meshData, fHDL);
-
-		for (j=0; j<numVerts; j++) {
-			tmpVertHDLs[j] = ss->meshIFC.getFaceVert(ss->meshData, fHDL, j);
-		}
-
-		ccgSubSurf_syncFace(ss, fHDL, numVerts, tmpVertHDLs);
-	}
-
-	ccgSubSurf_processSync(ss);
-
-	CCGSUBSURF_free(ss, tmpVertHDLs);
-	CCGSUBSURF_free(ss, tempData);
 
 	return eCCGError_None;
 }
