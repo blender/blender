@@ -261,6 +261,7 @@ static void setup_app_data(BlendFileData *bfd, char *filename) {
 	if (bfd->user) {
 		U= *bfd->user;
 		MEM_freeN(bfd->user);
+		if(U.wheellinescroll == 0) U.wheellinescroll = 3;
 	}
 	
 	R.winpos= bfd->winpos;

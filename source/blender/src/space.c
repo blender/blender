@@ -1399,7 +1399,7 @@ void drawinfospace(void)
 
 	uiDefButI(block, NUM, 0, "WLines",
 			1153,54,70,20, &U.wheellinescroll,
-			0.0, 32.0, 0, 0,
+			1.0, 32.0, 0, 0,
 			"Mousewheel: The number of lines that get scrolled");
 	uiDefButS(block, TOG|BIT|2, 0, "WZoom",
 			1081,54,70,20, &(U.uiflag), 0, 0, 0, 0,
