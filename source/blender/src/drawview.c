@@ -287,13 +287,6 @@ void init_gl_stuff(void)
 	init_realtime_GL();	
 }
 
-void two_sided(int val)
-{
-
-	/* twosided on: gives errors with x flip! */
-	glLightModeliv(GL_LIGHT_MODEL_TWO_SIDE, (GLint *)&val);
-}
-
 void circf(float x, float y, float rad)
 {
 	GLUquadricObj *qobj = gluNewQuadric(); 

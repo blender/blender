@@ -65,48 +65,6 @@
 #include <config.h>
 #endif
 
-void color_temperature (float input, unsigned char *r, unsigned char *g, unsigned char *b)
-{
-	
-	/* blue to red */
-	
-	float fr = (float)(*r);
-	float fg = (float)(*g);
-	float fb = (float)(*b);
-
-	if (input < 0.0F)
-		input = 0.0F;
-
-	if (input > 1.0F)
-		input = 1.0F;
-
-	if (input<=0.25f){
-		fr=0.0f;
-		fg=255.0f * (input*4.0f);
-		fb=255.0f;
-	}
-	else if (input<=0.50f){
-		fr=0.0f;
-		fg=255.0f;
-		fb=255.0f * (1.0f-((input-0.25f)*4.0f)); 
-	}
-	else if (input<=0.75){
-		fr=255.0f * ((input-0.50f)*4.0f);
-		fg=255.0f;
-		fb=0.0f;
-	}
-	else if (input<=1.0){
-		fr=255.0f;
-		fg=255.0f * (1.0f-((input-0.75f)*4.0f)); 
-		fb=0.0f;
-	}
-
-	(*r) = (unsigned char)(fr * ((input/2.0f)+0.5f));
-	(*g) = (unsigned char)(fg * ((input/2.0f)+0.5f));
-	(*b) = (unsigned char)(fb * ((input/2.0f)+0.5f));
-
-
-}
 
 void copy_defgroups(ListBase *outbase, ListBase *inbase)
 {

@@ -41,7 +41,6 @@ struct ScrArea;
 void setalpha_bgpic(struct BGpic *bgpic);
 void default_gl_light(void);
 void init_gl_stuff(void);
-void two_sided(int val);
 void circf(float x, float y, float rad);
 void circ(float x, float y, float rad);
 void backdrawview3d(int test);

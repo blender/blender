@@ -114,27 +114,6 @@ int update_realtime_texture(TFace *tface, double time)
 	return inc;
 }
 
-float get_mvert_weight (Object *ob, int vert, int defgroup)
-{
-	int	i;
-	Mesh *me;
-	float	result;
-
-	me=ob->data;
-
-	if (!me->dvert)
-		return 0.0F;
-
-	result=0.0F;
-
-	for (i=0; i<me->dvert[vert].totweight; i++){
-		if (me->dvert[vert].dw[i].def_nr==defgroup)
-			result+=me->dvert[vert].dw[i].weight;		
-	}
-
-	return result;
-}
-
 void unlink_mesh(Mesh *me)
 {
 	int a;
