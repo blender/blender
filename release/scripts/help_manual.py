@@ -6,6 +6,14 @@ Group: 'Help'
 Tooltip: 'The Blender reference manual'
 """
 
+__author__ = "Matt Ebb"
+__url__ = ("blender", "elysiun")
+__version__ = "1.0"
+__bpydoc__ = """\
+This script opens the user's default web browser at www.blender3d.org's
+"Blender Manual" page.
+"""
+
 # --------------------------------------------------------------------------
 # Manual Help Menu Item
 # --------------------------------------------------------------------------

@@ -7,6 +7,70 @@ Group: 'Wizards'
 Tip: 'Set of object aligning, modifying tools'
 """
 
+__author__ = "Carlos López (klopez)"
+__url__ = ("elysiun", "Author's web page, http://klopes.tk",
+"Script's homepage, http://www.iespana.es/klopes/enchufes-guiri.htm",
+"Thread on elYsiun with links to English and Spanish webpage and pdf docs,\
+http://www.elysiun.com/forum/viewtopic.php?t=25736")
+__version__ = "3.1"
+
+__bpydoc__ = """\
+This Wizard script contains customizable tools to align and modify mesh
+objects.
+
+Edited freely from a post by the author to elYsiun (last link button above):
+
+These tools are initially oriented as a help for the general design of objects
+in 2D and 3D (architecture, industrial...), and this is the paradigm the
+program will be developed around.
+
+The utilities in the program are separated in 4 areas, accessible through the
+top menu in the GUI:
+
+- Alignment:<br>
+  + fitting an object between two others;<br>
+  + setting to an object the absolute size of another one;<br>
+  + aligning selected objects, according to several criteria: location,
+rotation, scale (scale can be changed either additive or multiplicatively);<br>
+  + location separation can be referenced either by centers, baricenters,
+origins or limits.
+
+- Object creation:<br>
+  + circunference passing through 3 points;<br>
+  + arc passing through 3 points;<br>
+  + arc based on angles and radius (interactive).
+
+- Mesh modification (affects vertices, faces and edges):<br>
+  + edges subdivision in any number of parts;<br>
+  + projection onto an arbitrary plane, in an arbitrary direction;<br>
+  + transformation of position, rotation, scale values (new matrix) of an
+object, though it looks unaffected.
+
+- 3D objects modifications (affects transform matrices):<br>
+  + translating / rotating / scaling randomly the selected objects;<br>
+  + moving selected objects closer or away from the active one, setting them at
+a fixed distance or translating by a fixed or proportional value.
+
+Notes:<br>
+    All numeric / vectorial values used during the program can be copied and
+pasted with the help of a buffer, which can contain: a position vector, an
+Euler list or a scaling vector and can store: numbers entered by user, values
+acquired from objects (matrices averages, distances, differences of position or
+rotation angles between two objects).  Buffer contents can also be pasted to
+the console window as text.
+
+Usage:
+
+Open the script from the "Scripts->Wizards" menu of the Scripts window, then
+one choose from the available languages.  The script has a GUI where specific
+tools can be selected and configured before being applied.
+
+Notes:<br>
+    Kloputils has many useful tools.  To get a better idea of what it can do,
+besides reading the tooltips for each button, users can check its online
+documentation.
+"""
+
 # $Id$
 #
 ##################################################

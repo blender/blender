@@ -6,6 +6,46 @@ Blender: 234
 Group: 'Export'
 Tip: 'Export armature/bone data to the Cal3D library.'
 """
+
+__author__ = ["Jean-Baptiste Lamy (Jiba)", "Chris Montijin", "Damien McGinnes"]
+__url__ = ("blender", "elysiun", "Cal3D, http://cal3d.sf.net")
+__version__ = "0.7"
+
+__bpydoc__ = """\
+This script exports armature / bone data to the well known open source Cal3D
+library.
+
+Usage:
+
+Simply run the script to export available armatures.
+
+Supported:<br>
+    Cal3D versions 0.7 -> 0.9.
+
+Known issues:<br>
+    Material color is not supported yet;<br>
+    Cal3D springs (for clothes and hair) are not supported yet;<br>
+    Cal3d has a bug in that a cycle that doesn't have a root bone channel
+will segfault cal3d.  Until cal3d supports this, add a keyframe for the
+root bone;<br>
+    When you finish an animation and run the script you can get an error
+(something with KeyError). Just save your work and reload the model. This is
+usually caused by deleted items hanging around;<br>
+    If a vertex is assigned to one or more bones, but has for each bone a
+weight of zero, there used to be a subdivision by zero error somewhere.  As a
+workaround, if sum is 0.0 then sum becomes 1.0.  It's recommended that you give
+weights to all bones to avoid problems.
+
+Notes:<br>
+    Objects/bones/actions whose names start by "_" are not exported so call IK
+and null bones _LegIK, for example;<br>
+    All your armature's exported bones must be connected to another bone
+    (except for the root bone). Contrary to Blender, Cal3D doesn't support
+"floating" bones.<br>
+    Actions that start with '@' will be exported as actions, others will be
+exported as cycles.
+"""
+
 # $Id$
 #
 # Copyright (C) 2003 Jean-Baptiste LAMY -- jiba@tuxfamily.org

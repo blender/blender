@@ -7,6 +7,31 @@ Group: 'UV'
 Tooltip: 'Procedural to uvmapped texture baker'
 """
 
+__author__ = "Jean-Michel Soler (jms)"
+__url__ = ("blender", "elysiun",
+"Script online, http://jmsoler.free.fr/util/blenderfile/py/text2uvbaker.py",
+"Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
+__version__ = "0.2.2 2004/08/01"
+
+__bpydoc__ = """\
+This script "bakes" Blender procedural materials (including textures): it saves
+them as 2d uv-mapped images.
+
+This script saves an uv texture layout of the chosen mesh, that can be used as
+an uv map for it.  It is a way to export procedurals from Blender as normal
+image textures that can be edited with a 2d image manipulation program or used
+with the mesh in games and other 3d applications.
+
+Usage:
+
+a) Enter face mode and define uv coordinates for your mesh;<br>
+b) Define its materials and textures and set "Map Input" coordinates to UV;
+c) Run this script and check the console.
+
+Notes:<br>
+   This script was based on a suggestion by Martin (Theeth) Poirier;<br>
+"""
+
 #---------------------------------------------
 # Last release : 0.2.2 ,  2004/08/01 , 22h13
 #---------------------------------------------

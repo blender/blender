@@ -7,6 +7,23 @@ Group: 'Import'
 Tip: 'Import a (.bvh) motion capture file'
 """
 
+__author__ = "Campbell Barton"
+__url__ = ("blender", "elysiun")
+__version__ = "1.0 03/25/04"
+
+__bpydoc__ = """\
+This script imports BVH motion capture data to Blender.
+
+Supported:<br>
+
+Missing:<br>
+
+Known issues:<br>
+
+Notes:<br>
+
+"""
+
 # $Id$
 #
 #===============================================#

@@ -7,6 +7,25 @@ Group: 'Mesh'
 Tip: 'Copy deform data (not surf. subdiv) of active obj to rvk of the 2nd selected obj'
 """
 
+__author__ = "Jean-Michel Soler (jms)"
+__url__ = ("blender", "elysiun",
+"Script's homepage, http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_rvk1versrvk2.htm",
+"Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
+__version__ = "2004/05"
+
+__bpydoc__ = """\
+"RVK1 to RVK2" copies deform data (except surface subdivision) of the active
+object to the RVK (relative vertex key) of the other selected object.
+
+Usage:
+
+Select the object that will receive the rvk info, then select the deformed
+object, enter Edit Mode and run this script from the "Mesh->Scripts" menu of
+the 3d View.  If the active object has subsurf turned on and nonzero subdiv
+level, the script will ask if it should change that.  Before copying data to
+the rvk it will also ask whether it should replace or add a new vertex group.
+"""
+
 # $Id$
 #
 #----------------------------------------------
@@ -104,7 +123,7 @@ def rvk2rvk():
 
     Blender.Redraw()
   except:
-    Draw.PupMenu('Error| You need to select two meshes.') 
+    Draw.PupMenu('Error%t|You need to select two meshes.') 
   
 
 Blender.Window.EditMode(0)

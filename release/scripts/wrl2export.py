@@ -8,6 +8,32 @@ Submenu: 'Selected Objects...' selected
 Tooltip: 'Export to VRML2 (.wrl) file.'
 """
 
+__author__ = ("Rick Kimball", "Ken Miller", "Steve Matthews")
+__url__ = ["blender", "elysiun",
+"Author's (Rick) homepage, http://kimballsoftware.com/blender",
+"Show your VRML world at vrmlworld.net, http://vrmlworld.net"]
+__version__ = "2004/01/19"
+
+__bpydoc__ = """\
+This script exports to VRML 2.0 format.
+
+Usage:
+
+Run this script from "File->Export" menu.  A pop-up will ask whether you
+want to export only selected or all relevant objects.
+
+Known issues:<br>
+    Doesn't handle multiple materials (don't use material indices);<br>
+    Doesn't handle multiple UV textures on a single mesh (create a mesh
+for each texture);<br>
+    Material colors need work;<br>
+    Spotlight softness needs work;<br>
+    Can't get the texture array associated with material * not the UV ones;<br>
+    Can't set smoothing, crease angle and mesh smoothing * setting not
+    accessible.
+"""
+
+
 # $Id$
 #
 #------------------------------------------------------------------------

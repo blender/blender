@@ -7,6 +7,23 @@ Group: 'Export'
 Tip: 'Export a (.bvh) motion capture file'
 """
 
+__author__ = "Campbell Barton"
+__url__ = ("blender", "elysiun")
+__version__ = "1.0 03/30/04"
+
+__bpydoc__ = """\
+This script exports animation data to BVH motion capture file format.
+
+Supported:<br>
+
+Missing:<br>
+
+Known issues:<br>
+
+Notes:<br>
+
+"""
+
 # $Id$
 #
 #===============================================#

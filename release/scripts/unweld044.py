@@ -6,6 +6,29 @@ Group: 'Mesh'
 Tip: 'Unweld all faces from a selected and common vertex. Made vertex bevelling'
 """
 
+__author__ = "Jean-Michel Soler (jms)"
+__url__ = ("blender", "elysiun",
+"Script's homepage, http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_faces2vertex.htm#exemple",
+"Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
+__version__ = "0.4.4 beta"
+
+__bpydoc__ = """\
+This script unwelds faces from a selected vertex.
+
+There's also experimental support for static or dynamic (move mouse in the
+Scripts window) vertex bevel.
+
+Usage:
+
+Select a vertex, then run this script.  Its options are:
+
+- unbind points;<br>
+- with noise;<br>
+- middle face;<br>
+- static bevel vertex;<br>
+- moving bevel vertex;
+"""
+
 # $Id$
 #
 # ------------------------------------------

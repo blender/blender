@@ -1,4 +1,5 @@
 #!BPY
+
 """
 Name: 'System Information...'
 Blender: 234
@@ -6,10 +7,24 @@ Group: 'HelpSystem'
 Tooltip: 'Information about your Blender environment, useful to diagnose problems.'
 """
 
+__author__ = "Willian P. Germano"
+__url__ = ("blender", "elysiun")
+__version__ = "1.0"
+__bpydoc__ = """\
+This script creates a text in Blender's Text Editor with information
+about your OS, video card, OpenGL driver, Blender and Python versions and
+more.
+
+If you are experiencing trouble running Blender or its scripts in general,
+this information can be useful for online searches (like checking if there
+are known issues related to your video card) or to get help from other users
+or the program's developers.
+"""
+
 # $Id$
 #
 # --------------------------------------------------------------------------
-# sysinfo.py version 0.1 Jun 09, 2004
+# sysinfo.py version 1.0 Jun 09, 2004
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -85,13 +100,12 @@ for p in sys.path:
   output.write(p + '\n')
 
 output.write("\n- Default folder for registered scripts:\n\n")
-scriptsdir = Blender.Get("datadir")
-if scriptsdir:
-  scriptsdir = scriptsdir.replace("/bpydata","/scripts")
-  output.write(scriptsdir)
-else:
+scriptsdir = Blender.Get("scriptsdir")
+if not scriptsdir:
   output.write("<WARNING> -- not found")
   warnings += 1
+else:
+  output.write(scriptsdir)
 
 missing_mods = [] # missing basic modules
 
@@ -143,7 +157,7 @@ if (warnings):
   output.write("\n(*) Found %d warning" % warnings)
   if (warnings > 1): output.write("s") # (blush)
   output.write(", documented in the text above.")
-else: output.write("\n==\nNo problems were found.")
+else: output.write("\n==\nNo problems were found (scroll up for details).")
 
 Blender.Window.WaitCursor(0)
 exitmsg = "Done!|Please check the text %s in the Text Editor window" % output.name

@@ -3,8 +3,32 @@
 """
 Name: 'Blender Knife Tool'
 Blender: 232
-Group: 'Mesh'
+Group: 'Object'
 Tooltip: 'Cut selected mesh(es) along an active plane w/o creating doubles'
+"""
+
+__author__ = ["Stefano <S68> Selleri", "Wim Van Hoydonck"]
+__url__ = ("blender", "elysiun")
+__version__ = "0.0.8a 03/31/04"
+
+__bpydoc__ = """\
+"Blender Knife Tool" uses the active mesh plane to cut all selected meshes.
+
+Usage:
+
+Create, resize and position a "cutting plane", which will be used to cut
+the mesh(es), then:
+
+- select mesh(es) to be cut;<br>
+- select cutting plane (it will be the active object);<br>
+- run this script from 3d View's "Object->Scripts" menu.
+
+Options:
+
+- edit object: knife creates new vertices in the selected mesh(es);<br>
+- create new object: knife duplicates objects and creates new vertices in the
+new objects;<br>
+- create two new objects: knife creates two new separate objects.
 """
 
 # $Id$

@@ -6,6 +6,15 @@ Group: 'Help'
 Tooltip: 'Documentation for using the Blender Python API'
 """
 
+__author__ = "Matt Ebb"
+__url__ = ("blender", "elysiun")
+__version__ = "1.0"
+__bpydoc__ = """\
+This script opens the user's default web browser at www.blender3d.org's
+"Blender Python API Reference" page.
+"""
+
+
 # --------------------------------------------------------------------------
 # Python Scripting Reference Help Menu Item
 # --------------------------------------------------------------------------

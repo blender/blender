@@ -7,6 +7,22 @@ Group: 'Object'
 Tip: 'GUI to select and rename objects.'
 """
 
+__author__ = "Jean-Michel Soler (jms)"
+__url__ = ("blender", "elysiun",
+"Script's homepage, http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_renameobjectgui.htm",
+"Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
+__version__ = "233"
+
+__bpydoc__ = """\
+This script offers a GUI to rename selected objects according to a given
+rule.
+
+Usage:
+
+Open it from the 3d View's "Object->Scripts" menu and select the objects to
+rename and the rule from the buttons in its GUI.
+"""
+
 # ----------------------------------------------------------
 # Name OBJECT changer
 # (c) 2004 jean-michel soler

@@ -11,6 +11,22 @@ Submenu: 'Loft-segment - even method' B2
 Tooltip: 'Select 2 or more vert loops, then run this script'
 """
 
+__author__ = "Campbell Barton"
+__url__ = ["blender", "elysiun"]
+__version__ = "1.0 2004/04/25"
+
+__bpydoc__ = """\
+With this script vertex loops can be skinned: faces are created to connect the
+selected loops of vertices.
+
+Usage:
+
+In mesh Edit mode select the vertices of the loops (closed paths / curves of
+vertices: circles, for example) that should be skinned, then run this script.
+A pop-up will provide further options, if the results of a method are not adequate try one of the others.
+"""
+
+
 # $Id$
 #
 # -------------------------------------------------------------------------- 

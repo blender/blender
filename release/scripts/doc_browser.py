@@ -7,6 +7,24 @@ Group: 'Misc'
 Tip: 'Browse BPython (scripting API) modules doc strings.'
 """
 
+__author__ = "Daniel Dunbar"
+__url__ = ("blender", "elysiun")
+__version__ = "1.0"
+__bpydoc__ = """\
+The "Doc Browser" lets users navigate the documentation strings of part of
+the Blender Python API.
+
+It doesn't give access yet to object method functions and variables, only to
+module functions, but still it is a handy reference.  Specially for quick
+access, for example to Blender.BGL: the module that wraps OpenGL calls.
+
+Notes:<br>
+    Everyone interested in the bpython api is also invited to read "The Blender
+Python API Reference" doc, available online ("Python Scripting Reference"
+entry in Blender's Help menu).
+"""
+
+
 # $Id$
 #
 # --------------------------------------------------------------------------

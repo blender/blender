@@ -7,6 +7,33 @@ Group: 'Import'
 Tip: 'Import an AC3D (.ac) file.'
 """
 
+__author__ = "Willian P. Germano"
+__url__ = ("blender", "elysiun", "AC3D's homepage, http://www.ac3d.org",
+	"PLib 3d gaming lib, http://plib.sf.net")
+__version__ = "2.34 07/26/04"
+
+__bpydoc__ = """\
+This script imports AC3D models into Blender.
+
+AC3D is a simple and affordable commercial 3d modeller also built with OpenGL.
+The .ac file format is an easy to parse text format well supported,
+for example, by the PLib 3d gaming library (AC3D v3.x).
+
+Supported:<br>
+    UV-textured meshes with hierarchy (grouping) information.
+
+Missing:<br>
+    Support for AC3D 4's crease tag (simple, will be added soon).
+
+Known issues:<br>
+    None.
+
+Notes:<br>
+    Check script's source code for options that can be tweaked (using Blender
+empties to emulate AC3D's grouping info and setting a default folder for
+textures, for the case of wrong paths in the .ac file(s).
+"""
+
 # $Id$
 #
 # --------------------------------------------------------------------------

@@ -7,6 +7,18 @@ Group: 'Import'
 Tooltip: 'Load a Wavefront OBJ File'
 """
 
+__author__ = "Campbell Barton"
+__url__ = ["blender", "elysiun"]
+__version__ = "0.9"
+
+__bpydoc__ = """\
+This script imports OBJ files to Blender.
+
+Usage:
+
+Run this script from "File->Import" menu and then load the desired OBJ file.
+"""
+
 # $Id$
 #
 # --------------------------------------------------------------------------

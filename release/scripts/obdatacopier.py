@@ -7,6 +7,26 @@ Group: 'Object'
 Tip: 'Copy data from active object to other selected ones.'
 """
 
+__author__ = "Jean-Michel Soler (jms)"
+__url__ = ("blender", "elysiun",
+"Script's homepage, http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_lampdatacopier.htm",
+"Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
+__version__ = "0.1.1"
+
+__bpydoc__ = """\
+Use "Data Copier" to copy attributes from the active object to other selected ones of
+its same type.
+
+This script is still in an early version but is already useful for copying
+attributes for some types of objects like lamps and cameras.
+
+Usage:
+
+Select the objects that will be updated, select the object whose data will
+be copied (they must all be of the same type, of course), then run this script.
+Toggle the buttons representing the attributes to be copied and press "Copy".
+"""
+
 # ----------------------------------------------------------
 # Object DATA copier 0.1.1
 # (c) 2004 jean-michel soler

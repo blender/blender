@@ -6,6 +6,16 @@ Group: 'Help'
 Tooltip: 'Help for new users'
 """
 
+__author__ = "Matt Ebb"
+__url__ = ("blender", "elysiun")
+__version__ = "1.0"
+__bpydoc__ = """\
+This script opens the user's default web browser at www.blender3d.org's
+"Getting Started" page.
+"""
+
+# $Id$
+#
 # --------------------------------------------------------------------------
 # Getting Started Help Menu Item
 # --------------------------------------------------------------------------

@@ -4,7 +4,23 @@
 Name: 'Batch Object Name Edit'
 Blender: 232
 Group: 'Object'
-Tooltip: 'Apply the chosen rule to rename all selected objects at once.'
+Tooltip: 'Apply the chosen rule to rename all selected objects at once'
+"""
+
+__author__ = "Campbell Barton"
+__url__ = ("blender", "elysiun")
+__version__ = "1.0"
+
+__bpydoc__ = """\
+"Batch Object Name Edit" allows you to change multiple names of Blender
+objects at once.  It provides options to define if you want to: replace text
+in the current names, truncate their beginnings or endings or prepend / append
+strings to them.
+
+Usage:
+
+Select the objects to be renamed and run this script from the Object->Scripts
+menu of the 3d View.
 """
 
 # $Id$

@@ -4,8 +4,39 @@
 Name: 'Axis Orientation Copy'
 Blender: 233
 Group: 'Object'
-Tip: 'Copy the axis orientation of the active object to all selected mesh object'
+Tip: 'Copy the axis orientation of the active object to all selected mesh objects'
 """
+
+__author__ = "A Vanpoucke (xand)"
+__url__ = ("blender", "elysiun",
+"French Blender support forum, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
+__version__ = "1.1 11/05/04"
+
+__bpydoc__ = """\
+This script copies the axis orientation -- X, Y and Z rotations -- of the
+active object to all selected meshes.
+
+It's useful to align the orientations of all meshes of a structure, a human
+skeleton, for example.
+
+Usage:
+
+Select all mesh objects that need to have their orientations changed
+(reminder: keep SHIFT pressed after the first, to add each new one to the
+selection), then select the object whose orientation will be copied from and
+finally run this script to update the angles.
+
+Notes:<br>
+    Before copying the orientation to each object, the script stores its
+transformation matrix.  Then the angles are copied and after that the object's
+vertices are transformed "back" so that they still have the same positions as
+before.  In other words, the rotations are updated, but you won't notice that
+just from looking at the objects.<br>
+    Checking their X, Y and Z rotation values with "Transform Properties" in
+the 3D View's Object menu shows the angles are now the same of the active
+object.
+"""
+
 
 # $Id$
 #
@@ -53,17 +84,23 @@ def applyTransform(mesh,mat):
 oblist =Object.GetSelected()
 lenob=len(oblist)
 
-if lenob<2:
-    Draw.PupMenu("Select at least 2 objects")
-else :    
-    source=oblist[0]
-    nsource=source.name
-    texte="Copy axis orientation from : " + nsource + " ?%t|OK"
-    result=Draw.PupMenu(texte)
+error = 0
+for o in oblist[1:]:
+    if o.getType() != "Mesh":
+        Draw.PupMenu("ERROR%t|Selected objects must be meshes")
+        error = 1
+
+if not error:
+    if lenob<2:
+        Draw.PupMenu("ERROR%t|You must select at least 2 objects")
+    else :    
+        source=oblist[0]
+        nsource=source.name
+        texte="Copy axis orientation from: " + nsource + " ?%t|OK"
+        result=Draw.PupMenu(texte)
 
 
-    for cible in oblist[1:]:
-        if cible.getType()=='Mesh':
+        for cible in oblist[1:]:
             if source.rot!=cible.rot:
                 rotcible=cible.mat.toEuler().toMatrix()
                 rotsource=source.mat.toEuler().toMatrix()

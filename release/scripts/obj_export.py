@@ -7,6 +7,19 @@ Group: 'Export'
 Tooltip: 'Save a Wavefront OBJ File'
 """
 
+__author__ = "Campbell Barton"
+__url__ = ["blender", "elysiun"]
+__version__ = "0.9"
+
+__bpydoc__ = """\
+This script is an exporter to OBJ file format.
+
+Usage:
+
+Run this script from "File->Export" menu to export all meshes.
+"""
+
+
 # --------------------------------------------------------------------------
 # OBJ Export v0.9 by Campbell Barton (AKA Ideasman)
 # --------------------------------------------------------------------------

@@ -7,6 +7,14 @@ Group: 'Help'
 Tooltip: 'Tutorials for learning to use Blender'
 """
 
+__author__ = "Matt Ebb"
+__url__ = ("blender", "elysiun")
+__version__ = "1.0"
+__bpydoc__ = """\
+This script opens the user's default web browser at www.blender3d.org's
+"Blender Tutorials" page.
+"""
+
 # --------------------------------------------------------------------------
 # Tutorials Help Menu Item
 # --------------------------------------------------------------------------

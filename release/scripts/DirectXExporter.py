@@ -6,8 +6,33 @@ Blender: 234
 Group: 'Export'
 Submenu: 'Only mesh data...' mesh
 Submenu: 'Animation(not armature yet)...' anim
-Tip: 'Export to DirectX text file format format.'
+Tip: 'Export to DirectX text file format'
 """
+
+__author__ = "Arben (Ben) Omari"
+__url__ = ("blender", "elysiun", "Author's site, http://www.omariben.too.it")
+__version__ = "1.0"
+
+__bpydoc__ = """\
+This script exports Blender uv-textured meshes with animation frame keys to
+DirectX 7's text file format.
+
+Usage:
+
+Run the script and check console for possible warning messages.
+
+Supported:<br>
+    UV-textured meshes with animation frame (location, rotation) keys.
+
+Known issues:<br>
+    Some DX format viewers don't support Material names with dots
+('.') in them.
+
+Notes:<br>
+    Check author's site or the elYsiun forum for a new beta version of the
+DX exporter.
+"""
+
 
 # $Id$
 #

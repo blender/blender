@@ -6,6 +6,14 @@ Group: 'Help'
 Tooltip: 'Information about the changes in this version of Blender'
 """
 
+__author__ = "Matt Ebb"
+__url__ = ("blender", "elysiun")
+__version__ = "1.0"
+__bpydoc__ = """\
+This script opens the user's default web browser at www.blender3d.org's
+"Release Notes" page.
+"""
+
 # --------------------------------------------------------------------------
 # Release Notes Help Menu Item
 # --------------------------------------------------------------------------

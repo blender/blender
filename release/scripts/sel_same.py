@@ -7,6 +7,38 @@ Group: 'UV'
 Tooltip: 'Select faces if attributes match the active'
 """
 
+__author__ = "Campbell Barton"
+__url__ = ["blender", "elysiun"]
+__version__ = "1.0"
+
+__bpydoc__ = """\
+This script selects faces matching a given attribute of the currently
+active face.
+
+Usage:
+
+Enter "UV Face Select" mode and make the desired face active.  Then run this
+script and choose the selection rule: by same (or similar for some itens):
+
+- material;<br>
+- texture image;<br>
+- mode;<br>
+- vertex colors;<br>
+- uv coordinates;<br>
+- area;<br>
+- proportions;<br>
+- normal vector;<br>
+- co-planar.
+
+Another menu will ask if the script should add, subtract, overwrite or
+overwrite inverse of current current selection.  For some choices like vcolors,
+area, etc., a pop-up will ask for a maximum threshold value.
+
+Notes:<br>
+   Again, to select / deselect faces, enter "UV Face Select" mode.  This is not
+the same as selecting faces in edit mode (new feature in Blender 2.35).
+"""
+
 # $Id$
 #
 #===============================================#

@@ -6,8 +6,37 @@ Blender: 234
 Group: 'Export'
 Submenu: 'Export to DX8 file format' export
 Submenu: 'How to use this exporter?' help
-Tip: 'Export to DirectX8 text file format format.'
+Tip: 'Export to DirectX8 text file format'
 """
+
+__author__ = "Arben (Ben) Omari"
+__url__ = ("blender", "elysiun", "Author's site, http://www.omariben.too.it")
+__version__ = "1.0"
+
+__bpydoc__ = """\
+This script exports a Blender mesh with armature to DirectX 8's text file
+format.
+
+Usage:
+
+1) There should be only one mesh and one armature in the scene;
+
+2) Before parenting set:<br>
+   a) Armature and mesh must have the same origin location
+(in the 3d View press N (menu Object->"Transform Properties") for both and set
+same LocX, LocY and LocZ);<br>
+   b) Armature and mesh must have the same rotation
+(select them and press Ctrl + A);
+
+3) Set the number of the animation frames to export;
+
+4) Read warnings (if any) in console.
+
+Notes:<br>
+    Check author's site or the elYsiun forum for a new beta version of the
+DX exporter.
+"""
+
 
 # $Id$
 #

@@ -6,6 +6,28 @@ Blender: 234
 Group: 'Mesh'
 Tooltip: 'Create fixed copies of deformed meshes'
 """ 
+
+__author__ = "Martin Poirier"
+__url__ = ("blender", "elysiun")
+__version__ = "1.5 09/21/04"
+
+__bpydoc__ = """\
+This script creates "raw" copies of deformed meshes.
+
+Usage:
+
+Select the mesh(es) and run this script.  A fixed copy of each selected mesh
+will be created, with the word "_deformed" appended to its name.
+
+Meshes in Blender can be deformed by armatures, lattices, curve objects and subdivision, but this will only change its appearance on screen and rendered
+images -- the actual mesh data is still simpler, with vertices in an original
+"rest" position and less vertices than the subdivided version.
+
+Use this script if you want a "real" version of the deformed mesh, so you can
+directly manipulate or export its data.
+"""
+
+
 # $Id$
 #
 # --------------------------------------------------------------------------

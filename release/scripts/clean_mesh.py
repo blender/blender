@@ -7,6 +7,28 @@ Group: 'Mesh'
 Tooltip: 'Clean unused data from all selected meshes'
 """
 
+__author__ = "Campbell Barton"
+__url__ = ("blender", "elysiun")
+__version__ = "1.0 04/25/04"
+
+__bpydoc__ = """\
+This script cleans specific data from all selected meshes.
+
+Usage:
+
+Select the meshes to be cleaned and run this script.  A pop-up will ask
+you what you want to remove:
+
+- Free standing vertices;<br>
+- Edges that are not part of any face;<br>
+- Edges below a threshold length;<br>
+- Faces below a threshold area;<br>
+- All of the above.
+
+After choosing one of the above alternatives, if your choice requires a
+threshold value you'll be prompted with a number pop-up to set it.
+"""
+
 # $Id$
 #
 # -------------------------------------------------------------------------- 

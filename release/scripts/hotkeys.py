@@ -1,15 +1,33 @@
 #!BPY
 
 """ Registration info for Blender menus:
-Name: 'Hotkey Reference'
+Name: 'HotKey and MouseAction Reference'
 Blender: 232
 Group: 'Help'
-Tip: 'All the hotkeys'
+Tip: 'All the hotkeys/short keys'
 """ 
+
+__author__ = "Jean-Michel Soler (jms)"
+__url__ = ("blender", "elysiun",
+"Script's homepage, http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_hotkeyscript.htm",
+"Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
+__version__ = "10/2004"
+
+__bpydoc__ = """\
+This script is a reference about all hotkeys and mouse actions in Blender.
+
+Usage:
+
+Open the script from the Help menu and select group of keys to browse.
+
+Notes:<br>
+    Additional entries in the database (c) 2004 by Bart.
+"""
+
 # $Id$
 #------------------------
 #  Hotkeys script
-#         jm soler (2003)
+#         jm soler (2003-->10/2004)
 # -----------------------
 # Page officielle :
 #   http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_hotkeyscript.htm
@@ -24,7 +42,8 @@ Tip: 'All the hotkeys'
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
-# Copyright (C) 2003, 2004: Jean-Michel Soler
+# Script copyright (C) 2003, 2004: Jean-Michel Soler 
+# Additionnal entries in the original data base (c) 2004 by Bart (bart@neeneenee.de)
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -50,205 +69,294 @@ from Blender.BGL import *
 hotkeys={
 'Specials 1 ':[
 [',', 'Set Bounding Box rotation scaling pivot'],
-['.', 'Set 3D cursor as rotation scaling pivot'] ,
-['~', 'Display all layers'] ,
-['Shift-~', 'Display all/previous layers'] ,
-['TAB', 'Enter/exit edit mode'] ,
+['Ctrl-,', 'Set Median Point rotation scaling pivot'],
+['.', 'Set 3D cursor as rotation scaling pivot'],
+['Ctrl-.', 'Set Individual Object Centers as rotation scaling pivot'] ,
+['~', 'Display all layers (German keys: ö)'],
+['Shift-~', 'Display all/previous layers (German keys: Shift-ö)'],
+['Space', 'Popup menu'],
+['Space', '3D View: camera selected + fly mode, accept'],
+['TAB', 'Enter/exit Edit Mode'],
 ['TAB', 'Edit Mode and Numerical Edit (see N key) : move to next input value'],
-['TAB', 'Sequencer: Edit meta strip'] ,
-['CTRL-TAB', 'Enter/exit pose mode']
+['TAB', 'Sequencer: Edit meta strip'],
+['TAB', 'IPO: Edit selected'],
+['Ctrl-TAB', 'Enter/exit Pose Mode'],
+['Shift-TAB', 'Enter Object Mode'],
+['Ctrl-Open menu/', ''],
+['Ctrl-Load Image', 'Opens a thumbnail browser instead of file browser for images']
 ],
-
-'Specials 2 ':[
+'Mouse ':[
+['Actions:', ''],
+['LMB', '3D View: Set 3D Cursor'],
+['LMB', '3D View: camera selected + fly mode, move forward'],
+['LMB drag', 'Border select circle: add to selection'],
+['LMB hold down', 'Popup menu'],
+['LMB hold down drag', 'Gesture'],
+['Ctrl-LMB', 'IPO: Add key'],
+['MMB', 'Rotate'],
+['Ctrl-MMB', 'Zoom view'],
+['Shift-MMB', 'Move view'],
+['RMB', 'Select'],
+['RMB drag', 'Border select circle: subtract from selection'],
+['RMB hold down', 'Popup menu'],
+['Alt+Ctrl-RMB', 'Edit Mode: Select edge'],
+['Alt+Ctrl-RMB', 'UV Image Editor: Select face'],
+['Shift-RMB', 'Add/subtract to/from selection'],
+['Wheel', 'Zoom view'],
+['Transformations:', ''],
+['Drag+Ctrl', 'Step adjustment'],
+['Drag+Ctrl+Shift', 'Small step adjustment'],
+['Drag+Shift', 'Fine adjustment'],
+['LMB', 'Confirm transformation'],
+['MMB', 'Toggle optional transform feature'],
+['RMB', 'Abort transformation']
+],
+'F-Keys ':[
 ['F1', 'Open File'],
 ['F2', 'Save File'],
 ['F3', 'Save image'],
-['F4', 'Logic window (may change)'],
-['F5', 'Material window'],
-['F6', 'Texture window'],
-['F7', 'Object window'],
-['F8', 'World window'],
-['F9', 'Edit Mode window'],
+['F4', 'Logic Window (may change)'],
+['F5', 'Material Window'],
+['F6', 'Texture Window'],
+['F7', 'Object Window'],
+['F8', 'World Window'],
+['F9', 'Edit Mode Window'],
 ['F10', 'Render Window'],
 ['F11', 'Recall the last rendered image'],
 ['F12', 'Render current Scene'],
+['Ctrl-Shift-F12', 'NLA Editor'],
 ['Shift-F1', 'Library Data Select'],
-['Shift-F4', 'Data Select '],
-['Shift-F5', '3D window'],
-['Shift-F6', 'IPO window'],
-['Shift-F8', 'Video Sequencer window'],
-['Shift-F9', 'OOP window'],
-['Shift-F10', 'Image Window']
-] ,
+['Shift-F2', 'Export DXF'],
+['Shift-F4', 'Object manager Data Select '],
+['Shift-F5', '3D Window'],
+['Shift-F6', 'IPO Window'],
+['Shift-F7', 'Buttons Window'],
+['Shift-F8', 'Video Sequencer Window'],
+['Shift-F9', 'OOP Window'],
+['Shift-F10', 'UV Image Editor'],
+['Shift-F11', 'Text Editor'],
+['Shift-F12', 'Action Editor']
+],
 
-'Numbers  ':[
-['1..2..0-=', 'Show layer 1..2..12'] ,
-['ALT-1..2..0', 'Show layer 11..12..20'] ,
-['SHIFT-1..2..0-=', 'Toggle layer 1..2..12'] ,
-['SHIFT-ALT-...', 'Toggle layer 11..12..20'] ],
+'Numbers ':[
+['1..2..0-=', 'Show layer 1..2..12'],
+['Alt-1..2..0', 'Show layer 11..12..20'],
+['Shift-1..2..0-=', 'Toggle layer 1..2..12'],
+['Shift-ALT-...', 'Toggle layer 11..12..20']
+],
 
-'Numpad  ':[
-['Numpad DEL', 'Zoom on object'] ,
-['Numpad /', 'Local view on object (hide others)'] ,
-['Numpad *', "Rotate view to object's local axes"] ,
-['Numpad +', 'Zoom in (works everywhere)'] ,
-['Numpad +', 'Proportional vertex edit mode: Increase range of influence'] ,
-['Numpad -', 'Zoom out (works everywhere)'] ,
-['Numpad -', 'Proportional vertex edit mode: Decrease range of influence'] ,
-['Numpad INS', 'Set Camera view'] ,
-['CTRL-Numpad INS', 'Set active object as camera'] ,
-['ALT-Numbad INS', 'Restore old camera'] ,
-['Numpad 1', 'Front view'] ,
-['CTRL-Numpad 1', 'Back view'] ,
-['Numpad 3', 'Right-Side view'] ,
-['CTRL-Numpad 3', 'Left-Side view'] ,
-['Numpad 7', 'Top view'] ,
-['CTRL-Numpad 7', 'Bottom view '] ,
-['Numpad 5', 'Toggle orthogonal // perspective view'] ,
-['Numpad 9', 'Redraw view'] ,
-['Numpad 2', 'Rotate view left'] ,
-['Numpad 6', 'Rotate view right'] ,
-['Numpad 8', 'Rotate view up'] ,
-['Numpad 2', 'Rotate view down'] ],
+'Numpad ':[
+['Numpad DEL', 'Zoom on object'],
+['Numpad /', 'Local view on object (hide others)'],
+['Numpad *', 'Rotate view to objects local axes'],
+['Numpad +', 'Zoom in (works everywhere)'],
+['Numpad +', 'Proportional vertex Edit Mode: Increase range of influence'],
+['Ctrl-Numpad +', 'Edit Mode: Select More vertices'],
+['Numpad -', 'Zoom out (works everywhere)'],
+['Numpad -', 'Proportional vertex Edit Mode: Decrease range of influence'],
+['Ctrl-Numpad +', 'Edit Mode: Select Less vertices'],
+['Numpad INS', 'Set Camera view'],
+['Ctrl-Numpad INS', 'Set active object as camera'],
+['Alt-Numbad INS', 'Restore old camera'],
+['Numpad 1', 'Front view'],
+['Ctrl-Numpad 1', 'Back view'],
+['Numpad 3', 'Right view'],
+['Ctrl-Numpad 3', 'Left view'],
+['Numpad 7', 'Top view'],
+['Ctrl-Numpad 7', 'Bottom view '],
+['Numpad 5', 'Toggle orthogonal/perspective view'],
+['Numpad 9', 'Redraw view'],
+['Numpad 4', 'Rotate view left'],
+['Numpad 6', 'Rotate view right'],
+['Numpad 8', 'Rotate view up'],
+['Numpad 2', 'Rotate view down']
+],
 
 'Arrows ':[
-['PgUp', 'IPO: Select next keyframe'] ,
-['CTRL-PgUp', 'IPO: Select and jump to next keyframe'] ,
-['PgDn', 'IPO: Select previous keyframe'] ,
-['CTRL-PgDn', 'IPO: Select and jump to previous keyframe'] ,
-['LEFT', 'One frame backwards'] ,
-['RIGHT', 'One frame forwards'] ,
-['DOWN', '10 frames backwards'] ,
-['UP', '10 frames forwards'] ],
+['Home/Pos1', 'View all'],
+['PgUp', 'IPO: Select next keyframe'],
+['Ctrl-PgUp', 'IPO: Select and jump to next keyframe'],
+['PgDn', 'IPO: Select previous keyframe'],
+['Ctrl-PgDn', 'IPO: Select and jump to previous keyframe'],
+['Left', 'One frame backwards'],
+['Right', 'One frame forwards'],
+['Down', '10 frames backwards'],
+['Up', '10 frames forwards'],
+['Alt-Down', 'Blender in Window mode'],
+['Alt-Up', 'Blender in Fullscreen mode'],
+['Ctrl-Left', 'Previous screen'],
+['Ctrl-Right', 'Next screen'],
+['Ctrl-Down', 'Maximize window toggle'],
+['Ctrl-Up', 'Maximize window toggle'],
+['Shift-Arrow', 'Toggle first frame/ last frame']
+],
 
 'Letters ':[ {"A":[ 
-['A', 'Select all / Deselect all'] ,
-['ALT-A', 'Animate current window'] ,
-['CTRL-A', "Apply object's size/rotation to object data"] ,
-['SHIFT-A', 'Sequencer: ADD menu'] ,
-['SHIFT-ALT-A', 'Animate all windows'] ,
-['SHIFT-CTRL-A', 'Apply lattice / Make dupliverts real']] ,
+['A', 'Select all/Deselect all'],
+['Alt-A', 'Play animation in current window'],
+['Ctrl-A', 'Apply objects size/rotation to object data'],
+['Ctrl-A', 'Text Editor: Select all'],
+['Shift-A', 'Sequencer: Add menu'],
+['Shift-A', '3D-View: Add menu'],
+['Shift-ALT-A', 'Play animation in all windows'],
+['Shift-CTRL-A', 'Apply lattice / Make dupliverts real']
+],
 
 "B":[ 
-['B', 'Border select'] ,
-['BB', 'Circle select'] ,
-['SHIFT-B', 'Set render border'] ],
+['B', 'Border select'],
+['BB', 'Circle select'],
+['Alt+B', 'Edit Mode: Select Vertex Loop'],
+['Shift-B', 'Set render border (in active camera view)']
+],
 
 "C":[ 
-['C', 'Center view on cursor'] ,
-['C', 'Sequencer: Change images'] ,
-['C', 'IPO: Snap current frame to selected key'] ,
-['ALT-C', 'Convert menu'] ,
-['CTRL-C', 'Copy menu (Copy properties of active to selected objects)'] ,
-['SHIFT-C', 'Center and zoom view on selected objects']] ,
+['C', 'Center view on cursor'],
+['C', 'UV Image Editor: Active Face Select toggle'],
+['C', 'Sequencer: Change images'],
+['C', 'IPO: Snap current frame to selected key'],
+['Alt-C', 'Object Mode: Convert menu'],
+['Alt-C', 'Text Editor: Copy selection to clipboard'],
+['Ctrl-C', 'Copy menu (Copy properties of active to selected objects)'],
+['Ctrl-C', 'UV Image Editor: Stick UVs to mesh vertex'],
+['Shift-C', 'Center and zoom view on selected objects'],
+['Shift-C', 'UV Image Editor: Stick local UVs to mesh vertex']
+],
 
 "D":[  
-['D', 'Set 3d draw mode'] ,
-['ALT-D', 'Create new instance of object'] ,
-['CTRL-D', 'Display alpha of image texture as wire'] ,
-['SHIFT-D', 'Create full copy of object'] ],
+['D', 'Set 3d draw mode'],
+['Alt-D', 'Object Mode: Create new instance of object'],
+['Ctrl-D', 'Display alpha of image texture as wire'],
+['Shift-D', 'Create full copy of object']
+],
 
 "E":[ 
-['E', 'Extrude'],
-['EX', 'Extrude along X axis'],
-['EY', 'Extrude along Y axis'],
-['EZ', 'Extrude along Z axis'],
-['ALT-E', 'Edit mode: exit edit mode'],] ,
+['E', 'Edit Mode: Extrude'],
+['E', 'UV Image Editor: LSCM Unwrap'],
+['ER', 'Edit Mode: Extrude Rotate'],
+['ES', 'Edit Mode: Extrude Scale'],
+['ESX', 'Edit Mode: Extrude Scale X axis'],
+['ESY', 'Edit Mode: Extrude Scale Y axis'],
+['ESZ', 'Edit Mode: Extrude Scale Z axis'],
+['EX', 'Edit Mode: Extrude along X axis'],
+['EY', 'Edit Mode: Extrude along Y axis'],
+['EZ', 'Edit Mode: Extrude along Z axis'],
+['Alt-E', 'Edit Mode: exit Edit Mode'],
+['Ctrl-E', 'Edit Mode: Edge Specials menu'],
+['Shift-E', 'Edit Mode: SubSurf Edge Sharpness']
+],
 
 "F":[ 
-['F', 'Edit mode: Make edge/face'] ,
-['F', 'Sequencer: Set Filter Y'] ,
-['F', 'Faceselect mode'] ,
-['ALT-F', 'Beautify fill'] ,
-['CTRL-F', 'Sort faces in Z direction'] ,
-['CTRL-F', 'Edit mode: Flip triangle edges'] ,
-['SHIFT-F', 'Edit mode: Fill with triangles']] ,
+['F', 'Edit mode: Make edge/face'],
+['F', 'Sequencer: Set Filter Y'],
+['F', 'Object Mode: UV/Face Select mode'],
+['Alt-F', 'Edit Mode: Beautify fill'],
+['Ctrl-F', 'Object Mode: Sort faces in Z direction'],
+['Ctrl-F', 'Edit Mode: Flip triangle edges'],
+['Shift-F', 'Edit Mode: Fill with triangles'],
+['Shift-F', 'Object Mode: active camera in fly mode (use LMB, RMB, Alt, Ctrl and Space too)']
+],
 
 "G":[ 
-['G', 'Grab (move)'] ,
-['ALT-G', 'Clear location'] ,
-['SHIFT-ALT-G', 'Remove selected objects from group'] ,
-['CTRL-G', 'Add selected objects to group'] ,
-['SHIFT-G', 'Group menu'] ],
+['G', 'Grab (move)'],
+['Alt-G', 'Clear location'],
+['Shift-ALT-G', 'Remove selected objects from group'],
+['Ctrl-G', 'Add selected objects to group'],
+['Shift-G', 'Selected Group menu']
+],
 
 "H":[ 
-['H', 'Hide selected vertices/faces'] ,
-['H', 'Curves: Set handle type'] ,
-['ALT-H', 'Reveal vertices'] ,
-['CTRL-H', 'Curves: Automatic handle calculation'] ,
-['SHIFT-H', 'Hide deselected vertices'] ,
-['SHIFT-H', 'Curves: Set handle type']] ,
+['H', 'Hide selected vertices/faces'],
+['H', 'Curves: Set handle type'],
+['Alt-H', 'Show Hidden vertices/faces'],
+['Ctrl-H', 'Curves: Automatic handle calculation'],
+['Shift-H', 'Hide deselected  vertices/faces'],
+['Shift-H', 'Curves: Set handle type']
+],
 
 "I":[ 
-['I', 'Keyframe menu'] ],
+['I', 'Keyframe menu']
+],
 
 "J":[ 
-['J', 'Mesh: Join all adjacent triangles to quads'] ,
-['J', 'Swap render page of render window'] ,
-['CTRL-J', 'Join selected objects'] ,
-['CTRL-J', 'Nurbs: Add segment'] ,
-['CTRL-J', 'IPO: Join keyframes menu'],
-['ALT-J', 'Edit Mode: convert quads to triangles']
+['J', 'IPO: Join menu'],
+['J', 'Mesh: Join all adjacent triangles to quads'],
+['J', 'Render Window: Swap render buffer'],
+['Ctrl-J', 'Join selected objects'],
+['Ctrl-J', 'Nurbs: Add segment'],
+['Ctrl-J', 'IPO: Join keyframes menu'],
+['Alt-J', 'Edit Mode: convert quads to triangles']
 ],
 
 "K":[  
-['K', '3d window: Show keyframe positions'] ,
-['K', 'IPO: Show keyframe positions'] ,
-['K', 'Nurbs: Print knots'] ,
-['CTRL-K', 'Make skeleton from armature'] ,
-['SHIFT-K', 'Show and select all keyframes for object'] ,
-['SHIFT-K', 'Edit: Knife Mode select'],
-['SHIFT-K', 'Faceselect: Clear vertexcolours'],
-] ,
+['K', '3d Window: Show keyframe positions'],
+['K', 'Edit Mode: Loop/Cut menu'],
+['K', 'IPO: Show keyframe positions'],
+['K', 'Nurbs: Print knots'],
+['Ctrl-K', 'Make skeleton from armature'],
+['Shift-K', 'Show and select all keyframes for object'],
+['Shift-K', 'Edit Mode: Knife Mode select'],
+['Shift-K', 'UV Face Select: Clear vertex colours'],
+['Shift-K', 'Vertex Paint: Fill with vertex colours']
+],
 
 "L":[ 
-['L', 'Make local menu'] ,
-['L', 'Edit mode: Select linked vertices (near mouse pointer)'] ,
-['L', 'OOPS window: Select linked objects'] ,
-['CTRL-L', 'Make links menu'] ,
-['SHIFT-L', 'Select links menu'] ],
+['L', 'Make local menu'],
+['L', 'Edit mode: Select linked vertices (near mouse pointer)'],
+['L', 'OOPS window: Select linked objects'],
+['L', 'UV Face Select: Select linked faces'],
+['Ctrl-L', 'Make links menu'],
+['Shift-L', 'Select links menu']
+],
 
 "M":[ 
-['M', 'Move object to different layer'] ,
+['M', 'Move object to different layer'],
 ['M', 'Sequencer: Make meta strip (group) from selected strips'],
-['ALT-M', 'Edit Mode: Merge vertices'] ],
+['M', 'Edit Mode: Mirros Axis menu'],
+['Alt-M', 'Edit Mode: Merge vertices menu'],
+['Ctrl-M', 'Object Mode: Mirros Axis menu']
+],
 
 "N":[ 
-['N', 'Numeric input menu (Size/Rot/Loc)'] ,
+['N', 'Transform Properties panel'] ,
 ['N', 'OOPS window: Rename object/linked objects'] ,
-['CTRL-N', 'Armature: Recalculate bone roll angles'] ,
-['CTRL-N', 'Recalculate normals to outside'] ,
-['CTRL-ALT-N', 'Recalculate normals to inside'] ],
+['Ctrl-N', 'Armature: Recalculate bone roll angles'] ,
+['Ctrl-N', 'Edit Mode: Recalculate normals to outside'] ,
+['Ctrl-ALT-N', 'Edit Mode: Recalculate normals to inside'] ],
 
 "O":[ 
-['O', 'Edit mode: Toggle proportional vertex editing'] ,
-['ALT-O', 'Clear object origin'] ,
-['CTRL-O', 'Revert current file to last saved'] ,
-['SHIFT-O', 'Proportional vertex edit mode: Toggle smooth/steep falloff'] ],
+['O', 'Edit Mode/UV Image Editor: Toggle proportional vertex editing'],
+['Alt-O', 'Clear object origin'],
+['Ctrl-O', 'Revert current file to last saved'],
+['Shift-O', 'Proportional vertex Edit Mode: Toggle smooth/steep falloff']
+],
 
 "P":[ 
-['P', 'Start realtime engine'] ,
-['P', 'Edit mode: Seperate vertices to new object'] ,
-['ALT-P', 'Clear parent relationship'] ,
-['CTRL-P', 'Make active object parent of selected object'] ,
-['CTRL-SHIFT-P', 'Make active object parent of selected object without inverse'] ,
-['CTRL-P', 'Edit mode: Make active vertex parent of selected object'] ],
+['P', 'Object Mode: Start realtime engine'],
+['P', 'Edit mode: Seperate vertices to new object'],
+['P', 'UV Image Editor: Pin UVs'],
+['Alt-P', 'Clear parent relationship'],
+['Alt-P', 'UV Image Editor: Unpin UVs'],
+['Ctrl-P', 'Make active object parent of selected object'],
+['Ctrl-SHIFT-P', 'Make active object parent of selected object without inverse'],
+['Ctrl-P', 'Edit mode: Make active vertex parent of selected object']
+],
 
 "Q":[['Q', 'Quit'] ],
 
 "R":[ 
-['R', 'Rotate'] ,
-['R', 'IPO: Record mouse movement as IPO curve'] ,
-['RX', 'Rotate around X axis'] ,
-['RXX', "Rotate around object's local X axis"] ,
-['RY', 'Rotate around Y axis'] ,
-['RYY', "Rotate around object's local Y axis"] ,
-['RZ', 'Rotate around Z axis'] ,
-['RZZ', "Rotate around object's local Z axis"] ,
-['ALT-R', 'Clear object rotation'] ,
-['SHIFT-R', 'Nurbs: Select row'], 
-['CTRL-R', 'Edit Mode: Knife, cut selected edges, accept left mouse/ cancel right mouse'],
-['SHIT-R', 'Edit Mode: loop Selection']],
+['R', 'Rotate'],
+['R', 'IPO: Record mouse movement as IPO curve'],
+['R', 'UV Face Select: Rotate menu uv coords or vertex colour'],
+['RX', 'Rotate around X axis'],
+['RXX', "Rotate around object's local X axis"],
+['RY', 'Rotate around Y axis'],
+['RYY', "Rotate around object's local Y axis"],
+['RZ', 'Rotate around Z axis'],
+['RZZ', "Rotate around object's local Z axis"],
+['Alt-R', 'Clear object rotation'],
+['Ctrl-R', 'Edit Mode: Knife, cut selected edges, accept left mouse/ cancel right mouse'],
+['Shift-R', 'Edit Mode: select Face Loop'],
+['Shift-R', 'Nurbs: Select row'] ],
 
 "S":[ 
 ['S', 'Scale'] ,
@@ -258,58 +366,69 @@ hotkeys={
 ['SXX', 'Flip around X axis and show axis'] ,
 ['SYY', 'Flip around Y axis and show axis'] ,
 ['SZZ', 'Flip around Z axis and show axis'] ,
-['ALT-S', 'Edit mode: Shrink/fatten (Scale along vertex normals)'] ,
-['ALT-S', 'Clear object size'] ,
-['CTRL-S', 'Edit mode: Shear'] ,
-['SHIFT-S', 'Cursor/Grid snap menu'] ],
+['Alt-S', 'Edit mode: Shrink/fatten (Scale along vertex normals)'] ,
+['Alt-S', 'Clear object size'] ,
+['Ctrl-S', 'Edit mode: Shear'] ,
+['Shift-S', 'Cursor/Grid snap menu'] ],
 
 "T":[ 
 ['T', 'Sequencer: Touch and print selected movies'] ,
 ['T', 'Adjust texture space'] ,
 ['T', 'Edit mode: Flip 3d curve'] ,
 ['T', 'IPO: Change IPO type'] ,
-['ALT-T', 'Clear tracking of object'] ,
-['CTRL-T', 'Make selected object track active object'] ,
-['CTRL-T', 'Mesh: Convert to triangles'] ,
-['CTRL-ALT-T', 'Blenchmark'] ],
+['Alt-T', 'Clear tracking of object'] ,
+['Ctrl-T', 'Make selected object track active object'] ,
+['Ctrl-T', 'Edit Mode: Convert to triangles'] ,
+['Ctrl-ALT-T', 'Benchmark'] ],
 
 "U":[ 
 ['U', 'Make single user menu'] ,
-['U', 'Edit mode: Reload object data from before entering edit mode'] ,
-['U', 'Faceselect mode: Automatic UV calculation menu'] ,
+['U', '3D View: Global undo'] ,
+['U', 'Edit Mode: Reload object data from before entering Edit Mode'] ,
+['U', 'UV Face Select: Automatic UV calculation menu'] ,
 ['U', 'Vertex-/Weightpaint mode: Undo'] ,
-['CTRL-U', 'Save current state as user default'],
-['SHIFT-U', 'EditMode : Redo Menu'],
-['ALT-U', 'Edit Mode: Undo Menu']
- ],
+['Ctrl-U', 'Save current state as user default'],
+['Shift-U', 'Edit Mode: Redo Menu'],
+['Alt-U', 'Edit Mode: Undo Menu'] ],
 
 "V":[ 
-['V', 'Curves/Nurbs: Vector handle'] ,
-['V', 'Vertexpaint mode'] ,
-['ALT-V', "Scale object to match image texture's aspect ratio"] ,
-['SHIFT-V', 'Edit mode: Align view to selected vertices'] ],
+['V', 'Curves/Nurbs: Vector handle'],
+['V', 'Vertexpaint mode'],
+['V', 'UV Image Editor: Stitch UVs'],
+['Alt-V', "Scale object to match image texture's aspect ratio"],
+['Shift-V', 'Edit mode: Align view to selected vertices'],
+['Shift-V', 'UV Image Editor: Limited Stitch UVs popup'],
+],
 
 "W":[ 
-['W', 'Boolean operations menu'] ,
-['W', 'Edit mode: Specials menu'] ,
-['CTRL-W', 'Save current file'] ,
-['CTRL-W', 'Nurbs: Switch direction'] ,
-['SHIFT-W', 'Warp/bend selected vertices around cursor'] ] ,
+['W', 'Object Mode: Boolean operations menu'],
+['W', 'Edit mode: Specials menu'],
+['W', 'UV Image Editor: Weld/Align'],
+['WX', 'UV Image Editor: Weld/Align X axis'],
+['WY', 'UV Image Editor: Weld/Align Y axis'],
+['Ctrl-W', 'Save current file'] ,
+['Ctrl-W', 'Nurbs: Switch direction'] ,
+['Shift-W', 'Warp/bend selected vertices around cursor'] ],
 
 "X":[ 
 ['X', 'Delete menu'] ,
-['CTRL-X', 'Restore default state (Erase all)'] ],
+['Ctrl-X', 'Restore default state (Erase all)'] ],
 
 "Y":[ 
 ['Y', 'Mesh: Split selected vertices/faces from the rest'] ],
 
 "Z":[ 
+['Z', 'Render Window: 200% zoom from mouse position'],
 ['Z', 'Switch 3d draw type : solide/ wireframe (see also D)'],
 ['Alt-Z', 'Switch 3d draw type : solid / textured (see also D)'],
+['Ctrl-Z', 'Switch 3d draw type : shaded (see also D)'],
 ['Shift-Z', 'Switch 3d draw type : shaded / wireframe (see also D)'],
 
 ]}]}
 
+up=128
+down=129
+UP=0
 
 for k in hotkeys.keys():
    hotkeys[k].append(Create(0))
@@ -343,7 +462,7 @@ def trace_rectangle3(r,c,c1):
     glCl3(c1[0],c1[1],c1[2])
 
 def draw():
-    global r,c,c1,hotkeys, hot, hotL
+    global r,c,c1,hotkeys, hot, hotL, up, down, UP
 
     size=Buffer(GL_FLOAT, 4)
     glGetFloatv(GL_SCISSOR_BOX, size)
@@ -351,76 +470,113 @@ def draw():
 
     for s in [0,1,2,3]: size[s]=int(size[s])
 
-    c=[0.9,0.95,0.95,0.0]
-    c1=[0.95,0.95,0.9,0.0]
+    c=[0.75,0.75,0.75,0]
+    c1=[0.6,0.6,0.6,0]
 
     r=[0,size[3],size[2],0]
     trace_rectangle4(r,c)
 
-    c=[0.7,0.7,0.9,0.0]
+    c=[0.64,0.64,0.64,0]
     c1=[0.95,0.95,0.9,0.0]
     
-    r=[0,size[3],size[2],size[3]-20]
+    r=[0,size[3],size[2],size[3]-40]
     trace_rectangle4(r,c)
 
     c1=[0.7,0.7,0.9,0.0]
     c=[0.2,0.2,0.4,0.0]
-    c2=[0.87,0.87,0.95,0.0]     
+    c2=[0.71,0.71,0.71,0.0]     
 
-    r=[0,size[3]-20,size[2],size[3]-44]
-    trace_rectangle4(r,c)
+    glColor3f(1, 1, 1)
+    glRasterPos2f(42, size[3]-25)
 
-    glColor3f(0.1, 0.1, 0.15)
-    glRasterPos2f(10, size[3]-16)
-
-    Text("HotKey")
+    Text("HotKey and MouseAction Reference")
 
     l=0
     listed=0
     Llisted=0
+    size[3]=size[3]-18
+
     for k in hot:             
-       hotkeys[k][-1]=Toggle(k, hot.index(k)+10, 4+(20*26)/6*hot.index(k), size[3]-(40), len(k)*8, 20, hotkeys[k][-1].val )
+       #hotkeys[k][-1]=Toggle(k, hot.index(k)+10, 4+(20*26)/6*hot.index(k), size[3]-(42), len(k)*8, 20, hotkeys[k][-1].val )
+       hotkeys[k][-1]=Toggle(k, hot.index(k)+10, 78*hot.index(k), size[3]-(47), 78, 24, hotkeys[k][-1].val )
+       
        l+=len(k)
+
        if hotkeys[k][-1].val==1.0:
            listed=hot.index(k)
-           #print listed
     l=0
+    size[3]=size[3]-4
     if hot[listed]!='Letters ':
-       for n in  hotkeys[hot[listed]][:-1]:
+       size[3]=size[3]-8
+       SCROLL=size[3]/21
+       END=-1
+       if SCROLL < len(hotkeys[hot[listed]][:-1]):
+          Button('/\\',up,4,size[3]+8,20,14,'Scroll up') 
+          Button('\\/',down,4,size[3]-8,20,14,'Scroll down')            
+          if (SCROLL+UP)<len(hotkeys[hot[listed]][:-1]):
+             END=(UP+SCROLL)
+          else:
+             END=-1
+             UP=len(hotkeys[hot[listed]][:-1])-SCROLL         
+       else :
+         UP=0
+
+       for n in  hotkeys[hot[listed]][:-1][UP:END]:
+          
           if l%2==0:
-             r=[4,size[3]-(18*l+66),
-                     8+(21*26), size[3]-(46+18*l)]
+             r=[0,size[3]-(21*l+66),
+                     size[2], size[3]-(21*l+43)]
              trace_rectangle4(r,c2)
-          glColor3f(0.1, 0.1, 0.15)
-          glRasterPos2f(4+8, size[3]-(58+18*l))
+          glColor3f(0,0,0)
+          glRasterPos2f(4+8, size[3]-(58+21*l))
           Text(n[0])
-          glRasterPos2f(4+8*15, size[3]-(58+18*l))
+          glRasterPos2f(4+8*15, size[3]-(58+21*l))
           Text('  : '+n[1]) 
           l+=1
     else:
        for k in hotL:
             pos=hotL.index(k)
-            hotkeys['Letters '][0][k][-1]=Toggle(k,pos+20,4+hotL.index(k)*21, size[3]-(52+18), 20, 20, hotkeys['Letters '][0][k][-1].val )
+            hotkeys['Letters '][0][k][-1]=Toggle(k,pos+20,hotL.index(k)*21, size[3]-(52+18), 21, 18, hotkeys['Letters '][0][k][-1].val )
             if hotkeys['Letters '][0][k][-1].val==1.0:
                Llisted=pos
-       for n in hotkeys['Letters '][0][hotL[Llisted]][:-1]:
+
+       size[3]=size[3]-8
+
+       SCROLL=(size[3]-88)/21
+       END=-1
+       if SCROLL < len(hotkeys['Letters '][0][hotL[Llisted]]):
+          Button('/\\',up,4,size[3]+8,20,14,'Scroll up') 
+          Button('\\/',down,4,size[3]-8,20,14,'Scroll down')            
+          if (UP+SCROLL)<len(hotkeys['Letters '][0][hotL[Llisted]]):
+             END=(UP+SCROLL)
+          else:
+             END=-1
+             UP=len(hotkeys['Letters '][0][hotL[Llisted]])-SCROLL         
+       else :
+         UP=0
+
+       for n in hotkeys['Letters '][0][hotL[Llisted]][UP:END]:
           if l%2==0:
-             r=[4,size[3]-(18*l+92),
-                     8+(21*26), size[3]-(74+18*l)]
+             r=[4,size[3]-(21*l+92),
+                     size[2], size[3]-(69+21*l+1)]
              trace_rectangle4(r,c2)
+
           glColor3f(0.1, 0.1, 0.15)  
-          glRasterPos2f(4+8, size[3]-(88+18*l))
+          glRasterPos2f(4+8, (size[3]-(88+21*l))+3)
           Text(n[0])
-          glRasterPos2f(4+8*15, size[3]-(88+18*l))
+          glRasterPos2f(4+8*15, (size[3]-(88+21*l))+3)
           Text('  : '+n[1]) 
           l+=1
 
 def event(evt, val):
-    global hotkeys     
-    if ((evt== QKEY or evt== ESCKEY) and not val): Exit()
+    global hotkeys, UP     
+    if ((evt== QKEY or evt== ESCKEY) and not val): 
+        Exit()
+
 
 def bevent(evt):
-    global hotkeysmhot, hotL
+    global hotkeysmhot, hotL, up,down,UP
+
     if   (evt== 1):
         Exit()
 
@@ -428,14 +584,22 @@ def bevent(evt):
         for k in hot:
            if hot.index(k)+10!=evt:
                  hotkeys[k][-1].val=0
-                 
+                 UP=0 
         Blender.Window.Redraw()
 
     elif (evt in range(20,46,1)):
         for k in hotL:
            if hotL.index(k)+20!=evt:
                  hotkeys['Letters '][0][k][-1].val=0
-
+                 UP=0 
         Blender.Window.Redraw()
+
+    elif (evt==up):
+       UP+=1
+       Blender.Window.Redraw()
+
+    elif (evt==down):
+       if UP>0: UP-=1
+       Blender.Window.Redraw()
 
 Register(draw, event, bevent)

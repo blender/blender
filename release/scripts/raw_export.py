@@ -7,6 +7,20 @@ Group: 'Export'
 Tooltip: 'Export selected mesh to Raw Triangle Format (.raw)'
 """
 
+__author__ = "Anthony D'Agostino (Scorpius)"
+__url__ = ("blender", "elysiun",
+"Author's homepage, http://www.redrival.com/scorpius")
+__version__ = "Part of IOSuite 0.5"
+
+__bpydoc__ = """\
+This script exports meshes to Raw Triangle file format.
+
+Usage:
+
+Select meshes to be exported and run this script from "File->Export" menu.
+"""
+
+
 # $Id$
 #
 # +---------------------------------------------------------+

@@ -7,6 +7,15 @@ Group: 'HelpWebsites'
 Tooltip: 'The official Blender website'
 """
 
+__author__ = "Matt Ebb"
+__url__ = ("blender", "elysiun")
+__version__ = "1.0"
+__bpydoc__ = """\
+This script opens the user's default web browser at Blender's main site,
+www.blender3d.org.
+"""
+
+
 # --------------------------------------------------------------------------
 # Blender Website Help Menu -> Websites Item
 # --------------------------------------------------------------------------

@@ -1,10 +1,40 @@
 #!BPY
+
 """ Registration info for Blender menus: <- these words are ignored
 Name: 'UVpainter'
 Blender: 232
 Group: 'UV'
-Tip: 'Use vertex paint color value to fill uvmapping.'
+Tip: 'Use vertex paint color value to fill uvmapping'
 """
+
+__author__ = "Jean-Michel Soler (jms)"
+__url__ = ("blender", "elysiun",
+"Script's homepage, http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_uvpainting.htm",
+"Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
+__version__ = "0.5 05/2004"
+
+__bpydoc__ = """\
+This script "paints" uv-mappings with the model's vertex colors.
+
+Usage:
+
+With this script you can export uv-maps filled with vertex colors to TARGA
+(.tga) images.  To use it the mesh must have proper uv coordinates assigned
+in UV Face Select Mode.  And to fill the projected faces with color, the mesh
+can also have material(s) and vertex colors painted on it.
+
+The script has a GUI with a preview of the results and options like drawing
+lines or not, defining size, etc.  You can paint vertex colors in the mesh and
+see the uv-map updated in the script's window.
+
+Notes:<br>
+    Material's rgb color is also used to fill the uv-map;<br>
+    If there are no vertex colors or texture faces in the mesh and you press
+the "Make" VColors button in the edit mesh buttons win, the current light setup
+is saved as vertex colors for the model;<br>
+    Check the script's homepage for example images.
+"""
+
 # $Id$
 #
 #----------------------------------------------
@@ -12,7 +42,6 @@ Tip: 'Use vertex paint color value to fill uvmapping.'
 # http://jmsoler.free.fr/util/blenderfile/py/UVpaint05.zip
 # this script is released under GPL licence
 # for the Blender 2.33 scripts distribution
-#----------------------------------------------
 #----------------------------------------------
 # Official page :
 # http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_uvpainting.htm
@@ -26,7 +55,30 @@ Tip: 'Use vertex paint color value to fill uvmapping.'
 #--------------------------------------------- 
 # ce script est proposé sous licence GPL pour etre associe
 # a la distribution de Blender 2.33 et suivant
-#----------------------------------------------
+# --------------------------------------------------------------------------
+# this script is released under GPL licence
+# for the Blender 2.33 scripts package
+# --------------------------------------------------------------------------
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+# Script copyright (C) 2003, 2004: Jean-Michel Soler 
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ***** END GPL LICENCE BLOCK *****
+# --------------------------------------------------------------------------
 
 import Blender
 from Blender.Draw import *

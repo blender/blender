@@ -7,6 +7,21 @@ Group: 'Import'
 Tooltip: 'Import Radiosity File Format (.radio) with vertex colors'
 """
 
+__author__ = "Anthony D'Agostino (Scorpius)"
+__url__ = ("blender", "elysiun",
+"Author's homepage, http://www.redrival.com/scorpius")
+__version__ = "Part of IOSuite 0.5"
+
+__bpydoc__ = """\
+This script imports Radiosity files to Blender.
+
+Usage:
+
+Execute this script from the "File->Import" menu and choose a Radiosity file to
+open.
+"""
+
+
 # $Id$
 #
 # +---------------------------------------------------------+

@@ -7,6 +7,20 @@ Group: 'Export'
 Tooltip: 'Export selected mesh to VideoScape File Format (.obj)'
 """
 
+__author__ = "Anthony D'Agostino (Scorpius)"
+__url__ = ("blender", "elysiun",
+"Author's homepage, http://www.redrival.com/scorpius")
+__version__ = "Part of IOSuite 0.5"
+
+__bpydoc__ = """\
+This script exports meshes (including vertex colors) to VideoScape File Format.
+
+Usage:
+
+Select meshes to be exported and run this script from "File->Export" menu.
+"""
+
+
 # $Id$
 #
 # +---------------------------------------------------------+

@@ -7,6 +7,29 @@ Group: 'UV'
 Tooltip: 'Export the UV face layout of the selected object to a .TGA file'
 """ 
 
+__author__ = "Martin (Theeth) Poirier"
+__url__ = ("blender", "elysiun")
+__version__ = "1.3a"
+
+__bpydoc__ = """\
+This script exports the UV face layout of the selected mesh object to
+a TGA image file.  Then you can, for example, paint details in this image using
+an external 2d paint program of your choice and bring it back to be used as a
+texture for the mesh.
+
+Usage:
+
+Open this script from UV/Image Editor's "UVs" menu, make sure there is a mesh
+selected, define size and wire size parameters and push "Export" button.
+
+There are more options to configure, like setting export path, if image should
+use object's name and more.
+
+Notes:<br>
+    Jean-Michel Soler (jms) wrote TGA functions used by this script.
+"""
+
+
 # $Id$
 #
 # --------------------------------------------------------------------------

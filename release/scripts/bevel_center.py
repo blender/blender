@@ -7,6 +7,30 @@ Group: 'Mesh'
 Tip: 'Bevel selected vertices'
 """
 
+__author__ = "Loic Berthe"
+__url__ = ("blender", "elysiun")
+__version__ = "1.0"
+
+__bpydoc__ = """\
+This script implements vertex bevelling in Blender.
+
+Usage:
+
+Select the mesh you want to work on, enter Edit Mode and select the vertices
+to bevel.  Then run this script from the 3d View's Mesh->Scripts menu.
+
+You can control the thickness of the bevel with the slider -- redefine the
+end points for bigger or smaller ranges.  The thickness can be changed even
+after applying the bevel, as many times as needed.
+
+For an extra smoothing after or instead of direct bevel, set the level of
+recursiveness and use the "Recursive" button.
+
+Notes:<br>
+    You can undo and redo your steps just like with normal mesh operations in
+Blender.
+"""
+
 # $Id$
 #
 ######################################################################

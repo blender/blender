@@ -7,6 +7,21 @@ Group: 'Import'
 Tooltip: 'Import Wings3D File Format (.wings)'
 """
 
+__author__ = "Anthony D'Agostino (Scorpius)"
+__url__ = ("blender", "elysiun",
+"Author's homepage, http://www.redrival.com/scorpius",
+"Wings 3D, http://www.wings3d.com")
+__version__ = "Part of IOSuite 0.5"
+
+__bpydoc__ = """\
+This script imports Wings 3d files to Blender.
+
+Usage:
+
+Execute this script from the "File->Import" menu and choose a Wings file to
+open.
+"""
+
 # $Id$
 #
 # +---------------------------------------------------------+
