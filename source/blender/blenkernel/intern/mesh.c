@@ -1120,3 +1120,40 @@ int mesh_uses_displist(Mesh *me) {
 int rendermesh_uses_displist(Mesh *me) {
 	return (me->flag&ME_SUBSURF);
 }
+
+void mesh_calculate_vertex_normals(Mesh *me)
+{
+	float (*tempNorms)[3]= MEM_callocN(me->totvert*sizeof(*tempNorms), "tempNorms");
+	int i;
+
+	for (i=0; i<me->totface; i++) {
+		MFace *mf= &((MFace*) me->mface)[i];
+		float f_no[3];
+
+		if (!mf->v3)
+			continue;
+			
+		if (mf->v4) {
+			CalcNormFloat4(me->mvert[mf->v1].co, me->mvert[mf->v2].co, me->mvert[mf->v3].co, me->mvert[mf->v4].co, f_no);
+		} else {
+			CalcNormFloat(me->mvert[mf->v1].co, me->mvert[mf->v2].co, me->mvert[mf->v3].co, f_no);
+		}
+		
+		VecAddf(tempNorms[mf->v1], tempNorms[mf->v1], f_no);
+		VecAddf(tempNorms[mf->v2], tempNorms[mf->v2], f_no);
+		VecAddf(tempNorms[mf->v3], tempNorms[mf->v3], f_no);
+		if (mf->v4)
+			VecAddf(tempNorms[mf->v4], tempNorms[mf->v4], f_no);
+	}
+	for (i=0; i<me->totvert; i++) {
+		MVert *mv= &me->mvert[i];
+		float *no= tempNorms[i];
+		
+		Normalise(no);
+		mv->no[0]= (short)(no[0]*32767.0);
+		mv->no[1]= (short)(no[1]*32767.0);
+		mv->no[2]= (short)(no[2]*32767.0);
+	}
+	
+	MEM_freeN(tempNorms);
+}

@@ -109,6 +109,12 @@ int rendermesh_uses_displist(struct Mesh *me);
 float get_mvert_weight (struct Object *ob, int vert, int defgroup);
 int update_realtime_texture(struct TFace *tface, double time);
 
+	/** Generate the mesh vertex normals by averaging over connected faces.
+	 *
+	 * @param me The mesh to update.
+	 */
+void mesh_calculate_vertex_normals	(Mesh *me);
+
 #ifdef __cplusplus
 }
 #endif
