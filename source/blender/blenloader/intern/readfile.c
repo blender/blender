@@ -47,8 +47,6 @@
 #include <stdio.h> // for printf fopen fwrite fclose sprintf FILE
 #include <stdlib.h> // for getenv atoi
 #include <fcntl.h> // for open
-#include <string.h> // for strcasecmp strrchr strncmp strstr
-#include <math.h> // for pow
 
 #ifndef WIN32 
     #include <unistd.h> // for read close
@@ -98,16 +96,14 @@
 #include "DNA_armature_types.h"
 #include "DNA_nla_types.h"
 
-#include "GEN_messaging.h"
-
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
 #include "BLI_storage_types.h" // for relname flags
 
 #include "BKE_bad_level_calls.h" // for reopen_text build_seqar (from WHILE_SEQ) open_plugin_seq set_rects_butspace check_imasel_copy
 
-#include "BKE_utildefines.h" // SWITCH_INT WHILE_SEQ END_SEQ DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
 #include "BKE_constraint.h"
+#include "BKE_utildefines.h" // SWITCH_INT WHILE_SEQ END_SEQ DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
 #include "BKE_main.h" // for Main
 #include "BKE_global.h" // for G
 #include "BKE_property.h" // for get_property
@@ -129,6 +125,10 @@
 #include "BLO_readblenfile.h" // streaming read pipe, for BLO_readblenfile BLO_readblenfilememory
 
 #include "mydevice.h"
+
+#include <string.h> // for strcasecmp strrchr strncmp strstr
+
+
 
 /*
  Remark: still a weak point is the newadress() function, that doesnt solve reading from
@@ -263,7 +263,6 @@ static void *oldnewmap_lookup_and_inc(OldNewMap *onm, void *addr) {
 		
 		if (entry->old==addr) {
 			entry->nr++;
-			
 			return entry->newp;
 		}
 	}
@@ -1938,10 +1937,9 @@ static void direct_link_dverts(FileData *fd, int count, MDeformVert *mdverts)
 			mdverts[i].totweight=0;
 
 		for (j=0; j< mdverts[i].totweight; j++) {
-			mdverts[i].dw[j].data = newdataadr(fd, mdverts[i].dw[j].data);
+			mdverts[i].dw[j].data = NULL;	// not saved in file, clear pointer
 		}
 	}
-
 }
 
 static void direct_link_mesh(FileData *fd, Mesh *mesh)
@@ -3292,9 +3290,6 @@ static void do_versions(Main *main)
 		bObjectActuator *oa;
 		bSound *sound;
 		while(ob) {
-			/* rotdamping */
-			ob->damping= (float) pow(ob->damping, 0.05);
-			ob->rdamping= (float) pow(ob->rdamping, 0.05);
 			
 			/* please check this for demo20 files like
 			 * original Egypt levels etc.  converted
@@ -3316,13 +3311,7 @@ static void do_versions(Main *main)
 			}
 			ob= ob->id.next;
 		}
-		
-		while(ma) {
-			ma->friction= (float) pow(ma->friction, 0.2);
-			ma->xyfrict= (float) pow(ma->xyfrict, 0.2);
-			ma= ma->id.next;
-		}
-		
+
 		sound = main->sound.first;
 		while (sound) {
 			if (sound->volume < 0.01) {
@@ -4580,17 +4569,7 @@ static int fd_read_from_streambuffer(FileData *filedata, void *buffer, int size)
 			if (type == ENDB) {
 				memmove(buffer, filedata->buffer + filedata->seek, 8);
 				readsize = 8;
-			} else {
-#ifndef NDEBUG
-				fprintf(GEN_errorstream,
-						"Error in fd_read_from_streambuffer\n");
-#endif
 			}
-		} else {
-#ifndef NDEBUG
-			fprintf(GEN_errorstream,
-					"Error in fd_read_from_streambuffer: not enough data available\n");
-#endif
 		}
 	}
 	
