@@ -418,6 +418,15 @@ int object_deform(Object *ob)
 				}
 			}
 		}
+		else if(ob->type==OB_MBALL) {
+			dl=ob->disp.first;
+			while(dl) {
+				fp = dl->verts;
+				for(a=0;a<dl->nr;a++,fp+=3)
+					calc_latt_deform(fp);
+				dl=dl->next;
+			}
+		}
 		else if ELEM(ob->type, OB_CURVE, OB_SURF) {
 		
 			cu= ob->data;

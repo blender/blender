@@ -1460,6 +1460,8 @@ void makeDispList(Object *ob)
 		
 		metaball_polygonize(ob);
 		tex_space_mball(ob);
+
+		object_deform(ob);
 	}
 	else if(ob->type==OB_SURF) {
 		

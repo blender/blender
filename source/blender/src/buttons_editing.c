@@ -1760,6 +1760,7 @@ static void editing_panel_materials(Object *ob)
 	float min;
 	Material *ma;
 	char str[64];
+	uiBut *but;
 	
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_materials", UI_EMBOSSX, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Link and Materials", "Editing", 0, 0, 318, 204)==0) return;
@@ -1807,7 +1808,7 @@ static void editing_panel_materials(Object *ob)
 	}
 	if(ob) {
 		uiBlockSetCol(block, BUTGREY);
-		uiBut *but= uiDefBut(block, TEX, B_IDNAME, "OB:",	xco, 180, 454-xco, YIC, ob->id.name+2, 0.0, 19.0, 0, 0, "Displays Active Object name. Click to change.");
+		but = uiDefBut(block, TEX, B_IDNAME, "OB:",	xco, 180, 454-xco, YIC, ob->id.name+2, 0.0, 19.0, 0, 0, "Displays Active Object name. Click to change.");
 		uiButSetFunc(but, test_idbutton_cb, ob->id.name, NULL);
 	}
 
