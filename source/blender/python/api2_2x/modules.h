@@ -108,9 +108,9 @@ int        Lamp_CheckPyObject  (PyObject *pyobj);
 
 /* Curve Data */
 PyObject * Curve_Init (void);
-PyObject * CurveCreatePyObject (struct Curve *curve);
-Curve    * CurveFromPyObject   (PyObject *py_obj);
-int        CurveCheckPyObject  (PyObject *py_obj);
+PyObject * Curve_CreatePyObject (struct Curve *curve);
+Curve    * Curve_FromPyObject   (PyObject *py_obj);
+int        Curve_CheckPyObject  (PyObject *py_obj);
 
 /* Armature Data */
 PyObject  * Armature_Init (void);
