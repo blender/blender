@@ -403,13 +403,38 @@ void timestr(double time, char *str)
 	str[11]=0;
 }
 
+static void drawgrid_draw(float wx, float wy, float x, float y, float dx)
+{
+	float fx, fy;
+	
+	x+= (wx); 
+	y+= (wy);
+	fx= x/dx;
+	fx= x-dx*floor(fx);
+	
+	while(fx< curarea->winx) {
+		fdrawline(fx,  0.0,  fx,  (float)curarea->winy); 
+		fx+= dx; 
+	}
+
+	fy= y/dx;
+	fy= y-dx*floor(fy);
+	
+
+	while(fy< curarea->winy) {
+		fdrawline(0.0,  fy,  (float)curarea->winx,  fy); 
+		fy+= dx;
+	}
+
+}
 
 static void drawgrid(ScrArea *sa)
 {
 	/* extern short bgpicmode; */
 	float wx, wy, x, y, fw, fx, fy, dx;
 	float vec4[4];
-
+	char col[3];
+	
 	vec4[0]=vec4[1]=vec4[2]=0.0; 
 	vec4[3]= 1.0;
 	Mat4MulVec4fl(G.vd->persmat, vec4);
@@ -434,51 +459,85 @@ static void drawgrid(ScrArea *sa)
 	dx= fabs(x-(wx)*fx/fw);
 	if(dx==0) dx= fabs(y-(wy)*fy/fw);
 
-	if(dx<6.0) {
-		dx*= 10.0;
-		setlinestyle(3);
-		if(dx<6.0) {
-			dx*= 10.0;
-			if(dx<6.0) {
-				setlinestyle(0);
-				return;
-			}
-		}
-	}
-	
+	/* check zoom out */
+	BIF_ThemeColor(sa, TH_GRID);
 	persp(PERSP_WIN);
 
-	BIF_ThemeColor(sa, TH_GRID);
-	
+	if(dx<6.0) {
+		dx*= 10.0;
+		
+		if(dx<6.0) {	
+			dx*= 10.0;
+			
+			if(dx<6.0) {
+				dx*=10;
+				if(dx<6.0);
+				else {
+					BIF_ThemeColor(sa, TH_GRID);
+					drawgrid_draw(wx, wy, x, y, dx);
+				}
+			}
+			else {	// start blending out
+				BIF_ThemeColorBlend(curarea, TH_BACK, TH_GRID, dx/60.0);
+				drawgrid_draw(wx, wy, x, y, dx);
+			
+				BIF_ThemeColor(sa, TH_GRID);
+				drawgrid_draw(wx, wy, x, y, 10*dx);
+			}
+		}
+		else {	// start blending out (6 < dx < 60)
+			BIF_ThemeColorBlend(curarea, TH_BACK, TH_GRID, dx/60.0);
+			drawgrid_draw(wx, wy, x, y, dx);
+			
+			BIF_ThemeColor(sa, TH_GRID);
+			drawgrid_draw(wx, wy, x, y, 10*dx);
+		}
+	}
+	else {
+		if(dx>60.0) {		// start blending in
+			dx/= 10.0;			
+			if(dx>60.0) {		// start blending in
+				dx/= 10.0;
+				if(dx>60.0) {
+					BIF_ThemeColor(sa, TH_GRID);
+					drawgrid_draw(wx, wy, x, y, dx);
+				}
+				else {
+					BIF_ThemeColorBlend(curarea, TH_BACK, TH_GRID, dx/60.0);
+					drawgrid_draw(wx, wy, x, y, dx);
+					BIF_ThemeColor(sa, TH_GRID);
+					drawgrid_draw(wx, wy, x, y, dx*10);
+				}
+			}
+			else {
+				BIF_ThemeColorBlend(curarea, TH_BACK, TH_GRID, dx/60.0);
+				drawgrid_draw(wx, wy, x, y, dx);
+				BIF_ThemeColor(sa, TH_GRID);
+				drawgrid_draw(wx, wy, x, y, dx*10);
+			}
+		}
+		else {
+			BIF_ThemeColorBlend(curarea, TH_BACK, TH_GRID, dx/60.0);
+			drawgrid_draw(wx, wy, x, y, dx);
+			BIF_ThemeColor(sa, TH_GRID);
+			drawgrid_draw(wx, wy, x, y, dx*10);
+		}
+	}
+
 	x+= (wx); 
 	y+= (wy);
-	fx= x/dx;
-	fx= x-dx*floor(fx);
+	BIF_GetThemeColor3ubv(curarea, TH_GRID, col);
 	
-	while(fx< curarea->winx) {
-		fdrawline(fx,  0.0,  fx,  (float)curarea->winy); 
-		fx+= dx; 
-	}
-
-	fy= y/dx;
-	fy= y-dx*floor(fy);
-	
-
-	while(fy< curarea->winy) {
-		fdrawline(0.0,  fy,  (float)curarea->winx,  fy); 
-		fy+= dx;
-	}
-
 	/* center cross */
-	if(G.vd->view==3) cpack(0xA0D0A0); /* y-as */
-	else cpack(0xA0A0D0);	/* x-as */
+	if(G.vd->view==3) glColor3ub(col[0]<36?0:col[0]-36, col[1]>199?255:col[1]+56, col[2]<36?0:col[2]-36); /* y-as */
+	else glColor3ub(col[0]>219?255:col[0]+36, col[1]<26?0:col[1]-26, col[2]<26?0:col[2]-26);	/* x-as */
 
 	fdrawline(0.0,  y,  (float)curarea->winx,  y); 
 	
-	if(G.vd->view==7) cpack(0xA0D0A0);	/* y-as */
-	else cpack(0xE0A0A0);	/* z-as */
+	if(G.vd->view==7) glColor3ub(col[0]<36?0:col[0]-36, col[1]>199?255:col[1]+56, col[2]<36?0:col[2]-36);	/* y-as */
+	else glColor3ub(col[0]<36?0:col[0]-36, col[1]<36?0:col[1]-36, col[2]>209?255:col[2]+46);	/* z-as */
 
-	fdrawline(x,  0.0,  x,  (float)curarea->winy); 
+	fdrawline(x, 0.0, x, (float)curarea->winy); 
 
 	persp(PERSP_VIEW);
 	setlinestyle(0);
@@ -490,6 +549,7 @@ static void drawfloor(ScrArea *sa)
 	View3D *vd;
 	float vert[3], grid;
 	int a, gridlines;
+	char col[3];
 	
 	vd= curarea->spacedata.first;
 
@@ -501,12 +561,12 @@ static void drawfloor(ScrArea *sa)
 	grid= gridlines*vd->grid;
 	
 	BIF_ThemeColor(sa, TH_GRID);
-
+	BIF_GetThemeColor3ubv(curarea, TH_GRID, col);
+	
 	for(a= -gridlines;a<=gridlines;a++) {
 
 		if(a==0) {
-			if(vd->persp==0) cpack(0xA0D0A0);
-			else cpack(0x402000);
+			glColor3ub(col[0]<36?0:col[0]-36, col[1]>199?255:col[1]+56, col[2]<36?0:col[2]-36);	/* y-as */
 		}
 		else if(a==1) {
 			BIF_ThemeColor(sa, TH_GRID);
@@ -526,8 +586,7 @@ static void drawfloor(ScrArea *sa)
 	
 	for(a= -gridlines;a<=gridlines;a++) {
 		if(a==0) {
-			if(vd->persp==0) cpack(0xA0A0D0);
-			else cpack(0);
+			glColor3ub(col[0]>219?255:col[0]+36, col[1]<26?0:col[1]-26, col[2]<26?0:col[2]-26);	/* x-as */
 		}
 		else if(a==1) {
 			BIF_ThemeColor(sa, TH_GRID);
@@ -864,6 +923,68 @@ static void load_bgpic_image(char *name)
 
 /* this one assumes there is only one global active object in blender...  (for object panel) */
 static float ob_eul[3];
+/* this one assumes there is only one editmode in blender...  (for object panel) */
+static float ve_median[3];
+static int ve_median_tot=0;
+
+/* is used for both read and write... */
+static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
+{
+	EditVert *eve;
+	float median[3];
+	int tot;
+	
+	median[0]= median[1]= median[2]= 0.0;
+	tot= 0;
+	
+	if(ob->type==OB_MESH) {
+		eve= G.edve.first;
+		while(eve) {
+			if(eve->f & 1) {
+				tot++;
+				VecAddf(median, median, eve->co);
+			}
+			eve= eve->next;
+		}
+	}
+	if(tot==0) return;
+
+	median[0] /= (float)tot;
+	median[1] /= (float)tot;
+	median[2] /= (float)tot;
+	
+	if(block) {	// buttons
+	
+		ve_median_tot= tot;
+		VECCOPY(ve_median, median);
+		
+		if(ve_median_tot==1) {
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex X:",	10, 140, 300, 19, &(ve_median[0]), -lim, lim, 10, 0, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex Y:",	10, 120, 300, 19, &(ve_median[1]), -lim, lim, 10, 0, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex Z:",	10, 100, 300, 19, &(ve_median[2]), -lim, lim, 10, 0, "");
+		}
+		else {
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median X:",	10, 140, 300, 19, &(ve_median[0]), -lim, lim, 10, 0, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Y:",	10, 120, 300, 19, &(ve_median[1]), -lim, lim, 10, 0, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Z:",	10, 100, 300, 19, &(ve_median[2]), -lim, lim, 10, 0, "");
+		}
+	}
+	else {	// apply
+		
+		VecSubf(median, ve_median, median);
+		
+		if(ob->type==OB_MESH) {
+			eve= G.edve.first;
+			while(eve) {
+				if(eve->f & 1) {
+					VecAddf(eve->co, eve->co, median);
+				}
+				eve= eve->next;
+			}
+		}
+	}
+}
+
 
 void do_viewbuts(unsigned short event)
 {
@@ -931,8 +1052,16 @@ void do_viewbuts(unsigned short event)
 			allqueue(REDRAWVIEW3D, 1);
 		}
 		break;
+		
+	case B_OBJECTPANELMEDIAN:
+		if(ob) {
+			v3d_editvertex_buts(NULL, ob, 1.0);
+			allqueue(REDRAWVIEW3D, 1);
+		}
+		break;
 	}
 }
+
 
 static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 {
@@ -945,29 +1074,33 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	block= uiNewBlock(&curarea->uiblocks, "view3d_panel_object", UI_EMBOSSX, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(VIEW3D_HANDLER_OBJECT);  // for close and esc
-	if(uiNewPanel(curarea, block, "Object", "View3d", 10, 230, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 204)==0) return;
 
 	uiDefBut(block, TEX, B_IDNAME, "OB: ",	10,180,150,20, ob->id.name+2, 0.0, 18.0, 0, 0, "");
 	uiDefIDPoinBut(block, test_obpoin_but, B_REDR, "Par:", 160, 180, 150, 20, &ob->parent, "Parent Object"); 
 
 	lim= 1000.0*MAX2(1.0, G.vd->grid);
 
-	uiDefButF(block, NUM, REDRAWVIEW3D, "LocX:",		10, 140, 150, 19, &(ob->loc[0]), -lim, lim, 100, 0, "");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "LocY:",		10, 120, 150, 19, &(ob->loc[1]), -lim, lim, 100, 0, "");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "LocZ:",		10, 100, 150, 19, &(ob->loc[2]), -lim, lim, 100, 0, "");
-
-	ob_eul[0]= 180.0*ob->rot[0]/M_PI;
-	ob_eul[1]= 180.0*ob->rot[1]/M_PI;
-	ob_eul[2]= 180.0*ob->rot[2]/M_PI;
+	if(ob==G.obedit) {
+		v3d_editvertex_buts(block, ob, lim);
+	}
+	else {
+		uiDefButF(block, NUM, REDRAWVIEW3D, "LocX:",		10, 140, 150, 19, &(ob->loc[0]), -lim, lim, 100, 0, "");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "LocY:",		10, 120, 150, 19, &(ob->loc[1]), -lim, lim, 100, 0, "");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "LocZ:",		10, 100, 150, 19, &(ob->loc[2]), -lim, lim, 100, 0, "");
 	
-	uiDefButF(block, NUM, B_OBJECTPANELROT, "RotX:",	10, 70, 150, 19, &(ob_eul[0]), -lim, lim, 1000, 0, "");
-	uiDefButF(block, NUM, B_OBJECTPANELROT, "RotY:",	10, 50, 150, 19, &(ob_eul[1]), -lim, lim, 1000, 0, "");
-	uiDefButF(block, NUM, B_OBJECTPANELROT, "RotZ:",	10, 30, 150, 19, &(ob_eul[2]), -lim, lim, 1000, 0, "");
-
-	uiDefButF(block, NUM, REDRAWVIEW3D, "SizeX:",		160, 70, 150, 19, &(ob->size[0]), -lim, lim, 100, 0, "");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "SizeY:",		160, 50, 150, 19, &(ob->size[1]), -lim, lim, 100, 0, "");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "SizeZ:",		160, 30, 150, 19, &(ob->size[2]), -lim, lim, 100, 0, "");
-
+		ob_eul[0]= 180.0*ob->rot[0]/M_PI;
+		ob_eul[1]= 180.0*ob->rot[1]/M_PI;
+		ob_eul[2]= 180.0*ob->rot[2]/M_PI;
+		
+		uiDefButF(block, NUM, B_OBJECTPANELROT, "RotX:",	10, 70, 150, 19, &(ob_eul[0]), -lim, lim, 1000, 0, "");
+		uiDefButF(block, NUM, B_OBJECTPANELROT, "RotY:",	10, 50, 150, 19, &(ob_eul[1]), -lim, lim, 1000, 0, "");
+		uiDefButF(block, NUM, B_OBJECTPANELROT, "RotZ:",	10, 30, 150, 19, &(ob_eul[2]), -lim, lim, 1000, 0, "");
+	
+		uiDefButF(block, NUM, REDRAWVIEW3D, "SizeX:",		160, 70, 150, 19, &(ob->size[0]), -lim, lim, 100, 0, "");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "SizeY:",		160, 50, 150, 19, &(ob->size[1]), -lim, lim, 100, 0, "");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "SizeZ:",		160, 30, 150, 19, &(ob->size[2]), -lim, lim, 100, 0, "");
+	}
 }
 
 static void view3d_panel_settings(cntrl)	// VIEW3D_HANDLER_BACKGROUND

@@ -366,6 +366,7 @@ void 	BIF_InitThemeColors(void);
 void 	BIF_ThemeColor(struct ScrArea *sa, int colorid);
 void 	BIF_ThemeColor4(struct ScrArea *sa, int colorid);
 void 	BIF_ThemeColorShade(struct ScrArea *sa, int colorid, int offset);
+void 	BIF_ThemeColorBlend(struct ScrArea *sa, int colorid1, int colorid2, float fac);
 
 // get only one value, not scaled
 float 	BIF_GetThemeColorf(struct ScrArea *sa, int colorid);

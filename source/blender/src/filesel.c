@@ -887,41 +887,37 @@ static void draw_filescroll(SpaceFile *sfile)
 
 	if(scrollrct.ymin+10 >= scrollrct.ymax) return;
 	
-	cpack(0x808080);
+	BIF_ThemeColor(curarea, TH_BACK);
 	glRecti(scrollrct.xmin,  scrollrct.ymin,  scrollrct.xmax,  scrollrct.ymax);
 
 	uiEmboss(scrollrct.xmin, scrollrct.ymin, scrollrct.xmax, scrollrct.ymax, 1);
 
-	glColor3f(.715, .715, .715); 
+	BIF_ThemeColor(curarea, TH_HEADER);
 	glRecti(bar.xmin+2,  bar.ymin+2,  bar.xmax-2,  bar.ymax-2);
 
 	uiEmboss(bar.xmin+2, bar.ymin+2, bar.xmax-2, bar.ymax-2, filescrollselect);
 	
 }
 
-static void regelrect(unsigned int col, int x, int y)
+static void regelrect(int id, int x, int y)
 {
-	cpack(col);
+	if(id & ACTIVE) {
+		if(id & HILITE) BIF_ThemeColorShade(curarea, TH_HILITE, 20);
+		else BIF_ThemeColor(curarea, TH_HILITE);
+	}
+	else if(id & HILITE) BIF_ThemeColorShade(curarea, TH_BACK, 20);
+	else BIF_ThemeColor(curarea, TH_BACK);
+	
 	glRects(x-17,  y-3,  x+collumwidth-21,  y+11);
 
 }
 
 static void printregel(SpaceFile *sfile, struct direntry *files, int x, int y)
 {
-	unsigned int boxcol=0;
+	int boxcol=0;
 	char *s;
 
-	switch(files->flags & (HILITE + ACTIVE)) {
-	case HILITE+ACTIVE:
-		boxcol= (0xD0A0A0);
-		break;
-	case HILITE:
-		boxcol= (0xA0A0A0);
-		break;
-	case ACTIVE:
-		boxcol= (0xC0A0A0);
-		break;
-	}
+	boxcol= files->flags & (HILITE + ACTIVE);
 
 	if(boxcol) {
 		regelrect(boxcol, x, y);
@@ -956,8 +952,8 @@ static void printregel(SpaceFile *sfile, struct direntry *files, int x, int y)
 		glRects(x-14,  y,  x-8,  y+7);
 	}
 	
-	if(S_ISDIR(files->type)) cpack(0xFFFFFF);
-	else cpack(0x0);
+	if(S_ISDIR(files->type)) BIF_ThemeColor(curarea, TH_TEXT_HI);
+	else BIF_ThemeColor(curarea, TH_TEXT);
 
 	s = files->string;
 	if(s) {
@@ -1071,7 +1067,7 @@ static void set_active_file(SpaceFile *sfile, int act)
 		glScissor(curarea->winrct.xmin, curarea->winrct.ymin, curarea->winx-12, curarea->winy);
 
 		if( calc_filesel_regel(sfile, old, &x, &y) ) {
-			regelrect(0x888888, x, y);
+			regelrect(0, x, y);
 			printregel(sfile, sfile->filelist+old, x, y);
 		}
 		if( calc_filesel_regel(sfile, newi, &x, &y) ) {
@@ -1099,7 +1095,7 @@ static void draw_filetext(SpaceFile *sfile)
 
 
 	/* box */
-	cpack(0x888888);
+	BIF_ThemeColor(curarea, TH_BACK);
 	glRecti(textrct.xmin,  textrct.ymin,  textrct.xmax,  textrct.ymax);
 
 	/* collums */
@@ -1132,7 +1128,7 @@ static void draw_filetext(SpaceFile *sfile)
 	/* clear drawing errors, with text at the right hand side: */
 	uiEmboss(textrct.xmin, textrct.ymin, textrct.xmax, textrct.ymax, 1);
 	
-	glColor3f(.715, .715, .715);
+	BIF_ThemeColor(curarea, TH_HEADER);
 	glRecti(textrct.xmax+2,  textrct.ymin,  textrct.xmax+10,  textrct.ymax);
 }
 
@@ -1140,6 +1136,7 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 {
 	SpaceFile *sfile;
 	uiBlock *block;
+	float col[3];
 	int act, loadbutton;
 	short mval[2];
 	char name[20];
@@ -1147,7 +1144,8 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 
 	myortho2(-0.5, sa->winx-0.5, -0.5, sa->winy-0.5);
 
-	glClearColor(.715, .715, .715, 0.0); 	/* headercol */
+	BIF_GetThemeColor3fv(sa, TH_HEADER, col);	// basic undrawn color is border
+	glClearColor(col[0], col[1], col[2], 0.0); 
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	sfile= curarea->spacedata.first;	

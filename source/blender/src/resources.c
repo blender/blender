@@ -361,6 +361,9 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 			case SPACE_IPO:
 				ts= &btheme->tipo;
 				break;
+			case SPACE_FILE:
+				ts= &btheme->tfile;
+				break;
 			default:
 				ts= &btheme->tv3d;
 				break;
@@ -435,7 +438,7 @@ void BIF_InitThemeColors(void)
 		strcpy(btheme->name, "Default");
 	}
 	
-	/* buttons */
+	/* UI buttons (todo) */
 	
 	/* space view3d */
 	SETCOL(btheme->tv3d.back, 	115, 115, 115, 255);
@@ -447,7 +450,7 @@ void BIF_InitThemeColors(void)
 	SETCOL(btheme->tv3d.shade1,  160, 160, 160, 100);
 	SETCOL(btheme->tv3d.shade2,  0x7f, 0x70, 0x70, 100);
 
-	SETCOL(btheme->tv3d.grid, 	0x60, 0x60, 0x60, 255);
+	SETCOL(btheme->tv3d.grid, 	0x58, 0x58, 0x58, 255);
 	SETCOL(btheme->tv3d.wire, 	0x0, 0x0, 0x0, 255);
 	SETCOL(btheme->tv3d.select, 0xff, 0x88, 0xff, 255);
 	SETCOL(btheme->tv3d.active, 0xff, 0xbb, 0xff, 255);
@@ -460,13 +463,16 @@ void BIF_InitThemeColors(void)
 	SETCOL(btheme->tv3d.face, 	0, 50, 150, 30);
 	SETCOL(btheme->tv3d.face_select, 200, 100, 200, 60);
 
-	/* copy this to the others, to have something initialized */
+	/* space buttons */
+	/* to have something initialized */
 	btheme->tbuts= btheme->tv3d;
 
 	SETCOL(btheme->tbuts.back, 	180, 180, 180, 255);
 	SETCOL(btheme->tbuts.header, 195, 195, 195, 255);
 	SETCOL(btheme->tbuts.panel,  255, 255, 255, 40);
 
+	/* space ipo */
+	/* to have something initialized */
 	btheme->tipo= btheme->tv3d;
 
 	SETCOL(btheme->tipo.grid, 	94, 94, 94, 255);
@@ -479,7 +485,14 @@ void BIF_InitThemeColors(void)
 	SETCOL(btheme->tipo.vertex_select, 0xff, 0xff, 0x70, 255);
 	SETCOL(btheme->tipo.hilite, 0x60, 0xc0, 0x40, 255); // green cfra line
 
+	/* space file */
+	/* to have something initialized */
 	btheme->tfile= btheme->tv3d;
+	SETCOL(btheme->tfile.back, 	128, 128, 128, 255);
+	SETCOL(btheme->tfile.text, 	0, 0, 0, 255);
+	SETCOL(btheme->tfile.text_hi, 255, 255, 255, 255);
+	SETCOL(btheme->tfile.header, 182, 182, 182, 255);
+	SETCOL(btheme->tfile.hilite, 0xA0, 0xA0, 0xD0, 255); // selected files
 
 	btheme->tinfo= btheme->tv3d;
 	
@@ -511,9 +524,9 @@ char *BIF_ThemeColorsPup(int spacetype)
 		sprintf(str, "Text %%x%d|", TH_TEXT); strcat(cp, str);
 		sprintf(str, "Text Hilite %%x%d|", TH_TEXT_HI); strcat(cp, str);
 		sprintf(str, "Header %%x%d|", TH_HEADER); strcat(cp, str);
-		sprintf(str, "Panel %%x%d|", TH_PANEL); strcat(cp, str);
 		
 		if(spacetype==SPACE_VIEW3D) {
+			sprintf(str, "Panel %%x%d|", TH_PANEL); strcat(cp, str);
 			strcat(cp,"%l|");
 			sprintf(str, "Grid %%x%d|", TH_GRID); strcat(cp, str);
 			sprintf(str, "Wire %%x%d|", TH_WIRE); strcat(cp, str);
@@ -531,6 +544,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 			sprintf(str, "Face Selected %%x%d", TH_FACE_SELECT); strcat(cp, str);
 		}
 		else if(spacetype==SPACE_IPO) {
+			sprintf(str, "Panel %%x%d|", TH_PANEL); strcat(cp, str);
 			strcat(cp,"%l|");
 			sprintf(str, "Main Shade %%x%d|", TH_SHADE1); strcat(cp, str);
 			sprintf(str, "Alt Shade %%x%d|", TH_SHADE2); strcat(cp, str);
@@ -538,6 +552,9 @@ char *BIF_ThemeColorsPup(int spacetype)
 			sprintf(str, "Vertex Selected %%x%d|", TH_VERTEX_SELECT); strcat(cp, str);
 			sprintf(str, "Current frame %%x%d", TH_HILITE); strcat(cp, str);
 			// last item without '|'
+		}
+		else if(spacetype==SPACE_FILE) {
+			sprintf(str, "Selected file %%x%d", TH_HILITE); strcat(cp, str);
 		}
 	}
 	return cp;
@@ -593,6 +610,28 @@ void BIF_ThemeColorShade(ScrArea *sa, int colorid, int offset)
 		glColor3ub(255, 0, 255);
 	}
 }
+
+void BIF_ThemeColorBlend(ScrArea *sa, int colorid1, int colorid2, float fac)
+{
+	bTheme *btheme= U.themes.first;
+	int r, g, b;
+	char *cp1, *cp2;
+	
+	if(btheme) {
+		cp1= BIF_ThemeGetColorPtr(btheme, sa->spacetype, colorid1);
+		cp2= BIF_ThemeGetColorPtr(btheme, sa->spacetype, colorid2);
+		if(fac<0.0) fac=0.0; else if(fac>1.0) fac= 1.0;
+		r= floor((1.0-fac)*cp1[0] + fac*cp2[0]);
+		g= floor((1.0-fac)*cp1[1] + fac*cp2[1]);
+		b= floor((1.0-fac)*cp1[2] + fac*cp2[2]);
+		
+		glColor3ub(r, g, b);
+	}
+	else {	// debug mostly, you never know
+		glColor3ub(255, 0, 255);
+	}
+}
+
 
 // get individual values, not scaled
 float BIF_GetThemeColorf(ScrArea *sa, int colorid)

@@ -934,7 +934,7 @@ static uiBlock *view3d_edit_objectmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_view3d_edit_objectmenu, NULL);
 	uiBlockSetCol(block, MENUCOL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Object Attributes...|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 15, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Object Transform|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 15, "");
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	//uiDefIconTextBlockBut(block, 0, NULL, ICON_RIGHTARROW_THIN, "Move", 0, yco-=20, 120, 19, "");
@@ -1223,7 +1223,7 @@ static void do_view3d_edit_meshmenu(void *arg, int event)
 		remake_editMesh();
 		break;
 	case 1: /* transform properties */
-		blenderqread(NKEY, 1);
+		add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, 0);
 		break;
 	case 2: /* Extrude */
 		extrude_mesh();
@@ -1291,7 +1291,7 @@ static uiBlock *view3d_edit_meshmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Transform Properties...|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties...|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Snap...|Shift S",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
