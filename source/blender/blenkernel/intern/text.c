@@ -1015,6 +1015,7 @@ void txt_cut_sel (Text *text)
 	txt_copy_sel(text);
 	
 	txt_delete_sel(text);
+	txt_make_dirty(text);
 }
 
 char *txt_sel_to_buf (Text *text)
