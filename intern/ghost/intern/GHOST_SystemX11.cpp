@@ -213,7 +213,7 @@ createWindow(
 	if (!m_display) return 0;
 	
 	window = new GHOST_WindowX11 (
-		this,m_display,title, left, top, width, height, state, type
+		this,m_display,title, left, top, width, height, state, type, stereoVisual
 	);
 
 	if (window) {
