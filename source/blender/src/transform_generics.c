@@ -425,6 +425,10 @@ void apply_grid2(float *val, int max_index, float factor, float factor2)
 	apply_grid3(val, max_index, fac1, fac2, fac3);
 }
 
+void snapGrid(TransInfo *t, float *val) {
+	apply_grid3(val, t->num.idx_max, t->snap[0], t->snap[1], t->snap[2]);
+}
+
 void applyTransObjects(TransInfo *t)
 {
 	TransData *td;

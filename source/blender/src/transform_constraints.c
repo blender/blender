@@ -114,6 +114,27 @@ void recalcData();
 /* ************************** CONSTRAINTS ************************* */
 void getConstraintMatrix(TransInfo *t);
 
+void postConstraintChecks(TransInfo *t, float vec[3]) {
+	Mat3MulVecfl(t->con.imtx, vec);
+
+	snapGrid(t, vec);
+
+	if (t->num.flags & NULLONE) {
+		if (!(t->con.mode & CON_AXIS0))
+			vec[0] = 1.0f;
+
+		if (!(t->con.mode & CON_AXIS1))
+			vec[1] = 1.0f;
+
+		if (!(t->con.mode & CON_AXIS2))
+			vec[2] = 1.0f;
+	}
+
+	applyNumInput(&t->num, vec);
+
+	Mat3MulVecfl(t->con.mtx, vec);
+}
+
 void getViewVector(TransInfo *t, float coord[3], float vec[3]) {
 	if (G.vd->persp)
 	{
@@ -196,7 +217,7 @@ void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], float out[
 {
 	VECCOPY(out, in);
 	if (!td && t->con.mode & CON_APPLY) {
-		Mat3MulVecfl(t->con.imtx, out);
+		Mat3MulVecfl(t->con.pmtx, out);
 		if (out[0] != 0.0f || out[1] != 0.0f || out[2] != 0.0f) {
 			if (getConstraintSpaceDimension(t) == 2) {
 				planeProjection(t, in, out);
@@ -216,16 +237,34 @@ void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], float out[
 				axisProjection(t, c, in, out);
 			}
 		}
-		
-		/* THIS IS NO GOOD, only works with global axis constraint */
-		if (t->num.flags & NULLONE && !(t->con.mode & CON_AXIS0))
-			out[0] = 1.0f;
 
-		if (t->num.flags & NULLONE && !(t->con.mode & CON_AXIS1))
-			out[1] = 1.0f;
+		postConstraintChecks(t, out);
+	}
+}
 
-		if (t->num.flags & NULLONE && !(t->con.mode & CON_AXIS2))
-			out[2] = 1.0f;
+/*
+ * Generic callback for constant spacial constraints applied to resize motion
+ * 
+ *
+ */
+
+void applyAxisConstraintSize(TransInfo *t, TransData *td, float smat[3][3])
+{
+	if (!td && t->con.mode & CON_APPLY) {
+		float tmat[3][3];
+
+		if (!(t->con.mode & CON_AXIS0)) {
+			smat[0][0] = 1.0f;
+		}
+		if (!(t->con.mode & CON_AXIS1)) {
+			smat[1][1] = 1.0f;
+		}
+		if (!(t->con.mode & CON_AXIS2)) {
+			smat[2][2] = 1.0f;
+		}
+
+		Mat3MulMat3(tmat, smat, t->con.imtx);
+		Mat3MulMat3(smat, t->con.mtx, tmat);
 	}
 }
 
@@ -289,6 +328,13 @@ int getConstraintSpaceDimension(TransInfo *t)
 		n++;
 
 	return n;
+/*
+  Someone willing to do it criptically could do the following instead:
+
+  return t->con & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
+	
+  Based on the assumptions that the axis flags are one after the other and start at 1
+*/
 }
 
 void BIF_setSingleAxisConstraint(float vec[3]) {
@@ -313,6 +359,7 @@ void BIF_setSingleAxisConstraint(float vec[3]) {
 	}
 
 	t->con.applyVec = applyAxisConstraintVec;
+	t->con.applySize = applyAxisConstraintSize;
 	t->con.applyRot = applyAxisConstraintRot;
 	t->redraw = 1;
 }
@@ -328,6 +375,7 @@ void setConstraint(TransInfo *t, float space[3][3], int mode) {
 	}
 
 	t->con.applyVec = applyAxisConstraintVec;
+	t->con.applySize = applyAxisConstraintSize;
 	t->con.applyRot = applyAxisConstraintRot;
 	t->redraw = 1;
 }
@@ -381,33 +429,44 @@ void BIF_drawPropCircle()
 	}
 }
 
+void startConstraint(TransInfo *t) {
+	t->con.mode |= CON_APPLY;
+	t->num.idx_max = min(getConstraintSpaceDimension(t) - 1, t->idx_max);
+}
+
+void stopConstraint(TransInfo *t) {
+	t->con.mode &= ~CON_APPLY;
+	t->num.idx_max = t->idx_max;
+}
+
 void getConstraintMatrix(TransInfo *t)
 {
-	Mat3Inv(t->con.imtx, t->con.mtx);
+	Mat3Inv(t->con.pmtx, t->con.mtx);
+	Mat3CpyMat3(t->con.imtx, t->con.pmtx);
 
 	if (!(t->con.mode & CON_AXIS0)) {
-		t->con.imtx[0][0]		=
-			t->con.imtx[0][1]	=
-			t->con.imtx[0][2]	= 0.0f;
+		t->con.pmtx[0][0]		=
+			t->con.pmtx[0][1]	=
+			t->con.pmtx[0][2]	= 0.0f;
 	}
 
 	if (!(t->con.mode & CON_AXIS1)) {
-		t->con.imtx[1][0]		=
-			t->con.imtx[1][1]	=
-			t->con.imtx[1][2]	= 0.0f;
+		t->con.pmtx[1][0]		=
+			t->con.pmtx[1][1]	=
+			t->con.pmtx[1][2]	= 0.0f;
 	}
 
 	if (!(t->con.mode & CON_AXIS2)) {
-		t->con.imtx[2][0]		=
-			t->con.imtx[2][1]	=
-			t->con.imtx[2][2]	= 0.0f;
+		t->con.pmtx[2][0]		=
+			t->con.pmtx[2][1]	=
+			t->con.pmtx[2][2]	= 0.0f;
 	}
 }
 
 void initSelectConstraint(TransInfo *t)
 {
 	Mat3One(t->con.mtx);
-	Mat3One(t->con.imtx);
+	Mat3One(t->con.pmtx);
 	t->con.mode |= CON_APPLY;
 	t->con.mode |= CON_SELECT;
 	VECCOPY(t->con.center, t->center);
@@ -416,6 +475,7 @@ void initSelectConstraint(TransInfo *t)
 	}
 	setNearestAxis(t);
 	t->con.applyVec = applyAxisConstraintVec;
+	t->con.applySize = applyAxisConstraintSize;
 	t->con.applyRot = applyAxisConstraintRot;
 }
 
@@ -438,6 +498,7 @@ void postSelectConstraint(TransInfo *t)
 	VECCOPY(t->con.center, t->center);
 
 	getConstraintMatrix(t);
+	startConstraint(t);
 	t->redraw = 1;
 }
 

@@ -1089,7 +1089,7 @@ static void createTransObject(void)
 					for(ik= elems.first; ik; ik= ik->next) {
 						
 						/* weak... this doesn't correct for floating values, giving small errors */
-						CFRA= ik->val/G.scene->r.framelen;
+						CFRA= (short)(ik->val/G.scene->r.framelen);
 						
 						do_ob_ipo(ob);
 						ObjectToTransData(td, ob);	// does where_is_object()
@@ -1107,7 +1107,7 @@ static void createTransObject(void)
 					poplast(ob->loc);
 					set_no_parent_ipo(0);
 					
-					CFRA= cfraont;
+					CFRA= (short)cfraont;
 					ob->ipoflag= ipoflag;
 				}
 				else {
@@ -1176,6 +1176,12 @@ void Transform(int mode)
 	areawinset(curarea->win);
 
 	Mat3One(mati);
+	/* FOR TESTS
+	{
+		float axis[3] = {0.0f, 0.0f, 1.0f};
+		VecRotToMat3(axis, M_PI / 3, mati);
+	}
+	*/
 
 	/* stupid PET initialisation code */
 	/* START */
@@ -1415,7 +1421,11 @@ int Wrap(TransInfo *t, short mval[2])
 
 void initShear(TransInfo *t) 
 {
+	t->idx_max = 0;
 	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = G.vd->grid * 0.1f;
+	t->snap[2] = t->snap[1] * 0.1f;
 	t->transform = Shear;
 	t->fac = (float)(t->center2d[0] - t->imval[0]);
 }
@@ -1434,7 +1444,7 @@ int Shear(TransInfo *t, short mval[2])
 
 	value = -0.005f * ((float)(t->center2d[0] - mval[0]) - t->fac);
 
-	apply_grid1(&value, t->num.idx_max, 0.1f);
+	snapGrid(t, &value);
 
 	applyNumInput(&t->num, &value);
 
@@ -1501,7 +1511,11 @@ void initResize(TransInfo *t)
 			(Trans.center2d[0] - Trans.imval[0])*(Trans.center2d[0] - Trans.imval[0])
 		) );
 
+	t->idx_max = 2;
 	t->num.idx_max = 2;
+	t->snap[0] = 0.0f;
+	t->snap[1] = G.vd->grid * 0.1f;
+	t->snap[2] = t->snap[1] * 0.1f;
 	t->transform = Resize;
 }
 
@@ -1509,7 +1523,7 @@ int Resize(TransInfo *t, short mval[2])
 {
 	TransData *td = t->data;
 	float vec[3];
-	float size[3], tsize[3], mat[3][3], tmat[3][3];
+	float size[3], mat[3][3], tmat[3][3];
 	float ratio;
 	int i;
 	char str[50];
@@ -1523,14 +1537,15 @@ int Resize(TransInfo *t, short mval[2])
 
 	size[0] = size[1] = size[2] = ratio;
 
-	apply_grid1(size, t->num.idx_max, 0.1f);
-
-	if (t->con.applyVec) {
-		t->con.applyVec(t, NULL, size, tsize);
-		VECCOPY(size, tsize);
-	}
+	snapGrid(t, size);
 
 	applyNumInput(&t->num, size);
+
+	SizeToMat3(size, mat);
+
+	if (t->con.applySize) {
+		t->con.applySize(t, NULL, mat);
+	}
 
 	/* header print for NumInput */
 	if (hasNumInput(&t->num)) {
@@ -1545,7 +1560,6 @@ int Resize(TransInfo *t, short mval[2])
 		sprintf(str, "Size X: %.3f Y: %.3f Z: %.3f %s", size[0], size[1], size[2], t->proptext);
 	}
 	
-	SizeToMat3(size, mat);
 	for(i = 0 ; i < t->total; i++, td++) {
 		float smat[3][3];
 		if (td->flag & TD_NOACTION)
@@ -1641,7 +1655,11 @@ void initToSphere(TransInfo *t)
 			(Trans.center2d[0] - Trans.imval[0])*(Trans.center2d[0] - Trans.imval[0])
 		) );
 
+	t->idx_max = 0;
 	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = G.vd->grid * 0.1f;
+	t->snap[2] = t->snap[1] * 0.1f;
 	t->transform = ToSphere;
 }
 
@@ -1662,7 +1680,7 @@ int ToSphere(TransInfo *t, short mval[2])
 			(t->center2d[0] - mval[0])*(t->center2d[0] - mval[0])
 		) ) / t->fac;
 
-	apply_grid1(&ratio, t->num.idx_max, 0.1f);
+	snapGrid(t, &ratio);
 
 	applyNumInput(&t->num, &ratio);
 
@@ -1713,7 +1731,11 @@ int ToSphere(TransInfo *t, short mval[2])
 
 void initRotation(TransInfo *t) 
 {
+	t->idx_max = 0;
 	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = G.vd->grid * (float)((5.0/180)*M_PI);
+	t->snap[2] = t->snap[1] * 0.2f;
 	t->fac = 0;
 	t->transform = Rotation;
 }
@@ -1760,7 +1782,7 @@ int Rotation(TransInfo *t, short mval[2])
 
 	final = t->fac;
 
-	apply_grid2(&final, t->num.idx_max, (float)((5.0/180)*M_PI), 0.2f);
+	snapGrid(t, &final);
 
 	t->imval[0] = mval[0];
 	t->imval[1] = mval[1];
@@ -1854,7 +1876,7 @@ int Rotation(TransInfo *t, short mval[2])
 						VecSubf(rot, eul, td->ext->drot);
 					}
 					
-					VecMulf(rot, 9.0/M_PI_2);
+					VecMulf(rot, (float)(9.0/M_PI_2));
 					VecSubf(rot, rot, tdi->oldrot);
 					
 					add_tdi_poin(tdi->rotx, tdi->oldrot, rot[0]);
@@ -1895,8 +1917,11 @@ int Rotation(TransInfo *t, short mval[2])
 	
 void initTranslation(TransInfo *t) 
 {
-	
+	t->idx_max = 2;
 	t->num.idx_max = 2;
+	t->snap[0] = 0.0f;
+	t->snap[1] = G.vd->grid * 1.0f;
+	t->snap[2] = t->snap[1] * 0.1f;
 	t->transform = Translation;
 	
 	/* initgrabz() defines a factor for perspective depth correction, used in window_to_3d() */
@@ -1923,10 +1948,10 @@ int Translation(TransInfo *t, short mval[2])
 		t->con.applyVec(t, NULL, vec, tvec);
 		VECCOPY(vec, tvec);
 	}
-
-	apply_grid1(vec, t->num.idx_max, 1.0f);
-
-	applyNumInput(&t->num, vec);
+	else {
+		snapGrid(t, vec);
+		applyNumInput(&t->num, vec);
+	}
 
 	/* header print for NumInput */
 	if (hasNumInput(&t->num)) {

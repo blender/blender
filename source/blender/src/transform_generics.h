@@ -58,6 +58,8 @@ void calculateCenter(TransInfo *t);
 
 void calculatePropRatio(TransInfo *t);
 
+void snapGrid(TransInfo *t, float *val);
+
 TransInfo * BIF_GetTransInfo();
 
 #endif

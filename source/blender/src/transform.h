@@ -45,12 +45,15 @@ typedef struct TransCon {
     char  text[50];      /* Description of the Constraint for header_print                            */
     float mtx[3][3];     /* Matrix of the Constraint space                                            */
     float imtx[3][3];    /* Inverse Matrix of the Constraint space                                    */
+    float pmtx[3][3];    /* Projection Constraint Matrix (same as imtx with some axis == 0)           */
     float center[3];     /* transformation centre to define where to draw the view widget             
                             ALWAYS in global space. Unlike the transformation center                  */
     int   mode;          /* Mode flags of the Constraint                                              */
     void  (*applyVec)(struct TransInfo *, struct TransData *, float *, float *);
                          /* Apply function pointer for linear vectorial transformation                */
                          /* The last two parameters are pointers to the in/out vectors                */
+    void  (*applySize)(struct TransInfo *, struct TransData *, float [3][3]);
+                         /* Apply function pointer for rotation transformation (prototype will change */
     void  (*applyRot)(struct TransInfo *, struct TransData *, float [3]);
                          /* Apply function pointer for rotation transformation (prototype will change */
 } TransCon;
@@ -107,6 +110,8 @@ typedef struct TransInfo {
     float       center[3];      /* center of transformation             */
     short       center2d[2];    /* center in screen coordinates         */
     short       imval[2];       /* initial mouse position               */
+	short       idx_max;
+	float		snap[3];		/* Snapping Gears						*/
     TransData  *data;           /* transformed data (array)             */
     TransCon    con;            /* transformed constraint               */
     NumInput    num;            /* numerical input                      */
