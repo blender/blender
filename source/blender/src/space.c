@@ -1605,7 +1605,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		sprintf(curfont, "Interface Font: ");
 		strcat(curfont,U.fontname);
 
-		uiDefButS(block, TOG|BIT|5, B_DOLANGUIFONT, "International",
+		uiDefButS(block, TOG|BIT|5, B_DOLANGUIFONT, "International Fonts",
 			xpos,y2,medprefbut,buth,
 			&(U.transopts), 0, 0, 0, 0, "Activate international interface");
 

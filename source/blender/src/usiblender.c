@@ -218,6 +218,11 @@ int BIF_read_homefile(void)
 			U.vrmlflag= USERDEF_VRML_LAYERS;
 		}
 
+			/* startup 2.26 with aa fonts ! */
+		if (G.main->versionfile <= 225) {
+			U.transopts |= TR_ALL;
+		}
+
 		space_set_commmandline_options();
 
 		reset_autosave();
