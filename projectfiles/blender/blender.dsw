@@ -1,5 +1,5 @@
 Microsoft Developer Studio Workspace File, Format Version 6.00
-# WARNUNG: DIESE ARBEITSBEREICHSDATEI DARF NICHT BEARBEITET ODER GELÖSCHT WERDEN!
+# WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
 
 ###############################################################################
 
@@ -786,9 +786,6 @@ Package=<4>
     Project_Dep_Name BLO_writestreamglue
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name BPY_python
-    End Project Dependency
-    Begin Project Dependency
     Project_Dep_Name BRA_radiosity
     End Project Dependency
     Begin Project Dependency
@@ -867,19 +864,34 @@ Package=<4>
     Project_Dep_Name PHY_Physics
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name BPY_frozen
-    End Project Dependency
-    Begin Project Dependency
     Project_Dep_Name PHY_Ode
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name FTF_ftfont
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BPY_frozen
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BPY_python
     End Project Dependency
 }}}
 
 ###############################################################################
 
 Project: "blenpluginapi"=".\blenpluginapi\blenpluginapi\blenpluginapi.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "exppython"=".\python\exppython.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
