@@ -1331,15 +1331,27 @@ static void editing_panel_camera_type(Object *ob, Camera *cam)
 static void editing_panel_camera_yafraydof(Object *ob, Camera *cam)
 {
 	uiBlock *block;
+	char *mst1, *mst2;
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_camera_yafraydof", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Camera", "Editing");
 	if(uiNewPanel(curarea, block, "Yafray DoF", "Editing", 320, 0, 318, 204)==0) return;
 
-	uiDefButF(block, NUM, REDRAWVIEW3D, "DoFDist:", 470, 147, 160, 20, &cam->YF_dofdist, 0.0, 5000.0, 100, 0, "Sets distance to point of focus (use camera 'ShowLimits' to make visible in 3Dview)");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "Aperture:", 470, 125, 160, 20, &cam->YF_aperture, 0.0, 2.0, 0, 0, "Sets lens aperture, the larger, the more blur (use small values, 0 is no DoF)");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "DoFDist:", 10, 147, 180, 20, &cam->YF_dofdist, 0.0, 5000.0, 50, 0, "Sets distance to point of focus (use camera 'ShowLimits' to make visible in 3Dview)");
+	uiDefButF(block, NUM, B_DIFF, "Aperture:", 10, 125, 180, 20, &cam->YF_aperture, 0.0, 2.0, 1, 0, "Sets lens aperture, the larger, the more blur (use small values, 0 is no DoF)");
 
-	uiDefButS(block, TOG|BIT|2, 0, "Random sampling", 470, 90, 160, 20, &cam->flag, 0, 0, 0, 0, "Use noisy random Lens sampling instead of QMC");
+	uiDefButS(block, TOG|BIT|2, B_DIFF, "Random sampling", 10, 90, 180, 20, &cam->flag, 0, 0, 0, 0, "Use noisy random Lens sampling instead of QMC");
+
+	uiDefBut(block, LABEL, 0, "Bokeh", 10, 60, 180, 19, 0, 0.0, 0.0, 0, 0, "");
+	mst1 = "Bokeh Type%t|Disk1%x0|Disk2%x1|Triangle%x2|Square%x3|Pentagon%x4|Hexagon%x5|Ring%x6";
+	uiDefButS(block, MENU, B_REDR, mst1, 10, 40, 89, 20, &cam->YF_bkhtype, 0.0, 0.0, 0, 0, "Sets Bokeh type");
+	
+	if ((cam->YF_bkhtype!=0) && (cam->YF_bkhtype!=6)) {
+		mst2 = "Bokeh Bias%t|Uniform%x0|Center%x1|Edge%x2";
+		uiDefButS(block, MENU, B_REDR, mst2, 100, 40, 90, 20, &cam->YF_bkhbias, 0.0, 0.0, 0, 0, "Sets Bokeh bias");
+		if (cam->YF_bkhtype>1)
+			uiDefButF(block, NUM, B_DIFF, "Rotation:", 10, 15, 180, 20, &cam->YF_bkhrot, 0.0, 360.0, 100, 0, "Shape rotation amount in degrees");
+	}
 
 }
 

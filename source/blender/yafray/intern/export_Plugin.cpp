@@ -756,6 +756,8 @@ void yafrayPluginRender_t::writeMaterialsAndModulators()
 			map<string, MTex*>::const_iterator mtexL = used_textures.find(string(tex->id.name));
 			if (mtexL!=used_textures.end()) 
 			{
+				params.clear();	//!!!
+				lparams.clear();
 				char temp[32];
 				sprintf(temp, "_map%d", m);
 				params["type"] = yafray::parameter_t("blendermapper");
@@ -909,7 +911,7 @@ void yafrayPluginRender_t::genUVcoords(vector<yafray::GFLOAT> &uvcoords, VlakRen
 {
 	if (uvc) 
 	{
-		// use correct uv coords for this triangle
+		// tri uv split indices
 		int ui1=0, ui2=1, ui3=2;
 		if (vlr->flag & R_DIVIDE_24) {
 			ui3++;
@@ -933,24 +935,33 @@ void yafrayPluginRender_t::genUVcoords(vector<yafray::GFLOAT> &uvcoords, VlakRen
 	}
 }
 
-void yafrayPluginRender_t::genVcol(vector<yafray::CFLOAT> &vcol,VlakRen *vlr,
-																		int p1,int p2,int p3)
+void yafrayPluginRender_t::genVcol(vector<yafray::CFLOAT> &vcol, VlakRen *vlr, bool comple)
 {
 	if (vlr->vcol)
 	{
-		// vertex colors
-		float vr, vg, vb;
-		vr = ((vlr->vcol[p1] >> 24) & 255)/255.0;
-		vg = ((vlr->vcol[p1] >> 16) & 255)/255.0;
-		vb = ((vlr->vcol[p1] >> 8) & 255)/255.0;
+		// tri vcol split indices
+		int ui1=0, ui2=1, ui3=2;
+		if (vlr->flag & R_DIVIDE_24) {
+			ui3++;
+			if (vlr->flag & R_FACE_SPLIT) { ui1++;  ui2++; }
+		}
+		else if (vlr->flag & R_FACE_SPLIT) { ui2++;  ui3++; }
+		if (comple) {
+			ui1 = (ui1+2) & 3;
+			ui2 = (ui2+2) & 3;
+			ui3 = (ui3+2) & 3;
+		}
+		float vr = ((vlr->vcol[ui1] >> 24) & 255)/255.0;
+		float vg = ((vlr->vcol[ui1] >> 16) & 255)/255.0;
+		float vb = ((vlr->vcol[ui1] >> 8) & 255)/255.0;
 		vcol.push_back(vr);  vcol.push_back(vg);  vcol.push_back(vb);
-		vr = ((vlr->vcol[p2] >> 24) & 255)/255.0;
-		vg = ((vlr->vcol[p2] >> 16) & 255)/255.0;
-		vb = ((vlr->vcol[p2] >> 8) & 255)/255.0;
+		vr = ((vlr->vcol[ui2] >> 24) & 255)/255.0;
+		vg = ((vlr->vcol[ui2] >> 16) & 255)/255.0;
+		vb = ((vlr->vcol[ui2] >> 8) & 255)/255.0;
 		vcol.push_back(vr);  vcol.push_back(vg);  vcol.push_back(vb);
-		vr = ((vlr->vcol[p3] >> 24) & 255)/255.0;
-		vg = ((vlr->vcol[p3] >> 16) & 255)/255.0;
-		vb = ((vlr->vcol[p3] >> 8) & 255)/255.0;
+		vr = ((vlr->vcol[ui3] >> 24) & 255)/255.0;
+		vg = ((vlr->vcol[ui3] >> 16) & 255)/255.0;
+		vb = ((vlr->vcol[ui3] >> 8) & 255)/255.0;
 		vcol.push_back(vr);  vcol.push_back(vg);  vcol.push_back(vb);
 	}
 	else
@@ -1003,10 +1014,8 @@ void yafrayPluginRender_t::genFace(vector<int> &faces,vector<string> &shaders,ve
 
 	faces.push_back(idx1);  faces.push_back(idx2);  faces.push_back(idx3);
 
-	if(has_uv) genUVcoords(uvcoords,vlr,uvc);
-
-	// since Blender seems to need vcols when uvs are used, for yafray only export when the material actually uses vcols
-	if (EXPORT_VCOL) genVcol(vcol, vlr, 0, 1, 2);
+	if(has_uv) genUVcoords(uvcoords, vlr, uvc);
+	if (EXPORT_VCOL) genVcol(vcol, vlr);
 }
 
 void yafrayPluginRender_t::genCompleFace(vector<int> &faces,/*vector<string> &shaders,*/vector<int> &faceshader,
@@ -1030,7 +1039,7 @@ void yafrayPluginRender_t::genCompleFace(vector<int> &faces,/*vector<string> &sh
 	faces.push_back(idx1);  faces.push_back(idx2);  faces.push_back(idx3);
 
 	if (has_uv) genUVcoords(uvcoords, vlr, uvc, true);
-	if (EXPORT_VCOL) genVcol(vcol, vlr, 2, 3, 0);
+	if (EXPORT_VCOL) genVcol(vcol, vlr, true);
 }
 
 void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vidx,
@@ -1420,7 +1429,6 @@ void yafrayPluginRender_t::writeLamps()
 	}
 }
 
-
 // write main camera
 void yafrayPluginRender_t::writeCamera()
 {
@@ -1432,10 +1440,11 @@ void yafrayPluginRender_t::writeCamera()
 		params["type"] = yafray::parameter_t("perspective");
 	params["resx"]=yafray::parameter_t(R.r.xsch);
 	params["resy"]=yafray::parameter_t(R.r.ysch);
-	float aspect = 1;
-	if (R.r.xsch < R.r.ysch) aspect = float(R.r.xsch)/float(R.r.ysch);	
 
-	params["focal"]=yafray::parameter_t(mainCamLens/(aspect*32.0));
+	float f_aspect = 1;
+	if ((R.r.xsch*R.r.xasp)<=(R.r.ysch*R.r.yasp)) f_aspect = float(R.r.xsch*R.r.xasp)/float(R.r.ysch*R.r.yasp);
+	params["focal"] = yafray::parameter_t(mainCamLens/(f_aspect*32.f));
+	params["aspect_ratio"] = yafray::parameter_t(R.ycor);
 
 	// dof params, only valid for real camera
 	if (maincam_obj->type==OB_CAMERA) {
@@ -1446,6 +1455,28 @@ void yafrayPluginRender_t::writeCamera()
 			params["use_qmc"] = yafray::parameter_t("off");
 		else
 			params["use_qmc"] = yafray::parameter_t("on");
+		// bokeh params
+		string st = "disk1";
+		if (cam->YF_bkhtype==1)
+			st = "disk2";
+		else if (cam->YF_bkhtype==2)
+			st = "triangle";
+		else if (cam->YF_bkhtype==3)
+			st = "square";
+		else if (cam->YF_bkhtype==4)
+			st = "pentagon";
+		else if (cam->YF_bkhtype==5)
+			st = "hexagon";
+		else if (cam->YF_bkhtype==6)
+			st = "ring";
+		params["bokeh_type"] = yafray::parameter_t(st);
+		st = "uniform";
+		if (cam->YF_bkhbias==1)
+			st = "center";
+		else if (cam->YF_bkhbias==2)
+			st = "edge";
+		params["bokeh_bias"] = yafray::parameter_t(st);
+		params["bokeh_rotation"] = yafray::parameter_t(cam->YF_bkhrot);
 	}
 
 	params["from"]=yafray::parameter_t(

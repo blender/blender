@@ -52,6 +52,8 @@ typedef struct Camera {
 	
 	/* yafray: dof params */
 	float YF_dofdist, YF_aperture;
+	short YF_bkhtype, YF_bkhbias;
+	float YF_bkhrot;
 	
 	struct Ipo *ipo;
 	

@@ -1107,15 +1107,16 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		ostr.str("");
 		ostr << "\t\t\t<f a=\"" << idx1 << "\" b=\"" << idx2 << "\" c=\"" << idx3 << "\"";
 
+		// triangle uv and vcol indices
+		int ui1=0, ui2=1, ui3=2;
+		if (vlr->flag & R_DIVIDE_24) {
+			ui3++;
+			if (vlr->flag & R_FACE_SPLIT) { ui1++;  ui2++; }
+		}
+		else if (vlr->flag & R_FACE_SPLIT) { ui2++;  ui3++; }
+
 		TFace* uvc = vlr->tface;	// possible uvcoords (v upside down)
 		if (uvc) {
-			// use correct uv coords for this triangle
-			int ui1=0, ui2=1, ui3=2;
-			if (vlr->flag & R_DIVIDE_24) {
-				ui3++;
-				if (vlr->flag & R_FACE_SPLIT) { ui1++;  ui2++; }
-			}
-			else if (vlr->flag & R_FACE_SPLIT) { ui2++;  ui3++; }
 			ostr << " u_a=\"" << uvc->uv[ui1][0] << "\" v_a=\"" << 1-uvc->uv[ui1][1] << "\""
 					 << " u_b=\"" << uvc->uv[ui2][0] << "\" v_b=\"" << 1-uvc->uv[ui2][1] << "\""
 					 << " u_c=\"" << uvc->uv[ui3][0] << "\" v_c=\"" << 1-uvc->uv[ui3][1] << "\"";
@@ -1125,17 +1126,17 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		if ((EXPORT_VCOL) && (vlr->vcol)) {
 			// vertex colors
 			float vr, vg, vb;
-			vr = ((vlr->vcol[0] >> 24) & 255)/255.0;
-			vg = ((vlr->vcol[0] >> 16) & 255)/255.0;
-			vb = ((vlr->vcol[0] >> 8) & 255)/255.0;
+			vr = ((vlr->vcol[ui1] >> 24) & 255)/255.0;
+			vg = ((vlr->vcol[ui1] >> 16) & 255)/255.0;
+			vb = ((vlr->vcol[ui1] >> 8) & 255)/255.0;
 			ostr << " vcol_a_r=\"" << vr << "\" vcol_a_g=\"" << vg << "\" vcol_a_b=\"" << vb << "\"";
-			vr = ((vlr->vcol[1] >> 24) & 255)/255.0;
-			vg = ((vlr->vcol[1] >> 16) & 255)/255.0;
-			vb = ((vlr->vcol[1] >> 8) & 255)/255.0;
+			vr = ((vlr->vcol[ui2] >> 24) & 255)/255.0;
+			vg = ((vlr->vcol[ui2] >> 16) & 255)/255.0;
+			vb = ((vlr->vcol[ui2] >> 8) & 255)/255.0;
 			ostr << " vcol_b_r=\"" << vr << "\" vcol_b_g=\"" << vg << "\" vcol_b_b=\"" << vb << "\"";
-			vr = ((vlr->vcol[2] >> 24) & 255)/255.0;
-			vg = ((vlr->vcol[2] >> 16) & 255)/255.0;
-			vb = ((vlr->vcol[2] >> 8) & 255)/255.0;
+			vr = ((vlr->vcol[ui3] >> 24) & 255)/255.0;
+			vg = ((vlr->vcol[ui3] >> 16) & 255)/255.0;
+			vb = ((vlr->vcol[ui3] >> 8) & 255)/255.0;
 			ostr << " vcol_c_r=\"" << vr << "\" vcol_c_g=\"" << vg << "\" vcol_c_b=\"" << vb << "\"";
 		}
 		ostr << " shader_name=\"" << fmatname << "\" />\n";
@@ -1151,25 +1152,30 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 
 			ostr << "\t\t\t<f a=\"" << idx1 << "\" b=\"" << idx2 << "\" c=\"" << idx3 << "\"";
 
+			// increment uv & vcol indices
+			ui1 = (ui1+2) & 3;
+			ui2 = (ui2+2) & 3;
+			ui3 = (ui3+2) & 3;
+
 			if (uvc) {
-				ostr << " u_a=\"" << uvc->uv[2][0] << "\" v_a=\"" << 1-uvc->uv[2][1] << "\""
-						 << " u_b=\"" << uvc->uv[3][0] << "\" v_b=\"" << 1-uvc->uv[3][1] << "\""
-						 << " u_c=\"" << uvc->uv[0][0] << "\" v_c=\"" << 1-uvc->uv[0][1] << "\"";
+				ostr << " u_a=\"" << uvc->uv[ui1][0] << "\" v_a=\"" << 1-uvc->uv[ui1][1] << "\""
+						 << " u_b=\"" << uvc->uv[ui2][0] << "\" v_b=\"" << 1-uvc->uv[ui2][1] << "\""
+						 << " u_c=\"" << uvc->uv[ui3][0] << "\" v_c=\"" << 1-uvc->uv[ui3][1] << "\"";
 			}
 			if ((EXPORT_VCOL) && (vlr->vcol)) {
 				// vertex colors
 				float vr, vg, vb;
-				vr = ((vlr->vcol[2] >> 24) & 255)/255.0;
-				vg = ((vlr->vcol[2] >> 16) & 255)/255.0;
-				vb = ((vlr->vcol[2] >> 8) & 255)/255.0;
+				vr = ((vlr->vcol[ui1] >> 24) & 255)/255.0;
+				vg = ((vlr->vcol[ui1] >> 16) & 255)/255.0;
+				vb = ((vlr->vcol[ui1] >> 8) & 255)/255.0;
 				ostr << " vcol_a_r=\"" << vr << "\" vcol_a_g=\"" << vg << "\" vcol_a_b=\"" << vb << "\"";
-				vr = ((vlr->vcol[3] >> 24) & 255)/255.0;
-				vg = ((vlr->vcol[3] >> 16) & 255)/255.0;
-				vb = ((vlr->vcol[3] >> 8) & 255)/255.0;
+				vr = ((vlr->vcol[ui2] >> 24) & 255)/255.0;
+				vg = ((vlr->vcol[ui2] >> 16) & 255)/255.0;
+				vb = ((vlr->vcol[ui2] >> 8) & 255)/255.0;
 				ostr << " vcol_b_r=\"" << vr << "\" vcol_b_g=\"" << vg << "\" vcol_b_b=\"" << vb << "\"";
-				vr = ((vlr->vcol[0] >> 24) & 255)/255.0;
-				vg = ((vlr->vcol[0] >> 16) & 255)/255.0;
-				vb = ((vlr->vcol[0] >> 8) & 255)/255.0;
+				vr = ((vlr->vcol[ui3] >> 24) & 255)/255.0;
+				vg = ((vlr->vcol[ui3] >> 16) & 255)/255.0;
+				vb = ((vlr->vcol[ui3] >> 8) & 255)/255.0;
 				ostr << " vcol_c_r=\"" << vr << "\" vcol_c_g=\"" << vg << "\" vcol_c_b=\"" << vb << "\"";
 			}
 			ostr << " shader_name=\"" << fmatname << "\" />\n";
@@ -1443,7 +1449,6 @@ void yafrayFileRender_t::writeLamps()
 	}
 }
 
-
 // write main camera
 void yafrayFileRender_t::writeCamera()
 {
@@ -1456,15 +1461,12 @@ void yafrayFileRender_t::writeCamera()
 		ostr << "type=\"perspective\"";
 
 	// render resolution including the percentage buttons (aleady calculated in initrender for R renderdata)
-	int xres = R.r.xsch;
-	int yres = R.r.ysch;
-	ostr << " resx=\"" << xres << "\" resy=\"" << yres;
+	ostr << " resx=\"" << R.r.xsch << "\" resy=\"" << R.r.ysch << "\"";
 
-	// aspectratio can be set in Blender as well using aspX & aspY, need an extra param. for yafray cam.
-	float aspect = 1;
-	if (R.r.xsch < R.r.ysch) aspect = float(R.r.xsch)/float(R.r.ysch);
-
-	ostr << "\" focal=\"" << mainCamLens/(aspect*32.0) << "\"";
+	float f_aspect = 1;
+	if ((R.r.xsch*R.r.xasp)<=(R.r.ysch*R.r.yasp)) f_aspect = float(R.r.xsch*R.r.xasp)/float(R.r.ysch*R.r.yasp);
+	ostr << "\n\tfocal=\"" << mainCamLens/(f_aspect*32.f);
+	ostr << "\" aspect_ratio=\"" << R.ycor << "\"";
 
 	// dof params, only valid for real camera
 	if (maincam_obj->type==OB_CAMERA) {
@@ -1474,6 +1476,28 @@ void yafrayFileRender_t::writeCamera()
 		string st = "on";
 		if (cam->flag & CAM_YF_NO_QMC) st = "off";
 		ostr << " use_qmc=\"" << st << "\"";
+		// bokeh params
+		st = "disk1";
+		if (cam->YF_bkhtype==1)
+			st = "disk2";
+		else if (cam->YF_bkhtype==2)
+			st = "triangle";
+		else if (cam->YF_bkhtype==3)
+			st = "square";
+		else if (cam->YF_bkhtype==4)
+			st = "pentagon";
+		else if (cam->YF_bkhtype==5)
+			st = "hexagon";
+		else if (cam->YF_bkhtype==6)
+			st = "ring";
+		ostr << "\n\tbokeh_type=\"" << st << "\"";
+		st = "uniform";
+		if (cam->YF_bkhbias==1)
+			st = "center";
+		else if (cam->YF_bkhbias==2)
+			st = "edge";
+		ostr << " bokeh_bias=\"" << st << "\"";
+		ostr << " bokeh_rotation=\"" << cam->YF_bkhrot << "\"";
 	}
 
 	ostr << " >\n";
@@ -1537,10 +1561,8 @@ void yafrayFileRender_t::writePathlight()
 			case 5 : ostr << " samples=\"2048\" \n";  break;
 			default: ostr << " samples=\"512\" \n";
 		}
-		float aspect = 1;
-		if (R.r.xsch < R.r.ysch) aspect = float(R.r.xsch)/float(R.r.ysch);
 		float sbase = 2.0/float(R.r.xsch);
-		ostr << " cache=\"on\" use_QMC=\"on\" threshold=\"" <<R.r.GIrefinement<<"\""<<endl;
+		ostr << " cache=\"on\" use_QMC=\"on\" threshold=\"" << R.r.GIrefinement << "\"" << endl;
 		ostr << " cache_size=\"" << sbase*R.r.GIpixelspersample << "\" shadow_threshold=\"" <<
 			1.0 - R.r.GIshadowquality << "\" grid=\"82\" search=\"35\" >\n";
 	}

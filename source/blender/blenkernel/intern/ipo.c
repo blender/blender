@@ -168,8 +168,9 @@ int la_ar[LA_TOTIPO]= {
 	MA_MAP1+MAP_DVAR, MA_MAP1+MAP_COLF, MA_MAP1+MAP_NORF, MA_MAP1+MAP_VARF
 };
 
+/* yafray: aperture & focal distance curves added */
 int cam_ar[CAM_TOTIPO]= {
-	CAM_LENS, CAM_STA, CAM_END
+	CAM_LENS, CAM_STA, CAM_END, CAM_YF_APERT, CAM_YF_FDIST
 };
 
 int snd_ar[SND_TOTIPO]= {
@@ -1305,6 +1306,7 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 	else if(GS(id->name)==ID_CA) {
 		Camera *ca= (Camera *)id;
 		
+		/* yafray: aperture & focal distance params */
 		switch(icu->adrcode) {
 		case CAM_LENS:
 			poin= &(ca->lens); break;
@@ -1312,6 +1314,10 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			poin= &(ca->clipsta); break;
 		case CAM_END:
 			poin= &(ca->clipend); break;
+		case CAM_YF_APERT:
+			poin= &(ca->YF_aperture); break;
+		case CAM_YF_FDIST:
+			poin= &(ca->YF_dofdist); break;
 		}
 	}
 	else if(GS(id->name)==ID_SO) {
@@ -1563,15 +1569,25 @@ void set_icu_vars(IpoCurve *icu)
 	}	
 	else if(icu->blocktype==ID_CA) {
 
+		/* yafray: aperture & focal distance params */
 		switch(icu->adrcode) {
 		case CAM_LENS:
 			icu->ymin= 5.0;
-			icu->ymax= 1000.0; break;
+			icu->ymax= 1000.0;
+			break;
 		case CAM_STA:
 			icu->ymin= 0.001f;
 			break;
 		case CAM_END:
 			icu->ymin= 0.1f;
+			break;
+		case CAM_YF_APERT:
+			icu->ymin = 0.0;
+			icu->ymax = 2.0;
+			break;
+		case CAM_YF_FDIST:
+			icu->ymin = 0.0;
+			icu->ymax = 5000.0;
 		}
 	}
 	else if(icu->blocktype==ID_SO) {

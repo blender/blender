@@ -74,9 +74,7 @@ class yafrayRender_t
 
 		// mtds
 		bool exportScene();
-
 		void addDupliMtx(Object* obj);
-
 		bool objectKnownData(Object* obj);
 
 	protected:
@@ -95,7 +93,6 @@ class yafrayRender_t
 		std::map<Image*, Material*> imagetex;
 		std::map<Image*, std::string> imgtex_shader;
 
-		Object* findObject(const char* name);
 		bool getAllMatTexObs();
 
 		virtual void writeTextures()=0;

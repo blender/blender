@@ -70,18 +70,6 @@ bool yafrayRender_t::exportScene()
 }
 
 
-// find object by name in global scene (+'OB'!)
-Object* yafrayRender_t::findObject(const char* name)
-{
-	Base* bs = (Base*)G.scene->base.first;
-	while (bs) {
-	  Object* obj = bs->object;
-		if (!strcmp(name, obj->id.name)) return obj;
-		bs = bs->next;
-	}
-	return NULL;
-}
-
 // gets all unique face materials & textures,
 // and sorts the facelist rejecting anything that is not a quad or tri,
 // as well as associating them again with the original Object.

@@ -268,13 +268,16 @@ typedef short IPO_Channel;
 
 /* ******************** */
 
-#define CAM_TOTIPO	3
-#define CAM_TOTNAM	3
+/* yafray: totipo & totnam +2 because of added curves */
+#define CAM_TOTIPO	5
+#define CAM_TOTNAM	5
 
 #define CAM_LENS	1
 #define CAM_STA		2
 #define CAM_END		3
-
+/* yafray aperture & focal distance curves */
+#define CAM_YF_APERT	4
+#define CAM_YF_FDIST	5
 
 /* ******************** */
 

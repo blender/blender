@@ -180,7 +180,8 @@ char *wo_ic_names[WO_TOTNAM] = { "HorR", "HorG", "HorB", "ZenR", "ZenG", "ZenB",
 						 "StarG", "StarDi", "StarSi" };
 char *la_ic_names[LA_TOTNAM] = { "Energ", "R", "G", "B", "Dist", "SpoSi", "SpoBl",
 								  "Quad1", "Quad2", "HaInt" };
-char *cam_ic_names[CAM_TOTNAM] = { "Lens", "ClSta", "ClEnd" };
+/* yafray: two curve names added, 'Apert' for aperture, and 'FDist' for focal distance */
+char *cam_ic_names[CAM_TOTNAM] = { "Lens", "ClSta", "ClEnd", "Apert", "FDist" };
 char *snd_ic_names[SND_TOTNAM] = { "Vol", "Pitch", "Pan", "Atten" };
 char *ac_ic_names[AC_TOTNAM] = {"LocX", "LocY", "LocZ", "SizeX", "SizeY",
 						  "SizeZ", "QuatW", "QuatX", "QuatY", "QuatZ"};
@@ -286,7 +287,9 @@ char *getname_la_ei(int nr)
 
 char *getname_cam_ei(int nr)
 {
-	if(nr>=CAM_LENS && nr<=CAM_END) return cam_ic_names[nr-1];
+	/* yafray: curves extended to CAM_YF_FDIST */
+	//if(nr>=CAM_LENS && nr<=CAM_END) return cam_ic_names[nr-1];
+	if(nr>=CAM_LENS && nr<=CAM_YF_FDIST) return cam_ic_names[nr-1];
 	return ic_name_empty[0];
 }
 
@@ -3781,15 +3784,25 @@ void common_insertkey()
 			if(ob && ob->type==OB_CAMERA) {
 				id= G.buts->lockpoin;
 				if(id) {
-					event= pupmenu("Insert Key %t|Lens%x0|Clipping%x1");
+					/* yafray: insert key extended with aperture and focal distance */
+					if (G.scene->r.renderer==R_INTERN)
+						event= pupmenu("Insert Key %t|Lens%x0|Clipping%x1");
+					else
+						event= pupmenu("Insert Key %t|Lens%x0|Clipping%x1|Aperture%x2|FocalDistance%x3");
 					if(event== -1) return;
 
 					if(event==0) {
 						insertkey(id, CAM_LENS);
 					}
-					if(event==1) {
+					else if(event==1) {
 						insertkey(id, CAM_STA);
 						insertkey(id, CAM_END);
+					}
+					else if(event==2) {
+						insertkey(id, CAM_YF_APERT);
+					}
+					else if(event==3) {
+						insertkey(id, CAM_YF_FDIST);
 					}
 				}
 			}
