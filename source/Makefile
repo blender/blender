@@ -39,9 +39,6 @@ endif
 include nan_definitions.mk
 
 DIRS = creator blender kernel gameengine
-ifneq ($(OS),$(findstring $(OS), "darwin freebsd irix linux"))
-    DIRS += ode
-endif
 
 ifeq ($(OS),windows)
     DIRS += icons
