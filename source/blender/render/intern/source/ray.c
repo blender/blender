@@ -1033,7 +1033,7 @@ static int d3dda(Isect *is)
 	int ocx1,ocx2,ocy1, ocy2,ocz1,ocz2;
 	
 	/* clip with octree */
-	if(branchcount==0) return NULL;
+	if(branchcount==0) return 0;
 	
 	/* do this before intersect calls */
 	raycount++;

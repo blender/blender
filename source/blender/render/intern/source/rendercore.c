@@ -2913,7 +2913,7 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 		yd= jit[0][1];
 		Zjitx= -xd;
 		Zjity= -yd;
-		RE_setwindowclip(0, 0);
+		RE_setwindowclip(0, -1);
 		if((R.r.mode & R_MBLUR)==0) RE_local_printrenderinfo(0.0, v);
 		zbufferall();
 	}
