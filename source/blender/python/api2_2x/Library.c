@@ -176,6 +176,23 @@ PyObject *M_Library_Close(PyObject *self)
 }
 
 /**
+ * helper function for 'atexit' clean-ups, used by BPY_end_python,
+ * declared in EXPP_interface.h.
+ */
+void EXPP_Library_Close(void)
+{
+	if (bpy_openlib) {
+		BLO_blendhandle_close(bpy_openlib);
+		bpy_openlib = NULL;
+	}
+
+	if (bpy_openlibname) {
+		MEM_freeN (bpy_openlibname);
+		bpy_openlibname = NULL;
+	}
+}
+
+/**
  * Get the filename of the currently open library file, if any.
  */
 PyObject *M_Library_GetName(PyObject *self)

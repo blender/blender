@@ -25,10 +25,10 @@ Example::
     groups = Library.LinkableGroups()
 
     for db in groups:
-      print "\nDATABLOCK %s:" % db
+      print "DATABLOCK %s:" % db
       for obname in Library.Datablocks(db):
         print obname
-  
+ 
     if 'Object' in groups:
       for obname in Library.Datablocks('Object'):
         Library.Load(obname, 'Object', 0) # note the 0...

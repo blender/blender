@@ -29,11 +29,12 @@ The Blender Python API Reference
   - L{Ipo}
   - L{Lamp}
   - L{Lattice}
-  - L{Library}
+  - L{Library} (new)
   - L{Material}
-  - L{Mathutils}
+  - L{Mathutils} (new)
   - L{Metaball}
   - L{NMesh}
+  - L{Noise} (new)
   - L{Object}
   - L{Registry}
   - L{Scene}
@@ -42,7 +43,7 @@ The Blender Python API Reference
   - L{Types}
   - L{Window}
   - L{World}
-  - L{sys<Sys>}
+  - L{sys<Sys>} (added time function)
 
  Introduction:
  -------------
@@ -58,8 +59,8 @@ The Blender Python API Reference
  open-source language.
 
 @author: The Blender Python Team
-@requires: Blender 2.32 or newer.
-@version: 0.4
+@requires: Blender 2.33 or newer.
+@version: 2.33
 @see: U{www.blender.org<http://www.blender.org>}
 @see: U{projects.blender.org<http://projects.blender.org>}
 @see: U{www.python.org<http://www.python.org>}

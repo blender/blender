@@ -24,7 +24,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Michel Selten
+ * Contributor(s): Michel Selten, Willian P. Germano
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -37,3 +37,4 @@ void initBlenderApi2_2x (void);
 void clearScriptLinks (void);
 ScriptLink * setScriptLinks(ID *id, short event);
 void discardFromBDict (char *key);
+void EXPP_Library_Close (void); /* in Library.c, used by BPY_end_python */
