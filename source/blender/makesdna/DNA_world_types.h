@@ -56,8 +56,13 @@ typedef struct World {
 	float ambr, ambg, ambb, ambk;
 
 	unsigned int fastcol;	
-
-	float exposure;
+	
+	/**
+	 * New exposure/range control. linfac & logfac are constants... don't belong in
+	 * file, but allocating 8 bytes for temp mem isnt useful either.
+	 */
+	float exposure, range;	
+	float linfac, logfac;
 
 	/**
 	 * Gravitation constant for the game world
@@ -87,7 +92,6 @@ typedef struct World {
 	
 	short dofsta, dofend, dofmin, dofmax;
 
-	int pad1;
 	struct Ipo *ipo;
 	struct MTex *mtex[8];
 

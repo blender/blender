@@ -3929,6 +3929,7 @@ static void do_versions(Main *main)
 		Material *ma= main->mat.first;
 		Scene *sce;
 		Lamp *la;
+		World *wrld;
 		
 		while(ma) {
 			if(ma->fresnel_tra_i==0.0) ma->fresnel_tra_i= 1.25;
@@ -3962,6 +3963,14 @@ static void do_versions(Main *main)
 			if(la->area_sizey==0.0) la->area_sizey= 1.0;
 			if(la->area_sizez==0.0) la->area_sizez= 1.0;
 			la= la->id.next;
+		}
+		wrld= main->world.first;
+		while(wrld) {
+			if(wrld->range==0.0) {
+				wrld->range= 1.0/wrld->exposure;
+				wrld->exposure= 0.0;
+			}
+			wrld= wrld->id.next;
 		}
 	}
 	/* don't forget to set version number in blender.c! */

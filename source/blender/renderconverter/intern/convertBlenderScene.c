@@ -1827,7 +1827,7 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 	lar->mode= la->mode;
 
 	lar->energy= la->energy;
-	lar->energy= la->energy*R.wrld.exposure;
+	lar->energy= la->energy;
 	if(la->mode & LA_NEG) lar->energy= -lar->energy;
 
 	lar->vec[0]= -mat[2][0];

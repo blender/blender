@@ -1531,8 +1531,9 @@ static void world_panel_mistaph(World *wrld)
 
 	uiSetButLock(wrld->id.lib!=0, "Can't edit library data");
 
-	uiDefBut(block, MENU|SHO, 1, "Physics %t|None %x1|Sumo %x2|ODE %x3 |Dynamo %x4|",	
-			10,180,140,19, &wrld->pad1, 0, 0, 0, 0, "Physics Engine");
+	/* disabled, pad1 should not be used even! */
+	// uiDefBut(block, MENU|SHO, 1, "Physics %t|None %x1|Sumo %x2|ODE %x3 |Dynamo %x4|",	
+	//		10,180,140,19, &wrld->pad1, 0, 0, 0, 0, "Physics Engine");
 	
 	/* Gravitation for the game worlds */
 	uiDefButF(block, NUMSLI,0, "Grav ", 150,180,150,19,	&(wrld->gravity), 0.0, 25.0, 0, 0,  "Sets the gravitation constant of the game world");
@@ -1602,9 +1603,11 @@ static void world_panel_world(World *wrld)
 	uiDefButF(block, NUMSLI,B_MATPRV,"AmbR ",	10,50,145,19,	&(wrld->ambr), 0.0, 1.0 ,0,0, "Sets the amount of red ambient colour");
 	uiDefButF(block, NUMSLI,B_MATPRV,"AmbG ",	10,30,145,19,	&(wrld->ambg), 0.0, 1.0 ,0,0, "Sets the amount of green ambient colour");
 	uiDefButF(block, NUMSLI,B_MATPRV,"AmbB ",	10,10,145,19,	&(wrld->ambb), 0.0, 1.0 ,0,0, "Sets the amount of blue ambient colour");
-	uiBlockEndAlign(block);
 
-	uiDefButF(block, NUMSLI,0, "Expos ",		160,10,145,19,	&(wrld->exposure), 0.2, 5.0, 0, 0, "Sets the lighting time and exposure");
+	uiBlockBeginAlign(block);
+	uiBlockSetCol(block, TH_BUT_SETTING1);
+	uiDefButF(block, NUMSLI,0, "Exp ",			160,30,145,19,	&(wrld->exposure), 0.0, 1.0, 0, 2, "Sets amount of exponential color correction for light");
+	uiDefButF(block, NUMSLI,0, "Range ",		160,10,145,19,	&(wrld->range), 0.2, 5.0, 0, 2, "Sets the color amount that will be mapped on color 1.0");
 
 
 }

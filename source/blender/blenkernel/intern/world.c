@@ -86,11 +86,13 @@ World *add_world(char *name)
 	
 	wrld->horb= 0.6f;
 	wrld->skytype= WO_SKYBLEND;
-	wrld->exposure= 1.0f;
 	wrld->stardist= 15.0f;
 	wrld->starsize= 2.0f;
 	wrld->gravity= 9.8f;
-		
+	
+	wrld->exposure= 0.0f;
+	wrld->range= 1.0f;
+
 	return wrld;
 }
 
@@ -199,6 +201,10 @@ void init_render_world()
 	}
 	else {
 		memset(&R.wrld, 0, sizeof(World));
-		R.wrld.exposure= 1.0;
+		R.wrld.exposure= 0.0;
+		R.wrld.range= 1.0;
 	}
+
+	R.wrld.linfac= 1.0 + pow((2.0*R.wrld.exposure + 0.5), -10);
+	R.wrld.logfac= log( (R.wrld.linfac-1.0)/R.wrld.linfac )/R.wrld.range;
 }

@@ -1457,7 +1457,9 @@ float Toon_Diff( float *n, float *l, float *v, float size, float smooth )
 }
 
 /* Oren Nayar diffuse */
-/* nl is either dot product, or return value of area light */
+
+/* 'nl' is either dot product, or return value of area light */
+/* in latter case, only last multiplication uses 'nl' */
 float OrenNayar_Diff_i(float nl, float *n, float *l, float *v, float rough )
 {
 	float i, nh, nv, vh, realnl, h[3];
@@ -1477,7 +1479,7 @@ float OrenNayar_Diff_i(float nl, float *n, float *l, float *v, float rough )
 	
 	realnl= n[0]*l[0]+n[1]*l[1]+n[2]*l[2]; /* Dot product between surface normal and light vector */
 	if(realnl<=0.0) return 0.0;
-	if(nl<0.0) nl= 0.0;		/* value from area light */
+	if(nl<0.0) return 0.0;		/* value from area light */
 	
 	vh= v[0]*h[0]+v[1]*h[1]+v[2]*h[2]; /* Dot product between view vector and halfway vector */
 	if(vh<=0.0) vh= 0.0;
@@ -1510,7 +1512,7 @@ float OrenNayar_Diff_i(float nl, float *n, float *l, float *v, float rough )
 	A = 1 - (0.5 * ((rough * rough) / ((rough * rough) + 0.33)));
 	B = 0.45 * ((rough * rough) / ((rough * rough) + 0.09));
 	
-	b*= 0.95;	/* prevent tangens from shooting to inf, nl here can be not a dot product here. */
+	b*= 0.95;	/* prevent tangens from shooting to inf, 'nl' can be not a dot product here. */
 				/* overflow only happens with extreme size area light, and higher roughness */
 	i = nl * ( A + ( B * t * sin(a) * tan(b) ) );
 	
@@ -2440,6 +2442,13 @@ temp_y= floor(y);
 		}
 		
 		VecAddf(col, shr.diff, shr.spec);
+		
+		/* exposure correction */
+		if(R.wrld.exposure!=0.0 || R.wrld.range!=1.0) {
+			col[0]= R.wrld.linfac*(1.0-exp( col[0]*R.wrld.logfac) );
+			col[1]= R.wrld.linfac*(1.0-exp( col[1]*R.wrld.logfac) );
+			col[2]= R.wrld.linfac*(1.0-exp( col[2]*R.wrld.logfac) );
+		}
 		
 		/* MIST */
 		if( (R.wrld.mode & WO_MIST) && (shi.matren->mode & MA_NOMIST)==0 ){
