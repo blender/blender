@@ -713,10 +713,12 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 		if(last_seq->type==SEQ_SWEEP){
 			SweepVars *sweep = (SweepVars *)last_seq->effectdata;
 			char formatstring[1024];
-
-			strcpy(formatstring, "Select Sweep Type %t|Left to Right %x0|Right to Left %x1|Bottom to Top %x2|Top to Bottom %x3|Top left to Bottom right%x4|Bottom right to Top left %x5|Bottom left to Top right %x6|Top right to Bottom left %x7|Horizontal out %x8|Horizontal in %x9|Vertical out %x10|Vertical in %x11|Hor/Vert out %x12|Hor/Vert in %x13|Bottom left to Top right out %x14|Top left to Bottom right in %x15|Top left to Bottom right out %x16|Bottom left to Top right in %x17|Diagonal out %x18|Diagonal in %x19|Diagonal out 2 %x20|Diagonal in 2 %x21|");
-
+			strcpy(formatstring, "Select Sweep Type %t|Single Wipe%x0|Double Wipe %x1|Iris Wipe %x4");
 			uiDefButS(block, MENU,SEQ_BUT_EFFECT, formatstring,	10,90,220,22, &sweep->sweeptype, 0, 0, 0, 0, "What type of sweep should be performed");
+			uiDefButF(block, NUM,SEQ_BUT_EFFECT,"Blur:",	10,65,220,22, &sweep->edgeWidth,0.0,1.0, 1, 2, "The percent width of the blur edge");
+			if(sweep->sweeptype != DO_IRIS_WIPE)
+				uiDefButF(block, NUM,SEQ_BUT_EFFECT,"Angle:",	10,40,220,22, &sweep->angle,-90.0,90.0, 1, 2, "The Angle of the Edge");
+			uiDefButS(block, TOG,SEQ_BUT_EFFECT,"Wipe In",  10,15,220,22, &sweep->forward,0,0, 0, 0, "Controls Primary Direction of Sweep");				
 		}
 		else if(last_seq->type==SEQ_GLOW){
 			GlowVars *glow = (GlowVars *)last_seq->effectdata;

@@ -956,136 +956,215 @@ void do_mul_effect(float facf0, float facf1, int x, int y, unsigned int *rect1, 
 	}
 }
 
+// This function calculates the blur band for the wipe effects
+float in_band(float width,float dist, float perc,int side,int dir){
+	
+	float t1,t2,alpha,percwidth;
+	if(width == 0)
+		return (float)side;
+	if(side == 1)
+		percwidth = width * perc;
+	else
+		percwidth = width * (1 - perc);
+	
+	if(width < dist)
+		return side;
+	
+	t1 = dist / width;  //percentange of width that is
+	t2 = 1 / width;  //amount of alpha per % point
+	
+	if(side == 1)
+		alpha = (t1*t2*100) + (1-perc); // add point's alpha contrib to current position in wipe
+	else
+		alpha = (1-perc) - (t1*t2*100);
+	
+	if(dir == 0)
+		alpha = 1-alpha;
+	return alpha;
+}
 
+float check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
 
-int check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
-
-   float posx, posy;
+   float posx, posy,hyp,hyp2,angle,hwidth,b1,b2,b3,pointdist;
+   /*some future stuff
+   float hyp3,hyp4,b4,b5	   
+   */
+   float temp1,temp2; //some placeholder variables
    float halfx = xo/2;
    float halfy = yo/2;
+   float output=0;
    SweepVars *sweep = (SweepVars *)seq->effectdata;
+   int width,invert = 0;
 
-	//printf("facf0: %f xo: %d\n", facf0, x);
-	posx = facf0 * xo;
+ 	angle = sweep->angle;
+ 	if(angle < 0){
+ 		x = xo-x;
+ 		//y = yo-y
+ 		}
+ 	angle = pow(fabs(angle)/45,log(xo,2));
+
 	posy = facf0 * yo;
-
+	if(sweep->forward){
+		posx = facf0 * xo;
+		posy = facf0 * yo;
+	} else{
+		posx = xo - facf0 * xo;
+		posy = yo - facf0 * yo;
+	}
    switch (sweep->sweeptype) {
-      case DO_LEFT_RIGHT:
-         if (x > posx) return 1;
-         return 0;
-         break;
-      case DO_RIGHT_LEFT:
-         if (x < (xo - posx)) return 1;
-         return 0;
+       case DO_SINGLE_WIPE:
+         width = (int)(sweep->edgeWidth*((xo+yo)/2.0));
+         hwidth = (float)width/2.0;       
+                
+         if (angle == 0.0)angle = 0.000001;
+         b1 = posy - (-angle)*posx;
+         b2 = y - (-angle)*x;
+         hyp  = abs(angle*x+y+(-posy-angle*posx))/sqrt(angle*angle+1);
+         if(angle < 0){
+         	 temp1 = b1;
+         	 b1 = b2;
+         	 b2 = temp1;
+         }
+         if(sweep->forward){	 
+		     if(b1 < b2)
+				output = in_band(width,hyp,facf0,1,1);
+	         else
+				output = in_band(width,hyp,facf0,0,1);
+		 }
+		 else{	 
+	         if(b1 < b2)
+				output = in_band(width,hyp,facf0,0,1);
+	         else
+				output = in_band(width,hyp,facf0,1,1);
+		 }
+		 break;
+	 
+	 
+	  case DO_DOUBLE_WIPE:
+		 if(!sweep->forward)facf0 = 1-facf0;   // Go the other direction
+
+	     width = (int)(sweep->edgeWidth*((xo+yo)/2.0));  // calculate the blur width
+	     hwidth = (float)width/2.0;       
+	     if (angle == 0)angle = 0.000001;
+	     b1 = posy/2 - (-angle)*posx/2;
+	     b3 = (yo-posy/2) - (-angle)*(xo-posx/2);
+	     b2 = y - (-angle)*x;
+
+	     hyp = abs(angle*x+y+(-posy/2-angle*posx/2))/sqrt(angle*angle+1);
+	     hyp2 = abs(angle*x+y+(-(yo-posy/2)-angle*(xo-posx/2)))/sqrt(angle*angle+1);
+	     
+	     temp1 = xo*(1-facf0/2)-xo*facf0/2;
+	     temp2 = yo*(1-facf0/2)-yo*facf0/2;
+		 pointdist = sqrt(temp1*temp1 + temp2*temp2);
+
+			 if(b2 < b1 && b2 < b3 ){
+				if(hwidth < pointdist)
+					output = in_band(hwidth,hyp,facf0,0,1);
+			}
+			 else if(b2 > b1 && b2 > b3 ){
+				if(hwidth < pointdist)
+					output = in_band(hwidth,hyp2,facf0,0,1);	
+			} 
+		     else{
+		     	 if(  hyp < hwidth && hyp2 > hwidth )
+		     	 	 output = in_band(hwidth,hyp,facf0,1,1);
+		     	 else if(  hyp > hwidth && hyp2 < hwidth )
+				 	 output = in_band(hwidth,hyp2,facf0,1,1);
+				 else
+				 	 output = in_band(hwidth,hyp2,facf0,1,1) * in_band(hwidth,hyp,facf0,1,1);
+		     }
+		     if(!sweep->forward)output = 1-output;
+	 break;     	  
+	/* BOX WIPE IS NOT WORKING YET */
+     /* case DO_CROSS_WIPE: */
+	/* BOX WIPE IS NOT WORKING YET */
+     /* case DO_BOX_WIPE: 
+		 if(invert)facf0 = 1-facf0;
+
+	     width = (int)(sweep->edgeWidth*((xo+yo)/2.0));
+	     hwidth = (float)width/2.0;       
+	     if (angle == 0)angle = 0.000001;
+	     b1 = posy/2 - (-angle)*posx/2;
+	     b3 = (yo-posy/2) - (-angle)*(xo-posx/2);
+	     b2 = y - (-angle)*x;
+
+	     hyp = abs(angle*x+y+(-posy/2-angle*posx/2))/sqrt(angle*angle+1);
+	     hyp2 = abs(angle*x+y+(-(yo-posy/2)-angle*(xo-posx/2)))/sqrt(angle*angle+1);
+	     
+	     temp1 = xo*(1-facf0/2)-xo*facf0/2;
+	     temp2 = yo*(1-facf0/2)-yo*facf0/2;
+		 pointdist = sqrt(temp1*temp1 + temp2*temp2);
+
+			 if(b2 < b1 && b2 < b3 ){
+				if(hwidth < pointdist)
+					output = in_band(hwidth,hyp,facf0,0,1);
+			}
+			 else if(b2 > b1 && b2 > b3 ){
+				if(hwidth < pointdist)
+					output = in_band(hwidth,hyp2,facf0,0,1);	
+			} 
+		     else{
+		     	 if(  hyp < hwidth && hyp2 > hwidth )
+		     	 	 output = in_band(hwidth,hyp,facf0,1,1);
+		     	 else if(  hyp > hwidth && hyp2 < hwidth )
+				 	 output = in_band(hwidth,hyp2,facf0,1,1);
+				 else
+				 	 output = in_band(hwidth,hyp2,facf0,1,1) * in_band(hwidth,hyp,facf0,1,1);
+		     }
+		 if(invert)facf0 = 1-facf0;
+	     angle = -1/angle;
+	     b1 = posy/2 - (-angle)*posx/2;
+	     b3 = (yo-posy/2) - (-angle)*(xo-posx/2);
+	     b2 = y - (-angle)*x;
+
+	     hyp = abs(angle*x+y+(-posy/2-angle*posx/2))/sqrt(angle*angle+1);
+	     hyp2 = abs(angle*x+y+(-(yo-posy/2)-angle*(xo-posx/2)))/sqrt(angle*angle+1);
+	   
+	   	 if(b2 < b1 && b2 < b3 ){
+				if(hwidth < pointdist)
+					output *= in_band(hwidth,hyp,facf0,0,1);
+			}
+			 else if(b2 > b1 && b2 > b3 ){
+				if(hwidth < pointdist)
+					output *= in_band(hwidth,hyp2,facf0,0,1);	
+			} 
+		     else{
+		     	 if(  hyp < hwidth && hyp2 > hwidth )
+		     	 	 output *= in_band(hwidth,hyp,facf0,1,1);
+		     	 else if(  hyp > hwidth && hyp2 < hwidth )
+				 	 output *= in_band(hwidth,hyp2,facf0,1,1);
+				 else
+				 	 output *= in_band(hwidth,hyp2,facf0,1,1) * in_band(hwidth,hyp,facf0,1,1);
+		     }
+		     
+	 break;*/
+      case DO_IRIS_WIPE:
+      	 if(xo > yo) yo = xo;
+      	 else xo = yo;
+      	 
+		if(!sweep->forward)
+			facf0 = 1-facf0;
+
+	     width = (int)(sweep->edgeWidth*((xo+yo)/2.0));
+	     hwidth = (float)width/2.0; 
+	     
+      	 temp1 = (halfx-(halfx)*facf0);     
+		 pointdist = sqrt(temp1*temp1 + temp1*temp1);
+		 
+		 temp2 = sqrt((halfx-x)*(halfx-x)  +  (halfy-y)*(halfy-y));
+		 if(temp2 > pointdist)
+		 	 output = in_band(hwidth,fabs(temp2-pointdist),facf0,0,1);
+		 else
+		 	 output = in_band(hwidth,fabs(temp2-pointdist),facf0,1,1);
+		 
+		if(!sweep->forward)
+			output = 1-output;
+			
 	 break;
-      case DO_DOWN_UP:
-         if (y > posy ) return 1;
-         return 0;
-	 break;
-      case DO_UP_DOWN:
-         if (y < (yo - posy)) return 1;
-         return 0;
-	 break;
-      case DO_LOWER_LEFT_UPPER_RIGHT:
-         if (posy < posx) posx = posy;
-         if ((x + yo - y) < posx*2) return 0;
-         return 1;
-	 break;
-      case DO_UPPER_RIGHT_LOWER_LEFT:
-         if (posy < posx) posx = posy;
-         if ((xo - x + y) < posx*2) return 0;
-         return 1;
-	 break;
-      case DO_UPPER_LEFT_LOWER_RIGHT:
-         if (posy < posx) posx = posy;
-         if ((x + y) < posx*2 ) return 0;
-         return 1;
-	 break;
-      case DO_LOWER_RIGHT_UPPER_LEFT:
-         if (posy < posx) posx = posy;
-         if ((xo - x + yo - y) < posx*2) return 0;
-         return 1;
-	 break;
-      case DO_HORZ_OUT:
-         if ((x < (halfx - (posx/2)) ) || (x > (halfx + posx/2) )) return 1;
-         return 0;
-	 break;
-      case DO_HORZ_IN:
-         if ((x >posx/2) && (x < (xo - posx/2))) return 1;
-         return 0;
-	 break;
-      case DO_VERT_OUT:
-         if ((y < (halfy - posy/2)) || (y > (halfy + posy/2))) return 1;
-         return 0;
-	 break;
-      case DO_VERT_IN:
-         if ((y >posy/2) && (y < (yo - posy/2))) return 1;
-         return 0;
-	 break;
-      case DO_HORZ_VERT_OUT:
-         if (posy < posx) posx = posy;
-         if (((x > (halfx - posx/2)) && (x < (halfx + posx/2))) ||
-             ((y > (halfy - posx/2)) && (y < (halfy + posx/2)))) return 0;
-         return 1;
-	 break;
-      case DO_HORZ_VERT_IN:
-         if (posy < posx) posx = posy;
-         if ((x <posx/2) || ((xo - x) <  posx/2) || (y < posx/2) ||
-	     ((yo - y) < posx/2)) return 0;
-         return 1;
-	 break;
-      case DO_LEFT_DOWN_RIGHT_UP_OUT:
-         if (posy < posx) posx = posy;
-         if (((x - halfx + y - halfy) < posx) &&
-             ((halfx -x + halfy -y ) < posx)) return 0;
-         return 1;
-	 break;
-      case DO_LEFT_DOWN_RIGHT_UP_IN:
-         if (posy < posx) posx = posy;
-         if (((y + xo - x) < posx) || ((yo - y + x) < posx)) return 0;
-         return 1;
-	 break;
-      case DO_LEFT_UP_RIGHT_DOWN_OUT:
-         if (posy < posx) posx = posy;
-         if (((x - halfx + yo - y - halfy) < posx) &&
-             ((halfx - x + halfy - yo + y ) < posx)) return 0;
-         return 1;
-	 break;
-      case DO_LEFT_UP_RIGHT_DOWN_IN:
-         if (posy < posx) posx = posy;
-         if (((x+ y) < posx) || ((xo -x + yo - y) < posx )) return 0;
-         return 1;
-	 break;
-      case DO_DIAG_OUT:
-         if (posy < posx) posx = posy;
-         if ((((x - halfx + y - halfy) < posx) &&
-             ((halfx -x + halfy -y ) < posx)) &&
-             (((x - halfx + yo - y - halfy) < posx)) &&
-             ((halfx -x + halfy -yo + y) < posx)) return 0;
-         return 1;
-	 break;
-      case DO_DIAG_IN:
-         if (posy < posx) posx = posy;
-         if ((x + y) < posx || ((xo -x + yo - y) < posx) ||
-             ((x + yo -y) < posx) || ((y + xo - x) < posx)) return 0;
-         return 1;
- 	 break;
-      case DO_DIAG_OUT_2:
-         if (posy < posx) posx = posy;
-         if ((((x - halfx + y - halfy) < posx/2) &&
-             ((halfx -x + halfy -y ) < posx/2)) ||
-             ((((x - halfx + yo - y - halfy) < posx/2)) &&
-             ((halfx - x + halfy - yo + y) < posx/2))) return 0;
-         return 1;
-         break;
-       case DO_DIAG_IN_2:
-         if (posy < posx) posx = posy;
-         if ((((y + xo - x) < posx) || ((yo - y + x) < posx)) &&
-         (((x+ y) < posx) || ((xo -x + yo - y) < posx ))) return 0;
-         return 1;
-         break;
    }
-   return 0;
+   if     (output < 0) output = 0;
+   else if(output > 1) output = 1;
+   return output;
 }
 
 void init_sweep_effect(Sequence *seq)
@@ -1107,13 +1186,13 @@ void do_sweep_effect(Sequence *seq, float facf0, float facf1, int x, int y, unsi
 	for(y=0;y<yo;y++) {
 
       for(x=0;x<xo;x++) {
-
-			if (check_zone(x,y,xo,yo,seq,facf0)) {
+			float check = check_zone(x,y,xo,yo,seq,facf0);
+			if (check) {
 				if (rt1) {
-					rt[0] = rt1[0];
-					rt[1] = rt1[1];
-					rt[2] = rt1[2];
-					rt[3] = rt1[3];
+					rt[0] = (int)(rt1[0]*check)+ (int)(rt2[0]*(1-check));
+					rt[1] = (int)(rt1[1]*check)+ (int)(rt2[1]*(1-check));
+					rt[2] = (int)(rt1[2]*check)+ (int)(rt2[2]*(1-check));
+					rt[3] = (int)(rt1[3]*check)+ (int)(rt2[3]*(1-check));
 				} else {
 					rt[0] = 0;
 					rt[1] = 0;
