@@ -58,6 +58,11 @@ ifeq ($(NAN_NO_KETSJI), true)
    CPPFLAGS += -DNO_KETSJI
 endif
 
+# Support for new transform code ---------------------------------------
+ifeq ($(NAN_NEW_TRANSFORM), true)
+   CPPFLAGS += -DNEWTRANSFORM
+endif
+
 # OS dependent parts ---------------------------------------------------
 
 ifeq ($(OS),beos)
