@@ -1066,20 +1066,22 @@ static void load_bgpic_image(char *name)
 static float ob_eul[4];	// used for quat too....
 /* this one assumes there is only one editmode in blender...  (for object panel) */
 static float ve_median[4];
-static int ve_median_tot=0;
 
 /* is used for both read and write... */
 static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
+	EditEdge *eed;
 	float median[4];
-	int tot, totw;
+	int tot, totw, totedge;
 	
 	median[0]= median[1]= median[2]= median[3]= 0.0;
-	tot= totw= 0;
+	tot= totw= totedge= 0;
 	
 	if(ob->type==OB_MESH) {
+		Mesh *me= ob->data;
+		
 		eve= em->verts.first;
 		while(eve) {
 			if(eve->f & 1) {
@@ -1087,6 +1089,16 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 				VecAddf(median, median, eve->co);
 			}
 			eve= eve->next;
+		}
+		if(me->medge) {
+			eed= em->edges.first;
+			while(eed) {
+				if((eed->v1->f & 1) && (eed->v2->f & 1)) {
+					totedge++;
+					median[3]+= eed->crease;
+				}
+				eed= eed->next;
+			}
 		}
 	}
 	else if(ob->type==OB_CURVE || ob->type==OB_SURF) {
@@ -1141,19 +1153,19 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 	median[0] /= (float)tot;
 	median[1] /= (float)tot;
 	median[2] /= (float)tot;
-	median[3] /= (float)tot;
+	if(totedge) median[3] /= (float)totedge;
+	else median[3] /= (float)tot;
 	
 	if(block) {	// buttons
 	
-		ve_median_tot= tot;
 		QUATCOPY(ve_median, median);
 		
 		uiBlockBeginAlign(block);
-		if(ve_median_tot==1) {
+		if(tot==1) {
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex X:",	10, 140, 300, 19, &(ve_median[0]), -lim, lim, 10, 3, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex Y:",	10, 120, 300, 19, &(ve_median[1]), -lim, lim, 10, 3, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex Z:",	10, 100, 300, 19, &(ve_median[2]), -lim, lim, 10, 3, "");
-			if(totw==tot)
+			if(totw==1)
 				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex W:",	10, 80, 300, 19, &(ve_median[3]), 0.01, 100.0, 10, 3, "");
 		}
 		else {
@@ -1164,6 +1176,12 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median W:",	10, 80, 300, 19, &(ve_median[3]), 0.01, 100.0, 10, 3, "");
 		}
 		uiBlockEndAlign(block);
+		
+		if(totedge==1)
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Crease W:",	10, 60, 300, 19, &(ve_median[3]), 0.0, 1.0, 10, 3, "");
+		else if(totedge>1)
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Crease W:",	10, 60, 300, 19, &(ve_median[3]), 0.0, 1.0, 10, 3, "");
+		
 	}
 	else {	// apply
 		
@@ -1177,6 +1195,16 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 					VecAddf(eve->co, eve->co, median);
 				}
 				eve= eve->next;
+			}
+			
+			eed= em->edges.first;
+			while(eed) {
+				if((eed->v1->f & 1) && (eed->v2->f & 1)) {
+					totedge++;
+					eed->crease+= median[3];
+					CLAMP(eed->crease, 0.0, 1.0);
+				}
+				eed= eed->next;
 			}
 		}
 		else if(ob->type==OB_CURVE || ob->type==OB_SURF) {
@@ -1225,7 +1253,6 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 
 				nu= nu->next;
 			}
-			makeDispList(G.obedit);
 		}
 	}
 }
