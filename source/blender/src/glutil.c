@@ -500,8 +500,8 @@ void bglPolygonOffset(float dist)
 		
 		/* dist is from camera to center point */
 		
-		if(winmat[15]>0.5) offs= 0.00005*dist*G.vd->dist;  // ortho tweaking
-		else offs= 0.001*dist;  // should be clipping value or so...
+		if(winmat[15]>0.5) offs= 0.00001*dist*G.vd->dist;  // ortho tweaking
+		else offs= 0.0005*dist;  // should be clipping value or so...
 		
 		winmat[14]-= offs;
 		offset+= offs;

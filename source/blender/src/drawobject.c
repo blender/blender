@@ -1380,7 +1380,7 @@ static void displistmesh_draw_shaded(DispListMesh *dlm, unsigned char *vcols1, u
 
 	/***/
 	
-static int draw_index_wire= 1;
+static int draw_index_wire= 0;
 static int index3_nors_incr= 1;
 
 static void drawDispListwire(ListBase *dlbase)
@@ -2300,7 +2300,7 @@ static void drawDispList(Object *ob, int dt)
 		else {
 			draw_index_wire= 0;
 			drawDispListwire(lb);
-			draw_index_wire= 1;
+			//draw_index_wire= 1; // not used anymore, displistmesh does it
 		}
 		break;
 	case OB_SURF:
