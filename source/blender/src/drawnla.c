@@ -93,7 +93,7 @@ static void draw_nlatree(void)
 	bActionStrip *strip;
 	bConstraintChannel *conchan;
 
-	myortho2		(0,	NLAWIDTH, G.v2d->cur.ymin, G.v2d->cur.ymax);	//	Scaling
+	myortho2(0,	NLAWIDTH, G.v2d->cur.ymin, G.v2d->cur.ymax);	//	Scaling
 
 	/* Blank out the area */
 	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
@@ -191,7 +191,7 @@ static void draw_nlatree(void)
 		}
 	}
 	
-	myortho2		(0,	NLAWIDTH, 0, ( ofsy+G.v2d->mask.ymax)-( ofsy+G.v2d->mask.ymin-SCROLLB));	//	Scaling
+	myortho2(0,	NLAWIDTH, 0, ( ofsy+G.v2d->mask.ymax)-( ofsy+G.v2d->mask.ymin-SCROLLB));	//	Scaling
 
 	glShadeModel(GL_SMOOTH);
  
@@ -450,7 +450,7 @@ void drawnlaspace(ScrArea *sa, void *spacedata)
 	glClearColor(.45, .45, .45, 0.0); 
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	myortho2 (G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
+	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 	
 	/*	Draw backdrop */
 	calc_ipogrid();	
@@ -466,15 +466,19 @@ void drawnlaspace(ScrArea *sa, void *spacedata)
 	draw_cfra_action();
 
 	/* Draw scroll */
-	mywinset(curarea->win);
+	mywinset(curarea->win);	// reset scissor too
 	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
-		myortho2(-0.5, curarea->winx+0.5, -0.5, curarea->winy+0.5);
+		myortho2(-0.5, curarea->winx-0.5, -0.5, curarea->winy-0.5);
 		if(G.v2d->scroll) drawscroll(0);
 	}
 
 	/* Draw channel names */
 	draw_nlatree();
 
+	mywinset(curarea->win);	// reset scissor too
+	myortho2(-0.5, sa->winx-0.5, -0.5, sa->winy-0.5);
+	draw_area_emboss(sa);
+	
 	curarea->win_swap= WIN_BACK_OK;
 }
 

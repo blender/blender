@@ -7299,7 +7299,7 @@ static void do_constraintbuts(unsigned short event)
 
 /* ***************************<>******************************** */
 
-void drawbutspace(ScrArea *sa, void *spacedata)
+void drawbutspace_old(ScrArea *sa, void *spacedata)
 {
 	SpaceButs *sbuts= curarea->spacedata.first;
 	View2D *v2d= &sbuts->v2d;

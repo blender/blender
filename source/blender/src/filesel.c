@@ -91,6 +91,7 @@
 #include "BIF_editview.h"
 #include "BIF_space.h"
 #include "BIF_screen.h"
+#include "BIF_resources.h"
 
 #include "BLO_readfile.h"
 
@@ -103,6 +104,7 @@
 #include "render.h"
 #include "interface.h"
 #include "nla.h"
+
 
 #if defined WIN32 || defined __BeOS
 	int fnmatch(){return 0;}
@@ -886,12 +888,12 @@ static void draw_filescroll(SpaceFile *sfile)
 
 	if(scrollrct.ymin+10 >= scrollrct.ymax) return;
 	
-	cpack(0x707070);
+	cpack(0x808080);
 	glRecti(scrollrct.xmin,  scrollrct.ymin,  scrollrct.xmax,  scrollrct.ymax);
 
 	uiEmboss(scrollrct.xmin, scrollrct.ymin, scrollrct.xmax, scrollrct.ymax, 1);
 
-	cpack(0x909090);
+	glColor3f(.715, .715, .715); 
 	glRecti(bar.xmin+2,  bar.ymin+2,  bar.xmax-2,  bar.ymax-2);
 
 	uiEmboss(bar.xmin+2, bar.ymin+2, bar.xmax-2, bar.ymax-2, filescrollselect);
@@ -912,13 +914,13 @@ static void printregel(SpaceFile *sfile, struct direntry *files, int x, int y)
 
 	switch(files->flags & (HILITE + ACTIVE)) {
 	case HILITE+ACTIVE:
-		boxcol= (0xC09090);
+		boxcol= (0xD0A0A0);
 		break;
 	case HILITE:
-		boxcol= (0x909090);
+		boxcol= (0xA0A0A0);
 		break;
 	case ACTIVE:
-		boxcol= (0xB08080);
+		boxcol= (0xC0A0A0);
 		break;
 	}
 
@@ -1070,7 +1072,7 @@ static void set_active_file(SpaceFile *sfile, int act)
 		glScissor(curarea->winrct.xmin, curarea->winrct.ymin, curarea->winx-12, curarea->winy);
 
 		if( calc_filesel_regel(sfile, old, &x, &y) ) {
-			regelrect(0x717171, x, y);
+			regelrect(0x888888, x, y);
 			printregel(sfile, sfile->filelist+old, x, y);
 		}
 		if( calc_filesel_regel(sfile, newi, &x, &y) ) {
@@ -1098,7 +1100,7 @@ static void draw_filetext(SpaceFile *sfile)
 
 
 	/* box */
-	cpack(0x717171);
+	cpack(0x888888);
 	glRecti(textrct.xmin,  textrct.ymin,  textrct.xmax,  textrct.ymax);
 
 	/* collums */
@@ -1131,7 +1133,7 @@ static void draw_filetext(SpaceFile *sfile)
 	/* clear drawing errors, with text at the right hand side: */
 	uiEmboss(textrct.xmin, textrct.ymin, textrct.xmax, textrct.ymax, 1);
 	
-	glColor3f(.5625, .5625, .5625);
+	glColor3f(.715, .715, .715);
 	glRecti(textrct.xmax+2,  textrct.ymin,  textrct.xmax+10,  textrct.ymax);
 }
 
@@ -1144,9 +1146,9 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	char name[20];
 	char *menu;
 
-	myortho2(-0.5, curarea->winrct.xmax-curarea->winrct.xmin-0.5, -0.5, curarea->winrct.ymax-curarea->winrct.ymin-0.5);
+	myortho2(-0.5, sa->winx-0.5, -0.5, sa->winy-0.5);
 
-	glClearColor(.56, .56, .56, 0.0); 
+	glClearColor(.715, .715, .715, 0.0); 	/* headercol */
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	sfile= curarea->spacedata.first;	
@@ -1166,6 +1168,7 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	/* HEADER */
 	sprintf(name, "win %d", curarea->win);
 	block= uiNewBlock(&curarea->uiblocks, name, UI_EMBOSSF, UI_HELV, curarea->win);
+	uiBlockSetCol(block, BUTGREY);
 	
 	uiSetButLock( sfile->type==FILE_MAIN && sfile->returnfunc, NULL);
 
@@ -1199,6 +1202,8 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	/* others diskfree etc ? */
 	scrarea_queue_headredraw(curarea);	
 	
+	myortho2(-0.5, (float)(sa->winx)-0.5, -0.5, (float)(sa->winy)-0.5);
+	draw_area_emboss(sa);
 	
 	curarea->win_swap= WIN_BACK_OK;
 }

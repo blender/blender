@@ -1201,8 +1201,15 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 		sa= sc->areabase.first;
 		while(sa) {
 			SpaceLink *sl;
+			Panel *pa;
 
 			writestruct(wd, DATA, "ScrArea", 1, sa);
+			
+			pa= sa->panels.first;
+			while(pa) {
+				writestruct(wd, DATA, "Panel", 1, pa);
+				pa= pa->next;
+			}
 			
 			sl= sa->spacedata.first;
 			while(sl) {

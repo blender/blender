@@ -43,6 +43,10 @@ struct BWinEvent;
 #define OOPS_TEST		2
 #define REMAKEALLIPO	3	/* Reevan's ipo fixing test */
 
+#define BUT_HORIZONTAL 	1
+#define BUT_VERTICAL 	2
+
+
 void	scrarea_do_windraw		(struct ScrArea *sa);
 void	scrarea_do_winchange	(struct ScrArea *sa);
 void	scrarea_do_winhandle	(struct ScrArea *sa, struct BWinEvent *evt);
@@ -84,6 +88,8 @@ extern       void winqreadnlaspace(struct ScrArea *sa, void *spacedata, struct B
 extern       void winqreadseqspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 extern       void test_butspace(void);
 extern       void start_game(void);
+extern 		 void group_menu(void);
+
 
 #ifdef _WIN32	// FULLSCREEN
 extern		 void mainwindow_toggle_fullscreen(int fullscreen);

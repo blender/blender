@@ -426,11 +426,12 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 	mywinset(curarea->win);
 
 	
+	/* ortho at pixel level curarea */
+	myortho2(-0.5, sa->winx-0.5, -0.5, sa->winy-0.5);
 	if(G.v2d->scroll) {	
-		/* ortho at pixel level curarea */
-		myortho2(-0.5, curarea->winx+0.5, -0.5, curarea->winy+0.5);
 		drawscroll(0);		
 	}
+	draw_area_emboss(sa);	
 	
 	uiDrawBlock(block);
 	

@@ -75,7 +75,7 @@ void getmouseco_headwin(short *mval);
 unsigned short qtest(void);
 int anyqtest(void);
 void areawinset(short win);
-void headerbox(int selcol, int width);
+void headerbox(struct ScrArea *sa);
 void defheaddraw(void);
 void defheadchange(void);
 unsigned short winqtest(struct ScrArea *sa);
@@ -103,13 +103,13 @@ int mywinopen(int mode, short posx, short posy, short sizex, short sizey);
 void setscreen(struct bScreen *sc);
 void area_fullscreen(void);
 int select_area(int spacetype);
-void drawedge(short x1, short y1, short x2, short y2);
 void drawscreen(void);
 struct bScreen *default_twosplit(void);
 void initscreen(void);
 void unlink_screen(struct bScreen *sc);
 void reset_autosave(void);
 int area_is_active_area(struct ScrArea *area);
+void draw_area_emboss(struct ScrArea *sa);
 
 	/***/
 	

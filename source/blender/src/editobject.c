@@ -140,7 +140,6 @@
 #include "BDR_editobject.h"
 #include "BDR_drawobject.h"
 #include "BDR_editcurve.h"
-#include "BDR_editface.h"
 
 #include "render.h"
 #include <time.h>
@@ -221,10 +220,13 @@ void free_and_unlink_base(Base *base)
 void delete_obj(int ok)
 {
 	Base *base;
+extern int undo_push(char *);
 	
 	if(G.obpose) return;
 	if(G.obedit) return;
 	if(G.scene->id.lib) return;
+	
+//if (undo_push("Erase")) return;	
 	
 	base= FIRSTBASE;
 	while(base) {
@@ -1397,7 +1399,7 @@ void special_editmenu(void)
 			
 			if(me==0 || me->tface==0) return;
 			
-			nr= pupmenu("Specials%t|Set     Tex%x1|         Shared%x2|         Light%x3|         Invisible%x4|         Collision%x5|Clr     Tex%x6|         Shared%x7|         Light%x8|         Invisible%x9|         Collision%x10|Sel     Same UV%x11");
+			nr= pupmenu("Specials%t|Set     Tex%x1|         Shared%x2|         Light%x3|         Invisible%x4|         Collision%x5|Clr     Tex%x6|         Shared%x7|         Light%x8|         Invisible%x9|         Collision%x10");
 	
 			for(a=me->totface, tface= me->tface; a>0; a--, tface++) {
 				if(tface->flag & SELECT) {
@@ -1424,8 +1426,6 @@ void special_editmenu(void)
 						tface->mode &= ~TF_INVISIBLE; break;
 					case 10:
 						tface->mode &= ~TF_DYNAMIC; break;
-					case 11:
-						get_same_uv(); break;
 					}
 				}
 			}
@@ -3514,7 +3514,7 @@ void headerprint(char *str)
 {
 	areawinset(curarea->headwin);
 	
-	headerbox(0xA09090, curarea->winx);
+	headerbox(curarea);
 	cpack(0x0);
 	glRasterPos2i(20+curarea->headbutofs,  6);
 	BMF_DrawString(G.font, str);

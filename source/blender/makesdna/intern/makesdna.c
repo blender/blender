@@ -1041,7 +1041,7 @@ int make_structDNA(FILE *file)
 void make_bad_file(char *file)
 {
 	FILE *fp= fopen(file, "w");
-	fprintf(fp, "NO NO NO! YOUR STUPID STUPID STUPID!\n");
+	fprintf(fp, "ERROR! Cannot make correct DNA.c file\n");
 	fclose(fp);
 }
 

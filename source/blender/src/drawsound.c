@@ -197,15 +197,16 @@ void drawsoundspace(ScrArea *sa, void *spacedata)
 	/* restore viewport */
 	mywinset(curarea->win);
 
+	/* ortho at pixel level curarea */
+	myortho2(-0.5, curarea->winx-0.5, -0.5, curarea->winy-0.5);
+
 	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
-		
-		/* ortho at pixel level curarea */
-		myortho2(-0.5, curarea->winx+0.5, -0.5, curarea->winy+0.5);
-		
 		if(G.v2d->scroll) {
 			drawscroll(0);
 		}
 	}
 	
+	myortho2(-0.5, curarea->winx-0.5, -0.5, curarea->winy-0.5);
+	draw_area_emboss(sa);
 	curarea->win_swap= WIN_BACK_OK;
 }

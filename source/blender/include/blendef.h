@@ -40,8 +40,7 @@
 
 /* **************** MAX ********************* */
 
-
-#define MAXLAMP         32766
+#define MAXLAMP		32765
 /* max length material array, 16 because of bits in matfrom */
 #define MAXPICKBUF      2000
 #define MAXSEQ          32
@@ -244,6 +243,7 @@
 #define	B_POSEMODE		153
 #define	B_TEXTUREPAINT		154
 #define B_WPAINT		155
+#define B_MODESELECT		156
 
 /* IPO: 200 */
 #define B_IPOHOME		201
@@ -284,15 +284,21 @@
 #define B_SETTRANSBUTS		315
 #define B_DOLANGUIFONT		316
 
+#define B_UITHEMECHANGED	317
+#define B_UITHEMECOLORMOD	318
+#define B_UITHEMERESET		319
+#define B_UITHEMEIMPORT		320
+#define B_UITHEMEEXPORT		321
+
 /* Definitions for the fileselect buttons in user prefs */
-#define B_FONTDIRFILESEL  	320
-#define B_TEXTUDIRFILESEL  	321
-#define B_PLUGTEXDIRFILESEL  	322
-#define B_PLUGSEQDIRFILESEL  	323
-#define B_RENDERDIRFILESEL  	324
-#define B_PYTHONDIRFILESEL  	325
-#define B_SOUNDDIRFILESEL  	326
-#define B_TEMPDIRFILESEL  	327
+#define B_FONTDIRFILESEL  	330
+#define B_TEXTUDIRFILESEL  	331
+#define B_PLUGTEXDIRFILESEL 332
+#define B_PLUGSEQDIRFILESEL 333
+#define B_RENDERDIRFILESEL  334
+#define B_PYTHONDIRFILESEL  335
+#define B_SOUNDDIRFILESEL  	336
+#define B_TEMPDIRFILESEL  	337
 /* END Definitions for the fileselect buttons in user prefs */
 
 /* IMAGE: 350 */
@@ -366,6 +372,8 @@
 #define B_KEEPORIG		2
 #define B_BEAUTY		4
 #define B_SMOOTH		8
+#define B_KNIFE			0x80
+#define B_PERCENTSUBD		0x40
 
 
 /* ***************** DISPLIST ***************** */

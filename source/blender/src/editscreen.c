@@ -91,6 +91,7 @@
 #include "BIF_toolbox.h"
 #include "BIF_usiblender.h"
 #include "BIF_keyval.h"
+#include "BIF_resources.h"
 
 #include "BSE_edit.h"
 #include "BSE_filesel.h"
@@ -120,7 +121,7 @@ static void wait_for_event(void);
 
 static Window *mainwin= NULL;
 static int prefsizx= 0, prefsizy= 0, prefstax= 0, prefstay= 0, start_maximized= 1;
-static short dodrawscreen= 0;
+static short dodrawscreen= 1;
 static ScrArea *areawinar[MAXWIN];
 static ScrArea *g_activearea= NULL;
 short winqueue_break= 0;
@@ -223,11 +224,11 @@ static ScrEdge *screen_find_active_scredge(bScreen *sc, short *mval)
 	
 	for (se= sc->edgebase.first; se; se= se->next) {
 		if (scredge_is_horizontal(se)) {
-			if (abs(mval[1]-se->v1->vec.y)<=EDGEWIDTH2 &&
+			if (abs(mval[1]-se->v1->vec.y)<=2 &&
 					abs(mval[0]-se->v1->vec.x)<=abs(se->v2->vec.x-se->v1->vec.x))
 				return se;
 		} else {
-			if (abs(mval[0]-se->v1->vec.x)<=EDGEWIDTH2 &&
+			if (abs(mval[0]-se->v1->vec.x)<=2 &&
 					abs(mval[1]-se->v1->vec.y)<=abs(se->v2->vec.y-se->v1->vec.y))
 				return se;
 		}
@@ -290,30 +291,30 @@ void areawinset(short win)
 	if(win) mywinset(win);
 }
 
-void headerbox(int selcol, int width)
+#define SCR_BACK 0.55
+#define SCR_ROUND 9
+
+void headerbox(ScrArea *area)
 {
-	if(selcol) glClearColor(.75, .75, .75, 0.0);
-	else glClearColor(.65, .65, .65, 0.0);
-	
+	float width= area->winx;
+
+	glClearColor(SCR_BACK, SCR_BACK, SCR_BACK, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	glColor3ub(0, 0, 0);
-	sdrawbox(0,  0,  width,  HEADERY);
-
-	glColor3ub(220, 220, 220);
-	sdrawline(0,  HEADERY-1,  width,  HEADERY-1);
+	if(area_is_active_area(area)) BIF_set_color(HEADERCOLSEL, COLORSHADE_MEDIUM);
+	else BIF_set_color(HEADERCOL, COLORSHADE_MEDIUM);
 	
-	glColor3ub(176, 176, 176);
-	sdrawline(0,  HEADERY-2,  width,  HEADERY-2);
+	/* weird values here... is because of window matrix that centres buttons */
+	if(area->headertype==HEADERTOP) {
+		uiSetRoundBox(3);
+		uiRoundBoxEmboss(-0.5+area->headbutofs, -10.0, width-1.5+area->headbutofs, HEADERY-1, SCR_ROUND);
+	}
+	else {
+		uiSetRoundBox(12);
+		uiRoundBoxEmboss(-0.5+area->headbutofs, -2.0, width-1.5+area->headbutofs, HEADERY+10, SCR_ROUND);
+	}
 	
-	glColor3ub(128, 128, 128);
-	sdrawline(0,  2,  width,  2);
-	
-	glColor3ub(64, 64, 64);
-	sdrawline(0,  1,  width,  1);
-	
-	glColor3ub(0, 0, 0);
-	sdrawline(0,  0,  width,  0);
+	uiSetRoundBox(15);
 }
 
 int area_is_active_area(ScrArea *area)
@@ -326,8 +327,11 @@ void scrarea_do_headdraw(ScrArea *area)
 	if (area->headertype) {
 		areawinset(area->headwin);
 	
-		headerbox(area_is_active_area(area), area->winx+100);
-	
+		headerbox(area);
+		
+		/* we make scissor test slightly smaller not to destroy rounded headers */
+		glScissor(area->headrct.xmin+5, area->headrct.ymin, area->winx-10, HEADERY);
+		
 		switch(area->spacetype) {
 		case SPACE_FILE:	file_buttons();		break;
 		case SPACE_INFO:	info_buttons();		break;
@@ -343,7 +347,8 @@ void scrarea_do_headdraw(ScrArea *area)
 		case SPACE_ACTION:	action_buttons();	break;
 		case SPACE_NLA:		nla_buttons();		break;
 		}
-	
+
+		//glScissor(area->winrct.xmin, area->winrct.xmax, area->winx, area->winy);
 		area->head_swap= WIN_BACK_OK;
 	}
 }
@@ -352,9 +357,9 @@ void scrarea_do_headchange(ScrArea *area)
 	float ofs= area->headbutofs;
 
 	if (area->headertype==HEADERDOWN) {
-		bwin_ortho2(area->headwin, 0.5+ofs, area->headrct.xmax-area->headrct.xmin-0.5+ofs, +0.6, area->headrct.ymax-area->headrct.ymin+0.6);
+		bwin_ortho2(area->headwin, -0.5+ofs, area->headrct.xmax-area->headrct.xmin-0.5+ofs, -2.5, area->headrct.ymax-area->headrct.ymin-2.5);
 	} else if (area->headertype==HEADERTOP) {
-		bwin_ortho2(area->headwin, -0.5+ofs, area->headrct.xmax-area->headrct.xmin-0.5+ofs, -0.5, area->headrct.ymax-area->headrct.ymin-0.5);
+		bwin_ortho2(area->headwin, -0.5+ofs, area->headrct.xmax-area->headrct.xmin-0.5+ofs, -1.5, area->headrct.ymax-area->headrct.ymin-1.5);
 	}
 }
 
@@ -378,6 +383,7 @@ static void scrarea_change_headertype(ScrArea *sa, int newtype)
 	}
 
 	testareas();
+	mainqenter(DRAWEDGES, 1);
 	winqueue_break= 1;
 }
 
@@ -566,7 +572,30 @@ void splash(void *data, int datasize, char *string)
 		oldwin = mywinget();
 		mywinset(G.curscreen->mainwin);
 		
+		if (string) {
+			int x, y, maxy;
+			unsigned int *rect;
+			
+			rect = bbuf->rect;
+			maxy = MIN2(bbuf->y, 18);
+
+			for (y = 0; y < maxy; y++) {
+				for (x = 0; x < bbuf->x; x++) {
+					*rect = 0xffffffff;
+					rect++;
+				}
+			}
+		}
 		glDrawBuffer(GL_FRONT);
+		
+		/*
+		// this dims the whole screen a bit. I didn't like it afterall
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glColor4f(0.0,0.0,0.0,0.3);
+		glRecti(0, 0, G.curscreen->sizex, G.curscreen->sizey);
+		glDisable(GL_BLEND);
+		*/
 		
 		glRasterPos2i((prefsizx-bbuf->x)/2, (prefsizy-bbuf->y)/2);	
 		glDrawPixels(bbuf->x, bbuf->y, GL_RGBA, GL_UNSIGNED_BYTE, bbuf->rect);
@@ -875,10 +904,15 @@ static ScrArea *screen_find_area_for_pt(bScreen *sc, short *mval)
 {
 	ScrArea *sa;
 	
-	for (sa= sc->areabase.first; sa; sa= sa->next)
-		if (BLI_in_rcti(&sa->totrct, mval[0], mval[1]))
-			return sa;
+	/* hotspot area of 1 pixel extra */
 	
+	for (sa= sc->areabase.first; sa; sa= sa->next) {
+		if( sa->totrct.xmin + 1 < mval[0] )
+			if( sa->totrct.ymin + 1 < mval[1] )
+				if( sa->totrct.xmax - 1 > mval[0] )
+					if( sa->totrct.ymax - 1 > mval[1] )
+						return sa;
+	}
 	return NULL;
 }
 
@@ -1342,11 +1376,11 @@ void calc_arearcts(ScrArea *sa)
 	if(sa->headertype) {
 		sa->headrct= sa->totrct;
 		if(sa->headertype==HEADERDOWN) {
-			sa->headrct.ymax= sa->headrct.ymin+HEADERY-1;
+			sa->headrct.ymax= sa->headrct.ymin+HEADERY;
 			sa->winrct.ymin= sa->headrct.ymax+1;
 		}
 		else if(sa->headertype==HEADERTOP) {
-			sa->headrct.ymin= sa->headrct.ymax-HEADERY+1;
+			sa->headrct.ymin= sa->headrct.ymax-HEADERY;
 			sa->winrct.ymax= sa->headrct.ymin-1;
 		}
 	}
@@ -1386,7 +1420,8 @@ static void closeheadwin(ScrArea *sa)
 static void closeareawin(ScrArea *sa)
 {
 	uiFreeBlocksWin(&sa->uiblocks, sa->win);
-
+	uiFreePanels(&sa->panels);
+	
 	if(sa->win) mywinclose(sa->win);
 	sa->win= 0;
 }
@@ -1404,15 +1439,19 @@ static void del_area(ScrArea *sa)
 	if(sa==g_activearea) g_activearea= 0;
 }
 
+/* sa2 to sa1 */
 static void copy_areadata(ScrArea *sa1, ScrArea *sa2)
 {
+	
 	sa1->headertype= sa2->headertype;
 	sa1->spacetype= sa2->spacetype;
 	Mat4CpyMat4(sa1->winmat, sa2->winmat);
 	
 	freespacelist(&sa1->spacedata);
-	
 	duplicatespacelist(sa1, &sa1->spacedata, &sa2->spacedata);
+
+	BLI_freelistN(&sa1->panels);
+	duplicatelist(&sa1->panels, &sa2->panels);
 }
 
 static ScrArea *screen_addarea(bScreen *sc, ScrVert *v1, ScrVert *v2, ScrVert *v3, ScrVert *v4, short headertype, short spacetype)
@@ -1635,6 +1674,15 @@ void add_to_mainqueue(Window *win, void *user_data, short evt, short val, char a
 	mainqenter_ext(evt, val, ascii);
 }
 
+/* ScrVert ordering in a ScrArea:
+
+2---------3
+|         |
+|         |
+1---------4
+  
+*/
+
 static bScreen *addscreen(char *name)		/* use setprefsize() if you want something else than a full windpw */
 {
 	/* this function sets variabele G.curscreen,
@@ -1690,10 +1738,10 @@ static bScreen *addscreen(char *name)		/* use setprefsize() if you want somethin
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-		glDrawBuffer(GL_FRONT);
-		glClearColor(.45, .45, .45, 0.0);
+		/* for visual speed, but still needed? */
+		glClearColor(.55, .55, .55, 0.0);
 		glClear(GL_COLOR_BUFFER_BIT);
-		glDrawBuffer(GL_BACK);
+		window_swap_buffers(mainwin);
 		
 		warp_pointer(sc->sizex/2,  sc->sizey/2);
 		
@@ -1874,7 +1922,7 @@ void area_fullscreen(void)	/* with curarea */
 		curarea= old;
 		G.curscreen= oldscreen;	/* needed because of setscreen */
 		
-		/* vopy area */
+		/* copy area */
 		copy_areadata(newa, curarea);
 		
 		curarea->full= oldscreen;
@@ -2572,6 +2620,7 @@ static void moveareas(ScrEdge *edge)
 	doit= delta= 0;
 	getmouseco_sc(mvalo);
 	draw_front_xor_dirdist_line(dir, edge_position+delta, edge_start, edge_end);
+
 	while (!doit) {
 		short val;
 		unsigned short event= extern_qread(&val);
@@ -2587,9 +2636,12 @@ static void moveareas(ScrEdge *edge)
 			delta= CLAMPIS(delta, -smaller, bigger);
 			
 			draw_front_xor_dirdist_line(dir, edge_position+delta, edge_start, edge_end);
-		} else if (event==LEFTMOUSE) {
+
+		} 
+		else if (event==LEFTMOUSE) {
 			doit= 1;
-		} else if (val) {
+		} 
+		else if (val) {
 			if (ELEM(event, ESCKEY, RIGHTMOUSE))
 				doit= -1;
 			else if (ELEM(event, SPACEKEY, RETKEY))
@@ -2729,99 +2781,105 @@ int select_area(int spacetype)
 /* ************  END JOIN/SPLIT/MOVE ************** */
 /* **************** DRAW SCREENEDGES ***************** */
 
-#define EDGE_EXTEND 3
 
-void drawedge(short x1, short y1, short x2, short y2)
+void draw_area_emboss(ScrArea *sa)
 {
-	static unsigned int edcol[EDGEWIDTH]= {0x0, 0x505050, 0x909090, 0xF0F0F0, 0x0};
-	int a;
 	
-	if(x1==x2) {		/* vertical */
-		if (y2<y1) {
-			SWAP(short, y1, y2);
-		}
-		if (y1==0) y1-= EDGE_EXTEND;
-		if (y2==G.curscreen->sizey) y2+= EDGE_EXTEND;
-		
-		x1+= EDGEWIDTH2;
-		x2+= EDGEWIDTH2;
+	/* set transp line */
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
-		glBegin(GL_LINES);		
-		for(a=0; a<EDGEWIDTH; a++) {
-			int rounding= abs(a-EDGEWIDTH2);
-			
-			cpack(edcol[a]);
-			glVertex2i(x1-a, y1+rounding);
-			glVertex2i(x2-a, y2-rounding);
-		}
-		glEnd();
+	/* right  */
+	glColor4ub(0,0,0, 80);
+	sdrawline(sa->winx-1, 0, sa->winx-1, sa->winy-1);
+	
+	/* bottom  */
+	if(sa->headertype!=HEADERDOWN) {
+		glColor4ub(0,0,0, 128);
+		sdrawline(0, 0, sa->winx-1, 0);
 	}
-	else {				/* horizontal */
-		if (x2<x1) {
-			SWAP(short, x1, x2);
-		}
-		if (x1==0) x1-= EDGE_EXTEND;
-		if (x2==G.curscreen->sizex) x2+= EDGE_EXTEND;
+	
+	/* top  */
+	if(sa->headertype!=HEADERTOP) {
+		glColor4ub(255,255,255, 128);
+		sdrawline(0, sa->winy-1, sa->winx-1, sa->winy-1);
+	}
+	/* left  */
+	glColor4ub(255,255,255, 80);
+	sdrawline(0, 0, 0, sa->winy);
 
-		y1-= EDGEWIDTH2;
-		y2-= EDGEWIDTH2;
-		
-		glBegin(GL_LINES);
-		for(a=0; a<EDGEWIDTH; a++) {
-			int rounding= abs(a-EDGEWIDTH2);
-			
-			cpack(edcol[a]);
-			glVertex2i(x1+rounding, y1+a);
-			glVertex2i(x2-rounding, y2+a);
-		}
-		glEnd();
+	glDisable( GL_BLEND );
+	
+	
+	/* for test */
+	if(FALSE && sa->spacetype==SPACE_VIEW3D) {
+	cpack(0xA0A0A0);
+	uiSetRoundBox(31);
+	uiRoundBoxEmboss(5.0, 5.0, 25.0, 100.0, 8.0);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
+	
+	glRasterPos2f(8.0, 10.0);
+	BIF_draw_icon(ICON_MATERIAL_HLT);
+	glRasterPos2f(8.0, 30.0);
+	BIF_draw_icon(ICON_IPO_HLT);
+	glRasterPos2f(8.0, 50.0);
+	BIF_draw_icon(ICON_HOME);
+	glRasterPos2f(8.0, 70.0);
+	BIF_draw_icon(ICON_BORDERMOVE);
+	
+	glBlendFunc(GL_ONE,  GL_ZERO); 
+	glDisable(GL_BLEND);
 	}
 }
 
-static void drawscredge(ScrEdge *se)
-{
-	bScreen *sc;
-	vec2s *v1, *v2;
-	
-	sc= G.curscreen;
-	
-	v1= &(se->v1->vec);
-	v2= &(se->v2->vec);
-	
-	/* do not draw borders screen© */
-	/* bcause of different framebuffer resoltions (PC/SGI etc files) 
-	 * a bit rounding here? should be looked at further...
-	 */
-	se->border= 1;
-	if(v1->x<=1 && v2->x<=1) return;
-	if(v1->x>=sc->sizex-2 && v2->x>=sc->sizex-2) return;
-	if(v1->y<=1 && v2->y<=1) return;
-	if(v1->y>=sc->sizey-2 && v2->y>=sc->sizey-2) return;
-	se->border= 0;
 
-	drawedge(v1->x, v1->y, v2->x, v2->y);
+void drawscredge_area(ScrArea *sa)
+{
+	short x1= sa->v1->vec.x;
+	short y1= sa->v1->vec.y;
+	short x2= sa->v3->vec.x;
+	short y2= sa->v3->vec.y;
+
+	/* this to fill the (undrawn) edge area with back color first */
+	glColor3f(SCR_BACK,SCR_BACK,SCR_BACK);
+	sdrawline(x2, y1, x2, y2);
+	sdrawline(x1, y1, x2, y1);
+	
+	cpack(0x0);
+	
+	/* right border area */
+	if(sa->headertype==HEADERTOP) sdrawline(x2, y1, x2, y2-SCR_ROUND);
+	else if(sa->headertype==HEADERDOWN) sdrawline(x2, y1+SCR_ROUND, x2, y2);
+	else sdrawline(x2, y1, x2, y2);
+	
+	/* left border area */
+	if(sa->headertype==HEADERTOP) sdrawline(x1, y1, x1, y2-SCR_ROUND);
+	else if(sa->headertype==HEADERDOWN) sdrawline(x1, y1+SCR_ROUND, x1, y2);
+	else sdrawline(x1, y1, x1, y2);
+	
+	/* top border area */
+	if(sa->headertype==HEADERTOP) sdrawline(x1+SCR_ROUND, y2, x2-SCR_ROUND, y2);
+	else sdrawline(x1, y2, x2, y2);
+	
+	/* bottom border area */
+	if(sa->headertype==HEADERDOWN) sdrawline(x1+SCR_ROUND, y1, x2-SCR_ROUND, y1);
+	else sdrawline(x1, y1, x2, y1);
+	
 }
 
 void drawscreen(void)
 {
-	ScrEdge *se;
-	
+	ScrArea *sa;
+
 	mywinset(G.curscreen->mainwin);
-	myortho2(-0.5, (float)G.curscreen->sizex-0.5, -0.6, (float)G.curscreen->sizey-0.6);
+	myortho2(-0.5, (float)G.curscreen->sizex-0.5, -0.51, (float)G.curscreen->sizey-0.51);
 
-	/* two times, because there is no 'win_swap' for this  available */
-	glDrawBuffer(GL_FRONT);
-	se= G.curscreen->edgebase.first;
-	while(se) {
-		drawscredge(se);
-		se= se->next;
-	}
-
-	glDrawBuffer(GL_BACK);
-	se= G.curscreen->edgebase.first;
-	while(se) {
-		drawscredge(se);
-		se= se->next;
+	sa= G.curscreen->areabase.first;
+	while(sa) {
+		drawscredge_area(sa);
+		sa= sa->next;
 	}
 }
 

@@ -126,7 +126,7 @@ void meshactionbuts(SpaceAction *saction, Key *key)
 	 * correctly *grumble*
 	 */
 	mywinset(curarea->win);
-	myortho2(-0.5, curarea->winx+0.5, -0.5, curarea->winy+0.5);
+	myortho2(-0.5, curarea->winx-0.5, -0.5, curarea->winy-0.5);
 
     sprintf(str, "actionbuttonswin %d", curarea->win);
     block= uiNewBlock (&curarea->uiblocks, str, 
@@ -302,7 +302,7 @@ static void draw_channel_names(void)
 	bAction	*act;
 	Key *key;
 
-	myortho2		(0,	NAMEWIDTH, G.v2d->cur.ymin, G.v2d->cur.ymax);	//	Scaling
+	myortho2(0,	NAMEWIDTH, G.v2d->cur.ymin, G.v2d->cur.ymax);	//	Scaling
 
 	/* Blank out the area */
 	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
@@ -343,8 +343,7 @@ static void draw_channel_names(void)
         }
     }
 
-    myortho2 (0,	NAMEWIDTH, 0, 
-              (ofsy+G.v2d->mask.ymax) -
+    myortho2(0,	NAMEWIDTH, 0, (ofsy+G.v2d->mask.ymax) -
               (ofsy+G.v2d->mask.ymin-SCROLLB));	//	Scaling
 
     glShadeModel(GL_SMOOTH);
@@ -615,8 +614,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	glClearColor(.45, .45, .45, 0.0); 
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	myortho2 (G.v2d->cur.xmin, G.v2d->cur.xmax, 
-			  G.v2d->cur.ymin, G.v2d->cur.ymax);
+	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 
 	/*	Draw backdrop */
 	calc_ipogrid();	
@@ -643,14 +641,13 @@ void drawactionspace(ScrArea *sa, void *spacedata)
             ofsy+G.v2d->mask.ymin, 
             ( ofsx+G.v2d->mask.xmax-1)-(ofsx+G.v2d->mask.xmin)+1, 
             ( ofsy+G.v2d->mask.ymax-1)-( ofsy+G.v2d->mask.ymin)+1);
-	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, 
-           G.v2d->cur.ymin, G.v2d->cur.ymax);
+	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax,  G.v2d->cur.ymin, G.v2d->cur.ymax);
 	draw_cfra_action();
 
 	/* Draw scroll */
-	mywinset(curarea->win);
+	mywinset(curarea->win);	// reset scissor too
 	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
-      myortho2(-0.5, curarea->winx+0.5, -0.5, curarea->winy+0.5);
+      myortho2(-0.5, curarea->winx-0.5, -0.5, curarea->winy-0.5);
       if(G.v2d->scroll) drawscroll(0);
 	}
 
@@ -664,6 +661,9 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 		meshactionbuts(G.saction, key);
 	}
 
+	mywinset(curarea->win);	// reset scissor too
+	myortho2(-0.5, curarea->winx-0.5, -0.5, curarea->winy-0.5);
+	draw_area_emboss(sa);
 	curarea->win_swap= WIN_BACK_OK;
 }
 

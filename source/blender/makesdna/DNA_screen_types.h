@@ -78,6 +78,19 @@ typedef struct ScrEdge {
 typedef unsigned short dna_ushort_fix;
 #endif
 
+
+/* panel->flag */
+#define PNL_SELECT	1
+#define PNL_CLOSED	2
+
+typedef struct Panel {		/* the part from uiBlock that needs saved in file */
+	struct Panel *next, *prev;
+	char panelname[64], tabname[64];	/* defined as UI_MAX_NAME_STR */
+	short ofsx, ofsy, sizex, sizey;
+	short flag, pad;
+	int pad2;
+} Panel;
+
 typedef struct ScrArea {
 	struct ScrArea *next, *prev;
 	ScrVert *v1, *v2, *v3, *v4;
@@ -97,16 +110,17 @@ typedef struct ScrArea {
 
 	ListBase spacedata;
 	ListBase uiblocks;
+	ListBase panels;
 } ScrArea;
 
 #define MAXWIN		128
 
 /* If you change EDGEWIDTH, also do the global arrat edcol[]  */
-#define EDGEWIDTH	5
-#define EDGEWIDTH2	(2)
+#define EDGEWIDTH	1
+#define EDGEWIDTH2	0
 #define AREAGRID	4
 #define AREAMINX	32
-#define HEADERY		21
+#define HEADERY		24
 #define AREAMINY	(HEADERY+EDGEWIDTH)
 
 #define HEADERDOWN	1

@@ -154,9 +154,11 @@ static void def_col(BIFColorID colorid, unsigned char r, unsigned char g, unsign
 		rgbaCCol_addNT(get_color(colorid, COLORSHADE_WHITE),	col, 60);
 		rgbaCCol_addNT(get_color(colorid, COLORSHADE_LIGHT),	col, 35);
 		rgbaCCol_addNT(get_color(colorid, COLORSHADE_HILITE),	col, 20);
+		rgbaCCol_addNT(get_color(colorid, COLORSHADE_LMEDIUM),	col, 10);
 		rgbaCCol_addNT(get_color(colorid, COLORSHADE_MEDIUM),	col, 0);
-		rgbaCCol_addNT(get_color(colorid, COLORSHADE_GREY),		col, -45);
-		rgbaCCol_addNT(get_color(colorid, COLORSHADE_DARK),		col, -60);
+		rgbaCCol_addNT(get_color(colorid, COLORSHADE_LGREY),	col, -20);
+		rgbaCCol_addNT(get_color(colorid, COLORSHADE_GREY),	col, -45);
+		rgbaCCol_addNT(get_color(colorid, COLORSHADE_DARK),	col, -80);
 	} else {
 		printf("def_col: Internal error, bad color ID: %d\n", colorid);
 	}
@@ -265,11 +267,11 @@ void BIF_resources_init(void)
 
 	IMB_freeImBuf(bbuf);
 
-	def_col(BUTGREY,		0xB0,0xB0,0xB0);
+	def_col(BUTGREY,		0x90,0x90,0x90);
 	def_col(BUTGREEN,		0x88,0xA0,0xA4);
 	def_col(BUTBLUE,		0xA0,0xA0,0xB0);
 	def_col(BUTSALMON,		0xB0,0xA0,0x90);
-	def_col(MIDGREY,		0x90,0x90,0x90);	
+	def_col(MIDGREY,		0xB0,0xB0,0xB0);	
 	def_col(BUTPURPLE,		0xA2,0x98,0xA9);
 	def_col(BUTYELLOW,		0xB2,0xB2,0x99);
 	def_col(BUTRUST,		0x80,0x70,0x70);
@@ -278,7 +280,16 @@ void BIF_resources_init(void)
 	def_col(BUTDBLUE,		0x80,0x80,0xA0);
 	def_col(BUTDPINK,		0xAA,0x88,0x55);
 	def_col(BUTPINK,		0xE8,0xBD,0xA7);
-	def_col(BUTMACTIVE,		0x70,0x70,0xC0);
+	def_col(BUTMACTIVE,		0x30,0x30,0x30);
+
+	def_col(ACTIONBUTCOL,	0x88,0x88,0x88);
+	def_col(NUMBUTCOL,		0x88,0x88,0x88);
+	def_col(TEXBUTCOL,		0x88,0x88,0x88);
+	def_col(TOGBUTCOL,		0x88,0x88,0x88);
+	def_col(SLIDERCOL,		0x88,0x88,0x88);
+	def_col(TABCOL,			0x88,0x88,0x88);
+	def_col(MENUCOL,		0xCF,0xCF,0xCF);
+	def_col(MENUACTIVECOL,	0x80,0x80,0x80);
 
 	def_col(BUTIPO,			0xB0,0xB0,0x99);
 	def_col(BUTAUDIO,		0xB0,0xA0,0x90);
@@ -290,13 +301,17 @@ void BIF_resources_init(void)
 	def_col(BUTMOTION,		0x98,0xA7,0xA9);
 	def_col(BUTMESSAGE,		0x88,0xA0,0x94);
 	def_col(BUTACTION,		0xB2,0xA9,0x99);
-	def_col(BUTVISIBILITY,		0xB2,0xA9,0x99);
+	def_col(BUTVISIBILITY,	0xB2,0xA9,0x99);
 	def_col(BUTCD,			0xB0,0x95,0x90);
 	def_col(BUTGAME,		0x99,0xB2,0x9C);
 	def_col(BUTYUCK,		0xB0,0x99,0xB0);
 	def_col(BUTSEASICK,		0x99,0xB0,0xB0);
 	def_col(BUTCHOKE,		0x88,0x94,0xA0);
 	def_col(BUTIMPERIAL,	0x94,0x88,0xA0);
+	
+	def_col(HEADERCOL,		165, 165, 165);
+	def_col(HEADERCOLSEL,	185, 185, 185);
+	
 }
 
 void BIF_resources_free(void)

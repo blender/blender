@@ -32,6 +32,7 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -115,7 +116,6 @@ static void scroll_prstr(float x, float y, float val, char dir, int disptype)
 	
 	len= strlen(str);
 	if(dir=='h') x-= 4*len;
-	else y-= 4*len;
 	
 	if(dir=='v' && disptype==IPO_DISPDEGR) {
 		str[len]= 186; /* Degree symbol */
@@ -389,7 +389,7 @@ void test_view2d(View2D *v2d, int winx, int winy)
 		v2d->cur.xmax=v2d->cur.xmin+((float)winx);
 
 	if(v2d->keepzoom & V2D_KEEPZOOM) {
-		/* do not test for min/max: usiig curarea try to fixate zoom */
+		/* do not test for min/max: use curarea try to fixate zoom */
 		zoom= ((float)winx)/dx;
 		
 		if(zoom<v2d->minzoom || zoom>v2d->maxzoom) {
@@ -449,9 +449,6 @@ void test_view2d(View2D *v2d, int winx, int winy)
 		}		
 		
 	}
-	
-	
-	
 	
 	if(v2d->keeptot) {
 		dx= cur->xmax-cur->xmin;
@@ -527,9 +524,9 @@ void test_view2d(View2D *v2d, int winx, int winy)
 		/* dx/dy is the total aspect */
 		
 		/* this exception is for buttons...keepzoom doesnt work proper */
-		if(v2d->keepzoom) fac= dy;
-		else fac= dx/dy;
-		
+		//if(v2d->keepzoom) fac= dy;
+		//else fac= dx/dy;
+fac= dx/dy;		
 		if(fac>1.0) {
 			
 			/* portrait window: correct for x */
@@ -574,23 +571,23 @@ void calc_scrollrcts(View2D *v2d, int winx, int winy)
 		if(v2d->scroll & L_SCROLL) {
 			v2d->vert= v2d->mask;
 			v2d->vert.xmax= SCROLLB;
-			v2d->mask.xmin= SCROLLB+1;
+			v2d->mask.xmin= SCROLLB;
 		}
 		else if(v2d->scroll & R_SCROLL) {
 			v2d->vert= v2d->mask;
 			v2d->vert.xmin= v2d->vert.xmax-SCROLLB;
-			v2d->mask.xmax= v2d->vert.xmin-1;
+			v2d->mask.xmax= v2d->vert.xmin;
 		}
 		
 		if(v2d->scroll & B_SCROLL) {
 			v2d->hor= v2d->mask;
 			v2d->hor.ymax= SCROLLH;
-			v2d->mask.ymin= SCROLLH+1;
+			v2d->mask.ymin= SCROLLH;
 		}
 		else if(v2d->scroll & T_SCROLL) {
 			v2d->hor= v2d->mask;
 			v2d->hor.ymin= v2d->hor.ymax-SCROLLH;
-			v2d->mask.ymax= v2d->hor.ymin-1;
+			v2d->mask.ymax= v2d->hor.ymin;
 		}
 	}
 }
@@ -643,42 +640,38 @@ void drawscroll(int disptype)
 {
 	rcti vert, hor;
 	float fac, dfac, val, fac2, tim;
-	unsigned int dark, darker, light;
+	unsigned int darker, dark, light, lighter;
 	
 	vert= (G.v2d->vert);
 	hor= (G.v2d->hor);
 	
-	darker= 0x525252;
-	dark= 0x656565;
+	darker= 0x404040;
+	dark= 0x858585;
 	light= 0x989898;
+	lighter= 0xc0c0c0;
 	
-	cpack(dark);
 	if(G.v2d->scroll & HOR_SCROLL) {
+		cpack(light);
 		glRecti(hor.xmin,  hor.ymin,  hor.xmax,  hor.ymax);
-		glColor3ub(0, 0, 0);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); glRecti(hor.xmin,  hor.ymin,  hor.xmax,  hor.ymax); glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		
 		/* slider */
 		fac= (G.v2d->cur.xmin- G.v2d->tot.xmin)/(G.v2d->tot.xmax-G.v2d->tot.xmin);
 		if(fac<0.0) fac= 0.0;
-		horxmin= hor.xmin+fac*(hor.xmax-hor.xmin) + 1;
+		horxmin= hor.xmin+fac*(hor.xmax-hor.xmin);
 		
 		fac= (G.v2d->cur.xmax- G.v2d->tot.xmin)/(G.v2d->tot.xmax-G.v2d->tot.xmin);
 		if(fac>1.0) fac= 1.0;
-		horxmax= hor.xmin+fac*(hor.xmax-hor.xmin) -1;
+		horxmax= hor.xmin+fac*(hor.xmax-hor.xmin);
 		
-		if(horxmin > horxmax-2) horxmin= horxmax-2;
+		if(horxmin > horxmax) horxmin= horxmax;
 		
-		glColor3ub(0x78, 0x78, 0x78);
-		glRecti(horxmin,  hor.ymin+1,  horxmax,  hor.ymax-1);
-		
-		cpack(light);
-		sdrawline(horxmin,  hor.ymax-1,  horxmax,  hor.ymax-1);  /* top */
-		sdrawline(horxmin,  hor.ymin+1,  horxmin,  hor.ymax-1);  /* left */
-		cpack(darker);
-		sdrawline(horxmin,  hor.ymin+1,  horxmax,  hor.ymin+1);  /* bottom */
-		sdrawline(horxmax,  hor.ymin+1,  horxmax,  hor.ymax-1);  /* right */
-		
+		cpack(dark);
+		glRecti(horxmin,  hor.ymin,  horxmax,  hor.ymax);
+
+		/* decoration bright line */
+		cpack(lighter);
+		sdrawline(hor.xmin, hor.ymax, hor.xmax, hor.ymax);
+
 		/* the numbers: convert ipogrid_startx and -dx to scroll coordinates */
 		fac= (ipogrid_startx- G.v2d->cur.xmin)/(G.v2d->cur.xmax-G.v2d->cur.xmin);
 		fac= hor.xmin+fac*(hor.xmax-hor.xmin);
@@ -708,35 +701,33 @@ void drawscroll(int disptype)
 			val+= ipogrid_dx;
 		}
 	}
-	cpack(dark);
+	
 	if(G.v2d->scroll & VERT_SCROLL) {
+		cpack(light);
 		glRecti(vert.xmin,  vert.ymin,  vert.xmax,  vert.ymax);
 		glColor3ub(0, 0, 0);
-		
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); glRecti(vert.xmin,  vert.ymin,  vert.xmax,  vert.ymax); glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		
 		/* slider */
 		fac= (G.v2d->cur.ymin- G.v2d->tot.ymin)/(G.v2d->tot.ymax-G.v2d->tot.ymin);
 		if(fac<0.0) fac= 0.0;
-		vertymin= vert.ymin+fac*(vert.ymax-vert.ymin) + 1;
+		vertymin= vert.ymin+fac*(vert.ymax-vert.ymin);
 		
 		fac= (G.v2d->cur.ymax- G.v2d->tot.ymin)/(G.v2d->tot.ymax-G.v2d->tot.ymin);
 		if(fac>1.0) fac= 1.0;
-		vertymax= vert.ymin+fac*(vert.ymax-vert.ymin) -1;
+		vertymax= vert.ymin+fac*(vert.ymax-vert.ymin);
 		
-		if(vertymin > vertymax-2) vertymin= vertymax-2;
+		if(vertymin > vertymax) vertymin= vertymax;
 		
-		glColor3ub(0x78, 0x78, 0x78);
-		glRecti(vert.xmin+1,  vertymin,  vert.xmax-1,  vertymax);
-		
-		cpack(light);
-		
-		sdrawline(vert.xmin+1,  vertymax,  vert.xmax-1,  vertymax);  /* top */
-		sdrawline(vert.xmin+1,  vertymin,  vert.xmin+1,  vertymax);  /* left */
+		cpack(dark);
+		glRecti(vert.xmin,  vertymin,  vert.xmax,  vertymax);
+
+		/* decoration black line */
 		cpack(darker);
-		sdrawline(vert.xmin+1,  vertymin,  vert.xmax-1,  vertymin);  /* bottom */
-		sdrawline(vert.xmax-1,  vertymin,  vert.xmax-1,  vertymax);  /* right */
-		
+		if(G.v2d->scroll & HOR_SCROLL) 
+			sdrawline(vert.xmax, vert.ymin+SCROLLH, vert.xmax, vert.ymax);
+		else 
+			sdrawline(vert.xmax, vert.ymin, vert.xmax, vert.ymax);
+
 		/* the numbers: convert ipogrid_starty and -dy to scroll coordinates */
 		fac= (ipogrid_starty- G.v2d->cur.ymin)/(G.v2d->cur.ymax-G.v2d->cur.ymin);
 		fac= vert.ymin+SCROLLH+fac*(vert.ymax-vert.ymin-SCROLLH);
@@ -763,7 +754,7 @@ void drawscroll(int disptype)
 			glColor3ub(0, 0, 0);
 			val= ipogrid_starty;
 			while(fac < vert.ymax) {
-				scroll_prstr((float)(vert.xmax)-3.0, fac, val, 'v', disptype);
+				scroll_prstr((float)(vert.xmax)-14.0, fac, val, 'v', disptype);
 				fac+= dfac;
 				val+= ipogrid_dy;
 			}
@@ -788,11 +779,13 @@ static void draw_ipobuts(SpaceIpo *sipo)
 		if(tot<area->winy) sipo->butofs= 0;
 	}
 	
-	drawedge(v2d->mask.xmax+3, 0, v2d->mask.xmax+3, area->winy);
 	glColor3ub(0x7f, 0x70, 0x70);
 	
-	glRects(v2d->mask.xmax+6,  0,  area->winx,  area->winy);
+	glRects(v2d->mask.xmax,  0,  area->winx,  area->winy);
 	
+	cpack(0x0);
+	sdrawline(v2d->mask.xmax, 0, v2d->mask.xmax, area->winy);
+
 	if(sipo->totipo==0) return;
 	if(sipo->editipo==0) return;
 	
@@ -1412,7 +1405,7 @@ void drawipospace(ScrArea *sa, void *spacedata)
 		if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
 			
 			/* ortho at pixel level curarea */
-			myortho2(-0.5, curarea->winx+0.5, -0.5, curarea->winy+0.5);
+			myortho2(-0.5, curarea->winx-0.5, -0.5, curarea->winy-0.5);
 			
 			if(v2d->scroll) {
 				drawscroll(disptype);
@@ -1427,6 +1420,9 @@ void drawipospace(ScrArea *sa, void *spacedata)
 		draw_ipogrid();
 	}
 	
+	myortho2(-0.5, curarea->winx-0.5, -0.5, curarea->winy-0.5);
+	draw_area_emboss(sa);
+
 	curarea->win_swap= WIN_BACK_OK;
 }
 
@@ -1457,78 +1453,79 @@ void scroll_ipobuts()
 	}
 }
 
-
-
+/* total mess function, especially with mousewheel, needs cleanup badly (ton) */
 int view2dzoom(unsigned short event)
 {
 	float fac, dx, dy, wtemp;
 	short mval[2], mvalo[2];
-
+	
 	areawinset(curarea->win);	/* from buttons */
 	curarea->head_swap= 0;
 	getmouseco_areawin(mvalo);
 	
-	while( (get_mbut()&(L_MOUSE|M_MOUSE)) || 
-          (event==WHEELUPMOUSE) ||
-          (event==WHEELDOWNMOUSE) ) {
-
-    /* regular mousewheel:   zoom regular
-     * alt-shift mousewheel: zoom y only
-     * alt-ctrl mousewheel:  zoom x only
-     */
+	while( (get_mbut()&(L_MOUSE|M_MOUSE)) || (event==WHEELUPMOUSE) || (event==WHEELDOWNMOUSE) ) {
+	
+		/* regular mousewheel:   zoom regular
+		* alt-shift mousewheel: zoom y only
+		* alt-ctrl mousewheel:  zoom x only
+		*/
 		if (event==WHEELUPMOUSE) {
 			if(U.uiflag & WHEELZOOMDIR)
-				wtemp = -0.1154;
+				wtemp = -0.0375;
 			else
-				wtemp = 0.1154;
-
+				wtemp = 0.03;
+			if(curarea->spacetype!=SPACE_BUTS) wtemp*= 3;
+			
 			dx= (float)(wtemp*(G.v2d->cur.xmax-G.v2d->cur.xmin));
 			dy= (float)(wtemp*(G.v2d->cur.ymax-G.v2d->cur.ymin));
-
-      switch (G.qual & (LR_CTRLKEY|LR_SHIFTKEY|LR_ALTKEY)) {
-      case 0:
-        break;
-      case (LR_SHIFTKEY|LR_ALTKEY):
-        dx = 0;
-        break;
-      case (LR_CTRLKEY|LR_ALTKEY):
-        dy = 0;
-        break;
-      default:
-        return 0;
-        break;
-      }
-    }
+			
+			switch (G.qual & (LR_CTRLKEY|LR_SHIFTKEY|LR_ALTKEY)) {
+			case 0:
+				break;
+			case (LR_SHIFTKEY|LR_ALTKEY):
+				dx = 0;
+				break;
+			case (LR_CTRLKEY|LR_ALTKEY):
+				dy = 0;
+				break;
+			default:
+				if(curarea->spacetype==SPACE_BUTS);	// exception
+				else return 0;
+				break;
+			}
+		}
 		else if (event==WHEELDOWNMOUSE) {
 			if(U.uiflag & WHEELZOOMDIR)
-				wtemp = 0.1154;
+				wtemp = 0.03;
 			else
-				wtemp = -0.1154;
+				wtemp = -0.0375;
+			if(curarea->spacetype!=SPACE_BUTS) wtemp*= 3;
+			
 			dx= (float)(wtemp*(G.v2d->cur.xmax-G.v2d->cur.xmin));
 			dy= (float)(wtemp*(G.v2d->cur.ymax-G.v2d->cur.ymin));
-
-      switch (G.qual & (LR_CTRLKEY|LR_SHIFTKEY|LR_ALTKEY)) {
-      case 0:
-        break;
-      case (LR_SHIFTKEY|LR_ALTKEY):
-        dx = 0;
-        break;
-      case (LR_CTRLKEY|LR_ALTKEY):
-        dy = 0;
-        break;
-      default:
-        return 0;
-        break;
-      }
-
-    }
-    else {
-      getmouseco_areawin(mval);
+			
+			switch (G.qual & (LR_CTRLKEY|LR_SHIFTKEY|LR_ALTKEY)) {
+				case 0:
+				break;
+			case (LR_SHIFTKEY|LR_ALTKEY):
+				dx = 0;
+				break;
+			case (LR_CTRLKEY|LR_ALTKEY):
+				dy = 0;
+				break;
+			default:
+				if(curarea->spacetype==SPACE_BUTS);
+				else return 0;
+				break;
+			}
+		}
+		else {
+			getmouseco_areawin(mval);
 			fac= 0.001*(mval[0]-mvalo[0]);
 			dx= fac*(G.v2d->cur.xmax-G.v2d->cur.xmin);
 			fac= 0.001*(mval[1]-mvalo[1]);
 			dy= fac*(G.v2d->cur.ymax-G.v2d->cur.ymin);
-    }
+		}
 		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
 			
 			G.v2d->cur.xmin+= dx;
@@ -1537,17 +1534,17 @@ int view2dzoom(unsigned short event)
 				G.v2d->cur.ymin+= dy;
 				G.v2d->cur.ymax-= dy;
 			}
-				
+		
 			test_view2d(G.v2d, curarea->winx, curarea->winy);	/* cur min max rects */
 			scrarea_do_windraw(curarea);
 			screen_swapbuffers();
 		}
 		else BIF_wait_for_statechange();
-    /* return if we were using the mousewheel
-     */
-    if ( (event==WHEELUPMOUSE) || (event==WHEELDOWNMOUSE) ) return 1;
+		/* return if we were using the mousewheel
+		*/
+		if ( (event==WHEELUPMOUSE) || (event==WHEELDOWNMOUSE) ) return 1;
 	}
-  return 1;
+	return 1;
 }
 
 void center_currframe(void)
@@ -1570,6 +1567,7 @@ void center_currframe(void)
 	curarea->head_swap= 0;
 }
 
+/* total mess function, especially with mousewheel, needs cleanup badly (ton) */
 int view2dmove(unsigned short event)
 {
 	/* return 1 when something was done */
@@ -1585,10 +1583,12 @@ int view2dmove(unsigned short event)
 	 * or if the mousewheel is being used.
 	 * Return if zooming was done.
 	 */
-	if ( (G.qual & LR_CTRLKEY) ||
-		(event==WHEELUPMOUSE) || 
-		(event==WHEELDOWNMOUSE) ) {
-		if (view2dzoom(event)) {
+	 
+	 
+	if ( (G.qual & LR_CTRLKEY) || (event==WHEELUPMOUSE) || (event==WHEELDOWNMOUSE) ) {
+		/* patch for buttonswin, standard scroll no zoom */
+		if(curarea->spacetype==SPACE_BUTS && (G.qual & LR_CTRLKEY)==0);
+		else if (view2dzoom(event)) {
 			curarea->head_swap= 0;
 			return 0;
 		}
@@ -1643,63 +1643,59 @@ int view2dmove(unsigned short event)
        * is used with the ctrl key then scroll left
        * and right.
        */
-      if (event==WHEELUPMOUSE) {
-        switch (G.qual & (LR_CTRLKEY|LR_SHIFTKEY|LR_ALTKEY)) {
-        case (LR_SHIFTKEY):
-          dx = 0.0;
-          dy= facy*10.0;
-          break;
-        case (LR_CTRLKEY):
-          dx= facx*10.0;
-          dy = 0.0;
-          break;
-        default:
-          return 0;
-          break;
-        }
-      }
-      else if (event==WHEELDOWNMOUSE) {
-        switch (G.qual & (LR_CTRLKEY|LR_SHIFTKEY|LR_ALTKEY)) {
-        case (LR_SHIFTKEY):
-          dx = 0.0;
-          dy= -facy*10.0;
-          break;
-        case (LR_CTRLKEY):
-          dx= -facx*10.0;
-          dy = 0.0;
-          break;
-        default:
-          return 0;
-          break;
-        }
-      }
-      else {
-        getmouseco_areawin(mval);
-        dx= facx*(mvalo[0]-mval[0]);
-        dy= facy*(mvalo[1]-mval[1]);
-      }
+		if (event==WHEELUPMOUSE || event==WHEELDOWNMOUSE) {
+			if(event==WHEELDOWNMOUSE) {	
+				facx= -facx; facy= -facy;
+			}
+			
+			switch (G.qual & (LR_CTRLKEY|LR_SHIFTKEY|LR_ALTKEY)) {
+			case (LR_SHIFTKEY):
+				dx = 0.0;
+				dy= facy*20.0;
+				break;
+			case (LR_CTRLKEY):
+				dx= facx*20.0;
+				dy = 0.0;
+				break;
+			default:
+				if(curarea->spacetype==SPACE_BUTS) {
+					if(G.buts->align==BUT_HORIZONTAL) {
+						dx= facx*30; dy= 0.0;
+					} else {
+						dx= 0.0; dy= facy*30;
+					}
+				}
+				else return 0;
+				break;
+			}
+		}
+		else {
+			getmouseco_areawin(mval);
+			dx= facx*(mvalo[0]-mval[0]);
+			dy= facy*(mvalo[1]-mval[1]);
+		}
 
-      if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
+		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
 
-        G.v2d->cur.xmin+= left*dx;
-        G.v2d->cur.xmax+= right*dx;
-        G.v2d->cur.ymin+= left*dy;
-        G.v2d->cur.ymax+= right*dy;
+			G.v2d->cur.xmin+= left*dx;
+			G.v2d->cur.xmax+= right*dx;
+			G.v2d->cur.ymin+= left*dy;
+			G.v2d->cur.ymax+= right*dy;
 				
-        test_view2d(G.v2d, curarea->winx, curarea->winy);
+			test_view2d(G.v2d, curarea->winx, curarea->winy);
 				
-        scrarea_do_windraw(curarea);
-        screen_swapbuffers();
+			scrarea_do_windraw(curarea);
+			screen_swapbuffers();
 				
-        mvalo[0]= mval[0];
-        mvalo[1]= mval[1];
+			mvalo[0]= mval[0];
+			mvalo[1]= mval[1];
 				
-      }
-      else BIF_wait_for_statechange();
-      /* return if we were using the mousewheel
-       */
-      if ( (event==WHEELUPMOUSE) || (event==WHEELDOWNMOUSE) ) return 1;
-    }
+		}
+		else BIF_wait_for_statechange();
+			/* return if we were using the mousewheel
+			*/
+		if ( (event==WHEELUPMOUSE) || (event==WHEELDOWNMOUSE) ) return 1;
+	}
 
     curarea->head_swap= 0;
     return 1;

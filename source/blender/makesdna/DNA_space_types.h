@@ -93,7 +93,7 @@ typedef struct SpaceButs {
 	struct ScrArea *area;
 
 	short cursens, curact;
-	int pad2;
+	short align, pad2;		/* align for panels */
 	View2D v2d;
 	
 	short mainb, menunr;	/* texnr and menunr have to remain shorts */
@@ -110,12 +110,8 @@ typedef struct SpaceButs {
 	short scriptblock;
 	short scaflag;
 	
-	char texact, pad3[7];
-	
-		/* a hackish link the anim buts keep
-		 * to a SpaceIpo.
-		 */
-	struct SpaceIpo *anim_linked_sipo;
+	char texact, tab[7];	/* storing tabs for each context */
+		
 } SpaceButs;
 
 typedef struct SpaceSeq {
@@ -337,7 +333,7 @@ typedef struct SpaceImaSel {
 #define V3D_LOCAL		2
 */
 
-/* buts->mainb */
+/* buts->mainb old */
 #define BUTS_VIEW			0
 #define BUTS_LAMP			1
 #define BUTS_MAT			2
@@ -352,6 +348,27 @@ typedef struct SpaceImaSel {
 #define BUTS_SCRIPT			11
 #define BUTS_SOUND			12
 #define BUTS_CONSTRAINT		13
+
+/* warning: the values of these defines are used in sbuts->tabs[7] */
+/* buts->mainb new */
+#define CONTEXT_SCENE	0
+#define CONTEXT_OBJECT	1
+#define CONTEXT_TYPES	2
+#define CONTEXT_SHADING	3
+#define CONTEXT_EDITING	4
+#define CONTEXT_SCRIPT	5
+#define CONTEXT_LOGIC	6
+
+/* buts->tab new */
+#define TAB_SCENE_RENDER	0
+#define TAB_SCENE_WORLD		1
+#define TAB_SCENE_SETTINGS	2
+
+#define TAB_SHADING_MAT 	0
+#define TAB_SHADING_TEX 	1
+#define TAB_SHADING_RAD 	2
+#define TAB_SHADING_WORLD	3
+#define TAB_SHADING_LAMP	4
 
 /* buts->scaflag */		
 #define BUTS_SENS_SEL		1

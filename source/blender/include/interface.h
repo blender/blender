@@ -91,6 +91,7 @@
 #define UI_RETURN_OK		4
 #define UI_RETURN_OUT		8
 #define UI_RETURN			14
+#define UI_EXIT_LOOP		16
 
 /* uiBut->flag */
 #define UI_SELECT		1
@@ -120,6 +121,10 @@
 #define UI_EMBOSSM		4	/* Colored Border */
 #define UI_EMBOSSP		5	/* Borderless coloured button */
 #define UI_EMBOSSA		6	/* same as EMBOSSX but with arrows to simulate */
+#define UI_EMBOSSTABL	7
+#define UI_EMBOSSTABM	8
+#define UI_EMBOSSTABR	9
+#define UI_EMBOSST		10
 
 /* uiBlock->direction */
 #define UI_TOP		0

@@ -803,7 +803,7 @@ static void draw_view_icon(void)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
 	
-	glRasterPos2f(5.0, 5.0);
+	glRasterPos2f(curarea->winx-25.0, 5.0);
 	BIF_draw_icon(icon);
 	
 	glBlendFunc(GL_ONE,  GL_ZERO); 
@@ -990,6 +990,11 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 
 	if(G.scene->radio) RAD_drawall(G.vd->drawtype>=OB_SOLID);
 	
+	if(G.zbuf) {
+		G.zbuf= FALSE;
+		glDisable(GL_DEPTH_TEST);
+	}
+
 	persp(0);
 	
 	if(G.vd->persp>1) drawviewborder();
@@ -999,15 +1004,12 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	ob= OBACT;
 	if(ob!=0 && (U.uiflag & DRAWVIEWINFO)) draw_selected_name(ob->id.name+2);
 	
+	draw_area_emboss(sa);
+	
 	persp(1);
 
 	curarea->win_swap= WIN_BACK_OK;
 	
-	if(G.zbuf) {
-		G.zbuf= FALSE;
-		glDisable(GL_DEPTH_TEST);
-	}
-
 	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {
 		G.vd->flag |= V3D_NEEDBACKBUFDRAW;
 		addafterqueue(curarea->win, BACKBUFDRAW, 1);

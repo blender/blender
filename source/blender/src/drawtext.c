@@ -32,6 +32,7 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -290,11 +291,13 @@ static void draw_cursor(SpaceText *st) {
 
 		glColor3f(0.75, 0.44, 0.44);
 
-		if(st->showlinenrs)
+		if(st->showlinenrs) {
 			if (!x) x= TXT_OFFSET + TEXTXLOC -4;
-		else
+		}
+		else {
 			if (!x) x= TXT_OFFSET - 4;
-
+		}
+		
 		if (!x) x= TXT_OFFSET-10;
 		while (linef && linef != linel) {
 			h= txt_get_span(text->lines.first, linef) - st->top;
@@ -549,7 +552,9 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	
 	glClearColor(0.6, 0.6,  0.6, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	myortho2(-0.5, curarea->winrct.xmax-curarea->winrct.xmin-0.5, -0.5, curarea->winrct.ymax-curarea->winrct.ymin-0.5);
+	myortho2(-0.5, (float)(sa->winx)-.05, -0.5, (float)(sa->winy)-0.5);
+
+	draw_area_emboss(sa);
 
 	text= st->text;
 	if(!text) return;

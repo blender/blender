@@ -2526,6 +2526,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 		SpaceLink *sl;
 		
 		link_list(fd, &(sa->spacedata));
+		link_list(fd, &(sa->panels));
 
 		for (sl= sa->spacedata.first; sl; sl= sl->next) {
 			if (sl->spacetype==SPACE_VIEW3D) {
@@ -3733,7 +3734,73 @@ static void do_versions(Main *main)
 				}
 			}
 		}
+	}
+	if(main->versionfile <= 228) {
+		Scene *sce;
+		bScreen *sc;
+
+		for (sce= main->scene.first; sce; sce= sce->id.next) {
+			sce->r.mode |= R_ENVMAP;
+		}
 		
+		// convert old mainb values for new button panels
+		for (sc= main->screen.first; sc; sc= sc->id.next) {
+			ScrArea *sa;
+
+			for (sa= sc->areabase.first; sa; sa= sa->next) {
+				SpaceLink *sl;
+
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if (sl->spacetype==SPACE_BUTS) {
+						SpaceButs *sbuts= (SpaceButs *) sl;
+						
+						if(sbuts->mainb==BUTS_LAMP) {
+							sbuts->mainb= CONTEXT_SHADING;
+							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
+						}
+						else if(sbuts->mainb==BUTS_MAT) {
+							sbuts->mainb= CONTEXT_SHADING;
+							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
+						}
+						else if(sbuts->mainb==BUTS_TEX) {
+							sbuts->mainb= CONTEXT_SHADING;
+							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_TEX;
+						}
+						else if(sbuts->mainb==BUTS_ANIM) {
+							sbuts->mainb= CONTEXT_OBJECT;
+						}
+						else if(sbuts->mainb==BUTS_WORLD) {
+							sbuts->mainb= CONTEXT_SCENE;
+							sbuts->tab[CONTEXT_SCENE]= TAB_SCENE_WORLD;
+						}
+						else if(sbuts->mainb==BUTS_RENDER) {
+							sbuts->mainb= CONTEXT_SCENE;
+							sbuts->tab[CONTEXT_SCENE]= TAB_SCENE_RENDER;
+						}
+						else if(sbuts->mainb==BUTS_GAME) {
+							sbuts->mainb= CONTEXT_LOGIC;
+						}
+						else if(sbuts->mainb==BUTS_FPAINT) {
+							sbuts->mainb= CONTEXT_EDITING;
+						}
+						else if(sbuts->mainb==BUTS_RADIO) {
+							sbuts->mainb= CONTEXT_SHADING;
+							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_RAD;
+						}
+						else if(sbuts->mainb==BUTS_CONSTRAINT) {
+							sbuts->mainb= CONTEXT_OBJECT;
+						}
+						else if(sbuts->mainb==BUTS_SCRIPT) {
+							sbuts->mainb= CONTEXT_OBJECT;
+						}
+						else if(sbuts->mainb==BUTS_EDIT) {
+							sbuts->mainb= CONTEXT_EDITING;
+						}
+						else sbuts->mainb= CONTEXT_SCENE;
+					}
+				}
+			}
+		}
 	}	
 
 	/* don't forget to set version number in blender.c! */

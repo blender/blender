@@ -437,7 +437,7 @@ void select_children(Object *ob, int recursive)
 
 void select_parent(void)	/* Makes parent active and de-selected OBACT */
 {
-	Base *base, *startbase, *basact, *oldbasact;
+	Base *base, *startbase, *basact=NULL, *oldbasact;
 
 	if (!(OBACT->parent)) return;
 	BASACT->flag &= (~SELECT);
@@ -1962,6 +1962,12 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 	}
 
 	uiDrawBlock(block);
+	
+	myortho2(-0.5, (float)(sa->winx)-.05, -0.5, (float)(sa->winy)-0.5);
+	draw_area_emboss(sa);
+	myortho2(0.0, 1280.0, 0.0, curarea->winy/fac);
+	sa->win_swap= WIN_BACK_OK;
+	
 }
 
 
@@ -2010,7 +2016,7 @@ void winqreadbutspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	short val= evt->val;
 	SpaceButs *sbuts= curarea->spacedata.first;
 	ScrArea *sa2, *sa3d;
-	int doredraw= 0;
+	int nr, doredraw= 0;
 
 	if(val) {
 		
@@ -2026,7 +2032,14 @@ void winqreadbutspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case WHEELDOWNMOUSE:
 			view2dmove(event);	/* in drawipo.c */
 			break;
+		case RIGHTMOUSE:
+			nr= pupmenu("Align buttons%t|Free %x0|Horizontal%x1|Vertical%x2");
+			if (nr>=0) {
+				sbuts->align= nr;
+				if(nr) uiAnimatePanels(sa);	
+			}
 
+			break;
 		case PADPLUSKEY:
 			view2d_zoom(&sbuts->v2d, 0.06, curarea->winx, curarea->winy);
 			scrarea_queue_winredraw(curarea);
@@ -2087,11 +2100,11 @@ void set_rects_butspace(SpaceButs *buts)
 	buts->v2d.min[0]= 256.0;
 	buts->v2d.min[1]= 42.0;
 
-	buts->v2d.max[0]= 1600.0;
+	buts->v2d.max[0]= 2048.0;
 	buts->v2d.max[1]= 450.0;
 	
 	buts->v2d.minzoom= 0.5;
-	buts->v2d.maxzoom= 1.41;
+	buts->v2d.maxzoom= 1.21;
 	
 	buts->v2d.scroll= 0;
 	buts->v2d.keepaspect= 1;

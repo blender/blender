@@ -527,14 +527,14 @@ void free_editArmature(void)
 
 static EditBone * get_nearest_editbonepoint (int findunsel, int *selmask){
 	EditBone	*ebone;
-	GLuint		buffer[MAXPICKBUF];
+	unsigned int buffer[MAXPICKBUF];
 	short		hits;
 	int		 i, takeNext=0;
 	int		sel;
 	unsigned int	hitresult, hitbone, firstunSel=-1;
 
 	glInitNames();
-	hits=selectprojektie(buffer, 0, 0, 0, 0);
+	hits= selectprojektie(buffer, 0, 0, 0, 0);
 
 	/* See if there are any selected bones in this group */
 	if (hits){
@@ -606,7 +606,7 @@ static EditBone * get_nearest_editbonepoint (int findunsel, int *selmask){
 
 static void * get_nearest_bone (int findunsel){
 	void		*firstunSel=NULL, *data;
-	GLuint		buffer[MAXPICKBUF];
+	unsigned int buffer[MAXPICKBUF];
 	short		hits;
 	int		 i, takeNext=0;
 	int		sel;
@@ -615,7 +615,7 @@ static void * get_nearest_bone (int findunsel){
 	EditBone *ebone;
 
 	glInitNames();
-	hits=selectprojektie(buffer, 0, 0, 0, 0);
+	hits= selectprojektie(buffer, 0, 0, 0, 0);
 
 
 	/* See if there are any selected bones in this group */
@@ -1788,7 +1788,7 @@ void armaturebuts(void)
 
 				/* Dist and weight buttons */
 				uiBlockSetCol(block, BUTGREY);
-				but=uiDefButI(block, MENU, REDRAWVIEW3D,
+				but=uiDefButS(block, MENU, REDRAWVIEW3D,
 							  "Skinnable %x0|"
 							  "Unskinnable %x1|"
 							  "Head %x2|"
@@ -1901,7 +1901,7 @@ static void build_bonestring (char *string, EditBone *bone){
 
 static void validate_editbonebutton(EditBone *eBone){
 	EditBone	*prev;
-	bAction		*act;
+	bAction		*act=NULL;
 	bActionChannel *chan;
 	Base *base;
 

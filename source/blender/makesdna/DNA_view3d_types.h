@@ -97,6 +97,7 @@ typedef struct View3D {
 	short mxo, myo;
 
 	short gridlines, viewbut;
+	short modeselect, pad4, pad5, pad6;
 	int	pad2, pad3;
 } View3D;
 

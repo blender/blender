@@ -41,6 +41,11 @@ typedef struct uiBut uiBut;
 typedef struct uiBlock uiBlock;
 
 void uiEmboss(float x1, float y1, float x2, float y2, int sel);
+void uiRoundBoxEmboss(float minx, float miny, float maxx, float maxy, float rad);
+void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad);
+void uiSetRoundBox(int type);
+void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad);
+
 void uiDrawMenuBox(float minx, float miny, float maxx, float maxy);
 void uiTextBoundsBlock(uiBlock *block, int addval);
 void uiBoundsBlock(struct uiBlock *block, int addval);
@@ -99,6 +104,7 @@ typedef uiBlock* (*uiBlockFuncFP)	(void *arg1);
 void uiDefBlockBut(uiBlock *block, uiBlockFuncFP func, void *func_arg1, char *str, short x1, short y1, short x2, short y2, char *tip);
 
 void uiDefIconBlockBut(uiBlock *block, uiBlockFuncFP func, void *func_arg1, int icon, short x1, short y1, short x2, short y2, char *tip);
+void uiDefIconTextBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip);
 
 void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip);
 
@@ -132,6 +138,13 @@ void	uiButSetFunc		(uiBut *but,		void (*func)(void *arg1, void *arg2), void *arg
 
 short pupmenu(char *instr); 
 short pupmenu_col(char *instr, int maxrow);
+
+extern void uiFreePanels(struct ListBase *lb);
+extern void uiNewPanel(struct ScrArea *sa, struct uiBlock *block, char *panelname, char *tabname, int ofsx, int ofsy, int sizex, int sizey);
+extern void uiScalePanelBlock(struct uiBlock *block);
+extern int uiIsPanelClosed(struct uiBlock *block);
+extern void uiAnimatePanels(struct ScrArea *sa);	
+extern void uiSetPanel_view2d(struct ScrArea *sa);
 
 #endif /*  BIF_INTERFACE_H */
 
