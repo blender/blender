@@ -38,6 +38,14 @@ default: all
 # do not add install here. install target can only be used in intern/
 # top level Makefiles
 all debug clean::
+ifdef quicky
+	@for i in $(quicky); do \
+	   echo "====> $(MAKE) $@ in $$i";\
+	   $(MAKE) -C $$i $@ quicky= || exit 1;\
+	done
+	$(MAKE) -C source link || exit 1
+	@echo "${quicky}"
+else
     ifdef DIR
 	@# Make sure object toplevels are there
 	@[ -d $(NAN_OBJDIR) ] || mkdir $(NAN_OBJDIR)
@@ -52,6 +60,7 @@ all debug clean::
 	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\
 	    $(MAKE) -C $$i $@ || exit 1; \
 	done
+endif
 
 test::
     ifdef TESTDIRS
