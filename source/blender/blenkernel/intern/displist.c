@@ -69,6 +69,7 @@
 #include "BKE_global.h"
 #include "BKE_displist.h"
 #include "BKE_deform.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_object.h"
 #include "BKE_world.h"
 #include "BKE_mesh.h"
@@ -433,8 +434,7 @@ void copy_displist(ListBase *lbn, ListBase *lb)
 		dln->index= MEM_dupallocN(dl->index);
 		dln->col1= MEM_dupallocN(dl->col1);
 		dln->col2= MEM_dupallocN(dl->col2);
-		if (dl->mesh)
-			dln->mesh= displistmesh_copy(dl->mesh);
+		if (dl->mesh) dln->mesh= displistmesh_copy(dl->mesh);
 		
 		dl= dl->next;
 	}
@@ -937,96 +937,107 @@ void shadeDispList(Object *ob)
 		me= ob->data;
 		
 		if (mesh_uses_displist(me)) {
+			DerivedMesh *dm= mesh_get_derived(ob);
+			DispListMesh *dlm;
+
 			if (need_orco) {
 				make_orco_displist_mesh(ob, me->subdiv);
 				orco= me->orco;
 			}
 
-			dl= me->disp.first;
-			while(dl) {
-				if(dl->type==DL_MESH && dl->mesh && dl->mesh->totvert) {
-					DispListMesh *dlm= dl->mesh;
-					float *vnors, *vn;
-					int i;
-					
-					dlob= MEM_callocN(sizeof(DispList), "displistshade");
-					BLI_addtail(&ob->disp, dlob);
-					dlob->type= DL_VERTCOL;
+			dlm= dm->convertToDispListMesh(dm);
+
+			dm->release(dm);
+
+			if (dlm && dlm->totvert) {
+				float *vnors, *vn;
+				int i;
 				
-					dlob->col1= MEM_mallocN(sizeof(*dlob->col1)*dlm->totface*4, "col1");
-					if (me->flag & ME_TWOSIDED)
-						dlob->col2= MEM_mallocN(sizeof(*dlob->col2)*dlm->totface*4, "col1");
-					
-					/* vertexnormals */
-					vn=vnors= MEM_mallocN(dlm->totvert*3*sizeof(float), "vnors disp");
-					mvert= dlm->mvert;
-					a= dlm->totvert;
-					while(a--) {
-						
-						xn= mvert->no[0]; 
-						yn= mvert->no[1]; 
-						zn= mvert->no[2];
-						
-						/* transpose ! */
-						vn[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
-						vn[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
-						vn[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-						Normalise(vn);
-						
-						mvert++; vn+=3;
-					}		
+				dlob= MEM_callocN(sizeof(DispList), "displistshade");
+				BLI_addtail(&ob->disp, dlob);
+				dlob->type= DL_VERTCOL;
 			
-					for (i=0; i<dlm->totface; i++) {
-						MFace *mf= &dlm->mface[i];
+				dlob->col1= MEM_mallocN(sizeof(*dlob->col1)*dlm->totface*4, "col1");
+				if (me->flag & ME_TWOSIDED)
+					dlob->col2= MEM_mallocN(sizeof(*dlob->col2)*dlm->totface*4, "col1");
+				
+				/* vertexnormals */
+				vn=vnors= MEM_mallocN(dlm->totvert*3*sizeof(float), "vnors disp");
+				mvert= dlm->mvert;
+				a= dlm->totvert;
+				while(a--) {
+					
+					xn= mvert->no[0]; 
+					yn= mvert->no[1]; 
+					zn= mvert->no[2];
+					
+					/* transpose ! */
+					vn[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
+					vn[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
+					vn[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
+					Normalise(vn);
+					
+					mvert++; vn+=3;
+				}		
+		
+				for (i=0; i<dlm->totface; i++) {
+					MFace *mf= &dlm->mface[i];
 
-						if (mf->v3) {
-							int j, vidx[4], nverts= mf->v4?4:3;
-							unsigned int *col1base= &dlob->col1[i*4];
-							unsigned int *col2base= dlob->col2?&dlob->col2[i*4]:NULL;
-							MCol *mcolbase= dlm->mcol?&dlm->mcol[i*4]:NULL;
-							float nor[3];
-							
-							ma= give_current_material(ob, mf->mat_nr+1);
-							if(ma==0) ma= &defmaterial;
-							
-							vidx[0]= mf->v1;
-							vidx[1]= mf->v2;
-							vidx[2]= mf->v3;
-							vidx[3]= mf->v4;
+					if (mf->v3) {
+						int j, vidx[4], nverts= mf->v4?4:3;
+						unsigned int *col1base= &dlob->col1[i*4];
+						unsigned int *col2base= dlob->col2?&dlob->col2[i*4]:NULL;
+						unsigned int *mcolbase;
+						float nor[3];
+						
+						if (dlm->tface) {
+							mcolbase = dlm->tface[i].col;
+						} else if (dlm->mcol) {
+							mcolbase = (unsigned int*) &dlm->mcol[i*4];
+						} else {
+							mcolbase = NULL;
+						}
 
-							if (mf->v4)
-								CalcNormFloat4(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, dlm->mvert[mf->v4].co, nor);
+						ma= give_current_material(ob, mf->mat_nr+1);
+						if(ma==0) ma= &defmaterial;
+						
+						vidx[0]= mf->v1;
+						vidx[1]= mf->v2;
+						vidx[2]= mf->v3;
+						vidx[3]= mf->v4;
+
+						if (mf->v4)
+							CalcNormFloat4(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, dlm->mvert[mf->v4].co, nor);
+						else
+							CalcNormFloat(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, nor);
+
+						n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
+						n1[1]= imat[1][0]*nor[0]+imat[1][1]*nor[1]+imat[1][2]*nor[2];
+						n1[2]= imat[2][0]*nor[0]+imat[2][1]*nor[1]+imat[2][2]*nor[2];
+						Normalise(n1);
+
+						for (j=0; j<nverts; j++) {
+							MVert *mv= &dlm->mvert[vidx[j]];
+							unsigned int *col1= &col1base[j];
+							unsigned int *col2= col2base?&col2base[j]:NULL;
+							unsigned int *mcol= mcolbase?&mcolbase[j]:NULL;
+							
+							VECCOPY(vec, mv->co);
+							Mat4MulVecfl(mat, vec);
+							if(mf->flag & ME_SMOOTH) vn= vnors+3*vidx[j];
+							else vn= n1;
+						
+							if (need_orco && orco)
+								fastshade(vec, vn, &orco[vidx[j]*3], ma, (char *)col1, (char*)col2, (char*) mcol);
 							else
-								CalcNormFloat(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, nor);
-
-							n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
-							n1[1]= imat[1][0]*nor[0]+imat[1][1]*nor[1]+imat[1][2]*nor[2];
-							n1[2]= imat[2][0]*nor[0]+imat[2][1]*nor[1]+imat[2][2]*nor[2];
-							Normalise(n1);
-
-							for (j=0; j<nverts; j++) {
-								MVert *mv= &dlm->mvert[vidx[j]];
-								unsigned int *col1= &col1base[j];
-								unsigned int *col2= col2base?&col2base[j]:NULL;
-								MCol *mcol= mcolbase?&mcolbase[j]:NULL;
-								
-								VECCOPY(vec, mv->co);
-								Mat4MulVecfl(mat, vec);
-								if(mf->flag & ME_SMOOTH) vn= vnors+3*vidx[j];
-								else vn= n1;
-							
-								if (need_orco && orco)
-									fastshade(vec, vn, &orco[vidx[j]*3], ma, (char *)col1, (char*)col2, (char*) mcol);
-								else
-									fastshade(vec, vn, mv->co, ma, (char *)col1, (char*)col2, (char*) mcol);
-							}
+								fastshade(vec, vn, mv->co, ma, (char *)col1, (char*)col2, (char*) mcol);
 						}
 					}
-					MEM_freeN(vnors);
 				}
-				dl= dl->next;
+				MEM_freeN(vnors);
 			}
-			
+			displistmesh_free(dlm);
+
 			if (need_orco && orco) {
 				MEM_freeN(me->orco);
 				me->orco= NULL;
