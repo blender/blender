@@ -3091,11 +3091,21 @@ void view3d_buttons(void)
 	/* LAYERS */
 	if(G.vd->localview==0) {
 		
-		for(a=0; a<10; a++) {
-			uiDefButI(block, TOG|BIT|(a+10), B_LAY+10+a, "",(short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility");
+		uiBlockBeginAlign(block);
+		for(a=0; a<5; a++)
 			uiDefButI(block, TOG|BIT|a, B_LAY+a, "",	(short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility");
-			if(a==4) xco+= 5;
-		}
+		for(a=0; a<5; a++)
+			uiDefButI(block, TOG|BIT|(a+10), B_LAY+10+a, "",(short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility");
+			
+		xco+= 5;
+		uiBlockBeginAlign(block);
+		for(a=5; a<10; a++)
+			uiDefButI(block, TOG|BIT|a, B_LAY+a, "",	(short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility");
+		for(a=5; a<10; a++)
+			uiDefButI(block, TOG|BIT|(a+10), B_LAY+10+a, "",(short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility");
+
+		uiBlockEndAlign(block);
+		
 		xco+= (a-2)*(XIC/2)+3;
 
 		/* LOCK */

@@ -1832,26 +1832,31 @@ void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 		uiDefButC(block, NUMSLI, B_UPDATE_THEME,"Vertex size ",	465,y3,200,20,  col, 1.0, 10.0, 0, 0, "");
 	}
 	else if(th_curcol==TH_BUT_DRAWTYPE) {
+		uiBlockBeginAlign(block);
 		uiDefButC(block, ROW, B_UPDATE_THEME, "Minimal",	465,y3,100,20,  col, 2.0, 0.0, 0, 0, "");
 		uiDefButC(block, ROW, B_UPDATE_THEME, "Shaded",	565,y3,100,20,  col, 2.0, 1.0, 0, 0, "");
 		uiDefButC(block, ROW, B_UPDATE_THEME, "Rounded",	465,y2,100,20,  col, 2.0, 2.0, 0, 0, "");
 		uiDefButC(block, ROW, B_UPDATE_THEME, "OldSkool",	565,y2,100,20,  col, 2.0, 3.0, 0, 0, "");
-	
+		uiBlockEndAlign(block);
 	}
 	else {
-		uiDefButC(block, NUMSLI, B_UPDATE_THEME,"R ",	465,y3,200,20,  col, 0.0, 255.0, B_THEMECOL, 0, "");
-		uiDefButC(block, NUMSLI, B_UPDATE_THEME,"G ",	465,y2,200,20,  col+1, 0.0, 255.0, B_THEMECOL, 0, "");
-		uiDefButC(block, NUMSLI, B_UPDATE_THEME,"B ",	465,y1,200,20,  col+2, 0.0, 255.0, B_THEMECOL, 0, "");
-
-		uiDefButC(block, COL, B_THEMECOL, "",		675,y1,50,y3-y1+20, col, 0, 0, 0, 0, "");
+		uiBlockBeginAlign(block);
 		if ELEM3(th_curcol, TH_PANEL, TH_FACE, TH_FACE_SELECT) {
 			uiDefButC(block, NUMSLI, B_UPDATE_THEME,"A ",	465,y3+25,200,20,  col+3, 0.0, 255.0, B_THEMECOL, 0, "");
 		}
-		
+		uiDefButC(block, NUMSLI, B_UPDATE_THEME,"R ",	465,y3,200,20,  col, 0.0, 255.0, B_THEMECOL, 0, "");
+		uiDefButC(block, NUMSLI, B_UPDATE_THEME,"G ",	465,y2,200,20,  col+1, 0.0, 255.0, B_THEMECOL, 0, "");
+		uiDefButC(block, NUMSLI, B_UPDATE_THEME,"B ",	465,y1,200,20,  col+2, 0.0, 255.0, B_THEMECOL, 0, "");
+		uiBlockEndAlign(block);
+
+		uiDefButC(block, COL, B_THEMECOL, "",		675,y1,50,y3-y1+20, col, 0, 0, 0, 0, "");
+				
 		/* copy paste */
+		uiBlockBeginAlign(block);
 		uiDefBut(block, BUT, B_THEME_COPY, "Copy Color", 	755,y2,120,20, NULL, 0, 0, 0, 0, "Stores current color in buffer");
 		uiDefBut(block, BUT, B_THEME_PASTE, "Paste Color", 	755,y1,120,20, NULL, 0, 0, 0, 0, "Pastes buffer color");
-
+		uiBlockEndAlign(block);
+		
 		uiDefButC(block, COL, 0, "",				885,y1,50,y2-y1+20, th_curcol_arr, 0, 0, 0, 0, "");
 		
 	}
@@ -1913,7 +1918,8 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 	/* set the colour to blue and draw the main 'tab' controls */
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-
+	uiBlockBeginAlign(block);
+	
 	uiDefButI(block, ROW,B_USERPREF,"View & Controls",
 		xpos,ypostab,(short)dx,buth,
 		&U.userpref,1.0,0.0, 0, 0,"");
@@ -1943,7 +1949,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		&U.userpref,1.0,5.0, 0, 0,"");
 
 	uiBlockSetCol(block, TH_AUTO);
-
+	uiBlockEndAlign(block);
 	/* end 'tab' controls */
 
         /* line 2: left x co-ord, top y co-ord, width, height */
@@ -1956,7 +1962,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefBut(block, LABEL,0,"Display:",
 			xpos,y3label,medprefbut,buth,
 			0, 0, 0, 0, 0, "");
-
+		
 		uiDefButS(block, TOG|BIT|11, 0, "ToolTips",
 			(xpos+edgespace),y2,smallprefbut,buth,
 			&(U.flag), 0, 0, 0, 0,

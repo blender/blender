@@ -332,6 +332,8 @@ void		BIF_ThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset);
 
 // sets color, which is blend between two theme colors
 void 	BIF_ThemeColorBlend(int colorid1, int colorid2, float fac);
+// same, with shade offset
+void    BIF_ThemeColorBlendShade(int colorid1, int colorid2, float fac, int offset);
 
 // returns one value, not scaled
 float 	BIF_GetThemeValuef(int colorid);

@@ -1246,7 +1246,8 @@ static void round_button(float x1, float y1, float x2, float y2, float asp, int 
 	gl_round_box(x1, y1, x2, y2, rad);
 	glEnd();
 	
-	BIF_ThemeColorShade(colorid, -70);
+	BIF_ThemeColorBlendShade(colorid, TH_BACK, 0.5, -70);
+	//BIF_ThemeColorShade(colorid, -70);
 	
 	glBegin(GL_LINE_LOOP);
 	gl_round_box(x1, y1, x2, y2, rad);
@@ -1260,7 +1261,8 @@ static void round_button_mid(float x1, float y1, float x2, float y2, float asp, 
 {
 	glRectf(x1, y1, x2, y2);
 	
-	BIF_ThemeColorShade(colorid, -70);
+	//BIF_ThemeColorShade(colorid, -70);
+	BIF_ThemeColorBlendShade(colorid, TH_BACK, 0.5, -70);
 	// we draw full outline, its not AA, and it works better button mouse-over hilite
 	
 	// left right
