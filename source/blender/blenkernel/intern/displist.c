@@ -2388,7 +2388,9 @@ void test_all_displists(void)
 				else if ((ob->parent->type==OB_CURVE) && (ob->partype == PARSKEL))
 					freedisp= 1;
 				else if(ob->partype==PARVERT1 || ob->partype==PARVERT3) {
-					if(ob->parent->parent)
+					if(ob->parent->parent) 
+						ob->parent->flag |= BA_DISP_UPDATE;
+					else if(ob->parent->effect.first)	// stupid test for wave
 						ob->parent->flag |= BA_DISP_UPDATE;
 				}
 			}
