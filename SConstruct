@@ -198,11 +198,10 @@ elif sys.platform == 'win32':
         extra_includes += ['#../lib/windows/openal/include']
     sdl_include = '#../lib/windows/sdl/include'
     sdl_cflags = ''
-    source_files += ['source/icons/winblender.res']
     link_env.RES(['source/icons/winblender.rc'])
     window_system = 'WIN32'
     solid_include = '#../lib/windows/solid/include'
-    ode_include = '#extern/ode/dist/include/ode'
+    ode_include = '#../lib/windows/ode/include'
     # Python lib name
     python_include = '#../lib/windows/python/include/python2.2'
     python_libpath = '#../lib/windows/python/lib'
@@ -378,6 +377,9 @@ else:
 
 source_files = ['source/creator/buildinfo.c',
                 'source/creator/creator.c']
+
+if sys.platform == 'win32':
+	source_files += ['source/icons/winblender.res']
 
 include_paths = ['#/intern/guardedalloc',
                  '#/source/blender/makesdna',
