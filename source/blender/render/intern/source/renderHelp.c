@@ -190,8 +190,8 @@ void setzbufvlaggen( void (*projectfunc)(float *, float *) )
 
 		projectfunc(vec, hoco);
 
-		hoco[3]*= 2.0;
-
+		if(R.r.mode & R_PANORAMA) hoco[3]*= 2.0;	/* asking for troubles! */
+		
 		if( panotestclip(hoco) ) {
 			har->miny= har->maxy= -10000;	/* that way render clips it */
 		}
@@ -200,7 +200,9 @@ void setzbufvlaggen( void (*projectfunc)(float *, float *) )
 		}
 		else /* do the projection...*/
 		{
-			zn= hoco[3]/2.0;
+			if(R.r.mode & R_PANORAMA) hoco[3]*= 0.5;	/* asking for troubles! */
+			
+			zn= hoco[3];
 			har->xs= 0.5*R.rectx*(1.0+hoco[0]/zn); /* the 0.5 negates the previous 2...*/
 			har->ys= 0.5*R.recty*(1.0+hoco[1]/zn);
 		

@@ -1189,7 +1189,7 @@ void build_particle_system(Object *ob)
 	}
 	
 	/* for static particles, calculate system on current frame */
-	do_mat_ipo(ma);
+	if(ma) do_mat_ipo(ma);
 
 	/* set it all at first frame */
 	G.scene->r.cfra= cfralast= (int)floor(ftime);
@@ -1208,7 +1208,7 @@ void build_particle_system(Object *ob)
 	}
 	
 	if((paf->flag & PAF_STATIC)==0) {
-		do_mat_ipo(ma);	// nor for static
+		if(ma) do_mat_ipo(ma);	// nor for static
 		
 		where_is_object(ob);
 		Mat4CpyMat4(prevobmat, ob->obmat);
@@ -1278,7 +1278,7 @@ void build_particle_system(Object *ob)
 					do_ob_key(par);
 					par= par->parent;
 				}
-				do_mat_ipo(ma);
+				if(ma) do_mat_ipo(ma);
 				Mat4CpyMat4(prevobmat, ob->obmat);
 				where_is_object(ob);
 				Mat4Invert(ob->imat, ob->obmat);
@@ -1371,6 +1371,7 @@ void build_particle_system(Object *ob)
 	/* restore: AFTER popfirst */
 	ob->sf= sfraont;
 
+	if(ma) do_mat_ipo(ma);	// set back on current time
 	disable_speed_curve(0);
 
 	waitcursor(0);

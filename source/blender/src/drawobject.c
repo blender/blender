@@ -2449,7 +2449,8 @@ static void draw_particle_system(Object *ob, PartEff *paf)
 		}
 	}
 	if(paf->stype!=PAF_VECT) glEnd();
-
+	
+	mymultmatrix(ob->obmat);	// bring back local matrix for dtx
 }
 
 static void draw_static_particle_system(Object *ob, PartEff *paf)
@@ -4248,7 +4249,7 @@ void draw_object(Base *base)
 				if(col) cpack(0xFFFFFF);	/* for visibility */
 				if(paf->flag & PAF_STATIC) draw_static_particle_system(ob, paf);
 				else draw_particle_system(ob, paf);
-				cpack(col);
+				if(col) cpack(col);
 			}
 		}
 		

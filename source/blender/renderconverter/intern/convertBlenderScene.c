@@ -939,6 +939,12 @@ static void render_particle_system(Object *ob, PartEff *paf)
 		ma->ren->seed1++;
 	}
 
+	/* restore material */
+	for(a=1; a<=ob->totcol; a++) {
+		ma= give_render_material(ob, a);
+		if(ma) do_mat_ipo(ma);
+	}
+	
 }
 
 
