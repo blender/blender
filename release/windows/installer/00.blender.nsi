@@ -308,6 +308,7 @@ Section "Blender-VERSION (required)" SecCopyUI
   File DISTDIR\.blender\scripts\skin.py
   File DISTDIR\.blender\scripts\slp_import.py
   File DISTDIR\.blender\scripts\sysinfo.py
+  File DISTDIR\.blender\scripts\tex2uvbaker.py
   File DISTDIR\.blender\scripts\truespace_export.py
   File DISTDIR\.blender\scripts\truespace_import.py
   File DISTDIR\.blender\scripts\unweld044.py
