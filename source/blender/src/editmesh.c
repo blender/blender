@@ -102,6 +102,9 @@
 #include "nla.h"		/* For __NLA : Important - Do not remove! */
 #include "render.h"
 
+#include "GHOST_C-api.h"
+#include "winlay.h"
+
 /****/
 
 static void free_editverts(ListBase *edve);
@@ -7223,20 +7226,25 @@ CutCurve *get_mouse_trail(int *len, char mode){
 
 	persp(PERSP_WIN);
 	
+	glColor3ub(200, 200, 0);
+	
 	event=extern_qread(&val);
 	while((event != RETKEY ) && (event != PADENTER ) && (event != RIGHTMOUSE) ){  
 		event=extern_qread(&val);	/* Enter or RMB indicates finish */
 		
 		if (event==ESCKEY){
-			for(j=1;j<i;j++) sdrawXORline(curve[j-1].x, curve[j-1].y, curve[j].x, curve[j].y );
 			if (curve) MEM_freeN(curve);
 			*len=0;
+			glFinish();
+			glDrawBuffer(GL_BACK);
 			return(NULL);
 			break;
 		}	
 		
 		if (rubberband)  { /* rubberband mode, undraw last rubberband */
+			glLineWidth(2.0);
 			sdrawXORline(curve[i-1].x, curve[i-1].y,mval[0], mval[1]); 
+			glLineWidth(1.0);
 			glFinish();
 			rubberband=0;
 		}
@@ -7281,12 +7289,14 @@ CutCurve *get_mouse_trail(int *len, char mode){
 		}
 		
 		if ((i>1)&&(i!=lasti)) {  /*Draw recorded part of curve */
-			sdrawXORline(curve[i-2].x, curve[i-2].y, curve[i-1].x, curve[i-1].y);
+			sdrawline(curve[i-2].x, curve[i-2].y, curve[i-1].x, curve[i-1].y);
 			glFinish();
 		}
 		
 		if ((i==lasti)&&(i>0)) { /*Draw rubberband */
+			glLineWidth(2.0);
 			sdrawXORline(curve[i-1].x, curve[i-1].y,mval[0], mval[1]);
+			glLineWidth(1.0);
 			glFinish();
 			rubberband=1;
 		}
@@ -7303,9 +7313,6 @@ CutCurve *get_mouse_trail(int *len, char mode){
 			blocks++;
 			MEM_freeN(temp);
 		}
-	}
-	for(j=1;j<i;j++) {
-		sdrawXORline(curve[j-1].x, curve[j-1].y, curve[j].x, curve[j].y );
 	}
 
 	glFinish();
@@ -7335,19 +7342,36 @@ void KnifeSubdivide(char mode){
 	int oldcursor, len=0;
 	short isect=0;
 	CutCurve *curve;		
-	EditEdge *eed; 	
+	EditEdge *eed; 
+	Window *win;	
+	/* Remove this from here when cursor support finished */
+	unsigned char bitmap[16][2]={
+        {0x00, 0x00 } , {0x00, 0x00 } , {0x00, 0x10 } , {0x00, 0x2c } ,
+        {0x00, 0x5a } , {0x00, 0x34 } , {0x00, 0x2a } , {0x00, 0x17 } ,
+        {0x80, 0x06 } , {0x40, 0x03 } , {0xa0, 0x03 } , {0xd0, 0x01 } ,
+        {0x68, 0x00 } , {0x1c, 0x00 } , {0x06, 0x00 } , {0x00, 0x00 }
+	};
+
+	unsigned char mask[16][2]={
+        {0x00, 0x60 } , {0x00, 0xf0 } , {0x00, 0xfc } , {0x00, 0xfe } ,
+        {0x00, 0xfe } , {0x00, 0x7e } , {0x00, 0x7f } , {0x80, 0x3f } ,
+        {0xc0, 0x0e } , {0x60, 0x07 } , {0xb0, 0x07 } , {0xd8, 0x03 } ,
+        {0xec, 0x01 } , {0x7e, 0x00 } , {0x1f, 0x00 } , {0x07, 0x00 }
+	};
 	
 	if (G.obedit==0) return;
 	
 	undo_push_mesh("Knife");
 	
+	calc_meshverts_ext();  /*Update screen coords for current window */
+	if (mode==KNIFE_PROMPT) mode=pupmenu("Cut Type %t|Exact Line%x1|Midpoints%x2|");
+	
 	/* Set a knife cursor here */
 	oldcursor=get_cursor();
-	set_cursor(CURSOR_PENCIL); 
-	
-	calc_meshverts_ext();  /*Update screen coords for current window */
-		
-	if (mode==KNIFE_PROMPT) mode=pupmenu("Cut Type %t|Exact Line%x1|Midpoints%x2|");
+	//set_cursor(CURSOR_PENCIL); 
+	win=winlay_get_active_window();
+	window_set_custom_cursor(win, mask, bitmap);
+	//GHOST_SetCustomCursorShape(win->ghostwin, mask, bitmap, 0, 15);
 	
 	curve=get_mouse_trail(&len, TRAIL_MIXED);
 	
@@ -7381,7 +7405,7 @@ void KnifeSubdivide(char mode){
 	/* Return to old cursor and flags...*/
 	
 	addqueue(curarea->win,  REDRAW, 0);
-	set_cursor(oldcursor);
+	window_set_cursor(win, oldcursor);
 	if (curve) MEM_freeN(curve);
 }
 
@@ -7636,32 +7660,19 @@ void undo_menu_mesh(void)
 {
        short event=66;
        int i, lasti;
-       char menu[2080];
+       char menu[2080], temp[64];
 
        TEST_EDITMESH
 
-       lasti= (G.undo_edit_level>30) ? G.undo_edit_level-30 : 0;
-
-       strcpy(menu, "UNDO %t");
-       strcat(menu, "|%l|All changes%x1|%l");
-
-       for (i=G.undo_edit_level; i>=lasti; i--) {
-               sprintf(menu+strlen(menu), "|%s%%x%d", G.undo_edit[i].name, i+2);
+       strcpy(menu, "UNDO %t|%l");
+       strcat(menu, "|All changes%x1|%l");
+	   
+	   for (i=G.undo_edit_level; i>=0; i--) {
+               snprintf(temp, 64, "|%s%%x%d", G.undo_edit[i].name, i+2);
+			   strcat(menu, temp);
        }
 
-       if (lasti) strcat(menu, "|%l|More...%x33|%l");
-
-       event= pupmenu(menu);
-
-       if (event==33){ /* More options.*/
-               strcpy(menu, "UNDO %t");
-               strcat(menu, "|%l|All changes%x1|%l");
-
-               for (i=lasti; i>=0; i--) {
-                       sprintf(menu+strlen(menu), "|%s%%x%d", G.undo_edit[i].name, i+2);
-               }
-               event= pupmenu(menu);
-       }
+	   event=pupmenu_col(menu, 20);
 
        if(event<1) return;
 

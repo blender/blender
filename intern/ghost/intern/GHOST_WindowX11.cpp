@@ -690,7 +690,7 @@ setWindowCustomCursorShape(
 	if(XAllocNamedColor(m_display, DefaultColormap(m_display, DefaultScreen(m_display)),
 		"White", &fg, &fg) == 0) return GHOST_kFailure;
 	if(XAllocNamedColor(m_display, DefaultColormap(m_display, DefaultScreen(m_display)),
-		"Red", &bg, &bg) == 0) return GHOST_kFailure;
+		"Black", &bg, &bg) == 0) return GHOST_kFailure;
 
 	if (m_custom_cursor) {
 		XFreeCursor(m_display, m_custom_cursor);
