@@ -1,5 +1,5 @@
 import Blender
-
+#testfile
 list = Blender.World.Get()
 print "available worlds",list
 
