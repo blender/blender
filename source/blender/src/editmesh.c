@@ -46,6 +46,8 @@
 #endif
 #include "MEM_guardedalloc.h"
 
+#include "PIL_time.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
@@ -2124,6 +2126,67 @@ static EditEdge *findnearestedge()
 	else return 0;
 }
 
+/* this is a template function to demonstrate a loop with drawing...
+   it is a temporal mode, so use with wisdom! if you can avoid, always better. (ton)
+*/
+
+/* Goof: after you tested this, comment it out with: #if 0 .... #endif, so others can use it too */
+
+void loop(int mode)
+{
+	EditEdge *eed;
+	int mousemove= 1;
+
+	while(mousemove) {
+		/* uses callback mechanism to draw it all in current area */
+		scrarea_do_windraw(curarea); 
+		
+		/* do your stuff */
+		eed= findnearestedge();
+		
+		/* set window matrix to perspective, default an area returns with buttons transform */
+		persp(PERSP_VIEW);
+		/* make a copy, for safety */
+		glPushMatrix();
+		/* multiply with the object transformation */
+		mymultmatrix(G.obedit->obmat);
+		
+		/* draw */
+		if(eed) {
+			glColor3ub(255, 255, 0);
+			glBegin(GL_LINES);
+			glVertex3fv(eed->v1->co);
+			glVertex3fv(eed->v2->co);
+			glEnd();
+		}
+		
+		/* restore matrix transform */
+		glPopMatrix();
+		
+		headerprint("We are now in evil edge select mode. Press any key to exit");
+		
+		/* this also verifies other area/windows for clean swap */
+		screen_swapbuffers();
+		
+		/* testing for user input... */
+		while(qtest()) {
+			unsigned short val;
+			short event= extern_qread(&val);	// extern_qread stores important events for the mainloop to handle 
+
+			/* val==0 on key-release event */
+			if(val && event!=MOUSEY && event!=MOUSEX) {
+				mousemove= 0;
+			}
+		}
+		/* sleep 0.01 second to prevent overload in this poor loop */
+		PIL_sleep_ms(10);	
+		
+	}
+	
+	/* send event to redraw this window, does header too */
+	addqueue(curarea->win, REDRAW, 1); 
+}
+
 /* 
 functionality: various loop functions
 parameters: mode tells the function what it should do with the loop:
@@ -2131,7 +2194,7 @@ parameters: mode tells the function what it should do with the loop:
 		'c' = cut in half
 */
 		
-void loop(int mode)
+void loop_o(int mode)
 {
 	EditEdge *start, *eed, *opposite,*currente;
 	EditVlak *evl, *currentvl, *formervl;
