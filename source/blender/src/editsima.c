@@ -60,6 +60,7 @@
 
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_displist.h"
 
 #include "BIF_gl.h"
 #include "BIF_interface.h"

@@ -2661,63 +2661,62 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 		break;
 		
 	default:
-		if (uevent->event!=RETKEY) {	/* when previous command was arrow */
-			but= block->buttons.first;
-			while(but) {
+
+		but= block->buttons.first;
+		while(but) {
+		
+			but->flag &= ~UI_MOUSE_OVER;
 			
-				but->flag &= ~UI_MOUSE_OVER;
-				
-				/* check boundbox */
-				if (uibut_contains_pt(but, uevent->mval)) {
-					but->flag |= UI_MOUSE_OVER;
-					UIbuttip= but;
+			/* check boundbox */
+			if (uibut_contains_pt(but, uevent->mval)) {
+				but->flag |= UI_MOUSE_OVER;
+				UIbuttip= but;
+			}
+			/* hilite case 1 */
+			if(but->flag & UI_MOUSE_OVER) {
+				if( (but->flag & UI_ACTIVE)==0) {
+					but->flag |= UI_ACTIVE;
+					if(but->type != LABEL && (but->flag & UI_NO_HILITE)==0) ui_draw_but(but);
 				}
-				/* hilite case 1 */
-				if(but->flag & UI_MOUSE_OVER) {
-					if( (but->flag & UI_ACTIVE)==0) {
-						but->flag |= UI_ACTIVE;
+			}
+			/* hilite case 2 */
+			if(but->flag & UI_ACTIVE) {
+				if( (but->flag & UI_MOUSE_OVER)==0) {
+					/* we dont clear active flag until mouse move, for Menu buttons to remain showing active item when opened */
+					if (uevent->event==MOUSEY) {
+						but->flag &= ~UI_ACTIVE;
 						if(but->type != LABEL && (but->flag & UI_NO_HILITE)==0) ui_draw_but(but);
 					}
 				}
-				/* hilite case 2 */
-				if(but->flag & UI_ACTIVE) {
-					if( (but->flag & UI_MOUSE_OVER)==0) {
-						/* we dont clear active flag until mouse move, for Menu buttons to remain showing active item when opened */
-						if (uevent->event==MOUSEY) {
-							but->flag &= ~UI_ACTIVE;
-							if(but->type != LABEL && (but->flag & UI_NO_HILITE)==0) ui_draw_but(but);
+				else if(but->type==BLOCK || but->type==MENU) {	// automatic opens block button (pulldown)
+					int time;
+					if(uevent->event!=LEFTMOUSE ) {
+						if(block->auto_open==2) time= 1;	// test for toolbox
+						else if(block->auto_open) time= 5*U.menuthreshold2;
+						else if(U.uiflag & USER_MENUOPENAUTO) time= 5*U.menuthreshold1;
+						else time= -1;
+
+						for (; time>0; time--) {
+							if (qtest()) break;
+							else PIL_sleep_ms(20);
+						}
+
+						if(time==0) {
+							uevent->val= 1;	// otherwise buttons dont react
+							ui_do_button(block, but, uevent);
 						}
 					}
-					else if(but->type==BLOCK || but->type==MENU) {	// automatic opens block button (pulldown)
-						int time;
-						if(uevent->event!=LEFTMOUSE ) {
-							if(block->auto_open==2) time= 1;	// test for toolbox
-							else if(block->auto_open) time= 5*U.menuthreshold2;
-							else if(U.uiflag & USER_MENUOPENAUTO) time= 5*U.menuthreshold1;
-							else time= -1;
-
-							for (; time>0; time--) {
-								if (qtest()) break;
-								else PIL_sleep_ms(20);
-							}
-
-							if(time==0) {
-								uevent->val= 1;	// otherwise buttons dont react
-								ui_do_button(block, but, uevent);
-							}
-						}
-					}
-					if(but->flag & UI_ACTIVE) active= 1;
 				}
-				
-				but= but->next;
+				if(but->flag & UI_ACTIVE) active= 1;
 			}
 			
-			/* if there are no active buttons... otherwise clear lines */
-			if(active) ui_do_active_linklines(block, 0);
-			else ui_do_active_linklines(block, uevent->mval);			
-
+			but= but->next;
 		}
+		
+		/* if there are no active buttons... otherwise clear lines */
+		if(active) ui_do_active_linklines(block, 0);
+		else ui_do_active_linklines(block, uevent->mval);			
+
 	}
 
 	/* middlemouse exception, not for regular blocks */
