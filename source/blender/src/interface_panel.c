@@ -896,9 +896,9 @@ static void ui_draw_panel_header(uiBlock *block)
 	}
 	
 	// tabbed, full header brighter
-	BIF_ThemeColorShade(TH_HEADER, 0);
-	uiSetRoundBox(3);
-	uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 8);
+	//BIF_ThemeColorShade(TH_HEADER, 0);
+	//uiSetRoundBox(3);
+	//uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 8);
 
 	a= 0;
 	width= (panel->sizex - 3 - pnl_icons - PNL_ICON)/nr;
@@ -907,14 +907,14 @@ static void ui_draw_panel_header(uiBlock *block)
 		if(pa->active==0);
 		else if(pa==panel) {
 			/* active tab */
-			
+		
 			/* draw the active tab */
 			uiSetRoundBox(3);
-			BIF_ThemeColorShade(TH_HEADER, -30);
+			BIF_ThemeColorShade(TH_HEADER, -3);
 			uiRoundBox(2+pnl_icons+a*width, panel->sizey-1, pnl_icons+(a+1)*width, panel->sizey+PNL_HEADER-3, 8);
 
 			/* draw the active text label */
-			BIF_ThemeColor(TH_TEXT_HI);
+			BIF_ThemeColor(TH_TEXT);
 			ui_rasterpos_safe(16+pnl_icons+a*width, panel->sizey+4, block->aspect);
 			str= ui_block_cut_str(block, pa->panelname, (short)(width-10));
 			BIF_DrawString(block->curfont, str, (U.transopts & USER_TR_BUTTONS));
@@ -924,11 +924,11 @@ static void ui_draw_panel_header(uiBlock *block)
 		else if(pa->paneltab==panel) {
 			/* draw an inactive tab */
 			uiSetRoundBox(3);
-			BIF_ThemeColorShade(TH_HEADER, -10);
+			BIF_ThemeColorShade(TH_HEADER, -60);
 			uiRoundBox(2+pnl_icons+a*width, panel->sizey, pnl_icons+(a+1)*width, panel->sizey+PNL_HEADER-3, 8);
 			
 			/* draw an inactive tab label */
-			BIF_ThemeColor(TH_TEXT);
+			BIF_ThemeColorShade(TH_TEXT_HI, -40);
 			ui_rasterpos_safe(16+pnl_icons+a*width, panel->sizey+4, block->aspect);
 			str= ui_block_cut_str(block, pa->panelname, (short)(width-10));
 			BIF_DrawString(block->curfont, str, (U.transopts & USER_TR_BUTTONS));
@@ -1060,6 +1060,9 @@ void ui_draw_panel(uiBlock *block)
 		}
 		/* floating panel */
 		else if(panel->control & UI_PNL_TRANSP) {
+			BIF_ThemeColorShade(TH_HEADER, -30);
+			uiSetRoundBox(3);
+			uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 8);
 			
 			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 			glEnable(GL_BLEND);
