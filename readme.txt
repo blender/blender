@@ -74,7 +74,7 @@ I could not find it). You could use fink to install Python but that Python
 installation depends on X being installed and that is a large installation.
 
 If you prefer the easy way: download Python 2.2.2 from http://www.python.org.
-Follow the instructions to in the documentation to install it on you're box. If
+Follow the instructions to in the documentation to install it on your box. If
 you run OSX 10.2 it should install just fine. Basically a configure and a 
 "make" will do the job. The result is a Python library that should be copied to
 the library tree together with the associated header files.
@@ -93,5 +93,9 @@ complains about ranlib not being run. Until there is a solution, you will need
 to run ranlib by hand once in a while when the make breaks. Luckily, the error
 message lists the full path of the file to run ranlib on... Anybody out there 
 with a real solution?
+
+Now wait, don't type make yet! You'll have to edit a config file of ODE first.
+go to $NANBLENDERHOME/source/ode/config and edit the file "user-settings" so 
+that platform is equal to osx (PLATFORM=osx).
 
 Success!
