@@ -629,7 +629,6 @@ bool GHOST_SystemCarbon::handleMouseDown(EventRef event)
 	
 	part = ::FindWindow(mousePos, &window);
 	ghostWindow = (GHOST_IWindow*) ::GetWRefCon(window);
-	GHOST_ASSERT(validWindow(ghostWindow), "GHOST_SystemCarbon::handleMouseEvent: invalid window");
 	
 	switch (part) {
 		case inMenuBar:
