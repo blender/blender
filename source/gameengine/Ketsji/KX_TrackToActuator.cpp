@@ -406,6 +406,7 @@ PyObject* KX_TrackToActuator::PySetObject(PyObject* self, PyObject* args, PyObje
 
 		Py_Return;
 	}
+	PyErr_Clear();
 	
 	char* objectname;
 	if (PyArg_ParseTuple(args, "s", &objectname))

@@ -170,6 +170,12 @@ bool KX_RaySensor::Evaluate(CValue* event)
 	MT_Vector3 resultnormal;
 	bool ready = false;
 	SumoPhysicsEnvironment *spe = dynamic_cast<SumoPhysicsEnvironment *>(m_scene->GetPhysicsEnvironment());
+	if (!spe)
+	{
+		std::cout << "WARNING: Ray sensor " << GetName() << ":  There is no physics environment!" << std::endl;
+		std::cout << "         Check universe for malfunction." << std::endl;
+		return false;
+	} 
 	SM_Scene *scene = spe->GetSumoScene();
 	KX_SumoPhysicsController *spc = dynamic_cast<KX_SumoPhysicsController *>(obj->GetPhysicsController());
 	KX_GameObject *parent = obj->GetParent();

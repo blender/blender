@@ -320,6 +320,7 @@ PyObject* KX_SceneActuator::PySetCamera(PyObject* self,
 		m_camera = (KX_Camera*) cam;
 		Py_Return;
 	}
+	PyErr_Clear();
 
 	/* one argument: a scene, ignore the rest */
 	char *camName;

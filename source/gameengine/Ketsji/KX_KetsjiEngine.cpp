@@ -784,7 +784,9 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene)
 		MT_Matrix4x4 projmat = m_rasterizer->GetFrustumMatrix(
 			left, right, bottom, top, nearfrust, farfrust);
 	
-		cam->SetProjectionMatrix(projmat);	
+		cam->SetProjectionMatrix(projmat);
+		if (m_rasterizer->Stereo())
+			cam->InvalidateProjectionMatrix();
 	}
 
 	MT_Transform camtrans(cam->GetWorldToCamera());

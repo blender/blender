@@ -198,6 +198,7 @@ PyObject* KX_SCA_AddObjectActuator::PySetObject(PyObject* self,
 		m_OriginalObject = (CValue*)gameobj;
 		Py_Return;
 	}
+	PyErr_Clear();
 	
 	char* objectname;
 	if (PyArg_ParseTuple(args, "s", &objectname))
