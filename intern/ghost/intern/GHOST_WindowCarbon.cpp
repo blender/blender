@@ -46,6 +46,9 @@
 #include "GHOST_Debug.h"
 
 AGLContext GHOST_WindowCarbon::s_firstaglCtx = NULL;
+#ifdef GHOST_DRAW_CARBON_GUTTER
+const GHOST_TInt32 GHOST_WindowCarbon::s_sizeRectSize = 16;
+#endif //GHOST_DRAW_CARBON_GUTTER
 
 static const GLint sPreferredFormatWindow[7] = {
 AGL_RGBA,			GL_TRUE,
@@ -190,6 +193,18 @@ void GHOST_WindowCarbon::getClientBounds(GHOST_Rect& bounds) const
 	bounds.m_l = rect.left;
 	bounds.m_r = rect.right;
 	bounds.m_t = rect.top;
+
+	// Subtract gutter height from bottom
+#ifdef GHOST_DRAW_CARBON_GUTTER
+	if ((bounds.m_b - bounds.m_t) > s_sizeRectSize)
+	{
+		bounds.m_b -= s_sizeRectSize;
+	}
+	else
+	{
+		bounds.m_t = bounds.m_b;
+	}
+#endif //GHOST_DRAW_CARBON_GUTTER
 }
 
 
@@ -210,9 +225,15 @@ GHOST_TSuccess GHOST_WindowCarbon::setClientHeight(GHOST_TUns32 height)
 	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::setClientHeight(): window invalid")
 	GHOST_Rect cBnds, wBnds;
 	getClientBounds(cBnds);
+#ifdef GHOST_DRAW_CARBON_GUTTER
+	if (((GHOST_TUns32)cBnds.getHeight()) != height+s_sizeRectSize) {
+		::SizeWindow(m_windowRef, cBnds.getWidth(), height+s_sizeRectSize, true);
+	}
+#else //GHOST_DRAW_CARBON_GUTTER
 	if (((GHOST_TUns32)cBnds.getHeight()) != height) {
 		::SizeWindow(m_windowRef, cBnds.getWidth(), height, true);
 	}
+#endif //GHOST_DRAW_CARBON_GUTTER
 	return GHOST_kSuccess;
 }
 
@@ -222,10 +243,17 @@ GHOST_TSuccess GHOST_WindowCarbon::setClientSize(GHOST_TUns32 width, GHOST_TUns3
 	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::setClientSize(): window invalid")
 	GHOST_Rect cBnds, wBnds;
 	getClientBounds(cBnds);
+#ifdef GHOST_DRAW_CARBON_GUTTER
+	if ((((GHOST_TUns32)cBnds.getWidth()) != width) ||
+	    (((GHOST_TUns32)cBnds.getHeight()) != height+s_sizeRectSize)) {
+		::SizeWindow(m_windowRef, width, height+s_sizeRectSize, true);
+	}
+#else //GHOST_DRAW_CARBON_GUTTER
 	if ((((GHOST_TUns32)cBnds.getWidth()) != width) ||
 	    (((GHOST_TUns32)cBnds.getHeight()) != height)) {
 		::SizeWindow(m_windowRef, width, height, true);
 	}
+#endif //GHOST_DRAW_CARBON_GUTTER
 	return GHOST_kSuccess;
 }
 
@@ -343,6 +371,20 @@ GHOST_TSuccess GHOST_WindowCarbon::activateDrawingContext()
 	if (m_drawingContextType == GHOST_kDrawingContextTypeOpenGL) {
 		if (m_aglCtx) {
 			::aglSetCurrentContext(m_aglCtx);
+#ifdef GHOST_DRAW_CARBON_GUTTER
+			// Restrict drawing to non-gutter area
+			::aglEnable(m_aglCtx, AGL_BUFFER_RECT);
+			GHOST_Rect bnds;
+			getClientBounds(bnds);
+			GLint b[4] =
+			{
+				bnds.m_l,
+				bnds.m_t+s_sizeRectSize,
+				bnds.m_r-bnds.m_l,
+				bnds.m_b-bnds.m_t
+			};
+			GLboolean result = ::aglSetInteger(m_aglCtx, AGL_BUFFER_RECT, b);
+#endif //GHOST_DRAW_CARBON_GUTTER
 		}
 		else {
 			succeeded = GHOST_kFailure;

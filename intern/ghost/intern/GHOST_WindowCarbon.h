@@ -49,12 +49,10 @@
 
 /**
  * Window on Mac OSX/Carbon.
- * WILL BE ADDED:
  * Carbon windows have a size widget in the lower right corner of the window.
  * To force it to be visible, the height of the client rectangle is reduced so
  * that applications do not draw in that area. GHOST will manage that area
  * which is called the gutter.
- * END WILL BE ADDED
  * When OpenGL contexts are active, GHOST will use AGL_BUFFER_RECT to prevent
  * OpenGL drawing outside the reduced client rectangle.
  * @author	Maarten Gribnau
@@ -271,6 +269,14 @@ protected:
     
     /** When running in full-screen this tells whether to refresh the window. */
     bool m_fullScreenDirty;
+
+    /**
+     * The width/height of the size rectangle in the lower right corner of a 
+     * Mac/Carbon window. This is also the height of the gutter area.
+     */
+#ifdef GHOST_DRAW_CARBON_GUTTER
+    static const GHOST_TInt32 s_sizeRectSize;
+#endif // GHOST_DRAW_CARBON_GUTTER
 };
 
 #endif // _GHOST_WINDOW_CARBON_H_
