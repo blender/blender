@@ -6707,8 +6707,8 @@ void single_object_users(int flag)
 			if( (base->flag & flag)==flag) {
 				
 				relink_constraints(&base->object->constraints);
-				bPoseChannel *chan;
 				if (base->object->pose){
+					bPoseChannel *chan;
 					for (chan = base->object->pose->chanbase.first; chan; chan=chan->next){
 						relink_constraints(&chan->constraints);
 					}
