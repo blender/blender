@@ -1054,7 +1054,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 	} else if (event==RIGHTMOUSE) {
 		if (val) {
-			p= pupmenu("File %t|New %x0|Open... %x1|Save %x2|Save As...%x3");
+			p= pupmenu("File %t|New %x0|Open... %x1|Save %x2|Save As...%x3|Execute Script%x4");
 
 			switch(p) {
 				case 0:
@@ -1076,7 +1076,10 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					txt_write_file(text);
 					do_draw= 1;
 					break;
-
+				case 4:
+					run_python_script(st);
+					do_draw= 1;
+					break;
 				default:
 					break;
 			}
