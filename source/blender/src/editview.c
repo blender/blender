@@ -628,11 +628,13 @@ void mouse_select(void)
 				set_active_base(basact);
 			}
 
-			// for visual speed
-			if(oldbasact && oldbasact != basact && (oldbasact->lay & G.vd->lay)) 
-				draw_object_ext(oldbasact);
-			draw_object_ext(basact);
-
+			// for visual speed, only in wire mode
+			if(G.vd->drawtype==OB_WIRE) {
+				if(oldbasact && oldbasact != basact && (oldbasact->lay & G.vd->lay)) 
+					draw_object_ext(oldbasact);
+				draw_object_ext(basact);
+			}
+			
 			if(basact->object->type!=OB_MESH) {
 				if(G.f & G_WEIGHTPAINT) {
 					set_wpaint();	/* toggle */

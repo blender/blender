@@ -3100,30 +3100,38 @@ static void drawmball(Object *ob, int dt)
 		BIF_ThemeColor(TH_WIRE);
 		if((G.f & G_PICKSEL)==0 ) drawDispList(ob, dt);
 		ml= editelems.first;
-
-		mygetmatrix(tmat);
-		Mat4Invert(imat, tmat);
-		Normalise(imat[0]);
-		Normalise(imat[1]);
-		
-		while(ml) {
-			
-			if(ob==G.obedit) {
-				if(ml->flag & SELECT) cpack(0xA0A0F0);
-				else cpack(0x3030A0);
-				
-				if(G.f & G_PICKSEL) {
-					ml->selcol= code;
-					glLoadName(code++);
-				}
-			}
-			drawcircball(&(ml->x), ml->rad, imat);
-			
-			ml= ml->next;
-		}
 	}
 	else {
 		drawDispList(ob, dt);
+		ml= mb->elems.first;
+	}
+
+	/* in case solid draw, reset wire colors */
+	if(ob!=G.obedit && (ob->flag & SELECT)) {
+		if(ob==OBACT) BIF_ThemeColor(TH_ACTIVE);
+		else BIF_ThemeColor(TH_SELECT);
+	}
+	else BIF_ThemeColor(TH_WIRE);
+
+	mygetmatrix(tmat);
+	Mat4Invert(imat, tmat);
+	Normalise(imat[0]);
+	Normalise(imat[1]);
+	
+	while(ml) {
+		
+		if(ob==G.obedit) {
+			if(ml->flag & SELECT) cpack(0xA0A0F0);
+			else cpack(0x3030A0);
+			
+			if(G.f & G_PICKSEL) {
+				ml->selcol= code;
+				glLoadName(code++);
+			}
+		}
+		drawcircball(&(ml->x), ml->rad, imat);
+		
+		ml= ml->next;
 	}
 }
 
@@ -3342,19 +3350,16 @@ static void drawSolidSelect(Object *ob, ListBase *lb)
 {
 
 	if(ob->flag & SELECT) {
-		if(ob==OBACT) BIF_ThemeColor(TH_ACTIVE);
-		else BIF_ThemeColor(TH_SELECT);
-	}
-	else return; //BIF_ThemeColor(TH_WIRE);
-
-	glLineWidth(2.0);
-	glDepthMask(0);
 	
-	if(ob->type==OB_MESH) drawmeshwire(ob);
-	else drawDispListwire(lb);
-
-	glLineWidth(1.0);
-	glDepthMask(1);
+		glLineWidth(2.0);
+		glDepthMask(0);
+		
+		if(ob->type==OB_MESH) drawmeshwire(ob);
+		else drawDispListwire(lb);
+	
+		glLineWidth(1.0);
+		glDepthMask(1);
+	}
 }
 
 static void draw_solid_select(Object *ob) 
