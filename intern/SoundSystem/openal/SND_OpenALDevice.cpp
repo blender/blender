@@ -569,11 +569,8 @@ void SND_OpenALDevice::StopObject(int id) const
 	float obvel[3] = {0,0,0};
 
 	alSourcefv(m_sources[id], AL_POSITION, obpos);
-
-#ifdef WIN32
 	alSourcefv(m_sources[id], AL_VELOCITY, obvel);
-#endif
-
+	
 	alSourcef(m_sources[id], AL_GAIN, 1.0);
 	alSourcef(m_sources[id], AL_PITCH, 1.0);
 	alSourcei(m_sources[id], AL_LOOPING, AL_FALSE);
@@ -693,11 +690,8 @@ void SND_OpenALDevice::SetObjectTransform(int id,
 
 	alSourcefv(m_sources[id], AL_POSITION, obpos);
 
-#ifdef WIN32
 	velocity.getValue(obvel);
 	alSourcefv(m_sources[id], AL_VELOCITY, obvel);
-#endif
-
 }
 
 void SND_OpenALDevice::PlayCD(int track) const
