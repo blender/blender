@@ -102,7 +102,7 @@
 #include "initrender.h"
 
 /* yafray: include for yafray export/render */
-#include "yafray_Render.h"
+#include "YafRay_Api.h"
 
 /* Some crud :/ */
 #define ELEM3(a, b, c, d)       ( ELEM(a, b, c) || (a)==(d) )

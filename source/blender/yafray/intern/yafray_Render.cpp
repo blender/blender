@@ -5,6 +5,7 @@
 //----------------------------------------------------------------------------------------------------
 
 #include "yafray_Render.h"
+
 #include <math.h>
 
 using namespace std;
@@ -118,7 +119,12 @@ bool yafrayRender_t::exportScene()
 	string yfr = "yafray " + xmlpath;
 	if(system(yfr.c_str())==0)
 		displayImage();
-	else cout<<"Could not execute yafray. Is it in path?";
+	else 
+	{
+		G.afbreek=1; //stop render and anim if doing so
+		cout<<"Could not execute yafray. Is it in path?"<<endl;
+		return false;
+	}
 
 	return true;
 
@@ -1197,7 +1203,8 @@ bool yafrayRender_t::writeWorld()
 
 yafrayRender_t YAFBLEND;
 
-extern "C" {
+extern "C" 
+{
 
 int YAF_exportScene() { return (int)YAFBLEND.exportScene(); }
 void YAF_displayImage() { YAFBLEND.displayImage(); }
