@@ -43,7 +43,7 @@ if sys.platform == 'linux2' or sys.platform == 'linux-i386':
     extra_flags = ['-pipe', '-fPIC', '-funsigned-char']
     cxxflags = []
     defines = []
-    warn_flags = ['-Wall', '-W']
+    warn_flags = ['-Wall']
     window_system = 'X11'
     platform_libs = ['m', 'util', 'stdc++']
     platform_libpath = []
