@@ -33,6 +33,7 @@
 #include <string.h>
 #include <Python.h>
 
+#include <DNA_ID.h>
 #include <DNA_scriptlink_types.h>
 
 int StringEqual (char * string1, char * string2)
@@ -40,10 +41,15 @@ int StringEqual (char * string1, char * string2)
 	return (strcmp(string1, string2)==0);
 }
 
+char * GetIdName (ID *id)
+{
+	return ((id->name)+2);
+}
+
 PyObject * PythonReturnErrorObject (PyObject * type, char * error_msg)
 {
 	PyErr_SetString (type, error_msg);
-	return NULL;
+	return (NULL);
 }
 
 PyObject * PythonIncRef (PyObject *object)

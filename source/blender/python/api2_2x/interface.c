@@ -31,7 +31,15 @@
 
 #include <stdio.h>
 
+#include <BKE_global.h>
+#include <BKE_main.h>
 #include <DNA_ID.h>
+#include <DNA_camera_types.h>
+#include <DNA_lamp_types.h>
+#include <DNA_material_types.h>
+#include <DNA_object_types.h>
+#include <DNA_scene_types.h>
+#include <DNA_world_types.h>
 
 #include "datablock.h"
 #include "gen_utils.h"
@@ -48,6 +56,7 @@ void setScriptLinks(ID *id, short event)
 	PyObject *link;
 	int       obj_id;
 
+	printf ("In setScriptLinks (id=?, event=%d)\n", event);
 	if (!g_blenderdict)
 	{
 		/* Not initialized yet. This can happen at first file load. */
@@ -62,7 +71,45 @@ void setScriptLinks(ID *id, short event)
 	}
 	else
 	{
-		link = DataBlockFromID(id);
+		link = Py_None;
+		switch (obj_id)
+		{
+			case ID_OB:
+				/* Create a new datablock of type: Object */
+				/*
+				link = ObjectCreatePyObject (G.main->object);
+				*/
+				break;
+			case ID_ME:
+				/* Create a new datablock of type: Mesh */
+				break;
+			case ID_LA:
+				/* Create a new datablock of type: Lamp */
+				break;
+			case ID_CA:
+				/* Create a new datablock of type: Camera */
+				break;
+			case ID_MA:
+				/* Create a new datablock of type: Material */
+				break;
+			case ID_WO:
+				/* Create a new datablock of type: World */
+				break;
+			case ID_IP:
+				/* Create a new datablock of type: Ipo */
+				break;
+			case ID_IM:
+				/* Create a new datablock of type: Image */
+				break;
+			case ID_TXT:
+				/* Create a new datablock of type: Text */
+				break;
+			default:
+				PythonReturnErrorObject (PyExc_SystemError,
+							"Unable to create block for data");
+				return;
+		}
+		/* link = DataBlockFromID(id); */
 	}
 
 	if (!link)

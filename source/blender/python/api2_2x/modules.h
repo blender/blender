@@ -30,13 +30,13 @@
 */
 #include <Python.h>
 
+#include <DNA_object_types.h>
+
 /*****************************************************************************/
 /* Global variables                                                          */
 /*****************************************************************************/
 PyObject *g_blenderdict;
 
-extern struct PyMethodDef Object_methods[];
-
 void initBlender (void);
 PyObject* initObject (void);
-
+PyObject* ObjectCreatePyObject (struct Object *obj);

@@ -33,10 +33,13 @@
 #include <stdio.h>
 
 #include <BKE_global.h>
+#include <BSE_headerbuttons.h>
 #include <DNA_ID.h>
+#include <DNA_object_types.h>
 #include <DNA_scene_types.h>
 /* #include <DNA_screen_types.h> */
 #include <DNA_userdef_types.h>
+#include <BKE_ipo.h>
 
 #include "gen_utils.h"
 #include "modules.h"
@@ -218,6 +221,7 @@ PyObject *Blender_Redraw(PyObject *self, PyObject *args)
 
 	return Windowmodule_Redraw(self, Py_BuildValue("(i)", wintype));
 	*/
+	return (Py_None);
 }
 
 /*****************************************************************************/

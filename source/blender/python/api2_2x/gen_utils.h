@@ -29,7 +29,12 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
+#include <Python.h>
+
+#include <DNA_ID.h>
+
 int StringEqual (char * string1, char * string2);
+char * GetIdName (ID *id);
 PyObject * PythonReturnErrorObject (PyObject * type, char * error_msg);
 PyObject * PythonIncRef (PyObject *object);
 char * event_to_name(short event);
