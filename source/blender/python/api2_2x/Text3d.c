@@ -36,11 +36,20 @@
 
 #include "BKE_object.h"
 #include "BDR_editobject.h"
+#include "BKE_displist.h"
+#include "MEM_guardedalloc.h"
 
 #include "blendef.h"
 #include "Text3d.h"
 
 #include "mydevice.h"
+
+/* 
+fixme hackage warning:  
+this decl is copied from source/blender/src/editfont.c
+it belongs in a .h file!
+*/
+VFont *get_builtin_font(void);
 
 extern PyObject *Curve_getName( BPy_Text3d * self );
 extern PyObject *Curve_setName( BPy_Text3d * self, PyObject * args );
@@ -60,7 +69,7 @@ static PyObject *M_Text3d_Get( PyObject * self, PyObject * args );
 /* Python Text3d_Type callback function prototypes:                          */
 /*****************************************************************************/
 
-PyObject *Text3d_Init( void );
+
 void Text3dDeAlloc( BPy_Text3d * msh );
 /* int Text3dPrint (BPy_Text3d *msh, FILE *fp, int flags); */
 int Text3dSetAttr( BPy_Text3d * msh, char *name, PyObject * v );

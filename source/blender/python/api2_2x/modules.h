@@ -45,7 +45,7 @@ Their *_Init() method declarations are hacked in down below.
 
 
 #include "Armature.h"
-/* #include "BGL.h" */
+#include "BGL.h" 
 #include "Blender.h"
 #include "Camera.h"
 #include "Curve.h"
@@ -69,6 +69,7 @@ Their *_Init() method declarations are hacked in down below.
 #include "Sound.h"
 #include "Sys.h"
 #include "Text.h"
+#include "Text3d.h"
 #include "Texture.h"
 #include "Types.h"
 #include "Window.h"
