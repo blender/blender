@@ -4225,6 +4225,9 @@ void transform(int mode)
 				if (axismode==XTRANSLOCAL) strcpy(gmode, "Local X: ");
 				if (axismode==YTRANSLOCAL) strcpy(gmode, "Local Y: ");
 				if (axismode==ZTRANSLOCAL) strcpy(gmode, "Local Z: ");
+				if (axismode==XTRANS) strcpy(gmode, "X Axis: ");
+				if (axismode==YTRANS) strcpy(gmode, "Y Axis: ");
+				if (axismode==ZTRANS) strcpy(gmode, "Z Axis: ");
 				
 				if(axismode) {
 					if(cameragrab) {
@@ -4247,6 +4250,9 @@ void transform(int mode)
 					dvec[0] = addvec[0];
 					dvec[1] = addvec[1];
 					dvec[2] = addvec[2];
+					if(axismode == XTRANS) dvec[1]=dvec[2]= 0.0;
+					if(axismode == YTRANS) dvec[0]=dvec[2]= 0.0;
+					if(axismode == ZTRANS) dvec[0]=dvec[1]= 0.0;
 				}
 
 				/* grids */
@@ -4265,13 +4271,21 @@ void transform(int mode)
 					/* speedup for vertices */
 					if (G.obedit) {
 						VECCOPY(dvecp, dvec);
-						Mat3MulVecfl(imat, dvecp);
-						if(axismode==XTRANSLOCAL) dvecp[1]=dvecp[2]=0;
-						if(axismode==YTRANSLOCAL) dvecp[0]=dvecp[2]=0;
-						if(axismode==ZTRANSLOCAL) dvecp[0]=dvecp[1]=0;
-						if(axismode&TRANSLOCAL){
+						if (axismode&TRANSLOCAL && typemode) {
+							if(axismode==XTRANSLOCAL) dvecp[1]=dvecp[2]=0;
+							if(axismode==YTRANSLOCAL) dvecp[0]=dvecp[2]=0;
+							if(axismode==ZTRANSLOCAL) dvecp[0]=dvecp[1]=0;
 							VECCOPY(dvec, dvecp);
-							Mat3MulVecfl(omat, dvec);
+						}
+						else {
+							Mat3MulVecfl(imat, dvecp);
+							if(axismode==XTRANSLOCAL) dvecp[1]=dvecp[2]=0;
+							if(axismode==YTRANSLOCAL) dvecp[0]=dvecp[2]=0;
+							if(axismode==ZTRANSLOCAL) dvecp[0]=dvecp[1]=0;
+							if(axismode&TRANSLOCAL){
+								VECCOPY(dvec, dvecp);
+								Mat3MulVecfl(omat, dvec);
+							}
 						}
 					}
 
