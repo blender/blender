@@ -334,9 +334,6 @@ int read_languagefile(void)
 {
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 	LinkNode *l, *lines;
-#ifdef WIN32
-	int result;
-#endif
 	
 	/* .Blanguages, http://www.blender3d.org/cms/Installation_Policy.352.0.html*/
 #if defined (__APPLE__) || (WIN32)
