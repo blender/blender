@@ -247,7 +247,7 @@ void scanlinesky(char *rect, int y)
 	if(R.r.alphamode & R_ALPHAKEY) {
 		
 		cp= (char *)&col;
-		cp[3]= 1;
+		cp[3]= 0;
 		cp[0]= 255.0*R.wrld.horr;
 		cp[1]= 255.0*R.wrld.horg;
 		cp[2]= 255.0*R.wrld.horb;
