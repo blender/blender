@@ -2053,7 +2053,7 @@ static void tekenvertices_special(int mode, EditVert *act) /* teken = draw */
 	
 	myloadmatrix(G.vd->viewmat);
 
-	glFlush();
+	glFinish();
 	glDrawBuffer(GL_BACK);
 	
 }
@@ -7238,7 +7238,7 @@ CutCurve *get_mouse_trail(int *len, char mode){
 		
 		if (rubberband)  { /* rubberband mode, undraw last rubberband */
 			sdrawXORline(curve[i-1].x, curve[i-1].y,mval[0], mval[1]); 
-			glFlush();
+			glFinish();
 			rubberband=0;
 		}
 		
@@ -7261,7 +7261,7 @@ CutCurve *get_mouse_trail(int *len, char mode){
 			if (restart) { 
 				for(j=1;j<i;j++) sdrawXORline(curve[j-1].x, curve[j-1].y, curve[j].x, curve[j].y);
 				if (rubberband) sdrawXORline(curve[j].x, curve[j].y, mval[0], mval[1]);
-				glFlush();
+				glFinish();
 				rubberband=0;
 				lasti=i=0;
 				restart=0;
@@ -7283,12 +7283,12 @@ CutCurve *get_mouse_trail(int *len, char mode){
 		
 		if ((i>1)&&(i!=lasti)) {  /*Draw recorded part of curve */
 			sdrawXORline(curve[i-2].x, curve[i-2].y, curve[i-1].x, curve[i-1].y);
-			glFlush();
+			glFinish();
 		}
 		
 		if ((i==lasti)&&(i>0)) { /*Draw rubberband */
 			sdrawXORline(curve[i-1].x, curve[i-1].y,mval[0], mval[1]);
-			glFlush();
+			glFinish();
 			rubberband=1;
 		}
 		lasti=i;
@@ -7309,7 +7309,7 @@ CutCurve *get_mouse_trail(int *len, char mode){
 		sdrawXORline(curve[j-1].x, curve[j-1].y, curve[j].x, curve[j].y );
 	}
 
-	glFlush();
+	glFinish();
 	persp(PERSP_VIEW);
 
 	*len=i;

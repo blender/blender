@@ -1689,7 +1689,10 @@ void convertmenu(void)
 			else if(ob->type==OB_MESH) {
 				Mesh *oldme= ob->data;
 				
-				if (oldme->flag&ME_SUBSURF) {
+				if( oldme->subdiv==0 ) {
+					error("No subdivision Mesh to convert available");
+				}
+				else if (oldme->flag&ME_SUBSURF) {
 					ob->flag |= OB_DONE;
 
 					ob1= copy_object(ob);
