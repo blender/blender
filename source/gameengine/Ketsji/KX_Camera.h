@@ -158,6 +158,12 @@ public:
 	/** returns true if this camera has been set a projection matrix. */
 	bool				hasValidProjectionMatrix() const;
 	
+	/** Sets the validity of the projection matrix.  Call this if you change camera
+	    data (eg lens, near plane, far plane) and require the projection matrix to be
+	    recalculated.
+	 */
+	void				InvalidateProjectionMatrix(bool valid = false);
+	
 	/** Gets the modelview matrix that is used by the rasterizer. 
 	 *  @warning If the Camera is a dynamic object then this method may return garbage.  Use GetCameraToWorld() instead.
 	 */

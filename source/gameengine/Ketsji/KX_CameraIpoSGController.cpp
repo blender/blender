@@ -47,24 +47,21 @@ bool KX_CameraIpoSGController::Update(double currentTime)
 			(*i)->Execute(m_ipotime);
 		}
 		
-		RAS_CameraData* camdata;
-
 		SG_Spatial* ob = (SG_Spatial*)m_pObject;
 		KX_Camera* kxcamera = (KX_Camera*) ob->GetSGClientObject();
-		camdata = kxcamera->GetCameraData();
+		RAS_CameraData* camdata = kxcamera->GetCameraData();
 		
-
-		if (m_modify_lens) {
+		if (m_modify_lens)
 			camdata->m_lens = m_lens;
-		}
 
-		if (m_modify_clipstart ) {
+		if (m_modify_clipstart )
 			camdata->m_clipstart = m_clipstart;
-		}
 
-		if (m_modify_clipend) {
+		if (m_modify_clipend)
 			camdata->m_clipend = m_clipend;
-		}
+		
+		if (m_modify_lens || m_modify_clipstart || m_modify_clipend)
+			kxcamera->InvalidateProjectionMatrix();
 
 		m_modified=false;
 	}

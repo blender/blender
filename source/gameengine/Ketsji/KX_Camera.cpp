@@ -161,6 +161,12 @@ bool KX_Camera::hasValidProjectionMatrix() const
 	return m_set_projection_matrix;
 }
 
+void KX_Camera::InvalidateProjectionMatrix(bool valid)
+{
+	m_set_projection_matrix = valid;
+}
+
+
 /*
 * These getters retrieve the clip data and the focal length
 */
