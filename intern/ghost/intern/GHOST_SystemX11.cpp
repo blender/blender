@@ -524,7 +524,7 @@ getModifierKeys(
 
 	// analyse the masks retuned from XQueryPointer.
 
-	memset(m_keyboard_vector,32,0);
+	memset(m_keyboard_vector,0,sizeof(m_keyboard_vector));
 
 	XQueryKeymap(m_display,m_keyboard_vector);
 
