@@ -604,6 +604,8 @@ static void drawgrid(void)
 	x+= (wx); 
 	y+= (wy);
 	BIF_GetThemeColor3ubv(TH_GRID, col);
+
+	setlinestyle(0);
 	
 	/* center cross */
 	if(G.vd->view==3) make_axis_color(col, col2, 'y');
