@@ -215,7 +215,7 @@ int IMB_ispic(char *filename)
 
 
 static int isavi (char *name) {
-    return AVI_is_avi (name);
+	return AVI_is_avi (name);
 }
 
 #ifdef WITH_QUICKTIME
@@ -230,8 +230,8 @@ int imb_get_anim_type(char * name) {
 
 	if(UTIL_DEBUG) printf("in getanimtype: %s\n", name);
 
-    if (ib_stat(name,&st) == -1) return(0);
-    if (((st.st_mode) & S_IFMT) != S_IFREG) return(0);
+	if (ib_stat(name,&st) == -1) return(0);
+	if (((st.st_mode) & S_IFMT) != S_IFREG) return(0);
 	
 	if (isavi(name)) return (ANIM_AVI);
 

@@ -38,10 +38,6 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_iff.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 unsigned short imb_start_iff(struct ImBuf *ibuf, int file)
 {
 	unsigned int *point, size, *buf;

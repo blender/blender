@@ -32,10 +32,6 @@
  * $Id$
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #include "BLI_winstuff.h"
 #endif
@@ -99,22 +95,22 @@ void IMB_rectop(struct ImBuf *dbuf,
 
 	tmp = dbuf->x - destx;
 	if (width > tmp) width = tmp;
-        tmp = dbuf->y  - desty;
+	tmp = dbuf->y  - desty;
 	if (height > tmp) height = tmp;
 
 	drect = dbuf->rect + desty * dbuf->x + destx;
 	destx = dbuf->x;
 
 	if (sbuf){
-                tmp = sbuf->x - srcx;
+		tmp = sbuf->x - srcx;
 		if (width > tmp) width = tmp;
-                tmp = sbuf->y - srcy;
+		tmp = sbuf->y - srcy;
 		if (height > tmp) height = tmp;
 
 		if (width <= 0) return;
 		if (height <= 0) return;
 
-	        srect = sbuf->rect;
+		srect = sbuf->rect;
 		srect += srcy * sbuf->x;
 		srect += srcx;
 		srcx = sbuf->x;
@@ -134,10 +130,8 @@ void IMB_rectop(struct ImBuf *dbuf,
 }
 
 
-void IMB_rectoptot(struct ImBuf *dbuf,
-			   struct ImBuf *sbuf,
-			   void (*operation)(unsigned int *, unsigned int*, int, int),
-			   int value)
+void IMB_rectoptot(struct ImBuf *dbuf, struct ImBuf *sbuf,
+	void (*operation)(unsigned int *, unsigned int*, int, int), int value)
 {
 	IMB_rectop(dbuf,sbuf,0,0,0,0,32767,32767,operation, value);
 }

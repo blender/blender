@@ -40,10 +40,6 @@
 #include "IMB_imbuf.h"
 #include "IMB_divers.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 void imb_checkncols(struct ImBuf *ibuf)
 {
 	unsigned int i;
@@ -114,55 +110,55 @@ void IMB_de_interlace(struct ImBuf *ibuf)
 
 void IMB_interlace(struct ImBuf *ibuf)
 {
-        struct ImBuf * tbuf1, * tbuf2;
+	struct ImBuf * tbuf1, * tbuf2;
 
-        if (ibuf == 0) return;
-        ibuf->flags &= ~IB_fields;
+	if (ibuf == 0) return;
+	ibuf->flags &= ~IB_fields;
 
-        ibuf->y *= 2;
+	ibuf->y *= 2;
 
-        if (ibuf->rect) {
-                /* make copies */
-                tbuf1 = IMB_allocImBuf(ibuf->x, ibuf->y / 2, 32, IB_rect, 0);
-                tbuf2 = IMB_allocImBuf(ibuf->x, ibuf->y / 2, 32, IB_rect, 0);
+	if (ibuf->rect) {
+		/* make copies */
+		tbuf1 = IMB_allocImBuf(ibuf->x, ibuf->y / 2, 32, IB_rect, 0);
+		tbuf2 = IMB_allocImBuf(ibuf->x, ibuf->y / 2, 32, IB_rect, 0);
 
-                IMB_rectop(tbuf1, ibuf, 0, 0, 0, 0, 32767, 32767, IMB_rectcpy, 
+		IMB_rectop(tbuf1, ibuf, 0, 0, 0, 0, 32767, 32767, IMB_rectcpy, 
 			0);
-                IMB_rectop(tbuf2, ibuf, 0, 0, 0, tbuf2->y, 32767, 32767,
-                	IMB_rectcpy,0);
+		IMB_rectop(tbuf2, ibuf, 0, 0, 0, tbuf2->y, 32767, 32767,
+			IMB_rectcpy,0);
 
-                ibuf->x *= 2;
-                IMB_rectop(ibuf, tbuf1, 0, 0, 0, 0, 32767, 32767, IMB_rectcpy,
+		ibuf->x *= 2;
+		IMB_rectop(ibuf, tbuf1, 0, 0, 0, 0, 32767, 32767, IMB_rectcpy,
 			0);
-                IMB_rectop(ibuf, tbuf2, tbuf2->x, 0, 0, 0, 32767, 32767,
-                	IMB_rectcpy,0);
-                ibuf->x /= 2;
+		IMB_rectop(ibuf, tbuf2, tbuf2->x, 0, 0, 0, 32767, 32767,
+			IMB_rectcpy,0);
+		ibuf->x /= 2;
 
-                IMB_freeImBuf(tbuf1);
-                IMB_freeImBuf(tbuf2);
-        }
+		IMB_freeImBuf(tbuf1);
+		IMB_freeImBuf(tbuf2);
+	}
 }
 
 
 void IMB_gamwarp(struct ImBuf *ibuf, double gamma)
 {
-        uchar gam[256];
-        int i;
-        uchar *rect;
+	uchar gam[256];
+	int i;
+	uchar *rect;
 
-        if (ibuf == 0) return;
-        if (ibuf->rect == 0) return;
-        if (gamma == 1.0) return;
+	if (ibuf == 0) return;
+	if (ibuf->rect == 0) return;
+	if (gamma == 1.0) return;
 
-        gamma = 1.0 / gamma;
-        for (i = 255 ; i >= 0 ; i--) gam[i] = (255.0 * pow(i / 255.0 ,
-        gamma))  + 0.5;
+	gamma = 1.0 / gamma;
+	for (i = 255 ; i >= 0 ; i--) gam[i] = (255.0 * pow(i / 255.0 ,
+		gamma))  + 0.5;
 
-        rect = (uchar *) ibuf->rect;
-        for (i = ibuf->x * ibuf->y ; i>0 ; i--){
-                rect ++;
-                *rect ++ = gam[*rect];
-                *rect ++ = gam[*rect];
-                *rect ++ = gam[*rect];
-        }
+	rect = (uchar *) ibuf->rect;
+	for (i = ibuf->x * ibuf->y ; i>0 ; i--){
+		rect ++;
+		*rect ++ = gam[*rect];
+		*rect ++ = gam[*rect];
+		*rect ++ = gam[*rect];
+	}
 }

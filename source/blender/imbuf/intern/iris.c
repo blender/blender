@@ -42,39 +42,39 @@
 #include "IMB_iris.h"
 
 typedef struct {
-    unsigned short	imagic;		/* stuff saved on disk . . */
-    unsigned short 	type;
-    unsigned short 	dim;
-    unsigned short 	xsize;
-    unsigned short 	ysize;
-    unsigned short 	zsize;
-    unsigned int 	min;
-    unsigned int 	max;
-    unsigned int	wastebytes;	
-    char 		name[80];
-    unsigned int	colormap;
+	unsigned short	imagic;		/* stuff saved on disk . . */
+	unsigned short 	type;
+	unsigned short 	dim;
+	unsigned short 	xsize;
+	unsigned short 	ysize;
+	unsigned short 	zsize;
+	unsigned int 	min;
+	unsigned int 	max;
+	unsigned int	wastebytes;	
+	char 		name[80];
+	unsigned int	colormap;
 
-    int 		file;		/* stuff used in core only */
-    unsigned short 	flags;
-    short		dorev;
-    short		x;
-    short		y;
-    short		z;
-    short		cnt;
-    unsigned short	*ptr;
-    unsigned short	*base;
-    unsigned short	*tmpbuf;
-    unsigned int	offset;
-    unsigned int	rleend;		/* for rle images */
-    unsigned int	*rowstart;	/* for rle images */
-    int			*rowsize;	/* for rle images */
+	int 		file;		/* stuff used in core only */
+	unsigned short 	flags;
+	short		dorev;
+	short		x;
+	short		y;
+	short		z;
+	short		cnt;
+	unsigned short	*ptr;
+	unsigned short	*base;
+	unsigned short	*tmpbuf;
+	unsigned int	offset;
+	unsigned int	rleend;		/* for rle images */
+	unsigned int	*rowstart;	/* for rle images */
+	int		*rowsize;	/* for rle images */
 } IMAGE;
 
 #define RINTLUM (79)
 #define GINTLUM (156)
 #define BINTLUM (21)
 
-#define ILUM(r,g,b)     ((int)(RINTLUM*(r)+GINTLUM*(g)+BINTLUM*(b))>>8)
+#define ILUM(r,g,b)	((int)(RINTLUM*(r)+GINTLUM*(g)+BINTLUM*(b))>>8)
 
 #define OFFSET_R	0	/* this is byte order dependent */
 #define OFFSET_G	1
@@ -374,14 +374,14 @@ struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 			rect[1] = rect[2] = rect[3];
 			rect += 4;
 		}
-        } else if (image.zsize == 2){
-                /* grayscale with alpha */
-                rect = (uchar *) ibuf->rect;
-                for (x = ibuf->x * ibuf->y; x > 0; x--) {
-                        rect[0] = rect[2];
-                        rect[1] = rect[2] = rect[3];
-                        rect += 4;
-                }
+	} else if (image.zsize == 2){
+		/* grayscale with alpha */
+		rect = (uchar *) ibuf->rect;
+		for (x = ibuf->x * ibuf->y; x > 0; x--) {
+			rect[0] = rect[2];
+			rect[1] = rect[2] = rect[3];
+			rect += 4;
+		}
 	} else if (image.zsize == 3){
 		/* add alpha */
 		rect = (uchar *) ibuf->rect;

@@ -170,7 +170,7 @@ static void planes_to_rect(struct ImBuf * ibuf, int flags) {
 			for(i=ibuf->x * ibuf->y ; i>0 ; i--){
 				col = *rect;
 				col = ((col & 0x3f000) << 6) + ((col & 0xfc0) << 4)
-				    + ((col & 0x3f) << 2);
+					+ ((col & 0x3f) << 2);
 				col += (col & 0xc0c0c0) >> 6;
 				*rect++ = col;
 			}
@@ -418,7 +418,7 @@ int startanim5(struct anim * anim) {
 	}
 
 	if ((GET_ID(buf) != FORM) || (GET_ID(buf + 2) != ANIM)
-	    || (GET_ID(buf + 3) != FORM) || (GET_ID(buf + 5) != ILBM)){
+		|| (GET_ID(buf + 3) != FORM) || (GET_ID(buf + 5) != ILBM)){
 		printf("No anim5 file %s\n",anim->name);
 		close(file);
 		return (-1);

@@ -37,10 +37,6 @@
 #include "imbuf_patch.h"
 #include "IMB_imbuf_types.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /************************************************************************/
 /*				COLORSPACE				*/
 /************************************************************************/

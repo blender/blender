@@ -42,10 +42,6 @@
 #include "IMB_imbuf.h"
 #include "IMB_allocimbuf.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* how it works:
 
 1 - seek for a transistion in a collumn

@@ -44,10 +44,6 @@
 #include "IMB_jpeg.h"
 #include "jpeglib.h" 
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* the types are from the jpeg lib */
 static void jpeg_error (j_common_ptr cinfo);
 static void init_source(j_decompress_ptr cinfo);
@@ -93,16 +89,16 @@ static void jpeg_error (j_common_ptr cinfo)
 }
 
 //----------------------------------------------------------
-//            INPUT HANDLER FROM MEMORY
+//	INPUT HANDLER FROM MEMORY
 //----------------------------------------------------------
 
 typedef struct {
-	unsigned char        *buffer;
-	int                  filled;
+	unsigned char	*buffer;
+	int		filled;
 } buffer_struct;
 
 typedef struct {
-	struct jpeg_source_mgr pub;   /* public fields */
+	struct jpeg_source_mgr pub;	/* public fields */
 
 	unsigned char	*buffer;
 	int				size;
@@ -150,28 +146,27 @@ static void memory_source(j_decompress_ptr cinfo, unsigned char *buffer, int siz
 	my_src_ptr src;
 
 	if (cinfo->src == NULL)
-	{    /* first time for this JPEG object? */
+	{	/* first time for this JPEG object? */
 		cinfo->src = (struct jpeg_source_mgr *)(*cinfo->mem->alloc_small)
-                                    	((j_common_ptr) cinfo, JPOOL_PERMANENT,
-                                    	 sizeof(my_source_mgr));
+			((j_common_ptr) cinfo, JPOOL_PERMANENT, sizeof(my_source_mgr));
 	}
 
 	src = (my_src_ptr) cinfo->src;
-	src->pub.init_source           = init_source;
-	src->pub.fill_input_buffer     = fill_input_buffer;
-	src->pub.skip_input_data       = skip_input_data;
-	src->pub.resync_to_restart     = jpeg_resync_to_restart; 
-	src->pub.term_source           = term_source;
+	src->pub.init_source		= init_source;
+	src->pub.fill_input_buffer	= fill_input_buffer;
+	src->pub.skip_input_data	= skip_input_data;
+	src->pub.resync_to_restart	= jpeg_resync_to_restart; 
+	src->pub.term_source		= term_source;
 
-	src->pub.bytes_in_buffer       = size;
-	src->pub.next_input_byte       = buffer;
+	src->pub.bytes_in_buffer	= size;
+	src->pub.next_input_byte	= buffer;
 
 	src->buffer = buffer;
 	src->size = size;
 }
 
 
-#define MAKESTMT(stuff)            do { stuff } while (0)
+#define MAKESTMT(stuff)		do { stuff } while (0)
 
 #define INPUT_VARS(cinfo)  \
 	struct jpeg_source_mgr * datasrc = (cinfo)->src;  \
@@ -194,9 +189,9 @@ static void memory_source(j_decompress_ptr cinfo, unsigned char *buffer, int siz
  */
 #define MAKE_BYTE_AVAIL(cinfo,action)  \
 	if (bytes_in_buffer == 0) {  \
-	  if (! (*datasrc->fill_input_buffer) (cinfo))  \
-	    { action; }  \
-	  INPUT_RELOAD(cinfo);  \
+		if (! (*datasrc->fill_input_buffer) (cinfo))  \
+			{ action; }  \
+	  	INPUT_RELOAD(cinfo);  \
 	}  \
 	bytes_in_buffer--
 
@@ -344,7 +339,7 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 		
 		jpeg_destroy((j_common_ptr) cinfo);
 		ibuf->ftype = ibuf_ftype;
-   	}
+	}
 	
 	return(ibuf);
 }	

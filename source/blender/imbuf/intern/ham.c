@@ -42,10 +42,6 @@
 #include "IMB_hamx.h"
 #include "IMB_ham.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 extern short alpha_col0;
 
 #define HAMB	0x0100

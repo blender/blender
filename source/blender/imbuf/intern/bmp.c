@@ -183,65 +183,63 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, int size, int flags)
 
 /* Couple of helper functions for writing our data */
 int putIntLSB(unsigned int ui,FILE *ofile) { 
-   putc((ui>>0)&0xFF,ofile); 
-   putc((ui>>8)&0xFF,ofile); 
-   putc((ui>>16)&0xFF,ofile); 
-   return putc((ui>>24)&0xFF,ofile); 
+	putc((ui>>0)&0xFF,ofile); 
+	putc((ui>>8)&0xFF,ofile); 
+	putc((ui>>16)&0xFF,ofile); 
+	return putc((ui>>24)&0xFF,ofile); 
 }
 
 int putShortLSB(unsigned short us,FILE *ofile) { 
-   putc((us>>0)&0xFF,ofile); 
-   return putc((us>>8)&0xFF,ofile); 
+	putc((us>>0)&0xFF,ofile); 
+	return putc((us>>8)&0xFF,ofile); 
 } 
 
 /* Found write info at http://users.ece.gatech.edu/~slabaugh/personal/c/bitmapUnix.c */
 short imb_savebmp(struct ImBuf *ibuf, char *name, int flags) {
 
-   BMPINFOHEADER infoheader;
-   int bytesize, extrabytes, x, y, t, ptr;
-   uchar *data;
-   FILE *ofile;
+	BMPINFOHEADER infoheader;
+	int bytesize, extrabytes, x, y, t, ptr;
+	uchar *data;
+	FILE *ofile;
 
-   extrabytes = (4 - ibuf->x*3 % 4) % 4;
-   bytesize = (ibuf->x * 3 + extrabytes) * ibuf->y;
+	extrabytes = (4 - ibuf->x*3 % 4) % 4;
+	bytesize = (ibuf->x * 3 + extrabytes) * ibuf->y;
 
-   data = (uchar *) ibuf->rect;
-   ofile = fopen(name,"wb");
+	data = (uchar *) ibuf->rect;
+	ofile = fopen(name,"wb");
 
-   putShortLSB(19778,ofile); /* "BM" */
-   putIntLSB(0,ofile); /* This can be 0 for BI_RGB bitmaps */
-   putShortLSB(0,ofile); /* Res1 */
-   putShortLSB(0,ofile); /* Res2 */
-   putIntLSB(BMP_FILEHEADER_SIZE + sizeof(infoheader),ofile); 
+	putShortLSB(19778,ofile); /* "BM" */
+	putIntLSB(0,ofile); /* This can be 0 for BI_RGB bitmaps */
+	putShortLSB(0,ofile); /* Res1 */
+	putShortLSB(0,ofile); /* Res2 */
+	putIntLSB(BMP_FILEHEADER_SIZE + sizeof(infoheader),ofile); 
 
-   putIntLSB(sizeof(infoheader),ofile);
-   putIntLSB(ibuf->x,ofile);
-   putIntLSB(ibuf->y,ofile);
-   putShortLSB(1,ofile);
-   putShortLSB(24,ofile);
-   putIntLSB(0,ofile);
-   putIntLSB(bytesize + BMP_FILEHEADER_SIZE + sizeof(infoheader),ofile);
-   putIntLSB(0,ofile);
-   putIntLSB(0,ofile);
-   putIntLSB(0,ofile);
-   putIntLSB(0,ofile);
+	putIntLSB(sizeof(infoheader),ofile);
+	putIntLSB(ibuf->x,ofile);
+	putIntLSB(ibuf->y,ofile);
+	putShortLSB(1,ofile);
+	putShortLSB(24,ofile);
+	putIntLSB(0,ofile);
+	putIntLSB(bytesize + BMP_FILEHEADER_SIZE + sizeof(infoheader),ofile);
+	putIntLSB(0,ofile);
+	putIntLSB(0,ofile);
+	putIntLSB(0,ofile);
+	putIntLSB(0,ofile);
 
-   /* Need to write out padded image data in bgr format */
-   for (y=0;y<ibuf->y;y++) {
-      for (x=0;x<ibuf->x;x++) {
-
-         ptr=(x + y * ibuf->x) * 4;
-         if (putc(data[ptr+2],ofile) == EOF) return 0;
-         if (putc(data[ptr+1],ofile) == EOF) return 0;
-         if (putc(data[ptr],ofile) == EOF) return 0;
-
-      }
-      /* add padding here */
-      for (t=0;t<extrabytes;t++) if (putc(0,ofile) == EOF) return 0;
-   }
-   if (ofile) {
-	fflush(ofile);
-        fclose(ofile);
-   }
-   return 1;
+	/* Need to write out padded image data in bgr format */
+	for (y=0;y<ibuf->y;y++) {
+		for (x=0;x<ibuf->x;x++) {
+			ptr=(x + y * ibuf->x) * 4;
+			if (putc(data[ptr+2],ofile) == EOF) return 0;
+			if (putc(data[ptr+1],ofile) == EOF) return 0;
+			if (putc(data[ptr],ofile) == EOF) return 0;
+		}
+		/* add padding here */
+		for (t=0;t<extrabytes;t++) if (putc(0,ofile) == EOF) return 0;
+	}
+	if (ofile) {
+		fflush(ofile);
+		fclose(ofile);
+	}
+	return 1;
 }

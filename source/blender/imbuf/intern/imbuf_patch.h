@@ -62,7 +62,7 @@ typedef unsigned char  uchar;
 /* These defines loop back to the internal Blender memory management
  * system, implemented in blenlib. */
 #define NEW(x) (x*)MEM_mallocN(sizeof(x),# x) 
-#define mallocstruct(x,y) (x*)malloc((y)* sizeof(x))   
+#define mallocstruct(x,y) (x*)malloc((y)* sizeof(x))
 #define callocstruct(x,y) (x*)calloc((y), sizeof(x))
 
 /* These vars are used thoughout the image buffer for conversions. */

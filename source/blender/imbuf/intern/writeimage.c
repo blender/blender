@@ -70,16 +70,16 @@ short IMB_saveiff(struct ImBuf *ibuf,char *naam,int flags)
 	}
 	if (IS_png(ibuf)) {
 		return imb_savepng(ibuf,naam,flags);
-        }
-        if (IS_bmp(ibuf)) {
-                return imb_savebmp(ibuf,naam,flags);
-        }
+	}
+	if (IS_bmp(ibuf)) {
+		return imb_savebmp(ibuf,naam,flags);
+	}
 	if (IS_tga(ibuf)) {
 		return imb_savetarga(ibuf,naam,flags);
-        }
+	}
 	if (IS_iris(ibuf)) {
 		return imb_saveiris(ibuf,naam,flags);
-        }
+	}
 
 	file = open(naam, O_BINARY | O_RDWR | O_CREAT | O_TRUNC, 0666);
 	if (file < 0) return (FALSE);

@@ -49,9 +49,9 @@
 #include "IMB_png.h"
 
 typedef struct PNGReadStruct {
-        unsigned char *data;
-        unsigned int size;
-        unsigned int seek;
+	unsigned char *data;
+	unsigned int size;
+	unsigned int seek;
 }PNGReadStruct;
 
 static void ReadData( png_structp png_ptr, png_bytep data, png_size_t length);
@@ -60,13 +60,10 @@ static void Flush( png_structp png_ptr);
 
 int imb_is_a_png(void *mem)
 {
-        int ret_val = 0;
+	int ret_val = 0;
 
-        if (mem) {
-                ret_val = !png_sig_cmp(mem, 0, 8);
-        }
-
-        return(ret_val);
+	if (mem) ret_val = !png_sig_cmp(mem, 0, 8);
+	return(ret_val);
 }
 
 static void Flush(png_structp png_ptr) 

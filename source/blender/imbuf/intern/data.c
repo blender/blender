@@ -35,10 +35,6 @@
 #include "imbuf.h"
 #include "matrix.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /*
 static short quadbase[31] = {
 	150,133,117,102,

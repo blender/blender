@@ -42,10 +42,6 @@
 
 #include "IMB_cmap.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 static short *lastcube = 0;
 static uchar *lastcoltab = 0;
 static short lastmaxcol;
@@ -88,12 +84,12 @@ void imb_losecmapbits(struct ImBuf *ibuf, unsigned int *coltab)
 	if (ibuf->cbits == 0) return;
 	if (ibuf->cbits >= 8) return;
 
-	/*
-		bij cbits = 5:
-		and1 = 11100000;
-		bij cbits = 6:
-		and1 = 11000000;
-    */
+/*
+	bij cbits = 5:
+	and1 = 11100000;
+	bij cbits = 6:
+	and1 = 11000000;
+*/
 
 	bits = ibuf->cbits;
 	and1 = ((1 << (8-bits)) - 1) & 0xff;
@@ -352,17 +348,17 @@ short *imb_coldeltatab(unsigned char *coltab, short mincol, short maxcol, short 
 			if (colp[3]){
 				if ((b + sizep - 1) > max) colp[3] = 0;
 				else done |= colp[3] = addplanetocube(cube + (sizep -1) * addcb, _plane, r, g, sizep, addcr,
-				    addcg, max, j);
+					addcg, max, j);
 			}
 			if (colp[4]){
 				if ((g + sizep - 1) > max) colp[4] = 0;
 				else done |= colp[4] = addplanetocube(cube + (sizep -1) * addcg, _plane, r, b, sizep, addcr,
-				    addcb, max, j);
+					addcb, max, j);
 			}
 			if (colp[5]){
 				if ((r + sizep - 1) > max) colp[5] = 0;
 				else done |= colp[5] = addplanetocube(cube + (sizep -1) * addcr, _plane, b, g, sizep, addcb,
-				    addcg, max, j);
+					addcg, max, j);
 			}
 
 			colp += 6;

@@ -47,15 +47,11 @@
 #include <vfw.h>
 #endif
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #undef AVIIF_KEYFRAME // redefined in AVI_avi.h
 #undef AVIIF_LIST // redefined in AVI_avi.h
 
-#define FIXCC(fcc)  if (fcc == 0)       fcc = mmioFOURCC('N', 'o', 'n', 'e'); \
-                    if (fcc == BI_RLE8) fcc = mmioFOURCC('R', 'l', 'e', '8');
+#define FIXCC(fcc)  if (fcc == 0)	fcc = mmioFOURCC('N', 'o', 'n', 'e'); \
+		if (fcc == BI_RLE8) fcc = mmioFOURCC('R', 'l', 'e', '8');
 #endif
 
 #include <sys/types.h>
@@ -112,7 +108,7 @@
 /****/
 
 #define ANIM_NONE		(0)
-#define ANIM_SEQUENCE	(1 << 0)
+#define ANIM_SEQUENCE		(1 << 0)
 #define ANIM_DIR		(1 << 1)
 #define ANIM_ANIM5		(1 << 2)
 #define ANIM_TGA		(1 << 3)
@@ -122,11 +118,11 @@
 #define ANIM_QTIME		(1 << 7)
 
 #define ANIM5_MMAP		0
-#define ANIM5_MALLOC	1
-#define ANIM5_SNGBUF	2
+#define ANIM5_MALLOC		1
+#define ANIM5_SNGBUF		2
 #define ANIM5_XOR		4
 
-#define MAXNUMSTREAMS   50
+#define MAXNUMSTREAMS		50
 
 struct anim {
 	int ib_flags;

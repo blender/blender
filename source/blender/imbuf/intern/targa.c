@@ -285,11 +285,11 @@ short imb_savetarga(struct ImBuf * ibuf, char *name, int flags)
 
 	if (flags & IB_ttob) buf[17] ^= 0x20;
 
-        /* Don't forget to indicate that your 32 bit
-         * targa uses 8 bits for the alpha channel! */
-        if (ibuf->depth==32) {
-           buf[17] |= 0x08;
-        }
+	/* Don't forget to indicate that your 32 bit
+	 * targa uses 8 bits for the alpha channel! */
+	if (ibuf->depth==32) {
+		buf[17] |= 0x08;
+	}
 	fildes = fopen(name,"wb");
 	
 

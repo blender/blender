@@ -41,7 +41,7 @@ float rgbyuv[4][4]={				/* afgeleid uit videoframer = Y Cr Cb in kopieen van Fra
 		{-.16874,	.29900,		 .50000,	0.0,},	/* r */
 		{  128.0,	0.0,		128.0,		1.0}};
 		  
-	    /* b-y (u)		y			r-y (v)  */
+		/* b-y (u)	y	r-y (v)  */
 
 
 float rgbbeta[4][4]={				/* afgeleid uit videoframer = Y Cr Cb in kopieen van Francois*/
@@ -51,7 +51,7 @@ float rgbbeta[4][4]={				/* afgeleid uit videoframer = Y Cr Cb in kopieen van Fr
 		{-.16874,	.29900,		 .50000,	0.0,},	/* r-y	-> r */
 		{  128.0,	0.0,		128.0,		1.0}};
 		  
-	    /* b-y    y      r-y   */
+		/* b-y		y	r-y	*/
 
 
 

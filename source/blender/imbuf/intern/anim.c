@@ -47,8 +47,8 @@
 #undef AVIIF_KEYFRAME // redefined in AVI_avi.h
 #undef AVIIF_LIST // redefined in AVI_avi.h
 
-#define FIXCC(fcc)  if (fcc == 0)       fcc = mmioFOURCC('N', 'o', 'n', 'e'); \
-                    if (fcc == BI_RLE8) fcc = mmioFOURCC('R', 'l', 'e', '8');
+#define FIXCC(fcc)  if (fcc == 0)	fcc = mmioFOURCC('N', 'o', 'n', 'e'); \
+		if (fcc == BI_RLE8) fcc = mmioFOURCC('R', 'l', 'e', '8');
 #endif
 
 #include <sys/types.h>
@@ -144,23 +144,22 @@ static ImBuf * movie_fetchibuf(struct anim * anim, int position) {
 	ibuf = IMB_allocImBuf(anim->x, anim->y, 24, IB_rect, 0);
 
 	if ( mvReadFrames(anim->track, position, 1, ibuf->x * ibuf->y * 
-	    sizeof(int), ibuf->rect ) != DM_SUCCESS ) {
+		sizeof(int), ibuf->rect ) != DM_SUCCESS ) {
 		movie_printerror("mvReadFrames");
 		IMB_freeImBuf(ibuf);
 		return(0);
 	}
 
-	/*
-    if (anim->interlacing == DM_IMAGE_INTERLACED_EVEN)
-    {
-    rect1 = ibuf->rect + (ibuf->x * ibuf->y) - 1;
-    rect2 = rect1 - ibuf->x;
+/*
+	if (anim->interlacing == DM_IMAGE_INTERLACED_EVEN) {
+		rect1 = ibuf->rect + (ibuf->x * ibuf->y) - 1;
+		rect2 = rect1 - ibuf->x;
     
-    for (size = ibuf->x * (ibuf->y - 1); size > 0; size--){
-    *rect1-- = *rect2--;
-    }
-    }
-    */
+		for (size = ibuf->x * (ibuf->y - 1); size > 0; size--){
+			*rect1-- = *rect2--;
+		}
+	}
+*/
 
 	if (anim->interlacing == DM_IMAGE_INTERLACED_EVEN)
 	{
@@ -209,7 +208,7 @@ static int an_stringdec(char *string, char* kop, char *staart,unsigned short *nu
 	short i,found=FALSE;
 
 	len=strlen(string);
-        nume = len;
+	nume = len;
 
 	for(i=len-1;i>=0;i--){
 		if (string[i]=='/') break;
@@ -446,7 +445,7 @@ static ImBuf * avi_fetchibuf (struct anim *anim, int position) {
 		LPBITMAPINFOHEADER lpbi;
 
 		if (anim->pgf) {
-		    lpbi = AVIStreamGetFrame(anim->pgf, position + AVIStreamStart(anim->pavi[anim->firstvideo]));
+			lpbi = AVIStreamGetFrame(anim->pgf, position + AVIStreamStart(anim->pavi[anim->firstvideo]));
 			if (lpbi) {
 				ibuf = IMB_ibImageFromMemory((int *) lpbi, 100, IB_rect);
 //Oh brother...
@@ -521,7 +520,7 @@ static struct ImBuf * anim_getnew(struct anim * anim) {
 		ibuf = IMB_allocImBuf (anim->x, anim->y, 24, 0, 0);
 		break;
 #ifdef WITH_QUICKTIME
-    case ANIM_QTIME:
+	case ANIM_QTIME:
 		if (startquicktime(anim)) return (0);
 		ibuf = IMB_allocImBuf (anim->x, anim->y, 24, 0, 0);
 		break;
@@ -586,11 +585,11 @@ struct ImBuf * IMB_anim_absolute(struct anim * anim, int position) {
 		break;
 #ifdef WITH_QUICKTIME
 	case ANIM_QTIME:
-        ibuf = qtime_fetchibuf(anim, position);
-        if (ibuf) anim->curposition = position;
-        break;
+		ibuf = qtime_fetchibuf(anim, position);
+		if (ibuf) anim->curposition = position;
+		break;
 #endif
-    }
+	}
 
 	if (ibuf) {
 		if (anim->ib_flags & IB_ttob) IMB_flipy(ibuf);

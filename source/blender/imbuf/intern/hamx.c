@@ -34,10 +34,6 @@
 
 #include "BLI_blenlib.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #include "BLI_winstuff.h"
 #include <io.h>
@@ -544,7 +540,7 @@ short imb_enc_anim(struct ImBuf *ibuf, int file)
 		steps = 2;
 		break;
 	}
-        if (steps == 0) return 0;
+	if (steps == 0) return 0;
 
 	size = ((ibuf->x + 1)* (ibuf->y + 1)) / steps + 1024;
 	if ((_buf1  = malloc(size)) == 0) return(0);
