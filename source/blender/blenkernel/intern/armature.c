@@ -1193,6 +1193,7 @@ void make_displists_by_armature (Object *ob)
 	Base *base;
 
 	if (ob){
+		if (ob->type != OB_ARMATURE) return;
 		for (base= G.scene->base.first; base; base= base->next){
 			if ((ob==base->object->parent) && (base->lay & G.scene->lay))
 				if ((base->object->partype==PARSKEL) || (base->object->type==OB_MBALL))
