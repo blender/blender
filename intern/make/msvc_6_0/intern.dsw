@@ -129,7 +129,7 @@ Package=<4>
     Project_Dep_Name OpenALSoundSystem
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name csg
+    Project_Dep_Name bsplib
     End Project Dependency
 }}}
 
