@@ -164,8 +164,11 @@ extern void setcolNode(RNode *rn, unsigned int *col);
 extern void pseudoAmb(void);
 extern void rad_forcedraw(void);
 extern void drawpatch_ext(RPatch *patch, unsigned int col);
-
 extern void RAD_drawall(int depth_is_on);
+
+/* radrender.c */
+extern void do_radio_render(void);
+void end_radio_render(void);
 
 #endif /* RADIO_H */
 

@@ -178,15 +178,16 @@ float  calc_weight(float *weight, int i, int j)
 
 		weight[a]= 0.0;
 
-		if(R.r.mode & R_GAUSS) {
-			if(dist<1.5) {
-				x = dist*1.5;
-				weight[a]= (1.0/exp(x*x) - 1.0/exp(1.5*1.5*1.5*1.5));
-			}
-		}
-		else {
+		/* gaussian weighting has been cancelled */
+		//if(R.r.mode & R_GAUSS) {
+		//	if(dist<1.5) {
+		//		x = dist*1.5;
+		//		weight[a]= (1.0/exp(x*x) - 1.0/exp(1.5*1.5*1.5*1.5));
+		//	}
+		//}
+		//else {
 			if(i==0 && j==0) weight[a]= 1.0;
-		}
+		//}
 
 		totw+= weight[a];
 

@@ -122,6 +122,7 @@ typedef struct Material {
 #define MA_NOMIST		0x4000
 #define MA_HALO_SHADE	0x4000
 #define MA_HALO_FLARE	0x8000
+#define MA_RADIO		0x10000
 
 /* diff_shader */
 #define MA_DIFF_LAMBERT		0

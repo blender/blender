@@ -2553,102 +2553,119 @@ void radiobuts(void)
 		rad= G.scene->radio;
 	}
 	
-	flag= rad_phase();
-
 	sprintf(str, "buttonswin %d", curarea->win);
 	block= uiNewBlock(&curarea->uiblocks, str, UI_EMBOSSX, UI_HELV, curarea->win);
-	uiAutoBlock(block, 10, 30, 190, 100, UI_BLOCK_ROWS);
 
-	if(flag == RAD_PHASE_PATCHES) uiBlockSetCol(block, BUTSALMON);
-	else uiBlockSetCol(block, BUTGREY);
-	uiDefBut(block,  BUT, B_RAD_INIT, "Limit Subdivide",	0, 0, 10, 10, NULL, 0, 0, 0, 0, "Subdivide patches");
+	flag= rad_phase();
+
+	if(flag & RAD_PHASE_PATCHES) {
+		uiBlockSetCol(block, BUTSALMON);
+		uiDefBut(block,  BUT, B_RAD_INIT, "Limit Subdivide",	10, 70, 190, 40, NULL, 0, 0, 0, 0, "Subdivide patches");
+	}
 	if(flag & RAD_PHASE_PATCHES) uiBlockSetCol(block, BUTPURPLE);
 	else uiBlockSetCol(block, BUTSALMON);
-	uiDefBut(block,  BUT, B_RAD_COLLECT, "Collect Meshes",	1, 0, 10, 10, NULL, 0, 0, 0, 0, "Convert selected and visible meshes to patches");
+	uiDefBut(block,  BUT, B_RAD_COLLECT, "Collect Meshes",	10, 30, 190, 40, NULL, 0, 0, 0, 0, "Convert selected and visible meshes to patches");
 	uiDrawBlock(block);
 
-	sprintf(str, "buttonswin1 %d", curarea->win);
-	block= uiNewBlock(&curarea->uiblocks, str, UI_EMBOSSX, UI_HELV, curarea->win);
-	uiAutoBlock(block, 210, 30, 230, 150, UI_BLOCK_ROWS);
+	if(flag==0) {
 	
-	uiBlockSetCol(block, BUTGREEN);
-	uiDefButS(block,  ROW, B_RAD_DRAW, "Wire",			0, 0, 10, 10, &rad->drawtype, 0.0, 0.0, 0, 0, "Enable wireframe drawmode");
-	uiDefButS(block,  ROW, B_RAD_DRAW, "Solid",			0, 0, 10, 10, &rad->drawtype, 0.0, 1.0, 0, 0, "Enable solid drawmode");
-	uiDefButS(block,  ROW, B_RAD_DRAW, "Gour",			0, 0, 10, 10, &rad->drawtype, 0.0, 2.0, 0, 0, "Enable Gourad drawmode");
-	uiBlockSetCol(block, BUTGREY);
-	uiDefButS(block,  TOG|BIT|0, B_RAD_DRAW, "ShowLim",  1, 0, 10, 10, &rad->flag, 0, 0, 0, 0, "Visualize patch and element limits");
-	uiDefButS(block,  TOG|BIT|1, B_RAD_DRAW, "Z",		1, 0, 3, 10, &rad->flag, 0, 0, 0, 0, "Draw limits different");
-	uiBlockSetCol(block, BUTGREY);
-	uiDefButS(block,  NUM, B_RAD_LIMITS, "ElMax:", 		2, 0, 10, 10, &rad->elma, 1.0, 500.0, 0, 0, "Set maximum size of an element");
-	uiDefButS(block,  NUM, B_RAD_LIMITS, "ElMin:", 		2, 0, 10, 10, &rad->elmi, 1.0, 100.0, 0, 0, "Set minimum size of an element");
-	uiDefButS(block,  NUM, B_RAD_LIMITS, "PaMax:", 		3, 0, 10, 10, &rad->pama, 10.0, 1000.0, 0, 0, "Set maximum size of a patch");
-	uiDefButS(block,  NUM, B_RAD_LIMITS, "PaMin:", 		3, 0, 10, 10, &rad->pami, 10.0, 1000.0, 0, 0, "Set minimum size of a patch");
-	uiDrawBlock(block);
+		sprintf(str, "buttonswin1 %d", curarea->win);
+		block= uiNewBlock(&curarea->uiblocks, str, UI_EMBOSSX, UI_HELV, curarea->win);
+		uiAutoBlock(block, 210, 30, 230, 150, UI_BLOCK_ROWS);
+		uiBlockSetCol(block, BUTGREY);
+		uiDefButS(block,  NUM, B_RAD_LIMITS, "Hemires:", 	0, 0, 10, 10, &rad->hemires, 100.0, 1000.0, 100, 0, "Set the size of a hemicube");
+		uiDefButS(block,  NUM, 0, "Max Iterations:", 		1, 0, 10, 10, &rad->maxiter, 0.0, 10000.0, 0, 0, "Maximum number of radiosity rounds");
+		uiDefButF(block,  NUM, B_RAD_FAC, "Mult:",			2, 0, 50, 10, &rad->radfac, 0.001, 250.0, 100, 0, "Mulitply the energy values");
+		uiDefButF(block,  NUM, B_RAD_FAC, "Gamma:",			2, 0, 50, 10, &rad->gamma, 0.2, 10.0, 10, 0, "Change the contrast of the energy values");
+		uiDefButF(block,  NUM, 0, "Convergence:", 			3, 0, 10, 10, &rad->convergence, 0.0, 1.0, 10, 0, "Set the lower threshold of unshot energy");
+		uiDrawBlock(block);
+	}
+	else {
 	
-	sprintf(str, "buttonswin2 %d", curarea->win);
-	block= uiNewBlock(&curarea->uiblocks, str, UI_EMBOSSX, UI_HELV, curarea->win);
-	uiAutoBlock(block, 450, 30, 180, 150, UI_BLOCK_ROWS);
 	
-	if(flag == RAD_PHASE_PATCHES) uiBlockSetCol(block, BUTSALMON);
-	else uiBlockSetCol(block, BUTGREY);
-	uiDefBut(block,  BUT, B_RAD_SHOOTE, "Subdiv Shoot Element", 0, 0, 12, 10, NULL, 0, 0, 0, 0, "");
-	uiDefBut(block,  BUT, B_RAD_SHOOTP, "Subdiv Shoot Patch",	1, 0, 12, 10, NULL, 0, 0, 0, 0, "Detect high energy changes");
-	uiBlockSetCol(block, BUTGREY);
-	uiDefButS(block,  NUM, 0, "Max Subdiv Shoot:", 			2, 0, 10, 10, &rad->maxsublamp, 1.0, 250.0, 0, 0, "Set the maximum number of shoot patches that are evaluated");
-	uiDefButI(block,  NUM, 0, "MaxEl:",						3, 0, 10, 10, &rad->maxnode, 1.0, 250000.0, 0, 0, "Set the maximum allowed number of elements");
-	uiDefButS(block,  NUM, B_RAD_LIMITS, "Hemires:", 		4, 0, 10, 10, &rad->hemires, 100.0, 1000.0, 100, 0, "Set the size of a hemicube");
-	uiDrawBlock(block);
+		sprintf(str, "buttonswin1 %d", curarea->win);
+		block= uiNewBlock(&curarea->uiblocks, str, UI_EMBOSSX, UI_HELV, curarea->win);
+		uiAutoBlock(block, 210, 30, 230, 150, UI_BLOCK_ROWS);
+		
+		uiBlockSetCol(block, BUTGREEN);
+		uiDefButS(block,  ROW, B_RAD_DRAW, "Wire",			0, 0, 10, 10, &rad->drawtype, 0.0, 0.0, 0, 0, "Enable wireframe drawmode");
+		uiDefButS(block,  ROW, B_RAD_DRAW, "Solid",			0, 0, 10, 10, &rad->drawtype, 0.0, 1.0, 0, 0, "Enable solid drawmode");
+		uiDefButS(block,  ROW, B_RAD_DRAW, "Gour",			0, 0, 10, 10, &rad->drawtype, 0.0, 2.0, 0, 0, "Enable Gourad drawmode");
+		uiBlockSetCol(block, BUTGREY);
+		uiDefButS(block,  TOG|BIT|0, B_RAD_DRAW, "ShowLim",  1, 0, 10, 10, &rad->flag, 0, 0, 0, 0, "Visualize patch and element limits");
+		uiDefButS(block,  TOG|BIT|1, B_RAD_DRAW, "Z",		1, 0, 3, 10, &rad->flag, 0, 0, 0, 0, "Draw limits different");
+		uiBlockSetCol(block, BUTGREY);
+		uiDefButS(block,  NUM, B_RAD_LIMITS, "ElMax:", 		2, 0, 10, 10, &rad->elma, 1.0, 500.0, 0, 0, "Set maximum size of an element");
+		uiDefButS(block,  NUM, B_RAD_LIMITS, "ElMin:", 		2, 0, 10, 10, &rad->elmi, 1.0, 100.0, 0, 0, "Set minimum size of an element");
+		uiDefButS(block,  NUM, B_RAD_LIMITS, "PaMax:", 		3, 0, 10, 10, &rad->pama, 10.0, 1000.0, 0, 0, "Set maximum size of a patch");
+		uiDefButS(block,  NUM, B_RAD_LIMITS, "PaMin:", 		3, 0, 10, 10, &rad->pami, 10.0, 1000.0, 0, 0, "Set minimum size of a patch");
+		uiDrawBlock(block);
+		
+		sprintf(str, "buttonswin2 %d", curarea->win);
+		block= uiNewBlock(&curarea->uiblocks, str, UI_EMBOSSX, UI_HELV, curarea->win);
+		uiAutoBlock(block, 450, 30, 180, 150, UI_BLOCK_ROWS);
+		
+		if(flag == RAD_PHASE_PATCHES) uiBlockSetCol(block, BUTSALMON);
+		else uiBlockSetCol(block, BUTGREY);
+		uiDefBut(block,  BUT, B_RAD_SHOOTE, "Subdiv Shoot Element", 0, 0, 12, 10, NULL, 0, 0, 0, 0, "");
+		uiDefBut(block,  BUT, B_RAD_SHOOTP, "Subdiv Shoot Patch",	1, 0, 12, 10, NULL, 0, 0, 0, 0, "Detect high energy changes");
+		uiBlockSetCol(block, BUTGREY);
+		uiDefButS(block,  NUM, 0, "Max Subdiv Shoot:", 			2, 0, 10, 10, &rad->maxsublamp, 1.0, 250.0, 0, 0, "Set the maximum number of shoot patches that are evaluated");
+		uiDefButI(block,  NUM, 0, "MaxEl:",						3, 0, 10, 10, &rad->maxnode, 1.0, 250000.0, 0, 0, "Set the maximum allowed number of elements");
+		uiDefButS(block,  NUM, B_RAD_LIMITS, "Hemires:", 		4, 0, 10, 10, &rad->hemires, 100.0, 1000.0, 100, 0, "Set the size of a hemicube");
+		uiDrawBlock(block);
+		
+		sprintf(str, "buttonswin3 %d", curarea->win);
+		block= uiNewBlock(&curarea->uiblocks, str, UI_EMBOSSX, UI_HELV, curarea->win);
+		uiAutoBlock(block, 640, 30, 200, 150, UI_BLOCK_ROWS);
+		
+		uiBlockSetCol(block, BUTGREY);
+		uiDefButS(block,  NUM, 0, "Max Iterations:", 	0, 0, 10, 10, &rad->maxiter, 0.0, 10000.0, 0, 0, "Maximum number of radiosity rounds");
+		uiDefButF(block,  NUM, 0, "Convergence:", 		1, 0, 10, 10, &rad->convergence, 0.0, 1.0, 10, 0, "Set the lower threshold of unshot energy");
+		uiDefButS(block,  NUM, 0, "SubSh P:", 			2, 0, 10, 10, &rad->subshootp, 0.0, 10.0, 0, 0, "Set the number of times the environment is tested to detect pathes");
+		uiDefButS(block,  NUM, 0, "SubSh E:", 			2, 0, 10, 10, &rad->subshoote, 0.0, 10.0, 0, 0, "Set the number of times the environment is tested to detect elements");
+		if(flag == RAD_PHASE_PATCHES) uiBlockSetCol(block, BUTSALMON);
+		uiDefBut(block,  BUT, B_RAD_GO, "GO",				3, 0, 10, 15, NULL, 0, 0, 0, 0, "Start the radiosity simulation");
+		uiDrawBlock(block);
+		
+		sprintf(str, "buttonswin4 %d", curarea->win);
+		block= uiNewBlock(&curarea->uiblocks, str, UI_EMBOSSX, UI_HELV, curarea->win);
+		uiAutoBlock(block, 850, 30, 200, 150, UI_BLOCK_ROWS);
 	
-	sprintf(str, "buttonswin3 %d", curarea->win);
-	block= uiNewBlock(&curarea->uiblocks, str, UI_EMBOSSX, UI_HELV, curarea->win);
-	uiAutoBlock(block, 640, 30, 200, 150, UI_BLOCK_ROWS);
+		uiBlockSetCol(block, BUTGREY);
+		uiDefButF(block,  NUM, B_RAD_FAC, "Mult:",			0, 0, 50, 17, &rad->radfac, 0.001, 250.0, 100, 0, "Mulitply the energy values");
+		uiDefButF(block,  NUM, B_RAD_FAC, "Gamma:",			0, 0, 50, 17, &rad->gamma, 0.2, 10.0, 10, 0, "Change the contrast of the energy values");
+		if(flag & RAD_PHASE_FACES) uiBlockSetCol(block, BUTSALMON);
+		else uiBlockSetCol(block, BUTGREY);
+		uiDefBut(block,  BUT, B_RAD_FACEFILT, "FaceFilter",		1, 0, 10, 10, NULL, 0, 0, 0, 0, "Force an extra smoothing");
+		if(flag & RAD_PHASE_FACES) uiBlockSetCol(block, BUTSALMON);
+		else uiBlockSetCol(block, BUTGREY);
+		uiDefBut(block,  BUT, B_RAD_NODELIM, "RemoveDoubles",	2, 0, 30, 10, NULL, 0.0, 50.0, 0, 0, "Join elements which differ less than 'Lim'");
+		uiBlockSetCol(block, BUTGREY);
+		uiDefButS(block,  NUM, 0, "Lim:",					2, 0, 10, 10, &rad->nodelim, 0.0, 50.0, 0, 0, "Set the range for removing doubles");
+		if(flag & RAD_PHASE_FACES) uiBlockSetCol(block, BUTSALMON);
+		else uiBlockSetCol(block, BUTGREY);
+		uiDefBut(block,  BUT, B_RAD_NODEFILT, "Element Filter",	3, 0, 10, 10, NULL, 0, 0, 0, 0, "Filter elements to remove aliasing artefacts");
+		uiDrawBlock(block);
 	
-	uiBlockSetCol(block, BUTGREY);
-	uiDefButS(block,  NUM, 0, "Max Iterations:", 	0, 0, 10, 10, &rad->maxiter, 0.0, 10000.0, 0, 0, "Maximum number of radiosity rounds");
-	uiDefButF(block,  NUM, 0, "Convergence:", 		1, 0, 10, 10, &rad->convergence, 0.0, 1.0, 10, 0, "Set the lower threshold of unshot energy");
-	uiDefButS(block,  NUM, 0, "SubSh P:", 			2, 0, 10, 10, &rad->subshootp, 0.0, 10.0, 0, 0, "Set the number of times the environment is tested to detect pathes");
-	uiDefButS(block,  NUM, 0, "SubSh E:", 			2, 0, 10, 10, &rad->subshoote, 0.0, 10.0, 0, 0, "Set the number of times the environment is tested to detect elements");
-	if(flag == RAD_PHASE_PATCHES) uiBlockSetCol(block, BUTSALMON);
-	uiDefBut(block,  BUT, B_RAD_GO, "GO",				3, 0, 10, 15, NULL, 0, 0, 0, 0, "Start the radiosity simulation");
-	uiDrawBlock(block);
+		sprintf(str, "buttonswin5 %d", curarea->win);
+		block= uiNewBlock(&curarea->uiblocks, str, UI_EMBOSSX, UI_HELV, curarea->win);
+		uiAutoBlock(block, 1060, 30, 190, 150, UI_BLOCK_ROWS);
 	
-	sprintf(str, "buttonswin4 %d", curarea->win);
-	block= uiNewBlock(&curarea->uiblocks, str, UI_EMBOSSX, UI_HELV, curarea->win);
-	uiAutoBlock(block, 850, 30, 200, 150, UI_BLOCK_ROWS);
-
-	uiBlockSetCol(block, BUTGREY);
-	uiDefButF(block,  NUM, B_RAD_FAC, "Mult:",			0, 0, 50, 17, &rad->radfac, 0.001, 250.0, 100, 0, "Mulitply the energy values");
-	uiDefButF(block,  NUM, B_RAD_FAC, "Gamma:",			0, 0, 50, 17, &rad->gamma, 0.2, 10.0, 10, 0, "Change the contrast of the energy values");
-	if(flag & RAD_PHASE_FACES) uiBlockSetCol(block, BUTSALMON);
-	else uiBlockSetCol(block, BUTGREY);
-	uiDefBut(block,  BUT, B_RAD_FACEFILT, "FaceFilter",		1, 0, 10, 10, NULL, 0, 0, 0, 0, "Force an extra smoothing");
-	if(flag & RAD_PHASE_FACES) uiBlockSetCol(block, BUTSALMON);
-	else uiBlockSetCol(block, BUTGREY);
-	uiDefBut(block,  BUT, B_RAD_NODELIM, "RemoveDoubles",	2, 0, 30, 10, NULL, 0.0, 50.0, 0, 0, "Join elements which differ less than 'Lim'");
-	uiBlockSetCol(block, BUTGREY);
-	uiDefButS(block,  NUM, 0, "Lim:",					2, 0, 10, 10, &rad->nodelim, 0.0, 50.0, 0, 0, "Set the range for removing doubles");
-	if(flag & RAD_PHASE_FACES) uiBlockSetCol(block, BUTSALMON);
-	else uiBlockSetCol(block, BUTGREY);
-	uiDefBut(block,  BUT, B_RAD_NODEFILT, "Element Filter",	3, 0, 10, 10, NULL, 0, 0, 0, 0, "Filter elements to remove aliasing artefacts");
-	uiDrawBlock(block);
-
-	sprintf(str, "buttonswin5 %d", curarea->win);
-	block= uiNewBlock(&curarea->uiblocks, str, UI_EMBOSSX, UI_HELV, curarea->win);
-	uiAutoBlock(block, 1060, 30, 190, 150, UI_BLOCK_ROWS);
-
-	if(flag & RAD_PHASE_PATCHES) uiBlockSetCol(block, BUTSALMON);
-	else uiBlockSetCol(block, BUTGREY);
-	uiDefBut(block,  BUT, B_RAD_FREE, "Free Radio Data",	0, 0, 10, 10, NULL, 0, 0, 0, 0, "Release all memory used by Radiosity");	
-	if(flag & RAD_PHASE_FACES) uiBlockSetCol(block, BUTSALMON);
-	else uiBlockSetCol(block, BUTGREY);
-	uiDefBut(block,  BUT, B_RAD_REPLACE, "Replace Meshes",	1, 0, 10, 10, NULL, 0, 0, 0, 0, "Convert meshes to Mesh objects with vertex colours, changing input-meshes");
-	uiDefBut(block,  BUT, B_RAD_ADDMESH, "Add new Meshes",	2, 0, 10, 10, NULL, 0, 0, 0, 0, "Convert meshes to Mesh objects with vertex colours, unchanging input-meshes");
-	uiDrawBlock(block);
-	
-	rad_status_str(str);
-	cpack(0);
-	glRasterPos2i(210, 189);
-	BMF_DrawString(uiBlockGetCurFont(block), str);
+		if(flag & RAD_PHASE_PATCHES) uiBlockSetCol(block, BUTSALMON);
+		else uiBlockSetCol(block, BUTGREY);
+		uiDefBut(block,  BUT, B_RAD_FREE, "Free Radio Data",	0, 0, 10, 10, NULL, 0, 0, 0, 0, "Release all memory used by Radiosity");	
+		if(flag & RAD_PHASE_FACES) uiBlockSetCol(block, BUTSALMON);
+		else uiBlockSetCol(block, BUTGREY);
+		uiDefBut(block,  BUT, B_RAD_REPLACE, "Replace Meshes",	1, 0, 10, 10, NULL, 0, 0, 0, 0, "Convert meshes to Mesh objects with vertex colours, changing input-meshes");
+		uiDefBut(block,  BUT, B_RAD_ADDMESH, "Add new Meshes",	2, 0, 10, 10, NULL, 0, 0, 0, 0, "Convert meshes to Mesh objects with vertex colours, unchanging input-meshes");
+		uiDrawBlock(block);
+		
+		rad_status_str(str);
+		cpack(0);
+		glRasterPos2i(210, 189);
+		BMF_DrawString(uiBlockGetCurFont(block), str);
+	}
 }
 
 
@@ -4272,16 +4289,17 @@ void matbuts(void)
 	
 		uiDefButI(block, TOG|BIT|0, 0,	"Traceable",		576,200,77,18, &(ma->mode), 0, 0, 0, 0, "Make material visible for shadow lamps");
 		uiDefButI(block, TOG|BIT|1, 0,	"Shadow",			576,181,77,18, &(ma->mode), 0, 0, 0, 0, "Enable material for shadows");
-		uiDefButI(block, TOG|BIT|2, B_MATPRV, "Shadeless",	576, 162, 77, 18, &(ma->mode), 0, 0, 0, 0, "Make material insensitive to light or shadow");
-		uiDefButI(block, TOG|BIT|3, 0,	"Wire",				576, 143, 77, 18, &(ma->mode), 0, 0, 0, 0, "Render only the edges of faces");
-		uiDefButI(block, TOG|BIT|6, 0,	"ZTransp",			576, 124, 77, 18, &(ma->mode), 0, 0, 0, 0, "Z-Buffer transparent faces");
-		uiDefButI(block, TOG|BIT|8, 0,	"ZInvert",			576, 105, 77, 18, &(ma->mode), 0, 0, 0, 0, "Render with inverted Z Buffer");
+		uiDefButI(block, TOG|BIT|16, 0,	"Radio",			576, 162, 77,18, &(ma->mode), 0, 0, 0, 0, "Set the material insensitive to mist");
+		uiDefButI(block, TOG|BIT|2, B_MATPRV, "Shadeless",	576, 143, 77, 18, &(ma->mode), 0, 0, 0, 0, "Make material insensitive to light or shadow");
+		uiDefButI(block, TOG|BIT|3, 0,	"Wire",				576, 124, 77, 18, &(ma->mode), 0, 0, 0, 0, "Render only the edges of faces");
+		uiDefButI(block, TOG|BIT|6, 0,	"ZTransp",			576, 105, 77, 18, &(ma->mode), 0, 0, 0, 0, "Z-Buffer transparent faces");
 		uiDefButI(block, TOG|BIT|5, B_MATPRV_DRAW, "Halo",	576, 86, 77, 18, &(ma->mode), 0, 0, 0, 0, "Render as a halo");
 		uiDefButI(block, TOG|BIT|9, 0,	"Env",				576, 67, 77, 18, &(ma->mode), 0, 0, 0, 0, "Do not render material");
 		uiDefButI(block, TOG|BIT|10, 0,	"OnlyShadow",		576, 48, 77, 18, &(ma->mode), 0, 0, 0, 0, "Let alpha be determined on the degree of shadow");
 		uiDefButI(block, TOG|BIT|14, 0,	"No Mist",			576, 29, 77,18, &(ma->mode), 0, 0, 0, 0, "Set the material insensitive to mist");
+		uiDefButI(block, TOG|BIT|8, 0,	"ZInvert",			576, 10, 77, 18, &(ma->mode), 0, 0, 0, 0, "Render with inverted Z Buffer");
 		uiBlockSetCol(block, BUTGREY);
-		uiDefButF(block, NUM, 0, "Zoffs:",					576, 10, 77,18, &(ma->zoffs), 0.0, 10.0, 0, 0, "Give face an artificial offset");
+		uiDefButF(block, NUM, 0, "Zoffs:",					576, -9, 77,18, &(ma->zoffs), 0.0, 10.0, 0, 0, "Give face an artificial offset");
 	}
 	/* PREVIEW RENDER */
 	
@@ -6605,7 +6623,8 @@ void renderbuts(void)
 	
 	uiBlockSetCol(block, BUTGREY);
 	uiDefButS(block, TOG|BIT|1,0,"Shadows",	565,167,122,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
-	uiDefButS(block, TOG|BIT|10,0,"Panorama",565,142,122,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable panorama rendering (output width is multiplied by Xparts)");
+	uiDefButS(block, TOG|BIT|10,0,"Pano",565,142,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable panorama rendering (output width is multiplied by Xparts)");
+	uiDefButS(block, TOG|BIT|8,0,"Radio",626,142,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable radiosity rendering");
 	
 	uiDefButS(block, ROW,B_DIFF,"100%",			565,114,121,20,&G.scene->r.size,1.0,100.0, 0, 0, "Set render size to defined size");
 	uiDefButS(block, ROW,B_DIFF,"75%",			565,90,36,20,&G.scene->r.size,1.0,75.0, 0, 0, "Set render size to 3/4 of defined size");

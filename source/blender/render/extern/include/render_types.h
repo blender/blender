@@ -54,7 +54,7 @@
 typedef struct RE_Render
 {
 	float co[3];
-	float lo[3], gl[3], uv[3], ref[3], orn[3], winco[3], sticky[3], vcol[3];
+	float lo[3], gl[3], uv[3], ref[3], orn[3], winco[3], sticky[3], vcol[3], rad[3];
 	float itot, i, ic, rgb, norm;
 	float vn[3], view[3], *vno, refcol[4];
 
@@ -152,10 +152,12 @@ typedef struct VertRen
 	float co[3];
 	float n[3];
 	float ho[4];
+	float rad[3];			/* result radio rendering */
 	float *orco;
 	float *sticky;
 	void *svert;			/* smooth vert, only used during initrender */
 	short clip, texofs;		/* texofs= flag */
+	float accum;			/* accum for radio weighting */
 } VertRen;
 
 /* ------------------------------------------------------------------------- */
@@ -170,6 +172,12 @@ struct Material;
 struct MFace;
 struct TFace;
 
+typedef struct RadFace {
+	float unshot[3], totrad[3];
+	float norm[3], cent[3], area;
+	int flag;
+} RadFace;
+
 typedef struct VlakRen
 {
 	struct VertRen *v1, *v2, *v3, *v4;
@@ -181,6 +189,7 @@ typedef struct VlakRen
 	char snproj, puno;
 	char flag, ec;
 	unsigned int lay;
+	RadFace *radface;
 } VlakRen;
 
 

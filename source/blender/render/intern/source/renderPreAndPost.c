@@ -43,6 +43,7 @@
 #include "envmap.h"
 #include "renderHelp.h"
 #include "shadowBuffer.h"
+#include "radio.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -78,6 +79,9 @@ void prepareScene()
 			if(R.la[a]->shb) makeshadowbuf(R.la[a]);
 		}
 	}
+
+	/* RADIO */
+	if(R.r.mode & R_RADIO) do_radio_render();
 
 	/* ENVIRONMENT MAPS */
 	make_envmaps();

@@ -1896,26 +1896,33 @@ void shade_lamp_loop()
 			else ma->alpha= (1.0-t)*R.mat->alpha+t;
 		}
 	}
+
+	if( ma->mode & MA_RADIO) {
+		ir+= ma->amb*R.rad[0];
+		ig+= ma->amb*R.rad[1];
+		ib+= ma->amb*R.rad[2];
+	}
+
 		
 	if(R.refcol[0]==0.0) {
-		a= 65535.0*( ma->r*ir +ma->ambr +isr);
+		a= 65535.0*( ma->r*ir +ma->ambr +isr +ma->amb*R.rad[0]);
 		if(a>65535) a=65535; else if(a<0) a= 0;
 		shortcol[0]= a;
-		a= 65535.0*(ma->g*ig +ma->ambg +isg);
+		a= 65535.0*(ma->g*ig +ma->ambg +isg +ma->amb*R.rad[1]);
 		if(a>65535) a=65535; else if(a<0) a= 0;
 		shortcol[1]= a;
-		a= 65535*(ma->b*ib +ma->ambb +isb);
+		a= 65535*(ma->b*ib +ma->ambb +isb + ma->amb*R.rad[2]);
 		if(a>65535) a=65535; else if(a<0) a= 0;
 		shortcol[2]= a;
 	}
 	else {
-		a= 65535.0*( ma->mirr*R.refcol[1] + (1.0 - ma->mirr*R.refcol[0])*(ma->r*ir +ma->ambr) +isr);
+		a= 65535.0*( ma->mirr*R.refcol[1] + (1.0 - ma->mirr*R.refcol[0])*(ma->r*ir +ma->ambr +ma->amb*R.rad[0]) +isr);
 		if(a>65535) a=65535; else if(a<0) a= 0;
 		shortcol[0]= a;
-		a= 65535.0*( ma->mirg*R.refcol[2] + (1.0 - ma->mirg*R.refcol[0])*(ma->g*ig +ma->ambg) +isg);
+		a= 65535.0*( ma->mirg*R.refcol[2] + (1.0 - ma->mirg*R.refcol[0])*(ma->g*ig +ma->ambg +ma->amb*R.rad[1]) +isg);
 		if(a>65535) a=65535; else if(a<0) a= 0;
 		shortcol[1]= a;
-		a= 65535.0*( ma->mirb*R.refcol[3] + (1.0 - ma->mirb*R.refcol[0])*(ma->b*ib +ma->ambb) +isb);
+		a= 65535.0*( ma->mirb*R.refcol[3] + (1.0 - ma->mirb*R.refcol[0])*(ma->b*ib +ma->ambb +ma->amb*R.rad[2]) +isb);
 		if(a>65535) a=65535; else if(a<0) a= 0;
 		shortcol[2]= a;
 	}
@@ -2265,6 +2272,14 @@ void shadepixel(float x, float y, int vlaknr)
 					R.vcol[1]= 0.0;
 					R.vcol[2]= 0.0;
 				}
+			}
+			if(R.matren->mode & MA_RADIO) {
+				R.rad[0]= (l*v3->rad[0] - u*v1->rad[0] - v*v2->rad[0]);
+				R.rad[1]= (l*v3->rad[1] - u*v1->rad[1] - v*v2->rad[1]);
+				R.rad[2]= (l*v3->rad[2] - u*v1->rad[2] - v*v2->rad[2]);
+			}
+			else {
+				R.rad[0]= R.rad[1]= R.rad[2]= 0.0;
 			}
 			if(R.matren->mode & MA_FACETEXTURE) {
 				if((R.matren->mode & MA_VERTEXCOL)==0) {

@@ -102,7 +102,7 @@ void init_material(Material *ma)
 	ma->param[3]= 0.1;
 	
 	
-	ma->mode= MA_TRACEBLE+MA_SHADOW;	
+	ma->mode= MA_TRACEBLE+MA_SHADOW+MA_RADIO;	
 }
 
 Material *add_material(char *name)
@@ -565,6 +565,8 @@ void init_render_material(Material *ma)
 		R.flag |= R_ZTRA;
 	}
 	if(ma->mode & MA_VERTEXCOLP) ma->mode |= MA_VERTEXCOL; 
+	
+	if(ma->mode & MA_RADIO) needuv= 1;
 	
 	if(ma->mode & (MA_VERTEXCOL|MA_FACETEXTURE)) {
 		needuv= 1;

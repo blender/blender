@@ -170,7 +170,7 @@ typedef struct RenderData {
 	 * 5: edge shading                                                       
 	 * 6: field rendering                                                    
 	 * 7: Disables time difference in field calculations                     
-	 * 8: Gauss ? is this for sampling?                                      
+	 * 8: radio rendering                                      
 	 * 9: borders                                                            
 	 * 10: panorama                                                          
 	 * 11: crop                                                              
@@ -272,7 +272,7 @@ typedef struct Scene {
 #define R_EDGE			0x0020
 #define R_FIELDS		0x0040
 #define R_FIELDSTILL	0x0080
-#define R_GAUSS			0x0100
+#define R_RADIO			0x0100
 #define R_BORDER		0x0200
 #define R_PANORAMA		0x0400
 #define R_MOVIECROP		0x0800

@@ -1499,7 +1499,7 @@ static void init_render_mesh(Object *ob)
 	float xn, yn, zn, nor[3], imat[3][3], mat[4][4];
 	float *extverts=0, *orco;
 	int a, a1, ok, do_puno, need_orco=0, totvlako, totverto, vertofs;
-	int start, end, flipnorm;
+	int start, end, flipnorm, do_autosmooth=0;
 
 	me= ob->data;
 	if (rendermesh_uses_displist(me) && me->subdivr>0) {
@@ -1613,7 +1613,7 @@ static void init_render_mesh(Object *ob)
 
 			ma= give_render_material(ob, a1+1);
 			if(ma==0) ma= &defmaterial;
-
+			
 			/* test for 100% transparant */
 			ok= 1;
 			if(ma->alpha==0.0 && ma->spectra==0.0) {
@@ -1627,7 +1627,9 @@ static void init_render_mesh(Object *ob)
 			}
 
 			if(ok) {
-
+				/* radio faces need autosmooth, to separate shared vertices in corners */
+				if(ma->mode & MA_RADIO) do_autosmooth= 1;
+				
 				start= 0;
 				end= me->totface;
 				set_buildvars(ob, &start, &end);
@@ -1747,7 +1749,7 @@ static void init_render_mesh(Object *ob)
 		}
 	}
 	
-	if(me->flag & ME_AUTOSMOOTH) {
+	if(do_autosmooth || (me->flag & ME_AUTOSMOOTH)) {
 		autosmooth(totverto, totvlako, me->smoothresh);
 		do_puno= 1;
 	}
@@ -2766,7 +2768,8 @@ void RE_freeRotateBlenderScene(void)
 
 	end_render_textures();
 	end_render_materials();
-
+	end_radio_render();
+	
 	R.totvlak=R.totvert=R.totlamp=R.tothalo= 0;
 }
 

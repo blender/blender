@@ -479,7 +479,7 @@ void backface_test(RPatch *shoot)
 		if(rp!=shoot) {
 		
 			VecSubf(tvec, shoot->cent, rp->cent);
-			if( tvec[0]*shoot->norm[0]+ tvec[1]*shoot->norm[1]+ tvec[2]*shoot->norm[2]>0.0) {
+			if( tvec[0]*rp->norm[0]+ tvec[1]*rp->norm[1]+ tvec[2]*rp->norm[2]<0.0) {		
 				setnodeflags(rp->first, RAD_BACKFACE, 1);
 			}
 		}

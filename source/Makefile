@@ -74,7 +74,6 @@ PYPLAYERLIB ?= $(PYLIB)
 
     GRPLIB = $(OCGDIR)/creator/$(DEBUG_DIR)libcreator.a
     GRPLIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrcpublisher.a
-    GRPLIB += $(OCGDIR)/blender/radiosity/$(DEBUG_DIR)libradiosity.a
     GRPLIB += $(NAN_DECIMATION)/lib/libdecimation.a
     GRPLIB += $(NAN_BSP)/lib/$(DEBUG_DIR)libbsp.a
     GRPLIB += $(NAN_SOUNDSYSTEM)/lib/$(DEBUG_DIR)libSoundSystem.a
@@ -83,6 +82,7 @@ PYPLAYERLIB ?= $(PYLIB)
     GRPLIB += $(OCGDIR)/blender/img/$(DEBUG_DIR)libimg.a
     GRPLIB += $(OCGDIR)/blender/renderconverter/$(DEBUG_DIR)librenderconverter.a
     GRPLIB += $(OCGDIR)/blender/render/$(DEBUG_DIR)librender.a
+    GRPLIB += $(OCGDIR)/blender/radiosity/$(DEBUG_DIR)libradiosity.a
 
     GRPLIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
 

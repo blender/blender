@@ -1876,10 +1876,9 @@ static int hashlist_projectvert(float *v1, float *hoco)
 	return buck->clip;
 }
 
-
+/* used for booth radio 'tool' as during render */
 void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem)
 {
-	RNode **re, *rn;
 	float hoco[4][4];
 	int a;
 	int c1, c2, c3, c4= 0;
@@ -1910,31 +1909,67 @@ void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem)
 	fillrect(R.rectot, R.rectx, R.recty, 0xFFFFFF);
 
 	zbuffunc= zbufinvulGL;
+	
+	if(rg_elem) {	/* radio tool */
+		RNode **re, *rn;
 
-	re= rg_elem;
-	re+= (rg_totelem-1);
-	for(a= rg_totelem-1; a>=0; a--, re--) {
-		rn= *re;
-		if( (rn->f & RAD_SHOOT)==0 ) {    /* no shootelement */
-			
-			if( rn->f & RAD_BACKFACE) Zvlnr= 0xFFFFFF;	
-			else Zvlnr= a;
-			
-			c1= hashlist_projectvert(rn->v1, hoco[0]);
-			c2= hashlist_projectvert(rn->v2, hoco[1]);
-			c3= hashlist_projectvert(rn->v3, hoco[2]);
-			
-			if(rn->v4) {
-				c4= hashlist_projectvert(rn->v4, hoco[3]);
-			}
-
-			zbufclip(hoco[0], hoco[1], hoco[2], c1, c2, c3);
-			if(rn->v4) {
-				zbufclip(hoco[0], hoco[2], hoco[3], c1, c3, c4);
+		re= rg_elem;
+		re+= (rg_totelem-1);
+		for(a= rg_totelem-1; a>=0; a--, re--) {
+			rn= *re;
+			if( (rn->f & RAD_SHOOT)==0 ) {    /* no shootelement */
+				
+				if( rn->f & RAD_BACKFACE) Zvlnr= 0xFFFFFF;	
+				else Zvlnr= a;
+				
+				c1= hashlist_projectvert(rn->v1, hoco[0]);
+				c2= hashlist_projectvert(rn->v2, hoco[1]);
+				c3= hashlist_projectvert(rn->v3, hoco[2]);
+				
+				if(rn->v4) {
+					c4= hashlist_projectvert(rn->v4, hoco[3]);
+				}
+	
+				zbufclip(hoco[0], hoco[1], hoco[2], c1, c2, c3);
+				if(rn->v4) {
+					zbufclip(hoco[0], hoco[2], hoco[3], c1, c3, c4);
+				}
 			}
 		}
 	}
-
+	else {	/* radio render */
+		VlakRen *vlr=NULL;
+		RadFace *rf;
+		int totface=0;
+		
+		for(a=0; a<R.totvlak; a++) {
+			if((a & 255)==0) vlr= R.blovl[a>>8]; else vlr++;
+		
+			if(vlr->radface) {
+				rf= vlr->radface;
+				if( (rf->flag & RAD_SHOOT)==0 ) {    /* no shootelement */
+					
+					if( rf->flag & RAD_BACKFACE) Zvlnr= 0xFFFFFF;	/* receives no energy, but is zbuffered */
+					else Zvlnr= totface;
+					
+					c1= hashlist_projectvert(vlr->v1->co, hoco[0]);
+					c2= hashlist_projectvert(vlr->v2->co, hoco[1]);
+					c3= hashlist_projectvert(vlr->v3->co, hoco[2]);
+					
+					if(vlr->v4) {
+						c4= hashlist_projectvert(vlr->v4->co, hoco[3]);
+					}
+		
+					zbufclip(hoco[0], hoco[1], hoco[2], c1, c2, c3);
+					if(vlr->v4) {
+						zbufclip(hoco[0], hoco[2], hoco[3], c1, c3, c4);
+					}
+				}
+				totface++;
+			}
+		}
+	}
+	
 	/* restore */
 	R.rectx= rectxo;
 	R.recty= rectyo;
