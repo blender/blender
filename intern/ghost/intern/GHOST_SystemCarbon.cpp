@@ -195,6 +195,7 @@ GHOST_SystemCarbon::GHOST_SystemCarbon() :
 	UnsignedWide micros;
 	::Microseconds(&micros);
 	m_start_time = UnsignedWideToUInt64(micros)/1000;
+	m_ignoreWindowSizedMessages = false;
 }
 
 GHOST_SystemCarbon::~GHOST_SystemCarbon()
@@ -501,8 +502,11 @@ OSStatus GHOST_SystemCarbon::handleWindowEvent(EventRef event)
 					pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowUpdate, window) );
 					break;
 				case kEventWindowBoundsChanged:
-					window->updateDrawingContext();
-					pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window) );
+					if (!m_ignoreWindowSizedMessages)
+					{
+						window->updateDrawingContext();
+						pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window) );
+					}
 					break;
 			}
 		}
@@ -636,7 +640,15 @@ bool GHOST_SystemCarbon::handleMouseDown(EventRef event)
 			break;
 			
 		case inDrag:
+			/*
+			 * The DragWindow() routine creates a lot of kEventWindowBoundsChanged
+			 * events. By setting m_ignoreWindowSizedMessages these are suppressed.
+			 * @see GHOST_SystemCarbon::handleWindowEvent(EventRef event)
+			 */
+			GHOST_ASSERT(validWindow(ghostWindow), "GHOST_SystemCarbon::handleMouseDown: invalid window");
+			m_ignoreWindowSizedMessages = true;
 			::DragWindow(window, mousePos, &GetQDGlobalsScreenBits(&screenBits)->bounds);
+			m_ignoreWindowSizedMessages = false;
 			break;
 		
 		case inContent:

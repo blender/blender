@@ -241,6 +241,9 @@ protected:
 	
     /** State of the modifiers. */
     UInt32 m_modifierMask;
+
+    /** Ignores window size messages (when window is dragged). */
+    bool m_ignoreWindowSizedMessages;    
 };
 
 #endif // _GHOST_SYSTEM_CARBON_H_
