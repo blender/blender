@@ -172,6 +172,7 @@ typedef struct Material {
 #define MAP_HAR			256
 #define MAP_RAYMIRR		512
 #define MAP_TRANSLU		1024
+#define MAP_AMB			2048
 #define MAP_DISPLACE	4096
 
 /* pr_type */

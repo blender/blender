@@ -1099,7 +1099,7 @@ int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex)
 void do_material_tex(ShadeInput *shi)
 {
 	Object *ob;
-	Material *mat_col, *mat_colspec, *mat_colmir, *mat_ref;
+	Material *mat_col, *mat_colspec, *mat_colmir, *mat_ref, *mat_amb;
 	Material *mat_spec, *mat_har, *mat_emit, *mat_alpha, *mat_ray_mirr, *mat_translu;
 	MTex *mtex;
 	Tex *tex;
@@ -1110,7 +1110,7 @@ void do_material_tex(ShadeInput *shi)
 
 	/* here: test flag if there's a tex (todo) */
 	
-	mat_col=mat_colspec=mat_colmir=mat_ref=mat_spec=mat_har=mat_emit=mat_alpha=mat_ray_mirr=mat_translu= shi->mat;
+	mat_col=mat_colspec=mat_colmir=mat_ref=mat_spec=mat_har=mat_emit=mat_alpha=mat_ray_mirr=mat_translu=mat_amb= shi->mat;
 	
 	for(tex_nr=0; tex_nr<8; tex_nr++) {
 		
@@ -1564,6 +1564,21 @@ void do_material_tex(ShadeInput *shi)
 						else if(shi->matren->translucency>1.0) shi->matren->translucency= 1.0;
 					}
 					mat_translu= shi->matren;
+				}
+				if(mtex->mapto & MAP_AMB) {
+					if(mtex->maptoneg & MAP_AMB) {factt= facm; facmm= fact;}
+					else {factt= fact; facmm= facm;}
+
+					if(mtex->blendtype==MTEX_BLEND)
+						shi->matren->amb= factt*mtex->def_var+ facmm*mat_translu->amb;
+					else if(mtex->blendtype==MTEX_MUL)
+						shi->matren->amb= (facmul+factt)*mat_translu->amb;
+					else {
+						shi->matren->amb= factt+mat_translu->amb;
+						if(shi->matren->amb<0.0) shi->matren->amb= 0.0;
+						else if(shi->matren->amb>1.0) shi->matren->amb= 1.0;
+					}
+					mat_amb= shi->matren;
 				}
 			}
 		}
