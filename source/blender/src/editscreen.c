@@ -2900,6 +2900,7 @@ void drawscreen(void)
 		sa= sa->next;
 	}
 
+	/* this double draw patch seems to be needed for certain sgi's (octane, indigo2) */
 	glDrawBuffer(GL_FRONT);
 
 	sa= G.curscreen->areabase.first;
