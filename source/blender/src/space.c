@@ -2231,33 +2231,31 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			&(U.uiflag), 0, 0, 0, 0,
 			"Automatically switch between orthographic and perspective when changing from top/front/side views");
 
-		uiDefBut(block, LABEL,0,"Left Mouse Button:",
+		uiDefBut(block, LABEL,0,"Select with:",
 			(xpos+(2*edgsp)+(3*mpref)+(3*midsp)),y6label,mpref,buth,
 			0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOGN, USER_LMOUSESELECT, B_DRAWINFO, "Cursor",
+		uiDefButBitS(block, TOGN, USER_LMOUSESELECT, B_DRAWINFO, "Right Mouse",
 			(xpos+edgsp+(3*mpref)+(4*midsp)),y5,(mpref/2),buth,
-			&(U.flag), 0, 0, 0, 0, "Action for the left mouse button");
-		uiDefButBitS(block, TOG, USER_LMOUSESELECT, B_DRAWINFO, "Select",
+			&(U.flag), 0, 0, 0, 0, "Use the Right Mouse Button for selection");
+		uiDefButBitS(block, TOG, USER_LMOUSESELECT, B_DRAWINFO, "Left Mouse",
 			(xpos+edgsp+(3*mpref)+(4*midsp)+(mpref/2)),y5,(mpref/2),buth,
-			&(U.flag), 0, 0, 0, 0, "Action for the left mouse button");
+			&(U.flag), 0, 0, 0, 0, "Use the Left Mouse Button for selection");
 		uiBlockEndAlign(block);
 		
 		
-		uiDefBut(block, LABEL,0,"Right Mouse Button:",
-			(xpos+(2*edgsp)+(3*mpref)+(3*midsp)),y4label,mpref,buth,
-			0, 0, 0, 0, 0, "");
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOGN, USER_LMOUSESELECT, B_DRAWINFO, "Select",
-			(xpos+edgsp+(3*mpref)+(4*midsp)),y3,(mpref/2),buth,
-			&(U.flag), 0, 0, 0, 0, "Action for the right mouse button");
-		uiDefButBitS(block, TOG, USER_LMOUSESELECT, B_DRAWINFO, "Cursor",
-			(xpos+edgsp+(3*mpref)+(4*midsp)+(mpref/2)),y3,(mpref/2),buth,
-			&(U.flag), 0, 0, 0, 0, "Action for the right mouse button");
-		uiBlockEndAlign(block);
+		if(U.flag & USER_LMOUSESELECT) {
+			uiDefBut(block, LABEL,0,"Cursor with: Right Mouse",
+				(xpos+(2*edgsp)+(3*mpref)+(3*midsp)),y4label+5,mpref,buth,
+				0, 0, 0, 0, 0, "");
+		} else {
+			uiDefBut(block, LABEL,0,"Cursor with: Left Mouse",
+				(xpos+(2*edgsp)+(3*mpref)+(3*midsp)),y4label+5,mpref,buth,
+				0, 0, 0, 0, 0, "");
+		}
 
 		uiDefButBitS(block, TOG, USER_TWOBUTTONMOUSE, 0, "Emulate 3 Button Mouse",
-			(xpos+edgsp+(3*mpref)+(4*midsp)),y1,mpref,buth,
+			(xpos+edgsp+(3*mpref)+(4*midsp)),y3,mpref,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Emulates a middle mouse button with Alt LeftMouse");
 		
