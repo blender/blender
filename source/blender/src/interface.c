@@ -2476,7 +2476,8 @@ static int ui_do_but_COL(uiBut *but)
 	/* and lets go */
 	block->direction= UI_TOP;
 	ui_positionblock(block, but);
-
+	uiBoundsBlock(block, 3);
+	
 	/* blocks can come from a normal window, but we go to screenspace */
 	block->win= G.curscreen->mainwin;
 	for(bt= block->buttons.first; bt; bt= bt->next) bt->win= block->win;

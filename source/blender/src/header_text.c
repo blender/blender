@@ -528,12 +528,12 @@ void text_buttons(void)
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 	
 		xmax= GetButStringLength("File");
-		uiDefBlockBut(block,text_filemenu, NULL, "File", xco, 0, xmax, 20, "");
+		uiDefPulldownBut(block,text_filemenu, NULL, "File", xco, 0, xmax, 20, "");
 		xco+=xmax;
 	
 		if(text) {
 			xmax= GetButStringLength("Edit");
-			uiDefBlockBut(block,text_editmenu, NULL, "Edit", xco, 0, xmax, 20, "");
+			uiDefPulldownBut(block,text_editmenu, NULL, "Edit", xco, 0, xmax, 20, "");
 			xco+=xmax;
 		}
 	}

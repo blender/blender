@@ -796,7 +796,7 @@ static uiBlock *edge_render_menu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "edge render", UI_EMBOSS, UI_HELV, curarea->win);
 		
 	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "",  285, -20, 230, 125, NULL,  0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "",  290, -15, 220, 115, NULL,  0, 0, 0, 0, "");
 	
 	uiBlockBeginAlign(block);
 	uiDefButS(block, NUM, 0,"Eint:",  	370,75,135,19,  &G.scene->r.edgeint, 0.0, 255.0, 0, 0,
@@ -857,7 +857,7 @@ static uiBlock *framing_render_menu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "framing_options", UI_EMBOSS, UI_HELV, curarea->win);
 
 	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "",			-10, -10, 300, 229, NULL, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "",			-5, -10, 295, 224, NULL, 0, 0, 0, 0, "");
 
 	uiDefBut(block, LABEL, B_NOP, "Framing:", xco, yco, 68,19, 0, 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
