@@ -186,35 +186,12 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3]) {
 	Mat3MulVecfl(t->con.mtx, vec);
 }
 
-static void getViewVector(TransInfo *t, float coord[3], float vec[3]) {
-	if (G.vd->persp)
-	{
-		float p1[4], p2[4];
-
-		VecAddf(p1, coord, t->con.center);
-		p1[3] = 1.0f;
-		VECCOPY(p2, p1);
-		p2[3] = 1.0f;
-		Mat4MulVec4fl(G.vd->viewmat, p2);
-
-		p2[0] = 2.0f * p2[0];
-		p2[1] = 2.0f * p2[1];
-		p2[2] = 2.0f * p2[2];
-
-		Mat4MulVec4fl(G.vd->viewinv, p2);
-
-		VecSubf(vec, p2, p1);
-		Normalise(vec);
-	}
-	else {
-		VECCOPY(vec, G.vd->viewinv[2]);
-	}
-}
 
 static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3]) {
 	float norm[3], n[3], vec[3], factor;
 
-	getViewVector(t, in, norm);
+	VecAddf(vec, in, t->con.center);
+	getViewVector(vec, norm);
 
 	Normalise(axis);
 
@@ -239,7 +216,8 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 static void planeProjection(TransInfo *t, float in[3], float out[3]) {
 	float vec[3], factor, angle, norm[3];
 
-	getViewVector(t, in, norm);
+	VecAddf(vec, in, t->con.center);
+	getViewVector(vec, norm);
 
 	VecSubf(vec, out, in);
 	factor = Normalise(vec);

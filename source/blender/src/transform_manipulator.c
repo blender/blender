@@ -79,6 +79,7 @@
 
 #include "blendef.h"
 #include "transform.h"
+#include "transform_generics.h"
 
 /* drawing defines */
 #define MAN_SIZE	0.15
@@ -430,27 +431,30 @@ static void draw_manipulator_rotate(float mat[][4])
 	
 	/* Trackball center */
 	if(Gval & MAN_ROT_T) {
-		float smat[3][3], imat[3][3], tmat[3][3];
+		float smat[3][3], imat[3][3];
+		float offset[3];
 		
 		if(G.f & G_PICKSEL) glLoadName(MAN_ROT_T);
 		
 		Mat3CpyMat4(smat, mat);
 		Mat3Inv(imat, smat);
-		Mat3CpyMat4(smat, G.vd->viewinv);
-		Mat3MulMat3(tmat, imat, smat);
-		Normalise(tmat[2]);
+
+
+		getViewVector(mat[3], offset);
+		VecMulf(offset, -1.0f);
+		Mat3MulVecfl(imat, offset);
 		
 		BIF_ThemeColor(TH_TRANSFORM);
 		glBegin(GL_LINES);
 		glVertex3f(0.0, 0.0, 0.0);
-		glVertex3fv(tmat[2]);
+		glVertex3fv(offset);
 		glEnd();
 		
 		glEnable(GL_LIGHTING);
 		BIF_GetThemeColor3fv(TH_TRANSFORM, vec);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, vec);
 		
-		VECCOPY(vec, tmat[2]);
+		VECCOPY(vec, offset);
 		glTranslatef(vec[0], vec[1], vec[2]);
 		gluSphere(qobj, CYWID, 8, 6);
 		

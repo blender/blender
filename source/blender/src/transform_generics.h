@@ -64,6 +64,8 @@ void calculatePropRatio(TransInfo *t);
 
 void snapGrid(TransInfo *t, float *val);
 
+void getViewVector(float coord[3], float vec[3]);
+
 TransInfo * BIF_GetTransInfo(void);
 
 #endif

@@ -114,6 +114,32 @@ extern TransInfo Trans;
 
 /* ************************** Functions *************************** */
 
+
+void getViewVector(float coord[3], float vec[3]) {
+	if (G.vd->persp)
+	{
+		float p1[4], p2[4];
+
+		VECCOPY(p1, coord);
+		p1[3] = 1.0f;
+		VECCOPY(p2, p1);
+		p2[3] = 1.0f;
+		Mat4MulVec4fl(G.vd->viewmat, p2);
+
+		p2[0] = 2.0f * p2[0];
+		p2[1] = 2.0f * p2[1];
+		p2[2] = 2.0f * p2[2];
+
+		Mat4MulVec4fl(G.vd->viewinv, p2);
+
+		VecSubf(vec, p2, p1);
+	}
+	else {
+		VECCOPY(vec, G.vd->viewinv[2]);
+	}
+	Normalise(vec);
+}
+
 /* ************************** GENERICS **************************** */
 
 /* called for objects updating while transform acts, once per redraw */
