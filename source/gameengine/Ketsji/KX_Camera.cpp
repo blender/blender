@@ -232,7 +232,11 @@ void KX_Camera::NormaliseClipPlanes()
 		return;
 	
 	for (unsigned int p = 0; p < 6; p++)
-		m_planes[p] /= sqrt(m_planes[p][0]*m_planes[p][0] + m_planes[p][1]*m_planes[p][1] + m_planes[p][2]*m_planes[p][2]);
+	{
+		MT_Scalar factor = sqrt(m_planes[p][0]*m_planes[p][0] + m_planes[p][1]*m_planes[p][1] + m_planes[p][2]*m_planes[p][2]);
+		if (!MT_fuzzyZero(factor))
+			m_planes[p] /= factor;
+	}
 	
 	m_normalised = true;
 }
@@ -257,11 +261,12 @@ void KX_Camera::ExtractFrustumSphere()
 	
 	// Compute centre
 	m_frustum_centre = MT_Point3(0., 0.,
-		-(nearpoint.dot(nearpoint) - farpoint.dot(farpoint))/(2.0*(m_camdata.m_clipend - m_camdata.m_clipstart)));
+		(nearpoint.dot(nearpoint) - farpoint.dot(farpoint))/(2.0*(m_camdata.m_clipend - m_camdata.m_clipstart)));
 	m_frustum_radius = m_frustum_centre.distance(farpoint);
 	
 	// Transform to world space.
-	m_frustum_centre = GetWorldToCamera()(m_frustum_centre);
+	m_frustum_centre = GetCameraToWorld()(m_frustum_centre);
+	m_frustum_radius /= fabs(NodeGetWorldScaling()[NodeGetWorldScaling().closestAxis()]);
 	
 	m_set_frustum_centre = true;
 }
