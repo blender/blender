@@ -1671,11 +1671,12 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 			
 			if(lar->mode & LA_LAYER) if((lar->lay & shi->vlr->lay)==0) continue;
 			
+			lv[0]= shi->co[0]-lar->co[0];
+			lv[1]= shi->co[1]-lar->co[1];
+			lv[2]= shi->co[2]-lar->co[2];
+
 			if(lar->shb) {
 				/* only test within spotbundel */
-				lv[0]= shi->co[0]-lar->co[0];
-				lv[1]= shi->co[1]-lar->co[1];
-				lv[2]= shi->co[2]-lar->co[2];
 				Normalise(lv);
 				inpr= lv[0]*lar->vec[0]+lv[1]*lar->vec[1]+lv[2]*lar->vec[2];
 				if(inpr>lar->spotsi) {
@@ -1699,6 +1700,17 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 					ir+= 1.0;
 				}
 			}
+			else if(lar->mode & LA_SHAD_RAY) {
+				float shad[4];
+				
+				/* single sided? */
+				if( shi->vlr->n[0]*lv[0] + shi->vlr->n[1]*lv[1] + shi->vlr->n[2]*lv[2] > -0.01) {
+					ray_shadow(shi, lar, shad, mask);
+					shadfac[3]+= shad[3];
+					ir+= 1.0;
+				}
+			}
+
 		}
 		if(ir>0.0) shadfac[3]/= ir;
 		shr->alpha= (shi->mat->alpha)*(1.0-shadfac[3]);
@@ -1829,27 +1841,8 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 					soft= (3.0*t-2.0*t*i);
 					inpr*= soft;
 				}
-				if((lar->mode & LA_ONLYSHADOW) && lar->shb) {
-					if(ma->mode & MA_SHADOW) {
-						/* dot product positive: front side face! */
-						inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
-						if(inp>0.0) {
-							/* testshadowbuf==0.0 : 100% shadow */
-							shadfac[3] = 1.0 - testshadowbuf(lar->shb, shi->co, inp);
-							if(shadfac[3]>0.0) {
-								shadfac[3]*= inp*soft*lar->energy;
-								shr->diff[0] -= shadfac[3];
-								shr->diff[1] -= shadfac[3];
-								shr->diff[2] -= shadfac[3];
-								
-								continue;
-							}
-						}
-					}
-				}
 				lampdist*=inpr;
 			}
-			if(lar->mode & LA_ONLYSHADOW) continue;
 
 			if(lar->mode & LA_OSATEX) {
 				shi->osatex= 1;	/* signal for multitex() */
@@ -1899,22 +1892,30 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 			
 			if(i>0.0 && (R.r.mode & R_SHADOW)) {
 				if(ma->mode & MA_SHADOW) {
+					/* single sided */
+					if( shi->vlr->n[0]*lv[0] + shi->vlr->n[1]*lv[1] + shi->vlr->n[2]*lv[2] > -0.01) {
 					
-					if(lar->shb) {
-						shadfac[3] = testshadowbuf(lar->shb, shi->co, inp);
-						if(shadfac[3]==0.0) continue;
-						i*= shadfac[3];
-					}
-					else if(lar->mode & LA_SHAD_RAY) {
-						if(R.r.mode & R_RAYTRACE) {
-							
-							/* hurms, single sided? */
-							if( shi->vlr->n[0]*lv[0] + shi->vlr->n[1]*lv[1] + shi->vlr->n[2]*lv[2] > -0.01) {
-								ray_shadow(shi, lar, shadfac, mask);
-								if(shadfac[3]==0.0) continue;
-								i*= shadfac[3];
-							}
+						if(lar->shb) {
+							shadfac[3] = testshadowbuf(lar->shb, shi->co, inp);
 						}
+						else if(lar->mode & LA_SHAD_RAY) {
+							ray_shadow(shi, lar, shadfac, mask);
+						}
+
+						/* warning, here it skips the loop */
+						if(lar->mode & LA_ONLYSHADOW) {
+							
+							shadfac[3]= i*lar->energy*(1.0-shadfac[3]);
+							shr->diff[0] -= shadfac[3];
+							shr->diff[1] -= shadfac[3];
+							shr->diff[2] -= shadfac[3];
+							
+							continue;
+						}
+						
+						if(shadfac[3]==0.0) continue;
+
+						i*= shadfac[3];
 					}
 				}
 			}
