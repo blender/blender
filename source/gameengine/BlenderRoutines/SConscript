@@ -45,6 +45,7 @@ kx_blenderhook_env.Append (CPPPATH=['.',
 
 kx_blenderhook_env.Append (CPPPATH = user_options_dict['PYTHON_INCLUDE'])
 kx_blenderhook_env.Append (CPPPATH = user_options_dict['SOLID_INCLUDE'])
+kx_blenderhook_env.Append (CPPPATH = user_options_dict['OPENGL_INCLUDE'])
 
 if sys.platform=='win32':
     kx_blenderhook_env.Append (CXXFLAGS = ['/GR'])
