@@ -1591,7 +1591,7 @@ void EM_selectmode_menu(void)
 		else G.scene->selectmode= SCE_SELECT_FACE;
 	
 		EM_selectmode_set(); // when mode changes
-		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWVIEW3D, 1);
 	}
 }
 

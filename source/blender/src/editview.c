@@ -889,7 +889,7 @@ void mouse_select(void)
 		}
 
 		/* complete redraw when: */
-		if(G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT)) allqueue(REDRAWVIEW3D, 0);
+		if(G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT)) allqueue(REDRAWVIEW3D, 1);
 		
 	}
 	else {

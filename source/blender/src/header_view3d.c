@@ -390,7 +390,7 @@ static void do_view3d_viewmenu(void *arg, int event)
 		add_blockhandler(curarea, VIEW3D_HANDLER_PROPERTIES, UI_PNL_UNSTOW);
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWVIEW3D, 1);
 }
 
 static uiBlock *view3d_viewmenu(void *arg_unused)
@@ -1792,7 +1792,7 @@ static void do_view3d_edit_propfalloffmenu(void *arg, int event)
 		prop_mode = 1;
 		break;
 		}
-	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWVIEW3D, 1);
 }
 
 static uiBlock *view3d_edit_propfalloffmenu(void *arg_unused)
@@ -3638,7 +3638,7 @@ void do_view3d_buttons(short event)
 				enter_posemode();
 			}
 		}
-		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWVIEW3D, 1);
 		break;
 	case B_AROUND:
 		handle_view3d_around();
@@ -3648,19 +3648,19 @@ void do_view3d_buttons(short event)
 		if( (G.qual & LR_SHIFTKEY)==0 || G.scene->selectmode==0)
 			G.scene->selectmode= SCE_SELECT_VERTEX;
 		EM_selectmode_set();
-		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWVIEW3D, 1);
 		break;
 	case B_SEL_EDGE:
 		if( (G.qual & LR_SHIFTKEY)==0 || G.scene->selectmode==0)
 			G.scene->selectmode= SCE_SELECT_EDGE;
 		EM_selectmode_set();
-		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWVIEW3D, 1);
 		break;
 	case B_SEL_FACE:
 		if( (G.qual & LR_SHIFTKEY)==0 || G.scene->selectmode==0)
 			G.scene->selectmode= SCE_SELECT_FACE;
 		EM_selectmode_set();
-		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWVIEW3D, 1);
 		break;
 		
 	default:

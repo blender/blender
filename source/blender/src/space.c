@@ -377,7 +377,7 @@ static void RestoreState(void)
 {
 	curarea->win_swap = 0;
 	curarea->head_swap=0;
-	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWVIEW3D, 1);
 	allqueue(REDRAWBUTSALL, 0);
 	reset_slowparents();
 	waitcursor(0);
