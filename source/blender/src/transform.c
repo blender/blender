@@ -562,7 +562,8 @@ static void calc_distanceCurveVerts(TransData *head, TransData *tail) {
 			}
 		}
 		else {
-			td->dist = 10000000.0f;
+			td->dist = 1000000.0f;
+			td->flag |= TD_NOTCONNECTED;
 		}
 	}
 	td_near = NULL;
@@ -574,7 +575,8 @@ static void calc_distanceCurveVerts(TransData *head, TransData *tail) {
 		else if(td_near) {
 			float dist;
 			dist = VecLenf(td_near->center, td->center);
-			if (dist < td->dist || (td+1)->dist < td->dist) {
+			if (td->flag & TD_NOTCONNECTED || dist < td->dist || (td+1)->dist < td->dist) {
+				td->flag &= ~TD_NOTCONNECTED;
 				if (dist < (td+1)->dist) {
 					td->dist = (td+1)->dist;
 				}
@@ -770,71 +772,100 @@ static void createTransLatticeVerts(void)
 } 
 
 /* proportional distance based on connectivity  */
-/* WARN evil abuse of ->vn pointer to store a float */
-#define E_GETFLOAT(a)		*((float *)&(a))
-static void editmesh_set_connectivity_distance(void)
+#define E_VEC(a)	(vectors + (3 * (int)(a)->vn))
+#define E_NEAR(a)	(nears[((int)(a)->vn)])
+static void editmesh_set_connectivity_distance(int total, float *vectors, EditVert **nears)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	EditEdge *eed;
-	float len;
-	int total= 0, done= 1;
-	
+	int i= 0, done= 1;
+
 	/* f2 flag is used for 'selection' */
-	for(eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->f & SELECT) eve->f2= 1;
-		else eve->f2 = 0;
-		eve->vn= NULL;
-		total++;
-	}
-	if(total==0) return;
+	/* vn is offset on scratch array   */
+	for(eve= em->verts.first; eve; eve= eve->next, i++) {
+		if(eve->h==0) {
+			eve->vn = (EditVert *)(i);
 
-	/* need flag f1 here too */
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		eed->f1= 0;
+			if(eve->f & SELECT) {
+				eve->f2= 1;
+				E_NEAR(eve) = eve;
+				E_VEC(eve)[0] = 0.0f;
+				E_VEC(eve)[1] = 0.0f;
+				E_VEC(eve)[2] = 0.0f;
+			}
+			else {
+				eve->f2 = 0;
+			}
+		}
 	}
 
-	/* a floodfill routine, should escape with maxdist, does manhattan dist */
+
+	/* Floodfill routine */
+	/*
+	At worst this is n*n of complexity where n is number of edges 
+	Best case would be n if the list is ordered perfectly.
+	Estimate is n log n in average (so not too bad)
+	*/
 	while(done) {
 		done= 0;
 		
 		for(eed= em->edges.first; eed; eed= eed->next) {
 			if(eed->h==0) {
 				EditVert *v1= eed->v1, *v2= eed->v2;
-				
-				if(v1->f2 + v2->f2 == 1) {
-					eed->f1= 1;	// signal for next loop
-					
-					/* calc distance */
-					len= VecLenf(v1->co, v2->co);
-					if(v1->f2==0) {
-						if(v1->vn==NULL) // copy value
-							E_GETFLOAT(v1->vn) = len + E_GETFLOAT(v2->vn);
-						else  // avarage out
-							E_GETFLOAT(v1->vn) = 0.5*(E_GETFLOAT(v1->vn) + len + E_GETFLOAT(v2->vn));
+				float *vec2 = E_VEC(v2);
+				float *vec1 = E_VEC(v1);
+
+				if (v1->f2) {
+					if (v2->f2) {
+						float nvec[3];
+						float len1 = VecLength(vec1);
+						float len2 = VecLength(vec2);
+						float lenn;
+						/* for v2 */
+						VecSubf(nvec, v2->co, E_NEAR(v1)->co);
+						lenn = VecLength(nvec);
+						if (lenn - len1 > 0.00001f && len2 - lenn > 0.00001f) {
+							VECCOPY(vec2, nvec);
+							E_NEAR(v2) = E_NEAR(v1);
+							done = 1;
+						}
+						/* for v1 */
+						VecSubf(nvec, v1->co, E_NEAR(v2)->co);
+						if (lenn - len2 > 0.00001f && len1 - lenn > 0.00001f) {
+							VECCOPY(vec1, nvec);
+							E_NEAR(v1) = E_NEAR(v2);
+							done = 1;
+						}
 					}
 					else {
-						if(v2->vn==NULL)
-							E_GETFLOAT(v2->vn) = len + E_GETFLOAT(v1->vn);
-						else
-							E_GETFLOAT(v2->vn) = 0.5*(E_GETFLOAT(v2->vn) + len + E_GETFLOAT(v1->vn));
+						v2->f2 = 1;
+						VecSubf(vec2, v2->co, E_NEAR(v1)->co);
+						if (VecLength(vec1) - VecLength(vec2) > 0.00001f) {
+							VECCOPY(vec2, vec1);
+						}
+						E_NEAR(v2) = E_NEAR(v1);
+						done = 1;
 					}
+				}
+				else if (v2->f2) {
+					v1->f2 = 1;
+					VecSubf(vec1, v1->co, E_NEAR(v2)->co);
+					if (VecLength(vec2) - VecLength(vec1) > 0.00001f) {
+						VECCOPY(vec1, vec2);
+					}
+					E_NEAR(v1) = E_NEAR(v2);
+					done = 1;
 				}
 			}
 		}
-		/* set flags in 2nd loop to floodfill distances nicer */
-		for(eed= em->edges.first; eed; eed= eed->next) {
-			if(eed->f1) {
-				done= 1;
-				eed->f1= 0;
-				eed->v1->f2= eed->v2->f2= 1;
-			}
-		}
 	}
-	
+
 	/* set unused or clipped away vertices on huge dist */
-	for(eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->f2==0) E_GETFLOAT(eve->vn)= 10000000.0f;
+	for(i=0, eve= em->verts.first; eve; eve= eve->next, i++) {
+		if(eve->f2==0) {
+			E_NEAR(eve) = NULL;
+		}
 	}
 }
 
@@ -865,7 +896,9 @@ static void createTransEditVerts(void)
 	TransData *tob = NULL;
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
+	EditVert **nears;
 	float mtx[3][3], smtx[3][3];
+	float *vectors;
 	int count=0, countsel=0;
 	int propmode = G.f & G_PROPORTIONAL;
 		
@@ -908,14 +941,20 @@ static void createTransEditVerts(void)
  	/* note: in prop mode we need at least 1 selected */
 	if (countsel==0) return;
 	
-	if(propmode) Trans.total = count; 
+	if(propmode) {
+		Trans.total = count; 
+	
+		/* allocating scratch arrays */
+		vectors = (float *)malloc(Trans.total * 3 * sizeof(float));
+		nears = (EditVert**)malloc(Trans.total * sizeof(EditVert*));
+	}
 	else Trans.total = countsel;
 	tob= Trans.data= MEM_mallocN(Trans.total*sizeof(TransData), "TransObData(Mesh EditMode)");
 	
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-	if(propmode) editmesh_set_connectivity_distance();
+	if(propmode) editmesh_set_connectivity_distance(Trans.total, vectors, nears);
 	
 	for (eve=em->verts.first; eve; eve=eve->next) {
 		if(eve->h==0) {
@@ -923,7 +962,15 @@ static void createTransEditVerts(void)
 				VertsToTransData(tob, eve);
 
 				if(eve->f1) tob->flag |= TD_SELECTED;
-				if(propmode) tob->dist= 0.5*E_GETFLOAT(eve->vn);	// times 0.5, correct for manhattan 
+				if(propmode) {
+					if (E_NEAR(eve)) {
+						tob->dist= VecLength(E_VEC(eve));
+					}
+					else {
+						tob->flag |= TD_NOTCONNECTED;
+						tob->dist = 10000000.0f;
+					}
+				}
 				
 				Mat3CpyMat3(tob->smtx, smtx);
 				Mat3CpyMat3(tob->mtx, mtx);
@@ -931,6 +978,10 @@ static void createTransEditVerts(void)
 				tob++;
 			}
 		}	
+	}
+	if (propmode) {
+		free(nears);
+		free(vectors);
 	}
 
 }
@@ -1384,12 +1435,7 @@ static void createTransData(TransInfo *t)
 		}
 		
 		if(G.f & G_PROPORTIONAL) {
-			if (G.obedit->type==OB_MESH) {
-				sort_trans_data(t);	// makes selected become first in array
-				set_prop_dist(t, 0);
-				sort_trans_data_dist(t);
-			}
-			else if (G.obedit->type==OB_CURVE) {
+			if (ELEM(G.obedit->type, OB_CURVE, OB_MESH)) {
 				sort_trans_data(t);	// makes selected become first in array
 				set_prop_dist(t, 0);
 				sort_trans_data_dist(t);
@@ -2209,7 +2255,7 @@ int Resize(TransInfo *t, short mval[2])
 			
 			dx= (float)(t->center2d[0] - mval[0]);
 			dy= (float)(t->center2d[1] - mval[1]);
-			ratio+= 0.1f*(sqrt( dx*dx + dy*dy)/t->fac -ratio);
+			ratio+= 0.1f*(float)(sqrt( dx*dx + dy*dy)/t->fac -ratio);
 			
 		}
 		else {
@@ -2429,7 +2475,7 @@ void initRotation(TransInfo *t)
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
-	t->snap[1] = (5.0/180)*M_PI;
+	t->snap[1] = (float)((5.0/180)*M_PI);
 	t->snap[2] = t->snap[1] * 0.2f;
 	t->fac = 0;
 	t->transform = Rotation;
@@ -2644,7 +2690,7 @@ void initTrackball(TransInfo *t)
 	t->idx_max = 1;
 	t->num.idx_max = 1;
 	t->snap[0] = 0.0f;
-	t->snap[1] = (5.0/180)*M_PI;
+	t->snap[1] = (float)((5.0/180)*M_PI);
 	t->snap[2] = t->snap[1] * 0.2f;
 	t->fac = 0;
 	t->transform = Trackball;
@@ -2937,7 +2983,7 @@ void initTilt(TransInfo *t)
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
-	t->snap[1] = ((5.0/180)*M_PI);
+	t->snap[1] = (float)((5.0/180)*M_PI);
 	t->snap[2] = t->snap[1] * 0.2f;
 	t->fac = 0;
 	t->transform = Tilt;
