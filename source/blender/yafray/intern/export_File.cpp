@@ -400,7 +400,9 @@ void yafrayFileRender_t::writeMaterialsAndModulators()
 			Tex* tex = mtex->tex;
 			if (tex==NULL) continue;
 
-			map<string, pair<Material*, MTex*> >::const_iterator mtexL = used_textures.find(string(tex->id.name+2));
+			//map<string, pair<Material*, MTex*> >::const_iterator mtexL = used_textures.find(string(tex->id.name+2));
+			// now included the full name
+			map<string, pair<Material*, MTex*> >::const_iterator mtexL = used_textures.find(string(tex->id.name));
 			if (mtexL!=used_textures.end()) {
 				ostr.str("");
 				ostr << "<shader type=\"blendermapper\" name=\"" << blendmat->first + "_map" << m <<"\"";
@@ -572,7 +574,8 @@ void yafrayFileRender_t::writeMaterialsAndModulators()
 			Tex* tex = mtex->tex;
 			if (tex==NULL) continue;
 
-			map<string, pair<Material*, MTex*> >::const_iterator mtexL = used_textures.find(string(tex->id.name+2));
+			//map<string, pair<Material*, MTex*> >::const_iterator mtexL = used_textures.find(string(tex->id.name+2));
+			map<string, pair<Material*, MTex*> >::const_iterator mtexL = used_textures.find(string(tex->id.name));
 			if (mtexL!=used_textures.end()) {
 
 				ostr.str("");
@@ -717,7 +720,8 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 	ostr <<" shadow=\""<< (shadow ? "on" : "off" )<<"\" ";
 	if (VLR_list[0]->mat->mode & MA_RAYTRANSP) 
 		ostr << "caus_IOR=\"" << VLR_list[0]->mat->ang << "\" ";
-	if (strlen(matname)==0) matname = "blender_default"; else matname+=2;	//skip MA id
+	if (strlen(matname)==0) matname = "blender_default"; 
+	//else matname+=2;	//skip MA id
 	ostr << " shader_name=\"" << matname << "\" >\n";
 	ostr << "\t<attributes>\n";
 	if (VLR_list[0]->mat->mode & MA_RAYTRANSP) 
@@ -837,7 +841,8 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		Material* fmat = vlr->mat;
 		bool EXPORT_VCOL = ((fmat->mode & (MA_VERTEXCOL|MA_VERTEXCOLP))!=0);
 		char* fmatname = fmat->id.name;
-		if (strlen(fmatname)==0) fmatname = "blender_default"; else fmatname+=2;	//skip MA id
+		if (strlen(fmatname)==0) fmatname = "blender_default"; 
+		//else fmatname+=2;	//skip MA id
 		TFace* uvc = vlr->tface;	// possible uvcoords (v upside down)
 		int idx1, idx2, idx3;
 
@@ -1168,7 +1173,7 @@ void yafrayFileRender_t::writePathlight()
 		float aspect = 1;
 		if (R.r.xsch < R.r.ysch) aspect = float(R.r.xsch)/float(R.r.ysch);
 		float sbase = 2.0*atan(0.5/(mainCamLens/(aspect*32.0)))/float(R.r.xsch);
-		ostr << " cache=\"on\" use_QMC=\"on\" \n";
+		ostr << " cache=\"on\" use_QMC=\"on\" threshold=\"" <<R.r.GIrefinement<<"\""<<endl;
 		ostr << " cache_size=\"" << sbase*R.r.GIpixelspersample << "\" shadow_threshold=\"" <<
 			1.0 - R.r.GIshadowquality << "\" grid=\"82\" search=\"35\" gradient=\"" <<
 			((R.r.GIgradient)? "on" : "off") << "\" >\n";

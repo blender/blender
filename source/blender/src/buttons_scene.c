@@ -1219,7 +1219,7 @@ static void render_panel_yafrayGI()
 
 	if (G.scene->r.GImethod>0) {
 		if (G.scene->r.GIpower==0) G.scene->r.GIpower=1;
-		uiDefButF(block, NUM, 0, "Power:", 5,35,154,20, &G.scene->r.GIpower, 0.01, 10.0, 10, 0, "GI lighting intensity scale, 1 is normal");
+		uiDefButF(block, NUM, 0, "Power:", 5,10,154,20, &G.scene->r.GIpower, 0.01, 10.0, 10, 0, "GI lighting intensity scale, 1 is normal");
 	}
         
 
@@ -1234,10 +1234,12 @@ static void render_panel_yafrayGI()
 		{
 			uiDefBut(block, LABEL, 0, "Cache parameters:", 5,105,130,20, 0, 1.0, 0, 0, 0, "");
 			if (G.scene->r.GIshadowquality==0.0) G.scene->r.GIshadowquality=0.9;
-			uiDefButF(block, NUMSLI, 0,"ShadQu ", 5,85,154,20,	&(G.scene->r.GIshadowquality), 0.0, 1.0 ,0,0, "Sets the shadow quality, keep it under 0.95 :-) ");
+			uiDefButF(block, NUM, 0,"ShadQu:", 5,85,154,20,	&(G.scene->r.GIshadowquality), 0.01, 1.0 ,1,0, "Sets the shadow quality, keep it under 0.95 :-) ");
 			if (G.scene->r.GIpixelspersample==0) G.scene->r.GIpixelspersample=10;
-			uiDefButI(block, NUM, 0, "Pixel Precision:",	5,60,154,20, &G.scene->r.GIpixelspersample, 1, 50, 10, 10, "Maximum number of pixels without samples, the lower the better and slower");
-			uiDefButS(block,TOG|BIT|0, 0, "Gradient", 5,10,75,20, &G.scene->r.GIgradient, 0, 0, 0, 0, "Try to smooth lighting using a gradient");
+			uiDefButI(block, NUM, 0, "Prec:",	5,60,75,20, &G.scene->r.GIpixelspersample, 1, 50, 10, 10, "Maximum number of pixels without samples, the lower the better and slower");
+			uiDefButS(block,TOG|BIT|0, 0, "Gradient", 84,60,75,20, &G.scene->r.GIgradient, 0, 0, 0, 0, "Try to smooth lighting using a gradient");
+			if (G.scene->r.GIrefinement==0) G.scene->r.GIrefinement=1.0;
+			uiDefButF(block, NUM, 0, "Refinement:", 5,35,154,20, &G.scene->r.GIrefinement, 0.001, 1.0, 1, 0, "Threshold to refine shadows EXPERIMENTAL. 1 = no refinement");
 		}
 		if (G.scene->r.GIphotons) 
 		{

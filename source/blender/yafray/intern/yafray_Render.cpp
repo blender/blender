@@ -101,7 +101,8 @@ bool yafrayRender_t::getAllMatTexObs()
 			if (strlen(matr->id.name)==0)
 				used_materials["blender_default"] = matr;
 			else
-				used_materials[matr->id.name+2] = matr;	// skip 'MA' id
+				used_materials[matr->id.name] = matr; // <-- full name to avoid name collision in yafray
+				//used_materials[matr->id.name+2] = matr;	// skip 'MA' id
 			// textures, all active channels
 			for (int m=0;m<8;m++) {
 				if (matr->septex & (1<<m)) continue;	// only active channels
@@ -120,7 +121,8 @@ bool yafrayRender_t::getAllMatTexObs()
 						(txtp!=TEX_IMAGE)) continue;
 				// in the case of an image texture, check that there is an actual image, otherwise ignore
 				if ((txtp & TEX_IMAGE) && (!tx->ima)) continue;
-				used_textures[tx->id.name+2] = make_pair(matr, mx);
+				used_textures[tx->id.name] = make_pair(matr, mx); // <-- full name to avoid name collision in yafray
+				//used_textures[tx->id.name+2] = make_pair(matr, mx);
 			}
 		}
 
