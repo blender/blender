@@ -1,26 +1,26 @@
 # Microsoft Developer Studio Project File - Name="BLO_readstreamglue" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
-# ** DO NOT EDIT **
+# ** NICHT BEARBEITEN **
 
 # TARGTYPE "Win32 (x86) Static Library" 0x0104
 
 CFG=BLO_readstreamglue - Win32 Release
-!MESSAGE This is not a valid makefile. To build this project using NMAKE,
-!MESSAGE use the Export Makefile command and run
+!MESSAGE Dies ist kein gültiges Makefile. Zum Erstellen dieses Projekts mit NMAKE
+!MESSAGE verwenden Sie den Befehl "Makefile exportieren" und führen Sie den Befehl
 !MESSAGE 
 !MESSAGE NMAKE /f "BLO_readstreamglue.mak".
 !MESSAGE 
-!MESSAGE You can specify a configuration when running NMAKE
-!MESSAGE by defining the macro CFG on the command line. For example:
+!MESSAGE Sie können beim Ausführen von NMAKE eine Konfiguration angeben
+!MESSAGE durch Definieren des Makros CFG in der Befehlszeile. Zum Beispiel:
 !MESSAGE 
 !MESSAGE NMAKE /f "BLO_readstreamglue.mak" CFG="BLO_readstreamglue - Win32 Release"
 !MESSAGE 
-!MESSAGE Possible choices for configuration are:
+!MESSAGE Für die Konfiguration stehen zur Auswahl:
 !MESSAGE 
-!MESSAGE "BLO_readstreamglue - Win32 Release" (based on "Win32 (x86) Static Library")
-!MESSAGE "BLO_readstreamglue - Win32 Debug" (based on "Win32 (x86) Static Library")
-!MESSAGE "BLO_readstreamglue - Win32 MT DLL Release" (based on "Win32 (x86) Static Library")
-!MESSAGE "BLO_readstreamglue - Win32 MT DLL Debug" (based on "Win32 (x86) Static Library")
+!MESSAGE "BLO_readstreamglue - Win32 Release" (basierend auf  "Win32 (x86) Static Library")
+!MESSAGE "BLO_readstreamglue - Win32 Debug" (basierend auf  "Win32 (x86) Static Library")
+!MESSAGE "BLO_readstreamglue - Win32 MT DLL Release" (basierend auf  "Win32 (x86) Static Library")
+!MESSAGE "BLO_readstreamglue - Win32 MT DLL Debug" (basierend auf  "Win32 (x86) Static Library")
 !MESSAGE 
 
 # Begin Project
@@ -138,10 +138,6 @@ LIB32=link.exe -lib
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\readstreamglue\intern\BLO_keyStore.c
-# End Source File
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\readstreamglue\intern\BLO_readStreamGlue.c
