@@ -798,7 +798,7 @@ static PyObject *M_Window_GetViewMatrix( PyObject * self )
 static PyObject *M_Window_GetPerspMatrix( PyObject * self )
 {
 	PyObject *perspmat;
-	
+
 	if( !G.vd ) {
 		Py_INCREF( Py_None );
 		return Py_None;
@@ -847,9 +847,14 @@ static PyObject *M_Window_ViewLayer( PyObject * self, PyObject * args )
 	PyObject *list = NULL, *resl = NULL;
 	int val, i, bit = 0, layer = 0;
 
+	if( !G.vd ) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"this function can only be used after a 3d View has been initialized" );
+	}
+
 	if( !PyArg_ParseTuple( args, "|O!", &PyList_Type, &list ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected nothing or a list of ints as argument" );
+		  "expected nothing or a list of ints as argument" );
 
 	if( list ) {
 		for( i = 0; i < PyList_Size( list ); i++ ) {
@@ -911,7 +916,7 @@ static PyObject *M_Window_CameraView( PyObject * self, PyObject * args )
 
 	if( !G.vd )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "View3d not available!" );
+			"this function can only be used after a 3d View has been initialized" );
 
 	if( !G.vd->camera ) {
 		if( BASACT && OBACT->type == OB_CAMERA )

@@ -164,7 +164,12 @@ Command line mode:
  "-b" background mode and additions like the "-P" command line switch,
  L{Blender.Save}, L{Blender.Load}, L{Blender.Quit} and the L{Library} module,
  for many tasks it's possible to control Blender via some automated process
- using scripts.
+ using scripts.  Note that command line scripts are run before Blender
+ initializes its windows, so many functions that get or set window related
+ attributes (like most in L{Window}) don't work here.  If you need those, use
+ an ONLOAD script link (see L{Scene.Scene.addScriptLink}) instead -- it's
+ also possible to use a command line script to write or set an ONLOAD script
+ link.
 
 Demo mode:
 ----------
@@ -294,7 +299,7 @@ A note to newbie script writers:
 
 @author: The Blender Python Team
 @requires: Blender 2.35 or newer.
-@version: 2.35
+@version: 2.35 - 2.36
 @see: U{www.blender3d.org<http://www.blender3d.org>}: main site
 @see: U{www.blender.org<http://www.blender.org>}: documentation and forum
 @see: U{www.elysiun.com<http://www.elysiun.com>}: user forum

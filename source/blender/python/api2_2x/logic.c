@@ -429,7 +429,7 @@ static PyObject *Property_getData( BPy_Property * self )
 		attr = EXPP_incr_ret( self->data );
 	} else {
 		if( self->property->type == PROP_BOOL ) {
-			if( *( ( int * ) &self->property->poin ) )
+			if( self->property->data )
 				attr = EXPP_incr_ret( Py_True );
 			else
 				attr = EXPP_incr_ret( Py_False );

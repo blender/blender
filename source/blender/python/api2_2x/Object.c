@@ -1799,15 +1799,16 @@ static PyObject *Object_addProperty( BPy_Object * self, PyObject * args )
 	char *prop_type = NULL;
 	short type = -1;
 	BPy_Property *py_prop = NULL;
+	int argslen = PyObject_Length( args );
 
-	if( PyObject_Length( args ) == 3 || PyObject_Length( args ) == 2 ) {
+	if( argslen == 3 || argslen == 2 ) {
 		if( !PyArg_ParseTuple
 		    ( args, "sO|s", &prop_name, &prop_data, &prop_type ) ) {
 			return ( EXPP_ReturnPyObjError
 				 ( PyExc_AttributeError,
 				   "unable to get string, data, and optional string" ) );
 		}
-	} else if( PyObject_Length( args ) == 1 ) {
+	} else if( argslen == 1 ) {
 		if( !PyArg_ParseTuple( args, "O!", &property_Type, &py_prop ) ) {
 			return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 							"unable to get Property" ) );
