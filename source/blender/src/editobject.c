@@ -598,7 +598,7 @@ void make_vertex_parent(void)
 		return;
 	}
 	
-	if(okee("Make vertex-parent")==0) return;
+	if(okee("Make vertex parent")==0) return;
 	
 	base= FIRSTBASE;
 	while(base) {
@@ -781,11 +781,11 @@ void make_parent(void)
 				if TESTBASELIB(base) {
 					if(base!=BASACT) {
 						if(base->object->type==OB_MESH) {
-							mode= pupmenu("Make Parent %t|Use Bone %x1|Use Armature %x2|Use Object %x3");
+							mode= pupmenu("Make Parent To%t|Bone %x1|Armature %x2|Object %x3");
 							break;
 						}
 						else {
-							mode= pupmenu("Make Parent %t|Use Bone %x1|Use Object %x3");
+							mode= pupmenu("Make Parent To %t|Bone %x1|Object %x3");
 							break;
 						}
 					}
