@@ -37,8 +37,11 @@
  * @date	Jun 17, 2001
  */
 
-#include "MEM_RefCountedC-Api.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
+#include "MEM_RefCountedC-Api.h"
 #include "MEM_RefCounted.h"
 
 

@@ -29,8 +29,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "IK_CGChainSolver.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
+#include "IK_CGChainSolver.h"
 #include "IK_Segment.h"
 
 using namespace std;

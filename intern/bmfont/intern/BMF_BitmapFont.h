@@ -38,6 +38,10 @@
 #ifndef __BMF_BITMAP_FONT_H
 #define __BMF_BITMAP_FONT_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "BMF_FontData.h"
 
 /**

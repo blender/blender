@@ -48,6 +48,11 @@
 #define NAN_INCLUDED_CTR_UHeap_h
 
 #include <vector>
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "MEM_NonCopyable.h"
 
 class CTR_UHeapable {

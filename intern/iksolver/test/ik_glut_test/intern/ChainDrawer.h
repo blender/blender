@@ -30,8 +30,11 @@
  */
 
 #ifndef NAN_INCLUDED_ChainDrawer_h
-
 #define NAN_INCLUDED_ChainDrawer_h
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include "../common/GlutDrawer.h"
 #include "MyGlutMouseHandler.h"

@@ -39,6 +39,10 @@
 #ifndef __BMF_SETTINGS_H
 #define __BMF_SETTINGS_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* This font is included always */
 #define BMF_INCLUDE_HELV10 1
 

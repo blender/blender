@@ -33,6 +33,11 @@
 
 #define NAN_INCLUDED_ManMesh2_h
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+
 #include "LOD_MeshPrimitives.h"
 #include "MEM_SmartPtr.h"
 #include <vector>

@@ -64,6 +64,10 @@
 #ifndef GEN_LIST_H
 #define GEN_LIST_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class GEN_Link {
 public:
     GEN_Link() : m_next(0), m_prev(0) {}

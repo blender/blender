@@ -64,6 +64,11 @@
 #ifndef CTR_LIST_H
 #define CTR_LIST_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+
 class CTR_Link {
 public:
     CTR_Link(

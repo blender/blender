@@ -39,6 +39,10 @@
 
 #include "ACT_Action.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 
 ACT_Action::ACT_Action(const STR_String& name, bool applied)
 : m_name(name), m_applied(applied)

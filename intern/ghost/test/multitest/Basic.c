@@ -31,6 +31,9 @@
 
 #include "Basic.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 int min_i(int a, int b) { 
 	return (a<b)?a:b; 

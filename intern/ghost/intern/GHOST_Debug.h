@@ -40,6 +40,10 @@
 #ifndef _GHOST_DEBUG_H_
 #define _GHOST_DEBUG_H_
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef WIN32
 	#ifdef _DEBUG
 		#pragma warning (disable:4786) // suppress stl-MSVC debug info warning

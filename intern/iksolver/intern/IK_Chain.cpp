@@ -29,8 +29,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "IK_Chain.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
+#include "IK_Chain.h"
 
 using namespace std;
 

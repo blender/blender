@@ -29,8 +29,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "IK_ConjugateGradientSolver.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
+#include "IK_ConjugateGradientSolver.h"
 
 #define EPS 1.0e-10
 

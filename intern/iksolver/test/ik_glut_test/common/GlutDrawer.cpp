@@ -29,6 +29,10 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "GlutDrawer.h"
 
 #include "MT_assert.h"

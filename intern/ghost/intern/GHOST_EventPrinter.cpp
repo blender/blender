@@ -38,11 +38,14 @@
  */
 
 #include "GHOST_EventPrinter.h"
-
 #include <iostream>
-
 #include "GHOST_EventKey.h"
 #include "GHOST_Debug.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 
 bool GHOST_EventPrinter::processEvent(GHOST_IEvent* event)
 {

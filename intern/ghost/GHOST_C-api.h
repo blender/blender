@@ -30,11 +30,13 @@
  */
 
 #ifndef	GHOST_C_API_H
-
 #define GHOST_C_API_H
 
 #include "GHOST_Types.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" { 

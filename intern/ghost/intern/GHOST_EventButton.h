@@ -40,6 +40,10 @@
 #ifndef _GHOST_EVENT_BUTTON_H_
 #define _GHOST_EVENT_BUTTON_H_
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "GHOST_Event.h"
 
 /**

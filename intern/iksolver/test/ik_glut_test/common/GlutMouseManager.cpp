@@ -29,8 +29,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "GlutMouseManager.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
+#include "GlutMouseManager.h"
 #include "MT_assert.h"
 
 MEM_SmartPtr<GlutMouseManager> GlutMouseManager::m_s_instance = MEM_SmartPtr<GlutMouseManager>();

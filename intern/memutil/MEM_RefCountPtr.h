@@ -30,8 +30,11 @@
  */
 
 #ifndef NAN_INCLUDED_MEM_RefCountPtr_h
-
 #define NAN_INCLUDED_MEM_RefCountPtr_h
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /**
  * $Id$

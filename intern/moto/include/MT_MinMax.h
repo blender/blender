@@ -46,6 +46,10 @@
 #ifndef MT_MINMAX_H
 #define MT_MINMAX_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 template <class T>
 inline const T& MT_min(const T& a, const T& b) {
   return b < a ? b : a;

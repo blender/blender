@@ -29,8 +29,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "BMF_FontData.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
+#include "BMF_FontData.h"
 #include "BMF_Settings.h"
 
 #if BMF_INCLUDE_SCR15

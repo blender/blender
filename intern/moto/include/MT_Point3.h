@@ -46,6 +46,10 @@
 #ifndef MT_POINT_H
 #define MT_POINT_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "MT_Vector3.h"
 
 class MT_Point3 : public MT_Vector3 {

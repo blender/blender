@@ -33,6 +33,10 @@
 
 #define NAN_INCLUDED_CSGException_h
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 // stick in more error types as you think of them
 
 enum BSP_ExceptionType{

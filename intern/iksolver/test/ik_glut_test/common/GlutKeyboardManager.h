@@ -30,8 +30,11 @@
  */
 
 #ifndef NAN_INCLUDED_GlutKeyboardManager
-
 #define NAN_INCLUDED_GlutKeyboardManager
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include "MEM_NonCopyable.h"
 #include "MEM_SmartPtr.h"

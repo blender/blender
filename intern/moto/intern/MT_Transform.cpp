@@ -50,6 +50,10 @@
 
 */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "MT_Transform.h"
 
 void MT_Transform::setValue(const float *m) {

@@ -37,6 +37,10 @@
  * @date	April, 25, 2001
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "ACT_ActionC-Api.h"
 
 #include "ACT_ActionStack.h"

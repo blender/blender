@@ -33,6 +33,10 @@
 
 #include <iostream>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 template <class T> 
 class NM_Scalar {
 public:    

@@ -70,6 +70,10 @@ WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 #include <string.h>
 #include "ply.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 char *type_names[] = {
 "invalid",
 "char", "short", "int",

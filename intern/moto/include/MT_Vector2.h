@@ -46,6 +46,10 @@
 #ifndef MT_VECTOR2_H
 #define MT_VECTOR2_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <MT_assert.h>
 #include "MT_Tuple2.h"
 

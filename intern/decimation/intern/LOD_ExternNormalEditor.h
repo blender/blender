@@ -33,6 +33,11 @@
 
 #define NAN_INCLUDED_ExternNormalEditor_h
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+
 #include "MEM_NonCopyable.h"
 #include "LOD_ManMesh2.h"
 #include "MT_Vector3.h"

@@ -40,6 +40,10 @@
 #ifndef __STR_HASHSTRING
 #define __STR_HASHSTRING
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "STR_String.h"
 
 

@@ -33,6 +33,11 @@
 
 #define NAN_INCLUDED_BSP_MeshPrimitives
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+
 #include "CTR_TaggedIndex.h"
 #include "MT_Vector3.h"
 #include "MT_Plane3.h"

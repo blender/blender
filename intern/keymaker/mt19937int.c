@@ -27,6 +27,10 @@
 
 #include<stdio.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "mt19937int.h"
 
 /* Period parameters */  

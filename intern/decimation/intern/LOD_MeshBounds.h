@@ -33,6 +33,10 @@
 
 #define NAN_INCLUDED_MeshBounds_h
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 
 #include "MEM_SmartPtr.h"
 #include "LOD_MeshPrimitives.h"

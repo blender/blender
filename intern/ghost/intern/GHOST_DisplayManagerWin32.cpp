@@ -37,8 +37,11 @@
  * @date	September 21, 2001
  */
 
-#include "GHOST_DisplayManagerWin32.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
+#include "GHOST_DisplayManagerWin32.h"
 #include "GHOST_Debug.h"
 
 // We do not support multiple monitors at the moment

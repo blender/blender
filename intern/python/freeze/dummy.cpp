@@ -39,6 +39,10 @@
  * @date	November 11, 2002
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 void main(void)
 {
 }

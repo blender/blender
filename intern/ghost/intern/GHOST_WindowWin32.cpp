@@ -37,10 +37,12 @@
  * @date	May 10, 2001
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <string.h>
-
 #include "GHOST_WindowWin32.h"
-
 #include <GL/gl.h>
 
 LPCSTR GHOST_WindowWin32::s_windowClassName = "GHOST_WindowClass";

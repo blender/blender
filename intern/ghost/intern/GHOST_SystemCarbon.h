@@ -46,8 +46,11 @@
 
 #include <Carbon/Carbon.h>
 
-#include "GHOST_System.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
+#include "GHOST_System.h"
 
 class GHOST_EventCursor;
 class GHOST_EventKey;

@@ -46,6 +46,10 @@
 #include <stdlib.h>
 #include "MEM_guardedalloc.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 int main (int argc, char *argv[])
 {
 	int verbose       = 0;

@@ -33,6 +33,11 @@
 
 #define CSG_BOOLEANOPS_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+
 /**
  * @section Interface structures for CSG module.
  * This interface falls into 2 categories.

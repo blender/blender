@@ -38,6 +38,9 @@
  * @date	March 6, 2001
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include "../extern/IMG_Pixmap.h"
 

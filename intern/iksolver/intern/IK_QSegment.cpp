@@ -37,6 +37,10 @@
  * @author Laurence
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "IK_QSegment.h"
 #include <iostream.h>
 

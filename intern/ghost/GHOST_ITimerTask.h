@@ -40,6 +40,9 @@
 #ifndef _GHOST_ITIMER_TASK_H_
 #define _GHOST_ITIMER_TASK_H_
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include "GHOST_Types.h"
 

@@ -33,6 +33,11 @@
 
 #define BSP_CSGMeshBuilder_h
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+
 #include "../extern/CSG_BooleanOps.h"
 #include "BSP_CSGMesh.h"
 #include "MEM_NonCopyable.h"

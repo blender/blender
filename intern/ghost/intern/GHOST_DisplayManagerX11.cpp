@@ -29,8 +29,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "GHOST_DisplayManagerX11.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
+#include "GHOST_DisplayManagerX11.h"
 #include "GHOST_SystemX11.h"
 
 

@@ -40,6 +40,10 @@
 #ifndef _GHOST_WINDOWX11_H_
 #define _GHOST_WINDOWX11_H_
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "GHOST_Window.h"
 #include <X11/Xlib.h>
 #include <GL/glx.h>

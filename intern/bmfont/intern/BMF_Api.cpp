@@ -37,6 +37,10 @@
  * Implementation of the API of the OpenGL bitmap font library.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "BMF_Api.h"
 
 #include "BMF_BitmapFont.h"

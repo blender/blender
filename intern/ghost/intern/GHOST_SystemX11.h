@@ -40,11 +40,15 @@
 #ifndef _GHOST_SYSTEM_X11_H_
 #define _GHOST_SYSTEM_X11_H_
 
-#include "GHOST_System.h"
-#include "../GHOST_Types.h"
-
 #include <X11/Xlib.h>
 #include <GL/glx.h>
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include "GHOST_System.h"
+#include "../GHOST_Types.h"
 
 class GHOST_WindowX11;
 

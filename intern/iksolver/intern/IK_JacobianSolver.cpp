@@ -29,8 +29,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "IK_JacobianSolver.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
+#include "IK_JacobianSolver.h"
 #include "TNT/svd.h"
 
 using namespace std;

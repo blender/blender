@@ -30,8 +30,12 @@
  */
 
 #ifndef NAN_INCLUDED_NonCopyable_h
-
 #define NAN_INCLUDED_NonCopyable_h
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 
 /**
  * Simple class that makes sure sub classes cannot

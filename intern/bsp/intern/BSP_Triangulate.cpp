@@ -32,6 +32,11 @@
 #include <stdio.h>
 
 #include <stdlib.h>
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "MT_Plane3.h"
 #include "BSP_Triangulate.h"
 #include "MT_assert.h"

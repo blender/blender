@@ -29,6 +29,10 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 typedef void (*WindowDataHandler)(void *priv, GHOST_EventHandle evt);
 
 typedef struct _WindowData WindowData;

@@ -36,6 +36,11 @@
 /* $RCSfile$ */
 /* $Revision$ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+
 /*  Jan Walter's stuff */
 #include "Python.h"
 #include "blender.h"

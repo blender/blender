@@ -29,6 +29,10 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "BSP_GhostTest3D.h"
 
 #include "BSP_TMesh.h"

@@ -33,6 +33,11 @@
 
 #define BSP_TMesh_h
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+
 #include "MT_Point3.h"
 #include "MT_Vector3.h"
 #include "MT_Transform.h"

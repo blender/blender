@@ -60,6 +60,9 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include "MT_CmMatrix4x4.h"
 #include "MT_Vector3.h"

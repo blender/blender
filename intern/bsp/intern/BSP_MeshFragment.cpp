@@ -29,6 +29,10 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "BSP_MeshFragment.h"
 
 #include "BSP_CSGMesh.h"

@@ -49,6 +49,10 @@
 #include <math.h>
 #include <float.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "MT_random.h"
 #include "NM_Scalar.h"
 

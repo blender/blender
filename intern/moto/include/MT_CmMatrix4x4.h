@@ -30,8 +30,11 @@
  */
 
 #ifndef INCLUDED_MT_CmMatrix4x4
-
 #define INCLUDED_MT_CmMatrix4x4
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /**
  * A 4x4 matrix. This is an OpenGl style matrix (column major) meaning

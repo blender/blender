@@ -32,6 +32,9 @@
 // implementation of LOD_FaceNormalEditor.h
 
 ///////////////////////////////////////
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include "LOD_FaceNormalEditor.h"
 

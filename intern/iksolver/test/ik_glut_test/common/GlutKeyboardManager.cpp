@@ -29,8 +29,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "GlutKeyboardManager.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
+#include "GlutKeyboardManager.h"
 #include "MT_assert.h"
 
 MEM_SmartPtr<GlutKeyboardManager> GlutKeyboardManager::m_s_instance = MEM_SmartPtr<GlutKeyboardManager>();

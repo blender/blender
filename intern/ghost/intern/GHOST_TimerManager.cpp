@@ -37,6 +37,10 @@
  * @date	May 31, 2001
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "GHOST_TimerManager.h"
 
 #include <algorithm>

@@ -46,6 +46,10 @@
 #ifndef MT_Tuple2_H
 #define MT_Tuple2_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "MT_Stream.h"
 #include "MT_Scalar.h"
 

@@ -46,6 +46,10 @@
 #ifndef MT_MATRIX3X3_H
 #define MT_MATRIX3X3_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <MT_assert.h>
 
 #include "MT_Vector3.h"

@@ -40,6 +40,10 @@
 #ifndef _GHOST_SYSTEM_H_
 #define _GHOST_SYSTEM_H_
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "GHOST_ISystem.h"
 
 #include "GHOST_Debug.h"

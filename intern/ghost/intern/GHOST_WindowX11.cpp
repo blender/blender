@@ -29,8 +29,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "GHOST_WindowX11.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
+#include "GHOST_WindowX11.h"
 #include "GHOST_SystemX11.h"
 #include "STR_String.h"
 #include "GHOST_Debug.h"

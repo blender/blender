@@ -51,6 +51,11 @@
 
 
 #include <vector>  // Include STL vector class.
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "MT_Point3.h"
 #include "BSP_MeshPrimitives.h"
 
