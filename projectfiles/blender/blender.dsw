@@ -215,11 +215,26 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name BRE_yafray
+    End Project Dependency
 }}}
 
 ###############################################################################
 
 Project: "BRE_renderconverter"=".\renderconverter\BRE_renderconverter.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "BRE_yafray"=".\yafray\BRE_yafray.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{

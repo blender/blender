@@ -262,10 +262,10 @@ bool yafrayRender_t::getAllMatTexObs()
 			return false;
 		}
 		// else make sure every object is found in dupliMtx_list
-		for (map<string, Object*>::const_iterator obn=dup_srcob.begin();
-			obn!=dup_srcob.end();++obn)
+		for (map<string, Object*>::const_iterator obn2=dup_srcob.begin();
+			obn2!=dup_srcob.end();++obn2)
 		{
-			if (dupliMtx_list.find(obn->first)==dupliMtx_list.end()) {
+			if (dupliMtx_list.find(obn2->first)==dupliMtx_list.end()) {
 				cout << "ERROR: Source ob missing for dupli's\n";
 				return false;
 			}
@@ -550,12 +550,12 @@ void yafrayRender_t::writeMaterialsAndModulators()
 		xmlfile << ostr.str();
 
 		// modulators
-		for (int m=0;m<8;m++) {
+		for (int m2=0;m2<8;m2++) {
 
-			if (matr->septex & (1<<m)) continue;// all active channels
+			if (matr->septex & (1<<m2)) continue;// all active channels
 
 			// ignore null mtex
-			MTex* mtex = matr->mtex[m];
+			MTex* mtex = matr->mtex[m2];
 			if (mtex==NULL) continue;
 
 			// ignore null tex
@@ -567,7 +567,7 @@ void yafrayRender_t::writeMaterialsAndModulators()
 
 				ostr.str("");
 				ostr << "\t<modulator>\n";
-				ostr << "\t\t<input value=\"" << blendmat->first + "_map" << m << "\" />\n";
+				ostr << "\t\t<input value=\"" << blendmat->first + "_map" << m2 << "\" />\n";
 
 				// blendtype
 				string ts = "mix";
@@ -808,10 +808,10 @@ void yafrayRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_list, 
 
 	// all faces using the index list created above
 	xmlfile << "\t\t<faces>\n";
-	for (vector<VlakRen*>::const_iterator fci=VLR_list.begin();
-				fci!=VLR_list.end();++fci)
+	for (vector<VlakRen*>::const_iterator fci2=VLR_list.begin();
+				fci2!=VLR_list.end();++fci2)
 	{
-		VlakRen* vlr = *fci;
+		VlakRen* vlr = *fci2;
 		Material* fmat = vlr->mat;
 		bool EXPORT_VCOL = ((fmat->mode & (MA_VERTEXCOL|MA_VERTEXCOLP))!=0);
 		char* fmatname = fmat->id.name;
