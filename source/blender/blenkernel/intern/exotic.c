@@ -2447,9 +2447,9 @@ static void write_mesh_vrml(FILE *fp, Mesh *me)
 			while(a--) {
 				if(mface->mat_nr==b) {
 					fprintf(fp, "\t\t\t\t %f %f,\n", tface->uv[0][0], tface->uv[0][1]); 
-					fprintf(fp, "\t\t\t\t %f %f,\n", tface->uv[3][0], tface->uv[3][1]); 
+					fprintf(fp, "\t\t\t\t %f %f,\n", tface->uv[1][0], tface->uv[1][1]); 
 					if(mface->v3) fprintf(fp, "\t\t\t\t %f %f,\n", tface->uv[2][0], tface->uv[2][1]); 
-					if(mface->v4) fprintf(fp, "\t\t\t\t %f %f,\n", tface->uv[1][0], tface->uv[1][1]); 
+					if(mface->v4) fprintf(fp, "\t\t\t\t %f %f,\n", tface->uv[3][0], tface->uv[3][1]); 
 				}
 				mface++;
 				tface++;
