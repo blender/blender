@@ -74,6 +74,7 @@ all debug::
     export NAN_GHOST ?= $(LCGDIR)/ghost
     export NAN_TEST_VERBOSITY ?= 1
     export NAN_BMFONT ?= $(LCGDIR)/bmfont
+    export NAN_FTGL ?= $(LCGDIR)/ftgl
 
 
   # Platform Dependent settings go below:
@@ -98,6 +99,8 @@ all debug::
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= $(LCGDIR)/zlib
     export NAN_NSPR ?= $(LCGDIR)/nspr
+    export NAN_FREETYPE ?= $(LCGDIR)/freetype
+    export NAN_GETTEXT ?= $(LCGDIR)/gettext	
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -132,6 +135,8 @@ all debug::
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= $(LCGDIR)/zlib
     export NAN_NSPR ?= $(LCGDIR)/nspr
+    export NAN_FREETYPE ?= /sw
+    export NAN_GETTEXT ?= /sw
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -147,6 +152,9 @@ all debug::
 
     # enable quicktime by default on OS X
     export WITH_QUICKTIME ?= true
+
+    # enable l10n
+    export INTERNATIONAL ?= true
 
   else
   ifeq ($(OS),freebsd)
@@ -168,6 +176,9 @@ all debug::
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= /usr
     export NAN_NSPR ?= /usr/local
+    export NAN_FREETYPE ?= $(LCGDIR)/freetype
+    export NAN_GETTEXT ?= $(LCGDIR)/gettext
+
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -201,6 +212,8 @@ all debug::
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= /usr/freeware
     export NAN_NSPR ?= /usr/local/apps/openblender/nspr/target/dist
+    export NAN_FREETYPE ?= $(LCGDIR)/freetype
+    export NAN_GETTEXT ?= $(LCGDIR)/gettext
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -234,6 +247,8 @@ all debug::
     export NAN_MESA ?= /usr
     export NAN_ZLIB ?= /usr
     export NAN_NSPR ?= $(LCGDIR)/nspr
+    export NAN_FREETYPE ?= /usr
+    export NAN_GETTEXT ?= /usr
 
     # Uncomment the following line to use Mozilla inplace of netscape
     export CPPFLAGS += -DMOZ_NOT_NET
@@ -246,6 +261,9 @@ all debug::
     export NAN_BUILDINFO ?= true
     # Be paranoid regarding library creation (do not update archives)
     export NAN_PARANOID ?= true
+
+    #i10n
+    export INTERNATIONAL ?= true
 
   else
   ifeq ($(OS),openbsd)
@@ -268,6 +286,8 @@ all debug::
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= $(LCGDIR)/zlib
     export NAN_NSPR ?= $(LCGDIR)/nspr
+    export NAN_FREETYPE ?= $(LCGDIR)/freetype
+    export NAN_GETTEXT ?= $(LCGDIR)/gettext
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -301,6 +321,8 @@ all debug::
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= /usr
     export NAN_NSPR ?= $(LCGDIR)/nspr
+    export NAN_FREETYPE ?= $(LCGDIR)/freetype
+    export NAN_GETTEXT ?= $(LCGDIR)/gettext
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -334,6 +356,8 @@ all debug::
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= $(LCGDIR)/zlib
     export NAN_NSPR ?= $(LCGDIR)/nspr
+    export NAN_FREETYPE ?= $(LCGDIR)/freetype
+    export NAN_GETTEXT ?= $(LCGDIR)/gettext
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -365,6 +389,8 @@ all debug::
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= $(LCGDIR)/zlib
     export NAN_NSPR ?= $(LCGDIR)/nspr
+    export NAN_FREETYPE ?= $(LCGDIR)/freetype
+    export NAN_GETTEXT ?= $(LCGDIR)/gettext
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET

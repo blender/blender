@@ -78,6 +78,7 @@
 #include "BKE_main.h"
 #include "BKE_mball.h"
 #include "BKE_packedFile.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_fsmenu.h"
 #include "BIF_gl.h"

@@ -45,10 +45,10 @@ CFLAGS += $(LEVEL_1_C_WARNINGS)
 #CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 #CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I$(NAN_FTGL)/include
+CPPFLAGS += -I$(NAN_GETTEXT)/include
+CPPFLAGS += -I$(NAN_FREETYPE)/include
 ifeq ($(OS), windows)
   CPPFLAGS += -I$(NAN_ICONV)/include
-  CPPFLAGS += -I$(NAN_GETTEXT)/include
-  CPPFLAGS += -I$(NAN_FREETYPE)/include
   ifeq ($(FREE_WINDOWS), true)
     CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
     CPPFLAGS += -DUSE_GETTEXT_DLL

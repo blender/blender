@@ -39,6 +39,10 @@ DIRS += writestreamglue readstreamglue writeblenfile readblenfile
 DIRS += avi imbuf img render radiosity blenlib blenkernel blenpluginapi
 DIRS += bpython makesdna src renderconverter
 
+ifeq ($(INTERNATIONAL), true)
+	DIRS += ftfont
+endif
+
 ifeq ($(WITH_QUICKTIME), true)
 	DIRS += quicktime
 endif

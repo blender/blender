@@ -75,6 +75,7 @@ CPPFLAGS += -I../verify
 CPPFLAGS += -I..
 CPPFLAGS += -I../../kernel/gen_system
 CPPFLAGS += -I../../gameengine/SoundSystem
+CPPFLAGS += -I../ftfont
 
 # Only used by py_demo.c !!!
 CPPFLAGS += -I../radiosity/extern/include
@@ -110,3 +111,6 @@ ifeq ($(WITH_QUICKTIME),true)
 	CPPFLAGS += -DWITH_QUICKTIME
 endif
 
+ifeq ($(INTERNATIONAL), true)
+    CPPFLAGS += -DINTERNATIONAL
+endif

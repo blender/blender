@@ -136,6 +136,28 @@ PYPLAYERLIB ?= $(PYLIB)
   ifeq ($(WITH_QUICKTIME), true)
     COMLIB += $(OCGDIR)/blender/blenderqt/$(DEBUG_DIR)libblenderqt.a
   endif
+ifeq ($(INTERNATIONAL), true)
+    COMLIB += $(OCGDIR)/blender/ftfont/$(DEBUG_DIR)libftfont.a
+    ifeq ($(OS), windows)
+        ifeq ($(FREE_WINDOWS), true)
+          COMLIB += $(NAN_GETTEXT)/lib/freegettext.a
+          COMLIB += $(NAN_FTGL)/lib/libftgl.a
+          COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
+          COMLIB += $(NAN_ICONV)/lib/freeiconv.a
+        else
+          COMLIB += $(NAN_GETTEXT)/lib/gnu_gettext.lib
+          COMLIB += $(NAN_FTGL)/lib/ftgl_static_ST.lib
+          COMLIB += $(NAN_FREETYPE)/lib/freetype211ST.lib
+          COMLIB += $(NAN_ICONV)/lib/iconv.lib
+        endif
+    else
+        COMLIB += $(NAN_FTGL)/lib/libftgl.a
+        COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
+    endif
+	ifeq ($(OS), darwin)
+	    COMLIB += $(NAN_GETTEXT)/lib/libintl.a
+	endif
+endif
 
     PULIB = $(NAN_IKSOLVER)/lib/libiksolver.a
     PULIB += $(NAN_MOTO)/lib/libmoto.a
