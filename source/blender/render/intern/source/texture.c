@@ -1213,48 +1213,46 @@ void do_material_tex(ShadeInput *shi)
 			}
 
 			if( mtex->mapto & MAP_DISPLACE ) {
-				/* we check for == here, not '&', to limit it to stucci for now */
-				/* otherwise image texture bump is used, which is plain ugly */
-				if(rgbnor == TEX_NOR) {
-					if(tex->nor) {
-						if(mtex->maptoneg & MAP_DISPLACE) tex->norfac= -mtex->norfac;
-						else tex->norfac= mtex->norfac;
+				/* Now that most textures offer both Nor and Intensity, allow  */
+				/* both to work, and let user select with slider.  However Nor slider */
+				/* goes to 5.0 while var only goes to 1.0, so we introduce a factor of 0.2 */
+				if(tex->nor) {
+					if(mtex->maptoneg & MAP_DISPLACE) tex->norfac= -mtex->norfac;
+					else tex->norfac= mtex->norfac;
 
-						shi->displace[0]+= Tnor*tex->norfac*tex->nor[0];
-						shi->displace[1]+= Tnor*tex->norfac*tex->nor[1];
-						shi->displace[2]+= Tnor*tex->norfac*tex->nor[2];
-					}
+					shi->displace[0]+= Tnor*tex->norfac*tex->nor[0];
+					shi->displace[1]+= Tnor*tex->norfac*tex->nor[1];
+					shi->displace[2]+= Tnor*tex->norfac*tex->nor[2];
+				}
+				
+				if(rgbnor & TEX_RGB) {
+					if(Talpha) Tin= Ta;
+					else Tin= (0.35*Tr+0.45*Tg+0.2*Tb);
+				}
+
+				if(mtex->maptoneg & MAP_DISPLACE) {
+					factt= (0.5-Tin)*mtex->varfac; facmm= 1.0-factt;
 				}
 				else {
-					if(rgbnor & TEX_RGB) {
-						if(Talpha) Tin= Ta;
-						else Tin= (0.35*Tr+0.45*Tg+0.2*Tb);
-					}
+					factt= (Tin-0.5)*mtex->varfac; facmm= 1.0-factt;
+				}
 
-					if(mtex->maptoneg & MAP_DISPLACE) {
-						factt= (0.5-Tin)*mtex->varfac; facmm= 1.0-factt;
-					}
-					else {
-						factt= (Tin-0.5)*mtex->varfac; facmm= 1.0-factt;
-					}
-
-					if(mtex->blendtype==MTEX_BLEND) {
-						shi->displace[0]= factt*shi->vn[0] + facmm*shi->displace[0];
-						shi->displace[1]= factt*shi->vn[1] + facmm*shi->displace[1];
-						shi->displace[2]= factt*shi->vn[2] + facmm*shi->displace[2];
-					}
-					else if(mtex->blendtype==MTEX_MUL) {
-						shi->displace[0]*= factt*shi->vn[0];
-						shi->displace[1]*= factt*shi->vn[1];
-						shi->displace[2]*= factt*shi->vn[2];
-					}
-					else { /* add or sub */
-						if(mtex->blendtype==MTEX_SUB) factt= -factt;
-						else factt= factt;
-						shi->displace[0]+= factt*shi->vn[0];
-						shi->displace[1]+= factt*shi->vn[1];
-						shi->displace[2]+= factt*shi->vn[2];
-					}
+				if(mtex->blendtype==MTEX_BLEND) {
+					shi->displace[0]= factt*shi->vn[0] + facmm*shi->displace[0];
+					shi->displace[1]= factt*shi->vn[1] + facmm*shi->displace[1];
+					shi->displace[2]= factt*shi->vn[2] + facmm*shi->displace[2];
+				}
+				else if(mtex->blendtype==MTEX_MUL) {
+					shi->displace[0]*= factt*shi->vn[0];
+					shi->displace[1]*= factt*shi->vn[1];
+					shi->displace[2]*= factt*shi->vn[2];
+				}
+				else { /* add or sub */
+					if(mtex->blendtype==MTEX_SUB) factt= -factt;
+					else factt= factt;
+					shi->displace[0]+= factt*shi->vn[0];
+					shi->displace[1]+= factt*shi->vn[1];
+					shi->displace[2]+= factt*shi->vn[2];
 				}
 			}
 
