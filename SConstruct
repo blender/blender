@@ -5,22 +5,19 @@ import time
 import sys
 from distutils import sysconfig
 import SCons.Script
+from bs import *
+
+bs_globals.arguments = ARGUMENTS
 
 appname = ''
 playername = ''
 config_guess = ''
 
-if hex(sys.hexversion) < 0x2030000:
-	print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-	print
-	print "You need at least Python 2.3 to build Blender with SCons"
-	print
-	print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-	sys.exit()
+bs_config.checkPyVersion()
 
 if sys.platform != 'win32':
-	sys.stdout = os.popen("tee build.log", "w")
-	sys.stderr = sys.stdout
+	#~ sys.stdout = os.popen("tee build.log", "w")
+	#~ sys.stderr = sys.stdout
 	# guess at the platform, used to maintain the tarball naming scheme
 	config_guess = os.popen("SRCHOME=source/ source/tools/guess/guessconfig").read()[:-1]
 else:
@@ -33,33 +30,18 @@ else:
 	appname = 'blender$PROGSUFFIX'
 	playername = 'blenderplayer$PROGSUFFIX'
 
-# This is a flag to determine whether to read all sconscripts and
-# set up the build environments or not
-# when issuing 'scons clean' this is set to 1
-# and all reading is skipped and a 'clean' target
-# will clean the root_build_dir from all
-# object files
-enable_clean = 0
-
-all_args = sys.argv[1:]
-parser =  SCons.Script.OptParser()
-options, targets = parser.parse_args(all_args)
-if ('clean' in targets):
-	enable_clean = 1
-	
 # Build directory.
-root_build_dir = '..' + os.sep + 'build' + os.sep + sys.platform + os.sep
+# root_build_dir = '..' + os.sep + 'build' + os.sep + sys.platform + os.sep
+
+bs_config.parseOpts()
 
 # Create the build directory. SCons does this automatically, but since we
 # don't want to put scons-generated .sconsign files in the source tree, but in
 # the root_build_dir, we have to create that dir ourselves before SCons tries
 # to access/create the file containing .sconsign data.
-if os.path.isdir (root_build_dir) == 0:
-    os.makedirs (root_build_dir)
+if os.path.isdir (bs_globals.root_build_dir) == 0:
+    os.makedirs (bs_globals.root_build_dir)
 
-# User configurable options file. This can be controlled by the user by running
-# scons with the following argument: CONFIG=user_config_options_file
-config_file = ARGUMENTS.get('CONFIG', 'config.opts')
 
 # Blender version.
 version='2.34'
@@ -778,21 +760,21 @@ my_defines = []
 my_ccflags = []
 my_cxxflags = []
 my_ldflags = []
-if os.path.exists (config_file):
-    print "Using config file: " + config_file
+if os.path.exists (bs_globals.config_file):
+    print "Using config file: " + bs_globals.config_file
 else:
-    print "Creating new config file: " + config_file
+    print "Creating new config file: " + bs_globals.config_file
     env_dict = env.Dictionary()
-    config=open (config_file, 'w')
+    config=open (bs_globals.config_file, 'w')
     config.write ("# Configuration file containing user definable options.\n")
-    config.write ("VERSION = '2.33-cvs'\n")
+    config.write ("VERSION = %r\n"%(version))
     config.write ("BUILD_BINARY = 'release'\n")
     config.write ("USE_BUILDINFO = %r\n"%(use_buildinfo))
     config.write ("BUILD_BLENDER_DYNAMIC = %r\n"%(build_blender_dynamic))
     config.write ("BUILD_BLENDER_STATIC = %r\n"%(build_blender_static))
     config.write ("BUILD_BLENDER_PLAYER = %r\n"%(build_blender_player))
     config.write ("BUILD_BLENDER_PLUGIN = %r\n"%(build_blender_plugin))
-    config.write ("BUILD_DIR = %r\n"%(root_build_dir))
+    config.write ("BUILD_DIR = %r\n"%(bs_globals.root_build_dir))
     
     config.write ("\n# Extra compiler flags can be defined here.\n")
     config.write ("DEFINES = %s\n"%(my_defines))
@@ -872,8 +854,8 @@ else:
 # Read the options from the config file and update the various necessary flags
 #-----------------------------------------------------------------------------
 list_opts = []
-user_options_env = Environment ()
-user_options = Options (config_file)
+user_options = Options (bs_globals.config_file)
+user_options_env = Environment (options = user_options)
 user_options.AddOptions (
         ('VERSION', 'Blender version', version),
         (EnumOption ('BUILD_BINARY', 'release',
@@ -895,7 +877,7 @@ user_options.AddOptions (
                      'Set to 1 if you want to build the blender plugin.',
                      'false')),
         ('BUILD_DIR', 'Target directory for intermediate files.',
-                     root_build_dir),
+                     bs_globals.root_build_dir),
         (BoolOption ('USE_INTERNATIONAL',
                      'Set to 1 to have international support.',
                      'false')),
@@ -973,9 +955,20 @@ user_options.AddOptions (
     )
 user_options.Update (user_options_env)
 user_options_dict = user_options_env.Dictionary()
+Help(user_options.GenerateHelpText(user_options_env))
+bs_globals.root_build_dir = user_options_dict['BUILD_DIR']
+# SET MODULE VARS #
+init_env = Environment()
 
-root_build_dir = user_options_dict['BUILD_DIR']
-    
+bs_globals.user_options_dict = user_options_dict
+bs_globals.init_env = init_env
+bs_globals.version = version
+bs_globals.shortversion = shortversion
+bs_globals.appname = appname
+bs_globals.playername = playername
+bs_globals.config_guess = config_guess
+# END SET MODULE VARS #
+
 if user_options_dict['BUILD_GAMEENGINE'] == 1:
     defines += ['GAMEBLENDER=1']
     if user_options_dict['USE_PHYSICS'] == 'ode':
@@ -991,13 +984,14 @@ if user_options_dict['BUILD_BINARY'] == 'release':
 else:
     cflags = extra_flags + debug_flags + warn_flags
     if sys.platform == 'win32':
-        #defines += ['_DEBUG'] specifying this makes msvc want to link to python22_d.lib??
-        platform_linkflags += ['/DEBUG','/PDB:blender.pdb']
+        platform_linkflags = ['/DEBUG','/PDB:blender.pdb'] + platform_linkflags
 
 defines += user_options_dict['DEFINES']
 cflags += user_options_dict['CCFLAGS']
 cxxflags += user_options_dict['CXXFLAGS']
-platform_linkflags += user_options_dict['LDFLAGS']
+platform_linkflags += user_options_dict['LDFLAGS'] 
+
+user_options_dict['PLATFORM_LINKFLAGS'] = platform_linkflags
 
 #-----------------------------------------------------------------------------
 # Generic library generation environment. This one is the basis for each
@@ -1011,13 +1005,13 @@ library_env.Replace (AR = user_options_dict['TARGET_AR'])
 library_env.Append (CCFLAGS = cflags)
 library_env.Append (CXXFLAGS = cxxflags)
 library_env.Append (CPPDEFINES = defines)
-library_env.SConsignFile (root_build_dir+'scons-signatures')
+library_env.SConsignFile (bs_globals.root_build_dir+'scons-signatures')
 
 #-----------------------------------------------------------------------------
 # Settings to be exported to other SConscript files
 #-----------------------------------------------------------------------------
 
-if enable_clean==0: # only read SConscripts when not cleaning, this to cut overhead
+if bs_globals.enable_clean==0: # only read SConscripts when not cleaning, this to cut overhead
 	Export ('cflags')
 	Export ('defines')
 	Export ('window_system')
@@ -1025,164 +1019,17 @@ if enable_clean==0: # only read SConscripts when not cleaning, this to cut overh
 	Export ('user_options_dict')
 	Export ('library_env')
 	
-	BuildDir (root_build_dir+'/extern', 'extern', duplicate=0)
-	SConscript (root_build_dir+'extern/SConscript')
-	BuildDir (root_build_dir+'/intern', 'intern', duplicate=0)
-	SConscript (root_build_dir+'intern/SConscript')
-	BuildDir (root_build_dir+'/source', 'source', duplicate=0)
-	SConscript (root_build_dir+'source/SConscript')
+	BuildDir (bs_globals.root_build_dir+'/extern', 'extern', duplicate=0)
+	SConscript (bs_globals.root_build_dir+'extern/SConscript')
+	BuildDir (bs_globals.root_build_dir+'/intern', 'intern', duplicate=0)
+	SConscript (bs_globals.root_build_dir+'intern/SConscript')
+	BuildDir (bs_globals.root_build_dir+'/source', 'source', duplicate=0)
+	SConscript (bs_globals.root_build_dir+'source/SConscript')
 	
-	libpath = (['#'+root_build_dir+'/lib'])
+	libpath = (['#'+bs_globals.root_build_dir+'/lib'])
 	
 	link_env = library_env.Copy ()
 	link_env.Append (LIBPATH=libpath)
-
-
-def common_libs(env):
-	"""
-	Append to env all libraries that are common to Blender and Blenderplayer
-	"""
-	env.Append (LIBS=[
-		'blender_readblenfile',
-		'blender_img',
-		'blender_blenkernel',
-		'blender_blenloader',
-		'blender_blenpluginapi',
-		'blender_imbuf',
-		'blender_avi',
-		'blender_blenlib',
-		'blender_makesdna',
-		'blender_kernel',
-		'blender_GHOST',
-		'blender_STR',
-		'blender_guardedalloc',
-		'blender_CTR',
-		'blender_MEM',
-		'blender_MT',
-		'blender_BMF',
-		'soundsystem'])
-	if user_options_dict['USE_QUICKTIME'] == 1:
-		env.Append (LIBS=['blender_quicktime'])
-
-
-def international_libs(env):
-	"""
-	Append international font support libraries
-	"""
-	if user_options_dict['USE_INTERNATIONAL'] == 1:
-		env.Append (LIBS=user_options_dict['FREETYPE_LIBRARY'])
-		env.Append (LIBPATH=user_options_dict['FREETYPE_LIBPATH'])
-		env.Append (LIBS=['blender_FTF'])
-		env.Append (LIBS=user_options_dict['FTGL_LIBRARY'])
-		env.Append (LIBPATH=user_options_dict['FTGL_LIBPATH'])
-		env.Append (LIBS=user_options_dict['FREETYPE_LIBRARY'])
-
-def blender_libs(env):
-	"""
-	Blender only libs (not in player)
-	"""
-	env.Append( LIBS=['blender_creator',
-		'blender_blendersrc',
-		'blender_render',
-		'blender_yafray',
-		'blender_renderconverter',
-		'blender_radiosity',
-		'blender_LOD',
-		'blender_BSP',
-		'blender_blenkernel',
-		'blender_IK',
-		'blender_ONL'])
-
-def ketsji_libs(env):
-	"""
-	Game Engine libs
-	"""
-	if user_options_dict['BUILD_GAMEENGINE'] == 1:
-		env.Append (LIBS=['KX_blenderhook',
-				'KX_converter',
-				'PHY_Dummy',
-				'PHY_Physics',
-				'KX_ketsji',
-				'SCA_GameLogic',
-				'RAS_rasterizer',
-				'RAS_OpenGLRasterizer',
-				'blender_expressions',
-				'SG_SceneGraph',
-				'blender_MT',
-				'KX_blenderhook',
-				'KX_network',
-				'blender_kernel',
-				'NG_network',
-				'NG_loopbacknetwork'])
-		if user_options_dict['USE_PHYSICS'] == 'solid':
-			env.Append (LIBS=['PHY_Sumo', 'PHY_Physics', 'blender_MT', 'extern_solid', 'extern_qhull'])
-		else:
-			env.Append (LIBS=['PHY_Ode',
-					'PHY_Physics'])
-			env.Append (LIBS=user_options_dict['ODE_LIBRARY'])
-			env.Append (LIBPATH=user_options_dict['ODE_LIBPATH'])
-
-def player_libs(env):
-	"""
-	Player libraries
-	"""
-	env.Append (LIBS=['GPG_ghost',
-			'GPC_common'])
-
-def player_libs2(env):
-	"""
-	Link order shenannigans: these libs are added after common_libs
-	"""
-	env.Append (LIBS=['blender_blenkernel_blc',
-			'soundsystem'])
-
-def winblenderres(env):
-	"""
-	build the windows icon resource file
-	"""
-	if sys.platform == 'win32':
-		env.RES(['source/icons/winblender.rc'])
-
-def system_libs(env):
-	"""
-	System libraries: Python, SDL, PNG, JPEG, Gettext, OpenAL, Carbon
-	"""
-	env.Append (LIBS=['blender_python'])
-	env.Append (LIBS=user_options_dict['PYTHON_LIBRARY'])
-	env.Append (LIBPATH=user_options_dict['PYTHON_LIBPATH'])
-	env.Append (LINKFLAGS=user_options_dict['PYTHON_LINKFLAGS'])
-	env.Append (LIBS=user_options_dict['SDL_LIBRARY'])
-	env.Append (LIBPATH=user_options_dict['SDL_LIBPATH'])
-	env.Append (LIBS=user_options_dict['PNG_LIBRARY'])
-	env.Append (LIBPATH=user_options_dict['PNG_LIBPATH'])
-	env.Append (LIBS=user_options_dict['JPEG_LIBRARY'])
-	env.Append (LIBPATH=user_options_dict['JPEG_LIBPATH'])
-	env.Append (LIBS=user_options_dict['GETTEXT_LIBRARY'])
-	env.Append (LIBPATH=user_options_dict['GETTEXT_LIBPATH'])
-	env.Append (LIBS=user_options_dict['Z_LIBRARY'])
-	env.Append (LIBPATH=user_options_dict['Z_LIBPATH'])
-	if user_options_dict['USE_OPENAL'] == 1:
-		env.Append (LIBS=user_options_dict['OPENAL_LIBRARY'])
-		env.Append (LIBPATH=user_options_dict['OPENAL_LIBPATH'])
-	env.Append (LIBS=user_options_dict['PLATFORM_LIBS'])
-	env.Append (LIBPATH=user_options_dict['PLATFORM_LIBPATH'])
-	if sys.platform == 'darwin':
-		env.Append (LINKFLAGS='-framework')
-		env.Append (LINKFLAGS='Carbon')
-		env.Append (LINKFLAGS='-framework')
-		env.Append (LINKFLAGS='AGL')
-		env.Append (LINKFLAGS='-framework')
-		env.Append (LINKFLAGS='AudioUnit')
-		env.Append (LINKFLAGS='-framework')
-		env.Append (LINKFLAGS='AudioToolbox')
-		env.Append (LINKFLAGS='-framework')
-		env.Append (LINKFLAGS='CoreAudio')
-		if user_options_dict['USE_QUICKTIME'] == 1:
-			env.Append (LINKFLAGS='-framework')
-			env.Append (LINKFLAGS='QuickTime')
-	else:
-		env.Append (LINKFLAGS=user_options_dict['PLATFORM_LINKFLAGS'])
-	env.BuildDir (root_build_dir, '.', duplicate=0)
 
 def buildinfo(env, build_type):
 	"""
@@ -1206,511 +1053,20 @@ def buildinfo(env, build_type):
 							'BUILD_TYPE=\'"dynamic"\'',
 							'NAN_BUILDINFO',
 							'BUILD_PLATFORM=\'"%s"\''%(sys.platform)])
-		obj = [env.Object (root_build_dir+'source/creator/%s_buildinfo'%build_type,
-						[root_build_dir+'source/creator/buildinfo.c'])]
+		obj = [env.Object (bs_globals.root_build_dir+'source/creator/%s_buildinfo'%build_type,
+						[bs_globals.root_build_dir+'source/creator/buildinfo.c'])]
 	return obj
-	
-def cleanCVS():
-	"""
-	walks the dist dir and removes all CVS dirs
-	"""
-	
-	try:
-		import shutil
-	except:
-		print "no shutil available"
-		print "make sure you use python 2.3"
-		print
-		return 0
-	
-	startdir = os.getcwd()
-	
-	for root, dirs, files in os.walk("dist", topdown=False):
-		for name in dirs:
-			if name in ['CVS']:
-				if os.path.isdir(root + "/" + name):
-					shutil.rmtree(root + "/" + name)
-	
-	os.chdir(startdir)
-	
-	return 1
 
-def preparedist():
-	"""
-	Prepare a directory for creating either archives or the installer
-	"""
-	
-	try:
-		import shutil
-		import time
-		import stat
-	except:
-		print "no shutil available"
-		print "make sure you use python 2.3"
-		print
-		return 0
-	
-	startdir = os.getcwd()
-	
-	if os.path.isdir("dist") == 0:
-		os.makedirs("dist")
-	else:
-		shutil.rmtree("dist") # make sure we don't get old cruft
-		os.makedirs("dist")
-	
-	# first copy binaries
-	
-	if sys.platform == 'win32':
-		shutil.copy("blender.exe", "dist/blender.exe")
-		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
-			shutil.copy("blenderplayer.exe", "dist/blenderplayer.exe")
-		shutil.copy("../lib/windows/python/lib/python23.dll", "dist/python23.dll")
-		shutil.copy("../lib/windows/sdl/lib/SDL.dll", "dist/SDL.dll")
-		shutil.copy("../lib/windows/gettext/lib/gnu_gettext.dll", "dist/gnu_gettext.dll")
-	elif sys.platform in ['linux2', 'linux-i386', 'freebsd4', 'freebsd5']:
-		shutil.copy("blender", "dist/blender")
-		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
-			shutil.copy("blenderplayer", "dist/blenderplayer")
-	else:
-		print "update preparedist() for your platform!"
-		return 0
-	
-	# now copy .blender and necessary extras for it
-	if os.path.isdir("dist/.blender"):
-		shutil.rmtree("dist/.blender")
-	os.chdir("bin")
-	shutil.copytree(".blender/", "../dist/.blender")
-	os.chdir(startdir)
-	if os.path.isdir("dist/.blender/scripts"):
-		shutil.rmtree("dist/.blender/scripts")
-	if os.path.isdir("dist/.blender/bpydata"):
-		shutil.rmtree("dist/.blender/bpydata")
-		
-	os.makedirs("dist/.blender/bpydata")
-	shutil.copy("release/bpydata/readme.txt", "dist/.blender/bpydata/readme.txt")
-	shutil.copy("release/bpydata/KUlang.txt", "dist/.blender/bpydata/KUlang.txt")
-	
-	os.chdir("release")
-	shutil.copytree("scripts/", "../dist/.blender/scripts")
-	
-	# finally copy auxiliaries (readme, license, etc.)
-	if sys.platform == 'win32':
-		shutil.copy("windows/extra/Help.url", "../dist/Help.url")
-		shutil.copy("windows/extra/Python23.zip", "../dist/Python23.zip")
-		shutil.copy("windows/extra/zlib.pyd", "../dist/zlib.pyd")
-	shutil.copy("text/copyright.txt", "../dist/copyright.txt")
-	shutil.copy("text/blender.html", "../dist/blender.html")
-	shutil.copy("text/GPL-license.txt", "../dist/GPL-license.txt")
-	shutil.copy("text/Python-license.txt", "../dist/Python-license.txt")
-	
-	reltext = "release_" + string.join(version.split("."), '') + ".txt"
-	shutil.copy("text/" + reltext, "../dist/" + reltext)
-	
-	os.chdir(startdir)
-	
-	if cleanCVS()==0:
-		return 0
-	return 1
-
-def finalisedist(zipname):
-	"""
-	Fetch the package created and remove temp dir
-	"""
-	
-	try:
-		import shutil
-	except:
-		print "no shutil available"
-		print "make sure you use python 2.3"
-		print
-		return 0
-	
-	#shutil.copy("dist/" + zipname, zipname)
-	#shutil.rmtree("dist")
-	
-	return 1
-
-def add2arc(arc, file):
-	if sys.platform == 'win32':
-		arc.write(file)
-	else:
-		arc.add(file)
-
-		
-def appit(target, source, env):
-	if sys.platform == 'darwin':
-		import shutil
-		import commands
-		import os.path
-						
-		target = 'blender' 
-		sourceinfo = "source/darwin/%s.app/Contents/Info.plist"%target
-		targetinfo = "%s.app/Contents/Info.plist"%target
-
-		cmd = '%s.app'%target
-		if os.path.isdir(cmd):
-			shutil.rmtree('%s.app'%target)
-		shutil.copytree("source/darwin/%s.app"%target, '%s.app'%target)
-		cmd = "cat %s | sed s/VERSION/`cat release/VERSION`/ | sed s/DATE/`date +'%%Y-%%b-%%d'`/ > %s"%(sourceinfo,targetinfo)
-		commands.getoutput(cmd)
-		cmd = 'cp %s %s.app/Contents/MacOS/%s'%(target, target, target)
-		commands.getoutput(cmd)
-		if  user_options_dict['BUILD_BINARY'] == 'debug':
-			print "building debug"
-		else :
-			cmd = 'strip -u -r %s.app/Contents/MacOS/%s'%(target, target)
-			commands.getoutput(cmd)
-		cmd = '%s.app/Contents/Resources/'%target
-		shutil.copy('bin/.blender/.bfont.ttf', cmd)
-		shutil.copy('bin/.blender/.Blanguages', cmd)
-		cmd = 'cp -R bin/.blender/locale %s.app/Contents/Resources/'%target
-		commands.getoutput(cmd)	
-		cmd = 'mkdir %s.app/Contents/MacOS/.blender'%target
-		commands.getoutput(cmd)
-		cmd = 'cp -R release/bpydata %s.app/Contents/MacOS/.blender'%target
-		commands.getoutput(cmd)
-		cmd = 'cp -R release/scripts %s.app/Contents/MacOS/.blender/'%target
-		commands.getoutput(cmd)
-		cmd = 'cp -R release/plugins %s.app/Contents/Resources/'%target 
-		commands.getoutput(cmd)
-		cmd = 'chmod +x  %s.app/Contents/MacOS/%s'%(target, target)
-		commands.getoutput(cmd)
-		cmd = 'find %s.app -name CVS -prune -exec rm -rf {} \;'%target
-		commands.getoutput(cmd)
-		cmd = 'find %s.app -name .DS_Store -exec rm -rf {} \;'%target
-		commands.getoutput(cmd)
-		
-		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
-			target = 'blenderplayer' 
-			sourceinfo = "source/darwin/%s.app/Contents/Info.plist"%target
-			targetinfo = "%s.app/Contents/Info.plist"%target
-
-			cmd = '%s.app'%target
-			if os.path.isdir(cmd):
-				shutil.rmtree('%s.app'%target)
-			shutil.copytree("source/darwin/%s.app"%target, '%s.app'%target)
-			cmd = "cat %s | sed s/VERSION/`cat release/VERSION`/ | sed s/DATE/`date +'%%Y-%%b-%%d'`/ > %s"%(sourceinfo,targetinfo)
-			commands.getoutput(cmd)
-			cmd = 'cp %s %s.app/Contents/MacOS/%s'%(target, target, target)
-			commands.getoutput(cmd)
-			if  user_options_dict['BUILD_BINARY'] == 'debug':
-				print "building debug player"
-			else :
-				cmd = 'strip -u -r %s.app/Contents/MacOS/%s'%(target, target)
-				commands.getoutput(cmd)
-			cmd = '%s.app/Contents/Resources/'%target
-			shutil.copy('bin/.blender/.bfont.ttf', cmd)
-			shutil.copy('bin/.blender/.Blanguages', cmd)
-			cmd = 'cp -R bin/.blender/locale %s.app/Contents/Resources/'%target
-			commands.getoutput(cmd)
-			cmd = 'cp -R release/bpydata %s.app/Contents/MacOS/.blender'%target
-			commands.getoutput(cmd)
-			cmd = 'cp -R release/scripts %s.app/Contents/MacOS/.blender/'%target
-			commands.getoutput(cmd)
-			cmd = 'cp -R release/plugins %s.app/Contents/Resources/'%target 
-			commands.getoutput(cmd)
-			cmd = 'chmod +x  %s.app/Contents/MacOS/%s'%(target, target)
-			commands.getoutput(cmd)
-			cmd = 'find %s.app -name CVS -prune -exec rm -rf {} \;'%target
-			commands.getoutput(cmd)
-			cmd = 'find %s.app -name .DS_Store -exec rm -rf {} \;'%target
-			commands.getoutput(cmd)
-		
-	else:
-		print "This target is for the Os X platform only"
-
-def zipit(env, target, source):
-	try:
-		if sys.platform == 'win32':
-			import zipfile
-		else:
-			import tarfile
-	except:
-		if sys.platform == 'win32':
-			print "no zipfile module found"
-		else:
-			print "no tarfile module found"
-			print "make sure you use python 2.3"
-		print
-		return
-	
-	import shutil
-	import glob
-	import time
-	
-	startdir = os.getcwd()
-	pf=""
-	zipext = ""
-	zipname = ""
-	
-	today = time.strftime("%Y%m%d", time.gmtime()) # get time in the form 20040714
-	
-	if preparedist()==0:
-		print "check output for error"
-		return
-	
-	if sys.platform == 'win32':
-		zipext += ".zip"
-		pf = "windows"
-	elif sys.platform == 'linux2' or sys.platform == 'linux-i386':
-		zipext += ".tar.gz"
-		pf = "linux"
-	elif sys.platform == 'freebsd4':
-		zipext += ".tar.gz"
-		pf = "freebsd4"
-	elif sys.platform == 'freebsd5':
-		zipext += ".tar.gz"
-		pf = "freebsd5"
-	
-	if user_options_dict['BUILD_BINARY'] == 'release':
-		blendname = "blender-" + version + "-" + config_guess
-	else:
-		blendname = "bf_blender_" + pf + "_" + today
-	
-	zipname = blendname + zipext
-
-	if os.path.isdir(blendname):
-		shutil.rmtree(blendname)
-	shutil.move(startdir + os.sep + "dist", blendname)
-
-	print
-	if sys.platform == 'win32':
-		print "Create the zip!"
-	else:
-		print "Create the tarball!"
-	print
-	
-	if sys.platform == 'win32':
-		thezip = zipfile.ZipFile(zipname, 'w', zipfile.ZIP_DEFLATED)
-	else:
-		thezip = tarfile.open(zipname, 'w:gz')
-	
-	for root, dirs, files in os.walk(blendname, topdown=False):
-		for name in files:
-			if name in [zipname]:
-				print "skipping self"
-			else:
-				file = root + "/" + name
-				print "adding: " + file
-				add2arc(thezip, file)
-	
-	thezip.close()
-	
-	os.chdir(startdir)
-	shutil.move(blendname, startdir + os.sep + "dist")
-	
-	if finalisedist(zipname)==0:
-		print "encountered an error in finalisedist"
-		print
-		return
-	
-	print
-	print "Blender has been successfully packaged"
-	print "You can find the file %s in the root source directory"%zipname
-	print
-	
-
-def printadd(env, target, source):
-	"""
-	Print warning message if platform hasn't been added to zipit() yet
-	"""
-	
-	print
-	print "############"
-	print 
-	print "Make sure zipit() works for your platform:"
-	print "  - binaries to copy (naming?)"
-	print "  - possible libraries?"
-	print "  - archive format?"
-	print
-	print "After you've corrected zipit() for your"
-	print "platform, be sure to add a proper elif"
-	print "at the end of BlenderRelease"
-	print
-	print "Blender is now ready and can be found in"
-	print "root of the source distribution, but it"
-	print "hasn't been packaged neatly. Make sure you"
-	print "get the right files"
-	print
-	print "/jesterKing"
-	print
-	
-
-def noaction(env, target, source):
-	print "Empty action"
-
-def DoClean(dir2clean):
-	"""
-	Do a removal of the root_build_dir the fast way
-	"""
-	
-	import shutil
-	print
-	print "start the clean"
-	dirs = os.listdir(dir2clean)
-	for dir in dirs:
-		if os.path.isdir(dir2clean + "/" + dir) == 1:
-			print "clean dir %s"%(dir2clean+"/" + dir)
-			shutil.rmtree(dir2clean+"/" + dir)
-	print "done"
-
-def BlenderDefault(target):
-	"""
-	The default Blender build.
-	"""
-	def_env = Environment()
-	default = def_env.Command('nozip', 'blender$PROGSUFFIX', noaction)
-	if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
-		def_env.Depends(default, 'blenderplayer$PROGSUFFIX')
-	def_env.Alias(".", default)
-
-def donsis(env, target, source):
-	"""
-	Create a Windows installer with NSIS
-	"""
-	print
-	print "Creating the Windows installer"
-	print
-	
-	startdir = os.getcwd()
-	
-	if preparedist()==0:
-		print "check output for error"
-		return
-	
-	os.chdir("release/windows/installer")
-	
-	nsis = open("00.sconsblender.nsi", 'r')
-	nsis_cnt = str(nsis.read())
-	nsis.close()
-	
-	# do root
-	rootlist = []
-	rootdir = os.listdir(startdir + "\\dist")
-	for rootitem in rootdir:
-		if os.path.isdir(startdir + "\\dist\\" + rootitem) == 0:
-			rootlist.append("File " + startdir + "\\dist\\" + rootitem)
-	rootstring = string.join(rootlist, "\n  ")
-	rootstring += "\n\n"
-	nsis_cnt = string.replace(nsis_cnt, "[ROOTDIRCONTS]", rootstring)
-	
-	# do delete items
-	delrootlist = []
-	for rootitem in rootdir:
-		if os.path.isdir(startdir + "\\dist\\" + rootitem) == 0:
-			delrootlist.append("Delete $INSTDIR\\" + rootitem)
-	delrootstring = string.join(delrootlist, "\n ")
-	delrootstring += "\n"
-	nsis_cnt = string.replace(nsis_cnt, "[DELROOTDIRCONTS]", delrootstring)
-	
-	# do scripts
-	scriptlist = []
-	scriptdir = os.listdir(startdir + "\\dist\\.blender\\scripts")
-	for scriptitem in scriptdir:
-		if os.path.isdir(startdir + "\\dist\\.blender\\scripts\\" + scriptitem) == 0:
-			scriptlist.append("File " + startdir + "\\dist\\.blender\\scripts\\" + scriptitem)
-	scriptstring = string.join(scriptlist, "\n  ")
-	scriptstring += "\n\n"
-	nsis_cnt = string.replace(nsis_cnt, "[SCRIPTCONTS]", scriptstring)
-	
-	# do bpycontents
-	bpydatalist = []
-	bpydatadir = os.listdir(startdir + "\\dist\\.blender\\bpydata")
-	for bpydataitem in bpydatadir:
-		if os.path.isdir(startdir + "\\dist\\.blender\\bpydata\\" + bpydataitem) == 0:
-			bpydatalist.append("File " + startdir + "\\dist\\.blender\\bpydata\\" + bpydataitem)
-	bpydatastring = string.join(bpydatalist, "\n  ")
-	bpydatastring += "\n\n"
-	nsis_cnt = string.replace(nsis_cnt, "[BPYCONTS]", bpydatastring)
-	
-	# do dotblender
-	dotblendlist = []
-	dotblenddir = os.listdir(startdir+"\\dist\\.blender")
-	for dotblenditem in dotblenddir:
-		if os.path.isdir(startdir + "\\dist\\.blender\\" + dotblenditem) == 0:
-			dotblendlist.append("File " + startdir + "\\dist\\.blender\\" + dotblenditem)
-	dotblendstring = string.join(dotblendlist, "\n  ")
-	dotblendstring += "\n\n"
-	nsis_cnt = string.replace(nsis_cnt, "[DOTBLENDERCONTS]", dotblendstring)
-	
-	# do language files
-	langlist = []
-	langfiles = []
-	langdir = os.listdir(startdir + "\\dist\\.blender\\locale")
-	for langitem in langdir:
-		if os.path.isdir(startdir + "\\dist\\.blender\\locale\\" + langitem) == 1:
-			langfiles.append("SetOutPath $BLENDERHOME\\.blender\\locale\\" + langitem + "\\LC_MESSAGES")
-			langfiles.append("File " + startdir + "\\dist\\.blender\\locale\\" + langitem + "\\LC_MESSAGES\\blender.mo")
-	langstring = string.join(langfiles, "\n  ")
-	langstring += "\n\n"
-	nsis_cnt = string.replace(nsis_cnt, "[LANGUAGECONTS]", langstring)
-	
-	# var replacements
-	nsis_cnt = string.replace(nsis_cnt, "DISTDIR", startdir + "\\dist")
-	nsis_cnt = string.replace(nsis_cnt, "SHORTVER", shortversion)
-	nsis_cnt = string.replace(nsis_cnt, "VERSION", version)
-	
-	new_nsis = open("00.blender_tmp.nsi", 'w')
-	new_nsis.write(nsis_cnt)
-	new_nsis.close()
-	
-	sys.stdout = os.popen("makensis 00.blender_tmp.nsi", 'w')
-	
-	os.chdir(startdir)
-	
-	
-def BlenderNSIS(target):
-	"""
-	Entry for creating Windows installer
-	"""
-	if sys.platform == 'win32':
-		inst_env = Environment()
-		nsis_inst = inst_env.Command('nsisinstaller', 'blender$PROGSUFFIX', donsis)
-		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
-			inst_env.Depends(nsis_inst, 'blenderplayer$PROGSUFFIX')
-		inst_env.Alias("wininst", nsis_inst)
-	else:
-		print "This target is for the win32 platform only "
-
-def BlenderRelease(target):
-	"""
-	Make a Release package (tarball, zip, bundle).
-	
-	target = Name of package to make (string)
-	eg: BlenderRelease('blender')
-	"""
-	
-	if sys.platform == 'darwin':
-		app_env = Environment()
-		Mappit = app_env.Command('appit', appname, appit)
-		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
-			app_env.Depends(Mappit, playername)
-		app_env.Alias("release", Mappit)
-	elif sys.platform in ['win32', 'linux2', 'linux-i386', 'freebsd4', 'freebsd5']:
-		release_env = Environment()
-		releaseit = release_env.Command('blenderrelease', appname, zipit)
-		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
-			release_env.Depends(releaseit, playername)
-		release_env.Alias("release", releaseit)
-	else:
-		release_env = Environment()
-		releaseit = release_env.Command('blender.tar.gz', appname, printadd)
-		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
-			release_env.Depends(releaseit, playername)
-		release_env.Alias("release", releaseit)
-
-if enable_clean == 0:
-
-	
+if bs_globals.enable_clean == 0:
 	if user_options_dict['BUILD_BLENDER_DYNAMIC'] == 1:
 		dy_blender = link_env.Copy ()
 		if sys.platform=='win32':
-			winblenderres(dy_blender)
-		blender_libs(dy_blender)
-		common_libs(dy_blender)
-		international_libs(dy_blender)
-		ketsji_libs(dy_blender)
-		system_libs(dy_blender)
+			bs_libs.winblenderres(dy_blender)
+		bs_libs.blender_libs(dy_blender)
+		bs_libs.common_libs(dy_blender)
+		bs_libs.international_libs(dy_blender)
+		bs_libs.ketsji_libs(dy_blender)
+		bs_libs.system_libs(dy_blender)
 		dy_blender.Append (LIBS=user_options_dict['OPENGL_LIBRARY'])
 		dy_blender.Append (LIBPATH=user_options_dict['OPENGL_LIBPATH'])
 		dy_blender.Append (CPPPATH=user_options_dict['OPENGL_INCLUDE'])
@@ -1726,12 +1082,12 @@ if enable_clean == 0:
 	if user_options_dict['BUILD_BLENDER_STATIC'] == 1:
 		st_blender = link_env.Copy ()
 		if sys.platform=='win32':
-			winblenderres(st_blender)
-		blender_libs(st_blender)
-		common_libs(st_blender)
-		international_libs(st_blender)
-		ketsji_libs(st_blender)
-		system_libs(st_blender)
+			bs_libs.winblenderres(st_blender)
+		bs_libs.blender_libs(st_blender)
+		bs_libs.common_libs(st_blender)
+		bs_libs.international_libs(st_blender)
+		bs_libs.ketsji_libs(st_blender)
+		bs_libs.system_libs(st_blender)
 		# The next line is to make sure that the LINKFLAGS are appended at the end
 		# of the link command. This 'trick' is needed because the GL and GLU static
 		# libraries need to be at the end of the command.
@@ -1745,20 +1101,20 @@ if enable_clean == 0:
 	if sys.platform=='win32':
 		if user_options_dict['BUILD_BINARY']=='debug':
 			browser = Environment()
-			browser_tmp = root_build_dir+'bscmake.tmp'
+			browser_tmp = bs_globals.root_build_dir+'bscmake.tmp'
 			browser.Command ('blender.bsc', 'blender$PROGSUFFIX',
-				['dir /b/s '+root_build_dir+'*.sbr >'+browser_tmp,
+				['dir /b/s '+bs_globals.root_build_dir+'*.sbr >'+browser_tmp,
 				 'bscmake /nologo /n /oblender.bsc @'+browser_tmp,
 				 'del '+browser_tmp])
 	
 	if user_options_dict['BUILD_BLENDER_PLAYER'] == 1 and user_options_dict['BUILD_GAMEENGINE'] == 1:
 		player_blender = link_env.Copy()
-		player_libs(player_blender)
-		common_libs(player_blender)
-		international_libs(player_blender)
-		ketsji_libs(player_blender)
-		player_libs2(player_blender)
-		system_libs(player_blender)
+		bs_libs.player_libs(player_blender)
+		bs_libs.common_libs(player_blender)
+		bs_libs.international_libs(player_blender)
+		bs_libs.ketsji_libs(player_blender)
+		bs_libs.player_libs2(player_blender)
+		bs_libs.system_libs(player_blender)
 		player_blender.Append (LIBS=user_options_dict['OPENGL_LIBRARY'])
 		player_blender.Append (LIBPATH=user_options_dict['OPENGL_LIBPATH'])
 		player_blender.Append (CPPPATH=user_options_dict['OPENGL_INCLUDE'])
@@ -1773,21 +1129,23 @@ if enable_clean == 0:
 		if sys.platform=='win32':
 			if user_options_dict['BUILD_BINARY']=='debug':
 				browser = Environment()
-				browser_tmp = root_build_dir+'bscmake.tmp'
+				browser_tmp = bs_globals.root_build_dir+'bscmake.tmp'
 				browser.Command ('blenderplayer.bsc', 'blenderplayer$PROGSUFFIX',
-				['dir /b/s '+root_build_dir+'*.sbr >'+browser_tmp,
+				['dir /b/s '+bs_globals.root_build_dir+'*.sbr >'+browser_tmp,
 				'bscmake /nologo /n /oblenderplayer.bsc @'+browser_tmp,
 				'del '+browser_tmp])
 
-	release_target = env.Alias("release", BlenderRelease(appname))
-	default_target = env.Alias("default", BlenderDefault(appname))
-	wininst_target = env.Alias("winist", BlenderNSIS(appname))
+	release_target = env.Alias("release", bs_arc.BlenderRelease(appname))
+	default_target = env.Alias("default", bs_default.BlenderDefault(appname))
+	wininst_target = env.Alias("winist", bs_nsis.BlenderNSIS(appname))
+	if bs_globals.docopy == 1:
+		bincopy_target = env.Alias("bincopy", bs_bincopy.BlenderCopy(appname))
 		
 else: # only clean target to prevent any building
-	clean_target = env.Alias("clean", DoClean(root_build_dir))
+	clean_target = env.Alias("clean", bs_clean.DoClean(bs_globals.root_build_dir))
 	Default("clean")
 
-if enable_clean == 0: # only set up dependencies when not cleaning
+if bs_globals.enable_clean == 0: # only set up dependencies when not cleaning
 	if sys.platform == 'darwin':
 		Default("release")
 	else:
@@ -1800,9 +1158,11 @@ if enable_clean == 0: # only set up dependencies when not cleaning
 	
 	if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
 		env.Depends(release_target, playername)
-	env.Depends(release_target, appname)
-	
-	if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
 		env.Depends(default_target, playername)
+		if bs_globals.docopy == 1:
+			env.Depends(bincopy_target, playername)
+	env.Depends(release_target, appname)
 	env.Depends(default_target, appname)
+	if bs_globals.docopy == 1:
+		env.Depends(bincopy_target, appname)
 	
