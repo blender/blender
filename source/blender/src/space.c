@@ -468,7 +468,7 @@ void start_game(void)
 	space_set_commmandline_options();
 
 	SaveState();
-	//StartKetsjiShell(curarea, startscene->id.name+2, G.main, 1);
+	StartKetsjiShell(curarea, startscene->id.name+2, G.main, 1);
 	RestoreState();
 
 	/* Restart BPY - unload the game engine modules. */
