@@ -911,9 +911,6 @@ if user_options_dict['BUILD_GAMEENGINE'] == 1:
 						   'blender_kernel',
 						   'NG_network',
 						   'NG_loopbacknetwork'])
-	if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
-		link_env.Append (LIBS=['GPG_ghost'])
-		link_env.Append (LIBS=['GPC_common'])
 	if user_options_dict['USE_PHYSICS'] == 'solid':
 		link_env.Append (LIBS=['PHY_Sumo', 'PHY_Physics', 'blender_MT', 'extern_solid', 'extern_qhull'])
 	else:
