@@ -146,7 +146,7 @@ endif
     ifneq ($(NOSTRIP),true)
 	@echo "----> Strip blender executable"
       ifeq ($(OS),darwin)
-	@strip -x $(OCGDIR)/bin/blender$(EXT0)/Contents/MacOS/blender
+	@strip -x $(DISTDIR)/blender$(EXT0)/Contents/MacOS/blender
       else
 	@strip -x $(DISTDIR)/blender$(EXT0)
       endif
