@@ -15,7 +15,27 @@ Example::
   w = Blender.Get('World') #assume there exists a world named "world"
   print w.getName()
   w.hor = [1,1,.2]
-  print w.getHor()	
+  print w.getHor()
+
+Example::
+  import Blender
+  from Blender import *
+
+  AllWorlds = Blender.World.Get()  # returns a list of created world obejcts
+  AvailWorlds = len(AllWorlds)	#	returns the number of available world objects
+  PropWorld = dir(AllWorlds[0])	# returns the properties of the class world
+  NameWorld = AllWorlds[0].getName() # get name of the first world object
+
+  MiType = AllWorlds[0].getMistype()	# get kind of mist from the first world object
+  MiParam = AllWorlds[0].getMist()	# get the parameters intensity, start, end and height of the mist
+
+  HorColor = AllWorlds[0].getHor()	# horizon color of the first world object
+  HorColorR = HorColor[0]		# get the red channel (RGB) of the horizon color
+
+  ZenColor = AllWorlds[0].getZen()	# zenit color of the first world object
+  ZenColorB = ZenColor[2]		# get the blue channel (RGB) of the Zenit color
+
+  blending = AllWorlds[0].getSkytype() # get the blending modes (real, blend, paper) of the first world object	
 """
 
 def New (name):

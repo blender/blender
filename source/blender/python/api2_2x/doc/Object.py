@@ -145,8 +145,10 @@ class Object:
     @cvar track: The object tracking this object. (Read-only)
     @cvar data: The data of the object. (Read-only)
     @cvar ipo: The ipo data associated with the object. (Read-only)
-    @cvar mat: The actual matrix of the object. (Read-only)
-    @cvar matrix: The actual matrix of the object. (Read-only)
+    @cvar mat: The matrix of the object relative to its parent. (Read-only)
+    @cvar matrix: The matrix of the object relative to its parent. (Read-only)
+    @cvar matrixLocal: The matrix of the object relative to its parent. (Read-only)
+    @cvar matrixWorld: The matrix of the object in world space. (Read-only)
     @cvar colbits: The Material usage mask. A set bit #n means: the Material
         #n in the Object's material list is used. Otherwise, the Material #n
         of the Objects Data material list is displayed.
@@ -282,8 +284,16 @@ class Object:
     @return: list of Material Objects assigned to the object.
     """
 
-  def getMatrix():
+  def getMatrix(space = 'localspace'):
     """
+    Returns the object matrix.
+    Use getMatrix() or getMatrix('localspace') to get the matrix relative to the objects parent.
+    Somtimes the absolute matrix of the object is required (taking into account vertex parents, tracking and ipo's)
+    in this case use getMatrix('worldspace')
+    @type space: string. Values are:
+    @param space: possible values are:
+      - localspace (default)
+      - worldspace
     Returns the object matrix.
     @rtype: Py_Matrix
     @return: a python matrix 4x4
@@ -576,4 +586,128 @@ class Object:
     @param fast: if zero, the scene hierarchy is updated automatically.  If
         you set 'fast' to a nonzero value, don't forget to update the scene
         yourself (see L{Scene.Scene.update}).
+    """
+
+  def getAllProperties ():
+    """
+    Return a list of properties from this object.
+    @rtype: PyList
+    @return: List of Property objects.
+    """
+
+  def getProperty (name):
+    """
+    Return a properties from this object based on name.
+    @type name: string
+    @param name: the name of the property to get.
+    @rtype: Property object
+    @return: The first property that matches name.
+    """
+
+  def addProperty (name, data, type):
+    """
+    Add a property to object.
+    @type name: string
+    @param name: the property name.
+    @type data: string, int or float
+    @param data: depends on what is passed in:
+      - string:  string type property
+      - int:  integer type property
+      - float:  float type property
+    @type type: string (optional)
+    @param type: can be the following:
+      - 'BOOL'
+      - 'INT'
+      - 'FLOAT'
+      - 'TIME'
+      - 'STRING'
+    @warn: If a type is not declared string data will
+    become string type, int data will become int type
+    and float data will become float type. Override type
+    to declare bool type, and time type.
+    """
+
+  def addProperty (property):
+    """
+    Add a property to object.
+    @type property: Property object
+    @param property: property object to add to object.
+    @warn:  A property object can be added only once to an object'
+    you must remove the property from an object to add it elsewhere.
+    """
+
+  def removeProperty (name):
+    """
+    Remove a property from an object by name.
+    @type property: Property object
+    @param property: property to remove by name.
+    """
+
+  def removeProperty (property):
+    """
+    Remove a property from an object.
+    @type property: Property object
+    @param property: property object to remove.
+    """
+
+  def removeAllProperties():
+    """
+    Removes all properties from an object. 
+    """
+
+  def copyAllPropertiesTo (object):
+    """
+    Copies all properties from one object to another.
+    @type object: Object object
+    @param object: Object that will recieve the properties.
+    """
+
+class Property:
+  """
+  The Property object
+  ===================
+    This property gives access to object property data in Blender.
+    @cvar name: The property name.
+    @cvar data: Data for this property. Depends on property type.
+    @cvar type: The property type.
+    @warn:  Comparisons between properties will only be true when
+    both the name and data pairs are the same.
+  """
+
+  def getName ():
+    """
+    Get the name of this property.
+    @rtype: string
+    @return: The property name.
+    """
+
+  def setName (name):
+    """
+    Set the name of this property.
+    @type name: string
+    @param name: The new name of the property
+    """
+
+  def getData ():
+    """
+    Get the data for this property.
+    @rtype: string, int, or float
+    """
+
+  def setData (data):
+    """
+    Set the data for this property.
+    @type data: string, int, or float
+    @param data: The data to set for this property.
+    @warn:  See object.setProperty().  Changing data
+    which is of a different type then the property is 
+    set to (i.e. setting an int value to a float type'
+    property) will change the type of the property 
+    automatically.
+    """
+
+  def getType ():
+    """
+    Get the type for this property.
+    @rtype: string
     """
