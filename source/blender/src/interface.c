@@ -231,7 +231,8 @@ static uiSaveUnder *ui_bgnpupdraw(int startx, int starty, int endx, int endy, in
 	uiSaveUnder *su;
 	short oldwin;
 	
-	#if defined(__sgi) || defined(__sun)
+	#if defined(__sgi) || defined(__sun) || defined(__sun__) || defined (__sparc) || defined (__sparc__)
+
 	/* this is a dirty patch: gets sometimes the backbuffer */
 	my_get_frontbuffer_image(0, 0, 1, 1);
 	my_put_frontbuffer_image();

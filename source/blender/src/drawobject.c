@@ -238,7 +238,7 @@ static void draw_icon_centered(float *pos, unsigned int *rect, int rectsize)
 	
 		/* use bitmap to shift rasterpos in pixels */
 	glBitmap(0, 0, 0.0, 0.0, -hsize, -hsize, &dummy);
-#ifdef __sun__
+#if defined (__sun__) || defined ( __sun ) || defined (__sparc) || defined (__sparc__)
 	glFinish(); 
 #endif	
 	glDrawPixels(rectsize, rectsize, GL_RGBA, GL_UNSIGNED_BYTE, rect);

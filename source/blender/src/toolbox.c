@@ -484,7 +484,8 @@ void tbox_setinfo(int x, int y)
 
 void bgnpupdraw(int startx, int starty, int endx, int endy)
 {
-	#if defined(__sgi) || defined(__sun__)
+	#if defined(__sgi) || defined(__sun__) || defined( __sun ) || defined (__sparc) || defined (__sparc__)
+
 	/* this is a dirty patch: XgetImage gets sometimes the backbuffer */
 	my_get_frontbuffer_image(0, 0, 1, 1);
 	my_put_frontbuffer_image();

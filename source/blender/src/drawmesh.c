@@ -83,7 +83,7 @@
 /* some local functions */
 static void draw_hide_tfaces(Object *ob, Mesh *me);
 
-#if defined(GL_EXT_texture_object) && !defined(__sun__) && !defined(__APPLE__)
+#if defined(GL_EXT_texture_object) && (!defined(__sun__) || (!defined(__sun))) && !defined(__APPLE__)
 
 	/* exception for mesa... not according th opengl specs */
 	#ifndef __linux__

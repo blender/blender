@@ -56,7 +56,7 @@
 #include <time.h>
 #include <sys/stat.h>
 
-#if defined(__sgi) || defined(__sun__) || defined(__sun)
+#if defined(__sgi) || defined(__sun__) || defined(__sun) || defined(__sparc) || defined(__sparc__)
 #include <sys/statfs.h>
 #endif
 
@@ -199,7 +199,7 @@ double BLI_diskfree(char *dir)
 #ifdef __BeOS
 	return -1;
 #endif
-#if defined __sgi || defined __sun__
+#if defined (__sgi) || defined (__sun__) || defined (__sun) || defined(__sparc) || defined(__sparc__)
 
 	if (statfs(name, &disk, sizeof(struct statfs), 0)){
 		/* printf("diskfree: Couldn't get information about %s.\n",dir); */

@@ -87,7 +87,7 @@ static char *check_memlist(MemHead *memh);
 /* locally used defines                                                  */
 /* --------------------------------------------------------------------- */
 
-#if defined( __sgi) || defined (__sun__) || defined (__PPC__) || defined (__APPLE__)
+#if defined( __sgi) || defined (__sun) || defined (__sun__) || defined (__sparc) || defined (__sparc__) || defined (__PPC__) || defined (__APPLE__)
 #define MAKE_ID(a,b,c,d) ( (int)(a)<<24 | (int)(b)<<16 | (c)<<8 | (d) )
 #else
 #define MAKE_ID(a,b,c,d) ( (int)(d)<<24 | (int)(c)<<16 | (b)<<8 | (a) )

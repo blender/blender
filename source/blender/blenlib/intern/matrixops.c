@@ -50,7 +50,7 @@
 #include "BLI_winstuff.h"
 #endif
 
-#ifdef __sun__
+#if defined(__sun__) || defined( __sun ) || defined (__sparc) || defined (__sparc__)
 #include <strings.h>
 #endif
 
