@@ -10,6 +10,71 @@
 
 using namespace std;
 
+#ifdef WIN32 
+
+#include<windows.h>
+
+#ifndef FILE_MAXDIR
+#define FILE_MAXDIR  160
+#endif
+
+#ifndef FILE_MAXFILE
+#define FILE_MAXFILE 80
+#endif
+
+static string command_path = "";
+
+static string find_path()
+{
+	HKEY	hkey;
+	DWORD dwType, dwSize;
+
+	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE,"Software\\YafRay Team\\YafRay",0,KEY_READ,&hkey)==ERROR_SUCCESS)
+	{
+		dwType = REG_EXPAND_SZ;
+	 	dwSize = MAX_PATH;
+		DWORD dwStat;
+
+		char *pInstallDir=new char[MAX_PATH];
+
+  		dwStat=RegQueryValueEx(hkey, TEXT("InstallDir"), 
+			NULL, NULL,(LPBYTE)pInstallDir, &dwSize);
+		
+		if (dwStat == NO_ERROR)
+		{
+			string res=pInstallDir;
+			delete [] pInstallDir;
+			return res;
+		}
+		else
+			cout << "Couldn't READ \'InstallDir\' value. Is yafray correctly installed?\n";
+		delete [] pInstallDir;
+
+		RegCloseKey(hkey);
+	}	
+	else
+		cout << "Couldn't FIND registry key for yafray, is it installed?\n";
+
+	return string("");
+
+}
+
+static int createDir(char* name)
+{
+	if (BLI_exists(name))
+		return 2;	//exists
+	if (CreateDirectory((LPCTSTR)(name), NULL)) {
+		cout << "Directory: " << name << " created\n";
+		return 1;	// created
+	}
+	else	{
+		cout << "Could not create directory: " << name << endl;
+		return 0;	// fail
+	}
+}
+
+#endif
+
 void yafrayRender_t::clearAll()
 {
 	all_objects.clear();
@@ -22,6 +87,7 @@ void yafrayRender_t::clearAll()
 
 bool yafrayRender_t::exportScene()
 {
+
   // get camera first, no checking should be necessary, all done by Blender
 	maincam_obj = G.scene->camera;
 
@@ -29,20 +95,55 @@ bool yafrayRender_t::exportScene()
 	mainCamLens = 35.0;
 	if (maincam_obj->type==OB_CAMERA) mainCamLens=((Camera*)maincam_obj->data)->lens;
 
-	// export dir must be set and exist
+	string xmlpath = "";
+	bool dir_failed = false;
+	// try the user setting setting first, export dir must be set and exist
 	if (strlen(U.yfexportdir)==0) {
 		cout << "No export directory set in user defaults!\n";
-		clearAll();
-		return false;
+		dir_failed = true;
 	}
-	// check if it exists
-	if (!BLI_exists(U.yfexportdir)) {
-		cout << "YafRay temporary xml export directory:\n" << U.yfexportdir << "\ndoes not exist!\n";
-		clearAll();
-		return false;
+	else {
+		// check if it exists
+		if (!BLI_exists(U.yfexportdir)) {
+			cout << "YafRay temporary xml export directory:\n" << U.yfexportdir << "\ndoes not exist!\n";
+#ifdef WIN32
+			// try to create it
+			cout << "Trying to create...\n";
+			if (createDir(U.yfexportdir)==0) dir_failed=true; else dir_failed=false;
+#else
+			dir_failed = true;
+#endif
+		}
+		xmlpath = U.yfexportdir;
 	}
 
-	string xmlpath = U.yfexportdir;
+#ifdef WIN32
+	// for windows try to get the path to the yafray binary from the registry, only done once
+	if (command_path=="") {
+		char path[FILE_MAXDIR+FILE_MAXFILE];
+		string yafray_path = find_path();
+		if (yafray_path=="") {
+			// error already printed in find_path()
+			clearAll();
+			return false;
+		}
+		GetShortPathName((LPCTSTR)(yafray_path.c_str()), path, FILE_MAXDIR+FILE_MAXFILE);
+		command_path = string(path);
+		cout << "yafray path found: " << command_path << endl;
+	}
+	// if no export dir set, or could not create, try to create one in the yafray dir, unless it already exists
+	if (dir_failed) {
+		string ybdir = command_path + "\\YBtest";
+		if (createDir(const_cast<char*>(ybdir.c_str()))==0) dir_failed=true; else dir_failed=false;
+		xmlpath = ybdir;
+	}
+#endif
+
+	// for all
+	if (dir_failed) {
+		clearAll();
+		return false;
+	}
 
 #ifdef WIN32
 	string DLM = "\\";
@@ -58,8 +159,7 @@ bool yafrayRender_t::exportScene()
 
 	// recreate the scene as object data, as well as sorting the material & textures, ignoring duplicates
 	if (!getAllMatTexObs()) {
-		// error found
-		// clear for next call
+		// error found, clear for next call
 		clearAll();
 		return false;
 	}
@@ -68,6 +168,7 @@ bool yafrayRender_t::exportScene()
 	xmlfile.open(xmlpath.c_str());
 	if (xmlfile.fail()) {
 		cout << "Could not open file\n";
+		clearAll();
 		return false;
 	}
 
@@ -119,17 +220,12 @@ bool yafrayRender_t::exportScene()
 	clearAll();
 
 	// file exported, now render
-	/*
-  char yfr[1024];
-  sprintf(yfr, "yafray -c %d \"%s\"", R.r.YF_numprocs, xmlpath.c_str());
-  if(system(yfr)==0)
-	*/
-	if(executeYafray(xmlpath))
+	if (executeYafray(xmlpath))
 		displayImage();
 	else 
 	{
-		G.afbreek=1; //stop render and anim if doing so
-		cout<<"Could not execute yafray. Is it in path?"<<endl;
+		G.afbreek = 1;	//stop render and anim if doing so
+		cout << "Could not execute yafray. Is it in path?" << endl;
 		return false;
 	}
 
@@ -1213,66 +1309,16 @@ bool yafrayRender_t::writeWorld()
 	return true;
 }
 
-#ifdef WIN32 
-
-#include<windows.h>
-
-#ifndef FILE_MAXDIR
-#define FILE_MAXDIR  160
-#endif
-
-#ifndef FILE_MAXFILE
-#define FILE_MAXFILE 80
-#endif
-
-static string find_path ()
-{
-	HKEY	hkey;
-	DWORD dwType, dwSize;
-
-	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE,"Software\\YafRay Team\\YafRay",0,KEY_READ,&hkey)==ERROR_SUCCESS)
-	{
-		dwType = REG_EXPAND_SZ;
-	 	dwSize = MAX_PATH;
-		DWORD dwStat;
-
-		char *pInstallDir=new char[MAX_PATH];
-
-  		dwStat=RegQueryValueEx(hkey, TEXT("InstallDir"), 
-			NULL, NULL,(LPBYTE)pInstallDir, &dwSize);
-		
-		if (dwStat == NO_ERROR)
-		{
-			string res=pInstallDir;
-			delete [] pInstallDir;
-			return res;
-		}
-		else
-			cout << "Couldn't READ \'InstallDir\' value. Is yafray correctly installed?\n";
-		delete [] pInstallDir;
-
-		RegCloseKey(hkey);
-	}	
-	else
-		cout << "Couldn't FOUND registry key.for yafray, is it installed?\n";
-
-	return string("");
-
-}
-#endif
-
 bool yafrayRender_t::executeYafray(const string &xmlpath)
 {
-  char yfr[8];
-  sprintf(yfr, "%d ", R.r.YF_numprocs);
-#ifdef WIN32 
-	char path[FILE_MAXDIR+FILE_MAXFILE];
-	GetShortPathName((LPCTSTR)(find_path().c_str()), path, FILE_MAXDIR+FILE_MAXFILE);
-	string command=string(path)+"\\yafray -c "+yfr+"\""+xmlpath+"\"";
+	char yfr[8];
+	sprintf(yfr, "%d ", R.r.YF_numprocs);
+#ifdef WIN32
+	string command = command_path + "\\yafray -c " + yfr + "\"" + xmlpath + "\"";
 #else
-	string command=string("yafray -c ")+yfr+"\""+xmlpath+"\"";
+	string command = string("yafray -c ") + yfr + "\"" + xmlpath + "\"";
 #endif
-  return system(command.c_str())==0;
+	return system(command.c_str())==0;
 }
 
 
