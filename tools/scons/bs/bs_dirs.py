@@ -55,7 +55,7 @@ def preparedist():
 	
 	# first copy binaries
 	
-	if sys.platform == 'win32':
+	if sys.platform == 'win32' or sys.platform == 'cygwin':
 		shutil.copy("blender.exe", "dist/blender.exe")
 		if bs_globals.user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
 			shutil.copy("blenderplayer.exe", "dist/blenderplayer.exe")
