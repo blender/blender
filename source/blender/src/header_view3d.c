@@ -3758,10 +3758,12 @@ void do_view3d_buttons(short event)
 				G.vd->layact= G.vd->lay;
 				scrarea_queue_headredraw(curarea);
 			}
+			
+			if(G.vd->scenelock) handle_view3d_lock();
+			
 			scrarea_queue_winredraw(curarea);
 			countall();
 
-			if(G.vd->scenelock) handle_view3d_lock();
 			allqueue(REDRAWOOPS, 0);
 		}
 		break;

@@ -2358,6 +2358,7 @@ static void filesel_select_objects(SpaceFile *sfile)
 			base->flag= base->object->flag;
 			base= base->next;
 		}
+		countall();
 		allqueue(REDRAWVIEW3D, 0);
 	}
 	else if( strcmp(sfile->dir, "Scene/")==0 ) {
