@@ -911,7 +911,7 @@ static int tree_element_active_material(SpaceOops *soops, TreeElement *te, int s
 	
 	/* we search for the object parent */
 	ob= (Object *)outliner_search_back(soops, te, ID_OB);
-	if(ob!=OBACT) return 0;	// just paranoia
+	if(ob==NULL || ob!=OBACT) return 0;	// just paranoia
 	
 	/* searching in ob mat array? */
 	tes= te->parent;
@@ -1029,7 +1029,7 @@ static int tree_element_active_lamp(SpaceOops *soops, TreeElement *te, int set)
 	
 	/* we search for the object parent */
 	ob= (Object *)outliner_search_back(soops, te, ID_OB);
-	if(ob!=OBACT) return 0;	// just paranoia
+	if(ob==NULL || ob!=OBACT) return 0;	// just paranoia
 	
 	if(set) {
 		extern_set_butspace(F5KEY);
@@ -1082,7 +1082,7 @@ static int tree_element_active_ipo(SpaceOops *soops, TreeElement *te, int set)
 	
 	/* we search for the object parent */
 	ob= (Object *)outliner_search_back(soops, te, ID_OB);
-	if(ob!=OBACT) return 0;	// just paranoia
+	if(ob==NULL || ob!=OBACT) return 0;	// just paranoia
 	
 	/* the parent of ipo */
 	tes= te->parent;

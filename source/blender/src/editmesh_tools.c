@@ -2658,6 +2658,7 @@ void edge_rotate_selected()
 	EM_select_flush();
 	
 	allqueue(REDRAWVIEW3D, 0);
+	makeDispList(G.obedit);
 	
 	BIF_undo_push("Rotate Edge");	
 }
