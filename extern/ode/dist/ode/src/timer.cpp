@@ -106,9 +106,9 @@ double dTimerTicksPerSecond()
 
 static inline void getClockCount (unsigned long cc[2])
 {
-  asm volatile ("
-	rdtsc
-	movl %%eax,(%%esi)
+  asm volatile ("\n\
+	rdtsc\n\
+	movl %%eax,(%%esi)\n\
 	movl %%edx,4(%%esi)"
 	: : "S" (cc) : "%eax","%edx","cc","memory");
 }
@@ -116,8 +116,8 @@ static inline void getClockCount (unsigned long cc[2])
 
 static inline void serialize()
 {
-  asm volatile ("
-	mov $0,%%eax
+  asm volatile ("\n\
+	mov $0,%%eax\n\
 	cpuid"
 	: : : "%eax","%ebx","%ecx","%edx","cc","memory");
 }
