@@ -362,8 +362,8 @@ Example code output:
 		if (glUnlockArraysEXT && glLockArraysEXT)
 		{
 			EnableExtension(_GL_EXT_compiled_vertex_array);
-			if (m_debug && doDebugMessages)
-				std::cout << "Enabled GL_EXT_compiled_vertex_array" << std::endl;
+			if (doDebugMessages)
+				std::cout << "Detected GL_EXT_compiled_vertex_array" << std::endl;
 		} else {
 			std::cout << "ERROR: GL_EXT_compiled_vertex_array implementation is broken!" << std::endl;
 		}
@@ -374,11 +374,13 @@ def writeext(ext, fnlist):
 	if (find(blacklist, ext)):
 		return
 	if (len(fnlist) == 0):
+		# This extension has no functions to detect - don't need to wrap in
+		# #ifdef GL_extension names
 		print "\tif (QueryExtension(\"" + ext + "\"))"
 		print "\t{"
 		print "\t\tEnableExtension(_" + ext + ");"
-		print "\t\tif (m_debug && doDebugMessages)"
-		print "\t\t\tstd::cout << \"Enabled " + ext + "\" << std::endl;"
+		print "\t\tif (doDebugMessages)"
+		print "\t\t\tstd::cout << \"Detected " + ext + "\" << std::endl;"
 		print "\t}"
 		print
 		return
@@ -395,7 +397,7 @@ def writeext(ext, fnlist):
 			errcheck = errcheck + " && " + fn[0]
 	print "\t\tif (" + errcheck + ") {"
 	print "\t\t\tEnableExtension(_" + ext + ");"
-	print "\t\t\tif (m_debug && doDebugMessages)"
+	print "\t\t\tif (doDebugMessages)"
 	print "\t\t\t\tstd::cout << \"Enabled " + ext + "\" << std::endl;"
 	print "\t\t} else {"
 	print "\t\t\tstd::cout << \"ERROR: " + ext + " implementation is broken!\" << std::endl;"

@@ -48,6 +48,7 @@ namespace bgl
 	 */
 	typedef enum {
 		/* ARB Extensions */
+		_GL_ARB_imaging,
 		_GL_ARB_multitexture ,
 		_GLX_ARB_get_proc_address ,
 		_GL_ARB_transpose_matrix ,

@@ -30,10 +30,10 @@
 
 COperator2Expr::COperator2Expr(VALUE_OPERATOR op, CExpression *lhs, CExpression *rhs)
 : 	
-m_cached_calculate(NULL),
-m_op(op),
+m_rhs(rhs),
 m_lhs(lhs),
-m_rhs(rhs)
+m_cached_calculate(NULL),
+m_op(op)
 /*
 pre:
 effect: constucts a COperator2Expr with op, lhs and rhs in it
@@ -43,9 +43,9 @@ effect: constucts a COperator2Expr with op, lhs and rhs in it
 }
 
 COperator2Expr::COperator2Expr():
-m_cached_calculate(NULL),
+m_rhs(NULL),
 m_lhs(NULL),
-m_rhs(NULL)
+m_cached_calculate(NULL)
 
 /*
 pre:

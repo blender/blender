@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * @file $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -37,12 +37,13 @@
 #include "SM_Callback.h"
 
 /**
-	Sumo Physics Controller, a special kind of a PhysicsController.
-	A Physics Controller is a special kind of Scene Graph Transformation Controller.
-	Each time the scene graph get's updated, the controller get's a chance
-	in the 'Update' method to reflect changes.
-*/
-
+ *	Sumo Physics Controller, a special kind of a PhysicsController.
+ *	A Physics Controller is a special kind of Scene Graph Transformation Controller.
+ *	Each time the scene graph get's updated, the controller get's a chance
+ *	in the 'Update' method to reflect changes.
+ *	
+ *	Sumo uses the SOLID library for collision detection.
+ */
 class SumoPhysicsController : public PHY_IPhysicsController , public SM_Callback
 
 							 
@@ -58,15 +59,26 @@ public:
 
 	virtual ~SumoPhysicsController();
 	
-		// kinematic methods
+	/** 
+	 * @name Kinematic Methods.
+	 */
+	/*@{*/
 	virtual void		RelativeTranslate(float dlocX,float dlocY,float dlocZ,bool local);
+	/**
+	 * @param drot a 3x4 matrix.  This will treated as a 3x3 rotation matrix.
+	 * @warning RelativeRotate expects a 3x4 matrix.  The fourth column is padding.
+	 */
 	virtual void		RelativeRotate(const float drot[12],bool local);
 	virtual	void		getOrientation(float &quatImag0,float &quatImag1,float &quatImag2,float &quatReal);
 	virtual	void		setOrientation(float quatImag0,float quatImag1,float quatImag2,float quatReal);
 	virtual	void		setPosition(float posX,float posY,float posZ);
 	virtual	void		setScaling(float scaleX,float scaleY,float scaleZ);
+	/*@}*/
 	
-	// physics methods
+	/**
+	 * @name Physics Methods
+	 */
+	/*@{*/
 	virtual void		ApplyTorque(float torqueX,float torqueY,float torqueZ,bool local);
 	virtual void		ApplyForce(float forceX,float forceY,float forceZ,bool local);
 	virtual void		SetAngularVelocity(float ang_velX,float ang_velY,float ang_velZ,bool local);
@@ -76,15 +88,16 @@ public:
 	virtual void		SetActive(bool active){};
 	virtual void		SuspendDynamics();
 	virtual void		RestoreDynamics();
+	/*@}*/
 
 
 	/**  
-		reading out information from physics
-	*/
+	 *	reading out information from physics
+	 */
 	virtual void		GetLinearVelocity(float& linvX,float& linvY,float& linvZ);
 	/** 
-		GetVelocity parameters are in geometric coordinates (Origin is not center of mass!).
-	*/
+	 *	GetVelocity parameters are in geometric coordinates (Origin is not center of mass!).
+	 */
 	virtual void		GetVelocity(const float posX,const float posY,const float posZ,float& linvX,float& linvY,float& linvZ); 
 	virtual	float		getMass();
 	virtual	void		getReactionForce(float& forceX,float& forceY,float& forceZ);
@@ -93,28 +106,27 @@ public:
 	
 	virtual	void		PostProcessReplica(class PHY_IMotionState* motionstate,class PHY_IPhysicsController* parentctrl);
 	
-	// todo: remove next line !
+	// TODO: remove next line !
 	virtual void			SetSimulatedTime(float time);
 	
-
 	virtual	void		WriteDynamicsToMotionState() {};
 	virtual void	WriteMotionStateToDynamics(bool nondynaonly);
 
 	/** 
-		call from Scene Graph Node to 'update'.
-	*/
+	 *	call from Scene Graph Node to 'update'.
+	 */
 	virtual bool	SynchronizeMotionStates(float time);
 
-		// clientinfo for raycasts for example
+	// clientinfo for raycasts for example
 	virtual	void*				getClientInfo() { return m_clientInfo;}
 	virtual	void				setClientInfo(void* clientinfo) {m_clientInfo = clientinfo;};
-	void*						m_clientInfo;
-
 
 	float	getFriction() { return m_friction;}
 	float	getRestitution() { return m_restitution;}
 
-	// sumo callback
+	/**
+	 * Sumo callback
+	 */
 	virtual void do_me();
 
 	class SM_Object*	GetSumoObject ()
@@ -160,6 +172,9 @@ private:
 	float				m_lastTime;
 
 	class	PHY_IMotionState*	m_MotionState;
+	
+	void*				m_clientInfo;
+
 	
 };
 

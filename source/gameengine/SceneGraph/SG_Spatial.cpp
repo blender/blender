@@ -48,13 +48,13 @@ SG_Spatial(
 
 	SG_IObject(clientobj,clientinfo,callbacks),
 	m_localPosition(MT_Point3(0,0,0)),
-	m_localScaling(MT_Vector3(1.f,1.f,1.f)),
 	m_localRotation(1,0,0,0,1,0,0,0,1),
+	m_localScaling(MT_Vector3(1.f,1.f,1.f)),
 	m_parent_relation (NULL),
 
 	m_worldPosition(MT_Point3(0,0,0)),
-	m_worldScaling(MT_Vector3(1.f,1.f,1.f)),
-	m_worldRotation(0,0,0,0,0,0,0,0,0)
+	m_worldRotation(0,0,0,0,0,0,0,0,0),
+	m_worldScaling(MT_Vector3(1.f,1.f,1.f))
 
 {
 }
@@ -65,12 +65,12 @@ SG_Spatial(
 ) : 
 	SG_IObject(other),
 	m_localPosition(other.m_localPosition),
-	m_localScaling(other.m_localScaling),
 	m_localRotation(other.m_localRotation),
+	m_localScaling(other.m_localScaling),
 	m_parent_relation(NULL),
 	m_worldPosition(other.m_worldPosition),
-	m_worldScaling(other.m_worldScaling),
-	m_worldRotation(other.m_worldRotation)
+	m_worldRotation(other.m_worldRotation),
+	m_worldScaling(other.m_worldScaling)
 {
 	// duplicate the parent relation for this object
 	m_parent_relation = other.m_parent_relation->NewCopy();

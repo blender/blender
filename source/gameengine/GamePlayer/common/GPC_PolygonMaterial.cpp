@@ -37,6 +37,7 @@
 #include "GPC_PolygonMaterial.h"
 #include "MT_Vector3.h"
 #include "RAS_IRasterizer.h"
+#include "RAS_GLExtensionManager.h"
 
 /* This list includes only data type definitions */
 #include "DNA_object_types.h"
@@ -83,6 +84,7 @@ static int fDoMipMap = 1;
 static int fLinearMipMap=1;
 static int fAlphamode= -1;
 
+using namespace bgl;
 	/* (n&(n-1)) zeros the least significant bit of n */
 static int is_pow2(int num) {
 	return ((num)&(num-1))==0;
@@ -111,7 +113,7 @@ static void my_make_repbind(Image *ima)
 }
 
 
-int my_set_tpage(TFace *tface)
+static int my_set_tpage(TFace *tface)
 {	
 	static TFace *lasttface= 0;
 	Image *ima;
@@ -402,7 +404,7 @@ void GPC_PolygonMaterial::Activate(RAS_IRasterizer* rasty, TCachingInfo& caching
 			
 		else
 		{
-			rasty->SetCullFace(true);;//glEnable(GL_CULL_FACE);
+			rasty->SetCullFace(true);//glEnable(GL_CULL_FACE);
 			//else glDisable(GL_CULL_FACE);
 		}
 	}

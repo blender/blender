@@ -1,4 +1,5 @@
 /**
+ * @file KX_IPhysicsController.cpp
  * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****

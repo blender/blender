@@ -43,16 +43,14 @@ STR_String RAS_MeshObject::s_emptyname = "";
 
 KX_ArrayOptimizer::~KX_ArrayOptimizer()
 {
-	int i = 0;
-	
 	for (vector<KX_VertexArray*>::iterator itv = m_VertexArrayCache1.begin();
-	!(itv == m_VertexArrayCache1.end());itv++)
+	!(itv == m_VertexArrayCache1.end());++itv)
 	{
 		delete (*itv);
 	}
 
 	for (vector<KX_IndexArray*>::iterator iti = m_IndexArrayCache1.begin();
-	!(iti == m_IndexArrayCache1.end());iti++)
+	!(iti == m_IndexArrayCache1.end());++iti)
 	{
 		delete (*iti);
 	}
@@ -99,43 +97,23 @@ int RAS_MeshObject::NumMaterials()
 	return m_materials.size();
 }
 
-	
-	
 const STR_String& RAS_MeshObject::GetMaterialName(unsigned int matid)
 { 
-	if (m_materials.size() > 0 && (matid < m_materials.size()))
-	{
-		BucketMaterialSet::iterator it = m_materials.begin();
-
-		for (unsigned int i = 1; i < m_materials.size(); i++)
-		{
-			it++;
-		}
-		return (*it)->GetPolyMaterial()->GetMaterialName();
-	}
-
-	return s_emptyname;
+	RAS_MaterialBucket* bucket = GetMaterialBucket(matid);
+	
+	return bucket?bucket->GetPolyMaterial()->GetMaterialName():s_emptyname;
 }
-
-
 
 RAS_MaterialBucket* RAS_MeshObject::GetMaterialBucket(unsigned int matid)
 {
-	RAS_MaterialBucket* bucket = NULL;
-	
 	if (m_materials.size() > 0 && (matid < m_materials.size()))
 	{
-		BucketMaterialSet::iterator it = m_materials.begin();
-		int i = matid;
-		while (i > 0)
-		{
-			i--;
-			it++;
-		}
-		bucket = *it;
+		BucketMaterialSet::const_iterator it = m_materials.begin();
+		while (matid--) ++it;
+		return *it;
 	}
 
-	return bucket;
+	return NULL;
 }
 
 
@@ -184,18 +162,9 @@ const STR_String& RAS_MeshObject::GetName()
 
 const STR_String& RAS_MeshObject::GetTextureName(unsigned int matid)
 { 
-	if (m_materials.size() > 0 && (matid < m_materials.size()))
-	{
-		BucketMaterialSet::iterator it = m_materials.begin();
-		for (unsigned int i = 1; i < m_materials.size(); i++)
-		{
-			it++;
-		}
-
-		return (*it)->GetPolyMaterial()->GetTextureName();
-	}
-
-	return s_emptyname;
+	RAS_MaterialBucket* bucket = GetMaterialBucket(matid);
+	
+	return bucket?bucket->GetPolyMaterial()->GetTextureName():s_emptyname;
 }
 
 
@@ -232,7 +201,6 @@ void RAS_MeshObject::SchedulePoly(const KX_VertexIndex& idx,
 								  RAS_IPolyMaterial* mat)
 {
 	//int indexpos = m_IndexArrayCount[idx.m_vtxarray];
-	int indexidx = 0;
 	//m_IndexArrayCount[idx.m_vtxarray] = indexpos + 3;
 	
 	KX_ArrayOptimizer* ao = GetArrayOptimizer(mat);
@@ -345,7 +313,7 @@ int RAS_MeshObject::GetVertexArrayLength(RAS_IPolyMaterial* mat)
 	const vecVertexArray & vertexvec = GetVertexCache(mat);
 	vector<KX_VertexArray*>::const_iterator it = vertexvec.begin();
 	
-	for (; it != vertexvec.end(); it++)
+	for (; it != vertexvec.end(); ++it)
 	{
 		len += (*it)->size();
 	}
@@ -369,7 +337,7 @@ RAS_TexVert* RAS_MeshObject::GetVertex(unsigned int matid,
 			const vecVertexArray & vertexvec = GetVertexCache(mat);
 			vector<KX_VertexArray*>::const_iterator it = vertexvec.begin();
 			
-			for (unsigned int len = 0; it != vertexvec.end(); it++)
+			for (unsigned int len = 0; it != vertexvec.end(); ++it)
 			{
 				if (index < len + (*it)->size())
 				{
@@ -428,12 +396,11 @@ void RAS_MeshObject::Bucketize(double* oglmatrix,
 	ms.m_bObjectColor = useObjectColor;
 	ms.m_RGBAcolor = rgbavec;
 	
-	int i=0;
-	for (BucketMaterialSet::iterator it = m_materials.begin();it!=m_materials.end();it++)
+	for (BucketMaterialSet::iterator it = m_materials.begin();it!=m_materials.end();++it)
 	{
 		RAS_MaterialBucket* bucket = *it;
 		bucket->SchedulePolygons(0);
-		KX_ArrayOptimizer* oa = GetArrayOptimizer(bucket->GetPolyMaterial());
+//		KX_ArrayOptimizer* oa = GetArrayOptimizer(bucket->GetPolyMaterial());
 		bucket->SetMeshSlot(ms);
 	}
 
@@ -454,11 +421,11 @@ void RAS_MeshObject::MarkVisible(double* oglmatrix,
 	ms.m_RGBAcolor = rgbavec;
 	ms.m_bObjectColor= useObjectColor;
 
-	for (BucketMaterialSet::iterator it = m_materials.begin();it!=m_materials.end();it++)
+	for (BucketMaterialSet::iterator it = m_materials.begin();it!=m_materials.end();++it)
 	{
 		RAS_MaterialBucket* bucket = *it;
 		bucket->SchedulePolygons(0);
-		KX_ArrayOptimizer* oa = GetArrayOptimizer(bucket->GetPolyMaterial());
+//		KX_ArrayOptimizer* oa = GetArrayOptimizer(bucket->GetPolyMaterial());
 		bucket->MarkVisibleMeshSlot(ms,visible,useObjectColor,rgbavec);
 	}
 }
@@ -473,10 +440,10 @@ void RAS_MeshObject::RemoveFromBuckets(double* oglmatrix,
 	ms.m_mesh = this;
 	ms.m_OpenGLMatrix = oglmatrix;
 
-	for (BucketMaterialSet::iterator it = m_materials.begin();it!=m_materials.end();it++)
+	for (BucketMaterialSet::iterator it = m_materials.begin();it!=m_materials.end();++it)
 	{
 		RAS_MaterialBucket* bucket = *it;
-		RAS_IPolyMaterial* polymat = bucket->GetPolyMaterial();
+//		RAS_IPolyMaterial* polymat = bucket->GetPolyMaterial();
 		bucket->SchedulePolygons(0);
 		//KX_ArrayOptimizer* oa = GetArrayOptimizer(polymat);
 		bucket->RemoveMeshSlot(ms);
@@ -502,8 +469,9 @@ RAS_TexVert* RAS_MeshObject::GetVertex(short array,
 
 void RAS_MeshObject::ClearArrayData()
 {
-	for (int i=0;i<m_matVertexArrayS.size();i++)
-	{	KX_ArrayOptimizer** ao = m_matVertexArrayS.at(i);
+	for (unsigned int i=0;i<m_matVertexArrayS.size();i++)
+	{
+		KX_ArrayOptimizer** ao = m_matVertexArrayS.at(i);
 		if (ao)
 			delete *ao;
 	}
@@ -517,7 +485,7 @@ void RAS_MeshObject::ClearArrayData()
 int	RAS_MeshObject::FindVertexArray(int numverts,
 									RAS_IPolyMaterial* polymat)
 {
-	bool found=false;
+//	bool found=false;
 	int array=-1;
 	
 	KX_ArrayOptimizer* ao = GetArrayOptimizer(polymat);
@@ -577,26 +545,24 @@ void RAS_MeshObject::RelativeTransform(const MT_Vector3& vec)
 void RAS_MeshObject::UpdateMaterialList()
 {
 	m_materials.clear();
-	int numpolys = m_Polygons.size();
+	unsigned int numpolys = m_Polygons.size();
 	// for all polygons, find out which material they use, and add it to the set of materials
-	for (int i=0;i<numpolys;i++)
+	for (unsigned int i=0;i<numpolys;i++)
 	{
 		m_materials.insert(m_Polygons[i]->GetMaterial());
 	}
-	int nummaterials = m_materials.size();
-
 }
 
 
 
 void RAS_MeshObject::SchedulePolygons(int drawingmode,RAS_IRasterizer* rasty)
 {
-	int nummaterials = m_materials.size();
+//	int nummaterials = m_materials.size();
 	int i;
 
 	if (m_bModified)
 	{
-		for (BucketMaterialSet::iterator it = m_materials.begin();it!=m_materials.end();it++)
+		for (BucketMaterialSet::iterator it = m_materials.begin();it!=m_materials.end();++it)
 		{
 			RAS_MaterialBucket* bucket = *it;
 

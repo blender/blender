@@ -41,11 +41,11 @@ KX_Camera::KX_Camera(void* sgReplicationInfo,
 					 SG_Callbacks callbacks,
 					 const RAS_CameraData& camdata)
 					:
-					KX_GameObject(sgReplicationInfo,callbacks)
+					KX_GameObject(sgReplicationInfo,callbacks),
+					m_camdata(camdata)
 {
 	// setting a name would be nice...
 	m_name = "cam";
-	m_camdata = camdata;
 	SetProperty("camera",new CIntValue(1));
 }
 

@@ -42,33 +42,37 @@
 
 class SM_FhObject;
 
-
-// Properties of dynamic objects
+/** Properties of dynamic objects */
 struct SM_ShapeProps {
-	MT_Scalar  m_mass;                  // Total mass
-	MT_Scalar  m_radius;                // Bound sphere size
-	MT_Vector3 m_inertia;               // Inertia, should be a tensor some time 
-	MT_Scalar  m_lin_drag;              // Linear drag (air, water) 0 = concrete, 1 = vacuum 
-	MT_Scalar  m_ang_drag;              // Angular drag
-	MT_Scalar  m_friction_scaling[3];   // Scaling for anisotropic friction. Component in range [0, 1]   
-	bool       m_do_anisotropic;        // Should I do anisotropic friction? 
-	bool       m_do_fh;                 // Should the object have a linear Fh spring?
-	bool       m_do_rot_fh;             // Should the object have an angular Fh spring?
+	MT_Scalar  m_mass;                  ///< Total mass
+	MT_Scalar  m_radius;                ///< Bound sphere size
+	MT_Vector3 m_inertia;               ///< Inertia, should be a tensor some time 
+	MT_Scalar  m_lin_drag;              ///< Linear drag (air, water) 0 = concrete, 1 = vacuum 
+	MT_Scalar  m_ang_drag;              ///< Angular drag
+	MT_Scalar  m_friction_scaling[3];   ///< Scaling for anisotropic friction. Component in range [0, 1]   
+	bool       m_do_anisotropic;        ///< Should I do anisotropic friction? 
+	bool       m_do_fh;                 ///< Should the object have a linear Fh spring?
+	bool       m_do_rot_fh;             ///< Should the object have an angular Fh spring?
 };
 
 
-// Properties of collidable objects (non-ghost objects)
+/** Properties of collidable objects (non-ghost objects) */
 struct SM_MaterialProps {
-	MT_Scalar m_restitution;           // restitution of energie after a collision 0 = inelastic, 1 = elastic
-	MT_Scalar m_friction;              // Coulomb friction (= ratio between the normal en maximum friction force)
-	MT_Scalar m_fh_spring;             // Spring constant (both linear and angular)
-	MT_Scalar m_fh_damping;            // Damping factor (linear and angular) in range [0, 1]
-	MT_Scalar m_fh_distance;           // The range above the surface where Fh is active.    
-	bool      m_fh_normal;             // Should the object slide off slopes?
+	MT_Scalar m_restitution;           ///< restitution of energy after a collision 0 = inelastic, 1 = elastic
+	MT_Scalar m_friction;              ///< Coulomb friction (= ratio between the normal en maximum friction force)
+	MT_Scalar m_fh_spring;             ///< Spring constant (both linear and angular)
+	MT_Scalar m_fh_damping;            ///< Damping factor (linear and angular) in range [0, 1]
+	MT_Scalar m_fh_distance;           ///< The range above the surface where Fh is active.    
+	bool      m_fh_normal;             ///< Should the object slide off slopes?
 };
 
 
-
+/**
+ * SM_Object is an internal part of the Sumo physics engine.
+ *
+ * It encapsulates an object in the physics scene, and is responsible
+ * for calculating the collision response of objects.
+ */
 class SM_Object : public SM_MotionState {
 public:
 	SM_Object() ;
@@ -140,13 +144,10 @@ public:
 	 * this external velocity. This velocity is not subject to 
 	 * friction or damping.
 	 */
-
-
 	void setExternalLinearVelocity(const MT_Vector3& lin_vel) ;
 	void addExternalLinearVelocity(const MT_Vector3& lin_vel) ;
 
 	/** Override the physics velocity */
-
 	void addLinearVelocity(const MT_Vector3& lin_vel);
 	void setLinearVelocity(const MT_Vector3& lin_vel);
 
@@ -156,24 +157,20 @@ public:
 	 * your responsibility to clear this velocity. This velocity
 	 * is not subject to friction or damping.
 	 */
-
 	void setExternalAngularVelocity(const MT_Vector3& ang_vel) ;
 	void addExternalAngularVelocity(const MT_Vector3& ang_vel);
 
 	/** Override the physics angular velocity */
-
 	void addAngularVelocity(const MT_Vector3& ang_vel);
 	void setAngularVelocity(const MT_Vector3& ang_vel);
 
 	/** Clear the external velocities */
-
 	void clearCombinedVelocities();
 
 	/** 
 	 * Tell the physics system to combine the external velocity
 	 * with the physics velocity. 
 	 */
-
 	void resolveCombinedVelocities(
 		const MT_Vector3 & lin_vel,
 		const MT_Vector3 & ang_vel
@@ -193,10 +190,21 @@ public:
 	
 	void applyTorque(const MT_Vector3& torque) ;
 	
+	/**
+	 * Apply an impulse to the object.  The impulse will be split into
+	 * angular and linear components.
+	 * @param attach point to apply the impulse to (in world coordinates)
+	 */
 	void applyImpulse(const MT_Point3& attach, const MT_Vector3& impulse) ;
 	
+	/**
+	 * Applies an impulse through the centre of this object. (ie the angular
+	 * velocity will not change.
+	 */
 	void applyCenterImpulse(const MT_Vector3& impulse);
-	
+	/**
+	 * Applies an angular impulse.
+	 */
 	void applyAngularImpulse(const MT_Vector3& impulse);
 	
 	MT_Point3 getWorldCoord(const MT_Point3& local) const;

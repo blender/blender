@@ -100,7 +100,9 @@ inline  bool operator <( const RAS_MatArrayIndex& rhs,const RAS_MatArrayIndex& l
 	return ( rhs.Less(lhs));
 }
 
-
+/**
+ * RAS_MeshObject stores mesh data for the renderer.
+ */
 class RAS_MeshObject
 {
 	
@@ -176,8 +178,8 @@ public:
 
 	void				ClearArrayData();
 	
-	set<RAS_MaterialBucket*>::iterator GetFirstMaterial();
-	set<RAS_MaterialBucket*>::iterator GetLastMaterial();
+	BucketMaterialSet::iterator GetFirstMaterial();
+	BucketMaterialSet::iterator GetLastMaterial();
 	
 	virtual RAS_TexVert*	GetVertex(
 								short array,

@@ -59,29 +59,32 @@ class RAS_MeshObject;
 class KX_IPhysicsController;
 class SM_Object;
 
+/**
+ * KX_GameObject is the main class for dynamic objects.
+ */
 class KX_GameObject : public SCA_IObject
 {
 	Py_Header;
 
-	bool					m_bDyna;
-	KX_ClientObjectInfo*			m_pClient_info;
-	STR_String				m_name;
-	STR_String				m_text;
+	bool								m_bDyna;
+	KX_ClientObjectInfo*				m_pClient_info;
+	STR_String							m_name;
+	STR_String							m_text;
 	std::vector<RAS_MeshObject*>		m_meshes;
 	
-	bool					m_bSuspendDynamics;
-	bool					m_bUseObjectColor;
-	MT_Vector4				m_objectColor;
+	bool								m_bSuspendDynamics;
+	bool								m_bUseObjectColor;
+	MT_Vector4							m_objectColor;
 
 	// Is this object set to be visible? Only useful for the
 	// visibility subsystem right now.
-	bool					m_bVisible; 
+	bool       m_bVisible; 
 
-	KX_IPhysicsController*			m_pPhysicsController1;
-	SG_Node*				m_pSGNode;
+	KX_IPhysicsController*				m_pPhysicsController1;
+	SG_Node*							m_pSGNode;
 
 protected:
-	MT_CmMatrix4x4				m_OpenGL_4x4Matrix;
+	MT_CmMatrix4x4						m_OpenGL_4x4Matrix;
 	
 public:
 	virtual void	/* This function should be virtual - derived classed override it */

@@ -179,8 +179,8 @@ CValue::CValue()
 : 
 #endif //NO_EXP_PYTHON_EMBEDDING
 	
-m_refcount(1),
-m_pNamedPropertyArray(NULL)
+m_pNamedPropertyArray(NULL),
+m_refcount(1)
 /*
 pre: false
 effect: constucts a CValue

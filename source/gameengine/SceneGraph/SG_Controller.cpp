@@ -1,4 +1,5 @@
 /**
+ * @file SG_Controller.cpp
  * $Id$
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

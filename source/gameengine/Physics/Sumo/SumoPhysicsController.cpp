@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * @file $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

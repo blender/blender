@@ -226,7 +226,7 @@ CListValue::~CListValue()
 {
 
 	if (m_bReleaseContents) {
-		for (int i=0;i<m_pValueArray.size();i++) {
+		for (unsigned int i=0;i<m_pValueArray.size();i++) {
 			m_pValueArray[i]->Release();
 		}
 	}
@@ -261,7 +261,7 @@ CValue* CListValue::GetReplica() {
 	replica->m_bReleaseContents=true; // for copy, complete array is copied for now...
 	// copy all values
 	int numelements = m_pValueArray.size();
-	int i=0;
+	unsigned int i=0;
 	replica->m_pValueArray.resize(numelements);
 	for (i=0;i<m_pValueArray.size();i++)
 		replica->m_pValueArray[i] = m_pValueArray[i]->GetReplica();
@@ -297,7 +297,7 @@ void CListValue::Remove(int i)
 
 void CListValue::ReleaseAndRemoveAll()
 {
-	for (int i=0;i<m_pValueArray.size();i++)
+	for (unsigned int i=0;i<m_pValueArray.size();i++)
 		m_pValueArray[i]->Release();
 	m_pValueArray.clear();//.Clear();
 }

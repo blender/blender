@@ -61,7 +61,7 @@ class PHY_IPhysicsController
 
 		// kinematic methods
 		virtual void		RelativeTranslate(float dlocX,float dlocY,float dlocZ,bool local)=0;
-		virtual void		RelativeRotate(const float drot[9],bool local)=0;
+		virtual void		RelativeRotate(const float drot[12],bool local)=0;
 		virtual	void		getOrientation(float &quatImag0,float &quatImag1,float &quatImag2,float &quatReal)=0;
 		virtual	void		setOrientation(float quatImag0,float quatImag1,float quatImag2,float quatReal)=0;
 		virtual	void		setPosition(float posX,float posY,float posZ)=0;

@@ -46,7 +46,6 @@ class RAS_IPolyMaterial;
 /**
  * 3D rendering device context interface. 
  */
-
 class RAS_IRasterizer
 {
 
@@ -54,9 +53,14 @@ public:
 
 	RAS_IRasterizer(RAS_ICanvas* canv){};
 	virtual ~RAS_IRasterizer(){};
+	/**
+	 */
 	enum	{
 			RAS_RENDER_3DPOLYGON_TEXT = 16384
 	};
+	/**
+	 * Drawing types
+	 */
 	enum	{
 			KX_BOUNDINGBOX = 1,
 			KX_WIREFRAME,
@@ -65,47 +69,101 @@ public:
 			KX_TEXTURED 
 	};
 
+	/**
+	 * Valid SetDepthMask parameters
+	 */
 	enum	{
 			KX_DEPTHMASK_ENABLED =1,
 			KX_DEPTHMASK_DISABLED
 	};
 
+	/**
+	 */
 	enum    { 	 
 			KX_TWOSIDE = 512, 	 
 			KX_LINES = 32768 	 
 	};
 
+	/**
+	 * Stereo mode types
+	 */
 	enum	{
 			RAS_STEREO_NOSTEREO = 1,
 			RAS_STEREO_QUADBUFFERED,
 			RAS_STEREO_ABOVEBELOW,
 			RAS_STEREO_INTERLACED
 	};
+	/**
+	 * Render pass identifiers for stereo.
+	 */
 	enum	{
 			RAS_STEREO_LEFTEYE = 1,
 			RAS_STEREO_RIGHTEYE
 	};
 
+	/**
+	 * SetDepthMask enables or disables writing a fragment's depth value
+	 * to the Z buffer.
+	 */
 	virtual void	SetDepthMask(int depthmask)=0;
+	/**
+	 * SetMaterial sets the material settings for subsequent primitives
+	 * to be rendered with.
+	 * The material will be cached.
+	 */
 	virtual void	SetMaterial(const RAS_IPolyMaterial& mat)=0;
+	/**
+	 * Init initialises the renderer.
+	 */
 	virtual bool	Init()=0;
+	/**
+	 * Exit cleans up the renderer.
+	 */
 	virtual void	Exit()=0;
+	/**
+	 * BeginFrame is called at the start of each frame.
+	 */
 	virtual bool	BeginFrame(int drawingmode, double time)=0;
+	/**
+	 * ClearDepthBuffer clears the depth buffer.
+	 */
 	virtual void	ClearDepthBuffer()=0;
+	/**
+	 * ClearCachingInfo clears the currently cached material.
+	 */
 	virtual void	ClearCachingInfo(void)=0;
+	/**
+	 * EndFrame is called at the end of each frame.
+	 */
 	virtual void	EndFrame()=0;
 	/**
-	 * SetRenderArea sets the render area in the 2d canvas
+	 * SetRenderArea sets the render area from the 2d canvas
 	 */
 	virtual void	SetRenderArea()=0;
 
 	// Stereo Functions
+	/**
+	 * SetStereoMode will set the stereo mode
+	 */
 	virtual void	SetStereoMode(const int stereomode)=0;
+	/**
+	 * Stereo can be used to query if the rasterizer is in stereo mode.
+	 * @return true if stereo mode is enabled.
+	 */
 	virtual bool	Stereo()=0;
+	/**
+	 * Sets which eye buffer subsequent primitives will be rendered to.
+	 */
 	virtual void	SetEye(const int eye)=0;
+	/**
+	 */
 	virtual void	SetEyeSeparation(const float eyeseparation)=0;
+	/**
+	 */
 	virtual void	SetFocalLength(const float focallength)=0;
-
+	/**
+	 * SwapBuffers swaps the back buffer with the front buffer.
+	 */
 	virtual void	SwapBuffers()=0;
 	
 	// Drawing Functions
@@ -129,7 +187,7 @@ public:
 							bool useObjectColor,
 							const MT_Vector4& rgbacolor)=0;
 	/**
-	 * IndexPrimitivesEx: See IndexPrimitives.
+	 * @copydoc IndexPrimitives
 	 * IndexPrimitivesEx will renormalize faces if @param vertexarrays[i].getFlag() & TV_CALCFACENORMAL
 	 */
 	virtual void	IndexPrimitives_Ex( const vecVertexArray& vertexarrays,
@@ -159,13 +217,21 @@ public:
 	 * @param mat The projection matrix.
 	 */
 	virtual void	SetProjectionMatrix(MT_Matrix4x4 & mat)=0;
+	/**
+	 * Sets the modelview matrix.
+	 */
 	virtual void	SetViewMatrix(const MT_Matrix4x4 & mat,
 						const MT_Vector3& campos,
 						const MT_Point3 &camLoc,
 						const MT_Quaternion &camOrientQuat)=0;
+	/**
+	 */
 	virtual const	MT_Point3& GetCameraPosition()=0;
+	/**
+	 */
 	virtual void	LoadViewMatrix()=0;
-	
+	/**
+	 */
 	virtual void	SetFog(float start,
 						   float dist,
 						   float r,
@@ -177,9 +243,14 @@ public:
 								float b)=0;
 
 	virtual void	SetFogStart(float start)=0;
+	/**
+	 */
 	virtual void	SetFogEnd(float end)=0;
-
+	/**
+	 */
 	virtual void	DisplayFog()=0;
+	/**
+	 */
 	virtual void	DisableFog()=0;
 
 	virtual void	SetBackColor(float red,
@@ -191,18 +262,34 @@ public:
 	 * @param drawingmode = KX_BOUNDINGBOX, KX_WIREFRAME, KX_SOLID, KX_SHADED or KX_TEXTURED.
 	 */
 	virtual void	SetDrawingMode(int drawingmode)=0;
-	virtual int		GetDrawingMode()=0;
-
+	/**
+	 * @return the current drawing mode: KX_BOUNDINGBOX, KX_WIREFRAME, KX_SOLID, KX_SHADED or KX_TEXTURED.
+	 */
+	virtual int	GetDrawingMode()=0;
+	/**
+	 */
 	virtual void	EnableTextures(bool enable)=0;
-	
+	/**
+	 * Sets face culling
+	 */	
 	virtual void	SetCullFace(bool enable)=0;
 	/**
 	 * Sets wireframe mode.
 	 */
 	virtual void    SetLines(bool enable)=0;
-
+	/**
+	 */
 	virtual double	GetTime()=0;
-
+	/**
+	 * Generates a projection matrix from the specified frustum.
+	 * @param left the left clipping plane
+	 * @param right the right clipping plane
+	 * @param bottom the bottom clipping plane
+	 * @param top the top clipping plane
+	 * @param frustnear the near clipping plane
+	 * @param frustfar the far clipping plane
+	 * @return a 4x4 matrix representing the projection transform.
+	 */
 	virtual MT_Matrix4x4 GetFrustumMatrix(
 		float left,
 		float right,

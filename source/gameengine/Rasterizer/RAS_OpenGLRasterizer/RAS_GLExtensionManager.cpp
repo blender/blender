@@ -76,7 +76,16 @@
        the GL function entry
 
 */
-#ifdef __APPLE__
+#if defined(BGL_NO_EXTENSIONS)
+static void bglInitEntryPoints (void) {}
+static void bglDeallocEntryPoints (void) {}
+
+static void *bglGetProcAddress(const GLubyte* entry)
+{
+	/* No Extensions! */
+	return NULL;
+}
+#elif defined(__APPLE__)
 /* http://developer.apple.com/qa/qa2001/qa1188.html */
 CFBundleRef gBundleRefOpenGL = NULL;
 
@@ -207,11 +216,11 @@ static void *bglGetProcAddress(const GLubyte* entry)
 
    GL Extension Manager.
 */
-static std::vector<STR_String> extensions;
-/* Bit array of available extensions */
+	/* Bit array of available extensions */
 static unsigned int enabled_extensions[(bgl::NUM_EXTENSIONS + 8*sizeof(unsigned int) - 1)/(8*sizeof(unsigned int))];
+static std::vector<STR_String> extensions;
 static int m_debug;
-
+	
 static void LinkExtensions();
 
 static void EnableExtension(bgl::ExtensionName name)
@@ -259,15 +268,12 @@ bool QueryVersion(int major, int minor)
 		int i = gl_version.Find('.');
 		gl_major = gl_version.Left(i).ToInt();
 		gl_minor = gl_version.Mid(i+1, gl_version.FindOneOf(". ", i+1) - i - 1).ToInt();
-		
-		if (m_debug)
+	
+		static bool doQueryVersion = m_debug;
+		if (doQueryVersion)
 		{
-			static bool doQueryVersion = true;
-			if (doQueryVersion)
-			{
-				doQueryVersion = false;
-				std::cout << "GL_VERSION: " << gl_major << "." << gl_minor << " (" << gl_version << ")" << std::endl;
-			}
+			doQueryVersion = false;
+			std::cout << "GL_VERSION: " << gl_major << "." << gl_minor << " (" << gl_version << ")" << std::endl;
 		}
 	}
 	
@@ -317,7 +323,7 @@ Use EnableExtension(_GL_EXT_...) to allow Blender to use the extension.
  ******************************************************************************/
 static void LinkExtensions()
 {
-	static bool doDebugMessages = true;
+	static bool doDebugMessages = m_debug;
 	extensions = STR_String((const char *) glGetString(GL_EXTENSIONS)).Explode(' ');
 
 	doDebugMessages = false;

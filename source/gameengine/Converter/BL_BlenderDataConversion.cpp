@@ -181,7 +181,7 @@ static unsigned int KX_Mcol2uint_new(MCol col)
 	return temp;
 }
 
-RAS_MeshObject* BL_ConvertMesh(Mesh* mesh,Object* blenderobj,RAS_IRenderTools* rendertools,KX_Scene* scene,KX_BlenderSceneConverter *converter)
+RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools* rendertools, KX_Scene* scene, KX_BlenderSceneConverter *converter)
 {
 	RAS_MeshObject *meshobj;
 	bool	skinMesh = false;
@@ -674,9 +674,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 						 KX_BlenderSceneConverter *converter
 						 )
 					
-					{
-					
-					
+{
 	SYS_SystemHandle syshandle = SYS_GetSystem();
 	//int userigidbody = SYS_GetCommandLineInt(syshandle,"norigidbody",0);
 	//bool bRigidBody = (userigidbody == 0);
@@ -759,36 +757,27 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	objprop.m_concave = (blenderobject->boundtype & 4) != 0;
 	
 	switch (physics_engine)
-		{
-			case UseSumo:
-				{
-
+	{
 #ifdef USE_SUMO_SOLID
-					KX_ConvertSumoObject(	gameobj,meshobj,kxscene,shapeprops,	smmaterial,	&objprop);
+		case UseSumo:
+			KX_ConvertSumoObject(gameobj, meshobj, kxscene, shapeprops, smmaterial, &objprop);
+			break;
 #endif
-					break;
-				}
-			case UseODE:
-			{
-
+			
 #ifdef USE_ODE
-				KX_ConvertODEEngineObject(gameobj,meshobj,kxscene,shapeprops,	smmaterial,	&objprop);
+		case UseODE:
+			KX_ConvertODEEngineObject(gameobj, meshobj, kxscene, shapeprops, smmaterial, &objprop);
+			break;
 #endif //USE_ODE
 
-
-				break;
-			}
-			case UseDynamo:
-			{
-				//KX_ConvertDynamoObject(gameobj,meshobj,kxscene,shapeprops,	smmaterial,	&objprop);
-				break;
-			}
-			case UseNone:
-			default:
-	{
+		case UseDynamo:
+			//KX_ConvertDynamoObject(gameobj,meshobj,kxscene,shapeprops,	smmaterial,	&objprop);
+			break;
+			
+		case UseNone:
+		default:
+			break;
 	}
-	
-}
 
 }
 

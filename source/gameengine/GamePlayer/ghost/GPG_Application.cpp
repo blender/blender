@@ -69,6 +69,8 @@ extern "C"
 #include "SCA_IActuator.h"
 #include "RAS_MeshObject.h"
 #include "RAS_OpenGLRasterizer.h"
+#include "RAS_VAOpenGLRasterizer.h"
+#include "RAS_GLExtensionManager.h"
 #include "KX_PythonInit.h"
 #include "KX_PyConstraintBinding.h"
 
@@ -313,78 +315,102 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 {
 	if (!m_engineInitialized)
 	{
+		bgl::InitExtensions(1);
+
 		// get and set the preferences
 		SYS_SystemHandle syshandle = SYS_GetSystem();
-		if (syshandle)
-		{
-			// SYS_WriteCommandLineInt(syshandle, "fixedtime", 0);
-			SYS_WriteCommandLineInt(syshandle, "vertexarrays",1);		
-			//bool properties	= (SYS_GetCommandLineInt(syshandle, "show_properties", 0) != 0);
-			//bool profile = (SYS_GetCommandLineInt(syshandle, "show_profile", 0) != 0);
-			//bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
+		if (!syshandle)
+			return false;
+		
+		// SYS_WriteCommandLineInt(syshandle, "fixedtime", 0);
+		SYS_WriteCommandLineInt(syshandle, "vertexarrays",1);		
+		//bool properties	= (SYS_GetCommandLineInt(syshandle, "show_properties", 0) != 0);
+		//bool profile = (SYS_GetCommandLineInt(syshandle, "show_profile", 0) != 0);
+		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
+		bool useVertexArrays = SYS_GetCommandLineInt(syshandle,"vertexarrays",1) != 0;
+		// create the canvas, rasterizer and rendertools
+		m_canvas = new GPG_Canvas(window);
+		if (!m_canvas)
+			return false;
+				
+		m_canvas->Init();				
+		m_rendertools = new GPC_RenderTools();
+		if (!m_rendertools)
+			goto initFailed;
+					
+		if (useVertexArrays && bgl::QueryVersion(1, 1))
+			m_rasterizer = new RAS_VAOpenGLRasterizer(m_canvas);
+		else
+			m_rasterizer = new RAS_OpenGLRasterizer(m_canvas);
+		m_rasterizer->SetStereoMode(stereoMode);
+		if (!m_rasterizer)
+			goto initFailed;
+						
+		// create the inputdevices
+		m_keyboard = new GPG_KeyboardDevice();
+		if (!m_keyboard)
+			goto initFailed;
 			
-			// create the canvas, rasterizer and rendertools
-			m_canvas = new GPG_Canvas(window);
-			if (m_canvas)
-			{
-				m_canvas->Init();				
-				m_rendertools = new GPC_RenderTools();
-				if (m_rendertools)
-				{
-					m_rasterizer = new RAS_OpenGLRasterizer(m_canvas);
-					m_rasterizer->SetStereoMode(stereoMode);
-					if (m_rasterizer)
-					{
-						// create the inputdevices
-						m_keyboard = new GPG_KeyboardDevice();
-						if (m_keyboard)
-						{
-							m_mouse = new GPC_MouseDevice();
-							if (m_mouse)
-							{
-								// create a networkdevice
-								m_networkdevice = new NG_LoopBackNetworkDeviceInterface();
-								if (m_networkdevice)
-								{
-									// get an audiodevice
-									SND_DeviceManager::Subscribe();
-									m_audiodevice = SND_DeviceManager::Instance();
-									if (m_audiodevice)
-									{
-										m_audiodevice->UseCD();
-										// create a ketsjisystem (only needed for timing and stuff)
-										m_kxsystem = new GPG_System (m_system);
-										if (m_kxsystem)
-										{
-											// create the ketsjiengine
-											m_ketsjiengine = new KX_KetsjiEngine(m_kxsystem);
-											
-											// set the devices
-											m_ketsjiengine->SetKeyboardDevice(m_keyboard);
-											m_ketsjiengine->SetMouseDevice(m_mouse);
-											m_ketsjiengine->SetNetworkDevice(m_networkdevice);
-											m_ketsjiengine->SetCanvas(m_canvas);
-											m_ketsjiengine->SetRenderTools(m_rendertools);
-											m_ketsjiengine->SetRasterizer(m_rasterizer);
-											m_ketsjiengine->SetNetworkDevice(m_networkdevice);
-											m_ketsjiengine->SetAudioDevice(m_audiodevice);
+		m_mouse = new GPC_MouseDevice();
+		if (!m_mouse)
+			goto initFailed;
+			
+		// create a networkdevice
+		m_networkdevice = new NG_LoopBackNetworkDeviceInterface();
+		if (!m_networkdevice)
+			goto initFailed;
+			
+		// get an audiodevice
+		SND_DeviceManager::Subscribe();
+		m_audiodevice = SND_DeviceManager::Instance();
+		if (!m_audiodevice)
+			goto initFailed;
+		m_audiodevice->UseCD();
+		
+		// create a ketsjisystem (only needed for timing and stuff)
+		m_kxsystem = new GPG_System (m_system);
+		if (!m_kxsystem)
+			goto initFailed;
+		
+		// create the ketsjiengine
+		m_ketsjiengine = new KX_KetsjiEngine(m_kxsystem);
+		
+		// set the devices
+		m_ketsjiengine->SetKeyboardDevice(m_keyboard);
+		m_ketsjiengine->SetMouseDevice(m_mouse);
+		m_ketsjiengine->SetNetworkDevice(m_networkdevice);
+		m_ketsjiengine->SetCanvas(m_canvas);
+		m_ketsjiengine->SetRenderTools(m_rendertools);
+		m_ketsjiengine->SetRasterizer(m_rasterizer);
+		m_ketsjiengine->SetNetworkDevice(m_networkdevice);
+		m_ketsjiengine->SetAudioDevice(m_audiodevice);
+		m_ketsjiengine->SetTimingDisplay(frameRate, false, false);
 
-											m_ketsjiengine->SetUseFixedTime(false);
-											//m_ketsjiengine->SetTimingDisplay(frameRate, profile, properties);
+		m_ketsjiengine->SetUseFixedTime(false);
+		//m_ketsjiengine->SetTimingDisplay(frameRate, profile, properties);
 
-											m_engineInitialized = true;
-										}
-									}
-								}
-							}
-						} 
-					}
-				}
-			}
-		}
+		m_engineInitialized = true;
 	}
 
 	return m_engineInitialized;
+initFailed:
+	delete m_kxsystem;
+	delete m_audiodevice;
+	delete m_networkdevice;
+	delete m_mouse;
+	delete m_keyboard;
+	delete m_rasterizer;
+	delete m_rendertools;
+	delete m_canvas;
+	m_canvas = NULL;
+	m_rendertools = NULL;
+	m_rasterizer = NULL;
+	m_keyboard = NULL;
+	m_mouse = NULL;
+	m_networkdevice = NULL;
+	m_audiodevice = NULL;
+	m_kxsystem = NULL;
+	return false;
 }
 
 
@@ -396,14 +422,14 @@ bool GPG_Application::startEngine(void)
 	}
 	
 	// Temporary hack to disable banner display for NaN approved content.
-	
+	/*
 	m_canvas->SetBannerDisplayEnabled(true);	
-/*	Camera* cam;
+	Camera* cam;
 	cam = (Camera*)G.scene->camera->data;
 	if (cam) {
-		if (((cam->flag) & 48)==48) {
-			m_canvas->SetBannerDisplayEnabled(false);
-		}
+	if (((cam->flag) & 48)==48) {
+	m_canvas->SetBannerDisplayEnabled(false);
+	}
 	}
 	else {
 	showError(CString("Camera data invalid."));

@@ -59,14 +59,14 @@ void BL_SkinMeshObject::AddPolygon(RAS_Polygon* poly)
 #ifdef __NLA_OLDDEFORM
 int BL_SkinMeshObject::FindOrAddDeform(int vtxarray, struct MVert *mv, struct MDeformVert *dv, RAS_IPolyMaterial* mat)
 #else
-int BL_SkinMeshObject::FindOrAddDeform(int vtxarray, int mv, struct MDeformVert *dv, RAS_IPolyMaterial* mat)
+int BL_SkinMeshObject::FindOrAddDeform(unsigned int vtxarray, unsigned int mv, struct MDeformVert *dv, RAS_IPolyMaterial* mat)
 #endif
 {
 	BL_SkinArrayOptimizer* ao = (BL_SkinArrayOptimizer*)GetArrayOptimizer(mat);//*(m_matVertexArrays[*mat]);
 	int numvert = ao->m_MvertArrayCache1[vtxarray]->size();
 	
 	/* Check to see if this has already been pushed */
-	for (size_t i=0; i<ao->m_MvertArrayCache1[vtxarray]->size(); i++){
+	for (unsigned int i=0; i<ao->m_MvertArrayCache1[vtxarray]->size(); i++){
 		if (mv == (*ao->m_MvertArrayCache1[vtxarray])[i])
 			return i;
 	}
@@ -147,7 +147,7 @@ void BL_SkinMeshObject::Bucketize(double* oglmatrix,void* clientobj,bool useObje
 
 		RAS_MaterialBucket* materialbucket = (*it);
 
-		KX_ArrayOptimizer* oa = GetArrayOptimizer(materialbucket->GetPolyMaterial());
+//		KX_ArrayOptimizer* oa = GetArrayOptimizer(materialbucket->GetPolyMaterial());
 		materialbucket->SetMeshSlot(ms);
 	}
 

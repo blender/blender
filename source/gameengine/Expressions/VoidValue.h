@@ -44,8 +44,8 @@ class CVoidValue : public CPropValue
 
 public:
 	/// Construction/destruction
-	CVoidValue()																: m_pAnything(NULL),	m_bDeleteOnDestruct(false) { }
-	CVoidValue(void * voidptr, bool bDeleteOnDestruct, AllocationTYPE alloctype)	: m_pAnything(voidptr), m_bDeleteOnDestruct(bDeleteOnDestruct) { if (alloctype == STACKVALUE) CValue::DisableRefCount(); }
+	CVoidValue()																: m_bDeleteOnDestruct(false), m_pAnything(NULL)	 { }
+	CVoidValue(void * voidptr, bool bDeleteOnDestruct, AllocationTYPE alloctype)	: m_bDeleteOnDestruct(bDeleteOnDestruct), m_pAnything(voidptr)  { if (alloctype == STACKVALUE) CValue::DisableRefCount(); }
 	virtual				~CVoidValue();											// Destruct void value, delete memory if we're owning it
 
 	/// Value -> String or number

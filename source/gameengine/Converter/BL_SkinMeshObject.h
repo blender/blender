@@ -136,7 +136,7 @@ public:
 	}
 	
 	void AddPolygon(RAS_Polygon* poly);
-	int FindOrAddDeform(int vtxarray, int mv, struct MDeformVert *dv, RAS_IPolyMaterial* mat);
+	int FindOrAddDeform(unsigned int vtxarray, unsigned int mv, struct MDeformVert *dv, RAS_IPolyMaterial* mat);
 	int FindOrAddVertex(int vtxarray,const MT_Point3& xyz,
 		const MT_Point2& uv,
 		const unsigned int rgbacolor,

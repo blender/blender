@@ -37,6 +37,9 @@
 
 #include "SG_IObject.h"
 
+/**
+ * A scenegraph controller
+ */
 class SG_Controller 
 {
 public:

@@ -26,7 +26,7 @@ class COperator1Expr : public CExpression
 
 public:
 	virtual bool MergeExpression(CExpression* otherexpr);
-	void virtual BroadcastOperators(VALUE_OPERATOR op);
+	virtual void BroadcastOperators(VALUE_OPERATOR op);
 
 	virtual unsigned char GetExpressionID() { return COPERATOR1EXPRESSIONID;};
 	CExpression* CheckLink(std::vector<CBrokenLinkInfo*>& brokenlinks);
