@@ -1000,10 +1000,10 @@ static struct PyMethodDef BGL_methods[] = {
 
 PyObject *M_BGL_Init(void) 
 {
-  buffer_Type.ob_type = &PyType_Type;
-
   PyObject *mod= Py_InitModule("Blender.BGL", BGL_methods);
   PyObject *dict= PyModule_GetDict(mod);
+
+  buffer_Type.ob_type = &PyType_Type;
 
 #define EXPP_ADDCONST(x) PyDict_SetItemString(dict, #x, PyInt_FromLong(x))
 
