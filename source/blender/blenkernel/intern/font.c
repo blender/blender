@@ -141,6 +141,12 @@ static VFontData *vfont_get_data(VFont *vfont)
 			} else {
 				pf= newPackedFile(vfont->name);
 			}
+			if(!pf) {
+				printf("Font file doesn't exist: %s\n", vfont->name);
+
+				strcpy(vfont->name, "<builtin>");
+				pf= get_builtin_packedfile();
+			}
 		}
 		
 		if (pf) {
