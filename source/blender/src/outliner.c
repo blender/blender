@@ -781,6 +781,7 @@ void outliner_toggle_visible(struct ScrArea *sa)
 	else 
 		outliner_set_flag(soops, &soops->tree, TSE_CLOSED, 1);
 
+	BIF_undo_push("Outliner toggle visible");
 	scrarea_queue_redraw(sa);
 }
 
@@ -793,6 +794,7 @@ void outliner_toggle_selected(struct ScrArea *sa)
 	else 
 		outliner_set_flag(soops, &soops->tree, TSE_SELECTED, 1);
 	
+	BIF_undo_push("Outliner toggle selected");
 	scrarea_queue_redraw(sa);
 }
 
@@ -830,6 +832,7 @@ void outliner_one_level(struct ScrArea *sa, int add)
 		if(level) outliner_openclose_level(soops, &soops->tree, 1, level-1, 0);
 	}
 	
+	BIF_undo_push("Outliner show/hide one level");
 	scrarea_queue_redraw(sa);
 }
 
@@ -1370,6 +1373,7 @@ void outliner_mouse_event(ScrArea *sa, short event)
 	}
 	
 	if(te) {
+		BIF_undo_push("Outliner click event");
 		allqueue(REDRAWOOPS, 0);
 	}
 
@@ -1457,6 +1461,8 @@ void outliner_show_hierarchy(struct ScrArea *sa)
 	
 	tree_element_show_hierarchy(so, &so->tree);
 	scrarea_queue_redraw(sa);
+	
+	BIF_undo_push("Outliner show hierarchy");
 }
 
 static void do_outliner_select(SpaceOops *soops, ListBase *lb, float y1, float y2, short *selecting)
@@ -1508,7 +1514,8 @@ void outliner_select(struct ScrArea *sa )
 			y1= y2;
 		}
 	}
-	
+	BIF_undo_push("Outliner selection");
+
 }
 
 /* ************ SELECTION OPERATIONS ********* */
@@ -1753,11 +1760,13 @@ void outliner_operation_menu(ScrArea *sa)
 				switch(idlevel) {
 					case ID_MA:
 						outliner_do_libdata_operation(soops, &soops->tree, unlink_material_cb);
+						BIF_undo_push("Unlink material");
 						allqueue(REDRAWBUTSSHADING, 1);
 						break;
 					case ID_TE:
 						outliner_do_libdata_operation(soops, &soops->tree, unlink_texture_cb);
 						allqueue(REDRAWBUTSSHADING, 1);
+						BIF_undo_push("Unlink texture");
 						break;
 					default:
 						error("Not yet...");

@@ -705,7 +705,14 @@ void BIF_undo_menu(void)
 		else if(G.f & G_VERTEXPAINT)
 			;
 		else {
-			if(U.uiflag & USER_GLOBALUNDO) BKE_undo_menu();
+			if(U.uiflag & USER_GLOBALUNDO) {
+				char *menu= BKE_undo_menu_string();
+				if(menu) {
+					short event= pupmenu_col(menu, 20);
+					MEM_freeN(menu);
+					if(event>0) BKE_undo_number(event);
+				}
+			}
 		}
 	}
 }

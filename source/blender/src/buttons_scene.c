@@ -140,6 +140,7 @@ static void load_new_sample(char *str)	/* called from fileselect */
 		}
 	}
 
+	BIF_undo_push("Load new audio file");
 	allqueue(REDRAWBUTSSCENE, 0);
 
 }
@@ -223,6 +224,7 @@ void do_soundbuts(unsigned short event)
 			sound = tempsound;
 			id = &sound->id;
 			G.buts->lockpoin = (bSound*)id;
+			BIF_undo_push("Copy sound");
 			do_soundbuts(B_SOUND_REDRAW);
 		}
 		break;
@@ -551,6 +553,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.xparts=  G.scene->r.yparts= 1;
 		
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
+		BIF_undo_push("Set PAL");
 		allqueue(REDRAWBUTSSCENE, 0);
 		allqueue(REDRAWVIEWCAM, 0);
 		break;
@@ -634,6 +637,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.xparts=  G.scene->r.yparts= 1;
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
+		BIF_undo_push("Set FULL");
 		allqueue(REDRAWBUTSSCENE, 0);
 		allqueue(REDRAWVIEWCAM, 0);
 		break;
@@ -674,6 +678,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.xparts=  G.scene->r.yparts= 1;
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
+		BIF_undo_push("Set PAL 16/9");
 		allqueue(REDRAWVIEWCAM, 0);
 		allqueue(REDRAWBUTSSCENE, 0);
 		break;
@@ -713,6 +718,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.xparts=  G.scene->r.yparts= 1;
 
 		BLI_init_rctf(&G.scene->r.safety, 0.0, 1.0, 0.0, 1.0);
+		BIF_undo_push("Set PC");
 		allqueue(REDRAWVIEWCAM, 0);
 		allqueue(REDRAWBUTSSCENE, 0);
 		break;
@@ -727,6 +733,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.xparts=  G.scene->r.yparts= 1;
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
+		BIF_undo_push("Set Default");
 		allqueue(REDRAWVIEWCAM, 0);
 		allqueue(REDRAWBUTSSCENE, 0);
 		break;
@@ -741,6 +748,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.yparts= 1;
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
+		BIF_undo_push("Set Panorama");
 		allqueue(REDRAWVIEWCAM, 0);
 		allqueue(REDRAWBUTSSCENE, 0);
 		break;
@@ -755,6 +763,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.xparts=  G.scene->r.yparts= 1;
 		
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
+		BIF_undo_push("Set NTSC");
 		allqueue(REDRAWBUTSSCENE, 0);
 		allqueue(REDRAWVIEWCAM, 0);
 		break;
@@ -775,6 +784,7 @@ void do_render_panels(unsigned short event)
 		break;
 	case B_CLEARSET:
 		scene_change_set(G.scene, NULL);
+		BIF_undo_push("Clear set");
 		break;
 	}
 }

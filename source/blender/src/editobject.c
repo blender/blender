@@ -5014,7 +5014,7 @@ void transform(int mode)
 		if(mode=='r') mode= 'R';
 		if(mode=='s') mode= 'C';
 	}
-	/* form duplicate routines */
+	/* from duplicate routines */
 	if(mode=='d') mode= 'g';
 
 	/* this can cause floating exception at dec alpha */
@@ -7535,7 +7535,7 @@ void adduplicate(float *dtrans)
 	clear_id_newpoins();
 	
 	countall();
-	if(dtrans==0) transform('g');
+	if(dtrans==0) transform('d');
 	
 	set_active_base(BASACT);
 	
@@ -8103,6 +8103,7 @@ void mirror_object(short mode)
 	
 	special_aftertrans_update('m', 1, 0, 0);
 
+	BIF_undo_push("Mirror");
 	allqueue(REDRAWVIEW3D, 0);
 	scrarea_queue_headredraw(curarea);
 
@@ -8129,8 +8130,5 @@ void mirrormenu(void)
 
 		if (mode==-1) return; /* return */
 		mirror_edit(mode); /* separating functionality from interface | call*/
-
-		BIF_undo_push("Mirror");
-
 	}
 }

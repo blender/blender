@@ -1400,6 +1400,8 @@ void ipo_toggle_showkey(void) {
 	else G.sipo->showkey= 1;
 	free_ipokey(&G.sipo->ipokey);
 	if(G.sipo->ipo) G.sipo->ipo->showkey= G.sipo->showkey;
+
+	BIF_undo_push("Toggle show key Ipo");
 }
 
 void swap_selectall_editipo()
@@ -1414,8 +1416,6 @@ void swap_selectall_editipo()
 	deselectall_key();
 
 	get_status_editipo();
-	
-
 
 	if(G.sipo->showkey) {
 		ik= G.sipo->ipokey.first;
@@ -1467,6 +1467,7 @@ void swap_selectall_editipo()
 		
 	}
 	
+	BIF_undo_push("Swap select all Ipo");
 	scrarea_queue_winredraw(curarea);
 	
 }
@@ -1554,6 +1555,7 @@ void deselectall_editipo()
 		}
 	}
 	
+	BIF_undo_push("(De)select all Ipo");
 	scrarea_queue_winredraw(curarea);
 }
 
@@ -1673,6 +1675,7 @@ void move_to_frame()
 			}
 		}
 	}
+	BIF_undo_push("Set frame to selected Ipo vertex");
 }
 
 /* *********************************** */
@@ -1743,11 +1746,12 @@ void do_ipo_selectbuttons()
 			else {
 				ei->flag |= IPO_SELECT;
 			}
-
+			
 			update_editipo_flags();
 			scrarea_queue_winredraw(curarea);
 		}
 	}
+	BIF_undo_push("Select Ipo curve");
 }
 
 /* ******************************************* */
@@ -2059,6 +2063,7 @@ void add_vert_ipo()
 	ei->icu->flag= ei->flag;
 	
 	editipo_changed(G.sipo, 1);
+	BIF_undo_push("Add Ipo vertex");
 }
 
 void add_duplicate_editipo()
@@ -2339,6 +2344,7 @@ void join_ipo(int mode)
 		}
 	}
 	deselectall_editipo();
+	BIF_undo_push("Join Ipo");
 }
 
 void ipo_snap_menu(void)
@@ -2434,6 +2440,7 @@ void ipo_snap(short event)
 		}
 	}
 	editipo_changed(G.sipo, 1);
+	BIF_undo_push("Snap Ipo");
 }
 
 
@@ -2965,6 +2972,7 @@ void sethandles_ipo(int code)
 	}
 
 	editipo_changed(G.sipo, 1);
+	BIF_undo_push("Set handles Ipo");
 }
 
 
@@ -3048,6 +3056,7 @@ void set_ipotype()
 			}
 		}
 	}
+	BIF_undo_push("Set ipo type");
 	scrarea_queue_winredraw(curarea);
 }
 
@@ -3112,6 +3121,7 @@ void borderselect_ipo()
 				}
 			}
 		}
+		BIF_undo_push("Border select Ipo");
 		scrarea_queue_winredraw(curarea);
 	}
 }
@@ -3319,6 +3329,7 @@ void paste_editipo()
 			}
 		}
 		editipo_changed(G.sipo, 1);
+		BIF_undo_push("Paste Ipo curves");
 	}
 }
 
@@ -3338,7 +3349,9 @@ void set_exprap_ipo(int mode)
 			}
 		}
 	}
+
 	editipo_changed(G.sipo, 1);
+	BIF_undo_push("Set extrapolation Ipo");
 }
 
 int find_other_handles(EditIpo *eicur, float ctime, BezTriple **beztar)
@@ -3433,6 +3446,7 @@ void set_speed_editipo(float speed)
 	if(didit==0) error("Did not set speed");
 	
 	editipo_changed(G.sipo, 1);
+	BIF_undo_push("Set speed IPO");
 	allqueue(REDRAWNLA, 0);
 	allqueue (REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);

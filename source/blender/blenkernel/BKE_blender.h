@@ -60,11 +60,12 @@ void free_pushpop(void);
 void pushpop_test(void);
 
 /* global undo */
-void BKE_write_undo(char *name);
-void BKE_undo_step(int step);
-void BKE_reset_undo(void);
-void BKE_undo_menu(void);
-void BKE_undo_save_quit(void);
+extern void BKE_write_undo(char *name);
+extern void BKE_undo_step(int step);
+extern void BKE_reset_undo(void);
+extern char *BKE_undo_menu_string(void);
+extern void BKE_undo_number(int nr);
+extern void BKE_undo_save_quit(void);
 
 #ifdef __cplusplus
 }

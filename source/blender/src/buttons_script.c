@@ -183,8 +183,10 @@ void do_scriptbuts(unsigned short event)
 	switch (event) {
 	case B_SSCRIPT_ADD:
 		extend_scriptlink(&G.scene->scriptlink);
+		BIF_undo_push("Add scriptlink");
 		break;
 	case B_SSCRIPT_DEL:
+		BIF_undo_push("Delete scriptlink");
 		delete_scriptlink(&G.scene->scriptlink);
 		break;
 		
@@ -212,9 +214,14 @@ void do_scriptbuts(unsigned short event)
 				script= &(G.scene->world->scriptlink);
 		}
 		
-		if (event==B_SCRIPT_ADD) extend_scriptlink(script);
-		else delete_scriptlink(script);
-		
+		if (event==B_SCRIPT_ADD) {
+			extend_scriptlink(script);
+			BIF_undo_push("Add scriptlink");
+		}
+		else {
+			delete_scriptlink(script);
+			BIF_undo_push("Delete scriptlink");
+		}
 		break;
 	default:
 		break;

@@ -1190,9 +1190,11 @@ void snapmenu()
 	switch (event) {
 		case 1: /*Selection to grid*/
 		    snap_sel_to_grid();
+			BIF_undo_push("Snap selection to grid");
 		    break;
 		case 2: /*Selection to cursor*/
 		    snap_sel_to_curs();
+			BIF_undo_push("Snap selection to cursor");
 		    break;	    
 		case 3: /*Cursor to grid*/
 		    snap_curs_to_grid();
@@ -1202,6 +1204,7 @@ void snapmenu()
 		    break;
 		case 5: /*Selection to center of selection*/
 		    snap_to_center();
+			BIF_undo_push("Snap selection to center");
 		    break;
 	}
 }

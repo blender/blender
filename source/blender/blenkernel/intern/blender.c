@@ -58,6 +58,8 @@
 #include "DNA_curve_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_dynstr.h"
+
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -543,7 +545,10 @@ void BKE_write_undo(char *name)
 void BKE_undo_step(int step)
 {
 	
-	if(step==1) {
+	if(step==0) {
+		read_undosave(curundo);
+	}
+	else if(step==1) {
 		/* curundo should never be NULL, after restart or load file it should call undo_save */
 		if(curundo==NULL || curundo->prev==NULL) error("No undo available");
 		else {
@@ -579,10 +584,36 @@ void BKE_reset_undo(void)
 	curundo= NULL;
 }
 
-
-void BKE_undo_menu(void)
+/* based on index nr it does a restore */
+void BKE_undo_number(int nr)
 {
+	UndoElem *uel;
+	int a=1;
 	
+	for(uel= undobase.first; uel; uel= uel->next, a++) {
+		if(a==nr) break;
+	}
+	curundo= uel;
+	BKE_undo_step(0);
+}
+
+char *BKE_undo_menu_string(void)
+{
+	UndoElem *uel;
+	DynStr *ds= BLI_dynstr_new();
+	char *menu;
+	
+	BLI_dynstr_append(ds, "Global Undo History %t");
+	
+	for(uel= undobase.first; uel; uel= uel->next) {
+		BLI_dynstr_append(ds, "|");
+		BLI_dynstr_append(ds, uel->name);
+	}
+	
+	menu= BLI_dynstr_get_cstring(ds);
+	BLI_dynstr_free(ds);
+
+	return menu;
 }
 
 	/* saves quit.blend */

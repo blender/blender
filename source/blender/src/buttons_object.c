@@ -192,6 +192,7 @@ static void del_constraint_func (void *arg1v, void *arg2v)
 
 	BLI_freelinkN(lb, con);
 
+	BIF_undo_push("Delete constraint");
 	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWIPO, 0); 
 
@@ -818,6 +819,7 @@ void do_constraintbuts(unsigned short event)
 			add_constraint_to_client(con);
 
 			test_scene_constraints();
+			BIF_undo_push("Add constraint");
 			allqueue (REDRAWVIEW3D, 0);
 			allqueue (REDRAWBUTSOBJECT, 0);
 		}
@@ -830,6 +832,7 @@ void do_constraintbuts(unsigned short event)
 			add_constraint_to_client(con);
 
 			test_scene_constraints();
+			BIF_undo_push("Add constraint");
 			allqueue (REDRAWVIEW3D, 0);
 			allqueue (REDRAWBUTSOBJECT, 0);
 		}
@@ -842,6 +845,7 @@ void do_constraintbuts(unsigned short event)
 			add_constraint_to_client(con);
 
 			test_scene_constraints();
+			BIF_undo_push("Add constraint");
 			allqueue (REDRAWVIEW3D, 0);
 			allqueue (REDRAWBUTSOBJECT, 0);
 		}
@@ -854,6 +858,7 @@ void do_constraintbuts(unsigned short event)
 			add_constraint_to_client(con);
 
 			test_scene_constraints();
+			BIF_undo_push("Add constraint");
 			allqueue (REDRAWVIEW3D, 0);
 			allqueue (REDRAWBUTSOBJECT, 0);
 		}
@@ -866,6 +871,7 @@ void do_constraintbuts(unsigned short event)
 			add_constraint_to_client(con);
 
 			test_scene_constraints();
+			BIF_undo_push("Add constraint");
 			allqueue (REDRAWVIEW3D, 0);
 			allqueue (REDRAWBUTSOBJECT, 0);
 		}
@@ -878,6 +884,7 @@ void do_constraintbuts(unsigned short event)
 			add_constraint_to_client(con);
 
 			test_scene_constraints();
+			BIF_undo_push("Add constraint");
 			allqueue (REDRAWVIEW3D, 0);
 			allqueue (REDRAWBUTSOBJECT, 0);
 		}
@@ -890,6 +897,7 @@ void do_constraintbuts(unsigned short event)
 			add_constraint_to_client(con);
 
 			test_scene_constraints();
+			BIF_undo_push("Add constraint");
 			allqueue (REDRAWVIEW3D, 0);
 			allqueue (REDRAWBUTSOBJECT, 0);
 		}
@@ -913,6 +921,7 @@ void do_constraintbuts(unsigned short event)
 		add_constraint_to_client(con);
 			
 		test_scene_constraints();
+		BIF_undo_push("Add constraint");
 		allqueue(REDRAWVIEW3D,0);
 		allqueue(REDRAWBUTSOBJECT,0);
 	}
@@ -950,7 +959,7 @@ static void object_panel_constraint(void)
 	
 	if (conlist) {
 		 
-		uiDefBlockBut(block, add_constraintmenu, NULL, "Add Constraint|>> ", 0, 190, 130, 20, "Add a new constraint");
+		uiDefBlockBut(block, add_constraintmenu, NULL, "Add Constraint", 0, 190, 130, 20, "Add a new constraint");
 		
 		/* print active object or bone */
 		{
@@ -1114,6 +1123,7 @@ void do_object_panels(unsigned short event)
 				MEM_freeN(hook);
 			}
 			freedisplist(&ob->disp);
+			BIF_undo_push("Delete hook");
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWBUTSOBJECT, 0);
 		}
@@ -1130,6 +1140,8 @@ void do_object_panels(unsigned short event)
 				/* apparently this call goes from right to left... */
 				Mat4MulSerie(hook->parentinv, hook->parent->imat, ob->obmat, NULL, 
 							NULL, NULL, NULL, NULL, NULL);
+				BIF_undo_push("Clear hook");
+				allqueue(REDRAWVIEW3D, 0);
 			}
 		}
 		break;
@@ -1268,6 +1280,7 @@ void do_effects_panels(unsigned short event)
 			else
 				copy_act_effect(ob);
 		}
+		BIF_undo_push("New effect");
 		allqueue(REDRAWBUTSOBJECT, 0);
 		break;
 	case B_DELEFFECT:
@@ -1282,6 +1295,7 @@ void do_effects_panels(unsigned short event)
 			}
 			eff= effn;
 		}
+		BIF_undo_push("Delete effect");
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSOBJECT, 0);
 		break;
@@ -1469,14 +1483,14 @@ void object_panel_effects(Object *ob)
 	}
 	
 	if(eff) {
-		uiDefButS(block, MENU, B_CHANGEEFFECT, "Build %x0|Particles %x1|Wave %x2", 895,187,107,27, &eff->buttype, 0, 0, 0, 0, "Start building the effect");
+		uiDefButS(block, MENU, B_CHANGEEFFECT, "Build %x0|Particles %x1|Wave %x2", 895,187,107,27, &eff->buttype, 0, 0, 0, 0, "Set effect type");
 		
 		if(eff->type==EFF_BUILD) {
 			BuildEff *bld;
 			
 			bld= (BuildEff *)eff;
 			
-			uiDefButF(block, NUM, 0, "Len:",			649,138,95,21, &bld->len, 1.0, 9000.0, 100, 0, "Specify the total time the building requires");
+			uiDefButF(block, NUM, 0, "Len:",			649,138,95,21, &bld->len, 1.0, 9000.0, 100, 0, "Specify the total time the build effect requires");
 			uiDefButF(block, NUM, 0, "Sfra:",			746,138,94,22, &bld->sfra, 1.0, 9000.0, 100, 0, "Specify the startframe of the effect");
 		}
 		else if(eff->type==EFF_WAVE) {
@@ -1484,9 +1498,9 @@ void object_panel_effects(Object *ob)
 			
 			wav= (WaveEff *)eff;
 			uiBlockBeginAlign(block);
-			uiDefButS(block, TOG|BIT|1, B_CALCEFFECT, "X",		782,135,54,23, &wav->flag, 0, 0, 0, 0, "Enable X axis");
-			uiDefButS(block, TOG|BIT|2, B_CALCEFFECT, "Y",		840,135,47,23, &wav->flag, 0, 0, 0, 0, "Enable Y axis");
-			uiDefButS(block, TOG|BIT|3, B_CALCEFFECT, "Cycl",	890,135,111,23, &wav->flag, 0, 0, 0, 0, "Enable cyclic wave efefct");
+			uiDefButS(block, TOG|BIT|1, B_CALCEFFECT, "X",		782,135,54,23, &wav->flag, 0, 0, 0, 0, "Enable X axis motion");
+			uiDefButS(block, TOG|BIT|2, B_CALCEFFECT, "Y",		840,135,47,23, &wav->flag, 0, 0, 0, 0, "Enable Y axis motion");
+			uiDefButS(block, TOG|BIT|3, B_CALCEFFECT, "Cycl",	890,135,111,23, &wav->flag, 0, 0, 0, 0, "Enable cyclic wave effect");
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_CALCEFFECT, "Sta x:",		550,135,113,24, &wav->startx, -100.0, 100.0, 100, 0, "Starting position for the X axis");
 			uiDefButF(block, NUM, B_CALCEFFECT, "Sta y:",		665,135,104,24, &wav->starty, -100.0, 100.0, 100, 0, "Starting position for the Y axis");

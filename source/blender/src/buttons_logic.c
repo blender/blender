@@ -124,6 +124,7 @@ static void del_property(void *selpropv, void *data2_unused)
 		a++;
 		prop= prop->next;
 	}
+	BIF_undo_push("Delete property");
 	allqueue(REDRAWBUTSLOGIC, 0);
 	
 }
@@ -251,6 +252,7 @@ static void sca_move_sensor(void *datav, void *data2_unused)
 					BLI_remlink(&base->object->sensors, sens);
 					BLI_insertlink(&base->object->sensors, sens->next, sens);
 				}
+				BIF_undo_push("Move sensor");
 				allqueue(REDRAWBUTSLOGIC, 0);
 				break;
 			}
@@ -289,6 +291,7 @@ static void sca_move_controller(void *datav, void *data2_unused)
 					BLI_remlink(&base->object->controllers, cont);
 					BLI_insertlink(&base->object->controllers, cont->next, cont);
 				}
+				BIF_undo_push("Move controller");
 				allqueue(REDRAWBUTSLOGIC, 0);
 				break;
 			}
@@ -327,6 +330,7 @@ static void sca_move_actuator(void *datav, void *data2_unused)
 					BLI_remlink(&base->object->actuators, act);
 					BLI_insertlink(&base->object->actuators, act->next, act);
 				}
+				BIF_undo_push("Move actuator");
 				allqueue(REDRAWBUTSLOGIC, 0);
 				break;
 			}
@@ -379,6 +383,7 @@ void do_logic_buts(unsigned short event)
 		prop= new_property(PROP_FLOAT);
 		make_unique_prop_names(prop->name);
 		BLI_addtail(&ob->prop, prop);
+		BIF_undo_push("Add property");
 		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 	
@@ -409,6 +414,7 @@ void do_logic_buts(unsigned short event)
 			base= base->next;
 		}
 		
+		BIF_undo_push("Add sensor");
 		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 
@@ -443,6 +449,7 @@ void do_logic_buts(unsigned short event)
 			}
 			base= base->next;
 		}
+		BIF_undo_push("Delete sensor");
 		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 	
@@ -458,6 +465,7 @@ void do_logic_buts(unsigned short event)
 			}
 			base= base->next;
 		}
+		BIF_undo_push("Add controller");
 		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 
@@ -494,6 +502,7 @@ void do_logic_buts(unsigned short event)
 			}
 			base= base->next;
 		}
+		BIF_undo_push("Delete controller");
 		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 	
@@ -509,6 +518,7 @@ void do_logic_buts(unsigned short event)
 			}
 			base= base->next;
 		}
+		BIF_undo_push("Add actuator");
 		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 
@@ -544,6 +554,7 @@ void do_logic_buts(unsigned short event)
 			}
 			base= base->next;
 		}
+		BIF_undo_push("Delete actuator");
 		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 	

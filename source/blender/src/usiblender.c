@@ -138,17 +138,19 @@ void BIF_read_file(char *name)
 		   calls readfile, calls toolbox, throws one more,
 		   on failure calls the stream, and that is stubbed.... */
 		BKE_read_file(name, NULL);
+
+			
+		mainwindow_set_filename_to_title(G.main->name);
+		countall();
+		sound_initialize_sounds();
+
+		winqueue_break= 1;	/* leave queues everywhere */
+
+		undo_editmode_clear();
+		BKE_reset_undo();
+		BKE_write_undo("original");	/* save current state */
 	}
-
-	mainwindow_set_filename_to_title(G.main->name);
-	countall();
-	sound_initialize_sounds();
-
-	winqueue_break= 1;	/* leave queues everywhere */
-
-	undo_editmode_clear();
-	BKE_reset_undo();
-	BKE_write_undo("original");	/* save current state */
+	else BIF_undo_push("Import file");
 }
 
 int BIF_read_homefile(void)

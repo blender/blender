@@ -680,25 +680,28 @@ static void do_info_file_importmenu(void *arg, int event)
 	}
 
 	/* events >=4 are registered bpython scripts */
-	if (event >= 4) BPY_menu_do_python(PYMENU_IMPORT, event - 4);
-
-	else switch(event) {
-									
-	case 0: /* DXF */
-		activate_fileselect(FILE_BLENDER, "Import DXF", G.sce, BIF_read_file);
-		break;
-	case 1: /* VRML 1.0 */
-		activate_fileselect(FILE_BLENDER, "Import VRML 1.0", G.sce, BIF_read_file);
-		break;
-	case 2: /* VideoScape */
-		activate_fileselect(FILE_BLENDER, "Import VideoScape", G.sce, BIF_read_file);
-		break;
-	case 3: /* STL */
-		activate_fileselect(FILE_BLENDER, "Import STL", G.sce, BIF_read_file);
-		break;
-
+	if (event >= 4) {
+		BPY_menu_do_python(PYMENU_IMPORT, event - 4);
+		BIF_undo_push("Import file");
 	}
+	else {
+		switch(event) {
+									
+		case 0: /* DXF */
+			activate_fileselect(FILE_BLENDER, "Import DXF", G.sce, BIF_read_file);
+			break;
+		case 1: /* VRML 1.0 */
+			activate_fileselect(FILE_BLENDER, "Import VRML 1.0", G.sce, BIF_read_file);
+			break;
+		case 2: /* VideoScape */
+			activate_fileselect(FILE_BLENDER, "Import VideoScape", G.sce, BIF_read_file);
+			break;
+		case 3: /* STL */
+			activate_fileselect(FILE_BLENDER, "Import STL", G.sce, BIF_read_file);
+			break;
 
+		}
+	}
 	allqueue(REDRAWINFO, 0);
 }
 
@@ -851,15 +854,6 @@ static void do_info_filemenu(void *arg, int event)
 	case 6: /* save image */
 		mainqenter(F3KEY, 1);
 		break;
-/*
-	case 20:
-		strcpy(dir, G.sce);
-		activate_fileselect(FILE_SPECIAL, "INSTALL LICENSE KEY", dir, loadKeyboard);
-		break;
-	case 21:
-		SHOW_LICENSE_KEY();
-		break;
-*/
 	case 22: /* save runtime */
 		activate_fileselect(FILE_SPECIAL, "Save Runtime", "", write_runtime_check);
 		break;

@@ -285,7 +285,7 @@ void undo_editmode_menu(void)
 
 	undo_clean_stack();	// removes other objects from it
 	
-	BLI_dynstr_append(ds, "Undo History %t");
+	BLI_dynstr_append(ds, "Editmode Undo History %t");
 	
 	for(uel= undobase.first; uel; uel= uel->next) {
 		BLI_dynstr_append(ds, "|");

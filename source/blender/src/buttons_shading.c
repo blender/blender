@@ -190,6 +190,7 @@ void load_tex_image(char *str)	/* called from fileselect */
 			ima->ok= 1;
 		}
 
+		BIF_undo_push("Load image");
 		allqueue(REDRAWBUTSSHADING, 0);
 
 		BIF_all_preview_changed();
@@ -382,7 +383,8 @@ static void do_colorbandbuts(ColorBand *coba, unsigned short event)
 		coba->cur= coba->tot-1;
 		
 		do_colorbandbuts(coba, B_CALCCBAND);
-		
+		BIF_undo_push("Add colorband");
+
 		break;
 
 	case B_DELCOLORBAND:
@@ -394,6 +396,7 @@ static void do_colorbandbuts(ColorBand *coba, unsigned short event)
 		if(coba->cur) coba->cur--;
 		coba->tot--;
 
+		BIF_undo_push("Delete colorband");
 		allqueue(REDRAWBUTSSHADING, 0);
 		BIF_all_preview_changed();
 		break;
@@ -507,6 +510,7 @@ void do_texbuts(unsigned short event)
 	case B_DEFTEXVAR:
 		if(tex==0) return;
 		default_tex(tex);
+		BIF_undo_push("Default texture vars");
 		allqueue(REDRAWBUTSSHADING, 0);
 		BIF_all_preview_changed();
 		break;
@@ -571,6 +575,7 @@ void do_texbuts(unsigned short event)
 					id_us_plus((ID*) newima);
 					if(id) id->us--;
 				
+					BIF_undo_push("Browse image");
 					allqueue(REDRAWBUTSSHADING, 0);
 					BIF_all_preview_changed();
 				}
@@ -1446,11 +1451,13 @@ void do_radiobuts(unsigned short event)
 	switch(event) {
 	case B_RAD_ADD:
 		add_radio();
+		BIF_undo_push("Add radiosity");
 		allqueue(REDRAWBUTSSHADING, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_RAD_DELETE:
 		delete_radio();
+		BIF_undo_push("Delete radiosity");
 		allqueue(REDRAWBUTSSHADING, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
@@ -1538,10 +1545,12 @@ void do_radiobuts(unsigned short event)
 		break;
 	case B_RAD_ADDMESH:
 		if(phase & RAD_PHASE_FACES) rad_addmesh();
+		BIF_undo_push("Radiosity add mesh");
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_RAD_REPLACE:
 		if(phase & RAD_PHASE_FACES) rad_replacemesh();
+		BIF_undo_push("Radiosity replace mesh");
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	}
@@ -1653,6 +1662,7 @@ void do_worldbuts(unsigned short event)
 			wrld->mtex[ wrld->texact ]= 0;
 			allqueue(REDRAWBUTSSHADING, 0);
 			allqueue(REDRAWOOPS, 0);
+			BIF_undo_push("Unlink world texture");
 			BIF_preview_changed(G.buts);
 		}
 		break;
@@ -1973,6 +1983,7 @@ void do_lampbuts(unsigned short event)
 			if(mtex->tex) mtex->tex->id.us--;
 			MEM_freeN(mtex);
 			la->mtex[ la->texact ]= 0;
+			BIF_undo_push("Unlink world texture");
 			allqueue(REDRAWBUTSSHADING, 0);
 			allqueue(REDRAWOOPS, 0);
 			BIF_preview_changed(G.buts);
@@ -2430,6 +2441,7 @@ void do_matbuts(unsigned short event)
 			if(mtex->tex) mtex->tex->id.us--;
 			MEM_freeN(mtex);
 			ma->mtex[ (int) ma->texact ]= 0;
+			BIF_undo_push("Unlink material texture");
 			allqueue(REDRAWBUTSSHADING, 0);
 			allqueue(REDRAWOOPS, 0);
 			BIF_preview_changed(G.buts);
@@ -2455,6 +2467,7 @@ void do_matbuts(unsigned short event)
 			memcpy(ma->mtex[(int)ma->texact], &mtexcopybuf, sizeof(MTex));
 			
 			id_us_plus((ID *)mtexcopybuf.tex);
+			BIF_undo_push("Paste mapping settings");
 			BIF_preview_changed(G.buts);
 			scrarea_queue_winredraw(curarea);
 		}
@@ -2496,7 +2509,6 @@ void do_matbuts(unsigned short event)
 		}
 		break;
 
-		break;
 	}
 }
 

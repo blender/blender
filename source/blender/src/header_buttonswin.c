@@ -189,6 +189,7 @@ void do_buts_buttons(short event)
 				}
 			}
 			BIF_preview_changed(G.buts);
+			BIF_undo_push("Paste material settings");
 			scrarea_queue_winredraw(curarea);
 		}
 		break;

@@ -379,6 +379,7 @@ static void decimate_apply(void)
 			if (mesh_uses_displist(me)) {
 				makeDispList(ob);
 			}
+			BIF_undo_push("Apply decimation");
 		}
 		else error("Not a decimated Mesh");
 	}
@@ -439,12 +440,14 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 	case B_MATNEW:
 		new_material_to_objectdata((G.scene->basact) ? (G.scene->basact->object) : 0);
 		scrarea_queue_winredraw(curarea);
+		BIF_undo_push("New material");
 		allqueue(REDRAWVIEW3D_Z, 0);
 		allqueue(REDRAWOOPS, 0);
 		break;
 	case B_MATDEL:
 		delete_material_index();
 		scrarea_queue_winredraw(curarea);
+		BIF_undo_push("Delete material index");
 		allqueue(REDRAWVIEW3D_Z, 0);
 		allqueue(REDRAWOOPS, 0);
 		break;
@@ -519,6 +522,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 					}
 					nu= nu->next;
 				}
+				BIF_undo_push("Select material index");
 				allqueue(REDRAWVIEW3D, 0);
 			}
 		}
@@ -583,8 +587,6 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 					nu= nu->next;
 				}
 			}
-			if(event == B_SETSMOOTH) BIF_undo_push("Set Smooth");
-			else BIF_undo_push("Set Solid");
 			makeDispList(G.obedit);
 			allqueue(REDRAWVIEW3D, 0);
 		}
@@ -612,6 +614,9 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 			}
 			allqueue(REDRAWVIEW3D, 0);
 		}
+		if(event == B_SETSMOOTH) BIF_undo_push("Set Smooth");
+		else BIF_undo_push("Set Solid");
+
 		break;
 
 	default:
@@ -831,6 +836,7 @@ static void load_buts_vfont(char *name)
 
 	text_to_curve(OBACT, 0);
 	makeDispList(OBACT);
+	BIF_undo_push("Load vector font");
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 }
@@ -903,6 +909,7 @@ void do_fontbuts(unsigned short event)
 				cu->vfont= vf;
 				text_to_curve(ob, 0);
 				makeDispList(ob);
+				BIF_undo_push("Set vector font");
 				allqueue(REDRAWVIEW3D, 0);
 				allqueue(REDRAWBUTSEDIT, 0);
 			}
