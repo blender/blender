@@ -209,7 +209,7 @@ int imagewrap(Tex *tex, float *texvec, TexResult *texres)
 			}
 		}
 
-		//BRICONTRGB;
+		BRICONTRGB;
 
 		if(texres->talpha) texres->ta= texres->tin= ((float)rect[3])/255.0f;
 		else if(tex->imaflag & TEX_CALCALPHA) {
