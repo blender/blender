@@ -217,9 +217,22 @@ static void renderwin_set_infotext(RenderWin *rw, char *info_text)
 
 static void renderwin_reset_view(RenderWin *rw)
 {
+	int w, h, rectx, recty;
+
 	if (rw->info_text) renderwin_set_infotext(rw, NULL);
 
-	rw->zoom= 1.0;
+	/* now calculate a zoom for when image is larger than window */
+	window_get_size(rw->win, &w, &h);
+		/* at this point the r.rectx/y values are not correct yet */
+	rectx= (G.scene->r.size*G.scene->r.xsch)/100;
+	recty= (G.scene->r.size*G.scene->r.ysch)/100;
+
+	if(rectx>w || recty>h) {
+		if(rectx-w > recty-h) rw->zoom= ((float)w)/((float)rectx);
+		else rw->zoom= ((float)h)/((float)recty);
+	}
+	else rw->zoom= 1.0;
+
 	rw->zoomofs[0]= rw->zoomofs[1]= 0;
 	renderwin_queue_redraw(rw);
 }
@@ -448,7 +461,7 @@ void calc_renderwin_rectangle(int posmask, int renderpos_r[2], int rendersize_r[
 	float ndc_x= 0.0, ndc_y= 0.0;
 
 		/* XXX, we temporarily hack the screen size and position so
-		 * the window is always 30 pixels away from a side, really need
+		 * the window is always 60 pixels away from a side, really need
 		 * a GHOST_GetMaxWindowBounds or so - zr
 		 */
 	winlay_get_screensize(&scr_w, &scr_h);
@@ -459,9 +472,9 @@ void calc_renderwin_rectangle(int posmask, int renderpos_r[2], int rendersize_r[
 		rendersize_r[0]*= G.scene->r.xparts;
 		rendersize_r[1]*= G.scene->r.yparts;
 	}
-
-	rendersize_r[0]= CLAMPIS(rendersize_r[0], 100, scr_w-90);
-	rendersize_r[1]= CLAMPIS(rendersize_r[1], 100, scr_h-90);
+	/* increased size of clipping for OSX, should become an option instead */
+	rendersize_r[0]= CLAMPIS(rendersize_r[0], 100, scr_w-120);
+	rendersize_r[1]= CLAMPIS(rendersize_r[1], 100, scr_h-120);
 
 	for (y=-1; y<=1; y++) {
 		for (x=-1; x<=1; x++) {
@@ -492,6 +505,7 @@ static void renderwin_init_display_cb(void)
 
 		if (!render_win) {
 			open_renderwin(renderpos, rendersize);
+			renderwin_reset_view(render_win); // incl. autozoom for large images
 		} else {
 			int win_x, win_y;
 			int win_w, win_h;
@@ -930,7 +944,7 @@ void BIF_toggle_render_display(void)
 	ScrArea *sa= find_dispimage_v3d();
 	
 	if(R.rectot==NULL);		// do nothing
-	else if (render_win) {
+	else if (render_win && R.displaymode==R_DISPLAYWIN) {
 		if(render_win->active) {
 			mainwindow_raise();
 			mainwindow_make_active();
@@ -942,7 +956,7 @@ void BIF_toggle_render_display(void)
 			render_win->active= 1;
 		}
 	} 
-	else if (sa) {
+	else if (sa && R.displaymode==R_DISPLAYVIEW) {
 		View3D *vd= sa->spacedata.first;
 		vd->flag &= ~V3D_DISPIMAGE;
 		scrarea_queue_winredraw(sa);
