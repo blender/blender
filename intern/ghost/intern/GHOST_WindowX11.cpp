@@ -396,9 +396,16 @@ setOrder(
 	GHOST_TWindowOrder order
 ){
 	if (order == GHOST_kWindowOrderTop) {
+		XWindowAttributes attr;	  
+
 		XRaiseWindow(m_display,m_window);
-	        XSetInputFocus(m_display, m_window, RevertToPointerRoot,
-           		CurrentTime);
+
+		XGetWindowAttributes(m_display, m_window, &attr);
+
+		/* iconized windows give bad match error */
+		if (attr.map_state == IsViewable)
+		  XSetInputFocus(m_display, m_window, RevertToPointerRoot,
+						 CurrentTime);
 		XFlush(m_display);
 	} else if (order == GHOST_kWindowOrderBottom) {
 		XLowerWindow(m_display,m_window);
