@@ -143,6 +143,8 @@
 #include "SYS_System.h"
 
 #include "SG_Node.h"
+#include "SG_BBox.h"
+#include "SG_Tree.h"
 
 // defines USE_ODE to choose physics engine
 #include "KX_ConvertPhysicsObject.h"
@@ -174,10 +176,10 @@ static unsigned int KX_Mcol2uint_new(MCol col)
 	/* color has to be converted without endian sensitivity. So no shifting! */
 	unsigned int temp=0;
 	unsigned char *cp= (unsigned char *)&temp;
-	cp[3]=255;
 	cp[0]= col.r;
 	cp[1]= col.g;
 	cp[2]= col.b;
+	cp[3]= col.a;
 	return temp;
 }
 
@@ -199,17 +201,14 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	
 	meshobj->SetName(mesh->id.name);
 	
-	
 	MFace* mface = static_cast<MFace*>(mesh->mface);
 	TFace* tface = static_cast<TFace*>(mesh->tface);
-	
-	
+	assert(mface);
 	MCol* mmcol = mesh->mcol;
-	
 	
 	meshobj->m_xyz_index_to_vertex_index_mapping.resize(mesh->totvert);
 	
-	for (int f=0;f<mesh->totface;f++,mface++,tface++)
+	for (int f=0;f<mesh->totface;f++,mface++)
 	{
 		
 		bool collider = true;
@@ -264,8 +263,6 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					mesh->mvert[mface->v4].no[2]/32767.0
 					);
 			}
-	
-			
 	
 			if((!mface->flag & ME_SMOOTH))
 			{
@@ -439,6 +436,8 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				poly->SetCollider(collider);
 			}
 		}
+		if (tface) 
+			tface++;
 	}
 	meshobj->UpdateMaterialList();
 	
@@ -623,7 +622,7 @@ void my_tex_space_mesh(Mesh *me)
 }
 
 void my_get_local_bounds(Object *ob, float *centre, float *size)
-						{
+{
 	BoundBox *bb= NULL;
 	/* uses boundbox, function used by Ketsji */
 	
@@ -862,6 +861,8 @@ static KX_GameObject *gameobject_from_blenderobject(
 	{
 		Mesh* mesh = static_cast<Mesh*>(ob->data);
 		RAS_MeshObject* meshobj = converter->FindGameMesh(mesh, ob->lay);
+		float centre[3], extents[3];
+		my_boundbox_mesh((Mesh*) ob->data, centre, extents);
 		
 		if (!meshobj) {
 			meshobj = BL_ConvertMesh(mesh,ob,rendertools,kxscene,converter);
@@ -891,6 +892,11 @@ static KX_GameObject *gameobject_from_blenderobject(
 			BL_MeshDeformer *dcont = new BL_MeshDeformer(ob, (BL_SkinMeshObject*)meshobj);
 			((BL_DeformableGameObject*)gameobj)->m_pDeformer = dcont;
 		}
+		
+		MT_Point3 min = MT_Point3(centre) - MT_Vector3(extents);
+		MT_Point3 max = MT_Point3(centre) + MT_Vector3(extents);
+		SG_BBox bbox = SG_BBox(min, max);
+		gameobj->GetSGNode()->SetBBox(bbox);
 	
 		break;
 	}
@@ -1011,6 +1017,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	
 	CListValue* logicbrick_conversionlist = new CListValue();
 	
+	SG_TreeFactory tf;
+	
 	// Convert actions to actionmap
 	bAction *curAct;
 	for (curAct = (bAction*)maggie->action.first; curAct; curAct=(bAction*)curAct->id.next)
@@ -1101,11 +1109,13 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			if (isInActiveLayer)
 			{
 				objectlist->Add(gameobj->AddRef());
+				tf.Add(gameobj->GetSGNode());
 				
 				gameobj->NodeUpdateGS(0,true);
 				gameobj->Bucketize();
 				
-			}	
+			}
+			
 		}
 			
 		base = base->next;
@@ -1242,4 +1252,9 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		BL_ConvertSensors(blenderobj,gameobj,logicmgr,kxscene,keydev,executePriority,activeLayerBitInfo,isInActiveLayer,canvas,converter);
 	}
 	logicbrick_conversionlist->Release();
+	
+	// Calculate the scene btree -
+	// too slow - commented out.
+	//kxscene->SetNodeTree(tf.MakeTree());
 }
+
