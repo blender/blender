@@ -2261,13 +2261,15 @@ void Mat3ToSize( float mat[][3], float *size)
 {
 	float vec[3];
 
-
 	VecCopyf(vec, mat[0]);
 	size[0]= Normalise(vec);
+	if(vec[0]<0.0) size[0]= -size[0];
 	VecCopyf(vec, mat[1]);
 	size[1]= Normalise(vec);
+	if(vec[1]<0.0) size[1]= -size[1];
 	VecCopyf(vec, mat[2]);
 	size[2]= Normalise(vec);
+	if(vec[2]<0.0) size[2]= -size[2];
 
 }
 

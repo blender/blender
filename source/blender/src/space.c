@@ -1057,6 +1057,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				do_layer_buttons(11); break;
 			case ACCENTGRAVEKEY:
 				do_layer_buttons(-1); break;
+			
+			case SPACEKEY:
+				G.vd->twflag ^= V3D_USE_MANIPULATOR;
+				doredraw= 1;
+				break;
 				
 			case AKEY:
 				if(G.qual & LR_CTRLKEY) apply_object();	// also with shift!

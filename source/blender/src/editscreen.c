@@ -1188,7 +1188,7 @@ void screenmain(void)
 		}
 		else if (event==SPACEKEY) {
 			if((G.obedit && G.obedit->type==OB_FONT && g_activearea->spacetype==SPACE_VIEW3D)||g_activearea->spacetype==SPACE_TEXT||g_activearea->spacetype==SPACE_SCRIPT);
-			else {
+			else if(G.qual==0) {
 				if(val) toolbox_n();
 				towin= 0;
 			}

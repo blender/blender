@@ -229,6 +229,26 @@ static void def_icon(ImBuf *bbuf, GLuint texid, BIFIconID icon, int xidx, int yi
 
 /***/
 
+static void clear_transp_rect_soft(unsigned char *transp, unsigned char *rect, int w, int h, int rowstride)
+{
+	int x,y;
+	
+	for (y=0; y<h; y++) {
+		unsigned char *row= &rect[y*rowstride];
+		for (x=0; x<w; x++) {
+			unsigned char *pxl= &row[x*4];
+			
+			if (*((unsigned int*) pxl)==*((unsigned int*) transp)) {
+				pxl[3]= 0;
+			}
+			else if( abs(pxl[0]-transp[0])<10 && abs(pxl[1]-transp[1])<10 && abs(pxl[2]-transp[2])<10) {
+				pxl[3]= 40;
+			}
+		}
+	}
+}
+
+
 static void clear_transp_rect(unsigned char *transp, unsigned char *rect, int w, int h, int rowstride)
 {
 	int x,y;
@@ -252,7 +272,7 @@ void BIF_resources_init(void)
 	common_icons_arr= MEM_mallocN(sizeof(*common_icons_arr)*BIFNICONIDS, "common_icons");
 
 	/* hack! */
-	for (y=0; y<11; y++) {
+	for (y=0; y<12; y++) {
 		for (x=0; x<21; x++) {
 			int rowstride= bbuf->x*4;
 			unsigned char *start= ((char*) bbuf->rect) + (y*21 + 3)*rowstride + (x*20 + 3)*4;
@@ -262,7 +282,7 @@ void BIF_resources_init(void)
 			transp[1]= start[1];
 			transp[2]= start[2];
 			transp[3]= start[3];
-			clear_transp_rect(transp, start, 20, 21, rowstride);
+			clear_transp_rect_soft(transp, start, 20, 21, rowstride);
 			
 			/* this sets outside of icon to zero alpha */
 			start= ((char*) bbuf->rect) + (y*21)*rowstride + (x*20)*4;
@@ -275,7 +295,7 @@ void BIF_resources_init(void)
 	// texid= init_icon_texture(bbuf);
 
 		/* hack! */
-	for (y=0; y<11; y++) {
+	for (y=0; y<12; y++) {
 		for (x=0; x<21; x++) {
 			if (x==11 && y==6) {
 				def_icon(bbuf, texid, ICON_BEVELBUT_HLT,			x, y, 7, 13, 4, 2);

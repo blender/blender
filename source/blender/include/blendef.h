@@ -217,6 +217,9 @@
 #define B_SEL_VERT		158
 #define B_SEL_EDGE		159
 #define B_SEL_FACE		160
+#define B_MAN_TRANS		161
+#define B_MAN_ROT		162
+#define B_MAN_SCALE		163
 
 /* IPO: 200 */
 #define B_IPOHOME		201

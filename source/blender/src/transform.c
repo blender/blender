@@ -2058,10 +2058,11 @@ int Resize(TransInfo *t, short mval[2])
 			float dy= (float)(t->center2d[1] - mval[1]);
 			ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
 		}
+		
+		/* flip scale, but not for manipulator center handle */
+		if	((t->center2d[0] - mval[0]) * (t->center2d[0] - t->imval[0]) < 0)
+			ratio *= -1.0f;
 	}
-
-	if	((t->center2d[0] - mval[0]) * (t->center2d[0] - t->imval[0]) < 0)
-		ratio *= -1.0f;
 	
 	size[0] = size[1] = size[2] = ratio;
 
@@ -2123,7 +2124,6 @@ int Resize(TransInfo *t, short mval[2])
 					TransDataIpokey *tdi= td->tdi;
 					/* calculate delta size (equal for size and dsize) */
 					
-					// commented out for now
 					vec[0]= (tdi->oldsize[0])*(fsize[0] -1.0f) * td->factor;
 					vec[1]= (tdi->oldsize[1])*(fsize[1] -1.0f) * td->factor;
 					vec[2]= (tdi->oldsize[2])*(fsize[2] -1.0f) * td->factor;
@@ -2134,9 +2134,9 @@ int Resize(TransInfo *t, short mval[2])
 					
 				}
 				else {
-					td->ext->size[0] = td->ext->isize[0] + td->ext->isize[0] * (fsize[0] - 1.0f) * td->factor;
-					td->ext->size[1] = td->ext->isize[1] + td->ext->isize[1] * (fsize[1] - 1.0f) * td->factor;
-					td->ext->size[2] = td->ext->isize[2] + td->ext->isize[2] * (fsize[2] - 1.0f) * td->factor;
+					td->ext->size[0] = td->ext->isize[0] * (fsize[0]) * td->factor;
+					td->ext->size[1] = td->ext->isize[1] * (fsize[1]) * td->factor;
+					td->ext->size[2] = td->ext->isize[2] * (fsize[2]) * td->factor;
 				}
 			}
 		}
@@ -2459,6 +2459,7 @@ int Rotation(TransInfo *t, short mval[2])
 	//printf("Axis %f %f %f\n", axis[0], axis[1], axis[2]);
 	VecRotToMat3(axis, final * td->factor, mat);
 
+	t->val = final;				// used in manipulator
 	Mat3CpyMat3(t->mat, mat);	// used in manipulator
 	
 	applyRotation(t, final, axis);

@@ -124,7 +124,7 @@ typedef struct TransInfo {
 	TransDataExtension *ext;	/* transformed data extension (array)   */
     TransCon    con;            /* transformed constraint               */
     NumInput    num;            /* numerical input                      */
-    float       val;            /* init value for some transformations  */
+    float       val;            /* init value for some transformations (and rotation angle)  */
     float       fac;            /* factor for distance based transform  */
 	
 	float		viewmat[4][4];	/* copy from G.vd, prevents feedback    */
