@@ -283,13 +283,13 @@ static PyObject *Ipo_addCurve(BPy_Ipo *self, PyObject *args)
 	char*s = 0;
 	IpoCurve*icu;
  	Link		* link;
+	struct Object	* object;
 
   if (!PyArg_ParseTuple(args, "s",&s))
     return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected string argument"));
 	
 	/* insertkey demande un pointeur sur l'objet pour lequel on veut ajouter 
 		 une courbe IPO*/
-	struct Object	* object;
 	link = G.main->object.first;
 	while (link)
 		{
