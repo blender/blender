@@ -151,6 +151,19 @@ typedef struct bSensor {
 	int pad;
 } bSensor;
 
+typedef struct bJoystickSensor {
+	char name[32];
+	short type;
+	short pad;
+	int axis;
+	int axisf;
+	int button;
+	int buttonf;
+	int hat;
+	int hatf;
+	int precision;
+} bJoystickSensor;
+
 /* bMouseSensor->type: uses blender event defines */
 
 /* propertysensor->type */
@@ -186,7 +199,7 @@ typedef struct bSensor {
 #define SENS_RANDOM     8
 #define SENS_RAY        9
 #define SENS_MESSAGE   10
-
+#define SENS_JOYSTICK  11
 /* sensor->flag */
 #define SENS_SHOW		1
 #define SENS_DEL		2
@@ -196,7 +209,7 @@ typedef struct bSensor {
 /* sensor->pulse */
 #define SENS_PULSE_CONT 	0
 #define SENS_PULSE_REPEAT	1
-#define SENS_PULSE_ONCE 	2
+//#define SENS_PULSE_ONCE 	2
 #define SENS_NEG_PULSE_MODE 4
 
 /* sensor->suppress */
@@ -223,6 +236,20 @@ typedef struct bSensor {
 #define BL_SENS_MOUSE_WHEEL_DOWN     6
 #define BL_SENS_MOUSE_MOVEMENT       8
 #define BL_SENS_MOUSE_MOUSEOVER      16
+
+#define SENS_JOY_BUTTON		0
+#define SENS_JOY_BUTTON_PRESSED	0
+#define SENS_JOY_BUTTON_RELEASED	1
+
+#define SENS_JOY_AXIS			1
+#define SENS_JOY_X_AXIS		0
+#define SENS_JOY_Y_AXIS		1
+#define SENS_JOY_NEG_X_AXIS     	2
+#define SENS_JOY_NEG_Y_AXIS     	3
+#define SENS_JOY_PRECISION		4
+
+#define SENS_JOY_HAT			2
+#define SENS_JOY_HAT_DIR		0
 
 #endif
 

@@ -83,7 +83,7 @@ class RAS_MaterialBucket;
 class RAS_IPolyMaterial;
 class RAS_IRasterizer;
 class RAS_IRenderTools;
-
+class SCA_JoystickManager;
 /**
  * The KX_Scene holds all data for an independent scene. It relates
  * KX_Objects to the specific objects in the modules.

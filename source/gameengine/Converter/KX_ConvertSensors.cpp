@@ -65,7 +65,7 @@ probably misplaced */
 #include "KX_NearSensor.h"
 #include "KX_RadarSensor.h"
 #include "KX_MouseFocusSensor.h"
-
+#include "SCA_JoystickSensor.h"
 #include "KX_NetworkMessageSensor.h"
 
 #include "SCA_PropertySensor.h"
@@ -548,7 +548,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					// this sumoObject is not deleted by a gameobj, so delete it ourself
 					// later (memleaks)!
 					MT_Scalar smallmargin = 0.0;
-					MT_Scalar largemargin = 0.1;
+					MT_Scalar largemargin = 0.0;
 					
 					bool bFindMaterial = false;
 					gamesensor = new KX_RadarSensor(
@@ -609,6 +609,62 @@ void BL_ConvertSensors(struct Object* blenderobject,
 						gamesensor = new SCA_RandomSensor(eventmgr, gameobj, randomSeed);
 					}
 				}
+				break;
+			}
+		case SENS_JOYSTICK:
+			{
+				int joysticktype = SCA_JoystickSensor::KX_JOYSENSORMODE_NODEF;
+				
+				bJoystickSensor* bjoy = (bJoystickSensor*) sens->data;
+				
+				SCA_JoystickManager *eventmgr 
+					= (SCA_JoystickManager*) logicmgr->FindEventManager(SCA_EventManager::JOY_EVENTMGR);
+				if (eventmgr) 
+				{
+					int axis	=0;
+					int axisf	=0;
+					int button	=0;
+					int buttonf =0; 
+					int hat		=0; 
+					int hatf	=0;
+					int prec	=0;
+					
+					switch(bjoy->type)
+					{
+					case SENS_JOY_AXIS:
+						axis	= bjoy->axis;
+						axisf	= bjoy->axisf;
+						prec	= bjoy->precision;
+						joysticktype  = SCA_JoystickSensor::KX_JOYSENSORMODE_AXIS;
+						break;
+					case SENS_JOY_BUTTON:
+						button	= bjoy->button;
+						buttonf	= bjoy->buttonf;
+						joysticktype  = SCA_JoystickSensor::KX_JOYSENSORMODE_BUTTON;
+						break;
+					case SENS_JOY_HAT:
+						hat		= bjoy->hat;
+						hatf	= bjoy->hatf;
+						joysticktype  = SCA_JoystickSensor::KX_JOYSENSORMODE_HAT;
+						break;
+					default:
+						printf("Error: bad case statement\n");
+						break;
+					}
+					gamesensor = new SCA_JoystickSensor(
+						eventmgr,
+						gameobj,
+						joysticktype,
+						axis,axisf,
+						prec,
+						button,buttonf,
+						hat,hatf);
+				} 
+				else
+				{
+					printf("Error there was a problem finding the event manager\n");
+				}
+
 				break;
 			}
 		default:

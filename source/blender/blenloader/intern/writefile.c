@@ -474,6 +474,9 @@ static void write_sensors(WriteData *wd, ListBase *lb)
 		case SENS_MESSAGE:
 			writestruct(wd, DATA, "bMessageSensor", 1, sens->data);
 			break;
+		case SENS_JOYSTICK:
+			writestruct(wd, DATA, "bJoystickSensor", 1, sens->data);
+			break;
 		default:
 			; /* error: don't know how to write this file */
 		}

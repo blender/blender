@@ -640,6 +640,8 @@ static char *sensor_name(int type)
 		return "Ray";
 	case SENS_MESSAGE:
 		return "Message";
+	case SENS_JOYSTICK:
+		return "Joystick";
 	}
 	return "unknown";
 }
@@ -649,7 +651,7 @@ static char *sensor_pup(void)
 	/* the number needs to match defines in game.h */
 	return "Sensors %t|Always %x0|Keyboard %x3|Mouse %x5|"
 		"Touch %x1|Collision %x6|Near %x2|Radar %x7|"
-		"Property %x4|Random %x8|Ray %x9|Message %x10";
+		"Property %x4|Random %x8|Ray %x9|Message %x10|Joystick %x11";
 }
 
 static char *controller_name(int type)
@@ -928,6 +930,7 @@ static int get_col_sensor(int type)
 	case SENS_RANDOM:		return TH_BUT_NEUTRAL;
 	case SENS_RAY:			return TH_BUT_SETTING1;
 	case SENS_MESSAGE:		return TH_BUT_SETTING2;
+	case SENS_JOYSTICK:		return TH_BUT_NEUTRAL;
 	default:				return TH_BUT_NEUTRAL;
 	}
 }
@@ -980,6 +983,8 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 	bRandomSensor    *randomSensor = NULL;
 	bRaySensor       *raySens      = NULL;
 	bMessageSensor   *mes          = NULL;
+	bJoystickSensor	 *joy		   = NULL;
+
 	short ysize;
 	char *str;
 	
@@ -1297,6 +1302,64 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 				", or empty for all");
 			
 			yco -= ysize;
+			break;
+		}
+		case SENS_JOYSTICK:
+		{
+
+			ysize =  72;
+			
+			glRects(xco, yco-ysize, xco+width, yco);
+			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
+			
+			/* line 1: header */
+			draw_default_sensor_header(sens, block, xco, yco, width);
+
+			joy= sens->data;
+			
+
+			str= "Type %t|Button %x0|Axis %x1|Hat%x2"; 
+			uiDefButS(block, MENU, B_REDR, str, xco+10, yco-44, 0.6 * (width-20), 19,
+				&joy->type, 0, 31, 0, 0,
+				"The type of event this joystick sensor is triggered on.");
+			
+			if(joy->type == SENS_JOY_BUTTON)
+			{
+				uiDefButI(block, NUM, 1, "Number:", xco+10, yco-68, 0.6 * (width-20), 19,
+				&joy->button, 0, 18, 100, 0,
+				"Specify which button to use");
+				
+				str = "Type %t|Pressed %x0|Released %x1"; 
+				uiDefButI(block, MENU, B_REDR, str, xco+10 + 0.6 * (width-20), yco-68, 0.4 * (width-20), 19,
+				&joy->buttonf, 2.0, 31, 0, 0,
+				"Button pressed or released.");
+			}
+			else if(joy->type == SENS_JOY_AXIS)
+			{
+				uiDefButI(block, NUM, 1, "Number:", xco+10, yco-68, 0.6 * (width-20), 19,
+				&joy->axis, 1, 2.0, 100, 0,
+				"Specify which axis to use");
+
+				uiDefButI(block, NUM, 1, "Threshold:", xco+10 + 0.6 * (width-20),yco-44, 0.4 * (width-20), 19,
+				&joy->precision, 0, 32768.0, 100, 0,
+				"Specify the precision of the axis");
+
+				str = "Type %t|Up Axis %x1 |Down Axis %x3|Left Axis %x2|Right Axis %x0"; 
+				uiDefButI(block, MENU, B_REDR, str, xco+10 + 0.6 * (width-20), yco-68, 0.4 * (width-20), 19,
+				&joy->axisf, 2.0, 31, 0, 0,
+				"The direction of the axis");
+			}
+			else
+			{
+				uiDefButI(block, NUM, 1, "Number:", xco+10, yco-68, 0.6 * (width-20), 19,
+				&joy->hat, 1, 2.0, 100, 0,
+				"Specify which hat to use");
+				
+				uiDefButI(block, NUM, 1, "Direction:", xco+10 + 0.6 * (width-20), yco-68, 0.4 * (width-20), 19,
+				&joy->hatf, 0, 12, 100, 0,
+				"Specify hat direction");
+			}
+			yco-= ysize;
 			break;
 		}
 	}

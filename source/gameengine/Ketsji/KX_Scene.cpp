@@ -39,6 +39,8 @@
 #pragma warning (disable : 4786)
 #endif //WIN32
 
+#include "MT_assert.h"
+
 #include "KX_KetsjiEngine.h"
 #include "RAS_IPolygonMaterial.h"
 #include "KX_Scene.h"
@@ -53,6 +55,7 @@
 #include "SCA_MouseManager.h"
 #include "SCA_PropertyEventManager.h"
 #include "KX_Camera.h"
+#include "SCA_JoystickManager.h"
 
 #include "RAS_MeshObject.h"
 #include "RAS_IRasterizer.h"
@@ -135,6 +138,8 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	KX_RayEventManager* raymgr = new KX_RayEventManager(m_logicmgr);
 
 	KX_NetworkEventManager* netmgr = new KX_NetworkEventManager(m_logicmgr, ndi);
+	
+	SCA_JoystickManager *joymgr	= new SCA_JoystickManager(m_logicmgr);
 
 	m_logicmgr->RegisterEventManager(alwaysmgr);
 	m_logicmgr->RegisterEventManager(propmgr);
@@ -144,9 +149,10 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_logicmgr->RegisterEventManager(rndmgr);
 	m_logicmgr->RegisterEventManager(raymgr);
 	m_logicmgr->RegisterEventManager(netmgr);
+	m_logicmgr->RegisterEventManager(joymgr);
 
 	m_soundScene = new SND_Scene(adi);
-	assert (m_networkDeviceInterface != NULL);
+	MT_assert (m_networkDeviceInterface != NULL);
 	m_networkScene = new NG_NetworkScene(m_networkDeviceInterface);
 	
 	m_rootnode = NULL;
@@ -187,7 +193,7 @@ KX_Scene::~KX_Scene()
 
 	if (m_euthanasyobjects)
 		m_euthanasyobjects->Release();
-	
+
 	if (m_logicmgr)
 		delete m_logicmgr;
 
@@ -204,7 +210,6 @@ KX_Scene::~KX_Scene()
 	{
 		delete m_bucketmanager;
 	}
-	
 	Py_DECREF(m_attrlist);
 }
 

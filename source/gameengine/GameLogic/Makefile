@@ -42,7 +42,8 @@ CPPFLAGS += -I../Expressions
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
+CPPFLAGS += -I$(NAN_SDL)
 
 CPPFLAGS += -I../../kernel/gen_system
 
-
+CCSRCS += Joystick/SCA_Joystick.cpp Joystick/SCA_JoystickEvents.cpp

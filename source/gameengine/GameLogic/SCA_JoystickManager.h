@@ -1,6 +1,4 @@
 /**
- * $Id$
- *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -29,45 +27,30 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-#ifndef __KX_EVENTMANAGER
-#define __KX_EVENTMANAGER
 
+#ifndef __JOYSTICKMANAGER_H_
+#define __JOYSTICKMANAGER_H_
+
+#include "SCA_EventManager.h"
+#include "Joystick/SCA_Joystick.h"
 #include <vector>
-#include <algorithm>
 
-class SCA_EventManager
+using namespace std;
+class SCA_JoystickManager : public SCA_EventManager
 {
-protected:
-	std::vector <class SCA_ISensor*>				m_sensors;
-
-public:
-	enum EVENT_MANAGER_TYPE {
-		KEYBOARD_EVENTMGR = 0,
-		MOUSE_EVENTMGR,
-		ALWAYS_EVENTMGR, 
-		TOUCH_EVENTMGR, 
-		PROPERTY_EVENTMGR,
-		TIME_EVENTMGR,
-		RANDOM_EVENTMGR,
-		RAY_EVENTMGR,
-		RADAR_EVENTMGR,
-		NETWORK_EVENTMGR,
-		JOY_EVENTMGR
-	};
-
-	SCA_EventManager(EVENT_MANAGER_TYPE mgrtype);
-	virtual ~SCA_EventManager();
 	
-	virtual void	RemoveSensor(class SCA_ISensor* sensor);
-	virtual void	NextFrame(double curtime, double fixedtime);
-	virtual void	NextFrame();
-	virtual void	EndFrame();
-	virtual void	RegisterSensor(class SCA_ISensor* sensor)=0;
-	int		GetType();
+	class SCA_LogicManager* m_logicmgr;
+	/**
+	 * SDL Joystick Class Instance
+	 */
+	SCA_Joystick Joystick;
+public:
+	SCA_JoystickManager(class SCA_LogicManager* logicmgr);
+	virtual ~SCA_JoystickManager();
+	virtual void NextFrame(double curtime,double deltatime);
+	virtual void	RegisterSensor(SCA_ISensor* sensor);
+	SCA_Joystick GetJoystickDevice(void);
 
-protected:
-	EVENT_MANAGER_TYPE		m_mgrtype;
 };
 
 #endif
-

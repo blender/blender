@@ -172,6 +172,9 @@ void init_sensor(bSensor *sens)
 	case SENS_MESSAGE:
 		sens->data= MEM_callocN(sizeof(bMessageSensor), "messagesens");
 		break;
+	case SENS_JOYSTICK:
+		sens->data= MEM_callocN(sizeof(bJoystickSensor), "joysticksens");
+		break;
 	default:
 		; /* this is very severe... I cannot make any memory for this        */
 		/* logic brick...                                                    */

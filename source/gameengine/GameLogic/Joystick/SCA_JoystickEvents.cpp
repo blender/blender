@@ -1,6 +1,4 @@
 /**
- * $Id$
- *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -25,49 +23,51 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): snailrose.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-#ifndef __KX_EVENTMANAGER
-#define __KX_EVENTMANAGER
+#include <SDL.h>
+ 
+#include "SCA_Joystick.h"
+#include "SCA_JoystickPrivate.h"
 
-#include <vector>
-#include <algorithm>
-
-class SCA_EventManager
+void SCA_Joystick::OnAxisMotion(void)
 {
-protected:
-	std::vector <class SCA_ISensor*>				m_sensors;
+	pFillAxes();
+	m_axisnum	= m_private->m_event.jaxis.axis;
+	m_axisvalue = m_private->m_event.jaxis.value;
+	m_istrig = 1;
+}
 
-public:
-	enum EVENT_MANAGER_TYPE {
-		KEYBOARD_EVENTMGR = 0,
-		MOUSE_EVENTMGR,
-		ALWAYS_EVENTMGR, 
-		TOUCH_EVENTMGR, 
-		PROPERTY_EVENTMGR,
-		TIME_EVENTMGR,
-		RANDOM_EVENTMGR,
-		RAY_EVENTMGR,
-		RADAR_EVENTMGR,
-		NETWORK_EVENTMGR,
-		JOY_EVENTMGR
-	};
 
-	SCA_EventManager(EVENT_MANAGER_TYPE mgrtype);
-	virtual ~SCA_EventManager();
-	
-	virtual void	RemoveSensor(class SCA_ISensor* sensor);
-	virtual void	NextFrame(double curtime, double fixedtime);
-	virtual void	NextFrame();
-	virtual void	EndFrame();
-	virtual void	RegisterSensor(class SCA_ISensor* sensor)=0;
-	int		GetType();
+void SCA_Joystick::OnHatMotion(void)
+{
+	m_hatdir = m_private->m_event.jhat.value;
+	m_hatnum = m_private->m_event.jhat.hat;
+	m_istrig = 1;
+}
 
-protected:
-	EVENT_MANAGER_TYPE		m_mgrtype;
-};
 
-#endif
+void SCA_Joystick::OnButtonUp(void)
+{
+	m_buttonnum = -2;
+}
+
+
+void SCA_Joystick::OnButtonDown(void)
+{
+	m_buttonmax = GetNumberOfButtons();
+	if(m_private->m_event.jbutton.button >= 1 || m_private->m_event.jbutton.button <= m_buttonmax)
+	{
+		m_istrig = 1;
+		m_buttonnum = m_private->m_event.jbutton.button;
+	}
+}
+
+
+void SCA_Joystick::OnNothing(void)
+{
+	m_istrig = 0;
+}
 
