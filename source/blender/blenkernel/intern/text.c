@@ -1886,12 +1886,10 @@ void txt_delete_char (Text *text)
 	if (!text) return;
 	if (!text->curl) return;
 
-	if (txt_has_sel(text)) {
-		txt_delete_sel(text);
-		return;
+	if (txt_has_sel(text)) { /* deleting a selection */
+	  txt_delete_sel(text);
 	}
-	
-	if (text->curc== text->curl->len) { /* Appending two lines */
+	else if (text->curc== text->curl->len) { /* Appending two lines */
 		if (text->curl->next) {
 			txt_combine_lines(text, text->curl, text->curl->next);
 			txt_pop_sel(text);
@@ -1921,31 +1919,30 @@ void txt_backspace_char (Text *text) {
 	if (!text) return;
 	if (!text->curl) return;
 	
-	if (txt_has_sel(text)) {
-		txt_delete_sel(text);
-		return;
+	if (txt_has_sel(text)) { /* deleting a selection */
+	  txt_delete_sel(text);
 	}
-	
-	if (text->curc==0) { /* Appending two lines */
-		if (text->curl->prev) {
-			text->curl= text->curl->prev;
-			text->curc= text->curl->len;
+	else if (text->curc==0) { /* Appending two lines */
+	    if (text->curl->prev) {
+	      text->curl= text->curl->prev;
+	      text->curc= text->curl->len;
 			
-			txt_combine_lines(text, text->curl, text->curl->next);
-			txt_pop_sel(text);
-		}
-	} else { /* Just backspacing a char */
-		int i= text->curc-1;
+	      txt_combine_lines(text, text->curl, text->curl->next);
+	      txt_pop_sel(text);
+	    }
+	} 
+	else { /* Just backspacing a char */
+	  int i= text->curc-1;
 		
-		c= text->curl->line[i];
-		while(i< text->curl->len) {
-			text->curl->line[i]= text->curl->line[i+1];
-			i++;
-		}
-		text->curl->len--;
-		text->curc--;
+	  c= text->curl->line[i];
+	  while(i< text->curl->len) {
+	    text->curl->line[i]= text->curl->line[i+1];
+	    i++;
+	  }
+	  text->curl->len--;
+	  text->curc--;
 		
-		txt_pop_sel(text);
+	  txt_pop_sel(text);
 	}
 
 	txt_make_dirty(text);
