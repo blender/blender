@@ -669,7 +669,7 @@ sstatic void end_test_break_callback()
 #else
 /* all other OS's support signal(SIGVTALRM) */
 
-/* WIN32: this function is called all the time, and should not use cpu or resources */
+/* POSIX: this function is called all the time, and should not use cpu or resources */
 static int test_break()
 {
 	short val;
