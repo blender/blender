@@ -15,6 +15,8 @@ if sys.platform == 'linux2':
     use_openal = 'false'
     use_fmod = 'false'
     use_quicktime = 'false'
+    use_sumo = 'false'
+    use_ode = 'false'
     release_flags = ['-O2']
     debug_flags = ['-O2', '-g']
     extra_flags = ['-pipe', '-fPIC', '-funsigned-char']
@@ -35,6 +37,8 @@ if sys.platform == 'linux2':
     sdl_include = sdl_cdict['CPPPATH'][0]
     link_env.Append (LIBS=sdl_ldict['LIBS'])
     link_env.Append (LIBPATH=sdl_ldict['LIBPATH'])
+    solid_include = '#extern/solid/include'
+    ode_include = '#extern/ode/dist/include/ode'
     # Python variables.
     python_include = sysconfig.get_python_inc ()
     python_libpath = sysconfig.get_python_lib (0, 1) + '/config'
@@ -55,6 +59,8 @@ elif sys.platform == 'darwin':
     use_fmod = 'false'
     use_quicktime = 'true'
     use_precomp = 'true'
+    use_sumo = 'false'
+    use_ode = 'false'
     # TODO: replace darwin-6.8-powerpc with the actual directiory on the
     #       build machine
     darwin_precomp = '#../lib/darwin-6.8-powerpc'
@@ -97,6 +103,8 @@ elif sys.platform == 'cygwin':
     use_openal = 'false'
     use_fmod = 'false'
     use_quicktime = 'false'
+    use_sumo = 'false'
+    use_ode = 'false'
     release_flags = ['-O2']
     debug_flags = ['-O2', '-g']
     extra_flags = ['-pipe', '-mno-cygwin', '-mwindows', '-funsigned-char']
@@ -128,17 +136,19 @@ elif sys.platform == 'cygwin':
 
 elif sys.platform == 'win32':
     use_international = 'true'
-    use_gameengine = 'false'
+    use_gameengine = 'true'
     use_openal = 'true'
     use_fmod = 'false'
     use_quicktime = 'true'
+    use_sumo = 'false'
+    use_ode = 'true'
     release_flags = ['/G6', '/GF']
     debug_flags = []
     extra_flags = ['/EHsc', '/J', '/W3', '/Gd', '/MT']
     cxxflags = []
     defines = ['WIN32', 'NDEBUG', '_CONSOLE', 'FTGL_STATIC_LIBRARY']
-    defines += ['GAME_BLENDER=0', 'INTERNATIONAL', 'WITH_QUICKTIME']
-    defines += ['_LIB', 'WITH_FREETYPE2']
+    defines += ['INTERNATIONAL', 'WITH_QUICKTIME']
+    defines += ['_LIB', 'WITH_FREETYPE2', 'USE_OPENAL']
     warn_flags = []
     platform_libs = ['SDL', 'freetype2ST', 'ftgl_static_ST', 'gnu_gettext',
                      'qtmlClient', 'odelib', 'openal_static', 'soundsystem',
@@ -188,7 +198,11 @@ elif sys.platform == 'win32':
         extra_includes += ['#../lib/windows/openal/include']
     sdl_include = '#../lib/windows/sdl/include'
     sdl_cflags = ''
+    source_files += ['source/icons/winblender.res']
+    link_env.RES(['source/icons/winblender.rc'])
     window_system = 'WIN32'
+    solid_include = '#../lib/windows/solid/include'
+    ode_include = '#extern/ode/dist/include/ode'
     # Python lib name
     python_include = '#../lib/windows/python/include/python2.2'
     python_libpath = '#../lib/windows/python/lib'
@@ -204,6 +218,8 @@ elif string.find (sys.platform, 'irix') != -1:
     use_openal = 'false'
     use_fmod = 'false'
     use_quicktime = 'false'
+    use_sumo = 'false'
+    use_ode = 'false'
     irix_precomp = '#../lib/irix-6.5-mips'
     extra_flags = ['-n32', '-mips3', '-Xcpluscomm']
     cxxflags = ['-n32', '-mips3', '-Xcpluscomm', '-LANG:std']
@@ -244,6 +260,22 @@ else:
 #-----------------------------------------------------------------------------
 # End of platform specific section
 #-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Game Engine settings
+#-----------------------------------------------------------------------------
+if use_gameengine == 'true':
+    defines += ['GAMEBLENDER=1']
+    if use_sumo == 'true':
+        defines += ['USE_SUMO_SOLID']
+    if use_ode == 'true':
+        defines += ['USE_ODE']
+else:
+    defines += ['GAMEBLENDER=0']
+
+#-----------------------------------------------------------------------------
+# Settings to be exported to other SConscript files
+#-----------------------------------------------------------------------------
 cflags = extra_flags + release_flags + warn_flags
 
 Export ('use_international')
@@ -251,6 +283,8 @@ Export ('use_gameengine')
 Export ('use_openal')
 Export ('use_fmod')
 Export ('use_quicktime')
+Export ('use_ode')
+Export ('use_sumo')
 Export ('python_include')
 Export ('cflags')
 Export ('defines')
@@ -258,6 +292,8 @@ Export ('cxxflags')
 Export ('window_system')
 Export ('sdl_cflags')
 Export ('sdl_include')
+Export ('solid_include')
+Export ('ode_include')
 Export ('extra_includes')
 Export ('platform_libs')
 Export ('platform_libpath')
@@ -309,6 +345,24 @@ if use_international == 'true':
     link_env.Append (LIBS=['blender_FTF'])
 if use_quicktime == 'true':
     link_env.Append (LIBS=['blender_quicktime'])
+if use_gameengine == 'true':
+    link_env.Append (LIBS=['blender_expressions',
+                           'KX_blenderhook',
+                           'KX_converter',
+                           'KX_ketsji',
+                           'KX_network',
+                           'NG_loopbacknetwork',
+                           'NG_network',
+                           'PHY_Physics',
+                           'PHY_Dummy',
+                           'SCA_GameLogic',
+                           'RAS_rasterizer',
+                           'RAS_OpenGLRasterizer',
+                           'SG_SceneGraph'])
+    if use_sumo == 'true':
+        link_env.Append (LIBS=['PHY_Sumo'])
+    if use_ode == 'true':
+        link_env.Append (LIBS=['PHY_Ode'])
 
 link_env.Append (LIBS=python_lib)
 link_env.Append (LIBPATH=python_libpath)

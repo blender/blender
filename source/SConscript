@@ -1,2 +1,6 @@
+Import ('use_gameengine')
+
 SConscript(['blender/SConscript',
             'kernel/SConscript'])
+if use_gameengine == 'true':
+    SConscript (['gameengine/SConscript'])

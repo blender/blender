@@ -1,0 +1,29 @@
+kx_network_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+Import ('python_include')
+kx_network_env.Append (CCFLAGS = cflags)
+kx_network_env.Append (CXXFLAGS = cxxflags)
+kx_network_env.Append (CPPDEFINES = defines)
+
+source_files = ['KX_NetworkEventManager.cpp',
+                'KX_NetworkMessageActuator.cpp',
+                'KX_NetworkMessageSensor.cpp',
+                'KX_NetworkObjectActuator.cpp',
+                'KX_NetworkObjectSensor.cpp'
+                ]
+
+kx_network_env.Append (CPPPATH = ['.',
+                                  '#source/kernel/gen_system',
+                                  '#intern/string',
+                                  python_include,
+                                  '#source/gameengine/Ketsji',
+                                  '#source/gameengine/GameLogic',
+                                  '#source/gameengine/Expressions',
+                                  '#source/gameengine/Network',
+                                 ])
+
+kx_network_env.Library (target='#/lib/KX_network', source=source_files)

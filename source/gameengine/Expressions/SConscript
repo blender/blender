@@ -1,0 +1,37 @@
+expressions_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+Import ('python_include')
+expressions_env.Append (CCFLAGS = cflags)
+expressions_env.Append (CXXFLAGS = cxxflags)
+expressions_env.Append (CPPDEFINES = defines)
+
+source_files = ['BoolValue.cpp',
+                'ConstExpr.cpp',
+                'EmptyValue.cpp',
+                'ErrorValue.cpp',
+                'EXP_C-Api.cpp',
+                'Expression.cpp',
+                'FloatValue.cpp',
+                'IdentifierExpr.cpp',
+                'IfExpr.cpp',
+                'InputParser.cpp',
+                'IntValue.cpp',
+                'KX_HashedPtr.cpp',
+                'ListValue.cpp',
+                'Operator1Expr.cpp',
+                'Operator2Expr.cpp',
+                'PyObjectPlus.cpp',
+                'StringValue.cpp',
+                'Value.cpp',
+                'VectorValue.cpp']
+
+expressions_env.Append (CPPPATH = ['.',
+                                   '#source/kernel/gen_system',
+                                   '#intern/string',
+                                   python_include])
+
+expressions_env.Library (target='#/lib/blender_expressions', source=source_files)

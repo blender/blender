@@ -1,0 +1,20 @@
+phy_ode_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+Import ('ode_include')
+phy_ode_env.Append (CCFLAGS = cflags)
+phy_ode_env.Append (CXXFLAGS = cxxflags)
+phy_ode_env.Append (CPPDEFINES = defines)
+
+source_files = ['OdePhysicsController.cpp',
+                'OdePhysicsEnvironment.cpp']
+
+phy_ode_env.Append (CPPPATH=['.',
+                             '../common',
+                             ode_include
+                            ])
+
+phy_ode_env.Library (target='#/lib/PHY_Ode', source=source_files)

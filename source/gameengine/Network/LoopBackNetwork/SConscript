@@ -1,0 +1,19 @@
+ng_loopbacknetwork_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+ng_loopbacknetwork_env.Append (CCFLAGS = cflags)
+ng_loopbacknetwork_env.Append (CXXFLAGS = cxxflags)
+ng_loopbacknetwork_env.Append (CPPDEFINES = defines)
+
+source_files = ['NG_LoopBackNetworkDeviceInterface.cpp']
+
+ng_loopbacknetwork_env.Append (CPPPATH=['.',
+                                        '#source/kernel/gen_system',
+                                        '#intern/string',
+                                        '#source/gameengine/Network',
+                                       ])
+
+ng_loopbacknetwork_env.Library (target='#/lib/NG_loopbacknetwork', source=source_files)

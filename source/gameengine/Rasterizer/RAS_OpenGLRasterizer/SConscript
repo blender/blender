@@ -1,0 +1,22 @@
+ras_openglrasterizer_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+ras_openglrasterizer_env.Append (CCFLAGS = cflags)
+ras_openglrasterizer_env.Append (CXXFLAGS = cxxflags)
+ras_openglrasterizer_env.Append (CPPDEFINES = defines)
+
+source_files = ['RAS_CheckVertexArrays.cpp',
+                'RAS_OpenGLRasterizer.cpp',
+                'RAS_VAOpenGLRasterizer.cpp']
+
+ras_openglrasterizer_env.Append (CPPPATH=['.',
+                                          '#source/kernel/gen_system',
+                                          '#intern/string',
+                                          '#intern/moto/include',
+                                          '#source/gameengine/Rasterizer'
+                                         ])
+
+ras_openglrasterizer_env.Library (target='#/lib/RAS_OpenGLRasterizer', source=source_files)

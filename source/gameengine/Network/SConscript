@@ -1,0 +1,20 @@
+ng_network_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+ng_network_env.Append (CCFLAGS = cflags)
+ng_network_env.Append (CXXFLAGS = cxxflags)
+ng_network_env.Append (CPPDEFINES = defines)
+
+source_files = ['NG_NetworkMessage.cpp',
+                'NG_NetworkObject.cpp',
+                'NG_NetworkScene.cpp']
+
+ng_network_env.Append (CPPPATH=['.',
+                                '#source/kernel/gen_system',
+                                '#intern/string'
+                               ])
+
+ng_network_env.Library (target='#/lib/NG_network', source=source_files)

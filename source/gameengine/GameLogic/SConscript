@@ -1,0 +1,48 @@
+sca_gamelogic_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+Import ('python_include')
+sca_gamelogic_env.Append (CCFLAGS = cflags)
+sca_gamelogic_env.Append (CXXFLAGS = cxxflags)
+sca_gamelogic_env.Append (CPPDEFINES = defines)
+
+source_files = ['SCA_ANDController.cpp',
+                'SCA_AlwaysEventManager.cpp',
+                'SCA_AlwaysSensor.cpp',
+                'SCA_EventManager.cpp',
+                'SCA_ExpressionController.cpp',
+                'SCA_IActuator.cpp',
+                'SCA_IController.cpp',
+                'SCA_IInputDevice.cpp',
+                'SCA_ILogicBrick.cpp',
+                'SCA_IObject.cpp',
+                'SCA_IScene.cpp',
+                'SCA_ISensor.cpp',
+                'SCA_KeyboardManager.cpp',
+                'SCA_KeyboardSensor.cpp',
+                'SCA_LogicManager.cpp',
+                'SCA_MouseManager.cpp',
+                'SCA_MouseSensor.cpp',
+                'SCA_ORController.cpp',
+                'SCA_PropertyActuator.cpp',
+                'SCA_PropertyEventManager.cpp',
+                'SCA_PropertySensor.cpp',
+                'SCA_PythonController.cpp',
+                'SCA_RandomActuator.cpp',
+                'SCA_RandomEventManager.cpp',
+                'SCA_RandomNumberGenerator.cpp',
+                'SCA_RandomSensor.cpp',
+                'SCA_TimeEventManager.cpp']
+
+sca_gamelogic_env.Append (CPPPATH=['.',
+                                   '#/source/kernel/gen_system',
+                                   '#/intern/string',
+                                   '#/source/gameengine/Expressions',
+                                   '#/intern/moto/include',
+                                   python_include,
+                                  ])
+
+sca_gamelogic_env.Library (target='#/lib/SCA_GameLogic', source=source_files)

@@ -1,0 +1,19 @@
+phy_physics_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+phy_physics_env.Append (CCFLAGS = cflags)
+phy_physics_env.Append (CXXFLAGS = cxxflags)
+phy_physics_env.Append (CPPDEFINES = defines)
+
+source_files = ['PHY_IMotionState.cpp',
+                'PHY_IPhysicsController.cpp',
+                'PHY_IPhysicsEnvironment.cpp']
+
+phy_physics_env.Append (CPPPATH = ['.',
+                                   '../Dummy'
+                                  ])
+
+phy_physics_env.Library (target='#/lib/PHY_Physics', source=source_files)

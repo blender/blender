@@ -1,0 +1,69 @@
+kx_converter_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+Import ('solid_include')
+Import ('python_include')
+kx_converter_env.Append (CCFLAGS = cflags)
+kx_converter_env.Append (CXXFLAGS = cxxflags)
+kx_converter_env.Append (CPPDEFINES = defines)
+
+source_files = ['KX_IpoConvert.cpp',
+                'KX_ConvertSensors.cpp',
+                'KX_ConvertProperties.cpp',
+                'KX_ConvertControllers.cpp',
+                'KX_ConvertActuators.cpp',
+                'KX_BlenderSceneConverter.cpp',
+                'KX_BlenderScalarInterpolator.cpp',
+                'BlenderWorldInfo.cpp',
+                'BL_SkinMeshObject.cpp',
+                'BL_SkinDeformer.cpp',
+                'BL_MeshDeformer.cpp',
+                'BL_DeformableGameObject.cpp',
+                'BL_BlenderDataConversion.cpp',
+                'BL_ArmatureObject.cpp',
+                'BL_ActionActuator.cpp'
+                ]
+
+kx_converter_env.Append (CPPPATH = ['.',
+                                    '#source/kernel/gen_system',
+                                    '#intern/string',
+                                    '#intern/guardedalloc',
+                                    '#source/gameengine/Rasterizer/RAS_OpenGLRasterizer',
+                                    python_include,
+                                    '#intern/bmfont',
+                                    '#intern/SoundSystem',
+                                    '#intern/SoundSystem/include',
+                                    '#intern/SoundSystem/openal',
+                                    '#intern/SoundSystem/dummy',
+                                    '#intern/SoundSystem/intern',
+                                    '#source/gameengine/Converter',
+                                    '#source/gameengine/BlenderRoutines',
+                                    '#source/blender/imbuf',
+                                    '#intern/moto/include',
+                                    '#source/gameengine/Ketsji',
+                                    '#source/gameengine/Ketsji/KXNetwork',
+                                    '#source/blender/blenlib',
+                                    '#source/blender/blenkernel',
+                                    '#source/blender',
+                                    '#source/blender/include',
+                                    '#source/blender/makesdna',
+                                    '#source/gameengine/Rasterizer',
+                                    '#source/gameengine/GameLogic',
+                                    '#source/gameengine/Expressions',
+                                    '#source/gameengine/Network',
+                                    '#source/gameengine/SceneGraph',
+                                    '#source/gameengine/Physics/common',
+                                    '#source/gameengine/Physics/BlOde',
+                                    '#source/gameengine/Physics/Dummy',
+                                    '#source/gameengine/Physics/Sumo/include',
+                                    '#source/gameengine/Physics/Sumo/Fuzzics/include',
+                                    '#source/gameengine/Network/LoopBackNetwork',
+                                    '#source/blender/misc',
+                                    '#source/blender/blenloader',
+                                    solid_include
+                                    ])
+
+kx_converter_env.Library (target='#/lib/KX_converter', source=source_files)

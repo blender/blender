@@ -1,0 +1,111 @@
+ketsji_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+Import ('use_sumo')
+Import ('use_ode')
+Import ('python_include')
+Import ('solid_include')
+ketsji_env.Append (CCFLAGS = cflags)
+ketsji_env.Append (CXXFLAGS = cxxflags)
+ketsji_env.Append (CPPDEFINES = defines)
+
+source_files = ['KX_WorldIpoController.cpp',
+                'KX_WorldInfo.cpp',
+                'KX_VisibilityActuator.cpp',
+                'KX_VertexProxy.cpp',
+                'KX_TrackToActuator.cpp',
+                'KX_TouchSensor.cpp',
+                'KX_TouchEventManager.cpp',
+                'KX_TimeLogger.cpp',
+                'KX_TimeCategoryLogger.cpp',
+                'KX_SoundActuator.cpp',
+                'KX_SG_NodeRelationships.cpp',
+                'KX_SceneActuator.cpp',
+                'KX_Scene.cpp',
+                'KX_ScalingInterpolator.cpp',
+                'KX_ScalarInterpolator.cpp',
+                'KX_SCA_ReplaceMeshActuator.cpp',
+                'KX_SCA_EndObjectActuator.cpp',
+                'KX_SCA_AddObjectActuator.cpp',
+                'KX_RaySensor.cpp',
+                'KX_RayEventManager.cpp',
+                'KX_RadarSensor.cpp',
+                'KX_PythonInit.cpp',
+                'KX_PyConstraintBinding.cpp',
+                'KX_PositionInterpolator.cpp',
+                'KX_PhysicsObjectWrapper.cpp',
+                'KX_OrientationInterpolator.cpp',
+                'KX_ObjectActuator.cpp',
+                'KX_ObColorIpoSGController.cpp',
+                'KX_NearSensor.cpp',
+                'KX_MouseFocusSensor.cpp',
+                'KX_MotionState.cpp',
+                'KX_MeshProxy.cpp',
+                'KX_LightIpoSGController.cpp',
+                'KX_Light.cpp',
+                'KX_KetsjiEngine.cpp',
+                'KX_IpoActuator.cpp',
+                'KX_IPO_SGController.cpp',
+                'KX_IPhysicsController.cpp',
+                'KX_GameObject.cpp',
+                'KX_GameActuator.cpp',
+                'KX_EmptyObject.cpp',
+                'KX_ConvertPhysicsObjects.cpp',
+                'KX_ConstraintWrapper.cpp',
+                'KX_ConstraintActuator.cpp',
+                'KX_CDActuator.cpp',
+                'KX_CameraIpoSGController.cpp',
+                'KX_CameraActuator.cpp',
+                'KX_Camera.cpp'
+                ]
+
+if use_sumo == 'true':
+    source_files += ['KX_SumoPhysicsController.cpp']
+    ketsji_env.Append (CPPPATH = [solid_include])
+
+if use_ode == 'true':
+    source_files += ['KX_OdePhysicsController.cpp']
+
+ketsji_env.Append (CPPPATH = ['.',
+                              '#source/kernel/gen_system',
+                              '#intern/string',
+                              '#intern/guardedalloc',
+                              '#source/gameengine/Rasterizer/RAS_OpenGLRasterizer',
+                              '#intern/bmfont',
+                              '#intern/SoundSystem',
+                              '#intern/SoundSystem/include',
+                              '#intern/SoundSystem/openal',
+                              '#intern/SoundSystem/dummy',
+                              '#intern/SoundSystem/intern',
+                              '#source/gameengine/Converter',
+                              '#source/gameengine/BlenderRoutines',
+                              '#source/blender/imbuf',
+                              '#intern/moto/include',
+                              '#source/gameengine/Ketsji',
+                              '#source/gameengine/Ketsji/KXNetwork',
+                              '#source/blender/blenlib',
+                              '#source/blender/blenkernel',
+                              '#source/blender',
+                              '#source/blender/include',
+                              '#source/blender/makesdna',
+                              '#source/gameengine/Rasterizer',
+                              '#source/gameengine/GameLogic',
+                              '#source/gameengine/Expressions',
+                              '#source/gameengine/Network',
+                              '#source/gameengine/SceneGraph',
+                              '#source/gameengine/Physics/common',
+                              '#source/gameengine/Physics/BlOde',
+                              '#source/gameengine/Physics/Dummy',
+                              '#source/gameengine/Physics/Sumo/',
+                              '#source/gameengine/Physics/Sumo/include',
+                              '#source/gameengine/Physics/Sumo/Fuzzics/include',
+                              '#source/gameengine/Network/LoopBackNetwork',
+                              '#source/blender/misc',
+                              '#source/blender/blenloader',
+                              python_include
+                             ])
+
+ketsji_env.Library (target='#/lib/KX_ketsji', source=source_files)

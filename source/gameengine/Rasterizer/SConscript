@@ -1,0 +1,27 @@
+ras_rasterizer_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+ras_rasterizer_env.Append (CCFLAGS = cflags)
+ras_rasterizer_env.Append (CXXFLAGS = cxxflags)
+ras_rasterizer_env.Append (CPPDEFINES = defines)
+
+source_files = ['RAS_BucketManager.cpp',
+                'RAS_FramingManager.cpp',
+                'RAS_IPolygonMaterial.cpp',
+                'RAS_IRenderTools.cpp',
+                'RAS_MaterialBucket.cpp',
+                'RAS_MeshObject.cpp',
+                'RAS_Polygon.cpp',
+                'RAS_TexVert.cpp',
+                'RAS_texmatrix.cpp']
+
+ras_rasterizer_env.Append (CPPPATH=['.',
+                                    '#source/kernel/gen_system',
+                                    '#intern/string',
+                                    '#intern/moto/include'
+                                   ])
+
+ras_rasterizer_env.Library (target='#/lib/RAS_rasterizer', source=source_files)

@@ -1,0 +1,20 @@
+sg_scenegraph_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+sg_scenegraph_env.Append (CCFLAGS = cflags)
+sg_scenegraph_env.Append (CXXFLAGS = cxxflags)
+sg_scenegraph_env.Append (CPPDEFINES = defines)
+
+source_files = ['SG_Controller.cpp',
+                'SG_IObject.cpp',
+                'SG_Node.cpp',
+                'SG_Spatial.cpp']
+
+sg_scenegraph_env.Append (CPPPATH=['.',
+                                   '#intern/moto/include'
+                                  ])
+
+sg_scenegraph_env.Library (target='#/lib/SG_SceneGraph', source=source_files)
