@@ -579,7 +579,7 @@ int blenderqread(unsigned short event, short val)
 		}
 		else if(G.qual & LR_CTRLKEY) {
 			/* all alt+ctrl+shift combos are needed here... */
-			BIF_screendump();
+			BIF_screendump(0);
 		}
 		break;
 	case F4KEY:

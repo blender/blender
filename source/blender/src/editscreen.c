@@ -851,7 +851,7 @@ unsigned short extern_qread_ext(short *val, char *ascii)
 	else if(event==INPUTCHANGE) ext_inputchange= *val;
 	else if(event==MOUSEY || event==MOUSEX) ext_mousemove= 1;
 	else if((G.qual & (LR_CTRLKEY|LR_ALTKEY)) && event==F3KEY) {
-		if(*val) BIF_screendump();
+		if(*val) BIF_screendump(0);
 	}
 
 	return event;

@@ -868,6 +868,12 @@ static void do_info_filemenu(void *arg, int event)
 	case 23: /* save dynamic runtime */
 		activate_fileselect(FILE_SPECIAL, "Save Dynamic Runtime", "", write_runtime_check_dynamic);
 		break;
+	case 24:
+		BIF_screendump(0);
+		break;
+	case 25:
+		BIF_screendump(1);
+		break;
 	case 10: /* pack data */
 		check_packAll();
 		break;
@@ -933,6 +939,8 @@ static uiBlock *info_filemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Image...|F3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Dump 3DView|Ctrl F3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 24, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Dump Screen|Ctrl Shift F3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 25, "");
 #if GAMEBLENDER == 1
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Runtime...",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 22, "");
 #ifdef _WIN32
@@ -942,6 +950,7 @@ static uiBlock *info_filemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Default Settings|Ctrl U",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 31, "");
+
 
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 

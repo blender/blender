@@ -113,7 +113,7 @@ void write_screendump(char *name)
 }
 
 /* get dump from frontbuffer */
-void BIF_screendump(void)
+void BIF_screendump(int fscreen)
 {
 	extern uiBut *UIbuttip; // interface.c
 	static int wasmenu= 0;
@@ -133,7 +133,7 @@ void BIF_screendump(void)
 	if(dumprect) MEM_freeN(dumprect);
 	dumprect= NULL;
 	
-	if(UIbuttip || (G.qual & LR_SHIFTKEY)) {		/* full screen */
+	if(UIbuttip || (G.qual & LR_SHIFTKEY) || fscreen) {	/* full screen */
 		x= 0;
 		y= 0;
 		

@@ -257,8 +257,7 @@ void BL_MakeScreenShot(struct ScrArea *area, const char* filename)
 	// filename read - only
 	
 	  /* XXX will need to change at some point */
-	BIF_screendump();
-/* 	BIF_screendump(area); */
+	BIF_screendump(0);
 
 	// write+read filename
 	write_screendump((char*) copyfilename);

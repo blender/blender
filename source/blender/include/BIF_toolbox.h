@@ -127,7 +127,7 @@ void add_numbut (int nr, int type, char *str, float min, float max, void *poin, 
 void clever_numbuts (void);
 void replace_names_but (void);
 
-void BIF_screendump(void);
+void BIF_screendump(int fscreen);
 void write_screendump(char *name);
 
 #endif
