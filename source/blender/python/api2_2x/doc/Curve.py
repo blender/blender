@@ -231,8 +231,8 @@ class Curve:
     @type numpoint: int
     @rtype: list of floats
     @return: depends upon the curve's type.
-      - type Bezier : a list of three coordinates
-      - type Nurb : a list of nine coordinates.
+      - type Bezier : a list of nine floats.  Values are x, y, z for handle-1, vertex and handle-2 
+      - type Nurb : a list of 4 floats.  Values are x, y, z, w.
     """
 
   def setControlPoint( numcurve, numpoint, controlpoint):
