@@ -378,7 +378,7 @@ void transform_tface_uv(int mode)
 	tface= me->tface;
 	mface= me->mface;
 	for(a=me->totface; a>0; a--, tface++, mface++) {
-		if(tface->flag & TF_SELECT) {
+		if(mface->v3 && tface->flag & TF_SELECT) {
 			if(tface->flag & TF_SEL1) tot++;
 			if(tface->flag & TF_SEL2) tot++;
 			if(tface->flag & TF_SEL3) tot++;

@@ -352,9 +352,6 @@ void do_image_buttons(unsigned short event)
 	}
 }
 
-/* This should not be a stack var! */
-// static int headerbuttons_packdummy;
-
 static void do_image_viewmenu(void *arg, int event)
 {
 
@@ -918,7 +915,10 @@ void image_buttons(void)
 	uiBlock *block;
 	short xco, xmax;
 	char naam[256];
-	int headerbuttons_packdummy = 0;
+	/* This should not be a static var */
+	static int headerbuttons_packdummy;
+
+	headerbuttons_packdummy = 0;
 		
 	sprintf(naam, "header %d", curarea->headwin);
 	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSS, UI_HELV, curarea->headwin);
