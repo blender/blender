@@ -52,6 +52,8 @@ class World:
   @cvar amb: the ambient color  of a world object.
   @cvar star: the star parameters  of a world object. See getStar for the semantics of these parameters. 
   @cvar mist: the mist parameters  of a world object. See getMist for the semantics of these parameters. 
+  @type ipo: Blender Ipo
+  @cvar ipo: The world type ipo linked to this world object.
   """
 
   def getName():
@@ -61,14 +63,6 @@ class World:
     @return:  the name of the world object.
     """
 
-  def getIpo():
-    """
-    Retreives the Ipo (if any) of an world object
-    @rtype: Ipo object
-    @return:  the Ipo  of the world object.
-    """
-
-	
   def setName(name):
     """
     Sets the name of a world object.
@@ -76,6 +70,26 @@ class World:
     @param name : the new name. 
     @rtype: PyNone
     @return:  PyNone
+    """
+
+  def getIpo():
+    """
+    Get the Ipo associated with this world object, if any.
+    @rtype: Ipo
+    @return: the wrapped ipo or None.
+    """
+
+  def setIpo(ipo):
+    """
+    Link an ipo to this world object.
+    @type ipo: Blender Ipo
+    @param ipo: a "camera data" ipo.
+    """
+
+  def clearIpo():
+    """
+    Unlink the ipo from this world object.
+    @return: True if there was an ipo linked or False otherwise.
     """
 
   def getSkytype():

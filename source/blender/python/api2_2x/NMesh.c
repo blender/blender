@@ -31,6 +31,14 @@
 
 #include "NMesh.h"
 
+/* EXPP Mesh defines */
+
+#define EXPP_NMESH_MODE_NOPUNOFLIP	ME_NOPUNOFLIP
+#define EXPP_NMESH_MODE_TWOSIDED		ME_TWOSIDED
+#define EXPP_NMESH_MODE_AUTOSMOOTH	ME_AUTOSMOOTH
+#define EXPP_NMESH_MODE_SUBSURF			ME_SUBSURF
+#define EXPP_NMESH_MODE_OPTIMAL			ME_OPT_EDGES
+
 #define NMESH_FRAME_MAX				18000
 #define NMESH_SMOOTHRESH			30
 #define NMESH_SMOOTHRESH_MIN	1
@@ -1018,14 +1026,14 @@ static PyObject *NMesh_getMode (BPy_NMesh *self)
 static PyObject *NMesh_setMode (PyObject *self, PyObject *args)
 {
 	BPy_NMesh *nmesh = (BPy_NMesh *)self;
-	char *m[4] = {NULL, NULL, NULL, NULL};
+	char *m[5] = {NULL, NULL, NULL, NULL, NULL};
 	short i, mode = 0;
 
-	if (!PyArg_ParseTuple(args, "|ssss", &m[0], &m[1], &m[2], &m[3]))
+	if (!PyArg_ParseTuple(args, "|sssss", &m[0], &m[1], &m[2], &m[3], &m[4]))
 		return EXPP_ReturnPyObjError (PyExc_AttributeError,
-							 "expected from none to 4 strings as argument(s)");
+							 "expected from none to 5 strings as argument(s)");
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 5; i++) {
 		if (!m[i]) break;
 		if (strcmp(m[i], "NoVNormalsFlip") == 0)
 			mode |= EXPP_NMESH_MODE_NOPUNOFLIP;
@@ -1035,6 +1043,8 @@ static PyObject *NMesh_setMode (PyObject *self, PyObject *args)
 			mode |= EXPP_NMESH_MODE_AUTOSMOOTH;
 		else if (strcmp(m[i], "SubSurf") == 0)
 			mode |= EXPP_NMESH_MODE_SUBSURF;
+		else if (strcmp(m[i], "Optimal") == 0)
+			mode |= EXPP_NMESH_MODE_OPTIMAL;
 		else
 			return EXPP_ReturnPyObjError (PyExc_AttributeError,
 							 "unknown NMesh mode");
@@ -1356,6 +1366,7 @@ static PyObject *new_NMesh_internal(Mesh *oldmesh,
 {
 	BPy_NMesh *me = PyObject_NEW (BPy_NMesh, &NMesh_Type);
 	me->flags = 0;
+	me->mode = EXPP_NMESH_MODE_TWOSIDED; /* default for new meshes */
 	me->subdiv[0] = NMESH_SUBDIV;
 	me->subdiv[1] = NMESH_SUBDIV;
 	me->smoothresh = NMESH_SMOOTHRESH;
@@ -2060,6 +2071,7 @@ static PyObject *M_NMesh_Modes (void)
 		constant_insert(d, "TWOSIDED", PyInt_FromLong(EXPP_NMESH_MODE_TWOSIDED));
 		constant_insert(d, "AUTOSMOOTH",PyInt_FromLong(EXPP_NMESH_MODE_AUTOSMOOTH));
 		constant_insert(d, "SUBSURF", PyInt_FromLong(EXPP_NMESH_MODE_SUBSURF));
+		constant_insert(d, "OPTIMAL", PyInt_FromLong(EXPP_NMESH_MODE_OPTIMAL));
 	}
 
 	return Modes;

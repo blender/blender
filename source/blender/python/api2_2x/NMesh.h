@@ -74,12 +74,6 @@
 #include "gen_utils.h"
 #include "modules.h"
 
-/* EXPP Mesh defines */
-#define EXPP_NMESH_MODE_NOPUNOFLIP  ME_NOPUNOFLIP
-#define EXPP_NMESH_MODE_TWOSIDED    ME_TWOSIDED
-#define EXPP_NMESH_MODE_AUTOSMOOTH  ME_AUTOSMOOTH
-#define EXPP_NMESH_MODE_SUBSURF     ME_SUBSURF
-
 /* EXPP PyType Objects */
 PyTypeObject NMesh_Type;
 PyTypeObject NMFace_Type;
@@ -205,7 +199,7 @@ static char NMesh_getMode_doc[] =
 "() - get the mode flags of this nmesh as an or'ed int value.";
 
 static char NMesh_setMode_doc[] =
-"(none to 4 strings) - set the mode flags of this nmesh.\n\
+"(none to 5 strings) - set the mode flags of this nmesh.\n\
 () - unset all flags.";
 
 static char NMesh_getMaxSmoothAngle_doc[] =

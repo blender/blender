@@ -110,18 +110,13 @@ class Material:
   @cvar nStars: Number of points on the halo stars - [3, 50].
   @cvar nLines: Number of star shaped lines on each halo - [0, 250].
   @cvar nRings: Number of halo rings - [0, 24].
+  @type ipo: Blender Ipo
+  @cvar ipo: This Material's ipo.
   @warning: Most member variables assume values in some [Min, Max] interval.
    When trying to set them, the given parameter will be clamped to lie in
    that range: if val < Min, then val = Min, if val > Max, then val = Max.
- """
+  """
 
-
-  def getIpo():
-    """
-    Retreives the Ipo (if any) of an material object
-    @rtype: Ipo object
-    @return:  the Ipo  of the material object.
-    """
   def getName():
     """
     Get the name of this Material object.
@@ -133,6 +128,26 @@ class Material:
     Set the name of this Material object.
     @type name: string
     @param name: The new name.
+    """
+
+  def getIpo():
+    """
+    Get the Ipo associated with this material, if any.
+    @rtype: Ipo
+    @return: the wrapped ipo or None.
+    """
+
+  def setIpo(ipo):
+    """
+    Link an ipo to this material.
+    @type ipo: Blender Ipo
+    @param ipo: a material type ipo.
+    """
+
+  def clearIpo():
+    """
+    Unlink the ipo from this material.
+    @return: True if there was an ipo linked or False otherwise.
     """
 
   def getMode():

@@ -37,6 +37,7 @@ Example::
     - TWOSIDED - double sided mesh.
     - AUTOSMOOTH - turn auto smoothing of faces "on".
     - SUBSURF - turn Catmull-Clark subdivision of surfaces "on".
+    - OPTIMAL - optimal drawing of edges when "SubSurf" is "on".
 @var FaceFlags: The available face selection flags.
     - SELECT - selected.
     - HIDE - hidden.
@@ -374,11 +375,12 @@ class NMesh:
     Modes not passed in are turned "off", so setMode() (without arguments)
     unsets all mode flags.
     @type m: string
-    @param m: mode string.  From none to 4 can be given:
+    @param m: mode string.  From none to 5 can be given:
        - "NoVNormalsFlip"
        - "TwoSided"
        - "AutoSmooth"
        - "SubSurf"
+       - "Optimal"
     """
 
   def addVertGroup(group):

@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -33,17 +33,17 @@
 #define EXPP_MATERIAL_H
 
 #include <Python.h>
-#include <BKE_material.h>
 #include <DNA_material_types.h>
+#include <BKE_material.h>
 
 #include "rgbTuple.h"
 
 /*****************************************************************************/
-/* Python BPy_Material structure definition:                                   */
+/* Python BPy_Material structure definition:																	 */
 /*****************************************************************************/
 typedef struct {
-  PyObject_HEAD
-  Material *material;
+	PyObject_HEAD
+	Material *material;
 	BPy_rgbTuple *col, *amb, *spec, *mir;
 
 } BPy_Material;
@@ -51,15 +51,15 @@ typedef struct {
 extern PyTypeObject Material_Type; /* The Material PyType Object */
 
 #define BPy_Material_Check(v) \
-    ((v)->ob_type == &Material_Type) /* for type checking */
+		((v)->ob_type == &Material_Type) /* for type checking */
 
 /*****************************************************************************/
-/* Module Blender.Material - public functions                                */
+/* Module Blender.Material - public functions																 */
 /*****************************************************************************/
 PyObject *M_Material_Init (void);
 PyObject *Material_CreatePyObject (Material *mat);
 Material *Material_FromPyObject (PyObject *pyobj);
-int       Material_CheckPyObject (PyObject *pyobj);
+int Material_CheckPyObject (PyObject *pyobj);
 
 /* Some functions needed by NMesh.c */
 PyObject  *EXPP_PyList_fromMaterialList (Material **matlist, int len);

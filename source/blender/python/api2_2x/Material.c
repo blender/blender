@@ -38,6 +38,8 @@
 
 #include "constant.h"
 #include "gen_utils.h"
+#include "bpy_types.h"
+#include "modules.h"
 
 #include "Material.h"
 
@@ -151,11 +153,11 @@ struct PyMethodDef M_Material_methods[] = {
 static PyObject *M_Material_New(PyObject *self, PyObject *args,
 								PyObject *keywords)
 {
-	char				*name = "Mat";
+	char *name = "Mat";
 	static char *kwlist[] = {"name", NULL};
-	BPy_Material	*pymat; /* for Material Data object wrapper in Python */
-	Material			*blmat; /* for actual Material Data we create in Blender */
-	char				buf[21];
+	BPy_Material *pymat; /* for Material Data object wrapper in Python */
+	Material *blmat; /* for actual Material Data we create in Blender */
+	char buf[21];
 
 	if (!PyArg_ParseTupleAndKeywords(args, keywords, "|s", kwlist, &name))
 		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
@@ -343,6 +345,8 @@ static PyObject *Material_getNFlares(BPy_Material *self);
 static PyObject *Material_getNStars(BPy_Material *self);
 static PyObject *Material_getNLines(BPy_Material *self);
 static PyObject *Material_getNRings(BPy_Material *self);
+static PyObject *Material_setIpo(BPy_Material *self, PyObject *args);
+static PyObject *Material_clearIpo(BPy_Material *self);
 static PyObject *Material_setName(BPy_Material *self, PyObject *args);
 static PyObject *Material_setMode(BPy_Material *self, PyObject *args);
 static PyObject *Material_setIntMode(BPy_Material *self, PyObject *args);
@@ -379,9 +383,11 @@ static PyObject *Material_setColorComponent(BPy_Material *self, char *key,
 static PyMethodDef BPy_Material_methods[] = {
  /* name, method, flags, doc */
 	{"getName", (PyCFunction)Material_getName, METH_NOARGS,
-			"() - Return Material Data name"},
+			"() - Return Material's name"},
+	{"getIpo", (PyCFunction)Material_getIpo, METH_NOARGS,
+			"() - Return Material's ipo or None if not found"},
 	{"getMode", (PyCFunction)Material_getMode, METH_NOARGS,
-			"() - Return Material mode flags"},
+			"() - Return Material's mode flags"},
 	{"getRGBCol", (PyCFunction)Material_getRGBCol, METH_NOARGS,
 			"() - Return Material's rgb color triplet"},
 /*	{"getAmbCol", (PyCFunction)Material_getAmbCol, METH_NOARGS,
@@ -430,9 +436,13 @@ static PyMethodDef BPy_Material_methods[] = {
 	{"getNRings", (PyCFunction)Material_getNRings, METH_NOARGS,
 			"() - Return Material's number of rings in halo"},
 	{"setName", (PyCFunction)Material_setName, METH_VARARGS,
-			"(s) - Change Material Data name"},
+			"(s) - Change Material's name"},
+	{"setIpo", (PyCFunction)Material_setIpo, METH_VARARGS,
+			"(Blender Ipo) - Change Material's Ipo"},
+	{"clearIpo", (PyCFunction)Material_clearIpo, METH_NOARGS,
+			"(Blender Ipo) - Unlink Ipo from this Material"},
 	{"setMode", (PyCFunction)Material_setMode, METH_VARARGS,
-			"([s[,s]]) - Set Material mode flag(s)"},
+			"([s[,s]]) - Set Material's mode flag(s)"},
 	{"setRGBCol", (PyCFunction)Material_setRGBCol, METH_VARARGS,
 			"(f,f,f or [f,f,f]) - Set Material's rgb color triplet"},
 /*	{"setAmbCol", (PyCFunction)Material_setAmbCol, METH_VARARGS,
@@ -628,10 +638,13 @@ Material * GetMaterialByName (char * name)
 
 static PyObject *Material_getIpo(BPy_Material *self)
 {
-	typedef struct Ipo Ipo;	
-PyObject *Ipo_CreatePyObject (Ipo *ipo);
-	struct Ipo*ipo = self->material->ipo;
-	if (!ipo) return EXPP_ReturnPyObjError(PyExc_RuntimeError,"Material has no Ipo");
+	Ipo *ipo = self->material->ipo;
+
+	if (!ipo) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
+	
 	return Ipo_CreatePyObject (ipo);
 }
 
@@ -863,6 +876,55 @@ static PyObject *Material_getNRings(BPy_Material *self)
 
 	return EXPP_ReturnPyObjError (PyExc_RuntimeError,
 											 "couldn't get Material.nRings attribute");
+}
+
+static PyObject *Material_setIpo(BPy_Material *self, PyObject *args)
+{
+	PyObject *pyipo = 0;
+	Ipo *ipo = NULL;
+	Ipo *oldipo;
+
+	if (!PyArg_ParseTuple(args, "O!", &Ipo_Type, &pyipo))
+		return EXPP_ReturnPyObjError (PyExc_TypeError, "expected Ipo as argument");
+
+	ipo = Ipo_FromPyObject(pyipo);
+
+	if (!ipo) return EXPP_ReturnPyObjError (PyExc_RuntimeError, "null ipo!");
+
+	if (ipo->blocktype != ID_MA)
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"this ipo is not a Material type ipo");
+
+	oldipo = self->material->ipo;
+	if (oldipo) {
+		ID *id = &oldipo->id;
+		if (id->us > 0) id->us--;
+	}
+
+	((ID *)&ipo->id)->us++;
+
+	self->material->ipo = ipo;
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+static PyObject *Material_clearIpo(BPy_Material *self)
+{
+	Material *mat = self->material;
+	Ipo *ipo = (Ipo *)mat->ipo;
+
+	if (ipo) {
+		ID *id = &ipo->id;
+		if (id->us > 0) id->us--;
+		mat->ipo = NULL;
+
+		Py_INCREF (Py_True);
+		return Py_True;
+	}
+
+	Py_INCREF (Py_False); /* no ipo found */
+	return Py_False;
 }
 
 static PyObject *Material_setName(BPy_Material *self, PyObject *args)

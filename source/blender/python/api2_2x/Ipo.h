@@ -76,41 +76,41 @@ struct PyMethodDef M_Ipo_methods[] = {
 };
 
 /*****************************************************************************/
-/* Python C_Ipo structure definition:                                     */
+/* Python BPy_Ipo structure definition:                                     */
 /*****************************************************************************/
 typedef struct {
   PyObject_HEAD
   Ipo *ipo;
-} C_Ipo;
+} BPy_Ipo;
 
 /*****************************************************************************/
-/* Python C_Ipo methods declarations:                                     */
+/* Python BPy_Ipo methods declarations:                                     */
 /*****************************************************************************/
-static PyObject *Ipo_getName(C_Ipo *self);
-static PyObject *Ipo_setName(C_Ipo *self, PyObject *args);
-static PyObject *Ipo_getBlocktype(C_Ipo *self);
-static PyObject *Ipo_setBlocktype(C_Ipo *self, PyObject *args);
-static PyObject *Ipo_getRctf(C_Ipo *self);
-static PyObject *Ipo_setRctf(C_Ipo *self, PyObject *args);
+static PyObject *Ipo_getName(BPy_Ipo *self);
+static PyObject *Ipo_setName(BPy_Ipo *self, PyObject *args);
+static PyObject *Ipo_getBlocktype(BPy_Ipo *self);
+static PyObject *Ipo_setBlocktype(BPy_Ipo *self, PyObject *args);
+static PyObject *Ipo_getRctf(BPy_Ipo *self);
+static PyObject *Ipo_setRctf(BPy_Ipo *self, PyObject *args);
 
-static PyObject *Ipo_getCurve(C_Ipo *self, PyObject *args);
-static PyObject *Ipo_getCurves(C_Ipo *self);
-static PyObject *Ipo_addCurve(C_Ipo *self, PyObject *args);
-static PyObject *Ipo_getNcurves(C_Ipo *self);
-static PyObject *Ipo_getNBezPoints(C_Ipo *self, PyObject *args);
-static PyObject *Ipo_DeleteBezPoints(C_Ipo *self, PyObject *args);
-static PyObject *Ipo_getCurveBP(C_Ipo *self, PyObject *args);
-static PyObject *Ipo_getCurvecurval(C_Ipo *self, PyObject *args);
-static PyObject *Ipo_EvaluateCurveOn(C_Ipo *self, PyObject *args);
+static PyObject *Ipo_getCurve(BPy_Ipo *self, PyObject *args);
+static PyObject *Ipo_getCurves(BPy_Ipo *self);
+static PyObject *Ipo_addCurve(BPy_Ipo *self, PyObject *args);
+static PyObject *Ipo_getNcurves(BPy_Ipo *self);
+static PyObject *Ipo_getNBezPoints(BPy_Ipo *self, PyObject *args);
+static PyObject *Ipo_DeleteBezPoints(BPy_Ipo *self, PyObject *args);
+static PyObject *Ipo_getCurveBP(BPy_Ipo *self, PyObject *args);
+static PyObject *Ipo_getCurvecurval(BPy_Ipo *self, PyObject *args);
+static PyObject *Ipo_EvaluateCurveOn(BPy_Ipo *self, PyObject *args);
 
 
-static PyObject *Ipo_setCurveBeztriple(C_Ipo *self, PyObject *args);
-static PyObject *Ipo_getCurveBeztriple(C_Ipo *self, PyObject *args);
+static PyObject *Ipo_setCurveBeztriple(BPy_Ipo *self, PyObject *args);
+static PyObject *Ipo_getCurveBeztriple(BPy_Ipo *self, PyObject *args);
 
 /*****************************************************************************/
-/* Python C_Ipo methods table:                                            */
+/* Python BPy_Ipo methods table:                                            */
 /*****************************************************************************/
-static PyMethodDef C_Ipo_methods[] = {
+static PyMethodDef BPy_Ipo_methods[] = {
  /* name, method, flags, doc */
   {"getName", (PyCFunction)Ipo_getName, METH_NOARGS,
       "() - Return Ipo Data name"},  
@@ -152,11 +152,11 @@ static PyMethodDef C_Ipo_methods[] = {
 /*****************************************************************************/
 /* Python Ipo_Type callback function prototypes:                          */
 /*****************************************************************************/
-static void IpoDeAlloc (C_Ipo *self);
-//static int IpoPrint (C_Ipo *self, FILE *fp, int flags);
-static int IpoSetAttr (C_Ipo *self, char *name, PyObject *v);
-static PyObject *IpoGetAttr (C_Ipo *self, char *name);
-static PyObject *IpoRepr (C_Ipo *self);
+static void IpoDeAlloc (BPy_Ipo *self);
+//static int IpoPrint (BPy_Ipo *self, FILE *fp, int flags);
+static int IpoSetAttr (BPy_Ipo *self, char *name, PyObject *v);
+static PyObject *IpoGetAttr (BPy_Ipo *self, char *name);
+static PyObject *IpoRepr (BPy_Ipo *self);
 
 /*****************************************************************************/
 /* Python Ipo_Type structure definition:                                  */
@@ -166,7 +166,7 @@ PyTypeObject Ipo_Type =
   PyObject_HEAD_INIT(NULL)
   0,                                      /* ob_size */
   "Ipo",                               /* tp_name */
-  sizeof (C_Ipo),                      /* tp_basicsize */
+  sizeof (BPy_Ipo),                      /* tp_basicsize */
   0,                                      /* tp_itemsize */
   /* methods */
   (destructor)IpoDeAlloc,              /* tp_dealloc */
@@ -182,7 +182,7 @@ PyTypeObject Ipo_Type =
   0,0,0,0,0,0,
   0,                                      /* tp_doc */ 
   0,0,0,0,0,0,
-  C_Ipo_methods,                       /* tp_methods */
+  BPy_Ipo_methods,                       /* tp_methods */
   0,                                      /* tp_members */
 };
 

@@ -54,6 +54,8 @@ class Camera:
   @cvar clipStart: The clip start value in [0.0, 100.0].
   @cvar clipEnd: The clip end value in [1.0, 5000.0].
   @cvar drawSize: The draw size value in [0.1, 10.0].
+  @type ipo: Blender Ipo
+  @cvar ipo: The "camera data" ipo linked to this camera data object.
   @warning: Most member variables assume values in some [Min, Max] interval.
       When trying to set them, the given parameter will be clamped to lie in
       that range: if val < Min, then val = Min, if val > Max, then val = Max.
@@ -64,19 +66,32 @@ class Camera:
     Get the name of this Camera Data object.
     @rtype: string
     """
-  def getIpo():
-    """
-    Retreives the Ipo (if any) of a camera object
-    @rtype: Ipo object
-    @return:  the Ipo  of the camera object.
-    """
-
 
   def setName(name):
     """
     Set the name of this Camera Data object.
     @type name: string
     @param name: The new name.
+    """
+
+  def getIpo():
+    """
+    Get the Ipo associated with this camera data object, if any.
+    @rtype: Ipo
+    @return: the wrapped ipo or None.
+    """
+
+  def setIpo(ipo):
+    """
+    Link an ipo to this camera data object.
+    @type ipo: Blender Ipo
+    @param ipo: a "camera data" ipo.
+    """
+
+  def clearIpo():
+    """
+    Unlink the ipo from this camera data object.
+    @return: True if there was an ipo linked or False otherwise.
     """
 
   def getType():

@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -35,7 +35,7 @@
  * \brief Blender.World Module and World Data PyObject implementation.
  *
  * Note: Parameters between "<" and ">" are optional.  But if one of them is
- * given, all preceding ones must be given, too.  Of course, this only relates
+ * given, all preceding ones must be given, too.	Of course, this only relates
  * to the Python functions and methods described here and only inside Python
  * code. [ This will go to another file later, probably the main exppython
  * doc file].  XXX Better: put optional args with their default value:
@@ -52,7 +52,7 @@
 
 
 /*****************************************************************************/
-/* Python World_Type callback function prototypes:                          */
+/* Python World_Type callback function prototypes:													*/
 /*****************************************************************************/
 static void World_DeAlloc (BPy_World *self);
 //static int World_Print (BPy_World *self, FILE *fp, int flags);
@@ -62,31 +62,31 @@ static PyObject *World_GetAttr (BPy_World *self, char *name);
 static PyObject *World_Repr (BPy_World *self);
 
 /*****************************************************************************/
-/* Python World_Type structure definition:                                  */
+/* Python World_Type structure definition:																	*/
 /*****************************************************************************/
 PyTypeObject World_Type =
 {
-  PyObject_HEAD_INIT(NULL)
-  0,                                      /* ob_size */
-  "World",                               /* tp_name */
-  sizeof (BPy_World),                    /* tp_basicsize */
-  0,                                      /* tp_itemsize */
-  /* methods */
-  (destructor)World_DeAlloc,             /* tp_dealloc */
-  0,                /* tp_print */
-  (getattrfunc)World_GetAttr,            /* tp_getattr */
-  (setattrfunc)World_SetAttr,            /* tp_setattr */
-  (cmpfunc)World_Compare,                /* tp_compare */
-  (reprfunc)World_Repr,                  /* tp_repr */
-  0,                                      /* tp_as_number */
-  0,                                      /* tp_as_sequence */
-  0,                                      /* tp_as_mapping */
-  0,                                      /* tp_as_hash */
-  0,0,0,0,0,0,
-  0,                                      /* tp_doc */ 
-  0,0,0,0,0,0,
-  BPy_World_methods,                     /* tp_methods */
-  0,                                      /* tp_members */
+	PyObject_HEAD_INIT(NULL)
+	0,																			/* ob_size */
+	"World",															 /* tp_name */
+	sizeof (BPy_World),										 /* tp_basicsize */
+	0,																			/* tp_itemsize */
+	/* methods */
+	(destructor)World_DeAlloc,						 /* tp_dealloc */
+	0,								/* tp_print */
+	(getattrfunc)World_GetAttr,						 /* tp_getattr */
+	(setattrfunc)World_SetAttr,						 /* tp_setattr */
+	(cmpfunc)World_Compare,								 /* tp_compare */
+	(reprfunc)World_Repr,									 /* tp_repr */
+	0,																			/* tp_as_number */
+	0,																			/* tp_as_sequence */
+	0,																			/* tp_as_mapping */
+	0,																			/* tp_as_hash */
+	0,0,0,0,0,0,
+	0,																			/* tp_doc */ 
+	0,0,0,0,0,0,
+	BPy_World_methods,										 /* tp_methods */
+	0,																			/* tp_members */
 };
 
 /**
@@ -111,37 +111,37 @@ static PyObject *M_World_New(PyObject *self, PyObject *args, PyObject *kwords)
 
 	World *add_world(char *name);
 	char*name = NULL;
-  BPy_World    *pyworld;
-  World      *blworld;
+	BPy_World		 *pyworld;
+	World			 *blworld;
 
 	if (!PyArg_ParseTuple(args, "s", &name))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
-																	 "expected  int argument"));
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,
+																	 "expected	int argument"));
 
 
-  blworld = add_world(name);
+	blworld = add_world(name);
 
-  if (blworld) 
+	if (blworld) 
 		pyworld = (BPy_World *)PyObject_NEW(BPy_World, &World_Type);
-  else
-    return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
+	else
+		return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 																	 "couldn't create World Data in Blender"));
 
-  if (pyworld == NULL)
-    return (EXPP_ReturnPyObjError (PyExc_MemoryError,
+	if (pyworld == NULL)
+		return (EXPP_ReturnPyObjError (PyExc_MemoryError,
 																	 "couldn't create World Data object"));
 
-  pyworld->world = blworld; 
+	pyworld->world = blworld; 
 
-  return (PyObject *)pyworld;
+	return (PyObject *)pyworld;
 }
 
 /**
  * \brief Python module function: Blender.World.Get()
  *
- * This is the .Get() function of the Blender.World submodule.  It searches
+ * This is the .Get() function of the Blender.World submodule.	It searches
  * the list of current World Data objects and returns a Python wrapper for
- * the one with the name provided by the user.  If called with no arguments,
+ * the one with the name provided by the user.	If called with no arguments,
  * it returns a list of all current World Data object names in Blender.
  * \param <name> - string: The name of an existing Blender World Data object.
  * \return () - A list with the names of all current World Data objects;\n
@@ -152,48 +152,48 @@ static PyObject *M_World_New(PyObject *self, PyObject *args, PyObject *kwords)
 static PyObject *M_World_Get(PyObject *self, PyObject *args)
 {
 
-  char   *name = NULL;
-  World *world_iter;
-  PyObject *worldlist;
-  BPy_World *wanted_world = NULL;
-  char error_msg[64];
+	char	 *name = NULL;
+	World *world_iter;
+	PyObject *worldlist;
+	BPy_World *wanted_world = NULL;
+	char error_msg[64];
 
 	if (!PyArg_ParseTuple(args, "|s", &name))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,
 																	 "expected string argument (or nothing)"));
 
-  world_iter = G.main->world.first;
+	world_iter = G.main->world.first;
 
 	if (name) { /* (name) - Search world by name */
-    while ((world_iter) && (wanted_world == NULL)) {
-      if (strcmp (name, world_iter->id.name+2) == 0) {
-        wanted_world = (BPy_World *)PyObject_NEW(BPy_World, &World_Type);
+		while ((world_iter) && (wanted_world == NULL)) {
+			if (strcmp (name, world_iter->id.name+2) == 0) {
+				wanted_world = (BPy_World *)PyObject_NEW(BPy_World, &World_Type);
 				if (wanted_world) wanted_world->world = world_iter;
-      }
-      world_iter = world_iter->id.next;
-    }
+			}
+			world_iter = world_iter->id.next;
+		}
 
-    if (wanted_world == NULL) { /* Requested world doesn't exist */
-      PyOS_snprintf(error_msg, sizeof(error_msg),
+		if (wanted_world == NULL) { /* Requested world doesn't exist */
+			PyOS_snprintf(error_msg, sizeof(error_msg),
 										"World \"%s\" not found", name);
-      return (EXPP_ReturnPyObjError (PyExc_NameError, error_msg));
-    }
+			return (EXPP_ReturnPyObjError (PyExc_NameError, error_msg));
+		}
 
-    return (PyObject *)wanted_world;
+		return (PyObject *)wanted_world;
 	}
 
 	else { /* return a list of all worlds in the scene */
-    worldlist = PyList_New (0);
-    if (worldlist == NULL)
-      return (PythonReturnErrorObject (PyExc_MemoryError,
+		worldlist = PyList_New (0);
+		if (worldlist == NULL)
+			return (PythonReturnErrorObject (PyExc_MemoryError,
 																			 "couldn't create PyList"));
 
 		while (world_iter) {
 			BPy_World *found_world = (BPy_World *)PyObject_NEW(BPy_World, &World_Type);
 			found_world->world = world_iter;
-			PyList_Append (worldlist ,  (PyObject *)found_world); 
+			PyList_Append (worldlist ,	(PyObject *)found_world); 
 
-      world_iter = world_iter->id.next;
+			world_iter = world_iter->id.next;
 		}
 		return (worldlist);
 	}
@@ -211,29 +211,80 @@ static PyObject *M_World_Get(PyObject *self, PyObject *args)
 
 PyObject *World_Init (void)
 {
-  PyObject  *submodule;
+	PyObject	*submodule;
 
-  World_Type.ob_type = &PyType_Type;
+	World_Type.ob_type = &PyType_Type;
 
-  submodule = Py_InitModule3("Blender.World",
-                  M_World_methods, M_World_doc);
+	submodule = Py_InitModule3("Blender.World",
+									M_World_methods, M_World_doc);
 
-  return (submodule);
+	return (submodule);
 }
 
 
 /*****************************************************************************/
-/* Python BPy_World methods:                                                */
+/* Python BPy_World methods:																								*/
 /*****************************************************************************/
-
-
 
 static PyObject *World_getIpo(BPy_World *self)
 {
-PyObject *Ipo_CreatePyObject (Ipo *ipo);
-	struct Ipo*ipo = self->world->ipo;
-	if (!ipo) return EXPP_ReturnPyObjError(PyExc_RuntimeError,"World has no Ipo");
+	struct Ipo *ipo = self->world->ipo;
+
+	if (!ipo) {
+		Py_INCREF (Py_None);
+		return Py_None;
+	}
+
 	return Ipo_CreatePyObject (ipo);
+}
+
+static PyObject *World_setIpo(BPy_World *self, PyObject *args)
+{
+	PyObject *pyipo = 0;
+	Ipo *ipo = NULL;
+	Ipo *oldipo;
+
+	if (!PyArg_ParseTuple(args, "O!", &Ipo_Type, &pyipo))
+		return EXPP_ReturnPyObjError (PyExc_TypeError, "expected Ipo as argument");
+
+	ipo = Ipo_FromPyObject(pyipo);
+
+	if (!ipo) return EXPP_ReturnPyObjError (PyExc_RuntimeError, "null ipo!");
+
+	if (ipo->blocktype != ID_CA)
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"this ipo is not a World type ipo");
+
+	oldipo = self->world->ipo;
+	if (oldipo) {
+		ID *id = &oldipo->id;
+		if (id->us > 0) id->us--;
+	}
+
+	((ID *)&ipo->id)->us++;
+
+	self->world->ipo = ipo;
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+static PyObject *World_clearIpo(BPy_World *self)
+{
+	World *world = self->world;
+	Ipo *ipo = (Ipo *)world->ipo;
+
+	if (ipo) {
+		ID *id = &ipo->id;
+		if (id->us > 0) id->us--;
+		world->ipo = NULL;
+
+		Py_INCREF (Py_True);
+		return Py_True;
+	}
+
+	Py_INCREF (Py_False); /* no ipo found */
+	return Py_False;
 }
 
 /**
@@ -244,12 +295,12 @@ PyObject *Ipo_CreatePyObject (Ipo *ipo);
 
 static PyObject *World_getName(BPy_World *self)
 {
-  PyObject *attr = PyString_FromString(self->world->id.name+2);
+	PyObject *attr = PyString_FromString(self->world->id.name+2);
 
-  if (attr) return attr;
+	if (attr) return attr;
 
-  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-                                   "couldn't get World.name attribute"));
+	return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
+																	 "couldn't get World.name attribute"));
 }
 /**
  * \brief World PyMethod setName
@@ -258,15 +309,15 @@ static PyObject *World_getName(BPy_World *self)
 
 static PyObject *World_setName(BPy_World *self, PyObject *args)
 {
-  char *name = 0;
-  char buf[21];
-  if (!PyArg_ParseTuple(args, "s", &name))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected string argument"));
-  snprintf(buf, sizeof(buf), "%s", name);
-  rename_id(&self->world->id, buf);
+	char *name = 0;
+	char buf[21];
+	if (!PyArg_ParseTuple(args, "s", &name))
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected string argument"));
+	snprintf(buf, sizeof(buf), "%s", name);
+	rename_id(&self->world->id, buf);
 
-  Py_INCREF(Py_None);
-  return Py_None;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 
@@ -281,12 +332,12 @@ static PyObject *World_setName(BPy_World *self, PyObject *args)
 
 static PyObject *World_getSkytype(BPy_World *self)
 {
-  PyObject *attr = PyInt_FromLong((long)self->world->skytype);
+	PyObject *attr = PyInt_FromLong((long)self->world->skytype);
 
-  if (attr) return attr;
+	if (attr) return attr;
 
-  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-                                   "couldn't get World.skytype attribute"));
+	return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
+																	 "couldn't get World.skytype attribute"));
 }
 
 
@@ -298,14 +349,14 @@ static PyObject *World_getSkytype(BPy_World *self)
 
 static PyObject *World_setSkytype(BPy_World *self, PyObject *args )
 {
-  int skytype;
+	int skytype;
 
-  if (!PyArg_ParseTuple(args, "i", &skytype))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
-                                     "expected int argument"));
+	if (!PyArg_ParseTuple(args, "i", &skytype))
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,
+																		 "expected int argument"));
 	self->world->skytype = skytype;
-  Py_INCREF(Py_None);
-  return Py_None;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 
@@ -317,12 +368,12 @@ static PyObject *World_setSkytype(BPy_World *self, PyObject *args )
 
 static PyObject *World_getMode(BPy_World *self)
 {
-  PyObject *attr = PyInt_FromLong((long)self->world->mode);
+	PyObject *attr = PyInt_FromLong((long)self->world->mode);
 
-  if (attr) return attr;
+	if (attr) return attr;
 
-  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-                                   "couldn't get World.mode attribute"));
+	return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
+																	 "couldn't get World.mode attribute"));
 }
 
 
@@ -334,14 +385,14 @@ static PyObject *World_getMode(BPy_World *self)
 
 static PyObject *World_setMode(BPy_World *self, PyObject *args )
 {
-  int mode;
+	int mode;
 
-  if (!PyArg_ParseTuple(args, "i", &mode))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
-                                     "expected int argument"));
+	if (!PyArg_ParseTuple(args, "i", &mode))
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,
+																		 "expected int argument"));
 	self->world->mode = mode;
-  Py_INCREF(Py_None);
-  return Py_None;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 
@@ -365,12 +416,12 @@ static PyObject *World_setMode(BPy_World *self, PyObject *args )
 
 static PyObject *World_getMistype(BPy_World *self)
 {
-  PyObject *attr = PyInt_FromLong((long)self->world->mistype);
+	PyObject *attr = PyInt_FromLong((long)self->world->mistype);
 
-  if (attr) return attr;
+	if (attr) return attr;
 
-  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-                                   "couldn't get World.mistype attribute"));
+	return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
+																	 "couldn't get World.mistype attribute"));
 }
 
 
@@ -382,14 +433,14 @@ static PyObject *World_getMistype(BPy_World *self)
 
 static PyObject *World_setMistype(BPy_World *self, PyObject *args )
 {
-  int mistype;
+	int mistype;
 
-  if (!PyArg_ParseTuple(args, "i", &mistype))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
-                                     "expected int argument"));
+	if (!PyArg_ParseTuple(args, "i", &mistype))
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,
+																		 "expected int argument"));
 	self->world->mistype = mistype;
-  Py_INCREF(Py_None);
-  return Py_None;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 
@@ -398,10 +449,10 @@ static PyObject *World_setMistype(BPy_World *self, PyObject *args )
 
 static PyObject *World_getHor(BPy_World *self)
 {
-  PyObject *attr = PyList_New(0);
+	PyObject *attr = PyList_New(0);
 	if (!attr)
 		return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-                                   "couldn't create list"));
+																	 "couldn't create list"));
 	PyList_Append(attr, PyFloat_FromDouble(self->world->horr));
 	PyList_Append(attr, PyFloat_FromDouble(self->world->horg));
 	PyList_Append(attr, PyFloat_FromDouble(self->world->horb));
@@ -412,8 +463,8 @@ static PyObject *World_getHor(BPy_World *self)
 static PyObject *World_setHor(BPy_World *self, PyObject *args )
 {
 	PyObject *listargs=0;
-  if (!PyArg_ParseTuple(args, "O", &listargs))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
+	if (!PyArg_ParseTuple(args, "O", &listargs))
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,
 																	 "expected list argument"));
 	self->world->horr =  PyFloat_AsDouble(PyList_GetItem(listargs,0));
 	self->world->horg =  PyFloat_AsDouble(PyList_GetItem(listargs,1));
@@ -425,10 +476,10 @@ static PyObject *World_setHor(BPy_World *self, PyObject *args )
 
 static PyObject *World_getZen(BPy_World *self)
 {
-  PyObject *attr = PyList_New(0);
+	PyObject *attr = PyList_New(0);
 	if (!attr)
 		return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-                                   "couldn't create list"));
+																	 "couldn't create list"));
 	PyList_Append(attr, PyFloat_FromDouble(self->world->zenr));
 	PyList_Append(attr, PyFloat_FromDouble(self->world->zeng));
 	PyList_Append(attr, PyFloat_FromDouble(self->world->zenb));
@@ -439,8 +490,8 @@ static PyObject *World_getZen(BPy_World *self)
 static PyObject *World_setZen(BPy_World *self, PyObject *args )
 {
 	PyObject *listargs=0;
-  if (!PyArg_ParseTuple(args, "O", &listargs))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
+	if (!PyArg_ParseTuple(args, "O", &listargs))
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,
 																	 "expected list argument"));
 	self->world->zenr =  PyFloat_AsDouble(PyList_GetItem(listargs,0));
 	self->world->zeng =  PyFloat_AsDouble(PyList_GetItem(listargs,1));
@@ -454,10 +505,10 @@ static PyObject *World_setZen(BPy_World *self, PyObject *args )
 
 static PyObject *World_getAmb(BPy_World *self)
 {
-  PyObject *attr = PyList_New(0);
+	PyObject *attr = PyList_New(0);
 	if (!attr)
 		return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-                                   "couldn't create list"));
+																	 "couldn't create list"));
 	PyList_Append(attr, PyFloat_FromDouble(self->world->ambr));
 	PyList_Append(attr, PyFloat_FromDouble(self->world->ambg));
 	PyList_Append(attr, PyFloat_FromDouble(self->world->ambb));
@@ -468,12 +519,12 @@ static PyObject *World_getAmb(BPy_World *self)
 static PyObject *World_setAmb(BPy_World *self, PyObject *args )
 {
 	PyObject *listargs=0;
-  if (!PyArg_ParseTuple(args, "O", &listargs))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected list argument"));
+	if (!PyArg_ParseTuple(args, "O", &listargs))
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected list argument"));
 	if (!PyList_Check(listargs))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected list argument"));
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected list argument"));
 	if (PyList_Size(listargs)!=3)
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,"wrong list size"));
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,"wrong list size"));
 	self->world->ambr =  PyFloat_AsDouble(PyList_GetItem(listargs,0));
 	self->world->ambg =  PyFloat_AsDouble(PyList_GetItem(listargs,1));
 	self->world->ambb = PyFloat_AsDouble(PyList_GetItem(listargs,2));
@@ -484,7 +535,7 @@ static PyObject *World_setAmb(BPy_World *self, PyObject *args )
 
 static PyObject *World_getStar(BPy_World *self)
 {
-  PyObject *attr = PyList_New(0);
+	PyObject *attr = PyList_New(0);
 	if (!attr)
 		return (EXPP_ReturnPyObjError (PyExc_RuntimeError,"couldn't create list"));
 	PyList_Append(attr, PyFloat_FromDouble(self->world->starr));
@@ -501,14 +552,14 @@ static PyObject *World_getStar(BPy_World *self)
 static PyObject *World_setStar(BPy_World *self, PyObject *args )
 {
 	PyObject *listargs=0;
-  if (!PyArg_ParseTuple(args, "O", &listargs))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected list argument"));
+	if (!PyArg_ParseTuple(args, "O", &listargs))
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected list argument"));
 	if (!PyList_Check(listargs))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected list argument"));
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected list argument"));
 	if (PyList_Size(listargs)!=7)
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,"wrong list size"));
-	self->world->starr =  PyFloat_AsDouble(PyList_GetItem(listargs,0));
-	self->world->starg =  PyFloat_AsDouble(PyList_GetItem(listargs,1));
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,"wrong list size"));
+	self->world->starr =	PyFloat_AsDouble(PyList_GetItem(listargs,0));
+	self->world->starg =	PyFloat_AsDouble(PyList_GetItem(listargs,1));
 	self->world->starb = PyFloat_AsDouble(PyList_GetItem(listargs,2));
 	self->world->starsize = PyFloat_AsDouble(PyList_GetItem(listargs,3));
 	self->world->starmindist = PyFloat_AsDouble(PyList_GetItem(listargs,4));
@@ -525,7 +576,7 @@ static PyObject *World_setStar(BPy_World *self, PyObject *args )
 
 static PyObject *World_getMist(BPy_World *self)
 {
-  PyObject *attr = PyList_New(0);
+	PyObject *attr = PyList_New(0);
 	if (!attr)
 		return (EXPP_ReturnPyObjError (PyExc_RuntimeError, "couldn't create list"));
 	PyList_Append(attr, PyFloat_FromDouble(self->world->misi));
@@ -539,14 +590,14 @@ static PyObject *World_getMist(BPy_World *self)
 static PyObject *World_setMist(BPy_World *self, PyObject *args )
 {
 	PyObject *listargs=0;
-  if (!PyArg_ParseTuple(args, "O", &listargs))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected list argument"));
+	if (!PyArg_ParseTuple(args, "O", &listargs))
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected list argument"));
 	if (!PyList_Check(listargs))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected list argument"));
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected list argument"));
 	if (PyList_Size(listargs)!=4)
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,"wrong list size"));
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,"wrong list size"));
 	self->world->misi =  PyFloat_AsDouble(PyList_GetItem(listargs,0));
-	self->world->miststa =  PyFloat_AsDouble(PyList_GetItem(listargs,1));
+	self->world->miststa =	PyFloat_AsDouble(PyList_GetItem(listargs,1));
 	self->world->mistdist =  PyFloat_AsDouble(PyList_GetItem(listargs,2));
 	self->world->misthi = PyFloat_AsDouble(PyList_GetItem(listargs,3));
 	Py_INCREF(Py_None);
@@ -564,7 +615,7 @@ static PyObject *World_setMist(BPy_World *self, PyObject *args )
 
 static void World_DeAlloc (BPy_World *self)
 {
-  PyObject_DEL (self);
+	PyObject_DEL (self);
 }
 
 /**
@@ -578,15 +629,15 @@ static PyObject *World_GetAttr (BPy_World *self, char *name)
 {
 
 if (strcmp (name, "name") == 0)return  World_getName (self);
-if (strcmp (name, "skytype") == 0)return  World_getSkytype (self);
+if (strcmp (name, "skytype") == 0)return	World_getSkytype (self);
 if (strcmp (name, "mode") == 0)return  World_getMode (self);
-if (strcmp (name, "mistype") == 0)return  World_getMistype (self);
-if (strcmp (name, "hor") == 0)return  World_getHor (self);
-if (strcmp (name, "zen") == 0)return  World_getZen (self);
-if (strcmp (name, "amb") == 0)return  World_getAmb (self);
+if (strcmp (name, "mistype") == 0)return	World_getMistype (self);
+if (strcmp (name, "hor") == 0)return	World_getHor (self);
+if (strcmp (name, "zen") == 0)return	World_getZen (self);
+if (strcmp (name, "amb") == 0)return	World_getAmb (self);
 if (strcmp (name, "star") == 0)return  World_getStar (self);
 if (strcmp (name, "mist") == 0)return  World_getMist (self);
-  return Py_FindMethod(BPy_World_methods, (PyObject *)self, name);
+	return Py_FindMethod(BPy_World_methods, (PyObject *)self, name);
 }
 
 /**
@@ -598,10 +649,10 @@ if (strcmp (name, "mist") == 0)return  World_getMist (self);
 
 static int World_SetAttr (BPy_World *self, char *name, PyObject *value)
 {
-  PyObject *valtuple  = Py_BuildValue("(O)", value);
+	PyObject *valtuple	= Py_BuildValue("(O)", value);
 
-  if (!valtuple) 
-    return EXPP_ReturnIntError(PyExc_MemoryError,
+	if (!valtuple) 
+		return EXPP_ReturnIntError(PyExc_MemoryError,
 															 "WorldSetAttr: couldn't parse args");
 		if (strcmp (name, "name") == 0) World_setName (self,valtuple);
 if (strcmp (name, "skytype") == 0) World_setSkytype (self,valtuple);
@@ -619,17 +670,17 @@ return 0; /* normal exit */
  * \brief The World PyType compare function
  *
  * This function compares two given World PyObjects, returning 0 for equality
- * and -1 otherwise.  In Python it becomes 1 if they are equal and 0 case not.
+ * and -1 otherwise.	In Python it becomes 1 if they are equal and 0 case not.
  * The comparison is done with their pointers to Blender World Data objects,
  * so any two wrappers pointing to the same Blender World Data will be
- * considered the same World PyObject.  Currently, only the "==" and "!="
+ * considered the same World PyObject.	Currently, only the "==" and "!="
  * comparisons are meaninful -- the "<", "<=", ">" or ">=" are not.
  */
 
 static int World_Compare (BPy_World *a, BPy_World *b)
 {
-  World *pa = a->world, *pb = b->world;
-  return (pa == pb) ? 0:-1;
+	World *pa = a->world, *pb = b->world;
+	return (pa == pb) ? 0:-1;
 }
 
 /**
@@ -642,8 +693,8 @@ static int World_Compare (BPy_World *a, BPy_World *b)
 /*
 static int World_Print(BPy_World *self, FILE *fp, int flags)
 { 
-  fprintf(fp, "[World \"%s\"]", self->world->id.name+2);
-  return 0;
+	fprintf(fp, "[World \"%s\"]", self->world->id.name+2);
+	return 0;
 }
 */
 
@@ -651,34 +702,34 @@ static int World_Print(BPy_World *self, FILE *fp, int flags)
  * \brief The World PyType repr callback
  *
  * This function is called when the statement "repr(myworld)" is executed in
- * Python.  Repr gives a string representation of a PyObject.
+ * Python.	Repr gives a string representation of a PyObject.
  */
 
 static PyObject *World_Repr (BPy_World *self)
 {
-  return PyString_FromFormat("[World \"%s\"]", self->world->id.name+2);
+	return PyString_FromFormat("[World \"%s\"]", self->world->id.name+2);
 }
 
 /*@}*/
-
+/*
 static int World_compare (BPy_World *a, BPy_World *b)
 {
-  World *pa = a->world, *pb = b->world;
-  return (pa == pb) ? 0:-1;
+	World *pa = a->world, *pb = b->world;
+	return (pa == pb) ? 0:-1;
 }
-
+*/
 PyObject* World_CreatePyObject (struct World *world)
 {
- BPy_World    * blen_object;
+ BPy_World		* blen_object;
 
-    blen_object = (BPy_World*)PyObject_NEW (BPy_World, &World_Type);
+		blen_object = (BPy_World*)PyObject_NEW (BPy_World, &World_Type);
 
-    if (blen_object == NULL)
-    {
-        return (NULL);
-    }
-    blen_object->world = world;
-    return ((PyObject*)blen_object);
+		if (blen_object == NULL)
+		{
+				return (NULL);
+		}
+		blen_object->world = world;
+		return ((PyObject*)blen_object);
 
 }
 
@@ -690,20 +741,20 @@ return (py_obj->ob_type == &World_Type);
 
 World* World_FromPyObject (PyObject *py_obj)
 {
- BPy_World    * blen_obj;
+ BPy_World		* blen_obj;
 
-    blen_obj = (BPy_World*)py_obj;
-    return (blen_obj->world);
+		blen_obj = (BPy_World*)py_obj;
+		return (blen_obj->world);
 
 }
 
 /*****************************************************************************/
-/* Description: Returns the object with the name specified by the argument   */
-/*              name. Note that the calling function has to remove the first */
-/*              two characters of the object name. These two characters      */
-/*              specify the type of the object (OB, ME, WO, ...)             */
-/*              The function will return NULL when no object with the given  */
-/*              name is found.                                               */
+/* Description: Returns the object with the name specified by the argument	 */
+/*							name. Note that the calling function has to remove the first */
+/*							two characters of the object name. These two characters			 */
+/*							specify the type of the object (OB, ME, WO, ...)						 */
+/*							The function will return NULL when no object with the given  */
+/*							name is found.																							 */
 /*****************************************************************************/
 World * GetWorldByName (char * name)
 {

@@ -125,6 +125,7 @@ static PyObject *Camera_getClipStart(BPy_Camera *self);
 static PyObject *Camera_getClipEnd(BPy_Camera *self);
 static PyObject *Camera_getDrawSize(BPy_Camera *self);
 static PyObject *Camera_setIpo(BPy_Camera *self, PyObject *args);
+static PyObject *Camera_clearIpo(BPy_Camera *self);
 static PyObject *Camera_setName(BPy_Camera *self, PyObject *args);
 static PyObject *Camera_setType(BPy_Camera *self, PyObject *args);
 static PyObject *Camera_setIntType(BPy_Camera *self, PyObject *args);
@@ -158,7 +159,9 @@ static PyMethodDef BPy_Camera_methods[] = {
   {"getDrawSize", (PyCFunction)Camera_getDrawSize, METH_NOARGS,
       "() - Return Camera draw size value"},
   {"setIpo", (PyCFunction)Camera_setIpo, METH_VARARGS,
-      "(O) - Set Camera Ipo"},
+      "(Blender Ipo) - Set Camera Ipo"},
+  {"clearIpo", (PyCFunction)Camera_clearIpo, METH_NOARGS,
+      "() - Unlink Ipo from this Camera."},
   {"setName", (PyCFunction)Camera_setName, METH_VARARGS,
       "(s) - Set Camera Data name"},
   {"setType", (PyCFunction)Camera_setType, METH_VARARGS,
