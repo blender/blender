@@ -38,6 +38,7 @@ struct Scene;
 struct Object;
 struct Base;
 struct AviCodecData;
+struct QuicktimeCodecData;
 
 void free_avicodecdata(struct AviCodecData *acd);
 void free_qtcodecdata(struct QuicktimeCodecData *acd);
