@@ -2732,7 +2732,9 @@ void lib_link_screen_restore(Main *newmain, char mode, Scene *curscene)
 				}
 				else if(sl->spacetype==SPACE_FILE) {
 					SpaceFile *sfile= (SpaceFile *)sl;
-
+					if(sfile->libfiledata)	
+						BLO_blendhandle_close(sfile->libfiledata);
+					sfile->libfiledata= 0;
 				}
 				else if(sl->spacetype==SPACE_IMASEL) {
 					;
