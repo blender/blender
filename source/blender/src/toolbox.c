@@ -1513,6 +1513,7 @@ ListBase tb_listb= {NULL, NULL};
 #define TB_TAB	256
 #define TB_ALT	512
 #define TB_CTRL	1024
+#define TB_PAD	2048
 
 typedef struct TBitem {
 	int icon;
@@ -1535,6 +1536,19 @@ static void tb_do_hotkey(void *arg, int event)
 	}
 	
 	if(event & TB_TAB) key= TABKEY;
+	else if(event & TB_PAD) {
+		event &= ~TB_PAD;
+		switch(event) {
+		case '0': event= PAD0; break;
+		case '5': event= PAD5; break;
+		case '/': event= PADSLASHKEY; break;
+		case '.': event= PADPERIOD; break;
+		case '*': event= PADASTERKEY; break;
+		case 'h': event= HOMEKEY; break;
+		case 'u': event= PAGEUPKEY; break;
+		case 'd': event= PAGEDOWNKEY; break;
+		}
+	}
 	else asciitoraw(event, &key, &qual2);
 
 	if(qual1) mainqenter(qual1, 1);
@@ -1559,12 +1573,41 @@ static TBitem tb_object_select[]= {
 
 /* *************Edit ********** */
 
+static TBitem tb_mesh_edit[]= {
+{	0, "Exit Editmode|Tab", 	TB_TAB, NULL},
+{	0, "Undo|U", 			'u', 		NULL},
+{	0, "Redo|Shift U", 		'U', 		NULL},
+{	0, "Make Edge/Face|F", 	'f', 		NULL},
+{	0, "Extrude|E", 	'e', 		NULL},
+{	0, "Split|Y", 	'y', 		NULL},
+{	0, "Separate|P", 	'p', 		NULL},
+{	0, "Tools Menu|W", 	'w', 		NULL},
+{  -1, "", 			0, tb_do_hotkey}};
+
+
+static TBitem tb_object_ipo[]= {
+{	0, "Show/Hide", 	'k', NULL},
+{	0, "Select Next", 	TB_PAD|'u', NULL},
+{	0, "Select Prev", 	TB_PAD|'d', NULL},
+{  -1, "", 			0, tb_do_hotkey}};
+
+
 static TBitem tb_object_edit[]= {
 {	0, "Enter Editmode|Tab", 	TB_TAB, NULL},
-{	0, "Insert Keyframe|I", 	'i', NULL},
+{	0, "Insert Key...|I", 	'i', NULL},
+{	0, "Object Keys", 	0, tb_object_ipo},
 {	0, "Boolean...|W", 			'w', NULL},
 {	0, "Join Objects|CTRL J", 	TB_CTRL|'j', NULL},
 {	0, "Convert Object...|Alt C", 'i', NULL},
+{  -1, "", 			0, tb_do_hotkey}};
+
+
+/* *************Mesh ********** */
+
+static TBitem tb_mesh[]= {
+{	0, "Duplicate|Shift D", 		'D', 		NULL},
+{	0, "Delete|X", 					'x', 		NULL},
+
 {  -1, "", 			0, tb_do_hotkey}};
 
 
@@ -1580,12 +1623,14 @@ static TBitem tb_object[]= {
 {	0, "SEPR", 								0, NULL},
 {	0, "Make Parent|Ctrl P", 		TB_CTRL|'p', NULL},
 {	0, "Clear Parent|Alt P", 		TB_ALT|'p', NULL},
+{	0, "Make Track|Ctrl T", 		TB_CTRL|'t', NULL},
+{	0, "Clear Track|Alt T", 		TB_ALT|'t', NULL},
 {	0, "Copy Properties...|Ctrl C", TB_CTRL|'c', NULL},
 {	0, "Move to Layer...|M", 		'm', NULL},
 {  -1, "", 			0, tb_do_hotkey}};
 
 
-/* *************TRANSFORM ********** */
+/* *************VIEW ********** */
 
 static void tb_do_view_dt(void *arg, int event){
 	G.vd->drawtype= event;
@@ -1599,6 +1644,18 @@ static TBitem tb_view_dt[]= {
 {	ICON_SMOOTH, "Shaded", 		5, NULL},
 {	ICON_POTATO, "Textured", 	5, NULL},
 {  -1, "", 			0, tb_do_view_dt}};
+
+static TBitem tb_view[]= {
+{	0, "Viewport Shading", 			0, tb_view_dt},
+{	0, "SEPR", 						0, NULL},
+{	0, "Ortho/Persp|Pad 5", 	TB_PAD|'5', NULL},
+{	0, "Local View|Pad /", 	TB_PAD|'/', NULL},
+{	0, "Frame All|Home", 		TB_PAD|'h', NULL},
+{	0, "Frame Selected|Pad .", 	TB_PAD|'.', NULL},
+{	0, "Centre Cursor|C", 		'c', NULL},
+{	0, "SEPR", 		0, NULL},
+{	0, "Play Back |Alt A", TB_ALT|'a', NULL},
+{  -1, "", 			0, tb_do_hotkey}};
 
 
 /* *************TRANSFORM ********** */
@@ -1758,12 +1815,13 @@ void toolbox_n(void)
 		menu3= tb_object_select; str3= "Select";
 		menu4= tb_object_edit; str4= "Edit";
 		menu5= tb_transform; str5= "Transform";
-		menu6= tb_view_dt; str6= "View";
+		menu6= tb_view; str6= "View";
 		
 		if(G.obedit) {
 			if(G.obedit->type==OB_MESH) {
-				menu1= tb_test; str1= "Mesh";
+				menu1= tb_mesh; str1= "Mesh";
 				menu2= addmenu_mesh; str2= "Add";
+				menu4= tb_mesh_edit; str4= "Edit";
 			}
 			else if(G.obedit->type==OB_CURVE) {
 				menu1= tb_test; str1= "Curve";

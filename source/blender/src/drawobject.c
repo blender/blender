@@ -3467,11 +3467,11 @@ void draw_object(Base *base)
 			// no theme yet
 			if(ob->id.lib) {
 				if(base->flag & (SELECT+BA_WASSEL)) colindex = 4;
-				else colindex = 5;
+				else colindex = 3;
 			}
 			else if(warning_recursive==1) {
 				if(base->flag & (SELECT+BA_WASSEL)) colindex = 7;
-				else colindex = 8;
+				else colindex = 6;
 			}
 
 		}	

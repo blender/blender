@@ -625,32 +625,30 @@ static uiBlock *add_constraintmenu(void *arg_unused)
 	
 	block= uiNewBlock(&curarea->uiblocks, "add_constraintmenu", UI_EMBOSSP, UI_HELV, curarea->win);
 
-	uiDefIconTextBut(block, BUTM, B_CONSTRAINT_ADD_LOCLIKE, ICON_BLANK1,"Copy Location",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefIconTextBut(block, BUTM, B_CONSTRAINT_ADD_ROTLIKE, ICON_BLANK1,"Copy Rotation",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_LOCLIKE,"Copy Location",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_ROTLIKE,"Copy Rotation",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBut(block, BUTM, B_CONSTRAINT_ADD_TRACKTO, ICON_BLANK1,"Track To",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefIconTextBut(block, BUTM, B_CONSTRAINT_ADD_LOCKTRACK, ICON_BLANK1,"Lock Track",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefIconTextBut(block, BUTM, B_CONSTRAINT_ADD_FOLLOWPATH, ICON_BLANK1,"Follow Path",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_TRACKTO,"Track To",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_LOCKTRACK,"Lock Track",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_FOLLOWPATH,"Follow Path",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	
 	if (type==TARGET_BONE) {
 	
 		uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 		
-		uiDefIconTextBut(block, BUTM, B_CONSTRAINT_ADD_KINEMATIC, ICON_BLANK1,"IK Solver",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
-		uiDefIconTextBut(block, BUTM, B_CONSTRAINT_ADD_ACTION, ICON_BLANK1,"Action",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+		uiDefBut(block, BUTM, B_CONSTRAINT_ADD_KINEMATIC,"IK Solver",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+		uiDefBut(block, BUTM, B_CONSTRAINT_ADD_ACTION,"Action",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 		
 	}
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBut(block, BUTM, B_CONSTRAINT_ADD_NULL, ICON_BLANK1,"Null",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_NULL,"Null",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	
-
-
-	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 50);
+	uiBlockSetDirection(block, UI_RIGHT);
 		
 	return block;
 }

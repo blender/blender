@@ -369,7 +369,8 @@ static int change_bit(int val, int bit, int to_on) {
 	return to_on?(val|bit):(val&~bit);
 }
 
-static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private) {
+static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private) 
+{
 	GHOST_TEventType type= GHOST_GetEventType(evt);
 
 	if (type == GHOST_kEventQuit) {
@@ -541,9 +542,9 @@ static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private) {
 			window_handle(win, RESHAPE, 1);
 			break;
 		}
-		}
 	}
-
+	}
+	
 	return 1;
 }
 

@@ -301,6 +301,7 @@ void uiTextBoundsBlock(uiBlock *block, int addval)
 	bt= block->buttons.first;
 	while(bt) {
 		bt->x2 = i + addval;
+		ui_check_but(bt);	// clips text again
 		bt= bt->next;
 	}
 }
@@ -2637,7 +2638,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 					else if(but->type==BLOCK || but->type==MENU) {	// automatic opens block button (pulldown)
 						int time;
 						if(uevent->event!=LEFTMOUSE ) {
-							if(block->auto_open==2) time= 2;	// test for toolbox
+							if(block->auto_open==2) time= 1;	// test for toolbox
 							else if(block->auto_open) time= 5*U.menuthreshold2;
 							else if(U.uiflag & MENUOPENAUTO) time= 5*U.menuthreshold1;
 							else time= -1;
