@@ -62,7 +62,9 @@ void calc_wave_deform(struct WaveEff *wav, float ctime, float *co);
 int object_wave(struct Object *ob);                            
 
 /* particle deflector */
-void pdDoEffector(float *opco, float *force, float *speed, float cur_time, unsigned int par_layer);
+#define PE_WIND_AS_SPEED 0x00000001
+
+void pdDoEffector(float *opco, float *force, float *speed, float cur_time, unsigned int par_layer,unsigned int flags);
 int pdDoDeflection(float opco[3], float npco[3], float opno[3],
 				   float npno[3], float life, float force[3], int def_depth,
 				   float cur_time, unsigned int par_layer, int *last_object,

@@ -88,7 +88,6 @@ extern int  get_defgroup_num (Object *ob, bDeformGroup        *dg);
 #define HEUNWARNLIMIT 1 // 50 would be fine i think for detecting severe *stiff* stuff
 
 float SoftHeunTol = 1.0f; // humm .. this should be calculated from sb parameters and sizes
-float steptime =  1.0f/25.0f; // translate framerate to *real* time
 float rescale_grav_to_framerate = 1.0f; // since unit of g is [m/sec^2] we need translation from frames to physics time
 float rescale_friction_to_framerate = 1.0f; // since unit of drag is [kg/sec] we need translation from frames to physics time
 
@@ -286,7 +285,7 @@ static int is_there_deflection(unsigned int layer)
 }
 
 
-static void softbody_calc_forces(Object *ob, float dtime)
+static void softbody_calc_forces(Object *ob, float forcetime)
 {
 	SoftBody *sb= ob->soft;	// is supposed to be there
 	BodyPoint  *bp;
@@ -300,10 +299,9 @@ static void softbody_calc_forces(Object *ob, float dtime)
 		bp->force[0]= bp->force[1]= bp->force[2]= 0.0;
 	}
 	
+	gravity = sb->grav * rescale_grav_to_framerate;	
 	/* check! */
 	do_effector= is_there_deflection(ob->lay);
-
-	gravity = sb->nodemass * sb->grav * rescale_grav_to_framerate;	
 	iks  = 1.0f/(1.0f-sb->inspring)-1.0f ;/* inner spring constants function */
 	bproot= sb->bpoint; /* need this for proper spring addressing */
 	
@@ -325,7 +323,7 @@ static void softbody_calc_forces(Object *ob, float dtime)
 				VecSubf(velgoal,bp->origS, bp->origE);
 				kd =  sb->goalfrict * rescale_friction_to_framerate ;
 
-				if (dtime > 0.0 ) { // make sure friction does not become rocket motor on time reversal
+				if (forcetime > 0.0 ) { // make sure friction does not become rocket motor on time reversal
 					bp->force[0]-= kd * (velgoal[0] + bp->vec[0]);
 					bp->force[1]-= kd * (velgoal[1] + bp->vec[1]);
 					bp->force[2]-= kd * (velgoal[2] + bp->vec[2]);
@@ -341,33 +339,46 @@ static void softbody_calc_forces(Object *ob, float dtime)
 			
 			/* gravitation */
 			bp->force[2]-= gravity*sb->nodemass; /* individual mass of node here */
-			
-			/* friction in media */
-			kd= sb->mediafrict* rescale_friction_to_framerate;  
-			/* assume it to be proportional to actual velocity */
-			bp->force[0]-= bp->vec[0]*kd;
-			bp->force[1]-= bp->vec[1]*kd;
-			bp->force[2]-= bp->vec[2]*kd;
-			/* friction in media done */
+						
+			/* particle field & vortex */
+			if(do_effector & USES_FIELD) {
+				float force[3]= {0.0f, 0.0f, 0.0f};
+				float speed[3]= {0.0f, 0.0f, 0.0f};
+				
+				pdDoEffector(bp->pos, force, speed, (float)G.scene->r.cfra, ob->lay,PE_WIND_AS_SPEED);
+				// note: now we have wind as motion of media, so we can do anisotropic stuff here, 
+				// if we had vertex normals here(BM)
+				/* apply force */
+				//  VecMulf(force, rescale_grav_to_framerate);  <- didn't work, made value far too low!
+				VecMulf(force,25.0f* rescale_friction_to_framerate); 
+				VECADD(bp->force, bp->force, force);
+				/* apply speed. note; deflector can give 'speed' only.... */
+				/* nooo! we never alter free variables :bp->vec bp->pos in here ! 
+				 * this will ruin adative stepsize AHA heun! (BM)
+				 * VECADD(bp->vec, bp->vec, speed);   
+				 */
+ 			    /* friction in moving media */
+			    kd= sb->mediafrict* rescale_friction_to_framerate;  
+				bp->force[0] -= kd * (bp->vec[0] - speed[0]/rescale_friction_to_framerate);
+				bp->force[1] -= kd * (bp->vec[1] - speed[1]/rescale_friction_to_framerate);
+				bp->force[2] -= kd * (bp->vec[2] - speed[2]/rescale_friction_to_framerate);
+				/* now we'll have nice centrifugal effect for vortex */
+
+			}
+			else {
+				/* friction in media (not) moving*/
+				kd= sb->mediafrict* rescale_friction_to_framerate;  
+				/* assume it to be proportional to actual velocity */
+				bp->force[0]-= bp->vec[0]*kd;
+				bp->force[1]-= bp->vec[1]*kd;
+				bp->force[2]-= bp->vec[2]*kd;
+				/* friction in media done */
+			}
 
 			/*other forces*/
 			/* this is the place where other forces can be added
 			yes, constraints and collision stuff should go here too (read baraff papers on that!)
 			*/
-			
-			/* particle field & deflectors */
-			if(do_effector & USES_FIELD) {
-				float force[3]= {0.0f, 0.0f, 0.0f};
-				float speed[3]= {0.0f, 0.0f, 0.0f};
-				
-				pdDoEffector(bp->pos, force, speed, (float)G.scene->r.cfra, ob->lay);
-				/* apply force */
-				//  VecMulf(force, rescale_grav_to_framerate);  <- didn't work, made value far too low!
-				VECADD(bp->force, bp->force, force);
-				/* apply speed. note; deflector can give 'speed' only.... */
-				VecMulf(speed, rescale_grav_to_framerate);	
-				VECADD(bp->vec, bp->vec, speed);
-			}
 #if 0			
 			/* copied from particles... doesn't work really! */
 			if(do_effector & USES_DEFLECT) {
@@ -492,7 +503,7 @@ static void softbody_calc_forces(Object *ob, float dtime)
 	}
 }
 
-static void softbody_apply_forces(Object *ob, float dtime, int mode, float *err)
+static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *err)
 {
 	/* time evolution */
 	/* actually does an explicit euler step mode == 0 */
@@ -504,13 +515,14 @@ static void softbody_apply_forces(Object *ob, float dtime, int mode, float *err)
 	float maxerr = 0.0;
 	int a;
 	
-	if (sb->nodemass > 0.09999f) timeovermass = dtime/sb->nodemass;
-	else timeovermass = dtime/0.09999f;
+	if (sb->nodemass > 0.09999f) timeovermass = forcetime/sb->nodemass;
+	else timeovermass = forcetime/0.09999f;
 	
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 		if(bp->goal < SOFTGOALSNAP){
 			
-			/* so here is dv/dt = a = sum(F_springs)/m + gravitation + some friction forces */
+			/* so here is (v)' = a(cceleration) = sum(F_springs)/m + gravitation + some friction forces  + more forces*/
+			/* the ( ... )' operator denotes derivate respective time
 			/* the euler step for velocity then becomes */
 			/* v(t + dt) = v(t) + a(t) * dt */ 
 			bp->force[0]*= timeovermass; /* individual mass of node here */ 
@@ -534,14 +546,14 @@ static void softbody_apply_forces(Object *ob, float dtime, int mode, float *err)
 			}
 			else {VECADD(bp->vec, bp->vec, bp->force);}
 
-			/* so here is dx/dt = v */
+			/* so here is (x)'= v(elocity) */
 			/* the euler step for location then becomes */
 			/* x(t + dt) = x(t) + v(t) * dt */ 
 			
 			VECCOPY(dx,bp->vec);
-			dx[0]*=dtime ; 
-			dx[1]*=dtime ; 
-			dx[2]*=dtime ; 
+			dx[0]*=forcetime ; 
+			dx[1]*=forcetime ; 
+			dx[2]*=forcetime ; 
 			
 			/* again some nasty if's to have heun in here too */
 			if (mode ==1){
@@ -1074,26 +1086,27 @@ void sbObjectStep(Object *ob, float framenr)
 	
 	/* checking time: */
 	ctime= bsystem_time(ob, NULL, framenr, 0.0);
-    softbody_scale_time(steptime); // translate frames/sec and lenghts unit to SI system
+    softbody_scale_time(1.0f/G.scene->r.frs_sec); // translate frames/sec and lenghts unit to SI system
 	dtime= ctime - sb->ctime;
-		// dtime= ABS(dtime); no no we want to go back in time with IPOs
-	timescale = (int)(sb->rklimit * ABS(dtime)); 
 		// bail out for negative or for large steps
-	if(dtime<0.0 || dtime >= 9.9*G.scene->r.framelen) {
+	if(dtime<0.0 || dtime >= 9.9*G.scene->r.framelen) { // note: what is G.scene->r.framelen for ? (BM)
 		sbObjectReset(ob);
 		return;
 	}
 	
 	/* the simulator */
 	
-	if(ABS(dtime) > 0.0) {	// note: what does this mean now? (ton)
-		
+	if(dtime > 0.0) {	// note: what does this mean now? (ton)
+		//answer (BM) :
+		//dtime is still in [frames]
+		//we made sure dtime is >= 0.0
+		//but still need to handle dtime == 0.0 -> just return sb as is, just to be nice
 		object_update_softbody(ob);
 		
 		if (TRUE) {	// RSOL1 always true now (ton)
 			/* special case of 2nd order Runge-Kutta type AKA Heun */
-			float timedone =0.0;
-			/* counter for emergency brake
+			float timedone =0.0; // how far did we get without violating error condition
+			/* loops = counter for emergency brake
 			 * we don't want to lock up the system if physics fail
 			 */
 			int loops =0 ; 
@@ -1102,7 +1115,7 @@ void sbObjectStep(Object *ob, float framenr)
 			forcetime = dtime; /* hope for integrating in one step */
 			while ( (ABS(timedone) < ABS(dtime)) && (loops < 2000) )
 			{
-				if (ABS(dtime) > 3.0 ){
+				if (ABS(dtime) > 9.0 ){
 					if(G.f & G_DEBUG) printf("SB_STEPSIZE \n");
 					break; // sorry but i must assume goal movement can't be interpolated any more
 				}
@@ -1150,6 +1163,7 @@ void sbObjectStep(Object *ob, float framenr)
 		// loop n times so that n*h = duration of one frame := 1
 		// x(t+h) = x(t) + h*v(t);
 		// v(t+h) = v(t) + h*f(x(t),t);
+	    timescale = (int)(sb->rklimit * ABS(dtime)); 
 		for(t=1 ; t <= timescale; t++) {
 			if (ABS(dtime) > 15 ) break;
 			
@@ -1188,7 +1202,7 @@ void sbObjectStep(Object *ob, float framenr)
 	} // if(ABS(dtime) > 0.0) 
 	else {
 		// rule : you have asked for the current state of the softobject 
-		// since dtime= ctime - ob->soft->ctime;
+		// since dtime= ctime - ob->soft->ctime== 0.0;
 		// and we were not notifified about any other time changes 
 		// so here it is !
 		softbody_to_object(ob);

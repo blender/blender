@@ -389,7 +389,7 @@ static int linetriangle(float p1[3], float p2[3], float v0[3], float v1[3], floa
     par_layer	= layer the caller is in
 
 */
-void pdDoEffector(float *opco, float *force, float *speed, float cur_time, unsigned int par_layer)
+void pdDoEffector(float *opco, float *force, float *speed, float cur_time, unsigned int par_layer,unsigned int flags)
 {
 /*
 	Modifies the force on a particle according to its
@@ -459,11 +459,16 @@ void pdDoEffector(float *opco, float *force, float *speed, float cur_time, unsig
 				/* the force is not too big */
 				if (distance < 0.001) distance = 0.001f;
 				f_force = (force_val)*(1/(1000 * (float)pow((double)distance, (double)ffall_val)));
-				
+				if(flags &&PE_WIND_AS_SPEED){
+				speed[0] -= (force_vec[0] * f_force );
+				speed[1] -= (force_vec[1] * f_force );
+				speed[2] -= (force_vec[2] * f_force );
+				}
+				else{
 				force[0] += force_vec[0]*f_force;
 				force[1] += force_vec[1]*f_force;
 				force[2] += force_vec[2]*f_force;
-				
+				}
 			}
 			else if(pd->forcefield == PFIELD_FORCE) {
 				
@@ -891,7 +896,7 @@ void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *
 
 		/* Check force field */
 		cur_time = pa->time;
-		pdDoEffector(opco, new_force, new_speed, cur_time, par_layer);
+		pdDoEffector(opco, new_force, new_speed, cur_time, par_layer,0);
 
 		/* new location */
 		pa->co[0]= opa->co[0] + deltalife * (opa->no[0] + new_speed[0] + 0.5f*new_force[0]);
