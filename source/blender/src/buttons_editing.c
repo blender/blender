@@ -1924,7 +1924,7 @@ static void editing_panel_mesh_paint(void)
 	uiDefButF(block, NUM, B_DIFF, "Mul:", 		1061,30,112,19, &Gvp.mul, 0.1, 50.0, 10, 0, "Set the number to multiply vertex colours with");
 	uiDefButF(block, NUM, B_DIFF, "Gamma:", 	1174,30,102,19, &Gvp.gamma, 0.1, 5.0, 10, 0, "Change the clarity of the vertex colours");
 	
-	uiDefBut(block, BUT, B_SET_VCOL, "Set VertCol",	980,5,103,28, 0, 0, 0, 0, 0, "Set Vertex colour of selection to current (Shift+K)");
+	uiDefBut(block, BUT, B_SET_VCOL, "Set VertCol",	980,5,80,20, 0, 0, 0, 0, 0, "Set Vertex colour of selection to current (Shift+K)");
 
 }
 
