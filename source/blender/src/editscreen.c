@@ -868,6 +868,8 @@ static void screen_dispatch_events(void) {
 	int events_remaining= 1;
 	ScrArea *sa;
 
+	window_make_active(mainwin); // added it here instead of screenmain (ton)
+
 	while (events_remaining) {
 		events_remaining= 0;
 				
@@ -934,7 +936,7 @@ void screenmain(void)
 			event= screen_qread(&val, &ascii);
 		}
 		
-		// window_make_active(mainwin); // (only for inputchange, removed, ton)
+		// window_make_active(mainwin); // (only for inputchange, removed, (ton))
 
 		if (event==INPUTCHANGE) {
 			window_make_active(mainwin);
