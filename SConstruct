@@ -324,18 +324,15 @@ if sys.platform == 'darwin':
     bundle = Environment ()
     blender_app = 'blender'
     bundle.Depends ('#/blender.app/Contents/MacOS/' + blender_app, blender_app)
-    bundle.Command ('dummy1', '#/blender.app', 'rm -rf $SOURCE')
-    bundle.Command ('dummy2', '#/source/darwin/blender.app', 'cp -R $SOURCE .')
     bundle.Command ('#/blender.app/Contents/Info.plist',
                     '#/source/darwin/blender.app/Contents/Info.plist',
+                    "rm -rf blender.app && " + \
+                    "cp -R source/darwin/blender.app . && " +
                     "cat $SOURCE | sed s/VERSION/`cat release/VERSION`/ | \
                                    sed s/DATE/`date +'%Y-%b-%d'`/ \
                                    > $TARGET")
-    bundle.Command ('dummy3', blender_app,
-                    'cp $SOURCE blender.app/Contents/MacOS')
-    bundle.Command ('dummy4', '#/blender.app/Contents/MacOS/' + blender_app,
-                    'chmod +x $SOURCE')
-    bundle.Command ('dummy5', 'blender.app',
-                    'find $SOURCE -name CVS -prune -exec rm -rf {} \;')
-    bundle.Command ('dummy6', 'blender.app',
+    bundle.Command ('blender.app/Contents/MacOS/' + blender_app, blender_app,
+                    'cp $SOURCE $TARGET && ' + \
+                    'chmod +x $TARGET && ' + \
+                    'find $SOURCE -name CVS -prune -exec rm -rf {} \; && ' +
                     'find $SOURCE -name .DS_Store -exec rm -rf {} \;')
