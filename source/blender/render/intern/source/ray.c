@@ -52,6 +52,10 @@
 #define DDA_SHADOW 0
 #define DDA_MIRROR 1
 
+#ifdef WIN32
+#define bzero(a,b) memset(a, 0, b)
+#endif
+
 /* ********** structs *************** */
 
 typedef struct Octree {
