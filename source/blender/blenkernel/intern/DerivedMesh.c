@@ -954,12 +954,12 @@ DerivedMesh *derivedmesh_from_displistmesh(EditMesh *em, DispListMesh *dlm)
 
 ///
 
-static void build_mesh_data(Object *ob)
+static void build_mesh_data(Object *ob, int inEditMode)
 {
 	Mesh *me = ob->data;
 
 		/* Inside edit mode mesh modifiers aren't calculated */
-	if(ob->disp.first==NULL && G.obedit!=ob) { 
+	if(ob->disp.first==NULL && !inEditMode) { 
 		if(ob->parent && ob->partype==PARSKEL) makeDispList(ob);
 		else if(ob->parent && ob->parent->type==OB_LATTICE) makeDispList(ob);
 		else if(ob->hooks.first) makeDispList(ob);
@@ -969,8 +969,12 @@ static void build_mesh_data(Object *ob)
 			if(eff->type==EFF_WAVE) makeDispList(ob);
 		}
 	}
-	if(me->derived==NULL && mesh_uses_displist(me)) {
-		makeDispList(ob);
+	if(mesh_uses_displist(me)) {
+		if(inEditMode && !G.editMesh->derived) {
+			makeDispList(ob);
+		} else if (!inEditMode && !me->derived) {
+			makeDispList(ob);
+		}
 	}
 
 	if(!me->disp.first || !((DispList*) me->disp.first)->nors) {
@@ -983,11 +987,12 @@ DerivedMesh *mesh_get_derived(Object *ob)
 	Mesh *me= ob->data;
 
 	if (mesh_uses_displist(me)) {
-		build_mesh_data(ob);
 
 		if(G.obedit && me==G.obedit->data) {
+			build_mesh_data(ob, 1);
 			return G.editMesh->derived;
 		} else {
+			build_mesh_data(ob, 0);
 			return me->derived;
 		}
 	} 
@@ -1026,13 +1031,17 @@ DerivedMesh *mesh_get_base_derived(Object *ob)
 	Mesh *me= ob->data;
 
 		/* Build's extverts, nors */
-	build_mesh_data(ob);
-
 	if (G.obedit && me==G.obedit->data) {
+		build_mesh_data(ob, 1);
+
 		return getEditMeshDerivedMesh(G.editMesh);
 	} else {
-		DispList *meDL = me->disp.first;
-		DispList *dl = find_displist(&ob->disp, DL_VERTS);
+		DispList *dl, *meDL;
+		
+		build_mesh_data(ob, 0);
+
+		meDL = me->disp.first;
+		dl = find_displist(&ob->disp, DL_VERTS);
 		return getMeshDerivedMesh(ob, dl?dl->verts:NULL, meDL?meDL->nors:NULL);
 	}
 }
