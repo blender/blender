@@ -955,7 +955,6 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		base= base->next;
 	}
 
-/* SILLY CODE!!!! */
 	/* duplis, draw as last to make sure the displists are ok */
 	base= G.scene->base.first;
 	while(base) {
