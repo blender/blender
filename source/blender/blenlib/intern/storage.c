@@ -110,11 +110,6 @@ struct statfs {
 #include "BLI_util.h"
 #include "BLI_linklist.h"
 
-/* functions */
-void  BLI_buildpwtable(struct passwd **pwtable);
-void  BLI_freepwtable(struct passwd *pwtable);
-char *BLI_findpwtable(struct passwd *pwtable, unsigned short user);
- 
 /* vars: */
 static int totnum,actnum;
 static struct direntry *files;
@@ -314,68 +309,6 @@ void BLI_builddir(char *dirname, char *relname)
 	}
 }
 
-#ifndef WIN32
-void BLI_buildpwtable(struct passwd **pwtable)
-{
-	int count=0,slen;
-	struct passwd *pw,*pwtab;
-
-	do{
-		pw=getpwent();
-		if (pw){
-			count++;
-		}
-	}while(pw);
-	endpwent();
-
-	pwtab = (struct passwd *)calloc(count+1,sizeof(struct passwd));
-	count=0;
-	do{
-		pw=getpwent();
-		if (pw){
-			pwtab[count] = *pw;
-			slen = strlen(pw->pw_name);
-			pwtab[count].pw_name = malloc(slen+1);
-			strcpy(pwtab[count].pw_name,pw->pw_name);
-			count ++;
-		}
-	}while(pw);
-	pwtab[count].pw_name = 0;
-	endpwent();
-
-	*(pwtable) = pwtab;
-}
-
-void BLI_freepwtable(struct passwd *pwtable)
-{
-	int count=0;
-
-	do{
-		if (pwtable[count].pw_name) free(pwtable[count].pw_name);
-		else break;
-		count++;
-	}while (1);
-
-	free(pwtable);
-}
-
-
-char *BLI_findpwtable(struct passwd *pwtable, ushort user)
-{
-	static char string[32];
-	
-	while (pwtable->pw_name){
-		if (pwtable->pw_uid == user){
-			return (pwtable->pw_name);
-		}
-		pwtable++;
-	}
-	sprintf(string, "%d", user);
-	return (string);
-}
-#endif
-
-
 void BLI_adddirstrings()
 {
 	char datum[100];
@@ -384,15 +317,10 @@ void BLI_adddirstrings()
 	static char * types[8] = {"---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"};
 	int num, mode;
 	int num1, num2, num3, num4, st_size;
-#ifndef WIN32	
-	struct passwd *pwtable;
-#endif
+
 	struct direntry * file;
 	struct tm *tm;
 	
-#ifndef WIN32
-	BLI_buildpwtable(&pwtable);
-#endif
 
 	file = &files[0];
 	
@@ -427,7 +355,9 @@ void BLI_adddirstrings()
 #ifdef WIN32
 		strcpy(files[num].owner,"user");
 #else
-		strcpy(files[num].owner, BLI_findpwtable(pwtable,files[num].s.st_uid));
+		struct passwd *pwuser;
+		pwuser = getpwuid(files[num].s.st_uid);
+		strcpy(files[num].owner, pwuser->pw_name);
 #endif
 
 		tm= localtime(&files[num].s.st_mtime);
@@ -476,9 +406,6 @@ void BLI_adddirstrings()
 
 		file++;
 	}
-#ifndef WIN32
-	BLI_freepwtable(pwtable);
-#endif
 }
 
 unsigned int BLI_getdir(char *dirname,  struct direntry **filelist)
