@@ -150,6 +150,9 @@ PyObject *Euler_Zero( EulerObject * self )
 
 static void Euler_dealloc( EulerObject * self )
 {
+	/* since we own this memory... */
+	PyMem_Free( self->eul );
+
 	PyObject_DEL( self );
 }
 
@@ -330,13 +333,25 @@ PyObject *newEulerObject( float *eul )
 
 	self = PyObject_NEW( EulerObject, &euler_Type );
 
+	/* 
+	   we own the self->eul memory and will free it later.
+	   if we received an input arg, copy to our internal array
+	*/
+
+	self->eul = PyMem_Malloc( 3 * sizeof( float ) );
+	if( ! self->eul )
+		return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					      "newEulerObject:PyMem_Malloc failed" );
+	
 	if( !eul ) {
-		self->eul = PyMem_Malloc( 3 * sizeof( float ) );
 		for( x = 0; x < 3; x++ ) {
 			self->eul[x] = 0.0f;
 		}
-	} else
-		self->eul = eul;
+	} else{
+		for( x = 0; x < 3; x++){
+			self->eul[x] = eul[x];
+		}
+	}
 
 	return ( PyObject * ) self;
 }
