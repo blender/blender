@@ -33,49 +33,44 @@
 #define EXPP_BUILD_H
 
 #include <Python.h>
-#include <stdio.h>
 
-#include <BLI_arithb.h>
-#include <BLI_blenlib.h>
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_object.h>
-#include <BKE_library.h>
+
+
 #include <DNA_effect_types.h>
 
-#include "gen_utils.h"
+
 #include "bpy_types.h"
 #include "Effect.h"
 
 /*****************************************************************************/
 /* Python API function prototypes for the Build module.                      */
 /*****************************************************************************/
-PyObject *M_Build_New (PyObject *self, PyObject *args);
-PyObject *M_Build_Get (PyObject *self, PyObject *args);
+PyObject *M_Build_New (PyObject * self, PyObject * args);
+PyObject *M_Build_Get (PyObject * self, PyObject * args);
 
 
 
 /*****************************************************************************/
 /* Python BPy_Build methods declarations:                                      */
 /*****************************************************************************/
-PyObject *Build_getLen(BPy_Build *self);
-PyObject *Build_setLen(BPy_Build *self,PyObject*a);
-PyObject *Build_getSfra(BPy_Build *self);
-PyObject *Build_setSfra(BPy_Build *self,PyObject*a);
+PyObject *Build_getLen (BPy_Build * self);
+PyObject *Build_setLen (BPy_Build * self, PyObject * a);
+PyObject *Build_getSfra (BPy_Build * self);
+PyObject *Build_setSfra (BPy_Build * self, PyObject * a);
 
 
 
 /*****************************************************************************/
 /* Python Build_Type callback function prototypes:                           */
 /*****************************************************************************/
-void BuildDeAlloc (BPy_Build *msh);
+void BuildDeAlloc (BPy_Build * msh);
 //int BuildPrint (BPy_Build *msh, FILE *fp, int flags);
-int BuildSetAttr (BPy_Build *msh, char *name, PyObject *v);
-PyObject *BuildGetAttr (BPy_Build *msh, char *name);
-PyObject *BuildRepr (BPy_Build *msh);
-PyObject* BuildCreatePyObject (struct Effect *build);
-int BuildCheckPyObject (PyObject *py_obj);
-struct Build* BuildFromPyObject (PyObject *py_obj);
+int BuildSetAttr (BPy_Build * msh, char *name, PyObject * v);
+PyObject *BuildGetAttr (BPy_Build * msh, char *name);
+PyObject *BuildRepr (BPy_Build * msh);
+PyObject *BuildCreatePyObject (struct Effect *build);
+int BuildCheckPyObject (PyObject * py_obj);
+struct Build *BuildFromPyObject (PyObject * py_obj);
 
 
 

@@ -33,135 +33,16 @@
 #define EXPP_ARMATURE_H
 
 #include <Python.h>
-#include <stdio.h>
-
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_object.h>
-#include <BKE_armature.h>
-#include <BKE_library.h>
-#include <BLI_blenlib.h>
 #include <DNA_armature_types.h>
-
-#include "constant.h"
-#include "gen_utils.h"
-#include "modules.h"
-
-
-/*****************************************************************************/
-/* Python API function prototypes for the Armature module.                   */
-/*****************************************************************************/
-static PyObject *M_Armature_New (PyObject *self, PyObject *args,
-                                 PyObject *keywords);
-static PyObject *M_Armature_Get (PyObject *self, PyObject *args);
-PyObject *Armature_Init (void);
-
-/*****************************************************************************/
-/* The following string definitions are used for documentation strings.      */
-/* In Python these will be written to the console when doing a               */
-/* Blender.Armature.__doc__                                                  */
-/*****************************************************************************/
-char M_Armature_doc[] =
-"The Blender Armature module\n\n\
-This module provides control over **Armature Data** objects in Blender.\n";
-
-char M_Armature_New_doc[] =
-"(name) - return a new Armature datablock of \n\
-          optional name 'name'.";
-
-char M_Armature_Get_doc[] =
-"(name) - return the armature with the name 'name', \
-returns None if not found.\n If 'name' is not specified, \
-it returns a list of all armatures in the\ncurrent scene.";
-
-char M_Armature_get_doc[] =
-"(name) - DEPRECATED. Use 'Get' instead. \
-return the armature with the name 'name', \
-returns None if not found.\n If 'name' is not specified, \
-it returns a list of all armatures in the\ncurrent scene.";
-
-/*****************************************************************************/
-/* Python method structure definition for Blender.Armature module:           */
-/*****************************************************************************/
-struct PyMethodDef M_Armature_methods[] = {
-  {"New",(PyCFunction)M_Armature_New, METH_VARARGS|METH_KEYWORDS,
-          M_Armature_New_doc},
-  {"Get",         M_Armature_Get,         METH_VARARGS, M_Armature_Get_doc},
-  {"get",         M_Armature_Get,         METH_VARARGS, M_Armature_get_doc},
-  {NULL, NULL, 0, NULL}
-};
 
 /*****************************************************************************/
 /* Python BPy_Armature structure definition:                                 */
 /*****************************************************************************/
-typedef struct {
-  PyObject_HEAD
-  bArmature *armature;
-} BPy_Armature;
 
-/*****************************************************************************/
-/* Python BPy_Armature methods declarations:                                 */
-/*****************************************************************************/
-static PyObject *Armature_getName(BPy_Armature *self);
-static PyObject *Armature_getBones(BPy_Armature *self);
-static PyObject *Armature_setName(BPy_Armature *self, PyObject *args);
-//static PyObject *Armature_setBones(BPy_Armature *self, PyObject *args);
-
-/*****************************************************************************/
-/* Python BPy_Armature methods table:                                        */
-/*****************************************************************************/
-static PyMethodDef BPy_Armature_methods[] = {
- /* name, method, flags, doc */
-  {"getName", (PyCFunction)Armature_getName, METH_NOARGS,
-          "() - return Armature name"},
-  {"getBones", (PyCFunction)Armature_getBones, METH_NOARGS,
-          "() - return Armature root bones"},
-  {"setName", (PyCFunction)Armature_setName, METH_VARARGS,
-          "(str) - rename Armature"},
-  /*  {"setBones", (PyCFunction)Armature_setBones, METH_VARARGS,
-          "(list of bones) - replace the whole bone list of the armature"},
-  */
-  {0}
-};
-
-/*****************************************************************************/
-/* Python TypeArmature callback function prototypes:                         */
-/*****************************************************************************/
-static void Armature_dealloc (BPy_Armature *armature);
-static PyObject *Armature_getAttr (BPy_Armature *armature, char *name);
-static int Armature_setAttr (BPy_Armature *armature, char *name, PyObject *v);
-static int Armature_compare (BPy_Armature *a1, BPy_Armature *a2);
-static PyObject *Armature_repr (BPy_Armature *armature);
-
-/*****************************************************************************/
-/* Python TypeArmature structure definition:                                 */
-/*****************************************************************************/
-PyTypeObject Armature_Type =
+typedef struct
 {
-  PyObject_HEAD_INIT(NULL)
-  0,                                      /* ob_size */
-  "Blender Armature",                     /* tp_name */
-  sizeof (BPy_Armature),                  /* tp_basicsize */
-  0,                                      /* tp_itemsize */
-  /* methods */
-  (destructor)Armature_dealloc,           /* tp_dealloc */
-  0,                                      /* tp_print */
-  (getattrfunc)Armature_getAttr,          /* tp_getattr */
-  (setattrfunc)Armature_setAttr,          /* tp_setattr */
-  (cmpfunc)Armature_compare,              /* tp_compare */
-  (reprfunc)Armature_repr,                /* tp_repr */
-  0,                                      /* tp_as_number */
-  0,                                      /* tp_as_sequence */
-  0,                                      /* tp_as_mapping */
-  0,                                      /* tp_as_hash */
-  0,0,0,0,0,0,
-  0,                                      /* tp_doc */ 
-  0,0,0,0,0,0,
-  BPy_Armature_methods,                   /* tp_methods */
-  0,                                      /* tp_members */
-};
-
-
-
+  PyObject_HEAD bArmature * armature;
+}
+BPy_Armature;
 
 #endif /* EXPP_ARMATURE_H */

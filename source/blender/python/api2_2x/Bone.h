@@ -41,14 +41,15 @@ PyObject *Bone_Init (void);
 
 
 /** Python BPy_Bone structure definition. */
-typedef struct {
-  PyObject_HEAD
-  Bone *bone;
-} BPy_Bone;
+typedef struct
+{
+  PyObject_HEAD Bone *bone;
+}
+BPy_Bone;
 
 
-PyObject* Bone_CreatePyObject (struct Bone *obj);
-int Bone_CheckPyObject (PyObject *py_obj);
-Bone* Bone_FromPyObject (PyObject *py_obj);
+PyObject *Bone_CreatePyObject (struct Bone *obj);
+int Bone_CheckPyObject (PyObject * py_obj);
+Bone *Bone_FromPyObject (PyObject * py_obj);
 
 #endif
