@@ -424,9 +424,10 @@ void freeoctree(void)
 		a++;
 	}
 	
-	printf("branches %d nodes %d\n", branchcount, nodecount);
-	printf("raycount %d \n", raycount);	
-	printf("ray coherent %d \n", coherent_ray);
+
+//	printf("branches %d nodes %d\n", branchcount, nodecount);
+//	printf("raycount %d \n", raycount);	
+//	printf("ray coherent %d \n", coherent_ray);
 //	printf("accepted %d rejected %d\n", accepted, rejected);
 
 	branchcount= 0;
@@ -1257,6 +1258,12 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr, int mask)
 	
 	// Osa structs we leave unchanged now
 	shi->osatex= 0;	
+	
+	// but, set O structs zero where it can confuse texture code
+	if(shi->matren->texco & (TEXCO_NORM|TEXCO_REFL) ) {
+		O.dxno[0]= O.dxno[1]= O.dxno[2]= 0.0;
+		O.dyno[0]= O.dyno[1]= O.dyno[2]= 0.0;
+	}
 
 	if(vlr->v4) {
 		if(is->isect==2) 
@@ -1601,6 +1608,8 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr, int mask)
 	do_mir= ((shi->matren->mode & MA_RAYMIRROR) && shi->matren->ray_mirror!=0.0);
 	vlr= shi->vlr;
 	
+	coh_test= 0;		// reset coherence optimize
+
 	if(R.r.mode & R_OSA) {
 		float accum[3], rco[3], ref[3];
 		float accur[3], refract[3], divr=0.0, div= 0.0;
