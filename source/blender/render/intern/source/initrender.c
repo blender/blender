@@ -746,13 +746,14 @@ void add_to_blurbuf(int blur)
 void yafrayRender()
 {
 	R.flag |= R_RENDERING;	/* !!! */
-	printf("Starting scene conversion.\n");
-	prepareScene();
-	printf("Scene conversion done.\n");
-	if(!R.r.YFexportxml)
+	// switch must be done before prepareScene()
+	if (!R.r.YFexportxml)
 		YAF_switchFile();
 	else
 		YAF_switchPlugin();
+	printf("Starting scene conversion.\n");
+	prepareScene();
+	printf("Scene conversion done.\n");
 	YAF_exportScene();
 	finalizeScene();
 }

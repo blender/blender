@@ -20,7 +20,7 @@ class yafrayFileRender_t : public yafrayRender_t
 		virtual void writeObject(Object* obj, 
 				const std::vector<VlakRen*> &VLR_list, const float obmat[4][4]);
 		virtual void writeAllObjects();
-		void writeAreaLamp(LampRen* lamp,int num);
+		void writeAreaLamp(LampRen* lamp, int num, float iview[4][4]);
 		virtual void writeLamps();
 		virtual void writeCamera();
 		virtual void writeHemilight();

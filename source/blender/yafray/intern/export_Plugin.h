@@ -35,7 +35,7 @@ class yafrayPluginRender_t : public yafrayRender_t
 		virtual void writeObject(Object* obj, 
 				const std::vector<VlakRen*> &VLR_list, const float obmat[4][4]);
 		virtual void writeAllObjects();
-		void writeAreaLamp(LampRen* lamp,int num);
+		void writeAreaLamp(LampRen* lamp, int num, float iview[4][4]);
 		virtual void writeLamps();
 		virtual void writeCamera();
 		virtual void writeHemilight();
@@ -57,8 +57,8 @@ class yafrayPluginRender_t : public yafrayRender_t
 				std::vector<yafray::GFLOAT> &uvcoords,std::vector<yafray::CFLOAT> &vcol,
 				std::map<VertRen*, int> &vert_idx,VlakRen *vlr,
 				bool has_orco,bool has_uv,bool has_vcol);
-		void genVertices(std::vector<yafray::point3d_t> &verts,int &vidx,
-										 std::map<VertRen*, int> &vert_idx,VlakRen* vlr,bool has_orco);
+		void genVertices(std::vector<yafray::point3d_t> &verts, int &vidx,
+										 std::map<VertRen*, int> &vert_idx, VlakRen* vlr, bool has_orco, Object* obj);
 };
 
 class blenderYafrayOutput_t : public yafray::colorOutput_t

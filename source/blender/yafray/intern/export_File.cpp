@@ -204,11 +204,9 @@ bool yafrayFileRender_t::writeRender()
 	ostr << "<render camera_name=\"MAINCAM\"\n";
 	ostr << "\traydepth=\"" << R.r.YF_raydepth << "\" gamma=\"" << R.r.YF_gamma << "\" exposure=\"" << R.r.YF_exposure << "\"\n";
 
-	//if( (G.scene->world!=NULL) && (G.scene->world->GIquality>1) && ! G.scene->world->cache )
-	if(R.r.YF_AA){
+	if(R.r.YF_AA)
 		ostr << "\tAA_passes=\"" << R.r.YF_AApasses << "\" AA_minsamples=\"" << R.r.YF_AAsamples << "\"";
-	}
-	else{
+	else {
 		if ((R.r.GImethod!=0) && (R.r.GIquality>1) && (!R.r.GIcache))
 			ostr << "\tAA_passes=\"5\" AA_minsamples=\"5\" " << endl;
 		else if ((R.r.mode & R_OSA) && (R.r.osa)) {
@@ -222,7 +220,11 @@ bool yafrayFileRender_t::writeRender()
 
 	if (hasworld) ostr << "\tbackground_name=\"world_background\"\n";
 
-	ostr << "\tAA_pixelwidth=\"2\" AA_threshold=\"0.05\" bias=\""<<R.r.YF_raybias<<"\" >\n";
+	ostr << "\tAA_pixelwidth=\"2\" AA_threshold=\"0.05\" bias=\"" << R.r.YF_raybias << "\"";
+ 
+	// alpha channel render when RGBA button enabled
+	if (R.r.planes==R_PLANES32) ostr << "\n\tsave_alpha=\"on\"";
+	ostr << " >\n";
 
 	ostr << "\t<outfile value=\"" << imgout << "\" />\n";
 
@@ -292,6 +294,25 @@ void yafrayFileRender_t::displayImage()
 }
 
 
+static void adjustPath(string &path)
+{
+	// if relative, expand to full path
+	if ((path[0]=='/') && (path[1]=='/')) {
+		string basepath = G.sce;
+		// fwd slash valid for win32 as well
+		int ls = basepath.find_last_of("/");
+#ifdef WIN32
+		if (ls==-1) ls = basepath.find_last_of("\\");
+#endif
+		path = basepath.substr(0, ls) + path.substr(1, path.length());
+	}
+#ifdef WIN32
+	// add drive char if not there
+	addDrive(path);
+#endif
+}
+
+
 void yafrayFileRender_t::writeTextures()
 {
 	for (map<string, pair<Material*, MTex*> >::const_iterator blendtex=used_textures.begin();
@@ -352,12 +373,8 @@ void yafrayFileRender_t::writeTextures()
 					ostr.str("");
 					ostr << "<shader type=\"image\" name=\"" << blendtex->first << "\" >\n";
 					ostr << "\t<attributes>\n";
-					// image->name is full path
 					string texpath = ima->name;
-#ifdef WIN32
-					// add drive char if not there
-					addDrive(texpath);
-#endif
+					adjustPath(texpath);
 					ostr << "\t\t<filename value=\"" << texpath << "\" />\n";
 					ostr << "\t</attributes>\n";
 					ostr << "</shader>\n\n";
@@ -760,7 +777,6 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 	bool no_auto = true;	//in case non-mesh, or mesh has no autosmooth
 	if (obj->type==OB_MESH) {
 		Mesh* mesh = (Mesh*)obj->data;
-
 		if (mesh->flag & ME_AUTOSMOOTH) {
 			no_auto = false;
 			ostr.str("");
@@ -783,6 +799,7 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 	map<VertRen*, int> vert_idx;	// for removing duplicate verts and creating an index list
 	int vidx = 0;	// vertex index counter
 
+	// vertices, transformed back to world
 	xmlfile << "\t\t<points>\n";
 	for (vector<VlakRen*>::const_iterator fci=VLR_list.begin();
 				fci!=VLR_list.end();++fci)
@@ -790,13 +807,16 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		VlakRen* vlr = *fci;
 		VertRen* ver;
 		float* orco;
+		float tvec[3];
 		ostr.str("");
 		if (vert_idx.find(vlr->v1)==vert_idx.end()) {
 			vert_idx[vlr->v1] = vidx++;
 			ver = vlr->v1;
-			ostr << "\t\t\t<p x=\"" << ver->co[0]
-								 << "\" y=\"" << ver->co[1]
-								 << "\" z=\"" << ver->co[2] << "\" />\n";
+			MTC_cp3Float(ver->co, tvec);
+			MTC_Mat4MulVecfl(obj->imat, tvec);
+			ostr << "\t\t\t<p x=\"" << tvec[0]
+								 << "\" y=\"" << tvec[1]
+								 << "\" z=\"" << tvec[2] << "\" />\n";
 			if (EXPORT_ORCO) {
 				orco = ver->orco;
 				ostr << "\t\t\t<p x=\"" << orco[0]
@@ -807,9 +827,11 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		if (vert_idx.find(vlr->v2)==vert_idx.end()) {
 			vert_idx[vlr->v2] = vidx++;
 			ver = vlr->v2;
-			ostr << "\t\t\t<p x=\"" << ver->co[0]
-								 << "\" y=\"" << ver->co[1]
-								 << "\" z=\"" << ver->co[2] << "\" />\n";
+			MTC_cp3Float(ver->co, tvec);
+			MTC_Mat4MulVecfl(obj->imat, tvec);
+			ostr << "\t\t\t<p x=\"" << tvec[0]
+								 << "\" y=\"" << tvec[1]
+								 << "\" z=\"" << tvec[2] << "\" />\n";
 			if (EXPORT_ORCO) {
 				orco = ver->orco;
 				ostr << "\t\t\t<p x=\"" << orco[0]
@@ -820,9 +842,11 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		if (vert_idx.find(vlr->v3)==vert_idx.end()) {
 			vert_idx[vlr->v3] = vidx++;
 			ver = vlr->v3;
-			ostr << "\t\t\t<p x=\"" << ver->co[0]
-								 << "\" y=\"" << ver->co[1]
-								 << "\" z=\"" << ver->co[2] << "\" />\n";
+			MTC_cp3Float(ver->co, tvec);
+			MTC_Mat4MulVecfl(obj->imat, tvec);
+			ostr << "\t\t\t<p x=\"" << tvec[0]
+								 << "\" y=\"" << tvec[1]
+								 << "\" z=\"" << tvec[2] << "\" />\n";
 			if (EXPORT_ORCO) {
 				orco = ver->orco;
 				ostr << "\t\t\t<p x=\"" << orco[0]
@@ -833,9 +857,11 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		if ((vlr->v4) && (vert_idx.find(vlr->v4)==vert_idx.end())) {
 			vert_idx[vlr->v4] = vidx++;
 			ver = vlr->v4;
-			ostr << "\t\t\t<p x=\"" << ver->co[0]
-								 << "\" y=\"" << ver->co[1]
-								 << "\" z=\"" << ver->co[2] << "\" />\n";
+			MTC_cp3Float(ver->co, tvec);
+			MTC_Mat4MulVecfl(obj->imat, tvec);
+			ostr << "\t\t\t<p x=\"" << tvec[0]
+								 << "\" y=\"" << tvec[1]
+								 << "\" z=\"" << tvec[2] << "\" />\n";
 			if (EXPORT_ORCO) {
 				orco = ver->orco;
 				ostr << "\t\t\t<p x=\"" << orco[0]
@@ -956,7 +982,7 @@ void yafrayFileRender_t::writeAllObjects()
 	  // skip main duplivert object if in dupliMtx_list, written later
 		Object* obj = obi->first;
 		if (dupliMtx_list.find(string(obj->id.name))!=dupliMtx_list.end()) continue;
-		writeObject(obj, obi->second, obi->first->obmat);
+		writeObject(obj, obi->second, obj->obmat);
 	}
 
 	// Now all duplivert objects (if any) as instances of main object
@@ -967,9 +993,11 @@ void yafrayFileRender_t::writeAllObjects()
 		dupMtx!=dupliMtx_list.end();++dupMtx) {
 
 		// original inverse matrix, not actual matrix of object, but first duplivert.
+		
 		for (int i=0;i<4;i++)
 			for (int j=0;j<4;j++)
 				obmat[i][j] = dupMtx->second[(i<<2)+j];
+
 		MTC_Mat4Invert(imat, obmat);
 
 		// first object written as normal (but with transform of first duplivert)
@@ -1010,7 +1038,7 @@ void yafrayFileRender_t::writeAllObjects()
 
 }
 
-void yafrayFileRender_t::writeAreaLamp(LampRen* lamp, int num)
+void yafrayFileRender_t::writeAreaLamp(LampRen* lamp, int num, float iview[4][4])
 {
 	if (lamp->area_shape!=LA_AREA_SQUARE) return;
 	float *a=lamp->area[0], *b=lamp->area[1], *c=lamp->area[2], *d=lamp->area[3];
@@ -1026,10 +1054,22 @@ void yafrayFileRender_t::writeAreaLamp(LampRen* lamp, int num)
 		ostr << "samples=\"" << sm << "\" psamples=\"" << psm << "\" ";
 	}
 	ostr << ">\n";
-	ostr << "\t<a x=\""<< a[0] <<"\" y=\""<< a[1] <<"\" z=\"" << a[2] <<"\" />\n";
-	ostr << "\t<b x=\""<< b[0] <<"\" y=\""<< b[1] <<"\" z=\"" << b[2] <<"\" />\n";
-	ostr << "\t<c x=\""<< c[0] <<"\" y=\""<< c[1] <<"\" z=\"" << c[2] <<"\" />\n";
-	ostr << "\t<d x=\""<< d[0] <<"\" y=\""<< d[1] <<"\" z=\"" << d[2] <<"\" />\n";
+	
+	// transform area lamp coords back to world
+	float lpco[4][3];
+	MTC_cp3Float(a, lpco[0]);
+	MTC_Mat4MulVecfl(iview, lpco[0]);
+	MTC_cp3Float(b, lpco[1]);
+	MTC_Mat4MulVecfl(iview, lpco[1]);
+	MTC_cp3Float(c, lpco[2]);
+	MTC_Mat4MulVecfl(iview, lpco[2]);
+	MTC_cp3Float(d, lpco[3]);
+	MTC_Mat4MulVecfl(iview, lpco[3]);
+	ostr << "\t<a x=\""<< lpco[0][0] <<"\" y=\""<< lpco[0][1] <<"\" z=\"" << lpco[0][2] <<"\" />\n";
+	ostr << "\t<b x=\""<< lpco[1][0] <<"\" y=\""<< lpco[1][1] <<"\" z=\"" << lpco[1][2] <<"\" />\n";
+	ostr << "\t<c x=\""<< lpco[2][0] <<"\" y=\""<< lpco[2][1] <<"\" z=\"" << lpco[2][2] <<"\" />\n";
+	ostr << "\t<d x=\""<< lpco[3][0] <<"\" y=\""<< lpco[3][1] <<"\" z=\"" << lpco[3][2] <<"\" />\n";
+
 	ostr << "\t<color r=\"" << lamp->r << "\" g=\"" << lamp->g << "\" b=\"" << lamp->b << "\" />\n";
 	ostr << "</light>\n\n";
 	xmlfile << ostr.str();
@@ -1037,12 +1077,18 @@ void yafrayFileRender_t::writeAreaLamp(LampRen* lamp, int num)
 
 void yafrayFileRender_t::writeLamps()
 {
+	// inver viewmatrix needed for back2world transform
+	float iview[4][4];
+	// R.viewinv != inv.R.viewmat because of possible ortho mode (see convertBlenderScene.c)
+	// have to invert it here
+	MTC_Mat4Invert(iview, R.viewmat);
+	
 	// all lamps
 	for (int i=0;i<R.totlamp;i++)
 	{
 		ostr.str("");
 		LampRen* lamp = R.la[i];
-		if (lamp->type==LA_AREA) { writeAreaLamp(lamp, i);  continue; }
+		if (lamp->type==LA_AREA) { writeAreaLamp(lamp, i, iview);  continue; }
 		// TODO: add decay setting in yafray
 		ostr << "<light type=\"";
 		if (lamp->type==LA_LOCAL)
@@ -1069,7 +1115,7 @@ void yafrayFileRender_t::writeLamps()
 				pwr = lamp->dist;
 				//decay = 1;
 			}
-			else pwr = 1;	// sun/hemi distance irrelevent.
+			else pwr = 1;	// sun/hemi distance irrelevant
 		}
 		ostr << "\" power=\"" << pwr;
 		string lpmode="off";
@@ -1087,14 +1133,26 @@ void yafrayFileRender_t::writeLamps()
 					<< " beam_falloff=\"2\"";	// no Blender equivalent (yet)
 		}
 		ostr << " >\n";
-		// position
-		ostr << "\t<from x=\"" << lamp->co[0] << "\" y=\"" << lamp->co[1] << "\" z=\"" << lamp->co[2] << "\" />\n";
+
+		// transform lamp co & vec back to world
+		float lpco[3], lpvec[4];
+		MTC_cp3Float(lamp->co, lpco);
+		MTC_Mat4MulVecfl(iview, lpco);
+		MTC_cp3Float(lamp->vec, lpvec);
+		lpvec[3] = 0;	// vec, not point
+		MTC_Mat4MulVec4fl(iview, lpvec);
+
+		// position, (==-blendir for sun/hemi)
+		if ((lamp->type==LA_SUN) || (lamp->type==LA_HEMI))
+			ostr << "\t<from x=\"" << -lpvec[0] << "\" y=\"" << -lpvec[1] << "\" z=\"" << -lpvec[2] << "\" />\n";
+		else
+			ostr << "\t<from x=\"" << lpco[0] << "\" y=\"" << lpco[1] << "\" z=\"" << lpco[2] << "\" />\n";		
 		// 'to' for spot, already calculated by Blender
 		if (lamp->type==LA_SPOT)
-			ostr << "\t<to x=\"" << lamp->co[0]+lamp->vec[0]
-							<< "\" y=\"" << lamp->co[1]+lamp->vec[1]
-							<< "\" z=\"" << lamp->co[2]+lamp->vec[2]
-							<< "\" />\n";
+			ostr << "\t<to x=\"" << lpco[0] + lpvec[0]
+							<< "\" y=\"" << lpco[1] + lpvec[1]
+							<< "\" z=\"" << lpco[2] + lpvec[2] << "\" />\n";
+
 		// color
 		// rgb in LampRen is premultiplied by energy, power is compensated for that above
 		ostr << "\t<color r=\"" << lamp->r << "\" g=\"" << lamp->g << "\" b=\"" << lamp->b << "\" />\n";
@@ -1109,7 +1167,11 @@ void yafrayFileRender_t::writeCamera()
 {
 	// here Global used again
 	ostr.str("");
-	ostr << "<camera name=\"MAINCAM\"";
+	ostr << "<camera name=\"MAINCAM\" ";
+	if (R.r.mode & R_ORTHO)
+		ostr << "type=\"ortho\"";
+	else	
+		ostr << "type=\"perspective\"";
 
 	// render resolution including the percentage buttons (aleady calculated in initrender for R renderdata)
 	int xres = R.r.xsch;
@@ -1123,38 +1185,21 @@ void yafrayFileRender_t::writeCamera()
 	ostr << "\" focal=\"" << mainCamLens/(aspect*32.0) << "\" >\n";
 	xmlfile << ostr.str();
 
-	// from, to, up vectors
-	// comment in MTC_matrixops.h not correct, copy is arg2->arg1
-	float camtx[4][4];
-	MTC_Mat4CpyMat4(camtx, maincam_obj->obmat);
-	MTC_normalise3DF(camtx[1]);	//up
-	MTC_normalise3DF(camtx[2]);	//dir
 	ostr.str("");
-	ostr << "\t<from x=\"" << camtx[3][0] << "\""
-							<< " y=\"" << camtx[3][1] << "\""
-							<< " z=\"" << camtx[3][2] << "\" />\n";
-	Object* dofob = findObject("OBFOCUS");
-	if (dofob) {
-		// dof empty found, modify lookat point accordingly
-		// location from matrix, in case animated
-		float fdx = dofob->obmat[3][0] - camtx[3][0];
-		float fdy = dofob->obmat[3][1] - camtx[3][1];
-		float fdz = dofob->obmat[3][2] - camtx[3][2];
-		float fdist = sqrt(fdx*fdx + fdy*fdy + fdz*fdz);
-		cout << "FOCUS object found, distance is: " << fdist << endl;
-		ostr << "\t<to x=\"" << camtx[3][0] - fdist*camtx[2][0]
-						<< "\" y=\"" << camtx[3][1] - fdist*camtx[2][1]
-						<< "\" z=\"" << camtx[3][2] - fdist*camtx[2][2] << "\" />\n";
-	}
-	else {
-		ostr << "\t<to x=\"" << camtx[3][0] - camtx[2][0]
-						<< "\" y=\"" << camtx[3][1] - camtx[2][1]
-						<< "\" z=\"" << camtx[3][2] - camtx[2][2] << "\" />\n";
-	}
-	ostr << "\t<up x=\"" << camtx[3][0] + camtx[1][0]
-					<< "\" y=\"" << camtx[3][1] + camtx[1][1]
-					<< "\" z=\"" << camtx[3][2] + camtx[1][2] << "\" />\n";
+	ostr << "\t<from x=\"" << maincam_obj->obmat[3][0] << "\""
+							<< " y=\"" << maincam_obj->obmat[3][1] << "\""
+							<< " z=\"" << maincam_obj->obmat[3][2] << "\" />\n";
+	float fdist = -R.viewmat[3][2];
+	if (R.r.mode & R_ORTHO) fdist *= 0.01f;
+	ostr << "\t<to x=\"" << maincam_obj->obmat[3][0] - fdist * R.viewmat[0][2]
+					<< "\" y=\"" << maincam_obj->obmat[3][1] - fdist * R.viewmat[1][2]
+					<< "\" z=\"" << maincam_obj->obmat[3][2] - fdist * R.viewmat[2][2] << "\" />\n";
+	ostr << "\t<up x=\"" << maincam_obj->obmat[3][0] + R.viewmat[0][1]
+					<< "\" y=\"" << maincam_obj->obmat[3][1] + R.viewmat[1][1]
+					<< "\" z=\"" << maincam_obj->obmat[3][2] + R.viewmat[2][1] << "\" />\n";
+	// add dof_distance param here
 	xmlfile << ostr.str();
+
 	xmlfile << "</camera>\n\n";
 }
 
@@ -1226,7 +1271,6 @@ void yafrayFileRender_t::writePathlight()
 bool yafrayFileRender_t::writeWorld()
 {
 	World *world = G.scene->world;
-	short i=0,j=0;
 	if (R.r.GIquality!=0) {
 		if (R.r.GImethod==1) {
 			if (world==NULL) cout << "WARNING: need world background for skydome!\n";
@@ -1237,35 +1281,36 @@ bool yafrayFileRender_t::writeWorld()
 
 	if (world==NULL) return false;
 
-	for(i=0;i<8;i++){
-		if(world->mtex[i] != NULL){
-			if(world->mtex[i]->tex->type == TEX_IMAGE && world->mtex[i]->tex->ima != NULL){
-				
-				for(j=0;j<160;j++){
-					if(world->mtex[i]->tex->ima->name[j] == '\0' && j > 3){
-						if(
-							(world->mtex[i]->tex->ima->name[j-3] == 'h' || world->mtex[i]->tex->ima->name[j-3] == 'H' ) &&
-							(world->mtex[i]->tex->ima->name[j-2] == 'd' || world->mtex[i]->tex->ima->name[j-2] == 'D' ) &&
-							(world->mtex[i]->tex->ima->name[j-1] == 'r' || world->mtex[i]->tex->ima->name[j-1] == 'R' )
-							){
-								ostr.str("");
-								ostr << "<background type=\"HDRI\" name=\"world_background\" ";
-								ostr << "exposure_adjust = \"";
-								ostr << (world->mtex[i]->tex->bright-1) << "\"";									
-								ostr << " mapping = \"probe\" ";
-								ostr << ">\n";
-								ostr << "<filename value=\"" << world->mtex[i]->tex->ima->name << "\"/>\n";
-								ostr << "</background>\n\n";
-								xmlfile << ostr.str();
-								return true;						
-						}
-					}
-				}
-
+	for (int i=0;i<6;i++) {
+		MTex* wtex = world->mtex[i];
+		if (!wtex) continue;
+		Image* wimg = wtex->tex->ima;
+		if ((wtex->tex->type==TEX_IMAGE) && (wimg!=NULL)) {
+			string wt_path = wimg->name;
+			adjustPath(wt_path);
+			if (BLI_testextensie(wimg->name, ".hdr")) {
 				ostr.str("");
-				ostr << "<background type=\"image\" name=\"world_background\" power=\"";
-				ostr << world->mtex[i]->tex->bright << "\">\n";
-				ostr << "<filename value=\"" << world->mtex[i]->tex->ima->name << "\"/>\n";
+				ostr << "<background type=\"HDRI\" name=\"world_background\" ";
+				// since exposure adjust is an integer, using the texbri slider isn't actually very useful here (result either -1/0/1)
+				// GIpower could be used, but is only active for GI
+				ostr << "exposure_adjust=\"" << int(world->mtex[i]->tex->bright-1) << "\" mapping=\"probe\" >\n";
+				ostr << "\t<filename value=\"" << wt_path << "\" />\n";
+				ostr << "</background>\n\n";
+				xmlfile << ostr.str();
+				return true;
+			}
+			else if (BLI_testextensie(wimg->name, ".jpg") || BLI_testextensie(wimg->name, ".jpeg") || BLI_testextensie(wimg->name, ".tga")) {
+				ostr.str("");
+				ostr << "<background type=\"image\" name=\"world_background\" >\n";
+				/*
+				// not yet in yafray, always assumes spheremap for now, not the same as in Blender,
+				// which for some reason is scaled by 2 in Blender???
+				if (wtex->texco & TEXCO_ANGMAP)
+					ostr << " mapping=\"probe\" >\n";
+				else
+					ostr << " mapping=\"sphere\" >\n";
+				*/
+				ostr << "\t<filename value=\"" << wt_path << "\" />\n";
 				ostr << "</background>\n\n";
 				xmlfile << ostr.str();
 				return true;
@@ -1275,7 +1320,8 @@ bool yafrayFileRender_t::writeWorld()
 
 	ostr.str("");
 	ostr << "<background type=\"constant\" name=\"world_background\" >\n";
-	// if no GI used, the GIpower parameter is not always initialized, so in that case ignore it  (have to change method to init yafray vars in Blender)
+	// if no GI used, the GIpower parameter is not always initialized, so in that case ignore it
+	// (have to change method to init yafray vars in Blender)
 	float bg_mult;
 	if (R.r.GImethod==0) bg_mult=1; else bg_mult=R.r.GIpower;
 	ostr << "\t<color r=\"" << (world->horr * bg_mult) << 
@@ -1321,5 +1367,3 @@ bool yafrayFileRender_t::executeYafray(const string &xmlpath)
 #endif
 	
 }
-
-

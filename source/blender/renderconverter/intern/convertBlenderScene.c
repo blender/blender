@@ -111,9 +111,8 @@
 #include <config.h>
 #endif
 
-/* yafray: VertRen vertices are not transformed, transform is replaced with the identity matrix,
- * since yafray needs the untransformed meshes to calculate orco texture space as in Blender.
- * This is not true for lamps however, which use a copy of the original object matrix instead.
+/* yafray: Identity transform 'hack' removed, exporter now transforms vertices back to world.
+ * Same is true for lamp coords & vec.
  * Duplicated data objects & dupliframe/duplivert objects are only stored once,
  * only the matrix is stored for all others, in yafray these objects are instances of the original.
  * The main changes are in RE_rotateBlenderScene().
@@ -1138,11 +1137,7 @@ static void init_render_mball(Object *ob)
 	if (ob!=find_basis_mball(ob))
 		return;
 
-	/* yafray: set transform to identity matrix */
-	if (R.r.renderer==R_YAFRAY)
-		MTC_Mat4One(mat);
-	else
-		MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
+	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);
 	MTC_Mat3CpyMat4(imat, ob->imat);
 
@@ -1262,11 +1257,7 @@ static void init_render_mesh(Object *ob)
 		return;
 	}
 
-	/* yafray: set transform to identity matrix */
-	if (R.r.renderer==R_YAFRAY)
-		MTC_Mat4One(mat);
-	else
-		MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
+	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);
 	MTC_Mat3CpyMat4(imat, ob->imat);
 
@@ -1591,11 +1582,7 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 	lar= (LampRen *)MEM_callocN(sizeof(LampRen),"lampren");
 	R.la[R.totlamp++]= lar;
 
-	/* yafray: in this case the lamp matrix is a copy of the object matrix */
-	if (R.r.renderer==R_YAFRAY)
-		MTC_Mat4CpyMat4(mat, ob->obmat);
-	else
-		MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
+	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);
 
 	MTC_Mat3CpyMat4(lar->mat, mat);
@@ -1779,11 +1766,7 @@ static void init_render_surf(Object *ob)
 	nu= cu->nurb.first;
 	if(nu==0) return;
 
-	/* yafray: set transform to identity matrix */
-	if (R.r.renderer==R_YAFRAY)
-		MTC_Mat4One(mat);
-	else
-		MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
+	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);
 
 	/* material array */
@@ -2184,11 +2167,7 @@ static void init_render_curve(Object *ob)
 
 	firststartvert= R.totvert;
 
-	/* yafray: set transform to identity matrix */
-	if (R.r.renderer==R_YAFRAY)
-		MTC_Mat4One(mat);
-	else
-		MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
+	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);
 
 	/* material array */
@@ -2537,11 +2516,7 @@ static void init_render_object(Object *ob)
 	else if(ob->type==OB_MBALL)
 		init_render_mball(ob);
 	else {
-		/* yafray: set transform to identity matrix */
-		if (R.r.renderer==R_YAFRAY)
-			MTC_Mat4One(mat);
-		else
-			MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
+		MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 		MTC_Mat4Invert(ob->imat, mat);
 	}
 	
@@ -2803,13 +2778,8 @@ void RE_rotateBlenderScene(void)
 	ob= G.main->object.first;
 	while(ob) {
 		if(ob->flag & OB_DO_IMAT) {
-
 			ob->flag &= ~OB_DO_IMAT;
-			/* yafray: set transform to identity matrix, not sure if this is needed here */
-			if (R.r.renderer==R_YAFRAY)
-				MTC_Mat4One(mat);
-			else
-				MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
+			MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 			MTC_Mat4Invert(ob->imat, mat);
 		}
 		ob= ob->id.next;
@@ -2928,11 +2898,7 @@ void RE_rotateBlenderScene(void)
 
 			}
 			else {
-				/* yafray: set transform to identity matrix, not sure if this is needed here */
-				if (R.r.renderer==R_YAFRAY)
-					MTC_Mat4One(mat);
-				else
-					MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
+				MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 				MTC_Mat4Invert(ob->imat, mat);
 			}
 
@@ -3065,7 +3031,7 @@ void displace_render_face(VlakRen *vlr, float *scale)
 		/*	closest in displace value.  This will help smooth edges.   */ 
 		if ( fabs(vlr->v1->accum - vlr->v3->accum) > fabs(vlr->v2->accum - vlr->v4->accum)) 
 				vlr->flag |= R_DIVIDE_24;
-		else 	vlr->flag & ~R_DIVIDE_24; 
+		else vlr->flag &= ~R_DIVIDE_24;	// E: typo?, was missing '='
 	}
 	
 	/* Recalculate the face normal  - if flipped before, flip now */

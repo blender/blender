@@ -40,12 +40,12 @@ bool yafrayRender_t::exportScene()
 		return false;
 	}
 
-	if(!initExport())
+	if (!initExport())
 	{
 		clearAll();
 		return false;
 	}
-	cout<<"Writing textures"<<endl;
+
 	// start actual data export
 	writeTextures();
 	writeMaterialsAndModulators();
@@ -58,7 +58,7 @@ bool yafrayRender_t::exportScene()
 	// clear for next call, before render to free some memory
 	clearAll();
 
-	if(!finishExport())
+	if (!finishExport())
 	{
 		G.afbreek = 1;	//stop render and anim if doing so
 		return false;
@@ -135,6 +135,13 @@ bool yafrayRender_t::getAllMatTexObs()
 		}
 		//else cout << "WARNING: VlakRen struct with null obj.ptr!\n";
 
+	}
+
+	// test
+	for (map<string, vector<float> >::const_iterator obn=dupliMtx_list.begin();
+			obn!=dupliMtx_list.end();++obn)
+	{
+		cout << obn->first << endl;
 	}
 
 	// in case dupliMtx_list not empty, make sure that there is at least one source object

@@ -296,6 +296,25 @@ void yafrayPluginRender_t::displayImage()
 }
 
 
+static void adjustPath(string &path)
+{
+	// if relative, expand to full path
+	if ((path[0]=='/') && (path[1]=='/')) {
+		string basepath = G.sce;
+		// fwd slash valid for win32 as well
+		int ls = basepath.find_last_of("/");
+#ifdef WIN32
+		if (ls==-1) ls = basepath.find_last_of("\\");
+#endif
+		path = basepath.substr(0, ls) + path.substr(1, path.length());
+	}
+#ifdef WIN32
+	// add drive char if not there
+	addDrive(path);
+#endif
+}
+
+
 void yafrayPluginRender_t::writeTextures()
 {
 	for (map<string, pair<Material*, MTex*> >::const_iterator blendtex=used_textures.begin();
@@ -347,13 +366,9 @@ void yafrayPluginRender_t::writeTextures()
 				Image* ima = tex->ima;
 				if (ima) {
 					params["type"]=yafray::parameter_t("image");
-					// image->name is full path
 					string texpath = ima->name;
-#ifdef WIN32
-					// add drive char if not there
-					addDrive(texpath);
-#endif
-					params["filename"]=yafray::parameter_t(texpath);
+					adjustPath(texpath);
+					params["filename"] = yafray::parameter_t(texpath);
 				}
 				break;
 			}
@@ -839,15 +854,18 @@ void yafrayPluginRender_t::genCompleFace(vector<int> &faces,/*vector<string> &sh
 	if(has_vcol) genVcol(vcol,vlr,2,3,0,EXPORT_VCOL);
 }
 
-void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts,int &vidx,
-																			 map<VertRen*, int> &vert_idx,VlakRen* vlr,bool has_orco)
+void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vidx,
+																			 map<VertRen*, int> &vert_idx, VlakRen* vlr, bool has_orco, Object* obj)
 {
 	VertRen* ver;
+	float tvec[3];	// for back2world transform
 	if (vert_idx.find(vlr->v1)==vert_idx.end()) 
 	{
 		vert_idx[vlr->v1] = vidx++;
 		ver = vlr->v1;
-		verts.push_back(yafray::point3d_t(ver->co[0],ver->co[1],ver->co[2]));
+		MTC_cp3Float(ver->co, tvec);
+		MTC_Mat4MulVecfl(obj->imat, tvec);
+		verts.push_back(yafray::point3d_t(tvec[0], tvec[1], tvec[2]));
 		if (has_orco) 
 			verts.push_back(yafray::point3d_t(ver->orco[0],ver->orco[1],ver->orco[2]));
 	}
@@ -855,7 +873,9 @@ void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts,int &vid
 	{
 		vert_idx[vlr->v2] = vidx++;
 		ver = vlr->v2;
-		verts.push_back(yafray::point3d_t(ver->co[0],ver->co[1],ver->co[2]));
+		MTC_cp3Float(ver->co, tvec);
+		MTC_Mat4MulVecfl(obj->imat, tvec);
+		verts.push_back(yafray::point3d_t(tvec[0], tvec[1], tvec[2]));
 		if (has_orco)
 			verts.push_back(yafray::point3d_t(ver->orco[0],ver->orco[1],ver->orco[2]));
 	}
@@ -863,7 +883,9 @@ void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts,int &vid
 	{
 		vert_idx[vlr->v3] = vidx++;
 		ver = vlr->v3;
-		verts.push_back(yafray::point3d_t(ver->co[0],ver->co[1],ver->co[2]));
+		MTC_cp3Float(ver->co, tvec);
+		MTC_Mat4MulVecfl(obj->imat, tvec);
+		verts.push_back(yafray::point3d_t(tvec[0], tvec[1], tvec[2]));
 		if (has_orco)
 			verts.push_back(yafray::point3d_t(ver->orco[0],ver->orco[1],ver->orco[2]));
 	}
@@ -871,7 +893,9 @@ void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts,int &vid
 	{
 		vert_idx[vlr->v4] = vidx++;
 		ver = vlr->v4;
-		verts.push_back(yafray::point3d_t(ver->co[0],ver->co[1],ver->co[2]));
+		MTC_cp3Float(ver->co, tvec);
+		MTC_Mat4MulVecfl(obj->imat, tvec);
+		verts.push_back(yafray::point3d_t(tvec[0], tvec[1], tvec[2]));
 		if (has_orco)
 			verts.push_back(yafray::point3d_t(ver->orco[0],ver->orco[1],ver->orco[2]));
 	}
@@ -898,14 +922,21 @@ void yafrayPluginRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_
 		caus=true;
 	}
 	bool has_orco=(VLR_list[0]->v1->orco!=NULL);
-	float sm_angle=0.1f;
+	bool no_auto = true;	//in case non-mesh, or mesh has no autosmooth
+	float sm_angle = 0.1f;
 	if (obj->type==OB_MESH) 
 	{
 		Mesh* mesh = (Mesh*)obj->data;
-		if (mesh->flag & ME_AUTOSMOOTH) 
-			sm_angle=mesh->smoothresh;
-		else
-			if (VLR_list[0]->flag & ME_SMOOTH)	sm_angle=90;
+		if (mesh->flag & ME_AUTOSMOOTH) {
+			sm_angle = mesh->smoothresh;
+			no_auto = false;
+		}
+	}
+	// this for non-mesh as well
+	if (no_auto) {
+		// no per face smooth flag in yafray, if AutoSmooth not used, 
+		// use smooth flag of the first face instead
+		if (VLR_list[0]->flag & ME_SMOOTH) sm_angle=90;
 	}
 	// Guess if we need to set vertex colors Could be faster? sure
 	bool has_vcol=false;
@@ -925,7 +956,7 @@ void yafrayPluginRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_
 				fci!=VLR_list.end();++fci)
 	{
 		VlakRen* vlr = *fci;
-		genVertices(verts,vidx,vert_idx,vlr,has_orco);
+		genVertices(verts, vidx, vert_idx, vlr, has_orco, obj);
 		if(vlr->tface) has_uv=true;
 	}
 	// all faces using the index list created above
@@ -960,7 +991,7 @@ void yafrayPluginRender_t::writeAllObjects()
 	  // skip main duplivert object if in dupliMtx_list, written later
 		Object* obj = obi->first;
 		if (dupliMtx_list.find(string(obj->id.name))!=dupliMtx_list.end()) continue;
-		writeObject(obj, obi->second, obi->first->obmat);
+		writeObject(obj, obi->second, obj->obmat);
 	}
 
 	// Now all duplivert objects (if any) as instances of main object
@@ -1010,7 +1041,7 @@ void yafrayPluginRender_t::writeAllObjects()
 
 }
 
-void yafrayPluginRender_t::writeAreaLamp(LampRen* lamp, int num)
+void yafrayPluginRender_t::writeAreaLamp(LampRen* lamp, int num, float iview[4][4])
 {
 	yafray::paramMap_t params;
 	
@@ -1033,23 +1064,42 @@ void yafrayPluginRender_t::writeAreaLamp(LampRen* lamp, int num)
 		params["samples"]=yafray::parameter_t(sm);
 		params["psamples"]=yafray::parameter_t(psm);
 	}
-	params["a"]=yafray::parameter_t(yafray::point3d_t(a[0],a[1],a[2]));
-	params["b"]=yafray::parameter_t(yafray::point3d_t(b[0],b[1],b[2]));
-	params["c"]=yafray::parameter_t(yafray::point3d_t(c[0],c[1],c[2]));
-	params["d"]=yafray::parameter_t(yafray::point3d_t(d[0],d[1],d[2]));
+	
+	// transform area lamp coords back to world
+	float lpco[4][3];
+	MTC_Mat4Invert(iview, R.viewmat);
+	MTC_cp3Float(a, lpco[0]);
+	MTC_Mat4MulVecfl(iview, lpco[0]);
+	MTC_cp3Float(b, lpco[1]);
+	MTC_Mat4MulVecfl(iview, lpco[1]);
+	MTC_cp3Float(c, lpco[2]);
+	MTC_Mat4MulVecfl(iview, lpco[2]);
+	MTC_cp3Float(d, lpco[3]);
+	MTC_Mat4MulVecfl(iview, lpco[3]);	
+	params["a"] = yafray::parameter_t(yafray::point3d_t(lpco[0][0], lpco[0][1], lpco[0][2]));
+	params["b"] = yafray::parameter_t(yafray::point3d_t(lpco[1][0], lpco[1][1], lpco[1][2]));
+	params["c"] = yafray::parameter_t(yafray::point3d_t(lpco[2][0], lpco[2][1], lpco[2][2]));
+	params["d"] = yafray::parameter_t(yafray::point3d_t(lpco[3][0], lpco[3][1], lpco[3][2]));
+	
 	params["color"]=yafray::parameter_t(yafray::color_t(lamp->r,lamp->g,lamp->b));
 	yafrayGate->addLight(params);
 }
 
 void yafrayPluginRender_t::writeLamps()
 {
+	// inver viewmatrix needed for back2world transform
+	float iview[4][4];
+	// R.viewinv != inv.R.viewmat because of possible ortho mode (see convertBlenderScene.c)
+	// have to invert it here
+	MTC_Mat4Invert(iview, R.viewmat);
+
 	// all lamps
 	for (int i=0;i<R.totlamp;i++)
 	{
 		yafray::paramMap_t params;
 		string type="";
 		LampRen* lamp = R.la[i];
-		if (lamp->type==LA_AREA) { writeAreaLamp(lamp, i);  continue; }
+		if (lamp->type==LA_AREA) { writeAreaLamp(lamp, i, iview);  continue; }
 		// TODO: add decay setting in yafray
 		if (lamp->type==LA_LOCAL)
 			params["type"]=yafray::parameter_t("pointlight");
@@ -1098,13 +1148,25 @@ void yafrayPluginRender_t::writeLamps()
 			params["blend"]=yafray::parameter_t(lamp->spotbl*ld);
 			params["beam_falloff"]=yafray::parameter_t(2.0);
 		}
-		params["from"]=yafray::parameter_t(yafray::point3d_t(lamp->co[0],lamp->co[1],lamp->co[2]));
-		// position
+
+		// transform lamp co & vec back to world
+		float lpco[3], lpvec[4];
+		MTC_cp3Float(lamp->co, lpco);
+		MTC_Mat4MulVecfl(iview, lpco);
+		MTC_cp3Float(lamp->vec, lpvec);
+		lpvec[3] = 0;	// vec, not point
+		MTC_Mat4MulVec4fl(iview, lpvec);
+
+		// position, (==-blendir for sun/hemi)
+		if ((lamp->type==LA_SUN) || (lamp->type==LA_HEMI))
+			params["from"] = yafray::parameter_t(yafray::point3d_t(-lpvec[0], -lpvec[1], -lpvec[2]));
+		else
+			params["from"] = yafray::parameter_t(yafray::point3d_t(lpco[0], lpco[1], lpco[2]));
 		// 'to' for spot, already calculated by Blender
 		if (lamp->type==LA_SPOT)
-			params["to"]=yafray::parameter_t(yafray::point3d_t(lamp->co[0]+lamp->vec[0],
-																													 lamp->co[1]+lamp->vec[1],
-																													 lamp->co[2]+lamp->vec[2]));
+			params["to"]=yafray::parameter_t(yafray::point3d_t(lpco[0] + lpvec[0],
+																												 lpco[1] + lpvec[1],
+																												 lpco[2] + lpvec[2]));
 		// color
 		// rgb in LampRen is premultiplied by energy, power is compensated for that above
 		params["color"]=yafray::parameter_t(yafray::color_t(lamp->r,lamp->g,lamp->b));
@@ -1118,37 +1180,29 @@ void yafrayPluginRender_t::writeCamera()
 {
 	yafray::paramMap_t params;
 	params["name"]=yafray::parameter_t("MAINCAM");
+	if (R.r.mode & R_ORTHO)
+		params["type"] = yafray::parameter_t("ortho");
+	else
+		params["type"] = yafray::parameter_t("perspective");
 	params["resx"]=yafray::parameter_t(R.r.xsch);
 	params["resy"]=yafray::parameter_t(R.r.ysch);
 	float aspect = 1;
-	if (R.r.xsch < R.r.ysch) aspect = float(R.r.xsch)/float(R.r.ysch);
+	if (R.r.xsch < R.r.ysch) aspect = float(R.r.xsch)/float(R.r.ysch);	
 
 	params["focal"]=yafray::parameter_t(mainCamLens/(aspect*32.0));
-	float camtx[4][4];
-	MTC_Mat4CpyMat4(camtx, maincam_obj->obmat);
-	MTC_normalise3DF(camtx[1]);	//up
-	MTC_normalise3DF(camtx[2]);	//dir
 	params["from"]=yafray::parameter_t(
-			yafray::point3d_t(camtx[3][0],camtx[3][1],camtx[3][2]));
-	Object* dofob = findObject("OBFOCUS");
-	float fdist=1;
-	if (dofob) {
-		// dof empty found, modify lookat point accordingly
-		// location from matrix, in case animated
-		float fdx = dofob->obmat[3][0] - camtx[3][0];
-		float fdy = dofob->obmat[3][1] - camtx[3][1];
-		float fdz = dofob->obmat[3][2] - camtx[3][2];
-		fdist = sqrt(fdx*fdx + fdy*fdy + fdz*fdz);
-		cout << "FOCUS object found, distance is: " << fdist << endl;
-	}
+			yafray::point3d_t(maincam_obj->obmat[3][0], maincam_obj->obmat[3][1], maincam_obj->obmat[3][2]));
+	float fdist = -R.viewmat[3][2];
+	if (R.r.mode & R_ORTHO) fdist *= 0.01f;
 	params["to"]=yafray::parameter_t(
-			yafray::point3d_t(camtx[3][0] - fdist*camtx[2][0],
-												camtx[3][1] - fdist*camtx[2][1],
-												camtx[3][2] - fdist*camtx[2][2]));
+			yafray::point3d_t(maincam_obj->obmat[3][0] - fdist * R.viewmat[0][2],
+												maincam_obj->obmat[3][1] - fdist * R.viewmat[1][2],
+												maincam_obj->obmat[3][2] - fdist * R.viewmat[2][2]));
 	params["up"]=yafray::parameter_t(
-			yafray::point3d_t(camtx[3][0] + camtx[1][0],
-												camtx[3][1] + camtx[1][1],
-												camtx[3][2] + camtx[1][2]));
+			yafray::point3d_t(maincam_obj->obmat[3][0] + R.viewmat[0][1],
+												maincam_obj->obmat[3][1] + R.viewmat[1][1],
+												maincam_obj->obmat[3][2] + R.viewmat[2][1]));
+	// add dof_distance param here
 	yafrayGate->addCamera(params);
 }
 
@@ -1232,7 +1286,6 @@ void yafrayPluginRender_t::writePathlight()
 bool yafrayPluginRender_t::writeWorld()
 {
 	World *world = G.scene->world;
-	short i=0,j=0;
 	if (R.r.GIquality!=0) {
 		if (R.r.GImethod==1) {
 			if (world==NULL) cout << "WARNING: need world background for skydome!\n";
@@ -1243,46 +1296,47 @@ bool yafrayPluginRender_t::writeWorld()
 
 	if (world==NULL) return false;
 
-	for(i=0;i<8;i++){
-		if(world->mtex[i] != NULL)
-		{
-			if(world->mtex[i]->tex->type == TEX_IMAGE && world->mtex[i]->tex->ima != NULL){
-				
-				for(j=0;j<160;j++){
-					if(world->mtex[i]->tex->ima->name[j] == '\0' && j > 3){
-						if(
-							(world->mtex[i]->tex->ima->name[j-3] == 'h' || world->mtex[i]->tex->ima->name[j-3] == 'H' ) &&
-							(world->mtex[i]->tex->ima->name[j-2] == 'd' || world->mtex[i]->tex->ima->name[j-2] == 'D' ) &&
-							(world->mtex[i]->tex->ima->name[j-1] == 'r' || world->mtex[i]->tex->ima->name[j-1] == 'R' )
-							)
-						{
-								yafray::paramMap_t params;
-								params["type"]=yafray::parameter_t("HDRI");
-								params["name"]=yafray::parameter_t("world_background");
-								params["exposure_adjust"]=yafray::parameter_t(world->mtex[i]->tex->bright-1);
-								params["mapping"]=yafray::parameter_t("probe");
-								params["filename"]=yafray::parameter_t(world->mtex[i]->tex->ima->name);
-								yafrayGate->addBackground(params);
-								return true;						
-						}
-					}
-				}
-
-				yafray::paramMap_t params;
-				params["type"]=yafray::parameter_t("image");
-				params["name"]=yafray::parameter_t("world_background");
-				params["power"]=yafray::parameter_t(world->mtex[i]->tex->bright);
-				params["filename"]=yafray::parameter_t(world->mtex[i]->tex->ima->name);
+	yafray::paramMap_t params;
+	for (int i=0;i<6;i++) {
+		MTex* wtex = world->mtex[i];
+		if (!wtex) continue;
+		Image* wimg = wtex->tex->ima;
+		if ((wtex->tex->type==TEX_IMAGE) && (wimg!=NULL)) {
+			string wt_path = wimg->name;
+			adjustPath(wt_path);
+			if (BLI_testextensie(wimg->name, ".hdr")) {
+				params["type"] = yafray::parameter_t("HDRI");
+				params["name"] = yafray::parameter_t("world_background");
+				// since exposure adjust is an integer, using the texbri slider isn't actually very useful here (result either -1/0/1)
+				params["exposure_adjust"] = yafray::parameter_t(int(world->mtex[i]->tex->bright-1));
+				params["mapping"] = yafray::parameter_t("probe");
+				params["filename"] = yafray::parameter_t(wt_path);
+				yafrayGate->addBackground(params);
+				return true;
+			}
+			else if (BLI_testextensie(wimg->name, ".jpg") || BLI_testextensie(wimg->name, ".jpeg") || BLI_testextensie(wimg->name, ".tga")) {
+				params["type"] = yafray::parameter_t("image");
+				params["name"] = yafray::parameter_t("world_background");
+				/*
+				// not yet in yafray, always assumes spheremap for now, not the same as in Blender,
+				// which for some reason is scaled by 2 in Blender???
+				if (wtex->texco & TEXCO_ANGMAP)
+					params["mapping"] = yafray::parameter_t("probe");
+				else
+					params["mapping"] = yafray::parameter_t("sphere");
+				*/
+				params["filename"] = yafray::parameter_t(wt_path);
 				yafrayGate->addBackground(params);
 				return true;
 			}
 		}
 	}
 
-	yafray::paramMap_t params;
-	params["type"]=yafray::parameter_t("constant");
-	params["name"]=yafray::parameter_t("world_background");
-	// if no GI used, the GIpower parameter is not always initialized, so in that case ignore it  (have to change method to init yafray vars in Blender)
+	params.clear();
+	params["type"] = yafray::parameter_t("constant");
+	params["name"] = yafray::parameter_t("world_background");
+	// if no GI used, the GIpower parameter is not always initialized, so in that case ignore it
+	// (have to change method to init yafray vars in Blender)
 	float bg_mult;
 	if (R.r.GImethod==0) bg_mult=1; else bg_mult=R.r.GIpower;
 	params["color"]=yafray::parameter_t(yafray::color_t(world->horr * bg_mult,
