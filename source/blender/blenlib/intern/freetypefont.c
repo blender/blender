@@ -66,6 +66,7 @@
 static FT_Library	library;
 static FT_Error		err;
 
+
 static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 {
 	// Blender
@@ -78,8 +79,6 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 	FT_GlyphSlot  glyph;
 	FT_UInt		glyph_index;
 	FT_Outline	ftoutline;
-	FT_Size		ftsize;
-
 /*
     FT_CharMap  found = 0;
 	FT_CharMap  charmap;
@@ -87,6 +86,7 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 	FT_UShort my_encoding_id = TT_MS_ID_UNICODE_CS;
 	int         n;
 */
+	const char *fontname;
 	float scale, height;
 	float dx, dy;
 	int i, j, k, l, m;
@@ -120,7 +120,10 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 
 	// allocate blender font
 	vfd= MEM_callocN(sizeof(*vfd), "FTVFontData");
-	strcpy(vfd->name, FT_Get_Postscript_Name(face));
+
+	// get the name
+	fontname = FT_Get_Postscript_Name(face);
+	strcpy(vfd->name, (fontname == NULL) ? "Fontname not available" : fontname);
 
 	// adjust font size
 	height = ((double) face->bbox.yMax - (double) face->bbox.yMin);
@@ -132,167 +135,169 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 
 	// extract generic ascii character range
 	for(i = myMIN_ASCII; i <= myMAX_ASCII; i++) {
-
 		int  *npoints;	//total points of each contour
 		int  *onpoints;	//num points on curve
 
 		glyph_index = FT_Get_Char_Index( face, i );
 		err = FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP);
-		glyph = face->glyph;
-		ftoutline = glyph->outline;
 
-		vfd->width[i] = glyph->advance.x* scale;
+		if(!err) {
+			glyph = face->glyph;
+			ftoutline = glyph->outline;
 
-		npoints = (int *)MEM_callocN((ftoutline.n_contours)* sizeof(int),"endpoints") ;
-		onpoints = (int *)MEM_callocN((ftoutline.n_contours)* sizeof(int),"onpoints") ;
+			vfd->width[i] = glyph->advance.x* scale;
 
-		// calculate total points of each contour
-		for(j = 0; j < ftoutline.n_contours; j++) {
-			if(j == 0)
-				npoints[j] = ftoutline.contours[j] + 1;
-			else
-				npoints[j] = ftoutline.contours[j] - ftoutline.contours[j - 1];
-		}
+			npoints = (int *)MEM_callocN((ftoutline.n_contours)* sizeof(int),"endpoints") ;
+			onpoints = (int *)MEM_callocN((ftoutline.n_contours)* sizeof(int),"onpoints") ;
 
-		// get number of on-curve points for beziertriples (including conic virtual on-points) 
-		for(j = 0; j < ftoutline.n_contours; j++) {
-			l = 0;
-			for(k = 0; k < npoints[j]; k++) {
-				if(j > 0) l = k + ftoutline.contours[j - 1] + 1; else l = k;
-
-				if(ftoutline.tags[l] == FT_Curve_Tag_On)
-					onpoints[j]++;
-
-				if(k < npoints[j] - 1 )
-					if( ftoutline.tags[l]   == FT_Curve_Tag_Conic &&
-						ftoutline.tags[l+1] == FT_Curve_Tag_Conic)
-						onpoints[j]++;
+			// calculate total points of each contour
+			for(j = 0; j < ftoutline.n_contours; j++) {
+				if(j == 0)
+					npoints[j] = ftoutline.contours[j] + 1;
+				else
+					npoints[j] = ftoutline.contours[j] - ftoutline.contours[j - 1];
 			}
-		}
 
-		//contour loop, bezier & conic styles merged
-		for(j = 0; j < ftoutline.n_contours; j++) {
-			// add new curve
-			nu  =  (Nurb*)MEM_callocN(sizeof(struct Nurb),"objfnt_nurb");
-			bezt = (BezTriple*)MEM_callocN((onpoints[j])* sizeof(BezTriple),"objfnt_bezt") ;
-			BLI_addtail(&vfd->nurbsbase[i], nu);
+			// get number of on-curve points for beziertriples (including conic virtual on-points) 
+			for(j = 0; j < ftoutline.n_contours; j++) {
+				l = 0;
+				for(k = 0; k < npoints[j]; k++) {
+					if(j > 0) l = k + ftoutline.contours[j - 1] + 1; else l = k;
 
-			nu->type= CU_BEZIER+CU_2D;
-			nu->pntsu = onpoints[j];
-			nu->resolu= 8;
-			nu->flagu= 1;
-			nu->bezt = bezt;
+					if(ftoutline.tags[l] == FT_Curve_Tag_On)
+						onpoints[j]++;
 
-			//individual curve loop, start-end
-			for(k = 0; k < npoints[j]; k++) {
-				if(j > 0) l = k + ftoutline.contours[j - 1] + 1; else l = k;
-				if(k == 0) m = l;
-				
-				//virtual conic on-curve points
-				if(k < npoints[j] - 1 )
-					if( ftoutline.tags[l] == FT_Curve_Tag_Conic && ftoutline.tags[l+1] == FT_Curve_Tag_Conic) {
-						dx = (ftoutline.points[l].x + ftoutline.points[l+1].x)* scale / 2.0;
-						dy = (ftoutline.points[l].y + ftoutline.points[l+1].y)* scale / 2.0;
+					if(k < npoints[j] - 1 )
+						if( ftoutline.tags[l]   == FT_Curve_Tag_Conic &&
+							ftoutline.tags[l+1] == FT_Curve_Tag_Conic)
+							onpoints[j]++;
+				}
+			}
 
+			//contour loop, bezier & conic styles merged
+			for(j = 0; j < ftoutline.n_contours; j++) {
+				// add new curve
+				nu  =  (Nurb*)MEM_callocN(sizeof(struct Nurb),"objfnt_nurb");
+				bezt = (BezTriple*)MEM_callocN((onpoints[j])* sizeof(BezTriple),"objfnt_bezt") ;
+				BLI_addtail(&vfd->nurbsbase[i], nu);
+
+				nu->type= CU_BEZIER+CU_2D;
+				nu->pntsu = onpoints[j];
+				nu->resolu= 8;
+				nu->flagu= 1;
+				nu->bezt = bezt;
+
+				//individual curve loop, start-end
+				for(k = 0; k < npoints[j]; k++) {
+					if(j > 0) l = k + ftoutline.contours[j - 1] + 1; else l = k;
+					if(k == 0) m = l;
+					
+					//virtual conic on-curve points
+					if(k < npoints[j] - 1 )
+						if( ftoutline.tags[l] == FT_Curve_Tag_Conic && ftoutline.tags[l+1] == FT_Curve_Tag_Conic) {
+							dx = (ftoutline.points[l].x + ftoutline.points[l+1].x)* scale / 2.0;
+							dy = (ftoutline.points[l].y + ftoutline.points[l+1].y)* scale / 2.0;
+
+							//left handle
+							bezt->vec[0][0] = (dx +	(2 * ftoutline.points[l].x)* scale) / 3.0;
+							bezt->vec[0][1] = (dy +	(2 * ftoutline.points[l].y)* scale) / 3.0;
+
+							//midpoint (virtual on-curve point)
+							bezt->vec[1][0] = dx;
+							bezt->vec[1][1] = dy;
+
+							//right handle
+							bezt->vec[2][0] = (dx + (2 * ftoutline.points[l+1].x)* scale) / 3.0;
+							bezt->vec[2][1] = (dy +	(2 * ftoutline.points[l+1].y)* scale) / 3.0;
+
+							bezt->h1= bezt->h2= HD_ALIGN;
+							bezt++;
+						}
+
+					//on-curve points
+					if(ftoutline.tags[l] == FT_Curve_Tag_On) {
 						//left handle
-						bezt->vec[0][0] = (dx +	(2 * ftoutline.points[l].x)* scale) / 3.0;
-						bezt->vec[0][1] = (dy +	(2 * ftoutline.points[l].y)* scale) / 3.0;
+						if(k > 0) {
+							if(ftoutline.tags[l - 1] == FT_Curve_Tag_Cubic) {
+								bezt->vec[0][0] = ftoutline.points[l-1].x* scale;
+								bezt->vec[0][1] = ftoutline.points[l-1].y* scale;
+								bezt->h1= HD_FREE;
+							} else if(ftoutline.tags[l - 1] == FT_Curve_Tag_Conic) {
+								bezt->vec[0][0] = (ftoutline.points[l].x + (2 * ftoutline.points[l - 1].x))* scale / 3.0;
+								bezt->vec[0][1] = (ftoutline.points[l].y + (2 * ftoutline.points[l - 1].y))* scale / 3.0;
+								bezt->h1= HD_FREE;
+							} else {
+								bezt->vec[0][0] = ftoutline.points[l].x* scale - (ftoutline.points[l].x - ftoutline.points[l-1].x)* scale / 3.0;
+								bezt->vec[0][1] = ftoutline.points[l].y* scale - (ftoutline.points[l].y - ftoutline.points[l-1].y)* scale / 3.0;
+								bezt->h1= HD_VECT;
+							}
+						} else { //first point on curve
+							if(ftoutline.tags[ftoutline.contours[j]] == FT_Curve_Tag_Cubic) {
+								bezt->vec[0][0] = ftoutline.points[ftoutline.contours[j]].x * scale;
+								bezt->vec[0][1] = ftoutline.points[ftoutline.contours[j]].y * scale;
+								bezt->h1= HD_FREE;
+							} else if(ftoutline.tags[ftoutline.contours[j]] == FT_Curve_Tag_Conic) {
+								bezt->vec[0][0] = (ftoutline.points[l].x + (2 * ftoutline.points[ftoutline.contours[j]].x))* scale / 3.0 ;
+								bezt->vec[0][1] = (ftoutline.points[l].y + (2 * ftoutline.points[ftoutline.contours[j]].y))* scale / 3.0 ;
+								bezt->h1= HD_FREE;
+							} else {
+								bezt->vec[0][0] = ftoutline.points[l].x* scale - (ftoutline.points[l].x - ftoutline.points[ftoutline.contours[j]].x)* scale / 3.0;
+								bezt->vec[0][1] = ftoutline.points[l].y* scale - (ftoutline.points[l].y - ftoutline.points[ftoutline.contours[j]].y)* scale / 3.0;
+								bezt->h1= HD_VECT;
+							}
+						}
 
-						//midpoint (virtual on-curve point)
-						bezt->vec[1][0] = dx;
-						bezt->vec[1][1] = dy;
+						//midpoint (on-curve point)
+						bezt->vec[1][0] = ftoutline.points[l].x* scale;
+						bezt->vec[1][1] = ftoutline.points[l].y* scale;
 
 						//right handle
-						bezt->vec[2][0] = (dx + (2 * ftoutline.points[l+1].x)* scale) / 3.0;
-						bezt->vec[2][1] = (dy +	(2 * ftoutline.points[l+1].y)* scale) / 3.0;
+						if(k < (npoints[j] - 1)) {
+							if(ftoutline.tags[l+1] == FT_Curve_Tag_Cubic) {
+								bezt->vec[2][0] = ftoutline.points[l+1].x* scale;
+								bezt->vec[2][1] = ftoutline.points[l+1].y* scale;
+								bezt->h2= HD_FREE;
+							} else if(ftoutline.tags[l+1] == FT_Curve_Tag_Conic) {
+								bezt->vec[2][0] = (ftoutline.points[l].x + (2 * ftoutline.points[l+1].x))* scale / 3.0;
+								bezt->vec[2][1] = (ftoutline.points[l].y + (2 * ftoutline.points[l+1].y))* scale / 3.0;
+								bezt->h2= HD_FREE;
+							} else {
+								bezt->vec[2][0] = ftoutline.points[l].x* scale - (ftoutline.points[l].x - ftoutline.points[l+1].x)* scale / 3.0;
+								bezt->vec[2][1] = ftoutline.points[l].y* scale - (ftoutline.points[l].y - ftoutline.points[l+1].y)* scale / 3.0;
+								bezt->h2= HD_VECT;
+							}
+						} else { //last point on curve
+							if(ftoutline.tags[m] == FT_Curve_Tag_Cubic) {
+								bezt->vec[2][0] = ftoutline.points[m].x* scale;
+								bezt->vec[2][1] = ftoutline.points[m].y* scale;
+								bezt->h2= HD_FREE;
+							} else if(ftoutline.tags[m] == FT_Curve_Tag_Conic) {
+								bezt->vec[2][0] = (ftoutline.points[l].x + (2 * ftoutline.points[m].x))* scale / 3.0 ;
+								bezt->vec[2][1] = (ftoutline.points[l].y + (2 * ftoutline.points[m].y))* scale / 3.0 ;
+								bezt->h2= HD_FREE;
+							} else {
+								bezt->vec[2][0] = ftoutline.points[l].x* scale - (ftoutline.points[l].x - ftoutline.points[m].x)* scale / 3.0;
+								bezt->vec[2][1] = ftoutline.points[l].y* scale - (ftoutline.points[l].y - ftoutline.points[m].y)* scale / 3.0;
+								bezt->h2= HD_VECT;
+							}
+						}
 
-						bezt->h1= bezt->h2= HD_ALIGN;
+						// get the handles that are aligned, tricky...
+						// DistVL2Dfl, check if the three beztriple points are on one line
+						// VecLenf, see if there's a distance between the three points
+						// VecLenf again, to check the angle between the handles 
+						// finally, check if one of them is a vector handle 
+						if((DistVL2Dfl(bezt->vec[0],bezt->vec[1],bezt->vec[2]) < 0.001) &&
+							(VecLenf(bezt->vec[0], bezt->vec[1]) > 0.0001) &&
+							(VecLenf(bezt->vec[1], bezt->vec[2]) > 0.0001) &&
+							(VecLenf(bezt->vec[0], bezt->vec[2]) > 0.0002) &&
+							(VecLenf(bezt->vec[0], bezt->vec[2]) > MAX2(VecLenf(bezt->vec[0], bezt->vec[1]), VecLenf(bezt->vec[1], bezt->vec[2]))) &&
+							bezt->h1 != HD_VECT && bezt->h2 != HD_VECT)
+						{
+							bezt->h1= bezt->h2= HD_ALIGN;
+						}
 						bezt++;
 					}
-
-				//on-curve points
-				if(ftoutline.tags[l] == FT_Curve_Tag_On) {
-					//left handle
-					if(k > 0) {
-						if(ftoutline.tags[l - 1] == FT_Curve_Tag_Cubic) {
-							bezt->vec[0][0] = ftoutline.points[l-1].x* scale;
-							bezt->vec[0][1] = ftoutline.points[l-1].y* scale;
-							bezt->h1= HD_FREE;
-						} else if(ftoutline.tags[l - 1] == FT_Curve_Tag_Conic) {
-							bezt->vec[0][0] = (ftoutline.points[l].x + (2 * ftoutline.points[l - 1].x))* scale / 3.0;
-							bezt->vec[0][1] = (ftoutline.points[l].y + (2 * ftoutline.points[l - 1].y))* scale / 3.0;
-							bezt->h1= HD_FREE;
-						} else {
-							bezt->vec[0][0] = ftoutline.points[l].x* scale - (ftoutline.points[l].x - ftoutline.points[l-1].x)* scale / 3.0;
-							bezt->vec[0][1] = ftoutline.points[l].y* scale - (ftoutline.points[l].y - ftoutline.points[l-1].y)* scale / 3.0;
-							bezt->h1= HD_VECT;
-						}
-					} else { //first point on curve
-						if(ftoutline.tags[ftoutline.contours[j]] == FT_Curve_Tag_Cubic) {
-							bezt->vec[0][0] = ftoutline.points[ftoutline.contours[j]].x * scale;
-							bezt->vec[0][1] = ftoutline.points[ftoutline.contours[j]].y * scale;
-							bezt->h1= HD_FREE;
-						} else if(ftoutline.tags[ftoutline.contours[j]] == FT_Curve_Tag_Conic) {
-							bezt->vec[0][0] = (ftoutline.points[l].x + (2 * ftoutline.points[ftoutline.contours[j]].x))* scale / 3.0 ;
-							bezt->vec[0][1] = (ftoutline.points[l].y + (2 * ftoutline.points[ftoutline.contours[j]].y))* scale / 3.0 ;
-							bezt->h1= HD_FREE;
-						} else {
-							bezt->vec[0][0] = ftoutline.points[l].x* scale - (ftoutline.points[l].x - ftoutline.points[ftoutline.contours[j]].x)* scale / 3.0;
-							bezt->vec[0][1] = ftoutline.points[l].y* scale - (ftoutline.points[l].y - ftoutline.points[ftoutline.contours[j]].y)* scale / 3.0;
-							bezt->h1= HD_VECT;
-						}
-					}
-
-					//midpoint (on-curve point)
-					bezt->vec[1][0] = ftoutline.points[l].x* scale;
-					bezt->vec[1][1] = ftoutline.points[l].y* scale;
-
-					//right handle
-					if(k < (npoints[j] - 1)) {
-						if(ftoutline.tags[l+1] == FT_Curve_Tag_Cubic) {
-							bezt->vec[2][0] = ftoutline.points[l+1].x* scale;
-							bezt->vec[2][1] = ftoutline.points[l+1].y* scale;
-							bezt->h2= HD_FREE;
-						} else if(ftoutline.tags[l+1] == FT_Curve_Tag_Conic) {
-							bezt->vec[2][0] = (ftoutline.points[l].x + (2 * ftoutline.points[l+1].x))* scale / 3.0;
-							bezt->vec[2][1] = (ftoutline.points[l].y + (2 * ftoutline.points[l+1].y))* scale / 3.0;
-							bezt->h2= HD_FREE;
-						} else {
-							bezt->vec[2][0] = ftoutline.points[l].x* scale - (ftoutline.points[l].x - ftoutline.points[l+1].x)* scale / 3.0;
-							bezt->vec[2][1] = ftoutline.points[l].y* scale - (ftoutline.points[l].y - ftoutline.points[l+1].y)* scale / 3.0;
-							bezt->h2= HD_VECT;
-						}
-					} else { //last point on curve
-						if(ftoutline.tags[m] == FT_Curve_Tag_Cubic) {
-							bezt->vec[2][0] = ftoutline.points[m].x* scale;
-							bezt->vec[2][1] = ftoutline.points[m].y* scale;
-							bezt->h2= HD_FREE;
-						} else if(ftoutline.tags[m] == FT_Curve_Tag_Conic) {
-							bezt->vec[2][0] = (ftoutline.points[l].x + (2 * ftoutline.points[m].x))* scale / 3.0 ;
-							bezt->vec[2][1] = (ftoutline.points[l].y + (2 * ftoutline.points[m].y))* scale / 3.0 ;
-							bezt->h2= HD_FREE;
-						} else {
-							bezt->vec[2][0] = ftoutline.points[l].x* scale - (ftoutline.points[l].x - ftoutline.points[m].x)* scale / 3.0;
-							bezt->vec[2][1] = ftoutline.points[l].y* scale - (ftoutline.points[l].y - ftoutline.points[m].y)* scale / 3.0;
-							bezt->h2= HD_VECT;
-						}
-					}
-
-					// get the handles that are aligned, tricky...
-					// DistVL2Dfl, check if the three beztriple points are on one line
-					// VecLenf, see if there's a distance between the three points
-					// VecLenf again, to check the angle between the handles 
-					// finally, check if one of them is a vector handle 
-					if((DistVL2Dfl(bezt->vec[0],bezt->vec[1],bezt->vec[2]) < 0.001) &&
-						(VecLenf(bezt->vec[0], bezt->vec[1]) > 0.0001) &&
-						(VecLenf(bezt->vec[1], bezt->vec[2]) > 0.0001) &&
-						(VecLenf(bezt->vec[0], bezt->vec[2]) > 0.0002) &&
-						(VecLenf(bezt->vec[0], bezt->vec[2]) > MAX2(VecLenf(bezt->vec[0], bezt->vec[1]), VecLenf(bezt->vec[1], bezt->vec[2]))) &&
-						bezt->h1 != HD_VECT && bezt->h2 != HD_VECT)
-					{
-						bezt->h1= bezt->h2= HD_ALIGN;
-					}
-					bezt++;
 				}
 			}
 		}
