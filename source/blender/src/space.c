@@ -3604,6 +3604,12 @@ void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 	}	
 
+
+	/* least intrusive nonumpad hack, only for plus/minus */
+	if (U.flag & USER_NONUMPAD) {
+		event= convert_for_nonumpad(event);
+	}
+
 	/* Events handled always (whether the draw tool is active or not) */
 	switch (event) {
 	case UI_BUT_EVENT:
@@ -3678,6 +3684,10 @@ void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		} else if (evt->event == RIGHTMOUSE) {
 			event = LEFTMOUSE;
 		}
+	}
+
+	if (U.flag & USER_NONUMPAD) {
+		event= convert_for_nonumpad(event);
 	}
 
 	switch(event) {
