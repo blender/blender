@@ -590,7 +590,7 @@ inline void matmultdiag(
     for (Subscript i=0; i<M; i++) {
 		for (Subscript k=0; k<K; k++)
 		{
-			C[i][k] = A[i,k] * diag[k];		
+			C[i][k] = A[i][k] * diag[k];		
 		}
 	}
 }
