@@ -1621,7 +1621,9 @@ static void init_render_mesh(Object *ob)
 
 			if(ok) {
 				/* radio faces need autosmooth, to separate shared vertices in corners */
-				if(ma->mode & MA_RADIO) do_autosmooth= 1;
+				if(R.r.mode & R_RADIO)
+					if(ma->mode & MA_RADIO) 
+						do_autosmooth= 1;
 				
 				start= 0;
 				end= me->totface;
