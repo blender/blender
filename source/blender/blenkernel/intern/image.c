@@ -608,10 +608,6 @@ int imagewrap(Tex *tex, float *texvec)
 	if (ima->ok) {
 		ibuf = ima->ibuf;
 
-		if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) ) {
-			ibuf->rect+= (ibuf->x*ibuf->y);
-		}
-		
 		if(tex->imaflag & TEX_IMAROT) {
 			fy= texvec[0];
 			fx= texvec[1];
@@ -674,8 +670,17 @@ int imagewrap(Tex *tex, float *texvec)
 			}
 		}
 		
+		/* warning, no return before setting back! */
+		if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) ) {
+			ibuf->rect+= (ibuf->x*ibuf->y);
+		}
+
 		ofs = y * ibuf->x + x;
 		rect = (char *)( ibuf->rect+ ofs);
+
+		if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) ) {
+			ibuf->rect-= (ibuf->x*ibuf->y);
+		}
 
 		Talpha= 0;
 		if(tex->imaflag & TEX_USEALPHA) {
@@ -719,9 +724,6 @@ int imagewrap(Tex *tex, float *texvec)
 		
 		if(tex->flag & TEX_NEGALPHA) Ta= 1.0f-Ta;
 
-		if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) ) {
-			ibuf->rect-= (ibuf->x*ibuf->y);
-		}
 	}
 
 	if(tex->nor) return 3;
@@ -1259,10 +1261,6 @@ int imagewraposa(Tex *tex, float *texvec, float *dxt, float *dyt)
 	
 		ibuf = ima->ibuf;
 		
-		if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) ) {
-			ibuf->rect+= (ibuf->x*ibuf->y);
-		}
-
 		Talpha= 0;
 		if(tex->imaflag & TEX_USEALPHA) {
 			if(tex->imaflag & TEX_CALCALPHA);
@@ -1277,7 +1275,6 @@ int imagewraposa(Tex *tex, float *texvec, float *dxt, float *dyt)
 			fx= texvec[0];
 			fy= texvec[1];
 		}
-		
 		
 		if(ibuf->flags & IB_fields) {
 			if(R.r.mode & R_FIELDS) {			/* field render */
@@ -1403,6 +1400,11 @@ int imagewraposa(Tex *tex, float *texvec, float *dxt, float *dyt)
 				if(fy>1.0) fy -= (int)(fy);
 				else if(fy<0.0) fy+= 1-(int)(fy);
 			}
+		}
+	
+		/* warning no return! */
+		if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) ) {
+			ibuf->rect+= (ibuf->x*ibuf->y);
 		}
 
 		/* choice:  */
