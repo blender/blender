@@ -105,7 +105,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "qhull"="..\..\qhull2002.1\VisualC6\qhull\qhull.dsp" - Package Owner=<4>
+Project: "qhull"="..\..\qhull\VisualC6\qhull\qhull.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
