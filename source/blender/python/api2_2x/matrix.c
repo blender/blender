@@ -754,7 +754,8 @@ PyObject *Matrix_sub( PyObject * m1, PyObject * m2 )
 
 PyObject *Matrix_mul( PyObject * m1, PyObject * m2 )
 {
-	float *mat;
+	float *mat = NULL;
+	PyObject *retval;;
 	int matSizeV, rowSizeV, colSizeV, rowSizeW, colSizeW, matSizeW, x, y,
 		z;
 	float dot = 0;
@@ -795,7 +796,9 @@ PyObject *Matrix_mul( PyObject * m1, PyObject * m2 )
 					matW->matrix[x][y];
 			}
 		}
-		return newMatrixObject( mat, rowSizeV, colSizeV );
+		retval = ( PyObject* ) newMatrixObject( mat, rowSizeV, colSizeV );
+		PyMem_Free( mat );
+		return retval;
 	} else if( matW->flag == 0 && matV->flag == 0 ) {	//true matrix multiplication
 		if( colSizeV != rowSizeW ) {
 			return EXPP_ReturnPyObjError( PyExc_AttributeError,
@@ -818,7 +821,9 @@ PyObject *Matrix_mul( PyObject * m1, PyObject * m2 )
 				dot = 0;
 			}
 		}
-		return newMatrixObject( mat, rowSizeV, colSizeW );
+		retval = ( PyObject* )  newMatrixObject( mat, rowSizeV, colSizeW );
+		PyMem_Free( mat );
+		return retval;
 	} else
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "Error in matrix_mul...\n" );
