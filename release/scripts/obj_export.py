@@ -1,9 +1,9 @@
 #!BPY 
 
 """ 
-Name: 'OBJ Wavefront' 
+Name: 'Wavefront (*.obj)' 
 Blender: 232 
-Group: 'Export' 
+Group: 'Export'
 Tooltip: 'Save a Wavefront OBJ File' 
 """ 
 
@@ -45,27 +45,9 @@ def getWorldMat(ob):
 #==================# 
 # Apply Transform  # 
 #==================# 
-def apply_transform(verts, matrix): 
-    
-   x, y, z = verts 
-   xloc, yloc, zloc = matrix[3][0], matrix[3][1], matrix[3][2] 
-   xcomponent = x*matrix[0][0] + y*matrix[1][0] + z*matrix[2][0] + xloc 
-   ycomponent = x*matrix[0][1] + y*matrix[1][1] + z*matrix[2][1] + yloc 
-   zcomponent = x*matrix[0][2] + y*matrix[1][2] + z*matrix[2][2] + zloc 
-    
-   return [xcomponent, ycomponent, zcomponent] 
-
-
-#=====================================# 
-# Apply Transform for vertex normals  # 
-# ignore the translation              # 
-#=====================================# 
-def apply_normal_transform(verts, matrix): 
-   x, y, z = verts 
-   xcomponent = x*matrix[0][0] + y*matrix[1][0] + z*matrix[2][0] 
-   ycomponent = x*matrix[0][1] + y*matrix[1][1] + z*matrix[2][1] 
-   zcomponent = x*matrix[0][2] + y*matrix[1][2] + z*matrix[2][2] 
-   return Mathutils.Vector([xcomponent, ycomponent, zcomponent]) 
+def apply_transform(verts, matrix):
+	verts.resize4D()
+	return Mathutils.VecMultMat(verts, matrix)
 
 #====================================================# 
 # Return a 6 deciaml point floating point value      # 
@@ -129,8 +111,8 @@ def save_obj(filename):
             for f in m.faces: 
                for v in f.v: 
                   # Transform the normal 
-                  noTx = apply_normal_transform(v.no, matrix) 
-                  noTx.normalize() 
+                  noTx = apply_transform(v.no, matrix) 
+                  noTx.normalize()
                   file.write('vn ') 
                   file.write(saneFloat(noTx[0])) 
                   file.write(saneFloat(noTx[1])) 
