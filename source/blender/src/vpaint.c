@@ -596,8 +596,12 @@ static int sample_backbuf_area(int x, int y)
 	y2= y+Gvp.size;
 	CLAMP(y1, 0, curarea->winy);
 	CLAMP(y2, 0, curarea->winy);
-	
+#ifdef __APPLE__
+	glReadBuffer(GL_AUX0);
+#endif
 	glReadPixels(x1+curarea->winrct.xmin, y1+curarea->winrct.ymin, x2-x1+1, y2-y1+1, GL_RGBA, GL_UNSIGNED_BYTE,  rect);
+	glReadBuffer(GL_BACK);	
+
 	if(G.order==B_ENDIAN) IMB_convert_rgba_to_abgr( (int)(4*Gvp.size*Gvp.size), rect);
 
 	rt= rect;
@@ -632,8 +636,13 @@ static unsigned int sample_backbuf(int x, int y)
 	
 	x+= curarea->winrct.xmin;
 	y+= curarea->winrct.ymin;
-	
+
+#ifdef __APPLE__
+	glReadBuffer(GL_AUX0);
+#endif
 	glReadPixels(x,  y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE,  &col);
+	glReadBuffer(GL_BACK);	
+
 	if(G.order==B_ENDIAN) SWITCH_INT(col);
 		
 	return framebuffer_to_index(col);
@@ -1074,8 +1083,8 @@ void vertex_paint()
 	
 			scrarea_do_windraw(curarea);
 			screen_swapbuffers();
-			backdrawview3d(0);
 			draw_sel_circle(mval, 0, Gvp.size, Gvp.size, 0);
+			backdrawview3d(0);
 	
 			mvalo[0]= mval[0];
 			mvalo[1]= mval[1];

@@ -903,6 +903,7 @@ void screenmain(void)
 {
 	int has_input= 1;
 	int firsttime = 1;
+	
 	while (1) {
 		unsigned short event;
 		short val, towin;
@@ -917,7 +918,7 @@ void screenmain(void)
 		}
 		
 		window_make_active(mainwin);
-		
+
 		if (event==INPUTCHANGE) {
 			has_input= val;
 		}
@@ -1638,7 +1639,7 @@ void add_to_mainqueue(Window *win, void *user_data, short evt, short val, char a
 
 	statechanged= 1;
 
-	if (U.flag&NONUMPAD) {
+	if (U.flag & NONUMPAD) {
 		evt= convert_for_nonumpad(evt);
 	}
 	

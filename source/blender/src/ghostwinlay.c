@@ -485,9 +485,14 @@ static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private) {
 
 				/* 
 				 * XXX quick hack so OSX version works better
-				 * when the window is clicked on (focused). 
+				 * when the window is clicked on (focused).
+				 *
+				 * it used to pass on the old win->lmouse value,
+				 * which causes a wrong click in Blender.
+				 * Actually, a 'focus' click should not be passed
+				 * on to blender... (ton)
 				 */
-				if(1) {
+				if(1) { /* enables me to add locals */
 					int cx, cy, wx, wy;
 					GHOST_GetCursorPosition(g_system, &wx, &wy);
 

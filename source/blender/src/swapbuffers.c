@@ -109,13 +109,14 @@ static void screen_swapbuffers_REDRAW(bScreen *sc)
 		sa= sa->next;
 	}
 	if(sa==0) return;
-
+	
 	sa= sc->areabase.first;
 	while(sa) {
-	
 		swap= sa->win_swap;
 		if( (swap & WIN_BACK_OK) == 0) {
+			
 			scrarea_do_windraw(sa);
+
 			doswap= 1;
 			sa->win_swap= swap | WIN_BACK_OK;
 		}

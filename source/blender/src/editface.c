@@ -445,8 +445,13 @@ TFace* face_pick(Mesh *me, short x, short y)
 		backdrawview3d(0);
 	}
 	/* Read the pixel under the cursor */
+#ifdef __APPLE__
+	glReadBuffer(GL_AUX0);
+#endif
 	glReadPixels(x+curarea->winrct.xmin, y+curarea->winrct.ymin, 1, 1,
 		GL_RGBA, GL_UNSIGNED_BYTE, &col);
+	glReadBuffer(GL_BACK);
+
 	/* Unbelievable! */
 	if (G.order==B_ENDIAN) {
 		SWITCH_INT(col);
@@ -532,9 +537,12 @@ void face_borderselect()
 	
 	val= get_border(&rect, 3);
 	
-	/* why readbuffer here? shouldn't be necessary */
-	glReadBuffer(GL_BACK);	
-
+	/* why readbuffer here? shouldn't be necessary (maybe a flush or so) */
+	glReadBuffer(GL_BACK);
+#ifdef __APPLE__
+	glReadBuffer(GL_AUX0); /* apple only */
+#endif
+	
 	if(val) {
 		selar= MEM_callocN(me->totface+1, "selar");
 		
@@ -571,6 +579,9 @@ void face_borderselect()
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWIMAGE, 0);
 	}
+#ifdef __APPLE__	
+	glReadBuffer(GL_BACK);
+#endif
 }
 
 #define TEST_STRUBI 1				

@@ -703,7 +703,9 @@ void backdrawview3d(int test)
 			return;
 		}
 	}
-
+#ifdef __APPLE__
+	glDrawBuffer(GL_AUX0);
+#endif	
 	if(G.vd->drawtype > OB_WIRE) G.zbuf= TRUE;
 	curarea->win_swap &= ~WIN_BACK_OK;
 	
@@ -758,6 +760,10 @@ void backdrawview3d(int test)
 	G.zbuf= FALSE; 
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_DITHER);
+
+#ifdef __APPLE__
+	glDrawBuffer(GL_BACK); /* we were in aux buffers */
+#endif
 }
 
 		
