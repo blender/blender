@@ -3208,6 +3208,33 @@ void view3d_buttons(void)
 
 	uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE_DEHLT, xco,0,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (hold CTRL for anim)");
 	
+	if (G.obpose){
+		xco+= XIC/2;
+		if(curarea->headertype==HEADERTOP) {
+			uiDefIconBut(block, BUT, B_ACTCOPY, ICON_COPYUP, 
+						 xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
+						 "Copies the current pose to the buffer");
+			uiSetButLock(G.obpose->id.lib!=0, "Can't edit library data");
+			uiDefIconBut(block, BUT, B_ACTPASTE, ICON_PASTEUP,	
+						 xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
+						 "Pastes the pose from the buffer");
+			uiDefIconBut(block, BUT, B_ACTPASTEFLIP, ICON_PASTEFLIPUP,
+						 xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
+						 "Pastes the mirrored pose from the buffer");
+		}
+		else {
+			uiDefIconBut(block, BUT, B_ACTCOPY, ICON_COPYDOWN,
+						 xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
+						 "Copies the current pose to the buffer");
+			uiSetButLock(G.obpose->id.lib!=0, "Can't edit library data");
+			uiDefIconBut(block, BUT, B_ACTPASTE, ICON_PASTEDOWN,
+						 xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
+						 "Pastes the pose from the buffer");
+			uiDefIconBut(block, BUT, B_ACTPASTEFLIP, ICON_PASTEFLIPDOWN, 
+						 xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
+						 "Pastes the mirrored pose from the buffer");
+		}
+	}
 
 	/* Always do this last */
 	curarea->headbutlen= xco+2*XIC;

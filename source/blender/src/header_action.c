@@ -155,10 +155,14 @@ void do_action_buttons(unsigned short event)
 			break;
 		case B_ACTPASTE:
 			paste_posebuf(0);
+			clear_object_constraint_status(OBACT);
+			make_displists_by_armature(OBACT);
 			allqueue(REDRAWVIEW3D, 1);
 			break;
 		case B_ACTPASTEFLIP:
 			paste_posebuf(1);
+			clear_object_constraint_status(OBACT);
+			make_displists_by_armature(OBACT);
 			allqueue(REDRAWVIEW3D, 1);
 			break;
 
