@@ -508,7 +508,7 @@ void test_flags_file(SpaceFile *sfile)
 					BLI_testextensie(file->relname, ".tga") ||
 					BLI_testextensie(file->relname, ".rgb") ||
 					BLI_testextensie(file->relname, ".png") ||
-					BLI_testextensie(file->relname, ".bmp") ||
+/*					BLI_testextensie(file->relname, ".bmp") || */
 					BLI_testextensie(file->relname, ".iff") ||
 					BLI_testextensie(file->relname, ".lbm") ||
 					BLI_testextensie(file->relname, ".sgi")) {
