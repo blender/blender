@@ -49,6 +49,7 @@ typedef struct VFontData {
 	float	    resol[MAX_VF_CHARS];
 	float	    width[MAX_VF_CHARS];
 	float	    *points[MAX_VF_CHARS];
+	char		name[128];
 } VFontData;
 
 /**

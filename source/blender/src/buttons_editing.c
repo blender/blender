@@ -81,6 +81,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_vfontdata.h"
 
 #include "BSE_filesel.h"
 
@@ -642,56 +643,54 @@ void do_fontbuts(unsigned short event)
 	}
 }
 
-
-
 static void editing_panel_font_type(Object *ob, Curve *cu)
 {
 	uiBlock *block;
 	char *strp;
 	static int packdummy = 0;
+	VFontData *vfd;
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_font_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Font", "Editing", 640, 0, 318, 204)==0) return;
-	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW,B_MAKEFONT, "Left",		484,139,53,18, &cu->spacemode, 0.0,0.0, 0, 0, "");
-	uiDefButS(block, ROW,B_MAKEFONT, "Right",		540,139,62,18, &cu->spacemode, 0.0,2.0, 0, 0, "");
-	uiDefButS(block, ROW,B_MAKEFONT, "Middle",		604,139,61,18, &cu->spacemode, 0.0,1.0, 0, 0, "");
-	uiDefButS(block, ROW,B_MAKEFONT, "Flush",		665,139,61,18, &cu->spacemode, 0.0,3.0, 0, 0, "");
-	uiBlockEndAlign(block);
-	
-	uiDefIDPoinBut(block, test_obpoin_but, B_TEXTONCURVE, "TextOnCurve:",	484,115,243,19, &cu->textoncurve, "");
-	uiDefBut(block, TEX,REDRAWVIEW3D, "Ob Family:",	484,85,243,19, cu->family, 0.0, 20.0, 0, 0, "");
 
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM,B_MAKEFONT, "Size:",		482,56,121,19, &cu->fsize, 0.1,10.0, 10, 0, "");
-	uiDefButF(block, NUM,B_MAKEFONT, "Linedist:",	605,56,121,19, &cu->linedist, 0.0,10.0, 10, 0, "");
-	uiDefButF(block, NUM,B_MAKEFONT, "Spacing:",	482,34,121,19, &cu->spacing, 0.0,10.0, 10, 0, "");
-	uiDefButF(block, NUM,B_MAKEFONT, "Y offset:",	605,34,121,19, &cu->yof, -50.0,50.0, 10, 0, "");
-	uiDefButF(block, NUM,B_MAKEFONT, "Shear:",	482,12,121,19, &cu->shear, -1.0,1.0, 10, 0, "");
-	uiDefButF(block, NUM,B_MAKEFONT, "X offset:",	605,12,121,19, &cu->xof, -50.0,50.0, 10, 0, "");
-	uiBlockEndAlign(block);
-	
-	uiDefBut(block, BUT, B_TOUPPER, "ToUpper",		623,163,103,23, 0, 0, 0, 0, 0, "");
-	
 	G.buts->texnr= give_vfontnr(cu->vfont);
-	
 	strp= give_vfontbutstr();
-	
-	uiDefButS(block, MENU, B_SETFONT, strp, 484,191,220,20, &G.buts->texnr, 0, 0, 0, 0, "");
-	
+	vfd= cu->vfont->data;
+
+	uiDefBut(block, BUT,B_LOADFONT, "Load",	480,188,68,20, 0, 0, 0, 0, 0, "Load a new font");
+	uiDefButS(block, MENU, B_SETFONT, strp, 550,188,220,20, &G.buts->texnr, 0, 0, 0, 0, "Change font for object");
+
 	if (cu->vfont->packedfile) {
 		packdummy = 1;
 	} else {
 		packdummy = 0;
 	}
-	
-	uiDefIconButI(block, TOG|BIT|0, B_PACKFONT, ICON_PACKAGE,	706,191,20,20, &packdummy, 0, 0, 0, 0, "Pack/Unpack this Vectorfont");
+	uiDefIconButI(block, TOG|BIT|0, B_PACKFONT, ICON_PACKAGE,	772,188,20,20, &packdummy, 0, 0, 0, 0, "Pack/Unpack this font");
+	uiDefBut(block, LABEL, 0, vfd->name,  480, 165,314,20, 0, 0, 0, 0, 0, "Postscript name of the font");
 	
 	MEM_freeN(strp);
-	
-	uiDefBut(block, BUT,B_LOADFONT, "Load Font",	484,163,103,23, 0, 0, 0, 0, 0, "");
 
+	uiBlockBeginAlign(block);
+	uiDefButS(block, ROW,B_MAKEFONT, "Left",		480,135,53,20, &cu->spacemode, 0.0,0.0, 0, 0, "Align text from the left of the object centre");
+	uiDefButS(block, ROW,B_MAKEFONT, "Middle",		535,135,55,20, &cu->spacemode, 0.0,1.0, 0, 0, "Align text from the middle of the object centre");
+	uiDefButS(block, ROW,B_MAKEFONT, "Right",		592,135,53,20, &cu->spacemode, 0.0,2.0, 0, 0, "Align text from the right of the object centre");
+	uiDefButS(block, ROW,B_MAKEFONT, "Flush",		647,135,53,20, &cu->spacemode, 0.0,3.0, 0, 0, "Fill characters to maximum linewidth. (Multiple lines required)");
+	uiDefBut(block, BUT, B_TOUPPER, "ToUpper",		715,135,78,20, 0, 0, 0, 0, 0, "Toggle between upper and lower case in editmode");
+	uiBlockEndAlign(block);
+	
+	uiDefIDPoinBut(block, test_obpoin_but, B_TEXTONCURVE, "TextOnCurve:",	480,105,220,19, &cu->textoncurve, "Apply a deforming curve to the text");
+	uiDefBut(block, TEX,REDRAWVIEW3D, "Ob Family:",	480,84,220,19, cu->family, 0.0, 20.0, 0, 0, "Blender uses font from selfmade objects");
+
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM,B_MAKEFONT, "Size:",		480,56,155,20, &cu->fsize, 0.1,10.0, 10, 0, "Size of the text");
+	uiDefButF(block, NUM,B_MAKEFONT, "Linedist:",	640,56,155,20, &cu->linedist, 0.0,10.0, 10, 0, "Distance between text lines");
+	uiDefButF(block, NUM,B_MAKEFONT, "Spacing:",	480,34,155,20, &cu->spacing, 0.0,10.0, 10, 0, "Spacing of individual characters");
+	uiDefButF(block, NUM,B_MAKEFONT, "X offset:",	640,34,155,20, &cu->xof, -50.0,50.0, 10, 0, "Horizontal position from object centre");
+	uiDefButF(block, NUM,B_MAKEFONT, "Shear:",		480,12,155,20, &cu->shear, -1.0,1.0, 10, 0, "Italic angle of the characters");
+	uiDefButF(block, NUM,B_MAKEFONT, "Y offset:",	640,12,155,20, &cu->yof, -50.0,50.0, 10, 0, "Vertical position from object centre");
+	uiBlockEndAlign(block);
 }
+
 
 /* *************************** CURVE ******************************** */
 
