@@ -103,6 +103,9 @@
 #ifndef VK_CLOSE_BRACKET
 #define VK_CLOSE_BRACKET 0xDD
 #endif // VK_CLOSE_BRACKET
+#ifndef VK_GR_LESS
+#define VK_GR_LESS 0xE2
+#endif // VK_GR_LESS
 
 
 GHOST_SystemWin32::GHOST_SystemWin32()
@@ -407,6 +410,7 @@ GHOST_TKey GHOST_SystemWin32::convertKey(WPARAM wParam, LPARAM lParam) const
 		case VK_BACK_SLASH:		key = GHOST_kKeyBackslash;		break;
 		case VK_CLOSE_BRACKET:	key = GHOST_kKeyRightBracket;	break;
 		case VK_QUOTE:			key = GHOST_kKeyQuote;			break;
+		case VK_GR_LESS:		key = GHOST_kKeyGrLess;			break;
 
 		// Process these keys separately because we need to distinguish right from left modifier keys
 		case VK_SHIFT:

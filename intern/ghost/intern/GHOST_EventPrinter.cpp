@@ -193,6 +193,10 @@ void GHOST_EventPrinter::getKeyString(GHOST_TKey key, STR_String& str) const
             // APPLE only!
 			str = "Command";
 			break;
+		case GHOST_kKeyGrLess:
+            // PC german!
+			str = "GrLess";
+			break;
 		case GHOST_kKeyCapsLock:
 			str = "CapsLock";
 			break;

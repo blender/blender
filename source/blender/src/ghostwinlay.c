@@ -267,7 +267,9 @@ static int convert_key(GHOST_TKey key) {
 		case GHOST_kKeyNumpadMinus:		return PADMINUS;
 		case GHOST_kKeyNumpadAsterisk:	return PADASTERKEY;
 		case GHOST_kKeyNumpadSlash:		return PADSLASHKEY;
-		
+
+		case GHOST_kKeyGrLess:		    return GRLESSKEY; 
+			
 		case GHOST_kKeyUnknown:			return UNKNOWNKEY;
 
 		default:

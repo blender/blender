@@ -187,6 +187,7 @@
 
 #define UNKNOWNKEY	171
 #define COMMANDKEY	172
+#define GRLESSKEY	173
 
 /* used as fake leftmouse event, special handled in interface.c */
 #define BUT_ACTIVATE	200
