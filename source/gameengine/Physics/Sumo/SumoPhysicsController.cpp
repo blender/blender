@@ -242,7 +242,7 @@ void		SumoPhysicsController::SetAngularVelocity(float ang_velX,float ang_velY,fl
 		MT_Matrix3x3 orn;
 		GetWorldOrientation(orn);
 
-		m_sumoObj->setAngularVelocity(local ?
+		m_sumoObj->setExternalAngularVelocity(local ?
 						orn * ang_vel :
 						ang_vel);
 	}
@@ -256,7 +256,7 @@ void		SumoPhysicsController::SetLinearVelocity(float lin_velX,float lin_velY,flo
 		GetWorldOrientation(orn);
 
 		MT_Vector3 lin_vel(lin_velX,lin_velY,lin_velZ);
-		m_sumoObj->setLinearVelocity(local ?
+		m_sumoObj->setExternalLinearVelocity(local ?
 							   orn * lin_vel :
 							   lin_vel);
 	}
