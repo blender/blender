@@ -394,18 +394,18 @@ static void sound_panel_sound(bSound *sound)
 		uiDefBut(block, BUT, B_SOUND_PLAY_SAMPLE, "Play", 	160, 95, 150, 24, 0, 0.0, 0, 0, 0, "Playback sample using settings below");
 		
 		uiDefButF(block, NUMSLI, B_SOUND_CHANGED, "Volume: ",
-			10,70,150,20, &sound->volume, 0.0, 1.0, 0, 0, "Set the volume of this sound");
+			10,70,150,20, &sound->volume, 0.0, 1.0, 0, 0, "Game engine only: Set the volume of this sound");
 
 		uiDefButF(block, NUMSLI, B_SOUND_CHANGED, "Pitch: ",
-			160,70,150,20, &sound->pitch, -12.0, 12.0, 0, 0, "Set the pitch of this sound");
+			160,70,150,20, &sound->pitch, -12.0, 12.0, 0, 0, "Game engine only: Set the pitch of this sound");
 
 		/* looping */
 		uiDefButI(block, TOG|BIT|SOUND_FLAGS_LOOP_BIT, B_SOUND_REDRAW, "Loop",
-			10, 50, 95, 20, &sound->flags, 0.0, 0.0, 0, 0, "Toggle between looping on/off");
+			10, 50, 95, 20, &sound->flags, 0.0, 0.0, 0, 0, "Game engine only: Toggle between looping on/off");
 
 		if (sound->flags & SOUND_FLAGS_LOOP) {
 			uiDefButI(block, TOG|BIT|SOUND_FLAGS_BIDIRECTIONAL_LOOP_BIT, B_SOUND_REDRAW, "Ping Pong",
-				105, 50, 95, 20, &sound->flags, 0.0, 0.0, 0, 0, "Toggle between A->B and A->B->A looping");
+				105, 50, 95, 20, &sound->flags, 0.0, 0.0, 0, 0, "Game engine only: Toggle between A->B and A->B->A looping");
 			
 		}
 	
@@ -414,11 +414,11 @@ static void sound_panel_sound(bSound *sound)
 
 		if (sound->sample->channels == 1) {
 			uiDefButI(block, TOG|BIT|SOUND_FLAGS_3D_BIT, B_SOUND_REDRAW, "3D Sound",
-				10, 10, 90, 20, &sound->flags, 0, 0, 0, 0, "Turns 3D sound on");
+				10, 10, 90, 20, &sound->flags, 0, 0, 0, 0, "Game engine only: Turns 3D sound on");
 			
 			if (sound->flags & SOUND_FLAGS_3D) {
 				uiDefButF(block, NUMSLI, B_SOUND_CHANGED, "Scale: ",
-					100,10,210,20, &sound->attenuation, 0.0, 5.0, 1.0, 0, "Sets the surround scaling factor for this sound");
+					100,10,210,20, &sound->attenuation, 0.0, 5.0, 1.0, 0, "Game engine only: Sets the surround scaling factor for this sound");
 				
 			}
 		}
@@ -1408,7 +1408,6 @@ void sound_panels()
 	bSound *sound;
 
 	sound = G.buts->lockpoin;
-	if ((sound) && (sound->flags & SOUND_FLAGS_SEQUENCE)) sound = NULL;
 
 	sound_panel_sound(sound);
 	sound_panel_listener();
