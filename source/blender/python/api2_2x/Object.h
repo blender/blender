@@ -55,6 +55,7 @@
 
 #include "gen_utils.h"
 #include "modules.h"
+#include "vector.h"
 
 /* The Object PyType Object defined in Object.c */
 extern PyTypeObject Object_Type;

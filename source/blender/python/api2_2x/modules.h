@@ -133,5 +133,6 @@ PyObject * M_Window_Init (void);
 PyObject * M_Draw_Init (void);
 PyObject * M_BGL_Init (void);
 PyObject * M_Text_Init (void);
+PyObject * M_World_Init (void);
 
 #endif /* EXPP_modules_h */

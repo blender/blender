@@ -669,8 +669,13 @@ static PyObject *Object_getEuler (C_Object *self)
 
 static PyObject *Object_getInverseMatrix (C_Object *self)
 {
-    return (PythonReturnErrorObject (PyExc_NotImplementedError,
-            "getInverseMatrix: not yet implemented"));
+    Object  * ob;
+    float     inverse[4][4];
+
+    ob = self->object->data;
+    Mat4Invert (inverse, ob->obmat);
+
+    return (newMatrixObject (inverse));
 }
 
 static PyObject *Object_getLocation (C_Object *self, PyObject *args)
@@ -695,8 +700,11 @@ static PyObject *Object_getMaterials (C_Object *self)
 
 static PyObject *Object_getMatrix (C_Object *self)
 {
-    return (PythonReturnErrorObject (PyExc_NotImplementedError,
-            "getMatrix: not yet implemented"));
+    Object  * ob;
+
+    ob = self->object->data;
+
+    return (newMatrixObject (ob->obmat));
 }
 
 static PyObject *Object_getParent (C_Object *self)
@@ -1285,10 +1293,7 @@ static PyObject* ObjectGetAttr (C_Object *obj, char *name)
         return (Py_None);
     }
     if (StringEqual (name, "matrix"))
-    {
-        printf ("This is not implemented yet. (matrix)\n");
-        return (Py_None);
-    }
+        return (Object_getMatrix (obj));
     if (StringEqual (name, "colbits"))
         return (Py_BuildValue ("h", object->colbits));
     if (StringEqual (name, "drawType"))
@@ -1430,13 +1435,17 @@ static int ObjectSetAttr (C_Object *obj, char *name, PyObject *value)
     }
     if (StringEqual (name, "mat"))
     {
-        printf ("This is not implemented yet. (matrix)\n");
-        return (1);
+        /* This is not allowed. */
+        PythonReturnErrorObject (PyExc_AttributeError,
+                    "Setting the matrix is not allowed.");
+        return (0);
     }
     if (StringEqual (name, "matrix"))
     {
-        printf ("This is not implemented yet. (matrix)\n");
-        return (1);
+        /* This is not allowed. */
+        PythonReturnErrorObject (PyExc_AttributeError,
+                    "Setting the matrix is not allowed.");
+        return (0);
     }
     if (StringEqual (name, "colbits"))
         return (!PyArg_Parse (value, "h", &(object->colbits)));
