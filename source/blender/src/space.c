@@ -2059,16 +2059,22 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			0, 0, 0, 0, 0, "");
 
 		uiDefButS(block, TOGN|BIT|8, B_DRAWINFO, "ObData",
-			(xpos+edgespace),y2,(smallprefbut+2),buth,
+			(xpos+edgespace),y2,(smallprefbut),buth,
 			&(U.flag), 0, 0, 0, 0, "Link new objects' material to the obData block");
 
 		uiDefButS(block, TOG|BIT|8, B_DRAWINFO, "Object",
-			(xpos+edgespace+smallprefbut+2),y2,(smallprefbut+2),buth,
+			(xpos+edgespace+midspace+smallprefbut),y2,(smallprefbut),buth,
 			&(U.flag), 0, 0, 0, 0, "Link new objects' material to the object block");
 
-		uiDefButS(block, NUMSLI, B_DRAWINFO, "UndoSteps:",
-                       (xpos+edgespace+2*smallprefbut+8),y2,(medprefbut+2),buth,
-                       &(U.undosteps), 1, 64, 0, 0, "Number of undo steps avail. in Editmode.  Smaller conserves memory.");
+
+
+		uiDefBut(block, LABEL,0,"Mesh Undo",
+			(xpos+edgespace+medprefbut),y3label, medprefbut,buth,
+			0, 0, 0, 0, 0, "");
+
+		uiDefButS(block, NUMSLI, B_DRAWINFO, "Steps:",
+			(xpos+edgespace+medprefbut+midspace),y2,(medprefbut),buth,
+				&(U.undosteps), 1, 64, 0, 0, "Number of undo steps avail. in Editmode.  Smaller conserves memory.");
 
 
 		uiDefBut(block, LABEL,0,"Auto keyframe on:",

@@ -645,7 +645,7 @@ void ipo_buttons(void)
 
 	xco = 8;
 	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), xco,0,XIC+10,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
-	xco+= XIC+10;
+	xco+= XIC+14;
 	
 	test_editipo();	/* test if current editipo is OK, make_editipo sets v2d->cur */
 

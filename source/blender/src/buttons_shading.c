@@ -2074,9 +2074,9 @@ static void material_panel_texture(Material *ma)
 	for(a= 0; a<8; a++) {
 		mtex= ma->mtex[a];
 		if(mtex && mtex->tex) {
-			if(ma->septex & (1<<a)) strcpy(str, "Off");
-			else strcpy(str, "On");
-			uiDefButC(block, TOG|BIT|a, B_MATPRV_DRAW, str,	-24, 180-22*a, 32, 20, &ma->septex, 0.0, 0.0, 0, 0, "Disable or enable this channel");
+			if(ma->septex & (1<<a)) 
+				uiDefButC(block, TOG|BIT|a, B_MATPRV_DRAW, " ",	-20, 180-22*a, 28, 20, &ma->septex, 0.0, 0.0, 0, 0, "Disable or enable this channel");
+			else uiDefIconButC(block, TOG|BIT|a, B_MATPRV_DRAW, ICON_CHECKBOX_HLT,	-20, 180-22*a, 28, 20, &ma->septex, 0.0, 0.0, 0, 0, "Disable or enable this channel");
 		}
 	}
 	

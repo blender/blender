@@ -303,8 +303,8 @@ static uiBlock *view3d_viewmenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "View Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 15, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Background Image...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
-	if(!curarea->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,0, "");
-	else uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Tile Window|Ctrl DownArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	if(!curarea->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 99, "");
+	else uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Tile Window|Ctrl DownArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 99, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -1515,7 +1515,7 @@ static uiBlock *view3d_edit_meshmenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shrink/Fatten Along Normals|Alt S",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shear|Ctrl S",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Warp|Ctrl W",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Warp|Shift W",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
 	
 	uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -2524,7 +2524,7 @@ static char *view3d_modeselect_pup(void)
 
 	if (OBACT && OBACT->type == OB_MESH) {
 	
-		sprintf(tempstr, formatstr, "UV FaceSelect", V3D_FACESELECTMODE_SEL, ICON_FACESEL_HLT);
+		sprintf(tempstr, formatstr, "UV Face Select", V3D_FACESELECTMODE_SEL, ICON_FACESEL_HLT);
 		strcat(string, tempstr);
 		sprintf(tempstr, formatstr, "Vertex Paint", V3D_VERTEXPAINTMODE_SEL, ICON_VPAINT_HLT);
 		strcat(string, tempstr);
@@ -2533,7 +2533,7 @@ static char *view3d_modeselect_pup(void)
 
 	
 		if ( ((Mesh*)(OBACT->data))->dvert)  {
-			sprintf(tempstr, formatstr, "Texture Paint", V3D_WEIGHTPAINTMODE_SEL, ICON_WPAINT_HLT);
+			sprintf(tempstr, formatstr, "Weight Paint", V3D_WEIGHTPAINTMODE_SEL, ICON_WPAINT_HLT);
 			strcat(string, tempstr);
 		}
 	}
@@ -3016,7 +3016,7 @@ void view3d_buttons(void)
 	
 	xco = 8;
 	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), xco,0,XIC+10,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
-	xco+= XIC+10;
+	xco+= XIC+14;
 
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	if(curarea->flag & HEADER_NO_PULLDOWN) {

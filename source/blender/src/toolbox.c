@@ -1598,7 +1598,7 @@ static TBitem tb_object_edit[]= {
 {	0, "Insert Key...|I", 	'i', NULL},
 {	0, "Object Keys", 	0, tb_object_ipo},
 {	0, "Boolean...|W", 			'w', NULL},
-{	0, "Join Objects|CTRL J", 	TB_CTRL|'j', NULL},
+{	0, "Join Objects|Ctrl J", 	TB_CTRL|'j', NULL},
 {	0, "Convert Object...|Alt C", 'i', NULL},
 {  -1, "", 			0, tb_do_hotkey}};
 
@@ -1722,6 +1722,7 @@ static TBitem tb_add[]= {
 {	0, "MBall", 	3, addmenu_meta},
 {	0, "Text", 		4, NULL},
 {	0, "Empty", 	5, NULL},
+{	0, "SEPR", 		0, NULL},
 {	0, "Camera", 	6, NULL},
 {	0, "Lamp", 		7, NULL},
 {	0, "SEPR", 		0, NULL},

@@ -254,7 +254,7 @@ int gesture(void)
 			timer++;
 			if(timer>=10*U.menuthreshold1) {
 				toolbox_n();
-				return 0;
+				return 1;
 			}
 		}
 		

@@ -1500,6 +1500,9 @@ void add_primitiveArmature(int type)
 	if ELEM(curarea->spacetype, SPACE_VIEW3D, SPACE_INFO); else return;
 	if(G.vd==NULL) return;
 	
+	G.f &= ~(G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT);
+	setcursor_space(SPACE_VIEW3D, CURSOR_STD);
+
 	check_editmode(OB_ARMATURE);
 	
 	/* If we're not the "obedit", make a new object and enter editmode */

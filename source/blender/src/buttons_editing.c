@@ -1996,7 +1996,7 @@ void editing_panels()
 			if(G.f & G_FACESELECT)
 				editing_panel_mesh_texface();
 			
-			if(G.f & (G_VERTEXPAINT | G_TEXTUREPAINT) )
+			if(G.f & (G_VERTEXPAINT | G_TEXTUREPAINT | G_WEIGHTPAINT) )
 				editing_panel_mesh_paint();
 		}
 		break;
