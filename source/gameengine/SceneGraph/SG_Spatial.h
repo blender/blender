@@ -170,7 +170,7 @@ public:
 
 	
 protected:
-	friend SG_Controller;
+	friend class SG_Controller;
 	
 	/** 
 	 * Protected constructor this class is not
