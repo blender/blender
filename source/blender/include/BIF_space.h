@@ -38,6 +38,7 @@ struct ScrArea;
 struct SpaceButs;
 struct View2D;
 struct BWinEvent;
+struct SpaceOops;
 
 #define REMAKEIPO		1
 #define OOPS_TEST		2
