@@ -86,10 +86,10 @@
 
 #define PR_RECTX	121
 #define PR_RECTY	121
-#define PR_XMIN		20
+#define PR_XMIN		10
 #define PR_YMIN		5
-#define PR_XMAX		206
-#define PR_YMAX		196
+#define PR_XMAX		200
+#define PR_YMAX		195
 
 #define PR_FACY		(PR_YMAX-PR_YMIN-4)/(PR_RECTY)
 

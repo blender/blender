@@ -356,7 +356,7 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 {
 	SpaceButs *sbuts= sa->spacedata.first;
 	View2D *v2d= &sbuts->v2d;
-	int align=0;
+	int tab, align=0;
 	
 	myortho2(v2d->cur.xmin, v2d->cur.xmax, v2d->cur.ymin, v2d->cur.ymax);
 
@@ -369,12 +369,13 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 	/* select the context to be drawn, per contex/tab the actual context is tested */
 	switch(sbuts->mainb) {
 	case CONTEXT_SCENE:
-		/* select tabs */
-		if(sbuts->tab[CONTEXT_SCENE] == TAB_SCENE_RENDER) 
+		tab= sbuts->tab[CONTEXT_SCENE];
+
+		if(tab== TAB_SCENE_RENDER) 
 			render_panels();
-		else if(sbuts->tab[CONTEXT_SCENE] == TAB_SCENE_ANIM) 
+		else if(tab == TAB_SCENE_ANIM) 
 			anim_panels();
-		else if(sbuts->tab[CONTEXT_SCENE] == TAB_SCENE_SOUND) 
+		else if(tab == TAB_SCENE_SOUND) 
 			sound_panels();
 
 		break;
@@ -385,7 +386,10 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 		
 		break;
 	case CONTEXT_SHADING:
-		material_panels();
+		tab= sbuts->tab[CONTEXT_SHADING];
+		
+		if(tab==TAB_SHADING_MAT)
+			material_panels();
 		
 		break;
 	case CONTEXT_EDITING:

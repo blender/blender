@@ -455,6 +455,9 @@ void buts_buttons(void)
 		int tab= G.buts->tab[CONTEXT_SHADING];
 		
 		if(tab==TAB_SHADING_MAT) {
+#if 0
+moved to buttonswin!
+
 			if(ob && (ob->type<OB_LAMP) && ob->type) {
 				xco= std_libbuttons(block, xco, 0, NULL, B_MATBROWSE, id, idfrom, &(G.buts->menunr), B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
 			}
@@ -471,6 +474,7 @@ void buts_buttons(void)
 				uiDefIconBut(block, BUT, B_MATPASTE, ICON_PASTEDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes Material from the buffer");
 			}
 			xco+=XIC;
+#endif			
 		}
 		else if(tab==TAB_SHADING_TEX) {
 			if(G.buts->texfrom==0) {

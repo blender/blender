@@ -1999,7 +1999,6 @@ static void ui_draw_but(uiBut *but)
 		break;
 		
 	case COL:
-		ui_draw_but_BUT(but);
 		
 		if( but->pointype==FLO ) {
 			fp= (float *)but->poin;
@@ -2014,7 +2013,9 @@ static void ui_draw_but(uiBut *but)
 			colb= cp[2];
 		}
 		glColor3ub(colr,  colg,  colb);
-		glRects((short)(but->x1+2), (short)(but->y1+2), (short)(but->x2-2), (short)(but->y2-2));
+		glRectf((but->x1), (but->y1), (but->x2), (but->y2));
+		glColor3ub(0,  0,  0);
+		fdrawbox((but->x1), (but->y1), (but->x2), (but->y2));
 		break;
 
 	case LINK:

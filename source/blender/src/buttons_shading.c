@@ -63,6 +63,7 @@
 #include "BLI_blenlib.h"
 
 #include "BSE_filesel.h"
+#include "BSE_headerbuttons.h"
 
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
@@ -181,187 +182,6 @@ void matbuts(void)
 
 	sprintf(str, "buttonswin %d", curarea->win);
 	block= uiNewBlock(&curarea->uiblocks, str, UI_EMBOSSX, UI_HELV, curarea->win);
-
-	if(ob->actcol==0) ob->actcol= 1;	/* because of TOG|BIT button */
-	
-	/* indicate which one is linking a material */
-	uiBlockSetCol(block, BUTSALMON);
-	uiDefButS(block, TOG|BIT|(ob->actcol-1), B_MATFROM, "OB",	342, 195, 33, 20, &ob->colbits, 0, 0, 0, 0, "Link material to object");
-	idn= ob->data;
-	strncpy(str, idn->name, 2);
-	str[2]= 0;
-	uiBlockSetCol(block, BUTGREEN);
-	uiDefButS(block, TOGN|BIT|(ob->actcol-1), B_MATFROM, str,		380, 195, 33, 20, &ob->colbits, 0, 0, 0, 0, "Show the block the material is linked to");
-	uiBlockSetCol(block, BUTGREY);
-	
-	/* id is the block from which the material is used */
-	if( BTST(ob->colbits, ob->actcol-1) ) id= (ID *)ob;
-	else id= ob->data;
-
-	sprintf(str, "%d Mat", ob->totcol);
-	if(ob->totcol) min= 1.0; else min= 0.0;
-	uiDefButC(block, NUM, B_ACTCOL, str,	415,195,150,20, &(ob->actcol), min, (float)ob->totcol, 0, 0, "Number of materials on object / Active material");
-	
-	uiSetButLock(id->lib!=0, "Can't edit library data");
-	
-	strncpy(str, id->name, 2);
-	str[2]= ':'; str[3]= 0;
-	but= uiDefBut(block, TEX, B_IDNAME, str,		200,195,140,20, id->name+2, 0.0, 18.0, 0, 0, "Show the block the material is linked to");
-	uiButSetFunc(but, test_idbutton_cb, id->name, NULL);
-
-	if(ob->totcol==0) {
-		uiDrawBlock(block);
-		return;
-	}
-	
-	ma= give_current_material(ob, ob->actcol);
-	
-	if(ma==0) {
-		uiDrawBlock(block);
-		return;
-	}
-	uiSetButLock(ma->id.lib!=0, "Can't edit library data");
-	
-	uiBlockSetCol(block, BUTGREY);
-	uiDefButS(block, ROW, REDRAWBUTSMAT, "RGB",			200,166,35,22, &(ma->colormodel), 1.0, (float)MA_RGB, 0, 0, "Create colour by red, green and blue");
-	uiDefButS(block, ROW, REDRAWBUTSMAT, "HSV",			200,143,35,22, &(ma->colormodel), 1.0, (float)MA_HSV, 0, 0, "Mix colour with hue, saturation and value");
-	uiDefButS(block, TOG|BIT|0, REDRAWBUTSMAT, "DYN",	200,120,35,22, &(ma->dynamode), 0.0, 0.0, 0, 0, "Adjust parameters for dynamics options");
-	
-	if(ma->dynamode & MA_DRAW_DYNABUTS) {
-		uiDefButF(block, NUMSLI, 0, "Restitut ",		390,168,175,21, &ma->reflect, 0.0, 1.0, 0, 0, "Elasticity of collisions");
-		uiDefButF(block, NUMSLI, 0, "Friction ",  		390,144,175,21, &ma->friction, 0.0, 100.0, 0, 0,   "Coulomb friction coefficient");
-
-		uiDefButF(block, NUMSLI, 0, "Fh Force ",		390,120,175,21, &ma->fh, 0.0, 1.0, 0, 0, "Upward spring force within the Fh area");
-		uiDefButF(block, NUM, 0,	 "Fh Damp ",		260,144,120,21, &ma->xyfrict, 0.0, 1.0, 10, 0, "Damping of the Fh spring force");
-		uiDefButF(block, NUM, 0, "Fh Dist ",			260,120,120,21, &ma->fhdist, 0.0, 20.0, 10, 0, "Height of the Fh area");
-		uiBlockSetCol(block, BUTGREEN);
-		uiDefButS(block, TOG|BIT|1, 0, "Fh Norm",		260,168,120,21, &ma->dynamode, 0.0, 0.0, 0, 0, "Add a horizontal spring force on slopes");
-		uiBlockSetCol(block, BUTGREY);
-	}
-	else {
-		uiDefButF(block, COL, B_MIRCOL, "",		235,143,30,45, &(ma->mirr), 0, 0, 0, 0, "");
-		uiDefButF(block, COL, B_SPECCOL, "",	265,143,39,45, &(ma->specr), 0, 0, 0, 0, "");
-		uiDefButF(block, COL, B_MATCOL, "",		304,143,39,45, &(ma->r), 0, 0, 0, 0, "");
-	
-		if(ma->mode & MA_HALO) {
-			uiDefButC(block, ROW, REDRAWBUTSMAT, "Ring",		235,120,30,22, &(ma->rgbsel), 2.0, 2.0, 0, 0, "Mix the colour of the rings with the RGB sliders");
-			uiDefButC(block, ROW, REDRAWBUTSMAT, "Line",		265,120,39,22, &(ma->rgbsel), 2.0, 1.0, 0, 0, "Mix the colour of the lines with the RGB sliders");
-			uiDefButC(block, ROW, REDRAWBUTSMAT, "Halo",		304,120,39,22, &(ma->rgbsel), 2.0, 0.0, 0, 0, "Mix the colour of the halo with the RGB sliders");
-		}
-		else {
-			uiDefButC(block, ROW, REDRAWBUTSMAT, "Mir",			235,120,30,22, &(ma->rgbsel), 2.0, 2.0, 0, 0, "Use mirror colour");
-			uiDefButC(block, ROW, REDRAWBUTSMAT, "Spe",			265,120,39,22, &(ma->rgbsel), 2.0, 1.0, 0, 0, "Set the colour of the specularity");
-			uiDefButC(block, ROW, REDRAWBUTSMAT, "Col",			304,120,39,22, &(ma->rgbsel), 2.0, 0.0, 0, 0, "Set the basic colour of the material");
-		}
-		if(ma->rgbsel==0) {colpoin= &(ma->r); rgbsel= B_MATCOL;}
-		else if(ma->rgbsel==1) {colpoin= &(ma->specr); rgbsel= B_SPECCOL;}
-		else if(ma->rgbsel==2) {colpoin= &(ma->mirr); rgbsel= B_MIRCOL;}
-		
-		if(ma->rgbsel==0 && (ma->mode & (MA_VERTEXCOLP|MA_FACETEXTURE) && !(ma->mode & MA_HALO)));
-		else if(ma->colormodel==MA_HSV) {
-			uiBlockSetCol(block, BUTPURPLE);
-			uiDefButF(block, HSVSLI, B_MATPRV, "H ",			350,168,150,21, colpoin, 0.0, 0.9999, rgbsel, 0, "");
-			uiBlockSetCol(block, BUTPURPLE);
-			uiDefButF(block, HSVSLI, B_MATPRV, "S ",			350,144,150,21, colpoin, 0.0001, 1.0, rgbsel, 0, "");
-			uiBlockSetCol(block, BUTPURPLE);
-			uiDefButF(block, HSVSLI, B_MATPRV, "V ",			350,120,150,21, colpoin, 0.0001, 1.0, rgbsel, 0, "");
-			uiBlockSetCol(block, BUTGREY);
-		}
-		else {
-			uiDefButF(block, NUMSLI, B_MATPRV, "R ",			350,168,150,21, colpoin, 0.0, 1.0, rgbsel, 0, "");
-			uiDefButF(block, NUMSLI, B_MATPRV, "G ",			350,144,150,21, colpoin+1, 0.0, 1.0, rgbsel, 0, "");
-			uiDefButF(block, NUMSLI, B_MATPRV, "B ",			350,120,150,21, colpoin+2, 0.0, 1.0, rgbsel, 0, "");
-		}
-		if(!(ma->mode & MA_HALO)) {
-			uiBlockSetCol(block, BUTBLUE);
-			uiDefButI(block, TOG|BIT|4, B_REDR,	"VCol Light",		505, 168, 60, 21, &(ma->mode), 0, 0, 0, 0, "Add vertex colours as extra light");
-			uiDefButI(block, TOG|BIT|7, B_REDR, "VCol Paint",		505, 144, 60, 21, &(ma->mode), 0, 0, 0, 0, "Replace basic colours with vertex colours");
-			uiDefButI(block, TOG|BIT|11, B_REDR, "TexFace",			505, 120, 60, 21, &(ma->mode), 0, 0, 0, 0, "UV-Editor assigned texture gives color and texture info for the faces");
-		}
-	}
-	if(ma->mode & MA_HALO) {
-		uiBlockSetCol(block, BUTGREY);
-		uiDefButF(block, NUM, B_MATPRV, "HaloSize: ",		200,90,175,18, &(ma->hasize), 0.0, 100.0, 10, 0, "Set the dimension of the halo");
-		uiDefButF(block, NUMSLI, B_MATPRV, "Alpha ",		200,50,175,18, &(ma->alpha), 0.0, 1.0, 0, 0, "Set the degree of coverage");
-		uiDefButS(block, NUMSLI, B_MATPRV, "Hard ",			200,30,175,18, &(ma->har), 1.0, 127.0, 0, 0, "Set the hardness of the halo");
-		uiDefButF(block, NUMSLI, B_MATPRV, "Add  ",			200,10,175,18, &(ma->add), 0.0, 1.0, 0, 0, "Strength of the add effect");
-		
-		uiDefButS(block, NUM, B_MATPRV, "Rings: ",			380,90,85,18, &(ma->ringc), 0.0, 24.0, 0, 0, "Set the number of rings rendered over the basic halo");
-		uiDefButS(block, NUM, B_MATPRV, "Lines: ",			465,90,90,18, &(ma->linec), 0.0, 250.0, 0, 0, "Set the number of star shaped lines rendered over the halo");
-		uiDefButS(block, NUM, B_MATPRV, "Star: ",			380,70,85,18, &(ma->starc), 3.0, 50.0, 0, 0, "Set the number of points on the star shaped halo");
-		uiDefButC(block, NUM, B_MATPRV, "Seed: ",			465,70,90,18, &(ma->seed1), 0.0, 255.0, 0, 0, "Use random values for ring dimension and line location");
-		
-		uiDefButF(block, NUM, B_MATPRV, "FlareSize: ",		380,50,85,18, &(ma->flaresize), 0.1, 25.0, 10, 0, "Set the factor the flare is larger than the halo");
-		uiDefButF(block, NUM, B_MATPRV, "Sub Size: ",		465,50,90,18, &(ma->subsize), 0.1, 25.0, 10, 0, "Set the dimension of the subflares, dots and circles");
-		uiDefButF(block, NUM, B_MATPRV, "FlareBoost: ",		380,30,175,18, &(ma->flareboost), 0.1, 10.0, 10, 0, "Give the flare extra strength");
-		uiDefButC(block, NUM, B_MATPRV, "Fl.seed: ",		380,10,85,18, &(ma->seed2), 0.0, 255.0, 0, 0, "Specify an offset in the seed table");
-		uiDefButS(block, NUM, B_MATPRV, "Flares: ",			465,10,90,18, &(ma->flarec), 1.0, 32.0, 0, 0, "Set the nuber of subflares");
-
-		uiBlockSetCol(block, BUTBLUE);
-		
-		uiDefButI(block, TOG|BIT|15, B_MATPRV, "Flare",		576, 181, 77, 36, &(ma->mode), 0, 0, 0, 0, "Render halo as a lensflare");
-		uiDefButI(block, TOG|BIT|8, B_MATPRV, "Rings",		576, 143, 77, 18, &(ma->mode), 0, 0, 0, 0, "Render rings over basic halo");
-		uiDefButI(block, TOG|BIT|9, B_MATPRV, "Lines",		576, 124, 77, 18, &(ma->mode), 0, 0, 0, 0, "Render star shaped lines over the basic halo");
-		uiDefButI(block, TOG|BIT|11, B_MATPRV, "Star",		576, 105, 77, 18, &(ma->mode), 0, 0, 0, 0, "Render halo as a star");
-		uiDefButI(block, TOG|BIT|5, B_MATPRV_DRAW, "Halo",	576, 86, 77, 18, &(ma->mode), 0, 0, 0, 0, "Render as a halo");
-		
-		uiDefButI(block, TOG|BIT|12, B_MATPRV, "HaloTex",	576, 67, 77, 18, &(ma->mode), 0, 0, 0, 0, "Give halo a texture");
-		uiDefButI(block, TOG|BIT|13, B_MATPRV, "HaloPuno",	576, 48, 77, 18, &(ma->mode), 0, 0, 0, 0, "Use the vertex normal to specify the dimension of the halo");
-		uiDefButI(block, TOG|BIT|10, B_MATPRV, "X Alpha",	576, 28, 77, 18, &(ma->mode), 0, 0, 0, 0, "Use extreme alpha");
-		uiDefButI(block, TOG|BIT|14, B_MATPRV, "Shaded",	576, 10, 77, 18, &(ma->mode), 0, 0, 0, 0, "Let halo receive light");
-	}
-	else {
-		char *str1= "Diffuse Shader%t|Lambert %x0|Oren-Nayar %x1|Toon %x2";
-		char *str2= "Specular Shader%t|CookTorr %x0|Phong %x1|Blinn %x2|Toon %x3";
-		
-		/* shader buttons */
-		uiBlockSetCol(block, BUTGREY);
-		uiDefButS(block, MENU, B_MATPRV_DRAW, str1,		200,90,95,18, &(ma->diff_shader), 0.0, 0.0, 0, 0, "Set a diffuse shader");
-		uiDefButS(block, MENU, B_MATPRV_DRAW, str2,		295,90,90,18, &(ma->spec_shader), 0.0, 0.0, 0, 0, "Set a specular shader");
-
-		if(ma->diff_shader==MA_DIFF_ORENNAYAR)
-			uiDefButF(block, NUM, B_MATPRV, "Rough:",		200, 70, 95,18, &(ma->roughness), 0.0, 3.14, 0, 0, "Oren Nayar Roughness");
-		else if(ma->diff_shader==MA_DIFF_TOON) {
-			uiDefButF(block, NUM, B_MATPRV, "Size:",		200, 70, 95,18, &(ma->param[0]), 0.0, 3.14, 0, 0, "Size of diffuse toon area");
-			uiDefButF(block, NUM, B_MATPRV, "Smooth:",		200, 50, 95,18, &(ma->param[1]), 0.0, 1.0, 0, 0, "Smoothness of diffuse toon area");
-		}
-		
-		if ELEM3(ma->spec_shader, MA_SPEC_COOKTORR, MA_SPEC_PHONG, MA_SPEC_BLINN) {
-			uiDefButS(block, NUM, B_MATPRV, "Hard:",		295, 70, 90,18, &(ma->har), 1.0, 255, 0, 0, "Set the hardness of the specularity");
-		}
-		if(ma->spec_shader==MA_SPEC_BLINN)
-			uiDefButF(block, NUM, B_MATPRV, "Refr:",		295, 50, 90,18, &(ma->refrac), 1.0, 10.0, 0, 0, "Refraction index");
-		if(ma->spec_shader==MA_SPEC_TOON) {
-			uiDefButF(block, NUM, B_MATPRV, "Size:",		295, 70, 90,18, &(ma->param[2]), 0.0, 1.53, 0, 0, "Size of specular toon area");
-			uiDefButF(block, NUM, B_MATPRV, "Smooth:",		295, 50, 90,18, &(ma->param[3]), 0.0, 1.0, 0, 0, "Smoothness of specular toon area");
-		}
-
-		uiDefButF(block, NUMSLI, B_MATPRV, "Ref   ",		200,30,185,18, &(ma->ref), 0.0, 1.0, 0, 0, "Set the amount of reflection");
-		uiDefButF(block, NUMSLI, B_MATPRV, "Spec ",			200,10,185,18, &(ma->spec), 0.0, 2.0, 0, 0, "Set the degree of specularity");
-	
-		/* default shading variables */
-		uiDefButF(block, NUMSLI, B_MATPRV, "Alpha ",		390,90,175,18, &(ma->alpha), 0.0, 1.0, 0, 0, "Set the amount of coverage, to make materials transparent");
-		uiDefButF(block, NUMSLI, B_MATPRV, "SpecTra ",		390,70,175,18, &(ma->spectra), 0.0, 1.0, 0, 0, "Make specular areas opaque");
-		uiDefButF(block, NUMSLI, B_MATPRV, "Add  ",			390,50,175,18, &(ma->add), 0.0, 1.0, 0, 0, "Glow factor for transparant");
-		uiDefButF(block, NUMSLI, B_MATPRV, "Emit  ",		390,30,175,18, &(ma->emit), 0.0, 1.0, 0, 0, "Set the amount of emitting light");
-		uiDefButF(block, NUMSLI, B_MATPRV, "Amb   ",		390,10,175,18, &(ma->amb), 0.0, 1.0, 0, 0, "Set the amount of global ambient color");
-	
-		uiBlockSetCol(block, BUTBLUE);
-	
-		uiDefButI(block, TOG|BIT|0, 0,	"Traceable",		576,200,77,18, &(ma->mode), 0, 0, 0, 0, "Make material visible for shadow lamps");
-		uiDefButI(block, TOG|BIT|1, 0,	"Shadow",			576,181,77,18, &(ma->mode), 0, 0, 0, 0, "Enable material for shadows");
-		uiDefButI(block, TOG|BIT|16, 0,	"Radio",			576, 162, 77,18, &(ma->mode), 0, 0, 0, 0, "Set the material insensitive to mist");
-		uiDefButI(block, TOG|BIT|2, B_MATPRV, "Shadeless",	576, 143, 77, 18, &(ma->mode), 0, 0, 0, 0, "Make material insensitive to light or shadow");
-		uiDefButI(block, TOG|BIT|3, 0,	"Wire",				576, 124, 77, 18, &(ma->mode), 0, 0, 0, 0, "Render only the edges of faces");
-		uiDefButI(block, TOG|BIT|6, 0,	"ZTransp",			576, 105, 77, 18, &(ma->mode), 0, 0, 0, 0, "Z-Buffer transparent faces");
-		uiDefButI(block, TOG|BIT|5, B_MATPRV_DRAW, "Halo",	576, 86, 77, 18, &(ma->mode), 0, 0, 0, 0, "Render as a halo");
-		uiDefButI(block, TOG|BIT|9, 0,	"Env",				576, 67, 77, 18, &(ma->mode), 0, 0, 0, 0, "Do not render material");
-		uiDefButI(block, TOG|BIT|10, 0,	"OnlyShadow",		576, 48, 77, 18, &(ma->mode), 0, 0, 0, 0, "Let alpha be determined on the degree of shadow");
-		uiDefButI(block, TOG|BIT|14, 0,	"No Mist",			576, 29, 77,18, &(ma->mode), 0, 0, 0, 0, "Set the material insensitive to mist");
-		uiDefButI(block, TOG|BIT|8, 0,	"ZInvert",			576, 10, 77, 18, &(ma->mode), 0, 0, 0, 0, "Render with inverted Z Buffer");
-		uiBlockSetCol(block, BUTGREY);
-		uiDefButF(block, NUM, 0, "Zoffs:",					576, -9, 77,18, &(ma->zoffs), 0.0, 10.0, 0, 0, "Give face an artificial offset");
-	}
 
 	/* TEX CHANNELS */
 	uiBlockSetCol(block, BUTGREY);
@@ -504,26 +324,243 @@ void matbuts(void)
 	uiDrawBlock(block);
 }
 
+void material_panel_shading(Material *ma)
+{
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "material_panel_shading", UI_EMBOSSX, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Shaders", "Material", 570, 0, 318, 204)==0) return;
+
+	uiBlockSetCol(block, BUTPURPLE);
+	uiDefButI(block, TOG|BIT|5, B_MATPRV_DRAW, "Halo",	245,180,65,18, &(ma->mode), 0, 0, 0, 0, "Render as a halo");
+
+	if(ma->mode & MA_HALO) {
+		uiBlockSetCol(block, BUTGREY);
+		uiDefButF(block, NUM, B_MATPRV, "HaloSize: ",		10,155,190,18, &(ma->hasize), 0.0, 100.0, 10, 0, "Set the dimension of the halo");
+		uiDefButS(block, NUMSLI, B_MATPRV, "Hard ",			10,135,190,18, &(ma->har), 1.0, 127.0, 0, 0, "Set the hardness of the halo");
+		uiDefButF(block, NUMSLI, B_MATPRV, "Add  ",			10,115,190,18, &(ma->add), 0.0, 1.0, 0, 0, "Strength of the add effect");
+		
+		uiDefButS(block, NUM, B_MATPRV, "Rings: ",			10,90,90,18, &(ma->ringc), 0.0, 24.0, 0, 0, "Set the number of rings rendered over the basic halo");
+		uiDefButS(block, NUM, B_MATPRV, "Lines: ",			100,90,100,18, &(ma->linec), 0.0, 250.0, 0, 0, "Set the number of star shaped lines rendered over the halo");
+		uiDefButS(block, NUM, B_MATPRV, "Star: ",			10,70,90,18, &(ma->starc), 3.0, 50.0, 0, 0, "Set the number of points on the star shaped halo");
+		uiDefButC(block, NUM, B_MATPRV, "Seed: ",			100,70,100,18, &(ma->seed1), 0.0, 255.0, 0, 0, "Use random values for ring dimension and line location");
+		if(ma->mode & MA_HALO_FLARE) {
+			uiDefButF(block, NUM, B_MATPRV, "FlareSize: ",		10,50,95,18, &(ma->flaresize), 0.1, 25.0, 10, 0, "Set the factor the flare is larger than the halo");
+			uiDefButF(block, NUM, B_MATPRV, "Sub Size: ",		100,50,100,18, &(ma->subsize), 0.1, 25.0, 10, 0, "Set the dimension of the subflares, dots and circles");
+			uiDefButF(block, NUMSLI, B_MATPRV, "Boost: ",		10,30,190,18, &(ma->flareboost), 0.1, 10.0, 10, 0, "Give the flare extra strength");
+			uiDefButC(block, NUM, B_MATPRV, "Fl.seed: ",		10,10,90,18, &(ma->seed2), 0.0, 255.0, 0, 0, "Specify an offset in the seed table");
+			uiDefButS(block, NUM, B_MATPRV, "Flares: ",			100,10,100,18, &(ma->flarec), 1.0, 32.0, 0, 0, "Set the nuber of subflares");
+		}
+		uiBlockSetCol(block, BUTBLUE);
+		
+		uiDefButI(block, TOG|BIT|15, B_MATPRV, "Flare",		245,142,65,28, &(ma->mode), 0, 0, 0, 0, "Render halo as a lensflare");
+		uiDefButI(block, TOG|BIT|8, B_MATPRV, "Rings",		245,123,65, 18, &(ma->mode), 0, 0, 0, 0, "Render rings over basic halo");
+		uiDefButI(block, TOG|BIT|9, B_MATPRV, "Lines",		245,104,65, 18, &(ma->mode), 0, 0, 0, 0, "Render star shaped lines over the basic halo");
+		uiDefButI(block, TOG|BIT|11, B_MATPRV, "Star",		245,85,65, 18, &(ma->mode), 0, 0, 0, 0, "Render halo as a star");
+		uiDefButI(block, TOG|BIT|12, B_MATPRV, "HaloTex",	245,66,65, 18, &(ma->mode), 0, 0, 0, 0, "Give halo a texture");
+		uiDefButI(block, TOG|BIT|13, B_MATPRV, "HaloPuno",	245,47,65, 18, &(ma->mode), 0, 0, 0, 0, "Use the vertex normal to specify the dimension of the halo");
+		uiDefButI(block, TOG|BIT|10, B_MATPRV, "X Alpha",	245,28,65, 18, &(ma->mode), 0, 0, 0, 0, "Use extreme alpha");
+		uiDefButI(block, TOG|BIT|14, B_MATPRV, "Shaded",	245,9,65, 18, &(ma->mode), 0, 0, 0, 0, "Let halo receive light");
+	}
+	else {
+		char *str1= "Diffuse Shader%t|Lambert %x0|Oren-Nayar %x1|Toon %x2";
+		char *str2= "Specular Shader%t|CookTorr %x0|Phong %x1|Blinn %x2|Toon %x3";
+		
+		/* diff shader buttons */
+		uiBlockSetCol(block, BUTGREY);
+		uiDefButS(block, MENU, B_MATPRV_DRAW, str1,		9, 155,78,19, &(ma->diff_shader), 0.0, 0.0, 0, 0, "Set a diffuse shader");
+		uiDefButF(block, NUMSLI, B_MATPRV, "Ref   ",	90,155,150,19, &(ma->ref), 0.0, 1.0, 0, 0, "Set the amount of reflection");
+
+		if(ma->diff_shader==MA_DIFF_ORENNAYAR)
+			uiDefButF(block, NUMSLI, B_MATPRV, "Rough:",90,135, 150,19, &(ma->roughness), 0.0, 3.14, 0, 0, "Oren Nayar Roughness");
+		else if(ma->diff_shader==MA_DIFF_TOON) {
+			uiDefButF(block, NUMSLI, B_MATPRV, "Size:",	90, 135,150,19, &(ma->param[0]), 0.0, 3.14, 0, 0, "Size of diffuse toon area");
+			uiDefButF(block, NUMSLI, B_MATPRV, "Smooth:",90,115,150,19, &(ma->param[1]), 0.0, 1.0, 0, 0, "Smoothness of diffuse toon area");
+		}
+		
+		/* spec shader buttons */
+		uiDefButS(block, MENU, B_MATPRV_DRAW, str2,		9,95,77,19, &(ma->spec_shader), 0.0, 0.0, 0, 0, "Set a specular shader");
+		uiDefButF(block, NUMSLI, B_MATPRV, "Spec ",		90,95,150,19, &(ma->spec), 0.0, 2.0, 0, 0, "Set the degree of specularity");
+
+		if ELEM3(ma->spec_shader, MA_SPEC_COOKTORR, MA_SPEC_PHONG, MA_SPEC_BLINN) {
+			uiDefButS(block, NUMSLI, B_MATPRV, "Hard:",	90, 75, 150,19, &(ma->har), 1.0, 255, 0, 0, "Set the hardness of the specularity");
+		}
+		if(ma->spec_shader==MA_SPEC_BLINN)
+			uiDefButF(block, NUMSLI, B_MATPRV, "Refr:",	90, 55,150,19, &(ma->refrac), 1.0, 10.0, 0, 0, "Refraction index");
+		if(ma->spec_shader==MA_SPEC_TOON) {
+			uiDefButF(block, NUMSLI, B_MATPRV, "Size:",	90, 75,150,19, &(ma->param[2]), 0.0, 1.53, 0, 0, "Size of specular toon area");
+			uiDefButF(block, NUMSLI, B_MATPRV, "Smooth:",90, 55,150,19, &(ma->param[3]), 0.0, 1.0, 0, 0, "Smoothness of specular toon area");
+		}
+
+		/* default shading variables */
+		uiDefButF(block, NUMSLI, B_MATPRV, "Amb   ",		9,30,117,19, &(ma->amb), 0.0, 1.0, 0, 0, "Set the amount of global ambient color");
+		uiDefButF(block, NUMSLI, B_MATPRV, "Emit  ",		133,30,118,19, &(ma->emit), 0.0, 1.0, 0, 0, "Set the amount of emitting light");
+		uiDefButF(block, NUMSLI, B_MATPRV, "Add  ",			9,10,119,19, &(ma->add), 0.0, 1.0, 0, 0, "Glow factor for transparant");
+		uiDefButF(block, NUM, 0, "Zoffs:",					133,10,118,19, &(ma->zoffs), 0.0, 10.0, 0, 0, "Give face an artificial offset");
+	
+		uiBlockSetCol(block, BUTBLUE);
+	
+		uiDefButI(block, TOG|BIT|0, 0,	"Traceable",		245,161,65,18, &(ma->mode), 0, 0, 0, 0, "Make material visible for shadow lamps");
+		uiDefButI(block, TOG|BIT|1, 0,	"Shadow",			245,142,65,18, &(ma->mode), 0, 0, 0, 0, "Enable material for shadows");
+		uiDefButI(block, TOG|BIT|16, 0,	"Radio",			245,123,65,18, &(ma->mode), 0, 0, 0, 0, "Set the material insensitive to mist");
+		uiDefButI(block, TOG|BIT|3, 0,	"Wire",				245,104,65,18, &(ma->mode), 0, 0, 0, 0, "Render only the edges of faces");
+		uiDefButI(block, TOG|BIT|6, 0,	"ZTransp",			245,85, 65,18, &(ma->mode), 0, 0, 0, 0, "Z-Buffer transparent faces");
+		uiDefButI(block, TOG|BIT|9, 0,	"Env",				245,66, 65,18, &(ma->mode), 0, 0, 0, 0, "Do not render material");
+		uiDefButI(block, TOG|BIT|10, 0,	"OnlyShadow",		245,47, 65,18, &(ma->mode), 0, 0, 0, 0, "Let alpha be determined on the degree of shadow");
+		uiDefButI(block, TOG|BIT|14, 0,	"No Mist",			245,28, 65,18, &(ma->mode), 0, 0, 0, 0, "Set the material insensitive to mist");
+		uiDefButI(block, TOG|BIT|8, 0,	"ZInvert",			245,9, 65,18, &(ma->mode), 0, 0, 0, 0, "Render with inverted Z Buffer");
+	}
+
+}
+
+
+void material_panel_material(Object *ob, Material *ma)
+{
+	uiBlock *block;
+	ID *id, *idn, *idfrom;
+	uiBut *but;
+	float *colpoin = NULL, min;
+	int rgbsel = 0, xco= 0;
+	char str[30];
+	
+	block= uiNewBlock(&curarea->uiblocks, "material_panel_material", UI_EMBOSSX, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Material", "Material", 250, 0, 318, 204)==0) return;
+
+	/* first do the browse but */
+	buttons_active_id(&id, &idfrom);
+
+	if((ob->type<OB_LAMP) && ob->type) {
+		xco= std_libbuttons(block, 8, 0, NULL, B_MATBROWSE, id, idfrom, &(G.buts->menunr), B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
+
+		uiDefIconBut(block, BUT, B_MATCOPY, ICON_COPYUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies Material to the buffer");
+		uiSetButLock(id && id->lib, "Can't edit library data");
+		uiDefIconBut(block, BUT, B_MATPASTE, ICON_PASTEUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes Material from the buffer");
+	}
+	
+	if(ob->actcol==0) ob->actcol= 1;	/* because of TOG|BIT button */
+	
+	/* indicate which one is linking a material */
+	uiBlockSetCol(block, BUTSALMON);
+	uiDefButS(block, TOG|BIT|(ob->actcol-1), B_MATFROM, "OB",	125,176,32,20, &ob->colbits, 0, 0, 0, 0, "Link material to object");
+	idn= ob->data;
+	strncpy(str, idn->name, 2);
+	str[2]= 0;
+	uiBlockSetCol(block, BUTGREEN);
+	uiDefButS(block, TOGN|BIT|(ob->actcol-1), B_MATFROM, str,	158,176,32,20, &ob->colbits, 0, 0, 0, 0, "Show the block the material is linked to");
+	uiBlockSetCol(block, BUTGREY);
+	
+	/* id is the block from which the material is used */
+	if( BTST(ob->colbits, ob->actcol-1) ) id= (ID *)ob;
+	else id= ob->data;
+
+	sprintf(str, "%d Mat", ob->totcol);
+	if(ob->totcol) min= 1.0; else min= 0.0;
+	uiDefButC(block, NUM, B_ACTCOL, str,			191,176,114,20, &(ob->actcol), min, (float)ob->totcol, 0, 0, "Number of materials on object / Active material");
+	
+	uiSetButLock(id->lib!=0, "Can't edit library data");
+	
+	strncpy(str, id->name, 2);
+	str[2]= ':'; str[3]= 0;
+	but= uiDefBut(block, TEX, B_IDNAME, str,		8,176,115,20, id->name+2, 0.0, 18.0, 0, 0, "Show the block the material is linked to");
+	uiButSetFunc(but, test_idbutton_cb, id->name, NULL);
+
+	if(ob->totcol==0) {
+		uiDrawBlock(block);
+		return;
+	}
+	
+	ma= give_current_material(ob, ob->actcol);
+	
+	if(ma==0) {
+		uiDrawBlock(block);
+		return;
+	}
+	uiSetButLock(ma->id.lib!=0, "Can't edit library data");
+	
+	
+	if(ma->dynamode & MA_DRAW_DYNABUTS) {
+		uiDefButF(block, NUMSLI, 0, "Restitut ",		128,120,175,20, &ma->reflect, 0.0, 1.0, 0, 0, "Elasticity of collisions");
+		uiDefButF(block, NUMSLI, 0, "Friction ",  		128,98 ,175,20, &ma->friction, 0.0, 100.0, 0, 0,   "Coulomb friction coefficient");
+		uiDefButF(block, NUMSLI, 0, "Fh Force ",		128,76 ,175,20, &ma->fh, 0.0, 1.0, 0, 0, "Upward spring force within the Fh area");
+
+		uiDefButF(block, NUM, 0,	 "Fh Damp ",		8,120,100,20, &ma->xyfrict, 0.0, 1.0, 10, 0, "Damping of the Fh spring force");
+		uiDefButF(block, NUM, 0, "Fh Dist ",			8,98 ,100,20, &ma->fhdist, 0.0, 20.0, 10, 0, "Height of the Fh area");
+		uiBlockSetCol(block, BUTGREEN);
+		uiDefButS(block, TOG|BIT|1, 0, "Fh Norm",		8,76 ,100,20, &ma->dynamode, 0.0, 0.0, 0, 0, "Add a horizontal spring force on slopes");
+		uiBlockSetCol(block, BUTGREY);
+	}
+	else {
+		if(!(ma->mode & MA_HALO)) {
+			uiBlockSetCol(block, BUTBLUE);
+			uiDefButI(block, TOG|BIT|4, B_REDR,	"VCol Light",	8,146,75,20, &(ma->mode), 0, 0, 0, 0, "Add vertex colours as extra light");
+			uiDefButI(block, TOG|BIT|7, B_REDR, "VCol Paint",	85,146,72,20, &(ma->mode), 0, 0, 0, 0, "Replace basic colours with vertex colours");
+			uiDefButI(block, TOG|BIT|11, B_REDR, "TexFace",		160,146,62,20, &(ma->mode), 0, 0, 0, 0, "UV-Editor assigned texture gives color and texture info for the faces");
+			uiDefButI(block, TOG|BIT|2, B_MATPRV, "Shadeless",	223,146,80,20, &(ma->mode), 0, 0, 0, 0, "Make material insensitive to light or shadow");
+		}
+		uiBlockSetCol(block, BUTGREY);
+		uiDefButF(block, COL, B_MATCOL, "",		8,115,72,24, &(ma->r), 0, 0, 0, 0, "");
+		uiDefButF(block, COL, B_SPECCOL, "",	8,88,72,24, &(ma->specr), 0, 0, 0, 0, "");
+		uiDefButF(block, COL, B_MIRCOL, "",		8,61,72,24, &(ma->mirr), 0, 0, 0, 0, "");
+	
+		if(ma->mode & MA_HALO) {
+			uiDefButC(block, ROW, REDRAWBUTSMAT, "Halo",		83,115,30,25, &(ma->rgbsel), 2.0, 0.0, 0, 0, "Mix the colour of the halo with the RGB sliders");
+			uiDefButC(block, ROW, REDRAWBUTSMAT, "Line",		83,88,30,25, &(ma->rgbsel), 2.0, 1.0, 0, 0, "Mix the colour of the lines with the RGB sliders");
+			uiDefButC(block, ROW, REDRAWBUTSMAT, "Ring",		83,61,30,25, &(ma->rgbsel), 2.0, 2.0, 0, 0, "Mix the colour of the rings with the RGB sliders");
+		}
+		else {
+			uiDefButC(block, ROW, REDRAWBUTSMAT, "Col",			83,115,30,25, &(ma->rgbsel), 2.0, 0.0, 0, 0, "Set the basic colour of the material");
+			uiDefButC(block, ROW, REDRAWBUTSMAT, "Spe",			83,88,30,25, &(ma->rgbsel), 2.0, 1.0, 0, 0, "Set the colour of the specularity");
+			uiDefButC(block, ROW, REDRAWBUTSMAT, "Mir",			83,61,30,25, &(ma->rgbsel), 2.0, 2.0, 0, 0, "Use mirror colour");
+		}
+		if(ma->rgbsel==0) {colpoin= &(ma->r); rgbsel= B_MATCOL;}
+		else if(ma->rgbsel==1) {colpoin= &(ma->specr); rgbsel= B_SPECCOL;}
+		else if(ma->rgbsel==2) {colpoin= &(ma->mirr); rgbsel= B_MIRCOL;}
+		
+		if(ma->rgbsel==0 && (ma->mode & (MA_VERTEXCOLP|MA_FACETEXTURE) && !(ma->mode & MA_HALO)));
+		else if(ma->colormodel==MA_HSV) {
+			uiBlockSetCol(block, BUTPURPLE);
+			uiDefButF(block, HSVSLI, B_MATPRV, "H ",		128,120,175,20, colpoin, 0.0, 0.9999, rgbsel, 0, "");
+			uiDefButF(block, HSVSLI, B_MATPRV, "S ",		128,98,175,20, colpoin, 0.0001, 1.0, rgbsel, 0, "");
+			uiDefButF(block, HSVSLI, B_MATPRV, "V ",		128,76,175,20, colpoin, 0.0001, 1.0, rgbsel, 0, "");
+			uiBlockSetCol(block, BUTGREY);
+		}
+		else {
+			uiDefButF(block, NUMSLI, B_MATPRV, "R ",		128,120,175,20, colpoin, 0.0, 1.0, rgbsel, 0, "");
+			uiDefButF(block, NUMSLI, B_MATPRV, "G ",		128,98,175,20, colpoin+1, 0.0, 1.0, rgbsel, 0, "");
+			uiDefButF(block, NUMSLI, B_MATPRV, "B ",		128,76,175,20, colpoin+2, 0.0, 1.0, rgbsel, 0, "");
+		}
+		
+		uiDefButF(block, NUMSLI, B_MATPRV, "Alpha ",		128,54,175,20, &(ma->alpha), 0.0, 1.0, 0, 0, "Set the amount of coverage, to make materials transparent");
+		uiDefButF(block, NUMSLI, B_MATPRV, "SpecTra ",		128,32,175,20, &(ma->spectra), 0.0, 1.0, 0, 0, "Make specular areas opaque");
+		
+	}
+	uiDefButS(block, ROW, REDRAWBUTSMAT, "RGB",			8,32,35,20, &(ma->colormodel), 1.0, (float)MA_RGB, 0, 0, "Create colour by red, green and blue");
+	uiDefButS(block, ROW, REDRAWBUTSMAT, "HSV",			43,32,35,20, &(ma->colormodel), 1.0, (float)MA_HSV, 0, 0, "Mix colour with hue, saturation and value");
+	uiBlockSetCol(block, BUTGREEN);
+	uiDefButS(block, TOG|BIT|0, REDRAWBUTSMAT, "DYN",	78,32,35,20, &(ma->dynamode), 0.0, 0.0, 0, 0, "Adjust parameters for dynamics options");
+
+}
+
 void material_panel_preview(Material *ma)
 {
 	uiBlock *block;
 	
 	/* name "Preview" is abused to detect previewrender offset panel */
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_preview", UI_EMBOSSX, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Preview", "Material", 0, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Preview", "Material", 0, 0, 248, 204)==0) return;
 	
-	uiBlockSetDrawExtraFunc(block, BIF_previewdraw);
-
-	// labels to force a boundbox for buttons not to be centered
-	uiDefBut(block, LABEL, 0, " ",	20,20,10,10, 0, 0, 0, 0, 0, "");
-	uiDefBut(block, LABEL, 0, " ",	280,180,10, 10, 0, 0, 0, 0, 0, "");
-
-	uiDefIconButC(block, ROW, B_MATPRV, ICON_MATPLANE,		230,180,25,20, &(ma->pr_type), 10, 0, 0, 0, "");
-	uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE,		230,150,25,20, &(ma->pr_type), 10, 1, 0, 0, "");
-	uiDefIconButC(block, ROW, B_MATPRV, ICON_MATCUBE,		230,120,25,20, &(ma->pr_type), 10, 2, 0, 0, "");
-	uiDefIconButS(block, ICONTOG|BIT|0, B_MATPRV, ICON_TRANSP_HLT,	230,80,25,20, &(ma->pr_back), 0, 0, 0, 0, "");
-	uiDefIconBut(block, BUT, B_MATPRV, ICON_EYE,			230,10, 25,20, 0, 0, 0, 0, 0, "");
-
+	if(ma) {
+		uiBlockSetDrawExtraFunc(block, BIF_previewdraw);
+	
+		// label to force a boundbox for buttons not to be centered
+		uiDefBut(block, LABEL, 0, " ",	20,20,10,10, 0, 0, 0, 0, 0, "");
+	
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATPLANE,		210,180,25,22, &(ma->pr_type), 10, 0, 0, 0, "");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE,		210,150,25,22, &(ma->pr_type), 10, 1, 0, 0, "");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATCUBE,		210,120,25,22, &(ma->pr_type), 10, 2, 0, 0, "");
+		uiDefIconButS(block, ICONTOG|BIT|0, B_MATPRV, ICON_TRANSP_HLT,	210,80,25,22, &(ma->pr_back), 0, 0, 0, 0, "");
+		uiDefIconBut(block, BUT, B_MATPRV, ICON_EYE,			210,10, 25,22, 0, 0, 0, 0, 0, "");
+	}
 }
 
 void material_panels()
@@ -534,10 +571,12 @@ void material_panels()
 	if(ob==0) return;
 	ma= give_current_material(ob, ob->actcol);
 
-	if(ma) {
+	// always draw first 2 panels
+	material_panel_preview(ma);
+	material_panel_material(ob, ma);
 	
-		material_panel_preview(ma);
-	}
+	if(ma) material_panel_shading(ma);
+
 	
 }
 
