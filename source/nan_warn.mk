@@ -137,8 +137,6 @@ ifeq ($(CCC),g++)
     LEVEL_2_CPP_WARNINGS += -Wcast-qual
     LEVEL_2_CPP_WARNINGS += -Wcast-align
     # deliberately disable aggregate-return warnings
-    LEVEL_2_CPP_WARNINGS += -Wstrict-prototypes
-    LEVEL_2_CPP_WARNINGS += -Wmissing-prototypes
     LEVEL_2_CPP_WARNINGS += -Wredundant-decls 
     LEVEL_2_CPP_WARNINGS += -Wreorder
     LEVEL_2_CPP_WARNINGS += -Wctor-dtor-privacy
