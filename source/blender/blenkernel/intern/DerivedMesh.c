@@ -41,6 +41,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
+#include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 
 #include "BKE_DerivedMesh.h"
@@ -359,9 +360,27 @@ static void meshDM_drawFacesColored(DerivedMesh *dm, int useTwoSide, unsigned ch
 	glDisable(GL_CULL_FACE);
 }
 
+static int meshDM_getNumVerts(DerivedMesh *dm)
+{
+	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
+	Mesh *me = mdm->ob->data;
+
+	return me->totvert;
+}
+static int meshDM_getNumFaces(DerivedMesh *dm)
+{
+	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
+	Mesh *me = mdm->ob->data;
+
+	return me->totface;
+}
+
 static DerivedMesh *getMeshDerivedMesh(Object *ob, float *extverts, float *nors)
 {
 	MeshDerivedMesh *mdm = MEM_mallocN(sizeof(*mdm), "dm");
+
+	mdm->dm.getNumVerts = meshDM_getNumVerts;
+	mdm->dm.getNumFaces = meshDM_getNumFaces;
 
 	mdm->dm.drawVerts = meshDM_drawVerts;
 	mdm->dm.drawMappedVertsEM = NULL;
@@ -467,9 +486,25 @@ static void emDM_drawFacesSolid(DerivedMesh *dm, void (*setMaterial)(int))
 	}
 }
 
+static int emDM_getNumVerts(DerivedMesh *dm)
+{
+	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+
+	return BLI_countlist(&emdm->em->verts);
+}
+static int emDM_getNumFaces(DerivedMesh *dm)
+{
+	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+
+	return BLI_countlist(&emdm->em->faces);
+}
+
 static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em)
 {
 	EditMeshDerivedMesh *emdm = MEM_mallocN(sizeof(*emdm), "dm");
+
+	emdm->dm.getNumVerts = emDM_getNumVerts;
+	emdm->dm.getNumFaces = emDM_getNumFaces;
 
 	emdm->dm.drawVerts = NULL;
 	emdm->dm.drawMappedVertsEM = emDM_drawMappedVertsEM;
@@ -738,9 +773,25 @@ static void ssDM_drawFacesEM(DerivedMesh *dm, int useColor, unsigned char *baseC
 	}
 }
 
+static int ssDM_getNumVerts(DerivedMesh *dm)
+{
+	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
+
+	return ssdm->dlm->totvert;
+}
+static int ssDM_getNumFaces(DerivedMesh *dm)
+{
+	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
+
+	return ssdm->dlm->totface;
+}
+
 static DerivedMesh *getSSDerivedMesh(EditMesh *em, DispListMesh *dlm, float *nors)
 {
 	SSDerivedMesh *ssdm = MEM_mallocN(sizeof(*ssdm), "dm");
+
+	ssdm->dm.getNumVerts = ssDM_getNumVerts;
+	ssdm->dm.getNumFaces = ssDM_getNumFaces;
 
 	ssdm->dm.drawVerts = ssDM_drawVerts;
 	ssdm->dm.drawMappedVertsEM = ssDM_drawMappedVertsEM;

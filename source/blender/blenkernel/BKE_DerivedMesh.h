@@ -38,6 +38,11 @@ struct DispListMesh;
 
 typedef struct DerivedMesh DerivedMesh;
 struct DerivedMesh {
+	/* Misc. Queries */
+
+	int (*getNumVerts)(DerivedMesh *dm);
+	int (*getNumFaces)(DerivedMesh *dm);
+
 	/* Drawing Operations */
 
 			/* Draw all vertices as bgl points (no options) */

@@ -66,6 +66,7 @@
 #include "BKE_anim.h"
 #include "BKE_object.h"
 #include "BKE_displist.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
@@ -488,12 +489,14 @@ void count_object(Object *ob, int sel)
 		G.totmesh++;
 		me= get_mesh(ob);
 		if(me) {
+			DerivedMesh *dm = mesh_get_derived(ob);
 			int totvert, totface;
-				/* hack, should be getting displistmesh from a central function */
-			if (mesh_uses_displist(me) && me->disp.first && ((DispList*)me->disp.first)->type==DL_MESH) {
-				DispListMesh *dlm= ((DispList*)me->disp.first)->mesh;
-				totvert= dlm->totvert;
-				totface= dlm->totface;
+
+			if (dm) {
+				totvert= dm->getNumVerts(dm);
+				totface= dm->getNumFaces(dm);
+
+				dm->release(dm);
 			} else {
 				totvert= me->totvert;
 				totface= me->totface;
