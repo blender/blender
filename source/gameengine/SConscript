@@ -16,6 +16,5 @@ SConscript(['BlenderRoutines/SConscript',
 
 if user_options_dict['USE_PHYSICS'] == 'solid':
     SConscript(['Physics/Sumo/SConscript'])
-
-if user_options_dict['USE_PHYSICS'] == 'ode':
+elif user_options_dict['USE_PHYSICS'] == 'ode':
     SConscript(['Physics/BlOde/SConscript'])

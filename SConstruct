@@ -64,9 +64,9 @@ if sys.platform == 'linux2':
     qhull_libpath = []                                          # TODO
     qhull_include = ['#extern/qhull/include']
     # ODE library information
-    ode_lib = []                                                # TODO
-    ode_libpath = []                                            # TODO
-    ode_include = ['#extern/ode/dist/include/ode']
+    ode_lib = ['ode']
+    ode_libpath = ['#../lib/linux-glibc2.2.5-i386/ode/lib']
+    ode_include = ['#../lib/linux-glibc2.2.5-i386/ode/include']
     # Python library information
     python_lib = ['python%d.%d' % sys.version_info[0:2]]
     python_libpath = [sysconfig.get_python_lib (0, 1) + '/config']
@@ -693,19 +693,22 @@ if user_options_dict['USE_INTERNATIONAL'] == 1:
 if user_options_dict['USE_QUICKTIME'] == 1:
     link_env.Append (LIBS=['blender_quicktime'])
 if user_options_dict['BUILD_GAMEENGINE'] == 1:
-    link_env.Append (LIBS=['blender_expressions',
-                           'KX_blenderhook',
+    link_env.Append (LIBS=['KX_blenderhook',
                            'KX_converter',
-                           'KX_ketsji',
-                           'KX_network',
-                           'NG_loopbacknetwork',
-                           'NG_network',
-                           'PHY_Physics',
                            'PHY_Dummy',
+                           'PHY_Physics',
+                           'KX_ketsji',
                            'SCA_GameLogic',
                            'RAS_rasterizer',
                            'RAS_OpenGLRasterizer',
-                           'SG_SceneGraph'])
+                           'blender_expressions',
+                           'SG_SceneGraph',
+                           'blender_MT',
+                           'KX_blenderhook',
+                           'KX_network',
+                           'blender_kernel',
+                           'NG_network',
+                           'NG_loopbacknetwork'])
     if user_options_dict['USE_PHYSICS'] == 'solid':
         link_env.Append (LIBS=['PHY_Sumo'])
         link_env.Append (LIBS=user_options_dict['SOLID_LIBRARY'])
@@ -713,7 +716,8 @@ if user_options_dict['BUILD_GAMEENGINE'] == 1:
         link_env.Append (LIBS=user_options_dict['QHULL_LIBRARY'])
         link_env.Append (LIBPATH=user_options_dict['QHULL_LIBPATH'])
     else:
-        link_env.Append (LIBS=['PHY_Ode'])
+        link_env.Append (LIBS=['PHY_Ode',
+                               'PHY_Physics'])
         link_env.Append (LIBS=user_options_dict['ODE_LIBRARY'])
         link_env.Append (LIBPATH=user_options_dict['ODE_LIBPATH'])
 
