@@ -226,8 +226,8 @@ all debug::
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= /usr/freeware
     export NAN_NSPR ?= /usr/local/apps/openblender/nspr/target/dist
-    export NAN_FREETYPE ?= $(LCGDIR)/freetype
-    export NAN_GETTEXT ?= $(LCGDIR)/gettext
+    export NAN_FREETYPE ?= /usr/freeware
+    export NAN_GETTEXT ?= /usr/freeware
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -242,10 +242,10 @@ all debug::
     export NAN_PARANOID ?= true
 
     # enable l10n
-    #export INTERNATIONAL ?= true
-	
+    export INTERNATIONAL ?= true
+
     # enable freetype2 support for text objects
-    #export WITH_FREETYPE2 ?= true
+    export WITH_FREETYPE2 ?= true
 
   else
   ifeq ($(OS),linux)

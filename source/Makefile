@@ -140,7 +140,9 @@ PYPLAYERLIB ?= $(PYLIB)
     ifeq ($(OS), windows)
       COMLIB += $(NAN_FREETYPE)/lib/freetype214ST.lib
     else
-      COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
+      ifneq ($(OS), irix)
+        COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
+      endif
     endif
   endif
 ifeq ($(INTERNATIONAL), true)
@@ -159,7 +161,9 @@ ifeq ($(INTERNATIONAL), true)
         endif
     else
         COMLIB += $(NAN_FTGL)/lib/libftgl.a
-        COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
+        ifneq ($(OS), irix)
+          COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
+        endif
     endif
 	ifeq ($(OS), darwin)
 	    COMLIB += $(NAN_GETTEXT)/lib/libintl.a
