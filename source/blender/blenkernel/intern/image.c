@@ -49,7 +49,6 @@
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-#include "intern/IMB_anim.h"
 
 #include "DNA_texture_types.h"
 #include "DNA_image_types.h"
@@ -490,8 +489,7 @@ void ima_ibuf_is_nul(Tex *tex)
 {
 	void (*de_interlacefunc)(struct ImBuf *ibuf);
 	Image *ima;
-	struct anim *anim;
-	int a, fra;
+	int a, fra, dur;
 	char str[FILE_MAXDIR+FILE_MAXFILE], *cp;
 		
 	ima= tex->ima;
@@ -509,13 +507,13 @@ void ima_ibuf_is_nul(Tex *tex)
 	
 		if(ima->anim==0) ima->anim = openanim(str, IB_cmap | IB_rect);
 		if (ima->anim) {
-			anim = ima->anim;
+			dur = IMB_anim_get_duration(ima->anim);
 			
 			ima->lastquality= R.osa;
 			fra= ima->lastframe-1;
 
 			if(fra<0) fra = 0;
-			if(fra>(anim->duration-1)) fra= anim->duration-1;
+			if(fra>(dur-1)) fra= dur-1;
 			ima->ibuf = IMB_anim_absolute(ima->anim, fra);
 
 			/* patch for textbutton with name ima (B_NAMEIMA) */
