@@ -219,8 +219,8 @@ typedef short IPO_Channel;
 
 /* ******************** */
 
-#define KEY_TOTIPO	32
-#define KEY_TOTNAM	32
+#define KEY_TOTIPO	64
+#define KEY_TOTNAM	64
 
 #define KEY_SPEED	0
 #define KEY_NR		1

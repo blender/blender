@@ -952,7 +952,7 @@ static PyObject *Object_getMatrix (BPy_Object *self, PyObject *args)
 		object_to_mat4(self->object, *((MatrixObject*)matrix)->matrix);
 	} else {
 		return (EXPP_ReturnPyObjError (PyExc_RuntimeError, 
-			"correct  	spaces are 'worldspace' and 'localspace', none defaults to localespace"));
+			"correct spaces are 'worldspace' and 'localspace', none defaults to 'localspace'"));
 	}
 	return matrix;
 }

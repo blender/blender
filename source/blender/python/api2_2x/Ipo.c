@@ -207,10 +207,12 @@ M_Ipo_New (PyObject * self, PyObject * args)
     idcode = ID_TE;
   if (!strcmp (code, "Lamp"))
     idcode = ID_LA;
-/*  if (!strcmp (code, "Constraint"))
+  if (!strcmp (code, "Action"))
+    idcode = ID_AC;
+  if (!strcmp (code, "Constraint"))
     idcode = IPO_CO;
   if (!strcmp (code, "Sequence"))
-    idcode = ID_SEQ;*/
+    idcode = ID_SEQ;
   if (!strcmp (code, "Curve"))
     idcode = ID_CU;
   if (!strcmp (code, "Key"))
@@ -741,7 +743,7 @@ int Ipo_keIcuName(char *s, int * param)
       *param = KEY_SPEED;
       ok = 1;
     }
-  for(nr = 1; nr<32; nr++) {
+  for(nr = 1; nr<64; nr++) {
     sprintf(key, "Key %d", nr);
     if (!strcmp (s, key)) {
       *param = nr;
@@ -1133,153 +1135,6 @@ int Ipo_obIcuName(char * s, int * param)
   return ok;
 }
 
-struct Lamp * Ipo_getIdLa(Ipo * ipo)
-{
-  Link * link = G.main->lamp.first;
-  struct Lamp *la = 0;
-  while(link)
-    {
-      la = (struct Lamp *)link;
-      if(la->ipo == ipo) return la;
-      link = link->next;
-    }
-  return 0;
-}
-
-struct Camera * Ipo_getIdCam(Ipo * ipo)
-{
-  Link * link = G.main->camera.first;
-  struct Camera *cam = 0;
-  while(link)
-    {
-      cam = (struct Camera *)link;
-      if(cam->ipo == ipo) return cam;
-      link = link->next;
-    }
-  return 0;
-}
-
-struct Tex * Ipo_getIdTex(Ipo * ipo)
-{
-  Link * link = G.main->tex.first;
-  struct Tex *tex = 0;
-  while(link)
-    {
-      tex = (struct Tex *)link;
-      if(tex->ipo == ipo) return tex;
-      link = link->next;
-    }
-  return 0;
-}
-
-struct Material * Ipo_getIdMat(Ipo * ipo)
-{
-  Link * link = G.main->mat.first;
-  struct Material *mat = 0;
-  while(link)
-    {
-      mat = (struct Material *)link;
-      if(mat->ipo == ipo) return mat;
-      link = link->next;
-    }
-  return 0;
-}
-
-struct World * Ipo_getIdWorld(Ipo * ipo)
-{
-  Link * link = G.main->world.first;
-  struct World *wo = 0;
-  while(link)
-    {
-      wo = (struct World *)link;
-      if(wo->ipo == ipo) return wo;
-      link = link->next;
-    }
-  return 0;
-}
-
-/* code unfinished, is c&p! */
-/*struct Object * Ipo_getIdCo(Ipo * ipo) 
-{
-  Link * link = G.main->action.first;
-  struct bAction *ac = 0;
-  while(link)
-    {
-      ac = (struct bAction *)link;
-      if(ac->ipo == ipo) return ac;
-      link = link->next;
-    }
-  return 0;
-}
-struct bAction * Ipo_getIdAc(Ipo * ipo)
-{
-  Link * link = G.main->action.first;
-  struct bAction *ac = 0;
-  while(link)
-    {
-      ac = (struct bAction *)link;
-      if(ac->ipo == ipo) return ac;
-      link = link->next;
-    }
-  return 0;
-}*/
-
-struct Key * Ipo_getIdKe(Ipo * ipo)
-{
-  Link * link = G.main->key.first;
-  struct Key *ke = 0;
-  while(link)
-    {
-      ke = (struct Key *)link;
-      if(ke->ipo == ipo) return ke;
-      link = link->next;
-    }
-  return 0;
-}
-
-struct Curve * Ipo_getIdCu(Ipo * ipo)
-{
-  Link * link = G.main->curve.first;
-  struct Curve *cu = 0;
-  while(link)
-    {
-      cu = (struct Curve *)link;
-      if(cu->ipo == ipo) return cu;
-      link = link->next;
-    }
-  return 0;
-}
-
-/*struct Sequence * Ipo_getIdSeq(Ipo * ipo)
-{
-  struct Editing *ed = 0;
-  struct Sequence *seq = 0;
-
-  ed = G.scene->ed;
-  if(ed==0) return 0;
-  seq= ed->seqbasep->first;
-
-  while(seq)
-    {
-      if(seq->ipo == ipo) return seq;
-      seq = seq->next;
-    }
-  return 0;
-}*/
-
-struct Object * Ipo_getIdObj(Ipo * ipo)
-{
-  Link * link = G.main->object.first;
-  struct Object *ob = 0;
-  while(link)
-    {
-      ob = (struct Object *)link;
-      if(ob->ipo == ipo) return ob;
-      link = link->next;
-    }
-  return 0;
-}
-
 static PyObject *
 Ipo_addCurve (BPy_Ipo * self, PyObject * args)
 {
@@ -1324,81 +1179,48 @@ Ipo_addCurve (BPy_Ipo * self, PyObject * args)
     switch(ipo->blocktype) {
       case ID_OB:
         ok = Ipo_obIcuName(s, &param);
-        if(ok) {
-          ob = Ipo_getIdObj(ipo);
-          if(ob) icu = get_ipocurve (&(ob->id), ipo->blocktype, param, self->ipo );
-        }
+        icu = get_ipocurve (NULL, ipo->blocktype, param, self->ipo );
         break;
       case ID_CA:
         ok = Ipo_caIcuName(s, &param);
-        if(ok) {
-          ca = Ipo_getIdCam(ipo);
-          if(ca) icu = get_ipocurve (&(ca->id), ipo->blocktype, param, self->ipo );
-        }
+        icu = get_ipocurve (NULL, ipo->blocktype, param, self->ipo );
         break;
       case ID_LA:
         ok = Ipo_laIcuName(s, &param);
-        if(ok) {
-          la = Ipo_getIdLa(ipo);
-          if(la) icu = get_ipocurve (&(la->id), ipo->blocktype, param, self->ipo );
-        }
+        icu = get_ipocurve (NULL, ipo->blocktype, param, self->ipo );
         break;
       case ID_TE:
         ok = Ipo_texIcuName(s, &param);
-        if(ok) {
-          tex = Ipo_getIdTex(ipo);
-          if(tex) icu = get_ipocurve (&(tex->id), ipo->blocktype, param, self->ipo );
-        }
+        icu = get_ipocurve (NULL, ipo->blocktype, param, self->ipo );
         break;
       case ID_WO:
         ok = Ipo_woIcuName(s, &param);
-        if(ok) {
-          wo = Ipo_getIdWorld(ipo);
-          if(wo) icu = get_ipocurve (&(wo->id), ipo->blocktype, param, self->ipo );
-        }
+        icu = get_ipocurve (NULL, ipo->blocktype, param, self->ipo );
         break;
       case ID_MA:
         ok = Ipo_maIcuName(s, &param);
-        if(ok) {
-          mat = Ipo_getIdMat(ipo);
-          if(mat) icu = get_ipocurve (&(mat->id), ipo->blocktype, param, self->ipo );
-        }
+        icu = get_ipocurve (NULL, ipo->blocktype, param, self->ipo );
         break;
-      /*case ID_AC:
+      case ID_AC:
         ok = Ipo_acIcuName(s, &param);
-        if(ok) {
-          ac = Ipo_getIdAc(ipo);
-          if(ac) icu = get_ipocurve (&(ac->id), ipo->blocktype, param, self->ipo );
-        }
+        icu = get_ipocurve (NULL, ipo->blocktype, param, self->ipo );
         break;
       case IPO_CO:
         ok = Ipo_coIcuName(s, &param);
-        if(ok) {
-          co = Ipo_getIdCo(ipo);
-          if(co) icu = get_ipocurve (&(ac->id), ipo->blocktype, param, self->ipo );
-        }
-        break;*/
+        icu = get_ipocurve (NULL, ipo->blocktype, param, self->ipo );
+        break;
       case ID_CU:
         ok = Ipo_cuIcuName(s, &param);
-        if(ok) {
-          cu = Ipo_getIdCu(ipo);
-          if(cu) icu = get_ipocurve (&(cu->id), ipo->blocktype, param, self->ipo );
-        }
+        icu = get_ipocurve (NULL, ipo->blocktype, param, self->ipo );
         break;
       case ID_KE:
         ok = Ipo_keIcuName(s, &param);
-        if(ok) {
-          ke = Ipo_getIdKe(ipo);
-          if(ke) icu = get_ipocurve (&(ke->id), ipo->blocktype, param, self->ipo );
-        }
+        icu = get_ipocurve (NULL, ipo->blocktype, param, self->ipo );
         break;
-      /*case ID_SEQ:
+      case ID_SEQ:
         ok = Ipo_seqIcuName(s, &param);
-        if(ok) {
-          seq = Ipo_getIdSeq(ipo);
-          if(seq) icu = get_ipocurve (&(seq->id), ipo->blocktype, param, self->ipo );
-        }
-        break;*/
+        icu = get_ipocurve (NULL, ipo->blocktype, param, self->ipo );
+        break;
     }
   }
 

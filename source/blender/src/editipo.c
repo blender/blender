@@ -145,7 +145,7 @@ char *ob_ic_names[OB_TOTNAM] = { "LocX", "LocY", "LocZ", "dLocX", "dLocY", "dLoc
 						 "RotX", "RotY", "RotZ", "dRotX", "dRotY", "dRotZ",
 						 "SizeX", "SizeY", "SizeZ", "dSizeX", "dSizeY", "dSizeZ",
 						 "Layer", "Time", "ColR", "ColG", "ColB", "ColA",
-						 "FStreng", "FFall", "Damping", "RDamp", "Perm" };
+						 "FStreng", "FFall", "RDamp", "Damping", "Perm" };
 char *obeff_ic_names[3] = { "EffX", "EffY", "EffZ" };
 char *co_ic_names[CO_TOTNAM] = { "Inf" };
 char *mtex_ic_names[TEX_TOTNAM] = { "OfsX", "OfsY", "OfsZ", "SizeX", "SizeY", "SizeZ",
@@ -168,7 +168,13 @@ char *key_ic_names[KEY_TOTNAM] = { "Speed", "Key 1", "Key 2", "Key 3", "Key 4", 
 									"Key 16", "Key 17", "Key 18", "Key 19", "Key 20",
 									"Key 21", "Key 22", "Key 23", "Key 24", "Key 25",
 									"Key 26", "Key 27", "Key 28", "Key 29", "Key 30",
-									"Key 31" };
+									"Key 31", "Key 32", "Key 33", "Key 34", "Key 35",
+									"Key 36", "Key 37", "Key 38", "Key 39", "Key 40",
+									"Key 41", "Key 42", "Key 43", "Key 44", "Key 45",
+									"Key 46", "Key 47", "Key 48", "Key 49", "Key 50",
+									"Key 51", "Key 52", "Key 53", "Key 54", "Key 55",
+									"Key 56", "Key 57", "Key 58", "Key 59", "Key 60",
+									"Key 61", "Key 62", "Key 63"};
 char *wo_ic_names[WO_TOTNAM] = { "HorR", "HorG", "HorB", "ZenR", "ZenG", "ZenB", "Expos",
 						 "Misi", "MisDi", "MisSta", "MisHi", "StarR", "StarB",
 						 "StarG", "StarDi", "StarSi" };
@@ -177,7 +183,7 @@ char *la_ic_names[LA_TOTNAM] = { "Energ", "R", "G", "B", "Dist", "SpoSi", "SpoBl
 char *cam_ic_names[CAM_TOTNAM] = { "Lens", "ClSta", "ClEnd" };
 char *snd_ic_names[SND_TOTNAM] = { "Vol", "Pitch", "Pan", "Atten" };
 char *ac_ic_names[AC_TOTNAM] = {"LocX", "LocY", "LocZ", "SizeX", "SizeY",
-						  "SizeZ", "QuatX", "QuatY", "QuatZ", "QuatW"};
+						  "SizeZ", "QuatW", "QuatX", "QuatY", "QuatZ"};
 char *ic_name_empty[1] ={ "" };
 
 char *getname_ac_ei(int nr) {
@@ -265,7 +271,7 @@ char *getname_cu_ei(int nr)
 
 char *getname_key_ei(int nr)
 {
-	if(nr>=KEY_SPEED && nr<=31) return key_ic_names[nr];
+	if(nr>=KEY_SPEED && nr<KEY_TOTNAM) return key_ic_names[nr];
 	return ic_name_empty[0];
 }
 
@@ -382,10 +388,10 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 	KeyBlock *kb;
 	int a, first=1;
 
-
 	ei= si->editipo;
 	if(ei==0)
 		return;
+	
 
 	for(a=0; a<si->totipo; a++, ei++) {
 		
@@ -407,6 +413,7 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 			}
 		}
 	}
+	
 
 	v2d= &(si->v2d);	
 
@@ -420,7 +427,6 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 			if(kb->pos > v2d->tot.ymax) v2d->tot.ymax= kb->pos;
 		}
 	}
-	
 	
 	/* is there no curve? */
 	if(first) {
@@ -2044,7 +2050,7 @@ void add_vert_ipo()
 	/* to be sure: if icu was 0, or only 1 curve visible */
 	ei->flag |= IPO_SELECT;
 	ei->icu->flag= ei->flag;
-
+	
 	editipo_changed(G.sipo, 1);
 }
 

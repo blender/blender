@@ -578,7 +578,7 @@ void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, float ct
 {
 	KeyBlock *kb;
 	IpoCurve *icu;
-	float fac[32], fval;
+	float fac[KEY_TOTIPO], fval;
 	int *ofsp, ofs[3], elemsize, a, b;
 	char *cp, *poin, *reffrom, *from, elemstr[8];
 	
