@@ -3,6 +3,8 @@
 """
 The Blender.Effect submodule
 
+B{new}: now L{Get}('objname') (without specifying second paramenter: 'position') returns a list of all effects linked to object "objname".
+
 INTRODUCTION
 
 The module effect allows you to access all the data of an effect.
@@ -39,16 +41,17 @@ def New (type):
   @return: The created Effect.
   """
 
-def Get (objname,position):
+def Get (objname, position = None):
   """
   Get an Effect from Blender.
   @type objname: string
   @param objname: The name of object to which is linked the effect.
-  @type position: string
-  @param position: The position of the effect in the list of effects liked to the object.
+  @type position: int
+  @param position: The position of the effect in the list of effects linked to the object.
   @rtype: Blender Effect or a list of Blender Effects
-  @return: It depends on the 'objname,position' parameters:
-      - (objname,position): The Effect linked to the given object at the given position;
+  @return: It depends on the 'objname, position' parameters:
+      - (objname): A list with all Effects linked to the given object (new);
+      - (objname, position): The Effect linked to the given object at the given position;
       - ():     A list with all Effects in the current scene.
   """
 

@@ -133,41 +133,74 @@ PyObject *M_Effect_Get( PyObject * self, PyObject * args )
 {
 	/*arguments : string object name
 	   int : position of effect in the obj's effect list  */
-	char *name = 0;
+	char *name = NULL;
 	Object *object_iter;
 	Effect *eff;
 	BPy_Effect *wanted_eff;
-	int num, i;
+	int num = -1, i;
+
 	if( !PyArg_ParseTuple( args, "|si", &name, &num ) )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected string int argument" ) );
+
 	object_iter = G.main->object.first;
+
 	if( !object_iter )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"Scene contains no object" ) );
-	if( name ) {
+
+	if( name ) { /* (name, num = -1) - try to find the given object */
+
 		while( object_iter ) {
-			if( strcmp( name, object_iter->id.name + 2 ) ) {
-				object_iter = object_iter->id.next;
-				continue;
-			}
 
+			if( !strcmp( name, object_iter->id.name + 2 ) ) {
 
-			if( object_iter->effect.first != NULL ) {
-				eff = object_iter->effect.first;
-				for( i = 0; i < num; i++ )
-					eff = eff->next;
-				wanted_eff =
-					( BPy_Effect * )
-					PyObject_NEW( BPy_Effect,
-						      &Effect_Type );
-				wanted_eff->effect = eff;
-				return ( PyObject * ) wanted_eff;
+				eff = object_iter->effect.first; /*can be NULL: None will be returned*/
+
+				if (num >= 0) { /* return effect in given num position if available */
+
+					for( i = 0; i < num; i++ ) {
+						if (!eff) break;
+						eff = eff->next;
+					}
+
+					if (eff) {
+						wanted_eff = (BPy_Effect *)PyObject_NEW(BPy_Effect, &Effect_Type);
+						wanted_eff->effect = eff;
+						return ( PyObject * ) wanted_eff;
+					} else { /* didn't find any effect in the given position */
+						Py_INCREF(Py_None);
+						return Py_None;
+					}
+				}
+
+				else {/*return a list with all effects linked to the given object*/
+							/* this was pointed by Stephen Swaney */
+					PyObject *effectlist = PyList_New( 0 );
+
+					while (eff) {
+						BPy_Effect *found_eff = (BPy_Effect *)PyObject_NEW(BPy_Effect,
+							&Effect_Type);
+						found_eff->effect = eff;
+						PyList_Append( effectlist, ( PyObject * ) found_eff );
+						Py_DECREF((PyObject *)found_eff); /* PyList_Append incref'ed it */
+						eff = eff->next;
+					}
+					return effectlist;
+				}
 			}
+			
 			object_iter = object_iter->id.next;
 		}
-	} else {
+
+		if (!object_iter)
+			return EXPP_ReturnPyObjError (PyExc_AttributeError,
+				"no such object");
+	}
+	
+	else { /* () - return a list with all effects currently in Blender */
 		PyObject *effectlist = PyList_New( 0 );
+
 		while( object_iter ) {
 			if( object_iter->effect.first != NULL ) {
 				eff = object_iter->effect.first;
@@ -180,6 +213,7 @@ PyObject *M_Effect_Get( PyObject * self, PyObject * args )
 					PyList_Append( effectlist,
 						       ( PyObject * )
 						       found_eff );
+					Py_DECREF((PyObject *)found_eff);
 					eff = eff->next;
 				}
 			}

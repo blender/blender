@@ -971,7 +971,7 @@ static PyObject *M_Window_QAdd( PyObject * self, PyObject * args )
 static PyObject *M_Window_QHandle( PyObject * self, PyObject * args )
 {
 	short win;
-	ScrArea *sa = curarea;
+	ScrArea *sa = G.curscreen->areabase.first;
 	ScrArea *oldsa = NULL;
 
 	if( !PyArg_ParseTuple( args, "h", &win ) )

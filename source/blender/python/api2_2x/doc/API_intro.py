@@ -18,7 +18,7 @@ The Blender Python API Reference
   - L{Camera}
   - L{Curve}
   - L{Draw}
-  - L{Effect}
+  - L{Effect} (*)
   - L{Image}
   - L{Ipo}
   - L{Lamp}
@@ -97,15 +97,16 @@ Registering scripts:
  The header should be like this one (all double and single apostrophes below
  are required)::
   #!BPY
-  \"\"\"
-  Name: 'Script Name'
-  Blender: 233
-  Group: 'Export'
-  Submenu: 'All' all
-  Submenu: 'Selected' sel
-  Submenu: 'Configure (gui)' gui
-  Tooltip: 'Export to some format.'
-  \"\"\"
+
+  # \"\"\"
+  # Name: 'Script Name'
+  # Blender: 233
+  # Group: 'Export'
+  # Submenu: 'All' all
+  # Submenu: 'Selected' sel
+  # Submenu: 'Configure (gui)' gui
+  # Tooltip: 'Export to some format.'
+  # \"\"\"
 
  where:
   - B{Name} is the string that will appear in the menu;
@@ -114,6 +115,15 @@ Registering scripts:
     Scripts Window's header, menu "Scripts";
   - B{Submenu} adds optional submenus for further control;
   - B{Tooltip} is the (short) tooltip string for the menu entry.
+
+ note:
+  - all double and single apostrophes above are required;
+  - B{*NEW*}: you can "comment out" the header above, by starting lines with
+    '#', like we did.  This is not required (except for the first line, #!BPY,
+    of course), but this way the header won't conflict with Python tools that
+    you can use to generate documentation for your script code.  Just
+    remember to keep this header above any other line with triple
+    double-quotes (\"\"\") in your script.
 
  Submenu lines are not required, use them if you want to provide extra
  options.  To see which submenu the user chose, check the "__script__"

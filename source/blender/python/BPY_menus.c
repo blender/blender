@@ -597,15 +597,18 @@ static int bpymenu_CreateFromDir( char *dirname, int whichdir )
 	struct stat st;
 	struct dirent *dir_entry;
 	BPyMenu *pymenu;
-	char *s, *fname, str[FILE_MAXFILE + FILE_MAXDIR];
+	char *s, *fname, pathstr[FILE_MAXFILE + FILE_MAXDIR];
 	char line[100], w[100];
 	char name[100], submenu[100], subarg[100], tooltip[100];
 	int res = 0, version = 0;
 
 	dir = opendir( dirname );
 
-	if( !dir )
+	if( !dir ) {
+		if ( DEBUG )
+			printf("BPyMenus warning: could not open dir %s.\n", dirname);
 		return -1;
+	}
 
 /* we scan the dir for filenames ending with .py and starting with the
  * right 'magic number': '#!BPY'.  All others are ignored. */
@@ -621,18 +624,18 @@ static int bpymenu_CreateFromDir( char *dirname, int whichdir )
 		if( !s || *( s + 3 ) != '\0' )
 			continue;
 
-		BLI_make_file_string( "/", str, dirname, fname );
+		BLI_make_file_string( "/", pathstr, dirname, fname );
 
 		/* paranoia: check if this is really a file and not a disguised dir */
-		if( ( stat( str, &st ) == -1 ) || !S_ISREG( st.st_mode ) )
+		if( ( stat( pathstr, &st ) == -1 ) || !S_ISREG( st.st_mode ) )
 			continue;
 
-		fp = fopen( str, "rb" );
+		fp = fopen( pathstr, "rb" );
 
 		if( !fp ) {
 			if( DEBUG )
 				printf( "BPyMenus error: couldn't open %s.\n",
-					str );
+					pathstr );
 			continue;
 		}
 
@@ -647,8 +650,7 @@ static int bpymenu_CreateFromDir( char *dirname, int whichdir )
 
 		/* file passed the tests, look for the three double-quotes */
 		while( fgets( line, 100, fp ) ) {
-			if( line[0] == '"' && line[1] == '"'
-			    && line[2] == '"' ) {
+			if( strstr( line, "\"\"\"" )) {
 				res = 1;	/* found */
 				break;
 			}
@@ -658,13 +660,15 @@ static int bpymenu_CreateFromDir( char *dirname, int whichdir )
 			goto discard;
 
 		/* Now we're ready to get the registration info.  A little more structure
-		 * was imposed to their format, for speed. The registration
-		 * lines must appear between the first pair of triple double-quotes and
-		 * follow this order (the single-quotes are part of the format):
+		 * was imposed to the format, for speed. The registration lines must
+		 * appear between the first pair of triple double-quotes and
+		 * follow this order (the single-quotes are part of the format,
+		 * but as noted below, now the whole registration part can be commented
+		 * out so external Python tools can ignore them):
 		 * 
 		 * Name: 'script name for the menu'
-		 * Group: 'group name' (defines menu)
 		 * Blender: <short int> (minimal Blender version)
+		 * Group: 'group name' (defines menu)
 		 * Submenu: 'submenu name' related_1word_arg
 		 * Tooltip: 'tooltip for the menu'
 		 *
@@ -673,40 +677,42 @@ static int bpymenu_CreateFromDir( char *dirname, int whichdir )
 		 * submenus and the tooltip are optional;
 		 * - the Blender version is the same number reported by
 		 * Blender.Get('version') in BPython or G.version in C;
-		 * - only the first letter of each token is checked, both lower
-		 * and upper cases, so that's all that matters for recognition:
-		 * n 'script name' is enough for the name line, for example. */
+		 * - NEW in 2.35: Michael Reimpell suggested and even provided
+		 * a patch (read but not used to keep changes to a minimum for
+		 * now, shame on me) to make registration code also accept
+		 * commented out registration lines, so that BPython menu
+		 * registration doesn't mess with Python documentation tools. */
 
 		/* first the name: */
 		res = fscanf( fp, "%[^']'%[^'\r\n]'\n", w, name );
-		if( ( res != 2 ) || ( w[0] != 'n' && w[0] != 'N' ) ) {
+		if( ( res != 2 ) || !strstr(w, "Name") ) {
 			if( DEBUG )
-				printf( "BPyMenus error: wrong 'name' line in %s.\n", str );
+				printf( "BPyMenus error: wrong 'Name' line in %s.\n", pathstr );
+			goto discard;
+		}
+
+		/* minimal Blender version: */
+		res = fscanf( fp, "%s %d\n", w, &version );
+		if( ( res != 2 ) || !strstr(w, "Blender") ) {
+			if( DEBUG )
+				printf( "BPyMenus error: wrong 'Blender' line in %s.\n", pathstr );
 			goto discard;
 		}
 
 		line[0] = '\0';	/* used as group for this part */
 
-		/* minimal Blender version: */
-		res = fscanf( fp, "%s %d\n", w, &version );
-		if( ( res != 2 ) || ( w[0] != 'b' && w[0] != 'B' ) ) {
-			if( DEBUG )
-				printf( "BPyMenus error: wrong 'blender' line in %s.\n", str );
-			goto discard;
-		}
-
 		/* the group: */
 		res = fscanf( fp, "%[^']'%[^'\r\n]'\n", w, line );
-		if( ( res != 2 ) || ( w[0] != 'g' && w[0] != 'G' ) ) {
+		if( ( res != 2 ) || !strstr(w, "Group" ) ) {
 			if( DEBUG )
-				printf( "BPyMenus error: wrong 'group' line in %s.\n", str );
+				printf( "BPyMenus error: wrong 'Group' line in %s.\n", pathstr );
 			goto discard;
 		}
 
 		res = bpymenu_group_atoi( line );
 		if( res < 0 ) {
 			if( DEBUG )
-				printf( "BPyMenus error: unknown 'group' %s in %s.\n", line, str );
+				printf( "BPyMenus error: unknown 'Group' %s in %s.\n", line, pathstr );
 			goto discard;
 		}
 
@@ -714,7 +720,7 @@ static int bpymenu_CreateFromDir( char *dirname, int whichdir )
 					   whichdir, NULL );
 		if( !pymenu ) {
 			if( DEBUG )
-				printf( "BPyMenus error: couldn't create entry for %s.\n", str );
+				printf( "BPyMenus error: couldn't create entry for %s.\n", pathstr );
 			fclose( fp );
 			closedir( dir );
 			return -2;
@@ -724,14 +730,14 @@ static int bpymenu_CreateFromDir( char *dirname, int whichdir )
 		while( fgets( line, 100, fp ) ) {
 			res = sscanf( line, "%[^']'%[^'\r\n]'%s\n", w, submenu,
 				      subarg );
-			if( ( res != 3 ) || ( w[0] != 's' && w[0] != 'S' ) )
+			if( ( res != 3 ) || !strstr( w, "Submenu" ) )
 				break;
 			bpymenu_AddSubEntry( pymenu, submenu, subarg );
 		}
 
 		/* the (optional) tooltip: */
 		res = sscanf( line, "%[^']'%[^'\r\n]'\n", w, tooltip );
-		if( ( res == 2 ) && ( w[0] == 't' || w[0] == 'T' ) ) {
+		if( ( res == 2 ) && (!strstr( w, "Tooltip") || !strstr( w, "Tip" ))) {
 			bpymenu_set_tooltip( pymenu, tooltip );
 		}
 

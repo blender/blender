@@ -197,7 +197,7 @@ hierarchy (faster)"},
 if i is nonzero, empty slots are not ignored: they are returned as None's."},
 	{"getMatrix", ( PyCFunction ) Object_getMatrix, METH_VARARGS,
 	 "(str = 'worldspace') - Returns the object matrix.\n\
-(str = 'localspace') - the wanted matrix: worldspace (default), localspace\n\
+(str = 'worldspace') - the wanted matrix: worldspace (default), localspace\n\
 or old_worldspace.\n\
 \n\
 'old_worldspace' was the only behavior before Blender 2.34.  With it the\n\
@@ -957,7 +957,7 @@ static PyObject *Object_getMaterials( BPy_Object * self, PyObject * args )
 static PyObject *Object_getMatrix( BPy_Object * self, PyObject * args )
 {
 	PyObject *matrix;
-	char *space = "worldspace";	/* default to local */
+	char *space = "worldspace";	/* default to world */
 
 	if( !PyArg_ParseTuple( args, "|s", &space ) ) {
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
