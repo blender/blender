@@ -5001,6 +5001,7 @@ void extrude_mesh(void)
 		countall();  /* for G.totvert in calc_meshverts() */
 		calc_meshverts();
 		transform('d');
+		G.undo_edit_level--;	/* to hide the transform from undo */
 	}
 
 }
