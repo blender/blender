@@ -3,7 +3,7 @@
 Name: 'Unweld'
 Blender: 234
 Group: 'Mesh'
-Tip: 'Unweld all faces from a selected and common vertex. Made vertex bevelling.'
+Tip: 'Unweld all faces from a selected and common vertex. Made vertex bevelling'
 """
 
 # $Id$
@@ -198,7 +198,7 @@ def D():
 def E(evt,val):
  global mouse_x,x,pl,orig,me,debut
  global mouse_y,y, MouseClickG,MouseClickD,MouseClickM
- if (evt== QKEY or evt== ESCKEY): Exit()
+ if (evt== QKEY): Exit()
  
  if (evt == MOUSEX): 
        mouse_x = val

@@ -2,9 +2,9 @@
 
 """ Registration info for Blender menus: <- these words are ignored
 Name: 'Rvk1 to Rvk2'
-Blender: 232
+Blender: 234
 Group: 'Mesh'
-Tip: 'Copy deform data (not surf. subdiv) of active obj to rvk of the 2nd selected obj.'
+Tip: 'Copy deform data (not surf. subdiv) of active obj to rvk of the 2nd selected obj'
 """
 
 # $Id$

@@ -2,9 +2,9 @@
 
 """ Registration info for Blender menus
 Name: 'Bevel Center'
-Blender: 233
+Blender: 234
 Group: 'Mesh'
-Tip: 'Bevel selected vertices.'
+Tip: 'Bevel selected vertices'
 """
 
 # $Id$

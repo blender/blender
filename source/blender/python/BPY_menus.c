@@ -78,8 +78,10 @@ static int bpymenu_group_atoi (char *str)
 	if (!strcmp(str, "Import")) return PYMENU_IMPORT;
 	else if (!strcmp(str, "Export")) return PYMENU_EXPORT;
 	else if (!strcmp(str, "Help")) return PYMENU_HELP;
-	else if (!strcmp(str, "HelpWebsites")) return PYMENU_HELPWEBSITES;
-	else if (!strcmp(str, "HelpSystem")) return PYMENU_HELPSYSTEM;
+	else if (!strcmp(str, "Websites") || !strcmp(str, "HelpWebsites"))
+		return PYMENU_HELPWEBSITES;
+	else if (!strcmp(str, "System") || !strcmp(str, "HelpSystem"))
+		return PYMENU_HELPSYSTEM;
 	else if (!strcmp(str, "Add")) return PYMENU_ADD;
 	else if (!strcmp(str, "Mesh")) return PYMENU_MESH;
 	else if (!strcmp(str, "Wizards")) return PYMENU_WIZARDS;

@@ -2,7 +2,7 @@
 
 """
 Name: 'Apply Deformation'
-Blender: 233
+Blender: 234
 Group: 'Mesh'
 Tooltip: 'Create fixed copies of deformed meshes'
 """ 

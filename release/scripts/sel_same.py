@@ -2,9 +2,9 @@
 
 """
 Name: 'Select Same Faces'
-Blender: 232
+Blender: 234
 Group: 'UV'
-Tooltip: 'Select faces if attributes match the active.'
+Tooltip: 'Select faces if attributes match the active'
 """
 
 # $Id$

@@ -2,9 +2,9 @@
 
 """ Registration info for Blender menus: <- these words are ignored
 Name: 'Dispaint'
-Blender: 233
+Blender: 234
 Group: 'Mesh'
-Tip: 'Use vertex paint color value to modify shape displacing vertices along normal.'
+Tip: 'Use vertex paint color value to modify shape displacing vertices along normal'
 """
 
 # $Id$
