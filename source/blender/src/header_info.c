@@ -107,6 +107,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BPY_extern.h"
+
 #include "render.h" // for R - should use BKE_bad_level_calls.h instead?
 
 #include "blendef.h"

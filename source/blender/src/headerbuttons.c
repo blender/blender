@@ -166,6 +166,8 @@
 #include "BDR_editcurve.h"
 #include "BDR_editmball.h"
 
+#include "BPY_extern.h"
+
 #include "mydevice.h"
 #include "blendef.h"
 #include "render.h"

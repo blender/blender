@@ -78,6 +78,8 @@
 
 #include "RE_renderconverter.h"
 
+#include "BPY_extern.h"
+
 #include "playanim_ext.h"
 #include "mydevice.h"
 #include "render.h"

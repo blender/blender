@@ -72,6 +72,8 @@
 #include "BKE_text.h"
 #include "BSE_filesel.h"
 
+#include "BPY_extern.h"
+
 #include "blendef.h"
 #include "mydevice.h"
 

@@ -53,7 +53,7 @@ CPPFLAGS += -I../../imbuf
 # This mod uses the BLI and BLO module
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../blenloader
-CPPFLAGS += -I../../bpython/include
+CPPFLAGS += -I../../python
 # also avi is used
 CPPFLAGS += -I../../avi
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include

@@ -115,6 +115,8 @@
 
 #include "RE_renderconverter.h"
 
+#include "BPY_extern.h"
+
 #include "blendef.h"
 #include "mydevice.h"
 #include "butspace.h"  // event codes

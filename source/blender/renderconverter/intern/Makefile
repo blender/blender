@@ -47,7 +47,7 @@ CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I..
 # not very neat: the dirs for external modules
 CPPFLAGS += -I../../render/extern/include
-CPPFLAGS += -I../../bpython/include
+CPPFLAGS += -I../../python
 CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../makesdna

@@ -100,6 +100,8 @@
 #include "BKE_constraint.h"
 #include "BKE_scene.h"
 
+#include "BPY_extern.h"
+
 /* Local function protos */
 static void solve_parenting (Object *ob, Object *par, float slowmat[][4], int simul);
 

@@ -66,7 +66,7 @@ CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../render/extern/include/
-CPPFLAGS += -I../../bpython/include
+CPPFLAGS += -I../../python
 
 # we still refer to /include a bit...
 CPPFLAGS += -I../../include

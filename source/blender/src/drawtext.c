@@ -78,6 +78,8 @@
 
 #include "BSE_filesel.h"
 
+#include "BPY_extern.h"
+
 #include "mydevice.h"
 #include "blendef.h" 
 

@@ -57,6 +57,8 @@
 #include "BKE_displist.h"
 #include "BKE_material.h"
 
+#include "BPY_extern.h"
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif

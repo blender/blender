@@ -83,6 +83,8 @@
 #include "BKE_ika.h"
 #include "BKE_key.h"
 
+#include "BPY_extern.h"
+
 void free_avicodecdata(AviCodecData *acd)
 {
 	if (acd) {
