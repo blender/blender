@@ -395,6 +395,11 @@ void renderSkyPixelFloat(float x, float y)
 	switch (keyingType) {
 	case RE_ALPHA_PREMUL:
 		/* Premul: don't fill, and don't change the values! */
+		collector[0] = 0.0; 
+		collector[1] = 0.0; 
+		collector[2] = 0.0; 
+		collector[3] = 0.0; 
+		break;
 	case RE_ALPHA_KEY:
 		/*
 		  Key: Leave pixels fully coloured, but retain alpha data, so you   

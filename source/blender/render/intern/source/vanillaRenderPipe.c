@@ -262,8 +262,6 @@ void zBufShadeAdvanced()
 			 R.r.edgeR, R.r.edgeG, R.r.edgeB);
 	}
 
-	add_halo_flare(); /* from rendercore */
-	
 	if (!(R.r.mode & R_OSA)) {
 		jit[0][0] = xjit;
 		jit[0][1] = yjit; 
