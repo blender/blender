@@ -152,6 +152,12 @@ int BLI_compare(struct direntry *entry1, struct direntry *entry2)
 	}
 	if ((entry1->type & S_IFMT) < (entry2->type & S_IFMT)) return (-1);
 	if ((entry1->type & S_IFMT) > (entry2->type & S_IFMT)) return (1);
+	
+	/* make sure "." and ".." are always first */
+	if( strcmp(entry1->relname, ".")==0 ) return (-1);
+	if( strcmp(entry2->relname, ".")==0 ) return (1);
+	if( strcmp(entry1->relname, "..")==0 ) return (-1);
+	
 	return (strcasecmp(entry1->relname,entry2->relname));
 }
 
