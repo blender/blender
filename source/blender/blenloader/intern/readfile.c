@@ -2531,7 +2531,10 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 		link_list(fd, &(sa->spacedata));
 		link_list(fd, &(sa->panels));
 		
-		for(pa= sa->panels.first; pa; pa=pa->next) pa->paneltab= newdataadr(fd, pa->paneltab);
+		for(pa= sa->panels.first; pa; pa=pa->next) {
+			pa->paneltab= newdataadr(fd, pa->paneltab);
+			pa->active= 0;
+		}
 
 		for (sl= sa->spacedata.first; sl; sl= sl->next) {
 			if (sl->spacetype==SPACE_VIEW3D) {
