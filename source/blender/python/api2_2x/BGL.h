@@ -36,6 +36,9 @@
  * writers to make OpenGL calls in their Python scripts for Blender.  The
  * more important original comments are marked with an @ symbol. */
 
+#ifndef EXPP_BGL_H
+#define EXPP_BGL_H
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -71,7 +74,8 @@
 /*@ For Python access to OpenGL functions requiring a pointer. */
 
 typedef struct _Buffer {
-	PyObject_VAR_HEAD PyObject * parent;
+	PyObject_VAR_HEAD 
+	PyObject * parent;
 
 	int type;		/* GL_BYTE, GL_SHORT, GL_INT, GL_FLOAT */
 	int ndimensions;
@@ -87,71 +91,6 @@ typedef struct _Buffer {
 	} buf;
 } Buffer;
 
-static int type_size( int type );
-static Buffer *make_buffer( int type, int ndimensions, int *dimensions );
-static int Buffer_ass_slice( PyObject * self, int begin, int end,
-			     PyObject * seq );
-
-static char Method_Buffer_doc[] =
-	"(type, dimensions, [template]) - Create a new Buffer object\n\n\
-(type) - The format to store data in\n\
-(dimensions) - An int or sequence specifying the dimensions of the buffer\n\
-[template] - A sequence of matching dimensions to the buffer to be created\n\
-  which will be used to initialize the Buffer.\n\n\
-If a template is not passed in all fields will be initialized to 0.\n\n\
-The type should be one of GL_BYTE, GL_SHORT, GL_INT, or GL_FLOAT.\n\
-If the dimensions are specified as an int a linear buffer will be\n\
-created. If a sequence is passed for the dimensions the buffer\n\
-will have len(sequence) dimensions, where the size for each dimension\n\
-is determined by the value in the sequence at that index.\n\n\
-For example, passing [100, 100] will create a 2 dimensional\n\
-square buffer. Passing [16, 16, 32] will create a 3 dimensional\n\
-buffer which is twice as deep as it is wide or high.";
-
-static PyObject *Method_Buffer( PyObject * self, PyObject * args );
-
-/* Buffer sequence methods */
-
-static int Buffer_len( PyObject * self );
-static PyObject *Buffer_item( PyObject * self, int i );
-static PyObject *Buffer_slice( PyObject * self, int begin, int end );
-static int Buffer_ass_item( PyObject * self, int i, PyObject * v );
-static int Buffer_ass_slice( PyObject * self, int begin, int end,
-			     PyObject * seq );
-
-static PySequenceMethods Buffer_SeqMethods = {
-	( inquiry ) Buffer_len,	/*sq_length */
-	( binaryfunc ) 0,	/*sq_concat */
-	( intargfunc ) 0,	/*sq_repeat */
-	( intargfunc ) Buffer_item,	/*sq_item */
-	( intintargfunc ) Buffer_slice,	/*sq_slice */
-	( intobjargproc ) Buffer_ass_item,	/*sq_ass_item */
-	( intintobjargproc ) Buffer_ass_slice,	/*sq_ass_slice */
-};
-
-static void Buffer_dealloc( PyObject * self );
-static PyObject *Buffer_tolist( PyObject * self );
-static PyObject *Buffer_dimensions( PyObject * self );
-static PyObject *Buffer_getattr( PyObject * self, char *name );
-static PyObject *Buffer_repr( PyObject * self );
-
-PyTypeObject buffer_Type = {
-	PyObject_HEAD_INIT( NULL )      /* required python macro */
-	0,	/*ob_size */
-	"buffer",		/*tp_name */
-	sizeof( Buffer ),	/*tp_basicsize */
-	0,			/*tp_itemsize */
-	( destructor ) Buffer_dealloc,	/*tp_dealloc */
-	( printfunc ) 0,	/*tp_print */
-	( getattrfunc ) Buffer_getattr,	/*tp_getattr */
-	( setattrfunc ) 0,	/*tp_setattr */
-	( cmpfunc ) 0,		/*tp_compare */
-	( reprfunc ) Buffer_repr,	/*tp_repr */
-	0,			/*tp_as_number */
-	&Buffer_SeqMethods,	/*tp_as_sequence */
-};
-
-/* #ifndef __APPLE__ */
 
 /*@ By golly George! It looks like fancy pants macro time!!! */
 
@@ -411,24 +350,6 @@ PyTypeObject buffer_Type = {
 #define ret_set_GLstring  ret_str=
 #define ret_ret_GLstring  return PyString_FromString(ret_str);
 
-#define BGL_Wrap(nargs, funcname, ret, arg_list) \
-static PyObject *Method_##funcname (PyObject *self, PyObject *args) {\
-  arg_def##nargs arg_list; \
-  ret_def_##ret; \
-  if(!PyArg_ParseTuple(args, arg_str##nargs arg_list, arg_ref##nargs arg_list)) return NULL;\
-  ret_set_##ret gl##funcname (arg_var##nargs arg_list);\
-  ret_ret_##ret; \
-}
 
-#define BGLU_Wrap(nargs, funcname, ret, arg_list) \
-static PyObject *Method_##funcname (PyObject *self, PyObject *args) {\
-  arg_def##nargs arg_list; \
-  ret_def_##ret; \
-  if(!PyArg_ParseTuple(args, arg_str##nargs arg_list, arg_ref##nargs arg_list)) return NULL;\
-  ret_set_##ret glu##funcname (arg_var##nargs arg_list);\
-  ret_ret_##ret; \
-}
 
-/* #endif */
-
-PyObject *BGL_Init( void );
+#endif  /*  EXPP_BGL_H */
