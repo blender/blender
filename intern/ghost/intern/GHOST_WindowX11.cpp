@@ -397,8 +397,37 @@ setOrder(
 ){
 	if (order == GHOST_kWindowOrderTop) {
 		XWindowAttributes attr;	  
+		Atom atom;
 
-		XRaiseWindow(m_display,m_window);
+		atom = XInternAtom(m_display, "_NET_ACTIVE_WINDOW", True);
+
+		if(atom == None) {
+			/* XRaiseWindow might be ignored, only use it if no other choice */
+			XRaiseWindow(m_display, m_window);
+		}
+		else {
+			Window root;
+			XEvent xev;
+			long eventmask;
+
+			xev.xclient.type = ClientMessage;
+			xev.xclient.serial = 0;
+			xev.xclient.send_event = True;
+			xev.xclient.window = m_window;
+			xev.xclient.message_type = atom;
+
+			xev.xclient.format = 32;
+			xev.xclient.data.l[0] = 0;
+			xev.xclient.data.l[1] = 0;
+			xev.xclient.data.l[2] = 0;
+			xev.xclient.data.l[3] = 0;
+			xev.xclient.data.l[4] = 0;
+
+			root = RootWindow(m_display, m_visual->screen),
+			eventmask = SubstructureRedirectMask | SubstructureNotifyMask;
+
+			XSendEvent(m_display, root, False, eventmask, &xev);
+		}
 
 		XGetWindowAttributes(m_display, m_window, &attr);
 
