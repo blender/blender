@@ -4954,7 +4954,7 @@ void transform(int mode)
 						dist= vec[0]-centre[0];
 
 						if ((typemode) && (addvec[0]))
-							phi0= (phi0*dist*M_PI/(360*Dist1)) - 0.5*M_PI;
+							phi0= (Dist1*addvec[0]*M_PI/(360.0*dist)) - 0.5*M_PI;
 						else
 							phi0= (omtrekfac*dist/rad) - 0.5*M_PI;
 					
