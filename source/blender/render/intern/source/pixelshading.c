@@ -1204,15 +1204,12 @@ void shadeLampLusFloat()
 			
 			if(ma->spec!=0.0 && !(lar->mode & LA_NO_SPEC)) {
 				
-				if(lar->type==LA_SUN || lar->type==LA_HEMI) {
-					if(lar->type==LA_SUN) {
-						lv[2]-= 1.0;
-					}
-					else {
-						lv[0]+= view[0];
-						lv[1]+= view[1];
-						lv[2]+= view[2];
-					}
+				if(lar->type==LA_HEMI) {
+					/* hemi uses no spec shaders (yet) */
+					
+					lv[0]+= view[0];
+					lv[1]+= view[1];
+					lv[2]+= view[2];
 					
 					Normalise(lv);
 					
@@ -1221,9 +1218,7 @@ void shadeLampLusFloat()
 					if(lar->type==LA_HEMI) {
 						t= 0.5*t+0.5;
 					}
-					/* watch it: shadfac and lampdist used below */
 					
-					/* sun and hemi use no shaders */
 					t= ma->spec*spec(t, ma->har);
 					isr+= t*(lar->r * ma->specr);
 					isg+= t*(lar->g * ma->specg);
@@ -1232,7 +1227,10 @@ void shadeLampLusFloat()
 				else {
 					/* specular shaders */
 					float specfac;
-					
+
+					/* we force a different lamp vector for sun light */
+					if(lar->type==LA_SUN) lv[2]-= 1.0;
+										
 					if(ma->spec_shader==MA_SPEC_PHONG) 
 						specfac= Phong_Spec(vn, lv, view, ma->har);
 					else if(ma->spec_shader==MA_SPEC_COOKTORR) 

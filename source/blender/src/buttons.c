@@ -4243,7 +4243,7 @@ void matbuts(void)
 		if(ma->diff_shader==MA_DIFF_ORENNAYAR)
 			uiDefButF(block, NUM, B_MATPRV, "Rough:",		200, 70, 95,18, &(ma->roughness), 0.0, 3.14, 0, 0, "Oren Nayar Roughness");
 		else if(ma->diff_shader==MA_DIFF_TOON) {
-			uiDefButF(block, NUM, B_MATPRV, "Size:",		200, 70, 95,18, &(ma->param[0]), 0.0, 1.0, 0, 0, "Size of diffuse toon area");
+			uiDefButF(block, NUM, B_MATPRV, "Size:",		200, 70, 95,18, &(ma->param[0]), 0.0, 3.14, 0, 0, "Size of diffuse toon area");
 			uiDefButF(block, NUM, B_MATPRV, "Smooth:",		200, 50, 95,18, &(ma->param[1]), 0.0, 1.0, 0, 0, "Smoothness of diffuse toon area");
 		}
 		
@@ -4253,7 +4253,7 @@ void matbuts(void)
 		if(ma->spec_shader==MA_SPEC_BLINN)
 			uiDefButF(block, NUM, B_MATPRV, "Refr:",		295, 50, 90,18, &(ma->refrac), 1.0, 10.0, 0, 0, "Refraction index");
 		if(ma->spec_shader==MA_SPEC_TOON) {
-			uiDefButF(block, NUM, B_MATPRV, "Size:",		295, 70, 90,18, &(ma->param[2]), 0.0, 1.0, 0, 0, "Size of specular toon area");
+			uiDefButF(block, NUM, B_MATPRV, "Size:",		295, 70, 90,18, &(ma->param[2]), 0.0, 1.53, 0, 0, "Size of specular toon area");
 			uiDefButF(block, NUM, B_MATPRV, "Smooth:",		295, 50, 90,18, &(ma->param[3]), 0.0, 1.0, 0, 0, "Smoothness of specular toon area");
 		}
 
