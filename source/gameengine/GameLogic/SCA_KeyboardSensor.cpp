@@ -167,14 +167,14 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 	} else
 	{
 
-	  //		cerr << "======= SCA_KeyboardSensor::Evaluate:: peeking at key status" << endl;
-		const SCA_InputEvent & inevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) m_hotkey);
+	//		cerr << "======= SCA_KeyboardSensor::Evaluate:: peeking at key status" << endl;
+		const SCA_InputEvent & inevent = inputdev->GetEventValue(
+			(SCA_IInputDevice::KX_EnumInputs) m_hotkey);
 	
-		//		cerr << "======= SCA_KeyboardSensor::Evaluate:: status: " << inevent.m_status << endl;
+	//		cerr << "======= SCA_KeyboardSensor::Evaluate:: status: " << inevent.m_status << endl;
 
 		if (inevent.m_status == SCA_InputEvent::KX_NO_INPUTSTATUS)
 		{
-			int i=4;
 		} else
 		{
 			if (inevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED)
