@@ -662,7 +662,6 @@ int BLI_testextensie(char *str, char *ext)
 void BLI_split_dirfile(char *string, char *dir, char *file)
 {
 	int a;
-	int len;
 	
 	dir[0]= 0;
 	file[0]= 0;
@@ -671,6 +670,7 @@ void BLI_split_dirfile(char *string, char *dir, char *file)
 	char_switch(string, '/', '\\'); /* make sure we have a valid path format */
 
 	if (strlen(string)) {
+		int len;
 		if (string[0] == '/' || string[0] == '\\') { 
 			BLI_strncpy(dir, string, FILE_MAXDIR);
 		} else if (string[1] == ':' && string[2] == '\\') {
