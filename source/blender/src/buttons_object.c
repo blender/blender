@@ -1478,8 +1478,8 @@ static void object_panel_anim(Object *ob)
 	uiDefButC(block, TOG|BIT|5, REDRAWVIEW3D, "Rot",		200,128,31,20, &ob->transflag, 0, 0, 0, 0, "Rotate dupli according to facenormal");
 	uiDefButC(block, TOG|BIT|6, REDRAWVIEW3D, "No Speed",	234,128,82,19, &ob->transflag, 0, 0, 0, 0, "Set dupliframes to still, regardless of frame");
 
-	uiDefButS(block, NUM, REDRAWVIEW3D, "DupSta:",		24,105,141,18, &ob->dupsta, 1.0, 1500.0, 0, 0, "Specify startframe for Dupliframes");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "DupEnd",		24,83,140,19, &ob->dupend, 1.0, 2500.0, 0, 0, "Specify endframe for Dupliframes");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "DupSta:",		24,105,141,18, &ob->dupsta, 1.0, 17999.0, 0, 0, "Specify startframe for Dupliframes");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "DupEnd",		24,83,140,19, &ob->dupend, 1.0, 18000.0, 0, 0, "Specify endframe for Dupliframes");
 	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOn:",		169,104,146,19, &ob->dupon, 1.0, 1500.0, 0, 0, "");
 	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOff",		169,82,145,19, &ob->dupoff, 0.0, 1500.0, 0, 0, "");
 
