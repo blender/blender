@@ -357,9 +357,9 @@ static uiBlock *sbuts_context_menu(void *arg_unused)
 	uiDefIconTextButS(block, BUTM, B_REDR, ICON_SCENE_DEHLT, "Scene|F10", 0, yco-=22, 100, 20, &G.buts->mainb, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextButS(block, BUTM, B_REDR, ICON_EDIT, "Editing|F9", 0, yco-=22, 100, 20, &G.buts->mainb, 4.0, 0.0, 0, 0, "");
 	uiDefIconTextButS(block, BUTM, B_REDR, ICON_OBJECT, "Object|F6", 0, yco-=22, 100, 20, &G.buts->mainb, 1.0, 0.0, 0, 0, "");
-	uiDefIconTextButS(block, BUTM, B_REDR, ICON_SCRIPT, "Script", 0, yco-=22, 100, 20, &G.buts->mainb, 5.0, 0.0, 0, 0, "");
-	uiDefIconTextButS(block, BUTM, B_REDR, ICON_GAME, "Logic", 0, yco-=22, 100, 20, &G.buts->mainb, 6.0, 0.0, 0, 0, "");
 	uiDefIconTextButS(block, BUTM, B_REDR, ICON_MATERIAL_DEHLT, "Shading|F5", 0, yco-=22, 100, 20, &G.buts->mainb, 3.0, 0.0, 0, 0, "");
+	uiDefIconTextButS(block, BUTM, B_REDR, ICON_GAME, "Logic|F4", 0, yco-=22, 100, 20, &G.buts->mainb, 6.0, 0.0, 0, 0, "");
+	uiDefIconTextButS(block, BUTM, B_REDR, ICON_SCRIPT, "Script", 0, yco-=22, 100, 20, &G.buts->mainb, 5.0, 0.0, 0, 0, "");
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -559,22 +559,6 @@ void buts_buttons(void)
 		}
 	}
 	else if(G.buts->mainb==BUTS_SCRIPT) {
-		if(ob)
-			uiDefIconButS(block, ROW, B_REDR, ICON_OBJECT, xco,0,XIC,YIC, &G.buts->scriptblock,  2.0, (float)ID_OB, 0, 0, "Displays Object script links");
-
-		if(ob && give_current_material(ob, ob->actcol))
-			uiDefIconButS(block, ROW, B_REDR, ICON_MATERIAL,	xco+=XIC,0,XIC,YIC, &G.buts->scriptblock, 2.0, (float)ID_MA, 0, 0, "Displays Material script links ");
-
-		if(G.scene->world) 
-			uiDefIconButS(block, ROW, B_REDR, ICON_WORLD,	xco+=XIC,0,XIC,YIC, &G.buts->scriptblock, 2.0, (float)ID_WO, 0, 0, "Displays World script links");
-	
-		if(ob && ob->type==OB_CAMERA)
-			uiDefIconButS(block, ROW, B_REDR, ICON_CAMERA,	xco+=XIC,0,XIC,YIC, &G.buts->scriptblock, 2.0, (float)ID_CA, 0, 0, "Displays Camera script links");
-
-		if(ob && ob->type==OB_LAMP)
-			uiDefIconButS(block, ROW, B_REDR, ICON_LAMP,	xco+=XIC,0,XIC,YIC, &G.buts->scriptblock, 2.0, (float)ID_LA, 0, 0, "Displays Lamp script links");
-
-		xco+= 20;
 	}
 	
 	uiDefButS(block, NUM, B_NEWFRAME, "",	(short)(xco+20),0,60,YIC, &(G.scene->r.cfra), 1.0, 18000.0, 0, 0, "Displays Current Frame of animation. Click to change.");

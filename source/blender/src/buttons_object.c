@@ -132,9 +132,8 @@
 
 float hspeed=0.1, prspeed=0.0, prlen=0.0;
 
+/* *************** */
 
-
-/* ************************************* */
 
 #include "BLI_editVert.h"
 extern ListBase editNurb;

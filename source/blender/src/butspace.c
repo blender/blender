@@ -302,7 +302,7 @@ void do_butspace(unsigned short event)
 		do_radiobuts(event);
 	}
 	else if(event<=B_SCRIPTBUTS) {
-		//do_scriptbuts(event);
+		do_scriptbuts(event);
 	}
 	else if(event<=B_SOUNDBUTS) {
 		//do_soundbuts(event);
@@ -324,7 +324,7 @@ void redraw_test_buttons(Base *new)
 		if(sa->spacetype==SPACE_BUTS) {
 			buts= sa->spacedata.first;
 			
-			if(ELEM4(buts->mainb, CONTEXT_OBJECT, CONTEXT_EDITING, CONTEXT_SHADING, CONTEXT_LOGIC)) {
+			if(ELEM5(buts->mainb, CONTEXT_OBJECT, CONTEXT_EDITING, CONTEXT_SHADING, CONTEXT_LOGIC, CONTEXT_SCRIPT)) {
 				addqueue(sa->win, REDRAW, 1);
 				buts->re_align= 1;
 			}
@@ -419,7 +419,8 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 
 		break;
 	case CONTEXT_SCRIPT:
-
+		script_panels();
+		
 		break;
 	case CONTEXT_LOGIC:
 		/* no tabs */

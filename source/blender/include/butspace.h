@@ -86,6 +86,10 @@ extern void do_radiobuts(unsigned short event);
 extern void do_logic_buts(unsigned short event);
 extern void logic_buts(void);
 
+/* script */
+extern void script_panels(void);
+extern void do_scriptbuts(unsigned short event);
+
 
 /* butspace.c */
 void test_meshpoin_but(char *name, struct ID **idpp);

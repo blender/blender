@@ -4583,13 +4583,12 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 				inside= 1;
 		}
 		else if(block->panel->paneltab==NULL) {
-			int panely= PNL_HEADER*panel_has_tabs(block->panel);
 			
-			if( block->miny <= uevent->mval[1] && block->maxy-panely >= uevent->mval[1] ) {
+			if( block->miny <= uevent->mval[1] && block->maxy >= uevent->mval[1] ) {
 				inside= 1;
 			}
 			else if(uevent->event==LEFTMOUSE) {
-				if( (block->maxy-panely <= uevent->mval[1]) && (block->maxy+PNL_HEADER >= uevent->mval[1]) ) {
+				if( (block->maxy <= uevent->mval[1]) && (block->maxy+PNL_HEADER >= uevent->mval[1]) ) {
 					uiPanelPop(block); 	// pop matrix; no return without pop!
 					ui_do_panel(block, uevent);
 					return UI_EXIT_LOOP;	// exit loops because of moving panels
@@ -6214,7 +6213,7 @@ static void ui_scale_panel_block(uiBlock *block)
 {
 	uiBut *but;
 	float facx= 1.0, facy= 1.0;
-	int centrex= 0, topy=0, tabsy;
+	int centrex= 0, topy=0, tabsy=0;
 	
 	if(block->panel==NULL) return;
 
@@ -6227,7 +6226,7 @@ static void ui_scale_panel_block(uiBlock *block)
 	}
 	else centrex= (block->panel->sizex-( block->maxx-block->minx ) - PNL_SAFETY)/2;
 	
-	tabsy= PNL_HEADER*panel_has_tabs(block->panel);
+	// tabsy= PNL_HEADER*panel_has_tabs(block->panel);
 	if( (block->maxy-block->miny) > block->panel->sizey - 2*PNL_SAFETY - tabsy) {
 		facy= (block->panel->sizey - (2*PNL_SAFETY) - tabsy)/( block->maxy-block->miny );
 	}
@@ -6370,7 +6369,11 @@ static void ui_set_panel_pattern(char dir)
 	else glPolygonStipple(patv);	
 }
 
-static void ui_draw_panel_tabs(uiBlock *block)
+#define PNL_ICON 	20
+#define PNL_DRAGGER	20
+
+
+static void ui_draw_panel_header(uiBlock *block)
 {
 	Panel *pa, *panel= block->panel;
 	float width;
@@ -6384,45 +6387,48 @@ static void ui_draw_panel_tabs(uiBlock *block)
 		}
 		pa= pa->next;
 	}
-
-	if(nr==1) return;
 	
-	/* draw */
+	if(nr==1) {
+		glColor3ub(255,255,255);
+		glRasterPos2f(block->minx+40, block->maxy+5);
+		BIF_DrawString(block->curfont, block->panel->panelname, (U.transopts & TR_BUTTONS), 0);
+		return;
+	}
 	
 	a= 0;
-	width= (panel->sizex - 2*PNL_SAFETY)/nr;
+	width= (panel->sizex - 3 - 2*PNL_ICON)/nr;
 	pa= curarea->panels.first;
 	while(pa) {
 		if(pa->active==0);
 		else if(pa==panel) {
 			/* active tab */
-			uiSetRoundBox(12);
-			glColor3ub(160, 160, 167);
-			uiRoundBox(PNL_SAFETY+1+a*width, panel->sizey-PNL_HEADER, PNL_SAFETY-1+(a+1)*width, panel->sizey, 10);
+			uiSetRoundBox(15);
+			glColor3ub(140, 140, 147);
+			uiRoundBox(PNL_ICON+a*width, panel->sizey+3, PNL_ICON+(a+1)*width, panel->sizey+PNL_HEADER-3, 8);
 
-			glColor3ub(240,240,240);
-			glRasterPos2f(PNL_SAFETY+7+a*width, panel->sizey-PNL_HEADER+5);
+			glColor3ub(255,255,255);
+			glRasterPos2f(10+PNL_ICON+a*width, panel->sizey+5);
 			BIF_DrawString(block->curfont, pa->panelname, (U.transopts & TR_BUTTONS), 0);
 
 			a++;
 		}
 		else if(pa->paneltab==panel) {
 			/* not active tab */
-			uiSetRoundBox(12);
-			glColor3ub(180, 180, 187);
-			uiRoundBox(PNL_SAFETY+1+a*width, panel->sizey-PNL_HEADER, PNL_SAFETY-1+(a+1)*width, panel->sizey, 10);
 			
-			glColor3ub(140, 140, 140);
-			fdrawline(PNL_SAFETY+1+a*width, panel->sizey, PNL_SAFETY-1+(a+1)*width, panel->sizey);
-			
-			glColor3ub(85,85,85);
-			glRasterPos2f(PNL_SAFETY+7+a*width, panel->sizey-PNL_HEADER+5);
+			glColor3ub(95,95,95);
+			glRasterPos2f(10+PNL_ICON+a*width, panel->sizey+5);
 			BIF_DrawString(block->curfont, pa->panelname, (U.transopts & TR_BUTTONS), 0);
 			
 			a++;
 		}
 		pa= pa->next;
 	}
+	
+	// dragger
+	uiSetRoundBox(15);
+	glColor3ub(140, 140, 147);
+	uiRoundBox(panel->sizex-PNL_ICON+5, panel->sizey+5, panel->sizex-5, panel->sizey+PNL_HEADER-5, 5);
+	
 }
 
 static void ui_draw_panel(uiBlock *block)
@@ -6462,18 +6468,12 @@ static void ui_draw_panel(uiBlock *block)
 			glColor3ub(206, 206, 206);
 			if(G.buts->align==BUT_HORIZONTAL) ui_set_panel_pattern('h');
 			else ui_set_panel_pattern('v');
+
 			glRectf(block->minx, block->miny, block->maxx, block->maxy);
 			glDisable(GL_POLYGON_STIPPLE);
 		}
 		
-		if( panel_has_tabs(block->panel)==0) {
-			glColor3ub(255,255,255);
-			glRasterPos2f(block->minx+40, block->maxy+5);
-			BIF_DrawString(block->curfont, block->panel->panelname, (U.transopts & TR_BUTTONS), 0);
-		}
-		
-		// tabs
-		ui_draw_panel_tabs(block);
+		ui_draw_panel_header(block);
 
 		//  border
 		uiSetRoundBox(3);
@@ -6490,16 +6490,19 @@ static void ui_draw_panel(uiBlock *block)
 		glEnable( GL_BLEND );
 		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 		glColor4ub(0, 0, 0, 50);
-		fdrawline(block->maxx, block->miny, block->maxx, block->maxy);
+		fdrawline(block->maxx, block->miny, block->maxx, block->maxy+PNL_HEADER/2);
 		fdrawline(block->minx, block->miny, block->maxx, block->miny);
 		glDisable(GL_BLEND);
 
 	}
-	/* icon */
+
+	/* draw close icon */
+
 	if(block->panel->flag & PNL_CLOSED)
-		ui_draw_tria(block->minx+10, block->maxy+3, block->aspect, 'h');
+		ui_draw_tria(block->minx+6, block->maxy+3, block->aspect, 'h');
 	else
-		ui_draw_tria(block->minx+10, block->maxy+3, block->aspect, 'v');
+		ui_draw_tria(block->minx+6, block->maxy+3, block->aspect, 'v');
+
 
 }
 
@@ -6964,11 +6967,11 @@ static void panel_clicked_tabs(uiBlock *block,  int mousex)
 	
 	/* find clicked tab, mouse in panel coords */
 	a= 0;
-	width= (panel->sizex - 2*PNL_SAFETY)/nr;
+	width= (panel->sizex - 2*PNL_ICON)/nr;
 	pa= curarea->panels.first;
 	while(pa) {
 		if(pa==panel || pa->paneltab==panel) {
-			if( (mousex > PNL_SAFETY+a*width) && (mousex < PNL_SAFETY+(a+1)*width) ) {
+			if( (mousex > PNL_ICON+a*width) && (mousex < PNL_ICON+(a+1)*width) ) {
 				tabsel= pa;
 			}
 			a++;
@@ -7015,13 +7018,8 @@ static void ui_do_panel(uiBlock *block, uiEvent *uevent)
 
 	if(uevent->event==LEFTMOUSE && block->panel->paneltab==NULL) {
 		
-		/* check if clicked in tabbed area */
-		if(uevent->mval[1] < block->maxy && panel_has_tabs(block->panel)) {
-			if(block->panel->flag & PNL_CLOSED);
-			else panel_clicked_tabs(block, uevent->mval[0]);
-		}
 		/* check open/closed button */
-		else if(uevent->mval[0] >= block->minx+10 && uevent->mval[0] <= block->minx+30) {
+		if(uevent->mval[0] >= block->minx && uevent->mval[0] <= block->minx+PNL_ICON+3) {
 			
 			block->panel->flag ^= PNL_CLOSED;
 			for(pa= curarea->panels.first; pa; pa= pa->next) {
@@ -7033,6 +7031,13 @@ static void ui_do_panel(uiBlock *block, uiEvent *uevent)
 			if(sbuts->align==0) addqueue(block->win, REDRAW, 1);
 			else ui_animate_panels(curarea);
 			
+		}
+		else if(block->panel->flag & PNL_CLOSED) {
+			ui_drag_panel(block);
+		}
+		/* check if clicked in tabbed area */
+		else if(uevent->mval[0] < block->maxx-PNL_ICON-3 && panel_has_tabs(block->panel)) {
+			panel_clicked_tabs(block, uevent->mval[0]);
 		}
 		else {
 			ui_drag_panel(block);

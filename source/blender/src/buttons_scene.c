@@ -97,6 +97,10 @@
    - anim settings, audio
 */
 
+
+
+
+
 static void output_pic(char *name)
 {
 	strcpy(G.scene->r.pic, name);
