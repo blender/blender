@@ -98,6 +98,7 @@ void join_ipo(void);
 void ipo_snapmenu(void);
 void mouse_select_ipo(void);
 void sethandles_ipo(int code);
+void select_ipo_bezier_keys(struct Ipo *ipo, int selectmode);
 void set_ipotype(void);
 void borderselect_ipo(void);
 void del_ipo(void);
@@ -140,6 +141,10 @@ int add_trans_ipo_keys(struct Ipo *ipo, struct TransVert *tv, int tvtot);
 void duplicate_ipo_keys(struct Ipo *ipo);
 void borderselect_ipo_key(struct Ipo *ipo, float xmin, float xmax, int val);
 void select_ipo_key(struct Ipo *ipo, float selx, int sel);
+void select_icu_key(struct IpoCurve *icu, float selx, int selectmode);
+int select_bezier_add(struct BezTriple *bezt);
+int select_bezier_subtract(struct BezTriple *bezt);
+int select_bezier_invert(struct BezTriple *bezt);
 
 #endif /*  BSE_EDITIPO_H */
 

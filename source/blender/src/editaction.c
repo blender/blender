@@ -105,9 +105,10 @@ extern int count_action_levels (bAction *act);
 
 static void insertactionkey(bAction *act, bActionChannel *achan, bPoseChannel *chan, int adrcode, short makecurve, float time);
 static void flip_name (char *name);
-static void mouse_actionchannels(bAction *act, short *mval);
+static void mouse_actionchannels(bAction *act, short *mval, 
+                                 short *mvalo, int selectmode);
 static void borderselect_action(void);
-static void mouse_action(void);
+static void mouse_action(int selectmode);
 static bActionChannel *get_nearest_actionchannel_key (float *index, short *sel, bConstraintChannel **conchan);
 static void delete_actionchannels(void);
 static void delete_actionchannel_keys(void);
@@ -397,7 +398,7 @@ static bActionChannel *get_nearest_actionchannel_key (float *index, short *sel, 
 	return firstchan;
 }
 
-static void mouse_action(void)
+static void mouse_action(int selectmode)
 {
 	bAction	*act;
 	short sel;
@@ -415,19 +416,22 @@ static void mouse_action(void)
 	chan=get_nearest_actionchannel_key(&selx, &sel, &conchan);
 
 	if (chan){
-		if (!(G.qual & LR_SHIFTKEY)){
+		if (selectmode == SELECT_REPLACE) {
+			if (sel == 0)
+				selectmode = SELECT_ADD;
+			else
+				selectmode = SELECT_SUBTRACT;
 			deselect_actionchannel_keys(act, 0);
 			deselect_actionchannels(act, 0);
 			act->achan = chan;
 			chan->flag |= ACHAN_SELECTED;
 			hilight_channel (act, chan, 1);
-			sel = 0;
 		}
 		
 		if (conchan)
-			select_ipo_key(conchan->ipo, selx, sel);
+			select_ipo_key(conchan->ipo, selx, selectmode);
 		else
-			select_ipo_key(chan->ipo, selx, sel);
+			select_ipo_key(chan->ipo, selx, selectmode);
 
 		allqueue(REDRAWIPO, 0);
 		allqueue(REDRAWVIEW3D, 0);
@@ -441,7 +445,7 @@ static void borderselect_action(void)
 { 
 	rcti rect;
 	rctf rectf;
-	int val;		
+	int val, selectmode;		
 	short	mval[2];
 	bActionChannel *chan;
 	bConstraintChannel *conchan;
@@ -449,12 +453,17 @@ static void borderselect_action(void)
 	float	ymin, ymax;
 
 	act=G.saction->action;
-	val= get_border (&rect, 3);
+
 
 	if (!act)
 		return;
 
-	if (val){
+	if ( (val = get_border(&rect, 3)) ){
+    if (val == LEFTMOUSE)
+      selectmode = SELECT_ADD;
+    else
+      selectmode = SELECT_SUBTRACT;
+
 		mval[0]= rect.xmin;
 		mval[1]= rect.ymin+2;
 		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmin, &rectf.ymin);
@@ -468,15 +477,17 @@ static void borderselect_action(void)
 			/* Check action */
 			ymin=ymax-(CHANNELHEIGHT+CHANNELSKIP);
 			if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)))
-				borderselect_ipo_key(chan->ipo, rectf.xmin, rectf.xmax, val);
-			
+          borderselect_ipo_key(chan->ipo, rectf.xmin, rectf.xmax,
+                               selectmode);
+
 			ymax=ymin;
 
 			/* Check constraints */
 			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
 				ymin=ymax-(CHANNELHEIGHT+CHANNELSKIP);
 				if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)))
-					borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax, val);
+					borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax,
+                               selectmode);
 				
 				ymax=ymin;
 			}
@@ -1115,110 +1126,158 @@ static void hilight_channel (bAction *act, bActionChannel *chan, short select)
 	}
 }
 
-static void mouse_actionchannels(bAction *act, short *mval)
-{ 
+static int select_channel(bAction *act, bActionChannel *chan,
+                          int selectmode) {
+	/* Select the channel based on the selection mode
+	 */
+	int flag;
+
+	switch (selectmode) {
+	case SELECT_ADD:
+		chan->flag |= ACHAN_SELECTED;
+		break;
+	case SELECT_SUBTRACT:
+		chan->flag &= ~ACHAN_SELECTED;
+		break;
+	case SELECT_INVERT:
+		chan->flag ^= ACHAN_SELECTED;
+		break;
+	}
+	flag = (chan->flag & ACHAN_SELECTED) ? 1 : 0;
+
+	hilight_channel(act, chan, flag);
+	select_poseelement_by_name(chan->name, flag);
+
+	return flag;
+}
+
+static int select_constraint_channel(bAction *act, 
+                                     bConstraintChannel *conchan, 
+                                     int selectmode) {
+	/* Select the constraint channel based on the selection mode
+	 */
+	int flag;
+
+	switch (selectmode) {
+	case SELECT_ADD:
+		conchan->flag |= CONSTRAINT_CHANNEL_SELECT;
+		break;
+	case SELECT_SUBTRACT:
+		conchan->flag &= ~CONSTRAINT_CHANNEL_SELECT;
+		break;
+	case SELECT_INVERT:
+		conchan->flag ^= CONSTRAINT_CHANNEL_SELECT;
+		break;
+	}
+	flag = (conchan->flag & CONSTRAINT_CHANNEL_SELECT) ? 1 : 0;
+
+	return flag;
+}
+
+
+static void mouse_actionchannels(bAction *act, short *mval,
+                                 short *mvalo, int selectmode) {
+	/* Select action channels, based on mouse values.
+	 * If mvalo is NULL we assume it is a one click
+	 * action, other wise we treat it like it is a
+	 * border select with mval[0],mval[1] and
+	 * mvalo[0], mvalo[1] forming the corners of
+	 * a rectangle.
+	 */
 	bActionChannel *chan;
-	bConstraintChannel *clickconchan=NULL;
 	float	click;
-	int		wsize;
-	int		sel;
+	int   clickmin, clickmax;
+	int		wsize, sel;
 	bConstraintChannel *conchan;
-	
+
 	if (!act)
 		return;
+  
+	if (selectmode == SELECT_REPLACE) {
+		deselect_actionchannels (act, 0);
+		selectmode = SELECT_ADD;
+	}
 
+	/* wsize is the greatest possible height (in pixels) that would be
+	 * needed to draw all of the action channels and constraint
+	 * channels.
+	 */
 	wsize = (count_action_levels (act)*(CHANNELHEIGHT+CHANNELSKIP));
-
 
 	click = (wsize-(mval[1]+G.v2d->cur.ymin));
 	click += CHANNELHEIGHT/2;
 	click /= (CHANNELHEIGHT+CHANNELSKIP);
+	
+	clickmin = (int) click;
 
-	if (click<0)
+	/* Only one click */
+	if (mvalo == NULL) {
+		clickmax = clickmin;
+	}
+	/* Two click values (i.e., border select */
+	else {
+		click = (wsize-(mvalo[1]+G.v2d->cur.ymin));
+		click += CHANNELHEIGHT/2;
+		click /= (CHANNELHEIGHT+CHANNELSKIP);
+
+		if ( ((int) click) < clickmin) {
+			clickmax = clickmin;
+			clickmin = (int) click;
+		}
+		else {
+			clickmax = (int) click;
+		}
+	}
+
+	if (clickmax < 0) {
 		return;
+	}
+
+	/* clickmin and clickmax now coorespond to indices into
+	 * the collection of channels and constraint channels.
+	 * What we need to do is apply the selection mode on all
+	 * channels and constraint channels between these indices.
+	 * This is done by traversing the channels and constraint
+	 * channels, for each item decrementing clickmin and clickmax.
+	 * When clickmin is less than zero we start selecting stuff,
+	 * until clickmax is less than zero or we run out of channels
+	 * and constraint channels.
+	 */
 
 	for (chan = act->chanbase.first; chan; chan=chan->next){
-		if ((int)click==0)
-			break;
+		if (clickmax < 0) break;
 
-		click--;
+		if ( clickmin <= 0) {
+			/* Select the channel with the given mode. If the
+			 * channel is freshly selected then set it to the
+			 * active channel for the action
+			 */
+			sel = (chan->flag & ACHAN_SELECTED);
+			if ( select_channel(act, chan, selectmode) && !sel ) {
+				act->achan = chan;
+			}
+		}
+		--clickmin;
+		--clickmax;
 
 		/* Check for click in a constraint */
-		for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
-			if ((int)click==0){
-				clickconchan=conchan;
-				chan=act->chanbase.last;
-				break;
+		for (conchan=chan->constraintChannels.first; 
+			 conchan; conchan=conchan->next){
+			if (clickmax < 0) break;
+			if ( clickmin <= 0) {
+				select_constraint_channel(act, conchan, selectmode);
 			}
-			click--;
+			--clickmin;
+			--clickmax;
 		}
 	}
 
-	if (!chan){
-		if (clickconchan){
-			if (clickconchan->flag & CONSTRAINT_CHANNEL_SELECT)
-				sel = 0;
-			else
-				sel =1;
-			
-			/* Channel names clicking */
-			if (G.qual & LR_SHIFTKEY){
-		//		select_poseelement_by_name(chan->name, !(chan->flag & ACHAN_SELECTED));
-				if (clickconchan->flag & CONSTRAINT_CHANNEL_SELECT){
-					clickconchan->flag &= ~CONSTRAINT_CHANNEL_SELECT;
-				//	hilight_channel(act, chan, 0);
-				}
-				else{
-					clickconchan->flag |= CONSTRAINT_CHANNEL_SELECT;
-				//	hilight_channel(act, chan, 1);
-				}
-			}
-			else{
-				deselect_actionchannels (act, 0);	// Auto clear
-				clickconchan->flag |= CONSTRAINT_CHANNEL_SELECT;
-			//	hilight_channel(act, chan, 1);
-			//	act->achan = chan;
-			//	select_poseelement_by_name(chan->name, 1);
-			}
-
-		}
-		else
-			return;
-	}
-	else{
-		/* Choose the mode */
-		if (chan->flag & ACHAN_SELECTED)
-			sel = 0;
-		else
-			sel =1;
-		
-		/* Channel names clicking */
-			if (G.qual & LR_SHIFTKEY){
-				select_poseelement_by_name(chan->name, !(chan->flag & ACHAN_SELECTED));
-				if (chan->flag & ACHAN_SELECTED){
-					chan->flag &= ~ACHAN_SELECTED;
-					hilight_channel(act, chan, 0);
-				}
-				else{
-					chan->flag |= ACHAN_SELECTED;
-					hilight_channel(act, chan, 1);
-				}
-			}
-			else{
-				deselect_actionchannels (act, 0);	// Auto clear
-				chan->flag |= ACHAN_SELECTED;
-				hilight_channel(act, chan, 1);
-				act->achan = chan;
-				select_poseelement_by_name(chan->name, 1);
-			}
-
-	}
 	allqueue (REDRAWIPO, 0);
 	allqueue (REDRAWVIEW3D, 0);
 	allqueue (REDRAWACTION, 0);
-	allqueue(REDRAWNLA, 0);
-
+	allqueue (REDRAWNLA, 0);
 }
+
 
 static void delete_actionchannel_keys(void)
 {
@@ -1376,6 +1435,221 @@ static void set_ipotype_actionchannels(void) {
 	allqueue(REDRAWNLA, 0);
 }
 
+void select_all_keys_frames(bAction *act, short *mval, 
+							short *mvalo, int selectmode) {
+	
+	/* This function tries to select all action keys in
+	 * every channel for a given range of keyframes that
+	 * are within the mouse values mval and mvalo (usually
+	 * the result of a border select). If mvalo is passed as
+	 * NULL then the selection is treated as a one-click and
+	 * the function tries to select all keys within half a
+	 * frame of the click point.
+	 */
+	
+	rcti rect;
+	rctf rectf;
+	bActionChannel *chan;
+	bConstraintChannel *conchan;
+
+	if (!act)
+		return;
+
+	if (selectmode == SELECT_REPLACE) {
+		deselect_actionchannel_keys(act, 0);
+		selectmode = SELECT_ADD;
+	}
+
+	if (mvalo == NULL) {
+		rect.xmin = rect.xmax = mval[0];
+		rect.ymin = rect.ymax = mval[1];
+	}
+	else {
+		if (mval[0] < mvalo[0] ) {
+			rect.xmin = mval[0];
+			rect.xmax = mvalo[0];
+		}
+		else {
+			rect.xmin = mvalo[0];
+			rect.xmax = mval[0];
+		}
+		if (mval[1] < mvalo[1] ) {
+			rect.ymin = mval[1];
+			rect.ymax = mvalo[1];
+		}
+		else {
+			rect.ymin = mvalo[1];
+			rect.ymax = mval[1];
+		}
+	}
+
+	mval[0]= rect.xmin;
+	mval[1]= rect.ymin+2;
+	areamouseco_to_ipoco(G.v2d, mval, &rectf.xmin, &rectf.ymin);
+	mval[0]= rect.xmax;
+	mval[1]= rect.ymax-2;
+	areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
+
+	if (mvalo == NULL) {
+		rectf.xmin = rectf.xmin - 0.5;
+		rectf.xmax = rectf.xmax + 0.5;
+	}
+    
+	for (chan=act->chanbase.first; chan; chan=chan->next){
+		borderselect_ipo_key(chan->ipo, rectf.xmin, rectf.xmax,
+							 selectmode);
+		for (conchan=chan->constraintChannels.first; conchan; 
+			 conchan=conchan->next){
+			borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax,
+								 selectmode);
+		}
+	}	
+	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWIPO, 0);
+}
+
+
+void select_all_keys_channels(bAction *act, short *mval, 
+                              short *mvalo, int selectmode) {
+	bActionChannel    *chan;
+	float              click;
+	int                clickmin, clickmax;
+	int                wsize;
+	bConstraintChannel *conchan;
+
+	/* This function selects all the action keys that
+	 * are in the mouse selection range defined by
+	 * the ordered pairs mval and mvalo (usually
+	 * these 2 are obtained from a border select).
+	 * If mvalo is NULL, then the selection is
+	 * treated like a one-click action, and at most
+	 * one channel is selected.
+	 */
+
+	/* If the action is null then abort
+	 */
+	if (!act)
+		return;
+
+	if (selectmode == SELECT_REPLACE) {
+		deselect_actionchannel_keys(act, 0);
+		selectmode = SELECT_ADD;
+	}
+
+	/* wsize is the greatest possible height (in pixels) that would be
+	 * needed to draw all of the action channels and constraint
+	 * channels.
+	 */
+	wsize = (count_action_levels (act)*(CHANNELHEIGHT+CHANNELSKIP));
+
+	click = (wsize-(mval[1]+G.v2d->cur.ymin));
+	click += CHANNELHEIGHT/2;
+	click /= (CHANNELHEIGHT+CHANNELSKIP);
+
+	clickmin = (int) click;
+
+	/* Only one click */
+	if (mvalo == NULL) {
+		clickmax = clickmin;
+	}
+	/* Two click values (i.e., border select) */
+	else {
+		click = (wsize-(mvalo[1]+G.v2d->cur.ymin));
+		click += CHANNELHEIGHT/2;
+		click /= (CHANNELHEIGHT+CHANNELSKIP);
+
+		if ( ((int) click) < clickmin) {
+			clickmax = clickmin;
+			clickmin = (int) click;
+		}
+		else {
+			clickmax = (int) click;
+		}
+	}
+
+	if (clickmax < 0) {
+		return;
+	}
+
+	for (chan = act->chanbase.first; chan; chan=chan->next){
+		if (clickmax < 0) break;
+
+		if ( clickmin <= 0) {
+			/* Select the channel with the given mode. If the
+			 * channel is freshly selected then set it to the
+			 * active channel for the action
+			 */
+			select_ipo_bezier_keys(chan->ipo, selectmode);
+		}
+		--clickmin;
+		--clickmax;
+
+		/* Check for click in a constraint */
+		for (conchan=chan->constraintChannels.first; 
+			 conchan; conchan=conchan->next){
+			if (clickmax < 0) break;
+			if ( clickmin <= 0) {
+				select_ipo_bezier_keys(chan->ipo, selectmode);
+			}
+			--clickmin;
+			--clickmax;
+		}
+	}
+  
+	allqueue (REDRAWIPO, 0);
+	allqueue (REDRAWVIEW3D, 0);
+	allqueue (REDRAWACTION, 0);
+	allqueue (REDRAWNLA, 0);
+  
+}
+
+static void borderselect_function(void (*select_func)(bAction *act, 
+                                                     short *mval, 
+                                                     short *mvalo, 
+                                                     int selectmode)) {
+	/* This function executes an arbitrary selection
+	 * function as part of a border select. This
+	 * way the same function that is used for
+	 * right click selection points can generally
+	 * be used as the argument to this function
+	 */
+	rcti rect;
+	short	mval[2], mvalo[2];
+	bAction	*act;
+	int val;		
+
+	/* Get the selected action, exit if none are selected 
+	 */
+	act=G.saction->action;
+	if (!act)
+		return;
+
+	/* Let the user draw a border (or abort)
+	 */
+	if ( (val=get_border (&rect, 3)) ) {
+		mval[0]= rect.xmin;
+		mval[1]= rect.ymin+2;
+		mvalo[0]= rect.xmax;
+		mvalo[1]= rect.ymax-2;
+
+		/* if the left mouse was used, do an additive
+		 * selection with the user defined selection
+		 * function.
+		 */
+		if (val == LEFTMOUSE)
+			select_func(act, mval, mvalo, SELECT_ADD);
+		
+		/* if the right mouse was used, do a subtractive
+		 * selection with the user defined selection
+		 * function.
+		 */
+		else if (val == RIGHTMOUSE)
+			select_func(act, mval, mvalo, SELECT_SUBTRACT);
+	}
+	
+}
+
 void winqreadactionspace(unsigned short event, short val, char ascii)
 {
 	SpaceAction *saction;
@@ -1465,14 +1739,85 @@ void winqreadactionspace(unsigned short event, short val, char ascii)
 			break;
 
 		case BKEY:
-			borderselect_action();
+			/* If the border select is initiated in the
+			 * part of the action window where the channel
+			 * names reside, then select the channels
+			 */
+			if (mval[0]<ACTWIDTH){
+				borderselect_function(mouse_actionchannels);
+			}
+
+			/* If the border select is initiated in the
+			 * vertical scrollbar, then (de)select all keys
+			 * for the channels in the selection region
+			 */
+			else if (IN_2D_VERT_SCROLL(mval)) {
+				borderselect_function(select_all_keys_channels);
+			}
+
+			/* If the border select is initiated in the
+			 * horizontal scrollbar, then (de)select all keys
+			 * for the keyframes in the selection region
+			 */
+			else if (IN_2D_HORIZ_SCROLL(mval)) {
+				borderselect_function(select_all_keys_frames);
+			}
+
+			/* Other wise, select the action keys
+			 */
+			else {
+				borderselect_action();
+			}
 			break;
 		case RIGHTMOUSE:
-			if (mval[0]<ACTWIDTH)
-				mouse_actionchannels(act, mval);
-			else
-				mouse_action();
+			/* Right clicking in the channel area selects the
+			 * channel or constraint channel
+			 */
+			if (mval[0]<ACTWIDTH) {
+				if(G.qual & LR_SHIFTKEY)
+					mouse_actionchannels(act, mval, NULL, 
+										 SELECT_INVERT);
+				else
+					mouse_actionchannels(act, mval, NULL, 
+										 SELECT_REPLACE);
+			}
+
+			/* Right clicking in the vertical scrollbar selects
+			 * all of the keys for that channel at that height
+			 */
+			else if (IN_2D_VERT_SCROLL(mval)) {
+				if(G.qual & LR_SHIFTKEY)
+					select_all_keys_channels(act, mval, NULL, 
+											 SELECT_INVERT);
+				else
+					select_all_keys_channels(act, mval, NULL, 
+											 SELECT_REPLACE);
+			}
+
+			/* Right clicking in the horizontal scrollbar selects
+			 * all of the keys within 0.5 of the nearest integer
+			 * frame
+			 */
+			else if (IN_2D_HORIZ_SCROLL(mval)) {
+				if(G.qual & LR_SHIFTKEY)
+					select_all_keys_frames(act, mval, NULL, 
+										   SELECT_INVERT);
+				else
+					select_all_keys_frames(act, mval, NULL, 
+										   SELECT_REPLACE);
+			}
+
+			/* Clicking in the main area of the action window
+			 * selects keys
+			 */
+			else {
+				if(G.qual & LR_SHIFTKEY)
+					mouse_action(SELECT_INVERT);
+				else
+					mouse_action(SELECT_REPLACE);
+			}
 			break;
+
 		case LEFTMOUSE:
 			if (mval[0]>ACTWIDTH){
 				do {

@@ -101,7 +101,7 @@ static void delete_nlachannel_keys(void);
 static void delete_nlachannels(void);
 static void duplicate_nlachannel_keys(void);
 static void borderselect_nla(void);
-static void mouse_nla(void);
+static void mouse_nla(int selectmode);
 static Base *get_nearest_nlachannel_ob_key (float *index, short *sel);
 static bAction *get_nearest_nlachannel_ac_key (float *index, short *sel);
 static Base *get_nearest_nlastrip (bActionStrip **rstrip, short *sel);
@@ -200,8 +200,12 @@ int calc_memleak (void* ptr){
 			}
 			break;
 		case RIGHTMOUSE:
-			if (mval[0]>=NLAWIDTH)
-				mouse_nla();
+			if (mval[0]>=NLAWIDTH) {
+				if(G.qual & LR_SHIFTKEY)
+					mouse_nla(SELECT_INVERT);
+				else
+					mouse_nla(SELECT_REPLACE);
+			}
 			else
 				mouse_nlachannels(mval);
 			break;
@@ -1034,15 +1038,18 @@ static void borderselect_nla(void)
 	Base *base;
 	rcti rect;
 	rctf rectf;
-	int val;		
+	int  val, selectmode;
 	short	mval[2];
 	float	ymin, ymax;
 	bActionStrip *strip;
 	bConstraintChannel *conchan;
 	
-	val= get_border (&rect, 3);
-	
-	if (val){
+	if ( (val = get_border (&rect, 3)) ){
+    if (val == LEFTMOUSE)
+      selectmode = SELECT_ADD;
+    else
+      selectmode = SELECT_SUBTRACT;
+
 		mval[0]= rect.xmin;
 		mval[1]= rect.ymin+2;
 		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmin, &rectf.ymin);
@@ -1059,7 +1066,8 @@ static void borderselect_nla(void)
 				ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
 				if (base->object->ipo){
 					if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)))
-						borderselect_ipo_key(base->object->ipo, rectf.xmin, rectf.xmax, val);
+						borderselect_ipo_key(base->object->ipo, rectf.xmin, rectf.xmax,
+                                 selectmode);
 				}
 				ymax=ymin;
 
@@ -1067,7 +1075,8 @@ static void borderselect_nla(void)
 				for (conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next){
 					ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
 					if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)))
-						borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax, val);
+						borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax,
+                                 selectmode);
 					ymax=ymin;
 				}
 
@@ -1079,10 +1088,12 @@ static void borderselect_nla(void)
 						
 						if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))){
 							for (chan=base->object->action->chanbase.first; chan; chan=chan->next){
-								borderselect_ipo_key(chan->ipo, rectf.xmin, rectf.xmax, val);
+								borderselect_ipo_key(chan->ipo, rectf.xmin, rectf.xmax,
+                                     selectmode);
 								/* Check action constraint ipos */
 								for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
-									borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax, val);
+									borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax,
+                                       selectmode);
 							}
 						}
 					}
@@ -1115,7 +1126,7 @@ static void borderselect_nla(void)
 	}
 }
 
-static void mouse_nla(void)
+static void mouse_nla(int selectmode)
 {
 	short sel;
 	float	selx;
@@ -1131,16 +1142,16 @@ static void mouse_nla(void)
 	/* Try object ipo selection */
 	base=get_nearest_nlachannel_ob_key(&selx, &sel);
 	if (base){
-		if (!(G.qual & LR_SHIFTKEY)){
+		if (selectmode == SELECT_REPLACE){
 			deselect_nlachannel_keys(0);
-			sel = 0;
+			selectmode = SELECT_ADD;
 		}
 		
-		select_ipo_key(base->object->ipo, selx, sel);
+		select_ipo_key(base->object->ipo, selx, selectmode);
 		
 		/* Try object constraint selection */
 		for (conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next)
-			select_ipo_key(conchan->ipo, selx, sel);
+			select_ipo_key(conchan->ipo, selx, selectmode);
 		
 		
 		allqueue(REDRAWIPO, 0);
@@ -1152,16 +1163,16 @@ static void mouse_nla(void)
 	/* Try action ipo selection */
 	act=get_nearest_nlachannel_ac_key(&selx, &sel);
 	if (act){
-		if (!(G.qual & LR_SHIFTKEY)){
+		if (selectmode == SELECT_REPLACE){
 			deselect_nlachannel_keys(0);
-			sel = 0;
+			selectmode = SELECT_ADD;
 		}
 		
 		for (chan=act->chanbase.first; chan; chan=chan->next){
-			select_ipo_key(chan->ipo, selx, sel);
+			select_ipo_key(chan->ipo, selx, selectmode);
 			/* Try action constraint selection */
 			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
-				select_ipo_key(conchan->ipo, selx, sel);
+				select_ipo_key(conchan->ipo, selx, selectmode);
 		}
 		
 		allqueue(REDRAWIPO, 0);

@@ -2790,6 +2790,36 @@ int selected_bezier_loop(int (*looptest)(EditIpo *),
 	return 0;
 }
 
+int select_bezier_add(BezTriple *bezt) {
+  /* Select the bezier triple */
+  bezt->f1 |= 1;
+  bezt->f2 |= 1;
+  bezt->f3 |= 1;
+  return 0;
+}
+
+int select_bezier_subtract(BezTriple *bezt) {
+  /* Deselect the bezier triple */
+  bezt->f1 &= ~1;
+  bezt->f2 &= ~1;
+  bezt->f3 &= ~1;
+  return 0;
+}
+
+int select_bezier_invert(BezTriple *bezt) {
+  /* Invert the selection for the bezier triple */
+  bezt->f2 ^= 1;
+  if ( bezt->f2 & 1 ) {
+    bezt->f1 |= 1;
+    bezt->f3 |= 1;
+  }
+  else {
+    bezt->f1 &= ~1;
+    bezt->f3 &= ~1;
+  }
+  return 0;
+}
+
 int set_bezier_auto(BezTriple *bezt) 
 {
 	/* Sets the selected bezier handles to type 'auto' 
@@ -2875,6 +2905,25 @@ int vis_edit_icu_bez(EditIpo *ei) {
 	 * is I need a pointer to a function.)
 	 */
 	return ISPOIN4(ei, flag & IPO_VISIBLE, flag & IPO_EDIT, icu, icu->bezt);
+}
+
+void select_ipo_bezier_keys(Ipo *ipo, int selectmode)
+{
+  /* Select all of the beziers in all
+   * of the Ipo curves belonging to the
+   * Ipo, using the selection mode.
+   */
+  switch (selectmode) {
+  case SELECT_ADD:
+    ipo_keys_bezier_loop(ipo, select_bezier_add, NULL);
+    break;
+  case SELECT_SUBTRACT:
+    ipo_keys_bezier_loop(ipo, select_bezier_subtract, NULL);
+    break;
+  case SELECT_INVERT:
+    ipo_keys_bezier_loop(ipo, select_bezier_invert, NULL);
+    break;
+  }
 }
 
 void sethandles_ipo_keys(Ipo *ipo, int code)
@@ -5426,54 +5475,152 @@ void duplicate_ipo_keys(Ipo *ipo)
 	}
 }
 
-void borderselect_ipo_key(Ipo *ipo, float xmin, float xmax, int val)
+void borderselect_icu_key(IpoCurve *icu, float xmin, float xmax, 
+						  int (*select_function)(BezTriple *))
 {
-	int i;
-	IpoCurve *icu;
+	/* Selects all bezier triples in the Ipocurve 
+	 * between times xmin and xmax, using the selection
+	 * function.
+	 */
 
+	int i;
+
+	/* loop through all of the bezier triples in
+	 * the Ipocurve -- if the triple occurs between
+	 * times xmin and xmax then select it using the selection
+	 * function
+	 */
+	for (i=0; i<icu->totvert; i++){
+		if (icu->bezt[i].vec[1][0] > xmin && icu->bezt[i].vec[1][0] < xmax ){
+			select_function(&(icu->bezt[i]));
+		}
+	}
+}
+
+void borderselect_ipo_key(Ipo *ipo, float xmin, float xmax, int selectmode)
+{
+	/* Selects all bezier triples in each Ipocurve of the
+	 * Ipo between times xmin and xmax, using the selection mode.
+	 */
+
+	IpoCurve *icu;
+	int (*select_function)(BezTriple *);
+
+	/* If the ipo is no good then return */
 	if (!ipo)
 		return;
 
+	/* Set the selection function based on the
+	 * selection mode.
+	 */
+	switch(selectmode) {
+	case SELECT_ADD:
+		select_function = select_bezier_add;
+		break;
+	case SELECT_SUBTRACT:
+		select_function = select_bezier_subtract;
+		break;
+	case SELECT_INVERT:
+		select_function = select_bezier_invert;
+		break;
+	default:
+		return;
+	}
+
+	/* loop through all of the bezier triples in all
+	 * of the Ipocurves -- if the triple occurs between
+	 * times xmin and xmax then select it using the selection
+	 * function
+	 */
+	for (icu=ipo->curve.first; icu; icu=icu->next){
+		borderselect_icu_key(icu, xmin, xmax, select_function);
+	}
+}
+
+void select_ipo_key(Ipo *ipo, float selx, int selectmode)
+{
+	/* Selects all bezier triples in each Ipocurve of the
+	 * Ipo at time selx, using the selection mode.
+	 */
+	int i;
+	IpoCurve *icu;
+	int (*select_function)(BezTriple *);
+
+	/* If the ipo is no good then return */
+	if (!ipo)
+		return;
+
+	/* Set the selection function based on the
+	 * selection mode.
+	 */
+	switch(selectmode) {
+	case SELECT_ADD:
+		select_function = select_bezier_add;
+		break;
+	case SELECT_SUBTRACT:
+		select_function = select_bezier_subtract;
+		break;
+	case SELECT_INVERT:
+		select_function = select_bezier_invert;
+		break;
+	default:
+		return;
+	}
+
+	/* loop through all of the bezier triples in all
+	 * of the Ipocurves -- if the triple occurs at
+	 * time selx then select it using the selection
+	 * function
+	 */
 	for (icu=ipo->curve.first; icu; icu=icu->next){
 		for (i=0; i<icu->totvert; i++){
-			if (icu->bezt[i].vec[1][0] > xmin && icu->bezt[i].vec[1][0] < xmax ){
-				if (val==1){
-					icu->bezt[i].f1 |= 1; 
-					icu->bezt[i].f2 |= 1;	
-					icu->bezt[i].f3 |= 1;
-				}
-				else{
-					icu->bezt[i].f1 &= ~1; 
-					icu->bezt[i].f2 &= ~1;	
-					icu->bezt[i].f3 &= ~1;
-				}
+			if (icu->bezt[i].vec[1][0]==selx){
+				select_function(&(icu->bezt[i]));
 			}
 		}
 	}
 }
 
-void select_ipo_key(Ipo *ipo, float selx, int sel)
+void select_icu_key(IpoCurve *icu, float selx, int selectmode)
 {
-	int i;
-	IpoCurve *icu;
+    /* Selects all bezier triples in the Ipocurve
+     * at time selx, using the selection mode.
+     * This is kind of sloppy the obvious similarities
+     * with the above function, forgive me ...
+     */
+    int i;
+    int (*select_function)(BezTriple *);
 
-	if (!ipo)
-		return;
+    /* If the icu is no good then return */
+    if (!icu)
+        return;
 
-	for (icu=ipo->curve.first; icu; icu=icu->next){
-		for (i=0; i<icu->totvert; i++){
-			if (icu->bezt[i].vec[1][0]==selx){
-				if (sel) {
-					icu->bezt[i].f1 &= ~1;
-					icu->bezt[i].f2 &= ~1;
-					icu->bezt[i].f3 &= ~1;
-				}
-				else {
-					icu->bezt[i].f1 |= 1;
-					icu->bezt[i].f2 |= 1;
-					icu->bezt[i].f3 |= 1;
-				}
-			}
-		}
-	}
+    /* Set the selection function based on the
+     * selection mode.
+     */
+    switch(selectmode) {
+    case SELECT_ADD:
+        select_function = select_bezier_add;
+        break;
+    case SELECT_SUBTRACT:
+        select_function = select_bezier_subtract;
+        break;
+    case SELECT_INVERT:
+        select_function = select_bezier_invert;
+        break;
+    default:
+        return;
+    }
+
+    /* loop through all of the bezier triples in
+     * the Ipocurve -- if the triple occurs at
+     * time selx then select it using the selection
+     * function
+     */
+    for (i=0; i<icu->totvert; i++){
+        if (icu->bezt[i].vec[1][0]==selx){
+            select_function(&(icu->bezt[i]));
+        }
+    }
+
 }
