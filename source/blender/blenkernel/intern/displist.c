@@ -217,9 +217,11 @@ void displistmesh_free(DispListMesh *dlm)
 	MEM_freeN(dlm);
 }
 
-static DispListMesh *displistmesh_copy(DispListMesh *odlm) {
+static DispListMesh *displistmesh_copy(DispListMesh *odlm) 
+{
 	DispListMesh *ndlm= MEM_dupallocN(odlm);
 	ndlm->mvert= MEM_dupallocN(odlm->mvert);
+	ndlm->medge= MEM_dupallocN(odlm->medge);
 	ndlm->mface= MEM_dupallocN(odlm->mface);
 	if (odlm->mcol) ndlm->mcol= MEM_dupallocN(odlm->mcol);
 	if (odlm->tface) ndlm->tface= MEM_dupallocN(odlm->tface);
