@@ -7742,6 +7742,7 @@ void undo_menu_mesh(void)
 }
 
 /******************* BEVEL CODE STARTS HERE ********************/
+
 void bevel_displace_vec(float *midvec, float *v1, float *v2, float *v3, float d, float no[3])
 {
 	float a[3], c[3], n_a[3], n_c[3], mid[3], ac, ac2, fac;
@@ -8147,7 +8148,9 @@ void bevel_mesh(float bsize, int allfaces)
 	/* tag all faces for shrink*/
 	evl= G.edvl.first;
 	while (evl) {
-		if (vlakselectedAND(evl, 1)||allfaces) evl->f1= 2;
+		if (vlakselectedAND(evl, 1)||allfaces) {
+			evl->f1= 2;
+		}
 		evl= evl->next;
 	}
 
@@ -8524,6 +8527,7 @@ void bevel_menu()
 		}	
 	}
 	if (Canceled==0) {
+		undo_push_mesh("Bevel");
 		bevel_mesh_recurs(drawd/fac, recurs, 1);
 		righthandfaces(1);
 	}

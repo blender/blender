@@ -1577,7 +1577,6 @@ void special_editmenu(void)
 			subdivideflag(1, 0.0, editbutflag | B_SMOOTH);
 			break;
 		case 4:
-			undo_push_mesh("Merge");
 			mergemenu();
 			break;
 		case 5:
@@ -1602,7 +1601,6 @@ void special_editmenu(void)
 			vertexsmooth();
 			break;
 		case 11:
-			undo_push_mesh("Bevel");
 			bevel_menu();
 			break;
 		}		
@@ -6751,19 +6749,14 @@ void make_displists_by_obdata(void *obdata) {
 /* ******************************************************************** */
 /* Mirror function in Edit Mode */
 
-
-void mirrormenu(void){
-	short mode = 0, axis, a;
+void mirror(short mode) {
+	short axis, a;
 	float mat[3][3], imat[3][3], min[3], max[3];
 	TransVert *tv;
-	mode=pupmenu("Mirror Axis %t|Global X%x1|       Y%x2|       Z%x3|Local X%x4|      Y%x5|      Z%x6|View X%x7|     Y%x8|     Z%x9|");
-
-	if (G.obedit==0) return;
-	if (mode==-1) return;
 
 	make_trans_verts(min, max, 0);
 	Mat3CpyMat4(mat, G.obedit->obmat);
-	// Inverting the matrix explicitly, since a 4x4 inverse is not always the same
+	// Inverting the matrix explicitly, since the inverse is not always correct (then why the heck are we keeping it!)
 	Mat3Inv(imat, mat);
 
 	tv = transvmain;
@@ -6832,7 +6825,7 @@ void mirrormenu(void){
 		float viewmat[3][3], iviewmat[3][3];
 
 		Mat3CpyMat4(viewmat, G.vd->viewmat);
-	// Inverting the matrix explicitly, since a 4x4 inverse is not always the same
+	// Inverting the matrix explicitly
 		Mat3Inv(iviewmat, viewmat);
 
 		// axis is mode with an offset
@@ -6883,3 +6876,18 @@ void mirrormenu(void){
 
 	tottrans= 0;
 }
+
+void mirrormenu(void){
+	short mode = 0;
+
+	if (G.obedit==0) return;
+
+	mode=pupmenu("Mirror Axis %t|Global X%x1|       Y%x2|       Z%x3|Local X%x4|      Y%x5|      Z%x6|View X%x7|     Y%x8|     Z%x9|");
+
+	if (mode==-1) return; /* return */
+
+	if(G.obedit->type==OB_MESH) undo_push_mesh("Mirror"); /* If it's a mesh, push it down the undo pipe */
+
+	mirror(mode); /* separating functionality from interface | call*/
+}
+

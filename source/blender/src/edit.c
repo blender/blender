@@ -1180,22 +1180,18 @@ void mergemenu(void)
 
 	event = pupmenu("MERGE %t|At Center%x1|At Cursor%x2");
 
-	switch (event) {
+	if (event==-1) return; /* Return if the menu is closed without any choices */
 
-	    case 1: /*Merge at center of selection*/
-		    snap_to_center();
-		    notice("Removed: %d", removedoublesflag(1, doublimit));
-		    allqueue(REDRAWVIEW3D, 0);
-		    countall();
-		    break;
-	    case 2: /*Merge at Cursor*/
-		    snap_sel_to_curs();
-		    notice("Removed: %d", removedoublesflag(1, doublimit));
-		    allqueue(REDRAWVIEW3D, 0);
-		    countall();
-		    break;
-	}
+	undo_push_mesh("Merge"); /* The action has been confirmed, push the mesh down the undo pipe */
 
+	if (event==1) 
+		snap_to_center(); /*Merge at Center*/
+	else
+		snap_sel_to_curs(); /*Merge at Cursor*/
+
+	notice("Removed: %d", removedoublesflag(1, doublimit));
+	allqueue(REDRAWVIEW3D, 0);
+	countall();
 }
 
 void delete_context_selected(void) {

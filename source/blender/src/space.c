@@ -1130,20 +1130,12 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(G.obedit){
 					if(G.qual==LR_ALTKEY) {
 						if(G.obedit->type==OB_MESH) {
-							undo_push_mesh("Merge");
 							mergemenu();
-								
 							makeDispList(G.obedit);
 						}
 					}
 					else if((G.qual==0)) {
-						if(G.obedit->type==OB_MESH) {
-							undo_push_mesh("Mirror");
-							mirrormenu();
-						}
-						else {
-							mirrormenu();
-						}
+						mirrormenu();
 					}
 				}
 				else if((G.qual==0)){
