@@ -280,6 +280,32 @@ static void ui_flush_overdraw(uiOverDraw *od)
 	glDrawBuffer(GL_BACK);
 }
 
+/* special flush version to enable transparent menus */
+static void ui_block_flush_overdraw(uiBlock *block)
+{
+	
+	if(block->flag & UI_BLOCK_LOOP) {
+		char col[4];
+		
+		BIF_GetThemeColor4ubv(TH_MENU_BACK, col);
+		if(col[3]!=255) {
+			uiBut *bt;
+			uiOverDraw *od= block->overdraw;
+
+			/* completely draw all! */
+			glRasterPos2s(od->x, od->y);
+			glDrawPixels(od->sx, od->sy, GL_RGBA, GL_UNSIGNED_BYTE, od->rect);
+			
+			uiDrawMenuBox(block->minx, block->miny, block->maxx, block->maxy, block->flag);
+			for (bt= block->buttons.first; bt; bt= bt->next) {
+				ui_draw_but(bt);
+			}
+		}
+	}
+	
+	ui_flush_overdraw(block->overdraw);
+}
+
 static void ui_end_overdraw(uiOverDraw *od)
 {
 	if(od==NULL) return;
@@ -353,7 +379,7 @@ void ui_block_flush_back(uiBlock *block)
 		
 		markdirty_win_back(block->win);
 	}
-	
+
 	block->needflush= 0; 
 }
 
@@ -378,6 +404,7 @@ void ui_block_set_flush(uiBlock *block, uiBut *but)
 			block->flush.xmax= but->x2;
 			block->flush.ymin= but->y1;
 			block->flush.ymax= but->y2;
+			
 		}
 		else {
 			/* union of rects */
@@ -501,8 +528,8 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 	ui_graphics_to_window(block->win, &block->minx, &block->miny);
 	ui_graphics_to_window(block->win, &block->maxx, &block->maxy);
 
-	block->minx-= 2.0; block->miny-= 2.0;
-	block->maxx+= 2.0; block->maxy+= 2.0;
+	//block->minx-= 2.0; block->miny-= 2.0;
+	//block->maxx+= 2.0; block->maxy+= 2.0;
 	
 	xsize= block->maxx - block->minx+4; // 4 for shadow
 	ysize= block->maxy - block->miny+4;
@@ -3219,7 +3246,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	}
 
 	/* flush to frontbuffer */
-	if((block->flag & UI_BLOCK_LOOP)==0) {
+	if((block->flag & UI_BLOCK_LOOP)==0) { // no loop, might need total flush in uidoblocks()
 		ui_block_flush_back(block);
 	}
 
@@ -3433,7 +3460,7 @@ int uiDoBlocks(ListBase *lb, int event)
 			 */
 			if(block->flag & UI_BLOCK_REDRAW) {
 				if( block->flag & UI_BLOCK_LOOP) {
-					block->overdraw= ui_begin_overdraw((int)block->minx-1, (int)block->miny-6, (int)block->maxx+6, (int)block->maxy+1);
+					block->overdraw= ui_begin_overdraw((int)block->minx-1, (int)block->miny-10, (int)block->maxx+10, (int)block->maxy+1);
 				}
 				block->in_use= 1;	// is always a menu
 				uiDrawBlock(block);
@@ -3450,7 +3477,7 @@ int uiDoBlocks(ListBase *lb, int event)
 			
 			/* is there a flush cached? */
 			if(block->needflush) {
-				ui_flush_overdraw(block->overdraw);
+				ui_block_flush_overdraw(block);
 				block->needflush= 0;
 			}
 			
@@ -3487,8 +3514,8 @@ int uiDoBlocks(ListBase *lb, int event)
 				retval= ui_do_block(block, &uevent);
 				block->in_use= 0;
 			
-				if(block->needflush) { // flush now, maybe new menu was opened
-					ui_flush_overdraw(block->overdraw);
+				if(block->needflush) { // flush (old menu) now, maybe new menu was opened
+					ui_block_flush_overdraw(block);
 					block->needflush= 0;
 				}
 

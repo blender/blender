@@ -1352,33 +1352,44 @@ static void ui_shadowbox(float minx, float miny, float maxx, float maxy, float s
 
 void uiDrawMenuBox(float minx, float miny, float maxx, float maxy, short flag)
 {
-
+	char col[4];
+	BIF_GetThemeColor4ubv(TH_MENU_BACK, col);
+	
 	if( (flag & UI_BLOCK_NOSHADOW)==0) {
 		/* accumulated outline boxes to make shade not linear, is more pleasant */
-		ui_shadowbox(minx, miny, maxx, maxy, 6.0, 30);
-		ui_shadowbox(minx, miny, maxx, maxy, 4.0, 70);
-		ui_shadowbox(minx, miny, maxx, maxy, 2.0, 100);
+		ui_shadowbox(minx, miny, maxx, maxy, 6.0, (30*col[3])>>8);
+		ui_shadowbox(minx, miny, maxx, maxy, 4.0, (70*col[3])>>8);
+		ui_shadowbox(minx, miny, maxx, maxy, 2.0, (100*col[3])>>8);
 		
+		glEnable(GL_BLEND);
+		glColor4ubv(col);
+		glRectf(minx-1, miny, minx, maxy);	// 1 pixel on left, to distinguish sublevel menus
 	}
-	BIF_ThemeColor(TH_MENU_BACK);
-
+	glEnable(GL_BLEND);
+	glColor4ubv(col);
 	glRectf(minx, miny, maxx, maxy);
+	glDisable(GL_BLEND);
 }
 
 /* pulldown menu item */
 static void ui_draw_pulldown_item(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
 {
-
-	if(flag & UI_ACTIVE) {
-		BIF_ThemeColor(TH_MENU_HILITE);
-		glRectf(x1-1, y1, x2+2, y2);
+	char col[4];
+	
+	BIF_GetThemeColor4ubv(TH_MENU_BACK, col);
+	if(col[3]!=255) glEnable(GL_BLEND);
+	
+	if((flag & UI_ACTIVE) && type!=LABEL) {
+		BIF_ThemeColor4(TH_MENU_HILITE);
+		glRectf(x1, y1, x2, y2);
 	
 
 	} else {
-		BIF_ThemeColor(colorid);	// is set at TH_MENU_ITEM when pulldown opened.
-		glRectf(x1-1, y1, x2+2, y2);
+		BIF_ThemeColor4(colorid);	// is set at TH_MENU_ITEM when pulldown opened.
+		glRectf(x1, y1, x2, y2);
 	}
 
+	glDisable(GL_BLEND);
 }
 
 /* pulldown menu calling button */
@@ -1464,7 +1475,7 @@ static void ui_draw_text_icon(uiBut *but)
 			
 			/* text color, with pulldown item exception */
 			if(but->dt==UI_EMBOSSP) {
-				if(but->flag & (UI_SELECT|UI_ACTIVE)) {		
+				if((but->flag & (UI_SELECT|UI_ACTIVE)) && but->type!=LABEL) {	// LABEL = title in pulldowns
 					BIF_ThemeColor(TH_MENU_TEXT_HI);
 				} else {
 					BIF_ThemeColor(TH_MENU_TEXT);

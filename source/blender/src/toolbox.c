@@ -2216,7 +2216,7 @@ static uiBlock *tb_makemenu(void *arg)
 		}
 		item++;
 	}
-	uiTextBoundsBlock(block, 80);
+	uiTextBoundsBlock(block, 60);
 	
 	/* direction is also set in the function that calls this */
 	uiBlockSetDirection(block, UI_RIGHT|UI_CENTRE);
@@ -2247,7 +2247,7 @@ void toolbox_n(void)
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1);
 	uiBlockSetCol(block, TH_MENU_ITEM);
 	
-	dx= 65;
+	dx= 64;
 	
 	/* select context for main items */
 	if(curarea->spacetype==SPACE_VIEW3D) {
@@ -2327,27 +2327,27 @@ void toolbox_n(void)
 		else if(mval[1]+20+tb_mainy > G.curscreen->sizey-6) 
 			mval[1]= G.curscreen->sizey-6-20-tb_mainy;
 	
-		but=uiDefBlockBut(block, tb_makemenu, menu1, str1,	mval[0]-1.5*dx+tb_mainx,mval[1]+tb_mainy, dx, 19, "");
+		but=uiDefBlockBut(block, tb_makemenu, menu1, str1,	mval[0]-(1.5*dx)+tb_mainx,mval[1]+tb_mainy, dx, 19, "");
 		uiButSetFlag(but, UI_MAKE_TOP|UI_MAKE_RIGHT);
 		uiButSetFunc(but, store_main, (void *)dx, (void *)-5);
 
-		but=uiDefBlockBut(block, tb_makemenu, menu2, str2,	mval[0]-0.5*dx+tb_mainx,mval[1]+tb_mainy, dx, 19, "");
+		but=uiDefBlockBut(block, tb_makemenu, menu2, str2,	mval[0]-(0.5*dx)+tb_mainx,mval[1]+tb_mainy, dx, 19, "");
 		uiButSetFlag(but, UI_MAKE_TOP);
 		uiButSetFunc(but, store_main, (void *)0, (void *)-5);
 
-		but=uiDefBlockBut(block, tb_makemenu, menu3, str3,	mval[0]+0.5*dx+tb_mainx,mval[1]+tb_mainy, dx, 19, "");
+		but=uiDefBlockBut(block, tb_makemenu, menu3, str3,	mval[0]+(0.5*dx)+tb_mainx,mval[1]+tb_mainy, dx, 19, "");
 		uiButSetFlag(but, UI_MAKE_TOP|UI_MAKE_LEFT);
 		uiButSetFunc(but, store_main, (void *)-dx, (void *)-5);
 
-		but=uiDefBlockBut(block, tb_makemenu, menu4, str4,	mval[0]-1.5*dx+tb_mainx,mval[1]+tb_mainy-20, dx, 19, "");
+		but=uiDefBlockBut(block, tb_makemenu, menu4, str4,	mval[0]-(1.5*dx)+tb_mainx,mval[1]+tb_mainy-20, dx, 19, "");
 		uiButSetFlag(but, UI_MAKE_DOWN|UI_MAKE_RIGHT);
 		uiButSetFunc(but, store_main, (void *)dx, (void *)5);
 
-		but=uiDefBlockBut(block, tb_makemenu, menu5, str5,	mval[0]-0.5*dx+tb_mainx,mval[1]+tb_mainy-20, dx, 19, "");
+		but=uiDefBlockBut(block, tb_makemenu, menu5, str5,	mval[0]-(0.5*dx)+tb_mainx,mval[1]+tb_mainy-20, dx, 19, "");
 		uiButSetFlag(but, UI_MAKE_DOWN);
 		uiButSetFunc(but, store_main, (void *)0, (void *)5);
 
-		but=uiDefBlockBut(block, tb_makemenu, menu6, str6,	mval[0]+0.5*dx+tb_mainx,mval[1]+tb_mainy-20, dx, 19, "");
+		but=uiDefBlockBut(block, tb_makemenu, menu6, str6,	mval[0]+(0.5*dx)+tb_mainx,mval[1]+tb_mainy-20, dx, 19, "");
 		uiButSetFlag(but, UI_MAKE_DOWN|UI_MAKE_LEFT);
 		uiButSetFunc(but, store_main, (void *)-dx, (void *)5);
 	}

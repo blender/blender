@@ -2099,7 +2099,7 @@ void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 	}
 	else {
 		uiBlockBeginAlign(block);
-		if ELEM3(th_curcol, TH_PANEL, TH_FACE, TH_FACE_SELECT) {
+		if ELEM6(th_curcol, TH_PANEL, TH_FACE, TH_FACE_SELECT, TH_MENU_BACK, TH_MENU_HILITE, TH_MENU_ITEM) {
 			uiDefButC(block, NUMSLI, B_UPDATE_THEME,"A ",	465,y3+25,200,20,  col+3, 0.0, 255.0, B_THEMECOL, 0, "");
 		}
 		uiDefButC(block, NUMSLI, B_UPDATE_THEME,"R ",	465,y3,200,20,  col, 0.0, 255.0, B_THEMECOL, 0, "");
