@@ -111,10 +111,6 @@ SOURCE=..\..\..\source\blender\render\intern\source\jitter.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\render\intern\source\outerRenderLoop.c
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\render\intern\source\pixelblending.c
 # End Source File
 # Begin Source File

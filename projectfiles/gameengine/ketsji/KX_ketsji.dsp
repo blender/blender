@@ -315,6 +315,10 @@ SOURCE=..\..\..\source\gameengine\Ketsji\KX_PyConstraintBinding.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\gameengine\Ketsji\KX_PyMath.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\gameengine\Ketsji\KX_PythonInit.cpp
 # End Source File
 # Begin Source File
@@ -552,6 +556,10 @@ SOURCE=..\..\..\source\gameengine\Ketsji\KX_PhysicsObjectWrapper.h
 # Begin Source File
 
 SOURCE=..\..\..\source\gameengine\Ketsji\KX_PyConstraintBinding.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\gameengine\Ketsji\KX_PyMath.h
 # End Source File
 # Begin Source File
 
