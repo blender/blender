@@ -77,12 +77,12 @@ GEN_INLINE MT_Vector3 MT_Vector3::safe_normalized() const {
         *this / len; 
 }
 
-GEN_INLINE void MT_Vector3::scale(MT_Scalar x, MT_Scalar y, MT_Scalar z) {
-    m_co[0] *= x; m_co[1] *= y; m_co[2] *= z;
+GEN_INLINE void MT_Vector3::scale(MT_Scalar xx, MT_Scalar yy, MT_Scalar zz) {
+    m_co[0] *= xx; m_co[1] *= yy; m_co[2] *= zz;
 }
 
-GEN_INLINE MT_Vector3 MT_Vector3::scaled(MT_Scalar x, MT_Scalar y, MT_Scalar z) const {
-    return MT_Vector3(m_co[0] * x, m_co[1] * y, m_co[2] * z);
+GEN_INLINE MT_Vector3 MT_Vector3::scaled(MT_Scalar xx, MT_Scalar yy, MT_Scalar zz) const {
+    return MT_Vector3(m_co[0] * xx, m_co[1] * yy, m_co[2] * zz);
 }
 
 GEN_INLINE MT_Scalar MT_Vector3::angle(const MT_Vector3& v) const {

@@ -58,7 +58,7 @@ public:
     MT_Vector3() {}
     MT_Vector3(const float *v) : MT_Tuple3(v) {}
     MT_Vector3(const double *v) : MT_Tuple3(v) {}
-    MT_Vector3(MT_Scalar x, MT_Scalar y, MT_Scalar z) : MT_Tuple3(x, y, z) {}
+    MT_Vector3(MT_Scalar xx, MT_Scalar yy, MT_Scalar zz) : MT_Tuple3(xx, yy, zz) {}
   
     MT_Vector3& operator+=(const MT_Vector3& v);
     MT_Vector3& operator-=(const MT_Vector3& v);

@@ -59,8 +59,8 @@ public:
     MT_Vector4() {}
     MT_Vector4(const float *v) : MT_Tuple4(v) {}
     MT_Vector4(const double *v) : MT_Tuple4(v) {}
-    MT_Vector4(MT_Scalar x, MT_Scalar y, MT_Scalar z, MT_Scalar w) : 
-        MT_Tuple4(x, y, z, w) {}
+    MT_Vector4(MT_Scalar xx, MT_Scalar yy, MT_Scalar zz, MT_Scalar ww) : 
+        MT_Tuple4(xx, yy, zz, ww) {}
   
     MT_Vector4& operator+=(const MT_Vector4& v);
     MT_Vector4& operator-=(const MT_Vector4& v);

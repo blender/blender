@@ -58,7 +58,7 @@ public:
     MT_Tuple3() {}
     MT_Tuple3(const float *v) { setValue(v); }
     MT_Tuple3(const double *v) { setValue(v); }
-    MT_Tuple3(MT_Scalar x, MT_Scalar y, MT_Scalar z) { setValue(x, y, z); }
+    MT_Tuple3(MT_Scalar xx, MT_Scalar yy, MT_Scalar zz) { setValue(xx, yy, zz); }
     
     MT_Scalar&       operator[](int i)       { return m_co[i]; }
     const MT_Scalar& operator[](int i) const { return m_co[i]; }
@@ -99,8 +99,8 @@ public:
         m_co[2] = MT_Scalar(v[2]);
     }
     
-    void setValue(MT_Scalar x, MT_Scalar y, MT_Scalar z) {
-        m_co[0] = x; m_co[1] = y; m_co[2] = z;
+    void setValue(MT_Scalar xx, MT_Scalar yy, MT_Scalar zz) {
+        m_co[0] = xx; m_co[1] = yy; m_co[2] = zz;
     }
     
 protected:

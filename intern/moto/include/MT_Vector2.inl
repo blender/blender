@@ -1,12 +1,12 @@
 #include "MT_Optimize.h"
 
-GEN_INLINE MT_Vector2& MT_Vector2::operator+=(const MT_Vector2& v) {
-    m_co[0] += v[0]; m_co[1] += v[1];
+GEN_INLINE MT_Vector2& MT_Vector2::operator+=(const MT_Vector2& vv) {
+    m_co[0] += vv[0]; m_co[1] += vv[1];
     return *this;
 }
 
-GEN_INLINE MT_Vector2& MT_Vector2::operator-=(const MT_Vector2& v) {
-    m_co[0] -= v[0]; m_co[1] -= v[1];
+GEN_INLINE MT_Vector2& MT_Vector2::operator-=(const MT_Vector2& vv) {
+    m_co[0] -= vv[0]; m_co[1] -= vv[1];
     return *this;
 }
  
@@ -43,8 +43,8 @@ GEN_INLINE MT_Vector2 operator/(const MT_Vector2& v, MT_Scalar s) {
     return v * (1.0 / s);
 }
 
-GEN_INLINE MT_Scalar MT_Vector2::dot(const MT_Vector2& v) const {
-    return m_co[0] * v[0] + m_co[1] * v[1];
+GEN_INLINE MT_Scalar MT_Vector2::dot(const MT_Vector2& vv) const {
+    return m_co[0] * vv[0] + m_co[1] * vv[1];
 }
 
 GEN_INLINE MT_Scalar MT_Vector2::length2() const { return dot(*this); }
@@ -59,18 +59,18 @@ GEN_INLINE bool MT_Vector2::fuzzyZero() const { return MT_fuzzyZero2(length2());
 GEN_INLINE void MT_Vector2::normalize() { *this /= length(); }
 GEN_INLINE MT_Vector2 MT_Vector2::normalized() const { return *this / length(); }
 
-GEN_INLINE void MT_Vector2::scale(MT_Scalar x, MT_Scalar y) {
-    m_co[0] *= x; m_co[1] *= y; 
+GEN_INLINE void MT_Vector2::scale(MT_Scalar xx, MT_Scalar yy) {
+    m_co[0] *= xx; m_co[1] *= yy; 
 }
 
-GEN_INLINE MT_Vector2 MT_Vector2::scaled(MT_Scalar x, MT_Scalar y) const {
-    return MT_Vector2(m_co[0] * x, m_co[1] * y);
+GEN_INLINE MT_Vector2 MT_Vector2::scaled(MT_Scalar xx, MT_Scalar yy) const {
+    return MT_Vector2(m_co[0] * xx, m_co[1] * yy);
 }
 
-GEN_INLINE MT_Scalar MT_Vector2::angle(const MT_Vector2& v) const {
-    MT_Scalar s = sqrt(length2() * v.length2());
+GEN_INLINE MT_Scalar MT_Vector2::angle(const MT_Vector2& vv) const {
+    MT_Scalar s = sqrt(length2() * vv.length2());
     MT_assert(!MT_fuzzyZero(s));
-    return acos(dot(v) / s);
+    return acos(dot(vv) / s);
 }
 
 

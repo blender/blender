@@ -61,8 +61,8 @@ public:
     MT_Quaternion(const MT_Vector4& v) : MT_Vector4(v) {}
     MT_Quaternion(const float v[4]) : MT_Vector4(v) {}
     MT_Quaternion(const double v[4]) : MT_Vector4(v) {}
-    MT_Quaternion(MT_Scalar x, MT_Scalar y, MT_Scalar z, MT_Scalar w) :
-        MT_Vector4(x, y, z, w) {}
+    MT_Quaternion(MT_Scalar xx, MT_Scalar yy, MT_Scalar zz, MT_Scalar ww) :
+        MT_Vector4(xx, yy, zz, ww) {}
     MT_Quaternion(const MT_Vector3& axis, MT_Scalar angle) { 
         setRotation(axis, angle); 
     }

@@ -54,12 +54,12 @@ GEN_INLINE MT_Vector4 MT_Vector4::absolute() const {
     return MT_Vector4(MT_abs(m_co[0]), MT_abs(m_co[1]), MT_abs(m_co[2]), MT_abs(m_co[3]));
 }
 
-GEN_INLINE void MT_Vector4::scale(MT_Scalar x, MT_Scalar y, MT_Scalar z, MT_Scalar w) {
-    m_co[0] *= x; m_co[1] *= y; m_co[2] *= z; m_co[3] *= w;
+GEN_INLINE void MT_Vector4::scale(MT_Scalar xx, MT_Scalar yy, MT_Scalar zz, MT_Scalar ww) {
+    m_co[0] *= xx; m_co[1] *= yy; m_co[2] *= zz; m_co[3] *= ww;
 }
 
-GEN_INLINE MT_Vector4 MT_Vector4::scaled(MT_Scalar x, MT_Scalar y, MT_Scalar z, MT_Scalar w) const {
-    return MT_Vector4(m_co[0] * x, m_co[1] * y, m_co[2] * z, m_co[3] * w);
+GEN_INLINE MT_Vector4 MT_Vector4::scaled(MT_Scalar xx, MT_Scalar yy, MT_Scalar zz, MT_Scalar ww) const {
+    return MT_Vector4(m_co[0] * xx, m_co[1] * yy, m_co[2] * zz, m_co[3] * ww);
 }
 
 GEN_INLINE bool MT_Vector4::fuzzyZero() const { return MT_fuzzyZero2(length2()); }
