@@ -1,24 +1,24 @@
-# Microsoft Developer Studio Project File - Name="build_install_all" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="Build_install_all" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** DO NOT EDIT **
 
 # TARGTYPE "Win32 (x86) Generic Project" 0x010a
 
-CFG=build_install_all - Win32 Debug
-!MESSAGE This is not a valid makefile. To build this project using NMAKE,
+CFG=Build_install_all - Win32 Debug
+!MESSAGE This is not a valid makefile. To Build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
-!MESSAGE NMAKE /f "build_install_all.mak".
+!MESSAGE NMAKE /f "Build_install_all.mak".
 !MESSAGE 
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "build_install_all.mak" CFG="build_install_all - Win32 Debug"
+!MESSAGE NMAKE /f "Build_install_all.mak" CFG="Build_install_all - Win32 Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "build_install_all - Win32 Release" (based on "Win32 (x86) Generic Project")
-!MESSAGE "build_install_all - Win32 Debug" (based on "Win32 (x86) Generic Project")
+!MESSAGE "Build_install_all - Win32 Release" (based on "Win32 (x86) Generic Project")
+!MESSAGE "Build_install_all - Win32 Debug" (based on "Win32 (x86) Generic Project")
 !MESSAGE 
 
 # Begin Project
@@ -27,7 +27,7 @@ CFG=build_install_all - Win32 Debug
 # PROP Scc_LocalPath ""
 MTL=midl.exe
 
-!IF  "$(CFG)" == "build_install_all - Win32 Release"
+!IF  "$(CFG)" == "Build_install_all - Win32 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -40,7 +40,7 @@ MTL=midl.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 
-!ELSEIF  "$(CFG)" == "build_install_all - Win32 Debug"
+!ELSEIF  "$(CFG)" == "Build_install_all - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -62,7 +62,7 @@ PostBuild_Cmds=ECHO Freezing Blender Python code	..\..\python\freeze\freeze.bat
 
 # Begin Target
 
-# Name "build_install_all - Win32 Release"
-# Name "build_install_all - Win32 Debug"
+# Name "Build_install_all - Win32 Release"
+# Name "Build_install_all - Win32 Debug"
 # End Target
 # End Project
