@@ -172,5 +172,8 @@ void editmesh_deselect_by_material(int index);
 
 void editmesh_mark_seam(int clear);
 
+void edge_rotate_selected(void);
+void edge_rotate(struct EditEdge *eed);
+ 
 #endif
 

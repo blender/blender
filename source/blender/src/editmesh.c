@@ -6941,10 +6941,309 @@ void edge_flip(void)
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);
 }
-						
+
+void edge_rotate_selected(){
+	EditEdge *eed,*temp;
+	EditVert *ev;
+	EditVlak *evl;
+	short edgeCount = 0,faceCount=0;
+	
+    	undo_push_mesh("Rotate Edges");	
+	
+	/* Clear the f1 flag */
+	for(ev = G.editMesh->verts.first;ev;ev = ev->next)
+		ev->f1 &= ~1;
+
+	/*clear new flag for new edges*/
+	for(eed = G.editMesh->edges.first;eed;eed = eed->next){
+		eed->f &= ~2;
+		edgeCount++;	
+	}
+	eed = G.editMesh->edges.first;		
+	while(eed){
+		if(edgeCount-- < 0){
+			/* To prevent an infinite loop */
+			break;	
+		}
+		if(eed->f & 2){
+			/* Do not rotate newly created edges */
+			eed = eed->next;
+			continue;
+		}
+		if(eed->v1->f & 1 && eed->v2->f & 1){
+			temp = eed;
+			eed = eed->next;
+			edge_rotate(temp);	
+		} else
+			eed = eed->next;
+
+	}
+	/* clear all selections */
+	for(ev = G.editMesh->verts.first;ev;ev = ev->next)
+		ev->f &= ~1;
+	
+	/*set new selections*/
+	for(ev = G.editMesh->verts.first;ev;ev = ev->next){
+		if(ev->f1 & 1)
+			ev->f |= 1;
+	}
+		
+	/*clear new edge flags*/
+	for(eed = G.editMesh->edges.first; eed; eed = eed->next)
+		eed->f &= ~2;
+		
+	force_draw_all();
+	screen_swapbuffers();
+	return;
+}
+
+void edge_rotate(EditEdge *eed){
+	
+	EditMesh *em = G.editMesh;
+	EditVlak *face[2], *evl, *newFace[2];
+	EditVert *faces[2][4],*v1,*v2,*v3,*v4,*vtemp;
+	short facecount=0, p1,p2,p3,p4,fac1=4,fac2=4,fac3=4,fac4=4,i,j;
+
+	/* check to make sure that the edge is only part of 2 faces */
+	for(evl = em->faces.first;evl;evl = evl->next){
+		if((evl->e1 == eed || evl->e2 == eed) || (evl->e3 == eed || evl->e4 == eed)){
+			if(facecount == 2){
+				scrarea_do_windraw(curarea);
+				screen_swapbuffers();
+				return;
+			}
+			if(facecount < 2)
+				face[facecount] = evl;
+			facecount++;
+		}
+	}
+
+	
+	if(facecount < 2){
+		return;
+	}
+	
+
+	/* how many edges does each face have */
+ 	if(face[0]->e4 == NULL)
+		fac1=3;
+	else
+		fac1=4;
+	if(face[1]->e4 == NULL)
+		fac2=3;
+	else
+		fac2=4;
+	
+		
+	/*store the face info in a handy array */			
+	faces[0][0] =  face[0]->v1;
+	faces[0][1] =  face[0]->v2;
+	faces[0][2] =  face[0]->v3;
+	if(face[0]->e4 != NULL)
+		faces[0][3] =  face[0]->v4;
+	else
+		faces[0][3] = NULL;
+			
+	faces[1][0] =  face[1]->v1;
+	faces[1][1] =  face[1]->v2;
+	faces[1][2] =  face[1]->v3;
+	if(face[1]->e4 != NULL)
+		faces[1][3] =  face[1]->v4;
+	else
+		faces[1][3] = NULL;
+	
+
+	/* we don't want to rotate edges between faces that share more than one edge */
+	
+	j=0;
+	if(face[0]->e1 == face[1]->e1 ||
+	   face[0]->e1 == face[1]->e2 ||
+	   face[0]->e1 == face[1]->e3 ||
+	   ((face[1]->e4) && face[0]->e1 == face[1]->e4) )
+	   j++;
+	   
+	if(face[0]->e2 == face[1]->e1 ||
+	   face[0]->e2 == face[1]->e2 ||
+	   face[0]->e2 == face[1]->e3 ||
+	   ((face[1]->e4) && face[0]->e2 == face[1]->e4) )
+	   j++;
+	   
+	if(face[0]->e3 == face[1]->e1 ||
+	   face[0]->e3 == face[1]->e2 ||
+	   face[0]->e3 == face[1]->e3 ||
+	   ((face[1]->e4) && face[0]->e3 == face[1]->e4) )
+	   j++;	   
+
+	if(face[0]->e4){
+		if(face[0]->e4 == face[1]->e1 ||
+		   face[0]->e4 == face[1]->e2 ||
+		   face[0]->e4 == face[1]->e3 ||
+		   ((face[1]->e4) && face[0]->e4 == face[1]->e4) )
+			   j++;	
+	 }	   	   
+	if(j > 1){
+		return;
+	}
+	
+	/* Coplaner Faces Only Please */
+	if(Inpf(face[0]->n,face[1]->n) <= 0.000001){	
+		return;
+	}
+	
+	/*get the edges verts */
+	v1 = eed->v1;
+	v2 = eed->v2;
+	v3 = eed->v1;
+	v4 = eed->v2;
+
+
+	/*figure out where the edges verts lie one the 2 faces */
+	for(i=0;i<4;i++){
+		if(v1 == faces[0][i])
+			p1 = i;
+		if(v2 == faces[0][i])
+			p2 = i;
+		if(v1 == faces[1][i])
+			p3 = i;
+		if(v2 == faces[1][i])
+			p4 = i;
+	}
+	
+	/*make sure the verts are in the correct order */
+	if((p1+1)%fac1 == p2){
+		vtemp = v2;
+		v2 = v1;
+		v1 = vtemp;
+		
+		i = p1;
+		p1 = p2;
+		p2 = i;
+	}
+	if((p3+1)%fac2 == p4){
+		vtemp = v4;
+		v4 = v3;
+		v3 = vtemp;
+		
+		i = p3;
+		p3 = p4;
+		p4 = i;	
+	}	
+
+					
+							
+	/* create the 2 new faces */   								
+	if(fac1 == 3 && fac2 == 3){
+		newFace[0] = addvlaklist(faces[0][(p1+1)%3],faces[0][(p1+2)%3],faces[1][(p3+1)%3],NULL,NULL);
+		newFace[1] = addvlaklist(faces[1][(p3+1)%3],faces[1][(p3+2)%3],faces[0][(p1+1)%3],NULL,NULL);
+	
+		newFace[0]->tf.col[0] = face[0]->tf.col[(p1+1)%3];
+		newFace[0]->tf.col[1] = face[0]->tf.col[(p1+2)%3];
+		newFace[0]->tf.col[2] = face[1]->tf.col[(p3+1)%3];
+		newFace[1]->tf.col[0] = face[1]->tf.col[(p3+1)%3];
+		newFace[1]->tf.col[1] = face[1]->tf.col[(p3+2)%3];
+		newFace[1]->tf.col[2] =	face[0]->tf.col[(p1+1)%3];
+	
+		UVCOPY(newFace[0]->tf.uv[0],face[0]->tf.uv[(p1+1)%3]);
+		UVCOPY(newFace[0]->tf.uv[1],face[0]->tf.uv[(p1+2)%3]);	
+		UVCOPY(newFace[0]->tf.uv[2],face[1]->tf.uv[(p3+1)%3]);
+		UVCOPY(newFace[1]->tf.uv[0],face[1]->tf.uv[(p3+1)%3]);
+		UVCOPY(newFace[1]->tf.uv[1],face[1]->tf.uv[(p3+2)%3]);
+		UVCOPY(newFace[1]->tf.uv[2],face[0]->tf.uv[(p1+1)%3]);
+	}
+	else if(fac1 == 4 && fac2 == 3){
+		newFace[0] = addvlaklist(faces[0][(p1+1)%4],faces[0][(p1+2)%4],faces[0][(p1+3)%4],faces[1][(p3+1)%3],NULL);
+		newFace[1] = addvlaklist(faces[1][(p3+1)%3],faces[1][(p3+2)%3],faces[0][(p1+1)%4],NULL,NULL);
+
+		newFace[0]->tf.col[0] = face[0]->tf.col[(p1+1)%4];
+		newFace[0]->tf.col[1] = face[0]->tf.col[(p1+2)%4];
+		newFace[0]->tf.col[2] = face[0]->tf.col[(p1+3)%4];
+		newFace[0]->tf.col[3] = face[1]->tf.col[(p3+1)%3];
+		newFace[1]->tf.col[0] = face[1]->tf.col[(p3+1)%3];
+		newFace[1]->tf.col[1] = face[1]->tf.col[(p3+2)%3];
+		newFace[1]->tf.col[2] =	face[0]->tf.col[(p1+1)%4];
+
+		UVCOPY(newFace[0]->tf.uv[0],face[0]->tf.uv[(p1+1)%4]);
+		UVCOPY(newFace[0]->tf.uv[1],face[0]->tf.uv[(p1+2)%4]);	
+		UVCOPY(newFace[0]->tf.uv[2],face[0]->tf.uv[(p1+3)%4]);		
+		UVCOPY(newFace[0]->tf.uv[3],face[1]->tf.uv[(p3+1)%3]);
+		UVCOPY(newFace[1]->tf.uv[0],face[1]->tf.uv[(p3+1)%3]);
+		UVCOPY(newFace[1]->tf.uv[1],face[1]->tf.uv[(p3+2)%3]);
+		UVCOPY(newFace[1]->tf.uv[2],face[0]->tf.uv[(p1+1)%4]);	
+	}
+
+	else if(fac1 == 3 && fac2 == 4){
+		newFace[0] = addvlaklist(faces[0][(p1+1)%3],faces[0][(p1+2)%3],faces[1][(p3+1)%4],NULL,NULL);
+		newFace[1] = addvlaklist(faces[1][(p3+1)%4],faces[1][(p3+2)%4],faces[1][(p3+3)%4],faces[0][(p1+1)%3],NULL);
+
+		newFace[0]->tf.col[0] = face[0]->tf.col[(p1+1)%3];
+		newFace[0]->tf.col[1] = face[0]->tf.col[(p1+2)%3];
+		newFace[0]->tf.col[2] = face[1]->tf.col[(p3+1)%4];
+		newFace[1]->tf.col[0] = face[1]->tf.col[(p3+1)%4];
+		newFace[1]->tf.col[1] = face[1]->tf.col[(p3+2)%4];
+		newFace[1]->tf.col[2] = face[1]->tf.col[(p3+3)%4];		
+		newFace[1]->tf.col[3] =	face[0]->tf.col[(p1+1)%3];
+
+		UVCOPY(newFace[0]->tf.uv[0],face[0]->tf.uv[(p1+1)%3]);
+		UVCOPY(newFace[0]->tf.uv[1],face[0]->tf.uv[(p1+2)%3]);	
+		UVCOPY(newFace[0]->tf.uv[2],face[1]->tf.uv[(p3+1)%4]);
+		UVCOPY(newFace[1]->tf.uv[0],face[1]->tf.uv[(p3+1)%4]);
+		UVCOPY(newFace[1]->tf.uv[1],face[1]->tf.uv[(p3+2)%4]);
+		UVCOPY(newFace[1]->tf.uv[2],face[1]->tf.uv[(p3+3)%4]);
+		UVCOPY(newFace[1]->tf.uv[3],face[0]->tf.uv[(p1+1)%3]);
+	
+	}
+	
+	else if(fac1 == 4 && fac2 == 4){
+		newFace[0] = addvlaklist(faces[0][(p1+1)%4],faces[0][(p1+2)%4],faces[0][(p1+3)%4],faces[1][(p3+1)%4],NULL);
+		newFace[1] = addvlaklist(faces[1][(p3+1)%4],faces[1][(p3+2)%4],faces[1][(p3+3)%4],faces[0][(p1+1)%4],NULL);
+
+		newFace[0]->tf.col[0] = face[0]->tf.col[(p1+1)%4];
+		newFace[0]->tf.col[1] = face[0]->tf.col[(p1+2)%4];
+		newFace[0]->tf.col[2] = face[0]->tf.col[(p1+3)%4];
+		newFace[0]->tf.col[3] = face[1]->tf.col[(p3+1)%4];
+		newFace[1]->tf.col[0] = face[1]->tf.col[(p3+1)%4];
+		newFace[1]->tf.col[1] = face[1]->tf.col[(p3+2)%4];
+		newFace[1]->tf.col[2] = face[1]->tf.col[(p3+3)%4];		
+		newFace[1]->tf.col[3] =	face[0]->tf.col[(p1+1)%4];
+								
+		UVCOPY(newFace[0]->tf.uv[0],face[0]->tf.uv[(p1+1)%4]);
+		UVCOPY(newFace[0]->tf.uv[1],face[0]->tf.uv[(p1+2)%4]);	
+		UVCOPY(newFace[0]->tf.uv[2],face[0]->tf.uv[(p1+3)%4]);		
+		UVCOPY(newFace[0]->tf.uv[3],face[1]->tf.uv[(p3+1)%4]);
+		UVCOPY(newFace[1]->tf.uv[0],face[1]->tf.uv[(p3+1)%4]);
+		UVCOPY(newFace[1]->tf.uv[1],face[1]->tf.uv[(p3+2)%4]);
+		UVCOPY(newFace[1]->tf.uv[2],face[1]->tf.uv[(p3+3)%4]);
+		UVCOPY(newFace[1]->tf.uv[3],face[0]->tf.uv[(p1+1)%4]);	
+	}		
+	else{
+		/*This should never happen*/
+		return;
+	}
+
+	if(fac1 == 3)
+		newFace[0]->e3->f |= 2;
+	else if(fac1 == 4)
+		newFace[0]->e4->f |= 2;
+	
+	
+	/* mark the f1's of the verts for re-selection */
+	faces[0][(p1+1)%fac1]->f1 |= 1;
+	faces[1][(p3+1)%fac2]->f1 |= 1;	
+	
+	/* get rid of the old edge and faces*/
+	remedge(eed);
+	free_editedge(eed);	
+	BLI_remlink(&em->faces, face[0]);
+	free_editvlak(face[0]);	
+	BLI_remlink(&em->faces, face[1]);
+	free_editvlak(face[1]);	
+	
+	return;																																																														
+}						
+															
 void beauty_fill(void)
 {
-	EditMesh *em = G.editMesh;
+    EditMesh *em = G.editMesh;
     EditVert *v1, *v2, *v3, *v4;
     EditEdge *eed, *nexted;
     EditEdge dia1, dia2;
@@ -9923,7 +10222,7 @@ void editmesh_mark_seam(int clear)
 void Edge_Menu() {
 	short ret;
 
-	ret= pupmenu("Edge Specials%t|Mark Seam %x1|Clear Seam %x2");
+	ret= pupmenu("Edge Specials%t|Mark Seam %x1|Clear Seam %x2|Rotate Edges %x3");
 
 	switch(ret)
 	{
@@ -9932,6 +10231,9 @@ void Edge_Menu() {
 		break;
 	case 2:
 		editmesh_mark_seam(1);
+		break;
+	case 3:
+		edge_rotate_selected();
 		break;
 	}
 }
