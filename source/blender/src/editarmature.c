@@ -1148,6 +1148,10 @@ void draw_armature(Object *ob)
 	if (!(ob->lay & G.vd->lay))
 		return;
 
+	if (arm->flag & ARM_DRAWXRAY) {
+		if(G.zbuf) glDisable(GL_DEPTH_TEST);
+	}
+
 	/* If we're in editmode, draw the Global edit data */
 	if(ob==G.obedit || (G.obedit && ob->data==G.obedit->data)) {
 		cpack (0x000000);
@@ -1231,6 +1235,10 @@ void draw_armature(Object *ob)
 		}
 
 		arm->flag &= ~ARM_POSEMODE; 
+	}
+
+	if (arm->flag & ARM_DRAWXRAY) {
+		if(G.zbuf) glEnable(GL_DEPTH_TEST);
 	}
 }
 
@@ -1729,6 +1737,7 @@ void armaturebuts(void)
 	uiDefButI(block, TOG|BIT|ARM_RESTPOSBIT,REDRAWVIEW3D, "Rest Pos", bx,by,97,20, &arm->flag, 0, 0, 0, 0, "Disable all animation for this object");
 	uiDefButI(block, TOG|BIT|ARM_DRAWAXESBIT,REDRAWVIEW3D, "Draw Axes", bx,by-46,97,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
 	uiDefButI(block, TOG|BIT|ARM_DRAWNAMESBIT,REDRAWVIEW3D, "Draw Names", bx,by-69,97,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
+	uiDefButI(block, TOG|BIT|ARM_DRAWXRAYBIT,REDRAWVIEW3D, "X-Ray", bx,by-92,97,20, &arm->flag, 0, 0, 0, 0, "Draw armature in front of shaded objects");
 
 	uiBlockSetCol(block, BUTGREY);
 	

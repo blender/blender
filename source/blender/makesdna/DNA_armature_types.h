@@ -75,7 +75,7 @@ typedef struct bArmature {
 
 enum {
 		ARM_RESTPOSBIT	=	0,
-		ARM_UNUSED1BIT,					/* Free for use */
+		ARM_DRAWXRAYBIT,
 		ARM_DRAWAXESBIT,
 		ARM_DRAWNAMESBIT,
 		ARM_POSEBIT,
@@ -84,7 +84,7 @@ enum {
 
 enum {
 		ARM_RESTPOS		=	0x00000001,
-		ARM_UNUSED1		=	0x00000002,	/*	Free for use */
+		ARM_DRAWXRAY	=	0x00000002,
 		ARM_DRAWAXES	=	0x00000004,
 		ARM_DRAWNAMES	=	0x00000008,
 		ARM_POSEMODE	=	0x00000010,
