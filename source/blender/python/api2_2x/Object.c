@@ -111,6 +111,7 @@ static PyObject *Object_getTracked (BPy_Object *self);
 static PyObject *Object_getType (BPy_Object *self);
 static PyObject *Object_getBoundBox (BPy_Object *self);
 static PyObject *Object_getAction (BPy_Object *self);
+static PyObject *Object_isSelected (BPy_Object *self);
 static PyObject *Object_makeDisplayList (BPy_Object *self);
 static PyObject *Object_link (BPy_Object *self, PyObject *args);
 static PyObject *Object_makeParent (BPy_Object *self, PyObject *args);
@@ -127,6 +128,7 @@ static PyObject *Object_setName (BPy_Object *self, PyObject *args);
 static PyObject *Object_setSize (BPy_Object *self, PyObject *args);
 static PyObject *Object_setTimeOffset (BPy_Object *self, PyObject *args);
 static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args);
+static PyObject *Object_Select (BPy_Object *self, PyObject *args);
 
 /*****************************************************************************/
 /* Python BPy_Object methods table:											   */
@@ -151,6 +153,8 @@ hierarchy (faster)"},
 	"Returns the object draw type"},
   {"getAction", (PyCFunction)Object_getAction, METH_NOARGS,
 	"Returns the active action for this object"},
+  {"isSelected", (PyCFunction)Object_isSelected, METH_NOARGS,
+	"Return a 1 or 0 depending on whether the object is selected"},  
   {"getEuler", (PyCFunction)Object_getEuler, METH_NOARGS,
 	"Returns the object's rotation as Euler rotation vector\n\
 (rotX, rotY, rotZ)"},
@@ -224,11 +228,14 @@ triple."},
   {"shareFrom", (PyCFunction)Object_shareFrom, METH_VARARGS,
 	"Link data of self with object specified in the argument. This\n\
 works only if self and the object specified are of the same type."},
+  {"select", (PyCFunction)Object_Select, METH_VARARGS,
+	"( 1 or 0 )  - Set the selected state of the object.\n\
+   1 is selected, 0 not selected "},
   {"setIpo", (PyCFunction)Object_setIpo, METH_VARARGS,
 	"(Blender Ipo) - Sets the object's ipo"},
   {"clearIpo", (PyCFunction)Object_clearIpo, METH_NOARGS,
 	"() - Unlink ipo from this object"},
-  {0}
+  {NULL, NULL, 0, NULL}
 };
 
 /*****************************************************************************/
@@ -753,6 +760,29 @@ static PyObject *Object_getAction (BPy_Object *self)
 		return Action_CreatePyObject (self->object->action);
 	}
 }
+
+
+static PyObject *Object_isSelected (BPy_Object *self)
+{
+	Base *base;
+  
+	base= FIRSTBASE;
+	while (base) {
+		if (base->object == self->object) {
+			if (base->flag & SELECT) {
+				Py_INCREF (Py_True);
+				return Py_True;
+			} else {
+				Py_INCREF (Py_False);
+				return Py_False;
+			}
+		}
+		base= base->next;
+	}
+	return ( EXPP_ReturnPyObjError (PyExc_RuntimeError,
+					 "Internal error: could not find objects selection state"));
+}
+
 
 static PyObject *Object_getDrawType (BPy_Object *self)
 {
@@ -1350,6 +1380,7 @@ static PyObject *Object_setMatrix (BPy_Object *self, PyObject *args)
 	return (Py_None);
 }
 
+
 static PyObject *Object_setIpo(BPy_Object *self, PyObject *args)
 {
 	PyObject *pyipo = 0;
@@ -1590,6 +1621,39 @@ static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args)
 	return (Py_None);
 }
 
+
+
+static PyObject *Object_Select (BPy_Object *self, PyObject *args)
+{
+	Base *base;
+	int sel;
+  
+	base= FIRSTBASE;
+	if (!PyArg_ParseTuple (args, "i", &sel))
+		return EXPP_ReturnPyObjError 
+			(PyExc_TypeError, "expected an integer, 0 or 1");
+    
+	while (base) {
+		if (base->object == self->object){
+			if (sel == 1){
+				base->flag |= SELECT;
+				self->object->flag= base->flag;
+			} else { 
+				base->flag &= ~SELECT;
+				self->object->flag= base->flag;
+			}
+			break;
+		}
+		base= base->next;
+	}
+  
+	countall();  
+  
+	Py_INCREF (Py_None);
+	return (Py_None);
+}
+
+
 /*****************************************************************************/
 /* Function:	Object_CreatePyObject										 */
 /* Description: This function will create a new BlenObject from an existing  */
@@ -1793,7 +1857,9 @@ static PyObject* Object_getAttr (BPy_Object *obj, char *name)
 		return (Py_BuildValue ("b", object->dtx));
 	if (StringEqual (name, "name"))
 		return (Py_BuildValue ("s", object->id.name+2));
-
+	if (StringEqual (name, "sel"))
+		return (Object_isSelected (obj));
+  
 	/* not an attribute, search the methods table */
 	return Py_FindMethod(BPy_Object_methods, (PyObject *)obj, name);
 }
@@ -2002,7 +2068,15 @@ static int Object_setAttr (BPy_Object *obj, char *name, PyObject *value)
 		else
 			return (0);
 	}
-
+  
+	if (StringEqual (name, "sel"))
+	{
+		if (Object_Select (obj, valtuple) != Py_None)
+			return (-1);
+		else
+			return (0);
+	}
+  
 	printf ("Unknown variable.\n");
 	return (0);
 }

@@ -152,6 +152,7 @@ class Object:
         of: 2 - axis, 4 - texspace, 8 - drawname, 16 - drawimage,
         32 - drawwire.
     @cvar name: The name of the object.
+    @cvar sel: The selection state of the object, 1/0.  
   """
 
   def buildParts():
@@ -238,7 +239,13 @@ class Object:
     @rtype: Ipo
     @return: the wrapped ipo or None.
     """
-
+  def isSelected():
+    """
+    Returns the objects selection state as a boolean value True or False.
+    @rtype: Boolean
+    @return: Selection state as True or False
+    """
+  
   def getLocation():
     """
     Returns the object's location (x, y, z).
@@ -476,7 +483,16 @@ class Object:
     @type object: Blender Object
     @param object: A Blender Object of the same type.
     """
-
+  
+  def select(boolean):
+    """
+    Sets the object's selection state.
+    @type boolean: Integer
+    @param boolean:
+        - 0  - unselected
+        - 1  - selected
+    """
+  
   def getBoundBox():
     """
     Returns the bounding box of this object.  This works for meshes (out of
