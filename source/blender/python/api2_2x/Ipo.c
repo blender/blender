@@ -39,9 +39,12 @@
 #include <BSE_editipo.h>
 #include <BLI_blenlib.h>
 
+#include <DNA_curve_types.h>
+
+#include "Ipocurve.h"
 #include "constant.h"
 #include "gen_utils.h"
-#include "modules.h"
+
 
 
 /* forward declarations */

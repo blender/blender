@@ -40,9 +40,11 @@
 #include <BLI_blenlib.h>
 #include <BSE_editipo.h>
 
+#include <DNA_ipo_types.h>
+
 #include "constant.h"
 #include "gen_utils.h"
-#include "modules.h"
+#include "BezTriple.h"
 
 /*****************************************************************************/
 /* Python API function prototypes for the IpoCurve module.                   */

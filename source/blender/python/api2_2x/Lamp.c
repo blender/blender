@@ -29,7 +29,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include <Python.h>
+
 #include <stdio.h>
 
 #include <BKE_main.h>
@@ -37,13 +37,15 @@
 #include <BKE_object.h>
 #include <BKE_library.h>
 #include <BLI_blenlib.h>
-#include <DNA_lamp_types.h>
+
+#include "Lamp.h"
+#include "Ipo.h"
 
 #include "constant.h"
 #include "rgbTuple.h"
 #include "gen_utils.h"
-#include "modules.h"
-#include "bpy_types.h"		/* for the BPy_Lamp declaration */
+
+
 
 /*****************************************************************************/
 /* Python BPy_Lamp defaults:                                                 */

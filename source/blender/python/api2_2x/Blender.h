@@ -32,4 +32,8 @@
 
 #ifndef EXPP_BLENDER_H
 #define EXPP_BLENDER_H
+
+extern PyObject *g_blenderdict;
+void M_Blender_Init( void );
+
 #endif				/* EXPP_BLENDER_H */

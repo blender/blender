@@ -36,15 +36,18 @@
 #include <BLI_arithb.h>
 #include <BLI_blenlib.h>
 #include <BKE_main.h>
+#include <BKE_displist.h>
 #include <BKE_global.h>
 #include <BKE_object.h>
 #include <BKE_library.h>
 #include <BKE_curve.h>
 #include <BKE_utildefines.h>
 #include <MEM_guardedalloc.h>	/* because we wil be mallocing memory */
+
 #include "CurNurb.h"
+#include "Material.h"
 #include "gen_utils.h"
-#include "modules.h"
+
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.      */
@@ -1156,7 +1159,8 @@ static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * args )
 
 static PyObject *Curve_update( BPy_Curve * self )
 {
-	update_displists( ( void * ) self->curve );
+/*	update_displists( ( void * ) self->curve ); */
+	freedisplist( &self->curve->disp );
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -1451,12 +1455,16 @@ struct Curve *Curve_FromPyObject( PyObject * py_obj )
 
 
 /*
+ * NOTE:  this func has been replaced by freedisplist() in the recent
+ *        display list refactoring.
+ *
  * walk across all objects looking for curves
  *  so we can update their ob's disp list
  */
 
 void update_displists( void *data )
 {
+#if 0
 	Base *base;
 	Object *ob;
 	unsigned int layer;
@@ -1492,4 +1500,6 @@ void update_displists( void *data )
 		else
 			base = base->next;
 	}
+#endif
 }
+

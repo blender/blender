@@ -57,14 +57,19 @@ extern PyTypeObject Material_Type;	/* The Material PyType Object */
 /* Module Blender.Material - public functions	 */
 /*****************************************************************************/
 PyObject *M_Material_Init( void );
+
+PyObject *Material_Init( void );
 PyObject *Material_CreatePyObject( Material * mat );
 Material *Material_FromPyObject( PyObject * pyobj );
 int Material_CheckPyObject( PyObject * pyobj );
 
-/* Some functions needed by NMesh.c */
+/* Some functions needed by NMesh, Curve and friends */
 PyObject *EXPP_PyList_fromMaterialList( Material ** matlist, int len,
 					int all );
 Material **EXPP_newMaterialList_fromPyList( PyObject * list );
 Material **EXPP_newMaterialList( int len );
+void EXPP_incr_mats_us( Material ** matlist, int len );
+int EXPP_synchronizeMaterialLists( Object * object );
+int EXPP_releaseMaterialList( Material ** matlist, int len );
 
 #endif				/* EXPP_MATERIAL_H */

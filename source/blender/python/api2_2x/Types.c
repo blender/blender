@@ -36,14 +36,17 @@ This module is a dictionary of all Blender Python types";
 
 struct PyMethodDef Null_methods[] = { {NULL, NULL, 0, NULL} };
 
+
+
+/* The internal types (lowercase first letter, like constant_Type) are only
+ * set when some object initializes them.  But unless we do it early, we get
+ * some easy and unpredictable (varies with platform, even distro) ways to
+ * crash Blender.  Some modules also need this early up, so let's generalize
+ * and init all our pytypes here. 
+ */
+
 void types_InitAll( void )
 {
-	/* The internal types (lowercase first letter, like constant_Type) are only
-	   * set when some object initializes them.  But unless we do it early, we get
-	   * some easy and unpredictable (varies with platform, even distro) ways to
-	   * crash Blender.  Some modules also need this early up, so let's generalize
-	   * and init all our pytypes here. */
-
 	Action_Type.ob_type = &PyType_Type;
 	Armature_Type.ob_type = &PyType_Type;
 	BezTriple_Type.ob_type = &PyType_Type;

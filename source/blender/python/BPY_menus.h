@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -61,8 +62,8 @@ typedef struct BPyMenu {
 	char *name;
 	char *filename;
 	char *tooltip;
-	short version; /* Blender version */
-	int dir; /* 0: default, 1: U.pythondir */
+	short version;		/* Blender version */
+	int dir;		/* 0: default, 1: U.pythondir */
 	struct BPySubMenu *submenus;
 	struct BPyMenu *next;
 } BPyMenu;
@@ -75,35 +76,35 @@ typedef struct BPyMenu {
  * BPY_menus.c; 
  * - add the necessary code to the header_***.c file in
  * source/blender/src/, like done in header_info.c for import/export;
-*/ 
+*/
 typedef enum {
-	PYMENU_WIZARDS, /* complex 'app' scripts */
-	PYMENU_UV, /* UV editing tools, to go in UV/Image editor space, 'UV' menu */
+	PYMENU_WIZARDS,		/* complex 'app' scripts */
+	PYMENU_UV,		/* UV editing tools, to go in UV/Image editor space, 'UV' menu */
 	PYMENU_OBJECT,
 	PYMENU_MISC,
 	PYMENU_MESH,
 	PYMENU_MATERIALS,
-	PYMENU_HELP, /* Main Help menu items - prob best to leave for 'official' ones */
-	PYMENU_HELPSYSTEM, /* Resources, troubleshooting, system tools */
-	PYMENU_HELPWEBSITES, /* Help -> Websites submenu */
+	PYMENU_HELP,		/* Main Help menu items - prob best to leave for 'official' ones */
+	PYMENU_HELPSYSTEM,	/* Resources, troubleshooting, system tools */
+	PYMENU_HELPWEBSITES,	/* Help -> Websites submenu */
 	PYMENU_IMPORT,
 	PYMENU_EXPORT,
 	PYMENU_ANIMATION,
-	PYMENU_ADD, /* creates new objects */
+	PYMENU_ADD,		/* creates new objects */
 	PYMENU_TOTAL
 } PYMENUHOOKS;
 
 /* BPyMenuTable holds all registered pymenus, as linked lists for each menu
  * where they can appear (see PYMENUHOOKS enum above).
 */
-extern BPyMenu *BPyMenuTable[]; /* defined in BPY_menus.c */
+extern BPyMenu *BPyMenuTable[];	/* defined in BPY_menus.c */
 
 /* public functions: */
-int BPyMenu_Init(int usedir);
-void BPyMenu_RemoveAllEntries(void);
-void BPyMenu_PrintAllEntries(void);
-char *BPyMenu_CreatePupmenuStr(BPyMenu *pym, short group);
-char *BPyMenu_group_itoa (short group);
-struct BPyMenu *BPyMenu_GetEntry (short group, short pos);
+int BPyMenu_Init( int usedir );
+void BPyMenu_RemoveAllEntries( void );
+void BPyMenu_PrintAllEntries( void );
+char *BPyMenu_CreatePupmenuStr( BPyMenu * pym, short group );
+char *BPyMenu_group_itoa( short group );
+struct BPyMenu *BPyMenu_GetEntry( short group, short pos );
 
-#endif /* BPY_MENUS_H */
+#endif				/* BPY_MENUS_H */

@@ -37,6 +37,7 @@
 #include <stdio.h>
 
 #include <DNA_ID.h>
+#include <DNA_curve_types.h>
 #include <BKE_library.h>	/* for all_local */
 #include "BKE_displist.h"	/* for set_displist_onlyzero */
 #include "BKE_font.h"		/* for text_to_curve */
@@ -45,7 +46,7 @@
 #include <MEM_guardedalloc.h>
 
 #include "gen_utils.h"
-#include "modules.h"
+
 
 /**
  * Global variables.

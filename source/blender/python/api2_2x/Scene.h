@@ -48,9 +48,12 @@ typedef struct {
 } BPy_Scene;
 //---------------------------Python BPy_Scene visible prototypes-----------
 // Python Scene_Type helper functions needed by Blender (the Init function) and Object modules. 
+
+
 PyObject *Scene_Init( void );
 PyObject *Scene_CreatePyObject( Scene * cam );
 Scene *Scene_FromPyObject( PyObject * pyobj );
 int Scene_CheckPyObject( PyObject * pyobj );
+Scene *GetSceneByName( char *name );
 
 #endif				/* EXPP_SCENE_H */

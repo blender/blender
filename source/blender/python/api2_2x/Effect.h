@@ -44,8 +44,20 @@
 #include <BKE_library.h>
 #include <BKE_effect.h>
 
+#include <DNA_effect_types.h>
+
 #include"gen_utils.h"
-#include "bpy_types.h"
+
+extern PyTypeObject Effect_Type;
+
+#define BPy_Effect_Check(v) ((v)->ob_type==&Effect_Type)
+
+/* Python BPy_Effect structure definition */
+typedef struct {
+	PyObject_HEAD		/* required py macro */
+	Effect * effect;
+} BPy_Effect;
+
 
 /*****************************************************************************/
 /* Python API function prototypes for the Effect module.                     */
@@ -64,6 +76,8 @@ PyObject *M_Effect_Get( PyObject * self, PyObject * args );
 /*****************************************************************************/
 /* Python Effect_Type callback function prototypes:                          */
 /*****************************************************************************/
+
+PyObject *Effect_Init( void );
 void EffectDeAlloc( BPy_Effect * msh );
 //int EffectPrint (BPy_Effect *msh, FILE *fp, int flags);
 int EffectSetAttr( BPy_Effect * msh, char *name, PyObject * v );

@@ -60,12 +60,12 @@
 #include <BKE_ipo.h>
 #include <blendef.h>
 
+
+
 #include "gen_utils.h"
 #include "modules.h"
 #include "../BPY_extern.h"	/* for bpy_gethome() */
 
-/* From Window.h, used here by Blender_Redraw */
-PyObject *M_Window_Redraw( PyObject * self, PyObject * args );
 
 /**********************************************************/
 /* Python API function prototypes for the Blender module.	*/

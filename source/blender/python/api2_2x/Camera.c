@@ -37,12 +37,12 @@
 #include <BLI_blenlib.h>
 
 #include <Python.h>
-#include <DNA_camera_types.h>
+
 #include "constant.h"
 #include "gen_utils.h"
-#include "modules.h"
 
 #include "Camera.h"
+#include "Ipo.h"
 
 
 /*****************************************************************************/

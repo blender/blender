@@ -44,7 +44,20 @@
 #include <BKE_library.h>
 #include <DNA_effect_types.h>
 
+#include"Effect.h"
 #include "gen_utils.h"
+
+
+extern PyTypeObject Wave_Type;
+
+#define BPy_Wave_Check(v) ((v)->ob_type==&Wave_Type)
+
+/* Python BPy_Wave structure definition */
+typedef struct {
+	PyObject_HEAD		/* required py macro */
+	Effect * wave;
+} BPy_Wave;
+
 
 /*****************************************************************************/
 /* Python API function prototypes for the Wave module.                       */
@@ -53,7 +66,7 @@ PyObject *M_Wave_New( PyObject * self, PyObject * args );
 PyObject *M_Wave_Get( PyObject * self, PyObject * args );
 
 
-#include"Effect.h"
+
 /*****************************************************************************/
 /* Python BPy_Wave methods declarations:                                    */
 /*****************************************************************************/

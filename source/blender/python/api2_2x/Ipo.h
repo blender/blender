@@ -44,5 +44,19 @@ typedef struct {
 	Ipo * ipo;
 } BPy_Ipo;
 
+extern PyTypeObject Ipo_Type;
+
+#define BPy_Ipo_Check(v)  ((v)->ob_type == &Ipo_Type)	/* for type checking */
+
+
+/* 
+ *   prototypes
+ */
+
+PyObject *Ipo_Init( void );
+PyObject *Ipo_CreatePyObject( struct Ipo *ipo );
+Ipo *Ipo_FromPyObject( PyObject * py_obj );
+int Ipo_CheckPyObject( PyObject * py_obj );
+
 
 #endif				/* EXPP_IPO_H */

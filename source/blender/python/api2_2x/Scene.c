@@ -46,7 +46,6 @@
 #include <mydevice.h>		/* for #define REDRAW */
 
 #include "Object.h"
-#include "bpy_types.h"
 #include "constant.h"
 #include "gen_utils.h"
 #include "sceneRender.h"

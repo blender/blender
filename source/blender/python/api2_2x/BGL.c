@@ -37,6 +37,7 @@
 
 #include "BGL.h"
 
+
 static int type_size(int type)
 {
   switch (type) {

@@ -39,8 +39,10 @@
 #include <BKE_main.h>
 
 #include "EXPP_interface.h"
+#include "Blender.h"
+#include "Registry.h"
 #include "gen_utils.h"
-#include "modules.h"
+
 
 void initBlenderApi2_2x( void )
 {

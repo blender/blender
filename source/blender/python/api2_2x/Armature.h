@@ -42,6 +42,11 @@ typedef struct {
 } BPy_Armature;
 
 //--------------------visible prototypes------------------------------
+
 PyObject *Armature_Init( void );
+PyObject *Armature_CreatePyObject( bArmature * armature );
+bArmature *Armature_FromPyObject( PyObject * py_obj );
+int Armature_CheckPyObject( PyObject * py_obj );
+
 
 #endif				/* EXPP_ARMATURE_H */

@@ -33,6 +33,28 @@
 #ifndef EXPP_CURVE_H
 #define EXPP_CURVE_H
 
-#include "bpy_types.h"
+#include <DNA_curve_types.h>
+
+extern PyTypeObject Curve_Type;
+
+#define BPy_Curve_Check(v) ((v)->ob_type==&Curve_Type)
+
+/* Python BPy_Curve structure definition */
+typedef struct {
+	PyObject_HEAD		/* required py macro */
+	Curve * curve;
+	/* pointer for iterator:  does not point to owned memory */
+	Nurb *iter_pointer;
+} BPy_Curve;
+
+
+/*
+ *  protoypes
+ */
+
+PyObject *Curve_Init( void );
+PyObject *Curve_CreatePyObject( struct Curve * curve );
+int Curve_CheckPyObject( PyObject * py_obj );
+struct Curve *Curve_FromPyObject( PyObject * py_obj );
 
 #endif				/* EXPP_CURVE_H */

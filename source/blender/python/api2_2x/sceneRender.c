@@ -48,7 +48,7 @@
 #include "blendef.h"
 #include "Scene.h"
 #include "gen_utils.h"
-#include "modules.h"
+
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

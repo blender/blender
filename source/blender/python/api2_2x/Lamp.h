@@ -33,4 +33,31 @@
 #ifndef EXPP_LAMP_H
 #define EXPP_LAMP_H
 
+#include <Python.h>
+#include <DNA_lamp_types.h>
+#include "rgbTuple.h"
+
+extern PyTypeObject Lamp_Type;
+
+#define BPy_Lamp_Check(v) \
+    ((v)->ob_type == &Lamp_Type)	/* for type checking */
+
+/* Python BPy_Lamp structure definition */
+typedef struct {
+	PyObject_HEAD		/* required py macro */
+	Lamp * lamp;
+	BPy_rgbTuple *color;
+} BPy_Lamp;
+
+
+/*
+ *   prototypes
+ */
+
+PyObject *Lamp_Init( void );
+PyObject *Lamp_CreatePyObject( struct Lamp *lamp );
+Lamp *Lamp_FromPyObject( PyObject * pyobj );
+int Lamp_CheckPyObject( PyObject * pyobj );
+Lamp *GetLampByName( char *name );
+
 #endif				/* EXPP_LAMP_H */

@@ -39,13 +39,12 @@
 
 #include "constant.h"
 #include "gen_utils.h"
-#include "bpy_types.h"
-#include "modules.h"
 
 #include "MTex.h"
 #include "Texture.h"
 
 #include "Material.h"
+#include "Ipo.h"
 
 /*****************************************************************************/
 /* Python BPy_Material defaults: */

@@ -32,6 +32,35 @@
 #ifndef EXPP_NURB_H
 #define EXPP_NURB_H
 
+#include <DNA_curve_types.h>
+
+extern PyTypeObject CurNurb_Type;
+
+#define BPy_CurNurb_Check(v)  ((v)->ob_type == &CurNurb_Type)	/* for type checking */
+
+/* Python BPy_CurNurb structure definition */
+typedef struct {
+	PyObject_HEAD		/* required py macro */
+	Nurb * nurb;		/* pointer to Blender data */
+
+	/* iterator stuff */
+	/* internal ptrs to point data.  do not free */
+	BPoint *bp;
+	BezTriple *bezt;
+	int atEnd;		/* iter exhausted flag  */
+	int nextPoint;
+
+} BPy_CurNurb;
+
+
+/*
+ *  prototypes
+ */
+
+PyObject *CurNurb_Init( void );
+PyObject *CurNurb_CreatePyObject( Nurb * bzt );
+int CurNurb_CheckPyObject( PyObject * pyobj );
+Nurb *CurNurb_FromPyObject( PyObject * pyobj );
 
 PyObject *CurNurb_getPoint( BPy_CurNurb * self, int index );
 PyObject *CurNurb_pointAtIndex( Nurb * nurb, int index );

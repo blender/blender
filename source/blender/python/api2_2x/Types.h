@@ -54,4 +54,7 @@ extern PyTypeObject property_Type;
 extern PyTypeObject buffer_Type, constant_Type, euler_Type;
 extern PyTypeObject matrix_Type, quaternion_Type, rgbTuple_Type, vector_Type;
 
+PyObject *Types_Init( void );
+void types_InitAll( void );
+
 #endif				/* EXPP_TYPES_H */

@@ -40,6 +40,7 @@
 #include <BLI_blenlib.h>
 #include <DNA_action_types.h>
 #include <DNA_armature_types.h>
+#include <DNA_ipo_types.h>
 #include <BIF_poseobject.h>
 #include <BKE_action.h>
 #include <BSE_editaction.h>
@@ -47,7 +48,6 @@
 #include <MEM_guardedalloc.h>
 #include "constant.h"
 #include "gen_utils.h"
-#include "modules.h"
 #include "NLA.h"
 #include "quat.h"
 #include "matrix.h"

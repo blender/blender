@@ -45,7 +45,18 @@
 #include <DNA_effect_types.h>
 
 #include "gen_utils.h"
-#include "bpy_types.h"
+
+extern PyTypeObject Particle_Type;
+
+#define BPy_Particle_Check(v) ((v)->ob_type==&Particle_Type)
+
+/* Python BPy_Particle structure definition */
+typedef struct {
+	PyObject_HEAD		/* required py macro */
+	Effect * particle;
+} BPy_Particle;
+
+
 
 /*****************************************************************************/
 /* Python API function prototypes for the Particle module.                   */

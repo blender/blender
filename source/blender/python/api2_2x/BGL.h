@@ -66,7 +66,6 @@
 #include "Python.h"
 
 #include "gen_utils.h"
-#include "modules.h"
 
 /*@ Buffer Object */
 /*@ For Python access to OpenGL functions requiring a pointer. */

@@ -43,37 +43,9 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_key_types.h"
-#include "DNA_listBase.h"
-#include "DNA_object_types.h"
-#include "DNA_material_types.h"
-#include "DNA_armature_types.h"
-
-#include "BDR_editface.h"	/* make_tfaces */
-#include "BIF_editdeform.h"
-#include "BIF_editkey.h"	/* insert_meshkey */
-#include "BIF_editmesh.h"	/* vertexnormals_mesh() */
-#include "BIF_space.h"
-#include "BKE_mesh.h"
-#include "BKE_main.h"
-#include "BKE_global.h"
-#include "BKE_library.h"
-#include "BKE_displist.h"
-#include "BKE_screen.h"
-#include "BKE_object.h"
-#include "BLI_blenlib.h"
-#include "BLI_arithb.h"
-#include "MEM_guardedalloc.h"
-
-#include "blendef.h"
-#include "mydevice.h"
 
 #include "Material.h"
 #include "Image.h"
-#include "vector.h"
-#include "constant.h"
-#include "gen_utils.h"
-#include "modules.h"
 
 /* EXPP PyType Objects */
 PyTypeObject NMesh_Type;
@@ -81,19 +53,18 @@ PyTypeObject NMFace_Type;
 PyTypeObject NMVert_Type;
 PyTypeObject NMCol_Type;
 
-extern PyTypeObject Image_Type;
 
 struct BPy_Object;
 
 /* These are from blender/src/editdeform.c, should be declared elsewhere,
  * maybe in BIF_editdeform.h, after proper testing of vgrouping methods XXX */
+
 void create_dverts( Mesh * me );
 void add_vert_defnr( Object * ob, int def_nr, int vertnum, float weight,
 		     int assignmode );
 void remove_vert_def_nr( Object * ob, int def_nr, int vertnum );
 
-/* Globals */
-static PyObject *g_nmeshmodule = NULL;
+
 
 /* Type checking for EXPP PyTypes */
 #define BPy_NMesh_Check(v)       ((v)->ob_type == &NMesh_Type)
@@ -150,8 +121,13 @@ typedef struct {
 
 /* PROTOS */
 extern void test_object_materials( ID * id );	/* declared in BKE_material.h */
-static int unlink_existingMeshData( Mesh * mesh );
-static int convert_NMeshToMesh( Mesh * mesh, BPy_NMesh * nmesh );
+
+PyObject *NMesh_Init( void );
+PyObject *NMesh_CreatePyObject( Mesh * me, Object * ob );
+Mesh *Mesh_FromPyObject( PyObject * pyobj, Object * ob );
+int NMesh_CheckPyObject( PyObject * pyobj );
+
+
 void mesh_update( Mesh * mesh );
 PyObject *new_NMesh( Mesh * oldmesh );
 Mesh *Mesh_fromNMesh( BPy_NMesh * nmesh );
@@ -159,14 +135,6 @@ PyObject *NMesh_assignMaterials_toObject( BPy_NMesh * nmesh, Object * ob );
 Material **nmesh_updateMaterials( BPy_NMesh * nmesh );
 Material **newMaterialList_fromPyList( PyObject * list );
 void mesh_update( Mesh * mesh );
-static PyObject *NMesh_addVertGroup( PyObject * self, PyObject * args );
-static PyObject *NMesh_removeVertGroup( PyObject * self, PyObject * args );
-static PyObject *NMesh_assignVertsToGroup( PyObject * self, PyObject * args );
-static PyObject *NMesh_removeVertsFromGroup( PyObject * self,
-					     PyObject * args );
-static PyObject *NMesh_getVertsFromGroup( PyObject * self, PyObject * args );
-static PyObject *NMesh_renameVertGroup( PyObject * self, PyObject * args );
-static PyObject *NMesh_getVertGroupNames( PyObject * self, PyObject * args );
 
 
 #endif				/* EXPP_NMESH_H */

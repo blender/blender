@@ -45,4 +45,12 @@ typedef struct {
 } C_IpoCurve;
 
 
+
+PyObject *IpoCurve_Init( void );
+PyObject *IpoCurve_CreatePyObject( IpoCurve * ipo );
+int IpoCurve_CheckPyObject( PyObject * pyobj );
+IpoCurve *IpoCurve_FromPyObject( PyObject * pyobj );
+
+
+
 #endif				/* EXPP_IPOCURVE_H */

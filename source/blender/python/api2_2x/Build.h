@@ -34,14 +34,20 @@
 #define EXPP_BUILD_H
 
 #include <Python.h>
-
-
-
 #include <DNA_effect_types.h>
-
-
-#include "bpy_types.h"
 #include "Effect.h"
+
+
+extern PyTypeObject Build_Type;
+
+#define BPy_Build_Check(v) ((v)->ob_type==&Build_Type)
+
+/* Python BPy_Build structure definition */
+typedef struct {
+	PyObject_HEAD		/* required py macro */
+	Effect * build;
+} BPy_Build;
+
 
 /*****************************************************************************/
 /* Python API function prototypes for the Build module.                      */

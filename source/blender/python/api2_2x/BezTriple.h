@@ -45,5 +45,12 @@ typedef struct {
 	BezTriple * beztriple;
 } C_BezTriple;
 
+/*
+ *    prototypes
+ */
+
+PyObject *BezTriple_CreatePyObject( BezTriple * bzt );
+int BezTriple_CheckPyObject( PyObject * pyobj );
+BezTriple *BezTriple_FromPyObject( PyObject * pyobj );
 
 #endif				/* EXPP_BEZTRIPLE_H */

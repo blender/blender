@@ -39,11 +39,17 @@
 #include "logic.h"
 #include <blendef.h>
 #include <DNA_scene_types.h>
+#include <DNA_mesh_types.h>
+#include <DNA_curve_types.h>
 #include <DNA_property_types.h>
 #include <BSE_edit.h>
 #include <BKE_property.h>
 #include <BKE_mball.h>
 #include <BIF_editview.h>
+
+#include "Ipo.h"
+#include "Lattice.h"
+#include "modules.h"
 
 
 /*****************************************************************************/

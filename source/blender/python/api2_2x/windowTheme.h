@@ -54,4 +54,6 @@ typedef struct {
 
 } BPy_Theme;
 
+PyObject *Theme_Init( void );
+
 #endif				/* EXPP_WINDOWTHEME_H */

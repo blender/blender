@@ -59,9 +59,7 @@
 #include <DNA_view3d_types.h>
 #include <DNA_action_types.h>
 
-#include "bpy_types.h"
 #include "gen_utils.h"
-#include "modules.h"
 #include "vector.h"
 #include "matrix.h"
 #include "euler.h"
@@ -79,6 +77,13 @@ extern PyTypeObject Object_Type;
 typedef struct {
 	PyObject_HEAD struct Object *object;
 } BPy_Object;
+
+
+PyObject *Object_Init( void );
+PyObject *Object_CreatePyObject( struct Object *obj );
+Object *Object_FromPyObject( PyObject * py_obj );
+int Object_CheckPyObject( PyObject * py_obj );
+Object *GetObjectByName( char *name );
 
 int EXPP_add_obdata( struct Object *object );
 

@@ -35,4 +35,7 @@
 #ifndef EXPP_WINDOW_H
 #define EXPP_WINDOW_H
 
+PyObject *Window_Init( void );
+PyObject *M_Window_Redraw( PyObject * self, PyObject * args );
+
 #endif				/* EXPP_WINDOW_H */

@@ -44,7 +44,6 @@
 #include <BLI_arithb.h>
 #include "constant.h"
 #include "gen_utils.h"
-#include "modules.h"
 #include "Types.h"
 
 //---------------- Python API function prototypes for the Armature module---

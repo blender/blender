@@ -33,4 +33,6 @@
 #ifndef EXPP_sys_H
 #define EXPP_sys_H
 
+PyObject *sys_Init( void );
+
 #endif				/* EXPP_sys_H */

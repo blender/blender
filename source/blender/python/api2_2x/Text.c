@@ -42,8 +42,8 @@
 #include <BLI_blenlib.h>
 #include <DNA_text_types.h>
 
+#include "Text.h"
 #include "gen_utils.h"
-#include "modules.h"
 #include "../BPY_extern.h"
 
 #define EXPP_TEXT_MODE_FOLLOW TXT_FOLLOW

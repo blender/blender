@@ -32,4 +32,10 @@
 
 #ifndef EXPP_TEXT_H
 #define EXPP_TEXT_H
+
+#include <DNA_text_types.h>
+
+PyObject *Text_Init( void );
+PyObject *Text_CreatePyObject( Text * txt );
+
 #endif				/* EXPP_TEXT_H */

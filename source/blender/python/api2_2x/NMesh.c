@@ -33,6 +33,39 @@
 
 #include "NMesh.h"
 
+#include "DNA_key_types.h"
+#include "DNA_listBase.h"
+#include "DNA_object_types.h"
+#include "DNA_material_types.h"
+#include "DNA_armature_types.h"
+#include "DNA_scene_types.h"
+
+#include "BDR_editface.h"	/* make_tfaces */
+#include "BIF_editdeform.h"
+#include "BIF_editkey.h"	/* insert_meshkey */
+#include "BIF_editmesh.h"	/* vertexnormals_mesh() : still needed???*/
+#include "BIF_meshtools.h"   /* current loc of vertexnormals_mesh() */
+#include "BIF_space.h"
+#include "BKE_mesh.h"
+#include "BKE_main.h"
+#include "BKE_global.h"
+#include "BKE_library.h"
+#include "BKE_displist.h"
+#include "BKE_screen.h"
+#include "BKE_object.h"
+#include "BLI_blenlib.h"
+#include "BLI_arithb.h"
+#include "MEM_guardedalloc.h"
+
+#include "blendef.h"
+#include "mydevice.h"
+
+#include "Object.h"
+#include "vector.h"
+#include "constant.h"
+#include "gen_utils.h"
+
+
 /* EXPP Mesh defines */
 
 #define EXPP_NMESH_MODE_NOPUNOFLIP	ME_NOPUNOFLIP
@@ -48,6 +81,21 @@
 #define NMESH_SUBDIV					1
 #define NMESH_SUBDIV_MIN			1
 #define NMESH_SUBDIV_MAX			6
+
+/* Globals */
+static PyObject *g_nmeshmodule = NULL;
+
+static int unlink_existingMeshData( Mesh * mesh );
+static int convert_NMeshToMesh( Mesh * mesh, BPy_NMesh * nmesh );
+static PyObject *NMesh_addVertGroup( PyObject * self, PyObject * args );
+static PyObject *NMesh_removeVertGroup( PyObject * self, PyObject * args );
+static PyObject *NMesh_assignVertsToGroup( PyObject * self, PyObject * args );
+static PyObject *NMesh_removeVertsFromGroup( PyObject * self,
+					     PyObject * args );
+static PyObject *NMesh_getVertsFromGroup( PyObject * self, PyObject * args );
+static PyObject *NMesh_renameVertGroup( PyObject * self, PyObject * args );
+static PyObject *NMesh_getVertGroupNames( PyObject * self, PyObject * args );
+
 
 static char NMesh_addVertGroup_doc[] =
 	"add a named and empty vertex(deform) Group to a mesh that has been linked\n\

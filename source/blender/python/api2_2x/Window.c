@@ -52,11 +52,12 @@
 #include <DNA_view3d_types.h>
 #include <DNA_screen_types.h>
 #include <DNA_space_types.h>
+#include <DNA_scene_types.h>
 #include <DNA_text_types.h>
 #include <DNA_vec_types.h>	/* for rcti struct */
 
+#include "windowTheme.h"
 #include "gen_utils.h"
-#include "modules.h"
 #include "matrix.h"
 #include "vector.h"
 #include "constant.h"

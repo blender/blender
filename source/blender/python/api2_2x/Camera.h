@@ -33,7 +33,20 @@
 #ifndef EXPP_CAMERA_H
 #define EXPP_CAMERA_H
 
-#include "bpy_types.h"		/* where the BPy_Camera struct is declared */
+#include <Python.h>
+#include <DNA_camera_types.h>
+
+extern PyTypeObject Camera_Type;
+
+#define BPy_Camera_Check(v) \
+    ((v)->ob_type == &Camera_Type)	/* for type checking */
+
+/* Python BPy_Camera structure definition */
+typedef struct {
+	PyObject_HEAD		/* required py macro */
+	Camera * camera;
+
+} BPy_Camera;
 
 /*****************************************************************************/
 /* Python BPy_Camera defaults:                                               */
@@ -60,6 +73,9 @@
 #define EXPP_CAM_DRAWSIZE_MIN     0.1
 #define EXPP_CAM_DRAWSIZE_MAX    10.0
 
-
+PyObject *Camera_Init( void );
+PyObject *Camera_CreatePyObject( Camera * cam );
+int Camera_CheckPyObject( PyObject * pyobj );
+Camera *Camera_FromPyObject( PyObject * pyobj );
 
 #endif				/* EXPP_CAMERA_H */

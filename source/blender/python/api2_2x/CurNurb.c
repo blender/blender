@@ -33,10 +33,10 @@
 #include "DNA_curve_types.h"
 #include "BKE_curve.h"
 #include "MEM_guardedalloc.h"
-#include "bpy_types.h"
-#include "modules.h"
+
 #include "gen_utils.h"
 #include "CurNurb.h"
+#include "BezTriple.h"
 
 
 /*-------------------------------------------------------------
@@ -675,7 +675,7 @@ PyObject *CurNurb_Init( void )
 {
 	PyObject *submodule;
 
-	Curve_Type.ob_type = &PyType_Type;
+	CurNurb_Type.ob_type = &PyType_Type;
 
 	submodule =
 		Py_InitModule3( "Blender.CurNurb", M_CurNurb_methods,

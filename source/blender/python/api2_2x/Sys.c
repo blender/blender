@@ -36,7 +36,7 @@
 #include <Python.h>
 #include <sys/stat.h>
 #include "gen_utils.h"
-#include "modules.h"
+
 
 /*****************************************************************************/
 /* Python API function prototypes for the sys module.                        */

@@ -35,6 +35,8 @@
 #include <BKE_action.h>
 #include <BKE_global.h>
 #include <BKE_main.h>
+
+#include "Ipo.h"
 #include "Types.h"
 
 /*****************************************************************************/

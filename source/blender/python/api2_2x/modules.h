@@ -25,7 +25,8 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Michel Selten, Willian P. Germano, Nathan Letwory
+ * Contributor(s): Michel Selten, Willian P. Germano, Nathan Letwory,
+ *                 Stephen Swaney
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -33,179 +34,61 @@
 #ifndef EXPP_modules_h
 #define EXPP_modules_h
 
-#include <Python.h>
+/************************************************************
+Certain bpy module files ( BPY_interface.c, Blender.c, and Object.c )
+need to know about almost every other module.  This file is a
+convenient way to include almost all the necessary declarations.
 
-#include <DNA_scene_types.h>
-#include <DNA_object_types.h>
-#include <DNA_mesh_types.h>
-#include <DNA_camera_types.h>
-#include <DNA_lamp_types.h>
-#include <DNA_lattice_types.h>
-#include <DNA_curve_types.h>
-#include <DNA_armature_types.h>
-#include <DNA_ipo_types.h>
-#include <DNA_effect_types.h>
-#include <DNA_meta_types.h>
-#include <DNA_image_types.h>
-#include <DNA_texture_types.h>
-#include <DNA_text_types.h>
-#include <DNA_world_types.h>
-#include <DNA_key_types.h>
-#include <DNA_sequence_types.h>
-#include <DNA_action_types.h>
-#include <DNA_constraint_types.h>
+The #includes commented out below currently do not exist.
+Their *_Init() method declarations are hacked in down below.
+************************************************************/
+
+
+#include "Armature.h"
+/* #include "BGL.h" */
+#include "Blender.h"
+#include "Camera.h"
+#include "Curve.h"
+#include "CurNurb.h"
+#include "Draw.h"
+#include "Effect.h"
+#include "Ipo.h"
+#include "Ipocurve.h"
+#include "Lamp.h"
+#include "Lattice.h"
+/* #include "Library.h" */
+#include "Material.h"
+#include "Mathutils.h"
+#include "Metaball.h"
+#include "NLA.h"
+#include "NMesh.h"
+/* #include "Noise.h" */
+#include "Object.h"
+#include "Registry.h"
+#include "Scene.h"
+#include "Sound.h"
+#include "Sys.h"
+#include "Text.h"
+#include "Texture.h"
+#include "Types.h"
+#include "Window.h"
+#include "World.h"
 
 /*****************************************************************************/
 /* Global variables                                                          */
 /*****************************************************************************/
-extern PyObject *g_blenderdict;
 
+/****************************************************************************
+Module Init functions for modules without a .h file.
+BGL is a special case.  It still has data declarations in the .h file
+and cannot be #included until it is cleaned up.
+****************************************************************************/
 
-/*****************************************************************************/
-/* Module Init functions and Data Object helper functions (used by the       */
-/* Object module to work with its .data field for the various Data objs      */
-/*****************************************************************************/
-void M_Blender_Init( void );
+PyObject *BGL_Init( void );
 
-void types_InitAll( void );	/* in Types.c */
-
-/* sys */
-PyObject *sys_Init( void );
-
-/* Registry */
-PyObject *Registry_Init( void );
-
-/* Object itself */
-PyObject *Object_Init( void );
-PyObject *Object_CreatePyObject( struct Object *obj );
-Object *Object_FromPyObject( PyObject * py_obj );
-int Object_CheckPyObject( PyObject * py_obj );
-Object *GetObjectByName( char *name );
-
-/* Scene */
-PyObject *Scene_Init( void );
-PyObject *Scene_CreatePyObject( struct Scene *sce );
-Scene *Scene_FromPyObject( PyObject * pyobj );
-int Scene_CheckPyObject( PyObject * pyobj );
-Scene *GetSceneByName( char *name );
-
-/* Types */
-PyObject *Types_Init( void );
-
-/* NMesh Data */
-PyObject *NMesh_Init( void );
-PyObject *NMesh_CreatePyObject( Mesh * me, Object * ob );
-Mesh *Mesh_FromPyObject( PyObject * pyobj, Object * ob );
-int NMesh_CheckPyObject( PyObject * pyobj );
-
-/* Material */
-PyObject *Material_Init( void );
-PyObject *Material_CreatePyObject( struct Material *mat );
-int Material_CheckPyObject( PyObject * pyobj );
-Material **EXPP_newMaterialList_fromPyList( PyObject * list );
-Material **EXPP_newMaterialList( int len );
-int EXPP_releaseMaterialList( Material ** matlist, int len );
-int EXPP_synchronizeMaterialLists( Object * object );
-void EXPP_incr_mats_us( Material ** matlist, int len );
-PyObject *EXPP_PyList_fromMaterialList( Material ** matlist, int len,
-					int all );
-Material *GetMaterialByName( char *name );
-
-/* Texture */
-PyObject *Texture_Init( void );
-
-/* Camera Data */
-PyObject *Camera_Init( void );
-PyObject *Camera_CreatePyObject( struct Camera *cam );
-Camera *Camera_FromPyObject( PyObject * pyobj );
-int Camera_CheckPyObject( PyObject * pyobj );
-Camera *GetCameraByName( char *name );
-
-/* Lamp Data */
-PyObject *Lamp_Init( void );
-PyObject *Lamp_CreatePyObject( struct Lamp *lamp );
-Lamp *Lamp_FromPyObject( PyObject * pyobj );
-int Lamp_CheckPyObject( PyObject * pyobj );
-Lamp *GetLampByName( char *name );
-
-/* Curve Data */
-PyObject *Curve_Init( void );
-PyObject *Curve_CreatePyObject( struct Curve *curve );
-Curve *Curve_FromPyObject( PyObject * py_obj );
-int Curve_CheckPyObject( PyObject * py_obj );
-
-/* Armature Data */
-PyObject *Armature_Init( void );
-PyObject *Armature_CreatePyObject( bArmature * armature );
-bArmature *Armature_FromPyObject( PyObject * py_obj );
-int Armature_CheckPyObject( PyObject * py_obj );
-
-/* Ipo Data */
-PyObject *BezTriple_CreatePyObject( BezTriple * bzt );
-int BezTriple_CheckPyObject( PyObject * pyobj );
-BezTriple *BezTriple_FromPyObject( PyObject * pyobj );
-
-PyObject *IpoCurve_Init( void );
-PyObject *IpoCurve_CreatePyObject( IpoCurve * ipo );
-int IpoCurve_CheckPyObject( PyObject * pyobj );
-IpoCurve *IpoCurve_FromPyObject( PyObject * pyobj );
-
-PyObject *Ipo_Init( void );
-PyObject *Ipo_CreatePyObject( struct Ipo *ipo );
-Ipo *Ipo_FromPyObject( PyObject * py_obj );
-int Ipo_CheckPyObject( PyObject * py_obj );
-
-/* Metaball Data */
-PyObject *Metaball_Init( void );
-PyObject *Metaball_CreatePyObject( MetaBall * metaball );
-MetaBall *Metaball_FromPyObject( PyObject * py_obj );
-int Metaball_CheckPyObject( PyObject * py_obj );
-
-/* Particle Effects Data */
-PyObject *Effect_Init( void );
-PyObject *Effect_CreatePyObject( struct Effect *effect );
-Effect *Effect_FromPyObject( PyObject * py_obj );
-int Effect_CheckPyObject( PyObject * py_obj );
-
-/* Image */
-PyObject *Image_Init( void );
-PyObject *Image_CreatePyObject( Image * image );
-int Image_CheckPyObject( PyObject * pyobj );
-
-/* Text */
-PyObject *Text_Init( void );
-PyObject *Text_CreatePyObject( Text * txt );
-
-/* World */
-PyObject *World_Init( void );
-PyObject *World_CreatePyObject( struct World *world );
-int World_CheckPyObject( PyObject * py_obj );
-World *World_FromPyObject( PyObject * py_obj );
-World *GetWorldByName( char *name );
-
-/* Lattice */
-PyObject *Lattice_Init( void );
-PyObject *Lattice_CreatePyObject( Lattice * lt );
-Lattice *Lattice_FromPyObject( PyObject * pyobj );
-int Lattice_CheckPyObject( PyObject * pyobj );
-
-/* Noise */
+PyObject *Library_Init( void );
 PyObject *Noise_Init( void );
 
-/* CurNurb */
-PyObject *CurNurb_Init( void );
-PyObject *CurNurb_CreatePyObject( Nurb * bzt );
-int CurNurb_CheckPyObject( PyObject * pyobj );
-Nurb *CurNurb_FromPyObject( PyObject * pyobj );
 
-/* Init functions for other modules */
-PyObject *Window_Init( void );
-PyObject *Draw_Init( void );
-PyObject *BGL_Init( void );
-PyObject *Mathutils_Init( void );
-PyObject *NLA_Init( void );
-PyObject *Library_Init( void );
-PyObject *Sound_Init( void );
-PyObject *Theme_Init( void );	/* Window.Theme */
 
 #endif				/* EXPP_modules_h */

@@ -38,15 +38,12 @@
 #define EXPP_DRAW_H_
 
 #include "DNA_space_types.h"
+#include "DNA_text_types.h"
 
 #include "Python.h"
 
 #include "gen_utils.h"
-#include "modules.h"
-
-/* From Window.h, used here by py_slider_update() */
-PyObject *M_Window_Redraw( PyObject * self, PyObject * args );
-
+#include "Window.h"
 
 void initDraw( void );
 
@@ -76,5 +73,6 @@ void BPY_spacescript_do_pywin_event( SpaceScript * sc,
 void BPY_free_compiled_text( Text * text );
 
 PyObject *M_Draw_Init( void );
+PyObject *Draw_Init( void );
 
 #endif				/* EXPP_DRAW_H */
