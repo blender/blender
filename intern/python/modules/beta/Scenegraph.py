@@ -4,7 +4,7 @@ It contains low level API calls..."""
 
 # (c) 2001, Martin Strubel // onk@section5.de
 
-from utils import quat #quaternions
+from util import quat #quaternions
 
 from Blender import Object, Lamp, Scene
 
