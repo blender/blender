@@ -1075,6 +1075,7 @@ void common_editbuts(void)
 		uiDefBut(block, BUT,B_DOCENTRE, "Centre",				961, 115, 100, 19, 0, 0, 0, 0, 0, "Shift object data to be centered about object's origin");
 		uiDefBut(block, BUT,B_DOCENTRENEW, "Centre New",			961, 95, 100, 19, 0, 0, 0, 0, 0, "Shift object's origin to center of object data");
 		uiDefBut(block, BUT,B_DOCENTRECURSOR, "Centre Cursor",		961, 75, 100, 19, 0, 0, 0, 0, 0, "Shift object's origin to cursor location");
+		uiDefBut(block, BUT,B_DOCENTRECURSOR, "Test",		961, 55, 100, 19, 0, 0, 0, 0, 0, "plouplou");
 	}
 
 	
@@ -5611,16 +5612,19 @@ void worldbuts(void)
 	uiDefButS(block, ROW, B_DIFF, "Lin", 604, 170, 33, 19, &wrld->mistype, 1.0, 1.0, 0, 0, "Use linear progression");
 	uiDefButS(block, ROW, B_DIFF, "Sqr", 637, 170, 33, 19, &wrld->mistype, 1.0, 2.0, 0, 0, "Use inverse quadratic progression");
 	
-	uiDefButF(block, NUM,REDRAWVIEW3D, "Sta:",			571,150,100,19, &wrld->miststa, 0.0, 1000.0, 10, 0, "Specify the starting distance of the mist");
-	uiDefButF(block, NUM,REDRAWVIEW3D, "Di:",			571,130,100,19, &wrld->mistdist, 0.0,1000.0, 10, 00, "Specify the depth of the mist");
-	uiDefButF(block, NUM,B_DIFF,"Hi:",			571,110,100,19, &wrld->misthi,0.0,100.0, 10, 0, "Specify the factor for a less dense mist with increasing height");
-	uiBlockSetCol(block, BUTGREEN);
-	uiDefButS(block, TOG|BIT|1,B_DIFF,	"Stars",571,90,100,19, &wrld->mode, 0, 0, 0, 0, "Enable stars");
+	uiDefButF(block, NUM,REDRAWVIEW3D, "Sta:",571,150,100,17, &wrld->miststa, 0.0, 1000.0, 10, 0, "Specify the starting distance of the mist");
+	uiDefButF(block, NUM,REDRAWVIEW3D, "Di:",571,133,100,17, &wrld->mistdist, 0.0,1000.0, 10, 00, "Specify the depth of the mist");
+	uiDefButF(block, NUM,B_DIFF,"Hi:",	571,116,100,17, &wrld->misthi,0.0,100.0, 10, 0, "Specify the factor for a less dense mist with increasing height");
+	
+	uiDefButF(block, NUMSLI,0, "misi",571,99,120,17,	&(wrld->misi), 0., 1.0, 0, 0, "Set the mist intensity");
+
+		uiBlockSetCol(block, BUTGREEN);
+	uiDefButS(block, TOG|BIT|1,B_DIFF,	"Stars",571,82,100,17, &wrld->mode, 0, 0, 0, 0, "Enable stars");
 	uiBlockSetCol(block, BUTGREY);
-	uiDefButF(block, NUM,B_DIFF,"StarDist:",	571,70,100,19, &(wrld->stardist), 2.0, 1000.0, 100, 0, "Specify the average distance between two stars");
-	uiDefButF(block, NUM,B_DIFF,"MinDist:",	571,50,100,19, &(wrld->starmindist), 0.0, 1000.0, 100, 0, "Specify the minimum distance to the camera");
-	uiDefButF(block, NUM,B_DIFF,"Size:",		571,30,100,19, &(wrld->starsize), 0.0, 10.0, 10, 0, "Specify the average screen dimension");
-	uiDefButF(block, NUM,B_DIFF,"Colnoise:",	571,10,100,19, &(wrld->starcolnoise), 0.0, 1.0, 100, 0, "Randomize starcolour");
+	uiDefButF(block, NUM,B_DIFF,"StarDist:",	571,65,100,17, &(wrld->stardist), 2.0, 1000.0, 100, 0, "Specify the average distance between two stars");
+	uiDefButF(block, NUM,B_DIFF,"MinDist:",	571,48,100,17, &(wrld->starmindist), 0.0, 1000.0, 100, 0, "Specify the minimum distance to the camera");
+	uiDefButF(block, NUM,B_DIFF,"Size:",		571,31,100,17, &(wrld->starsize), 0.0, 10.0, 10, 0, "Specify the average screen dimension");
+	uiDefButF(block, NUM,B_DIFF,"Colnoise:",	571,12,100,17, &(wrld->starcolnoise), 0.0, 1.0, 100, 0, "Randomize starcolour");
 
 
 	/* TEX CHANNELS */
