@@ -68,9 +68,6 @@ ifeq ($(OS),darwin)
     endif
     LDFLAGS += -L/System/Library/Frameworks/OpenGL.framework/Libraries
     DBG_LDFLAGS += -L/System/Library/Frameworks/OpenGL.framework/Libraries
-    ifeq ($(INTERNATIONAL), true)
-        LDFLAGS += -L$(NAN_GETTEXT)/lib -liconv
-    endif
 endif
 
 ifeq ($(OS),freebsd)
