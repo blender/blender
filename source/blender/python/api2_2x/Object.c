@@ -100,7 +100,7 @@ static PyObject *Object_buildParts( BPy_Object * self );
 static PyObject *Object_clearIpo( BPy_Object * self );
 static PyObject *Object_clrParent( BPy_Object * self, PyObject * args );
 static PyObject *Object_clearTrack( BPy_Object * self, PyObject * args );
-static PyObject *Object_getData( BPy_Object * self );
+static PyObject *Object_getData(BPy_Object *self, PyObject *a, PyObject *kwd);
 static PyObject *Object_getDeltaLocation( BPy_Object * self );
 static PyObject *Object_getDrawMode( BPy_Object * self );
 static PyObject *Object_getDrawType( BPy_Object * self );
@@ -165,8 +165,10 @@ hierarchy (faster)"},
 	 "Make this object not track another anymore. Optionally specify:\n\
 mode\n\t2: Keep object transform\nfast\n\t>0: Don't update scene \
 hierarchy (faster)"},
-	{"getData", ( PyCFunction ) Object_getData, METH_NOARGS,
-	 "Returns the datablock object containing the object's data, e.g. Mesh"},
+	{"getData", ( PyCFunction ) Object_getData, METH_VARARGS | METH_KEYWORDS,
+	 "(only_name = 0) - Returns the datablock object containing the object's \
+data, e.g. Mesh.\n\
+If 'only_name' is nonzero or True, only the name of the datablock is returned"},
 	{"getDeltaLocation", ( PyCFunction ) Object_getDeltaLocation,
 	 METH_NOARGS,
 	 "Returns the object's delta location (x, y, z)"},
@@ -728,10 +730,16 @@ int EXPP_add_obdata( struct Object *object )
 }
 
 
-static PyObject *Object_getData( BPy_Object * self )
+static PyObject *Object_getData( BPy_Object *self, PyObject *a, PyObject *kwd )
 {
 	PyObject *data_object;
 	Object *object = self->object;
+	int only_name = 0;
+	static char *kwlist[] = {"only_name", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(a, kwd, "|i", kwlist, &only_name))
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected nothing or an int (keyword 'only_name') as argument" );
 
 	/* if there's no obdata, try to create it */
 	if( object->data == NULL ) {
@@ -741,6 +749,17 @@ static PyObject *Object_getData( BPy_Object * self )
 		}
 	}
 
+	/* user wants only the name of the data object */
+	if (only_name) {
+		ID *id = &object->id;
+		data_object = Py_BuildValue("s", id->name+2);
+
+		if (data_object) return data_object;
+		return EXPP_ReturnPyObjError (PyExc_MemoryError,
+			"could not create a string pyobject!");
+	}
+
+	/* user wants the data object wrapper */
 	data_object = NULL;
 
 	switch ( object->type ) {
@@ -2163,8 +2182,18 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 
 	if( StringEqual( name, "track" ) )
 		return ( Object_CreatePyObject( object->track ) );
-	if( StringEqual( name, "data" ) )
-		return ( Object_getData( obj ) );
+	if( StringEqual( name, "data" ) ) {
+		PyObject *getdata, *tuple = PyTuple_New(0);
+
+		if (!tuple)
+			return EXPP_ReturnPyObjError (PyExc_MemoryError,
+				"couldn't create an empty tuple!");
+
+		getdata = Object_getData( obj, tuple, NULL );
+
+		Py_DECREF(tuple);
+		return getdata;
+	}
 	if( StringEqual( name, "ipo" ) ) {
 		if( object->ipo == NULL ) {
 			/* There's no ipo linked to the object, return Py_None. */

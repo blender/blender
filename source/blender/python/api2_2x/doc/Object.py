@@ -3,8 +3,8 @@
 """
 The Blender.Object submodule
 
-B{New}: 'old_worldspace' parameter in L{Object.Object.getMatrix}, which now
-defaults to 'worldspace'. 
+B{New}: L{Object.getData} now accepts an optional bool keyword argument to
+define if the user wants the data object or just its name.
 
 Object
 ======
@@ -186,13 +186,16 @@ class Object:
         other value, or no value at all will update the scene hierarchy.
     """
 
-  def getData():
+  def getData(only_name = False):
     """
-    Returns the Datablock object containing the object's data. For example the
-    Mesh, Lamp or the Camera.
-    @rtype: Object type specific
+    Returns the Datablock object (new: or just its name) containing the
+    object's data. For example the Mesh, Lamp or the Camera.
+    @type only_name: bool
+    @param only_name: if True on nonzero, only the name of the data object
+        is returned.
+    @rtype: Object type specific or string
     @return: Depending on the type of the Object, it returns a specific object
-    for the data requested.
+        for the data requested.  If only_name is True, it returns a string.
     """
 
   def getDeltaLocation():

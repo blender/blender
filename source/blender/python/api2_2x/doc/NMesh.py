@@ -321,13 +321,9 @@ class NMesh:
 
   def removeEdge():
     """
-    remove an edge between two vertices.
+    Remove an edge between two vertices.
     All faces using this edge are removed from faces list.
     You can only call this method if mesh has edge data.
-    @type v1: NMVert
-    @param v1: the first vertex of the edge.
-    @type v2: NMVert
-    @param v2: the second vertex of the edge.
     """
 
   def addFace(face):
@@ -342,8 +338,6 @@ class NMesh:
   def removeFace():
     """
     Remove a face for face list and remove edges no more used by any other face (if edge data exists).
-    @type face: NMFace
-    @param face: the face to add to the mesh.
     """
 
   def addEdgesData():

@@ -25,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano, Campbell Barton
+ * Contributor(s): Willian P. Germano, Campbell Barton, Joilnen B. Leite 
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -481,7 +481,7 @@ static PyObject *Image_reload( BPy_Image * self )
 
 	free_image_buffers( img );	/* force read again */
 	img->ok = 1;
-	image_changed( G.sima, 0 );
+	if (G.sima) image_changed( G.sima, 0 );
 
 	Py_INCREF( Py_None );
 	return Py_None;
