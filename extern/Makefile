@@ -46,12 +46,14 @@ endif
 # .PHONY: qhull solid solid_with_qhull
 
 all::
+	@[ -d $(OCGDIR)/extern ] || mkdir -p $(OCGDIR)/extern
 	@for i in $(DIRS); do \
 	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\
 	    $(MAKE) -C $$i install || exit 1; \
 	done
-	
+
 clean test debug::
+	@[ -d $(OCGDIR)/extern ] || mkdir -p $(OCGDIR)/extern
 	@for i in $(DIRS); do \
 	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\
 	    $(MAKE) -C $$i $@ || exit 1; \
