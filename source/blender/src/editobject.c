@@ -5544,11 +5544,13 @@ void transform(int mode)
     										VECCOPY(vec, tob->axismat[2]);
     									}
     									/* Correct the vector */
-    									if ((axismode & TRANSLOCAL) && ((G.vd->viewmat[0][2] * vec[0]+G.vd->viewmat[1][2] * vec[1]+G.vd->viewmat[2][2] * vec[2])>0)){
-    										vec[0]*=-1;
-    										vec[1]*=-1;
-    										vec[2]*=-1;
-    									}
+										if(cameragrab==0) {	// because viewmat changes continious then
+											if ((axismode & TRANSLOCAL) && ((G.vd->viewmat[0][2] * vec[0]+G.vd->viewmat[1][2] * vec[1]+G.vd->viewmat[2][2] * vec[2])>0)){
+												vec[0]*=-1;
+												vec[1]*=-1;
+												vec[2]*=-1;
+											}
+										}
 
     									if (typemode)
     										VecRotToMat3(vec, addvec[0] * M_PI / 180.0, mat);
