@@ -608,40 +608,47 @@ GHOST_TSuccess GHOST_SystemCarbon::exit()
 
 OSStatus GHOST_SystemCarbon::handleWindowEvent(EventRef event)
 {
+	WindowRef windowRef;
 	GHOST_WindowCarbon *window;
+	OSStatus err = eventNotHandledErr;
 	
+	// Check if the event was send to a GHOST window
+	::GetEventParameter(event, kEventParamDirectObject, typeWindowRef, NULL, sizeof(WindowRef), NULL, &windowRef);
+	window = (GHOST_WindowCarbon*) ::GetWRefCon(windowRef);
+	if (!validWindow(window)) {
+		return err;
+	}
+
 	if (!getFullScreen()) {
-		WindowRef windowref;
-		::GetEventParameter(event, kEventParamDirectObject, typeWindowRef, NULL, sizeof(WindowRef), NULL, &windowref);
-		window = (GHOST_WindowCarbon*) ::GetWRefCon(windowref);
-		
-		if (validWindow(window)) {
-			switch(::GetEventKind(event)) 
-			{
-				case kEventWindowClose:
-					pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowClose, window) );
-					break;
-				case kEventWindowActivated:
-					m_windowManager->setActiveWindow(window);
-					window->loadCursor(window->getCursorVisibility(), window->getCursorShape());
-					pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowActivate, window) );
-					break;
-				case kEventWindowDeactivated:
-					m_windowManager->setWindowInactive(window);
-					pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowDeactivate, window) );
-					break;
-				case kEventWindowUpdate:
-					//if (getFullScreen()) GHOST_PRINT("GHOST_SystemCarbon::handleWindowEvent(): full-screen update event\n");
-					pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowUpdate, window) );
-					break;
-				case kEventWindowBoundsChanged:
-					if (!m_ignoreWindowSizedMessages)
-					{
-						window->updateDrawingContext();
-						pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window) );
-					}
-					break;
-			}
+		err = noErr;
+		switch(::GetEventKind(event)) 
+		{
+			case kEventWindowClose:
+				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowClose, window) );
+				break;
+			case kEventWindowActivated:
+				m_windowManager->setActiveWindow(window);
+				window->loadCursor(window->getCursorVisibility(), window->getCursorShape());
+				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowActivate, window) );
+				break;
+			case kEventWindowDeactivated:
+				m_windowManager->setWindowInactive(window);
+				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowDeactivate, window) );
+				break;
+			case kEventWindowUpdate:
+				//if (getFullScreen()) GHOST_PRINT("GHOST_SystemCarbon::handleWindowEvent(): full-screen update event\n");
+				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowUpdate, window) );
+				break;
+			case kEventWindowBoundsChanged:
+				if (!m_ignoreWindowSizedMessages)
+				{
+					window->updateDrawingContext();
+					pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window) );
+				}
+				break;
+			default:
+				err = eventNotHandledErr;
+				break;
 		}
 	}
 	//else {
@@ -650,29 +657,32 @@ OSStatus GHOST_SystemCarbon::handleWindowEvent(EventRef event)
 		//::RemoveEventFromQueue(::GetMainEventQueue(), event);
 	//}
 	
-	return noErr;
+	return err;
 }
 
 OSStatus GHOST_SystemCarbon::handleMouseEvent(EventRef event)
 {
+    OSStatus err = eventNotHandledErr;
 	GHOST_IWindow* window = m_windowManager->getActiveWindow();
 	UInt32 kind = ::GetEventKind(event);
-	
+			
 	switch (kind)
     {
 		case kEventMouseDown:
 		case kEventMouseUp:
-				// Handle Mac application responsibilities
+			// Handle Mac application responsibilities
 			if ((kind == kEventMouseDown) && handleMouseDown(event)) {
-				;
-			} else {
+				err = noErr;
+			}
+			else {
 				GHOST_TEventType type = (kind == kEventMouseDown) ? GHOST_kEventButtonDown : GHOST_kEventButtonUp;
 				EventMouseButton button;
 				
-					/* Window still gets mouse up after command-H */
-				if (window) {
+				/* Window still gets mouse up after command-H */
+				if (m_windowManager->getActiveWindow()) {
 					::GetEventParameter(event, kEventParamMouseButton, typeMouseButton, NULL, sizeof(button), NULL, &button);
 					pushEvent(new GHOST_EventButton(getMilliSeconds(), type, window, convertButton(button)));
+					err = noErr;
 				}
 			}
             break;
@@ -683,6 +693,7 @@ OSStatus GHOST_SystemCarbon::handleMouseEvent(EventRef event)
 			if (window) {
 				::GetEventParameter(event, kEventParamMouseLocation, typeQDPoint, NULL, sizeof(Point), NULL, &mousePos);
 				pushEvent(new GHOST_EventCursor(getMilliSeconds(), GHOST_kEventCursorMove, window, mousePos.h, mousePos.v));
+				err = noErr;
 			}
             break;
 
@@ -705,77 +716,84 @@ OSStatus GHOST_SystemCarbon::handleMouseEvent(EventRef event)
 					 */
 					delta = delta > 0 ? 1 : -1;
 					pushEvent(new GHOST_EventWheel(getMilliSeconds(), window, delta));
+					err = noErr;
 				}
 			}
 			break;
 		}
 	
-	return noErr;
+	return err;
 }
 
 
 OSStatus GHOST_SystemCarbon::handleKeyEvent(EventRef event)
 {
+    OSStatus err = eventNotHandledErr;
 	GHOST_IWindow* window = m_windowManager->getActiveWindow();
 	UInt32 kind = ::GetEventKind(event);
 	UInt32 modifiers;
 	UInt32 rawCode;
 	GHOST_TKey key;
 	unsigned char ascii;
-	
-		/* Can happen, very rarely - seems to only be when command-H makes
-		 * the window go away and we still get an HKey up. 
-		 */
+
+	/* Can happen, very rarely - seems to only be when command-H makes
+	 * the window go away and we still get an HKey up. 
+	 */
 	if (!window) {
-		::GetEventParameter(event, kEventParamKeyCode, typeUInt32, NULL, sizeof(UInt32), NULL, &rawCode);
-		key = convertKey(rawCode);
-		return noErr;
+		//::GetEventParameter(event, kEventParamKeyCode, typeUInt32, NULL, sizeof(UInt32), NULL, &rawCode);
+		//key = convertKey(rawCode);
+		return err;
 	}
 	
+	err = noErr;
 	switch (kind) {
-	case kEventRawKeyDown: 
-	case kEventRawKeyRepeat: 
-	case kEventRawKeyUp: 
-		::GetEventParameter(event, kEventParamKeyCode, typeUInt32, NULL, sizeof(UInt32), NULL, &rawCode);
-		::GetEventParameter(event, kEventParamKeyMacCharCodes, typeChar, NULL, sizeof(char), NULL, &ascii);
-
-		key = convertKey(rawCode);
-		ascii= convertRomanToLatin(ascii);
-		
-		if (key!=GHOST_kKeyUnknown) {
-			GHOST_TEventType type;
-			if (kind == kEventRawKeyDown) {
-				type = GHOST_kEventKeyDown;
-			} else if (kind == kEventRawKeyRepeat) { 
-				type = GHOST_kEventKeyDown;  /* XXX, fixme */
-			} else {
-				type = GHOST_kEventKeyUp;
+		case kEventRawKeyDown: 
+		case kEventRawKeyRepeat: 
+		case kEventRawKeyUp: 
+			::GetEventParameter(event, kEventParamKeyCode, typeUInt32, NULL, sizeof(UInt32), NULL, &rawCode);
+			::GetEventParameter(event, kEventParamKeyMacCharCodes, typeChar, NULL, sizeof(char), NULL, &ascii);
+	
+			key = convertKey(rawCode);
+			ascii= convertRomanToLatin(ascii);
+			
+			if (key!=GHOST_kKeyUnknown) {
+				GHOST_TEventType type;
+				if (kind == kEventRawKeyDown) {
+					type = GHOST_kEventKeyDown;
+				} else if (kind == kEventRawKeyRepeat) { 
+					type = GHOST_kEventKeyDown;  /* XXX, fixme */
+				} else {
+					type = GHOST_kEventKeyUp;
+				}
+				pushEvent( new GHOST_EventKey( getMilliSeconds(), type, window, key, ascii) );
 			}
-			pushEvent( new GHOST_EventKey( getMilliSeconds(), type, window, key, ascii) );
-		}
-		break;
-
-	case kEventRawKeyModifiersChanged: 
-			/* ugh */
-		::GetEventParameter(event, kEventParamKeyModifiers, typeUInt32, NULL, sizeof(UInt32), NULL, &modifiers);
-		if ((modifiers & shiftKey) != (m_modifierMask & shiftKey)) {
-			pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & shiftKey)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftShift) );
-		}
-		if ((modifiers & controlKey) != (m_modifierMask & controlKey)) {
-			pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & controlKey)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftControl) );
-		}
-		if ((modifiers & optionKey) != (m_modifierMask & optionKey)) {
-			pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & optionKey)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftAlt) );
-		}
-		if ((modifiers & cmdKey) != (m_modifierMask & cmdKey)) {
-			pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & cmdKey)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyCommand) );
-		}
-		
-		m_modifierMask = modifiers;
-		break;
+			break;
+	
+		case kEventRawKeyModifiersChanged: 
+				/* ugh */
+			::GetEventParameter(event, kEventParamKeyModifiers, typeUInt32, NULL, sizeof(UInt32), NULL, &modifiers);
+			if ((modifiers & shiftKey) != (m_modifierMask & shiftKey)) {
+				pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & shiftKey)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftShift) );
+			}
+			if ((modifiers & controlKey) != (m_modifierMask & controlKey)) {
+				pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & controlKey)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftControl) );
+			}
+			if ((modifiers & optionKey) != (m_modifierMask & optionKey)) {
+				pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & optionKey)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftAlt) );
+			}
+			if ((modifiers & cmdKey) != (m_modifierMask & cmdKey)) {
+				pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & cmdKey)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyCommand) );
+			}
+			
+			m_modifierMask = modifiers;
+			break;
+			
+		default:
+			err = eventNotHandledErr;
+			break;
 	}
 	
-	return noErr;
+	return err;
 }
 
 
