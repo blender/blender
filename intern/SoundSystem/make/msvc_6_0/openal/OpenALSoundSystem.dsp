@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\intern" /I "..\..\..\..\SoundSystem" /I "..\..\..\..\moto\include" /I "..\..\..\..\string" /I "..\..\..\..\..\..\lib\windows\openal\include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\intern" /I "..\..\..\..\SoundSystem" /I "..\..\..\..\SoundSystem\sdl" /I "..\..\..\..\moto\include" /I "..\..\..\..\string" /I "..\..\..\..\..\..\lib\windows\openal\include" /I "..\..\..\..\..\..\lib\windows\sdl\include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -89,6 +89,10 @@ LIB32=link.exe -lib
 # Begin Source File
 
 SOURCE=..\..\..\openal\SND_OpenALDevice.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sdl\SND_SDLCDDevice.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"

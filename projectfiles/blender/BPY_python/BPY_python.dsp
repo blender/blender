@@ -195,6 +195,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\NMesh.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\Noise.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\Object.c
 # End Source File
 # Begin Source File
