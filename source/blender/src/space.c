@@ -1760,6 +1760,7 @@ void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 			if(a==cur) {
 				BLI_remlink(&U.themes, bt);
 				BLI_addhead(&U.themes, bt);
+				allqueue(REDRAWALL, 0);
 				cur= 1;
 				break;
 			}
@@ -2479,7 +2480,7 @@ void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				bTheme *btheme= U.themes.first;
 				BLI_remlink(&U.themes, btheme);
 				MEM_freeN(btheme);
-				BIF_SetTheme(curarea); // prevent usage of old theme in calls	
+				BIF_SetTheme(sa); // prevent usage of old theme in calls	
 				addqueue(sa->win, REDRAW, 1);
 			}
 			else if(val==B_NAME_THEME) {
