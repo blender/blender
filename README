@@ -7,26 +7,46 @@ on irc.freenode.net
 
 Here are some links to external packages you may or may not need:
 
-openssl:  http://www.openssl.org
-python:  http://www.python.org
-mxtexttools:http://www.egenix.com/files/python/mxTextTools.html (python lib)
-libjpeg:  http://www.ijg.org/
-libpng:  http://www.libpng.org/pub/png/
-zlib:   http://www.gzip.org/zlib/
-ode:	http://opende.sourceforge.net/
-openal:  http://www.openal.org/home/		(for linux/windows)
-	sdl: http://www.libsdl.org/index.php (for openal)
-	smpeg: http://www.lokigames.com/development/smpeg.php3 (for openal)
+openssl:     http://www.openssl.org
+python:      http://www.python.org
+mxtexttools: http://www.egenix.com/files/python/mxTextTools.html (python lib)
+libjpeg:     http://www.ijg.org/
+libpng:      http://www.libpng.org/pub/png/
+zlib:        http://www.gzip.org/zlib/
+ode:         http://opende.sourceforge.net/
+openal:      http://www.openal.org/home/		(for linux/windows)
+    sdl:     http://www.libsdl.org/index.php (for openal)
+    smpeg:   http://www.lokigames.com/development/smpeg.php3 (for openal)
 fmod: http://www.fmod.org/
 
 mozilla: http://www.mozilla.org/
 nspr:  ftp://ftp.mozilla.org/pub/nspr/releases
 	(side note: on debian linux you will need mozilla-dev and libnspr-dev)
 
-glut:	http://www.opengl.org/developers/documentation/glut.html
+glut:    http://www.opengl.org/developers/documentation/glut.html
 
 If you do not have GL you will also need mesa:
-mesa:	http://www.mesa3d.org
+mesa:    http://www.mesa3d.org
+
+For the translations to other languages than English you will need gettext,
+freetype2 and FTGL. Note that these translations are not complete yet, some
+time after the release of 2.27 they will be made available for download also.
+We welcome feedback about the translated user interface, and even contributions
+to the translation effort :)
+
+gettext:     http://www.gnu.org/software/gettext/
+freetype2:   http://www.freetype.org/
+FTGL:        http://homepages.paradise.net.nz/henryj/code/#FTGL
+
+FTGL needs a small patch to get glyphs with the right colour in the cache
+--- FTGL/src/FTPixmapGlyph.cpp.orig	2003-05-10 16:07:45.000000000 +0200
++++ FTGL/src/FTPixmapGlyph.cpp	2003-05-10 16:09:19.000000000 +0200
+@@ -33,3 +33,3 @@
+         // Get the current glColor.
+         float ftglColour[4];
+-        glGetFloatv( GL_CURRENT_COLOR, ftglColour);
++        ftglColour[0] = ftglColour[1] = ftglColour[2] = ftglColour[3] = 1.0;
+
 
 *********************************************************************
 *********************************************************************
