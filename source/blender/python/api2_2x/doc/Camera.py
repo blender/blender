@@ -226,3 +226,13 @@ class Camera:
     @type event: string
     @param event: "FrameChanged" or "Redraw".
     """
+
+  def insertIpoKey(keytype):
+    """
+    Inserts keytype values in camera ipo at curframe. Uses module constants.
+    @type keytype: Integer
+    @param keytype:
+           -LENS
+           -CLIPPING
+    @return: py_none
+    """  
