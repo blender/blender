@@ -331,8 +331,6 @@ static void ui_end_overdraw(uiOverDraw *od)
 	MEM_freeN(od);
 
 	markdirty_all_back();	// sets flags only
-	
-	/* todo; backbuffer selection redraw */
 }
 
 /* ****************** live updates for hilites and button presses *********** */

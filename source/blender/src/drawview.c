@@ -921,7 +921,7 @@ void backdrawview3d(int test)
 		}
 	}
 	persp(PERSP_VIEW);
-	
+
 #ifdef __APPLE__
 	glDrawBuffer(GL_AUX0);
 #endif	

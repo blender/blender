@@ -87,8 +87,9 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "BDR_drawobject.h"
 #include "BDR_editobject.h"
 
-#include "BSE_view.h"
+#include "BSE_drawview.h"
 #include "BSE_edit.h"
+#include "BSE_view.h"
 
 #include "IMB_imbuf.h"
 
@@ -103,16 +104,24 @@ editmesh_mods.c, UI level access, no geometry changes
 
 int em_solidoffs=0, em_wireoffs=0, em_vertoffs;	// set in drawobject.c ... for colorindices
 
+static void check_backbuf(void)
+{
+	if(G.vd->flag & V3D_NEEDBACKBUFDRAW) {
+		backdrawview3d(0);
+	}
+}
+
 /* samples a single pixel (copied from vpaint) */
 static unsigned int sample_backbuf(int x, int y)
 {
 	unsigned int col;
 	
 	if(x>=curarea->winx || y>=curarea->winy) return 0;
-	
 	x+= curarea->winrct.xmin;
 	y+= curarea->winrct.ymin;
 	
+	check_backbuf(); // actually not needed for apple
+
 #ifdef __APPLE__
 	glReadBuffer(GL_AUX0);
 #endif
@@ -141,6 +150,8 @@ static unsigned int *read_backbuf(short xmin, short ymin, short xmax, short ymax
 	if(yminc > ymaxc) return NULL;
 	
 	buf= MEM_mallocN( (xmaxc-xminc+1)*(ymaxc-yminc+1)*sizeof(int), "sample rect");
+
+	check_backbuf(); // actually not needed for apple
 	
 #ifdef __APPLE__
 	glReadBuffer(GL_AUX0);

@@ -598,6 +598,10 @@ void markdirty_all_back(void)
 			sa->head_swap &= ~WIN_BACK_OK;
 		}
 	}
+	
+	/* if needed; backbuffer selection redraw */
+	if(G.vd) G.vd->flag |= V3D_NEEDBACKBUFDRAW;
+
 }
 
 void markdirty_win_back(short winid)
