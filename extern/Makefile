@@ -38,10 +38,34 @@ DIRS = ode
 
 include nan_subdirs.mk
 
+.PHONY: qhull solid solid_with_qhull
+
 # we're not quite ready with the 'all' target just yet:
-install all::
+install all:: solid
 	@for i in $(DIRS); do \
 	    echo "====> $(MAKE) install in $(SOURCEDIR)/$$i" ;\
 	    $(MAKE) -C $$i install || exit 1; \
 	done
+
+# challenge: fix the example linking problems with this (until then
+# we must use solid without qhull, which is the next target).
+solid_with_qhull:
+	cd solid \
+	    && ./configure --with-pic --prefix=$(NAN_SOLID) \
+		CPPFLAGS="-I$(NAN_QHULL)/include" \
+		LDFLAGS="-Wl,--rpath -Wl,$(NAN_QHULL)/lib" \
+	    && $(MAKE) all install
+
+solid: qhull
+	cd solid \
+	    && ./configure --with-pic --prefix=$(NAN_SOLID) \
+	    && $(MAKE) all install
+qhull:
+	cd qhull/src && $(MAKE) -f Makefile.txt all
+	@[ -d $(NAN_QHULL) ] || mkdir $(NAN_QHULL)
+	@[ -d $(NAN_QHULL)/include ] || mkdir $(NAN_QHULL)/include
+	@[ -d $(NAN_QHULL)/lib ] || mkdir $(NAN_QHULL)/lib
+	@[ -L $(NAN_QHULL)/include/qhull ] || ln -s . $(NAN_QHULL)/include/qhull
+	@../intern/tools/cpifdiff.sh qhull/src/*.h $(NAN_QHULL)/include/
+	@../intern/tools/cpifdiff.sh qhull/src/libqhull.a $(NAN_QHULL)/lib/
 
