@@ -2155,7 +2155,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 		uiDefButS(block, NUMSLI, B_DRAWINFO, "Steps:",
 			(xpos+edgespace+medprefbut+midspace),y2,(medprefbut),buth,
-				&(U.undosteps), 1, 64, 0, 0, "Number of undo steps avail. in Editmode.  Smaller conserves memory.");
+				&(U.undosteps), 2, 64, 0, 0, "Number of undo steps avail. in Editmode.  Smaller conserves memory.");
 
 
 		uiDefBut(block, LABEL,0,"Auto keyframe on:",
