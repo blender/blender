@@ -2997,20 +2997,49 @@ static void drawmball(Object *ob, int dt)
 
 static void draw_forcefield(Object *ob)
 {
+	PartDeflect *pd= ob->pd;
 	float imat[4][4], tmat[4][4];
 	float vec[3]= {0.0, 0.0, 0.0};
 	
-	if (ob->pd->forcefield == PFIELD_FORCE) {
+	/* calculus here, is reused in PFIELD_FORCE */
+	mygetmatrix(tmat);
+	Mat4Invert(imat, tmat);
+//	Normalise(imat[0]);		// we don't do this because field doesnt scale either... apart from wind!
+//	Normalise(imat[1]);
+	
+	if(pd->flag & PFIELD_USEMAX) {
+		setlinestyle(3);
+		BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.5);
+		drawcircball(vec, pd->maxdist, imat);
+		setlinestyle(0);
+	}
+	if (pd->forcefield == PFIELD_WIND) {
+		float force_val;
+		
+		Mat4One(tmat);
+		BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.5);
+		
+		if (has_ipo_code(ob->ipo, OB_PD_FSTR))
+			force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, G.scene->r.cfra);
+		else 
+			force_val = pd->f_strength;
+		force_val*= 0.1;
+		drawcircball(vec, 1.0, tmat);
+		vec[2]= 0.5*force_val;
+		drawcircball(vec, 1.0, tmat);
+		vec[2]= 1.0*force_val;
+		drawcircball(vec, 1.0, tmat);
+		vec[2]= 1.5*force_val;
+		drawcircball(vec, 1.0, tmat);
+		
+	}
+	else if (pd->forcefield == PFIELD_FORCE) {
 		float ffall_val;
 
-		mygetmatrix(tmat);
-		Mat4Invert(imat, tmat);
-		Normalise(imat[0]);
-		Normalise(imat[1]);
 		if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
 			ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, G.scene->r.cfra);
 		else 
-			ffall_val = ob->pd->f_power;
+			ffall_val = pd->f_power;
 
 		BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.5);
 		drawcircball(vec, 1.0, imat);
@@ -3019,19 +3048,19 @@ static void draw_forcefield(Object *ob)
 		BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.9 - 0.4 / pow(2.0, (double)ffall_val));
 		drawcircball(vec, 2.0, imat);
 	}
-	else if (ob->pd->forcefield == PFIELD_VORTEX) {
+	else if (pd->forcefield == PFIELD_VORTEX) {
 		float ffall_val, force_val;
 
 		Mat4One(imat);
 		if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
 			ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, G.scene->r.cfra);
 		else 
-			ffall_val = ob->pd->f_power;
+			ffall_val = pd->f_power;
 
 		if (has_ipo_code(ob->ipo, OB_PD_FSTR))
 			force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, G.scene->r.cfra);
 		else 
-			force_val = ob->pd->f_strength;
+			force_val = pd->f_strength;
 
 		BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
 		if (force_val < 0) {

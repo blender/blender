@@ -380,11 +380,18 @@ static int linetriangle(float p1[3], float p2[3], float v0[3], float v1[3], floa
 	return 1;
 }
 
-static void get_effector(float opco[], float force[], float speed[], float cur_time, unsigned int par_layer)
+/*  -------- pdDoEffector() --------
+    generic force/speed system, now used for particles and softbodies
+	opco		= global coord, as input
+    force		= force accumulator
+    speed		= speed accumulator
+    cur_time	= in frames
+    par_layer	= layer the caller is in
+
+*/
+void pdDoEffector(float *opco, float *force, float *speed, float cur_time, unsigned int par_layer)
 {
 /*
-	Particle effector field code
-
 	Modifies the force on a particle according to its
 	relation with the effector object
 	Different kind of effectors include:
@@ -397,46 +404,75 @@ static void get_effector(float opco[], float force[], float speed[], float cur_t
 */
 	Object *ob;
 	Base *base;
+	PartDeflect *pd;
 	float vect_to_vert[3];
 	float force_vec[3];
 	float f_force, distance;
-	float obloc[3];
+	float *obloc;
 	float force_val, ffall_val;
 	short cur_frame;
 
 	/* Cycle through objects, get total of (1/(gravity_strength * dist^gravity_power)) */
-	/* Check for min distance here? */
-	base = G.scene->base.first;
-	while (base) {
-		if(base->lay & par_layer) {
+	/* Check for min distance here? (yes would be cool to add that, ton) */
+	
+	for(base = G.scene->base.first; base; base= base->next) {
+		if( (base->lay & par_layer) && base->object->pd) {
 			ob= base->object;
-			if(ob->pd && ob->pd->forcefield == PFIELD_FORCE) {
-
-				/* Need to set r.cfra for paths (investigate, ton) */
+			pd= ob->pd;
+			
+			/* checking if to continue or not */
+			if(pd->forcefield==0) continue;
+			
+			/* Get IPO force strength and fall off values here */
+			if (has_ipo_code(ob->ipo, OB_PD_FSTR))
+				force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, cur_time);
+			else 
+				force_val = pd->f_strength;
+			
+			if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
+				ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, cur_time);
+			else 
+				ffall_val = pd->f_power;
+			
+			
+			/* Need to set r.cfra for paths (investigate, ton) (uses ob->ctime now, ton) */
+			if(ob->ctime!=cur_time) {
 				cur_frame = G.scene->r.cfra;
 				G.scene->r.cfra = (short)cur_time;
 				where_is_object_time(ob, cur_time);
 				G.scene->r.cfra = cur_frame;
+			}
+			
+			/* use center of object for distance calculus */
+			obloc= ob->obmat[3];
+			VECSUB(vect_to_vert, obloc, opco);
+			distance = VecLength(vect_to_vert);
+			
+			if((pd->flag & PFIELD_USEMAX) && distance>pd->maxdist)
+				;	/* don't do anything */
+			else if(pd->forcefield == PFIELD_WIND) {
+				VECCOPY(force_vec, ob->obmat[2]);
+				
+				/* wind works harder perpendicular to normal, would be nice for softbody later (ton) */
+				
+				/* Limit minimum distance to vertex so that */
+				/* the force is not too big */
+				if (distance < 0.001) distance = 0.001f;
+				f_force = (force_val)*(1/(1000 * (float)pow((double)distance, (double)ffall_val)));
+				
+				force[0] += force_vec[0]*f_force;
+				force[1] += force_vec[1]*f_force;
+				force[2] += force_vec[2]*f_force;
+				
+			}
+			else if(pd->forcefield == PFIELD_FORCE) {
 				
 				/* only use center of object */
-				obloc[0] = ob->obmat[3][0];
-				obloc[1] = ob->obmat[3][1];
-				obloc[2] = ob->obmat[3][2];
-				
-				/* Get IPO force strength and fall off values here */
-				if (has_ipo_code(ob->ipo, OB_PD_FSTR))
-					force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, cur_time);
-				else 
-					force_val = ob->pd->f_strength;
-
-				if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
-					ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, cur_time);
-				else 
-					ffall_val = ob->pd->f_power;
+				obloc= ob->obmat[3];
 
 				/* Now calculate the gravitational force */
 				VECSUB(vect_to_vert, obloc, opco);
-				distance = Normalise(vect_to_vert);
+				distance = VecLength(vect_to_vert);
 
 				/* Limit minimum distance to vertex so that */
 				/* the force is not too big */
@@ -447,33 +483,14 @@ static void get_effector(float opco[], float force[], float speed[], float cur_t
 				force[2] += (vect_to_vert[2] * f_force );
 
 			}
-			else if(ob->pd && ob->pd->forcefield == PFIELD_VORTEX) {
-				/* Need to set r.cfra for paths (investigate, ton) */
-				cur_frame = G.scene->r.cfra;
-				G.scene->r.cfra = (short)cur_time;
-				where_is_object_time(ob, cur_time);
-				G.scene->r.cfra = cur_frame;
-				
-				/* only use center of object */
-				obloc[0] = ob->obmat[3][0];
-				obloc[1] = ob->obmat[3][1];
-				obloc[2] = ob->obmat[3][2];
-				
-				/* Get IPO force strength and fall off values here */
-				if (has_ipo_code(ob->ipo, OB_PD_FSTR))
-					force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, cur_time);
-				else 
-					force_val = ob->pd->f_strength;
+			else if(pd->forcefield == PFIELD_VORTEX) {
 
-				if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
-					ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, cur_time);
-				else 
-					ffall_val = ob->pd->f_power;
+				/* only use center of object */
+				obloc= ob->obmat[3];
 
 				/* Now calculate the vortex force */
 				VECSUB(vect_to_vert, obloc, opco);
-
-				distance = Normalise(vect_to_vert);
+				distance = VecLength(vect_to_vert);
 
 				Crossf(force_vec, ob->obmat[2], vect_to_vert);
 				Normalise(force_vec);
@@ -488,7 +505,6 @@ static void get_effector(float opco[], float force[], float speed[], float cur_t
 
 			}
 		}
-		base = base->next;
 	}
 }
 
@@ -513,7 +529,7 @@ static void cache_object_vertices(Object *ob)
 	}
 }
 
-static int get_deflection(float opco[3], float npco[3], float opno[3],
+int pdDoDeflection(float opco[3], float npco[3], float opno[3],
         float npno[3], float life, float force[3], int def_depth,
         float cur_time, unsigned int par_layer, int *last_object,
 		int *last_face, int *same_face)
@@ -875,7 +891,7 @@ void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *
 
 		/* Check force field */
 		cur_time = pa->time;
-		get_effector(opco, new_force, new_speed, cur_time, par_layer);
+		pdDoEffector(opco, new_force, new_speed, cur_time, par_layer);
 
 		/* new location */
 		pa->co[0]= opa->co[0] + deltalife * (opa->no[0] + new_speed[0] + 0.5f*new_force[0]);
@@ -910,7 +926,7 @@ void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *
 		/* Bail out if we've done the calculation 10 times - this seems ok     */
         /* for most scenes I've tested */
 		while (finish_defs) {
-			deflected =  get_deflection(opco, npco, opno, npno, life, new_force,
+			deflected =  pdDoDeflection(opco, npco, opno, npno, life, new_force,
 							def_count, cur_time, par_layer,
 							&last_ob, &last_fc, &same_fc);
 			if (deflected) {

@@ -69,6 +69,7 @@ variables on the UI for now
 #include "BLI_arithb.h"
 
 #include "BKE_displist.h"
+#include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_softbody.h"
@@ -268,6 +269,22 @@ static void Vec3PlusStVec(float *v, float s, float *v1)
 	v[2] += s*v1[2];
 }
 
+#define USES_FIELD		1
+#define USES_DEFLECT	2
+static int is_there_deflection(unsigned int layer)
+{
+	Base *base;
+	int retval= 0;
+	
+	for(base = G.scene->base.first; base; base= base->next) {
+		if( (base->lay & layer) && base->object->pd) {
+			if(base->object->pd->forcefield) retval |= USES_FIELD;
+			if(base->object->pd->deflect) retval |= USES_DEFLECT;
+		}
+	}
+	return retval;
+}
+
 
 static void softbody_calc_forces(Object *ob, float dtime)
 {
@@ -276,13 +293,16 @@ static void softbody_calc_forces(Object *ob, float dtime)
 	BodyPoint *bproot;
 	BodySpring *bs;	
 	float iks, ks, kd, gravity, actspringlen, forcefactor, sd[3];
-	int a, b;
+	int a, b, do_effector;
 	
 	/* clear forces */
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 		bp->force[0]= bp->force[1]= bp->force[2]= 0.0;
 	}
 	
+	/* check! */
+	do_effector= is_there_deflection(ob->lay);
+
 	gravity = sb->nodemass * sb->grav * rescale_grav_to_framerate;	
 	iks  = 1.0f/(1.0f-sb->inspring)-1.0f ;/* inner spring constants function */
 	bproot= sb->bpoint; /* need this for proper spring addressing */
@@ -334,6 +354,49 @@ static void softbody_calc_forces(Object *ob, float dtime)
 			/* this is the place where other forces can be added
 			yes, constraints and collision stuff should go here too (read baraff papers on that!)
 			*/
+			
+			/* particle field & deflectors */
+			if(do_effector & USES_FIELD) {
+				float force[3]= {0.0f, 0.0f, 0.0f};
+				float speed[3]= {0.0f, 0.0f, 0.0f};
+				
+				pdDoEffector(bp->pos, force, speed, (float)G.scene->r.cfra, ob->lay);
+				/* apply force */
+				//  VecMulf(force, rescale_grav_to_framerate);  <- didn't work, made value far too low!
+				VECADD(bp->force, bp->force, force);
+				/* apply speed. note; deflector can give 'speed' only.... */
+				VecMulf(speed, rescale_grav_to_framerate);	
+				VECADD(bp->vec, bp->vec, speed);
+			}
+#if 0			
+			/* copied from particles... doesn't work really! */
+			if(do_effector & USES_DEFLECT) {
+				int deflected;
+				int last_ob = -1;
+				int last_fc = -1;
+				int same_fc = 0;
+				float last[3], lastv[3];
+				int finish_defs = 1;
+				int def_count = 0;
+				
+				VecSubf(last, bp->pos, bp->vec);
+				VECCOPY(lastv, bp->vec);
+
+				while (finish_defs) {
+					deflected= pdDoDeflection(last, bp->pos, lastv,
+											  bp->vec, dtime, bp->force, 0,
+											  G.scene->r.cfra, ob->lay, &last_ob, &last_fc, &same_fc);
+					if (deflected) {
+						def_count = def_count + 1;
+						//deflection = 1;
+						if (def_count==10) finish_defs = 0;
+					}
+					else {
+						finish_defs = 0;
+					}
+				}
+			}
+#endif			
 			/*other forces done*/
 
 			/* nice things could be done with anisotropic friction
@@ -974,7 +1037,7 @@ void sbObjectReset(Object *ob)
 		bp->vec[0]= bp->vec[1]= bp->vec[2]= 0.0f;
 
 		// no idea about the Heun stuff! (ton)
-		VECCOPY(bp->prevpos, bp->vec);
+		VECCOPY(bp->prevpos, bp->pos);
 		VECCOPY(bp->prevvec, bp->vec);
 		VECCOPY(bp->prevdx, bp->vec);
 		VECCOPY(bp->prevdv, bp->vec);
@@ -987,6 +1050,7 @@ void sbObjectReset(Object *ob)
 void sbObjectStep(Object *ob, float framenr)
 {
 	SoftBody *sb;
+	Base *base;
 	float dtime;
 	int timescale,t;
 	float ctime, forcetime;
@@ -1002,6 +1066,11 @@ void sbObjectStep(Object *ob, float framenr)
 
 	/* still no points? go away */
 	if(sb->totpoint==0) return;
+	
+	/* reset deflector cache, sumohandle is free, but its still sorta abuse... (ton) */
+	for(base= G.scene->base.first; base; base= base->next) {
+		base->object->sumohandle= NULL;
+	}
 	
 	/* checking time: */
 	ctime= bsystem_time(ob, NULL, framenr, 0.0);
@@ -1124,5 +1193,14 @@ void sbObjectStep(Object *ob, float framenr)
 		// so here it is !
 		softbody_to_object(ob);
 	}
+
+	/* reset deflector cache */
+	for(base= G.scene->base.first; base; base= base->next) {
+		if(base->object->sumohandle) {
+			MEM_freeN(base->object->sumohandle);
+			base->object->sumohandle= NULL;
+		}
+	}
+	
 }
 

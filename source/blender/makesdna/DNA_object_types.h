@@ -80,16 +80,29 @@ typedef struct LBuf {
 } LBuf;
 
 typedef struct PartDeflect {
-	short deflect;        /* Deflection flag - does mesh deflect particles*/
-	short forcefield;      /* Force flag, do the vertices attract / repel particles ? */
+	short deflect;		/* Deflection flag - does mesh deflect particles*/
+	short forcefield;	/* Force field type, do the vertices attract / repel particles ? */
+	short flag;			/* general settings flag */
+	short pad;
+	
+	float pdef_damp;	/* Damping factor for particle deflection       */
+	float pdef_rdamp;	/* Random element of damping for deflection     */
+	float pdef_perm;	/* Chance of particle passing through mesh      */
 
-	float pdef_damp;     /* Damping factor for particle deflection       */
-	float pdef_rdamp;    /* Random element of damping for deflection     */
-	float pdef_perm;     /* Chance of particle passing through mesh      */
-
-	float f_strength;    /* The strength of the force (+ or - )       */
-	float f_power;       /* The power law - real gravitation is 2 (square)  */
+	float f_strength;	/* The strength of the force (+ or - )       */
+	float f_power;		/* The power law - real gravitation is 2 (square)  */
+	float maxdist;		/* if indicated, use this maximum */
 } PartDeflect;
+
+/* pd->forcefield:  Effector Fields types */
+#define PFIELD_FORCE	1
+#define PFIELD_VORTEX	2
+#define PFIELD_MAGNET	3
+#define PFIELD_WIND		4
+
+/* pd->flag: various settings */
+#define PFIELD_USEMAX	1
+
 
 typedef struct SoftBody {
 	/* dynamic data */
