@@ -959,7 +959,7 @@ void yafrayFileRender_t::writeAreaLamp(LampRen* lamp,int num)
 	if(lamp->area_shape != LA_AREA_SQUARE) return;
 	float *a=lamp->area[0],*b=lamp->area[1],*c=lamp->area[2],*d=lamp->area[3];
 	ostr.str("");
-	ostr << "<light type=\"arealight\" name=\"LAMP" << num+1 << "\" dummy=\"off\" " <<endl;
+	ostr << "<light type=\"arealight\" name=\"LAMP" << num+1 << "\" dummy=\"on\" " <<endl;
 	ostr << "\tpower=\"" << lamp->energy <<"\">" <<endl;
 	ostr << "\t<color r=\""<<lamp->r<<"\" g=\""<<lamp->g<<"\" b=\""<<lamp->b<<"\"/>"<<endl;
 	ostr << "\t<a x=\""<<a[0]<<"\" y=\""<<a[1]<<"\" z=\""<<a[2]<<"\"/>"<<endl;
@@ -1109,9 +1109,17 @@ void yafrayFileRender_t::writeHemilight()
 void yafrayFileRender_t::writePathlight()
 {
 	ostr.str("");
+	if(R.r.GIphotons)
+	{
+		ostr << "<light type=\"globalphotonlight\" name=\"gpm\" photons=\""<<R.r.GIphotoncount<<"\""<<endl;
+		ostr << "\tradius=\"" <<R.r.GIphotonradius << "\" depth=\""<< ((R.r.GIdepth>2) ? (R.r.GIdepth-1) : 1)
+				 << "\" search=\""<< R.r.GImixphotons<<"\" >"<<endl;
+		ostr << "</light>"<<endl;
+	}
 	ostr << "<light type=\"pathlight\" name=\"path_LT\" power=\"" << R.r.GIpower << "\" ";
-	ostr << " depth=\"" << R.r.GIdepth << "\" caus_depth=\"" << R.r.GIcausdepth <<"\"\n";
-	if (R.r.GIcache)
+	ostr << " depth=\"" <<((R.r.GIphotons) ? 1 : R.r.GIdepth)<< "\" caus_depth=\"" << R.r.GIcausdepth <<"\"\n";
+	if(R.r.GIdirect && R.r.GIphotons) ostr << "direct=\"on\"" << endl;
+	if (R.r.GIcache && ! (R.r.GIdirect && R.r.GIphotons))
 	{
 		switch (R.r.GIquality)
 		{

@@ -1222,18 +1222,36 @@ static void render_panel_yafrayGI()
 	}
         
 
-	if (G.scene->r.GImethod==2) {
+	if (G.scene->r.GImethod==2) 
+	{
 		if (G.scene->r.GIdepth==0) G.scene->r.GIdepth=2;
 		uiDefButI(block, NUM, 0, "Depth:", 180,175,110,20, &G.scene->r.GIdepth, 1.0, 8.0, 10, 10, "Number of bounces of the indirect light");
 		uiDefButI(block, NUM, 0, "CDepth:", 180,150,110,20, &G.scene->r.GIcausdepth, 1.0, 8.0, 10, 10, "Number of bounces inside objects (for caustics)");
 		uiDefButS(block,TOG|BIT|0, B_REDR, "Cache",70,125,89,20, &G.scene->r.GIcache, 0, 0, 0, 0, "Cache irradiance samples (faster)");
-		if (G.scene->r.GIcache) {
+		uiDefButS(block,TOG|BIT|0, B_REDR, "Photons",180,125,89,20, &G.scene->r.GIphotons, 0, 0, 0, 0, "Use global photons to help in GI");
+		if (G.scene->r.GIcache) 
+		{
 			uiDefBut(block, LABEL, 0, "Cache parameters:", 5,105,130,20, 0, 1.0, 0, 0, 0, "");
 			if (G.scene->r.GIshadowquality==0.0) G.scene->r.GIshadowquality=0.9;
 			uiDefButF(block, NUMSLI, 0,"ShadQu ", 5,85,154,20,	&(G.scene->r.GIshadowquality), 0.0, 1.0 ,0,0, "Sets the shadow quality, keep it under 0.95 :-) ");
 			if (G.scene->r.GIpixelspersample==0) G.scene->r.GIpixelspersample=10;
 			uiDefButI(block, NUM, 0, "Pixel Precision:",	5,60,154,20, &G.scene->r.GIpixelspersample, 1, 50, 10, 10, "Maximum number of pixels without samples, the lower the better and slower");
-			uiDefButS(block,TOG|BIT|0, 0, "UseGradient",180,85,110,20, &G.scene->r.GIgradient, 0, 0, 0, 0, "Try to smooth lighting using a gradient");
+			//uiDefButS(block,TOG|BIT|0, 0, "UseGradient",180,85,110,20, &G.scene->r.GIgradient, 0, 0, 0, 0, "Try to smooth lighting using a gradient");
+		}
+		if (G.scene->r.GIphotons) 
+		{
+			uiDefBut(block, LABEL, 0, "Photon parameters:", 170,105,130,20, 0, 1.0, 0, 0, 0, "");
+			if(G.scene->r.GIphotoncount==0) G.scene->r.GIphotoncount=100000;
+			uiDefButI(block, NUM, 0, "Count:", 170,85,140,20, &G.scene->r.GIphotoncount, 
+					0, 10000000, 10, 10, "Number of photons to shoot");
+			if(G.scene->r.GIphotonradius==0.0) G.scene->r.GIphotonradius=1.0;
+			uiDefButF(block, NUMSLI, 0,"Radius:", 170,60,140,20,	&(G.scene->r.GIphotonradius), 
+					0.00001, 100.0 ,0,0, "Radius to search for photons to mix (blur)");
+			if(G.scene->r.GImixphotons==0) G.scene->r.GImixphotons=100;
+			uiDefButI(block, NUM, 0, "MixCount:", 170,35,140,20, &G.scene->r.GImixphotons, 
+					0, 1000, 10, 10, "Number of photons to shoot");
+			uiDefButS(block,TOG|BIT|0, B_REDR, "Tune Photons",170,10,140,20, &G.scene->r.GIdirect, 
+					0, 0, 0, 0, "Show the photonmap directly in the render for tunning");
 		}
 	}
 }
