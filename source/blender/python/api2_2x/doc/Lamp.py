@@ -34,8 +34,8 @@ def Get (name = None):
   @type name: string
   @param name: The name of the Lamp Data.
   @rtype: Blender Lamp or a list of Blender Lamps
-  @return: It depends on the 'name' parameter:
-      - (name): The Lamp Data object with the given name;
+  @return: It depends on the I{name} parameter:
+      - (name): The Lamp Data object with the given I{name};
       - ():     A list with all Lamp Data objects in the current scene.
   """
 

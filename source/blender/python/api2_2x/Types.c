@@ -60,6 +60,8 @@ PyObject *Types_Init (void)
 
   /* Blender Object Data Types */
 
+  PyDict_SetItemString(dict, "SceneType",   (PyObject *)&Scene_Type);
+
   PyDict_SetItemString(dict, "NMeshType",    (PyObject *)&NMesh_Type);
   PyDict_SetItemString(dict, "NMFaceType",   (PyObject *)&NMFace_Type);
   PyDict_SetItemString(dict, "NMVertType",   (PyObject *)&NMVert_Type);

@@ -12,14 +12,22 @@ This is the main Blender module.
 Blender Python
 ==============
 
+  - The L{Blender} module
+
  Submodules:
  -----------
 
+  - L{Types}
+  - L{Scene}
+  - L{NMesh}
   - L{Material}
+  - L{Armature}
   - L{Camera}
   - L{Lamp}
   - L{BGL}
   - L{Window}
+  - L{Draw}
+  - L{Image}
   - L{Text}
 
  Introduction:
@@ -31,7 +39,7 @@ Blender Python
   - Links to Blender, Blender Python, later: script lists
 
 @author: The Blender Python Team
-@requires: Blender 2.28 or newer.
+@requires: Blender 2.27-NewPy (2.28 pre-release) or newer.
 @version: 0.1
 @see: U{www.blender.org<http://www.blender.org>}
 @see: U{projects.blender.org<http://projects.blender.org>}

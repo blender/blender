@@ -75,7 +75,7 @@ PyObject *M_Window_Redraw(PyObject *self, PyObject *args);
 int g_window_redrawn;
 
 static char Draw_doc[] =
-"Module Blender.Draw ... XXX improve this";
+"The Blender.Draw submodule";
 
 static void exit_pydraw (SpaceText *st);
 static uiBlock *Get_uiBlock (void);
@@ -189,7 +189,7 @@ button\n\n\
 (default) The number of the option to be selected by default\n\
 [tooltip=""] The button's tooltip\n\n\
 The menu options are specified through the name of the\n\
-button. Options are followed by a format code and seperated\n\
+button. Options are followed by a format code and separated\n\
 by the '|' (pipe) character.\n\
 Valid format codes are\n\
   %t - The option should be used as the title\n\
@@ -267,12 +267,12 @@ static PyObject *Method_String (PyObject *self,  PyObject *args);
 
 static char Method_GetStringWidth_doc[] =
 "(text, font = 'normal') - Return the width in pixels of the given string\n\
-(font) The font type: 'normal' (default), 'small' or 'tiny'.";
+(font) The font size: 'normal' (default), 'small' or 'tiny'.";
 
 static char Method_Text_doc[] =
 "(text, font = 'normal') - Draw text onscreen\n\n\
 (text) The text to draw\n\
-(font) The font type: 'normal' (default), 'small' or 'tiny'.\n\n\
+(font) The font size: 'normal' (default), 'small' or 'tiny'.\n\n\
 NEW! - This function now returns the width of the drawn string.";
 
 static PyObject *Method_GetStringWidth (PyObject *self, PyObject *args);

@@ -181,7 +181,7 @@ static PyObject *M_Lamp_Get(PyObject *self, PyObject *args)
   }
 }
 
-static PyObject *M_Lamp_TypesDict (void)
+static PyObject *Lamp_TypesDict (void)
 { /* create the Blender.Lamp.Types constant dict */
   PyObject *Types = M_constant_New();
 
@@ -198,7 +198,7 @@ static PyObject *M_Lamp_TypesDict (void)
   return Types;
 }
 
-static PyObject *M_Lamp_ModesDict (void)
+static PyObject *Lamp_ModesDict (void)
 { /* create the Blender.Lamp.Modes constant dict */
   PyObject *Modes = M_constant_New();
 
@@ -229,15 +229,15 @@ PyObject *Lamp_Init (void)
 
   Lamp_Type.ob_type = &PyType_Type;
 
-  Types = M_Lamp_TypesDict ();
-  Modes = M_Lamp_ModesDict ();
+  Types = Lamp_TypesDict ();
+  Modes = Lamp_ModesDict ();
 
   submodule = Py_InitModule3("Blender.Lamp", M_Lamp_methods, M_Lamp_doc);
 
   if (Types) PyModule_AddObject(submodule, "Types", Types);
   if (Modes) PyModule_AddObject(submodule, "Modes", Modes);
 
-  return (submodule);
+  return submodule;
 }
 
 /* Three Python Lamp_Type helper functions needed by the Object module: */

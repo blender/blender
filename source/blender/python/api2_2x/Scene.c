@@ -52,6 +52,8 @@ PyObject *M_Object_Get (PyObject *self, PyObject *args); /* from Object.c */
 /* Python BPy_Scene defaults:                                                */
 /*****************************************************************************/
 #define EXPP_SCENE_FRAME_MAX 18000
+#define EXPP_SCENE_RENDER_WINRESOLUTION_MIN 4
+#define EXPP_SCENE_RENDER_WINRESOLUTION_MAX 10000
 
 /*****************************************************************************/
 /* Python API function prototypes for the Scene module.                      */
@@ -59,23 +61,30 @@ PyObject *M_Object_Get (PyObject *self, PyObject *args); /* from Object.c */
 static PyObject *M_Scene_New (PyObject *self, PyObject *args,
                                PyObject *keywords);
 static PyObject *M_Scene_Get (PyObject *self, PyObject *args);
-static PyObject *M_Scene_getCurrent (PyObject *self);
-static PyObject *M_Scene_unlink (PyObject *self, PyObject *arg);
+static PyObject *M_Scene_GetCurrent (PyObject *self);
+static PyObject *M_Scene_Unlink (PyObject *self, PyObject *arg);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.      */
 /* In Python these will be written to the console when doing a               */
 /* Blender.Scene.__doc__                                                     */
 /*****************************************************************************/
-static char M_Scene_doc[] = "";
+static char M_Scene_doc[] =
+"The Blender.Scene submodule";
 
-static char M_Scene_New_doc[] = "";
+static char M_Scene_New_doc[] =
+"(name = 'Scene') - Create a new Scene called 'name' in Blender.";
 
-static char M_Scene_Get_doc[] = "";
+static char M_Scene_Get_doc[] =
+"(name = None) - Return the scene called 'name'.\n\
+	         If 'name' is None, return a list with all Scenes.";
 
-static char M_Scene_getCurrent_doc[] = "";
+static char M_Scene_GetCurrent_doc[] =
+"() - Return the currently active Scene in Blender.";
 
-static char M_Scene_unlink_doc[] = "";
+static char M_Scene_Unlink_doc[] =
+"(scene) - Unlink (delete) scene 'Scene' from Blender.\n\
+(scene) is of type Blender scene.";
 
 /*****************************************************************************/
 /* Python method structure definition for Blender.Scene module:              */
@@ -85,9 +94,12 @@ struct PyMethodDef M_Scene_methods[] = {
           M_Scene_New_doc},
   {"Get",         M_Scene_Get,         METH_VARARGS, M_Scene_Get_doc},
   {"get",         M_Scene_Get,         METH_VARARGS, M_Scene_Get_doc},
-  {"getCurrent",(PyCFunction)M_Scene_getCurrent,
-                             METH_NOARGS,  M_Scene_getCurrent_doc},
-  {"unlink",      M_Scene_unlink,      METH_VARARGS, M_Scene_unlink_doc},
+  {"GetCurrent",(PyCFunction)M_Scene_GetCurrent,
+                             METH_NOARGS,  M_Scene_GetCurrent_doc},
+  {"getCurrent",(PyCFunction)M_Scene_GetCurrent,
+                             METH_NOARGS,  M_Scene_GetCurrent_doc},
+  {"Unlink",      M_Scene_Unlink,      METH_VARARGS, M_Scene_Unlink_doc},
+  {"unlink",      M_Scene_Unlink,      METH_VARARGS, M_Scene_Unlink_doc},
   {NULL, NULL, 0, NULL}
 };
 
@@ -123,9 +135,9 @@ static PyMethodDef BPy_Scene_methods[] = {
   {"setName", (PyCFunction)Scene_setName, METH_VARARGS,
           "(str) - Change Scene name"},
   {"getWinSize", (PyCFunction)Scene_getWinSize, METH_NOARGS,
-      "() - Return Scene size"},
+      "() - Return Render window [x,y] dimensions"},
   {"setWinSize", (PyCFunction)Scene_setWinSize, METH_VARARGS,
-          "(str) - Change Scene size"},
+          "(str) - Change Render window [x,y] dimensions"},
   {"copy",    (PyCFunction)Scene_copy, METH_VARARGS,
           "(duplicate_objects = 1) - Return a copy of this scene\n"
   "The optional argument duplicate_objects defines how the scene\n"
@@ -288,12 +300,12 @@ static PyObject *M_Scene_Get(PyObject *self, PyObject *args)
   }
 }
 
-static PyObject *M_Scene_getCurrent (PyObject *self)
+static PyObject *M_Scene_GetCurrent (PyObject *self)
 {
   return Scene_CreatePyObject ((Scene *)G.scene);
 }
 
-static PyObject *M_Scene_unlink (PyObject *self, PyObject *args)
+static PyObject *M_Scene_Unlink (PyObject *self, PyObject *args)
 { 
   PyObject *pyobj;
   Scene    *scene;
@@ -381,34 +393,38 @@ static PyObject *Scene_setName(BPy_Scene *self, PyObject *args)
   return Py_None;
 }
 
-
-
 static PyObject *Scene_getWinSize(BPy_Scene *self)
 {
-PyObject* list = PyList_New (0);
-Scene *scene = self->scene;
-PyList_Append (list,  PyInt_FromLong(scene->r.xsch));
-PyList_Append (list,  PyInt_FromLong(scene->r.ysch));
- return list;
+  PyObject* list = PyList_New (0);
+  Scene *scene = self->scene;
+
+  PyList_Append (list, PyInt_FromLong(scene->r.xsch));
+  PyList_Append (list, PyInt_FromLong(scene->r.ysch));
+
+	return list;
 }
 
 static PyObject *Scene_setWinSize(BPy_Scene *self, PyObject *args)
 {
- 	PyObject *listargs=0, * tmp;
-	int i;
-  if (!PyArg_ParseTuple(args, "O", &listargs))
-    return (EXPP_ReturnPyObjError(PyExc_TypeError,"expected a list"));
-  if (!PyList_Check(listargs))
-    return (EXPP_ReturnPyObjError(PyExc_TypeError,"expected a list"));
-	puts("popo");
-	tmp = PyList_GetItem(listargs,0);
-	printf("%d\n",self->scene->r.xsch);
-	self->scene->r.xsch = (short)PyInt_AsLong(tmp);
-	printf("%d\n",self->scene->r.xsch);
-	tmp = PyList_GetItem(listargs,1);
-	self->scene->r.ysch = (short)PyInt_AsLong(tmp);
+ 	int xres = -1, yres = -1;
+
+  if (!PyArg_ParseTuple(args, "(ii)", &xres, &yres))
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+							"expected a [x, y] list as argument");
+
+	if (xres > 0)
+		self->scene->r.xsch = EXPP_ClampInt(xres,
+										EXPP_SCENE_RENDER_WINRESOLUTION_MIN,
+										EXPP_SCENE_RENDER_WINRESOLUTION_MAX);
+
+  if (yres > 0)
+		self->scene->r.ysch = EXPP_ClampInt(yres,
+										EXPP_SCENE_RENDER_WINRESOLUTION_MIN,
+										EXPP_SCENE_RENDER_WINRESOLUTION_MAX);
+
   Py_INCREF(Py_None);
-  return Py_None;
+
+	return Py_None;
 }
 
 static PyObject *Scene_copy (BPy_Scene *self, PyObject *args)
@@ -495,7 +511,7 @@ static PyObject *Scene_update (BPy_Scene *self)
 static PyObject *Scene_link (BPy_Scene *self, PyObject *args)
 {
   Scene    *scene = self->scene;
-  BPy_Object *bpy_obj; /* XXX Change to BPy or whatever is chosen */
+  BPy_Object *bpy_obj;
 
   if (!scene)
       return EXPP_ReturnPyObjError (PyExc_RuntimeError,

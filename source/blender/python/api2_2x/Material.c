@@ -48,18 +48,18 @@
 #define EXPP_MAT_MODE_SHADOW              MA_SHADOW
 #define EXPP_MAT_MODE_SHADELESS           MA_SHLESS
 #define EXPP_MAT_MODE_WIRE                MA_WIRE
-#define EXPP_MAT_MODE_VCOLLIGHT           MA_VERTEXCOL
+#define EXPP_MAT_MODE_VCOL_LIGHT          MA_VERTEXCOL
 #define EXPP_MAT_MODE_HALO                MA_HALO
 #define EXPP_MAT_MODE_ZTRANSP             MA_ZTRA
-#define EXPP_MAT_MODE_VCOLPAINT           MA_VERTEXCOLP
+#define EXPP_MAT_MODE_VCOL_PAINT          MA_VERTEXCOLP
 #define EXPP_MAT_MODE_ZINVERT             MA_ZINV
 #define EXPP_MAT_MODE_HALORINGS           MA_HALO_RINGS
 #define EXPP_MAT_MODE_ENV                 MA_ENV
 #define EXPP_MAT_MODE_HALOLINES           MA_HALO_LINES
 #define EXPP_MAT_MODE_ONLYSHADOW          MA_ONLYSHADOW
-#define EXPP_MAT_MODE_XALPHA              MA_HALO_XALPHA
-#define EXPP_MAT_MODE_STAR                MA_STAR
-#define EXPP_MAT_MODE_FACETEX             MA_FACETEXTURE
+#define EXPP_MAT_MODE_HALOXALPHA          MA_HALO_XALPHA
+#define EXPP_MAT_MODE_HALOSTAR            MA_STAR
+#define EXPP_MAT_MODE_TEXFACE             MA_FACETEXTURE
 #define EXPP_MAT_MODE_HALOTEX             MA_HALOTEX
 #define EXPP_MAT_MODE_HALOPUNO            MA_HALOPUNO
 #define EXPP_MAT_MODE_NOMIST              MA_NOMIST
@@ -79,8 +79,8 @@
 #define EXPP_MAT_EMIT_MAX          1.0
 #define EXPP_MAT_REF_MIN           0.0
 #define EXPP_MAT_REF_MAX           1.0
-#define EXPP_MAT_SPEBPy_MIN          0.0
-#define EXPP_MAT_SPEBPy_MAX          2.0
+#define EXPP_MAT_SPEC_MIN          0.0
+#define EXPP_MAT_SPEC_MAX          2.0
 #define EXPP_MAT_SPECTRA_MIN       0.0
 #define EXPP_MAT_SPECTRA_MAX       1.0
 #define EXPP_MAT_ZOFFS_MIN         0.0
@@ -96,8 +96,12 @@
 
 #define EXPP_MAT_HARD_MIN        1
 #define EXPP_MAT_HARD_MAX      255  /* 127 with MODE HALO ON */
+#define EXPP_MAT_HALOSEED_MIN    1
+#define EXPP_MAT_HALOSEED_MAX  255
 #define EXPP_MAT_NFLARES_MIN     1
 #define EXPP_MAT_NFLARES_MAX    32
+#define EXPP_MAT_FLARESEED_MIN   1
+#define EXPP_MAT_FLARESEED_MAX 255
 #define EXPP_MAT_NSTARS_MIN      3
 #define EXPP_MAT_NSTARS_MAX     50
 #define EXPP_MAT_NLINES_MIN      0
@@ -244,18 +248,63 @@ static PyObject *M_Material_Get(PyObject *self, PyObject *args)
   }
 }
 
+static PyObject *Lamp_ModesDict (void)
+{
+	PyObject *Modes = M_constant_New();
+
+#undef EXPP_ADDCONST
+#define EXPP_ADDCONST(name) \
+	constant_insert(c, #name, PyInt_FromLong(EXPP_MAT_MODE_##name))
+
+/* So that:
+ * EXPP_ADDCONST(TRACEABLE) becomes:
+ * constant_insert(c, "TRACEABLE", PyInt_FromLong(EXPP_MAT_MODE_TRACEABLE))
+ */
+
+	if (Modes) {
+		BPy_constant *c = (BPy_constant *)Modes;
+		
+		EXPP_ADDCONST(TRACEABLE);
+		EXPP_ADDCONST(SHADOW);
+		EXPP_ADDCONST(SHADELESS);
+		EXPP_ADDCONST(WIRE);
+		EXPP_ADDCONST(VCOL_LIGHT);
+		EXPP_ADDCONST(HALO);
+		EXPP_ADDCONST(ZTRANSP);
+		EXPP_ADDCONST(VCOL_PAINT);
+		EXPP_ADDCONST(ZINVERT);
+		EXPP_ADDCONST(HALORINGS);
+		EXPP_ADDCONST(ENV);
+		EXPP_ADDCONST(HALOLINES);
+		EXPP_ADDCONST(ONLYSHADOW);
+		EXPP_ADDCONST(HALOXALPHA);
+		EXPP_ADDCONST(HALOSTAR);
+		EXPP_ADDCONST(TEXFACE);
+		EXPP_ADDCONST(HALOTEX);
+		EXPP_ADDCONST(HALOPUNO);
+		EXPP_ADDCONST(NOMIST);
+		EXPP_ADDCONST(HALOSHADE);
+		EXPP_ADDCONST(HALOFLARE);
+	}
+
+	return Modes;
+}
+
 /*****************************************************************************/
 /* Function:              Material_Init                                      */
 /*****************************************************************************/
 PyObject *Material_Init (void)
 {
-  PyObject  *submodule;
+  PyObject  *submodule, *Modes;
 
   Material_Type.ob_type = &PyType_Type;
+
+	Modes = Lamp_ModesDict ();
 
   submodule = Py_InitModule3("Blender.Material",
                   M_Material_methods, M_Material_doc);
 
+	if (Modes) PyModule_AddObject(submodule, "Modes", Modes);
   return (submodule);
 }
 
@@ -281,7 +330,9 @@ static PyObject *Material_getSpecTransp(BPy_Material *self);
 static PyObject *Material_getAdd(BPy_Material *self);
 static PyObject *Material_getZOffset(BPy_Material *self);
 static PyObject *Material_getHaloSize(BPy_Material *self);
+static PyObject *Material_getHaloSeed(BPy_Material *self);
 static PyObject *Material_getFlareSize(BPy_Material *self);
+static PyObject *Material_getFlareSeed(BPy_Material *self);
 static PyObject *Material_getFlareBoost(BPy_Material *self);
 static PyObject *Material_getSubSize(BPy_Material *self);
 static PyObject *Material_getHardness(BPy_Material *self);
@@ -305,7 +356,9 @@ static PyObject *Material_setSpecTransp(BPy_Material *self, PyObject *args);
 static PyObject *Material_setAdd(BPy_Material *self, PyObject *args);
 static PyObject *Material_setZOffset(BPy_Material *self, PyObject *args);
 static PyObject *Material_setHaloSize(BPy_Material *self, PyObject *args);
+static PyObject *Material_setHaloSeed(BPy_Material *self, PyObject *args);
 static PyObject *Material_setFlareSize(BPy_Material *self, PyObject *args);
+static PyObject *Material_setFlareSeed(BPy_Material *self, PyObject *args);
 static PyObject *Material_setFlareBoost(BPy_Material *self, PyObject *args);
 static PyObject *Material_setSubSize(BPy_Material *self, PyObject *args);
 static PyObject *Material_setHardness(BPy_Material *self, PyObject *args);
@@ -349,21 +402,26 @@ static PyMethodDef BPy_Material_methods[] = {
   {"getAdd", (PyCFunction)Material_getAdd, METH_NOARGS,
       "() - Return Material's glow factor"},
   {"getZOffset", (PyCFunction)Material_getZOffset, METH_NOARGS,
-      "() - Return Material's artificial offset "},
+      "() - Return Material's artificial offset for faces"},
   {"getHaloSize", (PyCFunction)Material_getHaloSize, METH_NOARGS,
       "() - Return Material's halo size"},
+  {"getHaloSeed", (PyCFunction)Material_getHaloSeed, METH_NOARGS,
+      "() - Return Material's seed for random ring dimension and line "
+	    "location in halos"},
   {"getFlareSize", (PyCFunction)Material_getFlareSize, METH_NOARGS,
       "() - Return Material's (flare size)/(halo size) factor"},
+  {"getFlareSeed", (PyCFunction)Material_getFlareSeed, METH_NOARGS,
+      "() - Return Material's flare offset in the seed table"},
   {"getFlareBoost", (PyCFunction)Material_getFlareBoost, METH_NOARGS,
       "() - Return Material's flare boost"},
   {"getSubSize", (PyCFunction)Material_getSubSize, METH_NOARGS,
       "() - Return Material's dimension of subflare, dots and circles"},
   {"getHardness", (PyCFunction)Material_getHardness, METH_NOARGS,
-      "() - Return Material's hardness"},
+      "() - Return Material's specular hardness"},
   {"getNFlares", (PyCFunction)Material_getNFlares, METH_NOARGS,
       "() - Return Material's number of flares in halo"},
   {"getNStars", (PyCFunction)Material_getNStars, METH_NOARGS,
-      "() - Return Material's number of stars in halo"},
+      "() - Return Material's number of points in the halo stars"},
   {"getNLines", (PyCFunction)Material_getNLines, METH_NOARGS,
       "() - Return Material's number of lines in halo"},
   {"getNRings", (PyCFunction)Material_getNRings, METH_NOARGS,
@@ -373,13 +431,13 @@ static PyMethodDef BPy_Material_methods[] = {
   {"setMode", (PyCFunction)Material_setMode, METH_VARARGS,
       "([s[,s]]) - Set Material mode flag(s)"},
   {"setRGBCol", (PyCFunction)Material_setRGBCol, METH_VARARGS,
-      "([s[,s]]) - Set Material's rgb color triplet"},
+      "(f,f,f or [f,f,f]) - Set Material's rgb color triplet"},
   {"setAmbCol", (PyCFunction)Material_setAmbCol, METH_VARARGS,
-      "([s[,s]]) - Set Material's ambient color"},
+      "(f,f,f or [f,f,f]) - Set Material's ambient color"},
   {"setSpecCol", (PyCFunction)Material_setSpecCol, METH_VARARGS,
-      "([s[,s]]) - Set Material's specular color"},
+      "(f,f,f or [f,f,f]) - Set Material's specular color"},
   {"setMirCol", (PyCFunction)Material_setMirCol, METH_VARARGS,
-      "([s[,s]]) - Set Material's mirror color"},
+      "(f,f,f or [f,f,f]) - Set Material's mirror color"},
   {"setAmb", (PyCFunction)Material_setAmb, METH_VARARGS,
       "(f) - Set how much the Material's color is affected"
               " by \nthe global ambient colors - [0.0, 1.0]"},
@@ -399,23 +457,27 @@ static PyMethodDef BPy_Material_methods[] = {
       "(f) - Set Material's artificial offset - [0.0, 10.0]"},
   {"setHaloSize", (PyCFunction)Material_setHaloSize, METH_VARARGS,
       "(f) - Set Material's halo size - [0.0, 100.0]"},
+  {"setHaloSeed", (PyCFunction)Material_setHaloSeed, METH_VARARGS,
+      "(i) - Set Material's halo seed - [0, 255]"},
   {"setFlareSize", (PyCFunction)Material_setFlareSize, METH_VARARGS,
       "(f) - Set Material's factor: (flare size)/(halo size) - [0.1, 25.0]"},
+  {"setFlareSeed", (PyCFunction)Material_setFlareSeed, METH_VARARGS,
+      "(i) - Set Material's flare seed - [0, 255]"},
   {"setFlareBoost", (PyCFunction)Material_setFlareBoost, METH_VARARGS,
       "(f) - Set Material's flare boost - [0.1, 10.0]"},
   {"setSubSize", (PyCFunction)Material_setSubSize, METH_VARARGS,
       "(f) - Set Material's dimension of subflare,"
               " dots and circles - [0.1, 25.0]"},
   {"setHardness", (PyCFunction)Material_setHardness, METH_VARARGS,
-      "(f) - Set Material's hardness - [1, 255 (127 if halo mode is ON)]"},
+      "(i) - Set Material's hardness - [1, 255 (127 if halo mode is ON)]"},
   {"setNFlares", (PyCFunction)Material_setNFlares, METH_VARARGS,
-      "(f) - Set Material's number of flares in halo - [1, 32]"},
+      "(i) - Set Material's number of flares in halo - [1, 32]"},
   {"setNStars", (PyCFunction)Material_setNStars, METH_VARARGS,
-      "(f) - Set Material's number of stars in halo - [3, 50]"},
+      "(i) - Set Material's number of stars in halo - [3, 50]"},
   {"setNLines", (PyCFunction)Material_setNLines, METH_VARARGS,
-      "(f) - Set Material's number of lines in halo - [0, 250]"},
+      "(i) - Set Material's number of lines in halo - [0, 250]"},
   {"setNRings", (PyCFunction)Material_setNRings, METH_VARARGS,
-      "(f) - Set Material's number of rings in halo - [0, 24]"},
+      "(i) - Set Material's number of rings in halo - [0, 24]"},
   {0}
 };
 
@@ -684,6 +746,26 @@ static PyObject *Material_getSubSize(BPy_Material *self)
                "couldn't get Material.subSize attribute");
 }
 
+static PyObject *Material_getHaloSeed(BPy_Material *self)
+{
+  PyObject *attr = PyInt_FromLong((long)self->material->seed1);
+
+  if (attr) return attr;
+
+  return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+                       "couldn't get Material.haloSeed attribute");
+}
+
+static PyObject *Material_getFlareSeed(BPy_Material *self)
+{
+  PyObject *attr = PyInt_FromLong((long)self->material->seed2);
+
+  if (attr) return attr;
+
+  return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+                       "couldn't get Material.flareSeed attribute");
+}
+
 static PyObject *Material_getHardness(BPy_Material *self)
 {
   PyObject *attr = PyInt_FromLong((long)self->material->har);
@@ -754,7 +836,7 @@ static PyObject *Material_setName(BPy_Material *self, PyObject *args)
 /* Possible modes are traceable, shadow, shadeless, wire, vcolLight,
  * vcolPaint, halo, ztransp, zinvert, haloRings, env, haloLines,
  * onlyShadow, xalpha, star, faceTexture, haloTex, haloPuno, noMist,
- * haloShade, haloFlare */
+ * haloShaded, haloFlare */
 static PyObject *Material_setMode(BPy_Material *self, PyObject *args)
 {
   int i, flag = 0;
@@ -782,9 +864,9 @@ static PyObject *Material_setMode(BPy_Material *self, PyObject *args)
     else if (strcmp(m[i], "Wire") == 0)
       flag |= (short)EXPP_MAT_MODE_WIRE;
     else if (strcmp(m[i], "VColLight") == 0)
-      flag |= (short)EXPP_MAT_MODE_VCOLLIGHT;
+      flag |= (short)EXPP_MAT_MODE_VCOL_LIGHT;
     else if (strcmp(m[i], "VColPaint") == 0)
-      flag |= (short)EXPP_MAT_MODE_VCOLPAINT;
+      flag |= (short)EXPP_MAT_MODE_VCOL_PAINT;
     else if (strcmp(m[i], "Halo") == 0)
       flag |= (short)EXPP_MAT_MODE_HALO;
     else if (strcmp(m[i], "ZTransp") == 0)
@@ -799,19 +881,19 @@ static PyObject *Material_setMode(BPy_Material *self, PyObject *args)
       flag |= (short)EXPP_MAT_MODE_HALOLINES;
     else if (strcmp(m[i], "OnlyShadow") == 0)
       flag |= (short)EXPP_MAT_MODE_ONLYSHADOW;
-    else if (strcmp(m[i], "XAlpha") == 0)
-      flag |= (short)EXPP_MAT_MODE_XALPHA;
-    else if (strcmp(m[i], "Star") == 0)
-      flag |= (short)EXPP_MAT_MODE_STAR;
-    else if (strcmp(m[i], "FaceTex") == 0)
-      flag |= (short)EXPP_MAT_MODE_FACETEX;
+    else if (strcmp(m[i], "HaloXAlpha") == 0)
+      flag |= (short)EXPP_MAT_MODE_HALOXALPHA;
+    else if (strcmp(m[i], "HaloStar") == 0)
+      flag |= (short)EXPP_MAT_MODE_HALOSTAR;
+    else if (strcmp(m[i], "TexFace") == 0)
+      flag |= (short)EXPP_MAT_MODE_TEXFACE;
     else if (strcmp(m[i], "HaloTex") == 0)
       flag |= (short)EXPP_MAT_MODE_HALOTEX;
     else if (strcmp(m[i], "HaloPuno") == 0)
       flag |= (short)EXPP_MAT_MODE_HALOPUNO;
     else if (strcmp(m[i], "NoMist") == 0)
       flag |= (short)EXPP_MAT_MODE_NOMIST;
-    else if (strcmp(m[i], "HaloShade") == 0)
+    else if (strcmp(m[i], "HaloShaded") == 0)
       flag |= (short)EXPP_MAT_MODE_HALOSHADE;
     else if (strcmp(m[i], "HaloFlare") == 0)
       flag |= (short)EXPP_MAT_MODE_HALOFLARE;
@@ -962,8 +1044,8 @@ static PyObject *Material_setSpec(BPy_Material *self, PyObject *args)
     return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected float argument in [0.0, 1.0]"));
 
-  self->material->spec = EXPP_ClampFloat (value, EXPP_MAT_SPEBPy_MIN,
-                  EXPP_MAT_SPEBPy_MAX);
+  self->material->spec = EXPP_ClampFloat (value, EXPP_MAT_SPEC_MIN,
+                  EXPP_MAT_SPEC_MAX);
 
   return EXPP_incr_ret (Py_None);
 }
@@ -1051,6 +1133,35 @@ static PyObject *Material_setSubSize(BPy_Material *self, PyObject *args)
 
   return EXPP_incr_ret (Py_None);
 }
+
+static PyObject *Material_setHaloSeed(BPy_Material *self, PyObject *args)
+{
+  short value;
+
+  if (!PyArg_ParseTuple(args, "h", &value))      
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
+            "expected int argument in [1, 255]"));
+
+  self->material->seed1 = EXPP_ClampInt (value, EXPP_MAT_HALOSEED_MIN,
+                  EXPP_MAT_HALOSEED_MAX);
+
+  return EXPP_incr_ret (Py_None);
+}
+
+static PyObject *Material_setFlareSeed(BPy_Material *self, PyObject *args)
+{
+  short value;
+
+  if (!PyArg_ParseTuple(args, "h", &value))      
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
+            "expected int argument in [1, 255]"));
+
+  self->material->seed2 = EXPP_ClampInt (value, EXPP_MAT_FLARESEED_MIN,
+                  EXPP_MAT_FLARESEED_MAX);
+
+  return EXPP_incr_ret (Py_None);
+}
+
 
 static PyObject *Material_setHardness(BPy_Material *self, PyObject *args)
 {
@@ -1168,10 +1279,14 @@ static PyObject *Material_getAttr (BPy_Material *self, char *name)
     attr = PyFloat_FromDouble((double)self->material->zoffs);
   else if (strcmp(name, "haloSize") == 0)
     attr = PyFloat_FromDouble((double)self->material->hasize);
+  else if (strcmp(name, "haloSeed") == 0)
+    attr = PyInt_FromLong((double)self->material->seed1);
   else if (strcmp(name, "flareSize") == 0)
     attr = PyFloat_FromDouble((double)self->material->flaresize);
   else if (strcmp(name, "flareBoost") == 0)
     attr = PyFloat_FromDouble((double)self->material->flareboost);
+  else if (strcmp(name, "flareSeed") == 0)
+    attr = PyInt_FromLong((double)self->material->seed2);
   else if (strcmp(name, "subSize") == 0)
     attr = PyFloat_FromDouble((double)self->material->subsize);
   else if (strcmp(name, "hard") == 0)
@@ -1186,13 +1301,13 @@ static PyObject *Material_getAttr (BPy_Material *self, char *name)
     attr = PyInt_FromLong((long)self->material->ringc);
 
   else if (strcmp(name, "__members__") == 0) {
-    attr = /* 26 items */
-      Py_BuildValue("[s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s]",
+    attr = /* 28 items */
+      Py_BuildValue("[s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s]",
                     "name", "mode", "rgbCol", "ambCol", "specCol", "mirCol",
-                    "R", "G", "B", "alpha", "amb", "emit", "ref",
-                    "spec", "specTransp", "add", "zOffset", "haloSize",
-                    "flareSize", "flareBoost", "subSize", "hard", "nFlares",
-                    "nStars", "nLines", "nRings");
+                    "R", "G", "B", "alpha", "amb", "emit", "ref", "spec",
+		    "specTransp", "add", "zOffset", "haloSize", "haloSeed",
+		    "flareSize", "flareBoost", "flareSeed", "subSize", "hard",
+		    "nFlares", "nStars", "nLines", "nRings");
   }
 
   if (!attr)
@@ -1266,10 +1381,14 @@ static int Material_setAttr (BPy_Material *self, char *name, PyObject *value)
     error = Material_setZOffset (self, valtuple);
   else if (strcmp (name, "haloSize") == 0)
     error = Material_setHaloSize (self, valtuple);
+  else if (strcmp (name, "haloSeed") == 0)
+    error = Material_setHaloSeed (self, valtuple);
   else if (strcmp (name, "flareSize") == 0)
     error = Material_setFlareSize (self, valtuple);
   else if (strcmp (name, "flareBoost") == 0)
     error = Material_setFlareBoost (self, valtuple);
+  else if (strcmp (name, "flareSeed") == 0)
+    error = Material_setFlareSeed (self, valtuple);
   else if (strcmp (name, "subSize") == 0)
     error = Material_setSubSize (self, valtuple);
   else if (strcmp (name, "hard") == 0)

@@ -37,8 +37,8 @@ def Get (name = None):
   @type name: string
   @param name: The name of the Camera Data.
   @rtype: Blender Camera or a list of Blender Cameras
-  @return: It depends on the 'name' parameter:
-      - (name): The Camera Data object with the given name;
+  @return: It depends on the I{name} parameter:
+      - (name): The Camera Data object with the given I{name};
       - ():     A list with all Camera Data objects in the current scene.
   """
 

@@ -226,6 +226,8 @@ PyObject *Image_Init (void)
 /*****************************************************************************/
 static PyObject *Image_getName(BPy_Image *self);
 static PyObject *Image_getFilename(BPy_Image *self);
+static PyObject *Image_getXRep(BPy_Image *self);
+static PyObject *Image_getYRep(BPy_Image *self);
 static PyObject *Image_setName(BPy_Image *self, PyObject *args);
 static PyObject *Image_setXRep(BPy_Image *self, PyObject *args);
 static PyObject *Image_setYRep(BPy_Image *self, PyObject *args);
@@ -236,15 +238,19 @@ static PyObject *Image_setYRep(BPy_Image *self, PyObject *args);
 static PyMethodDef BPy_Image_methods[] = {
  /* name, method, flags, doc */
   {"getName", (PyCFunction)Image_getName, METH_NOARGS,
-          "() - Return Image Data name"},
-  {"getFilename", (PyCFunction)Image_getFilename, METH_VARARGS,
-          "() - Return Image Data filename"},
+          "() - Return Image object name"},
+  {"getFilename", (PyCFunction)Image_getFilename, METH_NOARGS,
+          "() - Return Image object filename"},
+  {"getXRep", (PyCFunction)Image_getXRep, METH_NOARGS,
+          "() - Return Image object x repetition value"},
+  {"getYRep", (PyCFunction)Image_getYRep, METH_NOARGS,
+          "() - Return Image object y repetition value"},
   {"setName", (PyCFunction)Image_setName, METH_VARARGS,
-          "(str) - Change Image Data name"},
+          "(str) - Change Image object name"},
   {"setXRep", (PyCFunction)Image_setXRep, METH_VARARGS,
-          "(int) - Change Image Data x repetition value"},
+          "(int) - Change Image object x repetition value"},
   {"setYRep", (PyCFunction)Image_setYRep, METH_VARARGS,
-          "(int) - Change Image Data y repetition value"},
+          "(int) - Change Image object y repetition value"},
   {0}
 };
 
@@ -348,6 +354,26 @@ static PyObject *Image_getFilename(BPy_Image *self)
           "couldn't get Image.filename attribute"));
 }
 
+static PyObject *Image_getXRep(BPy_Image *self)
+{
+  PyObject *attr = PyInt_FromLong(self->image->xrep);
+
+  if (attr) return attr;
+
+  return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+          "couldn't get Image.xrep attribute");
+}
+
+static PyObject *Image_getYRep(BPy_Image *self)
+{
+  PyObject *attr = PyInt_FromLong(self->image->yrep);
+
+  if (attr) return attr;
+
+  return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+          "couldn't get Image.yrep attribute");
+}
+
 static PyObject *Image_setName(BPy_Image *self, PyObject *args)
 {
   char *name;
@@ -437,7 +463,7 @@ static PyObject *Image_getAttr (BPy_Image *self, char *name)
 /*****************************************************************************/
 /* Function:    Image_setAttr                                                */
 /* Description: This is a callback function for the BPy_Image type. It is the*/
-/*              function that changes Image Data members values. If this     */
+/*              function that changes Image object members values. If this   */
 /*              data is linked to a Blender Image, it also gets updated.     */
 /*****************************************************************************/
 static int Image_setAttr (BPy_Image *self, char *name, PyObject *value)
@@ -462,7 +488,7 @@ static int Image_setAttr (BPy_Image *self, char *name, PyObject *value)
     error = Image_setXRep (self, valtuple);
   else if (strcmp (name, "yrep") == 0)
     error = Image_setYRep (self, valtuple);
-  else { /* Error: no such member in the Image Data structure */
+  else { /* Error: no such member in the Image object structure */
     Py_DECREF(value);
     Py_DECREF(valtuple);
     return (EXPP_ReturnIntError (PyExc_KeyError,

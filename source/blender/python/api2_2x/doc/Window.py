@@ -108,9 +108,10 @@ def ImageSelector (callback, title = 'SELECT IMAGE'):
 def DrawProgressBar (done, text):
   """
   Draw a progress bar in the upper right corner of the screen. To cancel it
-  prematurely, users can press the "Esc" key.
+  prematurely, users can press the "Esc" key.  Start it with done = 0 and end
+  it with done = 1.
   @type done: float
-  @param done: A float in [0, 1] that tells the advance in the progress
+  @param done: A float in [0.0, 1.0] that tells the advance in the progress
       bar.
   @type text: string
   @param text: Info about what is currently being done "behind the scenes".

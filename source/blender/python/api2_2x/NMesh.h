@@ -54,6 +54,7 @@
 #include "BLI_blenlib.h"
 #include "BIF_space.h"
 #include "DNA_mesh_types.h"
+#include "DNA_key_types.h"
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
 #include "DNA_armature_types.h"
@@ -65,6 +66,9 @@
 #include "constant.h"
 #include "gen_utils.h"
 #include "modules.h"
+
+
+void insert_meshkey(Mesh *me); /* defined in editkey.c */
 
 /* EXPP PyType Objects */
 
@@ -87,7 +91,7 @@ static PyObject *g_nmeshmodule = NULL;
 #define BPy_NMCol_Check(v)       ((v)->ob_type == &NMCol_Type)
 
 static char M_NMesh_doc[] =
-"The Blender.NMesh module";
+"The Blender.NMesh submodule";
 
 static char M_NMesh_Col_doc[]=
 "([r, g, b, a]) - Get a new mesh color\n\n\
@@ -102,6 +106,15 @@ static char NMFace_append_doc[] =
 static char M_NMesh_Vert_doc[] =
 "([x, y, z]) - Get a new vertice\n\n\
 [x, y, z] Specify new coordinates";
+
+static char NMesh_insertKey_doc[] =
+"(frame = None) - inserts a Mesh key at the given frame\n\
+if called without arguments, it inserts the key at the current Scene frame";
+
+static char NMesh_removeAllKeys_doc[] =
+"() - removes all keys from this mesh\n\
+returns True if successful or False if this NMesh wasn't linked to a real\n\
+Blender Mesh yet or the Mesh had no keys";
 
 static char NMesh_getSelectedFaces_doc[] =
 "(flag = None) - returns list of selected Faces\n\
