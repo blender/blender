@@ -995,7 +995,7 @@ void scanlinehaloPS(unsigned int *rectz, long *rectdelta, unsigned int *rectt, s
 	unsigned int a, *rz, *rt, zz;
 	long *rd;
 	int accol[4];
-	short minx,maxx,x,aantal, aantalm, behind, flarec;
+	short minx,maxx,x,aantal, aantalm, flarec;
 	char col[4];
 
 	for(a=0;a<R.tothalo;a++) {
@@ -1032,7 +1032,7 @@ void scanlinehaloPS(unsigned int *rectz, long *rectdelta, unsigned int *rectt, s
 						dist= xsq+ysq;
 						if(dist<har->radsq) {
 							ps= (PixStr *) POINTER_FROM_CODE(*rd);
-							aantal= behind= 0;
+							aantal= 0;
 							accol[0]=accol[1]=accol[2]=accol[3]= 0;
 							while(ps) {
 								aantalm= count_mask(ps->mask);

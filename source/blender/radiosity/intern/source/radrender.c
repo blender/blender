@@ -80,7 +80,7 @@ static float maxenergy;
 
 /* find the face with maximum energy to become shooter */
 /* nb: _rr means rad-render version of existing radio call */
-VlakRen *findshoot_rr()
+static VlakRen *findshoot_rr(void)
 {
 	RadFace *rf;
 	VlakRen *vlr=NULL, *shoot;
@@ -116,7 +116,7 @@ VlakRen *findshoot_rr()
 	return shoot;
 }
 
-void backface_test_rr(VlakRen *shoot)
+static void backface_test_rr(VlakRen *shoot)
 {
 	VlakRen *vlr=NULL;
 	RadFace *rf;
@@ -140,7 +140,7 @@ void backface_test_rr(VlakRen *shoot)
 	}
 }
 
-void clear_backface_test_rr()
+static void clear_backface_test_rr()
 {
 	VlakRen *vlr=NULL;
 	RadFace *rf;
@@ -160,7 +160,7 @@ void clear_backface_test_rr()
 extern RadView hemitop, hemiside; // radfactors.c
 
 /* hemi-zbuffering, delivers formfactors array */
-void makeformfactors_rr(VlakRen *shoot)
+static void makeformfactors_rr(VlakRen *shoot)
 {
 	VlakRen *vlr=NULL;
 	RadFace *rf;
@@ -219,7 +219,7 @@ void makeformfactors_rr(VlakRen *shoot)
 }
 
 /* based at RG.formfactors array, distribute shoot energy over other faces */
-void applyformfactors_rr(VlakRen *shoot)
+static void applyformfactors_rr(VlakRen *shoot)
 {
 	VlakRen *vlr=NULL;
 	RadFace *rf;
@@ -263,7 +263,7 @@ void applyformfactors_rr(VlakRen *shoot)
 
 
 /* main loop for itterations */
-void progressiverad_rr()
+static void progressiverad_rr()
 {
 	VlakRen *shoot;
 	int it= 0;
@@ -469,7 +469,7 @@ void filter_rad_values()
 
 }
 
-void make_vertex_rad_values()
+static void make_vertex_rad_values()
 {
 	VertRen *v1=NULL;
 	VlakRen *vlr=NULL;

@@ -207,9 +207,6 @@ READ
     p_i= (char *)&(a); \
     s_i=p_i[0]; p_i[0]=p_i[1]; p_i[1]=s_i; }
 
-/***/
-
-static char *functionality_check= "\0FUNCTIONALITY_CHECK += blo_readfile\n";
 
 /***/
 
@@ -3337,7 +3334,6 @@ static void do_versions(Main *main)
 	if(main->versionfile <= 204) {
 		/* patches for new physics */
 		Object *ob= main->object.first;
-		Material *ma= main->mat.first;
 		bActuator *act;
 		bObjectActuator *oa;
 		bSound *sound;

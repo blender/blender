@@ -2906,7 +2906,7 @@ int uiDoBlocks(ListBase *lb, int event)
 
 	uiBlock *block, *first;
 	uiEvent uevent;
-	int retval= UI_NOTHING, cont= 1, dopop=0;
+	int retval= UI_NOTHING, cont= 1;
 
 	if(lb->first==0) return UI_NOTHING;
 	
@@ -2962,7 +2962,6 @@ int uiDoBlocks(ListBase *lb, int event)
 			}
 			
 			/* to make sure the matrix of the panel works for menus too */
-			dopop= 1;
 			if(retval==UI_CONT || (retval & UI_RETURN)) break;
 			first= lb->first; if(first->flag & UI_BLOCK_LOOP) break;
 			

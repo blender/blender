@@ -1111,10 +1111,8 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 	/* TYPES */
 	if(mtex && mtex->tex) {
 		Tex *tex= mtex->tex;
-		int xco;
 
 		uiSetButLock(tex->id.lib!=0, "Can't edit library data");
-		xco= 275;
 		uiDefButS(block, ROW, B_TEXTYPE, texstr[0],			160, 150, 70, 20, &tex->type, 1.0, 0.0, 0, 0, "Default");
 
 		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_IMAGE],	160, 110, 70, 20, &tex->type, 1.0, (float)TEX_IMAGE, 0, 0, "Selects image texture type");
@@ -1572,7 +1570,6 @@ static void world_panel_world(World *wrld)
 {
 	uiBlock *block;
 	ID *id, *idfrom;
-	short xco;
 	
 	block= uiNewBlock(&curarea->uiblocks, "world_panel_world", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "World", "World", 320, 0, 318, 204)==0) return;
@@ -1581,7 +1578,7 @@ static void world_panel_world(World *wrld)
 	buttons_active_id(&id, &idfrom);
 
 	uiBlockSetCol(block, TH_BUT_SETTING2);
-	xco= std_libbuttons(block, 10, 180, 0, NULL, B_WORLDBROWSE, id, idfrom, &(G.buts->menunr), B_WORLDALONE, B_WORLDLOCAL, B_WORLDDELETE, 0, B_KEEPDATA);
+	std_libbuttons(block, 10, 180, 0, NULL, B_WORLDBROWSE, id, idfrom, &(G.buts->menunr), B_WORLDALONE, B_WORLDLOCAL, B_WORLDDELETE, 0, B_KEEPDATA);
 
 	if(wrld==NULL) return;
 	
@@ -2384,7 +2381,7 @@ static void material_panel_material(Object *ob, Material *ma)
 	ID *id, *idn, *idfrom;
 	uiBut *but;
 	float *colpoin = NULL, min;
-	int rgbsel = 0, xco= 0;
+	int rgbsel = 0;
 	char str[30];
 	
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_material", UI_EMBOSS, UI_HELV, curarea->win);
@@ -2394,7 +2391,7 @@ static void material_panel_material(Object *ob, Material *ma)
 	buttons_active_id(&id, &idfrom);
 
 	uiBlockSetCol(block, TH_BUT_SETTING2);
-	xco= std_libbuttons(block, 8, 200, 0, NULL, B_MATBROWSE, id, idfrom, &(G.buts->menunr), B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
+	std_libbuttons(block, 8, 200, 0, NULL, B_MATBROWSE, id, idfrom, &(G.buts->menunr), B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
 	
 	uiDefIconBut(block, BUT, B_MATCOPY, ICON_COPYUP,	263,200,XIC,YIC, 0, 0, 0, 0, 0, "Copies Material to the buffer");
 	uiSetButLock(id && id->lib, "Can't edit library data");

@@ -258,7 +258,7 @@ void do_soundbuts(unsigned short event)
 }
 
 
-static void sound_panel_listener()
+static void sound_panel_listener(void)
 {
 	uiBlock *block;
 	int xco= 100, yco=100, mixrate;
@@ -288,7 +288,7 @@ static void sound_panel_listener()
 	
 }
 
-static void sound_panel_sequencer()
+static void sound_panel_sequencer(void)
 {
 	uiBlock *block;
 	short xco, yco;
@@ -943,7 +943,7 @@ static char *avicodec_str(void)
 }
 #endif
 
-static void render_panel_output()
+static void render_panel_output(void)
 {
 	ID *id;
 	int a,b;
@@ -1012,7 +1012,7 @@ static void render_panel_output()
 	}
 }
 
-static void render_panel_render()
+static void render_panel_render(void)
 {
 	uiBlock *block;
 
@@ -1069,7 +1069,7 @@ static void render_panel_render()
 
 }
 
-static void render_panel_anim()
+static void render_panel_anim(void)
 {
 	uiBlock *block;
 
@@ -1096,7 +1096,7 @@ static void render_panel_anim()
 	uiBlockEndAlign(block);
 }
 
-static void render_panel_format()
+static void render_panel_format(void)
 {
 	uiBlock *block;
 	int yofs;

@@ -120,7 +120,7 @@ float Inpf( float *v1, float *v2)
 }
 
 /* Project v1 on v2 */
-void Projf(float *c, const float *v1, const float *v2)
+void Projf(float *c, float *v1, float *v2)
 {
 	float mul;
 	mul = Inpf(v1, v2) / Inpf(v2, v2);
@@ -1937,8 +1937,8 @@ void EulToMat4( float *eul,float mat[][4])
 }
 
 
-void Mat3ToEul(float tmat[][3], float *eul
-){
+void Mat3ToEul(float tmat[][3], float *eul)
+{
 	float cy, quat[4], mat[3][3];
 	
 	Mat3ToQuat(tmat, quat);
@@ -1992,53 +1992,6 @@ void QuatToEul( float *quat, float *eul)
 	
 	QuatToMat3(quat, mat);
 	Mat3ToEul(mat, eul);
-}
-
-void QuatToSpher( float *quat, float *sph)
-/* Not working 100% yet I don't think... */
-{
-	float tx, ty, tz;
-	float qw, qx, qy, qz;
-	float cos_theta;
-	float sin_theta;
-	
-	qx = quat[0];
-	qy = quat[1];
-	qz = quat[2];
-	qw = quat[3];
-
-	cos_theta = qw;
-	sin_theta = (float)sqrt(1.0 - cos_theta * cos_theta);
-
-	if (fabs(sin_theta) < 0.0005)
-		sin_theta = 1.0;
-
-	tx = qx / sin_theta;
-	ty = qy / sin_theta;
-	tz = qz / sin_theta;
-
-	/* Lattitude */
-	sph[0] = -(float)asin(ty);
-
-	/* Longitude */
-	if (tx*tx + tz*tz <0.0005)
-		sph[1] = 0.0;
-	else
-		sph[1] = (float)atan2(tx, tz);
-
-	if (sph[1] < 0.0)
-		sph[1] +=(float)(M_PI*2);
-
-	/* Roll */
-	sph[2] = (float)(acos(cos_theta) * 2.0) ;
-}
-
-void Mat3ToSpher ( float *mat3, float *sph)
-{
-	float quat[4];
-
-	Mat3ToQuat(mat3, quat);
-	QuatToSpher(quat, sph);
 }
 
 

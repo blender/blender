@@ -118,7 +118,7 @@ Crossf(
 
 	void 
 Projf(
-	float *c, const float *v1, const float *v2
+	float *c, float *v1, float *v2
 );
 
 /**
@@ -626,16 +626,6 @@ QuatToMat3(
 QuatToMat4(
 	float *q, 
 	float m[][4]
-);
-	void 
-QuatToSpher(
-	float *quat, 
-	float *sph
-);
-	void 
-Mat3ToSpher(
-	float *mat, 
-	float *sph
 );
 	void 
 Mat3ToQuat_is_ok(

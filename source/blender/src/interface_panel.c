@@ -771,15 +771,10 @@ static void ui_draw_panel_header(uiBlock *block)
 void ui_draw_panel(uiBlock *block)
 {
 	Panel *panel= block->panel;
-	int align=0, ofsx;
+	int ofsx;
 	
 	if(panel->paneltab) return;
 
-	if(curarea->spacetype==SPACE_BUTS) {
-		SpaceButs *sbuts= curarea->spacedata.first;
-		align= sbuts->align;
-	}
-	
 	if(panel->flag & PNL_CLOSEDY) {
 		uiSetRoundBox(15);
 		BIF_ThemeColorShade(TH_HEADER, -30);
@@ -849,14 +844,6 @@ void ui_draw_panel(uiBlock *block)
 			BIF_ThemeColor4(TH_PANEL);
 			glRectf(block->minx, block->miny, block->maxx, block->maxy);
 
-			//if(align) {
-			//	glColor4ub(206, 206, 206, 100);
-			//	if(align==BUT_HORIZONTAL) ui_set_panel_pattern('h');
-			//	else ui_set_panel_pattern('v');
-
-			//	glRectf(block->minx, block->miny, block->maxx, block->maxy);
-			//	glDisable(GL_POLYGON_STIPPLE);
-			// }
 			glDisable(GL_BLEND);
 		}
 		else if(panel->control & UI_PNL_TRANSP) {

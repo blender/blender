@@ -32,6 +32,7 @@
 
 #include <stdio.h> 
 #include <string.h>
+#include <math.h>
 
 #include "MEM_guardedalloc.h"
 #include "nla.h"

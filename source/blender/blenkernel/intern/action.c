@@ -185,13 +185,8 @@ blend_constraints(
 	}
 }
 
-	void 
-blend_poses (
-	bPose *dst, 
-	const bPose *src, 
-	float srcweight, 
-	short mode
-){
+void blend_poses ( bPose *dst, const bPose *src, float srcweight, short mode)
+{
 	bPoseChannel *dchan;
 	const bPoseChannel *schan;
 	float	dquat[4], squat[4], mat[3][3];
@@ -245,10 +240,8 @@ blend_poses (
 	}
 }
 
-	void 
-clear_pose_constraint_status (
-	Object *ob
-){
+void clear_pose_constraint_status ( Object *ob)
+{
 	bPoseChannel *chan;
 
 	if (!ob)
@@ -261,10 +254,8 @@ clear_pose_constraint_status (
 	}
 }
 
-	float 
-calc_action_start (
-	const bAction *act
-){
+float calc_action_start (const bAction *act)
+{
 	const bActionChannel *chan;
 	const IpoCurve	*icu;
 	float size=999999999.0f;
@@ -298,10 +289,8 @@ calc_action_start (
 		return size;
 }
 
-	float 
-calc_action_end (
-	const bAction *act
-){
+float calc_action_end (const bAction *act)
+{
 	const bActionChannel	*chan;
 	const bConstraintChannel *conchan;
 	const IpoCurve		*icu;
@@ -325,11 +314,8 @@ calc_action_end (
 	return size;
 }
 
-	void 
-verify_pose_channel (
-	bPose* pose, 
-	const char* name
-) {
+void verify_pose_channel (bPose* pose, const char* name) 
+{
 	bPoseChannel *chan;
 
 	if (!pose){
@@ -355,11 +341,8 @@ verify_pose_channel (
 	BLI_addtail (&pose->chanbase, chan);
 }
 
-	void 
-get_pose_from_pose (
-	bPose **pose,
-	const bPose *src
-){
+void get_pose_from_pose (bPose **pose, const bPose *src)
+{
 	const bPoseChannel	*pchan;
 	bPoseChannel *newchan;
 
@@ -401,12 +384,8 @@ static void get_constraint_influence_from_pose (bPose *dst, bPose *src)
 
 /* If the pose does not exist, a new one is created */
 
-	void 
-get_pose_from_action (
-	bPose **pose,
-	bAction *act,
-	float ctime
-) {
+void get_pose_from_action ( bPose **pose, bAction *act, float ctime) 
+{
 	bActionChannel *achan;
 	bPoseChannel	*pchan;
 	Ipo				*ipo;
@@ -469,9 +448,8 @@ get_pose_from_action (
 	}
 }
 
-	void 
-do_all_actions(
-){
+void do_all_actions()
+{
 	Base *base;
 	bPose *apose=NULL;
 	bPose *tpose=NULL;
@@ -671,11 +649,8 @@ static void do_pose_constraint_channels(bPose *pose, bAction *act, float ctime)
 	}
 }
 
-	bActionChannel *
-get_named_actionchannel (
-	bAction *act,
-	const char *name
-){
+bActionChannel *get_named_actionchannel (bAction *act, const char *name)
+{
 	bActionChannel *chan;
 
 	if (!act)
@@ -689,10 +664,8 @@ get_named_actionchannel (
 	return NULL;
 }
 
-	void 
-clear_pose (
-	bPose *pose
-) {
+void clear_pose ( bPose *pose) 
+{
 	bPoseChannel *chan;
 	
 	if (pose->chanbase.first){
@@ -703,10 +676,8 @@ clear_pose (
 	}
 }
 
-	void 
-make_local_action(
-	bAction *act
-){
+void make_local_action(bAction *act)
+{
 	Object *ob;
 	bAction *actn;
 	int local=0, lib=0;
@@ -754,10 +725,8 @@ make_local_action(
 }
 
 
-	void 
-free_action(
-	bAction *act
-){
+void free_action(bAction *act)
+{
 	bActionChannel *chan;
 
 	/* Free channels */
@@ -771,10 +740,8 @@ free_action(
 		BLI_freelistN (&act->chanbase);
 }
 
-	bAction* 
-copy_action (
-	const bAction *src
-){
+bAction* copy_action (const bAction *src)
+{
 	bAction *dst = NULL;
 	bActionChannel *dchan, *schan;
 	
@@ -792,10 +759,8 @@ copy_action (
 	return dst;
 }
 
-	bPoseChannel *
-copy_pose_channel (
-	const bPoseChannel* src
-){
+bPoseChannel *copy_pose_channel (const bPoseChannel* src)
+{
 	bPoseChannel *dst;
 
 	if (!src)
@@ -808,12 +773,8 @@ copy_pose_channel (
 	return dst;
 }
 
-	void 
-copy_pose(
-	bPose **dst, 
-	const bPose *src, 
-	int copycon
-){
+void copy_pose(bPose **dst, const bPose *src, int copycon)
+{
 	bPose *outPose;
 	const bPose * inPose;
 	bPoseChannel	*newChan;
@@ -848,7 +809,8 @@ copy_pose(
 	*dst=outPose;
 }
 
-bPoseChannel *set_pose_channel (bPose *pose, bPoseChannel *chan){
+bPoseChannel *set_pose_channel (bPose *pose, bPoseChannel *chan)
+{
 	/*	chan is no longer valid for the calling function.
 		and should not be used by that function after calling
 		this one
