@@ -681,6 +681,85 @@ elif sys.platform=='openbsd3':
     openal_lib = ['openal']
     openal_libpath = ['/usr/lib']
     openal_include = ['/usr/include']
+    
+elif sys.platform=='freebsd4' or sys.platform=='freebsd5':
+    print "Building for FreeBSD"
+    use_international = 'false'
+    use_gameengine = 'false'
+    use_openal = 'false'
+    use_fmod = 'false'
+    use_quicktime = 'false'
+    use_sumo = 'false'
+    use_ode = 'false'
+    use_buildinfo = 'true'
+    build_blender_dynamic = 'true'
+    build_blender_static = 'false'
+    build_blender_player = 'false'
+    build_blender_plugin = 'false'
+    release_flags = ['-O2']
+    debug_flags = ['-O2', '-g']
+    extra_flags = ['-pipe', '-fPIC', '-funsigned-char']
+    cxxflags = []
+    defines = []
+    warn_flags = ['-Wall','-W']
+    window_system = 'X11'
+    platform_libs = ['m', 'stdc++', 'util']
+    platform_libpath = []
+    platform_linkflags = ['-pthread']
+    extra_includes = []
+    z_lib = ['z']
+    z_libpath = ['/usr/lib']
+    z_include = ['/usr/include']
+    # png library information
+    png_lib = ['png']
+    png_libpath = ['/usr/local/lib']
+    png_include = ['/usr/local/include']
+    # jpeg library information
+    jpeg_lib = ['jpeg']
+    jpeg_libpath = ['/usr/local/lib']
+    jpeg_include = ['/usr/local/include']
+    # OpenGL library information
+    opengl_lib = ['GL', 'GLU']
+    opengl_static = ['/usr/lib/libGL.a', '/usr/lib/libGLU.a']
+    opengl_libpath = ['/usr/lib', '/usr/X11R6/lib']
+    opengl_include = ['/usr/X11R6/include/']
+    # SDL library information
+    sdl_env.ParseConfig ('sdl11-config --cflags --libs')
+    sdl_cflags = sdl_env.Dictionary()['CCFLAGS']
+    sdl_include = sdl_env.Dictionary()['CPPPATH']
+    sdl_libpath = ['/usr/local/include/SDL11']
+    sdl_lib = sdl_env.Dictionary()['LIBS']
+    # SOLID library information
+    solid_lib = []                     # TODO
+    solid_libpath = []        # TODO
+    solid_include = ['#extern/solid']
+    qhull_lib = []       # TODO
+    qhull_libpath = []  # TODO
+    qhull_include = ['#extern/qhull/include']
+    # ODE library information
+    ode_lib = ['ode']
+    ode_libpath = ['#../lib/linux-glibc2.2.5-i386/ode/lib']
+    ode_include = ['#../lib/linux-glibc2.2.5-i386/ode/include']
+    # Python library information
+    python_lib = ['python%d.%d' % sys.version_info[0:2]]
+    python_libpath = [sysconfig.get_python_lib (0, 1) + '/config']
+    python_include = [sysconfig.get_python_inc ()]
+    python_linkflags = []
+    # International support information
+    ftgl_lib = ['ftgl']
+    ftgl_libpath = ['#../lib/linux-glibc2.2.5-i386/ftgl/lib']
+    ftgl_include = ['#../lib/linux-glibc2.2.5-i386/ftgl/include']
+    freetype_env.ParseConfig('pkg-config --cflags --libs freetype2')
+    freetype_lib = freetype_env.Dictionary()['LIBS']
+    freetype_libpath = freetype_env.Dictionary()['LIBPATH']
+    freetype_include = freetype_env.Dictionary()['CPPPATH']
+    gettext_lib = []
+    gettext_libpath = []
+    gettext_include = []
+    # OpenAL library information
+    openal_lib = ['openal']
+    openal_libpath = ['/usr/lib']
+    openal_include = ['/usr/include']
 
 else:
     print "Unknown platform %s"%sys.platform
@@ -1188,7 +1267,7 @@ def preparedist():
 		shutil.copy("../lib/windows/python/lib/python23.dll", "dist/python23.dll")
 		shutil.copy("../lib/windows/sdl/lib/SDL.dll", "dist/SDL.dll")
 		shutil.copy("../lib/windows/gettext/lib/gnu_gettext.dll", "dist/gnu_gettext.dll")
-	elif sys.platform in ['linux2', 'linux-i386']:
+	elif sys.platform in ['linux2', 'linux-i386', 'freebsd4', 'freebsd5']:
 		shutil.copy("blender", "dist/blender")
 		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
 			shutil.copy("blenderplayer", "dist/blenderplayer")
@@ -1376,6 +1455,12 @@ def zipit(env, target, source):
 	elif sys.platform == 'linux2' or sys.platform == 'linux-i386':
 		zipext += ".tar.gz"
 		pf = "linux"
+	elif sys.platform == 'freebsd4':
+		zipext += ".tar.gz"
+		pf = "freebsd4"
+	elif sys.platform == 'freebsd5':
+		zipext += ".tar.gz"
+		pf = "freebsd5"
 	
 	if user_options_dict['BUILD_BINARY'] == 'release':
 		blendname = "blender-" + version + "-" + config_guess
@@ -1391,7 +1476,7 @@ def zipit(env, target, source):
 	print
 	if sys.platform == 'win32':
 		print "Create the zip!"
-	elif sys.platform == 'linux2' or sys.platform == 'linux-i386':
+	else:
 		print "Create the tarball!"
 	print
 	
@@ -1601,7 +1686,7 @@ def BlenderRelease(target):
 		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
 			app_env.Depends(Mappit, playername)
 		app_env.Alias("release", Mappit)
-	elif sys.platform in ['win32', 'linux2', 'linux-i386']:
+	elif sys.platform in ['win32', 'linux2', 'linux-i386', 'freebsd4', 'freebsd5']:
 		release_env = Environment()
 		releaseit = release_env.Command('blenderrelease', appname, zipit)
 		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
