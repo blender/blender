@@ -205,6 +205,7 @@ void RE_init_filt_mask(void)
 {
 	static int firsttime=1;
 	static int lastosa=0;
+	static int lastgauss=0;
 	static float lastgamma= 0.0;
 	float gamma, igamma, flweight[32];
 	float weight[32], totw, val, *fpx1, *fpx2, *fpy1, *fpy2, *m3, *m4;
@@ -283,9 +284,10 @@ void RE_init_filt_mask(void)
 		}
 	}
 
-	if(R.osa && lastosa!=R.osa) {
+	if(R.osa && (lastosa!=R.osa || lastgauss != (R.r.mode & R_GAUSS)) ) {
 		lastosa= R.osa;
-		
+		lastgauss= R.r.mode & R_GAUSS;
+			
 		val= 1.0/((float)R.osa);
 		for(a=0; a<256; a++) {
 			fmask[a]= ((float)cmask[a])*val;
