@@ -965,7 +965,7 @@ void oldRenderLoop(void)  /* here the PART and FIELD loops */
 			}
 
 			if( (R.flag & R_HALO)) {
-				add_halo_flare();
+				if(RE_local_test_break()==0) add_halo_flare();
 			}
 
 			if(R.r.mode & R_MBLUR) {
