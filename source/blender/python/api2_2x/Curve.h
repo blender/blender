@@ -107,6 +107,10 @@ static PyObject *Curve_getRot(BPy_Curve *self);
 static PyObject *Curve_setRot(BPy_Curve *self, PyObject *args);
 static PyObject *Curve_getSize(BPy_Curve *self);
 static PyObject *Curve_setSize(BPy_Curve *self, PyObject *args);
+static PyObject *Curve_getNumCurves(BPy_Curve *self);
+static PyObject *Curve_isNurb( BPy_Curve *self, PyObject *args );
+static PyObject *Curve_getNumPoints(BPy_Curve *self, PyObject *args);
+static PyObject *Curve_getNumPoints(BPy_Curve *self, PyObject *args);
 
 /*****************************************************************************/
 /*  Python BPy_Curve methods table:                                            */
@@ -171,6 +175,12 @@ Sets a control point "},
 	METH_NOARGS,"() - Gets curve size"},
   {"setSize", (PyCFunction)Curve_setSize, 
 	METH_VARARGS,"(3-tuple) - Sets curve size"},
+  {"getNumCurves", (PyCFunction)Curve_getNumCurves, 
+	METH_NOARGS,"() - Gets # of curves"},
+  {"isNurb", (PyCFunction)Curve_isNurb, 
+	METH_VARARGS,"(nothing or integer) - returns 1 or 0, depending upon the curve being a Nurb"},
+  {"getNumPoints", (PyCFunction)Curve_getNumPoints, 
+	METH_VARARGS,"(nothing or integer) - returns the number of points of the specified curve"},
   {0}
 };
 

@@ -52,37 +52,9 @@
 /*****************************************************************************/
 PyObject *M_Build_New (PyObject *self, PyObject *args);
 PyObject *M_Build_Get (PyObject *self, PyObject *args);
-/*****************************************************************************/
-/* The following string definitions are used for documentation strings.      */
-/* In Python these will be written to the console when doing a               */
-/* Blender.Camera.__doc__                                                    */
-/*****************************************************************************/
 
-static char M_Build_doc[] =
-"The Blender Build module\n\
-This module provides access to **Build Data** objects in Blender\n";
 
-static char M_Build_New_doc[] =
-"Build.New ():\n\
-        Return a new Build Data object with the given type and name.";
 
-static char M_Build_Get_doc[] =
-"Build.Get (name = None):\n\
-        Return the build data with the given 'name', None if not found, or\n\
-        Return a list with all Build Data objects in the current scene,\n\
-        if no argument was given.";
-
-/*****************************************************************************/
-/* Python method structure definition for Blender.Build module:              */
-/*****************************************************************************/
-/*
-struct PyMethodDef M_Build_methods[] = {
-  {"New",(PyCFunction)M_Build_New, METH_VARARGS, 0},
-  {"Get",         M_Build_Get,         METH_VARARGS, 0},
-  {"get",         M_Build_Get,         METH_VARARGS,  0},
-  {NULL, NULL, 0, NULL}
-};
-*/
 /*****************************************************************************/
 /* Python BPy_Build methods declarations:                                      */
 /*****************************************************************************/
@@ -91,20 +63,6 @@ PyObject *Build_setLen(BPy_Build *self,PyObject*a);
 PyObject *Build_getSfra(BPy_Build *self);
 PyObject *Build_setSfra(BPy_Build *self,PyObject*a);
 
-/*****************************************************************************/
-/* Python BPy_Build methods table:                                             */
-/*****************************************************************************/
-static PyMethodDef BPy_Build_methods[] = {
-  {"getLen",(PyCFunction)Build_getLen,
-	 METH_NOARGS,"()-Return Build len"},
-  {"setLen",(PyCFunction)Build_setLen, METH_VARARGS,
-	 "()- Sets Build len"},
-  {"getSfra",(PyCFunction)Build_getSfra,
-	 METH_NOARGS,"()-Return Build sfra"},
-  {"setSfra",(PyCFunction)Build_setSfra, METH_VARARGS,
-	 "()- Sets Build sfra"},
-	{0}
-};
 
 
 /*****************************************************************************/

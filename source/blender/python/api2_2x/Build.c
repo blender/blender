@@ -33,6 +33,22 @@
 #include "Effect.h"
 
 /*****************************************************************************/
+/* Python BPy_Build methods table:                                             */
+/*****************************************************************************/
+static PyMethodDef BPy_Build_methods[] = {
+  {"getLen",(PyCFunction)Build_getLen,
+	 METH_NOARGS,"()-Return Build len"},
+  {"setLen",(PyCFunction)Build_setLen, METH_VARARGS,
+	 "()- Sets Build len"},
+  {"getSfra",(PyCFunction)Build_getSfra,
+	 METH_NOARGS,"()-Return Build sfra"},
+  {"setSfra",(PyCFunction)Build_setSfra, METH_VARARGS,
+	 "()- Sets Build sfra"},
+	{0}
+};
+
+
+/*****************************************************************************/
 /* Python Build_Type structure definition:                                   */
 /*****************************************************************************/
 PyTypeObject Build_Type =
@@ -44,7 +60,7 @@ PyTypeObject Build_Type =
   0,                                      /* tp_itemsize */
   /* methods */
   (destructor)BuildDeAlloc,              /* tp_dealloc */
-  0,                 /* tp_print */
+  0,                                     /* tp_print */
   (getattrfunc)BuildGetAttr,             /* tp_getattr */
   (setattrfunc)BuildSetAttr,             /* tp_setattr */
   0,                                      /* tp_compare */
@@ -61,6 +77,26 @@ PyTypeObject Build_Type =
 };
 
 
+
+/*****************************************************************************/
+/* The following string definitions are used for documentation strings.      */
+/* In Python these will be written to the console when doing a               */
+/* Blender.Camera.__doc__                                                    */
+/*****************************************************************************/
+
+static char M_Build_doc[] =
+"The Blender Build module\n\
+This module provides access to **Build Data** objects in Blender\n";
+
+static char M_Build_New_doc[] =
+"Build.New ():\n\
+        Return a new Build Data object with the given type and name.";
+
+static char M_Build_Get_doc[] =
+"Build.Get (name = None):\n\
+        Return the build data with the given 'name', None if not found, or\n\
+        Return a list with all Build Data objects in the current scene,\n\
+        if no argument was given.";
 
 /*****************************************************************************/
 /* Function:              M_Build_New                                        */
@@ -152,6 +188,7 @@ struct PyMethodDef M_Build_methods[] = {
 /*****************************************************************************/
 /* Function:              Build_Init                                         */
 /*****************************************************************************/
+
 PyObject *Build_Init (void)
 {
   PyObject  *submodule;
