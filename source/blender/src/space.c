@@ -1705,19 +1705,19 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		&U.userpref,1.0,2.0, 0, 0,"");
 
 	uiDefButI(block, ROW,B_USERPREF,"Themes",
-		(short)(xpos+2*dx),ypostab,(short)dx,buth,
+		(short)(xpos+3*dx),ypostab,(short)dx,buth,
 		&U.userpref,1.0,6.0, 0, 0,"");
 
 	uiDefButI(block, ROW,B_USERPREF,"Auto Save",
-		(short)(xpos+3*dx),ypostab,(short)dx,buth,
+		(short)(xpos+4*dx),ypostab,(short)dx,buth,
 		&U.userpref,1.0,3.0, 0, 0,"");
 
 	uiDefButI(block, ROW,B_USERPREF,"System & OpenGL",
 		(short)(xpos+5*dx),ypostab,(short)dx,buth,
 		&U.userpref,1.0,4.0, 0, 0,"");
-
+		
 	uiDefButI(block, ROW,B_USERPREF,"File Paths",
-		(short)(xpos+4*dx),ypostab,(short)dx,buth,
+		(short)(xpos+6*dx),ypostab,(short)dx,buth,
 		&U.userpref,1.0,5.0, 0, 0,"");
 
 	uiBlockSetEmboss(block, UI_EMBOSSX);
