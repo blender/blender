@@ -237,10 +237,6 @@ Window *window_open(char *title, int posx, int posy, int sizex, int sizey, int s
 	int scr_w, scr_h;
 
 	winlay_get_screensize(&scr_w, &scr_h);
-	if(G.f & G_DEBUG) {
-		printf("screen size %d %d\n", scr_w, scr_h);	
-		printf("win start %d %d size %d %d\n",  posx,  posy,  sizex,  sizey);
-	}
 	posy= (scr_h-posy-sizey);
 	
 	/* create a fullscreen window on unix by default*/
@@ -404,10 +400,14 @@ static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 		Window *win;
 		
 		if (!ghostwin) {
-			printf("GHOST event error - no window - type: %d\n", type);
+			// XXX - should be checked, why are we getting an event here, and
+			//	what is it?
+
 			return 1;
 		} else if (!GHOST_ValidWindow(g_system, ghostwin)) {
-			printf("GHOST event error - invalid window - win: %p\n", ghostwin);
+			// XXX - should be checked, why are we getting an event here, and
+			//	what is it?
+
 			return 1;
 		} else {
 			win= GHOST_GetWindowUserData(ghostwin);
