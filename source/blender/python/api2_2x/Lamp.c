@@ -157,6 +157,7 @@ static PyObject *M_Lamp_Get(PyObject *self, PyObject *args)
 /*****************************************************************************/
 /* Function:              M_Lamp_Init                                        */
 /*****************************************************************************/
+/* Needed by the Blender module, to register the Blender.Lamp submodule */
 PyObject *M_Lamp_Init (void)
 {
   PyObject  *submodule;
@@ -166,6 +167,48 @@ PyObject *M_Lamp_Init (void)
   submodule = Py_InitModule3("Blender.Lamp", M_Lamp_methods, M_Lamp_doc);
 
   return (submodule);
+}
+
+/* Three Python Lamp_Type helper functions needed by the Object module: */
+
+/*****************************************************************************/
+/* Function:    Lamp_createPyObject                                        */
+/* Description: This function will create a new C_Lamp from an existing    */
+/*              Blender camera structure.                                    */
+/*****************************************************************************/
+PyObject *Lamp_createPyObject (Lamp *lamp)
+{
+	C_Lamp *pylamp;
+
+	pylamp = (C_Lamp *)PyObject_NEW (C_Lamp, &Lamp_Type);
+
+	if (!pylamp)
+		return EXPP_ReturnPyObjError (PyExc_MemoryError,
+						"couldn't create C_Lamp object");
+
+	pylamp->lamp = lamp;
+
+	return (PyObject *)pylamp;
+}
+
+/*****************************************************************************/
+/* Function:    Lamp_checkPyObject                                           */
+/* Description: This function returns true when the given PyObject is of the */
+/*              type Lamp. Otherwise it will return false.                   */
+/*****************************************************************************/
+int Lamp_checkPyObject (PyObject *pyobj)
+{
+	return (pyobj->ob_type == &Lamp_Type);
+}
+
+/*****************************************************************************/
+/* Function:    Lamp_fromPyObject                                            */
+/* Description: This function returns the Blender lamp from the given        */
+/*              PyObject.                                                    */
+/*****************************************************************************/
+Lamp *Lamp_fromPyObject (PyObject *pyobj)
+{
+	return ((C_Lamp *)pyobj)->lamp;
 }
 
 /*****************************************************************************/

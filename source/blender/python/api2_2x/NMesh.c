@@ -236,7 +236,7 @@ static PyObject *NMFace_getattr(PyObject *self, char *name)
 
 static int NMFace_setattr(PyObject *self, char *name, PyObject *v)
 {
-  C_NMFace *mf = (C_NMFace *) self;
+  C_NMFace *mf = (C_NMFace *)self;
   short ival;
 
   if (strcmp(name, "v") == 0) {
@@ -259,14 +259,12 @@ static int NMFace_setattr(PyObject *self, char *name, PyObject *v)
 	}
 	else if (!strcmp(name, "mat") || !strcmp(name, "materialIndex")) {
     PyArg_Parse(v, "h", &ival);
-
     mf->mat_nr= ival;
     
     return 0;
   }
 	else if (strcmp(name, "smooth") == 0) {
     PyArg_Parse(v, "h", &ival);
-
     mf->smooth = ival?1:0;
 
     return 0;
@@ -275,7 +273,7 @@ static int NMFace_setattr(PyObject *self, char *name, PyObject *v)
 
     if(PySequence_Check(v)) {
       Py_DECREF(mf->uv);
-      mf->uv= EXPP_incr_ret(v);
+      mf->uv = EXPP_incr_ret(v);
 
 			return 0;
     }
@@ -352,10 +350,10 @@ static PySequenceMethods NMFace_SeqMethods =
 PyTypeObject NMFace_Type =
 {
   PyObject_HEAD_INIT(&PyType_Type)
-  0,                  /*ob_size*/
-  "NMFace",           /*tp_name*/
-  sizeof(C_NMFace),   /*tp_basicsize*/
-  0,                  /*tp_itemsize*/
+  0,                            /*ob_size*/
+  "NMFace",                     /*tp_name*/
+  sizeof(C_NMFace),             /*tp_basicsize*/
+  0,                            /*tp_itemsize*/
   /* methods */
   (destructor) NMFace_dealloc,  /*tp_dealloc*/
   (printfunc) 0,                /*tp_print*/
@@ -371,7 +369,7 @@ PyTypeObject NMFace_Type =
 
 static C_NMVert *newvert(float *co)
 {
-  C_NMVert *mv= PyObject_NEW(C_NMVert, &NMVert_Type);
+  C_NMVert *mv = PyObject_NEW(C_NMVert, &NMVert_Type);
 
   mv->co[0] = co[0]; mv->co[1] = co[1]; mv->co[2] = co[2];
 
@@ -384,7 +382,7 @@ static C_NMVert *newvert(float *co)
 static PyObject *M_NMesh_Vert(PyObject *self, PyObject *args)
 {
   float co[3]= {0.0, 0.0, 0.0};
-  
+ 
   if (!PyArg_ParseTuple(args, "|fff", &co[0], &co[1], &co[2]))
          return EXPP_ReturnPyObjError (PyExc_TypeError,
                   "expected three floats (or nothing) as arguments");
@@ -404,8 +402,8 @@ static PyObject *NMVert_getattr(PyObject *self, char *name)
   if (!strcmp(name, "co") || !strcmp(name, "loc"))
           return newVectorObject(mv->co, 3);
 
-  else if (strcmp(name, "no") == 0) return newVectorObject(mv->no, 3);    
-  else if (strcmp(name, "uvco") == 0) return newVectorObject(mv->uvco, 3);    
+  else if (strcmp(name, "no") == 0)    return newVectorObject(mv->no, 3);    
+  else if (strcmp(name, "uvco") == 0)  return newVectorObject(mv->uvco, 3);    
   else if (strcmp(name, "index") == 0) return PyInt_FromLong(mv->index);    
 
   return EXPP_ReturnPyObjError (PyExc_AttributeError, name);
@@ -540,7 +538,7 @@ PyTypeObject NMVert_Type =
 
 static void NMesh_dealloc(PyObject *self)
 {
-  C_NMesh *me= (C_NMesh *) self;
+  C_NMesh *me = (C_NMesh *)self;
 
   Py_DECREF(me->name);
   Py_DECREF(me->verts);
@@ -551,13 +549,13 @@ static void NMesh_dealloc(PyObject *self)
 
 static PyObject *NMesh_getSelectedFaces(PyObject *self, PyObject *args)
 {
-  C_NMesh *nm= (C_NMesh *) self;
+  C_NMesh *nm = (C_NMesh *)self;
   Mesh *me = nm->mesh;
   int flag = 0;
 
   TFace *tf;
   int i;
-  PyObject *l= PyList_New(0);
+  PyObject *l = PyList_New(0);
 
   if (me == NULL) return NULL;
 
@@ -566,17 +564,16 @@ static PyObject *NMesh_getSelectedFaces(PyObject *self, PyObject *args)
 
   if (!PyArg_ParseTuple(args, "|i", &flag)) 
     return NULL;
-  if (flag) {
-    for (i =0 ; i < me->totface; i++) {
-      if (tf[i].flag & TF_SELECT ) {
-        PyList_Append(l, PyInt_FromLong(i));
-      }
-    }   
+
+	if (flag) {
+    for (i = 0 ; i < me->totface; i++) {
+      if (tf[i].flag & TF_SELECT )
+				PyList_Append(l, PyInt_FromLong(i));
+    }
   } else {
-    for (i =0 ; i < me->totface; i++) {
-      if (tf[i].flag & TF_SELECT ) {
+    for (i = 0 ; i < me->totface; i++) {
+      if (tf[i].flag & TF_SELECT )
         PyList_Append(l, PyList_GetItem(nm->faces, i));
-      }
     }   
   }
   return l;
@@ -610,7 +607,7 @@ static PyObject *NMesh_hasVertexUV(PyObject *self, PyObject *args)
 
 static PyObject *NMesh_hasFaceUV(PyObject *self, PyObject *args)
 {
-  C_NMesh *me= (C_NMesh *) self;
+  C_NMesh *me = (C_NMesh *)self;
   int flag = -1;
 
   if (!PyArg_ParseTuple(args, "|i", &flag))
@@ -704,7 +701,7 @@ Mesh *Mesh_fromNMesh(C_NMesh *nmesh)
   return mesh;
 }
 
-PyObject * NMesh_link(PyObject *self, PyObject *args) 
+PyObject *NMesh_link(PyObject *self, PyObject *args) 
 {
 // XXX  return DataBlock_link(self, args);
 	return EXPP_incr_ret(Py_None);
@@ -1363,18 +1360,18 @@ static int convert_NMeshToMesh(Mesh *mesh, C_NMesh *nmesh)
    * index. - Zr
    */
   for (i = 0; i < mesh->totface; i++) {
-    C_NMFace *mf= (C_NMFace *) PySequence_GetItem(nmesh->faces, i);
+    C_NMFace *mf = (C_NMFace *)PySequence_GetItem(nmesh->faces, i);
       
-    j= PySequence_Length(mf->v);
+    j = PySequence_Length(mf->v);
     while (j--) {
       C_NMVert *mv = (C_NMVert *)PySequence_GetItem(mf->v, j);
-      if (C_NMVert_Check(mv)) mv->index= -1;
+      if (C_NMVert_Check(mv)) mv->index = -1;
       Py_DECREF(mv);
     }
-    
+
     Py_DECREF(mf);
   }
-  
+
   for (i = 0; i < mesh->totvert; i++) {
     C_NMVert *mv = (C_NMVert *)PySequence_GetItem(nmesh->verts, i);
     mv->index = i;
@@ -1492,7 +1489,7 @@ static PyObject *M_NMesh_PutRaw(PyObject *self, PyObject *args)
   // Materials can be assigned two ways:
   // a) to the object data (in this case, the mesh)
   // b) to the Object
-  //  
+  //
   // Case a) is wanted, if Mesh data should be shared among objects,
   // as well as its materials (up to 16)
   // Case b) is wanted, when Mesh data should be shared, but not the

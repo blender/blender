@@ -32,6 +32,9 @@
 
 /* Most of this file comes from opy_nmesh.[ch] in the old bpython dir */
 
+#ifndef EXPP_NMESH_H
+#define EXPP_NMESH_H
+
 #include "Python.h"
 
 #ifdef HAVE_CONFIG_H
@@ -197,8 +200,10 @@ static int convert_NMeshToMesh(Mesh *mesh, C_NMesh *nmesh);
 void mesh_update(Mesh *mesh);
 PyObject *new_NMesh(Mesh *oldmesh);
 Mesh *Mesh_fromNMesh(C_NMesh *nmesh);
-// XXX change NMesh *ob below to Object, void to Material
 PyObject *NMesh_assignMaterials_toObject(C_NMesh *nmesh, Object *ob);
 Material **nmesh_updateMaterials(C_NMesh *nmesh);
 Material **newMaterialList_fromPyList (PyObject *list);
 void mesh_update(Mesh *mesh);
+
+
+#endif /* EXPP_NMESH_H */

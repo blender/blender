@@ -24,33 +24,74 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Michel Selten
+ * Contributor(s): Michel Selten, Willian P. Germano
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
+
+#ifndef EXPP_modules_h
+#define EXPP_modules_h
+
 #include <Python.h>
 
 #include <DNA_object_types.h>
 #include <DNA_camera_types.h>
 #include <DNA_lamp_types.h>
-#include <DNA_image_types.h>
+#include <DNA_curve_types.h>
+#include <DNA_effect_types.h>
 
 /*****************************************************************************/
 /* Global variables                                                          */
 /*****************************************************************************/
 extern PyObject *g_blenderdict;
 
+
+/*****************************************************************************/
+/* Module Init functions and Data Object helper functions (used by the       */
+/* Object module to work with its .data field for the various Data objs      */
+/*****************************************************************************/
 void            M_Blender_Init (void);
+
+/* Object itself */
 PyObject *      M_Object_Init (void);
 PyObject *      M_ObjectCreatePyObject (struct Object *obj);
 int             M_ObjectCheckPyObject (PyObject *py_obj);
 struct Object * M_ObjectFromPyObject (PyObject *py_obj);
+
+/* NMesh Data */
 PyObject *      M_NMesh_Init (void);
-PyObject *      M_Camera_Init (void);
-PyObject *      M_Lamp_Init (void);
+
+/* Camera Data */
+PyObject * M_Camera_Init (void);
+PyObject * Camera_createPyObject (struct Camera *cam);
+Camera   * Camera_fromPyObject   (PyObject *pyobj);
+int        Camera_checkPyObject  (PyObject *pyobj);
+
+/* Lamp Data */
+PyObject * M_Lamp_Init (void);
+PyObject * Lamp_createPyObject (struct Lamp *lamp);
+Lamp     * Lamp_fromPyObject   (PyObject *pyobj);
+int        Lamp_checkPyObject  (PyObject *pyobj);
+
+/* Curve Data */
 PyObject *      M_Curve_Init (void);
-PyObject *      M_Image_Init (void);
-PyObject *      M_Window_Init (void);
-PyObject *      M_Draw_Init (void);
-PyObject *      M_BGL_Init (void);
-PyObject *      M_Text_Init (void);
+PyObject *      CurveCreatePyObject (struct Curve *curve);
+struct Curve *  CurveFromPyObject   (PyObject *py_obj);
+int             CurveCheckPyObject  (PyObject *py_obj);
+
+/* Particle Effects Data */
+/*
+PyObject *      M_Effect_Init (void);
+PyObject *      EffectCreatePyObject (struct Effect *effect);
+int             EffectCheckPyObject (PyObject *py_obj);
+struct Effect * EffectFromPyObject (PyObject *py_obj);
+*/
+
+/* Init functions for other modules */
+PyObject * M_Window_Init (void);
+PyObject * M_Image_Init (void);
+PyObject * M_Draw_Init (void);
+PyObject * M_BGL_Init (void);
+PyObject * M_Text_Init (void);
+
+#endif /* EXPP_modules_h */

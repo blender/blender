@@ -49,7 +49,6 @@
 /*****************************************************************************/
 /* Python C_Lamp defaults:                                                   */
 /*****************************************************************************/
-#define EXPP_LAMP_MAX 256
 
 /* Lamp types */
 
@@ -293,6 +292,15 @@ static PyObject *LampGetAttr (C_Lamp *lamp, char *name);
 static int LampSetAttr (C_Lamp *lamp, char *name, PyObject *v);
 static PyObject *LampRepr (C_Lamp *lamp);
 static int LampPrint (C_Lamp *lamp, FILE *fp, int flags);
+
+/*****************************************************************************/
+/* Python Lamp_Type helper functions needed by Blender (the Init function)   */
+/* and Object modules.                                                       */
+/*****************************************************************************/
+PyObject *M_Lamp_Init (void);
+PyObject *LampCreatePyObject (Lamp *lamp);
+Lamp *LampFromPyObject (PyObject *pyobj);
+int LampCheckPyObject (PyObject *pyobj);
 
 /*****************************************************************************/
 /* Python TypeLamp structure definition:                                     */

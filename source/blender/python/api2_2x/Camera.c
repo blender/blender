@@ -35,7 +35,7 @@
 /* Function:              M_Camera_New                                       */
 /* Python equivalent:     Blender.Camera.New                                 */
 /*****************************************************************************/
-static PyObject *M_Camera_New(PyObject *self, PyObject *args, PyObject *keywords)
+static PyObject *M_Camera_New(PyObject *self, PyObject *args, PyObject *kwords)
 {
   char        *type_str = "persp"; /* "persp" is type 0, "ortho" is type 1 */
   char        *name_str = "CamData";
@@ -46,7 +46,7 @@ static PyObject *M_Camera_New(PyObject *self, PyObject *args, PyObject *keywords
 
   printf ("In Camera_New()\n");
 
-  if (!PyArg_ParseTupleAndKeywords(args, keywords, "|ss", kwlist,
+  if (!PyArg_ParseTupleAndKeywords(args, kwords, "|ss", kwlist,
                                    &type_str, &name_str))
   /* We expected string(s) (or nothing) as argument, but we didn't get that. */
     return (EXPP_ReturnPyObjError (PyExc_AttributeError,
@@ -155,6 +155,7 @@ static PyObject *M_Camera_Get(PyObject *self, PyObject *args)
 /*****************************************************************************/
 /* Function:              M_Camera_Init                                      */
 /*****************************************************************************/
+/* Needed by the Blender module, to register the Blender.Camera submodule */
 PyObject *M_Camera_Init (void)
 {
   PyObject  *submodule;
@@ -164,6 +165,48 @@ PyObject *M_Camera_Init (void)
                   M_Camera_methods, M_Camera_doc);
 
   return (submodule);
+}
+
+/* Three Python Camera_Type helper functions needed by the Object module: */
+
+/*****************************************************************************/
+/* Function:    Camera_createPyObject                                        */
+/* Description: This function will create a new C_Camera from an existing    */
+/*              Blender camera structure.                                    */
+/*****************************************************************************/
+PyObject *Camera_createPyObject (Camera *cam)
+{
+	C_Camera *pycam;
+
+	pycam = (C_Camera *)PyObject_NEW (C_Camera, &Camera_Type);
+
+	if (!pycam)
+		return EXPP_ReturnPyObjError (PyExc_MemoryError,
+						"couldn't create C_Camera object");
+
+	pycam->camera = cam;
+
+	return (PyObject *)pycam;
+}
+
+/*****************************************************************************/
+/* Function:    Camera_checkPyObject                                         */
+/* Description: This function returns true when the given PyObject is of the */
+/*              type Camera. Otherwise it will return false.                 */
+/*****************************************************************************/
+int Camera_checkPyObject (PyObject *pyobj)
+{
+	return (pyobj->ob_type == &Camera_Type);
+}
+
+/*****************************************************************************/
+/* Function:    Camera_fromPyObject                                          */
+/* Description: This function returns the Blender camera from the given      */
+/*              PyObject.                                                    */
+/*****************************************************************************/
+Camera *Camera_fromPyObject (PyObject *pyobj)
+{
+	return ((C_Camera *)pyobj)->camera;
 }
 
 /*****************************************************************************/

@@ -43,7 +43,6 @@
 
 #include "constant.h"
 #include "gen_utils.h"
-#include "modules.h"
 
 /*****************************************************************************/
 /* Python C_Camera defaults:                                                 */
@@ -194,6 +193,15 @@ static int CameraPrint (C_Camera *self, FILE *fp, int flags);
 static int CameraSetAttr (C_Camera *self, char *name, PyObject *v);
 static PyObject *CameraGetAttr (C_Camera *self, char *name);
 static PyObject *CameraRepr (C_Camera *self);
+
+/*****************************************************************************/
+/* Python Camera_Type helper functions needed by Blender (the Init function) */
+/* and Object modules.                                                       */
+/*****************************************************************************/
+PyObject *M_Camera_Init (void);
+PyObject *CameraCreatePyObject (Camera *cam);
+Camera *CameraFromPyObject (PyObject *pyobj);
+int CameraCheckPyObject (PyObject *pyobj);
 
 /*****************************************************************************/
 /* Python Camera_Type structure definition:                                  */

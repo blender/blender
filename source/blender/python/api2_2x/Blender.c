@@ -224,5 +224,6 @@ void M_Blender_Init (void)
 	PyDict_SetItemString (dict, "Draw",   M_Draw_Init());
 	PyDict_SetItemString (dict, "BGL",    M_BGL_Init());
 	PyDict_SetItemString (dict, "Text",   M_Text_Init());
+//	PyDict_SetItemString (dict, "Effect",   M_Text_Init());
 }
 
