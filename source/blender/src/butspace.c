@@ -447,9 +447,6 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 
 	uiClearButLock();
 
-	/* since panels give different layouts, we have to make sure v2d.tot matches */
-	uiMatchPanel_view2d(sa);
-
 	/* when align changes, also do this for new panels */
 	/* don't always align, this function is called during AnmatePanels too */
 	if(sbuts->align)
@@ -458,6 +455,9 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 
 	uiDrawBlocksPanels(sa, align);	
 	
+	/* since panels give different layouts, we have to make sure v2d.tot matches */
+	uiMatchPanel_view2d(sa);
+
 	sbuts->re_align= 0;
 	// also for memory for finding which texture you'd like to see
 	sbuts->mainbo= sbuts->mainb;

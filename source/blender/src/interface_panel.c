@@ -546,10 +546,22 @@ void uiSetPanel_view2d(ScrArea *sa)
 		G.v2d->tot.ymax= maxy+PNL_DIST;
 	}
 	else {
+		uiBlock *block;
+
 		G.v2d->tot.xmin= 0;
 		G.v2d->tot.xmax= 1280;
 		G.v2d->tot.ymin= 0;
 		G.v2d->tot.ymax= 228;
+
+		/* no panels, but old 'loose' buttons, as in old logic editor */
+		for(block= sa->uiblocks.first; block; block= block->next) {
+			if(block->win==sa->win) {
+				if(block->minx < G.v2d->tot.xmin) G.v2d->tot.xmin= block->minx;
+				if(block->maxx > G.v2d->tot.xmax) G.v2d->tot.xmax= block->maxx; 
+				if(block->miny < G.v2d->tot.ymin) G.v2d->tot.ymin= block->miny;
+				if(block->maxy > G.v2d->tot.ymax) G.v2d->tot.ymax= block->maxy; 
+			}
+		}
 	}
 	
 }
@@ -558,10 +570,12 @@ void uiSetPanel_view2d(ScrArea *sa)
 void uiMatchPanel_view2d(ScrArea *sa)
 {
 	Panel *pa;
+	int done=0;
 	
 	pa= sa->panels.first;
 	while(pa) {
 		if(pa->active) {
+			done= 1;
 			if(pa->ofsx < G.v2d->tot.xmin) G.v2d->tot.xmin= pa->ofsx;
 			if(pa->ofsx+pa->sizex > G.v2d->tot.xmax) 
 				G.v2d->tot.xmax= pa->ofsx+pa->sizex;
@@ -570,6 +584,18 @@ void uiMatchPanel_view2d(ScrArea *sa)
 				G.v2d->tot.ymax= pa->ofsy+pa->sizey+PNL_HEADER;
 		}
 		pa= pa->next;
+	}
+	if(done==0) {
+		uiBlock *block;
+		/* no panels, but old 'loose' buttons, as in old logic editor */
+		for(block= sa->uiblocks.first; block; block= block->next) {
+			if(block->win==sa->win) {
+				if(block->minx < G.v2d->tot.xmin) G.v2d->tot.xmin= block->minx;
+				if(block->maxx > G.v2d->tot.xmax) G.v2d->tot.xmax= block->maxx; 
+				if(block->miny < G.v2d->tot.ymin) G.v2d->tot.ymin= block->miny;
+				if(block->maxy > G.v2d->tot.ymax) G.v2d->tot.ymax= block->maxy; 
+			}
+		}
 	}	
 }
 
