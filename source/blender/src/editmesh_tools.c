@@ -1727,6 +1727,7 @@ void subdivideflag(int flag, float rad, int beauty)
 	
 	/* since this is all on vertex level, flush vertex selection */
 	EM_select_flush();
+	recalc_editnormals();
 	
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
