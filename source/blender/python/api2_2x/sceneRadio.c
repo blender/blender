@@ -33,8 +33,8 @@
 #include "radio.h"
 #include <BKE_object.h> /* disable_where_script() */
 
-#include "constant.h"
 #include "gen_utils.h"
+#include "constant.h"
 
 /* bitflags */
 #define EXPP_RADIO_flag_SHOWLIM 1
@@ -94,6 +94,14 @@ static int EXPP_check_scene(Scene *scene)
 static PyObject *Radio_collectMeshes(BPy_Radio *self);
 static PyObject *Radio_go(BPy_Radio *self);
 static PyObject *Radio_freeData(BPy_Radio *self);
+static PyObject *Radio_replaceMeshes(BPy_Radio *self);
+static PyObject *Radio_addMesh(BPy_Radio *self);
+static PyObject *Radio_filterFaces(BPy_Radio *self);
+static PyObject *Radio_filterElems(BPy_Radio *self);
+static PyObject *Radio_limitSubdivide(BPy_Radio *self);
+static PyObject *Radio_subdividePatches(BPy_Radio *self);
+static PyObject *Radio_subdivideElems(BPy_Radio *self);
+static PyObject *Radio_removeDoubles(BPy_Radio *self);
 
 static void Radio_dealloc (BPy_Radio *self);
 static PyObject *Radio_repr (BPy_Radio *self);
@@ -259,9 +267,15 @@ static PyObject *EXPP_unpack_set_float(PyObject *args, float *ptr,
 
 static PyObject *Radio_set_hemires(BPy_Radio *self, PyObject *args)
 {
+	PyObject *ret;
+
 	if (!EXPP_check_scene(self->scene)) return NULL;
-	return EXPP_unpack_set_short(args, &self->scene->radio->hemires,
+	ret = EXPP_unpack_set_short(args, &self->scene->radio->hemires,
 		EXPP_RADIO_hemires_MIN, EXPP_RADIO_hemires_MAX);
+
+	if (ret) rad_setlimits();
+
+	return ret;
 }
 
 static PyObject *Radio_set_maxiter(BPy_Radio *self, PyObject *args)
@@ -301,30 +315,54 @@ static PyObject *Radio_set_maxsublamp(BPy_Radio *self, PyObject *args)
 
 static PyObject *Radio_set_pama(BPy_Radio *self, PyObject *args)
 {
+	PyObject *ret;
+
 	if (!EXPP_check_scene(self->scene)) return NULL;
-	return EXPP_unpack_set_short(args, &self->scene->radio->pama,
+	ret = EXPP_unpack_set_short(args, &self->scene->radio->pama,
 		EXPP_RADIO_pama_MIN, EXPP_RADIO_pama_MAX);
+
+	if (ret) rad_setlimits();
+
+	return ret;
 }
 
 static PyObject *Radio_set_pami(BPy_Radio *self, PyObject *args)
 {
+	PyObject *ret;
+
 	if (!EXPP_check_scene(self->scene)) return NULL;
-	return EXPP_unpack_set_short(args, &self->scene->radio->pami,
+	ret = EXPP_unpack_set_short(args, &self->scene->radio->pami,
 		EXPP_RADIO_pami_MIN, EXPP_RADIO_pami_MAX);
+
+	if (ret) rad_setlimits();
+
+	return ret;
 }
 
 static PyObject *Radio_set_elma(BPy_Radio *self, PyObject *args)
 {
+	PyObject *ret;
+
 	if (!EXPP_check_scene(self->scene)) return NULL;
-	return EXPP_unpack_set_short(args, &self->scene->radio->elma,
+	ret = EXPP_unpack_set_short(args, &self->scene->radio->elma,
 		EXPP_RADIO_elma_MIN, EXPP_RADIO_elma_MAX);
+
+	if (ret) rad_setlimits();
+
+	return ret;
 }
 
 static PyObject *Radio_set_elmi(BPy_Radio *self, PyObject *args)
 {
+	PyObject *ret;
+
 	if (!EXPP_check_scene(self->scene)) return NULL;
-	return EXPP_unpack_set_short(args, &self->scene->radio->elmi,
+	ret = EXPP_unpack_set_short(args, &self->scene->radio->elmi,
 		EXPP_RADIO_elmi_MIN, EXPP_RADIO_elmi_MAX);
+
+	if (ret) rad_setlimits();
+
+	return ret;
 }
 
 static PyObject *Radio_set_drawtype(BPy_Radio *self, PyObject *args)
@@ -337,7 +375,7 @@ static PyObject *Radio_set_drawtype(BPy_Radio *self, PyObject *args)
 
 	if (!PyArg_ParseTuple (args, "O", &pyob))
 		return EXPP_ReturnPyObjError(PyExc_TypeError,
-			"expected int or string as argument");
+			"expected int or string and another optional int as arguments");
 
 	if (PyString_Check(pyob)) {
 		str = PyString_AsString(pyob);
@@ -361,6 +399,8 @@ static PyObject *Radio_set_drawtype(BPy_Radio *self, PyObject *args)
 
 	self->scene->radio->drawtype = dt;
 
+	set_radglobal(); /* needed to update 3d view(s) */
+
 	return EXPP_incr_ret (Py_None);
 }
 
@@ -379,9 +419,13 @@ static PyObject *Radio_set_flag(BPy_Radio *self, PyObject *args)
 		if (!mode[i]) break;
 		else if (!strcmp(mode[i], "ShowLimits")) imode |= EXPP_RADIO_flag_SHOWLIM;
 		else if (!strcmp(mode[i], "Z")) imode |= EXPP_RADIO_flag_Z;
+		else return EXPP_ReturnPyObjError (PyExc_AttributeError,
+			"unknown mode string");
 	}
 
 	self->scene->radio->flag = (short)EXPP_ClampInt(imode, 0, 3);
+
+	set_radglobal(); /* needed to update 3d view(s) */
 
 	return EXPP_incr_ret(Py_None);
 }
@@ -402,9 +446,19 @@ static PyObject *Radio_set_convergence(BPy_Radio *self, PyObject *args)
 
 static PyObject *Radio_set_radfac(BPy_Radio *self, PyObject *args)
 {
+	PyObject *ret;
+
 	if (!EXPP_check_scene(self->scene)) return NULL;
-	return EXPP_unpack_set_float(args, &self->scene->radio->radfac,
+	ret = EXPP_unpack_set_float(args, &self->scene->radio->radfac,
 		EXPP_RADIO_radfac_MIN, EXPP_RADIO_radfac_MAX);
+
+	if (ret) {
+		set_radglobal();
+		if (rad_phase() & RAD_PHASE_FACES) make_face_tab();
+		else make_node_display();
+	}
+
+	return ret;
 }
 
 static PyObject *Radio_set_gamma(BPy_Radio *self, PyObject *args)
@@ -421,6 +475,22 @@ static PyMethodDef BPy_Radio_methods[] = {
 		"() - Start radiosity calculations."},
 	{"freeData", (PyCFunction) Radio_freeData, METH_NOARGS,
 		"() - Free all memory used by radiosity."},
+	{"addMesh", (PyCFunction) Radio_addMesh, METH_NOARGS,
+		"() - Add a new mesh with the radio values as vertex colors to Blender."},
+	{"replaceMeshes", (PyCFunction) Radio_replaceMeshes, METH_NOARGS,
+		"() - Replace input meshes with the one created by radiosity simulation."},
+	{"limitSubdivide", (PyCFunction) Radio_limitSubdivide, METH_NOARGS,
+		"() - Subdivide patches."},
+	{"filterFaces", (PyCFunction) Radio_filterFaces, METH_NOARGS,
+		"() - Force an extra smoothing."},
+	{"filterElems", (PyCFunction) Radio_filterElems, METH_NOARGS,
+		"() - Filter elements to remove aliasing artifacts."},
+	{"subdividePatches", (PyCFunction) Radio_subdividePatches, METH_NOARGS,
+		"() - Pre-subdivision: detect high-energy patches and subdivide them."},
+	{"subdivideElems", (PyCFunction) Radio_subdivideElems, METH_NOARGS,
+		"() - Pre-subdivision: detect high-energy elements and subdivide them."},
+	{"removeDoubles", (PyCFunction) Radio_removeDoubles, METH_NOARGS,
+		"() - Join elements which differ less than the defined node limit."},
 	{"getHemiRes", (PyCFunction) Radio_get_hemires, METH_NOARGS,
 		"() - Get hemicube size."},
 	{"setHemiRes", (PyCFunction) Radio_set_hemires, METH_VARARGS,
@@ -439,13 +509,13 @@ static PyMethodDef BPy_Radio_methods[] = {
 	{"setSubShElem", (PyCFunction) Radio_set_subshoote, METH_VARARGS,
 		"(i) - Set number of times environment is tested to detect elements.\n\
 	Range is [0, 10]."},
-	{"getNodeLimit", (PyCFunction) Radio_get_nodelim, METH_NOARGS,
+	{"getElemLimit", (PyCFunction) Radio_get_nodelim, METH_NOARGS,
 		"() - Get the range for removing doubles."},
-	{"setNodeLimit", (PyCFunction) Radio_set_nodelim, METH_VARARGS,
+	{"setElemLimit", (PyCFunction) Radio_set_nodelim, METH_VARARGS,
 		"(i) - Set the range for removing doubles in [0, 50]."},
-	{"getMaxSubDivSh", (PyCFunction) Radio_get_maxsublamp, METH_NOARGS,
+	{"getMaxSubdivSh", (PyCFunction) Radio_get_maxsublamp, METH_NOARGS,
 		"() - Get max number of initial shoot patches evaluated."},
-	{"setMaxSubDivSh", (PyCFunction) Radio_set_maxsublamp, METH_VARARGS,
+	{"setMaxSubdivSh", (PyCFunction) Radio_set_maxsublamp, METH_VARARGS,
 		"(i) - Set max number of initial shoot patches evaluated in [1, 250]."},
 	{"getPatchMax", (PyCFunction) Radio_get_pama, METH_NOARGS,
 		"() - Get max size of a patch."},
@@ -484,7 +554,7 @@ static PyMethodDef BPy_Radio_methods[] = {
 	{"setDrawType", (PyCFunction) Radio_set_drawtype, METH_VARARGS,
 		"(i or s) - Set the draw type: wire, solid (default) or gouraud."},
 	{"getMode", (PyCFunction) Radio_get_flag, METH_NOARGS,
-		"() - Get mode as an or'ed bitmask, see Radio.Modes dict."},
+		"() - Get mode as int (or'ed bitflags), see Radio.Modes dict."},
 	{"setMode", (PyCFunction) Radio_set_flag, METH_VARARGS,
 		"(|ss) - Set mode flags as strings: 'ShowLimits', 'Z'."},
 	{NULL, NULL, 0, NULL}
@@ -596,7 +666,105 @@ static PyObject *Radio_go(BPy_Radio *self)
 {
 	if (!EXPP_check_scene(self->scene)) return NULL;
 
-	rad_go();
+	if (rad_phase() == RAD_PHASE_PATCHES)	rad_go();
+	else return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+		"you need to call radio.collectMeshes() first.");
+
+	return EXPP_incr_ret(Py_None);
+}
+
+static PyObject *Radio_replaceMeshes(BPy_Radio *self)
+{
+	if (!EXPP_check_scene(self->scene)) return NULL;
+
+	if (rad_phase() & RAD_PHASE_FACES) rad_replacemesh();
+	else return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+		"you need to call radio.collectMeshes() and radio.go() first.");
+
+	return EXPP_incr_ret(Py_None);
+}
+
+static PyObject *Radio_addMesh(BPy_Radio *self)
+{
+	if (!EXPP_check_scene(self->scene)) return NULL;
+
+	if (rad_phase() & RAD_PHASE_FACES) rad_addmesh();
+	else return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+		"you need to call radio.collectMeshes() and radio.go() first.");
+
+	return EXPP_incr_ret(Py_None);
+}
+
+static PyObject *Radio_filterFaces(BPy_Radio *self)
+{
+	if (!EXPP_check_scene(self->scene)) return NULL;
+
+	if (rad_phase() & RAD_PHASE_FACES) filterFaces();
+	else return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+		"you need to call radio.collectMeshes() and radio.go() first.");
+
+	return EXPP_incr_ret(Py_None);
+}
+
+static PyObject *Radio_filterElems(BPy_Radio *self)
+{
+	if (!EXPP_check_scene(self->scene)) return NULL;
+
+	if (rad_phase() & RAD_PHASE_FACES) {
+		set_radglobal();
+		filterNodes();
+		make_face_tab();
+	}
+	else return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+		"you need to call radio.collectMeshes() and radio.go() first.");
+
+	return EXPP_incr_ret(Py_None);
+}
+
+static PyObject *Radio_limitSubdivide(BPy_Radio *self)
+{
+	if (!EXPP_check_scene(self->scene)) return NULL;
+
+	if (rad_phase() == RAD_PHASE_PATCHES) rad_limit_subdivide();
+	else return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+		"you need to call this before calculating the radiosity simulation.");
+
+	return EXPP_incr_ret(Py_None);
+}
+
+static PyObject *Radio_subdividePatches(BPy_Radio *self)
+{
+	if (!EXPP_check_scene(self->scene)) return NULL;
+
+	if (rad_phase() == RAD_PHASE_PATCHES) rad_subdivshootpatch();
+	else return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+		"you need to call this before calculating the radiosity simulation.");
+
+	return EXPP_incr_ret(Py_None);
+}
+
+static PyObject *Radio_subdivideElems(BPy_Radio *self)
+{
+	if (!EXPP_check_scene(self->scene)) return NULL;
+
+	if (rad_phase() == RAD_PHASE_PATCHES) rad_subdivshootelem();
+	else return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+		"you need to call radio.collectMeshes() and radio.go() first.");
+
+	return EXPP_incr_ret(Py_None);
+}
+
+static PyObject *Radio_removeDoubles(BPy_Radio *self)
+{
+	if (!EXPP_check_scene(self->scene)) return NULL;
+
+	if (rad_phase() == RAD_PHASE_FACES) {
+		set_radglobal();
+		removeEqualNodes(self->scene->radio->nodelim);
+		make_face_tab();
+	}
+	else return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+		"you need to call radio.collectMeshes() and radio.go() first.");
 
 	return EXPP_incr_ret(Py_None);
 }

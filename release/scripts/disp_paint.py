@@ -14,10 +14,10 @@ Tip: 'Use vertex paint color value to modify shape displacing vertices along nor
 # Terrain Noise added suugered by Jimmy Haze  
 #----------------------------------------------
 # Page officielle :
-#   http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_displacementpainting.htm
+#  http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_displacementpainting.htm
 # Communiquer les problemes et erreurs sur:
-#   http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender
-#--------------------------------------------- 
+#  http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender
+# --------------------------------------------------------------------------
 # ce script est proposé sous licence GPL pour etre associe
 # a la distribution de Blender 2.33
 # --------------------------------------------------------------------------
@@ -45,7 +45,7 @@ Tip: 'Use vertex paint color value to modify shape displacing vertices along nor
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 #  09/07/04 : Noise functions based on a piece of script by Jimmy Haze.
-#----------------------------------------------
+# --------------------------------------------------------------------------
 import Blender
 from Blender import *
 from Blender.Draw import *
@@ -74,31 +74,6 @@ NEWName=''
 ERROR=0
 TextERROR=''
 
-E_EXIT     = 1
-E_MODE     = 2
-E_ORIENT   = 3
-E_NSIZE    = 4
-E_REPEAT   = 5
-E_ACTION   = 16
-E_CREATE   = 17
-E_DOCMAT   = 24
-E_MATVAL   = [32,33,34,35,36,37,38,39,40,41,42,43,44]
-E_AXESEL   = 45
-E_AXESELX  = 46
-E_AXESELY  = 47
-E_AXESELZ  = 48
-
-E_NOISEME  = 49
-E_NOISEH   = 50
-E_NOISELAC = 51
-E_NOISEOCT = 52
-E_NOISEOFF = 53
-E_NOISEBAS = 54
-E_NOISEVAL=[E_NOISEH,E_NOISELAC,E_NOISEOCT,E_NOISEOFF,E_NOISEBAS]
-E_NOISEDIM = 55
-
-
-
 def copy_transform(ozero,Obis):
          Obis.setSize(ozero.getSize());
          Obis.setEuler(ozero.getEuler());
@@ -106,7 +81,7 @@ def copy_transform(ozero,Obis):
          return Obis
 
 def traite_face(f):
-      global vindexm, ng, NOISE, NOISEDIM
+      global vindexm, ng, NOISE
       global H,lacunarity,octaves,offset,basis
 
       if ORIENTMenu.val==1:
@@ -136,10 +111,10 @@ def traite_face(f):
          for z in range(len(f.v)):
             c=0.0
             if vindex[f.v[z].index]!=0:
-               nx=f.v[z].co[0]/NOISEDIM
-               ny=f.v[z].co[1]/NOISEDIM
-               nz=f.v[z].co[2]/NOISEDIM
-               nn = ng * noise((nx,ny,nz),NOISE)
+               nx=f.v[z].co[0]/4
+               ny=f.v[z].co[1]/4
+               nz=f.v[z].co[2]/4
+               nn = ng + noise((nx,ny,nz),NOISE)
                c=float(f.col[z].r+f.col[z].b+f.col[z].g)/maxcol*nn/vindex[f.v[z].index]
             else:
               c=0
@@ -151,10 +126,10 @@ def traite_face(f):
          for z in range(len(f.v)):
             c=0.0
             if vindex[f.v[z].index]!=0:
-               nx=f.v[z].co[0]/NOISEDIM
-               ny=f.v[z].co[1]/NOISEDIM
-               nz=f.v[z].co[2]/NOISEDIM
-               nn = ng * cellNoise((nx,ny,nz))
+               nx=f.v[z].co[0]/4
+               ny=f.v[z].co[1]/4
+               nz=f.v[z].co[2]/4
+               nn = ng + cellNoise((nx,ny,nz))
       	       c=float(f.col[z].r+f.col[z].b+f.col[z].g)/maxcol*nn/vindex[f.v[z].index]
             else:
               c=0
@@ -166,10 +141,10 @@ def traite_face(f):
          for z in range(len(f.v)):
             c=0.0
             if vindex[f.v[z].index]!=0:
-               nx=f.v[z].co[0]/NOISEDIM
-               ny=f.v[z].co[1]/NOISEDIM
-               nz=f.v[z].co[2]/NOISEDIM
-               nn = ng * heteroTerrain((nx,ny,nz),H,lacunarity,octaves,offset,basis)
+               nx=f.v[z].co[0]/4
+               ny=f.v[z].co[1]/4
+               nz=f.v[z].co[2]/4
+               nn = ng + heteroTerrain((nx,ny,nz),H,lacunarity,octaves,offset,basis)
                c=float(f.col[z].r+f.col[z].b+f.col[z].g)/maxcol*nn/vindex[f.v[z].index]
             else:
               c=0
@@ -179,60 +154,68 @@ def traite_face(f):
 
  
 def paint():
-      global MODEMenu, vindex,ng, mat, ORIName, NEWName
-      global ERROR, TextERROR
-         
+      global MODEMenu, vindex,ng, mat, ORIName, NEWName     
       Me=Object.GetSelected()
       if Me!=[]:
          if Me[0].getType()=='Mesh':   
-                    
+
                vindex=[]
                ORIName=Me[0].getData().name
-               me=NMesh.GetRaw(Me[0].getData().name)
-                  
-               try:  
-                   for m in me.verts:
-                      vindex.append(0)
-                     
-                   for f in me.faces:
-                       for v in f.v:
-                               if MODEMenu.val!=2:
-                                  if MODEMenu.val==1:    
-                                     vindex[v.index]+=1
-                                  else:
-                                     if v.sel==1:
-                                         vindex[v.index]+=1                                       
-                               else:
-                                  #print mat 
-                                  if f.mat in mat:
-                                     vindex[v.index]+=1
-                   for f in me.faces:
-                     if MODEMenu.val==2: 
-                       if f.mat in mat:
-                          traite_face(f) 
-                     else:
-                          traite_face(f)
-                   Me[0].link(me)
-                   Me[0].makeDisplayList()
+               me1=NMesh.GetRaw(Me[0].getData().name)
+
+               try:
+                 o=Object.Get('newMESH')
+                 me=o.getData()
+                 me=me1
+
                except:
-                  ERROR=2
-                  TextERROR='No color on this Object.' 
-                  
-def NEWMEcreation(obj):
-       
-      if obj.getType()=='Mesh':
-         nomdelobjet="";
-         objnumber=-1; namelist=[]
-         OBJ=Object.Get()
+                 o=Object.New('Mesh','newMESH')
+                 sc.link(o)
+                 me=me1
 
-         for ozero in OBJ:
-            if ozero.getType()=='Mesh': 
-                namelist.append(ozero.getData().name)
+               name='new.002'
+               
+               for m in me.verts:
+                  vindex.append(0)
 
-         ozero=obj
+               for f in me.faces:
+                   for v in f.v:
+                           if MODEMenu.val!=2:
+                              if MODEMenu.val==1:    
+                                 vindex[v.index]+=1
+                              else:
+                                 if v.sel==1:
+                                     vindex[v.index]+=1                                       
+                           else:
+                              #print mat 
+                              if f.mat in mat:
+                                 vindex[v.index]+=1
+               for f in me.faces:
+                 if MODEMenu.val==2: 
+                   if f.mat in mat:
+                      traite_face(f) 
+                 else:
+                      traite_face(f)
+
+
+               Me[0].link(me)
+               #o=copy_transform(Me[0],o)
+
+def NEWMEcreation(name):
+      nomdelobjet=""; objnumber=-1; namelist=[]
+      obj=Object.Get()
+
+      for ozero in obj:
+         if ozero.getType()=='Mesh': 
+             namelist.append(ozero.getData().name)
+             if ozero.getData().name==name:
+                objnumber=obj.index(ozero) 
+
+      if objnumber!=-1:
+         ozero=obj[objnumber]
          nomdelobjet=ozero.getName()
          Mesh=Blender.NMesh.GetRawFromObject(nomdelobjet)
-         name=obj.getData().name
+
          n=0; name2=name[:];ok=0  
 
          while ok==0:
@@ -241,7 +224,6 @@ def NEWMEcreation(obj):
                     ok=0;name2=name[0:name.find('.')+1]+'%s'%(n+1) 
                  else: ok=1
                  n+=1
-
          Mesh.name=name2
          Obis = Blender.NMesh.PutRaw(Mesh,name2)
          copy_transform(ozero,Obis)
@@ -283,26 +265,12 @@ octaves=5.0
 offset=1.0
 basis=3
 
-NOISEDIM=4
-NOISEDIMbout=Create(NOISEDIM)
 HBout=Create(H)
 lacunarityBout=Create(lacunarity)
 octavesBout=Create(octaves)
 offsetBout=Create(offset)
 basisBout=Create(basis)
 
-
-noiseTYPE={0:'BLENDER',
-           1:'STDPERLIN',
-           2:'STDPERLIN',
-           3:'NEWPERLIN',
-           4:'VORONOI_F1',
-           5:'VORONOI_F2',
-           6:'VORONOI_F3',
-           7:'VORONOI_F2F1',
-           8:'VORONOI_CRACKLE',
-           9:'CELLNOISE'}        
- 
 TMATList= [0,[],[]] 
 
 for t in range(16):
@@ -323,9 +291,8 @@ glRct=glRectf
 def draw():
     global MODEMenu, NSIZE, TDOCMat,TMATList, TAXEList
     global mat, ORIName, NEWName, ORIENTMenu 
-    global NRepeat, ERROR, TextERROR , NOISE, NOISEMenu, NOISEDIMbout,NOISEDIM
+    global NRepeat, ERROR, TextERROR , NOISE, NOISEMenu
     global HBout,lacunarityBout,octavesBout,offsetBout,basisBout
-    global noiseTYPE
     
     size=Buffer(GL_FLOAT, 4)
     glGetFloatv(GL_SCISSOR_BOX, size)
@@ -340,7 +307,7 @@ def draw():
 
     glColor3f(1.0,1.0,1.0)
     glRasterPos2f(20, size[3]-15)
-    Text("Script Python de displacement paintingt")
+    Text("Script Python de displacement painting")
 
     glRasterPos2f(20, size[3]-28)
     Text("Jean-michel Soler, juillet 2004")
@@ -349,20 +316,20 @@ def draw():
     n0=70
     n1=55
 
-    Button("Create"                ,E_CREATE  ,5  ,size[3]-n0+16  ,60 ,20)
-    Button("Action"                ,E_ACTION  ,5  ,size[3]-n0-4  ,60 ,20)
-    Button("Exit"                  ,E_EXIT   ,5  ,size[3]-n0-24  ,60 ,20)
+    Button("Create"                ,17  ,5  ,size[3]-n0+16  ,60 ,20)
+    Button("Action"                ,16  ,5  ,size[3]-n0-4  ,60 ,20)
+    Button("Exit"                  ,1   ,5  ,size[3]-n0-24  ,60 ,20)
     
-    NRepeat=Number("repeat"        ,E_REPEAT   ,5  ,size[3]-n0-50     ,75 ,20, NRepeat.val,1,10)    
+    NRepeat=Number("repeat"        ,5   ,5  ,size[3]-n0-50     ,75 ,20, NRepeat.val,1,10)    
     
     glColor3f(0.0,0.0,0.0)
     glRasterPos2f(80  ,size[3]-n0+24)
     Text("MODE")
 
-    MODEMenu= Menu(MOname,          E_MODE  ,80  ,size[3]-n0 ,100,20, MODEMenu.val, "MODE menu.")
+    MODEMenu= Menu(MOname,          2  ,80  ,size[3]-n0 ,100,20, MODEMenu.val, "MODE menu.")
 
     if MODEMenu.val==2:
-       TDOCMat=Toggle("Doc Mat"     ,E_DOCMAT  ,180  ,size[3]-n0 ,60 ,20,TDOCMat.val)    
+       TDOCMat=Toggle("Doc Mat"     ,24  ,180  ,size[3]-n0 ,60 ,20,TDOCMat.val)    
        if TDOCMat.val==1:
              #print TMATList 
              for t in range(TMATList[0]):
@@ -374,10 +341,9 @@ def draw():
                        80+t*40+40,
                        size[3]-n0-60+40)
                  TMATList[2][t]=Toggle("%s"%t , 32+t ,80+t*40+5  ,size[3]-n0-50  ,30 , 20,TMATList[2][t].val)
-                 
     glColor3f(1.0,0.3,0.0)
     glRasterPos2f(80+40+5  ,size[3]-n0-80)
-    if ERROR>1:
+    if ERROR==1:
          Text('Last error : '+TextERROR)
     else:
          Text('Last error :                      ')
@@ -385,31 +351,28 @@ def draw():
     glColor3f(0.0,0.0,0.0)
     glRasterPos2f(240  ,size[3]-n0+24)
     Text("ORIENTATION")
-    ORIENTMenu= Menu(ORname,        E_ORIENT    ,240  ,size[3]-n0 ,100,20, ORIENTMenu.val, "ORIENT menu.")
+    ORIENTMenu= Menu(ORname,        3    ,240  ,size[3]-n0 ,100,20, ORIENTMenu.val, "ORIENT menu.")
 
     if ORIENTMenu.val==2 :
        for t in range(3):
           TAXEList[1][t]=Toggle("%s"%TAXEList[0][t],
-                         E_AXESEL+t, 
+                         40+t, 
                          240+100+t*30 , size[3]-n0  ,30 , 20,
                          TAXEList[1][t].val)
 
     
     if ORIENTMenu.val==3 :
-       glRasterPos2f(240  ,size[3]-n0-90-4)
+       glRasterPos2f(20  ,size[3]-n0-90+24)
        Text("NOISE")
-       NOISEMenu= Menu(NOname,         E_NOISEME    , 240  ,size[3]-n0-118 ,110,20, NOISEMenu.val, "NOISE menu.")
-       NOISEDIMbout=Number(" Dim: "     ,E_NOISEDIM   , 240  ,size[3]-n0-138 ,110,20, NOISEDIMbout.val, 1,100)
-
+       NOISEMenu= Menu(NOname,         45    , 240  ,size[3]-n0-110 ,110,20, NOISEMenu.val, "NOISE menu.")
        if NOISEMenu.val==11:
-          basisBout=Slider(noiseTYPE[basisBout.val],   
-                                              E_NOISEBAS  ,40  ,size[3]-n0-118 ,175,20, basisBout.val, 0,9,)
-          HBout= Slider("H",                  E_NOISEH  ,40  ,size[3]-n0-138 ,175,20, HBout.val, -2.0,+2.0,0,)
-          lacunarityBout=Slider("lacunarity", E_NOISELAC ,40  ,size[3]-n0-158 ,175,20, lacunarityBout.val, -4.0,+4.0,0,)
-          octavesBout=Slider("octave",        E_NOISEOCT  ,40  ,size[3]-n0-178 ,175,20, octavesBout.val, -10.0,+10.0,0,)
-          offsetBout=Slider("offset",         E_NOISEOFF  ,40  ,size[3]-n0-198 ,175,20, offsetBout.val, -5.0,+5.0,0,)
+          HBout= Slider("H",      46  ,110  ,size[3]-n0-190 ,125,20, HBout.val, -2.0,+2.0,0,)
+          lacunarityBout=Slider("lacunarity",47  ,110  ,size[3]-n0-110 ,125,20, lacunarityBout.val, -4.0,+4.0,0,)
+          octavesBout=Slider("octave",       48  ,110  ,size[3]-n0-130 ,125,20, octavesBout.val, -10.0,+10.0,0,)
+          offsetBout=Slider("offset",        49  ,110  ,size[3]-n0-150 ,125,20, offsetBout.val, -5.0,+5.0,0,)
+          basisBout=Slider("noise",          50  ,110  ,size[3]-n0-170 ,125,20, basisBout.val, 0,9,0,)
 
-    NSIZE= Slider("Disp Size",      E_NSIZE  ,80  ,size[3]-n0-20 ,260,20, NSIZE.val, -4.0,+4.0,0,"SIZE.")
+    NSIZE= Slider("Disp Size",      4  ,80  ,size[3]-n0-20 ,260,20, NSIZE.val, -4.0,+4.0,0,"SIZE.")
 
 
                  
@@ -420,22 +383,22 @@ def event(evt, val):
 def bevent(evt):
     global MODEMenu, NSIZE, ng, TMATList
     global mat, ORIENTMenu, NRepeat, TAXEList 
-    global ERROR,TextERROR, NOISE, NOISEMenu, NOISEDIMbout,NOISEDIM
+    global ERROR,TextERROR, NOISE, NOISEMenu
     global HBout,lacunarityBout,octavesBout,offsetBout,basisBout
     global H,lacunarity,octaves,offset,basis
     
-    if   (evt== E_EXIT):
+    if   (evt== 1):
         Exit()
 
 
-    elif   (evt== E_ACTION):
+    elif   (evt== 16):
        for n in range(NRepeat.val):
           paint()
 
-    elif   (evt== E_NSIZE):
+    elif   (evt== 4):
        ng=NSIZE.val
 
-    elif   (evt== E_DOCMAT) or (evt in E_MATVAL):
+    elif   (evt== 24) or (evt in [32,33,34,35,36,37,38,39,40,41,42,43,44]):
       Me=Object.GetSelected()
       if Me!=[]:
          if Me[0].getType()=='Mesh':   
@@ -451,29 +414,20 @@ def bevent(evt):
       else:
           ERROR=1
           TextERROR='No Selected Object.'  
-      
+  
+    elif   (evt== 17):  
+           NEWMEcreation('new.002')
 
-    elif   (evt== E_CREATE):
-         
-           NEWMEcreation(Blender.Object.GetSelected()[0])
-           Blender.Draw.Redraw()
-         
-           ERROR=1
-           TextERROR='No Selected Object.'
-
-    elif   (evt== E_NOISEME):
+    elif   (evt== 45):
        NOISE=NOISEMenu.val-1
 
-    elif   (evt in E_NOISEVAL):
+    elif   (evt in [46,47,48,49, 50]):
        H=HBout.val
        lacunarity=lacunarityBout.val
        octaves=octavesBout.val
        offset=offsetBout.val
        basis=basisBout.val
 
-    elif (evt== E_NOISEDIM):
-           NOISEDIM=NOISEDIMbout.val
-
-    Blender.Draw.Redraw()
+    Blender.Redraw()
  
 Register(draw, event, bevent)

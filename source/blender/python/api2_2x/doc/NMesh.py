@@ -192,7 +192,26 @@ class NMFace:
   """
   The NMFace object
   =================
-    This object holds mesh face data.
+  This object holds mesh face data.
+
+  Example::
+   import Blender
+   from Blender import NMesh
+
+   me = NMesh.GetRaw("Mesh")
+   faces = me.faces
+   selected_faces = []
+   SEL = NMesh.FaceFlags['SELECT']
+   # get selected faces:
+   for f in faces:
+     if f.flag & SEL:
+     selected_faces.append(f)
+   # ... unselect selected and select all the others:
+   for f in faces:
+     if f.flag & SEL:
+       f.flag &=~SEL # unselect these
+     else: f.flag |= SEL # and select these
+
   @type v: list
   @cvar v: The list of face vertices (B{up to 4}).
   @cvar col: The list of vertex colours.
@@ -209,7 +228,7 @@ class NMFace:
      (see L{NMesh.FaceTranspModes<FaceTranspModes>}).
   @cvar uv: List of per-face UV coordinates: [(u0, v0), (u1, v1), ...].
   @cvar normal: (or just B{no}) The normal vector for this face: [x,y,z].
-  @warn: Assigning uv textures to mesh faces in Blender works like this:
+  @note: Assigning uv textures to mesh faces in Blender works like this:
     1. Select your mesh.
     2. Enter face select mode (press f) and select at least some face(s).
     3. In the UV/Image Editor window, load / select an image.

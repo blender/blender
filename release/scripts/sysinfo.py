@@ -1,7 +1,7 @@
 #!BPY
 """
 Name: 'System Information...'
-Blender: 233
+Blender: 234
 Group: 'Help'
 Tooltip: 'Information about your Blender environment, useful to diagnose problems.'
 """
@@ -36,6 +36,7 @@ import Blender
 from Blender.BGL import *
 import sys
 
+Blender.Window.WaitCursor(1)
 # has_textwrap = 1 # see commented code below
 output_filename = "system-info.txt"
 warnings = 0
@@ -144,5 +145,6 @@ if (warnings):
   output.write(", documented in the text above.")
 else: output.write("\n==\nNo problems were found.")
 
-exitmsg = "Done!|Please check the text %s in the Text Editor window." % output.name
+Blender.Window.WaitCursor(0)
+exitmsg = "Done!|Please check the text %s in the Text Editor window" % output.name
 Blender.Draw.PupMenu(exitmsg)

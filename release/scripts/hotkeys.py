@@ -417,7 +417,7 @@ def draw():
 
 def event(evt, val):
     global hotkeys     
-    if (evt== QKEY and not val): Exit()
+    if ((evt== QKEY or evt== ESCKEY) and not val): Exit()
 
 def bevent(evt):
     global hotkeysmhot, hotL

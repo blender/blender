@@ -3,9 +3,10 @@
 """ Registration info for Blender menus: <- these words are ignored
 Name: 'Fix from Armature'
 Blender: 232
-Group: 'Generators'
+Group: 'Mesh'
 Tip: 'Fix armature deformation.'
 """
+
 # $Id$
 #
 #----------------------------------------------
@@ -35,4 +36,4 @@ try:
   scene = Blender.Scene.getCurrent()
   scene.link (Obis) 
 except:
-  print "not a mesh or no object selected"
+  Blender.Draw.PupMenu("Error|Not a mesh or no object selected")

@@ -1,7 +1,7 @@
 #!BPY
 
 """ Registration info for Blender menus:
-Name: 'DirectX'
+Name: 'DirectX (.x)...'
 Blender: 234
 Group: 'Export'
 Submenu: 'Only mesh data...' mesh

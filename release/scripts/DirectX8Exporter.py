@@ -1,7 +1,7 @@
 #!BPY
 
 """ Registration info for Blender menus:
-Name: 'DirectX8'
+Name: 'DirectX8 (.x)...'
 Blender: 234
 Group: 'Export'
 Submenu: 'Export to DX8 file format' export
@@ -33,8 +33,8 @@ import Blender
 from Blender import Types, Object, NMesh, Material,Armature
 from Blender.Mathutils import *
 
-global bon_list, new_bon,mat_flip
-bon_list = []
+global new_bon,mat_flip,index_list
+index_list = []
 new_bon = {}
 mat_flip = Matrix([1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1])
 
@@ -66,11 +66,11 @@ def draw():
 	Blender.BGL.glRasterPos2d(10, 215)
 	Blender.Draw.Text("        (select them and press Ctrl + A)")
 	Blender.BGL.glRasterPos2d(10, 195)
-	Blender.Draw.Text("3.Flip Normals ")
+	Blender.Draw.Text("3.Set the number of the animation frames to export ")
 	Blender.BGL.glRasterPos2d(10, 175)
-	Blender.Draw.Text("4.Set the number of the animation frames to export ")
-	Blender.BGL.glRasterPos2d(10, 155)
 	Blender.Draw.Text("5.Read warnings in console(if any)")
+	
+	
 
 def event(evt, val):
 	if evt == Blender.Draw.ESCKEY and not val: Blender.Draw.Exit()
@@ -95,24 +95,24 @@ class xExport:
 	#***********************************************
 	#Export Animation
 	#***********************************************
-	def exportMesh(self,armat,tex):
-		global bon_list
+	def exportMesh(self,arm,arm_ob,tex):
+		
 		for name in Object.Get():
 			obj = name.getData()
 			if type(obj) == Types.NMeshType :		
-				self.writeMeshcoord(name, obj,armat)
+				self.writeMeshcoord(name, obj,arm_ob)
 				self.writeMeshMaterialList(name, obj, tex)
 				self.writeMeshNormals(name, obj)
 				self.writeMeshTextureCoords(name, obj)
-				self.writeSkinWeights(bon_list,obj)
+				self.writeSkinWeights(arm,obj)
 				self.file.write(" }\n")
 				self.file.write("}\n")
-				self.writeAnimation(name, obj, bon_list,armat)
+				self.writeAnimation(name, obj,arm)
 	#***********************************************
 	#Export Root Bone
 	#***********************************************
 	def writeRootBone(self):
-		global  bon_list, new_bon,mat_flip
+		global new_bon,mat_flip
 		space = 0
 		tex = []
 		print "exporting ..."
@@ -126,27 +126,21 @@ class xExport:
 				Blender.Set('curframe',1)
 				am_ob = Object.Get(name.name)
 				mat_ob = mat_flip * am_ob.getMatrix()
-				mat_o = Matrix([mat_ob[0][0],mat_ob[0][1],mat_ob[0][2],mat_ob[0][3]],
-								[mat_ob[1][0],mat_ob[1][1],mat_ob[1][2],mat_ob[1][3]],
-								[mat_ob[2][0],mat_ob[2][1],mat_ob[2][2],mat_ob[2][3]],
-								[0, 0, 0, 1])
-
-				self.writeArmFrames(mat_o, "RootFrame", 0)
+				self.writeArmFrames(mat_ob, "RootFrame", 0)
 				root_bon = arm.getBones()
-				bon_list.append(root_bon[0])
 				mat_r = self.writeCombineMatrix(root_bon[0])  
 				name_r = root_bon[0].getName()
 				new_bon[name_r] = len(root_bon[0].getChildren())
 				self.writeArmFrames(mat_r, name_r, 1)
-				self.writeListOfChildrens(root_bon[0],2)
+				self.writeListOfChildrens(root_bon[0],2,arm)
 				self.file.write("}\n")
-				self.exportMesh(am_ob, tex)
+				self.exportMesh(arm,am_ob, tex)
 		self.writeEnd()
 	#***********************************************
 	#Export Children Bones
 	#***********************************************
-	def writeListOfChildrens(self,bon,space):
-		global bon_list, new_bon
+	def writeListOfChildrens(self,bon,space,arm):
+		global  new_bon
 		bon_c = bon.getChildren()
 		Blender.Set('curframe',1)
 		for n in range(len(bon_c)):
@@ -155,14 +149,13 @@ class xExport:
 			new_bon[name_h] = len(chi_h)
 
 		if bon_c == [] :
-			self.CloseBrackets(bon, new_bon, space, bon_list[0])
+			self.CloseBrackets(bon, new_bon, space, arm.getBones()[0])
 		
 		for nch in range(len(bon_c)):
-			bon_list.append(bon_c[nch])
 			mat = self.writeCombineMatrix(bon_c[nch])
 			name_ch = bon_c[nch].getName()
 			self.writeArmFrames(mat, name_ch,space)
-			self.findChildrens(bon_c[nch],space)
+			self.findChildrens(bon_c[nch],space,arm)
 		
 		
 	#***********************************************
@@ -190,10 +183,10 @@ class xExport:
 	#***********************************************
 	#Create Children structure
 	#***********************************************
-	def findChildrens(self,bon_c,space):
+	def findChildrens(self,bon_c,space,arm):
 		bon_cc = bon_c
 		space += 1
-		self.writeListOfChildrens(bon_cc,space)
+		self.writeListOfChildrens(bon_cc,space,arm)
 	
 	
 	#***********************************************
@@ -243,12 +236,13 @@ class xExport:
 	#***********************************************
 	#Write SkinWeights
 	#***********************************************
-	def writeSkinWeights(self, bon_list, mesh):
-		global mat_dict
+	def writeSkinWeights(self, arm, mesh):
+		global index_list
+		
 		Blender.Set('curframe',1)
 		self.file.write("  XSkinMeshHeader {\n")
 		max_infl = 0
-		for bo in bon_list :
+		for bo in arm.getBones() :
 			name = bo.getName() 
 			try :
 				vertx_list = mesh.getVertsFromGroup(name,1)
@@ -263,35 +257,47 @@ class xExport:
 		
 		self.file.write("    %s; \n" % (max_infl))
 		self.file.write("    %s; \n" % (max_infl * 3))
-		self.file.write("    %s; \n" % (len(bon_list)))
+		self.file.write("    %s; \n" % (len(arm.getBones())))
 		self.file.write("  }\n")
 		
-		for bo in bon_list :
+		for bo in arm.getBones() :
+			bo_list = []
+			weight_list = []
 			name = bo.getName() 
 			try :
 				vert_list = mesh.getVertsFromGroup(name,1)
-				self.file.write("  SkinWeights {\n")
-				self.file.write('    "%s"; \n' % (name))
-				self.file.write('     %s; \n' % (len(vert_list)))
-				count = 0
-				for ind in vert_list :
-					count += 1
-					if count == len(vert_list):
-						self.file.write("    %s; \n" % (ind[0]))
-					else :
-						self.file.write("    %s, \n" % (ind[0]))
-				cou = 0
-				for ind in vert_list :
-					cou += 1
-					ver_infl = mesh.getVertexInfluences(ind[0])
-				
+				le = 0
+				for indx in vert_list:
+					ver_infl = mesh.getVertexInfluences(indx[0])
 					len_infl = float(len(ver_infl))
 					infl = 1 / len_infl
-				
-					if cou == len(vert_list):
-						self.file.write("    %s; \n" % (round(infl,6)))
+					i = -1
+					for el in index_list :
+						i += 1
+						if el == indx[0] :
+							le +=1
+							bo_list.append(i)
+							weight_list.append(infl)
+
+
+				self.file.write("  SkinWeights {\n")
+				self.file.write('    "%s"; \n' % (name))
+				self.file.write('     %s; \n' % (le))
+				count = 0
+				for ind in bo_list :
+					count += 1
+					if count == len(bo_list):
+						self.file.write("    %s; \n" % (ind))
 					else :
-						self.file.write("    %s, \n" % (round(infl,6)))
+						self.file.write("    %s, \n" % (ind))
+				cou = 0
+				for wegh in weight_list :
+					cou += 1
+					
+					if cou == len(weight_list):
+						self.file.write("    %s; \n" % (round(wegh,6)))
+					else :
+						self.file.write("    %s, \n" % (round(wegh,6)))
 
 			
 				matx = self.writeMatrixOffset(bo)
@@ -393,54 +399,109 @@ template SkinWeights {\n\
 	#EXPORT MESH DATA
 	#***********************************************
 	def writeMeshcoord(self, name, mesh,armat):
-		global mat_flip
-	
+		global index_list
 		#ROTATION
 		mat_ob = name.getMatrix() 
 		mat_ar = armat.getInverseMatrix()
 		mat_f = mat_ob * mat_ar
-		
 		self.writeArmFrames(mat_f, "body", 1)
 
-		self.file.write("  Mesh object {\n")     
-		numfaces=0
-		#VERTICES NUMBER
-		self.file.write("    %s;\n" % (len(mesh.verts)))
-		#VERTICES COORDINATES
-		numvert=0     
-		for vertex in mesh.verts:
-			numvert=numvert+1
-			self.file.write("    %s; %s; %s;" % (round(vertex[0],6), round(vertex[1],6), round((vertex[2]),6)))
-			if numvert == len(mesh.verts):
-				self.file.write(";\n")
-			else: 
-				self.file.write(",\n")
-		
-		#FACES NUMBER
+		self.file.write("Mesh {\n")    
 		numfaces=len(mesh.faces)
-		self.file.write("    %s;\n" % (numfaces))   
-		#FACES INDEX
+		#VERTICES NUMBER
+		numvert = 0
+		for face in mesh.faces:
+			numvert = numvert + len(face.v)
+		self.file.write("%s;\n" % (numvert))
+		#VERTICES COORDINATES
 		counter = 0
-		for face in mesh.faces :
+		for face in mesh.faces:
 			counter += 1
-			if counter == numfaces:
+			for n in range(len(face.v)):
+				index_list.append(face.v[n].index)
+				self.file.write("%s; %s; %s;" % (face.v[n].co[0], face.v[n].co[1], face.v[n].co[2]))
+				if counter == numfaces :
+					if n == len(face.v)-1 :
+						self.file.write(";\n")
+					else :
+						self.file.write(",\n")
+				else :
+					self.file.write(",\n")
+
+		#FACES NUMBER 
+		self.file.write("%s;\n" % (numfaces))  
+		#FACES INDEX
+		numface=len(mesh.faces)
+		coun,counter = 0, 0
+		for face in mesh.faces :
+			coun += 1
+			if coun == numface:
 				if len(face.v) == 3:
-					self.file.write("    3; %s, %s, %s;;\n\n" % (face[0].index, face[1].index, face[2].index))
-				elif len(face.v) == 4:
-					self.file.write("    4; %s, %s, %s, %s;;\n\n" % (face[0].index, face[1].index, face[2].index, face[3].index))
-				elif len(face.v) == 2:
-					print "WARNING:the mesh has faces with less then 3 vertices"
+					self.file.write("3; %s, %s, %s;;\n" % (counter, counter + 2, counter + 1))
+					counter += 3
+				else :
+					self.file.write("4; %s, %s, %s, %s;;\n" % (counter, counter + 3, counter + 2, counter + 1))
+					counter += 4
 			else:
+				
 				if len(face.v) == 3:
-					self.file.write("    3; %s, %s, %s;,\n" % (face[0].index, face[1].index, face[2].index))
-				elif len(face.v) == 4 :
-					self.file.write("    4; %s, %s, %s, %s;,\n" % (face[0].index, face[1].index, face[2].index, face[3].index))
-				elif len(face.v) == 2:
-					print "WARNING:the mesh has faces with less then 3 vertices"
+					self.file.write("3; %s, %s, %s;,\n" % (counter, counter + 2, counter + 1))
+					counter += 3
+				else :
+					self.file.write("4; %s, %s, %s, %s;,\n" % (counter, counter + 3, counter + 2, counter + 1))
+					counter += 4
+		
 
 		
+	#***********************************************
+	#VERTEX DUPLICATION INDEX
+	#***********************************************
+	def writeVertDupInd(self, mesh):
+		self.file.write("  VertexDuplicationIndices {\n")
+		numvert = 0
+		numfaces=len(mesh.faces)
+		for face in mesh.faces:
+			numvert = numvert + len(face.v)
+		self.file.write("   %s;\n" % (numvert+len(mesh.verts)))
+		self.file.write("   %s;\n" % (len(mesh.verts)))
+		#VERTICES INDEX
+		cou = 0
+		for vert in mesh.verts:
+			cou += 1
+			self.file.write("   %s" % ((vert.index)))
+			if cou == len(mesh.verts):
+				self.file.write(";\n")
+			else:
+				self.file.write(",\n")
+
+		counter = 0
+		for face in mesh.faces:
+			counter += 1
+			if counter == numfaces:
+				if len(face.v) == 4:
+					self.file.write("   %s,\n" % ((face.v[0].index)))
+					self.file.write("   %s,\n" % ((face.v[1].index)))		
+					self.file.write("   %s,\n" % ((face.v[2].index)))
+					self.file.write("   %s;\n" % ((face.v[3].index)))
+				elif len(face.v) == 3 :
+					self.file.write("   %s,\n" % ((face.v[0].index)))
+					self.file.write("   %s,\n" % ((face.v[1].index)))		
+					self.file.write("   %s;\n" % ((face.v[2].index)))
+
+			else :
+				if len(face.v) == 4:
+					self.file.write("   %s,\n" % ((face.v[0].index)))
+					self.file.write("   %s,\n" % ((face.v[1].index)))		
+					self.file.write("   %s,\n" % ((face.v[2].index)))
+					self.file.write("   %s,\n" % ((face.v[3].index)))
+				elif len(face.v) == 3 :
+					self.file.write("   %s,\n" % ((face.v[0].index)))
+					self.file.write("   %s,\n" % ((face.v[1].index)))		
+					self.file.write("   %s,\n" % ((face.v[2].index)))
+					
+		self.file.write("    }\n")
 		
-	
+		
 		
 	#***********************************************
 	#MESH MATERIAL LIST
@@ -503,67 +564,88 @@ template SkinWeights {\n\
 	#***********************************************
 	#MESH NORMALS
 	#***********************************************
-	def writeMeshNormals(self,name,obj):
+	def writeMeshNormals(self,name,mesh):
 		self.file.write("  MeshNormals {\n")
 		#VERTICES NUMBER
-		numvert=len(obj.verts)
-		self.file.write("    %s;\n" % (numvert))
+		numvert = 0
+		for face in mesh.faces:
+			numvert = numvert + len(face.v)
+		self.file.write("%s;\n" % (numvert))
+		numfaces=len(mesh.faces)
+		
 		#VERTICES NORMAL
 		counter = 0
-		for vert in obj.verts:
+		for face in mesh.faces:
 			counter += 1  
-			if counter == numvert:
-				self.file.write("    %s; %s; %s;;\n" % ((round(vert.no[0],6)),(round(vert.no[1],6)),(round(vert.no[2],6))))
-			else :
-				self.file.write("    %s; %s; %s;,\n" % ((round(vert.no[0],6)), (round(vert.no[1],6)),(round(vert.no[2],6))))
+			for n in range(len(face.v)):
+				self.file.write("    %s; %s; %s;" % ((round(face.v[n].no[0],6)),(round(face.v[n].no[1],6)),(round(face.v[n].no[2],6))))
+				if counter == numfaces :
+					if n == len(face.v)-1 :
+						self.file.write(";\n")
+					else :
+						self.file.write(",\n")
+				else :
+					self.file.write(",\n")
+		
+
+
 		#FACES NUMBER 
-		numfaces=len(obj.faces)
-		self.file.write("    %s;\n" % (numfaces))  
-		#FACES INDEX
-		counter = 0
-		for face in obj.faces :
-			counter += 1
-			if counter == numfaces:
+		self.file.write("%s;\n" % (numfaces))  
+		coun,counter = 0, 0
+		for face in mesh.faces :
+			coun += 1
+			if coun == numfaces:
 				if len(face.v) == 3:
-					self.file.write("    3; %s, %s, %s;;\n" % (face[0].index, face[1].index, face[2].index))
-				elif len(face.v) == 4:
-					self.file.write("    4; %s, %s, %s, %s;;\n" % (face[0].index, face[1].index, face[2].index, face[3].index))
+					self.file.write("3; %s, %s, %s;;\n" % (counter, counter + 2, counter + 1))
+					counter += 3
+				else :
+					self.file.write("4; %s, %s, %s, %s;;\n" % (counter, counter + 3, counter + 2, counter + 1))
+					counter += 4
 			else:
+				
 				if len(face.v) == 3:
-					self.file.write("    3; %s, %s, %s;,\n" % (face[0].index, face[1].index, face[2].index))
-				elif len(face.v) == 4 :
-					self.file.write("    4; %s, %s, %s, %s;,\n" % (face[0].index, face[1].index, face[2].index, face[3].index))
+					self.file.write("3; %s, %s, %s;,\n" % (counter, counter + 2, counter + 1))
+					counter += 3
+				else :
+					self.file.write("4; %s, %s, %s, %s;,\n" % (counter, counter + 3, counter + 2, counter + 1))
+					counter += 4
 		self.file.write("}\n")
 
 	#***********************************************
 	#MESH TEXTURE COORDS
 	#***********************************************
-	def writeMeshTextureCoords(self, name, obj):
-			uv_list = {}
-			if obj.hasFaceUV():
-				self.file.write("  MeshTextureCoords {\n")
-				#VERTICES NUMBER
-				mesh = name.data
-				numvert = 0
-				for face in mesh.faces:
-					numvert = numvert + len(face.v)
-				self.file.write("    %s;\n" % (len(mesh.verts)))
-				#UV COORDS
-				counter = -1
-				for face in mesh.faces:
-					counter += 1
-					nrvx = len(face.uv)
-					for n in range(nrvx) :
-						uv_list[face.v[n].index] = face.uv[n][0], face.uv[n][1]
-				for vert in mesh.verts:
-					self.file.write("   %s;  %s;,\n" % (uv_list[vert.index][0],1 - (uv_list[vert.index][1])))
-					
-				self.file.write("}\n")
+	def writeMeshTextureCoords(self, name, mesh):
+		if mesh.hasFaceUV():
+			self.file.write("MeshTextureCoords {\n")
+			#VERTICES NUMBER
+			numvert = 0
+			for face in mesh.faces:
+				numvert += len(face.v)
+			self.file.write("%s;\n" % (numvert))
+			#UV COORDS
+			numfaces = len(mesh.faces)
+			counter = -1
+			co = 0
+			for face in mesh.faces:
+				counter += 1
+				co += 1
+				for n in range(len(face.v)):
+					self.file.write("%s;%s;" % (mesh.faces[counter].uv[n][0], -mesh.faces[counter].uv[n][1]))
+					if co == numfaces :
+						if n == len(face.v) - 1 :
+							self.file.write(";\n")
+						else :
+							self.file.write(",\n")
+					else :
+						self.file.write(",\n")
+
+			self.file.write("}\n")
 #***********************************************#***********************************************#***********************************************
 	#***********************************************
 	#FRAMES
 	#***********************************************
 	def writeFrames(self, matx):
+		
 		self.file.write("%s,%s,%s,%s," %
 							(round(matx[0][0],4),round(matx[0][1],4),round(matx[0][2],4),round(matx[0][3],6)))
 		self.file.write("%s,%s,%s,%s," %
@@ -579,11 +661,11 @@ template SkinWeights {\n\
 	#***********************************************
 	#WRITE ANIMATION KEYS
 	#***********************************************
-	def writeAnimation(self, name, obj, bone_list, arm):
+	def writeAnimation(self, name, obj, arm):
 		self.file.write("AnimationSet {\n")
 		startFr = Blender.Get('staframe')
 		endFr = Blender.Get('endframe')
-		for bon in bon_list :
+		for bon in arm.getBones() :
 			
 			self.file.write(" Animation { \n")
 			self.file.write("  {%s}\n" %(bon.getName()))
@@ -633,4 +715,4 @@ if arg == 'help':
 	Blender.Draw.Register(draw,event,bevent)
 else:
 	fname = Blender.sys.makename(ext = ".x")
-	Blender.Window.FileSelector(my_callback, "Export DirectX8", fname)
+	Blender.Window.FileSelector(my_callback, "Export DirectX8", fname)	

@@ -1,13 +1,11 @@
 # $Id$
 #
 # --------------------------------------------------------------------------
-# mod_blender.py version 0.1 Jun 09, 2004
+# mod_blender.py version 0.2 Jul 26, 2004
 # --------------------------------------------------------------------------
 # helper functions to be used by other scripts
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
-#
-# Copyright (C) 2004: Willian P. Germano, wgermano _at_ ig.com.br
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -26,14 +24,14 @@
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
-# Basic set of modules Blender should have in all supported platforms:
-# XXX still incomplete
+# Basic set of modules Blender should have in all supported platforms.
+# The second and third lines are the contents of the Python23.zip file
+# included with Windows Blender binaries along with zlib.pyd.
+# Other platforms are assumed to have Python installed.
 basic_modules = [
 'Blender',
-'sys',
-'os',
-'math',
-'chunk',
-'gzip',
-'string'
+'chunk','colorsys','copy','copy_reg','gzip','os','random','repr','stat',
+'string','StringIO','types','UserDict','webbrowser','whrandom',
+'zlib',
+'math'
 ]

@@ -6,11 +6,13 @@ Blender: 232
 Group: 'Import'
 Tip: 'Import an AC3D (.ac) file.'
 """
+
 # $Id$
 #
 # --------------------------------------------------------------------------
-# AC3DImport version 2.32-1 Jan 21, 2004
+# AC3DImport version 2.34 Jul 26, 2004
 # Program versions: Blender 2.32+ and AC3Db files (means version 0xb)
+# small update to allow a default path for textures, see TEXDIR below.
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -39,8 +41,9 @@ Tip: 'Import an AC3D (.ac) file.'
 #   fixing. Avoiding or triangulating concave n-gons in AC3D is a simple way to
 #   avoid problems.
 
-# Default folder for AC3D models, change to your liking or leave as "":
-BASEDIR = ""
+# Default folder for AC3D textures, to override wrong paths, change to your
+# liking or leave as "":
+TEXDIR = ""
 
 # Set 'GROUP' to 1 to make Blender group imported objects using Empties,
 # to reproduce the object hierarchy in the .ac file
@@ -48,9 +51,9 @@ GROUP = 0
 
 import Blender
 
-if BASEDIR:
-    BASEDIR = BASEDIR.replace('\\','/')
-    if BASEDIR[-1] != '/': BASEDIR += '/'
+if TEXDIR:
+    TEXDIR = TEXDIR.replace('\\','/')
+    if TEXDIR[-1] != '/': TEXDIR += '/'
 
 errmsg = ""
 
@@ -361,11 +364,16 @@ class AC3DImport:
                     #tex.xrep = int(obj.texrep[0])
                     #tex.yrep = int(obj.texrep[1])
                 except:
+                    basetexname = Blender.sys.basename(obj.tex)
                     try:
-                        obj.tex = self.importdir + '/' + obj.tex
+                        obj.tex = self.importdir + '/' + basetexname
                         tex = Blender.Image.Load(obj.tex)
                     except:
-                        print "Couldn't load texture: %s" % obj.tex
+                        try:
+                            obj.tex = TEXDIR + basetexname
+                            tex = Blender.Image.Load(obj.tex)
+                        except:
+                            print "Couldn't load texture: %s" % basetexname
 
             for v in obj.vlist:
                 bvert = Blender.NMesh.Vert(v[0],v[1],v[2])
