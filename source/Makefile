@@ -253,7 +253,8 @@ endif
 
 ifeq ($(OS),freebsd)
   ifeq ($(OS_VERSION),$(findstring $(OS_VERSION), "3.4 4.0"))
-    BINTARGETS = blenderstatic
+    BINTARGETS = blenderdynamic
+    BINTARGETS += blenderstatic
   else
     BINTARGETS = blenderdynamic
     BINTARGETS += blenderplayer
@@ -285,8 +286,8 @@ ifeq ($(OS),linux)
     BINTARGETS += blenderstatic
   endif
   ifeq ($(CPU),powerpc)
-    BINTARGETS = blenderstatic
-    BINTARGETS += blenderdynamic
+    BINTARGETS = blenderdynamic
+    BINTARGETS += blenderstatic
   endif
     PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     PYLIB += $(NAN_MXTEXTTOOLS)
