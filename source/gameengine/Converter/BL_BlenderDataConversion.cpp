@@ -496,7 +496,7 @@ static PHY_ShapeProps *CreateShapePropsFromBlenderObject(struct Object* blendero
 	
 // in Blender, inertia stands for the size value which is equivalent to
 // the sphere radius
-	shapeProps->m_inertia = blenderobject->formfactor * blenderobject->mass * blenderobject->inertia * blenderobject->inertia;
+	shapeProps->m_inertia = blenderobject->formfactor;
 	
 	assert(0.0f <= blenderobject->damping && blenderobject->damping <= 1.0f);
 	assert(0.0f <= blenderobject->rdamping && blenderobject->rdamping <= 1.0f);
@@ -732,6 +732,11 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 				objprop.m_boundclass = KX_BOUNDCONE;
 				objprop.m_boundobject.c.m_radius = MT_max(bb.m_extends[0], bb.m_extends[1]);
 				objprop.m_boundobject.c.m_height = 2.f*bb.m_extends[2];
+				break;
+			}
+			case OB_BOUND_POLYH:
+			{
+				objprop.m_boundclass = KX_BOUNDMESH;
 				break;
 			}
 		}

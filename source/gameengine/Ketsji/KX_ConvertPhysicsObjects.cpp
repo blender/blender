@@ -130,27 +130,42 @@ void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
 		switch (objprop->m_boundclass)
 		{
 			case KX_BOUNDBOX:
-				shape = DT_NewBox(objprop->m_boundobject.box.m_extends[0], objprop->m_boundobject.box.m_extends[1], objprop->m_boundobject.box.m_extends[2]);
-				smprop->m_inertia.scale(objprop->m_boundobject.box.m_extends[0], objprop->m_boundobject.box.m_extends[1], objprop->m_boundobject.box.m_extends[2]);
-				smprop->m_inertia /= (objprop->m_boundobject.box.m_extends[0] + objprop->m_boundobject.box.m_extends[1] + objprop->m_boundobject.box.m_extends[2]) / 3.;
+				shape = DT_NewBox(objprop->m_boundobject.box.m_extends[0], 
+						objprop->m_boundobject.box.m_extends[1], 
+						objprop->m_boundobject.box.m_extends[2]);
+				smprop->m_inertia.scale(objprop->m_boundobject.box.m_extends[0]*objprop->m_boundobject.box.m_extends[0],
+					objprop->m_boundobject.box.m_extends[1]*objprop->m_boundobject.box.m_extends[1],
+					objprop->m_boundobject.box.m_extends[2]*objprop->m_boundobject.box.m_extends[2]);
+				smprop->m_inertia *= smprop->m_mass/MT_Vector3(objprop->m_boundobject.box.m_extends).length();
 				break;
 			case KX_BOUNDCYLINDER:
-				shape = DT_NewCylinder(objprop->m_radius, objprop->m_boundobject.c.m_height);
+				shape = DT_NewCylinder(smprop->m_radius, objprop->m_boundobject.c.m_height);
+				smprop->m_inertia.scale(smprop->m_mass*smprop->m_radius*smprop->m_radius,
+					smprop->m_mass*smprop->m_radius*smprop->m_radius,
+					smprop->m_mass*objprop->m_boundobject.c.m_height*objprop->m_boundobject.c.m_height);
 				break;
 			case KX_BOUNDCONE:
 				shape = DT_NewCone(objprop->m_radius, objprop->m_boundobject.c.m_height);
+				smprop->m_inertia.scale(smprop->m_mass*smprop->m_radius*smprop->m_radius,
+					smprop->m_mass*smprop->m_radius*smprop->m_radius,
+					smprop->m_mass*objprop->m_boundobject.c.m_height*objprop->m_boundobject.c.m_height);
 				break;
-/* Enabling this allows you to use dynamic mesh objects.  It's disabled 'cause it's really slow. */
+			/* Dynamic mesh objects.  WARNING! slow. */
 			case KX_BOUNDMESH:
 				if (meshobj && meshobj->NumPolygons() > 0)
 				{
 					if ((shape = CreateShapeFromMesh(meshobj)))
+					{
+						// TODO: calculate proper inertia
+						smprop->m_inertia *= smprop->m_mass*smprop->m_radius*smprop->m_radius;
 						break;
+					}
 				}
 				/* If CreateShapeFromMesh fails, fall through and use sphere */
 			default:
 			case KX_BOUNDSPHERE:
 				shape = DT_NewSphere(objprop->m_radius);
+				smprop->m_inertia *= smprop->m_mass*smprop->m_radius*smprop->m_radius;
 				break;
 				
 		}

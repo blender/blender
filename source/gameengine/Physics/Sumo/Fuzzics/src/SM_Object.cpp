@@ -51,7 +51,7 @@
 
 
 // Tweak parameters
-static const MT_Scalar ImpulseThreshold = 0.5;
+static const MT_Scalar ImpulseThreshold = -10.;
 static const MT_Scalar FixThreshold = 0.01;
 static const MT_Scalar FixVelocity = 0.01;
 SM_Object::SM_Object(
@@ -177,27 +177,22 @@ void SM_Object::dynamicCollision(const MT_Point3 &local2,
 	MT_Scalar invMass
 )
 {
-	// Same again but now obj1 is non-dynamic
-	// Compute the point on obj1 closest to obj2 (= sphere with radius = 0)
-	// local1 is th point closest to obj2
-	// local2 is the local origin of obj2 
-
 	// This should look familiar....
 	MT_Scalar  rel_vel_normal = normal.dot(rel_vel);
 			
-	if (rel_vel_normal <= 0.0) {
-		if (-rel_vel_normal < ImpulseThreshold) {
-			restitution = 0.0;
-		}
+	if (rel_vel_normal < -MT_EPSILON) {
+		restitution *= MT_min(MT_Scalar(1.0), rel_vel_normal/ImpulseThreshold);
 				
 		MT_Scalar impulse = -(1.0 + restitution) * rel_vel_normal;
 		
 		if (isRigidBody())
 		{
-			MT_Vector3 temp = getInvInertiaTensor() * local2.cross(normal);  
-			applyImpulse(local2 + m_pos, (impulse / (invMass + normal.dot(temp.cross(local2)))) * normal);
+			MT_Vector3 temp = getInvInertiaTensor() * local2.cross(normal);
+			impulse /= invMass + normal.dot(temp.cross(local2));
+			applyImpulse(local2 + m_pos, impulse * normal);
 		} else {
-			applyCenterImpulse( ( impulse / invMass ) * normal ); 
+			impulse /= invMass;
+			applyCenterImpulse( impulse * normal ); 
 		}
 	   	
 		// The friction part starts here!!!!!!!!
@@ -361,15 +356,8 @@ DT_Bool SM_Object::boing(
 	local1 -= obj1->m_pos, local2 -= obj2->m_pos;
 	
 	// Calculate collision parameters
-	MT_Vector3 rel_vel        = obj1->getVelocity(local1) + obj1->m_combined_lin_vel - 
-					obj2->getVelocity(local2) - obj2->m_combined_lin_vel;
+	MT_Vector3 rel_vel        = obj1->getVelocity(local1) - obj2->getVelocity(local2);
 	
-	if (obj1->isRigidBody())
-		rel_vel += obj1->actualAngVelocity().cross(local1);
-
-	if (obj2->isRigidBody())
-		rel_vel -= obj2->actualAngVelocity().cross(local2);
-					
 	MT_Scalar restitution = 
 		MT_min(obj1->getMaterialProps()->m_restitution,
 				obj2->getMaterialProps()->m_restitution);
@@ -1013,9 +1001,9 @@ getVelocity(
 */
 	return m_prev_kinematic && !isDynamic() ? 
 		(m_xform(local) - m_prev_xform(local)) / m_timeStep :
-		m_lin_vel +	m_ang_vel.cross(local);
+		actualLinVelocity() +	actualAngVelocity().cross(local);
 
-	//	m_lin_vel +	m_ang_vel.cross(m_xform.getBasis() * local);
+		//m_lin_vel +	m_ang_vel.cross(m_xform.getBasis() * local);
 	// NB: m_xform.getBasis() * local == m_xform(local) - m_xform.getOrigin()
 
 }
