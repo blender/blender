@@ -50,6 +50,9 @@ typedef struct Camera {
 	float clipsta, clipend;
 	float lens, drawsize;
 	
+	/* yafray: dof params */
+	float YF_dofdist, YF_aperture;
+	
 	struct Ipo *ipo;
 	
 	ScriptLink scriptlink;
@@ -64,6 +67,8 @@ typedef struct Camera {
 /* flag */
 #define CAM_SHOWLIMITS	1
 #define CAM_SHOWMIST	2
+/* yafray: dof sampling switch */
+#define CAM_YF_NO_QMC	4
 
 #ifdef __cplusplus
 }

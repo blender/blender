@@ -210,10 +210,12 @@ bool yafrayPluginRender_t::writeRender()
 	params["raydepth"]=yafray::parameter_t((float)R.r.YF_raydepth);
 	params["gamma"]=yafray::parameter_t(R.r.YF_gamma);
 	params["exposure"]=yafray::parameter_t(R.r.YF_exposure);
-	if(R.r.YF_AA)
+	if (R.r.YF_AA)
 	{
-		params["AA_passes"]=yafray::parameter_t((int)R.r.YF_AApasses);
-		params["AA_minsamples"]=yafray::parameter_t(R.r.YF_AAsamples);
+		params["AA_passes"] = yafray::parameter_t((int)R.r.YF_AApasses);
+		params["AA_minsamples"] = yafray::parameter_t(R.r.YF_AAsamples);
+		params["AA_pixelwidth"] = yafray::parameter_t(R.r.YF_AApixelsize);
+		params["AA_threshold"] = yafray::parameter_t(R.r.YF_AAthreshold);
 	}
 	else
 	{
@@ -232,10 +234,10 @@ bool yafrayPluginRender_t::writeRender()
 			params["AA_passes"]=yafray::parameter_t(0);
 			params["AA_minsamples"]=yafray::parameter_t(1);
 		}
+		params["AA_pixelwidth"]=yafray::parameter_t(1.5);
+		params["AA_threshold"]=yafray::parameter_t(0.05f);
 	}
 	if (hasworld) params["background_name"]=yafray::parameter_t("world_background");
-	params["AA_pixelwidth"]=yafray::parameter_t(1.5);
-	params["AA_threshold"]=yafray::parameter_t(0.05f);
 	params["bias"]=yafray::parameter_t(R.r.YF_raybias);
 	//params["outfile"]=yafray::parameter_t(imgout);
 	blenderYafrayOutput_t output;
@@ -1190,6 +1192,18 @@ void yafrayPluginRender_t::writeCamera()
 	if (R.r.xsch < R.r.ysch) aspect = float(R.r.xsch)/float(R.r.ysch);	
 
 	params["focal"]=yafray::parameter_t(mainCamLens/(aspect*32.0));
+
+	// dof params, only valid for real camera
+	if (maincam_obj->type==OB_CAMERA) {
+		Camera* cam = (Camera*)maincam_obj->data;
+		params["dof_distance"] = yafray::parameter_t(cam->YF_dofdist);
+		params["aperture"] = yafray::parameter_t(cam->YF_aperture);
+		if (cam->flag & CAM_YF_NO_QMC)
+			params["use_qmc"] = yafray::parameter_t("off");
+		else
+			params["use_qmc"] = yafray::parameter_t("on");
+	}
+
 	params["from"]=yafray::parameter_t(
 			yafray::point3d_t(maincam_obj->obmat[3][0], maincam_obj->obmat[3][1], maincam_obj->obmat[3][2]));
 	float fdist = -R.viewmat[3][2];
@@ -1202,7 +1216,7 @@ void yafrayPluginRender_t::writeCamera()
 			yafray::point3d_t(maincam_obj->obmat[3][0] + R.viewmat[0][1],
 												maincam_obj->obmat[3][1] + R.viewmat[1][1],
 												maincam_obj->obmat[3][2] + R.viewmat[2][1]));
-	// add dof_distance param here
+
 	yafrayGate->addCamera(params);
 }
 

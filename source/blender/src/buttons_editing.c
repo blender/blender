@@ -1309,6 +1309,23 @@ static void editing_panel_camera_type(Object *ob, Camera *cam)
 	uiBlockEndAlign(block);
 }
 
+/* yafray: extra camera panel to set Depth-of-Field parameters */
+static void editing_panel_camera_yafraydof(Object *ob, Camera *cam)
+{
+	uiBlock *block;
+
+	block= uiNewBlock(&curarea->uiblocks, "editing_panel_camera_yafraydof", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Camera", "Editing");
+	if(uiNewPanel(curarea, block, "Yafray DoF", "Editing", 320, 0, 318, 204)==0) return;
+
+	uiDefButF(block, NUM, REDRAWVIEW3D, "DoFDist:", 470, 147, 160, 20, &cam->YF_dofdist, 0.0, 5000.0, 100, 0, "Sets distance to point of focus (use camera 'ShowLimits' to make visible in 3Dview)");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Aperture:", 470, 125, 160, 20, &cam->YF_aperture, 0.0, 2.0, 0, 0, "Sets lens aperture, the larger, the more blur (use small values, 0 is no DoF)");
+
+	uiDefButS(block, TOG|BIT|2, 0, "Random sampling", 470, 90, 160, 20, &cam->flag, 0, 0, 0, 0, "Use noisy random Lens sampling instead of QMC");
+
+}
+
+
 /* *************************** MBALL ******************************** */
 
 void do_mballbuts(unsigned short event)
@@ -2587,6 +2604,8 @@ void editing_panels()
 		cam= ob->data;
 		editing_panel_links(ob); // no editmode!
 		editing_panel_camera_type(ob, cam);
+		/* yafray: extra panel for dof parameters */
+		if (G.scene->r.renderer==R_YAFRAY) editing_panel_camera_yafraydof(ob, cam);
 		break;
 
 	case OB_ARMATURE:

@@ -1303,15 +1303,15 @@ static void render_panel_yafrayGlobal()
 
 	/*AA Settings*/
 
-	uiDefButS(block,TOGN|BIT|0, B_REDR, "Auto AA",5,110,150,20, &G.scene->r.YF_AA, 
+	uiDefButS(block,TOGN|BIT|0, B_REDR, "Auto AA", 5,140,150,20, &G.scene->r.YF_AA, 
 					0, 0, 0, 0, "Set AA using OSA and GI quality, disable for manual control");
-	uiDefButS(block,TOGN|BIT|0, B_REDR, "xml",175,110,75,20, &G.scene->r.YFexportxml, 
+	uiDefButS(block,TOGN|BIT|0, B_REDR, "xml", 175,140,75,20, &G.scene->r.YFexportxml,
 					0, 0, 0, 0, "Export to an xml file and call yafray instead of plugin");
  	if(G.scene->r.YF_AA){
- 		uiDefButI(block, NUM, 0, "AA Passes ", 5,85,150,20,
-				&G.scene->r.YF_AApasses, 0, 64, 10, 10, "AA Passes");
-	    uiDefButI(block, NUM, 0, "AA Samples ", 160,85,150,20,
-				&G.scene->r.YF_AAsamples, 0, 2048, 10, 10, "AA Samples");
+		uiDefButI(block, NUM, 0, "AA Passes ", 5,115,150,20, &G.scene->r.YF_AApasses, 0, 64, 10, 10, "Number of AA passes (0 is no AA)");
+		uiDefButI(block, NUM, 0, "AA Samples ", 160,115,150,20, &G.scene->r.YF_AAsamples, 0, 2048, 10, 10, "Number of samples per pass");
+		uiDefButF(block, NUMSLI, 0, "Psz ", 5,90,150,20, &G.scene->r.YF_AApixelsize, 1.0, 2.0, 0, 0, "AA pixel filter size");
+		uiDefButF(block, NUMSLI, 0, "Thr ", 160,90,150,20, &G.scene->r.YF_AAthreshold, 0.000001, 1.0, 0, 0, "AA threshold");
 	}
 }
 
@@ -1328,6 +1328,8 @@ void render_panels()
 		if (G.scene->r.YF_gamma==0.0) G.scene->r.YF_gamma=1.0;
 		if (G.scene->r.YF_raybias==0.0) G.scene->r.YF_raybias=0.001;
 		if (G.scene->r.YF_raydepth==0) G.scene->r.YF_raydepth=5;
+		if (G.scene->r.YF_AApixelsize==0.0) G.scene->r.YF_AApixelsize=1.5;
+		if (G.scene->r.YF_AAthreshold==0.0) G.scene->r.YF_AAthreshold=0.05;
 		render_panel_yafrayGlobal();
 		render_panel_yafrayGI();
 	}

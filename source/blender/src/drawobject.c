@@ -644,6 +644,17 @@ static void draw_limit_line(float sta, float end, unsigned int col)
 }		
 
 
+/* yafray: draw camera focus point (cross, similar to aqsis code in tuhopuu) */
+static void draw_focus_cross(float dist, float size)
+{
+	glBegin(GL_LINES);
+	glVertex3f(-size, 0.f, -dist);
+	glVertex3f(size, 0.f, -dist);
+	glVertex3f(0.f, -size, -dist);
+	glVertex3f(0.f, size, -dist);
+	glEnd();
+}
+
 void drawcamera(Object *ob)
 {
 	/* a standing up pyramid with (0,0,0) as top */
@@ -735,8 +746,11 @@ void drawcamera(Object *ob)
 		MTC_Mat4SwapMat4(G.vd->persmat, tmat);
 		mygetsingmatrix(G.vd->persmat);
 
-		if(cam->flag & CAM_SHOWLIMITS) 
+		if(cam->flag & CAM_SHOWLIMITS) {
 			draw_limit_line(cam->clipsta, cam->clipend, 0x77FFFF);
+			/* yafray: dof focus point */
+			if (G.scene->r.renderer==R_YAFRAY) draw_focus_cross(cam->YF_dofdist, cam->drawsize);
+		}
 
 		wrld= G.scene->world;
 		if(cam->flag & CAM_SHOWMIST) 

@@ -137,13 +137,6 @@ bool yafrayRender_t::getAllMatTexObs()
 
 	}
 
-	// test
-	for (map<string, vector<float> >::const_iterator obn=dupliMtx_list.begin();
-			obn!=dupliMtx_list.end();++obn)
-	{
-		cout << obn->first << endl;
-	}
-
 	// in case dupliMtx_list not empty, make sure that there is at least one source object
 	// in all_objects with the name given in dupliMtx_list
 	if (!dupliMtx_list.empty()) {

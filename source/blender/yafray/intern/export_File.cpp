@@ -204,23 +204,23 @@ bool yafrayFileRender_t::writeRender()
 	ostr << "<render camera_name=\"MAINCAM\"\n";
 	ostr << "\traydepth=\"" << R.r.YF_raydepth << "\" gamma=\"" << R.r.YF_gamma << "\" exposure=\"" << R.r.YF_exposure << "\"\n";
 
-	if(R.r.YF_AA)
-		ostr << "\tAA_passes=\"" << R.r.YF_AApasses << "\" AA_minsamples=\"" << R.r.YF_AAsamples << "\"";
+	if(R.r.YF_AA) {
+		ostr << "\tAA_passes=\"" << R.r.YF_AApasses << "\" AA_minsamples=\"" << R.r.YF_AAsamples << "\"\n";
+		ostr << "\tAA_pixelwidth=\"" << R.r.YF_AApixelsize << "\" AA_threshold=\"" << R.r.YF_AAthreshold << "\"\n";
+	}
 	else {
 		if ((R.r.GImethod!=0) && (R.r.GIquality>1) && (!R.r.GIcache))
-			ostr << "\tAA_passes=\"5\" AA_minsamples=\"5\" " << endl;
+			ostr << "\tAA_passes=\"5\" AA_minsamples=\"5\"\n";
 		else if ((R.r.mode & R_OSA) && (R.r.osa)) {
 			int passes=(R.r.osa%4)==0 ? R.r.osa/4 : 1;
 			int minsamples=(R.r.osa%4)==0 ? 4 : R.r.osa;
-			ostr << "\tAA_passes=\"" << passes << "\" AA_minsamples=\"" << minsamples << "\"";
+			ostr << "\tAA_passes=\"" << passes << "\" AA_minsamples=\"" << minsamples << "\"\n";
 		}
-		else ostr << "\tAA_passes=\"0\" AA_minsamples=\"1\"";
+		else ostr << "\tAA_passes=\"0\" AA_minsamples=\"1\"\n";
+		ostr << "\tAA_pixelwidth=\"1.5\" AA_threshold=\"0.05\" bias=\"" << R.r.YF_raybias << "\"\n";
 	}
-	ostr << "\n";
 
 	if (hasworld) ostr << "\tbackground_name=\"world_background\"\n";
-
-	ostr << "\tAA_pixelwidth=\"2\" AA_threshold=\"0.05\" bias=\"" << R.r.YF_raybias << "\"";
  
 	// alpha channel render when RGBA button enabled
 	if (R.r.planes==R_PLANES32) ostr << "\n\tsave_alpha=\"on\"";
@@ -1121,7 +1121,7 @@ void yafrayFileRender_t::writeLamps()
 		string lpmode="off";
 		// shadows only when Blender has shadow button enabled, only spots use LA_SHAD flag
 		if (R.r.mode & R_SHADOW)
-			if (((lamp->type==LA_SPOT) && (lamp->mode & LA_SHAD)) || (lamp->mode & LA_SHAD_RAY)) lpmode="on";;
+			if (((lamp->type==LA_SPOT) && (lamp->mode & LA_SHAD)) || (lamp->mode & LA_SHAD_RAY)) lpmode="on";
 		ostr << "\" cast_shadows=\"" << lpmode << "\"";
 		// spot specific stuff
 		if (lamp->type==LA_SPOT) {
@@ -1182,7 +1182,19 @@ void yafrayFileRender_t::writeCamera()
 	float aspect = 1;
 	if (R.r.xsch < R.r.ysch) aspect = float(R.r.xsch)/float(R.r.ysch);
 
-	ostr << "\" focal=\"" << mainCamLens/(aspect*32.0) << "\" >\n";
+	ostr << "\" focal=\"" << mainCamLens/(aspect*32.0) << "\"";
+
+	// dof params, only valid for real camera
+	if (maincam_obj->type==OB_CAMERA) {
+		Camera* cam = (Camera*)maincam_obj->data;
+		ostr << "\n\tdof_distance=\"" << cam->YF_dofdist << "\"";
+		ostr << " aperture=\"" << cam->YF_aperture << "\"";
+		string st = "on";
+		if (cam->flag & CAM_YF_NO_QMC) st = "off";
+		ostr << " use_qmc=\"" << st << "\"";
+	}
+
+	ostr << " >\n";
 	xmlfile << ostr.str();
 
 	ostr.str("");
@@ -1197,7 +1209,6 @@ void yafrayFileRender_t::writeCamera()
 	ostr << "\t<up x=\"" << maincam_obj->obmat[3][0] + R.viewmat[0][1]
 					<< "\" y=\"" << maincam_obj->obmat[3][1] + R.viewmat[1][1]
 					<< "\" z=\"" << maincam_obj->obmat[3][2] + R.viewmat[2][1] << "\" />\n";
-	// add dof_distance param here
 	xmlfile << ostr.str();
 
 	xmlfile << "</camera>\n\n";
