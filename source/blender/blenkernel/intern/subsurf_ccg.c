@@ -293,13 +293,6 @@ static DispListMesh *subSurf_createDispListMesh(SubSurf *ssm) {
 	for (; !ccgVertIterator_isStopped(vi); ccgVertIterator_next(vi)) {
 		CCGVert *v = ccgVertIterator_getCurrent(vi);
 		VecCopyf(dlm->mvert[i].co, ccgSubSurf_getVertData(ss, v));
-
-		if (ssm->controlType==SUBSURF_CONTROLTYPE_EDITMESH) {
-			EditVert *ev = ccgSubSurf_getVertVertHandle(ss, v);
-			
-			ev->ssco = dlm->mvert[i].co;
-		}
-
 		*((int*) ccgSubSurf_getVertUserData(ss, v)) = i++;
 	}
 	ccgVertIterator_free(vi);
@@ -1014,7 +1007,7 @@ DerivedMesh *subsurf_make_derived_from_mesh(Mesh *me, int subdivLevels) {
 	
 	subSurf_free(ss);
 	
-	return derivedmesh_from_displistmesh(NULL, dlm);
+	return derivedmesh_from_displistmesh(dlm);
 }
 
 void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3]) 

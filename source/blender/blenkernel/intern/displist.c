@@ -107,120 +107,6 @@ struct _FastLamp {
 static FastLamp *fastlamplist= NULL;
 static float fviewmat[4][4];
 
-/* only called from subsurf.c when levels is zero */
-DispListMesh *displistmesh_from_editmesh(EditMesh *em) 
-{
-	DispListMesh *dlm= MEM_callocN(sizeof(*dlm),"dlm");
-	EditVert *eve, *evePrev;
-	EditEdge *eed;
-	EditFace *efa;
-	MFace *mfNew;
-	int i;
-
-	dlm->totvert= BLI_countlist(&em->verts);
-	dlm->totedge= BLI_countlist(&em->edges);
-	dlm->totface= BLI_countlist(&em->faces);
-	dlm->editedge= MEM_mallocN(sizeof(*dlm->editedge)*dlm->totedge, "dlm->editedge");
-	dlm->editface= MEM_mallocN(sizeof(*dlm->editface)*dlm->totface, "dlm->editface");
-	dlm->mvert= MEM_callocN(sizeof(*dlm->mface)*dlm->totvert, "dlm->mvert");
-	dlm->mcol= NULL;
-	dlm->tface= NULL;
-	dlm->medge= MEM_mallocN(sizeof(*dlm->medge)*dlm->totedge, "dlm->mface");
-	dlm->mface= MEM_mallocN(sizeof(*dlm->mface)*dlm->totface, "dlm->mface");
-
-	i=0;
-	for (eve= em->verts.first; eve; eve= eve->next, i++) {
-		MVert *mvNew= &dlm->mvert[i];
-		VECCOPY(mvNew->co, eve->co);
-		eve->ssco= eve->co;		/* no subsurf coordinate, but we add a save pointer in it */
-		eve->prev= (void*) i;	/* hack to fetch indices */
-	}
-
-	mfNew= dlm->mface;
-	for (i=0,efa= em->faces.first; efa; efa= efa->next) {
-		// we skip hidden faces
-		if(efa->v1->h || efa->v2->h || efa->v3->h || (efa->v4 && efa->v4->h)) dlm->totface--;
-		else {
-			dlm->editface[i++] = efa;
-			mfNew->v1= (int) efa->v1->prev;
-			mfNew->v2= (int) efa->v2->prev;
-			mfNew->v3= (int) efa->v3->prev;
-			mfNew->v4= efa->v4?(int) efa->v4->prev:0;
-			mfNew->flag= efa->flag;
-			mfNew->mat_nr= efa->mat_nr;
-			mfNew->puno= 0;
-			mfNew->edcode= 0;
-	
-			if (efa->v4 && !mfNew->v4) {
-				mfNew->v1^= mfNew->v3^= mfNew->v1^= mfNew->v3;
-				mfNew->v2^= mfNew->v4^= mfNew->v2^= mfNew->v4;
-			}
-			mfNew++;
-		}
-	}
-	for (i=0,eed= em->edges.first; eed; eed= eed->next) {
-		MEdge *medge = &dlm->medge[i];
-		dlm->editedge[i++] = eed;
-		medge->v1 = (int) eed->v1->prev;
-		medge->v2 = (int) eed->v2->prev;
-		medge->crease = eed->crease;
-		medge->flag = ME_EDGEDRAW;
-	}
-
-		/* restore prev links */
-	for (evePrev=NULL, eve= em->verts.first; eve; evePrev=eve, eve= eve->next)
-		eve->prev= evePrev;
-
-	displistmesh_calc_normals(dlm);
-
-	return dlm;
-}
-DispListMesh *displistmesh_from_mesh(Mesh *me, float *extverts) 
-{
-	DispListMesh *dlm= MEM_callocN(sizeof(*dlm),"dlm");
-	int i;
-	
-	if (!me->medge) {
-		make_edges(me);
-	}
-
-	dlm->totvert= me->totvert;
-	dlm->totedge= me->totedge;
-	dlm->totface= me->totface;
-	dlm->mvert= MEM_dupallocN(me->mvert);
-	dlm->mcol= me->mcol?MEM_dupallocN(me->mcol):NULL;
-	dlm->tface= me->tface?MEM_dupallocN(me->tface):NULL;
-	dlm->medge= MEM_mallocN(sizeof(*dlm->medge)*dlm->totedge, "dlm->totedge");
-	dlm->mface= MEM_mallocN(sizeof(*dlm->mface)*dlm->totface, "dlm->mface");
-
-	if (extverts) {
-		for (i=0; i<dlm->totvert; i++) {
-			VECCOPY(dlm->mvert[i].co, &extverts[i*3]);
-		}
-	}
-	for (i=0; i<dlm->totface; i++) {
-		MFace *mfOld= &((MFace*) me->mface)[i];
-		MFace *mfNew= &dlm->mface[i];
-
-		mfNew->v1= mfOld->v1;
-		mfNew->v2= mfOld->v2;
-		mfNew->v3= mfOld->v3;
-		mfNew->v4= mfOld->v4;
-		mfNew->flag= mfOld->flag;
-		mfNew->mat_nr= mfOld->mat_nr;
-		mfNew->puno= 0;
-		mfNew->edcode= 0;
-	}
-	for (i=0; i<dlm->totedge; i++) {
-		dlm->medge[i] = me->medge[i];
-		dlm->medge[i].flag |= ME_EDGEDRAW;
-	}
-
-	displistmesh_calc_normals(dlm);
-
-	return dlm;
-}
-
 void displistmesh_free(DispListMesh *dlm) 
 {
 	// also check on mvert and mface, can be NULL after decimator (ton)
@@ -229,8 +115,6 @@ void displistmesh_free(DispListMesh *dlm)
 	if (dlm->mface) MEM_freeN(dlm->mface);
 	if (dlm->mcol) MEM_freeN(dlm->mcol);
 	if (dlm->tface) MEM_freeN(dlm->tface);
-	if (dlm->editedge) MEM_freeN(dlm->editedge);
-	if (dlm->editface) MEM_freeN(dlm->editface);
 	if (dlm->nors) MEM_freeN(dlm->nors);
 	MEM_freeN(dlm);
 }
@@ -238,8 +122,6 @@ void displistmesh_free(DispListMesh *dlm)
 DispListMesh *displistmesh_copy(DispListMesh *odlm) 
 {
 	DispListMesh *ndlm= MEM_dupallocN(odlm);
-	ndlm->editedge= NULL;
-	ndlm->editface= NULL;
 	ndlm->mvert= MEM_dupallocN(odlm->mvert);
 	ndlm->medge= MEM_dupallocN(odlm->medge);
 	ndlm->mface= MEM_dupallocN(odlm->mface);

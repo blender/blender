@@ -97,8 +97,6 @@ struct DispListMesh {
 	struct MCol *mcol;
 	struct MFace *mface;
 	struct TFace *tface;
-	struct EditEdge **editedge;	// added for subsurf, drawobject.c
-	struct EditFace **editface;	// added for subsurf, drawobject.c
 	float *nors; // facenormals
 };
 
@@ -107,8 +105,6 @@ void displistmesh_calc_normals(DispListMesh *dlm);
 
 void displistmesh_to_mesh(DispListMesh *dlm, struct Mesh *me);
 
-DispListMesh *displistmesh_from_editmesh(struct EditMesh *em);
-DispListMesh *displistmesh_from_mesh(struct Mesh *mesh, float *extverts);
 DispListMesh *displistmesh_copy(DispListMesh *odlm);
 
 /*

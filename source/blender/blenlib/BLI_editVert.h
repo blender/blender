@@ -46,7 +46,6 @@ typedef struct EditVert
 	struct EditVert *next, *prev, *vn;
 	float no[3];
 	float co[3];
-	float *ssco;  /* subsurfed coordinate, dont use for temporal storage! it points to DispListMesh */
 	short xs, ys;
 	unsigned char f, h, f1, f2;
 	short fast;	/* only 0 or 1, for editmesh_fastmalloc */
