@@ -74,8 +74,11 @@ extern "C" {
 
 /* end of blender block */
 
-
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#else
 #include <GL/gl.h>
+#endif
 
 
 void BL_warp_pointer(int x,int y)

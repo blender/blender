@@ -67,8 +67,13 @@
 #ifdef WIN32
 #include <windows.h>
 #endif // WIN32
-#include "GL/gl.h"
-#include "GL/glu.h"
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#else
+#include <GL/gl.h>
+#include <GL/glu.h>
+#endif
 
 static Image *fCurpage=0;
 static int fCurtile=0, fCurmode=0, fCurTileXRep=0, fCurTileYRep=0;

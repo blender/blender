@@ -34,9 +34,13 @@
 #ifndef BIF_GL_H
 #define BIF_GL_H
 
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#else
 #include <GL/gl.h>
 #include <GL/glu.h>
-
+#endif
 	/*
 	 * these should be phased out. cpack should be replaced in
 	 * code with calls to glColor3ub, lrectwrite probably should

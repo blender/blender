@@ -39,7 +39,11 @@
 // OpenGL gl.h needs 'windows.h' on windows platforms 
 #include <windows.h>
 #endif //WIN32
-#include "GL/gl.h"
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
 
 #include "RAS_IRenderTools.h"
 #include "RAS_IRasterizer.h"
