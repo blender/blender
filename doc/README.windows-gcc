@@ -7,7 +7,7 @@ that don't have cygwin installed.
 The instructions are:
 
 1. Download cygwin (www.cygwin.com) and use the setup program
-   to install packages for gcc, gcc-mingw, w32api, make, cvs,
+   to install packages for gcc, gcc-mingw, gcc-g++, w32api, make, cvs,
    python, perl, gettext, and gettext-devel (and maybe others... the 
    dependency list is bound to change over time and hopefully these 
    instructions will keep up with the changes). All of the following
@@ -18,6 +18,10 @@ The instructions are:
    directory, e.g.:
      mkdir bf-blender
      cd bf-blender
+
+Please note that a backslash at the end of a line in the following 
+means that the command spans two lines. If you wish to type the command as 
+one line, exclude the '\'.
 
 3. Checkout the blender module from the bf-blender tree using cvs 
    (use password anonymous):
