@@ -42,6 +42,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <Python.h>
 
 #ifndef WIN32
 #include <dirent.h>
@@ -103,7 +104,7 @@ char *BPyMenu_CreatePupmenuStr(BPyMenu *pym, short menugroup)
 
 	str[0] = '\0';
 
-	snprintf(str2, sizeof(str2), "%s: %s%%t",
+	PyOS_snprintf(str2, sizeof(str2), "%s: %s%%t",
 		BPyMenu_group_itoa(menugroup), pym->name);
 	strcat(str, str2);
 

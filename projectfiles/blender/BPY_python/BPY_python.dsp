@@ -111,6 +111,10 @@ SOURCE=..\..\..\source\blender\python\BPY_interface.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\BPY_menus.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\Build.c
 # End Source File
 # Begin Source File
@@ -260,6 +264,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Bone.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\BPY_extern.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\BPY_menus.h
 # End Source File
 # Begin Source File
 
