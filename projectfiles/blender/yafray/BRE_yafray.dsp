@@ -95,6 +95,18 @@ SOURCE=..\..\..\source\blender\yafray\intern\export_File.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\yafray\intern\export_Plugin.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\yafray\intern\yafexternal.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\yafray\intern\yafexternal.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\yafray\intern\yafray_Render.cpp
 # End Source File
 # End Group
@@ -104,6 +116,10 @@ SOURCE=..\..\..\source\blender\yafray\intern\yafray_Render.cpp
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\yafray\intern\export_File.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\yafray\intern\export_Plugin.h
 # End Source File
 # Begin Source File
 
