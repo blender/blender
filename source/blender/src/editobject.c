@@ -3447,6 +3447,8 @@ static int pose_do_update_flag(Object *ob) {
 	return do_update;
 }
 
+/* this is a confusing call, it also does the constraint update flags, but was not used...
+   hopefully transform refactor will take care better of it (ton) */
 void figure_pose_updating(void)
 {
 	Base *base;
@@ -3457,8 +3459,17 @@ void figure_pose_updating(void)
 		/* Recalculate the pose if necessary, regardless of
 		 * whether the layer is visible or not.
 		 */
-		if (pose_do_update_flag(base->object))
+		if (pose_do_update_flag(base->object)) {
 			base->flag |= BA_WHERE_UPDATE;
+		}
+		else if(base->object->flag & OB_GONNA_MOVE) {
+			/* if position updates, deform info could change too */
+			if(base->object->hooks.first) base->flag |= BA_DISP_UPDATE;
+			else if(base->object->parent) {
+				if(base->object->parent->type==OB_LATTICE || base->object->partype==PARSKEL)
+					base->flag |= BA_DISP_UPDATE;
+			}
+		}
 	}
 
 }
