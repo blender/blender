@@ -1922,6 +1922,8 @@ void init_infospace(ScrArea *sa)
 	
 	sinfo= MEM_callocN(sizeof(SpaceInfo), "initinfo");
 	BLI_addhead(&sa->spacedata, sinfo);
+
+	sinfo->spacetype=SPACE_INFO;
 }
 
 /* ******************** SPACE: BUTS ********************** */
