@@ -1417,18 +1417,14 @@ static void ui_emboss_P(BIFColorID bc, float asp, float x1, float y1, float x2, 
 
 static void ui_emboss_slider(uiBut *but, float fac)
 {
-	float h;
-	float x1;
-	float y1;
-	float x2;
-	float y2;
-
-	h= (but->y2-but->y1);
+	float x1, x2, y1, y2, ymid, yc;
 
 	x1= but->x1; x2= but->x2;
 	y1= but->y1; y2= but->y2;
-
+	
 	/* the slider background line */
+	ymid= (y1+y2)/2.0;
+	yc= 1.7*but->aspect;	// height of center line
 
 	glShadeModel(GL_SMOOTH);
 	glBegin(GL_QUADS);
@@ -1439,25 +1435,22 @@ static void ui_emboss_slider(uiBut *but, float fac)
 		BIF_set_color(BUTGREY, COLORSHADE_MEDIUM);
 	
 	
-	glVertex2f(x1,y1-4);
-	glVertex2f(x2-h,y1-4);
+	glVertex2f(x1,   ymid-yc);
+	glVertex2f(x2, ymid-yc);
 
 	if(but->flag & UI_ACTIVE) 
-		BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
+		BIF_set_color(BUTGREY, COLORSHADE_WHITE);
 	else 
-		BIF_set_color(BUTGREY, COLORSHADE_HILITE);
+		BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
 
-	glVertex2f(x2-h,y2+2);
-	glVertex2f(x1,y2+2);
+	glVertex2f(x2, ymid+yc);
+	glVertex2f(x1,   ymid+yc);
 
 	glEnd();
 
-	/*BIF_set_color(but->col, COLORSHADE_DARK);
-	glRectf(but->x1, but->y1, but->x2, but->y2);
-	glColor3ub(0,0,0);
-	ui_draw_outlineX(but->x1+1, but->y1+1, but->x2-1, but->y2-1, but->aspect);
-	*/
-
+	BIF_set_color(but->col, COLORSHADE_DARK);
+	fdrawline(x1+1, ymid-yc, x2, ymid-yc);
+	
 	/* the movable slider */
 	if(but->flag & UI_SELECT) BIF_set_color(but->col, COLORSHADE_WHITE);
 	else BIF_set_color(but->col, COLORSHADE_GREY);
@@ -1467,13 +1460,13 @@ static void ui_emboss_slider(uiBut *but, float fac)
 
 	BIF_set_color(BUTGREY, COLORSHADE_GREY);
 
-	glVertex2f(x1,y1-4);
-	glVertex2f(x1+fac,y1-4);
+	glVertex2f(x1,     y1+2.5);
+	glVertex2f(x1+fac, y1+2.5);
 
 	BIF_set_color(BUTGREY, COLORSHADE_MEDIUM);
 
-	glVertex2f(x1+fac,y2+2);
-	glVertex2f(x1,y2+2);
+	glVertex2f(x1+fac, y2-2.5);
+	glVertex2f(x1,     y2-2.5);
 
 	glEnd();
 	
@@ -1483,32 +1476,21 @@ static void ui_emboss_slider(uiBut *but, float fac)
 	glBegin(GL_QUADS);
 
 	BIF_set_color(BUTGREY, COLORSHADE_MEDIUM);
-	glVertex2f(x1+fac-1,y1-4);
-	glVertex2f(x1+fac+2,y1-4);
+	glVertex2f(x1+fac-3, y1+2);
+	glVertex2f(x1+fac, y1+4);
 	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
-	glVertex2f(x1+fac+2,y2+2);
-	glVertex2f(x1+fac-1,y2+2);
+	glVertex2f(x1+fac, y2-2);
+	glVertex2f(x1+fac-3, y2-2);
 
 	glEnd();
 	
 	/* slider handle left bevel */
 	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
-	fdrawline(x1+fac-1, y2+2, x1+fac-1, y1-4);
+	fdrawline(x1+fac-3, y2-2, x1+fac-3, y1+2);
 	
 	/* slider handle right bevel */
 	BIF_set_color(BUTGREY, COLORSHADE_GREY);
-	fdrawline(x1+fac+2, y2+2, x1+fac+2, y1-4);
-
-
-/*
-	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
-	fdrawline(x1+fac-1, y2+2, x1+fac+h-1, y2+2);
-	fdrawline(x1+fac-1, y1-4, x1+fac-1, y2+2);
-
-	BIF_set_color(BUTGREY, COLORSHADE_GREY);
-	fdrawline(x1+fac-1, y1-4, x1+fac+h-1, y1-4);
-	fdrawline(x1+fac+h-1, y1-4, x1+fac+h-1, y2+2);
-*/
+	fdrawline(x1+fac, y2-2, x1+fac, y1+2);
 
 }
 
@@ -1984,12 +1966,13 @@ static void ui_draw_but(uiBut *but)
 		y1= but->y1; y2= but->y2;
 		
 		but->x1= (but->x1+but->x2)/2;
-		but->x2-= 9;
-		but->y1= -2+(but->y1+but->y2)/2;
-		but->y2= but->y1+6;
+		but->x2-= 5.0*but->aspect;
+
+		but->y1+= 2.0*but->aspect;
+		but->y2-= 2.0*but->aspect;
 		
 		value= ui_get_but_val(but);
-		fac= (value-but->min)*(but->x2-but->x1-but->y2+but->y1)/(but->max - but->min);
+		fac= (value-but->min)*(but->x2-but->x1)/(but->max - but->min);
 		ui_emboss_slider(but, fac);
 		
 		but->x1= x1; but->x2= x2;
@@ -3758,9 +3741,9 @@ static int ui_do_but_SLI(uiBut *but)
 	fstart= (value - but->min)/fstart;
 	temp= 32767;
 
-	if( but->type==NUMSLI) deler= ( (but->x2-but->x1)/2 - h);
-	else if( but->type==HSVSLI) deler= ( (but->x2-but->x1)/2 - h);
-	else deler= (but->x2-but->x1-h);
+	if( but->type==NUMSLI) deler= ( (but->x2-but->x1)/2 - 5.0*but->aspect);
+	else if( but->type==HSVSLI) deler= ( (but->x2-but->x1)/2 - 5.0*but->aspect);
+	else deler= (but->x2-but->x1- 5.0*but->aspect);
 	
 
 	while (get_mbut() & L_MOUSE) {
@@ -5350,10 +5333,13 @@ static void ui_check_but(uiBut *but)
 	/* if something changed in the button */
 	ID *id;
 	double value;
+	float okwidth;
 	short pos;
 	
 	ui_is_but_sel(but);
-
+	
+	okwidth= -7 + (but->x2 - but->x1); // changes for sliders etc
+	
 	/* name: */
 	switch( but->type ) {
 	
@@ -5387,6 +5373,7 @@ static void ui_check_but(uiBut *but)
 		else {
 			sprintf(but->drawstr, "%s%d", but->str, (int)value);
 		}
+		okwidth= -7 + (but->x2 - but->x1)/2.0;
 		break;
 
 	case IDPOIN:
@@ -5431,7 +5418,7 @@ static void ui_check_but(uiBut *but)
 
 		/* calc but->ofs, to draw the string shorter if too long */
 		but->ofs= 0;
-		while(but->strwidth > (int)(but->x2-but->x1-7) ) {
+		while(but->strwidth > (int)okwidth ) {
 			but->ofs++;
 	
 			if(but->drawstr[but->ofs]) 
@@ -5457,7 +5444,7 @@ static void ui_check_but(uiBut *but)
 		
 		/* fix for buttons that better not have text cut off to the right */
 		if(but->ofs) {
-			if ELEM4(but->type, NUM, TEX, NUMSLI, HSVSLI);	// only these cut off right
+			if ELEM(but->type, NUM, TEX);	// only these cut off left
 			else {
 				but->drawstr[ strlen(but->drawstr)-but->ofs ]= 0;
 				but->ofs= 0;
