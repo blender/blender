@@ -1749,10 +1749,6 @@ void *ccgSubSurf_getFaceGridData(CCGSubSurf *ss, CCGFace *f, int gridIndex, int 
 
 /*** External API iterator functions ***/
 
-typedef struct _CCGVertIterator CCGVertIterator;
-typedef struct _CCGEdgeIterator CCGEdgeIterator;
-typedef struct _CCGFaceIterator CCGFaceIterator;
-
 CCGVertIterator *ccgSubSurf_getVertIterator(CCGSubSurf *ss) {
 	return (CCGVertIterator*) _ehashIterator_new(ss->vMap);
 }
