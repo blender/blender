@@ -99,6 +99,7 @@ static PyObject *Ipo_getNBezPoints(C_Ipo *self, PyObject *args);
 static PyObject *Ipo_DeleteBezPoints(C_Ipo *self, PyObject *args);
 static PyObject *Ipo_getCurveBP(C_Ipo *self, PyObject *args);
 static PyObject *Ipo_getCurvecurval(C_Ipo *self, PyObject *args);
+static PyObject *Ipo_EvaluateCurveOn(C_Ipo *self, PyObject *args);
 
 
 static PyObject *Ipo_setCurveBeztriple(C_Ipo *self, PyObject *args);
@@ -131,6 +132,8 @@ static PyMethodDef C_Ipo_methods[] = {
       "() - Return curve number of Bez points"},
   {"getCurveBP", (PyCFunction)Ipo_getCurveBP, METH_VARARGS,
       "() - Return Ipo ncurves"},
+  {"EvaluateCurveOn", (PyCFunction)Ipo_EvaluateCurveOn, METH_VARARGS,
+      "() - Return curve value at given time"},
   {"getCurveCurval", (PyCFunction)Ipo_getCurvecurval, METH_VARARGS,
       "() - Return curval"},
   {"getCurveBeztriple", (PyCFunction)Ipo_getCurveBeztriple, METH_VARARGS,

@@ -137,3 +137,14 @@ class Ipo:
 		@rtype: float
 		@return: the current value of the selected curve of the Ipo.
     """
+
+  def EvaluateCurveOn(curvepos,time):
+    """
+		Gets the current value of a curve of the Ipo.
+		@type curvepos: int
+		@param curvepos: the position of the curve in the ipo
+		@type time: float
+		@param time: the position of the curve in the ipo
+		@rtype: float
+		@return: the current value of the selected curve of the Ipo at the given time.
+    """

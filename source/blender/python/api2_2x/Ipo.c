@@ -141,12 +141,11 @@ static PyObject *M_Ipo_Get(PyObject *self, PyObject *args)
 static PyObject * M_Ipo_Recalc(PyObject *self, PyObject *args)
 {	
 	void testhandles_ipocurve(IpoCurve *icu);
-
-IpoCurve *icu;
-	//C_IpoCurve *p = (C_IpoCurve*)args;
- icu = IpoCurve_FromPyObject(args);
- printf("%d\n",IpoCurve_CheckPyObject(args));
- printf("%p\n",icu);
+ PyObject  *a;
+IpoCurve *icu; 
+if (!PyArg_ParseTuple(args, "O", &a))
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected ipo argument)"));
+icu = IpoCurve_FromPyObject(a);
  testhandles_ipocurve(icu); 
  
 Py_INCREF(Py_None);
@@ -412,8 +411,9 @@ static PyObject *Ipo_setCurveBeztriple(C_Ipo *self, PyObject *args)
         PyObject *listargs=0;
 
   if (!PyArg_ParseTuple(args, "iiO",&num,&pos,&listargs))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
-                                                                                                                                         "expected int argument"));
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected int int object argument"));
+        if(!PyTuple_Check(listargs)) 
+return (EXPP_ReturnPyObjError (PyExc_TypeError,"3rd arg should be a tuple"));
         icu =self->ipo->curve.first;
         if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"No IPO curve"));
         for(i = 0;i<num;i++)
@@ -430,7 +430,8 @@ static PyObject *Ipo_setCurveBeztriple(C_Ipo *self, PyObject *args)
         
         for(i=0;i<9;i++)
                 {
-                        PyObject * xx = PyList_GetItem(listargs,i);
+                        PyObject * xx = PyTuple_GetItem(listargs,i);
+												printf("%f\n", PyFloat_AsDouble(xx));
                         ptrbt->vec[i/3][i%3] = PyFloat_AsDouble(xx);
                 }
 
@@ -441,14 +442,35 @@ static PyObject *Ipo_setCurveBeztriple(C_Ipo *self, PyObject *args)
 
 
 
+static PyObject *Ipo_EvaluateCurveOn(C_Ipo *self, PyObject *args)
+{  
+	float eval_icu(IpoCurve *icu, float ipotime) ;
+     
+        int num = 0,i;
+        IpoCurve *icu;
+				float time = 0;
+
+  if (!PyArg_ParseTuple(args, "if",&num,&time))
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected int argument"));
+        icu =self->ipo->curve.first;
+        if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"No IPO curve"));
+        for(i = 0;i<num;i++)
+                {
+                        if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"Bad ipo number"));
+                        icu=icu->next;
+                 
+    }
+        return PyFloat_FromDouble(eval_icu(icu,time));
+}
+
+
 static PyObject *Ipo_getCurvecurval(C_Ipo *self, PyObject *args)
 {       
         int num = 0,i;
         IpoCurve *icu;
 
   if (!PyArg_ParseTuple(args, "i",&num))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
-                                                                                                                                         "expected int argument"));
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected int argument"));
         icu =self->ipo->curve.first;
         if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"No IPO curve"));
         for(i = 0;i<num;i++)
