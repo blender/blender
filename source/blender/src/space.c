@@ -1439,12 +1439,12 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else if(G.f & G_VERTEXPAINT)
 						vpaint_undo();
 					else
-						single_user();
-						//BIF_undo_step(1);
+						// single_user();
+						BIF_undo_step(1);
 				}
 				else if(G.qual==LR_SHIFTKEY)
-					// BIF_undo_step(-1);
-					;
+					BIF_undo_step(-1);
+					
 				break;
 			case VKEY:
 				ob= OBACT;

@@ -6163,8 +6163,8 @@ void transform(int mode)
 	tottrans= 0;
 
 	/* undo after transform, since it's storing current situations */
-	//if(canceled==0 && G.obedit==NULL) 
-	//	BIF_write_undo(transform_mode_to_string(mode));
+	if(canceled==0 && G.obedit==NULL) 
+		BIF_write_undo(transform_mode_to_string(mode));
 }
 
 void std_rmouse_transform(void (*xf_func)(int))
