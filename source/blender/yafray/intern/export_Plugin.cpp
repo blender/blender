@@ -194,7 +194,7 @@ bool yafrayPluginRender_t::initExport()
 	while (--count) bpt[count] = 0xff800000;
 	cout << "Image initialized" << endl;
 
-	unsigned int *zbuf=R.rectz;
+	int *zbuf=R.rectz;
 	count = R.rectx*R.recty;
 	while (--count) zbuf[count] = 0x7fffffff;
 	cout << "Zbuffer initialized" << endl;
@@ -1717,12 +1717,12 @@ bool blenderYafrayOutput_t::putPixel(int x, int y, const yafray::color_t &c,
 	}
 
 	// depth values
-	unsigned int* zbuf = R.rectz + px;
+	int* zbuf = R.rectz + px;
 	depth -= R.near;
 	float mz = R.far - R.near;
 	if (depth<0) depth=0; else if (depth>mz) depth=mz;
 	if (mz!=0.f) mz = 2147483647.f/mz;
-	zbuf[x] = (unsigned int)(depth*mz);
+	zbuf[x] = (int)(depth*mz);
 
 	out++;
 	if(out==4096)
