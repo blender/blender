@@ -10,8 +10,8 @@ import string
 
 a2z = 'abcdefghijklmnopqrstuvwxyz'
 A2Z = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-umlaute = 'äöüß'
-Umlaute = 'ÄÖÜ'
+umlaute = '„÷’'
+Umlaute = 'ıÙ›'
 alpha = A2Z + a2z
 german_alpha = A2Z + a2z + umlaute + Umlaute
 number = '0123456789'
