@@ -4459,16 +4459,23 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 
 	/* check boundbox and panel events */
 	if( block->minx <= uevent->mval[0] && block->maxx >= uevent->mval[0] ) {
-		int panely= PNL_HEADER*panel_has_tabs(block->panel);
 		
-		if( block->miny <= uevent->mval[1] && block->maxy-panely >= uevent->mval[1] ) {
-			inside= 1;
+		if(block->panel==NULL) {
+			if( block->miny <= uevent->mval[1] && block->maxy >= uevent->mval[1] )
+				inside= 1;
 		}
-		else if(block->panel && uevent->event==LEFTMOUSE) {
-			if( (block->maxy-panely <= uevent->mval[1]) && (block->maxy+PNL_HEADER >= uevent->mval[1]) ) {
-				ui_panel_pop(block); 	// pop matrix; no return without pop!
-				ui_do_panel(block, uevent);
-				return UI_EXIT_LOOP;	// exit loops because of moving panels
+		else if(block->panel->paneltab==NULL) {
+			int panely= PNL_HEADER*panel_has_tabs(block->panel);
+			
+			if( block->miny <= uevent->mval[1] && block->maxy-panely >= uevent->mval[1] ) {
+				inside= 1;
+			}
+			else if(uevent->event==LEFTMOUSE) {
+				if( (block->maxy-panely <= uevent->mval[1]) && (block->maxy+PNL_HEADER >= uevent->mval[1]) ) {
+					ui_panel_pop(block); 	// pop matrix; no return without pop!
+					ui_do_panel(block, uevent);
+					return UI_EXIT_LOOP;	// exit loops because of moving panels
+				}
 			}
 		}
 	}
@@ -6010,11 +6017,14 @@ void uiSetPanel_view2d(ScrArea *sa)
 
 int uiIsPanelClosed(uiBlock *block)
 {
-	if(block->panel && (block->panel->flag & PNL_CLOSED)) {
-		uiDrawBlock(block);
+	if(block->panel && block->panel->paneltab) {
+		/* needed for min max */
+		uiBoundsBlock(block, 0);
 		return 1;
 	}
-	else if(block->panel && block->panel->paneltab) {
+	else if(block->panel && (block->panel->flag & PNL_CLOSED)) {
+		/* draw does bounds too */
+		uiDrawBlock(block);
 		return 1;
 	}
 	return 0;
@@ -6040,13 +6050,13 @@ static void ui_draw_tria(float x, float y, float aspect, char dir)
 {
 
 	/* hilite */
-	glColor3ub(240, 240, 240);
-	if(dir=='h') fdrawline(x, y+15.0-aspect, x+13.0, y+7.5-aspect);
-	else fdrawline(x, y+13.0-aspect, x+15.0, y+13.0-aspect);
+	// glColor3ub(240, 240, 240);
+	// if(dir=='h') fdrawline(x, y+15.0-aspect, x+13.0, y+7.5-aspect);
+	// else fdrawline(x, y+13.0-aspect, x+15.0, y+13.0-aspect);
 	
-	/* outline */
-	glColor3ub(70, 70, 70);
-	glBegin(GL_LINE_LOOP);	
+	/* filled */
+	glColor3ub(240, 240, 240);
+	glBegin(GL_POLYGON);	
 	if(dir=='h') {
 		glVertex2f( x, y);
 		glVertex2f( x, y+15.0);
@@ -6135,8 +6145,9 @@ static void ui_draw_panel_tabs(uiBlock *block)
 
 static void ui_draw_panel(uiBlock *block)
 {
-	if(block->panel->paneltab);
-	else if(block->panel->flag & PNL_CLOSED) {
+	if(block->panel->paneltab) return;
+	
+	if(block->panel->flag & PNL_CLOSED) {
 		uiSetRoundBox(15);
 		glColor3ub(160, 160, 167);
 		uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
@@ -6204,9 +6215,9 @@ static void ui_draw_panel(uiBlock *block)
 	}
 	/* icon */
 	if(block->panel->flag & PNL_CLOSED)
-		ui_draw_tria(block->maxx-30, block->maxy+2, block->aspect, 'h');
+		ui_draw_tria(block->minx+10, block->maxy+2, block->aspect, 'h');
 	else
-		ui_draw_tria(block->maxx-30, block->maxy+2, block->aspect, 'v');
+		ui_draw_tria(block->minx+10, block->maxy+2, block->aspect, 'v');
 
 }
 
@@ -6412,10 +6423,14 @@ static void check_panel_overlap(ScrArea *sa, Panel *panel)
 		pa->flag &= ~PNL_OVERLAP;
 		if(panel && (pa != panel)) {
 			if(pa->paneltab==NULL) {
+				float safe= 0.2;
+				
+				if(pa->flag & PNL_CLOSED) safe= 0.05;
+				
 				if( pa->ofsx > panel->ofsx- 0.2*panel->sizex)
 				if( pa->ofsx+pa->sizex < panel->ofsx+ 1.2*panel->sizex)
-				if( pa->ofsy > panel->ofsy- 0.2*panel->sizey)
-				if( pa->ofsy+pa->sizey < panel->ofsy+ 1.2*panel->sizey)
+				if( pa->ofsy > panel->ofsy- safe*panel->sizey)
+				if( pa->ofsy+pa->sizey < panel->ofsy+ (1.0+safe)*panel->sizey)
 					pa->flag |= PNL_OVERLAP;
 			}
 		}
@@ -6654,21 +6669,30 @@ static void panel_clicked_tabs(uiBlock *block,  int mousex)
 static void ui_do_panel(uiBlock *block, uiEvent *uevent)
 {
 	SpaceButs *sbuts= curarea->spacedata.first;
+	Panel *pa;
 	
 	/* mouse coordinates in panel space! */
 	
-	if(uevent->event==LEFTMOUSE) {
+	if(uevent->event==LEFTMOUSE && block->panel->paneltab==NULL) {
 		
 		/* check if clicked in tabbed area */
 		if(uevent->mval[1] < block->maxy && panel_has_tabs(block->panel)) {
-			panel_clicked_tabs(block, uevent->mval[0]);
+			if(block->panel->flag & PNL_CLOSED);
+			else panel_clicked_tabs(block, uevent->mval[0]);
 		}
 		/* check open/closed button */
-		else if(uevent->mval[0] >= block->maxx-30 && uevent->mval[0] <= block->maxx-10) {
-			block->panel->flag ^= PNL_CLOSED;
+		else if(uevent->mval[0] >= block->minx+10 && uevent->mval[0] <= block->minx+30) {
 			
+			block->panel->flag ^= PNL_CLOSED;
+			for(pa= curarea->panels.first; pa; pa= pa->next) {
+				if(pa->paneltab==block->panel) {
+					if(block->panel->flag & PNL_CLOSED) pa->flag |= PNL_CLOSED;
+					else pa->flag &= ~PNL_CLOSED;
+				}
+			}
 			if(sbuts->align==0) addqueue(block->win, REDRAW, 1);
 			else uiAnimatePanels(curarea);
+			
 		}
 		else {
 			ui_drag_panel(block);
