@@ -1277,10 +1277,12 @@ def appit(target, source, env):
 		shutil.copy('bin/.blender/.bfont.ttf', cmd)
 		shutil.copy('bin/.blender/.Blanguages', cmd)
 		cmd = 'cp -R bin/.blender/locale %s.app/Contents/Resources/'%target
+		commands.getoutput(cmd)	
+		cmd = 'mkdir %s.app/Contents/MacOS/.blender'%target
 		commands.getoutput(cmd)
-		cmd = 'cp -R release/bpydata %s.app/Contents/Resources/'%target
+		cmd = 'cp -R release/bpydata %s.app/Contents/MacOS/.blender'%target
 		commands.getoutput(cmd)
-		cmd = 'cp -R release/scripts %s.app/Contents/Resources/'%target
+		cmd = 'cp -R release/scripts %s.app/Contents/MacOS/.blender/'%target
 		commands.getoutput(cmd)
 		cmd = 'cp -R release/plugins %s.app/Contents/Resources/'%target 
 		commands.getoutput(cmd)
@@ -1314,9 +1316,9 @@ def appit(target, source, env):
 			shutil.copy('bin/.blender/.Blanguages', cmd)
 			cmd = 'cp -R bin/.blender/locale %s.app/Contents/Resources/'%target
 			commands.getoutput(cmd)
-			cmd = 'cp -R release/bpydata %s.app/Contents/Resources/'%target
+			cmd = 'cp -R release/bpydata %s.app/Contents/MacOS/.blender'%target
 			commands.getoutput(cmd)
-			cmd = 'cp -R release/scripts %s.app/Contents/Resources/'%target
+			cmd = 'cp -R release/scripts %s.app/Contents/MacOS/.blender/'%target
 			commands.getoutput(cmd)
 			cmd = 'cp -R release/plugins %s.app/Contents/Resources/'%target 
 			commands.getoutput(cmd)
