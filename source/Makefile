@@ -400,7 +400,7 @@ else
       endif
     endif
   else
-    ifeq ($(OS),darwin)
+    ifeq ($(OS),$(findstring $(OS), "darwin solaris"))
       NAN_SND_LIBS =  $(SOUNDSYSTEM)
       NAN_SND_LIBS += $(DUMMYSOUND)
       NAN_SND_LIBS += $(OPENALSOUND)

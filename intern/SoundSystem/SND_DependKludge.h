@@ -40,7 +40,7 @@
 
 #if defined (_WIN32) && !defined(FREE_WINDOWS)
 #   define USE_OPENAL
-#elif defined (__linux__) || (__FreeBSD__) || defined(__APPLE__)
+#elif defined (__linux__) || (__FreeBSD__) || defined(__APPLE__) || defined(__sun)
 #	define USE_OPENAL
 #else
 #	ifdef USE_OPENAL

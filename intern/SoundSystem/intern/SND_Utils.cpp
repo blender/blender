@@ -48,10 +48,6 @@ extern "C" {
 #include <math.h>
 #include <string.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #if defined(WIN32)
 #include <io.h>
 #else
@@ -73,7 +69,7 @@ typedef enum
 	SND_endianLittle
 } SND_TEndian;
 
-#ifdef __BIG_ENDIAN__
+#if defined(__BIG_ENDIAN__) || defined(__sparc) || defined(__sparc__)
 const SND_TEndian SND_fEndian = SND_endianBig;
 #else
 const SND_TEndian SND_fEndian = SND_endianLittle;
