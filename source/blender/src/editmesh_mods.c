@@ -322,6 +322,38 @@ int EM_mask_init_backbuf_border(short mcords[][2], short tot, short xmin, short 
 	
 }
 
+/* circle shaped sample area */
+int EM_init_backbuf_circle(short xs, short ys, short rads)
+{
+	unsigned int *buf, *dr;
+	short xmin, ymin, xmax, ymax, xc, yc;
+	int radsq;
+	
+	if(G.obedit==NULL || G.vd->drawtype<OB_SOLID || (G.vd->flag & V3D_ZBUF_SELECT)==0) return 0;
+	if(em_vertoffs==0) return 0;
+	
+	xmin= xs-rads; xmax= xs+rads;
+	ymin= ys-rads; ymax= ys+rads;
+	dr= buf= read_backbuf(xmin, ymin, xmax, ymax);
+	if(buf==NULL) return 0;
+	
+	/* build selection lookup */
+	selbuf= MEM_callocN(em_vertoffs+1, "selbuf");
+	radsq= rads*rads;
+	for(yc= -rads; yc<=rads; yc++) {
+		for(xc= -rads; xc<=rads; xc++, dr++) {
+			if(xc*xc + yc*yc < radsq) {
+				if(*dr>0 && *dr<=em_vertoffs) selbuf[*dr]= 1;
+			}
+		}
+	}
+
+	MEM_freeN(buf);
+	return 1;
+	
+}
+
+
 static EditVert *findnearestvert_f(short *dist, short sel)
 {
 	static EditVert *acto= NULL;

@@ -1341,7 +1341,7 @@ void mesh_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 	int index, bbsel=0; // if bbsel we dont clip with screencoords
 	short rads= (short)(rad+1.0);
 	
-	bbsel= EM_init_backbuf_border(mval[0]-rads, mval[1]-rads, mval[0]+rads, mval[1]+rads);
+	bbsel= EM_init_backbuf_circle(mval[0], mval[1], rads);
 	
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 		if(bbsel==0) calc_meshverts_ext();	/* drawobject.c */
