@@ -409,6 +409,7 @@ void default_mtex(MTex *mtex)
 	mtex->colfac= 1.0;
 	mtex->norfac= 0.5;
 	mtex->varfac= 1.0;
+	mtex->dispfac=0.2;
 }
 
 

@@ -1219,9 +1219,9 @@ void do_material_tex(ShadeInput *shi)
 					if(mtex->maptoneg & MAP_DISPLACE) tex->norfac= -mtex->norfac;
 					else tex->norfac= mtex->norfac;
 
-					shi->displace[0]+= 0.1f*Tnor*tex->norfac*tex->nor[0];
-					shi->displace[1]+= 0.1f*Tnor*tex->norfac*tex->nor[1];
-					shi->displace[2]+= 0.1f*Tnor*tex->norfac*tex->nor[2];
+					shi->displace[0]+= 0.2f*Tnor*tex->norfac*tex->nor[0];
+					shi->displace[1]+= 0.2f*Tnor*tex->norfac*tex->nor[1];
+					shi->displace[2]+= 0.2f*Tnor*tex->norfac*tex->nor[2];
 				}
 				
 				if(rgbnor & TEX_RGB) {

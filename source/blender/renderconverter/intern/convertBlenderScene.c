@@ -3041,8 +3041,6 @@ void do_displacement(Object *ob, int startface, int numface, int startvert, int 
 		obt=obt->parent;
 	}
 	
-	printf("ob scale=%f, %f, %f\n", scale[0], scale[1], scale[2]);
-	
 	/* Clear all flags */
 	for(i=startvert; i<startvert+numvert; i++){ 
 		vr= RE_findOrAddVert(i);
