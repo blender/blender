@@ -92,6 +92,7 @@ static PyObject *IpoCurve_setInterpolation( C_IpoCurve*self, PyObject *args);
 static PyObject *IpoCurve_getInterpolation( C_IpoCurve*self);
 static PyObject *IpoCurve_setExtrapolation( C_IpoCurve*self, PyObject *args);
 static PyObject *IpoCurve_getExtrapolation( C_IpoCurve*self);
+static PyObject *IpoCurve_getPoints( C_IpoCurve*self);
 
 
 /*****************************************************************************/
@@ -116,6 +117,8 @@ static PyMethodDef C_IpoCurve_methods[] = {
 {"setExtrapolation", (PyCFunction)IpoCurve_setExtrapolation, METH_VARARGS,
       "(str) - Change IpoCurve Data name"}, 
 {"getExtrapolation", (PyCFunction)IpoCurve_getExtrapolation, METH_NOARGS,
+      "(str) - Change IpoCurve Data name"}, 
+{"getPoints", (PyCFunction)IpoCurve_getPoints, METH_NOARGS,
       "(str) - Change IpoCurve Data name"},
   {0}
 };

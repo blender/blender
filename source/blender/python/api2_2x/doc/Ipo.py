@@ -3,7 +3,9 @@
 """
 The Blender.Ipo submodule
 
-This module provides access to the Ipo Data in Blender.
+This module provides access to the Ipo Data in Blender. An Ipo is composed of several Ipocurves.
+
+A datatype is defined : IpoCurve type. The member functions of this data type are given below.
 
 
 Example::
@@ -147,4 +149,103 @@ class Ipo:
 		@param time: the position of the curve in the ipo
 		@rtype: float
 		@return: the current value of the selected curve of the Ipo at the given time.
+    """
+
+
+
+
+class IpoCurve:
+  """
+  The IpoCurve object
+  ===================
+  This object gives access to generic data from all ipocurves objects in Blender.
+  @cvar name: The Curve Data name.
+  @cvar bezierPoints : The list of the Bezier points.
+  """
+
+  def setExtrapolation(extrapolationtype):
+    """
+		Sets the extrapolation type  of the curve.
+		@type extrapolationtype: string
+		@param extrapolationtype: the extrapolatrion type of the curve. Can be Constant, Extrapolation, Cyclic or Cyclic_extrapolation.
+		@rtype: PyNone
+		@return: PyNone
+    """
+  def getExtrapolation():
+    """
+		Gets the extrapolation type  of the curve.
+		@rtype: string
+		@return: the extrapolation type  of the curve.Can be Constant, Extrapolation, Cyclic or Cyclic_extrapolation.
+    """
+		
+
+  def setInterpolation(interpolationtype):
+    """
+		Sets the interpolation type  of the curve.
+		@type interpolationtype: string
+		@param interpolationtype: the interpolatrion type of the curve. Can be Constant, Bezier, or Linear.
+		@rtype: PyNone
+		@return: PyNone
+    """
+  def getInterpolation():
+    """
+		Gets the interpolation type  of the curve.
+		@rtype: string
+		@return: the interpolation type  of the curve.Can be Constant, Bezier, or Linear.
+    """
+		
+  def addBezier(coordlist):
+    """
+		Adds a Bezier point to a curve.
+		@type coordlist: tuple of (at least) 2 floats
+		@param coordlist: the x and y coordinates of the new Bezier point.
+		@rtype: PyNone
+		@return: PyNone
+    """
+
+  def Recalc():
+    """
+		Recomputes the curent value of the curve.
+		@rtype: PyNone
+		@return: PyNone
+    """
+
+  def getName():
+    """
+		Returns the name of the ipo curve.This name can be : LocX,LocY,LocZ,dLocX,dLocY,dLocZ,RotX,RotY,RotZ,dRotX,dRotY,dRotZ,SizeX,SizeY,SizeZ,dSizeX,dSizeY,dSizeZ,Layer,Time,ColR,ColG,ColB, or ColA.
+		@rtype: string
+		@return: the name of the ipo curve.
+    """
+
+  def getPoints():
+    """
+		Returns all the points of the ipo curve.
+		@rtype: list
+		@return: the points of the ipo curve.
+    """
+
+
+class BezTriple:
+  """
+  The BezTriple object
+  ====================
+  This object gives access to generic data from all beztriple objects in Blender.
+  @cvar name: The Curve Data name.
+  @cvar bezierPoints : The list of the Bezier points.
+  """
+
+  def getPoints():
+    """
+		Returns the xy coordinates of the Bezier point.
+		@rtype: list
+		@return: list of the coordinates of the Bezier point.
+    """
+
+  def setPoints(newval):
+    """
+		Sets the point xy coordinates.
+		@type newval: tuple of (at least) 2 floats
+		@param newval: the x and y coordinates of the new Bezier point.
+		@rtype: PyNone
+		@return: PyNone
     """

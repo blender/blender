@@ -76,18 +76,18 @@ typedef struct {
 /*****************************************************************************/
 /* Python C_BezTriple methods declarations:                                     */
 /*****************************************************************************/
-static PyObject *BezTriple_getName(C_BezTriple *self);
-static PyObject *BezTriple_setName(C_BezTriple *self, PyObject *args);
+static PyObject *BezTriple_setPoints(C_BezTriple *self, PyObject *args);
+static PyObject *BezTriple_getPoints(C_BezTriple *self);
 
 /*****************************************************************************/
 /* Python C_BezTriple methods table:                                            */
 /*****************************************************************************/
 static PyMethodDef C_BezTriple_methods[] = {
  /* name, method, flags, doc */
-  {"getName", (PyCFunction)BezTriple_getName, METH_NOARGS,
-      "() - Return BezTriple Data name"},  
-{"setName", (PyCFunction)BezTriple_setName, METH_VARARGS,
-      "(str) - Change BezTriple Data name"},
+{"setPoints", (PyCFunction)BezTriple_setPoints, METH_VARARGS,
+      "(str) - Change BezTriple point coordinates"},
+{"getPoints", (PyCFunction)BezTriple_getPoints, METH_NOARGS,
+      "(str) - Change BezTriple point coordinates"},
   {0}
 };
 
@@ -95,7 +95,6 @@ static PyMethodDef C_BezTriple_methods[] = {
 /* Python BezTriple_Type callback function prototypes:                          */
 /*****************************************************************************/
 static void BezTripleDeAlloc (C_BezTriple *self);
-//static int BezTriplePrint (C_BezTriple *self, FILE *fp, int flags);
 static int BezTripleSetAttr (C_BezTriple *self, char *name, PyObject *v);
 static PyObject *BezTripleGetAttr (C_BezTriple *self, char *name);
 static PyObject *BezTripleRepr (C_BezTriple *self);

@@ -85,41 +85,73 @@ static PyObject *IpoCurve_setInterpolation( C_IpoCurve * self, PyObject *args)
 	if (!strcmp(interpolationtype,"Constant"))id = IPO_CONST;
 	if (!strcmp(interpolationtype,"Linear"))id = IPO_LIN;
 	if (id == -1)
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,"bad interpolation ytpe"));
-  Py_INCREF(Py_None);
-  return Py_None;
-}
-static PyObject *IpoCurve_getInterpolation( C_IpoCurve * self)
-{
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,"bad interpolation type"));
 
+	self->ipocurve->ipo = id;
   Py_INCREF(Py_None);
   return Py_None;
 }
+
+static PyObject *IpoCurve_getInterpolation( C_IpoCurve * self)
+{	char*str = 0;
+	IpoCurve *icu = self->ipocurve;
+		if (icu->ipo == IPO_BEZ) str = "Bezier";
+		if (icu->ipo == IPO_CONST) str = "Bonstant";
+		if (icu->ipo == IPO_LIN) str = "Linear";
+
+	if (!str)
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,"unknown interpolation type"));
+return PyString_FromString(str);
+}
+
 static PyObject *IpoCurve_setExtrapolation( C_IpoCurve * self, PyObject *args)
 {
 
+	char*extrapolationtype = 0;
+	int id = -1;
+  if (!PyArg_ParseTuple(args, "s", &extrapolationtype))
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected string argument"));
+	if (!strcmp(extrapolationtype,"Constant"))id = 0;
+	if (!strcmp(extrapolationtype,"Extrapolation"))id = 1;
+	if (!strcmp(extrapolationtype,"Cyclic"))id = 2;
+	if (!strcmp(extrapolationtype,"Cyclic_extrapolation"))id = 3;
+
+	if (id == -1)
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,"bad interpolation type"));
+	self->ipocurve->extrap = id;
   Py_INCREF(Py_None);
   return Py_None;
 }
+
+
+
 static PyObject *IpoCurve_getExtrapolation( C_IpoCurve * self)
 {
+	char*str;
+	IpoCurve *icu = self->ipocurve;
+		if (icu->extrap == 0) str = "Constant";
+		if (icu->extrap == 1) str = "Extrapolation";
+		if (icu->extrap == 2) str = "Cyclic";
+		if (icu->extrap == 3) str = "Cyclic_extrapolation";
 
-  Py_INCREF(Py_None);
-  return Py_None;
+return PyString_FromString(str);
 }
+
+
+
+
 static PyObject *IpoCurve_addBezier( C_IpoCurve * self, PyObject *args)
 {
 short MEM_freeN(void *vmemh)	;
 	void *MEM_mallocN(unsigned int len, char *str);
-	char *str=0;
 	float x,y;
 	int npoints;
 	IpoCurve *icu;
 	BezTriple *bzt,*tmp;
 	static char name[10] = "mlml";
 	PyObject*popo = 0;
-  if (!PyArg_ParseTuple(args, "Os", &popo,&str))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected list argument"));
+  if (!PyArg_ParseTuple(args, "O", &popo))
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected tuple argument"));
 	x = PyFloat_AsDouble(PyTuple_GetItem(popo,0));
 	y = PyFloat_AsDouble(PyTuple_GetItem(popo,1));
   icu = self->ipocurve;

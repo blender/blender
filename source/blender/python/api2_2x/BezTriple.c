@@ -54,18 +54,6 @@ static PyObject *M_BezTriple_Get(PyObject *self, PyObject *args)
 }
 
 
-/*****************************************************************************/
-/* Python C_BezTriple methods:                                                  */
-/*****************************************************************************/
-static PyObject *BezTriple_getName(C_BezTriple *self)
-{
-	return 0;
-}
-
-static PyObject *BezTriple_setName(C_BezTriple *self, PyObject *args)
-{
-	return 0;
-}
 
 
 /*****************************************************************************/
@@ -90,53 +78,31 @@ struct BezTriple *bezt = self->beztriple;
   return l;
 }
 
-static PyObject* BezTriple_geth1t (C_BezTriple *self)
-{	
-	/*champ h1 de la struct*/
-  return PyString_FromString("Auto");
-}
-static PyObject* BezTriple_geth2t (C_BezTriple *self)
-{
-	/*champ h2 de la struct*/
-  return PyString_FromString("Auto");
-}
 
-static PyObject* BezTriple_geth1 (C_BezTriple *self)
-{	PyObject* ret = PyTuple_New(2);
- PyTuple_SetItem(ret, 0 , PyFloat_FromDouble(self->beztriple->vec[0][0])); 
- PyTuple_SetItem(ret, 1 , PyFloat_FromDouble(self->beztriple->vec[0][1])); 
-  return ret;
-}
-static PyObject* BezTriple_geth2 (C_BezTriple *self)
-{	PyObject* ret = PyTuple_New(2);
- PyTuple_SetItem(ret, 0 , PyFloat_FromDouble(self->beztriple->vec[2][0])); 
- PyTuple_SetItem(ret, 1 , PyFloat_FromDouble(self->beztriple->vec[2][1])); 
-  return ret;
-}
-static PyObject* BezTriple_getf1 (C_BezTriple *self)
-{
-return  PyInt_FromLong(self->beztriple->f1); 
-}
-static PyObject* BezTriple_getf2 (C_BezTriple *self)
-{
-return  PyInt_FromLong(self->beztriple->f2); 
-}
-
-static PyObject* BezTriple_getf3 (C_BezTriple *self)
-{
-return  PyInt_FromLong(self->beztriple->f3); 
-}
-
-int  BezTriple_setPoints (C_BezTriple *self,PyObject *value)
+static PyObject *  BezTriple_setPoints (C_BezTriple *self,PyObject *args)
 {	
 
 	int i;
 	struct BezTriple *bezt = self->beztriple;
-	if (  PyList_Check(value) == 0)
-		{puts("error in   BezTriple_setPoints"); 
-    return -1;}
-	for(i = 0;i<2;i++)bezt->vec[1][i] = PyFloat_AsDouble(PyList_GetItem(value, i));
-  return 0;
+	PyObject*popo = 0;
+  if (!PyArg_ParseTuple(args, "O", &popo))
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected tuple argument"));
+	if (  PyTuple_Check(popo) == 0)
+		{
+			puts("error in   BezTriple_setPoints");
+  Py_INCREF(Py_None);
+  return Py_None;
+		}
+	for(i = 0;i<2;i++)
+		{
+			bezt->vec[1][i] = PyFloat_AsDouble(PyTuple_GetItem(popo, i));
+			bezt->vec[0][i] = bezt->vec[1][i] -1;
+			bezt->vec[2][i] = bezt->vec[1][i] +1;
+		}
+
+
+  Py_INCREF(Py_None);
+  return Py_None;
 }
 
 
@@ -149,17 +115,6 @@ int  BezTriple_setPoints (C_BezTriple *self,PyObject *value)
 static PyObject *BezTripleGetAttr (C_BezTriple *self, char *name)
 {
 if (strcmp (name, "pt") == 0)return BezTriple_getPoints(self);
-if (strcmp (name, "h1") == 0)return BezTriple_geth1(self);
-if (strcmp (name, "h2") == 0)return BezTriple_geth2(self);
-if (strcmp (name, "f1") == 0)return BezTriple_getf1(self);
-if (strcmp (name, "f2") == 0)return BezTriple_getf2(self);
-if (strcmp (name, "f3") == 0)return BezTriple_getf3(self);
-
-if (strcmp (name, "h1t") == 0)return BezTriple_geth1t(self);
-if (strcmp (name, "h1Type") == 0)return BezTriple_geth1t(self);
-
-if (strcmp (name, "h2t") == 0)return BezTriple_geth2t(self);
-if (strcmp (name, "h2Type") == 0)return BezTriple_geth2t(self);
   return Py_FindMethod(C_BezTriple_methods, (PyObject *)self, name);
 }
 
