@@ -1001,7 +1001,7 @@ float check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
  		x = xo-x;
  		//y = yo-y
  		}
- 	angle = pow(fabs(angle)/45,log(xo,2));
+ 	angle = pow(fabs(angle)/45,log(xo)/log(2));
 
 	posy = facf0 * yo;
 	if(sweep->forward){
