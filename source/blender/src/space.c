@@ -4130,7 +4130,7 @@ void allqueue(unsigned short event, short val)
 					scrarea_queue_headredraw(sa);
 					if(val) {
 						si= sa->spacedata.first;
-						if (!G.sipo->pin)							
+						if (si->pin==0)							
 							si->blocktype= val;
 					}
 				}

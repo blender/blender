@@ -647,7 +647,7 @@ Object *add_object(int type)
 		ob->upflag= OB_POSZ;
 	}
 	ob->ipoflag = OB_OFFS_OB+OB_OFFS_PARENT;
-	
+	ob->ipowin= ID_OB;	/* the ipowin shown */
 	ob->dupon= 1; ob->dupoff= 0;
 	ob->dupsta= 1; ob->dupend= 100;
 

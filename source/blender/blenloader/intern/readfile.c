@@ -4236,12 +4236,19 @@ static void do_versions(Main *main)
 	}
 	if(main->versionfile <= 233) {
 		Material *ma= main->mat.first;
+		Object *ob= main->object.first;
 		
 		while(ma) {
 			if(ma->rampfac_col==0.0) ma->rampfac_col= 1.0;
 			if(ma->rampfac_spec==0.0) ma->rampfac_spec= 1.0;
 			if(ma->pr_lamp==0) ma->pr_lamp= 3;
 			ma= ma->id.next;
+		}
+		
+		/* this should have been done loooong before! */
+		while(ob) {
+			if(ob->ipowin==0) ob->ipowin= ID_OB;
+			ob= ob->id.next;
 		}
 	}
 	
