@@ -300,8 +300,8 @@ void headerbox(ScrArea *area)
 	glClearColor(SCR_BACK, SCR_BACK, SCR_BACK, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	if(area_is_active_area(area)) BIF_set_color(HEADERCOLSEL, COLORSHADE_MEDIUM);
-	else BIF_set_color(HEADERCOL, COLORSHADE_MEDIUM);
+	if(area_is_active_area(area)) BIF_set_color(HEADERCOLSEL, COLORSHADE_LMEDIUM);
+	else BIF_set_color(HEADERCOL, COLORSHADE_LMEDIUM);
 	
 	/* weird values here... is because of window matrix that centres buttons */
 	if(area->headertype==HEADERTOP) {

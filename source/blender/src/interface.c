@@ -601,23 +601,23 @@ static void ui_emboss_X(BIFColorID bc, float asp, float x1, float y1, float x2, 
 	/* left */
 	glShadeModel(GL_SMOOTH);
 	glBegin(GL_LINES);
-	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
+	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
 	glVertex2f(x1-1,y1);
-	BIF_set_color(BUTGREY, COLORSHADE_MEDIUM);
+	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
 	glVertex2f(x1-1,y2);
 	glEnd();
 	
 	/* right */
 	glShadeModel(GL_SMOOTH);
 	glBegin(GL_LINES);
-	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
+	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
 	glVertex2f(x2+1,y1);
-	BIF_set_color(BUTGREY, COLORSHADE_MEDIUM);
+	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
 	glVertex2f(x2+1,y2);
 	glEnd();
 
 	/* bottom */
-	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
+	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
 	fdrawline(x1, y1-1, x2, y1-1);
 	/* END OUTER SUNKEN EFFECT */
 	
@@ -718,8 +718,8 @@ static void ui_emboss_TEX(BIFColorID bc, float asp, float x1, float y1, float x2
 	glBegin(GL_QUADS);
 
 	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_MEDIUM);
-		else BIF_set_color(bc, COLORSHADE_LGREY);
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LGREY);
+		else BIF_set_color(bc, COLORSHADE_GREY);
 	}
 	else {
 		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_HILITE);
@@ -738,23 +738,23 @@ static void ui_emboss_TEX(BIFColorID bc, float asp, float x1, float y1, float x2
 	/* left */
 	glShadeModel(GL_SMOOTH);
 	glBegin(GL_LINES);
-	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
+	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
 	glVertex2f(x1-1,y1);
-	BIF_set_color(BUTGREY, COLORSHADE_MEDIUM);
+	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
 	glVertex2f(x1-1,y2);
 	glEnd();
 	
 	/* right */
 	glShadeModel(GL_SMOOTH);
 	glBegin(GL_LINES);
-	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
+	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
 	glVertex2f(x2+1,y1);
-	BIF_set_color(BUTGREY, COLORSHADE_MEDIUM);
+	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
 	glVertex2f(x2+1,y2);
 	glEnd();
 
 	/* bottom */
-	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
+	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
 	fdrawline(x1, y1-1, x2, y1-1);
 	/* END OUTER SUNKEN EFFECT */
 
@@ -800,8 +800,8 @@ static void ui_emboss_NUM(BIFColorID bc, float asp, float x1, float y1, float x2
 	glBegin(GL_QUADS);
 
 	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_MEDIUM);
-		else BIF_set_color(bc, COLORSHADE_LGREY);
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LGREY);
+		else BIF_set_color(bc, COLORSHADE_GREY);
 	}
 	else {
 		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_HILITE);
@@ -820,23 +820,23 @@ static void ui_emboss_NUM(BIFColorID bc, float asp, float x1, float y1, float x2
 	/* left */
 	glShadeModel(GL_SMOOTH);
 	glBegin(GL_LINES);
-	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
+	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
 	glVertex2f(x1-1,y1);
-	BIF_set_color(BUTGREY, COLORSHADE_MEDIUM);
+	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
 	glVertex2f(x1-1,y2);
 	glEnd();
 	
 	/* right */
 	glShadeModel(GL_SMOOTH);
 	glBegin(GL_LINES);
-	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
+	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
 	glVertex2f(x2+1,y1);
-	BIF_set_color(BUTGREY, COLORSHADE_MEDIUM);
+	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
 	glVertex2f(x2+1,y2);
 	glEnd();
 
 	/* bottom */
-	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
+	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
 	fdrawline(x1, y1-1, x2, y1-1);
 	/* END OUTER SUNKEN EFFECT */
 
@@ -866,8 +866,6 @@ static void ui_emboss_NUM(BIFColorID bc, float asp, float x1, float y1, float x2
 
 	/* SIDE ARROWS */
 	/* left */
-	glShadeModel(GL_FLAT);
-	glBegin(GL_TRIANGLES);
 	
 	if(flag & UI_SELECT) {
 		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_DARK);
@@ -878,6 +876,13 @@ static void ui_emboss_NUM(BIFColorID bc, float asp, float x1, float y1, float x2
 		else BIF_set_color(bc, COLORSHADE_LGREY);
 	}
 
+	glEnable( GL_POLYGON_SMOOTH );
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	
+	glShadeModel(GL_FLAT);
+	glBegin(GL_TRIANGLES);
+	
 	glVertex2f((short)x1+5,(short)(y2-(y2-y1)/2));
 	glVertex2f((short)x1+10,(short)(y2-(y2-y1)/2)+4);
 	glVertex2f((short)x1+10,(short)(y2-(y2-y1)/2)-4);
@@ -887,19 +892,13 @@ static void ui_emboss_NUM(BIFColorID bc, float asp, float x1, float y1, float x2
 	glShadeModel(GL_FLAT);
 	glBegin(GL_TRIANGLES);
 
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_DARK);
-		else BIF_set_color(bc, COLORSHADE_DARK);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_GREY);
-		else BIF_set_color(bc, COLORSHADE_LGREY);
-	}
-
 	glVertex2f((short)x2-5,(short)(y2-(y2-y1)/2));
 	glVertex2f((short)x2-10,(short)(y2-(y2-y1)/2)-4);
 	glVertex2f((short)x2-10,(short)(y2-(y2-y1)/2)+4);
 	glEnd();
+	
+	glDisable( GL_BLEND );
+	glDisable( GL_POLYGON_SMOOTH );
 	/* END SIDE ARROWS */
 
 }
@@ -971,23 +970,23 @@ static void ui_emboss_MENU(BIFColorID bc, float asp, float x1, float y1, float x
 	/* left */
 	glShadeModel(GL_SMOOTH);
 	glBegin(GL_LINES);
-	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
+	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
 	glVertex2f(x1-1,y1);
-	BIF_set_color(BUTGREY, COLORSHADE_MEDIUM);
+	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
 	glVertex2f(x1-1,y2);
 	glEnd();
 	
 	/* right */
 	glShadeModel(GL_SMOOTH);
 	glBegin(GL_LINES);
-	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
+	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
 	glVertex2f(x2+1,y1);
-	BIF_set_color(BUTGREY, COLORSHADE_MEDIUM);
+	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
 	glVertex2f(x2+1,y2);
 	glEnd();
 
 	/* bottom */
-	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
+	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
 	fdrawline(x1, y1-1, x2, y1-1);
 	/* END OUTER SUNKEN EFFECT */
 	
@@ -1080,22 +1079,29 @@ static void ui_emboss_MENU(BIFColorID bc, float asp, float x1, float y1, float x
 	/* END DARKENED AREA */
 
 	/* MENU DOUBLE-ARROW  */
+	
+	/* set antialias line */
+	BIF_set_color(bc, COLORSHADE_DARK);
+	
+	glEnable( GL_POLYGON_SMOOTH );
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	
 	glShadeModel(GL_FLAT);
 	glBegin(GL_TRIANGLES);
-
-	BIF_set_color(bc, COLORSHADE_DARK);
-
 	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2)+1);
 	glVertex2f((short)x2-12,(short)(y2-(y2-y1)/2)+1);
 	glVertex2f((short)x2-8,(short)(y2-(y2-y1)/2)+4);
 	glEnd();
-
+		
 	glBegin(GL_TRIANGLES);
-
-	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2));
-	glVertex2f((short)x2-12,(short)(y2-(y2-y1)/2));
-	glVertex2f((short)x2-8,(short)(y2-(y2-y1)/2)-3);
+	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2) -1);
+	glVertex2f((short)x2-12,(short)(y2-(y2-y1)/2) -1);
+	glVertex2f((short)x2-8,(short)(y2-(y2-y1)/2) -4);
 	glEnd();
+	
+	glDisable( GL_BLEND );
+	glDisable( GL_POLYGON_SMOOTH );
 	/* MENU DOUBLE-ARROW */
 
 }
@@ -1417,7 +1423,7 @@ static void ui_emboss_P(BIFColorID bc, float asp, float x1, float y1, float x2, 
 		glRectf(x1-1, y1, x2+2, y2);
 
 	} else {
-		BIF_set_color(bc, COLORSHADE_MEDIUM);
+		BIF_set_color(bc, COLORSHADE_LMEDIUM);
 		glRectf(x1-1, y1, x2+2, y2);
 	}
 
@@ -1845,7 +1851,7 @@ static void ui_draw_but_SEPR(uiBut *but)
 {
 	//float y= (but->y1+but->y2)/2.0;
 
-	BIF_set_color(but->col, COLORSHADE_HILITE);
+	BIF_set_color(but->col, COLORSHADE_MEDIUM);
 	glRectf(but->x1-2, but->y1-1, but->x2+2, but->y2);
 
 }
@@ -2134,7 +2140,7 @@ void gl_round_box_topshade(float minx, float miny, float maxx, float maxy, float
 			glColor4ub(col[a], col[a], col[a], alpha);
 			glVertex2f( maxx-vec[a][1], maxy-rad+vec[a][0]);
 		}
-		glColor4ub(255, 255, 255, alpha);
+		glColor4ub(225, 225, 225, alpha);
 		glVertex2f( maxx-rad, maxy);
 	
 		
@@ -2147,7 +2153,7 @@ void gl_round_box_topshade(float minx, float miny, float maxx, float maxy, float
 		glVertex2f( minx, maxy-rad);
 	}
 	else {
-		glColor4ub(255, 255, 255, alpha);
+		glColor4ub(225, 225, 225, alpha);
 		glVertex2f( minx, maxy);
 		glVertex2f( maxx, maxy);
 	}
@@ -2309,7 +2315,7 @@ void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad)
 
 void uiDrawMenuBox(float minx, float miny, float maxx, float maxy)
 {
-	BIF_set_color(MENUCOL, COLORSHADE_HILITE);
+	BIF_set_color(MENUCOL, COLORSHADE_MEDIUM);
 
 	glRectf(minx, miny, maxx, maxy);
 	
