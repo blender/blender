@@ -89,8 +89,10 @@ public :
 		// iterate through individual members of each vector
 		// mark each obejct that the index points to 
 
-		std::vector< std::vector<IndexType> >::const_iterator last_vector = index_list.end();
-		std::vector< std::vector<IndexType> >::const_iterator start_vector = index_list.begin();
+		typename std::vector< std::vector<IndexType> >::const_iterator 
+			last_vector = index_list.end();
+		typename std::vector< std::vector<IndexType> >::const_iterator 
+			start_vector = index_list.begin();
 
 		// FIXME some temporary space
 
@@ -101,8 +103,10 @@ public :
 
 		for (; start_vector != last_vector; ++start_vector) {
 
-			std::vector<IndexType>::const_iterator last_index = start_vector->end();
-			std::vector<IndexType>::const_iterator start_index = start_vector->begin();
+			typename std::vector<IndexType>::const_iterator 
+				last_index = start_vector->end();
+			typename std::vector<IndexType>::const_iterator 
+				start_index = start_vector->begin();
 
 			for (; start_index != last_index; ++start_index) {
 
@@ -123,8 +127,10 @@ public :
 				
 		// now iterate through the union and pull out all those with the right tag
 		
-		std::vector<IndexType>::const_iterator last_index = temp_union.end();
-		std::vector<IndexType>::const_iterator start_index = temp_union.begin();
+		typename std::vector<IndexType>::const_iterator last_index = 
+			temp_union.end();
+		typename std::vector<IndexType>::const_iterator start_index = 
+			temp_union.begin();
 
 		for (; start_index != last_index; ++start_index) {
 
@@ -155,8 +161,10 @@ public :
 		std::vector<IndexType> &output
 	) {
 		
-		std::vector<IndexType>::const_iterator last_index = a.end();
-		std::vector<IndexType>::const_iterator start_index = a.begin();
+		typename std::vector<IndexType>::const_iterator last_index = 
+			a.end();
+		typename std::vector<IndexType>::const_iterator start_index = 
+			a.begin();
 
 		for (; start_index != last_index; ++start_index) {
 			ObjectType & prim = primitives[*start_index];
@@ -194,13 +202,17 @@ public :
 		// iterate through individual members of each vector
 		// mark each obejct that the index points to 
 
-		std::vector< std::vector<IndexType> >::const_iterator last_vector = index_list.end();
-		std::vector< std::vector<IndexType> >::iterator start_vector = index_list.begin();
+		typename std::vector< std::vector<IndexType> >::const_iterator 
+			last_vector = index_list.end();
+		typename std::vector< std::vector<IndexType> >::iterator 
+			start_vector = index_list.begin();
 
 		for (; start_vector != last_vector; ++start_vector) {
 
-			std::vector<IndexType>::const_iterator last_index = start_vector->end();
-			std::vector<IndexType>::iterator start_index = start_vector->begin();
+			typename std::vector<IndexType>::const_iterator 
+				last_index = start_vector->end();
+			typename std::vector<IndexType>::iterator 
+				start_index = start_vector->begin();
 
 			for (; start_index != last_index; ++start_index) {
 
@@ -216,8 +228,10 @@ public :
 				
 		// now iterate through the union and reset the tags
 		
-		std::vector<IndexType>::const_iterator last_index = output.end();
-		std::vector<IndexType>::iterator start_index = output.begin();
+		typename std::vector<IndexType>::const_iterator last_index = 
+			output.end();
+		typename std::vector<IndexType>::iterator start_index = 
+			output.begin();
 
 		for (; start_index != last_index; ++start_index) {
 
@@ -239,8 +253,10 @@ public :
 		// iterate through b mark all
 		// iterate through a and add to output all unmarked 
 
-		std::vector<IndexType>::const_iterator last_index = b.end();
-		std::vector<IndexType>::iterator start_index = b.begin();
+		typename std::vector<IndexType>::const_iterator last_index = 
+			b.end();
+		typename std::vector<IndexType>::iterator start_index = 
+			b.begin();
 
 		for (; start_index != last_index; ++start_index) {
 
