@@ -40,7 +40,7 @@ all:
 	[ -d $(DISTDIR)/lib ] || mkdir $(DISTDIR)/lib
 	# prepare settings for patching, clean in case of interruption
 	[ ! -f $(TEMPSETTINGS) ] || mv $(TEMPSETTINGS) $(USERSETTINGS) 
-	mv $(USERSETTINGS) $(TEMPSETTINGS)
+	cp $(USERSETTINGS) $(TEMPSETTINGS)
     ifeq ($(OS),freebsd)
 	(grep FreeBSD $(DISTDIR)/Makefile >/dev/null ; \
 	    [ $$? -eq 0 ] || patch < patchfile.FreeBSD )
