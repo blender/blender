@@ -236,7 +236,7 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 		test[1] = '\0';	//to print character
 
 		glyph_index = FT_Get_Char_Index( face, i );
-		err = FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_SCALE);
+		err = FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP);
 		glyph = face->glyph;
 		ftoutline = glyph->outline;
 
@@ -449,7 +449,7 @@ static int check_freetypefont(PackedFile * pf)
 		if ( err ) { return 0; }
 */
 		glyph_index = FT_Get_Char_Index( face, 'A' );
-		err = FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_SCALE);
+		err = FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP);
 		if(err) success = 0;
 		else {
 			glyph = face->glyph;
