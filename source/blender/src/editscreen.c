@@ -98,6 +98,7 @@
 #include "BSE_headerbuttons.h"
 #include "BSE_view.h"
 
+#include "BPY_extern.h"
 #include "mydevice.h"
 #include "blendef.h"
 #include "render.h"
@@ -189,6 +190,13 @@ void setcursor_space(int spacetype, short cur)
 void getmouseco_sc(short *mval)		/* screen coordinates */
 {
 	getmouse(mval);
+}
+
+/* mouse_cursor called during a script (via Window.QHandle) need
+ * this function for getmouseco_areawin to work: */
+void set_g_activearea(ScrArea *sa)
+{
+	if (sa) g_activearea = sa;
 }
 
 void getmouseco_areawin(short *mval)		/* internal area coordinates */
@@ -1027,6 +1035,9 @@ void screenmain(void)
 			BIF_read_file(ext_load_str);
 			sound_initialize_sounds();
 		}
+		else if (event==ONLOAD_SCRIPT) {
+			firsttime = 1; /* trick to run BPY_do_pyscript below */
+		}
 		else {
 			towin= 1;
 		}
@@ -1134,6 +1145,9 @@ void screenmain(void)
 				// fake a 'p' keypress
 
 				mainqenter(PKEY, 1);
+			} else if (G.f & G_SCENESCRIPT) {
+				/* ONLOAD scriptlink */
+				BPY_do_pyscript(&G.scene->id, SCRIPT_ONLOAD);
 			} else {
 				extern char datatoc_splash_jpg[];
 				extern int datatoc_splash_jpg_size;

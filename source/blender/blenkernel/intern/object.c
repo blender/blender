@@ -1171,11 +1171,21 @@ void set_dtime(int dtime)
 static int during_script_flag=0;
 void disable_where_script(short on)
 {
-	during_script_flag= on;	
+	during_script_flag= on;
 }
 
 int during_script(void) {
 	return during_script_flag;
+}
+
+static int during_scriptlink_flag=0;
+void disable_where_scriptlink(short on)
+{
+	during_scriptlink_flag= on;
+}
+
+int during_scriptlink(void) {
+	return during_scriptlink_flag;
 }
 
 void where_is_object_time(Object *ob, float ctime)

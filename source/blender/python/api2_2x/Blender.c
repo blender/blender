@@ -357,13 +357,28 @@ static PyObject *Blender_Load(PyObject *self, PyObject *args)
 			if (strncmp(str, "BLEN", 4) == 0) is_blend_file = 1;
 		}
 	}
-	else is_blend_file = 1; /* .B.blend */
+	else is_blend_file = 1; /* no arg given means default: .B.blend */
 
 	if (is_blend_file) {
+		int during_slink = during_scriptlink();
+
+		/* when loading a .blend file from a scriptlink, the scriptlink pointer
+		 * in BPY_do_pyscript becomes invalid during a loop.  Inform it here.
+		 * Also do not allow a nested scriptlink (called from inside another)
+		 * to load .blend files, to avoid nasty problems. */
+		if (during_slink >= 1) {
+			if (during_slink == 1)
+				disable_where_scriptlink(-1);
+			else {
+				return EXPP_ReturnPyObjError(PyExc_EnvironmentError,
+					"Blender.Load: cannot load .blend files from a nested scriptlink.");
+			}
+		}
+
 		/* trick: mark the script so that its script struct won't be freed after
 		 * the script is executed (to avoid a double free warning on exit): */
 		script = G.main->script.first;
-		script->flags |= SCRIPT_GUI;
+		if (script) script->flags |= SCRIPT_GUI;
 
 		BIF_write_autosave(); /* for safety let's preserve the current data */
 	}

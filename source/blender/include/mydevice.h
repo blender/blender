@@ -240,5 +240,7 @@
 #define REDRAWNLA			0x4031
 #define REDRAWSCRIPT	0x4032
 
+#define ONLOAD_SCRIPT 0x4035
+
 #endif	/* !__MYDEVICE_H__ */
 

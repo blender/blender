@@ -47,6 +47,7 @@ static PyObject *M_sys_splitext (PyObject *self, PyObject *args);
 static PyObject *M_sys_makename (PyObject *self, PyObject *args, PyObject *kw);
 static PyObject *M_sys_exists (PyObject *self, PyObject *args);
 static PyObject *M_sys_time (PyObject *self);
+static PyObject *M_sys_sleep (PyObject *self, PyObject *args);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.      */
@@ -92,6 +93,11 @@ static char M_sys_time_doc[] =
 Each successive call is garanteed to return values greater than or\n\
 equal to the previous call.";
 
+static char M_sys_sleep_doc[] =
+"(milliseconds = 10) - Sleep for the specified time.\n\
+(milliseconds = 10) - the amount of time in milliseconds to sleep.\n\
+This function can be necessary in tight 'get event' loops.";
+
 static char M_sys_exists_doc[] =
 "(path) - Check if the given pathname exists.\n\
 The return value is as follows:\n\
@@ -111,6 +117,7 @@ struct PyMethodDef M_sys_methods[] = {
   {"makename", (PyCFunction)M_sys_makename, METH_VARARGS|METH_KEYWORDS,
 		M_sys_makename_doc},
   {"exists",      M_sys_exists,          METH_VARARGS, M_sys_exists_doc},
+  {"sleep",      M_sys_sleep,            METH_VARARGS, M_sys_sleep_doc},
   {"time", (PyCFunction)M_sys_time,      METH_NOARGS,  M_sys_time_doc},
   {NULL, NULL, 0, NULL}
 };
@@ -339,6 +346,19 @@ static PyObject *M_sys_time (PyObject *self)
 {
 	double t = PIL_check_seconds_timer();
 	return Py_BuildValue("d", t);
+}
+
+static PyObject *M_sys_sleep (PyObject *self, PyObject *args)
+{
+	int millisecs = 10;
+
+	if (!PyArg_ParseTuple(args, "|i", &millisecs))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+							"expected int argument");
+
+	PIL_sleep_ms(millisecs);
+
+	return EXPP_incr_ret(Py_None);
 }
 
 static PyObject *M_sys_exists (PyObject *self, PyObject *args)

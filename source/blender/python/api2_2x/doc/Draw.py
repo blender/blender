@@ -11,7 +11,7 @@ B{New}: L{PupIntInput}, L{PupFloatInput}, L{PupStrInput}, mouse wheel events.
 This module provides access to a B{windowing interface} in Blender.  Its widgets
 include many kinds of buttons: push, toggle, menu, number, string, slider,
 scrollbar, plus support for text drawing.  It also includes keyboard keys and
-mouse button code values in its dictionary (print dir(Blender.Draw)).
+mouse button code values in its dictionary, see a list after this example.
 
 Example::
  import Blender
@@ -70,10 +70,127 @@ Example::
 
  Draw.Register(gui, event, button_event)  # registering the 3 callbacks
 
-@note: The example above was fixed to call Draw.Register only once.  It's
-not necessary to re-register the callbacks, they will stay until Draw.Exit
-is called.  It's enough to redraw the screen when a relevant event is caught.
-Apologies for the confusion.
+All available events:
+  - ACCENTGRAVEKEY
+  - AKEY
+  - BACKSLASHKEY
+  - BACKSPACEKEY
+  - BKEY
+  - CAPSLOCKKEY
+  - CKEY
+  - COMMAKEY
+  - DELKEY
+  - DKEY
+  - DOWNARROWKEY
+  - EIGHTKEY
+  - EKEY
+  - ENDKEY
+  - EQUALKEY
+  - ESCKEY
+  - F10KEY
+  - F11KEY
+  - F12KEY
+  - F1KEY
+  - F2KEY
+  - F3KEY
+  - F4KEY
+  - F5KEY
+  - F6KEY
+  - F7KEY
+  - F8KEY
+  - F9KEY
+  - FIVEKEY
+  - FKEY
+  - FOURKEY
+  - GKEY
+  - HKEY
+  - HOMEKEY
+  - IKEY
+  - INPUTCHANGE
+  - INSERTKEY
+  - JKEY
+  - KEYBD
+  - KKEY
+  - LEFTALTKEY
+  - LEFTARROWKEY
+  - LEFTBRACKETKEY
+  - LEFTCTRLKEY
+  - LEFTMOUSE
+  - LEFTSHIFTKEY
+  - LINEFEEDKEY
+  - LKEY
+  - MIDDLEMOUSE
+  - MINUSKEY
+  - MKEY
+  - MOUSEX
+  - MOUSEY
+  - NINEKEY
+  - NKEY
+  - OKEY
+  - ONEKEY
+  - PAD0
+  - PAD1
+  - PAD2
+  - PAD3
+  - PAD4
+  - PAD5
+  - PAD6
+  - PAD7
+  - PAD8
+  - PAD9
+  - PADASTERKEY
+  - PADENTER
+  - PADMINUS
+  - PADPERIOD
+  - PADPLUSKEY
+  - PADSLASHKEY
+  - PAGEDOWNKEY
+  - PAGEUPKEY
+  - PAUSEKEY
+  - PERIODKEY
+  - PKEY
+  - QFULL
+  - QKEY
+  - QUOTEKEY
+  - Q_FIRSTTIME
+  - RAWKEYBD
+  - REDRAW
+  - RETKEY
+  - RIGHTALTKEY
+  - RIGHTARROWKEY
+  - RIGHTBRACKETKEY
+  - RIGHTCTRLKEY
+  - RIGHTMOUSE
+  - RIGHTSHIFTKEY
+  - RKEY
+  - SEMICOLONKEY
+  - SEVENKEY
+  - SIXKEY
+  - SKEY
+  - SLASHKEY
+  - SPACEKEY
+  - TABKEY
+  - THREEKEY
+  - TIMER0
+  - TIMER1
+  - TIMER2
+  - TIMER3
+  - TKEY
+  - TWOKEY
+  - UKEY
+  - UPARROWKEY
+  - VKEY
+  - WHEELDOWNMOUSE
+  - WHEELUPMOUSE
+  - WINCLOSE
+  - WINFREEZE
+  - WINQUIT
+  - WINTHAW
+  - WKEY
+  - XKEY
+  - YKEY
+  - ZEROKEY
+  - ZKEY
 
 @note: function Button has a new alias: L{PushButton}.
 
@@ -103,6 +220,10 @@ def Register(draw = None, event = None, button = None):
   @param button: A function to handle Draw Button events, taking one argument:
       f(evt), where:
         - 'evt' is the button number (see the I{event} parameter in L{Button}).
+  @note: note that in the example at the beginning of this page Draw.Register
+      is called only once.  It's not necessary to re-register the callbacks,
+      they will stay until Draw.Exit is called.  It's enough to redraw the
+      screen, when a relevant event is caught.
   """
 
 def Redraw(after = 0):
@@ -333,7 +454,7 @@ def Toggle(name, event, x, y, width, height, default, tooltip = None):
 def Slider(name, event, x, y, width, height, initial, min, max, realtime = 1,
            tooltip = None):
   """
-  Create a new Toggle Button object.
+  Create a new Slider Button object.
   @type name: string
   @param name: The string to display on the button.
   @type event: int

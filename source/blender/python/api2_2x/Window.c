@@ -32,10 +32,12 @@
 #include <Python.h>
 #include <stdio.h>
 
+#include <blendef.h> /* OBACT */
 #include <BDR_editobject.h> /* enter / leave editmode */
 #include <BKE_global.h>
 #include <BKE_library.h>
 #include <BKE_object.h> /* for during_script() */
+#include <BKE_scene.h> /* scene_find_camera() */
 #include <BIF_usiblender.h>
 #include <BIF_mywindow.h>
 #include <BSE_headerbuttons.h>
@@ -43,16 +45,19 @@
 #include <BIF_screen.h>
 #include <BIF_space.h>
 #include <BIF_drawtext.h>
+#include <BIF_spacetypes.h>
 #include <mydevice.h>
 #include <DNA_view3d_types.h>
 #include <DNA_screen_types.h>
 #include <DNA_space_types.h>
 #include <DNA_text_types.h>
+#include <DNA_vec_types.h> /* for rcti struct */
 
 #include "gen_utils.h"
 #include "modules.h"
 #include "matrix.h"
 #include "vector.h"
+#include "constant.h"
 
 
 /* See Draw.c */
@@ -71,10 +76,28 @@ static PyObject *M_Window_DrawProgressBar (PyObject *self, PyObject *args);
 static PyObject *M_Window_GetCursorPos (PyObject *self);
 static PyObject *M_Window_SetCursorPos (PyObject *self, PyObject *args);
 static PyObject *M_Window_GetViewVector (PyObject *self);
+static PyObject *M_Window_GetViewQuat (PyObject *self);
+static PyObject *M_Window_SetViewQuat (PyObject *self, PyObject *args);
+static PyObject *M_Window_GetViewOffset (PyObject *self);
+static PyObject *M_Window_SetViewOffset (PyObject *self, PyObject *args);
 static PyObject *M_Window_GetViewMatrix (PyObject *self);
 static PyObject *M_Window_FileSelector (PyObject *self, PyObject *args);
 static PyObject *M_Window_ImageSelector (PyObject *self, PyObject *args);
 static PyObject *M_Window_EditMode (PyObject *self, PyObject *args);
+static PyObject *M_Window_ViewLayer (PyObject *self, PyObject *args);
+static PyObject *M_Window_CameraView (PyObject *self, PyObject *args);
+static PyObject *M_Window_QTest (PyObject *self);
+static PyObject *M_Window_QRead (PyObject *self);
+static PyObject *M_Window_QAdd (PyObject *self, PyObject *args);
+static PyObject *M_Window_QHandle (PyObject *self, PyObject *args);
+static PyObject *M_Window_GetMouseCoords (PyObject *self);
+static PyObject *M_Window_GetMouseButtons (PyObject *self);
+static PyObject *M_Window_GetKeyQualifiers (PyObject *self);
+static PyObject *M_Window_SetKeyQualifiers (PyObject *self, PyObject *args);
+static PyObject *M_Window_GetAreaSize (PyObject *self);
+static PyObject *M_Window_GetAreaID (PyObject *self);
+static PyObject *M_Window_GetScreenInfo (PyObject *self, PyObject *args,
+	PyObject *kwords);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.			 */
@@ -139,6 +162,91 @@ Returns the current status.  This function is mostly useful to leave\n\
 edit mode before applying changes to a mesh (otherwise the changes will\n\
 be lost) and then returning to it upon leaving.";
 
+static char M_Window_ViewLayer_doc[] =
+"(layers = []) - Get/set active layers in all 3d View windows.\n\
+() - Make no changes, only return currently visible layers.\n\
+(layers = []) - a list of integers, each in the range [1, 20].\n\
+This function returns the currently visible layers as a list of ints.";
+
+static char M_Window_GetViewQuat_doc[] =
+"() - Get the current VIEW3D view quaternion values.";
+
+static char M_Window_SetViewQuat_doc[] =
+"(quat) - Set the current VIEW3D view quaternion values.\n\
+(quat) - [f,f,f,f] or f,f,f,f: the new float values.";
+
+static char M_Window_GetViewOffset_doc[] =
+"() - Get the current VIEW3D view offset values.";
+
+static char M_Window_SetViewOffset_doc[] =
+"(ofs) - Set the current VIEW3D view offset values.\n\
+(ofs) - [f,f,f] or f,f,f: the new float values.";
+
+static char M_Window_CameraView_doc[] =
+"(camtov3d = 0) - Set the current VIEW3D view to the active camera's view.\n\
+(camtov3d = 0) - bool: if nonzero it's the camera that gets positioned at the\n\
+current view, instead of the view being changed to that of the camera.\n\n\
+If no camera is the active object, the active camera for the current scene\n\
+is used.";
+
+static char M_Window_QTest_doc[] =
+"() - Check if there are pending events in the event queue.";
+
+static char M_Window_QRead_doc[] =
+"() - Get the next pending event from the event queue.\n\
+This function returns a list [event, val], where:\n\
+event - int: the key or mouse event (see Blender.Draw module);\n\
+val - int: if 1 it's a key or mouse button press, if 0 a release.  For\n\
+	mouse movement events 'val' returns the new coordinates in x or y.";
+
+static char M_Window_QAdd_doc[] =
+"(win, evt, val, after = 0) - Add an event to some window's event queue.\n\
+(win) - int: the win id, see Blender.Window.GetScreenInfo();\n\
+(evt) - int: the event number, see events in Blender.Draw;\n\
+(val) - bool: 1 for a key press, 0 for a release;\n\
+(after) - bool: if 1 the event is put after the current queue and added later.";
+
+static char M_Window_QHandle_doc[] =
+"(win) - Process all events for the given window (area) now.\n\
+(win) - int: the window id, see Blender.Window.GetScreenInfo().\n\n\
+See Blender.Window.QAdd() for how to send events to a particular window.";
+
+static char M_Window_GetMouseCoords_doc[] =
+"() - Get the current mouse screen coordinates.";
+
+static char M_Window_GetMouseButtons_doc[] =
+"() - Get the current mouse button state (see Blender.Draw.LEFTMOUSE, etc).";
+
+static char M_Window_GetKeyQualifiers_doc[] =
+"() - Get the current qualifier keys state.\n\
+An int is returned: or'ed combination of values in Blender.Window.Qual's dict.";
+
+static char M_Window_SetKeyQualifiers_doc[] =
+"(qual) - Fake qualifier keys state.\n\
+(qual) - int: an or'ed combination of the values in Blender.Window.Qual dict.\n\
+Note: remember to reset to 0 after handling the related event (see QAdd()).";
+
+static char M_Window_GetAreaID_doc[] =
+"() - Get the current window's (area) ID.";
+
+static char M_Window_GetAreaSize_doc[] =
+"() - Get the current window's (area) size as [x,y].";
+
+static char M_Window_GetScreenInfo_doc[] =
+"(type = -1, rect = 'win') - Get info about the current screen setup.\n\
+(type = -1) - int: the space type (Blender.Window.Types) to restrict the\n\
+	results to, all if -1;\n\
+(rect = 'win') - the rectangle of interest.  This defines if the corner\n\
+	coordinates returned will refer to:\n\
+	- the whole area: 'total';\n\
+	- only the header: 'header';\n\
+	- only the window content (default): 'win'.\n\n\
+A list of dictionaries (one for each area) is returned.\n\
+Each dictionary has keys:\n\
+'vertices': [xmin, ymin, xmax, ymax] area corners;\n\
+'win': window type, see Blender.Window.Types dict;\n\
+'id': this area's id.";
+
 /*****************************************************************************/
 /* Python method structure definition for Blender.Window module:						 */
 /*****************************************************************************/
@@ -160,16 +268,46 @@ struct PyMethodDef M_Window_methods[] = {
 		M_Window_SetCursorPos_doc},
 	{"GetViewVector", (PyCFunction)M_Window_GetViewVector,	METH_NOARGS,
 		M_Window_GetViewVector_doc},
+	{"GetViewQuat", (PyCFunction)M_Window_GetViewQuat,	METH_NOARGS,
+		M_Window_GetViewQuat_doc},
+	{"SetViewQuat", (PyCFunction)M_Window_SetViewQuat,	METH_VARARGS,
+		M_Window_SetViewQuat_doc},
+	{"GetViewOffset", (PyCFunction)M_Window_GetViewOffset,	METH_NOARGS,
+		M_Window_GetViewOffset_doc},
+	{"SetViewOffset", (PyCFunction)M_Window_SetViewOffset,	METH_VARARGS,
+		M_Window_SetViewOffset_doc},
 	{"GetViewMatrix", (PyCFunction)M_Window_GetViewMatrix,	METH_NOARGS,
 		M_Window_GetViewMatrix_doc},
 	{"EditMode", (PyCFunction)M_Window_EditMode,	METH_VARARGS,
 		M_Window_EditMode_doc},
+	{"ViewLayer", (PyCFunction)M_Window_ViewLayer,	METH_VARARGS,
+		M_Window_ViewLayer_doc},
+	{"CameraView", (PyCFunction)M_Window_CameraView,	METH_VARARGS,
+		M_Window_CameraView_doc},
+	{"QTest", (PyCFunction)M_Window_QTest,	METH_NOARGS,
+		M_Window_QTest_doc},
+	{"QRead", (PyCFunction)M_Window_QRead,	METH_NOARGS,
+		M_Window_QRead_doc},
+	{"QAdd", (PyCFunction)M_Window_QAdd,	METH_VARARGS,
+		M_Window_QAdd_doc},
+	{"QHandle", (PyCFunction)M_Window_QHandle,	METH_VARARGS,
+		M_Window_QHandle_doc},
+	{"GetMouseCoords", (PyCFunction)M_Window_GetMouseCoords, METH_NOARGS,
+		M_Window_GetMouseCoords_doc},
+	{"GetMouseButtons", (PyCFunction)M_Window_GetMouseButtons, METH_NOARGS,
+		M_Window_GetMouseButtons_doc},
+	{"GetKeyQualifiers", (PyCFunction)M_Window_GetKeyQualifiers, METH_NOARGS,
+		M_Window_GetKeyQualifiers_doc},
+	{"SetKeyQualifiers", (PyCFunction)M_Window_SetKeyQualifiers, METH_VARARGS,
+		M_Window_SetKeyQualifiers_doc},
+	{"GetAreaSize", (PyCFunction)M_Window_GetAreaSize, METH_NOARGS,
+		M_Window_GetAreaSize_doc},
+	{"GetAreaID", (PyCFunction)M_Window_GetAreaID, METH_NOARGS,
+		M_Window_GetAreaID_doc},
+	{"GetScreenInfo", (PyCFunction)M_Window_GetScreenInfo,
+		METH_VARARGS | METH_KEYWORDS, M_Window_GetScreenInfo_doc},
 	{NULL, NULL, 0, NULL}
 };
-
-
-/* Many parts of the code here come from the older bpython implementation
- * (file opy_window.c) */
 
 /*****************************************************************************/
 /* Function:							M_Window_Redraw																		 */
@@ -190,27 +328,29 @@ PyObject *M_Window_Redraw(PyObject *self, PyObject *args)
 	if (wintype < 0)
 		redraw_all = 1;
 
-	if (!during_script()) { /* XXX check this */
+	if (!during_script()) {
 		tempsa= curarea;
 		sa = G.curscreen->areabase.first;
 
 		while (sa) {
 
 			if (sa->spacetype == wintype || redraw_all) {
-				/* don't force-redraw Text window (Python GUI) when
-					 redraw is called out of a slider update */
 				if (sa->spacetype == SPACE_TEXT) {
 					st = sa->spacedata.first;
 					if (st->text->flags & TXT_FOLLOW) /* follow cursor display */
 						pop_space_text(st);
-					if (EXPP_disable_force_draw) { /* defined in Draw.[ch] ... */
-						scrarea_queue_redraw(sa);
+
+					// XXX making a test: Jul 07, 2004.
+					// we don't need to prevent text win redraws anymore,
+					// since now there's a scripts space instead.
+					//if (EXPP_disable_force_draw) { /* defined in Draw.[ch] ... */
+					//	scrarea_queue_redraw(sa);
 					}
 
-				} else {
+				//} else {
 					scrarea_do_windraw(sa);
 					if (sa->headwin) scrarea_do_headdraw(sa);
-				}
+				//}
 			}
 
 			sa= sa->next;
@@ -279,9 +419,9 @@ static PyObject *M_Window_FileSelector(PyObject *self, PyObject *args)
 
 	if (!PyArg_ParseTuple(args, "O!|ss",
 			&PyFunction_Type, &EXPP_FS_PyCallback, &title, &filename))
-		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+		return EXPP_ReturnPyObjError (PyExc_AttributeError,
 		"\nexpected a callback function (and optionally one or two strings) "
-		"as argument(s)"));
+		"as argument(s)");
 
 /* trick: we move to a spacescript because then the fileselector will properly
  * unset our SCRIPT_FILESEL flag when the user chooses a file or cancels the
@@ -455,6 +595,104 @@ static PyObject *M_Window_GetViewVector(PyObject *self)
 	return pylist;
 }
 
+static PyObject *M_Window_GetViewQuat(PyObject *self)
+{
+	float *vec = NULL;
+	PyObject *pylist;
+
+	if (!G.vd) {
+		Py_INCREF (Py_None);
+		return Py_None;
+	}
+
+	vec = G.vd->viewquat;
+
+	pylist = Py_BuildValue("[ffff]", vec[0], vec[1], vec[2], vec[3]);
+
+	if (!pylist)
+		return (EXPP_ReturnPyObjError (PyExc_MemoryError,
+						"GetViewQuat: couldn't create pylist"));
+
+	return pylist;
+}
+
+static PyObject *M_Window_SetViewQuat(PyObject *self, PyObject *args)
+{
+	int ok = 0;
+	float val[4];
+	float *vec;
+
+	if (!G.vd) {
+		Py_INCREF (Py_None);
+		return Py_None;
+	}
+
+	if (PyObject_Length (args) == 4)
+		ok = PyArg_ParseTuple (args, "ffff", &val[0], &val[1], &val[2], &val[3]);
+	else
+		ok = PyArg_ParseTuple(args, "(ffff)", &val[0], &val[1], &val[2], &val[3]);
+
+	if (!ok)
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+									"expected [f,f,f,f] or f,f,f,f as arguments");
+
+	G.vd->viewquat[0] = val[0];
+	G.vd->viewquat[1] = val[1];
+	G.vd->viewquat[2] = val[2];
+	G.vd->viewquat[3] = val[3];
+
+	return EXPP_incr_ret (Py_None);
+}
+
+static PyObject *M_Window_GetViewOffset(PyObject *self)
+{
+	float *vec = NULL;
+	PyObject *pylist;
+
+	if (!G.vd) {
+		Py_INCREF (Py_None);
+		return Py_None;
+	}
+
+	vec = G.vd->ofs;
+
+	pylist = Py_BuildValue("[fff]", vec[0], vec[1], vec[2]);
+
+	if (!pylist)
+		return (EXPP_ReturnPyObjError (PyExc_MemoryError,
+						"GetViewQuat: couldn't create pylist"));
+
+	return pylist;
+}
+
+static PyObject *M_Window_SetViewOffset(PyObject *self, PyObject *args)
+{
+	int ok = 0;
+	float val[3];
+	float *vec;
+
+	if (!G.vd) {
+		Py_INCREF (Py_None);
+		return Py_None;
+	}
+
+	if (PyObject_Length (args) == 3)
+		ok = PyArg_ParseTuple (args, "fff", &val[0], &val[1], &val[2]);
+	else
+		ok = PyArg_ParseTuple(args, "(fff)", &val[0], &val[1], &val[2]);
+
+	if (!ok)
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+									"expected [f,f,f] or f,f,f as arguments");
+
+	G.vd->ofs[0] = val[0];
+	G.vd->ofs[1] = val[1];
+	G.vd->ofs[2] = val[2];
+
+	return EXPP_incr_ret (Py_None);
+}
+
+
 /*****************************************************************************/
 /* Function:							M_Window_GetViewMatrix														 */
 /* Python equivalent:			Blender.Window.GetViewMatrix											 */
@@ -471,8 +709,8 @@ static PyObject *M_Window_GetViewMatrix(PyObject *self)
 	viewmat = (PyObject*)newMatrixObject((float*)G.vd->viewmat, 4, 4);
 
 	if (!viewmat)
-		return (EXPP_ReturnPyObjError (PyExc_MemoryError,
-						"GetViewMatrix: couldn't create matrix pyobject"));
+		return EXPP_ReturnPyObjError (PyExc_MemoryError,
+						"GetViewMatrix: couldn't create matrix pyobject");
 
 	return viewmat;
 }
@@ -481,9 +719,9 @@ static PyObject *M_Window_EditMode(PyObject *self, PyObject *args)
 {
 	short status = -1;
 
-	if(!PyArg_ParseTuple(args, "|h", &status))
-		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-						"expected nothing or an int (bool) as argument"));
+	if (!PyArg_ParseTuple(args, "|h", &status))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected nothing or an int (bool) as argument");
 
 	if (status >= 0) {
 		if (status) {
@@ -495,24 +733,337 @@ static PyObject *M_Window_EditMode(PyObject *self, PyObject *args)
 	return Py_BuildValue("h", G.obedit?1:0);
 }
 
+static PyObject *M_Window_ViewLayer(PyObject *self, PyObject *args)
+{
+	PyObject *item = NULL;
+	PyObject *list = NULL, *resl = NULL;
+	int val, i, bit = 0, layer = 0;
+
+	if (!PyArg_ParseTuple(args, "|O!", &PyList_Type, &list))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected nothing or a list of ints as argument");
+
+	if (list) {
+		for (i = 0; i < PyList_Size(list); i++) {
+			item = PyList_GetItem(list, i);
+			if (!PyInt_Check(item))
+				return EXPP_ReturnPyObjError (PyExc_AttributeError,
+					"list must contain only integer numbers");
+
+			val = (int)PyInt_AsLong(item);
+			if (val < 1 || val > 20)
+				return EXPP_ReturnPyObjError (PyExc_AttributeError,
+					"layer values must be in the range [1, 20]");
+
+			layer |= 1<<(val-1);
+		}
+		G.vd->lay = layer;
+
+		while (bit < 20) {
+			val = 1<<bit;
+			if (layer & val) {
+				G.vd->layact = val;
+				break;
+			}
+			bit++;
+		}
+	}
+		
+	resl = PyList_New(0);
+	if (!resl)
+		return (EXPP_ReturnPyObjError (PyExc_MemoryError,
+			"couldn't create pylist!"));
+
+	layer = G.vd->lay;
+
+	bit = 0;
+	while (bit < 20) {
+		val = 1<<bit;
+		if (layer & val) {
+			item = Py_BuildValue("i", bit + 1);
+			PyList_Append(resl, item);
+			Py_DECREF(item);
+		}
+		bit++;
+	}
+
+	return resl;
+}
+
+static PyObject *M_Window_CameraView(PyObject *self, PyObject *args)
+{
+	short camtov3d = 0;
+	void setcameratoview3d(void); /* view.c, used in toets.c */
+
+	if (!PyArg_ParseTuple(args, "|i", &camtov3d))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected an int (from Window.Views) as argument");
+
+	if (!G.vd)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+			"View3d not available!");
+
+	if (!G.vd->camera) {
+		if (BASACT && OBACT->type == OB_CAMERA) G.vd->camera = OBACT;
+		else G.vd->camera = scene_find_camera(G.scene);
+		handle_view3d_lock();
+	}
+
+	G.vd->persp = 2;
+	G.vd->view = 0;
+
+	if (camtov3d) setcameratoview3d();
+
+	return EXPP_incr_ret(Py_None);
+}
+
+static PyObject *M_Window_QTest(PyObject *self)
+{
+	return Py_BuildValue("h", qtest());
+}
+
+static PyObject *M_Window_QRead(PyObject *self)
+{
+	short val = 0;
+	unsigned short event;
+
+	event = extern_qread(&val);
+
+	return Py_BuildValue("ii", event, val);
+}
+
+static PyObject *M_Window_QAdd(PyObject *self, PyObject *args)
+{
+	short win;
+	short evt; /* unsigned, we check below */
+	short val;
+	short after = 0;
+
+	if (!PyArg_ParseTuple(args, "hhh|h", &win, &evt, &val, &after))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected three or four ints as arguments");
+
+	if (evt < 0) /* evt is unsigned short */
+		return EXPP_ReturnPyObjError (PyExc_AttributeError,
+			"event value must be a positive int, check events in Blender.Draw");
+
+	if (after) addafterqueue(win, evt, val);
+	else addqueue(win, evt, val);
+
+	return EXPP_incr_ret(Py_None);
+}
+
+static PyObject *M_Window_QHandle(PyObject *self, PyObject *args)
+{
+	short win;
+	ScrArea *sa = curarea;
+	ScrArea *oldsa = NULL;
+
+	if (!PyArg_ParseTuple(args, "h", &win))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected an int as argument");
+
+	while (sa) {
+		if (sa->win == win) break;
+		sa = sa->next;
+	}
+
+	if (sa) {
+		BWinEvent evt;
+		short do_redraw = 0, do_change = 0;
+
+		if(sa != curarea || sa->win != mywinget()) {
+			oldsa = curarea;
+			areawinset(sa->win);
+			set_g_activearea(sa);
+		}
+		while(bwin_qread(sa->win, &evt)) {
+			if(evt.event == REDRAW) {
+				do_redraw = 1;
+			}
+			else if(evt.event == CHANGED) {
+				sa->win_swap = 0;
+				do_change = 1;
+				do_redraw = 1;
+			}
+			else {
+				scrarea_do_winhandle(sa, &evt);
+			}
+		}
+	}
+
+	if (oldsa) {
+		areawinset(oldsa->win);
+		set_g_activearea(oldsa);
+	}
+
+	return EXPP_incr_ret(Py_None);
+}
+
+static PyObject *M_Window_GetMouseCoords(PyObject *self)
+{
+	short mval[2];
+
+	getmouse(mval);
+	
+	return Py_BuildValue("hh", mval[0], mval[1]);
+}
+
+static PyObject *M_Window_GetMouseButtons(PyObject *self)
+{
+	short mbut = get_mbut();
+	
+	return Py_BuildValue("h", mbut);
+}
+
+static PyObject *M_Window_GetKeyQualifiers(PyObject *self)
+{
+	short qual = get_qual();
+
+	return Py_BuildValue("h", qual);
+}
+
+static PyObject *M_Window_SetKeyQualifiers(PyObject *self, PyObject *args)
+{
+	short qual = 0;
+
+	if (!PyArg_ParseTuple(args, "|h", &qual))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected nothing or an int (or'ed flags) as argument");
+
+	if (qual < 0)
+		return EXPP_ReturnPyObjError (PyExc_AttributeError,
+			"value must be a positive int, check Blender.Window.Qual");
+
+	G.qual = qual;
+
+	return Py_BuildValue("h", qual);	
+}
+
+static PyObject *M_Window_GetAreaSize(PyObject *self)
+{
+	ScrArea *sa = curarea;
+
+	if (!sa) return EXPP_incr_ret(Py_None);
+
+	return Py_BuildValue("hh", sa->winx, sa->winy);
+}
+
+static PyObject *M_Window_GetAreaID(PyObject *self)
+{
+	ScrArea *sa = curarea;
+
+	if (!sa) return EXPP_incr_ret(Py_None);
+
+	return Py_BuildValue("h", sa->win);
+}
+
+static PyObject *M_Window_GetScreenInfo(PyObject *self, PyObject *args,
+	PyObject *kwords)
+{
+	ScrArea *sa = G.curscreen->areabase.first;
+	PyObject *item, *list;
+	rcti *rct;
+	int type = -1;
+	char *rect = "win";
+	static char *kwlist[] = {"type", "rect", NULL};
+	int rctype = 0;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwords, "|is", kwlist, &type,
+				&rect))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected nothing or an int and a string as arguments");
+
+	if (!strcmp(rect, "win"))
+		rctype = 0;
+	else if (!strcmp(rect, "total"))
+		rctype = 1;
+	else if (!strcmp(rect, "header"))
+		rctype = 2;
+	else
+		return EXPP_ReturnPyObjError (PyExc_AttributeError,
+			"requested invalid type for area rectangle coordinates.");
+
+	list = PyList_New(0);
+
+	while (sa) {
+		if (type != -1 && sa->spacetype != type) {
+			sa = sa->next;
+			continue;
+		}
+
+		switch (rctype) {
+			case 0:
+				rct = &sa->winrct;
+				break;
+			case 1:
+				rct = &sa->totrct;
+				break;
+			case 2:
+			default:
+				rct = &sa->headrct;
+		}
+
+		item = Py_BuildValue("{s:[h,h,h,h],s:h,s:h}",
+			"vertices", rct->xmin, rct->ymin, rct->xmax, rct->ymax,
+			"type", (short)sa->spacetype, "id", (short)sa->win);
+		PyList_Append(list, item);
+		Py_DECREF(item);
+
+		sa = sa->next;
+	}
+
+	return list;
+}
 
 /*****************************************************************************/
 /* Function:							Window_Init																				 */
 /*****************************************************************************/
 PyObject *Window_Init (void)
 {
-	PyObject	*submodule, *Types;
+	PyObject	*submodule, *Types, *Qual;
 
 	submodule = Py_InitModule3("Blender.Window", M_Window_methods, M_Window_doc);
 
-	Types = Py_BuildValue("{s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h}",
-		"VIEW3D", SPACE_VIEW3D, "IPO", SPACE_IPO, "OOPS", SPACE_OOPS,
-		"BUTS", SPACE_BUTS, "FILE", SPACE_FILE, "IMAGE", SPACE_IMAGE,
-		"INFO", SPACE_INFO, "SEQ", SPACE_SEQ, "IMASEL", SPACE_IMASEL,
-		"SOUND", SPACE_SOUND, "ACTION", SPACE_ACTION,
-		"TEXT", SPACE_TEXT, "NLA", SPACE_NLA, "SCRIPT", SPACE_SCRIPT);
+	Types = M_constant_New();
+	Qual = M_constant_New();
 
-	if (Types) PyModule_AddObject(submodule, "Types", Types);
+	if (Types) {
+		BPy_constant *d = (BPy_constant *)Types;
+
+		constant_insert(d, "VIEW3D", PyInt_FromLong(SPACE_VIEW3D));
+		constant_insert(d, "IPO", PyInt_FromLong(SPACE_IPO));
+		constant_insert(d, "OOPS", PyInt_FromLong(SPACE_OOPS));
+		constant_insert(d, "BUTS", PyInt_FromLong(SPACE_BUTS));
+		constant_insert(d, "FILE", PyInt_FromLong(SPACE_FILE));
+		constant_insert(d, "IMAGE", PyInt_FromLong(SPACE_IMAGE));
+		constant_insert(d, "INFO", PyInt_FromLong(SPACE_INFO));
+		constant_insert(d, "SEQ", PyInt_FromLong(SPACE_SEQ));
+		constant_insert(d, "IMASEL", PyInt_FromLong(SPACE_IMASEL));
+		constant_insert(d, "SOUND", PyInt_FromLong(SPACE_SOUND));
+		constant_insert(d, "ACTION", PyInt_FromLong(SPACE_ACTION));
+		constant_insert(d, "TEXT", PyInt_FromLong(SPACE_TEXT));
+		constant_insert(d, "NLA", PyInt_FromLong(SPACE_NLA));
+		constant_insert(d, "SCRIPT", PyInt_FromLong(SPACE_SCRIPT));
+
+		PyModule_AddObject(submodule, "Types", Types);
+	}
+
+	if (Qual) {
+		BPy_constant *d = (BPy_constant *)Qual;
+
+		constant_insert(d, "LALT", PyInt_FromLong(L_ALTKEY));
+		constant_insert(d, "RALT", PyInt_FromLong(R_ALTKEY));
+		constant_insert(d, "ALT", PyInt_FromLong(LR_ALTKEY));
+		constant_insert(d, "LCTRL", PyInt_FromLong(L_CTRLKEY));
+		constant_insert(d, "RCTRL", PyInt_FromLong(R_CTRLKEY));
+		constant_insert(d, "CTRL", PyInt_FromLong(LR_CTRLKEY));
+		constant_insert(d, "LSHIFT", PyInt_FromLong(L_SHIFTKEY));
+		constant_insert(d, "RSHIFT", PyInt_FromLong(R_SHIFTKEY));
+		constant_insert(d, "SHIFT", PyInt_FromLong(LR_SHIFTKEY));
+
+		PyModule_AddObject(submodule, "Qual", Qual);
+	}
 
 	return submodule;
 }

@@ -24,7 +24,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Michel Selten, Willian P. Germano
+ * Contributor(s): Michel Selten
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */

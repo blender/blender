@@ -80,13 +80,13 @@
 #include "BKE_font.h"
 
 #include "BLI_editVert.h"
-#include "BKE_bad_level_calls.h" /* for BPY_do_pyscript */
 
 #include "BLO_readfile.h" /* for BLO_read_file */
 
 #include "BKE_bad_level_calls.h" // for freeAllRad editNurb free_editMesh free_editText free_editArmature
 #include "BKE_utildefines.h" // O_BINARY FALSE
-
+#include "BIF_mainqueue.h" // mainqenter for onload script
+#include "mydevice.h"
 #include "nla.h"
 
 Global G;
@@ -290,8 +290,13 @@ static void setup_app_data(BlendFileData *bfd, char *filename) {
 	R.displaymode= bfd->displaymode;
 	G.curscreen= bfd->curscreen;
 	G.fileflags= bfd->fileflags;
+
+	/* special cases, override loaded flags: */
 	if (G.f & G_DEBUG) bfd->globalf |= G_DEBUG;
+	else bfd->globalf &= ~G_DEBUG;
 	if (G.f & G_SCENESCRIPT) bfd->globalf |= G_SCENESCRIPT;
+	else bfd->globalf &= ~G_SCENESCRIPT;
+
 	G.f= bfd->globalf;
 	G.scene= G.curscreen->scene;
 	
@@ -313,11 +318,12 @@ static void setup_app_data(BlendFileData *bfd, char *filename) {
 	}
 		/* baseflags */
 	set_scene_bg(G.scene);
-	
+
 	if (G.f & G_SCENESCRIPT) {
-		BPY_do_pyscript(&G.scene->id, SCRIPT_ONLOAD);
+		/* there's an onload scriptlink to execute in screenmain */
+		mainqenter(ONLOAD_SCRIPT, 1);
 	}
-	
+
 	strcpy(G.sce, filename);
 	strcpy(G.main->name, filename); /* is guaranteed current file */
 	

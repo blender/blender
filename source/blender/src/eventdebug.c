@@ -187,6 +187,7 @@ char *event_to_string(short evt) {
 	smap(PAGEDOWNKEY);
 	smap(ENDKEY);
 	smap(REDRAWNLA);
+	smap(ONLOAD_SCRIPT);
 	}
 	#undef smap
 }

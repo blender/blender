@@ -69,6 +69,7 @@ void set_timecursor(int nr);
 void waitcursor(int val);
 void wich_cursor(struct ScrArea *sa);
 void setcursor_space(int spacetype, short cur);
+void set_g_activearea(struct ScrArea *sa);
 void getmouseco_sc(short *mval);
 void getmouseco_areawin(short *mval);
 void getmouseco_headwin(short *mval);

@@ -81,6 +81,8 @@ void set_no_parent_ipo(int val);
 void set_dtime(int dtime);
 void disable_where_script(short on);
 int during_script(void);
+void disable_where_scriptlink(short on);
+int during_scriptlink(void);
 void where_is_object_time(struct Object *ob, float ctime);
 void where_is_object(struct Object *ob);
 void where_is_object_simul(struct Object *ob);

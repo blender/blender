@@ -49,6 +49,7 @@
 #include <BKE_global.h>
 #include <BKE_library.h>
 #include <BKE_main.h>
+#include <BKE_object.h> /* during_scriptlink() */
 #include <BKE_text.h>
 #include <BKE_utildefines.h>
 #include <BPI_script.h>
@@ -902,7 +903,8 @@ static PyObject *ID_asPyObject(ID *id)
 	case ID_SCE:
 		return Scene_CreatePyObject((Scene*) id);
 	default:
-		return NULL;
+		Py_INCREF (Py_None);
+		return Py_None;
 	}
 }
 
@@ -913,9 +915,18 @@ void BPY_do_pyscript(ID *id, short event)
 	if (scriptlink && scriptlink->totscript) {
 		PyObject *dict;
 		PyObject *ret;
-		int index;
+		int index, during_slink = during_scriptlink();
 
-			// set globals in Blender module to identify scriptlink
+		/* invalid scriptlinks (new .blend was just loaded), return */
+		if (during_slink < 0) return;
+
+		/* tell we're running a scriptlink.  The sum also tells if this script
+		 * is running nested inside another.  Blender.Load needs this info to
+		 * avoid trouble with invalid slink pointers. */
+		during_slink++;
+		disable_where_scriptlink(during_slink);
+
+		/* set globals in Blender module to identify scriptlink */
 		Py_INCREF(Py_True);
 		PyDict_SetItemString(g_blenderdict, "bylink", Py_True);
 		PyDict_SetItemString(g_blenderdict, "link", ID_asPyObject(id));
@@ -928,22 +939,33 @@ void BPY_do_pyscript(ID *id, short event)
 				dict = CreateGlobalDictionary();
 				ret = RunPython ((Text*) scriptlink->scripts[index], dict);
 				ReleaseGlobalDictionary (dict);
+
 				if (!ret) {
 					/* Failed execution of the script */
 					BPY_Err_Handle (scriptlink->scripts[index]->name+2);
-					BPY_end_python ();
-					BPY_start_python ();
+					//BPY_end_python ();
+					//BPY_start_python ();
 				} else {
 					Py_DECREF (ret);
+				}
+				/* If a scriptlink has just loaded a new .blend file, the
+				 * scriptlink pointer became invalid (see api2_2x/Blender.c),
+				 * so we stop here. */
+				if (during_scriptlink() == -1) {
+					during_slink = 1;
+					break;
 				}
 			}
 		}
 
-			// cleanup bylink flag and clear link so PyObject can be released
+		disable_where_scriptlink(during_slink - 1);
+
+		/* cleanup bylink flag and clear link so PyObject can be released */
 		Py_INCREF(Py_False);
 		PyDict_SetItemString(g_blenderdict, "bylink", Py_False);
 		Py_INCREF(Py_None);
 		PyDict_SetItemString(g_blenderdict, "link", Py_None);
+		PyDict_SetItemString(g_blenderdict, "event", PyString_FromString(""));
 	}
 }
 

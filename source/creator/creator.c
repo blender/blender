@@ -197,6 +197,7 @@ int main(int argc, char **argv)
 	int a, i, stax, stay, sizx, sizy;
 	SYS_SystemHandle syshandle;
 	Scene *sce;
+	short onload_script = 0;
 
 #if defined(WIN32) || defined (__linux__)
 	int audio = 1;
@@ -255,7 +256,9 @@ int main(int argc, char **argv)
 	GEN_init_messaging_system();
 
 	/* first test for background */
-	G.f |= G_SCENESCRIPT; /* scenescript always set! */
+
+	onload_script = 1; /* scenescript always set! */
+
 	for(a=1; a<argc; a++) {
 
 		/* Handle unix and windows style help requests */
@@ -291,7 +294,7 @@ int main(int argc, char **argv)
              break;
 
 			case 'y':
-				G.f &= ~G_SCENESCRIPT;
+				onload_script = 0;
 				break;
 
 			case 'Y':
@@ -572,6 +575,11 @@ int main(int argc, char **argv)
 		sce= add_scene("1");
 		set_scene(sce);
 	}
+
+	/* We set the ONLOAD script global flag here, when the screen has already
+	 * been set and the rendering context initialized.  If there's an onload
+	 * script it will be executed in screenmain. */
+	if (onload_script) G.f |= G_SCENESCRIPT;
 
 	screenmain();
 
