@@ -113,7 +113,7 @@ int update_realtime_texture(struct TFace *tface, double time);
 	 *
 	 * @param me The mesh to update.
 	 */
-void mesh_calculate_vertex_normals	(Mesh *me);
+void mesh_calculate_vertex_normals	(struct Mesh *me);
 
 #ifdef __cplusplus
 }
