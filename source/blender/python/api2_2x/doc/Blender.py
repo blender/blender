@@ -33,6 +33,7 @@ The Blender Python API Reference
   - L{Metaball}
   - L{NMesh}
   - L{Object}
+  - L{Registry}
   - L{Scene}
   - L{Text}
   - L{Texture}

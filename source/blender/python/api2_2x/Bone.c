@@ -455,14 +455,20 @@ PyObject *Bone_setRoll(BPy_Bone *self, PyObject *args)
 static PyObject *Bone_setHead(BPy_Bone *self, PyObject *args)
 {
 	float f1,f2,f3;
+	int status;
 
 	if (!self->bone) (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 													"couldn't get attribute from a NULL bone"));
-		
-	if (!PyArg_ParseTuple(args, "fff", &f1,&f2,&f3))
+
+	if (PyObject_Length (args) == 3)
+		status = PyArg_ParseTuple (args, "fff", &f1, &f2, &f3);
+	else
+		status = PyArg_ParseTuple (args, "(fff)", &f1, &f2, &f3);
+
+	if (!status)
 		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-						"expected 3 float arguments"));
-	
+						"expected 3 (or a list of 3) float arguments"));
+
 	self->bone->head[0] = f1;
 	self->bone->head[1] = f2;
 	self->bone->head[2] = f3;
@@ -475,14 +481,20 @@ static PyObject *Bone_setHead(BPy_Bone *self, PyObject *args)
 static PyObject *Bone_setTail(BPy_Bone *self, PyObject *args)
 {
 	float f1,f2,f3;
+	int status;
 
 	if (!self->bone) (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 													"couldn't get attribute from a NULL bone"));
-		
-	if (!PyArg_ParseTuple(args, "fff", &f1,&f2,&f3))
+
+	if (PyObject_Length (args) == 3)
+		status = PyArg_ParseTuple (args, "fff", &f1, &f2, &f3);
+	else
+		status = PyArg_ParseTuple (args, "(fff)", &f1, &f2, &f3);
+
+	if (!status)
 		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-						"expected 3 float arguments"));
-	
+						"expected 3 (or a list of 3) float arguments"));
+
 	self->bone->tail[0] = f1;
 	self->bone->tail[1] = f2;
 	self->bone->tail[2] = f3;
@@ -495,14 +507,20 @@ static PyObject *Bone_setTail(BPy_Bone *self, PyObject *args)
 static PyObject *Bone_setLoc(BPy_Bone *self, PyObject *args)
 {
 	float f1,f2,f3;
+	int status;
 
 	if (!self->bone) (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 													"couldn't get attribute from a NULL bone"));
-		
-	if (!PyArg_ParseTuple(args, "fff", &f1,&f2,&f3))
+
+	if (PyObject_Length (args) == 3)
+		status = PyArg_ParseTuple (args, "fff", &f1, &f2, &f3);
+	else
+		status = PyArg_ParseTuple (args, "(fff)", &f1, &f2, &f3);
+
+	if (!status)
 		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-						"expected 3 float arguments"));
-	
+						"expected 3 (or a list of 3) float arguments"));
+
 	self->bone->loc[0] = f1;
 	self->bone->loc[1] = f2;
 	self->bone->loc[2] = f3;
@@ -515,14 +533,20 @@ static PyObject *Bone_setLoc(BPy_Bone *self, PyObject *args)
 static PyObject *Bone_setSize(BPy_Bone *self, PyObject *args)
 {
 	float f1,f2,f3;
+	int status;
 
 	if (!self->bone) (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 													"couldn't get attribute from a NULL bone"));
-		
-	if (!PyArg_ParseTuple(args, "fff", &f1,&f2,&f3))
+
+	if (PyObject_Length (args) == 3)
+		status = PyArg_ParseTuple (args, "fff", &f1, &f2, &f3);
+	else
+		status = PyArg_ParseTuple (args, "(fff)", &f1, &f2, &f3);
+
+	if (!status)
 		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-						"expected 3 float arguments"));
-	
+						"expected 3 (or a list of 3) float arguments"));
+
 	self->bone->size[0] = f1;
 	self->bone->size[1] = f2;
 	self->bone->size[2] = f3;
@@ -535,14 +559,20 @@ static PyObject *Bone_setSize(BPy_Bone *self, PyObject *args)
 static PyObject *Bone_setQuat(BPy_Bone *self, PyObject *args)
 {
 	float f1,f2,f3,f4;
+	int status;
 
 	if (!self->bone) (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 													"couldn't get attribute from a NULL bone"));
-		
-	if (!PyArg_ParseTuple(args, "ffff", &f1,&f2,&f3,&f4))
+
+	if (PyObject_Length (args) == 4)
+		status = PyArg_ParseTuple (args, "ffff", &f1, &f2, &f3, &f4);
+	else
+		status = PyArg_ParseTuple (args, "(ffff)", &f1, &f2, &f3, &f4);
+
+	if (!status)
 		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-						"expected 4 float arguments"));
-	
+						"expected 4 (or a list of 4) float arguments"));
+
 	self->bone->quat[0] = f1;
 	self->bone->quat[1] = f2;
 	self->bone->quat[2] = f3;
@@ -551,7 +581,6 @@ static PyObject *Bone_setQuat(BPy_Bone *self, PyObject *args)
 	Py_INCREF(Py_None);
 	return Py_None;
 }
-
 
 /*****************************************************************************/
 /* Function:		Bone_dealloc																								 */
@@ -707,7 +736,7 @@ int Bone_CheckPyObject (PyObject *py_obj)
 /*****************************************************************************/
 struct Bone* Bone_FromPyObject (PyObject *py_obj)
 {
-	BPy_Bone		* blen_obj;
+	BPy_Bone * blen_obj;
 
 	blen_obj = (BPy_Bone*)py_obj;
 	return (blen_obj->bone);

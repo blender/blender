@@ -63,7 +63,29 @@
 
 #include <errno.h>
 
-#define BPYMENU_DATAFILE ".Bpymenus"
+#define BPYMENU_DATAFILE "Bpymenus"
+
+/* BPyMenuTable holds all registered pymenus, as linked lists for each menu
+ * where they can appear (see PYMENUHOOKS enum in BPY_menus.h).
+*/
+BPyMenu *BPyMenuTable[PYMENU_TOTAL];
+
+/* we can't be sure if BLI_gethome() returned a path
+ * with '.blender' appended or not, so: */
+static char *bpymenu_gethome()
+{
+	static char homedir[FILE_MAXDIR];
+	char *s;
+
+	if (homedir[0] != '\0') return homedir;
+
+	s = BLI_gethome();
+
+	if (strstr(s, ".blender")) PyOS_snprintf(homedir, FILE_MAXDIR, s);
+	else BLI_make_file_string ("/", homedir, s, ".blender/");
+
+	return homedir;
+}
 
 static int bpymenu_group_atoi (char *str)
 {
@@ -282,7 +304,7 @@ static int bpymenu_CreateFromFile (void)
 		BPyMenuTable[group] = NULL;
 
 	/* let's try to open the file with bpymenu data */
-	BLI_make_file_string ("/", line, BLI_gethome(),"/.blender/"BPYMENU_DATAFILE);
+	BLI_make_file_string ("/", line, bpymenu_gethome(), BPYMENU_DATAFILE);
 
 	fp = fopen(line, "rb");
 
@@ -369,7 +391,7 @@ static void bpymenu_WriteDataFile(void)
 	char fname[FILE_MAXDIR+FILE_MAXFILE];
 	int i;
 
-	BLI_make_file_string("/", fname, BLI_gethome(), ".blender/"BPYMENU_DATAFILE);
+	BLI_make_file_string("/", fname, bpymenu_gethome(), BPYMENU_DATAFILE);
 
 	fp = fopen(fname, "w");
 	if (!fp) {
@@ -595,7 +617,7 @@ static int bpymenu_GetStatMTime(char *name, int is_file, time_t* mtime)
 
 /* BPyMenu_Init:
  * import the bpython menus data to Blender, either from:
- * - the BPYMENU_DATAFILE file (~/.Bpymenus) or
+ * - the BPYMENU_DATAFILE file (~/Bpymenus) or
  * - the scripts dir(s), case newer than the datafile (then update the file).
  * then fill the bpymenu table with this data.
  * if param usedir != 0, then the data is recreated from the dir(s) anyway.
@@ -615,7 +637,7 @@ int BPyMenu_Init(int usedir)
 
 	if (U.pythondir[0] == '\0') upydir = NULL;
 
-	BLI_make_file_string ("/", dirname, BLI_gethome(), ".blender/scripts/");
+	BLI_make_file_string ("/", dirname, bpymenu_gethome(), "scripts/");
 
 	res1 = bpymenu_GetStatMTime(dirname, 0, &tdir1);
 
@@ -652,7 +674,7 @@ int BPyMenu_Init(int usedir)
 	printf("\nRegistering scripts in Blender menus ...\n\n");
 
 	if (!usedir) { /* if we're not forced to use the dir */
-		BLI_make_file_string("/", fname, BLI_gethome(),".blender/"BPYMENU_DATAFILE);
+		BLI_make_file_string("/", fname, bpymenu_gethome(), BPYMENU_DATAFILE);
 		resf = bpymenu_GetStatMTime(fname, 1, &tfile);
 		if (resf < 0) tfile = 0;
 	}

@@ -101,6 +101,7 @@ static PyObject *Object_getMaterials (BPy_Object *self);
 static PyObject *Object_getMatrix (BPy_Object *self);
 static PyObject *Object_getName (BPy_Object *self);
 static PyObject *Object_getParent (BPy_Object *self);
+static PyObject *Object_getSize (BPy_Object *self, PyObject *args);
 static PyObject *Object_getTracked (BPy_Object *self);
 static PyObject *Object_getType (BPy_Object *self);
 static PyObject *Object_getBoundBox (BPy_Object *self);
@@ -116,6 +117,7 @@ static PyObject *Object_setIpo (BPy_Object *self, PyObject *args);
 static PyObject *Object_setLocation (BPy_Object *self, PyObject *args);
 static PyObject *Object_setMaterials (BPy_Object *self, PyObject *args);
 static PyObject *Object_setName (BPy_Object *self, PyObject *args);
+static PyObject *Object_setSize (BPy_Object *self, PyObject *args);
 static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args);
 
 /*****************************************************************************/
@@ -154,6 +156,8 @@ hierarchy (faster)"},
 	"Returns the name of the object"},
   {"getParent", (PyCFunction)Object_getParent, METH_NOARGS,
 	"Returns the object's parent object"},
+  {"getSize", (PyCFunction)Object_getSize, METH_VARARGS,
+	"Returns the object's size (x, y, z)"},
   {"getTracked", (PyCFunction)Object_getTracked, METH_NOARGS,
 	"Returns the object's tracked object"},
   {"getType", (PyCFunction)Object_getType, METH_NOARGS,
@@ -175,7 +179,7 @@ fase:\n\t0: update scene hierarchy automatically\n\t\
 don't update scene hierarchy (faster). In this case, you must\n\t\
 explicitely update the Scene hierarchy."},
   {"materialUsage", (PyCFunction)Object_materialUsage, METH_VARARGS,
-	"Determines the way the material is used and returs status.\n\
+	"Determines the way the material is used and returns status.\n\
 Possible arguments (provide as strings):\n\
 \tData:   Materials assigned to the object's data are shown. (default)\n\
 \tObject: Materials assigned to the object are shown."},
@@ -198,6 +202,9 @@ triple."},
 objects."},
   {"setName", (PyCFunction)Object_setName, METH_VARARGS,
 	"Sets the name of the object"},
+  {"setSize", (PyCFunction)Object_setSize, METH_VARARGS,
+	"Set the object's size. The first argument must be a vector\n\
+triple."},
   {"shareFrom", (PyCFunction)Object_shareFrom, METH_VARARGS,
 	"Link data of self with object specified in the argument. This\n\
 works only if self and the object specified are of the same type."},
@@ -814,6 +821,19 @@ static PyObject *Object_getParent (BPy_Object *self)
 			"couldn't get Object.parent attribute"));
 }
 
+static PyObject *Object_getSize (BPy_Object *self, PyObject *args)
+{
+	PyObject *attr = Py_BuildValue ("fff",
+									self->object->size[0],
+									self->object->size[1],
+									self->object->size[2]);
+
+	if (attr) return (attr);
+
+	return (PythonReturnErrorObject (PyExc_RuntimeError,
+			"couldn't get Object.size attributes"));
+}
+
 static PyObject *Object_getTracked (BPy_Object *self)
 {
 	PyObject	*attr;
@@ -1297,6 +1317,30 @@ static PyObject *Object_setName (BPy_Object *self, PyObject *args)
 	PyOS_snprintf(buf, sizeof(buf), "%s", name);
 
 	rename_id(&self->object->id, buf);
+
+	Py_INCREF (Py_None);
+	return (Py_None);
+}
+
+static PyObject *Object_setSize (BPy_Object *self, PyObject *args)
+{
+	float	sizex;
+	float	sizey;
+	float	sizez;
+	int		status;
+
+	if (PyObject_Length (args) == 3)
+		status = PyArg_ParseTuple (args, "fff", &sizex, &sizey, &sizez);
+	else
+		status = PyArg_ParseTuple (args, "(fff)", &sizex, &sizey, &sizez);
+
+	if (!status)
+		return EXPP_ReturnPyObjError (PyExc_AttributeError,
+				"expected list argument of 3 floats");
+
+	self->object->size[0] = sizex;
+	self->object->size[1] = sizey;
+	self->object->size[2] = sizez;
 
 	Py_INCREF (Py_None);
 	return (Py_None);

@@ -88,7 +88,7 @@ typedef enum {
 /* BPyMenuTable holds all registered pymenus, as linked lists for each menu
  * where they can appear (see PYMENUHOOKS enum above).
 */
-BPyMenu *BPyMenuTable[PYMENU_TOTAL];
+extern BPyMenu *BPyMenuTable[]; /* defined in BPY_menus.c */
 
 /* public functions: */
 int BPyMenu_Init(int usedir);
