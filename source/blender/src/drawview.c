@@ -1276,7 +1276,6 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	bwin_scalematrix(sa->win, G.vd->blockscale, G.vd->blockscale, G.vd->blockscale);
 	view3d_blockhandlers(sa);
 
-
 	curarea->win_swap= WIN_BACK_OK;
 	
 	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {

@@ -528,6 +528,8 @@ static EditBone * get_nearest_editbonepoint (int findunsel, int *selmask){
 	int		sel;
 	unsigned int	hitresult, hitbone, firstunSel=-1;
 
+	persp(PERSP_VIEW);
+
 	glInitNames();
 	hits= selectprojektie(buffer, 0, 0, 0, 0);
 
@@ -608,6 +610,8 @@ static void * get_nearest_bone (int findunsel){
 	unsigned int	hitresult;
 	Bone *bone;
 	EditBone *ebone;
+
+	persp(PERSP_VIEW);
 
 	glInitNames();
 	hits= selectprojektie(buffer, 0, 0, 0, 0);
