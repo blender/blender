@@ -89,42 +89,69 @@ static PyObject *M_Lamp_New(PyObject *self, PyObject *args, PyObject *keywords)
 /*****************************************************************************/
 /* Function:              M_Lamp_Get                                         */
 /* Python equivalent:     Blender.Lamp.Get                                   */
+/* Description:           Receives a string and returns the lamp data obj    */
+/*                        whose name matches the string.  If no argument is  */
+/*                        passed in, a list of all lamp data names in the    */
+/*                        current scene is returned.                         */
 /*****************************************************************************/
 static PyObject *M_Lamp_Get(PyObject *self, PyObject *args)
 {
-  char   *name;
-  Lamp   *lamp_iter;
-  C_Lamp *wanted_lamp;
+  char *name = NULL;
+  Lamp *lamp_iter;
 
-  printf ("In Lamp_Get()\n");
-  if (!PyArg_ParseTuple(args, "s", &name))
-  {
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-            "expected string argument"));
-  }
+	if (!PyArg_ParseTuple(args, "|s", &name))
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
+            "expected string argument (or nothing)"));
 
-  /* Use the name to search for the lamp requested. */
-  wanted_lamp = NULL;
   lamp_iter = G.main->lamp.first;
 
-  while ((lamp_iter) && (wanted_lamp == NULL)) {
+	if (name) { /* (name) - Search lamp by name */
 
-    if (strcmp (name, lamp_iter->id.name+2) == 0) {
-      wanted_lamp = (C_Lamp *)PyObject_NEW(C_Lamp, &Lamp_Type);
-      if (wanted_lamp) wanted_lamp->lamp = lamp_iter;
+    C_Lamp *wanted_lamp = NULL;
+
+    while ((lamp_iter) && (wanted_lamp == NULL)) {
+      if (strcmp (name, lamp_iter->id.name+2) == 0) {
+        wanted_lamp = (C_Lamp *)PyObject_NEW(C_Lamp, &Lamp_Type);
+				if (wanted_lamp) wanted_lamp->lamp = lamp_iter;
+      }
+      lamp_iter = lamp_iter->id.next;
     }
 
-    lamp_iter = lamp_iter->id.next;
-  }
+    if (wanted_lamp == NULL) { /* Requested lamp doesn't exist */
+      char error_msg[64];
+      PyOS_snprintf(error_msg, sizeof(error_msg),
+                      "Lamp \"%s\" not found", name);
+      return (EXPP_ReturnPyObjError (PyExc_NameError, error_msg));
+    }
 
-  if (wanted_lamp == NULL) {/* Requested Lamp doesn't exist */
-    char error_msg[64];
-    PyOS_snprintf(error_msg, sizeof(error_msg),
-                    "Lamp \"%s\" not found", name);
-    return (EXPP_ReturnPyObjError (PyExc_NameError, error_msg));
-  }
+    return (PyObject *)wanted_lamp;
+	}
 
-  return (PyObject*)wanted_lamp;
+	else { /* () - return a list of all lamps in the scene */
+    int index = 0;
+    PyObject *lamplist, *pystr;
+
+    lamplist = PyList_New (BLI_countlist (&(G.main->lamp)));
+
+    if (lamplist == NULL)
+      return (PythonReturnErrorObject (PyExc_MemoryError,
+              "couldn't create PyList"));
+
+		while (lamp_iter) {
+      pystr = PyString_FromString (lamp_iter->id.name+2);
+
+			if (!pystr)
+				return (PythonReturnErrorObject (PyExc_MemoryError,
+									"couldn't create PyString"));
+
+			PyList_SET_ITEM (lamplist, index, pystr);
+
+      lamp_iter = lamp_iter->id.next;
+      index++;
+		}
+
+		return (lamplist);
+	}
 }
 
 /*****************************************************************************/
@@ -320,7 +347,7 @@ static PyObject *Lamp_rename(C_Lamp *self, PyObject *args)
   char buf[21];
 
   if (!PyArg_ParseTuple(args, "s", &name))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected string argument"));
   
   PyOS_snprintf(buf, sizeof(buf), "%s", name);
@@ -336,7 +363,7 @@ static PyObject *Lamp_setType(C_Lamp *self, PyObject *args)
   char *type;
 
   if (!PyArg_ParseTuple(args, "s", &type))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected string argument"));
 
   if (strcmp (type, "Lamp") == 0)
@@ -365,13 +392,13 @@ static PyObject *Lamp_setIntType(C_Lamp *self, PyObject *args)
   short value;
 
   if (!PyArg_ParseTuple(args, "h", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected int argument in [0,3]"));
 
   if (value >= 0 && value <= 3)
     self->lamp->type = value;
   else
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_ValueError,
             "expected int argument in [0,3]"));
 
   Py_INCREF(Py_None);
@@ -386,7 +413,7 @@ static PyObject *Lamp_setMode(C_Lamp *self, PyObject *args)
   if (!PyArg_ParseTuple(args, "|ssssssss", &m[0], &m[1], &m[2],
                         &m[3], &m[4], &m[5], &m[6], &m[7]))
     return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-            "expected string argument(s)"));
+            "expected from none to eight string argument(s)"));
 
   for (i = 0; i < 8; i++) {
     if (m[i] == NULL) break;
@@ -424,7 +451,7 @@ static PyObject *Lamp_setIntMode(C_Lamp *self, PyObject *args)
   short value;
 
   if (!PyArg_ParseTuple(args, "h", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected int argument"));
 
 /* well, with so many flag bits, we just accept any short int, no checking */
@@ -439,14 +466,14 @@ static PyObject *Lamp_setSamples(C_Lamp *self, PyObject *args)
   short value;
 
   if (!PyArg_ParseTuple(args, "h", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected int argument in [1,16]"));
 
   if (value >= EXPP_LAMP_SAMPLES_MIN &&
       value <= EXPP_LAMP_SAMPLES_MAX)
     self->lamp->samp = value;
   else
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_ValueError,
             "expected int argument in [1,16]"));
 
   Py_INCREF(Py_None);
@@ -458,21 +485,15 @@ static PyObject *Lamp_setBufferSize(C_Lamp *self, PyObject *args)
   short value;
 
   if (!PyArg_ParseTuple(args, "h", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-            "expected int argument, any of [512, 768, 1024, 1536, 2560]"));
-
-  switch (value) {
-    case  512:
-    case  768:
-    case 1024:
-    case 1536:
-    case 2560:
-      self->lamp->bufsize = value;
-      break;
-    default:
-      return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-              "expected int argument, any of [512, 768, 1024, 1536, 2560]"));
-  }
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
+            "expected int argument in [512, 5120]"));
+	
+  if (value >= EXPP_LAMP_BUFFERSIZE_MIN &&
+      value <= EXPP_LAMP_BUFFERSIZE_MAX)
+    self->lamp->bufsize = value;
+  else
+    return (EXPP_ReturnPyObjError (PyExc_ValueError,
+            "expected int argument in [512, 5120]"));
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -483,16 +504,16 @@ static PyObject *Lamp_setHaloStep(C_Lamp *self, PyObject *args)
   short value;
 
   if (!PyArg_ParseTuple(args, "h", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected int argument in [0,12]"));
 
   if (value >= EXPP_LAMP_HALOSTEP_MIN &&
       value <= EXPP_LAMP_HALOSTEP_MAX)
     self->lamp->shadhalostep = value;
   else
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_ValueError,
             "expected int argument in [0,12]"));
-  
+
   Py_INCREF(Py_None);
   return Py_None;
 }
@@ -502,7 +523,7 @@ static PyObject *Lamp_setColorComponent(C_Lamp *self, char *key, PyObject *args)
   float value;
   
   if (!PyArg_ParseTuple(args, "f", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected float argument in [0.0, 1.0]"));
 
   value = EXPP_ClampFloat (value, 0.0, 1.0);
@@ -523,7 +544,7 @@ static PyObject *Lamp_setEnergy(C_Lamp *self, PyObject *args)
   float value;
   
   if (!PyArg_ParseTuple(args, "f", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected float argument"));
 
   value = EXPP_ClampFloat (value, EXPP_LAMP_ENERGY_MIN, EXPP_LAMP_ENERGY_MAX);
@@ -538,7 +559,7 @@ static PyObject *Lamp_setDist(C_Lamp *self, PyObject *args)
   float value;
   
   if (!PyArg_ParseTuple(args, "f", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected float argument"));
 
   value = EXPP_ClampFloat (value, EXPP_LAMP_DIST_MIN, EXPP_LAMP_DIST_MAX);
@@ -553,10 +574,11 @@ static PyObject *Lamp_setSpotSize(C_Lamp *self, PyObject *args)
   float value;
   
   if (!PyArg_ParseTuple(args, "f", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected float argument"));
 
-  value = EXPP_ClampFloat (value, EXPP_LAMP_SPOTSIZE_MIN, EXPP_LAMP_SPOTSIZE_MAX);
+  value = EXPP_ClampFloat (value, EXPP_LAMP_SPOTSIZE_MIN,
+									EXPP_LAMP_SPOTSIZE_MAX);
   self->lamp->spotsize = value;
 
   Py_INCREF(Py_None);
@@ -568,7 +590,7 @@ static PyObject *Lamp_setSpotBlend(C_Lamp *self, PyObject *args)
   float value;
   
   if (!PyArg_ParseTuple(args, "f", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected float argument"));
 
   value = EXPP_ClampFloat (value, EXPP_LAMP_SPOTBLEND_MIN,
@@ -584,8 +606,8 @@ static PyObject *Lamp_setClipStart(C_Lamp *self, PyObject *args)
   float value;
   
   if (!PyArg_ParseTuple(args, "f", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-            "expected a float number as argument"));
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
+            "expected float argument"));
   
   value = EXPP_ClampFloat (value, EXPP_LAMP_CLIPSTART_MIN,
                   EXPP_LAMP_CLIPSTART_MAX);
@@ -600,8 +622,8 @@ static PyObject *Lamp_setClipEnd(C_Lamp *self, PyObject *args)
   float value;
 
   if (!PyArg_ParseTuple(args, "f", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-            "expected a float number as argument"));
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
+            "expected float argument"));
 
   value = EXPP_ClampFloat (value, EXPP_LAMP_CLIPEND_MIN,
                   EXPP_LAMP_CLIPEND_MAX);
@@ -616,8 +638,8 @@ static PyObject *Lamp_setBias(C_Lamp *self, PyObject *args)
   float value;
   
   if (!PyArg_ParseTuple(args, "f", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-            "expected a float number as argument"));
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
+            "expected float argument"));
 
   value = EXPP_ClampFloat (value, EXPP_LAMP_BIAS_MIN, EXPP_LAMP_BIAS_MAX);
   self->lamp->bias = value;
@@ -631,8 +653,8 @@ static PyObject *Lamp_setSoftness(C_Lamp *self, PyObject *args)
   float value;
   
   if (!PyArg_ParseTuple(args, "f", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-            "expected a float number as argument"));
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
+            "expected float argument"));
 
   value = EXPP_ClampFloat (value, EXPP_LAMP_SOFTNESS_MIN,
                   EXPP_LAMP_SOFTNESS_MAX);
@@ -647,8 +669,8 @@ static PyObject *Lamp_setHaloInt(C_Lamp *self, PyObject *args)
   float value;
 
   if (!PyArg_ParseTuple(args, "f", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-            "expected a float number as argument"));
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
+            "expected float argument"));
 
   value = EXPP_ClampFloat (value, EXPP_LAMP_HALOINT_MIN,
                   EXPP_LAMP_HALOINT_MAX);
@@ -663,8 +685,8 @@ static PyObject *Lamp_setQuad1(C_Lamp *self, PyObject *args)
   float value;
 
   if (!PyArg_ParseTuple(args, "f", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-            "expected a float number as argument"));
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
+            "expected float argument"));
 
   value = EXPP_ClampFloat (value, EXPP_LAMP_QUAD1_MIN,
                   EXPP_LAMP_QUAD1_MAX);
@@ -679,8 +701,8 @@ static PyObject *Lamp_setQuad2(C_Lamp *self, PyObject *args)
   float value;
 
   if (!PyArg_ParseTuple(args, "f", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-            "expected a float number as argument"));
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
+            "expected float argument"));
 
   value = EXPP_ClampFloat (value, EXPP_LAMP_QUAD2_MIN,
                   EXPP_LAMP_QUAD2_MAX);

@@ -151,7 +151,8 @@ PyTypeObject Buffer_Type = {
   &Buffer_SeqMethods,           /*tp_as_sequence*/
 };
 
-#ifndef __APPLE__
+/* #ifndef __APPLE__ */
+
 /*@ By golly George! It looks like fancy pants macro time!!! */
 
 /*
@@ -419,6 +420,6 @@ static PyObject *Method_##funcname (PyObject *self, PyObject *args) {\
   ret_ret_##ret; \
 }
 
-#endif
+/* #endif */
 
 PyObject *M_BGL_Init(void); 

@@ -39,6 +39,7 @@
 #include <BKE_global.h>
 #include <BKE_object.h>
 #include <BKE_library.h>
+#include <BLI_blenlib.h>
 #include <DNA_lamp_types.h>
 
 #include "constant.h"
@@ -79,6 +80,8 @@
 #define EXPP_LAMP_SAMPLES_MIN 1
 #define EXPP_LAMP_SAMPLES_MAX 16
 #define EXPP_LAMP_BUFFERSIZE 512
+#define EXPP_LAMP_BUFFERSIZE_MIN 512
+#define EXPP_LAMP_BUFFERSIZE_MAX 5120
 #define EXPP_LAMP_ENERGY      1.0
 #define EXPP_LAMP_ENERGY_MIN  0.0
 #define EXPP_LAMP_ENERGY_MAX 10.0

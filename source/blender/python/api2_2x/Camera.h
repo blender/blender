@@ -39,6 +39,7 @@
 #include <BKE_global.h>
 #include <BKE_object.h>
 #include <BKE_library.h>
+#include <BLI_blenlib.h>
 #include <DNA_camera_types.h>
 
 #include "constant.h"

@@ -31,7 +31,11 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
 #include <Python.h>
+#include "compile.h" /* for the PyCodeObject */
+#include "eval.h" /* for PyEval_EvalCode */
+
 #include <stdio.h>
 
 #include <MEM_guardedalloc.h>
@@ -51,31 +55,32 @@
 #include <DNA_world_types.h>
 
 #include "BPY_extern.h"
-
 #include "api2_2x/EXPP_interface.h"
+
 
 /*****************************************************************************/
 /* Structure definitions                                                     */
 /*****************************************************************************/
 #define FILENAME_LENGTH 24
 typedef struct _ScriptError {
-	char filename[FILENAME_LENGTH];
-	int lineno;
+  char filename[FILENAME_LENGTH];
+  int lineno;
 } ScriptError;
 
 /*****************************************************************************/
 /* Global variables                                                          */
 /*****************************************************************************/
 ScriptError g_script_error;
+short EXPP_releaseGlobalDict = 1;
 
 /*****************************************************************************/
 /* Function prototypes                                                       */
 /*****************************************************************************/
-PyObject * RunPython(Text *text, PyObject *globaldict);
-char *     GetName(Text *text);
-PyObject * CreateGlobalDictionary (void);
-void       ReleaseGlobalDictionary (PyObject * dict);
-void       DoAllScriptsFromList (ListBase * list, short event);
+PyObject *RunPython(Text *text, PyObject *globaldict);
+char     *GetName(Text *text);
+PyObject *CreateGlobalDictionary (void);
+void      ReleaseGlobalDictionary (PyObject * dict);
+void      DoAllScriptsFromList (ListBase * list, short event);
 
 /*****************************************************************************/
 /* Description: This function will initialise Python and all the implemented */
@@ -84,15 +89,15 @@ void       DoAllScriptsFromList (ListBase * list, short event);
 /*****************************************************************************/
 void BPY_start_python(void)
 {
-	printf ("In BPY_start_python\n");
+  printf ("In BPY_start_python\n");
 /* TODO: Shouldn't "blender" be replaced by PACKAGE ?? (config.h) */
-	Py_SetProgramName("blender");
+  Py_SetProgramName("blender");
 
-	Py_Initialize ();
+  Py_Initialize ();
 
-	initBlenderApi2_2x ();
+  initBlenderApi2_2x ();
 
-	return;
+  return; /* We could take away all these return; ... */
 }
 
 /*****************************************************************************/
@@ -100,9 +105,9 @@ void BPY_start_python(void)
 /*****************************************************************************/
 void BPY_end_python(void)
 {
-	printf ("In BPY_end_python\n");
-	Py_Finalize();
-	return;
+  printf ("In BPY_end_python\n");
+  Py_Finalize();
+  return;
 }
 
 /*****************************************************************************/
@@ -111,8 +116,8 @@ void BPY_end_python(void)
 /*****************************************************************************/
 int BPY_Err_getLinenumber(void)
 {
-	printf ("In BPY_Err_getLinenumber\n");
-	return g_script_error.lineno;
+  printf ("In BPY_Err_getLinenumber\n");
+  return g_script_error.lineno;
 }
 
 /*****************************************************************************/
@@ -120,52 +125,172 @@ int BPY_Err_getLinenumber(void)
 /*****************************************************************************/
 const char *BPY_Err_getFilename(void)
 {
-	printf ("In BPY_Err_getFilename\n");
-	return g_script_error.filename;
+  printf ("In BPY_Err_getFilename\n");
+  return g_script_error.filename;
+}
+
+/*****************************************************************************/
+/* Description: Return PyString filename from a traceback object             */
+/*****************************************************************************/
+PyObject *traceback_getFilename(PyObject *tb)
+{
+  PyObject *v;
+
+/* co_filename is in f_code, which is in tb_frame, which is in tb */
+
+  v = PyObject_GetAttrString(tb, "tb_frame"); Py_XDECREF(v);
+  v = PyObject_GetAttrString(v, "f_code"); Py_XDECREF(v);
+  v = PyObject_GetAttrString(v, "co_filename");
+
+  return v;
+}
+
+/*****************************************************************************/
+/* Description: Blender Python error handler. This catches the error and     */
+/* stores filename and line number in a global                               */
+/*****************************************************************************/
+void BPY_Err_Handle(Text *text)
+{
+  PyObject *exception, *err, *tb, *v;
+
+  PyErr_Fetch(&exception, &err, &tb);
+
+  if (!exception && !tb) {
+    printf("FATAL: spurious exception\n");
+    return;
+  }
+
+  strcpy(g_script_error.filename, GetName(text));
+
+  if (exception && PyErr_GivenExceptionMatches(exception, PyExc_SyntaxError)) {
+    /* no traceback available when SyntaxError */
+    PyErr_Restore(exception, err, tb); /* takes away reference! */
+    PyErr_Print();
+    v = PyObject_GetAttrString(err, "lineno");
+    g_script_error.lineno = PyInt_AsLong(v);
+    Py_XDECREF(v);
+    return; 
+  } else {
+    PyErr_NormalizeException(&exception, &err, &tb);
+    PyErr_Restore(exception, err, tb); // takes away reference!
+    PyErr_Print();
+    tb = PySys_GetObject("last_traceback");
+    Py_INCREF(tb);
+
+/* From old bpython BPY_main.c:
+ * 'check traceback objects and look for last traceback in the
+ *  same text file. This is used to jump to the line of where the
+ *  error occured. "If the error occured in another text file or module,
+ *  the last frame in the current file is adressed."' */
+
+      while (1) { 
+        v = PyObject_GetAttrString(tb, "tb_next");
+
+        if (v == Py_None || 
+          strcmp(PyString_AsString(traceback_getFilename(v)), GetName(text)))
+          break;
+        Py_DECREF(tb);
+        tb = v;
+      }
+
+    v = PyObject_GetAttrString(tb, "tb_lineno");
+    g_script_error.lineno = PyInt_AsLong(v);
+    Py_XDECREF(v);
+    v = traceback_getFilename(tb);
+    strncpy(g_script_error.filename, PyString_AsString(v), FILENAME_LENGTH);
+    Py_XDECREF(v);
+    Py_DECREF(tb);
+  }
+
+	return;
 }
 
 /*****************************************************************************/
 /* Description: This function executes the script passed by st.              */
-/* Notes:       Currently, the script is compiled each time it is executed,  */
-/*              This should be optimized to store the compiled bytecode as   */
-/*              has been done by the previous implementation.                */
+/* Notes:       It is called by blender/src/drawtext.c when a Blender user   */
+/*              presses ALT+PKEY in the script's text window.                */
 /*****************************************************************************/
 struct _object *BPY_txt_do_python(struct SpaceText* st)
 {
-	PyObject *	dict;
-	PyObject *	ret;
-	printf ("In BPY_txt_do_python\n");
+  PyObject *dict, *ret;
 
-	if (!st->text)
-	{
-		return NULL;
-	}
+  printf ("In BPY_txt_do_python\n");
 
-	dict = PyModule_GetDict(PyImport_AddModule("__main__"));
-	/* dict = newGlobalDictionary(); */
-	ret = RunPython (st->text, dict);
+  if (!st->text) return NULL;
 
-	/* If errors have occurred, set the error filename to the name of the
-	   script.
-	*/
-	if (!ret)
-	{
-		sprintf(g_script_error.filename, "%s", st->text->id.name+2);
-		return NULL;
-	}
+/* The EXPP_releaseGlobalDict global variable controls whether we should run
+ * the script with a clean global dictionary or should keep the current one,
+ * possibly already "polluted" by other calls to the Python Interpreter.
+ * The default is to use a clean one.  To change this the script writer must
+ * call Blender.releaseGlobalDict(bool), with bool != 0, in the script */
 
-	return dict;
+  if (EXPP_releaseGlobalDict) {
+    printf("Using a clean Global Dictionary.\n");
+    st->flags |= ST_CLEAR_NAMESPACE;
+    dict = CreateGlobalDictionary();
+  }
+  else
+    dict = PyModule_GetDict(PyImport_AddModule("__main__"));
+
+  ret = RunPython (st->text, dict); /* Run the script */
+
+  if (!ret) { /* Failed execution of the script */
+
+    if (EXPP_releaseGlobalDict) ReleaseGlobalDictionary(dict);
+
+    BPY_Err_Handle(st->text);
+    BPY_end_python();
+    BPY_start_python();
+
+    return NULL;
+  }
+
+  else Py_DECREF (ret);
+
+/* From the old BPY_main.c:
+ * 'The following lines clear the global name space of the python
+ *  interpreter. This is desired to release objects after execution
+ *  of a script (remember that each wrapper object increments the refcount
+ *  of the Blender Object. 
+ *  Exception: scripts that use the GUI rely on the
+ *  persistent global namespace, so they need a workaround: The namespace
+ *  is released when the GUI is exit.'
+ * See api2_2x/Draw.c: Method_Register() */
+
+  if (EXPP_releaseGlobalDict) {     
+    if (st->flags & ST_CLEAR_NAMESPACE) {
+      ReleaseGlobalDictionary(dict);
+      /*garbage_collect(&G.main); Unfinished in the previous implementation */ 
+    }
+  }
+
+/* Edited from old BPY_main.c:
+ * 'The return value is the global namespace dictionary of the script
+ *  context.  This may be stored in the SpaceText instance to give control
+ *  over namespace persistence.  Remember that the same script may be
+ *  executed in several windows ...  Namespace persistence is desired for
+ *  scripts that use the GUI and store callbacks to the current script.' */
+
+  return dict;
 }
 
 /*****************************************************************************/
 /* Description:                                                              */
-/* Notes:       Not implemented yet                                          */
+/* Notes:                                                                    */
 /*****************************************************************************/
 void BPY_free_compiled_text(struct Text* text)
 {
-	printf ("In BPY_free_compiled_text\n");
+  printf ("In BPY_free_compiled_text\n");
+  if (!text->compiled) return;
+  Py_DECREF((PyObject*) text->compiled);
+  text->compiled = NULL;
+
 	return;
 }
+
+/*****************************************************************************/
+/* ScriptLinks                                                               */
+/*****************************************************************************/
 
 /*****************************************************************************/
 /* Description:                                                              */
@@ -173,7 +298,17 @@ void BPY_free_compiled_text(struct Text* text)
 /*****************************************************************************/
 void BPY_clear_bad_scriptlinks(struct Text *byebye)
 {
-	printf ("In BPY_clear_bad_scriptlinks\n");
+  printf ("In BPY_clear_bad_scriptlinks\n");
+/*
+  BPY_clear_bad_scriptlist(getObjectList(), byebye);
+  BPY_clear_bad_scriptlist(getLampList(), byebye);
+  BPY_clear_bad_scriptlist(getCameraList(), byebye);
+  BPY_clear_bad_scriptlist(getMaterialList(), byebye);
+  BPY_clear_bad_scriptlist(getWorldList(),  byebye);
+  BPY_clear_bad_scriptlink(&scene_getCurrent()->id, byebye);
+
+  allqueue(REDRAWBUTSSCRIPT, 0);
+*/
 	return;
 }
 
@@ -185,15 +320,16 @@ void BPY_clear_bad_scriptlinks(struct Text *byebye)
 /*****************************************************************************/
 void BPY_do_all_scripts(short event)
 {
-	printf ("In BPY_do_all_scripts(event=%d)\n",event);
+  printf ("In BPY_do_all_scripts(event=%d)\n",event);
 
-	DoAllScriptsFromList (&(G.main->object), event);
-	DoAllScriptsFromList (&(G.main->lamp), event);
-	DoAllScriptsFromList (&(G.main->camera), event);
-	DoAllScriptsFromList (&(G.main->mat), event);
-	DoAllScriptsFromList (&(G.main->world), event);
+  DoAllScriptsFromList (&(G.main->object), event);
+  DoAllScriptsFromList (&(G.main->lamp), event);
+  DoAllScriptsFromList (&(G.main->camera), event);
+  DoAllScriptsFromList (&(G.main->mat), event);
+  DoAllScriptsFromList (&(G.main->world), event);
 
-	BPY_do_pyscript (&(G.scene->id), event);
+  BPY_do_pyscript (&(G.scene->id), event);
+
 	return;
 }
 
@@ -206,52 +342,71 @@ void BPY_do_all_scripts(short event)
 /*****************************************************************************/
 void BPY_do_pyscript(struct ID *id, short event)
 {
-	ScriptLink     * scriptlink;
-	int              index;
-	PyObject       * dict;
+  ScriptLink  * scriptlink;
+  int           index;
+  PyObject    * dict;
 
-	printf ("In BPY_do_pyscript(id=%s, event=%d)\n",id->name, event);
+  printf ("In BPY_do_pyscript(id=%s, event=%d)\n",id->name, event);
 
-	scriptlink = setScriptLinks (id, event);
+  scriptlink = setScriptLinks (id, event);
 
-	if (scriptlink == NULL)
-	{
-		return;
-	}
+  if (scriptlink == NULL) return;
 
-	for (index=0 ; index<scriptlink->totscript ; index++)
-	{
-		printf ("scriptnr: %d\tevent=%d, flag[index]=%d\n", index,
-				event, scriptlink->flag[index]);
-		if ((scriptlink->flag[index] == event) &&
-		    (scriptlink->scripts[index]!=NULL))
-		{
-			dict = CreateGlobalDictionary();
-			RunPython ((Text*) scriptlink->scripts[index], dict);
-			ReleaseGlobalDictionary (dict);
-		}
-	}
+  for (index = 0; index < scriptlink->totscript; index++)
+  {
+    printf ("scriptnr: %d\tevent=%d, flag[index]=%d\n", index,
+        event, scriptlink->flag[index]);
+    if ((scriptlink->flag[index] == event) &&
+        (scriptlink->scripts[index] != NULL))
+    {
+      dict = CreateGlobalDictionary();
+      RunPython ((Text*) scriptlink->scripts[index], dict);
+      ReleaseGlobalDictionary (dict);
+    }
+  }
 
 	return;
 }
 
 /*****************************************************************************/
 /* Description:                                                              */
-/* Notes:       Not implemented yet                                          */
+/* Notes:                                                                    */
 /*****************************************************************************/
 void BPY_free_scriptlink(struct ScriptLink *slink)
 {
-	printf ("In BPY_free_scriptlink\n");
+  printf ("In BPY_free_scriptlink\n");
+
+  if (slink->totscript) {
+    if(slink->flag) MEM_freeN(slink->flag);
+    if(slink->scripts) MEM_freeN(slink->scripts); 
+  }
+
 	return;
 }
 
 /*****************************************************************************/
 /* Description:                                                              */
-/* Notes:       Not implemented yet                                          */
+/* Notes:                                                                    */
 /*****************************************************************************/
 void BPY_copy_scriptlink(struct ScriptLink *scriptlink)
 {
-	printf ("In BPY_copy_scriptlink\n");
+  void *tmp;
+
+  printf ("In BPY_copy_scriptlink\n");
+
+  if (scriptlink->totscript) {
+
+    tmp = scriptlink->scripts;
+    scriptlink->scripts =
+      MEM_mallocN(sizeof(ID*)*scriptlink->totscript, "scriptlistL");
+    memcpy(scriptlink->scripts, tmp, sizeof(ID*)*scriptlink->totscript);
+
+    tmp = scriptlink->flag;
+    scriptlink->flag =
+      MEM_mallocN(sizeof(short)*scriptlink->totscript, "scriptlistF");
+    memcpy(scriptlink->flag, tmp, sizeof(short)*scriptlink->totscript);
+  }
+
 	return;
 }
 
@@ -260,43 +415,45 @@ void BPY_copy_scriptlink(struct ScriptLink *scriptlink)
 /* Notes:       Not implemented yet                                          */
 /*****************************************************************************/
 int BPY_call_importloader(char *name)
-{
-	printf ("In BPY_call_importloader(name=%s)\n",name);
-	return (0);
+{ /* XXX Should this function go away from Blender? */
+  printf ("In BPY_call_importloader(name=%s)\n",name);
+  return (0);
 }
+
+/* XXX THE 3 FUNCTIONS BELOW ARE IMPLEMENTED IN DRAW.C */
 
 /*****************************************************************************/
 /* Description:                                                              */
 /* Notes:       Not implemented yet                                          */
 /*****************************************************************************/
-int BPY_spacetext_is_pywin(struct SpaceText *st)
-{
-	/* No printf is done here because it is called with every mouse move */
-	return (0);
-}
+//int BPY_spacetext_is_pywin(struct SpaceText *st)
+//{
+//  /* No printf is done here because it is called with every mouse move */
+//  return (0);
+//}
 
 /*****************************************************************************/
 /* Description:                                                              */
 /* Notes:       Not implemented yet                                          */
 /*****************************************************************************/
-void BPY_spacetext_do_pywin_draw(struct SpaceText *st)
-{
-	printf ("In BPY_spacetext_do_pywin_draw\n");
-	return;
-}
+//void BPY_spacetext_do_pywin_draw(struct SpaceText *st)
+//{
+//  printf ("In BPY_spacetext_do_pywin_draw\n");
+//  return;
+//}
 
 /*****************************************************************************/
 /* Description:                                                              */
 /* Notes:       Not implemented yet                                          */
 /*****************************************************************************/
-void BPY_spacetext_do_pywin_event(struct SpaceText *st,
-                                  unsigned short event,
-                                  short val)
-{
-	printf ("In BPY_spacetext_do_pywin_event(st=?, event=%d, val=%d)\n",
-	        event, val);
-	return;
-}
+//void BPY_spacetext_do_pywin_event(struct SpaceText *st,
+//                                  unsigned short event,
+//                                  short val)
+//{
+//  printf ("In BPY_spacetext_do_pywin_event(st=?, event=%d, val=%d)\n",
+//          event, val);
+//  return;
+//}
 
 /*****************************************************************************/
 /* Private functions                                                         */
@@ -309,26 +466,30 @@ void BPY_spacetext_do_pywin_event(struct SpaceText *st,
 /*****************************************************************************/
 PyObject * RunPython(Text *text, PyObject *globaldict)
 {
-	PyObject * ret;
-	char     * buf;
+  char *buf = NULL;
 
-	printf("Run Python script \"%s\" ...\n", GetName(text));
-	buf = txt_to_buf(text);
-	ret = PyRun_String (buf, Py_file_input, globaldict, globaldict);
+  printf("Run Python script \"%s\" ...\n", GetName(text));
 
-	if (!ret)
-	{
-		/* an exception was raised, handle it here */
-		PyErr_Print(); /* this function also clears the error
-				  indicator */
-	}
-	else
-	{
-		PyErr_Clear(); /* seems necessary, at least now */
-	}
+/* The script text is compiled to Python bytecode and saved at text->compiled
+ * to speed-up execution if the user executes the script multiple times */
 
-	MEM_freeN (buf);
-	return ret;
+  if (!text->compiled) { /* if it wasn't already compiled, do it now */
+    buf = txt_to_buf(text);
+
+    text->compiled = Py_CompileString(buf, GetName(text), Py_file_input);
+
+    MEM_freeN(buf);
+
+    if (PyErr_Occurred()) {
+      BPY_free_compiled_text(text);
+			PyErr_SetString (PyExc_RuntimeError,
+											"couldn't compile script to Python bytecode");
+			return NULL;
+    }
+
+  }
+
+  return PyEval_EvalCode(text->compiled, globaldict, globaldict);
 }
 
 /*****************************************************************************/
@@ -337,7 +498,7 @@ PyObject * RunPython(Text *text, PyObject *globaldict)
 /*****************************************************************************/
 char * GetName(Text *text)
 {
-	return (text->id.name+2);
+  return (text->id.name+2);
 }
 
 /*****************************************************************************/
@@ -345,11 +506,12 @@ char * GetName(Text *text)
 /*****************************************************************************/
 PyObject * CreateGlobalDictionary (void)
 {
-	PyObject *dict = PyDict_New();
-	PyDict_SetItemString (dict, "__builtins__", PyEval_GetBuiltins());
-	PyDict_SetItemString (dict, "__name__", PyString_FromString("__main__"));
+  PyObject *dict = PyDict_New();
 
-	return (dict);
+  PyDict_SetItemString (dict, "__builtins__", PyEval_GetBuiltins());
+  PyDict_SetItemString (dict, "__name__", PyString_FromString("__main__"));
+
+  return dict;
 }
 
 /*****************************************************************************/
@@ -357,8 +519,10 @@ PyObject * CreateGlobalDictionary (void)
 /*****************************************************************************/
 void ReleaseGlobalDictionary (PyObject * dict)
 {
-	PyDict_Clear (dict);
-	Py_DECREF (dict);		/* Release dictionary. */
+  PyDict_Clear (dict);
+  Py_DECREF (dict);   /* Release dictionary. */
+
+	return;
 }
 
 /*****************************************************************************/
@@ -366,16 +530,17 @@ void ReleaseGlobalDictionary (PyObject * dict)
 /*              list argument. The event by which the function has been      */
 /*              called, is passed in the event argument.                     */
 /*****************************************************************************/
-void DoAllScriptsFromList (ListBase * list, short event)
+void DoAllScriptsFromList (ListBase *list, short event)
 {
-	ID       * id;
+  ID *id;
 
-	id = list->first;
+  id = list->first;
 
-	while (id != NULL)
-	{
-		BPY_do_pyscript (id, event);
-		id = id->next;
-	}
+  while (id != NULL) {
+    BPY_do_pyscript (id, event);
+    id = id->next;
+  }
+
+	return;
 }
 

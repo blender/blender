@@ -44,57 +44,89 @@ static PyObject *M_Image_New(PyObject *self, PyObject *args, PyObject *keywords)
 }
 
 /*****************************************************************************/
-/* Function:              M_Image_Get                                       */
-/* Python equivalent:     Blender.Image.Get                                 */
+/* Function:              M_Image_Get                                        */
+/* Python equivalent:     Blender.Image.Get                                  */
+/* Description:           Receives a string and returns the image object     */
+/*                        whose name matches the string.  If no argument is  */
+/*                        passed in, a list of all image names in the        */
+/*                        current scene is returned.                         */
 /*****************************************************************************/
 static PyObject *M_Image_Get(PyObject *self, PyObject *args)
 {
-  char     *name;
-  Image   *img_iter;
-  C_Image *wanted_img;
+  char  *name = NULL;
+  Image *img_iter;
 
-  printf ("In Image_Get()\n");
-  if (!PyArg_ParseTuple(args, "s", &name))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-            "expected string argument"));
+	if (!PyArg_ParseTuple(args, "|s", &name))
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
+            "expected string argument (or nothing)"));
 
-  /* Use the name to search for the image requested. */
-  wanted_img = NULL;
   img_iter = G.main->image.first;
 
-  while ((img_iter) && (wanted_img == NULL)) {
+	if (name) { /* (name) - Search image by name */
 
-    if (strcmp (name, img_iter->id.name+2) == 0) {
-      wanted_img = (C_Image *)PyObject_NEW(C_Image, &Image_Type);
-      if (wanted_img) wanted_img->image = img_iter;
+    C_Image *wanted_image = NULL;
+
+    while ((img_iter) && (wanted_image == NULL)) {
+      if (strcmp (name, img_iter->id.name+2) == 0) {
+        wanted_image = (C_Image *)PyObject_NEW(C_Image, &Image_Type);
+				if (wanted_image) wanted_image->image = img_iter;
+      }
+      img_iter = img_iter->id.next;
     }
 
-    img_iter = img_iter->id.next;
-  }
+    if (wanted_image == NULL) { /* Requested image doesn't exist */
+      char error_msg[64];
+      PyOS_snprintf(error_msg, sizeof(error_msg),
+                      "Image \"%s\" not found", name);
+      return (EXPP_ReturnPyObjError (PyExc_NameError, error_msg));
+    }
 
-  if (wanted_img == NULL) {
-  /* No image exists with the name specified in the argument name. */
-    char error_msg[64];
-    PyOS_snprintf(error_msg, sizeof(error_msg),
-                    "Image \"%s\" not found", name);
-    return (EXPP_ReturnPyObjError (PyExc_NameError, error_msg));
-  }
+    return (PyObject *)wanted_image;
+	}
 
-  return (PyObject*)wanted_img;
+	else { /* () - return a list of all images in the scene */
+    int index = 0;
+    PyObject *img_list, *pystr;
+
+    img_list = PyList_New (BLI_countlist (&(G.main->image)));
+
+    if (img_list == NULL)
+      return (PythonReturnErrorObject (PyExc_MemoryError,
+              "couldn't create PyList"));
+
+		while (img_iter) {
+      pystr = PyString_FromString (img_iter->id.name+2);
+
+			if (!pystr)
+				return (PythonReturnErrorObject (PyExc_MemoryError,
+									"couldn't create PyString"));
+
+			PyList_SET_ITEM (img_list, index, pystr);
+
+      img_iter = img_iter->id.next;
+      index++;
+		}
+
+		return (img_list);
+	}
 }
 
+/*****************************************************************************/
+/* Function:              M_Image_Load                                       */
+/* Python equivalent:     Blender.Image.Load                                 */
+/* Description:           Receives a string and returns the image object     */
+/*                        whose filename matches the string.                 */
+/*****************************************************************************/
 static PyObject *M_Image_Load(PyObject *self, PyObject *args)
 {
-  char *fname;
-  Image *img_ptr;
+  char    *fname;
+  Image   *img_ptr;
   C_Image *img;
 
-  printf ("In Image_Load()\n");
-  
   if (!PyArg_ParseTuple(args, "s", &fname))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected string argument"));
-  
+
   img = (C_Image *)PyObject_NEW(C_Image, &Image_Type);
 
   if (!img)
@@ -117,8 +149,6 @@ static PyObject *M_Image_Load(PyObject *self, PyObject *args)
 PyObject *M_Image_Init (void)
 {
   PyObject  *submodule;
-
-  printf ("In M_Image_Init()\n");
 
   submodule = Py_InitModule3("Blender.Image", M_Image_methods, M_Image_doc);
 
@@ -154,7 +184,7 @@ static PyObject *Image_rename(C_Image *self, PyObject *args)
   char buf[21];
 
   if (!PyArg_ParseTuple(args, "s", &name))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected string argument"));
   
   PyOS_snprintf(buf, sizeof(buf), "%s", name);
@@ -170,13 +200,13 @@ static PyObject *Image_setXRep(C_Image *self, PyObject *args)
   short value;
 
   if (!PyArg_ParseTuple(args, "h", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected int argument in [1,16]"));
 
   if (value >= EXPP_IMAGE_REP_MIN || value <= EXPP_IMAGE_REP_MAX)
     self->image->xrep = value;
   else
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_ValueError,
             "expected int argument in [1,16]"));
 
   Py_INCREF(Py_None);
@@ -188,13 +218,13 @@ static PyObject *Image_setYRep(C_Image *self, PyObject *args)
   short value;
 
   if (!PyArg_ParseTuple(args, "h", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected int argument in [1,16]"));
 
   if (value >= EXPP_IMAGE_REP_MIN || value <= EXPP_IMAGE_REP_MAX)
     self->image->yrep = value;
   else
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_ValueError,
             "expected int argument in [1,16]"));
 
   Py_INCREF(Py_None);

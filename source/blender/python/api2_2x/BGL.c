@@ -337,7 +337,10 @@ static PyObject *Buffer_repr(PyObject *self)
 }
 
 /* BGL_Wrap defined in BGL.h */
-#ifndef __APPLE__
+
+/* Let's try to take away this ifndef: */
+/* #ifndef __APPLE__ */
+
 BGL_Wrap(2, Accum,          void,     (GLenum, GLfloat))
 BGL_Wrap(2, AlphaFunc,      void,     (GLenum, GLclampf))
 BGL_Wrap(3, AreTexturesResident,  GLboolean,  (GLsizei, GLuintP, GLbooleanP))
@@ -663,7 +666,8 @@ BGL_Wrap(1, Vertex4iv,          void,     (GLintP))
 BGL_Wrap(4, Vertex4s,           void,     (GLshort, GLshort, GLshort, GLshort))
 BGL_Wrap(1, Vertex4sv,          void,     (GLshortP))
 BGL_Wrap(4, Viewport,           void,     (GLint, GLint, GLsizei, GLsizei))
-#endif
+
+/* #endif */
 
 #undef MethodDef
 #define MethodDef(func) {"gl"#func, Method_##func, METH_VARARGS}
@@ -673,8 +677,10 @@ BGL_Wrap(4, Viewport,           void,     (GLint, GLint, GLsizei, GLsizei))
 
 static struct PyMethodDef BGL_methods[] = {
   {"Buffer", Method_Buffer, METH_VARARGS, Method_Buffer_doc}, 
-#ifndef __APPLE__
-  MethodDef( Accum),
+
+/* #ifndef __APPLE__ */
+
+	MethodDef( Accum),
   MethodDef( AlphaFunc),
   MethodDef( AreTexturesResident), 
   MethodDef( Begin),
@@ -987,7 +993,8 @@ static struct PyMethodDef BGL_methods[] = {
   MethodDef( Vertex4s),
   MethodDef( Vertex4sv),
   MethodDef( Viewport),
-#endif
+
+/* #endif */
 
   {NULL, NULL}
 };

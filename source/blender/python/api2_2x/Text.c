@@ -43,10 +43,8 @@ static PyObject *M_Text_New(PyObject *self, PyObject *args, PyObject *keywords)
   Text   *bl_text; /* blender text object */
   C_Text *py_text; /* python wrapper */
 
-  printf ("In Text_New()\n");
-
   if (!PyArg_ParseTuple(args, "|si", &name, &follow))
-        return EXPP_ReturnPyObjError (PyExc_TypeError,
+        return EXPP_ReturnPyObjError (PyExc_AttributeError,
           "expected string and int arguments (or nothing)");
 
   bl_text = add_empty_text();
@@ -73,55 +71,87 @@ static PyObject *M_Text_New(PyObject *self, PyObject *args, PyObject *keywords)
 }
 
 /*****************************************************************************/
-/* Function:              M_Text_Get                                       */
-/* Python equivalent:     Blender.Text.Get                                 */
+/* Function:              M_Text_Get                                         */
+/* Python equivalent:     Blender.Text.Get                                   */
+/* Description:           Receives a string and returns the text object      */
+/*                        whose name matches the string.  If no argument is  */
+/*                        passed in, a list of all text names in the current */
+/*                        scene is returned.                                 */
 /*****************************************************************************/
 static PyObject *M_Text_Get(PyObject *self, PyObject *args)
 {
-  char   *name;
-  Text   *txt_iter;
-  C_Text *wanted_txt;
+  char *name = NULL;
+  Text *txt_iter;
 
-  printf ("In Text_Get()\n");
-  if (!PyArg_ParseTuple(args, "s", &name))
-    return EXPP_ReturnPyObjError (PyExc_AttributeError,
-            "expected string argument");
+	if (!PyArg_ParseTuple(args, "|s", &name))
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
+            "expected string argument (or nothing)"));
 
-  /* Use the name to search for the text requested. */
-  wanted_txt = NULL;
   txt_iter = G.main->text.first;
 
-  while ((txt_iter) && (wanted_txt == NULL)) {
+	if (name) { /* (name) - Search text by name */
 
-    if (strcmp (name, txt_iter->id.name+2) == 0) {
-      wanted_txt = (C_Text *)PyObject_NEW(C_Text, &Text_Type);
-      if (wanted_txt) wanted_txt->text = txt_iter;
+    C_Text *wanted_txt = NULL;
+
+    while ((txt_iter) && (wanted_txt == NULL)) {
+      if (strcmp (name, txt_iter->id.name+2) == 0) {
+        wanted_txt = (C_Text *)PyObject_NEW(C_Text, &Text_Type);
+				if (wanted_txt) wanted_txt->text = txt_iter;
+      }
+      txt_iter = txt_iter->id.next;
     }
 
-    txt_iter = txt_iter->id.next;
-  }
+    if (wanted_txt == NULL) { /* Requested text doesn't exist */
+      char error_msg[64];
+      PyOS_snprintf(error_msg, sizeof(error_msg),
+                      "Text \"%s\" not found", name);
+      return (EXPP_ReturnPyObjError (PyExc_NameError, error_msg));
+    }
 
-  if (wanted_txt == NULL) {
-  /* No text exists with the name specified in the argument name. */
-    char error_msg[64];
-    PyOS_snprintf(error_msg, sizeof(error_msg),
-                    "Text \"%s\" not found", name);
-    return EXPP_ReturnPyObjError (PyExc_NameError, error_msg);
-  }
+    return (PyObject *)wanted_txt;
+	}
 
-  return (PyObject*)wanted_txt;
+	else { /* () - return a list of all texts in the scene */
+    int index = 0;
+    PyObject *txtlist, *pystr;
+
+    txtlist = PyList_New (BLI_countlist (&(G.main->text)));
+
+    if (txtlist == NULL)
+      return (PythonReturnErrorObject (PyExc_MemoryError,
+              "couldn't create PyList"));
+
+		while (txt_iter) {
+      pystr = PyString_FromString (txt_iter->id.name+2);
+
+			if (!pystr)
+				return (PythonReturnErrorObject (PyExc_MemoryError,
+									"couldn't create PyString"));
+
+			PyList_SET_ITEM (txtlist, index, pystr);
+
+      txt_iter = txt_iter->id.next;
+      index++;
+		}
+
+		return (txtlist);
+	}
 }
 
+/*****************************************************************************/
+/* Function:              M_Text_Get                                         */
+/* Python equivalent:     Blender.Text.Load                                  */
+/* Description:           Receives a filename and returns the text object    */
+/*                        created from the corresponding file.               */
+/*****************************************************************************/
 static PyObject *M_Text_Load(PyObject *self, PyObject *args)
 {
   char   *fname;
   Text   *txt_ptr;
   C_Text *txt;
 
-  printf ("In Text_Load()\n");
-  
   if (!PyArg_ParseTuple(args, "s", &fname))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected string argument"));
   
   txt = (C_Text *)PyObject_NEW(C_Text, &Text_Type);
@@ -176,8 +206,6 @@ static PyObject *M_Text_unlink(PyObject *self, PyObject *args)
 PyObject *M_Text_Init (void)
 {
   PyObject  *submodule;
-
-  printf ("In M_Text_Init()\n");
 
   submodule = Py_InitModule3("Blender.Text", M_Text_methods, M_Text_doc);
 
@@ -236,7 +264,7 @@ static PyObject *Text_rename(C_Text *self, PyObject *args)
   char buf[21];
 
   if (!PyArg_ParseTuple(args, "s", &name))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected string argument"));
   
   PyOS_snprintf(buf, sizeof(buf), "%s", name);
@@ -296,7 +324,7 @@ static PyObject *Text_write(C_Text *self, PyObject *args)
 
 	if (!PyArg_ParseTuple(args, "s", &str))
      return EXPP_ReturnPyObjError (PyExc_TypeError,
-             "expected a string argument");
+             "expected string argument");
 
 	oldstate = txt_get_undostate();
 	txt_insert_buf(self->text, str);

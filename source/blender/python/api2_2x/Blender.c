@@ -24,7 +24,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Michel Selten
+ * Contributor(s): Michel Selten, Willian P. Germano
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -171,6 +171,31 @@ PyObject *Blender_Redraw(PyObject *self, PyObject *args)
 	}
 
 	return M_Window_Redraw(self, Py_BuildValue("(i)", wintype));
+}
+
+/*****************************************************************************/
+/* Function:              Blender_ReleaseGlobalDict                          */
+/* Python equivalent:     Blender.ReleaseGlobalDict                          */
+/* Description:           Receives an int (treated as boolean) to define     */
+/*                        whether the global Python dictionary should be     */
+/*                        cleared after the script is run or not.  Default   */
+/*                        is to clear (to release).  To change this, call    */
+/*                        Blender.ReleaseGlobalDict with a non-zero int      */
+/*                        argument.  If called with an empty arg list, it    */
+/*                        doesn't change anything.                           */
+/*                        Returns the current behavior.                      */
+/*****************************************************************************/
+PyObject *Blender_ReleaseGlobalDict(PyObject *self, PyObject *args)
+{
+	printf ("In Blender_ReleaseGlobalDict()\n");
+
+	if (!PyArg_ParseTuple (args, "|i", &EXPP_releaseGlobalDict))
+	{
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected int argument (or nothing)");
+	}
+
+	return Py_BuildValue("i", (EXPP_releaseGlobalDict?1:0));
 }
 
 /*****************************************************************************/

@@ -121,10 +121,10 @@ static Button *newbutton (void);
 
 static void exit_pydraw(SpaceText *st);
 static void exec_callback(SpaceText *st, PyObject *callback, PyObject *args);
-void EXPP_spacetext_do_pywin_draw(SpaceText *st);
+void BPY_spacetext_do_pywin_draw(SpaceText *st);
 static void spacetext_do_pywin_buttons(SpaceText *st, unsigned short event);
-void EXPP_spacetext_do_pywin_event(SpaceText *st, unsigned short event, short val);
-int EXPP_spacetext_is_pywin(SpaceText *st);
+void BPY_spacetext_do_pywin_event(SpaceText *st, unsigned short event, short val);
+int BPY_spacetext_is_pywin(SpaceText *st);
 
 static char Method_Exit_doc[] = 
 "() - Exit the windowing interface";
@@ -160,10 +160,8 @@ exactly once for everytime this function is called.";
 static PyObject *Method_Draw (PyObject *self,  PyObject *args);
 
 static char Method_Create_doc[] =
-"(value) - Create a default Button object\n\
-\n\
-(value) - The value to store in the button\n\
-\n\
+"(value) - Create a default Button object\n\n\
+(value) - The value to store in the button\n\n\
 Valid values are ints, floats, and strings";
 
 static PyObject *Method_Create (PyObject *self,  PyObject *args);

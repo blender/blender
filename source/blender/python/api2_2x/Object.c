@@ -183,7 +183,7 @@ PyObject *M_Object_New(PyObject *self, PyObject *args)
 PyObject *M_Object_Get(PyObject *self, PyObject *args)
 {
     struct Object   * object;
-    char            * name;
+    char            * name = NULL;
 
     printf ("In Object_Get()\n");
 

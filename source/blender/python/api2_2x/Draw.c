@@ -114,20 +114,26 @@ static void exit_pydraw(SpaceText *st)
 
 static void exec_callback(SpaceText *st, PyObject *callback, PyObject *args) 
 {
-	PyObject *result= PyEval_CallObject(callback, args);
-	
+	PyObject *result = PyObject_CallObject (callback, args);
+	printf ("In exec_callback\n");
 	if (result==NULL) {
+		printf("In exec_callback, result == NULL\n");
 		st->text->compiled= NULL;
 		PyErr_Print();
 		exit_pydraw(st);
 	}
+	printf ("In exec_callback 2\n");
 	Py_XDECREF(result);
 	Py_DECREF(args);
 }
 
-/*@ the handler for drawing routines (see Register method) */
+/* BPY_spacetext_do_pywin_draw, the static spacetext_do_pywin_buttons and
+ * BPY_spacetext_do_pywin_event are the three functions responsible for
+ * calling the draw, buttons and event callbacks registered with Draw.Register
+ * (see Method_Register below).  They are called (only the two BPY_ ones)
+ * from blender/src/drawtext.c */
 
-void EXPP_spacetext_do_pywin_draw(SpaceText *st) 
+void BPY_spacetext_do_pywin_draw(SpaceText *st) 
 {
 	uiBlock *block;
 	char butblock[20];
@@ -150,8 +156,6 @@ void EXPP_spacetext_do_pywin_draw(SpaceText *st)
 	curarea->win_swap= WIN_BACK_OK;
 }
 
-/*@ the handler for button event routines (see Register method) */
-
 static void spacetext_do_pywin_buttons(SpaceText *st, unsigned short event)
 {
 	if (st->py_button) {
@@ -159,9 +163,7 @@ static void spacetext_do_pywin_buttons(SpaceText *st, unsigned short event)
 	}
 }
 
-/*@ calls the generic event handling methods registered with Register */
-
-void EXPP_spacetext_do_pywin_event(SpaceText *st, unsigned short event, short val)
+void BPY_spacetext_do_pywin_event(SpaceText *st, unsigned short event, short val)
 {
 	if (event==QKEY && G.qual & (LR_ALTKEY|LR_CTRLKEY|LR_SHIFTKEY)) {
 		exit_pydraw(st);
@@ -171,23 +173,22 @@ void EXPP_spacetext_do_pywin_event(SpaceText *st, unsigned short event, short va
 	if (val) {
 		if (uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
 
-		if (event==UI_BUT_EVENT) {
+		if (event==UI_BUT_EVENT)
 			spacetext_do_pywin_buttons(st, val);
-		}
 	}
 		
-	if (st->py_event) {
+	if (st->py_event)
 		exec_callback(st, st->py_event, Py_BuildValue("(ii)", event, val));
-	}
 }
 
-int EXPP_spacetext_is_pywin(SpaceText *st)
+int BPY_spacetext_is_pywin(SpaceText *st)
 {
 	return (st->py_draw || st->py_event || st->py_button);
 }
 
-#define EXPP_TRY(x) if((!(x))) \
-  return EXPP_ReturnPyObjError(PyExc_AttributeError, "in module Blender.Draw")
+/* the define CLEAR_NAMESPACE is currently ignored.  It should be
+ * substituted by a better method, that was also the intention of the
+ * programmer(s) who put it there. */
 
 static PyObject *Method_Exit (PyObject *self, PyObject *args)
 {	
@@ -195,8 +196,10 @@ static PyObject *Method_Exit (PyObject *self, PyObject *args)
 #ifdef CLEAR_NAMESPACE	
 	PyObject *d;
 #endif
-	EXPP_TRY(PyArg_ParseTuple(args, ""));
-	
+	if (!PyArg_ParseTuple(args, ""))
+					return EXPP_ReturnPyObjError (PyExc_AttributeError,
+									"expected empty argument list");
+
 	exit_pydraw(st);
 #ifdef CLEAR_NAMESPACE	
 	d = st->py_globaldict; /* The current window's global namespace dictionary */
@@ -206,7 +209,7 @@ static PyObject *Method_Exit (PyObject *self, PyObject *args)
 	}	
 #endif
 
-	return EXPP_incr_ret(Py_None);
+	return EXPP_incr_ret (Py_None);
 }
 
 static PyObject *Method_Register (PyObject *self, PyObject *args)
@@ -214,8 +217,10 @@ static PyObject *Method_Register (PyObject *self, PyObject *args)
 	PyObject *newdrawc= NULL, *neweventc= NULL, *newbuttonc= NULL;
 	SpaceText *st= curarea->spacedata.first;
 	
-	EXPP_TRY(PyArg_ParseTuple(args, "O|OO", &newdrawc,
-													&neweventc, &newbuttonc));
+	if (!PyArg_ParseTuple(args, "O|OO", &newdrawc,
+													&neweventc, &newbuttonc))
+			return EXPP_ReturnPyObjError (PyExc_TypeError,
+						"expected one or three PyObjects");
 
 	/*@This is a hack again:
 	 * Every python script should actually do a global variable cleanup at 
@@ -235,33 +240,35 @@ static PyObject *Method_Register (PyObject *self, PyObject *args)
 	st->flags &= ~ST_CLEAR_NAMESPACE;
 
 
-	if (!PyCallable_Check(newdrawc)) newdrawc= NULL;
-	if (!PyCallable_Check(neweventc)) neweventc= NULL;
-	if (!PyCallable_Check(newbuttonc)) newbuttonc= NULL;
+	if (!PyCallable_Check(newdrawc))   newdrawc   = NULL;
+	if (!PyCallable_Check(neweventc))  neweventc  = NULL;
+	if (!PyCallable_Check(newbuttonc)) newbuttonc = NULL;
 
 	if (!(newdrawc || neweventc || newbuttonc))
 		return EXPP_incr_ret(Py_None);
-		
+
 	exit_pydraw(st);
 
 	Py_XINCREF(newdrawc);
 	Py_XINCREF(neweventc);
 	Py_XINCREF(newbuttonc);
-	
+
 	st->py_draw= newdrawc;
 	st->py_event= neweventc;
 	st->py_button= newbuttonc;
 
 	scrarea_queue_redraw(st->area);
 
-	return EXPP_incr_ret(Py_None);
+	return EXPP_incr_ret (Py_None);
 }
 
 static PyObject *Method_Redraw (PyObject *self,  PyObject *args)
 {
 	int after= 0;
 	
-	EXPP_TRY(PyArg_ParseTuple(args, "|i", &after));
+	if (!PyArg_ParseTuple(args, "|i", &after))
+			return EXPP_ReturnPyObjError (PyExc_TypeError,
+							"expected int argument (or nothing)");
 
 	if (after) addafterqueue(curarea->win, REDRAW, 1);
 	else scrarea_queue_winredraw(curarea);
@@ -273,17 +280,20 @@ static PyObject *Method_Draw (PyObject *self,  PyObject *args)
 {
 	/*@ If forced drawing is disable queue a redraw event instead */
 	if (EXPP_disable_force_draw) {
+		printf ("\nEXPP_disable_force_draw\n");
 		scrarea_queue_winredraw(curarea);
-		return EXPP_incr_ret(Py_None);
+		return EXPP_incr_ret (Py_None);
 	}
-	
-	EXPP_TRY(PyArg_ParseTuple(args, ""));
+
+	if (!PyArg_ParseTuple(args, ""))
+					return EXPP_ReturnPyObjError (PyExc_AttributeError,
+										"expected empty argument list");
 
 	scrarea_do_windraw(curarea);
 
 	screen_swapbuffers();
-	
-	return EXPP_incr_ret(Py_None);
+
+	return EXPP_incr_ret (Py_None);
 }
 
 static PyObject *Method_Create (PyObject *self,  PyObject *args)
@@ -291,7 +301,9 @@ static PyObject *Method_Create (PyObject *self,  PyObject *args)
 	Button *but;
 	PyObject *in;
 
-	EXPP_TRY(PyArg_ParseTuple(args, "O", &in));
+	if (!PyArg_ParseTuple(args, "O", &in))
+					return EXPP_ReturnPyObjError (PyExc_TypeError,
+									"expected PyObject argument");
 	
 	but= newbutton();
 	if(PyFloat_Check(in)) {
@@ -329,8 +341,10 @@ static PyObject *Method_Button (PyObject *self,  PyObject *args)
 	int event;
 	int x, y, w, h;
 	
-	EXPP_TRY(PyArg_ParseTuple(args, "siiiii|s", &name, &event,
-													&x, &y, &w, &h, &tip));
+	if (!PyArg_ParseTuple(args, "siiiii|s", &name, &event,
+													&x, &y, &w, &h, &tip))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected a string, five ints and optionally another string as arguments");
 	
 	block= Get_uiBlock();
 
@@ -348,9 +362,11 @@ static PyObject *Method_Menu (PyObject *self,  PyObject *args)
 	int x, y, w, h;
 	Button *but;
 	
-	EXPP_TRY(PyArg_ParseTuple(args, "siiiiii|s", &name, &event,
-													&x, &y, &w, &h, &def, &tip));
-	
+	if (!PyArg_ParseTuple(args, "siiiiii|s", &name, &event,
+													&x, &y, &w, &h, &def, &tip))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected a string, six ints and optionally another string as arguments");
+
 	but= newbutton();
 	but->type= 1;
 	but->val.asint= def;
@@ -370,9 +386,11 @@ static PyObject *Method_Toggle (PyObject *self,  PyObject *args)
 	int x, y, w, h, def;
 	Button *but;
 	
-	EXPP_TRY(PyArg_ParseTuple(args, "siiiiii|s", &name, &event,
-													&x, &y, &w, &h, &def, &tip));
-	
+	if (!PyArg_ParseTuple(args, "siiiiii|s", &name, &event,
+													&x, &y, &w, &h, &def, &tip))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected a string, six ints and optionally another string as arguments");
+
 	but= newbutton();
 	but->type= 1;
 	but->val.asint= def;
@@ -425,10 +443,12 @@ static PyObject *Method_Slider (PyObject *self,  PyObject *args)
 	Button *but;
 	PyObject *mino, *maxo, *inio;
 	
-	EXPP_TRY(PyArg_ParseTuple(args, "siiiiiOOO|is", &name, &event,
-													&x, &y, &w, &h, &inio, &mino, &maxo, &realtime, &tip));
+	if (!PyArg_ParseTuple(args, "siiiiiOOO|is", &name, &event,
+													&x, &y, &w, &h, &inio, &mino, &maxo, &realtime, &tip))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected a string, five ints, three PyObjects\n\
+			and optionally another int and string as arguments");
 
-	
 	but= newbutton();
 	if (PyFloat_Check(inio)) {
 		float ini, min, max;
@@ -479,8 +499,12 @@ static PyObject *Method_Scrollbar (PyObject *self,  PyObject *args)
 	PyObject *mino, *maxo, *inio;
 	float ini, min, max;
 
-	EXPP_TRY(PyArg_ParseTuple(args, "iiiiiOOO|is", &event, &x, &y, &w, &h, &inio, &mino, &maxo, &realtime, &tip));
-	
+	if (!PyArg_ParseTuple(args, "iiiiiOOO|is", &event, &x, &y, &w, &h,
+													&inio, &mino, &maxo, &realtime, &tip))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected five ints, three PyObjects and optionally\n\
+			another int and string as arguments");
+
 	if (!PyNumber_Check(inio) || !PyNumber_Check(inio) || !PyNumber_Check(inio))
 		return EXPP_ReturnPyObjError (PyExc_AttributeError,
 										"expected numbers for initial, min, and max");
@@ -526,9 +550,12 @@ static PyObject *Method_Number (PyObject *self,  PyObject *args)
 	Button *but;
 	PyObject *mino, *maxo, *inio;
 	
-	EXPP_TRY(PyArg_ParseTuple(args, "siiiiiOOO|s", &name, &event,
-													&x, &y, &w, &h, &inio, &mino, &maxo, &tip));
-	
+	if (!PyArg_ParseTuple(args, "siiiiiOOO|s", &name, &event,
+													&x, &y, &w, &h, &inio, &mino, &maxo, &tip))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected a string, five ints, three PyObjects and\n\
+			optionally another string as arguments");
+
 	but= newbutton();
 	
 	if (PyFloat_Check(inio)) {
@@ -570,8 +597,11 @@ static PyObject *Method_String (PyObject *self,  PyObject *args)
 	int x, y, w, h, len;
 	Button *but;
 	
-	EXPP_TRY(PyArg_ParseTuple(args, "siiiiisi|s", &name, &event,
-													&x, &y, &w, &h, &newstr, &len, &tip));
+	if (!PyArg_ParseTuple(args, "siiiiisi|s", &name, &event,
+													&x, &y, &w, &h, &newstr, &len, &tip))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected a string, five ints, a string, an int and\n\
+			optionally another string as arguments");
 
 	but= newbutton();
 	but->type= 3;
@@ -592,8 +622,10 @@ static PyObject *Method_Text (PyObject *self, PyObject *args)
 {
 	char *text;
 	
-	EXPP_TRY(PyArg_ParseTuple(args, "s", &text));
-	
+	if (!PyArg_ParseTuple(args, "s", &text))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+					"expected string argument");
+
 	BMF_DrawString(G.font, text);
 	
 	return EXPP_incr_ret(Py_None);

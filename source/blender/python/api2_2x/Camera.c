@@ -87,40 +87,69 @@ static PyObject *M_Camera_New(PyObject *self, PyObject *args, PyObject *keywords
 /*****************************************************************************/
 /* Function:              M_Camera_Get                                       */
 /* Python equivalent:     Blender.Camera.Get                                 */
+/* Description:           Receives a string and returns the camera data obj  */
+/*                        whose name matches the string.  If no argument is  */
+/*                        passed in, a list of all camera data names in the  */
+/*                        current scene is returned.                         */
 /*****************************************************************************/
 static PyObject *M_Camera_Get(PyObject *self, PyObject *args)
 {
-  char     *name;
-  Camera   *cam_iter;
-  C_Camera *wanted_cam;
+  char   *name = NULL;
+  Camera *cam_iter;
 
-  printf ("In Camera_Get()\n");
-  if (!PyArg_ParseTuple(args, "s", &name))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-            "expected string argument"));
+	if (!PyArg_ParseTuple(args, "|s", &name))
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
+            "expected string argument (or nothing)"));
 
-  /* Use the name to search for the camera requested */
-  wanted_cam = NULL;
   cam_iter = G.main->camera.first;
 
-  while ((cam_iter) && (wanted_cam == NULL)) {
+	if (name) { /* (name) - Search camera by name */
 
-    if (strcmp (name, cam_iter->id.name+2) == 0) {
-      wanted_cam = (C_Camera *)PyObject_NEW(C_Camera, &Camera_Type);
-      if (wanted_cam) wanted_cam->camera = cam_iter;
+    C_Camera *wanted_cam = NULL;
+
+    while ((cam_iter) && (wanted_cam == NULL)) {
+      if (strcmp (name, cam_iter->id.name+2) == 0) {
+        wanted_cam = (C_Camera *)PyObject_NEW(C_Camera, &Camera_Type);
+				if (wanted_cam) wanted_cam->camera = cam_iter;
+      }
+      cam_iter = cam_iter->id.next;
     }
 
-    cam_iter = cam_iter->id.next;
-  }
+    if (wanted_cam == NULL) { /* Requested camera doesn't exist */
+      char error_msg[64];
+      PyOS_snprintf(error_msg, sizeof(error_msg),
+                      "Camera \"%s\" not found", name);
+      return (EXPP_ReturnPyObjError (PyExc_NameError, error_msg));
+    }
 
-  if (wanted_cam == NULL) { /* Requested camera doesn't exist */
-    char error_msg[64];
-    PyOS_snprintf(error_msg, sizeof(error_msg),
-                    "Camera \"%s\" not found", name);
-    return (EXPP_ReturnPyObjError (PyExc_NameError, error_msg));
-  }
+    return (PyObject *)wanted_cam;
+	}
 
-  return (PyObject*)wanted_cam;
+	else { /* () - return a list of all cameras in the scene */
+    int index = 0;
+    PyObject *camlist, *pystr;
+
+    camlist = PyList_New (BLI_countlist (&(G.main->camera)));
+
+    if (camlist == NULL)
+      return (PythonReturnErrorObject (PyExc_MemoryError,
+              "couldn't create PyList"));
+
+		while (cam_iter) {
+      pystr = PyString_FromString (cam_iter->id.name+2);
+
+			if (!pystr)
+				return (PythonReturnErrorObject (PyExc_MemoryError,
+									"couldn't create PyString"));
+
+			PyList_SET_ITEM (camlist, index, pystr);
+
+      cam_iter = cam_iter->id.next;
+      index++;
+		}
+
+		return (camlist);
+	}
 }
 
 /*****************************************************************************/
@@ -216,7 +245,7 @@ static PyObject *Camera_rename(C_Camera *self, PyObject *args)
   char buf[21];
 
   if (!PyArg_ParseTuple(args, "s", &name))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
                                      "expected string argument"));
 
   PyOS_snprintf(buf, sizeof(buf), "%s", name);
@@ -232,7 +261,7 @@ static PyObject *Camera_setType(C_Camera *self, PyObject *args)
   char *type;
 
   if (!PyArg_ParseTuple(args, "s", &type))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
                                      "expected string argument"));
 
   if (strcmp (type, "persp") == 0)
@@ -257,13 +286,13 @@ static PyObject *Camera_setIntType(C_Camera *self, PyObject *args)
   short value;
 
   if (!PyArg_ParseTuple(args, "h", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
                                      "expected int argument: 0 or 1"));
 
   if (value == 0 || value == 1)
     self->camera->type = value;
   else
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_ValueError,
                                      "expected int argument: 0 or 1"));
 
   Py_INCREF(Py_None);
@@ -312,13 +341,13 @@ static PyObject *Camera_setIntMode(C_Camera *self, PyObject *args)
   short value;
 
   if (!PyArg_ParseTuple(args, "h", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
                                      "expected int argument in [0,3]"));
 
   if (value >= 0 && value <= 3)
     self->camera->flag = value;
   else
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_ValueError,
                                      "expected int argument in [0,3]"));
 
   Py_INCREF(Py_None);
@@ -330,7 +359,7 @@ static PyObject *Camera_setLens(C_Camera *self, PyObject *args)
   float value;
   
   if (!PyArg_ParseTuple(args, "f", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
                                      "expected float argument"));
   
   self->camera->lens = EXPP_ClampFloat (value,
@@ -345,7 +374,7 @@ static PyObject *Camera_setClipStart(C_Camera *self, PyObject *args)
   float value;
   
   if (!PyArg_ParseTuple(args, "f", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
                                      "expected float argument"));
 
   self->camera->clipsta = EXPP_ClampFloat (value,
@@ -360,7 +389,7 @@ static PyObject *Camera_setClipEnd(C_Camera *self, PyObject *args)
   float value;
   
   if (!PyArg_ParseTuple(args, "f", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
                                      "expected float argument"));
 
   self->camera->clipend = EXPP_ClampFloat (value,
@@ -375,7 +404,7 @@ static PyObject *Camera_setDrawSize(C_Camera *self, PyObject *args)
   float value;
   
   if (!PyArg_ParseTuple(args, "f", &value))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,
                                      "expected a float number as argument"));
 
   self->camera->drawsize = EXPP_ClampFloat (value,

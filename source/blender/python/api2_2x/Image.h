@@ -39,6 +39,7 @@
 #include <BKE_global.h>
 #include <BKE_library.h>
 #include <BKE_image.h>
+#include <BLI_blenlib.h>
 #include <DNA_image_types.h>
 
 #include "gen_utils.h"

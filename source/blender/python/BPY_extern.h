@@ -25,10 +25,14 @@
  *
  * The Original Code is: source/blender/bpyton/include/BPY_extern.h
  *
- * Contributor(s): Michel Selten
+ * Contributor(s): Michel Selten, Willian P. Germano
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+
+/* Global to control whether the global dictionary should be preserved or not
+ * each time a script is executed by the Python Interpreter: */
+extern short EXPP_releaseGlobalDict; /* defaults to TRUE */
 
 struct Text;       /* defined in DNA_text_types.h        */
 struct ID;         /* defined in DNA_ID.h                */
@@ -57,7 +61,9 @@ void BPY_copy_scriptlink(struct ScriptLink *scriptlink);
 /* format importer hook */
 int BPY_call_importloader(char *name);
 
+/* XXX The 3 functions below are implemented in Draw.c */
+/*
 int BPY_spacetext_is_pywin(struct SpaceText *st);
 void BPY_spacetext_do_pywin_draw(struct SpaceText *st);
 void BPY_spacetext_do_pywin_event(struct SpaceText *st, unsigned short event, short val);
-
+*/

@@ -41,6 +41,7 @@
 #include <BKE_sca.h>
 #include <BIF_drawtext.h>
 #include <BKE_text.h>
+#include <BLI_blenlib.h>
 #include <DNA_text_types.h>
 
 #include "gen_utils.h"
