@@ -182,8 +182,8 @@ typedef struct RenderData {
 	 */
 	int mode;
 
-	/* yafray: render engine (not exclusive to yafray) */
-	short renderer, rpad[3];
+	/* render engine, octree resolution */
+	short renderer, ocres, rpad[2];
 
 	/**
 	 * What to do with the sky/background. Picks sky/premul/key

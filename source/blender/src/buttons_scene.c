@@ -1043,15 +1043,19 @@ static void render_panel_render(void)
 	uiDefButS(block, NUM,B_DIFF,"Yparts:",		472,42,86,31,&G.scene->r.yparts,1.0, 64.0, 0, 0, "Sets the number of vertical parts to render image in");
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW,800,"Sky",		369,11,38,24,&G.scene->r.alphamode,3.0,0.0, 0, 0, "Fill background with sky");
-	uiDefButS(block, ROW,800,"Premul",	410,11,54,24,&G.scene->r.alphamode,3.0,1.0, 0, 0, "Multiply alpha in advance");
-	uiDefButS(block, ROW,800,"Key",		467,11,44,24,&G.scene->r.alphamode,3.0,2.0, 0, 0, "Alpha and colour values remain unchanged");
+	uiDefButS(block, ROW,800,"Sky",		369,11,30,24,&G.scene->r.alphamode,3.0,0.0, 0, 0, "Fill background with sky");
+	uiDefButS(block, ROW,800,"Premul",	400,11,50,24,&G.scene->r.alphamode,3.0,1.0, 0, 0, "Multiply alpha in advance");
+	uiDefButS(block, ROW,800,"Key",		450,11,40,24,&G.scene->r.alphamode,3.0,2.0, 0, 0, "Alpha and colour values remain unchanged");
+	uiBlockEndAlign(block);
+	
+	if(G.scene->r.mode & R_RAYTRACE)
+		uiDefButS(block, MENU, B_DIFF,"Octree resolution %t|64 %x64|128 %x128|256 %x256|512 %x512",	495,11,66,24,&G.scene->r.ocres,0.0,0.0, 0, 0, "Octree resolution for ray tracing");
 
 	uiBlockBeginAlign(block);
 	uiDefButI(block, TOG|BIT|1,0,"Shadow",	565,171,61,30, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
 	uiDefButI(block, TOG|BIT|4,0,"EnvMap",	626,171,61,30, &G.scene->r.mode, 0, 0, 0, 0, "Enable environment map rendering");
 	uiDefButI(block, TOG|BIT|10,0,"Pano",	565,142,41,28, &G.scene->r.mode, 0, 0, 0, 0, "Enable panorama rendering (output width is multiplied by Xparts)");
-	uiDefButI(block, TOG|BIT|16,0,"Ray",	606,142,35,28, &G.scene->r.mode, 0, 0, 0, 0, "Enable ray tracing");
+	uiDefButI(block, TOG|BIT|16,B_REDR,"Ray",606,142,35,28, &G.scene->r.mode, 0, 0, 0, 0, "Enable ray tracing");
 	uiDefButI(block, TOG|BIT|8,0,"Radio",	641,142,46,28, &G.scene->r.mode, 0, 0, 0, 0, "Enable radiosity rendering");
 	
 	uiBlockBeginAlign(block);

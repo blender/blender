@@ -977,7 +977,7 @@ static void switch_endian_structs(struct SDNA *filesdna, BHead *bhead)
 	}
 }
 
-static void *read_struct(FileData *fd, BHead *bh)
+static void *read_struct(FileData *fd, BHead *bh, char *blockname)
 {
 	void *temp= NULL;
 	
@@ -989,7 +989,7 @@ static void *read_struct(FileData *fd, BHead *bh)
 			if(fd->compflags[bh->SDNAnr]==2) {
 				temp= dna_reconstruct(fd->memsdna, fd->filesdna, fd->compflags, bh->SDNAnr, bh->nr, (bh+1));
 			} else {
-				temp= MEM_mallocN(bh->len, "read_struct");
+				temp= MEM_mallocN(bh->len, blockname);
 				memcpy(temp, (bh+1), bh->len); /*  BHEAD+DATA dependancy */
 			}
 		}
@@ -2698,6 +2698,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	
 	ID *id;
 	ListBase *lb;
+	char *str;
 	
 	if(bhead->code==ID_ID) {
 		ID *linkedid= (ID *)(bhead + 1); /*  BHEAD+DATA dependancy */
@@ -2709,7 +2710,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	}
 	
 	/* read libblock */
-	id = read_struct(fd, bhead);
+	id = read_struct(fd, bhead, "lib block");
 	if (id_r)
 		*id_r= id;
 	if (!id)
@@ -2731,9 +2732,41 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	
 	bhead = blo_nextbhead(fd, bhead);
 	
+	switch( GS(id->name) ) {
+	case ID_OB: str= "ID_OB"; break;
+	case ID_SCE: str= "ID_SCE"; break;
+	case ID_LI: str= "ID_LI"; break;
+	case ID_ME: str= "ID_ME"; break;
+	case ID_CU: str= "ID_CU"; break;
+	case ID_MB: str= "ID_MB"; break;
+	case ID_MA: str= "ID_MA"; break;
+	case ID_TE: str= "ID_TE"; break;
+	case ID_IM: str= "ID_IM"; break;
+	case ID_IK: str= "ID_IK"; break;
+	case ID_WV: str= "ID_WV"; break;
+	case ID_LT: str= "ID_LT"; break;
+	case ID_SE: str= "ID_SE"; break;
+	case ID_LF: str= "ID_LF"; break;
+	case ID_LA: str= "ID_LA"; break;
+	case ID_CA: str= "ID_CA"; break;
+	case ID_IP: str= "ID_IP"; break;
+	case ID_KE: str= "ID_KE"; break;
+	case ID_WO: str= "ID_WO"; break;
+	case ID_SCR: str= "ID_SCR"; break;
+	case ID_VF: str= "ID_VF"; break;
+	case ID_TXT	: str= "ID_TXT"; break;
+	case ID_SO: str= "ID_SO"; break;
+	case ID_SAMPLE: str= "ID_SAMPLE"; break;
+	case ID_GR: str= "ID_GR"; break;
+	case ID_ID: str= "ID_ID"; break;
+	case ID_SEQ: str= "ID_SEQ"; break;
+	case ID_AR: str= "ID_AR"; break;
+	case ID_AC: str= "ID_AC"; break;
+	case ID_SCRIPT: str= "ID_SCRIPT"; break;
+	}
 		/* read all data */
 	while(bhead && bhead->code==DATA) {
-		void *data= read_struct(fd, bhead);
+		void *data= read_struct(fd, bhead, str);
 	
 		if (data) {
 			oldnewmap_insert(fd->datamap, bhead->old, data, 0);
@@ -4118,6 +4151,7 @@ static void do_versions(Main *main)
 		Tex *tex= main->tex.first;
 		World *wrld= main->world.first;
 		bScreen *sc;
+		Scene *sce;
 
 		while(tex) {	
 			/* copied from kernel texture.c */
@@ -4163,6 +4197,12 @@ static void do_versions(Main *main)
 				}
 			}
 		}
+		sce= main->scene.first;
+		while(sce) {
+			if(sce->r.ocres==0) sce->r.ocres= 64;
+			sce= sce->id.next;
+		}
+		
 	}	
 	
 	
@@ -4202,14 +4242,14 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 {
 	Link *link;
 	
-	bfd->user= read_struct(fd, bhead);
+	bfd->user= read_struct(fd, bhead, "user def");
 	bfd->user->themes.first= bfd->user->themes.last= NULL;
 	
 	bhead = blo_nextbhead(fd, bhead);
 	
 		/* read all attached data */
 	while(bhead && bhead->code==DATA) {
-		link= read_struct(fd, bhead);
+		link= read_struct(fd, bhead, "user def data");
 		BLI_addtail(&bfd->user->themes, link);
 		bhead = blo_nextbhead(fd, bhead);
 	}
@@ -4237,7 +4277,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 		case TEST:
 		case REND:
 			if (bhead->code==GLOB) {
-				fg= read_struct(fd, bhead);
+				fg= read_struct(fd, bhead, "REND");
 			}
 			bhead = blo_nextbhead(fd, bhead);
 			break;

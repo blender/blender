@@ -51,8 +51,6 @@
 #include "jitter.h"
 #include "texture.h"
 
-#define OCRES	64
-
 #define DDA_SHADOW 0
 #define DDA_MIRROR 1
 #define DDA_SHADOW_TRA 2
@@ -64,10 +62,11 @@
 
 typedef struct Octree {
 	struct Branch *adrbranch[256];
-	struct Node *adrnode[256];
+	struct Node *adrnode[4096];
 	float ocsize;	/* ocsize: mult factor,  max size octree */
 	float ocfacx,ocfacy,ocfacz;
 	float min[3], max[3];
+	int ocres;
 	/* for optimize, last intersected face */
 	VlakRen *vlr_last;
 
@@ -194,25 +193,25 @@ static Branch *addbranch(Branch *br, short oc)
 	if(br->b[oc]) return br->b[oc];
 	
 	branchcount++;
-	if(g_oc.adrbranch[branchcount>>8]==0)
-		g_oc.adrbranch[branchcount>>8]= MEM_callocN(256*sizeof(Branch),"addbranch");
+	if(g_oc.adrbranch[branchcount>>12]==NULL)
+		g_oc.adrbranch[branchcount>>12]= MEM_callocN(4096*sizeof(Branch),"addbranch");
 
-	if(branchcount>= 256*256) {
+	if(branchcount>= 256*4096) {
 		printf("error; octree branches full\n");
 		branchcount=0;
 	}
 	
-	return br->b[oc]=g_oc.adrbranch[branchcount>>8]+(branchcount & 255);
+	return br->b[oc]=g_oc.adrbranch[branchcount>>12]+(branchcount & 4095);
 }
 
 static Node *addnode(void)
 {
 	
 	nodecount++;
-	if(g_oc.adrnode[nodecount>>12]==0)
+	if(g_oc.adrnode[nodecount>>12]==NULL)
 		g_oc.adrnode[nodecount>>12]= MEM_callocN(4096*sizeof(Node),"addnode");
 
-	if(nodecount> 256*4096) {
+	if(nodecount> 4096*4096) {
 		printf("error; octree nodes full\n");
 		nodecount=0;
 	}
@@ -270,6 +269,22 @@ static void ocwrite(VlakRen *vlr, short x, short y, short z, float rtf[][3])
 
 	x<<=2;
 	y<<=1;
+
+	br= g_oc.adrbranch[0];
+
+	if(g_oc.ocres==512) {
+		oc0= ((x & 1024)+(y & 512)+(z & 256))>>8;
+		br= addbranch(br, oc0);
+	}
+	if(g_oc.ocres>=256) {
+		oc0= ((x & 512)+(y & 256)+(z & 128))>>7;
+		br= addbranch(br, oc0);
+	}
+	if(g_oc.ocres>=128) {
+		oc0= ((x & 256)+(y & 128)+(z & 64))>>6;
+		br= addbranch(br, oc0);
+	}
+
 	oc0= ((x & 128)+(y & 64)+(z & 32))>>5;
 	oc1= ((x & 64)+(y & 32)+(z & 16))>>4;
 	oc2= ((x & 32)+(y & 16)+(z & 8))>>3;
@@ -277,7 +292,7 @@ static void ocwrite(VlakRen *vlr, short x, short y, short z, float rtf[][3])
 	oc4= ((x & 8)+(y & 4)+(z & 2))>>1;
 	oc5= ((x & 4)+(y & 2)+(z & 1));
 
-	br= addbranch(g_oc.adrbranch[0],oc0);
+	br= addbranch(br,oc0);
 	br= addbranch(br,oc1);
 	br= addbranch(br,oc2);
 	br= addbranch(br,oc3);
@@ -304,8 +319,8 @@ static void ocwrite(VlakRen *vlr, short x, short y, short z, float rtf[][3])
 
 static void d2dda(short b1, short b2, short c1, short c2, char *ocvlak, short rts[][3], float rtf[][3])
 {
-	short ocx1,ocx2,ocy1,ocy2;
-	short x,y,dx=0,dy=0;
+	int ocx1,ocx2,ocy1,ocy2;
+	int x,y,dx=0,dy=0;
 	float ox1,ox2,oy1,oy2;
 	float labda,labdao,labdax,labday,ldx,ldy;
 
@@ -315,7 +330,7 @@ static void d2dda(short b1, short b2, short c1, short c2, char *ocvlak, short rt
 	ocy2= rts[b2][c2];
 
 	if(ocx1==ocx2 && ocy1==ocy2) {
-		ocvlak[OCRES*ocx1+ocy1]= 1;
+		ocvlak[g_oc.ocres*ocx1+ocy1]= 1;
 		return;
 	}
 
@@ -359,8 +374,8 @@ static void d2dda(short b1, short b2, short c1, short c2, char *ocvlak, short rt
 	
 	while(TRUE) {
 		
-		if(x<0 || y<0 || x>=OCRES || y>=OCRES);
-		else ocvlak[OCRES*x+y]= 1;
+		if(x<0 || y<0 || x>=g_oc.ocres || y>=g_oc.ocres);
+		else ocvlak[g_oc.ocres*x+y]= 1;
 		
 		labdao=labda;
 		if(labdax==labday) {
@@ -381,17 +396,18 @@ static void d2dda(short b1, short b2, short c1, short c2, char *ocvlak, short rt
 		if(labda==labdao) break;
 		if(labda>=1.0) break;
 	}
-	ocvlak[OCRES*ocx2+ocy2]=1;
+	ocvlak[g_oc.ocres*ocx2+ocy2]=1;
 }
 
 static void filltriangle(short c1, short c2, char *ocvlak, short *ocmin)
 {
-	short a,x,y,y1,y2,*ocmax;
+	short *ocmax;
+	int a, x, y, y1, y2;
 
 	ocmax=ocmin+3;
 
 	for(x=ocmin[c1];x<=ocmax[c1];x++) {
-		a= OCRES*x;
+		a= g_oc.ocres*x;
 		for(y=ocmin[c2];y<=ocmax[c2];y++) {
 			if(ocvlak[a+y]) {
 				y++;
@@ -442,8 +458,9 @@ void makeoctree()
 	float ocfac[3], t00, t01, t02;
 	float rtf[4][3];
 	int v;
-	short a,b,c, rts[4][3], oc1, oc2, oc3, oc4, ocmin[6], *ocmax, x, y, z;
-	char ocvlak[3*OCRES*OCRES + 8];	// front, top, size view of face, to fill in
+	int a, b, c, oc1, oc2, oc3, oc4, x, y, z, ocres2;
+	short rts[4][3], ocmin[6], *ocmax;
+	char *ocvlak;	// front, top, size view of face, to fill in
 
 	ocmax= ocmin+3;
 
@@ -457,6 +474,9 @@ void makeoctree()
 	rejected= 0;
 	coherent_ray= 0;
 	
+	/* fill main octree struct */
+	g_oc.ocres= R.r.ocres;
+	ocres2= g_oc.ocres*g_oc.ocres;
 	g_oc.vlr_last= NULL;
 	INIT_MINMAX(g_oc.min, g_oc.max);
 	
@@ -477,21 +497,22 @@ void makeoctree()
 
 	if(g_oc.min[0] > g_oc.max[0]) return;	/* empty octree */
 
-	g_oc.adrbranch[0]=(Branch *)MEM_callocN(256*sizeof(Branch),"makeoctree");
-
+	g_oc.adrbranch[0]=(Branch *)MEM_callocN(4096*sizeof(Branch), "makeoctree");
+	ocvlak= MEM_callocN( 3*ocres2 + 8, "ocvlak");
+	
 	for(c=0;c<3;c++) {	/* octree enlarge, still needed? */
 		g_oc.min[c]-= 0.01;
 		g_oc.max[c]+= 0.01;
 	}
-	
+
 	t00= g_oc.max[0]-g_oc.min[0];
 	t01= g_oc.max[1]-g_oc.min[1];
 	t02= g_oc.max[2]-g_oc.min[2];
 	
 	/* this minus 0.1 is old safety... seems to be needed? */
-	g_oc.ocfacx=ocfac[0]= (OCRES-0.1)/t00;
-	g_oc.ocfacy=ocfac[1]= (OCRES-0.1)/t01;
-	g_oc.ocfacz=ocfac[2]= (OCRES-0.1)/t02;
+	g_oc.ocfacx=ocfac[0]= (g_oc.ocres-0.1)/t00;
+	g_oc.ocfacy=ocfac[1]= (g_oc.ocres-0.1)/t01;
+	g_oc.ocfacz=ocfac[2]= (g_oc.ocres-0.1)/t02;
 	
 	g_oc.ocsize= sqrt(t00*t00+t01*t01+t02*t02);	/* global, max size octree */
 
@@ -534,50 +555,52 @@ void makeoctree()
 					ocmin[c]= MIN4(oc1,oc2,oc3,oc4);
 					ocmax[c]= MAX4(oc1,oc2,oc3,oc4);
 				}
-				if(ocmax[c]>OCRES-1) ocmax[c]=OCRES-1;
+				if(ocmax[c]>g_oc.ocres-1) ocmax[c]=g_oc.ocres-1;
 				if(ocmin[c]<0) ocmin[c]=0;
 			}
 
-			d2dda(0,1,0,1,ocvlak+OCRES*OCRES,rts,rtf);
+			d2dda(0,1,0,1,ocvlak+ocres2,rts,rtf);
 			d2dda(0,1,0,2,ocvlak,rts,rtf);
-			d2dda(0,1,1,2,ocvlak+2*OCRES*OCRES,rts,rtf);
-			d2dda(1,2,0,1,ocvlak+OCRES*OCRES,rts,rtf);
+			d2dda(0,1,1,2,ocvlak+2*ocres2,rts,rtf);
+			d2dda(1,2,0,1,ocvlak+ocres2,rts,rtf);
 			d2dda(1,2,0,2,ocvlak,rts,rtf);
-			d2dda(1,2,1,2,ocvlak+2*OCRES*OCRES,rts,rtf);
+			d2dda(1,2,1,2,ocvlak+2*ocres2,rts,rtf);
 			if(v4==NULL) {
-				d2dda(2,0,0,1,ocvlak+OCRES*OCRES,rts,rtf);
+				d2dda(2,0,0,1,ocvlak+ocres2,rts,rtf);
 				d2dda(2,0,0,2,ocvlak,rts,rtf);
-				d2dda(2,0,1,2,ocvlak+2*OCRES*OCRES,rts,rtf);
+				d2dda(2,0,1,2,ocvlak+2*ocres2,rts,rtf);
 			}
 			else {
-				d2dda(2,3,0,1,ocvlak+OCRES*OCRES,rts,rtf);
+				d2dda(2,3,0,1,ocvlak+ocres2,rts,rtf);
 				d2dda(2,3,0,2,ocvlak,rts,rtf);
-				d2dda(2,3,1,2,ocvlak+2*OCRES*OCRES,rts,rtf);
-				d2dda(3,0,0,1,ocvlak+OCRES*OCRES,rts,rtf);
+				d2dda(2,3,1,2,ocvlak+2*ocres2,rts,rtf);
+				d2dda(3,0,0,1,ocvlak+ocres2,rts,rtf);
 				d2dda(3,0,0,2,ocvlak,rts,rtf);
-				d2dda(3,0,1,2,ocvlak+2*OCRES*OCRES,rts,rtf);
+				d2dda(3,0,1,2,ocvlak+2*ocres2,rts,rtf);
 			}
 			/* nothing todo with triangle..., just fills :) */
-			filltriangle(0,1,ocvlak+OCRES*OCRES,ocmin);
+			filltriangle(0,1,ocvlak+ocres2,ocmin);
 			filltriangle(0,2,ocvlak,ocmin);
-			filltriangle(1,2,ocvlak+2*OCRES*OCRES,ocmin);
+			filltriangle(1,2,ocvlak+2*ocres2,ocmin);
 			
 			/* init static vars here */
 			face_in_node(vlr, 0,0,0, rtf);
 			
 			for(x=ocmin[0];x<=ocmax[0];x++) {
-				a= OCRES*x;
+				a= g_oc.ocres*x;
 				for(y=ocmin[1];y<=ocmax[1];y++) {
-					b= OCRES*y;
-					if(ocvlak[a+y+OCRES*OCRES]) {
+					b= g_oc.ocres*y;
+					if(ocvlak[a+y+ocres2]) {
 						for(z=ocmin[2];z<=ocmax[2];z++) {
-							if(ocvlak[b+z+2*OCRES*OCRES] && ocvlak[a+z]) ocwrite(vlr, x,y,z, rtf);
+							if(ocvlak[b+z+2*ocres2] && ocvlak[a+z]) ocwrite(vlr, x,y,z, rtf);
 						}
 					}
 				}
 			}
 		}
 	}
+	
+	MEM_freeN(ocvlak);
 }
 
 /* ************ raytracer **************** */
@@ -892,13 +915,13 @@ static int testnode(Isect *is, Node *no, int x, int y, int z)
 /* find the Node for the octree coord x y z */
 static Node *ocread(int x, int y, int z)
 {
-	static int mdiff=0, xo=OCRES, yo=OCRES, zo=OCRES;
+	static int mdiff=0, xo, yo, zo;
 	Branch *br;
 	int oc1, diff;
 
 	/* outside of octree check, reset */
-	if( (x & ~(OCRES-1)) ||  (y & ~(OCRES-1)) ||  (z & ~(OCRES-1)) ) {
-		xo=OCRES; yo=OCRES; zo=OCRES;
+	if( x >= g_oc.ocres) {
+		xo= g_oc.ocres; yo= g_oc.ocres; zo= g_oc.ocres;
 		return NULL;
 	}
 	
@@ -910,8 +933,35 @@ static Node *ocread(int x, int y, int z)
 		x<<=2;
 		y<<=1;
 		
+		br= g_oc.adrbranch[0];
+		
+		if(g_oc.ocres==512) {
+			oc1= ((x & 1024)+(y & 512)+(z & 256))>>8;
+			br= br->b[oc1];
+			if(br==NULL) {
+				mdiff= 255;
+				return NULL;
+			}
+		}
+		if(g_oc.ocres>=256) {
+			oc1= ((x & 512)+(y & 256)+(z & 128))>>7;
+			br= br->b[oc1];
+			if(br==NULL) {
+				mdiff= 127;
+				return NULL;
+			}
+		}
+		if(g_oc.ocres>=128) {
+			oc1= ((x & 256)+(y & 128)+(z & 64))>>6;
+			br= br->b[oc1];
+			if(br==NULL) {
+				mdiff= 63;
+				return NULL;
+			}
+		}
+		
 		oc1= ((x & 128)+(y & 64)+(z & 32))>>5;
-		br= g_oc.adrbranch[0]->b[oc1];
+		br= br->b[oc1];
 		if(br) {
 
 			oc1= ((x & 64)+(y & 32)+(z & 16))>>4;
@@ -1036,7 +1086,7 @@ static int d3dda(Isect *is)
 	if(c1==0) return 0;
 
 	/* reset static variables in ocread */
-	ocread(OCRES, OCRES, OCRES);
+	ocread(g_oc.ocres, 0, 0);
 
 	/* setup 3dda to traverse octree */
 	ox1= (is->start[0]-g_oc.min[0])*g_oc.ocfacx;
