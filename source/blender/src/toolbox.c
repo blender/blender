@@ -1235,6 +1235,8 @@ int movetolayer_buts(unsigned int *lay)
 	dx= (sizex-5)/12;
 	dy= sizey/2;
 	
+	/* buttons have 0 as return event, to prevent menu to close on hotkeys */
+	
 	uiBlockBeginAlign(block);
 	for(a=0; a<5; a++) 
 		uiDefButI(block, TOGR|BIT|a, 0, "",(short)(x1+a*dx),(short)(y1+dy),(short)dx,(short)dy, lay, 0, 0, 0, 0, "");

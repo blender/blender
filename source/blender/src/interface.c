@@ -3112,7 +3112,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	case LEFTARROWKEY:	// later on implement opening/closing sublevels of pupmenus
 	case RIGHTARROWKEY:
 		break;
-
+	
 	case PAD8: case PAD2:
 	case UPARROWKEY:
 	case DOWNARROWKEY:
@@ -3261,7 +3261,10 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	default:
 
 		for(but= block->buttons.first; but; but= but->next) {
-		
+			
+			// active flag clear, it can have been set with number keys or arrows, prevents next loop from wrong selection on click
+			if(uevent->event==LEFTMOUSE) but->flag &= ~UI_ACTIVE;
+			
 			but->flag &= ~UI_MOUSE_OVER;
 			
 			/* check boundbox */
@@ -3328,7 +3331,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 					/* when mouse outside, don't do button */
 					if(inside || uevent->event!=LEFTMOUSE) {
 						butevent= ui_do_button(block, but, uevent);
-						
+
 						/* add undo pushes if... */
 						if( !(block->flag & UI_BLOCK_LOOP)) {
 							if(!G.obedit) {
