@@ -635,24 +635,24 @@ static void texture_panel_plugin(Tex *tex)
 	if(tex->plugin && tex->plugin->doit) {
 		
 		pit= tex->plugin;
-
+		
 		for(a=0; a<pit->stypes; a++) {
-			uiDefButS(block, ROW, B_MATPRV, pit->stnames+16*a, (350+75*a), 170, 75, 18, &tex->stype, 2.0, (float)a, 0, 0, "");
+			uiDefButS(block, ROW, B_MATPRV, pit->stnames+16*a, (76*a), 152, 75, 20, &tex->stype, 2.0, (float)a, 0, 0, "");
 		}
 		
 		varstr= pit->varstr;
 		if(varstr) {
 			for(a=0; a<pit->vars; a++, varstr++) {
-				xco= 350 + 140*(a/6);
-				yco= 110 - 20*(a % 6);
+				xco= 140*(a/6)+1;
+				yco= 125 - 20*(a % 6)+1;
 				pit->data[a] = varstr->def;
 				uiDefBut(block, varstr->type, B_PLUGBUT+a, varstr->name, xco,yco,137,19, &(pit->data[a]), varstr->min, varstr->max, 100, 0, varstr->tip);
 			}
 		}
-		uiDefBut(block, TEX, B_NAMEPLUGIN, "",		350,130,290,24, pit->name, 0.0, 159.0, 0, 0, "");
+		uiDefBut(block, TEX, B_NAMEPLUGIN, "",		0,180,318,24, pit->name, 0.0, 159.0, 0, 0, "");
 	}
 
-	uiDefBut(block, BUT, B_LOADPLUGIN, "Load Plugin", 350,150,137,24, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, BUT, B_LOADPLUGIN, "Load Plugin", 0,204,137,24, 0, 0, 0, 0, 0, "");
 			
 }
 
@@ -1087,18 +1087,18 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_IMAGE],	160, 110, 70, 20, &tex->type, 1.0, (float)TEX_IMAGE, 0, 0, "Use image texture");
 		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_ENVMAP],240, 110, 70, 20, &tex->type, 1.0, (float)TEX_ENVMAP, 0, 0, "Use environment maps");
 
-		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_CLOUDS],160, 70, 70, 20, &tex->type, 1.0, (float)TEX_CLOUDS, 0, 0, "Use clouds texture");
-		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_MARBLE],240, 70, 70, 20, &tex->type, 1.0, (float)TEX_MARBLE, 0, 0, "Use marble texture");
+		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_CLOUDS],160, 90, 70, 20, &tex->type, 1.0, (float)TEX_CLOUDS, 0, 0, "Use clouds texture");
+		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_MARBLE],240, 90, 70, 20, &tex->type, 1.0, (float)TEX_MARBLE, 0, 0, "Use marble texture");
 
-		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_STUCCI],160, 50, 70, 20, &tex->type, 1.0, (float)TEX_STUCCI, 0, 0, "Use strucci texture");
-		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_WOOD],	240, 50, 70, 20, &tex->type, 1.0, (float)TEX_WOOD, 0, 0, "Use wood texture");
+		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_STUCCI],160, 70, 70, 20, &tex->type, 1.0, (float)TEX_STUCCI, 0, 0, "Use strucci texture");
+		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_WOOD],	240, 70, 70, 20, &tex->type, 1.0, (float)TEX_WOOD, 0, 0, "Use wood texture");
 
-		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_MAGIC],	160, 30, 70, 20, &tex->type, 1.0, (float)TEX_MAGIC, 0, 0, "Use magic texture");
-		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_BLEND],	240, 30, 70, 20, &tex->type, 1.0, (float)TEX_BLEND, 0, 0, "Use blend texture");
+		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_MAGIC],	160, 50, 70, 20, &tex->type, 1.0, (float)TEX_MAGIC, 0, 0, "Use magic texture");
+		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_BLEND],	240, 50, 70, 20, &tex->type, 1.0, (float)TEX_BLEND, 0, 0, "Use blend texture");
 
-		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_NOISE],	160, 10, 70, 20, &tex->type, 1.0, (float)TEX_NOISE, 0, 0, "Use noise texture");
+		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_NOISE],	160, 30, 70, 20, &tex->type, 1.0, (float)TEX_NOISE, 0, 0, "Use noise texture");
 		if(tex->plugin && tex->plugin->doit) strp= tex->plugin->pname; else strp= texstr[TEX_PLUGIN];
-		uiDefButS(block, ROW, B_TEXTYPE, strp,				240, 10, 70, 20, &tex->type, 1.0, (float)TEX_PLUGIN, 0, 0, "Use plugin");
+		uiDefButS(block, ROW, B_TEXTYPE, strp,				240, 30, 70, 20, &tex->type, 1.0, (float)TEX_PLUGIN, 0, 0, "Use plugin");
 	}
 	else {
 		// label to avoid centering
@@ -1931,37 +1931,37 @@ static void material_panel_map_to(Material *ma)
 	}
 
 	/* TEXTURE OUTPUT */
-	uiDefButS(block, TOG|BIT|1, B_MATPRV, "Stencil",	900,114,52,18, &(mtex->texflag), 0, 0, 0, 0, "Set the mapping to stencil mode");
-	uiDefButS(block, TOG|BIT|2, B_MATPRV, "Neg",		954,114,38,18, &(mtex->texflag), 0, 0, 0, 0, "Reverse the effect of the texture");
-	uiDefButS(block, TOG|BIT|0, B_MATPRV, "No RGB",	994,114,69,18, &(mtex->texflag), 0, 0, 0, 0, "Use an RGB texture as an intensity texture");
+	uiDefButS(block, TOG|BIT|1, B_MATPRV, "Stencil",	900,116,54,18, &(mtex->texflag), 0, 0, 0, 0, "Set the mapping to stencil mode");
+	uiDefButS(block, TOG|BIT|2, B_MATPRV, "Neg",		956,116,39,18, &(mtex->texflag), 0, 0, 0, 0, "Reverse the effect of the texture");
+	uiDefButS(block, TOG|BIT|0, B_MATPRV, "No RGB",		997,116,71,18, &(mtex->texflag), 0, 0, 0, 0, "Use an RGB texture as an intensity texture");
 	
-	uiDefButF(block, COL, B_MTEXCOL, "",				900,100,163,12, &(mtex->r), 0, 0, 0, 0, "Browse datablocks");
+	uiDefButF(block, COL, B_MTEXCOL, "",				900,100,168,12, &(mtex->r), 0, 0, 0, 0, "Browse datablocks");
 
 	if(ma->colormodel==MA_HSV) {
 		uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiDefButF(block, HSVSLI, B_MATPRV, "H ",			900,80,163,18, &(mtex->r), 0.0, 0.9999, B_MTEXCOL, 0, "");
-		uiDefButF(block, HSVSLI, B_MATPRV, "S ",			900,60,163,18, &(mtex->r), 0.0001, 1.0, B_MTEXCOL, 0, "");
-		uiDefButF(block, HSVSLI, B_MATPRV, "V ",			900,40,163,18, &(mtex->r), 0.0001, 1.0, B_MTEXCOL, 0, "");
+		uiDefButF(block, HSVSLI, B_MATPRV, "H ",			900,80,168,18, &(mtex->r), 0.0, 0.9999, B_MTEXCOL, 0, "");
+		uiDefButF(block, HSVSLI, B_MATPRV, "S ",			900,60,168,18, &(mtex->r), 0.0001, 1.0, B_MTEXCOL, 0, "");
+		uiDefButF(block, HSVSLI, B_MATPRV, "V ",			900,40,168,18, &(mtex->r), 0.0001, 1.0, B_MTEXCOL, 0, "");
 		uiBlockSetCol(block, TH_AUTO);
 	}
 	else {
-		uiDefButF(block, NUMSLI, B_MATPRV, "R ",			900,80,163,18, &(mtex->r), 0.0, 1.0, B_MTEXCOL, 0, "Set the amount of red the intensity texture blends with");
-		uiDefButF(block, NUMSLI, B_MATPRV, "G ",			900,60,163,18, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "Set the amount of green the intensity texture blends with");
-		uiDefButF(block, NUMSLI, B_MATPRV, "B ",			900,40,163,18, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "Set the amount of blue the intensity texture blends with");
+		uiDefButF(block, NUMSLI, B_MATPRV, "R ",			900,80,168,18, &(mtex->r), 0.0, 1.0, B_MTEXCOL, 0, "Set the amount of red the intensity texture blends with");
+		uiDefButF(block, NUMSLI, B_MATPRV, "G ",			900,60,168,18, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "Set the amount of green the intensity texture blends with");
+		uiDefButF(block, NUMSLI, B_MATPRV, "B ",			900,40,168,18, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "Set the amount of blue the intensity texture blends with");
 	}
 	
-	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",		900,10,163,18, &(mtex->def_var), 0.0, 1.0, 0, 0, "Set the value the texture blends with the current value");
+	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",		900,10,168,18, &(mtex->def_var), 0.0, 1.0, 0, 0, "Set the value the texture blends with the current value");
 	
 	/* MAP TO */
-	uiDefButS(block, TOG|BIT|0, B_MATPRV, "Col",	900,166,35,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture affect basic colour of the material");
-	uiDefButS(block, TOG3|BIT|1, B_MATPRV, "Nor",	935,166,35,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture affect the rendered normal");
-	uiDefButS(block, TOG|BIT|2, B_MATPRV, "Csp",	970,166,40,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture affect the specularity colour");
-	uiDefButS(block, TOG|BIT|3, B_MATPRV, "Cmir",	1010,166,42,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture affext the mirror colour");
-	uiDefButS(block, TOG3|BIT|4, B_MATPRV, "Ref",	1052,166,35,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture affect the value of the materials reflectivity");
-	uiDefButS(block, TOG3|BIT|5, B_MATPRV, "Spec",	1087,166,36,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture affect the value of specularity");
-	uiDefButS(block, TOG3|BIT|8, B_MATPRV, "Hard",	1126,166,44,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture affect the hardness value");
-	uiDefButS(block, TOG3|BIT|7, B_MATPRV, "Alpha",	1172,166,45,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture affect the alpha value");
-	uiDefButS(block, TOG3|BIT|6, B_MATPRV, "Emit",	1220,166,45,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture affect the emit value");
+	uiDefButS(block, TOG|BIT|0, B_MATPRV, "Col",	900,186,50,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture affect basic colour of the material");
+	uiDefButS(block, TOG3|BIT|1, B_MATPRV, "Nor",	952,186,50,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture affect the rendered normal");
+	uiDefButS(block, TOG|BIT|2, B_MATPRV, "Csp",	1004,186,50,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture affect the specularity colour");
+	uiDefButS(block, TOG|BIT|3, B_MATPRV, "Cmir",	1056,186,50,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture affext the mirror colour");
+	uiDefButS(block, TOG3|BIT|4, B_MATPRV, "Ref",	1108,186,50,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture affect the value of the materials reflectivity");
+	uiDefButS(block, TOG3|BIT|5, B_MATPRV, "Spec",	900,166,50,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture affect the value of specularity");
+	uiDefButS(block, TOG3|BIT|8, B_MATPRV, "Hard",	952,166,50,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture affect the hardness value");
+	uiDefButS(block, TOG3|BIT|7, B_MATPRV, "Alpha",	1004,166,50,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture affect the alpha value");
+	uiDefButS(block, TOG3|BIT|6, B_MATPRV, "Emit",	1056,166,50,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture affect the emit value");
 	
 /* 	uiDefButS(block, TOG|BIT|3, B_MATPRV, "Alpha Mix",1087,114,100,18, &(mtex->texflag), 0, 0, 0, 0); ,""*/
 
