@@ -180,12 +180,13 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 	FT_GlyphSlot  glyph;
 	FT_UInt		glyph_index;
 	FT_Outline	ftoutline;
+/*
     FT_CharMap  found = 0;
 	FT_CharMap  charmap;
 	FT_UShort my_platform_id = TT_PLATFORM_MICROSOFT;
 	FT_UShort my_encoding_id = TT_MS_ID_UNICODE_CS;
 	int         n;
-
+*/
 
 	float scale= 1. / 1024.; //needs text_height from metrics to make a standard linedist
 	float dx, dy;
@@ -204,7 +205,7 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 						&face );
 
 	if(err) return NULL;
-
+/*
     for ( n = 0; n < face->num_charmaps; n++ )
     {
       charmap = face->charmaps[n];
@@ -218,10 +219,10 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 
     if ( !found ) { return NULL; }
 
-    /* now, select the charmap for the face object */
+    // now, select the charmap for the face object
     err = FT_Set_Charmap( face, found );
     if ( err ) { return NULL; }
-
+*/
 
 	// allocate blender font
 	vfd= MEM_callocN(sizeof(*vfd), "FTVFontData");
@@ -410,12 +411,13 @@ static int check_freetypefont(PackedFile * pf)
 	FT_Face			face;
 	FT_GlyphSlot	glyph;
 	FT_UInt			glyph_index;
+/*
 	FT_CharMap  charmap;
 	FT_CharMap  found;
 	FT_UShort my_platform_id = TT_PLATFORM_MICROSOFT;
 	FT_UShort my_encoding_id = TT_MS_ID_UNICODE_CS;
 	int         n;
-
+*/
 	int success = 0;
 
 	err = FT_New_Memory_Face( library,
@@ -428,6 +430,7 @@ static int check_freetypefont(PackedFile * pf)
 	    error("This is not a valid font");
 	}
 	else {
+/*
 		for ( n = 0; n < face->num_charmaps; n++ )
 		{
 		  charmap = face->charmaps[n];
@@ -441,10 +444,10 @@ static int check_freetypefont(PackedFile * pf)
 
 		if ( !found ) { return 0; }
 
-		/* now, select the charmap for the face object */
+		// now, select the charmap for the face object 
 		err = FT_Set_Charmap( face, found );
 		if ( err ) { return 0; }
-
+*/
 		glyph_index = FT_Get_Char_Index( face, 'A' );
 		err = FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_BITMAP );
 		if(err) success = 0;
