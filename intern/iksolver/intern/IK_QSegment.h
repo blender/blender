@@ -267,8 +267,8 @@ private :
 	 * The exponential map parameterization of this joint.
 	 */
 
-	MT_ExpMap m_q;
 	MT_Scalar m_length;
+	MT_ExpMap m_q;
 
 	/**
 	 * The maximum extension of this segment
