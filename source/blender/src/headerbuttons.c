@@ -7265,8 +7265,8 @@ void do_buts_buttons(short event)
 
 	switch(event) {
 	case B_BUTSHOME:
-		G.v2d->cur= G.v2d->tot;
 		uiSetPanel_view2d(curarea);
+		G.v2d->cur= G.v2d->tot;
 		test_view2d(G.v2d, curarea->winx, curarea->winy);
 		scrarea_queue_winredraw(curarea);
 		break;

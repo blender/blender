@@ -368,7 +368,7 @@ void view2d_zoom(View2D *v2d, float factor, int winx, int winy) {
 	test_view2d(v2d, winx, winy);
 }
 
-void test_view2d(View2D *v2d, int winx, int winy)
+void test_view2do(View2D *v2d, int winx, int winy)
 {
 	/* cur is not allowed to be larger than max, smaller than min, or outside of tot */
 	rctf *cur, *tot;
@@ -417,7 +417,6 @@ void test_view2d(View2D *v2d, int winx, int winy)
 		
 		
 	}
-	
 	else{
 		
 		/* end test */
@@ -448,6 +447,170 @@ void test_view2d(View2D *v2d, int winx, int winy)
 			cur->ymax= temp+0.5*dy;
 		}		
 		
+	}
+	if(v2d->keepaspect) {
+		dx= (cur->ymax-cur->ymin)/(cur->xmax-cur->xmin);
+		dy= ((float)winy)/((float)winx);
+		
+		/* dx/dy is the total aspect */
+		fac= dx/dy;		
+		if(fac>1.0) {
+			
+			/* portrait window: correct for x */
+			dx= cur->ymax-cur->ymin;
+			temp= (cur->xmax+cur->xmin);
+			
+			cur->xmin= temp/2.0 - 0.5*dx/dy;
+			cur->xmax= temp/2.0 + 0.5*dx/dy;
+		}
+		else {
+			dx= cur->xmax-cur->xmin;
+			temp= (cur->ymax+cur->ymin);
+			
+			cur->ymin= temp/2.0 - 0.5*dy*dx;
+			cur->ymax= temp/2.0 + 0.5*dy*dx;
+		}
+	}
+
+	if(v2d->keeptot) {
+		dx= cur->xmax-cur->xmin;
+		dy= cur->ymax-cur->ymin;
+		
+		if(dx > tot->xmax-tot->xmin) {
+			if(v2d->keepzoom==0) {
+				if(cur->xmin<tot->xmin) cur->xmin= tot->xmin;
+				if(cur->xmax>tot->xmax) cur->xmax= tot->xmax;
+			}
+			else {
+				if(cur->xmax < tot->xmax) {
+					dx= tot->xmax-cur->xmax;
+					cur->xmin+= dx;
+					cur->xmax+= dx;
+				}
+				else if(cur->xmin > tot->xmin) {
+					dx= cur->xmin-tot->xmin;
+					cur->xmin-= dx;
+					cur->xmax-= dx;
+				}
+			}
+		}
+		else {
+			if(cur->xmin < tot->xmin) {
+				dx= tot->xmin-cur->xmin;
+				cur->xmin+= dx;
+				cur->xmax+= dx;
+			}
+			else if(cur->xmax > tot->xmax) {
+				dx= cur->xmax-tot->xmax;
+				cur->xmin-= dx;
+				cur->xmax-= dx;
+			}
+		}
+		
+		if(dy > tot->ymax-tot->ymin) {
+			if(v2d->keepzoom==0) {
+				if(cur->ymin<tot->ymin) cur->ymin= tot->ymin;
+				if(cur->ymax>tot->ymax) cur->ymax= tot->ymax;
+			}
+			else {
+				if(cur->ymax < tot->ymax) {
+					dy= tot->ymax-cur->ymax;
+					cur->ymin+= dy;
+					cur->ymax+= dy;
+				}
+				else if(cur->ymin > tot->ymin) {
+					dy= cur->ymin-tot->ymin;
+					cur->ymin-= dy;
+					cur->ymax-= dy;
+				}
+			}
+		}
+		else {
+			if(cur->ymin < tot->ymin) {
+				dy= tot->ymin-cur->ymin;
+				cur->ymin+= dy;
+				cur->ymax+= dy;
+			}
+			else if(cur->ymax > tot->ymax) {
+				dy= cur->ymax-tot->ymax;
+				cur->ymin-= dy;
+				cur->ymax-= dy;
+			}
+		}
+	}
+	
+}
+
+void test_view2d(View2D *v2d, int winx, int winy)
+{
+	/* cur is not allowed to be larger than max, smaller than min, or outside of tot */
+	rctf *cur, *tot;
+	float dx, dy, temp, fac, zoom;
+	
+	cur= &v2d->cur;
+	tot= &v2d->tot;
+	
+	dx= cur->xmax-cur->xmin;
+	dy= cur->ymax-cur->ymin;
+
+
+	/* Reevan's test */
+	if (v2d->keepzoom & V2D_LOCKZOOM_Y)
+		v2d->cur.ymax=v2d->cur.ymin+((float)winy);
+
+	if (v2d->keepzoom & V2D_LOCKZOOM_X)
+		v2d->cur.xmax=v2d->cur.xmin+((float)winx);
+
+	if(v2d->keepzoom && G.rt) {
+		
+		zoom= ((float)winx)/dx;
+		
+		if(zoom<v2d->minzoom || zoom>v2d->maxzoom) {
+			if(zoom<v2d->minzoom) fac= zoom/v2d->minzoom;
+			else fac= zoom/v2d->maxzoom;
+			
+			dx*= fac;
+			temp= 0.5*(cur->xmax+cur->xmin);
+			
+			cur->xmin= temp-0.5*dx;
+			cur->xmax= temp+0.5*dx;
+		}
+		
+		zoom= ((float)winy)/dy;
+		
+		if(zoom<v2d->minzoom || zoom>v2d->maxzoom) {
+			if(zoom<v2d->minzoom) fac= zoom/v2d->minzoom;
+			else fac= zoom/v2d->maxzoom;
+			
+			dy*= fac;
+			temp= 0.5*(cur->ymax+cur->ymin);
+			cur->ymin= temp-0.5*dy;
+			cur->ymax= temp+0.5*dy;
+		}
+	}
+
+	if(v2d->keepaspect) {
+		dx= (cur->ymax-cur->ymin)/(cur->xmax-cur->xmin);
+		dy= ((float)winy)/((float)winx);
+		
+		/* dx/dy is the total aspect */
+
+		if( dx/dy > 1.0) {
+			
+			/* portrait window: correct for x */
+			dx= cur->ymax-cur->ymin;
+			temp= (cur->xmax+cur->xmin);
+			
+			cur->xmin= temp/2.0 - 0.5*dx/dy;
+			cur->xmax= temp/2.0 + 0.5*dx/dy;
+		}
+		else {
+			dx= cur->xmax-cur->xmin;
+			temp= (cur->ymax+cur->ymin);
+			
+			cur->ymin= temp/2.0 - 0.5*dy*dx;
+			cur->ymax= temp/2.0 + 0.5*dy*dx;
+		}
 	}
 	
 	if(v2d->keeptot) {
@@ -517,34 +680,8 @@ void test_view2d(View2D *v2d, int winx, int winy)
 		}
 	}
 	
-	if(v2d->keepaspect) {
-		dx= (cur->ymax-cur->ymin)/(cur->xmax-cur->xmin);
-		dy= ((float)winy)/((float)winx);
-		
-		/* dx/dy is the total aspect */
-		
-		/* this exception is for buttons...keepzoom doesnt work proper */
-		//if(v2d->keepzoom) fac= dy;
-		//else fac= dx/dy;
-fac= dx/dy;		
-		if(fac>1.0) {
-			
-			/* portrait window: correct for x */
-			dx= cur->ymax-cur->ymin;
-			temp= (cur->xmax+cur->xmin);
-			
-			cur->xmin= temp/2.0 - 0.5*dx/dy;
-			cur->xmax= temp/2.0 + 0.5*dx/dy;
-		}
-		else {
-			dx= cur->xmax-cur->xmin;
-			temp= (cur->ymax+cur->ymin);
-			
-			cur->ymin= temp/2.0 - 0.5*dy*dx;
-			cur->ymax= temp/2.0 + 0.5*dy*dx;
-		}
-	}
 }
+
 
 void calc_scrollrcts(View2D *v2d, int winx, int winy)
 {

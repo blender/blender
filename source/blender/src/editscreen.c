@@ -1442,6 +1442,7 @@ static void del_area(ScrArea *sa)
 /* sa2 to sa1 */
 static void copy_areadata(ScrArea *sa1, ScrArea *sa2)
 {
+	Panel *pa1, *pa2, *patab;
 	
 	sa1->headertype= sa2->headertype;
 	sa1->spacetype= sa2->spacetype;
@@ -1452,6 +1453,23 @@ static void copy_areadata(ScrArea *sa1, ScrArea *sa2)
 
 	BLI_freelistN(&sa1->panels);
 	duplicatelist(&sa1->panels, &sa2->panels);
+	
+	/* copy pointers */
+	pa1= sa1->panels.first;
+	while(pa1) {
+		
+		patab= sa1->panels.first;
+		pa2= sa2->panels.first;
+		while(patab) {
+			if( pa1->paneltab == pa2) {
+				pa1->paneltab = patab;
+				break;
+			}
+			patab= patab->next;
+			pa2= pa2->next;
+		}
+		pa1= pa1->next;
+	}
 }
 
 static ScrArea *screen_addarea(bScreen *sc, ScrVert *v1, ScrVert *v2, ScrVert *v3, ScrVert *v4, short headertype, short spacetype)
