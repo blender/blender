@@ -2784,7 +2784,7 @@ static void do_view3d_facesel_propertiesmenu(void *arg, int event)
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSLOGIC, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
 }
 
 static uiBlock *view3d_facesel_propertiesmenu(void *arg_unused)
@@ -2892,37 +2892,40 @@ static void do_view3d_faceselmenu(void *arg, int event)
 	Mesh *me=NULL;
 	Object *ob=NULL;
 	extern TFace *lasttface; /* caches info on tface bookkeeping ?*/
+	TFace *tface;
+	int a;
 	
 	switch(event) {
 	case 0: /* copy draw mode */
 	case 1: /* copy UVs */
 	case 2: /* copy vertex colors */
+		ob= OBACT;
+		if(ob==0) return;
 		me= get_mesh(ob);
-		if(me && me->tface) {
+		if(!(me && me->tface)) return;
 
-			TFace *tface= me->tface;
-			int a= me->totface;
-			
-			set_lasttface();
-			if(lasttface) {
-			
-				while(a--) {
-					if(tface!=lasttface && (tface->flag & TF_SELECT)) {
-						if(event==0) {
-							tface->mode= lasttface->mode;
-							tface->transp= lasttface->transp;
-						} else if(event==1) {
-							memcpy(tface->uv, lasttface->uv, sizeof(tface->uv));
-							tface->tpage= lasttface->tpage;
-							tface->tile= lasttface->tile;
-							
-							if(lasttface->mode & TF_TILES) tface->mode |= TF_TILES;
-							else tface->mode &= ~TF_TILES;
-							
-						} else if(event==2) memcpy(tface->col, lasttface->col, sizeof(tface->col));
-					}
-					tface++;
+		tface= me->tface;
+		a= me->totface;
+		set_lasttface();
+		if(lasttface) {
+		
+			while(a--) {
+				if(tface!=lasttface && (tface->flag & TF_SELECT)) {
+					if(event==0) {
+						tface->mode= lasttface->mode;
+						tface->transp= lasttface->transp;
+					} else if(event==1) {
+						memcpy(tface->uv, lasttface->uv, sizeof(tface->uv));
+						tface->tpage= lasttface->tpage;
+						tface->tile= lasttface->tile;
+						
+						if(lasttface->mode & TF_TILES) tface->mode |= TF_TILES;
+						else tface->mode &= ~TF_TILES;
+						
+					} else if(event==2)
+						memcpy(tface->col, lasttface->col, sizeof(tface->col));
 				}
+				tface++;
 			}
 			do_shared_vertexcol(me);	
 		}
@@ -2939,7 +2942,6 @@ static void do_view3d_faceselmenu(void *arg, int event)
 	
 	}
 	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSLOGIC, 0);
 	allqueue(REDRAWIMAGE, 0);
 }
 
