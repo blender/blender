@@ -119,8 +119,15 @@ bArmature * Armature_FromPyObject   (PyObject *py_obj);
 int         Armature_CheckPyObject  (PyObject *py_obj);
 
 /* Ipo Data */
+PyObject * BezTriple_CreatePyObject (BezTriple *bzt);
+int        BezTriple_CheckPyObject (PyObject *pyobj);
+BezTriple* BezTriple_FromPyObject (PyObject *pyobj);
 
 PyObject * IpoCurve_Init(void);
+PyObject * IpoCurve_CreatePyObject (IpoCurve *ipo);
+int        IpoCurve_CheckPyObject (PyObject *pyobj);
+IpoCurve * IpoCurve_FromPyObject (PyObject *pyobj);
+
 PyObject * Ipo_Init (void);
 PyObject * Ipo_CreatePyObject (struct Ipo *ipo);
 Ipo      * Ipo_FromPyObject   (PyObject *py_obj);

@@ -30,7 +30,7 @@
  */
 
 #include "Ipocurve.h"
-#include "BezTriple.c"
+#include "BezTriple.h"
 /*****************************************************************************/
 /* Function:              M_IpoCurve_New                                          */
 /* Python equivalent:     Blender.IpoCurve.New                                    */

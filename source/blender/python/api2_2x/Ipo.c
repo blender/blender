@@ -30,7 +30,7 @@
  */
 
 #include "Ipo.h"
-#include"Ipocurve.c"
+#include "Ipocurve.h"
 /*****************************************************************************/
 /* Function:              M_Ipo_New                                          */
 /* Python equivalent:     Blender.Ipo.New                                    */
