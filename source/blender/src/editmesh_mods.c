@@ -633,16 +633,40 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 		}
 
 		if(G.scene->selectmode & (SCE_SELECT_EDGE|SCE_SELECT_FACE)) {
+			Mesh *me= G.obedit->data;
+			DispList *dl= find_displist(&me->disp, DL_MESH);
+			DispListMesh *dlm= NULL;
+
 			if(efa->fgonf==0) {
 				if(efa->f & SELECT) BIF_ThemeColor(TH_EDGE_SELECT);
 				else BIF_ThemeColor(TH_WIRE);
 				
-				glBegin(GL_LINE_LOOP);
-				glVertex3fv(efa->v1->co);
-				glVertex3fv(efa->v2->co);
-				glVertex3fv(efa->v3->co);
-				if(efa->v4) glVertex3fv(efa->v4->co);
-				glEnd();
+				if(dl) dlm= dl->mesh;
+				if(dlm && (me->flag & ME_OPT_EDGES) && (me->flag & ME_SUBSURF) && me->subdiv) {
+					MEdge *medge= dlm->medge;
+					MVert *mvert= dlm->mvert;
+					int b;
+					
+					glBegin(GL_LINES);
+					for (b=0; b<dlm->totedge; b++, medge++) {
+						if(medge->flag & ME_EDGEDRAW) {
+							EditEdge *eed = dlm->editedge[b];
+							if(efa->e1==eed || efa->e2==eed || efa->e3==eed || (efa->e4 && efa->e4==eed)) {
+								glVertex3fv(mvert[medge->v1].co); 
+								glVertex3fv(mvert[medge->v2].co);
+							}
+						}
+					}
+					glEnd();
+				}
+				else {
+					glBegin(GL_LINE_LOOP);
+					glVertex3fv(efa->v1->co);
+					glVertex3fv(efa->v2->co);
+					glVertex3fv(efa->v3->co);
+					if(efa->v4) glVertex3fv(efa->v4->co);
+					glEnd();
+				}
 			}
 		}
 		
