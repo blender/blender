@@ -7023,7 +7023,7 @@ void join_mesh(void)
 	float imat[4][4], cmat[4][4];
 	int a, b, totcol, totvert=0, totface=0, ok=0, vertofs, map[MAXMAT];
 #ifdef __NLA
-	int	i, j, index;
+	int	i, j, index, haskey=0;
 	bDeformGroup *dg, *odg;
 	MDeformVert *dvert, *dvertmain;
 #endif
@@ -7044,11 +7044,19 @@ void join_mesh(void)
 				totface+= me->totface;
 				
 				if(base->object == ob) ok= 1;
+				if(me->key) {
+					haskey= 1;
+					break;
+				}
 			}
 		}
 		base= base->next;
 	}
 	
+	if(haskey) {
+		error("Join with vertex keys not supported");
+		return;
+	}
 	/* that way the active object is always selected */ 
 	if(ok==0) return;
 	
