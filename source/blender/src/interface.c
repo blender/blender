@@ -1296,6 +1296,7 @@ static int ui_do_but_TEX(uiBut *but)
 
 static int uiActAsTextBut(uiBut *but)
 {
+	void *but_func;
 	double value;
 	float min, max;
 	int temp, retval, textleft;
@@ -1315,8 +1316,11 @@ static int uiActAsTextBut(uiBut *but)
 	else {
 		sprintf(str, "%d", (int)value);
 	}
+	/* store values before calling as text button */
 	point= but->poin;
 	but->poin= str;
+	but_func= but->func;
+	but->func= NULL;
 	min= but->min;
 	max= but->max;
 	but->min= 0.0;
@@ -1329,8 +1333,10 @@ static int uiActAsTextBut(uiBut *but)
 	
 	retval= ui_do_but_TEX(but);
 	
+	/* restore values */
 	but->type= temp;
 	but->poin= point;
+	but->func= but_func;
 	but->min= min;
 	but->max= max;
 	if(textleft==0) but->flag &= ~UI_TEXT_LEFT;
