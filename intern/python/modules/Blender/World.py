@@ -1,4 +1,4 @@
-import _Blender.World as _World
+#import _Blender.World as _World
 
 import shadow
 

@@ -14,7 +14,7 @@
     newscene.link(cam)
     newscene.makeCurrent()               # make current Scene
 """  
-import _Blender.Scene as _Scene
+#import _Blender.Scene as _Scene
 
 from Object import Object
 import shadow

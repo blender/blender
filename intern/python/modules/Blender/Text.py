@@ -11,7 +11,7 @@
     Text.unlink(text)        # delete
 """
 
-import _Blender.Text as _Text
+#import _Blender.Text as _Text
 
 class Text:
 	"""Wrapper for Text DataBlock"""

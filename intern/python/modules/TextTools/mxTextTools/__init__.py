@@ -4,8 +4,8 @@
     See the documentation for further information on copyrights,
     or contact the author (mal@lemburg.com).
 """
-from mxTextTools import *
-from mxTextTools import __version__
+#from mxTextTools import *
+#from mxTextTools import __version__
 
 #
 # Make BMS take the role of FS in case the Fast Search object was not built

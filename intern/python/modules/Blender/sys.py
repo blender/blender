@@ -1,4 +1,4 @@
-from _Blender.sys import *
+#from _Blender.sys import *
 
 sep = dirsep # path separator ('/' or '\')
 

@@ -2,7 +2,8 @@
 # Wed Oct 31 16:18:35 CET 2001
 
 '''Prototype2 -- VRML 97 sceneGraph/Node/Script/ROUTE/IS implementations'''
-import copy, types # extern
+#import copy, types # extern
+import types # extern
 import strop as string # builtin
 from utils import typeclasses, err, namespace # XXX
 ## TODO: namespace must go
@@ -15,7 +16,7 @@ class baseProto:
 			passed arguments for the linearisation object
 		see lineariser4.Lineariser
 		'''
-		import lineariser4 
+#		import lineariser4 
 		lineariser = apply( lineariser4.Lineariser, (), namedargs )
 		return apply( lineariser.linear, ( self, ), namedargs )
 

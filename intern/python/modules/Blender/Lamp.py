@@ -11,7 +11,7 @@ Example::
   ob.link(l)
 """
 
-import _Blender.Lamp as _Lamp
+#import _Blender.Lamp as _Lamp
 import shadow
 
 _validBufferSizes = [512, 768, 1024, 1536, 2560]	

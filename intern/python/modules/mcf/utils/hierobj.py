@@ -10,7 +10,8 @@ flattened copy of the hierarchy)
 97-03-17 Added ability to pass arguments to hier_rapply and hier_rreturn.
 97-10-31 Removed dependencies on mcf.store
 '''
-import copy,types
+#import copy,types
+import types
 import singletonlist, hier_rx
 
 class Hierobj: 

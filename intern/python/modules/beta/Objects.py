@@ -67,12 +67,13 @@ class shadowNMesh:
 		self.flags = flags
 		self.smooth = 0
 		self.faces = []
-		try:
-			import tess
-			self.tess = tess.Tess(256, beginPolygon, endPolygon, error, addVertex)
-		except:
-			#print "couldn't import tesselator"
-			self.tess = None
+	#	#try:
+	#		import tess
+	#		self.tess = tess.Tess(256, beginPolygon, endPolygon, error, addVertex)
+	#	except:
+	#		#print "couldn't import tesselator"
+	#		self.tess = None
+		self.tess = None
 		self.curface = None
 		self.tessfaces = []
 		self.recalc_normals = 1
@@ -93,7 +94,7 @@ class shadowNMesh:
 		# is improved. The GLU tesselator of Mesa < 4.0 is crappy...
 		if not self.tess:
 			return [] # no faces converted
-		import tess
+	#	import tess
 		i = 0
 		global tessfaces
 		tessfaces = []

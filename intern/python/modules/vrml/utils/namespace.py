@@ -64,7 +64,8 @@ will likely want to do: from mcf.utils import extpkl, copy_extend
 	98.03.15 -- Fixed bug in items, values, etceteras with module-type
 	base objects.
 '''
-import copy, types, string
+#import copy, types, string
+import types, string
 
 from mcf.utils import hierobj
 

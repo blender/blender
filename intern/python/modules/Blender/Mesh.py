@@ -51,7 +51,7 @@
 from Blender.Types import NMFaceType
 import Blender.Material as Material
 
-from _Blender import NMesh as _NMesh
+#from _Blender import NMesh as _NMesh
 
 FACEFLAGS = _NMesh.Const
 DEFAULTFLAGS = FACEFLAGS.LIGHT + FACEFLAGS.DYNAMIC
@@ -66,7 +66,7 @@ def makeFace(f):
 	return face
 
 def toTriangles(ngon):
-	from utils import tesselation
+	#from utils import tesselation
 	# This should be a Publisher only feature...once the tesselation
 	# is improved. The GLU tesselator of Mesa < 4.0 is crappy...
 	if len(ngon.uv) == len(ngon.v):

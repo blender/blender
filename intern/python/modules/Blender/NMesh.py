@@ -6,7 +6,7 @@
   most probably limited. Use the 'Mesh' module instead.
 """  
 
-import _Blender.NMesh as _NMesh
+#import _Blender.NMesh as _NMesh
 import shadow
 
 class Mesh(shadow.shadow):

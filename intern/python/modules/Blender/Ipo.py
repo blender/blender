@@ -31,7 +31,7 @@ Example::
   ob.setIpo(ipo)                                     # assign ipo to object
 """
 
-import _Blender.Ipo as _Ipo
+#import _Blender.Ipo as _Ipo
 
 import shadow
 

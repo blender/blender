@@ -4,7 +4,7 @@ This module currently only supports redrawing commands of windows.
 Later on, it will allow screen manipulations and access to Window
 properties"""
 
-import _Blender.Window as _Window
+#import _Blender.Window as _Window
 
 t = _Window.Types 
 Const = t # emulation

@@ -956,7 +956,7 @@ def importfile(name):
 	global options
 	global DEFAULTFLAGS
 
-	from Blender import Get # XXX 
+#	from Blender import Get # XXX 
 	options = Get('vrmloptions')
 	DEFAULTFLAGS = FACEFLAGS.LIGHT + FACEFLAGS.DYNAMIC
 	if options['twoside']:

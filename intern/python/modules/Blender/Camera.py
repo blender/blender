@@ -15,7 +15,7 @@ Example::
 """
 
 import shadow
-import _Blender.Camera as _Camera
+#import _Blender.Camera as _Camera
 
 
 class Camera(shadow.hasIPO):
