@@ -12,7 +12,7 @@ class KX_MeshProxy:
 		"""
 		Gets the number of materials associated with this object.
 		
-		@rtype integer
+		@rtype: integer
 		"""
 	
 	def GetMaterialName(matid):
@@ -52,7 +52,7 @@ class KX_MeshProxy:
 		@param matid: the specified material
 		@type index: integer
 		@param index: the index into the vertex array.
-		@rtype KX_VertexProxy
-		@return a vertex object.
+		@rtype: KX_VertexProxy
+		@return: a vertex object.
 		"""
 

@@ -11,7 +11,7 @@ class SCA_ILogicBrick:
 		"""
 		Gets the game object associated with this logic brick.
 		
-		@rtype KX_GameObject
+		@rtype: KX_GameObject
 		"""
 	def setExecutePriority(priority):
 		"""
@@ -24,6 +24,6 @@ class SCA_ILogicBrick:
 		"""
 		Gets the execution priority of this logic brick.
 		
-		@rtype integer
-		@return this logic bricks current priority.
+		@rtype: integer
+		@return: this logic bricks current priority.
 		"""

@@ -27,15 +27,15 @@ class SCA_ISensor(SCA_ILogicBrick):
 		"""
 		The frequency for pulse mode sensors.
 		
-		@rtype integer
-		@return the pulse frequency in 1/50 sec.
+		@rtype: integer
+		@return: the pulse frequency in 1/50 sec.
 		"""
 	def setFrequency(freq):
 		"""
 		Sets the frequency for pulse mode sensors.
 		
 		@type freq: integer
-		@return the pulse frequency in 1/50 sec.
+		@return: the pulse frequency in 1/50 sec.
 		"""
 	def getUseNegPulseMode():
 		"""

@@ -38,6 +38,6 @@ class KX_NetworkMessageSensor(SCA_ISensor):
 		"""
 		Gets the list of message subjects received.
 		
-		@rtype list
+		@rtype: list
 		"""
 	

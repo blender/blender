@@ -26,7 +26,7 @@ class KX_CDActuator(SCA_ILogicBrick):
 		"""
 		Gets the current gain (volume) of the CD.
 		
-		@rtype float
-		@return Between 0.0 (silent) and 1.0 (max volume)
+		@rtype: float
+		@return: Between 0.0 (silent) and 1.0 (max volume)
 		"""
 

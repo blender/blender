@@ -11,9 +11,9 @@ class SCA_PropertySensor(SCA_ISensor):
 		"""
 		Gets when to activate this sensor.
 		
-		KX_PROPSENSOR_EQUAL, KX_PROPSENSOR_NOTEQUAL,
-			KX_PROPSENSOR_INTERVAL, KX_PROPSENSOR_CHANGED,
-			or KX_PROPSENSOR_EXPRESSION.
+		@return: KX_PROPSENSOR_EQUAL, KX_PROPSENSOR_NOTEQUAL,
+			 KX_PROPSENSOR_INTERVAL, KX_PROPSENSOR_CHANGED,
+			 or KX_PROPSENSOR_EXPRESSION.
 		"""
 
 	def setType(checktype):
@@ -29,8 +29,8 @@ class SCA_PropertySensor(SCA_ISensor):
 		"""
 		Return the property with which the sensor operates.
 		
-		@rtype string
-		@return the name of the property this sensor is watching.
+		@rtype: string
+		@return: the name of the property this sensor is watching.
 		"""
 	def setProperty(name):
 		"""
@@ -43,8 +43,8 @@ class SCA_PropertySensor(SCA_ISensor):
 		"""
 		Return the value with which the sensor compares to the value of the property.
 		
-		@rtype string
-		@return the value of the property this sensor is watching.
+		@rtype: string
+		@return: the value of the property this sensor is watching.
 		"""
 	def setValue(value):
 		"""

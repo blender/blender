@@ -1,6 +1,6 @@
 # $Id$
 # Documentation for SCA_ANDController
-form SCA_ILogicBrick import *
+from SCA_ILogicBrick import *
 
 class SCA_ANDController(SCA_ILogicBrick):
 	"""

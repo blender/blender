@@ -8,13 +8,17 @@ class KX_GameObject:
 	Properties assigned to game objects are accessible as attributes
 	in objects of this class.
 	
-	Attributes:
-	mass: The object's mass (provided the object has a physics controller). float. read only
-	parent: The object's parent object. KX_GameObject. read only
-	visible: visibility flag. boolean.
-	position: The object's position. list [x, y, z]
-	orientation: The object's orientation. 3x3 Matrix.  You can also write a Quaternion or Euler vector.
-	scaling: The object's scaling factor. list [sx, sy, sz]
+	@ivar mass: The object's mass (provided the object has a physics controller). float. read only
+	@ivar parent: The object's parent object. (Read only)
+	@type parent: KX_GameObject
+	@ivar visible: visibility flag. boolean.
+	@ivar position: The object's position. 
+	@type position: list [x, y, z]
+	@ivar orientation: The object's orientation. 3x3 Matrix.  
+	                   You can also write a Quaternion or Euler vector.
+	@type orientation: 3x3 Matrix [[float]]
+	@ivar scaling: The object's scaling factor. list [sx, sy, sz]
+	@type scaling: list [sx, sy, sz]
 	"""
 	
 	def setVisible(visible):
@@ -34,8 +38,8 @@ class KX_GameObject:
 		"""
 		Gets the game object's position.
 		
-		@rtype list [x, y, z]
-		@return the object's position in world coordinates.
+		@rtype: list [x, y, z]
+		@return: the object's position in world coordinates.
 		"""
 	def setOrientation(orn):
 		"""
@@ -48,8 +52,8 @@ class KX_GameObject:
 		"""
 		Gets the game object's orientation.
 		
-		@rtype 3x3 rotation matrix
-		@return The game object's rotation matrix
+		@rtype: 3x3 rotation matrix
+		@return: The game object's rotation matrix
 		"""
 	def getLinearVelocity():
 		"""
@@ -60,8 +64,8 @@ class KX_GameObject:
 		
 		cf getVelocity()
 		
-		@rtype list [vx, vy, vz]
-		@return the object's linear velocity.
+		@rtype: list [vx, vy, vz]
+		@return: the object's linear velocity.
 		"""
 	def getVelocity(point):
 		"""
@@ -72,15 +76,15 @@ class KX_GameObject:
 		
 		@type point: list [x, y, z]
 		@param point: the point to return the velocity for, in local coordinates. (optional: default = [0, 0, 0])
-		@rtype list [vx, vy, vz]
-		@return the velocity at the specified point.
+		@rtype: list [vx, vy, vz]
+		@return: the velocity at the specified point.
 		"""
 	def getMass():
 		"""
 		Gets the game object's mass.
 		
-		@rtype float
-		@return the object's mass.
+		@rtype: float
+		@return: the object's mass.
 		"""
 	def getReactionForce():
 		"""
@@ -89,8 +93,8 @@ class KX_GameObject:
 		The reaction force is the force applied to this object over the last simulation timestep.
 		This also includes impulses, eg from collisions.
 		
-		@rtype list [fx, fy, fz]
-		@return the reaction force of this object.
+		@rtype: list [fx, fy, fz]
+		@return: the reaction force of this object.
 		"""
 	def applyImpulse(point, impulse):
 		"""
@@ -126,7 +130,7 @@ class KX_GameObject:
 		Gets this object's parent.
 		
 		@rtype: game object
-		@return this object's parent object, or None if this object has no parent.
+		@return: this object's parent object, or None if this object has no parent.
 		"""
 	def getMesh(mesh):
 		"""
@@ -135,7 +139,7 @@ class KX_GameObject:
 		@type mesh: integer
 		@param mesh: the mesh object to return (optional: default mesh = 0)
 		@rtype: mesh object
-		@returns the first mesh object associated with this game object, or None if this object has no meshs.
+		@return: the first mesh object associated with this game object, or None if this object has no meshs.
 		"""
 	def getPhysicsId():
 		"""
