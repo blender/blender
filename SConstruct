@@ -3,6 +3,7 @@ import os
 import time
 import sys
 from distutils import sysconfig
+import SCons.Script
 
 if sys.hexversion < 0x2030000:
 	print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
@@ -16,6 +17,20 @@ if sys.platform != 'win32':
 	sys.stdout = os.popen("tee build.log", "w")
 	sys.stderr = sys.stdout
 
+# This is a flag to determine whether to read all sconscripts and
+# set up the build environments or not
+# when issuing 'scons clean' this is set to 1
+# and all reading is skipped and a 'clean' target
+# will clean the root_build_dir from all
+# object files
+enable_clean = 0
+
+all_args = sys.argv[1:]
+parser =  SCons.Script.OptParser()
+options, targets = parser.parse_args(all_args)
+if ('clean' in targets):
+	enable_clean = 1
+	
 # Build directory.
 root_build_dir = '..' + os.sep + 'build' + os.sep + sys.platform + os.sep
 
@@ -904,24 +919,25 @@ library_env.SConsignFile (root_build_dir+'scons-signatures')
 # Settings to be exported to other SConscript files
 #-----------------------------------------------------------------------------
 
-Export ('cflags')
-Export ('defines')
-Export ('window_system')
-Export ('extra_includes')
-Export ('user_options_dict')
-Export ('library_env')
-
-BuildDir (root_build_dir+'/extern', 'extern', duplicate=0)
-SConscript (root_build_dir+'extern/SConscript')
-BuildDir (root_build_dir+'/intern', 'intern', duplicate=0)
-SConscript (root_build_dir+'intern/SConscript')
-BuildDir (root_build_dir+'/source', 'source', duplicate=0)
-SConscript (root_build_dir+'source/SConscript')
-
-libpath = (['#'+root_build_dir+'/lib'])
-
-link_env = library_env.Copy ()
-link_env.Append (LIBPATH=libpath)
+if enable_clean==0:
+	Export ('cflags')
+	Export ('defines')
+	Export ('window_system')
+	Export ('extra_includes')
+	Export ('user_options_dict')
+	Export ('library_env')
+	
+	BuildDir (root_build_dir+'/extern', 'extern', duplicate=0)
+	SConscript (root_build_dir+'extern/SConscript')
+	BuildDir (root_build_dir+'/intern', 'intern', duplicate=0)
+	SConscript (root_build_dir+'intern/SConscript')
+	BuildDir (root_build_dir+'/source', 'source', duplicate=0)
+	SConscript (root_build_dir+'source/SConscript')
+	
+	libpath = (['#'+root_build_dir+'/lib'])
+	
+	link_env = library_env.Copy ()
+	link_env.Append (LIBPATH=libpath)
 
 def common_libs(env):
 	"""
@@ -1322,21 +1338,33 @@ def printadd(env, target, source):
 def noaction(env, target, source):
 	print "Empty action"
 
+#~ def cleanaction(env, target, source):
+	#~ import shutil
+	#~ print
+	#~ print "start the clean"
+	#~ dirs = os.listdir(dir2clean)
+	#~ for dir in dirs:
+		#~ if os.path.isdir(dir2clean + "/" + dir) == 1:
+			#~ print "clean dir %s"%(dir2clean+"/" + dir)
+			#~ shutil.rmtree(dir2clean+"/" + dir)
+	#~ print "done"
+
 def DoClean(dir2clean):
 	"""
 	Do a removal of the root_build_dir the fast way
 	"""
+	#clean_env = Environment()
+	#cleanit = clean_env.Command('theclean', 'blender$PROGSUFFIX', cleanaction)
+	#clean_env.Alias("clean", cleanit)
+	
 	import shutil
-
-	print "distcleaning... %s"%dir2clean
+	print
+	print "start the clean"
 	dirs = os.listdir(dir2clean)
 	for dir in dirs:
 		if os.path.isdir(dir2clean + "/" + dir) == 1:
 			print "clean dir %s"%(dir2clean+"/" + dir)
 			shutil.rmtree(dir2clean+"/" + dir)
-		else:
-			print "clean file %s"%(dir2clean+"/" + dir)
-			os.remove(dir2clean+"/" + dir)
 	print "done"
 
 def BlenderDefault(target):
@@ -1478,99 +1506,103 @@ def BlenderRelease(target):
 			release_env.Depends(releaseit, 'blenderplayer$PROGSUFFIX')
 		release_env.Alias("release", releaseit)
 
-if user_options_dict['BUILD_BLENDER_DYNAMIC'] == 1:
-	dy_blender = link_env.Copy ()
-	if sys.platform=='win32':
-		winblenderres(dy_blender)
-	blender_libs(dy_blender)
-	common_libs(dy_blender)
-	international_libs(dy_blender)
-	ketsji_libs(dy_blender)
-	system_libs(dy_blender)
-	dy_blender.Append (LIBS=user_options_dict['OPENGL_LIBRARY'])
-	dy_blender.Append (LIBPATH=user_options_dict['OPENGL_LIBPATH'])
-	dy_blender.Append (CPPPATH=user_options_dict['OPENGL_INCLUDE'])
-	d_obj = buildinfo(dy_blender, "dynamic")
-	if sys.platform == 'win32':
-		dy_blender.Program (target='blender',
-					source=d_obj + ['source/icons/winblender.res'])
-	else:
-		if sys.platform == 'cygwin':
-			dy_blender.Replace (CC='g++')
-		dy_blender.Program (target='blender', source=d_obj)
-
-if user_options_dict['BUILD_BLENDER_STATIC'] == 1:
-	st_blender = link_env.Copy ()
-	if sys.platform=='win32':
-		winblenderres(st_blender)
-	blender_libs(st_blender)
-	common_libs(st_blender)
-	international_libs(st_blender)
-	ketsji_libs(st_blender)
-	system_libs(st_blender)
-	# The next line is to make sure that the LINKFLAGS are appended at the end
-	# of the link command. This 'trick' is needed because the GL and GLU static
-	# libraries need to be at the end of the command.
-	st_blender.Replace(LINKCOM="$LINK -o $TARGET $SOURCES $_LIBDIRFLAGS $_LIBFLAGS $LINKFLAGS")
-	s_obj = buildinfo(st_blender, "static")
-	st_blender.Append (LINKFLAGS=user_options_dict['OPENGL_STATIC'])
-	st_blender.Append (CPPPATH=user_options_dict['OPENGL_INCLUDE'])
-	st_blender.Prepend (LIBPATH=['/usr/lib/opengl/xfree/lib'])
-	st_blender.Program (target='blenderstatic', source=s_obj)
-
-if sys.platform=='win32':
-    if user_options_dict['BUILD_BINARY']=='debug':
-        browser = Environment()
-        browser_tmp = root_build_dir+'bscmake.tmp'
-        browser.Command ('blender.bsc', 'blender$PROGSUFFIX',
-            ['dir /b/s '+root_build_dir+'*.sbr >'+browser_tmp,
-             'bscmake /nologo /n /oblender.bsc @'+browser_tmp,
-             'del '+browser_tmp])
-
-if user_options_dict['BUILD_BLENDER_PLAYER'] == 1 and user_options_dict['BUILD_GAMEENGINE'] == 1:
-	player_blender = link_env.Copy()
-	player_libs(player_blender)
-	common_libs(player_blender)
-	international_libs(player_blender)
-	ketsji_libs(player_blender)
-	player_libs2(player_blender)
-	system_libs(player_blender)
-	player_blender.Append (LIBS=user_options_dict['OPENGL_LIBRARY'])
-	player_blender.Append (LIBPATH=user_options_dict['OPENGL_LIBPATH'])
-	player_blender.Append (CPPPATH=user_options_dict['OPENGL_INCLUDE'])
-	d_obj = buildinfo(player_blender, "player")
-	if sys.platform == 'win32':
-		player_blender.Program (target='blenderplayer',
-					source=d_obj + ['source/icons/winblender.res'])
-	else:
-		if sys.platform == 'cygwin':
-			player_blender.Replace (CC='g++')
-		player_blender.Program (target='blenderplayer', source=d_obj)
+if enable_clean == 0:
+	if user_options_dict['BUILD_BLENDER_DYNAMIC'] == 1:
+		dy_blender = link_env.Copy ()
+		if sys.platform=='win32':
+			winblenderres(dy_blender)
+		blender_libs(dy_blender)
+		common_libs(dy_blender)
+		international_libs(dy_blender)
+		ketsji_libs(dy_blender)
+		system_libs(dy_blender)
+		dy_blender.Append (LIBS=user_options_dict['OPENGL_LIBRARY'])
+		dy_blender.Append (LIBPATH=user_options_dict['OPENGL_LIBPATH'])
+		dy_blender.Append (CPPPATH=user_options_dict['OPENGL_INCLUDE'])
+		d_obj = buildinfo(dy_blender, "dynamic")
+		if sys.platform == 'win32':
+			dy_blender.Program (target='blender',
+						source=d_obj + ['source/icons/winblender.res'])
+		else:
+			if sys.platform == 'cygwin':
+				dy_blender.Replace (CC='g++')
+			dy_blender.Program (target='blender', source=d_obj)
+	
+	if user_options_dict['BUILD_BLENDER_STATIC'] == 1:
+		st_blender = link_env.Copy ()
+		if sys.platform=='win32':
+			winblenderres(st_blender)
+		blender_libs(st_blender)
+		common_libs(st_blender)
+		international_libs(st_blender)
+		ketsji_libs(st_blender)
+		system_libs(st_blender)
+		# The next line is to make sure that the LINKFLAGS are appended at the end
+		# of the link command. This 'trick' is needed because the GL and GLU static
+		# libraries need to be at the end of the command.
+		st_blender.Replace(LINKCOM="$LINK -o $TARGET $SOURCES $_LIBDIRFLAGS $_LIBFLAGS $LINKFLAGS")
+		s_obj = buildinfo(st_blender, "static")
+		st_blender.Append (LINKFLAGS=user_options_dict['OPENGL_STATIC'])
+		st_blender.Append (CPPPATH=user_options_dict['OPENGL_INCLUDE'])
+		st_blender.Prepend (LIBPATH=['/usr/lib/opengl/xfree/lib'])
+		st_blender.Program (target='blenderstatic', source=s_obj)
+	
 	if sys.platform=='win32':
 		if user_options_dict['BUILD_BINARY']=='debug':
 			browser = Environment()
 			browser_tmp = root_build_dir+'bscmake.tmp'
-			browser.Command ('blenderplayer.bsc', 'blenderplayer$PROGSUFFIX',
-			['dir /b/s '+root_build_dir+'*.sbr >'+browser_tmp,
-			'bscmake /nologo /n /oblenderplayer.bsc @'+browser_tmp,
-			'del '+browser_tmp])
+			browser.Command ('blender.bsc', 'blender$PROGSUFFIX',
+				['dir /b/s '+root_build_dir+'*.sbr >'+browser_tmp,
+				 'bscmake /nologo /n /oblender.bsc @'+browser_tmp,
+				 'del '+browser_tmp])
+	
+	if user_options_dict['BUILD_BLENDER_PLAYER'] == 1 and user_options_dict['BUILD_GAMEENGINE'] == 1:
+		player_blender = link_env.Copy()
+		player_libs(player_blender)
+		common_libs(player_blender)
+		international_libs(player_blender)
+		ketsji_libs(player_blender)
+		player_libs2(player_blender)
+		system_libs(player_blender)
+		player_blender.Append (LIBS=user_options_dict['OPENGL_LIBRARY'])
+		player_blender.Append (LIBPATH=user_options_dict['OPENGL_LIBPATH'])
+		player_blender.Append (CPPPATH=user_options_dict['OPENGL_INCLUDE'])
+		d_obj = buildinfo(player_blender, "player")
+		if sys.platform == 'win32':
+			player_blender.Program (target='blenderplayer',
+						source=d_obj + ['source/icons/winblender.res'])
+		else:
+			if sys.platform == 'cygwin':
+				player_blender.Replace (CC='g++')
+			player_blender.Program (target='blenderplayer', source=d_obj)
+		if sys.platform=='win32':
+			if user_options_dict['BUILD_BINARY']=='debug':
+				browser = Environment()
+				browser_tmp = root_build_dir+'bscmake.tmp'
+				browser.Command ('blenderplayer.bsc', 'blenderplayer$PROGSUFFIX',
+				['dir /b/s '+root_build_dir+'*.sbr >'+browser_tmp,
+				'bscmake /nologo /n /oblenderplayer.bsc @'+browser_tmp,
+				'del '+browser_tmp])
 
-release_target = env.Alias("release", BlenderRelease('blender$PROGSUFFIX'))
-default_target = env.Alias("default", BlenderDefault('blender$PROGSUFFIX'))
-wininst_target = env.Alias("winist", BlenderNSIS('blender$PROGSUFFIX'))
-distclean_target = env.Alias("clean", DoClean(root_build_dir))
+	release_target = env.Alias("release", BlenderRelease('blender$PROGSUFFIX'))
+	default_target = env.Alias("default", BlenderDefault('blender$PROGSUFFIX'))
+	wininst_target = env.Alias("winist", BlenderNSIS('blender$PROGSUFFIX'))
+else:
+	clean_target = env.Alias("clean", DoClean(root_build_dir))
+	Default("clean")
 
-Default("default")
+if enable_clean == 0:
+	Default("default")
 
-if sys.platform == 'win32':
+	if sys.platform == 'win32':
+		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
+			env.Depends(wininst_target, 'blenderplayer$PROGSUFFIX')
+		env.Depends(wininst_target, 'blender$PROGSUFFIX')
+	
 	if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
-		env.Depends(wininst_target, 'blenderplayer$PROGSUFFIX')
-	env.Depends(wininst_target, 'blender$PROGSUFFIX')
-
-if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
-	env.Depends(release_target, 'blenderplayer$PROGSUFFIX')
-env.Depends(release_target, 'blender$PROGSUFFIX')
-
-if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
-	env.Depends(default_target, 'blenderplayer$PROGSUFFIX')
-env.Depends(default_target, 'blender$PROGSUFFIX')
+		env.Depends(release_target, 'blenderplayer$PROGSUFFIX')
+	env.Depends(release_target, 'blender$PROGSUFFIX')
+	
+	if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
+		env.Depends(default_target, 'blenderplayer$PROGSUFFIX')
+	env.Depends(default_target, 'blender$PROGSUFFIX')
