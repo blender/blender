@@ -152,7 +152,8 @@ char *language_pup(void)
 }
 
 
-LANGMenuEntry *find_language(short langid){
+LANGMenuEntry *find_language(short langid)
+{
 	LANGMenuEntry *lme = langmenu;
 
 	while(lme) {
@@ -165,7 +166,8 @@ LANGMenuEntry *find_language(short langid){
 }
 
 
-void lang_setlanguage(void) {
+void lang_setlanguage(void) 
+{
 	LANGMenuEntry *lme;
 
 	lme = find_language(U.language);
@@ -173,26 +175,31 @@ void lang_setlanguage(void) {
 	else FTF_SetLanguage("en_US");
 }
 
-
-void set_interface_font(char *str) {
+/* called from fileselector */
+void set_interface_font(char *str) 
+{
 	char di[FILE_MAXDIR];
 
-	if(FTF_SetFont(str, U.fontsize)) {
-		lang_setlanguage();
-		BLI_split_dirfile(str, di, U.fontname);
-
-		if(strlen(di) < FILE_MAXDIR) strcpy(U.fontdir, di);
-
-		G.ui_international = TRUE;
-	} else {
-		sprintf(U.fontname, "Invalid font.");
-		G.ui_international = FALSE;
+	/* this test needed because fileselect callback can happen after disable AA fonts */
+	if(U.transopts & USER_DOTRANSLATE) {
+		if(FTF_SetFont(str, U.fontsize)) {
+			lang_setlanguage();
+			BLI_split_dirfile(str, di, U.fontname);
+	
+			if(strlen(di) < FILE_MAXDIR) strcpy(U.fontdir, di);
+	
+			G.ui_international = TRUE;
+		} else {
+			sprintf(U.fontname, "Invalid font.");
+			G.ui_international = FALSE;
+		}
+		allqueue(REDRAWALL, 0);
 	}
-	allqueue(REDRAWALL, 0);
 }
 
 
-void start_interface_font(void) {
+void start_interface_font(void) 
+{
 	char tstr[FILE_MAXDIR+FILE_MAXFILE];
 	int result = 0;
 #ifdef __APPLE__
@@ -264,7 +271,8 @@ void start_interface_font(void) {
 }
 
 
-char *first_dpointchar(char *string) {
+char *first_dpointchar(char *string) 
+{
 	char *dpointchar;
 	
 	dpointchar= strchr(string, ':');	
@@ -321,7 +329,8 @@ void puplang_insert_entry(char *line)
 }
 
 
-int read_languagefile(void) {
+int read_languagefile(void) 
+{
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 	LinkNode *l, *lines;
 #ifdef WIN32
