@@ -396,8 +396,6 @@ int BPY_txt_do_python(struct SpaceText* st)
 
   if (!st->text) return 0;
 
-	PyErr_Clear();
-
 	/* check if this text is already running */
 	while (script) {
 		if (!strcmp(script->id.name+2, st->text->id.name+2)) {
@@ -487,8 +485,6 @@ int BPY_menu_do_python(short menutype, int event)
 	pym = BPyMenu_GetEntry(menutype, (short)event);
 
 	if (!pym) return 0;
-
-	PyErr_Clear();
 
 	if (pym->version > G.version)
 		notice ("Version mismatch: script was written for Blender %d. "
@@ -631,6 +627,11 @@ void BPY_free_compiled_text(struct Text* text)
 void BPY_free_finished_script(Script *script)
 {
 	if (!script) return;
+
+	if (PyErr_Occurred()) { /* if script ended after filesel */
+		PyErr_Print(); /* eventual errors are handled now */
+		error ("Python script error: check console");
+	}
 
 	free_libblock(&G.main->script, script);
 	return;

@@ -117,6 +117,8 @@ class Material:
    that range: if val < Min, then val = Min, if val > Max, then val = Max.
   """
 
+  import Texture
+
   def getName():
     """
     Get the name of this Material object.
@@ -470,4 +472,31 @@ class Material:
     Set the number of rings on each halo.
     @type nrings: int
     @param nrings: The new value in [0, 24].
+    """
+
+  def setTexture(index, texture, texco, mapto):
+    """
+    Assign a Blender Texture object to slot number 'number'.
+    @type index: int
+    @param index: material's texture index in [0, 7].
+    @type texture: Blender Texture
+    @param texture: a Blender Texture object.
+    @type texco: int
+    @param texco: optional or'ed bitflag -- defaults to TexCo.ORCO.  See TexCo var in L{Texture}.
+    @type mapto: int
+    @param mapto: optional or'ed bitflag -- defaults to MapTo.COL.  See MapTo var in L{Texture}.
+    """
+
+  def clearTexture(index):
+    """
+    Clear the ith (given by 'index') texture channel of this material.
+    @type index: int
+    @param index: material's texture channel index in [0, 7].
+    """
+
+  def getTextures ():
+    """
+    Get this Material's Texture list.
+    @rtype: list
+    @return: a list of Blender Textures.  None is returned for each empty texture slot.
     """
