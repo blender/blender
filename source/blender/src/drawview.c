@@ -885,6 +885,7 @@ void do_viewbuts(unsigned short event)
 		
 	case B_BLENDBGPIC:
 		if(vd->bgpic && vd->bgpic->rect) setalpha_bgpic(vd->bgpic);
+		addqueue(curarea->win, REDRAW, 1);
 		break;
 		
 	case B_BGPICBROWSE:
@@ -997,7 +998,7 @@ static void view3d_panel_settings(short action)	// VIEW3D_HANDLER_SETTINGS
 	
 	if(vd->bgpic) {
 		
-		uiDefButF(block, NUM, B_DIFF, "Size:", 				160,160,150,20, &vd->bgpic->size, 0.1, 250.0, 100, 0, "Set the size for the width of the BackGroundPic");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "Size:", 		160,160,150,20, &vd->bgpic->size, 0.1, 250.0, 100, 0, "Set the size for the width of the BackGroundPic");
 		
 		id= (ID *)vd->bgpic->ima;
 		IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->image), id, &(G.buts->menunr));
@@ -1031,12 +1032,12 @@ static void view3d_panel_settings(short action)	// VIEW3D_HANDLER_SETTINGS
 		}
 	}
 
-	uiDefButF(block, NUM, B_DIFF, "Grid:",				10, 50, 150, 19, &vd->grid, 0.001, 1000.0, 10, 0, "Set the distance between gridlines");
-	uiDefButS(block, NUM, B_DIFF, "GridLines:",			160, 50, 150, 19, &vd->gridlines, 0.0, 100.0, 100, 0, "Set the number of gridlines");
-	uiDefButF(block, NUM, B_DIFF, "Lens:",				10, 30, 150, 19, &vd->lens, 10.0, 120.0, 100, 0, "Set the lens for the perspective view");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Grid:",			10, 50, 150, 19, &vd->grid, 0.001, 100.0, 10, 0, "Set the distance between gridlines");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "GridLines:",		160, 50, 150, 19, &vd->gridlines, 0.0, 100.0, 100, 0, "Set the number of gridlines");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Lens:",			10, 30, 150, 19, &vd->lens, 10.0, 120.0, 100, 0, "Set the lens for the perspective view");
 	
-	uiDefButF(block, NUM, B_DIFF, "ClipStart:",			10, 10, 150, 19, &vd->near, 0.1*vd->grid, 100.0, 100, 0, "Set startvalue in perspective view mode");
-	uiDefButF(block, NUM, B_DIFF, "ClipEnd:",			160, 10, 150, 19, &vd->far, 1.0, 1000.0*vd->grid, 100, 0, "Set endvalue in perspective view mode");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "ClipStart:",		10, 10, 150, 19, &vd->near, vd->grid, 100.0, 100, 0, "Set startvalue in perspective view mode");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "ClipEnd:",			160, 10, 150, 19, &vd->far, 1.0, 1000.0*vd->grid, 100, 0, "Set endvalue in perspective view mode");
 
 
 }

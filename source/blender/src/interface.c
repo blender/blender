@@ -6677,7 +6677,14 @@ static void ui_draw_panel_header(uiBlock *block)
 
 static void ui_draw_panel(uiBlock *block)
 {
+	int align=0;
+	
 	if(block->panel->paneltab) return;
+
+	if(curarea->spacetype==SPACE_BUTS) {
+		SpaceButs *sbuts= curarea->spacedata.first;
+		align= sbuts->align;
+	}
 	
 	if(block->panel->flag & PNL_CLOSEDY) {
 		uiSetRoundBox(15);
@@ -6745,9 +6752,9 @@ static void ui_draw_panel(uiBlock *block)
 			glColor4ub(198, 198, 198, 100);
 			glRectf(block->minx, block->miny, block->maxx, block->maxy);
 
-			if(G.buts->align) {
+			if(align) {
 				glColor4ub(206, 206, 206, 100);
-				if(G.buts->align==BUT_HORIZONTAL) ui_set_panel_pattern('h');
+				if(align==BUT_HORIZONTAL) ui_set_panel_pattern('h');
 				else ui_set_panel_pattern('v');
 	
 				glRectf(block->minx, block->miny, block->maxx, block->maxy);

@@ -309,8 +309,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 {
 	uiBut *but;
 	char typestr[64];
-	short height, width = 268;
+	short height, width = 238;
 	BIFColorID curCol;
+
+	/* there is something weird in this function... opengl draw (glrects) doesnt match the buttons... */
 
 	uiBlockSetEmboss(block, UI_EMBOSSW);
 
@@ -352,7 +354,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		else
 			BIF_set_color(curCol, COLORSHADE_MEDIUM);
 
-		glRects(*xco+20, *yco, *xco+248, *yco+20);
+		glRects(*xco+34, *yco-12, *xco+266, *yco+5);
 		
 		but = uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, *xco+20, *yco, 100, 20, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 		uiButSetFunc(but, move_constraint_func, con, NULL);
@@ -389,9 +391,9 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 			bArmature *arm;
 
 			height = 86;
-			BIF_set_color(curCol, COLORSHADE_GREY);
-			glRects(*xco, *yco-height, *xco+width, *yco);
-			uiEmboss((float)*xco, (float)*yco-height, (float)*xco+width, (float)*yco, 1);
+			BIF_set_color(curCol, COLORSHADE_MEDIUM);
+			glRects(*xco+34, *yco-height-16, *xco+width+24, *yco-14);
+			uiEmboss((float)*xco+34, (float)*yco-height-16, (float)*xco+width+24, (float)*yco-14, 1);
 
 			/* Draw target parameters */
 			uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-20, 96, 18, &data->tar, "Target Object"); 
@@ -421,9 +423,9 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 			bLocateLikeConstraint *data = con->data;
 			bArmature *arm;
 			height = 66;
-			BIF_set_color(curCol, COLORSHADE_GREY);
-			glRects(*xco, *yco-height, *xco+width, *yco);
-			uiEmboss((float)*xco, (float)*yco-height, (float)*xco+width, (float)*yco, 1);
+			BIF_set_color(curCol, COLORSHADE_MEDIUM);
+			glRects(*xco+34, *yco-height-16, *xco+width+24, *yco-14);
+			uiEmboss((float)*xco+34, (float)*yco-height-16, (float)*xco+width+24, (float)*yco-14, 1);
 
 			/* Draw target parameters */
 			uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-20, 96, 18, &data->tar, "Target Object"); 
@@ -446,9 +448,9 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 			bRotateLikeConstraint *data = con->data;
 			bArmature *arm;
 			height = 46;
-			BIF_set_color(curCol, COLORSHADE_GREY);
-			glRects(*xco, *yco-height, *xco+width, *yco);
-			uiEmboss((float)*xco, (float)*yco-height, (float)*xco+width, (float)*yco, 1);
+			BIF_set_color(curCol, COLORSHADE_MEDIUM);
+			glRects(*xco+34, *yco-height-16, *xco+width+24, *yco-14);
+			uiEmboss((float)*xco+34, (float)*yco-height-16, (float)*xco+width+24, (float)*yco-14, 1);
 
 			uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-20, 96, 18, &data->tar, "Target Object"); 
 
@@ -467,9 +469,9 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 			bArmature *arm;
 			
 			height = 66;
-			BIF_set_color(curCol, COLORSHADE_GREY);
-			glRects(*xco, *yco-height, *xco+width, *yco);
-			uiEmboss((float)*xco, (float)*yco-height, (float)*xco+width, (float)*yco, 1);
+			BIF_set_color(curCol, COLORSHADE_MEDIUM);
+			glRects(*xco+34, *yco-height-16, *xco+width+24, *yco-14);
+			uiEmboss((float)*xco+34, (float)*yco-height-16, (float)*xco+width+24, (float)*yco-14, 1);
 			
 			uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Tolerance:", *xco+((width/2)-96), *yco-20, 96, 18, &data->tolerance, 0.0001, 1.0, 0.0, 0.0, "Maximum distance to target after solving"); 
 			uiDefButI(block, NUM, B_CONSTRAINT_REDRAW, "Iterations:", *xco+((width/2)), *yco-20, 96, 18, &data->iterations, 1, 10000, 0.0, 0.0, "Maximum number of solving iterations"); 
@@ -488,9 +490,9 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	case CONSTRAINT_TYPE_NULL:
 		{
 			height = 20;
-			BIF_set_color(curCol, COLORSHADE_GREY);
-			glRects(*xco, *yco-height, *xco+width, *yco);
-			uiEmboss((float)*xco, (float)*yco-height, (float)*xco+width, (float)*yco, 1);
+			BIF_set_color(curCol, COLORSHADE_MEDIUM);
+			glRects(*xco+34, *yco-height-16, *xco+width+24, *yco-14);
+			uiEmboss((float)*xco+34, (float)*yco-height-16, (float)*xco+width+24, (float)*yco-14, 1);
 		}
 		break;
 	case CONSTRAINT_TYPE_TRACKTO:
@@ -499,9 +501,9 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 			bArmature *arm;
 
 			height = 46;
-			BIF_set_color(curCol, COLORSHADE_GREY);
-			glRects(*xco, *yco-height, *xco+width, *yco);
-			uiEmboss((float)*xco, (float)*yco-height, (float)*xco+width, (float)*yco, 1);
+			BIF_set_color(curCol, COLORSHADE_MEDIUM);
+			glRects(*xco+34, *yco-height-16, *xco+width+24, *yco-14);
+			uiEmboss((float)*xco+34, (float)*yco-height-16, (float)*xco+width+24, (float)*yco-14, 1);
 			
 			uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-20, 96, 18, &data->tar, "Target Object"); 
 			
@@ -593,7 +595,7 @@ static void object_panel_constraint(void)
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_constraint", UI_EMBOSSX, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Effects", "Object");
-	if(uiNewPanel(curarea, block, "Constraints", "Object", 10, 640, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Constraints", "Object", 640, 0, 318, 204)==0) return;
 
 	/* this is a variable height panel, newpanel doesnt force new size on existing panels */
 	/* so first we make it default height */

@@ -1435,7 +1435,6 @@ static void closeheadwin(ScrArea *sa)
 static void closeareawin(ScrArea *sa)
 {
 	uiFreeBlocksWin(&sa->uiblocks, sa->win);
-	uiFreePanels(&sa->panels);
 	
 	if(sa->win) mywinclose(sa->win);
 	sa->win= 0;
@@ -1449,6 +1448,7 @@ static void del_area(ScrArea *sa)
 	freespacelist(&sa->spacedata);
 	
 	uiFreeBlocks(&sa->uiblocks);
+	uiFreePanels(&sa->panels);
 	
 	if(sa==curarea) curarea= 0;
 	if(sa==g_activearea) g_activearea= 0;
