@@ -1447,11 +1447,17 @@ static int ui_do_but_NUM(uiBut *but)
 		BIF_wait_for_statechange();
 	}
 	
+	/* click on the side arrows to increment/decrement, click inside
+	 * to edit the value directly */
 	if(pos==0) {  /* plus 1 or minus 1 */
 		if( but->pointype!=FLO ) {
 
-			if(sx<(but->x1+but->x2)/2) temp--;
-			else temp++;
+			if(sx < (but->x1 + (but->x2 - but->x1)/3 - 3)) temp--;
+			else if(sx > (but->x1 + (2*(but->x2 - but->x1)/3) + 3)) temp++;
+			else {
+				if( uiActAsTextBut(but) ) return but->retval;
+				else return 0;
+			}
 			
 			if( temp>=but->min && temp<=but->max)
 				ui_set_but_val(but, (double)temp);
@@ -1459,8 +1465,12 @@ static int ui_do_but_NUM(uiBut *but)
 		}
 		else {
 		
-			if(sx<(but->x1+but->x2)/2) tempf-= 0.01*but->a1;
-				else tempf+= 0.01*but->a1;
+			if(sx < (but->x1 + (but->x2 - but->x1)/3 - 3)) tempf-= 0.01*but->a1;
+			else if(sx > but->x1 + (2*((but->x2 - but->x1)/3) + 3)) tempf+= 0.01*but->a1;
+			else {
+				if( uiActAsTextBut(but) ) return but->retval;
+				else return 0;
+			}
 
 			if (tempf < but->min) tempf = but->min;
 			if (tempf > but->max) tempf = but->max;
