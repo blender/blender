@@ -336,10 +336,10 @@ ifeq ($(OS),$(findstring $(OS), "freebsd linux windows"))
     ifeq ($(OS),windows)
       NAN_SND_LIBS = $(OCGDIR)/gameengine/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
       NAN_SND_LIBS += $(OCGDIR)/gameengine/DummySoundSystem/$(DEBUG_DIR)libDummySoundSystem.a
-#      NAN_SND_LIBS += $(OCGDIR)/gameengine/OpenALSoundSystem/$(DEBUG_DIR)libOpenALSoundSystem.a
-#      NAN_SND_LIBS += $(NAN_OPENAL)/lib/openal_static.lib
-      NAN_SND_LIBS += $(OCGDIR)/gameengine/FmodSoundSystem/$(DEBUG_DIR)libFmodSoundSystem.a
-      NAN_SND_LIBS += $(NAN_FMOD)/lib/fmodvc.lib
+      NAN_SND_LIBS += $(OCGDIR)/gameengine/OpenALSoundSystem/$(DEBUG_DIR)libOpenALSoundSystem.a
+      NAN_SND_LIBS += $(NAN_OPENAL)/lib/openal_static.lib
+#      NAN_SND_LIBS += $(OCGDIR)/gameengine/FmodSoundSystem/$(DEBUG_DIR)libFmodSoundSystem.a
+#      NAN_SND_LIBS += $(NAN_FMOD)/lib/fmodvc.lib
       NAN_SND_LIBS += $(OCGDIR)/gameengine/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
     else
       NAN_SND_LIBS = $(OCGDIR)/gameengine/SoundSystem/$(DEBUG_DIR)libSoundSystem.a

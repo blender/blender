@@ -35,7 +35,7 @@
  */
 
 #if defined (_WIN32)
-#define USE_FMOD
+#define USE_OPENAL
 #elif defined (__linux__)
 #	if defined (__i386__)
 #		define USE_OPENAL
