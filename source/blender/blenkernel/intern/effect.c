@@ -325,7 +325,6 @@ void particle_tex(MTex *mtex, PartEff *paf, float *co, float *no)
 		no[0]+= (Tr-0.5f)*paf->texfac;
 		no[1]+= (Tg-0.5f)*paf->texfac;
 		no[2]+= (Tb-0.5f)*paf->texfac;
-		//printf("Test %f %f %f \n", Tr, Tg, Tb);
 	}
 	else {	/* PAF_TEXGRAD */
 		
@@ -1115,6 +1114,7 @@ void build_particle_system(Object *ob)
 		b=(a%c);
 		if (b==0) {
 			printf("\r Particle: %d / %d ", a, totpart);
+			fflush(stdout);
 		}
 		/* set ob at correct time */
 		
@@ -1197,7 +1197,8 @@ void build_particle_system(Object *ob)
 	}
 	
 	printf("\r Particle: %d / %d \n", totpart, totpart);
-
+	fflush(stdout);
+	
 	if(deform) end_latt_deform();
 		
 	/* restore */
