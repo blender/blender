@@ -1,13 +1,7 @@
-bsp_env = Environment()
-
-# Import the C flags set in the SConstruct file
-Import ('cflags')
-Import ('cxxflags')
-Import ('defines')
 Import ('user_options_dict')
-bsp_env.Append (CCFLAGS = cflags)
-bsp_env.Append (CXXFLAGS = cxxflags)
-bsp_env.Append (CPPDEFINES = defines)
+Import ('library_env')
+
+bsp_env = library_env.Copy ()
 
 source_files = ['intern/BSP_CSGHelper.cpp',
                 'intern/BSP_CSGMesh.cpp',

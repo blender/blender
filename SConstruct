@@ -217,8 +217,6 @@ elif sys.platform == 'cygwin':
     sdl_libpath = sdl_env.Dictionary()['LIBPATH']
     sdl_lib = sdl_env.Dictionary()['LIBS']
     #sdl_cflags = '-DWIN32'
-    # We need to force the Cygwin environment to use the g++ linker.
-    link_env.Replace (CC='g++')
     # Python variables.
     python_include = sysconfig.get_python_inc ()
     python_libpath = sysconfig.get_python_lib (0, 1) + '/config'
@@ -521,6 +519,7 @@ if os.path.exists (config_file):
     print "Using config file: " + config_file
 else:
     print "Creating new config file: " + config_file
+    env_dict = env.Dictionary()
     config=open (config_file, 'w')
     config.write ("# Configuration file containing user definable options.\n")
     config.write ("VERSION = '2.32-cvs'\n")
@@ -540,6 +539,13 @@ else:
     config.write ("USE_OPENAL = %r\n"%(use_openal))
     config.write ("USE_FMOD = %r\n"%(use_fmod))
     config.write ("USE_QUICKTIME = %r\n"%(use_quicktime))
+    config.write ("\n# Compiler information.\n")
+    config.write ("HOST_CC = %r\n"%(env_dict['CC']))
+    config.write ("HOST_CXX = %r\n"%(env_dict['CXX']))
+    config.write ("TARGET_CC = %r\n"%(env_dict['CC']))
+    config.write ("TARGET_CXX = %r\n"%(env_dict['CXX']))
+    config.write ("TARGET_AR = %r\n"%(env_dict['AR']))
+    config.write ("PATH = %r\n"%(os.environ['PATH']))
     config.write ("\n# External library information.\n")
     config.write ("PYTHON_INCLUDE = %r\n"%(python_include))
     config.write ("PYTHON_LIBPATH = %r\n"%(python_libpath))
@@ -634,6 +640,12 @@ user_options.AddOptions (
         (BoolOption ('USE_QUICKTIME',
                      'Set to 1 to add support for QuickTime.',
                      'false')),
+        ('HOST_CC', 'C compiler for the host platfor. This is the same as target platform when not cross compiling.'),
+        ('HOST_CXX', 'C++ compiler for the host platform. This is the same as target platform when not cross compiling.'),
+        ('TARGET_CC', 'C compiler for the target platform.'),
+        ('TARGET_CXX', 'C++ compiler for the target platform.'),
+        ('TARGET_AR', 'Linker command for linking libraries.'),
+        ('PATH', 'Standard search path'),
         ('PYTHON_INCLUDE', 'Include directory for Python header files.'),
         ('PYTHON_LIBPATH', 'Library path where the Python lib is located.'),
         ('PYTHON_LIBRARY', 'Python library name.'),
@@ -701,18 +713,31 @@ else:
         platform_linkflags += ['/DEBUG','/PDB:blender.pdb']
 
 #-----------------------------------------------------------------------------
+# Generic library generation environment. This one is the basis for each
+# library.
+#-----------------------------------------------------------------------------
+library_env = Environment ()
+library_env.Replace (CC = user_options_dict['TARGET_CC'])
+library_env.Replace (CXX = user_options_dict['TARGET_CXX'])
+library_env.Replace (PATH = user_options_dict['PATH'])
+library_env.Replace (AR = user_options_dict['TARGET_AR'])
+library_env.Append (CCFLAGS = cflags)
+library_env.Append (CXXFLAGS = cxxflags)
+library_env.Append (CPPDEFINES = defines)
+
+#-----------------------------------------------------------------------------
 # Settings to be exported to other SConscript files
 #-----------------------------------------------------------------------------
 
 Export ('cflags')
 Export ('defines')
-Export ('cxxflags')
 Export ('window_system')
 Export ('extra_includes')
 Export ('platform_libs')
 Export ('platform_libpath')
 Export ('platform_linkflags')
 Export ('user_options_dict')
+Export ('library_env')
 
 BuildDir (root_build_dir+'/intern', 'intern', duplicate=0)
 SConscript (root_build_dir+'intern/SConscript')
@@ -757,7 +782,13 @@ libraries = (['blender_creator',
 
 link_env.Append (LIBS=libraries)
 link_env.Append (LIBPATH=libpath)
-link_env.Append (CPPDEFINES=defines)
+link_env.Replace (CC = user_options_dict['TARGET_CC'])
+link_env.Replace (CXX = user_options_dict['TARGET_CXX'])
+link_env.Replace (PATH = user_options_dict['PATH'])
+link_env.Replace (AR = user_options_dict['TARGET_AR'])
+link_env.Append (CCFLAGS = cflags)
+link_env.Append (CXXFLAGS = cxxflags)
+link_env.Append (CPPDEFINES = defines)
 
 if user_options_dict['USE_INTERNATIONAL'] == 1:
     link_env.Append (LIBS=user_options_dict['FREETYPE_LIBRARY'])
@@ -837,7 +868,6 @@ if user_options_dict['BUILD_BLENDER_DYNAMIC'] == 1:
                                          'BUILD_TYPE=\'"dynamic"\'',
                                          'NAN_BUILDINFO',
                                          'BUILD_PLATFORM=\'"%s"\''%(sys.platform)])
-    dy_blender.Append (CCFLAGS=cflags)
     d_obj = [dy_blender.Object (root_build_dir+'source/creator/d_buildinfo',
                                 [root_build_dir+'source/creator/buildinfo.c'])]
     if sys.platform == 'win32':
@@ -847,13 +877,16 @@ if user_options_dict['BUILD_BLENDER_DYNAMIC'] == 1:
         dy_blender.Program (target='blender', source=d_obj)
 if user_options_dict['BUILD_BLENDER_STATIC'] == 1:
     st_blender = link_env.Copy ()
+    # The next line is to make sure that the LINKFLAGS are appended at the end
+    # of the link command. This 'trick' is needed because the GL and GLU static
+    # libraries need to be at the end of the command.
+    st_blender.Replace(LINKCOM="$LINK -o $TARGET $SOURCES $_LIBDIRFLAGS $_LIBFLAGS $LINKFLAGS")
     if user_options_dict['USE_BUILDINFO'] == 1:
         st_blender.Append (CPPDEFINES = ['BUILD_TIME=\'"%s"\''%(build_time),
                                          'BUILD_DATE=\'"%s"\''%(build_date),
                                          'BUILD_TYPE=\'"static"\'',
                                          'NAN_BUILDINFO',
                                          'BUILD_PLATFORM=\'"%s"\''%(sys.platform)])
-    st_blender.Append (CCFLAGS=cflags)
     st_blender.Append (LINKFLAGS=user_options_dict['OPENGL_STATIC'])
     s_obj = [st_blender.Object (root_build_dir+'source/creator/s_buildinfo',
                                 [root_build_dir+'source/creator/buildinfo.c'])]

@@ -1,14 +1,7 @@
-phy_sumo_env = Environment()
-
-# Import the C flags set in the SConstruct file
-Import ('cflags')
-Import ('cxxflags')
-Import ('defines')
-Import ('solid_include')
 Import ('user_options_dict')
-phy_sumo_env.Append (CCFLAGS = cflags)
-phy_sumo_env.Append (CXXFLAGS = cxxflags)
-phy_sumo_env.Append (CPPDEFINES = defines)
+Import ('library_env')
+
+phy_sumo_env = library_env.Copy ()
 
 source_files = ['SumoPhysicsController.cpp',
                 'SumoPhysicsEnvironment.cpp',
@@ -19,8 +12,9 @@ source_files = ['SumoPhysicsController.cpp',
 phy_sumo_env.Append (CPPPATH = ['.',
                                 '../common',
                                 'Fuzzics/include',
-                                solid_include,
                                 '#/intern/moto/include'
                                ])
+
+phy_sumo_env.Append (CPPPATH = user_options_dict['solid_include'])
 
 phy_sumo_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/PHY_Sumo', source=source_files)

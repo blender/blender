@@ -1,15 +1,8 @@
-inflate_env = Environment ()
-# TODO: add the option to build with Quicktime
-
-# Import the C flags set in the SConstruct file
-Import ('cflags')
-Import ('cxxflags')
-Import ('defines')
 Import ('extra_includes')
 Import ('user_options_dict')
-inflate_env.Append (CCFLAGS = cflags)
-inflate_env.Append (CXXFLAGS = cxxflags)
-inflate_env.Append (CPPDEFINES = defines)
+Import ('library_env')
+
+inflate_env = library_env.Copy ()
 
 source_files = ['intern/BLO_inflate.c']
 

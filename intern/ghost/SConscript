@@ -1,14 +1,8 @@
-ghost_env = Environment()
-
-# Import the C flags set in the SConstruct file
-Import ('cflags')
-Import ('cxxflags')
-Import ('defines')
 Import ('user_options_dict')
+Import ('library_env')
 Import ('window_system')
-ghost_env.Append (CCFLAGS = cflags)
-ghost_env.Append (CXXFLAGS = cxxflags)
-ghost_env.Append (CPPDEFINES = defines)
+
+ghost_env = library_env.Copy ()
 
 source_files = ['intern/GHOST_Buttons.cpp',
                 'intern/GHOST_C-api.cpp',

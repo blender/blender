@@ -1,12 +1,7 @@
-creator_env = Environment ()
-
-Import ('cflags')
-Import ('cxxflags')
-Import ('defines')
 Import ('user_options_dict')
-creator_env.Append (CCFLAGS = cflags)
-creator_env.Append (CXXFLAGS = cxxflags)
-creator_env.Append (CPPDEFINES = defines)
+Import ('library_env')
+
+creator_env = library_env.Copy ()
 
 source_files = ['creator.c']
 

@@ -1,14 +1,8 @@
-avi_env = Environment()
-
-# Import the C flags set in the SConstruct file
-Import ('cflags')
-Import ('cxxflags')
-Import ('defines')
 Import ('extra_includes')
 Import ('user_options_dict')
-avi_env.Append (CCFLAGS = cflags)
-avi_env.Append (CXXFLAGS = cxxflags)
-avi_env.Append (CPPDEFINES = defines)
+Import ('library_env')
+
+avi_env = library_env.Copy ()
 
 source_files = ['intern/avi.c',
                 'intern/avirgb.c',

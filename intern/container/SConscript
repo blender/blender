@@ -1,13 +1,7 @@
-cont_env = Environment()
-
-# Import the C flags set in the SConstruct file
-Import ('cflags')
-Import ('cxxflags')
-Import ('defines')
 Import ('user_options_dict')
-cont_env.Append (CCFLAGS = cflags)
-cont_env.Append (CXXFLAGS = cxxflags)
-cont_env.Append (CPPDEFINES = defines)
+Import ('library_env')
+
+cont_env = library_env.Copy ()
 
 source_files = ['intern/CTR_List.cpp']
 

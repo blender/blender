@@ -1,14 +1,8 @@
-blenlib_env = Environment ()
-
-# Import the C flags set in the SConstruct file
-Import ('cflags')
-Import ('cxxflags')
-Import ('defines')
 Import ('extra_includes')
 Import ('user_options_dict')
-blenlib_env.Append (CCFLAGS = cflags)
-blenlib_env.Append (CXXFLAGS = cxxflags)
-blenlib_env.Append (CPPDEFINES = defines)
+Import ('library_env')
+
+blenlib_env = library_env.Copy ()
 
 source_files = ['intern/BLI_dynstr.c',
                 'intern/BLI_ghash.c',

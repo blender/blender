@@ -1,14 +1,8 @@
-imbuf_env = Environment()
-
-# Import the C flags set in the SConstruct file
-Import ('cflags')
-Import ('cxxflags')
-Import ('defines')
 Import ('extra_includes')
 Import ('user_options_dict')
-imbuf_env.Append (CCFLAGS = cflags)
-imbuf_env.Append (CXXFLAGS = cxxflags)
-imbuf_env.Append (CPPDEFINES = defines)
+Import ('library_env')
+
+imbuf_env = library_env.Copy ()
 
 source_files = ['intern/allocimbuf.c',
                 'intern/amiga.c',

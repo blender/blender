@@ -1,13 +1,7 @@
-iksolver_env = Environment()
-
-# Import the C flags set in the SConstruct file
-Import ('cflags')
-Import ('cxxflags')
-Import ('defines')
 Import ('user_options_dict')
-iksolver_env.Append (CCFLAGS = cflags)
-iksolver_env.Append (CXXFLAGS = cxxflags)
-iksolver_env.Append (CPPDEFINES = defines)
+Import ('library_env')
+
+iksolver_env = library_env.Copy ()
 
 source_files = ['intern/IK_QChain.cpp',
                 'intern/IK_QJacobianSolver.cpp',

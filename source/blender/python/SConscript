@@ -1,14 +1,8 @@
-python_env = Environment ()
-
-# Import the C flags set in the SConstruct file
-Import ('cflags')
-Import ('cxxflags')
-Import ('defines')
 Import ('extra_includes')
 Import ('user_options_dict')
-python_env.Append (CCFLAGS = cflags)
-python_env.Append (CXXFLAGS = cxxflags)
-python_env.Append (CPPDEFINES = defines)
+Import ('library_env')
+
+python_env = library_env.Copy ()
 
 source_files = ['BPY_interface.c',
                 'BPY_menus.c',
@@ -45,8 +39,8 @@ source_files = ['BPY_interface.c',
                 'api2_2x/vector.c',
                 'api2_2x/constant.c',
                 'api2_2x/matrix.c',
-		    'api2_2x/euler.c',
-		    'api2_2x/quat.c',
+                'api2_2x/euler.c',
+                'api2_2x/quat.c',
                 'api2_2x/Mathutils.c',
                 'api2_2x/rgbTuple.c',
                 'api2_2x/gen_utils.c',

@@ -1,13 +1,7 @@
-ng_loopbacknetwork_env = Environment()
-
-# Import the C flags set in the SConstruct file
-Import ('cflags')
-Import ('cxxflags')
-Import ('defines')
 Import ('user_options_dict')
-ng_loopbacknetwork_env.Append (CCFLAGS = cflags)
-ng_loopbacknetwork_env.Append (CXXFLAGS = cxxflags)
-ng_loopbacknetwork_env.Append (CPPDEFINES = defines)
+Import ('library_env')
+
+ng_loopbacknetwork_env = library_env.Copy ()
 
 source_files = ['NG_LoopBackNetworkDeviceInterface.cpp']
 

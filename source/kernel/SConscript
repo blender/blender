@@ -1,13 +1,7 @@
-kernel_env = Environment ()
-
-# Import the C flags set in the SConstruct file
-Import ('cflags')
-Import ('cxxflags')
-Import ('defines')
 Import ('user_options_dict')
-kernel_env.Append (CCFLAGS = cflags)
-kernel_env.Append (CXXFLAGS = cxxflags)
-kernel_env.Append (CPPDEFINES = defines)
+Import ('library_env')
+
+kernel_env = library_env.Copy ()
 
 source_files = ['gen_messaging/intern/messaging.c',
                 'gen_system/GEN_HashedPtr.cpp',

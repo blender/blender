@@ -1,13 +1,7 @@
-guardal_env = Environment()
-
-# Import the C flags set in the SConstruct file
-Import ('cflags')
-Import ('cxxflags')
-Import ('defines')
 Import ('user_options_dict')
-guardal_env.Append (CCFLAGS = cflags)
-guardal_env.Append (CXXFLAGS = cxxflags)
-guardal_env.Append (CPPDEFINES = defines)
+Import ('library_env')
+
+guardal_env = library_env.Copy ()
 
 source_files = ['intern/mallocn.c']
 

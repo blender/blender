@@ -1,13 +1,7 @@
-sca_gamelogic_env = Environment()
-
-# Import the C flags set in the SConstruct file
-Import ('cflags')
-Import ('cxxflags')
-Import ('defines')
 Import ('user_options_dict')
-sca_gamelogic_env.Append (CCFLAGS = cflags)
-sca_gamelogic_env.Append (CXXFLAGS = cxxflags)
-sca_gamelogic_env.Append (CPPDEFINES = defines)
+Import ('library_env')
+
+sca_gamelogic_env = library_env.Copy ()
 
 source_files = ['SCA_ANDController.cpp',
                 'SCA_AlwaysEventManager.cpp',

@@ -1,15 +1,10 @@
-quicktime_env = Environment ()
-
-# Import the C flags set in the SConstruct file
-Import ('cflags')
-Import ('cxxflags')
 Import ('extra_includes')
-Import ('defines')
 Import ('user_options_dict')
-quicktime_env.Append (CCFLAGS = cflags)
-quicktime_env.Append (CXXFLAGS = cxxflags)
+Import ('library_env')
+
+quicktime_env = library_env.Copy ()
+
 quicktime_env.Append (CPPPATH = extra_includes)
-quicktime_env.Append (CPPDEFINES = defines)
 
 source_files = ['apple/quicktime_import.c',
                 'apple/quicktime_export.c']

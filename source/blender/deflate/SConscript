@@ -1,14 +1,8 @@
-deflate_env = Environment()
-
-# Import the C flags set in the SConstruct file
-Import ('cflags')
-Import ('cxxflags')
-Import ('defines')
 Import ('extra_includes')
 Import ('user_options_dict')
-deflate_env.Append (CCFLAGS = cflags)
-deflate_env.Append (CXXFLAGS = cxxflags)
-deflate_env.Append (CPPDEFINES = defines)
+Import ('library_env')
+
+deflate_env = library_env.Copy ()
 
 source_files = ['intern/BLO_deflate.c']
 

@@ -1,13 +1,7 @@
-ketsji_env = Environment()
-
-# Import the C flags set in the SConstruct file
-Import ('cflags')
-Import ('cxxflags')
-Import ('defines')
 Import ('user_options_dict')
-ketsji_env.Append (CCFLAGS = cflags)
-ketsji_env.Append (CXXFLAGS = cxxflags)
-ketsji_env.Append (CPPDEFINES = defines)
+Import ('library_env')
+
+ketsji_env = library_env.Copy ()
 
 source_files = ['KX_WorldIpoController.cpp',
                 'KX_WorldInfo.cpp',

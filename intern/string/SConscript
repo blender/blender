@@ -1,13 +1,7 @@
-string_env = Environment ()
-
-# Import the C flags set in the SConstruct file
-Import ('cflags')
-Import ('cxxflags')
-Import ('defines')
 Import ('user_options_dict')
-string_env.Append (CCFLAGS = cflags)
-string_env.Append (CXXFLAGS = cxxflags)
-string_env.Append (CPPDEFINES = defines)
+Import ('library_env')
+
+string_env = library_env.Copy ()
 
 source_files = ['intern/STR_String.cpp']
 

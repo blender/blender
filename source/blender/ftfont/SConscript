@@ -1,9 +1,8 @@
-# Import the C flags set in the SConstruct file
-Import ('cflags')
-Import ('cxxflags')
 Import ('extra_includes')
-Import ('defines')
 Import ('user_options_dict')
+Import ('library_env')
+
+ftf_env = library_env.Copy ()
 
 source_files = ['intern/FTF_Api.cpp',
                 'intern/FTF_TTFont.cpp']
@@ -13,14 +12,10 @@ include_paths = ['.',
                  '../blenlib',
                  '../makesdna']
                  
-ftf_env = Environment()
 ftf_env.Append(CPPPATH = extra_includes)
 ftf_env.Append(CPPPATH = include_paths)
 ftf_env.Prepend (CPPPATH = user_options_dict['FTGL_INCLUDE'])
 ftf_env.Prepend (CPPPATH = user_options_dict['FREETYPE_INCLUDE'])
 ftf_env.Prepend (CPPPATH = user_options_dict['GETTEXT_INCLUDE'])
-ftf_env.Append(CCFLAGS = cflags)
-ftf_env.Append(CXXFLAGS = cxxflags)
-ftf_env.Append(CPPDEFINES = defines)
 ftf_env.Append(CPPDEFINES = 'FTGL_STATIC_LIBRARY')
 ftf_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_FTF', source=source_files)

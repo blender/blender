@@ -1,13 +1,7 @@
-moto_env = Environment()
-
-# Import the C flags set in the SConstruct file
-Import ('cflags')
-Import ('cxxflags')
-Import ('defines')
 Import ('user_options_dict')
-moto_env.Append (CCFLAGS = cflags)
-moto_env.Append (CXXFLAGS = cxxflags)
-moto_env.Append (CPPDEFINES = defines)
+Import ('library_env')
+
+moto_env = library_env.Copy ()
 
 source_files = ['intern/MT_CmMatrix4x4.cpp',
                 'intern/MT_Matrix3x3.cpp',

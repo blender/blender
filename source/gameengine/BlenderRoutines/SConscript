@@ -1,13 +1,7 @@
-kx_blenderhook_env = Environment()
-
-# Import the C flags set in the SConstruct file
-Import ('cflags')
-Import ('cxxflags')
-Import ('defines')
 Import ('user_options_dict')
-kx_blenderhook_env.Append (CCFLAGS = cflags)
-kx_blenderhook_env.Append (CXXFLAGS = cxxflags)
-kx_blenderhook_env.Append (CPPDEFINES = defines)
+Import ('library_env')
+
+kx_blenderhook_env = library_env.Copy ()
 
 source_files = ['KX_BlenderSystem.cpp',
                 'KX_BlenderRenderTools.cpp',

@@ -1,13 +1,7 @@
-kx_network_env = Environment()
-
-# Import the C flags set in the SConstruct file
-Import ('cflags')
-Import ('cxxflags')
-Import ('defines')
 Import ('user_options_dict')
-kx_network_env.Append (CCFLAGS = cflags)
-kx_network_env.Append (CXXFLAGS = cxxflags)
-kx_network_env.Append (CPPDEFINES = defines)
+Import ('library_env')
+
+kx_network_env = library_env.Copy ()
 
 source_files = ['KX_NetworkEventManager.cpp',
                 'KX_NetworkMessageActuator.cpp',

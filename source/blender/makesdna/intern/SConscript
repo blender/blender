@@ -1,7 +1,6 @@
 import sys
 # Import the C flags set in the SConstruct file
 Import ('cflags')
-Import ('cxxflags')
 Import ('defines')
 Import ('platform_libs')
 Import ('platform_libpath')
@@ -29,8 +28,10 @@ makesdna_tool = Environment (CCFLAGS='-DBASE_HEADER="\\"source/blender/makesdna/
 makesdna_tool.Append (CPPPATH = ['#/intern/guardedalloc',
                                  '..'])
 
+makesdna_tool.Replace (CC = user_options_dict['HOST_CC'])
+makesdna_tool.Replace (PATH = user_options_dict['PATH'])
+
 makesdna_tool.Append (CCFLAGS = cflags)
-makesdna_tool.Append (CXXFLAGS = cxxflags)
 makesdna_tool.Append (CPPDEFINES = defines)
 makesdna_tool.Append (LINKFLAGS = platform_linkflags)
 makesdna_tool.Append (LIBPATH = '#'+user_options_dict['BUILD_DIR']+'/lib')

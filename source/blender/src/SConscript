@@ -1,15 +1,9 @@
-src_env = Environment()
-
-# Import the C flags set in the SConstruct file
-Import ('cflags')
-Import ('cxxflags')
-Import ('defines')
 Import ('extra_includes')
 Import ('user_options_dict')
-src_env.Append (CCFLAGS = cflags)
+Import ('library_env')
+
+src_env = library_env.Copy ()
 src_env.Append (CCFLAGS = user_options_dict['SDL_CFLAGS'])
-src_env.Append (CXXFLAGS = cxxflags)
-src_env.Append (CPPDEFINES = defines)
 
 source_files = ['B.blend.c',
                 'Bfont.c',
