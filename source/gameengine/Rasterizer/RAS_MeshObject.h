@@ -120,8 +120,8 @@ inline  bool operator <( const RAS_MatArrayIndex& rhs,const RAS_MatArrayIndex& l
 class RAS_MeshObject
 {
 	
-	enum { BUCKET_MAX_INDICES = 2048 };//2048};//8192};
-	enum { BUCKET_MAX_TRIANGLES = 1024 };
+	enum { BUCKET_MAX_INDICES = 16384 };//2048};//8192};
+	enum { BUCKET_MAX_TRIANGLES = 4096 };
 	
 	//	GEN_Map<class RAS_IPolyMaterial,KX_ArrayOptimizer*> m_matVertexArrayS;
 	//vector<class RAS_IPolyMaterial*,KX_ArrayOptimizer> m_vertexArrays;

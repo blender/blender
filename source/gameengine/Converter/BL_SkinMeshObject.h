@@ -91,8 +91,8 @@ public:
 class BL_SkinMeshObject : public RAS_MeshObject
 {
 
-	enum	{	BUCKET_MAX_INDICES = 2048};//2048};//8192};
-	enum	{	BUCKET_MAX_TRIANGLES = 1024};
+	enum	{	BUCKET_MAX_INDICES = 16384};//2048};//8192};
+	enum	{	BUCKET_MAX_TRIANGLES = 4096};
 
 	KX_ArrayOptimizer*		GetArrayOptimizer(RAS_IPolyMaterial* polymat)
 	{
