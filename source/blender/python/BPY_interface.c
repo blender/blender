@@ -41,6 +41,8 @@
 #include <MEM_guardedalloc.h>
 #include <BLI_blenlib.h> /* for BLI_last_slash() */
 
+#include <BIF_space.h>
+#include <BIF_screen.h>
 #include <BKE_global.h>
 #include <BKE_library.h>
 #include <BKE_main.h>
@@ -384,8 +386,11 @@ int BPY_txt_do_python(struct SpaceText* st)
 	/* check if this text is already running */
 	while (script) {
 		if (!strcmp(script->id.name+2, st->text->id.name+2)) {
-			/* if this text is already a running script, just move to it: */
-			EXPP_move_to_spacescript (script);
+			/* if this text is already a running script, just move to it: */	
+			SpaceScript *sc;
+			newspace(curarea, SPACE_SCRIPT);
+			sc = curarea->spacedata.first;
+			sc->script = script;
 			return 1;
 		}
 		script = script->id.next;
@@ -458,6 +463,67 @@ void BPY_free_compiled_text(struct Text* text)
 
   return;
 }
+
+/*****************************************************************************/
+/* Description: This function frees a finished (flags == 0) script.          */
+/*****************************************************************************/
+void BPY_free_finished_script(Script *script)
+{
+	if (!script) return;
+
+	if (script->lastspace != SPACE_SCRIPT)
+		newspace (curarea, script->lastspace);
+
+	free_libblock(&G.main->script, script);
+	return;
+}
+
+void unlink_script(Script *script)
+{ /* copied from unlink_text in drawtext.c */
+	bScreen *scr;
+	ScrArea *area;
+	SpaceLink *sl;
+
+	for (scr= G.main->screen.first; scr; scr= scr->id.next) {
+		for (area= scr->areabase.first; area; area= area->next) {
+			for (sl= area->spacedata.first; sl; sl= sl->next) {
+				if (sl->spacetype==SPACE_SCRIPT) {
+					SpaceScript *sc= (SpaceScript*) sl;
+
+					if (sc->script==script) {
+						sc->script= NULL;
+
+						if (sc==area->spacedata.first) {
+							scrarea_queue_redraw(area);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+void BPY_clear_script (Script *script)
+{
+	PyObject *dict;
+
+	if (!script) return;
+
+	Py_XDECREF((PyObject *)script->py_draw);
+	Py_XDECREF((PyObject *)script->py_event);
+	Py_XDECREF((PyObject *)script->py_button);
+
+	dict = script->py_globaldict;
+
+	if (dict) {
+  	PyDict_Clear (dict);
+  	Py_DECREF (dict);   /* Release dictionary. */
+		script->py_globaldict = NULL;
+	}
+
+	unlink_script (script);
+}
+
 /*****************************************************************************/
 /* ScriptLinks                                                               */
 /*****************************************************************************/

@@ -128,28 +128,3 @@ void free_scriptspace (SpaceScript *sc)
 
 	sc->script = NULL;
 }
-
-void unlink_script(Script *script)
-{ /* copied from unlink_text in drawtext.c */
-	bScreen *scr;
-	ScrArea *area;
-	SpaceLink *sl;
-
-	for (scr= G.main->screen.first; scr; scr= scr->id.next) {
-		for (area= scr->areabase.first; area; area= area->next) {
-			for (sl= area->spacedata.first; sl; sl= sl->next) {
-				if (sl->spacetype==SPACE_SCRIPT) {
-					SpaceScript *sc= (SpaceScript*) sl;
-
-					if (sc->script==script) {
-						sc->script= NULL;
-
-						if (sc==area->spacedata.first) {
-							scrarea_queue_redraw(area);
-						}
-					}
-				}
-			}
-		}
-	}
-}

@@ -37,7 +37,6 @@
 #include "DNA_script_types.h"
 
 #include "BKE_script.h"
-#include "BIF_drawscript.h" /* for unlink_script */
 
 /*
 #include "BLI_blenlib.h"
@@ -63,8 +62,6 @@ void free_script (Script *script)
 	{
 		BPY_clear_script(script);
 	}
-
-	unlink_script (script); /* unlink from all visible SPACE_SCRIPTS */
 
 	return;
 }

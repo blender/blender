@@ -37,4 +37,3 @@ void initBlenderApi2_2x (void);
 void clearScriptLinks (void);
 ScriptLink * setScriptLinks(ID *id, short event);
 void discardFromBDict (char *key);
-void EXPP_move_to_spacescript (struct Script *script);

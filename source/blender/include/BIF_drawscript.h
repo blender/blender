@@ -35,9 +35,6 @@
 
 struct ScrArea;
 struct SpaceScript;
-struct Script;
-
-void unlink_script(struct Script *script);
 
 void init_scriptspace(struct ScrArea *sa);
 void free_scriptspace(struct SpaceScript *sc);
