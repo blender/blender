@@ -450,7 +450,7 @@ void add_primitiveMesh(int type)
 	Mesh *me;
 	EditVert *eve, *v1=NULL, *v2, *v3, *v4=NULL, *vtop, *vdown;
 	float *curs, d, dia, phi, phid, cent[3], vec[3], imat[3][3], mat[3][3];
-	float q[4], cmat[3][3];
+	float q[4], cmat[3][3], nor[3]= {0.0, 0.0, 0.0};
 	static short tot=32, seg=32, subdiv=2;
 	short a, b, ext=0, fill=0, totoud, newob=0;
 	char *undostr="Add Primitive";
@@ -720,7 +720,7 @@ void add_primitiveMesh(int type)
 		vec[1]= dia*phid;
 		Mat3MulVecfl(imat, vec);
 		for(a=0;a<seg-1;a++) {
-			extrudeflag_vert(2);
+			extrudeflag_vert(2, nor);	// nor unused
 			translateflag(2, vec);
 		}
 		recalc_editnormals();	// does face centers too
@@ -756,7 +756,7 @@ void add_primitiveMesh(int type)
 		QuatToMat3(q, cmat);
 		
 		for(a=0; a<seg; a++) {
-			extrudeflag_vert(2);
+			extrudeflag_vert(2, nor); // nor unused
 			rotateflag(2, v1->co, cmat);
 		}
 

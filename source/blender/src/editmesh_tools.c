@@ -80,6 +80,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "BIF_space.h"
 #include "BIF_resources.h"
 #include "BIF_toolbox.h"
+#include "BIF_transform.h"
 
 #include "BDR_drawobject.h"
 #include "BDR_editobject.h"
@@ -532,9 +533,11 @@ void hashvert_flag(int flag)
 
 }
 
+/* generic extern called extruder */
 void extrude_mesh(void)
 {
-	short nr, xmode= 0;
+	float nor[3]= {0.0, 0.0, 0.0};
+	short nr, transmode= 0;
 
 	TEST_EDITMESH
 	
@@ -547,18 +550,31 @@ void extrude_mesh(void)
 		
 	if(nr<1) return;
 
-	if(nr==1)  xmode= extrudeflag(SELECT);
-	else if(nr==4) xmode= extrudeflag_verts_indiv(SELECT);
-	else if(nr==3) xmode= extrudeflag_edges_indiv(SELECT);
-	else xmode= extrudeflag_face_indiv(SELECT);
+	if(nr==1)  transmode= extrudeflag(SELECT, nor);
+	else if(nr==4) transmode= extrudeflag_verts_indiv(SELECT, nor);
+	else if(nr==3) transmode= extrudeflag_edges_indiv(SELECT, nor);
+	else transmode= extrudeflag_face_indiv(SELECT, nor);
 	
-	if(xmode==0) {
+	if(transmode==0) {
 		error("No valid selection");
 	}
 	else {
 		EM_fgon_flags();
 		countall(); 
-		transform(xmode);
+		
+#ifdef NEWTRANSFORM
+		/* individual faces? */
+		if(nr==2) {
+			Transform(TFM_SHRINKFATTEN);
+		}
+		else {
+			if(transmode=='n') 
+				BIF_setSingleAxisConstraint(nor);
+			Transform(TFM_TRANSLATION);
+		}
+#else
+		transform('g');
+#endif
 	}
 
 }
@@ -588,7 +604,7 @@ void split_mesh(void)
 
 void extrude_repeat_mesh(int steps, float offs)
 {
-	float dvec[3], tmat[3][3], bmat[3][3];
+	float dvec[3], tmat[3][3], bmat[3][3], nor[3]= {0.0, 0.0, 0.0};
 	short a,ok;
 
 	TEST_EDITMESH
@@ -609,7 +625,7 @@ void extrude_repeat_mesh(int steps, float offs)
 	Mat3MulVecfl(tmat, dvec);
 
 	for(a=0;a<steps;a++) {
-		ok= extrudeflag(SELECT);
+		ok= extrudeflag(SELECT, nor);
 		if(ok==0) {
 			error("No valid vertices are selected");
 			break;
@@ -631,6 +647,7 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 	extern short editbutflag;
 	EditMesh *em = G.editMesh;
 	EditVert *eve,*nextve;
+	float nor[3]= {0.0, 0.0, 0.0};
 	float *curs, si,n[3],q[4],cmat[3][3],imat[3][3], tmat[3][3];
 	float cent[3],bmat[3][3];
 	float phi;
@@ -679,7 +696,7 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 	ok= 1;
 
 	for(a=0;a<steps;a++) {
-		if(mode==0) ok= extrudeflag(SELECT);
+		if(mode==0) ok= extrudeflag(SELECT, nor);
 		else adduplicateflag(SELECT);
 		if(ok==0) {
 			error("No valid vertices are selected");

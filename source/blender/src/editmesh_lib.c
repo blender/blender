@@ -487,7 +487,8 @@ static void set_edge_directions(void)
 }
 
 /* individual face extrude */
-short extrudeflag_face_indiv(short flag)
+/* will use vertex normals for extrusion directions, so *nor is unaffected */
+short extrudeflag_face_indiv(short flag, float *nor)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *eve, *v1, *v2, *v3, *v4;
@@ -576,13 +577,13 @@ short extrudeflag_face_indiv(short flag)
 
 
 /* extrudes individual edges */
-short extrudeflag_edges_indiv(short flag) 
+/* nor is filled with constraint vector */
+short extrudeflag_edges_indiv(short flag, float *nor) 
 {
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	EditEdge *eed;
 	EditFace *efa;
-	float nor[3]={0.0, 0.0, 0.0};
 	
 	for(eve= em->verts.first; eve; eve= eve->next) eve->vn= NULL;
 
@@ -618,7 +619,6 @@ short extrudeflag_edges_indiv(short flag)
 	for(eve= em->verts.last; eve; eve= eve->prev) {
 		if(eve->vn) {
 			eve->vn->f |= flag;
-			VECCOPY(eve->vn->no, nor); // transform() uses it
 		}
 	}
 
@@ -626,12 +626,12 @@ short extrudeflag_edges_indiv(short flag)
 		if(eed->v1->f & eed->v2->f & flag) eed->f |= flag;
 	}
 	
-	if(nor[0]==0.0 && nor[1]==0.0 && nor[2]==0.0) return 'h'; // h is grab, for correct undo print
-	return 'n';
+	if(nor[0]==0.0 && nor[1]==0.0 && nor[2]==0.0) return 'g'; // g is grab
+	return 'n';  // n is for normal constraint
 }
 
 /* extrudes individual vertices */
-short extrudeflag_verts_indiv(short flag) 
+short extrudeflag_verts_indiv(short flag, float *nor) 
 {
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
@@ -650,13 +650,13 @@ short extrudeflag_verts_indiv(short flag)
 
 	for(eve= em->verts.last; eve; eve= eve->prev) if(eve->vn) eve->vn->f |= flag;
 
-	return 'h';	// h is grab, for correct undo print
+	return 'g';	// g is grab
 }
 
 
 /* this is actually a recode of extrudeflag(), using proper edge/face select */
 /* hurms, doesnt use 'flag' yet, but its not called by primitive making stuff anyway */
-static short extrudeflag_edge(short flag)
+static short extrudeflag_edge(short flag, float *nor)
 {
 	/* all select edges/faces: extrude */
 	/* old select is cleared, in new ones it is set */
@@ -664,7 +664,6 @@ static short extrudeflag_edge(short flag)
 	EditVert *eve, *nextve;
 	EditEdge *eed, *nexted;
 	EditFace *efa, *nextfa;
-	float nor[3]={0.0, 0.0, 0.0};
 	short del_old= 0;
 	
 	if(G.obedit==0 || get_mesh(G.obedit)==0) return 0;
@@ -816,17 +815,16 @@ static short extrudeflag_edge(short flag)
 	for(eve= em->verts.first; eve; eve= eve->next) {
 		if(eve->vn) {
 			eve->vn->f |= SELECT;
-			VECCOPY(eve->vn->no, nor);
 		}
 	}
 
 	EM_select_flush();
 
-	if(nor[0]==0.0 && nor[1]==0.0 && nor[2]==0.0) return 'h';
-	return 'n';
+	if(nor[0]==0.0 && nor[1]==0.0 && nor[2]==0.0) return 'g'; // grab
+	return 'n'; // normal constraint 
 }
 
-short extrudeflag_vert(short flag)
+short extrudeflag_vert(short flag, float *nor)
 {
 	/* all verts/edges/faces with (f & 'flag'): extrude */
 	/* from old verts, 'flag' is cleared, in new ones it is set */
@@ -834,7 +832,6 @@ short extrudeflag_vert(short flag)
 	EditVert *eve, *v1, *v2, *v3, *v4, *nextve;
 	EditEdge *eed, *e1, *e2, *e3, *e4, *nexted;
 	EditFace *efa, *efa2, *nextvl;
-	float nor[3]={0.0, 0.0, 0.0};
 	short sel=0, del_old= 0;
 
 	if(G.obedit==0 || get_mesh(G.obedit)==0) return 0;
@@ -1035,9 +1032,6 @@ short extrudeflag_vert(short flag)
 			}
 		}
 		if(eve) {
-			if(eve->f & flag) {
-				VECCOPY(eve->no, nor);
-			}
 			eve->f &= ~128;
 		}
 		eve= nextve;
@@ -1045,17 +1039,17 @@ short extrudeflag_vert(short flag)
 	// since its vertex select mode now, it also deselects higher order
 	EM_selectmode_flush();
 
-	if(nor[0]==0.0 && nor[1]==0.0 && nor[2]==0.0) return 'h'; // h is grab, for correct undo print
+	if(nor[0]==0.0 && nor[1]==0.0 && nor[2]==0.0) return 'g'; // g is grab, for correct undo print
 	return 'n';
 }
 
 /* generic extrude */
-short extrudeflag(short flag)
+short extrudeflag(short flag, float *nor)
 {
 	if(G.scene->selectmode & SCE_SELECT_VERTEX)
-		return extrudeflag_vert(flag);
+		return extrudeflag_vert(flag, nor);
 	else 
-		return extrudeflag_edge(flag);
+		return extrudeflag_edge(flag, nor);
 		
 }
 
