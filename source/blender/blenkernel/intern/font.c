@@ -393,7 +393,35 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 		ct++;
 	}
 
-	/* with fontsettings calc locations of characters */
+	/* met alle fontsettings plekken letters berekenen */
+	if(cu->spacemode!=CU_LEFT/* && lnr>1*/) {
+		ct= chartransdata;
+
+		if(cu->spacemode==CU_RIGHT) {
+			for(i=0;i<lnr;i++) linedata[i]= -linedata[i];
+			for (i=0; i<=slen; i++) {
+				ct->xof+= linedata[ct->linenr];
+				ct++;
+			}
+		} else if(cu->spacemode==CU_MIDDLE) {
+			for(i=0;i<lnr;i++) linedata[i]= -linedata[i]/2;
+			for (i=0; i<=slen; i++) {
+				ct->xof+= linedata[ct->linenr];
+				ct++;
+			}
+		} else if(cu->spacemode==CU_FLUSH) {
+			for(i=0;i<lnr;i++)
+				if(linedata2[i]>1)
+					linedata[i]= ((maxlen-linedata[i])/(linedata2[i]-1));
+			for (i=0; i<=slen; i++) {
+				ct->xof+= (ct->charnr*linedata[ct->linenr])-maxlen/2;
+				ct++;
+			}
+		}
+	}
+
+	/* old alignment here, to spot the differences */
+/*
 	if(cu->spacemode!=CU_LEFT && lnr>1) {
 		ct= chartransdata;
 
@@ -419,7 +447,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 			}
 		}
 	}
-	
+*/	
 	/* TEXT ON CURVE */
 	if(cu->textoncurve) {
 		cucu= cu->textoncurve->data;
