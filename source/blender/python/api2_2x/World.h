@@ -47,6 +47,7 @@
 static PyObject *M_World_New (PyObject *self, PyObject *args,
                                PyObject *keywords);
 static PyObject *M_World_Get (PyObject *self, PyObject *args);
+static PyObject *M_World_GetActive (PyObject *self);
 
 
 /*****************************************************************************/
@@ -63,6 +64,8 @@ static char M_World_New_doc[] ="() - return a new World object";
 static char M_World_Get_doc[] ="(name) - return the world with the name 'name', \
 returns None if not found.\n If 'name' is not specified, \
 it returns a list of all worlds in the\ncurrent scene.";
+static char M_World_GetActive_doc[] ="() - returns the current world, or \
+None if the Scene has no world";
 
 
 
@@ -72,6 +75,7 @@ it returns a list of all worlds in the\ncurrent scene.";
 struct PyMethodDef M_World_methods[] = {
   {"New",(PyCFunction)M_World_New, METH_VARARGS|METH_KEYWORDS,M_World_New_doc},
   {"Get",         M_World_Get,         METH_VARARGS, M_World_Get_doc},
+  {"GetActive", (PyCFunction)M_World_GetActive, METH_NOARGS, M_World_GetActive_doc },
   {"get",         M_World_Get,         METH_VARARGS, M_World_Get_doc},
   {NULL, NULL, 0, NULL}
 };

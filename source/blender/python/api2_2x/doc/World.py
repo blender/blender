@@ -36,6 +36,12 @@ def Get (name):
   """
 
 
+def GetActive ():
+  """
+  Get the active world of the scene.
+  @rtype: Blender World or None
+  """
+
 class World:
   """
   The World object

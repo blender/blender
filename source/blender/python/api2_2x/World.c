@@ -203,6 +203,22 @@ static PyObject *M_World_Get(PyObject *self, PyObject *args)
 	}
 
 }
+
+
+
+static PyObject *M_World_GetActive(PyObject *self)
+{
+	BPy_World *w = NULL;
+	if(!G.scene->world)
+		{
+			Py_INCREF(Py_None);
+			return Py_None;
+		}
+	w = (BPy_World *)PyObject_NEW(BPy_World, &World_Type);
+	w->world = G.scene->world;
+	return (PyObject *)w;
+}
+
 /*@}*/
 
 /**
