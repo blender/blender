@@ -2693,19 +2693,22 @@ int selected_bone_docalc(Object *ob, Bone *bone, void *ptr) {
 	return 0;
 }
 
-static int is_ik_root_docalc(Bone *bone) {
-	Bone		*rootBone;
+static Bone *get_parent_bone_docalc(Bone *bone) {
+	Bone		*parBone;
 
-	/* The parents */
-	for (rootBone = bone; rootBone; rootBone=rootBone->parent) {
-		if (!rootBone->parent)
-			break;
-		else if (!(rootBone->flag & BONE_IK_TOPARENT))
-			break;
-	}
+	for (parBone = bone->parent; parBone; parBone=parBone->parent)
+		if (~parBone->flag & BONE_NOCALC)
+			return parBone;
 
-	if (~rootBone->flag & BONE_NOCALC)
-		return 1;
+	return NULL;
+}
+
+static int is_bone_parent(Bone *childBone, Bone *parBone) {
+	Bone		*currBone;
+
+	for (currBone = childBone->parent; currBone; currBone=currBone->parent)
+		if (currBone == parBone)
+			return 1;
 
 	return 0;
 }
@@ -2722,6 +2725,7 @@ static void figure_bone_nocalc_constraint(Bone *conbone, bConstraint *con,
 	 * flag for the whole chain.
 	 */
 	Bone *subtarbone;
+	Bone *parBone;
 	char *subtar;
 
 	subtar = get_con_subtarget_name(con, ob);
@@ -2730,25 +2734,43 @@ static void figure_bone_nocalc_constraint(Bone *conbone, bConstraint *con,
 		if ( (subtarbone = get_named_bone(arm, subtar)) ) {
 			if (~subtarbone->flag & BONE_NOCALC) {
 				if (con->type == CONSTRAINT_TYPE_KINEMATIC)
+					/* IK target is flaged for updating, so we
+					 * must update the whole chain.
+					 */
 					ik_chain_looper(ob, conbone, NULL, 
 									clear_bone_nocalc);
-				else 
+				else
+					/* Constraint target is flagged for
+					 * updating, so we update this bone only
+					 */
 					conbone->flag &= ~BONE_NOCALC;
 			}
 			else {
-				if (is_ik_root_docalc(conbone)) {
-					if (con->type == CONSTRAINT_TYPE_KINEMATIC)
-						ik_chain_looper(ob, conbone, NULL, 
-										clear_bone_nocalc);
-					else
-						conbone->flag &= ~BONE_NOCALC;
+				if ( (parBone = get_parent_bone_docalc(conbone)) ) {
+					/* a parent is flagged for updating */
+					if (!is_bone_parent(subtarbone, parBone)) {
+						/* if the subtarget is also a child of
+						 * this bone, we needn't worry, other
+						 * wise, we have to update
+						 */
+						if (con->type == CONSTRAINT_TYPE_KINEMATIC)
+							ik_chain_looper(ob, conbone, NULL, 
+											clear_bone_nocalc);
+						else
+							conbone->flag &= ~BONE_NOCALC;
+					}
 				}
+
 			}
 		}
 	}
 	else {
 		/* no subtarget ... target is regular object */
-		if (is_ik_root_docalc(conbone)) {
+		if ( (parBone = get_parent_bone_docalc(conbone)) ) {
+			/* parent is flagged for updating ... since
+			 * the target will never move (not a bone)
+			 * we had better update this bone/chain
+			 */
 			if (con->type == CONSTRAINT_TYPE_KINEMATIC)
 				ik_chain_looper(ob, conbone, NULL, 
 								clear_bone_nocalc);
