@@ -3744,7 +3744,10 @@ void common_insertkey()
 
 				}
 			}
-			else if(ob && ob->type==OB_CAMERA) {
+		}
+		else if(G.buts->mainb==CONTEXT_EDITING) {
+			ob= OBACT;
+			if(ob && ob->type==OB_CAMERA) {
 				id= G.buts->lockpoin;
 				if(id) {
 					event= pupmenu("Insert Key %t|Lens%x0|Clipping%x1");
