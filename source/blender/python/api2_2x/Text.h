@@ -154,7 +154,7 @@ static PyObject *TextRepr (C_Text *self);
 /*****************************************************************************/
 PyTypeObject Text_Type =
 {
-  PyObject_HEAD_INIT(&PyType_Type)
+  PyObject_HEAD_INIT(NULL)
   0,                                    /* ob_size */
   "Text",                               /* tp_name */
   sizeof (C_Text),                      /* tp_basicsize */

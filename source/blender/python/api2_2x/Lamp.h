@@ -303,7 +303,7 @@ int LampCheckPyObject (PyObject *pyobj);
 /*****************************************************************************/
 PyTypeObject Lamp_Type =
 {
-  PyObject_HEAD_INIT(&PyType_Type)
+  PyObject_HEAD_INIT(NULL)
   0,                                    /* ob_size */
   "Lamp",                               /* tp_name */
   sizeof (C_Lamp),                      /* tp_basicsize */

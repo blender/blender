@@ -110,7 +110,7 @@ PyObject *NMCol_repr(C_NMCol *self)
 
 PyTypeObject NMCol_Type =
 {
-  PyObject_HEAD_INIT(&PyType_Type)
+  PyObject_HEAD_INIT(NULL)
   0,                            /* ob_size */
   "NMCol",                      /* tp_name */
   sizeof(C_NMCol),              /* tp_basicsize */
@@ -350,7 +350,7 @@ static PySequenceMethods NMFace_SeqMethods =
 
 PyTypeObject NMFace_Type =
 {
-  PyObject_HEAD_INIT(&PyType_Type)
+  PyObject_HEAD_INIT(NULL)
   0,                            /*ob_size*/
   "NMFace",                     /*tp_name*/
   sizeof(C_NMFace),             /*tp_basicsize*/
@@ -521,7 +521,7 @@ static PySequenceMethods NMVert_SeqMethods =
 
 PyTypeObject NMVert_Type =
 {
-  PyObject_HEAD_INIT(&PyType_Type)
+  PyObject_HEAD_INIT(NULL)
   0,                             /*ob_size*/
   "NMVert",                      /*tp_name*/
   sizeof(C_NMVert),              /*tp_basicsize*/
@@ -851,7 +851,7 @@ static int NMesh_setattr(PyObject *self, char *name, PyObject *v)
 
 PyTypeObject NMesh_Type =
 {
-  PyObject_HEAD_INIT(&PyType_Type)
+  PyObject_HEAD_INIT(NULL)
   0,                             /*ob_size*/
   "NMesh",                       /*tp_name*/
   sizeof(C_NMesh),               /*tp_basicsize*/
@@ -1666,6 +1666,11 @@ PyObject *M_NMesh_Init (void)
   PyObject *FaceFlags = M_NMesh_FaceFlagsDict ();
   PyObject *FaceModes = M_NMesh_FaceModesDict ();
   PyObject *FaceTranspModes = M_NMesh_FaceTranspModesDict ();
+
+  NMCol_Type.ob_type = &PyType_Type;
+  NMFace_Type.ob_type = &PyType_Type;
+  NMVert_Type.ob_type = &PyType_Type;
+  NMesh_Type.ob_type = &PyType_Type;
 
 	submodule = Py_InitModule3("Blender.NMesh", M_NMesh_methods, M_NMesh_doc);
 

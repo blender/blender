@@ -203,7 +203,7 @@ int CameraCheckPyObject (PyObject *pyobj);
 /*****************************************************************************/
 PyTypeObject Camera_Type =
 {
-  PyObject_HEAD_INIT(&PyType_Type)
+  PyObject_HEAD_INIT(NULL)
   0,                                      /* ob_size */
   "Camera",                               /* tp_name */
   sizeof (C_Camera),                      /* tp_basicsize */

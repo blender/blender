@@ -159,6 +159,8 @@ PyObject *M_Armature_Init (void)
 
   printf ("In M_Armature_Init()\n");
 
+  Armature_Type.ob_type = &PyType_Type;
+
   submodule = Py_InitModule3("Blender.Armature",
                              M_Armature_methods, M_Armature_doc);
 

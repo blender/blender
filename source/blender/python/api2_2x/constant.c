@@ -60,7 +60,7 @@ static PyMappingMethods constantAsMapping =
 /*****************************************************************************/
 PyTypeObject constant_Type =
 {
-  PyObject_HEAD_INIT(&PyType_Type)
+  PyObject_HEAD_INIT(NULL)
   0,                                      /* ob_size */
   "constant",                             /* tp_name */
   sizeof (C_constant),                    /* tp_basicsize */
@@ -96,6 +96,8 @@ PyObject *M_constant_New(void) /* can't be static, we call it in other files */
 static PyObject *new_const(void)
 { /* this is the static one */
   C_constant *constant;
+
+  constant_Type.ob_type = &PyType_Type;
 
   printf ("In constant_New()\n");
 

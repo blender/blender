@@ -102,7 +102,7 @@ static PyObject *Button_repr(PyObject *self);
 
 PyTypeObject Button_Type =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,								              /*ob_size*/
 	"Button",						            /*tp_name*/
 	sizeof(Button),					        /*tp_basicsize*/

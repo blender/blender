@@ -1000,6 +1000,8 @@ static struct PyMethodDef BGL_methods[] = {
 
 PyObject *M_BGL_Init(void) 
 {
+  buffer_Type.ob_type = &PyType_Type;
+
   PyObject *mod= Py_InitModule("Blender.BGL", BGL_methods);
   PyObject *dict= PyModule_GetDict(mod);
 

@@ -200,7 +200,7 @@ struct Curve* CurveFromPyObject (PyObject *py_obj);
 /*****************************************************************************/
 static PyTypeObject Curve_Type =
 {
-  PyObject_HEAD_INIT(&PyType_Type)
+  PyObject_HEAD_INIT(NULL)
   0,                                      /* ob_size */
   "Curve",                               /* tp_name */
   sizeof (C_Curve),                      /* tp_basicsize */

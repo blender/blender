@@ -139,7 +139,7 @@ static int ArmaturePrint (C_Armature *armature, FILE *fp, int flags);
 /*****************************************************************************/
 static PyTypeObject Armature_Type =
 {
-  PyObject_HEAD_INIT(&PyType_Type)
+  PyObject_HEAD_INIT(NULL)
   0,                                      /* ob_size */
   "Armature",                               /* tp_name */
   sizeof (C_Armature),                     /* tp_basicsize */

@@ -136,7 +136,7 @@ static PyObject *Buffer_getattr(PyObject *self, char *name);
 static PyObject *Buffer_repr(PyObject *self);
 
 PyTypeObject buffer_Type = {
-  PyObject_HEAD_INIT(&PyType_Type)
+  PyObject_HEAD_INIT(NULL)
   0,                            /*ob_size*/
   "Buffer",                     /*tp_name*/
   sizeof(Buffer),               /*tp_basicsize*/

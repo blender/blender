@@ -200,6 +200,8 @@ PyObject *M_Lamp_Init (void)
 {
   PyObject  *submodule, *Types, *Modes;
 
+  Lamp_Type.ob_type = &PyType_Type;
+
 	Types = M_Lamp_TypesDict ();
 	Modes = M_Lamp_ModesDict ();
 

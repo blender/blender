@@ -161,6 +161,9 @@ PyObject *M_Camera_Init (void)
   PyObject  *submodule;
 
   printf ("In M_Camera_Init()\n");
+
+  Camera_Type.ob_type = &PyType_Type;
+
   submodule = Py_InitModule3("Blender.Camera",
                   M_Camera_methods, M_Camera_doc);
 

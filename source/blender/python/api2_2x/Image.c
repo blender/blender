@@ -210,6 +210,8 @@ PyObject *M_Image_Init (void)
 {
   PyObject  *submodule;
 
+  Image_Type.ob_type = &PyType_Type;
+
   submodule = Py_InitModule3("Blender.Image", M_Image_methods, M_Image_doc);
 
   return (submodule);
@@ -261,7 +263,7 @@ static PyObject *Image_Repr (C_Image *self);
 /*****************************************************************************/
 PyTypeObject Image_Type =
 {
-  PyObject_HEAD_INIT(&PyType_Type)
+  PyObject_HEAD_INIT(NULL)
   0,                                     /* ob_size */
   "Image",                               /* tp_name */
   sizeof (C_Image),                      /* tp_basicsize */

@@ -207,6 +207,8 @@ PyObject *M_Text_Init (void)
 {
   PyObject  *submodule;
 
+  Text_Type.ob_type = &PyType_Type;
+
   submodule = Py_InitModule3("Blender.Text", M_Text_methods, M_Text_doc);
 
   return (submodule);

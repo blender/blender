@@ -40,34 +40,42 @@ PyObject *M_Object_New(PyObject *self, PyObject *args)
     struct Object   * object;
     C_Object        * blen_object;
     int               type;
-    char              name[32];
+    char            * str_type;
+    char            * name = NULL;
 
     printf ("In Object_New()\n");
 
-    if (!PyArg_ParseTuple(args, "i", &type))
+    if (!PyArg_ParseTuple(args, "s|s", &str_type, &name))
     {
         PythonReturnErrorObject (PyExc_TypeError,
-                    "type expected");
+                    "string expected as argument");
         return (NULL);
     }
 
-    /* Create a new object. */
-    switch (type)
+    if (strcmp (str_type, "Armature") == 0)     type = OB_ARMATURE;
+    else if (strcmp (str_type, "Camera") == 0)  type = OB_CAMERA;
+    else if (strcmp (str_type, "Curve") == 0)   type = OB_CURVE;
+/*    else if (strcmp (str_type, "Text") == 0)    type = OB_FONT; */
+/*    else if (strcmp (str_type, "Ika") == 0)     type = OB_IKA; */
+    else if (strcmp (str_type, "Lamp") == 0)    type = OB_LAMP;
+/*    else if (strcmp (str_type, "Lattice") == 0) type = OB_LATTICE; */
+/*    else if (strcmp (str_type, "Mball") == 0)   type = OB_MBALL; */
+    else if (strcmp (str_type, "Mesh") == 0)    type = OB_MESH;
+/*    else if (strcmp (str_type, "Surf") == 0)    type = OB_SURF; */
+/*    else if (strcmp (str_type, "Wave") == 0)    type = OB_WAVE; */
+    else if (strcmp (str_type, "Empty") == 0)   type = OB_EMPTY;
+    else
     {
-        case OB_MESH:       strcpy (name, "Mesh");      break;
-        case OB_CURVE:      strcpy (name, "Curve");     break;
-        case OB_SURF:       strcpy (name, "Surf");      break;
-        case OB_FONT:       strcpy (name, "Text");      break;
-        case OB_MBALL:      strcpy (name, "Mball");     break;
-        case OB_CAMERA:     strcpy (name, "Camera");    break;
-        case OB_LAMP:       strcpy (name, "Lamp");      break;
-        case OB_IKA:        strcpy (name, "Ika");       break;
-        case OB_LATTICE:    strcpy (name, "Lattice");   break;
-        case OB_WAVE:       strcpy (name, "Wave");      break;
-        case OB_ARMATURE:   strcpy (name, "Armature");  break;
-        default:            strcpy (name, "Empty");
+        return (PythonReturnErrorObject (PyExc_AttributeError,
+            "Unknown type specified"));
     }
 
+    /* Create a new object. */
+    if (name == NULL)
+    {
+        /* No name is specified, set the name to the type of the object. */
+        name = str_type;
+    }
     object = alloc_libblock (&(G.main->object), ID_OB, name);
 
     object->flag = 0;
@@ -123,23 +131,28 @@ PyObject *M_Object_New(PyObject *self, PyObject *args)
 
     switch(type)
     {
-        case OB_MESH:
-            object->data = add_mesh();
-            G.totmesh++;
+        case OB_ARMATURE:
+        /* TODO: Do we need to add something to G? (see the OB_LAMP case) */
+            object->data = add_armature();
             break;
         case OB_CAMERA:
+        /* TODO: Do we need to add something to G? (see the OB_LAMP case) */
             object->data = add_camera();
+            break;
+        case OB_CURVE:
+            object->data = add_curve(OB_CURVE);
+            G.totcurve++;
             break;
         case OB_LAMP:
             object->data = add_lamp();
             G.totlamp++;
             break;
+        case OB_MESH:
+            object->data = add_mesh();
+            G.totmesh++;
+            break;
 
     /* TODO the following types will be supported later
-        case OB_CURVE:
-            object->data = add_curve(OB_CURVE);
-            G.totcurve++;
-            break;
         case OB_SURF:
             object->data = add_curve(OB_SURF);
             G.totcurve++;
@@ -160,9 +173,6 @@ PyObject *M_Object_New(PyObject *self, PyObject *args)
             break;
         case OB_WAVE:
             object->data = add_wave();
-            break;
-        case OB_ARMATURE:
-            object->data = add_armature();
             break;
     */
     }
@@ -306,6 +316,8 @@ PyObject *M_Object_Init (void)
 
     printf ("In initObject()\n");
 
+    Object_Type.ob_type = &PyType_Type;
+
     module = Py_InitModule3("Object", M_Object_methods, M_Object_doc);
 
     return (module);
@@ -370,6 +382,9 @@ static PyObject *Object_getData (C_Object *self)
     obj_id = MAKE_ID2 (id->name[0], id->name[1]);
     switch (obj_id)
     {
+        case ID_AR:
+            data_object = M_ArmatureCreatePyObject (self->object->data);
+            break;
         case ID_CA:
             data_object = Camera_createPyObject (self->object->data);
             break;
@@ -377,6 +392,7 @@ static PyObject *Object_getData (C_Object *self)
             data_object = CurveCreatePyObject (self->object->data);
             break;
         case ID_IM:
+            data_object = Image_CreatePyObject (self->object->data);
             break;
         case ID_IP:
             break;
@@ -432,21 +448,22 @@ static PyObject *Object_getDeltaLocation (C_Object *self)
 
 static PyObject *Object_getDrawMode (C_Object *self)
 {
-    return (Py_None);
+    PyObject *attr = Py_BuildValue ("b", self->object->dtx);
+
+    if (attr) return (attr);
+
+    return (PythonReturnErrorObject (PyExc_RuntimeError,
+            "couldn't get Object.drawMode attribute"));
 }
 
 static PyObject *Object_getDrawType (C_Object *self)
 {
-    /* TODO: this needs to be verified, if the api is correct! */
-/*
     PyObject *attr = Py_BuildValue ("b", self->object->dt);
 
     if (attr) return (attr);
 
     return (PythonReturnErrorObject (PyExc_RuntimeError,
             "couldn't get Object.drawType attribute"));
-*/
-    return (Py_None);
 }
 
 static PyObject *Object_getEuler (C_Object *self)
@@ -539,7 +556,22 @@ static PyObject *Object_getTracked (C_Object *self)
 
 static PyObject *Object_getType (C_Object *self)
 {
-    return (Py_None);
+    switch (self->object->type)
+    {
+        case OB_ARMATURE:   return (Py_BuildValue ("s", "Armature"));
+        case OB_CAMERA:     return (Py_BuildValue ("s", "Camera"));
+        case OB_CURVE:      return (Py_BuildValue ("s", "Curve"));
+        case OB_EMPTY:      return (Py_BuildValue ("s", "Empty"));
+        case OB_FONT:       return (Py_BuildValue ("s", "Text"));
+        case OB_IKA:        return (Py_BuildValue ("s", "Ika"));
+        case OB_LAMP:       return (Py_BuildValue ("s", "Lamp"));
+        case OB_LATTICE:    return (Py_BuildValue ("s", "Lattice"));
+        case OB_MBALL:      return (Py_BuildValue ("s", "MBall"));
+        case OB_MESH:       return (Py_BuildValue ("s", "Mesh"));
+        case OB_SURF:       return (Py_BuildValue ("s", "Surf"));
+        case OB_WAVE:       return (Py_BuildValue ("s", "Wave"));
+        default:            return (Py_BuildValue ("s", "unknown"));
+    }
 }
 
 static PyObject *Object_link (C_Object *self, PyObject *args)
@@ -567,13 +599,6 @@ static PyObject *Object_link (C_Object *self, PyObject *args)
 
     switch (obj_id)
     {
-        case ID_ME:
-            if (self->object->type != OB_MESH)
-            {
-                return (PythonReturnErrorObject (PyExc_AttributeError,
-                    "The 'link' object is incompatible with the base object"));
-            }
-            break;
         case ID_CA:
             if (self->object->type != OB_CAMERA)
             {
@@ -588,6 +613,13 @@ static PyObject *Object_link (C_Object *self, PyObject *args)
                     "The 'link' object is incompatible with the base object"));
             }
             break;
+        case ID_ME:
+            if (self->object->type != OB_MESH)
+            {
+                return (PythonReturnErrorObject (PyExc_AttributeError,
+                    "The 'link' object is incompatible with the base object"));
+            }
+            break;
         default:
             return (PythonReturnErrorObject (PyExc_AttributeError,
                 "Linking this object type is not supported"));
@@ -597,9 +629,9 @@ static PyObject *Object_link (C_Object *self, PyObject *args)
     id_us_plus (id);
     if (oldid)
     {
-        if (id->us > 0)
+        if (oldid->us > 0)
         {
-            id->us--;
+            oldid->us--;
         }
         else
         {
@@ -694,7 +726,7 @@ static PyObject *Object_setDeltaLocation (C_Object *self, PyObject *args)
 
     if (!PyArg_Parse (args, "fff", &dloc1, &dloc2, &dloc3))
     {
-        return (PythonReturnErrorObject (PyExc_TypeError,
+        return (PythonReturnErrorObject (PyExc_AttributeError,
                 "expected three float arguments"));
     }
 
@@ -708,11 +740,31 @@ static PyObject *Object_setDeltaLocation (C_Object *self, PyObject *args)
 
 static PyObject *Object_setDrawMode (C_Object *self, PyObject *args)
 {
+    char    dt;
+
+    if (!PyArg_Parse (args, "b", &dt))
+    {
+        return (PythonReturnErrorObject (PyExc_AttributeError,
+                "expected an integer as argument"));
+    }
+    self->object->dt = dt;
+
+    Py_INCREF (Py_None);
     return (Py_None);
 }
 
 static PyObject *Object_setDrawType (C_Object *self, PyObject *args)
-{
+{ 
+    char    dtx;
+
+    if (!PyArg_Parse (args, "b", &dtx))
+    {
+        return (PythonReturnErrorObject (PyExc_AttributeError,
+                "expected an integer as argument"));
+    }
+    self->object->dtx = dtx;
+
+    Py_INCREF (Py_None);
     return (Py_None);
 }
 
@@ -724,7 +776,7 @@ static PyObject *Object_setEuler (C_Object *self, PyObject *args)
 
     if (!PyArg_Parse (args, "fff", &drot1, &drot2, &drot3))
     {
-        return (PythonReturnErrorObject (PyExc_TypeError,
+        return (PythonReturnErrorObject (PyExc_AttributeError,
                 "expected three float arguments"));
     }
 
@@ -744,7 +796,7 @@ static PyObject *Object_setLocation (C_Object *self, PyObject *args)
 
     if (!PyArg_Parse (args, "fff", &loc1, &loc2, &loc3))
     {
-        return (PythonReturnErrorObject (PyExc_TypeError,
+        return (PythonReturnErrorObject (PyExc_AttributeError,
                 "expected three float arguments"));
     }
 
@@ -758,11 +810,123 @@ static PyObject *Object_setLocation (C_Object *self, PyObject *args)
 
 static PyObject *Object_setMaterials (C_Object *self, PyObject *args)
 {
+#if 0
+    PyObject     * list;
+    int            len;
+    int            i;
+    Material    ** matlist;
+
+    if (!PyArg_Parse (args, "O", &list))
+    {
+        return (PythonReturnErrorObject (PyExc_AttributeError,
+                "expected a list of materials as argument"));
+    }
+
+    len = PySequence_Length (list);
+    if (len > 0)
+    {
+        matlist = EXPP_newMaterialList_fromPyList (list);
+        if (!matlist)
+        {
+            return (PythonReturnErrorObject (PyExc_AttributeError,
+                "material list must be a list of valid materials!"));
+        }
+        if ((len < 0) || (len > MAXMAT))
+        {
+            return (PythonReturnErrorObject (PyExc_RuntimeError,
+                "illegal material index!"));
+        }
+
+        if (self->object->mat)
+        {
+            /* TODO: create replacement function */
+            releaseMaterialList (self->object->mat, len);
+        }
+        /* Increase the user count on all materials */
+        for (i=0 ; i<len ; i++)
+        {
+            id_us_plus ((ID *) matlist[i]);
+        }
+        self->object->mat = matlist;
+        self->object->totcol = len;
+        self->object->actcol = -1;
+
+        switch (self->object->type)
+        {
+            case OB_CURVE:  /* fall through */
+            case OB_FONT:   /* fall through */
+            case OB_MESH:   /* fall through */
+            case OB_MBALL:  /* fall through */
+            case OB_SURF
+                /* TODO: create replacement function */:
+                synchronizeMaterialLists (self->object, self->object->data);
+                break;
+            default:
+                break;
+        }
+    }
+#endif
+
+    Py_INCREF (Py_None);
     return (Py_None);
 }
 
 static PyObject *Object_shareFrom (C_Object *self, PyObject *args)
 {
+    C_Object        * object;
+    ID              * id;
+    ID              * oldid;
+
+    if (!PyArg_Parse (args, "O", &object))
+    {
+        PythonReturnErrorObject (PyExc_AttributeError,
+                "expected an object argument");
+        return (NULL);
+    }
+    if (!M_ObjectCheckPyObject ((PyObject*)object))
+    {
+        PythonReturnErrorObject (PyExc_TypeError,
+                "argument 1 is not of type 'Object'");
+        return (NULL);
+    }
+
+    if (self->object->type != object->object->type)
+    {
+        PythonReturnErrorObject (PyExc_TypeError,
+                "objects are not of same data type");
+        return (NULL);
+    }
+    switch (self->object->type)
+    {
+        case OB_MESH:
+            oldid = (ID*) self->object->data;
+            id = (ID*) object->data;
+            self->object->data = object->data;
+            if (self->data != NULL)
+            {
+                Py_DECREF (self->data);
+                self->data = NULL;
+            }
+            id_us_plus (id);
+            if (oldid)
+            {
+                if (oldid->us > 0)
+                {
+                    oldid->us--;
+                }
+                else
+                {
+                    return (PythonReturnErrorObject (PyExc_RuntimeError,
+                            "old object reference count below 0"));
+                }
+            }
+            Py_INCREF (Py_None);
+            return (Py_None);
+        default:
+            PythonReturnErrorObject (PyExc_TypeError,
+                    "type not supported");
+            return (NULL);
+    }
     return (Py_None);
 }
 
@@ -1081,9 +1245,19 @@ static int ObjectSetAttr (C_Object *obj, char *name, PyObject *value)
     if (StringEqual (name, "colbits"))
         return (!PyArg_Parse (value, "h", &(object->colbits)));
     if (StringEqual (name, "drawType"))
-        return (!PyArg_Parse (value, "b", &(object->dt)));
+    {
+        if (Object_setDrawType (obj, value) != Py_None)
+            return (-1);
+        else
+            return (0);
+    }
     if (StringEqual (name, "drawMode"))
-        return (!PyArg_Parse (value, "b", &(object->dtx)));
+    {
+        if (Object_setDrawMode (obj, value) != Py_None)
+            return (-1);
+        else
+            return (0);
+    }
 
     printf ("Unknown variable.\n");
     return (0);

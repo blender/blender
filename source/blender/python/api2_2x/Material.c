@@ -250,6 +250,8 @@ PyObject *M_Material_Init (void)
 {
   PyObject  *submodule;
 
+  Material_Type.ob_type = &PyType_Type;
+
   submodule = Py_InitModule3("Blender.Material",
                   M_Material_methods, M_Material_doc);
 
@@ -436,7 +438,7 @@ static PyObject *Material_Repr (C_Material *self);
 /*****************************************************************************/
 PyTypeObject Material_Type =
 {
-  PyObject_HEAD_INIT(&PyType_Type)
+  PyObject_HEAD_INIT(NULL)
   0,                                      /* ob_size */
   "Material",                             /* tp_name */
   sizeof (C_Material),                    /* tp_basicsize */

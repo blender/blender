@@ -89,9 +89,9 @@ int             CurveCheckPyObject  (PyObject *py_obj);
 
 /* Armature Data */
 PyObject *         M_Armature_Init (void);
-PyObject *         ArtmatureCreatePyObject (bArmature *armature);
-bArmature*         ArmatureFromPyObject   (PyObject *py_obj);
-int                ArmatureCheckPyObject  (PyObject *py_obj);
+PyObject *         M_ArmatureCreatePyObject (bArmature *armature);
+bArmature*         M_ArmatureFromPyObject   (PyObject *py_obj);
+int                M_ArmatureCheckPyObject  (PyObject *py_obj);
 
 /* Particle Effects Data */
 /*PyObject *      M_Effect_Init (void);
@@ -102,8 +102,8 @@ int             EffectCheckPyObject (PyObject *py_obj);
 
 /* Image */
 PyObject * M_Image_Init (void);
-PyObject * ImageCreatePyObject (Image *image);
-int        Image_checkPyObject (PyObject *pyobj);
+PyObject * Image_CreatePyObject (Image *image);
+int        Image_CheckPyObject (PyObject *pyobj);
 
 /* Init functions for other modules */
 PyObject * M_Window_Init (void);

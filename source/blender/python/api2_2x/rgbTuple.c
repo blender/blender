@@ -83,7 +83,7 @@ static PySequenceMethods rgbTupleAsSequence =
 /*****************************************************************************/
 PyTypeObject rgbTuple_Type =
 {
-  PyObject_HEAD_INIT(&PyType_Type)
+  PyObject_HEAD_INIT(NULL)
   0,                                      /* ob_size */
   "rgbTuple",                             /* tp_name */
   sizeof (C_rgbTuple),                    /* tp_basicsize */
@@ -114,6 +114,8 @@ PyObject *rgbTuple_New(float *rgb[3])
   C_rgbTuple *rgbTuple;
 
   printf ("In rgbTuple_New()\n");
+
+  rgbTuple_Type.ob_type = &PyType_Type;
 
   rgbTuple = (C_rgbTuple *)PyObject_NEW(C_rgbTuple, &rgbTuple_Type);
 

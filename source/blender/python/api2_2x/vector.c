@@ -193,7 +193,7 @@ static PySequenceMethods Vector_SeqMethods =
 
 PyTypeObject vector_Type =
 {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,								           /*ob_size*/
 	"Vector",						         /*tp_name*/
 	sizeof(VectorObject),			   /*tp_basicsize*/
@@ -212,7 +212,9 @@ PyTypeObject vector_Type =
 PyObject *newVectorObject(float *vec, int size)
 {
 	VectorObject *self;
-	
+
+    vector_Type.ob_type = &PyType_Type;
+
 	self= PyObject_NEW(VectorObject, &vector_Type);
 	
 	self->vec= vec;

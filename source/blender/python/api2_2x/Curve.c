@@ -145,6 +145,9 @@ PyObject *M_Curve_Init (void)
 {
   PyObject  *submodule;
   printf ("In M_Curve_Init()\n");
+
+  Curve_Type.ob_type = &PyType_Type;
+
   submodule = Py_InitModule3("Blender.Curve",M_Curve_methods, M_Curve_doc);
   return (submodule);
 }

@@ -148,7 +148,7 @@ static int BonePrint (C_Bone *bone, FILE *fp, int flags);
 /*****************************************************************************/
 static PyTypeObject Bone_Type =
 {
-  PyObject_HEAD_INIT(&PyType_Type)
+  PyObject_HEAD_INIT(NULL)
   0,                                      /* ob_size */
   "Bone",                               /* tp_name */
   sizeof (C_Bone),                     /* tp_basicsize */
@@ -223,6 +223,8 @@ static PyObject *M_Bone_New(PyObject *self, PyObject *args, PyObject *keywords)
 PyObject *M_Bone_Init (void)
 {
   PyObject  *submodule;
+
+  Bone_Type.ob_type = &PyType_Type;
 
   printf ("In M_Bone_Init()\n");
 
