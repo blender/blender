@@ -66,6 +66,9 @@ chmod +x $DISTDIR/python$PVERS.dll
 # Add gettext DLL to package
 cp -f $NAN_GETTEXT/lib/gnu_gettext.dll $DISTDIR/gnu_gettext.dll
 
+# Add SDL DLL to package
+cp -f $NAN_SDL/lib/sdl.dll $DISTDIR/sdl.dll
+
 # Add the Help.url to the ditribution
 cp -f extra/Help.url $DISTDIR/
 
