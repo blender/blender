@@ -2726,7 +2726,8 @@ static void figure_bone_nocalc_constraint(Bone *conbone, bConstraint *con,
 						
 	if (subtar) {
 		if ( (subtarbone = get_named_bone(arm, subtar)) ) {
-			if (~subtarbone->flag & BONE_NOCALC) {
+			if ( (~subtarbone->flag & BONE_NOCALC) ||
+				 (get_parent_bone_docalc(subtarbone)) ) {
 				if (con->type == CONSTRAINT_TYPE_KINEMATIC)
 					/* IK target is flaged for updating, so we
 					 * must update the whole chain.
