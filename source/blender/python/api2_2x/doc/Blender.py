@@ -8,7 +8,7 @@
 # -n "Blender" --no-private --no-frames Blender.py \
 # Types.py Scene.py Object.py NMesh.py Material.py Camera.py Lamp.py \
 # Armature.py Metaball.py Effect.py Curve.py Ipo.py World.py BGL.py Window.py \
-# Draw.py Image.py Text.py Lattice.py Texture.py Registry.py Sys.py
+# Draw.py Image.py Text.py Lattice.py Texture.py Registry.py Sys.py Mathutils.py
 
 """
 The main Blender module.
@@ -30,6 +30,7 @@ The Blender Python API Reference
   - L{Lamp}
   - L{Lattice}
   - L{Material}
+  - L{Mathutils}
   - L{Metaball}
   - L{NMesh}
   - L{Object}
