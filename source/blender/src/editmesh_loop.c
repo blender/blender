@@ -40,10 +40,6 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 #include <string.h>
 #include <math.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #include "BLI_winstuff.h"
 #endif
@@ -81,6 +77,7 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 
 #include "BSE_view.h"
 #include "BSE_edit.h"
+#include "BSE_drawview.h"
 
 #include "BDR_drawobject.h"
 #include "BDR_editobject.h"
