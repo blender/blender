@@ -746,7 +746,8 @@ static DispList *hypermesh_to_displist(HyperMesh *hme, short flag) {
 	
 	dlm->totvert= nverts+handles;
 	dlm->totface= nfaces+handles;
-	dlm->mvert= MEM_mallocN(dlm->totvert*sizeof(*dlm->mvert), "dlm->mvert");
+	/* calloc for clear flag and nor in mvert */
+	dlm->mvert= MEM_callocN(dlm->totvert*sizeof(*dlm->mvert), "dlm->mvert");
 	dlm->mface= MEM_mallocN(dlm->totface*sizeof(*dlm->mface), "dlm->mface");
 	if(hme->orig_me) dlm->flag= hme->orig_me->flag;
 	
