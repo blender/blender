@@ -6,7 +6,7 @@ The Blender.sys submodule.
 sys
 ===
 
-B{New}: L{exists}, L{makename}, L{join}.
+B{New}: L{exists}, L{makename}, L{join}, L{sleep}.
 
 This module provides a minimal set of helper functions and data.  Its purpose
 is to avoid the need for the standard Python module 'os', in special 'os.path',
@@ -128,4 +128,12 @@ def time ():
   this function are guaranteed to return values greater than the previous call.
   @rtype: float
   @return: the elapsed time in seconds.
+  """
+
+def sleep (millisecs = 10):
+  """
+  Sleep for the specified amount of time.
+  @type millisecs: int
+  @param millisecs: the amount of time in milliseconds to sleep.  The default
+      is 10 which is 0.1 seconds.
   """

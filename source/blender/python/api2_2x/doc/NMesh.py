@@ -392,10 +392,13 @@ class NMesh:
     """
     Update the mesh in Blender.  The changes made are put back to the mesh in
     Blender, if available, or put in a newly created mesh object if this NMesh
-    wasn't linked to one, yet.
+    wasn't already linked to one.
     @type recalc_normals: int
     @param recalc_normals: If given and equal to 1, the vertex normals are
         recalculated.
+    @note: if your mesh disappears after it's updated, try
+        L{Object.Object.makeDisplayList}.  'Subsurf' meshes (see L{getMode},
+        L{setMode}) need their display lists updated, too.
     """
 
   def getMode():

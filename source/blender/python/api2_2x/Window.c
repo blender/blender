@@ -75,6 +75,7 @@ static PyObject *M_Window_QRedrawAll (PyObject *self, PyObject *args);
 static PyObject *M_Window_DrawProgressBar (PyObject *self, PyObject *args);
 static PyObject *M_Window_GetCursorPos (PyObject *self);
 static PyObject *M_Window_SetCursorPos (PyObject *self, PyObject *args);
+static PyObject *M_Window_WaitCursor (PyObject *self, PyObject *args);
 static PyObject *M_Window_GetViewVector (PyObject *self);
 static PyObject *M_Window_GetViewQuat (PyObject *self);
 static PyObject *M_Window_SetViewQuat (PyObject *self, PyObject *args);
@@ -91,11 +92,13 @@ static PyObject *M_Window_QRead (PyObject *self);
 static PyObject *M_Window_QAdd (PyObject *self, PyObject *args);
 static PyObject *M_Window_QHandle (PyObject *self, PyObject *args);
 static PyObject *M_Window_GetMouseCoords (PyObject *self);
+static PyObject *M_Window_SetMouseCoords (PyObject *self, PyObject *args);
 static PyObject *M_Window_GetMouseButtons (PyObject *self);
 static PyObject *M_Window_GetKeyQualifiers (PyObject *self);
 static PyObject *M_Window_SetKeyQualifiers (PyObject *self, PyObject *args);
 static PyObject *M_Window_GetAreaSize (PyObject *self);
 static PyObject *M_Window_GetAreaID (PyObject *self);
+static PyObject *M_Window_GetScreenSize (PyObject *self);
 static PyObject *M_Window_GetScreens (PyObject *self);
 static PyObject *M_Window_SetScreen (PyObject *self, PyObject *args);
 static PyObject *M_Window_GetScreenInfo (PyObject *self, PyObject *args,
@@ -150,6 +153,9 @@ static char M_Window_GetCursorPos_doc[] =
 
 static char M_Window_SetCursorPos_doc[] =
 "([f,f,f]) - Set the current 3d cursor position from a list of three floats.";
+
+static char M_Window_WaitCursor_doc[] =
+"(bool) - Set cursor to wait mode (nonzero bool) or normal mode (0).";
 
 static char M_Window_GetViewVector_doc[] =
 "() - Get the current 3d view vector as a list of three floats [x,y,z].";
@@ -214,7 +220,11 @@ static char M_Window_QHandle_doc[] =
 See Blender.Window.QAdd() for how to send events to a particular window.";
 
 static char M_Window_GetMouseCoords_doc[] =
-"() - Get the current mouse screen coordinates.";
+"() - Get mouse pointer's current screen coordinates.";
+
+static char M_Window_SetMouseCoords_doc[] =
+"(x, y) - Set mouse pointer's current screen coordinates.\n\
+(x,y) - ints ([x, y] also accepted): the new x, y coordinates.";
 
 static char M_Window_GetMouseButtons_doc[] =
 "() - Get the current mouse button state (see Blender.Draw.LEFTMOUSE, etc).";
@@ -232,7 +242,10 @@ static char M_Window_GetAreaID_doc[] =
 "() - Get the current window's (area) ID.";
 
 static char M_Window_GetAreaSize_doc[] =
-"() - Get the current window's (area) size as [x,y].";
+"() - Get the current window's (area) size as [width, height].";
+
+static char M_Window_GetScreenSize_doc[] =
+"() - Get the screen's size as [width, height].";
 
 static char M_Window_GetScreens_doc[] =
 "() - Get a list with the names of all available screens.";
@@ -276,6 +289,8 @@ struct PyMethodDef M_Window_methods[] = {
 		M_Window_GetCursorPos_doc},
 	{"SetCursorPos", M_Window_SetCursorPos,  METH_VARARGS,
 		M_Window_SetCursorPos_doc},
+	{"WaitCursor", M_Window_WaitCursor,  METH_VARARGS,
+		M_Window_WaitCursor_doc},
 	{"GetViewVector", (PyCFunction)M_Window_GetViewVector,	METH_NOARGS,
 		M_Window_GetViewVector_doc},
 	{"GetViewQuat", (PyCFunction)M_Window_GetViewQuat,	METH_NOARGS,
@@ -304,6 +319,8 @@ struct PyMethodDef M_Window_methods[] = {
 		M_Window_QHandle_doc},
 	{"GetMouseCoords", (PyCFunction)M_Window_GetMouseCoords, METH_NOARGS,
 		M_Window_GetMouseCoords_doc},
+	{"SetMouseCoords", (PyCFunction)M_Window_SetMouseCoords, METH_VARARGS,
+		M_Window_SetMouseCoords_doc},
 	{"GetMouseButtons", (PyCFunction)M_Window_GetMouseButtons, METH_NOARGS,
 		M_Window_GetMouseButtons_doc},
 	{"GetKeyQualifiers", (PyCFunction)M_Window_GetKeyQualifiers, METH_NOARGS,
@@ -314,6 +331,8 @@ struct PyMethodDef M_Window_methods[] = {
 		M_Window_GetAreaSize_doc},
 	{"GetAreaID", (PyCFunction)M_Window_GetAreaID, METH_NOARGS,
 		M_Window_GetAreaID_doc},
+	{"GetScreenSize", (PyCFunction)M_Window_GetScreenSize, METH_NOARGS,
+		M_Window_GetScreenSize_doc},
 	{"GetScreens", (PyCFunction)M_Window_GetScreens, METH_NOARGS,
 		M_Window_GetScreens_doc},
 	{"SetScreen", (PyCFunction)M_Window_SetScreen, METH_VARARGS,
@@ -582,6 +601,19 @@ static PyObject *M_Window_SetCursorPos(PyObject *self, PyObject *args)
 
 	Py_INCREF (Py_None);
 	return Py_None;
+}
+
+static PyObject *M_Window_WaitCursor(PyObject *self, PyObject *args)
+{
+	int bool;
+
+	if (!PyArg_ParseTuple(args, "i", &bool))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected bool (0 or 1) or nothing as argument");
+
+	waitcursor(bool); /* nonzero bool sets, zero unsets */
+
+	return EXPP_incr_ret(Py_None);
 }
 
 /*****************************************************************************/
@@ -923,6 +955,31 @@ static PyObject *M_Window_GetMouseCoords(PyObject *self)
 	return Py_BuildValue("hh", mval[0], mval[1]);
 }
 
+static PyObject *M_Window_SetMouseCoords(PyObject *self, PyObject *args)
+{
+	int ok, x, y;
+
+	if (!G.curscreen)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+			"no current screen to retrieve info from!");
+	
+	x = G.curscreen->sizex / 2;
+	y = G.curscreen->sizey / 2;
+
+	if (PyObject_Length(args) == 2)
+		ok = PyArg_ParseTuple(args, "hh", &x, &y);
+	else
+		ok = PyArg_ParseTuple(args, "|(hh)", &x, &y);
+
+	if (!ok)
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected [i, i] or i,i as arguments (or nothing).");
+
+	warp_pointer(x, y);
+
+	return EXPP_incr_ret(Py_None);
+}
+
 static PyObject *M_Window_GetMouseButtons(PyObject *self)
 {
 	short mbut = get_mbut();
@@ -971,6 +1028,16 @@ static PyObject *M_Window_GetAreaID(PyObject *self)
 
 	return Py_BuildValue("h", sa->win);
 }
+
+static PyObject *M_Window_GetScreenSize(PyObject *self)
+{
+	bScreen *scr = G.curscreen;
+
+	if (!scr) return EXPP_incr_ret(Py_None);
+
+	return Py_BuildValue("hh", scr->sizex, scr->sizey);
+}
+
 
 static PyObject *M_Window_SetScreen(PyObject *self, PyObject *args)
 {

@@ -60,6 +60,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_object.h" /* during_script() */
 
 #include "BIF_toolbox.h"
 
@@ -300,7 +301,7 @@ void rad_collect_meshes()
 	int a, b, offs, index, matindex;
 	
 	if(G.obedit) {
-		error("Unable to perform function in EditMode");
+		if (!during_script()) error("Unable to perform function in EditMode");
 		return;
 	}
 
@@ -325,7 +326,7 @@ void rad_collect_meshes()
 		base= base->next;
 	}
 	if(RG.totvert==0) {
-		error("No vertices");
+		if (!during_script()) error("No vertices");
 		return;
 	}
 	vnc= RG.verts= MEM_callocN(RG.totvert*sizeof(VeNoCo), "readvideoscape1");

@@ -526,13 +526,14 @@ class Object:
     isn't modified, there's no need to recalculate this data.  This method is
     here for the *few cases* where a script may need it, like when toggling
     the "SubSurf" mode for a mesh:
+
     Example::
-    object = Blender.Object.Get("Sphere")
-    nmesh = object.getData()
-    nmesh.setMode("SubSurf")
-    nmesh.update() # don't forget to update!
-    object.makeDisplayList()
-    Blender.Window.RedrawAll() # and don't forget to redraw
+     object = Blender.Object.Get("Sphere")
+     nmesh = object.getData()
+     nmesh.setMode("SubSurf")
+     nmesh.update() # don't forget to update!
+     object.makeDisplayList()
+     Blender.Window.Redraw()
 
     If you try this example without the line to update the display list, the
     object will disappear from the screen until you press "SubSurf".

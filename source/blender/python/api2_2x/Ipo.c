@@ -48,6 +48,7 @@ void getname_mat_ei (int nr, char *str);
 void getname_world_ei (int nr, char *str);
 void getname_cam_ei (int nr, char *str);
 void getname_ob_ei (int nr, char *str);
+void getname_ac_ei (int nr, char *str);
 
 /*****************************************************************************/
 /* Python API function prototypes for the Ipo module.                        */
@@ -664,6 +665,11 @@ GetIpoCurveName (IpoCurve * icu, char *s)
 	getname_ob_ei (icu->adrcode, s);
 	break;
       }
+		case ID_AC:
+			{
+	getname_ac_ei (icu->adrcode, s);
+	break;
+			}
     }
 }
 

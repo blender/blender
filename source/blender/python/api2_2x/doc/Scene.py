@@ -3,7 +3,8 @@
 """
 The Blender.Scene submodule.
 
-B{New}: L{Scene.play}, scriptLink methods: L{Scene.getScriptLinks}, ...
+B{New}: L{Scene.play}; scriptLink methods: L{Scene.getScriptLinks}, etc;
+L{Scene.getRadiosityContext}
 
 Scene
 =====
@@ -91,16 +92,6 @@ class Scene:
     @param name: The new name.
     """
 
-  def getWinSize():
-    """
-    @warn: B{Deprecated}: use RenderData.imageSizeX() and RenderData.imageSizeY()
-    """
-
-  def setWinSize(dimensions):
-    """
-    @warn: B{Deprecated}: use RenderData.imageSizeX() and RenderData.imageSizeY
-    """
-
   def copy(duplicate_objects = 1):
     """
     Make a copy of this Scene.
@@ -111,26 +102,6 @@ class Scene:
         - 2: Full copy.
     @rtype: Scene
     @return: The copied Blender Scene.
-    """
-
-  def startFrame(frame = None):
-    """
-    @warn: B{Deprecated}: use RenderData.startFrame()
-    """
-
-  def endFrame(frame = None):
-    """
-    @warn: B{Deprecated}: use RenderData.endFrame()
-    """
-
-  def currentFrame(frame = None):
-    """
-    @warn: B{Deprecated}: use RenderData.currentFrame
-    """
-
-  def frameSettings(start = None, end = None, current = None):
-    """
-    @warn: B{Deprecated}: use RenderData.startFrame(),  RenderData.endFrame, RenderData.currentFrame
     """
 
   def makeCurrent():
@@ -149,14 +120,19 @@ class Scene:
         The "full" update is a recent addition to this method.
     """
 
-  def getRenderdir():
+  def getRenderingContext():
     """
-    @warn: B{Deprecated}: use RenderData.getRenderPath()
+    Get the rendering context for this scene, see L{Render}.
+    @rtype: RenderData
+    @return: the render data object for this scene.
     """
 
-  def getBackbufdir():
+  def getRadiosityContext():
     """
-    @warn: B{Deprecated}: use RenderData.getBackbufPath()
+    Get the radiosity context for this scene, see L{Radio}.
+    @rtype: Blender Radiosity
+    @return: the radiosity object for this scene.
+    @note: only the current scene can return a radiosity context.
     """
 
   def getChildren():

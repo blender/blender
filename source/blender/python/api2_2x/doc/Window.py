@@ -83,9 +83,12 @@ DrawProgressBar::
     - SHIFT
 """
 
-def Redraw ():
+def Redraw (spacetype = '<Types.VIEW3D>'):
   """
-  Force a redraw of a specific Window Type (see L{Types}).
+  Force a redraw of a specific space type.
+  @type spacetype: int
+  @param spacetype: the space type, see L{Types}.  By default the 3d Views are
+      redrawn.  If spacetype < 0, all currently visible spaces are redrawn.
   """
 
 def RedrawAll ():
@@ -161,11 +164,27 @@ def GetCursorPos ():
 
 def SetCursorPos (coords):
   """
-  Change the 3d cursor position.  Note: if visible, the 3d window must be
-  redrawn to display the change.  This can be done with
-  L{Redraw}(L{Types}['VIEW3D']), for example.
+  Change the 3d cursor position.
   @type coords: 3 floats or a list of 3 floats
   @param coords: The new x, y, z coordinates.
+  @note: if visible, the 3d View must be redrawn to display the change.  This
+      can be done with L{Redraw}.
+  """
+
+def WaitCursor (bool):
+  """
+  Set cursor to wait or back to normal mode.
+
+  Example::
+    Blender.Window.WaitCursor(1)
+    Blender.sys.sleep(2000) # do something that takes some time
+    Blender.Window.WaitCursor(0) # back
+
+  @type bool: int (bool)
+  @param bool: if nonzero the cursor is set to wait mode, otherwise to normal
+      mode.
+  @note: when the script finishes execution, the cursor is set to normal by
+      Blender itself.
   """
 
 def GetViewVector ():
@@ -187,11 +206,14 @@ def EditMode(enable = -1):
   Get and optionally set the current edit mode status: in or out.
 
   Example:: 
-    Window.EditMode(0) # MUST leave edit mode before changing an active mesh
+    in_editmode = Window.EditMode()
+    # MUST leave edit mode before changing an active mesh:
+    if in_editmode: Window.EditMode(0)
     # ...
     # make changes to the mesh
     # ...
-    Window.EditMode(1) # be nice to the user and return things to how they were
+    # be nice to the user and return things to how they were:
+    if in_editmode: Window.EditMode(1)
   @type enable: int
   @param enable: get/set current status:
       - -1: just return current status (default);
@@ -315,9 +337,18 @@ def QHandle (winId):
 
 def GetMouseCoords ():
   """
-  Get the current mouse screen coordinates.
+  Get mouse's current screen coordinates.
   @rtype: list with two ints
   @return: a [x, y] list with the coordinates.
+  """
+
+def SetMouseCoords (coords):
+  """
+  Set mouse's current screen coordinates.
+  @type coords: (list of) two ints
+  @param coords: can be passed as x, y or [x, y] and are clamped to stay inside
+      the screen.  If not given they default to the coordinates of the middle
+      of the screen.
   """
 
 def GetMouseButtons ():
@@ -358,6 +389,13 @@ def GetAreaSize ():
   @return: a [width, height] list.
   @note: the returned values are 1 pixel bigger than what L{GetScreenInfo}
      returns for the 'vertices' of the same area.
+  """
+
+def GetScreenSize ():
+  """
+  Get Blender's screen size.
+  @rtype: list with two ints
+  @return: a [width, height] list.
   """
 
 def GetScreens ():

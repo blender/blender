@@ -49,6 +49,7 @@
 #include "constant.h"
 #include "gen_utils.h"
 #include "sceneRender.h"
+#include "sceneRadio.h"
 
 #include "Scene.h"
 
@@ -101,6 +102,7 @@ static PyObject *Scene_getChildren(BPy_Scene *self);
 static PyObject *Scene_getCurrentCamera(BPy_Scene *self);
 static PyObject *Scene_setCurrentCamera(BPy_Scene *self, PyObject *args);
 static PyObject *Scene_getRenderingContext(BPy_Scene *self);
+static PyObject *Scene_getRadiosityContext(BPy_Scene *self);
 static PyObject *Scene_getScriptLinks(BPy_Scene *self, PyObject *args);
 static PyObject *Scene_addScriptLink(BPy_Scene *self, PyObject *args);
 static PyObject *Scene_clearScriptLinks(BPy_Scene *self);
@@ -181,6 +183,8 @@ static PyMethodDef BPy_Scene_methods[] = {
 			"() - Return location of the backbuffer image"},
 	{"getRenderingContext", (PyCFunction)Scene_getRenderingContext, METH_NOARGS,
 			"() - Get the rendering context for the scene and return it as a BPy_RenderData"},
+	{"getRadiosityContext", (PyCFunction)Scene_getRadiosityContext, METH_NOARGS,
+			"() - Get the radiosity context for this scene."},
 	{"currentFrame", (PyCFunction)Scene_currentFrame, METH_VARARGS,
 			"(frame) - If frame is given, the current frame is set and"
 			"\nreturned in any case"},
@@ -234,7 +238,8 @@ PyObject *Scene_Init (void)
  	submodule = Py_InitModule3("Blender.Scene",	M_Scene_methods, M_Scene_doc);
 
 	dict = PyModule_GetDict (submodule);
-    PyDict_SetItemString (dict, "Render", Render_Init ());
+	PyDict_SetItemString (dict, "Render", Render_Init ());
+	PyDict_SetItemString (dict, "Radio",  Radio_Init ());
 
 	return submodule;
 }
@@ -755,6 +760,15 @@ static PyObject *Scene_getRenderingContext (BPy_Scene *self)
 			"Blender Scene was deleted!");
 
 	return RenderData_CreatePyObject(self->scene);
+}
+
+static PyObject *Scene_getRadiosityContext (BPy_Scene *self)
+{
+	if (!self->scene)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+			"Blender Scene was deleted!");
+
+	return Radio_CreatePyObject(self->scene);
 }
 
 /* scene.addScriptLink */

@@ -896,13 +896,12 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 
 		if(mesh_uses_displist(me) && editing==0) {
 			DispList *dl= find_displist(&me->disp, DL_MESH);
-			DispListMesh *dlm= dl->mesh;
-			
-			totface= dlm->totface;
-			
+			DispListMesh *dlm= NULL;
+
 			if (!dl)
 				totface= 0;
 			else {
+				dlm = dl->mesh;
 				totface= dlm->totface;
 				mvert= dlm->mvert;
 				mface= dlm->mface;

@@ -2,11 +2,13 @@
 
 """ Registration info for Blender menus
 Name: 'Bevel Center'
-Blender: 232
+Blender: 233
 Group: 'Mesh'
 Tip: 'Bevel selected vertices.'
 """
 
+# $Id$
+#
 ######################################################################
 # Bevel Center v1 for Blender
 #
@@ -369,7 +371,7 @@ def draw():
 	Button("Bevel",EVENT_BEVEL,10,100,280,25)
 	left=Number('',  EVENT_NOEVENT,10,70,45, 20,left.val,0,right.val,'Set the minimum of the slider')
 	right = Number("",EVENT_NOEVENT,245,70,45,20,right.val,left.val,200,"Set the maximum of the slider")
-	dist=Slider("Thickness	",EVENT_UPDATE,60,70,180,20,dist.val,left.val,right.val,0,"Thickness of the bevel")
+	dist=Slider("Thickness	",EVENT_UPDATE,60,70,180,20,dist.val,left.val,right.val,0,"Thickness of the bevel, can be changed even after bevelling")
 	glRasterPos2d(8,40)
 	Text('To finish, you can use recursive bevel to smooth it')
 	num=Number('',	EVENT_NOEVENT,10,10,40, 16,num.val,1,100,'Recursion level')
@@ -377,7 +379,7 @@ def draw():
 	Button("Exit",EVENT_EXIT,210,10,80,20)
 
 def event(evt, val):
-	if (evt == QKEY and not val):
+	if ((evt == QKEY or evt == ESCKEY) and not val):
 		Exit()
 
 def bevent(evt):
@@ -403,12 +405,9 @@ def bevel():
 	""" The main function, which creates the bevel """
 	global me,NF,NV,NE,NC, old_dist
 	#
+	is_editmode = Window.EditMode()
+	if is_editmode: Window.EditMode(0)
 	objects = Blender.Object.GetSelected() 
-	if objects[0].getType() != "Mesh":
-		PupMenu("Error|Active object for bevelling must be a mesh.")
-		return
-	editmode = Window.EditMode()
-	if editmode: Window.EditMode(0)
 	me = NMesh.GetRaw(objects[0].data.name)
 	#
 	NF = []
@@ -425,12 +424,14 @@ def bevel():
 	old_dist = dist.val
 	#
 	me.update(1)
-	if editmode: Window.EditMode(1)
+	if is_editmode: Window.EditMode(1)
 	Blender.Redraw()
 
 def bevel_update():
 	""" Use NV to update the bevel """
 	global dist, old_dist
+	is_editmode = Window.EditMode()
+	if is_editmode: Window.EditMode(0)
 	fac = dist.val - old_dist
 	old_dist = dist.val
 	#
@@ -440,6 +441,7 @@ def bevel_update():
 				NV[old_v][dir].co[i] += fac*dir.co[i]
 	#
 	me.update(1)
+	if is_editmode: Window.EditMode(1)
 	Blender.Redraw()
 
 def recursive():
