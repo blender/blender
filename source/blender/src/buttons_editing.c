@@ -2450,7 +2450,7 @@ void do_fpaintbuts(unsigned short event)
 }
 
 
-/* -------------------- MODE: vpaint faceselect ------------------- */
+/* -------------------- MODE: vpaint  ------------------- */
 
 static void editing_panel_mesh_paint(void)
 {
@@ -2524,6 +2524,7 @@ static void editing_panel_mesh_paint(void)
 
 static void editing_panel_mesh_texface(void)
 {
+	extern VPaint Gvp;         /* from vpaint */
 	uiBlock *block;
 	extern TFace *lasttface;
 
@@ -2558,12 +2559,16 @@ static void editing_panel_mesh_texface(void)
 		uiDefButC(block, ROW, REDRAWVIEW3D, "Alpha",	720,80,60,19, &lasttface->transp, 2.0, 2.0, 0, 0, "Render polygon transparent, depending on alpha channel of the texture");
 
 		uiBlockSetCol(block, TH_AUTO);
+
+		uiBlockBeginAlign(block);
+		uiDefButF(block, COL, B_VPCOLSLI, "",			769,40,40,28, &(Gvp.r), 0, 0, 0, 0, "");
+		uiDefBut(block, BUT, B_SET_VCOL, "Set VertCol",	809,40,103,28, 0, 0, 0, 0, 0, "Set Vertex colour of selection to current (Shift+K)");
+
 		uiBlockBeginAlign(block);
 		uiDefBut(block, BUT, B_COPY_TF_MODE, "Copy DrawMode", 600,7,117,28, 0, 0, 0, 0, 0, "Copy the drawmode from active face to selected faces");
 		uiDefBut(block, BUT, B_COPY_TF_UV, "Copy UV+tex",	  721,7,85,28, 0, 0, 0, 0, 0, "Copy UV information and textures from active face to selected faces");
 		uiDefBut(block, BUT, B_COPY_TF_COL, "Copy VertCol",	  809,7,103,28, 0, 0, 0, 0, 0, "Copy vertex colours from active face to selected faces");
 	}
-
 }
 
 void do_uvautocalculationbuts(unsigned short event)
