@@ -85,13 +85,8 @@
 
 //#include "glext.h"
 /* some local functions */
-#if defined(GL_EXT_texture_object) && (!defined(__sun__) || (!defined(__sun))) && !defined(__APPLE__)
-
-	/* exception for mesa... not according th opengl specs */
-	#ifndef __linux__
-		#define glBindTexture(A,B)     glBindTextureEXT(A,B)
-	#endif
-
+#if defined(GL_EXT_texture_object) && (!defined(__sun__) || (!defined(__sun))) && !defined(__APPLE__) && !defined(__linux__) && !defined(WIN32)
+	#define glBindTexture(A,B)     glBindTextureEXT(A,B)
 	#define glGenTextures(A,B)     glGenTexturesEXT(A,B)
 	#define glDeleteTextures(A,B)  glDeleteTexturesEXT(A,B)
 	#define glPolygonOffset(A,B)  glPolygonOffsetEXT(A,B)
@@ -392,7 +387,7 @@ int set_tpage(TFace *tface)
 			printf("name: %d, tpx: %d\n", *bind, tpx);
 			printf("tile: %d, mode: %d\n", fCurtile, tilemode);
 			if (error)
-				printf("error: %d\n", (int)error);
+				printf("error: %s\n", gluErrorString(error));
 		}
 		glBindTexture( GL_TEXTURE_2D, *bind);
 
@@ -405,7 +400,7 @@ int set_tpage(TFace *tface)
 		{
 			int minfilter= fLinearMipMap?GL_LINEAR_MIPMAP_LINEAR:GL_LINEAR_MIPMAP_NEAREST;
 			
-			gluBuild2DMipmaps(GL_TEXTURE_2D, 4, rectw, recth, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+			gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, rectw, recth, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minfilter);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		}
