@@ -85,6 +85,9 @@ char     *GetName(Text *text);
 PyObject *CreateGlobalDictionary (void);
 void      ReleaseGlobalDictionary (PyObject * dict);
 void      DoAllScriptsFromList (ListBase * list, short event);
+PyObject *importText(char *name);
+void init_ourImport(void);
+PyObject *blender_import(PyObject *self, PyObject *args);
 
 /*****************************************************************************/
 /* Description: This function will initialise Python and all the implemented */
@@ -98,6 +101,8 @@ void BPY_start_python(void)
   Py_SetProgramName("blender");
 
   Py_Initialize ();
+
+	init_ourImport ();
 
   initBlenderApi2_2x ();
 
@@ -660,4 +665,90 @@ void DoAllScriptsFromList (ListBase *list, short event)
   }
 
   return;
+}
+
+PyObject *importText(char *name)
+{
+	Text *text;
+	char *txtname;
+	char *buf = NULL;
+	int namelen = strlen(name);
+
+	txtname = malloc(namelen+3+1);
+	if (!txtname) return NULL;
+
+	memcpy(txtname, name, namelen);
+	memcpy(&txtname[namelen], ".py", 4);
+
+	text = (Text*) &(G.main->text.first);
+
+	while(text) {
+		if (!strcmp (txtname, GetName(text)))
+			break;
+		text = text->id.next;
+	}
+
+	if (!text) {
+		free(txtname);
+		return NULL;
+	}
+
+	if (!text->compiled) {
+		buf = txt_to_buf(text);
+		text->compiled = Py_CompileString(buf, GetName(text), Py_file_input);
+		MEM_freeN(buf);
+
+		if (PyErr_Occurred()) {
+			PyErr_Print();
+			BPY_free_compiled_text(text);
+			free(txtname);
+			return NULL;
+		}
+	}
+
+	free(txtname);
+	return PyImport_ExecCodeModule(name, text->compiled);
+}
+
+static PyMethodDef bimport[] = {
+	{ "blimport", blender_import, METH_VARARGS, "our own import"}
+};
+
+PyObject *blender_import(PyObject *self, PyObject *args)
+{
+	PyObject *exception, *err, *tb;
+	char *name;
+	PyObject *globals = NULL, *locals = NULL, *fromlist = NULL;
+	PyObject *m;
+
+	if (!PyArg_ParseTuple(args, "s|OOO:bimport",
+	        &name, &globals, &locals, &fromlist))
+	    return NULL;
+
+	m = PyImport_ImportModuleEx(name, globals, locals, fromlist);
+
+	if (m) 
+		return m;
+	else
+		PyErr_Fetch(&exception, &err, &tb); /*restore for probable later use*/
+	
+	m = importText(name);
+	if (m) { /* found module, ignore above exception*/
+		PyErr_Clear();
+		Py_XDECREF(exception); Py_XDECREF(err); Py_XDECREF(tb);
+		printf("imported from text buffer...\n");
+	} else {
+		PyErr_Restore(exception, err, tb);
+	}
+	return m;
+}
+
+void init_ourImport(void)
+{
+	PyObject *m, *d;
+	PyObject *import = PyCFunction_New(bimport, NULL);
+
+	m = PyImport_AddModule("__builtin__");
+	d = PyModule_GetDict(m);
+	PyDict_SetItemString(d, "__import__", import);
 }

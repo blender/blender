@@ -65,4 +65,3 @@ void BPY_copy_scriptlink(struct ScriptLink *scriptlink);
 int BPY_call_importloader(char *name);
 
 void init_syspath(void);
-

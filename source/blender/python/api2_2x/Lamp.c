@@ -72,8 +72,6 @@ static PyObject *M_Lamp_New(PyObject *self, PyObject *args, PyObject *keywords)
   Lamp        *bl_lamp; /* for actual Lamp Data we create in Blender */
   char        buf[21];
 
-  printf ("In Lamp_New()\n");
-
   if (!PyArg_ParseTupleAndKeywords(args, keywords, "|ss", kwlist,
                           &type_str, &name_str))
     return (EXPP_ReturnPyObjError (PyExc_AttributeError,
