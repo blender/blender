@@ -515,4 +515,14 @@ void IMB_freezbufImBuf(struct ImBuf * ibuf);
  */
 void IMB_rectfill(unsigned int *drect, unsigned int *srect, int x, int value);
 
+
+#ifdef WITH_QUICKTIME
+/**
+ *
+ * @attention Defined in quicktime_import.c
+ */
+void init_quicktime(void);
+
+#endif //WITH_QUICKTIME
+
 #endif

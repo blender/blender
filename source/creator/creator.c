@@ -75,6 +75,8 @@
 
 #include "BDR_drawmesh.h"
 
+#include "IMB_imbuf.h"
+
 #include "RE_renderconverter.h"
 
 #include "playanim_ext.h"
@@ -93,16 +95,6 @@
     #include <sys/rtprio.h>
   #endif
 #endif
-
-#ifdef WITH_QUICKTIME
-#ifdef _WIN32
-#include <QTML.h>
-#include <Movies.h>
-#elif defined(__APPLE__)
-#undef NDEBUG
-#include <QuickTime/Movies.h>
-#endif /* __APPLE__ */
-#endif /* WITH_QUICKTIME */
 
 // from buildinfo.c
 extern char * build_date;
@@ -431,27 +423,12 @@ int main(int argc, char **argv)
 	RE_init_filt_mask();
 	
 #ifdef WITH_QUICKTIME
-#ifdef _WIN32
-        if (InitializeQTML(0) != noErr)
-            G.have_quicktime = FALSE;
-        else
-            G.have_quicktime = TRUE;
-#endif /* _WIN32 */
 
-        /* Initialize QuickTime */
-#if defined(_WIN32) || defined (__APPLE__)
-        if (EnterMovies() != noErr)
-            G.have_quicktime = FALSE;
-        else
-#endif /* _WIN32 || __APPLE__ */
-#ifdef __linux__
-			/* inititalize quicktime codec registry */
-			lqt_registry_init();
-#endif
-			G.have_quicktime = TRUE;
+	init_quicktime();
+
 #endif /* WITH_QUICKTIME */
-
-		/* OK we are ready for it */
+		
+	/* OK we are ready for it */
 
 	for(a=1; a<argc; a++) {
 		if (G.afbreek==1) break;

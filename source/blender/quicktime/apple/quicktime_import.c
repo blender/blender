@@ -36,6 +36,7 @@
 
 #include "IMB_anim.h"
 #include "BLO_sys_types.h"
+#include "BKE_global.h"
 
 #ifdef __APPLE__
 #include <QuickTime/Movies.h>
@@ -57,6 +58,28 @@
 
 #define QTIME_DEBUG 0
 
+
+void init_quicktime(void)
+{
+#ifdef _WIN32
+        if (InitializeQTML(0) != noErr)
+            G.have_quicktime = FALSE;
+        else
+            G.have_quicktime = TRUE;
+#endif /* _WIN32 */
+
+        /* Initialize QuickTime */
+#if defined(_WIN32) || defined (__APPLE__)
+        if (EnterMovies() != noErr)
+            G.have_quicktime = FALSE;
+        else
+#endif /* _WIN32 || __APPLE__ */
+#ifdef __linux__
+			/* inititalize quicktime codec registry */
+			lqt_registry_init();
+#endif
+			G.have_quicktime = TRUE;
+}
 
 int anim_is_quicktime (char *name)
 {
