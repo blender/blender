@@ -80,7 +80,9 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"
 
+#ifdef INTERNATIONAL
 #include "FTF_Api.h"
+#endif
 
 #include "BDR_editobject.h"
 #include "BSE_drawipo.h"
@@ -1078,7 +1080,9 @@ static void outliner_draw_tree(SpaceOops *soops)
 	TreeElement *te;
 	int starty= soops->v2d.tot.ymax-OL_H, startx= 0;
 	
+#ifdef INTERNATIONAL
 	FTF_SetFontSize('l');
+#endif
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); // only once
 	
 	for(te= soops->tree.first; te; te= te->next) {
