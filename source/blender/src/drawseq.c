@@ -671,19 +671,19 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 	else if(last_seq->type==SEQ_IMAGE) {
 
 		uiDefBut(block, LABEL, 0, "Type: Image", 10,140,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, 0, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
+		uiDefBut(block, TEX, B_NOP, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
 
 	}
 	else if(last_seq->type==SEQ_META) {
 
 		uiDefBut(block, LABEL, 0, "Type: Meta", 10,140,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, 0, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
+		uiDefBut(block, TEX, B_NOP, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
 
 	}
 	else if(last_seq->type==SEQ_SCENE) {
 
 		uiDefBut(block, LABEL, 0, "Type: Scene", 10,140,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, 0, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
+		uiDefBut(block, TEX, B_NOP, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
 
 	}
 	else if(last_seq->type==SEQ_MOVIE) {
@@ -691,7 +691,7 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 		if(last_seq->mul==0.0) last_seq->mul= 1.0;
 
 		uiDefBut(block, LABEL, 0, "Type: Movie", 10,140,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, 0, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
+		uiDefBut(block, TEX, B_NOP, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
 
 		uiDefButS(block, TOG|BIT|4, SEQ_BUT_MOVIE, "FilterY ", 10,90,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "");
 		uiDefButF(block, NUM, SEQ_BUT_MOVIE, "Mul:", 10,70,150,19, &last_seq->mul, 0.001, 5.0, 100, 0, "");
@@ -702,29 +702,29 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 		uiDefBut(block, LABEL, 0, "Type: Audio", 10,140,150,20, 0, 0, 0, 0, 0, "");
 		uiDefBut(block, TEX, 0, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
 
-		uiDefButS(block, TOG|BIT|5, 0, "Mute", 10,90,120,19, &last_seq->flag, 0.0, 21.0, 100, 0, "");
+		uiDefButS(block, TOG|BIT|5, B_NOP, "Mute", 10,90,120,19, &last_seq->flag, 0.0, 21.0, 100, 0, "");
 		uiDefButF(block, NUM, SEQ_BUT_MOVIE, "Gain (dB):", 10,70,150,19, &last_seq->level, -96.0, 6.0, 100, 0, "");
 		uiDefButF(block, NUM, SEQ_BUT_MOVIE, "Pan:", 	10,50,150,19, &last_seq->pan, -1.0, 1.0, 100, 0, "");
 	}
 	else if(last_seq->type>=SEQ_EFFECT) {
 		uiDefBut(block, LABEL, 0, "Type: Effect", 10,140,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, 0, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
+		uiDefBut(block, TEX, B_NOP, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
 
 		if(last_seq->type==SEQ_WIPE){
 			WipeVars *wipe = (WipeVars *)last_seq->effectdata;
 			char formatstring[1024];
 			strcpy(formatstring, "Transition Type %t|Single Wipe%x0|Double Wipe %x1|Iris Wipe %x4|Clock Wipe %x5");
-			uiDefButS(block, MENU,SEQ_BUT_EFFECT | B_NOP, formatstring,	10,90,220,22, &wipe->wipetype, 0, 0, 0, 0, "What type of wipe should be performed");
-			uiDefButF(block, NUM,SEQ_BUT_EFFECT| B_NOP,"Blur:",	10,65,220,22, &wipe->edgeWidth,0.0,1.0, 1, 2, "The percent width of the blur edge");
+			uiDefButS(block, MENU,SEQ_BUT_EFFECT, formatstring,	10,90,220,22, &wipe->wipetype, 0, 0, 0, 0, "What type of wipe should be performed");
+			uiDefButF(block, NUM,SEQ_BUT_EFFECT,"Blur:",	10,65,220,22, &wipe->edgeWidth,0.0,1.0, 1, 2, "The percent width of the blur edge");
 			switch(wipe->wipetype){ /*Skip Types that do not require angle*/
 				case DO_IRIS_WIPE:
 				case DO_CLOCK_WIPE:
 				break;
 				
 				default:
-					uiDefButF(block, NUM,SEQ_BUT_EFFECT| B_NOP,"Angle:",	10,40,220,22, &wipe->angle,-90.0,90.0, 1, 2, "The Angle of the Edge");
+					uiDefButF(block, NUM,SEQ_BUT_EFFECT,"Angle:",	10,40,220,22, &wipe->angle,-90.0,90.0, 1, 2, "The Angle of the Edge");
 			}
-			uiDefButS(block, TOG,SEQ_BUT_EFFECT| B_NOP,"Wipe In",  10,15,220,22, &wipe->forward,0,0, 0, 0, "Controls Primary Direction of Wipe");				
+			uiDefButS(block, TOG,SEQ_BUT_EFFECT,"Wipe In",  10,15,220,22, &wipe->forward,0,0, 0, 0, "Controls Primary Direction of Wipe");				
 		}
 		else if(last_seq->type==SEQ_GLOW){
 			GlowVars *glow = (GlowVars *)last_seq->effectdata;
@@ -733,8 +733,8 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Clamp:", 	10,70,150,19, &glow->fClamp, 0.0, 1.0, 0, 0, "Brightness limit of intensity");
 			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Boost factor:", 	10,50,150,19, &glow->fBoost, 0.0, 10.0, 0, 0, "Brightness multiplier");
 			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Blur distance:", 	10,30,150,19, &glow->dDist, 0.5, 20.0, 0, 0, "Radius of glow effect");
-			uiDefButI(block, NUM, 0, "Quality:", 10,10,150,19, &glow->dQuality, 1.0, 5.0, 0, 0, "Accuracy of the blur effect");
-			uiDefButI(block, TOG, 0, "Only boost", 10,-10,150,19, &glow->bNoComp, 0.0, 0.0, 0, 0, "Show the glow buffer only");
+			uiDefButI(block, NUM, B_NOP, "Quality:", 10,10,150,19, &glow->dQuality, 1.0, 5.0, 0, 0, "Accuracy of the blur effect");
+			uiDefButI(block, TOG, B_NOP, "Only boost", 10,-10,150,19, &glow->bNoComp, 0.0, 0.0, 0, 0, "Show the glow buffer only");
 		}
 
 	}

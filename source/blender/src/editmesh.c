@@ -7264,7 +7264,7 @@ void beauty_fill(void)
     totedge = count_edges(em->edges.first);
     if(totedge==0) return;
 
-    if(okee("Beauty fill")==0) return;
+    if(okee("Beautify fill")==0) return;
     
     undo_push_mesh("Beauty Fill");
 

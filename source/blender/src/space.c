@@ -618,6 +618,25 @@ static unsigned short convert_for_nonumpad(unsigned short event)
 	}
 }
 
+/* *************** */
+
+void BIF_undo()
+{
+
+}
+
+void BIF_redo()
+{
+
+}
+
+void BIF_undo_menu()
+{
+
+}
+
+/* *************** */
+
 void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
