@@ -433,12 +433,8 @@ SND_WaveSlot* SND_OpenALDevice::LoadSample(const STR_String& name,
 				{
 #ifdef __APPLE__
 					alutLoadWAVFile((signed char*)samplename.Ptr(), &sampleformat, &data, &numberofsamples, &samplerate);
-#elif defined(WIN32)
-					alutLoadWAVFile((signed char*)samplename.Ptr(), &sampleformat, &data, &numberofsamples, &samplerate, &loop);
 #else
-					alutLoadWAV((char*)samplename.Ptr(), &data,
-						&sampleformat, &numberofsamples,
-						&samplerate, &frequency);
+					alutLoadWAVFile((signed char*)samplename.Ptr(), &sampleformat, &data, &numberofsamples, &samplerate, &loop);
 #endif
 					/* put it in the buffer */
 					alBufferData(m_buffers[buffer], sampleformat, data, numberofsamples, samplerate);
