@@ -3902,8 +3902,12 @@ static void do_versions(Main *main)
 			}
 		}
 	}
-	
-	if(main->versionfile <= 229) {
+	/* ton: made this 230 instead of 229, 
+	   to be sure (tuho files) and this is a reliable check anyway
+	   nevertheless, we might need to think over a fitness (initialize) 
+	   check apart from the do_versions() */
+	   
+	if(main->versionfile <= 230) {	
 		bScreen *sc;
 
 		// new variable blockscale, for panels in any area
