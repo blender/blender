@@ -887,6 +887,9 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		return;
 	}
 
+	/* smartass code to prevent the events below from not working! */
+	if (!isprint(ascii) || (G.qual & ~LR_SHIFTKEY)) ascii= 0;
+
 	text= st->text;
 	
 	if (!text) {
