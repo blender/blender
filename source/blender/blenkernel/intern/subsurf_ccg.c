@@ -836,7 +836,7 @@ static void ccgDM_drawMappedVertsEM(DerivedMesh *dm, int (*setDrawOptions)(void 
 		EditVert *vert = ccgSubSurf_getVertVertHandle(ss,v);
 
 		if (setDrawOptions(userData, vert)) {
-			if (ccgdm->ss->useAging) {
+			if (ccgdm->ss->useAging && !(G.f&G_BACKBUFSEL)) {
 				int ageCol = 255-ccgSubSurf_getVertAge(ss, v)*4;
 				glColor3ub(0, ageCol>0?ageCol:0, 0);
 			}
@@ -876,7 +876,7 @@ static void ccgDM_drawMappedEdgesEM(DerivedMesh *dm, int (*setDrawOptions)(void 
 
 		glBegin(GL_LINE_STRIP);
 		if (!setDrawOptions || setDrawOptions(userData, edge)) {
-			if (ccgdm->ss->useAging) {
+			if (ccgdm->ss->useAging && !(G.f&G_BACKBUFSEL)) {
 				int ageCol = 255-ccgSubSurf_getEdgeAge(ss, e)*4;
 				glColor3ub(0, ageCol>0?ageCol:0, 0);
 			}
@@ -907,7 +907,7 @@ static void ccgDM_drawMappedEdgesInterpEM(DerivedMesh *dm, int (*setDrawOptions)
 			for (i=0; i<edgeSize; i++) {
 				setDrawInterpOptions(userData, edge, (float) i/(edgeSize-1));
 
-				if (ccgdm->ss->useAging) {
+				if (ccgdm->ss->useAging && !(G.f&G_BACKBUFSEL)) {
 					int ageCol = 255-ccgSubSurf_getEdgeAge(ss, e)*4;
 					glColor3ub(0, ageCol>0?ageCol:0, 0);
 				}
