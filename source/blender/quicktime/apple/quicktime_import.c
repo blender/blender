@@ -58,7 +58,7 @@
 #define	RECT_WIDTH(r)	(r.right-r.left)
 #define	RECT_HEIGHT(r)	(r.bottom-r.top)
 
-#define QTIME_DEBUG 0
+#define QTIME_DEBUG 1
 
 
 void quicktime_init(void)
@@ -113,16 +113,16 @@ char *get_valid_qtname(char *name)
 	if(name[1] != ':') {
 		char drive[2];
 
-		if(name[0] != '/' || name[0] != '\\') {
-			BLI_dynstr_append(ds, Buffer);
-			BLI_dynstr_append(ds, "/");
-			BLI_dynstr_append(ds, name);
-		} else {
+		if(name[0] == '/' || name[0] == '\\') {
 			drive[0] = Buffer[0];
 			drive[1] = '\0';
 
 			BLI_dynstr_append(ds, drive);
 			BLI_dynstr_append(ds, ":");
+			BLI_dynstr_append(ds, name);
+		} else {
+			BLI_dynstr_append(ds, Buffer);
+			BLI_dynstr_append(ds, "/");
 			BLI_dynstr_append(ds, name);
 		}
 	} else {
@@ -166,7 +166,7 @@ int anim_is_quicktime (char *name)
 		BLI_testextensie(name, ".zip") ||
 		BLI_testextensie(name, ".mp3")) return 0;
 
-	if(QTIME_DEBUG) printf("qt: checking as movie\n");
+	if(QTIME_DEBUG) printf("qt: checking as movie: %s\n", name);
 
 #ifdef __APPLE__
 	sprintf(theFullPath, "%s", name);
@@ -176,6 +176,7 @@ int anim_is_quicktime (char *name)
 #else
 	qtname = get_valid_qtname(name);
 	sprintf(theFullPath, "%s", qtname);
+	if(QTIME_DEBUG) printf("qt: win checking as movie: %s\n", qtname);
 	MEM_freeN(qtname);
 
 	CopyCStringToPascal(theFullPath, dst);
