@@ -33,14 +33,21 @@ include nan_definitions.mk
 
 DISTDIR = dist
 CP = ../../intern/tools/cpifdiff.sh
+USERSETTINGS = ./dist/config/user-settings
+TEMPSETTINGS = ./user-settings
 
 all:
     ifeq ($(OS),freebsd)
 	(grep FreeBSD $(DISTDIR)/Makefile >/dev/null ; \
 	    [ $$? -eq 0 ] || patch < patchfile.FreeBSD )
-    endif
-    ifeq ($(OS),$(findstring $(OS), "freebsd linux"))
 	$(MAKE) -C $(DISTDIR)
+    endif
+    ifeq ($(OS),windows)
+	# compile with MSVC
+	mv $(USERSETTINGS) $(TEMPSETTINGS)
+	cat $(TEMPSETTINGS) | sed s/unix-gcc/msvc/ > $(USERSETTINGS)
+	env PATH=".:$(PATH)" $(MAKE) -C $(DISTDIR)
+	mv $(TEMPSETTINGS) $(USERSETTINGS)
     endif
 
 install: all
@@ -59,6 +66,22 @@ install: all
 	@$(CP) $(DISTDIR)/ode/src/joint.h $(NAN_ODE)/ode/src/
 	@$(CP) $(DISTDIR)/ode/src/objects.h $(NAN_ODE)/ode/src/
 	@$(CP) $(DISTDIR)/ode/src/obstack.h $(NAN_ODE)/ode/src/
+    endif
+    ifeq ($(OS),windows)
+	@echo "====> $(MAKE) $@ in $(SOURCEDIR)"
+	[ -d $(LCGDIR) ] || mkdir $(LCGDIR)
+	[ -d $(NAN_ODE) ] || mkdir $(NAN_ODE)
+	[ -d $(NAN_ODE)/include ] || mkdir $(NAN_ODE)/include
+	[ -d $(NAN_ODE)/include/ode ] || mkdir $(NAN_ODE)/include/ode
+	[ -d $(NAN_ODE)/lib ] || mkdir $(NAN_ODE)/lib
+	[ -d $(NAN_ODE)/ode ] || mkdir $(NAN_ODE)/ode
+	[ -d $(NAN_ODE)/ode/src ] || mkdir $(NAN_ODE)/ode/src
+	cp $(DISTDIR)/lib/ode.lib $(NAN_ODE)/lib/libode.a
+	cp $(DISTDIR)/include/ode/*.h $(NAN_ODE)/include/ode/
+	cp $(DISTDIR)/ode/src/array.h $(NAN_ODE)/ode/src/
+	cp $(DISTDIR)/ode/src/joint.h $(NAN_ODE)/ode/src/
+	cp $(DISTDIR)/ode/src/objects.h $(NAN_ODE)/ode/src/
+	cp $(DISTDIR)/ode/src/obstack.h $(NAN_ODE)/ode/src/
     endif
 
 clean:
