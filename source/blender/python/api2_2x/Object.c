@@ -803,6 +803,13 @@ static PyObject *Object_link (BPy_Object *self, PyObject *args)
     if (NMesh_CheckPyObject (py_data))
         data = (void *)NMesh_FromPyObject (py_data);
 
+    /* have we set data to something good? */
+    if( !data )
+    {
+        return (PythonReturnErrorObject (PyExc_AttributeError,
+            "link argument type is not supported "));
+    }
+
     oldid = (ID*) self->object->data;
     id = (ID*) data;
     obj_id = MAKE_ID2 (id->name[0], id->name[1]);
