@@ -59,19 +59,19 @@ public:
     MT_Quaternion(const double v[4]) : MT_Vector4(v) {}
     MT_Quaternion(MT_Scalar xx, MT_Scalar yy, MT_Scalar zz, MT_Scalar ww) :
         MT_Vector4(xx, yy, zz, ww) {}
-    MT_Quaternion(const MT_Vector3& axis, MT_Scalar angle) { 
-        setRotation(axis, angle); 
+    MT_Quaternion(const MT_Vector3& axis, MT_Scalar mt_angle) { 
+        setRotation(axis, mt_angle); 
     }
     MT_Quaternion(MT_Scalar yaw, MT_Scalar pitch, MT_Scalar roll) { 
         setEuler(yaw, pitch, roll); 
     }
 
-    void setRotation(const MT_Vector3& axis, MT_Scalar angle) {
+    void setRotation(const MT_Vector3& axis, MT_Scalar mt_angle) {
         MT_Scalar d = axis.length();
         MT_assert(!MT_fuzzyZero(d));
-        MT_Scalar s = sin(angle * MT_Scalar(0.5)) / d;
+        MT_Scalar s = sin(mt_angle * MT_Scalar(0.5)) / d;
         setValue(axis[0] * s, axis[1] * s, axis[2] * s, 
-                 cos(angle * MT_Scalar(0.5)));
+                 cos(mt_angle * MT_Scalar(0.5)));
     }
 
     void setEuler(MT_Scalar yaw, MT_Scalar pitch, MT_Scalar roll) {
