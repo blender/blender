@@ -244,30 +244,27 @@ static int blend(Tex *tex, float *texvec)
 /* 0.025 seems reasonable value for offset */
 #define B_OFFS 0.025
 
+/* newnoise: all noisebased types now have different noisebases to choose from */
+
 static int clouds(Tex *tex, float *texvec)
 {
-	float (*turbfunc)(float, float, float, float, int);
 	int rv=0;	/* return value, int:0, col:1, nor:2, everything:3 */
-
-	if (tex->noisetype==TEX_NOISESOFT) turbfunc = BLI_turbulence;
-	else turbfunc = BLI_turbulence1;
-
-	Tin = turbfunc(tex->noisesize, texvec[0], texvec[1], texvec[2], tex->noisedepth);
+	Tin = BLI_gTurbulence(tex->noisesize, texvec[0], texvec[1], texvec[2], tex->noisedepth, (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
 
 	if (tex->nor!=NULL) {
-		/* calculate bumpnormal */
-		tex->nor[0] = Tin - turbfunc(tex->noisesize, texvec[0] + B_OFFS, texvec[1], texvec[2], tex->noisedepth);
-		tex->nor[1] = Tin - turbfunc(tex->noisesize, texvec[0], texvec[1] + B_OFFS, texvec[2], tex->noisedepth);
-		tex->nor[2] = Tin - turbfunc(tex->noisesize, texvec[0], texvec[1], texvec[2] + B_OFFS, tex->noisedepth);
+		// calculate bumpnormal
+		tex->nor[0] = Tin - BLI_gTurbulence(tex->noisesize, texvec[0] + B_OFFS, texvec[1], texvec[2], tex->noisedepth,  (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
+		tex->nor[1] = Tin - BLI_gTurbulence(tex->noisesize, texvec[0], texvec[1] + B_OFFS, texvec[2], tex->noisedepth,  (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
+		tex->nor[2] = Tin - BLI_gTurbulence(tex->noisesize, texvec[0], texvec[1], texvec[2] + B_OFFS, tex->noisedepth,  (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
 		rv += 2;
 	}
 
 	if (tex->stype==1) {
-		/* in this case, int. value should really be computed from color,
-		   and bumpnormal from that, would be too slow, looks ok as is */
+		// in this case, int. value should really be computed from color,
+		// and bumpnormal from that, would be too slow, looks ok as is
 		Tr = Tin;
-		Tg = turbfunc(tex->noisesize, texvec[1], texvec[0], texvec[2], tex->noisedepth);
-		Tb = turbfunc(tex->noisesize, texvec[1], texvec[2], texvec[0], tex->noisedepth);
+		Tg = BLI_gTurbulence(tex->noisesize, texvec[1], texvec[0], texvec[2], tex->noisedepth, (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
+		Tb = BLI_gTurbulence(tex->noisesize, texvec[1], texvec[2], texvec[0], tex->noisedepth, (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
 		BRICONRGB;
 		Ta = 1.0;
 		return (rv+1);
@@ -284,22 +281,18 @@ static int clouds(Tex *tex, float *texvec)
 /* computes basic wood intensity value at x,y,z */
 static float wood_int(Tex *tex, float x, float y, float z)
 {
-	float (*noisefunc)(float, float, float, float);
 	float wi=0;
-
-	if (tex->noisetype==TEX_NOISESOFT) noisefunc = BLI_hnoise;
-	else noisefunc = BLI_hnoisep;
 
 	if (tex->stype==0)
 		wi = 0.5 + 0.5*sin((x + y + z)*10.0);
 	else if (tex->stype==1)
 		wi = 0.5 + 0.5*sin(sqrt(x*x + y*y + z*z)*20.0);
 	else if (tex->stype==2) {
-		wi = noisefunc(tex->noisesize, x, y, z);
+		wi = BLI_gNoise(tex->noisesize, x, y, z, (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
 		wi = 0.5 + 0.5*sin(tex->turbul*wi + (x + y + z)*10.0);
 	}
 	else if (tex->stype==3) {
-		wi = noisefunc(tex->noisesize, x, y, z);
+		wi = BLI_gNoise(tex->noisesize, x, y, z, (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
 		wi = 0.5 + 0.5*sin(tex->turbul*wi + (sqrt(x*x + y*y + z*z))*20.0);
 	}
 
@@ -329,14 +322,10 @@ static int wood(Tex *tex, float *texvec)
 static float marble_int(Tex *tex, float x, float y, float z)
 {
 	float n, mi;
-	float (*turbfunc)(float, float, float, float, int);
-
-	if (tex->noisetype==TEX_NOISESOFT) turbfunc = BLI_turbulence;
-	else turbfunc = BLI_turbulence1;
 
 	n = 5.0 * (x + y + z);
 
-	mi = 0.5 + 0.5 * sin(n + tex->turbul*turbfunc(tex->noisesize, x, y, z, tex->noisedepth));
+	mi = 0.5 + 0.5 * sin(n + tex->turbul * BLI_gTurbulence(tex->noisesize, x, y, z, tex->noisedepth, (tex->noisetype!=TEX_NOISESOFT),  tex->noisebasis));
 	if (tex->stype>=1) {
 		mi = sqrt(mi);
 		if (tex->stype==2) mi = sqrt(mi);
@@ -379,8 +368,8 @@ static int magic(Tex *tex, float *texvec)
 	y=  cos( (-texvec[0]+texvec[1]-texvec[2])*5.0 );
 	z= -cos( (-texvec[0]-texvec[1]+texvec[2])*5.0 );
 	if(n>0) {
-		x*= turb; 
-		y*= turb; 
+		x*= turb;
+		y*= turb;
 		z*= turb;
 		y= -cos(x-y+z);
 		y*= turb;
@@ -440,24 +429,20 @@ static int magic(Tex *tex, float *texvec)
 
 /* ------------------------------------------------------------------------- */
 
+/* newnoise: stucci also modified to use different noisebasis */
 static int stucci(Tex *tex, float *texvec)
 {
-	float b2, vec[3];
-	float ofs;
-	float (*noisefunc)(float, float, float, float);
+	float b2, vec[3], ofs;
 
 	if(tex->nor == NULL) return 0;
 
-	if(tex->noisetype==TEX_NOISESOFT) noisefunc= BLI_hnoise;
-	else noisefunc= BLI_hnoisep;
-
 	ofs= tex->turbul/200.0;
 
-	b2= noisefunc(tex->noisesize, texvec[0], texvec[1], texvec[2]);
+	b2= BLI_gNoise(tex->noisesize, texvec[0], texvec[1], texvec[2], (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
 	if(tex->stype) ofs*=(b2*b2);
-	vec[0]= b2-noisefunc(tex->noisesize, texvec[0]+ofs, texvec[1], texvec[2]);
-	vec[1]= b2-noisefunc(tex->noisesize, texvec[0], texvec[1]+ofs, texvec[2]);
-	vec[2]= b2-noisefunc(tex->noisesize, texvec[0], texvec[1], texvec[2]+ofs);
+	vec[0] = b2 - BLI_gNoise(tex->noisesize, texvec[0]+ofs, texvec[1], texvec[2], (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
+	vec[1] = b2 - BLI_gNoise(tex->noisesize, texvec[0], texvec[1]+ofs, texvec[2], (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);	
+	vec[2] = b2 - BLI_gNoise(tex->noisesize, texvec[0], texvec[1], texvec[2]+ofs, (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
 
 	if(tex->stype==1) {
 		tex->nor[0]= vec[0];
@@ -472,6 +457,194 @@ static int stucci(Tex *tex, float *texvec)
 
 	return 2;
 }
+
+/* ------------------------------------------------------------------------- */
+/* newnoise: musgrave terrain noise types */
+
+static float mg_mFractalOrfBmTex(Tex *tex, float *texvec)
+{
+	int rv=0;	/* return value, int:0, col:1, nor:2, everything:3 */
+	float (*mgravefunc)(float, float, float, float, float, float, int);
+
+	if (tex->stype==TEX_MFRACTAL)
+		mgravefunc = mg_MultiFractal;
+	else
+		mgravefunc = mg_fBm;
+
+	Tin = mgravefunc(texvec[0], texvec[1], texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->noisebasis);
+
+	if (tex->nor!=NULL) {
+		/* calculate bumpnormal */
+		tex->nor[0] = Tin - mgravefunc(texvec[0] + B_OFFS, texvec[1], texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->noisebasis);
+		tex->nor[1] = Tin - mgravefunc(texvec[0], texvec[1] + B_OFFS, texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->noisebasis);
+		tex->nor[2] = Tin - mgravefunc(texvec[0], texvec[1], texvec[2] + B_OFFS, tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->noisebasis);
+		rv += 2;
+	}
+
+	Tin *= tex->ns_outscale;
+
+	BRICON;
+
+	if (tex->flag & TEX_COLORBAND)  return (rv + do_colorband(tex->coba));
+
+	return rv;
+
+}
+
+static float mg_ridgedOrHybridMFTex(Tex *tex, float *texvec)
+{
+	int rv=0;	/* return value, int:0, col:1, nor:2, everything:3 */
+	float (*mgravefunc)(float, float, float, float, float, float, float, float, int);
+
+	if (tex->stype==TEX_RIDGEDMF)
+		mgravefunc = mg_RidgedMultiFractal;
+	else
+		mgravefunc = mg_HybridMultiFractal;
+
+	Tin = mgravefunc(texvec[0], texvec[1], texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->mg_gain, tex->noisebasis);
+
+	if (tex->nor!=NULL) {
+		/* calculate bumpnormal */
+		tex->nor[0] = Tin - mgravefunc(texvec[0] + B_OFFS, texvec[1], texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->mg_gain, tex->noisebasis);
+		tex->nor[1] = Tin - mgravefunc(texvec[0], texvec[1] + B_OFFS, texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->mg_gain, tex->noisebasis);
+		tex->nor[2] = Tin - mgravefunc(texvec[0], texvec[1], texvec[2] + B_OFFS, tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->mg_gain, tex->noisebasis);
+		rv += 2;
+	}
+
+	Tin *= tex->ns_outscale;
+
+	BRICON;
+
+	if (tex->flag & TEX_COLORBAND)  return (rv + do_colorband(tex->coba));
+
+	return rv;
+
+}
+
+
+static float mg_HTerrainTex(Tex *tex, float *texvec)
+{
+	int rv=0;	/* return value, int:0, col:1, nor:2, everything:3 */
+
+	Tin = mg_HeteroTerrain(texvec[0], texvec[1], texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->noisebasis);
+
+	if (tex->nor!=NULL) {
+		/* calculate bumpnormal */
+		tex->nor[0] = Tin - mg_HeteroTerrain(texvec[0] + B_OFFS, texvec[1], texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->noisebasis);
+		tex->nor[1] = Tin - mg_HeteroTerrain(texvec[0], texvec[1] + B_OFFS, texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->noisebasis);
+		tex->nor[2] = Tin - mg_HeteroTerrain(texvec[0], texvec[1], texvec[2] + B_OFFS, tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->noisebasis);
+		rv += 2;
+	}
+
+	Tin *= tex->ns_outscale;
+
+	BRICON;
+
+	if (tex->flag & TEX_COLORBAND)  return (rv + do_colorband(tex->coba));
+
+	return rv;
+
+}
+
+
+static float mg_distNoiseTex(Tex *tex, float *texvec)
+{
+	int rv=0;	/* return value, int:0, col:1, nor:2, everything:3 */
+
+	Tin = mg_VLNoise(texvec[0], texvec[1], texvec[2], tex->dist_amount, tex->noisebasis, tex->noisebasis2);
+
+	if (tex->nor!=NULL) {
+		/* calculate bumpnormal */
+		tex->nor[0] = Tin - mg_VLNoise(texvec[0] + B_OFFS, texvec[1], texvec[2], tex->dist_amount, tex->noisebasis, tex->noisebasis2);
+		tex->nor[1] = Tin - mg_VLNoise(texvec[0], texvec[1] + B_OFFS, texvec[2], tex->dist_amount, tex->noisebasis, tex->noisebasis2);
+		tex->nor[2] = Tin - mg_VLNoise(texvec[0], texvec[1], texvec[2] + B_OFFS, tex->dist_amount, tex->noisebasis, tex->noisebasis2);
+		rv += 2;
+	}
+
+	BRICON;
+
+	if (tex->flag & TEX_COLORBAND)  return (rv + do_colorband(tex->coba));
+
+	return rv;
+
+}
+
+
+/* ------------------------------------------------------------------------- */
+/* newnoise: Voronoi texture type, probably the slowest, especially with minkovsky, bumpmapping, could be done another way */
+
+static float voronoiTex(Tex *tex, float *texvec)
+{
+	int rv=0;	/* return value, int:0, col:1, nor:2, everything:3 */
+	float da[4], pa[12];	/* distance and point coordinate arrays of 4 nearest neighbours */
+	float aw1 = fabs(tex->vn_w1);
+	float aw2 = fabs(tex->vn_w2);
+	float aw3 = fabs(tex->vn_w3);
+	float aw4 = fabs(tex->vn_w4);
+	float sc = (aw1 + aw2 + aw3 + aw4);
+	if (sc!=0.f) sc =  tex->ns_outscale/sc;
+
+	voronoi(texvec[0], texvec[1], texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
+	Tin = sc * fabs(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
+
+	if (tex->vn_coltype) {
+		float ca[3];	/* cell color */
+		cellNoiseV(pa[0], pa[1], pa[2], ca);
+		Tr = aw1*ca[0];
+		Tg = aw1*ca[1];
+		Tb = aw1*ca[2];
+		cellNoiseV(pa[3], pa[4], pa[5], ca);
+		Tr += aw2*ca[0];
+		Tg += aw2*ca[1];
+		Tb += aw2*ca[2];
+		cellNoiseV(pa[6], pa[7], pa[8], ca);
+		Tr += aw3*ca[0];
+		Tg += aw3*ca[1];
+		Tb += aw3*ca[2];
+		cellNoiseV(pa[9], pa[10], pa[11], ca);
+		Tr += aw4*ca[0];
+		Tg += aw4*ca[1];
+		Tb += aw4*ca[2];
+		if (tex->vn_coltype>=2) {
+			float t1 = (da[1]-da[0])*10;
+			if (t1>1) t1=1;
+			if (tex->vn_coltype==3) t1*=Tin; else t1*=sc;
+			Tr *= t1;
+			Tg *= t1;
+			Tb *= t1;
+		}
+		else {
+			Tr *= sc;
+			Tg *= sc;
+			Tb *= sc;
+		}
+	}
+
+	if (tex->nor!=NULL) {
+		/* calculate bumpnormal */
+		voronoi(texvec[0] + B_OFFS, texvec[1], texvec[2], da, pa, tex->vn_mexp,  tex->vn_distm);
+		tex->nor[0] = Tin - sc * fabs(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
+		voronoi(texvec[0], texvec[1] + B_OFFS, texvec[2], da, pa, tex->vn_mexp,  tex->vn_distm);
+		tex->nor[1] = Tin - sc * fabs(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
+		voronoi(texvec[0], texvec[1], texvec[2] + B_OFFS, da, pa, tex->vn_mexp,  tex->vn_distm);
+		tex->nor[2] = Tin - sc * fabs(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
+		rv += 2;
+	}
+
+	if (tex->vn_coltype) {
+		BRICONRGB;
+		Ta = 1.0;
+		return (rv+1);
+	}
+	
+	BRICON;
+
+	if (tex->flag & TEX_COLORBAND)  return (rv + do_colorband(tex->coba));
+
+	return rv;
+
+}
+
 
 /* ------------------------------------------------------------------------- */
 
@@ -868,7 +1041,7 @@ int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex)
 		Tin= 0.0;
 		return 0;
 	case TEX_CLOUDS:
-		return clouds(tex, texvec); 
+		return clouds(tex, texvec);
 	case TEX_WOOD:
 		return wood(tex, texvec); 
 	case TEX_MARBLE:
@@ -885,13 +1058,38 @@ int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex)
 	case TEX_IMAGE:
 		if(osatex) return imagewraposa(tex, texvec, dxt, dyt); 
 		else return imagewrap(tex, texvec); 
-		break;
 	case TEX_PLUGIN:
 		return plugintex(tex, texvec, dxt, dyt, osatex);
-		break;
 	case TEX_ENVMAP:
 		return envmaptex(tex, texvec, dxt, dyt, osatex);
+	case TEX_MUSGRAVE:
+		/* newnoise: musgrave types */
+		
+		/* ton: added this, for Blender convention reason. scaling texvec here is so-so... */
+		VecMulf(texvec, 1.0/tex->noisesize);
+		
+		switch(tex->stype) {
+		case TEX_MFRACTAL:
+		case TEX_FBM:
+			return mg_mFractalOrfBmTex(tex, texvec);
+		case TEX_RIDGEDMF:
+		case TEX_HYBRIDMF:
+			return mg_ridgedOrHybridMFTex(tex, texvec);
+		case TEX_HTERRAIN:
+			return mg_HTerrainTex(tex, texvec);
+		}
 		break;
+	/* newnoise: voronoi type */
+	case TEX_VORONOI:
+		/* ton: added this, for Blender convention reason. scaling texvec here is so-so... */
+		VecMulf(texvec, 1.0/tex->noisesize);
+		
+		return voronoiTex(tex, texvec);
+	case TEX_DISTNOISE:
+		/* ton: added this, for Blender convention reason. scaling texvec here is so-so... */
+		VecMulf(texvec, 1.0/tex->noisesize);
+		
+		return mg_distNoiseTex(tex, texvec);
 	}
 	return 0;
 }

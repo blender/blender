@@ -233,4 +233,5 @@ void M_Blender_Init (void)
   PyDict_SetItemString (dict, "Text",     Text_Init());
   PyDict_SetItemString (dict, "World",    World_Init());
   PyDict_SetItemString (dict, "Texture",  Texture_Init());
+  PyDict_SetItemString (dict, "Noise",    Noise_Init());
 }

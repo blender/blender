@@ -692,7 +692,13 @@ static void texture_panel_blend(Tex *tex)
 	
 }
 
-
+/* newnoise: noisebasis menu string */
+static char* noisebasis_menu()
+{
+	static char nbmenu[256];
+	sprintf(nbmenu, "Noise Basis %%t|Blender Original %%x%d|Original Perlin %%x%d|Improved Perlin %%x%d|Voronoi F1 %%x%d|Voronoi F2 %%x%d|Voronoi F3 %%x%d|Voronoi F4 %%x%d|Voronoi F2-F1 %%x%d|Voronoi Crackle %%x%d|CellNoise %%x%d", TEX_BLENDER, TEX_STDPERLIN, TEX_NEWPERLIN, TEX_VORONOI_F1, TEX_VORONOI_F2, TEX_VORONOI_F3, TEX_VORONOI_F4, TEX_VORONOI_F2F1, TEX_VORONOI_CRACKLE, TEX_CELLNOISE);
+	return nbmenu;
+}
 
 static void texture_panel_wood(Tex *tex)
 {
@@ -712,9 +718,13 @@ static void texture_panel_wood(Tex *tex)
 	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	160, 160, 150, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Generates hard noise");
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 130, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets the dimension of the noise table");
+	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 130, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets scaling for noise input");
 	uiDefButF(block, NUM, B_TEXPRV, "Turbulence:",	160, 130, 150, 19, &tex->turbul, 0.0, 200.0, 10, 0, "Sets the turbulence of the bandnoise and ringnoise types");
+	uiBlockEndAlign(block);
 
+	/* newnoise: noisebasis menu */
+	uiDefBut(block, LABEL, 0, "Noise Basis",		10, 30, 150, 19, 0, 0.0, 0.0, 0, 0, "");
+	uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(),	10, 10, 150, 19, &tex->noisebasis, 0,0,0,0, "Sets the noise basis used for turbulence");
 
 }
 
@@ -735,8 +745,14 @@ static void texture_panel_stucci(Tex *tex)
 	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	122, 160, 113, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Generates hard noise");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 110, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets the dimension of the noise table");
+	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 110, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets scaling for noise input");
 	uiDefButF(block, NUM, B_TEXPRV, "Turbulence:",	10, 90, 150, 19, &tex->turbul, 0.0, 200.0, 10, 0, "Sets the depth of the stucci");
+	uiBlockEndAlign(block);
+
+	/* newnoise: noisebasis menu */
+	uiDefBut(block, LABEL, 0, "Noise Basis",		10, 30, 150, 19, 0, 0.0, 0.0, 0, 0, "");
+	uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(),	10, 10, 150, 19, &tex->noisebasis, 0,0,0,0, "Sets the noise basis used for turbulence");
+
 }
 
 static void texture_panel_marble(Tex *tex)
@@ -756,10 +772,14 @@ static void texture_panel_marble(Tex *tex)
 	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	122, 160, 113, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Generates hard noise");
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 110, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets the dimension of the noise table");
+	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 110, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets scaling for noise input");
 	uiDefButS(block, NUM, B_TEXPRV, "NoiseDepth:",	10, 90, 150, 19, &tex->noisedepth, 0.0, 6.0, 0, 0, "Sets the depth of the marble calculation");
 	uiDefButF(block, NUM, B_TEXPRV, "Turbulence:",	10, 70, 150, 19, &tex->turbul, 0.0, 200.0, 10, 0, "Sets the turbulence of the sine bands");
-
+	uiBlockEndAlign(block);
+	
+	/* newnoise: noisebasis menu */
+	uiDefBut(block, LABEL, 0, "Noise Basis",		10, 30, 150, 19, 0, 0.0, 0.0, 0, 0, "");
+	uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(),	10, 10, 150, 19, &tex->noisebasis, 0,0,0,0, "Sets the noise basis used for turbulence");
 
 }
 
@@ -777,11 +797,120 @@ static void texture_panel_clouds(Tex *tex)
 	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	155, 180, 75, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Generates soft noise");
 	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	230, 180, 80, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Generates hard noise");
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 130, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets the dimension of the noise table");
+	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 130, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets scaling for noise input");
 	uiDefButS(block, NUM, B_TEXPRV, "NoiseDepth:",	160, 130, 150, 19, &tex->noisedepth, 0.0, 6.0, 0, 0, "Sets the depth of the cloud calculation");
+	uiBlockEndAlign(block);
+	
+	/* newnoise: noisebasis menu */
+	uiDefBut(block, LABEL, 0, "Noise Basis",		10, 30, 150, 19, 0, 0.0, 0.0, 0, 0, "");
+	uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(),	10, 10, 150, 19, &tex->noisebasis, 0,0,0,0, "Sets the noise basis used for turbulence");
 
 }
 
+/*****************************************/
+/* newnoise: panel(s) for musgrave types */
+/*****************************************/
+
+static void texture_panel_musgrave(Tex *tex)
+{
+	uiBlock *block;
+	char *str;
+	
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_musgrave", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Musgrave", "Texture", 640, 0, 318, 204)==0) return;
+	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+
+	str= "Ridged Multifractal %x0|Hybrid Multifractal %x1|Multifractal %x2|Hetero Terrain %x3|fBm %x4";
+	uiDefButS(block, MENU, B_TEXPRV, str, 10, 160, 150, 19, &tex->stype, 0.0, 0.0, 0, 0, "Sets Musgrave type");
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, B_TEXPRV, "H: ", 10, 130, 150, 19, &tex->mg_H, 0.0001, 2.0, 10, 0, "Sets the highest fractal dimension");
+	uiDefButF(block, NUMSLI, B_TEXPRV, "Lacu: ", 160, 130, 150, 19, &tex->mg_lacunarity, 0.0, 6.0, 10, 0, "Sets the gap between succesive frequencies");
+	uiDefButF(block, NUMSLI, B_TEXPRV, "Octs: ", 10, 110, 150, 19, &tex->mg_octaves, 0.0, 8.0, 10, 0, "Sets the number of frequencies used");
+	if ((tex->stype==TEX_RIDGEDMF) || (tex->stype==TEX_HYBRIDMF) || (tex->stype==TEX_HTERRAIN)) {
+		uiDefButF(block, NUMSLI, B_TEXPRV, "Ofst: ", 160, 110, 150, 19, &tex->mg_offset, 0.0, 6.0, 10, 0, "Sets the fractal offset");
+		if ((tex->stype==TEX_RIDGEDMF) || (tex->stype==TEX_HYBRIDMF))
+			uiDefButF(block, NUMSLI, B_TEXPRV, "Gain: ", 10, 90, 150, 19, &tex->mg_gain, 0.0, 6.0, 10, 0, "Sets the gain multiplier");
+	}
+
+	uiBlockBeginAlign(block);
+	/* noise output scale */
+	uiDefButF(block, NUM, B_TEXPRV, "iScale: ", 10, 60, 150, 19, &tex->ns_outscale, 0.0, 10.0, 10, 0, "Scales intensity output");	
+	/* frequency scale */
+	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize: ",	160, 60, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets scaling for noise input");
+	uiBlockEndAlign(block);
+
+	/* noisebasis menu */
+	uiDefBut(block, LABEL, 0, "Noise Basis", 10, 30, 150, 19, 0, 0.0, 0.0, 0, 0, "");
+	uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(), 10, 10, 150, 19, &tex->noisebasis, 0,0,0,0, "Sets the noise basis used for turbulence");
+
+}
+
+
+static void texture_panel_distnoise(Tex *tex)
+{
+	uiBlock *block;
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_distnoise", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Distorted Noise", "Texture", 640, 0, 318, 204)==0) return;
+	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+
+	uiBlockBeginAlign(block);
+	/* distortion amount */
+	uiDefButF(block, NUM, B_TEXPRV, "DistAmnt: ", 10, 130, 150, 19, &tex->dist_amount, 0.0, 10.0, 10, 0, "Sets amount of distortion");	
+	/* frequency scale */
+	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize: ",	160, 130, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets scaling for noise input");
+	uiBlockEndAlign(block);
+	
+	uiDefBut(block, LABEL, 0, "Distortion Noise", 10, 100, 150, 19, 0, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Noise Basis", 	160, 100, 150, 19, 0, 0.0, 0.0, 0, 0, "");
+
+	uiBlockBeginAlign(block);
+	/* noisebasis used for the distortion */	
+	uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(), 10, 80, 150, 19, &tex->noisebasis, 0,0,0,0, "Sets the noise basis which does the distortion");
+	/* noisebasis to distort */
+	uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(), 160, 80, 150, 19, &tex->noisebasis2, 0,0,0,0, "Sets the noise basis to distort");
+
+}
+
+
+static void texture_panel_voronoi(Tex *tex)
+{
+	uiBlock *block;
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_voronoi", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Voronoi", "Texture", 640, 0, 318, 204)==0) return;
+	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+
+	/* color types */
+	uiBlockBeginAlign(block);
+	uiDefButS(block, ROW, B_TEXPRV, "Int", 10, 180, 50, 18, &tex->vn_coltype, 1.0, 0.0, 0, 0, "Only calculate intensity"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Col1", 60, 180, 50, 18, &tex->vn_coltype, 1.0, 1.0, 0, 0, "Color cells by position"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Col2", 110, 180, 50, 18, &tex->vn_coltype, 1.0, 2.0, 0, 0, "Same as Col1 + outline based on F2-F1"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Col3", 160, 180, 50, 18, &tex->vn_coltype, 1.0, 3.0, 0, 0, "Same as Col2 * intensity"); 
+	uiBlockEndAlign(block);
+
+	/* distance metric */
+	static char dm_menu[256];
+	sprintf(dm_menu, "Distance Metric %%t|Actual Distance %%x%d|Distance Squared %%x%d|Manhattan %%x%d|Chebychev %%x%d|Minkovsky 1/2 %%x%d|Minkovsky 4 %%x%d|Minkovsky %%x%d", TEX_DISTANCE, TEX_DISTANCE_SQUARED, TEX_MANHATTAN, TEX_CHEBYCHEV, TEX_MINKOVSKY_HALF, TEX_MINKOVSKY_FOUR, TEX_MINKOVSKY);
+	uiDefBut(block, LABEL, 0, "Distance Metric", 10, 160, 200, 19, 0, 0, 0, 0, 0, "");
+	uiDefButS(block, MENU, B_TEXPRV, dm_menu, 10, 140, 200, 19, &tex->vn_distm, 0,0,0,0, "Sets the distance metric to be used");
+
+	if (tex->vn_distm==TEX_MINKOVSKY)
+		uiDefButF(block, NUMSLI, B_TEXPRV, "Exp: ", 10, 120, 200, 19, &tex->vn_mexp, 0.01, 10.0, 10, 0, "Sets minkovsky exponent");
+
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, B_TEXPRV, "iScale: ", 	10, 95, 100, 19, &tex->ns_outscale, 0.01, 10.0, 10, 0, "Scales intensity output");
+	uiDefButF(block, NUM, B_TEXPRV, "Size: ",	110, 95, 100, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets scaling for noise input");
+
+	/* weights */
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, B_TEXPRV, "W1: ", 10, 70, 200, 19, &tex->vn_w1, -2.0, 2.0, 10, 0, "Sets feature weight 1");
+	uiDefButF(block, NUMSLI, B_TEXPRV, "W2: ", 10, 50, 200, 19, &tex->vn_w2, -2.0, 2.0, 10, 0, "Sets feature weight 2");
+	uiDefButF(block, NUMSLI, B_TEXPRV, "W3: ", 10, 30, 200, 19, &tex->vn_w3, -2.0, 2.0, 10, 0, "Sets feature weight 3");
+	uiDefButF(block, NUMSLI, B_TEXPRV, "W4: ", 10, 10, 200, 19, &tex->vn_w4, -2.0, 2.0, 10, 0, "Sets feature weight 4");
+}
+
+
+/***************************************/
 
 static void texture_panel_envmap(Tex *tex)
 {
@@ -1049,12 +1178,11 @@ static void texture_panel_colors(Tex *tex)
 
 static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *la)
 {
-	extern char texstr[15][8]; // butspace.c
 	MTex *mt=NULL;
 	uiBlock *block;
 	ID *id, *idfrom;
 	int a, yco, loos;
-	char str[32], *strp;
+	char str[32];
 	
 
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel_texture", UI_EMBOSS, UI_HELV, curarea->win);
@@ -1109,26 +1237,18 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 
 	/* TYPES */
 	if(mtex && mtex->tex) {
+		char textypes[512];
 		Tex *tex= mtex->tex;
 
 		uiSetButLock(tex->id.lib!=0, "Can't edit library data");
-		uiDefButS(block, ROW, B_TEXTYPE, texstr[0],			160, 150, 70, 20, &tex->type, 1.0, 0.0, 0, 0, "Default");
-
-		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_IMAGE],	160, 110, 70, 20, &tex->type, 1.0, (float)TEX_IMAGE, 0, 0, "Selects image texture type");
-		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_ENVMAP],240, 110, 70, 20, &tex->type, 1.0, (float)TEX_ENVMAP, 0, 0, "Selects environment map texture type");
 		
-		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_CLOUDS],160, 70, 70, 20, &tex->type, 1.0, (float)TEX_CLOUDS, 0, 0, "Selects clouds texture type");
-		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_MARBLE],240, 70, 70, 20, &tex->type, 1.0, (float)TEX_MARBLE, 0, 0, "Selects marble texture type");
+		/* newnoise: all texture types as menu, not enough room for more buttons.
+		 * Can widen panel, but looks ugly when other panels overlap it */
+		
+		sprintf(textypes, "Texture Type %%t|None %%x%d|Image %%x%d|EnvMap %%x%d|Clouds %%x%d|Marble %%x%d|Stucci %%x%d|Wood %%x%d|Magic %%x%d|Blend %%x%d|Noise %%x%d|Plugin %%x%d|Musgrave %%x%d|Voronoi %%x%d|DistortedNoise %%x%d", 0, TEX_IMAGE, TEX_ENVMAP, TEX_CLOUDS, TEX_MARBLE, TEX_STUCCI, TEX_WOOD, TEX_MAGIC, TEX_BLEND, TEX_NOISE, TEX_PLUGIN, TEX_MUSGRAVE, TEX_VORONOI, TEX_DISTNOISE);
+		uiDefBut(block, LABEL, 0, "Texture Type",		160, 150, 140, 20, 0, 0.0, 0.0, 0, 0, "");
+		uiDefButS(block, MENU, B_TEXTYPE, textypes,	160, 130, 140, 20, &tex->type, 0,0,0,0, "Select texture type");
 
-		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_STUCCI],160, 50, 70, 20, &tex->type, 1.0, (float)TEX_STUCCI, 0, 0, "Selects stucci texture type");
-		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_WOOD],	240, 50, 70, 20, &tex->type, 1.0, (float)TEX_WOOD, 0, 0, "Selects wood texture type");
-
-		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_MAGIC],	160, 30, 70, 20, &tex->type, 1.0, (float)TEX_MAGIC, 0, 0, "Selects magic texture type");
-		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_BLEND],	240, 30, 70, 20, &tex->type, 1.0, (float)TEX_BLEND, 0, 0, "Selects blend gradient texture type");
-
-		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_NOISE],	160, 10, 70, 20, &tex->type, 1.0, (float)TEX_NOISE, 0, 0, "Selects noise texture type");
-		if(tex->plugin && tex->plugin->doit) strp= tex->plugin->pname; else strp= texstr[TEX_PLUGIN];
-		uiDefButS(block, ROW, B_TEXTYPE, strp,				240, 10, 70, 20, &tex->type, 1.0, (float)TEX_PLUGIN, 0, 0, "Selects external plugin texture type");
 	}
 	else {
 		// label to avoid centering
@@ -2146,7 +2266,8 @@ static void material_panel_map_to(Material *ma)
 	uiDefButS(block, ROW, B_MATPRV, "Sub",			1226,120,40,18, &(mtex->blendtype), 9.0, (float)MTEX_SUB, 0, 0, "Sets texture to subtract the values or colour");
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, B_MATPRV, "Col ",		1087,70,179,18, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects colour values");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Nor ",		1087,50,179,18, &(mtex->norfac), 0.0, 5.0, 0, 0, "Sets the amount the texture affects normal values");
+	/* newnoise: increased range to 25, the constant offset for bumpmapping quite often needs a higher nor setting */
+	uiDefButF(block, NUMSLI, B_MATPRV, "Nor ",		1087,50,179,18, &(mtex->norfac), 0.0, 25.0, 0, 0, "Sets the amount the texture affects normal values");
 	uiDefButF(block, NUMSLI, B_MATPRV, "Var ",		1087,30,179,18, &(mtex->varfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects other values");
 	uiDefButF(block, NUMSLI, B_MATPRV, "Disp ",		1087,10,179,19, &(mtex->dispfac), 0.0, 1.0, 0, 0, "Sets the amount the texture displaces the surface");
 	uiBlockEndAlign(block);
@@ -2705,7 +2826,18 @@ void texture_panels()
 				texture_panel_plugin(mtex->tex);
 				break;
 			case TEX_NOISE:
-				// no panel!
+				// no panel! (e: not really true, is affected by noisedepth param)
+				break;
+			/* newnoise: musgrave panels */
+			case TEX_MUSGRAVE:
+				texture_panel_musgrave(mtex->tex);
+				break;
+			case TEX_DISTNOISE:
+				texture_panel_distnoise(mtex->tex);
+				break;
+			/* newnoise: voronoi */
+			case TEX_VORONOI:
+				texture_panel_voronoi(mtex->tex);
 				break;
 			}
 		}

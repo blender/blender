@@ -180,6 +180,9 @@ PyObject * Lattice_CreatePyObject (Lattice *lt);
 Lattice  * Lattice_FromPyObject   (PyObject *pyobj);
 int        Lattice_CheckPyObject  (PyObject *pyobj);
 
+/* Noise */
+PyObject * Noise_Init (void);
+
 /* Init functions for other modules */
 PyObject * Window_Init (void);
 PyObject * Draw_Init (void);

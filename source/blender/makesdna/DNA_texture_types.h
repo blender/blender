@@ -127,7 +127,21 @@ typedef struct Tex {
 	float noisesize, turbul;
 	float bright, contrast, rfac, gfac, bfac;
 	float filtersize;
+
+	/* newnoise: musgrave parameters */
+	float mg_H, mg_lacunarity, mg_octaves, mg_offset, mg_gain;
+
+	/* newnoise: distorted noise amount, musgrave & voronoi ouput scale */
+	float dist_amount, ns_outscale;
+
+	/* newnoise: voronoi nearest neighbour weights, minkovsky exponent, distance metric & color type */
+	float vn_w1, vn_w2, vn_w3, vn_w4, vn_mexp;
+	short vn_distm, vn_coltype;
+
 	short noisedepth, noisetype;
+
+	/* newnoise: noisebasis type for clouds/marble/etc, noisebasis2 only used for distorted noise */
+	short noisebasis, noisebasis2;
 	
 	short imaflag, flag;
 	short type, stype;
@@ -161,6 +175,37 @@ typedef struct Tex {
 #define TEX_IMAGE		8
 #define TEX_PLUGIN		9
 #define TEX_ENVMAP		10
+#define TEX_MUSGRAVE	11
+#define TEX_VORONOI		12
+#define TEX_DISTNOISE	13
+
+/* musgrave stype */
+#define TEX_MFRACTAL		0
+#define TEX_RIDGEDMF		1
+#define TEX_HYBRIDMF		2
+#define TEX_FBM				3
+#define TEX_HTERRAIN		4
+
+/* newnoise: noisebasis 1 & 2 */
+#define TEX_BLENDER			0
+#define TEX_STDPERLIN		1
+#define TEX_NEWPERLIN		2
+#define TEX_VORONOI_F1		3
+#define TEX_VORONOI_F2		4
+#define TEX_VORONOI_F3		5
+#define TEX_VORONOI_F4		6
+#define TEX_VORONOI_F2F1	7
+#define TEX_VORONOI_CRACKLE		8
+#define TEX_CELLNOISE		14
+
+/* newnoise: Voronoi distance metrics, vn_distm */
+#define TEX_DISTANCE		0
+#define TEX_DISTANCE_SQUARED		1
+#define TEX_MANHATTAN		2
+#define TEX_CHEBYCHEV		3
+#define TEX_MINKOVSKY_HALF		4
+#define TEX_MINKOVSKY_FOUR		5
+#define TEX_MINKOVSKY		6
 
 /* imaflag */
 #define TEX_INTERPOL	1

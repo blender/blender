@@ -324,9 +324,9 @@ void free_texture(Tex *tex)
 
 void default_tex(Tex *tex)
 {
-        PluginTex *pit;
-        VarStruct *varstr;
-        int a;
+	PluginTex *pit;
+	VarStruct *varstr;
+	int a;
 
 	tex->stype= 0;
 	tex->imaflag= TEX_INTERPOL+TEX_MIPMAP;
@@ -346,24 +346,42 @@ void default_tex(Tex *tex)
 	tex->rfac= 1.0;
 	tex->gfac= 1.0;
 	tex->bfac= 1.0;
+	/* newnoise: init. */
+	tex->noisebasis = 0;
+	tex->noisebasis2 = 0;
+	/* musgrave */
+	tex->mg_H = 1.0;
+	tex->mg_lacunarity = 2.0;
+	tex->mg_octaves = 2.0;
+	tex->mg_offset = 1.0;
+	tex->mg_gain = 1.0;
+	tex->ns_outscale = 1.0;
+	/* distnoise */
+	tex->dist_amount = 1.0;
+	/* voronoi */
+	tex->vn_w1 = 1.0;
+	tex->vn_w2 = tex->vn_w3 = tex->vn_w4 = 0.0;
+	tex->vn_mexp = 2.5;
+	tex->vn_distm = 0;
+	tex->vn_coltype = 0;
 
-        if (tex->env) {
-           tex->env->stype=ENV_STATIC;
-           tex->env->clipsta=0.1;
-           tex->env->clipend=100;
-           tex->env->cuberes=100;
-           tex->env->depth=0;
-        }
+	if (tex->env) {
+		tex->env->stype=ENV_STATIC;
+		tex->env->clipsta=0.1;
+		tex->env->clipend=100;
+		tex->env->cuberes=100;
+		tex->env->depth=0;
+	}
 
-        pit = tex->plugin;
-        if (pit) {
-             varstr= pit->varstr;
-             if(varstr) {
-                for(a=0; a<pit->vars; a++, varstr++) {
-		      pit->data[a] = varstr->def;
-                }
-             }
-        }
+	pit = tex->plugin;
+	if (pit) {
+			varstr= pit->varstr;
+			if(varstr) {
+					for(a=0; a<pit->vars; a++, varstr++) {
+						pit->data[a] = varstr->def;
+					}
+			}
+	}
 }
 
 /* ------------------------------------------------------------------------- */
