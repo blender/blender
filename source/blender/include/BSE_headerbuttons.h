@@ -113,6 +113,7 @@ void do_info_add_meshmenu(void *arg, int event);
 void do_info_add_curvemenu(void *arg, int event);
 void do_info_add_surfacemenu(void *arg, int event);
 void do_info_add_metamenu(void *arg, int event);
+void do_info_add_lampmenu(void *arg, int event);
 void do_info_addmenu(void *arg, int event);
 
 /* header_view3d.c */

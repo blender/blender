@@ -57,6 +57,8 @@
 
 #include "IMB_imbuf_types.h"
 
+#include "DNA_action_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
@@ -85,6 +87,10 @@
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
 
+#include "BKE_constraint.h"
+#include "BKE_action.h"
+#include "BKE_armature.h"
+#include "BKE_utildefines.h"
 #include "BKE_anim.h"
 #include "BKE_blender.h"
 #include "BKE_booleanops.h"
@@ -120,6 +126,7 @@
 #include "BIF_space.h"
 #include "BIF_toets.h"
 #include "BIF_butspace.h"
+#include "BIF_editconstraint.h"
 #include "BIF_editdeform.h"
 #include "BIF_editfont.h"
 #include "BIF_editika.h"
@@ -152,13 +159,6 @@
 
 #include "blendef.h"
 
-#include "BKE_constraint.h"
-#include "BIF_editconstraint.h"
-
-#include "BKE_action.h"
-#include "DNA_action_types.h"
-#include "BKE_armature.h"
-#include "DNA_armature_types.h"
 #include "BIF_poseobject.h"
 
 /*  extern Lattice *copy_lattice(Lattice *lt); */
@@ -208,7 +208,24 @@ void add_object_draw(int type)	/* for toolbox */
 	deselect_all_area_oops();
 	set_select_flag_oops();
 	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */
+}
 
+void add_objectLamp(short type)
+{
+	Lamp *la;
+
+	/* this function also comes from an info window */
+	if ELEM(curarea->spacetype, SPACE_VIEW3D, SPACE_INFO); else return;
+	
+	if(G.obedit==0) {
+		add_object_draw(OB_LAMP);
+		base_init_from_view3d(BASACT, G.vd);
+	}
+	
+	la = BASACT->object->data;
+	la->type = type;	
+
+	allqueue(REDRAWALL, 0);
 }
 
 void free_and_unlink_base(Base *base)
@@ -4882,8 +4899,6 @@ static char *transform_mode_to_string(int mode)
 't'		-> Tilt
 'w'		-> Warp
 'N'		-> Shrink/Fatten
-'V'		-> Snap vertice
-'e'     -> Edge crease edit
 */
 void transform(int mode)
 {
@@ -8016,4 +8031,3 @@ void mirrormenu(void){
 
 	}
 }
-

@@ -41,6 +41,7 @@ struct Material;
 struct Base;
 
 void add_object_draw(int type);
+void add_objectLamp(short type);
 void free_and_unlink_base(struct Base *base);
 void delete_obj(int ok);
 void make_track(void);

@@ -212,7 +212,7 @@ void tbox_setinfo(int x, int y)
 				case 9: tbstr= "Save VRML";			tbstr1= "c|F2";		keystr= "Ctrl F2";	break;
 				case 10: tbstr= "Save DXF";			tbstr1= "shift+F2";	keystr= "Shift F2";	break;
 				case 11: tbstr= "Save VideoScape";	tbstr1= "a|w";		keystr= "Alt W";	break;
-				case 12: tbstr= "Save UserPrefs";					tbstr1= "c|u";			keystr= "Ctrl U";			break;
+				case 12: tbstr= "Save UserPrefs";	tbstr1= "c|u";		keystr= "Ctrl U";	break;
 				case 13: tbstr= "Quit";				tbstr1= "q";		keystr= "Q";		break;
 			}
 		}
@@ -222,15 +222,15 @@ void tbox_setinfo(int x, int y)
 			switch(y) {
 				case 0: tbstr= "(De)Select All";	tbstr1= "a";	keystr= "A";		break;
 				case 1: tbstr= "Border Select";		tbstr1= "b";	keystr= "B";		break;
-				case 2: tbstr= "Select Linked";					tbstr1= "l";		keystr= "L";			break;
-				case 3: tbstr= "Hide Selected";					tbstr1= "h";		keystr= "H";			break;
+				case 2: tbstr= "Select Linked";		tbstr1= "l";	keystr= "L";		break;
+				case 3: tbstr= "Hide Selected";		tbstr1= "h";	keystr= "H";		break;
 				case 4: tbstr= "Duplicate";			tbstr1= "D";	keystr= "Shift D";	break;
 				case 5: tbstr= "Delete";			tbstr1= "x";	keystr= "X";		break;
 				case 6: tbstr= "Edit Mode";			tbstr1= "Tab";	keystr= "Tab";		break;
 				case 7: tbstr= "Grabber";			tbstr1= "g";	keystr= "G";		break;
 				case 8: tbstr= "Rotate";			tbstr1= "r";	keystr= "R";		break;
 				case 9: tbstr= "Scale";				tbstr1= "s";	keystr= "S";		break;
-				case 10: tbstr= "Shrink/Fatten";					tbstr1= "a|s";		keystr= "Alt S";			break;
+				case 10: tbstr= "Shrink/Fatten";	tbstr1= "a|s";	keystr= "Alt S";	break;
 				case 11: tbstr= "Shear";			tbstr1= "c|s";	keystr= "Ctrl S";	break;
 				case 12: tbstr= "Warp/Bend";		tbstr1= "W";	keystr= "Shift W";	break;
 				case 13: tbstr= "Snap Menu";		tbstr1= "S";	keystr= "Shift S";	break;
@@ -243,11 +243,10 @@ void tbox_setinfo(int x, int y)
 			if(addmode==0) {
 				switch(y) {
 					case 0: tbstr= "Mesh";		tbstr1= ">>";	keystr= ">>";	tbval=OB_MESH;										break;
-					case 1: tbstr= "Curve";		tbstr1= ">>";	keystr= ">>";	tbval=OB_CURVE;	;									break;
+					case 1: tbstr= "Curve";		tbstr1= ">>";	keystr= ">>";	tbval=OB_CURVE;										break;
 					case 2: tbstr= "Surface";	tbstr1= ">>";	keystr= ">>";	tbval=OB_SURF;										break;
-					case 3: tbstr= "Meta";		tbstr1= ">>";	keystr= ">>";	tbval=OB_MBALL;
-						break;
-					case 4: tbstr= "Text";		tbstr1= "";		keystr= "";		tbval=OB_FONT;		tbfunc= add_primitiveFont;		break;
+					case 3: tbstr= "Meta";		tbstr1= ">>";	keystr= ">>";	tbval=OB_MBALL;										break;
+					case 4: tbstr= "Text";		tbstr1= "";		keystr= "";		tbval=OB_FONT;	tbfunc= add_primitiveFont;			break;
 					case 5: tbstr= "Empty";		tbstr1= "A";	keystr= "";		tbval=OB_EMPTY;										break;
 					case 6: tbstr= "";			tbstr1= "";		keystr= "";		tbval=0;											break;
 					case 7: tbstr= "Camera";	tbstr1= "A";	keystr= "";		tbval=OB_CAMERA;									break;
@@ -258,7 +257,7 @@ void tbox_setinfo(int x, int y)
 					case 12: tbstr= "";			tbstr1= "";		keystr= "";		tbval=0;											break;
 					case 13: tbstr= "";			tbstr1= "";		keystr= "";		tbval=0;											break;
 				}
-				if(tbstr1 && tbstr1[0]=='A') tbfunc= (void (*)(int) )add_object_draw;
+				if(tbstr1 && tbstr1[0]=='A') tbfunc= (void (*)(int))add_object_draw;
 			}
 			else if(addmode==OB_MESH) {		
 				switch(y) {
@@ -341,7 +340,7 @@ void tbox_setinfo(int x, int y)
 */
 				case 7: tbstr= "Make Track";		tbstr1= "c|t";	keystr= "Ctrl T";	break;
 				case 8: tbstr= "Clear Track";		tbstr1= "a|t";	keystr= "Alt T";	break;
-/*				case 9: tbstr= "";					tbstr1= "";		keystr= "";			break; */
+/*				case 9:	tbstr= "";					tbstr1= "";		keystr= "";			break; */
 				case 10: tbstr= "Image Displist";	tbstr1= "c|d";	keystr= "Ctrl D";	break;
 				case 11: tbstr= "Image Aspect";		tbstr1= "a|v";	keystr= "Alt V";	break;
 				case 12: tbstr= "Vect Paint";		tbstr1= "v";	keystr= "V";	break;
@@ -423,11 +422,11 @@ void tbox_setinfo(int x, int y)
 /* SEQUENCER TOPICS */
                 else if(tbmain==TBOX_MAIN_SEQ) {
                         switch(y) {
-                                case 0: tbstr= "Add Strip"; tbstr1= "A";  keystr= "Shift A";          break;
-                                case 1: tbstr= "Change Str"; tbstr1= "c";  keystr= "C";          break;
-                                case 2: tbstr= "Delete Str";                              tbstr1= "x";             keystr= "X";                     break;
-                                case 3: tbstr= "Make Meta";    tbstr1= "m";    keystr= "M";      break;
-                                case 4: tbstr= "Str Params";    tbstr1= "n";    keystr= "N";            break;
+                                case 0: tbstr= "Add Strip";  tbstr1= "A"; keystr= "Shift A"; break;
+                                case 1: tbstr= "Change Str"; tbstr1= "c"; keystr= "C";       break;
+                                case 2: tbstr= "Delete Str"; tbstr1= "x"; keystr= "X";       break;
+                                case 3: tbstr= "Make Meta";  tbstr1= "m"; keystr= "M";       break;
+                                case 4: tbstr= "Str Params"; tbstr1= "n"; keystr= "N";       break;
                         }
                 }
 
@@ -1119,8 +1118,7 @@ short button(short *var, short min, short max, char *str)
 	if(mval[1]>G.curscreen->sizey) mval[1]= G.curscreen->sizey-10;
 
 	block= uiNewBlock(&listb, "button", UI_EMBOSS, UI_HELV, G.curscreen->mainwin);
-	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|
-				   UI_BLOCK_ENTER_OK);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_ENTER_OK);
 
 	x1=mval[0]-150; 
 	y1=mval[1]-20; 
@@ -1169,7 +1167,8 @@ short sbutton(char *var, float min, float max, char *str)
 	return 0;
 }
 
-short fbutton(float *var, float min, float max, float a1, float a2, char *str)
+short fbutton(float *var, float min, float max, float a1, float a2, 
+char *str)
 {
 	uiBlock *block;
 	ListBase listb={0, 0};
@@ -1317,7 +1316,8 @@ int do_clever_numbuts(char *name, int tot, int winevent)
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_ENTER_OK);
 	
 	/* WATCH IT: TEX BUTTON EXCEPTION */
-	/* WARNING: ONLY A SINGLE BIT-BUTTON POSSIBLE: WE WORK AT COPIED DATA! */
+	/* WARNING: ONLY A SINGLE BIT-BUTTON POSSIBLE: WE WORK AT COPIED DATA! 
+*/
 
 	uiDefBut(block, LABEL, 0, name,	(short)(x1+15), (short)(y2-35), (short)(sizex-60), 19, 0, 1.0, 0.0, 0, 0, ""); 
 
@@ -1332,7 +1332,7 @@ int do_clever_numbuts(char *name, int tot, int winevent)
 			uiDefBut(block, TEX, 0,	varstr->name,(short)(x1+15),(short)(y2-55-20*a),(short)(sizex-60), 19, numbpoin[a], varstr->min, varstr->max, 0, 0, varstr->tip);
 		}
 		else  {
-			uiDefBut(block, varstr->type, 0,	varstr->name,(short)(x1+15),(short)(y2-55-20*a), (short)(sizex-60), 19, &(numbdata[a]), varstr->min, varstr->max, 100, 0, varstr->tip);
+			uiDefBut(block, varstr->type, 0, varstr->name,(short)(x1+15),(short)(y2-55-20*a), (short)(sizex-60), 19, &(numbdata[a]), varstr->min, varstr->max, 100, 0, varstr->tip);
 		}
 	}
 
@@ -1869,7 +1869,8 @@ static TBitem tb_view_dt[]= {
 
 static TBitem tb_view_alignview[]= {
 {	0, "Centre View to Cursor|C", 		'c', NULL},
-{	0, "Align Active Camera to View|Shift NumPad 0", 		TB_SHIFT|TB_PAD|'0', NULL},
+{	0, "Align Active Camera to View|Shift NumPad 0", 		
+TB_SHIFT|TB_PAD|'0', NULL},
 {	0, "Align View to Selected|NumPad *", 		TB_PAD|'*', NULL},
 {  -1, "", 			0, tb_do_hotkey}};
 
@@ -2101,10 +2102,27 @@ static TBitem addmenu_meta[]= {
 {	0, "Meta Cube", 	4, NULL},
 {  -1, "", 			0, do_info_add_metamenu}};
 
+static TBitem addmenu_lamp[]= {
+{	0, "Lamp", 	0, NULL},
+{	0, "Sun", 	1, NULL},
+{	0, "Spot", 	2, NULL},
+{	0, "Hemi", 3, NULL},
+{	0, "Area", 	4, NULL},
+{  -1, "", 			0, do_info_add_lampmenu}};
+
+static TBitem addmenu_YF_lamp[]= {
+{	0, "Lamp", 	0, NULL},
+{	0, "Sun", 	1, NULL},
+{	0, "Spot", 	2, NULL},
+{	0, "Hemi", 3, NULL},
+{	0, "Area", 	4, NULL},
+{	0, "Photon", 	5, NULL},
+{  -1, "", 			0, do_info_add_lampmenu}};
+
+
 static TBitem addmenu_armature[]= {
 {	0, "Bones", 	8, NULL},
 {  -1, "", 			0, do_info_addmenu}};
-
 
 static TBitem tb_add[]= {
 {	0, "Mesh", 		0, addmenu_mesh},
@@ -2115,7 +2133,22 @@ static TBitem tb_add[]= {
 {	0, "Empty", 	5, NULL},
 {	0, "SEPR", 		0, NULL},
 {	0, "Camera", 	6, NULL},
-{	0, "Lamp", 		7, NULL},
+{	0, "Lamp", 		7, addmenu_lamp},
+{	0, "SEPR", 		0, NULL},
+{	0, "Armature", 	8, NULL},
+{	0, "Lattice", 	9, NULL},
+{  -1, "", 			0, do_info_addmenu}};
+
+static TBitem tb_add_YF[]= {
+{	0, "Mesh", 		0, addmenu_mesh},
+{	0, "Curve", 	1, addmenu_curve},
+{	0, "Surface", 	2, addmenu_surf},
+{	0, "Meta", 	3, addmenu_meta},
+{	0, "Text", 		4, NULL},
+{	0, "Empty", 	5, NULL},
+{	0, "SEPR", 		0, NULL},
+{	0, "Camera", 	6, NULL},
+{	0, "Lamp", 		7, addmenu_YF_lamp},
 {	0, "SEPR", 		0, NULL},
 {	0, "Armature", 	8, NULL},
 {	0, "Lattice", 	9, NULL},
@@ -2200,7 +2233,11 @@ void toolbox_n(void)
 	if(curarea->spacetype==SPACE_VIEW3D) {
 		/* standard menu */
 		menu1= tb_object; str1= "Object";
-		menu2= tb_add; str2= "Add";
+		if (G.scene->r.renderer==R_YAFRAY) {
+			menu2= tb_add_YF; str2= "Add";
+		} else {
+			menu2= tb_add; str2= "Add";
+		}
 		menu3= tb_object_select; str3= "Select";
 		menu4= tb_object_edit; str4= "Edit";
 		menu5= tb_transform; str5= "Transform";
@@ -2307,4 +2344,3 @@ void toolbox_n_add(void)
 	tb_mainy= -5;
 	toolbox_n();
 }
-
