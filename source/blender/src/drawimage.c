@@ -75,6 +75,7 @@
 #include "BIF_resources.h"
 #include "BIF_interface.h"
 #include "BIF_editsima.h"
+#include "BIF_glutil.h"
 
 #include "BSE_trans_types.h"
 

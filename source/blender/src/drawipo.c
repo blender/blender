@@ -72,6 +72,7 @@
 #include "BIF_interface.h"
 #include "BIF_mywindow.h"
 #include "BIF_space.h"
+#include "BIF_glutil.h"
 
 #include "BSE_drawipo.h"
 #include "BSE_view.h"
