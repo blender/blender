@@ -282,15 +282,20 @@ static void renderwin_draw_render_info(RenderWin *rw)
 static void renderwin_draw(RenderWin *rw, int just_clear)
 {
 	float disprect[2][2];
+	int set_back_mainwindow;
 	rcti rect;
-
+	
+	/* since renderwin uses callbacks (controlled by ghost) it can
+	   mess up active window output with redraw events after a render. 
+	   this is patchy, still WIP */
+	set_back_mainwindow = (winlay_get_active_window() != rw->win);
+	window_make_active(rw->win);
+	
 	rect.xmin= rect.ymin= 0;
 	window_get_size(rw->win, &rect.xmax, &rect.ymax);
 	rect.ymax-= RW_HEADERY;
 	
 	renderwin_get_disprect(rw, disprect);
-	
-	window_make_active(rw->win);
 	
 	/* do this first, so window ends with correct scissor */
 	renderwin_draw_render_info(rw);
@@ -339,6 +344,8 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 	}
 	
 	window_swap_buffers(rw->win);
+	
+	if (set_back_mainwindow) mainwindow_make_active();	
 }
 
 /* ------ interactivity calls for RenderWin ------------- */
