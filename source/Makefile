@@ -312,7 +312,7 @@ ifeq ($(OS),freebsd)
   endif
   endif
     PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
-    PYLIB += $(NAN_PYTHON)/mxTextTools/libmxtexttools.a
+    PYLIB += $(NAN_MXTEXTTOOLS) 
 endif
 
 ifeq ($(OS),irix)
@@ -321,7 +321,7 @@ ifeq ($(OS),irix)
     BINTARGETS += blenderplayer
     BINTARGETS += plugin
     PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
-    PYLIB += $(NAN_PYTHON)/mxTextTools/libmxtexttools.a
+    PYLIB += $(NAN_MXTEXTTOOLS)
 endif
 
 ifeq ($(OS),linux)
@@ -344,7 +344,7 @@ ifeq ($(OS),linux)
     BINTARGETS += blenderpublisher
   endif
     PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
-    PYLIB += $(NAN_PYTHON)/mxTextTools/libmxtexttools.a
+    PYLIB += $(NAN_MXTEXTTOOLS)
 endif
 
 ifeq ($(OS),openbsd)
@@ -361,7 +361,7 @@ ifeq ($(OS),solaris)
     BINTARGETS += blenderssr
   endif
     PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
-    PYLIB += $(NAN_PYTHON)/mxTextTools/libmxtexttools.a
+    PYLIB += $(NAN_MXTEXTTOOLS)
     PYLIB += $(NAN_ZLIB)/lib/libz.a
 
     BCLIB += $(NAN_ZLIB)/lib/libz.a
