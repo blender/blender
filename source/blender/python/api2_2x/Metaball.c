@@ -31,9 +31,6 @@
 
 #include "Metaball.h"
 
-#ifndef FP_INFINITE
-#define FP_INFINTE 1
-#endif
 
 /*****************************************************************************/
 /* Function:              M_Metaball_New                                     */
@@ -402,7 +399,7 @@ static PyObject *Metaball_setMetadata(C_Metaball *self,PyObject*args)
   int i = 0;
   char*name = NULL;
   int intval=-1;
-  float floatval=FP_INFINITE;
+  float floatval=0;
 	MetaElem *ptr;
 
   if (!PyArg_ParseTuple(args, "sif", &name,&num,&floatval))
