@@ -56,7 +56,7 @@
 #include <time.h>
 #include <sys/stat.h>
 
-#if defined(__sgi) || defined(__sun__)
+#if defined(__sgi) || defined(__sun__) || defined(__sun)
 #include <sys/statfs.h>
 #endif
 
