@@ -373,37 +373,41 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if( uiNewPanel(curarea, block, "Mesh", "Editing", 320, 0, 318, 204)==0) return;
 
+	uiBlockBeginAlign(block);
 	uiDefButS(block, TOG|BIT|5, REDRAWVIEW3D, "Auto Smooth",10,178,130,17, &me->flag, 0, 0, 0, 0, "Treats all faces with angles less than Degr: as 'smooth' during render");
-
 	uiDefButS(block, NUM, B_DIFF, "Degr:",					10,156,130,17, &me->smoothresh, 1, 80, 0, 0, "Defines maximum angle between face normals that 'Auto Smooth' will operate on");
+	
+	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiDefButS(block, TOG|BIT|7, B_MAKEDISP, "SubSurf",		10,124,130,17, &me->flag, 0, 0, 0, 0, "Treats the active object as a Catmull-Clark Subdivision Surface");
 	uiBlockSetCol(block, TH_AUTO);
-
 	uiDefButS(block, NUM, B_MAKEDISP, "Subdiv:",			10,104,100,18, &me->subdiv, 0, 6, 0, 0, "Defines the level of subdivision to display in real time interactively");
 	uiDefButS(block, NUM, B_MAKEDISP, "",					110, 104, 30, 18, &me->subdivr, 0, 6, 0, 0, "Defines the level of subdivision to apply during rendering");
 	uiDefButS(block, TOG|BIT|8, B_MAKEDISP, "Optimal",	10,84,130,17, &me->flag, 0, 0, 0, 0, "Only draws optimal wireframe");
 	
+	
+	uiBlockBeginAlign(block);
 	if(me->msticky) val= 1.0; else val= 0.0;
-	uiDefBut(block, LABEL, 0, "Sticky", 10,57,70,20, 0, val, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Sticky", 10,55,70,20, 0, val, 0, 0, 0, "");
 	if(me->msticky==0) {
-		uiDefBut(block, BUT, B_MAKESTICKY, "Make",	80,59,83,19, 0, 0, 0, 0, 0, "Creates Sticky coordinates for the active object from the current camera view background picture");
+		uiDefBut(block, BUT, B_MAKESTICKY, "Make",	80,55,83,19, 0, 0, 0, 0, 0, "Creates Sticky coordinates for the active object from the current camera view background picture");
 	}
-	else uiDefBut(block, BUT, B_DELSTICKY, "Delete", 80,59,83,19, 0, 0, 0, 0, 0, "Deletes Sticky texture coordinates");
+	else uiDefBut(block, BUT, B_DELSTICKY, "Delete", 80,55,83,19, 0, 0, 0, 0, 0, "Deletes Sticky texture coordinates");
 
 	if(me->mcol) val= 1.0; else val= 0.0;
-	uiDefBut(block, LABEL, 0, "VertCol", 10,34,70,20, 0, val, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "VertCol", 10,35,70,20, 0, val, 0, 0, 0, "");
 	if(me->mcol==0) {
-		uiDefBut(block, BUT, B_MAKEVERTCOL, "Make",	80,36,84,19, 0, 0, 0, 0, 0, "Enables vertex colour painting on active object");
+		uiDefBut(block, BUT, B_MAKEVERTCOL, "Make",	80,35,84,19, 0, 0, 0, 0, 0, "Enables vertex colour painting on active object");
 	}
-	else uiDefBut(block, BUT, B_DELVERTCOL, "Delete", 80,36,84,19, 0, 0, 0, 0, 0, "Deletes vertex colours on active object");
+	else uiDefBut(block, BUT, B_DELVERTCOL, "Delete", 80,35,84,19, 0, 0, 0, 0, 0, "Deletes vertex colours on active object");
 
 	if(me->tface) val= 1.0; else val= 0.0;
-	uiDefBut(block, LABEL, 0, "TexFace", 10,14,70,20, 0, val, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "TexFace", 10,15,70,20, 0, val, 0, 0, 0, "");
 	if(me->tface==0) {
-		uiDefBut(block, BUT, B_MAKE_TFACES, "Make",	80,15,84,20, 0, 0, 0, 0, 0, "Enables the active object's faces for UV coordinate mapping");
+		uiDefBut(block, BUT, B_MAKE_TFACES, "Make",	80,15,84,19, 0, 0, 0, 0, 0, "Enables the active object's faces for UV coordinate mapping");
 	}
-	else uiDefBut(block, BUT, B_DEL_TFACES, "Delete", 80,15,84,20, 0, 0, 0, 0, 0, "Deletes UV coordinates for active object's faces");
+	else uiDefBut(block, BUT, B_DEL_TFACES, "Delete", 80,15,84,19, 0, 0, 0, 0, 0, "Deletes UV coordinates for active object's faces");
+	uiBlockEndAlign(block);
 	
 
 	/* decimator */
@@ -415,30 +419,37 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 		if( (dl=ob->disp.first) && dl->mesh);
 		else decim_faces= tottria;
 	
+		uiBlockBeginAlign(block);
 		uiBlockSetCol(block, TH_BUT_SETTING1);
 		uiDefButI(block, NUMSLI,B_DECIM_FACES, "Decimator: ",	173,176,233,19, &decim_faces, 4.0, tottria, 10, 10, "Defines the number of triangular faces to decimate the active Mesh object to");
 		uiBlockSetCol(block, TH_AUTO);
-		uiDefBut(block, BUT,B_DECIM_CANCEL, "Cancel",	290,156,116,18, 0, 0, 0, 0, 0, "Restores the Mesh to its original number of faces");
 		uiDefBut(block, BUT,B_DECIM_APPLY, "Apply",		173,156,115,18, 0, 0, 0, 0, 0, "Applies the decimation to the active Mesh object");
+		uiDefBut(block, BUT,B_DECIM_CANCEL, "Cancel",	290,156,116,18, 0, 0, 0, 0, 0, "Restores the Mesh to its original number of faces");
+		uiBlockEndAlign(block);
 	}
 
 	
 	uiDefIDPoinBut(block, test_meshpoin_but, 0, "TexMesh: ",	174,120,234,19, &me->texcomesh, "Enter the name of a Meshblock");
 
 	if(me->key) {
-		uiDefButS(block, NUM, B_DIFF, "Slurph:",				174,75,100,19, &(me->key->slurph), -500.0, 500.0, 0, 0, "");
-		uiDefButS(block, TOG, B_RELKEY, "Relative Keys",		174,55,100,19, &me->key->type, 0, 0, 0, 0, "");
+		uiBlockBeginAlign(block);
+		uiDefButS(block, NUM, B_DIFF, "Slurph:",				174,95,100,19, &(me->key->slurph), -500.0, 500.0, 0, 0, "");
+		uiDefButS(block, TOG, B_RELKEY, "Relative Keys",		174,75,100,19, &me->key->type, 0, 0, 0, 0, "");
 	}
 
+	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT, B_SLOWERDRAW,"SlowerDraw",			174,35,100,19, 0, 0, 0, 0, 0, "Displays the active object with all possible edges shown");
 	uiDefBut(block, BUT, B_FASTERDRAW,"FasterDraw",			175,15,100,19, 0, 0, 0, 0, 0, "Displays the active object faster by omitting some edges when drawing");
 
+	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_DOCENTRE, "Centre",					275, 95, 133, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
 	uiDefBut(block, BUT,B_DOCENTRENEW, "Centre New",			275, 75, 133, 19, 0, 0, 0, 0, 0, "Shifts object's origin to center of object data");
 	uiDefBut(block, BUT,B_DOCENTRECURSOR, "Centre Cursor",		275, 55, 133, 19, 0, 0, 0, 0, 0, "Shifts object's origin to cursor location");
 
+	uiBlockBeginAlign(block);
 	uiDefButS(block, TOG|BIT|2, REDRAWVIEW3D, "Double Sided",	275,35,133,19, &me->flag, 0, 0, 0, 0, "Toggles selected faces as doublesided or single-sided");
 	uiDefButS(block, TOG|BIT|1, REDRAWVIEW3D, "No V.Normal Flip",275,15,133,19, &me->flag, 0, 0, 0, 0, "Disables flipping of vertexnormals during render");
+	uiBlockEndAlign(block);
 
 }
 
@@ -1917,28 +1928,34 @@ static void editing_panel_mesh_paint(void)
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_paint", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Paint", "Editing", 640, 0, 318, 204)==0) return;
-
+	
+	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, 0, "R ",			979,160,194,19, &Gvp.r, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of red used for painting");
 	uiDefButF(block, NUMSLI, 0, "G ",			979,140,194,19, &Gvp.g, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of green used for painting");
 	uiDefButF(block, NUMSLI, 0, "B ",			979,120,194,19, &Gvp.b, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of blue used for painting");
+	uiBlockEndAlign(block);
+
 	uiDefButF(block, NUMSLI, 0, "Opacity ",		979,100,194,19, &Gvp.a, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
 	uiDefButF(block, NUMSLI, 0, "Size ",		979,80,194,19, &Gvp.size, 2.0, 64.0, 0, 0, "The size of the brush");
 
 	uiDefButF(block, COL, B_VPCOLSLI, "",		1176,100,28,80, &(Gvp.r), 0, 0, 0, 0, "");
-
+	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_DIFF, "Mix",			1212,160,63,19, &Gvp.mode, 1.0, 0.0, 0, 0, "Mix the vertex colours");
 	uiDefButS(block, ROW, B_DIFF, "Add",			1212,140,63,19, &Gvp.mode, 1.0, 1.0, 0, 0, "Add the vertex colour");
 	uiDefButS(block, ROW, B_DIFF, "Sub",			1212, 120,63,19, &Gvp.mode, 1.0, 2.0, 0, 0, "Subtract from the vertex colour");
 	uiDefButS(block, ROW, B_DIFF, "Mul",			1212, 100,63,19, &Gvp.mode, 1.0, 3.0, 0, 0, "Multiply the vertex colour");
 	uiDefButS(block, ROW, B_DIFF, "Filter",		1212, 80,63,19, &Gvp.mode, 1.0, 4.0, 0, 0, "Mix the colours with an alpha factor");
 
+	uiBlockBeginAlign(block);
 	uiDefButS(block, TOG|BIT|1, 0, "Area", 		980,50,80,19, &Gvp.flag, 0, 0, 0, 0, "Set the area the brush covers");
 	uiDefButS(block, TOG|BIT|2, 0, "Soft", 		1061,50,112,19, &Gvp.flag, 0, 0, 0, 0, "Use a soft brush");
 	uiDefButS(block, TOG|BIT|3, 0, "Normals", 	1174,50,102,19, &Gvp.flag, 0, 0, 0, 0, "Use vertex normal for painting");
-
+	
+	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT, B_VPGAMMA, "Set", 	980,30,80,19, 0, 0, 0, 0, 0, "Apply Mul and Gamma to vertex colours");
 	uiDefButF(block, NUM, B_DIFF, "Mul:", 		1061,30,112,19, &Gvp.mul, 0.1, 50.0, 10, 0, "Set the number to multiply vertex colours with");
 	uiDefButF(block, NUM, B_DIFF, "Gamma:", 	1174,30,102,19, &Gvp.gamma, 0.1, 5.0, 10, 0, "Change the clarity of the vertex colours");
+	uiBlockEndAlign(block);
 	
 	uiDefBut(block, BUT, B_SET_VCOL, "Set VertCol",	980,5,80,20, 0, 0, 0, 0, 0, "Set Vertex colour of selection to current (Shift+K)");
 

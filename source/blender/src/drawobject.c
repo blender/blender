@@ -3505,7 +3505,7 @@ void draw_object(Base *base)
 			}
 		}
 	}
-	else if(dt>=OB_WIRE ) {
+	if(dt>=OB_WIRE ) {
 
 		if(dt>OB_SOLID) if(G.f & G_BACKBUFSEL) dt= OB_SOLID;
 
@@ -3514,11 +3514,14 @@ void draw_object(Base *base)
 			// the only 2 extra drawtypes alowed in editmode
 			dtx= dtx & (OB_DRAWWIRE|OB_TEXSPACE);
 		}
+		else if(G.f & (G_FACESELECT)) {
+			// unwanted combo
+			dtx &= ~OB_DRAWWIRE;
+		}
 		
 		if(G.f & G_DRAW_EXT) {
 			if(ob->type==OB_EMPTY || ob->type==OB_CAMERA || ob->type==OB_LAMP) dt= OB_WIRE;
 		}
-		
 	}
 
 	if( (G.f & G_DRAW_EXT) && dt>OB_WIRE) {
