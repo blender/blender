@@ -1,5 +1,5 @@
 /**
- * $Id: 
+ * $Id:
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -90,8 +90,8 @@
 #include "BSE_filesel.h"
 
 #include "BIF_gl.h"
-#include "BIF_editarmature.h"	
-#include "BIF_editconstraint.h"	
+#include "BIF_editarmature.h"
+#include "BIF_editconstraint.h"
 #include "BIF_editdeform.h"
 #include "BIF_editfont.h"
 #include "BIF_editmesh.h"
@@ -172,17 +172,17 @@ static int decimate_count_tria(Object *ob)
 	MFace *mface;
 	Mesh *me;
 	int a;
-	
+
 	me= ob->data;
-	
+
 	/* count number of trias, since decimator doesnt allow quads */
 	tottria= 0;
 	mface= me->mface;
 	for(a=0; a<me->totface; a++, mface++) {
 		if(mface->v4) tottria++;
-		if(mface->v3) tottria++;		
+		if(mface->v3) tottria++;
 	}
-	
+
 	return tottria;
 }
 
@@ -192,12 +192,12 @@ static void decimate_faces(void)
 	Mesh *me;
 	MVert *mvert;
 	MFace *mface;
-	LOD_Decimation_Info lod; 
+	LOD_Decimation_Info lod;
 	float *vb=NULL;
 	float *vnb=NULL;
 	int *tib=NULL;
 	int a, tottria;
-	
+
 	/* we assume the active object being decimated */
 	ob= OBACT;
 	if(ob==NULL || ob->type!=OB_MESH) return;
@@ -213,7 +213,7 @@ static void decimate_faces(void)
 		me->mcol= NULL;
 		me->dvert= NULL;
 	}
-	
+
 	/* count number of trias, since decimator doesnt allow quads */
 	tottria= decimate_count_tria(ob);
 
@@ -227,7 +227,7 @@ static void decimate_faces(void)
 	lod.triangle_index_buffer= MEM_mallocN(3*sizeof(int)*tottria, "trias");
 	lod.vertex_num= me->totvert;
 	lod.face_num= tottria;
-	
+
 	/* fill vertex buffer */
 	vb= lod.vertex_buffer;
 	vnb= lod.vertex_normal_buffer;
@@ -237,7 +237,7 @@ static void decimate_faces(void)
 		VECCOPY(vnb, mvert->no);
 		Normalise(vnb);
 	}
-	
+
 	/* fill index buffer */
 	mface= me->mface;
 	tib= lod.triangle_index_buffer;
@@ -261,9 +261,9 @@ static void decimate_faces(void)
 			DispList *dl;
 			DispListMesh *dlm;
 			MFace *mfaceint;
-			
+
 			/* we assume the decim_faces tells how much to reduce */
-			
+
 			while(lod.face_num > decim_faces) {
 				if( LOD_CollapseEdge(&lod)==0) break;
 			}
@@ -278,13 +278,13 @@ static void decimate_faces(void)
 			dlm->mface= MEM_callocN(lod.face_num*sizeof(MFace), "mface");
 			dlm->totvert= lod.vertex_num;
 			dlm->totface= lod.face_num;
-			
+
 			mvert= dlm->mvert;
 			vb= lod.vertex_buffer;
 			for(a=0; a<lod.vertex_num; a++, vb+=3, mvert++) {
 				VECCOPY(mvert->co, vb);
 			}
-			
+
 			mfaceint= dlm->mface;
 			tib= lod.triangle_index_buffer;
 			for(a=0; a<lod.face_num; a++, mfaceint++, tib+=3) {
@@ -298,11 +298,11 @@ static void decimate_faces(void)
 		LOD_FreeDecimationData(&lod);
 	}
 	else error("No manifold Mesh");
-	
+
 	MEM_freeN(lod.vertex_buffer);
 	MEM_freeN(lod.vertex_normal_buffer);
 	MEM_freeN(lod.triangle_index_buffer);
-	
+
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -311,7 +311,7 @@ static void decimate_faces(void)
 static void decimate_cancel(void)
 {
 	Object *ob;
-	
+
 	ob= OBACT;
 	if(ob) {
 		freedisplist(&ob->disp);
@@ -329,22 +329,22 @@ static void decimate_apply(void)
 	MFace *mface;
 	MFace *mfaceint;
 	int a;
-	
+
 	if(G.obedit) return;
-	
+
 	ob= OBACT;
 	if(ob) {
 		dl= ob->disp.first;
 		if(dl && dl->mesh) {
 			dlm= dl->mesh;
 			me= ob->data;
-			
-			// vertices 
+
+			// vertices
 			if(me->mvert) MEM_freeN(me->mvert);
 			me->mvert= dlm->mvert;
 			dlm->mvert= NULL;
 			me->totvert= dlm->totvert;
-			
+
 			// faces
 			if(me->mface) MEM_freeN(me->mface);
 			me->mface= MEM_callocN(dlm->totface*sizeof(MFace), "mface");
@@ -357,9 +357,9 @@ static void decimate_apply(void)
 				mface->v3= mfaceint->v3;
 				test_index_mface(mface, 3);
 			}
-			
+
 			freedisplist(&ob->disp);
-			
+
 			G.obedit= ob;
 			make_editMesh();
 			load_editMesh();
@@ -384,14 +384,14 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	float val;
 	/* Hope to support more than two subsurf algorithms */
 	char subsurfmenu[]="Subsurf Type%t|Catmull-Clark%x0|Simple Subdiv.%x1";
-	
+
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if( uiNewPanel(curarea, block, "Mesh", "Editing", 320, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
 	uiDefButS(block, TOG|BIT|5, REDRAWVIEW3D, "Auto Smooth",10,180,154,19, &me->flag, 0, 0, 0, 0, "Treats all faces with angles less than Degr: as 'smooth' during render");
 	uiDefButS(block, NUM, B_DIFF, "Degr:",					10,160,154,19, &me->smoothresh, 1, 80, 0, 0, "Defines maximum angle between face normals that 'Auto Smooth' will operate on");
-	
+
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiDefButS(block, TOG|BIT|7, B_MAKEDISP, "SubSurf",		10,124,70,19, &me->flag, 0, 0, 0, 0, "Treats the active object as a Subdivision Surface");
@@ -400,8 +400,8 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	uiDefButS(block, NUM, B_MAKEDISP, "Subdiv:",			10,104,110,19, &me->subdiv, 0, 6, 0, 0, "Defines the level of subdivision to display in real time interactively");
 	uiDefButS(block, NUM, B_MAKEDISP, "",					120, 104, 44, 19, &me->subdivr, 0, 6, 0, 0, "Defines the level of subdivision to apply during rendering");
 	uiDefButS(block, TOG|BIT|8, B_MAKEDISP, "Optimal",		10,84,154,19, &me->flag, 0, 0, 0, 0, "Only draws optimal wireframe");
-	
-	
+
+
 	uiBlockBeginAlign(block);
 	if(me->msticky) val= 1.0; else val= 0.0;
 	uiDefBut(block, LABEL, 0, "Sticky", 10,50,70,20, 0, val, 0, 0, 0, "");
@@ -424,17 +424,17 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	}
 	else uiDefBut(block, BUT, B_DEL_TFACES, "Delete", 80,10,84,19, 0, 0, 0, 0, 0, "Deletes UV coordinates for active object's faces");
 	uiBlockEndAlign(block);
-	
+
 
 	/* decimator */
 	if(G.obedit==NULL) {
 		int tottria= decimate_count_tria(ob);
 		DispList *dl;
-	
+
 		// wacko, wait for new displist system (ton)
 		if( (dl=ob->disp.first) && dl->mesh);
 		else decim_faces= tottria;
-	
+
 		uiBlockBeginAlign(block);
 		uiBlockSetCol(block, TH_BUT_SETTING1);
 		uiDefButI(block, NUM,B_DECIM_FACES, "Decimator:",	175,180,230,19, &decim_faces, 4.0, tottria, 10, 10, "Defines the number of triangular faces to decimate the active Mesh object to");
@@ -444,7 +444,7 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 		uiBlockEndAlign(block);
 	}
 
-	
+
 	uiDefIDPoinBut(block, test_meshpoin_but, 0, "TexMesh: ",	175,124,230,19, &me->texcomesh, "Enter the name of a Meshblock");
 
 	if(me->key) {
@@ -526,18 +526,18 @@ static char *give_vfontbutstr(void)
 		len+= strlen(fi)+4;
 		vf= vf->id.next;
 	}
-	
+
 	str= MEM_callocN(len+21, "vfontbutstr");
 	strcpy(str, "FONTS %t");
 	vf= G.main->vfont.first;
 	while(vf) {
-		
+
 		if(vf->id.us==0) strcat(str, "|0 ");
 		else strcat(str, "|   ");
-		
+
 		strcpy(di, vf->name);
 		BLI_splitdirstring(di, fi);
-		
+
 		strcat(str, fi);
 		vf= vf->id.next;
 	}
@@ -548,20 +548,20 @@ static void load_buts_vfont(char *name)
 {
 	VFont *vf;
 	Curve *cu;
-	
+
 	if(OBACT && OBACT->type==OB_FONT) cu= OBACT->data;
 	else return;
-	
+
 	vf= exist_vfont(name);
 	if(vf==0) {
 		vf= load_vfont(name);
 		if(vf==0) return;
 	}
 	else id_us_plus((ID *)vf);
-	
+
 	if(cu->vfont) cu->vfont->id.us--;
 	cu->vfont= vf;
-	
+
 	text_to_curve(OBACT, 0);
 	makeDispList(OBACT);
 	allqueue(REDRAWVIEW3D, 0);
@@ -575,9 +575,9 @@ void do_fontbuts(unsigned short event)
 	Object *ob;
 	ScrArea *sa;
 	char str[80];
-	
+
 	ob= OBACT;
-	
+
 	switch(event) {
 	case B_MAKEFONT:
 		text_to_curve(ob, 0);
@@ -591,7 +591,7 @@ void do_fontbuts(unsigned short event)
 		vf= give_vfontpointer(G.buts->texnr);
 		if(vf && vf->id.prev!=vf->id.next) strcpy(str, vf->name);
 		else strcpy(str, U.fontdir);
-		
+
 		sa= closest_bigger_area();
 		areawinset(sa->win);
 
@@ -608,7 +608,7 @@ void do_fontbuts(unsigned short event)
 							G.fileflags &= ~G_AUTOPACK;
 						}
 					}
-					
+
 					if ((G.fileflags & G_AUTOPACK) == 0) {
 						if (unpackVFont(cu->vfont, PF_ASK) == RET_OK) {
 							text_to_curve(ob, 0);
@@ -639,7 +639,7 @@ void do_fontbuts(unsigned short event)
 				allqueue(REDRAWVIEW3D, 0);
 				allqueue(REDRAWBUTSEDIT, 0);
 			}
-		}	
+		}
 		break;
 	case B_TEXTONCURVE:
 		if(ob) {
@@ -679,7 +679,7 @@ static void editing_panel_font_type(Object *ob, Curve *cu)
 	}
 	uiDefIconButI(block, TOG|BIT|0, B_PACKFONT, ICON_PACKAGE,	772,188,20,20, &packdummy, 0, 0, 0, 0, "Pack/Unpack this font");
 	uiDefBut(block, LABEL, 0, vfd->name,  480, 165,314,20, 0, 0, 0, 0, 0, "Postscript name of the font");
-	
+
 	MEM_freeN(strp);
 
 	uiBlockBeginAlign(block);
@@ -689,7 +689,7 @@ static void editing_panel_font_type(Object *ob, Curve *cu)
 	uiDefButS(block, ROW,B_MAKEFONT, "Flush",		647,135,53,20, &cu->spacemode, 0.0,3.0, 0, 0, "Fill characters to maximum linewidth. (Multiple lines required)");
 	uiDefBut(block, BUT, B_TOUPPER, "ToUpper",		715,135,78,20, 0, 0, 0, 0, 0, "Toggle between upper and lower case in editmode");
 	uiBlockEndAlign(block);
-	
+
 	uiDefIDPoinBut(block, test_obpoin_but, B_TEXTONCURVE, "TextOnCurve:",	480,105,220,19, &cu->textoncurve, "Apply a deforming curve to the text");
 	uiDefBut(block, TEX,REDRAWVIEW3D, "Ob Family:",	480,84,220,19, cu->family, 0.0, 20.0, 0, 0, "Blender uses font from selfmade objects");
 
@@ -714,11 +714,11 @@ void do_curvebuts(unsigned short event)
 	Object *ob;
 	Curve *cu;
 	Nurb *nu;
-	
+
 	ob= OBACT;
 	if(ob==0) return;
-	
-	switch(event) {	
+
+	switch(event) {
 
 	case B_CONVERTPOLY:
 	case B_CONVERTBEZ:
@@ -808,15 +808,15 @@ void do_curvebuts(unsigned short event)
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */
 		break;
-	
+
 	case B_SUBDIVCURVE:
 		subdivideNurb();
 		break;
 	case B_SPINNURB:
 		/* bad bad bad!!! use brackets!!! In case you wondered:
 		  {==,!=} goes before & goes before || */
-		if( (G.obedit==0) || 
-		    (G.obedit->type!=OB_SURF) || 
+		if( (G.obedit==0) ||
+		    (G.obedit->type!=OB_SURF) ||
 			((G.obedit->lay & G.vd->lay) == 0) ) return;
 		spinNurb(0, 0);
 		countall();
@@ -852,14 +852,14 @@ void do_curvebuts(unsigned short event)
 			cu= ob->data;
 			if(ob==G.obedit) nu= editNurb.first;
 			else nu= cu->nurb.first;
-			
+
 			while(nu) {
 				nu->resolu= cu->resolu;
 				nu= nu->next;
 			}
 		}
 		else if(ob->type==OB_FONT) text_to_curve(ob, 0);
-		
+
 		makeDispList(ob);
 		allqueue(REDRAWVIEW3D, 0);
 
@@ -874,10 +874,10 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 	extern Nurb *lastnu;
 	uiBlock *block;
 	short *sp;
-	
+
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_curve_tools", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Curve Tools", "Editing", 640, 0, 318, 204)==0) return;
-	
+
 	uiDefBut(block, LABEL, 0, "Make Knots",562,173,102, 18, 0, 0, 0, 0, 0, "");
 
 	if(ob->type==OB_CURVE) {
@@ -907,33 +907,33 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 	uiDefBut(block, BUT,B_SETW3,"0.25",		620,11,45,20, 0, 0, 0, 0, 0, "");
 	uiDefBut(block, BUT,B_SETW4,"sqrt(0.5)",665,11,55,20, 0, 0, 0, 0, 0, "");
 	uiBlockEndAlign(block);
-	
+
 	if(ob==G.obedit) {
 		nu= lastnu;
 		if(nu==NULL) nu= editNurb.first;
 		if(nu) {
 			uiBlockBeginAlign(block);
-			sp= &(nu->orderu); 
+			sp= &(nu->orderu);
 			uiDefButS(block, NUM, B_SETORDER, "Order U:", 565,90,102, 19, sp, 2.0, 6.0, 0, 0, "");
-			sp= &(nu->orderv); 
+			sp= &(nu->orderv);
 			uiDefButS(block, NUM, B_SETORDER, "V:",	 	670,90,50, 19, sp, 2.0, 6.0, 0, 0, "");
-			sp= &(nu->resolu); 
+			sp= &(nu->resolu);
 			uiDefButS(block, NUM, B_MAKEDISP, "Resol U:", 565,70,102, 19, sp, 1.0, 128.0, 0, 0, "");
-			sp= &(nu->resolv); 
+			sp= &(nu->resolv);
 			uiDefButS(block, NUM, B_MAKEDISP, "V:", 	670,70,50, 19, sp, 1.0, 128.0, 0, 0, "");
 		}
 	}
-	
+
 
 }
 
 static void editing_panel_curve_tools1(Object *ob, Curve *cu)
 {
 	uiBlock *block;
-	
+
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_curve_tools1", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Curve Tools1", "Editing", 960, 0, 318, 204)==0) return;
-	
+
 	uiDefBut(block, BUT, B_SUBDIVCURVE, "Subdivide", 400,180,150,20, 0, 0, 0, 0, 0, "");
 	if(ob->type==OB_SURF) {
 		uiDefBut(block, BUT, B_SPINNURB, "Spin",	 400,160,150,20, 0, 0, 0, 0, 0, "");
@@ -943,7 +943,7 @@ static void editing_panel_curve_tools1(Object *ob, Curve *cu)
 	uiDefBut(block, BUT,B_REVEAL,	"Reveal",		400,100,150,18, 0, 0, 0, 0, 0, "Reveals selected faces");
 	uiDefBut(block, BUT,B_SELSWAP,	"Select Swap",	400,80,150,18, 0, 0, 0, 0, 0, "Selects unselected faces, and deselects selected faces");
 	uiBlockEndAlign(block);
-	
+
 	uiDefButF(block, NUM,	REDRAWVIEW3D, "NSize:",	400, 40, 150, 19, &editbutsize, 0.001, 1.0, 10, 0, "");
 }
 
@@ -951,20 +951,20 @@ static void editing_panel_curve_tools1(Object *ob, Curve *cu)
 static void editing_panel_curve_type(Object *ob, Curve *cu)
 {
 	uiBlock *block;
-	
+
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_curve_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Curve and Surface", "Editing", 320, 0, 318, 204)==0) return;
-	
+
 	uiDefButS(block, TOG|BIT|5, 0, "UV Orco",					600,160,150,19, &cu->flag, 0, 0, 0, 0, "");
-	if(ob->type==OB_SURF) 
+	if(ob->type==OB_SURF)
 		uiDefButS(block, TOG|BIT|6, REDRAWVIEW3D, "No Puno Flip",	600,140,150,19, &cu->flag, 0, 0, 0, 0, "");
-	
+
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_DOCENTRE, "Centre",					600, 115, 150, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
 	uiDefBut(block, BUT,B_DOCENTRENEW, "Centre New",			600, 95, 150, 19, 0, 0, 0, 0, 0, "Shifts object's origin to center of object data");
 	uiDefBut(block, BUT,B_DOCENTRECURSOR, "Centre Cursor",		600, 75, 150, 19, 0, 0, 0, 0, 0, "Shifts object's origin to cursor location");
 	uiBlockEndAlign(block);
-	
+
 	if(ob->type==OB_SURF) {
 		if(cu->key) {
 			/* uiDefButS(block, NUM, B_DIFF, "Slurph:",			600,25,140,19, &(cu->key->slurph), -500.0, 500.0,0,0); ,""*/
@@ -973,7 +973,7 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 	}
 
 	if(ob->type!=OB_SURF) {
-		
+
 		if(ob->type==OB_CURVE) {
 			extern float prlen;		// buttons_object.c, should be moved....
 			char str[32];
@@ -989,7 +989,7 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 		uiBlockBeginAlign(block);
 		uiDefButS(block, NUM, B_MAKEDISP, "DefResolU:",	760,160,120,19, &cu->resolu, 1.0, 128.0, 0, 0, "");
 		uiDefBut(block, BUT, B_SETRESOLU, "Set",		880,160,30,19, 0, 0, 0, 0, 0, "");
-		
+
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUM, B_MAKEDISP, "Width:",		760,90,150,19, &cu->width, 0.0, 2.0, 1, 0, "");
 		uiDefButF(block, NUM, B_MAKEDISP, "Ext1:",		760,70,150,19, &cu->ext1, 0.0, 5.0, 10, 0, "");
@@ -1003,7 +1003,7 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 		uiDefButS(block, TOG|BIT|1, B_MAKEDISP, "Front",810,130,50,19, &cu->flag, 0, 0, 0, 0, "");
 		uiDefButS(block, TOG|BIT|0, B_CU3D, "3D",		860,130,50,19, &cu->flag, 0, 0, 0, 0, "");
 
-		
+
 	}
 
 }
@@ -1016,10 +1016,10 @@ static void editing_panel_camera_type(Object *ob, Camera *cam)
 {
 	uiBlock *block;
 	float grid=0.0;
-	
-	if(G.vd) grid= G.vd->grid; 
+
+	if(G.vd) grid= G.vd->grid;
 	if(grid<1.0) grid= 1.0;
-	
+
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_camera_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Camera", "Editing", 320, 0, 318, 204)==0) return;
 
@@ -1029,7 +1029,7 @@ static void editing_panel_camera_type(Object *ob, Camera *cam)
 	uiDefButF(block, NUM,REDRAWVIEW3D, "ClipSta:", 470,147,160,20, &cam->clipsta, 0.001*grid, 100.0*grid, 10, 0, "Specify the startvalue of the the field of view");
 	uiDefButF(block, NUM,REDRAWVIEW3D, "ClipEnd:", 470,125,160,20, &cam->clipend, 1.0, 5000.0*grid, 100, 0, "Specify the endvalue of the the field of view");
 	uiBlockEndAlign(block);
-	
+
 	uiDefButF(block, NUM,REDRAWVIEW3D, "DrawSize:", 470,90,160,20, &cam->drawsize, 0.1*grid, 10.0, 10, 0, "Specify the drawsize of the camera");
 
 	uiDefButS(block, TOG, REDRAWVIEW3D, "Ortho", 470,49,61,40, &cam->type, 0, 0, 0, 0, "Render orthogonally");
@@ -1054,13 +1054,13 @@ void do_mballbuts(unsigned short event)
 static void editing_panel_mball_type(Object *ob, MetaBall *mb)
 {
 	uiBlock *block;
-	
+
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mball_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "MetaBall", "Editing", 320, 0, 318, 204)==0) return;
 
 	ob= find_basis_mball(ob);
 	mb= ob->data;
-	
+
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, B_RECALCMBALL, "Wiresize:",	470,178,250,19, &mb->wiresize, 0.05, 1.0, 0, 0, "");
 	uiDefButF(block, NUMSLI, 0, "Rendersize:",			470,158,250,19, &mb->rendersize, 0.05, 1.0, 0, 0, "");
@@ -1072,17 +1072,17 @@ static void editing_panel_mball_type(Object *ob, MetaBall *mb)
 	uiDefButS(block, ROW, B_DIFF, "Always",	471, 85, 120, 19, &mb->flag, 0.0, 0.0, 0, 0, "");
 	uiDefButS(block, ROW, B_DIFF, "Half Res",	471, 65, 120, 19, &mb->flag, 0.0, 1.0, 0, 0, "");
 	uiDefButS(block, ROW, B_DIFF, "Fast",		471, 45, 120, 19, &mb->flag, 0.0, 2.0, 0, 0, "");
-	
+
 }
 
 static void editing_panel_mball_tools(Object *ob, MetaBall *mb)
 {
 	extern MetaElem *lastelem;
 	uiBlock *block;
-	
+
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mball_tools", UI_EMBOSS, UI_HELV, curarea->win);
 	if( uiNewPanel(curarea, block, "MetaBall tools", "Editing", 640, 0, 318, 204)==0) return;
-	
+
 	if(ob==G.obedit && lastelem) {
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI, B_RECALCMBALL, "Stiffness:", 750,178,250,19, &lastelem->s, 0.0, 10.0, 0, 0, "");
@@ -1094,7 +1094,7 @@ static void editing_panel_mball_tools(Object *ob, MetaBall *mb)
 		if((lastelem->type==MB_CUBE)||(lastelem->type==MB_ELIPSOID))
 		uiDefButF(block, NUMSLI, B_RECALCMBALL, "dz:",		750,118,250,19, &lastelem->expz, 0.0, 20.0, 0, 0, "");
 		uiBlockEndAlign(block);
-		
+
 		uiDefButS(block, ROW, B_RECALCMBALL, "Ball",			753,83,60,19, &lastelem->type, 1.0, 0.0, 0, 0, "");
 		uiBlockBeginAlign(block);
 		uiDefButS(block, ROW, B_RECALCMBALL, "Tube",			753,62,60,19, &lastelem->type, 1.0, 4.0, 0, 0, "");
@@ -1116,10 +1116,10 @@ void do_latticebuts(unsigned short event)
 {
 	Object *ob;
 	Lattice *lt;
-	
+
 	ob= OBACT;
 	if(ob->type!=OB_LATTICE) return;
-	
+
 	switch(event) {
 	case B_RESIZELAT:
 		if(ob) {
@@ -1133,14 +1133,14 @@ void do_latticebuts(unsigned short event)
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_LATTCHANGED:
-		
+
 		lt= ob->data;
 		if(lt->flag & LT_OUTSIDE) outside_lattice(lt);
-		
+
 		make_displists_by_parent(ob);
 
 		allqueue(REDRAWVIEW3D, 0);
-		
+
 		break;
 	}
 }
@@ -1148,10 +1148,10 @@ void do_latticebuts(unsigned short event)
 static void editing_panel_lattice_type(Object *ob, Lattice *lt)
 {
 	uiBlock *block;
-	
+
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_lattice_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Latice", "Editing", 320, 0, 318, 204)==0) return;
-	
+
 
 	uiSetButLock(lt->key!=0, "Not with VertexKeys");
 	uiSetButLock(ob==G.obedit, "Unable to perform function in EditMode");
@@ -1174,7 +1174,7 @@ static void editing_panel_lattice_type(Object *ob, Lattice *lt)
 	uiDefButC(block, ROW, B_LATTCHANGED,		"Card",		612, 138, 40, 19, &lt->typew, 3.0, (float)KEY_CARDINAL, 0, 0, "");
 	uiDefButC(block, ROW, B_LATTCHANGED,		"B",		652, 138, 40, 19, &lt->typew, 3.0, (float)KEY_BSPLINE, 0, 0, "");
 	uiBlockEndAlign(block);
-	
+
 	uiDefBut(block, BUT, B_RESIZELAT,	"Make Regular",		470,101,99,32, 0, 0, 0, 0, 0, "");
 
 	uiDefButS(block, TOG|BIT|1, B_LATTCHANGED, "Outside",	571,101,120,31, &lt->flag, 0, 0, 0, 0, "");
@@ -1228,21 +1228,21 @@ static void build_bonestring (char *string, EditBone *bone){
 	int		index, numbones, i;
 	char (*qsort_ptr)[32] = NULL;
 
-	sprintf (string, "Parent%%t| %%x%d", -1);	/* That space is there 
-												 * for a reason 
+	sprintf (string, "Parent%%t| %%x%d", -1);	/* That space is there
+												 * for a reason
 												 */
-	
+
 	numbones = BLI_countlist(&G.edbo);
 
-	/* 
+	/*
 	 * This will hold the bone names temporarily so we can sort them
 	 */
 	if (numbones > 0)
-		qsort_ptr = MEM_callocN (numbones * sizeof (qsort_ptr[0]), 
+		qsort_ptr = MEM_callocN (numbones * sizeof (qsort_ptr[0]),
 								 "qsort_ptr");
 
 	numbones = 0;
-	for (curBone = G.edbo.first, index=0; curBone; 
+	for (curBone = G.edbo.first, index=0; curBone;
 		 curBone=curBone->next, index++){
 		/* Make sure this is a valid child */
 		if (curBone != bone){
@@ -1253,7 +1253,7 @@ static void build_bonestring (char *string, EditBone *bone){
 					break;
 				}
 			}
-			
+
 			if (skip)
 				continue;
 
@@ -1261,7 +1261,7 @@ static void build_bonestring (char *string, EditBone *bone){
 			numbones++;
 		}
 	}
-	qsort (qsort_ptr, numbones, sizeof (qsort_ptr[0]), 
+	qsort (qsort_ptr, numbones, sizeof (qsort_ptr[0]),
 		   ( int (*)(const void *, const void *) ) strcmp);
 
 	for (i=0; i < numbones; ++i) {
@@ -1323,7 +1323,7 @@ static void validate_editbonebutton(EditBone *eBone){
 	}
 
 	/* Rename the *pose* channel, if it exists (thus making sure
-	 * that the constraints are still valid) 
+	 * that the constraints are still valid)
 	 */
 	pose = G.obedit->pose;
 	if (pose) {
@@ -1341,8 +1341,8 @@ static void validate_editbonebutton(EditBone *eBone){
 		ListBase *conlist;
 
 		/* See if an object is parented to this armature */
-		if (ob->parent && ob->partype==PARBONE && 
-			(ob->parent->type==OB_ARMATURE) && 
+		if (ob->parent && ob->partype==PARBONE &&
+			(ob->parent->type==OB_ARMATURE) &&
 			(ob->parent->data == G.obedit->data)){
 			if (!strcmp(ob->parsubstr, eBone->oldname))
 				strcpy(ob->parsubstr, eBone->name);
@@ -1355,7 +1355,7 @@ static void validate_editbonebutton(EditBone *eBone){
 		switch (ob->type){
 			case OB_ARMATURE:
 				if (ob->pose){
-					for (pchan = ob->pose->chanbase.first; pchan; 
+					for (pchan = ob->pose->chanbase.first; pchan;
 						 pchan=pchan->next){
 						conlist = &pchan->constraints;
 						constraint_ebone_name_fix(conlist, eBone);
@@ -1365,7 +1365,7 @@ static void validate_editbonebutton(EditBone *eBone){
 			default:
 				break;
         }
-		
+
 	}
 
 	exit_editmode(0);	/* To ensure new names make it to the edit armature */
@@ -1391,9 +1391,9 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_armature_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Armature", "Editing", 320, 0, 318, 204)==0) return;
-	
-	but = uiDefButI(block, TOG|BIT|ARM_RESTPOSBIT,REDRAWVIEW3D, 
-					"Rest Pos", bx,by,97,20, &arm->flag, 0, 0, 0, 0, 
+
+	but = uiDefButI(block, TOG|BIT|ARM_RESTPOSBIT,REDRAWVIEW3D,
+					"Rest Pos", bx,by,97,20, &arm->flag, 0, 0, 0, 0,
 					"Disable all animation for this object");
 	uiButSetFunc(but, armature_rest_pos_func, NULL, NULL);
 
@@ -1401,8 +1401,8 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	uiDefButI(block, TOG|BIT|ARM_DRAWAXESBIT,REDRAWVIEW3D, "Draw Axes", bx,by-46,97,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
 	uiDefButI(block, TOG|BIT|ARM_DRAWNAMESBIT,REDRAWVIEW3D, "Draw Names", bx,by-69,97,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
 	uiDefButI(block, TOG|BIT|ARM_DRAWXRAYBIT,REDRAWVIEW3D, "X-Ray", bx,by-92,97,20, &arm->flag, 0, 0, 0, 0, "Draw armature in front of shaded objects");
-	uiDefButI(block, TOG|BIT|ARM_DELAYBIT,REDRAWVIEW3D, 
-			  "Delay Deform", bx,by-115,97,20, &arm->flag, 0, 0, 0, 0, 
+	uiDefButI(block, TOG|BIT|ARM_DELAYBIT,REDRAWVIEW3D,
+			  "Delay Deform", bx,by-115,97,20, &arm->flag, 0, 0, 0, 0,
 			  "Don't deform children when manipulating bones in pose mode");
 }
 
@@ -1432,17 +1432,17 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 
 			/* Hide in posemode flag */
 			uiDefButI(block, TOG|BIT|BONE_HIDDENBIT, REDRAWVIEW3D, "Hide", bx-55,by,45,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in posemode");
-			
+
 			/*	Bone naming button */
 			strcpy (curBone->oldname, curBone->name);
 			but=uiDefBut(block, TEX, REDRAWVIEW3D, "BO:", bx-10,by,117,18, &curBone->name, 0, 24, 0, 0, "Change the bone name");
 			uiButSetFunc(but, validate_editbonebutton_cb, curBone, NULL);
-			
+
 			uiDefBut(block, LABEL, 0, "child of", bx+107,by,73,18, NULL, 0.0, 0.0, 0.0, 0.0, "");
 
 			boneString = malloc((BLI_countlist(&G.edbo) * 64)+64);
 			build_bonestring (boneString, curBone);
-			
+
 			curBone->parNr = editbone_to_parnr(curBone->parent);
 			but = uiDefButI(block, MENU,REDRAWVIEW3D, boneString, bx+180,by,120,18, &curBone->parNr, 0.0, 0.0, 0.0, 0.0, "Parent");
 			uiButSetFunc(but, parnr_to_editbone_cb, curBone, NULL);
@@ -1454,7 +1454,7 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 				but=uiDefButI(block, TOG|BIT|BONE_IK_TOPARENTBIT, REDRAWVIEW3D, "IK", bx+300,by,32,18, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "IK link to parent");
 				uiButSetFunc(but, attach_bone_to_parent_cb, curBone, NULL);
 			}
-			
+
 			/* Dist and weight buttons */
 			uiBlockBeginAlign(block);
 			but=uiDefButS(block, MENU, REDRAWVIEW3D,
@@ -1475,26 +1475,26 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 							"Tentacle %x14",
 							bx-10,by-19,117,18,
 							&curBone->boneclass,
-							0.0, 0.0, 0.0, 0.0, 
+							0.0, 0.0, 0.0, 0.0,
 							"Classification of armature element");
-			
+
 			/* Dist and weight buttons */
-			uiDefButF(block, NUM,REDRAWVIEW3D, "Dist:", bx+110, by-19, 
-						105, 18, &curBone->dist, 0.0, 1000.0, 10.0, 0.0, 
+			uiDefButF(block, NUM,REDRAWVIEW3D, "Dist:", bx+110, by-19,
+						105, 18, &curBone->dist, 0.0, 1000.0, 10.0, 0.0,
 						"Bone deformation distance");
-			uiDefButF(block, NUM,REDRAWVIEW3D, "Weight:", bx+223, by-19, 
-						110, 18, &curBone->weight, 0.0F, 1000.0F, 
+			uiDefButF(block, NUM,REDRAWVIEW3D, "Weight:", bx+223, by-19,
+						110, 18, &curBone->weight, 0.0F, 1000.0F,
 						10.0F, 0.0F, "Bone deformation weight");
-			
+
 			uiBlockEndAlign(block);
-			by-=42;	
+			by-=42;
 		}
 	}
-	
+
 	if(by<0) {
 		uiNewPanelHeight(block, 204 - by);
 	}
-	
+
 }
 
 
@@ -1514,10 +1514,10 @@ void do_meshbuts(unsigned short event)
 
 	ob= OBACT;
 	if(ob && ob->type==OB_MESH) {
-		
+
 		me= get_mesh(ob);
 		if(me==0) return;
-		
+
 		switch(event) {
 		case B_AUTOVGROUP:
 			if (!get_armature(ob->parent)){
@@ -1557,7 +1557,7 @@ void do_meshbuts(unsigned short event)
 			allqueue (REDRAWVIEW3D, 1);
 			break;
 		case B_DELSTICKY:
-		
+
 			if(me->msticky) MEM_freeN(me->msticky);
 			me->msticky= 0;
 			allqueue(REDRAWBUTSEDIT, 0);
@@ -1590,13 +1590,13 @@ void do_meshbuts(unsigned short event)
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWIMAGE, 0);
 			break;
-			
+
 		case B_FLIPNORM:
 			if(G.obedit) {
 				flip_editnormals();
 			}
 			else flipnorm_mesh( get_mesh(ob) );
-			
+
 			allqueue(REDRAWVIEW3D, 0);
 			break;
 
@@ -1618,9 +1618,9 @@ void do_meshbuts(unsigned short event)
 			break;
 		}
 	}
-	
+
 	if(G.obedit==0 || (G.obedit->type!=OB_MESH)) return;
-	
+
 	switch(event) {
 	case B_SPIN:
 		if( select_area(SPACE_VIEW3D)) spin_mesh(step, degr, 0, 0);
@@ -1693,7 +1693,7 @@ static void editing_panel_mesh_tools(Object *ob, Mesh *me)
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_tools", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Mesh Tools", "Editing", 640, 0, 318, 204)==0) return;
-	
+
 	uiBlockBeginAlign(block);
 	uiDefButS(block, TOG|BIT|2, 0, "Beauty",		10,195,80,19, &editbutflag, 0, 0, 0, 0, "Causes 'Subdivide' to split faces in halves instead of quarters");
 	uiDefBut(block, BUT,B_SUBDIV,"Subdivide",		90,195,80,19, 0, 0, 0, 0, 0, "Splits selected faces into halves or quarters");
@@ -1727,7 +1727,7 @@ static void editing_panel_mesh_tools(Object *ob, Mesh *me)
 
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_EXTREP, "Extrude Dup",	10,10,120,19, 0, 0, 0, 0, 0, "Creates copies of the selected vertices in a straight line away from the current viewport");
-	uiDefButF(block, NUM, B_DIFF, "Offset:",		130,10,125,19, &extr_offs, 0.01, 10.0, 100, 0, "Sets the distance between each copy for 'Extrude Dup'");
+	uiDefButF(block, NUM, B_DIFF, "Offset:",		130,10,125,19, &extr_offs, 0.01, 100.0, 100, 0, "Sets the distance between each copy for 'Extrude Dup'");
 	uiBlockEndAlign(block);
 }
 
@@ -1774,12 +1774,12 @@ static void editing_panel_links(Object *ob)
 	Material *ma;
 	char str[64];
 	uiBut *but;
-	
+
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_links", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Link and Materials", "Editing", 0, 0, 318, 204)==0) return;
 
 	buttons_active_id(&id, &idfrom);
-	
+
 	if(id) {
 		int alone= 0;
 		int local= 0;
@@ -1817,7 +1817,7 @@ static void editing_panel_links(Object *ob)
 		}
 		uiBlockSetCol(block, TH_BUT_SETTING2);
 		xco= std_libbuttons(block, 143, 180, 0, NULL, browse, id, idfrom, &(G.buts->menunr), alone, local, 0, 0, B_KEEPDATA);
-		uiBlockSetCol(block, TH_AUTO);	
+		uiBlockSetCol(block, TH_AUTO);
 	}
 	if(ob) {
 		but = uiDefBut(block, TEX, B_IDNAME, "OB:",	xco, 180, 454-xco, YIC, ob->id.name+2, 0.0, 19.0, 0, 0, "Displays Active Object name. Click to change.");
@@ -1829,8 +1829,8 @@ static void editing_panel_links(Object *ob)
 	/* to be sure */
 	if ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL);
 	else return;
-	
-	
+
+
 	if(ob->type==OB_MESH) poin= &( ((Mesh *)ob->data)->texflag );
 	else if(ob->type==OB_MBALL) poin= &( ((MetaBall *)ob->data)->texflag );
 	else poin= &( ((Curve *)ob->data)->texflag );
@@ -1839,14 +1839,14 @@ static void editing_panel_links(Object *ob)
 	sprintf(str,"%d Mat:", ob->totcol);
 	if(ob->totcol) min= 1.0; else min= 0.0;
 	ma= give_current_material(ob, ob->actcol);
-	
+
 	if(ma) uiDefBut(block, LABEL, 0, ma->id.name+2, 318,153, 103, 20, 0, 0, 0, 0, 0, "");
-	
+
 	uiBlockBeginAlign(block);
 	if(ma) uiDefButF(block, COL, 0, "",			291,123,24,30, &(ma->r), 0, 0, 0, 0, "");
 	uiDefButC(block, NUM, B_REDR,	str,		318,123,103,30, &ob->actcol, min, (float)(ob->totcol), 0, 0, "Displays total number of material indices and the current index");
 	uiDefBut(block, BUT,B_MATWICH,	"?",		423,123,31,30, 0, 0, 0, 0, 0, "In EditMode, sets the active material index from selected faces");
-	
+
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_MATNEW,	"New",		292,98,80,20, 0, 0, 0, 0, 0, "Adds a new Material index");
 	uiDefBut(block, BUT,B_MATDEL,	"Delete",	374,98,80,20, 0, 0, 0, 0, 0, "Deletes this Material index");
@@ -1868,28 +1868,28 @@ static void editing_panel_links(Object *ob)
 		bDeformGroup *dg;
 		int min, index;
 		char (*qsort_ptr)[32] = NULL;
-		
-		uiDefBut(block, LABEL,0,"Vertex Groups", 
+
+		uiDefBut(block, LABEL,0,"Vertex Groups",
 				 143,153,130,20, 0, 0, 0, 0, 0, "");
 
 		defCount=BLI_countlist(&ob->defbase);
 
 		if (!defCount) min=0;
 		else min=1;
-		
+
 		if (defCount > 0) {
-			/* 
-			 * This will hold the group names temporarily 
-			 * so we can sort them 
+			/*
+			 * This will hold the group names temporarily
+			 * so we can sort them
 			 */
-			qsort_ptr = MEM_callocN (defCount * sizeof (qsort_ptr[0]), 
+			qsort_ptr = MEM_callocN (defCount * sizeof (qsort_ptr[0]),
 									 "qsort_ptr");
 			for (index = 1, dg = ob->defbase.first; dg; index++, dg=dg->next) {
-				snprintf (qsort_ptr[index - 1], sizeof (qsort_ptr[0]), 
+				snprintf (qsort_ptr[index - 1], sizeof (qsort_ptr[0]),
 						  "%s%%x%d|", dg->name, index);
 			}
 
-			qsort (qsort_ptr, defCount, sizeof (qsort_ptr[0]), 
+			qsort (qsort_ptr, defCount, sizeof (qsort_ptr[0]),
 				   ( int (*)(const void *, const void *) ) strcmp);
 		}
 
@@ -1903,9 +1903,9 @@ static void editing_panel_links(Object *ob)
 		  MEM_freeN (qsort_ptr);
 
 		uiBlockBeginAlign(block);
-		if (defCount) 
+		if (defCount)
 			uiDefButS(block, MENU, REDRAWBUTSEDIT, menustr,
-					  143, 132,18,21, &ob->actdef, min, defCount, 0, 0, 
+					  143, 132,18,21, &ob->actdef, min, defCount, 0, 0,
 					  "Browses available vertex groups");
 
 		MEM_freeN (menustr);
@@ -1924,17 +1924,17 @@ static void editing_panel_links(Object *ob)
 	/*		uiDefBut(block, BUT,B_AUTOVGROUP,"Auto Weight",			740,by-=22,93,18, 0, 0, 0, 0, 0, "Automatically assigns deformation groups"); */
 			uiDefBut(block, BUT,B_NEWVGROUP,"New",			143,90,70,21, 0, 0, 0, 0, 0, "Creates a new vertex group");
 			uiDefBut(block, BUT,B_DELVGROUP,"Delete",		213,90,70,21, 0, 0, 0, 0, 0, "Removes the current vertex group");
-	
+
 			uiDefBut(block, BUT,B_ASSIGNVGROUP,"Assign",	143,69,70,21, 0, 0, 0, 0, 0, "Assigns selected vertices to the current vertex group");
 			uiDefBut(block, BUT,B_REMOVEVGROUP,"Remove",	213,69,70,21, 0, 0, 0, 0, 0, "Removes selected vertices from the current vertex group");
-	
+
 			uiDefBut(block, BUT,B_SELVGROUP,"Select",		143,48,70,21, 0, 0, 0, 0, 0, "Selects vertices belonging to the current vertex group");
 			uiDefBut(block, BUT,B_DESELVGROUP,"Desel.",		213,48,70,21, 0, 0, 0, 0, 0, "Deselects vertices belonging to the current vertex group");
 			uiBlockEndAlign(block);
 		}
 	}
 
-	
+
 }
 
 /* *************************** FACE/PAINT *************************** */
@@ -1944,12 +1944,12 @@ void do_fpaintbuts(unsigned short event)
 	Mesh *me;
 	Object *ob;
 	extern TFace *lasttface; /* caches info on tface bookkeeping ?*/
-	
+
 	ob= OBACT;
 	if(ob==0) return;
 
-	switch(event) { 
-		
+	switch(event) {
+
 	case B_VPGAMMA:
 		vpaint_dogamma();
 		break;
@@ -1962,10 +1962,10 @@ void do_fpaintbuts(unsigned short event)
 /*  			extern TFace *lasttface; */
 			TFace *tface= me->tface;
 			int a= me->totface;
-			
+
 			set_lasttface();
 			if(lasttface) {
-			
+
 				while(a--) {
 					if(tface!=lasttface && (tface->flag & TF_SELECT)) {
 						if(event==B_COPY_TF_MODE) {
@@ -1976,10 +1976,10 @@ void do_fpaintbuts(unsigned short event)
 							memcpy(tface->uv, lasttface->uv, sizeof(tface->uv));
 							tface->tpage= lasttface->tpage;
 							tface->tile= lasttface->tile;
-							
+
 							if(lasttface->mode & TF_TILES) tface->mode |= TF_TILES;
 							else tface->mode &= ~TF_TILES;
-							
+
 						}
 						else if(event==B_COPY_TF_TEX) {
 							tface->tpage= lasttface->tpage;
@@ -2006,12 +2006,12 @@ void do_fpaintbuts(unsigned short event)
 		allqueue(REDRAWIMAGE, 0);
 		break;
 	case B_ASSIGNMESH:
-		
+
 		test_object_materials(ob->data);
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
 		break;
-		
+
 	case B_TFACE_HALO:
 		set_lasttface();
 		if(lasttface) {
@@ -2027,7 +2027,7 @@ void do_fpaintbuts(unsigned short event)
 			allqueue(REDRAWBUTSEDIT, 0);
 		}
 		break;
-	}	
+	}
 }
 
 
@@ -2040,7 +2040,7 @@ static void editing_panel_mesh_paint(void)
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_paint", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Paint", "Editing", 640, 0, 318, 204)==0) return;
-	
+
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, 0, "R ",			979,160,194,19, &Gvp.r, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of red used for painting");
 	uiDefButF(block, NUMSLI, 0, "G ",			979,140,194,19, &Gvp.g, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of green used for painting");
@@ -2062,13 +2062,13 @@ static void editing_panel_mesh_paint(void)
 	uiDefButS(block, TOG|BIT|1, 0, "Area", 		980,50,80,19, &Gvp.flag, 0, 0, 0, 0, "Set the area the brush covers");
 	uiDefButS(block, TOG|BIT|2, 0, "Soft", 		1061,50,112,19, &Gvp.flag, 0, 0, 0, 0, "Use a soft brush");
 	uiDefButS(block, TOG|BIT|3, 0, "Normals", 	1174,50,102,19, &Gvp.flag, 0, 0, 0, 0, "Use vertex normal for painting");
-	
+
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT, B_VPGAMMA, "Set", 	980,30,80,19, 0, 0, 0, 0, 0, "Apply Mul and Gamma to vertex colours");
 	uiDefButF(block, NUM, B_DIFF, "Mul:", 		1061,30,112,19, &Gvp.mul, 0.1, 50.0, 10, 0, "Set the number to multiply vertex colours with");
 	uiDefButF(block, NUM, B_DIFF, "Gamma:", 	1174,30,102,19, &Gvp.gamma, 0.1, 5.0, 10, 0, "Change the clarity of the vertex colours");
 	uiBlockEndAlign(block);
-	
+
 	uiDefBut(block, BUT, B_SET_VCOL, "Set VertCol",	980,5,80,20, 0, 0, 0, 0, 0, "Set Vertex colour of selection to current (Shift+K)");
 
 }
@@ -2078,20 +2078,20 @@ static void editing_panel_mesh_texface(void)
 {
 	uiBlock *block;
 	extern TFace *lasttface;
-	
+
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_texface", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Texture face", "Editing", 960, 0, 318, 204)==0) return;
 
 	set_lasttface();	// checks for ob type
 	if(lasttface) {
-	
+
 		uiBlockBeginAlign(block);
 		uiDefButS(block, TOG|BIT|2, B_REDR_3D_IMA, "Tex",	600,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Render face with texture");
 		uiDefButS(block, TOG|BIT|7, B_REDR_3D_IMA, "Tiles",	660,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Use tilemode for face");
 		uiDefButS(block, TOG|BIT|4, REDRAWVIEW3D, "Light",	720,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Use light for face");
 		uiDefButS(block, TOG|BIT|10, REDRAWVIEW3D, "Invisible",780,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Make face invisible");
 		uiDefButS(block, TOG|BIT|0, REDRAWVIEW3D, "Collision", 840,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Use face for collision detection");
-		
+
 		uiBlockBeginAlign(block);
 		uiDefButS(block, TOG|BIT|6, REDRAWVIEW3D, "Shared",	600,135,60,19, &lasttface->mode, 0, 0, 0, 0, "Blend vertex colours across face when vertices are shared");
 		uiDefButS(block, TOG|BIT|9, REDRAWVIEW3D, "Twoside",660,135,60,19, &lasttface->mode, 0, 0, 0, 0, "Render face twosided");
@@ -2119,8 +2119,8 @@ static void editing_panel_mesh_texface(void)
 }
 
 void do_uvautocalculationbuts(unsigned short event)
-{   
-	switch(event) { 
+{
+	switch(event) {
 	case B_UVAUTO_STD1:
 	case B_UVAUTO_STD2:
 	case B_UVAUTO_STD4:
@@ -2144,13 +2144,13 @@ static void editing_panel_mesh_uvautocalculation(void)
 {
 	uiBlock *block;
 	int butH= 19, butHB= 20, row= 180, butS= 10;
-	
+
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_uvautocalculation", UI_EMBOSS, UI_HELV, curarea->win);
 	/* make this a tab of "Texture face" to save screen space*/
-	uiNewPanelTabbed("Texture face", "Editing"); 
+	uiNewPanelTabbed("Texture face", "Editing");
 	if(uiNewPanel(curarea, block, "UV Calculation", "Editing", 960, 0, 318, 204)==0)
 		return;
-	
+
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT, B_UVAUTO_STD1,"Standard 1/1",100,row,200,butH, 0, 0, 0, 0, 0, "Applies standard UV mapping");
 	uiDefBut(block, BUT, B_UVAUTO_STD2,"1/2",100,row-butHB,66,butH, 0, 0, 0, 0, 0, "Applies standard UV mapping 1/2");
@@ -2159,7 +2159,7 @@ static void editing_panel_mesh_uvautocalculation(void)
 	uiBlockEndAlign(block);
 	row-= 2*butHB+butS;
 
-	uiBlockBeginAlign(block); 
+	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT, B_UVAUTO_BOUNDS1,"Bounds 1/1",100,row,200,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping with bounds 1/1");
 	uiDefBut(block, BUT, B_UVAUTO_BOUNDS2,"1/2",100,row-butHB,66,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping with bounds 1/2");
 	uiDefBut(block, BUT, B_UVAUTO_BOUNDS4,"1/4",166,row-butHB,67,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping with bounds 1/4");
@@ -2167,7 +2167,7 @@ static void editing_panel_mesh_uvautocalculation(void)
 	uiDefBut(block, BUT, B_UVAUTO_WINDOW,"From Window",100,row-2*butH,200,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping from window");
 	uiBlockEndAlign(block);
 	row-= 3*butHB+butS;
-	
+
 	uiBlockBeginAlign(block);
 	uiDefButS(block,ROW,REDRAWVIEW3D,"No Edges",100,row,200,butH,&facesel_draw_edges, 2.0, 0, 0, 0,  "Draw edges in 3D view");
 	uiDefButS(block,ROW,REDRAWVIEW3D,"Draw Edges",100,row-butH,200,butH,&facesel_draw_edges, 2.0, 1.0, 0, 0,  "Draw edges in 3D view");
@@ -2190,11 +2190,11 @@ static void editing_panel_mesh_uvautocalculation(void)
 
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT, B_UVAUTO_CYLINDER,"Cylinder",315,row,200,butH, 0, 0, 0, 0, 0, "Applies cylindrical UV mapping");
-	uiDefButF(block, NUM,B_UVAUTO_CYLRADIUS ,"Radius:",315,row-butHB,200,butH, &uv_calc_radius, 0.1, 100.0, 10, 0, "Defines the radius of the UV mapping cylinder");		
+	uiDefButF(block, NUM,B_UVAUTO_CYLRADIUS ,"Radius:",315,row-butHB,200,butH, &uv_calc_radius, 0.1, 100.0, 10, 0, "Defines the radius of the UV mapping cylinder");
 	uiBlockEndAlign(block);
 	row-= 2*butHB+butS;
 
-	
+
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW,B_UVAUTO_FACE,"View Aligns Face",315,row,200,butH, &uv_calc_mapdir,2.0, 1.0, 0.0,0.0, "View is on aequator for cylindrical and spherical UV mapping");
 	uiDefButS(block, ROW,B_UVAUTO_TOP,"VA Top",315,row-butHB,100,butH, &uv_calc_mapdir,2.0, 0.0, 0.0,0.0, "View is on poles for cylindrical and spherical UV mapping");
@@ -2218,10 +2218,10 @@ void editing_panels()
 	Lattice *lt;
 	bArmature *arm;
 	Camera *cam;
-	
+
 	ob= OBACT;
 	if(ob==NULL) return;
-	
+
 	switch(ob->type) {
 	case OB_MESH:
 		editing_panel_links(ob); // no editmode!
@@ -2236,12 +2236,12 @@ void editing_panels()
 				editing_panel_mesh_texface();
 				editing_panel_mesh_uvautocalculation();
 			}
-			
+
 			if(G.f & (G_VERTEXPAINT | G_TEXTUREPAINT | G_WEIGHTPAINT) )
 				editing_panel_mesh_paint();
 		}
 		break;
-		
+
 	case OB_CURVE:
 	case OB_SURF:
 		cu= ob->data;
@@ -2278,7 +2278,7 @@ void editing_panels()
 	case OB_LAMP:
 		editing_panel_links(ob); // no editmode!
 		break;
-		
+
 	case OB_EMPTY:
 		editing_panel_links(ob); // no editmode!
 		break;
@@ -2288,7 +2288,7 @@ void editing_panels()
 		editing_panel_links(ob); // no editmode!
 		editing_panel_camera_type(ob, cam);
 		break;
-		
+
 	case OB_ARMATURE:
 		arm= ob->data;
 		editing_panel_links(ob); // no editmode!
