@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import string
 import os
 import time
@@ -7,6 +8,7 @@ import SCons.Script
 
 appname = ''
 playername = ''
+config_guess = ''
 
 if hex(sys.hexversion) < 0x2030000:
 	print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
@@ -19,6 +21,10 @@ if hex(sys.hexversion) < 0x2030000:
 if sys.platform != 'win32':
 	sys.stdout = os.popen("tee build.log", "w")
 	sys.stderr = sys.stdout
+	# guess at the platform, used to maintain the tarball naming scheme
+	config_guess = os.popen("SRCHOME=source/ source/tools/guess/guessconfig").read()[:-1]
+else:
+	config_guess = "windows"
 	
 if sys.platform == 'darwin':
 	appname = 'blender'
@@ -56,8 +62,8 @@ if os.path.isdir (root_build_dir) == 0:
 config_file = ARGUMENTS.get('CONFIG', 'config.opts')
 
 # Blender version.
-version='2.33a'
-shortversion = '233a' # for wininst target -> nsis installer creation
+version='2.34'
+shortversion = '234' # for wininst target -> nsis installer creation
 
 sdl_env = Environment ()
 freetype_env = Environment ()
@@ -233,7 +239,7 @@ elif sys.platform == 'darwin':
                         '-framework', 'Python',
                         '-framework', 'CoreServices',
                         '-framework', 'Foundation',
-			'-framework', 'OpenGL']
+                        '-framework', 'OpenGL']
     # International stuff
     ftgl_lib = ['ftgl']
     ftgl_libpath = [darwin_precomp + 'ftgl/lib']
@@ -1157,6 +1163,8 @@ def preparedist():
 	
 	try:
 		import shutil
+		import time
+		import stat
 	except:
 		print "no shutil available"
 		print "make sure you use python 2.3"
@@ -1223,7 +1231,6 @@ def preparedist():
 	
 	if cleanCVS()==0:
 		return 0
-
 	return 1
 
 def finalisedist(zipname):
@@ -1239,7 +1246,7 @@ def finalisedist(zipname):
 		print
 		return 0
 	
-	shutil.copy("dist/" + zipname, zipname)
+	#shutil.copy("dist/" + zipname, zipname)
 	#shutil.rmtree("dist")
 	
 	return 1
@@ -1348,6 +1355,7 @@ def zipit(env, target, source):
 		print
 		return
 	
+	import shutil
 	import glob
 	import time
 	
@@ -1362,8 +1370,6 @@ def zipit(env, target, source):
 		print "check output for error"
 		return
 	
-	os.chdir(startdir + "/dist")
-	
 	if sys.platform == 'win32':
 		zipext += ".zip"
 		pf = "windows"
@@ -1371,8 +1377,17 @@ def zipit(env, target, source):
 		zipext += ".tar.gz"
 		pf = "linux"
 	
-	zipname = "bf_blender_" + pf+ "_" + today + zipext
+	if user_options_dict['BUILD_BINARY'] == 'release':
+		blendname = "blender-" + version + "-" + config_guess
+	else:
+		blendname = "bf_blender_" + pf + "_" + today
 	
+	zipname = blendname + zipext
+
+	if os.path.isdir(blendname):
+		shutil.rmtree(blendname)
+	shutil.move(startdir + os.sep + "dist", blendname)
+
 	print
 	if sys.platform == 'win32':
 		print "Create the zip!"
@@ -1385,7 +1400,7 @@ def zipit(env, target, source):
 	else:
 		thezip = tarfile.open(zipname, 'w:gz')
 	
-	for root, dirs, files in os.walk(".", topdown=False):
+	for root, dirs, files in os.walk(blendname, topdown=False):
 		for name in files:
 			if name in [zipname]:
 				print "skipping self"
@@ -1397,6 +1412,7 @@ def zipit(env, target, source):
 	thezip.close()
 	
 	os.chdir(startdir)
+	shutil.move(blendname, startdir + os.sep + "dist")
 	
 	if finalisedist(zipname)==0:
 		print "encountered an error in finalisedist"
