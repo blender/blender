@@ -48,7 +48,7 @@ typedef struct EditVert
 	float no[3];
 	float co[3];
 	short xs, ys;
-	char f, h, f1, hash;
+	unsigned char f, h, f1, hash;
 	int	totweight;				/* __NLA */
 	struct MDeformWeight *dw;	/* __NLA */
 } EditVert;
@@ -70,8 +70,8 @@ typedef struct EditVlak
 	float uv[4][2];
 	unsigned int col[4];
 	struct TFace *tface;	/* a pointer to original tface. */
-	char mat_nr, flag;
-	char f, f1;
+	unsigned char mat_nr, flag;
+	unsigned char f, f1;
 } EditVlak;
 
 #endif
