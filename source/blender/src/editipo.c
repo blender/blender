@@ -169,7 +169,7 @@ char *key_ic_names[KEY_TOTNAM] = { "Speed", "Key 1", "Key 2", "Key 3", "Key 4", 
 									"Key 21", "Key 22", "Key 23", "Key 24", "Key 25",
 									"Key 26", "Key 27", "Key 28", "Key 29", "Key 30",
 									"Key 31" };
-char *wo_ic_names[WO_TOTNAM] = { "HorR", "HorG" "HorB", "ZenR", "ZenG", "ZenB", "Expos",
+char *wo_ic_names[WO_TOTNAM] = { "HorR", "HorG", "HorB", "ZenR", "ZenG", "ZenB", "Expos",
 						 "Misi", "MisDi", "MisSta", "MisHi", "StarR", "StarB",
 						 "StarG", "StarDi", "StarSi" };
 char *la_ic_names[LA_TOTNAM] = { "Energ", "R", "G", "B", "Dist", "SpoSi", "SpoBl",
@@ -891,7 +891,8 @@ void make_world_editipo(SpaceIpo *si)
 	
 	for(a=0; a<WO_TOTIPO; a++) {
 		name = getname_world_ei(wo_ar[a]);
-		strcpy(ei->name, name);
+		
+		strcpy(ei->name, name); 
 		ei->adrcode= wo_ar[a];
 		
 		if(ei->adrcode & MA_MAP1) {
