@@ -2029,15 +2029,12 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 	char p1, p2, p3;
 	
 	/* for rendering of quads, the following values are used to denote vertices:
-	   0 1 2	scanline 
-	   0 2 3
-	   0 1 3    raytracer
-	   2 1 3
+	   0 1 2	scanline tria & first half quad, and ray tria
+	   0 2 3    scanline 2nd half quad
+	   0 1 3    raytracer first half quad
+	   2 1 3    raytracer 2nd half quad
 	*/
 
-// check!!! 		vlr1->flag |= R_FACE_SPLIT;
-// also check!!! 	vlr1->flag |= R_DIVIDE_24; 
-	
 	if(i1==0) {
 		v1= vlr->v1;
 		p1= ME_FLIPV1;
@@ -2200,15 +2197,35 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 			}
 		}
 		if((texco & TEXCO_UV) || (mode & (MA_VERTEXCOL|MA_FACETEXTURE)))  {
+			int j1=i1, j2=i2, j3=i3;
+			
+			/* to prevent storing new tfaces or vcols, we check a split runtime */
+			/* 		4---3		4---3 */
+			/*		|\ 1|	or  |1 /| */
+			/*		|0\ |		|/ 0| */
+			/*		1---2		1---2 	0 = orig face, 1 = new face */
+
+			if(vlr->flag & R_DIVIDE_24) {
+				if(vlr->flag & R_FACE_SPLIT) {
+					j1++; j2++; j3++;
+				}
+				else {
+					j3++;
+				}
+			}
+			else if(vlr->flag & R_FACE_SPLIT) {
+				j2++; j3++; 
+			}
+			
 			if(mode & MA_VERTEXCOL) {
 				
 				if(vlr->vcol) {
 					char *cp1, *cp2, *cp3;
 					
-					cp1= (char *)(vlr->vcol+i1);
-					cp2= (char *)(vlr->vcol+i2);
-					cp3= (char *)(vlr->vcol+i3);
-	
+					cp1= (char *)(vlr->vcol+j1);
+					cp2= (char *)(vlr->vcol+j2);
+					cp3= (char *)(vlr->vcol+j3);
+
 					shi->vcol[0]= (l*cp3[3]-u*cp1[3]-v*cp2[3])/255.0;
 					shi->vcol[1]= (l*cp3[2]-u*cp1[2]-v*cp2[2])/255.0;
 					shi->vcol[2]= (l*cp3[1]-u*cp1[1]-v*cp2[1])/255.0;
@@ -2223,9 +2240,9 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 			if(vlr->tface) {
 				float *uv1, *uv2, *uv3;
 				
-				uv1= vlr->tface->uv[i1];
-				uv2= vlr->tface->uv[i2];
-				uv3= vlr->tface->uv[i3];
+				uv1= vlr->tface->uv[j1];
+				uv2= vlr->tface->uv[j2];
+				uv3= vlr->tface->uv[j3];
 				
 				shi->uv[0]= -1.0 + 2.0*(l*uv3[0]-u*uv1[0]-v*uv2[0]);
 				shi->uv[1]= -1.0 + 2.0*(l*uv3[1]-u*uv1[1]-v*uv2[1]);

@@ -2834,6 +2834,8 @@ static void check_non_flat_quads(void)
 					if(vlr->puno & ME_FLIPV4) vlr1->puno |= ME_FLIPV3;
 		
 				}
+				/* clear the flag when not divided */
+				else vlr->flag &= ~R_DIVIDE_24;
 			}
 		}
 	}
