@@ -47,8 +47,6 @@
 int LICENSE_KEY_VALID = TRUE;
 int I_AM_PUBLISHER = TRUE;
 
-static UserStruct User;
-
 // Python stuff
 
 #include "Python.h"
