@@ -3346,6 +3346,9 @@ static void drawWireExtra(Object *ob, ListBase *lb)
 	}
 	else BIF_ThemeColor(TH_WIRE);
 
+	// glPolygonOffset(-1.0, -1.0);
+
+	/* hack below is to mimic polygon offset */
 	glMatrixMode(GL_PROJECTION);
 	glGetFloatv(GL_PROJECTION_MATRIX, (float *)winmat);
 	

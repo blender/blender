@@ -405,7 +405,7 @@ void calctrackballvec(rcti *area, short *mval, float *vec)
 void viewmove(int mode)
 {
 	float firstvec[3], newvec[3], dvec[3];
-	float oldquat[4], q1[4], si, phi;
+	float oldquat[4], q1[4], si, phi, dist0;
 	int firsttime=1;
 	short mvalball[2], mval[2], mvalo[2];
 	
@@ -420,6 +420,7 @@ void viewmove(int mode)
 	getmouseco_sc(mvalo);		/* work with screen coordinates because of trackball function */
 	mvalball[0]= mvalo[0];			/* needed for turntable to work */
 	mvalball[1]= mvalo[1];
+	dist0= G.vd->dist;
 	
 	calctrackballvec(&curarea->winrct, mvalo, firstvec);
 
@@ -431,6 +432,7 @@ void viewmove(int mode)
 		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1] || (G.f & G_PLAYANIM)) {
 			
 			if(firsttime) {
+				
 				firsttime= 0;
 				/* are we translating, rotating or zooming? */
 				if(mode==0) {
@@ -509,13 +511,23 @@ void viewmove(int mode)
 				}
 			}
 			else if(mode==2) {
-				G.vd->dist*= 1.0+(float)(mvalo[0]-mval[0]+mvalo[1]-mval[1])/1000.0;
+				//the old method
+				//G.vd->dist*= 1.0+(float)(mvalo[0]-mval[0]+mvalo[1]-mval[1])/1000.0;
+				//my method which zooms based on how far you move the mouse
+				int ctr[2], len1, len2;
+				ctr[0] = (curarea->winrct.xmax + curarea->winrct.xmin)/2;
+				ctr[1] = (curarea->winrct.ymax + curarea->winrct.ymin)/2;
+				
+				len1 = (int)sqrt((ctr[0] - mval[0])*(ctr[0] - mval[0]) + (ctr[1] - mval[1])*(ctr[1] - mval[1])) + 5;
+				len2 = (int)sqrt((ctr[0] - mvalo[0])*(ctr[0] - mvalo[0]) + (ctr[1] - mvalo[1])*(ctr[1] - mvalo[1])) + 5;
+				
+				G.vd->dist= dist0 * ((float)len2/len1);
 				
 				/* these limits are in toets.c too */
 				if(G.vd->dist<0.001*G.vd->grid) G.vd->dist= 0.001*G.vd->grid;
 				if(G.vd->dist>10.0*G.vd->far) G.vd->dist=10.0*G.vd->far;
 				
-				mval[1]= mvalo[1]; /* keeps zooming that way */
+				mval[1]= mvalo[1]; /* preserve first value */
 				mval[0]= mvalo[0];
 			}
 			
