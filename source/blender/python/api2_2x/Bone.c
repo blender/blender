@@ -41,6 +41,7 @@
 #include "constant.h"
 #include "gen_utils.h"
 #include "modules.h"
+#include "quat.h"
 
 
 /*****************************************************************************/
@@ -85,6 +86,7 @@ static PyObject *Bone_getSize (BPy_Bone * self);
 static PyObject *Bone_getQuat (BPy_Bone * self);
 static PyObject *Bone_getParent (BPy_Bone * self);
 static PyObject *Bone_hasParent (BPy_Bone * self);
+static PyObject *Bone_getWeight (BPy_Bone * self);
 static PyObject *Bone_getChildren (BPy_Bone * self);
 static PyObject *Bone_setName (BPy_Bone * self, PyObject * args);
 static PyObject *Bone_setRoll (BPy_Bone * self, PyObject * args);
@@ -94,6 +96,7 @@ static PyObject *Bone_setLoc (BPy_Bone * self, PyObject * args);
 static PyObject *Bone_setSize (BPy_Bone * self, PyObject * args);
 static PyObject *Bone_setQuat (BPy_Bone * self, PyObject * args);
 static PyObject *Bone_setParent(BPy_Bone *self, PyObject *args);
+static PyObject *Bone_setWeight(BPy_Bone *self, PyObject *args);
 
 /*****************************************************************************/
 /* Python BPy_Bone methods table:					 */
@@ -113,6 +116,8 @@ static PyMethodDef BPy_Bone_methods[] = {
    "() - return Bone size"},
   {"getQuat", (PyCFunction) Bone_getQuat, METH_NOARGS,
    "() - return Bone quat"},
+  {"getWeight", (PyCFunction) Bone_getWeight, METH_NOARGS,
+   "() - return Bone weight"},
   {"getParent", (PyCFunction) Bone_getParent, METH_NOARGS,
    "() - return the parent bone of this one if it exists."
    " None if not found. You can check this condition with the "
@@ -137,6 +142,8 @@ static PyMethodDef BPy_Bone_methods[] = {
    "(float,float,float,float) - set Bone quat"},
   {"setParent", (PyCFunction)Bone_setParent, METH_VARARGS,  
    "() - set the Bone parent of this one."},
+  {"setWeight", (PyCFunction)Bone_setWeight, METH_VARARGS,  
+   "() - set the Bone weight."},
   {NULL, NULL, 0, NULL}
 };
 
@@ -201,6 +208,7 @@ M_Bone_New (PyObject * self, PyObject * args, PyObject * keywords)
   bl_bone->flag=32;
   bl_bone->parent = NULL;
   bl_bone->roll = 0.0;
+  bl_bone->boneclass = BONE_SKINNABLE;
 
   // now create the wrapper obj in Python
   if (bl_bone)				
@@ -276,6 +284,23 @@ Bone_getRoll (BPy_Bone * self)
 				 "couldn't get Bone.roll attribute"));
 }
 
+static PyObject *
+Bone_getWeight (BPy_Bone * self)
+{
+  PyObject *attr = NULL;
+
+  if (!self->bone)
+    (EXPP_ReturnPyObjError (PyExc_RuntimeError,
+			    "couldn't get attribute from a NULL bone"));
+
+  attr = Py_BuildValue ("f", self->bone->weight);
+
+  if (attr)
+    return attr;
+
+  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
+				 "couldn't get Bone.weight attribute"));
+}
 
 static PyObject *
 Bone_getHead (BPy_Bone * self)
@@ -360,20 +385,19 @@ Bone_getSize (BPy_Bone * self)
 static PyObject *
 Bone_getQuat (BPy_Bone * self)
 {
-  PyObject *attr = NULL;
+  float *quat;
 
   if (!self->bone)
     (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 			    "couldn't get attribute from a NULL bone"));
 
-  attr = Py_BuildValue ("[ffff]", self->bone->quat[0], self->bone->quat[1],
-			self->bone->quat[2], self->bone->quat[3]);
+  quat = PyMem_Malloc (4*sizeof (float));
+  quat[0] = self->bone->quat[0];
+  quat[1] = self->bone->quat[1];
+  quat[2] = self->bone->quat[2];
+  quat[3] = self->bone->quat[3];
 
-  if (attr)
-    return attr;
-
-  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-				 "couldn't get Bone.tail attribute"));
+  return (PyObject*)newQuaternionObject(quat);
 }
 
 static PyObject *
@@ -607,20 +631,30 @@ static PyObject *
 Bone_setQuat (BPy_Bone * self, PyObject * args)
 {
   float f1, f2, f3, f4;
+  PyObject *argument;
+  QuaternionObject *quatOb;
   int status;
 
   if (!self->bone)
     (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 			    "couldn't get attribute from a NULL bone"));
 
-  if (PyObject_Length (args) == 4)
-    status = PyArg_ParseTuple (args, "ffff", &f1, &f2, &f3, &f4);
-  else
-    status = PyArg_ParseTuple (args, "(ffff)", &f1, &f2, &f3, &f4);
+   if (!PyArg_ParseTuple(args, "O", &argument))
+	return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected quaternion or float list"));
+
+   if(QuaternionObject_Check(argument)){
+		status = PyArg_ParseTuple(args, "O!", &quaternion_Type, &quatOb);
+		f1 = quatOb->quat[0];
+		f2 = quatOb->quat[1];
+		f3 = quatOb->quat[2];
+		f4 = quatOb->quat[3];
+   }else{
+		status = PyArg_ParseTuple (args, "(ffff)", &f1, &f2, &f3, &f4);
+   }
 
   if (!status)
     return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-				   "expected 4 (or a list of 4) float arguments"));
+  				   "unable to parse argument"));
 
   self->bone->quat[0] = f1;
   self->bone->quat[1] = f2;
@@ -651,6 +685,26 @@ Bone_setParent(BPy_Bone *self, PyObject *args)
   Py_INCREF(Py_None);
   return Py_None;
 }
+
+static PyObject *
+Bone_setWeight(BPy_Bone *self, PyObject *args)
+{
+  float weight;
+
+  if (!self->bone)
+    (EXPP_ReturnPyObjError (PyExc_RuntimeError,
+			    "couldn't get attribute from a NULL bone"));
+
+  if (!PyArg_ParseTuple (args, "f", &weight))
+    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+				   "expected float argument"));
+
+  self->bone->weight = weight;
+
+  Py_INCREF (Py_None);
+  return Py_None;
+}
+
 
 /*****************************************************************************/
 /* Function:	Bone_dealloc												*/
@@ -694,12 +748,14 @@ Bone_getAttr (BPy_Bone * self, char *name)
     return Bone_getParent (self);
   else if (strcmp (name, "children") == 0)
     attr = Bone_getChildren (self);
+  else if (strcmp (name, "weight") == 0)
+    attr = Bone_getWeight (self);
   else if (strcmp (name, "__members__") == 0)
     {
       /* 9 entries */
       attr = Py_BuildValue ("[s,s,s,s,s,s,s,s,s]",
 			    "name", "roll", "head", "tail", "loc", "size",
-			    "quat", "parent", "children");
+			    "quat", "parent", "children", "weight");
     }
 
   if (!attr)
