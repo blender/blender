@@ -1647,34 +1647,33 @@ static void view3d_panel_properties(short cntrl)	// VIEW3D_HANDLER_SETTINGS
 	if(uiNewPanel(curarea, block, "View Properties", "View3d", 340, 10, 318, 204)==0) return;
 
 	uiDefBut(block, LABEL, 1, "Grid:",					10, 180, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
-	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, REDRAWVIEW3D, "Spacing:",		10, 160, 140, 19, &vd->grid, 0.001, 100.0, 10, 0, "Set the distance between grid lines");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "Lines:",		10, 140, 140, 19, &vd->gridlines, 0.0, 100.0, 100, 0, "Set the number of grid lines");
-	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM, REDRAWVIEW3D, "Lines:",		10, 136, 140, 19, &vd->gridlines, 0.0, 100.0, 100, 0, "Set the number of grid lines");
+
+	uiDefBut(block, LABEL, 1, "3D Display:",					160, 180, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefButBitS(block, TOG, V3D_SHOW_FLOOR, REDRAWVIEW3D, "Grid Floor",160, 160, 150, 19, &vd->gridflag, 0, 0, 0, 0, "Show the grid floor in free camera mode");
-	uiDefButBitS(block, TOG, V3D_SHOW_X, REDRAWVIEW3D, "X Axis",		160, 140, 50, 19, &vd->gridflag, 0, 0, 0, 0, "Show the X Axis line");
-	uiDefButBitS(block, TOG, V3D_SHOW_Y, REDRAWVIEW3D, "Y Axis",		210, 140, 50, 19, &vd->gridflag, 0, 0, 0, 0, "Show the Y Axis line");
-	uiDefButBitS(block, TOG, V3D_SHOW_Z, REDRAWVIEW3D, "Z Axis",		260, 140, 50, 19, &vd->gridflag, 0, 0, 0, 0, "Show the Z Axis line");
-	uiBlockEndAlign(block);
+	uiDefButBitS(block, TOG, V3D_SHOW_X, REDRAWVIEW3D, "X Axis",		160, 136, 48, 19, &vd->gridflag, 0, 0, 0, 0, "Show the X Axis line");
+	uiDefButBitS(block, TOG, V3D_SHOW_Y, REDRAWVIEW3D, "Y Axis",		212, 136, 48, 19, &vd->gridflag, 0, 0, 0, 0, "Show the Y Axis line");
+	uiDefButBitS(block, TOG, V3D_SHOW_Z, REDRAWVIEW3D, "Z Axis",		262, 136, 48, 19, &vd->gridflag, 0, 0, 0, 0, "Show the Z Axis line");
 
 	uiDefBut(block, LABEL, 1, "View Camera:",			10, 110, 140, 19, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, REDRAWVIEW3D, "Lens:",		10, 90, 140, 19, &vd->lens, 10.0, 120.0, 100, 0, "The lens angle in perspective view");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "Clip Start:",	10, 70, 140, 19, &vd->near, vd->grid/10.0, 100.0, 10, 0, "Set the beginning of the range in which 3D objects are displayed (perspective view)");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "Clip End:",	10, 50, 140, 19, &vd->far, 1.0, 1000.0*vd->grid, 100, 0, "Set the end of the range in which 3D objects are displayed (perspective view)");
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Clip Start:",	10, 66, 140, 19, &vd->near, vd->grid/10.0, 100.0, 10, 0, "Set the beginning of the range in which 3D objects are displayed (perspective view)");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Clip End:",	10, 46, 140, 19, &vd->far, 1.0, 1000.0*vd->grid, 100, 0, "Set the end of the range in which 3D objects are displayed (perspective view)");
 	uiBlockEndAlign(block);
 
 	uiDefBut(block, LABEL, 1, "3D Cursor:",				160, 110, 140, 19, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiBlockBeginAlign(block);
 	curs= give_cursor();
-	uiDefButF(block, NUM, REDRAWVIEW3D, "X:",			160, 90, 150, 19, curs, -1000.0*vd->grid, 1000.0*vd->grid, 10, 0, "X coordinate of 3d cursor");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "Y:",			160, 70, 150, 19, curs+1, -1000.0*vd->grid, 1000.0*vd->grid, 10, 0, "Y coordinate of 3d cursor");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "Z:",			160, 50, 150, 19, curs+2, -1000.0*vd->grid, 1000.0*vd->grid, 10, 0, "Z coordinate of 3d cursor");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "X:",			160, 90, 150, 22, curs, -1000.0*vd->grid, 1000.0*vd->grid, 10, 0, "X co-ordinate of the 3D cursor");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Y:",			160, 68, 150, 22, curs+1, -1000.0*vd->grid, 1000.0*vd->grid, 10, 0, "Y co-ordinate of the 3D cursor");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Z:",			160, 46, 150, 22, curs+2, -1000.0*vd->grid, 1000.0*vd->grid, 10, 0, "Z co-ordinate of the 3D cursor");
 	uiBlockEndAlign(block);
 
-	uiDefButBitS(block, TOG, V3D_SELECT_OUTLINE, REDRAWVIEW3D, "Draw selection outline", 10, 10, 300, 19, &vd->flag, 0, 0, 0, 0, "In solid drawmode, it adds a selection outline to objects");
+	uiDefButBitS(block, TOG, V3D_SELECT_OUTLINE, REDRAWVIEW3D, "Outline Selected Objects", 10, 10, 300, 19, &vd->flag, 0, 0, 0, 0, "Highlight selected objects with an outline, in Solid, Shaded or Textured viewport shading modes");
 
 }
 
