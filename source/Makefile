@@ -29,7 +29,7 @@
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
 #
-# Top level makefile. Start looping through subdirs and link.
+# Top level makefile. Start looping through subdirs and link....
 #
 
 ifndef NANENV
