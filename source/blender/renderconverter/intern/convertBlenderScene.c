@@ -2166,16 +2166,15 @@ static void init_render_curve(Object *ob)
 	int totvert, frontside, need_orco=0, firststartvert, *index;
 
 	cu= ob->data;
-	nu= cu->nurb.first;
-	if(nu==0) return;
+	if(cu->nurb.first==NULL) return;
 
-	curve_modifier(ob, 's');
+	/* no modifier call here, is in makedisp */
 
 	/* test displist */
 	if(cu->disp.first==0) makeDispList(ob);
 	dl= cu->disp.first;
 	if(cu->disp.first==0) return;
-
+	
 	if(dl->type!=DL_INDEX3) {
 		curve_to_filledpoly(cu, &cu->disp);
 	}
@@ -2242,9 +2241,6 @@ static void init_render_curve(Object *ob)
 			}
 		}
 	}
-
-	/* modifier() will get deform included later */
-	curve_modifier(ob, 'e');
 
 	if(ob->parent && ob->parent->type==OB_LATTICE) {
 		lt= ob->parent->data;
