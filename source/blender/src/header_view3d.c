@@ -280,10 +280,10 @@ static void do_view3d_viewmenu(void *arg, int event)
 		play_anim(0);
 		break;
 	case 14: /* Backdrop Panel */
-		add_blockhandler(curarea, VIEW3D_HANDLER_BACKGROUND, 0);
+		add_blockhandler(curarea, VIEW3D_HANDLER_BACKGROUND, UI_PNL_UNSTOW);
 		break;
 	case 15: /* View  Panel */
-		add_blockhandler(curarea, VIEW3D_HANDLER_VIEW, 0);
+		add_blockhandler(curarea, VIEW3D_HANDLER_VIEW, UI_PNL_UNSTOW);
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -2923,7 +2923,6 @@ void view3d_buttons(void)
 		}
 	}
 	
-	xco+=XIC;
 
 	/* Always do this last */
 	curarea->headbutlen= xco+2*XIC;

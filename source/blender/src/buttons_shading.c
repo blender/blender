@@ -2400,6 +2400,7 @@ static void material_panel_preview(Material *ma)
 void material_panels()
 {
 	Material *ma;
+	MTex *mtex;
 	Object *ob= OBACT;
 	
 	if(ob==0) return;
@@ -2415,8 +2416,12 @@ void material_panels()
 		if(ma) {
 			material_panel_shading(ma);
 			material_panel_texture(ma);
-			material_panel_map_input(ma);
-			material_panel_map_to(ma);
+			
+			mtex= ma->mtex[ ma->texact ];
+			if(mtex && mtex->tex) {
+				material_panel_map_input(ma);
+				material_panel_map_to(ma);
+			}
 		}
 	}
 }

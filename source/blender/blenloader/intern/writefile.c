@@ -472,7 +472,15 @@ static void write_renderinfo(WriteData *wd)		/* for renderdaemon */
 
 static void write_userdef(WriteData *wd)
 {
+	bTheme *btheme;
+	
 	writestruct(wd, USER, "UserDef", 1, &U);
+	
+	btheme= U.themes.first;
+	while(btheme) {
+		writestruct(wd, DATA, "bTheme", 1, btheme);
+		btheme= btheme->next;
+	}
 }
 
 static void write_effects(WriteData *wd, ListBase *lb)

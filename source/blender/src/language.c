@@ -31,6 +31,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "DNA_ListBase.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_global.h"		/* G */

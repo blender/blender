@@ -86,6 +86,7 @@
 #include "BIF_editarmature.h"
 #include "BIF_editika.h"
 #include "BIF_editmesh.h"
+#include "BIF_resources.h"
 
 #include "BDR_drawmesh.h"
 #include "BDR_drawobject.h"
@@ -183,12 +184,6 @@ unsigned int rectllib_sel[81]= {0xff777777,0xff777777,0xfff64c,0xfff64c,0xfff64c
 
 unsigned int rectl_set[81]= {0xff777777,0xff777777,0xaaaaaa,0xaaaaaa,0xaaaaaa,0xaaaaaa,0xaaaaaa,0xff777777,0xff777777,0xff777777,0xaaaaaa,0xaaaaaa,0xff777777,0xff777777,0xff777777,0xaaaaaa,0xaaaaaa,0xff777777,0xaaaaaa,0xaaaaaa,0x4e4e4e,0x10100,0x202020,0x0,0x4e4e4d,0xaaaaaa,0xaaaaaa,0xaaaaaa,0xff777777,0x0,0xaaa100,0xaaaaaa,0xaaa100,0x0,0xff777777,0xaaaaaa,0xaaaaaa,0xff777777,0x202020,0xfffde2,0xffffff,0xaaaaaa,0x202020,0xff777777,0xaaaaaa,0xaaaaaa,0xff777777,0x10100,0xaaaaaa,0xfffde2,0xaaa100,0x0,0xff777777,0xaaaaaa,0xaaaaaa,0xaaaaaa,0x4f4f4f,0x0,0x202020,0x10100,0x4e4e4e,0xaaaaaa,0xaaaaaa,0xff777777,0xaaaaaa,0xaaaaaa,0xff777777,0xff777777,0xff777777,0xaaaaaa,0xaaaaaa,0xff777777,0xff777777,0xff777777,0xaaaaaa,0xaaaaaa,0xaaaaaa,0xaaaaaa,0xaaaaaa,0xff777777,0xff777777};
 
-#define B_YELLOW	0x77FFFF
-#define B_PURPLE	0xFF70FF
-
-
-unsigned int selcol= 0xFF88FF;
-unsigned int actselcol= 0xFFBBFF;
 
 static unsigned int colortab[24]=
 	{0x0,		0xFF88FF, 0xFFBBFF, 
@@ -720,7 +715,7 @@ void drawcamera(Object *ob)
 		mygetsingmatrix(G.vd->persmat);
 
 		if(cam->flag & CAM_SHOWLIMITS) 
-			draw_limit_line(cam->clipsta, cam->clipend, B_YELLOW);
+			draw_limit_line(cam->clipsta, cam->clipend, 0x77FFFF);
 
 		wrld= G.scene->world;
 		if(cam->flag & CAM_SHOWMIST) 
@@ -734,12 +729,14 @@ static void tekenvertslatt(short sel)
 {
 	Lattice *lt;
 	BPoint *bp;
+	float size;
 	int a, uxt, u, vxt, v, wxt, w;
 
-	glPointSize(3.0);
+	size= BIF_GetThemeColorf(curarea, TH_VERTEX_SIZE);
+	glPointSize(size);
 
-	if(sel) cpack(B_YELLOW);
-	else cpack(B_PURPLE);
+	if(sel) BIF_ThemeColor(curarea, TH_VERTEX_SELECT);
+	else BIF_ThemeColor(curarea, TH_VERTEX);
 
 	glBegin(GL_POINTS);
 
@@ -1037,15 +1034,14 @@ void calc_nurbverts_ext(void)
 void tekenvertices(short sel)
 {
 	EditVert *eve;
-
-	glPointSize(2.0);
+	float size;
 	
-	if(sel) cpack(B_YELLOW);
-	else cpack(B_PURPLE);
-#ifdef __NLA /* __TEKENTEST */
-//	if (sel==2)
-//		cpack (0x0000FF);
-#endif	/* __TEKENTEST */
+	size= BIF_GetThemeColorf(curarea, TH_VERTEX_SIZE);
+	glPointSize(size);
+	
+	if(sel) BIF_ThemeColor(curarea, TH_VERTEX_SELECT);
+	else BIF_ThemeColor(curarea, TH_VERTEX);
+
 	glBegin(GL_POINTS);
 
 	eve= (EditVert *)G.edve.first;
@@ -1053,11 +1049,6 @@ void tekenvertices(short sel)
 		if(eve->h==0 && (eve->f & 1)==sel ) {
 			glVertex3fv(eve->co);
 		}
-#ifdef __NLA /* __TEKENTEST */
-//	if (eve->totweight && sel==2)
-//		glVertex3fv(eve->co);
-
-#endif	/* __TEKENTEST */
 		eve= eve->next;
 	}
 	glEnd();
@@ -2407,6 +2398,10 @@ static void drawmeshwire(Object *ob)
 	if(ob==G.obedit || (G.obedit && ob->data==G.obedit->data)) {
 		
 		if(G.f & (G_FACESELECT+G_DRAWFACES)) {	/* faces */
+			char col1[4], col2[4];
+			
+			BIF_GetThemeColor4ubv(curarea, TH_FACE, col1);
+			BIF_GetThemeColor4ubv(curarea, TH_FACE_SELECT, col2);
 			
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glEnable(GL_BLEND);
@@ -2416,8 +2411,8 @@ static void drawmeshwire(Object *ob)
 				if(evl->v1->h==0 && evl->v2->h==0 && evl->v3->h==0) {
 					
 					if(1) {
-						if(vlakselectedAND(evl, 1)) glColor4ub(200, 100, 200, 60);
-						else glColor4ub(0, 50, 150, 30);
+						if(vlakselectedAND(evl, 1)) glColor4ub(col2[0], col2[1], col2[2], col2[3]); 
+						else glColor4ub(col1[0], col1[1], col1[2], col1[3]);
 						
 						glBegin(evl->v4?GL_QUADS:GL_TRIANGLES);
 						glVertex3fv(evl->v1->co);
@@ -2427,13 +2422,13 @@ static void drawmeshwire(Object *ob)
 						glEnd();
 						
 					} else {
-						if(vlakselectedAND(evl, 1)) cpack(0x559999);
-						else cpack(0x664466);
+						if(vlakselectedAND(evl, 1)) glColor4ub(col2[0], col2[1], col2[2], col2[3]); 
+						else glColor4ub(col1[0], col1[1], col1[2], col1[3]);
 					
 						if(evl->v4 && evl->v4->h==0) {
 						
 							CalcCent4f(cent, evl->v1->co, evl->v2->co, evl->v3->co, evl->v4->co);
-							glBegin(GL_LINE_LOOP);
+							glBegin(GL_QUADS);
 								VecMidf(fvec, cent, evl->v1->co); glVertex3fv(fvec);
 								VecMidf(fvec, cent, evl->v2->co); glVertex3fv(fvec);
 								VecMidf(fvec, cent, evl->v3->co); glVertex3fv(fvec);
@@ -2443,7 +2438,7 @@ static void drawmeshwire(Object *ob)
 						else {
 	
 							CalcCent3f(cent, evl->v1->co, evl->v2->co, evl->v3->co);
-							glBegin(GL_LINE_LOOP);
+							glBegin(GL_TRIANGLES);
 								VecMidf(fvec, cent, evl->v1->co); glVertex3fv(fvec);
 								VecMidf(fvec, cent, evl->v2->co); glVertex3fv(fvec);
 								VecMidf(fvec, cent, evl->v3->co); glVertex3fv(fvec);
@@ -2463,15 +2458,17 @@ static void drawmeshwire(Object *ob)
 		cpack(0x0);
 		
 		if(G.f & G_DRAWEDGES) {	/* Use edge Highlighting */
+			char col[4];
+			BIF_GetThemeColor3ubv(curarea, TH_EDGE_SELECT, col);
 			glShadeModel(GL_SMOOTH);
 			
 			eed= G.eded.first;
 			glBegin(GL_LINES);
 			while(eed) {
 				if(eed->h==0) {
-					if(eed->v1->f & 1) cpack(0x559999); else cpack(0x0);
+					if(eed->v1->f & 1) glColor3ub(col[0], col[1], col[2]); else cpack(0x0);
 					glVertex3fv(eed->v1->co);
-					if(eed->v2->f & 1) cpack(0x559999); else cpack(0x0);
+					if(eed->v2->f & 1) glColor3ub(col[0], col[1], col[2]); else cpack(0x0);
 					glVertex3fv(eed->v2->co);
 				}
 				eed= eed->next;
@@ -2783,13 +2780,16 @@ static void tekenvertsN(Nurb *nu, short sel)
 {
 	BezTriple *bezt;
 	BPoint *bp;
+	float size;
 	int a;
 
 	if(nu->hide) return;
 
-	if(sel) cpack(B_YELLOW);
-	else cpack(B_PURPLE);
-	glPointSize(3.0);
+	if(sel) BIF_ThemeColor(curarea, TH_VERTEX_SELECT);
+	else BIF_ThemeColor(curarea, TH_VERTEX);
+
+	size= BIF_GetThemeColorf(curarea, TH_VERTEX_SIZE);
+	glPointSize(size);
 	
 	glBegin(GL_POINTS);
 	
@@ -3453,22 +3453,33 @@ void draw_object(Base *base)
 	if((G.f & (G_BACKBUFSEL+G_PICKSEL)) == 0) {
 		project_short(ob->obmat[3], &base->sx);
 		
-		if(G.moving==1 && (base->flag & (SELECT+BA_PARSEL))) colindex= 12;
+		if(G.moving==1 && (base->flag & (SELECT+BA_PARSEL))) BIF_ThemeColor(curarea, TH_TRANSFORM);
 		else {
+		
+			BIF_ThemeColor(curarea, TH_WIRE);
 			if((G.scene->basact)==base) {
-				if(base->flag & (SELECT+BA_WASSEL)) colindex= 2;
+				if(base->flag & (SELECT+BA_WASSEL)) BIF_ThemeColor(curarea, TH_ACTIVE);
 			}
 			else {
-				if(base->flag & (SELECT+BA_WASSEL)) colindex= 1;
+				if(base->flag & (SELECT+BA_WASSEL)) BIF_ThemeColor(curarea, TH_SELECT);
 			}
-			if(ob->id.lib) colindex+= 3;
-			else if(warning_recursive==1) colindex+= 6;
-			else if(ob->flag & OB_FROMGROUP) colindex+= 9;
+			
+			// no theme yet
+			if(ob->id.lib) {
+				if(base->flag & (SELECT+BA_WASSEL)) colindex = 4;
+				else colindex = 5;
+			}
+			else if(warning_recursive==1) {
+				if(base->flag & (SELECT+BA_WASSEL)) colindex = 7;
+				else colindex = 8;
+			}
+
 		}	
 		
-		col= colortab[colindex];
-		cpack(col);
-
+		if(colindex) {
+			col= colortab[colindex];
+			cpack(col);
+		}
 	}
 	
 	/* maximum drawtype */

@@ -89,7 +89,7 @@ struct ScrArea;
 #define UI_PNL_CLOSE	32
 #define UI_PNL_STOW		64
 #define UI_PNL_TO_MOUSE	128
-
+#define UI_PNL_UNSTOW	256
 
 /* definitions for icons (and their alignment) in buttons */
 /* warning the first 4 flags are internal */

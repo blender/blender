@@ -481,10 +481,11 @@ void BIF_init(void)
 
 	initscreen();	/* for (visuele) speed, this first, then setscreen */
 	initbuttons();
+	
 	init_draw_rects();	/* drawobject.c */
 	init_gl_stuff();	/* drawview.c */
-
 	BIF_read_homefile(); 
+	BIF_InitThemeColors();	/* after read home file! */
 	readBlog();
 	strcpy(G.lib, G.sce);
 
@@ -558,8 +559,10 @@ void exit_usiblender(void)
 		mainwindow_close();
 	}
 
+	BLI_freelistN(&U.themes);
+	
 	if(totblock!=0) {
-		printf("Error Totblck: %d\n",totblock);
+		printf("Error Totblock: %d\n",totblock);
 		MEM_printmemlist();
 	}
 	delete_autosave();

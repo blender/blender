@@ -88,8 +88,12 @@
 #include "interface.h"
 #include "blendef.h"
 
-
+// globals
 extern float UIwinmat[4][4];
+
+// internal prototypes
+static void stow_unstow(uiBlock *block);
+
 
 /* --------- generic helper drawng calls ---------------- */
 
@@ -454,6 +458,11 @@ int uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int 
 		}
 	}
 	
+	block->panel= pa;
+	block->handler= pnl_handler;
+	pa->active= 1;
+	pa->control= pnl_control;
+	
 	if(pnl_control & UI_PNL_TO_MOUSE) {
 		short mval[2];
 		
@@ -465,10 +474,12 @@ int uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int 
 		if(pa->flag & PNL_CLOSED) pa->flag &= ~PNL_CLOSED;
 	}
 	
-	block->panel= pa;
-	block->handler= pnl_handler;
-	pa->active= 1;
-	pa->control= pnl_control;
+	if(pnl_control & UI_PNL_UNSTOW) {
+		if(pa->flag & PNL_CLOSEDY) {
+			pa->flag &= ~PNL_CLOSED;
+			stow_unstow(block); // toggles!
+		}
+	}
 	
 	/* clear ugly globals */
 	panel_tabbed= group_tabbed= NULL;
@@ -1482,7 +1493,7 @@ static void stow_unstow(uiBlock *block)
 	Panel *pa;
 	int ok=0, x, y, width;
 	
-	if(block->panel->flag & PNL_CLOSEDY) {
+	if(block->panel->flag & PNL_CLOSEDY) {  // flag has been set how it should become!
 		
 		width= (curarea->winx-320)/sl->blockscale;
 		if(width<5) width= 5;

@@ -324,8 +324,60 @@ typedef enum {
 #define BIFNCOLORIDS		(BIFCOLORID_LAST-BIFCOLORID_FIRST + 1)
 } BIFColorID;
 
+
+/* ---------- theme ----------- */
+
+// uibutton colors
+
+
+#define TH_THEMEUI	99
+
+// common colors among spaces
+
+enum {
+	TH_BACK	= 100,
+	TH_TEXT,
+	TH_TEXT_HI,
+	TH_HEADER,
+	TH_PANEL,
+	TH_SHADE1,
+	TH_SHADE2,
+	TH_HILITE,
+
+	TH_GRID,
+	TH_WIRE,
+	TH_SELECT,
+	TH_ACTIVE,
+	TH_TRANSFORM,
+	TH_VERTEX,
+	TH_VERTEX_SELECT,
+	TH_VERTEX_SIZE,
+	TH_EDGE,
+	TH_EDGE_SELECT,
+	TH_FACE,
+	TH_FACE_SELECT
+};
+
+/* specific defines per space should have higher define values */
+
+struct bTheme;
+
+void 	BIF_InitThemeColors(void);
+void 	BIF_ThemeColor(struct ScrArea *sa, int colorid);
+void 	BIF_ThemeColor4(struct ScrArea *sa, int colorid);
+void 	BIF_ThemeColorShade(struct ScrArea *sa, int colorid, int offset);
+
+// get only one value, not scaled
+float 	BIF_GetThemeColorf(struct ScrArea *sa, int colorid);
+// get three color values, scaled to 0.0-1.0 range
+void 	BIF_GetThemeColor3fv(struct ScrArea *sa, int colorid, float *col);
+// get the byte values
+void 	BIF_GetThemeColor3ubv(struct ScrArea *sa, int colorid, char *col);
+void 	BIF_GetThemeColor4ubv(struct ScrArea *sa, int colorid, char *col);
+
 void	BIF_resources_init		(void);
 void	BIF_resources_free		(void);
+
 
 int		BIF_get_icon_width		(BIFIconID icon);
 int		BIF_get_icon_height		(BIFIconID icon);
@@ -333,5 +385,10 @@ void	BIF_draw_icon			(BIFIconID icon);
 void	BIF_draw_icon_blended	(BIFIconID icon, BIFColorID color, BIFColorShade shade);
 
 void	BIF_set_color			(BIFColorID color, BIFColorShade shade);
+
+/* only for buttons in theme editor! */
+char 	*BIF_ThemeGetColorPtr(struct bTheme *btheme, int spacetype, int colorid);
+char 	*BIF_ThemeColorsPup(int spacetype);
+
 
 #endif /*  BIF_ICONS_H */

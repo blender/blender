@@ -272,7 +272,7 @@ void calc_oopstext(char *str, float *v1)
 	
 }
 
-void draw_oops(Oops *oops, uiBlock *block)
+void draw_oops(Oops *oops)
 {
 	OopsLink *ol;
 	float v1[2], x1, y1, x2, y2, f1, f2;
@@ -367,7 +367,6 @@ void draw_oops(Oops *oops, uiBlock *block)
 
 void drawoopsspace(ScrArea *sa, void *spacedata)
 {
-	uiBlock *block;
 	Oops *oops;
 	int ofsx, ofsy;
 	
@@ -404,14 +403,14 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 	oops= G.soops->oops.first;
 	while(oops) {
 		if(oops->hide==0) {
-			if(oops->flag & SELECT); else draw_oops(oops, block);
+			if(oops->flag & SELECT); else draw_oops(oops);
 		}
 		oops= oops->next;
 	}
 	oops= G.soops->oops.first;
 	while(oops) {
 		if(oops->hide==0) {
-			if(oops->flag & SELECT) draw_oops(oops, block);
+			if(oops->flag & SELECT) draw_oops(oops);
 		}
 		oops= oops->next;
 	}

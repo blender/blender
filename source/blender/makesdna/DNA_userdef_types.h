@@ -35,6 +35,56 @@
 #ifndef DNA_USERDEF_TYPES_H
 #define DNA_USERDEF_TYPES_H
 
+/* themes; defines in BIF_resource.h */
+
+// global, button colors
+
+typedef struct ThemeUI {
+	char back[4];
+	char text[4];
+
+} ThemeUI;
+
+// try to put them all in one, if needed a spacial struct can be created as well
+// for example later on, when we introduce wire colors for ob types or so...
+typedef struct ThemeSpace {
+	char back[4];
+	char text[4];	
+	char text_hi[4];
+	char header[4];
+	char panel[4];
+	
+	char shade1[4];
+	char shade2[4];
+	
+	char hilite[4];
+	char grid[4]; 
+	
+	char wire[4], select[4];
+	char active[4], transform[4];
+	char vertex[4], vertex_select[4];
+	char edge[4], edge_select[4];
+	char face[4], face_select[4];
+	
+	char vertex_size, pad;
+	short pad1;
+	
+} ThemeSpace;
+
+
+typedef struct bTheme {
+	struct bTheme *next, *prev;
+	char name[32];
+	
+	ThemeUI tui;
+	
+	ThemeSpace tbuts;	
+	ThemeSpace tv3d;
+	ThemeSpace tfile;
+	ThemeSpace tipo;
+	
+} bTheme;
+
 typedef struct UserDef {
 	short flag, dupflag;
 	int savetime;
@@ -59,6 +109,7 @@ typedef struct UserDef {
 	short transopts;
 	short menuthreshold1, menuthreshold2;
 	char fontname[64];
+	struct ListBase themes;
 } UserDef;
 
 extern UserDef U; /* from usiblender.c !!!! */

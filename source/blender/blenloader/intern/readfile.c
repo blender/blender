@@ -3862,6 +3862,25 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_library(fd, main);	/* only init users */
 }
 
+static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
+{
+	Link *link;
+	
+	bfd->user= read_struct(fd, bhead);
+	bfd->user->themes.first= bfd->user->themes.last= NULL;
+	
+	bhead = blo_nextbhead(fd, bhead);
+	
+		/* read all attached data */
+	while(bhead && bhead->code==DATA) {
+		link= read_struct(fd, bhead);
+		BLI_addtail(&bfd->user->themes, link);
+		bhead = blo_nextbhead(fd, bhead);
+	}
+	
+	return bhead;
+}
+
 BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 {
 	BHead *bhead= blo_firstbhead(fd);
@@ -3881,13 +3900,13 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 		case DNA1:
 		case TEST:
 		case REND:
-		case USER:
-			if (bhead->code==USER) {
-				bfd->user= read_struct(fd, bhead);
-			} else if (bhead->code==GLOB) {
+			if (bhead->code==GLOB) {
 				fg= read_struct(fd, bhead);
 			}
 			bhead = blo_nextbhead(fd, bhead);
+			break;
+		case USER:
+			bhead= read_userdef(bfd, fd, bhead);
 			break;
 		case ENDB:
 			bhead = NULL;

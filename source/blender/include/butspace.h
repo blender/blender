@@ -491,6 +491,13 @@ enum {
 	B_CONSTRAINT_CHANGENAME,
 	B_CONSTRAINT_CHANGETARGET
 };
+/* *********************** */
+
+#define B_INFOBUTS		3400
+/* defines local in space.c only */
+
+/* *********************** */
+
 
 /* *********************** */
 /*  BUTTON BUT: > 4000	   */

@@ -46,12 +46,19 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_ListBase.h"
+#include "DNA_userdef_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
+
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
 #include "BIF_gl.h"
 #include "BIF_resources.h"
 
+#include "BLI_blenlib.h"
+#include "blendef.h"	// CLAMP
 #include "datatoc.h"
 
 typedef struct {
@@ -322,4 +329,289 @@ void BIF_resources_free(void)
 
 	MEM_freeN(common_colors_arr);
 	MEM_freeN(common_icons_arr);
+	
 }
+
+
+/* ******************************************************** */
+/*    THEMES */
+/* ******************************************************** */
+
+
+char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
+{
+	ThemeSpace *ts= NULL;
+	char error[3]={240, 0, 240};
+	char *cp= error;
+	
+	if(btheme) {
+		// first check for ui buttons theme
+		if(colorid < TH_THEMEUI) {
+			
+		}
+		else {
+		
+			switch(spacetype) {
+			case SPACE_BUTS:
+				ts= &btheme->tbuts;
+				break;
+			case SPACE_VIEW3D:
+				ts= &btheme->tv3d;
+				break;
+			case SPACE_FILE:
+				ts= &btheme->tfile;
+				break;
+			case SPACE_IPO:
+				ts= &btheme->tipo;
+				break;
+			default:
+				ts= &btheme->tbuts;
+				break;
+			}
+			
+			switch(colorid) {
+			case TH_BACK:
+				cp= ts->back; break;
+			case TH_TEXT:
+				cp= ts->text; break;
+			case TH_TEXT_HI:
+				cp= ts->text_hi; break;
+			case TH_HEADER:
+				cp= ts->header; break;
+			case TH_SHADE1:
+				cp= ts->shade1; break;
+			case TH_SHADE2:
+				cp= ts->shade2; break;
+			case TH_HILITE:
+				cp= ts->hilite; break;
+				
+			case TH_GRID:
+				cp= ts->grid; break;
+			case TH_WIRE:
+				cp= ts->wire; break;
+			case TH_SELECT:
+				cp= ts->select; break;
+			case TH_ACTIVE:
+				cp= ts->active; break;
+			case TH_TRANSFORM:
+				cp= ts->transform; break;
+			case TH_VERTEX:
+				cp= ts->vertex; break;
+			case TH_VERTEX_SELECT:
+				cp= ts->vertex_select; break;
+			case TH_VERTEX_SIZE:
+				cp= &ts->vertex_size; break;
+			case TH_EDGE:
+				cp= ts->edge; break;
+			case TH_EDGE_SELECT:
+				cp= ts->edge_select; break;
+			case TH_FACE:
+				cp= ts->face; break;
+			case TH_FACE_SELECT:
+				cp= ts->face_select; break;
+
+			}
+
+		}
+	}
+	
+	return cp;
+}
+
+#define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
+
+// initialize
+void BIF_InitThemeColors(void)
+{
+	bTheme *btheme= U.themes.first;
+	
+	/* we search for the theme with name Default */
+	for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+		if(strcmp("Default", btheme->name)==0) break;
+	}
+	
+	if(btheme==NULL) {
+		btheme= MEM_callocN(sizeof(bTheme), "theme");
+		BLI_addtail(&U.themes, btheme);
+		strcpy(btheme->name, "Default");
+	}
+	
+	/* buttons */
+	
+	/* space view3d */
+	SETCOL(btheme->tv3d.back, 	115, 115, 115, 255);
+	SETCOL(btheme->tv3d.text, 	0, 0, 0, 255);
+	SETCOL(btheme->tv3d.text_hi, 255, 255, 255, 255);
+	SETCOL(btheme->tv3d.header, 195, 195, 195, 255);
+	SETCOL(btheme->tv3d.panel, 	165, 165, 165, 100);
+	
+	SETCOL(btheme->tv3d.grid, 	0x60, 0x60, 0x60, 255);
+	SETCOL(btheme->tv3d.wire, 	0x0, 0x0, 0x0, 255);
+	SETCOL(btheme->tv3d.select, 0xff, 0x88, 0xff, 255);
+	SETCOL(btheme->tv3d.active, 0xff, 0xbb, 0xff, 255);
+	SETCOL(btheme->tv3d.transform, 0xff, 0xff, 0xff, 255);
+	SETCOL(btheme->tv3d.vertex, 0xff, 0x70, 0xff, 255);
+	SETCOL(btheme->tv3d.vertex_select, 0xff, 0xff, 0x70, 255);
+	btheme->tv3d.vertex_size= 2;
+	SETCOL(btheme->tv3d.edge, 	0x0, 0x0, 0x0, 255);
+	SETCOL(btheme->tv3d.edge_select, 0x90, 0x90, 0x30, 255);
+	SETCOL(btheme->tv3d.face, 	0, 50, 150, 30);
+	SETCOL(btheme->tv3d.face_select, 200, 100, 200, 60);
+
+	/* copy this to the others, to have something initialized */
+	
+	btheme->tbuts= btheme->tv3d;
+	btheme->tfile= btheme->tv3d;
+	btheme->tipo= btheme->tv3d;
+
+}
+
+char *BIF_ThemeColorsPup(int spacetype)
+{
+	char *cp= MEM_callocN(20*32, "theme pup");
+	char str[32];
+	
+	if(spacetype==0) {
+		strcpy(cp, "Not Yet");
+	}
+	else {
+		// first defaults for each space
+		sprintf(str, "Background %%x%d|", TH_BACK); strcat(cp, str);
+		sprintf(str, "Text %%x%d|", TH_TEXT); strcat(cp, str);
+		sprintf(str, "Text Hilite %%x%d|", TH_TEXT_HI); strcat(cp, str);
+		sprintf(str, "Header %%x%d|", TH_HEADER); strcat(cp, str);
+		sprintf(str, "Panel %%x%d|", TH_PANEL); strcat(cp, str);
+		strcat(cp,"%l|");
+		
+		if(spacetype==SPACE_VIEW3D) {
+			sprintf(str, "Grid %%x%d|", TH_GRID); strcat(cp, str);
+			sprintf(str, "Wire %%x%d|", TH_WIRE); strcat(cp, str);
+			sprintf(str, "Object Selected %%x%d|", TH_SELECT); strcat(cp, str);
+			sprintf(str, "Object Active %%x%d|", TH_ACTIVE); strcat(cp, str);
+			sprintf(str, "Transform %%x%d|", TH_TRANSFORM); strcat(cp, str);
+			strcat(cp,"%l|");
+			sprintf(str, "Vertex %%x%d|", TH_VERTEX); strcat(cp, str);
+			sprintf(str, "Vertex Selected %%x%d|", TH_VERTEX_SELECT); strcat(cp, str);
+			sprintf(str, "Vertex Size %%x%d|", TH_VERTEX_SIZE); strcat(cp, str);
+			//sprintf(str, "Edge %%x%d|", TH_EDGE); strcat(cp, str);
+			sprintf(str, "Edge Selected %%x%d|", TH_EDGE_SELECT); strcat(cp, str);
+			sprintf(str, "Face %%x%d|", TH_FACE); strcat(cp, str);
+			// last item without '|'
+			sprintf(str, "Face Selected %%x%d", TH_FACE_SELECT); strcat(cp, str);
+		}
+		else {
+			sprintf(str, "Main Shade %%x%d|", TH_SHADE1); strcat(cp, str);
+			sprintf(str, "Alt Shade %%x%d|", TH_SHADE2); strcat(cp, str);
+			// last item without '|'
+			sprintf(str, "General Hilite %%x%d", TH_HILITE); strcat(cp, str);
+		}
+	}
+	return cp;
+}
+
+// for space windows only
+void BIF_ThemeColor(ScrArea *sa, int colorid)
+{
+	bTheme *btheme= U.themes.first;
+	char *cp;
+	
+	if(btheme) {
+		cp= BIF_ThemeGetColorPtr(btheme, sa->spacetype, colorid);
+		glColor3ub(cp[0], cp[1], cp[2]);
+	}
+	else {	// debug mostly, you never know
+		glColor3ub(255, 0, 255);
+	}
+}
+
+// plus alpha
+void BIF_ThemeColor4(ScrArea *sa, int colorid)
+{
+	bTheme *btheme= U.themes.first;
+	char *cp;
+	
+	if(btheme) {
+		cp= BIF_ThemeGetColorPtr(btheme, sa->spacetype, colorid);
+		glColor4ub(cp[0], cp[1], cp[2], cp[3]);
+	}
+	else {	// debug mostly, you never know
+		glColor3ub(255, 0, 255);
+	}
+}
+
+void BIF_ThemeColorShade(ScrArea *sa, int colorid, int offset)
+{
+	bTheme *btheme= U.themes.first;
+	int r, g, b;
+	char *cp;
+	
+	if(btheme) {
+		cp= BIF_ThemeGetColorPtr(btheme, sa->spacetype, colorid);
+		r= offset + (int) cp[0];
+		CLAMP(r, 0, 255);
+		g= offset + (int) cp[1];
+		CLAMP(g, 0, 255);
+		b= offset + (int) cp[2];
+		CLAMP(b, 0, 255);
+		glColor3ub(r, g, b);
+	}
+	else {	// debug mostly, you never know
+		glColor3ub(255, 0, 255);
+	}
+}
+
+// get individual values, not scaled
+float BIF_GetThemeColorf(ScrArea *sa, int colorid)
+{
+	bTheme *btheme= U.themes.first;
+	char *cp;
+	
+	if(btheme) {
+		cp= BIF_ThemeGetColorPtr(btheme, sa->spacetype, colorid);
+		return ((float)cp[0]);
+	}
+	return 1.0;
+}
+
+// get the color, range 0.0-1.0
+void BIF_GetThemeColor3fv(ScrArea *sa, int colorid, float *col)
+{
+	bTheme *btheme= U.themes.first;
+	char *cp;
+	
+	if(btheme) {
+		cp= BIF_ThemeGetColorPtr(btheme, sa->spacetype, colorid);
+		col[0]= ((float)cp[0])/255.0;
+		col[1]= ((float)cp[1])/255.0;
+		col[2]= ((float)cp[2])/255.0;
+	}
+}
+
+void BIF_GetThemeColor3ubv(ScrArea *sa, int colorid, char *col)
+{
+	bTheme *btheme= U.themes.first;
+	char *cp;
+	
+	if(btheme) {
+		cp= BIF_ThemeGetColorPtr(btheme, sa->spacetype, colorid);
+		col[0]= cp[0];
+		col[1]= cp[1];
+		col[2]= cp[2];
+	}
+}
+
+void BIF_GetThemeColor4ubv(ScrArea *sa, int colorid, char *col)
+{
+	bTheme *btheme= U.themes.first;
+	char *cp;
+	
+	if(btheme) {
+		cp= BIF_ThemeGetColorPtr(btheme, sa->spacetype, colorid);
+		col[0]= cp[0];
+		col[1]= cp[1];
+		col[2]= cp[2];
+		col[3]= cp[3];
+	}
+}
+
+

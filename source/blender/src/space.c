@@ -1517,6 +1517,126 @@ void space_sound_button_function(int event)
 	}
 }
 
+#define B_ADD_THEME 	3301
+#define B_DEL_THEME 	3302
+#define B_NAME_THEME 	3303
+#define B_THEMECOL 		3304
+#define B_UPDATE_THEME 	3305
+#define B_CHANGE_THEME 	3306
+#define B_THEME_COPY 	3307
+#define B_THEME_PASTE 	3308
+
+
+// needed for event; choose new 'curmain' resets it...
+static short th_curcol= TH_BACK;
+static char *th_curcol_ptr= NULL;
+static char th_curcol_arr[4]={0, 0, 0, 255};
+
+void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
+{
+	bTheme *btheme, *bt;
+	int spacetype= 0;
+	static short cur=1, curmain=2;
+	short a, tot=0, isbuiltin= 0;
+	char string[20*32], *strp;
+	
+	y3= y2+23;	// exception!
+	
+	/* count total, max 16! */
+	for(bt= U.themes.first; bt; bt= bt->next) tot++;
+	
+	/* if cur not is 1; move that to front of list */
+	if(cur!=1) {
+		a= 1;
+		for(bt= U.themes.first; bt; bt= bt->next, a++) {
+			if(a==cur) {
+				BLI_remlink(&U.themes, bt);
+				BLI_addhead(&U.themes, bt);
+				cur= 1;
+				break;
+			}
+		}
+	}
+	
+	/* the current theme */
+	btheme= U.themes.first;
+	if(strcmp(btheme->name, "Default")==0) isbuiltin= 1;
+
+	/* construct popup script */
+	string[0]= 0;
+	for(bt= U.themes.first; bt; bt= bt->next) {
+		strcat(string, bt->name);
+		if(btheme->next) strcat(string, "   |");
+	}
+	uiDefButS(block, MENU, B_UPDATE_THEME, string, 			45,y3,200,20, &cur, 0, 0, 0, 0, "Current theme");
+	
+	/* add / delete / name */
+	uiBlockSetCol(block, BUTSALMON);
+	if(tot<16)
+		uiDefBut(block, BUT, B_ADD_THEME, "Add", 	45,y2,200,20, NULL, 0, 0, 0, 0, "Makes new copy of this theme");
+	if(tot>1 && isbuiltin==0)
+		uiDefBut(block, BUT, B_DEL_THEME, "Delete", 45,y1,200,20, NULL, 0, 0, 0, 0, "Delete theme");
+	uiBlockSetCol(block, BUTGREY);
+
+	if(isbuiltin) return;
+	
+	/* name */
+	uiDefBut(block, TEX, B_NAME_THEME, "", 			255,y3,200,20, btheme->name, 1.0, 30.0, 0, 0, "Rename theme");
+
+	/* main choices pup */
+	uiDefButS(block, MENU, B_CHANGE_THEME, "UI and Buttons %x1|3D View %x2|Ipo Window %x3|Buttons Window %x4|File Select %x5",
+													255,y2,200,20, &curmain, 0, 0, 0, 0, "Specify theme for...");
+	if(curmain==2) spacetype= SPACE_VIEW3D;
+	if(curmain==3) spacetype= SPACE_IPO;
+	if(curmain==4) spacetype= SPACE_BUTS;
+	if(curmain==5) spacetype= SPACE_FILE;
+
+	/* color choices pup */
+	if(curmain==1) strp= BIF_ThemeColorsPup(0);
+	else strp= BIF_ThemeColorsPup(spacetype);
+	uiDefButS(block, MENU, B_REDR, strp, 			255,y1,200,20, &th_curcol, 0, 0, 0, 0, "Current color");
+	MEM_freeN(strp);
+	
+	/* always make zero, ugly global... */
+	th_curcol_ptr= NULL;
+	
+	/* sliders */
+	if(curmain==1);
+	else {
+		char *col;
+		
+		th_curcol_ptr= col= BIF_ThemeGetColorPtr(btheme, spacetype, th_curcol);
+		
+		if(col && th_curcol==TH_VERTEX_SIZE) {
+			uiDefButC(block, NUMSLI, B_UPDATE_THEME,"Vertex size ",	465,y3,200,20,  col, 1.0, 10.0, B_THEMECOL, 0, "");
+		
+		}
+		else if(col) {
+			uiDefButC(block, NUMSLI, B_UPDATE_THEME,"R ",	465,y3,200,20,  col, 0.0, 255.0, B_THEMECOL, 0, "");
+			uiDefButC(block, NUMSLI, B_UPDATE_THEME,"G ",	465,y2,200,20,  col+1, 0.0, 255.0, B_THEMECOL, 0, "");
+			uiDefButC(block, NUMSLI, B_UPDATE_THEME,"B ",	465,y1,200,20,  col+2, 0.0, 255.0, B_THEMECOL, 0, "");
+
+			uiDefButC(block, COL, B_THEMECOL, "",		675,y1,50,y3-y1+20, col, 0, 0, 0, 0, "");
+			
+			if ELEM3(th_curcol, TH_PANEL, TH_FACE, TH_FACE_SELECT) {
+				uiDefButC(block, NUMSLI, B_UPDATE_THEME,"A ",	465,y3+25,200,20,  col+3, 0.0, 255.0, B_THEMECOL, 0, "");
+			}
+			
+			/* copy paste */
+			uiBlockSetCol(block, BUTSALMON);
+			uiDefBut(block, BUT, B_THEME_COPY, "Copy Color", 	755,y2,120,20, NULL, 0, 0, 0, 0, "Stores current color in buffer");
+			uiDefBut(block, BUT, B_THEME_PASTE, "Paste Color", 	755,y1,120,20, NULL, 0, 0, 0, 0, "Pastes buffer color");
+
+			uiDefButC(block, COL, 0, "",				885,y1,50,y2-y1+20, th_curcol_arr, 0, 0, 0, 0, "");
+			
+		}
+	}
+	
+	
+	
+	uiClearButLock();
+}
+
 
 void drawinfospace(ScrArea *sa, void *spacedata)
 {
@@ -1539,7 +1659,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSSX, UI_HELV, curarea->win);
 
 
-	dx= (1280-90)/6;	/* spacing for use in equally dividing 'tab' row */
+	dx= (1280-90)/7;	/* spacing for use in equally dividing 'tab' row */
 
 	xpos = 45;		/* left padding */
 	ypos = 50;		/* bottom padding for buttons */
@@ -1584,6 +1704,10 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		(short)(xpos+2*dx),ypostab,(short)dx,buth,
 		&U.userpref,1.0,2.0, 0, 0,"");
 
+	uiDefButI(block, ROW,B_USERPREF,"Themes",
+		(short)(xpos+2*dx),ypostab,(short)dx,buth,
+		&U.userpref,1.0,6.0, 0, 0,"");
+
 	uiDefButI(block, ROW,B_USERPREF,"Auto Save",
 		(short)(xpos+3*dx),ypostab,(short)dx,buth,
 		&U.userpref,1.0,3.0, 0, 0,"");
@@ -1603,7 +1727,10 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
         /* line 2: left x co-ord, top y co-ord, width, height */
 
-	if (U.userpref == 0) { /* view & controls */
+	if(U.userpref == 6) {
+		info_user_themebuts(block, y1, y2, y3);
+	}
+	else if (U.userpref == 0) { /* view & controls */
 
 		uiDefBut(block, LABEL,0,"Display:",
 			xpos,y3label,medprefbut,buth,
@@ -2052,13 +2179,60 @@ void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
 	short val= evt->val;
-
+	
 	if(val) {
 		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
 
 		switch(event) {
 		case UI_BUT_EVENT:
-			do_global_buttons(val);
+			if(val==B_ADD_THEME) {
+				bTheme *btheme, *new;
+				
+				btheme= U.themes.first;
+				new= MEM_callocN(sizeof(bTheme), "theme");
+				memcpy(new, btheme, sizeof(bTheme));
+				BLI_addhead(&U.themes, new);
+				strcpy(new->name, "New User Theme");
+				addqueue(sa->win, REDRAW, 1);
+			}
+			else if(val==B_DEL_THEME) {
+				bTheme *btheme= U.themes.first;
+				BLI_remlink(&U.themes, btheme);
+				MEM_freeN(btheme);
+				addqueue(sa->win, REDRAW, 1);
+			}
+			else if(val==B_NAME_THEME) {
+				bTheme *btheme= U.themes.first;
+				if(strcmp(btheme->name, "Default")==0) {
+					strcpy(btheme->name, "New User Theme");
+					addqueue(sa->win, REDRAW, 1);
+				}
+			}
+			else if(val==B_UPDATE_THEME) {
+				allqueue(REDRAWALL, 0);
+			}
+			else if(val==B_CHANGE_THEME) {
+				th_curcol= TH_BACK;	// backdrop color is always there...
+				addqueue(sa->win, REDRAW, 1);
+			}
+			else if(val==B_THEME_COPY) {
+				if(th_curcol_ptr) {
+					th_curcol_arr[0]= th_curcol_ptr[0];
+					th_curcol_arr[1]= th_curcol_ptr[1];
+					th_curcol_arr[2]= th_curcol_ptr[2];
+					th_curcol_arr[3]= th_curcol_ptr[3];
+				}
+			}
+			else if(val==B_THEME_PASTE) {
+				if(th_curcol_ptr) {
+					th_curcol_ptr[0]= th_curcol_arr[0];
+					th_curcol_ptr[1]= th_curcol_arr[1];
+					th_curcol_ptr[2]= th_curcol_arr[2];
+					th_curcol_ptr[3]= th_curcol_arr[3];
+					allqueue(REDRAWALL, 0);
+				}
+			}
+			else do_global_buttons(val);
 			
 			break;	
 		}

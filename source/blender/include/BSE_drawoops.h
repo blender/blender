@@ -35,7 +35,6 @@
 
 struct ScrArea;
 struct Oops;
-struct uiBlock;
 
 void boundbox_oops(void);
 void give_oopslink_line(struct Oops *oops, struct OopsLink *ol, float *v1, float *v2);
@@ -44,7 +43,7 @@ void draw_icon_oops(float *co, short type);
 void mysbox(float x1, float y1, float x2, float y2);
 unsigned int give_oops_color(short type, short sel, unsigned int *border);
 void calc_oopstext(char *str, float *v1);
-void draw_oops(struct Oops *oops, struct uiBlock *block);
+void draw_oops(struct Oops *oops);
 void drawoopsspace(struct ScrArea *sa, void *spacedata);
 
 #endif /* BSE_DRAWOOPS */

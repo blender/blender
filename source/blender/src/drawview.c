@@ -404,7 +404,7 @@ void timestr(double time, char *str)
 }
 
 
-static void drawgrid(void)
+static void drawgrid(ScrArea *sa)
 {
 	/* extern short bgpicmode; */
 	float wx, wy, x, y, fw, fx, fy, dx;
@@ -448,7 +448,7 @@ static void drawgrid(void)
 	
 	persp(PERSP_WIN);
 
-	cpack(0x606060);
+	BIF_ThemeColor(sa, TH_GRID);
 	
 	x+= (wx); 
 	y+= (wy);
@@ -485,7 +485,7 @@ static void drawgrid(void)
 }
 
 
-static void drawfloor(void)
+static void drawfloor(ScrArea *sa)
 {
 	View3D *vd;
 	float vert[3], grid;
@@ -500,7 +500,7 @@ static void drawfloor(void)
 	gridlines= vd->gridlines/2;
 	grid= gridlines*vd->grid;
 	
-	cpack(0x606060);
+	BIF_ThemeColor(sa, TH_GRID);
 
 	for(a= -gridlines;a<=gridlines;a++) {
 
@@ -509,7 +509,7 @@ static void drawfloor(void)
 			else cpack(0x402000);
 		}
 		else if(a==1) {
-			cpack(0x606060);
+			BIF_ThemeColor(sa, TH_GRID);
 		}
 		
 	
@@ -522,7 +522,7 @@ static void drawfloor(void)
 		glEnd();
 	}
 	
-	cpack(0x606060);
+	BIF_ThemeColor(sa, TH_GRID);
 	
 	for(a= -gridlines;a<=gridlines;a++) {
 		if(a==0) {
@@ -530,7 +530,7 @@ static void drawfloor(void)
 			else cpack(0);
 		}
 		else if(a==1) {
-			cpack(0x606060);
+			BIF_ThemeColor(sa, TH_GRID);
 		}
 	
 		glBegin(GL_LINE_STRIP);
@@ -787,7 +787,7 @@ static void draw_selected_name(char *name)
 
 	sprintf(info, "(%d) %s", CFRA, name);
 
-	cpack(0xFFFFFF);
+	BIF_ThemeColor(curarea, TH_TEXT_HI);
 	glRasterPos2i(30,  10);
 	BMF_DrawString(G.fonts, info);
 }
@@ -943,7 +943,7 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	if(ob==NULL) return;
 
 	block= uiNewBlock(&curarea->uiblocks, "view3d_panel_object", UI_EMBOSSX, UI_HELV, curarea->win);
-	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | UI_PNL_STOW | cntrl);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(VIEW3D_HANDLER_OBJECT);  // for close and esc
 	if(uiNewPanel(curarea, block, "Object", "View3d", 10, 230, 318, 204)==0) return;
 
@@ -980,7 +980,7 @@ static void view3d_panel_settings(cntrl)	// VIEW3D_HANDLER_BACKGROUND
 	vd= G.vd;
 
 	block= uiNewBlock(&curarea->uiblocks, "view3d_panel_settings", UI_EMBOSSX, UI_HELV, curarea->win);
-	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | UI_PNL_STOW | cntrl);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
 	uiSetPanelHandler(VIEW3D_HANDLER_BACKGROUND);  // for close and esc
 	if(uiNewPanel(curarea, block, "Backdrop and settings", "View3d", 10, 10, 318, 204)==0) return;
 
@@ -1094,14 +1094,18 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			glClearColor(0.0, 0.0, 0.0, 0.0); 
 		}
 		else {
-			glClearColor(0.45, 0.45, 0.45, 0.0); 
+			float col[3];
+			BIF_GetThemeColor3fv(sa, TH_BACK, col);
+			glClearColor(col[0], col[1], col[2], 0.0); 
 		}
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		glLoadIdentity();
 	}
 	else {
-		glClearColor(0.45, 0.45, 0.45, 0.0); 
+		float col[3];
+		BIF_GetThemeColor3fv(sa, TH_BACK, col);
+		glClearColor(col[0], col[1], col[2], 0.0);
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
 	
@@ -1109,7 +1113,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	persp(PERSP_STORE);  // store correct view for persp(PERSP_VIEW) calls
 
 	if(G.vd->view==0 || G.vd->persp!=0) {
-		drawfloor();
+		drawfloor(sa);
 		if(G.vd->persp==2) {
 			if(G.scene->world) {
 				if(G.scene->world->mode & WO_STARS) RE_make_stars(star_stuff_init_func,
@@ -1120,7 +1124,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		}
 	}
 	else {
-		drawgrid();
+		drawgrid(sa);
 
 		if(G.vd->flag & V3D_DISPBGPIC) {
 			draw_bgpic();
@@ -1320,7 +1324,7 @@ void drawview3d_render(struct View3D *v3d)
 	if (v3d->drawtype==OB_TEXTURE && G.scene->world) {
 		glClearColor(G.scene->world->horr, G.scene->world->horg, G.scene->world->horb, 0.0); 
 	} else {
-		glClearColor(0.45, 0.45, 0.45, 0.0);
+		glClearColor(0.45, 0.45, 0.45, 0.0); 
 	}
 	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

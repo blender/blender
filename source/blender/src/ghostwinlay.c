@@ -42,6 +42,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_ListBase.h"	
 #include "DNA_userdef_types.h"	/* U.flag & TWOBUTTONMOUSE */
 
 #include "BLI_blenlib.h"

@@ -2664,7 +2664,7 @@ static int ui_do_but_MENU(uiBut *but)
 	int width, height, a, xmax, starty;
 	short startx;
 	int columns=1, rows=0, boxh, event;
-	short  x1, y1;
+	short  x1, y1, active= -1;
 	short mval[2];
 	MenuData *md;
 
@@ -2709,14 +2709,17 @@ static int ui_do_but_MENU(uiBut *but)
 	
 	/* find active item */
 	fvalue= ui_get_but_val(but);
-	for(a=0; a<md->nitems; a++) {
-		if( md->items[a].retval== (int)fvalue ) break;
+	for(active=0; active<md->nitems; active++) {
+		if( md->items[active].retval== (int)fvalue ) break;
 	}
 	/* no active item? */
-	if(a==md->nitems) {
-		if(md->title) a= -1;
-		else a= 0;
+	if(active==md->nitems) {
+		if(md->title) active= -1;
+		else active= 0;
 	}
+
+	/* for now disabled... works confusing because you think it's a title or so.... */
+	active= -1;
 
 	/* here we go! */
 	startx= but->x1;
@@ -2731,7 +2734,7 @@ static int ui_do_but_MENU(uiBut *but)
 	}
 
 	for(a=0; a<md->nitems; a++) {
-
+		
 		x1= but->x1 + width*((int)a/rows);
 		y1= but->y1 - boxh*(a%rows) + (rows-1)*boxh; 
 
@@ -2739,7 +2742,8 @@ static int ui_do_but_MENU(uiBut *but)
 			uiDefBut(block, SEPR, B_NOP, "", x1, y1,(short)(width-(rows>1)), (short)(boxh-1), NULL, 0.0, 0.0, 0, 0, "");
 		}
 		else {
-			uiDefBut(block, BUTM|but->pointype, but->retval, md->items[a].str, x1, y1,(short)(width-(rows>1)), (short)(boxh-1), but->poin, (float) md->items[a].retval, 0.0, 0, 0, "");
+			uiBut *bt= uiDefBut(block, BUTM|but->pointype, but->retval, md->items[a].str, x1, y1,(short)(width-(rows>1)), (short)(boxh-1), but->poin, (float) md->items[a].retval, 0.0, 0, 0, "");
+			if(active==a) bt->flag |= UI_ACTIVE;
 		}
 	}
 	
@@ -4269,7 +4273,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	if(block->win != mywinget()) return UI_NOTHING;
 
 	/* filter some unwanted events */
-	if(uevent==0 || uevent->event==LEFTSHIFTKEY || uevent->event==RIGHTSHIFTKEY) return UI_NOTHING;
+	if(uevent==0 || uevent->event==0 || uevent->event==LEFTSHIFTKEY || uevent->event==RIGHTSHIFTKEY) return UI_NOTHING;
 	
 	if(block->flag & UI_BLOCK_ENTER_OK) {
 		if(uevent->event == RETKEY && uevent->val) {
@@ -4447,8 +4451,11 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 				/* hilite case 2 */
 				if(but->flag & UI_ACTIVE) {
 					if( (but->flag & UI_MOUSE_OVER)==0) {
-						but->flag &= ~UI_ACTIVE;
-						if(but->type != LABEL && but->embossfunc != ui_emboss_N) ui_draw_but(but);
+						/* we dont clear active flag until mouse move, for Menu buttons to remain showing active item when opened */
+						if (uevent->event==MOUSEY) {
+							but->flag &= ~UI_ACTIVE;
+							if(but->type != LABEL && but->embossfunc != ui_emboss_N) ui_draw_but(but);
+						}
 					}
 					else if(but->type==BLOCK || but->type==MENU) {	// automatic opens block button (pulldown)
 						int time;
@@ -4489,16 +4496,18 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 			
 			if(uevent->val || (block->flag & UI_BLOCK_RET_1)==0) {
 				if ELEM3(uevent->event, LEFTMOUSE, PADENTER, RETKEY) {
-				
-					butevent= ui_do_button(block, but, uevent);
-					if(butevent) addqueue(block->winq, UI_BUT_EVENT, (short)butevent);
+					/* when mouse outside, don't do button */
+					if(inside || uevent->event!=LEFTMOUSE) {
+						butevent= ui_do_button(block, but, uevent);
+						if(butevent) addqueue(block->winq, UI_BUT_EVENT, (short)butevent);
 
-					/* i doubt about the next line! */
-					/* if(but->func) mywinset(block->win); */
+						/* i doubt about the next line! */
+						/* if(but->func) mywinset(block->win); */
 			
-					if( (block->flag & UI_BLOCK_LOOP) && but->type==BLOCK);
-					else	
-						if(/*but->func ||*/ butevent) retval= UI_RETURN_OK;
+						if( (block->flag & UI_BLOCK_LOOP) && but->type==BLOCK);
+						else	
+							if(/*but->func ||*/ butevent) retval= UI_RETURN_OK;
+					}
 				}
 			}
 		}
