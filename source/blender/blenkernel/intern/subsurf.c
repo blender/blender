@@ -432,22 +432,26 @@ static HyperMesh *hypermesh_from_editmesh(EditMesh *em, int subdivLevels) {
 
 		/* we only add vertices with edges, 'f1' is a free flag */
 		/* added: check for hide flag in vertices */
-	for (ev= em->verts.first; ev; ev= ev->next) ev->f1= 1;	
+	for (ev= em->verts.first; ev; ev= ev->next) {
+		ev->f1= 1;	
+		ev->prev= NULL;
+	}
 
 		/* hack, tuck the new hypervert pointer into
 		 * the ev->prev link so we can find it easy, 
 		 * then restore real prev links later.
 		 */
 	for (ee= em->edges.first; ee; ee= ee->next) {
-		if(ee->h==0) {
-			if(ee->v1->f1) {
-				ee->v1->prev= (EditVert*) hypermesh_add_vert(hme, ee->v1->co, ee->v1->co);
-				ee->v1->f1= 0;
-			}
-			if(ee->v2->f1) {
-				ee->v2->prev= (EditVert*) hypermesh_add_vert(hme, ee->v2->co, ee->v2->co);
-				ee->v2->f1= 0;
-			}
+
+		if(ee->v1->h==0 && ee->v1->f1) {
+			ee->v1->prev= (EditVert*) hypermesh_add_vert(hme, ee->v1->co, ee->v1->co);
+			ee->v1->f1= 0;
+		}
+		if(ee->v2->h==0 && ee->v2->f1) {
+			ee->v2->prev= (EditVert*) hypermesh_add_vert(hme, ee->v2->co, ee->v2->co);
+			ee->v2->f1= 0;
+		}
+		if((ee->h & 1)==0) {
 
 			flag= DR_OPTIM;
 			if(ee->seam) flag |= HE_SEAM;
@@ -458,18 +462,22 @@ static HyperMesh *hypermesh_from_editmesh(EditMesh *em, int subdivLevels) {
 	}
 	for (ef= em->faces.first; ef; ef= ef->next) {
 		if(ef->h==0) {
-			int nverts= ef->v4?4:3;
-			HyperVert *verts[4];
-			HyperFace *f;
-			
-			verts[0]= (HyperVert*) ef->v1->prev;
-			verts[1]= (HyperVert*) ef->v2->prev;
-			verts[2]= (HyperVert*) ef->v3->prev;
-			if (nverts>3)
-				verts[3]= (HyperVert*) ef->v4->prev;
-	
-			f= hypermesh_add_face(hme, verts, nverts, DR_OPTIM);
-			f->orig.ef= ef;
+			// this extra check needed, hide flags can be inconsistant
+			if((ef->e1->h & 1) || (ef->e2->h & 1) || (ef->e3->h & 1) || (ef->e4 && (ef->e4->h & 1)));
+			else {
+				int nverts= ef->v4?4:3;
+				HyperVert *verts[4];
+				HyperFace *f;
+				
+				verts[0]= (HyperVert*) ef->v1->prev;
+				verts[1]= (HyperVert*) ef->v2->prev;
+				verts[2]= (HyperVert*) ef->v3->prev;
+				if (nverts>3)
+					verts[3]= (HyperVert*) ef->v4->prev;
+		
+				f= hypermesh_add_face(hme, verts, nverts, DR_OPTIM);
+				f->orig.ef= ef;
+			}
 		}
 	}
 
