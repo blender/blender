@@ -61,7 +61,7 @@ public:
 	/**
 	 * Drawing types
 	 */
-	enum	{
+	enum DrawType {
 			KX_BOUNDINGBOX = 1,
 			KX_WIREFRAME,
 			KX_SOLID,
@@ -72,7 +72,7 @@ public:
 	/**
 	 * Valid SetDepthMask parameters
 	 */
-	enum	{
+	enum DepthMask {
 			KX_DEPTHMASK_ENABLED =1,
 			KX_DEPTHMASK_DISABLED
 	};
@@ -87,16 +87,18 @@ public:
 	/**
 	 * Stereo mode types
 	 */
-	enum	{
+	enum StereoMode {
 			RAS_STEREO_NOSTEREO = 1,
 			RAS_STEREO_QUADBUFFERED,
 			RAS_STEREO_ABOVEBELOW,
-			RAS_STEREO_INTERLACED
+			RAS_STEREO_INTERLACED,
+			RAS_STEREO_ANAGLYPH,
+			RAS_STEREO_SIDEBYSIDE
 	};
 	/**
 	 * Render pass identifiers for stereo.
 	 */
-	enum	{
+	enum StereoEye {
 			RAS_STEREO_LEFTEYE = 1,
 			RAS_STEREO_RIGHTEYE
 	};
@@ -105,7 +107,7 @@ public:
 	 * SetDepthMask enables or disables writing a fragment's depth value
 	 * to the Z buffer.
 	 */
-	virtual void	SetDepthMask(int depthmask)=0;
+	virtual void	SetDepthMask(DepthMask depthmask)=0;
 	/**
 	 * SetMaterial sets the material settings for subsequent primitives
 	 * to be rendered with.
@@ -145,7 +147,7 @@ public:
 	/**
 	 * SetStereoMode will set the stereo mode
 	 */
-	virtual void	SetStereoMode(const int stereomode)=0;
+	virtual void	SetStereoMode(const StereoMode stereomode)=0;
 	/**
 	 * Stereo can be used to query if the rasterizer is in stereo mode.
 	 * @return true if stereo mode is enabled.
@@ -154,7 +156,7 @@ public:
 	/**
 	 * Sets which eye buffer subsequent primitives will be rendered to.
 	 */
-	virtual void	SetEye(const int eye)=0;
+	virtual void	SetEye(const StereoEye eye)=0;
 	/**
 	 */
 	virtual void	SetEyeSeparation(const float eyeseparation)=0;

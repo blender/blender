@@ -212,14 +212,3 @@ void RAS_VAOpenGLRasterizer::EnableTextures(bool enable)
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
-bool RAS_VAOpenGLRasterizer::Stereo()
-{
-/*
-	if(m_stereomode == RAS_STEREO_NOSTEREO)
-		return false;
-	else
-		return true;
-*/
-	return false;
-}
-

@@ -55,11 +55,13 @@ RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas)
 	:RAS_IRasterizer(canvas),
 	m_2DCanvas(canvas),
 	m_fogenabled(false),
+	m_time(0.0),
+	m_stereomode(RAS_STEREO_NOSTEREO),
+	m_curreye(RAS_STEREO_LEFTEYE),
 	m_noOfScanlines(32),
 	m_materialCachingInfo(0)
 {
 	m_viewmatrix.Identity();
-	m_stereomode = RAS_STEREO_NOSTEREO;
 }
 
 
@@ -128,7 +130,6 @@ static void Myinit_gl_stuff(void)
 	}
 	
 	glPolygonStipple(patc);
-		
 }
 
 
@@ -144,6 +145,7 @@ bool RAS_OpenGLRasterizer::Init()
 	m_alphaback = 0.0;
 	
 	glClearColor(m_redback,m_greenback,m_blueback,m_alphaback);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glShadeModel(GL_SMOOTH);
@@ -257,6 +259,7 @@ void RAS_OpenGLRasterizer::Exit()
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glClearDepth(1.0); 
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glClearColor(m_redback, m_greenback, m_blueback, m_alphaback);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glDepthMask (GL_TRUE);
@@ -339,29 +342,9 @@ int RAS_OpenGLRasterizer::GetDrawingMode()
 
 
 
-void RAS_OpenGLRasterizer::SetDepthMask(int depthmask)
+void RAS_OpenGLRasterizer::SetDepthMask(DepthMask depthmask)
 {
-	switch (depthmask)
-	{
-	case KX_DEPTHMASK_ENABLED:
-		{
-			glDepthMask(GL_TRUE);
-			//glDisable ( GL_ALPHA_TEST );
-			break;
-		};
-	case KX_DEPTHMASK_DISABLED:
-		{
-			glDepthMask(GL_FALSE);
-			//glAlphaFunc ( GL_GREATER, 0.0 ) ;
-			//glEnable ( GL_ALPHA_TEST ) ;
-			break;
-		};
-	default:
-		{
-		//printf("someone made a mistake, RAS_OpenGLRasterizer::SetDepthMask(int depthmask)\n");
-		exit(0);
-		}
-	}
+	glDepthMask(depthmask == KX_DEPTHMASK_DISABLED ? GL_FALSE : GL_TRUE);
 }
 
 
@@ -380,47 +363,67 @@ void RAS_OpenGLRasterizer::ClearCachingInfo(void)
 
 void RAS_OpenGLRasterizer::EndFrame()
 {
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	m_2DCanvas->EndFrame();
 }	
-
 
 void RAS_OpenGLRasterizer::SetRenderArea()
 {
 	// only above/below stereo method needs viewport adjustment
-	if(m_stereomode == RAS_STEREO_ABOVEBELOW)
+	switch (m_stereomode)
 	{
-		switch(m_curreye)
-		{
-			case RAS_STEREO_LEFTEYE:
-				// upper half of window
-	 			m_2DCanvas->GetDisplayArea().SetLeft(0);
-				m_2DCanvas->GetDisplayArea().SetBottom(m_2DCanvas->GetHeight() -
-					int(m_2DCanvas->GetHeight() - m_noOfScanlines) / 2);
-
-				m_2DCanvas->GetDisplayArea().SetRight(int(m_2DCanvas->GetWidth()));
-				m_2DCanvas->GetDisplayArea().SetTop(int(m_2DCanvas->GetHeight()));
-				break;
-			case RAS_STEREO_RIGHTEYE:
-				// lower half of window
-	 			m_2DCanvas->GetDisplayArea().SetLeft(0);
-				m_2DCanvas->GetDisplayArea().SetBottom(0);
-				m_2DCanvas->GetDisplayArea().SetRight(int(m_2DCanvas->GetWidth()));
-				m_2DCanvas->GetDisplayArea().SetTop(int(m_2DCanvas->GetHeight() - m_noOfScanlines) / 2);
-				break;
-		}
-	}
-	else
-	{
-		// every available pixel
-		m_2DCanvas->GetDisplayArea().SetLeft(0);
-		m_2DCanvas->GetDisplayArea().SetBottom(0);
-		m_2DCanvas->GetDisplayArea().SetRight(int(m_2DCanvas->GetWidth()));
-		m_2DCanvas->GetDisplayArea().SetTop(int(m_2DCanvas->GetHeight()));
+		case RAS_STEREO_ABOVEBELOW:
+			switch(m_curreye)
+			{
+				case RAS_STEREO_LEFTEYE:
+					// upper half of window
+					m_2DCanvas->GetDisplayArea().SetLeft(0);
+					m_2DCanvas->GetDisplayArea().SetBottom(m_2DCanvas->GetHeight() -
+						int(m_2DCanvas->GetHeight() - m_noOfScanlines) / 2);
+	
+					m_2DCanvas->GetDisplayArea().SetRight(int(m_2DCanvas->GetWidth()));
+					m_2DCanvas->GetDisplayArea().SetTop(int(m_2DCanvas->GetHeight()));
+					break;
+				case RAS_STEREO_RIGHTEYE:
+					// lower half of window
+					m_2DCanvas->GetDisplayArea().SetLeft(0);
+					m_2DCanvas->GetDisplayArea().SetBottom(0);
+					m_2DCanvas->GetDisplayArea().SetRight(int(m_2DCanvas->GetWidth()));
+					m_2DCanvas->GetDisplayArea().SetTop(int(m_2DCanvas->GetHeight() - m_noOfScanlines) / 2);
+					break;
+			}
+			break;
+		case RAS_STEREO_SIDEBYSIDE:
+			switch (m_curreye)
+			{
+				case RAS_STEREO_LEFTEYE:
+					// Left half of window
+					m_2DCanvas->GetDisplayArea().SetLeft(0);
+					m_2DCanvas->GetDisplayArea().SetBottom(0);
+					m_2DCanvas->GetDisplayArea().SetRight(m_2DCanvas->GetWidth()/2);
+					m_2DCanvas->GetDisplayArea().SetTop(m_2DCanvas->GetHeight());
+					break;
+				case RAS_STEREO_RIGHTEYE:
+					// Right half of window
+					m_2DCanvas->GetDisplayArea().SetLeft(m_2DCanvas->GetWidth()/2);
+					m_2DCanvas->GetDisplayArea().SetBottom(0);
+					m_2DCanvas->GetDisplayArea().SetRight(m_2DCanvas->GetWidth());
+					m_2DCanvas->GetDisplayArea().SetTop(m_2DCanvas->GetHeight());
+					break;
+			}
+			break;
+		default:
+			// every available pixel
+			m_2DCanvas->GetDisplayArea().SetLeft(0);
+			m_2DCanvas->GetDisplayArea().SetBottom(0);
+			m_2DCanvas->GetDisplayArea().SetRight(int(m_2DCanvas->GetWidth()));
+			m_2DCanvas->GetDisplayArea().SetTop(int(m_2DCanvas->GetHeight()));
+			break;
 	}
 }
 
 	
-void RAS_OpenGLRasterizer::SetStereoMode(const int stereomode)
+void RAS_OpenGLRasterizer::SetStereoMode(const StereoMode stereomode)
 {
 	m_stereomode = stereomode;
 }
@@ -436,14 +439,28 @@ bool RAS_OpenGLRasterizer::Stereo()
 }
 
 
-void RAS_OpenGLRasterizer::SetEye(int eye)
+void RAS_OpenGLRasterizer::SetEye(StereoEye eye)
 {
 	m_curreye = eye;
-	if(m_stereomode == RAS_STEREO_QUADBUFFERED) {
-		if(m_curreye == RAS_STEREO_LEFTEYE)
-			glDrawBuffer(GL_BACK_LEFT);
-		else
-			glDrawBuffer(GL_BACK_RIGHT);
+	switch (m_stereomode)
+	{
+		case RAS_STEREO_QUADBUFFERED:
+			glDrawBuffer(m_curreye == RAS_STEREO_LEFTEYE ? GL_BACK_LEFT : GL_BACK_RIGHT);
+			break;
+		case RAS_STEREO_ANAGLYPH:
+			if (m_curreye == RAS_STEREO_LEFTEYE)
+			{
+				glColorMask(GL_FALSE, GL_TRUE, GL_TRUE, GL_FALSE);
+				m_2DCanvas->ClearBuffer(RAS_ICanvas::COLOR_BUFFER);
+				glColorMask(GL_FALSE, GL_FALSE, GL_TRUE, GL_FALSE);
+			} else {
+				glAccum(GL_LOAD, 1.0);
+				glColorMask(GL_TRUE, GL_FALSE, GL_FALSE, GL_FALSE);
+				ClearDepthBuffer();
+			}
+			break;
+		default:
+			break;
 	}
 }
 

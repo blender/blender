@@ -121,7 +121,6 @@ void GPC_Canvas::ClearBuffer(
 		ogltype |= GL_DEPTH_BUFFER_BIT;
 
 	::glClear(ogltype);
-
 }
 
 

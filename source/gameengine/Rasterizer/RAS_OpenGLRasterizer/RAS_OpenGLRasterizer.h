@@ -65,14 +65,12 @@ class RAS_OpenGLRasterizer : public RAS_IRasterizer
 	float			m_blueback;
 	float			m_alphaback;
 
-	bool			m_bEXT_compiled_vertex_array;
-
 	double			m_time;
 	MT_CmMatrix4x4	m_viewmatrix;
 	MT_Point3		m_campos;
 
-	int				m_stereomode;
-	int				m_curreye;
+	StereoMode		m_stereomode;
+	StereoEye		m_curreye;
 	float			m_eyeseparation;
 	float			m_focallength;
 	int				m_noOfScanlines;
@@ -87,9 +85,7 @@ public:
 	RAS_OpenGLRasterizer(RAS_ICanvas* canv);
 	virtual ~RAS_OpenGLRasterizer();
 
-
-
-	enum
+	/*enum DrawType
 	{
 			KX_BOUNDINGBOX = 1,
 			KX_WIREFRAME,
@@ -98,12 +94,12 @@ public:
 			KX_TEXTURED
 	};
 
-	enum
+	enum DepthMask
 	{
 			KX_DEPTHMASK_ENABLED =1,
 			KX_DEPTHMASK_DISABLED,
-	};
-	virtual void	SetDepthMask(int depthmask);
+	};*/
+	virtual void	SetDepthMask(DepthMask depthmask);
 
 	virtual void	SetMaterial(const RAS_IPolyMaterial& mat);
 	virtual bool	Init();
@@ -114,9 +110,9 @@ public:
 	virtual void	EndFrame();
 	virtual void	SetRenderArea();
 
-	virtual void	SetStereoMode(const int stereomode);
+	virtual void	SetStereoMode(const StereoMode stereomode);
 	virtual bool	Stereo();
-	virtual void	SetEye(const int eye);
+	virtual void	SetEye(const StereoEye eye);
 	virtual void	SetEyeSeparation(const float eyeseparation);
 	virtual void	SetFocalLength(const float focallength);
 

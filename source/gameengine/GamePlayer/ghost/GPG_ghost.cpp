@@ -113,18 +113,32 @@ void usage(char* program)
 	printf("       t = window top coordinate\n");
 	printf("       w = window width\n");
 	printf("       h = window height\n");
-/*	printf("  -f: start game in full screen mode\n");
+	printf("  -f: start game in full screen mode\n");
 	printf("       fw = full screen mode pixel width\n");
 	printf("       fh = full screen mode pixel height\n");
 	printf("       fb = full screen mode bits per pixel\n");
-	printf("       ff = full screen mode frequency\n"); */
+	printf("       ff = full screen mode frequency\n");
 	printf("  -s: start player in stereo\n");
-	printf("       stereomode = hwpageflip or syncdoubling depending on the type of stereo you want\n");
+	printf("       stereomode: hwpageflip       (Quad buffered shutter glasses)\n");
+	printf("                   syncdoubling     (Above Below)\n");
+	printf("                   sidebyside       (Left Right)\n");
+	printf("                   anaglyph         (Red-Blue glasses)\n");
+	printf("                             depending on the type of stereo you want\n");
 #ifdef _WIN32
 	printf("  -c: keep console window open\n");
 #endif
+	printf("  -g: game engine options:\n");
+	printf("       Name            Default      Description\n");
+	printf("       ----------------------------------------\n");
+	printf("       fixedtime          0         Do the same timestep each frame \"Enable all frames\"\n");
+	printf("       nomipmap           0         Disable mipmaps\n");
+	printf("       show_framerate     0         Show the frame rate\n");
+	printf("       show_properties    0         Show debug properties\n");
+	printf("       show_profile       0         Show profiling information\n");
+	printf("       vertexarrays       1         Enable vertex arrays\n");
 	printf("\n");
 	printf("example: %s -p 10 10 320 200 -g noaudio c:\\loadtest.blend\n", program);
+	printf("example: %s -g vertexarrays = 0 c:\\loadtest.blend\n", program);
 }
 
 char *get_filename(int argc, char **argv) {
@@ -216,7 +230,7 @@ int main(int argc, char** argv)
 	bool fullScreenParFound = false;
 	bool windowParFound = false;
 	bool closeConsole = true;
-	int stereomode = RAS_IRasterizer::RAS_STEREO_NOSTEREO;
+	RAS_IRasterizer::StereoMode stereomode = RAS_IRasterizer::RAS_STEREO_NOSTEREO;
 	bool stereoWindow = false;
 	bool stereoParFound = false;
 	int windowLeft = 100;
@@ -225,7 +239,7 @@ int main(int argc, char** argv)
 	int windowHeight = 480;
 	GHOST_TUns32 fullScreenWidth = 0;
 	GHOST_TUns32 fullScreenHeight= 0;
-	int fullScreenBpp = 16;
+	int fullScreenBpp = 32;
 	int fullScreenFrequency = 60;
 	
 #ifdef __linux__
@@ -263,12 +277,11 @@ int main(int argc, char** argv)
 #ifndef NDEBUG
 	printf("argv[0] = '%s'\n", argv[0]);
 #endif
-	for (i = 1; (i < argc) && !error; i++)
+	for (i = 1; (i < argc) && !error;)
 	{
 #ifndef NDEBUG
 		printf("argv[%d] = '%s'\n", i, argv[i]);
 #endif
-		
 		if (argv[i][0] == '-')
 		{
 			switch (argv[i][1])
@@ -288,7 +301,13 @@ int main(int argc, char** argv)
 							{
 								i++;
 								// Assignment
+								SYS_WriteCommandLineInt(syshandle, paramname, atoi(argv[i]));
+								SYS_WriteCommandLineFloat(syshandle, paramname, atof(argv[i]));
 								SYS_WriteCommandLineString(syshandle, paramname, argv[i]);
+#ifndef NDEBUG
+								printf("%s = '%s'\n", paramname, argv[i]);
+#endif
+								i++;
 							}
 							else
 							{
@@ -298,7 +317,7 @@ int main(int argc, char** argv)
 						}
 						else
 						{
-							SYS_WriteCommandLineInt(syshandle, argv[i], 1);
+							SYS_WriteCommandLineInt(syshandle, argv[i++], 1);
 						}
 					}
 				}
@@ -313,7 +332,7 @@ int main(int argc, char** argv)
 						windowLeft = atoi(argv[i++]);
 						windowTop = atoi(argv[i++]);
 						windowWidth = atoi(argv[i++]);
-						windowHeight = atoi(argv[i]);
+						windowHeight = atoi(argv[i++]);
 						windowParFound = true;
 					}
 					else
@@ -323,12 +342,27 @@ int main(int argc, char** argv)
 					}
 				}
 				break;
-				
+			case 'f':
+				i++;
+				fullScreen = true;
+				fullScreenParFound = true;
+				if ((i + 2) < argc && argv[i][0] != '-' && argv[i+1][0] != '-')
+				{
+					fullScreenWidth = atoi(argv[i++]);
+					fullScreenHeight = atoi(argv[i++]);
+					if ((i + 1) < argc && argv[i][0] != '-')
+					{
+						fullScreenBpp = atoi(argv[i++]);
+						if ((i + 1) < argc && argv[i][0] != '-')
+							fullScreenFrequency = atoi(argv[i++]);
+					}
+				}
+				break;
 			case 'w':
 				// Parse window position and size options
 				{
 					fullScreen = false;
-						fullScreenParFound = true;
+					fullScreenParFound = true;
 					i++;
 				}
 				break;
@@ -350,6 +384,12 @@ int main(int argc, char** argv)
 					}
 					if(!strcmp(argv[i], "syncdoubling"))
 						stereomode = RAS_IRasterizer::RAS_STEREO_ABOVEBELOW;
+					
+					if(!strcmp(argv[i], "anaglyph"))
+						stereomode = RAS_IRasterizer::RAS_STEREO_ANAGLYPH;
+					
+					if(!strcmp(argv[i], "sidebyside"))
+						stereomode = RAS_IRasterizer::RAS_STEREO_SIDEBYSIDE;
 #if 0
 					// future stuff
 					if(strcmp(argv[i], "stencil")
@@ -365,10 +405,14 @@ int main(int argc, char** argv)
 					printf("error: too few options for stereo argument.\n");
 				}
 				break;
+			default:
+				printf("Unkown argument: %s\n", argv[i++]);
+				break;
 			}
 		}
 		else
 		{
+			i++;
 		}
 	}
 	
@@ -400,7 +444,8 @@ int main(int argc, char** argv)
 			GHOST_ISystem* system = GHOST_ISystem::getSystem();
 			assertd(system);
 			
-			system->getMainDisplayDimensions(fullScreenWidth, fullScreenHeight);
+			if (!fullScreenWidth || !fullScreenHeight)
+				system->getMainDisplayDimensions(fullScreenWidth, fullScreenHeight);
 			// process first batch of events. If the user
 			// drops a file on top off the blenderplayer icon, we 
 			// recieve an event with the filename
@@ -488,21 +533,9 @@ int main(int argc, char** argv)
 						// Check whether the game should be displayed in stereo
 						if (!stereoParFound)
 						{
-							if(scene->r.stereomode == RAS_IRasterizer::RAS_STEREO_NOSTEREO)  // ok, redundant but clear
-								stereomode = RAS_IRasterizer::RAS_STEREO_NOSTEREO;
-							
-							// only the hardware pageflip method needs a stereo window
-							if(scene->r.stereomode == RAS_IRasterizer::RAS_STEREO_QUADBUFFERED) {
-								stereomode = RAS_IRasterizer::RAS_STEREO_QUADBUFFERED;
+							stereomode = (RAS_IRasterizer::StereoMode) scene->r.stereomode;
+							if (stereomode == RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
 								stereoWindow = true;
-							}
-							if(scene->r.stereomode == RAS_IRasterizer::RAS_STEREO_ABOVEBELOW)
-								stereomode = RAS_IRasterizer::RAS_STEREO_ABOVEBELOW;
-#if 0
-							// future stuff
-							if(scene->r.stereomode == RAS_IRasterizer::RAS_STEREO_STENCIL)
-								stereomode = RAS_STEREO_STENCIL;
-#endif
 						}
 						
 						//					GPG_Application app (system, maggie, startscenename);

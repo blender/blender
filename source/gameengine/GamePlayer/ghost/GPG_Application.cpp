@@ -352,8 +352,8 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		
 		// SYS_WriteCommandLineInt(syshandle, "fixedtime", 0);
 		// SYS_WriteCommandLineInt(syshandle, "vertexarrays",1);		
-		//bool properties	= (SYS_GetCommandLineInt(syshandle, "show_properties", 0) != 0);
-		//bool profile = (SYS_GetCommandLineInt(syshandle, "show_profile", 0) != 0);
+		bool properties	= (SYS_GetCommandLineInt(syshandle, "show_properties", 0) != 0);
+		bool profile = (SYS_GetCommandLineInt(syshandle, "show_profile", 0) != 0);
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
 		bool useVertexArrays = SYS_GetCommandLineInt(syshandle,"vertexarrays",1) != 0;
 		// create the canvas, rasterizer and rendertools
@@ -370,7 +370,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 			m_rasterizer = new RAS_VAOpenGLRasterizer(m_canvas);
 		else
 			m_rasterizer = new RAS_OpenGLRasterizer(m_canvas);
-		m_rasterizer->SetStereoMode(stereoMode);
+		m_rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) stereoMode);
 		if (!m_rasterizer)
 			goto initFailed;
 						
@@ -415,7 +415,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		m_ketsjiengine->SetTimingDisplay(frameRate, false, false);
 
 		m_ketsjiengine->SetUseFixedTime(false);
-		//m_ketsjiengine->SetTimingDisplay(frameRate, profile, properties);
+		m_ketsjiengine->SetTimingDisplay(frameRate, profile, properties);
 
 		m_engineInitialized = true;
 	}

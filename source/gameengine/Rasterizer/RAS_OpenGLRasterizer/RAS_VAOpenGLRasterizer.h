@@ -43,7 +43,6 @@ public:
 	virtual bool	Init();
 	virtual void	Exit();
 
-	virtual bool	Stereo();
 	virtual void	SetDrawingMode(int drawingmode);
 
 	virtual void	IndexPrimitives( const vecVertexArray& vertexarrays,
