@@ -119,25 +119,25 @@ class Curve:
     @param totcol: number of materials linked.
     """
 
-  def getMode():
+  def getFlag():
     """
-    Get the Curve mode value.
-    The mode of the curve is a combination of 4 parameters.
-       - Bit 0 : "Back" is set
+    Get the Curve flag value.   
+    This item is a bitfield whose value is a combination of the following parameters.
+       - Bit 0 :  "3D" is set
        - Bit 1 :  "Front" is set
-       - Bit 2 :  "3D" is set
+       - Bit 2 :  "Back" is set
        - Bit 3 :  "CurvePath" is set.
        - Bit 4 :  "CurveFollow" is set.
       
-    @rtype: int
+    @rtype: integer bitfield
     """
 
-  def setMode(val):
+  def setFlag(val):
     """
-    Set the  Curve mode  value.
+    Set the Curve flag value.  The flag corresponds to the Blender settings for 3D, Front, Back, CurvePath and CurveFollow.  This parameter is a bitfield.
     @rtype: PyNone
-    @type val: int
-    @param val : The new Curve's mode value.  See L{getMode} for the meaning of the bit fields.
+    @type val: integer bitfield
+    @param val : The Curve's flag bits.  See L{getFlag} for the meaning of the individual bits.
     """
 
   def getBevresol():
@@ -231,8 +231,8 @@ class Curve:
     @type numpoint: int
     @rtype: list of floats
     @return: depends upon the curve's type.
-      - type bezier : a list of three coordinates
-      - type nurbs : a list of nine coordinates.
+      - type Bezier : a list of three coordinates
+      - type Nurb : a list of nine coordinates.
     """
 
   def setControlPoint( numcurve, numpoint, controlpoint):
@@ -256,9 +256,9 @@ class Curve:
       @type new_control_point: list xyzw or BezTriple
       @param numcurve:  index for spline in Curve, starting from 0
       @param new_control_point: depends on curve's type.
-        - type bezier: a BezTriple 
-	- type nurb: a list of four floats for the xyzw values
-      @raise AttributeError:  throws exeption if numcurve is out of range.
+        - type Bezier: a BezTriple 
+	- type Nurb: a list of four floats for the xyzw values
+      @raise AttributeError:  throws exception if numcurve is out of range.
     """
 
   def appendNurb( new_point ):
@@ -266,7 +266,7 @@ class Curve:
       add a new curve to this Curve.  The new point is added to the new curve.  Blender does not support a curve with zero points.  The new curve is added to the end of the list of curves in the Curve.
       @rtype: PyNone
       @return: PyNone
-      @type new_point: BezTriple or list of xyzw coords for a Nurb curve.
+      @type new_point: BezTriple or list of xyzw coordinates for a Nurb curve.
       @param new_point: see L{CurNurb.append} for description of parameter.
       """
 
@@ -336,7 +336,7 @@ class Curve:
       @return:  Zero of curve is type Bezier, One if curve is of type Nurb.
       @type curve_num: integer
       @param curve_num: zero-based index into list of curves in this Curve.
-      @raise AttributeError:  throws execption if curve_num is out of range.
+      @raise AttributeError:  throws exception if curve_num is out of range.
       """
 
 
