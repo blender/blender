@@ -39,10 +39,6 @@
 #include <config.h>
 #endif
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -1096,6 +1092,11 @@ static DispListMesh *subsurf_subdivide_to_displistmesh(HyperMesh *hme, short sub
 DispListMesh *subsurf_make_dispListMesh_from_editmesh(EditMesh *em, int subdivLevels, int flags, short type) {
 	if (subdivLevels<1) {
 		return displistmesh_from_editmesh(em);
+#ifdef USE_CCGSUBSURFLIB
+	} else if (type==ME_CCG_SUBSURF) {
+		extern DispListMesh *subsurf_ccg_make_dispListMesh_from_editmesh(EditMesh *em, int subdivLevels, int flags);
+		return subsurf_ccg_make_dispListMesh_from_editmesh(em, subdivLevels, flags);
+#endif
 	} else {
 		HyperMesh *hme= hypermesh_from_editmesh(em, subdivLevels);
 	
@@ -1106,6 +1107,11 @@ DispListMesh *subsurf_make_dispListMesh_from_editmesh(EditMesh *em, int subdivLe
 DispListMesh *subsurf_make_dispListMesh_from_mesh(Mesh *me, float *extverts, int subdivLevels, int flags) {
 	if (subdivLevels<1) {
 		return displistmesh_from_mesh(me, extverts);
+#ifdef USE_CCGSUBSURFLIB
+	} else if (me->subsurftype==ME_CCG_SUBSURF) {
+		extern DispListMesh *subsurf_ccg_make_dispListMesh_from_mesh(Mesh *me, float *extverts, int subdivLevels, int flags);
+		return subsurf_ccg_make_dispListMesh_from_mesh(me, extverts, subdivLevels, flags);
+#endif
 	} else {
 		HyperMesh *hme= hypermesh_from_mesh(me, extverts, subdivLevels);
 

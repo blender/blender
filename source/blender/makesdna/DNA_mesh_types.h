@@ -120,6 +120,9 @@ typedef struct Mesh {
 #define ME_CC_SUBSURF 		0
 #define ME_SIMPLE_SUBSURF 	1
 
+#ifdef USE_CCGSUBSURFLIB
+#define ME_CCG_SUBSURF 		2
+#endif
 
 #define TF_DYNAMIC		1
 /* #define TF_INVISIBLE	2 */

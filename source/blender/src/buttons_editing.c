@@ -40,7 +40,6 @@
 #endif
 
 #ifdef WIN32
-#include "BLI_winstuff.h"
 #ifndef snprintf
 #define snprintf _snprintf
 #endif
@@ -653,7 +652,11 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	uiBlock *block;
 	float val;
 	/* Hope to support more than two subsurf algorithms */
+#ifdef USE_CCGSUBSURFLIB
+	char subsurfmenu[]="Subsurf Type%t|Catmull-Clark%x0|CCGSubSurf%x2|Simple Subdiv.%x1";
+#else
 	char subsurfmenu[]="Subsurf Type%t|Catmull-Clark%x0|Simple Subdiv.%x1";
+#endif
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if( uiNewPanel(curarea, block, "Mesh", "Editing", 320, 0, 318, 204)==0) return;
