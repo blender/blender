@@ -46,6 +46,7 @@ SM_FhObject::SM_FhObject(DT_ShapeHandle rayshape, MT_Vector3 ray, SM_Object *par
 
 SM_FhObject::~SM_FhObject()
 {
+	DT_DeleteShape(getShapeHandle());
 }
 
 DT_Bool SM_FhObject::ray_hit(void *client_data,

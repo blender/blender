@@ -108,6 +108,8 @@ void	KX_ConvertSumoObject(	class	KX_GameObject* gameobj,
 	struct	PHY_ShapeProps* shapeprops,
 	struct	PHY_MaterialProps*	smmaterial,
 	struct	KX_ObjectProperties*	objprop);
+	
+void	KX_ClearSumoSharedShapes();
 #endif
 
 #endif //KX_CONVERTPHYSICSOBJECTS

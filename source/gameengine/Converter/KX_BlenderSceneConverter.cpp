@@ -117,6 +117,8 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 		delete (*itm);
 		itm++;
 	}
+	
+	KX_ClearSumoSharedShapes();
 }
 
 
