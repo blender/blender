@@ -1124,13 +1124,15 @@ def zipit(env, target, source):
 	# first copy files around
 	if sys.platform == 'win32':
 		shutil.copy("blender.exe", "bin/blender.exe")
-		shutil.copy("blenderplayer.exe", "bin/blenderplayer.exe")
+		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
+			shutil.copy("blenderplayer.exe", "bin/blenderplayer.exe")
 		shutil.copy("../lib/windows/python/lib/python23.dll", "bin/python23.dll")
 		shutil.copy("../lib/windows/sdl/lib/SDL.dll", "bin/SDL.dll")
 		shutil.copy("../lib/windows/gettext/lib/gnu_gettext.dll", "bin/gnu_gettext.dll")
 	elif sys.platform == 'linux2' or sys.platform == 'linux-i386':
 		shutil.copy("blender", "bin/blender")
-		shutil.copy("blenderplayer", "bin/blenderplayer")
+		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
+			shutil.copy("blenderplayer", "bin/blenderplayer")
 	else:
 		print "update zipit() for your platform!"
 		return
@@ -1204,7 +1206,7 @@ def zipit(env, target, source):
 	
 	os.chdir("..")
 
-def printadd(env, target, source)
+def printadd(env, target, source):
 	"""
 	Print warning message if platform hasn't been added to zipit() yet
 	"""
@@ -1263,19 +1265,22 @@ def BlenderRelease(target):
 		release_env = Environment()
 		blender_app = target
 		releaseit = release_env.Command('blender.zip', 'blender.exe', zipit)
-		release_env.Depends(releaseit, 'blenderplayer.exe')
+		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
+			release_env.Depends(releaseit, 'blenderplayer.exe')
 		release_env.Alias("release", releaseit)
 	elif sys.platform == 'linux2' or sys.platform == 'linux-i386':
 		release_env = Environment()
 		blender_app = target
 		releaseit = release_env.Command('other', 'blender', zipit)
-		release_env.Depends(releaseit, 'blenderplayer')
+		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
+			release_env.Depends(releaseit, 'blenderplayer')
 		release_env.Alias("release", releaseit)
 	else:
 		release_env = Environment()
 		blender_app = target
 		releaseit = release_env.Command('blender.tar.gz', 'blender', printadd)
-		release_env.Depends(releaseit, 'blenderplayer')
+		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
+			release_env.Depends(releaseit, 'blenderplayer')
 		release_env.Alias("release", releaseit)
 
 if user_options_dict['BUILD_BLENDER_DYNAMIC'] == 1:
@@ -1357,5 +1362,6 @@ if user_options_dict['BUILD_BLENDER_PLAYER'] == 1 and user_options_dict['BUILD_G
 
 release_target = env.Alias("release", BlenderRelease('blender'))
 
-env.Depends(release_target, 'blenderplayer$PROGSUFFIX')
+if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
+	env.Depends(release_target, 'blenderplayer$PROGSUFFIX')
 env.Depends(release_target, 'blender$PROGSUFFIX')
