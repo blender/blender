@@ -108,7 +108,8 @@ all debug::
     export NAN_PNG = /sw
     export NAN_PYTHON = $(LCGDIR)/python
     export NAN_PYTHON_VERSION = 2.2
-  endif
+    export NAN_ODE = $(LCGDIR)/ode
+ endif
   ifeq ($(OS),freebsd)
     ID = $(shell whoami)
     HOST = $(shell hostname -s)
