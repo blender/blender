@@ -70,6 +70,12 @@
 #include <config.h>
 #endif
 
+/* Global variables */
+
+float thresh= 0.6f;
+int totelem=0;
+MetaElem **mainb;
+octal_tree *metaball_tree;
 /* Functions */
 
 void unlink_mball(MetaBall *mb)
@@ -289,23 +295,49 @@ int is_basis_mball(Object *ob)
 Object *find_basis_mball(Object *basis)
 {
 	Base *base;
-	int basisnr;
-	char basisname[32];
+	Object *ob,*bob= basis;
+	MetaElem *ml=NULL;
+	int basisnr, obnr;
+	char basisname[32], obname[32];
 	
 	splitIDname(basis->id.name+2, basisname, &basisnr);
-	
-	for (base= G.scene->base.first; base && basisnr; base= base->next) {
-		Object *ob= base->object;
+	totelem= 0;
+
+	next_object(0, 0, 0);
+	while(next_object(1, &base, &ob)) {
 		
-		if (ob!=basis && ob->type==OB_MBALL) {
-			char obname[32];
-			int obnr;
+		if (ob->type==OB_MBALL) {
+			if(ob==bob){
+				/* if bob object is in edit mode, then dynamic list of all MetaElems
+				 * is stored in editelems */
+				if(ob==G.obedit) ml= editelems.first;
+				/* if bob object is in object mode */
+				else ml= ((MetaBall*)ob->data)->elems.first;
+			}
+			else{
+				splitIDname(ob->id.name+2, obname, &obnr);
+
+				/* object ob has to be in same "group" ... it means, that it has to have
+				 * same base of its name */
+				if(strcmp(obname, basisname)==0){
+					/* if object is in edit mode, then dynamic list of all MetaElems
+					 * is stored in editelems */
+					if(ob==G.obedit) ml= editelems.first;
+					/* keep track of linked data too! */
+					else if(bob==G.obedit && bob->data==ob->data) ml= editelems.first;
+					/* object is in object mode */
+					else ml= ((MetaBall*)ob->data)->elems.first;
+					
+					if(obnr<basisnr){
+						basis= ob;
+						basisnr= obnr;
+					}	
+				}
+			}
 			
-			splitIDname(ob->id.name+2, obname, &obnr);
-			
-			if ((strcmp(obname, basisname)==0) && obnr<basisnr) {
-				basis= ob;
-				basisnr= obnr;
+			while(ml){
+				totelem++;
+				ml= ml->next;
 			}
 		}
 	}
@@ -357,11 +389,6 @@ Object *find_basis_mball(Object *basis)
 
 
 /* **************** POLYGONIZATION ************************ */
-
-float thresh= 0.6f;
-int totelem=0;
-MetaElem **mainb;
-octal_tree *metaball_tree;
 
 void calc_mballco(MetaElem *ml, float *vec)
 {
@@ -1469,7 +1496,7 @@ float init_meta(Object *ob)	/* return totsize */
 				mat= new_pgn_element(4*4*sizeof(float));
 				imat= new_pgn_element(4*4*sizeof(float));
 				
-				/* mat is the matrix to transform from mball into the basis-mbal */
+				/* mat is the matrix to transform from mball into the basis-mball */
 				Mat4Invert(obinv, ob->obmat);
 				Mat4MulMat4(temp1, bob->obmat, obinv);
 				/* MetaBall transformation */
@@ -1495,13 +1522,13 @@ float init_meta(Object *ob)	/* return totsize */
 					max= MAX3(bob->size[0]*ml->expx, bob->size[1]*ml->expy, bob->size[2]*ml->expz);
 				}
 				
-				mainb[a]->bb->vec[0][0]= mat[3][0] - max - bob->size[0]*ml->rad;
-				mainb[a]->bb->vec[0][1]= mat[3][1] - max - bob->size[1]*ml->rad;
-				mainb[a]->bb->vec[0][2]= mat[3][2] - max - bob->size[2]*ml->rad;
-				
-				mainb[a]->bb->vec[6][0]= mat[3][0] + max + bob->size[0]*ml->rad;
-				mainb[a]->bb->vec[6][1]= mat[3][1] + max + bob->size[1]*ml->rad;
-				mainb[a]->bb->vec[6][2]= mat[3][2] + max + bob->size[2]*ml->rad;
+				mainb[a]->bb->vec[0][0]= mat[3][0] - bob->size[0]*(max+ml->rad)/ob->size[0];
+				mainb[a]->bb->vec[0][1]= mat[3][1] - bob->size[1]*(max+ml->rad)/ob->size[1];
+				mainb[a]->bb->vec[0][2]= mat[3][2] - bob->size[2]*(max+ml->rad)/ob->size[2];
+				                                                                           
+				mainb[a]->bb->vec[6][0]= mat[3][0] + bob->size[0]*(max+ml->rad)/ob->size[0];
+				mainb[a]->bb->vec[6][1]= mat[3][1] + bob->size[1]*(max+ml->rad)/ob->size[1];
+				mainb[a]->bb->vec[6][2]= mat[3][2] + bob->size[2]*(max+ml->rad)/ob->size[2];
 				
 				ml= ml->next;
 				a++;
@@ -1659,38 +1686,38 @@ void subdivide_metaball_octal_node(octal_node *node, float *size, short depth)
 					fill_metaball_octal_node(node, ml, 0);
 
 					/* ml belongs to the (3)4th node */
-					if(ml->bb->vec[6][1] > y){
+					if(ml->bb->vec[6][1] >= y){
 						fill_metaball_octal_node(node, ml, 3);
 
 						/* ml belongs to the (7)8th node */
-						if(ml->bb->vec[6][2] > z){
+						if(ml->bb->vec[6][2] >= z){
 							fill_metaball_octal_node(node, ml, 7);
 						}
 					}
 	
 					/* ml belongs to the (1)2nd node */
-					if(ml->bb->vec[6][0] > x){
+					if(ml->bb->vec[6][0] >= x){
 						fill_metaball_octal_node(node, ml, 1);
 
 						/* ml belongs to the (5)6th node */
-						if(ml->bb->vec[6][2] > z){
+						if(ml->bb->vec[6][2] >= z){
 							fill_metaball_octal_node(node, ml, 5);
 						}
 					}
 
 					/* ml belongs to the (2)3th node */
-					if((ml->bb->vec[6][0] > x) && (ml->bb->vec[6][1] > y)){
+					if((ml->bb->vec[6][0] >= x) && (ml->bb->vec[6][1] >= y)){
 						fill_metaball_octal_node(node, ml, 2);
 						
 						/* ml belong to the (6)7th node */
-						if(ml->bb->vec[6][2] > z){
+						if(ml->bb->vec[6][2] >= z){
 							fill_metaball_octal_node(node, ml, 6);
 						}
 						
 					}
 			
 					/* ml belongs to the (4)5th node too */	
-					if(ml->bb->vec[6][2] > z){
+					if(ml->bb->vec[6][2] >= z){
 						fill_metaball_octal_node(node, ml, 4);
 					}
 
@@ -1703,18 +1730,18 @@ void subdivide_metaball_octal_node(octal_node *node, float *size, short depth)
 					fill_metaball_octal_node(node, ml, 1);
 
 					/* ml belongs to the (2)3th node */
-					if(ml->bb->vec[6][1] > y){
+					if(ml->bb->vec[6][1] >= y){
 						fill_metaball_octal_node(node, ml, 2);
 
 						/* ml belongs to the (6)7th node */
-						if(ml->bb->vec[6][2] > z){
+						if(ml->bb->vec[6][2] >= z){
 							fill_metaball_octal_node(node, ml, 6);
 						}
 						
 					}
 					
 					/* ml belongs to the (5)6th node */
-					if(ml->bb->vec[6][2] > z){
+					if(ml->bb->vec[6][2] >= z){
 						fill_metaball_octal_node(node, ml, 5);
 					}
 				}
@@ -1726,17 +1753,17 @@ void subdivide_metaball_octal_node(octal_node *node, float *size, short depth)
 					fill_metaball_octal_node(node, ml, 3);
 					
 					/* ml belongs to the (7)8th node */
-					if(ml->bb->vec[6][2] > z){
+					if(ml->bb->vec[6][2] >= z){
 						fill_metaball_octal_node(node, ml, 7);
 					}
 				
 
 					/* ml belongs to the (2)3th node */
-					if(ml->bb->vec[6][0] > x){
+					if(ml->bb->vec[6][0] >= x){
 						fill_metaball_octal_node(node, ml, 2);
 					
 						/* ml belongs to the (6)7th node */
-						if(ml->bb->vec[6][2] > z){
+						if(ml->bb->vec[6][2] >= z){
 							fill_metaball_octal_node(node, ml, 6);
 						}
 					}
@@ -1745,12 +1772,12 @@ void subdivide_metaball_octal_node(octal_node *node, float *size, short depth)
 			}
 
 			/* vec[0][0] is in the (2)3th octant */
-			if((ml->bb->vec[0][0] > x) && (ml->bb->vec[0][1] > y)){
+			if((ml->bb->vec[0][0] >= x) && (ml->bb->vec[0][1] >= y)){
 				/* ml belongs to the (2)3th node */
 				fill_metaball_octal_node(node, ml, 2);
 				
 				/* ml belongs to the (6)7th node */
-				if(ml->bb->vec[6][2] > z){
+				if(ml->bb->vec[6][2] >= z){
 					fill_metaball_octal_node(node, ml, 6);
 				}
 			}
@@ -1762,15 +1789,15 @@ void subdivide_metaball_octal_node(octal_node *node, float *size, short depth)
 					/* ml belongs to the (4)5th node */
 					fill_metaball_octal_node(node, ml, 4);
 
-					if(ml->bb->vec[6][0] > x){
+					if(ml->bb->vec[6][0] >= x){
 						fill_metaball_octal_node(node, ml, 5);
 					}
 
-					if(ml->bb->vec[6][1] > y){
+					if(ml->bb->vec[6][1] >= y){
 						fill_metaball_octal_node(node, ml, 7);
 					}
 					
-					if((ml->bb->vec[6][0] > x) && (ml->bb->vec[6][1] > y)){
+					if((ml->bb->vec[6][0] >= x) && (ml->bb->vec[6][1] >= y)){
 						fill_metaball_octal_node(node, ml, 6);
 					}
 				}
@@ -1778,7 +1805,7 @@ void subdivide_metaball_octal_node(octal_node *node, float *size, short depth)
 				else{
 					fill_metaball_octal_node(node, ml, 5);
 
-					if(ml->bb->vec[6][1] > y){
+					if(ml->bb->vec[6][1] >= y){
 						fill_metaball_octal_node(node, ml, 6);
 					}
 				}
@@ -1788,7 +1815,7 @@ void subdivide_metaball_octal_node(octal_node *node, float *size, short depth)
 				if(ml->bb->vec[0][0] < x){
 					fill_metaball_octal_node(node, ml, 7);
 
-					if(ml->bb->vec[6][0] > x){
+					if(ml->bb->vec[6][0] >= x){
 						fill_metaball_octal_node(node, ml, 6);
 					}
 				}
@@ -1796,7 +1823,7 @@ void subdivide_metaball_octal_node(octal_node *node, float *size, short depth)
 			}
 			
 			/* vec[0][0] lies in (6)7th octant */
-			if((ml->bb->vec[0][0] > x) && (ml->bb->vec[0][1] > y)){
+			if((ml->bb->vec[0][0] >= x) && (ml->bb->vec[0][1] >= y)){
 				fill_metaball_octal_node(node, ml, 6);
 			}
 		}
@@ -1890,53 +1917,21 @@ void metaball_polygonize(Object *ob)
 {
 	PROCESS mbproc;
 	MetaBall *mb;
-	MetaElem *ml=NULL;
 	DispList *dl;
-	Object *bob;
-	Base *base;
-	int a, nr_cubes, obnr,nr;
+	int a, nr_cubes;
 	float *ve, *no, totsize, width;
-	char obname[32], name[32];
 	
 	mb= ob->data;
-	
+
 	if(!(R.flag & R_RENDERING) && (mb->flag==MB_UPDATE_NEVER)) return;
-	
 	if(G.moving && mb->flag==MB_UPDATE_FAST) return;
 
 	freedisplist(&ob->disp);
 	curindex= totindex= 0;
 	indices= 0;
 	thresh= mb->thresh;
-	
 
-	/* recount all MetaElems */
-	splitIDname(ob->id.name+2, obname, &obnr);
-	totelem= 0;
-	next_object(0, 0, 0);
-	while(next_object(1, &base, &bob)) {
-		if(bob->type==OB_MBALL) {
-			if(bob==ob){
-				if(bob==G.obedit) ml= editelems.first;
-				else ml= ((MetaBall*)bob->data)->elems.first;
-			}
-			else{
-				/* is bob in the same group as Object ob? */
-				splitIDname(bob->id.name+2, name, &nr);
-				if( strcmp(obname, name)==0 ) {
-					if(bob==G.obedit) ml= editelems.first;
-					/* keep track of linked data too! */
-					else if(ob==G.obedit && bob->data==ob->data) ml= editelems.first;
-					else ml= ((MetaBall*)bob->data)->elems.first;
-				}
-			}
-			while(ml){
-				totelem++;
-				ml= ml->next;
-			}
-		}
-	}
-
+	/* total number of MetaElems (totelem) is precomputed in find_basis_mball() function */
 	mainb= MEM_mallocN(sizeof(void *)*totelem, "mainb");
 	
 	/* initialize all mainb (MetaElems) */
@@ -1953,21 +1948,11 @@ void metaball_polygonize(Object *ob)
 	}
 
 	/* if scene includes more then one MetaElem, then octal tree optimalisation is used */	
-	if((totelem > 1) && (totelem <= 64)){
-		init_metaball_octal_tree(1);
-	}
-	if((totelem > 64) && (totelem <= 128)){
-		init_metaball_octal_tree(2);
-	}
-	if((totelem > 128) && (totelem <= 512)){
-		init_metaball_octal_tree(3);
-	}
-	if((totelem > 512) && (totelem <= 1024)){
-		init_metaball_octal_tree(4);
-	}
-	if(totelem > 1024){
-		init_metaball_octal_tree(5);
-	}
+	if((totelem > 1) && (totelem <= 64)) init_metaball_octal_tree(1);
+	if((totelem > 64) && (totelem <= 128)) init_metaball_octal_tree(2);
+	if((totelem > 128) && (totelem <= 512))	init_metaball_octal_tree(3);
+	if((totelem > 512) && (totelem <= 1024))init_metaball_octal_tree(4);
+	if(totelem > 1024) init_metaball_octal_tree(5);
 
 	/* width is size per polygonize cube */
 	if(R.flag & R_RENDERING) width= mb->rendersize;
