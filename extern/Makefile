@@ -30,13 +30,17 @@
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
 # Bounces make to subdirectories. Also installs after succesful all target.
 
+include nan_definitions.mk
+
 SOURCEDIR = extern
+DIR = $(OCGDIR)/extern
+DIRS = ode
 
-ALLDIRS = ode
+include nan_subdirs.mk
 
-all::
-	@for i in $(ALLDIRS); do \
+install:
+	@for i in $(DIRS); do \
 	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\
-	    $(MAKE) -C $$i install || exit 1; \
+	    $(MAKE) -C $$i $@ || exit 1; \
 	done
 

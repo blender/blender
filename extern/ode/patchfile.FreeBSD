@@ -1,9 +1,11 @@
-diff -u -w -r1.2 Makefile
---- Makefile	4 Nov 2002 21:55:48 -0000	1.2
-+++ Makefile	4 Jan 2003 20:18:18 -0000
-@@ -243,13 +243,13 @@
+--- dist/Makefile.org	Sat Jan 11 23:55:46 2003
++++ dist/Makefile	Sat Jan 11 23:55:36 2003
+@@ -242,14 +242,16 @@
+ clean:
  	-$(DEL_CMD) $(ODE_OBJECTS) $(ODE_TEST_EXE) $(ODE_LIB) $(DRAWSTUFF_OBJECTS) $(DRAWSTUFF_TEST_EXE) $(DRAWSTUFF_LIB) ode/test/*$(OBJ) drawstuff/dstest/*$(OBJ) $(CONFIGURATOR_EXE) $(CONFIG_H)
  
++# Patched for FreeBSD
++
  %$(OBJ): %.c
 -	$(CC) $(C_FLAGS) $(C_INC)$(INCPATH) $(DEFINES) $(C_OPT)1 $(C_OUT)$@ $<
 +	$(CC) $(C_FLAGS) $(C_INC)$(INCPATH) -I/usr/X11R6/include $(DEFINES) $(C_OPT)1 $(C_OUT)$@ $<

@@ -35,12 +35,16 @@ DISTDIR = dist
 CP = ../../intern/tools/cpifdiff.sh
 
 all:
-    ifeq ($(OS),$(findstring $(OS), "linux"))
+    ifeq ($(OS),freebsd)
+	(grep FreeBSD $(DISTDIR)/Makefile >/dev/null ; \
+	    [ $$? -eq 0 ] || patch < patchfile.FreeBSD )
+    endif
+    ifeq ($(OS),$(findstring $(OS), "freebsd linux"))
 	$(MAKE) -C $(DISTDIR)
     endif
 
-install:
-    ifeq ($(OS),$(findstring $(OS), "linux"))
+install: all
+    ifeq ($(OS),$(findstring $(OS), "freebsd linux"))
 	@echo "====> $(MAKE) $@ in $(SOURCEDIR)"
 	[ -d $(LCGDIR) ] || mkdir $(LCGDIR)
 	[ -d $(NAN_ODE) ] || mkdir $(NAN_ODE)
@@ -58,7 +62,11 @@ install:
     endif
 
 clean:
-    ifeq ($(OS),$(findstring $(OS), "linux"))
+    ifeq ($(OS),$(findstring $(OS), "freebsd linux"))
 	[ ! -f dist/Makefile ] || $(MAKE) -C dist clean
+    endif
+    ifeq ($(OS),freebsd)
+	(grep FreeBSD $(DISTDIR)/Makefile >/dev/null ; \
+	    [ $$? -ne 0 ] || patch -R < patchfile.FreeBSD )
     endif
 
