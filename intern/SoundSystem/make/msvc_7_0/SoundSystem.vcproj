@@ -48,7 +48,7 @@
 				CommandLine="ECHO Copying header files
 XCOPY /Y ..\..\*.h ..\..\..\..\..\lib\windows\SoundSystem\include\*.h
 ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\soundsystem\debug\*.lib ..\..\..\..\..\lib\windows\SoundSystem\lib\debug\*.a
+XCOPY /Y ..\..\..\..\obj\windows\intern\soundsystem\debug\*.lib ..\..\..\..\..\lib\windows\SoundSystem\lib\debug\*.lib
 ECHO Done
 "/>
 			<Tool
@@ -100,7 +100,7 @@ ECHO Done
 				CommandLine="ECHO Copying header files
 XCOPY /Y ..\..\*.h ..\..\..\..\..\lib\windows\SoundSystem\include\*.h
 ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\soundsystem\*.lib ..\..\..\..\..\lib\windows\SoundSystem\lib\*.a
+XCOPY /Y ..\..\..\..\obj\windows\intern\soundsystem\*.lib ..\..\..\..\..\lib\windows\SoundSystem\lib\*.lib
 ECHO Done
 "/>
 			<Tool

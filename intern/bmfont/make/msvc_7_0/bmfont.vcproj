@@ -48,7 +48,7 @@
 				CommandLine="ECHO Copying header files
 XCOPY /Y ..\..\*.h ..\..\..\..\..\lib\windows\bmfont\include\
 ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\bmfont\*.lib ..\..\..\..\..\lib\windows\bmfont\lib\*.a
+XCOPY /Y ..\..\..\..\obj\windows\intern\bmfont\*.lib ..\..\..\..\..\lib\windows\bmfont\lib\*.lib
 ECHO Done
 "/>
 			<Tool
@@ -100,7 +100,7 @@ ECHO Done
 				CommandLine="ECHO Copying header files
 XCOPY /Y ..\..\*.h ..\..\..\..\..\lib\windows\bmfont\include\
 ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\bmfont\debug\*.lib ..\..\..\..\..\lib\windows\bmfont\lib\debug\*.a
+XCOPY /Y ..\..\..\..\obj\windows\intern\bmfont\debug\*.lib ..\..\..\..\..\lib\windows\bmfont\lib\debug\*.lib
 ECHO Done
 "/>
 			<Tool

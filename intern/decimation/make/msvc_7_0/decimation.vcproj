@@ -46,7 +46,7 @@
 				CommandLine="ECHO Copying header files
 XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\lib\windows\decimation\include\
 ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\decimation\debug\*.lib ..\..\..\..\..\lib\windows\decimation\lib\debug\*.a
+XCOPY /Y ..\..\..\..\obj\windows\intern\decimation\debug\*.lib ..\..\..\..\..\lib\windows\decimation\lib\debug\*.lib
 ECHO Copying Debug info.
 XCOPY /Y ..\..\..\..\obj\windows\intern\decimation\debug\vc70.* ..\..\..\..\..\lib\windows\decimation\lib\debug\
 ECHO Done
@@ -98,7 +98,7 @@ ECHO Done
 				CommandLine="ECHO Copying header files
 XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\lib\windows\decimation\include\
 ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\decimation\*.lib ..\..\..\..\..\lib\windows\decimation\lib\*.a
+XCOPY /Y ..\..\..\..\obj\windows\intern\decimation\*.lib ..\..\..\..\..\lib\windows\decimation\lib\*.lib
 ECHO Done
 "/>
 			<Tool

@@ -46,7 +46,7 @@
 				CommandLine="ECHO Copying header files
 XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\lib\windows\bsp\include\
 ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\bsp\debug\*.lib ..\..\..\..\..\lib\windows\bsp\lib\debug\*.a
+XCOPY /Y ..\..\..\..\obj\windows\intern\bsp\debug\*.lib ..\..\..\..\..\lib\windows\bsp\lib\debug\*.lib
 ECHO Copying Debug info.
 XCOPY /Y ..\..\..\..\obj\windows\intern\bsp\debug\vc70.* ..\..\..\..\..\lib\windows\bsp\lib\debug\
 ECHO Done
@@ -99,7 +99,7 @@ ECHO Done
 				CommandLine="ECHO Copying header files
 XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\lib\windows\bsp\include\
 ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\bsp\*.lib ..\..\..\..\..\lib\windows\bsp\lib\*.a
+XCOPY /Y ..\..\..\..\obj\windows\intern\bsp\*.lib ..\..\..\..\..\lib\windows\bsp\lib\*.lib
 ECHO Done
 "/>
 			<Tool

@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\intern,..\..\..\..\SoundSystem,..\..\..\..\moto\include,..\..\..\..\string,..\..\..\..\..\..\lib\windows\openal\include"
+				AdditionalIncludeDirectories="..\..\..\intern;..\..\..\..\SoundSystem\sdl;..\..\..\..\SoundSystem;..\..\..\..\moto\include;..\..\..\..\string;..\..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\..\lib\windows\openal\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
@@ -44,7 +44,11 @@
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Copying lib
+XCOPY /Y ..\..\..\..\..\obj\windows\intern\soundsystem\openal\debug\*.lib ..\..\..\..\..\..\lib\windows\SoundSystem\lib\debug\*.lib
+ECHO Done
+"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
@@ -67,7 +71,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\intern,..\..\..\..\SoundSystem,..\..\..\..\moto\include,..\..\..\..\string,..\..\..\..\..\..\lib\windows\openal\include"
+				AdditionalIncludeDirectories="..\..\..\intern;..\..\..\..\SoundSystem\sdl;..\..\..\..\SoundSystem;..\..\..\..\moto\include;..\..\..\..\string;..\..\..\..\..\..\lib\windows\openal\include;..\..\..\..\..\..\lib\windows\sdl\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -90,7 +94,11 @@
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Copying lib
+XCOPY /Y ..\..\..\..\..\obj\windows\intern\soundsystem\openal\*.lib ..\..\..\..\..\..\lib\windows\SoundSystem\lib\*.lib
+ECHO Done
+"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
@@ -110,12 +118,18 @@
 			<File
 				RelativePath="..\..\..\openal\SND_OpenALDevice.cpp">
 			</File>
+			<File
+				RelativePath="..\..\..\sdl\SND_SDLCDDevice.cpp">
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
 				RelativePath="..\..\..\openal\SND_OpenALDevice.h">
+			</File>
+			<File
+				RelativePath="..\..\..\sdl\SND_SDLCDDevice.h">
 			</File>
 		</Filter>
 	</Files>

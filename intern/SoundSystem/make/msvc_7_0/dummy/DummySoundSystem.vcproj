@@ -45,7 +45,11 @@
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Copying lib
+XCOPY /Y ..\..\..\..\..\obj\windows\intern\soundsystem\dummy\*.lib ..\..\..\..\..\..\lib\windows\SoundSystem\lib\*.lib
+ECHO Done
+"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
@@ -90,7 +94,11 @@
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Copying lib
+XCOPY /Y ..\..\..\..\..\obj\windows\intern\soundsystem\dummy\debug\*.lib ..\..\..\..\..\..\lib\windows\SoundSystem\lib\debug\*.lib
+ECHO Done
+"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool

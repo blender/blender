@@ -47,7 +47,7 @@
 				CommandLine="ECHO Copying header files
 XCOPY /Y ..\..\*.h ..\..\..\..\..\lib\windows\memutil\include\
 ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\memutil\debug\*.lib ..\..\..\..\..\lib\windows\memutil\lib\debug\*.a
+XCOPY /Y ..\..\..\..\obj\windows\intern\memutil\debug\*.lib ..\..\..\..\..\lib\windows\memutil\lib\debug\*.lib
 ECHO Copying Debug info.
 XCOPY /Y ..\..\..\..\obj\windows\intern\memutil\debug\vc70.* ..\..\..\..\..\lib\windows\memutil\lib\debug\
 ECHO Done
@@ -100,7 +100,7 @@ ECHO Done
 				CommandLine="ECHO Copying header files
 XCOPY /Y ..\..\*.h ..\..\..\..\..\lib\windows\memutil\include\
 ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\memutil\*.lib ..\..\..\..\..\lib\windows\memutil\lib\*.a
+XCOPY /Y ..\..\..\..\obj\windows\intern\memutil\*.lib ..\..\..\..\..\lib\windows\memutil\lib\*.lib
 ECHO Done
 "/>
 			<Tool
