@@ -117,7 +117,7 @@ void getConstraintMatrix(TransInfo *t);
 void constraintNumInput(TransInfo *t, float vec[3])
 {
 	int mode = t->con.mode;
-	float nval = (t->num.flags & NULLONE)?1.0f:0.0f;
+	float nval = (t->num.flag & NULLONE)?1.0f:0.0f;
 
 	if (getConstraintSpaceDimension(t) == 2) {
 		if (mode & (CON_AXIS0|CON_AXIS1)) {
@@ -158,7 +158,7 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3]) {
 
 	snapGrid(t, vec);
 
-	if (t->num.flags & NULLONE) {
+	if (t->num.flag & NULLONE) {
 		if (!(t->con.mode & CON_AXIS0))
 			vec[0] = 1.0f;
 
@@ -394,6 +394,7 @@ static void applyObjectConstraintSize(TransInfo *t, TransData *td, float smat[3]
 		Mat3MulMat3(smat, td->axismtx, tmat);
 	}
 }
+
 /*
  * Generic callback for constant spacial constraints applied to rotations
  * 
@@ -481,25 +482,25 @@ static void drawObjectConstraint(TransInfo *t) {
 	TransData * td = t->data;
 
 	if (t->con.mode & CON_AXIS0) {
-		drawLine(td->ob->obmat[3], td->axismtx[0], 255 - 'x');
+		drawLine(td->ob->obmat[3], td->axismtx[0], 'x', DRAWLIGHT);
 	}
 	if (t->con.mode & CON_AXIS1) {
-		drawLine(td->ob->obmat[3], td->axismtx[1], 255 - 'y');
+		drawLine(td->ob->obmat[3], td->axismtx[1], 'y', DRAWLIGHT);
 	}
 	if (t->con.mode & CON_AXIS2) {
-		drawLine(td->ob->obmat[3], td->axismtx[2], 255 - 'z');
+		drawLine(td->ob->obmat[3], td->axismtx[2], 'z', DRAWLIGHT);
 	}
 
 	td++;
 	for(i=1;i<t->total;i++,td++) {
 		if (t->con.mode & CON_AXIS0) {
-			drawLine(td->ob->obmat[3], td->axismtx[0], 'x');
+			drawLine(td->ob->obmat[3], td->axismtx[0], 'x', 0);
 		}
 		if (t->con.mode & CON_AXIS1) {
-			drawLine(td->ob->obmat[3], td->axismtx[1], 'y');
+			drawLine(td->ob->obmat[3], td->axismtx[1], 'y', 0);
 		}
 		if (t->con.mode & CON_AXIS2) {
-			drawLine(td->ob->obmat[3], td->axismtx[2], 'z');
+			drawLine(td->ob->obmat[3], td->axismtx[2], 'z', 0);
 		}
 	}
 }
@@ -541,11 +542,6 @@ void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[])
 	t->con.mode = mode;
 	getConstraintMatrix(t);
 
-	VECCOPY(t->con.center, t->center);
-	if (t->flag & T_EDIT) {
-		Mat4MulVecfl(G.obedit->obmat, t->con.center);
-	}
-
 	startConstraint(t);
 
 	t->con.applyVec = applyAxisConstraintVec;
@@ -569,8 +565,6 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
 			Mat3CpyMat3(t->con.mtx, t->data->axismtx);
 			t->con.mode = mode;
 			getConstraintMatrix(t);
-
-			VECCOPY(t->con.center, t->center);
 
 			startConstraint(t);
 
@@ -599,11 +593,6 @@ void BIF_setSingleAxisConstraint(float vec[3]) {
 	t->con.mode = (CON_AXIS0|CON_APPLY);
 	getConstraintMatrix(t);
 
-	VECCOPY(t->con.center, t->center);
-	if (t->flag & T_OBJECT) {
-		Mat4MulVecfl(G.obedit->obmat, t->con.center);
-	}
-
 	t->con.drawExtra = NULL;
 	t->con.applyVec = applyAxisConstraintVec;
 	t->con.applySize = applyAxisConstraintSize;
@@ -613,7 +602,6 @@ void BIF_setSingleAxisConstraint(float vec[3]) {
 
 void BIF_drawConstraint(void)
 {
-	//int i = -1;
 	TransInfo *t = BIF_GetTransInfo();
 	TransCon *tc = &(t->con);
 
@@ -625,19 +613,19 @@ void BIF_drawConstraint(void)
 	}
 	else {
 		if (tc->mode & CON_SELECT) {
-				drawLine(tc->center, tc->mtx[0], 'x');
-				drawLine(tc->center, tc->mtx[1], 'y');
-				drawLine(tc->center, tc->mtx[2], 'z');
+				drawLine(tc->center, tc->mtx[0], 'x', 0);
+				drawLine(tc->center, tc->mtx[1], 'y', 0);
+				drawLine(tc->center, tc->mtx[2], 'z', 0);
 		}
 
 		if (tc->mode & CON_AXIS0) {
-			drawLine(tc->center, tc->mtx[0], 255 - 'x');
+			drawLine(tc->center, tc->mtx[0], 'x', DRAWLIGHT);
 		}
 		if (tc->mode & CON_AXIS1) {
-			drawLine(tc->center, tc->mtx[1], 255 - 'y');
+			drawLine(tc->center, tc->mtx[1], 'y', DRAWLIGHT);
 		}
 		if (tc->mode & CON_AXIS2) {
-			drawLine(tc->center, tc->mtx[2], 255 - 'z');
+			drawLine(tc->center, tc->mtx[2], 'z', DRAWLIGHT);
 		}
 	}
 }
@@ -783,7 +771,7 @@ void setNearestAxis(TransInfo *t)
 	}
 
 	if (len[0] < len[1] && len[0] < len[2]) {
-		if (G.qual == LR_ALTKEY) {
+		if (G.qual & LR_SHIFTKEY) {
 			t->con.mode |= (CON_AXIS1|CON_AXIS2);
 			strcpy(t->con.text, " locking global X");
 		}
@@ -793,7 +781,7 @@ void setNearestAxis(TransInfo *t)
 		}
 	}
 	else if (len[1] < len[0] && len[1] < len[2]) {
-		if (G.qual == LR_ALTKEY) {
+		if (G.qual & LR_SHIFTKEY) {
 			t->con.mode |= (CON_AXIS0|CON_AXIS2);
 			strcpy(t->con.text, " locking global Y");
 		}
@@ -803,7 +791,7 @@ void setNearestAxis(TransInfo *t)
 		}
 	}
 	else if (len[2] < len[1] && len[2] < len[0]) {
-		if (G.qual == LR_ALTKEY) {
+		if (G.qual & LR_SHIFTKEY) {
 			t->con.mode |= (CON_AXIS0|CON_AXIS1);
 			strcpy(t->con.text, " locking global Z");
 		}

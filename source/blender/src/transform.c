@@ -410,6 +410,7 @@ static void createTransPose(void)
 	for(i=0; i<Trans.total; i++, td++, tdx++) {
 		td->ext= tdx;
 		td->tdi = NULL;
+		td->val = NULL;
 	}	
 	/* recursive fill trans data */
 	td= Trans.data;
@@ -452,6 +453,7 @@ static void createTransArmatureVerts(void)
 
 			td->ext = NULL;
 			td->tdi = NULL;
+			td->val = NULL;
 
 			td++;
 		}
@@ -466,6 +468,7 @@ static void createTransArmatureVerts(void)
 
 			td->ext = NULL;
 			td->tdi = NULL;
+			td->val = NULL;
 
 			td++;
 		}
@@ -513,6 +516,7 @@ static void createTransMBallVerts(void)
 
 			td->ext = tx;
 			td->tdi = NULL;
+			td->val = NULL;
 
 			tx->size = &ml->expx;
 			tx->isize[0] = ml->expx;
@@ -582,6 +586,7 @@ static void createTransCurveVerts(void)
 						else td->flag= 0;
 						td->ext = NULL;
 						td->tdi = NULL;
+						td->val = NULL;
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
@@ -589,6 +594,7 @@ static void createTransCurveVerts(void)
 						td++;
 						count++;
 					}
+					/* THIS IS THE CV, the other two are handles */
 					if(propmode || (bezt->f2 & 1)) {
 						VECCOPY(td->iloc, bezt->vec[1]);
 						td->loc= bezt->vec[1];
@@ -597,6 +603,8 @@ static void createTransCurveVerts(void)
 						else td->flag= 0;
 						td->ext = NULL;
 						td->tdi = NULL;
+						td->val = &(bezt->alfa);
+						td->ival = bezt->alfa;
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
@@ -612,6 +620,7 @@ static void createTransCurveVerts(void)
 						else td->flag= 0;
 						td->ext = NULL;
 						td->tdi = NULL;
+						td->val = NULL;
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
@@ -633,6 +642,8 @@ static void createTransCurveVerts(void)
 						else td->flag= 0;
 						td->ext = NULL;
 						td->tdi = NULL;
+						td->val = &(bp->alfa);
+						td->ival = bp->alfa;
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
@@ -690,6 +701,7 @@ static void createTransLatticeVerts(void)
 
 				td->ext = NULL;
 				td->tdi = NULL;
+				td->val = NULL;
 
 				td++;
 				count++;
@@ -717,6 +729,7 @@ static void VertsToTransData(TransData *td, EditVert *eve)
 
 	td->ext = NULL;
 	td->tdi = NULL;
+	td->val = NULL;
 }
 
 static void createTransEditVerts(void)
@@ -1190,12 +1203,14 @@ static void createTransObject(void)
 				}
 				else {
 					ObjectToTransData(td, ob);
-					td->tdi= NULL;
+					td->tdi = NULL;
+					td->val = NULL;
 				}
 			}
 			else {
 				ObjectToTransData(td, ob);
-				td->tdi= NULL;
+				td->tdi = NULL;
+				td->val = NULL;
 			}
 			td++;
 			tx++;
@@ -1266,12 +1281,6 @@ void Transform(int mode)
 	areawinset(curarea->win);
 
 	Mat3One(mati);
-	/* FOR TESTS
-	{
-		float axis[3] = {0.0f, 0.0f, 1.0f};
-		VecRotToMat3(axis, M_PI / 3, mati);
-	}
-	*/
 
 	/* stupid PET initialisation code */
 	/* START */
@@ -1325,6 +1334,9 @@ void Transform(int mode)
 	case TFM_SHRINKFATTEN:
 		initShrinkFatten(&Trans);
 		break;
+	case TFM_TILT:
+		initTilt(&Trans);
+		break;
 	}
 
 	// Emptying event queue
@@ -1360,9 +1372,11 @@ void Transform(int mode)
 
 			if(val) {
 				switch (event){
-					// enforce redraw of transform when modifiers are used
+				/* enforce redraw of transform when modifiers are used */
 				case LEFTCTRLKEY:
 				case RIGHTCTRLKEY:
+				case LEFTSHIFTKEY:
+				case RIGHTSHIFTKEY:
 					Trans.redraw = 1;
 					break;
 					
@@ -1401,7 +1415,7 @@ void Transform(int mode)
 					else if(cmode == 'x') {
 						if (G.qual == 0)
 							setLocalConstraint(&Trans, (CON_AXIS0), "along local X");
-						else if (G.qual == LR_ALTKEY)
+						else if (G.qual == LR_SHIFTKEY)
 							setLocalConstraint(&Trans, (CON_AXIS1|CON_AXIS2), "locking local X");
 
 						cmode = 'X';
@@ -1409,7 +1423,7 @@ void Transform(int mode)
 					else {
 						if (G.qual == 0)
 							setConstraint(&Trans, mati, (CON_AXIS0), "along global X");
-						else if (G.qual == LR_ALTKEY)
+						else if (G.qual == LR_SHIFTKEY)
 							setConstraint(&Trans, mati, (CON_AXIS1|CON_AXIS2), "locking global X");
 
 						cmode = 'x';
@@ -1424,7 +1438,7 @@ void Transform(int mode)
 					else if(cmode == 'y') {
 						if (G.qual == 0)
 							setLocalConstraint(&Trans, (CON_AXIS1), "along global Y");
-						else if (G.qual == LR_ALTKEY)
+						else if (G.qual == LR_SHIFTKEY)
 							setLocalConstraint(&Trans, (CON_AXIS0|CON_AXIS2), "locking global Y");
 
 						cmode = 'Y';
@@ -1432,7 +1446,7 @@ void Transform(int mode)
 					else {
 						if (G.qual == 0)
 							setConstraint(&Trans, mati, (CON_AXIS1), "along local Y");
-						else if (G.qual == LR_ALTKEY)
+						else if (G.qual == LR_SHIFTKEY)
 							setConstraint(&Trans, mati, (CON_AXIS0|CON_AXIS2), "locking local Y");
 
 						cmode = 'y';
@@ -1447,7 +1461,7 @@ void Transform(int mode)
 					else if(cmode == 'z') {
 						if (G.qual == 0)
 							setLocalConstraint(&Trans, (CON_AXIS2), "along local Z");
-						else if (G.qual == LR_ALTKEY)
+						else if (G.qual == LR_SHIFTKEY)
 							setLocalConstraint(&Trans, (CON_AXIS0|CON_AXIS1), "locking local Z");
 
 						cmode = 'Z';
@@ -1455,7 +1469,7 @@ void Transform(int mode)
 					else {
 						if (G.qual == 0)
 							setConstraint(&Trans, mati, (CON_AXIS2), "along global Z");
-						else if (G.qual == LR_ALTKEY)
+						else if (G.qual == LR_SHIFTKEY)
 							setConstraint(&Trans, mati, (CON_AXIS0|CON_AXIS1), "locking global Z");
 
 						cmode = 'z';
@@ -1492,6 +1506,13 @@ void Transform(int mode)
 			}
 			else {
 				switch (event){
+				/* enforce redraw of transform when modifiers are used */
+				case LEFTCTRLKEY:
+				case RIGHTCTRLKEY:
+				case LEFTSHIFTKEY:
+				case RIGHTSHIFTKEY:
+					Trans.redraw = 1;
+					break;
 				case MIDDLEMOUSE:
 					postSelectConstraint(&Trans);
 					Trans.redraw = 1;
@@ -2390,3 +2411,91 @@ int ShrinkFatten(TransInfo *t, short mval[2])
 
 	return 1;
 }
+
+/* ************************** TILT *************************** */
+
+void initTilt(TransInfo *t) 
+{
+	t->idx_max = 0;
+	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = G.vd->grid * (float)((5.0/180)*M_PI);
+	t->snap[2] = t->snap[1] * 0.2f;
+	t->fac = 0;
+	t->transform = Tilt;
+}
+
+
+
+int Tilt(TransInfo *t, short mval[2]) 
+{
+	TransData *td = t->data;
+	int i;
+	char str[50];
+
+	float final;
+
+	int dx2 = t->center2d[0] - mval[0];
+	int dy2 = t->center2d[1] - mval[1];
+	float B = (float)sqrt(dx2*dx2+dy2*dy2);
+
+	int dx1 = t->center2d[0] - t->imval[0];
+	int dy1 = t->center2d[1] - t->imval[1];
+	float A = (float)sqrt(dx1*dx1+dy1*dy1);
+
+	int dx3 = mval[0] - t->imval[0];
+	int dy3 = mval[1] - t->imval[1];
+
+	float deler= ((dx1*dx1+dy1*dy1)+(dx2*dx2+dy2*dy2)-(dx3*dx3+dy3*dy3))
+		/ (2 * A * B);
+
+	float dphi;
+
+	dphi = saacos(deler);
+	if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
+
+	if(G.qual & LR_SHIFTKEY) t->fac += dphi/30.0f;
+	else t->fac += dphi;
+
+	final = t->fac;
+
+	snapGrid(t, &final);
+
+	t->imval[0] = mval[0];
+	t->imval[1] = mval[1];
+
+	if (hasNumInput(&t->num)) {
+		char c[20];
+
+		applyNumInput(&t->num, &final);
+
+		outputNumInput(&(t->num), c);
+
+		sprintf(str, "Tilt: %s %s", &c[0], t->proptext);
+
+		final *= (float)(M_PI / 180.0);
+	}
+	else {
+		sprintf(str, "Tilt: %.2f %s", 180.0*final/M_PI, t->proptext);
+	}
+
+	for(i = 0 ; i < t->total; i++, td++) {
+		if (td->flag & TD_NOACTION)
+			break;
+
+		if (td->val) {
+			*td->val = td->ival + final * td->factor;
+		}
+	}
+
+	recalcData(t);
+
+	headerprint(str);
+
+	force_draw(0);
+
+	helpline (t->center);
+
+	return 1;
+}
+

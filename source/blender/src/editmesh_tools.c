@@ -568,8 +568,11 @@ void extrude_mesh(void)
 			Transform(TFM_SHRINKFATTEN);
 		}
 		else {
-			if(transmode=='n') 
+			if(transmode=='n') {
+				Mat4MulVecfl(G.obedit->obmat, nor);
+				VecSubf(nor, nor, G.obedit->obmat[3]);
 				BIF_setSingleAxisConstraint(nor);
+			}
 			Transform(TFM_TRANSLATION);
 		}
 #else

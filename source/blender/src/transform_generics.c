@@ -289,21 +289,21 @@ void recalcData(TransInfo *t)
 void initTransModeFlags(TransInfo *t, int mode) 
 {
 	t->flag = 0;
-	t->num.flags = 0;
+	t->num.flag = 0;
 	t->mode = mode;
 	
 	switch (mode) {
 	case TFM_RESIZE:
-		t->num.flags |= NULLONE;
-		t->num.flags |= AFFECTALL;
+		t->num.flag |= NULLONE;
+		t->num.flag |= AFFECTALL;
 		if (!G.obedit) {
 			t->flag |= NOZERO;
-			t->num.flags |= NOZERO;
+			t->num.flag |= NOZERO;
 		}
 		break;
 	case TFM_TOSPHERE:
-		t->num.flags |= NULLONE;
-		t->num.flags |= NONEGATIVE;
+		t->num.flag |= NULLONE;
+		t->num.flag |= NONEGATIVE;
 		t->flag |= NOCONSTRAINT;
 		break;
 	case TFM_SHEAR:
@@ -312,7 +312,7 @@ void initTransModeFlags(TransInfo *t, int mode)
 	}
 }
 
-void drawLine(float *center, float *dir, char axis)
+void drawLine(float *center, float *dir, char axis, short options)
 {
 	extern void make_axis_color(char *col, char *col2, char axis);	// drawview.c
 	float v1[3], v2[3], v3[3];
@@ -326,9 +326,8 @@ void drawLine(float *center, float *dir, char axis)
 	VecSubf(v2, center, v3);
 	VecAddf(v1, center, v3);
 
-	if (axis > 127) {
-		axis = -1 * (axis - 255);
-		col[0] = col[1] = col[2] = 200;
+	if (options & DRAWLIGHT) {
+		col[0] = col[1] = col[2] = 220;
 	}
 	else {
 		BIF_GetThemeColor3ubv(TH_GRID, col);
@@ -473,7 +472,9 @@ void restoreTransObjects(TransInfo *t)
 	
 	for (td = t->data; td < t->data + t->total; td++) {
 		VECCOPY(td->loc, td->iloc);
-		
+		if (td->val) {
+			*td->val = td->ival;
+		}
 		if (td->ext) {
 			if (td->ext->rot) {
 				VECCOPY(td->ext->rot, td->ext->irot);
@@ -621,6 +622,12 @@ void calculateCenter(TransInfo *t)
 		calculateCenterMedian(t);
 		printf("local\n");
 		break;
+	}
+
+	/* setting constraint center */
+	VECCOPY(t->con.center, t->center);
+	if(t->flag & T_EDIT) {
+		Mat4MulVecfl(G.obedit->obmat, t->con.center);
 	}
 
 	/* voor panning from cameraview */

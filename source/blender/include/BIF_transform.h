@@ -46,6 +46,7 @@
 #define TFM_SHEAR			5
 #define TFM_WARP			7
 #define TFM_SHRINKFATTEN	8
+#define TFM_TILT			9
 
 #define TFM_LAMP_ENERGY		10
 

@@ -37,9 +37,12 @@ void recalcData(TransInfo *t);
 
 void initTransModeFlags(TransInfo *t, int mode);
 
-void drawLine(float *center, float *dir, char axis);
+void drawLine(float *center, float *dir, char axis, short options);
 
-void postTrans (TransInfo *t);
+/* DRAWLINE options flags */
+#define DRAWLIGHT	1
+#define DRAWDASHED	2
+#define DRAWBOLD	4
 
 void apply_grid1(float *val, int max_index, float factor);
 void apply_grid2(float *val, int max_index, float factor, float factor2);
@@ -49,6 +52,7 @@ void applyTransObjects(TransInfo *t);
 void restoreTransObjects(TransInfo *t);
 
 void initTrans(TransInfo *t);
+void postTrans (TransInfo *t);
 
 void calculateCenterBound(TransInfo *t);
 void calculateCenterMedian(TransInfo *t);

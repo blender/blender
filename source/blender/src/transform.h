@@ -83,7 +83,6 @@ typedef struct TransDataExtension {
     float *size;         /* Size of the data to transform (Faculative)                                     */
     float  isize[3];	 /* Initial size                                                                   */
 	float  obmat[3][3];	 /* Object matrix */  
-
 	void *bone;			/* ARGH! old transform demanded it, added for now (ton) */
 } TransDataExtension;
 
@@ -92,6 +91,8 @@ typedef struct TransData {
 	float  factor;       /* Factor of the transformation (for Proportionnal Editing)                       */
     float *loc;          /* Location of the data to transform                                              */
     float  iloc[3];      /* Initial location                                                               */
+	float *val;          /* Value pointer for special transforms */
+	float  ival;         /* Old value*/
     float  center[3];	 /* Individual data center                                                         */
     float  mtx[3][3];    /* Transformation matrix from data space to global space                          */
     float  smtx[3][3];   /* Transformation matrix from global space to data space                          */
@@ -135,18 +136,6 @@ typedef struct TransInfo {
 #define NOFRACTION		16
 #define	AFFECTALL		32
 
-/* transinfo->mode */
-#define TFM_REPEAT			0
-#define TFM_TRANSLATION		1
-#define TFM_ROTATION		2
-#define TFM_RESIZE			3
-#define TFM_TOSPHERE		4
-#define TFM_SHEAR			5
-#define TFM_WARP			7
-#define TFM_SHRINKFATTEN	8
-
-#define TFM_LAMP_ENERGY		10
-
 /* transinfo->flag */
 #define T_OBJECT		1
 #define T_EDIT			2
@@ -160,12 +149,6 @@ typedef struct TransInfo {
 #define CON_AXIS2		8
 #define CON_SELECT		16
 #define CON_NOFLIP		32	/* does not reorient vector to face viewport when on */
-
-#define PROP_SHARP		0
-#define PROP_SMOOTH		1
-#define PROP_ROOT		2
-#define PROP_LIN		3
-#define PROP_CONST		4
 
 /* transdata->flag */
 #define TD_SELECTED		1
@@ -194,6 +177,9 @@ int Rotation(TransInfo *t, short mval[2]);
 
 void initShrinkFatten(TransInfo *t);
 int ShrinkFatten(TransInfo *t, short mval[2]);
+
+void initTilt(TransInfo *t);
+int Tilt(TransInfo *t, short mval[2]);
 
 #endif
 

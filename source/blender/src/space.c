@@ -1550,10 +1550,18 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						countall();
 						makeDispList(G.obedit);
 					}
-					else if((G.qual==LR_ALTKEY) && G.obedit->type==OB_CURVE)
-						clear_tilt();
-					else if((G.qual==0))
-						transform('t');
+					if (G.obedit->type==OB_CURVE) {
+						if (G.qual==LR_ALTKEY) {
+							clear_tilt();
+						}
+						else if (G.qual==0) {
+#ifdef NEWTRANSFORM
+							Transform(TFM_TILT);
+#else
+							transform('t');
+#endif
+						}
+					}
 				}
 				else if(G.qual==LR_CTRLKEY) {
 					make_track();
