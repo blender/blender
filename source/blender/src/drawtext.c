@@ -1350,11 +1350,12 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case RETKEY:
 			txt_split_curline(text);
-			int a = 0;
-			while ( a < st->currtab_set)
 			{
-				txt_add_char(text, '\t');
-				a++;
+				int a = 0;
+				while ( a < st->currtab_set) {
+					txt_add_char(text, '\t');
+					a++;
+				}
 			}
 			do_draw= 1;
 			pop_space_text(st);
