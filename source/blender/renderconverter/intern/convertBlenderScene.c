@@ -3074,9 +3074,7 @@ void displace_render_face(VlakRen *vlr, float *scale)
 							    nor);
 								
 	xn= vlr->n[0]*nor[0]+vlr->n[1]*nor[1]+vlr->n[2]*nor[2];
-	//if (xn<0.0) flipnorm=1;
-	
-	//printf("before vlr->n=%f, %f, %f flipn=%i\n", vlr->n[0], vlr->n[1], vlr->n[2], flipnorm);
+	if (xn<0.0) flipnorm=1;
 	
 	/* UV coords must come from face */
 	hasuv = vlr->tface && (shi.matren->texco & TEXCO_UV);
@@ -3089,7 +3087,6 @@ void displace_render_face(VlakRen *vlr, float *scale)
 			shi.uv[0] = 2*vlr->tface->uv[0][0]-1.0f; /* shi.uv and tface->uv are */
 			shi.uv[1]=  2*vlr->tface->uv[0][1]-1.0f; /* scalled differently 	 */
 		}
-		//printf("v1 ");
 		displace_render_vert(&shi, vlr->v1, scale);
 	}
 	
@@ -3098,7 +3095,6 @@ void displace_render_face(VlakRen *vlr, float *scale)
 			shi.uv[0] = 2*vlr->tface->uv[1][0]-1.0f; 
 			shi.uv[1]=  2*vlr->tface->uv[1][1]-1.0f;
 		}
-		//printf("v2 ");
 		displace_render_vert(&shi, vlr->v2, scale);
 	}
 	
@@ -3107,7 +3103,6 @@ void displace_render_face(VlakRen *vlr, float *scale)
 			shi.uv[0] = 2*vlr->tface->uv[2][0]-1.0f; 
 			shi.uv[1]=  2*vlr->tface->uv[2][1]-1.0f;
 		}	
-		 //printf("v3 ");
 		displace_render_vert(&shi, vlr->v3, scale);
 	}
 			
@@ -3117,8 +3112,7 @@ void displace_render_face(VlakRen *vlr, float *scale)
 				shi.uv[0] = 2*vlr->tface->uv[3][0]-1.0f; 
 				shi.uv[1]=  2*vlr->tface->uv[3][1]-1.0f;
 			}	
-			//printf("v4 ");
-		 	displace_render_vert(&shi, vlr->v4, scale);
+			displace_render_vert(&shi, vlr->v4, scale);
 		}
 		/* We want to split the quad along the opposite verts that are */
 		/*	closest in displace value.  This will help smooth edges.   */ 
@@ -3140,7 +3134,7 @@ void displace_render_face(VlakRen *vlr, float *scale)
 		else vlr->len= CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co,
 							    vlr->n);
 	}
-	//printf("after vlr->n=%f, %f, %f\n\n", vlr->n[0], vlr->n[1], vlr->n[2]);
+	
 }
 
 void displace_render_vert(ShadeInput *shi, VertRen *vr, float *scale)
