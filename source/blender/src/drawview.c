@@ -1025,7 +1025,7 @@ void drawview3d_render(struct View3D *v3d)
 		/* XXXXXXXX live and die by the hack */
 	free_all_realtime_images();
 	mywindow_build_and_set_renderwin();
-	
+		
 	v3d_windowmode= 1;
 	setwinmatrixview3d(0);
 	v3d_windowmode= 0;

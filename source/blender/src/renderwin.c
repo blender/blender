@@ -761,7 +761,12 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 	RE_set_timecursor_callback(set_timecursor);
 	RE_set_printrenderinfo_callback(printrenderinfo_cb);
 	
-	if (render_win) window_set_cursor(render_win->win, CURSOR_WAIT);
+	if (render_win) {
+		window_set_cursor(render_win->win, CURSOR_WAIT);
+		// when opening new window... not cross platform identical behaviour, so
+		// for now call it each time
+		if(ogl_render_view3d) init_gl_stuff();
+	}
 	waitcursor(1);
 
 	G.afbreek= 0;
