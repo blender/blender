@@ -148,7 +148,7 @@ bool yafrayFileRender_t::writeRender()
 	// finally export render block
 	ostr.str("");
 	ostr << "<render camera_name=\"MAINCAM\"\n";
-	ostr << "\traydepth=\"" << maxraydepth << "\" gamma=\"" << R.r.YF_gamma << "\" exposure=\"" << R.r.YF_exposure << "\"\n";
+	ostr << "\traydepth=\"" << R.r.YF_raydepth << "\" gamma=\"" << R.r.YF_gamma << "\" exposure=\"" << R.r.YF_exposure << "\"\n";
 
 	//if( (G.scene->world!=NULL) && (G.scene->world->GIquality>1) && ! G.scene->world->cache )
 	if ((R.r.GImethod!=0) && (R.r.GIquality>1) && (!R.r.GIcache))
@@ -164,7 +164,7 @@ bool yafrayFileRender_t::writeRender()
 
 	if (hasworld) ostr << "\tbackground_name=\"world_background\"\n";
 
-	ostr << "\tAA_pixelwidth=\"1\" AA_threshold=\"0.05\" bias=\"0.001\" >\n";
+	ostr << "\tAA_pixelwidth=\"2\" AA_threshold=\"0.05\" bias=\""<<R.r.YF_raybias<<"\" >\n";
 
 	ostr << "\t<outfile value=\"" << imgout << "\" />\n";
 

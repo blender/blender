@@ -215,8 +215,8 @@ typedef struct RenderData {
 	int GIdepth, GIcausdepth, GIpixelspersample;
 	int GIphotoncount,GImixphotons;
 	float GIphotonradius;
-  int YF_numprocs;
-	float GIshadowquality, GIpower, YF_gamma, YF_exposure;
+  int YF_numprocs,YF_raydepth;
+	float GIshadowquality, GIpower, YF_gamma, YF_exposure,YF_raybias;
 
 	char backbuf[160], pic[160], ftype[160];
         

@@ -1236,7 +1236,7 @@ static void render_panel_yafrayGI()
 			uiDefButF(block, NUMSLI, 0,"ShadQu ", 5,85,154,20,	&(G.scene->r.GIshadowquality), 0.0, 1.0 ,0,0, "Sets the shadow quality, keep it under 0.95 :-) ");
 			if (G.scene->r.GIpixelspersample==0) G.scene->r.GIpixelspersample=10;
 			uiDefButI(block, NUM, 0, "Pixel Precision:",	5,60,154,20, &G.scene->r.GIpixelspersample, 1, 50, 10, 10, "Maximum number of pixels without samples, the lower the better and slower");
-			//uiDefButS(block,TOG|BIT|0, 0, "UseGradient",180,85,110,20, &G.scene->r.GIgradient, 0, 0, 0, 0, "Try to smooth lighting using a gradient");
+			uiDefButS(block,TOG|BIT|0, 0, "Gradient", 5,10,75,20, &G.scene->r.GIgradient, 0, 0, 0, 0, "Try to smooth lighting using a gradient");
 		}
 		if (G.scene->r.GIphotons) 
 		{
@@ -1268,10 +1268,16 @@ static void render_panel_yafrayGlobal()
 	// label to force a boundbox for buttons not to be centered
 	uiDefBut(block, LABEL, 0, " ", 305,180,10,10, 0, 0, 0, 0, 0, "");
 
-	uiDefButF(block, NUMSLI, 0, "Gam ", 5,10,154,20, &G.scene->r.YF_gamma, 0.001, 5.0, 0, 0, "Gamma correction, 1 is off");
-	uiDefButF(block, NUMSLI, 0, "Exp ", 159,10,154,20,&G.scene->r.YF_exposure, 0.0, 10.0, 0, 0, "Exposure adjustment, 0 is off");
+	if(G.scene->r.YF_raybias==0.0) G.scene->r.YF_raybias=0.001;
+	uiDefButF(block, NUMSLI, 0,"Bi ", 5,35,150,20,	&(G.scene->r.YF_raybias), 
+				0.0, 10.0 ,0,0, "Shadow ray bias to avoid self shadowing");
+	if(G.scene->r.YF_raydepth==0) G.scene->r.YF_raydepth=5;
+  uiDefButI(block, NUM, 0, "Raydepth ", 5,60,150,20,
+				&G.scene->r.YF_raydepth, 1.0, 80.0, 10, 10, "Maximum render ray depth from the camera");
+	uiDefButF(block, NUMSLI, 0, "Gam ", 5,10,150,20, &G.scene->r.YF_gamma, 0.001, 5.0, 0, 0, "Gamma correction, 1 is off");
+	uiDefButF(block, NUMSLI, 0, "Exp ", 160,10,150,20,&G.scene->r.YF_exposure, 0.0, 10.0, 0, 0, "Exposure adjustment, 0 is off");
         
-  uiDefButI(block, NUM, 0, "Processors:", 159,35,154,20,
+  uiDefButI(block, NUM, 0, "Processors:", 160,35,150,20,
 				&G.scene->r.YF_numprocs, 1.0, 8.0, 10, 10, "Number of processors to use");
 
 }
