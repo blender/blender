@@ -323,7 +323,13 @@ int main(int argc, char **argv)
 					break;
             
 				case 'w':
-						/* XXX, fixme zr, with borders */
+					/* XXX, fixme zr, with borders */
+					/* there probably is a better way to do
+					 * this, right now do as if blender was
+					 * called with "-p 0 0 xres yres" -- sgefant
+					 */ 
+					winlay_get_screensize(&sizx, &sizy);
+					setprefsize(0, 0, sizx, sizy);
 					break;
 				case 'W':
 						/* XXX, fixme zr, borderless on win32 */
