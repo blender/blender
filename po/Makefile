@@ -46,7 +46,11 @@ endif
 all debug:: $(LINGUAS)
 
 clean::
-	rm -r $(OCGDIR)/bin/.blender/locale
+ifeq ($(OS), darwin)
+	rm -rf $(OCGDIR)/bin/blender.app/Contents/Resources/locale/
+else
+	rm -rf $(OCGDIR)/bin/.blender/locale/
+endif
 
 $(LINGUAS):
 	mkdir -p $(DIR)
