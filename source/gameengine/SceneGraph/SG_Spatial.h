@@ -37,10 +37,17 @@
 #include <MT_Point3.h>
 #include <MT_Matrix3x3.h> // or Quaternion later ?
 #include "SG_IObject.h"
+#include "SG_BBox.h"
+
 
 class SG_Node;
 class SG_ParentRelation;
 
+/**
+ * SG_Spatial contains spatial information (local & world position, rotation 
+ * and scaling) for a Scene graph node.
+ * It also contains a link to the node's parent.
+ */
 class SG_Spatial : public SG_IObject
 {
 
@@ -54,6 +61,8 @@ protected:
 	MT_Vector3		m_worldScaling;
 	
 	SG_ParentRelation * m_parent_relation;
+	
+	SG_BBox		m_bbox;
 
 public:
 
@@ -167,7 +176,15 @@ public:
 
 	void	ComputeWorldTransforms(		const SG_Spatial *parent);
 
-	
+	/**
+	 * Bounding box functions.
+	 */
+	SG_BBox& BBox();
+	void SetBBox(SG_BBox & bbox);
+	bool inside(const MT_Point3 &point) const;
+	void getBBox(MT_Point3 *box) const;
+	void getAABBox(MT_Point3 *box) const;
+
 protected:
 	friend class SG_Controller;
 	

@@ -37,9 +37,11 @@
 
 typedef std::vector<SG_Node*> NodeList;
 
+/**
+ * Scenegraph node.
+ */
 class SG_Node : public SG_Spatial
 {
-
 public:
 
 	SG_Node(
@@ -185,6 +187,8 @@ public:
 		void		
 	Destruct(
 	);
+	
+
 
 private:
 

@@ -1,12 +1,16 @@
+#!/usr/bin/python
+
 Import ('user_options_dict')
 Import ('library_env')
 
 sg_scenegraph_env = library_env.Copy ()
 
-source_files = ['SG_Controller.cpp',
+source_files = ['SG_BBox.cpp',
+                'SG_Controller.cpp',
                 'SG_IObject.cpp',
                 'SG_Node.cpp',
-                'SG_Spatial.cpp']
+                'SG_Spatial.cpp',
+                'SG_Tree.cpp']
 
 sg_scenegraph_env.Append (CPPPATH=['.',
                                    '#intern/moto/include'

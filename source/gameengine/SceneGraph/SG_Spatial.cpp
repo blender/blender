@@ -50,12 +50,12 @@ SG_Spatial(
 	m_localPosition(MT_Point3(0,0,0)),
 	m_localRotation(1,0,0,0,1,0,0,0,1),
 	m_localScaling(MT_Vector3(1.f,1.f,1.f)),
-	m_parent_relation (NULL),
 
 	m_worldPosition(MT_Point3(0,0,0)),
 	m_worldRotation(0,0,0,0,0,0,0,0,0),
-	m_worldScaling(MT_Vector3(1.f,1.f,1.f))
+	m_worldScaling(MT_Vector3(1.f,1.f,1.f)),
 
+	m_parent_relation (NULL)
 {
 }
 
@@ -67,10 +67,14 @@ SG_Spatial(
 	m_localPosition(other.m_localPosition),
 	m_localRotation(other.m_localRotation),
 	m_localScaling(other.m_localScaling),
-	m_parent_relation(NULL),
+	
 	m_worldPosition(other.m_worldPosition),
 	m_worldRotation(other.m_worldRotation),
-	m_worldScaling(other.m_worldScaling)
+	m_worldScaling(other.m_worldScaling),
+	
+	m_parent_relation(NULL),
+	
+	m_bbox(other.m_bbox)
 {
 	// duplicate the parent relation for this object
 	m_parent_relation = other.m_parent_relation->NewCopy();
@@ -283,5 +287,30 @@ SG_Spatial::
 GetWorldScaling(
 ) const	{
 	return m_worldScaling;
+}
+
+SG_BBox& SG_Spatial::BBox()
+{
+	return m_bbox;
+}
+
+void SG_Spatial::SetBBox(SG_BBox& bbox)
+{
+	m_bbox = bbox;
+}
+
+bool SG_Spatial::inside(const MT_Point3 &point) const
+{
+	return m_bbox.transform(MT_Transform(m_worldPosition, m_worldRotation.scaled(m_worldScaling[0], m_worldScaling[1], m_worldScaling[2]))).inside(point);
+}
+
+void SG_Spatial::getBBox(MT_Point3 *box) const
+{
+	m_bbox.get(box, MT_Transform(m_worldPosition, m_worldRotation.scaled(m_worldScaling[0], m_worldScaling[1], m_worldScaling[2])));
+}
+
+void SG_Spatial::getAABBox(MT_Point3 *box) const
+{
+	m_bbox.getaa(box, MT_Transform(m_worldPosition, m_worldRotation.scaled(m_worldScaling[0], m_worldScaling[1], m_worldScaling[2])));
 }
 

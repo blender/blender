@@ -31,9 +31,7 @@
  */
 #ifndef __SG_IOBJECT
 #define __SG_IOBJECT
-/**
-base object that can be part of the scenegraph.
-*/
+
 #include <vector>
 
 class SG_Controller;
@@ -91,6 +89,9 @@ struct	SG_Callbacks
 	SG_DestructionNewCallback	m_destructionfunc;
 };
 
+/**
+base object that can be part of the scenegraph.
+*/
 class SG_IObject
 {
 private :
