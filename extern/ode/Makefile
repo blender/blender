@@ -40,6 +40,8 @@ all:
     ifeq ($(OS),freebsd)
 	(grep FreeBSD $(DISTDIR)/Makefile >/dev/null ; \
 	    [ $$? -eq 0 ] || patch < patchfile.FreeBSD )
+    endif
+    ifeq ($(OS),$(findstring $(OS), "freebsd linux"))
 	$(MAKE) -C $(DISTDIR)
     endif
     ifeq ($(OS),windows)
