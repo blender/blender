@@ -4913,9 +4913,6 @@ void lampbuts(void)
 	uiDefButF(block, NUM,REDRAWVIEW3D,"ClipSta:",	346,30,146,19,	&la->clipsta, 0.1*grid,1000.0*grid, 10, 0, "Set the shadow map clip start");
 	uiDefButF(block, NUM,REDRAWVIEW3D,"ClipEnd:",	346,9,146,19,&la->clipend, 1.0, 5000.0*grid, 100, 0, "Set the shadow map clip end");
 
-	uiDefButF(block, NUM,REDRAWVIEW3D,"ClipSta:",	346,30,146,19,	&la->clipsta, 0.1*grid,1000.0*grid, 10, 0, "Set the shadow map clip start");
-	uiDefButF(block, NUM,REDRAWVIEW3D,"ClipEnd:",	346,9,146,19,&la->clipend, 1.0, 5000.0*grid, 100, 0, "Set the shadow map clip end");
-
 	uiDefButS(block, NUM,0,"Samples:",	496,30,105,19,	&la->samp,1.0,16.0, 0, 0, "Number of shadow map samples");
 	uiDefButS(block, NUM,0,"Halo step:",	496,10,105,19,	&la->shadhalostep, 0.0, 12.0, 0, 0, "Volumetric halo sampling frequency");
 	uiDefButF(block, NUM,0,"Bias:",		605,30,108,19,	&la->bias, 0.01, 5.0, 1, 0, "Shadow map sampling bias");
