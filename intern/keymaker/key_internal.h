@@ -29,7 +29,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-// ex:ts=4
+/* ex:ts=4 */
 
 /**
  * $Id$
@@ -43,7 +43,7 @@
 #include "openssl/rc4.h"
 #include "openssl/err.h"
 
-#include "mt19937int.h" // Mersenne Twister (under artistic license)
+#include "mt19937int.h" /* Mersenne Twister (under artistic license) */
 
 #define MAXASCIIBLOCK 1000
 #define MAXBYTEDATABLOCK 1000
@@ -54,7 +54,7 @@
 	#define DEBUG 1
 #endif
 
-// keyloader and keymaker internal prototypes
+/* keyloader and keymaker internal prototypes */
 int from_hex(char c);
 byte ReadHexByteFp(FILE *fh, int *newlinetracker);
 byte ReadHexByteCp(char **from);
@@ -66,7 +66,7 @@ int Hex5ToIntFp(FILE *fh, int *newlinetracker);
 int Hex5ToIntCp(char **from);
 int main(int argc, char **argv);
 
-// keyloader only internal prototypes
+/* keyloader only internal prototypes */
 char *scan_ascii(FILE *fh, UserStruct *User);
 char *ReadHexCryptedData(FILE *fh, int *newlinetracker);
 char *ReadHexCryptedKey(FILE *fh, int *newlinetracker);
@@ -76,7 +76,7 @@ char *DeCryptDatablock(byte *CryptKey, int keylen, char *HexCryptedData);
 char *get_from_datablock(char **DataPtr, char *TypeString);
 int Check_All_Byte_Calculus_Data(char *KeyBytePtr);
 
-// keymaker only internal prototypes
+/* keymaker only internal prototypes */
 void usage(void);
 char *Create_Ascii_Part(int argc, char **argv);
 void Create_User_RSA_Keys(unsigned int keylength,

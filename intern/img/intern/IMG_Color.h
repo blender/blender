@@ -128,7 +128,7 @@ inline IMG_ColorRGB::IMG_ColorRGB(const IMG_ColorRGBA& c)
 
 inline void	IMG_ColorRGBA::blendColor(const IMG_ColorRGBA& c)
 {
-	float r1 = 1 - c.m_a; // The reverse of alpha
+	float r1 = 1 - c.m_a; /* The reverse of alpha */
 #if IMG_REVERSED_ALPHA
 	m_r = c.m_a * m_r + r1 * c.m_r;
 	m_g = c.m_a * m_g + r1 * c.m_g;
@@ -141,4 +141,4 @@ inline void	IMG_ColorRGBA::blendColor(const IMG_ColorRGBA& c)
 }
 
 
-#endif // _H_IMG_Color
+#endif /* _H_IMG_Color */

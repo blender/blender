@@ -39,7 +39,7 @@
  */
 
 
-#include "../extern/IMG_PixmapRGBA32.h"
+#include "IMG_PixmapRGBA32.h"
 
 IMG_PixmapRGBA32::IMG_PixmapRGBA32(GEN_TUns32 width, GEN_TUns32 height)
 	: IMG_Pixmap(), m_pixels(width * height)
@@ -67,14 +67,15 @@ IMG_PixmapRGBA32::IMG_PixmapRGBA32(void* image, GEN_TUns32 width, GEN_TUns32 hei
 
 void IMG_PixmapRGBA32::fillRect(const GEN_Rect& r, const IMG_ColorRGB& c)
 {
-	GEN_Rect t_bnds (0, 0, m_width, m_height);	// Bounds of this pixmap
-	GEN_Rect r_bnds (r);						// Area to set
+	GEN_Rect t_bnds (0, 0, m_width, m_height); /* Bounds of this pixmap */
+	GEN_Rect r_bnds (r);			/* Area to set */
 
-	// Determine visibility
+	/* Determine visibility */
 	GEN_TVisibility v = t_bnds.getVisibility(r_bnds);
 	if (v == GEN_kNotVisible) return;
 	if (v == GEN_kPartiallyVisible) {
-		// Clip the destination rectangle to the bounds of this pixmap
+		/* Clip the destination rectangle to the bounds of this pixmap
+		*/
 		t_bnds.clip(r_bnds);
 		if (r_bnds.isEmpty()) {
 			return;
@@ -82,35 +83,35 @@ void IMG_PixmapRGBA32::fillRect(const GEN_Rect& r, const IMG_ColorRGB& c)
 	}
 
 #if 0
-	// Set new pixels using shifting
-	// Prepare the pixel value to set
+	/* Set new pixels using shifting */
+	/* Prepare the pixel value to set */
 	IMG_ColorRGBA ca (c);
 	TPixelRGBA32 pv = getPixelValue(c);
-	// Mask off the alpha bits
-	pv &= 0x00FFFFFF; //0xFFFFFF00;
+	/* Mask off the alpha bits */
+	pv &= 0x00FFFFFF; /* 0xFFFFFF00; */
 
-	// Set the pixels in the destination rectangle
+	/* Set the pixels in the destination rectangle */
 	for (GEN_TInt32 y = r.m_t; y < r.m_b; y++) {
-		// Park pixel pointer at the start pixels
+		/* Park pixel pointer at the start pixels */
 		TPixelPtr desPtr = getPixelPtr(r_bnds.m_l, y);
 		for (GEN_TInt32 x = r.m_l; x < r.m_r; x++) {
-			// Set the new pixel value (retain current alpha)
-			*(desPtr++) = pv | ((*desPtr) & 0xFF000000); //0x000000FF);
+			/* Set the new pixel value (retain current alpha) */
+			*(desPtr++) = pv | ((*desPtr) & 0xFF000000); /*0x000000FF); */
 		}
 	}
 #else
-	// Set new values using byte indexing
-	//IMG_ColorRGBA ca (c);
+	/* Set new values using byte indexing */
+	/*IMG_ColorRGBA ca (c); */
 	TPixelRGBA32 src = getPixelValue(c);
 	TPixelPtr desPtr;
 	GEN_TUns8* srcBytes = (GEN_TUns8*) &src;
 	
-	// Set the pixels in the destination rectangle
+	/* Set the pixels in the destination rectangle */
 	for (GEN_TInt32 y = r.m_t; y < r.m_b; y++) {
-		// Park pixel pointer at the start pixels
+		/* Park pixel pointer at the start pixels */
 		desPtr = getPixelPtr(r_bnds.m_l, y);
 		for (GEN_TInt32 x = r.m_l; x < r.m_r; x++) {
-			// Set the new pixel value (retain current alpha)
+			/* Set the new pixel value (retain current alpha) */
 			((GEN_TUns8*)desPtr)[bi_r] = srcBytes[bi_r];
 			((GEN_TUns8*)desPtr)[bi_g] = srcBytes[bi_g];
 			((GEN_TUns8*)desPtr)[bi_b] = srcBytes[bi_b];
@@ -123,24 +124,25 @@ void IMG_PixmapRGBA32::fillRect(const GEN_Rect& r, const IMG_ColorRGB& c)
 
 void IMG_PixmapRGBA32::fillRect(const GEN_Rect& r, const IMG_ColorRGBA& c)
 {
-	GEN_Rect t_bnds (0, 0, m_width, m_height);	// Bounds of this pixmap
-	GEN_Rect r_bnds (r);						// Area to set
+	GEN_Rect t_bnds (0, 0, m_width, m_height); /* Bounds of this pixmap */
+	GEN_Rect r_bnds (r);			/* Area to set */
 
-	// Determine visibility
+	/* Determine visibility */
 	GEN_TVisibility v = t_bnds.getVisibility(r_bnds);
 	if (v == GEN_kNotVisible) return;
 	if (v == GEN_kPartiallyVisible) {
-		// Clip the destination rectangle to the bounds of this pixmap
+		/* Clip the destination rectangle to the bounds of this pixmap
+		*/
 		t_bnds.clip(r_bnds);
 		if (r_bnds.isEmpty()) {
 			return;
 		}
 	}
 
-	// Set the pixels in the destination rectangle
+	/* Set the pixels in the destination rectangle */
 	TPixelRGBA32 pixel = getPixelValue(c);
 	for (GEN_TInt32 y = r.m_t; y < r.m_b; y++) {
-		// Park pixel pointer at the start pixels
+		/* Park pixel pointer at the start pixels */
 		TPixelPtr desPtr = getPixelPtr(r_bnds.m_l, y);
 		for (GEN_TInt32 x = r.m_l; x < r.m_r; x++) {
 			*(desPtr++) = pixel;
@@ -151,21 +153,22 @@ void IMG_PixmapRGBA32::fillRect(const GEN_Rect& r, const IMG_ColorRGBA& c)
 
 void IMG_PixmapRGBA32::setPixmap(const IMG_PixmapRGBA32& src, const GEN_Rect& srcBnds, const GEN_Rect& destBnds)
 {
-	GEN_Rect i_bnds (srcBnds);					// Bounds of input pixmap
-	GEN_Rect t_bnds (0, 0, m_width, m_height);	// Bounds of this pixmap
-	GEN_Rect p_bnds (destBnds);					// Bounds of the paste area
+	GEN_Rect i_bnds (srcBnds);	/* Bounds of input pixmap */
+	GEN_Rect t_bnds (0, 0, m_width, m_height); /* Bounds of this pixmap */
+	GEN_Rect p_bnds (destBnds);	/* Bounds of the paste area */
 	
-	// The next check could be removed if the caller is made responsible for handing us non-empty rectangles
+	/* The next check could be removed if the caller is made 
+		responsible for handing us non-empty rectangles */
 	if (i_bnds.isEmpty()) {
-		// Nothing to do
+		/* Nothing to do */
 		return;
 	}
 
-	// Determine visibility of the paste area
+	/* Determine visibility of the paste area */
 	GEN_TVisibility v = t_bnds.getVisibility(p_bnds);
 	if (v == GEN_kNotVisible) return;
 	if (v == GEN_kPartiallyVisible) {
-		// Clipping is needed
+		/* Clipping is needed */
 		if (p_bnds.m_l < 0) {
 			i_bnds.m_l += -p_bnds.m_l;
 			p_bnds.m_l = 0;
@@ -186,12 +189,12 @@ void IMG_PixmapRGBA32::setPixmap(const IMG_PixmapRGBA32& src, const GEN_Rect& sr
 		}
 	}
 
-	// Iterate through the rows
+	/* Iterate through the rows */
 	for (GEN_TInt32 r = 0; r < p_bnds.getHeight(); r++) {
-		// Park pixel pointers at the start pixels
+		/* Park pixel pointers at the start pixels */
 		TPixelPtr srcPtr = src.getPixelPtr(i_bnds.m_l, i_bnds.m_t + r);
 		TPixelPtr desPtr = getPixelPtr(p_bnds.m_l, p_bnds.m_t + r);
-		// Iterate through the columns
+		/* Iterate through the columns */
 		for (int c = 0; c < p_bnds.getWidth(); c++) {
 			*(desPtr++) = *(srcPtr++);
 		}
@@ -201,21 +204,22 @@ void IMG_PixmapRGBA32::setPixmap(const IMG_PixmapRGBA32& src, const GEN_Rect& sr
 
 void IMG_PixmapRGBA32::blendPixmap(const IMG_PixmapRGBA32& src, const GEN_Rect& srcBnds, const GEN_Rect& destBnds)
 {
-	GEN_Rect i_bnds (srcBnds);					// Bounds of input pixmap
-	GEN_Rect t_bnds (0, 0, m_width, m_height);	// Bounds of this pixmap
-	GEN_Rect p_bnds (destBnds);					// Bounds of the paste area
+	GEN_Rect i_bnds (srcBnds);	/* Bounds of input pixmap */
+	GEN_Rect t_bnds (0, 0, m_width, m_height); /* Bounds of this pixmap */
+	GEN_Rect p_bnds (destBnds);	/* Bounds of the paste area */
 	
-	// The next check could be removed if the caller is made responsible for handing us non-empty rectangles
+	/* The next check could be removed if the caller is made responsible 
+		for handing us non-empty rectangles */
 	if (i_bnds.isEmpty()) {
-		// Nothing to do
+		/* Nothing to do */
 		return;
 	}
 
-	// Determine visibility of the paste area
+	/* Determine visibility of the paste area */
 	GEN_TVisibility v = t_bnds.getVisibility(p_bnds);
 	if (v == GEN_kNotVisible) return;
 	if (v == GEN_kPartiallyVisible) {
-		// Clipping is needed
+		/* Clipping is needed */
 		if (p_bnds.m_l < 0) {
 			i_bnds.m_l += -p_bnds.m_l;
 			p_bnds.m_l = 0;
@@ -239,19 +243,19 @@ void IMG_PixmapRGBA32::blendPixmap(const IMG_PixmapRGBA32& src, const GEN_Rect& 
 	IMG_ColorRGBA srcColor;
 	IMG_ColorRGBA desColor;
 
-	// Iterate through the rows
+	/* Iterate through the rows */
 	for (int r = 0; r < p_bnds.getHeight(); r++) {
-		// Park pixel pointers at the start pixels
+		/* Park pixel pointers at the start pixels */
 		TPixelPtr srcPtr = src.getPixelPtr(i_bnds.m_l, i_bnds.m_t + r);
 		TPixelPtr desPtr = getPixelPtr(p_bnds.m_l, p_bnds.m_t + r);
-		// Iterate through the columns
+		/* Iterate through the columns */
 		for (int c = 0; c < p_bnds.getWidth(); c++) {
-			// Retrieve colors from source and destination pixmaps
+			/* Retrieve colors from source and destination pixmaps*/
 			getColor(*srcPtr, srcColor);
 			getColor(*desPtr, desColor);
-			// Blend the colors
+			/* Blend the colors */
 			desColor.blendColor(srcColor);
-			// Write color back to destination pixmap
+			/* Write color back to destination pixmap */
 			*desPtr = getPixelValue(desColor);
 			srcPtr++;
 			desPtr++;

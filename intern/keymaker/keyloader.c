@@ -29,7 +29,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-// ex:ts=4
+/* ex:ts=4 */
 
 /**
  * $Id$
@@ -41,8 +41,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "key_pyc.h" // the Python byte code
-#include "key.h"	// the external interface
+#include "key_pyc.h" /* the Python byte code */
+#include "blenkey.h"	/* the external interface */
 #include "key_internal.h"
 
 #define TESTReadKeyFile 1
@@ -50,7 +50,7 @@
 int Check_All_Byte_Calculus_Data(char *KeyBytePtr) {
 	int i;
 
-	// create some unique number arrays
+	/* create some unique number arrays */
 	int NoRealRandomArray[MAXBYTEDATABLOCK];
 
 	typedef byte (*funcpoin)(byte, byte);
@@ -59,20 +59,20 @@ int Check_All_Byte_Calculus_Data(char *KeyBytePtr) {
 
 	byte *KeyByteData = DeHexify(KeyBytePtr);
 
-	// first create a fixed seed random number generator
-	sgenrand(666); // seed it fixed
+	/* first create a fixed seed random number generator */
+	sgenrand(666); /* seed it fixed */
 
-	// initialize arrays with unique numbers
+	/* initialize arrays with unique numbers */
 	for (i=0; i<MAXBYTEDATABLOCK; i++) {
 		NoRealRandomArray[i] = i;
 	}
-	// then stir the unique number lists
+	/* then stir the unique number lists */
 	for (i=0; i<MAXBYTEDATABLOCK; i++) {
 		unsigned long randswap = genrand();
 		int swap1 = (int) (randswap % MAXBYTEDATABLOCK);
 		int swap2 = (int) ((randswap>>16) % MAXBYTEDATABLOCK);
 		int store = NoRealRandomArray[swap1];
-		//printf("%lu %d %d\n", randswap, swap1, swap2);
+		/* printf("%lu %d %d\n", randswap, swap1, swap2); */
 		NoRealRandomArray[swap1] = NoRealRandomArray[swap2];
 		NoRealRandomArray[swap2] = store;
 	}
@@ -84,7 +84,7 @@ int Check_All_Byte_Calculus_Data(char *KeyBytePtr) {
 		printf("\n\n");
 	}
 
-	// check our byte calculus functions on the random data
+	/* check our byte calculus functions on the random data */
 	for (i=0; i<(MAXBYTEDATABLOCK-3); i+=3) {
 		if (DEBUG) {
 			char *Pcheckfunc[] = {"max", " - ", " + ", " * ", " / "};
@@ -114,7 +114,7 @@ int Check_All_Byte_Calculus_Data(char *KeyBytePtr) {
 void pub_priv_test(char *HexPriv, char *HexPub)
 {
 	RSA *rsa = NULL;
-	// static unsigned char rsa_e[] = "\x11";
+	/* static unsigned char rsa_e[] = "\x11"; */
 	static unsigned char rsa_e[] = "\x01\x00\x01";
 	byte cryptKey[16];
 	byte *cryptedKey;
@@ -185,15 +185,15 @@ int main(int argc, char **argv) {
 		printf("\nReadKeyFile OK\n");
 	}
 
-	// just print the rsaPrivString and rsaPubString
+	/* just print the rsaPrivString and rsaPubString */
 	if (DEBUG) printf("\nrsaPrivString: %s\n", HexPriv);
 	if (DEBUG) printf("\nrsaPubString:  %s\n", HexPub);
 
-	// try to private encrypt-public decrypt something
+	/* try to private encrypt-public decrypt something */
 	if (DEBUG) pub_priv_test(HexPriv, HexPub);
 
-	// check all the Byte checksums
-	// rehexify it for our Check_All_Byte_Calculus_Data function ...
+	/* check all the Byte checksums
+	 rehexify it for our Check_All_Byte_Calculus_Data function ... */
 	HexByte = Hexify(Byte, 1000);
 	if (Check_All_Byte_Calculus_Data(HexByte) != 0) {
 		printf("\nByte_Calculus_Data checksums do not match !\n");
@@ -202,7 +202,7 @@ int main(int argc, char **argv) {
 		if (DEBUG) printf("\nThe Byte Calculus Data checksums match\n");
 	}
 
-	// Check the KeyPythonPtr
+	/* Check the KeyPythonPtr */
 	PythonLength = strlen(HexPython)/2;
 	PythonData = DeHexify(HexPython);
 	if (memcmp(PythonData, g_keycode, PythonLength) != 0) {
@@ -219,7 +219,7 @@ int main(int argc, char **argv) {
 	FILE *rawkeyfile;
 	char *AsciiHash;
 	char *HexCryptedData, *HexCryptedKey;
-	int newlinetracker = 0; // line position, counts from 0-71
+	int newlinetracker = 0; /* line position, counts from 0-71 */
 	byte *CryptKey;
 	char *KeyDataString;
 	char *KeyDataPtr;
@@ -237,38 +237,38 @@ int main(int argc, char **argv) {
 		exit(1);
 	}
 
-	// open keyfile for reading
+	/* open keyfile for reading */
 	if ((rawkeyfile = fopen(argv[1], "r")) == NULL) {
 		printf("error, cannot read %s\n", argv[1]);
 		exit(1);
 	}
 
-	// Scan and interpret the ASCII part
+	/* Scan and interpret the ASCII part */
 	AsciiHash = scan_ascii(rawkeyfile, &User);
 	if (DEBUG) printf("\nHexHash: %s\n", AsciiHash);
 
-	// Read the HexCryptedData
+	/* Read the HexCryptedData */
 	HexCryptedData = ReadHexCryptedData(rawkeyfile, &newlinetracker);
 	if (DEBUG) printf("\nHexCryptedData: %s\n", HexCryptedData);
 
-	// Read the HexCryptedKey
+	/* Read the HexCryptedKey */
 	HexCryptedKey = ReadHexCryptedKey(rawkeyfile, &newlinetracker);
 	if (DEBUG) printf("\nHexCryptedKey: %s\n", HexCryptedKey);
 
-	// close keyfile
+	/* close keyfile */
 	fclose(rawkeyfile);
 
-	// Decrypt HexCryptedKey
+	/* Decrypt HexCryptedKey */
 	CryptKey = RSADecryptKey(HexCryptedKey);
 
-	// Decrypt HexCryptedData
+	/* Decrypt HexCryptedData */
 	KeyDataString = DeCryptDatablock(CryptKey, 16, HexCryptedData);
 	free(CryptKey);
 	free(HexCryptedData);
 	free(HexCryptedKey);
 	if (DEBUG) printf("\nKeyDataString: %s\n", KeyDataString);
 
-	// Extract data from KeyDataString
+	/* Extract data from KeyDataString */
 	KeyDataPtr = KeyDataString;
 	
 	mdhex         = get_from_datablock(&KeyDataPtr, "01");
@@ -278,7 +278,7 @@ int main(int argc, char **argv) {
 	KeyPythonPtr  = get_from_datablock(&KeyDataPtr, "05");
 	free(KeyDataString);
 
-	// Check ascii hash
+	/* Check ascii hash */
 	if (strcmp(mdhex, AsciiHash) != 0) {
 		printf("Ascii part checksums do not match !\n");
 		printf("found: %s\n", mdhex);
@@ -288,11 +288,11 @@ int main(int argc, char **argv) {
 		if (DEBUG) printf("\nThe ascii part checksum matches\n");
 	}
 
-	// just print the rsaPrivString and rsaPubString
+	/* just print the rsaPrivString and rsaPubString */
 	if (DEBUG) printf("\nrsaPrivString: %s\n", rsaPrivString);
 	if (DEBUG) printf("\nrsaPubString:  %s\n", rsaPubString);
 
-	// check all the Byte checksums
+	/* check all the Byte checksums */
 	if (Check_All_Byte_Calculus_Data(KeyBytePtr) != 0) {
 		printf("Byte_Calculus_Data checksums do not match !\n");
 		exit(1);
@@ -300,7 +300,7 @@ int main(int argc, char **argv) {
 		if (DEBUG) printf("\nThe Byte Calculus Data checksums match\n");
 	}
 
-	// Check the KeyPythonPtr
+	/* Check the KeyPythonPtr */
 	PythonLength = strlen(KeyPythonPtr)/2;
 	PythonData = DeHexify(KeyPythonPtr);
 	if (memcmp(PythonData, g_keycode, PythonLength) != 0) {

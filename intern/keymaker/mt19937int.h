@@ -29,7 +29,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-// ex:ts=4
+/* ex:ts=4 */
 
 /**
  * $Id$
@@ -37,9 +37,9 @@
  * Mersenne Twister prototypes
  */
 
-// external:
+/* external: */
 void sgenrand(signed long seed);
 unsigned long genrand(void);
 
-// internal:
+/* internal: */
 void lsgenrand(unsigned long *seed_array);

@@ -49,15 +49,15 @@ class IMG_Pixmap
 {
 public:
 	/** The type of pixels that are stored in this pixmap. */
-	typedef enum {
-		kPixelTypeUnknown	= 0,	/**< R:8, G:8, B:8, Ignore:8	*/
-//		kPixelTypeRGB32		= 1,	/**< R:8, G:8, B:8, Ignore:8	*/
-		kPixelTypeRGBA32	= 2,	/**< R:8, G:8, B:8, Alpha:8		*/
-//		kPixelTypeRGB16		= 3,	/**< Ignore:1, R:5, G:5, B:5	*/
-//		kPixelTypeRGBA16	= 4,	/**< Alpha:1,  R:5, G:5, B:5	*/
-//		kPixelTypeRGB16_565	= 5,	/**<           R:5, G:6, B:5	*/
-//		kPixelTypeRGB24		= 6		/**< R:8, G:8, B:8				*/
-	} TPixelType;
+        typedef enum {
+           kPixelTypeUnknown       = 0,    /**< R:8, G:8, B:8, Ignore:8  */
+/*         kPixelTypeRGB32         = 1, */ /*< R:8, G:8, B:8, Ignore:8   */
+           kPixelTypeRGBA32        = 2,    /**< R:8, G:8, B:8, Alpha:8   */
+/*         kPixelTypeRGB16         = 3, */ /**< Ignore:1, R:5, G:5, B:5  */
+/*         kPixelTypeRGBA16        = 4, */ /**< Alpha:1,  R:5, G:5, B:5  */
+/*         kPixelTypeRGB16_565     = 5, */ /**<           R:5, G:6, B:5  */
+/*         kPixelTypeRGB24         = 6  */ /**< R:8, G:8, B:8            */
+        } TPixelType;
 
 	/**
 	 * Default constructor.
@@ -136,7 +136,7 @@ public:
 	 * @param	r	requested bounds rectangle in the image
 	 * @param	c	color to use
 	 */
-	//virtual void fillRect(const GEN_Rect& r, const IMG_ColorRGBA& c) = 0;
+	/*virtual void fillRect(const GEN_Rect& r, const IMG_ColorRGBA& c) = 0; */
 
 protected:
 	/** Width of the image in pixels */
@@ -149,8 +149,9 @@ protected:
 	GEN_TUns32 m_pixelSize;
 	/** Type of pixels in this image. */
 	TPixelType m_pixelType;
-//	TEndian m_bitOrder;
-//	TEndian m_byteOrder;
+/*	TEndian m_bitOrder;
+	TEndian m_byteOrder;
+*/
 };
 
 inline GEN_TUns32 IMG_Pixmap::getWidth() const
@@ -195,4 +196,4 @@ inline void	IMG_Pixmap::getPixelAddress(float u, float v, GEN_TInt32& x, GEN_TIn
 	y = (GEN_TInt32)(((float)m_height) * v);
 }
 
-#endif // _H_IMG_Pixmap
+#endif /* _H_IMG_Pixmap */

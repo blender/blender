@@ -50,9 +50,9 @@ typedef	struct UserStructType {
 	char email[100];
 	char shopid[100];
 	unsigned long reldate;
-	int keytype;		// 1 = Individual, 2 = Corporate, 3 = Unlimited
-	int keylevel;		// key disclosure level, starts at 1
-	int keyformat;		// if we change the keyformat, up BLENKEYFORMAT
+	int keytype;	/* 1 = Individual, 2 = Corporate, 3 = Unlimited */
+	int keylevel;	/* key disclosure level, starts at 1 */
+	int keyformat;	/* if we change the keyformat, up BLENKEYFORMAT */
 } UserStruct;
 
 char *Hexify(byte *in, unsigned int length);
@@ -64,8 +64,8 @@ byte checkfunc2(byte a, byte b);
 byte checkfunc3(byte a, byte b);
 byte checkfunc4(byte a, byte b);
 
-// the byte size of the checksum datablock
-// #define MAXBYTEDATABLOCK 1000
+/* the byte size of the checksum datablock
+#define MAXBYTEDATABLOCK 1000 */
 
 #define BLENKEYMAGIC     "0ce0ba52"
 #define BLENKEYSEPERATOR "---+++---"

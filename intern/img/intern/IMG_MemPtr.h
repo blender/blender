@@ -114,4 +114,4 @@ public:
 	operator T*() { return m_p; }
 };
 
-#endif // _H_IMG_MemPtr
+#endif /* _H_IMG_MemPtr */

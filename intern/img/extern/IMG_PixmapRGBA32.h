@@ -178,14 +178,14 @@ inline IMG_PixmapRGBA32::TPixelPtr IMG_PixmapRGBA32::getPixelPtr(GEN_TUns32 x, G
 inline IMG_PixmapRGBA32::TPixelRGBA32 IMG_PixmapRGBA32::getPixelValue(const IMG_ColorRGBA& c) const
 {
 #if 0
-	// Obtain pixel value through shifting
+	/* Obtain pixel value through shifting */
 	TPixelRGBA32 p = ((TPixelRGBA32) (((float) 0xFF) * c.m_a)) << 24;
 	p |= ((TPixelRGBA32) (((float) 0xFF) * c.m_b)) << 16;
 	p |= ((TPixelRGBA32) (((float) 0xFF) * c.m_g)) << 8;
 	p |= ((TPixelRGBA32) (((float) 0xFF) * c.m_r));
 	return p;
 #else
-	// Obtain pixel value through byte indexing
+	/* Obtain pixel value through byte indexing */
 	TPixelRGBA32 pixel;
 	GEN_TUns8* bytes = (GEN_TUns8*)&pixel;
 	bytes[bi_r] = (GEN_TUns8)(((float) 0xFF) * c.m_r);
@@ -199,13 +199,13 @@ inline IMG_PixmapRGBA32::TPixelRGBA32 IMG_PixmapRGBA32::getPixelValue(const IMG_
 inline void	IMG_PixmapRGBA32::getColor(TPixelRGBA32 p, IMG_ColorRGBA& c) const
 {
 #if 0
-	// Obtain color value through shifting
+	/* Obtain color value through shifting */
 	c.m_a = ((float) ((p >> 24) & 0x00FF)) / ((float) 0xFF);
 	c.m_b = ((float) ((p >> 16) & 0x00FF)) / ((float) 0xFF);
 	c.m_g = ((float) ((p >>  8) & 0x00FF)) / ((float) 0xFF);
 	c.m_r = ((float) ( p        & 0x00FF)) / ((float) 0xFF);
 #else
-	// Obtain color value through byte indexing
+	/* Obtain color value through byte indexing */
 	GEN_TUns8* bytes = (GEN_TUns8*)&p;
 	c.m_r = ((float)bytes[bi_r]) / ((float) 0xFF);
 	c.m_g = ((float)bytes[bi_g]) / ((float) 0xFF);
@@ -214,4 +214,4 @@ inline void	IMG_PixmapRGBA32::getColor(TPixelRGBA32 p, IMG_ColorRGBA& c) const
 #endif
 }
 
-#endif // _H_IMG_PixmapRGBA32
+#endif /* _H_IMG_PixmapRGBA32 */

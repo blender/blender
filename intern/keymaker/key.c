@@ -29,7 +29,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-// ex:ts=4
+/* ex:ts=4 */
 
 /**
  * $Id$
@@ -41,7 +41,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "key.h"	// external interface
+#include "blenkey.h"	/* external interface */
 #include "key_internal.h"
 
 char *Hexify(byte *in, unsigned int length) {
@@ -69,7 +69,7 @@ byte *DeHexify(char *in) {
 		*outp = (byte) hexedbyte;
 		outp++;
 	}
-	// printf("\nlen=%d, string=[%s]\n", len, Hexify(out, len/2));
+	/* printf("\nlen=%d, string=[%s]\n", len, Hexify(out, len/2)); */
 	return (out);
 }
 
@@ -77,52 +77,52 @@ int from_hex(char c) {
 	return (c<'A') ? (c-'0') : (c-'A'+10);
 }
 
-// 5 ReadHex helper functions ------------------------------------------
-// read one Hex byte (two characters) and skip newlines if necessary
+/* 5 ReadHex helper functions ------------------------------------------
+ read one Hex byte (two characters) and skip newlines if necessary */
 byte ReadHexByteFp(FILE *fh, int *newlinetracker) {
 	unsigned char a;
 	unsigned char a1, a2;
-	// read 2 bytes hexcode of ascii data type
+	/* read 2 bytes hexcode of ascii data type */
 	fread(&a1, 1, 1, fh);
 	fread(&a2, 1, 1, fh);
 	a = 16 * (from_hex(a1)) + (from_hex(a2));
-	//printf("Char[%d] = %02X\n", *newlinetracker, a);
+	/*printf("Char[%d] = %02X\n", *newlinetracker, a); */
 	*newlinetracker += 2;
-	// skip the newlines
+	/* skip the newlines */
 	if (*newlinetracker == 72) {
 		fseek(fh, 1, SEEK_CUR);
 		*newlinetracker = 0;
-		//printf("LastChar = %02X\n", a);
+		/*printf("LastChar = %02X\n", a); */
 	}
 	return((byte) a);
 }
 byte ReadHexByteCp(char **from) {
 	int a;
-	// read 2 bytes hexcode of ascii data type
+	/* read 2 bytes hexcode of ascii data type */
 	sscanf(*from, "%2x", &a);
-	//printf("Char = %02X\n", a);
+	/*printf("Char = %02X\n", a); */
 	*from += 2;
 	return((byte) a);
 }
-// Generic hex2int
+/* Generic hex2int */
 int HexToInt(int a) {
-	if (a == 0x20) // space, count as 0 ;-)
+	if (a == 0x20) /* space, count as 0 ;-) */
 		return 0;
 	else
 		return(a - '0');
 }
-// Note: this is only to be used for the header type
+/* Note: this is only to be used for the header type */
 int HexToIntFp(FILE *fh, int *newlinetracker) {
 	byte a = ReadHexByteFp(fh, newlinetracker);
-	if (DEBUG) printf("%02X = %d\n", a, a); // note: no HexToInt here
+	if (DEBUG) printf("%02X = %d\n", a, a); /* note: no HexToInt here */
 	return(a);
 }
 int HexToIntCp(char **from) {
 	byte a = ReadHexByteCp(from);
-	if (DEBUG) printf("%02X = %d\n", a, a); // note: no HexToInt here
+	if (DEBUG) printf("%02X = %d\n", a, a); /* note: no HexToInt here */
 	return(a);
 }
-// Note: this is only to be used for the header length
+/* Note: this is only to be used for the header length */
 int Hex5ToInt(byte a, byte b, byte c, byte d, byte e) {
 	return(HexToInt((int) a) * 10000 +
 		   HexToInt((int) b) * 1000 +
@@ -130,7 +130,7 @@ int Hex5ToInt(byte a, byte b, byte c, byte d, byte e) {
 		   HexToInt((int) d) * 10 +
 		   HexToInt((int) e));
 }
-// Note: this is only to be used for the header length
+/* Note: this is only to be used for the header length */
 int Hex5ToIntFp(FILE *fh, int *newlinetracker) {
 	byte a = ReadHexByteFp(fh, newlinetracker),
 		 b = ReadHexByteFp(fh, newlinetracker),
@@ -151,27 +151,27 @@ int Hex5ToIntCp(char **from) {
 		Hex5ToInt(a, b, c, d, e));
 	return(Hex5ToInt(a, b, c, d, e));
 }
-// ---------------------------------------------------------------------
+/* --------------------------------------------------------------------- */
 
-// return the biggest
+/* return the biggest */
 byte checkfunc0(byte a, byte b) {
 	if (a > b) return a;
 	else return b;
 }
-// return |a-b|
+/* return |a-b| */
 byte checkfunc1(byte a, byte b) {
 	if (a > b) return a - b;
 	else return b - a;
 }
-// return the sum mod 256
+/* return the sum mod 256 */
 byte checkfunc2(byte a, byte b) {
 	return ((a + b) % 256);
 }
-// return the multiplication mod 256
+/* return the multiplication mod 256 */
 byte checkfunc3(byte a, byte b) {
 	return ((a * b) % 256);
 }
-// return a/b or 0
+/* return a/b or 0 */
 byte checkfunc4(byte a, byte b) {
 	if (b != 0) return (a / b);
 	else return 0;
@@ -187,8 +187,8 @@ char *scan_ascii(FILE *fh, UserStruct *User) {
 	int lines = 0;
 	int oldftell;
 
-	// NOTE: fscanf is notorious for its buffer overflows. This must be
-	// fixed some day, consider this a proof-of-concept version.
+	/* NOTE: fscanf is notorious for its buffer overflows. This must be
+	 fixed some day, consider this a proof-of-concept version. */
 
 	fscanf(fh, "%1000[^\n]", string);
 	sscanf(string, "%*s %s %s %lu %d %d %d",
@@ -205,13 +205,13 @@ char *scan_ascii(FILE *fh, UserStruct *User) {
 			User->email, User->shopid, User->reldate, User->keytype,
 			User->keylevel);
 
-		// read /n/n
-
-		// check if we're reading dow newlines...
+		/* read /n/n
+		 check if we're reading dow newlines...
+		*/
 		oldftell = ftell(fh);
 		getc(fh);
 		if ((ftell(fh) - oldftell) == 2) {
-			// yes !
+			/* yes ! */
 			dosnewlines = 1;
 		}
 		getc(fh);
@@ -223,25 +223,27 @@ char *scan_ascii(FILE *fh, UserStruct *User) {
 
 		getc(fh);
 
-		// 4 lines read uptil now...
+		/* 4 lines read uptil now... */
 		lines = 4;
 
 		while (getc(fh) != EOF) {
 			fscanf(fh, "%1000[^\n]", string);
 			lines++;
-			// if (DEBUG) printf("%s\n", string);
+			/* if (DEBUG) printf("%s\n", string); */
 			if (strcmp(string, BLENKEYSEPERATOR) == 0) {
 				getc(fh);
 				break;
 			}
 		}
 	
-		// fh now points at the start of the datablock
+		/* fh now points at the start of the datablock */
 		ascii_size = ftell(fh);
 
 		if (dosnewlines) {
-			// if we were reading on dos
-			// ftell will also count the ^M 's in the file; substract them
+			/* if we were reading on dos
+			 ftell will also count the ^M 's in the file; 
+			 substract them
+			*/
 			ascii_size -= lines;
 		}
 
@@ -253,7 +255,7 @@ char *scan_ascii(FILE *fh, UserStruct *User) {
 		if (DEBUG)
 			printf("asciiblock is %ld bytes long:\n[%s]\n", ascii_size, ascii_data);
 
-		// calculate the hash checksum
+		/* calculate the hash checksum */
 		RIPEMD160(ascii_data, ascii_size, md);
 		free(ascii_data);
 		mdhex = Hexify(md, RIPEMD160_DIGEST_LENGTH);
@@ -269,7 +271,7 @@ char *ReadHexCryptedData(FILE *fh, int *newlinetracker) {
 	int i;
 
 	if (DataType != 1) {
-		// printf("Error: unexpected datatype for HexCryptedData\n");
+		/* printf("Error: unexpected datatype for HexCryptedData\n"); */
 		free(HexCryptedData);
 		HexCryptedData = 0;
 	} else {
@@ -288,7 +290,7 @@ char *ReadHexCryptedKey(FILE *fh, int *newlinetracker) {
 	int i;
 
 	if (DataType != 2) {
-		// printf("Error: unexpected datatype for HexCryptedKey\n");
+		/* printf("Error: unexpected datatype for HexCryptedKey\n"); */
 		free(HexCryptedKey);
 		HexCryptedKey = 0;
 	} else {
@@ -300,7 +302,7 @@ char *ReadHexCryptedKey(FILE *fh, int *newlinetracker) {
 	return(HexCryptedKey);
 }
 
-// NOTE: CHANGE THIS INTO A KEY OF OUR OWN
+/* NOTE: CHANGE THIS INTO A KEY OF OUR OWN */
 void LoadRSApubKey(RSA *Pub) {
     static unsigned char n[] =
 "\xD1\x12\x0C\x6A\x34\x0A\xCF\x4C\x6B\x34\xA9\x3C\xDD\x1A\x2A\x68"
@@ -330,10 +332,10 @@ byte *RSADecryptKey(char *HexCryptedKey) {
 	int CryptedKeyLen = strlen(HexCryptedKey)/2;
 	RSA *Pub = NULL;
 
-	// Load RSA public key
+	/* Load RSA public key */
 	Pub = RSA_new();
 	if (Pub == NULL) {
-		// printf("Error in RSA_new\n");
+		/* printf("Error in RSA_new\n"); */
 	} else {
 		LoadRSApubKey(Pub);
 
@@ -376,7 +378,7 @@ char *get_from_datablock(char **DataPtr, char *TypeString) {
 	char *HexString = NULL;
 
 	if (atoi(TypeString) != tstringtype) {
-		// printf("Unexpected type %d, expected %s\n", tstringtype, TypeString);
+		/* printf("Unexpected type %d, expected %s\n", tstringtype, TypeString); */
 	} else {
 		HexString = malloc((tstringsize+1) * sizeof(char));
 
@@ -393,7 +395,7 @@ int ReadKeyFile(char *filename, UserStruct *User,
 	FILE *rawkeyfile;
 	char *HexAsciiHash = NULL, *HexCryptedData = NULL, *HexCryptedKey =
 		NULL;
-	int newlinetracker = 0; // line position, counts from 0-71
+	int newlinetracker = 0; /* line position, counts from 0-71 */
 	byte *CryptKey = NULL;
 	char *KeyDataString = NULL;
 	char *KeyDataPtr = NULL;
@@ -402,29 +404,29 @@ int ReadKeyFile(char *filename, UserStruct *User,
 	int ret_val = 1;
 
 	if ((rawkeyfile = fopen(filename, "rb")) == NULL) {
-		// printf("error, cannot read %s\n", filename);
+		/* printf("error, cannot read %s\n", filename); */
 	} else {
-		// Scan and interpret the ASCII part
+		/* Scan and interpret the ASCII part */
 		HexAsciiHash = scan_ascii(rawkeyfile, User);
 		if (DEBUG) printf("\nHexHash: %s\n", HexAsciiHash);
 
-		// Read the HexCryptedData
+		/* Read the HexCryptedData */
 		HexCryptedData = ReadHexCryptedData(rawkeyfile, &newlinetracker);
 		if (DEBUG) printf("\nHexCryptedData: %s\n", HexCryptedData);
 
-		// Read the HexCryptedKey
+		/* Read the HexCryptedKey */
 		HexCryptedKey = ReadHexCryptedKey(rawkeyfile, &newlinetracker);
 		if (DEBUG) printf("\nHexCryptedKey: %s\n", HexCryptedKey);
 
-		// close keyfile
+		/* close keyfile */
 		fclose(rawkeyfile);
 
 		if (HexAsciiHash && HexCryptedKey && HexCryptedData) {
-			// Decrypt HexCryptedKey
+			/* Decrypt HexCryptedKey */
 			CryptKey = RSADecryptKey(HexCryptedKey);
 
 			if (CryptKey) {
-				// Decrypt HexCryptedData
+				/* Decrypt HexCryptedData */
 				KeyDataString = DeCryptDatablock(CryptKey, 16, HexCryptedData);
 				free(CryptKey);
 				CryptKey = NULL;
@@ -432,7 +434,7 @@ int ReadKeyFile(char *filename, UserStruct *User,
 				if (KeyDataString) {
 					if (DEBUG) printf("\nKeyDataString: %s\n", KeyDataString);
 
-					// Extract data from KeyDataString
+					/* Extract data from KeyDataString */
 					KeyDataPtr = KeyDataString;
 					mdhex   = get_from_datablock(&KeyDataPtr, "01");
 					*Priv   = get_from_datablock(&KeyDataPtr, "02");
@@ -445,15 +447,16 @@ int ReadKeyFile(char *filename, UserStruct *User,
 
 						*Python = get_from_datablock(&KeyDataPtr, "05");
 
-						// Check ascii hash
+						/* Check ascii hash */
 						if (strcmp(mdhex, HexAsciiHash) != 0) {
-							// printf("Ascii part checksums do not match !\n");
-							// printf("found: %s\n", mdhex);
-							// printf("check: %s\n", HexAsciiHash);
+							/* printf("Ascii part checksums do not match !\n");
+							 printf("found: %s\n", mdhex);
+							 printf("check: %s\n", HexAsciiHash);
+							*/
 							ret_val = 2;
 						} else {
 							if (DEBUG) printf("\nThe ascii part checksum matches\n");
-							// everything ok !
+							/* everything ok ! */
 							ret_val = 0;
 						}
 						free(mdhex);
@@ -466,7 +469,7 @@ int ReadKeyFile(char *filename, UserStruct *User,
 			}
 		}
 
-		// cleanup
+		/* cleanup */
 
 		if (HexAsciiHash) {
 			free(HexAsciiHash);
