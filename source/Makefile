@@ -38,7 +38,10 @@ endif
 
 include nan_definitions.mk
 
-DIRS = ode creator blender kernel gameengine
+DIRS = creator blender kernel gameengine
+ifneq ($(OS),darwin)
+    DIRS += ode
+endif
 
 ifeq ($(OS),windows)
     DIRS += icons
