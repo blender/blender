@@ -53,10 +53,10 @@ struct Mdec;
 /* the basic imbuf type */
 
 typedef struct ImBuf{
-	short	x,y;		/* breedte in pixels, hoogte in scanlines */
-	short	skipx;		/* breedte in ints om bij volgende scanline te komen */
-	unsigned char	depth;		/* actieve aantal bits/bitplanes */
-	unsigned char	cbits;		/* aantal active bits in cmap */
+	short	x,y;		/* width in pixels, height in scanlines */
+	short	skipx;		/* width in ints to get to the next scanline */
+	unsigned char	depth;		/* active amount of bits/bitplanes */
+	unsigned char	cbits;		/* amount of active bits in cmap */
 	unsigned short	mincol;
 	unsigned short	maxcol;
 	int	type;		/* 0=abgr, 1=bitplanes */
@@ -65,7 +65,7 @@ typedef struct ImBuf{
 	unsigned int	*rect;		/* databuffer */
 	unsigned int	**planes;	/* bitplanes */
 	int	flags;
-	int	mall;		/* wat is er intern gemalloced en mag weer vrijgegeven worden */
+	int	mall;		/* what is malloced internal, and can be freed */
 	short	xorig, yorig;
 	char	name[1023];
 	char	namenull;
