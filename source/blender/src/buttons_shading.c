@@ -2030,8 +2030,7 @@ static void material_panel_map_input(Material *ma)
 {
 	uiBlock *block;
 	MTex *mtex;
-	int a, xco;
-	char str[32];
+	int b;
 	
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_map_input", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Texture", "Material");
@@ -2049,33 +2048,31 @@ static void material_panel_map_input(Material *ma)
 	uiDefButS(block, ROW, B_MATPRV, "Object",		670,166,75,18, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Use linked object's coordinates for texture coordinates");
 	uiDefIDPoinBut(block, test_obpoin_but, B_MATPRV, "",745,166,163,18, &(mtex->object), "");
 	
-	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_MATPRV, "Glob",			630,146,45,18, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Use global coordinates for the texture coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "Orco",			675,146,50,18, &(mtex->texco), 4.0, (float)TEXCO_ORCO, 0, 0, "Use the original coordinates of the mesh");
 	uiDefButS(block, ROW, B_MATPRV, "Stick",		725,146,50,18, &(mtex->texco), 4.0, (float)TEXCO_STICKY, 0, 0, "Use mesh sticky coordaintes for the texture coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "Win",			775,146,45,18, &(mtex->texco), 4.0, (float)TEXCO_WINDOW, 0, 0, "Use screen coordinates as texture coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "Nor",			820,146,44,18, &(mtex->texco), 4.0, (float)TEXCO_NORM, 0, 0, "Use normal vector as texture coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "Refl",			864,146,44,18, &(mtex->texco), 4.0, (float)TEXCO_REFL, 0, 0, "Use reflection vector as texture coordinates");
-	uiBlockEndAlign(block);
+
 	/* COORDS */
+	uiBlockBeginAlign(block);
 	uiDefButC(block, ROW, B_MATPRV, "Flat",			666,114,48,18, &(mtex->mapping), 5.0, (float)MTEX_FLAT, 0, 0, "Map X and Y coordinates directly");
 	uiDefButC(block, ROW, B_MATPRV, "Cube",			717,114,50,18, &(mtex->mapping), 5.0, (float)MTEX_CUBE, 0, 0, "Map using the normal vector");
 	uiDefButC(block, ROW, B_MATPRV, "Tube",			666,94,48,18, &(mtex->mapping), 5.0, (float)MTEX_TUBE, 0, 0, "Map with Z as central axis (tube-like)");
 	uiDefButC(block, ROW, B_MATPRV, "Sphe",			716,94,50,18, &(mtex->mapping), 5.0, (float)MTEX_SPHERE, 0, 0, "Map with Z as central axis (sphere-like)");
 
-	xco= 665;
-	for(a=0; a<4; a++) {
-		if(a==0) strcpy(str, "");
-		else if(a==1) strcpy(str, "X");
-		else if(a==2) strcpy(str, "Y");
-		else strcpy(str, "Z");
+	uiBlockBeginAlign(block);
+	for(b=0; b<3; b++) {
+		char *cp;
+		if(b==0) cp= &(mtex->projx);
+		else if(b==1) cp= &(mtex->projy);
+		else cp= &(mtex->projz);
 		
-		uiBlockBeginAlign(block);
-		uiDefButC(block, ROW, B_MATPRV, str,			xco, 50, 24, 18, &(mtex->projx), 6.0, (float)a, 0, 0, "");
-		uiDefButC(block, ROW, B_MATPRV, str,			xco, 30, 24, 18, &(mtex->projy), 7.0, (float)a, 0, 0, "");
-		uiDefButC(block, ROW, B_MATPRV, str,			xco, 10, 24, 18, &(mtex->projz), 8.0, (float)a, 0, 0, "");
-		uiBlockEndAlign(block);
-		xco+= 26;
+		uiDefButC(block, ROW, B_MATPRV, "",			665, 50-20*b, 24, 18, cp, 6.0+b, 0.0, 0, 0, "");
+		uiDefButC(block, ROW, B_MATPRV, "X",		691, 50-20*b, 24, 18, cp, 6.0+b, 1.0, 0, 0, "");
+		uiDefButC(block, ROW, B_MATPRV, "Y",		717, 50-20*b, 24, 18, cp, 6.0+b, 2.0, 0, 0, "");
+		uiDefButC(block, ROW, B_MATPRV, "Z",		743, 50-20*b, 24, 18, cp, 6.0+b, 3.0, 0, 0, "");
 	}
 	
 	uiBlockBeginAlign(block);

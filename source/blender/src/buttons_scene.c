@@ -349,10 +349,10 @@ static void sound_panel_sound(bSound *sound)
 	buttons_active_id(&id, &idfrom);
 	std_libbuttons(block, 10, 160, 0, NULL, B_SOUNDBROWSE2, id, idfrom, &(G.buts->texnr), 1, 0, 0, 0, 0);
 
-	uiDefBut(block, BUT, B_SOUND_COPY_SOUND, "Copy sound", 220,160,90,20, 0, 0, 0, 0, 0, "Make another copy (duplicate) of the current sound");
-
 	if (sound) {
 	
+		uiDefBut(block, BUT, B_SOUND_COPY_SOUND, "Copy sound", 220,160,90,20, 0, 0, 0, 0, 0, "Make another copy (duplicate) of the current sound");
+
 		uiSetButLock(sound->id.lib!=0, "Can't edit library data");
 		sound_initialize_sample(sound);
 		sample = sound->sample;
@@ -961,28 +961,26 @@ static void render_panel_output()
 	uiDefBut(block, TEX,0,"",							30, 148, 268, 19,G.scene->r.backbuf, 0.0,79.0, 0, 0, "Image to use as background for rendering");
 	uiDefIconBut(block, BUT,B_FS_FTYPE, ICON_FILESEL,	8, 125, 20, 19, 0, 0, 0, 0, 0, "Open Fileselect to get Ftype image");
 	uiDefBut(block, TEX,0,"",							30, 125, 268, 19,G.scene->r.ftype,0.0,79.0, 0, 0, "Image to use with FTYPE Image type");
-	uiBlockEndAlign(block);
 	
-	uiDefIconBut(block, BUT, B_CLEARSET, ICON_X, 		131, 95, 20, 19, 0, 0, 0, 0, 0, "Remove Set link");
-
+	
 	/* SET BUTTON */
+	uiBlockBeginAlign(block);
 	id= (ID *)G.scene->set;
 	IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->scene), id, &(G.buts->menunr));
 	if(strp[0])
 		uiDefButS(block, MENU, B_SETBROWSE, strp, 8, 96, 20, 19, &(G.buts->menunr), 0, 0, 0, 0, "Scene to link as a Set");
 	MEM_freeN(strp);
 
-	uiBlockSetCol(block, TH_BUT_SETTING1);
-
 	if(G.scene->set) {
 		uiSetButLock(1, NULL);
-		uiDefIDPoinBut(block, test_scenepoin_but, 0, "",			25, 97, 104, 19, &(G.scene->set), "Name of the Set");
+		uiDefIDPoinBut(block, test_scenepoin_but, 0, "",	29, 96, 100, 19, &(G.scene->set), "Name of the Set");
 		uiClearButLock();
+		uiDefIconBut(block, BUT, B_CLEARSET, ICON_X, 		131, 96, 20, 19, 0, 0, 0, 0, 0, "Remove Set link");
 	}
+	uiBlockEndAlign(block);
 
-
+	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiDefButS(block, TOG|BIT|0, 0,"Backbuf",	8, 70, 62, 19, &G.scene->r.bufflag, 0, 0, 0, 0, "Enable/Disable use of Backbuf image");	
-	
 	uiBlockSetCol(block, TH_AUTO);
 		
 	uiBlockBeginAlign(block);
@@ -998,9 +996,11 @@ static void render_panel_output()
 	uiDefButS(block, TOG|BIT|4, 0, "Extensions",	228, 8, 67, 18, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds extensions to the output when rendering animations");
 
 	/* Toon shading buttons */
+	uiBlockBeginAlign(block);
 	uiDefButS(block, TOG|BIT|5, 0,"Edge",	154, 70, 47, 19, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon shading");
-	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings |>> ", 204, 71, 93, 19, "Display edge settings");
-
+	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings |>> ", 204, 70, 93, 19, "Display edge settings");
+	uiBlockEndAlign(block);
+	
 	/* unified render buttons */
 	if(G.scene->r.mode & R_UNIFIED) {
 		uiDefBlockBut(block, post_render_menu, NULL, "Post process |>> ", 205, 48, 92, 19, "Only for unified render");
