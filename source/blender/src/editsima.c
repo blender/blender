@@ -98,17 +98,24 @@ static int compuvvert(const void *u1, const void *u2)
 	return 0;
 }
 
-int is_uv_tface_editing_allowed(void)
+int is_uv_tface_editing_allowed_silent(void)
 {
 	Mesh *me;
 
-	if(G.obedit) {error("Unable to perform function in EditMode"); return 0;}
+	if(G.obedit) return 0;
 	if(G.sima->mode!=SI_TEXTURE) return 0;
 	if(!(G.f & G_FACESELECT)) return 0;  
 	me= get_mesh(OBACT);
 	if(me==0 || me->tface==0) return 0;
 	
 	return 1;
+}
+
+int is_uv_tface_editing_allowed(void)
+{
+	if(G.obedit) error("Unable to perform function in EditMode");
+
+	return is_uv_tface_editing_allowed_silent();
 }
 
 static void setLinkedLimit(float *limit)

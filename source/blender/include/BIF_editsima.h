@@ -31,6 +31,7 @@
  */
 
 int is_uv_tface_editing_allowed(void);
+int is_uv_tface_editing_allowed_silent(void);
 void borderselect_sima(void);
 void mouseco_to_curtile(void);
 void mouse_select_sima(void);

@@ -64,6 +64,7 @@
 
 #include "BDR_editface.h"
 #include "BDR_editobject.h"
+#include "BDR_drawmesh.h"
 
 #include "BIF_gl.h"
 #include "BIF_space.h"
@@ -212,17 +213,16 @@ void what_image(SpaceImage *sima)
 			me= get_mesh((G.scene->basact) ? (G.scene->basact->object) : 0);
 			set_lasttface();
 			
-			if(me && me->tface && lasttface) {
-				if(lasttface->mode & TF_TEX) {
-					sima->image= lasttface->tpage;
+			if(me && me->tface && lasttface && lasttface->mode & TF_TEX) {
+				sima->image= lasttface->tpage;
 					
-					if(sima->flag & SI_EDITTILE);
-					else sima->curtile= lasttface->tile;
-					
-					if(sima->image) {
-						if(lasttface->mode & TF_TILES) sima->image->tpageflag |= IMA_TILES;
-						else sima->image->tpageflag &= ~IMA_TILES;
-					}
+				if(sima->flag & SI_EDITTILE);
+				else sima->curtile= lasttface->tile;
+				
+				if(sima->image) {
+					if(lasttface->mode & TF_TILES)
+						sima->image->tpageflag |= IMA_TILES;
+					else sima->image->tpageflag &= ~IMA_TILES;
 				}
 			}
 		}
@@ -589,7 +589,7 @@ static void image_editvertex_buts(uiBlock *block)
 	int i, nactive= 0;
 	Mesh *me;
 	
-	if( is_uv_tface_editing_allowed()==0 ) return;
+	if( is_uv_tface_editing_allowed_silent()==0 ) return;
 	me= get_mesh(OBACT);
 	
 	if (G.sima->image && G.sima->image->ibuf) {
@@ -632,13 +632,18 @@ static void image_editvertex_buts(uiBlock *block)
 			ocent[0]= (cent[0]*imx)/nactive;
 			ocent[1]= (cent[1]*imy)/nactive;
 			
+			uiDefBut(block, LABEL, 0, "UV Vertex:",10,55,302,19,0,0,0,0,0,"");
 			if(nactive==1) {
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex X:",	10, 100, 300, 19, &ocent[0], -10*imx, 10.0*imx, 100, 0, "");
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex Y:",	10, 80, 300, 19, &ocent[1], -10*imy, 10.0*imy, 100, 0, "");
+				uiBlockBeginAlign(block);
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex X:",	10, 35, 290, 19, &ocent[0], -10*imx, 10.0*imx, 100, 0, "");
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex Y:",	10, 15, 290, 19, &ocent[1], -10*imy, 10.0*imy, 100, 0, "");
+				uiBlockEndAlign(block);
 			}
 			else {
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median X:",	10, 100, 300, 19, &ocent[0], -10*imx, 10.0*imx, 100, 0, "");
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median Y:",	10, 80, 300, 19, &ocent[1], -10*imy, 10.0*imy, 100, 0, "");
+				uiBlockBeginAlign(block);
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median X:",	10, 35, 290, 19, &ocent[0], -10*imx, 10.0*imx, 100, 0, "");
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median Y:",	10, 15, 290, 19, &ocent[1], -10*imy, 10.0*imy, 100, 0, "");
+				uiBlockEndAlign(block);
 			}
 		}
 	}
@@ -688,6 +693,39 @@ void do_imagebuts(unsigned short event)
 	case B_TRANS_IMAGE:
 		image_editvertex_buts(NULL);
 		break;
+
+	case B_SIMAGEDRAW:
+		if(G.f & G_FACESELECT) {
+			make_repbind(G.sima->image);
+			image_changed(G.sima, 1);
+		}
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWIMAGE, 0);
+		break;
+
+	case B_SIMAGEDRAW1:
+		image_changed(G.sima, 2);		/* 2: only tileflag */
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWIMAGE, 0);
+		break;
+		
+	case B_TWINANIM:
+		{
+			Image *ima;
+			int nr;
+
+			ima = G.sima->image;
+			if (ima) {
+				if(ima->flag & IMA_TWINANIM) {
+					nr= ima->xrep*ima->yrep;
+					if(ima->twsta>=nr) ima->twsta= 1;
+					if(ima->twend>=nr) ima->twend= nr-1;
+					if(ima->twsta>ima->twend) ima->twsta= 1;
+					allqueue(REDRAWIMAGE, 0);
+				}
+			}
+		}
+		break;
 	}
 }
 
@@ -698,12 +736,27 @@ static void image_panel_properties(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 	block= uiNewBlock(&curarea->uiblocks, "image_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(IMAGE_HANDLER_PROPERTIES);  // for close and esc
-	if(uiNewPanel(curarea, block, "Transform Properties", "Image", 10, 230, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Properties", "Image", 10, 230, 318, 204)==0)
+		return;
 
 	if (G.sima->image && G.sima->image->ibuf) {
 		char str[32];
-		sprintf(str, "Image size %d x %d", G.sima->image->ibuf->x, G.sima->image->ibuf->y);
+
+		sprintf(str, "Image: size %d x %d", G.sima->image->ibuf->x, G.sima->image->ibuf->y);
 		uiDefBut(block, LABEL, 0, str,		10,180,300,19, 0, 0, 0, 0, 0, "");
+
+		uiBlockBeginAlign(block);
+		uiDefButS(block, TOG|BIT|1, B_TWINANIM, "Anim", 10,150,140,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Toggles use of animated texture");
+		uiDefButS(block, NUM, B_TWINANIM, "Start:",		10,130,140,19, &G.sima->image->twsta, 0.0, 128.0, 0, 0, "Displays the start frame of an animated texture");
+		uiDefButS(block, NUM, B_TWINANIM, "End:",		10,110,140,19, &G.sima->image->twend, 0.0, 128.0, 0, 0, "Displays the end frame of an animated texture");
+		uiDefButS(block, NUM, 0, "Speed", 				10,90,140,19, &G.sima->image->animspeed, 1.0, 100.0, 0, 0, "Displays Speed of the animation in frames per second");
+		uiBlockEndAlign(block);
+
+		uiBlockBeginAlign(block);
+		uiDefButS(block, TOG|BIT|0, B_SIMAGEDRAW1, "Tiles",	160,150,140,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Toggles use of tilemode for faces");
+		uiDefButS(block, NUM, B_SIMAGEDRAW, "X:",		160,130,70,19, &G.sima->image->xrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the X direction");
+		uiDefButS(block, NUM, B_SIMAGEDRAW, "Y:",		230,130,70,19, &G.sima->image->yrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the Y direction");
+		uiBlockBeginAlign(block);
 	}
 
 	image_editvertex_buts(block);

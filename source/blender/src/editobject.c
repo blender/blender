@@ -1006,6 +1006,7 @@ void enter_editmode(void)
 		G.obedit= ob;
 		make_editMesh();
 		allqueue(REDRAWBUTSLOGIC, 0);
+		if(G.f & G_FACESELECT) allqueue(REDRAWIMAGE, 0);
 	}
 	if (ob->type==OB_ARMATURE){
 		arm=base->object->data;
