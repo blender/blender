@@ -2436,7 +2436,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 	uiDrawBlock(block);
 	
-	myortho2(-0.5, (float)(sa->winx)-.05, -0.5, (float)(sa->winy)-0.5);
+	myortho2(-0.5, (float)(sa->winx)-0.5, -0.5, (float)(sa->winy)-0.5);
 	draw_area_emboss(sa);
 	myortho2(0.0, 1280.0, 0.0, curarea->winy/fac);
 	sa->win_swap= WIN_BACK_OK;
@@ -2537,7 +2537,7 @@ static void changebutspace(ScrArea *sa, void *spacedata)
 	if(G.v2d==0) return;
 	
 	test_view2d(G.v2d, curarea->winx, curarea->winy);
-	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin-0.6, G.v2d->cur.ymax+0.6);
+	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 }
 
 void winqreadbutspace(ScrArea *sa, void *spacedata, BWinEvent *evt)

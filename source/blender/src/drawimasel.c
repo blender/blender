@@ -142,7 +142,7 @@ void viewgate(short sx, short sy, short ex, short ey)
 	wx = curarea->winrct.xmin; wy = curarea->winrct.ymin;
 	glViewport(wx+sx, wy+sy, (wx+ex )-(wx+sx)+1, (wy+ey )-(wy+sy)+1); 
 	glScissor(wx+sx, wy+sy, (wx+ex )-(wx+sx)+1, (wy+ey )-(wy+sy)+1);
-	myortho2((float)sx+0.5 , (float)ex+0.5, (float)sy+0.5, (float)ey+0.5);
+	myortho2((float)sx-0.5 , (float)ex-0.5, (float)sy-0.5, (float)ey-0.5);
 }	
 	
 void areaview (void) 

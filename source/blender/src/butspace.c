@@ -455,7 +455,7 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 	sbuts->mainbo= sbuts->mainb;
 	sbuts->tabo= sbuts->tab[sbuts->mainb];
 
-	myortho2(-0.5, (float)(sa->winx)-.05, -0.5, (float)(sa->winy)-0.5);
+	myortho2(-0.5, (float)(sa->winx)-0.5, -0.5, (float)(sa->winy)-0.5);
 	draw_area_emboss(sa);
 	myortho2(v2d->cur.xmin, v2d->cur.xmax, v2d->cur.ymin, v2d->cur.ymax);
 

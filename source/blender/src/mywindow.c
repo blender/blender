@@ -97,7 +97,7 @@ void mywindow_init_mainwin(Window *win, int orx, int ory, int sizex, int sizey)
 	mainwindow.ymax= ory+sizey-1;
 	mainwindow.qevents= NULL;
 
-	myortho2(-0.5, (float)sizex-0.5, -0.6, (float)sizey-0.6);
+	myortho2(-0.5, (float)sizex-0.5, -0.5, (float)sizey-0.5);
 	glLoadIdentity();
 		
 	glGetFloatv(GL_PROJECTION_MATRIX, (float *)mainwindow.winmat);
@@ -427,10 +427,15 @@ void mywinposition(int winid, int xmin, int xmax, int ymin, int ymax) /* watch: 
 void bwin_ortho(int winid, float x1, float x2, float y1, float y2, float n, float f)
 {
 	bWindow *bwin= bwin_from_winid(winid);
+	float offs= 0.125;
 	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(x1, x2, y1, y2, n, f);
+	// in blender it's always called with -0.5... according to opengl
+	// manual it should be (-)0.375 for correctness. 
+	
+	//offs= 0.01*G.rt;
+	glOrtho(x1+offs, x2+offs, y1+offs, y2+offs, n, f);
 
 	glGetFloatv(GL_PROJECTION_MATRIX, (float *)bwin->winmat);
 	glMatrixMode(GL_MODELVIEW);
@@ -438,9 +443,7 @@ void bwin_ortho(int winid, float x1, float x2, float y1, float y2, float n, floa
 
 void bwin_ortho2(int win, float x1, float x2, float y1, float y2)
 {
-	// in blender it's always called with -0.5... according to opengl
-	// manual it should 0.375 for correctness. added for test
-	bwin_ortho(win, x1+0.125, x2+0.125, y1+0.125, y2+0.125, -1, 1);
+	bwin_ortho(win, x1, x2, y1, y2, -1, 1);
 }
 
 void bwin_frustum(int winid, float x1, float x2, float y1, float y2, float n, float f)

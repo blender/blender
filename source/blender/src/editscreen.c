@@ -2926,7 +2926,7 @@ void drawscreen(void)
 	ScrArea *sa;
 
 	mywinset(G.curscreen->mainwin);
-	myortho2(-0.5, (float)G.curscreen->sizex-0.5, -0.51, (float)G.curscreen->sizey-0.51);
+	myortho2(-0.5, (float)G.curscreen->sizex-0.5, -0.5, (float)G.curscreen->sizey-0.5);
 
 	sa= G.curscreen->areabase.first;
 	while(sa) {
