@@ -108,6 +108,7 @@ private:
 	void writePathlight();
 	bool writeWorld();
 	void clearAll();
+	bool executeYafray(const std::string &xmlpath);
 
 };
 

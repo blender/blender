@@ -119,9 +119,12 @@ bool yafrayRender_t::exportScene()
 	clearAll();
 
 	// file exported, now render
+	/*
   char yfr[1024];
   sprintf(yfr, "yafray -c %d \"%s\"", R.r.YF_numprocs, xmlpath.c_str());
   if(system(yfr)==0)
+	*/
+	if(executeYafray(xmlpath))
 		displayImage();
 	else 
 	{
@@ -1209,6 +1212,69 @@ bool yafrayRender_t::writeWorld()
 
 	return true;
 }
+
+#ifdef WIN32 
+
+#include<windows.h>
+
+#ifndef FILE_MAXDIR
+#define FILE_MAXDIR  160
+#endif
+
+#ifndef FILE_MAXFILE
+#define FILE_MAXFILE 80
+#endif
+
+static string find_path ()
+{
+	HKEY	hkey;
+	DWORD dwType, dwSize;
+
+	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE,"Software\\YafRay Team\\YafRay",0,KEY_READ,&hkey)==ERROR_SUCCESS)
+	{
+		dwType = REG_EXPAND_SZ;
+	 	dwSize = MAX_PATH;
+		DWORD dwStat;
+
+		char *pInstallDir=new char[MAX_PATH];
+
+  		dwStat=RegQueryValueEx(hkey, TEXT("InstallDir"), 
+			NULL, NULL,(LPBYTE)pInstallDir, &dwSize);
+		
+		if (dwStat == NO_ERROR)
+		{
+			string res=pInstallDir;
+			delete [] pInstallDir;
+			return res;
+		}
+		else
+			cout << "Couldn't READ \'InstallDir\' value. Is yafray correctly installed?\n";
+		delete [] pInstallDir;
+
+		RegCloseKey(hkey);
+	}	
+	else
+		cout << "Couldn't FOUND registry key.for yafray, is it installed?\n";
+
+	return string("");
+
+}
+#endif
+
+bool yafrayRender_t::executeYafray(const string &xmlpath)
+{
+  char yfr[8];
+  sprintf(yfr, "%d ", R.r.YF_numprocs);
+#ifdef WIN32 
+	char path[FILE_MAXDIR+FILE_MAXFILE];
+	GetShortPathName((LPCTSTR)(find_path().c_str()), path, FILE_MAXDIR+FILE_MAXFILE);
+	string command=string(path)+"\\yafray -c "+yfr+"\""+xmlpath+"\"";
+#else
+	string command=string("yafray -c ")+yfr+"\""+xmlpath+"\"";
+#endif
+  return system(command.c_str())==0;
+}
+
 
 yafrayRender_t YAFBLEND;
 
