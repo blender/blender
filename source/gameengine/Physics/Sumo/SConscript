@@ -5,13 +5,14 @@ Import ('library_env')
 
 phy_sumo_env = library_env.Copy ()
 
-source_files = ['SumoPhysicsController.cpp',
+source_files = ['SumoPHYCallbackBridge.cpp',
+                'SumoPhysicsController.cpp',
                 'SumoPhysicsEnvironment.cpp',
                 'Fuzzics/src/SM_FhObject.cpp',
                 'Fuzzics/src/SM_Object.cpp',
                 'Fuzzics/src/SM_Scene.cpp',
-		'Fuzzics/src/SM_MotionState.cpp'
-		]
+                'Fuzzics/src/SM_MotionState.cpp'
+               ]
 
 phy_sumo_env.Append (CPPPATH = ['.',
                                 '../common',
