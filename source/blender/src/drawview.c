@@ -1293,24 +1293,26 @@ static void v3d_editarmature_buts(uiBlock *block, Object *ob, float lim)
 
 static void v3d_editmetaball_buts(uiBlock *block, Object *ob, float lim)
 {
-        extern MetaElem *lastelem;
-                                                                                                                             
-        uiBlockBeginAlign(block);
-        uiDefButF(block, NUM, B_RECALCMBALL, "LocX:", 10, 70, 140, 19, &lastelem->x, -lim, lim, 100, 3, "");
-        uiDefButF(block, NUM, B_RECALCMBALL, "LocY:", 10, 50, 140, 19, &lastelem->y, -lim, lim, 100, 3, "");
-        uiDefButF(block, NUM, B_RECALCMBALL, "LocZ:", 10, 30, 140, 19, &lastelem->z, -lim, lim, 100, 3, "");
-                                                                                                                             
-        uiBlockBeginAlign(block);
-        if(lastelem->type!=MB_BALL)
-        uiDefButF(block, NUM, B_RECALCMBALL, "dx:", 160, 70, 140, 19, &lastelem->expx, 0, lim, 100, 3, "");
-        if((lastelem->type!=MB_BALL) && (lastelem->type!=MB_TUBE))
-        uiDefButF(block, NUM, B_RECALCMBALL, "dy:", 160, 50, 140, 19, &lastelem->expy, 0, lim, 100, 3, "");
-        if((lastelem->type==MB_ELIPSOID) || (lastelem->type==MB_CUBE))
-        uiDefButF(block, NUM, B_RECALCMBALL, "dz:", 160, 30, 140, 19, &lastelem->expz, 0, lim, 100, 3, "");
-                                                                                                                             
-        uiBlockEndAlign(block);
-                                                                                                                             
-        uiDefButF(block, NUM, B_RECALCMBALL, "Stiffness:", 10, 100, 140, 19, &lastelem->s, 0, lim, 100, 3, "");
+	extern MetaElem *lastelem;
+																															
+	if(lastelem) {
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUM, B_RECALCMBALL, "LocX:", 10, 70, 140, 19, &lastelem->x, -lim, lim, 100, 3, "");
+		uiDefButF(block, NUM, B_RECALCMBALL, "LocY:", 10, 50, 140, 19, &lastelem->y, -lim, lim, 100, 3, "");
+		uiDefButF(block, NUM, B_RECALCMBALL, "LocZ:", 10, 30, 140, 19, &lastelem->z, -lim, lim, 100, 3, "");
+																																
+		uiBlockBeginAlign(block);
+		if(lastelem->type!=MB_BALL)
+		uiDefButF(block, NUM, B_RECALCMBALL, "dx:", 160, 70, 140, 19, &lastelem->expx, 0, lim, 100, 3, "");
+		if((lastelem->type!=MB_BALL) && (lastelem->type!=MB_TUBE))
+		uiDefButF(block, NUM, B_RECALCMBALL, "dy:", 160, 50, 140, 19, &lastelem->expy, 0, lim, 100, 3, "");
+		if((lastelem->type==MB_ELIPSOID) || (lastelem->type==MB_CUBE))
+		uiDefButF(block, NUM, B_RECALCMBALL, "dz:", 160, 30, 140, 19, &lastelem->expz, 0, lim, 100, 3, "");
+																																
+		uiBlockEndAlign(block);
+																																
+		uiDefButF(block, NUM, B_RECALCMBALL, "Stiffness:", 10, 100, 140, 19, &lastelem->s, 0, lim, 100, 3, "");
+	}
 }
 
 void do_viewbuts(unsigned short event)
