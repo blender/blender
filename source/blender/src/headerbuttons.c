@@ -516,6 +516,7 @@ void update_for_newframe(void)
 	BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
 	do_all_keys();
 	do_all_actions();
+	do_all_armatures();
 	do_all_ikas();
 
 	test_all_displists();
@@ -4450,8 +4451,8 @@ void ipo_buttons(void)
 	/* EXTRAP */
 	uiDefIconBut(block, BUT, B_IPOCONT, ICON_CONSTANT,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Sets the extend mode to constant");
 	uiDefIconBut(block, BUT, B_IPOEXTRAP, ICON_LINEAR,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Sets the extend mode to extrapolation");
-	uiDefIconBut(block, BUT, B_IPOCYCLIC, ICON_CYCLICLINEAR,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0,  "Sets the extend mode to cyclic");
-	uiDefIconBut(block, BUT, B_IPOCYCLICX, ICON_CYCLIC,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0,  "Sets the extend mode to cyclic extrapolation");
+	uiDefIconBut(block, BUT, B_IPOCYCLIC, ICON_CYCLIC,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0,  "Sets the extend mode to cyclic");
+	uiDefIconBut(block, BUT, B_IPOCYCLICX, ICON_CYCLICLINEAR,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0,  "Sets the extend mode to cyclic extrapolation");
 	xco+= XIC/2;
 
 	uiClearButLock();
