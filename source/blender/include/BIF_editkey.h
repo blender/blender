@@ -42,7 +42,7 @@ struct Curve;
 
 void mesh_to_key(struct Mesh *me, struct KeyBlock *kb);
 void key_to_mesh(struct KeyBlock *kb, struct Mesh *me);
-void insert_meshkey(struct Mesh *me);
+void insert_meshkey(struct Mesh *me, short offline);
 
 void latt_to_key(struct Lattice *lt, struct KeyBlock *kb);
 void key_to_latt(struct KeyBlock *kb, struct Lattice *lt);

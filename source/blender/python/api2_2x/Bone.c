@@ -109,7 +109,7 @@ static PyMethodDef BPy_Bone_methods[] = {
   {"getQuat", (PyCFunction)Bone_getQuat, METH_NOARGS,  "() - return Bone quat"},
   {"getParent", (PyCFunction)Bone_hasParent, METH_NOARGS,
               "() - return the parent bone of this one if it exists."
-              " Otherwise raise an error. Check this condition with the "
+              " None if not found. You can check this condition with the "
               "hasParent() method."},
   {"hasParent", (PyCFunction)Bone_hasParent, METH_NOARGS,
           "() - return true if bone has a parent"},

@@ -29,10 +29,9 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-/* This file is opy_nmesh.c from bpython modified to work with the new
- * implementation of the Blender Python API */
-
 #include "NMesh.h"
+
+#define NMESH_FRAME_MAX 18000
 
 void mesh_update(Mesh *mesh)
 {
@@ -551,8 +550,40 @@ static void NMesh_dealloc(PyObject *self)
   Py_DECREF(me->name);
   Py_DECREF(me->verts);
   Py_DECREF(me->faces);
-  
+  Py_DECREF(me->materials);
+
   PyObject_DEL(self);
+}
+
+static PyObject *NMesh_addMaterial (PyObject *self, PyObject *args)
+{
+	BPy_NMesh *me = (BPy_NMesh *)self;
+	BPy_Material *pymat;
+	Material *mat;
+	PyObject *iter;
+	int i, len = 0;
+
+	if (!PyArg_ParseTuple (args, "O!", &Material_Type, &pymat))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+						"expected Blender Material PyObject");
+
+	mat = pymat->material;
+	len = PyList_Size(me->materials);
+
+	if (len >= 16)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+						"object data material lists can't have more than 16 materials");
+
+	for (i = 0; i < len; i++) {
+		iter = PyList_GetItem(me->materials, i);
+		if (mat == Material_FromPyObject(iter))
+			return EXPP_ReturnPyObjError (PyExc_AttributeError,
+						"material already in the list");
+	}
+
+	PyList_Append(me->materials, (PyObject *)pymat);
+
+	return EXPP_incr_ret (Py_None);
 }
 
 static PyObject *NMesh_removeAllKeys (PyObject *self, PyObject *args)
@@ -575,14 +606,25 @@ static PyObject *NMesh_removeAllKeys (PyObject *self, PyObject *args)
 static PyObject *NMesh_insertKey(PyObject *self, PyObject *args)
 {
   int fra = -1, oldfra = -1;
+	char *type = NULL;
+	short typenum;
   BPy_NMesh *nm = (BPy_NMesh *)self;
   Mesh *mesh = nm->mesh;
 
-  if (!PyArg_ParseTuple(args, "|i", &fra))
+  if (!PyArg_ParseTuple(args, "|is", &fra, &type))
     return EXPP_ReturnPyObjError (PyExc_TypeError,
-                    "expected int argument (or nothing)");
+           "expected nothing or an int and optionally a string as arguments");
+
+	if (!type || !strcmp(type, "relative"))
+		typenum = 1;
+	else if (!strcmp(type, "absolute"))
+		typenum = 2;
+  else
+    return EXPP_ReturnPyObjError (PyExc_AttributeError,
+             "if given, type should be 'relative' or 'absolute'");
 
   if (fra > 0) {
+	  fra = EXPP_ClampInt(fra, 1, NMESH_FRAME_MAX);
     oldfra = G.scene->r.cfra;
     G.scene->r.cfra = fra;
   }
@@ -591,7 +633,7 @@ static PyObject *NMesh_insertKey(PyObject *self, PyObject *args)
     return EXPP_ReturnPyObjError (PyExc_RuntimeError,
         "update this NMesh first with its .update() method");
 
-  insert_meshkey(mesh);
+  insert_meshkey(mesh, typenum);
 
   if (fra > 0) G.scene->r.cfra = oldfra;
 
@@ -710,16 +752,25 @@ static PyObject *NMesh_hasVertexColours(PyObject *self, PyObject *args)
 
 static PyObject *NMesh_update(PyObject *self, PyObject *args)
 {
+	int recalc_normals = 0;
   BPy_NMesh *nmesh = (BPy_NMesh *)self;
   Mesh *mesh = nmesh->mesh;
+
+  if (!PyArg_ParseTuple(args, "|i", &recalc_normals))
+      return EXPP_ReturnPyObjError (PyExc_AttributeError,
+        "expected nothing or an int (0 or 1) as argument");
 
   if (mesh) {
     unlink_existingMeshData(mesh);
     convert_NMeshToMesh(mesh, nmesh);
-    mesh_update(mesh);
-  } else {  
+  } else { 
     nmesh->mesh = Mesh_fromNMesh(nmesh);
   }
+
+  if(recalc_normals == 1)
+    vertexnormals_mesh(mesh, 0);
+
+  mesh_update(mesh);
 
   nmesh_updateMaterials(nmesh);
 /**@ This is another ugly fix due to the weird material handling of blender.
@@ -737,7 +788,7 @@ static PyObject *NMesh_update(PyObject *self, PyObject *args)
 
 
 /** Implementation of the python method getVertexInfluence for an NMesh object.
- * This method returns a list of pairs (string,float) with bone nemaes and
+ * This method returns a list of pairs (string,float) with bone names and
  * influences that this vertex receives.
  * @author Jordi Rovira i Bonet
  */
@@ -765,29 +816,36 @@ static PyObject *NMesh_getVertexInfluences(PyObject *self, PyObject *args)
       int i;
       MDeformWeight *sweight = NULL;
   
-      /* Number of bones influencig the vertex */
+      /* Number of bones influencing the vertex */
       int totinfluences=me->dvert[index].totweight;
   
   /* Build the list only with weights and names of the influent bones */
-      influence_list = PyList_New(totinfluences);
+      /*influence_list = PyList_New(totinfluences);*/
+      influence_list = PyList_New(0);
 
-  /* Get the reference of the first wwight structure */
+  /* Get the reference of the first weight structure */
       sweight = me->dvert[index].dw;      
 
       for (i=0; i<totinfluences; i++) {
 
-    /* Some check that should always be true */
-/*        assert(sweight->data);*/
-
     /*Add the weight and the name of the bone, which is used to identify it*/
-        PyList_SetItem(influence_list, i,
+
+				if (sweight->data) /* valid bone: return its name */
+/*					PyList_SetItem(influence_list, i,
+            Py_BuildValue("[sf]", sweight->data->name, sweight->weight));
+				else // NULL bone: return Py_None instead
+					PyList_SetItem(influence_list, i,
+            Py_BuildValue("[Of]", Py_None, sweight->weight));*/
+					PyList_Append(influence_list,
             Py_BuildValue("[sf]", sweight->data->name, sweight->weight));
 
     /* Next weight */
         sweight++;
       }
     }
-    else influence_list = PyList_New(0);
+    else //influence_list = PyList_New(0);
+      return EXPP_ReturnPyObjError (PyExc_IndexError,
+							"vertex index out of range");
   }
   else influence_list = PyList_New(0);
 
@@ -804,7 +862,6 @@ Mesh *Mesh_fromNMesh(BPy_NMesh *nmesh)
              "FATAL: could not create mesh object");
 
   convert_NMeshToMesh(mesh, nmesh);
-  mesh_update(mesh);
 
   return mesh;
 }
@@ -833,6 +890,7 @@ static struct PyMethodDef NMesh_methods[] =
   MethodDef(getActiveFace),
   MethodDef(getSelectedFaces),
   MethodDef(getVertexInfluences),
+  MethodDef(addMaterial),
   MethodDef(insertKey),
   MethodDef(removeAllKeys),
   MethodDef(update),
@@ -1811,8 +1869,11 @@ int NMesh_CheckPyObject (PyObject *pyobj)
 
 Mesh *NMesh_FromPyObject (PyObject *pyobj)
 {
-  if (pyobj->ob_type == &NMesh_Type)
-    return Mesh_fromNMesh ((BPy_NMesh *)pyobj);
+  if (pyobj->ob_type == &NMesh_Type) {
+    Mesh *me = Mesh_fromNMesh ((BPy_NMesh *)pyobj);
+		mesh_update(me);
+		return me;
+	}
 
   return NULL;
 }

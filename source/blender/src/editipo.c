@@ -3839,7 +3839,7 @@ void common_insertkey()
 		if(event== -1) return;
 		
 		if(event==7) {
-			if(ob->type==OB_MESH) insert_meshkey(ob->data);
+			if(ob->type==OB_MESH) insert_meshkey(ob->data, 0);
 			else if ELEM(ob->type, OB_CURVE, OB_SURF) insert_curvekey(ob->data);
 			else if(ob->type==OB_LATTICE) insert_lattkey(ob->data);
 			

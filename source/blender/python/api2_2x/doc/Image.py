@@ -55,11 +55,12 @@ class Image:
   """
   The Image object
   ================
-    This object gives access to Images in Blender.  In the future it will allow
-    direct read/write access to their pixel buffers, too.
+    This object gives access to Images in Blender.
   @cvar name: The name of this Image object.
   @cvar filename: The filename (path) to the image file loaded into this Image
      object.
+  @cvar size: The [width, height] dimensions of the image (in pixels).
+  @cvar depth: The pixel depth of the image.
   @cvar xrep: Texture tiling: the number of repetitions in the x (horizontal)
      axis.
   @cvar yrep: Texture tiling: the number of repetitions in the y (vertical)
@@ -76,6 +77,18 @@ class Image:
     """
     Get the filename of the image file loaded into this Image object.
     @rtype: string
+    """
+
+  def getSize():
+    """
+    Get the [width, height] dimensions (in pixels) of this image.
+    @rtype: list of 2 ints
+    """
+
+  def getDepth():
+    """
+    Get the pixel depth of this image.
+    @rtype: int
     """
 
   def getXRep():
@@ -112,4 +125,3 @@ class Image:
     @type yrep: int
     @param yrep: The new value in [1, 16].
     """
-

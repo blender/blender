@@ -55,10 +55,12 @@
 #include "BIF_space.h"
 #include "DNA_mesh_types.h"
 #include "DNA_key_types.h"
+#include "DNA_listBase.h"
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
 #include "DNA_armature_types.h"
 #include "mydevice.h"
+#include "BIF_editkey.h" /* insert_meshkey */
 
 #include "Material.h"
 #include "Image.h"
@@ -67,8 +69,6 @@
 #include "gen_utils.h"
 #include "modules.h"
 
-
-void insert_meshkey(Mesh *me); /* defined in editkey.c */
 
 /* EXPP PyType Objects */
 
@@ -107,9 +107,15 @@ static char M_NMesh_Vert_doc[] =
 "([x, y, z]) - Get a new vertice\n\n\
 [x, y, z] Specify new coordinates";
 
+static char NMesh_addMaterial_doc[] =
+"(material) - add a new Blender Material 'material' to this Mesh's materials\n\
+list.";
+
 static char NMesh_insertKey_doc[] =
-"(frame = None) - inserts a Mesh key at the given frame\n\
-if called without arguments, it inserts the key at the current Scene frame";
+"(frame = None, type = 'relative') - inserts a Mesh key at the given frame\n\
+if called without arguments, it inserts the key at the current Scene frame.\n\
+(type) - 'relative' or 'absolute'.  Only relevant on the first call to this\n\
+function for each nmesh.";
 
 static char NMesh_removeAllKeys_doc[] =
 "() - removes all keys from this mesh\n\
@@ -141,7 +147,8 @@ specified by index. The list contains pairs with the \n\
 bone name and the weight.";
 
 
-static char NMesh_update_doc[] = "updates the Mesh";
+static char NMesh_update_doc[] = "(recalc_normals = 0) - updates the Mesh.\n\
+if recalc_normals is given and is equal to 1, normal vectors are recalculated.";
 /*
 static char NMesh_asMesh_doc[] = "returns free Mesh datablock object from NMesh";
 

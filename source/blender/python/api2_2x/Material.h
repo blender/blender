@@ -58,6 +58,7 @@ extern PyTypeObject Material_Type; /* The Material PyType Object */
 /*****************************************************************************/
 PyObject *M_Material_Init (void);
 PyObject *Material_CreatePyObject (Material *mat);
+Material *Material_FromPyObject (PyObject *pyobj);
 int       Material_CheckPyObject (PyObject *pyobj);
 
 /* Some functions needed by NMesh.c */

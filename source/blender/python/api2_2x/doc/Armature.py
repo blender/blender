@@ -74,3 +74,150 @@ class Armature:
     Set the Armature root bones (still unimplemented).
     @warn: This method wasn't implemented yet.
     """
+
+class Bone:
+  """
+  The Bone object
+  ===============
+    This object gives access to Bone-specific data in Blender.
+  @cvar name: The name of this Bone.
+  @cvar roll: This Bone's roll value.
+  @cvar head: This Bone's "head" ending position when in rest state.
+  @cvar tail: This Bone's "tail" ending position when in rest state.
+  @cvar loc: This Bone's location.
+  @cvar size: This Bone's size.
+  @cvar quat: This Bone's quaternion.
+  @cvar parent: The parent Bone.
+  @cvar children: The children bones.
+  """
+
+  def getName():
+    """
+    Get the name of this Bone.
+    @rtype: string
+    """
+
+  def getRoll():
+    """
+    Get the roll value.
+    @rtype: float
+    """
+
+  def getHead():
+    """
+    Get the "head" ending position.
+    @rtype: list of three floats
+    """
+
+  def getTail():
+    """
+    Get the "tail" ending position.
+    @rtype: list of three floats
+    """
+
+  def getLoc():
+    """
+    Get the location of this Bone.
+    @rtype: list of three floats
+    """
+
+  def getSize():
+    """
+    Get the size attribute.
+    @rtype: list of three floats
+    """
+
+  def getQuat():
+    """
+    Get this Bone's quaternion.
+    @rtype: list of four floats.
+    """
+
+  def hasParent():
+    """
+    True if this Bone has a parent Bone.
+    @rtype: true or false
+    """
+
+  def getParent():
+    """
+    Get this Bone's parent Bone, if available.
+    @rtype: Blender Bone
+    """
+
+  def getChildren():
+    """
+    Get this Bone's children Bones, if available.
+    @rtype: list of Blender Bones
+    """
+
+  def setName(name):
+    """
+    Rename this Bone.
+    @type name: string
+    @param name: The new name.
+    """
+
+  def setRoll(roll):
+    """
+    Set the roll value.
+    @type roll: float
+    @param roll: The new value.
+    """
+
+  def setHead(x,y,z):
+    """
+    Set the "head" ending position.
+    @type x: float
+    @type y: float
+    @type z: float
+    @param x: The new x value.
+    @param y: The new y value.
+    @param z: The new z value.
+    """
+
+  def setTail(x,y,z):
+    """
+    Set the "tail" ending position.
+    @type x: float
+    @type y: float
+    @type z: float
+    @param x: The new x value.
+    @param y: The new y value.
+    @param z: The new z value.
+    """
+
+  def setLoc(x,y,z):
+    """
+    Set the new location for this Bone.
+    @type x: float
+    @type y: float
+    @type z: float
+    @param x: The new x value.
+    @param y: The new y value.
+    @param z: The new z value.
+    """
+
+  def setSize(x,y,z):
+    """
+    Set the new size for this Bone.
+    @type x: float
+    @type y: float
+    @type z: float
+    @param x: The new x value.
+    @param y: The new y value.
+    @param z: The new z value.
+    """
+
+  def setQuat(real,imag_i,imag_j,imag_k):
+    """
+    Set the new quaternion orientation for this Bone.
+    @type real: float
+    @type imag_i: float
+    @type imag_j: float
+    @type imag_k: float
+    @param real: The new quat[0] value.
+    @param imag_i: The new quat[1] value.
+    @param imag_j: The new quat[2] value.
+    @param imag_k: The new quat[3] value.
+    """

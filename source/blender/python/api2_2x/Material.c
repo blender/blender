@@ -584,6 +584,16 @@ int Material_CheckPyObject (PyObject *pyobj)
 }
 
 /*****************************************************************************/
+/* Function:    Material_FromPyObject                                        */
+/* Description: This function returns the Blender material from the given    */
+/*              PyObject.                                                    */
+/*****************************************************************************/
+Material *Material_FromPyObject (PyObject *pyobj)
+{
+  return ((BPy_Material *)pyobj)->material;
+}
+
+/*****************************************************************************/
 /* Description: Returns the object with the name specified by the argument   */
 /*              name. Note that the calling function has to remove the first */
 /*              two characters of the object name. These two characters      */
@@ -988,6 +998,12 @@ static PyObject *Material_setColorComponent(BPy_Material *self, char *key,
     self->material->g = value;
   else if (!strcmp(key, "B"))
     self->material->b = value;
+  else if (!strcmp(key, "specR"))
+    self->material->specr = value;
+  else if (!strcmp(key, "specG"))
+    self->material->specg = value;
+  else if (!strcmp(key, "specB"))
+    self->material->specb = value;
 
   return EXPP_incr_ret (Py_None);
 }
@@ -1287,6 +1303,12 @@ static PyObject *Material_getAttr (BPy_Material *self, char *name)
     attr = PyFloat_FromDouble((double)self->material->g);
   else if (strcmp(name, "B") == 0)
     attr = PyFloat_FromDouble((double)self->material->b);
+  else if (strcmp(name, "specR") == 0)
+    attr = PyFloat_FromDouble((double)self->material->specr);
+  else if (strcmp(name, "specG") == 0)
+    attr = PyFloat_FromDouble((double)self->material->specg);
+  else if (strcmp(name, "specB") == 0)
+    attr = PyFloat_FromDouble((double)self->material->specb);
   else if (strcmp(name, "amb") == 0)
     attr = PyFloat_FromDouble((double)self->material->amb);
   else if (strcmp(name, "emit") == 0)
@@ -1389,6 +1411,12 @@ static int Material_setAttr (BPy_Material *self, char *name, PyObject *value)
     error = Material_setColorComponent (self, "G", valtuple);
   else if (strcmp (name, "B") == 0)
     error = Material_setColorComponent (self, "B", valtuple);
+  else if (strcmp (name, "specR") == 0)
+    error = Material_setColorComponent (self, "specR", valtuple);
+  else if (strcmp (name, "specG") == 0)
+    error = Material_setColorComponent (self, "specG", valtuple);
+  else if (strcmp (name, "specB") == 0)
+    error = Material_setColorComponent (self, "specB", valtuple);
   else if (strcmp (name, "amb") == 0)
     error = Material_setAmb (self, valtuple);
   else if (strcmp (name, "emit") == 0)

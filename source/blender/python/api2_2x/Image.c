@@ -34,7 +34,7 @@
 #include <BKE_library.h>
 #include <BKE_image.h>
 #include <BLI_blenlib.h>
-
+#include <IMB_imbuf_types.h> /* for the IB_rect define */
 #include "gen_utils.h"
 
 #include "Image.h"
@@ -226,6 +226,8 @@ PyObject *Image_Init (void)
 /*****************************************************************************/
 static PyObject *Image_getName(BPy_Image *self);
 static PyObject *Image_getFilename(BPy_Image *self);
+static PyObject *Image_getSize(BPy_Image *self);
+static PyObject *Image_getDepth(BPy_Image *self);
 static PyObject *Image_getXRep(BPy_Image *self);
 static PyObject *Image_getYRep(BPy_Image *self);
 static PyObject *Image_setName(BPy_Image *self, PyObject *args);
@@ -241,6 +243,10 @@ static PyMethodDef BPy_Image_methods[] = {
           "() - Return Image object name"},
   {"getFilename", (PyCFunction)Image_getFilename, METH_NOARGS,
           "() - Return Image object filename"},
+  {"getSize", (PyCFunction)Image_getSize, METH_NOARGS,
+          "() - Return Image object [width, height] dimension in pixels"},
+  {"getDepth", (PyCFunction)Image_getDepth, METH_NOARGS,
+          "() - Return Image object pixel depth"},
   {"getXRep", (PyCFunction)Image_getXRep, METH_NOARGS,
           "() - Return Image object x repetition value"},
   {"getYRep", (PyCFunction)Image_getYRep, METH_NOARGS,
@@ -354,6 +360,47 @@ static PyObject *Image_getFilename(BPy_Image *self)
           "couldn't get Image.filename attribute"));
 }
 
+static PyObject *Image_getSize(BPy_Image *self)
+{
+	PyObject *attr;
+	Image *image = self->image;
+
+	if (!image->ibuf) /* if no image data available */
+		load_image(image, IB_rect, "", 0); /* loading it */
+
+	if (!image->ibuf) /* didn't work */
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+					"couldn't load image data in Blender");
+
+	attr = Py_BuildValue("[hh]", image->ibuf->x, image->ibuf->y);
+
+	if (attr) return attr;
+
+  return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+          "couldn't get Image.size attribute");
+}
+
+static PyObject *Image_getDepth(BPy_Image *self)
+{
+	PyObject *attr;
+	Image *image = self->image;
+
+	if (!image->ibuf) /* if no image data available */
+		load_image(image, IB_rect, "", 0); /* loading it */
+
+	if (!image->ibuf) /* didn't work */
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+					"couldn't load image data in Blender");
+
+	attr = Py_BuildValue("h", image->ibuf->depth);
+
+	if (attr) return attr;
+
+  return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+          "couldn't get Image.depth attribute");
+}
+
+
 static PyObject *Image_getXRep(BPy_Image *self)
 {
   PyObject *attr = PyInt_FromLong(self->image->xrep);
@@ -441,14 +488,18 @@ static PyObject *Image_getAttr (BPy_Image *self, char *name)
     attr = PyString_FromString(self->image->id.name+2);
   else if (strcmp(name, "filename") == 0)
     attr = PyString_FromString(self->image->name);
+  else if (strcmp(name, "size") == 0)
+    attr = Image_getSize(self);
+  else if (strcmp(name, "depth") == 0)
+    attr = Image_getDepth(self);
   else if (strcmp(name, "xrep") == 0)
     attr = PyInt_FromLong(self->image->xrep);
   else if (strcmp(name, "yrep") == 0)
     attr = PyInt_FromLong(self->image->yrep);
 
   else if (strcmp(name, "__members__") == 0)
-    attr = Py_BuildValue("[s,s,s,s]",
-                    "name", "filename", "xrep", "yrep");
+    attr = Py_BuildValue("[s,s,s,s,s,s]",
+                    "name", "filename", "size", "depth", "xrep", "yrep");
 
   if (!attr)
     return (EXPP_ReturnPyObjError (PyExc_MemoryError,

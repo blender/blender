@@ -110,11 +110,15 @@ def GetRaw(name = None):
 
 def GetRawFromObject(name):
   """
-  Get the mesh data object from the Object in Blender called I{name}.
+  Get the raw mesh data object from the Object in Blender called I{name}.
   @type name: string
   @param name: The name of an Object of type "Mesh".
   @rtype: NMesh
   @return: The NMesh wrapper of the mesh data from the Object called I{name}.
+  @warn: This function gets I{deformed} mesh data, already modified for
+      rendering (think "display list").  It also doesn't let you overwrite the
+      original mesh in Blender, so if you try to update it, a new mesh will
+      be created.
   """
 
 def PutRaw(nmesh, name = None, recalculate_normals = 1):
@@ -187,7 +191,7 @@ class NMFace:
     @param vertex: An NMVert object.
     """
 
-class NMesh :
+class NMesh:
   """
   The NMesh Data object
   =====================
@@ -200,6 +204,16 @@ class NMesh :
   @cvar users: The number of Objects using (linked to) this mesh.
   @cvar faces: The list of NMesh faces (NMFaces).
   """
+
+  def addMaterial(material):
+    """
+    Add a new material to this NMesh's list of materials.  This method is the
+    slower but safer way to add materials, since it checks if the argument
+    given is really a material, imposes a limit of 16 materials and only adds
+    the material if it wasn't already in the list.
+    @type material: Blender Material
+    @param material: A Blender Material.
+    """
 
   def hasVertexColours(flag = None):
     """
@@ -272,14 +286,18 @@ class NMesh :
         and its weight is a float value.
     """
 
-  def insertKey(frame = None):
+  def insertKey(frame = None, type = 'relative'):
     """
     Insert a mesh key at the given frame.  Remember to L{update} the nmesh
     before doing this, or changes in the vertices won't be updated in the
     Blender mesh.
     @type frame: int
+    @type type: string
     @param frame: The Scene frame where the mesh key should be inserted.  If
         None, the current frame is used.
+    @param type: The mesh key type: 'relative' or 'absolute'.  This is only
+        relevant on the first call to insertKey for each nmesh (and after all
+        keys were removed with L{removeAllKeys}, of course).
     @warn: This and L{removeAllKeys} were included in this release only to
         make accessing vertex keys possible, but may not be a proper solution
         and may be substituted by something better later.  For example, it
@@ -301,9 +319,12 @@ class NMesh :
        add them.
     """
 
-  def update():
+  def update(recalc_normals = 0):
     """
     Update the mesh in Blender.  The changes made are put back to the mesh in
     Blender, if available, or put in a newly created mesh object if this NMesh
     wasn't linked to one, yet.
+    @type recalc_normals: int
+    @param recalc_normals: If given and equal to 1, the vertex normals are
+        recalculated.
     """

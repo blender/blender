@@ -104,7 +104,7 @@ static IpoCurve *get_key_icu(Key *key, int keynum) {
 	 */
     IpoCurve *icu;
 	if (!(key->ipo)) {
-		key->ipo = get_ipo(key, ID_KE, 1);
+		key->ipo = get_ipo((ID *)key, ID_KE, 1);
 		return NULL;
 	}
 
@@ -356,7 +356,7 @@ void key_to_mesh(KeyBlock *kb, Mesh *me)
 
 
 
-void insert_meshkey(Mesh *me)
+void insert_meshkey(Mesh *me, short offline)
 {
 	Key *key;
 	KeyBlock *kb, *kkb;
@@ -365,7 +365,13 @@ void insert_meshkey(Mesh *me)
 
 	if(me->key==0) {
 		me->key= add_key( (ID *)me);
-		rel = pupmenu("Insert Vertex Keys %t|Relative keys %x1|Absolute keys %x2");
+
+		if (!offline) /* interactive */
+			rel = pupmenu("Insert Vertex Keys %t|"
+										"Relative keys %x1|Absolute keys %x2");
+		else /* we were called from a script */
+			rel = offline;
+
 		switch (rel) {
 		case 1:
 			me->key->type = KEY_RELATIVE;
