@@ -201,7 +201,7 @@ void glaRasterPosSafe2f(float x, float y, float known_good_x, float known_good_y
 		/* Now shift the raster position to where we wanted
 		 * it in the first place using the glBitmap trick.
 		 */
-	glBitmap(1, 1, 0, 0, x - known_good_x, y - known_good_y, &dummy);
+	glBitmap(0, 0, 0, 0, x - known_good_x, y - known_good_y, &dummy);
 }
 
 static int get_cached_work_texture(int *w_r, int *h_r)

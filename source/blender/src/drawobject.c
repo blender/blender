@@ -240,7 +240,7 @@ static void draw_icon_centered(float *pos, unsigned int *rect, int rectsize)
 	glRasterPos3fv(pos);
 	
 		/* use bitmap to shift rasterpos in pixels */
-	glBitmap(1, 1, 0.0, 0.0, -hsize, -hsize, &dummy);
+	glBitmap(0, 0, 0.0, 0.0, -hsize, -hsize, &dummy);
 	glFinish(); /* for sun */
 	
 	glDrawPixels(rectsize, rectsize, GL_RGBA, GL_UNSIGNED_BYTE, rect);
