@@ -180,6 +180,8 @@ float prop_cent[3];
 
 float centre[3], centroid[3];
 
+void mirrormesh(void);
+
 void add_object_draw(int type)	/* for toolbox */
 {
 	Object *ob;
@@ -1557,7 +1559,7 @@ void special_editmenu(void)
 	}
 	else if(G.obedit->type==OB_MESH) {
 
-		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Fractal%x2|Subdivide Smooth%x3|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select swap%x8|Flip Normals %x9|Smooth %x10");
+		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Fractal%x2|Subdivide Smooth%x3|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select swap%x8|Flip Normals %x9|Smooth %x10|Mirror%x12");
 		if(nr>0) waitcursor(1);
 		
 		switch(nr) {
@@ -1597,6 +1599,9 @@ void special_editmenu(void)
 			break;
 		case 10:
 			vertexsmooth();
+			break;
+		case 12:
+			mirrormesh();
 			break;
 		}		
 		
@@ -6630,3 +6635,114 @@ void make_displists_by_obdata(void *obdata) {
 			makeDispList(base->object);
 }
 
+/* ******************************************************************** */
+/* Mirror function in Edit Mode */
+
+void mirrormesh(){
+	short mode = 0, axis;
+	float centre[3] = {0,0,0}, *curs, mat[3][3], imat[3][3];
+	EditVert *eve;
+	mode=pupmenu("Mirror Axis %t|Global X%x1|       Y%x2|       Z%x3|Local X%x4|      Y%x5|      Z%x6|View X%x7|     Y%x8|     Z%x9|");
+
+	if (G.obedit==0) return;
+	if (mode==0) return;
+
+	centre[0]= centre[1]= centre[2]= 0.0;
+	Mat3CpyMat4(mat, G.obedit->obmat);
+	Mat3Inv(imat, mat);
+
+	if(G.vd->around==V3D_CENTROID) {
+		int a = 0;
+		eve= G.edve.first;
+		while(eve) {
+			a++;
+			if((eve->h==0) && (eve->f & 1)) {
+				VecAddf(centre, centre, eve->co);
+			}
+			eve= eve->next;
+		}
+		VecMulf(centre, 1.0/a);
+		
+	}
+	else if(G.vd->around==V3D_CURSOR) {
+		curs= give_cursor();
+		VECCOPY(centre, curs);
+		
+		VecSubf(centre, centre, G.obedit->obmat[3]);
+		Mat3MulVecfl(imat, centre);
+
+	}
+	
+	if ((mode==1) || (mode==2) || (mode==3)) {
+
+		axis = mode - 1;
+
+		eve= G.edve.first;
+		while(eve) {
+			if((eve->h==0) && (eve->f & 1)) {
+				float vec[3];
+				vec[0] = eve->co[0];
+				vec[1] = eve->co[1];
+				vec[2] = eve->co[2];
+				Mat3MulVecfl(mat, vec);
+				vec[axis] -= centre[axis];
+				vec[axis] *= -1;
+				vec[axis] += centre[axis];
+				Mat3MulVecfl(imat, vec);
+				eve->co[0] = vec[0];
+				eve->co[1] = vec[1];
+				eve->co[2] = vec[2];
+			}
+			eve= eve->next;
+		}
+
+	}
+	else if ((mode==4) || (mode==5) || (mode==6)){
+
+		axis = mode - 4;
+
+		eve= G.edve.first;
+		while(eve) {
+			if((eve->h==0) && (eve->f & 1)) {
+				eve->co[axis] -= centre[axis];
+				eve->co[axis] *= -1;
+				eve->co[axis] += centre[axis];
+			}
+			eve= eve->next;
+		}
+
+	}
+	else if ((mode==7) || (mode==8) || (mode==9)){
+		float viewmat[3][3], iviewmat[3][3];
+
+		Mat3CpyMat4(viewmat, G.vd->persmat);
+		Mat3Inv(iviewmat, viewmat);
+
+		axis = mode - 7;
+		Mat3MulVecfl(viewmat, centre);
+
+		eve= G.edve.first;
+		while(eve) {
+			if((eve->h==0) && (eve->f & 1)) {
+				float vec[3];
+				vec[0] = eve->co[0];
+				vec[1] = eve->co[1];
+				vec[2] = eve->co[2];
+				Mat3MulVecfl(mat, vec);
+				Mat3MulVecfl(viewmat, vec);
+				vec[axis] -= centre[axis];
+				vec[axis] *= -1;
+				vec[axis] += centre[axis];
+				Mat3MulVecfl(imat, vec);
+				Mat3MulVecfl(iviewmat, vec);
+				eve->co[0] = vec[0];
+				eve->co[1] = vec[1];
+				eve->co[2] = vec[2];
+			}
+			eve= eve->next;
+		}
+
+	}
+	scrarea_do_windraw(curarea);
+	screen_swapbuffers();
+}
