@@ -2131,7 +2131,7 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 	uiDefButI(block, TOG|BIT|6, REDRAWVIEW3D, "Draw Normals",	955,110,150,19, &G.f, 0, 0, 0, 0, "Displays face normals as lines");
 	uiDefButI(block, TOG|BIT|7, REDRAWVIEW3D, "Draw Faces",		955,88,150,19, &G.f, 0, 0, 0, 0, "Displays all faces as shades");
 	uiDefButI(block, TOG|BIT|18, REDRAWVIEW3D, "Draw Edges", 	955,66,150,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights");
-	uiDefButI(block, TOG|BIT|19, REDRAWVIEW3D, "Draw Creases",	955,44,150,19, &G.f, 0, 0, 0, 0, "Displays face normals as lines");
+	uiDefButI(block, TOG|BIT|19, REDRAWVIEW3D, "Draw Creases",	955,44,150,19, &G.f, 0, 0, 0, 0, "Displays creases created for subsurf weighting");
 	uiDefButI(block, TOG|BIT|20, REDRAWVIEW3D, "Draw Seams",	955,22,150,19, &G.f, 0, 0, 0, 0, "Displays UV unwrapping seams");
 	uiDefButI(block, TOG|BIT|11, 0, "All Edges",			955, 0,150,19, &G.f, 0, 0, 0, 0, "Displays all edges in object mode without optimization");
 	uiBlockEndAlign(block);
