@@ -2845,20 +2845,20 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 			FTF_GetBoundingBox(but->tip, &llx,&lly,&llz,&urx,&ury,&urz, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
 
 			x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*FTF_GetStringWidth(but->tip, FTF_USE_GETTEXT | FTF_INPUT_UTF8);  //BMF_GetStringWidth(but->font, but->tip);
-			y1= but->y1-(ury+FTF_GetSize())-16; y2= but->y1-8;
+			y1= but->y1-(ury+FTF_GetSize())-12; y2= but->y1-12;
 		} else {
 			FTF_GetBoundingBox(but->tip, &llx,&lly,&llz,&urx,&ury,&urz, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
 
 			x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*FTF_GetStringWidth(but->tip, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);  //BMF_GetStringWidth(but->font, but->tip);
-			y1= but->y1-(ury+FTF_GetSize())-16; y2= but->y1-8;
+			y1= but->y1-(ury+FTF_GetSize())-12; y2= but->y1-12;
 		}
 	} else {
   		x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*BMF_GetStringWidth(but->font, but->tip);
-  		y1= but->y1-35; y2= but->y1-6;
+  		y1= but->y1-30; y2= but->y1-12;
 	}
 #else
   	x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*BMF_GetStringWidth(but->font, but->tip);
-  	y1= but->y1-35; y2= but->y1-10;
+  	y1= but->y1-30; y2= but->y1-12;
 #endif
 
 	/* for pulldown menus it doesnt work */
@@ -2907,7 +2907,7 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 	glRectf(x1, y1, x2, y2);
 	
 	glColor3ub(0,0,0);
-	glRasterPos2f( x1+3, y1+5);
+	glRasterPos2f( x1+3, y1+5.0/but->aspect);
 	BIF_DrawString(but->font, but->tip, (U.transopts & USER_TR_TOOLTIPS));
 	
 	glFlush();		/* to show it in the frontbuffer */
@@ -2925,11 +2925,11 @@ static void ui_do_but_tip(void)
 			 * or if the user will keep moving
 			 * the pointer.
 			 */
-		for (time= 0; time<10; time++) {
+		for (time= 0; time<25; time++) {
 			if (anyqtest())
 				return;
 			else
-				PIL_sleep_ms(50);
+				PIL_sleep_ms(20);
 		}
 			
 			/* Display the tip, and keep it displayed
