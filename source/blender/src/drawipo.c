@@ -1569,7 +1569,6 @@ static void ipo_panel_properties(short cntrl)	// IPO_HANDLER_PROPERTIES
 {
 	extern int totipo_vis;	// editipo.c
 	uiBlock *block;
-	float min, max;
 	
 	block= uiNewBlock(&curarea->uiblocks, "ipo_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
@@ -1579,21 +1578,16 @@ static void ipo_panel_properties(short cntrl)	// IPO_HANDLER_PROPERTIES
 
 	boundbox_ipo_visible(G.sipo);	// should not be needed... transform/draw calls should update
 	
-	/* calculate a nice range for the button */
-	min= MIN2(G.sipo->tot.xmin, G.sipo->tot.ymin)-100.0;
-	min= MIN2(min, -100);
-	max= MAX2(G.sipo->tot.xmax, G.sipo->tot.ymax)+100.0;
-	max= MAX2(max, 100);
-
+	/* note ranges for buttons below are idiot... we need 2 ranges, one for sliding scale, one for real clip */
 	if(G.sipo->ipo && G.sipo->ipo->curve.first && totipo_vis) {
 		extern int totipo_vertsel;	// editipo.c
 		uiDefBut(block, LABEL, 0, "Visible curves",		10, 200, 150, 19, NULL, 1.0, 0.0, 0, 0, "");
 		
-		uiDefButF(block, NUM, B_MUL_IPO, "Xmin:",		10, 180, 150, 19, &G.sipo->tot.xmin, min, max, 100, 0, "");
-		uiDefButF(block, NUM, B_MUL_IPO, "Xmax:",		160, 180, 150, 19, &G.sipo->tot.xmax, min, max, 100, 0, "");
+		uiDefButF(block, NUM, B_MUL_IPO, "Xmin:",		10, 180, 150, 19, &G.sipo->tot.xmin, G.sipo->tot.xmin-1000.0, 18000.0, 100, 0, "");
+		uiDefButF(block, NUM, B_MUL_IPO, "Xmax:",		160, 180, 150, 19, &G.sipo->tot.xmax, G.sipo->tot.ymin-1000.0, 18000.0, 100, 0, "");
 		
-		uiDefButF(block, NUM, B_MUL_IPO, "Ymin:",		10, 160, 150, 19, &G.sipo->tot.ymin, min, max, 100, 0, "");
-		uiDefButF(block, NUM, B_MUL_IPO, "Ymax:",		160, 160, 150, 19, &G.sipo->tot.ymax, min, max, 100, 0, "");
+		uiDefButF(block, NUM, B_MUL_IPO, "Ymin:",		10, 160, 150, 19, &G.sipo->tot.ymin, G.sipo->tot.ymin-1000.0, 5000.0, 100, 0, "");
+		uiDefButF(block, NUM, B_MUL_IPO, "Ymax:",		160, 160, 150, 19, &G.sipo->tot.ymax, G.sipo->tot.ymin-1000.0, 5000.0, 100, 0, "");
 
 		/* SPEED BUTTON */
 		if(totipo_vertsel) {
@@ -1603,7 +1597,7 @@ static void ipo_panel_properties(short cntrl)	// IPO_HANDLER_PROPERTIES
 	}
 
 	/* this one also does keypositions */
-	if(G.sipo->ipo) ipo_editvertex_buts(block, G.sipo, min, max);
+	if(G.sipo->ipo) ipo_editvertex_buts(block, G.sipo, -10000, 18000);
 }
 
 static void ipo_blockhandlers(ScrArea *sa)
