@@ -2,7 +2,7 @@
 import sys
 import os
 
-import SCons.Script
+#import SCons.Script
 import bs_globals
 
 def checkPyVersion():
@@ -18,9 +18,9 @@ def parseOpts():
 	copyloc = ''
 	
 	all_args = sys.argv[1:]
-	parser =  SCons.Script.OptParser()
-	options, targets = parser.parse_args(all_args)
-	if ('clean' in targets):
+#	parser =  SCons.Script.OptParser()
+#	options, targets = parser.parse_args(all_args)
+	if ('clean' in bs_globals.targets):
 		bs_globals.enable_clean = 1
 	
 	# User configurable options file. This can be controlled by the user by running
@@ -34,4 +34,5 @@ def parseOpts():
 	else:
 		bs_globals.docopy = 1;
 		bs_globals.copyto = copyloc
-		
+	
+	

@@ -4,10 +4,13 @@ import os
 import time
 import sys
 from distutils import sysconfig
-import SCons.Script
 from tools.scons.bs import *
 
 bs_globals.arguments = ARGUMENTS
+bs_globals.targets = COMMAND_LINE_TARGETS
+
+print 'targets = ',bs_globals.targets
+print 'arguments = ', bs_globals.arguments
 
 appname = ''
 playername = ''
@@ -50,6 +53,11 @@ sdl_env = Environment ()
 freetype_env = Environment ()
 env = Environment ()
 
+#use_ccgsubsurflib = 'true'
+# NOTE: this option is currently turned on and off by
+# adding it to extra_flags for your platform like this:
+# 	extra_flags.append( '-DUSE_CCGSUBSURFLIB' )
+
 if sys.platform == 'linux2' or sys.platform == 'linux-i386':
 	use_international = 'false'
 	use_gameengine = 'true'
@@ -66,6 +74,7 @@ if sys.platform == 'linux2' or sys.platform == 'linux-i386':
 	release_flags = ['-O2']
 	debug_flags = ['-O2', '-g']
 	extra_flags = ['-pipe', '-funsigned-char']
+	extra_flags.append( '-DUSE_CCGSUBSURFLIB' )
 	cxxflags = []
 	defines = []
 	warn_flags = ['-Wall', '-W']
@@ -153,7 +162,8 @@ elif sys.platform == 'darwin':
 	fink_path = '/sw/'
 	# TODO : try -mpowerpc -mpowerpc-gopt -mpowerpc-gfxopt optims
 	#           doing actual profiling
-	extra_flags = ['-pipe', '-fPIC', '-funsigned-char', '-ffast-math', '-mpowerpc', '-mtune=G4'] 
+	extra_flags = ['-pipe', '-fPIC', '-funsigned-char', '-ffast-math', '-mpowerpc', '-mtune=G4']
+	extra_flags.append( '-DUSE_CCGSUBSURFLIB' )
 	
 	# , '-malign-natural'] malign is causing problems with jpeg lib but worth a 1-2% speedup
 	#'-force_cpusubtype_ALL', '-mpowerpc-gpopt', 
@@ -258,6 +268,7 @@ elif sys.platform == 'cygwin':
 	release_flags = ['-O2']
 	debug_flags = ['-O2', '-g']
 	extra_flags = ['-pipe', '-mno-cygwin', '-mwindows', '-funsigned-char']
+	extra_flags.append( '-DUSE_CCGSUBSURFLIB' )
 	cxxflags = []
 	defines = ['FREE_WINDOWS']
 	warn_flags = ['-Wall', '-Wno-char-subscripts']
@@ -439,6 +450,7 @@ elif string.find (sys.platform, 'sunos') != -1:
 	release_flags = ['-O2']
 	debug_flags = ['-O2', '-g']
 	extra_flags = ['-pipe', '-fPIC', '-funsigned-char', '-DSUN_OGL_NO_VERTEX_MACROS']
+	extra_flags.append( '-DUSE_CCGSUBSURFLIB' )
 	cxxflags = []
 	defines = []
 	warn_flags = ['-Wall', '-W']
@@ -516,6 +528,7 @@ elif string.find (sys.platform, 'irix') != -1:
 	build_blender_plugin = 'false'
 	irix_precomp = '#../lib/irix-6.5-mips'
 	extra_flags = ['-n32', '-mips3', '-Xcpluscomm']
+	extra_flags.append( '-DUSE_CCGSUBSURFLIB' )
 	cxxflags = ['-n32', '-mips3', '-Xcpluscomm', '-LANG:std']
 	cxxflags += ['-LANG:libc_in_namespace_std=off']
 	
@@ -607,6 +620,7 @@ elif sys.platform=='openbsd3':
 	release_flags = ['-O2']
 	debug_flags = ['-O2', '-g']
 	extra_flags = ['-pipe', '-fPIC', '-funsigned-char']
+	extra_flags.append( '-DUSE_CCGSUBSURFLIB' )
 	cxxflags = []
 	defines = []
 	warn_flags = ['-Wall','-W']
@@ -686,6 +700,7 @@ elif sys.platform=='freebsd4' or sys.platform=='freebsd5':
 	release_flags = ['-O2']
 	debug_flags = ['-O2', '-g']
 	extra_flags = ['-pipe', '-fPIC', '-funsigned-char']
+	extra_flags.append( '-DUSE_CCGSUBSURFLIB' )
 	cxxflags = []
 	defines = []
 	warn_flags = ['-Wall','-W']
