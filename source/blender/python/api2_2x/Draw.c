@@ -79,9 +79,20 @@ static int Button_setattr(PyObject *self,  char *name, PyObject *v)
 			PyArg_Parse(v, "f", &but->val.asfloat);			
 		else if (but->type==3) {
 			char *newstr;
-			
 			PyArg_Parse(v, "s", &newstr);
-			strncpy(but->val.asstr, newstr, but->slen); 
+
+			/* if the length of the new string is the same as */
+			/* the old one, just copy, else delete and realloc. */
+			if( but->slen == strlen( newstr) ) {
+			  strncpy(but->val.asstr, newstr, but->slen); 
+			}
+			else {
+			  MEM_freeN( but->val.asstr);
+			  but->slen = strlen( newstr );
+			  but->val.asstr = MEM_mallocN( but->slen + 1,
+							"button setattr");
+			  strcpy( but->val.asstr, newstr );
+			}
 		}
 	} else {
 		PyErr_SetString(PyExc_AttributeError, name);
