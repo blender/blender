@@ -1647,20 +1647,16 @@ static float *jitter_plane(LampRen *lar, int xs, int ys)
 	if(lar->ray_samp_type & LA_SAMP_JITTER) {
 		/* made it threadsafe */
 		if(ys & 1) {
-			static int xold=0, yold=0;
-
-			if(xold!=xs || yold!=ys) {
+			if(lar->xold!=xs || lar->yold!=ys) {
 				jitter_plane_offset(lar->jitter, lar->jitter+2*tot, tot, lar->area_size, lar->area_sizey, BLI_frand(), BLI_frand());
-				xold= xs; yold= ys;
+				lar->xold= xs; lar->yold= ys;
 			}
 			return lar->jitter+2*tot;
 		}
 		else {
-			static int xold=0, yold=0;
-			
-			if(xold!=xs || yold!=ys) {
+			if(lar->xold!=xs || lar->yold!=ys) {
 				jitter_plane_offset(lar->jitter, lar->jitter+4*tot, tot, lar->area_size, lar->area_sizey, BLI_frand(), BLI_frand());
-				xold= xs; yold= ys;
+				lar->xold= xs; lar->yold= ys;
 			}
 			return lar->jitter+4*tot;
 		}
