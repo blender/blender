@@ -154,6 +154,10 @@ SOURCE=..\..\..\source\blender\blenloader\intern\readfile.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\blenloader\intern\undofile.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\blenloader\intern\writefile.c
 # ADD CPP /I "..\..\..\source\blender"
 # End Source File
@@ -172,6 +176,10 @@ SOURCE=..\..\..\source\blender\blenloader\BLO_readfile.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\blenloader\BLO_soundfile.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\blenloader\BLO_undofile.h
 # End Source File
 # End Group
 # End Target
