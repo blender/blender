@@ -55,6 +55,7 @@ CPPFLAGS += -I$(NAN_SUMO)/include
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 
 CPPFLAGS += -I$(NAN_BMFONT)/include
+CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include
 CPPFLAGS += -I../../../gameengine/Converter
 CPPFLAGS += -I../../../gameengine/Expressions
 CPPFLAGS += -I../../../gameengine/GameLogic
@@ -65,7 +66,6 @@ CPPFLAGS += -I../../../gameengine/Network
 CPPFLAGS += -I../../../gameengine/Network/LoopBackNetwork
 CPPFLAGS += -I../../../gameengine/Rasterizer
 CPPFLAGS += -I../../../gameengine/SceneGraph
-CPPFLAGS += -I../../../gameengine/SoundSystem
 CPPFLAGS += -I../../../gameengine/Rasterizer/RAS_OpenGLRasterizer
 
 ###############################

@@ -42,6 +42,7 @@ CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_BMFONT)/include
+CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include
 
 CPPFLAGS += -I../../GamePlayer/common
 
@@ -56,8 +57,6 @@ CPPFLAGS += -I../../Network/LoopBackNetwork
 CPPFLAGS += -I../../Rasterizer
 CPPFLAGS += -I../../Rasterizer/RAS_OpenGLRasterizer
 CPPFLAGS += -I../../SceneGraph
-CPPFLAGS += -I../../SoundSystem
-CPPFLAGS += -I../../SoundSystem/SND_OpenAL
 
 # Sumo
 CPPFLAGS += -I$(SRCHOME)/gameengine/Physics/Sumo/include

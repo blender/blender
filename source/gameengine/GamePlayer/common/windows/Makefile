@@ -43,7 +43,6 @@ CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 CPPFLAGS += -I$(SRCHOME)/gameengine/GameLogic
 CPPFLAGS += -I$(SRCHOME)/gameengine/Rasterizer
 CPPFLAGS += -I$(SRCHOME)/gameengine/Ketsji
-CPPFLAGS += -I$(SRCHOME)/gameengine/SoundSystem
 CPPFLAGS += -I$(SRCHOME)/gameengine/Network
 CPPFLAGS += -I$(SRCHOME)/gameengine/Network/LoopBackNetwork
 
@@ -53,6 +52,7 @@ CPPFLAGS += -I$(SRCHOME)/gameengine/Physics/Sumo/include
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_BMFONT)/include
+CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include
 
 # Blender stuff
 CPPFLAGS += -I$(SRCHOME)/blender/blenkernel

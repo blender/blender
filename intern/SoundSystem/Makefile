@@ -35,7 +35,7 @@ include nan_definitions.mk
 
 LIBNAME = soundsystem
 SOURCEDIR = intern/SoundSystem
-DIR = $(OCGDIR)/SoundSystem
+DIR = $(OCGDIR)/$(SOURCEDIR)
 DIRS = intern
 DIRS += dummy
 
@@ -68,6 +68,6 @@ ifeq ($(OS),darwin)
 	ranlib $(NAN_SOUNDSYSTEM)/lib/libsoundsystem.a
 	ranlib $(NAN_SOUNDSYSTEM)/lib/debug/libsoundsystem.a
 endif
-	@../tools/cpifdiff.sh extern/*.h $(NAN_SOUNDSYSTEM)/include/
+	@../tools/cpifdiff.sh *.h $(NAN_SOUNDSYSTEM)/include/
 
 

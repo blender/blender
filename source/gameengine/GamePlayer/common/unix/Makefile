@@ -57,16 +57,10 @@ CPPFLAGS += -I../../../../gameengine/Network/LoopBackNetwork
 CPPFLAGS += -I../../../../gameengine/Rasterizer
 CPPFLAGS += -I../../../../gameengine/Rasterizer/RAS_OpenGLRasterizer
 CPPFLAGS += -I../../../../gameengine/SceneGraph
-ifeq ($(NAN_SND), OPENAL)
-    CPPFLAGS += -I../../../../gameengine/SoundSystem
-    CPPFLAGS += -I../../../../gameengine/SoundSystem/SND_OpenAL
-else
-    CPPFLAGS += -I../../../../gameengine/SoundSystem
-    CPPFLAGS += -I../../../../gameengine/SoundSystem/SND_Dummy
-endif
 
 CPPFLAGS += -I$(NAN_FUZZICS)/include
 CPPFLAGS += -I$(NAN_SUMO)/include
+CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I$(NAN_BMFONT)/include
 

@@ -59,6 +59,7 @@ endif
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 CPPFLAGS += -I$(NAN_GHOST)/include
 CPPFLAGS += -I$(NAN_BMFONT)/include
+CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include
 
 # External interfaces of modules:
 CPPFLAGS += -I../render/extern/include

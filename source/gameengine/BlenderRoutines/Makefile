@@ -44,6 +44,7 @@ CPPFLAGS += -I$(NAN_STRING)/include
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I$(NAN_BMFONT)/include
 CPPFLAGS += -I$(NAN_FUZZICS)/include
+CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include
 # because of kernel dependency on makesdna
 CPPFLAGS += -I../../blender/makesdna
 CPPFLAGS += -I../../blender/include
@@ -61,7 +62,6 @@ CPPFLAGS += -I../Ketsji
 CPPFLAGS += -I../Rasterizer
 CPPFLAGS += -I../Rasterizer/RAS_OpenGLRasterizer
 CPPFLAGS += -I../SceneGraph
-CPPFLAGS += -I../SoundSystem
 CPPFLAGS += -I../../kernel/gen_system
 CPPFLAGS += -I../Network
 CPPFLAGS += -I../Network/LoopBackNetwork

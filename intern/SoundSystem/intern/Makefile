@@ -31,8 +31,8 @@
 #
 #
 
-LIBNAME = SoundSystem
-DIR = $(OCGDIR)/intern/$(LIBNAME)
+LIBNAME = soundsystem
+DIR = $(OCGDIR)/intern/SoundSystem
 
 include nan_compile.mk
 

@@ -40,6 +40,7 @@ CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
 CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_STRING)/include    
+CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include    
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 CPPFLAGS += -I$(NAN_FUZZICS)/include -I$(NAN_SUMO)/include -I$(NAN_MOTO)/include
 CPPFLAGS += -I../../blender
@@ -51,7 +52,7 @@ CPPFLAGS += -I../../blender/blenlib
 CPPFLAGS += -I../../blender/blenkernel
 CPPFLAGS += -I../../blender/render/extern/include
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
-CPPFLAGS += -I../Expressions -I../Rasterizer -I../GameLogic -I../SoundSystem
+CPPFLAGS += -I../Expressions -I../Rasterizer -I../GameLogic
 CPPFLAGS += -I../Ketsji -I../BlenderRoutines -I../SceneGraph
 CPPFLAGS += -I../../kernel/gen_system
 CPPFLAGS += -I../Rasterizer/RAS_OpenGLRasterizer
