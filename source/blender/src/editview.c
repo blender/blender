@@ -379,6 +379,48 @@ void deselectall(void)	/* is toggle */
 
 }
 
+/* selects all objects of a particular type, on currently visible layers */
+void selectall_type(short obtype) 
+{
+	Base *base;
+	
+	base= FIRSTBASE;
+	while(base) {
+		if((base->lay & G.vd->lay) && (base->object->type == obtype)) {
+			base->flag |= SELECT;
+			base->object->flag= base->flag;
+		}
+		base= base->next;
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWDATASELECT, 0);
+	allqueue(REDRAWNLA, 0);
+	
+	countall();
+
+}
+/* selects all objects on a particular layer */
+void selectall_layer(int layernum) 
+{
+	Base *base;
+	
+	base= FIRSTBASE;
+	while(base) {
+		if (base->lay == (1<< (layernum -1))) {
+			base->flag |= SELECT;
+			base->object->flag= base->flag;
+		}
+		base= base->next;
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWDATASELECT, 0);
+	allqueue(REDRAWNLA, 0);
+	
+	countall();
+
+}
 static void deselectall_except(Base *b)   /* deselect all except b */
 {
 	Base *base;
