@@ -32,6 +32,6 @@
 #ifndef EXPP_CURVE_H
 #define EXPP_CURVE_H
 
-#include <bpy_types.h>
+#include "bpy_types.h"
 
 #endif /* EXPP_CURVE_H */
