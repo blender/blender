@@ -134,7 +134,6 @@ static void normalenrender(int startvert, int startvlak);
 static void as_addvert(VertRen *v1, VlakRen *vlr);
 static void as_freevert(VertRen *ver);
 static void autosmooth(int startvert, int startvlak, int degr);
-static int mesh_test_flipnorm(Object *ob, MFace *mface, VlakRen *vlr, float imat[][3]);
 static void render_particle_system(Object *ob, PartEff *paf);
 static void render_static_particle_system(Object *ob, PartEff *paf);
 static int verghalo(const void *a1, const void *a2);
@@ -143,7 +142,6 @@ static void init_render_mball(Object *ob);
 static void init_render_mesh(Object *ob);
 static void init_render_surf(Object *ob);
 static void init_render_curve(Object *ob);
-static int test_flipnorm(float *v1, float *v2, float *v3, VlakRen *vlr, float imat[][3]);
 static void init_render_object(Object *ob);
 static HaloRen *initstar(float *vec, float hasize);
 
@@ -845,48 +843,6 @@ static void make_render_halos(Object *ob, Mesh *me, int totvert, MVert *mvert, M
 
 /* ------------------------------------------------------------------------- */
 
-static int test_flipnorm(float *v1, float *v2, float *v3, VlakRen *vlr, float imat[][3])
-{
-	float nor[3], vec[3];
-	float xn;
-	
-	CalcNormFloat(v1, v2, v3, nor);
-	vec[0]= imat[0][0]*nor[0]+ imat[0][1]*nor[1]+ imat[0][2]*nor[2];
-	vec[1]= imat[1][0]*nor[0]+ imat[1][1]*nor[1]+ imat[1][2]*nor[2];
-	vec[2]= imat[2][0]*nor[0]+ imat[2][1]*nor[1]+ imat[2][2]*nor[2];
-
-	xn= vec[0]*vlr->n[0]+vec[1]*vlr->n[1]+vec[2]*vlr->n[2];
-
-	return (xn<0.0);
-}
-
-static int mesh_test_flipnorm(Object *ob, MFace *mface, VlakRen *vlr, float imat[][3])
-{
-	DispList *dl;
-	Mesh *me= ob->data;
-	float *v1, *v2, *v3;	
-
-	dl= find_displist(&ob->disp, DL_VERTS);
-	if(dl) {
-		v1= dl->verts + 3*mface->v1;
-		v2= dl->verts + 3*mface->v2;
-		v3= dl->verts + 3*mface->v3;
-	}
-	else {
-		v1= (me->mvert+mface->v1)->co;
-		v2= (me->mvert+mface->v2)->co;
-		v3= (me->mvert+mface->v3)->co;
-	}
-	
-	return test_flipnorm(v1, v2, v3, vlr, imat);
-}
-
-
-/* ------------------------------------------------------------------------- */
-
-
-
-/* ------------------------------------------------------------------------- */
 
 static void render_particle_system(Object *ob, PartEff *paf)
 {
@@ -1241,7 +1197,6 @@ static void init_render_mball(Object *ob)
 		vlr->len= CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->n);
 
 		vlr->mat= ma;
-		vlr->puno= 15; // no flip
 		vlr->flag= ME_SMOOTH+R_NOPUNOFLIP;
 		vlr->ec= 0;
 		vlr->lay= ob->lay;
@@ -1286,7 +1241,7 @@ static void init_render_mesh(Object *ob)
 	float xn, yn, zn, nor[3], imat[3][3], mat[4][4];
 	float *extverts=0, *orco;
 	int a, a1, ok, do_puno, need_orco=0, totvlako, totverto, vertofs;
-	int start, end, flipnorm, do_autosmooth=0, totvert;
+	int start, end, do_autosmooth=0, totvert;
 	DispListMesh *dlm;
 
 	me= ob->data;
@@ -1433,9 +1388,6 @@ static void init_render_mesh(Object *ob)
 		}
 		/* still to do for keys: the correct local texture coordinate */
 
-		flipnorm= -1;
-		/* test for a flip in the matrix: then flip face normal as well */
-
 		/* faces in order of color blocks */
 		vertofs= R.totvert - totvert;
 		for(a1=0; (a1<ob->totcol || (a1==0 && ob->totcol==0)); a1++) {
@@ -1491,7 +1443,7 @@ static void init_render_mesh(Object *ob)
 				
 				for(a=start; a<end; a++) {
 					int mat_nr;
-					int v1, v2, v3, v4, puno, edcode, flag;
+					int v1, v2, v3, v4, edcode, flag;
 					if (mfaceint) {
 						mat_nr= mfaceint->mat_nr;
 						v1= mfaceint->v1;
@@ -1499,7 +1451,6 @@ static void init_render_mesh(Object *ob)
 						v3= mfaceint->v3;
 						v4= mfaceint->v4;
 						flag= mfaceint->flag;
-						puno= mfaceint->puno;
 						/* if mfaceint, then dlm is not NULL too */
 						if(dlm->flag & ME_OPT_EDGES) edcode= mfaceint->edcode;
 						else edcode= ME_V1V2|ME_V2V3|ME_V3V4|ME_V4V1;
@@ -1511,7 +1462,6 @@ static void init_render_mesh(Object *ob)
 						v3= mface->v3;
 						v4= mface->v4;
 						flag= mface->flag;
-						puno= mface->puno;
 						edcode= mface->edcode;
 					}
 					if( mat_nr==a1 ) {
@@ -1533,29 +1483,15 @@ static void init_render_mesh(Object *ob)
 							    vlr->n);
 
 							vlr->mat= ma;
-							vlr->puno= puno;
 							vlr->flag= flag;
 							if((me->flag & ME_NOPUNOFLIP) || (ma->mode & MA_RAYTRANSP)) {
 								vlr->flag |= R_NOPUNOFLIP;
-								vlr->puno |= 15;  // no flip
 							}
 							vlr->ec= edcode;
 							vlr->lay= ob->lay;
 
 							if(vlr->len==0) R.totvlak--;
 							else {
-								if(flipnorm== -1) {	/* per object test once */
-									if (mfaceint) {
-										flipnorm= test_flipnorm(dlm->mvert[v1].co, dlm->mvert[v2].co, dlm->mvert[v3].co, vlr, imat);
-									} else {
-										flipnorm= mesh_test_flipnorm(ob, mface, vlr, imat);
-									}
-								}
-								if(flipnorm) {
-									vlr->n[0]= -vlr->n[0];
-									vlr->n[1]= -vlr->n[1];
-									vlr->n[2]= -vlr->n[2];
-								}
 
 								if(vertcol) {
 									if(tface) vlr->vcol= vertcol+sizeof(TFace)*a/4;	/* vertcol is int */
@@ -1578,7 +1514,6 @@ static void init_render_mesh(Object *ob)
 							vlr->n[0]=vlr->n[1]=vlr->n[2]= 0.0;
 
 							vlr->mat= ma;
-							vlr->puno= puno;
 							vlr->flag= flag;
 							vlr->ec= ME_V1V2;
 							vlr->lay= ob->lay;
@@ -2048,7 +1983,6 @@ static void init_render_surf(Object *ob)
 						vlr->flag= dl->rt;
 						if( (cu->flag & CU_NOPUNOFLIP) || (vlr->mat->mode & MA_RAYTRANSP)) {
 							vlr->flag |= R_NOPUNOFLIP;
-							vlr->puno= 15;
 						}
 //					}
 
@@ -2188,7 +2122,6 @@ static void init_render_surf(Object *ob)
 						vlr->flag= dl->rt;
 						if( (cu->flag & CU_NOPUNOFLIP) || (vlr->mat->mode & MA_RAYTRANSP)) {
 							vlr->flag |= R_NOPUNOFLIP;
-							vlr->puno= 15;
 						}
 					}
 
@@ -2539,7 +2472,6 @@ static void init_render_curve(Object *ob)
 				VECCOPY(vlr->n, n);
 
 				vlr->mat= matar[ dl->col ];
-				vlr->puno= 0;
 				vlr->flag= 0;
 				vlr->ec= 0;
 				vlr->lay= ob->lay;
@@ -2715,7 +2647,7 @@ static void check_non_flat_quads(void)
 {
 	VlakRen *vlr, *vlr1;
 	float nor[3], xn;
-	int a, flipnorm;
+	int a;
 
 	for(a=R.totvlak-1; a>=0; a--) {
 		vlr= RE_findOrAddVlak(a);
@@ -2737,22 +2669,32 @@ static void check_non_flat_quads(void)
 				CalcNormFloat(vlr->v4->co, vlr->v3->co, vlr->v1->co, nor);
 				
 				xn= nor[0]*vlr->n[0] + nor[1]*vlr->n[1] + nor[2]*vlr->n[2];
-				if( fabs(xn) < 0.99995 ) {	// checked on noisy fractal grid
-				
-					if( xn<0.0 ) flipnorm= 1; else flipnorm= 0;
+				if(fabs(xn) < 0.99995 ) {	// checked on noisy fractal grid
+					float d1, d2;
 					
 					vlr1= RE_findOrAddVlak(R.totvlak++);
 					*vlr1= *vlr;
 					vlr1->flag |= R_FACE_SPLIT;
-										
+					
+					/* split direction based on vnorms */
+					CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, nor);
+					d1= nor[0]*vlr->v1->n[0] + nor[1]*vlr->v1->n[1] + nor[2]*vlr->v1->n[2];
+
+					CalcNormFloat(vlr->v2->co, vlr->v3->co, vlr->v4->co, nor);
+					d2= nor[0]*vlr->v2->n[0] + nor[1]*vlr->v2->n[1] + nor[2]*vlr->v2->n[2];
+					
+					if( fabs(d1) < fabs(d2) ) vlr->flag |= R_DIVIDE_24;
+					else vlr->flag &= ~R_DIVIDE_24;
+					
 					/* new vertex pointers */
 					if (vlr->flag & R_DIVIDE_24) {
 						vlr1->v1= vlr->v2;
 						vlr1->v2= vlr->v3;
 						vlr1->v3= vlr->v4;
+
 						vlr->v3 = vlr->v4;
 						
-						vlr1->flag |= R_DIVIDE_24;	
+						vlr1->flag |= R_DIVIDE_24;
 					}
 					else {
 						vlr1->v1= vlr->v1;
@@ -2764,23 +2706,12 @@ static void check_non_flat_quads(void)
 					vlr->v4 = vlr1->v4 = NULL;
 					
 					/* new normals */
-					if(flipnorm) {
-						CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->n);
-						CalcNormFloat(vlr1->v1->co, vlr1->v2->co, vlr1->v3->co, vlr1->n);
-					}
-					else {
-						CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
-						CalcNormFloat(vlr1->v3->co, vlr1->v2->co, vlr1->v1->co, vlr1->n);
-					}
+					CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+					CalcNormFloat(vlr1->v3->co, vlr1->v2->co, vlr1->v1->co, vlr1->n);
 					
-				/* so later UV can be pulled from original tface, look for R_DIVIDE_24 for direction */
+					/* so later UV can be pulled from original tface, look for R_DIVIDE_24 for direction */
 					vlr1->tface=vlr->tface; 
-					
-					vlr1->puno= 0;
-					if(vlr->puno & ME_FLIPV1) vlr1->puno |= ME_FLIPV1;
-					if(vlr->puno & ME_FLIPV3) vlr1->puno |= ME_FLIPV2;
-					if(vlr->puno & ME_FLIPV4) vlr1->puno |= ME_FLIPV3;
-		
+
 				}
 				/* clear the flag when not divided */
 				else vlr->flag &= ~R_DIVIDE_24;
@@ -3052,7 +2983,7 @@ void do_displacement(Object *ob, int startface, int numface, int startvert, int 
 	VlakRen *vlr;
 	float min[3]={1e30, 1e30, 1e30}, max[3]={-1e30, -1e30, -1e30};
 	float scale[3]={1.0f, 1.0f, 1.0f}, temp[3], xn;
-	int i, texflag=0, flipnorm;
+	int i, texflag=0;
 	Object *obt;
 		
 	/* Object Size with parenting */
@@ -3082,23 +3013,14 @@ void displace_render_face(VlakRen *vlr, float *scale)
 {
 	ShadeInput shi;
 	VertRen vr;
-	float samp1,samp2, samp3, samp4, nor[3], xn;
-	short hasuv=0, flipnorm=0;
+	float samp1,samp2, samp3, samp4, xn;
+	short hasuv=0;
 	/* set up shadeinput struct for multitex() */
 	
 	shi.osatex= 0;		/* signal not to use dx[] and dy[] texture AA vectors */
 	shi.vlr= vlr;		/* current render face */
 	shi.mat= vlr->mat;		/* current input material */
 	shi.matren= shi.mat->ren;	/* material temp block where output is written into */
-	
-	/* Test for flipped normals */
-	if(vlr->v4) CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co,
-							    vlr->v1->co, nor);
-	else CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co,
-							    nor);
-								
-	xn= vlr->n[0]*nor[0]+vlr->n[1]*nor[1]+vlr->n[2]*nor[2];
-	if (xn<0.0) flipnorm=1;
 	
 	/* UV coords must come from face */
 	hasuv = vlr->tface && (shi.matren->texco & TEXCO_UV);
@@ -3147,16 +3069,10 @@ void displace_render_face(VlakRen *vlr, float *scale)
 	
 	/* Recalculate the face normal  - if flipped before, flip now */
 	if(vlr->v4) {
-		if (flipnorm) vlr->len = CalcNormFloat4(vlr->v1->co, vlr->v2->co, vlr->v3->co,
-					    vlr->v4->co, vlr->n);
-		else vlr->len = CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co,
-					    vlr->v1->co, vlr->n);
+		vlr->len = CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
 	}	
 	else {
-		if (flipnorm) vlr->len= CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co,
-							    vlr->n);
-		else vlr->len= CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co,
-							    vlr->n);
+		vlr->len= CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
 	}
 	
 }

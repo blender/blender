@@ -36,6 +36,9 @@
 #include <limits.h>
 #include <stdlib.h>
 
+#include "DNA_mesh_types.h"
+#include "BLI_arithb.h"
+
 #include "render.h" 
 #include "render_intern.h"
 #include "renderHelp.h"
@@ -266,26 +269,24 @@ void set_normalflags(void)
 		if((a1 & 255)==0) vlr= R.blovl[a1>>8];
 		else vlr++;
 		
-		if((vlr->flag & R_NOPUNOFLIP)) {
-			/* we flip render normal here, is not that neat, but otherwise render() needs rewrite... */
+		vec[0]= vlr->v1->co[0];
+		vec[1]= vlr->v1->co[1];
+		vec[2]= vlr->v1->co[2];
+
+		if( (vec[0]*vlr->n[0] +vec[1]*vlr->n[1] +vec[2]*vlr->n[2])<0.0 ) {
+			vlr->puno= vlr->puno ^ 15;
 			vlr->n[0]= -vlr->n[0];
 			vlr->n[1]= -vlr->n[1];
 			vlr->n[2]= -vlr->n[2];
 		}
-		else {
 
-			vec[0]= vlr->v1->co[0];
-			vec[1]= vlr->v1->co[1];
-			vec[2]= vlr->v1->co[2];
-
-			if( (vec[0]*vlr->n[0] +vec[1]*vlr->n[1] +vec[2]*vlr->n[2])<0.0 ) {
-				// only flip lower 4 bits
-				vlr->puno= vlr->puno ^ 15;
-				vlr->n[0]= -vlr->n[0];
-				vlr->n[1]= -vlr->n[1];
-				vlr->n[2]= -vlr->n[2];
-			}
-		}
+		/* recalculate puno. Displace & flipped matrices can screw up */
+		vlr->puno= 0;
+		if( Inpf(vlr->n, vlr->v1->n) < 0.0 ) vlr->puno |= ME_FLIPV1;
+		if( Inpf(vlr->n, vlr->v2->n) < 0.0 ) vlr->puno |= ME_FLIPV2;
+		if( Inpf(vlr->n, vlr->v3->n) < 0.0 ) vlr->puno |= ME_FLIPV3;
+		if(vlr->v4 && Inpf(vlr->n, vlr->v4->n) < 0.0 ) vlr->puno |= ME_FLIPV4;
+				
 		xn= fabs(vlr->n[0]);
 		yn= fabs(vlr->n[1]);
 		zn= fabs(vlr->n[2]);
