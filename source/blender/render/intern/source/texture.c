@@ -451,6 +451,8 @@ static int magic(Tex *tex, float *texvec)
 	Tg= 0.5-y;
 	Tb= 0.5-z;
 
+	Tin= 0.3333*(Tr+Tg+Tb);
+	
 	BRICONRGB;
 	Ta= 1.0;
 	
@@ -462,27 +464,24 @@ static int magic(Tex *tex, float *texvec)
 /* newnoise: stucci also modified to use different noisebasis */
 static int stucci(Tex *tex, float *texvec)
 {
-	float b2, vec[3], ofs;
+	float b2, ofs;
 
 	if(tex->nor == NULL) return 0;
 
 	ofs= tex->turbul/200.0;
 
-	b2= BLI_gNoise(tex->noisesize, texvec[0], texvec[1], texvec[2], (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
+	Tin=b2= BLI_gNoise(tex->noisesize, texvec[0], texvec[1], texvec[2], (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
 	if(tex->stype) ofs*=(b2*b2);
-	vec[0] = b2 - BLI_gNoise(tex->noisesize, texvec[0]+ofs, texvec[1], texvec[2], (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
-	vec[1] = b2 - BLI_gNoise(tex->noisesize, texvec[0], texvec[1]+ofs, texvec[2], (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);	
-	vec[2] = b2 - BLI_gNoise(tex->noisesize, texvec[0], texvec[1], texvec[2]+ofs, (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
+	tex->nor[0] = BLI_gNoise(tex->noisesize, texvec[0]+ofs, texvec[1], texvec[2], (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
+	tex->nor[1] = BLI_gNoise(tex->noisesize, texvec[0], texvec[1]+ofs, texvec[2], (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);	
+	tex->nor[2] = BLI_gNoise(tex->noisesize, texvec[0], texvec[1], texvec[2]+ofs, (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
 
-	if(tex->stype==1) {
-		tex->nor[0]= vec[0];
-		tex->nor[1]= vec[1];
-		tex->nor[2]= vec[2];
-	}
-	else {
-		tex->nor[0]= -vec[0];
-		tex->nor[1]= -vec[1];
-		tex->nor[2]= -vec[2];
+	tex_normal_derivate(b2, tex);
+	
+	if(tex->stype==2) {
+		tex->nor[0]= -tex->nor[0];
+		tex->nor[1]= -tex->nor[1];
+		tex->nor[2]= -tex->nor[2];
 	}
 
 	return 2;
@@ -1093,8 +1092,9 @@ int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex)
 		retval= blend(tex, texvec);
 		break;
 	case TEX_STUCCI:
-		Tin= 0.0;
 		retval= stucci(tex, texvec); 
+		if (tex->flag & TEX_COLORBAND);
+		else Tin= 0.0;	// stucci doesnt return Tin, for backwards compat...
 		break;
 	case TEX_NOISE:
 		retval= texnoise(tex); 
