@@ -1219,7 +1219,7 @@ static void render_panel_yafrayGI()
 
 	if (G.scene->r.GImethod>0) {
 		if (G.scene->r.GIpower==0) G.scene->r.GIpower=1;
-		uiDefButF(block, NUM, 0, "Power:", 5,35,154,20, &G.scene->r.GIpower, 0.01, 100.0, 0, 0, "GI lighting intensity scale, 1 is normal");
+		uiDefButF(block, NUM, 0, "Power:", 5,35,154,20, &G.scene->r.GIpower, 0.01, 10.0, 10, 0, "GI lighting intensity scale, 1 is normal");
 	}
         
 
@@ -1269,10 +1269,8 @@ static void render_panel_yafrayGlobal()
 	// label to force a boundbox for buttons not to be centered
 	uiDefBut(block, LABEL, 0, " ", 305,180,10,10, 0, 0, 0, 0, 0, "");
 
-	if(G.scene->r.YF_raybias==0.0) G.scene->r.YF_raybias=0.001;
 	uiDefButF(block, NUMSLI, 0,"Bi ", 5,35,150,20,	&(G.scene->r.YF_raybias), 
 				0.0, 10.0 ,0,0, "Shadow ray bias to avoid self shadowing");
-	if(G.scene->r.YF_raydepth==0) G.scene->r.YF_raydepth=5;
   uiDefButI(block, NUM, 0, "Raydepth ", 5,60,150,20,
 				&G.scene->r.YF_raydepth, 1.0, 80.0, 10, 10, "Maximum render ray depth from the camera");
 	uiDefButF(block, NUMSLI, 0, "Gam ", 5,10,150,20, &G.scene->r.YF_gamma, 0.001, 5.0, 0, 0, "Gamma correction, 1 is off");
@@ -1291,9 +1289,11 @@ void render_panels()
 	render_panel_render();
 	render_panel_anim();
 	render_panel_format();
-	/* yafray: GI panel only available when yafray enabled for rendering */
+	/* yafray: GI & Global panel, only available when yafray enabled for rendering */
 	if (G.scene->r.mode & R_YAFRAY) {
 		if (G.scene->r.YF_gamma==0.0) G.scene->r.YF_gamma=1.0;
+		if (G.scene->r.YF_raybias==0.0) G.scene->r.YF_raybias=0.001;
+		if (G.scene->r.YF_raydepth==0) G.scene->r.YF_raydepth=5;
 		render_panel_yafrayGlobal();
 		render_panel_yafrayGI();
 	}

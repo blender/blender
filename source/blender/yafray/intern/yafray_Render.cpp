@@ -33,7 +33,7 @@ bool yafrayRender_t::exportScene()
 	maxraydepth = 5;	// will be set to maximum depth used in blender materials
 
 	// recreate the scene as object data, as well as sorting the material & textures, ignoring duplicates
-	if (!getAllMatTexObs()) 
+	if (!getAllMatTexObs())
 	{
 		// error found, clear for next call
 		clearAll();
@@ -137,29 +137,21 @@ bool yafrayRender_t::getAllMatTexObs()
 
 	// in case dupliMtx_list not empty, make sure that there is at least one source object
 	// in all_objects with the name given in dupliMtx_list
-	if (dupliMtx_list.size()!=0) {
+	if (!dupliMtx_list.empty()) {
 
 		for (map<Object*, vector<VlakRen*> >::const_iterator obn=all_objects.begin();
 			obn!=all_objects.end();++obn)
 		{
 			Object* obj = obn->first;
-			if (obj->flag & OB_YAF_DUPLISOURCE) dup_srcob[string(obj->id.name)] = obj;
+			string obname = obj->id.name;
+			if (dupliMtx_list.find(obname)!=dupliMtx_list.end()) dup_srcob[obname] = obj;
 		}
 
 		// if the name reference list is empty, return now, something was seriously wrong
-		if (dup_srcob.size()==0) {
+		if (dup_srcob.empty()) {
 		  // error() doesn't work to well, when switching from Blender to console at least, so use stdout instead
 			cout << "ERROR: Duplilist non_empty, but no srcobs\n";
 			return false;
-		}
-		// else make sure every object is found in dupliMtx_list
-		for (map<string, Object*>::const_iterator obn2=dup_srcob.begin();
-			obn2!=dup_srcob.end();++obn2)
-		{
-			if (dupliMtx_list.find(obn2->first)==dupliMtx_list.end()) {
-				cout << "ERROR: Source ob missing for dupli's\n";
-				return false;
-			}
 		}
 	}
 
@@ -180,12 +172,10 @@ bool yafrayRender_t::objectKnownData(Object* obj)
 {
 	// if object data already known, no need to include in renderlist, otherwise save object datapointer
 	if (objectData.find(obj->data)!=objectData.end()) {
-		// set OB_YAF_DUPLISOURCE flag for known object
 		Object* orgob = objectData[obj->data];
-		orgob->flag |= OB_YAF_DUPLISOURCE;
 		// first save original object matrix in dupliMtx_list, if not added yet
 		if (dupliMtx_list.find(orgob->id.name)==dupliMtx_list.end()) {
-			cout << "Added orignal matrix\n";
+			cout << "Added original matrix\n";
 			addDupliMtx(orgob);
 		}
 		// then save matrix of linked object in dupliMtx_list, using name of ORIGINAL object
@@ -198,6 +188,3 @@ bool yafrayRender_t::objectKnownData(Object* obj)
 	objectData[obj->data] = obj;
 	return false;
 }
-
-
-

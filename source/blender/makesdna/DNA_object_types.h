@@ -278,8 +278,6 @@ extern Object workob;
 #define OB_DONE				1024
 #define OB_RADIO			2048
 #define OB_FROMGROUP		4096
-/* yafray: flag to indicate this object is a source object for duplivert instancing, see convertBlenderScene.c */
-#define OB_YAF_DUPLISOURCE	8192
 
 /* ob->gameflag */
 #define OB_DYNAMIC		1

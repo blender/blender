@@ -898,9 +898,10 @@ void yafrayFileRender_t::writeAllObjects()
 	for (map<Object*, vector<VlakRen*> >::const_iterator obi=all_objects.begin();
 			obi!=all_objects.end(); ++obi)
 	{
-	  // skip main duplivert, written later
-		if (obi->first->flag & OB_YAF_DUPLISOURCE) continue;
-		writeObject(obi->first, obi->second, obi->first->obmat);
+	  // skip main duplivert object if in dupliMtx_list, written later
+		Object* obj = obi->first;
+		if (dupliMtx_list.find(string(obj->id.name))!=dupliMtx_list.end()) continue;
+		writeObject(obj, obi->second, obi->first->obmat);
 	}
 
 	// Now all duplivert objects (if any) as instances of main object
@@ -954,19 +955,18 @@ void yafrayFileRender_t::writeAllObjects()
 
 }
 
-void yafrayFileRender_t::writeAreaLamp(LampRen* lamp,int num)
+void yafrayFileRender_t::writeAreaLamp(LampRen* lamp, int num)
 {
-	if(lamp->area_shape != LA_AREA_SQUARE) return;
-	float *a=lamp->area[0],*b=lamp->area[1],*c=lamp->area[2],*d=lamp->area[3];
+	if (lamp->area_shape!=LA_AREA_SQUARE) return;
+	float *a=lamp->area[0], *b=lamp->area[1], *c=lamp->area[2], *d=lamp->area[3];
 	ostr.str("");
-	ostr << "<light type=\"arealight\" name=\"LAMP" << num+1 << "\" dummy=\"on\" " <<endl;
-	ostr << "\tpower=\"" << lamp->energy <<"\">" <<endl;
-	ostr << "\t<color r=\""<<lamp->r<<"\" g=\""<<lamp->g<<"\" b=\""<<lamp->b<<"\"/>"<<endl;
-	ostr << "\t<a x=\""<<a[0]<<"\" y=\""<<a[1]<<"\" z=\""<<a[2]<<"\"/>"<<endl;
-	ostr << "\t<b x=\""<<b[0]<<"\" y=\""<<b[1]<<"\" z=\""<<b[2]<<"\"/>"<<endl;
-	ostr << "\t<c x=\""<<c[0]<<"\" y=\""<<c[1]<<"\" z=\""<<c[2]<<"\"/>"<<endl;
-	ostr << "\t<d x=\""<<d[0]<<"\" y=\""<<d[1]<<"\" z=\""<<d[2]<<"\"/>"<<endl;
-	ostr << "</light>"<<endl<<endl;
+	ostr << "<light type=\"arealight\" name=\"LAMP" << num+1 << "\" dummy=\"on\" power=\"" << lamp->dist <<"\">\n";
+	ostr << "\t<a x=\""<< a[0] <<"\" y=\""<< a[1] <<"\" z=\"" << a[2] <<"\" />\n";
+	ostr << "\t<b x=\""<< b[0] <<"\" y=\""<< b[1] <<"\" z=\"" << b[2] <<"\" />\n";
+	ostr << "\t<c x=\""<< c[0] <<"\" y=\""<< c[1] <<"\" z=\"" << c[2] <<"\" />\n";
+	ostr << "\t<d x=\""<< d[0] <<"\" y=\""<< d[1] <<"\" z=\"" << d[2] <<"\" />\n";
+	ostr << "\t<color r=\"" << lamp->r << "\" g=\"" << lamp->g << "\" b=\"" << lamp->b << "\" />\n";
+	ostr << "</light>\n\n";
 	xmlfile << ostr.str();
 }
 
@@ -977,14 +977,14 @@ void yafrayFileRender_t::writeLamps()
 	{
 		ostr.str("");
 		LampRen* lamp = R.la[i];
-		if(lamp->type==LA_AREA) {writeAreaLamp(lamp,i);continue;}
+		if (lamp->type==LA_AREA) { writeAreaLamp(lamp,i);  continue; }
 		// TODO: add decay setting in yafray
 		ostr << "<light type=\"";
 		if (lamp->type==LA_LOCAL)
 			ostr << "pointlight";
 		else if (lamp->type==LA_SPOT)
 			ostr << "spotlight";
-		else if (lamp->type==LA_SUN)	// for now, hemi == sun
+		else if ((lamp->type==LA_SUN) || (lamp->type==LA_HEMI))	// for now, hemi same as sun
 			ostr << "sunlight";
 		else {
 			// possibly unknown type, ignore
@@ -1024,9 +1024,10 @@ void yafrayFileRender_t::writeLamps()
 		ostr << "\t<from x=\"" << lamp->co[0] << "\" y=\"" << lamp->co[1] << "\" z=\"" << lamp->co[2] << "\" />\n";
 		// 'to' for spot, already calculated by Blender
 		if (lamp->type==LA_SPOT)
-			ostr << "\t<to x=\"" << lamp->co[0]+1e6*lamp->vec[0]
-					<< "\" y=\"" << lamp->co[1]+1e6*lamp->vec[1]
-					<< "\" z=\"" << lamp->co[2]+1e6*lamp->vec[2] << "\" />\n";
+			ostr << "\t<to x=\"" << lamp->co[0]	//+1e6*lamp->vec[0]
+							<< "\" y=\"" << lamp->co[1]	//+1e6*lamp->vec[1]
+							<< "\" z=\"" << lamp->co[2]	//+1e6*lamp->vec[2]
+							<< "\" />\n";
 		// color
 		// rgb in LampRen is premultiplied by energy, power is compensated for that above
 		ostr << "\t<color r=\"" << lamp->r << "\" g=\"" << lamp->g << "\" b=\"" << lamp->b << "\" />\n";

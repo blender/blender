@@ -2855,11 +2855,8 @@ void RE_rotateBlenderScene(void)
 	ob= G.main->object.first;
 	while(ob) {
 		ob->flag &= ~OB_DONE;
-		/* yafray: OB_YAF_DUPLISOURCE flag should be cleared as well here, otherwise is saved in .blend */
-		ob->flag &= ~OB_YAF_DUPLISOURCE;
 		ob= ob->id.next;
 	}
-
 
 	/* layers: render in foreground current 3D window */
 	lay= G.scene->lay;
@@ -2876,15 +2873,15 @@ void RE_rotateBlenderScene(void)
 				 This only works for dupliverts, dupliframes handled below.
 				 This is based on the assumption that OB_DONE is only set for duplivert objects,
 				 before scene conversion, there are no other flags set to indicate it's use as far as I know...
-				 A special flag only used by yafray is set to indicate this object is the 'source' object
-				 of which all other duplivert objects are an instance of.
-				 Correction: NOT done for lamps, these are included as separate objects, see below */
-			if ((ob->type!=OB_LAMP) && (R.r.mode & R_YAFRAY)) {
+				 NOT done for lamps, these are included as separate objects, see below.
+				 correction: also ignore lattices, armatures and camera's (.....) */
+			if ((ob->type!=OB_LATTICE) && (ob->type!=OB_ARMATURE) &&
+					(ob->type!=OB_LAMP) && (ob->type!=OB_CAMERA) && (R.r.mode & R_YAFRAY))
+			{
 				printf("Adding %s to renderlist\n", ob->id.name);
 				ob->flag &= ~OB_DONE;
 				init_render_object(ob);
 				ob->flag |= OB_DONE;
-				ob->flag |= OB_YAF_DUPLISOURCE;
 			}
 		}
 		else {
@@ -2900,7 +2897,6 @@ void RE_rotateBlenderScene(void)
 						if ((ob->type!=OB_MBALL) && ((ob->transflag & OB_DUPLIFRAMES)!=0)) {
 							printf("Object %s has OB_DUPLIFRAMES set, adding to renderlist\n", ob->id.name);
 							init_render_object(ob);
-							ob->flag |= OB_YAF_DUPLISOURCE;
 						}
 					}
 					make_duplilist(sce, ob);
@@ -2929,8 +2925,11 @@ void RE_rotateBlenderScene(void)
 								/* yafray: special handling of duplivert objects for yafray:
 								   only the matrix is stored, together with the source object name.
 									 Since the original object is needed as well, it is included in the renderlist (see above)
-									 correction: NOT done for lamps, these need to be included as normal lamps separately */
-								if ((obd->type!=OB_LAMP) && (R.r.mode & R_YAFRAY)) {
+									 NOT done for lamps, these need to be included as normal lamps separately
+									 correction: also ignore lattices, armatures and cameras (....) */
+								if ((obd->type!=OB_LATTICE) && (obd->type!=OB_ARMATURE) &&
+										(obd->type!=OB_LAMP) && (obd->type!=OB_CAMERA) && (R.r.mode & R_YAFRAY))
+								{
 									printf("Adding dupli matrix for object %s\n", obd->id.name);
 									YAF_addDupliMtx(obd);
 								}
@@ -2944,8 +2943,7 @@ void RE_rotateBlenderScene(void)
 				else {
 					/* yafray: if there are linked data objects (except lamps),
 					   yafray only needs to know about one, the rest can be instanciated.
-					   The dupliMtx list is used for this purpose, so the test function sets the OB_YAF_DUPLISOURCE
-						 flag when for the already known object as well. */
+					   The dupliMtx list is used for this purpose */
 					if (R.r.mode & R_YAFRAY) {
 						if ((ob->type!=OB_LAMP) && (YAF_objectKnownData(ob)))
 							printf("Added dupli matrix for linked data object %s\n", ob->id.name);
