@@ -24,7 +24,8 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Michel Selten, Willian P. Germano, Stephen Swaney
+ * Contributor(s): Michel Selten, Willian P. Germano, Stephen Swaney,
+ * Chris Keith
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -89,7 +90,6 @@ typedef struct _ScriptError {
 /* Global variables                                                          */
 /*****************************************************************************/
 ScriptError g_script_error;
-short EXPP_releaseGlobalDict = 1;
 
 /*****************************************************************************/
 /* Function prototypes                                                       */
@@ -388,17 +388,17 @@ void BPY_Err_Handle(char *script_name)
 /* Notes:       It is called by blender/src/drawtext.c when a Blender user   */
 /*              presses ALT+PKEY in the script's text window.                */
 /*****************************************************************************/
-int BPY_txt_do_python(struct SpaceText* st)
+int BPY_txt_do_python_Text(struct Text* text)
 {
   PyObject *py_dict, *py_result;
 	BPy_constant *info;
 	Script *script = G.main->script.first;
 
-  if (!st->text) return 0;
+  if (!text) return 0;
 
 	/* check if this text is already running */
 	while (script) {
-		if (!strcmp(script->id.name+2, st->text->id.name+2)) {
+		if (!strcmp(script->id.name+2, text->id.name+2)) {
 			/* if this text is already a running script, just move to it: */	
 			SpaceScript *sc;
 			newspace(curarea, SPACE_SCRIPT);
@@ -410,7 +410,7 @@ int BPY_txt_do_python(struct SpaceText* st)
 	}
 
 	/* Create a new script structure and initialize it: */
-	script = alloc_libblock(&G.main->script, ID_SCRIPT, GetName(st->text));
+	script = alloc_libblock(&G.main->script, ID_SCRIPT, GetName(text));
 
 	if (!script) {
 		printf("couldn't allocate memory for Script struct!");
@@ -437,11 +437,11 @@ int BPY_txt_do_python(struct SpaceText* st)
 
   clearScriptLinks ();
 
-  py_result = RunPython (st->text, py_dict); /* Run the script */
+  py_result = RunPython (text, py_dict); /* Run the script */
 
 	if (!py_result) { /* Failed execution of the script */
 
-    BPY_Err_Handle(GetName(st->text));
+    BPY_Err_Handle(GetName(text));
 		ReleaseGlobalDictionary(py_dict);
 		free_libblock(&G.main->script, script);
     //BPY_end_python();
@@ -460,6 +460,47 @@ int BPY_txt_do_python(struct SpaceText* st)
 	}
 
   return 1; /* normal return */
+}
+
+/*****************************************************************************/
+/* Description: The original function of this name has been refactored       */
+/* into BPY_txt_do_python_Text.  That version is needed for the command      */
+/* line support for Python.  This is here to keep the interface the          */
+/* same and reduce code changes elsewhere.                                   */
+/*****************************************************************************/
+int BPY_txt_do_python(struct SpaceText* st)
+{
+	return BPY_txt_do_python_Text(st->text);
+}
+
+/*****************************************************************************/
+/* Description: Called from command line to run a Python script
+* automatically. */
+/*****************************************************************************/
+void BPY_run_python_script(char *fn)
+{
+	Text	*text;
+
+	if ( !BLI_exists(fn) ) {
+		printf("\nError: no such file -- %s.\n", fn);
+		return;
+	}
+
+ 	text = add_text(fn);
+ 	if (text == NULL) {
+		printf("Error in BPY_run_python_script: couldn't create Blender text "
+			"from %s\n", fn);
+		// On Windows if I continue I just get a segmentation
+		// violation.  To get a baseline file I exit here.
+		exit(2);
+ 	}
+
+	if (BPY_txt_do_python_Text(text) != 1) {
+		printf( "\nError executing Python script:\n"
+			"%s (at line %d)\n", fn, BPY_Err_getLinenumber());
+	}
+
+	free_libblock(&G.main->text, text);
 }
 
 /*****************************************************************************/
@@ -572,8 +613,24 @@ int BPY_menu_do_python(short menutype, int event)
 
 	buffer[len] = '\0';
 
-	/* fast clean-up of dos lines */
-	for (s = buffer; *s != '\0'; s++)	if (*s == '\r') *s = ' ';
+	/* fast clean-up of dos cr/lf line endings: change '\r' to space */
+
+	/* we also have to check for line splitters: '\\' */
+	/* to avoid possible syntax errors on dos files on win */
+	/**/
+	/* but first make sure we won't disturb memory below &buffer[0]: */
+	if (*buffer == '\r') *buffer = ' ';
+
+	/* now handle the whole buffer */
+	for (s = buffer + 1; *s != '\0'; s++)	{
+		if (*s == '\r') {
+			if (*(s-1) == '\\') { /* special case: long lines split with '\': */
+				*(s-1) = ' '; /* we write ' \', because '\ ' is a syntax error */
+				*s = '\\';
+			}
+			else *s = ' '; /* not a split line, just replace '\r' with ' ' */
+		}
+	}
 
 	fclose(fp);
 

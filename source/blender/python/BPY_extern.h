@@ -25,16 +25,12 @@
  *
  * The Original Code is: source/blender/bpyton/include/BPY_extern.h
  *
- * Contributor(s): Michel Selten, Willian P. Germano
+ * Contributor(s): Michel Selten, Willian P. Germano, Chris Keith
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
 extern char bprogname[]; /* holds a copy of argv[0], from creator.c */
-
-/* Global to control whether the global dictionary should be preserved or not
- * each time a script is executed by the Python Interpreter: */
-extern short EXPP_releaseGlobalDict; /* defaults to TRUE */
 
 struct Text;       /* defined in DNA_text_types.h        */
 struct ID;         /* defined in DNA_ID.h                */
@@ -54,6 +50,7 @@ int BPY_Err_getLinenumber(void);
 const char *BPY_Err_getFilename(void);
 /* void BPY_Err_Handle(struct Text *text); */
 int BPY_txt_do_python(struct SpaceText* st);
+void BPY_run_python_script(char *filename);
 void BPY_free_compiled_text(struct Text* text);
 /*void BPY_clear_bad_scriptlink(struct ID *id, struct Text *byebye); */
 void BPY_clear_bad_scriptlinks(struct Text *byebye);

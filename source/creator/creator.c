@@ -182,6 +182,7 @@ static void print_help(void)
 	printf ("  -noaudio\tDisable audio on systems that support audio\n");
 	printf ("  -h\t\tPrint this help text\n");
 	printf ("  -y\t\tDisable OnLoad scene scripts, use -Y to find out why its -y\n");
+	printf ("  -P <filename>\tRun the given Python script\n");
 #ifdef WIN32
 	printf ("  -R\t\tRegister .blend extension\n");
 #endif
@@ -545,6 +546,11 @@ int main(int argc, char **argv)
 				if(G.scene) {
 					if (a < argc) (G.scene->r.efra) = atoi(argv[a]);
 				}
+				break;
+			case 'P':
+				a++;
+				if (a < argc) BPY_run_python_script (argv[a]);
+				else printf("\nError: you must specify a Python script after '-P '.\n");
 				break;
 			}
 		}

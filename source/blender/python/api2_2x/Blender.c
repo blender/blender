@@ -29,6 +29,9 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
+//#include "BKE_utildefines.h"
+#include "BIF_usiblender.h"
+
 #include "Blender.h"
 
 /*****************************************************************************/
@@ -157,7 +160,6 @@ PyObject *Blender_Get (PyObject *self, PyObject *args)
 /*****************************************************************************/
 PyObject *Blender_Redraw(PyObject *self, PyObject *args)
 {
-
   int wintype = SPACE_VIEW3D;
 
   if (!PyArg_ParseTuple (args, "|i", &wintype))
@@ -172,24 +174,24 @@ PyObject *Blender_Redraw(PyObject *self, PyObject *args)
 /*****************************************************************************/
 /* Function:              Blender_ReleaseGlobalDict                          */
 /* Python equivalent:     Blender.ReleaseGlobalDict                          */
-/* Description:           Receives an int (treated as boolean) to define     */
-/*                        whether the global Python dictionary should be     */
-/*                        cleared after the script is run or not.  Default   */
-/*                        is to clear (to release).  To change this, call    */
-/*                        Blender.ReleaseGlobalDict with a non-zero int      */
-/*                        argument.  If called with an empty arg list, it    */
-/*                        doesn't change anything.                           */
-/*                        Returns the current behavior.                      */
+/* Description:           Deprecated function.                               */
 /*****************************************************************************/
 PyObject *Blender_ReleaseGlobalDict(PyObject *self, PyObject *args)
 {
-  if (!PyArg_ParseTuple (args, "|i", &EXPP_releaseGlobalDict))
-  {
-    return EXPP_ReturnPyObjError (PyExc_TypeError,
-                        "expected int argument (or nothing)");
-  }
+	Py_INCREF(Py_None);
+  return Py_None;
+}
 
-  return Py_BuildValue("i", (EXPP_releaseGlobalDict?1:0));
+/*****************************************************************************/
+/* Function:              Blender_Quit                                       */
+/* Python equivalent:     Blender.Quit                                       */
+/*****************************************************************************/
+PyObject *Blender_Quit(PyObject *self)
+{
+	exit_usiblender();
+
+	Py_INCREF(Py_None);
+  return Py_None;
 }
 
 /*****************************************************************************/

@@ -68,11 +68,6 @@
 #include "interface.h"
 #include "mydevice.h"		/*@ for all the event constants */
 
-
-/* declared in ../BPY_extern.h,
- * used to control global dictionary persistence: */
-extern short EXPP_releaseGlobalDict;
-
 /* This one was an extern in BPY_main.h, but only opy_draw.c was using it */
 int g_window_redrawn;
 

@@ -50,11 +50,6 @@
 /* From Window.h, used here by Blender_Redraw */
 PyObject *M_Window_Redraw(PyObject *self, PyObject *args);
 
-/* This global variable controls whether the global Interpreter dictionary
- * should be cleared after a script is run.  Default is to clear it.
- * See Blender.ReleaseGlobalDict(bool) */
-extern short EXPP_releaseGlobalDict;
-
 /*****************************************************************************/
 /* Python API function prototypes for the Blender module.                    */
 /*****************************************************************************/
@@ -62,6 +57,7 @@ PyObject *Blender_Set (PyObject *self, PyObject *args);
 PyObject *Blender_Get (PyObject *self, PyObject *args);
 PyObject *Blender_Redraw(PyObject *self, PyObject *args);
 PyObject *Blender_ReleaseGlobalDict(PyObject *self, PyObject *args);
+PyObject *Blender_Quit(PyObject *self);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.      */
@@ -88,10 +84,10 @@ char Blender_Get_doc[] =
 char Blender_Redraw_doc[] = "() - Redraw all 3D windows";
 
 char Blender_ReleaseGlobalDict_doc[] =
-"(int) - Define whether the global Python Interpreter dictionary\n\
-        should be cleared after the script is run.  Default is\n\
-        to clear (non-zero int).\n\
-() -    Return the current behavior as a bool value (0 is false, 1 is true)\n";
+"Deprecated, please use the Blender.Registry module solution instead.";
+
+char Blender_Quit_doc[] =
+"() - Quit Blender. Experimental, please use with caution.";
 
 /*****************************************************************************/
 /* Python method structure definition.                                       */
@@ -100,6 +96,7 @@ struct PyMethodDef Blender_methods[] = {
 	{"Set",    &Blender_Set, METH_VARARGS, Blender_Set_doc},
 	{"Get",    &Blender_Get, METH_VARARGS, Blender_Get_doc},
 	{"Redraw", &Blender_Redraw, METH_VARARGS, Blender_Redraw_doc},
+	{"Quit",   &Blender_Quit, METH_NOARGS, Blender_Quit_doc},
 	{"ReleaseGlobalDict", &Blender_ReleaseGlobalDict,
 					METH_VARARGS, Blender_ReleaseGlobalDict_doc},
 	{NULL, NULL}
