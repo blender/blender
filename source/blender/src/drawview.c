@@ -209,6 +209,11 @@ void default_gl_light(void)
 		if(a<3) {
 			if(U.light[a].flag) glEnable(GL_LIGHT0+a);
 			else glDisable(GL_LIGHT0+a);
+			
+			// clear stuff from other opengl lamp usage
+			glLightf(GL_LIGHT0+a, GL_SPOT_CUTOFF, 180.0);
+			glLightf(GL_LIGHT0+a, GL_CONSTANT_ATTENUATION, 1.0);
+			glLightf(GL_LIGHT0+a, GL_LINEAR_ATTENUATION, 0.0);
 		}
 		else glDisable(GL_LIGHT0+a);
 	}
