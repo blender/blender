@@ -112,7 +112,7 @@ void winqreadsoundspace(unsigned short event, short val, char ascii)
 		switch(event)
 		{
 		case LEFTMOUSE:
-			if( view2dmove()==0 )
+			if( view2dmove(event)==0 )
 			{
 				do
 				{
@@ -137,7 +137,7 @@ void winqreadsoundspace(unsigned short event, short val, char ascii)
 		case MIDDLEMOUSE:
 		case WHEELUPMOUSE:
 		case WHEELDOWNMOUSE:
-			view2dmove();	/* in drawipo.c */
+			view2dmove(event);	/* in drawipo.c */
 			break;
 		case RIGHTMOUSE:
 			/* mouse_select_seq(); */

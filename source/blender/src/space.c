@@ -1139,7 +1139,7 @@ void winqreadipo(unsigned short event, short val, char ascii)
 			if(in_ipo_buttons()) {
 				scroll_ipobuts();
 			}
-			else view2dmove();	/* in drawipo.c */
+			else view2dmove(event);	/* in drawipo.c */
 			break;
 
 		case WHEELUPMOUSE:
@@ -1642,7 +1642,7 @@ void winqreadsequence(unsigned short event, short val, char ascii)
 
 		switch(event) {
 		case LEFTMOUSE:
-			if(sseq->mainb || view2dmove()==0) {
+			if(sseq->mainb || view2dmove(event)==0) {
 				
 				first= 1;		
 				set_special_seq_update(1);
@@ -1673,7 +1673,7 @@ void winqreadsequence(unsigned short event, short val, char ascii)
 		case WHEELUPMOUSE:
 		case WHEELDOWNMOUSE:
 			if(sseq->mainb) break;
-			view2dmove();	/* in drawipo.c */
+			view2dmove(event);	/* in drawipo.c */
 			break;
 		case RIGHTMOUSE:
 			if(sseq->mainb) break;
@@ -2179,7 +2179,7 @@ void winqreadoopsspace(unsigned short event, short val, char ascii)
 	case MIDDLEMOUSE:
 	case WHEELUPMOUSE:
 	case WHEELDOWNMOUSE:
-		view2dmove();	/* in drawipo.c */
+		view2dmove(event);	/* in drawipo.c */
 		break;
 	case RIGHTMOUSE:
 		mouse_select_oops();

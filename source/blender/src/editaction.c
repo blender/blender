@@ -1490,7 +1490,7 @@ void winqreadactionspace(unsigned short event, short val, char ascii)
 		case MIDDLEMOUSE:
 		case WHEELUPMOUSE:
 		case WHEELDOWNMOUSE:
-			view2dmove();	/* in drawipo.c */
+			view2dmove(event);	/* in drawipo.c */
 			break;
 		}
 	}

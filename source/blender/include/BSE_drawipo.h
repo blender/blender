@@ -61,7 +61,7 @@ void drawipo(void);
 
 void scroll_ipobuts(void);
 int view2dzoom(unsigned short event);
-int view2dmove(void); 
+int view2dmove(unsigned short event); 
 void view2dborder(void);
 
 struct EditIpo *select_proj_ipo(struct rctf *rectf, int event);
