@@ -3931,6 +3931,7 @@ static void do_versions(Main *main)
 	}	
 	if(main->versionfile <= 231) {	
 		Material *ma= main->mat.first;
+		bScreen *sc = main->screen.first;
 		Scene *sce;
 		Lamp *la;
 		World *wrld;
@@ -3977,7 +3978,7 @@ static void do_versions(Main *main)
 		}
 		
 		/* new bit flags for showing/hiding grid floor and axes */
-		bScreen *sc = main->screen.first;
+		
 		while(sc) {
 			ScrArea *sa= sc->areabase.first;
 			while(sa) {
