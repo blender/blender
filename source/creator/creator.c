@@ -95,14 +95,13 @@
 #endif
 
 #ifdef WITH_QUICKTIME
-#	ifdef _WIN32
-#		include <QTML.h>
-#	endif /* _WIN32 */
-#	if defined (_WIN32) || defined (__APPLE__)
-#		include <Movies.h>
-#	elif defined (__linux__)
-#		include <quicktime/lqt.h>
-#	endif /* __linux__ */
+#ifdef _WIN32
+#include <QTML.h>
+#include <Movies.h>
+#elif defined(__APPLE__)
+#undef NDEBUG
+#include <QuickTime/Movies.h>
+#endif /* __APPLE__ */
 #endif /* WITH_QUICKTIME */
 
 // from buildinfo.c

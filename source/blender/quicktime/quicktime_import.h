@@ -44,7 +44,11 @@
 #include "../imbuf/IMB_imbuf_types.h"
 
 #ifndef __MOVIES__
+#ifdef _WIN32
 #include <Movies.h>
+#elif defined(__APPLE__)
+#include <QuickTime/Movies.h>
+#endif
 #endif
 
 #ifdef _WIN32

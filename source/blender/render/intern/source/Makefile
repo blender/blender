@@ -58,3 +58,7 @@ CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 # not very neat: the rest of blender..
 CPPFLAGS += -I../../../include 
 
+ifeq ($(WITH_QUICKTIME), true)
+	CPPFLAGS += -DWITH_QUICKTIME
+endif
+

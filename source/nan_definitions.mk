@@ -145,6 +145,9 @@ all debug::
     # Be paranoid regarding library creation (do not update archives)
     export NAN_PARANOID ?= true
 
+    # enable quicktime by default on OS X
+    export WITH_QUICKTIME ?= true
+
   else
   ifeq ($(OS),freebsd)
 

@@ -60,3 +60,7 @@ CPPFLAGS += -I../kernel/gen_system
 CPPFLAGS += -I../kernel/gen_messaging
 CPPFLAGS += -I$(NAN_BLENKEY)/include
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+
+ifeq ($(WITH_QUICKTIME), true)
+	CPPFLAGS += -I$(NAN_QUICKTIME)/include -DWITH_QUICKTIME
+endif

@@ -82,16 +82,18 @@ DONE:
 
 #include "quicktime_export.h"
 
-#include <Movies.h>
-#include <QuicktimeComponents.h>
-
 #ifdef _WIN32
 #include <FixMath.h>
 #include <QTML.h>
 #include <TextUtils.h> 
+#include <Movies.h>
+#include <QuicktimeComponents.h>
 #endif /* _WIN32 */
 
 #ifdef __APPLE__
+#undef NDEBUG
+#include <QuickTime/Movies.h>
+#include <QuickTime/QuicktimeComponents.h>
 #include <fcntl.h> /* open() */
 #include <unistd.h> /* close() */
 #include <sys/stat.h> /* file permissions */

@@ -58,6 +58,9 @@ endif
 ifeq ($(OS),darwin)
     LLIBS    += -lGLU -lGL
     LLIBS    += -lz -framework Carbon -framework AGL
+    ifeq ($(WITH_QUICKTIME), true)
+        LLIBS += -framework QuickTime
+    endif
     LDFLAGS += -L/System/Library/Frameworks/OpenGL.framework/Libraries
     DBG_LDFLAGS += -L/System/Library/Frameworks/OpenGL.framework/Libraries
 endif

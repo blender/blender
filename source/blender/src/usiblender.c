@@ -120,10 +120,11 @@
 #include "quicktime_export.h"
 #ifdef _WIN32
 #include <QTML.h>
-#endif /* _WIN32 */
-#if defined (_WIN32) || defined (__APPLE__)
 #include <Movies.h>
-#endif /* _WIN32 || __APPLE__ */
+#elif defined (__APPLE__)
+#undef NDEBUG
+#include <QuickTime/Movies.h>
+#endif /* __APPLE__ */
 #endif /* WITH_QUICKTIME */
 
 /***/

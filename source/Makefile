@@ -133,6 +133,9 @@ PYPLAYERLIB ?= $(PYLIB)
     COMLIB += $(NAN_GUARDEDALLOC)/lib/libguardedalloc.a
     COMLIB += $(NAN_BMFONT)/lib/$(DEBUG_DIR)libbmfont.a
     COMLIB += $(NAN_PNG)/lib/libpng.a
+  ifeq ($(WITH_QUICKTIME), true)
+    COMLIB += $(OCGDIR)/blender/blenderqt/$(DEBUG_DIR)libblenderqt.a
+  endif
 
     PULIB = $(NAN_IKSOLVER)/lib/libiksolver.a
     PULIB += $(NAN_MOTO)/lib/libmoto.a

@@ -104,3 +104,9 @@ ifeq ($(OS),linux)
 	CPPFLAGS += -I/usr/src/MesaCVS/include
     endif
 endif
+
+ifeq ($(WITH_QUICKTIME),true)
+	CPPFLAGS += -I../quicktime
+	CPPFLAGS += -DWITH_QUICKTIME
+endif
+

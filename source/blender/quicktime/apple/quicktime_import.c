@@ -37,16 +37,17 @@
 #include "IMB_anim.h"
 #include "BLO_sys_types.h"
 
-#include <Movies.h>
+#ifdef __APPLE__
+#include <QuickTime/Movies.h>
+#include <QuickTime/QuickTimeComponents.h>
+#endif
 
 #ifdef _WIN32
+#include <Movies.h>
 #include <QTML.h>
-#include <TextUtils.h> 
-#endif /* _WIN32 */
-
-//#ifdef __APPLE__
+#include <TextUtils.h>
 #include <QuickTimeComponents.h>
-//#endif /* __APPLE__ */
+#endif /* _WIN32 */
 
 #include "quicktime_import.h"
 
@@ -81,7 +82,7 @@ int anim_is_quicktime (char *name)
 		BLI_testextensie(name, ".zip") ||
 		BLI_testextensie(name, ".mp3")) return 0;
 
-	if(QTIME_DEBUG) printf("qt: checking as movie %s\n");
+	if(QTIME_DEBUG) printf("qt: checking as movie\n");
 
 	sprintf(theFullPath, "%s", name);
 #ifdef __APPLE__
