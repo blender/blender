@@ -40,14 +40,14 @@ if sys.platform == 'linux2' or sys.platform == 'linux-i386':
     build_blender_plugin = 'false'
     release_flags = ['-O2']
     debug_flags = ['-O2', '-g']
-    extra_flags = ['-pipe', '-fPIC', '-funsigned-char']
+    extra_flags = ['-pipe', '-funsigned-char']
     cxxflags = []
     defines = []
-    warn_flags = ['-Wall']
+    warn_flags = ['-Wall', '-W']
     window_system = 'X11'
     platform_libs = ['m', 'util', 'stdc++']
     platform_libpath = []
-    platform_linkflags = []
+    platform_linkflags = ['-pthread']
     extra_includes = []
     # z library information
     z_lib = ['z']
@@ -92,7 +92,7 @@ if sys.platform == 'linux2' or sys.platform == 'linux-i386':
     ftgl_lib = ['ftgl']
     ftgl_libpath = ['#../lib/linux-glibc2.2.5-i386/ftgl/lib']
     ftgl_include = ['#../lib/linux-glibc2.2.5-i386/ftgl/include']
-    freetype_env.ParseConfig ('freetype-config --cflags --libs')
+    freetype_env.ParseConfig ('pkg-config --cflags --libs freetype2 2>/dev/null || freetype-config --cflags --libs 2>/dev/null')
     freetype_lib = freetype_env.Dictionary()['LIBS']
     freetype_libpath = freetype_env.Dictionary()['LIBPATH']
     freetype_include = freetype_env.Dictionary()['CPPPATH']
@@ -647,6 +647,10 @@ else:
 #-----------------------------------------------------------------------------
 # Checking for an existing config file - use that one if it exists,
 # otherwise create one.
+my_defines = []
+my_ccflags = []
+my_cxxflags = []
+my_ldflags = []
 if os.path.exists (config_file):
     print "Using config file: " + config_file
 else:
@@ -662,6 +666,13 @@ else:
     config.write ("BUILD_BLENDER_PLAYER = %r\n"%(build_blender_player))
     config.write ("BUILD_BLENDER_PLUGIN = %r\n"%(build_blender_plugin))
     config.write ("BUILD_DIR = %r\n"%(root_build_dir))
+    
+    config.write ("\n# Extra compiler flags can be defined here.\n")
+    config.write ("DEFINES = %s\n"%(my_defines))
+    config.write ("CCFLAGS = %s\n"%(my_ccflags))
+    config.write ("CXXFLAGS = %s\n"%(my_cxxflags))
+    config.write ("LDFLAGS = %s\n"%(my_ldflags))
+
     config.write ("USE_INTERNATIONAL = %r\n"%(use_international))
     config.write ("BUILD_GAMEENGINE = %r\n"%(use_gameengine))
     if use_ode == 'true':
@@ -826,7 +837,12 @@ user_options.AddOptions (
         ('FREETYPE_LIBRARY', 'Freetype2 library name.'),
         ('GETTEXT_INCLUDE', 'Include directory for gettext header files.'),
         ('GETTEXT_LIBPATH', 'Library path where the gettext library is located.'),
-        ('GETTEXT_LIBRARY', 'gettext library name.')
+        ('GETTEXT_LIBRARY', 'gettext library name.'),
+
+        ('DEFINES', 'Extra Preprocessor defines.'),
+        ('CCFLAGS', 'Extra C Compiler flags.'),
+        ('CXXFLAGS','Extra C++ Compiler flags.'),
+        ('LDFLAGS', 'Extra Linker flags.')
     )
 user_options.Update (user_options_env)
 user_options_dict = user_options_env.Dictionary()
@@ -851,6 +867,11 @@ else:
     if sys.platform == 'win32':
         #defines += ['_DEBUG'] specifying this makes msvc want to link to python22_d.lib??
         platform_linkflags += ['/DEBUG','/PDB:blender.pdb']
+
+defines += user_options_dict['DEFINES']
+cflags += user_options_dict['CCFLAGS']
+cxxflags += user_options_dict['CXXFLAGS']
+platform_linkflags += user_options_dict['LDFLAGS']
 
 #-----------------------------------------------------------------------------
 # Generic library generation environment. This one is the basis for each
@@ -886,15 +907,17 @@ SConscript (root_build_dir+'source/SConscript')
 
 libpath = (['#'+root_build_dir+'/lib'])
 
-libraries = (['blender_creator',
-              'blender_render',
-              'blender_yafray',
-              'blender_blendersrc',
-              'blender_renderconverter',
+link_env = library_env.Copy ()
+link_env.Append (LIBPATH=libpath)
+
+def common_libs(env):
+	"""
+	Append to env all libraries that are common to Blender and Blenderplayer
+	"""
+	env.Append (LIBS=[
               'blender_blenloader',
               'blender_readblenfile',
               'blender_img',
-              'blender_radiosity',
               'blender_blenkernel',
               'blender_blenpluginapi',
               'blender_imbuf',
@@ -902,123 +925,198 @@ libraries = (['blender_creator',
               'blender_blenlib',
               'blender_makesdna',
               'blender_kernel',
-              'blender_BSP',
-              'blender_LOD',
               'blender_GHOST',
               'blender_STR',
               'blender_guardedalloc',
-              'blender_BMF',
               'blender_CTR',
               'blender_MEM',
-              'blender_IK',
               'blender_MT',
+              'blender_BMF',
               'soundsystem'])
 
-link_env = library_env.Copy ()
-link_env.Append (LIBS=libraries)
-link_env.Append (LIBPATH=libpath)
+def international_libs(env):
+	"""
+	Append international font support libraries
+	"""
+	if user_options_dict['USE_INTERNATIONAL'] == 1:
+		env.Append (LIBS=user_options_dict['FREETYPE_LIBRARY'])
+		env.Append (LIBPATH=user_options_dict['FREETYPE_LIBPATH'])
+		env.Append (LIBS=['blender_FTF'])
+		env.Append (LIBS=user_options_dict['FTGL_LIBRARY'])
+		env.Append (LIBPATH=user_options_dict['FTGL_LIBPATH'])
+		env.Append (LIBS=user_options_dict['FREETYPE_LIBRARY'])
 
-if user_options_dict['USE_INTERNATIONAL'] == 1:
-    link_env.Append (LIBS=user_options_dict['FREETYPE_LIBRARY'])
-    link_env.Append (LIBPATH=user_options_dict['FREETYPE_LIBPATH'])
-    link_env.Append (LIBS=['blender_FTF'])
-    link_env.Append (LIBS=user_options_dict['FTGL_LIBRARY'])
-    link_env.Append (LIBPATH=user_options_dict['FTGL_LIBPATH'])
-    link_env.Append (LIBS=user_options_dict['FREETYPE_LIBRARY'])
-if user_options_dict['USE_QUICKTIME'] == 1:
-    link_env.Append (LIBS=['blender_quicktime'])
+def blender_libs(env):
+	"""
+	Blender only libs (not in player)
+	"""
+        env.Append(LIBS=['blender_creator',
+		'blender_blendersrc',
+		'blender_render',
+		'blender_yafray',
+		'blender_renderconverter',
+		'blender_radiosity',
+		'blender_LOD',
+		'blender_BSP',
+		'blender_blenkernel',
+		'blender_IK'])
+	if user_options_dict['USE_QUICKTIME'] == 1:
+		env.Append (LIBS=['blender_quicktime'])
 
-if user_options_dict['BUILD_GAMEENGINE'] == 1:
-    link_env.Append (LIBS=['KX_blenderhook',
-                           'KX_converter',
-                           'PHY_Dummy',
-                           'PHY_Physics',
-                           'KX_ketsji',
-                           'SCA_GameLogic',
-                           'RAS_rasterizer',
-                           'RAS_OpenGLRasterizer',
-                           'blender_expressions',
-                           'SG_SceneGraph',
-                           'blender_MT',
-                           'KX_blenderhook',
-                           'KX_network',
-                           'blender_kernel',
-                           'NG_network',
-                           'NG_loopbacknetwork'])
-    if user_options_dict['USE_PHYSICS'] == 'solid':
-        link_env.Append (LIBS=['PHY_Sumo', 'PHY_Physics', 'blender_MT', 'extern_solid', 'extern_qhull'])
-    else:
-        link_env.Append (LIBS=['PHY_Ode',
-                               'PHY_Physics'])
-        link_env.Append (LIBS=user_options_dict['ODE_LIBRARY'])
-        link_env.Append (LIBPATH=user_options_dict['ODE_LIBPATH'])
+def ketsji_libs(env):
+	"""
+	Game Engine libs
+	"""
+	if user_options_dict['BUILD_GAMEENGINE'] == 1:
+		env.Append (LIBS=['KX_blenderhook',
+				'KX_converter',
+				'PHY_Dummy',
+				'PHY_Physics',
+				'KX_ketsji',
+				'SCA_GameLogic',
+				'RAS_rasterizer',
+				'RAS_OpenGLRasterizer',
+				'blender_expressions',
+				'SG_SceneGraph',
+				'blender_MT',
+				'KX_blenderhook',
+				'KX_network',
+				'blender_kernel',
+				'NG_network',
+				'NG_loopbacknetwork'])
+	if user_options_dict['USE_PHYSICS'] == 'solid':
+		env.Append (LIBS=['PHY_Sumo', 'PHY_Physics', 'blender_MT', 'extern_solid', 'extern_qhull'])
+	else:
+		env.Append (LIBS=['PHY_Ode',
+				'PHY_Physics'])
+		env.Append (LIBS=user_options_dict['ODE_LIBRARY'])
+		env.Append (LIBPATH=user_options_dict['ODE_LIBPATH'])
 
-link_env.Append (LIBS=['blender_python'])
-link_env.Append (LIBS=user_options_dict['PYTHON_LIBRARY'])
-link_env.Append (LIBPATH=user_options_dict['PYTHON_LIBPATH'])
-link_env.Append (LINKFLAGS=user_options_dict['PYTHON_LINKFLAGS'])
-link_env.Append (LIBS=user_options_dict['SDL_LIBRARY'])
-link_env.Append (LIBPATH=user_options_dict['SDL_LIBPATH'])
-link_env.Append (LIBS=user_options_dict['PNG_LIBRARY'])
-link_env.Append (LIBPATH=user_options_dict['PNG_LIBPATH'])
-link_env.Append (LIBS=user_options_dict['JPEG_LIBRARY'])
-link_env.Append (LIBPATH=user_options_dict['JPEG_LIBPATH'])
-link_env.Append (LIBS=user_options_dict['GETTEXT_LIBRARY'])
-link_env.Append (LIBPATH=user_options_dict['GETTEXT_LIBPATH'])
-link_env.Append (LIBS=user_options_dict['Z_LIBRARY'])
-link_env.Append (LIBPATH=user_options_dict['Z_LIBPATH'])
-if user_options_dict['USE_OPENAL'] == 1:
-    link_env.Append (LIBS=user_options_dict['OPENAL_LIBRARY'])
-    link_env.Append (LIBPATH=user_options_dict['OPENAL_LIBPATH'])
-link_env.Append (LIBS=user_options_dict['PLATFORM_LIBS'])
-link_env.Append (LIBPATH=user_options_dict['PLATFORM_LIBPATH'])
-if sys.platform == 'darwin':
-    link_env.Append (LINKFLAGS='-framework')
-    link_env.Append (LINKFLAGS='Carbon')
-    link_env.Append (LINKFLAGS='-framework')
-    link_env.Append (LINKFLAGS='AGL')
-    link_env.Append (LINKFLAGS='-framework')
-    link_env.Append (LINKFLAGS='AudioUnit')
-    link_env.Append (LINKFLAGS='-framework')
-    link_env.Append (LINKFLAGS='AudioToolbox')
-    link_env.Append (LINKFLAGS='-framework')
-    link_env.Append (LINKFLAGS='CoreAudio')
-    if user_options_dict['USE_QUICKTIME'] == 1:
-        link_env.Append (LINKFLAGS='-framework')
-        link_env.Append (LINKFLAGS='QuickTime')
-else:
-    link_env.Append (LINKFLAGS=user_options_dict['PLATFORM_LINKFLAGS'])
+def player_libs(env):
+	"""
+	Player libraries
+	"""
+	env.Append (LIBS=['GPG_ghost',
+			'GPC_common'])
+			
+def player_libs2(env):
+	"""
+	Link order shenannigans: these libs are added after common_libs
+	"""
+	env.Append (LIBS=['blender_blenkernel_blc',
+			'soundsystem'])
+			
+def system_libs(env):
+	"""
+	System libraries: Python, SDL, PNG, JPEG, Gettext, OpenAL, Carbon
+	"""
+	env.Append (LIBS=['blender_python'])
+	env.Append (LIBS=user_options_dict['PYTHON_LIBRARY'])
+	env.Append (LIBPATH=user_options_dict['PYTHON_LIBPATH'])
+	env.Append (LINKFLAGS=user_options_dict['PYTHON_LINKFLAGS'])
+	env.Append (LIBS=user_options_dict['SDL_LIBRARY'])
+	env.Append (LIBPATH=user_options_dict['SDL_LIBPATH'])
+	env.Append (LIBS=user_options_dict['PNG_LIBRARY'])
+	env.Append (LIBPATH=user_options_dict['PNG_LIBPATH'])
+	env.Append (LIBS=user_options_dict['JPEG_LIBRARY'])
+	env.Append (LIBPATH=user_options_dict['JPEG_LIBPATH'])
+	env.Append (LIBS=user_options_dict['GETTEXT_LIBRARY'])
+	env.Append (LIBPATH=user_options_dict['GETTEXT_LIBPATH'])
+	env.Append (LIBS=user_options_dict['Z_LIBRARY'])
+	env.Append (LIBPATH=user_options_dict['Z_LIBPATH'])
+	if user_options_dict['USE_OPENAL'] == 1:
+		env.Append (LIBS=user_options_dict['OPENAL_LIBRARY'])
+		env.Append (LIBPATH=user_options_dict['OPENAL_LIBPATH'])
+	env.Append (LIBS=user_options_dict['PLATFORM_LIBS'])
+	env.Append (LIBPATH=user_options_dict['PLATFORM_LIBPATH'])
+	if sys.platform == 'darwin':
+		env.Append (LINKFLAGS='-framework')
+		env.Append (LINKFLAGS='Carbon')
+		env.Append (LINKFLAGS='-framework')
+		env.Append (LINKFLAGS='AGL')
+		env.Append (LINKFLAGS='-framework')
+		env.Append (LINKFLAGS='AudioUnit')
+		env.Append (LINKFLAGS='-framework')
+		env.Append (LINKFLAGS='AudioToolbox')
+		env.Append (LINKFLAGS='-framework')
+		env.Append (LINKFLAGS='CoreAudio')
+	if user_options_dict['USE_QUICKTIME'] == 1:
+		env.Append (LINKFLAGS='-framework')
+		env.Append (LINKFLAGS='QuickTime')
+	else:
+		env.Append (LINKFLAGS=user_options_dict['PLATFORM_LINKFLAGS'])
+	if sys.platform == 'win32':
+		env.RES(['source/icons/winblender.rc'])
+	env.BuildDir (root_build_dir, '.', duplicate=0)
 
-if sys.platform == 'win32':
-    link_env.RES(['source/icons/winblender.rc'])
+def buildinfo(env, build_type):
+	"""
+	Generate a buildinfo object
+	"""
+	build_date = time.strftime ("%Y-%m-%d")
+	build_time = time.strftime ("%H:%M:%S")
+	obj = []
+	if user_options_dict['USE_BUILDINFO'] == 1:
+		if sys.platform=='win32':
+			build_info_file = open("source/creator/winbuildinfo.h", 'w')
+			build_info_file.write("char *build_date=\"%s\";\n"%build_date)
+			build_info_file.write("char *build_time=\"%s\";\n"%build_time)
+			build_info_file.write("char *build_platform=\"win32\";\n")
+			build_info_file.write("char *build_type=\"%s\";\n"%build_type)
+			build_info_file.close()
+			env.Append (CPPDEFINES = ['NAN_BUILDINFO', 'BUILD_DATE'])
+		else:
+			env.Append (CPPDEFINES = ['BUILD_TIME=\'"%s"\''%(build_time),
+							'BUILD_DATE=\'"%s"\''%(build_date),
+							'BUILD_TYPE=\'"dynamic"\'',
+							'NAN_BUILDINFO',
+							'BUILD_PLATFORM=\'"%s"\''%(sys.platform)])
+		obj = [env.Object (root_build_dir+'source/creator/%s_buildinfo'%build_type,
+						[root_build_dir+'source/creator/buildinfo.c'])]
+	return obj
 
-link_env.BuildDir (root_build_dir, '.', duplicate=0)
+def BlenderBundle(target):
+	"""
+	Make a MacOSX bundle.
+	
+	target = Name of bundle to make (string)
+	eg: BlenderBundle('blender')
+	"""
+	if sys.platform == 'darwin':
+		bundle = Environment ()
+		blender_app = target
+		bundle.Depends ('#/%s.app/Contents/Info.plist'%target, blender_app)
+		bundle.Command ('#/%s.app/Contents/Info.plist'%target,
+				'#/source/darwin/%s.app/Contents/Info.plist'%target,
+				"rm -rf %s.app && "%target + \
+				"cp -R source/darwin/%s.app . && "%target +
+				"cat $SOURCE | sed s/VERSION/`cat release/VERSION`/ | \
+						sed s/DATE/`date +'%Y-%b-%d'`/ \
+						> $TARGET && " + \
+				'cp -p %s %s.app/Contents/MacOS/%s && '%(target, target, target) + \
+				'strip -u -r %s.app/Contents/MacOS/%s && '%(target, target) + \
+				'cp bin/.blender/.bfont.ttf %s.app/Contents/Resources/ && '%target + \
+				'cp bin/.blender/.Blanguages %s.app/Contents/Resources/ && '%target + \
+				'cp -R bin/.blender/locale %s.app/Contents/Resources/ && '%target + \
+				'cp -R release/bpydata %s.app/Contents/Resources/ && '%target + \
+				'cp -R release/scripts %s.app/Contents/Resources/ && '%target + \
+				'cp -R release/plugins %s.app/Contents/Resources/ && '%target + \
+				'chmod +x $TARGET && ' + \
+				'find %s.app -name CVS -prune -exec rm -rf {} \; && '%target +
+				'find %s.app -name .DS_Store -exec rm -rf {} \;'%target)
 
-build_date = time.strftime ("%Y-%m-%d")
-build_time = time.strftime ("%H:%M:%S")
 
 if user_options_dict['BUILD_BLENDER_DYNAMIC'] == 1:
     dy_blender = link_env.Copy ()
+    blender_libs(dy_blender)
+    common_libs(dy_blender)
+    international_libs(dy_blender)
+    ketsji_libs(dy_blender)
+    system_libs(dy_blender)
     dy_blender.Append (LIBS=user_options_dict['OPENGL_LIBRARY'])
     dy_blender.Append (LIBPATH=user_options_dict['OPENGL_LIBPATH'])
     dy_blender.Append (CPPPATH=user_options_dict['OPENGL_INCLUDE'])
-    if user_options_dict['USE_BUILDINFO'] == 1:
-        if sys.platform=='win32':
-            build_info_file = open("source/creator/winbuildinfo.h", 'w')
-            build_info_file.write("char *build_date=\"%s\";\n"%build_date)
-            build_info_file.write("char *build_time=\"%s\";\n"%build_time)
-            build_info_file.write("char *build_platform=\"win32\";\n")
-            build_info_file.write("char *build_type=\"dynamic\";\n")
-            build_info_file.close()
-            dy_blender.Append (CPPDEFINES = ['NAN_BUILDINFO', 'BUILD_DATE'])
-        else:
-            dy_blender.Append (CPPDEFINES = ['BUILD_TIME=\'"%s"\''%(build_time),
-                                         'BUILD_DATE=\'"%s"\''%(build_date),
-                                         'BUILD_TYPE=\'"dynamic"\'',
-                                         'NAN_BUILDINFO',
-                                         'BUILD_PLATFORM=\'"%s"\''%(sys.platform)])
-    d_obj = [dy_blender.Object (root_build_dir+'source/creator/d_buildinfo',
-                                [root_build_dir+'source/creator/buildinfo.c'])]
+    d_obj = buildinfo(dy_blender, "dynamic")
     if sys.platform == 'win32':
         dy_blender.Program (target='blender',
                             source=d_obj + ['source/icons/winblender.res'])
@@ -1026,57 +1124,27 @@ if user_options_dict['BUILD_BLENDER_DYNAMIC'] == 1:
         if sys.platform == 'cygwin':
             dy_blender.Replace (CC='g++')
         dy_blender.Program (target='blender', source=d_obj)
+	
 if user_options_dict['BUILD_BLENDER_STATIC'] == 1:
     st_blender = link_env.Copy ()
+    blender_libs(st_blender)
+    common_libs(st_blender)
+    international_libs(st_blender)
+    ketsji_libs(dst_blender)
+    system_libs(st_blender)
     # The next line is to make sure that the LINKFLAGS are appended at the end
     # of the link command. This 'trick' is needed because the GL and GLU static
     # libraries need to be at the end of the command.
     st_blender.Replace(LINKCOM="$LINK -o $TARGET $SOURCES $_LIBDIRFLAGS $_LIBFLAGS $LINKFLAGS")
-    if user_options_dict['USE_BUILDINFO'] == 1:
-        if sys.platform=='win32':
-            build_info_file = open("source/creator/winbuildinfo.h", 'w')
-            build_info_file.write("char *build_date=\"%s\";\n"%build_date)
-            build_info_file.write("char *build_time=\"%s\";\n"%build_time)
-            build_info_file.write("char *build_platform=\"win32\";\n")
-            build_info_file.write("char *build_type=\"static\";\n")
-            build_info_file.close()
-            st_blender.Append (CPPDEFINES = ['NAN_BUILDINFO', 'BUILD_DATE'])
-        else:
-            st_blender.Append (CPPDEFINES = ['BUILD_TIME=\'"%s"\''%(build_time),
-                                         'BUILD_DATE=\'"%s"\''%(build_date),
-                                         'BUILD_TYPE=\'"static"\'',
-                                         'NAN_BUILDINFO',
-                                         'BUILD_PLATFORM=\'"%s"\''%(sys.platform)])
+    s_obj = buildinfo(st_blender, "static")
     st_blender.Append (LINKFLAGS=user_options_dict['OPENGL_STATIC'])
     st_blender.Append (CPPPATH=user_options_dict['OPENGL_INCLUDE'])
-    s_obj = [st_blender.Object (root_build_dir+'source/creator/s_buildinfo',
-                                [root_build_dir+'source/creator/buildinfo.c'])]
     st_blender.Prepend (LIBPATH=['/usr/lib/opengl/xfree/lib'])
     st_blender.Program (target='blenderstatic', source=s_obj)
 
-if sys.platform == 'darwin':
-    bundle = Environment ()
-    blender_app = 'blender'
-    bundle.Depends ('#/blender.app/Contents/Info.plist', blender_app)
-    bundle.Command ('#/blender.app/Contents/Info.plist',
-                    '#/source/darwin/blender.app/Contents/Info.plist',
-                    "rm -rf blender.app && " + \
-                    "cp -R source/darwin/blender.app . && " +
-                    "cat $SOURCE | sed s/VERSION/`cat release/VERSION`/ | \
-                                   sed s/DATE/`date +'%Y-%b-%d'`/ \
-                                   > $TARGET && " + \
-                    'cp -p blender blender.app/Contents/MacOS/blender && ' + \
-                    'strip -u -r blender.app/Contents/MacOS/blender && ' + \
-                    'cp bin/.blender/.bfont.ttf blender.app/Contents/Resources/ && ' + \
-                    'cp bin/.blender/.Blanguages blender.app/Contents/Resources/ && ' + \
-                    'cp -R bin/.blender/locale blender.app/Contents/Resources/ && ' + \
-                    'cp -R release/bpydata blender.app/Contents/Resources/ && ' + \
-                    'cp -R release/scripts blender.app/Contents/Resources/ && ' + \
-                    'cp -R release/plugins blender.app/Contents/Resources/ && ' + \
-                    'chmod +x $TARGET && ' + \
-                    'find blender.app -name CVS -prune -exec rm -rf {} \; && ' +
-                    'find blender.app -name .DS_Store -exec rm -rf {} \;')
-elif sys.platform=='win32':
+BlenderBundle('blender')
+
+if sys.platform=='win32':
     if user_options_dict['BUILD_BINARY']=='debug':
         browser = Environment()
         browser_tmp = root_build_dir+'bscmake.tmp'
@@ -1084,3 +1152,32 @@ elif sys.platform=='win32':
             ['dir /b/s '+root_build_dir+'*.sbr >'+browser_tmp,
              'bscmake /nologo /n /oblender.bsc @'+browser_tmp,
              'del '+browser_tmp])
+
+if user_options_dict['BUILD_BLENDER_PLAYER'] == 1 and user_options_dict['BUILD_GAMEENGINE'] == 1:
+	player_blender = link_env.Copy()
+	player_libs(player_blender)
+	common_libs(player_blender)
+	international_libs(player_blender)
+	ketsji_libs(player_blender)
+	player_libs2(player_blender)
+	system_libs(player_blender)
+	player_blender.Append (LIBS=user_options_dict['OPENGL_LIBRARY'])
+	player_blender.Append (LIBPATH=user_options_dict['OPENGL_LIBPATH'])
+	player_blender.Append (CPPPATH=user_options_dict['OPENGL_INCLUDE'])
+	d_obj = buildinfo(player_blender, "player")
+	if sys.platform == 'win32':
+		player_blender.Program (target='blender',
+					source=d_obj + ['source/icons/winblender.res'])
+	else:
+		if sys.platform == 'cygwin':
+			player_blender.Replace (CC='g++')
+		player_blender.Program (target='blenderplayer', source=d_obj)
+	BlenderBundle('blenderplayer')
+	if sys.platform=='win32':
+		if user_options_dict['BUILD_BINARY']=='debug':
+			browser = Environment()
+			browser_tmp = root_build_dir+'bscmake.tmp'
+			browser.Command ('blenderplayer.bsc', 'blenderplayer$PROGSUFFIX',
+			['dir /b/s '+root_build_dir+'*.sbr >'+browser_tmp,
+			'bscmake /nologo /n /oblenderplayer.bsc @'+browser_tmp,
+			'del '+browser_tmp])
