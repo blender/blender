@@ -44,6 +44,7 @@ void				clear_last_seq(void);
 void				clever_numbuts_seq(void);
 void				del_seq(void);
 void				enter_meta(void);
+void				exit_meta(void);
 struct Sequence*	find_nearest_seq(int *hand);
 int					insert_gap(int gap, int cfra);
 void				make_meta(void);

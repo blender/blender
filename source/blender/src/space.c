@@ -2559,7 +2559,7 @@ void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case AKEY:
 			if(sseq->mainb) break;
 			if(G.qual & LR_SHIFTKEY) {
-				add_sequence(0);
+				add_sequence(-1);
 			}
 			else swap_select_seq();
 			break;

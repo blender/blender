@@ -952,9 +952,58 @@ void add_sequence(int type)
 	int cfra, machine;
 	short nr, event, mval[2];	
 	char *str;
-	
- 	event= pupmenu("Add sequence%t|Images%x1|Movie%x102|Audio%x103|Scene%x101|Plugin%x10|Cross%x2|GammaCross%x3|Add%x4|Sub%x5|Mul%x6|AlphaOver%x7|AlphaUnder%x8|AlphaOverDrop%x9");
-		
+
+	if (type >= 0){
+		/* bypass pupmenu for calls from menus (aphex) */
+		switch(type){
+		case SEQ_SCENE:
+			event = 101;
+			break;
+		case SEQ_IMAGE:
+			event = 1;
+			break;
+		case SEQ_MOVIE:
+			event = 102;
+			break;
+		case SEQ_SOUND:
+			event = 103;
+			break;
+		case SEQ_PLUGIN:
+			event = 10;
+			break;
+		case SEQ_CROSS:
+			event = 2;
+			break;
+		case SEQ_ADD:
+			event = 4;
+			break;
+		case SEQ_SUB:
+			event = 5;
+			break;
+		case SEQ_ALPHAOVER:
+			event = 7;
+			break;
+		case SEQ_ALPHAUNDER:
+			event = 8;
+			break;
+		case SEQ_GAMCROSS:
+			event = 3;
+			break;
+		case SEQ_MUL:
+			event = 6;
+			break;
+		case SEQ_OVERDROP:
+			event = 9;
+			break;
+		default:
+			event = 0;
+			break;
+		}
+	}
+	else {
+		event= pupmenu("Add sequence%t|Images%x1|Movie%x102|Audio%x103|Scene%x101|Plugin%x10|Cross%x2|GammaCross%x3|Add%x4|Sub%x5|Mul%x6|AlphaOver%x7|AlphaUnder%x8|AlphaOverDrop%x9");
+	}
+
 	if(event<1) return;
 	
 	if(G.scene->ed==0) {
@@ -1560,7 +1609,7 @@ void un_meta(void)
 	
 }
 
-static void exit_meta(void)
+void exit_meta(void)
 {
 	Sequence *seq;
 	MetaStack *ms;
