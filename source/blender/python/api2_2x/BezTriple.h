@@ -33,98 +33,17 @@
 #define EXPP_BEZTRIPLE_H
 
 #include <Python.h>
-
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_object.h>
-#include <BKE_library.h>
-#include <BLI_blenlib.h>
-#include <DNA_ipo_types.h>
-
-#include "constant.h"
-#include "gen_utils.h"
-#include "modules.h"
-
-
-/*****************************************************************************/
-/* Python API function prototypes for the BezTriple module.                        */
-/*****************************************************************************/
-static PyObject *M_BezTriple_New (PyObject *self, PyObject *args);
-static PyObject *M_BezTriple_Get (PyObject *self, PyObject *args);
-
-
-
-/*****************************************************************************/
-/* Python method structure definition for Blender.BezTriple module:             */
-/*****************************************************************************/
-
-struct PyMethodDef M_BezTriple_methods[] = {
-  {"New",(PyCFunction)M_BezTriple_New, METH_VARARGS|METH_KEYWORDS,0},
-  {"Get",         M_BezTriple_Get,         METH_VARARGS, 0},
-  {"get",         M_BezTriple_Get,         METH_VARARGS, 0},
-  {NULL, NULL, 0, NULL}
-};
+#include <DNA_curve_types.h>
 
 /*****************************************************************************/
 /* Python C_BezTriple structure definition:                                     */
 /*****************************************************************************/
-typedef struct {
-  PyObject_HEAD
-  BezTriple *beztriple;
-} C_BezTriple;
 
-/*****************************************************************************/
-/* Python C_BezTriple methods declarations:                                     */
-/*****************************************************************************/
-static PyObject *BezTriple_setPoints(C_BezTriple *self, PyObject *args);
-static PyObject *BezTriple_getPoints(C_BezTriple *self);
-
-/*****************************************************************************/
-/* Python C_BezTriple methods table:                                            */
-/*****************************************************************************/
-static PyMethodDef C_BezTriple_methods[] = {
- /* name, method, flags, doc */
-{"setPoints", (PyCFunction)BezTriple_setPoints, METH_VARARGS,
-      "(str) - Change BezTriple point coordinates"},
-{"getPoints", (PyCFunction)BezTriple_getPoints, METH_NOARGS,
-      "(str) - Change BezTriple point coordinates"},
-  {0}
-};
-
-/*****************************************************************************/
-/* Python BezTriple_Type callback function prototypes:                          */
-/*****************************************************************************/
-static void BezTripleDeAlloc (C_BezTriple *self);
-static int BezTripleSetAttr (C_BezTriple *self, char *name, PyObject *v);
-static PyObject *BezTripleGetAttr (C_BezTriple *self, char *name);
-static PyObject *BezTripleRepr (C_BezTriple *self);
-
-/*****************************************************************************/
-/* Python BezTriple_Type structure definition:                                  */
-/*****************************************************************************/
-PyTypeObject BezTriple_Type =
+typedef struct
 {
-  PyObject_HEAD_INIT(NULL)
-  0,                                      /* ob_size */
-  "BezTriple",                               /* tp_name */
-  sizeof (C_BezTriple),                      /* tp_basicsize */
-  0,                                      /* tp_itemsize */
-  /* methods */
-  (destructor)BezTripleDeAlloc,              /* tp_dealloc */
-  0,                 /* tp_print */
-  (getattrfunc)BezTripleGetAttr,             /* tp_getattr */
-  (setattrfunc)BezTripleSetAttr,             /* tp_setattr */
-  0,                                      /* tp_compare */
-  (reprfunc)BezTripleRepr,                   /* tp_repr */
-  0,                                      /* tp_as_number */
-  0,                                      /* tp_as_sequence */
-  0,                                      /* tp_as_mapping */
-  0,                                      /* tp_as_hash */
-  0,0,0,0,0,0,
-  0,                                      /* tp_doc */ 
-  0,0,0,0,0,0,
-  C_BezTriple_methods,                       /* tp_methods */
-  0,                                      /* tp_members */
-};
+  PyObject_HEAD BezTriple * beztriple;
+}
+C_BezTriple;
+
 
 #endif /* EXPP_BEZTRIPLE_H */

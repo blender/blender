@@ -33,157 +33,17 @@
 #define EXPP_IPO_H
 
 #include <Python.h>
-
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_object.h>
-#include <BKE_library.h>
-#include <BLI_blenlib.h>
 #include <DNA_ipo_types.h>
-
-#include "constant.h"
-#include "gen_utils.h"
-#include "modules.h"
-
-
-/*****************************************************************************/
-/* Python API function prototypes for the Ipo module.                        */
-/*****************************************************************************/
-static PyObject *M_Ipo_New (PyObject *self, PyObject *args);
-static PyObject *M_Ipo_Get (PyObject *self, PyObject *args);
-static PyObject *M_Ipo_Recalc (PyObject *self, PyObject *args);
-
-/*****************************************************************************/
-/* The following string definitions are used for documentation strings.      */
-/* In Python these will be written to the console when doing a               */
-/* Blender.Ipo.__doc__                                                       */
-/*****************************************************************************/
-char M_Ipo_doc[] = "";
-char M_Ipo_New_doc[] ="";
-char M_Ipo_Get_doc[] ="";
-
-
-/*****************************************************************************/
-/* Python method structure definition for Blender.Ipo module:             */
-/*****************************************************************************/
-
-struct PyMethodDef M_Ipo_methods[] = {
-  {"New",(PyCFunction)M_Ipo_New, METH_VARARGS|METH_KEYWORDS,M_Ipo_New_doc},
-  {"Get",         M_Ipo_Get,         METH_VARARGS, M_Ipo_Get_doc},
-  {"get",         M_Ipo_Get,         METH_VARARGS, M_Ipo_Get_doc},
-  {"Recalc",         M_Ipo_Recalc,         METH_VARARGS, M_Ipo_Get_doc},
-  {NULL, NULL, 0, NULL}
-};
 
 /*****************************************************************************/
 /* Python BPy_Ipo structure definition:                                     */
 /*****************************************************************************/
-typedef struct {
-  PyObject_HEAD
-  Ipo *ipo;
-} BPy_Ipo;
-
-/*****************************************************************************/
-/* Python BPy_Ipo methods declarations:                                     */
-/*****************************************************************************/
-static PyObject *Ipo_getName(BPy_Ipo *self);
-static PyObject *Ipo_setName(BPy_Ipo *self, PyObject *args);
-static PyObject *Ipo_getBlocktype(BPy_Ipo *self);
-static PyObject *Ipo_setBlocktype(BPy_Ipo *self, PyObject *args);
-static PyObject *Ipo_getRctf(BPy_Ipo *self);
-static PyObject *Ipo_setRctf(BPy_Ipo *self, PyObject *args);
-
-static PyObject *Ipo_getCurve(BPy_Ipo *self, PyObject *args);
-static PyObject *Ipo_getCurves(BPy_Ipo *self);
-static PyObject *Ipo_addCurve(BPy_Ipo *self, PyObject *args);
-static PyObject *Ipo_getNcurves(BPy_Ipo *self);
-static PyObject *Ipo_getNBezPoints(BPy_Ipo *self, PyObject *args);
-static PyObject *Ipo_DeleteBezPoints(BPy_Ipo *self, PyObject *args);
-static PyObject *Ipo_getCurveBP(BPy_Ipo *self, PyObject *args);
-static PyObject *Ipo_getCurvecurval(BPy_Ipo *self, PyObject *args);
-static PyObject *Ipo_EvaluateCurveOn(BPy_Ipo *self, PyObject *args);
-
-
-static PyObject *Ipo_setCurveBeztriple(BPy_Ipo *self, PyObject *args);
-static PyObject *Ipo_getCurveBeztriple(BPy_Ipo *self, PyObject *args);
-
-/*****************************************************************************/
-/* Python BPy_Ipo methods table:                                            */
-/*****************************************************************************/
-static PyMethodDef BPy_Ipo_methods[] = {
- /* name, method, flags, doc */
-  {"getName", (PyCFunction)Ipo_getName, METH_NOARGS,
-      "() - Return Ipo Data name"},  
-{"setName", (PyCFunction)Ipo_setName, METH_VARARGS,
-      "(str) - Change Ipo Data name"},
-  {"getBlocktype", (PyCFunction)Ipo_getBlocktype, METH_NOARGS,
-      "() - Return Ipo blocktype -"},
-  {"setBlocktype", (PyCFunction)Ipo_setBlocktype, METH_VARARGS,
-      "(str) - Change Ipo blocktype"},
-  {"getRctf", (PyCFunction)Ipo_getRctf, METH_NOARGS,
-      "() - Return Ipo rctf - "},
-  {"setRctf", (PyCFunction)Ipo_setRctf, METH_VARARGS,
-      "(str) - Change Ipo rctf"},
-  {"addCurve", (PyCFunction)Ipo_addCurve, METH_VARARGS,
-      "() - Return Ipo ncurves"},
-  {"getNcurves", (PyCFunction)Ipo_getNcurves, METH_NOARGS,
-      "() - Return Ipo ncurves"},
-  {"getNBezPoints", (PyCFunction)Ipo_getNBezPoints, METH_VARARGS,
-      "() - Return curve number of Bez points"},
-  {"delBezPoint", (PyCFunction)Ipo_DeleteBezPoints, METH_VARARGS,
-      "() - Return curve number of Bez points"},
-  {"getCurveBP", (PyCFunction)Ipo_getCurveBP, METH_VARARGS,
-      "() - Return Ipo ncurves"},
-  {"EvaluateCurveOn", (PyCFunction)Ipo_EvaluateCurveOn, METH_VARARGS,
-      "() - Return curve value at given time"},
-  {"getCurveCurval", (PyCFunction)Ipo_getCurvecurval, METH_VARARGS,
-      "() - Return curval"},
-  {"getCurveBeztriple", (PyCFunction)Ipo_getCurveBeztriple, METH_VARARGS,
-      "() - Return Ipo ncurves"},
-  {"setCurveBeztriple", (PyCFunction)Ipo_setCurveBeztriple, METH_VARARGS,
-      "() - Return curval"},
-  {"getCurves", (PyCFunction)Ipo_getCurves, METH_NOARGS,
-      "() - Return curval"},
-  {"getCurve", (PyCFunction)Ipo_getCurve, METH_VARARGS,
-      "() - Return curval"},
-  {0}
-};
-
-/*****************************************************************************/
-/* Python Ipo_Type callback function prototypes:                          */
-/*****************************************************************************/
-static void IpoDeAlloc (BPy_Ipo *self);
-//static int IpoPrint (BPy_Ipo *self, FILE *fp, int flags);
-static int IpoSetAttr (BPy_Ipo *self, char *name, PyObject *v);
-static PyObject *IpoGetAttr (BPy_Ipo *self, char *name);
-static PyObject *IpoRepr (BPy_Ipo *self);
-
-/*****************************************************************************/
-/* Python Ipo_Type structure definition:                                  */
-/*****************************************************************************/
-PyTypeObject Ipo_Type =
+typedef struct
 {
-  PyObject_HEAD_INIT(NULL)
-  0,                                      /* ob_size */
-  "Ipo",                               /* tp_name */
-  sizeof (BPy_Ipo),                      /* tp_basicsize */
-  0,                                      /* tp_itemsize */
-  /* methods */
-  (destructor)IpoDeAlloc,              /* tp_dealloc */
-  0,                 /* tp_print */
-  (getattrfunc)IpoGetAttr,             /* tp_getattr */
-  (setattrfunc)IpoSetAttr,             /* tp_setattr */
-  0,                                      /* tp_compare */
-  (reprfunc)IpoRepr,                   /* tp_repr */
-  0,                                      /* tp_as_number */
-  0,                                      /* tp_as_sequence */
-  0,                                      /* tp_as_mapping */
-  0,                                      /* tp_as_hash */
-  0,0,0,0,0,0,
-  0,                                      /* tp_doc */ 
-  0,0,0,0,0,0,
-  BPy_Ipo_methods,                       /* tp_methods */
-  0,                                      /* tp_members */
-};
+  PyObject_HEAD			/* required macro */
+  Ipo * ipo;
+}
+BPy_Ipo;
+
 
 #endif /* EXPP_IPO_H */

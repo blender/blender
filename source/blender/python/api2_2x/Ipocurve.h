@@ -33,131 +33,17 @@
 #define EXPP_IPOCURVE_H
 
 #include <Python.h>
-
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_object.h>
-#include <BKE_library.h>
-#include <BLI_blenlib.h>
-#include <DNA_ipo_types.h>
-
-#include "constant.h"
-#include "gen_utils.h"
-#include "modules.h"
-
-
-/*****************************************************************************/
-/* Python API function prototypes for the IpoCurve module.                   */
-/*****************************************************************************/
-static PyObject *M_IpoCurve_New (PyObject *self, PyObject *args);
-static PyObject *M_IpoCurve_Get (PyObject *self, PyObject *args);
-
-/*****************************************************************************/
-/* The following string definitions are used for documentation strings.      */
-/* In Python these will be written to the console when doing a               */
-/* Blender.IpoCurve.__doc__                                                  */
-/*****************************************************************************/
-char M_IpoCurve_doc[] = "";
-char M_IpoCurve_New_doc[] ="";
-char M_IpoCurve_Get_doc[] ="";
-
-
-/*****************************************************************************/
-/* Python method structure definition for Blender.IpoCurve module:           */
-/*****************************************************************************/
-
-struct PyMethodDef M_IpoCurve_methods[] = {
-  {"New",(PyCFunction)M_IpoCurve_New, METH_VARARGS|METH_KEYWORDS,M_IpoCurve_New_doc},
-  {"Get",         M_IpoCurve_Get,         METH_VARARGS, M_IpoCurve_Get_doc},
-  {"get",         M_IpoCurve_Get,         METH_VARARGS, M_IpoCurve_Get_doc},
-  {NULL, NULL, 0, NULL}
-};
+#include <DNA_curve_types.h>	/* declaration of IpoCurve */
 
 /*****************************************************************************/
 /* Python C_IpoCurve structure definition:                                   */
 /*****************************************************************************/
-typedef struct {
-  PyObject_HEAD
-  IpoCurve *ipocurve;
-} C_IpoCurve;
-
-/*****************************************************************************/
-/* Python C_IpoCurve methods declarations:                                   */
-/*****************************************************************************/
-static PyObject *IpoCurve_getName(C_IpoCurve *self);
-static PyObject *IpoCurve_Recalc(C_IpoCurve *self);
-static PyObject *IpoCurve_setName(C_IpoCurve *self, PyObject *args);
-static PyObject *IpoCurve_addBezier( C_IpoCurve*self, PyObject *args);
-static PyObject *IpoCurve_setInterpolation( C_IpoCurve*self, PyObject *args);
-static PyObject *IpoCurve_getInterpolation( C_IpoCurve*self);
-static PyObject *IpoCurve_setExtrapolation( C_IpoCurve*self, PyObject *args);
-static PyObject *IpoCurve_getExtrapolation( C_IpoCurve*self);
-static PyObject *IpoCurve_getPoints( C_IpoCurve*self);
-
-
-/*****************************************************************************/
-/* Python C_IpoCurve methods table:                                          */
-/*****************************************************************************/
-static PyMethodDef C_IpoCurve_methods[] = {
- /* name, method, flags, doc */
-  {"getName", (PyCFunction)IpoCurve_getName, METH_NOARGS,
-      "() - Return IpoCurve Data name"},  
-  {"Recalc", (PyCFunction)IpoCurve_Recalc, METH_NOARGS,
-      "() - Return IpoCurve Data name"}, 
-  {"update", (PyCFunction)IpoCurve_Recalc, METH_NOARGS,
-      "() - Return IpoCurve Data name"},  
-{"setName", (PyCFunction)IpoCurve_setName, METH_VARARGS,
-      "(str) - Change IpoCurve Data name"},  
-{"addBezier", (PyCFunction)IpoCurve_addBezier, METH_VARARGS,
-      "(str) - Change IpoCurve Data name"},  
-{"setInterpolation", (PyCFunction)IpoCurve_setInterpolation, METH_VARARGS,
-      "(str) - Change IpoCurve Data name"}, 
-{"getInterpolation", (PyCFunction)IpoCurve_getInterpolation, METH_NOARGS,
-      "(str) - Change IpoCurve Data name"},  
-{"setExtrapolation", (PyCFunction)IpoCurve_setExtrapolation, METH_VARARGS,
-      "(str) - Change IpoCurve Data name"}, 
-{"getExtrapolation", (PyCFunction)IpoCurve_getExtrapolation, METH_NOARGS,
-      "(str) - Change IpoCurve Data name"}, 
-{"getPoints", (PyCFunction)IpoCurve_getPoints, METH_NOARGS,
-      "(str) - Change IpoCurve Data name"},
-  {0}
-};
-
-/*****************************************************************************/
-/* Python IpoCurve_Type callback function prototypes:                        */
-/*****************************************************************************/
-static void IpoCurveDeAlloc (C_IpoCurve *self);
-//static int IpoCurvePrint (C_IpoCurve *self, FILE *fp, int flags);
-static int IpoCurveSetAttr (C_IpoCurve *self, char *name, PyObject *v);
-static PyObject *IpoCurveGetAttr (C_IpoCurve *self, char *name);
-static PyObject *IpoCurveRepr (C_IpoCurve *self);
-
-/*****************************************************************************/
-/* Python IpoCurve_Type structure definition:                                */
-/*****************************************************************************/
-PyTypeObject IpoCurve_Type =
+typedef struct
 {
-  PyObject_HEAD_INIT(NULL)
-  0,                                      /* ob_size */
-  "IpoCurve",                               /* tp_name */
-  sizeof (C_IpoCurve),                      /* tp_basicsize */
-  0,                                      /* tp_itemsize */
-  /* methods */
-  (destructor)IpoCurveDeAlloc,              /* tp_dealloc */
-  0,                 /* tp_print */
-  (getattrfunc)IpoCurveGetAttr,             /* tp_getattr */
-  (setattrfunc)IpoCurveSetAttr,             /* tp_setattr */
-  0,                                      /* tp_compare */
-  (reprfunc)IpoCurveRepr,                   /* tp_repr */
-  0,                                      /* tp_as_number */
-  0,                                      /* tp_as_sequence */
-  0,                                      /* tp_as_mapping */
-  0,                                      /* tp_as_hash */
-  0,0,0,0,0,0,
-  0,                                      /* tp_doc */ 
-  0,0,0,0,0,0,
-  C_IpoCurve_methods,                       /* tp_methods */
-  0,                                      /* tp_members */
-};
+  PyObject_HEAD			/* required macro */
+  IpoCurve * ipocurve;
+}
+C_IpoCurve;
+
 
 #endif /* EXPP_IPOCURVE_H */
