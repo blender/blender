@@ -2735,36 +2735,24 @@ static void check_non_flat_quads(void)
 			if(vlr->mat->mode & MA_WIRE);
 			else {
 				
-				/* blahj, render normals are inverted in render */
-				CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, nor);
+				/* render normals are inverted in render! we calculate normal of single tria here */
+				CalcNormFloat(vlr->v4->co, vlr->v3->co, vlr->v1->co, nor);
 				
 				xn= nor[0]*vlr->n[0] + nor[1]*vlr->n[1] + nor[2]*vlr->n[2];
-				if( fabs(xn) < 0.990 ) {
+				if( fabs(xn) < 0.9990 ) {	// checked on noisy fractal grid
 				
 					if( xn<0.0 ) flipnorm= 1; else flipnorm= 0;
-					
-					/* recalc this nor, previous calc was with calcnormfloat4 */
-					if(flipnorm) {
-						if (vlr->flag & R_DIVIDE_24) CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v4->co, vlr->n);
-						else CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->n);
-					}
-					else {
-						if (vlr->flag & R_DIVIDE_24) CalcNormFloat(vlr->v4->co, vlr->v2->co, vlr->v1->co, vlr->n);
-						else CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
-					}
 					
 					vlr1= RE_findOrAddVlak(R.totvlak++);
 					*vlr1= *vlr;
 					vlr1->flag |= R_FACE_SPLIT;
-					
-					if(flipnorm) VecMulf(nor, -1.0);
-					VECCOPY(vlr1->n, nor);
 										
-					if (vlr->flag&R_DIVIDE_24) {
-						vlr1->v1=vlr->v2;
-						vlr1->v2=vlr->v3;
-						vlr1->v3=vlr->v4;
-						vlr->v3 =vlr->v4;
+					/* new vertex pointers */
+					if (vlr->flag & R_DIVIDE_24) {
+						vlr1->v1= vlr->v2;
+						vlr1->v2= vlr->v3;
+						vlr1->v3= vlr->v4;
+						vlr->v3 = vlr->v4;
 						
 						vlr1->flag |= R_DIVIDE_24;	
 					}
@@ -2775,8 +2763,18 @@ static void check_non_flat_quads(void)
 						
 						vlr1->flag &= ~R_DIVIDE_24;
 					}
+					vlr->v4 = vlr1->v4 = NULL;
 					
-					vlr->v4 = vlr1->v4 = 0;
+					/* new normals */
+					if(flipnorm) {
+						CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->n);
+						CalcNormFloat(vlr1->v1->co, vlr1->v2->co, vlr1->v3->co, vlr1->n);
+					}
+					else {
+						CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+						CalcNormFloat(vlr1->v3->co, vlr1->v2->co, vlr1->v1->co, vlr1->n);
+					}
+					
 				/* so later UV can be pulled from original tface, look for R_DIVIDE_24 for direction */
 					vlr1->tface=vlr->tface; 
 					
