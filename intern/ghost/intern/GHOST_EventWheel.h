@@ -40,6 +40,8 @@
 
 /**
  * Mouse wheel event.
+ * The displacement of the mouse wheel is counted in ticks.
+ * A positive value means the wheel is turned away from the user.
  * @author	Maarten Gribnau
  * @date	May 11, 2001
  */
@@ -52,8 +54,8 @@ public:
 	 * @param type		The type of this event.
 	 * @param z			The displacement of the mouse wheel.
 	 */
-	GHOST_EventWheel(GHOST_TUns64 msec, GHOST_TEventType type, GHOST_IWindow* window, GHOST_TInt32 z)
-		: GHOST_Event(msec, type, window)
+	GHOST_EventWheel(GHOST_TUns64 msec, GHOST_IWindow* window, GHOST_TInt32 z)
+		: GHOST_Event(msec, GHOST_kEventWheel, window)
 	{
 		m_wheelEventData.z = z;
 		m_data = &m_wheelEventData;

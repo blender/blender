@@ -275,7 +275,7 @@ static void View(GHOST_IWindow* window, bool stereo, int eye = 0)
 	int verticalBlankingInterval = 32;  // hard coded for testing purposes, display device dependant
 	float left, right, bottom, top;
 	float nearplane, farplane, zeroPlane, distance;
-	float eyeSeparation = 0.62;
+	float eyeSeparation = 0.62f;
 	window->getClientBounds(bnds);
 
 	// viewport
@@ -314,8 +314,8 @@ static void View(GHOST_IWindow* window, bool stereo, int eye = 0)
 	// projection
 	left = -6.0;
 	right = 6.0;
-	bottom = -4.8;
-	top = 4.8;
+	bottom = -4.8f;
+	top = 4.8f;
 	nearplane = 5.0;
 	farplane = 60.0;
 
@@ -481,6 +481,20 @@ bool Application::processEvent(GHOST_IEvent* event)
 	case GHOST_kEventCursorMove:
 		std::cout << "GHOST_kEventCursorMove"; break;
 */
+	case GHOST_kEventWheel:
+		{
+		GHOST_TEventWheelData* wheelData = (GHOST_TEventWheelData*) event->getData();
+		if (wheelData->z > 0)
+		{
+			view_rotz += 5.f;
+		}
+		else
+		{
+			view_rotz -= 5.f;
+		}
+		}
+		break;
+
 	case GHOST_kEventKeyUp:
 		break;
 
@@ -678,10 +692,10 @@ int main(int /*argc*/, char** /*argv*/)
 		LONG lresult;
 		HKEY hkey = 0;
 		DWORD dwd = 0;
-		unsigned char buffer[128];
+		//unsigned char buffer[128];
 
 		CRegKey regkey;
-		DWORD keyValue;
+		//DWORD keyValue;
 //		lresult = regkey.Open(HKEY_LOCAL_MACHINE, "SOFTWARE\\NVIDIA Corporation\\Global\\Stereo3D\\StereoEnable");
 		lresult = regkey.Open(HKEY_LOCAL_MACHINE, "SOFTWARE\\NVIDIA Corporation\\Global\\Stereo3D\\StereoEnable",
 			 KEY_ALL_ACCESS );

@@ -297,6 +297,7 @@ int processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData)
 	int cursor;
 	int visibility;
 	GHOST_TEventKeyData* keyData = NULL;
+	GHOST_TEventWheelData* wheelData = NULL;
 	GHOST_DisplaySetting setting;
 	GHOST_WindowHandle window = GHOST_GetEventWindow(hEvent);
 	
@@ -310,6 +311,20 @@ int processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData)
 	case GHOST_kEventCursorMove:
 		break;
 	*/
+	case GHOST_kEventWheel:
+		{
+		wheelData = (GHOST_TEventWheelData*)GHOST_GetEventData(hEvent);
+		if (wheelData->z > 0)
+		{
+			view_rotz += 5.f;
+		}
+		else
+		{
+			view_rotz -= 5.f;
+		}
+		}
+		break;
+
 	case GHOST_kEventKeyUp:
 		break;
 		
@@ -347,6 +362,7 @@ int processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData)
 					*/
 
 					sFullScreenWindow = GHOST_BeginFullScreen(shSystem, &setting,
+
 						FALSE /* stereo flag */);
 				}
 				else

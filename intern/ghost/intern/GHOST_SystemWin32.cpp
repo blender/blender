@@ -41,7 +41,21 @@
 #include <config.h>
 #endif
 
+#pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
+
 #include "GHOST_SystemWin32.h"
+
+/*
+ * According to the docs the mouse wheel message is supported from windows 98 
+ * upwards. Leaving WINVER at default value, the WM_MOUSEWHEEL message and the 
+ * wheel detent value are undefined.
+ */
+#ifndef WM_MOUSEWHEEL
+#define WM_MOUSEWHEEL 0x020A
+#endif // WM_MOUSEWHEEL
+#ifndef WHEEL_DELTA
+#define WHEEL_DELTA 120	/* Value for rolling one detent */
+#endif // WHEEL_DELTA
 
 
 #include "GHOST_Debug.h"
@@ -49,6 +63,7 @@
 #include "GHOST_EventButton.h"
 #include "GHOST_EventCursor.h"
 #include "GHOST_EventKey.h"
+#include "GHOST_EventWheel.h"
 #include "GHOST_TimerTask.h"
 #include "GHOST_TimerManager.h"
 #include "GHOST_WindowManager.h"
@@ -455,6 +470,17 @@ GHOST_EventCursor* GHOST_SystemWin32::processCursorEvent(GHOST_TEventType type, 
 }
 
 
+GHOST_EventWheel* GHOST_SystemWin32::processWheelEvent(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam)
+{
+	// short fwKeys = LOWORD(wParam);			// key flags
+	int zDelta = (short) HIWORD(wParam);	// wheel rotation
+	zDelta /= WHEEL_DELTA;
+	// short xPos = (short) LOWORD(lParam);	// horizontal position of pointer
+	// short yPos = (short) HIWORD(lParam);	// vertical position of pointer
+	return new GHOST_EventWheel (getSystem()->getMilliSeconds(), window, zDelta);
+}
+
+
 GHOST_EventKey* GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, bool keyDown, WPARAM wParam, LPARAM lParam)
 {
 	GHOST_TKey key = ((GHOST_SystemWin32*)getSystem())->convertKey(wParam, lParam);
@@ -626,6 +652,16 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					break;
 				case WM_MOUSEMOVE:
 					event = processCursorEvent(GHOST_kEventCursorMove, window);
+					break;
+				case WM_MOUSEWHEEL:
+					/* The WM_MOUSEWHEEL message is sent to the focus window 
+					 * when the mouse wheel is rotated. The DefWindowProc 
+					 * function propagates the message to the window's parent.
+					 * There should be no internal forwarding of the message, 
+					 * since DefWindowProc propagates it up the parent chain 
+					 * until it finds a window that processes it.
+					 */
+					event = processWheelEvent(window, wParam, lParam);
 					break;
 				case WM_SETCURSOR:
 					/* The WM_SETCURSOR message is sent to a window if the mouse causes the cursor

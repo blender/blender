@@ -52,6 +52,7 @@
 class GHOST_EventButton;
 class GHOST_EventCursor;
 class GHOST_EventKey;
+class GHOST_EventWheel;
 class GHOST_EventWindow;
 
 /**
@@ -196,35 +197,49 @@ protected:
 	 * With the modifier keys, we want to distinguish left and right keys.
 	 * Sometimes this is not possible (Windows ME for instance). Then, we want
 	 * events generated for both keys.
+	 * @param window	The window receiving the event (the active window).
 	 */
 	void processModifierKeys(GHOST_IWindow *window);
 
 	/**
 	 * Creates mouse button event.
-	 * @param type	The type of event to create.
-	 * @param type	The button mask of this event.
+	 * @param type		The type of event to create.
+	 * @param window	The window receiving the event (the active window).
+	 * @param mask		The button mask of this event.
 	 * @return The event created.
 	 */
 	static GHOST_EventButton* processButtonEvent(GHOST_TEventType type, GHOST_IWindow *window, GHOST_TButtonMask mask);
 
 	/**
 	 * Creates cursor event.
-	 * @param type	The type of event to create.
+	 * @param type		The type of event to create.
+	 * @param window	The window receiving the event (the active window).
 	 * @return The event created.
 	 */
 	static GHOST_EventCursor* processCursorEvent(GHOST_TEventType type, GHOST_IWindow *window);
 
 	/**
+	 * Creates a mouse wheel event.
+	 * @param window	The window receiving the event (the active window).
+	 * @param wParam	The wParam from the wndproc
+	 * @param lParam	The lParam from the wndproc
+	 */
+	static GHOST_EventWheel* processWheelEvent(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam);
+
+	/**
 	 * Creates a key event and updates the key data stored locally (m_modifierKeys).
 	 * In most cases this is a straightforward conversion of key codes.
 	 * For the modifier keys however, we want to distinguish left and right keys.
+	 * @param window	The window receiving the event (the active window).
+	 * @param wParam	The wParam from the wndproc
+	 * @param lParam	The lParam from the wndproc
 	 */
 	static GHOST_EventKey* processKeyEvent(GHOST_IWindow *window, bool keyDown, WPARAM wParam, LPARAM lParam);
 
 	/** 
 	 * Creates a window event.
 	 * @param type		The type of event to create.
-	 * @param window	The window receiving the event.
+	 * @param window	The window receiving the event (the active window).
 	 * @return The event created.
 	 */
 	static GHOST_Event* processWindowEvent(GHOST_TEventType type, GHOST_IWindow* window);
