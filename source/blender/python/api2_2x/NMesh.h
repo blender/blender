@@ -75,12 +75,14 @@ void remove_vert_def_nr( Object * ob, int def_nr, int vertnum );
 /* Typedefs for the new types */
 
 typedef struct {
-	PyObject_HEAD unsigned char r, g, b, a;
+	PyObject_HEAD		/* required python macro   */
+	unsigned char r, g, b, a;
 
 } BPy_NMCol;			/* an NMesh color: [r,g,b,a] */
 
 typedef struct {
-	PyObject_VAR_HEAD float co[3];
+	PyObject_VAR_HEAD	/* required python macro   */
+	float co[3];
 	float no[3];
 	float uvco[3];
 	int index;
@@ -89,7 +91,8 @@ typedef struct {
 } BPy_NMVert;			/* an NMesh vertex */
 
 typedef struct {
-	PyObject_HEAD PyObject * v;
+	PyObject_HEAD		/* required python macro   */
+	PyObject * v;
 	PyObject *uv;
 	PyObject *col;
 	short mode;
@@ -101,7 +104,8 @@ typedef struct {
 } BPy_NMFace;			/* an NMesh face */
 
 typedef struct {
-	PyObject_HEAD Mesh * mesh;
+	PyObject_HEAD		/* required python macro   */
+	Mesh * mesh;
 	Object *object;		/* for vertex grouping info, since it's stored on the object */
 	PyObject *name;
 	PyObject *materials;

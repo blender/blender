@@ -222,8 +222,8 @@ static PyObject *Vector_getattr( VectorObject * self, char *name )
 						     self->vec[1] *
 						     self->vec[1] ) );
 		} else
-			EXPP_ReturnPyObjError( PyExc_AttributeError,
-					       "can only return the length of a 2D ,3D or 4D vector\n" );
+			return EXPP_ReturnPyObjError( PyExc_AttributeError,
+						      "can only return the length of a 2D ,3D or 4D vector\n" );
 	}
 
 	return Py_FindMethod( Vector_methods, ( PyObject * ) self, name );
@@ -696,3 +696,32 @@ PyObject *newVectorObject( float *vec, int size )
 
 	return ( PyObject * ) self;
 }
+
+
+/*
+  create a Vector that is a proxy for blender data.
+  we do not own this data, we NEVER free it.
+  Note: users must deal with bad pointer issue
+*/
+
+PyObject *newVectorProxy( float *vec, int size)
+{
+	VectorObject *proxy;
+	int x;
+
+	proxy = PyObject_NEW( VectorObject, &vector_Type );
+
+	proxy->delete_pymem = 0;	/* must NOT free this alloc later */
+
+	if( !vec || size < 1 ) {
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+				       "cannot creat zero length vector proxy" );
+	}
+		
+	proxy->vec = vec;
+	proxy->size = size;
+	proxy->flag = 0;
+
+	return ( PyObject * ) proxy;
+}
+	

@@ -61,6 +61,7 @@ typedef struct {
 
 //prototypes
 PyObject *newVectorObject( float *vec, int size );
+PyObject *newVectorProxy( float *vec, int size );
 PyObject *Vector_Zero( VectorObject * self );
 PyObject *Vector_Normalize( VectorObject * self );
 PyObject *Vector_Negate( VectorObject * self );

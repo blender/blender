@@ -262,7 +262,8 @@ PyObject *Matrix_Resize4x4( MatrixObject * self )
 
 PyObject *Matrix_TranslationPart( MatrixObject * self )
 {
-	float *vec;
+	float *vec = NULL;
+	PyObject *retval;
 
 	if( self->colSize < 3 ) {
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
@@ -282,7 +283,9 @@ PyObject *Matrix_TranslationPart( MatrixObject * self )
 		vec[2] = self->matrix[3][2];
 	}
 
-	return ( PyObject * ) newVectorObject( vec, 3 );
+	retval =  ( PyObject * ) newVectorObject( vec, 3 );
+	PyMem_Free( vec );
+	return retval;
 }
 
 PyObject *Matrix_RotationPart( MatrixObject * self )
@@ -556,7 +559,8 @@ static PyObject *Matrix_repr( MatrixObject * self )
 //compatability
 static PyObject *Matrix_item( MatrixObject * self, int i )
 {
-	float *vec;
+	float *vec = NULL;
+	PyObject *retval;
 	int x;
 
 	if( i < 0 || i >= self->rowSize )
@@ -572,7 +576,9 @@ static PyObject *Matrix_item( MatrixObject * self, int i )
 		vec[x] = self->matrix[i][x];
 	}
 
-	return ( PyObject * ) newVectorObject( vec, self->colSize );
+	retval =( PyObject * ) newVectorObject( vec, self->colSize );
+	PyMem_Free( vec );
+	return retval;
 }
 
 static PyObject *Matrix_slice( MatrixObject * self, int begin, int end )
