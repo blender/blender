@@ -1386,17 +1386,21 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					view3d_home(0);
 				break;
 			case COMMAKEY:
-				if(G.qual==0) {
+				if(G.qual==LR_CTRLKEY) {
+					G.vd->around= V3D_CENTROID;
+				} else if(G.qual==0) {
 					G.vd->around= V3D_CENTRE;
-					scrarea_queue_headredraw(curarea);
 				}
+				scrarea_queue_headredraw(curarea);
 				break;
 				
 			case PERIODKEY:
-				if(G.qual==0) {
+				if(G.qual==LR_CTRLKEY) {
+					G.vd->around= V3D_LOCAL;
+				} else if(G.qual==0) {
 					G.vd->around= V3D_CURSOR;
-					scrarea_queue_headredraw(curarea);
 				}
+				scrarea_queue_headredraw(curarea);
 				break;
 			
 			case PADSLASHKEY:
