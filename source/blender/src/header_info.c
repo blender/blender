@@ -1676,7 +1676,7 @@ static void info_text(int x, int y)
 void info_buttons(void)
 {
 	uiBlock *block;
-	short xco= 32;
+	short xco= 42;
 	char naam[20];
 	int xmax;
 
@@ -1741,7 +1741,7 @@ void info_buttons(void)
 	
 	if (curarea->full == 0) {
 		curarea->butspacetype= SPACE_INFO;
-		uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
+		uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 8,0,XIC+10,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
 		
 		/* STD SCREEN BUTTONS */
 //		xco+= XIC;

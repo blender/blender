@@ -2382,6 +2382,19 @@ static char *view3d_modeselect_pup(void)
 	return (string);
 }
 
+
+char *drawtype_pup(void)
+{
+	static char string[512];
+
+	strcpy(string, "Draw type:%t"); 
+	strcat(string, "|Bounding Box %x1"); 
+	strcat(string, "|Wireframe %x2");
+	strcat(string, "|Solid %x3");
+	strcat(string, "|Shaded %x4");
+	strcat(string, "|Textured %x5");
+	return (string);
+}
 void do_view3d_buttons(short event)
 {
 	int bit;
@@ -2705,9 +2718,11 @@ void view3d_buttons(void)
 
 	curarea->butspacetype= SPACE_VIEW3D;
 	
-	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
+	xco = 8;
+	
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), xco,0,XIC+10,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
 
-	xco+= XIC+18;
+	xco+= XIC+22;
 
 	/* pull down menus */
 	uiBlockSetEmboss(block, UI_EMBOSSP);
@@ -2721,27 +2736,27 @@ void view3d_buttons(void)
 	else G.vd->viewbut= 0;
 	
 	xmax= GetButStringLength("View");
-	uiDefBlockBut(block, view3d_viewmenu, NULL, "View", xco, 0, xmax, 20, "");
+	uiDefBlockBut(block, view3d_viewmenu, NULL, "View", xco, -2, xmax, 24, "");
 	xco+= xmax;
 	
 	xmax= GetButStringLength("Select");
 	if (G.obedit) {
 		if (OBACT && OBACT->type == OB_MESH) {
-			uiDefBlockBut(block, view3d_select_meshmenu, NULL, "Select",	xco, 0, xmax, 20, "");
+			uiDefBlockBut(block, view3d_select_meshmenu, NULL, "Select",	xco, 0, xmax, 24, "");
 		} else if (OBACT && (OBACT->type == OB_CURVE || OBACT->type == OB_SURF)) {
-			uiDefBlockBut(block, view3d_select_curvemenu, NULL, "Select", xco, 0, xmax, 20, "");
+			uiDefBlockBut(block, view3d_select_curvemenu, NULL, "Select", xco, 0, xmax, 24, "");
 		} else if (OBACT && OBACT->type == OB_FONT) {
-			uiDefBlockBut(block, view3d_select_meshmenu, NULL, "Select",	xco, 0, xmax, 20, "");
+			uiDefBlockBut(block, view3d_select_meshmenu, NULL, "Select",	xco, 0, xmax, 24, "");
 		} else if (OBACT && OBACT->type == OB_MBALL) {
-			uiDefBlockBut(block, view3d_select_metaballmenu, NULL, "Select",	xco, 0, xmax, 20, "");
+			uiDefBlockBut(block, view3d_select_metaballmenu, NULL, "Select",	xco, 0, xmax, 24, "");
 		} else if (OBACT && OBACT->type == OB_LATTICE) {
-			uiDefBlockBut(block, view3d_select_latticemenu, NULL, "Select", xco, 0, xmax, 20, "");
+			uiDefBlockBut(block, view3d_select_latticemenu, NULL, "Select", xco, 0, xmax, 24, "");
 		} else if (OBACT && OBACT->type == OB_ARMATURE) {
-			uiDefBlockBut(block, view3d_select_armaturemenu, NULL, "Select",	xco, 0, xmax, 20, "");
+			uiDefBlockBut(block, view3d_select_armaturemenu, NULL, "Select",	xco, 0, xmax, 24, "");
 		}
 	} else if (G.f & G_FACESELECT) {
 		if (OBACT && OBACT->type == OB_MESH) {
-			uiDefBlockBut(block, view3d_select_faceselmenu, NULL, "Select", xco, 0, xmax, 20, "");
+			uiDefBlockBut(block, view3d_select_faceselmenu, NULL, "Select", xco, -2, xmax, 24, "");
 		}
 	} else if (G.obpose) {
 		if (OBACT && OBACT->type == OB_ARMATURE) {
@@ -2831,22 +2846,24 @@ void view3d_buttons(void)
 		G.vd->flag |= V3D_POSEMODE;
 	}
 	
-	xco+= 16;
+	xco+= 10;
 
 	uiDefIconTextButS(block, MENU, B_MODESELECT, (G.vd->modeselect),view3d_modeselect_pup() , 
 																xco,0,120,20, &(G.vd->modeselect), 0, 0, 0, 0, "Mode:");
 	
-	xco+= 130;
+	xco+= 128;
 	
 	/* DRAWTYPE */
-	uiDefIconButS(block, ICONROW, B_REDR, ICON_BBOX,	xco,0,XIC,YIC, &(G.vd->drawtype), 1.0, 5.0, 0, 0, "Drawtype: boundbox/wire/solid/shaded (ZKEY, SHIFT+Z)");
+	uiDefIconTextButC(block, ICONTEXTROW,B_REDR, ICON_BBOX, drawtype_pup(), xco,0,XIC+10,YIC, &(G.vd->drawtype), 1.0, 5.0, 0, 0, "Viewport Shading: boundbox/wire/solid/shaded (ZKEY, SHIFT+Z)");
+
+	// uiDefIconButS(block, ICONROW, B_REDR, ICON_BBOX,	xco,0,XIC+10,YIC, &(G.vd->drawtype), 1.0, 5.0, 0, 0, "Drawtype: boundbox/wire/solid/shaded (ZKEY, SHIFT+Z)");
 
 	// uiDefIconTextButS(block, MENU, REDRAWVIEW3D, (ICON_BBOX+G.vd->drawtype-1), "Viewport Shading%t|Bounding Box %x1|Wireframe %x2|Solid %x3|Shaded %x4|Textured %x5",	
 	//														xco,0,124,20, &(G.vd->drawtype), 0, 0, 0, 0, "Viewport Shading");
 	//	uiDefButS(block, MENU, REDRAWVIEW3D, "Viewport Shading%t|Bounding Box %x1|Wireframe %x2|Solid %x3|Shaded %x4|Textured %x5", 
 	//																xco,0,110,20, &(G.vd->drawtype), 0, 0, 0, 0, "Viewport Shading");
 	
-	xco+= XIC+10;
+	xco+= XIC+18;
 	/* LAYERS */
 	if(G.vd->localview==0) {
 		
