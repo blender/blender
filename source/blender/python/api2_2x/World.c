@@ -265,84 +265,12 @@ static PyObject *World_setName(BPy_World *self, PyObject *args)
                                      "expected string argument"));
 	puts(name);
   snprintf(buf, sizeof(buf), "%s", name);
-
-	puts("mlmlml");
   rename_id(&self->world->id, buf);
 
   Py_INCREF(Py_None);
   return Py_None;
 }
 
-
-/**
- * \brief World PyMethod getColormodel
- *
- * \return int : The World Data colormodel.
- */
-
-static PyObject *World_getColormodel(BPy_World *self)
-{
-  PyObject *attr = PyInt_FromLong((long)self->world->colormodel);
-
-  if (attr) return attr;
-
-  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-                                   "couldn't get World.colormodel attribute"));
-}
-
-
-/**
- * \brief World PyMethod setColormodel
- *
- * \return int : The World Data colormodel.
- */
-
-static PyObject *World_setColormodel(BPy_World *self, PyObject *args )
-{
-  int colormodel;
-
-  if (!PyArg_ParseTuple(args, "i", &colormodel))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
-                                     "expected int argument"));
-	self->world->colormodel = colormodel;
-  Py_INCREF(Py_None);
-  return Py_None;
-}
-
-/**
- * \brief World PyMethod getFastcol
- *
- * \return int : The World Data fastcol.
- */
-
-static PyObject *World_getFastcol(BPy_World *self)
-{
-  PyObject *attr = PyInt_FromLong((long)self->world->fastcol);
-
-  if (attr) return attr;
-
-  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-                                   "couldn't get World.fastcol attribute"));
-}
-
-
-/**
- * \brief World PyMethod setFastcol
- *
- * \return int : The World Data fastcol.
- */
-
-static PyObject *World_setFastcol(BPy_World *self, PyObject *args )
-{
-  int fastcol;
-
-  if (!PyArg_ParseTuple(args, "i", &fastcol))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
-                                     "expected int argument"));
-	self->world->fastcol = fastcol;
-  Py_INCREF(Py_None);
-  return Py_None;
-}
 
 
 
@@ -431,87 +359,6 @@ static PyObject *World_setMode(BPy_World *self, PyObject *args )
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-/**
- * \brief World PyMethod getTotex
- *
- * \return int : The World Data totex.
- */
-
-static PyObject *World_getTotex(BPy_World *self)
-{
-  PyObject *attr = PyInt_FromLong((long)self->world->totex);
-
-  if (attr) return attr;
-
-  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-                                   "couldn't get World.totex attribute"));
-}
-
-
-/**
- * \brief World PyMethod setTotex
- *
- * \return int : The World Data totex.
- */
-
-static PyObject *World_setTotex(BPy_World *self, PyObject *args )
-{
-  int totex;
-
-  if (!PyArg_ParseTuple(args, "i", &totex))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
-                                     "expected int argument"));
-	self->world->totex = totex;
-  Py_INCREF(Py_None);
-  return Py_None;
-}
-
-/**
- * \brief World PyMethod getTexact
- *
- * \return int : The World Data texact.
- */
-
-static PyObject *World_getTexact(BPy_World *self)
-{
-  PyObject *attr = PyInt_FromLong((long)self->world->texact);
-
-  if (attr) return attr;
-
-  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-                                   "couldn't get World.texact attribute"));
-}
-
-
-/**
- * \brief World PyMethod setTexact
- *
- * \return int : The World Data texact.
- */
-
-static PyObject *World_setTexact(BPy_World *self, PyObject *args )
-{
-  int texact;
-
-  if (!PyArg_ParseTuple(args, "i", &texact))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
-                                     "expected int argument"));
-	self->world->texact = texact;
-  Py_INCREF(Py_None);
-  return Py_None;
-}
-
 /**
  * \brief World PyMethod getMistype
  *
@@ -546,10 +393,6 @@ static PyObject *World_setMistype(BPy_World *self, PyObject *args )
   Py_INCREF(Py_None);
   return Py_None;
 }
-
-
-
-
 
 
 
@@ -678,36 +521,6 @@ static PyObject *World_setStar(BPy_World *self, PyObject *args )
 }
 
 
-
-static PyObject *World_getDof(BPy_World *self)
-{
-  PyObject *attr = PyList_New(0);
-	if (!attr)
-		return (EXPP_ReturnPyObjError (PyExc_RuntimeError, "couldn't create list"));
-	PyList_Append(attr, PyFloat_FromDouble(self->world->dofsta));
-	PyList_Append(attr, PyFloat_FromDouble(self->world->dofend));
-	PyList_Append(attr, PyFloat_FromDouble(self->world->dofmin));
-	PyList_Append(attr, PyFloat_FromDouble(self->world->dofmax));
-	return attr;
-}
-
-
-static PyObject *World_setDof(BPy_World *self, PyObject *args )
-{
-	PyObject *listargs=0;
-  if (!PyArg_ParseTuple(args, "O", &listargs))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected list argument"));
-	if (!PyList_Check(listargs))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected list argument"));
-	if (PyList_Size(listargs)!=4)
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,"wrong list size"));
-	self->world->dofsta =  PyFloat_AsDouble(PyList_GetItem(listargs,0));
-	self->world->dofend =  PyFloat_AsDouble(PyList_GetItem(listargs,1));
-	self->world->dofmin = PyFloat_AsDouble(PyList_GetItem(listargs,2));
-	self->world->dofmax= PyFloat_AsDouble(PyList_GetItem(listargs,3));
-	Py_INCREF(Py_None);
-	return Py_None;
-}
 
 
 
