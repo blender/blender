@@ -1128,20 +1128,20 @@ static void render_panel_anim(void)
 
 
 	uiDefBut(block, BUT,B_DOANIM,"ANIM",		692,142,192,47, 0, 0, 0, 0, 0, "Start rendering a sequence");
-	
+
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|0, 0, "Do Sequence",	692,114,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Enables sequence output rendering (Default: 3D rendering)");
-	uiDefButS(block, TOG|BIT|1, 0, "Render Daemon",	692,90,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Let external network render current scene");
+	uiDefButS(block, TOG|BIT|0, 0, "Do Sequence",692,114,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Enables sequence output rendering (Default: 3D rendering)");
+	uiDefButS(block, TOG|BIT|1, 0, "Render Daemon",692,90,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Let external network render current scene");
 	uiBlockEndAlign(block);
-	
+
 	uiBlockSetCol(block, TH_AUTO);
-	uiDefBut(block, BUT,B_PLAYANIM, "PLAY",	692,40,94,33, 0, 0, 0, 0, 0, "Play animation of rendered images/avi (searches Pics: field)");
-	uiDefButS(block, NUM, B_RTCHANGED, "rt:",	790,40,95,33, &G.rt, -1000.0, 1000.0, 0, 0, "General testing/debug button");
-	
+	uiDefBut(block, BUT,B_PLAYANIM, "PLAY",692,40,94,33, 0, 0, 0, 0, 0, "Play animation of rendered images/avi (searches Pics: field)");
+	uiDefButS(block, NUM, B_RTCHANGED, "rt:",789,40,95,33, &G.rt, -1000.0, 1000.0, 0, 0, "General testing/debug button");
+
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM,REDRAWSEQ,"Sta:",	692,10,94,24, &G.scene->r.sfra,1.0,18000.0, 0, 0, "The start frame of the animation");
-	uiDefButS(block, NUM,REDRAWSEQ,"End:",	790,10,95,24, &G.scene->r.efra,1.0,18000.0, 0, 0, "The end  frame of the animation");
+	uiDefButS(block, NUM,REDRAWSEQ,"Sta:",692,10,94,24, &G.scene->r.sfra,1.0,18000.0, 0, 0, "The start frame of the animation");
+	uiDefButS(block, NUM,REDRAWSEQ,"End:",789,10,95,24, &G.scene->r.efra,1.0,18000.0, 0, 0, "The end  frame of the animation");
 	uiBlockEndAlign(block);
 }
 
