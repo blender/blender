@@ -75,6 +75,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_anim.h"
+#include "BKE_constraint.h"
 
 #include "BKE_library.h"
 
@@ -407,6 +408,7 @@ void set_scene_bg(Scene *sce)
 	do_all_keys();
 #ifdef __NLA
 	do_all_actions();
+	rebuild_all_armature_displists();
 #endif
 	do_all_ikas();
 

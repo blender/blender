@@ -509,13 +509,7 @@ void do_update_for_newframe(int mute)
 	allqueue(REDRAWBUTSSHADING, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
 
-	/* Clear the constraint "done" flags -- this must be done
-	 * before displists are calculated for objects that are
-	 * deformed by armatures */
-	for (base = G.scene->base.first; base; base=base->next){
-		clear_object_constraint_status(base->object);
-	}
-
+	clear_all_constraints();
 	/* layers/materials, object ipos are calculted in where_is_object (too) */
 	do_all_ipos();
 	BPY_do_all_scripts(SCRIPT_FRAMECHANGED);

@@ -2813,6 +2813,7 @@ void RE_rotateBlenderScene(void)
 	do_all_keys();
 #ifdef __NLA
 	do_all_actions();
+	rebuild_all_armature_displists();
 #endif
 	do_all_ikas();
 	test_all_displists();
@@ -2831,7 +2832,6 @@ void RE_rotateBlenderScene(void)
 		clear_object_constraint_status(base->object);
 		if (base->object->type==OB_ARMATURE) {
 			where_is_armature (base->object);
-			make_displists_by_armature(base->object);
 		}
 		else
 

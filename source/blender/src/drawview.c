@@ -1390,7 +1390,6 @@ void do_viewbuts(unsigned short event)
 			bPoseChannel *chan;
 			bArmature *arm;
 			Bone *bone;
-			Base *base;
 
 			arm = get_armature(OBACT);
 			if (!arm) return;
@@ -1411,10 +1410,7 @@ void do_viewbuts(unsigned short event)
 			
 			set_pose_channel (G.obpose->pose, chan);
 
-			for (base = G.scene->base.first; base; base=base->next){
-				clear_object_constraint_status(base->object);
-				make_displists_by_armature(base->object);
-			}
+			rebuild_all_armature_displists();
 
 			allqueue(REDRAWVIEW3D, 1);
 		}
@@ -1688,10 +1684,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	 * or else armatures/poses/displists get recalculated all of the
 	 * time
 	 */
-	/* Clear the constraint "done" flags */
-	for (base = G.scene->base.first; base; base=base->next){
-		clear_object_constraint_status(base->object);
-	}
+	clear_all_constraints();
 #endif
 
 	/* draw set first */
@@ -1897,12 +1890,7 @@ void drawview3d_render(struct View3D *v3d)
 	/* abuse! to make sure it doesnt draw the helpstuff */
 	G.f |= G_SIMULATION;
 
-	/* Clear the constraint "done" flags -- this must be done
-	 * before displists are calculated for objects that are
-	 * deformed by armatures */
-	for (base = G.scene->base.first; base; base=base->next){
-		clear_object_constraint_status(base->object);
-	}
+	clear_all_constraints();
 	do_all_ipos();
 	BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
 	do_all_keys();
@@ -1955,9 +1943,9 @@ void drawview3d_render(struct View3D *v3d)
 		
 		G.f &= ~G_PICKSEL;
 	}
-	for (base = G.scene->base.first; base; base=base->next){
-		clear_object_constraint_status(base->object);
-	}
+
+	clear_all_constraints();
+
 	/* first not selected and duplis */
 	base= G.scene->base.first;
 	while(base) {
@@ -2383,12 +2371,7 @@ void inner_play_anim_loop(int init, int mode)
 
 	set_timecursor(CFRA);
 
-	/* Clear the constraint "done" flags -- this must be done
-	 * before displists are calculated for objects that are
-	 * deformed by armatures */
-	for (base = G.scene->base.first; base; base=base->next){
-		clear_object_constraint_status(base->object);
-	}
+	clear_all_constraints();
 	do_all_ipos();
 	BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
 	do_all_keys();
@@ -2489,13 +2472,7 @@ int play_anim(int mode)
 	if(event==SPACEKEY);
 	else CFRA= cfraont;
 
-	/* Clear the constraint "done" flags -- this must be done
-	 * before displists are calculated for objects that are
-	 * deformed by armatures */
-	for (base = G.scene->base.first; base; base=base->next){
-		clear_object_constraint_status(base->object);
-	}
-
+	clear_all_constraints();
 	do_all_ipos();
 	do_all_keys();
 	do_all_actions();

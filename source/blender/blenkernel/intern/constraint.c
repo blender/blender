@@ -45,6 +45,7 @@
 #include "DNA_object_types.h"
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_action.h"
@@ -404,6 +405,27 @@ void clear_object_constraint_status (Object *ob)
 		break;
 	default:
 		break;
+	}
+}
+
+void clear_all_constraints(void)
+{
+	Base *base;
+
+	/* Clear the constraint "done" flags -- this must be done
+	 * before displists are calculated for objects that are
+	 * deformed by armatures */
+	for (base = G.scene->base.first; base; base=base->next){
+		clear_object_constraint_status(base->object);
+	}
+}
+
+void rebuild_all_armature_displists(void) {
+	Base *base;
+
+	for (base = G.scene->base.first; base; base=base->next){
+		clear_object_constraint_status(base->object);
+		make_displists_by_armature(base->object);
 	}
 }
 

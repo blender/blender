@@ -51,6 +51,8 @@ struct bConstraintChannel *clone_constraint_channels (struct ListBase *dst, stru
 void relink_constraints (struct ListBase *list);
 void free_constraint_data (struct bConstraint *con);
 void clear_object_constraint_status (struct Object *ob);
+void clear_all_constraints(void);
+void rebuild_all_armature_displists(void);
 void do_constraint_channels (struct ListBase *conbase, struct ListBase *chanbase, float ctime);
 short get_constraint_target (struct bConstraint *con, short ownertype, void *ownerdata, float mat[][4], float size[3], float time);
 struct bConstraintChannel *find_constraint_channel (ListBase *list, const char *name);

@@ -2629,21 +2629,23 @@ static void clear_pose_update_flag(Object *ob) {
 	}
 }
 
-static void pose_flags_reset_done(Object *ob) {
+static int pose_flags_reset_done(Object *ob) {
 	/* Clear the constraint done status for every pose channe;
 	 * that has been flagged as needing constant updating
 	 */
 	bPoseChannel *chan;
+	int numreset = 0;
 
 	if (ob->pose) {
 		for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
 			if (chan->flag & PCHAN_TRANS_UPDATE) {
 				chan->flag &= ~PCHAN_DONE;
+				numreset++;
 			}
 
 		}
 	}
-
+	return numreset;
 }
 
 static int is_ob_constraint_target(Object *ob, ListBase *conlist) {
@@ -2998,6 +3000,22 @@ static int pose_do_update_flag(Object *ob) {
 	return do_update;
 }
 
+void figure_pose_updating(void)
+{
+	Base *base;
+
+	flag_moving_objects();
+
+	for (base= FIRSTBASE; base; base= base->next) {
+		/* Recalculate the pose if necessary, regardless of
+		 * whether the layer is visible or not.
+		 */
+		if (pose_do_update_flag(base->object))
+			base->flag |= BA_WHERE_UPDATE;
+	}
+
+}
+
 /*** POSE FIGURIN' -- END ***/
 
 
@@ -3014,17 +3032,9 @@ static void setbaseflags_for_editing(int mode)	/* 0,'g','r','s' */
 	Base *base;
 	
 	copy_baseflags();
-	flag_moving_objects();
-
 
 	for (base= FIRSTBASE; base; base= base->next) {
 		base->flag &= ~(BA_PARSEL+BA_WASSEL);
-
-		/* Recalculate the pose if necessary, regardless of
-		 * whether the layer is visible or not.
-		 */
-		if (pose_do_update_flag(base->object))
-			base->flag |= BA_WHERE_UPDATE;
 
 		if( (base->lay & G.vd->lay) && base->object->id.lib==0) {
 			Object *ob= base->object;
@@ -3700,10 +3710,6 @@ void special_trans_update(int keyflags)
 				base->object->partype |= PARSLOW;
 			}
 			else if(base->flag & BA_WHERE_UPDATE) {
-				/* deal with the armature case */
-				pose_flags_reset_done(base->object);
-				make_displists_by_armature(base->object);
-
 				where_is_object(base->object);
 				if(base->object->type==OB_IKA) {
 					itterate_ika(base->object);
@@ -3722,6 +3728,16 @@ void special_trans_update(int keyflags)
 			base= base->next;
 		}
 		
+	}
+
+	base= FIRSTBASE;
+	while(base) {
+		if (pose_flags_reset_done(base->object)) {
+			if (!is_delay_deform())
+				make_displists_by_armature(base->object);
+		}
+
+		base= base->next;
 	}
 
 #if 1
@@ -4486,6 +4502,7 @@ void transform(int mode)
 		case OB_ARMATURE:
 			/* figure out which bones need calculating */
 			figure_bone_nocalc(G.obpose);
+			figure_pose_updating();
 			make_trans_bones(mode);
 			break;
 		}
@@ -4497,7 +4514,7 @@ void transform(int mode)
 		else if (mode=='s' || mode=='S') opt= 's';
 		
 		setbaseflags_for_editing(opt);
-		
+		figure_pose_updating();
 		make_trans_objects();
 	}
 	
