@@ -445,8 +445,13 @@ static void _edge_unlinkMarkAndFree(CCGEdge *e, CCGSubSurf *ss) {
 
 static float EDGE_getSharpness(CCGEdge *e, int lvl, CCGSubSurf *ss) {
 	float sharpness = e->crease;
-	while ((sharpness>1.0) && lvl--)
-		sharpness -= 1.0;
+	while (lvl--) {
+		if (sharpness>1.0) {
+			sharpness -= 1.0;
+		} else {
+			sharpness = 0.0;
+		}
+	}
 	return sharpness;
 }
 
@@ -1087,7 +1092,6 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 		void *nCo = VERT_getCo(v, nextLvl);
 		int sharpCount = 0;
 		float avgSharpness = 0.0;
-		CCGVert *sharpV0 = NULL, *sharpV1 = NULL;
 
 		for (i=0; i<v->numEdges; i++) {
 			CCGEdge *e = v->edges[i];
@@ -1096,12 +1100,6 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 			if (sharpness!=0.0f) {
 				sharpCount++;
 				avgSharpness += sharpness;
-
-				if (!sharpV0) {
-					sharpV0 = _edge_getOtherVert(e, v);
-				} else if (!sharpV1) {
-					sharpV1 = _edge_getOtherVert(e, v);
-				}
 			}
 		}
 
@@ -1110,9 +1108,9 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 			avgSharpness = 1.0;
 		}
 
-		if (!v->numEdges || sharpCount>2) {
+		if (!v->numEdges) {
 			ss->meshIFC.vertDataCopy(ss->meshData, nCo, co);
-		} else if (_vert_isBoundary(v) && sharpCount<2) {
+		} else if (_vert_isBoundary(v)) {
 			int numBoundary = 0;
 
 			ss->meshIFC.vertDataZero(ss->meshData, r);
@@ -1150,18 +1148,41 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 			ss->meshIFC.vertDataAdd(ss->meshData, nCo, q);
 			ss->meshIFC.vertDataAdd(ss->meshData, nCo, r);
 			ss->meshIFC.vertDataMulN(ss->meshData, nCo, 1.0f/numEdges);
+		}
 
-			if (sharpCount==2) {
-				ss->meshIFC.vertDataCopy(ss->meshData, q, co);
-				ss->meshIFC.vertDataMulN(ss->meshData, q, 6.0f);
-				ss->meshIFC.vertDataAdd(ss->meshData, q, VERT_getCo(sharpV0, curLvl));
-				ss->meshIFC.vertDataAdd(ss->meshData, q, VERT_getCo(sharpV1, curLvl));
-				ss->meshIFC.vertDataMulN(ss->meshData, q, 1/8.0f);
+		if (sharpCount>1) {
+			ss->meshIFC.vertDataZero(ss->meshData, q);
 
-				ss->meshIFC.vertDataSub(ss->meshData, q, nCo);
-				ss->meshIFC.vertDataMulN(ss->meshData, q, avgSharpness);
-				ss->meshIFC.vertDataAdd(ss->meshData, nCo, q);
+			for (i=0; i<v->numEdges; i++) {
+				CCGEdge *e = v->edges[i];
+				float sharpness = EDGE_getSharpness(e, curLvl, ss);
+
+				if (sharpness != 0.0) {
+					CCGVert *oV = _edge_getOtherVert(e, v);
+					ss->meshIFC.vertDataAdd(ss->meshData, q, VERT_getCo(oV, curLvl));
+				}
 			}
+
+			ss->meshIFC.vertDataMulN(ss->meshData, q, (float) 1/sharpCount);
+
+			if (sharpCount!=2) {
+					// q = q + (co-q)*avgSharpness
+				ss->meshIFC.vertDataCopy(ss->meshData, r, co);
+				ss->meshIFC.vertDataSub(ss->meshData, r, q);
+				ss->meshIFC.vertDataMulN(ss->meshData, r, avgSharpness);
+				ss->meshIFC.vertDataAdd(ss->meshData, q, r);
+			}
+
+				// r = co*.75 + q*.25
+			ss->meshIFC.vertDataCopy(ss->meshData, r, co);
+			ss->meshIFC.vertDataMulN(ss->meshData, r, .75);
+			ss->meshIFC.vertDataMulN(ss->meshData, q, .25);
+			ss->meshIFC.vertDataAdd(ss->meshData, r, q);
+
+				// nCo = nCo  + (r-nCo)*avgSharpness
+			ss->meshIFC.vertDataSub(ss->meshData, r, nCo);
+			ss->meshIFC.vertDataMulN(ss->meshData, r, avgSharpness);
+			ss->meshIFC.vertDataAdd(ss->meshData, nCo, r);
 		}
 
 		v->flags = 0;
@@ -1349,7 +1370,6 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 			void *nCo = VERT_getCo(v, nextLvl);
 			int sharpCount = 0;
 			float avgSharpness = 0.0;
-			CCGEdge *sharpE0 = NULL, *sharpE1 = NULL;
 
 			for (i=0; i<v->numEdges; i++) {
 				CCGEdge *e = v->edges[i];
@@ -1358,12 +1378,6 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 				if (sharpness!=0.0f) {
 					sharpCount++;
 					avgSharpness += sharpness;
-
-					if (!sharpE0) {
-						sharpE0 = e;
-					} else if (!sharpE1) {
-						sharpE1 = e;
-					}
 				}
 			}
 
@@ -1372,9 +1386,9 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 				avgSharpness = 1.0;
 			}
 
-			if (!v->numEdges || sharpCount>2) {
+			if (!v->numEdges) {
 				ss->meshIFC.vertDataCopy(ss->meshData, nCo, co);
-			} else if (_vert_isBoundary(v) && sharpCount<2) {
+			} else if (_vert_isBoundary(v)) {
 				int numBoundary = 0;
 
 				ss->meshIFC.vertDataZero(ss->meshData, r);
@@ -1414,18 +1428,40 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 				ss->meshIFC.vertDataAdd(ss->meshData, nCo, q);
 				ss->meshIFC.vertDataAdd(ss->meshData, nCo, r);
 				ss->meshIFC.vertDataMulN(ss->meshData, nCo, 1.0f/numEdges);
+			}
 
-				if (sharpCount==2) {
-					ss->meshIFC.vertDataCopy(ss->meshData, q, co);
-					ss->meshIFC.vertDataMulN(ss->meshData, q, 6.0f);
-					ss->meshIFC.vertDataAdd(ss->meshData, q, _edge_getCoVert(sharpE0, v, curLvl, 1, vertDataSize));
-					ss->meshIFC.vertDataAdd(ss->meshData, q, _edge_getCoVert(sharpE1, v, curLvl, 1, vertDataSize));
-					ss->meshIFC.vertDataMulN(ss->meshData, q, 1/8.0f);
+			if (sharpCount>1) {
+				ss->meshIFC.vertDataZero(ss->meshData, q);
 
-					ss->meshIFC.vertDataSub(ss->meshData, q, nCo);
-					ss->meshIFC.vertDataMulN(ss->meshData, q, avgSharpness);
-					ss->meshIFC.vertDataAdd(ss->meshData, nCo, q);
+				for (i=0; i<v->numEdges; i++) {
+					CCGEdge *e = v->edges[i];
+					float sharpness = EDGE_getSharpness(e, curLvl, ss);
+
+					if (sharpness != 0.0) {
+						ss->meshIFC.vertDataAdd(ss->meshData, q, _edge_getCoVert(e, v, curLvl, 1, vertDataSize));
+					}
 				}
+
+				ss->meshIFC.vertDataMulN(ss->meshData, q, (float) 1/sharpCount);
+
+				if (sharpCount!=2) {
+						// q = q + (co-q)*avgSharpness
+					ss->meshIFC.vertDataCopy(ss->meshData, r, co);
+					ss->meshIFC.vertDataSub(ss->meshData, r, q);
+					ss->meshIFC.vertDataMulN(ss->meshData, r, avgSharpness);
+					ss->meshIFC.vertDataAdd(ss->meshData, q, r);
+				}
+
+					// r = co*.75 + q*.25
+				ss->meshIFC.vertDataCopy(ss->meshData, r, co);
+				ss->meshIFC.vertDataMulN(ss->meshData, r, .75);
+				ss->meshIFC.vertDataMulN(ss->meshData, q, .25);
+				ss->meshIFC.vertDataAdd(ss->meshData, r, q);
+
+					// nCo = nCo  + (r-nCo)*avgSharpness
+				ss->meshIFC.vertDataSub(ss->meshData, r, nCo);
+				ss->meshIFC.vertDataMulN(ss->meshData, r, avgSharpness);
+				ss->meshIFC.vertDataAdd(ss->meshData, nCo, r);
 			}
 		}
 
@@ -1442,15 +1478,14 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 
 			if (sharpness!=0.0f) {
 				sharpCount = 2;
-				avgSharpness += 2*sharpness;
+				avgSharpness += sharpness;
+
+				if (avgSharpness>1.0) {
+					avgSharpness = 1.0;
+				}
 			} else {
 				sharpCount = 0;
 				avgSharpness = 0;
-			}
-
-			avgSharpness /= sharpCount;
-			if (avgSharpness>1.0) {
-				avgSharpness = 1.0;
 			}
 
 			if (_edge_isBoundary(e) && sharpCount<2) {
