@@ -2573,6 +2573,9 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	case LEFTARROWKEY:	// later on implement opening/closing sublevels of pupmenus
 	case RIGHTARROWKEY:
 		break;
+
+	case RETKEY:	// prevent treating this as mousemove. for example when you enter at popup 
+		break;
 		
 	case PAD8: case PAD2:
 	case UPARROWKEY:
