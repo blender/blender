@@ -406,7 +406,7 @@ def load_obj(file):
 
 					# UV MAPPING
 					if fHasUV:
-						f.uv.extent([uvMapList[ vtIdxLs[0] ], uvMapList[ vtIdxLs[i+1] ], uvMapList[ vtIdxLs[i+2] ]])
+						f.uv.extend([uvMapList[ vtIdxLs[0] ], uvMapList[ vtIdxLs[i+1] ], uvMapList[ vtIdxLs[i+2] ]])
 
 					if f.v > 0:
 						f = applyMat(meshList[objectName][0], f, currentMat)
