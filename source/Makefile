@@ -376,7 +376,7 @@ ifeq ($(NAN_NO_OPENAL), true)
     NAN_SND_LIBS += $(SOUNDSYSTEM)
 else
   ifeq ($(OS),$(findstring $(OS), "freebsd linux windows"))
-    ifeq ($(CPU),i386)
+    ifeq ($(CPU),$(findstring $(CPU), "i386 powerpc"))
       ifeq ($(OS),freebsd)
         NAN_SND_LIBS =  $(SOUNDSYSTEM)
         NAN_SND_LIBS += $(DUMMYSOUND)
@@ -410,6 +410,8 @@ else
     ifeq ($(OS),darwin)
       NAN_SND_LIBS =  $(SOUNDSYSTEM)
       NAN_SND_LIBS += $(DUMMYSOUND)
+      NAN_SND_LIBS += $(OPENALSOUND)
+      NAN_SND_LIBS += $(NAN_OPENAL)/lib/libopenal.a
       NAN_SND_LIBS += $(SOUNDSYSTEM)
     else
       NAN_SND_LIBS =  $(SOUNDSYSTEM)

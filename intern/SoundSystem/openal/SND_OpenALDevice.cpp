@@ -40,7 +40,9 @@
 #endif //WIN32
 
 #include "SND_OpenALDevice.h"
+#ifndef __APPLE__
 #include "SND_SDLCDDevice.h"
+#endif
 #include "SoundDefines.h"
 
 #include "SND_Utils.h"
@@ -276,8 +278,9 @@ SND_OpenALDevice::SND_OpenALDevice()
 	{
 		m_wavecache = new SND_WaveCache();
 	}
-	
+#ifndef __APPLE__	
 	m_cdrom = new SND_SDLCDDevice();
+#endif
 }
 
 void SND_OpenALDevice::UseCD(void) const
@@ -316,9 +319,10 @@ SND_OpenALDevice::~SND_OpenALDevice()
 		this->StopCD();
 		SND_CDObject::DisposeSystem();
 	}
-	
+#ifndef __APPLE__
 	if (m_cdrom)
 		delete m_cdrom;
+#endif
 }
 
 
@@ -366,7 +370,7 @@ SND_WaveSlot* SND_OpenALDevice::LoadSample(const STR_String& name,
 					bitrate = SND_GetBitRate(memlocation);
 					
 					/* load the sample into openal */
-#ifdef OUDE_OPENAL
+#if defined(OUDE_OPENAL) || defined (__APPLE__)
 					alutLoadWAVMemory((char*)memlocation, &sampleformat, &data, &numberofsamples, &samplerate);				//	openal_2.12
 #else
 					alutLoadWAVMemory((signed char*)memlocation, &sampleformat, &data, &numberofsamples, &samplerate, &loop);//	openal_2.14+
@@ -377,7 +381,9 @@ SND_WaveSlot* SND_OpenALDevice::LoadSample(const STR_String& name,
 				/* or from file? */
 				else
 				{
-#ifdef WIN32
+#ifdef __APPLE__
+					alutLoadWAVFile((signed char*)samplename.Ptr(), &sampleformat, &data, &numberofsamples, &samplerate);
+#elif defined(WIN32)
 					alutLoadWAVFile((signed char*)samplename.Ptr(), &sampleformat, &data, &numberofsamples, &samplerate, &loop);
 #else
 					alutLoadWAV((char*)samplename.Ptr(), &data,
@@ -456,7 +462,9 @@ void SND_OpenALDevice::SetListenerRollOffFactor(MT_Scalar rollofffactor) const
 void SND_OpenALDevice::NextFrame() const
 {
 	// CD
+#ifndef __APPLE__
 	m_cdrom->NextFrame();
+#endif
 	// not needed by openal
 }
 
@@ -509,8 +517,12 @@ int SND_OpenALDevice::GetPlayState(int id)
     int alstate = 0;
 	int result = 0;
 
+#ifdef __APPLE__
+	alGetSourcei(m_sources[id], AL_SOURCE_STATE, &alstate);
+#else
     alGetSourceiv(m_sources[id], AL_SOURCE_STATE, &alstate);
-
+#endif
+	
 	switch(alstate)
 	{
 	case AL_INITIAL:
@@ -690,31 +702,41 @@ void SND_OpenALDevice::SetObjectTransform(int id,
 
 void SND_OpenALDevice::PlayCD(int track) const
 {
+#ifndef __APPLE__
 	m_cdrom->PlayCD(track);
+#endif
 }
 
 
 void SND_OpenALDevice::PauseCD(bool pause) const
 {
+#ifndef __APPLE__
 	m_cdrom->PauseCD(pause);
+#endif
 }
 
 void SND_OpenALDevice::StopCD() const
 {
+#ifndef __APPLE__
 	SND_CDObject* pCD = SND_CDObject::Instance();
 
 	if (pCD && pCD->GetUsed())
 	{
 		m_cdrom->StopCD();
 	}
+#endif
 }
 
 void SND_OpenALDevice::SetCDPlaymode(int playmode) const
 {
+#ifndef __APPLE__
 	m_cdrom->SetCDPlaymode(playmode);
+#endif
 }
 
 void SND_OpenALDevice::SetCDGain(MT_Scalar gain) const
 {
+#ifndef __APPLE__
 	m_cdrom->SetCDGain(gain);
+#endif
 }

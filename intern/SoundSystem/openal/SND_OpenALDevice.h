@@ -100,8 +100,9 @@ private:
 	unsigned int	m_sources[NUM_SOURCES];
 	bool			m_buffersinitialized;
 	bool			m_sourcesinitialized;
-	
+#ifndef __APPLE__
 	class SND_SDLCDDevice*	m_cdrom;
+#endif
 };
 
 #endif //SND_OPENALDEVICE

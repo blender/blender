@@ -73,7 +73,7 @@ typedef enum
 	SND_endianLittle
 } SND_TEndian;
 
-#ifdef __APPLE__
+#ifdef __BIG_ENDIAN__
 const SND_TEndian SND_fEndian = SND_endianBig;
 #else
 const SND_TEndian SND_fEndian = SND_endianLittle;
@@ -339,6 +339,8 @@ unsigned int SND_GetHeaderSize(void* sample)
 	if (CheckSample(sample))
 	{
 		memcpy(&chunklength, ((char*)sample) + offset, 4);
+		/* This was endian unsafe. See top of the file for the define. */
+		if (SND_fEndian == SND_endianBig) SWITCH_INT(chunklength);
 		offset = offset + chunklength + 4;
 		memcpy(data, ((char*)sample) + offset, 4);
 
@@ -392,10 +394,11 @@ void SND_GetSampleInfo(signed char* sample, SND_WaveSlot* waveslot)
 	if (CheckSample(sample))
 	{
 		memcpy(&fileheader, sample, sizeof(WavFileHeader));
+		fileheader.size = SND_GetHeaderSize(sample);
 		sample += sizeof(WavFileHeader);
 		fileheader.size = ((fileheader.size+1) & ~1) - 4;
 
-		while ((fileheader.size != 0) && (memcpy(&chunkheader, sample, sizeof(WavChunkHeader))))
+		while ((fileheader.size > 0) && (memcpy(&chunkheader, sample, sizeof(WavChunkHeader))))
 		{
 			sample += sizeof(WavChunkHeader);
 			if (!memcmp(chunkheader.id, "fmt ", 4))

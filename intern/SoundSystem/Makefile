@@ -44,16 +44,14 @@ ifneq ($(NAN_NO_OPENAL),true)
       DIRS += fmod 
       DIRS += openal sdl
   endif
-  #ifeq ($(OS),darwin)
-  #    DIRS += fmod 
-  #endif
+  ifeq ($(OS),darwin)
+      DIRS += openal
+  endif
   ifeq ($(OS),freebsd)
     DIRS += openal
   endif
   ifeq ($(OS),$(findstring $(OS), "linux"))
-    ifeq ($(CPU),i386)
-      DIRS += openal sdl
-    endif
+    DIRS += openal sdl
   endif
 else
   CPPFLAGS += -DNO_SOUND

@@ -38,18 +38,10 @@
 
 #ifndef NO_SOUND
 
-#  if defined (_WIN32) && !defined(FREE_WINDOWS)
-#define USE_OPENAL
-#elif defined (__linux__)
-#	if defined (__i386__)
-#		define USE_OPENAL
-#	endif
-#elif defined (__FreeBSD__)
+#if defined (_WIN32) && !defined(FREE_WINDOWS)
+#   define USE_OPENAL
+#elif defined (__linux__) || (__FreeBSD__) || defined(__APPLE__)
 #	define USE_OPENAL
-/*
-#elif defined (__APPLE__)
-#	define USE_FMOD
-*/
 #else
 #	ifdef USE_OPENAL
 #		undef USE_OPENAL
