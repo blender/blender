@@ -4375,8 +4375,7 @@ void draw_object(Base *base)
 
 		/* object centers */
 		if(G.zbuf) glDisable(GL_DEPTH_TEST);
-		if(ob==G.obedit);
-		else if(ob->type == OB_LAMP) {
+		if(ob->type == OB_LAMP) {
 			if(ob->id.lib) {
 				if(base->flag & SELECT) rect= rectllib_sel;
 				else rect= rectllib_desel;

@@ -1486,7 +1486,7 @@ static void filesel_execute(SpaceFile *sfile)
 
 	if(sfile->type==FILE_LOADLIB) {
 		do_library_append(sfile);
-		
+		BIF_undo_push("Append from file");
 		allqueue(REDRAWALL, 1);
 	}
 	else if(sfile->returnfunc) {

@@ -530,7 +530,10 @@ void scale_editipo()
 			}
 		}
 	}
+
 	editipo_changed(G.sipo, 1);
+
+	BIF_undo_push("Scale Edit Ipo");
 	allqueue(REDRAWNLA, 0);
 	allqueue (REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);
@@ -1500,7 +1503,7 @@ void swap_visible_editipo()
 	}
 
 	scrarea_queue_winredraw(curarea);
-	
+	BIF_undo_push("Swap Visible Ipo");	
 }
 
 void deselectall_editipo()
@@ -2115,6 +2118,7 @@ void add_duplicate_editipo()
 			if(ob && (ob->ipoflag & OB_DRAWKEY)) allqueue(REDRAWVIEW3D, 0);
 		}
 	}
+	BIF_undo_push("Duplicate Ipo");
 	transform_ipo('g');
 }
 
@@ -2595,6 +2599,7 @@ void mouse_select_ipo()
 	update_editipo_flags();
 	
 	force_draw();
+	BIF_undo_push("Select Ipo");
 	
 	if(G.sipo->showkey && G.sipo->blocktype==ID_OB) {
 		ob= OBACT;
@@ -3202,6 +3207,7 @@ void del_ipo()
 		}
 	}
 	
+	BIF_undo_push("Delete Ipo");
 	allqueue(REDRAWNLA, 0);
 	allqueue (REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);
@@ -3559,6 +3565,7 @@ void insertkey_editipo()
 			}
 		}
 	}
+	BIF_undo_push("Insert Key Ipo");
 	allqueue (REDRAWACTION, 0);
 	allqueue(REDRAWNLA, 0);
 	allqueue(REDRAWIPO, 0);
@@ -3796,6 +3803,8 @@ void common_insertkey()
 			}
 		}
 		
+		BIF_undo_push("Insert Key Buttons");
+
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWNLA, 0);
 		allqueue(REDRAWIPO, 0);
@@ -3919,13 +3928,12 @@ void common_insertkey()
 
 				remake_action_ipos(act);
 			}
+
 			allqueue(REDRAWIPO, 0);
 			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);
-			
 		}
-		else
-		{
+		else {
 			while(base) {
 				if TESTBASELIB(base) {
 					id= (ID *)(base->object);
@@ -3975,6 +3983,7 @@ void common_insertkey()
 				base= base->next;
 			}
 		}
+		BIF_undo_push("Insert Key 3D Window");
 		allspace(REMAKEIPO, 0);
 		allqueue(REDRAWIPO, 0);
 		allqueue(REDRAWVIEW3D, 0);
@@ -4364,6 +4373,7 @@ void movekey_ipo(int dir)		/* only call external from view3d queue */
 		update_for_newframe();
 	}
 	
+	BIF_undo_push("Move Key");
 	allqueue(REDRAWNLA, 0);
 	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWVIEW3D, 0);
@@ -4419,6 +4429,7 @@ void movekey_obipo(int dir)		/* only call external from view3d queue */
 		update_for_newframe();
 	}
 	
+	BIF_undo_push("Move Key");
 	allqueue(REDRAWNLA, 0);
 	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWVIEW3D, 0);
@@ -4897,7 +4908,8 @@ void transform_ipo(int mode)
 		}
 		calc_ipo(G.sipo->ipo, (float)CFRA);
 	}
-	
+	else BIF_undo_push("Transform Ipo");
+
 	editipo_changed(G.sipo, 1);
 
 	MEM_freeN(transmain);
@@ -5157,6 +5169,7 @@ void ipo_record()
 	editipo_changed(G.sipo, 0);
 	do_ipo(G.sipo->ipo);
 	waitcursor(0);
+
 	allqueue(REDRAWVIEW3D, 0);
 	if(sa) scrarea_queue_headredraw(sa);	/* headerprint */
 	scrarea_queue_redraw(oldarea);
@@ -5164,6 +5177,7 @@ void ipo_record()
 	
 	/* for the time being? */
 	update_for_newframe();
+	BIF_undo_push("Ipo Record");
 	
 	MEM_freeN(data1);
 	MEM_freeN(data2);

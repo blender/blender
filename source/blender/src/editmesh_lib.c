@@ -715,11 +715,11 @@ static short extrudeflag_edge(short flag)
 			if(efa->v2->vn==NULL) efa->v2->vn= addvertlist(efa->v2->co);
 			if(efa->v3->vn==NULL) efa->v3->vn= addvertlist(efa->v3->co);
 			if(efa->v4 && efa->v4->vn==NULL) efa->v4->vn= addvertlist(efa->v4->co);
-			/* creases and seams stay on *old* face so no edge copy */
+			
 			if(efa->v4)
-				addfacelist(efa->v1->vn, efa->v2->vn, efa->v3->vn, efa->v4->vn, efa, NULL);
+				addfacelist(efa->v1->vn, efa->v2->vn, efa->v3->vn, efa->v4->vn, efa, efa);
 			else
-				addfacelist(efa->v1->vn, efa->v2->vn, efa->v3->vn, NULL, efa, NULL);
+				addfacelist(efa->v1->vn, efa->v2->vn, efa->v3->vn, NULL, efa, efa);
 	
 			/* if *one* selected face has edge with unselected face; remove old selected faces */
 			if(efa->e1->f2 || efa->e2->f2 || efa->e3->f2 || (efa->e4 && efa->e4->f2))

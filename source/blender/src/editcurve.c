@@ -318,6 +318,7 @@ void make_editNurb()
 		
 		while(nu) {
 			newnu= duplicateNurb(nu);
+			test2DNurb(newnu);	// after join, or any other creation of curve
 			BLI_addtail(&editNurb, newnu);
 			nu= nu->next;
 		}

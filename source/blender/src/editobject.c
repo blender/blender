@@ -6634,7 +6634,8 @@ void transform(int mode)
 	tottrans= 0;
 
 	/* undo after transform, since it's storing current situations */
-	if(canceled==0) 
+	/* extrude has no own undo-push, so on cancel we still insert it */
+	if(canceled==0 || strcmp(undostr, "Extrude")==0) 
 		BIF_undo_push(undostr);
 }
 

@@ -1836,9 +1836,9 @@ static void tselem_draw_icon(TreeStoreElem *tselem)
 			case ID_CA:
 				BIF_draw_icon(ICON_CAMERA_DEHLT); break;
 			case ID_KE:
-				BIF_draw_icon(ICON_EDIT); break;
+				BIF_draw_icon(ICON_EDIT_DEHLT); break;
 			case ID_WO:
-				BIF_draw_icon(ICON_WORLD); break;
+				BIF_draw_icon(ICON_WORLD_DEHLT); break;
 			case ID_AC:
 				BIF_draw_icon(ICON_ACTION); break;
 			case ID_NLA:
