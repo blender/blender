@@ -69,7 +69,7 @@ FTF_EXPORT int FTF_GetSize(void)
 	return _FTF_GetFont()->GetSize();
 }
 
-
+/*
 FTF_EXPORT int FTF_Ascender(void)
 {
 	return _FTF_GetFont()->Ascender();
@@ -79,7 +79,7 @@ FTF_EXPORT int FTF_Descender(void)
 {
 	return _FTF_GetFont()->Descender();
 }
-
+*/
 
 FTF_EXPORT void FTF_TransConvString(char* str, char* ustr, unsigned int flag)
 {

@@ -3452,10 +3452,7 @@ static uiOverDraw *ui_draw_but_tip(uiBut *but)
 	uiOverDraw *od;
 	float x1, x2, y1, y2;
 
-		
 #ifdef INTERNATIONAL
-	extern float lang_texsize;
-
 	if(G.ui_international == TRUE) {
 		float llx,lly,llz,urx,ury,urz;  //for FTF_GetBoundingBox()
 
@@ -3464,15 +3461,11 @@ static uiOverDraw *ui_draw_but_tip(uiBut *but)
 
 			x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*FTF_GetStringWidth(but->tip, FTF_USE_GETTEXT | FTF_INPUT_UTF8);  //BMF_GetStringWidth(but->font, but->tip);
 			y1= but->y1-(ury+FTF_GetSize())-12; y2= but->y1-12;
-			y1 *= lang_texsize;
-			y2 *= lang_texsize;
 		} else {
 			FTF_GetBoundingBox(but->tip, &llx,&lly,&llz,&urx,&ury,&urz, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
 
 			x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*FTF_GetStringWidth(but->tip, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);  //BMF_GetStringWidth(but->font, but->tip);
 			y1= but->y1-(ury+FTF_GetSize())-12; y2= but->y1-12;
-			y1 *= lang_texsize;
-			y2 *= lang_texsize;
 		}
 	} else {
   		x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*BMF_GetStringWidth(but->font, but->tip);
@@ -3528,6 +3521,8 @@ static uiOverDraw *ui_draw_but_tip(uiBut *but)
 	
 	glColor3ub(0,0,0);
 	ui_rasterpos_safe( x1+3, y1+5.0/but->aspect, but->aspect);
+	BIF_SetScale(1.0);
+
 	BIF_DrawString(but->font, but->tip, (U.transopts & USER_TR_TOOLTIPS));
 	
 	ui_flush_overdraw(od);		/* to show it in the frontbuffer */

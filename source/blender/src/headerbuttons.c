@@ -173,6 +173,7 @@
 
 #include "mydevice.h"
 #include "blendef.h"
+#include "interface.h"
 #include "nla.h"	/* __NLA : To be removed later */
 #include "butspace.h"  // test_idbutton
 
@@ -1585,16 +1586,9 @@ void do_global_buttons(unsigned short event)
 		break;
 
 	case B_RESTOREFONT:		/* is button from space.c  *info* */
-		{
-			extern float lang_texsize;
-
-			lang_texsize = 1.0;
-			FTF_SetScale(lang_texsize);
-
-			U.fontsize= 0;
-			start_interface_font();
-			allqueue(REDRAWALL, 0);
-		}
+		U.fontsize= 0;
+		start_interface_font();
+		allqueue(REDRAWALL, 0);
 		break;
 		
 	case B_USETEXTUREFONT:		/* is button from space.c  *info* */
@@ -1605,15 +1599,6 @@ void do_global_buttons(unsigned short event)
 
 		refresh_interface_font();
 		allqueue(REDRAWALL, 0);
-		break;
-
-	case B_SCALETEXTUREFONT:		/* is button from space.c  *info* */
-		{
-			extern float lang_texsize;
-
-			FTF_SetScale(lang_texsize);
-			allqueue(REDRAWALL, 0);
-		}
 		break;
 
 	case B_DOLANGUIFONT:	/* is button from space.c  *info* */

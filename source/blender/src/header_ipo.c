@@ -47,12 +47,6 @@
 #include "BLI_winstuff.h"
 #endif
 
-#include "BMF_Api.h"
-#include "BIF_language.h"
-#ifdef INTERNATIONAL
-#include "FTF_Api.h"
-#endif
-
 #include "DNA_ID.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"

@@ -156,13 +156,9 @@ FTF_TTFont::~FTF_TTFont(void)
 
 void FTF_TTFont::SetFontSize(char size)
 {
-	if(mode == FTF_PIXMAPFONT) {
 		if(size=='s') font=fonts;
 		else if(size=='l') font=fontl;
 		else font=fontm;
-	} else if(mode == FTF_TEXTUREFONT) {
-		font=fontl;
-	}
 }
 
 int FTF_TTFont::SetFont(const unsigned char* str, int datasize, int fontsize)
@@ -221,11 +217,23 @@ int FTF_TTFont::SetFont(const unsigned char* str, int datasize, int fontsize)
 			return 0;
 		} else {
 			
-			fontl= font;
+			fontm= font;
 
+			if(datasize) fonts = new FTGLTextureFont(str, datasize);
+			else fonts = new FTGLTextureFont((char *)str);
+			if(datasize) fontl = new FTGLTextureFont(str, datasize);
+			else fontl = new FTGLTextureFont((char *)str);
+			
+			success = fonts->FaceSize(fontsize-2<8?8:fontsize-2);
+			success = fontm->FaceSize(fontsize-1<8?8:fontsize-1);
 			success = fontl->FaceSize(fontsize);
+//			success = fonts->FaceSize(fontsize/2);
+//			success = fontm->FaceSize(fontsize);
+//			success = fontl->FaceSize(fontsize*2);
 			if(!success) return 0;
 
+			success = fonts->CharMap(ft_encoding_unicode);
+			success = fontm->CharMap(ft_encoding_unicode);
 			success = fontl->CharMap(ft_encoding_unicode);
 			if(!success) return 0;
 
@@ -274,13 +282,9 @@ void FTF_TTFont::SetEncoding(char* str)
 
 void FTF_TTFont::SetSize(int size)
 {
-	if(mode == FTF_PIXMAPFONT) {
-		fonts->FaceSize(size-2<8?8:size-2);
-		fontm->FaceSize(size-1<8?8:size-1);
-		fontl->FaceSize(size);
-	} else if(mode == FTF_TEXTUREFONT) {
-		fontl->FaceSize(size);
-	}
+	fonts->FaceSize(size-2<8?8:size-2);
+	fontm->FaceSize(size-1<8?8:size-1);
+	fontl->FaceSize(size);
 
 	font_size = size;
 }
@@ -290,6 +294,7 @@ int FTF_TTFont::GetSize(void)
 	return font_size;
 }
 
+/*
 int FTF_TTFont::Ascender(void)
 {
 	return (int)font->Ascender();
@@ -300,7 +305,7 @@ int FTF_TTFont::Descender(void)
 	return (int)font->Descender();
 }
 
-
+*/
 int FTF_TTFont::TransConvString(char* str, char* ustr, unsigned int flag)
 {
 	return 0;
@@ -365,7 +370,7 @@ float FTF_TTFont::GetStringWidth(char* str, unsigned int flag)
 	if(mode == FTF_PIXMAPFONT) {
 		return font->Advance(wstr);
 	} else if(mode == FTF_TEXTUREFONT) {
-		return font->Advance(wstr) * fsize;
+		return font->Advance(wstr);// * fsize;
 	}
 }
 

@@ -71,7 +71,6 @@ struct _LANGMenuEntry {
 
 static LANGMenuEntry *langmenu= 0;
 static int tot_lang = 0;
-float lang_texsize = 1.0;
 
 #endif // INTERNATIONAL
 
@@ -79,6 +78,13 @@ void BIF_RasterPos(float x, float y)
 {
 #ifdef INTERNATIONAL
 	FTF_SetPosition(x, y);
+#endif // INTERNATIONAL
+}
+
+void BIF_SetScale(float aspect)
+{
+#ifdef INTERNATIONAL
+	FTF_SetScale(aspect);
 #endif // INTERNATIONAL
 }
 

@@ -64,8 +64,8 @@ public:
 	void SetSize(int size);
 	int GetSize(void);
 
-	int Ascender(void);
-	int Descender(void);
+//	int Ascender(void);
+//	int Descender(void);
 
 	int TransConvString(char* str, char* ustr, unsigned int flag);
 

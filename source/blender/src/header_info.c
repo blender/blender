@@ -47,12 +47,6 @@
 #include "BLI_winstuff.h"
 #endif
 
-#include "BMF_Api.h"
-#include "BIF_language.h"
-#ifdef INTERNATIONAL
-#include "FTF_Api.h"
-#endif
-
 #include "DNA_ID.h"
 #include "DNA_image_types.h"
 #include "DNA_lamp_types.h"
@@ -112,6 +106,7 @@
 #include "BPY_menus.h"
 
 #include "blendef.h"
+#include "interface.h"
 #include "mydevice.h"
 
 extern char versionstr[]; /* from blender.c */
@@ -1910,6 +1905,7 @@ void info_buttons(void)
 	}
 	else xco= 430;
 	
+BIF_SetScale(block->aspect);
 	info_text(xco+24, 6);
 	
 	uiBlockSetEmboss(block, UI_EMBOSSN);

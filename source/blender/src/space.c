@@ -2542,15 +2542,6 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 				(xpos+edgsp+(4*mpref)+(4*midsp)),y2,mpref,buth,
 				&(U.transopts), 0, 0, 0, 0,
 				"Use Textured Fonts");
-
-			if(U.transopts & USER_USETEXTUREFONT) {
-				extern float lang_texsize;
-
-				uiDefButF(block, NUM, B_SCALETEXTUREFONT, "Scale Factor",
-					(xpos+edgsp+(4*mpref)+(4*midsp)),y1,mpref,buth,
-					&lang_texsize, 0.2, 2.0, 100, 2, "Tweak scaling for textured font");
-			}
-
 		}
 
 /* end of INTERNATIONAL */
