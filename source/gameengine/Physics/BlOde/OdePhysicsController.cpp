@@ -174,6 +174,10 @@
 /// \todo python interface for tweaking constraints via python
 ///
 /// \todo raytesting to support gameengine sensors that need it
+///
+/// \todo investigate compatibility issues with old Blender 2.25 physics engine (sumo/fuzzics)
+/// is it possible to have compatibility? how hard is it? how important is it?
+
 
 ODEPhysicsController::ODEPhysicsController(bool dyna, bool fullRigidBody,
                                            bool phantom, class PHY_IMotionState* motionstate, struct dxSpace* space,
