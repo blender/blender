@@ -3219,9 +3219,9 @@ static void ui_delete_active_linkline(uiBlock *block)
 static void ui_do_active_linklines(uiBlock *block, short *mval)
 {
 	uiBut *but;
-	uiLinkLine *line, *act=NULL;
+	uiLinkLine *line, *act= NULL;
 	float mindist= 12.0, fac, v1[2], v2[2], v3[3];
-/*  	int foundone=0; */
+	int foundone= 0; 
 	
 	if(mval) {
 		v1[0]= mval[0];
@@ -3231,6 +3231,7 @@ static void ui_do_active_linklines(uiBlock *block, short *mval)
 		but= block->buttons.first;
 		while(but) {
 			if(but->type==LINK && but->link) {
+				foundone= 1;
 				line= but->link->lines.first;
 				while(line) {
 					v2[0]= line->from->x2;
@@ -3249,32 +3250,38 @@ static void ui_do_active_linklines(uiBlock *block, short *mval)
 			but= but->next;
 		}
 	}
-	/* draw */
-	glDrawBuffer(GL_FRONT);
+
+	/* check for a 'found one' to prevent going to 'frontbuffer' mode.
+	   this slows done gfx quite some, and at OSX the 'finish' forces a swapbuffer */
+	if(foundone) {
 	
-	but= block->buttons.first;
-	while(but) {
-		if(but->type==LINK && but->link) {
-			line= but->link->lines.first;
-			while(line) {
-				if(line==act) {
-					if((line->flag & UI_SELECT)==0) {
-						line->flag |= UI_SELECT;
+		/* draw */
+		glDrawBuffer(GL_FRONT);
+		
+		but= block->buttons.first;
+		while(but) {
+			if(but->type==LINK && but->link) {
+				line= but->link->lines.first;
+				while(line) {
+					if(line==act) {
+						if((line->flag & UI_SELECT)==0) {
+							line->flag |= UI_SELECT;
+							ui_draw_linkline(but->col, line);
+						}
+					}
+					else if(line->flag & UI_SELECT) {
+						line->flag &= ~UI_SELECT;
 						ui_draw_linkline(but->col, line);
 					}
+					line= line->next;
 				}
-				else if(line->flag & UI_SELECT) {
-					line->flag &= ~UI_SELECT;
-					ui_draw_linkline(but->col, line);
-				}
-				line= line->next;
 			}
+			but= but->next;
 		}
-		but= but->next;
+	
+		glFinish();
+		glDrawBuffer(GL_BACK);
 	}
-
-	glFinish();
-	glDrawBuffer(GL_BACK);
 }
 
 /* return: 
@@ -3461,7 +3468,6 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 			
 			if(uevent->val || (block->flag & UI_BLOCK_RET_1)==0) {
 				if ELEM3(uevent->event, LEFTMOUSE, PADENTER, RETKEY) {
-					
 					butevent= ui_do_button(block, but, uevent);
 					if(butevent) addqueue(block->winq, UI_BUT_EVENT, (short)butevent);
 
