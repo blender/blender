@@ -1912,9 +1912,13 @@ static void lib_link_mesh(FileData *fd, Main *main)
 		if(me->id.flag & LIB_NEEDLINK) {
 			int i;
 
-			for(i=0; i<me->totcol; i++)
-				me->mat[i]= newlibadr_us(fd, me->id.lib, me->mat[i]);
-				
+			/* this check added for python created meshes */
+			if(me->mat) {
+				for(i=0; i<me->totcol; i++)
+					me->mat[i]= newlibadr_us(fd, me->id.lib, me->mat[i]);
+			}
+			else me->totcol= 0;
+			
 			me->ipo= newlibadr_us(fd, me->id.lib, me->ipo);
 			me->key= newlibadr_us(fd, me->id.lib, me->key);
 			me->texcomesh= newlibadr_us(fd, me->id.lib, me->texcomesh);
