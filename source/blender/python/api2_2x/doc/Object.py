@@ -152,6 +152,10 @@ class Object:
     Recomputes the particle system. This method only applies to an Object of
     the type Effect.
     """
+  def getIpo():
+    """
+		returns the Ipo (if any) associated to the Object.
+    """
 
   def clrParent(mode = 0, fast = 0):
     """
