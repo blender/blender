@@ -60,6 +60,7 @@ enum {
 	TBOX_MAIN_KEY,
 	TBOX_MAIN_RENDER,
 	TBOX_MAIN_VIEW,
+        TBOX_MAIN_SEQ,
 	TBOX_MAIN_PYTOOL = 13
 };
 
@@ -75,6 +76,7 @@ enum {
 	TBOX_MAIN_KEY,
 	TBOX_MAIN_RENDER,
 	TBOX_MAIN_VIEW,
+        TBOX_MAIN_SEQ,
 	TBOX_MAIN_PYTOOL = 13
 };
 #endif
@@ -85,7 +87,6 @@ enum {
 void ColorFunc (int i);
 void mygetcursor (short int *index);
 void tbox_setinfo (int x, int y);
-void dummy (void);
 void bgnpupdraw (int startx, int starty, int endx, int endy);
 void endpupdraw (void);
 void asciitoraw (int ch, short unsigned int *event, short unsigned int *qual);
@@ -120,3 +121,4 @@ void replace_names_but (void);
 
 void BIF_screendump(void);
 void write_screendump(char *name);
+

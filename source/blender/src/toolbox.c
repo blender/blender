@@ -178,6 +178,7 @@ void tbox_setinfo(int x, int y)
 			case TBOX_MAIN_KEY:			tbstr= "KEY";		break;
 			case TBOX_MAIN_RENDER:		tbstr= "RENDER";	break;
 			case TBOX_MAIN_VIEW:		tbstr= "VIEW";		break;
+			case TBOX_MAIN_SEQ:		tbstr= "SEQUENCE";	break;
 #ifdef PY_TOOLBOX
 			case TBOX_MAIN_PYTOOL:		
 			{
@@ -208,7 +209,7 @@ void tbox_setinfo(int x, int y)
 				case 9: tbstr= "Save VRML";			tbstr1= "c|F2";		keystr= "Ctrl F2";	break;
 				case 10: tbstr= "Save DXF";			tbstr1= "shift+F2";	keystr= "Shift F2";	break;
 				case 11: tbstr= "Save VideoScape";	tbstr1= "a|w";		keystr= "Alt W";	break;
-/*				case 12: tbstr= "";					tbstr1= "";			keystr= "";			break; */
+				case 12: tbstr= "Save UserPrefs";					tbstr1= "c|u";			keystr= "Ctrl U";			break;
 				case 13: tbstr= "Quit";				tbstr1= "q";		keystr= "Q";		break;
 			}
 		}
@@ -218,15 +219,15 @@ void tbox_setinfo(int x, int y)
 			switch(y) {
 				case 0: tbstr= "(De)Select All";	tbstr1= "a";	keystr= "A";		break;
 				case 1: tbstr= "Border Select";		tbstr1= "b";	keystr= "B";		break;
-				case 2: tbstr= "";					tbstr1= "";		keystr= "";			break;
-				case 3: tbstr= "Duplicate";			tbstr1= "D";	keystr= "Shift D";	break;
-				case 4: tbstr= "Delete";			tbstr1= "x";	keystr= "X";		break;
-				case 5: tbstr= "Edit Mode";			tbstr1= "Tab";	keystr= "Tab";		break;
-				case 6: tbstr= "";					tbstr1= "";		keystr= "";			break;
+				case 2: tbstr= "Select Linked";					tbstr1= "l";		keystr= "L";			break;
+				case 3: tbstr= "Hide Selected";					tbstr1= "h";		keystr= "H";			break;
+				case 4: tbstr= "Duplicate";			tbstr1= "D";	keystr= "Shift D";	break;
+				case 5: tbstr= "Delete";			tbstr1= "x";	keystr= "X";		break;
+				case 6: tbstr= "Edit Mode";			tbstr1= "Tab";	keystr= "Tab";		break;
 				case 7: tbstr= "Grabber";			tbstr1= "g";	keystr= "G";		break;
 				case 8: tbstr= "Rotate";			tbstr1= "r";	keystr= "R";		break;
 				case 9: tbstr= "Scale";				tbstr1= "s";	keystr= "S";		break;
-/*				case 10: tbstr= "";					tbstr1= "";		keystr= "";			break; */
+				case 10: tbstr= "Shrink/Fatten";					tbstr1= "a|s";		keystr= "Alt S";			break;
 				case 11: tbstr= "Shear";			tbstr1= "c|s";	keystr= "Ctrl S";	break;
 				case 12: tbstr= "Warp/Bend";		tbstr1= "W";	keystr= "Shift W";	break;
 				case 13: tbstr= "Snap Menu";		tbstr1= "S";	keystr= "Shift S";	break;
@@ -331,12 +332,15 @@ void tbox_setinfo(int x, int y)
 				case 3: tbstr= "Clear Origin";		tbstr1= "a|o";	keystr= "Alt O";	break;
 				case 4: tbstr= "Make Parent";		tbstr1= "c|p";	keystr= "Ctrl P";	break;
 				case 5: tbstr= "Clear Parent";		tbstr1= "a|p";	keystr= "Alt P";	break;
-				case 6: tbstr= "Make Track";		tbstr1= "c|t";	keystr= "Ctrl T";	break;
-				case 7: tbstr= "Clear Track";		tbstr1= "a|t";	keystr= "Alt T";	break;
-/*				case 8: tbstr= "";					tbstr1= "";		keystr= "";			break;
-				case 9: tbstr= "";					tbstr1= "";		keystr= "";			break; */
+/* 	Unkown what tbstr1 should be...
+				case 6: tbstr= "MkVert Parent";		tbstr1= "c|a|p";	keystr= "Ctrl Alt P";	break;
+*/
+				case 7: tbstr= "Make Track";		tbstr1= "c|t";	keystr= "Ctrl T";	break;
+				case 8: tbstr= "Clear Track";		tbstr1= "a|t";	keystr= "Alt T";	break;
+/*				case 9: tbstr= "";					tbstr1= "";		keystr= "";			break; */
 				case 10: tbstr= "Image Displist";	tbstr1= "c|d";	keystr= "Ctrl D";	break;
 				case 11: tbstr= "Image Aspect";		tbstr1= "a|v";	keystr= "Alt V";	break;
+				case 12: tbstr= "Vect Paint";		tbstr1= "v";	keystr= "V";	break;
 			}
 		}
 		
@@ -355,6 +359,7 @@ void tbox_setinfo(int x, int y)
 				case 9: tbstr= "Make Links";		tbstr1= "c|l";	keystr= "Ctrl L";		break;
 				case 10: tbstr= "Copy Menu";		tbstr1= "c|c";	keystr= "Ctrl C";		break;
 				case 11: tbstr= "Convert Menu";		tbstr1= "a|c";	keystr= "Alt C";		break;
+				case 12: tbstr= "Boolean Op";		tbstr1= "w";	keystr= "W";		break;
 			}
 		}
 
@@ -411,6 +416,16 @@ void tbox_setinfo(int x, int y)
 				case 11: tbstr= "";			tbstr1= "";			keystr= "";			break; */
 			}
 		}
+/* SEQUENCER TOPICS */
+                else if(tbmain==TBOX_MAIN_SEQ) {
+                        switch(y) {
+                                case 0: tbstr= "Add Strip"; tbstr1= "A";  keystr= "Shift A";          break;
+                                case 1: tbstr= "Change Str"; tbstr1= "c";  keystr= "C";          break;
+                                case 2: tbstr= "Delete Str";                              tbstr1= "x";             keystr= "X";                     break;
+                                case 3: tbstr= "Make Meta";    tbstr1= "m";    keystr= "M";      break;
+                                case 4: tbstr= "Str Params";    tbstr1= "n";    keystr= "N";            break;
+                        }
+                }
 
 /* RENDER TOPICS */
 		else if(tbmain==TBOX_MAIN_RENDER) {
@@ -462,12 +477,6 @@ void tbox_setinfo(int x, int y)
 }
 
 /* ******************** INIT ************************** */
-
-void dummy(void)
-{
-	
-}
-
 
 void bgnpupdraw(int startx, int starty, int endx, int endy)
 {
