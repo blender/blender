@@ -155,7 +155,13 @@ static void draw_cfra_sound(SpaceSound *ssound)
 		/* little box with frame */
 		
 		getmouseco_areawin(mval);
-		if(mval[1]<17) mval[1]= 17;
+		
+		if(mval[1]>curarea->winy-10) mval[1]= curarea->winy - 13;
+			
+		if (curarea->winy < 25) {	
+			if (mval[1]<17) mval[1]= 17;
+		} else if (mval[1]<22) mval[1]= 22;
+		
 		areamouseco_to_ipoco(G.v2d, mval, &x, &y);
 		
 		if(ssound->flag & SND_DRAWFRAMES) 
