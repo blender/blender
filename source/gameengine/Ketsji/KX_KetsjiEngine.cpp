@@ -746,7 +746,11 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene)
 	if (m_overrideCam && (scene->GetName() == m_overrideSceneName) && m_overrideCamUseOrtho) {
 		MT_CmMatrix4x4 projmat = m_overrideCamProjMat;
 		m_rasterizer->SetProjectionMatrix(projmat);
-	} else {
+	} else if (cam->hasValidProjectionMatrix())
+	{
+		m_rasterizer->SetProjectionMatrix(cam->GetProjectionMatrix());
+	} else
+	{
 		RAS_FrameFrustum frustum;
 
 		RAS_FramingManager::ComputeFrustum(
@@ -836,7 +840,7 @@ void KX_KetsjiEngine::PostProcessScene(KX_Scene* scene)
 		KX_Camera* activecam = NULL;
 
 		RAS_CameraData camdata = RAS_CameraData();
-		activecam = new KX_Camera(scene,KX_Scene::m_callbacks,camdata);
+		activecam = new KX_Camera(scene,KX_Scene::m_callbacks,camdata, false);
 		activecam->SetName("__default__cam__");
 	
 			// set transformation
