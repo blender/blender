@@ -46,7 +46,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_ListBase.h"
+#include "DNA_listBase.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_utildefines.h"
