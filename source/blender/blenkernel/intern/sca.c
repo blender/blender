@@ -32,6 +32,10 @@
  * all data is 'direct data', not Blender lib data.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include "MEM_guardedalloc.h"
