@@ -2723,7 +2723,7 @@ static void check_non_flat_quads(void)
 				CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, nor);
 				
 				xn= nor[0]*vlr->n[0] + nor[1]*vlr->n[1] + nor[2]*vlr->n[2];
-				if( fabs(xn) < 0.99990 ) {
+				if( fabs(xn) < 0.990 ) {
 				
 					if( xn<0.0 ) flipnorm= 1; else flipnorm= 0;
 					
@@ -3029,8 +3029,8 @@ void do_displacement(Object *ob, int startface, int numface, int startvert, int 
 	VertRen *vr;
 	VlakRen *vlr;
 	float min[3]={1e30, 1e30, 1e30}, max[3]={-1e30, -1e30, -1e30};
-	float scale[3]={1.0f, 1.0f, 1.0f}, temp[3];
-	int i, texflag=0;
+	float scale[3]={1.0f, 1.0f, 1.0f}, temp[3], xn;
+	int i, texflag=0, flipnorm;
 	BoundBox *bb; 
 	Mesh *me;
 	Curve *cu;
@@ -3084,16 +3084,9 @@ void do_displacement(Object *ob, int startface, int numface, int startvert, int 
 	
 	for(i=startface; i<startface+numface; i++){
 		vlr=RE_findOrAddVlak(i);
-
 		displace_render_face(vlr, scale);
-		
-		/* Recalculate the face normal */
-		if(vlr->v4) vlr->len= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co,
-							    vlr->v1->co, vlr->n);
-		else vlr->len= CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co,
-							    vlr->n);
-		
 	}
+	
 	/* Recalc vertex normals */
 	normalenrender(startvert, startface);
 }
@@ -3102,8 +3095,8 @@ void displace_render_face(VlakRen *vlr, float *scale)
 {
 	ShadeInput shi;
 	VertRen vr;
-	float samp1,samp2, samp3, samp4;
-	short hasuv=0;
+	float samp1,samp2, samp3, samp4, nor[3], xn;
+	short hasuv=0, flipnorm=0;
 	/* set up shadeinput struct for multitex() */
 	
 	shi.osatex= 0;		/* signal not to use dx[] and dy[] texture AA vectors */
@@ -3111,17 +3104,29 @@ void displace_render_face(VlakRen *vlr, float *scale)
 	shi.mat= vlr->mat;		/* current input material */
 	shi.matren= shi.mat->ren;	/* material temp block where output is written into */
 	
+	/* Test for flipped normals */
+	if(vlr->v4) CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co,
+							    vlr->v1->co, nor);
+	else CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co,
+							    nor);
+								
+	xn= vlr->n[0]*nor[0]+vlr->n[1]*nor[1]+vlr->n[2]*nor[2];
+	if (xn<0.0) flipnorm=1;
+	
+	//printf("before vlr->n=%f, %f, %f flipn=%i\n", vlr->n[0], vlr->n[1], vlr->n[2], flipnorm);
+	
 	/* UV coords must come from face */
 	hasuv = vlr->tface && (shi.matren->texco & TEXCO_UV);
 	if (hasuv) shi.uv[2]=0.0f; 
-		/* I don't think this is used, but seting it just in case */
-		
+	/* I don't think this is used, but seting it just in case */
+	
 	/* Displace the verts, flag is set when done */
 	if (! (vlr->v1->flag)){		
 		if (hasuv)	{
 			shi.uv[0] = 2*vlr->tface->uv[0][0]-1.0f; /* shi.uv and tface->uv are */
 			shi.uv[1]=  2*vlr->tface->uv[0][1]-1.0f; /* scalled differently 	 */
 		}
+		//printf("v1 ");
 		displace_render_vert(&shi, vlr->v1, scale);
 	}
 	
@@ -3130,6 +3135,7 @@ void displace_render_face(VlakRen *vlr, float *scale)
 			shi.uv[0] = 2*vlr->tface->uv[1][0]-1.0f; 
 			shi.uv[1]=  2*vlr->tface->uv[1][1]-1.0f;
 		}
+		//printf("v2 ");
 		displace_render_vert(&shi, vlr->v2, scale);
 	}
 	
@@ -3137,7 +3143,8 @@ void displace_render_face(VlakRen *vlr, float *scale)
 		if (hasuv)	{
 			shi.uv[0] = 2*vlr->tface->uv[2][0]-1.0f; 
 			shi.uv[1]=  2*vlr->tface->uv[2][1]-1.0f;
-		}	 
+		}	
+		 //printf("v3 ");
 		displace_render_vert(&shi, vlr->v3, scale);
 	}
 			
@@ -3147,14 +3154,30 @@ void displace_render_face(VlakRen *vlr, float *scale)
 				shi.uv[0] = 2*vlr->tface->uv[3][0]-1.0f; 
 				shi.uv[1]=  2*vlr->tface->uv[3][1]-1.0f;
 			}	
+			//printf("v4 ");
 		 	displace_render_vert(&shi, vlr->v4, scale);
 		}
 		/* We want to split the quad along the opposite verts that are */
 		/*	closest in displace value.  This will help smooth edges.   */ 
 		if ( fabs(vlr->v1->accum - vlr->v3->accum) > fabs(vlr->v2->accum - vlr->v4->accum)) 
 				vlr->flag |= R_DIVIDE_24;
-		else 	vlr->flag & ~R_DIVIDE_24;
+		else 	vlr->flag & ~R_DIVIDE_24; 
 	}
+	
+	/* Recalculate the face normal  - if flipped before, flip now */
+	if(vlr->v4) {
+		if (flipnorm) vlr->len = CalcNormFloat4(vlr->v1->co, vlr->v2->co, vlr->v3->co,
+					    vlr->v4->co, vlr->n);
+		else vlr->len = CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co,
+					    vlr->v1->co, vlr->n);
+	}	
+	else {
+		if (flipnorm) vlr->len= CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co,
+							    vlr->n);
+		else vlr->len= CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co,
+							    vlr->n);
+	}
+	//printf("after vlr->n=%f, %f, %f\n\n", vlr->n[0], vlr->n[1], vlr->n[2]);
 }
 
 void displace_render_vert(ShadeInput *shi, VertRen *vr, float *scale)
@@ -3188,11 +3211,16 @@ void displace_render_vert(ShadeInput *shi, VertRen *vr, float *scale)
 	
 	do_material_tex(shi);
 	
+	//printf("no=%f, %f, %f\nbefore co=%f, %f, %f\n", vr->n[0], vr->n[1], vr->n[2], 
+	//vr->co[0], vr->co[1], vr->co[2]);
+	
 	/* 0.5 could become button once?  */
 	vr->co[0] += 0.5 * shi->displace[0] * scale[0] ; 
 	vr->co[1] += 0.5 * shi->displace[1] * scale[1] ; 
 	vr->co[2] += 0.5 * shi->displace[2] * scale[2] ; 
 	
+	//printf("after co=%f, %f, %f\n", vr->co[0], vr->co[1], vr->co[2]); 
+
 	/* we just don't do this vertex again, bad luck for other face using same vertex with
 	   different material... */
 	vr->flag |= 1;
@@ -3202,7 +3230,7 @@ void displace_render_vert(ShadeInput *shi, VertRen *vr, float *scale)
 	sample += shi->displace[1]*shi->displace[1];
 	sample += shi->displace[2]*shi->displace[2];
 	
-	vr->accum=sample; /* Should be sqrt(sample), but I'm olny looking for "bigger".  Save the cycles. */
-	/* Does abusing this cause heartache for radiosity? */
+	vr->accum=sample; 
+	/* Should be sqrt(sample), but I'm only looking for "bigger".  Save the cycles. */
 	return;
 }
