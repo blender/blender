@@ -59,8 +59,6 @@
 
 #include "BPY_extern.h"
 
-#include "render.h"
-
 void free_material(Material *ma)
 {
 	int a;
