@@ -1177,6 +1177,7 @@ static void editing_panel_lattice_type(Object *ob, Lattice *lt)
 
 	uiDefBut(block, BUT, B_RESIZELAT,	"Make Regular",		470,101,99,32, 0, 0, 0, 0, 0, "");
 
+	uiClearButLock();
 	uiDefButS(block, TOG|BIT|1, B_LATTCHANGED, "Outside",	571,101,120,31, &lt->flag, 0, 0, 0, 0, "");
 
 	if(lt->key) {
