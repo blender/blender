@@ -2410,7 +2410,6 @@ void logic_buts(void)
 	int butreturn = 0;
 
 	wrld= G.scene->world;
-	if(wrld==0) return;
 
 	ob= OBACT;
 
@@ -2422,11 +2421,13 @@ void logic_buts(void)
 	
 	uiBlockSetCol(block, TH_BUT_SETTING2);
 
-	if (wrld->physicsEngine == 1)
-		buttons_enji(block, ob);
-	if ( (wrld->physicsEngine == 4) || (wrld->physicsEngine == 2) )
-		buttons_ketsji(block, ob);
-			
+	if(wrld) {
+		if (wrld->physicsEngine == 1) buttons_enji(block, ob);
+		if ( (wrld->physicsEngine == 4) || (wrld->physicsEngine == 2) )
+			buttons_ketsji(block, ob);
+	}
+	else buttons_ketsji(block, ob);
+	
 	uiBlockSetCol(block, TH_AUTO);
 	uiDefBut(block, BUT, B_ADD_PROP, "ADD property",		10, 90, 340, 24,
 			 NULL, 0.0, 100.0, 100, 0,
