@@ -958,7 +958,8 @@ static void build_mesh_data(Object *ob)
 {
 	Mesh *me = ob->data;
 
-	if(ob->disp.first==NULL) {
+		/* Inside edit mode mesh modifiers aren't calculated */
+	if(ob->disp.first==NULL && G.obedit!=ob) { 
 		if(ob->parent && ob->partype==PARSKEL) makeDispList(ob);
 		else if(ob->parent && ob->parent->type==OB_LATTICE) makeDispList(ob);
 		else if(ob->hooks.first) makeDispList(ob);
@@ -968,7 +969,7 @@ static void build_mesh_data(Object *ob)
 			if(eff->type==EFF_WAVE) makeDispList(ob);
 		}
 	}
-	if(me->disp.first==NULL && mesh_uses_displist(me)) {
+	if(me->derived==NULL && mesh_uses_displist(me)) {
 		makeDispList(ob);
 	}
 

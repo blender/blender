@@ -767,8 +767,6 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, void (*setMaterial)(int)) {
 	CCGFaceIterator *fi= ccgSubSurf_getFaceIterator(ss);
 	int gridSize = ccgSubSurf_getGridSize(ss);
 
-	glEnable(GL_NORMALIZE);
-
 	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
 		CCGFace *f= ccgFaceIterator_getCurrent(fi);
 		EditFace *efa= ccgSubSurf_getFaceFaceHandle(ss, f);
@@ -780,7 +778,6 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, void (*setMaterial)(int)) {
 			float (*faceGridData)[3] = ccgSubSurf_getFaceGridDataArray(ss, f, S);
 
 			for (y=0; y<gridSize-1; y++) {
-				float *c = NULL;
 
 				glBegin(GL_QUADS);
 				for (x=0; x<gridSize-1; x++) {
@@ -790,15 +787,20 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, void (*setMaterial)(int)) {
 					float *d = faceGridData[(y+1)*gridSize + x];
 
 					if (x<gridSize-1) {
+						float a_cX = c[0]-a[0], a_cY = c[1]-a[1], a_cZ = c[2]-a[2];
+						float b_dX = d[0]-b[0], b_dY = d[1]-b[1], b_dZ = d[2]-b[2];
 						float no[3];
-						CalcNormFloat4(a, b, c, d, no);
+
+						no[0] = b_dY*a_cZ - b_dZ*a_cY;
+						no[1] = b_dZ*a_cX - b_dX*a_cZ;
+						no[2] = b_dX*a_cY - b_dY*a_cX;
 						glNormal3fv(no);
 					}
 
-					glVertex3fv(a);
-					glVertex3fv(b);
-					glVertex3fv(c);
 					glVertex3fv(d);
+					glVertex3fv(c);
+					glVertex3fv(b);
+					glVertex3fv(a);
 				}
 				glEnd();
 			}
