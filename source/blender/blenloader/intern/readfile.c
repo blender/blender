@@ -2700,13 +2700,16 @@ static void *restore_pointer_by_name(Main *mainp, ID *id, int user)
 		
 	if(id) {
 		lb= wich_libbase(mainp, GS(id->name));
-		idn= lb->first;
-		while(idn) {
-			if( strcmp(idn->name, id->name)==0) {
-				if(user && idn->us==0) idn->us++;
-				break;
+		
+		if(lb) {	// there's still risk of checking corrupt mem (freed Ids in oops)
+			idn= lb->first;
+			while(idn) {
+				if( strcmp(idn->name, id->name)==0) {
+					if(user && idn->us==0) idn->us++;
+					break;
+				}
+				idn= idn->next;
 			}
-			idn= idn->next;
 		}
 	}
 	return idn;
