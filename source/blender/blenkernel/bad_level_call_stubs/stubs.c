@@ -96,6 +96,10 @@ float CookTorr_Spec(float *n, float *l, float *v, int hard){return 0;}
 float Toon_Spec(float *n, float *l, float *v, float a, float b){return 0;}
 float Toon_Diff(float *n, float *l, float *v, float a, float b){return 0;}
 float OrenNayar_Diff(float *n, float *l, float *v, float a, float b){return 0;}
+void add_to_diffuse(float *diff, ShadeInput *shi, float is, float r, float g, float b){}
+void ramp_diffuse_result(float *diff, ShadeInput *shi){}
+void do_specular_ramp(ShadeInput *shi, float is, float t, float *spec){}
+void ramp_spec_result(float *specr, float *specg, float *specb, ShadeInput *shi){}
 
 
 void waitcursor(int val){}
