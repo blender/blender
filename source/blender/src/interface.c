@@ -3937,7 +3937,7 @@ short pupmenu_col(char *instr, int maxrow)
 	rows= (int) md->nitems/columns;
 	if (rows<1) rows= 1;
 	
-	while (rows*columns<md->nitems) rows++;
+	while (rows*columns<(md->nitems+columns) ) rows++;
 		
 	/* size and location */
 	if(md->title) width= 2*strlen(md->title)+BIF_GetStringWidth(uiBlockGetCurFont(block), md->title, (U.transopts & TR_BUTTONS));
@@ -4022,11 +4022,20 @@ short pupmenu_col(char *instr, int maxrow)
 	}
 
 	for(a=0; a<md->nitems; a++) {
-
+		char *name= md->items[a].str;
+		
 		x1= startx + width*((int)a/rows);
 		y1= starty - boxh*(a%rows) + (rows-1)*boxh; 
-
-		uiDefButI(block, BUTM, B_NOP, md->items[a].str, x1, y1, (short)(width-(rows>1)), (short)(boxh-1), &val, (float)md->items[a].retval, 0.0, 0, 0, "");
+		
+		if( strcmp(name, "%l")==0){
+			uiDefBut(block, SEPR, B_NOP, "", x1, y1, width, 6, NULL, 0, 0.0, 0, 0, "");
+			y1 -= 6;
+		}
+		else {
+			uiDefButS(block, BUTM, B_NOP, name, x1, y1, width, boxh-1, &val, (float) md->items[a].retval, 0.0, 0, 0, "");
+			y1 -= boxh;
+		}
+		//uiDefButI(block, BUTM, B_NOP, md->items[a].str, x1, y1, (short)(width-(rows>1)), (short)(boxh-1), &val, (float)md->items[a].retval, 0.0, 0, 0, "");
 	}
 	
 	uiBoundsBlock(block, 3);
