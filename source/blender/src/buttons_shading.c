@@ -807,7 +807,7 @@ static void texture_panel_envmap(Tex *tex)
 			MEM_freeN(strp);
 		
 			uiDefBut(block, BUT, B_LOADTEXIMA1, "Load Image", 10,115,130,20, 0, 0, 0, 0, 0, "Load image - file view");
-			uiBlockSetCol(block, TH_BUT_SETTING2);
+			uiBlockSetCol(block, TH_BUT_SETTING1);
 			uiDefBut(block, BUT, B_LOADTEXIMA, "", 		140,115,20,20, 0, 0, 0, 0, 0, "Load image - thumb view");
 			uiBlockSetCol(block, TH_AUTO);
 		
@@ -1035,7 +1035,7 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 	/* first do the browse but */
 	buttons_active_id(&id, &idfrom);
 
-	uiBlockSetCol(block, TH_BUT_SETTING1);
+	uiBlockSetCol(block, TH_BUT_SETTING2);
 	if(ma) {
 		std_libbuttons(block, 10, 180, 0, NULL, B_TEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
 	}
@@ -1300,7 +1300,7 @@ static void radio_panel_tool(Radio *rad, int flag)
 	if(uiNewPanel(curarea, block, "Radio Tool", "Radio", 320, 0, 318, 204)==0) return;
 	uiAutoBlock(block, 10, 10, 300, 200, UI_BLOCK_ROWS);
 
-	if(flag & RAD_PHASE_PATCHES) uiBlockSetCol(block, TH_BUT_SETTING2);
+	if(flag & RAD_PHASE_PATCHES) uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiDefBut(block,  BUT, B_RAD_COLLECT, "Collect Meshes",	0, 0, 10, 15, NULL, 0, 0, 0, 0, "Convert selected and visible meshes to patches");
 
 	if(flag & RAD_PHASE_PATCHES)uiBlockSetCol(block, TH_AUTO);
@@ -1463,6 +1463,9 @@ static void world_panel_texture(World *wrld)
 		uiBlockSetCol(block, TH_AUTO);
 		uiDefBut(block, BUT, B_TEXCLEARWORLD, "Clear", 122, 140, 72, 19, 0, 0, 0, 0, 0, "Erase link to texture");
 	}
+	else 
+		uiDefButS(block, TOG, B_WTEXBROWSE, "Add New" ,100, 160, 163, 19, &(G.buts->texnr), -1.0, 32767.0, 0, 0, "Add new data block");
+
 	uiBlockSetCol(block, TH_AUTO);
 	
 
@@ -1719,6 +1722,8 @@ static void lamp_panel_texture(Object *ob, Lamp *la)
 		uiBlockSetCol(block, TH_AUTO);
 		uiDefBut(block, BUT, B_TEXCLEARLAMP, "Clear", 122, 140, 72, 19, 0, 0, 0, 0, 0, "Erase link to texture");
 	}
+	else 
+		uiDefButS(block, TOG, B_WTEXBROWSE, "Add New" ,100, 160, 163, 19, &(G.buts->texnr), -1.0, 32767.0, 0, 0, "Add new data block");
 
 	/* TEXCO */
 	uiBlockSetCol(block, TH_AUTO);
@@ -2107,6 +2112,8 @@ static void material_panel_texture(Material *ma)
 		uiBlockSetCol(block, TH_AUTO);
 		uiDefBut(block, BUT, B_TEXCLEAR, "Clear", 122, 130, 72, 20, 0, 0, 0, 0, 0, "Erase link to datablock");
 	}
+	else 
+		uiDefButS(block, TOG, B_EXTEXBROWSE, "Add New" ,100, 150, 163, 20, &(G.buts->texnr), -1.0, 32767.0, 0, 0, "Add new data block");
 	
 	// force no centering
 	uiDefBut(block, LABEL, 0, " ", 250, 10, 25, 20, 0, 0, 0, 0, 0, "");

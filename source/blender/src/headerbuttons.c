@@ -242,7 +242,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 	Object *ob;
 	Ipo *ipo;
 	uiBut *but;
-	int len, idwasnul=0, idtype, oldcol;
+	int len, idwasnul=0, idtype, oldcol, add_addbutton=0;
 	char *str=NULL, str1[10];
 
 	oldcol= uiBlockGetCol(block);
@@ -263,18 +263,25 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 				id= G.main->sound.first;
 			}
 			else if(curarea->spacetype==SPACE_ACTION) {
-				id= G.main->action.first;
+				if(ob) id= G.main->action.first;
 			}
 			else if(curarea->spacetype==SPACE_NLA) {
-				id=NULL;
+				id= NULL;
 			}
 			else if(curarea->spacetype==SPACE_IPO) {
 				id= G.main->ipo.first;
+				
 				/* test for ipotype */
 				while(id) {
 					ipo= (Ipo *)id;
 					if(G.sipo->blocktype==ipo->blocktype) break;
 					id= id->next;
+				}
+				if(ob==NULL) {
+					if(G.sipo->blocktype!=ID_SEQ && G.sipo->blocktype!=ID_WO) {
+						id= NULL; 
+						idwasnul= 0;
+					}
 				}
 			}
 			else if(curarea->spacetype==SPACE_BUTS) {
@@ -287,6 +294,8 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 						
 						if(tab==TAB_SHADING_MAT) id= G.main->mat.first;
 						else if(tab==TAB_SHADING_TEX) id= G.main->tex.first;
+						
+						add_addbutton= 1;
 					}
 				}
 			}
@@ -331,7 +340,6 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 			uiClearButLock();
 		
 			MEM_freeN(str);
-			xco+= XIC;
 		}
 		else if(curarea->spacetype==SPACE_BUTS) {
 			if(G.buts->mainb==CONTEXT_SHADING) {
@@ -351,8 +359,6 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 		else if(curarea->spacetype==SPACE_SOUND) {
 			uiDefButS(block, MENU, browse, "OPEN NEW %x 32766",xco,yco,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
 		}
-		else if(curarea->spacetype==SPACE_NLA) {
-		}
 		else if(curarea->spacetype==SPACE_ACTION) {
 			uiSetButLock(G.scene->id.lib!=0, "Can't edit library data");
 			if(parid) uiSetButLock(parid->lib!=0, "Can't edit library data");
@@ -361,18 +367,22 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 			uiClearButLock();
 		}
 		else if(curarea->spacetype==SPACE_IPO) {
-			uiSetButLock(G.scene->id.lib!=0, "Can't edit library data");
-			if(parid) uiSetButLock(parid->lib!=0, "Can't edit library data");
-
-			uiDefButS(block, MENU, browse, "ADD NEW %x 32767", xco,yco,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
-			uiClearButLock();
+			if(idwasnul) {
+				uiSetButLock(G.scene->id.lib!=0, "Can't edit library data");
+				if(parid) uiSetButLock(parid->lib!=0, "Can't edit library data");
+	
+				uiDefButS(block, MENU, browse, "ADD NEW %x 32767", xco,yco,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
+				uiClearButLock();
+			}
 		}
+		
+		xco+= XIC;
 	}
 
 
 	uiBlockSetCol(block, oldcol);
 
-	if(id) {
+	if(id) {	/* text button with name */
 	
 		/* name */
 		if(id->us>1) uiBlockSetCol(block, TH_BUT_SETTING1);
@@ -393,7 +403,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 		else if(strcmp(str1, "SR:")==0) strcpy(str1, "SCR:");
 		
 		if( GS(id->name)==ID_IP) len= 110;
-	else if(yco) len= 140;	// comes from button panel
+		else if(yco) len= 140;	// comes from button panel
 		else len= 120;
 		
 		but= uiDefBut(block, TEX, B_IDNAME, str1,xco, yco, (short)len, YIC, id->name+2, 0.0, 19.0, 0, 0, "Displays current Datablock name. Click to change.");
@@ -456,7 +466,12 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 			xco+= XIC;
 		}
 	}
-	else xco+=XIC;
+	else if(add_addbutton) {	/* "add new" button */
+		uiBlockSetCol(block, oldcol);
+		uiDefButS(block, TOG, browse, "Add New" ,xco, yco, 110, YIC, menupoin, (float)*menupoin, 32767.0, 0, 0, "Add new data block");
+		xco+= 110;
+	}
+	xco+=XIC;
 	
 	uiBlockSetCol(block, oldcol);
 

@@ -963,7 +963,7 @@ static void ui_is_but_sel(uiBut *but)
 		case TOGR:
 		case TOG3:
 		case ICONTOG:
-			if(value!=0.0) push= 1;
+			if(value!=but->min) push= 1;
 			break;
 		case TOGN:
 			if(value==0.0) push= 1;

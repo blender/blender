@@ -376,7 +376,7 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	uiDefButS(block, TOG|BIT|5, REDRAWVIEW3D, "Auto Smooth",10,178,130,17, &me->flag, 0, 0, 0, 0, "Treats all faces with angles less than Degr: as 'smooth' during render");
 
 	uiDefButS(block, NUM, B_DIFF, "Degr:",					10,156,130,17, &me->smoothresh, 1, 80, 0, 0, "Defines maximum angle between face normals that 'Auto Smooth' will operate on");
-	uiBlockSetCol(block, TH_BUT_SETTING2);
+	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiDefButS(block, TOG|BIT|7, B_MAKEDISP, "SubSurf",		10,124,130,17, &me->flag, 0, 0, 0, 0, "Treats the active object as a Catmull-Clark Subdivision Surface");
 	uiBlockSetCol(block, TH_AUTO);
 
@@ -415,7 +415,7 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 		if( (dl=ob->disp.first) && dl->mesh);
 		else decim_faces= tottria;
 	
-		uiBlockSetCol(block, TH_BUT_SETTING2);
+		uiBlockSetCol(block, TH_BUT_SETTING1);
 		uiDefButI(block, NUMSLI,B_DECIM_FACES, "Decimator: ",	173,176,233,19, &decim_faces, 4.0, tottria, 10, 10, "Defines the number of triangular faces to decimate the active Mesh object to");
 		uiBlockSetCol(block, TH_AUTO);
 		uiDefBut(block, BUT,B_DECIM_CANCEL, "Cancel",	290,156,116,18, 0, 0, 0, 0, 0, "Restores the Mesh to its original number of faces");
@@ -1954,7 +1954,7 @@ static void editing_panel_mesh_texface(void)
 		uiDefButS(block, TOG|BIT|13, REDRAWVIEW3D, "Shadow", 720,120,60,19, &lasttface->mode, 0, 0, 0, 0, "Face is used for shadow");
 		uiDefButS(block, TOG|BIT|14, REDRAWVIEW3D, "Text", 780,120,60,19, &lasttface->mode, 0, 0, 0, 0, "Enable bitmap text on face");
 
-		uiBlockSetCol(block, TH_BUT_SETTING2);
+		uiBlockSetCol(block, TH_BUT_SETTING1);
 		uiDefButC(block, ROW, REDRAWVIEW3D, "Opaque",	600,100,60,19, &lasttface->transp, 2.0, 0.0, 0, 0, "Render colour of textured face as colour");
 		uiDefButC(block, ROW, REDRAWVIEW3D, "Add",		660,100,60,19, &lasttface->transp, 2.0, 1.0, 0, 0, "Render face transparent and add colour of face");
 		uiDefButC(block, ROW, REDRAWVIEW3D, "Alpha",		720,100,60,19, &lasttface->transp, 2.0, 2.0, 0, 0, "Render polygon transparent, depending on alpha channel of the texture");
