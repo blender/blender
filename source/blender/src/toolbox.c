@@ -1974,13 +1974,13 @@ static void tb_do_transform_rotateaxis(void *arg, int event)
 }
 
 static TBitem tb_transform_rotateaxis[]= {
-{	0, "X Global|G, X", 	0, NULL},
-{	0, "Y Global|G, Y", 	1, NULL},
-{	0, "Z Global|G, Z", 	2, NULL},
+{	0, "X Global|R, X", 	0, NULL},
+{	0, "Y Global|R, Y", 	1, NULL},
+{	0, "Z Global|R, Z", 	2, NULL},
 {	0, "SEPR", 					0, NULL},
-{	0, "X Local|G, X, X", 	3, NULL},
-{	0, "Y Local|G, Y, Y", 	4, NULL},
-{	0, "Z Local|G, Z, Z", 	5, NULL},
+{	0, "X Local|R, X, X", 	3, NULL},
+{	0, "Y Local|R, Y, Y", 	4, NULL},
+{	0, "Z Local|R, Z, Z", 	5, NULL},
 
 {  -1, "", 			0, tb_do_transform_rotateaxis}};
 
@@ -2011,13 +2011,13 @@ static void tb_do_transform_scaleaxis(void *arg, int event)
 }
 
 static TBitem tb_transform_scaleaxis[]= {
-{	0, "X Global|G, X", 	0, NULL},
-{	0, "Y Global|G, Y", 	1, NULL},
-{	0, "Z Global|G, Z", 	2, NULL},
+{	0, "X Global|S, X", 	0, NULL},
+{	0, "Y Global|S, Y", 	1, NULL},
+{	0, "Z Global|S, Z", 	2, NULL},
 {	0, "SEPR", 					0, NULL},
-{	0, "X Local|G, X, X", 	3, NULL},
-{	0, "Y Local|G, Y, Y", 	4, NULL},
-{	0, "Z Local|G, Z, Z", 	5, NULL},
+{	0, "X Local|S, X, X", 	3, NULL},
+{	0, "Y Local|S, Y, Y", 	4, NULL},
+{	0, "Z Local|S, Z, Z", 	5, NULL},
 {  -1, "", 			0, tb_do_transform_scaleaxis}};
 
 static void tb_do_transform_clearapply(void *arg, int event)
