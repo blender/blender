@@ -107,14 +107,14 @@ float Normalise(float *n)
 	return d;
 }
 
-void Crossf(float *c, const float *a, const float *b)
+void Crossf(float *c, float *a, float *b)
 {
 	c[0] = a[1] * b[2] - a[2] * b[1];
 	c[1] = a[2] * b[0] - a[0] * b[2];
 	c[2] = a[0] * b[1] - a[1] * b[0];
 }
 
-float Inpf(const float *v1, const float *v2)
+float Inpf( float *v1, float *v2)
 {
 	return v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2];
 }
@@ -170,7 +170,7 @@ void Mat4Transp(float mat[][4])
  *					Mark Segal - 1992
  */
 
-int Mat4Invert(float inverse[][4], const float mat[][4])
+int Mat4Invert(float inverse[][4], float mat[][4])
 {
 	int i, j, k;
 	double temp;
@@ -228,7 +228,7 @@ int Mat4Invert(float inverse[][4], const float mat[][4])
 	return 1;
 }
 #ifdef TEST_ACTIVE
-void Mat4InvertSimp(float inverse[][4], const float mat[][4])
+void Mat4InvertSimp(float inverse[][4], float mat[][4])
 {
 	/* only for Matrices that have a rotation */
 	/* based at GG IV pag 205 */
@@ -263,7 +263,7 @@ void Mat4InvertSimp(float inverse[][4], const float mat[][4])
 #ifdef TEST_ACTIVE
 /* this seems to be unused.. */
 
-void Mat4Inv(float *m1, const float *m2)
+void Mat4Inv(float *m1, float *m2)
 {
 
 /* This gets me into trouble:  */
@@ -302,7 +302,7 @@ float Det3x3(float a1, float a2, float a3,
 	return ans;
 }
 
-float Det4x4(const float m[][4])
+float Det4x4(float m[][4])
 {
 	float ans;
 	float a1,a2,a3,a4,b1,b2,b3,b4,c1,c2,c3,c4,d1,d2,d3,d4;
@@ -336,7 +336,7 @@ float Det4x4(const float m[][4])
 }
 
 
-void Mat4Adj(float out[][4], const float in[][4])	/* out = ADJ(in) */
+void Mat4Adj(float out[][4], float in[][4])	/* out = ADJ(in) */
 {
 	float a1, a2, a3, a4, b1, b2, b3, b4;
 	float c1, c2, c3, c4, d1, d2, d3, d4;
@@ -383,7 +383,7 @@ void Mat4Adj(float out[][4], const float in[][4])	/* out = ADJ(in) */
 	out[3][3]  =   Det3x3( a1, a2, a3, b1, b2, b3, c1, c2, c3);
 }
 
-void Mat4InvGG(float out[][4], const float in[][4])	/* from Graphic Gems I, out= INV(in)  */
+void Mat4InvGG(float out[][4], float in[][4])	/* from Graphic Gems I, out= INV(in)  */
 {
 	int i, j;
 	float det;
@@ -408,7 +408,7 @@ void Mat4InvGG(float out[][4], const float in[][4])	/* from Graphic Gems I, out=
 }
 
 
-void Mat3Inv(float m1[][3], const float m2[][3])
+void Mat3Inv(float m1[][3], float m2[][3])
 {
 	short a,b;
 	float det;
@@ -430,7 +430,7 @@ void Mat3Inv(float m1[][3], const float m2[][3])
 	}
 }
 
-void Mat3Adj(float m1[][3], const float m[][3])
+void Mat3Adj(float m1[][3], float m[][3])
 {
 	m1[0][0]=m[1][1]*m[2][2]-m[1][2]*m[2][1];
 	m1[0][1]= -m[0][1]*m[2][2]+m[0][2]*m[2][1];
@@ -445,7 +445,7 @@ void Mat3Adj(float m1[][3], const float m[][3])
 	m1[2][2]=m[0][0]*m[1][1]-m[0][1]*m[1][0];
 }
 
-void Mat4MulMat4(float m1[][4], const float m2[][4], const float m3[][4])
+void Mat4MulMat4(float m1[][4], float m2[][4], float m3[][4])
 {
   /* matrix product: m1[j][k] = m2[j][i].m3[i][k] */
 
@@ -471,7 +471,7 @@ void Mat4MulMat4(float m1[][4], const float m2[][4], const float m3[][4])
 
 }
 #ifdef TEST_ACTIVE
-void subMat4MulMat4(float *m1, const float *m2, const float *m3)
+void subMat4MulMat4(float *m1, float *m2, float *m3)
 {
 
 	m1[0]= m2[0]*m3[0] + m2[1]*m3[4] + m2[2]*m3[8];
@@ -494,9 +494,9 @@ void subMat4MulMat4(float *m1, const float *m2, const float *m3)
 #endif
 
 #ifndef TEST_ACTIVE
-void Mat3MulMat3(float m1[][3], const float m3[][3], const float m2[][3])
+void Mat3MulMat3(float m1[][3], float m3[][3], float m2[][3])
 #else
-void Mat3MulMat3(float *m1, const float *m3, const float *m2)
+void Mat3MulMat3(float *m1, float *m3, float *m2)
 #endif
 {
    /*  m1[i][j] = m2[i][k]*m3[k][j], args are flipped!  */
@@ -529,7 +529,7 @@ void Mat3MulMat3(float *m1, const float *m3, const float *m2)
 #endif
 } /* end of void Mat3MulMat3(float m1[][3], float m3[][3], float m2[][3]) */
 
-void Mat4MulMat43(float (*m1)[4], const float (*m3)[4], const float (*m2)[3])
+void Mat4MulMat43(float (*m1)[4], float (*m3)[4], float (*m2)[3])
 {
 	m1[0][0]= m2[0][0]*m3[0][0] + m2[0][1]*m3[1][0] + m2[0][2]*m3[2][0];
 	m1[0][1]= m2[0][0]*m3[0][1] + m2[0][1]*m3[1][1] + m2[0][2]*m3[2][1];
@@ -542,7 +542,7 @@ void Mat4MulMat43(float (*m1)[4], const float (*m3)[4], const float (*m2)[3])
 	m1[2][2]= m2[2][0]*m3[0][2] + m2[2][1]*m3[1][2] + m2[2][2]*m3[2][2];
 }
 /* m1 = m2 * m3, ignore the elements on the 4th row/column of m3*/
-void Mat3IsMat3MulMat4(float m1[][3], const float m2[][3], const float m3[][4])
+void Mat3IsMat3MulMat4(float m1[][3], float m2[][3], float m3[][4])
 {
     /* m1[i][j] = m2[i][k] * m3[k][j] */
     m1[0][0] = m2[0][0] * m3[0][0] + m2[0][1] * m3[1][0] +m2[0][2] * m3[2][0];
@@ -560,7 +560,7 @@ void Mat3IsMat3MulMat4(float m1[][3], const float m2[][3], const float m3[][4])
 
 
 
-void Mat4MulMat34(float (*m1)[4], const float (*m3)[3], const float (*m2)[4])
+void Mat4MulMat34(float (*m1)[4], float (*m3)[3], float (*m2)[4])
 {
 	m1[0][0]= m2[0][0]*m3[0][0] + m2[0][1]*m3[1][0] + m2[0][2]*m3[2][0];
 	m1[0][1]= m2[0][0]*m3[0][1] + m2[0][1]*m3[1][1] + m2[0][2]*m3[2][1];
@@ -573,7 +573,7 @@ void Mat4MulMat34(float (*m1)[4], const float (*m3)[3], const float (*m2)[4])
 	m1[2][2]= m2[2][0]*m3[0][2] + m2[2][1]*m3[1][2] + m2[2][2]*m3[2][2];
 }
 
-void Mat4CpyMat4(float m1[][4], const float m2[][4]) 
+void Mat4CpyMat4(float m1[][4], float m2[][4]) 
 {
 	memcpy(m1, m2, 4*4*sizeof(float));
 }
@@ -596,9 +596,9 @@ typedef float Mat3Row[3];
 typedef float Mat4Row[4];
 
 #ifdef TEST_ACTIVE
-void Mat3CpyMat4(float *m1p, const float *m2p)
+void Mat3CpyMat4(float *m1p, float *m2p)
 #else
-void Mat3CpyMat4(float m1[][3], const float m2[][4])
+void Mat3CpyMat4(float m1[][3], float m2[][4])
 #endif
 {
 #ifdef TEST_ACTIVE
@@ -627,7 +627,7 @@ void Mat3CpyMat4(float m1[][3], const float m2[][4])
 /* Butched. See .h for comment */
 /*  void Mat4CpyMat3(float m1[][4], float m2[][3]) */
 #ifdef TEST_ACTIVE
-void Mat4CpyMat3(float* m1, const float *m2)
+void Mat4CpyMat3(float* m1, float *m2)
 {
 	int i;
 	for (i = 0; i < 3; i++) {
@@ -643,7 +643,7 @@ void Mat4CpyMat3(float* m1, const float *m2)
 }
 #else
 
-void Mat4CpyMat3(float m1[][4], const float m2[][3])	/* no clear */
+void Mat4CpyMat3(float m1[][4], float m2[][3])	/* no clear */
 {
 	m1[0][0]= m2[0][0];
 	m1[0][1]= m2[0][1];
@@ -671,16 +671,16 @@ void Mat4CpyMat3(float m1[][4], const float m2[][3])	/* no clear */
 }
 #endif
 
-void Mat3CpyMat3(float m1[][3], const float m2[][3]) 
+void Mat3CpyMat3(float m1[][3], float m2[][3]) 
 {	
 	/* destination comes first: */
 	memcpy(&m1[0], &m2[0], 9*sizeof(float));
 }
 
 void Mat3MulSerie(float answ[][3],
-				  const float m1[][3], const float m2[][3], const float m3[][3],
-				  const float m4[][3], const float m5[][3], const float m6[][3],
-				  const float m7[][3], const float m8[][3])
+				   float m1[][3], float m2[][3], float m3[][3],
+				   float m4[][3], float m5[][3], float m6[][3],
+				   float m7[][3], float m8[][3])
 {
 	float temp[3][3];
 	
@@ -711,10 +711,10 @@ void Mat3MulSerie(float answ[][3],
 	}
 }
 
-void Mat4MulSerie(float answ[][4], const float m1[][4],
-				  const float m2[][4], const float m3[][4], const float m4[][4],
-				  const float m5[][4], const float m6[][4], const float m7[][4],
-				  const float m8[][4])
+void Mat4MulSerie(float answ[][4], float m1[][4],
+				float m2[][4], float m3[][4], float m4[][4],
+				float m5[][4], float m6[][4], float m7[][4],
+				float m8[][4])
 {
 	float temp[4][4];
 	
@@ -775,7 +775,7 @@ void Mat3One(float m[][3])
 	m[2][0]= m[2][1]= 0.0;
 }
 
-void Mat4MulVec(const float mat[][4], int *vec)
+void Mat4MulVec( float mat[][4], int *vec)
 {
 	int x,y;
 
@@ -786,7 +786,7 @@ void Mat4MulVec(const float mat[][4], int *vec)
 	vec[2]=(int)(x*mat[0][2] + y*mat[1][2] + mat[2][2]*vec[2] + mat[3][2]);
 }
 
-void Mat4MulVecfl(const float mat[][4], float *vec)
+void Mat4MulVecfl( float mat[][4], float *vec)
 {
 	float x,y;
 
@@ -797,7 +797,7 @@ void Mat4MulVecfl(const float mat[][4], float *vec)
 	vec[2]=x*mat[0][2] + y*mat[1][2] + mat[2][2]*vec[2] + mat[3][2];
 }
 
-void VecMat4MulVecfl(float *in, const float mat[][4], const float *vec)
+void VecMat4MulVecfl(float *in, float mat[][4], float *vec)
 {
 	float x,y;
 
@@ -808,7 +808,7 @@ void VecMat4MulVecfl(float *in, const float mat[][4], const float *vec)
 	in[2]= x*mat[0][2] + y*mat[1][2] + mat[2][2]*vec[2] + mat[3][2];
 }
 
-void Mat4Mul3Vecfl(const float mat[][4], float *vec)
+void Mat4Mul3Vecfl( float mat[][4], float *vec)
 {
 	float x,y;
 
@@ -819,7 +819,7 @@ void Mat4Mul3Vecfl(const float mat[][4], float *vec)
 	vec[2]= x*mat[0][2] + y*mat[1][2] + mat[2][2]*vec[2];
 }
 
-void Mat4MulVec4fl(const float mat[][4], float *vec)
+void Mat4MulVec4fl( float mat[][4], float *vec)
 {
 	float x,y,z;
 
@@ -832,7 +832,7 @@ void Mat4MulVec4fl(const float mat[][4], float *vec)
 	vec[3]=x*mat[0][3] + y*mat[1][3] + z*mat[2][3] + mat[3][3]*vec[3];
 }
 
-void Mat3MulVec(const float mat[][3], int *vec)
+void Mat3MulVec( float mat[][3], int *vec)
 {
 	int x,y;
 
@@ -843,7 +843,7 @@ void Mat3MulVec(const float mat[][3], int *vec)
 	vec[2]= (int)(x*mat[0][2] + y*mat[1][2] + mat[2][2]*vec[2]);
 }
 
-void Mat3MulVecfl(const float mat[][3], float *vec)
+void Mat3MulVecfl( float mat[][3], float *vec)
 {
 	float x,y;
 
@@ -854,7 +854,7 @@ void Mat3MulVecfl(const float mat[][3], float *vec)
 	vec[2]= x*mat[0][2] + y*mat[1][2] + mat[2][2]*vec[2];
 }
 
-void Mat3MulVecd(const float mat[][3], double *vec)
+void Mat3MulVecd( float mat[][3], double *vec)
 {
 	double x,y;
 
@@ -865,7 +865,7 @@ void Mat3MulVecd(const float mat[][3], double *vec)
 	vec[2]= x*mat[0][2] + y*mat[1][2] + mat[2][2]*vec[2];
 }
 
-void Mat3TransMulVecfl(const float mat[][3], float *vec)
+void Mat3TransMulVecfl( float mat[][3], float *vec)
 {
 	float x,y;
 
@@ -903,7 +903,7 @@ void Mat4MulFloat3(float *m, float f)		/* only scale component */
 	}
 }
 
-void VecStar(float mat[][3], const float *vec)
+void VecStar(float mat[][3], float *vec)
 {
 
 	mat[0][0]= mat[1][1]= mat[2][2]= 0.0;
@@ -927,7 +927,7 @@ short EenheidsMat(float mat[][3])
 }
 #endif
 
-int FloatCompare(const float *v1, const float *v2, float limit)
+int FloatCompare( float *v1,  float *v2, float limit)
 {
 
 	if( fabs(v1[0]-v2[0])<limit ) {
@@ -938,7 +938,7 @@ int FloatCompare(const float *v1, const float *v2, float limit)
 	return 0;
 }
 
-void printmatrix4(const char *str, const float m[][4])
+void printmatrix4( char *str,  float m[][4])
 {
 	printf("%s\n", str);
 	printf("%f %f %f %f\n",m[0][0],m[0][1],m[0][2],m[0][3]);
@@ -949,7 +949,7 @@ void printmatrix4(const char *str, const float m[][4])
 
 }
 
-void printmatrix3(const char *str, const float m[][3])
+void printmatrix3( char *str,  float m[][3])
 {
 	printf("%s\n", str);
 	printf("%f %f %f\n",m[0][0],m[0][1],m[0][2]);
@@ -962,7 +962,7 @@ void printmatrix3(const char *str, const float m[][3])
 /* **************** QUATERNIONS ********** */
 
 
-void QuatMul(float *q, const float *q1, const float *q2)
+void QuatMul(float *q, float *q1, float *q2)
 {
 	float t0,t1,t2;
 
@@ -975,7 +975,7 @@ void QuatMul(float *q, const float *q1, const float *q2)
 	q[2]=t2;
 }
 
-void QuatSub(float *q, const float *q1, float *q2)
+void QuatSub(float *q, float *q1, float *q2)
 {
 	q2[0]= -q2[0];
 	QuatMul(q, q1, q2);
@@ -983,7 +983,7 @@ void QuatSub(float *q, const float *q1, float *q2)
 }
 
 
-void QuatToMat3(const float *q, float m[][3])
+void QuatToMat3( float *q, float m[][3])
 {
 	double q0, q1, q2, q3, qda,qdb,qdc,qaa,qab,qac,qbb,qbc,qcc;
 
@@ -1016,7 +1016,7 @@ void QuatToMat3(const float *q, float m[][3])
 }
 
 
-void QuatToMat4(const float *q, float m[][4])
+void QuatToMat4( float *q, float m[][4])
 {
 	double q0, q1, q2, q3, qda,qdb,qdc,qaa,qab,qac,qbb,qbc,qcc;
 
@@ -1054,7 +1054,7 @@ void QuatToMat4(const float *q, float m[][4])
 	m[3][3]= 1.0f;
 }
 
-void Mat3ToQuat(const float wmat[][3], float *q)		/* from Sig.Proc.85 pag 253 */
+void Mat3ToQuat( float wmat[][3], float *q)		/* from Sig.Proc.85 pag 253 */
 {
 	double tr, s;
 	float mat[3][3];
@@ -1101,7 +1101,7 @@ void Mat3ToQuat(const float wmat[][3], float *q)		/* from Sig.Proc.85 pag 253 */
 	NormalQuat(q);
 }
 
-void Mat3ToQuat_is_ok(const float wmat[][3], float *q)
+void Mat3ToQuat_is_ok( float wmat[][3], float *q)
 {
 	float mat[3][3], matr[3][3], matn[3][3], q1[4], q2[4], hoek, si, co, nor[3];
 
@@ -1145,7 +1145,7 @@ void Mat3ToQuat_is_ok(const float wmat[][3], float *q)
 }
 
 
-void Mat4ToQuat(const float m[][4], float *q)
+void Mat4ToQuat( float m[][4], float *q)
 {
 	float mat[3][3];
 	
@@ -1176,7 +1176,7 @@ void NormalQuat(float *q)
 	}
 }
 
-float *vectoquat(const float *vec, short axis, short upflag)
+float *vectoquat( float *vec, short axis, short upflag)
 {
 	static float q1[4];
 	float q2[4], nor[3], *fp, mat[3][3], hoek, si, co, x2, y2, z2, len1;
@@ -1274,7 +1274,7 @@ float *vectoquat(const float *vec, short axis, short upflag)
 	return(q1);
 }
 
-void VecUpMat3old(const float *vec, float mat[][3], short axis)
+void VecUpMat3old( float *vec, float mat[][3], short axis)
 {
 	float inp, up[3];
 	short cox = 0, coy = 0, coz = 0;
@@ -1429,7 +1429,7 @@ void i_translate(float Tx, float Ty, float Tz, float mat[][4])
     mat[3][2] += (Tx*mat[0][2] + Ty*mat[1][2] + Tz*mat[2][2]);
 }
 
-void i_multmatrix(const float icand[][4], float Vm[][4])
+void i_multmatrix( float icand[][4], float Vm[][4])
 {
     int row, col;
     float temp[4][4];
@@ -1575,7 +1575,7 @@ void Mat4Ortho(float mat[][4])
 	if(len!=0.0) mat[2][3]/= len;
 }
 
-void VecCopyf(float *v1, const float *v2)
+void VecCopyf(float *v1, float *v2)
 {
 
 	v1[0]= v2[0];
@@ -1583,7 +1583,7 @@ void VecCopyf(float *v1, const float *v2)
 	v1[2]= v2[2];
 }
 
-int VecLen(const int *v1, const int *v2)
+int VecLen( int *v1, int *v2)
 {
 	float x,y,z;
 
@@ -1593,7 +1593,7 @@ int VecLen(const int *v1, const int *v2)
 	return (int)floor(sqrt(x*x+y*y+z*z));
 }
 
-float VecLenf(const float *v1, const float *v2)
+float VecLenf( float *v1, float *v2)
 {
 	float x,y,z;
 
@@ -1603,21 +1603,21 @@ float VecLenf(const float *v1, const float *v2)
 	return (float)sqrt(x*x+y*y+z*z);
 }
 
-void VecAddf(float *v, const float *v1, const float *v2)
+void VecAddf(float *v, float *v1, float *v2)
 {
 	v[0]= v1[0]+ v2[0];
 	v[1]= v1[1]+ v2[1];
 	v[2]= v1[2]+ v2[2];
 }
 
-void VecSubf(float *v, const float *v1, const float *v2)
+void VecSubf(float *v, float *v1, float *v2)
 {
 	v[0]= v1[0]- v2[0];
 	v[1]= v1[1]- v2[1];
 	v[2]= v1[2]- v2[2];
 }
 
-void VecMidf(float *v, const float *v1, const float *v2)
+void VecMidf(float *v, float *v1, float *v2)
 {
 	v[0]= 0.5f*(v1[0]+ v2[0]);
 	v[1]= 0.5f*(v1[1]+ v2[1]);
@@ -1632,7 +1632,7 @@ void VecMulf(float *v1, float f)
 	v1[2]*= f;
 }
 
-int VecCompare(const float *v1, const float *v2, float limit)
+int VecCompare( float *v1, float *v2, float limit)
 {
 	if( fabs(v1[0]-v2[0])<limit )
 		if( fabs(v1[1]-v2[1])<limit )
@@ -1640,7 +1640,7 @@ int VecCompare(const float *v1, const float *v2, float limit)
 	return 0;
 }
 
-void CalcNormShort(const short *v1, const short *v2, const short *v3, float *n) /* is also cross product */
+void CalcNormShort( short *v1, short *v2, short *v3, float *n) /* is also cross product */
 {
 	float n1[3],n2[3];
 
@@ -1656,7 +1656,7 @@ void CalcNormShort(const short *v1, const short *v2, const short *v3, float *n) 
 	Normalise(n);
 }
 
-void CalcNormLong(const int* v1, const int*v2, const int*v3, float *n)
+void CalcNormLong( int* v1, int*v2, int*v3, float *n)
 {
 	float n1[3],n2[3];
 
@@ -1672,7 +1672,7 @@ void CalcNormLong(const int* v1, const int*v2, const int*v3, float *n)
 	Normalise(n);
 }
 
-float CalcNormFloat(const float *v1, const float *v2, const float *v3, float *n)
+float CalcNormFloat( float *v1, float *v2, float *v3, float *n)
 {
 	float n1[3],n2[3];
 
@@ -1688,7 +1688,7 @@ float CalcNormFloat(const float *v1, const float *v2, const float *v3, float *n)
 	return Normalise(n);
 }
 
-float CalcNormFloat4(const float *v1, const float *v2, const float *v3, const float *v4, float *n)
+float CalcNormFloat4( float *v1, float *v2, float *v3, float *v4, float *n)
 {
 	/* real cross! */
 	float n1[3],n2[3];
@@ -1709,7 +1709,7 @@ float CalcNormFloat4(const float *v1, const float *v2, const float *v3, const fl
 }
 
 
-void CalcCent3f(float *cent, const float *v1, const float *v2, const float *v3)
+void CalcCent3f(float *cent, float *v1, float *v2, float *v3)
 {
 
 	cent[0]= 0.33333f*(v1[0]+v2[0]+v3[0]);
@@ -1717,7 +1717,7 @@ void CalcCent3f(float *cent, const float *v1, const float *v2, const float *v3)
 	cent[2]= 0.33333f*(v1[2]+v2[2]+v3[2]);
 }
 
-void CalcCent4f(float *cent, const float *v1, const float *v2, const float *v3, const float *v4)
+void CalcCent4f(float *cent, float *v1, float *v2, float *v3, float *v4)
 {
 
 	cent[0]= 0.25f*(v1[0]+v2[0]+v3[0]+v4[0]);
@@ -1741,7 +1741,7 @@ double Sqrt3d(double d)
 
 /* distance v1 to line v2-v3 */
 /* using Hesse formula, NO LINE PIECE! */
-float DistVL2Dfl(const float *v1,const float *v2,const float *v3)  {
+float DistVL2Dfl( float *v1, float *v2, float *v3)  {
 	float a[2],deler;
 
 	a[0]= v2[1]-v3[1];
@@ -1754,7 +1754,7 @@ float DistVL2Dfl(const float *v1,const float *v2,const float *v3)  {
 }
 
 /* distance v1 to line-piece v2-v3 */
-float PdistVL2Dfl(const float *v1,const float *v2,const float *v3) 
+float PdistVL2Dfl( float *v1, float *v2, float *v3) 
 {
 	float labda, rc[2], pt[2], len;
 	
@@ -1786,13 +1786,13 @@ float PdistVL2Dfl(const float *v1,const float *v2,const float *v3)
 	return (float)sqrt(rc[0]*rc[0]+ rc[1]*rc[1]);
 }
 
-float AreaF2Dfl(const float *v1,const float *v2,const float *v3)
+float AreaF2Dfl( float *v1, float *v2, float *v3)
 {
 	return (float)(0.5*fabs( (v1[0]-v2[0])*(v2[1]-v3[1]) + (v1[1]-v2[1])*(v3[0]-v2[0]) ));
 }
 
 
-float AreaQ3Dfl(const float *v1,const float *v2,const float *v3, const float *v4)  /* only convex Quadrilaterals */
+float AreaQ3Dfl( float *v1, float *v2, float *v3,  float *v4)  /* only convex Quadrilaterals */
 {
 	float len, vec1[3], vec2[3], n[3];
 
@@ -1809,7 +1809,7 @@ float AreaQ3Dfl(const float *v1,const float *v2,const float *v3, const float *v4
 	return (len/2.0f);
 }
 
-float AreaT3Dfl(const float *v1,const float *v2,const float *v3)  /* Triangles */
+float AreaT3Dfl( float *v1, float *v2, float *v3)  /* Triangles */
 {
 	float len, vec1[3], vec2[3], n[3];
 
@@ -1825,10 +1825,10 @@ float AreaT3Dfl(const float *v1,const float *v2,const float *v3)  /* Triangles *
 #define MAX3(x,y,z)		MAX2( MAX2((x),(y)) , (z) )
 
 
-float AreaPoly3Dfl(int nr, const float *verts, const float *normal)
+float AreaPoly3Dfl(int nr, float *verts, float *normal)
 {
 	float x, y, z, area, max;
-	const float *cur, *prev;
+	float *cur, *prev;
 	int a, px=0, py=1;
 
 	/* first: find dominant axis: 0==X, 1==Y, 2==Z */
@@ -1855,7 +1855,7 @@ float AreaPoly3Dfl(int nr, const float *verts, const float *normal)
 	return (float)fabs(0.5*area/max);
 }
 
-void MinMax3(float *min, float *max, const float *vec)
+void MinMax3(float *min, float *max, float *vec)
 {
 	if(min[0]>vec[0]) min[0]= vec[0];
 	if(min[1]>vec[1]) min[1]= vec[1];
@@ -1868,7 +1868,7 @@ void MinMax3(float *min, float *max, const float *vec)
 
 /* ************ EULER *************** */
 
-void EulToMat3(const float *eul, float mat[][3])
+void EulToMat3( float *eul, float mat[][3])
 {
 	double ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
 	
@@ -1895,7 +1895,7 @@ void EulToMat3(const float *eul, float mat[][3])
 
 }
 
-void EulToMat4(const float *eul,float mat[][4])
+void EulToMat4( float *eul,float mat[][4])
 {
 	double ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
 	
@@ -1926,8 +1926,7 @@ void EulToMat4(const float *eul,float mat[][4])
 }
 
 
-void Mat3ToEul(
-	const float tmat[][3], float *eul
+void Mat3ToEul(float tmat[][3], float *eul
 ){
 	float cy, quat[4], mat[3][3];
 	
@@ -1949,7 +1948,7 @@ void Mat3ToEul(
 	}
 }
 
-void Mat3ToEuln(const float tmat[][3], float *eul)
+void Mat3ToEuln( float tmat[][3], float *eul)
 {
 	float sin1, cos1, sin2, cos2, sin3, cos3;
 	
@@ -1976,7 +1975,7 @@ void Mat3ToEuln(const float tmat[][3], float *eul)
 } 
 
 
-void QuatToEul(const float *quat, float *eul)
+void QuatToEul( float *quat, float *eul)
 {
 	float mat[3][3];
 	
@@ -1984,7 +1983,7 @@ void QuatToEul(const float *quat, float *eul)
 	Mat3ToEul(mat, eul);
 }
 
-void QuatToSpher(const float *quat, float *sph)
+void QuatToSpher( float *quat, float *sph)
 /* Not working 100% yet I don't think... */
 {
 	float tx, ty, tz;
@@ -2023,7 +2022,7 @@ void QuatToSpher(const float *quat, float *sph)
 	sph[2] = (float)(acos(cos_theta) * 2.0) ;
 }
 
-void Mat3ToSpher (const float *mat3, float *sph)
+void Mat3ToSpher ( float *mat3, float *sph)
 {
 	float quat[4];
 
@@ -2032,7 +2031,7 @@ void Mat3ToSpher (const float *mat3, float *sph)
 }
 
 
-void EulToQuat(const float *eul, float *quat)
+void EulToQuat( float *eul, float *quat)
 {
     float ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
  
@@ -2047,7 +2046,7 @@ void EulToQuat(const float *eul, float *quat)
 	quat[3] = cj*cs - sj*sc;
 }
 
-void VecRotToMat3(const float *vec, float phi, float mat[][3])
+void VecRotToMat3( float *vec, float phi, float mat[][3])
 {
 	/* rotation of phi radials around vec */
 	float vx, vx2, vy, vy2, vz, vz2, co, si;
@@ -2073,7 +2072,7 @@ void VecRotToMat3(const float *vec, float phi, float mat[][3])
 	
 }
 
-void VecRotToQuat(const float *vec, float phi, float *quat)
+void VecRotToQuat( float *vec, float phi, float *quat)
 {
 	/* rotation of phi radials around vec */
 	float si;
@@ -2114,7 +2113,7 @@ void euler_rot(float *beul, float ang, char axis)
 
 
 
-void SizeToMat3(const float *size, float mat[][3])
+void SizeToMat3( float *size, float mat[][3])
 {
 	mat[0][0]= size[0];
 	mat[0][1]= 0.0;
@@ -2127,7 +2126,7 @@ void SizeToMat3(const float *size, float mat[][3])
 	mat[2][0]= 0.0;
 }
 
-void Mat3ToSize(const float mat[][3], float *size)
+void Mat3ToSize( float mat[][3], float *size)
 {
 	float vec[3];
 
@@ -2141,7 +2140,7 @@ void Mat3ToSize(const float mat[][3], float *size)
 
 }
 
-void Mat4ToSize(const float mat[][4], float *size)
+void Mat4ToSize( float mat[][4], float *size)
 {
 	float vec[3];
 	
@@ -2156,7 +2155,7 @@ void Mat4ToSize(const float mat[][4], float *size)
 
 /* ************* SPECIALS ******************* */
 
-void triatoquat(const float *v1, const float *v2, const float *v3, float *quat)
+void triatoquat( float *v1,  float *v2,  float *v3, float *quat)
 {
 	/* imaginary x-axis, y-axis triangle is being rotated */
 	float vec[3], q1[4], q2[4], n[3], si, co, hoek, mat[3][3], imat[3][3];

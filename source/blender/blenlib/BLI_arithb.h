@@ -101,19 +101,19 @@ extern "C" {
 
 	void 
 CalcCent3f(
-	float *cent, const float *v1, const float *v2, const float *v3
+	float *cent,  float *v1, float *v2, float *v3
 );
 
 	void 
 CalcCent4f(
-	float *cent, const float *v1, 
-	const float *v2, const float *v3,
-	const float *v4
+	float *cent, float *v1, 
+	float *v2, float *v3,
+	float *v4
 );
 
 	void 
 Crossf(
-	float *c, const float *a, const float *b
+	float *c, float *a, float *b
 );
 
 /**
@@ -122,18 +122,18 @@ Crossf(
 
 	void 
 EulToMat3(
-	const float *eul, 
+	float *eul, 
 	float mat[][3]
 );
 	void 
 EulToMat4(
-	const float* eul, 
+	float* eul, 
 	float mat[][4]
 );
 
 	void 
 Mat3ToEul(
-	const float tmat[][3],
+	float tmat[][3],
 	float *eul
 );
 
@@ -143,7 +143,7 @@ Mat3ToEul(
 
 	void 
 QuatToEul(
-	const float *quat, 
+	float *quat, 
 	float *eul
 );
 	void 
@@ -153,8 +153,8 @@ QuatOne(
 	void 
 QuatMul(
 	float *, 
-	const float *, 
-	const float *
+	float *, 
+	float *
 );
 	void 
 NormalQuat(
@@ -162,14 +162,14 @@ NormalQuat(
 );
 	void 
 VecRotToQuat(
-	const float *vec,
+	float *vec,
 	float phi,
 	float *quat
 );
 	void 
 QuatSub(
 	float *q, 
-	const float *q1, 
+	float *q1, 
 	float *q2
 );
 
@@ -203,39 +203,39 @@ Mat4Transp(
 	int 
 Mat4Invert(
 	float inverse[][4], 
-	const float mat[][4]
+	float mat[][4]
 );
 	void 
 Mat4InvertSimp(
 	float inverse[][4],
-	const float mat[][4]
+	float mat[][4]
 );
 	void 
 Mat4Inv(
 	float *m1, 
-	const float *m2
+	float *m2
 );
 	void 
 Mat4InvGG(
 	float out[][4], 
-	const float in[][4]
+	float in[][4]
 );
 	void 
 Mat3CpyMat4(
 	float m1[][3],
-	const float m2[][4]
+	float m2[][4]
 );
 
 	void 
 Mat3Inv(
 	float m1[][3], 
-	const float m2[][3]
+	float m2[][3]
 );
 
 	void 
 Mat4CpyMat3(
 	float m1[][4], 
-	const float m2[][3]
+	float m2[][3]
 ); 
 
 	float 
@@ -252,56 +252,56 @@ Det3x3(
 
 	float 
 Det4x4(
-	const float m[][4]
+	float m[][4]
 );
 
 	void 
 Mat4Adj(
 	float out[][4], 
-	const float in[][4]
+	float in[][4]
 );
 	void 
 Mat3Adj(
 	float m1[][3], 
-	const float m[][3]
+	float m[][3]
 );
 	void 
 Mat4MulMat4(
 	float m1[][4], 
-	const float m2[][4], 
-	const float m3[][4]
+	float m2[][4], 
+	float m3[][4]
 );
 	void 
 subMat4MulMat4(
 	float *m1, 
-	const float *m2, 
-	const float *m3
+	float *m2, 
+	float *m3
 );
 #ifndef TEST_ACTIVE
 	void 
 Mat3MulMat3(
 	float m1[][3], 
-	const float m3[][3], 
-	const float m2[][3]
+	float m3[][3], 
+	float m2[][3]
 );
 #else
 	void 
 Mat3MulMat3(
 	float *m1, 
-	const float *m3, 
-	const float *m2
+	float *m3, 
+	float *m2
 );
 #endif
 	void 
 Mat4MulMat34(
 	float (*m1)[4], 
-	const float (*m3)[3], 
-	const float (*m2)[4]
+	float (*m3)[3], 
+	float (*m2)[4]
 );
 	void 
 Mat4CpyMat4(
 	float m1[][4], 
-	const float m2[][4]
+	float m2[][4]
 );
 	void 
 Mat4SwapMat4(
@@ -311,22 +311,22 @@ Mat4SwapMat4(
 	void 
 Mat3CpyMat3(
 	float m1[][3], 
-	const float m2[][3]
+	float m2[][3]
 );
 	void 
 Mat3MulSerie(
 	float answ[][3],
-	const float m1[][3], const float m2[][3], const float m3[][3],
-	const float m4[][3], const float m5[][3], const float m6[][3],
-	const float m7[][3], const float m8[][3]
+	float m1[][3], float m2[][3], float m3[][3],
+	float m4[][3], float m5[][3], float m6[][3],
+	float m7[][3], float m8[][3]
 );
 	void 
 Mat4MulSerie(
 	float answ[][4], 
-	const float m1[][4],
-	const float m2[][4], const float m3[][4], const float m4[][4],
-	const float m5[][4], const float m6[][4], const float m7[][4],
-	const float m8[][4]
+	float m1[][4],
+	float m2[][4], float m3[][4], float m4[][4],
+	float m5[][4], float m6[][4], float m7[][4],
+	float m8[][4]
 );
 	void 
 Mat4Clr(
@@ -342,27 +342,27 @@ Mat3One(
 );
 	void 
 Mat4MulVec(
-	const float mat[][4],
+	float mat[][4],
 	int *vec
 );
 	void 
 VecMat4MulVecfl(
 	float *in, 
-	const float mat[][4], 
-	const float *vec
+	float mat[][4], 
+	float *vec
 );
 	void 
 Mat4MulMat43(
 	float (*m1)[4], 
-	const float (*m3)[4], 
-	const float (*m2)[3]
+	float (*m3)[4], 
+	float (*m2)[3]
 );
 
 	void 
 Mat3IsMat3MulMat4(
 	float m1[][3], 
-	const float m2[][3], 
-	const float m3[][4]
+	float m2[][3], 
+	float m3[][4]
 );
 	void 
 Mat4One(
@@ -370,39 +370,39 @@ Mat4One(
 );
 	void 
 Mat4Mul3Vecfl(
-	const float mat[][4], 
+	float mat[][4], 
 	float *vec
 );
 	void 
 Mat4MulVec4fl(
-	const float mat[][4], 
+	float mat[][4], 
 	float *vec
 );
 	void 
 Mat3MulVec(
-	const float mat[][3],
+	float mat[][3],
 	int *vec
 );
 	void 
 Mat4MulVecfl(
-	const float mat[][4], 
+	float mat[][4], 
 	float *vec
 );
 	void 
 Mat4ToQuat(
-	const float m[][4], 
+	float m[][4], 
 	float *q
 );
 	void 
 VecUpMat3old(
-	const float *vec, 
+	float *vec, 
 	float mat[][3], 
 	short axis
 );
 	int 
 FloatCompare(
-	const float *v1, 
-	const float *v2, 
+	float *v1, 
+	float *v2, 
 	float limit
 );
 	float 
@@ -411,24 +411,24 @@ Normalise(
 );
 	float 
 CalcNormFloat(
-	const float *v1,
-	const float *v2,
-	const float *v3,
+	float *v1,
+	float *v2,
+	float *v3,
 	float *n
 );
 
 	float 
 CalcNormFloat4(
-	const float *v1,
-	const float *v2,
-	const float *v3,
-	const float *v4,
+	float *v1,
+	float *v2,
+	float *v3,
+	float *v4,
 	float *n
 );
 	float 
 VecLenf(
-	const float *v1, 
-	const float *v2
+	float *v1, 
+	float *v2
 );
 	void 
 VecMulf(
@@ -437,8 +437,8 @@ VecMulf(
 );
 	int 
 VecCompare(
-	const float *v1, 
-	const float *v2, 
+	float *v1, 
+	float *v2, 
 	float limit
 );
 	float 
@@ -466,20 +466,20 @@ sasqrt(
 );
 	float 
 Inpf(
-	const float *v1, 
-	const float *v2
+	float *v1, 
+	float *v2
 );
 	void 
 VecSubf(
 	float *v, 
-	const float *v1, 
-	const float *v2
+	float *v1, 
+	float *v2
 );
 	void 
 VecAddf(
 	float *v, 
-	const float *v1, 
-	const float *v2
+	float *v1, 
+	float *v2
 );
 	void 
 VecUpMat3(
@@ -489,50 +489,50 @@ VecUpMat3(
 );
 	float 
 DistVL2Dfl(
-	const float *v1,
-	const float *v2,
-	const float *v3
+	float *v1,
+	float *v2,
+	float *v3
 );
 	float 
 PdistVL2Dfl(
-	const float *v1,
-	const float *v2,
-	const float *v3
+	float *v1,
+	float *v2,
+	float *v3
 );
 	float 
 AreaF2Dfl(
-	const float *v1, 
-	const float *v2, 
-	const float *v3
+	float *v1, 
+	float *v2, 
+	float *v3
 );
 	float 
 AreaQ3Dfl(
-	const float *v1, 
-	const float *v2, 
-	const float *v3, 
-	const float *v4
+	float *v1, 
+	float *v2, 
+	float *v3, 
+	float *v4
 );
 	float 
 AreaT3Dfl(
-	const float *v1, 
-	const float *v2, 
-	const float *v3
+	float *v1, 
+	float *v2, 
+	float *v3
 );
 	float 
 AreaPoly3Dfl(
 	int nr, 
-	const float *verts, 
-	const float *normal
+	float *verts, 
+	float *normal
 );
 	void 
 VecRotToMat3(
-	const float *vec, 
+	float *vec, 
 	float phi, 
 	float mat[][3]
 );
 	float *
 vectoquat(
-	const float *vec, 
+	float *vec, 
 	short axis, 
 	short upflag
 );
@@ -580,29 +580,29 @@ cpack_to_rgb(
 
 	void 
 EulToQuat(
-	const float *eul, 
+	float *eul, 
 	float *quat
 );
 
 	void 
 Mat3MulVecfl(
-	const float mat[][3], 
+	float mat[][3], 
 	float *vec
 );
 	void 
 Mat3MulVecd(
-	const float mat[][3], 
+	float mat[][3], 
 	double *vec
 );
 	void 
 Mat3TransMulVecfl(
-	const float mat[][3], 
+	float mat[][3], 
 	float *vec
 );
 	void 
 VecStar(
 	float mat[][3],
-	const float *vec
+	float *vec
 );
 	short 
 EenheidsMat(
@@ -610,31 +610,31 @@ EenheidsMat(
 );
 	void 
 printmatrix3(
-	const char *str, const float m[][3]
+	char *str, float m[][3]
 );
 	void 
 QuatToMat3(
-	const float *q, 
+	float *q, 
 	float m[][3]
 );
 	void 
 QuatToMat4(
-	const float *q, 
+	float *q, 
 	float m[][4]
 );
 	void 
 QuatToSpher(
-	const float *quat, 
+	float *quat, 
 	float *sph
 );
 	void 
 Mat3ToSpher(
-	const float *mat, 
+	float *mat, 
 	float *sph
 );
 	void 
 Mat3ToQuat_is_ok(
-	const float wmat[][3], 
+	float wmat[][3], 
 	float *q
 );
 	void 
@@ -660,53 +660,53 @@ Mat4Ortho(
 	void 
 VecCopyf(
 	float *v1, 
-	const float *v2
+	float *v2
 );
 	int 
 VecLen(
-	const int *v1, 
-	const int *v2
+	int *v1, 
+	int *v2
 );
 	void 
 CalcNormShort(
-	const short *v1, 
-	const short *v2, 
-	const short *v3, 
+	short *v1, 
+	short *v2, 
+	short *v3, 
 	float *n
 ) /* is ook uitprodukt */;
 
 	void 
 CalcNormLong(
-	const int* v1, 
-	const int*v2, 
-	const int*v3, 
+	int* v1, 
+	int*v2, 
+	int*v3, 
 	float *n
 );
 	void 
 MinMax3(
 	float *min, 
 	float *max, 
-	const float *vec
+	float *vec
 );
 	void 
 Mat3ToEuln(
-	const float tmat[][3],
+	float tmat[][3],
 	float *eul
 );
 	void 
 SizeToMat3(
-	const float *size, 
+	float *size, 
 	float mat[][3]
 );
 	void 
 printmatrix4(
-	const char *str, 
-	const float m[][4]
+	char *str, 
+	float m[][4]
 );
 /* uit Sig.Proc.85 pag 253 */
 	void 
 Mat3ToQuat(
-	const float wmat[][3],
+	float wmat[][3],
 	float *q
 );
 	void 
@@ -718,7 +718,7 @@ i_translate(
 );
 	void 
 i_multmatrix(
-	const float icand[][4], 
+	float icand[][4], 
 	float Vm[][4]
 );
 	void 
@@ -729,21 +729,21 @@ i_rotate(
 );
 	void 
 VecMidf(
-	float *v, const float *v1, const float *v2
+	float *v, float *v1, float *v2
 );
 	void 
 Mat3ToSize(
-	const float mat[][3], float *size
+	float mat[][3], float *size
 );
 	void 
 Mat4ToSize(
-	const float mat[][4], float *size
+	float mat[][4], float *size
 );
 	void 
 triatoquat(
-	const float *v1, 
-	const float *v2, 
-	const float *v3, float *quat
+	float *v1, 
+	float *v2, 
+	float *v3, float *quat
 );
 	void 
 MinMaxRGB(
