@@ -132,12 +132,9 @@ void undo_editmode_push(char *name, void (*freedata)(void *),
 	UndoElem *uel;
 	int nr;
 
-	/* prevent two same undocalls */
-	if(curundo && strcmp("Original", name)==0) {
-		if( curundo->ob==G.obedit && curundo->type==G.obedit->type) {
-			return;
-		}
-	}
+	/* at first here was code to prevent an "original" key to be insterted twice
+	   this was giving conflicts for example when mesh changed due to keys or apply */
+	
 	/* remove all undos after (also when curundo==NULL) */
 	while(undobase.last != curundo) {
 		uel= undobase.last;
