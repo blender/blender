@@ -578,7 +578,7 @@ static int cubemap_glob(MTex *mtex, VlakRen *vlr, float x, float y, float z, flo
 	int ret;
 	
 	if(vlr==NULL) {
-		nor[0]= 0.0; nor[1]= 0.0; nor[2]= 1.0;
+		nor[0]= x; nor[1]= y; nor[2]= z;	// use local render coord
 	}
 	else {
 		VECCOPY(nor, vlr->n);
