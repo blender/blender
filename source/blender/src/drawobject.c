@@ -3100,33 +3100,31 @@ static void drawmball(Object *ob, int dt)
 		BIF_ThemeColor(TH_WIRE);
 		if((G.f & G_PICKSEL)==0 ) drawDispList(ob, dt);
 		ml= editelems.first;
+
+		mygetmatrix(tmat);
+		Mat4Invert(imat, tmat);
+		Normalise(imat[0]);
+		Normalise(imat[1]);
+		
+		while(ml) {
+			
+			if(ob==G.obedit) {
+				if(ml->flag & SELECT) cpack(0xA0A0F0);
+				else cpack(0x3030A0);
+				
+				if(G.f & G_PICKSEL) {
+					ml->selcol= code;
+					glLoadName(code++);
+				}
+			}
+			drawcircball(&(ml->x), ml->rad, imat);
+			
+			ml= ml->next;
+		}
 	}
 	else {
 		drawDispList(ob, dt);
-		ml= mb->elems.first;
 	}
-
-	mygetmatrix(tmat);
-	Mat4Invert(imat, tmat);
-	Normalise(imat[0]);
-	Normalise(imat[1]);
-	
-	while(ml) {
-		
-		if(ob==G.obedit) {
-			if(ml->flag & SELECT) cpack(0xA0A0F0);
-			else cpack(0x3030A0);
-			
-			if(G.f & G_PICKSEL) {
-				ml->selcol= code;
-				glLoadName(code++);
-			}
-		}
-		drawcircball(&(ml->x), ml->rad, imat);
-		
-		ml= ml->next;
-	}
-
 }
 
 static void draw_bb_box(BoundBox *bb)
@@ -3367,6 +3365,7 @@ static void draw_solid_select(Object *ob)
 	case OB_MESH:
 		drawSolidSelect(ob, NULL);
 		break;
+	case OB_FONT:
 	case OB_CURVE:
 	case OB_SURF:
 		cu= ob->data;
@@ -3419,6 +3418,7 @@ static void draw_extra_wire(Object *ob)
 	case OB_MESH:
 		drawWireExtra(ob, NULL);
 		break;
+	case OB_FONT:
 	case OB_CURVE:
 	case OB_SURF:
 		cu= ob->data;
@@ -3602,130 +3602,118 @@ void draw_object(Base *base)
 		}
 	}
 
-	if( (G.f & G_DRAW_EXT) && dt>OB_WIRE) {
-		
-		switch( ob->type) {
-		case OB_MBALL:
-			drawmball(ob, dt);
-			break;
-		}
-	}
-	else {
-		
-		/* draw outline for selected solid objects */
-		if(dt>OB_WIRE && ob!=G.obedit && (G.f & G_BACKBUFSEL)==0) draw_solid_select(ob);
+	/* draw outline for selected solid objects */
+	if(dt>OB_WIRE && ob!=G.obedit && (G.f & G_BACKBUFSEL)==0) draw_solid_select(ob);
 
-		switch( ob->type) {
-			
-		case OB_MESH:
-			me= ob->data;
+	switch( ob->type) {
+		
+	case OB_MESH:
+		me= ob->data;
 
 #if 0
-			/* this is a source of great slowness */
-#ifdef __NLA
-			/* Force a refresh of the display list if the parent is an armature */
-			if (ob->parent && ob->parent->type==OB_ARMATURE && ob->partype==PARSKEL){
+		/* this is a source of great slowness */
+		/* Force a refresh of the display list if the parent is an armature */
+		if (ob->parent && ob->parent->type==OB_ARMATURE && ob->partype==PARSKEL){
 #if 0			/* Turn this on if there are problems with deformation lag */
-				where_is_armature (ob->parent);
+			where_is_armature (ob->parent);
 #endif
-				if (ob != G.obedit)
-					makeDispList (ob);
-			}
+			if (ob != G.obedit)
+				makeDispList (ob);
+		}
 #endif
-#endif
-			if(base->flag & OB_RADIO);
-			else if(ob==G.obedit || (G.obedit && ob->data==G.obedit->data)) {
-				if(dt<=OB_WIRE) drawmeshwire(ob);
-				else {
-					if(mesh_uses_displist(me)) {
-						init_gl_materials(ob);
-						two_sided( me->flag & ME_TWOSIDED );
-						drawDispListsolid(&me->disp, ob);
-					}
-					else {
-						drawmeshsolid(ob, 0);
-					}
-					dtx |= OB_DRAWWIRE;	// draws edges, transp faces, subsurf handles, vertices
-				}
-				if(ob==G.obedit && (G.f & G_PROPORTIONAL)) draw_prop_circle();
-			}
+		if(base->flag & OB_RADIO);
+		else if(ob==G.obedit || (G.obedit && ob->data==G.obedit->data)) {
+			if(dt<=OB_WIRE) drawmeshwire(ob);
 			else {
-				Material *ma= give_current_material(ob, 1);
-				
-				if(ob_from_decimator(ob)) drawDispListwire(&ob->disp);
-				else if(dt==OB_BOUNDBOX) draw_bounding_volume(ob);
-				else if(dt==OB_WIRE) drawmeshwire(ob);
-				else if(ma && (ma->mode & MA_HALO)) drawmeshwire(ob);
-				else if(me->tface) {
-					if(G.f & G_BACKBUFSEL) drawmeshsolid(ob, 0);					
-					else if(G.f & G_FACESELECT || G.vd->drawtype==OB_TEXTURE) {
-						draw_tface_mesh(ob, ob->data, dt);
-					}
-					else drawDispList(ob, dt);
+				if(mesh_uses_displist(me)) {
+					init_gl_materials(ob);
+					two_sided( me->flag & ME_TWOSIDED );
+					drawDispListsolid(&me->disp, ob);
+				}
+				else {
+					drawmeshsolid(ob, 0);
+				}
+				dtx |= OB_DRAWWIRE;	// draws edges, transp faces, subsurf handles, vertices
+			}
+			if(ob==G.obedit && (G.f & G_PROPORTIONAL)) draw_prop_circle();
+		}
+		else {
+			Material *ma= give_current_material(ob, 1);
+			
+			if(ob_from_decimator(ob)) drawDispListwire(&ob->disp);
+			else if(dt==OB_BOUNDBOX) draw_bounding_volume(ob);
+			else if(dt==OB_WIRE) drawmeshwire(ob);
+			else if(ma && (ma->mode & MA_HALO)) drawmeshwire(ob);
+			else if(me->tface) {
+				if(G.f & G_BACKBUFSEL) drawmeshsolid(ob, 0);					
+				else if(G.f & G_FACESELECT || G.vd->drawtype==OB_TEXTURE) {
+					draw_tface_mesh(ob, ob->data, dt);
 				}
 				else drawDispList(ob, dt);
 			}
-			if( (ob!=G.obedit) && ((G.f & (G_BACKBUFSEL+G_PICKSEL)) == 0) ) {
-				paf = give_parteff(ob);
-				if( paf ) {
-					if(col) cpack(0xFFFFFF);	/* for visibility */
-					if(paf->flag & PAF_STATIC) draw_static_particle_system(ob, paf);
-					else draw_particle_system(ob, paf);
-					cpack(col);
-				}
-			}
-			
-			break;
-		case OB_FONT:
-			cu= ob->data;
-			if(ob==G.obedit) {
-				tekentextcurs();
-				cpack(0xFFFF90);
-				drawDispList(ob, OB_WIRE);
-			}
-			else if(dt==OB_BOUNDBOX) draw_bounding_volume(ob);
-			else if(boundbox_clip(ob->obmat, cu->bb)) drawDispList(ob, dt);
-				
-			break;
-		case OB_CURVE:
-		case OB_SURF:
-			cu= ob->data;
-			
-			if(ob==G.obedit) {
-				drawnurb(ob, editNurb.first, dt);
-				if((G.f & G_PROPORTIONAL)) draw_prop_circle();
-			}
-			else if(dt==OB_BOUNDBOX) draw_bounding_volume(ob);
-			else if(boundbox_clip(ob->obmat, cu->bb)) drawDispList(ob, dt);
-			
-			break;
-		case OB_MBALL:
-			if(ob==G.obedit) drawmball(ob, dt);
-			else if(dt==OB_BOUNDBOX) draw_bounding_volume(ob);
-			else drawmball(ob, dt);
-			break;
-		case OB_EMPTY:
-			drawaxes(1.0);
-			break;
-		case OB_LAMP:
-			/* does a myloadmatrix */
-			drawlamp(ob);
-			if(dtx) mymultmatrix(ob->obmat);
-			break;
-		case OB_CAMERA:
-			drawcamera(ob);
-			break;
-		case OB_LATTICE:
-			drawlattice(ob);
-			if(ob==G.obedit && (G.f & G_PROPORTIONAL)) draw_prop_circle();
-			break;
-		case OB_ARMATURE:
-			draw_armature (ob);
-			break;
-		default:
-			drawaxes(1.0);
+			else drawDispList(ob, dt);
 		}
+		if( (ob!=G.obedit) && ((G.f & (G_BACKBUFSEL+G_PICKSEL)) == 0) ) {
+			paf = give_parteff(ob);
+			if( paf ) {
+				if(col) cpack(0xFFFFFF);	/* for visibility */
+				if(paf->flag & PAF_STATIC) draw_static_particle_system(ob, paf);
+				else draw_particle_system(ob, paf);
+				cpack(col);
+			}
+		}
+		
+		break;
+	case OB_FONT:
+		cu= ob->data;
+		if(ob==G.obedit) {
+			tekentextcurs();
+			cpack(0xFFFF90);
+			drawDispList(ob, OB_WIRE);
+		}
+		else if(dt==OB_BOUNDBOX) draw_bounding_volume(ob);
+		else if(boundbox_clip(ob->obmat, cu->bb)) drawDispList(ob, dt);
+			
+		break;
+	case OB_CURVE:
+	case OB_SURF:
+		cu= ob->data;
+		
+		if(ob==G.obedit) {
+			drawnurb(ob, editNurb.first, dt);
+			if((G.f & G_PROPORTIONAL)) draw_prop_circle();
+		}
+		else if(dt==OB_BOUNDBOX) draw_bounding_volume(ob);
+		else if(boundbox_clip(ob->obmat, cu->bb)) drawDispList(ob, dt);
+		
+		break;
+	case OB_MBALL:
+		if(ob==G.obedit) drawmball(ob, dt);
+		else if(dt==OB_BOUNDBOX) draw_bounding_volume(ob);
+		else drawmball(ob, dt);
+		break;
+	case OB_EMPTY:
+		drawaxes(1.0);
+		break;
+	case OB_LAMP:
+		/* does a myloadmatrix */
+		drawlamp(ob);
+		if(dtx) mymultmatrix(ob->obmat);
+		break;
+	case OB_CAMERA:
+		drawcamera(ob);
+		break;
+	case OB_LATTICE:
+		drawlattice(ob);
+		if(ob==G.obedit && (G.f & G_PROPORTIONAL)) draw_prop_circle();
+		break;
+	case OB_ARMATURE:
+		draw_armature (ob);
+		break;
+	default:
+		drawaxes(1.0);
 	}
+
 
 	/* draw extra: after normal draw because of makeDispList */
 	if(dtx) {
