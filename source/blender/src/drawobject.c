@@ -1810,7 +1810,7 @@ static void draw_mesh_faces(Object *ob, int useBuildVars, float *extverts, float
 				
 			new_glmode = v4?GL_QUADS:GL_TRIANGLES;
 			new_matnr = mface->mat_nr+1;
-			new_shademodel = !(me->flag&ME_AUTOSMOOTH) && (mface->flag & ME_SMOOTH);
+			new_shademodel = (!(me->flag&ME_AUTOSMOOTH) && (mface->flag & ME_SMOOTH))?GL_SMOOTH:GL_FLAT;
 			
 			if (new_glmode!=glmode || new_matnr!=matnr || new_shademodel!=shademodel) {
 				glEnd();
