@@ -219,7 +219,7 @@ Process(
 	/* Try and snip this triangle off from the 
 	   current polygon.*/
 
-    if ( Snip(verts,contour,u,v,w,nv, &m_V[0]) )
+	if ( Snip(verts,contour,u,v,w,nv,m_V.begin()) )
     {
       int a,b,c,s,t;
 

@@ -66,7 +66,7 @@ Duplicate(
 		int output = Size();
 		IncSize();
 
-		memcpy(&m_data[ m_data.size() - 1 - m_width ], record, m_width);
+		memcpy(m_data.end() - m_width,record,m_width);
 	
 		return output;
 	}
@@ -80,8 +80,9 @@ Duplicate(
 ){
 	if (m_width) {
 		IncSize();
-		memcpy(&m_data[ m_data.size() - 1 - m_width ], 
-			&m_data[ record_index * m_width], m_width);
+
+		memcpy(m_data.end() - m_width,m_data.begin() + 
+			   record_index * m_width,m_width);
 	}
 }	
 
@@ -93,7 +94,7 @@ Copy(
 	int pos
 ){
 	if (m_width) {
-		memcpy(output, &m_data[m_width*pos],m_width);
+	  memcpy(output,m_data.begin() + m_width*pos,m_width);
 	}
 }
 	void
@@ -132,6 +133,6 @@ BSP_CSGUserData::
 operator [] (
 	const int pos
 ){
-	return &m_data[ m_width*pos ];
+	  return m_data.begin() + m_width*pos;
 }
 
