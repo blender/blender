@@ -2317,9 +2317,10 @@ static int ui_do_but_HSVCUBE(uiBut *but)
 			
 			/* relative position within box */
 			x= ((float)mval[0]-but->x1)/(but->x2-but->x1);
-			y= ((float)mval[1]-but->y1)/(but->x2-but->x1);
+			y= ((float)mval[1]-but->y1)/(but->y2-but->y1);
 			
 			/* we're hacking values now to prevent rgb_to_hsv working wrong */
+			/* (ton) doesnt work yet... */
 			CLAMP(x, 0.0005, 0.9995);
 			CLAMP(y, 0.0005, 0.9995);
 			
