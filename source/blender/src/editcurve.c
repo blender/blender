@@ -3997,7 +3997,11 @@ static void undoCurve_to_editCurve(void *lbv)
 {
 	ListBase *lb= lbv;
 	Nurb *nu, *newnu;
+	int nr, lastnunr= 0;
 
+	/* we try to restore lastnu too, for buttons */
+	for(nu= editNurb.first; nu; nu = nu->next, lastnunr++) if(nu==lastnu) break;
+	
 	freeNurblist(&editNurb);
 
 	/* copy  */
@@ -4007,6 +4011,9 @@ static void undoCurve_to_editCurve(void *lbv)
 		BLI_addtail(&editNurb, newnu);
 		nu= nu->next;
 	}
+	/* restore */
+	for(nr=0, lastnu= editNurb.first; lastnu; lastnu = lastnu->next, nr++) if(nr==lastnunr) break;
+	
 }
 
 static void *editCurve_to_undoCurve(void)

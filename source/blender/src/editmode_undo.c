@@ -117,7 +117,7 @@ static void undo_restore(UndoElem *undo)
 {
 	if(undo) {
 		waitcursor(1);
-		undo->to_editmode(undo->undodata);	// also frees editmode itself
+		undo->to_editmode(undo->undodata);	
 		waitcursor(0);
 	
 		countall();
