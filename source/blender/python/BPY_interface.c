@@ -175,7 +175,13 @@ void BPY_Err_Handle(Text *text)
     PyErr_Restore(exception, err, tb); // takes away reference!
     PyErr_Print();
     tb = PySys_GetObject("last_traceback");
-    Py_XINCREF(tb);
+
+		if (!tb) {
+			printf("\nCan't get traceback\n");
+			return;
+		}
+
+    Py_INCREF(tb);
 
 /* From old bpython BPY_main.c:
  * 'check traceback objects and look for last traceback in the
@@ -422,41 +428,6 @@ int BPY_call_importloader(char *name)
   return (0);
 }
 
-/* XXX THE 3 FUNCTIONS BELOW ARE IMPLEMENTED IN DRAW.C */
-
-/*****************************************************************************/
-/* Description:                                                              */
-/* Notes:       Not implemented yet                                          */
-/*****************************************************************************/
-//int BPY_spacetext_is_pywin(struct SpaceText *st)
-//{
-//  /* No printf is done here because it is called with every mouse move */
-//  return (0);
-//}
-
-/*****************************************************************************/
-/* Description:                                                              */
-/* Notes:       Not implemented yet                                          */
-/*****************************************************************************/
-//void BPY_spacetext_do_pywin_draw(struct SpaceText *st)
-//{
-//  printf ("In BPY_spacetext_do_pywin_draw\n");
-//  return;
-//}
-
-/*****************************************************************************/
-/* Description:                                                              */
-/* Notes:       Not implemented yet                                          */
-/*****************************************************************************/
-//void BPY_spacetext_do_pywin_event(struct SpaceText *st,
-//                                  unsigned short event,
-//                                  short val)
-//{
-//  printf ("In BPY_spacetext_do_pywin_event(st=?, event=%d, val=%d)\n",
-//          event, val);
-//  return;
-//}
-
 /*****************************************************************************/
 /* Private functions                                                         */
 /*****************************************************************************/
@@ -476,7 +447,37 @@ PyObject * RunPython(Text *text, PyObject *globaldict)
  * to speed-up execution if the user executes the script multiple times */
 
   if (!text->compiled) { /* if it wasn't already compiled, do it now */
-    buf = txt_to_buf(text);
+
+#ifdef BLENDER_SANDBOX_MODE
+
+/* IGNORE THIS ALL FOR A WHILE, IT'S VERY INCOMPLETE AND WILL CHANGE
+ * CONSIDERABLY IN THE NEXT COMMIT.  THE ifdef won't stay, either. */
+
+/* The import statement is a security risk, so we don't allow it in
+ * SANDBOX MODE.  Instead, we import all needed modules ourselves and
+ * substitute all 'import' and '__import__' statements in the code by
+ * '#mport' and '#_import__', resp., making their lines become comments
+ * in Python (to let scripts run without import errors). */
+
+/* Disable importing only for the safest sandbox mode */
+
+  	txt_move_bof(text, 0); /* move to the beginning of the script */
+
+/* Search all occurrences of 'import' in the script */
+/* XXX Also check for from ... import ... */
+  	while (txt_find_string (text, "import")) {
+			char *line = text->sell->line;
+
+			if (text->curc > 1) /* is it '__import__' ? */
+				if (strncmp (&line[text->curc - 2],
+										 "__import__", 10) == 0) text->curc -= 2;
+
+			line[text->curc] = '#'; /* change them to '#mport' or '#_import__' */
+	  }
+
+#endif
+
+   buf = txt_to_buf(text);
 
     text->compiled = Py_CompileString(buf, GetName(text), Py_file_input);
 
@@ -488,6 +489,11 @@ PyObject * RunPython(Text *text, PyObject *globaldict)
     }
 
   }
+#ifdef BLENDER_SANDBOX_MODE
+	//save the script as a dict entry and call the eval code for it
+	//then return
+	PyDict_SetItemString(globaldict, "_SB_code", text->compiled);
+#endif
 
   return PyEval_EvalCode(text->compiled, globaldict, globaldict);
 }

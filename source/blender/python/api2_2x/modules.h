@@ -34,6 +34,7 @@
 
 #include <Python.h>
 
+#include <DNA_scene_types.h>
 #include <DNA_object_types.h>
 #include <DNA_camera_types.h>
 #include <DNA_lamp_types.h>
@@ -61,6 +62,12 @@ PyObject *      M_Object_Init (void);
 PyObject *      M_ObjectCreatePyObject (struct Object *obj);
 int             M_ObjectCheckPyObject (PyObject *py_obj);
 struct Object * M_ObjectFromPyObject (PyObject *py_obj);
+
+/* Scene */
+PyObject * M_Scene_Init (void);
+PyObject * Scene_CreatePyObject (struct Scene *sce);
+Scene    * Scene_FromPyObject   (PyObject *pyobj);
+int        Scene_CheckPyObject  (PyObject *pyobj);
 
 /* Types */
 PyObject *      M_Types_Init (void);

@@ -29,38 +29,38 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#ifndef EXPP_CAMERA_H
-#define EXPP_CAMERA_H
+#ifndef EXPP_SCENE_H
+#define EXPP_SCENE_H
 
 #include <Python.h>
-
-#include <DNA_camera_types.h>
+#include <DNA_scene_types.h>
 
 #include "constant.h"
 #include "gen_utils.h"
 
-/* The Camera PyType Object defined in Camera.c */
-PyTypeObject Camera_Type;
+/* The Scene PyType Object defined in Scene.c */
+PyTypeObject Scene_Type;
 
-#define BPy_Camera_Check(v) \
-    ((v)->ob_type == &Camera_Type) /* for type checking */
+#define BPy_Scene_Check(v) \
+    ((v)->ob_type == &Scene_Type) /* for type checking */
 
 /*****************************************************************************/
-/* Python BPy_Camera structure definition:                                   */
+/* Python BPy_Scene structure definition:                                   */
 /*****************************************************************************/
 typedef struct {
   PyObject_HEAD
-  Camera *camera;
-} BPy_Camera;
+  Scene *scene;
+
+} BPy_Scene;
 
 /*****************************************************************************/
-/* Python Camera_Type helper functions needed by Blender (the Init function) */
+/* Python Scene_Type helper functions needed by Blender (the Init function) */
 /* and Object modules.                                                       */
 /*****************************************************************************/
-PyObject *M_Camera_Init (void);
-PyObject *Camera_CreatePyObject (Camera *cam);
-Camera   *Camera_FromPyObject (PyObject *pyobj);
-int       Camera_CheckPyObject (PyObject *pyobj);
+PyObject *M_Scene_Init (void);
+PyObject *Scene_CreatePyObject (Scene *cam);
+Scene    *Scene_FromPyObject (PyObject *pyobj);
+int       Scene_CheckPyObject (PyObject *pyobj);
 
 
-#endif /* EXPP_CAMERA_H */
+#endif /* EXPP_SCENE_H */

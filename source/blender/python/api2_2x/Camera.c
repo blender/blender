@@ -29,6 +29,18 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
+/**
+ * \file Camera.c
+ * \ingroup scripts
+ * \brief Blender.Camera Module and Camera Data PyObject implementation.
+ *
+ * Note: Parameters between "<" and ">" are optional.  But if one of them is
+ * given, all preceding ones must be given, too.  Of course, this only relates
+ * to the Python functions and methods described here and only inside Python
+ * code. [ This will go to another file later, probably the main exppython
+ * doc file].
+ */
+
 #include <BKE_main.h>
 #include <BKE_global.h>
 #include <BKE_object.h>
@@ -137,8 +149,8 @@ static PyMethodDef BPy_Camera_methods[] = {
   {"getType", (PyCFunction)Camera_getType, METH_NOARGS,
       "() - Return Camera type - 'persp':0, 'ortho':1"},
   {"getMode", (PyCFunction)Camera_getMode, METH_NOARGS,
-      "() - Return Camera mode flags (or'ed value) -\n\t\
-'showLimits':1, 'showMist':2"},
+      "() - Return Camera mode flags (or'ed value) -\n\t"
+      "'showLimits':1, 'showMist':2"},
   {"getLens", (PyCFunction)Camera_getLens, METH_NOARGS,
       "() - Return Camera lens value"},
   {"getClipStart", (PyCFunction)Camera_getClipStart, METH_NOARGS,
@@ -202,10 +214,24 @@ PyTypeObject Camera_Type =
   0,                                      /* tp_members */
 };
 
-/*****************************************************************************/
-/* Function:              M_Camera_New                                       */
-/* Python equivalent:     Blender.Camera.New                                 */
-/*****************************************************************************/
+/**
+ * \defgroup Camera_Module Blender.Camera module functions
+ *
+ */
+
+/*@{*/
+
+/**
+ * \brief Python module function: Blender.Camera.New()
+ *
+ * This is the .New() function of the Blender.Camera submodule. It creates
+ * new Camera Data in Blender and returns its Python wrapper object.  The
+ * parameters are optional and default to type = 'persp' and name = 'CamData'.
+ * \param <type> - string: The Camera type: 'persp' or 'ortho';
+ * \param <name> - string: The Camera Data name.
+ * \return A new Camera PyObject.
+ */
+
 static PyObject *M_Camera_New(PyObject *self, PyObject *args, PyObject *kwords)
 {
   char        *type_str = "persp"; /* "persp" is type 0, "ortho" is type 1 */
@@ -255,33 +281,38 @@ static PyObject *M_Camera_New(PyObject *self, PyObject *args, PyObject *kwords)
   return (PyObject *)pycam;
 }
 
-/*****************************************************************************/
-/* Function:              M_Camera_Get                                       */
-/* Python equivalent:     Blender.Camera.Get                                 */
-/* Description:           Receives a string and returns the camera data obj  */
-/*                        whose name matches the string.  If no argument is  */
-/*                        passed in, a list of all camera data names in the  */
-/*                        current scene is returned.                         */
-/*****************************************************************************/
+/**
+ * \brief Python module function: Blender.Camera.Get()
+ *
+ * This is the .Get() function of the Blender.Camera submodule.  It searches
+ * the list of current Camera Data objects and returns a Python wrapper for
+ * the one with the name provided by the user.  If called with no arguments,
+ * it returns a list of all current Camera Data object names in Blender.
+ * \param <name> - string: The name of an existing Blender Camera Data object.
+ * \return () - A list with the names of all current Camera Data objects;\n
+ * \return (name) - A Python wrapper for the Camera Data called 'name'
+ * in Blender.
+ */
+
 static PyObject *M_Camera_Get(PyObject *self, PyObject *args)
 {
   char   *name = NULL;
   Camera *cam_iter;
 
-	if (!PyArg_ParseTuple(args, "|s", &name))
+  if (!PyArg_ParseTuple(args, "|s", &name))
     return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected string argument (or nothing)"));
 
   cam_iter = G.main->camera.first;
 
-	if (name) { /* (name) - Search camera by name */
+  if (name) { /* (name) - Search camera by name */
 
     BPy_Camera *wanted_cam = NULL;
 
     while ((cam_iter) && (wanted_cam == NULL)) {
       if (strcmp (name, cam_iter->id.name+2) == 0) {
         wanted_cam = (BPy_Camera *)PyObject_NEW(BPy_Camera, &Camera_Type);
-				if (wanted_cam) wanted_cam->camera = cam_iter;
+        if (wanted_cam) wanted_cam->camera = cam_iter;
       }
       cam_iter = cam_iter->id.next;
     }
@@ -294,9 +325,9 @@ static PyObject *M_Camera_Get(PyObject *self, PyObject *args)
     }
 
     return (PyObject *)wanted_cam;
-	}
+  }
 
-	else { /* () - return a list of all cameras in the scene */
+  else { /* () - return a list of all cameras in the scene */
     int index = 0;
     PyObject *camlist, *pystr;
 
@@ -306,27 +337,32 @@ static PyObject *M_Camera_Get(PyObject *self, PyObject *args)
       return (PythonReturnErrorObject (PyExc_MemoryError,
               "couldn't create PyList"));
 
-		while (cam_iter) {
+    while (cam_iter) {
       pystr = PyString_FromString (cam_iter->id.name+2);
 
-			if (!pystr)
-				return (PythonReturnErrorObject (PyExc_MemoryError,
-									"couldn't create PyString"));
+      if (!pystr)
+        return (PythonReturnErrorObject (PyExc_MemoryError,
+                  "couldn't create PyString"));
 
-			PyList_SET_ITEM (camlist, index, pystr);
+      PyList_SET_ITEM (camlist, index, pystr);
 
       cam_iter = cam_iter->id.next;
       index++;
-		}
+    }
 
-		return (camlist);
-	}
+    return (camlist);
+  }
 }
+/*@}*/
 
-/*****************************************************************************/
-/* Function:              M_Camera_Init                                      */
-/*****************************************************************************/
-/* Needed by the Blender module, to register the Blender.Camera submodule */
+/**
+ * \brief Initializes the Blender.Camera submodule
+ *
+ * This function is used by Blender_Init() in Blender.c to register the
+ * Blender.Camera submodule in the main Blender module.
+ * \return PyObject*: The initialized submodule.
+ */
+
 PyObject *M_Camera_Init (void)
 {
   PyObject  *submodule;
@@ -343,49 +379,77 @@ PyObject *M_Camera_Init (void)
 
 /* Three Python Camera_Type helper functions needed by the Object module: */
 
-/*****************************************************************************/
-/* Function:    Camera_CreatePyObject                                        */
-/* Description: This function will create a new BPy_Camera from an existing  */
-/*              Blender camera structure.                                    */
-/*****************************************************************************/
+/**
+ * \brief Creates a new Python wrapper from an existing Blender Camera Data obj
+ *
+ * This is also used in Object.c when defining the object.data member variable
+ * for an Object of type 'Camera'.
+ * \param cam - Camera*: A pointer to an existing Blender Camera Data object.
+ * \return PyObject*: The Camera Data wrapper created.
+ */
+
 PyObject *Camera_CreatePyObject (Camera *cam)
 {
-	BPy_Camera *pycam;
+  BPy_Camera *pycam;
 
-	pycam = (BPy_Camera *)PyObject_NEW (BPy_Camera, &Camera_Type);
+  pycam = (BPy_Camera *)PyObject_NEW (BPy_Camera, &Camera_Type);
 
-	if (!pycam)
-		return EXPP_ReturnPyObjError (PyExc_MemoryError,
-						"couldn't create BPy_Camera object");
+  if (!pycam)
+    return EXPP_ReturnPyObjError (PyExc_MemoryError,
+            "couldn't create BPy_Camera object");
 
-	pycam->camera = cam;
+  pycam->camera = cam;
 
-	return (PyObject *)pycam;
+  return (PyObject *)pycam;
 }
 
-/*****************************************************************************/
-/* Function:    Camera_CheckPyObject                                         */
-/* Description: This function returns true when the given PyObject is of the */
-/*              type Camera. Otherwise it will return false.                 */
-/*****************************************************************************/
+/**
+ * \brief Checks if the given object is of type BPy_Camera
+ *
+ * This is also used in Object.c when handling the object.data member variable
+ * for an object of type 'Camera'.
+ * \param pyobj - PyObject*: A pointer to a Camera PyObject.
+ * \return int: True or false.
+ */
+
 int Camera_CheckPyObject (PyObject *pyobj)
 {
-	return (pyobj->ob_type == &Camera_Type);
+  return (pyobj->ob_type == &Camera_Type);
 }
 
-/*****************************************************************************/
-/* Function:    Camera_FromPyObject                                          */
-/* Description: This function returns the Blender camera from the given      */
-/*              PyObject.                                                    */
-/*****************************************************************************/
+/**
+ * \brief Returns the Blender Camera object from the given PyObject
+ *
+ * This is also used in Object.c when handling the object.data member variable
+ * for an object of type 'Camera'.
+ * \param pyobj - PyObject*: A pointer to a Camera PyObject.
+ * \return Camera*: A pointer to the wrapped Blender Camera Data object.
+ */
+
 Camera *Camera_FromPyObject (PyObject *pyobj)
 {
-	return ((BPy_Camera *)pyobj)->camera;
+  return ((BPy_Camera *)pyobj)->camera;
 }
 
 /*****************************************************************************/
 /* Python BPy_Camera methods:                                                */
 /*****************************************************************************/
+
+/**
+ * \defgroup Camera_Methods Camera Method Functions
+ *
+ * These are the Camera PyObject method functions.  They are used to get and
+ * set values for the Camera Data member variables.
+ */
+
+/*@{*/
+
+/**
+ * \brief Camera PyMethod getName
+ *
+ * \return string: The Camera Data name.
+ */
+
 static PyObject *Camera_getName(BPy_Camera *self)
 {
   PyObject *attr = PyString_FromString(self->camera->id.name+2);
@@ -395,6 +459,12 @@ static PyObject *Camera_getName(BPy_Camera *self)
   return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
                                    "couldn't get Camera.name attribute"));
 }
+
+/**
+ * \brief Camera PyMethod getType
+ *
+ * \return int: The Camera Data type.
+ */
 
 static PyObject *Camera_getType(BPy_Camera *self)
 {
@@ -406,6 +476,12 @@ static PyObject *Camera_getType(BPy_Camera *self)
                                    "couldn't get Camera.type attribute"));
 }
 
+/**
+ * \brief Camera PyMethod getMode
+ *
+ * \return int: The Camera Data mode flags.
+ */
+
 static PyObject *Camera_getMode(BPy_Camera *self)
 {
   PyObject *attr = PyInt_FromLong(self->camera->flag);
@@ -415,6 +491,12 @@ static PyObject *Camera_getMode(BPy_Camera *self)
   return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
                                    "couldn't get Camera.Mode attribute"));
 }
+
+/**
+ * \brief Camera PyMethod getLens
+ *
+ * \return float: The Camera Data lens value
+ */
 
 static PyObject *Camera_getLens(BPy_Camera *self)
 {
@@ -426,6 +508,12 @@ static PyObject *Camera_getLens(BPy_Camera *self)
                                    "couldn't get Camera.lens attribute"));
 }
 
+/**
+ * \brief Camera PyMethod getClipStart
+ *
+ * \return float: The Camera Data clip start value.
+ */
+
 static PyObject *Camera_getClipStart(BPy_Camera *self)
 {
   PyObject *attr = PyFloat_FromDouble(self->camera->clipsta);
@@ -435,6 +523,11 @@ static PyObject *Camera_getClipStart(BPy_Camera *self)
   return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
                                    "couldn't get Camera.clipStart attribute"));
 }
+
+/**
+ * \brief Camera PyMethod getClipEnd
+ * \return float: The Camera Data clip end value.
+ */
 
 static PyObject *Camera_getClipEnd(BPy_Camera *self)
 {
@@ -446,6 +539,11 @@ static PyObject *Camera_getClipEnd(BPy_Camera *self)
                                    "couldn't get Camera.clipEnd attribute"));
 }
 
+/**
+ * \brief Camera method getDrawSize
+ * \return float: The Camera Data draw size value.
+ */
+
 static PyObject *Camera_getDrawSize(BPy_Camera *self)
 {
   PyObject *attr = PyFloat_FromDouble(self->camera->drawsize);
@@ -455,6 +553,11 @@ static PyObject *Camera_getDrawSize(BPy_Camera *self)
   return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
                                    "couldn't get Camera.drawSize attribute"));
 }
+
+/**
+ * \brief Camera PyMethod setName
+ * \param name - string: The new Camera Data name.
+ */
 
 static PyObject *Camera_setName(BPy_Camera *self, PyObject *args)
 {
@@ -472,6 +575,11 @@ static PyObject *Camera_setName(BPy_Camera *self, PyObject *args)
   Py_INCREF(Py_None);
   return Py_None;
 }
+
+/**
+ * \brief Camera PyMethod setType
+ * \param type - string: The new Camera Data type: 'persp' or 'ortho'.
+ */
 
 static PyObject *Camera_setType(BPy_Camera *self, PyObject *args)
 {
@@ -498,6 +606,14 @@ static PyObject *Camera_setType(BPy_Camera *self, PyObject *args)
  * in the first case t should be an int and in the second a string. So while
  * the method setType expects a string ('persp' or 'ortho') or an empty
  * argument, this function should receive an int (0 or 1). */
+
+/**
+ * \brief Internal helper function
+ *
+ * This one is not a PyMethod.  It is just an internal helper function.
+ * \param type - int: The Camera Data type as an int.
+ */
+
 static PyObject *Camera_setIntType(BPy_Camera *self, PyObject *args)
 {
   short value;
@@ -515,6 +631,17 @@ static PyObject *Camera_setIntType(BPy_Camera *self, PyObject *args)
   Py_INCREF(Py_None);
   return Py_None;
 }
+
+/**
+ * \brief Camera PyMethod setMode
+ *
+ * There are two mode flags for Cameras: 'showLimits' and 'showMist'.
+ * Both can be set at the same time, by providing two arguments to this
+ * method.  To clear a flag, call setMode without the respective flag string
+ * in the argument list.  For example: .setMode() clears both flags.
+ * \param mode1 - <string>: The first mode flag to set;
+ * \param mode2 - <string>: The second mode flag to set.
+ */
 
 static PyObject *Camera_setMode(BPy_Camera *self, PyObject *args)
 {
@@ -553,6 +680,14 @@ static PyObject *Camera_setMode(BPy_Camera *self, PyObject *args)
 
 /* Another helper function, for the same reason.
  * (See comment before Camera_setIntType above). */
+
+/**
+ * \brief Internal helper function
+ *
+ * This one is not a PyMethod.  It is just an internal helper function.
+ * \param mode - int: The Camera Data mode as an int.
+ */
+
 static PyObject *Camera_setIntMode(BPy_Camera *self, PyObject *args)
 {
   short value;
@@ -571,6 +706,11 @@ static PyObject *Camera_setIntMode(BPy_Camera *self, PyObject *args)
   return Py_None;
 }
 
+/**
+ * \brief Camera PyMethod setLens
+ * \param lens - float: The new Camera Data lens value.
+ */
+
 static PyObject *Camera_setLens(BPy_Camera *self, PyObject *args)
 {
   float value;
@@ -585,6 +725,11 @@ static PyObject *Camera_setLens(BPy_Camera *self, PyObject *args)
   Py_INCREF(Py_None);
   return Py_None;
 }
+
+/**
+ * \brief Camera PyMethod setClipStart
+ * \param clipStart - float: The new Camera Data clip start value.
+ */
 
 static PyObject *Camera_setClipStart(BPy_Camera *self, PyObject *args)
 {
@@ -601,6 +746,11 @@ static PyObject *Camera_setClipStart(BPy_Camera *self, PyObject *args)
   return Py_None;
 }
 
+/**
+ * \brief Camera PyMethod setClipEnd
+ * \param clipEnd - float: The new Camera Data clip end value.
+ */
+
 static PyObject *Camera_setClipEnd(BPy_Camera *self, PyObject *args)
 {
   float value;
@@ -615,6 +765,11 @@ static PyObject *Camera_setClipEnd(BPy_Camera *self, PyObject *args)
   Py_INCREF(Py_None);
   return Py_None;
 }
+
+/**
+ * \brief Camera PyMethod setDrawSize
+ * \param drawSize - float: The new Camera Data draw size value.
+ */
 
 static PyObject *Camera_setDrawSize(BPy_Camera *self, PyObject *args)
 {
@@ -631,22 +786,33 @@ static PyObject *Camera_setDrawSize(BPy_Camera *self, PyObject *args)
   return Py_None;
 }
 
-/*****************************************************************************/
-/* Function:    Camera_DeAlloc                                               */
-/* Description: This is a callback function for the BPy_Camera type. It is   */
-/*              the destructor function.                                     */
-/*****************************************************************************/
+/*@}*/
+
+/**
+ * \defgroup Camera_callbacks Callback functions for the Camera PyType
+ *
+ * These callbacks are called by the Python interpreter when dealing with
+ * PyObjects of type Camera.
+ */
+
+/*@{*/
+
+/**
+ * \brief The Camera PyType destructor
+ */
+
 static void Camera_DeAlloc (BPy_Camera *self)
 {
   PyObject_DEL (self);
 }
 
-/*****************************************************************************/
-/* Function:    Camera_GetAttr                                               */
-/* Description: This is a callback function for the BPy_Camera type. It is   */
-/*              the function that accesses BPy_Camera "member variables" and */
-/*              methods.                                                     */
-/*****************************************************************************/
+/**
+ * \brief The Camera PyType attribute getter
+ *
+ * This is the callback called when a user tries to retrieve the contents of
+ * Camera PyObject data members.  Ex. in Python: "print mycamera.lens".
+ */
+
 static PyObject *Camera_GetAttr (BPy_Camera *self, char *name)
 {
   PyObject *attr = Py_None;
@@ -692,12 +858,13 @@ static PyObject *Camera_GetAttr (BPy_Camera *self, char *name)
   return Py_FindMethod(BPy_Camera_methods, (PyObject *)self, name);
 }
 
-/*****************************************************************************/
-/* Function:    Camera_SetAttr                                               */
-/* Description: This is a callback function for the BPy_Camera type. It is   */
-/*              the function that sets Camera Data attributes (member        */
-/*              variables).                                                  */
-/*****************************************************************************/
+/**
+ * \brief The Camera PyType attribute setter
+ *
+ * This is the callback called when the user tries to change the value of some
+ * Camera data member.  Ex. in Python: "mycamera.lens = 45.0".
+ */
+
 static int Camera_SetAttr (BPy_Camera *self, char *name, PyObject *value)
 {
   PyObject *valtuple; 
@@ -757,37 +924,46 @@ static int Camera_SetAttr (BPy_Camera *self, char *name, PyObject *value)
   return 0; /* normal exit */
 }
 
-/*****************************************************************************/
-/* Function:    Camera_Compare                                               */
-/* Description: This is a callback function for the BPy_Camera type. It      */
-/*              compares two Camera_Type objects. Only the "==" and "!="     */
-/*              comparisons are meaninful. Returns 0 for equality and -1 if  */
-/*              they don't point to the same Blender Camera struct.          */
-/*              In Python it becomes 1 if they are equal, 0 otherwise.       */
-/*****************************************************************************/
+/**
+ * \brief The Camera PyType compare function
+ *
+ * This function compares two given Camera PyObjects, returning 0 for equality
+ * and -1 otherwise.  In Python it becomes 1 if they are equal and 0 case not.
+ * The comparison is done with their pointers to Blender Camera Data objects,
+ * so any two wrappers pointing to the same Blender Camera Data will be
+ * considered the same Camera PyObject.  Currently, only the "==" and "!="
+ * comparisons are meaninful -- the "<", "<=", ">" or ">=" are not.
+ */
+
 static int Camera_Compare (BPy_Camera *a, BPy_Camera *b)
 {
-	Camera *pa = a->camera, *pb = b->camera;
-	return (pa == pb) ? 0:-1;
+  Camera *pa = a->camera, *pb = b->camera;
+  return (pa == pb) ? 0:-1;
 }
 
-/*****************************************************************************/
-/* Function:    Camera_Print                                                 */
-/* Description: This is a callback function for the BPy_Camera type. It      */
-/*              builds a meaninful string to 'print' camera objects.         */
-/*****************************************************************************/
+/**
+ * \brief The Camera PyType print callback
+ *
+ * This function is called when the user tries to print a PyObject of type
+ * Camera.  It builds a string with the name of the wrapped Blender Camera.
+ */
+
 static int Camera_Print(BPy_Camera *self, FILE *fp, int flags)
 { 
   fprintf(fp, "[Camera \"%s\"]", self->camera->id.name+2);
   return 0;
 }
 
-/*****************************************************************************/
-/* Function:    Camera_Repr                                                  */
-/* Description: This is a callback function for the BPy_Camera type. It      */
-/*              builds a meaninful string to represent camera objects.       */
-/*****************************************************************************/
+/**
+ * \brief The Camera PyType repr callback
+ *
+ * This function is called when the statement "repr(mycamera)" is executed in
+ * Python.  Repr gives a string representation of a PyObject.
+ */
+
 static PyObject *Camera_Repr (BPy_Camera *self)
 {
   return PyString_FromString(self->camera->id.name+2);
 }
+
+/*@}*/

@@ -214,6 +214,7 @@ void M_Blender_Init (void)
 
         dict = PyModule_GetDict (module);
         g_blenderdict = dict;
+        PyDict_SetItemString (dict, "Scene",    M_Scene_Init());
         PyDict_SetItemString (dict, "Object",   M_Object_Init());
         PyDict_SetItemString (dict, "Types",    M_Types_Init());
         PyDict_SetItemString (dict, "NMesh",    M_NMesh_Init());
