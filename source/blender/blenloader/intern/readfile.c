@@ -2885,6 +2885,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 		for(pa= sa->panels.first; pa; pa=pa->next) {
 			pa->paneltab= newdataadr(fd, pa->paneltab);
 			pa->active= 0;
+			pa->sortcounter= 0;
 		}
 
 		for (sl= sa->spacedata.first; sl; sl= sl->next) {

@@ -87,7 +87,7 @@ typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	short flag, active;					/* active= used currently by a uiBlock */
 	short control, pad;
 	short old_ofsx, old_ofsy;		/* for stow */
-	int pad2;
+	int sortcounter;			/* when sorting panels, it uses this to put new ones in right place */
 	struct Panel *paneltab;		/* this panel is tabbed in *paneltab */
 } Panel;
 

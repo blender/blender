@@ -1169,12 +1169,20 @@ typedef struct PanelSort {
 	Panel *pa, *orig;
 } PanelSort;
 
+/* note about sorting;
+   the sortcounter has a lower value for new panels being added.
+   however, that only works to insert a single panel, when more new panels get
+   added the coordinates of existing panels and the previously stored to-be-insterted
+   panels do not match for sorting */
+
 static int find_leftmost_panel(const void *a1, const void *a2)
 {
 	const PanelSort *ps1=a1, *ps2=a2;
 	
 	if( ps1->pa->ofsx > ps2->pa->ofsx) return 1;
 	else if( ps1->pa->ofsx < ps2->pa->ofsx) return -1;
+	else if( ps1->pa->sortcounter > ps2->pa->sortcounter) return 1;
+	else if( ps1->pa->sortcounter < ps2->pa->sortcounter) return -1;
 
 	return 0;
 }
@@ -1186,6 +1194,8 @@ static int find_highest_panel(const void *a1, const void *a2)
 	
 	if( ps1->pa->ofsy < ps2->pa->ofsy) return 1;
 	else if( ps1->pa->ofsy > ps2->pa->ofsy) return -1;
+	else if( ps1->pa->sortcounter > ps2->pa->sortcounter) return 1;
+	else if( ps1->pa->sortcounter < ps2->pa->sortcounter) return -1;
 	
 	return 0;
 }
@@ -1197,6 +1207,7 @@ int uiAlignPanelStep(ScrArea *sa, float fac)
 	SpaceButs *sbuts= sa->spacedata.first;
 	Panel *pa;
 	PanelSort *ps, *panelsort, *psnext;
+	static int sortcounter= 0;
 	int a, tot=0, done;
 	
 	if(sa->spacetype!=SPACE_BUTS) {
@@ -1276,6 +1287,12 @@ int uiAlignPanelStep(ScrArea *sa, float fac)
 		if(pa->paneltab && pa->active) {
 			copy_panel_offset(pa, pa->paneltab);
 		}
+	}
+
+	/* set counter, used for sorting with newly added panels */
+	sortcounter++;
+	for(pa= sa->panels.first; pa; pa= pa->next) {
+		if(pa->active) pa->sortcounter= sortcounter;
 	}
 
 	/* free panelsort array */

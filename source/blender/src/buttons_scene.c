@@ -492,6 +492,11 @@ void do_render_panels(unsigned short event)
 	case B_RTCHANGED:
 		allqueue(REDRAWALL, 0);
 		break;
+	case B_SWITCHRENDER:
+		/* new panels added, so... */
+		G.buts->re_align= 1;
+		allqueue(REDRAWBUTSSCENE, 0);
+		break;
 	case B_PLAYANIM:
 #ifdef WITH_QUICKTIME
 		if(G.scene->r.imtype == R_QUICKTIME)
@@ -1080,7 +1085,7 @@ static void render_panel_render(void)
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_DORENDER,"RENDER",	369, 164, 191,37, 0, 0, 0, 0, 0, "Start the rendering");
 	/* yafray: on request, render engine menu is back again, and moved to Render panel */
-	uiDefButS(block, MENU, B_REDR, "Rendering Engine %t|Blender Internal %x0|YafRay %x1", 
+	uiDefButS(block, MENU, B_SWITCHRENDER, "Rendering Engine %t|Blender Internal %x0|YafRay %x1", 
 												369, 142, 191, 20, &G.scene->r.renderer, 0, 0, 0, 0, "Choose rendering engine");	
 
 	uiBlockBeginAlign(block);
