@@ -81,10 +81,6 @@
 
 #include "SYS_System.h"
 
-#include "license_key.h"
-
-extern int LICENSE_KEY_VALID;
-
 /* this might move to the external header */
 void* sound_get_libraryinterface(void);
 
@@ -471,37 +467,32 @@ int sound_get_filetype_from_header(bSound* sound, PackedFile* pf)
 #ifdef USE_FMOD
 		{
 			/* and only valid publishers may use compressed wav */
-			if (LICENSE_KEY_VALID)
+			switch (shortbuf)
 			{
-				switch (shortbuf)
-				{
-				case SND_WAVE_FORMAT_ADPCM:
-				case SND_WAVE_FORMAT_ALAW:
-				case SND_WAVE_FORMAT_MULAW:
-				case SND_WAVE_FORMAT_DIALOGIC_OKI_ADPCM:
-				case SND_WAVE_FORMAT_CONTROL_RES_VQLPC:
-				case SND_WAVE_FORMAT_GSM_610:
-				case SND_WAVE_FORMAT_MPEG3:
-					filetype = SAMPLE_WAV;
-					break;
-				default:
+			case SND_WAVE_FORMAT_ADPCM:
+			case SND_WAVE_FORMAT_ALAW:
+			case SND_WAVE_FORMAT_MULAW:
+			case SND_WAVE_FORMAT_DIALOGIC_OKI_ADPCM:
+			case SND_WAVE_FORMAT_CONTROL_RES_VQLPC:
+			case SND_WAVE_FORMAT_GSM_610:
+			case SND_WAVE_FORMAT_MPEG3:
+				filetype = SAMPLE_WAV;
+				break;
+			default:
 #endif
-					{
-						filetype = SAMPLE_INVALID;
-						if (G.f & G_DEBUG) printf("Unsupported wav compression\n");
-					}
+				{
+					filetype = SAMPLE_INVALID;
+					if (G.f & G_DEBUG) printf("Unsupported wav compression\n");
 				}
-#ifdef USE_FMOD
 			}
+#ifdef USE_FMOD
 		}
 	}
-	/* only valid publishers may use ogg vorbis */
-	else if (!memcmp(buffer, "OggS", 4) && LICENSE_KEY_VALID)
+	else if (!memcmp(buffer, "OggS", 4))
 	{
 		filetype = SAMPLE_OGG_VORBIS;
 	}
-	/* only valid publishers may use mp3 */
-	else if (((!memcmp(buffer, "ID3", 3)) || (!memcmp(buffer, "ÿû", 2))) && LICENSE_KEY_VALID)
+	else if ((!memcmp(buffer, "ID3", 3)) || (!memcmp(buffer, "ÿû", 2)))
 	{
 		filetype = SAMPLE_MP3;
 	}

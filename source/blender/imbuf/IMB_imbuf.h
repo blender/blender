@@ -312,19 +312,9 @@ struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, short newx, short newy);
 short IMB_saveiff(struct ImBuf *ibuf,char *naam,int flags);
 
 /**
- * This function pointer needs to be initialized to enable
- * png writing from the ImBuf library.
- *
- * @attention Defined in writeimage.c
- * @attention See also IMB_png_encode()
- */
-extern short (*IMB_fp_png_encode)(struct ImBuf *ibuf, int file, int flags);
-
-/**
  * Encodes a png image from an ImBuf
  *
  * @attention Defined in png_encode.c
- * @attention See also IMB_fp_png_encode
  */
 short IMB_png_encode(struct ImBuf *ibuf, int file, int flags);
 

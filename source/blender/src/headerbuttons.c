@@ -174,11 +174,6 @@
 
 #include "TPT_DependKludge.h"
 
-/* these are needed to hide functions behind function tables, 
-   which are initialized by the python key code */
-#include "keyed_functions.h"
-#include "license_key.h"
-
 /* local (?) functions */
 void do_file_buttons(short event);
 void do_text_buttons(unsigned short event);
@@ -206,7 +201,6 @@ static 	void test_idbutton_cb(void *namev, void *arg2_unused)
 
 #include "SYS_System.h"
 
-#include "license_key.h"
 static int std_libbuttons(uiBlock *block, 
 						  int xco, int pin, short *pinpoin, 
 						  int browse, ID *id, ID *parid, 
@@ -1292,11 +1286,7 @@ void do_global_buttons(unsigned short event)
 		SYS_WriteCommandLineInt(SYS_GetSystem(), "noaudio", (U.gameflags & USERDEF_DISABLE_SOUND));
 		break;
 	case B_SHOWSPLASH:
-		if ((LICENSE_KEY_VALID) && ((G.qual & LR_SHIFTKEY) == 0)) {
-			SHOW_LICENSE_KEY();
-		} else {
-			show_splash();
-		}
+	     	show_splash();
 		break;
 	case B_MIPMAPCHANGED:
 		set_mipmap(!(U.gameflags & USERDEF_DISABLE_SOUND));
@@ -2145,27 +2135,27 @@ int make_beautiful_animation(void *vp)
 	return 0;
 }
 
+/*
 int make_nice_software(void)
 {
 	Fptr f = KEY_RETURN_TRUE;
 	if (f) return f(0);
 	else return 0;
 }
+*/
 	
 static void write_runtime_check_dynamic(char *str) 
 {
-	Fptr f = KEY_WRITE_RUNTIME;
 	struct twostrings twostrings;
 
 	twostrings.outname = str;
 	twostrings.exename = "blenderdynplayer.exe";
 
-	if (f) f((void *) &twostrings);
+	make_beautiful_animation((void *) &twostrings);
 }
 
 static void write_runtime_check(char *str) 
 {
-	Fptr f = KEY_WRITE_RUNTIME;
 	struct twostrings twostrings;
 	char player[128];
 
@@ -2182,7 +2172,7 @@ static void write_runtime_check(char *str)
 	strcat(player, ".app");
 #endif
 
-	if (f) f((void *) &twostrings);
+	make_beautiful_animation((void *) &twostrings);
 }
 /* end keyed functions */
 
@@ -2247,6 +2237,7 @@ static void do_info_filemenu(void *arg, int event)
 	case 9:
 		write_videoscape_fs();
 		break;
+/*
 	case 20:
 		strcpy(dir, G.sce);
 		activate_fileselect(FILE_SPECIAL, "INSTALL LICENSE KEY", dir, loadKeyboard);
@@ -2254,6 +2245,7 @@ static void do_info_filemenu(void *arg, int event)
 	case 21:
 		SHOW_LICENSE_KEY();
 		break;
+*/
 	case 22:
 		activate_fileselect(FILE_SPECIAL, "WRITE RUNTIME", "", write_runtime_check);
 		break;
@@ -2307,9 +2299,10 @@ static uiBlock *info_file_optionsmenu(void *arg_unused)
 
 	/* flags are case-values */
 	uiDefBut(block, BUTM, 1, "Compress File",	xco, yco-=20, 100, 19, NULL, 0.0, 0.0, 0, G_FILE_COMPRESS_BIT, "Use file compression");
+/*
 	uiDefBut(block, BUTM, 1, "Sign File",	xco, yco-=20, 100, 19, NULL, 0.0, 0.0, 0, G_FILE_SIGN_BIT, "Add signature to file");
 	uiDefBut(block, BUTM, 1, "Lock File",	xco, yco-=20, 100, 19, NULL, 0.0, 0.0, 0, G_FILE_LOCK_BIT, "Protect the file from editing by others");
-
+*/
 	/* Toggle buttons */
 	
 	yco= 0;
@@ -2318,9 +2311,10 @@ static uiBlock *info_file_optionsmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, NULL, NULL);
 	/* flags are defines */
 	uiDefIconButI(block, ICONTOG|BIT|G_FILE_COMPRESS_BIT, 0, ICON_CHECKBOX_DEHLT, xco, yco-=20, 19, 19, &G.fileflags, 0.0, 0.0, 0, 0, "");
+/*
 	uiDefIconButI(block, ICONTOG|BIT|G_FILE_SIGN_BIT, 0, ICON_CHECKBOX_DEHLT, xco, yco-=20, 19, 19, &G.fileflags, 0.0, 0.0, 0, 0, "");
 	uiDefIconButI(block, ICONTOG|BIT|G_FILE_LOCK_BIT, 0, ICON_CHECKBOX_DEHLT, xco, yco-=20, 19, 19, &G.fileflags, 0.0, 0.0, 0, 0, "");
-
+*/
 	uiBlockSetDirection(block, UI_RIGHT);
 		
 	return block;
@@ -2410,17 +2404,15 @@ static uiBlock *info_filemenu(void *arg_unused)
 	uiDefBut(block, BUTM, 1, "Save As|F2",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 4, "Save to a new file");
 	uiDefBut(block, BUTM, 1, "Save|Ctrl W",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 5, "Save to the current file");
 
-	if (LICENSE_KEY_VALID && make_nice_software()) {
-		uiDefBlockBut(block, info_file_optionsmenu, NULL, "File options|>>", 0, xco-=20, 160, 19, "Click to open the File Options menu");
+	uiDefBlockBut(block, info_file_optionsmenu, NULL, "File options|>>", 0, xco-=20, 160, 19, "Click to open the File Options menu");
 
-		uiDefBut(block, SEPR, 0, "",						0, xco-=6, 160, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, SEPR, 0, "",						0, xco-=6, 160, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-		uiDefBut(block, BUTM, 1, "Save Runtime",			0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 22, "Create a runtime executable with the current project");
+	uiDefBut(block, BUTM, 1, "Save Runtime",			0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 22, "Create a runtime executable with the current project");
 #ifdef _WIN32
-		uiDefBut(block, BUTM, 1, "Save dynamic Runtime",			0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 23, "Create a dynamic runtime executable with the current project (requieres extenal python20.dll)");
+	uiDefBut(block, BUTM, 1, "Save dynamic Runtime",			0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 23, "Create a dynamic runtime executable with the current project (requieres extenal python20.dll)");
 #endif
-		uiDefBlockBut(block, info_runtime_optionsmenu, NULL, "Runtime options|>>", 0, xco-=20, 160, 19, "Click to open the File Options menu");
-	}
+	uiDefBlockBut(block, info_runtime_optionsmenu, NULL, "Runtime options|>>", 0, xco-=20, 160, 19, "Click to open the File Options menu");
 
 	uiDefBut(block, SEPR, 0, "",						0, xco-=6, 160, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefBut(block, BUTM, 1, "Save Image|F3",			0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 6, "Save the image in the render buffer to a file");
@@ -2429,6 +2421,7 @@ static uiBlock *info_filemenu(void *arg_unused)
 	uiDefBut(block, BUTM, 1, "Save VideoScape|Alt W",	0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 9, "Save the current scene to a file in VideoScape format");
 
 
+	/*
 	if (LICENSE_KEY_VALID) {
 		uiDefBut(block, SEPR, 0, "",						0, xco-=6, 160, 6, NULL, 0.0, 0.0, 1, 0, "");
 		uiDefBut(block, BUTM, 1, "Show License Key", 0, xco-=20,	140, 19, NULL, 0.0, 0.0, 1, 21, "Show the personal information stored in your Blender License Key");
@@ -2438,6 +2431,7 @@ static uiBlock *info_filemenu(void *arg_unused)
 		uiDefBut(block, BUTM, 1, "Install License Key", 0, xco-=20,	140, 19, NULL, 0.0, 0.0, 1, 20, "Install your Blender License Key");
 		uiDefIconBut(block, BUTM, 1, ICON_PUBLISHER,			 141,xco,	19,  19, NULL, 0.0, 0.0, 1, 20, "Install your Blender License Key");
 	}
+	*/
 
 
 	uiDefBut(block, SEPR, 0, "",						0, xco-=6, 160, 6, NULL, 0.0, 0.0, 1, 0, "");
@@ -3202,11 +3196,9 @@ void info_buttons(void)
 	uiDefIconBut(block, BUT, B_SHOWSPLASH, ICON_BLENDER, xco+1, 0,XIC,YIC, 0, 0, 0, 0, 0, "");
 	uiBlockSetEmboss(block, UI_EMBOSSX);
 
-	if (LICENSE_KEY_VALID) {
-		uiBlockSetEmboss(block, UI_EMBOSSN);
-		uiDefIconBut(block, LABEL, 0, ICON_PUBLISHER, xco+125, 0,XIC,YIC, 0, 0, 0, 0, 0, "");
-		uiBlockSetEmboss(block, UI_EMBOSSX);
-	}
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+	uiDefIconBut(block, LABEL, 0, ICON_PUBLISHER, xco+125, 0,XIC,YIC, 0, 0, 0, 0, 0, "");
+	uiBlockSetEmboss(block, UI_EMBOSSX);
 
 	/* altijd als laatste doen */
 	curarea->headbutlen= xco+2*XIC;

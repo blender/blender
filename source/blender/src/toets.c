@@ -98,7 +98,6 @@
 #include "IMB_imbuf_types.h"
 
 #include "mydevice.h"
-#include "license_key.h"
 
 #include "BIF_poseobject.h"
 
@@ -189,7 +188,7 @@ void schrijfplaatje(char *name)
 				else printf("no zbuf\n");
 			}
 		}
-		else if((R.r.imtype==R_PNG) && (LICENSE_KEY_VALID)) {
+		else if(R.r.imtype==R_PNG) {
 			ibuf->ftype= PNG;
 		}
 		else if((R.r.imtype==R_TARGA) || (R.r.imtype==R_PNG)) {
@@ -454,9 +453,7 @@ int save_image_filesel_str(char *str)
 {
 	switch(G.scene->r.imtype) {
 	case R_PNG:
-		if (LICENSE_KEY_VALID) {
-			strcpy(str, "SAVE PNG"); return 1;
-		}
+		strcpy(str, "SAVE PNG"); return 1;
 	case R_TARGA:
 		strcpy(str, "SAVE TARGA"); return 1;
 	case R_RAWTGA:

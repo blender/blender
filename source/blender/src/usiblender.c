@@ -109,7 +109,6 @@
 #include "interface.h"
 #include "radio.h"
 #include "render.h"
-#include "license_key.h"
 #include "datatoc.h"
 
 #include "SYS_System.h"
@@ -138,11 +137,7 @@ void BIF_read_file(char *name)
 	info = BLO_getSignerInfo();
 	if (BLO_isValidSignerInfo(info)) {
 		sprintf(infostring, "File signed by: %s // %s", info->name, info->email);
-		if (LICENSE_KEY_VALID) {
-			splash((void *)datatoc_ton, datatoc_tonize, infostring);
-		} else {
-			splash((void *)datatoc_splash_jpg, datatoc_splash_jpg_size, infostring);
-		}
+		splash((void *)datatoc_ton, datatoc_tonize, infostring);
 	}
 	BLO_clrSignerInfo(info);
 
@@ -451,7 +446,7 @@ void BIF_init(void)
 	init_draw_rects();	/* drawobject.c */
 	init_gl_stuff();	/* drawview.c */
 
-	if (I_AM_PUBLISHER) checkhome();
+	/* if (I_AM_PUBLISHER) checkhome(); */
 
 	BIF_read_homefile(); 
 

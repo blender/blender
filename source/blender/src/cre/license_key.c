@@ -190,7 +190,7 @@ void create_key_name(char * keyname)
 void checkhome()
 {
 	initprot();                   // initialize module and function tables
-	IMB_fp_png_encode = IMB_png_encode;
+	
 }
 
 void SHOW_LICENSE_KEY(void)

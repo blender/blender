@@ -58,10 +58,8 @@
 #endif
 
 
-short (*IMB_fp_png_encode)(struct ImBuf *ibuf, int file, int flags) = 0;
-
 short IMB_saveiff(struct ImBuf *ibuf,char *naam,int flags)
-{	
+{
 	short ok=TRUE,delpl=FALSE;
 	int file = -1;
 
@@ -81,8 +79,8 @@ short IMB_saveiff(struct ImBuf *ibuf,char *naam,int flags)
 		}
 	}
 
-	if (IS_png(ibuf) && IMB_fp_png_encode) {
-		ok = IMB_fp_png_encode(ibuf,file,flags);
+	if (IS_png(ibuf)) {
+		ok = IMB_png_encode(ibuf,file,flags);
 		if (ok) {
 			close (file);
 			return (ok);

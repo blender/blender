@@ -36,7 +36,6 @@
 #include "DNA_texture_types.h" // EnvMap{}
 #include "DNA_image_types.h" // Image{}
 #include "render.h"
-#include "license_key.h"  // LICENSE_KEY_VALID
 #include "BKE_utildefines.h" // ELEM
 #include "BIF_writeimage.h"
 
@@ -51,7 +50,7 @@ int BIF_write_ibuf(ImBuf *ibuf, char *name)
 	/* to be used for e.g. envmap, not rendered images */
 	
 	if(R.r.imtype== R_IRIS) ibuf->ftype= IMAGIC;
-	else if ((R.r.imtype==R_PNG) && (LICENSE_KEY_VALID)) {
+	else if ((R.r.imtype==R_PNG)) {
 		ibuf->ftype= PNG;
 	}
 	else if ((R.r.imtype==R_TARGA) || (R.r.imtype==R_PNG)) {

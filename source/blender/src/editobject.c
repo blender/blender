@@ -158,9 +158,6 @@
 #include "DNA_armature_types.h"
 #include "BIF_poseobject.h"
 
-
-#include "license_key.h"  // For functions behind the key
-
 /*  extern Lattice *copy_lattice(Lattice *lt); */
 extern ListBase editNurb;
 extern ListBase editelems;
@@ -1456,8 +1453,8 @@ void special_editmenu(void)
 			// Get the active object mesh.
 			Mesh *me= get_mesh(OBACT);
 
-			// If the active object is a mesh and license key valid..
-			if(me && LICENSE_KEY_VALID) {
+			// If the active object is a mesh...
+			if (me) {
 				// Bring up a little menu with the boolean operation choices on.
 				nr= pupmenu("Boolean %t|Intersect%x1|Union%x2|Difference%x3");
 

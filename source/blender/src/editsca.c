@@ -88,9 +88,6 @@
 #include "interface.h"
 #include "nla.h"	/* For __NLA : Important, do not remove */
 
-#include "license_key.h"
-extern int LICENSE_KEY_VALID;
-
 #define B_DIFF			1
 #define B_ADD_PROP	2701
 #define B_CHANGE_PROP	2702
@@ -694,39 +691,20 @@ static char *actuator_name(int type)
 
 static char *actuator_pup(Object *owner)
 {
-	if (LICENSE_KEY_VALID)
+	switch (owner->type)
 	{
-		switch (owner->type)
-		{
-		case OB_ARMATURE:
-			return "Actuators  %t|Action %x15|Motion %x0|Constraint %x9|Ipo %x1"
-				"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
-				"|Scene %x11|Random %x13|Message %x14|CD %x16|Game %x17"
-				"|Visibility %x18";
-			break;
-		default:
-			return "Actuators  %t|Motion %x0|Constraint %x9|Ipo %x1"
-				"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
-				"|Scene %x11|Random %x13|Message %x14|CD %x16|Game %x17"
-				"|Visibility %x18";
-		}
+	case OB_ARMATURE:
+		return "Actuators  %t|Action %x15|Motion %x0|Constraint %x9|Ipo %x1"
+			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
+			"|Scene %x11|Random %x13|Message %x14|CD %x16|Game %x17"
+			"|Visibility %x18";
+		break;
+	default:
+		return "Actuators  %t|Motion %x0|Constraint %x9|Ipo %x1"
+			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
+			"|Scene %x11|Random %x13|Message %x14|CD %x16|Game %x17"
+			"|Visibility %x18";
 	}
-	else
-	{
-		switch (owner->type)
-		{
-		case OB_ARMATURE:
-			return "Actuators  %t|Action %x15|Motion %x0|Constraint %x9|Ipo %x1"
-				"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
-				"|Scene %x11|Random %x13|Message %x14|Visibility %x18";
-			break;
-		default:
-			return "Actuators  %t|Motion %x0|Constraint %x9|Ipo %x1"
-				"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
-				"|Scene %x11|Random %x13|Message %x14|Visibility %x18";
-		}
-	}
-	
 }
 
 

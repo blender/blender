@@ -151,9 +151,6 @@
 #include "BIF_writeimage.h"
 #include "BIF_writeavicodec.h"
 
-#include "license_key.h"
-extern int LICENSE_KEY_VALID;
-
 /* 'old' stuff": defines and types ------------------------------------- */
 #include "blendef.h"
 #include "interface.h"
@@ -4694,7 +4691,7 @@ void soundbuts(void)
 		uiDefButI(block, TOG|BIT|SOUND_FLAGS_LOOP_BIT, B_SOUND_REDRAW, "Loop",
 			xco, yco, 95, 24, &sound->flags, 0.0, 0.0, 0, 0,"Toggle between looping on/off");
 
-		if (sound->flags & SOUND_FLAGS_LOOP && LICENSE_KEY_VALID)
+		if (sound->flags & SOUND_FLAGS_LOOP)
 		{
 			xco += 100;
 			uiDefButI(block, TOG|BIT|SOUND_FLAGS_BIDIRECTIONAL_LOOP_BIT, B_SOUND_REDRAW, "Ping Pong",
@@ -6270,43 +6267,28 @@ static char *imagetype_pup(void)
 	strcat(formatstring, "|%s %%x%d");	// add space for Movie
 #endif
 
-	if (LICENSE_KEY_VALID) {
-		strcat(formatstring, "|%s %%x%d");	// add space for PNG
+	strcat(formatstring, "|%s %%x%d");	// add space for PNG
 
 #ifdef _WIN32
-		strcat(formatstring, "|%s %%x%d");	// add space for AVI Codec
+	strcat(formatstring, "|%s %%x%d");	// add space for AVI Codec
 #endif
 
-		sprintf(string, formatstring,
-			"AVI Raw",        R_AVIRAW,
-			"AVI Jpeg",       R_AVIJPEG,
+	sprintf(string, formatstring,
+		"AVI Raw",        R_AVIRAW,
+		"AVI Jpeg",       R_AVIJPEG,
 #ifdef _WIN32
-			"AVI Codec",      R_AVICODEC,
+		"AVI Codec",      R_AVICODEC,
 #endif
-			"Targa",          R_TARGA,
-			"Targa Raw",      R_RAWTGA,
-			"PNG",            R_PNG,
-			"Jpeg",           R_JPEG90,
-			"HamX",           R_HAMX,
-			"Iris",           R_IRIS,
-			"Iris + Zbuffer", R_IRIZ,
-			"Ftype",          R_FTYPE,
-			"Movie",          R_MOVIE
-		);
-	} else {
-		sprintf(string, formatstring,
-			"AVI Raw",        R_AVIRAW,
-			"AVI Jpeg",       R_AVIJPEG,
-			"Targa",          R_TARGA,
-			"Targa Raw",      R_RAWTGA,
-			"Jpeg",           R_JPEG90,
-			"HamX",           R_HAMX,
-			"Iris",           R_IRIS,
-			"Iris + Zbuffer", R_IRIZ,
-			"Ftype",          R_FTYPE,
-			"Movie",          R_MOVIE
-		);
-	}
+		"Targa",          R_TARGA,
+		"Targa Raw",      R_RAWTGA,
+		"PNG",            R_PNG,
+		"Jpeg",           R_JPEG90,
+		"HamX",           R_HAMX,
+		"Iris",           R_IRIS,
+		"Iris + Zbuffer", R_IRIZ,
+		"Ftype",          R_FTYPE,
+		"Movie",          R_MOVIE
+	);
 
 	return (string);
 }

@@ -96,7 +96,6 @@
 #include "BSE_headerbuttons.h"
 #include "BSE_view.h"
 
-#include "license_key.h"
 #include "interface.h"
 #include "mydevice.h"
 #include "blendef.h"
@@ -1076,15 +1075,8 @@ void screenmain(void)
 
 				if (! ((G.main->versionfile >= G.version)
 				       || G.save_over)) {
-					if (LICENSE_KEY_VALID) {
-						splash((void *)datatoc_ton,
-						       datatoc_tonize,
-						       NULL);
-					} else {
-						splash((void *)datatoc_splash_jpg,
-						       datatoc_splash_jpg_size,
-						       NULL);
-					}
+					splash((void *)datatoc_ton,
+					       datatoc_tonize, NULL);
 				}
 			}
 			firsttime = 0;

@@ -84,8 +84,6 @@
 #include "render.h"
 #include "nla.h"
 
-#include "license_key.h"
-
 /* for passing information between creator and gameengine */
 #include "SYS_System.h"
 

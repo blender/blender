@@ -58,9 +58,6 @@ extern "C" {
 #include <unistd.h>
 #endif
 
-//extern int LICENSE_KEY_VALID;
-#define LICENSE_KEY_VALID true
-
 #define BUFFERSIZE 32
 
 
@@ -171,11 +168,8 @@ bool SND_IsSampleValid(const STR_String& name, void* memlocation)
 			
 			/* only fmod supports compressed wav */
 #ifdef USE_FMOD
-			/* and only valid publishers may use compressed wav */
-			if (LICENSE_KEY_VALID)
+			switch (shortbuf)
 			{
-				switch (shortbuf)
-				{
 				case SND_WAVE_FORMAT_ADPCM:
 				case SND_WAVE_FORMAT_ALAW:
 				case SND_WAVE_FORMAT_MULAW:
@@ -189,18 +183,17 @@ bool SND_IsSampleValid(const STR_String& name, void* memlocation)
 					{
 						break;
 					}
-				}
 			}
 #endif
 		}
 #ifdef USE_FMOD
 		/* only valid publishers may use ogg vorbis */
-		else if (!memcmp(buffer, "OggS", 4) && LICENSE_KEY_VALID)
+		else if (!memcmp(buffer, "OggS", 4))
 		{
 			result = true;
 		}
 		/* only valid publishers may use mp3 */
-		else if (((!memcmp(buffer, "ID3", 3)) || (!memcmp(buffer, "ÿû", 2))) && LICENSE_KEY_VALID)
+		else if (((!memcmp(buffer, "ID3", 3)) || (!memcmp(buffer, "ÿû", 2))))
 		{
 			result = true;
 		}

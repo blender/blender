@@ -48,7 +48,7 @@
 #include <config.h>
 #endif
 
-int LICENSE_KEY_VALID = FALSE;
+int LICENSE_KEY_VALID = TRUE;
 int I_AM_PUBLISHER = TRUE;
 
 static UserStruct User;
@@ -330,8 +330,6 @@ void checkhome()
 
 		// other initialization code
 
-		// enable png writing in the ImBuf library
-		IMB_fp_png_encode = IMB_png_encode;
 	}
 }
 

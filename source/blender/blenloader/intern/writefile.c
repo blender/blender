@@ -219,8 +219,6 @@ static void writedata_free(WriteData *wd)
 struct streamGlueControlStruct *Global_streamGlueControl;
 int mywfile;
 
-#include "license_key.h"
-
 /**
  * Low level WRITE(2) wrapper that buffers data
  * @param adr Pointer to new chunk of data
@@ -264,7 +262,7 @@ bgnwrite(
 	int file, 
 	int write_flags)
 {
-	int is_publisher= ((write_flags & (G_FILE_COMPRESS | G_FILE_LOCK | G_FILE_SIGN | G_FILE_PUBLISH)) && LICENSE_KEY_VALID);
+	int is_publisher= (write_flags & (G_FILE_COMPRESS | G_FILE_LOCK | G_FILE_SIGN | G_FILE_PUBLISH));
 	WriteData *wd= writedata_new(file, is_publisher);
 	
 	if (is_publisher) {
