@@ -733,8 +733,8 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Clamp:", 	10,70,150,19, &glow->fClamp, 0.0, 1.0, 0, 0, "Brightness limit of intensity");
 			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Boost factor:", 	10,50,150,19, &glow->fBoost, 0.0, 10.0, 0, 0, "Brightness multiplier");
 			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Blur distance:", 	10,30,150,19, &glow->dDist, 0.5, 20.0, 0, 0, "Radius of glow effect");
-			uiDefButS(block, NUM, 0, "Quality:", 10,10,150,19, &glow->dQuality, 1.0, 5.0, 0, 0, "Accuracy of the blur effect");
-			uiDefButS(block, TOG, 0, "Only boost", 10,-10,150,19, &glow->bNoComp, 0.0, 0.0, 0, 0, "Show the glow buffer only");
+			uiDefButI(block, NUM, 0, "Quality:", 10,10,150,19, &glow->dQuality, 1.0, 5.0, 0, 0, "Accuracy of the blur effect");
+			uiDefButI(block, TOG, 0, "Only boost", 10,-10,150,19, &glow->bNoComp, 0.0, 0.0, 0, 0, "Show the glow buffer only");
 		}
 
 	}
