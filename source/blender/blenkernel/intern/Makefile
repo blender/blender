@@ -72,7 +72,7 @@ CPPFLAGS += -I$(NAN_IKSOLVER)/include
 # path to our own external headerfiles
 CPPFLAGS += -I..
 
-ifdef WITH_FREETYPE2
+ifeq ($(WITH_FREETYPE2), true)
     CPPFLAGS += -DWITH_FREETYPE2
     CPPFLAGS += -I$(NAN_FREETYPE)/include
     CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2

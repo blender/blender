@@ -55,6 +55,6 @@ CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
 CPPFLAGS += -I$(SRCHOME)/blender/blenkernel
 CPPFLAGS += -I../../include/
 
-ifdef WITH_FREETYPE2
+ifeq ($(WITH_FREETYPE2), true)
 	CPPFLAGS += -DWITH_FREETYPE2
 endif

@@ -34,7 +34,11 @@ include nan_definitions.mk
 
 SOURCEDIR = extern
 DIR = $(OCGDIR)/extern
-DIRS = qhull/src solid bFTGL/src
+DIRS = qhull/src solid 
+
+ifeq ($(WITH_FREETYPE2), true)
+    DIRS += bFTGL/src
+endif
 
 TARGET =
 ifneq ($(OS),irix)

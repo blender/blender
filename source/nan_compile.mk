@@ -38,9 +38,13 @@ CPPFLAGS ?= $(NAN_CPPFLAGS)
 # common parts ---------------------------------------------------
 
 # Uncomment next lines to enable integrated game engine
-CFLAGS  += -DGAMEBLENDER=1
-CFLAGS  += -DUSE_SUMO_SOLID
-CCFLAGS += -DUSE_SUMO_SOLID
+ifneq ($(NAN_NO_KETSJI), true)
+    CFLAGS  += -DGAMEBLENDER=1
+    CFLAGS  += -DUSE_SUMO_SOLID
+    CCFLAGS += -DUSE_SUMO_SOLID
+else
+   CPPFLAGS += -DNO_KETSJI
+endif
 
 ifdef NAN_DEBUG
     CFLAGS += $(NAN_DEBUG)
@@ -51,12 +55,6 @@ REL_CFLAGS	+= -DNDEBUG
 REL_CCFLAGS	+= -DNDEBUG
 DBG_CFLAGS	+= -g
 DBG_CCFLAGS	+= -g
-
-# Is the game engine getting you down? ---------------------------------
-   
-ifeq ($(NAN_NO_KETSJI), true)
-   CPPFLAGS += -DNO_KETSJI
-endif
 
 # Support for new transform code ---------------------------------------
 ifeq ($(NAN_NEW_TRANSFORM), true)
