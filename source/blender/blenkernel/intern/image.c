@@ -729,8 +729,6 @@ int imagewrap(Tex *tex, float *texvec)
 		}
 	}
 
-	if(tex->flag & TEX_COLORBAND) do_colorband(tex->coba);
-
 	if(tex->nor) return 3;
 	else return 1;
 }
@@ -1556,8 +1554,6 @@ int imagewraposa(Tex *tex, float *texvec, float *dxt, float *dyt)
 		Tin= 0.0f;
 		return 0;
 	}
-	
-	if(tex->flag & TEX_COLORBAND) do_colorband(tex->coba);
 	
 	if(tex->nor) return 3;
 	else return 1;

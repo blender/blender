@@ -51,7 +51,7 @@ void open_plugin_tex(struct PluginTex *pit);
 struct PluginTex *add_plugin_tex(char *str);
 void free_plugin_tex(struct PluginTex *pit);
 struct ColorBand *add_colorband(void);
-int do_colorband(struct ColorBand *coba);
+int do_colorband(struct ColorBand *coba, float in, float out[4]);
 void default_tex(struct Tex *tex);
 struct Tex *add_texture(char *name);
 void default_mtex(struct MTex *mtex);

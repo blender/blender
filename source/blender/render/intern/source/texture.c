@@ -233,7 +233,6 @@ static int blend(Tex *tex, float *texvec)
 	}
 
 	BRICON;
-	if(tex->flag & TEX_COLORBAND)  return do_colorband(tex->coba);
 
 	return 0;
 }
@@ -271,8 +270,6 @@ static int clouds(Tex *tex, float *texvec)
 	}
 
 	BRICON;
-
-	if (tex->flag & TEX_COLORBAND)  return (rv + do_colorband(tex->coba));
 
 	return rv;
 
@@ -313,7 +310,6 @@ static int wood(Tex *tex, float *texvec)
 	}
 
 	BRICON;
-	if (tex->flag & TEX_COLORBAND)  return (rv + do_colorband(tex->coba));
 
 	return rv;
 }
@@ -349,7 +345,6 @@ static int marble(Tex *tex, float *texvec)
 	}
 
 	BRICON;
-	if (tex->flag & TEX_COLORBAND)  return (rv + do_colorband(tex->coba));
 
 	return rv;
 }
@@ -485,8 +480,6 @@ static float mg_mFractalOrfBmTex(Tex *tex, float *texvec)
 
 	BRICON;
 
-	if (tex->flag & TEX_COLORBAND)  return (rv + do_colorband(tex->coba));
-
 	return rv;
 
 }
@@ -515,8 +508,6 @@ static float mg_ridgedOrHybridMFTex(Tex *tex, float *texvec)
 
 	BRICON;
 
-	if (tex->flag & TEX_COLORBAND)  return (rv + do_colorband(tex->coba));
-
 	return rv;
 
 }
@@ -540,8 +531,6 @@ static float mg_HTerrainTex(Tex *tex, float *texvec)
 
 	BRICON;
 
-	if (tex->flag & TEX_COLORBAND)  return (rv + do_colorband(tex->coba));
-
 	return rv;
 
 }
@@ -563,7 +552,6 @@ static float mg_distNoiseTex(Tex *tex, float *texvec)
 
 	BRICON;
 
-	if (tex->flag & TEX_COLORBAND)  return (rv + do_colorband(tex->coba));
 
 	return rv;
 
@@ -639,8 +627,6 @@ static float voronoiTex(Tex *tex, float *texvec)
 	
 	BRICON;
 
-	if (tex->flag & TEX_COLORBAND)  return (rv + do_colorband(tex->coba));
-
 	return rv;
 
 }
@@ -666,8 +652,6 @@ static int texnoise(Tex *tex)
 	Tin= ((float)val)/div;;
 
 	BRICON;
-	if(tex->flag & TEX_COLORBAND)  return do_colorband(tex->coba);
-	
 	return 0;
 }
 
@@ -706,7 +690,6 @@ static int plugintex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex
 		}
 		
 		BRICON;
-		if(tex->flag & TEX_COLORBAND)  rgbnor |= do_colorband(tex->coba);
 	}
 
 	return rgbnor;
@@ -1036,34 +1019,45 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *dxt, float 
 
 int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex)
 {
-
+	int retval=0; /* return value, int:0, col:1, nor:2, everything:3 */
+	
 	switch(tex->type) {
 	
 	case 0:
 		Tin= 0.0;
 		return 0;
 	case TEX_CLOUDS:
-		return clouds(tex, texvec);
+		retval= clouds(tex, texvec);
+		break;
 	case TEX_WOOD:
-		return wood(tex, texvec); 
+		retval= wood(tex, texvec); 
+		break;
 	case TEX_MARBLE:
-		return marble(tex, texvec); 
+		retval= marble(tex, texvec); 
+		break;
 	case TEX_MAGIC:
-		return magic(tex, texvec); 
+		retval= magic(tex, texvec); 
+		break;
 	case TEX_BLEND:
-		return blend(tex, texvec);
+		retval= blend(tex, texvec);
+		break;
 	case TEX_STUCCI:
 		Tin= 0.0;
-		return stucci(tex, texvec); 
+		retval= stucci(tex, texvec); 
+		break;
 	case TEX_NOISE:
-		return texnoise(tex); 
+		retval= texnoise(tex); 
+		break;
 	case TEX_IMAGE:
-		if(osatex) return imagewraposa(tex, texvec, dxt, dyt); 
-		else return imagewrap(tex, texvec); 
+		if(osatex) retval= imagewraposa(tex, texvec, dxt, dyt); 
+		else retval= imagewrap(tex, texvec); 
+		break;
 	case TEX_PLUGIN:
-		return plugintex(tex, texvec, dxt, dyt, osatex);
+		retval= plugintex(tex, texvec, dxt, dyt, osatex);
+		break;
 	case TEX_ENVMAP:
-		return envmaptex(tex, texvec, dxt, dyt, osatex);
+		retval= envmaptex(tex, texvec, dxt, dyt, osatex);
+		break;
 	case TEX_MUSGRAVE:
 		/* newnoise: musgrave types */
 		
@@ -1073,12 +1067,15 @@ int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex)
 		switch(tex->stype) {
 		case TEX_MFRACTAL:
 		case TEX_FBM:
-			return mg_mFractalOrfBmTex(tex, texvec);
+			retval= mg_mFractalOrfBmTex(tex, texvec);
+			break;
 		case TEX_RIDGEDMF:
 		case TEX_HYBRIDMF:
-			return mg_ridgedOrHybridMFTex(tex, texvec);
+			retval= mg_ridgedOrHybridMFTex(tex, texvec);
+			break;
 		case TEX_HTERRAIN:
-			return mg_HTerrainTex(tex, texvec);
+			retval= mg_HTerrainTex(tex, texvec);
+			break;
 		}
 		break;
 	/* newnoise: voronoi type */
@@ -1086,14 +1083,27 @@ int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex)
 		/* ton: added this, for Blender convention reason. scaling texvec here is so-so... */
 		VecMulf(texvec, 1.0/tex->noisesize);
 		
-		return voronoiTex(tex, texvec);
+		retval= voronoiTex(tex, texvec);
+		break;
 	case TEX_DISTNOISE:
 		/* ton: added this, for Blender convention reason. scaling texvec here is so-so... */
 		VecMulf(texvec, 1.0/tex->noisesize);
 		
-		return mg_distNoiseTex(tex, texvec);
+		retval= mg_distNoiseTex(tex, texvec);
+		break;
 	}
-	return 0;
+
+	if (tex->flag & TEX_COLORBAND) {
+		float col[4];
+		if (do_colorband(tex->coba, Tin, col)) {
+			retval |= 1;
+			Tr= col[0];
+			Tg= col[1];
+			Tb= col[2];
+			Ta= col[3];
+		}
+	}
+	return retval;
 }
 
 /* ------------------------------------------------------------------------- */

@@ -164,6 +164,7 @@ void butspace_context_switch(SpaceButs *buts, struct Base *new);
 #define B_MATHALO		1213
 #define B_MATZTRANSP	1214
 #define B_MATRAYTRANSP	1215
+#define B_MATCOLORBAND	1216
 
 /* *********************** */
 #define B_TEXBUTS		1400

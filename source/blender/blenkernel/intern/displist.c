@@ -475,8 +475,9 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 {
 	ShadeInput shi;
 	FastLamp *fl;
-	float i, t, inp, soft, inpr, inpg, inpb, isr=0, isg=0, isb=0, lv[3], view[3], lampdist, ld;
-	float inpr1, inpg1, inpb1, isr1=0, isg1=0, isb1=0;
+	float i, t, inp, is, soft,  lv[3], lampdist, ld;
+	float diff1[3], diff2[3];
+	float isr1=0, isg1=0, isb1=0, isr=0, isg=0, isb=0;
 	int a, back;
 
 	if(ma==0) return;
@@ -485,6 +486,7 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 	shi.vlr= NULL;	// have to do this!
 	ma= shi.matren;
 	shi.osatex= 0;  // also prevents reading vlr
+	VECCOPY(shi.vn, nor);
 	
 	if(ma->mode & MA_VERTEXCOLP) {
 		if(vertcol) {
@@ -496,7 +498,6 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 	
 	if(ma->texco) {
 		VECCOPY(shi.lo, orco);
-		VECCOPY(shi.vn, nor);
 		
 		if(ma->texco & TEXCO_GLOB) {
 			VECCOPY(shi.gl, shi.lo);
@@ -552,19 +553,21 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 	}
 
 	if( vertcol && (ma->mode & (MA_VERTEXCOL+MA_VERTEXCOLP))== MA_VERTEXCOL ) {
-		inpr= inpr1= ma->emit+vertcol[3]/255.0;
-		inpg= inpg1= ma->emit+vertcol[2]/255.0;
-		inpb= inpb1= ma->emit+vertcol[1]/255.0;
+		diff1[0]= diff2[0]= ma->r*(ma->emit+vertcol[3]/255.0);
+		diff1[1]= diff2[1]= ma->g*(ma->emit+vertcol[2]/255.0);
+		diff1[2]= diff2[2]= ma->b*(ma->emit+vertcol[1]/255.0);
 	}
 	else {
-		inpr= inpg= inpb= inpr1= inpg1= inpb1= ma->emit;
+		diff1[0]= diff2[0]= ma->r*ma->emit;
+		diff1[1]= diff2[1]= ma->g*ma->emit;
+		diff1[2]= diff2[2]= ma->b*ma->emit;
 	}
 	
-	view[0]= 0.0;
-	view[1]= 0.0;
-	view[2]= 1.0;
+	shi.view[0]= 0.0;
+	shi.view[1]= 0.0;
+	shi.view[2]= 1.0;
 	
-	Normalise(view);
+	Normalise(shi.view);
 
 	for (fl= fastlamplist; fl; fl= fl->next) {
 		/* if(fl->mode & LA_LAYER) if((fl->lay & ma->lay)==0) continue; */
@@ -623,76 +626,103 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 			}
 		}
 
-		if(fl->mode & LA_NO_DIFF) inp= 0.0;
+		if(fl->mode & LA_NO_DIFF) is= 0.0;
 		else {
-			inp= nor[0]*lv[0]+ nor[1]*lv[1]+ nor[2]*lv[2];
+			is= nor[0]*lv[0]+ nor[1]*lv[1]+ nor[2]*lv[2];
 	
-			if(ma->diff_shader==MA_DIFF_ORENNAYAR) inp= OrenNayar_Diff(nor, lv, view, ma->roughness);
-			else if(ma->diff_shader==MA_DIFF_TOON) inp= Toon_Diff(nor, lv, view, ma->param[0], ma->param[1]);
+			if(ma->diff_shader==MA_DIFF_ORENNAYAR) is= OrenNayar_Diff(nor, lv, shi.view, ma->roughness);
+			else if(ma->diff_shader==MA_DIFF_TOON) is= Toon_Diff(nor, lv, shi.view, ma->param[0], ma->param[1]);
 		}
 		
 		back= 0;
-		if(inp<0.0) {
+		if(is<0.0) {
 			back= 1;
-			inp= -inp;
+			is= -is;
 		}
-		inp*= lampdist*ma->ref;
+		inp= is*lampdist*ma->ref;
 
 		if(back==0) {
-			inpr+= inp*fl->r;
-			inpg+= inp*fl->g;
-			inpb+= inp*fl->b;
+			add_to_diffuse(diff1, &shi, is, inp*fl->r, inp*fl->g, inp*fl->b);
+			//diff1[0]+= inp*fl->r;
+			//diff1[1]+= inp*fl->g;
+			//diff1[2]+= inp*fl->b;
 		} else if(col2) {
-			inpr1+= inp*fl->r;
-			inpg1+= inp*fl->g;
-			inpb1+= inp*fl->b;
+			add_to_diffuse(diff2, &shi, is, inp*fl->r, inp*fl->g, inp*fl->b);
+			//diff2[0]+= inp*fl->r;
+			//diff2[1]+= inp*fl->g;
+			//diff2[2]+= inp*fl->b;
 		}
 		if(ma->spec && (fl->mode & LA_NO_SPEC)==0) {
+			float specfac;
 			
 			if(ma->spec_shader==MA_SPEC_PHONG) 
-				t= Phong_Spec(nor, lv, view, ma->har);
+				specfac= Phong_Spec(nor, lv, shi.view, ma->har);
 			else if(ma->spec_shader==MA_SPEC_COOKTORR) 
-				t= CookTorr_Spec(nor, lv, view, ma->har);
+				specfac= CookTorr_Spec(nor, lv, shi.view, ma->har);
 			else if(ma->spec_shader==MA_SPEC_BLINN) 
-				t= Blinn_Spec(nor, lv, view, ma->refrac, (float)ma->har);
+				specfac= Blinn_Spec(nor, lv, shi.view, ma->refrac, (float)ma->har);
 			else 
-				t= Toon_Spec(nor, lv, view, ma->param[2], ma->param[3]);
+				specfac= Toon_Spec(nor, lv, shi.view, ma->param[2], ma->param[3]);
 			
-			if(t>0) {
-				t*= ma->spec*lampdist;
+			if(specfac>0) {
+				t= specfac*ma->spec*lampdist;
 				if(back==0) {
-					isr+= t*(fl->r * ma->specr);
-					isg+= t*(fl->g * ma->specg);
-					isb+= t*(fl->b * ma->specb);
+					if(ma->mode & MA_RAMP_SPEC) {
+						float spec[3];
+						do_specular_ramp(&shi, specfac, t, spec);
+						isr+= t*(fl->r * spec[0]);
+						isg+= t*(fl->g * spec[1]);
+						isb+= t*(fl->b * spec[2]);
+					}
+					else {
+						isr+= t*(fl->r * ma->specr);
+						isg+= t*(fl->g * ma->specg);
+						isb+= t*(fl->b * ma->specb);
+					}
 				}
 				else if(col2) {
-					isr1+= t*(fl->r * ma->specr);
-					isg1+= t*(fl->g * ma->specg);
-					isb1+= t*(fl->b * ma->specb);
+					if(ma->mode & MA_RAMP_SPEC) {
+						float spec[3];
+						do_specular_ramp(&shi, specfac, t, spec);
+						isr1+= t*(fl->r * spec[0]);
+						isg1+= t*(fl->g * spec[1]);
+						isb1+= t*(fl->b * spec[2]);
+					}
+					else {
+						isr1+= t*(fl->r * ma->specr);
+						isg1+= t*(fl->g * ma->specg);
+						isb1+= t*(fl->b * ma->specb);
+					}
 				}
 			}
 		}
 
 	}
 
-	a= 256*(inpr*ma->r + ma->ambr +isr);
+	if(ma->mode & MA_RAMP_COL) ramp_diffuse_result(diff1, &shi);
+	if(ma->mode & MA_RAMP_SPEC) ramp_spec_result(&isr, &isg, &isb, &shi);
+
+	a= 256*(diff1[0] + ma->ambr +isr);
 	if(a>255) col1[3]= 255; 
 	else col1[3]= a;
-	a= 256*(inpg*ma->g + ma->ambg +isg);
+	a= 256*(diff1[1] + ma->ambg +isg);
 	if(a>255) col1[2]= 255; 
 	else col1[2]= a;
-	a= 256*(inpb*ma->b + ma->ambb +isb);
+	a= 256*(diff1[2] + ma->ambb +isb);
 	if(a>255) col1[1]= 255; 
 	else col1[1]= a;
 
 	if(col2) {
-		a= 256*(inpr1*ma->r + ma->ambr +isr1);
+		if(ma->mode & MA_RAMP_COL) ramp_diffuse_result(diff2, &shi);
+		if(ma->mode & MA_RAMP_SPEC) ramp_spec_result(&isr1, &isg1, &isb1, &shi);
+		
+		a= 256*(diff2[0] + ma->ambr +isr1);
 		if(a>255) col2[3]= 255; 
 		else col2[3]= a;
-		a= 256*(inpr1*ma->g + ma->ambg +isg1);
+		a= 256*(diff2[1] + ma->ambg +isg1);
 		if(a>255) col2[2]= 255; 
 		else col2[2]= a;
-		a= 256*(inpr1*ma->b + ma->ambb +isb1);
+		a= 256*(diff2[2] + ma->ambb +isb1);
 		if(a>255) col2[1]= 255; 
 		else col2[1]= a;
 	}

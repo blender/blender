@@ -1920,7 +1920,11 @@ static void direct_link_material(FileData *fd, Material *ma)
 	for(a=0; a<8; a++) {
 		ma->mtex[a]= newdataadr(fd, ma->mtex[a]);
 	}
-	ma->ren= 0;	/* should not be needed, nevertheless... */
+
+	ma->ramp_col= newdataadr(fd, ma->ramp_col);
+	ma->ramp_spec= newdataadr(fd, ma->ramp_spec);
+	
+	ma->ren= NULL;	/* should not be needed, nevertheless... */
 }
 
 /* ************ READ MESH ***************** */
@@ -4229,8 +4233,17 @@ static void do_versions(Main *main)
 		}
 
 	}
-
-
+	if(main->versionfile <= 233) {
+		Material *ma= main->mat.first;
+		
+		while(ma) {
+			if(ma->rampfac_col==0.0) ma->rampfac_col= 1.0;
+			if(ma->rampfac_spec==0.0) ma->rampfac_spec= 1.0;
+			if(ma->pr_lamp==0) ma->pr_lamp= 3;
+			ma= ma->id.next;
+		}
+	}
+	
 	/* don't forget to set version number in blender.c! */
 }
 

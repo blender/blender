@@ -912,7 +912,10 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 			for(a=0; a<8; a++) {
 				if(ma->mtex[a]) writestruct(wd, DATA, "MTex", 1, ma->mtex[a]);
 			}
-
+			
+			if(ma->ramp_col) writestruct(wd, DATA, "ColorBand", 1, ma->ramp_col);
+			if(ma->ramp_spec) writestruct(wd, DATA, "ColorBand", 1, ma->ramp_spec);
+			
 			write_scriptlink(wd, &ma->scriptlink);
 		}
 		ma= ma->id.next;

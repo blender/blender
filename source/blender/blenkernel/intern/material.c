@@ -71,13 +71,16 @@ void free_material(Material *ma)
 	BPY_free_scriptlink(&ma->scriptlink);
 	
 	if(ma->ren) MEM_freeN(ma->ren);
-	ma->ren= 0;
+	ma->ren= NULL;
 	
 	for(a=0; a<8; a++) {
 		mtex= ma->mtex[a];
 		if(mtex && mtex->tex) mtex->tex->id.us--;
 		if(mtex) MEM_freeN(mtex);
 	}
+	
+	if(ma->ramp_col) MEM_freeN(ma->ramp_col);
+	if(ma->ramp_spec) MEM_freeN(ma->ramp_spec);
 }
 
 void init_material(Material *ma)
@@ -113,6 +116,10 @@ void init_material(Material *ma)
 	ma->fresnel_tra_i= 1.25;
 	ma->fresnel_mir_i= 1.25;
 	
+	ma->rampfac_col= 1.0;
+	ma->rampfac_spec= 1.0;
+	ma->pr_lamp= 3; // two lamps, is bits
+	
 	ma->mode= MA_TRACEBLE+MA_SHADOW+MA_RADIO;	
 }
 
@@ -145,6 +152,8 @@ Material *copy_material(Material *ma)
 	}
 	
 	BPY_copy_scriptlink(&ma->scriptlink);
+	if(ma->ramp_col) man->ramp_col= MEM_dupallocN(ma->ramp_col);
+	if(ma->ramp_spec) man->ramp_spec= MEM_dupallocN(ma->ramp_spec);
 	
 	return man;
 }

@@ -42,6 +42,7 @@
 struct MTex;
 struct Ipo;
 struct Material;
+struct ColorBand;
 
 /* WATCH IT: change type? also make changes in ipo.h  */
 
@@ -77,6 +78,14 @@ typedef struct Material {
 	float roughness, refrac;
 	float param[4];		/* size, smooth, size, smooth, for toonshader */
 	short texco, mapto;
+	
+	/* ramp colors */
+	struct ColorBand *ramp_col;
+	struct ColorBand *ramp_spec;
+	char rampin_col, rampin_spec;
+	char rampblend_col, rampblend_spec;
+	short ramp_show, pad3;
+	float rampfac_col, rampfac_spec;
 	
 	struct MTex *mtex[8];
 	struct Ipo *ipo;
@@ -129,6 +138,8 @@ typedef struct Material {
 #define MA_RAYTRANSP	0x20000
 #define MA_RAYMIRROR	0x40000
 #define MA_SHADOW_TRA	0x80000
+#define MA_RAMP_COL		0x100000
+#define MA_RAMP_SPEC	0x200000
 
 /* diff_shader */
 #define MA_DIFF_LAMBERT		0
@@ -144,6 +155,17 @@ typedef struct Material {
 /* dynamode */
 #define MA_DRAW_DYNABUTS    1
 #define MA_FH_NOR	        2
+
+/* ramps */
+#define MA_RAMP_IN_SHADER	0
+#define MA_RAMP_IN_ENERGY	1
+#define MA_RAMP_IN_NOR		2
+#define MA_RAMP_IN_RESULT	3
+
+#define MA_RAMP_BLEND		0
+#define MA_RAMP_ADD			1
+#define MA_RAMP_MULT		2
+#define MA_RAMP_SUB			3
 
 /* texco */
 #define TEXCO_ORCO		1

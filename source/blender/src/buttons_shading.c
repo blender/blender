@@ -191,12 +191,26 @@ void save_env(char *name)
 void drawcolorband(ColorBand *coba, float x1, float y1, float sizex, float sizey)
 {
 	CBData *cbd;
-	float v3[2], v1[2], v2[2];
+	float dx, v3[2], v1[2], v2[2];
 	int a;
 	
-	if(coba==0) return;
+	if(coba==NULL) return;
+	
+	/* first background, to show tranparency */
+	dx= sizex/12.0;
+	v1[0]= x1;
+	for(a=0; a<12; a++) {
+		if(a & 1) glColor3f(0.3, 0.3, 0.3); else glColor3f(0.8, 0.8, 0.8);
+		glRectf(v1[0], y1, v1[0]+dx, y1+0.5*sizey);
+		if(a & 1) glColor3f(0.8, 0.8, 0.8); else glColor3f(0.3, 0.3, 0.3);
+		glRectf(v1[0], y1+0.5*sizey, v1[0]+dx, y1+sizey);
+		v1[0]+= dx;
+	}
 	
 	glShadeModel(GL_SMOOTH);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+
 	cbd= coba->data;
 	
 	v1[0]= v2[0]= x1;
@@ -205,14 +219,14 @@ void drawcolorband(ColorBand *coba, float x1, float y1, float sizex, float sizey
 	
 	glBegin(GL_QUAD_STRIP);
 	
-	glColor3fv( &cbd->r );
+	glColor4fv( &cbd->r );
 	glVertex2fv(v1); glVertex2fv(v2);
 	
 	for(a=0; a<coba->tot; a++, cbd++) {
 		
 		v1[0]=v2[0]= x1+ cbd->pos*sizex;
 
-		glColor3fv( &cbd->r );
+		glColor4fv( &cbd->r );
 		glVertex2fv(v1); glVertex2fv(v2);
 	}
 	
@@ -221,7 +235,7 @@ void drawcolorband(ColorBand *coba, float x1, float y1, float sizex, float sizey
 	
 	glEnd();
 	glShadeModel(GL_FLAT);
-	
+	glDisable(GL_BLEND);
 
 	/* outline */
 	v1[0]= x1; v1[1]= y1;
@@ -266,10 +280,14 @@ void drawcolorband(ColorBand *coba, float x1, float y1, float sizex, float sizey
 		glVertex2fv(v3);
 		
 		if(a==coba->cur) {
-			glVertex2f(v2[0]-1, v2[1]);
-			glVertex2f(v3[0]-1, v3[1]);
-			glVertex2f(v2[0]+1, v2[1]);
-			glVertex2f(v3[0]+1, v3[1]);
+			if(cbd->pos>0.01) {
+				glVertex2f(v2[0]-1, v2[1]);
+				glVertex2f(v3[0]-1, v3[1]);
+			}
+			if(cbd->pos<0.99) {
+				glVertex2f(v2[0]+1, v2[1]);
+				glVertex2f(v3[0]+1, v3[1]);
+			}
 		}
 	}
 	glEnd();
@@ -278,19 +296,125 @@ void drawcolorband(ColorBand *coba, float x1, float y1, float sizex, float sizey
 	glFlush();
 }
 
+static void drawcolorband_cb(void)
+{
+	ID *id, *idfrom;
+	
+	buttons_active_id(&id, &idfrom);
+	if( GS(id->name)==ID_TE) {
+		Tex *tex= (Tex *)id;
+		drawcolorband(tex->coba, 12,145,300,30);
+	}
+	else if( GS(id->name)==ID_MA) {
+		Material *ma= (Material *)id;
+		if(ma->ramp_show==0)
+			drawcolorband(ma->ramp_col, 12,110,300,30);
+		else
+			drawcolorband(ma->ramp_spec, 12,110,300,30);
+	}
+}
 
+
+static void do_colorbandbuts(ColorBand *coba, unsigned short event)
+{
+	uiBlock *block;
+	CBData *cbd;
+	float dx;
+	int a;
+	short mvalo[2], mval[2];
+	
+	if(coba==NULL) return;
+	
+	switch(event) {
+	case B_ADDCOLORBAND:
+		
+		if(coba->tot < MAXCOLORBAND-1) coba->tot++;
+		coba->cur= coba->tot-1;
+		
+		do_colorbandbuts(coba, B_CALCCBAND);
+		
+		break;
+
+	case B_DELCOLORBAND:
+		if(coba->tot<2) return;
+		
+		for(a=coba->cur; a<coba->tot; a++) {
+			coba->data[a]= coba->data[a+1];
+		}
+		if(coba->cur) coba->cur--;
+		coba->tot--;
+
+		allqueue(REDRAWBUTSSHADING, 0);
+		BIF_all_preview_changed();
+		break;
+
+	case B_CALCCBAND:
+	case B_CALCCBAND2:
+		if(coba->tot<2) return;
+		
+		for(a=0; a<coba->tot; a++) coba->data[a].cur= a;
+		qsort(coba->data, coba->tot, sizeof(CBData), vergcband);
+		for(a=0; a<coba->tot; a++) {
+			if(coba->data[a].cur==coba->cur) {
+				if(coba->cur!=a) addqueue(curarea->win, REDRAW, 0);	/* button cur */
+				coba->cur= a;
+				break;
+			}
+		}
+		if(event==B_CALCCBAND2) return;
+		
+		allqueue(REDRAWBUTSSHADING, 0);
+		BIF_all_preview_changed();
+		
+		break;
+		
+	case B_DOCOLORBAND:
+		
+		/* weak; find panel where colorband is */
+		block= uiFindOpenPanelBlockName(&curarea->uiblocks, "Colors");
+		if(block==NULL) block= uiFindOpenPanelBlockName(&curarea->uiblocks, "Ramps");
+		
+		if(block) {
+			cbd= coba->data + coba->cur;
+			uiGetMouse(mywinget(), mvalo);
+	
+			while(get_mbut() & L_MOUSE) {
+				uiGetMouse(mywinget(), mval);
+				if(mval[0]!=mvalo[0]) {
+					dx= mval[0]-mvalo[0];
+					dx/= 345.0;
+					cbd->pos+= dx;
+					CLAMP(cbd->pos, 0.0, 1.0);
+	
+					glDrawBuffer(GL_FRONT);
+					uiPanelPush(block);
+					drawcolorband_cb();
+					uiPanelPop(block);
+					glDrawBuffer(GL_BACK);
+					
+					do_colorbandbuts(coba, B_CALCCBAND2);
+					cbd= coba->data + coba->cur;	/* because qsort */
+					
+					mvalo[0]= mval[0];
+				}
+				BIF_wait_for_statechange();
+			}
+			allqueue(REDRAWBUTSSHADING, 0);
+			BIF_all_preview_changed();
+		}
+		break;
+	}
+}
 
 void do_texbuts(unsigned short event)
 {
 	Tex *tex;
+	Material *ma;
 	ImBuf *ibuf;
 	ScrArea *sa;
-	ID *id;
-	CBData *cbd;
-	uiBlock *block;
-	float dx;
-	int a, nr;
-	short mvalo[2], mval[2];
+	ID *id;	
+	int nr;
+	
 	char *name, str[80];
 	
 	tex= G.buts->lockpoin;
@@ -490,79 +614,22 @@ void do_texbuts(unsigned short event)
 		break;
 	
 	case B_ADDCOLORBAND:
-		if(tex==0 || tex->coba==0) return;
-		
-		if(tex->coba->tot < MAXCOLORBAND-1) tex->coba->tot++;
-		tex->coba->cur= tex->coba->tot-1;
-		
-		do_texbuts(B_CALCCBAND);
-		
-		break;
-
 	case B_DELCOLORBAND:
-		if(tex==0 || tex->coba==0 || tex->coba->tot<2) return;
-		
-		for(a=tex->coba->cur; a<tex->coba->tot; a++) {
-			tex->coba->data[a]= tex->coba->data[a+1];
-		}
-		if(tex->coba->cur) tex->coba->cur--;
-		tex->coba->tot--;
-
-		allqueue(REDRAWBUTSSHADING, 0);
-		BIF_all_preview_changed();
-		break;
-
 	case B_CALCCBAND:
 	case B_CALCCBAND2:
-		if(tex==0 || tex->coba==0 || tex->coba->tot<2) return;
-		
-		for(a=0; a<tex->coba->tot; a++) tex->coba->data[a].cur= a;
-		qsort(tex->coba->data, tex->coba->tot, sizeof(CBData), vergcband);
-		for(a=0; a<tex->coba->tot; a++) {
-			if(tex->coba->data[a].cur==tex->coba->cur) {
-				if(tex->coba->cur!=a) addqueue(curarea->win, REDRAW, 0);	/* button cur */
-				tex->coba->cur= a;
-				break;
-			}
-		}
-		if(event==B_CALCCBAND2) return;
-		
-		allqueue(REDRAWBUTSSHADING, 0);
-		BIF_all_preview_changed();
-		
-		break;
-		
 	case B_DOCOLORBAND:
-		if(tex==0 || tex->coba==0) return;
-		
-		block= uiFindOpenPanelBlockName(&curarea->uiblocks, "Colors");
-		if(block) {
-			cbd= tex->coba->data + tex->coba->cur;
-			uiGetMouse(mywinget(), mvalo);
-	
-			while(get_mbut() & L_MOUSE) {
-				uiGetMouse(mywinget(), mval);
-				if(mval[0]!=mvalo[0]) {
-					dx= mval[0]-mvalo[0];
-					dx/= 345.0;
-					cbd->pos+= dx;
-					CLAMP(cbd->pos, 0.0, 1.0);
-	
-					glDrawBuffer(GL_FRONT);
-					uiPanelPush(block);
-					drawcolorband(tex->coba, 10,150,300,20);
-					uiPanelPop(block);
-					glDrawBuffer(GL_BACK);
-					
-					do_texbuts(B_CALCCBAND2);
-					cbd= tex->coba->data + tex->coba->cur;	/* because qsort */
-					
-					mvalo[0]= mval[0];
-				}
-				BIF_wait_for_statechange();
+		/* these events can be called from material subcontext too */
+		id= G.buts->lockpoin;
+		if(id) {
+			if( GS(id->name)==ID_TE) {
+				tex= (Tex *)id;
+				do_colorbandbuts(tex->coba, event);
 			}
-			allqueue(REDRAWBUTSSHADING, 0);
-			BIF_all_preview_changed();
+			else {
+				ma= (Material *)id;
+				if(ma->ramp_show==0) do_colorbandbuts(ma->ramp_col, event);
+				else do_colorbandbuts(ma->ramp_spec, event);
+			}
 		}
 		break;
 		
@@ -1126,21 +1193,39 @@ static void texture_panel_image(Tex *tex)
 
 }
 
-static void drawcolorband_cb(void)
+static void draw_colorband_buts(uiBlock *block, ColorBand *coba, int offs, int redraw)
 {
-	ID *id, *idfrom;
+	CBData *cbd;
+
+	if(coba==NULL) return;
 	
-	buttons_active_id(&id, &idfrom);
-	if( GS(id->name)==ID_TE) {
-		Tex *tex= (Tex *)id;
-		drawcolorband(tex->coba, 10,150,300,20);
-	}
+	uiDefBut(block, BUT, B_ADDCOLORBAND, "Add",		90,180+offs,40,20, 0, 0, 0, 0, 0, "Adds a new colour position to the colorband");
+	uiDefButS(block, NUM, B_REDR,		"Cur:",		130,180+offs,90,20, &coba->cur, 0.0, (float)(coba->tot-1), 0, 0, "Displays the active colour from the colorband");
+	uiDefBut(block, BUT, B_DELCOLORBAND, "Del",		220,180+offs,40,20, 0, 0, 0, 0, 0, "Deletes the active position");
+	uiDefButS(block, ROW, redraw, "E",		260,180+offs,17,20, &coba->ipotype, 5.0, 1.0, 0, 0, "Sets interpolation type 'Ease' (quadratic) ");
+	uiDefButS(block, ROW, B_TEXREDR_PRV, "L",		277,180+offs,16,20, &coba->ipotype, 5.0, 0.0, 0, 0, "Sets interpolation type Linear");
+	uiDefButS(block, ROW, B_TEXREDR_PRV, "S",		293,180+offs,17,20, &coba->ipotype, 5.0, 2.0, 0, 0, "Sets interpolation type B-Spline");
+
+	uiDefBut(block, LABEL, B_DOCOLORBAND, "", 		10,150+offs,300,30, 0, 0, 0, 0, 0, "Colorband"); /* only for event! */
+	
+	uiBlockSetDrawExtraFunc(block, drawcolorband_cb);
+	cbd= coba->data + coba->cur;
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, B_CALCCBAND, "Pos",		10,125+offs,110,20, &cbd->pos, 0.0, 1.0, 10, 0, "Sets the position of the active colour");
+	uiDefButF(block, COL, B_BANDCOL, "",			10,105+offs,110,20, &(cbd->r), 0, 0, 0, 0, "");
+	uiDefButF(block, NUMSLI, B_TEXREDR_PRV, "A ",	10,85+offs,110,20, &cbd->a, 0.0, 1.0, 0, 0, "Sets the alpha value for this position");
+
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, B_TEXREDR_PRV, "R ",	125,125+offs,185,20, &cbd->r, 0.0, 1.0, B_BANDCOL, 0, "Sets the red value for the active colour");
+	uiDefButF(block, NUMSLI, B_TEXREDR_PRV, "G ",	125,105+offs,185,20, &cbd->g, 0.0, 1.0, B_BANDCOL, 0, "Sets the green value for the active colour");
+	uiDefButF(block, NUMSLI, B_TEXREDR_PRV, "B ",	125,85+offs,185,20, &cbd->b, 0.0, 1.0, B_BANDCOL, 0, "Sets the blue value for the active colour");
+	uiBlockEndAlign(block);
 }
 
 static void texture_panel_colors(Tex *tex)
 {
 	uiBlock *block;
-	CBData *cbd;
 	
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel_colors", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Texture", "Texture");
@@ -1149,28 +1234,10 @@ static void texture_panel_colors(Tex *tex)
 
 	/* COLORBAND */
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|0, B_COLORBAND, "Colorband",10,180,100,20, &tex->flag, 0, 0, 0, 0, "Toggles colorband operations");
+	uiDefButS(block, TOG|BIT|0, B_COLORBAND, "Colorband",10,180,80,20, &tex->flag, 0, 0, 0, 0, "Toggles colorband operations");
 
 	if(tex->flag & TEX_COLORBAND) {
-		uiDefBut(block, BUT, B_ADDCOLORBAND, "Add",		110,180,50,20, 0, 0, 0, 0, 0, "Adds a new colour position to the colorband");
-		uiDefButS(block, NUM, B_REDR,		"Cur:",		160,180,100,20, &tex->coba->cur, 0.0, (float)(tex->coba->tot-1), 0, 0, "Displays the active colour from the colorband");
-		uiDefBut(block, BUT, B_DELCOLORBAND, "Del",		260,180,50,20, 0, 0, 0, 0, 0, "Deletes the active position");
-		uiDefBut(block, LABEL, B_DOCOLORBAND, "", 		10,150,300,20, 0, 0, 0, 0, 0, "Colorband"); /* only for event! */
-		
-		uiBlockSetDrawExtraFunc(block, drawcolorband_cb);
-		cbd= tex->coba->data + tex->coba->cur;
-		
-		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_CALCCBAND, "Pos",	10,120,80,20, &cbd->pos, 0.0, 1.0, 10, 0, "Sets the position of the active colour");
-		uiDefButS(block, ROW, B_TEXREDR_PRV, "E",		90,120,20,20, &tex->coba->ipotype, 5.0, 1.0, 0, 0, "More complicated Interpolation");
-		uiDefButS(block, ROW, B_TEXREDR_PRV, "L",		110,120,20,20, &tex->coba->ipotype, 5.0, 0.0, 0, 0, "Sets interpolation type to Linear");
-		uiDefButS(block, ROW, B_TEXREDR_PRV, "S",		130,120,20,20, &tex->coba->ipotype, 5.0, 2.0, 0, 0, "Sets interpolation type to Spline");
-		uiDefButF(block, COL, B_BANDCOL, "",		150,120,30,20, &(cbd->r), 0, 0, 0, 0, "");
-		uiDefButF(block, NUMSLI, B_TEXREDR_PRV, "A ",	180,120,130,20, &cbd->a, 0.0, 1.0, 0, 0, "Sets the alpha value for this position");
-		uiBlockBeginAlign(block);
-		uiDefButF(block, NUMSLI, B_TEXREDR_PRV, "R ",	10,100,100,20, &cbd->r, 0.0, 1.0, B_BANDCOL, 0, "Sets the red value for the active colour");
-		uiDefButF(block, NUMSLI, B_TEXREDR_PRV, "G ",	110,100,100,20, &cbd->g, 0.0, 1.0, B_BANDCOL, 0, "Sets the green value for the active colour");
-		uiDefButF(block, NUMSLI, B_TEXREDR_PRV, "B ",	210,100,100,20, &cbd->b, 0.0, 1.0, B_BANDCOL, 0, "Sets the blue value for the active colour");
+		draw_colorband_buts(block, tex->coba, 0, B_TEXREDR_PRV);
 	}
 	
 	/* RGB-BRICON */
@@ -2260,6 +2327,20 @@ void do_matbuts(unsigned short event)
 			BIF_preview_changed(G.buts);
 		}
 		break;
+	case B_MATCOLORBAND:
+		ma= G.buts->lockpoin;
+		if(ma) {
+			if(ma->mode & MA_RAMP_COL)
+				if(ma->ramp_col==NULL) ma->ramp_col= add_colorband();
+			if(ma->mode & MA_RAMP_SPEC)
+				if(ma->ramp_spec==NULL) ma->ramp_spec= add_colorband();
+
+			allqueue(REDRAWBUTSSHADING, 0);
+			BIF_all_preview_changed();
+		}
+		break;
+
+		break;
 	}
 }
 
@@ -2611,6 +2692,53 @@ static void material_panel_shading(Material *ma)
 
 }
 
+static void material_panel_ramps(Material *ma)
+{
+	uiBlock *block;
+	ColorBand *coba;
+	float *facp;
+	short bitval;
+	char *inputc, *methodc;
+	
+	block= uiNewBlock(&curarea->uiblocks, "material_panel_ramps", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Material", "Material");
+	if(uiNewPanel(curarea, block, "Ramps", "Material", 640, 0, 318, 204)==0) return;
+
+	uiBlockBeginAlign(block);
+	uiBlockSetCol(block, TH_BUT_SETTING1);
+	uiDefButS(block, ROW, B_REDR, "Show Col Ramp",10,180,150,20, &ma->ramp_show, 0, 0, 0, 0, "Show ramp buttons for material diffuse color");
+	uiDefButS(block, ROW, B_REDR, "Show Spec Ramp",160,180,150,20, &ma->ramp_show, 0, 1, 0, 0, "Show ramp buttons for material specular color");
+	uiBlockSetCol(block, TH_AUTO);
+	
+	/* COLORBAND */
+	if(ma->ramp_show==0) bitval= 20; else bitval= 21;
+	uiBlockBeginAlign(block);
+	uiDefButI(block, TOG|BIT|bitval, B_MATCOLORBAND, "Colorband",10,145,80,20, &ma->mode, 0, 0, 0, 0, "Toggles colorband ramp operations");
+
+	if(ma->mode & (1<<bitval)) {
+		if(ma->ramp_show==0) {
+			coba= ma->ramp_col;
+			inputc= &ma->rampin_col;
+			methodc= &ma->rampblend_col;
+			facp= &ma->rampfac_col;
+		}
+		else {
+			coba= ma->ramp_spec;
+			inputc= &ma->rampin_spec;
+			methodc= &ma->rampblend_spec;
+			facp= &ma->rampfac_spec;
+		}
+		draw_colorband_buts(block, coba, -35, B_MATPRV);	// aligns with previous button
+		
+		uiDefBut(block, LABEL, 0, "Input",10,30,90,20, NULL, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "Method",100,30,90,20, NULL, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "Factor",190,30,120,20, NULL, 0, 0, 0, 0, "");
+		uiBlockBeginAlign(block);
+		uiDefButC(block, MENU, B_MATPRV, "Shader %x0|Energy %x1|Normal %x2|Result %x3",10,10,90,20, inputc, 0, 0, 0, 0, "Input for Ramp");
+		uiDefButC(block, MENU, B_MATPRV, "Mix %x0|Add %x1|Mult %x2|Sub %x3",110,10,90,20, methodc, 0, 0, 0, 0, "Blending method for Ramp (uses alpha in Colorband)");
+		uiDefButF(block, NUMSLI, B_MATPRV, "", 190,10,120,20, facp, 0.0, 1.0, 100, 0, "Blending factor (also uses alpha in Colorband)");
+	}
+}
 
 static void material_panel_material(Object *ob, Material *ma)
 {
@@ -2707,7 +2835,7 @@ static void material_panel_material(Object *ob, Material *ma)
 			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Ring",		83,57,40,20, &(ma->rgbsel), 2.0, 2.0, 0, 0, "Sets the colour of the rings with the RGB sliders");
 		}
 		else {
-			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Col",			83,97,40,20, &(ma->rgbsel), 2.0, 0.0, 0, 0, "Sets the basic colour of the material");
+			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Col",			83,97,40,20, &(ma->rgbsel), 2.0, 0.0, 0, 0, "Sets the diffuse colour of the material");
 			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Spe",			83,77,40,20, &(ma->rgbsel), 2.0, 1.0, 0, 0, "Sets the specular colour of the material");
 			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Mir",			83,57,40,20, &(ma->rgbsel), 2.0, 2.0, 0, 0, "Sets the mirror colour of the material");
 		}
@@ -2756,11 +2884,17 @@ static void material_panel_preview(Material *ma)
 		// label to force a boundbox for buttons not to be centered
 		uiDefBut(block, LABEL, 0, " ",	20,20,10,10, 0, 0, 0, 0, 0, "");
 		uiBlockSetCol(block, TH_BUT_NEUTRAL);
+		uiBlockBeginAlign(block);
 		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATPLANE,		210,180,25,22, &(ma->pr_type), 10, 0, 0, 0, "");
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE,		210,150,25,22, &(ma->pr_type), 10, 1, 0, 0, "");
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATCUBE,		210,120,25,22, &(ma->pr_type), 10, 2, 0, 0, "");
-		uiDefIconButS(block, ICONTOG|BIT|0, B_MATPRV, ICON_TRANSP_HLT,	210,80,25,22, &(ma->pr_back), 0, 0, 0, 0, "");
-		uiDefIconBut(block, BUT, B_MATPRV, ICON_EYE,			210,10, 25,22, 0, 0, 0, 0, 0, "");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE,		210,158,25,22, &(ma->pr_type), 10, 1, 0, 0, "");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATCUBE,		210,136,25,22, &(ma->pr_type), 10, 2, 0, 0, "");
+		uiBlockEndAlign(block);
+		
+		uiDefIconButS(block, ICONTOG|BIT|0, B_MATPRV, ICON_TRANSP_HLT,	210,100,25,22, &(ma->pr_back), 0, 0, 0, 0, "");
+
+		uiBlockBeginAlign(block);
+		uiDefIconButS(block, TOG|BIT|1, B_MATPRV, ICON_LAMP,	210,40,25,20, &(ma->pr_lamp), 0, 0, 0, 0, "");
+		uiDefIconButS(block, TOG|BIT|0, B_MATPRV, ICON_LAMP,	210,20,25,20, &(ma->pr_lamp), 0, 0, 0, 0, "");
 	}
 }
 
@@ -2781,6 +2915,7 @@ void material_panels()
 		material_panel_material(ob, ma);
 		
 		if(ma) {
+			material_panel_ramps(ma);
 			material_panel_shading(ma);
 			material_panel_tramir(ma);
 			material_panel_texture(ma);

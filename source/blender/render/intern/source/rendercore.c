@@ -44,6 +44,7 @@
 #include "DNA_object_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_texture_types.h"
 
 #include "BKE_global.h"
 #include "BKE_texture.h"
@@ -1644,6 +1645,212 @@ void shade_color(ShadeInput *shi, ShadeResult *shr)
 	shr->alpha= ma->alpha;
 }
 
+/* ramp for at end of shade */
+void ramp_diffuse_result(float *diff, ShadeInput *shi)
+{
+	Material *ma= shi->matren;
+	float col[4], fac=0;
+
+	if(ma->ramp_col) {
+		if(ma->rampin_col==MA_RAMP_IN_RESULT) {
+			
+			fac= 0.3*diff[0] + 0.58*diff[1] + 0.12*diff[2];
+			do_colorband(ma->ramp_col, fac, col);
+			
+			/* blending method */
+			fac= col[3]*ma->rampfac_col;
+			switch(ma->rampblend_col) {
+			case MA_RAMP_BLEND:
+				diff[0]= (1.0-fac)*diff[0] + fac*col[0];
+				diff[1]= (1.0-fac)*diff[1] + fac*col[1];
+				diff[2]= (1.0-fac)*diff[2] + fac*col[2];
+				break;
+			case MA_RAMP_ADD:
+				diff[0]+= fac*col[0];
+				diff[1]+= fac*col[1];
+				diff[2]+= fac*col[2];
+				break;
+			case MA_RAMP_MULT:
+				diff[0]*= (1.0-fac + fac*col[0]);
+				diff[1]*= (1.0-fac + fac*col[1]);
+				diff[2]*= (1.0-fac + fac*col[2]);
+				break;
+			case MA_RAMP_SUB:
+				diff[0]-= fac*col[0];
+				diff[1]-= fac*col[1];
+				diff[2]-= fac*col[2];
+				break;
+			}
+		}
+	}
+}
+
+/* r,g,b denote energy, ramp is used with different values to make new material color */
+void add_to_diffuse(float *diff, ShadeInput *shi, float is, float r, float g, float b)
+{
+	Material *ma= shi->matren;
+	float col[4], fac=0;
+	
+	if(ma->ramp_col && (ma->mode & MA_RAMP_COL)) {
+		
+		/* MA_RAMP_IN_RESULT is exceptional */
+		if(ma->rampin_col==MA_RAMP_IN_RESULT) {
+			// normal add
+			diff[0] += r * ma->r;
+			diff[1] += g * ma->g;
+			diff[2] += b * ma->b;
+		}
+		else {
+			/* input */
+			switch(ma->rampin_col) {
+			case MA_RAMP_IN_ENERGY:
+				fac= 0.3*r + 0.58*g + 0.12*b;
+				break;
+			case MA_RAMP_IN_SHADER:
+				fac= is;
+				break;
+			case MA_RAMP_IN_NOR:
+				fac= shi->view[0]*shi->vn[0] + shi->view[1]*shi->vn[1] + shi->view[2]*shi->vn[2];
+				break;
+			}
+	
+			do_colorband(ma->ramp_col, fac, col);
+			
+			/* blending method */
+			fac= col[3]*ma->rampfac_col;
+			switch(ma->rampblend_col) {
+			case MA_RAMP_BLEND:
+				col[0]= (1.0-fac)*ma->r + fac*col[0];
+				col[1]= (1.0-fac)*ma->g + fac*col[1];
+				col[2]= (1.0-fac)*ma->b + fac*col[2];
+				break;
+			case MA_RAMP_ADD:
+				col[0]= ma->r + fac*col[0];
+				col[1]= ma->g + fac*col[1];
+				col[2]= ma->b + fac*col[2];
+				break;
+			case MA_RAMP_MULT:
+				col[0]= ma->r*(1.0-fac + fac*col[0]);
+				col[1]= ma->g*(1.0-fac + fac*col[1]);
+				col[2]= ma->b*(1.0-fac + fac*col[2]);
+				break;
+			case MA_RAMP_SUB:
+				col[0]= ma->r - fac*col[0];
+				col[1]= ma->g - fac*col[1];
+				col[2]= ma->b - fac*col[2];
+				break;
+			}
+			
+			/* output to */
+			diff[0] += r * col[0];
+			diff[1] += g * col[1];
+			diff[2] += b * col[2];
+		}
+	}
+	else {
+		diff[0] += r * ma->r;
+		diff[1] += g * ma->g;
+		diff[2] += b * ma->b;
+	}
+}
+
+void ramp_spec_result(float *specr, float *specg, float *specb, ShadeInput *shi)
+{
+	Material *ma= shi->matren;
+	float col[4];
+	float fac;
+	
+	if(ma->ramp_spec && (ma->rampin_spec==MA_RAMP_IN_RESULT)) {
+		fac= 0.3*(*specr) + 0.58*(*specg) + 0.12*(*specb);
+		do_colorband(ma->ramp_spec, fac, col);
+		
+		/* blending method */
+		fac= col[3]*ma->rampfac_spec;
+		switch(ma->rampblend_spec) {
+		case MA_RAMP_BLEND:
+			*specr= (1.0-fac)*(*specr) + fac*col[0];
+			*specg= (1.0-fac)*(*specg) + fac*col[1];
+			*specb= (1.0-fac)*(*specb) + fac*col[2];
+			break;
+		case MA_RAMP_ADD:
+			*specr += fac*col[0];
+			*specg += fac*col[1];
+			*specb += fac*col[2];
+			break;
+		case MA_RAMP_MULT:
+			*specr *= (1.0-fac + fac*col[0]);
+			*specg *= (1.0-fac + fac*col[1]);
+			*specb *= (1.0-fac + fac*col[2]);
+			break;
+		case MA_RAMP_SUB:
+			*specr -= fac*col[0];
+			*specg -= fac*col[1];
+			*specb -= fac*col[2];
+			break;
+		}
+		
+	}
+}
+
+/* is = dot product shade, t = spec energy */
+void do_specular_ramp(ShadeInput *shi, float is, float t, float *spec)
+{
+	Material *ma= shi->matren;
+	float col[4];
+	float fac=0.0;
+	
+	/* MA_RAMP_IN_RESULT is exception */
+	if(ma->ramp_spec && (ma->rampin_spec!=MA_RAMP_IN_RESULT)) {
+		
+		/* input */
+		switch(ma->rampin_spec) {
+		case MA_RAMP_IN_ENERGY:
+			fac= t;
+			break;
+		case MA_RAMP_IN_SHADER:
+			fac= is;
+			break;
+		case MA_RAMP_IN_NOR:
+			fac= shi->view[0]*shi->vn[0] + shi->view[1]*shi->vn[1] + shi->view[2]*shi->vn[2];
+			break;
+		}
+		
+		do_colorband(ma->ramp_spec, fac, col);
+		
+		/* blending method */
+		fac= col[3]*ma->rampfac_spec;
+		switch(ma->rampblend_spec) {
+		case MA_RAMP_BLEND:
+			spec[0]= (1.0-fac)*ma->specr + fac*col[0];
+			spec[1]= (1.0-fac)*ma->specg + fac*col[1];
+			spec[2]= (1.0-fac)*ma->specb + fac*col[2];
+			break;
+		case MA_RAMP_ADD:
+			spec[0]= ma->specr + fac*col[0];
+			spec[1]= ma->specg + fac*col[1];
+			spec[2]= ma->specb + fac*col[2];
+			break;
+		case MA_RAMP_MULT:
+			spec[0]= ma->specr*fac*col[0];
+			spec[1]= ma->specg*fac*col[1];
+			spec[2]= ma->specb*fac*col[2];
+			break;
+		case MA_RAMP_SUB:
+			spec[0]= ma->specr - fac*col[0];
+			spec[1]= ma->specg - fac*col[1];
+			spec[2]= ma->specb - fac*col[2];
+			break;
+		}
+	}
+	else {
+		spec[0]= ma->specr;
+		spec[1]= ma->specg;
+		spec[2]= ma->specb;
+	}
+}
+
+
+
 static void ambient_occlusion(World *wrld, ShadeInput *shi, ShadeResult *shr)
 {
 	float f, shadfac[4];
@@ -1656,9 +1863,10 @@ static void ambient_occlusion(World *wrld, ShadeInput *shi, ShadeResult *shr)
 			else if (wrld->aomix==WO_AOSUB) shadfac[3] = shadfac[3]-1.0;
 
 			f= wrld->aoenergy*shadfac[3]*shi->matren->amb;
-			shr->diff[0] += f;
-			shr->diff[1] += f;
-			shr->diff[2] += f;
+			add_to_diffuse(shr->diff, shi, f, f, f, f);
+			//shr->diff[0] += f;
+			//shr->diff[1] += f;
+			//shr->diff[2] += f;
 		}
 		else {
 			if (wrld->aomix==WO_AOADDSUB) {
@@ -1672,19 +1880,19 @@ static void ambient_occlusion(World *wrld, ShadeInput *shi, ShadeResult *shr)
 				shadfac[2] = shadfac[2]-1.0;
 			}
 			f= wrld->aoenergy*shi->matren->amb;
-			shr->diff[0] += f*shadfac[0];
-			shr->diff[1] += f*shadfac[1];
-			shr->diff[2] += f*shadfac[2];
+			add_to_diffuse(shr->diff, shi, f, f*shadfac[0], f*shadfac[1], f*shadfac[2]);
+			//shr->diff[0] += f*shadfac[0];
+			//shr->diff[1] += f*shadfac[1];
+			//shr->diff[2] += f*shadfac[2];
 		}
 	}
 }
-
 
 void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 {
 	LampRen *lar;
 	Material *ma;
-	float i, inp, inpr, t, lv[3], lampdist, ld = 0;
+	float i, inp, inpr, is, t, lv[3], lampdist, ld = 0;
 	float lvrot[3], *vn, *view, shadfac[4], soft;	// shadfac = rgba
 	int a;
 
@@ -1780,12 +1988,18 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	}
 
 	if( (ma->mode & (MA_VERTEXCOL+MA_VERTEXCOLP))== MA_VERTEXCOL ) {
-		shr->diff[0]= ma->emit+shi->vcol[0];
-		shr->diff[1]= ma->emit+shi->vcol[1];
-		shr->diff[2]= ma->emit+shi->vcol[2];
+		// add_to_diffuse(shr->diff, shi, 1.0, ma->emit+shi->vcol[0], ma->emit+shi->vcol[1], ma->emit+shi->vcol[2]);
+		shr->diff[0]= ma->r*(ma->emit+shi->vcol[0]);
+		shr->diff[1]= ma->g*(ma->emit+shi->vcol[1]);
+		shr->diff[2]= ma->b*(ma->emit+shi->vcol[2]);
 	}
-	else shr->diff[0]= shr->diff[1]= shr->diff[2]= ma->emit;
-
+	else {
+		// add_to_diffuse(shr->diff, shi, 1.0, ma->emit, ma->emit, ma->emit);
+		shr->diff[0]= ma->r*ma->emit;
+		shr->diff[1]= ma->g*ma->emit;
+		shr->diff[2]= ma->b*ma->emit;
+	}
+	
 	ambient_occlusion(&R.wrld, shi, shr);
 
 	for(a=0; a<R.totlamp; a++) {
@@ -1893,15 +2107,16 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			
 		}
 
-		/* dot product and reflectivity*/
+		/* dot product and reflectivity */
+		/* inp = dotproduct, is = shader result, i = lamp energy (with shadow) */
 		
 		inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
 				
 		if(lar->mode & LA_NO_DIFF) {
-			i= 0.0;	// skip shaders
+			is= 0.0;	// skip shaders
 		}
 		else if(lar->type==LA_HEMI) {
-			i= 0.5*inp + 0.5;
+			is= 0.5*inp + 0.5;
 		}
 		else {
 		
@@ -1913,11 +2128,12 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			}
 			
 			/* diffuse shaders (oren nayer gets inp from area light) */
-			if(ma->diff_shader==MA_DIFF_ORENNAYAR) i= OrenNayar_Diff_i(inp, vn, lv, view, ma->roughness);
-			else if(ma->diff_shader==MA_DIFF_TOON) i= Toon_Diff(vn, lv, view, ma->param[0], ma->param[1]);
-			else i= inp;	// Lambert
+			if(ma->diff_shader==MA_DIFF_ORENNAYAR) is= OrenNayar_Diff_i(inp, vn, lv, view, ma->roughness);
+			else if(ma->diff_shader==MA_DIFF_TOON) is= Toon_Diff(vn, lv, view, ma->param[0], ma->param[1]);
+			else is= inp;	// Lambert
 		}
 		
+		i= is;
 		if(i>0.0) {
 			i*= lampdist*ma->ref;
 		}
@@ -1943,9 +2159,9 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 						if(lar->mode & LA_ONLYSHADOW) {
 							
 							shadfac[3]= i*lar->energy*(1.0-shadfac[3]);
-							shr->diff[0] -= shadfac[3];
-							shr->diff[1] -= shadfac[3];
-							shr->diff[2] -= shadfac[3];
+							shr->diff[0] -= shadfac[3]*ma->r;
+							shr->diff[1] -= shadfac[3]*ma->g;
+							shr->diff[2] -= shadfac[3]*ma->b;
 							
 							continue;
 						}
@@ -1998,9 +2214,18 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 					
 					t= shadfac[3]*ma->spec*lampdist*specfac;
 					
-					shr->spec[0]+= t*(lar->r * ma->specr);
-					shr->spec[1]+= t*(lar->g * ma->specg);
-					shr->spec[2]+= t*(lar->b * ma->specb);
+					if(ma->mode & MA_RAMP_SPEC) {
+						float spec[3];
+						do_specular_ramp(shi, specfac, t, spec);
+						shr->spec[0]+= t*(lar->r * spec[0]);
+						shr->spec[1]+= t*(lar->g * spec[1]);
+						shr->spec[2]+= t*(lar->b * spec[2]);
+					}
+					else {
+						shr->spec[0]+= t*(lar->r * ma->specr);
+						shr->spec[1]+= t*(lar->g * ma->specg);
+						shr->spec[2]+= t*(lar->b * ma->specb);
+					}
 				}
 			}
 		}
@@ -2008,14 +2233,16 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		/* in case 'no diffuse' we still do most calculus, spec can be in shadow */
 		if(i>0.0 && !(lar->mode & LA_NO_DIFF)) {
 			if(ma->mode & MA_SHADOW_TRA) {
-				shr->diff[0]+= i*shadfac[0]*lar->r;
-				shr->diff[1]+= i*shadfac[1]*lar->g;
-				shr->diff[2]+= i*shadfac[2]*lar->b;
+				add_to_diffuse(shr->diff, shi, is, i*shadfac[0]*lar->r, i*shadfac[1]*lar->g, i*shadfac[2]*lar->b);
+				//shr->diff[0]+= i*shadfac[0]*lar->r;
+				//shr->diff[1]+= i*shadfac[1]*lar->g;
+				//shr->diff[2]+= i*shadfac[2]*lar->b;
 			}
 			else {
-				shr->diff[0]+= i*lar->r;
-				shr->diff[1]+= i*lar->g;
-				shr->diff[2]+= i*lar->b;
+				add_to_diffuse(shr->diff, shi, is, i*lar->r, i*lar->g, i*lar->b);
+				//shr->diff[0]+= i*lar->r;
+				//shr->diff[1]+= i*lar->g;
+				//shr->diff[2]+= i*lar->b;
 			}
 		}
 	}
@@ -2039,21 +2266,23 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	if(shr->spec[1]<0.0) shr->spec[1]= 0.0;
 	if(shr->spec[2]<0.0) shr->spec[2]= 0.0;
 
-	
-	shr->diff[0]+= ma->amb*shi->rad[0];
-	shr->diff[0]*= ma->r;
+	shr->diff[0]+= ma->r*ma->amb*shi->rad[0];
+	//shr->diff[0]*= ma->r;
 	shr->diff[0]+= ma->ambr;
 	if(shr->diff[0]<0.0) shr->diff[0]= 0.0;
 	
-	shr->diff[1]+= ma->amb*shi->rad[1];
-	shr->diff[1]*= ma->g;
+	shr->diff[1]+= ma->g*ma->amb*shi->rad[1];
+	//shr->diff[1]*= ma->g;
 	shr->diff[1]+= ma->ambg;
 	if(shr->diff[1]<0.0) shr->diff[1]= 0.0;
 	
-	shr->diff[2]+= ma->amb*shi->rad[2];
-	shr->diff[2]*= ma->b;
+	shr->diff[2]+= ma->b*ma->amb*shi->rad[2];
+	//shr->diff[2]*= ma->b;
 	shr->diff[2]+= ma->ambb;
 	if(shr->diff[2]<0.0) shr->diff[2]= 0.0;
+	
+	if(ma->mode & MA_RAMP_COL) ramp_diffuse_result(shr->diff, shi);
+	if(ma->mode & MA_RAMP_SPEC) ramp_spec_result(shr->spec, shr->spec+1, shr->spec+2, shi);
 	
 	/* refcol is for envmap only */
 	if(shi->refcol[0]!=0.0) {

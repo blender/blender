@@ -176,103 +176,105 @@ int multitex(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex)
 /* ------------------------------------------------------------------------- */
 /* envmap (4)                                                                   */
 /* ------------------------------------------------------------------------- */
-	struct EnvMap;
-	struct Tex;
+struct EnvMap;
+struct Tex;
+
 void    RE_free_envmapdata(struct EnvMap *env);
 void    RE_free_envmap(struct EnvMap *env);
 struct EnvMap *RE_add_envmap(void);
 /* these two maybe not external? yes, they are, for texture.c */
 struct EnvMap *RE_copy_envmap(struct EnvMap *env);
 
-	/* --------------------------------------------------------------------- */
-	/* rendercore (2)                                                        */
-	/* --------------------------------------------------------------------- */
-	float Phong_Spec(float *n, float *l, float *v, int hard);
-	float CookTorr_Spec(float *n, float *l, float *v, int hard);
-	float Blinn_Spec(float *n, float *l, float *v, float refrac, float spec_power);
-	float Toon_Spec( float *n, float *l, float *v, float size, float smooth);
-	float OrenNayar_Diff(float *n, float *l, float *v, float rough);
-	float Toon_Diff( float *n, float *l, float *v, float size, float smooth);
+/* --------------------------------------------------------------------- */
+/* rendercore (2)                                                        */
+/* --------------------------------------------------------------------- */
+float Phong_Spec(float *n, float *l, float *v, int hard);
+float CookTorr_Spec(float *n, float *l, float *v, int hard);
+float Blinn_Spec(float *n, float *l, float *v, float refrac, float spec_power);
+float Toon_Spec( float *n, float *l, float *v, float size, float smooth);
+float OrenNayar_Diff(float *n, float *l, float *v, float rough);
+float Toon_Diff( float *n, float *l, float *v, float size, float smooth);
+void add_to_diffuse(float *diff, ShadeInput *shi, float is, float r, float g, float b);
+void ramp_diffuse_result(float *diff, ShadeInput *shi);
+void do_specular_ramp(ShadeInput *shi, float is, float t, float *spec);
+void ramp_spec_result(float *specr, float *specg, float *specb, ShadeInput *shi);
 
-	/* --------------------------------------------------------------------- */
-	/* renderdatabase (3)                                                    */
-	/* --------------------------------------------------------------------- */
-	struct VlakRen *RE_findOrAddVlak(int nr);
-	struct VertRen *RE_findOrAddVert(int nr);
-	struct HaloRen *RE_findOrAddHalo(int nr);
-	HaloRen *RE_inithalo(Material *ma, 
-					  float *vec, 
-					  float *vec1, 
-					  float *orco, 
-					  float hasize, 
-					  float vectsize);
-  
 
-	/**
-	 * callbacks (11):
-	 *
-	 * If the callbacks aren't set, rendering will still proceed as
-	 * desired, but the concerning functionality will not be enabled.
-	 *
-	 * There need to be better uncoupling between the renderer and
-	 * these functions still!
-	 * */
-	
-	void RE_set_test_break_callback(int (*f)(void));
+/* --------------------------------------------------------------------- */
+/* renderdatabase (3)                                                    */
+/* --------------------------------------------------------------------- */
+struct VlakRen *RE_findOrAddVlak(int nr);
+struct VertRen *RE_findOrAddVert(int nr);
+struct HaloRen *RE_findOrAddHalo(int nr);
+HaloRen *RE_inithalo(Material *ma, float *vec, float *vec1, float *orco, float hasize, 
+					float vectsize);
 
-	void RE_set_timecursor_callback(void (*f)(int));
 
-	void RE_set_renderdisplay_callback(void (*f)(int, int, int, int, unsigned int *));
-	void RE_set_initrenderdisplay_callback(void (*f)(void));
-	void RE_set_clearrenderdisplay_callback(void (*f)(short));
-	
-	void RE_set_printrenderinfo_callback(void (*f)(double,int));
+/**
+	* callbacks (11):
+	*
+	* If the callbacks aren't set, rendering will still proceed as
+	* desired, but the concerning functionality will not be enabled.
+	*
+	* There need to be better uncoupling between the renderer and
+	* these functions still!
+	* */
 
-	void RE_set_getrenderdata_callback(void (*f)(void));
-	void RE_set_freerenderdata_callback(void (*f)(void));
-	
+void RE_set_test_break_callback(int (*f)(void));
 
-	/*from renderhelp, should disappear!!! */ 
-	/** Recalculate all normals on renderdata. */
-	void set_normalflags(void);
-	/**
-	 * On loan from zbuf.h:
-	 * Tests whether the first three coordinates should be clipped
-	 * wrt. the fourth component. Bits 1 and 2 test on x, 3 and 4 test on
-	 * y, 5 and 6 test on z:
-	 * xyz >  test => set first bit   (01),
-	 * xyz < -test => set second bit  (10),
-	 * xyz == test => reset both bits (00).
-	 * Note: functionality is duplicated from an internal function
-	 * Also called in: initrender.c, radfactors.c
-	 * @param  v [4 floats] a coordinate 
-	 * @return a vector of bitfields
-	 */
-	int RE_testclip(float *v); 
+void RE_set_timecursor_callback(void (*f)(int));
 
-	/* patch for the external if, to support the split for the ui */
-	void RE_addalphaAddfac(char *doel, char *bron, char addfac);
-	void RE_sky_char(float *view, char *col); 
-	void RE_sky(float *view, float *col); 
-	void RE_renderflare(struct HaloRen *har); 
-	/**
-	 * Shade the pixel at xn, yn for halo har, and write the result to col. 
-	 * Also called in: previewrender.c
-	 * @param har    The halo to be rendered on this location
-	 * @param col    [unsigned int 3] The destination colour vector 
-	 * @param zz     Some kind of distance
-	 * @param dist   Square of the distance of this coordinate to the halo's center
-	 * @param x      [f] Pixel x relative to center
-	 * @param y      [f] Pixel y relative to center
-	 * @param flarec Flare counter? Always har->flarec...
-	 */
-	void RE_shadehalo(struct HaloRen *har,
-				   char *col,
-				   unsigned int zz,
-				   float dist,
-				   float x,
-				   float y,
-				   short flarec); 
+void RE_set_renderdisplay_callback(void (*f)(int, int, int, int, unsigned int *));
+void RE_set_initrenderdisplay_callback(void (*f)(void));
+void RE_set_clearrenderdisplay_callback(void (*f)(short));
+
+void RE_set_printrenderinfo_callback(void (*f)(double,int));
+
+void RE_set_getrenderdata_callback(void (*f)(void));
+void RE_set_freerenderdata_callback(void (*f)(void));
+
+
+/*from renderhelp, should disappear!!! */ 
+/** Recalculate all normals on renderdata. */
+void set_normalflags(void);
+/**
+	* On loan from zbuf.h:
+	* Tests whether the first three coordinates should be clipped
+	* wrt. the fourth component. Bits 1 and 2 test on x, 3 and 4 test on
+	* y, 5 and 6 test on z:
+	* xyz >  test => set first bit   (01),
+	* xyz < -test => set second bit  (10),
+	* xyz == test => reset both bits (00).
+	* Note: functionality is duplicated from an internal function
+	* Also called in: initrender.c, radfactors.c
+	* @param  v [4 floats] a coordinate 
+	* @return a vector of bitfields
+	*/
+int RE_testclip(float *v); 
+
+/* patch for the external if, to support the split for the ui */
+void RE_addalphaAddfac(char *doel, char *bron, char addfac);
+void RE_sky_char(float *view, char *col); 
+void RE_sky(float *view, float *col); 
+void RE_renderflare(struct HaloRen *har); 
+/**
+	* Shade the pixel at xn, yn for halo har, and write the result to col. 
+	* Also called in: previewrender.c
+	* @param har    The halo to be rendered on this location
+	* @param col    [unsigned int 3] The destination colour vector 
+	* @param zz     Some kind of distance
+	* @param dist   Square of the distance of this coordinate to the halo's center
+	* @param x      [f] Pixel x relative to center
+	* @param y      [f] Pixel y relative to center
+	* @param flarec Flare counter? Always har->flarec...
+	*/
+void RE_shadehalo(struct HaloRen *har,
+				char *col,
+				unsigned int zz,
+				float dist,
+				float x,
+				float y,
+				short flarec); 
 
 /***/
 
