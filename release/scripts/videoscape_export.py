@@ -1,10 +1,10 @@
 #!BPY
 
 """
-Name: 'Videoscape (with Vertex Colors)...'
+Name: 'VideoScape with Vertex Colors (.obj)...'
 Blender: 232
 Group: 'Export'
-Tooltip: 'Export selected mesh to VideoScape File Format (*.obj)'
+Tooltip: 'Export selected mesh to VideoScape File Format (.obj)'
 """
 
 # $Id$
@@ -179,7 +179,7 @@ def fs_callback(filename):
 	if filename.find('.obj', -4) <= 0: filename += '.VIDEOSCAPE.obj'
 	write(filename)
 
-Blender.Window.FileSelector(fs_callback, "Videoscape Export")
+Blender.Window.FileSelector(fs_callback, "Export VideoScape")
 
 
 # filename = "VIDEOSCAPE_" + objname + ".obj"

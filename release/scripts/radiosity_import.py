@@ -1,10 +1,10 @@
 #!BPY
 
 """
-Name: 'Radiosity...'
+Name: 'Radiosity (.radio)...'
 Blender: 232
 Group: 'Import'
-Tooltip: 'Import Radiosity File Format (*.radio) with vertex colors'
+Tooltip: 'Import Radiosity File Format (.radio) with vertex colors'
 """
 
 # $Id$
@@ -93,4 +93,4 @@ def read(filename):
 def fs_callback(filename):
 	read(filename)
 
-Blender.Window.FileSelector(fs_callback, "Radio Import")
+Blender.Window.FileSelector(fs_callback, "Import Radio")

@@ -1,11 +1,11 @@
 #!BPY
 
 """ Registration info for Blender menus:
-Name: 'DirectX'
+Name: 'DirectX (.X)...'
 Blender: 232
 Group: 'Export'
-Submenu: 'Only mesh data...' mesh
-Submenu: 'Animation(not armature yet)...' anim
+Submenu: 'Only Mesh Data...' mesh
+Submenu: 'Animation (not armature yet)...' anim
 Tip: 'Export to DirectX text file format format.'
 """
 # $Id$

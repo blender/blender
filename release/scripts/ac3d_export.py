@@ -1,7 +1,7 @@
 #!BPY
 
 """ Registration info for Blender menus:
-Name: 'AC3D'
+Name: 'AC3D (.ac)...'
 Blender: 232
 Group: 'Export'
 Submenu: 'All meshes...' all
@@ -420,4 +420,4 @@ def fs_callback(filename):
 if __script__['arg'] == 'config':
   Draw.Register(gui, event, b_event)
 else:
-  Blender.Window.FileSelector(fs_callback, "AC3D Export")
+  Blender.Window.FileSelector(fs_callback, "Export AC3D")

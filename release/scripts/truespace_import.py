@@ -1,10 +1,10 @@
 #!BPY
 
 """
-Name: 'TrueSpace...'
+Name: 'TrueSpace (.cob)...'
 Blender: 232
 Group: 'Import'
-Tooltip: 'Import trueSpace Object File Format (*.cob)'
+Tooltip: 'Import TrueSpace Object File Format (.cob)'
 """
 
 # $Id$
@@ -211,7 +211,7 @@ def read(filename):
 def fs_callback(filename):
 	read(filename)
 
-Blender.Window.FileSelector(fs_callback, "COB Import")
+Blender.Window.FileSelector(fs_callback, "Import COB")
 
 #	=== Matrix Differences between Blender & trueSpace ===
 #

@@ -1,10 +1,10 @@
 #!BPY
 
 """
-Name: 'Motion Capture (*.bvh)'
+Name: 'Motion Capture (.bvh)...'
 Blender: 232
 Group: 'Import'
-Tip: 'Import a (*.bvh) motion capture file'
+Tip: 'Import a (.bvh) motion capture file'
 """
 
 # $Id$
@@ -441,4 +441,4 @@ def loadBVH(filename):
     # Main file loop
     lineIdx += 1
 
-Blender.Window.FileSelector(loadBVH)
+Blender.Window.FileSelector(loadBVH, "Import BVH")

@@ -1,10 +1,10 @@
 #!BPY
 
 """
-Name: 'Radiosity...'
+Name: 'Radiosity (.radio)...'
 Blender: 232
 Group: 'Export'
-Tooltip: 'Export selected mesh (with vertex colors) to Radiosity File Format (*.radio)'
+Tooltip: 'Export selected mesh (with vertex colors) to Radiosity File Format (.radio)'
 """
 
 # $Id$
@@ -90,4 +90,4 @@ def fs_callback(filename):
 	if filename.find('.radio', -6) <= 0: filename += '.radio'
 	write(filename)
 
-Blender.Window.FileSelector(fs_callback, "Radio Export")
+Blender.Window.FileSelector(fs_callback, "Export Radio")

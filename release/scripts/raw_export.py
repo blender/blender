@@ -1,10 +1,10 @@
 #!BPY
 
 """
-Name: 'Raw Triangle...'
+Name: 'Raw Triangle (.raw)...'
 Blender: 232
 Group: 'Export'
-Tooltip: 'Export selected mesh to Raw Triangle Format (*.raw)'
+Tooltip: 'Export selected mesh to Raw Triangle Format (.raw)'
 """
 
 # $Id$
@@ -65,4 +65,4 @@ def fs_callback(filename):
 	if filename.find('.raw', -4) <= 0: filename += '.raw'
 	write(filename)
 
-Blender.Window.FileSelector(fs_callback, "Raw Export")
+Blender.Window.FileSelector(fs_callback, "Export Raw")

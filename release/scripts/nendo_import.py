@@ -1,10 +1,10 @@
 #!BPY
 
 """
-Name: 'Nendo...'
+Name: 'Nendo (.ndo)...'
 Blender: 232
 Group: 'Import'
-Tooltip: 'Import Nendo Object File Format (*.ndo)'
+Tooltip: 'Import Nendo Object File Format (.ndo)'
 """
 
 # $Id$
@@ -204,4 +204,4 @@ def make_faces(edge_table): # For Nendo
 def fs_callback(filename):
 	read(filename)
 
-Blender.Window.FileSelector(fs_callback, "Nendo Import")
+Blender.Window.FileSelector(fs_callback, "Import Nendo")

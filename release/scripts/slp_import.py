@@ -1,10 +1,10 @@
 #!BPY
 
 """
-Name: 'SLP (Pro Engineer)...'
+Name: 'Pro Engineer (.slp)...'
 Blender: 232
 Group: 'Import'
-Tooltip: 'Import SLP (Pro Engineer) File Format (*.raw)'
+Tooltip: 'Import Pro Engineer (.slp) File Format'
 """
 
 # $Id$
@@ -75,4 +75,4 @@ def read(filename):
 def fs_callback(filename):
 	read(filename)
 
-Blender.Window.FileSelector(fs_callback, "SLP Import")
+Blender.Window.FileSelector(fs_callback, "Import SLP")

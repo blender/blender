@@ -201,7 +201,7 @@ void write_videoscape_fs()
 	}
 	else {
 		if(videosc_dir[0]==0) strcpy(videosc_dir, G.sce);
-		activate_fileselect(FILE_SPECIAL, "Save Videoscape", videosc_dir,
+		activate_fileselect(FILE_SPECIAL, "Export Videoscape", videosc_dir,
 										write_videoscape);
 	}
 }
@@ -214,7 +214,7 @@ void write_vrml_fs()
 	else {
 		if(videosc_dir[0]==0) strcpy(videosc_dir, G.sce);
 	
-		activate_fileselect(FILE_SPECIAL, "Save VRML 1", videosc_dir, write_vrml);
+		activate_fileselect(FILE_SPECIAL, "Export VRML 1.0", videosc_dir, write_vrml);
 	}  
 }
 
@@ -227,7 +227,7 @@ void write_dxf_fs()
 
 		if(videosc_dir[0]==0) strcpy(videosc_dir, G.sce);
 
-		activate_fileselect(FILE_SPECIAL, "Save DXF", videosc_dir, write_dxf);	
+		activate_fileselect(FILE_SPECIAL, "Export DXF", videosc_dir, write_dxf);	
 	}
 }
 
@@ -240,7 +240,7 @@ void write_stl_fs()
 
 		if(videosc_dir[0]==0) strcpy(videosc_dir, G.sce);
 
-		activate_fileselect(FILE_SPECIAL, "SAVE STL", videosc_dir, write_stl);
+		activate_fileselect(FILE_SPECIAL, "Export STL", videosc_dir, write_stl);
 	}
 }
 /* ------------ */
@@ -673,8 +673,33 @@ static uiBlock *info_runtime_optionsmenu(void *arg_unused)
 static void do_info_file_importmenu(void *arg, int event)
 {
 	extern int BPY_menu_do_python(short menutype, int event);	// BPY_interface.c
+	ScrArea *sa;
 
-	BPY_menu_do_python(PYMENU_IMPORT, event);
+	if(curarea->spacetype==SPACE_INFO) {
+		sa= find_biggest_area_of_type(SPACE_SCRIPT);
+		if (!sa) sa= closest_bigger_area();
+		areawinset(sa->win);
+	}
+
+	/* events >=4 are registered bpython scripts */
+	if (event >= 4) BPY_menu_do_python(PYMENU_IMPORT, event - 4);
+
+	else switch(event) {
+									
+	case 0: /* DXF */
+		activate_fileselect(FILE_BLENDER, "Import DXF", G.sce, BIF_read_file);
+		break;
+	case 1: /* VRML 1.0 */
+		activate_fileselect(FILE_BLENDER, "Import VRML 1.0", G.sce, BIF_read_file);
+		break;
+	case 2: /* VideoScape */
+		activate_fileselect(FILE_BLENDER, "Import VideoScape", G.sce, BIF_read_file);
+		break;
+	case 3: /* STL */
+		activate_fileselect(FILE_BLENDER, "Import STL", G.sce, BIF_read_file);
+		break;
+
+	}
 
 	allqueue(REDRAWINFO, 0);
 }
@@ -689,9 +714,20 @@ static uiBlock *info_file_importmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "importmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_file_importmenu, NULL);
 	//uiBlockSetXOfs(block, -50);  // offset to parent button
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "VRML 1.0...|Ctrl F2",
+			 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "DXF...|Shift F2",
+			 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "VideoScape...|Alt W",
+			 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "STL...",
+			 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 3, "");
+
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	for (pym = BPyMenuTable[PYMENU_IMPORT]; pym; pym = pym->next, i++) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i, pym->tooltip?pym->tooltip:pym->filename);
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i+4, pym->tooltip?pym->tooltip:pym->filename);
 	}
 
 	uiBlockSetDirection(block, UI_RIGHT);
@@ -703,11 +739,16 @@ static uiBlock *info_file_importmenu(void *arg_unused)
 static void do_info_file_exportmenu(void *arg, int event)
 {
 	extern int BPY_menu_do_python(short menutype, int event);	// BPY_interface.c
+	ScrArea *sa;
 
-	/* events >=3 are registered bpython scripts */
-	if (event >= 3) BPY_menu_do_python(PYMENU_EXPORT, event - 3);
+	if(curarea->spacetype==SPACE_INFO) {
+		sa= find_biggest_area_of_type(SPACE_SCRIPT);
+		if (!sa) sa= closest_bigger_area();
+		areawinset(sa->win);
+	}
 
-	/* these are no defines, easier this way, the codes are in the function below */
+	/* events >=4 are registered bpython scripts */
+	if (event >= 4) BPY_menu_do_python(PYMENU_EXPORT, event - 4);
 
 	else switch(event) {
 									
@@ -719,6 +760,9 @@ static void do_info_file_exportmenu(void *arg, int event)
 		break;
 	case 2:
 		write_videoscape_fs();
+		break;
+	case 3:
+		write_stl_fs();
 		break;
 	}
 	allqueue(REDRAWINFO, 0);
@@ -741,55 +785,18 @@ static uiBlock *info_file_exportmenu(void *arg_unused)
 			 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Videoscape...|Alt W",
 			 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "STL...",
+			 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 3, "");
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	/* note that we acount for the 3 previous entries with i+3: */
 	for (pym = BPyMenuTable[PYMENU_EXPORT]; pym; pym = pym->next, i++) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, pym->name, 0, yco-=20, menuwidth, 19, 
-				 NULL, 0.0, 0.0, 1, i+3, 
+				 NULL, 0.0, 0.0, 1, i+4, 
 				 pym->tooltip?pym->tooltip:pym->filename);
 	}
 
-
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-
-	return block;
-}
-
-static void do_info_file_exportselmenu(void *arg, int event)
-{
-	ScrArea *sa;
-
-	if(curarea->spacetype==SPACE_INFO) {
-		sa= closest_bigger_area();
-		areawinset(sa->win);
-	}
-
-	/* these are no defines, easier this way (yeah right!), 
-	   the codes are in the function below */
-	switch(event) {
-									
-	case 0:
-		write_stl_fs();
-		break;
-	}
-	allqueue(REDRAWINFO, 0);
-}
-
-static uiBlock *info_file_exportselmenu(void *arg_unused)
-{
-	uiBlock *block;
-	short yco = 20;
-
-	block= uiNewBlock(&curarea->uiblocks, "exportselectedmenu", UI_EMBOSSP, 
-					  UI_HELV, G.curscreen->mainwin);
-	uiBlockSetButmFunc(block, do_info_file_exportselmenu, NULL);
-	//uiBlockSetXOfs(block, -50);  // offset to parent button
-	
-	uiDefBut(block, BUTM, 1, "STL...",
-			 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 0, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -920,7 +927,6 @@ static uiBlock *info_filemenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Append...|Shift F1",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	uiDefIconTextBlockBut(block, info_file_importmenu, NULL, ICON_RIGHTARROW_THIN, "Import", 0, yco-=20, menuwidth, 19, "");
 	uiDefIconTextBlockBut(block, info_file_exportmenu, NULL, ICON_RIGHTARROW_THIN, "Export", 0, yco-=20, menuwidth, 19, "");
-	uiDefIconTextBlockBut(block, info_file_exportselmenu, NULL, ICON_RIGHTARROW_THIN, "Export Selected", 0, yco-=20, menuwidth, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 

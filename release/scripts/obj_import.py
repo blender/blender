@@ -1,7 +1,7 @@
 #!BPY 
  
 """ 
-Name: 'Wavefront (*.obj)' 
+Name: 'Wavefront (.obj)...' 
 Blender: 232 
 Group: 'Import' 
 Tooltip: 'Load a Wavefront OBJ File' 
@@ -244,4 +244,4 @@ def load_obj(file):
    if len(mesh.verts) > 0: 
       NMesh.PutRaw(mesh, fileName + '_' + objectName) 
 
-Window.FileSelector(load_obj, 'SELECT OBJ FILE') 
+Window.FileSelector(load_obj, 'Import OBJ') 

@@ -1,10 +1,10 @@
 #!BPY
 
 """
-Name: 'LightWave...'
+Name: 'LightWave (.lwo)...'
 Blender: 232
 Group: 'Export'
-Tooltip: 'Export selected meshes to LightWave File Format (*.lwo)'
+Tooltip: 'Export selected meshes to LightWave File Format (.lwo)'
 """
 
 # $Id$
@@ -527,4 +527,4 @@ def fs_callback(filename):
 	if filename.find('.lwo', -4) <= 0: filename += '.lwo'
 	write(filename)
 
-Blender.Window.FileSelector(fs_callback, "LWO Export")
+Blender.Window.FileSelector(fs_callback, "Export LWO")

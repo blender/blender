@@ -1,7 +1,7 @@
 #!BPY
 
 """ Registration info for Blender menus:
-Name: 'AC3D...'
+Name: 'AC3D (.ac)...'
 Blender: 232
 Group: 'Import'
 Tip: 'Import an AC3D (.ac) file.'

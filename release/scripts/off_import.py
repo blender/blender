@@ -1,7 +1,7 @@
 #!BPY
 
 """
-Name: 'OFF...'
+Name: 'Object File Format (.off)...'
 Blender: 232
 Group: 'Import'
 Tooltip: 'Import Object File Format (*.off)'
@@ -71,4 +71,4 @@ def read(filename):
 def fs_callback(filename):
 	read(filename)
 
-Blender.Window.FileSelector(fs_callback, "OFF Import")
+Blender.Window.FileSelector(fs_callback, "Import OFF")

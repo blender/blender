@@ -1,10 +1,10 @@
 #!BPY
 
 """
-Name: 'TrueSpace...'
+Name: 'TrueSpace (.cob)...'
 Blender: 232
 Group: 'Export'
-Tooltip: 'Export selected meshes to trueSpace File Format (*.cob)'
+Tooltip: 'Export selected meshes to TrueSpace File Format (.cob)'
 """
 
 # $Id$
@@ -247,7 +247,7 @@ def fs_callback(filename):
 	if filename.find('.cob', -4) <= 0: filename += '.cob'
 	write(filename)
 
-Blender.Window.FileSelector(fs_callback, "COB Export")
+Blender.Window.FileSelector(fs_callback, "Export COB")
 
 # === Matrix Differences between Blender & trueSpace ===
 #

@@ -1,7 +1,7 @@
 #!BPY
 
 """
-Name: 'Nendo...'
+Name: 'Nendo (.ndo)...'
 Blender: 232
 Group: 'Export'
 Tooltip: 'Export selected mesh to Nendo File Format (*.ndo)'
@@ -182,4 +182,4 @@ def fs_callback(filename):
 	if filename.find('.ndo', -4) <= 0: filename += '.ndo'
 	write(filename)
 
-Blender.Window.FileSelector(fs_callback, "Nendo Export")
+Blender.Window.FileSelector(fs_callback, "Export Nendo")

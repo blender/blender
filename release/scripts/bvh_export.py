@@ -1,10 +1,10 @@
 #!BPY
 
 """
-Name: 'Motion Capture (*.bvh)'
+Name: 'Motion Capture (.bvh)...'
 Blender: 232
 Group: 'Export'
-Tip: 'Export a (*.bvh) motion capture file'
+Tip: 'Export a (.bvh) motion capture file'
 """
 
 # $Id$
@@ -386,4 +386,4 @@ def saveBVH(filename):
   file.close()
   print 'done'
   
-Blender.Window.FileSelector(saveBVH, 'SELECT NEW BVH FILE')
+Blender.Window.FileSelector(saveBVH, 'Export BVH')

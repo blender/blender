@@ -1,7 +1,7 @@
 #!BPY 
 
 """ 
-Name: 'Wavefront (*.obj)' 
+Name: 'Wavefront (.obj)...' 
 Blender: 232 
 Group: 'Export'
 Tooltip: 'Save a Wavefront OBJ File' 
@@ -144,4 +144,4 @@ def save_obj(filename):
                 
    file.close() 
 
-Window.FileSelector(save_obj, 'SELECT OBJ FILE') 
+Window.FileSelector(save_obj, 'Export OBJ') 

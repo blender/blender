@@ -1,10 +1,10 @@
 #!BPY
 
 """
-Name: 'Wings3D...'
+Name: 'Wings3D (.wings)...'
 Blender: 232
 Group: 'Import'
-Tooltip: 'Import Wings3D File Format (*.wings)'
+Tooltip: 'Import Wings3D File Format (.wings)'
 """
 
 # $Id$
@@ -287,4 +287,4 @@ def read(filename):
 def fs_callback(filename):
 	read(filename)
 
-Blender.Window.FileSelector(fs_callback, "Wings3D Import")
+Blender.Window.FileSelector(fs_callback, "Import Wings3D")

@@ -1,10 +1,10 @@
 #!BPY
 
 """
-Name: 'LightWave...'
+Name: 'LightWave (.lwo)...'
 Blender: 232
 Group: 'Import'
-Tooltip: 'Import LightWave Object File Format (*.lwo)'
+Tooltip: 'Import LightWave Object File Format (.lwo)'
 """
 
 # $Id$
@@ -171,4 +171,4 @@ def read_faces_6(lwochunk):
 def fs_callback(filename):
 	read(filename)
 
-Blender.Window.FileSelector(fs_callback, "LWO Import")
+Blender.Window.FileSelector(fs_callback, "Import LWO")

@@ -1,10 +1,10 @@
 #!BPY
 """ Registration info for Blender menus:
-Name: 'VRML 2.0'
+Name: 'VRML 2.0 (.wrl)...'
 Blender: 232
 Group: 'Export'
-Submenu: 'All objects...' all
-Submenu: 'Only selected objects...' selected
+Submenu: 'All Objects...' all
+Submenu: 'Selected Objects...' selected
 Tooltip: 'Export to VRML2 (.wrl) file.'
 """
 
@@ -969,7 +969,7 @@ if Blender.Get('version') < 225:
     print " download a newer version from http://blender.org/"
 else:
     if ARG == 'all' or ARG == 'selected':
-        Blender.Window.FileSelector(file_callback,"Save VRML 2.0")
+        Blender.Window.FileSelector(file_callback,"Export VRML 2.0")
     else:
         baseFileName=Blender.Get('filename')
         if baseFileName.find('.') != -1:

@@ -1,10 +1,10 @@
 #!BPY
 
 """
-Name: 'Raw Triangle...'
+Name: 'Raw Triangle (.raw)...'
 Blender: 232
 Group: 'Import'
-Tooltip: 'Import Raw Triangle File Format (*.raw)'
+Tooltip: 'Import Raw Triangle File Format (.raw)'
 """
 
 # $Id$
@@ -66,4 +66,4 @@ def read(filename):
 def fs_callback(filename):
 	read(filename)
 
-Blender.Window.FileSelector(fs_callback, "Raw Import")
+Blender.Window.FileSelector(fs_callback, "Import Raw")

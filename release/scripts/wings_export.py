@@ -1,10 +1,10 @@
 #!BPY
 
 """
-Name: 'Wings3D...'
+Name: 'Wings3D (.wings)...'
 Blender: 232
 Group: 'Export'
-Tooltip: 'Export selected mesh to Wings3D File Format (*.wings)'
+Tooltip: 'Export selected mesh to Wings3D File Format (.wings)'
 """
 
 # $Id$
@@ -343,4 +343,4 @@ def fs_callback(filename):
 if Blender.Object.GetSelected()[0].getType() != "Mesh":
 	Blender.Draw.PupMenu("Wings Export error|Selected object is not a mesh!")
 else:
-	Blender.Window.FileSelector(fs_callback, "Wings3D Export")
+	Blender.Window.FileSelector(fs_callback, "Export Wings3D")

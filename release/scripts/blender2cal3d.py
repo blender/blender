@@ -1,7 +1,7 @@
 #!BPY
 
 """
-Name: 'Cal3D v0.5'
+Name: 'Cal3D v0.5...'
 Blender: 232
 Group: 'Export'
 Tip: 'Export armature/bone data to the Cal3D library.'

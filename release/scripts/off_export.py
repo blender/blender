@@ -1,7 +1,7 @@
 #!BPY
 
 """
-Name: 'OFF...'
+Name: 'Object File Format (.off)...'
 Blender: 232
 Group: 'Export'
 Tooltip: 'Export selected mesh to Object File Format (*.off)'
@@ -68,4 +68,4 @@ def fs_callback(filename):
 	if filename.find('.off', -4) <= 0: filename += '.off'
 	write(filename)
 
-Blender.Window.FileSelector(fs_callback, "OFF Export")
+Blender.Window.FileSelector(fs_callback, "Export OFF")
