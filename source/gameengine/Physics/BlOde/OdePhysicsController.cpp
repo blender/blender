@@ -261,8 +261,13 @@ bool ODEPhysicsController::SynchronizeMotionStates(float time)
       dQuaternion worldquat;
       float worldpos[3];
                 
+#ifdef dDOUBLE
       m_MotionState->getWorldOrientation((float)worldquat[1],
 	 (float)worldquat[2],(float)worldquat[3],(float)worldquat[0]);
+#else
+      m_MotionState->getWorldOrientation(worldquat[1],
+	 worldquat[2],worldquat[3],worldquat[0]);
+#endif
       m_MotionState->getWorldPosition(worldpos[0],worldpos[1],worldpos[2]);
         
       float scaling[3];
@@ -346,8 +351,13 @@ bool ODEPhysicsController::SynchronizeMotionStates(float time)
       dQuaternion worldquat;
       float worldpos[3];
 
+#ifdef dDOUBLE
       m_MotionState->getWorldOrientation((float)worldquat[1],
 	(float)worldquat[2],(float)worldquat[3],(float)worldquat[0]);
+#else
+      m_MotionState->getWorldOrientation(worldquat[1],
+	worldquat[2],worldquat[3],worldquat[0]);
+#endif
       m_MotionState->getWorldPosition(worldpos[0],worldpos[1],worldpos[2]);
         
       float scaling[3];
@@ -470,7 +480,14 @@ void ODEPhysicsController::SetLinearVelocity(float lin_velX,float lin_velY,float
           dMatrix3 worldmat;
           dVector3 localvel;
           dQuaternion worldquat;
-          m_MotionState->getWorldOrientation(worldquat[1],worldquat[2],worldquat[3],worldquat[0]);
+
+#ifdef dDOUBLE
+          m_MotionState->getWorldOrientation((float)worldquat[1],
+		(float)worldquat[2], (float)worldquat[3],(float)worldquat[0]);
+#else
+          m_MotionState->getWorldOrientation(worldquat[1],worldquat[2],
+		worldquat[3],worldquat[0]);
+#endif
           dQtoR (worldquat, worldmat);
                         
           dMULTIPLY0_331 (localvel,worldmat,vel);
