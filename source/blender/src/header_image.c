@@ -342,8 +342,7 @@ void do_image_buttons(unsigned short event)
 		if (ima) {
 			strcpy(name, ima->name);
 			if (ima->ibuf) {
-				save_image_filesel_str(str);
-				activate_fileselect(FILE_SPECIAL, str, name, save_paint);
+				activate_fileselect(FILE_SPECIAL, "Save in same type", name, save_paint);
 			}
 		}
 		break;

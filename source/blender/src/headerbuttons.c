@@ -288,7 +288,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 				if(browse==B_WORLDBROWSE) {
 					id= G.main->world.first;
 				}
-				else if(ob && ob->type && (ob->type<OB_LAMP)) {
+				else if(ob && ob->type && (ob->type<=OB_LAMP)) {
 					if(G.buts->mainb==CONTEXT_SHADING) {
 						int tab= G.buts->tab[CONTEXT_SHADING];
 						
