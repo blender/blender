@@ -62,8 +62,10 @@
 #include "BKE_material.h"
 #include "BKE_texture.h"
 #include "BKE_displist.h"
+#include "DNA_radio_types.h"
 
 #include "BLI_blenlib.h"
+#include "BMF_Api.h"
 
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
@@ -86,6 +88,7 @@
 #include "interface.h"
 #include "mydevice.h"
 #include "blendef.h"
+#include "radio.h"
 
 /* -----includes for this file specific----- */
 
@@ -93,6 +96,226 @@
 
 static MTex mtexcopybuf;
 static MTex emptytex;
+
+/* *************************** RADIO ******************************** */
+
+void do_radiobuts(unsigned short event)
+{
+	Radio *rad;
+	int phase;
+	
+	phase= rad_phase();
+	rad= G.scene->radio;
+	
+	switch(event) {
+	case B_RAD_ADD:
+		add_radio();
+		allqueue(REDRAWBUTSSHADING, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+	case B_RAD_DELETE:
+		delete_radio();
+		allqueue(REDRAWBUTSSHADING, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+	case B_RAD_FREE:
+		freeAllRad();
+		allqueue(REDRAWBUTSSHADING, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+	case B_RAD_COLLECT:
+		rad_collect_meshes();
+		allqueue(REDRAWBUTSSHADING, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+	case B_RAD_INIT:
+		if(phase==RAD_PHASE_PATCHES) {
+			rad_limit_subdivide();
+			allqueue(REDRAWBUTSSHADING, 0);
+			allqueue(REDRAWVIEW3D, 0);
+		}
+		break;
+	case B_RAD_SHOOTP:
+		if(phase==RAD_PHASE_PATCHES) {
+			waitcursor(1);
+			rad_subdivshootpatch();
+			allqueue(REDRAWBUTSSHADING, 0);
+			allqueue(REDRAWVIEW3D, 0);
+			waitcursor(0);
+		}
+		break;
+	case B_RAD_SHOOTE:
+		if(phase==RAD_PHASE_PATCHES) {
+			waitcursor(1);
+			rad_subdivshootelem();
+			allqueue(REDRAWBUTSSHADING, 0);
+			allqueue(REDRAWVIEW3D, 0);
+			waitcursor(0);
+		}
+		break;
+	case B_RAD_GO:
+		if(phase==RAD_PHASE_PATCHES) {
+			waitcursor(1);
+			rad_go();
+			waitcursor(0);
+			allqueue(REDRAWBUTSSHADING, 0);
+			allqueue(REDRAWVIEW3D, 0);
+		}
+		break;
+	case B_RAD_LIMITS:
+		rad_setlimits();
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSSHADING, 0);
+		break;
+	case B_RAD_FAC:
+		set_radglobal();
+		if(phase & RAD_PHASE_FACES) make_face_tab();
+		else make_node_display();
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+	case B_RAD_NODELIM:
+		if(phase & RAD_PHASE_FACES) {
+			set_radglobal();
+			removeEqualNodes(rad->nodelim);
+			make_face_tab();
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSSHADING, 0);
+		}
+		break;
+	case B_RAD_NODEFILT:
+		if(phase & RAD_PHASE_FACES) {
+			set_radglobal();
+			filterNodes();
+			make_face_tab();
+			allqueue(REDRAWVIEW3D, 0);
+		}
+		break;
+	case B_RAD_FACEFILT:
+		if(phase & RAD_PHASE_FACES) {
+			filterFaces();
+			allqueue(REDRAWVIEW3D, 0);
+		}
+		break;
+	case B_RAD_DRAW:
+		set_radglobal();
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+	case B_RAD_ADDMESH:
+		if(phase & RAD_PHASE_FACES) rad_addmesh();
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+	case B_RAD_REPLACE:
+		if(phase & RAD_PHASE_FACES) rad_replacemesh();
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+	}
+
+}
+
+
+#if 0
+	char str[128];
+		
+		rad_status_str(str);
+		cpack(0);
+		glRasterPos2i(210, 189);
+		BMF_DrawString(uiBlockGetCurFont(block), str);
+
+#endif
+
+static void radio_panel_calculation(Radio *rad, int flag)
+{
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "radio_panel_calculation", UI_EMBOSSX, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Calculation", "Radio", 640, 0, 318, 204)==0) return;
+	uiAutoBlock(block, 10, 10, 300, 200, UI_BLOCK_ROWS);
+
+	if(flag == RAD_PHASE_PATCHES) uiBlockSetCol(block, BUTSALMON);
+	uiDefBut(block,  BUT, B_RAD_GO, "GO",					0, 0, 10, 15, NULL, 0, 0, 0, 0, "Start the radiosity simulation");
+
+	uiBlockSetCol(block, BUTGREY);
+	uiDefButS(block,  NUM, 0, "SubSh Patch:", 				1, 0, 10, 10, &rad->subshootp, 0.0, 10.0, 0, 0, "Set the number of times the environment is tested to detect pathes");
+	uiDefButS(block,  NUM, 0, "SubSh Element:", 			1, 0, 10, 10, &rad->subshoote, 0.0, 10.0, 0, 0, "Set the number of times the environment is tested to detect elements");
+
+	if(flag == RAD_PHASE_PATCHES) uiBlockSetCol(block, BUTSALMON);
+	else uiBlockSetCol(block, BUTGREY);
+	uiDefBut(block,  BUT, B_RAD_SHOOTE, "Subdiv Shoot Element", 2, 0, 10, 10, NULL, 0, 0, 0, 0, "For pre-subdivision, detect high energy changes and subdivide Elements");
+	uiDefBut(block,  BUT, B_RAD_SHOOTP, "Subdiv Shoot Patch",	2, 0, 10, 10, NULL, 0, 0, 0, 0, "For pre-subdivision, Detect high energy changes and subdivide Patches");
+
+	uiBlockSetCol(block, BUTGREY);
+	uiDefButI(block,  NUM, 0, "MaxEl:",						3, 0, 10, 10, &rad->maxnode, 1.0, 250000.0, 0, 0, "Set the maximum allowed number of elements");
+	uiDefButS(block,  NUM, 0, "Max Subdiv Shoot:", 			3, 0, 10, 10, &rad->maxsublamp, 1.0, 250.0, 0, 0, "Set the maximum number of initial shoot patches that are evaluated");
+
+	if(flag & RAD_PHASE_FACES) uiBlockSetCol(block, BUTSALMON);
+	else uiBlockSetCol(block, BUTGREY);
+	uiDefBut(block,  BUT, B_RAD_FACEFILT, "FaceFilter",		4, 0, 10, 10, NULL, 0, 0, 0, 0, "Force an extra smoothing");
+	uiDefBut(block,  BUT, B_RAD_NODEFILT, "Element Filter",	4, 0, 10, 10, NULL, 0, 0, 0, 0, "Filter elements to remove aliasing artefacts");
+
+	uiDefBut(block,  BUT, B_RAD_NODELIM, "RemoveDoubles",	5, 0, 30, 10, NULL, 0.0, 50.0, 0, 0, "Join elements which differ less than 'Lim'");
+	uiBlockSetCol(block, BUTGREY);
+	uiDefButS(block,  NUM, 0, "Lim:",						5, 0, 10, 10, &rad->nodelim, 0.0, 50.0, 0, 0, "Set the range for removing doubles");
+
+
+}
+
+static void radio_panel_tool(Radio *rad, int flag)
+{
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "radio_panel_tool", UI_EMBOSSX, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Radio Tool", "Radio", 320, 0, 318, 204)==0) return;
+	uiAutoBlock(block, 10, 10, 300, 200, UI_BLOCK_ROWS);
+
+	if(flag & RAD_PHASE_PATCHES) uiBlockSetCol(block, BUTPURPLE);
+	else uiBlockSetCol(block, BUTSALMON);
+	uiDefBut(block,  BUT, B_RAD_COLLECT, "Collect Meshes",	0, 0, 10, 15, NULL, 0, 0, 0, 0, "Convert selected and visible meshes to patches");
+
+	if(flag & RAD_PHASE_PATCHES) uiBlockSetCol(block, BUTSALMON);
+	else uiBlockSetCol(block, BUTGREY);
+	uiDefBut(block,  BUT, B_RAD_FREE, "Free Radio Data",	0, 0, 10, 15, NULL, 0, 0, 0, 0, "Release all memory used by Radiosity");	
+
+	if(flag & RAD_PHASE_FACES) uiBlockSetCol(block, BUTSALMON);
+	else uiBlockSetCol(block, BUTGREY);
+	uiDefBut(block,  BUT, B_RAD_REPLACE, "Replace Meshes",	1, 0, 10, 12, NULL, 0, 0, 0, 0, "Convert meshes to Mesh objects with vertex colours, changing input-meshes");
+	uiDefBut(block,  BUT, B_RAD_ADDMESH, "Add new Meshes",	1, 0, 10, 12, NULL, 0, 0, 0, 0, "Convert meshes to Mesh objects with vertex colours, unchanging input-meshes");
+
+	uiBlockSetCol(block, BUTGREEN);
+	uiDefButS(block,  ROW, B_RAD_DRAW, "Wire",			2, 0, 10, 10, &rad->drawtype, 0.0, 0.0, 0, 0, "Enable wireframe drawmode");
+	uiDefButS(block,  ROW, B_RAD_DRAW, "Solid",			2, 0, 10, 10, &rad->drawtype, 0.0, 1.0, 0, 0, "Enable solid drawmode");
+	uiDefButS(block,  ROW, B_RAD_DRAW, "Gour",			2, 0, 10, 10, &rad->drawtype, 0.0, 2.0, 0, 0, "Enable Gourad drawmode");
+	uiBlockSetCol(block, BUTGREY);
+	uiDefButS(block,  TOG|BIT|0, B_RAD_DRAW, "ShowLim", 2, 0, 10, 10, &rad->flag, 0, 0, 0, 0, "Visualize patch and element limits");
+	uiDefButS(block,  TOG|BIT|1, B_RAD_DRAW, "Z",		2, 0, 3, 10, &rad->flag, 0, 0, 0, 0, "Draw limits different");
+
+	uiBlockSetCol(block, BUTGREY);
+	uiDefButS(block,  NUM, B_RAD_LIMITS, "ElMax:", 		3, 0, 10, 10, &rad->elma, 1.0, 500.0, 0, 0, "Set maximum size of an element");
+	uiDefButS(block,  NUM, B_RAD_LIMITS, "ElMin:", 		3, 0, 10, 10, &rad->elmi, 1.0, 100.0, 0, 0, "Set minimum size of an element");
+	uiDefButS(block,  NUM, B_RAD_LIMITS, "PaMax:", 		3, 0, 10, 10, &rad->pama, 10.0, 1000.0, 0, 0, "Set maximum size of a patch");
+	uiDefButS(block,  NUM, B_RAD_LIMITS, "PaMin:", 		3, 0, 10, 10, &rad->pami, 10.0, 1000.0, 0, 0, "Set minimum size of a patch");
+
+
+
+	uiBlockSetCol(block, BUTSALMON);
+	uiDefBut(block,  BUT, B_RAD_INIT, "Limit Subdivide", 5, 0, 10, 10, NULL, 0, 0, 0, 0, "Subdivide patches");
+}
+
+
+static void radio_panel_render(Radio *rad)
+{
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "radio_panel_render", UI_EMBOSSX, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Radio Render", "Radio", 0, 0, 318, 204)==0) return;
+	uiAutoBlock(block, 210, 30, 230, 150, UI_BLOCK_ROWS);
+
+	uiBlockSetCol(block, BUTGREY);
+	uiDefButS(block,  NUMSLI, B_RAD_LIMITS, "Hemires:", 0, 0, 10, 10, &rad->hemires, 100.0, 1000.0, 100, 0, "Set the size of a hemicube");
+	uiDefButS(block,  NUM, 0, "Max Iterations:", 		2, 0, 10, 15, &rad->maxiter, 0.0, 10000.0, 0, 0, "Maximum number of radiosity rounds");
+	uiDefButF(block,  NUM, B_RAD_FAC, "Mult:",			3, 0, 10, 15, &rad->radfac, 0.001, 250.0, 100, 0, "Mulitply the energy values");
+	uiDefButF(block,  NUM, B_RAD_FAC, "Gamma:",			3, 0, 10, 15, &rad->gamma, 0.2, 10.0, 10, 0, "Change the contrast of the energy values");
+	uiDefButF(block,  NUMSLI, 0, "Convergence:", 		5, 0, 10, 10, &rad->convergence, 0.0, 1.0, 10, 0, "Set the lower threshold of unshot energy");
+}
 
 
 /* ***************************** WORLD ************************** */
@@ -1154,6 +1377,23 @@ void world_panels()
 	}
 }
 
+void radio_panels()
+{
+	Radio *rad;
+	int flag;
+	
+	rad= G.scene->radio;
+	if(rad==0) {
+		add_radio();
+		rad= G.scene->radio;
+	}
 
+	radio_panel_render(rad);
+	
+	flag= rad_phase();
+	
+	radio_panel_tool(rad, flag);
+	if(flag) radio_panel_calculation(rad, flag);
 
 	
+}

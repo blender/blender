@@ -299,7 +299,7 @@ void do_butspace(unsigned short event)
 		do_fpaintbuts(event);
 	}
 	else if(event<=B_RADIOBUTS) {
-		//do_radiobuts(event);
+		do_radiobuts(event);
 	}
 	else if(event<=B_SCRIPTBUTS) {
 		//do_scriptbuts(event);
@@ -408,6 +408,8 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 			lamp_panels();
 		else if(tab==TAB_SHADING_WORLD)
 			world_panels();
+		else if(tab==TAB_SHADING_RAD)
+			radio_panels();
 			
 			
 		break;

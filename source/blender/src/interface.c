@@ -2585,7 +2585,6 @@ static void ui_autofill(uiBlock *block)
 	float totmaxh;
 	int rows=0, /*  cols=0, */ i, lasti;
 	
-	
 	/* first count rows */
 	but= block->buttons.last;
 	rows= but->x1+1;
@@ -6211,7 +6210,7 @@ static int panel_has_tabs(Panel *panel)
 	return 0;
 }
 
-void uiScalePanelBlock(uiBlock *block)
+static void ui_scale_panel_block(uiBlock *block)
 {
 	uiBut *but;
 	float facx= 1.0, facy= 1.0;
@@ -6219,6 +6218,7 @@ void uiScalePanelBlock(uiBlock *block)
 	
 	if(block->panel==NULL) return;
 
+	if(block->autofill) ui_autofill(block);
 	/* buttons min/max centered, offset calculated */
 	uiBoundsBlock(block, 0);
 
@@ -6643,7 +6643,7 @@ int uiAlignPanelStep(ScrArea *sa, float fac)
 }
 
 
-void uiAnimatePanels(ScrArea *sa)
+static void ui_animate_panels(ScrArea *sa)
 {
 	double time=0, ltime;
 	float result= 0.0, fac= 0.2;
@@ -6692,7 +6692,7 @@ void uiDrawBlocksPanels(ScrArea *sa, int re_align)
 	/* scaling contents */
 	block= sa->uiblocks.first;
 	while(block) {
-		if(block->panel) uiScalePanelBlock(block);
+		if(block->panel) ui_scale_panel_block(block);
 		block= block->next;
 	}
 
@@ -6891,7 +6891,7 @@ static void ui_drag_panel(uiBlock *block)
 	check_panel_overlap(curarea, NULL);	// clears
 	
 	if(sbuts->align==0) addqueue(block->win, REDRAW, 1);
-	else uiAnimatePanels(curarea);
+	else ui_animate_panels(curarea);
 }
 
 
@@ -7031,7 +7031,7 @@ static void ui_do_panel(uiBlock *block, uiEvent *uevent)
 				}
 			}
 			if(sbuts->align==0) addqueue(block->win, REDRAW, 1);
-			else uiAnimatePanels(curarea);
+			else ui_animate_panels(curarea);
 			
 		}
 		else {

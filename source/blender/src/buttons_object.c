@@ -442,9 +442,6 @@ void object_panel_draw(Object *ob)
 	
 	uiBlockSetCol(block, BUTGREY);
 	
-	uiScalePanelBlock(block); // scales and centers	
-	uiDrawBlock(block);
-	
 }
 
 
@@ -775,9 +772,6 @@ void object_panel_effects(Object *ob)
 
 		}
 	}
-	
-	uiScalePanelBlock(block); // scales and centers
-	uiDrawBlock(block);
 }
 
 static void object_panel_anim(Object *ob)
@@ -882,9 +876,6 @@ static void object_panel_anim(Object *ob)
 
 #endif	
 	
-
-	uiScalePanelBlock(block); // scales and centers
-	uiDrawBlock(block);
 }
 
 void object_panels()

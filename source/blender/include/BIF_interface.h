@@ -144,16 +144,15 @@ short pupmenu_col(char *instr, int maxrow);
 extern void uiFreePanels(struct ListBase *lb);
 extern void uiNewPanelTabbed(char *, char *);
 extern int uiNewPanel(struct ScrArea *sa, struct uiBlock *block, char *panelname, char *tabname, int ofsx, int ofsy, int sizex, int sizey);
-extern void uiScalePanelBlock(struct uiBlock *block);
-extern int uiIsPanelClosed(struct uiBlock *block);
-extern void uiAnimatePanels(struct ScrArea *sa);	
+	
 extern void uiSetPanel_view2d(struct ScrArea *sa);
+extern void uiMatchPanel_view2d(struct ScrArea *sa);
+
 extern void uiDrawBlocksPanels(struct ScrArea *sa, int re_align);
 extern void uiNewPanelHeight(struct uiBlock *block, int sizey);
 void uiPanelPush(uiBlock *block);
 void uiPanelPop(uiBlock *block);
 extern uiBlock *uiFindOpenPanelBlockName(ListBase *lb, char *name);
-extern void uiMatchPanel_view2d(struct ScrArea *sa);
 extern int uiAlignPanelStep(struct ScrArea *sa, float fac);
 
 
