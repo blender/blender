@@ -520,16 +520,18 @@ void do_radio_render(void)
 	set_radglobal(); /* init the RG struct */
 
 	initradfaces();	 /* add radface structs to render faces */
-	if(RG.totenergy==0.0) return;
+	if(RG.totenergy>0.0) {
 
-	initradiosity();	/* LUT's */
-	inithemiwindows();	/* views, need RG.maxsize for clipping */
+		initradiosity();	/* LUT's */
+		inithemiwindows();	/* views, need RG.maxsize for clipping */
 	
-	progressiverad_rr(); /* main radio loop */
+		progressiverad_rr(); /* main radio loop */
+		
+		make_vertex_rad_values(); /* convert face energy to vertex ones */
+
+	}
 	
 	freeAllRad();	/* luts, hemis, sets vars at zero */
-	
-	make_vertex_rad_values(); /* convert face energy to vertex ones */
 }
 
 /* free call, after rendering, extern */
