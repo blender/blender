@@ -1626,10 +1626,11 @@ static void world_panel_texture(World *wrld)
 
 	/* TEXCO */
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_MATPRV, "View",			100,110,50,19, &(mtex->texco), 4.0, (float)TEXCO_VIEW, 0, 0, "Uses camera view vector for texture coordinates");
-	uiDefButS(block, ROW, B_MATPRV, "Object",		150,110,50,19, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates: click to change");
-	uiDefIDPoinBut(block, test_obpoin_but, B_MATPRV, "", 200,110,100,19, &(mtex->object), "");
-	
+	uiDefButS(block, ROW, B_MATPRV, "View",			100,110,60,20, &(mtex->texco), 4.0, (float)TEXCO_VIEW, 0, 0, "Uses global coordinates for the texture coordinates");
+	uiDefButS(block, ROW, B_MATPRV, "AngMap",		160,110,70,20, &(mtex->texco), 4.0, (float)TEXCO_ANGMAP, 0, 0, "Uses angular coordinates for the texture coordinates");
+	uiDefButS(block, ROW, B_MATPRV, "Object",		230,110,70,20, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
+	uiDefIDPoinBut(block, test_obpoin_but, B_MATPRV, "", 100,90,200,20, &(mtex->object), "");
+
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_MATPRV, "dX",		100,50,100,19, mtex->ofs, -20.0, 20.0, 10, 0, "Fine tunes texture mapping X coordinate");
 	uiDefButF(block, NUM, B_MATPRV, "dY",		100,30,100,19, mtex->ofs+1, -20.0, 20.0, 10, 0, "Fine tunes texture mapping Y coordinate");
@@ -1722,6 +1723,15 @@ static void world_panel_amb_occ(World *wrld)
 		uiDefButS(block, ROW, B_REDR, "Add", 10, 45, 100, 20, &wrld->aomix, 1.0, (float)WO_AOADD, 0, 0, "adds light/shadows");
 		uiDefButS(block, ROW, B_REDR, "Sub", 110, 45, 100, 20, &wrld->aomix, 1.0, (float)WO_AOSUB, 0, 0, "subtracts light/shadows (needs at least one normal light to make anything visible)");
 		uiDefButS(block, ROW, B_REDR, "Both", 210, 45, 100, 20, &wrld->aomix, 1.0, (float)WO_AOADDSUB, 0, 0, "both lightens & darkens");
+
+		/* color treatment */
+		uiBlockBeginAlign(block);
+		uiDefButS(block, ROW, B_REDR, "Plain", 10, 25, 100, 20, &wrld->aocolor, 2.0, (float)WO_AOPLAIN, 0, 0, "Plain diffuse energy (white)");
+		uiDefButS(block, ROW, B_REDR, "Sky Color", 110, 25, 100, 20, &wrld->aocolor, 2.0, (float)WO_AOSKYCOL, 0, 0, "Use horizon and zenith color for diffuse energy");
+		uiDefButS(block, ROW, B_REDR, "Sky Texture", 210, 25, 100, 20, &wrld->aocolor, 2.0, (float)WO_AOSKYTEX, 0, 0, "Does full Sky texture render for diffuse energy");
+		uiBlockEndAlign(block);
+		
+		uiDefButF(block, NUMSLI, 0, "Energy:", 10, 0, 300, 19, &wrld->aoenergy, 0.01, 50.0, 100, 0, "Sets global energy scale for AO");
 	}
 
 }

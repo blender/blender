@@ -95,8 +95,8 @@ typedef struct World {
 	short dofsta, dofend, dofmin, dofmax;
 	
 	/* ambient occlusion */
-	float aodist, aodistfac;
-	short aomode, aosamp, aomix, aototsamp;
+	float aodist, aodistfac, aoenergy, pad;
+	short aomode, aosamp, aomix, aocolor;
 	
 	int physicsEngine;
 
@@ -113,7 +113,7 @@ typedef struct World {
 #define WO_SKYBLEND		1
 #define WO_SKYREAL		2
 #define WO_SKYPAPER		4
-/* tijdens render: */
+/* while render: */
 #define WO_SKYTEX		8
 #define WO_ZENUP		16
 
@@ -133,6 +133,13 @@ typedef struct World {
 #define WO_AODIST		1
 #define WO_AORNDSMP		2
 
+/* aocolor */
+#define WO_AOPLAIN	0
+#define WO_AOSKYCOL	1
+#define WO_AOSKYTEX	2
+
+/* texco (also in DNA_material_types.h) */
+#define TEXCO_ANGMAP	64
 
 /* mapto */
 #define WOMAP_BLEND		1

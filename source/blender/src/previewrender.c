@@ -1082,7 +1082,11 @@ void BIF_previewrender(SpaceButs *sbuts)
 		if(G.scene->camera) {
 			lens= ( (Camera *)G.scene->camera->data)->lens;
 		}
-		
+		/* needed for init_render_world */
+		MTC_Mat4CpyMat4(R.viewinv, G.scene->camera->obmat);
+		MTC_Mat4Ortho(R.viewinv);
+		MTC_Mat4Invert(R.viewmat, R.viewinv);
+
 		init_render_world();
 		init_render_textures();	/* dont do it twice!! (brightness) */
 	}

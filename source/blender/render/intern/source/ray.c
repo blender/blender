@@ -1074,7 +1074,7 @@ static int d3dda(Isect *is)
 		*/
 		if(coh_test) {
 			if(coh_ocx1==ocx1 && coh_ocy1==ocy1 && coh_ocz1==ocz1
-				 && coh_ocx2==ocx2 && coh_ocy2==ocy2 && coh_ocz2==ocz2);
+			   && coh_ocx2==ocx2 && coh_ocy2==ocy2 && coh_ocz2==ocz2);
 			else coh_test= 0;
 		}
 		
@@ -1878,6 +1878,8 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 	isec.mode= DDA_SHADOW;
 	coh_test= 0;		// reset coherence optimize
 
+	shadfac[0]= shadfac[1]= shadfac[2]= 0.0;
+
 	VECCOPY(nrm, shi->vn);
 	if ((nrm[0]==0.0) && (nrm[1]==0.0)) {
 		if (nrm[2]<0) ru[0]=-1; else ru[0]=1;
@@ -1929,14 +1931,43 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 				isec.start[2]= shi->co[2] + (jit[j][0]-0.5)*O.dxco[2] + (jit[j][1]-0.5)*O.dyco[2] ;
 				j = ((j+1) % R.osa);
 			}
+			/* do the trace */
 			if (d3dda(&isec)) {
 				if (wrld->aomode & WO_AODIST) sh+=exp(-isec.labda*wrld->aodistfac); else sh+=1.0;
 			}
+			else if(wrld->aocolor!=WO_AOPLAIN) {
+				char skycol[4];
+				float fac, view[3];
+				
+				view[0]= -vec[0];
+				view[1]= -vec[1];
+				view[2]= -vec[2];
+				Normalise(view);
+				
+				if(wrld->aocolor==WO_AOSKYCOL) {
+					fac= 0.5*(1.0+view[0]*R.grvec[0]+ view[1]*R.grvec[1]+ view[2]*R.grvec[2]);
+					shadfac[0]+= (1.0-fac)*R.wrld.horr + fac*R.wrld.zenr;
+					shadfac[1]+= (1.0-fac)*R.wrld.horg + fac*R.wrld.zeng;
+					shadfac[2]+= (1.0-fac)*R.wrld.horb + fac*R.wrld.zenb;
+				}
+				else {
+					RE_sky(view, skycol);
+					shadfac[0]+= skycol[0]/255.0;
+					shadfac[1]+= skycol[1]/255.0;
+					shadfac[2]+= skycol[2]/255.0;
+				}
+			}
 		}
 	}
-
-	shadfac[3] = 1.0 - (sh/(float)wrld->aototsamp);
-
+	
+	gdiv= wrld->aoenergy/(float)(wrld->aosamp*wrld->aosamp);
+	shadfac[3] = wrld->aoenergy - (sh*gdiv);
+	
+	if(wrld->aocolor!=WO_AOPLAIN) {
+		shadfac[0] *= gdiv;
+		shadfac[1] *= gdiv;
+		shadfac[2] *= gdiv;
+	}
 }
 
 

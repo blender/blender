@@ -193,7 +193,7 @@ void RE_sky(float *view, char *col)
 		if(R.wrld.skytype & WO_SKYREAL) {
 			
 			MTC_Mat3MulVecfl(R.imat, lo);
-
+	
 			SWAP(float, lo[1],  lo[2]);
 			
 		}
@@ -1647,13 +1647,31 @@ static void ambient_occlusion(World *wrld, ShadeInput *shi, ShadeResult *shr)
 	if(wrld->mode & WO_AMB_OCC) {
 		ray_ao(shi, wrld, shadfac);
 
-		if (wrld->aomix==WO_AOADDSUB) shadfac[3] = 2.0*shadfac[3]-1.0;
-		else if (wrld->aomix==WO_AOSUB) shadfac[3] = -(1.0-shadfac[3]);
+		if(wrld->aocolor==WO_AOPLAIN) {
+			if (wrld->aomix==WO_AOADDSUB) shadfac[3] = 2.0*shadfac[3]-1.0;
+			else if (wrld->aomix==WO_AOSUB) shadfac[3] = shadfac[3]-1.0;
 
-		f= shadfac[3]*shi->matren->amb;
-		shr->diff[0] += f;
-		shr->diff[1] += f;
-		shr->diff[2] += f;
+			f= shadfac[3]*shi->matren->amb;
+			shr->diff[0] += f;
+			shr->diff[1] += f;
+			shr->diff[2] += f;
+		}
+		else {
+			if (wrld->aomix==WO_AOADDSUB) {
+				shadfac[0] = 2.0*shadfac[0]-1.0;
+				shadfac[1] = 2.0*shadfac[1]-1.0;
+				shadfac[2] = 2.0*shadfac[2]-1.0;
+			}
+			else if (wrld->aomix==WO_AOSUB) {
+				shadfac[0] = shadfac[0]-1.0;
+				shadfac[1] = shadfac[1]-1.0;
+				shadfac[2] = shadfac[2]-1.0;
+			}
+			f= shi->matren->amb;
+			shr->diff[0] += f*shadfac[0];
+			shr->diff[1] += f*shadfac[1];
+			shr->diff[2] += f*shadfac[2];
+		}
 	}
 }
 

@@ -1719,8 +1719,21 @@ void do_sky_tex(float *lo)
 			/* which coords */
 			co= lo;
 			
+			/* dxt dyt just from 1 value */
+			dxt[0]= dxt[1]= dxt[2]= O.dxview;
+			dyt[0]= dyt[1]= dyt[2]= O.dyview;
+			
 			/* Grab the mapping settings for this texture */
-			if(mtex->texco==TEXCO_OBJECT) {
+			if(mtex->texco==TEXCO_ANGMAP) {
+				
+				fact= (1.0/M_PI)*acos(lo[2])/(sqrt(lo[0]*lo[0] + lo[1]*lo[1])); 
+				tempvec[0]= lo[0]*fact;
+				tempvec[1]= lo[1]*fact;
+				tempvec[2]= 0.0;
+				co= tempvec;
+				
+			}
+			else if(mtex->texco==TEXCO_OBJECT) {
 				Object *ob= mtex->object;
 				if(ob) {
 					VECCOPY(tempvec, lo);
@@ -1742,7 +1755,7 @@ void do_sky_tex(float *lo)
 			/* texture */
 			if(mtex->tex->type==TEX_IMAGE) do_2d_mapping(mtex, texvec, NULL, dxt, dyt);
 			
-			rgb= multitex(mtex->tex, texvec, dxt, dyt, 0);
+			rgb= multitex(mtex->tex, texvec, dxt, dyt, R.osa);
 			
 			/* texture output */
 			if(rgb && (mtex->texflag & MTEX_RGBTOINT)) {

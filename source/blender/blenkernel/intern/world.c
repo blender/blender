@@ -199,10 +199,6 @@ void init_render_world()
 			}
 		}
 		
-		/* ambient occlusion */
-		R.wrld.aototsamp= R.wrld.aosamp*R.wrld.aosamp;
-		
-		
 	}
 	else {
 		memset(&R.wrld, 0, sizeof(World));
