@@ -400,6 +400,7 @@ PyObject *M_Object_Get(PyObject *self, PyObject *args)
         }
         blen_object = (C_Object*)PyObject_NEW (C_Object, &Object_Type); 
         blen_object->object = object;
+        blen_object->parent = NULL;
         blen_object->data = NULL;
 
         return ((PyObject*)blen_object);
@@ -708,7 +709,10 @@ static PyObject *Object_getParent (C_Object *self)
         return ((PyObject*)self->parent);
     }
 
-    /* TODO: what if self->object->parent==NULL? Should we return Py_None? */
+    if (self->object->parent == NULL)
+    {
+        return (EXPP_incr_ret (Py_None));
+    }
     attr = M_ObjectCreatePyObject (self->object->parent);
 
     if (attr)

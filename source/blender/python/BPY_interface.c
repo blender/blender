@@ -240,6 +240,8 @@ struct _object *BPY_txt_do_python(struct SpaceText* st)
   else
     dict = PyModule_GetDict(PyImport_AddModule("__main__"));
 
+  clearScriptLinks ();
+
   ret = RunPython (st->text, dict); /* Run the script */
 
   if (!ret) { /* Failed execution of the script */
@@ -353,6 +355,7 @@ void BPY_do_pyscript(struct ID *id, short event)
   ScriptLink  * scriptlink;
   int           index;
   PyObject    * dict;
+  PyObject    * ret;
 
   printf ("In BPY_do_pyscript(id=%s, event=%d)\n",id->name, event);
 
@@ -368,8 +371,19 @@ void BPY_do_pyscript(struct ID *id, short event)
         (scriptlink->scripts[index] != NULL))
     {
       dict = CreateGlobalDictionary();
-      RunPython ((Text*) scriptlink->scripts[index], dict);
+      ret = RunPython ((Text*) scriptlink->scripts[index], dict);
       ReleaseGlobalDictionary (dict);
+      if (!ret)
+      {
+          /* Failed execution of the script */
+          BPY_Err_Handle ((Text*) scriptlink->scripts[index]);
+          BPY_end_python ();
+          BPY_start_python ();
+      }
+      else
+      {
+          Py_DECREF (ret);
+      }
     }
   }
 

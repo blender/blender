@@ -54,6 +54,17 @@ void initBlenderApi2_2x (void)
   M_Blender_Init ();
 }
 
+void clearScriptLinks (void)
+{
+    Py_INCREF (Py_False);
+    PyDict_SetItemString (g_blenderdict, "bylink", Py_False);
+    /* Old API meant link could be unset. Or even valid when bylink is false.
+     * This way, you can import it and check its value afterwards, ignoring
+     * bylink. */
+    Py_INCREF (Py_None);
+    PyDict_SetItemString (g_blenderdict, "link", Py_None);
+}
+
 ScriptLink * setScriptLinks(ID *id, short event)
 {
   ScriptLink  * scriptlink;
