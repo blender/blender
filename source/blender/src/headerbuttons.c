@@ -439,7 +439,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 			uiSetButLock (pin && *pinpoin, "Can't make pinned data single-user");
 			
 			sprintf(str1, "%d", id->us);
-			if(id->us<100) {
+			if(id->us<10) {
 				
 				uiDefBut(block, BUT, users, str1, xco,yco,XIC,YIC, 0, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
 				xco+= XIC;
