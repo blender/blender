@@ -272,7 +272,7 @@ void helpline(float *vec)
 	setlinestyle(0);
 	
 	persp(1);
-
+	glFinish(); // flush display for frontbuffer
 	glDrawBuffer(GL_BACK);
 }
 
