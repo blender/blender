@@ -101,7 +101,7 @@ install: package
 #on OS X the contents of the .blender dir is already inside the bundle
 ifneq ($(OS), darwin)
 	@[ ! -d $(OCGDIR)/bin/.blender ] || \
-		cp -a $(OCGDIR)/bin/.blender $(DISTDIR)
+		cp -r $(OCGDIR)/bin/.blender $(DISTDIR)
 endif
 
 # Python scripts removed for 2.14
