@@ -316,8 +316,16 @@ void ui_block_flush_back(uiBlock *block)
 	int minx, miny, sizex, sizey;
 	
 	/* note; this routine also has to work for block loop */
-	if(block->frontbuf==0) return;
+	if(block->needflush==0) return;
 
+	/* exception, when we cannot use backbuffer for draw... */
+	if(block->flag & UI_BLOCK_FRONTBUFFER) {
+		glFlush();
+		glDrawBuffer(GL_BACK);
+		block->needflush= 0;
+		return;
+	}
+	
 	/* copy pixels works on window coords, so we move to window space */
 
 	ui_graphics_to_window(block->win, &block->flush.xmin, &block->flush.ymin);
@@ -346,7 +354,7 @@ void ui_block_flush_back(uiBlock *block)
 		markdirty_win_back(block->win);
 	}
 	
-	block->frontbuf= 0; 
+	block->needflush= 0; 
 }
 
 /* merge info for live updates in frontbuf */
@@ -354,13 +362,17 @@ void ui_block_set_flush(uiBlock *block, uiBut *but)
 {
 	/* clear signal */
 	if(but==NULL) {
-		block->frontbuf= 0; 
+		block->needflush= 0; 
 
 		block->flush.xmin= 0.0;
 		block->flush.xmax= 0.0;
 	}
 	else {
-		if(block->frontbuf==0) {
+		/* exception, when we cannot use backbuffer for draw... */
+		if(block->flag & UI_BLOCK_FRONTBUFFER) {
+			glDrawBuffer(GL_FRONT);
+		}
+		else if(block->needflush==0) {
 			/* first rect */
 			block->flush.xmin= but->x1;
 			block->flush.xmax= but->x2;
@@ -374,7 +386,8 @@ void ui_block_set_flush(uiBlock *block, uiBut *but)
 			if(block->flush.ymin > but->y1) block->flush.ymin= but->y1;
 			if(block->flush.ymax < but->y2) block->flush.ymax= but->y2;
 		}
-		block->frontbuf= UI_HAS_DRAWN;
+		
+		block->needflush= 1;
 		
 	}
 }
@@ -3421,20 +3434,23 @@ int uiDoBlocks(ListBase *lb, int event)
 				if( block->flag & UI_BLOCK_LOOP) {
 					block->overdraw= ui_begin_overdraw((int)block->minx-1, (int)block->miny-6, (int)block->maxx+6, (int)block->maxy+1);
 				}
+				block->in_use= 1;	// is always a menu
 				uiDrawBlock(block);
 				block->flag &= ~UI_BLOCK_REDRAW;
 			}
-
+			
+			block->in_use= 1; // bit awkward, but now we can detect if frontbuf flush should be set
 			retval= ui_do_block(block, &uevent);
+			block->in_use= 0;
 			if(retval==UI_EXIT_LOOP) break;
 			
 			/* now a new block could be created for menus, this is 
 			   inserted in the beginning of a list */
 			
 			/* is there a flush cached? */
-			if(block->frontbuf == UI_HAS_DRAWN) {
+			if(block->needflush) {
 				ui_flush_overdraw(block->overdraw);
-				block->frontbuf= 0;
+				block->needflush= 0;
 			}
 			
 			/* to make sure the matrix of the panel works for menus too */
@@ -3460,17 +3476,19 @@ int uiDoBlocks(ListBase *lb, int event)
 				uiDrawBlock(block);
 				block->flag &= ~UI_BLOCK_REDRAW;
 				ui_flush_overdraw(block->overdraw);
-				block->frontbuf= 0;
+				block->needflush= 0;
 			}
 			
 			uevent.event= extern_qread(&uevent.val);
 			
 			if(uevent.event) {
+				block->in_use= 1; // bit awkward, but now we can detect if frontbuf flush should be set
 				retval= ui_do_block(block, &uevent);
+				block->in_use= 0;
 			
-				if(block->frontbuf == UI_HAS_DRAWN) { // flush now, maybe new menu was opened
+				if(block->needflush) { // flush now, maybe new menu was opened
 					ui_flush_overdraw(block->overdraw);
-					block->frontbuf= 0;
+					block->needflush= 0;
 				}
 
 				if(retval & UI_RETURN) {

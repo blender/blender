@@ -1715,10 +1715,10 @@ void ui_draw_but(uiBut *but)
 	double value;
 	float x1, x2, y1, y2, fac;
 	
-	if(but==0) return;
+	if(but==NULL) return;
 
 	/* signal for flush buttons and menus */
-	ui_block_set_flush(but->block, but);
+	if(but->block->in_use) ui_block_set_flush(but->block, but);
 		
 	switch (but->type) {
 

@@ -1476,7 +1476,10 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 
 	if(uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 204)==0) return;
 	
-	if((G.f & (G_VERTEXPAINT|G_TEXTUREPAINT))==0) {
+	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {
+		uiBlockSetFlag(block, UI_BLOCK_FRONTBUFFER);	// force old style frontbuffer draw
+	}
+	else {
 		uiDefBut(block, TEX, B_IDNAME, "OB: ",	10,180,140,20, ob->id.name+2, 0.0, 19.0, 0, 0, "");
 		uiDefIDPoinBut(block, test_obpoin_but, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
 	}
@@ -1532,6 +1535,10 @@ static void view3d_panel_background(short cntrl)	// VIEW3D_HANDLER_BACKGROUND
 	uiSetPanelHandler(VIEW3D_HANDLER_BACKGROUND);  // for close and esc
 	if(uiNewPanel(curarea, block, "Background Image", "View3d", 340, 10, 318, 204)==0) return;
 
+	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {
+		uiBlockSetFlag(block, UI_BLOCK_FRONTBUFFER);	// force old style frontbuffer draw
+	}
+	
 	if(vd->flag & V3D_DISPBGPIC) {
 		if(vd->bgpic==0) {
 			vd->bgpic= MEM_callocN(sizeof(BGpic), "bgpic");
@@ -1622,6 +1629,10 @@ static void view3d_panel_properties(short cntrl)	// VIEW3D_HANDLER_SETTINGS
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
 	uiSetPanelHandler(VIEW3D_HANDLER_PROPERTIES);  // for close and esc
 	if(uiNewPanel(curarea, block, "View Properties", "View3d", 340, 10, 318, 204)==0) return;
+
+	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {
+		uiBlockSetFlag(block, UI_BLOCK_FRONTBUFFER);	// force old style frontbuffer draw
+	}
 
 	uiDefBut(block, LABEL, 1, "Grid:",					10, 180, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefButF(block, NUM, REDRAWVIEW3D, "Spacing:",		10, 160, 140, 19, &vd->grid, 0.001, 100.0, 10, 0, "Set the distance between grid lines");

@@ -41,18 +41,12 @@
 #define UI_MAX_NAME_STR	64
 #define UI_ARRAY	29
 
-
-
 /* uiBut->flag */
 #define UI_SELECT		1
 #define UI_MOUSE_OVER	2
 #define UI_ACTIVE		4
 #define UI_HAS_ICON		8
 /* warn: rest of uiBut->flag in BIF_interface.c */
-
-
-/* block->frontbuf: (only internal here). this signals something was drawn, for flush */
-#define UI_HAS_DRAWN 	1
 
 
 /* internal panel drawing defines */
@@ -186,7 +180,8 @@ struct uiBlock {
 	int afterval, flag;
 	void *curfont;
 	
-	short autofill, win, winq, direction, dt, frontbuf, auto_open, pad;  //frontbuf see below
+	short autofill, win, winq, direction, dt;
+	short needflush, auto_open, in_use, pad;  //flush see below
 	void *overdraw;
 	
 	float xofs, yofs;  	// offset to parent button
