@@ -931,10 +931,13 @@ if user_options_dict['USE_OPENAL'] == 1:
 link_env.Append (LIBS=user_options_dict['PLATFORM_LIBS'])
 link_env.Append (LIBPATH=user_options_dict['PLATFORM_LIBPATH'])
 if sys.platform == 'darwin':
-    link_env.Append (LINKFLAGS=' -framework Carbon')
-    link_env.Append (LINKFLAGS=' -framework AGL')
+    link_env.Append (LINKFLAGS='-framework')
+    link_env.Append (LINKFLAGS='Carbon')
+    link_env.Append (LINKFLAGS='-framework')
+    link_env.Append (LINKFLAGS='AGL')
     if user_options_dict['USE_QUICKTIME'] == 1:
-        link_env.Append (LINKFLAGS=' -framework QuickTime')
+        link_env.Append (LINKFLAGS='-framework')
+        link_env.Append (LINKFLAGS='QuickTime')
 else:
     link_env.Append (LINKFLAGS=user_options_dict['PLATFORM_LINKFLAGS'])
 
