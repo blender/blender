@@ -7,6 +7,8 @@ Group: 'Animation'
 Tip: 'Copy deform data (not surf. subdiv) of active obj to rvk of the 2nd selected obj.'
 """
 
+# $Id$
+#
 #----------------------------------------------
 # jm soler (c) 05/2004 : 'Rvk1toRvk2'  release under blender artistic licence
 #----------------------------------------------

@@ -7,6 +7,8 @@ Group: 'Import'
 Tip: 'Import a (*.bvh) motion capture file'
 """
 
+# $Id$
+#
 #===============================================#
 # BVH Import script 1.0 by Campbell Barton      #
 # 25/03/2004, euler rotation code taken from    #

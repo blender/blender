@@ -7,6 +7,8 @@ Group: 'UV'
 Tooltip: 'Export the UV face layout of the selected object to a .TGA file'
 """ 
 
+# $Id$
+#
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #

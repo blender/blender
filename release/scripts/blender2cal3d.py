@@ -6,7 +6,8 @@ Blender: 232
 Group: 'Export'
 Tip: 'Export armature/bone data to the Cal3D library.'
 """
-
+# $Id$
+#
 # blender2cal3D.py version 0.5
 # Copyright (C) 2003 Jean-Baptiste LAMY -- jiba@tuxfamily.org
 #

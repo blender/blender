@@ -7,6 +7,8 @@ Group: 'Import'
 Tooltip: 'Import SLP (Pro Engineer) File Format (*.raw)'
 """
 
+# $Id$
+#
 # +---------------------------------------------------------+
 # | Copyright (c) 2004 Anthony D'Agostino                   |
 # | http://www.redrival.com/scorpius                        |

@@ -7,6 +7,8 @@ Group: 'Export'
 Tooltip: 'Export selected mesh to Nendo File Format (*.ndo)'
 """
 
+# $Id$
+#
 # +---------------------------------------------------------+
 # | Copyright (c) 2001 Anthony D'Agostino                   |
 # | http://www.redrival.com/scorpius                        |

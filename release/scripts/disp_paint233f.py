@@ -7,6 +7,8 @@ Group: 'Modifiers'
 Tip: 'use vertex paint color value to modify shape displacing vertices along normal.'
 """
 
+# $Id$
+#
 #----------------------------------------------
 # jm soler, displacement paint 03/2002 - > 05/2004:  disp_paintf
 #----------------------------------------------

@@ -7,6 +7,8 @@ Group: 'Import'
 Tooltip: 'Import LightWave Object File Format (*.lwo)'
 """
 
+# $Id$
+#
 # +---------------------------------------------------------+
 # | Copyright (c) 2002 Anthony D'Agostino                   |
 # | http://www.redrival.com/scorpius                        |

@@ -7,12 +7,13 @@ Submenu: 'All objects...' all
 Submenu: 'Only selected objects...' selected
 Tooltip: 'Export to VRML2 (.wrl) file.'
 """
+
+# $Id$
+#
 #------------------------------------------------------------------------
 # VRML2 exporter for blender 2.28a or above
 #
 # Source: http://blender.kimballsoftware.com/
-#
-# $Id$
 #
 # Authors: Rick Kimball with much inspiration
 #         from the forum at www.elysiun.com

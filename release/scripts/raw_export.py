@@ -7,6 +7,8 @@ Group: 'Export'
 Tooltip: 'Export selected mesh to Raw Triangle Format (*.raw)'
 """
 
+# $Id$
+#
 # +---------------------------------------------------------+
 # | Copyright (c) 2002 Anthony D'Agostino                   |
 # | http://www.redrival.com/scorpius                        |

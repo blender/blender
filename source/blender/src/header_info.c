@@ -673,13 +673,6 @@ static uiBlock *info_runtime_optionsmenu(void *arg_unused)
 static void do_info_file_importmenu(void *arg, int event)
 {
 	extern int BPY_menu_do_python(short menutype, int event);	// BPY_interface.c
-	ScrArea *sa;
-
-	if(curarea->spacetype==SPACE_INFO) {
-		sa= find_biggest_area_of_type(SPACE_SCRIPT);
-		if (!sa) sa= closest_bigger_area();
-		areawinset(sa->win);
-	}
 
 	BPY_menu_do_python(PYMENU_IMPORT, event);
 
@@ -710,13 +703,6 @@ static uiBlock *info_file_importmenu(void *arg_unused)
 static void do_info_file_exportmenu(void *arg, int event)
 {
 	extern int BPY_menu_do_python(short menutype, int event);	// BPY_interface.c
-	ScrArea *sa;
-
-	if(curarea->spacetype==SPACE_INFO) {
-		sa= find_biggest_area_of_type(SPACE_SCRIPT);
-		if (!sa) sa= closest_bigger_area();
-		areawinset(sa->win);
-	}
 
 	/* events >=3 are registered bpython scripts */
 	if (event >= 3) BPY_menu_do_python(PYMENU_EXPORT, event - 3);

@@ -6,7 +6,8 @@ Blender: 232
 Group: 'Import'
 Tip: 'Import an AC3D (.ac) file.'
 """
-
+# $Id$
+#
 # --------------------------------------------------------------------------
 # AC3DImport version 2.32-1 Jan 21, 2004
 # Program versions: Blender 2.32+ and AC3Db files (means version 0xb)

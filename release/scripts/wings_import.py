@@ -7,6 +7,8 @@ Group: 'Import'
 Tooltip: 'Import Wings3D File Format (*.wings)'
 """
 
+# $Id$
+#
 # +---------------------------------------------------------+
 # | Copyright (c) 2002 Anthony D'Agostino                   |
 # | http://www.redrival.com/scorpius                        |

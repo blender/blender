@@ -5,7 +5,8 @@ Blender: 232
 Group: 'UV'
 Tip: 'Use vertex paint color value to fill uvmapping.'
 """
-
+# $Id$
+#
 #----------------------------------------------
 # uvpainter script (c) 04/2004  jean-michel soler
 # http://jmsoler.free.fr/util/blenderfile/py/UVpaint05.zip

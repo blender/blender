@@ -1,3 +1,5 @@
+# $Id$
+#
 # +---------------------------------------------------------+
 # | Copyright (c) 2001 Anthony D'Agostino                   |
 # | http://www.redrival.com/scorpius                        |

@@ -202,6 +202,9 @@ void do_script_buttons(unsigned short event)
 			allqueue(REDRAWHEADERS, 0);
 		}
 		break;
+	case B_SCRIPT2BUTS:
+		newspace(curarea, SPACE_BUTS);
+		break;
 	}
 
 	return;
@@ -266,6 +269,12 @@ void script_buttons(void)
 	/* STD SCRIPT BUTTONS */
 	xco += 2*XIC;
 	xco= std_libbuttons(block, xco, 0, 0, NULL, B_SCRIPTBROWSE, (ID*)sc->script, 0, &(sc->menunr), 0, 0, 0, 0, 0);
+
+	if (sc->script && sc->script->lastspace == SPACE_BUTS) {
+		xco += 10;
+		uiDefIconBut(block, BUT, B_SCRIPT2BUTS, ICON_BUTS, xco+=XIC, 0, XIC, YIC,
+			0, 0, 0, 0, 0, "Returns to Buttons Window");
+	}
 
 	/* always as last  */
 	curarea->headbutlen= xco+2*XIC;

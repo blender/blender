@@ -10,6 +10,8 @@ Submenu: 'Configure +' config
 Tip: 'Export to AC3D (.ac) format.'
 """
 
+# $Id$
+#
 # --------------------------------------------------------------------------
 # AC3DExport version 2.32-1 Jan 21, 2004
 # Program versions: Blender 2.32+ and AC3Db files (means version 0xb)
@@ -62,7 +64,7 @@ def update_RegistryInfo():
   d['ADD_DEFAULT_MAT'] = ADD_DEFAULT_MAT
   Blender.Registry.SetKey('AC3DExport', d)
 
-# The default material to be used when necessary (see right above)
+# The default material to be used when necessary (see ADD_DEFAULT_MAT)
 DEFAULT_MAT = \
 'MATERIAL "DefaultWhite" rgb 1 1 1  amb 1 1 1  emis 0 0 0  spec 0.5 0.5 0.5 shi 64  trans 0'
 
@@ -329,23 +331,19 @@ def gui():
     BGL.glClearColor(0.6,0.6,0.9,1)
     BGL.glClear(BGL.GL_COLOR_BUFFER_BIT)
     BGL.glColor3f(1,1,1)
-    BGL.glRasterPos2i(20, 270)
-    Draw.Text("AC3D Exporter")
-    BGL.glRasterPos2i(30, 250)
+    BGL.glRasterPos2i(18, 150)
     Draw.Text("AC3D is a simple, affordable commercial 3d modeller that can be found at www.ac3d.org .")
-    BGL.glRasterPos2i(30, 230)
+    BGL.glRasterPos2i(18, 130)
     Draw.Text("It uses a nice text file format (extension .ac) which supports uv-textured meshes")
-    BGL.glRasterPos2i(30, 210)
+    BGL.glRasterPos2i(18, 110)
     Draw.Text("with parenting (grouping) information.")
-    BGL.glRasterPos2i(30, 190)
+    BGL.glRasterPos2i(18, 90)
     Draw.Text("Notes: AC3D has a 'data' token that assigns a string to each mesh, useful for games,")
-    BGL.glRasterPos2i(67, 170)
+    BGL.glRasterPos2i(55, 70)
     Draw.Text("for example. You can use Blender's mesh datablock name for that.")
-    BGL.glRasterPos2i(67, 150)
-    Draw.Text("The .ac format is well supported by the PLib 3d gaming library. You can use this")
-    BGL.glRasterPos2i(67, 130)
-    Draw.Text("exporter to have your Blender models in games and other apps written with PLib.")
-    Draw.Button("Ok", 21, 285, 80, 100, 40, "Click to return to previous screen.")
+    BGL.glRasterPos2i(55, 50)
+    Draw.Text("The .ac format is well supported by the PLib 3d gaming library.")
+    Draw.Button("Ok", 21, 285, 10, 45, 20, "Click to return to previous screen.")
   else:
     BGL.glClearColor(0,0,1,1)
     BGL.glClear(BGL.GL_COLOR_BUFFER_BIT)

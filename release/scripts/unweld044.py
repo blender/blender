@@ -6,6 +6,8 @@ Group: 'Modifiers'
 Tip: 'unweld all faces from one selected and commun vertex. Made vertex bevelling'
 """
 
+# $Id$
+#
 # ------------------------------------------
 # Un-Weld script 0.4.4 beta
 #

@@ -42,7 +42,8 @@
 #include <MEM_guardedalloc.h>
 #include <BLI_blenlib.h> /* for BLI_last_slash() */
 
-#include <BIF_interface.h> /* for pupmenu */
+#include <BDR_editobject.h> /* for exit_editmode() */
+#include <BIF_interface.h> /* for pupmenu() */
 #include <BIF_space.h>
 #include <BIF_screen.h>
 #include <BIF_toolbox.h>
@@ -273,10 +274,26 @@ void init_syspath(void)
 /*****************************************************************************/
 void BPY_post_start_python(void)
 {
+	PyObject *result, *dict;
+
 	if (U.pythondir && U.pythondir[0] != '\0')
 		syspath_append(U.pythondir);	/* append to module search path */
 
 	BPyMenu_Init(0); /* get dynamic menus (registered scripts) data */
+
+	dict = PyDict_New();
+
+	/* here we check if the user has (some of) the expected modules */
+	if (dict) {
+		char *s = "import chunk, gzip, math, os, struct, string";
+		result = PyRun_String(s, Py_eval_input, dict, dict);
+		if (!result) {
+			PyErr_Clear();
+			/*XXX print msg about this, point to readme.html */
+		}
+		else Py_DECREF(result);
+		Py_DECREF(dict);
+	}
 }
 
 /*****************************************************************************/
@@ -424,6 +441,10 @@ int BPY_txt_do_python_Text(struct Text* text)
 		printf("couldn't allocate memory for Script struct!");
 		return 0;
 	}
+
+	/* if in it, leave editmode, since changes a script makes to meshdata
+	 * can be lost otherwise. */
+	if (G.obedit) exit_editmode(1);
 
 	script->id.us = 1;
 	script->flags = SCRIPT_RUNNING;
@@ -584,6 +605,30 @@ int BPY_menu_do_python(short menutype, int event)
 		printf("couldn't allocate memory for Script struct!");
 		fclose(fp);
 		return 0;
+	}
+
+	/* if in editmode, leave it, since changes a script makes to meshdata
+	 * can be lost otherwise. */
+	if (G.obedit) exit_editmode(1);
+
+	/* let's find a proper area for an eventual script gui:
+	 * preference in order: Script, Buttons (if not a Wizards or Utils script),
+	 * Text, any closest bigger area */
+	if (curarea->spacetype != SPACE_SCRIPT) {
+		ScrArea *sa;
+
+		sa = find_biggest_area_of_type(SPACE_SCRIPT);
+
+		if (!sa) {
+			if ((menutype != PYMENU_WIZARDS) && (menutype != PYMENU_UTILS))
+				sa = find_biggest_area_of_type(SPACE_BUTS);
+		}
+
+		if (!sa) sa = find_biggest_area_of_type(SPACE_TEXT);
+
+		if (!sa) sa = closest_bigger_area();
+
+		areawinset(sa->win);
 	}
 
 	script->id.us = 1;

@@ -6,7 +6,8 @@ Blender: 232
 Group: 'Generators'
 Tip: 'Fix armature deformation.'
 """
-
+# $Id$
+#
 #----------------------------------------------
 # jm soler  05/2004 :   'FixfromArmature'
 #----------------------------------------------

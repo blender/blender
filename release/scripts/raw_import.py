@@ -7,6 +7,8 @@ Group: 'Import'
 Tooltip: 'Import Raw Triangle File Format (*.raw)'
 """
 
+# $Id$
+#
 # +---------------------------------------------------------+
 # | Copyright (c) 2002 Anthony D'Agostino                   |
 # | http://www.redrival.com/scorpius                        |

@@ -6,6 +6,9 @@ Blender: 232
 Group: 'Export'
 Tip: 'Export a (*.bvh) motion capture file'
 """
+
+# $Id$
+#
 #===============================================#
 # BVH Export script 1.0 by Campbell Barton      #
 # Copyright MetaVR 30/03/2004,                  #

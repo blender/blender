@@ -7,6 +7,8 @@ Group: 'Export'
 Tooltip: 'Export selected mesh (with vertex colors) to Radiosity File Format (*.radio)'
 """
 
+# $Id$
+#
 # +---------------------------------------------------------+
 # | Copyright (c) 2002 Anthony D'Agostino                   |
 # | http://www.redrival.com/scorpius                        |

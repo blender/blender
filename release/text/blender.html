@@ -35,7 +35,7 @@ world-wide community.</p>
 distribution.  It's open-source software, released under a dual GPL / BL
 licence.  The full program sources are available online.</p>
  
-<p>For impatient readers; here the two most important links:</p>
+<p>For impatient readers, here the two most important links:</p>
 <a href="http://www.blender.org">www.blender.org</a> the developement/community website<br>
 <a href="http://www.blender3d.org">www.blender3d.org</a> the general website<br>
 
@@ -97,7 +97,10 @@ Some downloaded scripts may require extra Python modules not shipped with
 Blender.  Installing the whole Python distribution is a way to solve this
 issue for most cases except scripts that require extensions (3rd party
 modules), but we are starting to add more modules to Blender itself so that
-most scripts don't depend on full Python installs anymore.</p>
+most scripts don't depend on full Python installs anymore.  This is mostly
+about Windows, in other platforms Python is usually a standard component
+nowadays, so unless there's a version mismatch or an incomplete py
+installation, there should be no problems.</p>
 
 <p>Even if you do have the right version of Python installed you may need to
 tell the embedded Python interpreter where the installation is.  To do that
@@ -279,11 +282,15 @@ YafRay and many goodies: sample .blend files with models, textures and
 animations, plugins, scripts, documentation, etc.  It's an extensive reference
 written by Blender gurus and also a good way to help Blender development.</p>
 
+<p><strong>New</strong>: the new guide's text is now available for download
+online and the second edition of the printed book has also been released.</p>
+
 <p>You can learn more about it at the main Blender site:
 <a href="http://www.blender3d.org">www.blender3d.org</a>.  There you'll also
 find news, online documentation like tutorials, the 2.0 guide, the Blender
-Python API Reference for script writers, etc.  There are also forums,
-galleries of images and movies, games, scripts, plugins, links and more.</p>
+Python API Reference for script writers, docs for the newest features added
+to the program, etc.  There are also forums, galleries of images and movies,
+games, scripts, plugins, links for many resources and more.</p>
 
 <p>The main Blender community site is elYsiun:
 <a href="http://www.elysiun.com">www.elysiun.com</a>.  There's a lot of
@@ -313,12 +320,14 @@ and should be updated on future versions of this text.</p>
 <dl>
   <dt><a href="http://www.gimp.org">The Gimp</a></dt>
   <dd>The mighty GNU Image Manipulation Program.  In 3d work it is a valuable
-resource to create, convert and, of course, manipulate texture images.</dd>
+resource to create, convert and, of course, manipulate texture images.
+It is also useful for work with rendered pictures, for example to add 2d text,
+logos or to touch-up, apply factory or hand-made effects and compose with other
+images.</dd>
   <dt><a href="http://www.wings3d.com">The Wings 3D modeler</a></dt>
   <dd>A great mesh modeler, with a different approach.  Some things are much
 easier to model in Wings, others in Blender, making them a powerful combination
-for experienced users.
-</dd>
+for experienced users.</dd>
 </dl>
 
 <h4>Renderers:</h4>
@@ -402,6 +411,9 @@ usually the Python &amp; Plugins forum at
 announcements, questions, suggestions and bug reports related to scripts.  It's
 the recommended place to look first, specially if no site was specified at the
 script's window or source file(s).</p>
+<p>If some or all scripts that should appear in menus are not there, running
+Blender in <a href="#trouble_gen">debug mode </a> can possibly inform what is
+wrong.  Make sure the reported dir(s) really exist.</p>
 
 <h3><a name="trouble_bugt">The Bug Tracker</a></h3>
 
@@ -429,6 +441,12 @@ programs?</a></li>
 make sure the scene has a camera pointing at your models (camera view is
 NumPad 0) and at least one light properly placed.  Otherwise you'll only get a
 black rectangle.</p>
+
+<p>Setting texture map input to "uv" in the Material Buttons window is not enough
+to assign a texture image and uv data to a mesh.  It's necessary to select the mesh,
+enter face select mode (modes can be accessed in the 3d view's header), load an
+image in the UV/Image Editor window and then define the mapping.  Only then
+the mesh will have uv data available for exporting.</p>
 
 <p>If you want the fastest possible access to Blender's functionality, remember
 what a <cite>wise power user</cite> wrote: "keep one hand on the keyboard
@@ -498,7 +516,7 @@ as "newbie-friendly".  It doesn't come packed with "one-click" or "wizard"
 functionality, where you get much faster results in detriment of flexibility
 and value.  It also isn't bundled with tens of megabytes of sample models,
 texture images, tutorials, etc. (which only partly explains how Blender can fit
-in a less than 3 MB download).</p>
+in a less than 4 MB download).</p>
 
 <p>Thankfully, these are not fatal shortcomings.  The pace at which features
 are being added or polished in Blender is impressive, now that it's a well
@@ -534,7 +552,7 @@ should not be sent to Blender developers or its bug tracker.  Then
 <hr>
 <p>Thanks for reading, we hope you enjoy Blender!</p>
 
-<p><font size=-1>Document version 1.0, april 2004</font></p>
+<p><font size=-1>Document version 1.01, June 2004</font></p>
 
 <p align="right"><a href="#top">back to top</a></p>
 

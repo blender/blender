@@ -7,6 +7,8 @@ Group: 'Import'
 Tooltip: 'Import Radiosity File Format (*.radio) with vertex colors'
 """
 
+# $Id$
+#
 # +---------------------------------------------------------+
 # | Copyright (c) 2002 Anthony D'Agostino                   |
 # | http://www.redrival.com/scorpius                        |

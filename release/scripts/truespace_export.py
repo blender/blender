@@ -7,6 +7,8 @@ Group: 'Export'
 Tooltip: 'Export selected meshes to trueSpace File Format (*.cob)'
 """
 
+# $Id$
+#
 # +---------------------------------------------------------+
 # | Copyright (c) 2001 Anthony D'Agostino                   |
 # | http://www.redrival.com/scorpius                        |

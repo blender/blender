@@ -342,6 +342,7 @@
 
 /* SCRIPT: 525 */
 #define B_SCRIPTBROWSE 526
+#define B_SCRIPT2BUTS  527
 
 /* FILE: 550 */
 #define B_SORTFILELIST		551

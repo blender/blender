@@ -7,6 +7,8 @@ Group: 'Export'
 Tooltip: 'Export selected mesh to Wings3D File Format (*.wings)'
 """
 
+# $Id$
+#
 # +---------------------------------------------------------+
 # | Copyright (c) 2002 Anthony D'Agostino                   |
 # | http://www.redrival.com/scorpius                        |
@@ -268,6 +270,7 @@ def write(filename):
 	start = time.clock()
 
 	objects = Blender.Object.GetSelected()
+
 	objname = objects[0].name
 	meshname = objects[0].data.name
 	mesh = Blender.NMesh.GetRaw(meshname)
@@ -280,28 +283,30 @@ def write(filename):
 		message = "Unable to generate\nEdge Table for mesh.\n"
 		message += "Object name is: " + meshname
 		mod_meshtools.print_boxed(message)
-		#return 
+		Blender.Draw.PupMenu("Wings Export error|Unable to generate Edge Table for mesh")
+		return 
 
-		if 0:
-			import Tkinter, tkMessageBox
-			sys.argv=['wings.pyo','wings.pyc'] # ?
 
-			#Tkinter.NoDefaultRoot()
-			win1 = Tkinter.Tk()
-			ans = tkMessageBox.showerror("Error", message)
-			win1.pack()
-			print ans
-			if ans:
-				win1.quit()
-			win1.mainloop()
-
-		else:
-			from Tkinter import Label
-			sys.argv = 'wings.py'
-			widget = Label(None, text=message)
-			#widget.title("Error")
-			widget.pack()
-			widget.mainloop()
+#		if 0:
+#			import Tkinter, tkMessageBox
+#			sys.argv=['wings.pyo','wings.pyc'] # ?
+#
+#			#Tkinter.NoDefaultRoot()
+#			win1 = Tkinter.Tk()
+#			ans = tkMessageBox.showerror("Error", message)
+#			win1.pack()
+#			print ans
+#			if ans:
+#				win1.quit()
+#			win1.mainloop()
+#
+#		else:
+#			from Tkinter import Label
+#			sys.argv = 'wings.py'
+#			widget = Label(None, text=message)
+#			#widget.title("Error")
+#			widget.pack()
+#			widget.mainloop()
 
 	data = generate_data(objname, edge_table, mesh)
 	dsize = len(data)
@@ -334,4 +339,8 @@ def fs_callback(filename):
 	if filename.find('.wings', -6) <= 0: filename += '.wings'
 	write(filename)
 
-Blender.Window.FileSelector(fs_callback, "Wings3D Export")
+
+if Blender.Object.GetSelected()[0].getType() != "Mesh":
+	Blender.Draw.PupMenu("Wings Export error|Selected object is not a mesh!")
+else:
+	Blender.Window.FileSelector(fs_callback, "Wings3D Export")
