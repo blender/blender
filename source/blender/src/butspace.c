@@ -87,6 +87,12 @@ char texstr[15][8]= {"None"  , "Clouds" , "Wood", "Marble", "Magic"  , "Blend",
 					 ""      , ""       , ""};
 /*  ---------------------------------------------------------------------- */
 
+void test_idbutton_cb(void *namev, void *arg2_unused)
+{
+	char *name= namev;
+	test_idbutton(name+2);
+}
+
 
 void test_scriptpoin_but(char *name, ID **idpp)
 {
@@ -248,7 +254,7 @@ void do_butspace(unsigned short event)
 		//do_lampbuts(event);
 	}
 	else if(event<=B_MATBUTS) {
-		//do_matbuts(event);
+		do_matbuts(event);
 	}
 	else if(event<=B_TEXBUTS) {
 		//do_texbuts(event);
@@ -379,7 +385,8 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 		
 		break;
 	case CONTEXT_SHADING:
-
+		material_panels();
+		
 		break;
 	case CONTEXT_EDITING:
 		/* no tabs */

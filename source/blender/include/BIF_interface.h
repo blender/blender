@@ -46,6 +46,10 @@ void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad);
 void uiSetRoundBox(int type);
 void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad);
 
+void uiPanelPush(uiBlock *block);
+void uiPanelPop(uiBlock *block);
+uiBlock *uiFindOpenPanelBlockName(ListBase *lb, char *name);
+
 void uiDrawMenuBox(float minx, float miny, float maxx, float maxy);
 void uiTextBoundsBlock(uiBlock *block, int addval);
 void uiBoundsBlock(struct uiBlock *block, int addval);
@@ -136,6 +140,7 @@ void	uiBlockSetButmFunc	(uiBlock *block, void (*butmfunc)(void *arg, int but_a2)
 
 void	uiBlockSetFunc		(uiBlock *block,	void (*func)(void *arg1, void *arg2), void *arg1, void *arg2);
 void	uiButSetFunc		(uiBut *but,		void (*func)(void *arg1, void *arg2), void *arg1, void *arg2);
+void 	uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)());
 
 short pupmenu(char *instr); 
 short pupmenu_col(char *instr, int maxrow);

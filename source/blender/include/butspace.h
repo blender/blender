@@ -61,8 +61,6 @@ extern void sound_panels(void);
 extern void object_panels(void);
 extern void do_object_panels(unsigned short event);
 
-/* types */
-extern void types_panels(void);
 
 /* editing */
 extern void editing_panels(void);
@@ -75,6 +73,8 @@ extern void do_latticebuts(unsigned short event);
 extern void do_fpaintbuts(unsigned short event);
 
 /* shading */
+extern void do_matbuts(unsigned short event);
+extern void material_panels(void);
 
 /* logic */
 extern void do_logic_buts(unsigned short event);
@@ -89,6 +89,7 @@ void test_matpoin_but(char *name, struct ID **idpp);
 void test_scriptpoin_but(char *name, struct ID **idpp);
 void test_actionpoin_but(char *name, ID **idpp);
 void test_obcurpoin_but(char *name, ID **idpp);
+void test_idbutton_cb(void *namev, void *arg2_unused);
 
 
 /* -------------- internal event defines ------------ */

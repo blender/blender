@@ -77,6 +77,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_texture.h"
+#include "BKE_utildefines.h"
 #include "BSE_drawipo.h"
 #include "BSE_headerbuttons.h"
 
@@ -85,6 +86,7 @@
 #include "blendef.h"
 #include "interface.h"
 #include "mydevice.h"
+#include "butspace.h"
 
 Material matcopybuf;
 
@@ -129,9 +131,9 @@ void do_buts_buttons(short event)
     scrarea_queue_winredraw(curarea);
     break;
   case B_BUTSPREVIEW:
-    //BIF_preview_changed(G.buts);
-    //scrarea_queue_headredraw(curarea);
-    //scrarea_queue_winredraw(curarea);
+      BIF_preview_changed(G.buts);
+      scrarea_queue_headredraw(curarea);
+      scrarea_queue_winredraw(curarea);
     break;
   case B_MATCOPY:
     if(G.buts->lockpoin) {
@@ -377,12 +379,9 @@ void buts_buttons(void)
 	Object *ob;
 	uiBlock *block;
 	uiBut *but;
-	short xco;
+	short xco, t_base= -2;
 	int alone, local, browse;
 	char naam[20];
-	short type, t_base= -2;
-	void *data=NULL;
-	char str[256];
 
 	sprintf(naam, "header %d", curarea->headwin);
 	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSSX, UI_HELV, curarea->headwin);
@@ -445,91 +444,68 @@ void buts_buttons(void)
 		break;
 	}
 
-#if 0
-	uiBlockSetCol(block, BUTGREY);
-	uiBlockSetEmboss(block, UI_EMBOSSX);
-	
+
+	xco+=XIC+XIC;
 	ob= OBACT;
 
 	buttons_active_id(&id, &idfrom);
-	
 	G.buts->lockpoin= id;
 	
-	if(G.buts->mainb==BUTS_LAMP) {
-		if(id) {
-			xco= std_libbuttons(block, xco, 0, NULL, B_LAMPBROWSE, id, (ID *)ob, &(G.buts->menunr), B_LAMPALONE, B_LAMPLOCAL, 0, 0, 0);	
+	if(G.buts->mainb==CONTEXT_SHADING) {
+		int tab= G.buts->tab[CONTEXT_SHADING];
+		
+		if(tab==TAB_SHADING_MAT) {
+			if(ob && (ob->type<OB_LAMP) && ob->type) {
+				xco= std_libbuttons(block, xco, 0, NULL, B_MATBROWSE, id, idfrom, &(G.buts->menunr), B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
+			}
+		
+			/* COPY PASTE */
+			if(curarea->headertype==HEADERTOP) {
+				uiDefIconBut(block, BUT, B_MATCOPY, ICON_COPYUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies Material to the buffer");
+				uiSetButLock(id && id->lib, "Can't edit library data");
+				uiDefIconBut(block, BUT, B_MATPASTE, ICON_PASTEUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes Material from the buffer");
+			}
+			else {
+				uiDefIconBut(block, BUT, B_MATCOPY, ICON_COPYDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies Material to the buffer");
+				uiSetButLock(id && id->lib, "Can't edit library data");
+				uiDefIconBut(block, BUT, B_MATPASTE, ICON_PASTEDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes Material from the buffer");
+			}
+			xco+=XIC;
+		}
+		else if(tab==TAB_SHADING_TEX) {
+			if(G.buts->texfrom==0) {
+				if(idfrom) {
+					xco= std_libbuttons(block, xco, 0, NULL, B_TEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
+				}
+			}
+			else if(G.buts->texfrom==1) {
+				if(idfrom) {
+					xco= std_libbuttons(block, xco, 0, NULL, B_WTEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
+				}
+			}
+			else if(G.buts->texfrom==2) {
+				if(idfrom) {
+					xco= std_libbuttons(block, xco, 0, NULL, B_LTEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
+				}
+			}
+		}
+		else if(tab==TAB_SHADING_LAMP) {
+			if(id) {
+				xco= std_libbuttons(block, xco, 0, NULL, B_LAMPBROWSE, id, (ID *)ob, &(G.buts->menunr), B_LAMPALONE, B_LAMPLOCAL, 0, 0, 0);	
+			}
+		}
+		else if(tab==TAB_SHADING_WORLD) {
+			xco= std_libbuttons(block, xco, 0, NULL, B_WORLDBROWSE, id, idfrom, &(G.buts->menunr), B_WORLDALONE, B_WORLDLOCAL, B_WORLDDELETE, 0, B_KEEPDATA);
 		}
 	}
-	else if(G.buts->mainb==BUTS_MAT) {
-		if(ob && (ob->type<OB_LAMP) && ob->type) {
-			xco= std_libbuttons(block, xco, 0, NULL, B_MATBROWSE, id, idfrom, &(G.buts->menunr), B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
-		}
-	
-		/* COPY PASTE */
-		if(curarea->headertype==HEADERTOP) {
-			uiDefIconBut(block, BUT, B_MATCOPY, ICON_COPYUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies Material to the buffer");
-			uiSetButLock(id && id->lib, "Can't edit library data");
-			uiDefIconBut(block, BUT, B_MATPASTE, ICON_PASTEUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes Material from the buffer");
-		}
-		else {
-			uiDefIconBut(block, BUT, B_MATCOPY, ICON_COPYDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies Material to the buffer");
-			uiSetButLock(id && id->lib, "Can't edit library data");
-			uiDefIconBut(block, BUT, B_MATPASTE, ICON_PASTEDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes Material from the buffer");
-		}
-		xco+=XIC;
+	else if(G.buts->mainb==CONTEXT_EDITING) {
 
-	}
-	else if(G.buts->mainb==BUTS_TEX) {
-		if(G.buts->texfrom==0) {
-			if(idfrom) {
-				xco= std_libbuttons(block, xco, 0, NULL, B_TEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
-			}
-		}
-		else if(G.buts->texfrom==1) {
-			if(idfrom) {
-				xco= std_libbuttons(block, xco, 0, NULL, B_WTEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
-			}
-		}
-		else if(G.buts->texfrom==2) {
-			if(idfrom) {
-				xco= std_libbuttons(block, xco, 0, NULL, B_LTEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
-			}
-		}
-	}
-	else if(G.buts->mainb==BUTS_ANIM) {
-		if(id) {
-			xco= std_libbuttons(block, xco, 0, NULL, 0, id, idfrom, &(G.buts->menunr), B_OBALONE, B_OBLOCAL, 0, 0, 0);
-			
-			if(G.scene->group) {
-				Group *group= G.scene->group;
-				but= uiDefBut(block, TEX, B_IDNAME, "GR:",	xco, 0, 135, YIC, group->id.name+2, 0.0, 19.0, 0, 0, "Displays Active Group name. Click to change.");
-				uiButSetFunc(but, test_idbutton_cb, group->id.name, NULL);
-				xco+= 135;
-			}
-		}
-	}
-	else if(G.buts->mainb==BUTS_GAME) {
-		if(id) {
-			xco= std_libbuttons(block, xco, 0, NULL, 0, id, idfrom, &(G.buts->menunr), B_OBALONE, B_OBLOCAL, 0, 0, 0);
-		}
-	}
-	else if(G.buts->mainb==BUTS_WORLD) {
-		xco= std_libbuttons(block, xco, 0, NULL, B_WORLDBROWSE, id, idfrom, &(G.buts->menunr), B_WORLDALONE, B_WORLDLOCAL, B_WORLDDELETE, 0, B_KEEPDATA);
-	}
-	else if (G.buts->mainb==BUTS_SOUND) {
-		xco= std_libbuttons(block, xco, 0, NULL, B_SOUNDBROWSE2, id, idfrom, &(G.buts->texnr), 1, 0, 0, 0, 0);
-	}
-
-	else if(G.buts->mainb==BUTS_RENDER) {
-		xco= std_libbuttons(block, xco, 0, NULL, B_INFOSCE, (ID *)G.scene, 0, &(G.curscreen->scenenr), 1, 1, B_INFODELSCE, 0, B_KEEPDATA);
-	}
-	else if(G.buts->mainb==BUTS_EDIT) {
 		if(id) {
 			
 			alone= 0;
 			local= 0;
 			browse= B_EDITBROWSE;
-			xco+= 10;
+			xco+= XIC;
 			
 			if(ob->type==OB_MESH) {
 				browse= B_MESHBROWSE;
@@ -572,8 +548,18 @@ void buts_buttons(void)
 			xco+= 135;
 		}
 	}
+
+#if 0
+	else if (G.buts->mainb==BUTS_SOUND) {
+		xco= std_libbuttons(block, xco, 0, NULL, B_SOUNDBROWSE2, id, idfrom, &(G.buts->texnr), 1, 0, 0, 0, 0);
+	}
+
 	else if(G.buts->mainb==BUTS_CONSTRAINT){
 		if(id) {
+
+	short type;
+	void *data=NULL;
+	char str[256];
 
 
 			xco= std_libbuttons(block, xco, 0, NULL, 0, id, idfrom, &(G.buts->menunr), B_OBALONE, B_OBLOCAL, 0, 0, 0);

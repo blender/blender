@@ -79,16 +79,17 @@
 #include "BIF_butspace.h"	
 #include "BIF_drawimage.h"	/* rectwrite_part */
 #include "BIF_mywindow.h"
+#include "BIF_interface.h"
 #include "PIL_time.h"
 
 #include "RE_renderconverter.h"
 
-#define PR_RECTX	101
-#define PR_RECTY	101
-#define PR_XMIN		10
-#define PR_YMIN		10
-#define PR_XMAX		190
-#define PR_YMAX		190
+#define PR_RECTX	121
+#define PR_RECTY	121
+#define PR_XMIN		20
+#define PR_YMIN		5
+#define PR_XMAX		206
+#define PR_YMAX		196
 
 #define PR_FACY		(PR_YMAX-PR_YMIN-4)/(PR_RECTY)
 
@@ -323,8 +324,11 @@ void BIF_preview_changed(SpaceButs *sbuts)
 	}
 }
 
-void BIF_previewdraw(SpaceButs *sbuts)
+/* is supposed to be called with correct panel offset matrix */
+void BIF_previewdraw(void)
 {
+	SpaceButs *sbuts= curarea->spacedata.first;
+	
 	set_previewrect(sbuts->area->win, PR_XMIN, PR_YMIN, PR_XMAX, PR_YMAX);
 
 	if (sbuts->rect==0 || sbuts->cury==0) {
@@ -340,6 +344,7 @@ void BIF_previewdraw(SpaceButs *sbuts)
 			draw_tex_crop(sbuts->lockpoin);
 		}
 	}
+
 }
 
 static void sky_preview_pixel(float lens, int x, int y, char *rect)
@@ -501,10 +506,14 @@ static void halo_preview_pixel(HaloRen *har, int startx, int endx, int y, char *
 
 static void previewflare(SpaceButs *sbuts, HaloRen *har, unsigned int *rect)
 {
+	uiBlock *block;
 	float ycor;
 	unsigned int *rectot;
 	int afmx, afmy, rectx, recty;
 	
+	block= uiFindOpenPanelBlockName(&curarea->uiblocks, "Preview");
+	if(block==NULL) return;
+
 	/* temps */
 	ycor= R.ycor;
 	rectx= R.rectx;
@@ -523,8 +532,10 @@ static void previewflare(SpaceButs *sbuts, HaloRen *har, unsigned int *rect)
 	waitcursor(1);
 
 	RE_renderflare(har);
-
-	BIF_previewdraw(sbuts);
+	
+	uiPanelPush(block);
+	BIF_previewdraw();
+	uiPanelPop(block);
 	
 	waitcursor(0);
 	
@@ -637,11 +648,7 @@ static float pr2_lamp[3]= {-8.8, -5.6, -1.5};
 static float pr1_col[3]= {0.8, 0.8, 0.8};
 static float pr2_col[3]= {0.5, 0.6, 0.7};
 
-static void shade_preview_pixel(float *vec, 
-								int x, 
-								int y, 
-								char *rect, 
-								int smooth)
+static void shade_preview_pixel(float *vec, int x, int y,char *rect, int smooth)
 {
 	Material *mat;
 	float v1,inp, inprspec=0, isr=0.0, isb=0.0, isg=0.0;
@@ -848,11 +855,18 @@ void BIF_previewrender(SpaceButs *sbuts)
 	Image *ima;
 	HaloRen har;
 	Object *ob;
+	uiBlock *block;
 	float lens = 0.0, vec[3];
 	int x, y, starty, startx, endy, endx, radsq, xsq, ysq, last = 0;
 	unsigned int *rect;
 
 	if(sbuts->cury>=PR_RECTY) return;
+	
+	/* we safely assume curarea has panel "preview" */
+	/* quick hack for now, later on preview should become uiBlock itself */
+	
+	block= uiFindOpenPanelBlockName(&curarea->uiblocks, "Preview");
+	if(block==NULL) return;
 
 	ob= ((G.scene->basact)? (G.scene->basact)->object: 0);
 	
@@ -873,7 +887,7 @@ void BIF_previewrender(SpaceButs *sbuts)
 		if(ob && ob->type==OB_LAMP) la= ob->data;
 	}
 	
-	if(mat==NULL || tex==NULL || la==NULL || wrld==NULL) return;
+	if(mat==NULL && tex==NULL && la==NULL && wrld==NULL) return;
 	
 	har.flarec= 0;	/* below is a test for postrender flare */
 	
@@ -972,8 +986,6 @@ void BIF_previewrender(SpaceButs *sbuts)
 
 	radsq= (PR_RECTX/2)*(PR_RECTY/2);
 	
-	glDrawBuffer(GL_FRONT);
-	
 	if(mat) {
 		if(mat->pr_type==MA_SPHERE) {
 			pr1_lamp[0]= 2.3; pr1_lamp[1]= -2.4; pr1_lamp[2]= -4.6;
@@ -984,7 +996,11 @@ void BIF_previewrender(SpaceButs *sbuts)
 			pr2_lamp[0]= 1.2; pr2_lamp[1]= -18; pr2_lamp[2]= 3.2;
 		}
 	}
-	
+
+	/* here it starts! */
+	glDrawBuffer(GL_FRONT);
+	uiPanelPush(block);
+
 	for(y=starty; y<endy; y++) {
 		
 		rect= sbuts->rect + 1 + PR_RECTX*sbuts->cury;
@@ -1081,7 +1097,9 @@ void BIF_previewrender(SpaceButs *sbuts)
 		draw_tex_crop(sbuts->lockpoin);
 	
 	glDrawBuffer(GL_BACK);
-	BIF_previewdraw(sbuts);
+	uiPanelPush(block);
+
+	BIF_previewdraw();
 	
 	if(mat) {
 		end_render_material(mat);

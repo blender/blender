@@ -204,6 +204,9 @@ struct uiBlock {
 	void *func_arg1;
 	void *func_arg2;
 	
+	/* extra draw function for custom blocks */
+	void (*drawextra)();
+
 	BIFColorID col;
 	short font;	/* indices */
 	int afterval;
@@ -242,10 +245,7 @@ static uiBut *UIbuttip;
 static void ui_check_but(uiBut *but);
 static void ui_set_but_val(uiBut *but, double value);
 static double ui_get_but_val(uiBut *but);
-
 static void ui_draw_panel(uiBlock *block);
-static void ui_panel_push(uiBlock *block);
-static void ui_panel_pop(uiBlock *block);
 static void ui_drag_panel(uiBlock *block);
 static void ui_do_panel(uiBlock *block, uiEvent *uevent);
 static int panel_has_tabs(Panel *panel);
@@ -2659,7 +2659,7 @@ void uiDrawBlock(uiBlock *block)
 	if(block->autofill) ui_autofill(block);
 	if(block->minx==0.0 && block->maxx==0.0) uiBoundsBlock(block, 0);
 
-	ui_panel_push(block); // panel matrix
+	uiPanelPush(block); // panel matrix
 	
 	if(block->flag & UI_BLOCK_LOOP) {
 		BIF_set_color(block->col, COLORSHADE_HILITE);
@@ -2672,7 +2672,9 @@ void uiDrawBlock(uiBlock *block)
 	}
 
 	ui_draw_links(block);
-	ui_panel_pop(block); // matrix restored
+	if(block->drawextra) block->drawextra();
+	
+	uiPanelPop(block); // matrix restored
 }
 
 /* ************* MENUBUTS *********** */
@@ -4584,7 +4586,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	}		
 
 	Mat4CpyMat4(UIwinmat, block->winmat);
-	ui_panel_push(block); // push matrix; no return without pop!
+	uiPanelPush(block); // push matrix; no return without pop!
 
 	uiGetMouse(mywinget(), uevent->mval);	/* transformed mouseco */
 
@@ -4603,7 +4605,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 			}
 			else if(uevent->event==LEFTMOUSE) {
 				if( (block->maxy-panely <= uevent->mval[1]) && (block->maxy+PNL_HEADER >= uevent->mval[1]) ) {
-					ui_panel_pop(block); 	// pop matrix; no return without pop!
+					uiPanelPop(block); 	// pop matrix; no return without pop!
 					ui_do_panel(block, uevent);
 					return UI_EXIT_LOOP;	// exit loops because of moving panels
 				}
@@ -4786,7 +4788,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 		but= but->next;
 	}
 
-	ui_panel_pop(block); // pop matrix; no return without pop!
+	uiPanelPop(block); // pop matrix; no return without pop!
 
 	/* the linkines... why not make buttons from it? Speed? Memory? */
 	if(uevent->val && (uevent->event==XKEY || uevent->event==DELKEY)) 
@@ -4934,7 +4936,7 @@ static void ui_do_but_tip(void)
 			 * as long as the mouse remains on top
 			 * of the button that owns it.
 			 */
-		ui_panel_push(UIbuttip->block); // panel matrix
+		uiPanelPush(UIbuttip->block); // panel matrix
 		su= ui_draw_but_tip(UIbuttip);
 		
 		while (1) {
@@ -4955,7 +4957,7 @@ static void ui_do_but_tip(void)
 		}
 		
 		ui_endpupdraw(su);
-		ui_panel_pop(UIbuttip->block); // panel matrix
+		uiPanelPop(UIbuttip->block); // panel matrix
 		UIbuttip= NULL;
 	}
 }
@@ -5793,6 +5795,12 @@ void uiBlockSetFunc(uiBlock *block, void (*func)(void *arg1, void *arg2), void *
 	block->func_arg1= arg1;
 	block->func_arg2= arg2;
 }
+
+void uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)())
+{
+	block->drawextra= func;
+}
+
 void uiButSetFunc(uiBut *but, void (*func)(void *arg1, void *arg2), void *arg1, void *arg2)
 {
 	but->func= func;
@@ -6235,7 +6243,8 @@ void uiSetPanel_view2d(ScrArea *sa)
 	
 }
 
-static void ui_panel_push(uiBlock *block)
+/* extern used ny previewrender */
+void uiPanelPush(uiBlock *block)
 {
 	glPushMatrix(); 
 	if(block->panel) {
@@ -6244,20 +6253,30 @@ static void ui_panel_push(uiBlock *block)
 	}
 }
 
-static void ui_panel_pop(uiBlock *block)
+void uiPanelPop(uiBlock *block)
 {
 	glPopMatrix();
 	Mat4CpyMat4(UIwinmat, block->winmat);
 }
 
+uiBlock *uiFindOpenPanelBlockName(ListBase *lb, char *name)
+{
+	uiBlock *block;
+	
+	for(block= lb->first; block; block= block->next) {
+		if(block->panel && block->panel->active && block->panel->paneltab==NULL) {
+			if(block->panel->flag & PNL_CLOSED);
+			else if(strncmp(name, block->panel->panelname, UI_MAX_NAME_STR)==0) break;
+		}
+	}
+	return block;
+}
+
+
 /* 'icon' for panel header */
 static void ui_draw_tria(float x, float y, float aspect, char dir)
 {
 
-	/* hilite */
-	// glColor3ub(240, 240, 240);
-	// if(dir=='h') fdrawline(x, y+15.0-aspect, x+13.0, y+7.5-aspect);
-	// else fdrawline(x, y+13.0-aspect, x+15.0, y+13.0-aspect);
 	
 	/* filled */
 	glColor3ub(240, 240, 240);

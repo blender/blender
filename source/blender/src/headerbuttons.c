@@ -175,14 +175,9 @@
 #include "render.h"
 #include "ipo.h"
 #include "nla.h"  /* __NLA : To be removed later */
+#include "butspace.h"  // test_idbutton
 
 #include "TPT_DependKludge.h"
-
-static  void test_idbutton_cb(void *namev, void *arg2_unused)
-{
-  char *name= namev;
-  test_idbutton(name+2);
-}
 
 #include "BIF_poseobject.h"
 
