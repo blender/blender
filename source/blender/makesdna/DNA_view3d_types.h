@@ -148,14 +148,14 @@ typedef struct View3D {
 #define V3D_SHOW_Z				8
 
 /* View3d->twtype (bits, we can combine them) */
-#define V3D_MANIPULATOR_TRANSLATE	1
-#define V3D_MANIPULATOR_ROTATE		2
-#define V3D_MANIPULATOR_SCALE		4
+#define V3D_MANIP_TRANSLATE		1
+#define V3D_MANIP_ROTATE		2
+#define V3D_MANIP_SCALE			4
 
 /* View3d->twmode */
-#define V3D_MANIPULATOR_GLOBAL		0
-#define V3D_MANIPULATOR_LOCAL		1
-#define V3D_MANIPULATOR_NORMAL		2
+#define V3D_MANIP_GLOBAL		0
+#define V3D_MANIP_LOCAL			1
+#define V3D_MANIP_NORMAL		2
 
 /* View3d->twflag */
    /* USE = user setting, DRAW = based on selection */

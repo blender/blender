@@ -3745,17 +3745,17 @@ void do_view3d_buttons(short event)
 	
 	case B_MAN_TRANS:
 		if( (G.qual & LR_SHIFTKEY)==0 || G.vd->twtype==0)
-			G.vd->twtype= V3D_MANIPULATOR_TRANSLATE;
+			G.vd->twtype= V3D_MANIP_TRANSLATE;
 		allqueue(REDRAWVIEW3D, 1);
 		break;
 	case B_MAN_ROT:
 		if( (G.qual & LR_SHIFTKEY)==0 || G.vd->twtype==0)
-			G.vd->twtype= V3D_MANIPULATOR_ROTATE;
+			G.vd->twtype= V3D_MANIP_ROTATE;
 		allqueue(REDRAWVIEW3D, 1);
 		break;
 	case B_MAN_SCALE:
 		if( (G.qual & LR_SHIFTKEY)==0 || G.vd->twtype==0)
-			G.vd->twtype= V3D_MANIPULATOR_SCALE;
+			G.vd->twtype= V3D_MANIP_SCALE;
 		allqueue(REDRAWVIEW3D, 1);
 		break;
 		
@@ -3991,15 +3991,15 @@ void view3d_buttons(void)
 
 	/* Transform widget / manipulators */
 	uiBlockBeginAlign(block);
-	uiDefIconButS(block, TOG|BIT|0, B_REDR, ICON_MANIPUL,xco,0,XIC,YIC, &G.vd->twflag, 0, 0, 0, 0, "Use 3d transform widgets");	
+	uiDefIconButS(block, TOG|BIT|0, B_REDR, ICON_MANIPUL,xco,0,XIC,YIC, &G.vd->twflag, 0, 0, 0, 0, "Use 3d transform widgets (CTRL+Space)");	
 	xco+= XIC;
 	
 	if(G.vd->twflag & V3D_USE_MANIPULATOR) {
-		uiDefIconButS(block, TOG|BIT|0, B_MAN_TRANS, ICON_MAN_TRANS, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Translate widget mode");
+		uiDefIconButS(block, TOG|BIT|0, B_MAN_TRANS, ICON_MAN_TRANS, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Translate widget mode (CTRL click cycles)");
 		xco+= XIC;
-		uiDefIconButS(block, TOG|BIT|1, B_MAN_ROT, ICON_MAN_ROT, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Rotate widget mode");
+		uiDefIconButS(block, TOG|BIT|1, B_MAN_ROT, ICON_MAN_ROT, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Rotate widget mode (CTRL click cycles)");
 		xco+= XIC;
-		uiDefIconButS(block, TOG|BIT|2, B_MAN_SCALE, ICON_MAN_SCALE, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Scale widget mode");
+		uiDefIconButS(block, TOG|BIT|2, B_MAN_SCALE, ICON_MAN_SCALE, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Scale widget mode (CTRL click cycles)");
 		xco+= XIC;
 	}
 	uiBlockEndAlign(block);

@@ -4646,7 +4646,7 @@ static void do_versions(Main *main)
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
 					if(sl->spacetype==SPACE_VIEW3D) {
 						View3D *v3d= (View3D *)sl;
-						if(v3d->twtype==0) v3d->twtype= V3D_MANIPULATOR_TRANSLATE;
+						if(v3d->twtype==0) v3d->twtype= V3D_MANIP_TRANSLATE;
 					}
 				}
 			}
