@@ -421,7 +421,7 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	
 		uiBlockBeginAlign(block);
 		uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiDefButI(block, NUMSLI,B_DECIM_FACES, "Decimator: ",	175,180,230,19, &decim_faces, 4.0, tottria, 10, 10, "Defines the number of triangular faces to decimate the active Mesh object to");
+		uiDefButI(block, NUM,B_DECIM_FACES, "Decimator:",	175,180,230,19, &decim_faces, 4.0, tottria, 10, 10, "Defines the number of triangular faces to decimate the active Mesh object to");
 		uiBlockSetCol(block, TH_AUTO);
 		uiDefBut(block, BUT,B_DECIM_APPLY, "Apply",		175,160,110,19, 0, 0, 0, 0, 0, "Applies the decimation to the active Mesh object");
 		uiDefBut(block, BUT,B_DECIM_CANCEL, "Cancel",	285,160,120,19, 0, 0, 0, 0, 0, "Restores the Mesh to its original number of faces");
