@@ -405,6 +405,8 @@ void BL_ConvertActuators(char* maggiename,
 							tmpsoundact->SetName(bact->name);
 							baseact = tmpsoundact;
 							soundscene->AddObject(sndobj);
+						} else {
+							std::cout << "WARNING: Sound actuator " << bact->name << " failed to load sample." << std::endl;
 						}
 					}
 				}
@@ -515,41 +517,26 @@ void BL_ConvertActuators(char* maggiename,
 						
 						// does the 'original' for replication exists, and 
 						// is it in a non-active layer ?
+						CValue* originalval = NULL;
 						if (editobact->ob && !(editobact->ob->lay & activeLayerBitInfo))
-						{
-							CValue* originalval = converter->FindGameObject(editobact->ob);
+							originalval = converter->FindGameObject(editobact->ob);
+						
+						MT_Vector3 linvelvec ( KX_BLENDERTRUNC(editobact->linVelocity[0]),
+							KX_BLENDERTRUNC(editobact->linVelocity[1]),
+							KX_BLENDERTRUNC(editobact->linVelocity[2]));
 							
-							if (originalval)
-							{
-								MT_Vector3 linvelvec ( KX_BLENDERTRUNC(editobact->linVelocity[0]),
-									KX_BLENDERTRUNC(editobact->linVelocity[1]),
-									KX_BLENDERTRUNC(editobact->linVelocity[2]));
-								KX_SCA_AddObjectActuator* tmpaddact = 
-									new KX_SCA_AddObjectActuator(
-									
-									gameobj, 
-									originalval,
-									editobact->time,
-									scene,
-									linvelvec.getValue(),
-									editobact->localflag!=0
-									
-									);
+						KX_SCA_AddObjectActuator* tmpaddact = 
+							new KX_SCA_AddObjectActuator(
+								gameobj, 
+								originalval,
+								editobact->time,
+								scene,
+								linvelvec.getValue(),
+								editobact->localflag!=0
+								);
 								
 								//editobact->ob to gameobj
 								baseact = tmpaddact;
-							} 
-							else
-							{
-								// let's pretend this never happened
-								exit(0);
-							}
-						} else
-						{
-							printf ("ERROR: GameObject %s has a AddObjectActuator %s without object (in 'nonactive' layer)\n",
-								objectname.ReadPtr(),
-								uniquename.ReadPtr()	);
-						}
 					}
 					break;
 				case ACT_EDOB_END_OBJECT:
@@ -561,8 +548,8 @@ void BL_ConvertActuators(char* maggiename,
 					break;
 				case ACT_EDOB_REPLACE_MESH:
 					{
+						RAS_MeshObject *tmpmesh = NULL;
 						if (editobact->me)
-						{
 							RAS_MeshObject *tmpmesh = BL_ConvertMesh(
 								editobact->me,
 								blenderobject,
@@ -570,31 +557,25 @@ void BL_ConvertActuators(char* maggiename,
 								scene,
 								converter
 								);
-							KX_SCA_ReplaceMeshActuator* tmpreplaceact
-								= new KX_SCA_ReplaceMeshActuator(
+
+						KX_SCA_ReplaceMeshActuator* tmpreplaceact
+							= new KX_SCA_ReplaceMeshActuator(
 								gameobj,
 								tmpmesh,
 								scene
 								);
 							
 							baseact = tmpreplaceact;
-						}
-						else
-						{
-							printf ("ERROR: GameObject %s ReplaceMeshActuator %s without object\n",
-								objectname.ReadPtr(),
-								uniquename.ReadPtr());
-						}
 					}
 					break;
 				case ACT_EDOB_TRACK_TO:
 					{
+						SCA_IObject* originalval = NULL;
 						if (editobact->ob)
-						{
 							SCA_IObject* originalval = converter->FindGameObject(editobact->ob);
 							
-							KX_TrackToActuator* tmptrackact 
-								= new KX_TrackToActuator(gameobj, 
+						KX_TrackToActuator* tmptrackact 
+							= new KX_TrackToActuator(gameobj, 
 								originalval,
 								editobact->time,
 								editobact->flag,
@@ -602,15 +583,6 @@ void BL_ConvertActuators(char* maggiename,
 								blenderobject->upflag
 								);
 							baseact = tmptrackact;
-						}
-						else
-						{
-							printf("ERROR: GameObject %s no object in EditObjectActuator %s\n",
-								objectname.ReadPtr(),
-								uniquename.ReadPtr()	);
-							
-							
-						}
 					}
 				}
 				break;
@@ -674,8 +646,7 @@ void BL_ConvertActuators(char* maggiename,
 		case ACT_SCENE:
 			{
 				bSceneActuator *sceneact = (bSceneActuator *) bact->data;
-				bool scenevalid = true;
-				STR_String nextSceneName;
+				STR_String nextSceneName("");
 				
 				KX_SceneActuator* tmpsceneact;
 				int mode = KX_SceneActuator::KX_SCENE_NODEF;
@@ -718,14 +689,6 @@ void BL_ConvertActuators(char* maggiename,
 							nextSceneName = sceneact->scene->id.name + 2; // this '2' is necessary to remove prefix 'SC'
 						}
 						
-						if (!nextSceneName.Length())
-						{
-							printf ("ERROR: GameObject %s has a SceneActuator %s (SetScene) without scene\n",
-								objectname.ReadPtr(),
-								uniquename.ReadPtr());
-							scenevalid = false;
-							
-						}
 						break;
 					}
 				case ACT_SCENE_CAMERA:
@@ -748,16 +711,13 @@ void BL_ConvertActuators(char* maggiename,
 				default:
 					; /* flag error */
 				}
-				if (scenevalid )
-				{
-					tmpsceneact = new KX_SceneActuator(gameobj,
+				tmpsceneact = new KX_SceneActuator(gameobj,
 						mode,
 						scene,
 						ketsjiEngine,
 						nextSceneName,
 						cam);
 					baseact = tmpsceneact;
-				}
 				break;
 			}
 		case ACT_GAME:

@@ -29,6 +29,8 @@ class KX_SCA_AddObjectActuator(SCA_IActuator):
 		"""
 		Returns the name of the game object to be added.
 		
+		Returns None if no game object has been assigned to be added.
+		
 		@rtype: string
 		"""
 	def setTime(time):

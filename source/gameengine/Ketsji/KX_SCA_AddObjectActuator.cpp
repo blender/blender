@@ -263,6 +263,9 @@ PyObject* KX_SCA_AddObjectActuator::PyGetObject(PyObject* self,
 												PyObject* args,
 												PyObject* kwds)
 {
+	if (!m_OriginalObject)
+		Py_Return;
+
 	return PyString_FromString(m_OriginalObject->GetName());
 }
 

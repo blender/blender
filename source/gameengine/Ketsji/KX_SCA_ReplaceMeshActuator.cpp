@@ -116,7 +116,7 @@ PyObject* KX_SCA_ReplaceMeshActuator::PySetMesh(PyObject* self,
 
 	void* mesh = SCA_ILogicBrick::m_sCurrentLogicManager->GetMeshByName(STR_String(meshname));
 	
-	if (m_mesh) {
+	if (mesh) {
 		m_mesh= (class RAS_MeshObject*)mesh;
 		Py_Return;
 	}
@@ -129,6 +129,9 @@ KX_PYMETHODDEF_DOC(KX_SCA_ReplaceMeshActuator, getMesh,
 "Returns the name of the mesh to be substituted.\n"
 )
 {
+	if (!m_mesh)
+		Py_Return;
+
 	return PyString_FromString(const_cast<char *>(m_mesh->GetName().ReadPtr()));
 }
 

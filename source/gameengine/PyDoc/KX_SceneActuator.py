@@ -43,6 +43,8 @@ class KX_SceneActuator(SCA_IActuator):
 		"""
 		Returns the name of the scene to change to/overlay/underlay/remove/suspend/resume.
 		
+		Returns an empty string ("") if no scene has been set.
+		
 		@rtype: string
 		"""
 	def getCamera():

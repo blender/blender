@@ -25,6 +25,8 @@ class KX_TrackToActuator(SCA_IActuator):
 		"""
 		Returns the name of the object to track.
 		
+		Returns None if no object has been set to track.
+		
 		@rtype: string
 		"""
 	def setTime(time):

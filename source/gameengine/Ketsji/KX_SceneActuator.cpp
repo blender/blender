@@ -100,6 +100,21 @@ bool KX_SceneActuator::Update(double curtime,double deltatime)
 			m_KetsjiEngine->ReplaceScene(m_scene->GetName(),m_scene->GetName());
 			break;
 		}
+	case KX_SCENE_SET_CAMERA:
+		if (m_camera)
+		{
+			m_scene->SetActiveCamera(m_camera);
+		}
+		break;
+	default:
+		break;
+	}
+	
+	if (!m_nextSceneName.Length())
+		return false;
+	
+	switch (m_mode)
+	{
 	case KX_SCENE_SET_SCENE:
 		{
 			m_KetsjiEngine->ReplaceScene(m_scene->GetName(),m_nextSceneName);
@@ -132,12 +147,6 @@ bool KX_SceneActuator::Update(double curtime,double deltatime)
 			m_KetsjiEngine->ResumeScene(m_nextSceneName);
 			break;
 		}
-	case KX_SCENE_SET_CAMERA:
-		if (m_camera)
-		{
-			m_scene->SetActiveCamera(m_camera);
-		}
-		break;
 	default:
 		; /* do nothing? this is an internal error !!! */
 	}

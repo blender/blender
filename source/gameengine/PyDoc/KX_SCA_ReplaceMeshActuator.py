@@ -66,6 +66,8 @@ class KX_SCA_ReplaceMeshActuator(SCA_IActuator):
 		"""
 		Returns the name of the mesh that will replace the current one.
 		
+		Returns None if no mesh has been scheduled to be added.
+		
 		@rtype: string
 		"""
 

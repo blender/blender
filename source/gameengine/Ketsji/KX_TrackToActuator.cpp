@@ -427,6 +427,9 @@ char KX_TrackToActuator::GetObject_doc[] =
 "\tReturns the object to track with the parent of this actuator.\n";
 PyObject* KX_TrackToActuator::PyGetObject(PyObject* self, PyObject* args, PyObject* kwds)
 {
+	if (!m_object)
+		Py_Return;
+
 	return PyString_FromString(m_object->GetName());
 }
 
