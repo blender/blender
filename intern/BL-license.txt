@@ -1,0 +1,48 @@
+Blender License 1.0 (the "BL", see http://www.blender.org/BL/ ).
+
+Copyright (C) 2002 Blender Foundation. All Rights Reserved.
+
+For teams that don't want to operate under the GPL, we're also offering
+this "non-GPL" Blender License option. This means that you can download
+the latest sources and tools via FTP or CVS from our site and sign an
+additional agreement with the Blender Foundation, so you can keep your
+source modifications confidential. Contact the Blender Foundation via
+email at license@blender.org so we can discuss how we handle the
+practical matters.
+
+A signed agreement allows you to do business with proprietary code, make
+special derived versions, sell executables, projects or services,
+provided that:
+
+1. The BL-ed code remains copyrighted by the original owners, and cannot
+be transferred to other parties
+
+2. The BL-ed code cannot be published or re-distributed in any way, and
+only be available for the internal staff that works directly on the
+software itself. Employees of partners with which you co-develop on the
+projects that include BL-ed code are considered 'internal staff' also.
+
+3. The BL-ed code can be used (sold, distributed) in parts or in its
+whole only as an executable or as a compiled library/module and its
+header files.
+
+4. The usage of the name Blender or the Blender logo is not included in
+this license. Instead 'including Blender Foundation release X' (or
+similar) can be used, with 'X' the version number of the initial Blender
+Foundation release which you started with.
+
+5. Note that this BL has no authority over some of the external
+libraries licenses which Blender links with.
+
+Additionally you get :
+
+1. The right to use Blender Foundation source updates for a 1 year
+period.
+
+2. Support. Details to be determined by the additional agreement.
+
+You are invited to donate your proprietary changes back to the open
+source community after a reasonable time period. You are of course free
+to choose not to do this.
+
+End of BL terms and conditions.

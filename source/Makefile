@@ -1,0 +1,639 @@
+#
+# $Id$
+#
+# ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version. The Blender
+# Foundation also sells licenses for use in proprietary software under
+# the Blender License.  See http://www.blender.org/BL/ for information
+# about this.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+# All rights reserved.
+#
+# The Original Code is: all of this file.
+#
+# Contributor(s): none yet.
+#
+# ***** END GPL/BL DUAL LICENSE BLOCK *****
+#
+# Top level makefile. Start looping through subdirs and link.
+#
+
+ifndef NANENV
+    export NANENV := $(shell env | grep NAN_)
+endif
+
+include nan_definitions.mk
+
+DIRS = creator blender kernel sumo gameengine
+
+ifeq ($(OS),windows)
+    DIRS += icons
+endif
+
+ifeq ($(OS),solaris)
+  ifeq ($(CPU),sparc)
+    DIRS += ssr
+  endif
+endif
+
+ifeq ($(OS),freebsd)
+  ifeq ($(OS_VERSION),4.5)
+    DIRS += ssr
+  endif
+endif
+
+########## buildinfo kludge ###################
+CPPFLAGS += -I../Physics/common
+CPPFLAGS += -I../Physics/Dummy
+ifdef NAN_BUILDINFO
+    BUILDINFO_O = $(DIR)/$(DEBUG_DIR)buildinfo.o
+    BUILDINFO_C = $(SRCHOME)/creator/buildinfo.c
+    BUILD_DATE := $(shell date "+%Y-%m-%d")
+    BUILD_TIME := $(shell date "+%H:%M:%S")
+endif
+
+############# set pyplayerlib ##################
+
+PYPLAYERLIB ?= $(PYLIB)
+
+############# libraries ##################
+# COMLIB COMmon LIBraries for all targets
+# BCLIB Blender Creator LIBraries
+# BPLIB Browser Plugin LIBraries
+# SPLIB1 Standalone Player LIBraries (pre COMLIB)
+# SPLIB Standalone Player LIBraries (post COMLIB)
+# PULIB PUblisher LIBraries
+# GRCLIB Gui and Render LIBraries for Creator
+# GRPLIB Gui and Render LIBraries for Publisher
+# LLIBS dynamic system libraries
+# SADD Static OpenGL libraries
+# DADD Dynamic OpenGL libraries
+# NSPLUGLIB PLUGin LIBraries for ns-style api
+# PLUGAPPLIB libs that form the application to be plugged in
+# Note: the order is important here
+
+    GRCLIB = $(OCGDIR)/creator/$(DEBUG_DIR)libcreator.a
+    GRCLIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrccreator.a
+    GRCLIB += $(OCGDIR)/blender/misc/$(DEBUG_DIR)libmisc.a
+    GRCLIB += $(OCGDIR)/blender/radiosity/$(DEBUG_DIR)libradiosity.a
+    GRCLIB += $(NAN_DECIMATION)/lib/libdecimation.a
+    GRCLIB += $(NAN_BSP)/lib/$(DEBUG_DIR)libbsp.a
+    GRCLIB += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
+    GRCLIB += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
+    GRCLIB += $(OCGDIR)/blender/img/$(DEBUG_DIR)libimg.a
+    GRCLIB += $(OCGDIR)/blender/renderconverter/$(DEBUG_DIR)librenderconverter.a
+    GRCLIB += $(OCGDIR)/blender/render/$(DEBUG_DIR)librender.a
+    GRCLIB += $(OCGDIR)/blender/bpython/$(DEBUG_DIR)libbpython.a
+    GRCLIB += $(NAN_PYTHON)/frozen/libfrozen.a
+
+    GRPLIB = $(OCGDIR)/creator/$(DEBUG_DIR)libcreator.a
+    GRPLIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrcpublisher.a
+    GRPLIB += $(OCGDIR)/blender/misc/$(DEBUG_DIR)libmisc.a
+    GRPLIB += $(OCGDIR)/blender/radiosity/$(DEBUG_DIR)libradiosity.a
+    GRPLIB += $(NAN_DECIMATION)/lib/libdecimation.a
+    GRPLIB += $(NAN_BSP)/lib/$(DEBUG_DIR)libbsp.a
+    GRPLIB += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
+    GRPLIB += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
+    GRPLIB += $(OCGDIR)/blender/img/$(DEBUG_DIR)libimg.a
+    GRPLIB += $(OCGDIR)/blender/renderconverter/$(DEBUG_DIR)librenderconverter.a
+    GRPLIB += $(OCGDIR)/blender/render/$(DEBUG_DIR)librender.a
+    GRPLIB += $(OCGDIR)/blender/bpython/$(DEBUG_DIR)libbpython.a
+    GRPLIB += $(NAN_PYTHON)/frozen/libfrozen.a
+
+    COMLIB = $(OCGDIR)/blender/blenkernel/$(DEBUG_DIR)libblenkernel.a
+    COMLIB += $(OCGDIR)/blender/blenloader/$(DEBUG_DIR)libblenloader.a
+    COMLIB += $(OCGDIR)/blender/blenpluginapi/$(DEBUG_DIR)libblenpluginapi.a
+    COMLIB += $(OCGDIR)/blender/imbuf/$(DEBUG_DIR)libimbuf.a
+    COMLIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
+    COMLIB += $(OCGDIR)/blender/avi/$(DEBUG_DIR)libavi.a
+    COMLIB += $(NAN_JPEG)/lib/libjpeg.a
+    COMLIB += $(OCGDIR)/gameengine/bloutines/$(DEBUG_DIR)libbloutines.a
+    COMLIB += $(OCGDIR)/gameengine/blconverter/$(DEBUG_DIR)libblconverter.a
+    COMLIB += $(OCGDIR)/gameengine/blphys/common/$(DEBUG_DIR)libcommon.a
+    COMLIB += $(OCGDIR)/gameengine/blphys/sumo/$(DEBUG_DIR)libsumo.a
+    COMLIB += $(OCGDIR)/gameengine/blphys/dummy/$(DEBUG_DIR)libdummy.a
+    COMLIB += $(OCGDIR)/gameengine/blphys/common/$(DEBUG_DIR)libcommon.a
+    COMLIB += $(OCGDIR)/gameengine/blphys/sumo/$(DEBUG_DIR)libsumo.a
+    COMLIB += $(OCGDIR)/gameengine/blphys/dummy/$(DEBUG_DIR)libdummy.a
+    COMLIB += $(OCGDIR)/gameengine/ketsji/$(DEBUG_DIR)libketsji.a
+    COMLIB += $(OCGDIR)/gameengine/logic/$(DEBUG_DIR)liblogic.a
+    COMLIB += $(OCGDIR)/gameengine/rasterizer/$(DEBUG_DIR)librasterizer.a
+    COMLIB += $(OCGDIR)/gameengine/OpenGLrasterizer/$(DEBUG_DIR)libOpenGLrasterizer.a
+    COMLIB += $(OCGDIR)/gameengine/expression/$(DEBUG_DIR)libexpression.a
+    COMLIB += $(OCGDIR)/gameengine/scenegraph/$(DEBUG_DIR)libscenegraph.a
+    COMLIB += $(OCGDIR)/sumo/$(DEBUG_DIR)libfuzzics.a
+#    COMLIB += $(OCGDIR)/sumo/$(DEBUG_DIR)libsolid.a
+    COMLIB += $(NAN_MOTO)/lib/libmoto.a
+    COMLIB += $(NAN_SND_LIBS)
+    COMLIB += $(OCGDIR)/kernel/gen_system/$(DEBUG_DIR)libgen_system.a
+    COMLIB += $(OCGDIR)/kernel/gen_messaging/$(DEBUG_DIR)libgen_messaging.a
+    COMLIB += $(OCGDIR)/gameengine/ketsji/KXNetwork/$(DEBUG_DIR)libKXNetwork.a
+    COMLIB += $(OCGDIR)/gameengine/Network/$(DEBUG_DIR)libNetwork.a
+    COMLIB += $(OCGDIR)/gameengine/Network/LoopBackNetwork/$(DEBUG_DIR)libLoopBackNetwork.a
+    COMLIB += $(NAN_GUARDEDALLOC)/lib/libguardedalloc.a
+    COMLIB += $(NAN_BMFONT)/lib/$(DEBUG_DIR)libbmfont.a
+    COMLIB += $(NAN_PNG)/lib/libpng.a
+
+    BCLIB = $(NAN_IKSOLVER)/lib/libiksolver.a
+    BCLIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
+    BCLIB += $(OCGDIR)/blender/readstreamglue/$(DEBUG_DIR)libreadstreamglue.a
+    BCLIB += $(OCGDIR)/blender/writestreamglueSTUB/$(DEBUG_DIR)libwritestreamglueSTUB.a
+    BCLIB += $(OCGDIR)/blender/inflate/$(DEBUG_DIR)libinflate.a
+    BCLIB += $(OCGDIR)/blender/verify/$(DEBUG_DIR)libverify.a
+    BCLIB += $(OCGDIR)/blender/decryptSTUB/$(DEBUG_DIR)libdecryptSTUB.a
+    BCLIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrccreator.a
+
+    PULIB = $(NAN_IKSOLVER)/lib/libiksolver.a
+    PULIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
+    PULIB += $(OCGDIR)/blender/readstreamglue/$(DEBUG_DIR)libreadstreamglue.a
+    PULIB += $(OCGDIR)/blender/writestreamglue/$(DEBUG_DIR)libwritestreamglue.a
+    # toggle 2 writestreamglue libs for the Uber-Publisher :)
+    #PULIB += $(OCGDIR)/blender/writestreamglueSTUB/$(DEBUG_DIR)libwritestreamglueSTUB.a
+    PULIB += $(OCGDIR)/blender/inflate/$(DEBUG_DIR)libinflate.a
+    PULIB += $(OCGDIR)/blender/deflate/$(DEBUG_DIR)libdeflate.a
+    PULIB += $(OCGDIR)/blender/encrypt/$(DEBUG_DIR)libencrypt.a
+    PULIB += $(OCGDIR)/blender/decrypt/$(DEBUG_DIR)libdecrypt.a
+    PULIB += $(OCGDIR)/blender/sign/$(DEBUG_DIR)libsign.a
+    PULIB += $(OCGDIR)/blender/verify/$(DEBUG_DIR)libverify.a
+    PULIB += $(OCGDIR)/blender/writeblenfile/$(DEBUG_DIR)libwriteblenfile.a
+    PULIB += $(OCGDIR)/blender/writestreamglue/$(DEBUG_DIR)libwritestreamglue.a
+    # toggle 2 writestreamglue libs for the Uber-Publisher :)
+    #PULIB += $(OCGDIR)/blender/writestreamglueSTUB/$(DEBUG_DIR)libwritestreamglueSTUB.a
+    PULIB += $(OCGDIR)/blender/readstreamglue/$(DEBUG_DIR)libreadstreamglue.a # KEY_dependkludge fix.. Remove me
+    PULIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrcpublisher.a
+
+    SPLIB1 = $(OCGDIR)/gameengine/GamePlayer/ghost/$(DEBUG_DIR)libghost.a
+    SPLIB1 += $(OCGDIR)/gameengine/GamePlayer/common/$(DEBUG_DIR)libcommon.a
+    SPLIB1 += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
+    SPLIB1 += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
+
+    SSRLIB1 = $(OCGDIR)/gameengine/GamePlayer/common/$(DEBUG_DIR)libcommon.a
+    SSRLIB1 += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
+    SSRLIB1 += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
+    SSRLIB1 += $(NAN_PNG)/lib/libpng.a
+
+    SPLIB = $(OCGDIR)/blender/makesdna/$(DEBUG_DIR)DNA.o
+    SPLIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
+    SPLIB += $(OCGDIR)/blender/readstreamglue/$(DEBUG_DIR)libreadstreamglue.a
+    # this is used for the plugin. It uses some things from libz.a, 
+    # but somehow it consistently fails to resolve these symbols... or 
+    # can I just not check them? nm claims they aren't...
+    SPLIB += $(OCGDIR)/blender/inflate/$(DEBUG_DIR)libinflate.a
+    SPLIB += $(OCGDIR)/blender/decrypt/$(DEBUG_DIR)libdecrypt.a
+    SPLIB += $(OCGDIR)/blender/writestreamglueSTUB/$(DEBUG_DIR)libwritestreamglueSTUB.a
+    SPLIB += $(OCGDIR)/blender/verify/$(DEBUG_DIR)libverify.a
+    SPLIB += $(OCGDIR)/blender/blenkernel/blenkernel_blc/$(DEBUG_DIR)libblenkernel_blc.a
+
+    BCLIB += $(NAN_BLENKEY)/lib/libblenkey.a
+    PULIB += $(NAN_BLENKEY)/lib/libblenkey.a
+    SPLIB += $(NAN_BLENKEY)/lib/libblenkey.a
+  ifeq ($(OS),windows)
+    BCLIB += $(NAN_OPENSSL)/lib/libeay32.lib
+    PULIB += $(NAN_OPENSSL)/lib/libeay32.lib
+    SPLIB += $(NAN_OPENSSL)/lib/libeay32.lib
+  else
+    BCLIB += $(NAN_OPENSSL)/lib/libcrypto.a
+    PULIB += $(NAN_OPENSSL)/lib/libcrypto.a
+    SPLIB += $(NAN_OPENSSL)/lib/libcrypto.a
+  endif
+
+    # These three need to be explicitly mentioned on the cl, because 
+    # if they are offered as a lib, they are optimized away. (nzc)
+    NSPLUGLIB = $(OCGDIR)/gameengine/GamePlayer/netscape/src/$(DEBUG_DIR)UnixShell.o
+    NSPLUGLIB += $(OCGDIR)/gameengine/GamePlayer/netscape/src/$(DEBUG_DIR)stubs.o
+    NSPLUGLIB += $(OCGDIR)/gameengine/GamePlayer/netscape/src/$(DEBUG_DIR)winstubs.o
+    NSPLUGLIB += $(OCGDIR)/gameengine/GamePlayer/netscape/src/$(DEBUG_DIR)Blender3DPlugin_native_implementation.o
+
+    # Here you can configure what sort of test to make for the plugin.
+#    PLUGTESTLIB = $(OCGDIR)/gameengine/GamePlayer/netscape/test/$(DEBUG_DIR)libns_api_test_stub.a
+#    PLUGTESTLIB = $(OCGDIR)/gameengine/GamePlayer/netscape/test/$(DEBUG_DIR)libns_api_test_colorcycle.a
+#    PLUGTESTLIB = $(OCGDIR)/gameengine/GamePlayer/netscape/test/$(DEBUG_DIR)libns_api_test_gears.a
+    PLUGTESTLIB = $(OCGDIR)/gameengine/GamePlayer/netscape/test/$(DEBUG_DIR)libns_api_test_threaded_gears.a
+
+# XPCOM is done only for Linux for now
+ifeq ($(OS),$(findstring $(OS), "linux"))
+  ifeq ($(CPU),i386)
+    NSPLUGLIB += $(OCGDIR)/gameengine/GamePlayer/netscape/src/$(DEBUG_DIR)XPH_xpcom_hooks.o
+  endif
+endif
+
+    PLUGAPPLIB = $(OCGDIR)/gameengine/GamePlayer/netscape/src/$(DEBUG_DIR)libplugin_ketsji_hooks.a
+
+ifeq ($(OS),$(findstring $(OS), "freebsd linux irix solaris"))
+    NSPLUGLIB += $(OCGDIR)/gameengine/GamePlayer/netscape/src/$(DEBUG_DIR)PLG_X11_windowing.o
+    PLUGAPPLIB += $(OCGDIR)/gameengine/GamePlayer/common/unix/$(DEBUG_DIR)libunix.a
+endif
+ifeq ($(OS),$(findstring $(OS), "windows"))
+    NSPLUGLIB += $(OCGDIR)/gameengine/GamePlayer/netscape/src/$(DEBUG_DIR)PLG_MSWindows_windowing.o
+    NSPLUGLIB += $(OCGDIR)/gameengine/GamePlayer/netscape/src/$(DEBUG_DIR)npB3DPlg.res
+    PLUGAPPLIB += $(OCGDIR)/gameengine/GamePlayer/common/windows/$(DEBUG_DIR)libwindows.a
+endif
+    PLUGAPPLIB += $(OCGDIR)/gameengine/GamePlayer/common/$(DEBUG_DIR)libcommon.a
+
+
+ifeq ($(OS),$(findstring $(OS), "linux"))
+  ifeq ($(CPU),i386)
+    PLUGAPPLIB_XPLINK = $(OCGDIR)/gameengine/GamePlayer/netscape/src/$(DEBUG_DIR)_Blender3DPlugin_implementation_.o 
+  endif
+endif
+
+    # A bit silly... but needed to resolve symbols.
+    PLUGREMLIB = $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
+ifeq ($(OS),windows)
+    PLUGREMLIB += $(NAN_OPENSSL)/lib/libeay32.lib
+else
+    PLUGREMLIB += $(NAN_OPENSSL)/lib/libcrypto.a
+endif
+
+    SSRLIB  = $(OCGDIR)/ssr/$(DEBUG_DIR)GPG_Application.o
+    SSRLIB += $(OCGDIR)/ssr/$(DEBUG_DIR)GPG_Canvas.o
+    SSRLIB += $(OCGDIR)/ssr/$(DEBUG_DIR)GPG_KeyboardDevice.o
+    SSRLIB += $(OCGDIR)/ssr/$(DEBUG_DIR)GPG_System.o
+    SSRLIB += $(OCGDIR)/ssr/$(DEBUG_DIR)GPG_ghost.o
+    SSRLIB += $(OCGDIR)/ssr/$(DEBUG_DIR)createPngFromGL.o
+
+######################## OS dependencies (alphabetic!) ################
+
+include nan_link.mk
+
+ifeq ($(OS),beos)
+    BINTARGETS = blendercreator
+endif
+
+ifeq ($(OS),darwin)
+    # Python
+    PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
+    # The only target right now...
+    BINTARGETS = blendercreator.app
+    BINTARGETS += blenderpublisher.app
+    BINTARGETS += blenderplayer.app
+endif
+
+ifeq ($(OS),freebsd)
+  ifeq ($(OS_VERSION),$(findstring $(OS_VERSION), "3.4 4.0"))
+    BINTARGETS = blendercreator blenderstatic
+  else
+    BINTARGETS = blendercreator
+    BINTARGETS += blenderpublisher
+    BINTARGETS += blenderplayer
+    BINTARGETS += plugin
+  ifeq ($(OS_VERSION),4.5)
+    BINTARGETS += blenderssr
+  endif
+  endif
+    PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
+    PYLIB += $(NAN_PYTHON)/mxTextTools/libmxtexttools.a
+endif
+
+ifeq ($(OS),irix)
+    BINTARGETS = blendercreator
+    BINTARGETS += blenderpublisher
+    BINTARGETS += blenderplayer
+    BINTARGETS += plugin
+    PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
+    PYLIB += $(NAN_PYTHON)/mxTextTools/libmxtexttools.a
+endif
+
+ifeq ($(OS),linux)
+  ifeq ($(CPU),alpha)
+    BINTARGETS = blendercreator
+    BINTARGETS += blenderpublisher
+    BINTARGETS += blenderplayer
+  endif
+  ifeq ($(CPU),i386)
+    BINTARGETS = plugin
+    # BINTARGETS += ptest
+    BINTARGETS += xplink
+    BINTARGETS += blendercreator
+    BINTARGETS += blenderpublisher
+    BINTARGETS += blenderplayer
+    BINTARGETS += blenderstatic
+  endif
+  ifeq ($(CPU),powerpc)
+    BINTARGETS = blendercreator blenderstatic
+    BINTARGETS += blenderpublisher
+  endif
+    PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
+    PYLIB += $(NAN_PYTHON)/mxTextTools/libmxtexttools.a
+endif
+
+ifeq ($(OS),openbsd)
+    BINTARGETS = blenderstatic
+    PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
+endif
+
+ifeq ($(OS),solaris)
+    BINTARGETS = blendercreator
+    BINTARGETS += blenderpublisher
+    BINTARGETS += blenderplayer
+  ifeq ($(CPU),sparc)
+    BINTARGETS += plugin
+    BINTARGETS += blenderssr
+  endif
+    PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
+    PYLIB += $(NAN_PYTHON)/mxTextTools/libmxtexttools.a
+    PYLIB += $(NAN_ZLIB)/lib/libz.a
+
+    BCLIB += $(NAN_ZLIB)/lib/libz.a
+    PULIB += $(NAN_ZLIB)/lib/libz.a
+    SPLIB += $(NAN_ZLIB)/lib/libz.a
+endif
+
+
+# OpenAL libs are already compiled as shared code! Check FMod if we switch to that. (nzc)
+ifeq ($(OS),$(findstring $(OS), "freebsd linux windows"))
+  ifeq ($(CPU),i386)
+    ifeq ($(OS),freebsd)
+     NAN_SND_LIBS = $(OCGDIR)/gameengine/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
+     NAN_SND_LIBS += $(OCGDIR)/gameengine/DummySoundSystem/$(DEBUG_DIR)libDummySoundSystem.a
+     NAN_SND_LIBS += $(OCGDIR)/gameengine/OpenALSoundSystem/$(DEBUG_DIR)libOpenALSoundSystem.a
+     NAN_SND_LIBS += $(NAN_OPENAL)/lib/libopenal.a
+     NAN_SND_LIBS += $(OCGDIR)/gameengine/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
+    else
+     NAN_SND_LIBS = $(OCGDIR)/gameengine/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
+     NAN_SND_LIBS += $(OCGDIR)/gameengine/DummySoundSystem/$(DEBUG_DIR)libDummySoundSystem.a
+    NAN_SND_LIBS += $(OCGDIR)/gameengine/OpenALSoundSystem/$(DEBUG_DIR)libOpenALSoundSystem.a
+    NAN_SND_LIBS += $(NAN_OPENAL)/lib/libopenal.a
+#     NAN_SND_LIBS += $(OCGDIR)/gameengine/FmodSoundSystem/$(DEBUG_DIR)libFmodSoundSystem.a
+#     NAN_SND_LIBS += $(NAN_FMOD)/lib/libfmod.a
+#     NAN_SND_LIBS += $(OCGDIR)/gameengine/FmodSoundSystem/$(DEBUG_DIR)libFmodSoundSystem.a
+     NAN_SND_LIBS += $(OCGDIR)/gameengine/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
+    endif
+  else
+   ifeq ($(OS),windows)
+    NAN_SND_LIBS = $(OCGDIR)/gameengine/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
+    NAN_SND_LIBS += $(OCGDIR)/gameengine/DummySoundSystem/$(DEBUG_DIR)libDummySoundSystem.a
+#    NAN_SND_LIBS += $(OCGDIR)/gameengine/OpenALSoundSystem/$(DEBUG_DIR)libOpenALSoundSystem.a
+#    NAN_SND_LIBS += $(NAN_OPENAL)/lib/openal_static.lib
+    NAN_SND_LIBS += $(OCGDIR)/gameengine/FmodSoundSystem/$(DEBUG_DIR)libFmodSoundSystem.a
+    NAN_SND_LIBS += $(NAN_FMOD)/lib/fmodvc.lib
+    NAN_SND_LIBS += $(OCGDIR)/gameengine/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
+   else
+    NAN_SND_LIBS = $(OCGDIR)/gameengine/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
+    NAN_SND_LIBS += $(OCGDIR)/gameengine/DummySoundSystem/$(DEBUG_DIR)libDummySoundSystem.a
+    NAN_SND_LIBS += $(OCGDIR)/gameengine/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
+   endif
+  endif
+else
+    NAN_SND_LIBS = $(OCGDIR)/gameengine/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
+    NAN_SND_LIBS += $(OCGDIR)/gameengine/DummySoundSystem/$(DEBUG_DIR)libDummySoundSystem.a
+    NAN_SND_LIBS += $(OCGDIR)/gameengine/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
+endif
+
+ifeq ($(OS),windows)
+    PYLIB = $(NAN_PYTHON)/lib/python20.lib
+    PYPLAYERLIB = $(NAN_PYTHON)/static/*.obj
+    PYPLAYERLIB = $(PYLIB)
+
+    NSPLUGLIB += $(NAN_NSPR)/lib/nspr4.lib
+
+    BINTARGETS = blendercreator
+    BINTARGETS += blenderpublisher
+    BINTARGETS += blenderplayer
+    BINTARGETS += blenderdynplayer
+    BINTARGETS += plugin
+
+    BCLIB += $(OCGDIR)/blender/icons/$(DEBUG_DIR)wincreator.res
+    BCLIB += $(NAN_ZLIB)/lib/libz.a
+    PULIB += $(OCGDIR)/blender/icons/$(DEBUG_DIR)winpublisher.res
+    PULIB += $(NAN_ZLIB)/lib/libz.a
+    SPLIB += $(OCGDIR)/blender/icons/$(DEBUG_DIR)winplayer.res
+    SPLIB += $(NAN_ZLIB)/lib/libz.a
+
+  ifdef NAN_PLAYERSTATIC
+    PYPLAYERLIB = $(NAN_PYTHON)/static/python20.lib
+    BINTARGETS = blenderplayer
+
+    NAN_SND_LIBS = $(OCGDIR)/gameengine/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
+    NAN_SND_LIBS += $(OCGDIR)/gameengine/DummySoundSystem/$(DEBUG_DIR)libDummySoundSystem.a
+    NAN_SND_LIBS += $(OCGDIR)/gameengine/OpenALSoundSystem/$(DEBUG_DIR)libOpenALSoundSystem.a
+    NAN_SND_LIBS += $(NAN_OPENAL)/lib/openal_static.lib
+    NAN_SND_LIBS += $(OCGDIR)/gameengine/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
+
+    PYINCLUDEOK := $(shell diff -qbB gameengine/Ketsji/KX_Python.h gameengine/Ketsji/KX_Python_static.h)
+    ifneq (x$(PYINCLUDEOK),x)
+      DUMMY := $(shell cat gameengine/Ketsji/KX_Python_static.h > gameengine/Ketsji/KX_Python.h)
+    endif
+  else
+    PYINCLUDEOK := $(shell diff -qbB gameengine/Ketsji/KX_Python.h gameengine/Ketsji/KX_Python_dynamic.h)
+    ifneq (x$(PYINCLUDEOK),x)
+      DUMMY := $(shell cat gameengine/Ketsji/KX_Python_dynamic.h > gameengine/Ketsji/KX_Python.h)
+    endif
+  endif
+endif
+
+# prepare for NAN_BUILDINFO compile at the *sigh* link rules below
+
+ifdef NAN_BUILDINFO
+    CSRCS =
+    ALLTARGETS =
+    include nan_compile.mk
+endif
+
+################## target rules ########################
+
+all debug ::
+	@echo "****> Make $@ by $(ID)@$(HOST) at $(MAKE_START) on $(CONFIG_GUESS)"
+    ifdef NANENV
+	@for n in $(NANENV); do \
+	    echo "      $$n"; \
+	done
+    endif
+
+DIR = $(OCGDIR)
+SOURCEDIR = source
+
+include nan_subdirs.mk
+
+################## target rules ########################
+
+all:: link
+
+debug debuglink::
+	@$(MAKE) link DEBUG_DIR="debug/" NANENV=$(NANENV)
+
+clean:: linkclean debuglinkclean
+
+link: $(BINTARGETS)
+	@echo "****> Build $(MAKE_START) - `date '+%H:%M:%S %d-%b-%Y'`"
+    ifdef NANENV
+	@for n in $(NANENV); do \
+	    echo "      $$n"; \
+	done
+    endif
+
+linkclean:
+	@$(RM)  $(DIR)/blendercreator* \
+		$(DIR)/blenderstatic* \
+		$(DIR)/blenderpublisher* \
+		$(DIR)/blenderplayer*
+
+debuglinkclean:
+	@$(RM)  $(DIR)/debug/blendercreator* \
+		$(DIR)/debug/blenderstatic* \
+		$(DIR)/debug/blenderpublisher* \
+		$(DIR)/debug/blenderplayer*
+
+# Shortcut for Tinderbox release builds. Mortals don't use this.
+release:
+	@$(MAKE) -C ../release/ all || exit 1;
+
+############### Linker rules ###############
+
+blendercreator: $(DIR)/$(DEBUG_DIR)blendercreator$(EXT)
+blenderstatic: $(DIR)/$(DEBUG_DIR)blenderstatic
+blenderpublisher: $(DIR)/$(DEBUG_DIR)blenderpublisher$(EXT)
+blenderplayer: $(DIR)/$(DEBUG_DIR)blenderplayer$(EXT)
+blenderdynplayer: $(DIR)/$(DEBUG_DIR)blenderdynplayer$(EXT)
+blenderssr: $(DIR)/$(DEBUG_DIR)libblenderssr$(SOEXT)
+
+blenderplayer.app: blenderplayer
+	@$(MAKE) -C darwin/ APPLICATION=blenderplayer
+
+blenderpublisher.app: blenderpublisher
+	@$(MAKE) -C darwin/ APPLICATION=blenderpublisher
+
+blendercreator.app: blendercreator
+	@$(MAKE) -C darwin/ APPLICATION=blendercreator
+
+# XPCOM connector only for linux so far...
+ifeq ($(OS),linux)
+    xplink: $(DIR)/$(DEBUG_DIR)Blender3DPlugin$(SOEXT)
+endif
+
+# Moz/NS plugin:
+ifeq ($(OS),$(findstring $(OS), "freebsd linux irix solaris"))
+    plugin: $(DIR)/$(DEBUG_DIR)npBlender3DPlugin$(SOEXT)
+    ptest: $(DIR)/$(DEBUG_DIR)npTestPlugin$(SOEXT)
+endif
+# Windows needs a 8.3 name... Why? Dunno...
+ifeq ($(OS),windows)
+    plugin: $(DIR)/$(DEBUG_DIR)npB3DPlg$(SOEXT)
+endif
+
+$(DIR)/$(DEBUG_DIR)blendercreator$(EXT): $(OBJS) $(GRCLIB) $(COMLIB) $(BCLIB)
+	@echo "****> Link $@"
+    ifdef NAN_BUILDINFO
+	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
+    endif
+	$(CCC) $(LDFLAGS) -o $@ $(BUILDINFO_O) $(OBJS) $(GRCLIB) $(COMLIB) $(BCLIB) $(PYLIB) $(LLIBS) $(DADD) $(LOPTS)
+    ifdef NAN_BUILDINFO
+	/bin/rm $(BUILDINFO_O)
+    endif
+
+$(DIR)/$(DEBUG_DIR)blenderstatic: $(OBJS) $(GRCLIB) $(COMLIB) $(BCLIB)
+	@echo "****> Link $@"
+    ifdef NAN_BUILDINFO
+	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"static"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
+    endif
+	$(CCC) $(LDFLAGS) -o $@ $(BUILDINFO_O) $(OBJS) $(GRCLIB) $(COMLIB) $(BCLIB) $(PYLIB) $(LLIBS) $(SADD) $(LOPTS)
+    ifdef NAN_BUILDINFO
+	/bin/rm $(BUILDINFO_O)
+    endif
+
+$(DIR)/$(DEBUG_DIR)blenderpublisher$(EXT): $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB)
+	@echo "****> Link $@"
+    ifdef NAN_BUILDINFO
+	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
+    endif
+	$(CCC) $(LDFLAGS) -o $@ $(BUILDINFO_O) $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB) $(PYLIB) $(LLIBS) $(DADD) $(LOPTS)
+    ifdef NAN_BUILDINFO
+	/bin/rm $(BUILDINFO_O)
+    endif
+
+$(DIR)/$(DEBUG_DIR)blenderplayer$(EXT): $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB)
+	@echo "****> Link $@"
+    ifdef NAN_BUILDINFO
+	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
+    endif
+	$(CCC) $(LDFLAGS) -o $@ $(BUILDINFO_O) $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB) $(PYPLAYERLIB) $(LLIBS) $(DADD) $(LOPTS)
+    ifdef NAN_BUILDINFO
+	/bin/rm $(BUILDINFO_O)
+    endif
+
+$(DIR)/$(DEBUG_DIR)blenderdynplayer$(EXT): $(OBJS) $(COMLIB) $(SPLIB)
+	@echo "****> Link $@"
+    ifdef NAN_BUILDINFO
+	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
+    endif
+	$(CCC) $(LDFLAGS) -o $@ $(BUILDINFO_O) $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB) $(PYLIB) $(LLIBS) $(DADD) $(LOPTS)
+    ifdef NAN_BUILDINFO
+	/bin/rm $(BUILDINFO_O)
+    endif
+
+ifeq ($(OS),linux)
+$(DIR)/$(DEBUG_DIR)Blender3DPlugin$(SOEXT): $(PLUGAPPLIB_XPLINK)
+	@echo "****> Link $(DIR)/$(DEBUG_DIR)Blender3DPlugin.so"
+    ifdef NAN_BUILDINFO
+	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
+    endif
+	$(CCC) $(DYNLDFLAGS) -o $@ $(PLUGAPPLIB_XPLINK) $(LOPTS)
+    ifdef NAN_BUILDINFO
+	/bin/rm $(BUILDINFO_O)
+    endif
+endif
+
+# Windows build needs a def file? Why? For exposing functions from the
+# dll to the outside world. However, this is alsi done internally..
+DEFFILE = \\\\server\\nzc\\develop\\source\\gameengine\\GamePlayer\\netscape\\src\\npB3DPlg.def
+
+# Windows needs a specific name format for dll.s so we give it one.
+ifeq ($(OS),windows)
+$(DIR)/$(DEBUG_DIR)npB3DPlg$(SOEXT): $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLIB)
+	@echo "****> Link $(DIR)/$(DEBUG_DIR)npBl3DPlg.$(SOEXT)"
+    ifdef NAN_BUILDINFO
+	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
+    endif
+#	$(CCC) $(DYNLDFLAGS) -o $@ $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLIB) $(PYLIB) $(PLUGREMLIB) $(LLIBS) $(DADD) $(LOPTS) 
+	$(CCC) $(DYNLDFLAGS) -o $@ $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLIB) $(PYLIB) $(PLUGREMLIB) $(LLIBS) $(DADD) $(LOPTS) /def:$(DEFFILE)
+    ifdef NAN_BUILDINFO
+	/bin/rm $(BUILDINFO_O)
+    endif
+endif
+
+ifeq ($(OS),$(findstring $(OS), "linux freebsd irix solaris"))
+$(DIR)/$(DEBUG_DIR)npBlender3DPlugin$(SOEXT): $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLIB)
+	@echo "****> Link $(DIR)/$(DEBUG_DIR)Blender3DPlugin.so"
+    ifdef NAN_BUILDINFO
+	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
+    endif
+	$(CCC) $(DYNLDFLAGS) -o $@ $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLIB) $(PYLIB) $(PLUGREMLIB) $(LLIBS) $(DADD) $(LOPTS)
+    ifdef NAN_BUILDINFO
+	/bin/rm $(BUILDINFO_O)
+    endif
+
+$(DIR)/$(DEBUG_DIR)npTestPlugin$(SOEXT): $(NSPLUGLIB)
+	@echo "****> Link $@"
+    ifdef NAN_BUILDINFO
+	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
+    endif
+	$(CCC) $(DYNLDFLAGS) -o $@ $(NSPLUGLIB) $(PLUGTESTLIB) $(LLIBS) $(DADD) $(LOPTS)
+    ifdef NAN_BUILDINFO
+	/bin/rm $(BUILDINFO_O)
+    endif
+endif
+
+$(DIR)/$(DEBUG_DIR)libblenderssr$(SOEXT): $(OBJS) $(SSRLIB1) $(COMLIB) $(SPLIB) $(SSRLIB)
+	@echo "****> Link $@"
+    ifdef NAN_BUILDINFO
+	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
+    endif
+	$(CCC) $(DYNLDFLAGS) -o $@ $(BUILDINFO_O) $(OBJS) $(SSRLIB) $(SSRLIB1) $(COMLIB) $(SPLIB) $(PYPLAYERLIB) $(LLIBS) $(DADD) $(LOPTS)
+    ifdef NAN_BUILDINFO
+	/bin/rm $(BUILDINFO_O)
+    endif
+

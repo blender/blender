@@ -1,0 +1,53 @@
+#
+# $Id$
+#
+# ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version. The Blender
+# Foundation also sells licenses for use in proprietary software under
+# the Blender License.  See http://www.blender.org/BL/ for information
+# about this.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+# All rights reserved.
+#
+# The Original Code is: all of this file.
+#
+# Contributor(s): none yet.
+#
+# ***** END GPL/BL DUAL LICENSE BLOCK *****
+#
+#
+
+LIBNAME = SoundSystem
+DIR = $(OCGDIR)/gameengine/$(LIBNAME)
+ALLTARGETS = $(OBJS) $(DIR)/$(DEBUG_DIR)SoundSystem
+
+include nan_compile.mk
+
+CPPFLAGS += $(NAN_LEVEL_1_WARNINGS)
+
+CPPFLAGS += -I$(NAN_MOTO)/include
+CPPFLAGS += -I../../../kernel/gen_system
+CPPFLAGS += -I.. -I../SND_BlenderWaveCache -I../SND_OpenAL
+
+TESTLIB = $(OCGDIR)/gameengine/OpenALSoundSystem/$(DEBUG_DIR)libOpenALSoundSystem.a
+TESTLIB += $(OCGDIR)/gameengine/BlenderWaveCache/$(DEBUG_DIR)libBlenderWaveCache.a
+TESTLIB += $(OCGDIR)/kernel/gen_system/$(DEBUG_DIR)libgen_system.a
+TESTLIB += $(OCGDIR)/gameengine/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
+TESTLIB += $(NAN_OPENAL)/lib/libopenal.a
+
+$(DIR)/$(DEBUG_DIR)SoundSystem: $(OBJS) $(TESTLIB)
+	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(TESTLIB) -lm -pthread -ldl -lstdc++

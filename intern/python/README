@@ -1,0 +1,7 @@
+setenv CFLAGS "-g -Wall -I/usr/local/Python-1.6/Include"
+setenv LDFLAGS "-L/usr/local/Python-1.6"
+aclocal
+autoconf
+automake -a
+./configure
+make

@@ -1,0 +1,93 @@
+/**
+ * $Id$
+ *
+ * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version. The Blender
+ * Foundation also sells licenses for use in proprietary software under
+ * the Blender License.  See http://www.blender.org/BL/ for information
+ * about this.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ */
+#ifndef __KX_RADAR_SENSOR_H
+#define __KX_RADAR_SENSOR_H
+
+#include "KX_NearSensor.h"
+#include "MT_Point3.h"
+
+/**
+* Radar 'cone' sensor. Very similar to a near-sensor, but instead of a sphere, a cone is used.
+*/
+class KX_RadarSensor : public KX_NearSensor
+{
+ protected:
+	Py_Header;
+		
+	MT_Scalar		m_coneradius;
+
+	/**
+	 * Height of the cone.
+	 */
+	MT_Scalar		m_coneheight;
+	int				m_axis;
+
+	/**
+	 * The previous position of the origin of the cone.
+	 */
+	MT_Point3       m_cone_origin;
+
+	/**
+	 * The previous direction of the cone (origin to bottom plane).
+	 */
+	MT_Point3       m_cone_target;
+	
+public:
+	KX_RadarSensor(class SCA_EventManager* eventmgr,
+		class KX_GameObject* gameobj,
+			double coneradius,
+			double coneheight,
+			int	axis,
+			double margin,
+			double resetmargin,
+			class SM_Object* sumoObj,
+			bool bFindMaterial,
+			const STR_String& touchedpropname,
+			class SM_Scene* sumoscene,
+			PyTypeObject* T=&Type);
+	KX_RadarSensor();
+	virtual ~KX_RadarSensor();
+	virtual void SynchronizeTransform();
+
+	/* --------------------------------------------------------------------- */
+	/* Python interface ---------------------------------------------------- */
+	/* --------------------------------------------------------------------- */
+	
+	virtual PyObject*  _getattr(char *attr);
+
+	KX_PYMETHOD_DOC(KX_RadarSensor,GetConeOrigin);
+	KX_PYMETHOD_DOC(KX_RadarSensor,GetConeTarget);
+	KX_PYMETHOD_DOC(KX_RadarSensor,GetConeHeight);
+
+};
+
+#endif //__KX_RADAR_SENSOR_H
