@@ -42,6 +42,10 @@ rm -f $DISTDIR/copyright.txt
 mv -f $DISTDIR/aCopyright.txt $DISTDIR/Copyright.txt
 # PS. the whole aCopyright kludge is because of windows being braindead
 
+# Create ^M in copyright.txt
+awk '{printf("%s\r\n", $0);}' $DISTDIR/GPL-license.txt > $DISTDIR/temp.txt
+mv -f $DISTDIR/temp.txt $DISTDIR/GPL-license.txt
+
 # Add Python DLL to package
 # Stupid windows needs the . removed :
 PVERS=`echo $NAN_PYTHON_VERSION | sed 's/\.//'`
