@@ -502,6 +502,21 @@ void get_next_image(SpaceImaSel *simasel)
 				
 				animlen= IMB_anim_get_duration(anim);
 				ibuf = IMB_anim_absolute(anim, animlen / 2);
+
+				if(ibuf) {
+					//get icon dimensions for movie
+					ima->orgx = ibuf->x;
+					ima->orgy = ibuf->y;
+//					ima->orgd = ibuf->depth;
+
+					if (ima->orgx > ima->orgy){
+						ima->dw = 64;
+						ima->dh = (short)(62 * ((float)ima->orgy / (float)ima->orgx));
+					}else{
+						ima->dw = (short)(64 * ((float)ima->orgx / (float)ima->orgy));
+						ima->dh = 62;
+					}
+				}
 				
 				IMB_free_anim(anim);
 			}
@@ -669,13 +684,17 @@ void get_file_info(SpaceImaSel *simasel)
 	strcpy(name ,  simasel->dir);
 	strcat(name ,  direntry->name);
 	
-	if (IMB_ispic(name)) {
-		direntry->type = IMS_IMA;
-	}else{
-		if (IMB_isanim(name)) {
-			direntry->type = IMS_ANIM;
+	if(direntry->name[0] == '.') {
+		direntry->type = IMS_NOIMA;
+	} else {
+		if (IMB_ispic(name)) {
+			direntry->type = IMS_IMA;
 		}else{
-			direntry->type = IMS_NOIMA;
+			if (IMB_isanim(name)) {
+				direntry->type = IMS_ANIM;
+			}else{
+				direntry->type = IMS_NOIMA;
+			}
 		}
 	}
 	
