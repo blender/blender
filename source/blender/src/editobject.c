@@ -6052,6 +6052,7 @@ void single_obdata_users(int flag)
 	Lamp *la;
 	Curve *cu;
 	Ika *ika;
+	Camera *cam;
 	Deform *def;
 	Base *base;
 	Mesh *me;
@@ -6150,6 +6151,7 @@ void single_obdata_users(int flag)
 					id->newid= (ID *)ob->ipo;
 				}
 			}
+			/* other ipos */
 			switch(ob->type) {
 			case OB_LAMP:
 				la= ob->data;
@@ -6157,6 +6159,14 @@ void single_obdata_users(int flag)
 					la->ipo->id.us--;
 					la->ipo= copy_ipo(la->ipo);
 				}
+				break;
+			case OB_CAMERA:
+				cam= ob->data;
+				if(cam->ipo && cam->ipo->id.us>1) {
+					cam->ipo->id.us--;
+					cam->ipo= copy_ipo(cam->ipo);
+				}
+				break;
 			}
 			
 		}
