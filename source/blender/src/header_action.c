@@ -395,21 +395,19 @@ static void do_action_keymenu_transformmenu(void *arg, int event)
 	switch(event)
 	{
 		case ACTMENU_KEY_TRANSFORM_MOVE:
-			if (act) {	
-				if (key) {
-					transform_meshchannel_keys('g', key);
-				} else {
-					transform_actionchannel_keys ('g');
-				}
+			if (key) {
+				transform_meshchannel_keys('g', key);
+			} 
+			else if (act) {	
+				transform_actionchannel_keys ('g');
 			}
 			break;
 		case ACTMENU_KEY_TRANSFORM_SCALE:
-			if (act) {
-				if (key) {
-					transform_meshchannel_keys('s', key);
-				} else {
-					transform_actionchannel_keys ('s');
-				}
+			if (key) {
+				transform_meshchannel_keys('s', key);
+			} 
+			else if (act) {
+				transform_actionchannel_keys ('s');
 			}
 			break;
 	}
@@ -590,14 +588,12 @@ static void do_action_keymenu(void *arg, int event)
 	switch(event)
 	{
 		case ACTMENU_KEY_DUPLICATE:
-			if (act) {
-				if (key) {
-					duplicate_meshchannel_keys(key);
-				}
-				else {
-					duplicate_actionchannel_keys();
-					remake_action_ipos(act);
-				}
+			if (key) {
+				duplicate_meshchannel_keys(key);
+			}
+			else if (act) {
+				duplicate_actionchannel_keys();
+				remake_action_ipos(act);
 			}
  			break;
 
@@ -605,7 +601,7 @@ static void do_action_keymenu(void *arg, int event)
 			if (key) {
 				delete_meshchannel_keys(key);
 			}
-			else {
+			else if (act) {
 				delete_actionchannel_keys ();
 			}
 			break;
