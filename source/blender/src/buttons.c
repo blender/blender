@@ -2711,16 +2711,22 @@ void mballbuts(void)
 	
 	if(ob==G.obedit && lastelem) {
 		uiDefButF(block, NUMSLI, B_RECALCMBALL, "Stiffness:", 750,178,250,19, &lastelem->s, 0.0, 10.0, 0, 0, "");
-		uiDefButF(block, NUMSLI, B_RECALCMBALL, "Len:",		750,158,250,19, &lastelem->len, 0.0, 20.0, 0, 0, "");
+		if(lastelem->type!=MB_BALL)
+		uiDefButF(block, NUMSLI, B_RECALCMBALL, "dx:",		750,158,250,19, &lastelem->expx, 0.0, 20.0, 0, 0, "");
+		if((lastelem->type!=MB_BALL)&&(lastelem->type!=MB_TUBE))
+		uiDefButF(block, NUMSLI, B_RECALCMBALL, "dy:",		750,138,250,19, &lastelem->expy, 0.0, 20.0, 0, 0, "");
+
+		if((lastelem->type==MB_CUBE)||(lastelem->type==MB_ELIPSOID))
+		uiDefButF(block, NUMSLI, B_RECALCMBALL, "dz:",		750,118,250,19, &lastelem->expz, 0.0, 20.0, 0, 0, "");
 
 		uiBlockSetCol(block, BUTGREEN);
-		uiDefButS(block, TOG|BIT|1, B_RECALCMBALL, "Negative",752,116,60,19, &lastelem->flag, 0, 0, 0, 0, "");
+		uiDefButS(block, TOG|BIT|1, B_RECALCMBALL, "Negative",753,16,60,19, &lastelem->flag, 0, 0, 0, 0, "");
 
 		uiDefButS(block, ROW, B_RECALCMBALL, "Ball",			753,83,60,19, &lastelem->type, 1.0, 0.0, 0, 0, "");
-		uiDefButS(block, ROW, B_RECALCMBALL, "TubeX",			753,62,60,19, &lastelem->type, 1.0, 1.0, 0, 0, "");
-		uiDefButS(block, ROW, B_RECALCMBALL, "TubeY",			814,62,60,19, &lastelem->type, 1.0, 2.0, 0, 0, "");
-		uiDefButS(block, ROW, B_RECALCMBALL, "TubeZ",			876,62,60,19, &lastelem->type, 1.0, 3.0, 0, 0, "");
-
+		uiDefButS(block, ROW, B_RECALCMBALL, "Tube",			753,62,60,19, &lastelem->type, 1.0, 4.0, 0, 0, "");
+		uiDefButS(block, ROW, B_RECALCMBALL, "Plane",			814,62,60,19, &lastelem->type, 1.0, 5.0, 0, 0, "");
+		uiDefButS(block, ROW, B_RECALCMBALL, "Elipsoid",		876,62,60,19, &lastelem->type, 1.0, 6.0, 0, 0, "");
+		uiDefButS(block, ROW, B_RECALCMBALL, "Cube",			938,62,60,19, &lastelem->type, 1.0, 7.0, 0, 0, "");
 	}
 	uiDrawBlock(block);
 }

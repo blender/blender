@@ -3134,6 +3134,59 @@ static uiBlock *info_add_surfacemenu(void *arg_unused)
 	return block;
 }
 
+static void do_info_add_metamenu(void *arg, int event)
+{
+
+	switch(event) {		
+		case 0:
+			/* Ball */
+			add_primitiveMball(1);
+			break;
+		case 1:
+			/* Tube */
+			add_primitiveMball(2);
+			break;
+		case 2:
+			/* Plane */
+			add_primitiveMball(3);
+			break;
+		case 3:
+			/* Elipsoid */
+			add_primitiveMball(4);
+			break;
+		case 4:
+			/* Cube */
+			add_primitiveMball(5);
+			break;
+		default:
+			break;
+	}
+	allqueue(REDRAWINFO, 0);
+}
+
+
+static uiBlock *info_add_metamenu(void *arg_unused)
+{
+/*  	static short tog=0; */
+	uiBlock *block;
+	short xco= 0;
+	
+	block= uiNewBlock(&curarea->uiblocks, "add_metamenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_info_add_metamenu, NULL);
+
+	uiDefBut(block, BUTM, 1, "Meta Ball|",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "Add a ball");
+	uiDefBut(block, BUTM, 1, "Meta Tube|",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "Add a tube");
+	uiDefBut(block, BUTM, 1, "Meta Plane|",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 2, "Add a square");
+	uiDefBut(block, BUTM, 1, "Meta Elipsoid|",	0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 3, "Add a elipsoid");
+	uiDefBut(block, BUTM, 1, "Meta Cube|",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 4, "Add a circle");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 50);
+		
+	return block;
+}
+
+
 static void do_info_addmenu(void *arg, int event)
 {
 
@@ -3148,12 +3201,11 @@ static void do_info_addmenu(void *arg, int event)
 			/* Surface */
 			break;
 		case 3:
-			/* Text (argument is discarded) */
-			add_primitiveFont(event);
+			/* Metaball */
 			break;
 		case 4:
-			/* Metaball  (argument is discarded) */
-			add_primitiveMball(event);
+			/* Text (argument is discarded) */
+			add_primitiveFont(event);
 			break;
 		case 5:
 			/* Empty */
@@ -3194,10 +3246,10 @@ static uiBlock *info_addmenu(void *arg_unused)
 	uiDefBlockBut(block, info_add_meshmenu, NULL, "Mesh|>>", 0, xco-=20, 120, 19, "Opens the Add Mesh menu");
 	uiDefBlockBut(block, info_add_curvemenu, NULL, "Curve|>>", 0, xco-=20, 120, 19, "Opens the Add Curve menu");
 	uiDefBlockBut(block, info_add_surfacemenu, NULL, "Surface|>>", 0, xco-=20, 120, 19, "Opens the Add Surface menu");
+	uiDefBlockBut(block, info_add_metamenu, NULL, "Meta|>>", 0, xco-=20, 120, 19, "Click to open the Add Meta menu");
 
 	uiDefBut(block, SEPR, 0, "",					0, xco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefBut(block, BUTM, 1, "Text|",				0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 3, "Adds a Text object");
-	uiDefBut(block, BUTM, 1, "Metaball|",			0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 4, "Adds a Metaball");
 	uiDefBut(block, BUTM, 1, "Empty|",				0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 5, "Adds an Empty object");
 	uiDefBut(block, SEPR, 0, "",					0, xco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefBut(block, BUTM, 1, "Camera|",				0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 6, "Adds a Camera");

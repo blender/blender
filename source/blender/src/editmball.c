@@ -172,12 +172,37 @@ void add_primitiveMball(int dummy_argument)
 	ml->x= cent[0];
 	ml->y= cent[1];
 	ml->z= cent[2];
-	ml->rad= 1.0;
+	ml->rad= 2.0;
 	ml->lay= 1;
 	ml->s= 2.0;
-	ml->len= 1.0;
-	ml->expx= ml->expy= ml->expz= 2.0;
 	ml->flag= SELECT;
+
+        switch(dummy_argument) {
+                case 1:
+                        ml->type = MB_BALL;
+                        ml->expx= ml->expy= ml->expz= 1.0;
+                        break;
+                case 2:
+                        ml->type = MB_TUBE;
+                        ml->expx= ml->expy= ml->expz= 1.0;
+                        break;
+                case 3:
+                        ml->type = MB_PLANE;
+                        ml->expx= ml->expy= ml->expz= 1.0;
+                        break;
+                case 4:
+                        ml->type = MB_ELIPSOID;
+                        ml->expx= 1.2f;
+                        ml->expy= 0.8f;
+                        ml->expz= 1.0;
+                        break;
+                case 5:
+                        ml->type = MB_CUBE;
+                        ml->expx= ml->expy= ml->expz= 1.0;
+                        break;
+                default:
+                        break;
+        }
 	
 	lastelem= ml;
 	

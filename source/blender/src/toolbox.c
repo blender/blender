@@ -167,6 +167,7 @@ void tbox_setinfo(int x, int y)
 				if (addmode==OB_MESH) tbstr= "  MESH";
 				else if(addmode==OB_CURVE) tbstr= "  CURVE";
 				else if(addmode==OB_SURF) tbstr= "  SURF";
+				else if(addmode==OB_MBALL) tbstr= "  META";
 				else tbstr= "ADD";
 				break;
 			case TBOX_MAIN_OBJECT1:		tbstr= "OBJECT";	break;
@@ -240,8 +241,9 @@ void tbox_setinfo(int x, int y)
 					case 0: tbstr= "Mesh";		tbstr1= ">>";	keystr= ">>";	tbval=OB_MESH;										break;
 					case 1: tbstr= "Curve";		tbstr1= ">>";	keystr= ">>";	tbval=OB_CURVE;	;									break;
 					case 2: tbstr= "Surface";	tbstr1= ">>";	keystr= ">>";	tbval=OB_SURF;										break;
-					case 3: tbstr= "Text";		tbstr1= "";		keystr= "";		tbval=OB_FONT;		tbfunc= add_primitiveFont;		break;
-					case 4: tbstr= "MetaBall";	tbstr1= "";		keystr= "";		tbval=OB_MBALL;		tbfunc= add_primitiveMball;		break;
+					case 3: tbstr= "Meta";		tbstr1= ">>";	keystr= ">>";	tbval=OB_MBALL;
+						break;
+					case 4: tbstr= "Text";		tbstr1= "";		keystr= "";		tbval=OB_FONT;		tbfunc= add_primitiveFont;		break;
 					case 5: tbstr= "Empty";		tbstr1= "A";	keystr= "";		tbval=OB_EMPTY;										break;
 					case 6: tbstr= "";			tbstr1= "";		keystr= "";		tbval=0;											break;
 					case 7: tbstr= "Camera";	tbstr1= "A";	keystr= "";		tbval=OB_CAMERA;									break;
@@ -302,13 +304,13 @@ void tbox_setinfo(int x, int y)
 				}
 				if(tbstr1 && tbstr1[0]=='A') tbfunc= add_primitiveCurve;
 			}
-/*			else if(addmode==OB_MBALL) {
+			else if(addmode==OB_MBALL) {
 				switch(y) {
-					case 0: tbstr= "Ball";		tbstr1= "A";	tbval=1; break;
-					case 1: tbstr= "";			tbstr1= "";		break;
-					case 2: tbstr= "";			tbstr1= "";		break;
-					case 3: tbstr= "";			tbstr1= "";		break;
-					case 4: tbstr= "";			tbstr1= "";		break;
+					case 0: tbstr= "Ball";			tbstr1= "A";	tbval=1; break;
+					case 1: tbstr= "Tube";			tbstr1= "A";	tbval=2; break;
+					case 2: tbstr= "Plane";			tbstr1= "A";	tbval=3; break;
+					case 3: tbstr= "Elipsoid";		tbstr1= "A";	tbval=4; break;
+					case 4: tbstr= "Cube";			tbstr1= "A";	tbval=5; break;
 					case 5: tbstr= "";			tbstr1= "";		break;
 					case 6: tbstr= "";			tbstr1= "";		break;
 					case 7: tbstr= "";			tbstr1= "";		break;
@@ -318,7 +320,7 @@ void tbox_setinfo(int x, int y)
 					case 11: tbstr= "Duplicate";tbstr1= "D";	break;
 				}
 				if(tbstr1 && tbstr1[0]=='A') tbfunc= add_primitiveMball;
-			}*/
+			}
 		}
 		
 /* OB TOPICS 1 */

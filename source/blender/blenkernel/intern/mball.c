@@ -73,8 +73,6 @@
 
 /* Functions */
 
-
-
 void unlink_mball(MetaBall *mb)
 {
 	int a;
@@ -91,11 +89,12 @@ void unlink_mball(MetaBall *mb)
 /* do not free mball itself */
 void free_mball(MetaBall *mb)
 {
-	
+	MetaElem *ml;
 	unlink_mball(mb);	
 	
 	if(mb->mat) MEM_freeN(mb->mat);
 	if(mb->bb) MEM_freeN(mb->bb);
+	/* free bounding boxes of  MetaElems */
 	BLI_freelistN(&mb->elems);
 	if(mb->disp.first) freedisplist(&mb->disp);
 }
@@ -184,14 +183,13 @@ void make_local_mball(MetaBall *mb)
 	}
 }
 
-
 void tex_space_mball(Object *ob)
 {
 	DispList *dl;
 	BoundBox *bb;
 	float *data, min[3], max[3], loc[3], size[3];
 	int tot, doit=0;
-	
+
 	if(ob->bb==0) ob->bb= MEM_callocN(sizeof(BoundBox), "mb boundbox");
 	bb= ob->bb;
 	
@@ -407,11 +405,11 @@ typedef struct process {		/* parameters, function, storage */
  * for some reason */
 
 void freepolygonize(PROCESS *p);
-void docube(CUBE *cube, PROCESS *p);
+void docube(CUBE *cube, PROCESS *p, MetaBall *mb);
 void testface(int i, int j, int k, CUBE* old,
 			  int bit, int c1, int c2, int c3, int c4, PROCESS *p);
 CORNER *setcorner (PROCESS* p, int i, int j, int k);
-int vertid (CORNER *c1, CORNER *c2, PROCESS *p);
+int vertid (CORNER *c1, CORNER *c2, PROCESS *p, MetaBall *mb);
 int setcenter(CENTERLIST *table[], int i, int j, int k);
 int otherface (int edge, int face);
 void makecubetable (void);
@@ -425,14 +423,16 @@ int getedge (EDGELIST *table[],
 			 int i2, int j2, int k2);
 void addtovertices (VERTICES *vertices, VERTEX v);
 void vnormal (MB_POINT *point, PROCESS *p, MB_POINT *v);
-void converge (MB_POINT *p1, MB_POINT *p2, float v,
-			   float (*function)(float, float, float), MB_POINT *p);
-void polygonize(PROCESS *mbproc);
+void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
+			   float (*function)(float, float, float), MB_POINT *p, MetaBall *mb);
+void polygonize(PROCESS *mbproc, MetaBall *mb);
 float init_meta(Object *ob);
 
 /* **************** METABALL ************************ */
 
-/*  void converge (MB_POINT *p1, MB_POINT *p2, float v, float (*function)(void), MB_POINT *p); */
+float thresh= 0.6f;
+int totelem=0;
+MetaElem **mainb;
 
 void calc_mballco(MetaElem *ml, float *vec)
 {
@@ -441,16 +441,11 @@ void calc_mballco(MetaElem *ml, float *vec)
 	}
 }
 
-
-float thresh= 0.6f;
-int totelem=0;
-MetaElem **mainb;
-
 float densfunc(MetaElem *ball, float x, float y, float z)
 {
 	float dist2 = 0.0, dx, dy, dz;
 	float vec[3];
-	
+
 	if(ball->imat) {
 		vec[0]= x;
 		vec[1]= y;
@@ -465,50 +460,68 @@ float densfunc(MetaElem *ball, float x, float y, float z)
 		dy= ball->y - y;
 		dz= ball->z - z;
 	}
-	
+
 	if(ball->type==MB_BALL) {
-		dist2= (dx*dx + dy*dy + dz*dz);
 	}
-	else if(ball->type & MB_TUBEZ) {
-		if(ball->type==MB_TUBEZ) {
-			if( dz > ball->len) dz-= ball->len;
-			else if(dz< -ball->len) dz+= ball->len;
-			else dz= 0.0;
-		}
-		else if(ball->type==MB_TUBEY) {
-			if( dy > ball->len) dy-= ball->len;
-			else if(dy< -ball->len) dy+= ball->len;
-			else dy= 0.0;
-		}
-		else {
-			if( dx > ball->len) dx-= ball->len;
-			else if(dx< -ball->len) dx+= ball->len;
-			else dx= 0.0;
-		}
-		dist2= (dx*dx + dy*dy + dz*dz);
+	else if(ball->type==MB_TUBEX) {
+		if( dx > ball->len) dx-= ball->len;
+		else if(dx< -ball->len) dx+= ball->len;
+		else dx= 0.0;
 	}
-	/* else if(ball->type==MB_CIRCLE) { */
-		/* dist2= 0.5-dz; */
-	/* } */
-	
+	else if(ball->type==MB_TUBEY) {
+		if( dy > ball->len) dy-= ball->len;
+		else if(dy< -ball->len) dy+= ball->len;
+		else dy= 0.0;
+	}
+	else if(ball->type==MB_TUBEZ) {
+		if( dz > ball->len) dz-= ball->len;
+		else if(dz< -ball->len) dz+= ball->len;
+		else dz= 0.0;
+	}
+	else if(ball->type==MB_TUBE) {
+		if( dx > ball->expx) dx-= ball->expx;
+		else if(dx< -ball->expx) dx+= ball->expx;
+		else dx= 0.0;
+	}
+	else if(ball->type==MB_PLANE) {
+		if( dx > ball->expx) dx-= ball->expx;
+		else if(dx< -ball->expx) dx+= ball->expx;
+		else dx= 0.0;
+		if( dy > ball->expy) dy-= ball->expy;
+		else if(dy< -ball->expy) dy+= ball->expy;
+		else dy= 0.0;
+	}
+	else if(ball->type==MB_ELIPSOID) {
+		dx *= 1/ball->expx;
+		dy *= 1/ball->expy;
+		dz *= 1/ball->expz;
+	}
+	else if(ball->type==MB_CUBE) {
+		if( dx > ball->expx) dx-= ball->expx;
+		else if(dx< -ball->expx) dx+= ball->expx;
+		else dx= 0.0;
+		if( dy > ball->expy) dy-= ball->expy;
+		else if(dy< -ball->expy) dy+= ball->expy;
+		else dy= 0.0;
+		if( dz > ball->expz) dz-= ball->expz;
+		else if(dz< -ball->expz) dz+= ball->expz;
+		else dz= 0.0;
+	}
+
+	dist2= (dx*dx + dy*dy + dz*dz);
+
 	if(ball->flag & MB_NEGATIVE) {
-		
 		dist2= 1.0f-(dist2/ball->rad2);
 		if(dist2 < 0.0) return 0.5f;
-		
+
 		return 0.5f-ball->s*dist2*dist2*dist2;
-		
 	}
 	else {
 		dist2= 1.0f-(dist2/ball->rad2);
 		if(dist2 < 0.0) return -0.5f;
-		
+
 		return ball->s*dist2*dist2*dist2 -0.5f;
-		
-		/* return ball->s*sin( dist2); */
-		
 	}
-	
 }
 
 
@@ -668,7 +681,7 @@ static int rightface[12]   = {
 
 /* docube: triangulate the cube directly, without decomposition */
 
-void docube(CUBE *cube, PROCESS *p)
+void docube(CUBE *cube, PROCESS *p, MetaBall *mb)
 {
 	INTLISTS *polys;
 	CORNER *c1, *c2;
@@ -685,7 +698,7 @@ void docube(CUBE *cube, PROCESS *p)
 			c1 = cube->corners[corner1[edges->i]];
 			c2 = cube->corners[corner2[edges->i]];
 			
-			indexar[count] = vertid(c1, c2, p);
+			indexar[count] = vertid(c1, c2, p, mb);
 			count++;
 		}
 		if(count>2) {
@@ -1104,7 +1117,7 @@ void vnormal (MB_POINT *point, PROCESS *p, MB_POINT *v)
 }
 
 
-int vertid (CORNER *c1, CORNER *c2, PROCESS *p)
+int vertid (CORNER *c1, CORNER *c2, PROCESS *p, MetaBall *mb)
 {
 	VERTEX v;
 	MB_POINT a, b;
@@ -1118,7 +1131,7 @@ int vertid (CORNER *c1, CORNER *c2, PROCESS *p)
 	b.y = c2->y; 
 	b.z = c2->z;
 
-	converge(&a, &b, c1->value, p->function, &v.position); /* position */
+	converge(&a, &b, c1->value, c2->value, p->function, &v.position, mb); /* position */
 	vnormal(&v.position, p, &v.normal);
 
 	addtovertices(&p->vertices, v);			   /* save vertex */
@@ -1134,44 +1147,110 @@ int vertid (CORNER *c1, CORNER *c2, PROCESS *p)
 /* converge: from two points of differing sign, converge to zero crossing */
 /* watch it: p1 and p2 are used to calculate */
 
-void converge (MB_POINT *p1, MB_POINT *p2, float v,
-			   float (*function)(float, float, float), MB_POINT *p)
+void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
+			   float (*function)(float, float, float), MB_POINT *p, MetaBall *mb)
 {
 	int i = 0;
 	MB_POINT *pos, *neg;
+	float positive = 0.0f, negative = 0.0f;
+	float dx = 0.0f ,dy = 0.0f ,dz = 0.0f;
 	
-	if (v < 0) {
+	if (v1 < 0) {
 		pos= p2;
 		neg= p1;
+		positive = v2;
+		negative = v1;
 	}
 	else {
 		pos= p1;
 		neg= p2;
+		positive = v1;
+		negative = v2;
 	}
+
+	dx = pos->x - neg->x;
+	dy = pos->y - neg->y;
+	dz = pos->z - neg->z;
+
+/* Aproximation by linear interpolation is faster then binary subdivision,
+ * but it results sometimes (mb->thresh < 0.2) into the strange results */
+	if(mb->thresh >0.2){
+	/*if(mb->flag == MB_UPDATE_LINEAR) ... next possibility of Update*/
+	if((dy == 0.0f) && (dz == 0.0f)){
+		p->x = neg->x - negative*dx/(positive-negative);
+		p->y = neg->y;
+		p->z = neg->z;
+		return;
+	}
+  	if((dx == 0.0f) && (dz == 0.0f)){
+		p->x = neg->x;
+		p->y = neg->y - negative*dy/(positive-negative);
+		p->z = neg->z;
+		return;
+	}
+	if((dx == 0.0f) && (dy == 0.0f)){
+		p->x = neg->x;
+		p->y = neg->y;
+		p->z = neg->z - negative*dz/(positive-negative);
+		return;
+	}
+	}
+
+/*if(mb->thresh <= 0.2) then surface vertex is computed by binary subdivision*/
+	if((dy == 0.0f) && (dz == 0.0f)){
+		p->y = neg->y;
+		p->z = neg->z;
+		while (1) {
+			p->x = 0.5f*(pos->x + neg->x);
+			if (i++ == RES) return;
+			if ((function(p->x,p->y,p->z)) > 0.0)	pos->x = p->x; else neg->x = p->x; 
+		}
+	}
+
+	if((dx == 0.0f) && (dz == 0.0f)){
+	p->x = neg->x;
+	p->z = neg->z;
+		while (1) {
+			p->y = 0.5f*(pos->y + neg->y);
+			if (i++ == RES) return;
+			if ((function(p->x,p->y,p->z)) > 0.0)	pos->y = p->y; else neg->y = p->y;
+		}
+  	}
+   
+	if((dx == 0.0f) && (dy == 0.0f)){
+		p->x = neg->x;
+		p->y = neg->y;
+		while (1) {
+			p->z = 0.5f*(pos->z + neg->z);
+			if (i++ == RES) return;
+			if ((function(p->x,p->y,p->z)) > 0.0)	pos->z = p->z; else neg->z = p->z;
+		}
+	}
+
+	/* This is necessary to find start point */
 	while (1) {
 		p->x = 0.5f*(pos->x + neg->x);
 		p->y = 0.5f*(pos->y + neg->y);
 		p->z = 0.5f*(pos->z + neg->z);
-		
+    
 		if (i++ == RES) return;
-		
-		if ((function(p->x, p->y, p->z)) > 0.0) {
-			pos->x = p->x; 
-			pos->y = p->y; 
+   
+		if ((function(p->x, p->y, p->z)) > 0.0){
+			pos->x = p->x;
+			pos->y = p->y;
 			pos->z = p->z;
 		}
-		else {
-			neg->x = p->x; 
-			neg->y = p->y; 
+		else{
+			neg->x = p->x;
+			neg->y = p->y;
 			neg->z = p->z;
 		}
 	}
 }
-
 /* ************************************** */
 
 
-void polygonize(PROCESS *mbproc)
+void polygonize(PROCESS *mbproc, MetaBall *mb)
 {
 	MB_POINT in, out;
 	CUBE c;
@@ -1203,7 +1282,7 @@ void polygonize(PROCESS *mbproc)
 		out.z= in.z + 2.0f*mainb[a]->rad;
 		calc_mballco(mainb[a], (float *)&out);
 		
-		converge(&in, &out, -1.0, mbproc->function, &mbproc->start);
+		converge(&in, &out, -1.0, 1.0, mbproc->function, &mbproc->start, mb);
 	
 		/* NEW1: make sure correct starting position */
 		i= (int)floor(mbproc->start.x/mbproc->size );
@@ -1316,7 +1395,7 @@ void polygonize(PROCESS *mbproc)
 		c = mbproc->cubes->cube;
 
 		/* polygonize the cube directly: */
-		docube(&c, mbproc);
+		docube(&c, mbproc, mb);
 		
 		/* pop current cube from stack */
 		mbproc->cubes = mbproc->cubes->next;
@@ -1402,6 +1481,7 @@ float init_meta(Object *ob)	/* return totsize */
 			}
 		}
 	}
+
 	
 	/* totsize (= 'manhattan' radius) */
 	totsize= 0.0;
@@ -1410,10 +1490,6 @@ float init_meta(Object *ob)	/* return totsize */
 		vec[0]= mainb[a]->x + mainb[a]->rad;
 		vec[1]= mainb[a]->y + mainb[a]->rad;
 		vec[2]= mainb[a]->z + mainb[a]->rad;
-		
-		if(mainb[a]->type==MB_TUBEX) vec[0]+= mainb[a]->len;
-		if(mainb[a]->type==MB_TUBEY) vec[1]+= mainb[a]->len;
-		if(mainb[a]->type==MB_TUBEZ) vec[2]+= mainb[a]->len;
 		
 		calc_mballco(mainb[a], vec);
 	
@@ -1486,7 +1562,7 @@ void metaball_polygonize(Object *ob)
 	mbproc.cubes= 0;
 	mbproc.delta = width/(float)(RES*RES);
 
-	polygonize(&mbproc);
+	polygonize(&mbproc, mb);
 	
 	MEM_freeN(mainb);
 

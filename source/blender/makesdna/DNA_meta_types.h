@@ -44,9 +44,12 @@ struct Material;
 
 typedef struct MetaElem {
 	struct MetaElem *next, *prev;
-	
+
+	struct BoundBox *bb;		/* Bound Box of MetaElem */
+	int i1,j1,k1, i2,j2,k2;		/* corners of Bounding Box in lattice */
+
 	short type, lay, flag, selcol;
-	float x, y, z;
+	float x, y, z;			/* Position of centre of MetaElem */
 	float expx, expy, expz;
 	float rad, rad2, s, len, maxrad2;
 	int pad;
@@ -89,7 +92,10 @@ typedef struct MetaBall {
 #define MB_TUBEX	1
 #define MB_TUBEY	2
 #define MB_TUBEZ	3
-#define MB_CIRCLE	4
+#define MB_TUBE		4
+#define MB_PLANE	5
+#define MB_ELIPSOID	6
+#define MB_CUBE 	7
 
 /* ml->flag */
 #define MB_NEGATIVE	2
