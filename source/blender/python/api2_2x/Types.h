@@ -50,5 +50,6 @@ extern PyTypeObject  buffer_Type, rgbTuple_Type,
 	constant_Type, BezTriple_Type;
 
 extern PyTypeObject vector_Type, matrix_Type, euler_Type, quaternion_Type;
+extern PyTypeObject Action_Type;
 
 #endif /* EXPP_TYPES_H */

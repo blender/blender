@@ -48,6 +48,7 @@ PyObject *Types_Init (void)
 	* do it now, we get an easy way to crash Blender. Maybe we'd better
 	* have an Init function for all these internal types that more than one
 	* module can use.  We could call it after setting the Blender dictionary */
+  Action_Type.ob_type = &PyType_Type;
   matrix_Type.ob_type = &PyType_Type;
   vector_Type.ob_type = &PyType_Type;
   euler_Type.ob_type = &PyType_Type;
@@ -111,6 +112,7 @@ PyObject *Types_Init (void)
   PyDict_SetItemString(dict, "eulerType",  (PyObject *)&euler_Type);
   PyDict_SetItemString(dict, "quaternionType",  (PyObject *)&quaternion_Type);
   PyDict_SetItemString(dict, "BezTripleType", (PyObject *)&BezTriple_Type);
+  PyDict_SetItemString(dict, "ActionType", (PyObject *)&Action_Type);
 
   return submodule;
 }

@@ -38,12 +38,17 @@
 #include <BKE_library.h>
 #include <MEM_guardedalloc.h>
 #include <BLI_blenlib.h>
+#include <DNA_action_types.h>
+#include <BIF_poseobject.h>
+#include <BKE_action.h>
+#include <BSE_editaction.h>
+#include <BKE_constraint.h>
 
 #include "constant.h"
 #include "gen_utils.h"
 #include "modules.h"
 #include "quat.h"
-
+#include "NLA.h"
 
 /*****************************************************************************/
 /* Python API function prototypes for the Bone module.			 */
@@ -102,6 +107,7 @@ static PyObject *Bone_setSize (BPy_Bone * self, PyObject * args);
 static PyObject *Bone_setQuat (BPy_Bone * self, PyObject * args);
 static PyObject *Bone_setParent(BPy_Bone *self, PyObject *args);
 static PyObject *Bone_setWeight(BPy_Bone *self, PyObject *args);
+static PyObject *Bone_setPose (BPy_Bone *self, PyObject *args);
 
 /*****************************************************************************/
 /* Python BPy_Bone methods table:					 */
@@ -157,6 +163,8 @@ static PyMethodDef BPy_Bone_methods[] = {
    "() - set the Bone parent of this one."},
   {"setWeight", (PyCFunction)Bone_setWeight, METH_VARARGS,  
    "() - set the Bone weight."},
+  {"setPose", (PyCFunction)Bone_setPose, METH_VARARGS,  
+   "() - set a pose for this bone at a frame."},
   {NULL, NULL, 0, NULL}
 };
 
@@ -253,6 +261,10 @@ Bone_Init (void)
 
   submodule = Py_InitModule3 ("Blender.Armature.Bone",
 			      M_Bone_methods, M_Bone_doc);
+
+  PyModule_AddIntConstant(submodule, "ROT",  POSE_ROT);
+  PyModule_AddIntConstant(submodule, "LOC",  POSE_LOC);
+  PyModule_AddIntConstant(submodule, "SIZE", POSE_SIZE);
 
   return (submodule);
 }
@@ -728,7 +740,7 @@ Bone_setWeight(BPy_Bone *self, PyObject *args)
   float weight;
 
   if (!self->bone)
-    (EXPP_ReturnPyObjError (PyExc_RuntimeError,
+    return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 			    "couldn't get attribute from a NULL bone"));
 
   if (!PyArg_ParseTuple (args, "f", &weight))
@@ -753,7 +765,7 @@ Bone_clearParent(BPy_Bone *self)
   float M_boneObjectspace[4][4];
 
   if (!self->bone) 
-	  (EXPP_ReturnPyObjError (PyExc_RuntimeError, "bone contains no data!"));
+	  return (EXPP_ReturnPyObjError (PyExc_RuntimeError, "bone contains no data!"));
 
   if(self->bone->parent == NULL)
 	  return EXPP_incr_ret(Py_None);
@@ -810,46 +822,43 @@ Bone_clearParent(BPy_Bone *self)
 static PyObject *
 Bone_clearChildren(BPy_Bone *self)
 { 
+  Bone *root = NULL;
   Bone *child = NULL;
   bArmature *arm = NULL;
   Bone *bone = NULL;
-  Bone *parent = NULL;
   Bone *prev = NULL;
   Bone *next = NULL;
   float M_boneObjectspace[4][4];
   int first;
 
   if (!self->bone) 
-	  (EXPP_ReturnPyObjError (PyExc_RuntimeError, "bone contains no data!"));
+	  return (EXPP_ReturnPyObjError (PyExc_RuntimeError, "bone contains no data!"));
 
   if(self->bone->childbase.first == NULL)
 	  return EXPP_incr_ret(Py_None);
 
-  //get the root bone
-  parent = bone->parent;
-
-  if(parent != NULL){
-	  while(parent->parent != NULL){
-		  parent = parent->parent;
-	  }
-  }else{
-	  parent = bone;
-  }
-
-  //get the armature
-  for (arm = G.main->armature.first; arm; arm = arm->id.next) {
-	  for(bone = arm->bonebase.first; bone; bone = bone->next){
-		  if(parent == bone){
-			  //we found the correct armature	   
-			  goto gotArmature;
-		  }
-	  }			
-  }
-
-gotArmature:
+	//is this bone a part of an armature....
+	//get root bone for testing
+	root = self->bone->parent;
+	if(root != NULL){
+		while (root->parent != NULL){
+			root = root->parent;
+		}
+	}else{
+		root = self->bone;
+	}
+	//test armatures for root bone
+	for(arm= G.main->armature.first; arm; arm  = arm->id.next){
+		for(bone = arm->bonebase.first; bone; bone = bone->next){
+			if(bone == root)
+				break;
+		}
+		if(bone == root)
+			break;
+	}
 
   if(arm == NULL)
-	 (EXPP_ReturnPyObjError (PyExc_RuntimeError, "couldn't find armature that contains this bone"));
+	 return (EXPP_ReturnPyObjError (PyExc_RuntimeError, "couldn't find armature that contains this bone"));
 
   //now get rid of the parent transformation
   get_objectspace_bone_matrix(self->bone, M_boneObjectspace, 0,0);
@@ -888,7 +897,7 @@ static PyObject *
 Bone_hide(BPy_Bone *self)
 {
   if (!self->bone) 
-	  (EXPP_ReturnPyObjError (PyExc_RuntimeError, "bone contains no data!"));
+	  return (EXPP_ReturnPyObjError (PyExc_RuntimeError, "bone contains no data!"));
 
   if(!(self->bone->flag & BONE_HIDDEN))
 	self->bone->flag |= BONE_HIDDEN;
@@ -902,7 +911,7 @@ static PyObject *
 Bone_unhide(BPy_Bone *self)
 {
   if (!self->bone) 
-	  (EXPP_ReturnPyObjError (PyExc_RuntimeError, "bone contains no data!"));
+	  return (EXPP_ReturnPyObjError (PyExc_RuntimeError, "bone contains no data!"));
 
   if(self->bone->flag & BONE_HIDDEN)
 	self->bone->flag &= ~BONE_HIDDEN;
@@ -912,7 +921,144 @@ Bone_unhide(BPy_Bone *self)
 }
 
 
+static PyObject *
+Bone_setPose (BPy_Bone *self, PyObject *args)
+{
+	Bone *root = NULL;
+	bPoseChannel *chan = NULL;
+	bPoseChannel *setChan = NULL;
+	bPoseChannel *test = NULL;
+	Object *object =NULL;
+	bArmature *arm = NULL;
+	Bone *bone = NULL;
+	PyObject *flaglist = NULL;
+	PyObject *item = NULL;
+	BPy_Action *py_action = NULL;
+	int x;
+	int flagValue = 0;
+	int makeCurve = 1;
 
+	if (!PyArg_ParseTuple (args, "O!|O!", &PyList_Type, &flaglist, &Action_Type, &py_action))
+			return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+															"expected list of flags and optional action"));
+
+	for(x = 0; x <  PyList_Size(flaglist); x++){
+		 item = PyList_GetItem(flaglist, x); 
+		 if(PyInt_Check(item)){
+			 flagValue |= PyInt_AsLong(item);
+		 }else{
+			return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+							"expected list of flags (ints)"));
+		}
+	}
+
+	//is this bone a part of an armature....
+	//get root bone for testing
+	root = self->bone->parent;
+	if(root != NULL){
+		while (root->parent != NULL){
+			root = root->parent;
+		}
+	}else{
+		root = self->bone;
+	}
+	//test armatures for root bone
+	for(arm= G.main->armature.first; arm; arm  = arm->id.next){
+		for(bone = arm->bonebase.first; bone; bone = bone->next){
+			if(bone == root)
+				break;
+		}
+		if(bone == root)
+			break;
+	}
+
+	if(arm == NULL)
+		return (EXPP_ReturnPyObjError (PyExc_RuntimeError, 
+			"bone must belong to an armature to set it's pose!"));
+
+	//find if armature is object linked....
+	for(object = G.main->object.first; object; object  = object->id.next){
+		if(object->data == arm){
+			break;
+		}
+	}
+
+	if(object == NULL)
+ 		return (EXPP_ReturnPyObjError (PyExc_RuntimeError, 
+			"armature must be linked to an object to set a pose!"));
+
+	//set the active action as this one
+	if(py_action !=NULL){
+		if(py_action->action != NULL){
+            object->action = py_action->action;
+		}
+	}
+
+	//if object doesn't have a pose create one
+	if (!object->pose) 
+		object->pose = MEM_callocN(sizeof(bPose), "Pose");
+
+	//if bone does have a channel create one
+	verify_pose_channel(object->pose, self->bone->name);
+
+	//create temp Pose Channel
+	chan = MEM_callocN(sizeof(bPoseChannel), "PoseChannel");
+	//set the variables for this pose
+	memcpy (chan->loc, self->bone->loc, sizeof (chan->loc));
+	memcpy (chan->quat, self->bone->quat, sizeof (chan->quat));
+	memcpy (chan->size, self->bone->size, sizeof (chan->size));
+	strcpy (chan->name, self->bone->name);
+	chan->flag |= flagValue;
+
+	//set it to the channel
+	setChan = set_pose_channel(object->pose, chan);
+
+	//frees unlinked pose/bone channels from object
+	collect_pose_garbage(object);
+
+	//create an action if one not already assigned to object
+	if (!py_action && !object->action){
+		object->action = (bAction*)add_empty_action();
+		object->ipowin= ID_AC;
+	}else{
+		  //test if posechannel is already in action
+		for(test = object->action->chanbase.first; test; test = test->next){
+			if(test == setChan)
+				makeCurve = 0; //already there
+		}
+	}
+
+   //set posekey flag
+   filter_pose_keys ();
+
+ 	//set action keys
+	if (setChan->flag & POSE_ROT){
+		set_action_key(object->action, setChan, AC_QUAT_X, makeCurve);
+		set_action_key(object->action, setChan, AC_QUAT_Y, makeCurve);
+		set_action_key(object->action, setChan, AC_QUAT_Z, makeCurve);
+		set_action_key(object->action, setChan, AC_QUAT_W, makeCurve);
+	}
+	if (setChan->flag & POSE_SIZE){
+		set_action_key(object->action, setChan, AC_SIZE_X, makeCurve);
+		set_action_key(object->action, setChan, AC_SIZE_Y, makeCurve);
+		set_action_key(object->action, setChan, AC_SIZE_Z, makeCurve);
+	}
+	if (setChan->flag & POSE_LOC){
+		set_action_key(object->action, setChan, AC_LOC_X, makeCurve);
+		set_action_key(object->action, setChan, AC_LOC_Y, makeCurve);
+		set_action_key(object->action, setChan, AC_LOC_Z, makeCurve);
+	}
+
+	//rebuild ipos
+	remake_action_ipos(object->action);
+
+	//rebuild displists
+	rebuild_all_armature_displists();
+
+	Py_INCREF(Py_None);
+    return Py_None;
+}
+   
 /*****************************************************************************/
 /* Function:	Bone_dealloc												*/
 /* Description: This is a callback function for the BPy_Bone type. It is     */

@@ -48,6 +48,7 @@
 #include <DNA_image_types.h>
 #include <DNA_text_types.h>
 #include <DNA_world_types.h>
+#include <DNA_action_types.h>
 
 /*****************************************************************************/
 /* Global variables                                                          */
@@ -188,6 +189,6 @@ PyObject * Window_Init (void);
 PyObject * Draw_Init (void);
 PyObject * BGL_Init (void);
 PyObject * Mathutils_Init (void);
-
+PyObject * NLA_Init (void);
 
 #endif /* EXPP_modules_h */

@@ -34,6 +34,7 @@
 */
 
 #include "Object.h"
+#include "NLA.h"
 
 /*****************************************************************************/
 /* Python API function prototypes for the Blender module.					 */
@@ -89,7 +90,6 @@ struct PyMethodDef M_Object_methods[] = {
 static PyObject *Object_buildParts (BPy_Object *self);
 static PyObject *Object_clearIpo (BPy_Object *self);
 static PyObject *Object_clrParent (BPy_Object *self, PyObject *args);
-static PyObject *Object_getActionIpos (BPy_Object *self);
 static PyObject *Object_getData (BPy_Object *self);
 static PyObject *Object_getDeltaLocation (BPy_Object *self);
 static PyObject *Object_getDrawMode (BPy_Object *self);
@@ -107,6 +107,7 @@ static PyObject *Object_getTimeOffset (BPy_Object *self);
 static PyObject *Object_getTracked (BPy_Object *self);
 static PyObject *Object_getType (BPy_Object *self);
 static PyObject *Object_getBoundBox (BPy_Object *self);
+static PyObject *Object_getAction (BPy_Object *self);
 static PyObject *Object_makeDisplayList (BPy_Object *self);
 static PyObject *Object_link (BPy_Object *self, PyObject *args);
 static PyObject *Object_makeParent (BPy_Object *self, PyObject *args);
@@ -137,8 +138,6 @@ static PyMethodDef BPy_Object_methods[] = {
 	"Clears parent object. Optionally specify:\n\
 mode\n\t2: Keep object transform\nfast\n\t>0: Don't update scene \
 hierarchy (faster)"},
-  {"getActionIpos", (PyCFunction)Object_getActionIpos, METH_NOARGS,
-	"() - Return a dict of (name:ipo)-keys containing each channel in the object's action"},
   {"getData", (PyCFunction)Object_getData, METH_NOARGS,
 	"Returns the datablock object containing the object's data, e.g. Mesh"},
   {"getDeltaLocation", (PyCFunction)Object_getDeltaLocation, METH_NOARGS,
@@ -147,6 +146,8 @@ hierarchy (faster)"},
 	"Returns the object draw modes"},
   {"getDrawType", (PyCFunction)Object_getDrawType, METH_NOARGS,
 	"Returns the object draw type"},
+  {"getAction", (PyCFunction)Object_getAction, METH_NOARGS,
+	"Returns the active action for this object"},
   {"getEuler", (PyCFunction)Object_getEuler, METH_NOARGS,
 	"Returns the object's rotation as Euler rotation vector\n\
 (rotX, rotY, rotZ)"},
@@ -645,59 +646,6 @@ int EXPP_add_obdata(struct Object *object)
   return 0;
 }
 
-static PyObject *Object_getActionIpos (BPy_Object *self)
-{
-	Object *obj=self->object;
-	PyObject *dict=PyDict_New ();
-	bAction *action = NULL;
-	bActionChannel *bone = NULL;
-	
-	if (obj->type==OB_ARMATURE) {
-		
-		if (obj->action!=0) {
-		
-			action = obj->action;
-			bone = (bActionChannel*)(action->chanbase.first);
-			
-			// Go through the list of bones
-			while (bone!=0) {
-				
-				// Does this bone have an ipo?
-				if (bone->ipo!=0) {
-					
-					PyObject *ipo_attr=Ipo_CreatePyObject (bone->ipo);
-					
-					if (ipo_attr) {
-
-						// Insert dict entry using the bone name as key
-						if (PyDict_SetItemString (dict, bone->name, ipo_attr)!=0) {
-							Py_DECREF ( ipo_attr );
-							Py_DECREF ( dict );
-							
-							return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-									"Object_getActionIpos: couldn't set dict item");
-						}
-						
-						Py_DECREF (ipo_attr);
-						
-					} else {
-						
-						Py_DECREF ( dict );
-						
-						return (PythonReturnErrorObject (PyExc_RuntimeError,
-						"Object_getActionIpos: could not create Ipo object"));
-
-					}
-				}
-				
-				bone=bone->next;
-			}
-		}	
-	}
-	
-	return dict;
-}
-
 
 static PyObject *Object_getData (BPy_Object *self)
 {
@@ -789,6 +737,18 @@ static PyObject *Object_getDrawMode (BPy_Object *self)
 
 	return (PythonReturnErrorObject (PyExc_RuntimeError,
 			"couldn't get Object.drawMode attribute"));
+}
+
+static PyObject *Object_getAction (BPy_Object *self)
+{
+	BPy_Action *py_action = NULL;
+
+	if(!self->object->action){
+		Py_INCREF (Py_None);
+		return (Py_None);
+	}else{
+		return Action_CreatePyObject (self->object->action);
+	}
 }
 
 static PyObject *Object_getDrawType (BPy_Object *self)

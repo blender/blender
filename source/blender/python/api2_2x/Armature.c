@@ -31,6 +31,7 @@
 
 #include "Armature.h"
 #include "Bone.h"
+#include "NLA.h"
 
 #include <stdio.h>
 
@@ -60,18 +61,18 @@ PyObject *Armature_Init (void);
 /* In Python these will be written to the console when doing a               */
 /* Blender.Armature.__doc__                                                  */
 /*****************************************************************************/
-char M_Armature_doc[] = "The Blender Armature module\n\n\
+static char M_Armature_doc[] = "The Blender Armature module\n\n\
 This module provides control over **Armature Data** objects in Blender.\n";
 
-char M_Armature_New_doc[] = "(name) - return a new Armature datablock of \n\
+static char M_Armature_New_doc[] = "(name) - return a new Armature datablock of \n\
           optional name 'name'.";
 
-char M_Armature_Get_doc[] =
+static char M_Armature_Get_doc[] =
   "(name) - return the armature with the name 'name', \
 returns None if not found.\n If 'name' is not specified, \
 it returns a list of all armatures in the\ncurrent scene.";
 
-char M_Armature_get_doc[] = "(name) - DEPRECATED. Use 'Get' instead. \
+static char M_Armature_get_doc[] = "(name) - DEPRECATED. Use 'Get' instead. \
 return the armature with the name 'name', \
 returns None if not found.\n If 'name' is not specified, \
 it returns a list of all armatures in the\ncurrent scene.";
@@ -179,9 +180,10 @@ M_Armature_New (PyObject * self, PyObject * args, PyObject * keywords)
     /* now create the wrapper obj in Python */
     py_armature = (BPy_Armature *)PyObject_NEW(BPy_Armature, &Armature_Type);
   }
-  else
+  else{
     return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
            "couldn't create Armature Data in Blender"));
+  }
 
   if (py_armature == NULL)
     return (EXPP_ReturnPyObjError (PyExc_MemoryError,
@@ -296,6 +298,7 @@ Armature_Init (void)
   /* Add the Bone submodule to this module */
   dict = PyModule_GetDict (submodule);
   PyDict_SetItemString (dict, "Bone", Bone_Init ());
+  PyDict_SetItemString (dict, "NLA", NLA_Init ());
 
   return (submodule);
 }
@@ -391,6 +394,24 @@ doesBoneName_exist(char *name, bArmature* arm)
   return 0;
 }
 
+static int 
+testChildInChildbase(Bone *bone, Bone *test)
+{
+	Bone *child;
+	for(child = bone->childbase.first; child; child = child->next){
+		if(child == test){
+			return 1;
+		}else{
+			if(child->childbase.first != NULL){
+				if(testChildInChildbase(child, test)){
+					return 1;
+				}
+			}
+		}
+	}
+	return 0;
+}
+
 static int
 testBoneInArmature(bArmature *arm, Bone *test)
 {
@@ -399,6 +420,12 @@ testBoneInArmature(bArmature *arm, Bone *test)
 	for(root = arm->bonebase.first; root; root = root->next){
 		if(root == test){
 			return 1;
+		}else{
+			if(root->childbase.first != NULL){
+				if(testChildInChildbase(root, test)){
+					return 1;
+				}
+			}
 		}
 	}
 
@@ -432,7 +459,7 @@ static PyObject *Armature_addBone(BPy_Armature *self, PyObject *args)
 		
 		//add to parent's childbase
 		BLI_addtail (&py_bone->bone->parent->childbase, py_bone->bone);
-		
+
 		//get the worldspace coords for the parent
 		get_objectspace_bone_matrix(py_bone->bone->parent, M_boneObjectspace, 0,0);
 

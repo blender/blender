@@ -17,35 +17,37 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Jordi Rovira i Bonet
+ * Contributor(s): Joseph Gilbert
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#ifndef EXPP_BONE_H
-#define EXPP_BONE_H
+#ifndef EXPP_NLA_H
+#define EXPP_NLA_H
 
 #include <Python.h>
-#include <DNA_armature_types.h>
+#include <DNA_action_types.h>
 
-/** Bone module initialization function. */
-PyObject *Bone_Init (void);
+/** NLA module initialization function. */
+PyObject *NLA_Init (void);
 
-/** Python BPy_Bone structure definition. */
-typedef struct{
-  PyObject_HEAD  
-  Bone *bone;
-}BPy_Bone;
+/** Python BPy_NLA structure definition. */
+typedef struct
+{
+  PyObject_HEAD
+  bAction *action;
+}
+BPy_Action;
 
-PyObject *Bone_CreatePyObject (struct Bone *obj);
-int Bone_CheckPyObject (PyObject * py_obj);
-Bone *Bone_FromPyObject (PyObject * py_obj);
+PyObject *Action_CreatePyObject (struct bAction *action);
+int Action_CheckPyObject (PyObject * py_obj);
+bAction *Action_FromPyObject (PyObject * py_obj);
 
 #endif
