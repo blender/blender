@@ -54,10 +54,6 @@
 
 #include "BMF_Api.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_arithb.h"
-#include "BLI_editVert.h"
-#include "BLI_ghash.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -82,6 +78,11 @@
 #include "DNA_property_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_constraint_types.h"
+
+#include "BLI_blenlib.h"
+#include "BLI_arithb.h"
+#include "BLI_editVert.h"
+#include "BLI_ghash.h"
 
 #include "BKE_nla.h"
 #include "BKE_utildefines.h"

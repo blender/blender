@@ -41,6 +41,7 @@
 
 #include "BLI_util.h"
 #include "DNA_listBase.h"
+#include "DNA_mesh_types.h"
 #include "BLI_editVert.h"
 #include "BLI_arithb.h"
 #include "BLI_scanfill.h"

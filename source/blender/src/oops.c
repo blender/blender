@@ -35,7 +35,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
-#include "BLI_editVert.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_image_types.h"

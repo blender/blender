@@ -50,7 +50,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
-#include "BLI_editVert.h"
 #include "BLI_storage_types.h"
 
 #include "IMB_imbuf_types.h"

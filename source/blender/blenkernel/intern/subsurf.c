@@ -830,10 +830,10 @@ static DispList *hypermesh_to_displist(HyperMesh *hme, short flag) {
 		if (hme->hasuvco) {
 			TFace *origtf, *tf= &dlm->tface[i];
 			
-			if (hme->orig_me)
+			//if (hme->orig_me)
 				origtf= &tfaces[f->orig.ind];
-			else
-				origtf= f->orig.ef->tface;
+			//else		ton: removed, hme->hasuvco doesn't happen in editmode (yet?)
+			//	origtf= f->orig.ef->tface;
 			
 			for (j=0; j<4; j++) {
 				Vec2Cpy(tf->uv[j], f->uvco[(j+voff)%4]);

@@ -66,7 +66,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
-#include "BLI_editVert.h"
 
 #include "BKE_plugin_types.h"
 #include "BKE_utildefines.h"

@@ -44,15 +44,12 @@
 #include "BLI_winstuff.h"
 #endif
 
-#include "BLI_blenlib.h"
-#include "BLI_arithb.h"
-#include "BLI_editVert.h"
-
 #include "IMB_imbuf.h"
 #include "PIL_time.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_object_types.h"
@@ -60,6 +57,10 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
+
+#include "BLI_blenlib.h"
+#include "BLI_arithb.h"
+#include "BLI_editVert.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_global.h"

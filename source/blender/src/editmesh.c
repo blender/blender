@@ -48,11 +48,6 @@
 
 #include "PIL_time.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_arithb.h"
-#include "BLI_editVert.h"
-#include "BLI_rand.h"
-
 #include "MTC_matrixops.h"
 
 #include "DNA_mesh_types.h"
@@ -64,6 +59,11 @@
 #include "DNA_material_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
+
+#include "BLI_blenlib.h"
+#include "BLI_arithb.h"
+#include "BLI_editVert.h"
+#include "BLI_rand.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_key.h"
@@ -457,18 +457,16 @@ EditVlak *addvlaklist(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, Ed
 
 	if(example) {
 		evl->mat_nr= example->mat_nr;
-		evl->tface= example->tface;
+		evl->tf= example->tf;
 		evl->flag= example->flag;
-		memcpy(evl->col, example->col, sizeof(example->col));
-		memcpy(evl->uv, example->uv, sizeof(example->uv));
 	}
 	else { 
 		if (G.obedit && G.obedit->actcol)
 			evl->mat_nr= G.obedit->actcol-1;
-		default_uv(evl->uv, 1.0);
+		default_uv(evl->tf.uv, 1.0);
 
 		/* Initialize colors */
-		evl->col[0]= evl->col[1]= evl->col[2]= evl->col[3]= vpaint_get_current_col();
+		evl->tf.col[0]= evl->tf.col[1]= evl->tf.col[2]= evl->tf.col[3]= vpaint_get_current_col();
 	}
 	
 	BLI_addtail(&G.edvl, evl);
@@ -595,21 +593,17 @@ static void flipvlak(EditVlak *evl)
 		SWAP(EditVert *, evl->v2, evl->v4);
 		SWAP(EditEdge *, evl->e1, evl->e4);
 		SWAP(EditEdge *, evl->e2, evl->e3);
-		SWAP(unsigned int, evl->col[1], evl->col[3]);
-		if(evl->tface) {
-			SWAP(float, evl->uv[1][0], evl->uv[3][0]);
-			SWAP(float, evl->uv[1][1], evl->uv[3][1]);
-		}
+		SWAP(unsigned int, evl->tf.col[1], evl->tf.col[3]);
+		SWAP(float, evl->tf.uv[1][0], evl->tf.uv[3][0]);
+		SWAP(float, evl->tf.uv[1][1], evl->tf.uv[3][1]);
 	}
 	else {
 		SWAP(EditVert *, evl->v2, evl->v3);
 		SWAP(EditEdge *, evl->e1, evl->e3);
-		SWAP(unsigned int, evl->col[1], evl->col[2]);
+		SWAP(unsigned int, evl->tf.col[1], evl->tf.col[2]);
 		evl->e2->dir= 1-evl->e2->dir;
-		if(evl->tface) {
-			SWAP(float, evl->uv[1][0], evl->uv[2][0]);
-			SWAP(float, evl->uv[1][1], evl->uv[2][1]);
-		}
+		SWAP(float, evl->tf.uv[1][0], evl->tf.uv[2][0]);
+		SWAP(float, evl->tf.uv[1][1], evl->tf.uv[2][1]);
 	}
 	if(evl->v4) CalcNormFloat4(evl->v1->co, evl->v2->co, evl->v3->co, evl->v4->co, evl->n);
 	else CalcNormFloat(evl->v1->co, evl->v2->co, evl->v3->co, evl->n);
@@ -1056,11 +1050,10 @@ void make_editMesh_real(Mesh *me)
 			evl= addvlaklist(eve1, eve2, eve3, eve4, NULL);
 			
 			if(evl) {
-				if(mcol) memcpy(evl->col, mcol, 4*sizeof(int));
+				if(mcol) memcpy(evl->tf.col, mcol, 4*sizeof(int));
 
 				if(me->tface) {
-					memcpy(evl->col, tface->col, sizeof(tface->col));
-					memcpy(evl->uv, tface->uv, sizeof(tface->uv));
+					evl->tf= *tface;
 
 					if( tface->flag & TF_SELECT) {
 						if(G.f & G_FACESELECT) {
@@ -1074,7 +1067,6 @@ void make_editMesh_real(Mesh *me)
 			
 				evl->mat_nr= mface->mat_nr;
 				evl->flag= mface->flag;
-				evl->tface= tface;
 			}
 
 			if(me->tface) tface++;
@@ -1145,15 +1137,15 @@ static void fix_faceindices(MFace *mface, EditVlak *evl, int nr)
 			SWAP(int, mface->v1, mface->v2);
 			SWAP(int, mface->v2, mface->v3);
 			/* rotate face UV coordinates, too */
-			UVCOPY(tmpuv, evl->uv[0]);
-			UVCOPY(evl->uv[0], evl->uv[1]);
-			UVCOPY(evl->uv[1], evl->uv[2]);
-			UVCOPY(evl->uv[2], tmpuv);
+			UVCOPY(tmpuv, evl->tf.uv[0]);
+			UVCOPY(evl->tf.uv[0], evl->tf.uv[1]);
+			UVCOPY(evl->tf.uv[1], evl->tf.uv[2]);
+			UVCOPY(evl->tf.uv[2], tmpuv);
 			/* same with vertex colours */
-			tmpcol = evl->col[0];
-			evl->col[0] = evl->col[1];
-			evl->col[1] = evl->col[2];
-			evl->col[2] = tmpcol;
+			tmpcol = evl->tf.col[0];
+			evl->tf.col[0] = evl->tf.col[1];
+			evl->tf.col[1] = evl->tf.col[2];
+			evl->tf.col[2] = tmpcol;
 
 			
 			a= mface->edcode;
@@ -1174,19 +1166,19 @@ static void fix_faceindices(MFace *mface, EditVlak *evl, int nr)
 			SWAP(int, mface->v1, mface->v3);
 			SWAP(int, mface->v2, mface->v4);
 			/* swap UV coordinates */
-			UVCOPY(tmpuv, evl->uv[0]);
-			UVCOPY(evl->uv[0], evl->uv[2]);
-			UVCOPY(evl->uv[2], tmpuv);
-			UVCOPY(tmpuv, evl->uv[1]);
-			UVCOPY(evl->uv[1], evl->uv[3]);
-			UVCOPY(evl->uv[3], tmpuv);
+			UVCOPY(tmpuv, evl->tf.uv[0]);
+			UVCOPY(evl->tf.uv[0], evl->tf.uv[2]);
+			UVCOPY(evl->tf.uv[2], tmpuv);
+			UVCOPY(tmpuv, evl->tf.uv[1]);
+			UVCOPY(evl->tf.uv[1], evl->tf.uv[3]);
+			UVCOPY(evl->tf.uv[3], tmpuv);
 			/* swap vertex colours */
-			tmpcol = evl->col[0];
-			evl->col[0] = evl->col[2];
-			evl->col[2] = tmpcol;
-			tmpcol = evl->col[1];
-			evl->col[1] = evl->col[3];
-			evl->col[3] = tmpcol;
+			tmpcol = evl->tf.col[0];
+			evl->tf.col[0] = evl->tf.col[2];
+			evl->tf.col[2] = tmpcol;
+			tmpcol = evl->tf.col[1];
+			evl->tf.col[1] = evl->tf.col[3];
+			evl->tf.col[3] = tmpcol;
 
 			a= mface->edcode;
 			mface->edcode= 0;
@@ -1443,60 +1435,53 @@ void load_editMesh_real(Mesh *me, int undo)
 		tex_space_mesh(me);
 		if(actkey) mesh_to_key(me, actkey);
 		
-		/* texmesh: using ->tface remake all */
-		if((me->tface && me->totface)||undo) {
+		/* tface block, always when undo even when it wasnt used, this because of empty me pointer */
+		if( (me->tface || undo) && me->totface ) {
 			TFace *tfn, *tf;
 			
 			tf=tfn= MEM_callocN(sizeof(TFace)*me->totface, "tface");
 			evl= G.edvl.first;
 			while(evl) {
 				
-				if(evl->tface) *tf= *(evl->tface);
-				else default_tface(tf);
-				
-				memcpy(tf->col, evl->col, sizeof(tf->col));
-				memcpy(tf->uv, evl->uv, sizeof(tf->uv));
+				*tf= evl->tf;
 				
 				if(G.f & G_FACESELECT) {
 					if( vlakselectedAND(evl, 1) ) tf->flag |= TF_SELECT;
 					else tf->flag &= ~TF_SELECT;
 				}
 				
-				/* sometimes editmode doesn't free (before render) */
-/*				evl->tface= tf;	intrr: FIXME: Not sure about this one */
-
 				tf++;
 				evl= evl->next;
 			}
-			
-			/* MEM_freeN(me->tface); intrr: FIXME: Not sure either :) */
+			/* if undo, me was empty */
+			if(me->tface) MEM_freeN(me->tface);
 			me->tface= tfn;
 		}
 		else if(me->tface) {
-			/* freeN(me->tface); */
-			/* me->tface= 0; */
+			MEM_freeN(me->tface);
+			me->tface= NULL;
 		}
 		
-		/* mcol: using index numbers make again */
-		if(me->mcol && me->totface) {
+		/* mcol: same as tface... */
+		if( (me->mcol || undo) && me->totface) {
 			unsigned int *mcn, *mc;
 			
 			mc=mcn= MEM_mallocN(4*sizeof(int)*me->totface, "mcol");
 			evl= G.edvl.first;
 			while(evl) {
 			
-				memcpy(mc, evl->col, 4*sizeof(int));
+				memcpy(mc, evl->tf.col, 4*sizeof(int));
 				
 				mc+=4;
 				evl= evl->next;
 			}
 			
-			MEM_freeN(me->mcol);
+			if(me->mcol) MEM_freeN(me->mcol);
 			me->mcol= (MCol *)mcn;
 		}
 		else if(me->mcol) {
 			MEM_freeN(me->mcol);
-			me->mcol= 0;
+			me->mcol= NULL;
 		}
 	}
 	
@@ -1711,15 +1696,13 @@ void convert_to_triface(int all)
 				evln= addvlaklist(evl->v1, evl->v2, evl->v3, 0, evl);
 				evln= addvlaklist(evl->v1, evl->v3, evl->v4, 0, evl);
 
-				if(evl->tface) {
-					evln->uv[1][0]= evln->uv[2][0];
-					evln->uv[1][1]= evln->uv[2][1];
-					evln->uv[2][0]= evln->uv[3][0];
-					evln->uv[2][1]= evln->uv[3][1];
-				}
+				evln->tf.uv[1][0]= evln->tf.uv[2][0];
+				evln->tf.uv[1][1]= evln->tf.uv[2][1];
+				evln->tf.uv[2][0]= evln->tf.uv[3][0];
+				evln->tf.uv[2][1]= evln->tf.uv[3][1];
 				
-				evln->col[1]= evln->col[2];
-				evln->col[2]= evln->col[3];
+				evln->tf.col[1]= evln->tf.col[2];
+				evln->tf.col[2]= evln->tf.col[3];
 				
 				BLI_remlink(&G.edvl, evl);
 				freevlak(evl);
@@ -3456,11 +3439,11 @@ static void set_wuv(int tot, EditVlak *evl, int v1, int v2, int v3, int v4)
 	int a, v;
 						/* Numbers corespond to verts (corner points), 	*/
 						/* edge->vn's (center edges), the Center 	*/
-	memcpy(uvo, evl->uv, sizeof(uvo));	/* And the quincunx points of a face 		*/
-	uv= evl->uv[0];				/* as shown here:     				*/
+	memcpy(uvo, evl->tf.uv, sizeof(uvo));	/* And the quincunx points of a face 		*/
+	uv= evl->tf.uv[0];				/* as shown here:     				*/
 						/*           2         5          1		*/
-	memcpy(colo, evl->col, sizeof(colo));	/*		 10         13     		*/
-	col= evl->col;				/* 	     6		9	   8		*/
+	memcpy(colo, evl->tf.col, sizeof(colo));	/*		 10         13     		*/
+	col= evl->tf.col;				/* 	     6		9	   8		*/
 						/*		 11	    12    		*/
 	if(tot==4) {				/*	     3		7	   4            */
 		for(a=0; a<4; a++, uv+=2, col++) {
@@ -5725,84 +5708,84 @@ static void givequadverts(EditVlak *evl, EditVlak *evl1, EditVert **v1, EditVert
 	//if(evl->v1!=evl1->v1 && evl->v1!=evl1->v2 && evl->v1!=evl1->v3) {
 		*v1= evl->v1;
 		*v2= evl->v2;
-		uv[0] = evl->uv[0];
-		uv[1] = evl->uv[1];
-		col[0] = evl->col[0];
-		col[1] = evl->col[1];
+		uv[0] = evl->tf.uv[0];
+		uv[1] = evl->tf.uv[1];
+		col[0] = evl->tf.col[0];
+		col[1] = evl->tf.col[1];
 	}
 	else if VTEST(evl, 2, evl1) {
 	//else if(evl->v2!=evl1->v1 && evl->v2!=evl1->v2 && evl->v2!=evl1->v3) {
 		*v1= evl->v2;
 		*v2= evl->v3;
-		uv[0] = evl->uv[1];
-		uv[1] = evl->uv[2];
-		col[0] = evl->col[1];
-		col[1] = evl->col[2];
+		uv[0] = evl->tf.uv[1];
+		uv[1] = evl->tf.uv[2];
+		col[0] = evl->tf.col[1];
+		col[1] = evl->tf.col[2];
 	}
 	else if VTEST(evl, 3, evl1) {
 	// else if(evl->v3!=evl1->v1 && evl->v3!=evl1->v2 && evl->v3!=evl1->v3) {
 		*v1= evl->v3;
 		*v2= evl->v1;
-		uv[0] = evl->uv[2];
-		uv[1] = evl->uv[0];
-		col[0] = evl->col[2];
-		col[1] = evl->col[0];
+		uv[0] = evl->tf.uv[2];
+		uv[1] = evl->tf.uv[0];
+		col[0] = evl->tf.col[2];
+		col[1] = evl->tf.col[0];
 	}
 	
 	if VTEST(evl1, 1, evl) {
 	// if(evl1->v1!=evl->v1 && evl1->v1!=evl->v2 && evl1->v1!=evl->v3) {
 		*v3= evl1->v1;
-		uv[2] = evl1->uv[0];
-		col[2] = evl1->col[0];
+		uv[2] = evl1->tf.uv[0];
+		col[2] = evl1->tf.col[0];
 
 		*v4= evl1->v2;
-		uv[3] = evl1->uv[1];
-		col[3] = evl1->col[1];
+		uv[3] = evl1->tf.uv[1];
+		col[3] = evl1->tf.col[1];
 /*
 if(evl1->v2== *v2) {
 			*v4= evl1->v3;
-			uv[3] = evl1->uv[2];
+			uv[3] = evl1->tf.uv[2];
 		} else {
 			*v4= evl1->v2;
-			uv[3] = evl1->uv[1];
+			uv[3] = evl1->tf.uv[1];
 		}	
 		*/
 	}
 	else if VTEST(evl1, 2, evl) {
 	// else if(evl1->v2!=evl->v1 && evl1->v2!=evl->v2 && evl1->v2!=evl->v3) {
 		*v3= evl1->v2;
-		uv[2] = evl1->uv[1];
-		col[2] = evl1->col[1];
+		uv[2] = evl1->tf.uv[1];
+		col[2] = evl1->tf.col[1];
 
 		*v4= evl1->v3;
-		uv[3] = evl1->uv[2];
-		col[3] = evl1->col[2];
+		uv[3] = evl1->tf.uv[2];
+		col[3] = evl1->tf.col[2];
 /*
 if(evl1->v3== *v2) {
 			*v4= evl1->v1;
-			uv[3] = evl1->uv[0];
+			uv[3] = evl1->tf.uv[0];
 		} else {	
 			*v4= evl1->v3;
-			uv[3] = evl1->uv[2];
+			uv[3] = evl1->tf.uv[2];
 		}	
 		*/
 	}
 	else if VTEST(evl1, 3, evl) {
 	// else if(evl1->v3!=evl->v1 && evl1->v3!=evl->v2 && evl1->v3!=evl->v3) {
 		*v3= evl1->v3;
-		uv[2] = evl1->uv[2];
-		col[2] = evl1->col[2];
+		uv[2] = evl1->tf.uv[2];
+		col[2] = evl1->tf.col[2];
 
 		*v4= evl1->v1;
-		uv[3] = evl1->uv[0];
-		col[3] = evl1->col[0];
+		uv[3] = evl1->tf.uv[0];
+		col[3] = evl1->tf.col[0];
 /*
 if(evl1->v1== *v2) {
 			*v4= evl1->v2;
-			uv[3] = evl1->uv[3];
+			uv[3] = evl1->tf.uv[3];
 		} else {	
 			*v4= evl1->v1;
-			uv[3] = evl1->uv[0];
+			uv[3] = evl1->tf.uv[0];
 		}	
 		*/
 	}
@@ -6003,13 +5986,13 @@ void join_triangles(void)
 					if(exist_vlak(v1, v2, v3, v4)==0) {
 						w = addvlaklist(v1, v2, v3, v4, evla[0]);
 						untag_edges(w);
-						if (w->tface) {
-							UVCOPY(w->uv[0], uv[0]);
-							UVCOPY(w->uv[1], uv[1]);
-							UVCOPY(w->uv[2], uv[2]);
-							UVCOPY(w->uv[3], uv[3]);
-						}	
-						memcpy(w->col, col, sizeof(w->col));
+
+						UVCOPY(w->tf.uv[0], uv[0]);
+						UVCOPY(w->tf.uv[1], uv[1]);
+						UVCOPY(w->tf.uv[2], uv[2]);
+						UVCOPY(w->tf.uv[3], uv[3]);
+
+						memcpy(w->tf.col, col, sizeof(w->tf.col));
 					}
 					/* tag as to-be-removed */
 					FACE_MARKCLEAR(evla[0]);
@@ -6098,21 +6081,21 @@ void edge_flip(void)
 							w = addvlaklist(v1, v2, v3, 0, evla[1]);
 							
 							untag_edges(w);
-							if (w->tface) {
-								UVCOPY(w->uv[0], uv[0]);
-								UVCOPY(w->uv[1], uv[1]);
-								UVCOPY(w->uv[2], uv[2]);
-							}	
-							w->col[0] = col[0]; w->col[1] = col[1]; w->col[2] = col[2]; 
+
+							UVCOPY(w->tf.uv[0], uv[0]);
+							UVCOPY(w->tf.uv[1], uv[1]);
+							UVCOPY(w->tf.uv[2], uv[2]);
+
+							w->tf.col[0] = col[0]; w->tf.col[1] = col[1]; w->tf.col[2] = col[2]; 
 							
 							w = addvlaklist(v1, v3, v4, 0, evla[1]);
 							untag_edges(w);
-							if (w->tface) {
-								UVCOPY(w->uv[0], uv[0]);
-								UVCOPY(w->uv[1], uv[2]);
-								UVCOPY(w->uv[2], uv[3]);
-							}	
-							w->col[0] = col[0]; w->col[1] = col[2]; w->col[2] = col[3]; 
+
+							UVCOPY(w->tf.uv[0], uv[0]);
+							UVCOPY(w->tf.uv[1], uv[2]);
+							UVCOPY(w->tf.uv[2], uv[3]);
+
+							w->tf.col[0] = col[0]; w->tf.col[1] = col[2]; w->tf.col[2] = col[3]; 
 							
 							/* erase old faces and edge */
 						}
@@ -6247,19 +6230,19 @@ void beauty_fill(void)
                                 evl->f1= 1;
 
                                 w= addvlaklist(v1, v2, v3, 0, evl);
-                                if (w->tface) {
-                                    UVCOPY(w->uv[0], uv[0]);
-                                    UVCOPY(w->uv[1], uv[1]);
-                                    UVCOPY(w->uv[2], uv[2]);
-                                }
-                                w->col[0] = col[0]; w->col[1] = col[1]; w->col[2] = col[2];
+
+								UVCOPY(w->tf.uv[0], uv[0]);
+								UVCOPY(w->tf.uv[1], uv[1]);
+								UVCOPY(w->tf.uv[2], uv[2]);
+
+                                w->tf.col[0] = col[0]; w->tf.col[1] = col[1]; w->tf.col[2] = col[2];
                                 w= addvlaklist(v1, v3, v4, 0, evl);
-                                if (w->tface) {
-                                    UVCOPY(w->uv[0], uv[0]);
-                                    UVCOPY(w->uv[1], uv[2]);
-                                    UVCOPY(w->uv[2], uv[3]);
-                                }
-                                w->col[0] = col[0]; w->col[1] = col[2]; w->col[2] = col[3];
+
+								UVCOPY(w->tf.uv[0], uv[0]);
+								UVCOPY(w->tf.uv[1], uv[2]);
+								UVCOPY(w->tf.uv[2], uv[3]);
+
+                                w->tf.col[0] = col[0]; w->tf.col[1] = col[2]; w->tf.col[2] = col[3];
 
                                 onedone= 1;
                             }
@@ -6273,18 +6256,17 @@ void beauty_fill(void)
                                 evl->f1= 1;
 
                                 w= addvlaklist(v2, v3, v4, 0, evl);
-                                if (w->tface) {
-                                    UVCOPY(w->uv[0], uv[1]);
-                                    UVCOPY(w->uv[1], uv[3]);
-                                    UVCOPY(w->uv[2], uv[4]);
-                                }
+
+								UVCOPY(w->tf.uv[0], uv[1]);
+								UVCOPY(w->tf.uv[1], uv[3]);
+								UVCOPY(w->tf.uv[2], uv[4]);
 
                                 w= addvlaklist(v1, v2, v4, 0, evl);
-                                if (w->tface) {
-                                    UVCOPY(w->uv[0], uv[0]);
-                                    UVCOPY(w->uv[1], uv[1]);
-                                    UVCOPY(w->uv[2], uv[3]);
-                                }
+
+								UVCOPY(w->tf.uv[0], uv[0]);
+								UVCOPY(w->tf.uv[1], uv[1]);
+								UVCOPY(w->tf.uv[2], uv[3]);
+
                                 onedone= 1;
                             }
                         }

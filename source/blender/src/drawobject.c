@@ -46,9 +46,6 @@
 
 #include "IMB_imbuf.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_arithb.h"
-#include "BLI_editVert.h"
 
 #include "MTC_matrixops.h"
 
@@ -68,6 +65,10 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
+
+#include "BLI_blenlib.h"
+#include "BLI_arithb.h"
+#include "BLI_editVert.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_curve.h"

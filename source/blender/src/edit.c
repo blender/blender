@@ -46,10 +46,6 @@
 
 #include "BMF_Api.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_arithb.h"
-#include "BLI_editVert.h"
-
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
@@ -60,6 +56,10 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
+
+#include "BLI_blenlib.h"
+#include "BLI_arithb.h"
+#include "BLI_editVert.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_anim.h"

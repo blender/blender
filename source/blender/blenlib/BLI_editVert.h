@@ -63,9 +63,7 @@ typedef struct EditVlak
 	struct EditVert *v1, *v2, *v3, *v4;
 	struct EditEdge *e1, *e2, *e3, *e4;
 	float n[3];
-	float uv[4][2];
-	unsigned int col[4];
-	struct TFace *tface;	/* a pointer to original tface. */
+	struct TFace tf;	/* a copy of original tface. */
 	unsigned char mat_nr, flag;
 	unsigned char f, f1;
 } EditVlak;

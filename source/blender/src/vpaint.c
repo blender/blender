@@ -50,7 +50,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
-#include "BLI_editVert.h"
 #include "MTC_matrixops.h"
 
 #include "DNA_mesh_types.h"

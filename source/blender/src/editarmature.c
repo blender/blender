@@ -47,18 +47,18 @@
 
 #include "BMF_Api.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_arithb.h"
-#include "BLI_editVert.h"
-
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_mesh_types.h"
+
+#include "BLI_blenlib.h"
+#include "BLI_arithb.h"
+#include "BLI_editVert.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_action.h"

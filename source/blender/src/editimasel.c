@@ -49,7 +49,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
-#include "BLI_editVert.h"
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"

@@ -32,7 +32,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
-#include "BLI_editVert.h"
 #include "BIF_keyval.h"
 #include "blendef.h"
 #include "mydevice.h"
