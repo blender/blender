@@ -6945,8 +6945,7 @@ void edge_flip(void)
 void edge_rotate_selected(){
 	EditEdge *eed,*temp;
 	EditVert *ev;
-	EditVlak *evl;
-	short edgeCount = 0,faceCount=0;
+	short edgeCount = 0;
 	
     	undo_push_mesh("Rotate Edges");	
 	
@@ -6998,11 +6997,10 @@ void edge_rotate_selected(){
 }
 
 void edge_rotate(EditEdge *eed){
-	
 	EditMesh *em = G.editMesh;
 	EditVlak *face[2], *evl, *newFace[2];
 	EditVert *faces[2][4],*v1,*v2,*v3,*v4,*vtemp;
-	short facecount=0, p1,p2,p3,p4,fac1=4,fac2=4,fac3=4,fac4=4,i,j;
+	short facecount=0, p1=0,p2=0,p3=0,p4=0,fac1=4,fac2=4,i,j;
 
 	/* check to make sure that the edge is only part of 2 faces */
 	for(evl = em->faces.first;evl;evl = evl->next){
@@ -7017,7 +7015,7 @@ void edge_rotate(EditEdge *eed){
 			facecount++;
 		}
 	}
-
+ 
 	
 	if(facecount < 2){
 		return;
