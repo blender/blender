@@ -82,7 +82,6 @@ if sys.platform == 'linux2':
     gettext_lib = []
     gettext_libpath = []
     gettext_include = []
-    i18n_defines = ['INTERNATIONAL', 'FTGL_STATIC_LIBRARY', 'WITH_FREETYPE2']
 
 elif sys.platform == 'darwin':
     use_international = 'false'
@@ -159,7 +158,6 @@ elif sys.platform == 'darwin':
     gettext_lib = []
     gettext_libpath = []
     gettext_include = []
-    i18n_defines = []
 
 elif sys.platform == 'cygwin':
     use_international = 'false'
@@ -289,9 +287,9 @@ elif sys.platform == 'win32':
     ode_libpath = ['#../lib/windows/ode/lib']
     ode_include = ['#../lib/windows/ode/include']
     # Python lib name
-    python_include = '#../lib/windows/python/include/python2.2'
-    python_libpath = '#../lib/windows/python/lib'
-    python_lib = 'python22'
+    python_include = ['#../lib/windows/python/include/python2.2']
+    python_libpath = ['#../lib/windows/python/lib']
+    python_lib = ['python22']
     # International stuff
     ftgl_lib = ['ftgl_static_ST']
     ftgl_libpath = ['#../lib/windows/ftgl/lib']
@@ -302,7 +300,6 @@ elif sys.platform == 'win32':
     gettext_lib = ['gnu_gettext']
     gettext_libpath = ['#../lib/windows/gettext/lib']
     gettext_include = ['#../lib/windows/gettext/include']
-    i18n_defines = ['INTERNATIONAL', 'FTGL_STATIC_LIBRARY', 'WITH_FREETYPE2']
 
 elif string.find (sys.platform, 'sunos') != -1:
     use_international = 'true'
@@ -372,7 +369,6 @@ elif string.find (sys.platform, 'sunos') != -1:
     gettext_lib = []
     gettext_libpath = []
     gettext_include = []
-    i18n_defines = ['INTERNATIONAL', 'FTGL_STATIC_LIBRARY', 'WITH_FREETYPE2']
 
 elif string.find (sys.platform, 'irix') != -1:
     use_international = 'false'
@@ -447,7 +443,6 @@ elif string.find (sys.platform, 'irix') != -1:
     gettext_lib = []
     gettext_libpath = []
     gettext_include = []
-    i18n_defines = ['INTERNATIONAL', 'FTGL_STATIC_LIBRARY', 'WITH_FREETYPE2']
 
 elif string.find (sys.platform, 'hp-ux') != -1:
     window_system = 'X11'
@@ -516,7 +511,6 @@ else:
     config.write ("ODE_LIBRARY = %s\n"%(ode_lib))
     config.write ("\n# The following information is only necessary when building with\n")
     config.write ("# internationalization support.\n");
-    config.write ("I18N_DEFINES = %s\n"%(i18n_defines))
     config.write ("FTGL_INCLUDE = %s\n"%(ftgl_include))
     config.write ("FTGL_LIBPATH = %s\n"%(ftgl_libpath))
     config.write ("FTGL_LIBRARY = %s\n"%(ftgl_lib))
@@ -587,7 +581,6 @@ user_options.AddOptions (
         ('ODE_INCLUDE', 'Include directory for ODE header files.'),
         ('ODE_LIBPATH', 'Library path where the ODE library is located.'),
         ('ODE_LIBRARY', 'ODE library name.'),
-        ('I18N_DEFINES', 'Preprocessor defines needed for internationalization support.'),
         ('FTGL_INCLUDE', 'Include directory for ftgl header files.'),
         ('FTGL_LIBPATH', 'Library path where the ftgl library is located.'),
         ('FTGL_LIBRARY', 'ftgl library name.'),
@@ -621,9 +614,6 @@ else:
     if sys.platform == 'win32':
         #defines += ['_DEBUG'] specifying this makes msvc want to link to python22_d.lib??
         platform_linkflags += ['/DEBUG','/PDB:blender.pdb']
-
-if user_options_dict['USE_INTERNATIONAL']:
-    defines += user_options_dict['I18N_DEFINES']
 
 #-----------------------------------------------------------------------------
 # Settings to be exported to other SConscript files

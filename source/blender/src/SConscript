@@ -140,6 +140,8 @@ src_env.Append (CPPPATH = user_options_dict['SDL_INCLUDE'])
 
 if user_options_dict['USE_INTERNATIONAL'] == 1:
     src_env.Append (CPPPATH=['../ftfont'])
+    src_env.Append (CPPDEFINES = 'INTERNATIONAL')
+    src_env.Append (CPPDEFINES = 'FTGL_STATIC_LIBRARY')
 
 src_env.Append (CPPPATH=extra_includes)
 
