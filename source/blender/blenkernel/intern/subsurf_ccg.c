@@ -57,8 +57,6 @@
 
 #include "CCGSubSurf.h"
 
-#define USE_CREASING
-
 typedef struct _SubSurf {
 	CCGSubSurf *subSurf;
 
@@ -138,13 +136,9 @@ static CCGSubSurf *_getSubSurf(SubSurf *ss, int subdivLevels, int useArena) {
 	CCGAllocatorHDL allocator;
 
 	if (ss->useAging) {
-		ifc.vertUserSize = 8;
-		ifc.edgeUserSize = 12;
-		ifc.faceUserSize = 8;
+		ifc.vertUserSize = ifc.edgeUserSize = ifc.faceUserSize = 8;
 	} else {
-		ifc.vertUserSize = 4;
-		ifc.edgeUserSize = 8;
-		ifc.faceUserSize = 4;
+		ifc.vertUserSize = ifc.edgeUserSize = ifc.faceUserSize = 4;
 	}
 	ifc.vertDataSize= 12;
 	ifc.vertDataZero= _subsurfNew_meshIFC_vertDataZero;
@@ -577,24 +571,16 @@ static void subSurf_sync(SubSurf *ss) {
 		if (ss->me->medge) {
 			for (i=0; i<ss->me->totedge; i++) {
 				MEdge *med = &ss->me->medge[i];
+				float crease = med->crease*creaseFactor/255.0f;
 
-				ccgSubSurf_syncEdge(ss->subSurf, (CCGEdgeHDL) i, (CCGVertHDL) med->v1, (CCGVertHDL) med->v2);
-
-#ifdef USE_CREASING
-				{
-					CCGEdge *e = ccgSubSurf_getEdge(ss->subSurf, (CCGEdgeHDL) i);
-					float *userData = ccgSubSurf_getEdgeUserData(ss->subSurf, e);
-
-					userData[1] = med->crease*creaseFactor/255.0f;
-				}
-#endif
+				ccgSubSurf_syncEdge(ss->subSurf, (CCGEdgeHDL) i, (CCGVertHDL) med->v1, (CCGVertHDL) med->v2, crease);
 			}
 		} else {
 			for (i=0; i<ss->me->totface; i++) {
 				MFace *mf = &((MFace*) ss->me->mface)[i];
 
 				if (!mf->v3) {
-					ccgSubSurf_syncEdge(ss->subSurf, (CCGEdgeHDL) i, (CCGVertHDL) mf->v1, (CCGVertHDL) mf->v2);
+					ccgSubSurf_syncEdge(ss->subSurf, (CCGEdgeHDL) i, (CCGVertHDL) mf->v1, (CCGVertHDL) mf->v2, 0.0);
 				}
 			}
 		}
@@ -621,16 +607,7 @@ static void subSurf_sync(SubSurf *ss) {
 		}
 
 		for (ee=ss->em->edges.first; ee; ee=ee->next) {
-			ccgSubSurf_syncEdge(ss->subSurf, ee, ee->v1, ee->v2);
-
-#ifdef USE_CREASING
-			{
-				CCGEdge *e = ccgSubSurf_getEdge(ss->subSurf, ee);
-				float *userData = ccgSubSurf_getEdgeUserData(ss->subSurf, e);
-
-				userData[1] = ee->crease*creaseFactor;
-			}
-#endif
+			ccgSubSurf_syncEdge(ss->subSurf, ee, ee->v1, ee->v2, ee->crease*creaseFactor);
 		}
 
 		for (ef=ss->em->faces.first; ef; ef=ef->next) {
