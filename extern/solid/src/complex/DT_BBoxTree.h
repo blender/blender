@@ -136,7 +136,7 @@ public:
       : DT_Pack<Shape1, Shape2>(a, b),
         m_margin(margin)
     {
-        m_b_cbox += computeCBox(margin, m_a.m_inv_xform);
+        this->m_b_cbox += computeCBox(margin, this->m_a.m_inv_xform);
     }
     
     MT_Scalar m_margin;
@@ -185,7 +185,7 @@ bool ray_cast(const DT_BBoxTree& a, const DT_RootData<Shape>& rd,
 
     if (a.m_type == DT_BBoxTree::LEAF) 
     { 
-        return ::ray_cast(rd, a.m_index, source, target, lambda, normal); 
+        return ray_cast(rd, a.m_index, source, target, lambda, normal); 
     }
     else 
     {

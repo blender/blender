@@ -45,19 +45,19 @@ namespace MT {
 		
 		Vector3<Scalar>& operator+=(const Vector3<Scalar>& v)
 		{
-			m_co[0] += v[0]; m_co[1] += v[1]; m_co[2] += v[2];
+			this->m_co[0] += v[0]; this->m_co[1] += v[1]; this->m_co[2] += v[2];
 			return *this;
 		}
 		
 		Vector3<Scalar>& operator-=(const Vector3<Scalar>& v) 
 		{
-			m_co[0] -= v[0]; m_co[1] -= v[1]; m_co[2] -= v[2];
+			this->m_co[0] -= v[0]; this->m_co[1] -= v[1]; this->m_co[2] -= v[2];
 			return *this;
 		}
 
 		Vector3<Scalar>& operator*=(const Scalar& s)
 		{
-			m_co[0] *= s; m_co[1] *= s; m_co[2] *= s;
+			this->m_co[0] *= s; this->m_co[1] *= s; this->m_co[2] *= s;
 			return *this;
 		}
 		
@@ -69,7 +69,7 @@ namespace MT {
   
 		Scalar dot(const Vector3<Scalar>& v) const
 		{
-			return m_co[0] * v[0] + m_co[1] * v[1] + m_co[2] * v[2];
+			return this->m_co[0] * v[0] + this->m_co[1] * v[1] + this->m_co[2] * v[2];
 		}
 
 		Scalar length2() const
@@ -111,33 +111,33 @@ namespace MT {
    
 		Vector3<Scalar> absolute() const 
 		{
-			return Vector3<Scalar>(Scalar_traits<Scalar>::abs(m_co[0]), 
-								   Scalar_traits<Scalar>::abs(m_co[1]), 
-								   Scalar_traits<Scalar>::abs(m_co[2]));
+			return Vector3<Scalar>(Scalar_traits<Scalar>::abs(this->m_co[0]), 
+								   Scalar_traits<Scalar>::abs(this->m_co[1]), 
+								   Scalar_traits<Scalar>::abs(this->m_co[2]));
 		}
 
 		Vector3<Scalar> cross(const Vector3<Scalar>& v) const
 		{
-			return Vector3<Scalar>(m_co[1] * v[2] - m_co[2] * v[1],
-								   m_co[2] * v[0] - m_co[0] * v[2],
-								   m_co[0] * v[1] - m_co[1] * v[0]);
+			return Vector3<Scalar>(this->m_co[1] * v[2] - this->m_co[2] * v[1],
+								   this->m_co[2] * v[0] - this->m_co[0] * v[2],
+								   this->m_co[0] * v[1] - this->m_co[1] * v[0]);
 		}
 		
 		Scalar triple(const Vector3<Scalar>& v1, const Vector3<Scalar>& v2) const
 		{
-			return m_co[0] * (v1[1] * v2[2] - v1[2] * v2[1]) + 
-				   m_co[1] * (v1[2] * v2[0] - v1[0] * v2[2]) + 
-				   m_co[2] * (v1[0] * v2[1] - v1[1] * v2[0]);
+			return this->m_co[0] * (v1[1] * v2[2] - v1[2] * v2[1]) + 
+				   this->m_co[1] * (v1[2] * v2[0] - v1[0] * v2[2]) + 
+				   this->m_co[2] * (v1[0] * v2[1] - v1[1] * v2[0]);
 		}
 
 		int minAxis() const
 		{
-			return m_co[0] < m_co[1] ? (m_co[0] < m_co[2] ? 0 : 2) : (m_co[1] < m_co[2] ? 1 : 2);
+			return this->m_co[0] < this->m_co[1] ? (this->m_co[0] < this->m_co[2] ? 0 : 2) : (this->m_co[1] < this->m_co[2] ? 1 : 2);
 		}
 
 		int maxAxis() const 
 		{
-			return m_co[0] < m_co[1] ? (m_co[1] < m_co[2] ? 2 : 1) : (m_co[0] < m_co[2] ? 2 : 0);
+			return this->m_co[0] < this->m_co[1] ? (this->m_co[1] < this->m_co[2] ? 2 : 1) : (this->m_co[0] < this->m_co[2] ? 2 : 0);
 		}
 
 		int furthestAxis() const
@@ -152,9 +152,9 @@ namespace MT {
 
 		Vector3<Scalar> lerp(const Vector3<Scalar>& v, const Scalar& t) const 
 		{
-			return Vector3<Scalar>(m_co[0] + (v[0] - m_co[0]) * t,
-								   m_co[1] + (v[1] - m_co[1]) * t,
-								   m_co[2] + (v[2] - m_co[2]) * t);
+			return Vector3<Scalar>(this->m_co[0] + (v[0] - this->m_co[0]) * t,
+								   this->m_co[1] + (v[1] - this->m_co[1]) * t,
+								   this->m_co[2] + (v[2] - this->m_co[2]) * t);
 		}
     
 		static Vector3<Scalar> random() 

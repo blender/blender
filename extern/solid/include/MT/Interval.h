@@ -111,7 +111,7 @@ namespace MT {
 	inline std::ostream& 
 	operator<<(std::ostream& os, const Interval<Scalar>& z)
 	{
-		return os << '[' << x.lower() << ", " << x.upper() << ']';
+		return os << '[' << z.lower() << ", " << z.upper() << ']';
 	}
 
 	template <typename Scalar>

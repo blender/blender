@@ -84,19 +84,19 @@ namespace MT {
   
 		Quaternion<Scalar>& operator+=(const Quaternion<Scalar>& q)
 		{
-			m_co[0] += q[0]; m_co[1] += q[1]; m_co[2] += q[2]; m_co[3] += q[3];
+			this->m_co[0] += q[0]; this->m_co[1] += q[1]; this->m_co[2] += q[2]; this->m_co[3] += q[3];
 			return *this;
 		}
 		
 		Quaternion<Scalar>& operator-=(const Quaternion<Scalar>& q) 
 		{
-			m_co[0] -= q[0]; m_co[1] -= q[1]; m_co[2] -= q[2]; m_co[3] -= q[3];
+			this->m_co[0] -= q[0]; this->m_co[1] -= q[1]; this->m_co[2] -= q[2]; this->m_co[3] -= q[3];
 			return *this;
 		}
 
 		Quaternion<Scalar>& operator*=(const Scalar& s)
 		{
-			m_co[0] *= s; m_co[1] *= s; m_co[2] *= s; m_co[3] *= s;
+			this->m_co[0] *= s; this->m_co[1] *= s; this->m_co[2] *= s; this->m_co[3] *= s;
 			return *this;
 		}
 		
@@ -108,16 +108,16 @@ namespace MT {
   
 		Quaternion<Scalar>& operator*=(const Quaternion<Scalar>& q)
 		{
-			setValue(m_co[3] * q[0] + m_co[0] * q[3] + m_co[1] * q[2] - m_co[2] * q[1],
-					 m_co[3] * q[1] + m_co[1] * q[3] + m_co[2] * q[0] - m_co[0] * q[2],
-					 m_co[3] * q[2] + m_co[2] * q[3] + m_co[0] * q[1] - m_co[1] * q[0],
-					 m_co[3] * q[3] - m_co[0] * q[0] - m_co[1] * q[1] - m_co[2] * q[2]);
+			setValue(this->m_co[3] * q[0] + this->m_co[0] * q[3] + this->m_co[1] * q[2] - this->m_co[2] * q[1],
+					 this->m_co[3] * q[1] + this->m_co[1] * q[3] + this->m_co[2] * q[0] - this->m_co[0] * q[2],
+					 this->m_co[3] * q[2] + this->m_co[2] * q[3] + this->m_co[0] * q[1] - this->m_co[1] * q[0],
+					 this->m_co[3] * q[3] - this->m_co[0] * q[0] - this->m_co[1] * q[1] - this->m_co[2] * q[2]);
 			return *this;
 		}
 	
 		Scalar dot(const Quaternion<Scalar>& q) const
 		{
-			return m_co[0] * q[0] + m_co[1] * q[1] + m_co[2] * q[2] + m_co[3] * q[3];
+			return this->m_co[0] * q[0] + this->m_co[1] * q[1] + this->m_co[2] * q[2] + this->m_co[3] * q[3];
 		}
 
 		Scalar length2() const
@@ -149,7 +149,7 @@ namespace MT {
    
 		Quaternion<Scalar> conjugate() const 
 		{
-			return Quaternion<Scalar>(-m_co[0], -m_co[1], -m_co[2], m_co[3]);
+			return Quaternion<Scalar>(-this->m_co[0], -this->m_co[1], -this->m_co[2], this->m_co[3]);
 		}
 
 		Quaternion<Scalar> inverse() const
@@ -165,10 +165,10 @@ namespace MT {
 				Scalar d = Scalar(1.0) / Scalar_traits<Scalar>::sin(theta);
 				Scalar s0 = Scalar_traits<Scalar>::sin((Scalar(1.0) - t) * theta);
 				Scalar s1 = Scalar_traits<Scalar>::sin(t * theta);   
-				return Quaternion<Scalar>((m_co[0] * s0 + q[0] * s1) * d,
-										  (m_co[1] * s0 + q[1] * s1) * d,
-										  (m_co[2] * s0 + q[2] * s1) * d,
-										  (m_co[3] * s0 + q[3] * s1) * d);
+				return Quaternion<Scalar>((this->m_co[0] * s0 + q[0] * s1) * d,
+										  (this->m_co[1] * s0 + q[1] * s1) * d,
+										  (this->m_co[2] * s0 + q[2] * s1) * d,
+										  (this->m_co[3] * s0 + q[3] * s1) * d);
 			}
 			else
 			{
