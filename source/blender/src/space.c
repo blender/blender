@@ -199,7 +199,7 @@ void copy_view3d_lock(short val)
 							}
 							
 							if(val==REDRAW && vd==sa->spacedata.first) {
-								scrarea_queue_redraw(sa);
+								if(sa->win) scrarea_queue_redraw(sa);
 							}
 						}
 					}

@@ -190,7 +190,6 @@ void do_image_buttons(unsigned short event);
 void do_imasel_buttons(short event);
 static void check_packAll(void);
 static void unique_bone_name(Bone *bone, bArmature *arm);
-static void validate_bonebutton(void *data1, void *data2);
 static int bonename_exists(Bone *orig, char *name, ListBase *list);
 
 static 	void test_idbutton_cb(void *namev, void *arg2_unused)
@@ -1657,10 +1656,9 @@ void do_global_buttons2(short event)
 		}
 		break;
 	case B_ACTALONE:
-		if (ob)
+		if(ob && ob->id.lib==0) {
 			act= ob->action;
 		
-		if(ob && ob->id.lib==0) {
 			if(act->id.us>1) {
 				if(okee("Single user")) {
 					ob->action=copy_action(act);
@@ -3906,7 +3904,7 @@ void do_view3d_buttons(short event)
 			}
 			scrarea_queue_winredraw(curarea);
 			countall();
-			
+
 			if(G.vd->scenelock) handle_view3d_lock();
 			allqueue(REDRAWOOPS, 0);
 		}
@@ -4661,6 +4659,7 @@ void buttons_active_id(ID **id, ID **idfrom)
 	}
 }
 
+#if 0
 static void validate_bonebutton(void *bonev, void *data2_unused){
 	Bone *bone= bonev;
 	bArmature *arm;
@@ -4668,7 +4667,7 @@ static void validate_bonebutton(void *bonev, void *data2_unused){
 	arm = get_armature(G.obpose);
 	unique_bone_name(bone, arm);
 }
-
+#endif
 
 static int bonename_exists(Bone *orig, char *name, ListBase *list)
 {
