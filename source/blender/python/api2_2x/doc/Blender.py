@@ -8,7 +8,7 @@
 # -n "Blender" --no-private --no-frames Blender.py \
 # Types.py Scene.py Object.py NMesh.py Material.py Camera.py Lamp.py \
 # Armature.py Metaball.py Effect.py Curve.py Ipo.py World.py BGL.py Window.py \
-# Draw.py Image.py Text.py
+# Draw.py Image.py Text.py Lattice.py Texture.py
 
 """
 The main Blender module.
@@ -19,25 +19,26 @@ The Blender Python API Reference
  Submodules:
  -----------
 
-  - L{Types}
-  - L{Scene}
-  - L{Object}
-  - L{NMesh}
-  - L{Material}
-  - L{Texture}
   - L{Armature}
-  - L{Camera}
-  - L{Lamp}
-  - L{World}
-  - L{Metaball}
-  - L{Effect}
-  - L{Curve}
-  - L{Ipo}
   - L{BGL}
+  - L{Camera}
+  - L{Curve}
   - L{Draw}
-  - L{Window}
+  - L{Effect}
   - L{Image}
+  - L{Ipo}
+  - L{Lamp}
+  - L{Lattice}
+  - L{Material}
+  - L{Metaball}
+  - L{NMesh}
+  - L{Object}
+  - L{Scene}
   - L{Text}
+  - L{Texture}
+  - L{Types}
+  - L{Window}
+  - L{World}
 
  Introduction:
  -------------
@@ -53,8 +54,8 @@ The Blender Python API Reference
  open-source language.
 
 @author: The Blender Python Team
-@requires: Blender 2.30 or newer.
-@version: 0.2
+@requires: Blender 2.31 or newer.
+@version: 0.3
 @see: U{www.blender.org<http://www.blender.org>}
 @see: U{projects.blender.org<http://projects.blender.org>}
 @see: U{www.python.org<http://www.python.org>}

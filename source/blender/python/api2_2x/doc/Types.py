@@ -49,4 +49,6 @@ objects.
 @var bufferType: Blender buffer. A contiguous piece of storage, used in BGL.
 @var constantType: Blender constant. A constant dictionary.
 @var rgbTupleType: Blender rgbTuple. A (red, green, blue) triplet.
+@var TextureType: Blender Texture.
+@var MTexType: Blender MTex -- it links materials to a texture.
 """

@@ -53,7 +53,8 @@ PyObject *Types_Init (void)
 	/* Another one that needs to be here: */
 	Text_Type.ob_type = &PyType_Type;
 
-        Texture_Type.ob_type = &PyType_Type;
+  Texture_Type.ob_type = &PyType_Type;
+	MTex_Type.ob_type = &PyType_Type;
 
   submodule = Py_InitModule3 ("Blender.Types", Null_methods, M_Types_doc);
 
@@ -88,6 +89,9 @@ PyObject *Types_Init (void)
   PyDict_SetItemString(dict, "ButtonType",   (PyObject *)&Button_Type);
 
   PyDict_SetItemString(dict, "LatticeType",  (PyObject *)&Lattice_Type);
+
+  PyDict_SetItemString(dict, "TextureType",  (PyObject *)&Texture_Type);
+  PyDict_SetItemString(dict, "MTexType",     (PyObject *)&MTex_Type);
 
   /* External helper Types available to the main ones above */
 

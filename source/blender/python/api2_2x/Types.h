@@ -36,7 +36,7 @@
 
 extern PyTypeObject Button_Type, Material_Type;
 
-extern PyTypeObject Texture_Type;
+extern PyTypeObject Texture_Type, MTex_Type;
 
 extern PyTypeObject Object_Type;
 extern PyTypeObject Scene_Type;
