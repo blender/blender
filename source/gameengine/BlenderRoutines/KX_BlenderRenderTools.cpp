@@ -128,6 +128,18 @@ void KX_BlenderRenderTools::BeginFrame(RAS_IRasterizer* rasty)
 
 void KX_BlenderRenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmatrix,int objectdrawmode )
 {
+	/* FIXME:
+	blender: intern/moto/include/MT_Vector3.inl:42: MT_Vector3 operator/(const
+	MT_Vector3&, double): Assertion `!MT_fuzzyZero(s)' failed. 
+	
+	Program received signal SIGABRT, Aborted. 
+	[Switching to Thread 16384 (LWP 1519)] 
+	0x40477571 in kill () from /lib/libc.so.6 
+	(gdb) bt 
+	#7  0x08334368 in MT_Vector3::normalized() const () 
+	#8  0x0833e6ec in KX_BlenderRenderTools::applyTransform(RAS_IRasterizer*, double*, int) () 
+	*/
+
 	if (objectdrawmode & RAS_IPolyMaterial::BILLBOARD_SCREENALIGNED ||
 		objectdrawmode & RAS_IPolyMaterial::BILLBOARD_AXISALIGNED)
 	{
@@ -207,8 +219,8 @@ void KX_BlenderRenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmat
 			if (scene->rayTest(thisObj, frompoint, topoint, resultpoint, resultnormal))
 			{
 				MT_Vector3 left(oglmatrix[0],oglmatrix[1],oglmatrix[2]);
-				MT_Vector3 dir = -(left.cross(resultnormal)).normalized();
-				left = (dir.cross(resultnormal)).normalized();
+				MT_Vector3 dir = -(left.cross(resultnormal)).safe_normalized();
+				left = (dir.cross(resultnormal)).safe_normalized();
 				// for the up vector, we take the 'resultnormal' returned by the physics
 				
 				double maat[16]={
