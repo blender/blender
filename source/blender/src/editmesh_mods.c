@@ -563,6 +563,96 @@ void EM_select_face_fgon(EditFace *efa, int val)
 	}
 }
 
+/* helper for edgeloop_select, checks for eed->f2 tag in faces */
+static int edge_not_in_tagged_face(EditEdge *eed)
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		if(efa->h==0) {
+			if(efa->e1==eed || efa->e2==eed || efa->e3==eed || efa->e4==eed) {
+				if(efa->e1->f2 || efa->e2->f2 || efa->e3->f2 || (efa->e4 && efa->e4->f2)) return 0;
+			}
+		}
+	}
+	return 1;
+}
+
+/* selects or deselects edges that:
+- if edges has 2 faces:
+	- has vertices with valence of 4
+	- not shares face with previous edge
+- if edge has 1 face:
+	- has vertices with valence 4
+	- not shares face with previous edge
+	- but also only 1 face
+- if edge no face:
+	- has vertices with valence 2
+*/
+static void edgeloop_select(EditEdge *starteed, int select)
+{
+	EditMesh *em = G.editMesh;
+	EditVert *eve;
+	EditEdge *eed;
+	EditFace *efa;
+	int looking= 1;
+	
+	/* in f1 we put the valence (amount of edges in a vertex, or faces in edge) */
+	/* in f2 we put tagged flag as correct loop */
+	for(eve= em->verts.first; eve; eve= eve->next) {
+		eve->f1= 0;
+		eve->f2= 0;
+	}
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		eed->f1= 0;
+		eed->f2= 0;
+		if(eed->h==0) {
+			eed->v1->f1++; eed->v2->f1++;
+		}
+	}
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		if(efa->h==0) {
+			efa->e1->f1++;
+			efa->e2->f1++;
+			efa->e3->f1++;
+			if(efa->e4) efa->e4->f1++;
+		}
+	}
+	
+	/* looped edges & vertices get tagged f2 */
+	starteed->f2= 1;
+	if(starteed->v1->f1<5) starteed->v1->f2= 1;
+	if(starteed->v2->f1<5) starteed->v2->f2= 1;
+	/* sorry, first edge isnt even ok */
+	if(starteed->v1->f2==0 && starteed->v2->f2==0) looking= 0;
+	
+	while(looking) {
+		looking= 0;
+		
+		/* find correct valence edges which are not tagged yet, but connect to tagged one */
+		for(eed= em->edges.first; eed; eed= eed->next) {
+			if(eed->h==0 && eed->f2==0) { // edge not hidden, not tagged
+				if( (eed->v1->f1<5 && eed->v1->f2) || (eed->v2->f1<5 && eed->v2->f2)) { // valence of vertex OK, and is tagged
+					/* new edge is not allowed to be in face with tagged edge */
+					if(edge_not_in_tagged_face(eed)) {
+						if(eed->f1==starteed->f1) {	// same amount of faces
+							looking= 1;
+							eed->f2= 1;
+							if(eed->v2->f1<5) eed->v2->f2= 1;
+							if(eed->v1->f1<5) eed->v1->f2= 1;
+						}
+					}
+				}
+			}
+		}
+	}
+	/* and we do the select */
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		if(eed->f2) EM_select_edge(eed, select);
+	}
+}
+
 
 /* here actual select happens */
 void mouse_mesh(void)
@@ -590,6 +680,7 @@ void mouse_mesh(void)
 			else if(G.qual & LR_SHIFTKEY) {
 				EM_select_edge(eed, 0);
 			}
+			if(G.qual & LR_ALTKEY) edgeloop_select(eed, eed->f & SELECT);
 		}
 		else if(eve) {
 			if((eve->f & SELECT)==0) eve->f |= SELECT;
@@ -1225,6 +1316,7 @@ void Edge_Menu() {
 		break;
 	}
 }
+
 
 /* **************** NORMALS ************** */
 
