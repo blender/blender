@@ -2482,6 +2482,32 @@ static void draw_static_particle_system(Object *ob, PartEff *paf)
 
 }
 
+/* edges are supposed to be drawn already */
+static void drawmeshwire_creases(void)
+{
+	EditMesh *em = G.editMesh;
+	EditEdge *eed;
+	float fac, *v1, *v2, vec[3];
+	
+	glLineWidth(3.0);
+	glBegin(GL_LINES);
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		if(eed->h==0 && eed->crease!=0.0) {
+			if(eed->f & SELECT) BIF_ThemeColor(TH_EDGE_SELECT);
+			else BIF_ThemeColor(TH_WIRE);
+			
+			v1= eed->v1->co; v2= eed->v2->co;
+			VECSUB(vec, v2, v1);
+			fac= 0.5 + eed->crease/2.0;
+			glVertex3f(v1[0] + fac*vec[0], v1[1] + fac*vec[1], v1[2] + fac*vec[2] );
+			glVertex3f(v2[0] - fac*vec[0], v2[1] - fac*vec[1], v2[2] - fac*vec[2] );
+		}
+	}
+	glEnd();
+	glLineWidth(1.0);
+	
+}
+
 static void glVertex_efa_edges(EditFace *efa)
 {
 
@@ -2587,18 +2613,7 @@ static void drawmeshwire(Object *ob)
 			}
 		}
 		
-		if(G.f & G_DRAWCREASES) {	/* Use crease edge Highlighting */
-			glBegin(GL_LINES);
-			for(eed= em->edges.first; eed; eed= eed->next) {
-				if(eed->h==0) {
-					BIF_ThemeColorBlend(TH_WIRE, TH_EDGE_SELECT, eed->crease);
-					glVertex3fv(eed->v1->co);
-					glVertex3fv(eed->v2->co);
-				}
-			}
-			glEnd();
-		}
-		else if(G.scene->selectmode == SCE_SELECT_FACE) {
+		if(G.scene->selectmode == SCE_SELECT_FACE) {
 		
 			glBegin(GL_LINES);
 			if(dlm && handles) {
@@ -2704,6 +2719,8 @@ static void drawmeshwire(Object *ob)
 			glEnd();
 		}
 
+		if(G.f & G_DRAWCREASES) drawmeshwire_creases();
+		
 		if(handles==0 && G.f & G_DRAWSEAMS) {
 			BIF_ThemeColor(TH_EDGE_SEAM);
 			glLineWidth(2);
