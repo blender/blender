@@ -154,24 +154,22 @@ void start_interface_font(void) {
 	int result = 0;
 
 	/* hack to find out if we have saved language/font settings.
-	   if not, set defaults and try Vera font (or else .bfont.tff) --phase */
+	   if not, set defaults and try .bfont.tff --phase */
 	
-	if(U.fontsize != 0) {
+	if(U.fontsize != 0) {	// we have saved user settings
+		// try load the font from the font dir
 		BLI_make_file_string("/", tstr, U.fontdir, U.fontname);
-
 		result = FTF_SetFont(tstr, U.fontsize);
+
+		if(!result) {	// else try loading font from current dir
+			result = FTF_SetFont(U.fontname, U.fontsize);
+		}
 	} else {
 		U.language= 0;
 		U.fontsize= 11;
 		U.encoding= 0;
-		sprintf(U.fontname, "Vera.ttf\0");
-
-		result = FTF_SetFont(U.fontname, U.fontsize);
-	}
-
-	if(!result) {
-		U.fontsize= 12;
 		sprintf(U.fontname, ".bfont.ttf\0");
+
 		result = FTF_SetFont(U.fontname, U.fontsize);
 	}
 
