@@ -54,7 +54,7 @@ LIB32=link.exe -lib
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Copying BMFONT files library (release target) to lib tree.
-PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\bmfont\include md ..\..\..\..\lib\windows\bmfont\include	IF NOT EXIST ..\..\..\..\lib\windows\bmfont\lib md ..\..\..\..\lib\windows\bmfont\lib	ECHO Copying header files	COPY "..\..\*.h" "..\..\..\..\lib\windows\bmfont\include\"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\bmfont\bmfont.lib" "..\..\..\..\lib\windows\bmfont\lib\libbmfont.a"	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\*.h ..\..\..\..\lib\windows\bmfont\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\bmfont\*.lib ..\..\..\..\lib\windows\bmfont\lib\*.a	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "bmfont - Win32 Debug"
@@ -83,7 +83,7 @@ LIB32=link.exe -lib
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Copying BMFONT files library (debug target) to lib tree.
-PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\bmfont\include md ..\..\..\..\lib\windows\bmfont\include	IF NOT EXIST ..\..\..\..\lib\windows\bmfont\lib\debug md ..\..\..\..\lib\windows\bmfont\lib\debug	ECHO Copying header files	COPY "..\..\*.h" "..\..\..\..\lib\windows\bmfont\include"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\bmfont\debug\bmfont.lib" "..\..\..\..\lib\windows\bmfont\lib\debug\libbmfont.a"	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\*.h ..\..\..\..\lib\windows\bmfont\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\bmfont\debug\*.lib ..\..\..\..\lib\windows\bmfont\lib\debug\*.a	ECHO Done
 # End Special Build Tool
 
 !ENDIF 
