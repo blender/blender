@@ -236,7 +236,6 @@ void scanlinesky(char *rect, int y)
 	float fac, u, v, view[3];
 	int dx, x, ofs;
 	unsigned int col=0, *rt;
-	short *sp;
 	char *cp, *cp1;
 	
 	if(R.r.alphamode & R_ALPHAPREMUL) return;
@@ -303,12 +302,6 @@ void scanlinesky(char *rect, int y)
 			rt+= ofs;
 
 			dx= (int) (65536.0*fac);
-			sp= (short *)&ofs;
-			
-			#ifdef BBIG_ENDIAN
-			#else
-				sp++; 
-			#endif
 			
 			ofs= 0;
 			x= R.rectx;
@@ -322,7 +315,7 @@ void scanlinesky(char *rect, int y)
 				rect+= 4;
 				
 				ofs+= dx;
-				while( *sp>0 ) {
+				while( ofs > 65535 ) {
 					ofs-= 65536;
 					rt++;
 				}
