@@ -3083,7 +3083,7 @@ void drawspiral(float *cent, float rad, float tmat[][4], int start)
 {
 	float vec[3], vx[3], vy[3];
 	int a, tot=32;
-
+	char inverse=0;
 	/* 32 values of sin function (still same result!) */
 	static float si[32] = {0.00000000,
 		0.20129852,
@@ -3151,6 +3151,11 @@ void drawspiral(float *cent, float rad, float tmat[][4], int start)
                 0.97952994,
                 1.00000000};
 		
+	if (start < 0) {
+		inverse = 1;
+		start *= -1;
+	}
+
 	VECCOPY(vx, tmat[0]);
 	VECCOPY(vy, tmat[1]);
 	VecMulf(vx, rad);
@@ -3158,16 +3163,35 @@ void drawspiral(float *cent, float rad, float tmat[][4], int start)
 
 	VECCOPY(vec, cent);
 
-	for(a=0; a<tot; a++) {
-		if (a+start>31)
-			start=-a + 1;
-		glBegin(GL_LINES);							
-		glVertex3fv(vec);
-		vec[0]= cent[0] + *(si+a+start) * (vx[0] * (float)a/(float)tot) + *(co+a+start) * (vy[0] * (float)a/(float)tot);
-		vec[1]= cent[1] + *(si+a+start) * (vx[1] * (float)a/(float)tot) + *(co+a+start) * (vy[1] * (float)a/(float)tot);
-		vec[2]= cent[2] + *(si+a+start) * (vx[2] * (float)a/(float)tot) + *(co+a+start) * (vy[2] * (float)a/(float)tot);
-		glVertex3fv(vec);
-		glEnd();
+	if (inverse==0) {
+		for(a=0; a<tot; a++) {
+			if (a+start>31)
+				start=-a + 1;
+			glBegin(GL_LINES);							
+			glVertex3fv(vec);
+			vec[0]= cent[0] + *(si+a+start) * (vx[0] * (float)a/(float)tot) + *(co+a+start) * (vy[0] * (float)a/(float)tot);
+			vec[1]= cent[1] + *(si+a+start) * (vx[1] * (float)a/(float)tot) + *(co+a+start) * (vy[1] * (float)a/(float)tot);
+			vec[2]= cent[2] + *(si+a+start) * (vx[2] * (float)a/(float)tot) + *(co+a+start) * (vy[2] * (float)a/(float)tot);
+			glVertex3fv(vec);
+			glEnd();
+		}
+	}
+	else {
+		a=0;
+		vec[0]= cent[0] + *(si+a+start) * (vx[0] * (float)(-a+31)/(float)tot) + *(co+a+start) * (vy[0] * (float)(-a+31)/(float)tot);
+		vec[1]= cent[1] + *(si+a+start) * (vx[1] * (float)(-a+31)/(float)tot) + *(co+a+start) * (vy[1] * (float)(-a+31)/(float)tot);
+		vec[2]= cent[2] + *(si+a+start) * (vx[2] * (float)(-a+31)/(float)tot) + *(co+a+start) * (vy[2] * (float)(-a+31)/(float)tot);
+		for(a=0; a<tot; a++) {
+			if (a+start>31)
+				start=-a + 1;
+			glBegin(GL_LINES);							
+			glVertex3fv(vec);
+			vec[0]= cent[0] + *(si+a+start) * (vx[0] * (float)(-a+31)/(float)tot) + *(co+a+start) * (vy[0] * (float)(-a+31)/(float)tot);
+			vec[1]= cent[1] + *(si+a+start) * (vx[1] * (float)(-a+31)/(float)tot) + *(co+a+start) * (vy[1] * (float)(-a+31)/(float)tot);
+			vec[2]= cent[2] + *(si+a+start) * (vx[2] * (float)(-a+31)/(float)tot) + *(co+a+start) * (vy[2] * (float)(-a+31)/(float)tot);
+			glVertex3fv(vec);
+			glEnd();
+		}
 	}
 }
 
@@ -3311,14 +3335,13 @@ static void draw_forcefield(Object *ob)
 	float imat[4][4], tmat[4][4];
 	float vec[3]= {0.0, 0.0, 0.0};
 	
-	mygetmatrix(tmat);
-	Mat4Invert(imat, tmat);
-	Normalise(imat[0]);
-	Normalise(imat[1]);
-
 	if (ob->pd->forcefield == PFIELD_FORCE) {
 		float ffall_val;
 
+		mygetmatrix(tmat);
+		Mat4Invert(imat, tmat);
+		Normalise(imat[0]);
+		Normalise(imat[1]);
 		if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
 			ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, G.scene->r.cfra);
 		else 
@@ -3332,16 +3355,28 @@ static void draw_forcefield(Object *ob)
 		drawcircball(vec, 2.0, imat);
 	}
 	else if (ob->pd->forcefield == PFIELD_VORTEX) {
-		float ffall_val;
+		float ffall_val, force_val;
 
+		Mat4One(imat);
 		if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
 			ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, G.scene->r.cfra);
 		else 
 			ffall_val = ob->pd->f_power;
 
+		if (has_ipo_code(ob->ipo, OB_PD_FSTR))
+			force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, G.scene->r.cfra);
+		else 
+			force_val = ob->pd->f_strength;
+
 		BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
-		drawspiral(vec, 1.0, imat, 0);
-		drawspiral(vec, 1.0, imat, 15);
+		if (force_val < 0) {
+			drawspiral(vec, 1.0, imat, 1);
+			drawspiral(vec, 1.0, imat, 16);
+		}
+		else {
+			drawspiral(vec, 1.0, imat, -1);
+			drawspiral(vec, 1.0, imat, -16);
+		}
 	}
 	
 }
@@ -4028,7 +4063,7 @@ void draw_object(Base *base)
 			
 			for (curcon = list->first; curcon; curcon=curcon->next){
 				if ((curcon->flag & CONSTRAINT_EXPAND)&&(curcon->type!=CONSTRAINT_TYPE_NULL)&&(constraint_has_target(curcon))){
-					get_constraint_target(curcon, TARGET_OBJECT, NULL, tmat, size, bsystem_time(ob, 0, (float)(G.scene->r.cfra), ob->sf));
+					get_constraint_target_matrix(curcon, TARGET_OBJECT, NULL, tmat, size, bsystem_time(ob, 0, (float)(G.scene->r.cfra), ob->sf));
 					setlinestyle(3);
 					glBegin(GL_LINES);
 					glVertex3fv(tmat[3]);

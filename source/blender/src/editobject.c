@@ -272,7 +272,7 @@ void make_track(void)
 	}
 	if(BASACT==0) return;
 
-	mode= pupmenu("Make Track %t|Constraint %x1|Old Track %x2");
+	mode= pupmenu("Make Track %t|TrackTo Constraint %x1|LockTrack Constraint %x2|Old Track %x3");
 	if (mode == 0){
 		return;
 	}
@@ -307,6 +307,36 @@ void make_track(void)
 		sort_baselist(G.scene);
 	}
 	else if (mode == 2){
+		bConstraint *con;
+		bLockTrackConstraint *data;
+
+		base= FIRSTBASE;
+		while(base) {
+			if TESTBASELIB(base) {
+				if(base!=BASACT) {
+					con = add_new_constraint(CONSTRAINT_TYPE_LOCKTRACK);
+					strcpy (con->name, "AutoTrack");
+
+					data = con->data;
+					data->tar = BASACT->object;
+
+					/* Lamp and Camera track differently by default */
+					if (base->object->type == OB_LAMP || base->object->type == OB_CAMERA) {
+						data->trackflag = TRACK_nZ;
+						data->lockflag = LOCK_Y;
+					}
+
+					add_constraint_to_object(con, base->object);
+				}
+			}
+			base= base->next;
+		}
+
+		test_scene_constraints();
+		allqueue(REDRAWVIEW3D, 0);
+		sort_baselist(G.scene);
+	}
+	else if (mode == 3){
 		base= FIRSTBASE;
 		while(base) {
 			if TESTBASELIB(base) {
@@ -758,7 +788,7 @@ void make_parent(void)
 
 						add_constraint_to_object(con, base->object);
 
-						get_constraint_target(con, TARGET_OBJECT, NULL, cmat, size, G.scene->r.cfra - base->object->sf);
+						get_constraint_target_matrix(con, TARGET_OBJECT, NULL, cmat, size, G.scene->r.cfra - base->object->sf);
 						VecSubf(vec, base->object->obmat[3], cmat[3]);
 
 						base->object->loc[0] = vec[0];
@@ -1206,9 +1236,9 @@ void docentre(void)
 				DO_MINMAX(eve->co, min, max);
 				eve= eve->next;
 			}
-			cent[0]= (min[0]+max[0])/2.0;
-			cent[1]= (min[1]+max[1])/2.0;
-			cent[2]= (min[2]+max[2])/2.0;
+			cent[0]= (min[0]+max[0])/2.0f;
+			cent[1]= (min[1]+max[1])/2.0f;
+			cent[2]= (min[2]+max[2])/2.0f;
 			
 			eve= em->verts.first;
 			while(eve) {
@@ -1259,9 +1289,9 @@ void docentre(void)
 							DO_MINMAX(mvert->co, min, max);
 						}
 				
-						cent[0]= (min[0]+max[0])/2.0;
-						cent[1]= (min[1]+max[1])/2.0;
-						cent[2]= (min[2]+max[2])/2.0;
+						cent[0]= (min[0]+max[0])/2.0f;
+						cent[1]= (min[1]+max[1])/2.0f;
+						cent[2]= (min[2]+max[2])/2.0f;
 					}
 						
 					mvert= me->mvert;
@@ -1346,9 +1376,9 @@ void docentre(void)
 							nu= nu->next;
 						}
 						
-						cent[0]= (min[0]+max[0])/2.0;
-						cent[1]= (min[1]+max[1])/2.0;
-						cent[2]= (min[2]+max[2])/2.0;
+						cent[0]= (min[0]+max[0])/2.0f;
+						cent[1]= (min[1]+max[1])/2.0f;
+						cent[2]= (min[2]+max[2])/2.0f;
 					}
 					
 					nu= nu1;
@@ -1391,8 +1421,8 @@ void docentre(void)
 					cu= base->object->data;
 					if(cu->bb==0) return;
 					
-					cu->xof= -0.5*( cu->bb->vec[4][0] - cu->bb->vec[0][0]);
-					cu->yof= -0.5 -0.5*( cu->bb->vec[0][1] - cu->bb->vec[2][1]);	/* extra 0.5 is the height of above line */
+					cu->xof= -0.5f*( cu->bb->vec[4][0] - cu->bb->vec[0][0]);
+					cu->yof= -0.5f -0.5f*( cu->bb->vec[0][1] - cu->bb->vec[2][1]);	/* extra 0.5 is the height of above line */
 					
 					/* not really ok, do this better once! */
 					cu->xof /= cu->fsize;
@@ -2684,7 +2714,7 @@ static int is_ob_constraint_target(Object *ob, ListBase *conlist) {
 
 	for (con=conlist->first; con; con=con->next)
 	{
-		if (get_con_target(con) == ob)
+		if (get_constraint_target(con) == ob)
 			return 1;
 	}
 	return 0;
@@ -2935,7 +2965,7 @@ int is_constraint_target_gonna_move(Object *ob) {
 	bPoseChannel *chan;
 
 	for (con = ob->constraints.first; con; con=con->next) {
-		if ( (tarOb = get_con_target(con)) ) {
+		if ( (tarOb = get_constraint_target(con)) ) {
 			if (tarOb->flag & OB_GONNA_MOVE )
 				return 1;
 		}
@@ -2944,7 +2974,7 @@ int is_constraint_target_gonna_move(Object *ob) {
 	if (ob->pose) {
 		for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
 			for (con = chan->constraints.first; con; con=con->next) {
-				if ( (tarOb = get_con_target(con)) ) {
+				if ( (tarOb = get_constraint_target(con)) ) {
 					if (tarOb->flag & OB_GONNA_MOVE )
 						return 1;
 				}
@@ -4549,7 +4579,7 @@ void transform(int mode)
 			/* figure out which bones need calculating */
 			figure_bone_nocalc(G.obpose);
 			figure_pose_updating();
-			make_trans_bones(mode);
+			make_trans_bones((char)mode);
 			break;
 		}
 	}

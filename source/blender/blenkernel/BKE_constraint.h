@@ -54,10 +54,14 @@ void clear_object_constraint_status (struct Object *ob);
 void clear_all_constraints(void);
 void rebuild_all_armature_displists(void);
 void do_constraint_channels (struct ListBase *conbase, struct ListBase *chanbase, float ctime);
-short get_constraint_target (struct bConstraint *con, short ownertype, void *ownerdata, float mat[][4], float size[3], float time);
+short get_constraint_target_matrix (struct bConstraint *con, short ownertype, void *ownerdata, float mat[][4], float size[3], float time);
 struct bConstraintChannel *find_constraint_channel (ListBase *list, const char *name);
 void free_constraint_channels (ListBase *chanbase);
+
+/* Gemeric functions */
+
 char constraint_has_target (struct bConstraint *con);
+struct Object *get_constraint_target(struct bConstraint *con);
 
 /* Constraint target/owner types */
 #define TARGET_OBJECT			1	//	string is ""

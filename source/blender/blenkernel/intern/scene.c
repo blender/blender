@@ -241,43 +241,8 @@ void sort_baselist(Scene *sce)
 				{
 					bConstraint *con;
 					for (con = base->object->constraints.first; con; con=con->next){
-						switch (con->type){
-						case CONSTRAINT_TYPE_KINEMATIC:
-							{
-								bKinematicConstraint *data=con->data;
-								if (data->tar) doit++;
-							}
-							break;
-						case CONSTRAINT_TYPE_TRACKTO:
-							{
-								bTrackToConstraint *data=con->data;
-								if (data->tar) doit++;
-							}
-							break;
-						case CONSTRAINT_TYPE_NULL:
-							break;
-						case CONSTRAINT_TYPE_ROTLIKE:
-							{
-								bRotateLikeConstraint *data=con->data;
-								if (data->tar) doit++;
-								
-							}
-							break;
-						case CONSTRAINT_TYPE_LOCLIKE:
-							{
-								bLocateLikeConstraint *data=con->data;
-								if (data->tar) doit++;
-							}
-							break;
-						case CONSTRAINT_TYPE_ACTION:
-							{
-								bActionConstraint *data=con->data;
-								if (data->tar) doit++;
-							}
-							break;
-						default:
-							break;
-						}
+						if (constraint_has_target(con))
+							doit++;
 					}
 				}
 				
@@ -294,43 +259,8 @@ void sort_baselist(Scene *sce)
 					{
 						bConstraint *con;
 						for (con = base->object->constraints.first; con; con=con->next){
-							switch (con->type){
-							case CONSTRAINT_TYPE_KINEMATIC:
-								{
-									bKinematicConstraint *data=con->data;
-									if (test->object == data->tar && test->object!=base->object) doit--;
-								}
-								break;
-							case CONSTRAINT_TYPE_TRACKTO:
-								{
-									bTrackToConstraint *data=con->data;
-									if (test->object == data->tar && test->object!=base->object) doit--;
-								}
-								break;
-							case CONSTRAINT_TYPE_NULL:
-								break;
-							case CONSTRAINT_TYPE_ROTLIKE:
-								{
-									bRotateLikeConstraint *data=con->data;
-									if (test->object == data->tar && test->object!=base->object) doit--;
-									
-								}
-								break;
-							case CONSTRAINT_TYPE_LOCLIKE:
-								{
-									bLocateLikeConstraint *data=con->data;
-									if (test->object == data->tar && test->object!=base->object) doit--;
-								}
-								break;
-							case CONSTRAINT_TYPE_ACTION:
-								{
-									bActionConstraint *data=con->data;
-									if (test->object == data->tar && test->object!=base->object) doit--;
-								}
-								break;
-							default:
-								break;
-							}
+							if (test->object == get_constraint_target(con) && test->object!=base->object)
+								doit--;
 						}
 					}
 					

@@ -124,8 +124,63 @@ char constraint_has_target (bConstraint *con) {
 		}
 		break;
 	}
-	// Unknown types or CONSTRAINT_TYPE_NULL or  no target
+	// Unknown types or CONSTRAINT_TYPE_NULL or no target
 	return 0;
+}
+
+Object *get_constraint_target(bConstraint *con)
+{
+	/*
+	 * If the target for this constraint is target, return a pointer 
+	 * to the name for this constraints subtarget ... NULL otherwise
+	 */
+	switch (con->type) {
+
+		case CONSTRAINT_TYPE_ACTION:
+		{
+			bActionConstraint *data = con->data;
+			return data->tar;
+		}
+		break;
+		case CONSTRAINT_TYPE_LOCLIKE:
+		{
+			bLocateLikeConstraint *data = con->data;
+			return data->tar;
+		}
+		break;
+		case CONSTRAINT_TYPE_ROTLIKE:
+		{
+			bRotateLikeConstraint *data = con->data;
+			return data->tar;
+		}
+		break;
+		case CONSTRAINT_TYPE_KINEMATIC:
+		{
+			bKinematicConstraint *data = con->data;
+			return data->tar;
+		}
+		break;
+		case CONSTRAINT_TYPE_TRACKTO:
+		{
+			bTrackToConstraint *data = con->data;
+			return data->tar;
+		}
+		break;
+		case CONSTRAINT_TYPE_LOCKTRACK:
+		{
+			bLockTrackConstraint *data = con->data;
+			return data->tar;
+		}
+		break;
+		case CONSTRAINT_TYPE_FOLLOWPATH: 
+		{
+			bFollowPathConstraint *data = con->data;
+			return data->tar;
+		}
+		break;
+	}
+	
+	return NULL;  
 }
 
 void unique_constraint_name (bConstraint *con, ListBase *list){
@@ -428,7 +483,7 @@ void rebuild_all_armature_displists(void) {
 	}
 }
 
-short get_constraint_target (bConstraint *con, short ownertype, void* ownerdata, float mat[][4], float size[3], float ctime)
+short get_constraint_target_matrix (bConstraint *con, short ownertype, void* ownerdata, float mat[][4], float size[3], float ctime)
 {
 	short valid=0;
 
@@ -701,6 +756,14 @@ void relink_constraints (struct ListBase *list)
 				ID_NEW(data->tar);
 			}
 			break;
+		case CONSTRAINT_TYPE_LOCKTRACK:
+			{
+				bLockTrackConstraint *data;
+				data = con->data;
+
+				ID_NEW(data->tar);
+			}
+			break;
 		case CONSTRAINT_TYPE_ACTION:
 			{
 				bActionConstraint *data;
@@ -720,6 +783,14 @@ void relink_constraints (struct ListBase *list)
 		case CONSTRAINT_TYPE_ROTLIKE:
 			{
 				bRotateLikeConstraint *data;
+				data = con->data;
+
+				ID_NEW(data->tar);
+			}
+			break;
+		case CONSTRAINT_TYPE_FOLLOWPATH:
+			{
+				bFollowPathConstraint *data;
 				data = con->data;
 
 				ID_NEW(data->tar);
@@ -812,12 +883,28 @@ void copy_constraints (ListBase *dst, ListBase *src)
 				data = (bTrackToConstraint*) con->data;
 			}
 			break;
+		case CONSTRAINT_TYPE_LOCKTRACK:
+			{
+				bLockTrackConstraint *data;
+				
+				con->data = MEM_dupallocN (con->data);
+				data = (bLockTrackConstraint*) con->data;
+			}
+			break;
 		case CONSTRAINT_TYPE_KINEMATIC:
 			{
 				bKinematicConstraint *data;
 				
 				con->data = MEM_dupallocN (con->data);
 				data = (bKinematicConstraint*) con->data;
+			}
+			break;
+		case CONSTRAINT_TYPE_FOLLOWPATH:
+			{
+				bFollowPathConstraint *data;
+				
+				con->data = MEM_dupallocN (con->data);
+				data = (bFollowPathConstraint*) con->data;
 			}
 			break;
 		default:
@@ -1134,7 +1221,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 						Crossf(totmat[2], totmat[0], totmat[1]);
 						}
 						break;
-					case TRACK_Y: /* LOCK Y TRACK Z */
+					case TRACK_Z: /* LOCK Y TRACK Z */
 						{
 						/* Projection of Vector on the plane */
 						Projf(vec2, vec, ob->obmat[1]);

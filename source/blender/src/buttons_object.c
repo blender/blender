@@ -1249,7 +1249,7 @@ static void object_panel_deflectors(Object *ob)
 		uiDefButS(block, ROW, REDRAWVIEW3D, "Force field",	10,140,200,20, &ob->pd->forcefield, 1.0, PFIELD_FORCE, 0, 0, "Object center attracts or repels particles");
 		uiDefButS(block, ROW, REDRAWVIEW3D, "Vortex field",	10,120,200,20, &ob->pd->forcefield, 1.0, PFIELD_VORTEX, 0, 0, "Particles swirl around Z-axis of the object");
 
-		uiDefButF(block, NUM, B_DIFF, "Strength: ",	10,100,200,20, &ob->pd->f_strength, -1000, 1000, 1000, 0, "Strength of force field");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "Strength: ",	10,100,200,20, &ob->pd->f_strength, -1000, 1000, 1000, 0, "Strength of force field");
 		uiDefButF(block, NUM, REDRAWVIEW3D, "Fall-off: ",	10,80,200,20, &ob->pd->f_power, 0, 10, 100, 0, "Falloff power (real gravitational fallof = 2)");
 		/* only meshes collide now */
 		if(ob->type==OB_MESH) {

@@ -3951,35 +3951,6 @@ static void do_versions(Main *main)
                 }
 			}
 
-			/* Change Ob->Track in real TrackTo constraint
-
-			NOT SURE IF PEOPLE WANT THIS SO I DISABLED IT
-
-			if (ob->track){
-				bConstraint *con;
-				bTrackToConstraint *data;
-
-				list = &ob->constraints;
-				if (list)
-				{
-					con = MEM_callocN(sizeof(bConstraint), "constraint");
-					strcpy (con->name, "AutoTrack");
-					unique_constraint_name(con, list);
-					con->flag |= CONSTRAINT_EXPAND;
-					con->enforce=1.0F;
-					con->type = CONSTRAINT_TYPE_TRACKTO;
-					data = (bTrackToConstraint *)
-						new_constraint_data(CONSTRAINT_TYPE_TRACKTO);
-
-					data->tar = ob->track;
-					data->reserved1 = ob->trackflag;
-					data->reserved2 = ob->upflag;
-					con->data= (void*) data;
-					BLI_addtail(list, con);
-				}
-				ob->track = 0;
-			}*/
-
 			ob = ob->id.next;
 		}
 

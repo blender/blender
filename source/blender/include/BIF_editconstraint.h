@@ -59,7 +59,6 @@ void test_scene_constraints (void);
 
 char *get_con_subtarget_name(struct bConstraint *constraint, 
 							 struct Object *target);
-struct Object *get_con_target(struct bConstraint *constraint);
 
 #endif
 

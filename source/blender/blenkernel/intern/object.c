@@ -1491,7 +1491,7 @@ void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 				enf = con->enforce;
 
 			/* Get the targetmat */
-			get_constraint_target(con, obtype, obdata, tmat, size, ctime);
+			get_constraint_target_matrix(con, obtype, obdata, tmat, size, ctime);
 			
 			Mat4CpyMat4(focusmat, tmat);
 			
