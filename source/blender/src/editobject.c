@@ -3982,6 +3982,7 @@ void transform(int mode)
 	short ax = 0, del = 0, typemode = 0; // also for new typing thingy
 	short pe[3] = {0,0,0}; // again for the same thing. Determines if the period key has been pressed.
 	short mi[3] = {1,1,1}; // same thing again. Determines whether or not the minus key has been pressed (in order to add or substract new numbers).
+	short numchange[3] = {0,0,0}; // Determines whether or not one axis recieved changes (mainly for scaling)
 
 	float vx[3] = {1,0,0}, vy[3] = {0,1,0}, vz[3] = {0,0,1};
 		
@@ -4698,9 +4699,9 @@ void transform(int mode)
 				else size[0]=size[1]=size[2]= (sqrt( (float)((yc-mval[1])*(yc-mval[1])+(mval[0]-xc)*(mval[0]-xc)) ))/sizefac;
 				
 				if (typemode){
-					size[0] = addvec[0];
-					size[1] = addvec[1];
-					size[2] = addvec[2];
+					if (numchange[0]) size[0] = addvec[0]; else size[0] = 1;
+					if (numchange[1]) size[1] = addvec[1]; else size[1] = 1;
+					if (numchange[2]) size[2] = addvec[2]; else size[2] = 1;
 				}
 
 				if(axismode && mode=='s') {
@@ -5056,6 +5057,13 @@ void transform(int mode)
 				case GKEY:
 				case RKEY:
 				case SKEY:
+					/* Resetting the variables */
+					addvec[0]=addvec[1]=addvec[2]=0;
+					ax = del = typemode = 0;
+					pe[0]=pe[1]=pe[2]=0;
+					mi[0]=mi[1]=mi[2]=1;
+					numchange[0]=numchange[1]=numchange[2]=0;
+
 					getmouseco_areawin(mval);
 					xn=xo= mval[0];
 					yn=xo= mval[1];
@@ -5194,17 +5202,20 @@ void transform(int mode)
 								addvec[0]=addvec[1]=addvec[2]=0;
 								pe[0]=pe[1]=pe[2]=0;
 								mi[0]=mi[1]=mi[2]=1;
+								numchange[0]=numchange[1]=numchange[2]=0;
 							}
 							else if (del == 1){
 								addvec[0]=addvec[1]=addvec[2]=0;
 								pe[0]=pe[1]=pe[2]=0;
 								mi[0]=mi[1]=mi[2]=1;
+								numchange[0]=numchange[1]=numchange[2]=0;
 								del = 0;
 							}
 							else if (mode == 's'){
 								addvec[ax-1]=0;
 								pe[ax-1]=0;
 								mi[ax-1]=1;
+								numchange[ax-1]=0;
 								del = 1;
 							}
 							else if ((mode == 'r') || (mode == 'R')){
@@ -5212,12 +5223,14 @@ void transform(int mode)
 								addvec[ax] = 0;
 								pe[ax]=0;
 								mi[ax]=1;
+								numchange[ax]=0;
 								del = 1;
 							}
 							else{
 								addvec[ax] = 0;
 								pe[ax]=0;
 								mi[ax]=1;
+								numchange[ax]=0;
 								del = 1;
 							}
 						}
@@ -5355,6 +5368,7 @@ void transform(int mode)
 									addvec[2] *= 10;
 									addvec[2] += mi[2] * add_num;
 								}
+								numchange[0]=numchange[1]=numchange[2]=1;
 							}
 							else{
 								if (pe[ax-1]){
@@ -5368,29 +5382,31 @@ void transform(int mode)
 									addvec[ax-1] *= 10;
 									addvec[ax-1] += mi[ax-1] * add_num;
 								}
+								numchange[ax-1]=1;
 							}
 							
 						}
 						else if (mode == 'N'){
-								if (pe[0]){
-									int div = 1;
-									int i;
-									for (i = 0; i < pe[ax]; i++){div*=10;}
-									addvec[0] += mi[0] * add_num / div;
-									pe[0]+=1;
-									addvec[1] += mi[1] * add_num / div;
-									pe[1]+=1;
-									addvec[2] += mi[2] * add_num / div;
-									pe[2]+=1;
-								}
-								else{
-									addvec[0] *= 10;
-									addvec[0] += mi[0] * add_num;
-									addvec[1] *= 10;
-									addvec[1] += mi[1] * add_num;
-									addvec[2] *= 10;
-									addvec[2] += mi[2] * add_num;
-								}
+							if (pe[0]){
+								int div = 1;
+								int i;
+								for (i = 0; i < pe[ax]; i++){div*=10;}
+								addvec[0] += mi[0] * add_num / div;
+								pe[0]+=1;
+								addvec[1] += mi[1] * add_num / div;
+								pe[1]+=1;
+								addvec[2] += mi[2] * add_num / div;
+								pe[2]+=1;
+							}
+							else{
+								addvec[0] *= 10;
+								addvec[0] += mi[0] * add_num;
+								addvec[1] *= 10;
+								addvec[1] += mi[1] * add_num;
+								addvec[2] *= 10;
+								addvec[2] += mi[2] * add_num;
+							}
+							numchange[0]=numchange[1]=numchange[2]=1;
 						}
 						else if ((mode == 'r') || (mode == 'R')){
 							if (pe[ax]){
@@ -5404,6 +5420,7 @@ void transform(int mode)
 								addvec[ax] *= 10;
 								addvec[ax] += mi[ax] * add_num;
 							}
+							numchange[ax]=1;
 						}
 						else{
                             if (axismode & XTRANS)
@@ -5423,6 +5440,7 @@ void transform(int mode)
 								addvec[ax] *= 10;
 								addvec[ax] += mi[ax] * add_num;
 							}
+							numchange[ax]=1;
 						}
 						firsttime=1;
 					}
