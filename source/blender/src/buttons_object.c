@@ -323,21 +323,17 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 {
 	uiBut *but;
 	char typestr[64];
-	short height, width = 238;
+	short height, width = 265;
 	int curCol;
-
-	/* still something weird here... glrects and emboss dont match buttons (ton) */
-	
-	uiBlockSetEmboss(block, UI_EMBOSSM);
 
 	get_constraint_typestring (typestr, con);
 
 	curCol = get_constraint_col(con);
+
 	/* Draw constraint header */
-
-	but = uiDefIconBut(block, BUT, B_CONSTRAINT_REDRAW, ICON_X, *xco, *yco, 20, 20, list, 0.0, 0.0, 0.0, 0.0, "Delete constraint");
-
-	uiButSetFunc(but, del_constraint_func, con, list);
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+	
+	uiDefIconButS(block, ICONTOG|BIT|CONSTRAINT_EXPAND_BIT, B_CONSTRAINT_REDRAW, ICON_DISCLOSURE_TRI_RIGHT, *xco-10, *yco, 20, 20, &con->flag, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Constraint");
 
 	if (con->flag & CONSTRAINT_EXPAND) {
 		
@@ -353,18 +349,23 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		else
 			but = uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Object Constraint%t|Track To%x2|Copy Rotation%x8|Copy Location%x9|Null%x0", *xco+20, *yco, 100, 20, &con->type, 0.0, 0.0, 0.0, 0.0, "Constraint type"); 
 		*/
+		uiBlockSetEmboss(block, UI_EMBOSSX);
 		
-		glRects(*xco+20, *yco-12, *xco+138, *yco+5);
-		but = uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, *xco+20, *yco, 100, 20, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+		/* rounded header */
+		BIF_ThemeColorShade(curCol, -20);
+		uiSetRoundBox(3);
+		uiRoundBox((float)*xco+4, (float)*yco-18, (float)*xco+width+30, (float)*yco+6, 5.0);
+
+		but = uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, *xco+10, *yco-1, 100, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
 		uiButSetFunc(but, constraint_changed_func, con, NULL);
 		con->otype = con->type;
 		
-		but = uiDefBut(block, TEX, B_CONSTRAINT_REDRAW, "", *xco+120, *yco, 128, 20, con->name, 0.0, 32.0, 0.0, 0.0, "Constraint name"); 
+		but = uiDefBut(block, TEX, B_CONSTRAINT_REDRAW, "", *xco+120, *yco-1, 135, 19, con->name, 0.0, 32.0, 0.0, 0.0, "Constraint name"); 
 		uiButSetFunc(but, verify_constraint_name_func, con, NULL);
 	}	
 	else{
-		uiBlockSetEmboss(block, UI_EMBOSSP);
+		uiBlockSetEmboss(block, UI_EMBOSSN);
 
 		if (con->flag & CONSTRAINT_DISABLE) {
 			uiBlockSetCol(block, TH_REDALERT);
@@ -372,20 +373,30 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		}
 		else
 			BIF_ThemeColor(curCol);
-
-		glRects(*xco+20, *yco-12, *xco+266, *yco+5);
+			
+		/* coloured rectangle to hold constraint controls */
+		if (con->type!=CONSTRAINT_TYPE_NULL) glRects(*xco+3, *yco-36, *xco+width+30, *yco-15);
+	
+		/* rounded header */
+		BIF_ThemeColorShade(curCol, -20);
+		uiSetRoundBox(3);
+		uiRoundBox((float)*xco+4, (float)*yco-15, (float)*xco+width+30, (float)*yco+6, 5.0);
 		
-		but = uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, *xco+20, *yco, 100, 20, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+		but = uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, *xco+10, *yco-1, 100, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 		uiButSetFunc(but, move_constraint_func, con, NULL);
-		but = uiDefBut(block, LABEL, B_CONSTRAINT_TEST, con->name, *xco+120, *yco, 128, 20, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+		
+		but = uiDefBut(block, LABEL, B_CONSTRAINT_TEST, con->name, *xco+120, *yco-1, 135, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 		uiButSetFunc(but, move_constraint_func, con, NULL);
 	}
 
 	uiBlockSetCol(block, TH_AUTO);	
 	
-	uiBlockSetEmboss(block, UI_EMBOSSM);
-	uiDefIconButS(block, ICONTOG|BIT|CONSTRAINT_EXPAND_BIT, B_CONSTRAINT_REDRAW, ICON_RIGHTARROW, *xco+248, *yco, 20, 20, &con->flag, 0.0, 0.0, 0.0, 0.0, "Collapse");
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+	
+	but = uiDefIconBut(block, BUT, B_CONSTRAINT_REDRAW, ICON_X, *xco+262, *yco, 19, 19, list, 0.0, 0.0, 0.0, 0.0, "Delete constraint");
+	uiButSetFunc(but, del_constraint_func, con, list);
 
+	uiBlockSetEmboss(block, UI_EMBOSSX);
 
 
 	/* Draw constraint data*/
@@ -400,30 +411,37 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bArmature *arm;
 
 				height = 86;
+				
 				BIF_ThemeColor(curCol);
-				glRects(*xco+5, *yco-height-16, *xco+width+30, *yco-14);
-				uiEmboss((float)*xco+5, (float)*yco-height-16, (float)*xco+width+30, (float)*yco-14, 1);
+				glRects(*xco+3, *yco-height-39, *xco+width+30, *yco-18);
+
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
 				/* Draw target parameters */
-				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-20, 96, 18, &data->tar, "Target Object"); 
+				uiBlockBeginAlign(block);
+				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 
 				arm = get_armature(data->tar);
 				if (arm){
-					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+((width/2)-48), *yco-40,96,18, &data->subtarget, 0, 24, 0, 0, "Bone");
+					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 				}
 				else
 					strcpy (data->subtarget, "");
+				uiBlockEndAlign(block);
 
 				/* Draw action button */
-				uiDefIDPoinBut(block, test_actionpoin_but, B_CONSTRAINT_CHANGETARGET, "AC:", *xco+((width/2)-90), *yco-60, 75, 18, &data->act, "Action containing the keyed motion for this bone"); 
-				uiDefButI(block, MENU, B_CONSTRAINT_REDRAW, "Key on%t|X Rot%x0|Y Rot%x1|Z Rot%x2", *xco+((width/2)-90), *yco-80, 75, 18, &data->type, 0, 24, 0, 0, "Specify which transformation channel from the target is used to key the action");
+				uiDefIDPoinBut(block, test_actionpoin_but, B_CONSTRAINT_CHANGETARGET, "AC:", *xco+((width/2)-117), *yco-64, 78, 18, &data->act, "Action containing the keyed motion for this bone"); 
+				uiDefButI(block, MENU, B_CONSTRAINT_REDRAW, "Key on%t|X Rot%x0|Y Rot%x1|Z Rot%x2", *xco+((width/2)-117), *yco-84, 78, 18, &data->type, 0, 24, 0, 0, "Specify which transformation channel from the target is used to key the action");
 
-				uiDefButS(block, NUM, B_CONSTRAINT_CHANGETARGET, "Start:", *xco+((width/2)-15), *yco-60, 70, 18, &data->start, 1, 18000, 0.0, 0.0, "Starting frame of the keyed motion"); 
-				uiDefButS(block, NUM, B_CONSTRAINT_CHANGETARGET, "End:", *xco+((width/2)-15), *yco-80, 70, 18, &data->end, 1, 18000, 0.0, 0.0, "Ending frame of the keyed motion"); 
+				uiBlockBeginAlign(block);
+				uiDefButS(block, NUM, B_CONSTRAINT_CHANGETARGET, "Start:", *xco+((width/2)-36), *yco-64, 78, 18, &data->start, 1, 18000, 0.0, 0.0, "Starting frame of the keyed motion"); 
+				uiDefButS(block, NUM, B_CONSTRAINT_CHANGETARGET, "End:", *xco+((width/2)-36), *yco-84, 78, 18, &data->end, 1, 18000, 0.0, 0.0, "Ending frame of the keyed motion"); 
+				uiBlockEndAlign(block);
 				
-				uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Min:", *xco+((width/2)+55), *yco-60, 80, 18, &data->min, -180, 180, 0, 0, "Minimum value for target channel range");
-				uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Max:", *xco+((width/2)+55), *yco-80, 80, 18, &data->max, -180, 180, 0, 0, "Maximum value for target channel range");
-				
+				uiBlockBeginAlign(block);
+				uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Min:", *xco+((width/2)+45), *yco-64, 78, 18, &data->min, -180, 180, 0, 0, "Minimum value for target channel range");
+				uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Max:", *xco+((width/2)+45), *yco-84, 78, 18, &data->max, -180, 180, 0, 0, "Maximum value for target channel range");
+				uiBlockEndAlign(block);
 			}
 			break;
 		case CONSTRAINT_TYPE_LOCLIKE:
@@ -431,24 +449,30 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bLocateLikeConstraint *data = con->data;
 				bArmature *arm;
 				height = 66;
+				
 				BIF_ThemeColor(curCol);
-				glRects(*xco+5, *yco-height-16, *xco+width+30, *yco-14);
-				uiEmboss((float)*xco+5, (float)*yco-height-16, (float)*xco+width+30, (float)*yco-14, 1);
+				glRects(*xco+3, *yco-height-39, *xco+width+30, *yco-18);
+
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
 				/* Draw target parameters */
-				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-20, 96, 18, &data->tar, "Target Object"); 
+				uiBlockBeginAlign(block);
+				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 
 				arm = get_armature(data->tar);
 				if (arm){
-					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+((width/2)-48), *yco-40,96,18, &data->subtarget, 0, 24, 0, 0, "Bone");
+					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 				}
 				else
 					strcpy (data->subtarget, "");
-
+				uiBlockEndAlign(block);
+				
 				/* Draw XYZ toggles */
-					but=uiDefButI(block, TOG|BIT|0, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-60, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
-					but=uiDefButI(block, TOG|BIT|1, B_CONSTRAINT_TEST, "Y", *xco+((width/2)-16), *yco-60, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
-					but=uiDefButI(block, TOG|BIT|2, B_CONSTRAINT_TEST, "Z", *xco+((width/2)+16), *yco-60, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Z component");
+				uiBlockBeginAlign(block);
+				but=uiDefButI(block, TOG|BIT|0, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
+				but=uiDefButI(block, TOG|BIT|1, B_CONSTRAINT_TEST, "Y", *xco+((width/2)-16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
+				but=uiDefButI(block, TOG|BIT|2, B_CONSTRAINT_TEST, "Z", *xco+((width/2)+16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Z component");
+				uiBlockEndAlign(block);
 			}
 			break;
 		case CONSTRAINT_TYPE_ROTLIKE:
@@ -456,19 +480,23 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bRotateLikeConstraint *data = con->data;
 				bArmature *arm;
 				height = 46;
-				BIF_ThemeColor(curCol);
-				glRects(*xco+5, *yco-height-16, *xco+width+30, *yco-14);
-				uiEmboss((float)*xco+5, (float)*yco-height-16, (float)*xco+width+30, (float)*yco-14, 1);
 
-				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-20, 96, 18, &data->tar, "Target Object"); 
+				BIF_ThemeColor(curCol);
+				glRects(*xco+3, *yco-height-39, *xco+width+30, *yco-18);
+				
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+
+				/* Draw target parameters */
+				uiBlockBeginAlign(block);
+				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 
 				arm = get_armature(data->tar);
 				if (arm){
-					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+((width/2)-48), *yco-40,96,18, &data->subtarget, 0, 24, 0, 0, "Bone");
+					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 				}
 				else
 					strcpy (data->subtarget, "");
-
+				uiBlockEndAlign(block);
 			}
 			break;
 		case CONSTRAINT_TYPE_KINEMATIC:
@@ -477,21 +505,26 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bArmature *arm;
 				
 				height = 66;
+				
 				BIF_ThemeColor(curCol);
-				glRects(*xco+5, *yco-height-16, *xco+width+30, *yco-14);
-				uiEmboss((float)*xco+5, (float)*yco-height-16, (float)*xco+width+30, (float)*yco-14, 1);
+				glRects(*xco+3, *yco-height-39, *xco+width+30, *yco-18);
 				
-				uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Tolerance:", *xco+((width/2)-90), *yco-20, 120, 18, &data->tolerance, 0.0001, 1.0, 0.0, 0.0, "Maximum distance to target after solving"); 
-				uiDefButI(block, NUM, B_CONSTRAINT_REDRAW, "Iterations:", *xco+((width/2)+30), *yco-20, 110, 18, &data->iterations, 1, 10000, 0.0, 0.0, "Maximum number of solving iterations"); 
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
-				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-40, 120, 18, &data->tar, "Target Object"); 
-				
+				/* Draw target parameters */
+				uiBlockBeginAlign(block);
+				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+
 				arm = get_armature(data->tar);
 				if (arm){
-					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+((width/2)-48), *yco-60,96,18, &data->subtarget, 0, 24, 0, 0, "Bone");
+					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 				}
 				else
 					strcpy (data->subtarget, "");
+				uiBlockEndAlign(block);
+	
+				uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Tolerance:", *xco+((width/2)-117), *yco-64, 120, 18, &data->tolerance, 0.0001, 1.0, 0.0, 0.0, "Maximum distance to target after solving"); 
+				uiDefButI(block, NUM, B_CONSTRAINT_REDRAW, "Iterations:", *xco+((width/2)+3), *yco-64, 120, 18, &data->iterations, 1, 10000, 0.0, 0.0, "Maximum number of solving iterations"); 
 				
 			}
 			break;
@@ -501,28 +534,42 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bArmature *arm;
 
 				height = 66;
+				
 				BIF_ThemeColor(curCol);
-				glRects(*xco+5, *yco-height-16, *xco+width+30, *yco-14);
-				uiEmboss((float)*xco+5, (float)*yco-height-16, (float)*xco+width+30, (float)*yco-14, 1);
+				glRects(*xco+3, *yco-height-39, *xco+width+30, *yco-18);
 				
-				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-20, 96, 18, &data->tar, "Target Object"); 
-				
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+
+				/* Draw target parameters */
+				uiBlockBeginAlign(block);
+				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+
 				arm = get_armature(data->tar);
 				if (arm){
-					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+((width/2)-48), *yco-40,96,18, &data->subtarget, 0, 24, 0, 0, "Bone");
+					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 				}
 				else
 					strcpy (data->subtarget, "");
+				uiBlockEndAlign(block);
 
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",	*xco+((width/2)-84), *yco-60,19,18, &data->reserved1, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Y",	*xco+((width/2)-65), *yco-60,19,18, &data->reserved1, 12.0, 1.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",	*xco+((width/2)-46), *yco-60,19,18, &data->reserved1, 12.0, 2.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-X",	*xco+((width/2)-27), *yco-60,24,18, &data->reserved1, 12.0, 3.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-Y",	*xco+((width/2)-3) , *yco-60,24,18, &data->reserved1, 12.0, 4.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-Z",	*xco+((width/2)+21), *yco-60,24,18, &data->reserved1, 12.0, 5.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",	*xco+((width/2)+60), *yco-60,19,18, &data->reserved2, 13.0, 0.0, 0, 0, "Specify the axis that is points upward");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Y",	*xco+((width/2)+79), *yco-60,19,18, &data->reserved2, 13.0, 1.0, 0, 0, "Specify the axis that is points upward");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",	*xco+((width/2)+98), *yco-60,19,18, &data->reserved2, 13.0, 2.0, 0, 0, "Specify the axis that is points upward");
+				uiBlockBeginAlign(block);
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "To:", *xco+12, *yco-64, 25, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",	*xco+39, *yco-64,17,18, &data->reserved1, 12.0, 0.0, 0, 0, "The axis that points to the target object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Y",	*xco+56, *yco-64,17,18, &data->reserved1, 12.0, 1.0, 0, 0, "The axis that points to the target object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",	*xco+73, *yco-64,17,18, &data->reserved1, 12.0, 2.0, 0, 0, "The axis that points to the target object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-X",	*xco+90, *yco-64,24,18, &data->reserved1, 12.0, 3.0, 0, 0, "The axis that points to the target object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-Y",	*xco+114, *yco-64,24,18, &data->reserved1, 12.0, 4.0, 0, 0, "The axis that points to the target object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-Z",	*xco+138, *yco-64,24,18, &data->reserved1, 12.0, 5.0, 0, 0, "The axis that points to the target object");
+				uiBlockEndAlign(block);
+				
+				uiBlockBeginAlign(block);
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Up:", *xco+174, *yco-64, 30, 18, NULL, 0.0, 0.0, 0.0, 0.0, "");
+				
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",	*xco+204, *yco-64,17,18, &data->reserved2, 13.0, 0.0, 0, 0, "The axis that points upward");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Y",	*xco+221, *yco-64,17,18, &data->reserved2, 13.0, 1.0, 0, 0, "The axis that points upward");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",	*xco+238, *yco-64,17,18, &data->reserved2, 13.0, 2.0, 0, 0, "The axis that points upward");
+				uiBlockEndAlign(block);
 			}
 			break;
 		case CONSTRAINT_TYPE_LOCKTRACK:
@@ -530,29 +577,42 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bLockTrackConstraint *data = con->data;
 				bArmature *arm;
 				height = 66;
+				
 				BIF_ThemeColor(curCol);
-				glRects(*xco+5, *yco-height-16, *xco+width+30, *yco-14);
-				uiEmboss((float)*xco+5, (float)*yco-height-16, (float)*xco+width+30, (float)*yco-14, 1);
+				glRects(*xco+3, *yco-height-39, *xco+width+30, *yco-18);
+
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
 				/* Draw target parameters */
-				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-20, 96, 18, &data->tar, "Target Object"); 
+				uiBlockBeginAlign(block);
+				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 
 				arm = get_armature(data->tar);
 				if (arm){
-					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+((width/2)-48), *yco-40,96,18, &data->subtarget, 0, 24, 0, 0, "Bone");
+					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 				}
 				else
 					strcpy (data->subtarget, "");
-
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",		*xco+((width/2)-84), *yco-60,19,18, &data->trackflag, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Y",		*xco+((width/2)-65), *yco-60,19,18, &data->trackflag, 12.0, 1.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",		*xco+((width/2)-46), *yco-60,19,18, &data->trackflag, 12.0, 2.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-X",		*xco+((width/2)-27), *yco-60,24,18, &data->trackflag, 12.0, 3.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-Y",		*xco+((width/2)-3) , *yco-60,24,18, &data->trackflag, 12.0, 4.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-Z",		*xco+((width/2)+21), *yco-60,24,18, &data->trackflag, 12.0, 5.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",		*xco+((width/2)+60), *yco-60,19,18, &data->lockflag, 13.0, 0.0, 0, 0, "Specify the axis that is locked");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Y",		*xco+((width/2)+79), *yco-60,19,18, &data->lockflag, 13.0, 1.0, 0, 0, "Specify the axis that is locked");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",		*xco+((width/2)+98), *yco-60,19,18, &data->lockflag, 13.0, 2.0, 0, 0, "Specify the axis that is locked");
+				uiBlockEndAlign(block);
+				
+				uiBlockBeginAlign(block);
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "To:", *xco+12, *yco-64, 25, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",	*xco+39, *yco-64,17,18, &data->trackflag, 12.0, 0.0, 0, 0, "The axis that points to the target object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Y",	*xco+56, *yco-64,17,18, &data->trackflag, 12.0, 1.0, 0, 0, "The axis that points to the target object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",	*xco+73, *yco-64,17,18, &data->trackflag, 12.0, 2.0, 0, 0, "The axis that points to the target object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-X",	*xco+90, *yco-64,24,18, &data->trackflag, 12.0, 3.0, 0, 0, "The axis that points to the target object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-Y",	*xco+114, *yco-64,24,18, &data->trackflag, 12.0, 4.0, 0, 0, "The axis that points to the target object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-Z",	*xco+138, *yco-64,24,18, &data->trackflag, 12.0, 5.0, 0, 0, "The axis that points to the target object");
+				uiBlockEndAlign(block);
+				
+				uiBlockBeginAlign(block);
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Lock:", *xco+166, *yco-64, 38, 18, NULL, 0.0, 0.0, 0.0, 0.0, "");
+				
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",	*xco+204, *yco-64,17,18, &data->lockflag, 13.0, 0.0, 0, 0, "The axis that is locked");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Y",	*xco+221, *yco-64,17,18, &data->lockflag, 13.0, 1.0, 0, 0, "The axis that is locked");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",	*xco+238, *yco-64,17,18, &data->lockflag, 13.0, 2.0, 0, 0, "The axis that is locked");
+				uiBlockEndAlign(block);
 			}
 			break;
 		case CONSTRAINT_TYPE_FOLLOWPATH:
@@ -560,35 +620,48 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bFollowPathConstraint *data = con->data;
 
 				height = 66;
-				BIF_ThemeColor(curCol);
-				glRects(*xco+5, *yco-height-16, *xco+width+30, *yco-14);
-				uiEmboss((float)*xco+5, (float)*yco-height-16, (float)*xco+width+30, (float)*yco-14, 1);
 				
-				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-20, 96, 18, &data->tar, "Target Object"); 
+				BIF_ThemeColor(curCol);
+				glRects(*xco+3, *yco-height-39, *xco+width+30, *yco-18);
+				
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+
+				/* Draw target parameters */
+				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 				
 				/* Draw Curve Follow toggle */
-				but=uiDefButI(block, TOG|BIT|0, B_CONSTRAINT_TEST, "CurveFollow", *xco+((width/2)-84), *yco-40, 90, 18, &data->followflag, 0, 24, 0, 0, "Object will follow the heading and banking of the curve");
+				but=uiDefButI(block, TOG|BIT|0, B_CONSTRAINT_TEST, "CurveFollow", *xco+39, *yco-44, 100, 18, &data->followflag, 0, 24, 0, 0, "Object will follow the heading and banking of the curve");
 
 				/* Draw Offset number button */
-				uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Offset:", *xco+((width/2))+20, *yco-40, 96, 18, &data->offset, -9000, 9000, 100.0, 0.0, "Offset from the position corresponding to the time frame"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Offset:", *xco+155, *yco-44, 100, 18, &data->offset, -9000, 9000, 100.0, 0.0, "Offset from the position corresponding to the time frame"); 
 
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",		*xco+((width/2)-84), *yco-60,19,18, &data->trackflag, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Y",		*xco+((width/2)-65), *yco-60,19,18, &data->trackflag, 12.0, 1.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",		*xco+((width/2)-46), *yco-60,19,18, &data->trackflag, 12.0, 2.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-X",		*xco+((width/2)-27), *yco-60,24,18, &data->trackflag, 12.0, 3.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-Y",		*xco+((width/2)-3) , *yco-60,24,18, &data->trackflag, 12.0, 4.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-Z",		*xco+((width/2)+21), *yco-60,24,18, &data->trackflag, 12.0, 5.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",		*xco+((width/2)+60), *yco-60,19,18, &data->upflag, 13.0, 0.0, 0, 0, "Specify the axis that is points upward");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Y",		*xco+((width/2)+79), *yco-60,19,18, &data->upflag, 13.0, 1.0, 0, 0, "Specify the axis that is points upward");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",		*xco+((width/2)+98), *yco-60,19,18, &data->upflag, 13.0, 2.0, 0, 0, "Specify the axis that is points upward");
+				uiBlockBeginAlign(block);
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Fw:", *xco+12, *yco-64, 27, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",	*xco+39, *yco-64,17,18, &data->trackflag, 12.0, 0.0, 0, 0, "The axis that points forward along the path");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Y",	*xco+56, *yco-64,17,18, &data->trackflag, 12.0, 1.0, 0, 0, "The axis that points forward along the path");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",	*xco+73, *yco-64,17,18, &data->trackflag, 12.0, 2.0, 0, 0, "The axis that points forward along the path");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-X",	*xco+90, *yco-64,24,18, &data->trackflag, 12.0, 3.0, 0, 0, "The axis that points forward along the path");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-Y",	*xco+114, *yco-64,24,18, &data->trackflag, 12.0, 4.0, 0, 0, "The axis that points forward along the path");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-Z",	*xco+138, *yco-64,24,18, &data->trackflag, 12.0, 5.0, 0, 0, "The axis that points forward along the path");
+				uiBlockEndAlign(block);
+				
+				uiBlockBeginAlign(block);
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Up:", *xco+174, *yco-64, 30, 18, NULL, 0.0, 0.0, 0.0, 0.0, "");
+				
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",	*xco+204, *yco-64,17,18, &data->upflag, 13.0, 0.0, 0, 0, "The axis that points upward");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Y",	*xco+221, *yco-64,17,18, &data->upflag, 13.0, 1.0, 0, 0, "The axis that points upward");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",	*xco+238, *yco-64,17,18, &data->upflag, 13.0, 2.0, 0, 0, "The axis that points upward");
+				uiBlockEndAlign(block);
 			}
 			break;
 		case CONSTRAINT_TYPE_NULL:
 			{
-				height = 20;
+				height = 17;
+				
 				BIF_ThemeColor(curCol);
-				glRects(*xco+5, *yco-height-16, *xco+width+30, *yco-14);
-				uiEmboss((float)*xco+5, (float)*yco-height-16, (float)*xco+width+30, (float)*yco-14, 1);
+				glRects(*xco+3, *yco-height-17, *xco+width+30, *yco-18);
+				
 			}
 			break;
 		default:
@@ -596,12 +669,12 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 			break;
 		}
 
-		(*yco)-=(22+height);
+		(*yco)-=(24+height);
 	}
 
 	if (con->type!=CONSTRAINT_TYPE_NULL) {
-		uiDefButF(block, NUMSLI, B_CONSTRAINT_REDRAW, "Inf:", *xco+20, *yco, 166, 20, &(con->enforce), 0.0, 1.0, 0.0, 0.0, "Amount of influence this constraint will have on the final solution");
-		but = uiDefBut(block, BUT, B_CONSTRAINT_REDRAW, "Edit", *xco+186, *yco, 41, 20, 0, 0.0, 1.0, 0.0, 0.0, "Show this constraint's ipo in the object's Ipo window");
+		uiDefButF(block, NUMSLI, B_CONSTRAINT_REDRAW, "Influence ", *xco+15, *yco, 199, 19, &(con->enforce), 0.0, 1.0, 0.0, 0.0, "Amount of influence this constraint will have on the final solution");
+		but = uiDefBut(block, BUT, B_CONSTRAINT_REDRAW, "Edit", *xco+214, *yco, 41, 19, 0, 0.0, 1.0, 0.0, 0.0, "Show this constraint's ipo in the object's Ipo window");
 		/* If this is on an object, add the constraint to the object */
 		uiButSetFunc (but, activate_constraint_ipo_func, con, NULL);
 		/* If this is on a bone, add the constraint to the action (if any) */
@@ -609,7 +682,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		/* Add a keyframe to the influence IPO */
 		//uiButSetFunc (but, add_influence_key_to_constraint_func, con, NULL);
 		(*yco)-=24;
+	} else {
+		(*yco)-=3;
 	}
+	
 }
 
 static uiBlock *add_constraintmenu(void *arg_unused)
@@ -631,7 +707,7 @@ static uiBlock *add_constraintmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_TRACKTO,"Track To",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_LOCKTRACK,"Lock Track",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_LOCKTRACK,"Locked Track",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_FOLLOWPATH,"Follow Path",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	
 	if (type==TARGET_BONE) {
@@ -648,7 +724,7 @@ static uiBlock *add_constraintmenu(void *arg_unused)
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_NULL,"Null",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	
 	uiTextBoundsBlock(block, 50);
-	uiBlockSetDirection(block, UI_RIGHT);
+	uiBlockSetDirection(block, UI_DOWN);
 		
 	return block;
 }
@@ -803,7 +879,7 @@ static void object_panel_constraint(void)
 	
 	if (conlist) {
 		 
-		uiDefBlockBut(block, add_constraintmenu, NULL, "Add|>> ", 10, 190, 100, 20, "Add a new constraint");
+		uiDefBlockBut(block, add_constraintmenu, NULL, "Add Constraint|>> ", 0, 190, 130, 20, "Add a new constraint");
 		
 		/* print active object or bone */
 		{
@@ -820,7 +896,7 @@ static void object_panel_constraint(void)
 				Object *ob= OBACT;
 				sprintf(str, "To Object: %s", ob->id.name+2);
 			}
-			uiDefBut(block, LABEL, 1, str,	110, 190, 200, 20, NULL, 0.0, 0.0, 0, 0, "Displays Active Object or Bone name");
+			uiDefBut(block, LABEL, 1, str,	150, 190, 150, 20, NULL, 0.0, 0.0, 0, 0, "Displays Active Object or Bone name");
 		}
 		
 		/* Go through the list of constraints and draw them */
