@@ -484,6 +484,9 @@ static PyObject *M_Object_GetSelected (PyObject *self, PyObject *args)
         }
         blen_object->object = G.scene->basact->object;
         blen_object->data = NULL;
+        blen_object->parent = NULL;
+        blen_object->track = NULL;
+        blen_object->ipo = NULL;
         PyList_Append (list, (PyObject*)blen_object);
     }
 
@@ -1348,9 +1351,29 @@ static PyObject* Object_getAttr (BPy_Object *obj, char *name)
 			return (Object_getData (obj));
     if (StringEqual (name, "ipo"))
     {
+        if (object->ipo == NULL)
+        {
+            /* There's no ipo in the object, so we need to return Py_None */
+            /* However, if there's already some kind of reference in the */
+            /* Python object, we also need to free that one. */
+            if (obj->ipo != NULL)
+                Py_DECREF (obj->ipo);
+
+            /* There's no ipo, so this needs to be NULL always. */
+            obj->ipo = NULL;
+
+            Py_INCREF (Py_None);
+            return (Py_None);
+        }
         if (obj->ipo == NULL)
         {
-             obj->ipo = Ipo_CreatePyObject (object->ipo);
+            if (object->ipo == NULL)
+            {
+                /* There's no ipo linked to the object, return Py_None. */
+                Py_INCREF (Py_None);
+                return (Py_None);
+            }
+            obj->ipo = Ipo_CreatePyObject (object->ipo);
         }
         else
         {
