@@ -54,6 +54,7 @@ elif sys.platform == 'darwin':
     use_openal = 'false'
     use_fmod = 'false'
     use_quicktime = 'true'
+    use_precomp = 'true'
     # TODO: replace darwin-6.8-powerpc with the actual directiory on the
     #       build machine
     darwin_precomp = '#../lib/darwin-6.8-powerpc'
@@ -67,12 +68,20 @@ elif sys.platform == 'darwin':
     debug_flags = ['-g']
     window_system = 'CARBON'
     # SDL specific stuff.
+    sdl_cenv.ParseConfig ('sdl-config --cflags')
+    sdl_lenv.ParseConfig ('sdl-config --libs')
     sdl_cdict = sdl_cenv.Dictionary()
     sdl_ldict = sdl_lenv.Dictionary()
     sdl_cflags = string.join(sdl_cdict['CCFLAGS'])
-    sdl_include = darwin_precomp + '/sdl/include'
-    link_env.Append (LIBS=['libSDL.a'])
-    link_env.Append (LIBPATH=[darwin_precomp + '/sdl/lib'])
+    # Want to use precompiled libraries?
+    if use_precomp == 'true':
+        sdl_ldict['LIBS'] = ['libSDL.a']
+        sdl_ldict['LIBPATH'] = [darwin_precomp + '/sdl/lib']
+        sdl_cdict['CPPPATH'] = [darwin_precomp + '/sdl/include']
+
+    sdl_include = sdl_cdict['CPPPATH'][0]
+    link_env.Append (LIBS=sdl_ldict['LIBS'])
+    link_env.Append (LIBPATH=sdl_ldict['LIBPATH'])
     platform_libs = ['z', 'GL', 'GLU', 'png', 'jpeg', 'stdc++'] 
     extra_includes = ['/sw/include']
     platform_libpath = ['/System/Library/Frameworks/OpenGL.framework/Libraries']
