@@ -885,7 +885,7 @@ static void reconstruct_elem(struct SDNA *newsdna, struct SDNA *oldsdna, char *t
 		}
 		else if(array) {		/* name is an array */
 
-			if( strncmp(name, oname, array)==0 ) {			/* basis equal */
+			if(oname[array]=='[' && strncmp(name, oname, array)==0 ) {			/* basis equal */
 				
 				cursize= arraysize(name, strlen(name));
 				oldsize= arraysize(oname, strlen(oname));
