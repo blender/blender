@@ -86,7 +86,7 @@ void color_temperature (float input, unsigned char *r, unsigned char *g, unsigne
 	(*b) = (unsigned char)(fb * ((input/2.0f)+0.5f));
 
 
-};
+}
 
 void copy_defgroups(ListBase *outbase, ListBase *inbase)
 {
