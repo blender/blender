@@ -269,11 +269,12 @@ static PyObject *Ipo_getNcurves(C_Ipo *self)
 static PyObject *Ipo_addCurve(C_Ipo *self, PyObject *args)
 { 
 	void *MEM_callocN(unsigned int len, char *str);
-
+    IpoCurve *ptr;
 	int i = 0,typenumber = -1;
 	char*type = 0;
 	static char *name="mmm";	
 	char * nametab[24] = {"LocX","LocY","LocZ","dLocX","dLocY","dLocZ","RotX","RotY","RotZ","dRotX","dRotY","dRotZ","SizeX","SizeY","SizeZ","dSizeX","dSizeY","dSizeZ","Layer","Time","ColR","ColG","ColB","ColA"};
+
 	if (!PyArg_ParseTuple(args, "s",&type))
 		return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected string argument"));
 	for(i = 0;i<24;i++)
@@ -283,7 +284,7 @@ static PyObject *Ipo_addCurve(C_Ipo *self, PyObject *args)
 	if (typenumber == -1)
 		return (EXPP_ReturnPyObjError (PyExc_TypeError, "unknown type"));
 
-	IpoCurve*ptr = (IpoCurve*)MEM_callocN(sizeof(IpoCurve),name);
+	ptr = (IpoCurve*)MEM_callocN(sizeof(IpoCurve),name);
 	ptr->blocktype = 16975;
 	ptr->totvert = 0;
 	ptr->adrcode = typenumber;
