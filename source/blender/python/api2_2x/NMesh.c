@@ -2580,7 +2580,7 @@ static PyObject *NMesh_renameVertGroup (PyObject *self, PyObject *args)
 	char * oldGr = NULL; 
 	char * newGr = NULL;
 	bDeformGroup * defGroup = NULL;
-	PyObject *tempStr;
+	/*PyObject *tempStr;*/
 
 
 	if(!((BPy_NMesh*)self)->object)

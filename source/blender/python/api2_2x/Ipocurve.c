@@ -127,7 +127,7 @@ static PyObject *IpoCurve_setExtrapolation( C_IpoCurve * self, PyObject *args)
 
 static PyObject *IpoCurve_getExtrapolation( C_IpoCurve * self)
 {
-	char*str;
+	char*str = 0;
 	IpoCurve *icu = self->ipocurve;
 		if (icu->extrap == 0) str = "Constant";
 		if (icu->extrap == 1) str = "Extrapolation";
