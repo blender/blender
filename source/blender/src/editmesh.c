@@ -923,6 +923,7 @@ void load_editMesh(void)
 	/* eed->f2==0: not in face, f2==1: draw it */
 	/* eed->f1 : flag for dynaface (cylindertest, old engine) */
 	/* eve->f1 : flag for dynaface (sphere test, old engine) */
+	/* eve->f2 : being used in vertexnormals */
 	edge_drawflags();
 	
 	/* this sets efa->puno, punoflag (for vertex normal & projection) */
