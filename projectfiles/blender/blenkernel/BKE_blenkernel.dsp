@@ -278,10 +278,6 @@ SOURCE=..\..\..\source\blender\blenkernel\intern\sound.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenkernel\intern\subsurf.c
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\blenkernel\intern\subsurf_ccg.c
 # End Source File
 # Begin Source File
