@@ -120,7 +120,7 @@ void do_buts_buttons(short event)
 	Material *ma;
 	ID id;
 	int a;
-	
+	float dx, dy;
 	if(curarea->win==0) return;
 
 	switch(event) {
@@ -128,6 +128,15 @@ void do_buts_buttons(short event)
 		uiSetPanel_view2d(curarea);
 		G.v2d->cur= G.v2d->tot;
 		test_view2d(G.v2d, curarea->winx, curarea->winy);
+		
+		/* we always put in left/top */
+		dy= G.v2d->tot.ymax - G.v2d->cur.ymax;
+		G.v2d->cur.ymin += dy;
+		G.v2d->cur.ymax += dy;
+		dx= G.v2d->tot.xmin - G.v2d->cur.xmin;
+		G.v2d->cur.xmin += dx;
+		G.v2d->cur.xmax += dx;
+		
 		scrarea_queue_winredraw(curarea);
 		break;
 	case B_BUTSPREVIEW:
@@ -379,7 +388,7 @@ void buts_buttons(void)
 	ID *id, *idfrom;
 	Object *ob;
 	uiBlock *block;
-	uiBut *but;
+//	uiBut *but;
 	short xco, t_base= -2;
 	char naam[20];
 
@@ -392,13 +401,13 @@ void buts_buttons(void)
 	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
 
 	/* FULL WINDOW */
-	xco= 25;
+	xco= 15;
 	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
 	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
 
 	/* HOME */
 	uiDefIconBut(block, BUT, B_BUTSHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)");
-	xco+=XIC+10;
+	xco+=XIC;
 	
 	/* mainb menu */
 	/* (this could be done later with a dynamic tree and branches, also for python) */
@@ -421,7 +430,7 @@ void buts_buttons(void)
 	uiDefIconButS(block, ROW, B_REDR,	ICON_SCENE_DEHLT,	xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SCENE, 0, 0, "Scene (F10) ");
 	xco+=XIC;
 	
-	if(curarea->headertype==HEADERTOP)  t_base= -3; else t_base= 3;
+	if(curarea->headertype==HEADERTOP)  t_base= -3; else t_base= 4;
 	
 	/* select the context to be drawn, per contex/tab the actual context is tested */
 	uiBlockSetEmboss(block, UI_EMBOSSX);	// normal

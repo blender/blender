@@ -252,6 +252,7 @@ static uiBut *UIbuttip;
 
 /* ************* PROTOTYPES ***************** */
 
+static void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);
 static void ui_check_but(uiBut *but);
 static void ui_set_but_val(uiBut *but, double value);
 static double ui_get_but_val(uiBut *but);
@@ -1689,18 +1690,14 @@ static void ui_draw_but_TEX(uiBut *but)
 		}	
 	}
 	if(but->drawstr[0]!=0) {
-	        glColor3ub(255,255,255);
-	        /*
-		if(sel) glColor3ub(255,255,255);
-		else glColor3ub(0,0,0);
-		*/
+		glColor3ub(255,255,255);
 
 		if(but->flag & UI_TEXT_LEFT) x= but->x1+4.0;
 		else x= (but->x1+but->x2-but->strwidth+1)/2.0;
 		
 		glRasterPos2f( x, (but->y1+but->y2- 9.0)/2.0);
 		
-		BIF_DrawString(but->font, but->drawstr+but->ofs, (U.transopts & TR_BUTTONS), sel);
+		BIF_DrawString(but->font, but->drawstr+but->ofs, (U.transopts & TR_BUTTONS), 1);
 	}
 }
 
@@ -5359,6 +5356,29 @@ uiBlock *uiGetBlock(char *name, ScrArea *sa)
 	return NULL;
 }
 
+static char *ui_block_cut_str(uiBlock *block, char *str, short okwidth)
+{
+	short width, ofs=strlen(str);
+	static char str1[128];
+	
+	if(ofs>127) return str;
+	
+	width= block->aspect*BIF_GetStringWidth(block->curfont, str, (U.transopts & TR_BUTTONS));
+
+	if(width <= okwidth) return str;
+	strcpy(str1, str);
+	
+	while(width > okwidth && ofs>0) {
+		ofs--;
+		str1[ofs]= 0;
+		
+		width= block->aspect*BIF_GetStringWidth(block->curfont, str1, 0);
+		
+		if(width < 10) break;
+	}
+	return str1;
+}
+
 static void ui_check_but(uiBut *but)
 {
 	/* if something changed in the button */
@@ -6271,6 +6291,7 @@ static void ui_scale_panel_block(uiBlock *block)
 	
 }
 
+// for 'home' key
 void uiSetPanel_view2d(ScrArea *sa)
 {
 	Panel *pa;
@@ -6303,6 +6324,7 @@ void uiSetPanel_view2d(ScrArea *sa)
 	
 }
 
+// make sure the panels are not outside 'tot' area
 void uiMatchPanel_view2d(ScrArea *sa)
 {
 	Panel *pa;
@@ -6350,26 +6372,47 @@ uiBlock *uiFindOpenPanelBlockName(ListBase *lb, char *name)
 	return block;
 }
 
+static void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3)
+{
+
+	// we draw twice, anti polygons not widely supported...
+
+	glBegin(GL_POLYGON);
+	glVertex2f(x1, y1);
+	glVertex2f(x2, y2);
+	glVertex2f(x3, y3);
+	glEnd();
+
+	/* set antialias line */
+	glEnable( GL_LINE_SMOOTH );
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+
+	glBegin(GL_LINE_LOOP);
+	glVertex2f(x1, y1);
+	glVertex2f(x2, y2);
+	glVertex2f(x3, y3);
+	glEnd();
+	
+	glDisable( GL_LINE_SMOOTH );
+	glDisable( GL_BLEND );
+	
+}
 
 /* 'icon' for panel header */
-static void ui_draw_tria(float x, float y, float aspect, char dir)
+static void ui_draw_tria_icon(float x, float y, float aspect, char dir)
 {
 
 	
-	/* filled */
 	glColor3ub(240, 240, 240);
-	glBegin(GL_POLYGON);	
+	
 	if(dir=='h') {
-		glVertex2f( x, y);
-		glVertex2f( x, y+12.0);
-		glVertex2f( x+10, y+6);
+		ui_draw_anti_tria( x, y, x, y+12.0, x+10, y+6);
 	}
 	else {
-		glVertex2f( x, y+10.0);
-		glVertex2f( x+12, y+10.0);
-		glVertex2f( x+6, y);	
+		ui_draw_anti_tria( x, y+10.0,  x+12, y+10.0, x+6, y);	
 	}
-	glEnd();
+	
 	
 }
 
@@ -6401,6 +6444,7 @@ static void ui_draw_panel_header(uiBlock *block)
 	Panel *pa, *panel= block->panel;
 	float width;
 	int a, nr= 1;
+	char *str;
 	
 	/* count */
 	pa= curarea->panels.first;
@@ -6431,7 +6475,8 @@ static void ui_draw_panel_header(uiBlock *block)
 
 			glColor3ub(255,255,255);
 			glRasterPos2f(10+PNL_ICON+a*width, panel->sizey+5);
-			BIF_DrawString(block->curfont, pa->panelname, (U.transopts & TR_BUTTONS), 0);
+			str= ui_block_cut_str(block, pa->panelname, (short)(width-10));
+			BIF_DrawString(block->curfont, str, (U.transopts & TR_BUTTONS), 0);
 
 			a++;
 		}
@@ -6440,7 +6485,8 @@ static void ui_draw_panel_header(uiBlock *block)
 			
 			glColor3ub(95,95,95);
 			glRasterPos2f(10+PNL_ICON+a*width, panel->sizey+5);
-			BIF_DrawString(block->curfont, pa->panelname, (U.transopts & TR_BUTTONS), 0);
+			str= ui_block_cut_str(block, pa->panelname, (short)(width-10));
+			BIF_DrawString(block->curfont, str, (U.transopts & TR_BUTTONS), 0);
 			
 			a++;
 		}
@@ -6559,11 +6605,11 @@ static void ui_draw_panel(uiBlock *block)
 	/* draw close icon */
 
 	if(block->panel->flag & PNL_CLOSEDY)
-		ui_draw_tria(block->minx+6, block->maxy+3, block->aspect, 'h');
+		ui_draw_tria_icon(block->minx+6, block->maxy+3, block->aspect, 'h');
 	else if(block->panel->flag & PNL_CLOSEDX)
-		ui_draw_tria(block->minx+4, block->maxy+2, block->aspect, 'h');
+		ui_draw_tria_icon(block->minx+4, block->maxy+2, block->aspect, 'h');
 	else
-		ui_draw_tria(block->minx+6, block->maxy+3, block->aspect, 'v');
+		ui_draw_tria_icon(block->minx+6, block->maxy+3, block->aspect, 'v');
 
 
 }
@@ -7052,7 +7098,7 @@ static void panel_clicked_tabs(uiBlock *block,  int mousex)
 	
 	/* find clicked tab, mouse in panel coords */
 	a= 0;
-	width= (panel->sizex - 2*PNL_ICON)/nr;
+	width= (panel->sizex - 3- 2*PNL_ICON)/nr;
 	pa= curarea->panels.first;
 	while(pa) {
 		if(pa==panel || pa->paneltab==panel) {
