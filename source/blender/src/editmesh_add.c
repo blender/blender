@@ -851,11 +851,8 @@ void add_primitiveMesh(int type)
 	allqueue(REDRAWALL, 0);
 	makeDispList(G.obedit);
 
-	if (type==13) notice("Oooh Oooh Oooh");
-	
 	/* if a new object was created, it stores it in Mesh, for reload original data and undo */
 	if(newob) load_editMesh();	
 	BIF_undo_push(undostr);
-
 }
 
