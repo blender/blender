@@ -44,23 +44,30 @@ typedef struct EditVert
 	float no[3];
 	float co[3];
 	short xs, ys;
-	unsigned char f, h, f1, hash;
-	int	totweight;				/* __NLA */
+	unsigned char f, h, f1, f2;
+	short fast;	/* only 0 or 1, for editmesh_fastmalloc */
+	short	totweight;				/* __NLA */
+	int hash;
 	struct MDeformWeight *dw;	/* __NLA */
-	int keyindex; /* lets hold on to this so that maybe we can have a hope
-				   * of restoring any key information if the number/order
-				   * of verts change.
-				   */
-
+	int keyindex; /* original index #, for restoring  key information */
 } EditVert;
+
+struct EditEdge;
+
+typedef struct HashEdge {
+	struct EditEdge *eed;
+	struct HashEdge *next;
+} HashEdge;
 
 typedef struct EditEdge
 {
 	struct EditEdge *next, *prev;
 	struct EditVert *v1, *v2, *vn;
-	short f, f1;
-	unsigned char h, dir, seam;
+	short f1, f2;	/* short, f1 is (ab)used in subdiv */
+	unsigned char f, h, dir, seam;
 	float crease;
+	int fast; 		/* only 0 or 1, for editmesh_fastmalloc */
+	HashEdge hash;
 } EditEdge;
 
 typedef struct EditFace
@@ -68,15 +75,24 @@ typedef struct EditFace
 	struct EditFace *next, *prev;
 	struct EditVert *v1, *v2, *v3, *v4;
 	struct EditEdge *e1, *e2, *e3, *e4;
-	float n[3];
+	float n[3], cent[3];
+	short xs, ys;		/* selection */
 	struct TFace tf;	/* a copy of original tface. */
 	unsigned char mat_nr, flag;
-	unsigned char f, f1;
+	unsigned char f, f1, h, puno;
+	short fast;			/* only 0 or 1, for editmesh_fastmalloc */
 } EditFace;
 
 typedef struct EditMesh
 {
 	ListBase verts, edges, faces;
+	HashEdge *hashedgetab;
+	
+	/* this is for the editmesh_fastmalloc */
+	EditVert *allverts, *curvert;
+	EditEdge *alledges, *curedge;
+	EditFace *allfaces, *curface;
+	
 } EditMesh;
 
 #endif

@@ -47,7 +47,6 @@ extern "C" {
 #include "DNA_ID.h"
 #include "DNA_scriptlink_types.h"
 
-struct FreeCamera;
 struct Radio;
 struct Object;
 struct World;
@@ -250,10 +249,9 @@ typedef struct Scene {
 	
 	float cursor[3];
 	unsigned int lay;
+	short selectmode, pad;
+	int pad1;
 
-	/* some realtime vars */
-	struct FreeCamera *fcam;  /* old, can be removed (ton) */
-	
 	void *ed;
 	struct Radio *radio;
 	void *sumohandle;
@@ -364,6 +362,11 @@ typedef struct Scene {
 
 /* sce->flag */
 #define SCE_ADDSCENAME		1
+
+/* sce->selectmode */
+#define SCE_SELECT_VERTEX	1
+#define SCE_SELECT_EDGE		2
+#define SCE_SELECT_FACE		4
 
 /* return flag next_object function */
 #define F_START			0

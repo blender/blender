@@ -99,6 +99,8 @@ typedef struct MSticky {
 
 /* flag (mface) */
 #define ME_SMOOTH		1
+#define ME_FACE_SEL		2
+						/* flag ME_HIDE is used here too */ 
 
 
 #endif

@@ -133,16 +133,16 @@ void convert_to_triface(int all)
 	EditMesh *em = G.editMesh;
 	EditFace *efa, *efan, *next;
 	
-	undo_push_mesh("Convert Quads to Triangles");
-	
-	efa= em->faces.first;
+	efa= em->faces.last;
 	while(efa) {
-		next= efa->next;
+		next= efa->prev;
 		if(efa->v4) {
-			if(all || faceselectedAND(efa, 1) ) {
+			if(all || (efa->f & SELECT) ) {
 				
 				efan= addfacelist(efa->v1, efa->v2, efa->v3, 0, efa);
+				if(efa->f & SELECT) EM_select_face(efan, 1);
 				efan= addfacelist(efa->v1, efa->v3, efa->v4, 0, efa);
+				if(efa->f & SELECT) EM_select_face(efan, 1);
 
 				efan->tf.uv[1][0]= efan->tf.uv[2][0];
 				efan->tf.uv[1][1]= efan->tf.uv[2][1];
@@ -159,6 +159,8 @@ void convert_to_triface(int all)
 		efa= next;
 	}
 	
+	BIF_undo_push("Convert Quads to Triangles");
+	
 }
 
 
@@ -172,20 +174,20 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 	struct xvertsort *sortblock, *sb, *sb1;
 	struct facesort *vlsortblock, *vsb, *vsb1;
 	float dist;
-	int a, b, test, aantal;
+	int a, b, test, amount;
 
 	/* flag 128 is cleared, count */
 	eve= em->verts.first;
-	aantal= 0;
+	amount= 0;
 	while(eve) {
-		eve->f&= ~128;
-		if(eve->f & flag) aantal++;
+		eve->f &= ~128;
+		if(eve->f & flag) amount++;
 		eve= eve->next;
 	}
-	if(aantal==0) return 0;
+	if(amount==0) return 0;
 
 	/* allocate memory and qsort */
-	sb= sortblock= (struct xvertsort *)MEM_mallocN(sizeof(struct xvertsort)*aantal,"sortremovedoub");
+	sb= sortblock= (struct xvertsort *)MEM_mallocN(sizeof(struct xvertsort)*amount,"sortremovedoub");
 	eve= em->verts.first;
 	while(eve) {
 		if(eve->f & flag) {
@@ -195,15 +197,15 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 		}
 		eve= eve->next;
 	}
-	qsort(sortblock, aantal, sizeof(struct xvertsort), vergxco);
+	qsort(sortblock, amount, sizeof(struct xvertsort), vergxco);
 
 	/* test for doubles */
 	sb= sortblock;
-	for(a=0; a<aantal; a++) {
+	for(a=0; a<amount; a++) {
 		eve= sb->v1;
 		if( (eve->f & 128)==0 ) {
 			sb1= sb+1;
-			for(b=a+1; b<aantal; b++) {
+			for(b=a+1; b<amount; b++) {
 				/* first test: simpel dist */
 				dist= sb1->x - sb->x;
 				if(dist > limit) break;
@@ -234,14 +236,14 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 	/* test edges and insert again */
 	eed= em->edges.first;
 	while(eed) {
-		eed->f= 0;
+		eed->f2= 0;
 		eed= eed->next;
 	}
 	eed= em->edges.last;
 	while(eed) {
 		nexted= eed->prev;
 
-		if(eed->f==0) {
+		if(eed->f2==0) {
 			if( (eed->v1->f & 128) || (eed->v2->f & 128) ) {
 				remedge(eed);
 
@@ -249,7 +251,7 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 				if(eed->v2->f & 128) eed->v2= eed->v2->vn;
 				e1= addedgelist(eed->v1, eed->v2, eed);
 				
-				if(e1) e1->f= 1;
+				if(e1) e1->f2= 1;
 				if(e1!=eed) free_editedge(eed);
 			}
 		}
@@ -258,15 +260,15 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 
 	/* first count amount of test faces */
 	efa= (struct EditFace *)em->faces.first;
-	aantal= 0;
+	amount= 0;
 	while(efa) {
-		efa->f= 0;
-		if(efa->v1->f & 128) efa->f= 1;
-		else if(efa->v2->f & 128) efa->f= 1;
-		else if(efa->v3->f & 128) efa->f= 1;
-		else if(efa->v4 && (efa->v4->f & 128)) efa->f= 1;
+		efa->f1= 0;
+		if(efa->v1->f & 128) efa->f1= 1;
+		else if(efa->v2->f & 128) efa->f1= 1;
+		else if(efa->v3->f & 128) efa->f1= 1;
+		else if(efa->v4 && (efa->v4->f & 128)) efa->f1= 1;
 		
-		if(efa->f==1) aantal++;
+		if(efa->f1==1) amount++;
 		efa= efa->next;
 	}
 
@@ -274,7 +276,7 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 	efa= (struct EditFace *)em->faces.first;
 	while(efa) {
 		nextvl= efa->next;
-		if(efa->f==1) {
+		if(efa->f1==1) {
 			
 			if(efa->v1->f & 128) efa->v1= efa->v1->vn;
 			if(efa->v2->f & 128) efa->v2= efa->v2->vn;
@@ -304,13 +306,13 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 					else {
 						BLI_remlink(&em->faces, efa);
 						free_editface(efa);
-						aantal--;
+						amount--;
 					}
 				}
 				else {
 					BLI_remlink(&em->faces, efa);
 					free_editface(efa);
-					aantal--;
+					amount--;
 				}
 			}
 			
@@ -333,23 +335,23 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 
 	/* double faces: sort block */
 	/* count again, now all selected faces */
-	aantal= 0;
+	amount= 0;
 	efa= em->faces.first;
 	while(efa) {
-		efa->f= 0;
+		efa->f1= 0;
 		if(faceselectedAND(efa, 1)) {
-			efa->f= 1;
-			aantal++;
+			efa->f1= 1;
+			amount++;
 		}
 		efa= efa->next;
 	}
 
-	if(aantal) {
+	if(amount) {
 		/* double faces: sort block */
-		vsb= vlsortblock= MEM_mallocN(sizeof(struct facesort)*aantal, "sortremovedoub");
+		vsb= vlsortblock= MEM_mallocN(sizeof(struct facesort)*amount, "sortremovedoub");
 		efa= em->faces.first;
 		while(efa) {
-			if(efa->f & 1) {
+			if(efa->f1 & 1) {
 				if(efa->v4) vsb->x= (long) MIN4( (long)efa->v1, (long)efa->v2, (long)efa->v3, (long)efa->v4);
 				else vsb->x= (long) MIN3( (long)efa->v1, (long)efa->v2, (long)efa->v3);
 
@@ -359,23 +361,23 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 			efa= efa->next;
 		}
 		
-		qsort(vlsortblock, aantal, sizeof(struct facesort), vergface);
+		qsort(vlsortblock, amount, sizeof(struct facesort), vergface);
 			
 		vsb= vlsortblock;
-		for(a=0; a<aantal; a++) {
+		for(a=0; a<amount; a++) {
 			efa= vsb->efa;
-			if( (efa->f & 128)==0 ) {
+			if( (efa->f1 & 128)==0 ) {
 				vsb1= vsb+1;
 
-				for(b=a+1; b<aantal; b++) {
+				for(b=a+1; b<amount; b++) {
 				
 					/* first test: same pointer? */
 					if(vsb->x != vsb1->x) break;
 					
 					/* second test: is test permitted? */
 					efa= vsb1->efa;
-					if( (efa->f & 128)==0 ) {
-						if( compareface(efa, vsb->efa)) efa->f |= 128;
+					if( (efa->f1 & 128)==0 ) {
+						if( compareface(efa, vsb->efa)) efa->f1 |= 128;
 						
 					}
 					vsb1++;
@@ -390,7 +392,7 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 		efa= (struct EditFace *)em->faces.first;
 		while(efa) {
 			nextvl= efa->next;
-			if(efa->f & 128) {
+			if(efa->f1 & 128) {
 				BLI_remlink(&em->faces, efa);
 				free_editface(efa);
 			}
@@ -423,21 +425,19 @@ void xsortvert_flag(int flag)
 	EditVert *eve;
 	struct xvertsort *sortblock, *sb;
 	ListBase tbase;
-	int aantal;
+	int amount;
 	
 	/* count */
 	eve= em->verts.first;
-	aantal= 0;
+	amount= 0;
 	while(eve) {
-		if(eve->f & flag) aantal++;
+		if(eve->f & flag) amount++;
 		eve= eve->next;
 	}
-	if(aantal==0) return;
+	if(amount==0) return;
 
-	undo_push_mesh("Xsort");
-	
 	/* allocate memory and sort */
-	sb= sortblock= (struct xvertsort *)MEM_mallocN(sizeof(struct xvertsort)*aantal,"sortremovedoub");
+	sb= sortblock= (struct xvertsort *)MEM_mallocN(sizeof(struct xvertsort)*amount,"sortremovedoub");
 	eve= em->verts.first;
 	while(eve) {
 		if(eve->f & flag) {
@@ -447,12 +447,12 @@ void xsortvert_flag(int flag)
 		}
 		eve= eve->next;
 	}
-	qsort(sortblock, aantal, sizeof(struct xvertsort), vergxco);
+	qsort(sortblock, amount, sizeof(struct xvertsort), vergxco);
 	
 	/* make temporal listbase */
 	tbase.first= tbase.last= 0;
 	sb= sortblock;
-	while(aantal--) {
+	while(amount--) {
 		eve= sb->v1;
 		BLI_remlink(&em->verts, eve);
 		BLI_addtail(&tbase, eve);
@@ -462,6 +462,8 @@ void xsortvert_flag(int flag)
 	addlisttolist(&em->verts, &tbase);
 	
 	MEM_freeN(sortblock);
+	BIF_undo_push("Xsort");
+	
 }
 
 /* called from buttons */
@@ -472,21 +474,19 @@ void hashvert_flag(int flag)
 	EditVert *eve;
 	struct xvertsort *sortblock, *sb, onth, *newsort;
 	ListBase tbase;
-	int aantal, a, b;
+	int amount, a, b;
 	
 	/* count */
 	eve= em->verts.first;
-	aantal= 0;
+	amount= 0;
 	while(eve) {
-		if(eve->f & flag) aantal++;
+		if(eve->f & flag) amount++;
 		eve= eve->next;
 	}
-	if(aantal==0) return;
+	if(amount==0) return;
 	
-	undo_push_mesh("Hash");
-
 	/* allocate memory */
-	sb= sortblock= (struct xvertsort *)MEM_mallocN(sizeof(struct xvertsort)*aantal,"sortremovedoub");
+	sb= sortblock= (struct xvertsort *)MEM_mallocN(sizeof(struct xvertsort)*amount,"sortremovedoub");
 	eve= em->verts.first;
 	while(eve) {
 		if(eve->f & flag) {
@@ -499,9 +499,9 @@ void hashvert_flag(int flag)
 	BLI_srand(1);
 	
 	sb= sortblock;
-	for(a=0; a<aantal; a++, sb++) {
-		b= aantal*BLI_drand();
-		if(b>=0 && b<aantal) {
+	for(a=0; a<amount; a++, sb++) {
+		b= amount*BLI_drand();
+		if(b>=0 && b<amount) {
 			newsort= sortblock+b;
 			onth= *sb;
 			*sb= *newsort;
@@ -512,7 +512,7 @@ void hashvert_flag(int flag)
 	/* make temporal listbase */
 	tbase.first= tbase.last= 0;
 	sb= sortblock;
-	while(aantal--) {
+	while(amount--) {
 		eve= sb->v1;
 		BLI_remlink(&em->verts, eve);
 		BLI_addtail(&tbase, eve);
@@ -522,6 +522,8 @@ void hashvert_flag(int flag)
 	addlisttolist(&em->verts, &tbase);
 	
 	MEM_freeN(sortblock);
+	BIF_undo_push("Hash");
+
 }
 
 void extrude_mesh(void)
@@ -532,19 +534,15 @@ void extrude_mesh(void)
 
 	if(okee("Extrude")==0) return;
 	
-	waitcursor(1);
-	undo_push_mesh("Extrude");
-	
-	a= extrudeflag(1,1);
-	waitcursor(0);
+	a= extrudeflag(SELECT);
+
 	if(a==0) {
-		error("No valid vertices are selected");
+		error("No valid selection");
 	}
 	else {
 		countall();  /* for G.totvert in calc_meshverts() */
 		calc_meshverts();
-		transform('d');
-		G.undo_edit_level--;	/* to hide the transform from undo */
+		transform('n');
 	}
 
 }
@@ -557,10 +555,10 @@ void split_mesh(void)
 	if(okee(" Split ")==0) return;
 
 	waitcursor(1);
-	undo_push_mesh("Split");
+
 	/* make duplicate first */
-	adduplicateflag(1);
-	/* old faces have 3x flag 128 set, delete them */
+	adduplicateflag(SELECT);
+	/* old faces have flag 128 set, delete them */
 	delfaceflag(128);
 
 	waitcursor(0);
@@ -568,6 +566,8 @@ void split_mesh(void)
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);
+	BIF_undo_push("Hash");
+
 }
 
 void extrude_repeat_mesh(int steps, float offs)
@@ -578,8 +578,6 @@ void extrude_repeat_mesh(int steps, float offs)
 	TEST_EDITMESH
 	waitcursor(1);
 	
-	undo_push_mesh("Extrude Repeat");
-
 	/* dvec */
 	dvec[0]= G.vd->persinv[2][0];
 	dvec[1]= G.vd->persinv[2][1];
@@ -595,18 +593,20 @@ void extrude_repeat_mesh(int steps, float offs)
 	Mat3MulVecfl(tmat, dvec);
 
 	for(a=0;a<steps;a++) {
-		ok= extrudeflag(1,1);
+		ok= extrudeflag_vert(SELECT);
 		if(ok==0) {
 			error("No valid vertices are selected");
 			break;
 		}
-		translateflag(1, dvec);
+		translateflag(SELECT, dvec);
 	}
 
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);
 	waitcursor(0);
+	BIF_undo_push("Extrude Repeat");
+
 }
 
 void spin_mesh(int steps,int degr,float *dvec, int mode)
@@ -623,8 +623,6 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 	
 	waitcursor(1);
 	
-	undo_push_mesh("Spin");
-
 	/* imat and centre and size */
 	Mat3CpyMat4(bmat, G.obedit->obmat);
 	Mat3Inv(imat,bmat);
@@ -664,16 +662,16 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 	ok= 1;
 
 	for(a=0;a<steps;a++) {
-		if(mode==0) ok= extrudeflag(1,1);
-		else adduplicateflag(1);
+		if(mode==0) ok= extrudeflag_vert(SELECT);
+		else adduplicateflag(SELECT);
 		if(ok==0) {
 			error("No valid vertices are selected");
 			break;
 		}
-		rotateflag(1, cent, bmat);
+		rotateflag(SELECT, cent, bmat);
 		if(dvec) {
 			Mat3MulVecfl(bmat,dvec);
-			translateflag(1,dvec);
+			translateflag(SELECT, dvec);
 		}
 	}
 
@@ -683,7 +681,7 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 		eve= em->verts.first;
 		while(eve) {
 			nextve= eve->next;
-			if(eve->f & 1) {
+			if(eve->f & SELECT) {
 				BLI_remlink(&em->verts,eve);
 				free_editvert(eve);
 			}
@@ -694,6 +692,7 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 	recalc_editnormals();
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);
+	BIF_undo_push("Spin");
 }
 
 void screw_mesh(int steps,int turns)
@@ -711,8 +710,6 @@ void screw_mesh(int steps,int turns)
 		return;
 	}
 	
-	undo_push_mesh("Screw");
-	
 	/* clear flags */
 	eve= em->verts.first;
 	while(eve) {
@@ -722,8 +719,8 @@ void screw_mesh(int steps,int turns)
 	/* edges set flags in verts */
 	eed= em->edges.first;
 	while(eed) {
-		if(eed->v1->f & 1) {
-			if(eed->v2->f & 1) {
+		if(eed->v1->f & SELECT) {
+			if(eed->v2->f & SELECT) {
 				/* watch: f1 is a byte */
 				if(eed->v1->f1<2) eed->v1->f1++;
 				if(eed->v2->f1<2) eed->v2->f1++;
@@ -764,6 +761,7 @@ void screw_mesh(int steps,int turns)
 
 	spin_mesh(turns*steps, turns*360, dvec, 0);
 
+	BIF_undo_push("Spin");
 }
 
 
@@ -774,7 +772,7 @@ static void erase_edges(ListBase *l)
 	ed = (EditEdge *) l->first;
 	while(ed) {
 		nexted= ed->next;
-		if( (ed->v1->f & 1) || (ed->v2->f & 1) ) {
+		if( (ed->v1->f & SELECT) || (ed->v2->f & SELECT) ) {
 			remedge(ed);
 			free_editedge(ed);
 		}
@@ -790,7 +788,7 @@ static void erase_faces(ListBase *l)
 
 	while(f) {
 		nextf= f->next;
-		if( faceselectedOR(f, 1) ) {
+		if( faceselectedOR(f, SELECT) ) {
 			BLI_remlink(l, f);
 			free_editface(f);
 		}
@@ -821,6 +819,7 @@ void delete_mesh(void)
 	EditEdge *eed,*nexted;
 	short event;
 	int count;
+	char *str="Erase";
 
 	TEST_EDITMESH
 	
@@ -828,22 +827,22 @@ void delete_mesh(void)
 	if(event<1) return;
 
 	if(event==10 ) {
-		undo_push_mesh("Erase Vertices");
+		str= "Erase Vertices";
 		erase_edges(&em->edges);
 		erase_faces(&em->faces);
 		erase_vertices(&em->verts);
 	} 
 	else if(event==4) {
-		undo_push_mesh("Erase Edges & Faces");
+		str= "Erase Edges & Faces";
 		efa= em->faces.first;
 		while(efa) {
 			nextvl= efa->next;
 			/* delete only faces with 2 or more vertices selected */
 			count= 0;
-			if(efa->v1->f & 1) count++;
-			if(efa->v2->f & 1) count++;
-			if(efa->v3->f & 1) count++;
-			if(efa->v4 && (efa->v4->f & 1)) count++;
+			if(efa->v1->f & SELECT) count++;
+			if(efa->v2->f & SELECT) count++;
+			if(efa->v3->f & SELECT) count++;
+			if(efa->v4 && (efa->v4->f & SELECT)) count++;
 			if(count>1) {
 				BLI_remlink(&em->faces, efa);
 				free_editface(efa);
@@ -853,7 +852,7 @@ void delete_mesh(void)
 		eed= em->edges.first;
 		while(eed) {
 			nexted= eed->next;
-			if( (eed->v1->f & 1) && (eed->v2->f & 1) ) {
+			if( (eed->v1->f & SELECT) && (eed->v2->f & SELECT) ) {
 				remedge(eed);
 				free_editedge(eed);
 			}
@@ -863,10 +862,10 @@ void delete_mesh(void)
 		while(efa) {
 			nextvl= efa->next;
 			event=0;
-			if( efa->v1->f & 1) event++;
-			if( efa->v2->f & 1) event++;
-			if( efa->v3->f & 1) event++;
-			if(efa->v4 && (efa->v4->f & 1)) event++;
+			if( efa->v1->f & SELECT) event++;
+			if( efa->v2->f & SELECT) event++;
+			if( efa->v3->f & SELECT) event++;
+			if(efa->v4 && (efa->v4->f & SELECT)) event++;
 			
 			if(event>1) {
 				BLI_remlink(&em->faces, efa);
@@ -876,11 +875,11 @@ void delete_mesh(void)
 		}
 	} 
 	else if(event==1) {
-		undo_push_mesh("Erase Edges");
+		str= "Erase Edges";
 		eed= em->edges.first;
 		while(eed) {
 			nexted= eed->next;
-			if( (eed->v1->f & 1) && (eed->v2->f & 1) ) {
+			if( (eed->v1->f & SELECT) && (eed->v2->f & SELECT) ) {
 				remedge(eed);
 				free_editedge(eed);
 			}
@@ -890,10 +889,10 @@ void delete_mesh(void)
 		while(efa) {
 			nextvl= efa->next;
 			event=0;
-			if( efa->v1->f & 1) event++;
-			if( efa->v2->f & 1) event++;
-			if( efa->v3->f & 1) event++;
-			if(efa->v4 && (efa->v4->f & 1)) event++;
+			if( efa->v1->f & SELECT) event++;
+			if( efa->v2->f & SELECT) event++;
+			if( efa->v3->f & SELECT) event++;
+			if(efa->v4 && (efa->v4->f & SELECT)) event++;
 			
 			if(event>1) {
 				BLI_remlink(&em->faces, efa);
@@ -904,8 +903,8 @@ void delete_mesh(void)
 		/* to remove loose vertices: */
 		eed= em->edges.first;
 		while(eed) {
-			if( eed->v1->f & 1) eed->v1->f-=1;
-			if( eed->v2->f & 1) eed->v2->f-=1;
+			if( eed->v1->f & SELECT) eed->v1->f-=SELECT;
+			if( eed->v2->f & SELECT) eed->v2->f-=SELECT;
 			eed= eed->next;
 		}
 		eve= em->verts.first;
@@ -920,17 +919,17 @@ void delete_mesh(void)
 
 	}
 	else if(event==2) {
-		undo_push_mesh("Erase Faces");
-		delfaceflag(1);
+		str="Erase Faces";
+		delfaceflag(SELECT);
 	}
 	else if(event==3) {
-		undo_push_mesh("Erase All");
+		str= "Erase All";
 		if(em->verts.first) free_vertlist(&em->verts);
 		if(em->edges.first) free_edgelist(&em->edges);
 		if(em->faces.first) free_facelist(&em->faces);
 	}
 	else if(event==5) {
-		undo_push_mesh("Erase Only Faces");
+		str= "Erase Only Faces";
 		efa= em->faces.first;
 		while(efa) {
 			nextvl= efa->next;
@@ -945,6 +944,7 @@ void delete_mesh(void)
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);
+	BIF_undo_push(str);
 }
 
 
@@ -962,12 +962,10 @@ void fill_mesh(void)
 
 	waitcursor(1);
 
-	undo_push_mesh("Fill");
-
 	/* copy all selected vertices */
 	eve= em->verts.first;
 	while(eve) {
-		if(eve->f & 1) {
+		if(eve->f & SELECT) {
 			v1= BLI_addfillvert(eve->co);
 			eve->vn= v1;
 			v1->vn= eve;
@@ -978,7 +976,7 @@ void fill_mesh(void)
 	/* copy all selected edges */
 	eed= em->edges.first;
 	while(eed) {
-		if( (eed->v1->f & 1) && (eed->v2->f & 1) ) {
+		if( (eed->v1->f & SELECT) && (eed->v2->f & SELECT) ) {
 			e1= BLI_addfilledge(eed->v1->vn, eed->v2->vn);
 			e1->v1->h++; 
 			e1->v2->h++;
@@ -1037,6 +1035,7 @@ void fill_mesh(void)
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);
+	BIF_undo_push("Fill");
 }
 
 
@@ -1328,8 +1327,8 @@ void subdivideflag(int flag, float rad, int beauty)
 	/* edgeflags */
 	eed= em->edges.first;
 	while((eed) && !(beauty & B_KNIFE)) {	
-		if( (eed->v1->f & flag) && (eed->v2->f & flag) ) eed->f= flag;
-		else eed->f= 0;	
+		if( (eed->v1->f & flag) && (eed->v2->f & flag) ) eed->f2= flag;
+		else eed->f2= 0;	
 		eed= eed->next;
 	}
 	
@@ -1343,22 +1342,22 @@ void subdivideflag(int flag, float rad, int beauty)
 					/* area */
 					len1= AreaQ3Dfl(efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
 					if(len1 <= doublimit) {
-						efa->e1->f = 0;
-						efa->e2->f = 0;
-						efa->e3->f = 0;
-						efa->e4->f = 0;
+						efa->e1->f2 = 0;
+						efa->e2->f2 = 0;
+						efa->e3->f2 = 0;
+						efa->e4->f2 = 0;
 					}
 					else {
 						len1= VecLenf(efa->v1->co, efa->v2->co) + VecLenf(efa->v3->co, efa->v4->co);
 						len2= VecLenf(efa->v2->co, efa->v3->co) + VecLenf(efa->v1->co, efa->v4->co);
 						
 						if(len1 < len2) {
-							efa->e1->f = 0;
-							efa->e3->f = 0;
+							efa->e1->f2 = 0;
+							efa->e3->f2 = 0;
 						}
 						else if(len1 > len2) {
-							efa->e2->f = 0;
-							efa->e4->f = 0;
+							efa->e2->f2 = 0;
+							efa->e4->f2 = 0;
 						}
 					}
 				}
@@ -1366,9 +1365,9 @@ void subdivideflag(int flag, float rad, int beauty)
 					/* area */
 					len1= AreaT3Dfl(efa->v1->co, efa->v2->co, efa->v3->co);
 					if(len1 <= doublimit) {
-						efa->e1->f = 0;
-						efa->e2->f = 0;
-						efa->e3->f = 0;
+						efa->e1->f2 = 0;
+						efa->e2->f2 = 0;
+						efa->e3->f2 = 0;
 					}
 					else {
 						len1= VecLenf(efa->v1->co, efa->v2->co) ;
@@ -1376,13 +1375,13 @@ void subdivideflag(int flag, float rad, int beauty)
 						len3= VecLenf(efa->v3->co, efa->v1->co) ;
 						
 						if(len1<len2 && len1<len3) {
-							efa->e1->f = 0;
+							efa->e1->f2 = 0;
 						}
 						else if(len2<len3 && len2<len1) {
-							efa->e2->f = 0;
+							efa->e2->f2 = 0;
 						}
 						else if(len3<len2 && len3<len1) {
-							efa->e3->f = 0;
+							efa->e3->f2 = 0;
 						}
 					}
 				}
@@ -1400,7 +1399,7 @@ void subdivideflag(int flag, float rad, int beauty)
 	/* make new normal and put in edge, clear flag! needed for face creation part below */
 	eed= em->edges.first;
 	while(eed) {
-		if(eed->f & flag) {
+		if(eed->f2 & flag) {
 			/* Subdivide percentage is stored in 1/32768ths in eed->f1 */
 			if (beauty & B_PERCENTSUBD) percent=(float)(eed->f1)/32768.0;
 			else percent=0.5;
@@ -1434,7 +1433,7 @@ void subdivideflag(int flag, float rad, int beauty)
 		}
 		else eed->vn= 0;
 		
-		eed->f= 0; /* needed! */
+		eed->f2= 0; /* needed! */
 		
 		eed= eed->next;
 	}
@@ -1455,28 +1454,28 @@ void subdivideflag(int flag, float rad, int beauty)
 			test= 0;
 			if(e1 && e1->vn) { 
 				test+= 1;
-				e1->f= 1;
+				e1->f2= 1;
 				/* add edges here, to copy correct edge data */
 				eed= addedgelist(e1->v1, e1->vn, e1);
 				eed= addedgelist(e1->vn, e1->v2, e1);
 			}
 			if(e2 && e2->vn) {
 				test+= 2;
-				e2->f= 1;
+				e2->f2= 1;
 				/* add edges here, to copy correct edge data */
 				eed= addedgelist(e2->v1, e2->vn, e2);
 				eed= addedgelist(e2->vn, e2->v2, e2);
 			}
 			if(e3 && e3->vn) {
 				test+= 4;
-				e3->f= 1;
+				e3->f2= 1;
 				/* add edges here, to copy correct edge data */
 				eed= addedgelist(e3->v1, e3->vn, e3);
 				eed= addedgelist(e3->vn, e3->v2, e3);
 			}
 			if(e4 && e4->vn) {
 				test+= 8;
-				e4->f= 1;
+				e4->f2= 1;
 				/* add edges here, to copy correct edge data */
 				eed= addedgelist(e4->v1, e4->vn, e4);
 				eed= addedgelist(e4->vn, e4->v2, e4);
@@ -1716,7 +1715,7 @@ void subdivideflag(int flag, float rad, int beauty)
 		nexted= eed->next;
 		if( eed->vn ) {
 			eed->vn->f |= 16;			
-			if(eed->f==0) {  /* not used in face */				
+			if(eed->f2==0) {  /* not used in face */				
 				addedgelist(eed->v1, eed->vn, eed);
 				addedgelist(eed->vn, eed->v2, eed);
 			}						
@@ -1725,6 +1724,10 @@ void subdivideflag(int flag, float rad, int beauty)
 		}
 		eed= nexted;
 	}
+	
+	/* since this is all on vertex level, flush vertex selection */
+	EM_select_flush();
+	
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);
@@ -1748,7 +1751,7 @@ typedef EVPtr EVPTuple[2];
 /** builds EVPTuple array efaa of face tuples (in fact pointers to EditFaces)
     sharing one edge.
 	arguments: selected edge list, face list.
-	Edges will also be tagged accordingly (see eed->f)          */
+	Edges will also be tagged accordingly (see eed->f2)          */
 
 static int collect_quadedges(EVPTuple *efaa, EditEdge *eed, EditFace *efa)
 {
@@ -1758,7 +1761,7 @@ static int collect_quadedges(EVPTuple *efaa, EditEdge *eed, EditFace *efa)
 
 	/* run through edges, if selected, set pointer edge-> facearray */
 	while(eed) {
-		eed->f= 0;
+		eed->f2= 0;
 		eed->f1= 0;
 		if( (eed->v1->f & 1) && (eed->v2->f & 1) ) {
 			eed->vn= (EditVert *) (&efaa[i]);
@@ -1771,7 +1774,7 @@ static int collect_quadedges(EVPTuple *efaa, EditEdge *eed, EditFace *efa)
 	/* find edges pointing to 2 faces by procedure:
 	
 	- run through faces and their edges, increase
-	  face counter e->f for each face 
+	  face counter e->f1 for each face 
 	*/
 
 	while(efa) {
@@ -1782,26 +1785,26 @@ static int collect_quadedges(EVPTuple *efaa, EditEdge *eed, EditFace *efa)
 				e1= efa->e1;
 				e2= efa->e2;
 				e3= efa->e3;
-				if(e1->f<3) {
-					if(e1->f<2) {
+				if(e1->f2<3) {
+					if(e1->f2<2) {
 						evp= (EVPtr *) e1->vn;
-						evp[(int)e1->f]= efa;
+						evp[(int)e1->f2]= efa;
 					}
-					e1->f+= 1;
+					e1->f2+= 1;
 				}
-				if(e2->f<3) {
-					if(e2->f<2) {
+				if(e2->f2<3) {
+					if(e2->f2<2) {
 						evp= (EVPtr *) e2->vn;
-						evp[(int)e2->f]= efa;
+						evp[(int)e2->f2]= efa;
 					}
-					e2->f+= 1;
+					e2->f2+= 1;
 				}
-				if(e3->f<3) {
-					if(e3->f<2) {
+				if(e3->f2<3) {
+					if(e3->f2<2) {
 						evp= (EVPtr *) e3->vn;
-						evp[(int)e3->f]= efa;
+						evp[(int)e3->f2]= efa;
 					}
-					e3->f+= 1;
+					e3->f2+= 1;
 				}
 			}
 		}
@@ -1924,10 +1927,10 @@ if(efa1->v1== *v2) {
 
 static void untag_edges(EditFace *f)
 {
-	f->e1->f = 0;
-	f->e2->f = 0;
-	if (f->e3) f->e3->f = 0;
-	if (f->e4) f->e4->f = 0;
+	f->e1->f2 = 0;
+	f->e2->f2 = 0;
+	if (f->e3) f->e3->f2 = 0;
+	if (f->e4) f->e4->f2 = 0;
 }
 
 /** remove and free list of tagged edges */
@@ -1989,8 +1992,6 @@ void beauty_fill(void)
 
     if(okee("Beautify fill")==0) return;
     
-    undo_push_mesh("Beauty Fill");
-
     /* temp block with face pointers */
     efaar= (EVPTuple *) MEM_callocN(totedge * sizeof(EVPTuple), "beautyfill");
 
@@ -2006,7 +2007,7 @@ void beauty_fill(void)
         while(eed) {
             nexted= eed->next;
 
-            if(eed->f==2) {
+            if(eed->f2==2) {
 
                 efaa = (EVPtr *) eed->vn;
 
@@ -2129,6 +2130,7 @@ void beauty_fill(void)
 
     allqueue(REDRAWVIEW3D, 0);
     makeDispList(G.obedit);
+	BIF_undo_push("Beauty Fill");
 }
 
 
@@ -2153,8 +2155,6 @@ void join_triangles(void)
 	totedge = count_edges(em->edges.first);
 	if(totedge==0) return;
 
-	undo_push_mesh("Convert Triangles to Quads");
-	
 	efaar= (EVPTuple *) MEM_callocN(totedge * sizeof(EVPTuple), "jointris");
 
 	ok = collect_quadedges(efaar, em->edges.first, em->faces.first);
@@ -2166,7 +2166,7 @@ void join_triangles(void)
 	while(eed) {
 		nexted= eed->next;
 		
-		if(eed->f==2) {  /* points to 2 faces */
+		if(eed->f2==2) {  /* points to 2 faces */
 			
 			efaa= (EVPtr *) eed->vn;
 			
@@ -2220,7 +2220,7 @@ void join_triangles(void)
 	
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);
-
+	BIF_undo_push("Convert Triangles to Quads");
 }
 
 /* quick hack, basically a copy of beauty_fill */
@@ -2249,8 +2249,6 @@ void edge_flip(void)
 	totedge = count_edges(em->edges.first);
 	if(totedge==0) return;
 
-	undo_push_mesh("Flip Triangle Edges");
-	
 	/* temporary array for : edge -> face[1], face[2] */
 	efaar= (EVPTuple *) MEM_callocN(totedge * sizeof(EVPTuple), "edgeflip");
 
@@ -2260,7 +2258,7 @@ void edge_flip(void)
 	while(eed) {
 		nexted= eed->next;
 		
-		if(eed->f==2) {  /* points to 2 faces */
+		if(eed->f2==2) {  /* points to 2 faces */
 			
 			efaa= (EVPtr *) eed->vn;
 			
@@ -2330,9 +2328,12 @@ void edge_flip(void)
 	
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);
+	BIF_undo_push("Flip Triangle Edges");
+	
 }
 
-static void edge_rotate(EditEdge *eed){
+static void edge_rotate(EditEdge *eed)
+{
 	EditMesh *em = G.editMesh;
 	EditFace *face[2], *efa, *newFace[2];
 	EditVert *faces[2][4],*v1,*v2,*v3,*v4,*vtemp;
@@ -2555,9 +2556,9 @@ static void edge_rotate(EditEdge *eed){
 	}
 
 	if(fac1 == 3)
-		newFace[0]->e3->f |= 2;
+		newFace[0]->e3->f2 |= 2;
 	else if(fac1 == 4)
-		newFace[0]->e4->f |= 2;
+		newFace[0]->e4->f2 |= 2;
 	
 	
 	/* mark the f1's of the verts for re-selection */
@@ -2576,12 +2577,11 @@ static void edge_rotate(EditEdge *eed){
 }						
 
 
-void edge_rotate_selected(){
+void edge_rotate_selected()
+{
 	EditEdge *eed,*temp;
 	EditVert *ev;
 	short edgeCount = 0;
-	
-    	undo_push_mesh("Rotate Edges");	
 	
 	/* Clear the f1 flag */
 	for(ev = G.editMesh->verts.first;ev;ev = ev->next)
@@ -2589,7 +2589,7 @@ void edge_rotate_selected(){
 
 	/*clear new flag for new edges*/
 	for(eed = G.editMesh->edges.first;eed;eed = eed->next){
-		eed->f &= ~2;
+		eed->f2 &= ~2;
 		edgeCount++;	
 	}
 	eed = G.editMesh->edges.first;		
@@ -2598,7 +2598,7 @@ void edge_rotate_selected(){
 			/* To prevent an infinite loop */
 			break;	
 		}
-		if(eed->f & 2){
+		if(eed->f2 & 2){
 			/* Do not rotate newly created edges */
 			eed = eed->next;
 			continue;
@@ -2623,11 +2623,14 @@ void edge_rotate_selected(){
 		
 	/*clear new edge flags*/
 	for(eed = G.editMesh->edges.first; eed; eed = eed->next)
-		eed->f &= ~2;
-		
-	force_draw_all();
-	screen_swapbuffers();
-	return;
+		eed->f2 &= ~2;
+
+	/* flush selected vertices to edges/faces */
+	EM_select_flush();
+	
+	allqueue(REDRAWVIEW3D, 0);
+	
+	BIF_undo_push("Rotate Edges");	
 }
 
 /******************* BEVEL CODE STARTS HERE ********************/
@@ -2941,6 +2944,7 @@ void bevel_mesh(float bsize, int allfaces)
 	/* tag all original faces */
 	efa= em->faces.first;
 	while (efa) {
+		efa->f1= 0;
 		if (faceselectedAND(efa, 1)||allfaces) {
 			efa->f1= 1;
 			efa->v1->f |= 128;
@@ -3059,7 +3063,7 @@ void bevel_mesh(float bsize, int allfaces)
 
 	eed= em->edges.first;
 	while(eed) {
-		eed->f= eed->f1= 0;
+		eed->f2= eed->f1= 0;
 		if ( ((eed->v1->f & eed->v2->f) & 1) || allfaces) eed->f1 |= 4;	/* original edges */
 		eed->vn= 0;
 		eed= eed->next;
@@ -3135,7 +3139,7 @@ void bevel_mesh(float bsize, int allfaces)
 
 	eed= em->edges.first;
 	while(eed) {
-		eed->f= eed->f1= 0;
+		eed->f2= eed->f1= 0;
 		eed->f1= 0;
 		eed->v1->f1 &= ~1;
 		eed->v2->f1 &= ~1;		
@@ -3309,6 +3313,9 @@ void bevel_mesh(float bsize, int allfaces)
 	
 	removedoublesflag(1, limit);
 
+	/* flush selected vertices to edges/faces */
+	EM_select_flush();
+
 #undef BEV_DEBUG
 }
 
@@ -3434,10 +3441,10 @@ void bevel_menu()
 	}
 	if (Canceled==0) {
 		SetBlenderCursor(BC_WAITCURSOR);
-		undo_push_mesh("Bevel");
 		bevel_mesh_recurs(drawd/fac, recurs, 1);
 		righthandfaces(1);
 		SetBlenderCursor(SYSCURSOR);
+		BIF_undo_push("Bevel");
 	}
 }
 

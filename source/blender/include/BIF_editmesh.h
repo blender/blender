@@ -35,6 +35,7 @@
 #ifndef BIF_EDITMESH_H
 #define BIF_EDITMESH_H
 
+struct EditMesh;
 struct EditFace;
 struct EditEdge;
 struct EditVert;
@@ -45,16 +46,11 @@ struct View3D;
 /* ******************* editmesh.c */
 extern void make_editMesh(void);
 extern void load_editMesh(void);
-extern void free_editMesh(void);
+extern void free_editMesh(struct EditMesh *);
 extern void remake_editMesh(void);
 
 	/* Editmesh Undo code */
-void undo_free_mesh(struct Mesh *me);
-void undo_push_mesh(char *name);
-void undo_pop_mesh(int steps);
-void undo_redo_mesh(void);
-void undo_clear_mesh(void);
-void undo_menu_mesh(void);
+extern void undo_push_mesh(char *name);
 
 extern void separatemenu(void);
 extern void separate_mesh(void);
@@ -67,6 +63,20 @@ extern void addvert_mesh(void);
 extern void addedgeface_mesh(void);
 
 /* ******************* editmesh_lib.c */
+
+extern void EM_set_flag_all(int flag);
+extern void EM_clear_flag_all(int flag);
+
+extern void EM_select_face(struct EditFace *efa, int sel);
+extern void EM_select_edge(struct EditEdge *eed, int sel);
+
+extern void EM_select_flush(void);	// vertices to edges/faces (exception!)
+extern void EM_selectmode_set(void); // when mode changes
+extern void EM_selectmode_flush(void); // when selection changes
+
+extern int EM_nfaces_selected(void);
+extern int EM_nvertices_selected(void);
+
 extern int faceselectedAND(struct EditFace *efa, int flag);
 extern void recalc_editnormals(void);
 extern void flip_editnormals(void);

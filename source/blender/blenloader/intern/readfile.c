@@ -2439,7 +2439,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->basact= newdataadr(fd, sce->basact);
 
 	sce->radio= newdataadr(fd, sce->radio);
-	sce->fcam= newdataadr(fd, sce->fcam);
 
 	sce->r.avicodecdata = newdataadr(fd, sce->r.avicodecdata);
 	if (sce->r.avicodecdata) {
@@ -4469,6 +4468,13 @@ static void do_versions(Main *main)
 					}
 				}
 			}
+		}
+	}
+	if(main->versionfile <= 234) {
+		Scene *sce;
+		
+		for (sce= main->scene.first; sce; sce= sce->id.next) {
+			if(sce->selectmode==0) sce->selectmode= SCE_SELECT_VERTEX;
 		}
 	}
 	

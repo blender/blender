@@ -535,24 +535,14 @@ void countall()
 			eve= em->verts.first;
 			while(eve) {
 				G.totvert++;
-				if(eve->f & 1) G.totvertsel++;
+				if(eve->f & SELECT) G.totvertsel++;
 				eve= eve->next;
 			}
+			
 			efa= em->faces.first;
 			while(efa) {
 				G.totface++;
-				if(efa->v1->f & 1) {
-					if(efa->v2->f & 1) {
-						if(efa->v3->f & 1) {
-							if(efa->v4)  {
-								if(efa->v4->f & 1) G.totfacesel++;
-							}
-							else {
-								G.totfacesel++;
-							}
-						}
-					}
-				}
+				if(efa->f & SELECT) G.totfacesel++;
 				efa= efa->next;
 			}
 		}
@@ -1199,8 +1189,6 @@ void mergemenu(void)
 
 	if (event==-1) return; /* Return if the menu is closed without any choices */
 
-	undo_push_mesh("Merge"); /* The action has been confirmed, push the mesh down the undo pipe */
-
 	if (event==1) 
 		snap_to_center(); /*Merge at Center*/
 	else
@@ -1209,6 +1197,8 @@ void mergemenu(void)
 	notice("Removed %d Vertices", removedoublesflag(1, doublimit));
 	allqueue(REDRAWVIEW3D, 0);
 	countall();
+	BIF_undo_push("Merge"); /* push the mesh down the undo pipe */
+
 }
 
 void delete_context_selected(void) {

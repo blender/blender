@@ -161,9 +161,9 @@ typedef enum {
 	ICON_GHOST,
 	ICON_SHARPCURVE,
 	ICON_SMOOTHCURVE,
-	ICON_BLANK23,
-	ICON_BLANK24,
-	ICON_BLANK25,
+	ICON_VERTEXSEL,
+	ICON_EDGESEL,
+	ICON_FACESEL,
 	ICON_BLANK26,
 	ICON_BPIBFOLDER_X,
 	ICON_BPIBFOLDERGREY,
@@ -328,6 +328,7 @@ typedef enum {
 
 } BIFColorID;
 
+/* XXX WARNING: this is saved in file, so do not change order! */
 enum {
 	TH_AUTO,	/* for buttons, to signal automatic color assignment */
 	
@@ -381,8 +382,13 @@ enum {
 	TH_EDGE_FACESEL,
 	TH_FACE,
 	TH_FACE_SELECT,
-	TH_NORMAL
+	TH_NORMAL,
+	TH_FACE_DOT,
+	TH_FACEDOT_SIZE,
+	
 };
+/* XXX WARNING: previous is saved in file, so do not change order! */
+
 
 /* specific defines per space should have higher define values */
 

@@ -58,12 +58,9 @@ extern struct EditFace *addfacelist(struct EditVert *v1, struct EditVert *v2, st
 extern struct EditEdge *findedgelist(struct EditVert *v1, struct EditVert *v2);
 
 /* ******************* editmesh_add.c */
-extern void adduplicateflag(int flag);
 
 
 /* ******************* editmesh_lib.c */
-extern int editmesh_nfaces_selected(void);
-extern int editmesh_nvertices_selected(void);
 
 extern int faceselectedOR(EditFace *efa, int flag);
 extern int faceselectedAND(EditFace *efa, int flag);
@@ -72,15 +69,19 @@ extern int exist_face(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4);
 extern void flipface(EditFace *efa); // flips for normal direction
 extern int compareface(EditFace *vl1, EditFace *vl2);
 
+extern short extrudeflag_vert(short flag);
+extern short extrudeflag(short flag);
+
+extern void adduplicateflag(int flag);
 extern void delfaceflag(int flag);
-extern short extrudeflag(short flag,short type);
+
 extern void rotateflag(short flag, float *cent, float rotmat[][3]);
 extern void translateflag(short flag, float *vec);
 
 extern float convex(float *v1, float *v2, float *v3, float *v4);
 
 /* ******************* editmesh_mods.c */
-extern EditEdge *findnearestedge();
+extern EditEdge *findnearestedge(short *dist);
 
 /* ******************* editmesh_tools.c */
 

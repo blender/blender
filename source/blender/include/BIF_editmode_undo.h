@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: 
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -30,40 +30,26 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifndef BDR_DRAWOBJECT_H
-#define BDR_DRAWOBJECT_H
 
-#ifdef __cplusplus
-extern "C" { 
+#ifndef BIF_EDITMODE_UNDO_H
+#define BIF_EDITMODE_UNDO_H
+
+// Add this in your local code:
+
+extern void undo_editmode_push(char *name, 
+		void (*freedata)(void *), 			// pointer to function freeing data
+		void (*to_editmode)(void *),        // data to editmode conversion
+		void *(*from_editmode)(void));     // editmode to data conversion
+
+
+// Further exported for UI is:
+
+struct uiBlock;
+
+extern void undo_editmode_step(int step);	// undo and redo
+extern void undo_editmode_clear(void);		// free & clear all data
+extern void undo_editmode_menu(void);		// history menu
+extern struct uiBlock *editmode_undohistorymenu(void *arg_unused);
+
 #endif
-
-
-struct Object;
-struct Nurb;
-struct Lamp;
-struct ListBase;
-struct BoundBox;
-struct Base;
-
-void init_draw_rects(void);
-void helpline(float *vec);
-void drawaxes(float size);
-void drawcamera(struct Object *ob);
-
-void calc_mesh_facedots_ext(void);
-void calc_lattverts_ext(void);
-void calc_meshverts(void);
-void calc_meshverts_ext(void);
-void calc_meshverts_ext_f2(void);
-void calc_nurbverts_ext(void);
-void drawcircball(float *cent, float rad, float tmat[][4]);
-void get_local_bounds(struct Object *ob, float *centre, float *size);
-void draw_object(struct Base *base);
-void draw_object_ext(struct Base *base);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif  /*  BDR_DRAWOBJECT_H */
 

@@ -958,6 +958,35 @@ static void drawlattice(Object *ob)
 
 /* ***************** ******************** */
 
+void calc_mesh_facedots_ext(void)
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	float mat[4][4];
+
+	if(em->faces.first==NULL) return;
+	efa= em->faces.first;
+
+	areawinset(curarea->win);
+	persp(PERSP_VIEW);
+	
+	mymultmatrix(G.obedit->obmat);
+
+	MTC_Mat4SwapMat4(G.vd->persmat, mat);
+	mygetsingmatrix(G.vd->persmat);
+
+	efa= em->faces.first;
+	while(efa) {
+		if( efa->h==0) {
+			project_short(efa->cent, &(efa->xs));
+		}
+		efa= efa->next;
+	}
+	MTC_Mat4SwapMat4(G.vd->persmat, mat);
+
+	myloadmatrix(G.vd->viewmat);
+}
+
 /* window coord, assuming all matrices are set OK */
 void calc_meshverts(void)
 {
@@ -1078,46 +1107,89 @@ void calc_nurbverts_ext(void)
 	
 }
 
-void tekenvertices(short sel)
+static void draw_vertices(short sel)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
-	float size;
-	char col[3];
+	EditFace *efa;
+	float size, fsize;
+	char col[3], fcol[3];
 	
 	/* draws in zbuffer mode twice, to show invisible vertices transparent */
 
 	size= BIF_GetThemeValuef(TH_VERTEX_SIZE);
-	if(sel) BIF_GetThemeColor3ubv(TH_VERTEX_SELECT, col);
-	else BIF_GetThemeColor3ubv(TH_VERTEX, col);
+	fsize= BIF_GetThemeValuef(TH_FACEDOT_SIZE);
+	if(sel) {
+		BIF_GetThemeColor3ubv(TH_VERTEX_SELECT, col);
+		BIF_GetThemeColor3ubv(TH_FACE_DOT, fcol);
+	}
+	else {
+		BIF_GetThemeColor3ubv(TH_VERTEX, col);
+		BIF_GetThemeColor3ubv(TH_WIRE, fcol);
+	}
 
 	if(G.zbuf) {
-		glPointSize(size>2.1?size/2.0: size);
 
 		glDisable(GL_DEPTH_TEST);
-		glColor4ub(col[0], col[1], col[2], 100);
 		
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
-
-		bglBegin(GL_POINTS);
-		for(eve= em->verts.first; eve; eve= eve->next) {
-			if(eve->h==0 && (eve->f & 1)==sel ) bglVertex3fv(eve->co);
+		
+		if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+			glPointSize(size>2.1?size/2.0: size);
+			glColor4ub(col[0], col[1], col[2], 100);
+			
+			bglBegin(GL_POINTS);
+			for(eve= em->verts.first; eve; eve= eve->next) {
+				if(eve->h==0 && (eve->f & SELECT)==sel ) bglVertex3fv(eve->co);
+			}
+			bglEnd();
 		}
-		bglEnd();
+		
+		if(G.scene->selectmode & SCE_SELECT_FACE) {
+			glPointSize(fsize>2.1?fsize/2.0: fsize);
+			glColor4ub(fcol[0], fcol[1], fcol[2], 100);
+			
+			bglBegin(GL_POINTS);
+			for(efa= em->faces.first; efa; efa= efa->next) {
+				if(efa->h==0) {
+					if(sel == (efa->f & SELECT)) {
+						bglVertex3fv(efa->cent);
+					}
+				}
+			}
+			bglEnd();
+		}
 		
 		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
 	}
 
-	glPointSize(size);
-	glColor3ub(col[0], col[1], col[2]);
+	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+		glPointSize(size);
+		glColor3ub(col[0], col[1], col[2]);
 
-	bglBegin(GL_POINTS);
-	for(eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->h==0 && (eve->f & 1)==sel ) bglVertex3fv(eve->co);
+		bglBegin(GL_POINTS);
+		for(eve= em->verts.first; eve; eve= eve->next) {
+			if(eve->h==0 && (eve->f & SELECT)==sel ) bglVertex3fv(eve->co);
+		}
+		bglEnd();
 	}
-	bglEnd();
+	
+	if(G.scene->selectmode & SCE_SELECT_FACE) {		
+		glPointSize(fsize);
+		glColor3ub(fcol[0], fcol[1], fcol[2]);
+		
+		bglBegin(GL_POINTS);
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->h==0) {
+				if(sel == (efa->f & SELECT)) {
+					bglVertex3fv(efa->cent);
+				}
+			}
+		}
+		bglEnd();
+	}
 
 	glPointSize(1.0);
 }
@@ -1760,14 +1832,14 @@ static void drawmeshsolid(Object *ob, float *nors)
 		
 		efa= em->faces.first;
 		while(efa) {
-			if(efa->v1->h==0 && efa->v2->h==0 && efa->v3->h==0) {
+			if(efa->h==0) {
 				
 				if(efa->mat_nr!=matnr) {
 					matnr= efa->mat_nr;
 					set_gl_material(matnr+1);
 				}
 				
-				if(efa->v4 && efa->v4->h==0) {
+				if(efa->v4) {
 				
 					glBegin(GL_QUADS);
 						glNormal3fv(efa->n);
@@ -2381,7 +2453,7 @@ static void drawmeshwire(Object *ob)
 	Material *ma;
 	EditEdge *eed;
 	EditFace *efa;
-	float fvec[3], cent[3], *f1, *f2, *f3, *f4, *extverts=NULL;
+	float fvec[3], *f1, *f2, *f3, *f4, *extverts=NULL;
 	int a, start, end, test, ok, handles=0;
 
 	me= get_mesh(ob);
@@ -2390,7 +2462,7 @@ static void drawmeshwire(Object *ob)
 		
 		if( (me->flag & ME_OPT_EDGES) && (me->flag & ME_SUBSURF) && me->subdiv) handles= 1;
 		
-		if(handles==0 && (G.f & (G_FACESELECT+G_DRAWFACES))) {	/* faces */
+		if(handles==0 && (G.f & (G_FACESELECT+G_DRAWFACES))) {	/* transp faces */
 			char col1[4], col2[4];
 			
 			BIF_GetThemeColor4ubv(TH_FACE, col1);
@@ -2402,43 +2474,17 @@ static void drawmeshwire(Object *ob)
 			
 			efa= em->faces.first;
 			while(efa) {
-				if(efa->v1->h==0 && efa->v2->h==0 && efa->v3->h==0 && (efa->v4==NULL || efa->v4->h==0)) {
+				if(efa->h==0) {
 					
-					if(1) {
-						if(faceselectedAND(efa, 1)) glColor4ub(col2[0], col2[1], col2[2], col2[3]); 
-						else glColor4ub(col1[0], col1[1], col1[2], col1[3]);
-						
-						glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
-						glVertex3fv(efa->v1->co);
-						glVertex3fv(efa->v2->co);
-						glVertex3fv(efa->v3->co);
-						if(efa->v4) glVertex3fv(efa->v4->co);
-						glEnd();
-						
-					} else {
-						if(faceselectedAND(efa, 1)) glColor4ub(col2[0], col2[1], col2[2], col2[3]); 
-						else glColor4ub(col1[0], col1[1], col1[2], col1[3]);
+					if(efa->f & SELECT) glColor4ub(col2[0], col2[1], col2[2], col2[3]); 
+					else glColor4ub(col1[0], col1[1], col1[2], col1[3]);
 					
-						if(efa->v4 && efa->v4->h==0) {
-						
-							CalcCent4f(cent, efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
-							glBegin(GL_QUADS);
-								VecMidf(fvec, cent, efa->v1->co); glVertex3fv(fvec);
-								VecMidf(fvec, cent, efa->v2->co); glVertex3fv(fvec);
-								VecMidf(fvec, cent, efa->v3->co); glVertex3fv(fvec);
-								VecMidf(fvec, cent, efa->v4->co); glVertex3fv(fvec);
-							glEnd();
-						}
-						else {
-	
-							CalcCent3f(cent, efa->v1->co, efa->v2->co, efa->v3->co);
-							glBegin(GL_TRIANGLES);
-								VecMidf(fvec, cent, efa->v1->co); glVertex3fv(fvec);
-								VecMidf(fvec, cent, efa->v2->co); glVertex3fv(fvec);
-								VecMidf(fvec, cent, efa->v3->co); glVertex3fv(fvec);
-							glEnd();
-						}
-					}
+					glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
+					glVertex3fv(efa->v1->co);
+					glVertex3fv(efa->v2->co);
+					glVertex3fv(efa->v3->co);
+					if(efa->v4) glVertex3fv(efa->v4->co);
+					glEnd();
 				}
 				efa= efa->next;
 			}
@@ -2457,7 +2503,8 @@ static void drawmeshwire(Object *ob)
 			}
 		}
 		
-		if(handles==0 && (G.f & G_DRAWCREASES)) {	/* Use crease edge Highlighting */
+		if(handles);	// then no edges draw
+		else if(G.f & G_DRAWCREASES) {	/* Use crease edge Highlighting */
 
 			eed= em->edges.first;
 			glBegin(GL_LINES);
@@ -2471,35 +2518,77 @@ static void drawmeshwire(Object *ob)
 			}
 			glEnd();
 		}
-		else if(handles==0 && (G.f & G_DRAWEDGES)) {	/* Use edge Highlighting */
+		else if(G.scene->selectmode == SCE_SELECT_FACE) {
+			/* draw faces twice, to have selected ones on top */
+			BIF_ThemeColor(TH_WIRE);
+			for(efa= em->faces.first; efa; efa= efa->next) {
+				if(efa->h==0 && (efa->f & SELECT)==0) { 
+					glBegin(GL_LINE_LOOP);
+					glVertex3fv(efa->v1->co);
+					glVertex3fv(efa->v2->co);
+					glVertex3fv(efa->v3->co);
+					if(efa->v4) glVertex3fv(efa->v4->co);
+					glEnd();
+				}
+			}
+			BIF_ThemeColor(TH_EDGE_SELECT);
+			for(efa= em->faces.first; efa; efa= efa->next) {
+				if(efa->h==0 && (efa->f & SELECT)) { 
+					glBegin(GL_LINE_LOOP);
+					glVertex3fv(efa->v1->co);
+					glVertex3fv(efa->v2->co);
+					glVertex3fv(efa->v3->co);
+					if(efa->v4) glVertex3fv(efa->v4->co);
+					glEnd();
+				}
+			}
+		}	
+		else if( (G.f & G_DRAWEDGES) || (G.scene->selectmode & SCE_SELECT_EDGE) ) {	
+			/* Use edge highlighting */
 			char col[4], colhi[4];
 			
 			BIF_GetThemeColor3ubv(TH_EDGE_SELECT, colhi);
 			BIF_GetThemeColor3ubv(TH_WIRE, col);
-
-			glShadeModel(GL_SMOOTH);
-
+			
 			eed= em->edges.first;
-			glBegin(GL_LINES);
-			while(eed) {
-				if(eed->h==0) {
-				
-					if(eed->v1->f & 1) glColor3ub(colhi[0], colhi[1], colhi[2]);
-					else glColor3ub(col[0], col[1], col[2]);
-				
-					glVertex3fv(eed->v1->co);
-					
-					if(eed->v2->f & 1) glColor3ub(colhi[0], colhi[1], colhi[2]);
-					else glColor3ub(col[0], col[1], col[2]);
+			/* (bleeding edges) to illustrate selection is defined on vertex basis */
+			if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+				glShadeModel(GL_SMOOTH);
 
-					glVertex3fv(eed->v2->co);
+				glBegin(GL_LINES);
+				while(eed) {
+					if(eed->h==0) {
+					
+						if(eed->v1->f & SELECT) glColor3ub(colhi[0], colhi[1], colhi[2]);
+						else glColor3ub(col[0], col[1], col[2]);
+					
+						glVertex3fv(eed->v1->co);
+						
+						if(eed->v2->f & SELECT) glColor3ub(colhi[0], colhi[1], colhi[2]);
+						else glColor3ub(col[0], col[1], col[2]);
+	
+						glVertex3fv(eed->v2->co);
+					}
+					eed= eed->next;
 				}
-				eed= eed->next;
+			}
+			else {
+				glBegin(GL_LINES);
+				while(eed) {
+					if(eed->h==0) {
+						if(eed->f & SELECT) glColor3ub(colhi[0], colhi[1], colhi[2]);
+						else glColor3ub(col[0], col[1], col[2]);
+					
+						glVertex3fv(eed->v1->co);
+						glVertex3fv(eed->v2->co);
+					}
+					eed= eed->next;
+				}
 			}
 			glEnd();
 			glShadeModel(GL_FLAT);
 		}
-		else if(handles==0) {
+		else {
 			BIF_ThemeColor(TH_WIRE);
 			eed= em->edges.first;
 			glBegin(GL_LINES);
@@ -2536,8 +2625,8 @@ static void drawmeshwire(Object *ob)
 		
 		calc_meshverts();
 
-		tekenvertices(0);
-		tekenvertices(1);
+		draw_vertices(0);
+		draw_vertices(1);
 
 		if(G.f & G_DRAWNORMALS) {	/* normals */
 			/*cpack(0xDDDD22);*/
@@ -2547,7 +2636,7 @@ static void drawmeshwire(Object *ob)
 			
 			efa= em->faces.first;
 			while(efa) {
-				if(efa->v1->h==0 && efa->v2->h==0 && efa->v3->h==0) {
+				if(efa->h==0) {
 					if(efa->v4) CalcCent4f(fvec, efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
 					else CalcCent3f(fvec, efa->v1->co, efa->v2->co, efa->v3->co);
 
@@ -3678,10 +3767,12 @@ static void drawWireExtra(Object *ob, ListBase *lb)
 	else BIF_ThemeColor(TH_WIRE);
 
 	bPolygonOffset(1);
+	glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 	
 	if(ob->type==OB_MESH) drawmeshwire(ob);
 	else drawDispListwire(lb);
 
+	glDepthMask(1);
 	bPolygonOffset(0);
 }
 
@@ -3918,7 +4009,7 @@ void draw_object(Base *base)
 	
 	/* draw outline for selected solid objects */
 	if(G.vd->flag & V3D_SELECT_OUTLINE) {
-		if(dt>OB_WIRE && ob!=G.obedit && (G.f & G_BACKBUFSEL)==0) {
+		if(dt>OB_WIRE && dt<OB_TEXTURE && ob!=G.obedit && (G.f & G_BACKBUFSEL)==0) {
 			if((G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT))==0)
 				draw_solid_select(ob);
 		}

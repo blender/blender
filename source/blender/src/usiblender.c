@@ -87,6 +87,7 @@
 #include "BIF_editlattice.h"
 #include "BIF_editfont.h"
 #include "BIF_editmesh.h"
+#include "BIF_editmode_undo.h"
 #include "BIF_editsound.h"
 #include "BIF_renderwin.h"
 #include "BIF_resources.h"
@@ -243,6 +244,13 @@ int BIF_read_homefile(void)
 					btheme->tv3d.normal[1]= 0xDD;
 					btheme->tv3d.normal[2]= 0xDD;
 					btheme->tv3d.normal[3]= 255;
+				}
+				if(btheme->tv3d.face_dot[3]==0) {
+					btheme->tv3d.face_dot[0]= 255;
+					btheme->tv3d.face_dot[1]= 138;
+					btheme->tv3d.face_dot[2]= 48;
+					btheme->tv3d.face_dot[3]= 255;
+					btheme->tv3d.facedot_size= 4;
 				}
 			}
 		}
@@ -556,7 +564,7 @@ void exit_usiblender(void)
 			free_editText();
 		}
 		else if(G.obedit->type==OB_MBALL) BLI_freelistN(&editelems);
-		free_editMesh();
+		free_editMesh(G.editMesh);
 	}
 
 	free_editLatt();
@@ -602,8 +610,8 @@ void exit_usiblender(void)
 	FTF_End();
 #endif
 
-	if (G.undo_clear) G.undo_clear();
-	undo_clear_curve();
+	/* undo free stuff */
+	undo_editmode_clear();
 	
 	BKE_undo_save_quit();	// saves quit.blend if global undo is on
 	BKE_reset_undo(); 

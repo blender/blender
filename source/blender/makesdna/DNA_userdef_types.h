@@ -63,7 +63,7 @@ typedef struct ThemeUI {
 
 } ThemeUI;
 
-// try to put them all in one, if needed a spacial struct can be created as well
+// try to put them all in one, if needed a special struct can be created as well
 // for example later on, when we introduce wire colors for ob types or so...
 typedef struct ThemeSpace {
 	char back[4];
@@ -83,11 +83,12 @@ typedef struct ThemeSpace {
 	char vertex[4], vertex_select[4];
 	char edge[4], edge_select[4];
 	char edge_seam[4], edge_facesel[4];
-	char face[4], face_select[4];
+	char face[4], face_select[4];	// solid faces
+	char face_dot[4];	// selected color
 	char normal[4];
 	
-	char vertex_size, pad;
-	short pad1[3];
+	char vertex_size, facedot_size;
+	char pad1[2];
 	
 } ThemeSpace;
 

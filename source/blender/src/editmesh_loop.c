@@ -136,7 +136,9 @@ short sharesFace(EditEdge* e1, EditEdge* e2)
 }
 /* This function selects a vertex loop based on a each succesive edge having a valance of 4
    and not sharing a face with the previous edge */
-    
+
+/* It uses ->f flags still, which isn't causing bugs now, but better be put in ->f1 (ton) */
+
 void vertex_loop_select() 
 {
 	EditMesh *em = G.editMesh;
@@ -144,10 +146,9 @@ void vertex_loop_select()
 	EditEdge *search=NULL,*startEdge=NULL,*valSearch = NULL,*nearest = NULL,*compEdge;
 	EditEdge *EdgeVal[5] = {NULL,NULL,NULL,NULL,NULL};
 	short numEdges=0,curEdge = 0,looking = 1,edgeValCount = 0,i=0,looped = 0,choosing = 1,event,noloop=0,cancel=0, val;
-	short protect = 0;
+	short protect = 0, dist= 50;
 	short mvalo[2] = {0,0}, mval[2];
 
-	undo_push_mesh("Select Vertex Loop");
 	SetBlenderCursor(BC_VLOOPCURSOR);
 	for(search=em->edges.first;search;search=search->next)
 		numEdges++;
@@ -161,7 +162,8 @@ void vertex_loop_select()
 			mvalo[1] = mval[1];
 
 			scrarea_do_windraw(curarea);
-			nearest = findnearestedge();
+			dist= 50;
+			nearest = findnearestedge(&dist);	// returns actual distance in dist
 			if (nearest && edgeFaces(nearest)==2) {
 				for(search = em->edges.first;search;search=search->next)
 					search->f &= ~32;
@@ -323,11 +325,14 @@ void vertex_loop_select()
 	}
 	if(!cancel){
 		/* If this is a unmodified select, clear the selection */
+		
+		/* XXX note that !1 is 0, so it not only clears bit 1 (ton) */
 		if(!(G.qual & LR_SHIFTKEY) && !(G.qual & LR_ALTKEY)){
 			for(search = em->edges.first;search;search= search->next){
 				search->v1->f &= !1;
 				search->v2->f &= !1;
 			}
+			EM_clear_flag_all(SELECT);	/* XXX probably that's sufficient */
 		}
 		/* Alt was not pressed, so add to the selection */
 		if(!(G.qual & LR_ALTKEY)){
@@ -338,21 +343,26 @@ void vertex_loop_select()
 				}
 				search->f &= ~32;
 			}
+			/* XXX this will correctly flush */
 		}
 		/* alt was pressed, so subtract from the selection */
 		else
 		{
+			/* XXX this doesnt flush correct in face select mode */
 			for(search = em->edges.first;search;search= search->next){
 				if(search->f & 32){
 					search->v1->f &= !1;
 					search->v2->f &= !1;
+					EM_select_edge(search, 0);	// the call to deselect edge
 				}
 				search->f &= ~32;
 			}
 		}
+		
+		EM_select_flush(); // flushes vertex -> edge -> face selection
+		BIF_undo_push("Select Vertex Loop");
 	}
-	else
-		undo_pop_mesh(1);
+
 	addqueue(curarea->win, REDRAW, 1); 
 	SetBlenderCursor(SYSCURSOR);
 	return;
@@ -523,7 +533,8 @@ CutCurve *get_mouse_trail(int *len, char mode){
 /* prototype */
 short seg_intersect(struct EditEdge * e, CutCurve *c, int len);
 
-void KnifeSubdivide(char mode){
+void KnifeSubdivide(char mode)
+{
 	EditMesh *em = G.editMesh;
 	int oldcursor, len=0;
 	short isect=0;
@@ -533,7 +544,7 @@ void KnifeSubdivide(char mode){
 	
 	if (G.obedit==0) return;
 
-	if (editmesh_nvertices_selected() < 2) {
+	if (EM_nvertices_selected() < 2) {
 		error("No edges are selected to operate on");
 		return;
 	}
@@ -544,8 +555,6 @@ void KnifeSubdivide(char mode){
 		mode= val;	// warning, mode is char, pupmenu returns -1 with ESC
 	}
 
-	undo_push_mesh("Knife");
-	
 	calc_meshverts_ext();  /*Update screen coords for current window */
 	
 	/* Set a knife cursor here */
@@ -560,15 +569,15 @@ void KnifeSubdivide(char mode){
 	if (curve && len && mode){
 		eed= em->edges.first;		
 		while(eed) {	
-			if((eed->v1->f&1)&&(eed->v2->f&1)){
+			if((eed->v1->f & 1) && (eed->v2->f & 1)){
 				isect=seg_intersect(eed, curve, len);
-				if (isect) eed->f=1;
-				else eed->f=0;
-				eed->f1=isect;
+				if (isect) eed->f2= 1;
+				else eed->f2=0;
+				eed->f1= isect;
 				//printf("isect=%i\n", isect);
 			}
 			else {
-				eed->f=0;
+				eed->f2=0;
 				eed->f1=0;
 			}
 			eed= eed->next;
@@ -579,7 +588,7 @@ void KnifeSubdivide(char mode){
 		
 		eed=em->edges.first;
 		while(eed){
-			eed->f=0;
+			eed->f2=0;
 			eed->f1=0;
 			eed=eed->next;
 		}	
@@ -589,6 +598,8 @@ void KnifeSubdivide(char mode){
 	addqueue(curarea->win,  REDRAW, 0);
 	window_set_cursor(win, oldcursor);
 	if (curve) MEM_freeN(curve);
+
+	BIF_undo_push("Knife");
 }
 
 /* seg_intersect() Determines if and where a mouse trail intersects an EditEdge */
@@ -701,9 +712,9 @@ short seg_intersect(EditEdge *e, CutCurve *c, int len){
 
 /* ******************** LOOP ******************************************* */
 
-/* BTW: this loop function is totally out of control!
+/* XXX: this loop function is totally out of control!
    can be half the code, and using structured functions (ton) */
-
+   
 /* 
 functionality: various loop functions
 parameters: mode tells the function what it should do with the loop:
@@ -792,9 +803,6 @@ void loopoperations(char mode)
 
 	if ((G.obedit==0) || (em->faces.first==0)) return;
 	
-	if(mode==LOOP_CUT)undo_push_mesh("Face Loop Subdivide");
-	else if(mode==LOOP_SELECT)undo_push_mesh("Select Face Loop");	
-
 	SetBlenderCursor(BC_VLOOPCURSOR);
 
 	start=NULL;
@@ -1212,10 +1220,12 @@ void loopoperations(char mode)
 		/* If this is a unmodified select, clear the selection */
 		if(!(G.qual & LR_SHIFTKEY) && !(G.qual & LR_ALTKEY)){
 			for(efa= em->faces.first;efa;efa=efa->next){
+				// note: !1 is zero.... (ton)
 				efa->v1->f &= !1;
 				efa->v2->f &= !1;
 				efa->v3->f &= !1;
-				if(efa->v4)efa->v4->f &= !1;			
+				if(efa->v4)efa->v4->f &= !1;	
+				EM_select_face(efa, 0);	// and this is correct deselect face		
 			}
 		}
 		/* Alt was not pressed, so add to the selection */
@@ -1225,7 +1235,8 @@ void loopoperations(char mode)
 					efa->v1->f |= 1;
 					efa->v2->f |= 1;
 					efa->v3->f |= 1;
-					if(efa->v4)efa->v4->f |= 1;
+					if(efa->v4) efa->v4->f |= 1;
+					EM_select_face(efa, 1);	// and this is correct select face
 				}
 			}
 		}
@@ -1238,6 +1249,7 @@ void loopoperations(char mode)
 					efa->v2->f &= !1;
 					efa->v3->f &= !1;
 					if(efa->v4)efa->v4->f &= !1;
+					EM_select_face(efa, 0);	// this is correct deselect face
 				}
 			}
 		}
@@ -1802,6 +1814,10 @@ void loopoperations(char mode)
 		efa->f &= ~(4|8);
 	}
 	
+	// flushes vertex -> edge -> face selection
+	// this actually can be wrong.... but I can't fix above code! (ton)
+	EM_select_flush();
+	
 	countall();
 
 	if(tagged)
@@ -1814,6 +1830,11 @@ void loopoperations(char mode)
 	/* send event to redraw this window, does header too */	
 	SetBlenderCursor(SYSCURSOR);
 	addqueue(curarea->win, REDRAW, 1); 
+
+	/* should have check for cancelled (ton) */
+	if(mode==LOOP_CUT) BIF_undo_push("Face Loop Subdivide");
+	else if(mode==LOOP_SELECT) BIF_undo_push("Select Face Loop");	
+
 }
 
 /* ****************************** END LOOPOPERATIONS ********************** */

@@ -461,6 +461,10 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->face; break;
 			case TH_FACE_SELECT:
 				cp= ts->face_select; break;
+			case TH_FACE_DOT:
+				cp= ts->face_dot; break;
+			case TH_FACEDOT_SIZE:
+				cp= &ts->facedot_size; break;
 			case TH_NORMAL:
 				cp= ts->normal; break;
 
@@ -535,13 +539,15 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tv3d.vertex_select, 0xff, 0xff, 0x70, 255);
 	btheme->tv3d.vertex_size= 2;
 	SETCOL(btheme->tv3d.edge, 	0x0, 0x0, 0x0, 255);
-	SETCOL(btheme->tv3d.edge_select, 0x90, 0x90, 0x30, 255);
+	SETCOL(btheme->tv3d.edge_select, 0xb0, 0xb0, 0x30, 255);
 	SETCOL(btheme->tv3d.edge_seam, 230, 150, 50, 255);
 	SETCOL(btheme->tv3d.edge_facesel, 75, 75, 75, 255);
 	SETCOL(btheme->tv3d.face, 	0, 50, 150, 30);
 	SETCOL(btheme->tv3d.face_select, 200, 100, 200, 60);
 	SETCOL(btheme->tv3d.normal, 0x22, 0xDD, 0xDD, 255);
-
+	SETCOL(btheme->tv3d.face_dot, 255, 138, 48, 255);
+	btheme->tv3d.facedot_size= 4;
+	
 	/* space buttons */
 	/* to have something initialized */
 	btheme->tbuts= btheme->tv3d;
@@ -687,8 +693,10 @@ char *BIF_ThemeColorsPup(int spacetype)
 			sprintf(str, "Edge Selected %%x%d|", TH_EDGE_SELECT); strcat(cp, str);
 			sprintf(str, "Edge Seam %%x%d|", TH_EDGE_SEAM); strcat(cp, str);
 			sprintf(str, "Edge UV Face Select %%x%d|", TH_EDGE_FACESEL); strcat(cp, str);
-			sprintf(str, "Face %%x%d|", TH_FACE); strcat(cp, str);
-			sprintf(str, "Face Selected %%x%d|", TH_FACE_SELECT); strcat(cp, str);
+			sprintf(str, "Face (transp) %%x%d|", TH_FACE); strcat(cp, str);
+			sprintf(str, "Face Selected (transp) %%x%d|", TH_FACE_SELECT); strcat(cp, str);
+			sprintf(str, "Face Dot Selected %%x%d|", TH_FACE_DOT); strcat(cp, str);
+			sprintf(str, "Face Dot Size %%x%d|", TH_FACEDOT_SIZE); strcat(cp, str);
 			sprintf(str, "Normal %%x%d", TH_NORMAL); strcat(cp, str);
 		}
 		else if(spacetype==SPACE_IPO) {

@@ -3092,7 +3092,9 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 						butevent= ui_do_button(block, but, uevent);
 						
 						if( !(block->flag & UI_BLOCK_LOOP))
-							if(but->type!=BLOCK && but->type!=MENU) BIF_undo_push(but->str);
+							if(but->type!=BLOCK && but->type!=MENU) 
+								if(!G.obedit)
+									BIF_undo_push(but->str);
 				
 						if(butevent) addqueue(block->winq, UI_BUT_EVENT, (short)butevent);
 

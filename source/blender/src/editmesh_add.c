@@ -123,6 +123,9 @@ void addvert_mesh(void)
 	EditVert *eve,*v1=0;
 	float *curs, mat[3][3],imat[3][3];
 
+	// hurms, yah...
+	if(G.scene->selectmode==SCE_SELECT_FACE) return;
+
 	TEST_EDITMESH
 
 	Mat3CpyMat4(mat, G.obedit->obmat);
@@ -130,15 +133,14 @@ void addvert_mesh(void)
 
 	v1= em->verts.first;
 	while(v1) {
-		if(v1->f & 1) break;
+		if(v1->f & SELECT) break;
 		v1= v1->next;
 	}
-	eve= v1;	/* prevent there are more selected */
-	while(eve) {
-		eve->f&= ~1;
-		eve= eve->next;
-	}
+	eve= v1;
 
+	/* prevent there are more selected */
+	EM_clear_flag_all(SELECT);
+	
 	eve= addvertlist(0);
 	
 	curs= give_cursor();
@@ -148,7 +150,7 @@ void addvert_mesh(void)
 	VecSubf(eve->co, eve->co, G.obedit->obmat[3]);
 
 	Mat3MulVecfl(imat, eve->co);
-	eve->f= 1;
+	eve->f= SELECT;
 
 	if(v1) {
 		addedgelist(v1, eve, NULL);
@@ -168,34 +170,34 @@ void addedgeface_mesh(void)
 	EditVert *eve, *neweve[4];
 	EditFace *efa;
 	float con1, con2, con3;
-	short aantal=0;
+	short amount=0;
 
 	if( (G.vd->lay & G.obedit->lay)==0 ) return;
 
 	/* how many selected ? */
 	eve= em->verts.first;
 	while(eve) {
-		if(eve->f & 1) {
-			aantal++;
-			if(aantal>4) break;			
-			neweve[aantal-1]= eve;
+		if(eve->f & SELECT) {
+			amount++;
+			if(amount>4) break;			
+			neweve[amount-1]= eve;
 		}
 		eve= eve->next;
 	}
-	if(aantal==2) {
+	if(amount==2) {
 		addedgelist(neweve[0], neweve[1], NULL);
 		allqueue(REDRAWVIEW3D, 0);
 		makeDispList(G.obedit);
 		return;
 	}
-	if(aantal<2 || aantal>4) {
+	if(amount<2 || amount>4) {
 		error("Incorrect number of vertices to make edge/face");
 		return;
 	}
 
 	efa= NULL; // check later
 
-	if(aantal==3) {
+	if(amount==3) {
 		if(exist_face(neweve[0], neweve[1], neweve[2], 0)==0) {
 			
 			efa= addfacelist(neweve[0], neweve[1], neweve[2], 0, NULL);
@@ -203,7 +205,7 @@ void addedgeface_mesh(void)
 		}
 		else error("The selected vertices already form a face");
 	}
-	else if(aantal==4) {
+	else if(amount==4) {
 		if(exist_face(neweve[0], neweve[1], neweve[2], neweve[3])==0) {
 		
 			con1= convex(neweve[0]->co, neweve[1]->co, neweve[2]->co, neweve[3]->co);
@@ -227,7 +229,7 @@ void addedgeface_mesh(void)
 	
 		CalcNormFloat(efa->v1->co, efa->v2->co, efa->v3->co, efa->n);
 
-					inp= efa->n[0]*G.vd->viewmat[0][2] + efa->n[1]*G.vd->viewmat[1][2] + efa->n[2]*G.vd->viewmat[2][2];
+		inp= efa->n[0]*G.vd->viewmat[0][2] + efa->n[1]*G.vd->viewmat[1][2] + efa->n[2]*G.vd->viewmat[2][2];
 
 		if(inp < 0.0) flipface(efa);
 	}
@@ -237,71 +239,6 @@ void addedgeface_mesh(void)
 	makeDispList(G.obedit);
 }
 
-void adduplicateflag(int flag)
-{
-	EditMesh *em = G.editMesh;
-	/* old verts have flag 128 set, and flag 'flag' cleared
-	   new verts have flag 'flag' set */
-	EditVert *eve, *v1, *v2, *v3, *v4;
-	EditEdge *eed;
-	EditFace *efa;
-
-	/* vertices first */
-	eve= em->verts.last;
-	while(eve) {
-		eve->f&= ~128;
-		if(eve->f & flag) {
-			v1= addvertlist(eve->co);
-			v1->f= eve->f;
-			eve->f-= flag;
-			eve->f|= 128;
-			eve->vn= v1;
-#ifdef __NLA
-			/* >>>>> FIXME: Copy deformation weight ? */
-			v1->totweight = eve->totweight;
-			if (eve->totweight){
-				v1->dw = MEM_mallocN (eve->totweight * sizeof(MDeformWeight), "deformWeight");
-				memcpy (v1->dw, eve->dw, eve->totweight * sizeof(MDeformWeight));
-			}
-			else
-				v1->dw=NULL;
-#endif
-		}
-		eve= eve->prev;
-	}
-	eed= em->edges.first;
-	while(eed) {
-		if( (eed->v1->f & 128) && (eed->v2->f & 128) ) {
-			v1= eed->v1->vn;
-			v2= eed->v2->vn;
-			addedgelist(v1, v2, eed);
-		}
-		eed= eed->next;
-	}
-
-	/* then dupicate faces */
-	efa= em->faces.first;
-	while(efa) {
-		if( (efa->v1->f & 128) && (efa->v2->f & 128) && (efa->v3->f & 128) ) {
-			if(efa->v4) {
-				if(efa->v4->f & 128) {
-					v1= efa->v1->vn;
-					v2= efa->v2->vn;
-					v3= efa->v3->vn;
-					v4= efa->v4->vn;
-					addfacelist(v1, v2, v3, v4, efa);
-				}
-			}
-			else {
-				v1= efa->v1->vn;
-				v2= efa->v2->vn;
-				v3= efa->v3->vn;
-				addfacelist(v1, v2, v3, 0, efa);
-			}
-		}
-		efa= efa->next;
-	}
-}
 
 void adduplicate_mesh(void)
 {
@@ -309,8 +246,9 @@ void adduplicate_mesh(void)
 	TEST_EDITMESH
 
 	waitcursor(1);
-	undo_push_mesh("Duplicate");
-	adduplicateflag(1);
+
+	adduplicateflag(SELECT);
+
 	waitcursor(0);
 	countall();  /* for G.totvert in calc_meshverts() */
 	transform('d');
@@ -327,6 +265,7 @@ void add_primitiveMesh(int type)
 	float q[4], cmat[3][3];
 	static short tot=32, seg=32, subdiv=2;
 	short a, b, ext=0, fill=0, totoud, newob=0;
+	char *undostr="Add Primitive";
 	
 	if(G.scene->id.lib) return;
 
@@ -361,11 +300,7 @@ void add_primitiveMesh(int type)
 	me= G.obedit->data;
 	
 	/* deselectall */
-	eve= em->verts.first;
-	while(eve) {
-		if(eve->f & 1) eve->f&= ~1;
-		eve= eve->next;
-	}
+	EM_clear_flag_all(SELECT);
 
 	totoud= tot; /* store, and restore when cube/plane */
 	
@@ -396,6 +331,7 @@ void add_primitiveMesh(int type)
 		fill= 1;
 		if(newob) rename_id((ID *)G.obedit, "Plane");
 		if(newob) rename_id((ID *)me, "Plane");
+		undostr="Add Plane";
 		break;
 	case 1:		/* cube  */
 		tot= 4;
@@ -403,6 +339,7 @@ void add_primitiveMesh(int type)
 		fill= 1;
 		if(newob) rename_id((ID *)G.obedit, "Cube");
 		if(newob) rename_id((ID *)me, "Cube");
+		undostr="Add Cube";
 		break;
 	case 4:		/* circle  */
 		if(button(&tot,3,100,"Vertices:")==0) return;
@@ -410,6 +347,8 @@ void add_primitiveMesh(int type)
 		fill= 0;
 		if(newob) rename_id((ID *)G.obedit, "Circle");
 		if(newob) rename_id((ID *)me, "Circle");
+		if(G.scene->selectmode==SCE_SELECT_FACE) notice("Circle is not visible in face mode");
+		undostr="Add Circle";
 		break;
 	case 5:		/* cylinder  */
 		if(button(&tot,3,100,"Vertices:")==0) return;
@@ -417,6 +356,7 @@ void add_primitiveMesh(int type)
 		fill= 1;
 		if(newob) rename_id((ID *)G.obedit, "Cylinder");
 		if(newob) rename_id((ID *)me, "Cylinder");
+		undostr="Add Cylinder";
 		break;
 	case 6:		/* tube  */
 		if(button(&tot,3,100,"Vertices:")==0) return;
@@ -424,6 +364,7 @@ void add_primitiveMesh(int type)
 		fill= 0;
 		if(newob) rename_id((ID *)G.obedit, "Tube");
 		if(newob) rename_id((ID *)me, "Tube");
+		undostr="Add Tube";
 		break;
 	case 7:		/* cone  */
 		if(button(&tot,3,100,"Vertices:")==0) return;
@@ -431,27 +372,32 @@ void add_primitiveMesh(int type)
 		fill= 1;
 		if(newob) rename_id((ID *)G.obedit, "Cone");
 		if(newob) rename_id((ID *)me, "Cone");
+		undostr="Add Cone";
 		break;
 	case 10:	/* grid */
 		if(button(&tot,2,100,"X res:")==0) return;
 		if(button(&seg,2,100,"Y res:")==0) return;
 		if(newob) rename_id((ID *)G.obedit, "Grid");
 		if(newob) rename_id((ID *)me, "Grid");
+		undostr="Add Grid";
 		break;
 	case 11:	/* UVsphere */
 		if(button(&seg,3,100,"Segments:")==0) return;
 		if(button(&tot,3,100,"Rings:")==0) return;
 		if(newob) rename_id((ID *)G.obedit, "Sphere");
 		if(newob) rename_id((ID *)me, "Sphere");
+		undostr="Add UV Sphere";
 		break;
 	case 12:	/* Icosphere */
 		if(button(&subdiv,1,5,"Subdivision:")==0) return;
 		if(newob) rename_id((ID *)G.obedit, "Sphere");
 		if(newob) rename_id((ID *)me, "Sphere");
+		undostr="Add Ico Sphere";
 		break;
 	case 13:	/* Monkey */
 		if(newob) rename_id((ID *)G.obedit, "Suzanne");
 		if(newob) rename_id((ID *)me, "Suzanne");
+		undostr="Add Monkey";
 		break;
 	}
 
@@ -475,7 +421,7 @@ void add_primitiveMesh(int type)
 				
 				Mat3MulVecfl(imat, vec);
 				eve= addvertlist(vec);
-				eve->f= 1;
+				eve->f= SELECT;
 				if(a==0) {
 					if(b==0) v1= eve;
 					else v2= eve;
@@ -500,8 +446,8 @@ void add_primitiveMesh(int type)
 			vdown= v1;
 			vtop= v2;
 		}
-		if(vtop) vtop->f= 1;
-		if(vdown) vdown->f= 1;
+		if(vtop) vtop->f= SELECT;
+		if(vdown) vdown->f= SELECT;
 	
 		/* top and bottom face */
 		if(fill) {
@@ -587,9 +533,10 @@ void add_primitiveMesh(int type)
 		vec[1]= dia*phid;
 		Mat3MulVecfl(imat, vec);
 		for(a=0;a<seg-1;a++) {
-			extrudeflag(2,0);
+			extrudeflag_vert(2);
 			translateflag(2, vec);
 		}
+		recalc_editnormals();	// does face centers too
 	}
 	else if(type==11) {	/*  UVsphere */
 		float tmat[3][3];
@@ -626,7 +573,7 @@ void add_primitiveMesh(int type)
 		Mat3MulMat3(cmat, imat, tmat);
 		
 		for(a=0; a<seg; a++) {
-			extrudeflag(2, 0);
+			extrudeflag_vert(2);
 			rotateflag(2, v1->co, cmat);
 		}
 		removedoublesflag(4, 0.0001);
@@ -677,7 +624,9 @@ void add_primitiveMesh(int type)
 			float v[3];
 			v[0]= (monkeyv[i][0]+127)/128.0, v[1]= monkeyv[i][1]/128.0, v[2]= monkeyv[i][2]/128.0;
 			tv[i]= addvertlist(v);
+			tv[i]->f |= SELECT;
 			tv[monkeynv+i]= (fabs(v[0]= -v[0])<0.001)?tv[i]:addvertlist(v);
+			tv[monkeynv+i]->f |= SELECT;
 		}
 		for (i=0; i<monkeynf; i++) {
 			addfacelist(tv[monkeyf[i][0]+i-monkeyo], tv[monkeyf[i][1]+i-monkeyo], tv[monkeyf[i][2]+i-monkeyo], (monkeyf[i][3]!=monkeyf[i][2])?tv[monkeyf[i][3]+i-monkeyo]:NULL, NULL);
@@ -685,7 +634,20 @@ void add_primitiveMesh(int type)
 		}
 
 		MEM_freeN(tv);
+
+		/* and now do imat */
+		eve= em->verts.first;
+		while(eve) {
+			if(eve->f & SELECT) {
+				VecAddf(eve->co,eve->co,cent);
+				Mat3MulVecfl(imat,eve->co);
+			}
+			eve= eve->next;
+		}
 	}
+	
+	// simple selection flush OK, based on fact it's a single model
+	EM_select_flush(); // flushes vertex -> edge -> face selection
 	
 	if(type!=0 && type!=10) righthandfaces(1);
 	countall();
@@ -693,7 +655,9 @@ void add_primitiveMesh(int type)
 	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */	
 	allqueue(REDRAWALL, 0);
 	makeDispList(G.obedit);
-
-	if (type==13) notice("Oooh Oooh Oooh");
+	
+	/* if a new object was created, it stores it in Mesh, for reload original data and undo */
+	if(newob) load_editMesh();	
+	BIF_undo_push(undostr);
 }
 

@@ -93,6 +93,7 @@
 #include "BSE_drawview.h"
 #include "BSE_editaction.h"
 
+#include "editmesh.h"	// borderselect uses it...
 #include "blendef.h"
 #include "mydevice.h"
 
@@ -670,20 +671,57 @@ void mouse_select(void)
 }
 
 /* ------------------------------------------------------------------------- */
+
+static int edge_fully_inside_rect(rcti rect, short x1, short y1, short x2, short y2)
+{
+	
+	// check points in rect
+	if(rect.xmin<x1 && rect.xmax>x1 && rect.ymin<y1 && rect.ymax>y1) 
+		if(rect.xmin<x2 && rect.xmax>x2 && rect.ymin<y2 && rect.ymax>y2) return 1;
+	
+	return 0;
+	
+}
+
+
+static int edge_inside_rect(rcti rect, short x1, short y1, short x2, short y2)
+{
+	int d1, d2, d3, d4;
+	
+	// check points in rect
+	if(rect.xmin<x1 && rect.xmax>x1 && rect.ymin<y1 && rect.ymax>y1) return 1;
+	if(rect.xmin<x2 && rect.xmax>x2 && rect.ymin<y2 && rect.ymax>y2) return 1;
+	
+	/* check points completely out rect */
+	if(x1<rect.xmin && x2<rect.xmin) return 0;
+	if(x1>rect.xmax && x2>rect.xmax) return 0;
+	if(y1<rect.ymin && y2<rect.ymin) return 0;
+	if(y1>rect.ymax && y2>rect.ymax) return 0;
+	
+	// simple check lines intersecting. 
+	d1= (y1-y2)*(x1- rect.xmin ) + (x2-x1)*(y1- rect.ymin );
+	d2= (y1-y2)*(x1- rect.xmin ) + (x2-x1)*(y1- rect.ymax );
+	d3= (y1-y2)*(x1- rect.xmax ) + (x2-x1)*(y1- rect.ymax );
+	d4= (y1-y2)*(x1- rect.xmax ) + (x2-x1)*(y1- rect.ymin );
+	
+	if(d1<0 && d2<0 && d3<0 && d4<0) return 0;
+	if(d1>0 && d2>0 && d3>0 && d4>0) return 0;
+	
+	return 1;
+}
+
 /**
  * Does the 'borderselect' command. (Select verts based on selecting with a 
  * border: key 'b'). All selecting seems to be done in the get_border part.
  */
 void borderselect(void)
 {
-	EditMesh *em = G.editMesh;
 	rcti rect;
 	Base *base;
 	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
 	MetaElem *ml;
-	struct EditVert *eve;
 	unsigned int buffer[MAXPICKBUF];
 	int a, index;
 	short hits, val, tel;
@@ -725,22 +763,61 @@ void borderselect(void)
 				allqueue(REDRAWVIEW3D, 0);
 			}
 		}
-		else
-		if(G.obedit) {
+		else if(G.obedit) {
 			/* used to be a bigger test, also included sector and life */
 			if(G.obedit->type==OB_MESH) {
+				EditMesh *em = G.editMesh;
+				EditVert *eve;
+				EditEdge *eed;
+				EditFace *efa;
 				
-				calc_meshverts_ext();	/* drawobject.c */
-				eve= em->verts.first;
-				while(eve) {		
-					if(eve->h==0 && eve->xs>rect.xmin && eve->xs<rect.xmax) {
-						if(eve->ys>rect.ymin && eve->ys<rect.ymax) {
-							if(val==LEFTMOUSE) eve->f|= 1;
-							else eve->f&= 254;
+				if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+					calc_meshverts_ext();	/* clips, drawobject.c */
+					for(eve= em->verts.first; eve; eve= eve->next) {
+						if(eve->h==0 && eve->xs>rect.xmin && eve->xs<rect.xmax) {
+							if(eve->ys>rect.ymin && eve->ys<rect.ymax) {
+								if(val==LEFTMOUSE) eve->f|= 1;
+								else eve->f&= 254;
+							}
 						}
 					}
-					eve= eve->next;
 				}
+				if(G.scene->selectmode & SCE_SELECT_EDGE) {
+					short done= 0;
+					calc_meshverts_ext_f2();	/* doesnt clip, drawobject.c */
+					
+					/* two stages, for nice edge select first do 'both points in rect' */
+					for(eed= em->edges.first; eed; eed= eed->next) {
+						if(eed->h==0) {
+							if( edge_fully_inside_rect(rect, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {
+								EM_select_edge(eed, val==LEFTMOUSE);
+								done = 1;
+							}
+						}
+					}
+					
+					if(done==0) {
+						for(eed= em->edges.first; eed; eed= eed->next) {
+							if(eed->h==0) {
+								if( edge_inside_rect(rect, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys))
+									EM_select_edge(eed, val==LEFTMOUSE);
+							}
+						}
+					}
+				}
+				
+				if(G.scene->selectmode & SCE_SELECT_FACE) {
+					calc_mesh_facedots_ext();
+					for(efa= em->faces.first; efa; efa= efa->next) {
+						if(efa->h==0 && efa->xs>rect.xmin && efa->xs<rect.xmax) {
+							if(efa->ys>rect.ymin && efa->ys<rect.ymax) {
+								EM_select_face(efa, val==LEFTMOUSE);
+							}
+						}
+					}
+				}
+				
+				EM_selectmode_flush();
 				allqueue(REDRAWVIEW3D, 0);
 				
 			}
@@ -917,8 +994,8 @@ void borderselect(void)
 		
 		allqueue(REDRAWINFO, 0);
 	}
-	/* remove obedit check later */
-	if(G.obedit==NULL) BIF_undo_push("Border select");
+
+	BIF_undo_push("Border select");
 	
 } /* end of borderselect() */
 

@@ -63,16 +63,6 @@ struct bSoundListener;
 struct BMF_Font;
 struct EditMesh;
 
-#define UNDO_MAX	64
-#define UNDO_EDIT_MAX 	64
-
-typedef struct UndoBufferEdit {
-
-	void *datablock;
-	char name[64];
-
-} UndoBufferEdit;
-
 
 typedef struct Global {
 
@@ -153,14 +143,6 @@ typedef struct Global {
     short special1, special2;
 
     int flags;
-
-    /* editmode undo - written by intrr, ported by Det. Thorn  */
-    struct UndoBufferEdit undo_edit[UNDO_EDIT_MAX+1];/* need one more for undoing first undo */
-    int undo_edit_level;			/* index of last undo buffer created */
-    int undo_edit_highest;			/* index of highest undo buffer in use */
-    void *undo_last_data;			/* pointer to last datablock edited */
-    void (*undo_clear)(void);		/* pointer to function to free the undo data */
-
         
 } Global;
 

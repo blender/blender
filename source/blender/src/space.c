@@ -92,6 +92,7 @@
 #include "BIF_editkey.h"
 #include "BIF_editlattice.h"
 #include "BIF_editmesh.h"
+#include "BIF_editmode_undo.h"
 #include "BIF_editoops.h"
 #include "BIF_editseq.h"
 #include "BIF_editsima.h"
@@ -641,9 +642,9 @@ void BIF_undo(void)
 	
 	if(G.obedit) {
 		if(G.obedit->type==OB_MESH)
-			undo_pop_mesh(1);
+			undo_editmode_step(1);
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
-			undo_curve_step(1);
+			undo_editmode_step(1);
 			
 	}
 	else {
@@ -665,9 +666,9 @@ void BIF_redo(void)
 
 	if(G.obedit) {
 		if(G.obedit->type==OB_MESH)
-			undo_redo_mesh();
+			undo_editmode_step(-1);
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
-			undo_curve_step(-1);
+			undo_editmode_step(-1);
 	
 	}
 	else {
@@ -687,9 +688,11 @@ void BIF_undo_menu(void)
 {
 	if(G.obedit) {
 		if(G.obedit->type==OB_MESH)
-			undo_menu_mesh();
+			undo_editmode_menu();
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
-			;//undo_menu_curve();
+			undo_editmode_menu();
+		
+		allqueue(REDRAWALL, 0);
 	}
 	else {
 		if (G.f & G_FACESELECT)
@@ -702,7 +705,6 @@ void BIF_undo_menu(void)
 			if(U.uiflag & USER_GLOBALUNDO) BKE_undo_menu();
 		}
 	}
-
 }
 
 /* *************** */
@@ -1239,7 +1241,6 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						if(G.qual==LR_CTRLKEY)
 							add_hook();
 						else {
-							undo_push_curve("Handle change");
 							if(G.qual==LR_CTRLKEY)
 								autocalchandlesNurb_all(1);	/* flag=1, selected */
 							else if((G.qual==LR_SHIFTKEY))
@@ -1248,7 +1249,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 								sethandlesNurb(3);
 							
 							makeDispList(G.obedit);
-							
+							BIF_undo_push("Handle change");
 							allqueue(REDRAWVIEW3D, 0);
 						}
 					}
@@ -1384,16 +1385,16 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					case OB_MESH: 
 						if(G.qual==(LR_SHIFTKEY|LR_CTRLKEY)) {
 							if(okee("Recalculate normals inside")) {
-								undo_push_mesh("Recalculate normals inside");
 								righthandfaces(2);
 								allqueue(REDRAWVIEW3D, 0);
+								BIF_undo_push("Recalculate normals inside");
 							}
 						}
 						else if(G.qual==LR_CTRLKEY){
 							if(okee("Recalculate normals outside")) {
-								undo_push_mesh("Recalculate normals outside");
 								righthandfaces(1);
 								allqueue(REDRAWVIEW3D, 0);
+								BIF_undo_push("Recalculate normals outside");
 							}
 						}
 						break;
@@ -1508,25 +1509,13 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case UKEY:
 				if(G.obedit) {
-					if(G.obedit->type==OB_MESH){
-						if (G.qual==LR_ALTKEY)
-							undo_menu_mesh();
-						else if (G.qual==LR_SHIFTKEY)
-							undo_redo_mesh();
-						else if((G.qual==0))
-							undo_pop_mesh(1);
+					if(G.obedit->type==OB_MESH) {
+						if(G.qual==0) BIF_undo(); else BIF_redo();
 					}
 					else if(G.obedit->type==OB_ARMATURE)
 						remake_editArmature();
 					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
-						extern void undo_curve_step(int step);
-						if (G.qual==LR_ALTKEY)
-							//undo_menu_curve();
-							;
-						else if (G.qual==LR_SHIFTKEY)
-							undo_curve_step(-1);
-						else if((G.qual==0))
-							undo_curve_step(1);
+						if(G.qual==0) BIF_undo(); else BIF_redo();
 					}
 					else if(G.obedit->type==OB_LATTICE)
 						remake_editLatt();
@@ -1542,8 +1531,6 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						single_user();
 					}
 				}
-				else if(G.qual==LR_SHIFTKEY)
-					if(U.uiflag & USER_GLOBALUNDO) BIF_redo();
 					
 				break;
 			case VKEY:
@@ -1561,10 +1548,10 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if (G.qual==0){
 					if(G.obedit) {
 						if(G.obedit->type==OB_CURVE) {
-							undo_push_curve("Handle change");
 							sethandlesNurb(2);
 							makeDispList(G.obedit);
 							allqueue(REDRAWVIEW3D, 0);
+							BIF_undo_push("Handle change");
 						}
 					}
 					else if(ob && ob->type == OB_MESH) 

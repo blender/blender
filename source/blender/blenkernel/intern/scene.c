@@ -128,7 +128,6 @@ void free_scene(Scene *sce)
 	BLI_freelistN(&sce->base);
 	free_editing(sce->ed);
 	if(sce->radio) MEM_freeN(sce->radio);
-	if(sce->fcam) MEM_freeN(sce->fcam);
 	sce->radio= 0;
 	
 	BPY_free_scriptlink(&sce->scriptlink);
@@ -150,7 +149,8 @@ Scene *add_scene(char *name)
 
 	sce= alloc_libblock(&G.main->scene, ID_SCE, name);
 	sce->lay= 1;
-
+	sce->selectmode= SCE_SELECT_VERTEX;
+	
 	sce->r.mode= R_GAMMA;
 	sce->r.cfra= 1;
 	sce->r.sfra= 1;

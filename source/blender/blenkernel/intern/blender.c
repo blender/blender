@@ -241,7 +241,7 @@ static void clear_global(void)
 	
 	if (G.obedit) {
 		freeNurblist(&editNurb);
-		free_editMesh();
+		free_editMesh(G.editMesh);
 		free_editText();
 		free_editArmature();
 	}

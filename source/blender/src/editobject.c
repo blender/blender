@@ -1479,7 +1479,7 @@ void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do un
 		}
 		load_editMesh();	/* makes new displist */
 
-		if(freedata) free_editMesh();
+		if(freedata) free_editMesh(G.editMesh);
 
 		if(G.f & G_FACESELECT) {
 			set_seamtface();
@@ -1982,26 +1982,26 @@ void special_editmenu(void)
 		
 		switch(nr) {
 		case 1:
-			undo_push_mesh("Subdivide");
 			subdivideflag(1, 0.0, editbutflag);
+			BIF_undo_push("Subdivide");
 			break;
 		case 2:
 			randfac= 10;
 			if(button(&randfac, 1, 100, "Rand fac:")==0) return;
 			fac= -( (float)randfac )/100;
-			undo_push_mesh("Subdivide Fractal");
 			subdivideflag(1, fac, editbutflag);
+			BIF_undo_push("Subdivide Fractal");
 			break;
 		case 3:
-			undo_push_mesh("Subdivide Smooth");
 			subdivideflag(1, 0.0, editbutflag | B_SMOOTH);
+			BIF_undo_push("Subdivide Smooth");
 			break;
 		case 4:
 			mergemenu();
 			break;
 		case 5:
-			undo_push_mesh("Remove Doubles");
 			notice("Removed %d Vertices", removedoublesflag(1, doublimit));
+			BIF_undo_push("Remove Doubles");
 			break;
 		case 6:
 			hide_mesh(0);
@@ -2013,11 +2013,10 @@ void special_editmenu(void)
 			selectswap_mesh();
 			break;
 		case 9:
-			undo_push_mesh("Flip Normals");
 			flip_editnormals();
+			BIF_undo_push("Flip Normals");
 			break;
 		case 10:
-			undo_push_mesh("Smooth");
 			vertexsmooth();
 			break;
 		case 11:
@@ -3884,10 +3883,11 @@ void make_trans_verts(float *min, float *max, int mode)
 		eve= em->verts.first;
 		while(eve) {
 			if(eve->h==0) {
-				if(mode==1 || (eve->f & 1)) {
+				if(mode==1 || (eve->f & SELECT)) {
 					VECCOPY(tv->oldloc, eve->co);
 					tv->loc= eve->co;
-					tv->nor= eve->no;
+					if(eve->no[0]!=0.0 || eve->no[1]!=0.0 ||eve->no[2]!=0.0)
+						tv->nor= eve->no;
 					tv->flag= eve->f & 1;
 					tv++;
 					tottrans++;
@@ -4081,6 +4081,9 @@ void special_trans_update(int keyflags)
 	IpoCurve *icu;
 
 	if(G.obedit) {
+		if(G.obedit->type==OB_MESH) {
+			recalc_editnormals();	// does face centers too
+		}
 		if(G.obedit->type==OB_CURVE) {
 			cu= G.obedit->data;
 			
@@ -4887,12 +4890,14 @@ static char *transform_mode_to_string(int mode)
                case 'N':       return("Shrink/Fatten"); break;
                case 'w':       return("Warp"); break;
                case 'd':       return("Duplicate"); break;
+			   case 'n':	   return("Extrude"); break;
                default:        return("Transform");
        }
 }
 
 /* 
 'g' 'G' -> Grab / Grab with PET
+'n'     -> Grab with vert normal (after extrude)
 'r' 'R' -> Rotate / Rotate with PET
 's' 'C' -> Scale / Scale with PET
 'S'		-> Shear
@@ -4916,7 +4921,7 @@ void transform(int mode)
 	int axismode=0, time, fast=0, a, midtog=0, firsttime=1, wrong= 0, cameragrab= 0, gridflag;
 	unsigned short event=0;
 	short mval[2], breakloop=0, doit, xn, yn, xc, yc, xo, yo = 0, val;
-	char str[100];
+	char str[100], *undostr;
 	int	keyflags = 0;
 
 	float addvec[3] = {0,0,0}; // for new typing code
@@ -4946,7 +4951,10 @@ void transform(int mode)
 		mode = 'r';
 	else if (mode % 's' == 0)
 		mode = 's';
-
+	
+	/* used in end of function */
+	undostr= transform_mode_to_string(mode);
+	
 	if(G.obedit && (G.f & G_PROPORTIONAL)) {
 		if(mode=='g') mode= 'G';
 		if(mode=='r') mode= 'R';
@@ -4965,13 +4973,6 @@ void transform(int mode)
 		if(G.obedit==0 || G.obedit->type!=OB_CURVE) return;
 	}
 	if(mode=='w' && G.obedit==0) return;
-
-	if (G.obedit) {
-		if(G.obedit->type == OB_MESH)
-			undo_push_mesh(transform_mode_to_string(mode));
-		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
-			undo_push_curve(transform_mode_to_string(mode));
-	}
 
 	/* what data will be involved? */
 	if(G.obedit) {
@@ -5170,7 +5171,7 @@ void transform(int mode)
 			}
 			firsttime= 0;
 
-			if(mode=='g' || mode=='G') {
+			if(mode=='g' || mode=='G' || mode=='n') {
 				char gmode[10] = "";
 
 				keyflags |= KEYFLAG_LOC;
@@ -5276,6 +5277,14 @@ void transform(int mode)
 								tv->loc[0]= tv->oldloc[0]+tv->fac*dvecp[0];
 								tv->loc[1]= tv->oldloc[1]+tv->fac*dvecp[1];
 								tv->loc[2]= tv->oldloc[2]+tv->fac*dvecp[2];
+							}
+							else if(mode=='n' && tv->nor) {
+								float dot; /* dot product dvec with normal */
+								
+								dot= tv->nor[0]*dvecp[0] + tv->nor[1]*dvecp[1] + tv->nor[2]*dvecp[2];
+								tv->loc[0]= tv->oldloc[0]+dot*tv->nor[0];
+								tv->loc[1]= tv->oldloc[1]+dot*tv->nor[1];
+								tv->loc[2]= tv->oldloc[2]+dot*tv->nor[2];
 							}
 							else VecAddf(tv->loc, tv->oldloc, dvecp);
 						}
@@ -6504,7 +6513,6 @@ void transform(int mode)
 
 	if(event==ESCKEY || event==RIGHTMOUSE) {
 		canceled=1;
-		G.undo_edit_level--;
 		
 		if(edge_creases) {	// exception case, edges dont fit in Trans structs...
 			EditEdge *ee;
@@ -6553,8 +6561,8 @@ void transform(int mode)
 	tottrans= 0;
 
 	/* undo after transform, since it's storing current situations */
-	if(canceled==0 && G.obedit==NULL) 
-		BIF_undo_push(transform_mode_to_string(mode));
+	if(canceled==0) 
+		BIF_undo_push(undostr);
 }
 
 void std_rmouse_transform(void (*xf_func)(int))
@@ -6588,8 +6596,8 @@ void std_rmouse_transform(void (*xf_func)(int))
 			}
 		}
 	}
-	/* if gets here it's a select, later on remove obedit check */
-	if(G.obedit==NULL) BIF_undo_push("Select");
+	/* if gets here it's a select */
+	BIF_undo_push("Select");
 }
 
 void rightmouse_transform(void)
@@ -7824,10 +7832,6 @@ void mirror_edit(short mode)
 	float mat[3][3], imat[3][3], min[3], max[3];
 	TransVert *tv;
 
-	if(G.obedit->type==OB_MESH) undo_push_mesh("Mirror"); /* If it's a mesh, push it down the undo pipe */
-	else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
-		undo_push_curve("Mirror");
-
 	make_trans_verts(min, max, 0);
 	Mat3CpyMat4(mat, G.obedit->obmat);
 	// Inverting the matrix explicitly, since the inverse is not always correct (then why the heck are we keeping it!)
@@ -7947,11 +7951,13 @@ void mirror_edit(short mode)
 	clearbaseflags_for_editing();
 	if(transvmain) MEM_freeN(transvmain);
 	transvmain= 0;
-
 	tottrans= 0;
+	
+	BIF_undo_push("Mirror");
 }
 
-void mirror_object(short mode) {
+void mirror_object(short mode) 
+{
 	TransOb *tob;
 	short a, axis;
 	float off[3], imat[3][3];
@@ -8011,7 +8017,8 @@ void mirror_object(short mode) {
 	tottrans= 0;
 }
 
-void mirrormenu(void){
+void mirrormenu(void)
+{
 	short mode = 0;
 
 

@@ -87,7 +87,8 @@ void    RE_jitterate2(float *jit1, float *jit2, int num, float rad2);
 /* exotic.c */
 void load_editMesh(void);
 void make_editMesh(void);
-void free_editMesh(void);
+struct EditMesh;
+void free_editMesh(struct EditMesh *);
 void free_editArmature(void);
 void docentre_new(void);
 int saveover(char *str);

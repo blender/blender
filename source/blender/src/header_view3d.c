@@ -92,6 +92,7 @@
 #include "BIF_editarmature.h"
 #include "BIF_editfont.h"
 #include "BIF_editmesh.h"
+#include "BIF_editmode_undo.h"
 #include "BIF_editview.h"
 #include "BIF_interface.h"
 #include "BIF_mainqueue.h"
@@ -1813,40 +1814,6 @@ static uiBlock *view3d_edit_propfalloffmenu(void *arg_unused)
 	return block;
 }
 
-static void do_view3d_edit_mesh_undohistorymenu(void *arg, int event)
-{
-	TEST_EDITMESH
-	
-	if(event<1) return;
-
-	if (event==1) remake_editMesh();
-	else undo_pop_mesh(G.undo_edit_level-event+3);
-	
-	allqueue(REDRAWVIEW3D, 0);
-}
-
-static uiBlock *view3d_edit_mesh_undohistorymenu(void *arg_unused)
-{
-	uiBlock *block;
-	short yco = 20, menuwidth = 120;
-	int i, lasti;
-
-	lasti = (G.undo_edit_level>25) ? G.undo_edit_level-25 : 0;
-	
-	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_mesh_undohistorymenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
-	uiBlockSetButmFunc(block, do_view3d_edit_mesh_undohistorymenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo All Changes|Ctrl U", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	
-	for (i=G.undo_edit_level; i>=lasti; i--) {
-		if (i == G.undo_edit_level) uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, G.undo_edit[i].name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, (float)i+2, "");
-	}
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	return block;
-}
 
 void do_view3d_edit_mesh_verticesmenu(void *arg, int event)
 {
@@ -1911,19 +1878,19 @@ void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 	switch(event) {
 		 
 	case 0: /* subdivide smooth */
-		undo_push_mesh("Subdivide Smooth");
 		subdivideflag(1, 0.0, editbutflag | B_SMOOTH);
+		BIF_undo_push("Subdivide Smooth");
 		break;
 	case 1: /*subdivide fractal */
-		undo_push_mesh("Subdivide Fractal");
 		randfac= 10;
 		if(button(&randfac, 1, 100, "Rand fac:")==0) return;
 		fac= -( (float)randfac )/100;
 		subdivideflag(1, fac, editbutflag);
+		BIF_undo_push("Subdivide Fractal");
 		break;
 	case 2: /* subdivide */
-		undo_push_mesh("Subdivide");
 		subdivideflag(1, 0.0, editbutflag);
+		BIF_undo_push("Subdivide");
 		break;
 	case 3: /* knife subdivide */
 		KnifeSubdivide(KNIFE_PROMPT);
@@ -2196,10 +2163,10 @@ static void do_view3d_edit_meshmenu(void *arg, int event)
 	switch(event) {
 	
 	case 0: /* Undo Editing */
-		undo_pop_mesh(1);
+		BIF_undo();
 		break;
 	case 1: /* Redo Editing */
-		undo_redo_mesh();
+		BIF_redo();
 		break;
 	case 2: /* transform properties */
 		add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, 0);
@@ -2249,7 +2216,7 @@ static uiBlock *view3d_edit_meshmenu(void *arg_unused)
 	*/
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Editing|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Redo Editing|Shift U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBlockBut(block, view3d_edit_mesh_undohistorymenu, NULL, ICON_RIGHTARROW_THIN, "Undo History", 0, yco-=20, 120, 19, "");
+	uiDefIconTextBlockBut(block, editmode_undohistorymenu, NULL, ICON_RIGHTARROW_THIN, "Undo History", 0, yco-=20, 120, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -3436,7 +3403,10 @@ void do_view3d_buttons(short event)
 			G.f &= ~G_TEXTUREPAINT;
 		}
 #endif /* NAN_VPT */
-		if(G.obedit==0) enter_editmode();
+		if(G.obedit==NULL) {
+			enter_editmode();
+			BIF_undo_push("Original");	// here, because all over code enter_editmode is abused
+		}
 		else exit_editmode(2); // freedata, and undo
 		scrarea_queue_headredraw(curarea);
 		break;
@@ -3601,6 +3571,7 @@ void do_view3d_buttons(short event)
 				if (G.obpose) exit_posemode(1); /* exit posemode */
 					
 				enter_editmode();
+				BIF_undo_push("Original");	// here, because all over code enter_editmode is abused
 			}
 		} else if (G.vd->modeselect == V3D_FACESELECTMODE_SEL) {
 			if ((G.obedit) && (G.f & G_FACESELECT)) {
@@ -3661,7 +3632,27 @@ void do_view3d_buttons(short event)
 		break;
 	case B_AROUND:
 		handle_view3d_around();
-		break;		
+		break;
+		
+	case B_SEL_VERT:
+		if( (G.qual & LR_SHIFTKEY)==0 || G.scene->selectmode==0)
+			G.scene->selectmode= SCE_SELECT_VERTEX;
+		EM_selectmode_set();
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+	case B_SEL_EDGE:
+		if( (G.qual & LR_SHIFTKEY)==0 || G.scene->selectmode==0)
+			G.scene->selectmode= SCE_SELECT_EDGE;
+		EM_selectmode_set();
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+	case B_SEL_FACE:
+		if( (G.qual & LR_SHIFTKEY)==0 || G.scene->selectmode==0)
+			G.scene->selectmode= SCE_SELECT_FACE;
+		EM_selectmode_set();
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+		
 	default:
 
 		if(event>=B_LAY && event<B_LAY+31) {
@@ -3917,12 +3908,25 @@ void view3d_buttons(void)
 	}
 	else xco+= (10+1)*(XIC/2)+10;
 	
-	if(G.obedit && (OBACT->type == OB_MESH || OBACT->type == OB_CURVE || OBACT->type == OB_SURF || OBACT->type == OB_LATTICE)) {
+	/* proportional falloff */
+	if(G.obedit && (G.obedit->type == OB_MESH || G.obedit->type == OB_CURVE || G.obedit->type == OB_SURF || G.obedit->type == OB_LATTICE)) {
 		extern int prop_mode;
 		if(G.f & G_PROPORTIONAL) {
 			uiDefIconTextButI(block, ICONTEXTROW,B_REDR, ICON_SHARPCURVE, propfalloff_pup(), xco,0,XIC+10,YIC, &(prop_mode), 0, 1.0, 0, 0, "Proportional Edit Falloff (Hotkey: Shift O) ");
 			xco+= XIC+20;
 		}
+	}
+
+	/* selection modus */
+	if(G.obedit && (G.obedit->type == OB_MESH)) {
+		uiBlockBeginAlign(block);
+		uiDefIconButS(block, TOG|BIT|0, B_SEL_VERT, ICON_VERTEXSEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode");
+		xco+= XIC;
+		uiDefIconButS(block, TOG|BIT|1, B_SEL_EDGE, ICON_EDGESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Edge select mode");
+		xco+= XIC;
+		uiDefIconButS(block, TOG|BIT|2, B_SEL_FACE, ICON_FACESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Face select mode");
+		xco+= XIC+20;
+		uiBlockEndAlign(block);
 	}
 
 	uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE_DEHLT, xco,0,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (hold CTRL for anim)");

@@ -372,7 +372,7 @@ static void decimate_apply(void)
 			G.obedit= ob;
 			make_editMesh();
 			load_editMesh();
-			free_editMesh();
+			free_editMesh(G.editMesh);
 			G.obedit= NULL;
 			tex_space_mesh(me);
 
@@ -449,7 +449,6 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 	case B_MATASS:
 		if(G.obedit && G.obedit->actcol>0) {
 			if(G.obedit->type == OB_MESH) {
-				undo_push_mesh("Assign material index");
 				efa= em->faces.first;
 				while(efa) {
 					if( faceselectedAND(efa, 1) )
@@ -458,6 +457,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 				}
 				allqueue(REDRAWVIEW3D_Z, 0);
 				makeDispList(G.obedit);
+				BIF_undo_push("Assign material index");
 			}
 			else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
 				nu= editNurb.first;
@@ -563,8 +563,6 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 		if(G.obedit) {
 			if(G.obedit->type == OB_MESH) {
 				efa= em->faces.first;
-				if (event == B_SETSMOOTH) undo_push_mesh("Set Smooth");
-				else if (event==B_SETSOLID) undo_push_mesh("Set Solid");
 				while(efa) {
 					if( faceselectedAND(efa, 1) ) {
 						if(event==B_SETSMOOTH) efa->flag |= ME_SMOOTH;
@@ -575,6 +573,8 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 
 				makeDispList(G.obedit);
 				allqueue(REDRAWVIEW3D, 0);
+				if(event == B_SETSMOOTH) BIF_undo_push("Set Smooth");
+				else BIF_undo_push("Set Solid");
 			}
 			else {
 				nu= editNurb.first;
@@ -1834,16 +1834,17 @@ void do_meshbuts(unsigned short event)
 		case B_DELVGROUP:
 			del_defgroup (G.obedit);
 			allqueue (REDRAWVIEW3D, 1);
+			BIF_undo_push("Delete vertex group");
 			break;
 		case B_ASSIGNVGROUP:
-			undo_push_mesh("Assign to vertex group");
 			assign_verts_defgroup ();
 			allqueue (REDRAWVIEW3D, 1);
+			BIF_undo_push("Assign to vertex group");
 			break;
 		case B_REMOVEVGROUP:
-			undo_push_mesh("Remove from vertex group");
 			remove_verts_defgroup (0);
 			allqueue (REDRAWVIEW3D, 1);
+			BIF_undo_push("Remove from vertex group");
 			break;
 		case B_SELVGROUP:
 			sel_verts_defgroup(1);
@@ -1961,28 +1962,28 @@ void do_meshbuts(unsigned short event)
 		G.f -= G_DISABLE_OK;
 		break;
 	case B_REMDOUB:
-		undo_push_mesh("Rem Doubles");
 		notice("Removed: %d", removedoublesflag(1, doublimit));
 		allqueue(REDRAWVIEW3D, 0);
+		BIF_undo_push("Rem Doubles");
 		break;
 	case B_SUBDIV:
 		waitcursor(1);
-		undo_push_mesh("Subdivide");
 		subdivideflag(1, 0.0, editbutflag & B_BEAUTY);
 		countall();
 		waitcursor(0);
 		allqueue(REDRAWVIEW3D, 0);
+		BIF_undo_push("Subdivide");
 		break;
 	case B_FRACSUBDIV:
 		randfac= 10;
 		if(button(&randfac, 1, 100, "Rand fac:")==0) return;
 		waitcursor(1);
-		undo_push_mesh("Fractal Subdivide");
 		fac= -( (float)randfac )/100;
 		subdivideflag(1, fac, editbutflag & B_BEAUTY);
 		countall();
 		waitcursor(0);
 		allqueue(REDRAWVIEW3D, 0);
+		BIF_undo_push("Fractal Subdivide");
 		break;
 	case B_XSORT:
 		if( select_area(SPACE_VIEW3D)) xsortvert_flag(1);

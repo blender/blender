@@ -307,13 +307,7 @@ static void read_stl_mesh_binary(char *str)
 			me->totvert = totvert;
 
 			mesh_add_normals_flags(me);
-			/*
-			G.obedit= ob;
-			make_editMesh();
-			load_editMesh();
-			free_editMesh();
-			G.obedit= 0;
-			*/
+
 			tex_space_mesh(me);
 		}
 		waitcursor(1);
@@ -479,13 +473,7 @@ static void read_stl_mesh_ascii(char *str)
 	free(vertdata);
 
 	mesh_add_normals_flags(me);
-	/*
-	G.obedit= ob;
-	make_editMesh();
-	load_editMesh();
-	free_editMesh();
-	G.obedit= 0;
-	*/
+
 	tex_space_mesh(me);
 	waitcursor(1);
 }
@@ -707,7 +695,7 @@ static void read_videoscape_mesh(char *str)
 	G.obedit= ob;
 	make_editMesh();
 	load_editMesh();
-	free_editMesh();
+	free_editMesh(G.editMesh);
 	G.obedit= 0;
 	tex_space_mesh(me);
 	waitcursor(1);
@@ -892,7 +880,7 @@ static void read_radiogour(char *str)
 	G.obedit= ob;
 	make_editMesh();
 	load_editMesh();
-	free_editMesh();
+	free_editMesh(G.editMesh);
 
 	G.obedit= 0;
 	tex_space_mesh(me);
@@ -2273,13 +2261,6 @@ static void displist_to_mesh(DispList *dlfirst)
 		dl= dl->next;
 	}
 
-	//G.obedit= ob;
-	//make_editMesh();
-	//load_editMesh();
-	//free_editMesh();
-	
-	//G.obedit= 0;
-	
 	mesh_add_normals_flags(me);
 	tex_space_mesh(me);
 
@@ -3764,7 +3745,7 @@ static void dxf_read_point(int noob) {
 		G.obedit= ob;
 		make_editMesh();
 		load_editMesh();
-		free_editMesh();
+		free_editMesh(G.editMesh);
 		waitcursor(1);		/* patch yah... */
 
 		G.obedit= 0;
@@ -3789,7 +3770,7 @@ static void dxf_close_line(void)
 	G.obedit= linehold;
 	make_editMesh();
 	load_editMesh();
-	free_editMesh();
+	free_editMesh(G.editMesh);
 	waitcursor(1);		/* patch yah... */
 
 	G.obedit= 0;
@@ -3938,7 +3919,7 @@ static void dxf_close_2dpoly(void)
         G.obedit= p2dhold;
         make_editMesh();
         load_editMesh();
-		free_editMesh();
+		free_editMesh(G.editMesh);
 		waitcursor(1);		/* patch yah... */
 		
         G.obedit= 0;
@@ -4219,7 +4200,7 @@ static void dxf_read_polyline(int noob) {
 			G.obedit= ob;
 			make_editMesh();
 			load_editMesh();
-			free_editMesh();
+			free_editMesh(G.editMesh);
 			waitcursor(1);		/* patch yah... */
 			G.obedit= 0;
 		}
@@ -4241,7 +4222,7 @@ static void dxf_close_3dface(void)
 	G.obedit= f3dhold;
 	make_editMesh();
 	load_editMesh();
-	free_editMesh();
+	free_editMesh(G.editMesh);
 	waitcursor(1);		/* patch yah... */
 	G.obedit= 0;
 	tex_space_mesh(f3dhold->data);
@@ -4614,7 +4595,7 @@ static void dxf_read(char *filename)
 						G.obedit= ob;
 						make_editMesh();
 						load_editMesh();
-						free_editMesh();
+						free_editMesh(G.editMesh);
 						waitcursor(1);		/* patch yah... */
 						G.obedit= 0;
 						tex_space_mesh(ob->data);

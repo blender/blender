@@ -1078,7 +1078,6 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		}
 
 		writestruct(wd, DATA, "Radio", 1, sce->radio);
-		writestruct(wd, DATA, "FreeCamera", 1, sce->fcam);
 
 		ed= sce->ed;
 		if(ed) {

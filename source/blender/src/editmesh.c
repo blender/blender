@@ -46,8 +46,6 @@
 
 #include "PIL_time.h"
 
-#include "MTC_matrixops.h"
-
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -62,6 +60,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
+#include "BLI_dynstr.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_key.h"
@@ -76,6 +75,7 @@
 
 #include "BIF_editkey.h"
 #include "BIF_editmesh.h"
+#include "BIF_editmode_undo.h"
 #include "BIF_interface.h"
 #include "BIF_mywindow.h"
 #include "BIF_space.h"
@@ -95,7 +95,6 @@
 #include "blendef.h"
 #include "render.h"
 
-
 /* own include */
 #include "editmesh.h"
 
@@ -111,32 +110,31 @@ editmesh.c:
 
 /* ***************** HASH ********************* */
 
-/* HASH struct quickly finding of edges */
-struct HashEdge {
-	struct EditEdge *eed;
-	struct HashEdge *next;
-};
 
-struct HashEdge *hashedgetab=NULL;
+#define EDHASHSIZE		(512*512)
+#define EDHASH(a, b)	(a % EDHASHSIZE)
 
 
 /* ************ ADD / REMOVE / FIND ****************** */
 
-#define EDHASH(a, b)	( (a)*256 + (b) )
-#define EDHASHSIZE	65536
+/* used to bypass normal calloc with fast one */
+static void *(*callocvert)(size_t, size_t) = calloc;
+static void *(*callocedge)(size_t, size_t) = calloc;
+static void *(*callocface)(size_t, size_t) = calloc;
 
 EditVert *addvertlist(float *vec)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
-	static unsigned char hashnr= 0;
+	static int hashnr= 0;
 
-	eve= calloc(sizeof(EditVert), 1);
+	eve= callocvert(sizeof(EditVert), 1);
 	BLI_addtail(&em->verts, eve);
 	
 	if(vec) VECCOPY(eve->co, vec);
 
 	eve->hash= hashnr++;
+	if( hashnr>=EDHASHSIZE) hashnr= 0;
 
 	/* new verts get keyindex of -1 since they did not
 	 * have a pre-editmode vertex order
@@ -145,15 +143,18 @@ EditVert *addvertlist(float *vec)
 	return eve;
 }
 
+void free_editvert (EditVert *eve)
+{
+	if(eve->dw) MEM_freeN(eve->dw);
+	if(eve->fast==0) free(eve);
+}
+
+
 EditEdge *findedgelist(EditVert *v1, EditVert *v2)
 {
 	EditVert *v3;
 	struct HashEdge *he;
 
-	if(hashedgetab==0) {
-		hashedgetab= MEM_callocN(EDHASHSIZE*sizeof(struct HashEdge), "hashedgetab");
-	}
-	
 	/* swap ? */
 	if( (long)v1 > (long)v2) {
 		v3= v2; 
@@ -161,7 +162,10 @@ EditEdge *findedgelist(EditVert *v1, EditVert *v2)
 		v1= v3;
 	}
 	
-	he= hashedgetab + EDHASH(v1->hash, v2->hash);
+	if(G.editMesh->hashedgetab==NULL)
+		G.editMesh->hashedgetab= MEM_callocN(EDHASHSIZE*sizeof(struct HashEdge), "hashedgetab");
+
+	he= G.editMesh->hashedgetab + EDHASH(v1->hash, v2->hash);
 	
 	while(he) {
 		
@@ -178,13 +182,13 @@ static void insert_hashedge(EditEdge *eed)
 	
 	struct HashEdge *first, *he;
 
-	first= hashedgetab + EDHASH(eed->v1->hash, eed->v2->hash);
+	first= G.editMesh->hashedgetab + EDHASH(eed->v1->hash, eed->v2->hash);
 
 	if( first->eed==0 ) {
 		first->eed= eed;
 	}
 	else {
-		he= (struct HashEdge *)malloc(sizeof(struct HashEdge)); 
+		he= &eed->hash; 
 		he->eed= eed;
 		he->next= first->next;
 		first->next= he;
@@ -197,8 +201,7 @@ static void remove_hashedge(EditEdge *eed)
 	
 	struct HashEdge *first, *he, *prev=NULL;
 
-
-	he=first= hashedgetab + EDHASH(eed->v1->hash, eed->v2->hash);
+	he=first= G.editMesh->hashedgetab + EDHASH(eed->v1->hash, eed->v2->hash);
 
 	while(he) {
 		if(he->eed == eed) {
@@ -208,39 +211,16 @@ static void remove_hashedge(EditEdge *eed)
 					he= first->next;
 					first->eed= he->eed;
 					first->next= he->next;
-					free(he);
 				}
 				else he->eed= 0;
 			}
 			else {
 				prev->next= he->next;
-				free(he);
 			}
 			return;
 		}
 		prev= he;
 		he= he->next;
-	}
-}
-
-void free_hashedgetab(void)
-{
-	struct HashEdge *he, *first, *hen;
-	int a;
-	
-	if(hashedgetab) {
-	
-		first= hashedgetab;
-		for(a=0; a<EDHASHSIZE; a++, first++) {
-			he= first->next;
-			while(he) {
-				hen= he->next;
-				free(he);
-				he= hen;
-			}
-		}
-		MEM_freeN(hashedgetab);
-		hashedgetab= 0;
 	}
 }
 
@@ -267,7 +247,7 @@ EditEdge *addedgelist(EditVert *v1, EditVert *v2, EditEdge *example)
 
 	if(eed==NULL) {
 
-		eed= (EditEdge *)calloc(sizeof(EditEdge), 1);
+		eed= (EditEdge *)callocedge(sizeof(EditEdge), 1);
 		eed->v1= v1;
 		eed->v2= v2;
 		BLI_addtail(&em->edges, eed);
@@ -284,12 +264,6 @@ EditEdge *addedgelist(EditVert *v1, EditVert *v2, EditEdge *example)
 	return eed;
 }
 
-void free_editvert (EditVert *eve)
-{
-	if (eve->dw) MEM_freeN (eve->dw);
-	free (eve);
-}
-
 void remedge(EditEdge *eed)
 {
 	EditMesh *em = G.editMesh;
@@ -300,12 +274,12 @@ void remedge(EditEdge *eed)
 
 void free_editedge(EditEdge *eed)
 {
-	free(eed);
+	if(eed->fast==0) free(eed);
 }
 
 void free_editface(EditFace *efa)
 {
-	free(efa);
+	if(efa->fast==0) free(efa);
 }
 
 void free_vertlist(ListBase *edve) 
@@ -365,7 +339,7 @@ EditFace *addfacelist(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, Ed
 	if(v1==v2 || v2==v3 || v1==v3) return NULL;
 	if(e2==0) return NULL;
 
-	efa= (EditFace *)calloc(sizeof(EditFace), 1);
+	efa= (EditFace *)callocface(sizeof(EditFace), 1);
 	efa->v1= v1;
 	efa->v2= v2;
 	efa->v3= v3;
@@ -392,18 +366,130 @@ EditFace *addfacelist(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, Ed
 
 	BLI_addtail(&em->faces, efa);
 
-	if(efa->v4) CalcNormFloat4(v1->co, v2->co, v3->co, v4->co, efa->n);
-	else CalcNormFloat(v1->co, v2->co, v3->co, efa->n);
+	if(efa->v4) {
+		CalcNormFloat4(efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co, efa->n);
+		CalcCent4f(efa->cent, efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
+	}
+	else {
+		CalcNormFloat(efa->v1->co, efa->v2->co, efa->v3->co, efa->n);
+		CalcCent3f(efa->cent, efa->v1->co, efa->v2->co, efa->v3->co);
+	}
 
 	return efa;
 }
 
-/* ********* end add / new / find */
+/* ************************ end add/new/find ************  */
 
+/* ************************ stuct EditMesh manipulation ***************************** */
 
+/* fake callocs for fastmalloc below */
+static void *calloc_fastvert(size_t size, size_t nr)
+{
+	EditVert *eve= G.editMesh->curvert++;
+	eve->fast= 1;
+	return eve;
+}
+static void *calloc_fastedge(size_t size, size_t nr)
+{
+	EditEdge *eed= G.editMesh->curedge++;
+	eed->fast= 1;
+	return eed;
+}
+static void *calloc_fastface(size_t size, size_t nr)
+{
+	EditFace *efa= G.editMesh->curface++;
+	efa->fast= 1;
+	return efa;
+}
+
+/* allocate 1 chunk for all vertices, edges, faces. These get tagged to
+   prevent it from being freed
+*/
+static void init_editmesh_fastmalloc(EditMesh *em, int totvert, int totedge, int totface)
+{
+	
+	if(totvert) em->allverts= MEM_callocN(totvert*sizeof(EditVert), "allverts");
+	else em->allverts= NULL;
+	em->curvert= em->allverts;
+	
+	if(totedge==0) totedge= 4*totface;	// max possible
+
+	if(totedge) em->alledges= MEM_callocN(totedge*sizeof(EditEdge), "alledges");
+	else em->alledges= NULL;
+	em->curedge= em->alledges;
+	
+	if(totface) em->allfaces= MEM_callocN(totface*sizeof(EditFace), "allfaces");
+	else em->allfaces= NULL;
+	em->curface= em->allfaces;
+
+	callocvert= calloc_fastvert;
+	callocedge= calloc_fastedge;
+	callocface= calloc_fastface;
+}
+
+static void end_editmesh_fastmalloc(void)
+{
+	callocvert= calloc;
+	callocedge= calloc;
+	callocface= calloc;
+}
+
+void free_editMesh(EditMesh *em)
+{
+	if(em==NULL) return;
+	
+	if(em->verts.first) free_vertlist(&em->verts);
+	if(em->edges.first) free_edgelist(&em->edges);
+	if(em->faces.first) free_facelist(&em->faces);
+
+	/* DEBUG: hashtabs are slowest part of enter/exit editmode. here a testprint */
+#if 0
+	if(em->hashedgetab) {
+		HashEdge *he, *hen;
+		int a, used=0, max=0, nr;
+		he= em->hashedgetab;
+		for(a=0; a<EDHASHSIZE; a++, he++) {
+			if(he->eed) used++;
+			hen= he->next;
+			nr= 0;
+			while(hen) {
+				nr++;
+				hen= hen->next;
+			}
+			if(max<nr) max= nr;
+		}
+		printf("hastab used %d max %d\n", used, max);
+	}
+#endif
+	if(em->hashedgetab) MEM_freeN(em->hashedgetab);
+	em->hashedgetab= NULL;
+	
+	if(em->allverts) MEM_freeN(em->allverts);
+	if(em->alledges) MEM_freeN(em->alledges);
+	if(em->allfaces) MEM_freeN(em->allfaces);
+	
+	em->allverts= em->curvert= NULL;
+	em->alledges= em->curedge= NULL;
+	em->allfaces= em->curface= NULL;
+	
+	G.totvert= G.totface= 0;
+}
+
+/* on G.editMesh */
+static void editMesh_set_hash(void)
+{
+	EditEdge *eed;
+
+	for(eed=G.editMesh->edges.first; eed; eed= eed->next)  {
+		if( findedgelist(eed->v1, eed->v2)==NULL )
+			insert_hashedge(eed);
+	}
+
+}
 
 
 /* ************************ IN & OUT EDITMODE ***************************** */
+
 
 static void edge_normal_compare(EditEdge *eed, EditFace *efa1)
 {
@@ -415,7 +501,7 @@ static void edge_normal_compare(EditEdge *eed, EditFace *efa1)
 	if(efa1==efa2) return;
 	
 	inp= efa1->n[0]*efa2->n[0] + efa1->n[1]*efa2->n[1] + efa1->n[2]*efa2->n[2];
-	if(inp<0.999 && inp >-0.999) eed->f= 1;
+	if(inp<0.999 && inp >-0.999) eed->f2= 1;
 		
 	if(efa1->v4) CalcCent4f(cent1, efa1->v1->co, efa1->v2->co, efa1->v3->co, efa1->v4->co);
 	else CalcCent3f(cent1, efa1->v1->co, efa1->v2->co, efa1->v3->co);
@@ -455,7 +541,7 @@ static void edge_drawflags(void)
 	}
 	eed= em->edges.first;
 	while(eed) {
-		eed->f= eed->f1= 0;
+		eed->f2= eed->f1= 0;
 		eed->vn= 0;
 		eed= eed->next;
 	}
@@ -466,10 +552,10 @@ static void edge_drawflags(void)
 		e2= efa->e2;
 		e3= efa->e3;
 		e4= efa->e4;
-		if(e1->f<3) e1->f+= 1;
-		if(e2->f<3) e2->f+= 1;
-		if(e3->f<3) e3->f+= 1;
-		if(e4 && e4->f<3) e4->f+= 1;
+		if(e1->f2<3) e1->f2+= 1;
+		if(e2->f2<3) e2->f2+= 1;
+		if(e3->f2<3) e3->f2+= 1;
+		if(e4 && e4->f<3) e4->f2+= 1;
 		
 		if(e1->vn==0) e1->vn= (EditVert *)efa;
 		if(e2->vn==0) e2->vn= (EditVert *)efa;
@@ -482,9 +568,9 @@ static void edge_drawflags(void)
 	if(G.f & G_ALLEDGES) {
 		efa= em->faces.first;
 		while(efa) {
-			if(efa->e1->f>=2) efa->e1->f= 1;
-			if(efa->e2->f>=2) efa->e2->f= 1;
-			if(efa->e3->f>=2) efa->e3->f= 1;
+			if(efa->e1->f2>=2) efa->e1->f= 1;
+			if(efa->e2->f2>=2) efa->e2->f= 1;
+			if(efa->e3->f2>=2) efa->e3->f= 1;
 			if(efa->e4 && efa->e4->f>=2) efa->e4->f= 1;
 			
 			efa= efa->next;
@@ -496,17 +582,17 @@ static void edge_drawflags(void)
 		
 		eed= em->edges.first;
 		while(eed) {
-			if(eed->f==1) eed->f1= 1;
+			if(eed->f2==1) eed->f1= 1;
 			eed= eed->next;
 		}
 
 		/* all faces, all edges with flag==2: compare normal */
 		efa= em->faces.first;
 		while(efa) {
-			if(efa->e1->f==2) edge_normal_compare(efa->e1, efa);
-			if(efa->e2->f==2) edge_normal_compare(efa->e2, efa);
-			if(efa->e3->f==2) edge_normal_compare(efa->e3, efa);
-			if(efa->e4 && efa->e4->f==2) edge_normal_compare(efa->e4, efa);
+			if(efa->e1->f2==2) edge_normal_compare(efa->e1, efa);
+			if(efa->e2->f2==2) edge_normal_compare(efa->e2, efa);
+			if(efa->e3->f2==2) edge_normal_compare(efa->e3, efa);
+			if(efa->e4 && efa->e4->f2==2) edge_normal_compare(efa->e4, efa);
 			
 			efa= efa->next;
 		}
@@ -524,21 +610,11 @@ static void edge_drawflags(void)
 	}
 }
 
-
-void free_editMesh(void)
-{
-	
-	EditMesh *em = G.editMesh;
-	if(em->verts.first) free_vertlist(&em->verts);
-	if(em->edges.first) free_edgelist(&em->edges);
-	if(em->faces.first) free_facelist(&em->faces);
-	free_hashedgetab();
-	G.totvert= G.totface= 0;
-}
-
-void make_editMesh_real(Mesh *me)
+/* turns Mesh into editmesh */
+void make_editMesh()
 {
 	EditMesh *em = G.editMesh;
+	Mesh *me= G.obedit->data;
 	MFace *mface;
 	TFace *tface;
 	MVert *mvert;
@@ -551,7 +627,7 @@ void make_editMesh_real(Mesh *me)
 	if(G.obedit==NULL) return;
 
 	/* because of reload */
-	free_editMesh();
+	free_editMesh(G.editMesh);
 	
 	G.totvert= tot= me->totvert;
 
@@ -561,6 +637,9 @@ void make_editMesh_real(Mesh *me)
 	}
 	
 	waitcursor(1);
+
+	/* initialize fastmalloc for editmesh */
+	init_editmesh_fastmalloc(G.editMesh, me->totvert, me->totedge, me->totface);
 
 	/* keys? */
 	if(me->key) {
@@ -620,7 +699,9 @@ void make_editMesh_real(Mesh *me)
 			for(a=0; a<me->totedge; a++, medge++) {
 				eed= addedgelist(evlist[medge->v1], evlist[medge->v2], NULL);
 				eed->crease= ((float)medge->crease)/255.0;
+				
 				if(medge->flag & ME_SEAM) eed->seam= 1;
+				if(medge->flag & SELECT) eed->f |= SELECT;
 			}
 
 		}
@@ -647,16 +728,19 @@ void make_editMesh_real(Mesh *me)
 
 					if( tface->flag & TF_SELECT) {
 						if(G.f & G_FACESELECT) {
-							eve1->f |= 1;
-							eve2->f |= 1;
-							if(eve3) eve3->f |= 1;
-							if(eve4) eve4->f |= 1;
+							EM_select_face(efa, 1);
 						}
 					}
 				}
 			
 				efa->mat_nr= mface->mat_nr;
 				efa->flag= mface->flag;
+				
+				/* select face flag, if no edges we flush down */
+				if(mface->flag & ME_FACE_SEL) {
+					efa->f |= SELECT;
+					if(me->medge==NULL) EM_select_face(efa, 1);
+				}
 			}
 
 			if(me->tface) tface++;
@@ -664,41 +748,31 @@ void make_editMesh_real(Mesh *me)
 		}
 	}
 	
-	/* intrr: needed because of hidden vertices imported from Mesh */
+	/* flush hide flags */
 	
-	eed= em->edges.first;
-	while(eed) {
+	for(eed= em->edges.first; eed; eed= eed->next) {
 		if(eed->v1->h || eed->v2->h) eed->h= 1;
 		else eed->h= 0;
-		eed= eed->next;
 	}	
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		if(efa->e1->h || efa->e2->h || efa->e3->h) efa->h= 1;
+		else if(efa->e4 && efa->e4->h) efa->h= 1;
+	}
 	
 	MEM_freeN(evlist);
-	
-	countall();
-	
+
+	end_editmesh_fastmalloc();	// resets global function pointers
+
 	if (mesh_uses_displist(me))
 		makeDispList(G.obedit);
+
+	/* this creates coherent selections. also needed for older files */
+	EM_selectmode_set();
+
+	countall();
 	
 	waitcursor(0);
 }
-
-void make_editMesh(void)
-{
-	Mesh *me;	
-
-	me= get_mesh(G.obedit);
-	if (me != G.undo_last_data) {
-		G.undo_edit_level= -1;
-		G.undo_edit_highest= -1;
-		if (G.undo_clear) G.undo_clear();
-		G.undo_last_data= me;
-		G.undo_clear= undo_clear_mesh;
-	}
-	make_editMesh_real(me);
-}
-
-
 
 /** Rotates MFace and UVFace vertices in case the last
   * vertex index is = 0. 
@@ -805,10 +879,11 @@ static void fix_faceindices(MFace *mface, EditFace *efa, int nr)
 	}
 }
 
-
-void load_editMesh_real(Mesh *me, int undo)
+/* makes Mesh out of editmesh */
+void load_editMesh(void)
 {
 	EditMesh *em = G.editMesh;
+	Mesh *me= G.obedit->data;
 	MVert *mvert, *oldverts;
 	MEdge *medge=NULL;
 	MFace *mface;
@@ -822,19 +897,22 @@ void load_editMesh_real(Mesh *me, int undo)
 	MDeformVert *dvert;
 	int	usedDvert = 0;
 
+	waitcursor(1);
+	countall();
+
 	/* this one also tests of edges are not in faces: */
-	/* eed->f==0: not in face, f==1: draw it */
+	/* eed->f2==0: not in face, f2==1: draw it */
 	/* eed->f1 : flag for dynaface (cylindertest, old engine) */
 	/* eve->f1 : flag for dynaface (sphere test, old engine) */
 	edge_drawflags();
 	
-	/* WATCH IT: in efa->f is punoflag (for vertex normal) */
+	/* this sets efa->puno, punoflag (for vertex normal & projection) */
 	vertexnormals( (me->flag & ME_NOPUNOFLIP)==0 );
 		
 	eed= em->edges.first;
 	while(eed) {
 		totedge++;
-		if(me->medge==NULL && (eed->f==0)) G.totface++;
+		if(me->medge==NULL && (eed->f2==0)) G.totface++;
 		eed= eed->next;
 	}
 	
@@ -844,8 +922,7 @@ void load_editMesh_real(Mesh *me, int undo)
 
 	/* new Edge block */
 	if(totedge) {
-		Mesh *mesh= G.obedit->data;
-		if(mesh->medge==NULL) totedge= 0;	// if edges get added is defined by orig mesh, not undo mesh
+		if(me->medge==NULL) totedge= 0;	// if edges get added is defined by orig mesh
 		else medge= MEM_callocN(totedge*sizeof(MEdge), "loadeditMesh edge");
 	}
 	
@@ -905,10 +982,8 @@ void load_editMesh_real(Mesh *me, int undo)
 		eve->vn= (EditVert *)(long)(a++);  /* counter */
 			
 		mvert->flag= 0;
-			
-		mvert->flag= 0;
 		if(eve->f1==1) mvert->flag |= ME_SPHERETEST;
-		mvert->flag |= (eve->f & 1);
+		mvert->flag |= (eve->f & SELECT);
 		if (eve->h) mvert->flag |= ME_HIDE;			
 			
 		eve= eve->next;
@@ -928,9 +1003,12 @@ void load_editMesh_real(Mesh *me, int undo)
 		while(eed) {
 			medge->v1= (unsigned int) eed->v1->vn;
 			medge->v2= (unsigned int) eed->v2->vn;
-			if(eed->f<2) medge->flag = ME_EDGEDRAW;
-			medge->crease= (char)(255.0*eed->crease);
+			
+			medge->flag= eed->f & SELECT;
+			if(eed->f2<2) medge->flag |= ME_EDGEDRAW;
 			if(eed->seam) medge->flag |= ME_SEAM;
+			
+			medge->crease= (char)(255.0*eed->crease);
 
 			medge++;
 			eed= eed->next;
@@ -949,9 +1027,12 @@ void load_editMesh_real(Mesh *me, int undo)
 		if(efa->v4) mface->v4= (unsigned int) efa->v4->vn;
 			
 		mface->mat_nr= efa->mat_nr;
-		mface->puno= efa->f;
+		mface->puno= efa->puno;
 		mface->flag= efa->flag;
-			
+		/* bit 0 of flag is already taken for smooth... */
+		if(efa->f & 1) mface->flag |= ME_FACE_SEL;
+		else mface->flag &= ~ME_FACE_SEL;
+		
 		/* mat_nr in vertex */
 		if(me->totcol>1) {
 			mvert= me->mvert+mface->v1;
@@ -966,28 +1047,28 @@ void load_editMesh_real(Mesh *me, int undo)
 			}
 		}
 			
-		/* watch: efa->e1->f==0 means loose edge */ 
+		/* watch: efa->e1->f2==0 means loose edge */ 
 			
-		if(efa->e1->f==1) {
+		if(efa->e1->f2==1) {
 			mface->edcode |= ME_V1V2; 
-			efa->e1->f= 2;
+			efa->e1->f2= 2;
 		}			
-		if(efa->e2->f==1) {
+		if(efa->e2->f2==1) {
 			mface->edcode |= ME_V2V3; 
-			efa->e2->f= 2;
+			efa->e2->f2= 2;
 		}
-		if(efa->e3->f==1) {
+		if(efa->e3->f2==1) {
 			if(efa->v4) {
 				mface->edcode |= ME_V3V4;
 			}
 			else {
 				mface->edcode |= ME_V3V1;
 			}
-			efa->e3->f= 2;
+			efa->e3->f2= 2;
 		}
-		if(efa->e4 && efa->e4->f==1) {
+		if(efa->e4 && efa->e4->f2==1) {
 			mface->edcode |= ME_V4V1; 
-			efa->e4->f= 2;
+			efa->e4->f2= 2;
 		}
 
 
@@ -1003,7 +1084,7 @@ void load_editMesh_real(Mesh *me, int undo)
 	if(medge==NULL) {
 		eed= em->edges.first;
 		while(eed) {
-			if( eed->f==0 ) {
+			if( eed->f2==0 ) {
 				mface= &((MFace *) me->mface)[i];
 				mface->v1= (unsigned int) eed->v1->vn;
 				mface->v2= (unsigned int) eed->v2->vn;
@@ -1017,9 +1098,8 @@ void load_editMesh_real(Mesh *me, int undo)
 	
 	tex_space_mesh(me);
 
-	/* tface block, always when undo even when it wasnt used, 
-	   this because of empty me pointer */
-	if( (me->tface || undo) && me->totface ) {
+	/* tface block */
+	if( me->tface && me->totface ) {
 		TFace *tfn, *tf;
 			
 		tf=tfn= MEM_callocN(sizeof(TFace)*me->totface, "tface");
@@ -1029,14 +1109,14 @@ void load_editMesh_real(Mesh *me, int undo)
 			*tf= efa->tf;
 				
 			if(G.f & G_FACESELECT) {
-				if( faceselectedAND(efa, 1) ) tf->flag |= TF_SELECT;
+				if( efa->f & SELECT)  tf->flag |= TF_SELECT;
 				else tf->flag &= ~TF_SELECT;
 			}
 				
 			tf++;
 			efa= efa->next;
 		}
-		/* if undo, me was empty */
+
 		if(me->tface) MEM_freeN(me->tface);
 		me->tface= tfn;
 	}
@@ -1046,7 +1126,7 @@ void load_editMesh_real(Mesh *me, int undo)
 	}
 		
 	/* mcol: same as tface... */
-	if( (me->mcol || undo) && me->totface) {
+	if(me->mcol && me->totface) {
 		unsigned int *mcn, *mc;
 
 		mc=mcn= MEM_mallocN(4*sizeof(int)*me->totface, "mcol");
@@ -1154,182 +1234,11 @@ void load_editMesh_real(Mesh *me, int undo)
 
 void remake_editMesh(void)
 {
-	undo_push_mesh("Undo all changes");
 	make_editMesh();
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);
+	BIF_undo_push("Undo all changes");
 }
-
-/* load from EditMode to Mesh */
-
-void load_editMesh()
-{
-	Mesh *me;
-
-	waitcursor(1);
-	countall();
-	me= get_mesh(G.obedit);
-       
-	load_editMesh_real(me, 0);
-}
-
-
-
-/* *********************  TOOLS  ********************* */
-
-
-															
-
-
-/*********************** EDITMESH UNDO ********************************/
-/* Mesh Edit undo by Alexander Ewring,                                */
-/* ported by Robert Wenzlaff                                          */
-/*                                                                    */
-/* Any meshedit function wishing to create an undo step, calls        */
-/*     undo_push_mesh("menu_name_of_step");                           */
-
-Mesh *undo_new_mesh(void)
-{
-	return(MEM_callocN(sizeof(Mesh), "undo_mesh"));
-}
-
-void undo_free_mesh(Mesh *me)
-{
-	if(me->mat) MEM_freeN(me->mat);
-	if(me->orco) MEM_freeN(me->orco);
-	if(me->mvert) MEM_freeN(me->mvert);
-	if(me->medge) MEM_freeN(me->medge);
-	if(me->mface) MEM_freeN(me->mface);
-	if(me->tface) MEM_freeN(me->tface);
-	if(me->dvert) free_dverts(me->dvert, me->totvert);
-	if(me->mcol) MEM_freeN(me->mcol);
-	if(me->msticky) MEM_freeN(me->msticky);
-	if(me->bb) MEM_freeN(me->bb);
-	if(me->disp.first) freedisplist(&me->disp);
-	MEM_freeN(me);
-}
-
-
-void undo_push_mesh(char *name)
-{
-	Mesh *me;
-	int i;
-
-	countall();
-
-	G.undo_edit_level++;
-
-	if (G.undo_edit_level<0) {
-		printf("undo: ERROR: G.undo_edit_level negative\n");
-		return;
-	}
-
-
-	if (G.undo_edit[G.undo_edit_level].datablock != 0) {
-		undo_free_mesh(G.undo_edit[G.undo_edit_level].datablock);
-	}
-	if (strcmp(name, "U")!=0) {
-		for (i=G.undo_edit_level+1; i<(U.undosteps-1); i++) {
-			if (G.undo_edit[i].datablock != 0) {
-				undo_free_mesh(G.undo_edit[i].datablock);
-				G.undo_edit[i].datablock= 0;
-			}
-		}
-		G.undo_edit_highest= G.undo_edit_level;
-	}
-
-	me= undo_new_mesh();
-
-	if (G.undo_edit_level>=U.undosteps) {
-		G.undo_edit_level--;
-		undo_free_mesh((Mesh*)G.undo_edit[0].datablock);
-		G.undo_edit[0].datablock= 0;
-		for (i=0; i<(U.undosteps-1); i++) {
-			G.undo_edit[i]= G.undo_edit[i+1];
-		}
-	}
-
-	if (strcmp(name, "U")!=0) strcpy(G.undo_edit[G.undo_edit_level].name, name);
-	//printf("undo: saving block: %d [%s]\n", G.undo_edit_level, G.undo_edit[G.undo_edit_level].name);
-
-	G.undo_edit[G.undo_edit_level].datablock= (void*)me;
-	load_editMesh_real(me, 1);
-}
-
-void undo_pop_mesh(int steps)  /* steps == 1 is one step */
-{
-	if (G.undo_edit_level > (steps-2)) {
-		undo_push_mesh("U");
-		G.undo_edit_level-= steps;
-
-		//printf("undo: restoring block: %d [%s]\n", G.undo_edit_level, G.undo_edit[G.undo_edit_level].name);    -
-		make_editMesh_real((Mesh*)G.undo_edit[G.undo_edit_level].datablock);
-		allqueue(REDRAWVIEW3D, 0);
-		makeDispList(G.obedit);
-		G.undo_edit_level--;
-	} else error("No more steps to undo");
-}
-
-
-void undo_redo_mesh(void)
-{
-	if ( (G.undo_edit[G.undo_edit_level+2].datablock) &&
-		( (G.undo_edit_level+1) <= G.undo_edit_highest ) ) {
-		G.undo_edit_level++;
-
-		//printf("redo: restoring block: %d [%s]\n", G.undo_edit_level+1, G.undo_edit[G.undo_edit_level+1].name);-
-		make_editMesh_real((Mesh*)G.undo_edit[G.undo_edit_level+1].datablock);
-		allqueue(REDRAWVIEW3D, 0);
-		makeDispList(G.obedit);
-	} else error("No more steps to redo");
-}
-
-void undo_clear_mesh(void)
-{
-	int i;
-	Mesh *me;
-
-	for (i=0; i<=UNDO_EDIT_MAX; i++) {
-		me= (Mesh*) G.undo_edit[i].datablock;
-		if (me) {
-			//printf("undo: freeing %d\n", i);
-			undo_free_mesh(me);
-			G.undo_edit[i].datablock= 0;
-		}
-	}
-}
-
-#ifdef WIN32
-	#ifndef snprintf
-		#define snprintf  _snprintf
-	#endif
-#endif
-
-void undo_menu_mesh(void)
-{
-	short event=66;
-	int i;
-	char menu[2080], temp[64];
-
-	TEST_EDITMESH
-
-	strcpy(menu, "Undo %t|%l");
-	strcat(menu, "|All changes%x1|%l");
-	
-	for (i=G.undo_edit_level; i>=0; i--) {
-		snprintf(temp, 64, "|%s%%x%d", G.undo_edit[i].name, i+2);
-		strcat(menu, temp);
-	}
-
-	event=pupmenu_col(menu, 20);
-
-	if(event<1) return;
-
-	if (event==1) remake_editMesh();
-	else undo_pop_mesh(G.undo_edit_level-event+3);
-}
-
-/* *************** END UNDO *************/
 
 /* *************** SEPARATE (partial exit editmode) *************/
 
@@ -1344,13 +1253,12 @@ void separatemenu(void)
 	waitcursor(1);
 	
 	switch (event) {
-
-		case 1: 
-	    		separate_mesh();		    
-	    		break;
-		case 2:	    	    	    
-			separate_mesh_loose();	    	    
-			break;
+	case 1: 
+		separate_mesh();		    
+		break;
+	case 2:	    	    	    
+		separate_mesh_loose();	    	    
+		break;
 	}
 	waitcursor(0);
 }
@@ -1383,7 +1291,7 @@ void separate_mesh(void)
 	 * 1. add a duplicate object: this will be the new one, we remember old pointer
 	 * 2: then do a split if needed.
 	 * 3. put apart: all NOT selected verts, edges, faces
-	 * 4. call loadobeditdata(): this will be the new object
+	 * 4. call load_editMesh(): this will be the new object
 	 * 5. freelist and get back old verts, edges, facs
 	 */
 	
@@ -1397,12 +1305,12 @@ void separate_mesh(void)
 		base= base->next;
 	}
 	
-	/* testen for split */
+	/* test for split */
 	ok= 0;
 	eed= em->edges.first;
 	while(eed) {
-		flag= (eed->v1->f & 1)+(eed->v2->f & 1);
-		if(flag==1) {
+		flag= (eed->v1->f & SELECT)+(eed->v2->f & SELECT);
+		if(flag==SELECT) {
 			ok= 1;
 			break;
 		}
@@ -1410,7 +1318,7 @@ void separate_mesh(void)
 	}
 	if(ok) {
 		/* SPLIT: first make duplicate */
-		adduplicateflag(1);
+		adduplicateflag(SELECT);
 		/* SPLIT: old faces have 3x flag 128 set, delete these ones */
 		delfaceflag(128);
 	}
@@ -1420,7 +1328,7 @@ void separate_mesh(void)
 	eve= em->verts.first;
 	while(eve) {
 		v1= eve->next;
-		if((eve->f & 1)==0) {
+		if((eve->f & SELECT)==0) {
 			BLI_remlink(&em->verts, eve);
 			BLI_addtail(&edve, eve);
 		}
@@ -1429,7 +1337,7 @@ void separate_mesh(void)
 	eed= em->edges.first;
 	while(eed) {
 		e1= eed->next;
-		if( (eed->v1->f & 1)==0 || (eed->v2->f & 1)==0 ) {
+		if((eed->f & SELECT)==0) {
 			BLI_remlink(&em->edges, eed);
 			BLI_addtail(&eded, eed);
 		}
@@ -1438,7 +1346,7 @@ void separate_mesh(void)
 	efa= em->faces.first;
 	while(efa) {
 		vl1= efa->next;
-		if( (efa->v1->f & 1)==0 || (efa->v2->f & 1)==0 || (efa->v3->f & 1)==0 ) {
+		if((efa->f & SELECT)==0) {
 			BLI_remlink(&em->faces, efa);
 			BLI_addtail(&edvl, efa);
 		}
@@ -1466,19 +1374,14 @@ void separate_mesh(void)
 	BASACT->flag &= ~SELECT;
 	
 	makeDispList(G.obedit);
-	free_editMesh();
+	free_editMesh(G.editMesh);
 	
 	em->verts= edve;
 	em->edges= eded;
 	em->faces= edvl;
 	
 	/* hashedges are freed now, make new! */
-	eed= em->edges.first;
-	while(eed) {
-		if( findedgelist(eed->v1, eed->v2)==NULL )
-			insert_hashedge(eed);
-		eed= eed->next;
-	}
+	editMesh_set_hash();
 	
 	G.obedit= oldob;
 	BASACT= oldbase;
@@ -1513,7 +1416,7 @@ void separate_mesh_loose(void)
 	 * 1. add a duplicate object: this will be the new one, we remember old pointer
 	 * 2: then do a split if needed.
 	 * 3. put apart: all NOT selected verts, edges, faces
-	 * 4. call loadobeditdata(): this will be the new object
+	 * 4. call load_editMesh(): this will be the new object
 	 * 5. freelist and get back old verts, edges, facs
 	 */
 			
@@ -1541,35 +1444,30 @@ void separate_mesh_loose(void)
 		}		
 		
 		/*--------- Select connected-----------*/		
-		//sel= 3;
-		/* clear test flags */
-		eve= em->verts.first;
-		while(eve) {
-			eve->f&= ~1;			
-			eve= eve->next;
-		}
 		
+		EM_clear_flag_all(SELECT);
+
 		/* Select a random vert to start with */
 		eve= em->verts.first;
-		eve->f |= 1;
+		eve->f |= SELECT;
 		
 		while(check==1) {
 			check= 0;			
 			eed= em->edges.first;			
 			while(eed) {				
 				if(eed->h==0) {
-					if(eed->v1->f & 1) {
-						if( (eed->v2->f & 1)==0 ) {
-							eed->v2->f |= 1;
+					if(eed->v1->f & SELECT) {
+						if( (eed->v2->f & SELECT)==0 ) {
+							eed->v2->f |= SELECT;
 							vertsep++;
 							check= 1;
 						}
 					}
-					else if(eed->v2->f & 1) {
-						if( (eed->v1->f & 1)==0 ) {
-							eed->v1->f |= 1;
+					else if(eed->v2->f & SELECT) {
+						if( (eed->v1->f & SELECT)==0 ) {
+							eed->v1->f |= SELECT;
 							vertsep++;
-							check= 1;
+							check= SELECT;
 						}
 					}
 				}
@@ -1582,14 +1480,14 @@ void separate_mesh_loose(void)
 		/* If the amount of vertices that is about to be split == the total amount 
 		   of verts in the mesh, it means that there is only 1 unconnected object, so we don't have to separate
 		*/
-		if(G.totvert==vertsep)done=1;				
+		if(G.totvert==vertsep) done=1;				
 		else{			
 			/* Test for splitting: Separate selected */
 			ok= 0;
 			eed= em->edges.first;
 			while(eed) {
-				flag= (eed->v1->f & 1)+(eed->v2->f & 1);
-				if(flag==1) {
+				flag= (eed->v1->f & SELECT)+(eed->v2->f & SELECT);
+				if(flag==SELECT) {
 					ok= 1;
 					break;
 				}
@@ -1597,19 +1495,19 @@ void separate_mesh_loose(void)
 			}
 			if(ok) {
 				/* SPLIT: first make duplicate */
-				adduplicateflag(1);
+				adduplicateflag(SELECT);
 				/* SPLIT: old faces have 3x flag 128 set, delete these ones */
 				delfaceflag(128);
 			}	
 			
-			
-			
+			EM_select_flush();	// from verts->edges->faces
+
 			/* set apart: everything that is not selected */
 			edve.first= edve.last= eded.first= eded.last= edvl.first= edvl.last= 0;
 			eve= em->verts.first;
 			while(eve) {
 				v1= eve->next;
-				if((eve->f & 1)==0) {
+				if((eve->f & SELECT)==0) {
 					BLI_remlink(&em->verts, eve);
 					BLI_addtail(&edve, eve);
 				}
@@ -1618,7 +1516,7 @@ void separate_mesh_loose(void)
 			eed= em->edges.first;
 			while(eed) {
 				e1= eed->next;
-				if( (eed->v1->f & 1)==0 || (eed->v2->f & 1)==0 ) {
+				if( (eed->f & SELECT)==0 ) {
 					BLI_remlink(&em->edges, eed);
 					BLI_addtail(&eded, eed);
 				}
@@ -1627,7 +1525,7 @@ void separate_mesh_loose(void)
 			efa= em->faces.first;
 			while(efa) {
 				vl1= efa->next;
-				if( (efa->v1->f & 1)==0 || (efa->v2->f & 1)==0 || (efa->v3->f & 1)==0 ) {
+				if( (efa->f & SELECT)==0 ) {
 					BLI_remlink(&em->faces, efa);
 					BLI_addtail(&edvl, efa);
 				}
@@ -1655,19 +1553,14 @@ void separate_mesh_loose(void)
 			BASACT->flag &= ~SELECT;
 			
 			makeDispList(G.obedit);
-			free_editMesh();
+			free_editMesh(G.editMesh);
 			
 			em->verts= edve;
 			em->edges= eded;
 			em->faces= edvl;
 			
 			/* hashedges are freed now, make new! */
-			eed= em->edges.first;
-			while(eed) {
-				if( findedgelist(eed->v1, eed->v2)==NULL )
-					insert_hashedge(eed);
-				eed= eed->next;
-			}
+			editMesh_set_hash();
 			
 			G.obedit= oldob;
 			BASACT= oldbase;
@@ -1677,16 +1570,230 @@ void separate_mesh_loose(void)
 	}
 	
 	/* unselect the vertices that we (ab)used for the separation*/
-	eve= em->verts.first;
-	while(eve) {
-		eve->f&= ~1;			
-		eve= eve->next;
-	}
-	
+	EM_clear_flag_all(SELECT);
+		
 	waitcursor(0);
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);	
 }
+
+/* ******************************************** */
+
+/* *************** UNDO ***************************** */
+/* new mesh undo, based on pushing editmesh data itself */
+/* reuses same code as for global and curve undo... unify that (ton) */
+
+/* only one 'hack', to save memory it doesn't store the first push, but does a remake editmesh */
+
+/* a compressed version of editmesh data */
+typedef struct EditVertC
+{
+	float no[3];
+	float co[3];
+	unsigned char f, h;
+	short totweight;
+	struct MDeformWeight *dw;
+	int keyindex; 
+} EditVertC;
+
+typedef struct EditEdgeC
+{
+	int v1, v2;
+	unsigned char f, h, seam, pad;
+	float crease;
+} EditEdgeC;
+
+typedef struct EditFaceC
+{
+	int v1, v2, v3, v4;
+	unsigned char mat_nr, flag, f, h, puno, pad;
+	short pad1;
+} EditFaceC;
+
+typedef struct UndoMesh {
+	EditVertC *verts;
+	EditEdgeC *edges;
+	EditFaceC *faces;
+	TFace *tfaces;
+	int totvert, totedge, totface;
+} UndoMesh;
+
+
+/* for callbacks */
+
+static void free_undoMesh(void *umv)
+{
+	UndoMesh *um= umv;
+	EditVertC *evec;
+	int a;
+	
+	for(a=0, evec= um->verts; a<um->totvert; a++, evec++) {
+		if(evec->dw) MEM_freeN(evec->dw);
+	}
+	
+	if(um->verts) MEM_freeN(um->verts);
+	if(um->edges) MEM_freeN(um->edges);
+	if(um->faces) MEM_freeN(um->faces);
+	if(um->tfaces) MEM_freeN(um->tfaces);
+	MEM_freeN(um);
+}
+
+static void *editMesh_to_undoMesh(void)
+{
+	EditMesh *em= G.editMesh;
+	UndoMesh *um;
+	Mesh *me= G.obedit->data;
+	EditVert *eve;
+	EditEdge *eed;
+	EditFace *efa;
+	EditVertC *evec=NULL;
+	EditEdgeC *eedc=NULL;
+	EditFaceC *efac=NULL;
+	TFace *tface= NULL;
+	int a=0;
+	
+	um= MEM_callocN(sizeof(UndoMesh), "undomesh");
+
+	for(eve=em->verts.first; eve; eve= eve->next) um->totvert++;
+	for(eed=em->edges.first; eed; eed= eed->next) um->totedge++;
+	for(efa=em->faces.first; efa; efa= efa->next) um->totface++;
+
+	/* malloc blocks */
+	
+	if(um->totvert) evec= um->verts= MEM_callocN(um->totvert*sizeof(EditVertC), "allvertsC");
+	if(um->totedge) eedc= um->edges= MEM_callocN(um->totedge*sizeof(EditEdgeC), "alledgesC");
+	if(um->totface) efac= um->faces= MEM_callocN(um->totface*sizeof(EditFaceC), "allfacesC");
+
+	if(me->tface) tface= um->tfaces= MEM_mallocN(um->totface*sizeof(TFace), "all tfacesC");
+
+		//printf("copy editmesh %d\n", um->totvert*sizeof(EditVert) + um->totedge*sizeof(EditEdge) + um->totface*sizeof(EditFace));
+		//printf("copy undomesh %d\n", um->totvert*sizeof(EditVertC) + um->totedge*sizeof(EditEdgeC) + um->totface*sizeof(EditFaceC));
+	
+	/* now copy vertices */
+	for(eve=em->verts.first; eve; eve= eve->next, evec++, a++) {
+		VECCOPY(evec->co, eve->co);
+		VECCOPY(evec->no, eve->no);
+
+		evec->f= eve->f;
+		evec->h= eve->h;
+		evec->keyindex= eve->keyindex;
+		evec->totweight= eve->totweight;
+		evec->dw= MEM_dupallocN(eve->dw);
+		
+		eve->vn= (EditVert *)a;
+	}
+	
+	/* copy edges */
+	for(eed=em->edges.first; eed; eed= eed->next, eedc++)  {
+		eedc->v1= (int)eed->v1->vn;
+		eedc->v2= (int)eed->v2->vn;
+		eedc->f= eed->f;
+		eedc->h= eed->h;
+		eedc->seam= eed->seam;
+		eedc->crease= eed->crease;
+	}
+	
+	/* copy faces */
+	for(efa=em->faces.first; efa; efa= efa->next, efac++) {
+		efac->v1= (int)efa->v1->vn;
+		efac->v2= (int)efa->v2->vn;
+		efac->v3= (int)efa->v3->vn;
+		if(efa->v4) efac->v4= (int)efa->v4->vn;
+		else efac->v4= -1;
+		
+		efac->mat_nr= efa->mat_nr;
+		efac->flag= efa->flag;
+		efac->f= efa->f;
+		efac->h= efa->h;
+		efac->puno= efa->puno;
+		
+		if(tface) {
+			*tface= efa->tf;
+			tface++;
+		}
+	}
+	
+	return um;
+}
+
+static void undoMesh_to_editMesh(void *umv)
+{
+	UndoMesh *um= umv;
+	EditMesh *em= G.editMesh;
+	EditVert *eve, **evar=NULL;
+	EditEdge *eed;
+	EditFace *efa;
+	EditVertC *evec;
+	EditEdgeC *eedc;
+	EditFaceC *efac;
+	TFace *tface;
+	int a=0;
+	
+	free_editMesh(G.editMesh);
+	
+	/* malloc blocks */
+	memset(em, 0, sizeof(EditMesh));
+
+	init_editmesh_fastmalloc(em, um->totvert, um->totedge, um->totface);
+
+	/* now copy vertices */
+	if(um->totvert) evar= MEM_mallocN(um->totvert*sizeof(EditVert *), "vertex ar");
+	for(a=0, evec= um->verts; a<um->totvert; a++, evec++) {
+		eve= addvertlist(evec->co);
+		evar[a]= eve;
+
+		VECCOPY(eve->no, evec->no);
+		eve->f= evec->f;
+		eve->h= evec->h;
+		eve->totweight= evec->totweight;
+		eve->keyindex= evec->keyindex;
+		eve->dw= MEM_dupallocN(evec->dw);
+	}
+
+	/* copy edges */
+	for(a=0, eedc= um->edges; a<um->totedge; a++, eedc++) {
+		eed= addedgelist(evar[eedc->v1], evar[eedc->v2], NULL);
+
+		eed->f= eedc->f;
+		eed->h= eedc->h;
+		eed->seam= eedc->seam;
+		eed->crease= eedc->crease;
+	}
+	
+	/* copy faces */
+	tface= um->tfaces;
+	for(a=0, efac= um->faces; a<um->totface; a++, efac++) {
+		if(efac->v4 != -1)
+			efa= addfacelist(evar[efac->v1], evar[efac->v2], evar[efac->v3], evar[efac->v4], NULL);
+		else 
+			efa= addfacelist(evar[efac->v1], evar[efac->v2], evar[efac->v3], NULL, NULL);
+
+		efa->mat_nr= efac->mat_nr;
+		efa->flag= efac->flag;
+		efa->f= efac->f;
+		efa->h= efac->h;
+		efa->puno= efac->puno;
+		
+		if(tface) {
+			efa->tf= *tface;
+			tface++;
+		}
+	}
+	
+	end_editmesh_fastmalloc();
+	if(evar) MEM_freeN(evar);
+}
+
+
+/* and this is all the undo system needs to know */
+void undo_push_mesh(char *name)
+{
+	undo_editmode_push(name, free_undoMesh, undoMesh_to_editMesh, editMesh_to_undoMesh);
+}
+
+
+
+/* *************** END UNDO *************/
 
 
