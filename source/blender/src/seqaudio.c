@@ -338,23 +338,25 @@ void audiostream_play(Uint32 startframe, Uint32 duration, int mixdown)
 	static SDL_AudioSpec desired;
 	Editing *ed;
 	Sequence *seq;
-	bSound *sound;
-
-	/* this call used to be in startup */
-	sound_init_audio();
+	bSound *sound=NULL;
 
 	ed= G.scene->ed;
 	if(ed) {
 		seq= ed->seqbasep->first;
 		while(seq) {
-			if ((seq->type == SEQ_SOUND) && (seq->sound))
-			{
+			if ((seq->type == SEQ_SOUND) && (seq->sound)) {
 				sound = ((bSound*)seq->sound);
 				seq->curpos = (int)( (((float)((float)startframe-(float)seq->start)/(float)G.scene->r.frs_sec)*((float)G.scene->audio.mixrate)*4 ));
 			}
 			seq= seq->next;
 		}	
 	}
+
+	if(sound) {
+		/* this call used to be in startup */
+		sound_init_audio();
+	}
+	else return;
 
    	if (!(duration + mixdown)) {
    		desired.freq=G.scene->audio.mixrate;
