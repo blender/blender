@@ -4621,6 +4621,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 				else sl->blockscale-= 0.1;
 				CLAMP(sl->blockscale, 0.6, 1.0);
 				addqueue(block->winq, REDRAW, 1);
+				retval= UI_CONT;
 			}
 		}
 	}

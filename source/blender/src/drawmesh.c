@@ -183,8 +183,8 @@ int set_tpage(TFace *tface)
 	static int alphamode= -1;
 	static TFace *lasttface= 0;
 	Image *ima;
-	unsigned int *rect, *bind;
-	int tpx, tpy, tilemode, tileXRep,tileYRep;
+	unsigned int *rect=NULL, *bind;
+	int tpx=0, tpy=0, tilemode, tileXRep,tileYRep;
 	
 	/* disable */
 	if(tface==0) {
@@ -383,7 +383,7 @@ int set_tpage(TFace *tface)
 			rect= scalerect;
 		}
 
-		glGenTextures(1, bind);
+		glGenTextures(1, (GLuint *)bind);
 		
 		if(G.f & G_DEBUG) {
 			printf("var1: %s\n", ima->id.name+2);
@@ -430,11 +430,11 @@ int set_tpage(TFace *tface)
 void free_realtime_image(Image *ima)
 {
 	if(ima->bindcode) {
-		glDeleteTextures(1, &ima->bindcode);
+		glDeleteTextures(1, (GLuint *)&ima->bindcode);
 		ima->bindcode= 0;
 	}
 	if(ima->repbind) {
-		glDeleteTextures(ima->totbind, ima->repbind);
+		glDeleteTextures(ima->totbind, (GLuint *)ima->repbind);
 	
 		MEM_freeN(ima->repbind);
 		ima->repbind= 0;
@@ -457,7 +457,7 @@ void make_repbind(Image *ima)
 	if(ima==0 || ima->ibuf==0) return;
 
 	if(ima->repbind) {
-		glDeleteTextures(ima->totbind, ima->repbind);
+		glDeleteTextures(ima->totbind, (GLuint *)ima->repbind);
 		MEM_freeN(ima->repbind);
 		ima->repbind= 0;
 	}
@@ -752,8 +752,8 @@ static int set_draw_settings_cached(int clearcache, int textured, TFace *texface
 void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 /* maximum dt (drawtype): exactly according values that have been set */
 {
-	TFace *tface;
-	MFace *mface;
+	TFace *tface=NULL;
+	MFace *mface=NULL;
 	float *extverts= NULL;
 	unsigned char obcol[4];
 	int a, mode;
@@ -783,7 +783,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 		bProperty *prop = get_property(ob, "Text");
 		MFaceInt *mfaceint= NULL;
 		int editing= (G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT)) && (ob==((G.scene->basact) ? (G.scene->basact->object) : 0));
-		MVert *mvert;
+		MVert *mvert=NULL;
 		int totface;
 
 		if (mesh_uses_displist(me) && !editing) {
