@@ -1625,13 +1625,16 @@ void do_material_tex(ShadeInput *shi)
 				
 				// rotate to global coords
 				if(mtex->texco==TEXCO_ORCO || mtex->texco==TEXCO_UV) {
-					if(shi->vlr && shi->vlr->ob) {
-						float len= Normalise(texres.nor);
-						// can be optimized... (ton)
-						Mat4Mul3Vecfl(shi->vlr->ob->obmat, texres.nor);
-						Mat4Mul3Vecfl(R.viewmat, texres.nor);
-						Normalise(texres.nor);
-						VecMulf(texres.nor, len);
+					// hrms, for sphere/tube map this rotating doesn't work nice
+					if(mtex->mapping==MTEX_FLAT || mtex->mapping==MTEX_CUBE) {
+						if(shi->vlr && shi->vlr->ob) {
+							float len= Normalise(texres.nor);
+							// can be optimized... (ton)
+							Mat4Mul3Vecfl(shi->vlr->ob->obmat, texres.nor);
+							Mat4Mul3Vecfl(R.viewmat, texres.nor);
+							Normalise(texres.nor);
+							VecMulf(texres.nor, len);
+						}
 					}
 				}
 			}
