@@ -3006,7 +3006,6 @@ static void do_game_menu(void *arg, int event)
 	}
 }
 
-
 static uiBlock *info_gamemenu(void *arg_unused)
 {
 	uiBlock *block;
@@ -3015,13 +3014,14 @@ static uiBlock *info_gamemenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "gamemenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetCol(block, BUTBLUE);
 	uiBlockSetDirection(block, UI_DOWN);
-	
+#if GAMEBLENDER == 1
 	uiDefBut(block, BUTM, B_STARTGAME, "Start Game|P", 
 			 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 0, 0, 
 			 "Start the game (press the Escape key to stop)");
+	
 	uiDefBut(block, SEPR, 0, "",
 			-20, yco-=6, 180, 6, NULL, 0.0, 0.0, 1, 0, "");
-
+#endif
 	/* flags are case-values */
 	uiBlockSetButmFunc(block, do_game_menu, NULL);
 	uiDefBut(block, BUTM, 1, "Enable All Frames",
@@ -3039,7 +3039,11 @@ static uiBlock *info_gamemenu(void *arg_unused)
 			 "Toggle between automatic game start on and off");
 	
 	/* Toggle buttons */
+#if GAMEBLENDER == 1
 	yco= -26;
+#else
+	yco= 0;
+#endif
 	uiBlockSetEmboss(block, UI_EMBOSSW);
 	/* flags are defines */
 
@@ -3057,7 +3061,7 @@ static uiBlock *info_gamemenu(void *arg_unused)
 	uiDefIconButI(block, ICONTOG|BIT|G_FILE_AUTOPLAY_BIT,
 			 0, ICON_CHECKBOX_DEHLT, -20, yco-=20, 19, 19,
 			 &G.fileflags, 0.0, 0.0, 0, 0, "");
-	
+
 	return block;
 }
 
@@ -3184,6 +3188,7 @@ void info_buttons(void)
 
 	uiDefBlockBut(block, info_viewmenu, NULL, "View",	xco, 3, 40, 15, "");
 	xco+= 40;
+
 	uiDefBlockBut(block, info_gamemenu, NULL, "Game",	xco, 3, 40, 15, "");
 	xco+= 40;
 
@@ -3843,8 +3848,9 @@ void view3d_buttons(void)
 	xco+=XIC;
 	uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Render this view. (Hold SHIFT for Anim render)");
 	xco+=XIC;
+#if GAMEBLENDER == 1
 	uiDefIconBut(block, BUT, B_STARTGAME, ICON_GAME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Start game (PKEY)");
-
+#endif
 
 	/* Always do this last */
 	curarea->headbutlen= xco+2*XIC;
