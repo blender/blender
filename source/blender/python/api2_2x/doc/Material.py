@@ -85,7 +85,6 @@ class Material:
   @cvar mode: Mode flags as an or'ed int value.  See the Modes dictionary keys
       and descriptions in L{Modes}.
   @cvar rgbCol: Material's RGB color triplet.
-  @cvar ambCol: Ambient color rgb triplet.
   @cvar specCol: Specular color rgb triplet.
   @cvar mirCol: Mirror color rgb triplet.
   @cvar R: Red component of L{rgbCol} - [0.0, 1.0].
@@ -172,22 +171,6 @@ class Material:
         - three floats as separate parameters: setRGBCol (r,g,b).
     """
  
-  def getAmbCol():
-    """
-    Get the ambient color triplet.
-    @rtype: list of 3 floats
-    @return: [ambR, ambG, ambB]
-    """
-
-  def setAmbCol(rgb = None):
-    """
-    Set the ambient color triplet.  If B{rgb} is None, set the color to black.
-    @type rgb: three floats or a list of three floats
-    @param rgb: The rgb color values in [0.0, 1.0] as:
-        - a list of three floats: setAmbCol ([r, g, b]) B{or}
-        - three floats as separate parameters: setAmbCol (r,g,b).
-    """
-
   def getSpecCol():
     """
     Get the specular color triplet.

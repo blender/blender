@@ -318,7 +318,7 @@ PyObject *Material_Init (void)
 static PyObject *Material_getName(BPy_Material *self);
 static PyObject *Material_getMode(BPy_Material *self);
 static PyObject *Material_getRGBCol(BPy_Material *self);
-static PyObject *Material_getAmbCol(BPy_Material *self);
+/*static PyObject *Material_getAmbCol(BPy_Material *self);*/
 static PyObject *Material_getSpecCol(BPy_Material *self);
 static PyObject *Material_getMirCol(BPy_Material *self);
 static PyObject *Material_getAmb(BPy_Material *self);
@@ -344,7 +344,7 @@ static PyObject *Material_setName(BPy_Material *self, PyObject *args);
 static PyObject *Material_setMode(BPy_Material *self, PyObject *args);
 static PyObject *Material_setIntMode(BPy_Material *self, PyObject *args);
 static PyObject *Material_setRGBCol(BPy_Material *self, PyObject *args);
-static PyObject *Material_setAmbCol(BPy_Material *self, PyObject *args);
+/*static PyObject *Material_setAmbCol(BPy_Material *self, PyObject *args);*/
 static PyObject *Material_setSpecCol(BPy_Material *self, PyObject *args);
 static PyObject *Material_setMirCol(BPy_Material *self, PyObject *args);
 static PyObject *Material_setAmb(BPy_Material *self, PyObject *args);
@@ -381,8 +381,8 @@ static PyMethodDef BPy_Material_methods[] = {
       "() - Return Material mode flags"},
   {"getRGBCol", (PyCFunction)Material_getRGBCol, METH_NOARGS,
       "() - Return Material's rgb color triplet"},
-  {"getAmbCol", (PyCFunction)Material_getAmbCol, METH_NOARGS,
-      "() - Return Material's ambient color"},
+/*  {"getAmbCol", (PyCFunction)Material_getAmbCol, METH_NOARGS,
+      "() - Return Material's ambient color"},*/
   {"getSpecCol", (PyCFunction)Material_getSpecCol, METH_NOARGS,
       "() - Return Material's specular color"},
   {"getMirCol", (PyCFunction)Material_getMirCol, METH_NOARGS,
@@ -432,8 +432,8 @@ static PyMethodDef BPy_Material_methods[] = {
       "([s[,s]]) - Set Material mode flag(s)"},
   {"setRGBCol", (PyCFunction)Material_setRGBCol, METH_VARARGS,
       "(f,f,f or [f,f,f]) - Set Material's rgb color triplet"},
-  {"setAmbCol", (PyCFunction)Material_setAmbCol, METH_VARARGS,
-      "(f,f,f or [f,f,f]) - Set Material's ambient color"},
+/*  {"setAmbCol", (PyCFunction)Material_setAmbCol, METH_VARARGS,
+      "(f,f,f or [f,f,f]) - Set Material's ambient color"},*/
   {"setSpecCol", (PyCFunction)Material_setSpecCol, METH_VARARGS,
       "(f,f,f or [f,f,f]) - Set Material's specular color"},
   {"setMirCol", (PyCFunction)Material_setMirCol, METH_VARARGS,
@@ -610,12 +610,12 @@ static PyObject *Material_getRGBCol(BPy_Material *self)
 {
   return rgbTuple_getCol(self->col);
 }
-
+/*
 static PyObject *Material_getAmbCol(BPy_Material *self)
 {
   return rgbTuple_getCol(self->amb);
 }
-
+*/
 static PyObject *Material_getSpecCol(BPy_Material *self)
 {
   return rgbTuple_getCol(self->spec);
@@ -928,12 +928,12 @@ static PyObject *Material_setRGBCol (BPy_Material *self, PyObject *args)
 {
   return rgbTuple_setCol(self->col, args);
 }
-
+/*
 static PyObject *Material_setAmbCol (BPy_Material *self, PyObject *args)
 {
   return rgbTuple_setCol(self->amb, args);
 }
-
+*/
 static PyObject *Material_setSpecCol (BPy_Material *self, PyObject *args)
 {
   return rgbTuple_setCol(self->spec, args);
@@ -1249,8 +1249,8 @@ static PyObject *Material_getAttr (BPy_Material *self, char *name)
     attr = PyInt_FromLong(self->material->mode);
   else if (strcmp(name, "rgbCol") == 0)
     attr = Material_getRGBCol(self);
-  else if (strcmp(name, "ambCol") == 0)
-    attr = Material_getAmbCol(self);
+/*  else if (strcmp(name, "ambCol") == 0)
+    attr = Material_getAmbCol(self);*/
   else if (strcmp(name, "specCol") == 0)
     attr = Material_getSpecCol(self);
   else if (strcmp(name, "mirCol") == 0)
@@ -1301,10 +1301,10 @@ static PyObject *Material_getAttr (BPy_Material *self, char *name)
     attr = PyInt_FromLong((long)self->material->ringc);
 
   else if (strcmp(name, "__members__") == 0) {
-    attr = /* 28 items */
-      Py_BuildValue("[s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s]",
-                    "name", "mode", "rgbCol", "ambCol", "specCol", "mirCol",
-                    "R", "G", "B", "alpha", "amb", "emit", "ref", "spec",
+    attr = /* 27 items */
+      Py_BuildValue("[s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s]",
+        "name", "mode", "rgbCol", "specCol", "mirCol",
+        "R", "G", "B", "alpha", "amb", "emit", "ref", "spec",
 		    "specTransp", "add", "zOffset", "haloSize", "haloSeed",
 		    "flareSize", "flareBoost", "flareSeed", "subSize", "hard",
 		    "nFlares", "nStars", "nLines", "nRings");
@@ -1351,8 +1351,8 @@ static int Material_setAttr (BPy_Material *self, char *name, PyObject *value)
     error = Material_setIntMode (self, valtuple); /* special case */
   else if (strcmp (name, "rgbCol") == 0)
     error = Material_setRGBCol (self, valtuple);
-  else if (strcmp (name, "ambCol") == 0)
-    error = Material_setAmbCol (self, valtuple);
+/*  else if (strcmp (name, "ambCol") == 0)
+    error = Material_setAmbCol (self, valtuple);*/
   else if (strcmp (name, "specCol") == 0)
     error = Material_setSpecCol (self, valtuple);
   else if (strcmp (name, "mirCol") == 0)

@@ -749,6 +749,10 @@ static PyObject *NMesh_getVertexInfluences(PyObject *self, PyObject *args)
   /* Get a reference to the mesh object wrapped in here. */
   Mesh *me = ((BPy_NMesh*)self)->mesh;
 
+	if (!me)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+								"unlinked nmesh: call its .update() method first");
+
   /* Parse the parameters: only on integer (vertex index) */
   if (!PyArg_ParseTuple(args, "i", &index))
         return EXPP_ReturnPyObjError (PyExc_TypeError,
@@ -787,9 +791,7 @@ static PyObject *NMesh_getVertexInfluences(PyObject *self, PyObject *args)
   }
   else influence_list = PyList_New(0);
 
-  /* Return the list. !QUESTION! Should i reincrement the number of
-   * references like i'm doing? */
-  return influence_list; /* No need to incref it */
+  return influence_list;
 }
 
 Mesh *Mesh_fromNMesh(BPy_NMesh *nmesh)

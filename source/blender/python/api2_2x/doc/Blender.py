@@ -6,7 +6,8 @@
 
 # epydoc -t Blender.py -n "Blender" --no-private --no-frames Blender.py \
 # Camera.py Lamp.py Material.py BGL.py Window.py Text.py Image.py NMesh.py \
-# Scene.py Draw.py Armature.py Types.py Curve.py Effect.py Ipo.py Metaball.py
+# Scene.py Draw.py Armature.py Types.py Curve.py Effect.py Ipo.py Metaball.py \
+# World.py
 
 """
 This is the main Blender module.
@@ -31,6 +32,7 @@ Blender Python
   - L{Effect}
   - L{Curve}
   - L{Ipo}
+  - L{World}
   - L{BGL}
   - L{Window}
   - L{Draw}

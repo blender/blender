@@ -27,11 +27,11 @@ Example::
 @type FaceFlags: readonly dictionary
 @type FaceModes: readonly dictionary
 @type FaceTranspModes: readonly dictionary
-@var FaceFlags: The available face selection flags:
+@var FaceFlags: The available face selection flags.
     - SELECT - selected.
     - HIDE - hidden.
     - ACTIVE - the active face.
-@var FaceModes: The available face modes:
+@var FaceModes: The available face modes.
     - ALL - set all modes at once.
     - BILLBOARD - always orient after camera.
     - HALO - halo face, always point to camera.
@@ -45,8 +45,8 @@ Example::
     - TEX - has texture image.
     - TILES - uses tiled image.
     - TWOSIDE - two-sided face.
-@var FaceTranspModes: Note: these are ENUMS, they can't be combined (and'ed,
-  or'ed, etc) like a bit vector.  The available face transparency modes:
+@var FaceTranspModes: The available face transparency modes. Note: these are
+  ENUMS, they can't be combined (and'ed, or'ed, etc) like a bit vector.
     - SOLID - draw solid.
     - ADD - add to background (halo).
     - ALPHA - draw with transparency.
@@ -270,7 +270,9 @@ class NMesh :
 
   def insertKey(frame = None):
     """
-    Insert a mesh key at the given frame.
+    Insert a mesh key at the given frame.  Remember to L{update} the nmesh
+    before doing this, or changes in the vertices won't be updated in the
+    Blender mesh.
     @type frame: int
     @param frame: The Scene frame where the mesh key should be inserted.  If
         None, the current frame is used.
