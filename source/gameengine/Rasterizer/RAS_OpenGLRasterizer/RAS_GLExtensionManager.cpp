@@ -60,6 +60,7 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include <bitset>
 
 #include "STR_String.h"
 
@@ -217,7 +218,7 @@ static void *bglGetProcAddress(const GLubyte* entry)
    GL Extension Manager.
 */
 	/* Bit array of available extensions */
-static unsigned int enabled_extensions[(bgl::NUM_EXTENSIONS + 8*sizeof(unsigned int) - 1)/(8*sizeof(unsigned int))];
+static std::bitset<bgl::NUM_EXTENSIONS> enabled_extensions;
 static std::vector<STR_String> extensions;
 static int m_debug;
 	
@@ -227,7 +228,7 @@ static void EnableExtension(bgl::ExtensionName name)
 {
 	unsigned int num = (unsigned int) name;
 	if (num < bgl::NUM_EXTENSIONS)
-		enabled_extensions[num/(8*sizeof(unsigned int))] |= (1<<(num%(8*sizeof(unsigned int))));
+		enabled_extensions.set(num);
 }
 
 
@@ -251,10 +252,10 @@ void InitExtensions(int debug)
 bool QueryExtension(ExtensionName name)
 {
 	unsigned int num = (unsigned int) name;
-	if (num >= NUM_EXTENSIONS)
-		return false;
-	
-	return (enabled_extensions[num/(8*sizeof(unsigned int))] & (1<<(num%(8*sizeof(unsigned int))))) != 0;
+	if (num < NUM_EXTENSIONS)
+		return enabled_extensions[num];
+		 
+	return false;
 }
 
 bool QueryVersion(int major, int minor)
