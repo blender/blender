@@ -647,7 +647,7 @@ void uiDrawBlock(uiBlock *block)
 	uiPanelPush(block); // panel matrix
 	
 	if(block->flag & UI_BLOCK_LOOP) {
-		uiDrawMenuBox(block->minx, block->miny, block->maxx, block->maxy);
+		uiDrawMenuBox(block->minx, block->miny, block->maxx, block->maxy, block->flag);
 	}
 	else if(block->panel) ui_draw_panel(block);
 	
@@ -1485,6 +1485,8 @@ static int ui_do_but_NUM(uiBut *but)
 	ui_draw_but(but);	
 	glFlush(); // flush display in subloops
 	
+	uibut_do_func(but);
+	
 	return but->retval;
 }
 
@@ -1717,12 +1719,12 @@ static int ui_do_but_SLI(uiBut *but)
 			if(but->a1) {	/* color number */
 				uiBut *bt= but->prev;
 				while(bt) {
-					if(bt->retval == but->a1) ui_draw_but(bt);
+					if(bt->a2 == but->a1) ui_draw_but(bt);
 					bt= bt->prev;
 				}
 				bt= but->next;
 				while(bt) {
-					if(bt->retval == but->a1) ui_draw_but(bt);
+					if(bt->a2 == but->a1) ui_draw_but(bt);
 					bt= bt->next;
 				}
 			}
@@ -1861,6 +1863,7 @@ static int ui_do_but_BUTM(uiBut *but)
 
 static int ui_do_but_LABEL(uiBut *but)
 {
+
 	uibut_do_func(but);
 	return but->retval;
 }
@@ -2058,6 +2061,234 @@ static int ui_do_but_LINK(uiBlock *block, uiBut *but)
 	return 0;
 }
 
+/* picker sizes S size, D spacer, B button/pallette height  */
+#define SPICK	100.0
+#define DPICK	6.0
+#define BPICK	24.0
+
+static short pick_mode=0;
+
+#define UI_PALETTE_TOT 16
+static float palette[UI_PALETTE_TOT][3]= {
+{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 
+{1.0, 1.0, 0.0}, {1.0, 0.0, 1.0}, {0.0, 1.0, 1.0}, {1.0, 1.0, 1.0}, 
+{0.85, 0.85, 0.85}, {0.7, 0.7, 0.7}, {0.6, 0.6, 0.6}, {0.5, 0.5, 0.5}, 
+{0.4, 0.4, 0.4}, {0.3, 0.3, 0.3}, {0.2, 0.2, 0.2}, {0.1, 0.1, 0.1}
+};  
+
+
+static void update_picker_buts(uiBlock *block, float *col)
+{
+	uiBut *bt;
+	float h, s, v;
+	
+	// this updates button strings, is hackish... but button pointers are on stack of caller function
+
+	rgb_to_hsv(col[0], col[1], col[2], &h, &s, &v);
+
+	for(bt= block->buttons.first; bt; bt= bt->next) {
+		if(bt->str[0]=='R') {
+			ui_set_but_val(bt, col[0]);
+			ui_check_but(bt);
+		}
+		else if(bt->str[0]=='G') {
+			ui_set_but_val(bt, col[1]);
+			ui_check_but(bt);
+		}
+		else if(bt->str[0]=='B') {
+			ui_set_but_val(bt, col[2]);
+			ui_check_but(bt);
+		}
+		else if(bt->str[0]=='H') {
+			ui_set_but_val(bt, h);
+			ui_check_but(bt);
+		}
+		else if(bt->str[0]=='S') {
+			ui_set_but_val(bt, s);
+			ui_check_but(bt);
+		}
+		else if(bt->str[0]=='V') {
+			ui_set_but_val(bt, v);
+			ui_check_but(bt);
+		}
+	}
+}
+
+/* bt1 is palette but, bt2 is the parent button of the picker */
+static void do_palette_cb(void *bt1, void *bt2)
+{
+	uiBut *but1= (uiBut *)bt1;
+	uiBut *but2= (uiBut *)bt2;
+	float col[3], *fp;
+	
+	ui_get_but_vectorf(but2, col);
+	fp= (float *)but1->poin;
+	
+	if(pick_mode) {
+		VECCOPY(fp, col);
+	}
+	else {
+		VECCOPY(col, fp);
+		ui_set_but_vectorf(but2, col);
+	}
+
+	but1->block->flag |= UI_BLOCK_NOSHADOW;
+	uiDrawBlock(but1->block);
+	glFlush(); // flush display in subloops
+}
+
+/* bt1 is num but, bt2 is the parent button of the picker */
+static void do_palette1_cb(void *bt1, void *bt2)
+{
+	uiBut *but1= (uiBut *)bt1;
+	uiBut *but2= (uiBut *)bt2;
+	float *fp= NULL, col[3];
+	
+	if(but1->str[0]=='H') fp= (float *)but1->poin;
+	else if(but1->str[0]=='S') fp= ((float *)but1->poin)-1;
+	else if(but1->str[0]=='V') fp= ((float *)but1->poin)-2;
+	
+	if(fp) {
+		hsv_to_rgb(fp[0], fp[1], fp[2], col, col+1, col+2);
+		ui_set_but_vectorf(but2, col);
+	}
+	else {
+		if(but1->str[0]=='R') fp= (float *)but1->poin;
+		else if(but1->str[0]=='G') fp= ((float *)but1->poin)-1;
+		else if(but1->str[0]=='B') fp= ((float *)but1->poin)-2;
+		
+		if(fp) {
+			ui_set_but_vectorf(but2, fp);
+			VECCOPY(col, fp);
+		}
+	}
+	
+	update_picker_buts(but2->block, col);
+	
+	but1->block->flag |= UI_BLOCK_NOSHADOW;
+	uiDrawBlock(but1->block);
+	glFlush(); // flush display in subloops
+}
+
+/* color picker */
+static int ui_do_but_COL(uiBut *but)
+{
+	uiBlock *block;
+	uiBut *bt;
+	ListBase listb={NULL, NULL};
+	float col[3], hsv[3], h;
+	int a;
+	short event;
+	
+	// signal to prevent calling up color picker
+	if(but->a1 == -1 || but->pointype!=FLO) {
+		uibut_do_func(but);
+		return 0;
+	}
+	
+	block= uiNewBlock(&listb, "colorpicker", UI_EMBOSSP, UI_HELV, but->win);
+	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
+	block->themecol= TH_BUT_NUM;
+	
+	// the cube intersections
+	bt= uiDefButF(block, HSVCUBE, 0, "",	0,DPICK+BPICK,SPICK,SPICK, (float *)but->poin, 0.0, 0.0, 0, 0, "");
+	uiButSetFlag(bt, UI_NO_HILITE);
+	bt= uiDefButF(block, HSVCUBE, 0, "",	0,2*DPICK+BPICK+SPICK,SPICK,SPICK, (float *)but->poin, 0.0, 0.0, 1, 0, "");
+	uiButSetFlag(bt, UI_NO_HILITE);
+	bt= uiDefButF(block, HSVCUBE, 0, "",	DPICK+SPICK,2*DPICK+BPICK+SPICK,SPICK,SPICK, (float *)but->poin, 0.0, 0.0, 2, 0, "");
+	uiButSetFlag(bt, UI_NO_HILITE);
+
+	// palette
+	uiDefButF(block, COL, 0, "",		0,0,60,BPICK, (float *)but->poin, 0.0, 0.0, -1, 0, "");
+	h= (DPICK+2*SPICK-64)/(UI_PALETTE_TOT/2.0);
+	for(a=0; a<UI_PALETTE_TOT/2; a++) {
+		bt= uiDefButF(block, COL, 0, "",	65.0+(float)a*h, BPICK/2, h, BPICK/2, palette[a+UI_PALETTE_TOT/2], 0.0, 0.0, -1, 0, "");
+		uiButSetFunc(bt, do_palette_cb, bt, but);
+		bt= uiDefButF(block, COL, 0, "",	65.0+(float)a*h, 0, h, BPICK/2, palette[a], 0.0, 0.0, -1, 0, "");		
+		uiButSetFunc(bt, do_palette_cb, bt, but);
+	}
+	
+	// buttons
+	ui_get_but_vectorf(but, col);
+	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
+	
+	bt= uiDefButF(block, NUM, 0, "R ",	DPICK+SPICK,BPICK+DPICK+SPICK-20,SPICK/2,20, col, 0.0, 1.0, 10, 2, "");
+	uiButSetFunc(bt, do_palette1_cb, bt, but);
+	bt= uiDefButF(block, NUM, 0, "G ",	DPICK+SPICK,BPICK+DPICK+SPICK-40,SPICK/2,20, col+1, 0.0, 1.0, 10, 2, "");
+	uiButSetFunc(bt, do_palette1_cb, bt, but);
+	bt= uiDefButF(block, NUM, 0, "B ",	DPICK+SPICK,BPICK+DPICK+SPICK-60,SPICK/2,20, col+2, 0.0, 1.0, 10, 2, "");
+	uiButSetFunc(bt, do_palette1_cb, bt, but);
+
+	bt= uiDefButF(block, NUM, 0, "H ",	DPICK+1.5*SPICK,BPICK+DPICK+SPICK-20,SPICK/2,20, hsv, 0.0, 1.0, 10, 2, "");
+	uiButSetFunc(bt, do_palette1_cb, bt, but);
+	bt= uiDefButF(block, NUM, 0, "S ",	DPICK+1.5*SPICK,BPICK+DPICK+SPICK-40,SPICK/2,20, hsv+1, 0.0, 1.0, 10, 2, "");
+	uiButSetFunc(bt, do_palette1_cb, bt, but);
+	bt= uiDefButF(block, NUM, 0, "V ",	DPICK+1.5*SPICK,BPICK+DPICK+SPICK-60,SPICK/2,20, hsv+2, 0.0, 1.0, 10, 2, "");
+	uiButSetFunc(bt, do_palette1_cb, bt, but);
+
+	uiBlockBeginAlign(block);
+	uiDefButS(block, ROW, 	0, "Paste to color",	DPICK+SPICK, BPICK+DPICK+20, SPICK,20, &pick_mode, 0.0, 0.0, 0, 0, "Clicks in palette pastes to active color");
+	uiDefButS(block, ROW, 	0, "Copy to palette",DPICK+SPICK, BPICK+DPICK, SPICK,20, &pick_mode, 0.0, 1.0, 0, 0, "Clicks in palette copies from active color");
+	uiBlockEndAlign(block);
+	
+
+	// safety 
+	uiDefBut(block, LABEL, 0, "",	-DPICK,-DPICK,2*SPICK+3*DPICK,2*SPICK+4*DPICK+BPICK, NULL, 0.0, 0.0, 0, 0, "");
+	
+	/* and lets go */
+	block->direction= UI_TOP;
+	ui_positionblock(block, but);
+	block->win= G.curscreen->mainwin;
+	event= uiDoBlocks(&listb, 0);
+	
+	return but->retval;
+}
+
+static int ui_do_but_HSVCUBE(uiBut *but)
+{
+	float x, y, col[3], h,s,v;
+	short mval[2], mvalo[2];
+	
+	mvalo[0]= mvalo[1]= -32000;
+	
+	while (get_mbut() & L_MOUSE) {
+		
+		uiGetMouse(mywinget(), mval);
+
+		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {			
+			mvalo[0]= mval[0];
+			mvalo[1]= mval[1];
+			
+			/* relative position within box */
+			x= ((float)mval[0]-but->x1)/(but->x2-but->x1);
+			y= ((float)mval[1]-but->y1)/(but->x2-but->x1);
+			
+			CLAMP(x, 0.001, 0.999);
+			CLAMP(y, 0.001, 0.999);
+			
+			/* assign position to color */
+			ui_get_but_vectorf(but, col);
+			rgb_to_hsv(col[0], col[1], col[2], &h, &s, &v);
+			
+			if(but->a1==0) hsv_to_rgb(x, s, y, col, col+1, col+2);
+			else if(but->a1==1) hsv_to_rgb(x, y, v, col, col+1, col+2);
+			else hsv_to_rgb(h, y, x, col, col+1, col+2);
+			
+			ui_set_but_vectorf(but, col);
+			
+			// update button values and strings
+			update_picker_buts(but->block, col);
+
+			/* we redraw the entire block, but without transparent shadow */
+			but->block->flag |= UI_BLOCK_NOSHADOW;
+			uiDrawBlock(but->block);
+			glFlush(); // flush display in subloops
+		}
+		else BIF_wait_for_statechange();
+	}
+	return 0;
+}
+
 
 /* ************************************************ */
 
@@ -2178,6 +2409,7 @@ static void edit_but(uiBlock *block, uiBut *but, uiEvent *uevent)
 	if(didit) setup_file(block);
 }
 
+
 /* is called when LEFTMOUSE is pressed or released
  * return: butval or zero
  */
@@ -2287,6 +2519,14 @@ static int ui_do_button(uiBlock *block, uiBut *but, uiEvent *uevent)
 	case LINK:
 	case INLINK:
 		retval= ui_do_but_LINK(block, but);
+		break;
+		
+	case COL:
+		if(uevent->val) retval= ui_do_but_COL(but);
+		break;
+		
+	case HSVCUBE:
+		retval= ui_do_but_HSVCUBE(but);
 		break;
 	}
 	
@@ -3129,6 +3369,42 @@ int uiDoBlocks(ListBase *lb, int event)
 
 /* ************** DATA *************** */
 
+/* for buttons pointing to color for example */
+void ui_get_but_vectorf(uiBut *but, float *vec)
+{
+	void *poin;
+
+	poin= but->poin;
+
+	if( but->pointype == CHA ) {
+		char *cp= (char *)poin;
+		vec[0]= ((float)cp[0])/255.0;
+		vec[1]= ((float)cp[1])/255.0;
+		vec[2]= ((float)cp[2])/255.0;
+	}
+	else if( but->pointype == FLO ) {
+		float *fp= (float *)poin;
+		VECCOPY(vec, fp);
+	}
+}
+/* for buttons pointing to color for example */
+void ui_set_but_vectorf(uiBut *but, float *vec)
+{
+	void *poin;
+
+	poin= but->poin;
+
+	if( but->pointype == CHA ) {
+		char *cp= (char *)poin;
+		cp[0]= (char)(0.5 +vec[0]*255.0);
+		cp[1]= (char)(0.5 +vec[1]*255.0);
+		cp[2]= (char)(0.5 +vec[2]*255.0);
+	}
+	else if( but->pointype == FLO ) {
+		float *fp= (float *)poin;
+		VECCOPY(fp, vec);
+	}
+}
 
 double ui_get_but_val(uiBut *but)
 {
@@ -3439,6 +3715,23 @@ void ui_check_but(uiBut *but)
 		else {
 			sprintf(but->drawstr, "%s%d", but->str, (int)value);
 		}
+		break;
+
+	case LABEL:
+		if( but->pointype==FLO && but->poin) {
+			value= ui_get_but_val(but);
+			if(but->a2) { /* amount of digits defined */
+				if(but->a2==1) sprintf(but->drawstr, "%s%.1f", but->str, value);
+				else if(but->a2==2) sprintf(but->drawstr, "%s%.2f", but->str, value);
+				else if(but->a2==3) sprintf(but->drawstr, "%s%.3f", but->str, value);
+				else sprintf(but->drawstr, "%s%.4f", but->str, value);
+			}
+			else {
+				sprintf(but->drawstr, "%s%.2f", but->str, value);
+			}
+		}
+		else strcpy(but->drawstr, but->str);
+		
 		break;
 
 	case IDPOIN:

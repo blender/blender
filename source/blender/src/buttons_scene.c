@@ -796,7 +796,7 @@ static uiBlock *edge_render_menu(void *arg_unused)
 		  "For unified renderer: also consider transparent faces for toon shading");
 
 	/* colour settings for the toon shading */
-	uiDefButF(block, COL, B_EDGECOLSLI, "", 295,-10,30,60,  &(G.scene->r.edgeR), 0, 0, 0, 0, "");
+	uiDefButF(block, COL, 0, "", 295,-10,30,60,  &(G.scene->r.edgeR), 0, 0, 0, B_EDGECOLSLI, "");
 	
 	uiDefButF(block, NUMSLI, 0, "R ",   325, 30, 180,19,   &G.scene->r.edgeR, 0.0, 1.0, B_EDGECOLSLI, 0,
 		  "For unified renderer: Colour for edges in toon shading mode.");
@@ -852,7 +852,7 @@ static uiBlock *framing_render_menu(void *arg_unused)
 	yco -= 20;
 	xco = 35;
 
-	uiDefButF(block, COL, randomcolorindex, "",                0, yco - 58 + 18, 33, 58, &G.scene->framing.col[0], 0, 0, 0, 0, "");
+	uiDefButF(block, COL, 0, "",                0, yco - 58 + 18, 33, 58, &G.scene->framing.col[0], 0, 0, 0, randomcolorindex, "");
 
 	uiDefButF(block, NUMSLI, 0, "R ", xco,yco,243,18, &G.scene->framing.col[0], 0.0, 1.0, randomcolorindex, 0, "Set the red component of the bars");
 	yco -= 20;

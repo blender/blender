@@ -952,7 +952,7 @@ void toolbox(void)
 	
 	bgntoolbox();
 	glColor3ub(0xB0, 0xB0, 0xB0);
-	uiDrawMenuBox((float)tbx1, (float)tby1-1, (float)tbx2, (float)tby2);
+	uiDrawMenuBox((float)tbx1, (float)tby1-1, (float)tbx2, (float)tby2, 0);
 	drawtoolbox();
 	
 	/* 

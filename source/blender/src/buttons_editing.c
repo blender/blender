@@ -2107,7 +2107,7 @@ static void editing_panel_links(Object *ob)
 	if(ma) uiDefBut(block, LABEL, 0, ma->id.name+2, 318,153, 103, 20, 0, 0, 0, 0, 0, "");
 
 	uiBlockBeginAlign(block);
-	if(ma) uiDefButF(block, COL, 0, "",			291,123,24,30, &(ma->r), 0, 0, 0, 0, "");
+	if(ma) uiDefButF(block, COL, B_REDR, "",			291,123,24,30, &(ma->r), 0, 0, 0, 0, "");
 	uiDefButC(block, NUM, B_REDR,	str,		318,123,103,30, &ob->actcol, min, (float)(ob->totcol), 0, 0, "Displays total number of material indices and the current index");
 	uiDefBut(block, BUT,B_MATWICH,	"?",		423,123,31,30, 0, 0, 0, 0, 0, "In EditMode, sets the active material index from selected faces");
 
@@ -2314,7 +2314,7 @@ static void editing_panel_mesh_paint(void)
 	uiDefButF(block, NUMSLI, 0, "Opacity ",		979,100,194,19, &Gvp.a, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
 	uiDefButF(block, NUMSLI, 0, "Size ",		979,80,194,19, &Gvp.size, 2.0, 64.0, 0, 0, "The size of the brush");
 
-	uiDefButF(block, COL, B_VPCOLSLI, "",		1176,100,28,80, &(Gvp.r), 0, 0, 0, 0, "");
+	uiDefButF(block, COL, B_REDR, "",		1176,100,28,80, &(Gvp.r), 0, 0, 0, B_VPCOLSLI, "");
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_DIFF, "Mix",			1212,160,63,19, &Gvp.mode, 1.0, 0.0, 0, 0, "Mix the vertex colours");
 	uiDefButS(block, ROW, B_DIFF, "Add",			1212,140,63,19, &Gvp.mode, 1.0, 1.0, 0, 0, "Add the vertex colour");

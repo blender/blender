@@ -74,6 +74,8 @@ struct ScrArea;
 #define UI_BLOCK_BUSY		8
 #define UI_BLOCK_NUMSELECT	16
 #define UI_BLOCK_ENTER_OK	32
+#define UI_BLOCK_NOSHADOW	64
+
 	/* block->flag bits 12-15 are identical to but->flag bits */
 
 /* block->font, for now: bold = medium+1 */
@@ -144,6 +146,7 @@ struct ScrArea;
 #define INLINK	(23<<9)
 #define KEYEVT	(24<<9)
 #define ICONTEXTROW (25<<9)
+#define HSVCUBE (26<<9)
 
 #define BUTTYPE	(31<<9)
 
@@ -158,7 +161,7 @@ void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad);
 void uiSetRoundBox(int type);
 void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad);
 
-void uiDrawMenuBox(float minx, float miny, float maxx, float maxy);
+void uiDrawMenuBox(float minx, float miny, float maxx, float maxy, short flag);
 void uiTextBoundsBlock(uiBlock *block, int addval);
 void uiBoundsBlock(struct uiBlock *block, int addval);
 void uiDrawBlock(struct uiBlock *block);

@@ -1213,7 +1213,7 @@ static void draw_colorband_buts(uiBlock *block, ColorBand *coba, int offs, int r
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_CALCCBAND, "Pos",		10,125+offs,110,20, &cbd->pos, 0.0, 1.0, 10, 0, "Sets the position of the active colour");
-	uiDefButF(block, COL, B_BANDCOL, "",			10,105+offs,110,20, &(cbd->r), 0, 0, 0, 0, "");
+	uiDefButF(block, COL, B_TEXREDR_PRV, "",			10,105+offs,110,20, &(cbd->r), 0, 0, 0, B_BANDCOL, "");
 	uiDefButF(block, NUMSLI, B_TEXREDR_PRV, "A ",	10,85+offs,110,20, &cbd->a, 0.0, 1.0, 0, 0, "Sets the alpha value for this position");
 
 	uiBlockBeginAlign(block);
@@ -1618,7 +1618,7 @@ static void world_panel_mapto(World *wrld)
 	uiDefButS(block, TOG|BIT|0, B_MATPRV, "No RGB",		1014,130,69,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
 	uiBlockEndAlign(block);
 	
-	uiDefButF(block, COL, B_MTEXCOL, "",				920,105,163,19, &(mtex->r), 0, 0, 0, 0, "");
+	uiDefButF(block, COL, B_MATPRV_DRAW, "",				920,105,163,19, &(mtex->r), 0, 0, 0, B_MTEXCOL, "");
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, B_MATPRV, "R ",			920,80,163,19, &(mtex->r), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	uiDefButF(block, NUMSLI, B_MATPRV, "G ",			920,60,163,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
@@ -1845,8 +1845,8 @@ static void world_panel_world(World *wrld)
 	uiSetButLock(wrld->id.lib!=0, "Can't edit library data");
 	uiBlockSetCol(block, TH_AUTO);
 
-	uiDefButF(block, COL, B_COLHOR, "",			10,150,145,19, &wrld->horr, 0, 0, 0, 0, "");
-	uiDefButF(block, COL, B_COLZEN, "",			160,150,145,19, &wrld->zenr, 0, 0, 0, 0, "");
+	uiDefButF(block, COL, B_MATPRV_DRAW, "",			10,150,145,19, &wrld->horr, 0, 0, 0, B_COLHOR, "");
+	uiDefButF(block, COL, B_MATPRV_DRAW, "",			160,150,145,19, &wrld->zenr, 0, 0, 0, B_COLZEN, "");
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI,B_MATPRV,"HoR ",	10,130,145,19,	&(wrld->horr), 0.0, 1.0, B_COLHOR,0, "Sets the amount of red colour at the horizon");
@@ -1969,7 +1969,7 @@ static void lamp_panel_mapto(Object *ob, Lamp *la)
 	uiDefButS(block, TOG|BIT|0, B_MATPRV, "RGBtoInt",	1014,130,69,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
 	uiBlockEndAlign(block);
 	
-	uiDefButF(block, COL, B_MTEXCOL, "",				920,105,163,19, &(mtex->r), 0, 0, 0, 0, "");
+	uiDefButF(block, COL, B_MATPRV_DRAW, "",				920,105,163,19, &(mtex->r), 0, 0, 0, B_MTEXCOL, "");
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, B_MATPRV, "R ",			920,80,163,19, &(mtex->r), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	uiDefButF(block, NUMSLI, B_MATPRV, "G ",			920,60,163,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
@@ -2213,7 +2213,7 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	uiDefButF(block, NUMSLI,B_MATPRV,"B ",		120,80,180,20,&la->b, 0.0, 1.0, B_COLLAMP, 0, "Sets the blue component of the light");
 	uiBlockEndAlign(block);
 	
-	uiDefButF(block, COL, B_COLLAMP, "",		120,52,180,24, &la->r, 0, 0, 0, 0, "");
+	uiDefButF(block, COL, B_MATPRV_DRAW, "",		120,52,180,24, &la->r, 0, 0, 0, B_COLLAMP, "");
 	
 	uiBlockBeginAlign(block);
 	if ELEM(la->type, LA_LOCAL, LA_SPOT) {
@@ -2384,7 +2384,7 @@ static void material_panel_map_to(Material *ma)
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, COL, B_MTEXCOL, "",				900,100,168,20, &(mtex->r), 0, 0, 0, 0, "");
+	uiDefButF(block, COL, B_MATPRV_DRAW, "",				900,100,168,20, &(mtex->r), 0, 0, 0, B_MTEXCOL, "");
 	
 	if(ma->colormodel==MA_HSV) {
 		uiBlockSetCol(block, TH_BUT_SETTING1);
@@ -2849,9 +2849,9 @@ static void material_panel_material(Object *ob, Material *ma)
 		}
 		uiBlockSetCol(block, TH_AUTO);
 		uiBlockBeginAlign(block);
-		uiDefButF(block, COL, B_MATCOL, "",		8,97,72,20, &(ma->r), 0, 0, 0, 0, "");
-		uiDefButF(block, COL, B_SPECCOL, "",	8,77,72,20, &(ma->specr), 0, 0, 0, 0, "");
-		uiDefButF(block, COL, B_MIRCOL, "",		8,57,72,20, &(ma->mirr), 0, 0, 0, 0, "");
+		uiDefButF(block, COL, B_MATPRV_DRAW, "",		8,97,72,20, &(ma->r), 0, 0, 0, B_MATCOL, "");
+		uiDefButF(block, COL, B_MATPRV_DRAW, "",	8,77,72,20, &(ma->specr), 0, 0, 0, B_SPECCOL, "");
+		uiDefButF(block, COL, B_MATPRV_DRAW, "",		8,57,72,20, &(ma->mirr), 0, 0, 0, B_MIRCOL, "");
 	
 		uiBlockBeginAlign(block);
 		if(ma->mode & MA_HALO) {

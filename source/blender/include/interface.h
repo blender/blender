@@ -200,6 +200,8 @@ struct uiBlock {
 /* interface.c */
 extern void ui_check_but(uiBut *but);
 extern double ui_get_but_val(uiBut *but);
+extern void ui_get_but_vectorf(uiBut *but, float *vec);
+extern void ui_set_but_vectorf(uiBut *but, float *vec);
 extern void ui_autofill(uiBlock *block);
 extern void ui_graphics_to_window(int win, float *x, float *y);
 extern void ui_window_to_graphics(int win, float *x, float *y);

@@ -949,10 +949,10 @@ void object_panel_draw(Object *ob)
 
 	uiBlockEndAlign(block);
 
-	uiDefBut(block, LABEL, 0, "Drawtype",						28,200,100,18, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Drawtype",						28,200,100,18, NULL, 0, 0, 0, 0, "");
 	uiDefButC(block, MENU, REDRAWVIEW3D, "Drawtype%t|Bounds %x1|Wire %x2|Solid %x3|Shaded %x4",	
 																28,180,100,18, &ob->dt, 0, 0, 0, 0, "Sets the drawing type of the active object");
-	uiDefBut(block, LABEL, 0, "Draw Extra",						28,160,100,18, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Draw Extra",						28,160,100,18, NULL, 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
 	uiDefButC(block, TOG|BIT|0, REDRAWVIEW3D, "Bounds",		28, 140, 100, 18, &ob->dtx, 0, 0, 0, 0, "Displays the active object's bounds");
 	uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Polyheder%x4",
@@ -1080,7 +1080,7 @@ static void object_panel_anim(Object *ob)
 	uiBlockEndAlign(block);
 	
 	sprintf(str, "%.4f", prspeed);
-	uiDefBut(block, LABEL, 0, str,							247,40,63,31, 0, 1.0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, str,							247,40,63,31, NULL, 1.0, 0, 0, 0, "");
 	
 }
 
@@ -1397,13 +1397,13 @@ void effects_panel_effects(Object *ob)
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_CALCEFFECT, "X:",		550,31,72,20, paf->force, -1.0, 1.0, 1, 0, "Specify the X axis of a continues force");
 			uiDefButF(block, NUM, B_CALCEFFECT, "Y:",		624,31,78,20, paf->force+1,-1.0, 1.0, 1, 0, "Specify the Y axis of a continues force");
-			uiDefBut(block, LABEL, 0, "Force:",				550,9,72,20, 0, 1.0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Force:",				550,9,72,20, NULL, 1.0, 0, 0, 0, "");
 			uiDefButF(block, NUM, B_CALCEFFECT, "Z:",		623,9,79,20, paf->force+2, -1.0, 1.0, 1, 0, "Specify the Z axis of a continues force");
 
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_CALCEFFECT, "X:",		722,31,74,20, paf->defvec, -1.0, 1.0, 1, 0, "Specify the X axis of a force, determined by the texture");
 			uiDefButF(block, NUM, B_CALCEFFECT, "Y:",		798,31,74,20, paf->defvec+1,-1.0, 1.0, 1, 0, "Specify the Y axis of a force, determined by the texture");
-			uiDefBut(block, LABEL, 0, "Texture:",			722,9,74,20, 0, 1.0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Texture:",			722,9,74,20, NULL, 1.0, 0, 0, 0, "");
 			uiDefButF(block, NUM, B_CALCEFFECT, "Z:",		797,9,75,20, paf->defvec+2, -1.0, 1.0, 1, 0, "Specify the Z axis of a force, determined by the texture");
 			uiBlockEndAlign(block);
 

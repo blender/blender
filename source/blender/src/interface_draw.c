@@ -1294,39 +1294,41 @@ static void ui_draw_slider(int colorid, float fac, float aspect, float x1, float
 // background for pulldowns, pullups, and other frontbuffer drawing temporal menus....
 // has to be made themable still (now only color)
 
-void uiDrawMenuBox(float minx, float miny, float maxx, float maxy)
+void uiDrawMenuBox(float minx, float miny, float maxx, float maxy, short flag)
 {
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-	
-	glColor4ub(0, 0, 0, 20);
-	
-	/* to prevent gaps being drawn between box and shadow (rounding errors?) */
-	fdrawline(minx+3, miny+0.25, maxx+0.25, miny+0.25);
-	fdrawline(maxx+0.25, miny+0.25, maxx+0.25, maxy-3);
-	
-	glColor4ub(0, 0, 0, 70);
-	fdrawline(minx+3, miny, maxx+1, miny);
-	fdrawline(maxx+1, miny, maxx+1, maxy-3);
-	
-	glColor4ub(0, 0, 0, 70);
-	fdrawline(minx+3, miny-1, maxx+1, miny-1);
-	fdrawline(maxx+1, miny-1, maxx+1, maxy-3);
 
-	glColor4ub(0, 0, 0, 55);
-	fdrawline(minx+3, miny-2, maxx+2, miny-2);
-	fdrawline(maxx+2, miny-2, maxx+2, maxy-3);
-
-	glColor4ub(0, 0, 0, 35);
-	fdrawline(minx+3, miny-3, maxx+3, miny-3);
-	fdrawline(maxx+3, miny-3, maxx+3, maxy-3);
-
-	glColor4ub(0, 0, 0, 20);
-	fdrawline(minx+3, miny-4, maxx+4, miny-4);
-	fdrawline(maxx+4, miny-4, maxx+4, maxy-3);
+	if( (flag & UI_BLOCK_NOSHADOW)==0) {
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_BLEND);
+		
+		glColor4ub(0, 0, 0, 20);
+		
+		/* to prevent gaps being drawn between box and shadow (rounding errors?) */
+		fdrawline(minx+3, miny+0.25, maxx+0.25, miny+0.25);
+		fdrawline(maxx+0.25, miny+0.25, maxx+0.25, maxy-3);
+		
+		glColor4ub(0, 0, 0, 70);
+		fdrawline(minx+3, miny, maxx+1, miny);
+		fdrawline(maxx+1, miny, maxx+1, maxy-3);
+		
+		glColor4ub(0, 0, 0, 70);
+		fdrawline(minx+3, miny-1, maxx+1, miny-1);
+		fdrawline(maxx+1, miny-1, maxx+1, maxy-3);
 	
-	glDisable(GL_BLEND);
+		glColor4ub(0, 0, 0, 55);
+		fdrawline(minx+3, miny-2, maxx+2, miny-2);
+		fdrawline(maxx+2, miny-2, maxx+2, maxy-3);
 	
+		glColor4ub(0, 0, 0, 35);
+		fdrawline(minx+3, miny-3, maxx+3, miny-3);
+		fdrawline(maxx+3, miny-3, maxx+3, maxy-3);
+	
+		glColor4ub(0, 0, 0, 20);
+		fdrawline(minx+3, miny-4, maxx+4, miny-4);
+		fdrawline(maxx+4, miny-4, maxx+4, maxy-3);
+		
+		glDisable(GL_BLEND);
+	}
 	BIF_ThemeColor(TH_MENU_BACK);
 
 	glRectf(minx, miny, maxx, maxy);
@@ -1487,7 +1489,103 @@ static void ui_draw_but_COL(uiBut *but)
 	}
 }
 
+/* draws in resolution of 20x4 colors */
+static void ui_draw_but_HSVCUBE(uiBut *but)
+{
+	int a;
+	float col[3], h,s,v;
+	float dx, dy, sx1, sx2, sy, x, y;
+	float col0[4][3];	// left half, rect bottom to top
+	float col1[4][3];	// right half, rect bottom to top
+	
+	ui_get_but_vectorf(but, col);
+	rgb_to_hsv(col[0], col[1], col[2], &h, &s, &v);
+	
+	/* draw series of gouraud rects */
+	glShadeModel(GL_SMOOTH);
+	
+	if(but->a1==0) {	// H and V vary
+		hsv_to_rgb(0.0, s, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
+		hsv_to_rgb(0.0, s, 0.333, &col1[1][0], &col1[1][1], &col1[1][2]);
+		hsv_to_rgb(0.0, s, 0.666, &col1[2][0], &col1[2][1], &col1[2][2]);
+		hsv_to_rgb(0.0, s, 1.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
+		x= h; y= v;
+	}
+	else if(but->a1==1) {	// H and S vary
+		hsv_to_rgb(0.0, 0.0, v,   &col1[0][0], &col1[0][1], &col1[0][2]);
+		hsv_to_rgb(0.0, 0.333, v, &col1[1][0], &col1[1][1], &col1[1][2]);
+		hsv_to_rgb(0.0, 0.666, v, &col1[2][0], &col1[2][1], &col1[2][2]);
+		hsv_to_rgb(0.0, 1.0, v,   &col1[3][0], &col1[3][1], &col1[3][2]);
+		x= h; y= s;
+	}
+	else {	// S and V vary
+		hsv_to_rgb(h, 0.0, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
+		hsv_to_rgb(h, 0.333, 0.0, &col1[1][0], &col1[1][1], &col1[1][2]);
+		hsv_to_rgb(h, 0.666, 0.0, &col1[2][0], &col1[2][1], &col1[2][2]);
+		hsv_to_rgb(h, 1.0, 0.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
+		x= v; y= s;
+	}
+	
+	for(dx=0.0; dx<1.0; dx+= 0.05) {
+		// previous color
+		VECCOPY(col0[0], col1[0]);
+		VECCOPY(col0[1], col1[1]);
+		VECCOPY(col0[2], col1[2]);
+		VECCOPY(col0[3], col1[3]);
 
+		// new color
+		if(but->a1==0) {	// H and V vary
+			hsv_to_rgb(dx, s, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
+			hsv_to_rgb(dx, s, 0.333, &col1[1][0], &col1[1][1], &col1[1][2]);
+			hsv_to_rgb(dx, s, 0.666, &col1[2][0], &col1[2][1], &col1[2][2]);
+			hsv_to_rgb(dx, s, 1.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
+		}
+		else if(but->a1==1) {	// H and S vary
+			hsv_to_rgb(dx, 0.0, v,   &col1[0][0], &col1[0][1], &col1[0][2]);
+			hsv_to_rgb(dx, 0.333, v, &col1[1][0], &col1[1][1], &col1[1][2]);
+			hsv_to_rgb(dx, 0.666, v, &col1[2][0], &col1[2][1], &col1[2][2]);
+			hsv_to_rgb(dx, 1.0, v,   &col1[3][0], &col1[3][1], &col1[3][2]);
+		}
+		else {	// S and V vary
+			hsv_to_rgb(h, 0.0, dx,   &col1[0][0], &col1[0][1], &col1[0][2]);
+			hsv_to_rgb(h, 0.333, dx, &col1[1][0], &col1[1][1], &col1[1][2]);
+			hsv_to_rgb(h, 0.666, dx, &col1[2][0], &col1[2][1], &col1[2][2]);
+			hsv_to_rgb(h, 1.0, dx,   &col1[3][0], &col1[3][1], &col1[3][2]);
+		}
+		
+		// rect
+		sx1= but->x1 + dx*(but->x2-but->x1);
+		sx2= but->x1 + (dx+0.05)*(but->x2-but->x1);
+		sy= but->y1;
+		dy= (but->y2-but->y1)/3.0;
+		
+		glBegin(GL_QUADS);
+		for(a=0; a<3; a++, sy+=dy) {
+			glColor3fv(col0[a]);
+			glVertex2f(sx1, sy);
+
+			glColor3fv(col1[a]);
+			glVertex2f(sx2, sy);
+			
+			glColor3fv(col1[a+1]);
+			glVertex2f(sx2, sy+dy);
+			
+			glColor3fv(col0[a+1]);
+			glVertex2f(sx1, sy+dy);
+		}
+		glEnd();
+	}
+
+	glShadeModel(GL_FLAT);
+
+	/* cursor */
+	sdrawXORcirc((short)(but->x1 + x*(but->x2-but->x1)), 
+				 (short)(but->y1 + y*(but->y2-but->y1)), 3.0);
+
+	/* outline */
+	glColor3ub(0,  0,  0);
+	fdrawbox((but->x1), (but->y1), (but->x2), (but->y2));
+}
 
 /* nothing! */
 static void ui_draw_nothing(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
@@ -1572,6 +1670,10 @@ void ui_draw_but(uiBut *but)
 		
 	case COL:
 		ui_draw_but_COL(but);  // black box with color
+		break;
+
+	case HSVCUBE:
+		ui_draw_but_HSVCUBE(but);  // box for colorpicker, three types
 		break;
 
 	case LINK:

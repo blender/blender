@@ -2188,7 +2188,7 @@ void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b)
 
 	h *= 360.0f;
 	
-	if(s==0 && 0) {
+	if(s==0.0) {
 		*r = v;
 		*g = v;
 		*b = v;
