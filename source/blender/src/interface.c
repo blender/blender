@@ -1630,7 +1630,7 @@ static void ui_set_name_menu(uiBut *but, int value)
 	menudata_free(md);
 }
 
-static ui_warp_pointer(short x, short y)
+static void ui_warp_pointer(short x, short y)
 {
 	/* OSX has very poor mousewarp support, it sends events;
 	   this causes a menu being pressed immediately ... */
@@ -2175,6 +2175,7 @@ static int ui_do_but_NUM(uiBut *but)
 
 	but->flag |= UI_SELECT;
 	ui_draw_but(but);
+	glFinish(); // flush display before subloop
 	
 	uiGetMouse(mywinget(), mval);
 	value= ui_get_but_val(but);
@@ -3142,7 +3143,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	if(block->win != mywinget()) return UI_NOTHING;
 
 	/* filter some unwanted events */
-	if(uevent->event==0 || uevent->event==LEFTSHIFTKEY || uevent->event==RIGHTSHIFTKEY) return UI_NOTHING;
+	if(uevent==0 || uevent->event==LEFTSHIFTKEY || uevent->event==RIGHTSHIFTKEY) return UI_NOTHING;
 
 	if(block->flag & UI_BLOCK_ENTER_OK) {
 		if(uevent->event == RETKEY && uevent->val) {
@@ -3485,11 +3486,8 @@ static void ui_do_but_tip(void)
 int uiDoBlocks(ListBase *lb, int event)
 {
 	/* return when:  firstblock != BLOCK_LOOP
-	 * The mainloop is constructed in such a way
-	 * that the last mouse event from a sub-block
-	 * is passed on to the next block.
 	 * 
-	 * 'cont' is used to make sure you can press a menu button while another
+	 * 'cont' is used to make sure you can press another button while a looping menu
 	 * is active. otherwise you have to press twice...
 	 */
 
@@ -3513,12 +3511,18 @@ int uiDoBlocks(ListBase *lb, int event)
 		block= block->next;
 	}
 
-	/* main loop, we stay here for pulldown menus or temporal blocks (UI_BLOCK_LOOP type) */
+	/* main loop, needed when you click outside a looping block (menu) then it uses that
+	   event to immediately evaluate the other uiBlocks again.  */
 	while(cont) {
+	
+		/* first loop, for the normal blocks */
 		block= lb->first;
 		while(block) {
 			
-			/* this here, to make sure it also draws when event==0 */
+			/* for pupmenus, the bgnpupdraw sets (and later restores) the active
+			   window. Then mousecoords get transformed OK.
+			   It looks double... but a call to ui_do_block otherwise doesnt get handled properly
+			 */
 			if(block->flag & UI_BLOCK_REDRAW) {
 				if( block->flag & UI_BLOCK_LOOP) {
 					block->saveunder= ui_bgnpupdraw((int)block->minx-1, (int)block->miny-4, (int)block->maxx+4, (int)block->maxy+1, 1);
@@ -3529,7 +3533,11 @@ int uiDoBlocks(ListBase *lb, int event)
 			}
 
 			retval= ui_do_block(block, &uevent);
-		
+			
+			/* now a new block could be created for menus, this is 
+			   inserted in the beginning of a list */
+			
+			/* is there a glfinish cached? */
 			if(block->frontbuf == UI_HAS_DRAW_FRONT) {
 				glFinish();
 				glDrawBuffer(GL_BACK);
@@ -3541,10 +3549,10 @@ int uiDoBlocks(ListBase *lb, int event)
 			block= block->next;
 		}
 	
-		/* this is here, to allow closed loop-blocks (menu's) to return to the previous block */
+		/* second loop, for menus (looping blocks). works for sub->menus too */
 		block= lb->first;
 		if(block==NULL || (block->flag & UI_BLOCK_LOOP)==0) cont= 0;
-
+		
 		while( (block= lb->first) && (block->flag & UI_BLOCK_LOOP)) {
 				
 			/* this here, for menu buts */
@@ -3592,7 +3600,8 @@ int uiDoBlocks(ListBase *lb, int event)
 				if(U.flag & TOOLTIPS) ui_do_but_tip();
 			}
 		}
-
+		
+		/* else it does the first part of this loop again, maybe another menu needs to be opened */
 		if(retval==UI_CONT || (retval & UI_RETURN_OK)) cont= 0;
 	}
 	

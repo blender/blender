@@ -1025,6 +1025,8 @@ void toolbox(void)
 
 /* ************************************  */
 
+/* this va_ stuff allows printf() style codes in these menus */
+
 static int vconfirm(char *title, char *itemfmt, va_list ap)
 {
 	char *s, buf[512];
