@@ -481,10 +481,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				glRects(*xco+40, *yco-height-16, *xco+width+50, *yco-14);
 				uiEmboss((float)*xco+40, (float)*yco-height-16, (float)*xco+width+50, (float)*yco-14, 1);
 				
-				uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Tolerance:", *xco+((width/2)-96), *yco-20, 96, 18, &data->tolerance, 0.0001, 1.0, 0.0, 0.0, "Maximum distance to target after solving"); 
-				uiDefButI(block, NUM, B_CONSTRAINT_REDRAW, "Iterations:", *xco+((width/2)), *yco-20, 96, 18, &data->iterations, 1, 10000, 0.0, 0.0, "Maximum number of solving iterations"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Tolerance:", *xco+((width/2)-90), *yco-20, 120, 18, &data->tolerance, 0.0001, 1.0, 0.0, 0.0, "Maximum distance to target after solving"); 
+				uiDefButI(block, NUM, B_CONSTRAINT_REDRAW, "Iterations:", *xco+((width/2)+30), *yco-20, 110, 18, &data->iterations, 1, 10000, 0.0, 0.0, "Maximum number of solving iterations"); 
 
-				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-40, 96, 18, &data->tar, "Target Object"); 
+				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-40, 120, 18, &data->tar, "Target Object"); 
 				
 				arm = get_armature(data->tar);
 				if (arm){
@@ -605,9 +605,9 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		/* If this is on an object, add the constraint to the object */
 		uiButSetFunc (but, activate_constraint_ipo_func, con, NULL);
 		/* If this is on a bone, add the constraint to the action (if any) */
-		but = uiDefBut(block, BUT, B_CONSTRAINT_REDRAW, "Key", *xco+227, *yco, 41, 20, 0, 0.0, 1.0, 0.0, 0.0, "Add an influence keyframe to the constraint");
+		//but = uiDefBut(block, BUT, B_CONSTRAINT_REDRAW, "Key", *xco+227, *yco, 41, 20, 0, 0.0, 1.0, 0.0, 0.0, "Add an influence keyframe to the constraint");
 		/* Add a keyframe to the influence IPO */
-		uiButSetFunc (but, add_influence_key_to_constraint_func, con, NULL);
+		//uiButSetFunc (but, add_influence_key_to_constraint_func, con, NULL);
 		(*yco)-=24;
 	}
 }
