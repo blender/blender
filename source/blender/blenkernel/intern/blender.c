@@ -207,6 +207,10 @@ void initglobals(void)
 
 	sprintf(versionstr, "www.blender.org %d", G.version);
 
+#ifdef _WIN32	// FULLSCREEN
+	G.windowstate = G_WINDOWSTATE_USERDEF;
+#endif
+
 	clear_workob();	/* object.c */
 }
 

@@ -643,7 +643,15 @@ int blenderqread(unsigned short event, short val)
 	case LEFTARROWKEY:
 	case DOWNARROWKEY:
 		if(textediting==0 && textspace==0) {
+
+#ifdef _WIN32	// FULLSCREEN
+			if(event==DOWNARROWKEY){
+				if (G.qual & LR_ALTKEY) mainwindow_toggle_fullscreen(0);
+				else CFRA-= 10;
+			}
+#else
 			if(event==DOWNARROWKEY) CFRA-= 10;
+#endif
 			else CFRA--;
 			
 			if(G.qual & LR_SHIFTKEY) CFRA= SFRA;
@@ -657,8 +665,17 @@ int blenderqread(unsigned short event, short val)
 	case RIGHTARROWKEY:
 	case UPARROWKEY:
 		if(textediting==0 && textspace==0) {
+
+#ifdef _WIN32	// FULLSCREEN
+			if(event==UPARROWKEY){ 
+				if(G.qual & LR_ALTKEY) mainwindow_toggle_fullscreen(1);
+				else CFRA+= 10;
+			}
+#else
 			if(event==UPARROWKEY) CFRA+= 10;
+#endif
 			else CFRA++;
+
 			if(G.qual & LR_SHIFTKEY) CFRA= EFRA;
 			
 			update_for_newframe();

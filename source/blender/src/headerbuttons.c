@@ -1407,6 +1407,12 @@ void do_global_buttons(unsigned short event)
 		scrarea_queue_headredraw(curarea);
 		break;
 
+#ifdef _WIN32	// FULLSCREEN
+	case B_FLIPFULLSCREEN:
+		mainwindow_toggle_fullscreen((U.uiflag & FLIPFULLSCREEN));
+		break;
+#endif
+
 	/* Fileselect windows for user preferences file paths */
 
 	case B_FONTDIRFILESEL: 	/* is button from space.c  *info* */
@@ -3408,6 +3414,7 @@ void info_buttons(void)
 				&(U.uiflag), 0, 0, 0, 0, "Hide pulldown menus");/* dir   */
 	}
 	xco+=XIC;
+
 	if(U.uiflag & FLIPINFOMENU) {
 	} else {
 		uiBlockSetEmboss(block, UI_EMBOSSP);
@@ -3481,7 +3488,22 @@ void info_buttons(void)
 	curarea->headbutlen= xco+2*XIC;
 	
 	if(curarea->headbutlen + 4*XIC < curarea->winx) {
-		uiDefIconBut(block, BUT, B_FILEMENU, ICON_HELP, (short)(curarea->winx-XIC-2), 0,XIC,YIC, 0, 0, 0, 0, 0, "Toolbox menu, hotkey: SPACE");
+		uiDefIconBut(block, BUT, B_FILEMENU, ICON_HELP,
+			(short)(curarea->winx-XIC-2), 0,XIC,YIC,
+			0, 0, 0, 0, 0, "Toolbox menu, hotkey: SPACE");
+
+#ifdef _WIN32	// FULLSCREEN
+	if(U.uiflag & FLIPFULLSCREEN) {
+		uiDefIconButS(block, TOG|BIT|7, B_FLIPFULLSCREEN, ICON_SPLITSCREEN,
+				(short)(curarea->winx-(XIC*2)-2), 0,XIC,YIC,
+				&(U.uiflag), 0, 0, 0, 0, "Toggle Blender fullscreen");/* dir   */
+	} else {
+		uiDefIconButS(block, TOG|BIT|7, B_FLIPFULLSCREEN, ICON_FULLSCREEN,
+				(short)(curarea->winx-(XIC*2)-2), 0,XIC,YIC,
+				&(U.uiflag), 0, 0, 0, 0, "Toggle Blender fullscreen");/* dir   */
+	}
+#endif
+	
 	}
 	
 	uiDrawBlock(block);

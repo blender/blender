@@ -88,6 +88,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define DRAWVIEWINFO	16
 #define EVTTOCONSOLE	32		//print ghost events, here for tuhopuu compat. --phase
 #define FLIPINFOMENU	64
+#define FLIPFULLSCREEN	128
 
 /* transopts */
 

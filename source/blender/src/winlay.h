@@ -44,6 +44,10 @@ void	window_set_timer	(Window *win, int delay_ms, int event);
 void	window_make_active	(Window *win);
 void	window_swap_buffers	(Window *win);
 
+#ifdef _WIN32	// FULLSCREEN
+void 	window_toggle_fullscreen(Window *win, int fullscreen);
+#endif
+
 void	window_raise		(Window *win);
 void	window_lower		(Window *win);
 

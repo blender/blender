@@ -95,7 +95,6 @@ int is_allowed_to_change_screen(struct bScreen *newp);
 void splash(void * data, int datasizei, char * string);
 void screenmain(void);
 void getdisplaysize(void);
-void setfullscreen(void);
 void setprefsize(int stax, int stay, int sizx, int sizy);
 void calc_arearcts(struct ScrArea *sa);
 void resize_screen(int x, int y, int w, int h);

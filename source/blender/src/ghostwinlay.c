@@ -234,10 +234,14 @@ Window *window_open(char *title, int posx, int posy, int sizex, int sizey, int s
 	inital_state= start_maximized?
 		GHOST_kWindowStateFullScreen:GHOST_kWindowStateNormal;
 #else
-	if (start_maximized == 2)
+#ifdef _WIN32	// FULLSCREEN
+	if (start_maximized == G_WINDOWSTATE_FULLSCREEN)
 		inital_state= GHOST_kWindowStateFullScreen;
 	else
 		inital_state= start_maximized?GHOST_kWindowStateMaximized:GHOST_kWindowStateNormal;
+#else
+	inital_state= start_maximized?GHOST_kWindowStateMaximized:GHOST_kWindowStateNormal;
+#endif
 #endif
 
 	ghostwin= GHOST_CreateWindow(g_system, 
@@ -567,6 +571,15 @@ void window_lower(Window *win) {
 void window_raise(Window *win) {
 	GHOST_SetWindowOrder(win->ghostwin, GHOST_kWindowOrderTop);
 }
+
+#ifdef _WIN32	//FULLSCREEN
+void window_toggle_fullscreen(Window *win, int fullscreen) {
+	if(fullscreen)
+		GHOST_SetWindowState(win->ghostwin, GHOST_kWindowStateFullScreen);
+	else
+		GHOST_SetWindowState(win->ghostwin, GHOST_kWindowStateMaximized);
+}
+#endif
 
 void window_warp_pointer(Window *win, int x, int y) {
 	y= win->size[1] - y - 1;

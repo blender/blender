@@ -574,6 +574,7 @@ int get_qtcodec_settings(void)
 //	cd.componentManufacturer = 0;
 //	cd.componentFlags = 0;
 //	cd.componentFlagsMask = 0;
+Handle                     *theText;
 
 	if(qcdx == NULL) {
 		qcdx = MEM_callocN(sizeof(QuicktimeCodecDataExt), "QuicktimeCodecDataExt");
@@ -628,6 +629,10 @@ int get_qtcodec_settings(void)
 	SCGetInfo(qcdx->theComponent, scTemporalSettingsType,	&qcdx->gTemporalSettings);
 	SCGetInfo(qcdx->theComponent, scSpatialSettingsType,	&qcdx->gSpatialSettings);
 	SCGetInfo(qcdx->theComponent, scDataRateSettingsType,	&qcdx->aDataRateSetting);
+
+//GraphicsExportGetSettingsAsText (qcdx->theComponent,theText );
+
+//printf("%s\n", theText);
 
 	// framerate jugglin'
 

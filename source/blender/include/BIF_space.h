@@ -85,6 +85,10 @@ extern       void winqreadseqspace(struct ScrArea *sa, void *spacedata, struct B
 extern       void test_butspace(void);
 extern       void start_game(void);
 
+#ifdef _WIN32	// FULLSCREEN
+extern		 void mainwindow_toggle_fullscreen(int fullscreen);
+#endif
+
 extern		 void mainwindow_raise(void);
 extern		 void mainwindow_make_active(void);
 extern		 void mainwindow_close(void);

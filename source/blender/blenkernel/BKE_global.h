@@ -121,6 +121,9 @@ typedef struct Global {
     /* this variable is written to / read from FileGlobal->fileflags */
     int fileflags;
     
+	/* save the allowed windowstate of blender when using -W or -w */
+	int windowstate;
+
 	/* Janco's playing ground */
 	struct bSoundListener* listener;
 
@@ -188,6 +191,11 @@ typedef struct Global {
 #define G_FILE_LOCK              (1 << G_FILE_LOCK_BIT)
 #define G_FILE_SIGN              (1 << G_FILE_SIGN_BIT)
 #define G_FILE_PUBLISH			 (1 << G_FILE_PUBLISH_BIT)
+
+/* G.windowstate */
+#define G_WINDOWSTATE_USERDEF		0
+#define G_WINDOWSTATE_BORDER		1
+#define G_WINDOWSTATE_FULLSCREEN	2
 
 /* G.simulf */
 #define G_LOADFILE	2

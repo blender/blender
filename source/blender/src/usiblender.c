@@ -182,7 +182,21 @@ int BIF_read_homefile(void)
 
 		/*  disable autoplay in .B.blend... */
 		G.fileflags &= ~G_FILE_AUTOPLAY;
-			
+
+#ifdef _WIN32	// FULLSCREEN
+		/* choose window startmode */
+		switch (G.windowstate){
+			case G_WINDOWSTATE_USERDEF: /* use the usersetting */
+				break;
+			case G_WINDOWSTATE_FULLSCREEN: /* force fullscreen */
+				U.uiflag |= FLIPFULLSCREEN;
+				break;
+			case G_WINDOWSTATE_BORDER: /* force with borders */
+				U.uiflag &= ~FLIPFULLSCREEN;
+		}
+		mainwindow_toggle_fullscreen ((U.uiflag & FLIPFULLSCREEN));
+#endif
+
 		if (BLI_streq(U.tempdir, "/")) {
 			char *tmp= getenv("TEMP");
 				

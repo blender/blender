@@ -189,6 +189,7 @@
 #define B_DRAWINFO			62
 #define B_REDRCURW3D		63
 #define B_FLIPINFOMENU		64
+#define B_FLIPFULLSCREEN	65
 
 
 #define B_SHOWSPLASH		70

@@ -118,7 +118,7 @@ static void wait_for_event(void);
 /* ********* Globals *********** */
 
 static Window *mainwin= NULL;
-static int prefsizx= 0, prefsizy= 0, prefstax= 0, prefstay= 0, start_maximized= 1, start_fullscreen = 0;
+static int prefsizx= 0, prefsizy= 0, prefstax= 0, prefstay= 0, start_maximized= 1;
 static short dodrawscreen= 0;
 static ScrArea *areawinar[MAXWIN];
 static ScrArea *g_activearea= NULL;
@@ -1111,6 +1111,15 @@ void screenmain(void)
 	}
 }
 
+#ifdef _WIN32	// FULLSCREEN
+void mainwindow_toggle_fullscreen(int fullscreen){
+	if (fullscreen) U.uiflag |= FLIPFULLSCREEN;
+	else U.uiflag &= ~FLIPFULLSCREEN;
+
+	window_toggle_fullscreen(mainwin, fullscreen);
+}
+#endif
+
 void mainwindow_raise(void) {
 	window_raise(mainwin);
 }
@@ -1123,11 +1132,6 @@ void mainwindow_close(void) {
 }
 
 /* *********  AREAS  ************* */
-
-void setfullscreen()
-{
-	start_fullscreen = 1;	
-}
 
 void setprefsize(int stax, int stay, int sizx, int sizy)
 {
@@ -1680,10 +1684,14 @@ static bScreen *addscreen(char *name)		/* use setprefsize() if you want somethin
 	sc->scene= G.scene;
 	
   	if (!mainwin) {
-		if (start_fullscreen)
-			mainwin= window_open("Blender", sc->startx, sc->starty, sc->sizex, sc->sizey, 2);
+#ifdef _WIN32	// FULLSCREEN
+		if (G.windowstate == G_WINDOWSTATE_FULLSCREEN)
+			mainwin= window_open("Blender", sc->startx, sc->starty, sc->sizex, sc->sizey, G_WINDOWSTATE_FULLSCREEN);
 		else
 			mainwin= window_open("Blender", sc->startx, sc->starty, sc->sizex, sc->sizey, start_maximized);
+#else
+		mainwin= window_open("Blender", sc->startx, sc->starty, sc->sizex, sc->sizey, start_maximized);
+#endif
 		
 		if (!mainwin) {
 			printf("ERROR: Unable to open Blender window\n");
