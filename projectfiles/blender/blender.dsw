@@ -207,18 +207,6 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BL_misc"=".\misc\BL_misc.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
 Project: "BL_src"=".\src\BL_src.dsp" - Package Owner=<4>
 
 Package=<5>
@@ -808,9 +796,6 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name BL_img
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name BL_misc
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name BLI_blenlib
