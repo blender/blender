@@ -93,6 +93,10 @@ World *add_world(char *name)
 	wrld->exp= 0.0f;
 	wrld->exposure=wrld->range= 1.0f;
 
+	wrld->aodist= 10.0;
+	wrld->aosamp= 5;
+	wrld->aoenergy= 1.0;
+
 	return wrld;
 }
 
