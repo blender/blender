@@ -117,8 +117,6 @@ class Material:
    that range: if val < Min, then val = Min, if val > Max, then val = Max.
   """
 
-  import Texture
-
   def getName():
     """
     Get the name of this Material object.
