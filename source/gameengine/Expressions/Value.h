@@ -357,7 +357,7 @@ protected:
 	virtual				~CValue();
 private:																		
 	// Member variables															
-	std::map<const STR_String,CValue*>*		m_pNamedPropertyArray;									// Properties for user/game etc
+	std::map<STR_String,CValue*>*		m_pNamedPropertyArray;									// Properties for user/game etc
 	ValueFlags			m_ValFlags;												// Frequently used flags in a bitfield (low memoryusage)
 	int					m_refcount;												// Reference Counter	
 	static	double m_sZeroVec[3];	

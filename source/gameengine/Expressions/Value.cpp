@@ -284,7 +284,7 @@ void CValue::SetProperty(const STR_String & name,CValue* ioProperty)
 
 	// Make sure we have a property array
 	if (m_pNamedPropertyArray == NULL)
-		m_pNamedPropertyArray = new std::map<const STR_String,CValue *>;
+		m_pNamedPropertyArray = new std::map<STR_String,CValue *>;
 
 	// Try to replace property (if so -> exit as soon as we replaced it)
 	CValue* oldval = (*m_pNamedPropertyArray)[name];
@@ -308,7 +308,7 @@ CValue* CValue::GetProperty(const STR_String & inName)
 	CValue* result = NULL;
 	if (m_pNamedPropertyArray)
 	{
-		std::map<const STR_String,CValue*>::iterator it = (*m_pNamedPropertyArray).find(inName);
+		std::map<STR_String,CValue*>::iterator it = (*m_pNamedPropertyArray).find(inName);
 		if (!( it==m_pNamedPropertyArray->end()))
 		{
 			result = (*it).second;
@@ -376,7 +376,7 @@ void CValue::ClearProperties()
 		return;
 
 	// Remove all properties
-	for ( std::map<const STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
+	for ( std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
 	!(it == m_pNamedPropertyArray->end());it++)
 	{
 		CValue* tmpval = (*it).second;
@@ -430,7 +430,7 @@ CValue* CValue::GetProperty(int inIndex)
 
 	if (m_pNamedPropertyArray)
 	{
-		for ( std::map<const STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
+		for ( std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
 		!(it == m_pNamedPropertyArray->end());it++)
 		{
 			if (count++==inIndex)
@@ -467,7 +467,7 @@ void CValue::CloneProperties(CValue *replica)
 	if (m_pNamedPropertyArray)
 	{
 		replica->m_pNamedPropertyArray=NULL;
-		for ( std::map<const STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
+		for ( std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
 		!(it == m_pNamedPropertyArray->end());it++)
 		{
 			
