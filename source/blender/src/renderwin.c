@@ -682,7 +682,7 @@ static void printrenderinfo_cb(double time, int sample)
 /* -------------- callback system to allow ESC from rendering ----------------------- */
 
 /* POSIX & WIN32: this function is called all the time, and should not use cpu or resources */
-static int test_break()
+static int test_break(void)
 {
 
 	if(G.afbreek==2) { /* code for testing queue */

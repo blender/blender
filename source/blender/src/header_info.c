@@ -1739,11 +1739,11 @@ void info_buttons(void)
 #ifdef _WIN32	// FULLSCREEN
 	if(U.uiflag & FLIPFULLSCREEN) {
 		uiDefIconBut(block, BUT, B_FLIPFULLSCREEN, ICON_WINDOW_WINDOW,
-				(short)(curarea->winx-(XIC*2)-2), 0,XIC,YIC,
+				(short)(curarea->winx-(XIC-5)), 0,XIC,YIC,
 				0, 0, 0, 0, 0, "Toggles Blender to fullscreen mode");/* dir		*/
 	} else {
 		uiDefIconBut(block, BUT, B_FLIPFULLSCREEN, ICON_WINDOW_FULLSCREEN,
-				(short)(curarea->winx-(XIC*2)-2), 0,XIC,YIC,
+				(short)(curarea->winx-(XIC-5)), 0,XIC,YIC,
 				0, 0, 0, 0, 0, "Toggles Blender to fullscreen mode");/* dir		*/
 	}
 #endif

@@ -1183,16 +1183,14 @@ static int ui_do_but_TEX(uiBut *but)
 		else if(dev==MOUSEY) val= 0;
 
 		if(ascii) {
-			if( ascii>31 && ascii<127) {
-				if(len < but->max) {
-					for(x= but->max; x>but->pos; x--)
-						str[x]= str[x-1];
-					str[but->pos]= ascii;
-					but->pos++; 
-					len++;
-					str[len]= '\0';
-					dodraw= 1;
-				}
+			if(len < but->max) {
+ 					for(x= but->max; x>but->pos; x--)
+ 						str[x]= str[x-1];
+ 					str[but->pos]= ascii;
+ 					but->pos++; 
+ 					len++;
+ 					str[len]= '\0';
+ 					dodraw= 1;
 			}
 		}
 		else if(val) {
@@ -1234,7 +1232,8 @@ static int ui_do_but_TEX(uiBut *but)
 					str[--len]='\0';
 					dodraw= 1;
 				}
-				
+				break;
+
 			case BACKSPACEKEY:
 				if(len!=0) {
 					if(get_qual() & LR_SHIFTKEY) {
