@@ -3851,6 +3851,9 @@ void transform(int mode)
 	short mval[2], afbreek=0, doit, xn, yn, xc, yc, xo, yo = 0, val;
 	char str[100];
 	int	keyflags = 0;
+
+	short drawhelpline = 0; // for new help lines code.
+	float vx[3] = {1,0,0}, vy[3] = {0,1,0}, vz[3] = {0,0,1};
 		
 	if (mode % 'x' == 0)
 		axismode = XTRANSLOCAL;
@@ -4698,6 +4701,72 @@ void transform(int mode)
 					screen_swapbuffers();
 				}
 			}
+			/* Help line drawing starts here */
+			/* Drawing stuff I choose to put it in here so it can draw one line per object or per vertex */
+			if (((drawhelpline)||(axismode)) && (mode != 'C') && (mode != 'w') && (mode!='N') && (! (((mode=='R')||(mode=='r')) && (midtog)) ) ){
+				if (G.obedit && ((mode=='R')||(mode=='r')||(G.totvertsel > 5))){
+					if(axismode==XTRANSLOCAL) constline(centre, vx, 0xFF);
+					if(axismode==YTRANSLOCAL) constline(centre, vy, 0xFF00);
+					if(axismode==ZTRANSLOCAL) constline(centre, vz, 0xFF0000);
+					if(axismode==XTRANS) constline(centre, imat[0], 0xFF);
+					if(axismode==YTRANS) constline(centre, imat[1], 0xFF00);
+					if(axismode==ZTRANS) constline(centre, imat[2], 0xFF0000);
+					if((axismode==0)&&(drawhelpline==2)){
+						constline(centre, vx, 0xFF);
+						constline(centre, vy, 0xFF00);
+						constline(centre, vz, 0xFF0000);
+					}
+					if((axismode==0)&&(drawhelpline==1)){
+						constline(centre, imat[0], 0xFF);
+						constline(centre, imat[1], 0xFF00);
+						constline(centre, imat[2], 0xFF0000);
+					}
+				}
+				else {
+					tob= transmain;
+					tv= transvmain;
+					for(a=0; a<tottrans; a++, tob++, tv++) {
+						if(transmain) {
+							if(axismode==XTRANSLOCAL) constline(tob->loc, tob->axismat[0], 0xFF);
+							if(axismode==YTRANSLOCAL) constline(tob->loc, tob->axismat[1], 0xFF00);
+							if(axismode==ZTRANSLOCAL) constline(tob->loc, tob->axismat[2], 0xFF0000);
+							if(axismode==XTRANS) constline(tob->loc, vx, 0xFF);
+							if(axismode==YTRANS) constline(tob->loc, vy, 0xFF00);
+							if(axismode==ZTRANS) constline(tob->loc, vz, 0xFF0000);
+							if((axismode==0)&&(drawhelpline==1)){
+								constline(tob->oldloc, vx, 0xFF);
+								constline(tob->oldloc, vy, 0xFF00);
+								constline(tob->oldloc, vz, 0xFF0000);
+							}
+							if((axismode==0)&&(drawhelpline==2)){
+								constline(tob->oldloc, tob->axismat[0], 0xFF);
+								constline(tob->oldloc, tob->axismat[1], 0xFF00);
+								constline(tob->oldloc, tob->axismat[2], 0xFF0000);
+							}
+						}
+						else {
+							if(axismode==XTRANSLOCAL) constline(tv->loc, vx, 0xFF);
+							if(axismode==YTRANSLOCAL) constline(tv->loc, vy, 0xFF00);
+							if(axismode==ZTRANSLOCAL) constline(tv->loc, vz, 0xFF0000);
+							if(axismode==XTRANS) constline(tv->loc, imat[0], 0xFF);
+							if(axismode==YTRANS) constline(tv->loc, imat[1], 0xFF00);
+							if(axismode==ZTRANS) constline(tv->loc, imat[2], 0xFF0000);
+							if((axismode==0)&&(drawhelpline==2)){
+								constline(G.obedit->obmat[4], vx, 0xFF);
+								constline(G.obedit->obmat[4], vy, 0xFF00);
+								constline(G.obedit->obmat[4], vz, 0xFF0000);
+							}
+							if((axismode==0)&&(drawhelpline==1)){
+								constline(G.obedit->obmat[4], imat[0], 0xFF);
+								constline(G.obedit->obmat[4], imat[1], 0xFF00);
+								constline(G.obedit->obmat[4], imat[2], 0xFF0000);
+							}
+						}
+					}
+				}
+			}
+
+
 		}
 		
 		while( qtest() ) {
@@ -4760,39 +4829,93 @@ void transform(int mode)
 					break;
 				
 				case XKEY:
-					if (axismode==XTRANS)
-						axismode=XTRANSLOCAL;
-					else if (axismode==XTRANSLOCAL)
-						axismode=0;
+					if (drawhelpline==0){
+						if (axismode==XTRANS)
+							axismode=XTRANSLOCAL;
+						else if (axismode==XTRANSLOCAL)
+							axismode=0;
+						else{
+							//xref= -xref;
+							axismode= XTRANS;
+						}
+					}
+					else if (drawhelpline==1){
+						if (axismode==XTRANS)
+							axismode=0;
+						else{
+							axismode= XTRANS;
+						}
+					}
 					else{
-						xref= -xref;
-						axismode= XTRANS;
+						if (axismode==XTRANSLOCAL)
+							axismode=0;
+						else{
+							axismode=XTRANSLOCAL;
+						}
 					}
 					firsttime=1;
 					break;
 					
 				case YKEY:
-					if (axismode==YTRANS)
-						axismode=YTRANSLOCAL;
-					else if (axismode==YTRANSLOCAL)
-						axismode=0;
+					if (drawhelpline==0){
+						if (axismode==YTRANS)
+							axismode=YTRANSLOCAL;
+						else if (axismode==YTRANSLOCAL)
+							axismode=0;
+						else{
+							//yref= -yref;
+							axismode= YTRANS;
+						}
+					}
+					else if (drawhelpline==1){
+						if (axismode==YTRANS)
+							axismode=0;
+						else{
+							axismode= YTRANS;
+						}
+					}
 					else{
-						yref= -yref;
-						axismode= YTRANS;
+						if (axismode==YTRANSLOCAL)
+							axismode=0;
+						else{
+							axismode=YTRANSLOCAL;
+						}
 					}
 					firsttime=1;
 					break;
 					
 				case ZKEY:
-					if (axismode==ZTRANS)
-						axismode=ZTRANSLOCAL;
-					else if (axismode==ZTRANSLOCAL)
-						axismode=0;
+					if (drawhelpline==0){
+						if (axismode==ZTRANS)
+							axismode=ZTRANSLOCAL;
+						else if (axismode==ZTRANSLOCAL)
+							axismode=0;
+						else{
+							//zref= -zref;
+							axismode= ZTRANS;
+						}
+					}
+					else if (drawhelpline==1){
+						if (axismode==ZTRANS)
+							axismode=0;
+						else{
+							axismode= ZTRANS;
+						}
+					}
 					else{
-						zref= -zref;
-						axismode= ZTRANS;
+						if (axismode==ZTRANSLOCAL)
+							axismode=0;
+						else{
+							axismode=ZTRANSLOCAL;
+						}
 					}
 					firsttime=1;
+					break;
+				case LKEY:
+					// toggle between drawhelpline = 0,1,2 (None, Global, Local)
+					drawhelpline += 1;
+					if (drawhelpline==3) drawhelpline = 0;
+					firsttime = 1;
 					break;
 				
 				case WHEELDOWNMOUSE:

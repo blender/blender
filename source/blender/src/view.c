@@ -227,6 +227,61 @@ void project_float(float *vec, float *adr)
 	}
 }
 
+void project_short_infiniteline(float *vec, float *dir, short *adr1, short *adr2)	/* clips infinite line to screen border */
+{
+	float vp[2], vd[2], temp[2];
+	short min, max;
+	float tvec[3], tmp;
+
+	project_float(vec, vp);
+	VecMulf(dir, 10);
+	VecAddf(tvec, vec, dir);
+	project_float(tvec, temp);
+
+	vd[0] = temp[0] - vp[0];
+	vd[1] = temp[1] - vp[1];
+
+	if ((vd[0] == 0) && (vd[1] == 0)){
+		adr1[0] = adr2[0] = vp[0];
+		adr1[1] = adr2[1] = vp[1];
+	}
+	else if (vd[0] == 0){
+		adr1[0] = adr2[0] = vp[0];
+		adr1[1] = 0;
+		adr2[1] = curarea->winy; 
+	}
+	else if (vd[1] == 0){
+		adr1[0] = 0;
+		adr2[0] = curarea->winx; 
+		adr1[1] = adr2[1] = vp[1];
+	}
+	else{
+		tmp = vd[0];
+		max = (curarea->winx - vp[0]) / tmp * vd[1] + vp[1];
+		if (max > curarea->winy){
+			tmp = vd[1];
+			adr2[0] = ((curarea->winy) - vp[1]) / tmp * vd[0] + vp[0];
+			adr2[1] = curarea->winy;
+		}
+		else{
+			adr2[0] = curarea->winx;
+			adr2[1] = max;
+		}
+
+		tmp = vd[0];
+		min = (-vp[0]) / tmp * vd[1] + vp[1];
+		if (min < 0){
+			tmp = vd[1];
+			adr1[0] = (-vp[1]) / tmp * vd[0] + vp[0];
+			adr1[1] = 0;
+		}
+		else{
+			adr1[0] = 0;
+			adr1[1] = min;
+		}
+	}
+}
+
 int boundbox_clip(float obmat[][4], BoundBox *bb)
 {
 	/* return 1: draw */
