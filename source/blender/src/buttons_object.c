@@ -1212,7 +1212,7 @@ void object_panel_draw(Object *ob)
 	uiDefBut(block, LABEL, 0, "Draw Extra",						28,160,100,18, 0, 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
 	uiDefButC(block, TOG|BIT|0, REDRAWVIEW3D, "Bounds",		28, 140, 100, 18, &ob->dtx, 0, 0, 0, 0, "Displays the active object's bounds");
-	uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Polyheder",
+	uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Polyheder%x4",
 															28, 120, 100, 18, &ob->boundtype, 0, 0, 0, 0, "Selects the boundary display type");
 	uiDefButBitC(block, TOG, OB_DRAWWIRE, REDRAWVIEW3D, "Wire",		28, 100, 100, 18, &ob->dtx, 0, 0, 0, 0, "Displays the active object's wireframe in shaded drawing modes");
 	uiDefButBitC(block, TOG, OB_AXIS, REDRAWVIEW3D, "Axis",		28, 80, 100, 18, &ob->dtx, 0, 0, 0, 0, "Displays the active object's centre and axis");
