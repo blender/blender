@@ -1554,13 +1554,13 @@ void metaball_polygonize(Object *ob)
 	char obname[32], name[32];
 	
 	mb= ob->data;
+	if(G.moving && mb->flag==MB_UPDATE_FAST) return;
 
 	freedisplist(&ob->disp);
 	curindex= totindex= 0;
 	indices= 0;
 	thresh= mb->thresh;
 	
-	if(G.moving && mb->flag==MB_UPDATE_FAST) return;
 
 	/* recount all MetaElems */
 	splitIDname(ob->id.name+2, obname, &obnr);
@@ -1577,6 +1577,8 @@ void metaball_polygonize(Object *ob)
 				splitIDname(bob->id.name+2, name, &nr);
 				if( strcmp(obname, name)==0 ) {
 					if(bob==G.obedit) ml= editelems.first;
+					/* keep track of linked data too! */
+					else if(ob==G.obedit && bob->data==ob->data) ml= editelems.first;
 					else ml= ((MetaBall*)bob->data)->elems.first;
 				}
 			}
