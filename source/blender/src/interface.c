@@ -3611,6 +3611,15 @@ int uiDoBlocks(ListBase *lb, int event)
 		if(retval==UI_CONT || (retval & UI_RETURN_OK)) cont= 0;
 	}
 	
+	/* cleanup frontbuffer & flags */
+	block= lb->first;
+	while(block) {
+		if(block->frontbuf==UI_HAS_DRAW_FRONT) glFinish();
+		block->frontbuf= 0;
+		block= block->next;
+	}
+	
+	/* afterfunc is used for fileloading too, so after this call, the blocks pointers are invalid */
 	if(retval & UI_RETURN_OK) {
 		if(UIafterfunc) UIafterfunc(UIafterfunc_arg, UIafterval);
 		UIafterfunc= NULL;
@@ -3621,15 +3630,6 @@ int uiDoBlocks(ListBase *lb, int event)
 		if(U.flag & TOOLTIPS) ui_do_but_tip();
 	}
 
-
-	/* cleanup frontbuffer & flags */
-	block= lb->first;
-	while(block) {
-		if(block->frontbuf==UI_HAS_DRAW_FRONT) glFinish();
-		block->frontbuf= 0;
-		block= block->next;
-	}
-	
 	/* doesnt harm :-) */
 	glDrawBuffer(GL_BACK);
 
