@@ -371,14 +371,16 @@ PyObject *M_Window_Redraw(PyObject *self, PyObject *args)
 			if (sa->spacetype == wintype || redraw_all) {
 				if (sa->spacetype == SPACE_TEXT) {
 					st = sa->spacedata.first;
-					if (st->text->flags & TXT_FOLLOW) /* follow cursor display */
-						pop_space_text(st);
-
-					// XXX making a test: Jul 07, 2004.
-					// we don't need to prevent text win redraws anymore,
-					// since now there's a scripts space instead.
-					//if (EXPP_disable_force_draw) { /* defined in Draw.[ch] ... */
-					//	scrarea_queue_redraw(sa);
+					if(st->text) {
+						if (st->text->flags & TXT_FOLLOW) /* follow cursor display */
+							pop_space_text(st);
+	
+						// XXX making a test: Jul 07, 2004.
+						// we don't need to prevent text win redraws anymore,
+						// since now there's a scripts space instead.
+						//if (EXPP_disable_force_draw) { /* defined in Draw.[ch] ... */
+						//	scrarea_queue_redraw(sa);
+						}
 					}
 
 				//} else {
