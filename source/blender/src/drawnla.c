@@ -227,18 +227,18 @@ static void draw_nlastrips(SpaceNla *snla)
 			/* Draw the field */
 			glEnable (GL_BLEND);
 			if (TESTBASE_SAFE(base))
-				glColor4b (col1[0], col1[1], col1[2], 0x22);
+				glColor4ub (col1[0], col1[1], col1[2], 0x22);
 			else
-				glColor4b (col2[0], col2[1], col2[2], 0x22);
+				glColor4ub (col2[0], col2[1], col2[2], 0x22);
 			
 			gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
 			glRectf(0,  channel_y-NLACHANNELHEIGHT/2,  frame1_x,  channel_y+NLACHANNELHEIGHT/2);
 			
 			
 			if (TESTBASE_SAFE(base))
-				glColor4b (col1[0], col1[1], col1[2], 0x44);
+				glColor4ub (col1[0], col1[1], col1[2], 0x44);
 			else
-				glColor4b (col2[0], col2[1], col2[2], 0x44);
+				glColor4ub (col2[0], col2[1], col2[2], 0x44);
 			glRectf(frame1_x,  channel_y-NLACHANNELHEIGHT/2,   G.v2d->hor.xmax,  channel_y+NLACHANNELHEIGHT/2);
 			
 			glDisable (GL_BLEND);
@@ -251,18 +251,18 @@ static void draw_nlastrips(SpaceNla *snla)
 			for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next){
 				glEnable (GL_BLEND);
 				if (conchan->flag & CONSTRAINT_CHANNEL_SELECT)
-					glColor4b (col1[0], col1[1], col1[2], 0x22);
+					glColor4ub (col1[0], col1[1], col1[2], 0x22);
 				else
-					glColor4b (col2[0], col2[1], col2[2], 0x22);
+					glColor4ub (col2[0], col2[1], col2[2], 0x22);
 				
 				gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
 				glRectf(0,  channel_y-NLACHANNELHEIGHT/2+4,  frame1_x,  channel_y+NLACHANNELHEIGHT/2-4);
 				
 				
 				if (conchan->flag & CONSTRAINT_CHANNEL_SELECT)
-					glColor4b (col1[0], col1[1], col1[2], 0x44);
+					glColor4ub (col1[0], col1[1], col1[2], 0x44);
 				else
-					glColor4b (col2[0], col2[1], col2[2], 0x44);
+					glColor4ub (col2[0], col2[1], col2[2], 0x44);
 				glRectf(frame1_x,  channel_y-NLACHANNELHEIGHT/2+4,   G.v2d->hor.xmax,  channel_y+NLACHANNELHEIGHT/2-4);
 				
 				glDisable (GL_BLEND);

@@ -2662,7 +2662,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 	}
 }
 
-static void *restore_pointer_by_name(Main *mainp, ID *id)
+static void *restore_pointer_by_name(Main *mainp, ID *id, int user)
 {
 	ListBase *lb;
 	ID *idn=NULL;
@@ -2672,7 +2672,7 @@ static void *restore_pointer_by_name(Main *mainp, ID *id)
 		idn= lb->first;
 		while(idn) {
 			if( strcmp(idn->name, id->name)==0) {
-				if(idn->us==0) idn->us++;
+				if(user && idn->us==0) idn->us++;
 				break;
 			}
 			idn= idn->next;
@@ -2690,7 +2690,7 @@ void lib_link_screen_restore(Main *newmain, char mode, Scene *curscene)
 	sc= newmain->screen.first;
 	while(sc) {
 
-		if(mode=='u') sc->scene= restore_pointer_by_name(newmain, (ID *)sc->scene);
+		if(mode=='u') sc->scene= restore_pointer_by_name(newmain, (ID *)sc->scene, 1);
 		if(sc->scene==NULL || mode=='n') sc->scene= curscene;
 
 		sa= sc->areabase.first;
@@ -2701,27 +2701,27 @@ void lib_link_screen_restore(Main *newmain, char mode, Scene *curscene)
 				if(sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D*) sl;
 				
-					if(mode=='u') v3d->camera= restore_pointer_by_name(newmain, (ID *)v3d->camera);
+					if(mode=='u') v3d->camera= restore_pointer_by_name(newmain, (ID *)v3d->camera, 1);
 					if(v3d->camera==NULL || mode=='n') v3d->camera= sc->scene->camera;
 					
 					if(v3d->scenelock) v3d->lay= sc->scene->lay;
 					
 					if(v3d->bgpic) {
-						v3d->bgpic->ima= restore_pointer_by_name(newmain, (ID *)v3d->bgpic->ima);
-						v3d->bgpic->tex= restore_pointer_by_name(newmain, (ID *)v3d->bgpic->tex);
+						v3d->bgpic->ima= restore_pointer_by_name(newmain, (ID *)v3d->bgpic->ima, 1);
+						v3d->bgpic->tex= restore_pointer_by_name(newmain, (ID *)v3d->bgpic->tex, 1);
 						if(v3d->bgpic->rect) freeN(v3d->bgpic->rect);
 						v3d->bgpic->rect= NULL;
 					}
 					if(v3d->localvd) {
-						if(mode=='u') v3d->localvd->camera= restore_pointer_by_name(newmain, (ID *)v3d->localvd->camera);
+						if(mode=='u') v3d->localvd->camera= restore_pointer_by_name(newmain, (ID *)v3d->localvd->camera, 1);
 						if(v3d->localvd->camera==NULL || mode=='n') v3d->localvd->camera= sc->scene->camera;
 					}
 				}
 				else if(sl->spacetype==SPACE_IPO) {
 					SpaceIpo *sipo= (SpaceIpo *)sl;
-					sipo->from= restore_pointer_by_name(newmain, (ID *)sipo->from);
+					sipo->from= restore_pointer_by_name(newmain, (ID *)sipo->from, 0);
 					// not free sipo->ipokey, creates dependency with src/
-					sipo->ipo= restore_pointer_by_name(newmain, (ID *)sipo->ipo);
+					sipo->ipo= restore_pointer_by_name(newmain, (ID *)sipo->ipo, 0);
 					if(sipo->editipo) MEM_freeN(sipo->editipo);
 					sipo->editipo= NULL;
 				}
@@ -2741,12 +2741,12 @@ void lib_link_screen_restore(Main *newmain, char mode, Scene *curscene)
 				}
 				else if(sl->spacetype==SPACE_ACTION) {
 					SpaceAction *saction= (SpaceAction *)sl;
-					saction->action = restore_pointer_by_name(newmain, (ID *)saction->action);
+					saction->action = restore_pointer_by_name(newmain, (ID *)saction->action, 1);
 				}
 				else if(sl->spacetype==SPACE_IMAGE) {
 					SpaceImage *sima= (SpaceImage *)sl;
 
-					sima->image= restore_pointer_by_name(newmain, (ID *)sima->image);
+					sima->image= restore_pointer_by_name(newmain, (ID *)sima->image, 1);
 				}
 				else if(sl->spacetype==SPACE_NLA){
 					/* SpaceNla *snla= (SpaceNla *)sl;	*/
@@ -2754,7 +2754,7 @@ void lib_link_screen_restore(Main *newmain, char mode, Scene *curscene)
 				else if(sl->spacetype==SPACE_TEXT) {
 					SpaceText *st= (SpaceText *)sl;
 
-					st->text= restore_pointer_by_name(newmain, (ID *)st->text);
+					st->text= restore_pointer_by_name(newmain, (ID *)st->text, 1);
 					if(st->text==NULL) st->text= newmain->text.first;
 				}
 				else if(sl->spacetype==SPACE_SCRIPT) {
@@ -2769,7 +2769,7 @@ void lib_link_screen_restore(Main *newmain, char mode, Scene *curscene)
 					int a;
 					oops= so->oops.first;
 					while(oops) {
-						oops->id= restore_pointer_by_name(newmain, (ID *)oops->id);
+						oops->id= restore_pointer_by_name(newmain, (ID *)oops->id, 0);
 						oops= oops->next;
 					}
 					so->lockpoin= NULL;
@@ -2778,14 +2778,14 @@ void lib_link_screen_restore(Main *newmain, char mode, Scene *curscene)
 						TreeStore *ts= so->treestore;
 						TreeStoreElem *tselem=ts->data;
 						for(a=0; a<ts->usedelem; a++, tselem++) {
-							tselem->id= restore_pointer_by_name(newmain, tselem->id);
+							tselem->id= restore_pointer_by_name(newmain, tselem->id, 0);
 						}
 					}
 				}
 				else if(sl->spacetype==SPACE_SOUND) {
 					SpaceSound *ssound= (SpaceSound *)sl;
 
-					ssound->sound= restore_pointer_by_name(newmain, (ID *)ssound->sound);
+					ssound->sound= restore_pointer_by_name(newmain, (ID *)ssound->sound, 1);
 				}
 			}
 			sa= sa->next;

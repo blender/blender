@@ -581,7 +581,7 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 			else yof= butrct.ymax - block->maxy+centre;
 		}
 		else if(dir1==UI_TOP) {
-			yof= butrct.ymax - block->miny-1;
+			yof= butrct.ymax - block->miny;
 			if(dir2==UI_RIGHT) xof= butrct.xmax - block->maxx;
 			else xof= butrct.xmin - block->minx;
 			// changed direction? 
@@ -592,7 +592,7 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 			}
 		}
 		else if(dir1==UI_DOWN) {
-			yof= butrct.ymin - block->maxy+1;
+			yof= butrct.ymin - block->maxy;
 			if(dir2==UI_RIGHT) xof= butrct.xmax - block->maxx;
 			else xof= butrct.xmin - block->minx;
 			// changed direction?
