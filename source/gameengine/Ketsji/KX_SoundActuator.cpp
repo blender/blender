@@ -64,6 +64,8 @@ KX_SoundActuator::KX_SoundActuator(SCA_IObject* gameobj,
 	m_startFrame = start;
 	m_endFrame = end;
 	m_pino = false;
+	
+
 }
 
 

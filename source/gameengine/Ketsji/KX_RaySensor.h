@@ -38,6 +38,8 @@
 #include "SCA_ISensor.h"
 #include "MT_Point3.h"
 
+struct KX_ClientObjectInfo;
+
 class KX_RaySensor : public SCA_ISensor
 {
 	Py_Header;
@@ -68,6 +70,8 @@ public:
 	virtual bool Evaluate(CValue* event);
 	virtual bool IsPositiveTrigger();
 
+	bool RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data);
+	
 	KX_PYMETHOD_DOC(KX_RaySensor,GetHitObject);
 	KX_PYMETHOD_DOC(KX_RaySensor,GetHitPosition);
 	KX_PYMETHOD_DOC(KX_RaySensor,GetHitNormal);

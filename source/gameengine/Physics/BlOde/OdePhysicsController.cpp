@@ -421,6 +421,12 @@ void ODEPhysicsController::getOrientation(float &quatImag0,float &quatImag1,floa
   quatReal=q[3];
 }
 
+void 		ODEPhysicsController::getPosition(PHY__Vector3&	pos) const
+{
+	m_MotionState->getWorldPosition(pos[0],pos[1],pos[2]);
+
+}
+	
 void ODEPhysicsController::setPosition(float posX,float posY,float posZ)
 {
   if (!m_bPhantom)

@@ -38,8 +38,7 @@
 #include "SCA_ISensor.h"
 #include "ListValue.h"
 
-#include <SOLID/SOLID.h>
-#include "SM_Scene.h"
+struct PHY_CollData;
 
 #include "KX_ClientObjectInfo.h"
 
@@ -57,10 +56,9 @@ protected:
 	bool					m_bFindMaterial;
 	class SCA_EventManager*	m_eventmgr;
 	
-	class SM_Object*		m_sumoObj;
-	DT_ObjectHandle			m_solidHandle;
-	DT_RespTableHandle		m_resptable;
-
+	class PHY_IPhysicsController*	m_physCtrl;
+	class PHY_ResponseTable*		m_responstTable;
+	class PHY_PhysicsController*	m_responsObject;
 
 	bool					m_bCollision;
 	bool					m_bTriggered;
@@ -71,7 +69,6 @@ protected:
 public:
 	KX_TouchSensor(class SCA_EventManager* eventmgr,
 		class KX_GameObject* gameobj,
-		/*class SM_Object* sumoObj,*/
 		bool fFindMaterial,
 		const STR_String& touchedpropname,
 		PyTypeObject* T=&Type) ;
@@ -84,12 +81,12 @@ public:
 	
 	virtual void RegisterSumo(KX_TouchEventManager* touchman);
 
-	virtual DT_Bool HandleCollision(void* obj1,void* obj2,
-						 const DT_CollData * coll_data); 
+//	virtual DT_Bool HandleCollision(void* obj1,void* obj2,
+//						 const DT_CollData * coll_data); 
 
+	virtual bool	NewHandleCollision(void*obj1,void*obj2,const PHY_CollData* colldata);
 
-	SM_Object*	GetSumoObject() { return m_sumoObj; };
-
+	PHY_PhysicsController*	GetPhysicsController() { return m_responsObject;}
   
 
 	virtual bool IsPositiveTrigger() {

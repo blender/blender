@@ -35,8 +35,8 @@ LIBNAME = logic
 DIR = $(OCGDIR)/gameengine/$(LIBNAME)
 DIRS = Joystick
 
-include nan_compile.mk
 include nan_subdirs.mk
+include nan_compile.mk
 
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 

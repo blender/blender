@@ -36,12 +36,13 @@
 ODEPhysicsEnvironment::ODEPhysicsEnvironment()
 {
 	m_OdeWorld = dWorldCreate();
-	m_OdeSpace = dHashSpaceCreate();
+	m_OdeSpace = dHashSpaceCreate(0);
 	m_OdeContactGroup = dJointGroupCreate (0);
 	dWorldSetCFM (m_OdeWorld,1e-5f);
 
 	m_JointGroup = dJointGroupCreate(0);
-	
+
+	setFixedTimeStep(true,1.f/60.f);
 }
 
 
@@ -55,19 +56,60 @@ ODEPhysicsEnvironment::~ODEPhysicsEnvironment()
 	dWorldDestroy (m_OdeWorld);
 }
 
-bool ODEPhysicsEnvironment::proceed(double timeStep)
-{
-	// ode collision update
-	dSpaceCollide (m_OdeSpace,this,&ODEPhysicsEnvironment::OdeNearCallback);
 
-	int m_odeContacts = GetNumOdeContacts();
-	
-	//physics integrator + resolver update
-	dWorldStep (m_OdeWorld,timeStep);
-	
-	//clear collision points
-	this->ClearOdeContactGroup();
-	
+
+void		ODEPhysicsEnvironment::setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep)
+{
+	m_useFixedTimeStep = useFixedTimeStep;
+
+	if (useFixedTimeStep)
+	{
+		m_fixedTimeStep = fixedTimeStep;
+	} else
+	{
+		m_fixedTimeStep = 0.f;
+	}
+	m_currentTime = 0.f;
+
+	//todo:implement fixed timestepping
+
+}
+float		ODEPhysicsEnvironment::getFixedTimeStep()
+{
+	return m_fixedTimeStep;
+}
+
+
+
+bool		ODEPhysicsEnvironment::proceedDeltaTime(double  curTime,float timeStep1)
+{
+
+	float deltaTime = timeStep1;
+	int	numSteps = 1;
+
+	if (m_useFixedTimeStep)
+	{
+		m_currentTime += timeStep1;		
+		// equal to subSampling (might be a little smaller).
+		numSteps = (int)(m_currentTime / m_fixedTimeStep);
+		m_currentTime -= m_fixedTimeStep * (float)numSteps;
+		deltaTime = m_fixedTimeStep;
+		//todo: experiment by smoothing the remaining time over the substeps
+	}
+
+	for (int i=0;i<numSteps;i++)
+	{
+		// ode collision update
+		dSpaceCollide (m_OdeSpace,this,&ODEPhysicsEnvironment::OdeNearCallback);
+
+		int m_odeContacts = GetNumOdeContacts();
+		
+		//physics integrator + resolver update
+		dWorldStep (m_OdeWorld,deltaTime);
+		
+		//clear collision points
+		this->ClearOdeContactGroup();
+	}
 	return true;
 }
 
@@ -168,9 +210,11 @@ void		ODEPhysicsEnvironment::removeConstraint(int constraintid)
 	}
 }
 
-PHY_IPhysicsController* ODEPhysicsEnvironment::rayTest(void* ignoreClient,float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
+PHY_IPhysicsController* ODEPhysicsEnvironment::rayTest(PHY_IPhysicsController* ignoreClient,float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
 									float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ)
 {
+
+	//m_OdeWorld
 	//collision detection / raytesting
 	return NULL;
 }

@@ -50,6 +50,8 @@
 
 #include "BMF_Api.h"
 
+struct KX_ClientObjectInfo;
+
 
 class GPC_RenderTools : public RAS_IRenderTools
 {
@@ -146,6 +148,7 @@ public:
 
 	int applyLights(int objectlayer);
 
+	bool RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data);
 protected:
 	/** 
 	 * Copied from KX_BlenderGL.cpp in KX_blenderhook

@@ -94,10 +94,10 @@
 #include "IMB_imbuf_types.h"
 // End of Blender includes
 
-#include "SM_Scene.h"
-#include "SumoPhysicsEnvironment.h"
-#include "KX_SumoPhysicsController.h"
 #include "KX_Scene.h"
+#include "KX_RayCast.h"
+#include "KX_IPhysicsController.h"
+#include "PHY_IPhysicsEnvironment.h"
 
 
 GPC_RenderTools::GPC_RenderTools()
@@ -436,6 +436,26 @@ int GPC_RenderTools::applyLights(int objectlayer)
 
 }
 
+bool GPC_RenderTools::RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data)
+{
+	double* const oglmatrix = (double* const) data;
+	MT_Point3 resultpoint(hit_point);
+	MT_Vector3 resultnormal(hit_normal);
+	MT_Vector3 left(oglmatrix[0],oglmatrix[1],oglmatrix[2]);
+	MT_Vector3 dir = -(left.cross(resultnormal)).safe_normalized();
+	left = (dir.cross(resultnormal)).safe_normalized();
+	// for the up vector, we take the 'resultnormal' returned by the physics
+	
+	double maat[16]={
+			left[0],        left[1],        left[2], 0,
+				dir[0],         dir[1],         dir[2], 0,
+		resultnormal[0],resultnormal[1],resultnormal[2], 0,
+				0,              0,              0, 1};
+	glTranslated(resultpoint[0],resultpoint[1],resultpoint[2]);
+	//glMultMatrixd(oglmatrix);
+	glMultMatrixd(maat);
+	return true;
+}
 
 void GPC_RenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmatrix,int objectdrawmode )
 {
@@ -494,44 +514,26 @@ void GPC_RenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmatrix,in
 			KX_GameObject *gameobj = (KX_GameObject*) this->m_clientobject;
 			MT_Vector3 direction = MT_Vector3(0,0,-1);
 
-			
 			direction.normalize();
 			direction *= 100000;
 
 			MT_Point3 topoint = frompoint + direction;
-			MT_Point3 resultpoint;
-			MT_Vector3 resultnormal;
 
-			//todo:
-			//use physics abstraction
 			KX_Scene* kxscene = (KX_Scene*) m_auxilaryClientInfo;
-			SumoPhysicsEnvironment *spe = dynamic_cast<SumoPhysicsEnvironment *>( kxscene->GetPhysicsEnvironment());
-			SM_Scene *scene = spe->GetSumoScene();
-			KX_SumoPhysicsController *spc = dynamic_cast<KX_SumoPhysicsController *>( gameobj->GetPhysicsController());
+			PHY_IPhysicsEnvironment* physics_environment = kxscene->GetPhysicsEnvironment();
+			KX_IPhysicsController* physics_controller = gameobj->GetPhysicsController();
+			
 			KX_GameObject *parent = gameobj->GetParent();
-			if (!spc && parent)
-				spc = dynamic_cast<KX_SumoPhysicsController *>(parent->GetPhysicsController());
+			if (!physics_controller && parent)
+				physics_controller = parent->GetPhysicsController();
 			if (parent)
 				parent->Release();
-			SM_Object *thisObj = spc?spc->GetSumoObject():NULL;
-			
-			if (scene->rayTest(thisObj, frompoint, topoint, resultpoint, resultnormal))
-			{
-				MT_Vector3 left(oglmatrix[0],oglmatrix[1],oglmatrix[2]);
-				MT_Vector3 dir = -(left.cross(resultnormal)).normalized();
-				left = (dir.cross(resultnormal)).normalized();
-				// for the up vector, we take the 'resultnormal' returned by the physics
 				
-				double maat[16]={
-					        left[0],        left[1],        left[2], 0,
-					         dir[0],         dir[1],         dir[2], 0,
-					resultnormal[0],resultnormal[1],resultnormal[2], 0,
-					              0,              0,              0, 1};
-				glTranslated(resultpoint[0],resultpoint[1],resultpoint[2]);
-				//glMultMatrixd(oglmatrix);
-				glMultMatrixd(maat);
-			} else
+			MT_Point3 resultpoint;
+			MT_Vector3 resultnormal;
+			if (!KX_RayCast::RayTest(physics_controller, physics_environment, frompoint, topoint, resultpoint, resultnormal, KX_RayCast::Callback<GPC_RenderTools>(this, oglmatrix)))
 			{
+				// couldn't find something to cast the shadow on...
 				glMultMatrixd(oglmatrix);
 			}
 		} else

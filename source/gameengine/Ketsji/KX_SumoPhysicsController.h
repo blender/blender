@@ -33,7 +33,6 @@
 #define __KX_SUMOPHYSICSCONTROLLER_H
 
 #include "PHY_IPhysicsController.h"
-#include "SM_Object.h" // for SM_Callback
 
 /**
 	Physics Controller, a special kind of Scene Graph Transformation Controller.
@@ -54,7 +53,6 @@ class KX_SumoPhysicsController : public KX_IPhysicsController,
 public:
 	KX_SumoPhysicsController(
 		class SM_Scene* sumoScene,
-/*		DT_SceneHandle solidscene, */
 		class SM_Object* sumoObj,	
 		class PHY_IMotionState* motionstate
 		,bool dyna) 
@@ -76,7 +74,7 @@ public:
 	MT_Vector3 GetVelocity(const MT_Point3& pos);
 	void	SetAngularVelocity(const MT_Vector3& ang_vel,bool local);
 	void	SetLinearVelocity(const MT_Vector3& lin_vel,bool local);
-	void	resolveCombinedVelocities(const MT_Vector3 & lin_vel, const MT_Vector3 & ang_vel);
+	void	resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ);
 
 
 	void	SuspendDynamics();
@@ -108,8 +106,6 @@ public:
 	){
 		// intentionally empty
 	};
-
-
 };
 
 #endif //__KX_SUMOPHYSICSCONTROLLER_H

@@ -57,7 +57,6 @@ KX_IpoSGController::KX_IpoSGController()
   m_modified(true),
   m_ipotime(1.0)
 {
-	m_sumo_object = NULL;
 	m_game_object = NULL;
 
 }
@@ -86,7 +85,7 @@ KX_IpoSGController::UpdateSumoReference(
 	)
 {
 	if (m_game_object) {
-		m_sumo_object = 0;//m_game_object->GetSumoObject();
+
 	}
 }
 
@@ -113,15 +112,7 @@ bool KX_IpoSGController::Update(double currentTime)
 		
 		if (m_modify_position) {
 			if (m_ipo_as_force) {
-				/*
-				UpdateSumoReference();
-				if (m_sumo_object && ob) {
-					m_sumo_object->applyCenterForce(m_force_ipo_acts_local ?
-						ob->GetWorldOrientation() * m_ipo_xform.GetPosition() :
-						m_ipo_xform.GetPosition());
-					m_sumo_object->calcXform();
-				}
-				*/
+				
 				if (m_game_object && ob) {
 					m_game_object->GetPhysicsController()->ApplyForce(m_force_ipo_acts_local ?
 						ob->GetWorldOrientation() * m_ipo_xform.GetPosition() :
@@ -134,15 +125,7 @@ bool KX_IpoSGController::Update(double currentTime)
 		}
 		if (m_modify_orientation) {
 			if (m_ipo_as_force) {
-				/*
-				UpdateSumoReference();
-				if (m_sumo_object && ob) {
-					m_sumo_object->applyTorque(m_force_ipo_acts_local ?
-						ob->GetWorldOrientation() * m_ipo_xform.GetEulerAngles() :
-						m_ipo_xform.GetEulerAngles());
-					m_sumo_object->calcXform();
-				}
-				*/
+				
 				if (m_game_object && ob) {
 					m_game_object->ApplyTorque(m_force_ipo_acts_local ?
 						ob->GetWorldOrientation() * m_ipo_xform.GetEulerAngles() :

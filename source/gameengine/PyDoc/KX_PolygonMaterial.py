@@ -120,7 +120,7 @@ class KX_PolygonMaterial:
 					print "Shader failed to validate"
 					return
 				
-			def Activate(self, rasty, cachingInfo, mat):
+			def activate(self, rasty, cachingInfo, mat):
 				self.pass_no+=1
 				if (self.pass_no == 1):
 					glDisable(GL_COLOR_MATERIAL)
@@ -246,7 +246,7 @@ class KX_PolygonMaterial:
 		Example::
 			class PyMaterial:
 				def __init__(self):
-					self.pass_no = 0
+					self.pass_no = -1
 				
 				def activate(self, rasty, cachingInfo, material):
 					# Activate the material here.
@@ -262,13 +262,14 @@ class KX_PolygonMaterial:
 					#          was added to
 					
 					# default material properties:
+					self.pass_no += 1
 					if self.pass_no == 0:
 						material.activate(rasty, cachingInfo)
-						self.pass_no = 1
 						# Return True to do this pass
 						return True
 					
-					self.pass_no = 0
+					# clean up and return False to finish.
+					self.pass_no = -1
 					return False
 			
 			# Create a new Python Material and pass it to the renderer.

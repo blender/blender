@@ -37,6 +37,8 @@
 #include "MT_Point3.h"
 #include "MT_Matrix3x3.h"
 
+struct KX_ClientObjectInfo;
+
 /**
 	Physics Controller, a special kind of Scene Graph Transformation Controller.
 	It get's callbacks from Physics in case a transformation change took place.
@@ -47,7 +49,6 @@
 class KX_IPhysicsController : public SG_Controller
 							 
 {
-
 protected:
 	bool		m_bDyna;
 	bool		m_suspendDynamics;
@@ -68,7 +69,7 @@ public:
 	virtual MT_Vector3 GetVelocity(const MT_Point3& pos)=0;
 	virtual void	SetAngularVelocity(const MT_Vector3& ang_vel,bool local)=0;
 	virtual void	SetLinearVelocity(const MT_Vector3& lin_vel,bool local)=0;
-	virtual void	resolveCombinedVelocities(const MT_Vector3 & lin_vel, const MT_Vector3 & ang_vel) = 0;
+	virtual void	resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ) = 0;
 
 	virtual	void	getOrientation(MT_Quaternion& orn)=0;
 	virtual	void setOrientation(const MT_Quaternion& orn)=0;
@@ -95,8 +96,6 @@ public:
 	// call from scene graph to update
 	virtual bool Update(double time)=0;
 	void*	GetUserData() { return m_userdata;}
-	
-
 };
 
 #endif //__KX_IPHYSICSCONTROLLER_H

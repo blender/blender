@@ -32,6 +32,7 @@
 #ifndef __KX_TOUCHEVENTMANAGER
 #define __KX_TOUCHEVENTMANAGER
 
+
 #include "SCA_EventManager.h"
 #include "KX_TouchSensor.h"
 #include "KX_GameObject.h"
@@ -40,35 +41,39 @@
 #include <set>
 
 class SCA_ISensor;
-class SM_Object;
+class PHY_IPhysicsEnvironment;
 
 class KX_TouchEventManager : public SCA_EventManager
 {
-	typedef std::pair<SM_Object*, SM_Object*> Collision;
+	typedef std::pair<PHY_IPhysicsController*, PHY_IPhysicsController*> NewCollision;
 	class SCA_LogicManager* m_logicmgr;
-	SM_Scene *m_scene;
+	PHY_IPhysicsEnvironment*	m_physEnv;
 	
-	std::set<Collision> m_collisions;
+	std::set<NewCollision> m_newCollisions;
 	
+	
+	static bool newCollisionResponse(void *client_data, 
+						void *object1,
+						void *object2,
+						const PHY_CollData *coll_data);
+	
+	virtual bool	NewHandleCollision(void* obj1,void* obj2,
+						const PHY_CollData * coll_data); 
 
-	static DT_Bool collisionResponse(void *client_data, 
-							void *object1,
-							void *object2,
-							const DT_CollData *coll_data);
-	
-	virtual DT_Bool HandleCollision(void* obj1,void* obj2,
-						 const DT_CollData * coll_data); 
-	
+
+
+
 
 public:
 	KX_TouchEventManager(class SCA_LogicManager* logicmgr,  
-		SM_Scene *scene);
+		PHY_IPhysicsEnvironment* physEnv);
 	virtual void NextFrame();
 	virtual void	EndFrame();
 	virtual void	RemoveSensor(class SCA_ISensor* sensor);
 	virtual void RegisterSensor(SCA_ISensor* sensor);
 	SCA_LogicManager* GetLogicManager() { return m_logicmgr;}
-	SM_Scene *GetSumoScene() { return m_scene; }
+	PHY_IPhysicsEnvironment *GetPhysicsEnvironment() { return m_physEnv; }
+
 };
 
 #endif //__KX_TOUCHEVENTMANAGER

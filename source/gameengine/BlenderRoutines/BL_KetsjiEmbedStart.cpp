@@ -346,7 +346,6 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		
 		// clean up some stuff
 		audiodevice->StopCD();
-		SND_DeviceManager::Unsubscribe();
 		
 		if (ketsjiengine)
 		{
@@ -388,6 +387,9 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			delete canvas;
 			canvas = NULL;
 		}
+		
+		SND_DeviceManager::Unsubscribe();
+	
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
 
 	if (bfd) BLO_blendfiledata_free(bfd);

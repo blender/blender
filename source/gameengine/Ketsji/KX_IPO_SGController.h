@@ -59,12 +59,6 @@ class KX_IpoSGController : public SG_Controller
 	/** Local time of this ipo.*/
 	double		        m_ipotime;
 
-	/** A reference to the sm scene an eventually associated physics object is in. */
-//	class SM_Scene*     m_sumo_scene;
-
-	/** A reference an eventually associated physics object is in. */
-	class SM_Object*     m_sumo_object;
-
 	/** A reference to the original game object. */
 	class KX_GameObject* m_game_object;
 

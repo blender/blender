@@ -78,6 +78,8 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 		return result;
 	};
 
+	bool RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data);
+
 	
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */

@@ -79,6 +79,7 @@ probably misplaced */
 #include "KX_BlenderKeyboardDevice.h"
 #include "KX_BlenderGL.h"
 #include "RAS_ICanvas.h"
+#include "PHY_IPhysicsEnvironment.h"
 
 #include "KX_KetsjiEngine.h"
 #include "KX_BlenderSceneConverter.h"
@@ -374,11 +375,23 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					
 					// this sumoObject is not deleted by a gameobj, so delete it ourself
 					// later (memleaks)!
-					//SM_Object* sumoObj 		=	new SM_Object(shape,NULL,NULL,NULL);
-					//sumoObj->setMargin(blendernearsensor->dist);
-					//sumoObj->setPosition(gameobj->NodeGetWorldPosition());
+					float radius = blendernearsensor->dist;
+					PHY__Vector3 pos;
+					const MT_Vector3& wpos = gameobj->NodeGetWorldPosition();
+					pos[0] = wpos[0];
+					pos[1] = wpos[1];
+					pos[2] = wpos[2];
+					pos[3] = 0.f;
 					bool bFindMaterial = false;
-					gamesensor = new KX_NearSensor(eventmgr,gameobj,blendernearsensor->dist,blendernearsensor->resetdist,bFindMaterial,nearpropertyname,kxscene);
+					PHY_IPhysicsController* physCtrl = kxscene->GetPhysicsEnvironment()->CreateSphereController(radius,pos);
+
+					gamesensor = new KX_NearSensor(eventmgr,gameobj,
+						blendernearsensor->dist,
+						blendernearsensor->resetdist,
+						bFindMaterial,
+						nearpropertyname,kxscene,
+						physCtrl
+						);
 					
 				}
 				break;
@@ -551,9 +564,12 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					MT_Scalar largemargin = 0.0;
 					
 					bool bFindMaterial = false;
+					PHY_IPhysicsController* ctrl = kxscene->GetPhysicsEnvironment()->CreateConeController(coneradius,coneheight);
+
 					gamesensor = new KX_RadarSensor(
 						eventmgr,
 						gameobj,
+						ctrl,
 						coneradius,
 						coneheight,
 						radaraxis,

@@ -177,7 +177,7 @@ KX_KetsjiEngine::~KX_KetsjiEngine()
 
 void KX_KetsjiEngine::SetKeyboardDevice(SCA_IInputDevice* keyboarddevice)
 {
-	assert(keyboarddevice);
+	MT_assert(keyboarddevice);
 	m_keyboarddevice = keyboarddevice;
 }
 
@@ -185,7 +185,7 @@ void KX_KetsjiEngine::SetKeyboardDevice(SCA_IInputDevice* keyboarddevice)
 
 void KX_KetsjiEngine::SetMouseDevice(SCA_IInputDevice* mousedevice)
 {
-	assert(mousedevice);
+	MT_assert(mousedevice);
 	m_mousedevice = mousedevice;
 }
 
@@ -193,7 +193,7 @@ void KX_KetsjiEngine::SetMouseDevice(SCA_IInputDevice* mousedevice)
 
 void KX_KetsjiEngine::SetNetworkDevice(NG_NetworkDeviceInterface* networkdevice)
 {
-	assert(networkdevice);
+	MT_assert(networkdevice);
 	m_networkdevice = networkdevice;
 }
 
@@ -201,7 +201,7 @@ void KX_KetsjiEngine::SetNetworkDevice(NG_NetworkDeviceInterface* networkdevice)
 
 void KX_KetsjiEngine::SetAudioDevice(SND_IAudioDevice* audiodevice)
 {
-	assert(audiodevice);
+	MT_assert(audiodevice);
 	m_audiodevice = audiodevice;
 }
 
@@ -209,7 +209,7 @@ void KX_KetsjiEngine::SetAudioDevice(SND_IAudioDevice* audiodevice)
 
 void KX_KetsjiEngine::SetCanvas(RAS_ICanvas* canvas)
 {
-	assert(canvas);
+	MT_assert(canvas);
 	m_canvas = canvas;
 }
 
@@ -217,7 +217,7 @@ void KX_KetsjiEngine::SetCanvas(RAS_ICanvas* canvas)
 
 void KX_KetsjiEngine::SetRenderTools(RAS_IRenderTools* rendertools)
 {
-	assert(rendertools);
+	MT_assert(rendertools);
 	m_rendertools = rendertools;
 }
 
@@ -225,7 +225,7 @@ void KX_KetsjiEngine::SetRenderTools(RAS_IRenderTools* rendertools)
 
 void KX_KetsjiEngine::SetRasterizer(RAS_IRasterizer* rasterizer)
 {
-	assert(rasterizer);
+	MT_assert(rasterizer);
 	m_rasterizer = rasterizer;
 }
 
@@ -233,7 +233,7 @@ void KX_KetsjiEngine::SetRasterizer(RAS_IRasterizer* rasterizer)
 
 void KX_KetsjiEngine::SetPythonDictionary(PyObject* pythondictionary)
 {
-	assert(pythondictionary);
+	MT_assert(pythondictionary);
 	m_pythondictionary = pythondictionary;
 }
 
@@ -241,7 +241,7 @@ void KX_KetsjiEngine::SetPythonDictionary(PyObject* pythondictionary)
 
 void KX_KetsjiEngine::SetSceneConverter(KX_ISceneConverter* sceneconverter)
 {
-	assert(sceneconverter);
+	MT_assert(sceneconverter);
 	m_sceneconverter = sceneconverter;
 }
 
@@ -258,7 +258,6 @@ void KX_KetsjiEngine::StartEngine()
 	m_firstframe = true;
 	m_bInitialized = true;
 	m_ticrate = DEFAULT_LOGIC_TIC_RATE;
-	SumoPhysicsEnvironment::setTicRate(DEFAULT_PHYSICS_TIC_RATE);
 }
 
 bool KX_KetsjiEngine::BeginFrame()
@@ -320,6 +319,8 @@ void KX_KetsjiEngine::NextFrame()
 	else
 		curtime = m_kxsystem->GetTimeInSeconds();
 	m_deltatime += curtime - m_previoustime;
+	float	realDeltaTime = curtime - m_previoustime;
+
 	m_previoustime = curtime;
 	double localtime = curtime - m_deltatime;
 
@@ -386,7 +387,7 @@ void KX_KetsjiEngine::NextFrame()
 				// Perform physics calculations on the scene. This can involve 
 				// many iterations of the physics solver.
 				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
-				scene->GetPhysicsEnvironment()->proceed(localtime);
+				scene->GetPhysicsEnvironment()->proceedDeltaTime(localtime,realDeltaTime);
 			} // suspended
 	
 			DoSound(scene);
@@ -430,7 +431,7 @@ void KX_KetsjiEngine::NextFrame()
 			// Perform physics calculations on the scene. This can involve 
 			// many iterations of the physics solver.
 			m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
-			scene->GetPhysicsEnvironment()->proceed(curtime);
+			scene->GetPhysicsEnvironment()->proceedDeltaTime(curtime,0.f);
 			// Update scenegraph after physics step. This maps physics calculations
 			// into node positions.		
 			m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);

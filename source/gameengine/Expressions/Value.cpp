@@ -532,7 +532,7 @@ int	CValue::Release()
 	else
 	{
 		// Reference count reached 0, delete ourselves and return 0
-//		assert(m_refcount==0, "Reference count reached sub-zero, object released too much");
+//		MT_assert(m_refcount==0, "Reference count reached sub-zero, object released too much");
 		delete this;
 		return 0;
 	}

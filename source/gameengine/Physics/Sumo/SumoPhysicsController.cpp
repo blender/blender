@@ -35,6 +35,7 @@
 #include "SM_Object.h"
 #include "MT_Quaternion.h"
 
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -54,7 +55,16 @@ SumoPhysicsController::SumoPhysicsController(
 {
 	if (m_sumoObj)
 	{
-		//m_sumoObj->setClientObject(this);
+
+		PHY__Vector3 pos1;
+		getPosition(pos1);
+		MT_Point3 pos(pos1);
+		
+		//temp debugging check
+		//assert(pos.length() < 100000.f);
+
+		//need this to do the upcast after the solid/sumo collision callback
+		m_sumoObj->setPhysicsClientObject(this);
 		//if it is a dyna, register for a callback
 		m_sumoObj->registerCallback(*this);
 	}
@@ -105,8 +115,25 @@ void SumoPhysicsController::GetWorldOrientation(MT_Matrix3x3& mat)
 
 }
 
+void SumoPhysicsController::getPosition(PHY__Vector3&	pos) const
+{
+	assert(m_sumoObj);
+
+	pos[0] = m_sumoObj->getPosition()[0];
+	pos[1] = m_sumoObj->getPosition()[0];
+	pos[2] = m_sumoObj->getPosition()[0];
+
+	//m_MotionState->getWorldPosition(pos[0],pos[1],pos[2]);
+}
+
 void SumoPhysicsController::GetWorldPosition(MT_Point3& pos)
 {
+//	assert(m_sumoObj);
+
+//	pos[0] = m_sumoObj->getPosition()[0];
+//	pos[1] = m_sumoObj->getPosition()[0];
+//	pos[2] = m_sumoObj->getPosition()[0];
+
 	float worldpos[3];
 	m_MotionState->getWorldPosition(worldpos[0],worldpos[1],worldpos[2]);
 	pos[0]=worldpos[0];
@@ -237,14 +264,13 @@ void		SumoPhysicsController::SetLinearVelocity(float lin_velX,float lin_velY,flo
 	}
 }
 
-void SumoPhysicsController::resolveCombinedVelocities(
-		const MT_Vector3 & lin_vel,
-		const MT_Vector3 & ang_vel
-	)
+void		SumoPhysicsController::resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ)
 {
 	if (m_sumoObj)
-		m_sumoObj->resolveCombinedVelocities(lin_vel, ang_vel);
+		m_sumoObj->resolveCombinedVelocities(MT_Vector3(linvelX,linvelY,linvelZ),MT_Vector3(angVelX,angVelY,angVelZ));
 }
+
+
 
 
 void		SumoPhysicsController::applyImpulse(float attachX,float attachY,float attachZ, float impulseX,float impulseY,float impulseZ)
@@ -385,9 +411,11 @@ void	SumoPhysicsController::WriteMotionStateToDynamics(bool)
 
 void SumoPhysicsController::do_me()
 {
+	MT_assert(m_sumoObj);
 	const MT_Point3& pos = m_sumoObj->getPosition();
 	const MT_Quaternion& orn = m_sumoObj->getOrientation();
 
+	MT_assert(m_MotionState);
 	m_MotionState->setWorldPosition(pos[0],pos[1],pos[2]);
 	m_MotionState->setWorldOrientation(orn[0],orn[1],orn[2],orn[3]);
 }
@@ -418,4 +446,52 @@ void	SumoPhysicsController::setSumoTransform(bool nondynaonly)
 			m_sumoObj->calcXform();
 		}
 	}
+}
+
+
+	// clientinfo for raycasts for example
+void*				SumoPhysicsController::getNewClientInfo()
+{
+	if (m_sumoObj)
+		return m_sumoObj->getClientObject();
+	return 0;
+
+}
+void				SumoPhysicsController::setNewClientInfo(void* clientinfo)
+{
+	if (m_sumoObj)
+	{
+		SM_ClientObject* clOb = static_cast<SM_ClientObject*> (clientinfo);
+		m_sumoObj->setClientObject(clOb);
+	}
+
+}
+
+void	SumoPhysicsController::calcXform()
+{
+	if (m_sumoObj)
+		m_sumoObj->calcXform();
+}
+
+void SumoPhysicsController::SetMargin(float margin) 
+{
+	if (m_sumoObj)
+		m_sumoObj->setMargin(margin);
+}
+
+float SumoPhysicsController::GetMargin() const
+{
+	if (m_sumoObj)
+		m_sumoObj->getMargin();
+	return 0.f;
+}
+
+float SumoPhysicsController::GetRadius() const 
+{
+	if (m_sumoObj && m_sumoObj->getShapeProps())
+	{
+		return m_sumoObj->getShapeProps()->m_radius;
+	}
+	return 0.f;
+
 }

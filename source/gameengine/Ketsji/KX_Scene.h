@@ -128,7 +128,7 @@ protected:
 	* physics engine abstraction
 	*/
 
-	e_PhysicsEngine m_physicsEngine;
+	//e_PhysicsEngine m_physicsEngine; //who needs this ?
 	class PHY_IPhysicsEnvironment*		m_physicsEnvironment;
 
 	/**

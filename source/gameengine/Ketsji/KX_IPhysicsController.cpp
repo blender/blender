@@ -36,14 +36,18 @@
 #include <config.h>
 #endif
 
+#include "PHY_DynamicTypes.h"
+
 KX_IPhysicsController::KX_IPhysicsController(bool dyna,void* userdata)
 
 :	m_bDyna(dyna),
 	m_suspendDynamics(false),
 	m_userdata(userdata)
 {
-};
+}
 
 KX_IPhysicsController::~KX_IPhysicsController()
 {
 }
+
+

@@ -39,6 +39,7 @@ include nan_compile.mk
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
 CPPFLAGS += -I$(NAN_STRING)/include    
+CPPFLAGS += -I$(NAN_MOTO)/include    
 CPPFLAGS += -I../GameLogic
 CPPFLAGS += -I../../kernel/gen_system
 

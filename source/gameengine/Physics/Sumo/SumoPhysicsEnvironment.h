@@ -35,7 +35,8 @@
 #include "MT_Scalar.h"
 
 #include "PHY_IPhysicsEnvironment.h"
-
+class SumoPHYCallbackBridge;
+#include <vector>
 /**
 *	Physics Environment takes care of stepping the simulation and is a container for physics entities (rigidbodies,constraints, materials etc.)
 *	A derived class may be able to 'construct' entities by loading and/or converting
@@ -44,6 +45,11 @@ class SumoPhysicsEnvironment : public PHY_IPhysicsEnvironment
 {
 
 	class SM_Scene*	m_sumoScene;
+	float	m_currentTime;
+	float	m_fixedTimeStep;
+	bool	m_useFixedTimeStep;
+
+	std::vector<SumoPHYCallbackBridge*>	m_callbacks;
 
 public:
 	SumoPhysicsEnvironment();
@@ -51,19 +57,29 @@ public:
 	virtual	void		beginFrame();
 	virtual void		endFrame();
 // Perform an integration step of duration 'timeStep'.
-	virtual	bool		proceed(double curtime);
+	virtual	bool		proceedDeltaTime(double  curTime,float timeStep);
+	virtual	void		setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep);
+	virtual	float		getFixedTimeStep();
+
 	virtual	void		setGravity(float x,float y,float z);
 	virtual int		createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,
 			float pivotX,float pivotY,float pivotZ,
 			float axisX,float axisY,float axisZ);
 
 	virtual void		removeConstraint(int constraintid);
-	virtual PHY_IPhysicsController* rayTest(void* ignoreClient,float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
+	virtual PHY_IPhysicsController* rayTest(PHY_IPhysicsController* ignoreClient,float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
 									float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ);
 
-	static void setTicRate(MT_Scalar ticrate);
-	static MT_Scalar getTicRate();
-	// sumo specific
+	
+	//gamelogic callbacks
+	virtual void addSensor(PHY_IPhysicsController* ctrl);
+	virtual void removeSensor(PHY_IPhysicsController* ctrl);
+	virtual void addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user);
+	virtual void requestCollisionCallback(PHY_IPhysicsController* ctrl);
+	virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position);
+	virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight);
+
+
 	SM_Scene* GetSumoScene()
 	{
 		return m_sumoScene;

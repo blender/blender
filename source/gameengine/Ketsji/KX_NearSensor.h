@@ -39,25 +39,27 @@
 #include "KX_ClientObjectInfo.h"
 
 class KX_Scene;
+struct PHY_CollData;
 
 class KX_NearSensor : public KX_TouchSensor
 {
 	Py_Header;
+protected:
 	double	m_Margin;
 	double  m_ResetMargin;
 	KX_Scene*	m_scene;
 	KX_ClientObjectInfo*	m_client_info;
-protected:
+public:
 	KX_NearSensor(class SCA_EventManager* eventmgr,
 			class KX_GameObject* gameobj,
-			void *shape,
 			double margin,
 			double resetmargin,
 			bool bFindMaterial,
 			const STR_String& touchedpropname,
 			class KX_Scene* scene,
+			 PHY_IPhysicsController*	ctrl,
 			PyTypeObject* T=&Type);
-
+/*
 public:
 	KX_NearSensor(class SCA_EventManager* eventmgr,
 			class KX_GameObject* gameobj,
@@ -67,13 +69,14 @@ public:
 			const STR_String& touchedpropname,
 			class KX_Scene* scene,
 			PyTypeObject* T=&Type);
+*/
 	virtual ~KX_NearSensor(); 
 	virtual CValue* GetReplica();
 	virtual bool Evaluate(CValue* event);
 
 	virtual void ReParent(SCA_IObject* parent);
-	virtual DT_Bool HandleCollision(void* obj1,void* obj2,
-						 const DT_CollData * coll_data); 
+	virtual bool	NewHandleCollision(void* obj1,void* obj2,
+						 const PHY_CollData * coll_data); 
 	virtual void RegisterSumo(KX_TouchEventManager *touchman);
 	
 	virtual PyObject* _getattr(const STR_String& attr);

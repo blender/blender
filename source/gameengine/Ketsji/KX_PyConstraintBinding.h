@@ -37,6 +37,8 @@
 PyObject*				initPythonConstraintBinding();
 void	PHY_RemovePythonConstraintBinding();
 void	PHY_SetActiveEnvironment(class	PHY_IPhysicsEnvironment* env);
+PHY_IPhysicsEnvironment*	PHY_GetActiveEnvironment();
+
 
 #endif //PHY_PYTHON_CONSTRAINTBINDING
 

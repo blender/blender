@@ -41,7 +41,7 @@
 
 // nasty glob variable to connect scripting language
 // if there is a better way (without global), please do so!
-static PHY_IPhysicsEnvironment* g_physics_env = NULL;
+static PHY_IPhysicsEnvironment* g_CurrentActivePhysicsEnvironment = NULL;
 
 static char PhysicsConstraints_module_documentation[] =
 "This is the Python API for the Physics Constraints";
@@ -59,8 +59,8 @@ static PyObject* gPySetGravity(PyObject* self,
 	int len = PyTuple_Size(args);
 	if ((len == 3) && PyArg_ParseTuple(args,"fff",&x,&y,&z))
 	{
-		if (g_physics_env)
-			g_physics_env->setGravity(x,y,z);
+		if (PHY_GetActiveEnvironment())
+			PHY_GetActiveEnvironment()->setGravity(x,y,z);
 	}
 	Py_INCREF(Py_None); return Py_None;
 }
@@ -99,16 +99,16 @@ static PyObject* gPyCreateConstraint(PyObject* self,
 	
 	if (success)
 	{
-		if (g_physics_env)
+		if (PHY_GetActiveEnvironment())
 		{
 			
 			PHY_IPhysicsController* physctrl = (PHY_IPhysicsController*) physicsid;
 			PHY_IPhysicsController* physctrl2 = (PHY_IPhysicsController*) physicsid2;
 			if (physctrl) //TODO:check for existance of this pointer!
 			{
-				int constraintid = g_physics_env->createConstraint(physctrl,physctrl2,(enum PHY_ConstraintType)constrainttype,pivotX,pivotY,pivotZ,axisX,axisY,axisZ);
+				int constraintid = PHY_GetActiveEnvironment()->createConstraint(physctrl,physctrl2,(enum PHY_ConstraintType)constrainttype,pivotX,pivotY,pivotZ,axisX,axisY,axisZ);
 				
-				KX_ConstraintWrapper* wrap = new KX_ConstraintWrapper((enum PHY_ConstraintType)constrainttype,constraintid,g_physics_env);
+				KX_ConstraintWrapper* wrap = new KX_ConstraintWrapper((enum PHY_ConstraintType)constrainttype,constraintid,PHY_GetActiveEnvironment());
 				
 
 				return wrap;
@@ -130,9 +130,9 @@ static PyObject* gPyRemoveConstraint(PyObject* self,
 	
 	if (PyArg_ParseTuple(args,"i",&constraintid))
 	{
-		if (g_physics_env)
+		if (PHY_GetActiveEnvironment())
 		{
-			g_physics_env->removeConstraint(constraintid);
+			PHY_GetActiveEnvironment()->removeConstraint(constraintid);
 		}
 	}
 	Py_INCREF(Py_None); return Py_None;
@@ -188,5 +188,11 @@ void	KX_RemovePythonConstraintBinding()
 
 void	PHY_SetActiveEnvironment(class	PHY_IPhysicsEnvironment* env)
 {
-	g_physics_env = env;
+	g_CurrentActivePhysicsEnvironment = env;
 }
+
+PHY_IPhysicsEnvironment*	PHY_GetActiveEnvironment()
+{
+	return g_CurrentActivePhysicsEnvironment;
+}
+

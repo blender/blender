@@ -31,7 +31,7 @@
  * NetworkSceneManagement generic implementation
  */
 #include <stdio.h>
-#include <assert.h>
+#include <MT_assert.h>
 #include <algorithm>
 
 #include "NG_NetworkScene.h"
@@ -199,7 +199,7 @@ vector<NG_NetworkMessage*> NG_NetworkScene::FindMessages(
 		// possibly it's there, but maybe not (false hit)
 		if (to.IsEmpty()) {
 			// take all messages, and check other fields
-			assert("objectnames that are empty are not valid, so make it a hobby project :)\n");
+			MT_assert(!"objectnames that are empty are not valid, so make it a hobby project :)\n");
 		} else {
 			//todo: find intersection of messages (that are in other 2 maps)
 			vector<NG_NetworkMessage*>** tolistptr = m_messagesByDestinationName[to];

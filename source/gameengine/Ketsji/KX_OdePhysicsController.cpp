@@ -23,6 +23,10 @@
 #include "KX_GameObject.h"
 #include "KX_MotionState.h"
 
+#include "MT_assert.h"
+
+#include "PHY_IPhysicsEnvironment.h"
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -225,7 +229,7 @@ SG_Controller*	KX_OdePhysicsController::GetReplica(class SG_Node* destnode)
 	
 }
 
-void	KX_OdePhysicsController::resolveCombinedVelocities(const MT_Vector3 & lin_vel, const MT_Vector3 & ang_vel )
+void		KX_OdePhysicsController::resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ)
 {
 }
 

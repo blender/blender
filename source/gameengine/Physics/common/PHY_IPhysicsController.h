@@ -32,7 +32,7 @@
 #ifndef PHY_IPHYSICSCONTROLLER_H
 #define PHY_IPHYSICSCONTROLLER_H
 
-#include "MT_Vector3.h"
+#include "PHY_DynamicTypes.h"
 
 /**
 	PHY_IPhysicsController is the abstract simplified Interface to a physical object.
@@ -65,6 +65,7 @@ class PHY_IPhysicsController
 		virtual	void		getOrientation(float &quatImag0,float &quatImag1,float &quatImag2,float &quatReal)=0;
 		virtual	void		setOrientation(float quatImag0,float quatImag1,float quatImag2,float quatReal)=0;
 		virtual	void		setPosition(float posX,float posY,float posZ)=0;
+		virtual	void 		getPosition(PHY__Vector3&	pos) const=0;
 		virtual	void		setScaling(float scaleX,float scaleY,float scaleZ)=0;
 		
 		// physics methods
@@ -72,7 +73,8 @@ class PHY_IPhysicsController
 		virtual void		ApplyForce(float forceX,float forceY,float forceZ,bool local)=0;
 		virtual void		SetAngularVelocity(float ang_velX,float ang_velY,float ang_velZ,bool local)=0;
 		virtual void		SetLinearVelocity(float lin_velX,float lin_velY,float lin_velZ,bool local)=0;
-		virtual void		resolveCombinedVelocities(const MT_Vector3 & lin_vel, const MT_Vector3 & ang_vel ) = 0;
+		virtual void		resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ) = 0;
+
 		virtual void		applyImpulse(float attachX,float attachY,float attachZ, float impulseX,float impulseY,float impulseZ)=0;
 		virtual void		SetActive(bool active)=0;
 
@@ -85,8 +87,16 @@ class PHY_IPhysicsController
 		virtual	void		setRigidBody(bool rigid)=0;
 
 		// clientinfo for raycasts for example
-		virtual	void*				getClientInfo()=0;
-		virtual	void				setClientInfo(void* clientinfo)=0;
+		virtual	void*				getNewClientInfo()=0;
+		virtual	void				setNewClientInfo(void* clientinfo)=0;
+		virtual PHY_IPhysicsController*	GetReplica() {return 0;}
+
+		virtual void	calcXform() =0;
+		virtual void SetMargin(float margin) =0;
+		virtual float GetMargin() const=0;
+		virtual float GetRadius() const { return 0.f;}
+		PHY__Vector3	GetWorldPosition(PHY__Vector3& localpos);
+
 };
 
 #endif //PHY_IPHYSICSCONTROLLER_H

@@ -42,6 +42,8 @@
 #pragma warning( disable : 4786 )     
 #endif
 
+#include "MT_assert.h"
+
 #include "SM_Object.h"
 #include "SM_Scene.h"
 #include "SM_FhObject.h"
@@ -147,7 +149,7 @@ SM_Object::SM_Object(
 	
 	m_dynamicParent(dynamicParent),
 	m_client_object(0),
-	
+	m_physicsClientObject(0),
 	m_shape(shape),
 	m_materialProps(materialProps),
 	m_materialPropsBackup(0),
@@ -385,7 +387,7 @@ void SM_Object::dynamicCollision(const MT_Point3 &local2,
 
 			// I guess the GEN_max is not necessary, so let's check it
 
-			assert(impulse >= 0.0);
+			MT_assert(impulse >= 0.0);
 
 			/**
 			 * Here's the trick. We compute the impulse to make the
@@ -481,7 +483,7 @@ DT_Bool SM_Object::boing(
 	if (dist < MT_EPSILON)
 		return DT_CONTINUE;
 		
-	// Now we are definately intersecting.
+	// Now we are definitely intersecting.
 
 	// Set callbacks for game engine.
 	if ((obj1->getClientObject() && obj1->getClientObject()->hasCollisionCallback()) || 
@@ -595,7 +597,7 @@ void SM_Object::relax(void)
 SM_Object::SM_Object() :
 	m_dynamicParent(0),
 	m_client_object(0),
-	
+	m_physicsClientObject(0),
 	m_shape(0),
 	m_materialProps(0),
 	m_materialPropsBackup(0),
@@ -868,7 +870,7 @@ SM_Object::
 setOrientation(
 	const MT_Quaternion& orn
 ){
-	assert(!orn.fuzzyZero());
+	MT_assert(!orn.fuzzyZero());
 	m_kinematic = true;
 	getNextFrame().setOrientation(orn);
 	endFrame();

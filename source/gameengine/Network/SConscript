@@ -10,7 +10,8 @@ source_files = ['NG_NetworkMessage.cpp',
 
 ng_network_env.Append (CPPPATH=['.',
                                 '#source/kernel/gen_system',
-                                '#intern/string'
+                                '#intern/string',
+				'#intern/moto/include'
                                ])
 
 ng_network_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/NG_network', source=source_files)

@@ -50,10 +50,12 @@
 #include "KX_Camera.h"
 #include "KX_MouseFocusSensor.h"
 
-#include "SM_Object.h"
-#include "SM_Scene.h"
-#include "SumoPhysicsEnvironment.h"
-#include "KX_SumoPhysicsController.h"
+#include "KX_RayCast.h"
+#include "KX_IPhysicsController.h"
+#include "PHY_IPhysicsController.h"
+#include "PHY_IPhysicsEnvironment.h"
+
+
 #include "KX_ClientObjectInfo.h"
 
 /* ------------------------------------------------------------------------- */
@@ -117,10 +119,40 @@ bool KX_MouseFocusSensor::Evaluate(CValue* event)
 	return result;
 }
 
+bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo* client_info, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data)
+{
+	KX_GameObject* hitKXObj = client_info->m_gameobject;
+	
+	if (client_info->m_type > KX_ClientObjectInfo::ACTOR)
+	{
+		// false hit
+		return false;
+	}
+	
+	/* Is this me? In the ray test, there are a lot of extra checks
+	* for aliasing artefacts from self-hits. That doesn't happen
+	* here, so a simple test suffices. Or does the camera also get
+	* self-hits? (No, and the raysensor shouldn't do it either, since
+	* self-hits are excluded by setting the correct ignore-object.)
+	* Hitspots now become valid. */
+	KX_GameObject* thisObj = (KX_GameObject*) GetParent();
+	if (hitKXObj == thisObj)
+	{
+		m_hitPosition = hit_point;
+		m_hitNormal = hit_normal;
+		return true;
+	}
+	
+	return true;     // object must be visible to trigger
+	//return false;  // occluded objects can trigger
+}
+
+
+
 bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 {
 	
-  	// bool res = false; /*unused*/
+  	bool res = false;
 	m_hitPosition = MT_Vector3(0,0,0);
 	m_hitNormal =	MT_Vector3(1,0,0);
 	MT_Point3 resultpoint;
@@ -236,88 +268,99 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 	m_prevTargetPoint = topoint3;
 	m_prevSourcePoint = frompoint3;
 	
-	/* 2. Get the object from SuMO*/
+	/* 2. Get the object from PhysicsEnvironment */
 	/* Shoot! Beware that the first argument here is an
 	 * ignore-object. We don't ignore anything... */
-	KX_GameObject* thisObj = (KX_GameObject*) GetParent();
 	
-	SumoPhysicsEnvironment *spe = dynamic_cast<SumoPhysicsEnvironment* > (m_kxscene->GetPhysicsEnvironment());
-	SM_Scene *sumoScene = spe->GetSumoScene();
-	KX_SumoPhysicsController *spc = dynamic_cast<KX_SumoPhysicsController*> (cam->GetPhysicsController());
-	SM_Object *sumoCam = spc?spc->GetSumoObject():NULL;
-	MT_Vector3 todir = topoint3 - frompoint3;
-	if (todir.dot(todir) < MT_EPSILON)
-		return false;
-	todir.normalize();
+	KX_IPhysicsController* physics_controller = (cam->GetPhysicsController());
+	PHY_IPhysicsEnvironment* physics_environment = m_kxscene->GetPhysicsEnvironment();
 
-	while (true)
-	{	
-		SM_Object* hitSMObj = sumoScene->rayTest(sumoCam, 
-							frompoint3,
-							topoint3,
-							resultpoint, 
-							resultnormal);
-		
-		if (!hitSMObj)
-			return false;
-			
-		/* all this casting makes me nervous... */
-		KX_ClientObjectInfo* client_info 
-			= ( hitSMObj ?
-				static_cast<KX_ClientObjectInfo*>( hitSMObj->getClientObject() ):
-				NULL);
-		
-		if (!client_info)
-		{
-			std::cout<< "WARNING:  MouseOver sensor " << GetName() << " cannot sense SM_Object " << hitSMObj << " - no client info.\n" << std::endl;
-			return false;
-		} 
+// 	MT_Vector3 todir = topoint3 - frompoint3;
+// 	if (todir.dot(todir) < MT_EPSILON)
+// 		return false;
+// 	todir.normalize();
 	
-		KX_GameObject* hitKXObj = client_info->m_gameobject;
-		
-		if (client_info->m_type > KX_ClientObjectInfo::ACTOR)
-		{
-			// false hit
-			KX_SumoPhysicsController *hitspc = dynamic_cast<KX_SumoPhysicsController *> (static_cast<KX_GameObject*> (hitKXObj) ->GetPhysicsController());
-			if (hitspc)
-			{
-				/* We add 0.01 of fudge, so that if the margin && radius == 0., we don't endless loop. */
-				MT_Scalar marg = 0.01 + hitspc->GetSumoObject()->getMargin();
-				if (hitspc->GetSumoObject()->getShapeProps())
-				{
-					marg += 2*hitspc->GetSumoObject()->getShapeProps()->m_radius;
-				}
-				
-				/* Calculate the other side of this object */
-				MT_Point3 hitObjPos;
-				hitspc->GetWorldPosition(hitObjPos);
-				MT_Vector3 hitvector = hitObjPos - resultpoint;
-				if (hitvector.dot(hitvector) > MT_EPSILON)
-				{
-					hitvector.normalize();
-					marg *= 2.*todir.dot(hitvector);
-				}
-				frompoint3 = resultpoint + marg * todir;
-			} else {
-				return false;
-			}
-			continue;
-		}
-		/* Is this me? In the ray test, there are a lot of extra checks
-		* for aliasing artefacts from self-hits. That doesn't happen
-		* here, so a simple test suffices. Or does the camera also get
-		* self-hits? (No, and the raysensor shouldn't do it either, since
-		* self-hits are excluded by setting the correct ignore-object.)
-		* Hitspots now become valid. */
-		if (hitKXObj == thisObj)
-		{
-			m_hitPosition = resultpoint;
-			m_hitNormal = resultnormal;
-			return true;
-		}
-		
-		return false;
-	}
+	KX_RayCast::RayTest(physics_controller, physics_environment, frompoint3, topoint3, resultpoint, resultnormal, KX_RayCast::Callback<KX_MouseFocusSensor>(this));
+	
+
+// 	while (true)
+// 	{	
+// 		PHY__Vector3 resultpt;
+// 		PHY__Vector3 resultnr;
+// 
+// 		PHY_IPhysicsController* hitCtrl= physEnv->rayTest(camCtrl, 
+// 							frompoint3.x(),frompoint3.y(),frompoint3.z(),
+// 							topoint3.x(),topoint3.y(),topoint3.z(),
+// 							resultpt[0], resultpt[1],resultpt[2],
+// 							resultnr[0],resultnr[1],resultnr[2]);
+// 		
+// 		if (!hitCtrl)
+// 			return false;
+// 			
+// 		resultpoint = MT_Vector3(resultpt);
+// 		resultnormal = MT_Vector3(resultnr);
+// 
+// 		/* all this casting makes me nervous... */
+// 		KX_ClientObjectInfo* client_info 
+// 			= 	static_cast<KX_ClientObjectInfo*>( hitCtrl->getNewClientInfo());
+// 		
+// 		if (!client_info)
+// 		{
+// 			std::cout<< "WARNING:  MouseOver sensor " << GetName() << " cannot sense - no client info.\n" << std::endl;
+// 
+// 			return false;
+// 		} 
+// 	
+// 		KX_GameObject* hitKXObj = client_info->m_gameobject;
+// 		
+// 		if (client_info->m_type > KX_ClientObjectInfo::ACTOR)
+// 		{
+// 			// false hit
+// 			// FIXME: add raytest interface to KX_IPhysicsController, remove casting
+// 			PHY_IPhysicsController* hitspc = (PHY_IPhysicsController*) (static_cast<KX_GameObject*> (hitKXObj)->GetPhysicsController());
+// 			if (hitspc)
+// 			{
+// 				/* We add 0.01 of fudge, so that if the margin && radius == 0., we don't endless loop. */
+// 				MT_Scalar marg = 0.01 + hitspc->GetMargin();
+// 				marg += hitspc->GetRadius(); //this is changed, check !
+// 
+// 				//if (hitspc->GetSumoObject()->getShapeProps())
+// 				//{
+// 				//	marg += 2*hitspc->GetSumoObject()->getShapeProps()->m_radius;
+// 				//}
+// 				
+// 				/* Calculate the other side of this object */
+// 				MT_Point3 hitObjPos;
+// 				PHY__Vector3 hitpos;
+// 				hitspc->getPosition(hitpos);
+// 				hitObjPos = MT_Vector3(hitpos);
+// 				MT_Vector3 hitvector = hitObjPos - resultpoint;
+// 				if (hitvector.dot(hitvector) > MT_EPSILON)
+// 				{
+// 					hitvector.normalize();
+// 					marg *= 2.*todir.dot(hitvector);
+// 				}
+// 				frompoint3 = resultpoint + marg * todir;
+// 			} else {
+// 				return false;
+// 			}
+// 			continue;
+// 		}
+// 		/* Is this me? In the ray test, there are a lot of extra checks
+// 		* for aliasing artefacts from self-hits. That doesn't happen
+// 		* here, so a simple test suffices. Or does the camera also get
+// 		* self-hits? (No, and the raysensor shouldn't do it either, since
+// 		* self-hits are excluded by setting the correct ignore-object.)
+// 		* Hitspots now become valid. */
+// 		if (hitKXObj == thisObj)
+// 		{
+// 			m_hitPosition = resultpoint;
+// 			m_hitNormal = resultnormal;
+// 			return true;
+// 		}
+// 		
+// 		return false;
+// 	}
 
 	return false;
 }

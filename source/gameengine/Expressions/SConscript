@@ -26,7 +26,8 @@ source_files = ['BoolValue.cpp',
 
 expressions_env.Append (CPPPATH = ['.',
                                    '#source/kernel/gen_system',
-                                   '#intern/string'])
+                                   '#intern/string',
+				   '#intern/moto/include'])
 
 expressions_env.Append (CPPPATH = user_options_dict['PYTHON_INCLUDE'])
 

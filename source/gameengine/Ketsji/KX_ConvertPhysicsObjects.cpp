@@ -33,6 +33,8 @@
 #pragma warning (disable : 4786)
 #endif
 
+#include "MT_assert.h"
+
 // defines USE_ODE to choose physics engine
 #include "KX_ConvertPhysicsObject.h"
 #include "KX_GameObject.h"
@@ -258,7 +260,7 @@ void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
 							dynamicParent = sumoctrl->GetSumoObject();
 						}
 
-						assert(dynamicParent);
+						MT_assert(dynamicParent);
 					}
 				
 					
@@ -303,11 +305,12 @@ static void	BL_RegisterSumoObject(
 		// need easy access, not via 'node' etc.
 		KX_SumoPhysicsController* physicscontroller = new KX_SumoPhysicsController(sumoScene,sumoObj,motionstate,isDynamic);
 		gameobj->SetPhysicsController(physicscontroller);
-		physicscontroller->setClientInfo(gameobj);
+
 		
 		if (!gameobj->getClientInfo())
 			std::cout << "BL_RegisterSumoObject: WARNING: Object " << gameobj->GetName() << " has no client info" << std::endl;
-		sumoObj->setClientObject(gameobj->getClientInfo());
+		physicscontroller->setNewClientInfo(gameobj->getClientInfo());
+		
 
 		gameobj->GetSGNode()->AddSGController(physicscontroller);
 
@@ -586,6 +589,7 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 							struct	PHY_MaterialProps*	smmaterial,
 							struct	KX_ObjectProperties*	objprop)
 {
+	
 	// not yet, future extension :)
 	bool dyna=objprop->m_dyna;
 	bool fullRigidBody= ( objprop->m_dyna && objprop->m_angular_rigidbody) != 0;
@@ -598,48 +602,51 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 	dxSpace* space = odeEnv->GetOdeSpace();
 	dxWorld* world = odeEnv->GetOdeWorld();
 
-	if (!objprop->m_implicitsphere &&
-		MT_fuzzyZero(objprop->m_boundingbox.m_extends[0]) ||
-		MT_fuzzyZero(objprop->m_boundingbox.m_extends[1]) ||
-		MT_fuzzyZero(objprop->m_boundingbox.m_extends[2])
-		)
+	bool isSphere = false;
+
+	switch (objprop->m_boundclass)
 	{
+	case KX_BOUNDBOX:
+		{
 
-	} else
-	{
+				KX_OdePhysicsController* physicscontroller = 
+					new KX_OdePhysicsController(
+					dyna,
+					fullRigidBody,
+					phantom,
+					motionstate,
+					space,
+					world,
+					shapeprops->m_mass,
+					smmaterial->m_friction,
+					smmaterial->m_restitution,
+					isSphere,
+					objprop->m_boundobject.box.m_center,
+					objprop->m_boundobject.box.m_extends,
+					objprop->m_boundobject.c.m_radius
+					);
 
-		KX_OdePhysicsController* physicscontroller = 
-			new KX_OdePhysicsController(
-			dyna,
-			fullRigidBody,
-			phantom,
-			motionstate,
-			space,
-			world,
-			shapeprops->m_mass,
-			smmaterial->m_friction,
-			smmaterial->m_restitution,
-			objprop->m_implicitsphere,
-			objprop->m_boundingbox.m_center,
-			objprop->m_boundingbox.m_extends,
-			objprop->m_radius
-			);
+				gameobj->SetPhysicsController(physicscontroller);
+				physicscontroller->setNewClientInfo(gameobj->getClientInfo());						
+				gameobj->GetSGNode()->AddSGController(physicscontroller);
 
-		gameobj->SetPhysicsController(physicscontroller);
-		physicscontroller->setClientInfo(gameobj);						
-		gameobj->GetSGNode()->AddSGController(physicscontroller);
+				bool isActor = objprop->m_isactor;
+				STR_String materialname;
+				if (meshobj)
+					materialname = meshobj->GetMaterialName(0);
 
-		bool isActor = objprop->m_isactor;
-		STR_String materialname;
-		if (meshobj)
-			materialname = meshobj->GetMaterialName(0);
-
-		const char* matname = materialname.ReadPtr();
+				const char* matname = materialname.ReadPtr();
 
 
-		physicscontroller->SetObject(gameobj->GetSGNode());
-				
-	}
+				physicscontroller->SetObject(gameobj->GetSGNode());
+
+				break;
+			}
+	default:
+		{
+		}
+	};
+
 }
 
 

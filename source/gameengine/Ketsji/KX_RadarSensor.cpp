@@ -31,6 +31,7 @@
 
 #include "KX_RadarSensor.h"
 #include "KX_GameObject.h"
+#include "PHY_IPhysicsController.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -41,6 +42,7 @@
  */
 KX_RadarSensor::KX_RadarSensor(SCA_EventManager* eventmgr,
 		KX_GameObject* gameobj,
+		PHY_IPhysicsController* physCtrl,
 			double coneradius,
 			double coneheight,
 			int	axis,
@@ -54,12 +56,13 @@ KX_RadarSensor::KX_RadarSensor(SCA_EventManager* eventmgr,
 			: KX_NearSensor(
 				eventmgr,
 				gameobj,
-				DT_NewCone(coneradius,coneheight),
+				//DT_NewCone(coneradius,coneheight),
 				margin,
 				resetmargin,
 				bFindMaterial,
 				touchedpropname,
 				kxscene,
+				physCtrl,
 				T),
 				m_coneradius(coneradius),
 				m_coneheight(coneheight),
@@ -90,9 +93,11 @@ CValue* KX_RadarSensor::GetReplica()
 	
 	replica->m_client_info = new KX_ClientObjectInfo(m_client_info->m_gameobject, KX_ClientObjectInfo::RADAR);
 	
-	replica->m_sumoObj = new SM_Object(DT_NewCone(m_coneradius, m_coneheight),NULL,NULL,NULL);
-	replica->m_sumoObj->setMargin(m_Margin);
-	replica->m_sumoObj->setClientObject(replica->m_client_info);
+	replica->m_physCtrl = replica->m_physCtrl->GetReplica();
+	//todo: make sure replication works fine!
+	//>m_sumoObj = new SM_Object(DT_NewCone(m_coneradius, m_coneheight),NULL,NULL,NULL);
+	//replica->m_sumoObj->setMargin(m_Margin);
+	//replica->m_sumoObj->setClientObject(replica->m_client_info);
 	
 	replica->SynchronizeTransform();
 	
@@ -145,9 +150,11 @@ void KX_RadarSensor::SynchronizeTransform()
 	m_cone_origin = trans.getOrigin();
 	m_cone_target = trans(MT_Point3(0, -m_coneheight/2.0 ,0));
 
-	m_sumoObj->setPosition(trans.getOrigin());
-	m_sumoObj->setOrientation(trans.getRotation());
-	m_sumoObj->calcXform();
+
+	m_physCtrl->setPosition(trans.getOrigin().x(),trans.getOrigin().y(),trans.getOrigin().z());
+	m_physCtrl->setOrientation(trans.getRotation().x(),trans.getRotation().y(),trans.getRotation().z(),trans.getRotation().w());
+	m_physCtrl->calcXform();
+
 }
 
 /* ------------------------------------------------------------------------- */

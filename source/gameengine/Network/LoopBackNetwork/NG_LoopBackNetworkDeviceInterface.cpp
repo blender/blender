@@ -58,6 +58,9 @@ void NG_LoopBackNetworkDeviceInterface::NextFrame()
 {
 	// Release reference to the messages while emptying the queue
 	while (m_messages[m_currentQueue].size() > 0) {
+#ifdef NAN_NET_DEBUG
+	printf("NG_LBNDI::NextFrame %d '%s'\n", m_currentQueue, m_messages[m_currentQueue][0]->GetSubject().ReadPtr());
+#endif
 		// Should do assert(m_events[0]);
 		m_messages[m_currentQueue][0]->Release();
 		m_messages[m_currentQueue].pop_front();
@@ -75,7 +78,8 @@ STR_String NG_LoopBackNetworkDeviceInterface::GetNetworkVersion()
 void NG_LoopBackNetworkDeviceInterface::SendNetworkMessage(NG_NetworkMessage* nwmsg)
 {
 #ifdef NAN_NET_DEBUG
-	printf("NG_LBNDI::SendNetworkMessage '%s'->'%s' '%s' '%s'\n",
+	printf("NG_LBNDI::SendNetworkMessage %d, '%s'->'%s' '%s' '%s'\n",
+		   1-m_currentQueue,
 		   nwmsg->GetDestinationName().ReadPtr(),
 		   nwmsg->GetSenderName().ReadPtr(),
 		   nwmsg->GetSubject().ReadPtr(),
@@ -102,7 +106,8 @@ vector<NG_NetworkMessage*> NG_LoopBackNetworkDeviceInterface::RetrieveNetworkMes
 		messages.push_back(*mesit);
 
 #ifdef NAN_NET_DEBUG
-		printf("NG_LBNDI::RetrieveNetworkMessages '%s'->'%s' '%s' '%s'\n",
+		printf("NG_LBNDI::RetrieveNetworkMessages %d '%s'->'%s' '%s' '%s'\n",
+			m_currentQueue,
 			(*mesit)->GetDestinationName().ReadPtr(),
 			(*mesit)->GetSenderName().ReadPtr(),
 			(*mesit)->GetSubject().ReadPtr(),

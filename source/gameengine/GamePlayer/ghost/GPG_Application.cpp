@@ -51,7 +51,7 @@
 #include "GPG_Application.h"
 
 #include <iostream>
-#include <assert.h>
+#include <MT_assert.h>
 
 /**********************************
  * Begin Blender include block
@@ -725,7 +725,7 @@ void GPG_Application::exitEngine()
 bool GPG_Application::handleWheel(GHOST_IEvent* event)
 {
 	bool handled = false;
-	assert(event);
+	MT_assert(event);
 	if (m_mouse) 
 	{
 		GHOST_TEventDataPtr eventData = ((GHOST_IEvent*)event)->getData();
@@ -744,7 +744,7 @@ bool GPG_Application::handleWheel(GHOST_IEvent* event)
 bool GPG_Application::handleButton(GHOST_IEvent* event, bool isDown)
 {
 	bool handled = false;
-	assert(event);
+	MT_assert(event);
 	if (m_mouse) 
 	{
 		GHOST_TEventDataPtr eventData = ((GHOST_IEvent*)event)->getData();
@@ -773,7 +773,7 @@ bool GPG_Application::handleButton(GHOST_IEvent* event, bool isDown)
 bool GPG_Application::handleCursorMove(GHOST_IEvent* event)
 {
 	bool handled = false;
-	assert(event);
+	MT_assert(event);
 	if (m_mouse && m_mainWindow)
 	{
 		GHOST_TEventDataPtr eventData = ((GHOST_IEvent*)event)->getData();
@@ -790,7 +790,7 @@ bool GPG_Application::handleCursorMove(GHOST_IEvent* event)
 bool GPG_Application::handleKey(GHOST_IEvent* event, bool isDown)
 {
 	bool handled = false;
-	assert(event);
+	MT_assert(event);
 	if (m_keyboard)
 	{
 		GHOST_TEventDataPtr eventData = ((GHOST_IEvent*)event)->getData();

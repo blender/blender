@@ -73,8 +73,6 @@
 #include "PHY_IPhysicsEnvironment.h"
 #include "KX_IPhysicsController.h"
 
-#include "SM_Scene.h"
-#include "SumoPhysicsEnvironment.h"
 
 void* KX_SceneReplicationFunc(SG_IObject* node,void* gameobj,void* scene)
 {
@@ -398,7 +396,7 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 	}
 	
 	SG_IObject* replicanode = newobj->GetSGNode();
-	// SG_Node* rootnode = (replicanode == m_rootnode ? NULL : m_rootnode); /*unused*/
+	SG_Node* rootnode = (replicanode == m_rootnode ? NULL : m_rootnode);
 
 	replicanode->SetSGClientObject(newobj);
 
@@ -660,11 +658,10 @@ void KX_Scene::DelayedRemoveObject(class CValue* gameobj)
 void KX_Scene::NewRemoveObject(class CValue* gameobj)
 {
 	KX_GameObject* newobj = (KX_GameObject*) gameobj;
-	//SM_Object* sumoObj = newobj->GetSumoObject();
-	//if (sumoObj)
-	//{
-	//	this->GetSumoScene()->remove(*sumoObj);
-	//}
+
+	//todo: look at this
+	//GetPhysicsEnvironment()->RemovePhysicsController(gameobj->getPhysicsController());
+
 	// remove all sensors/controllers/actuators from logicsystem...
 	
 	SCA_SensorList& sensors = newobj->GetSensors();
@@ -1104,14 +1101,11 @@ void KX_Scene::SetNodeTree(SG_Tree* root)
 
 void KX_Scene::SetPhysicsEnvironment(class PHY_IPhysicsEnvironment* physEnv)
 {
-	SumoPhysicsEnvironment *sme = dynamic_cast<SumoPhysicsEnvironment *>(physEnv);
 	m_physicsEnvironment = physEnv;
-	if (sme)
-	{
-		KX_TouchEventManager* touchmgr = new KX_TouchEventManager(m_logicmgr, sme->GetSumoScene());
-		m_logicmgr->RegisterEventManager(touchmgr);
-		return;
-	}
+
+	KX_TouchEventManager* touchmgr = new KX_TouchEventManager(m_logicmgr, physEnv);
+	m_logicmgr->RegisterEventManager(touchmgr);
+	return;
 }
 
 //----------------------------------------------------------------------------

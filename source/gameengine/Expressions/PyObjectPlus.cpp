@@ -49,7 +49,7 @@
  * http://www.python.org/doc/PyCPP.html
  *
 ------------------------------*/
-#include <assert.h>
+#include <MT_assert.h>
 #include "stdlib.h"
 #include "PyObjectPlus.h"
 #include "STR_String.h"
@@ -79,7 +79,7 @@ PyTypeObject PyObjectPlus::Type = {
 
 PyObjectPlus::PyObjectPlus(PyTypeObject *T) 				// constructor
 {
-	assert(T != NULL);
+	MT_assert(T != NULL);
 	this->ob_type = T; 
 	_Py_NewReference(this);
 };

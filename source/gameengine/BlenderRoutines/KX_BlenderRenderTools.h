@@ -39,6 +39,8 @@
 
 #include "RAS_IRenderTools.h"
 
+struct KX_ClientObjectInfo;
+
 /**
 BlenderRenderTools are a set of tools to apply 2D/3D graphics effects, which are not
 part of the (polygon) Rasterizer. 
@@ -96,6 +98,8 @@ public:
 									bool bIsTriangle,
 									void* clientobject,
 									void* tface);
+	
+	bool RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data);
 };
 
 #endif //__KX_BLENDERRENDERTOOLS

@@ -56,7 +56,7 @@ UpdateChildCoordinates(
 	SG_Spatial * child,
 	const SG_Spatial * parent
 ){
-	assert(child != NULL);
+	MT_assert(child != NULL);
 
 	// This way of accessing child coordinates is a bit cumbersome
 	// be nice to have non constant reference access to these values.
@@ -140,7 +140,7 @@ UpdateChildCoordinates(
 	const SG_Spatial * parent
 ){
 
-	assert(child != NULL);
+	MT_assert(child != NULL);
 
 	const MT_Vector3 & child_scale = child->GetLocalScale();
 	const MT_Point3 & child_pos = child->GetLocalPosition();
@@ -225,7 +225,7 @@ UpdateChildCoordinates(
 	SG_Spatial * child,
 	const SG_Spatial * parent
 ){
-	assert(child != NULL);
+	MT_assert(child != NULL);
 
 	const MT_Vector3 & child_scale = child->GetLocalScale();
 	const MT_Point3 & child_pos = child->GetLocalPosition();

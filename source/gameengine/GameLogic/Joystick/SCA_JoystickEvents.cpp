@@ -28,9 +28,10 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 #include <SDL.h>
- 
 #include "SCA_Joystick.h"
 #include "SCA_JoystickPrivate.h"
+
+
 
 void SCA_Joystick::OnAxisMotion(void)
 {
@@ -70,4 +71,3 @@ void SCA_Joystick::OnNothing(void)
 {
 	m_istrig = 0;
 }
-

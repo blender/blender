@@ -14,6 +14,8 @@
 
 #include <stdlib.h>
 
+#include "MT_assert.h"
+
 #include "Value.h"
 #include "InputParser.h"
 #include "ErrorValue.h"
@@ -371,7 +373,7 @@ int CParser::Priority(int optorkind) {
     case OPtimes:
     case OPdivide: return 5;
 	}
-	assert(false);
+	MT_assert(false);
 	return 0;      // should not happen
 }
 
@@ -400,7 +402,7 @@ CExpression *CParser::Ex(int i) {
 			case OPless: e1 = new COperator2Expr(VALUE_LES_OPERATOR,e1, e2); break;
 			case OPgreaterequal: e1 = new COperator2Expr(VALUE_GEQ_OPERATOR,e1, e2); break;
 			case OPlessequal: e1 = new COperator2Expr(VALUE_LEQ_OPERATOR,e1, e2); break;
-			default: assert(false);	break; // should not happen
+			default: MT_assert(false);	break; // should not happen
 			}
 		}
 	} else if (i == NUM_PRIORITY) {
@@ -445,7 +447,7 @@ CExpression *CParser::Ex(int i) {
 					e1 = new CConstExpr(new CStringValue(const_as_string,""));
 					break;
 				default :
-					assert(false);
+					MT_assert(false);
 					break;
 				}
 				NextSym();
@@ -483,7 +485,7 @@ CExpression *CParser::Ex(int i) {
 				}
 			case errorsym:
 				{
-					assert(!e1);
+					MT_assert(!e1);
 					STR_String errtext="[no info]";
 					if (errmsg)
 					{
@@ -498,7 +500,7 @@ CExpression *CParser::Ex(int i) {
 							errmsg=NULL;
 						} else {
 							// does this happen ?
-							assert ("does this happen");
+							MT_assert ("does this happen");
 						}
 					}
 					e1 = Error(errtext);
@@ -508,7 +510,7 @@ CExpression *CParser::Ex(int i) {
 			default:
 				NextSym();
 				//return Error("Expression expected");
-				assert(!e1);
+				MT_assert(!e1);
 				e1 = Error("Expression expected");
 			}
 		}

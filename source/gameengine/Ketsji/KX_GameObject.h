@@ -57,7 +57,7 @@
 struct KX_ClientObjectInfo;
 class RAS_MeshObject;
 class KX_IPhysicsController;
-class SM_Object;
+
 
 /**
  * KX_GameObject is the main class for dynamic objects.

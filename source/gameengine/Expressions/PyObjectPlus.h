@@ -48,7 +48,7 @@
 
 								// some basic python macros
 #define Py_NEWARGS 1			
-#define Py_Return Py_INCREF(Py_None); return Py_None;	
+#define Py_Return { Py_INCREF(Py_None); return Py_None;}
 
 #define Py_Error(E, M)   {PyErr_SetString(E, M); return NULL;}
 #define Py_Try(F) {if (!(F)) return NULL;}

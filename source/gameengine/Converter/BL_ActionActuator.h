@@ -58,9 +58,11 @@ public:
 		m_flag(0),
 		m_startframe (starttime),
 		m_endframe(endtime) ,
+		m_starttime(0),
 		m_localtime(starttime),
 		m_lastUpdate(-1),
 		m_blendin(blendin),
+		m_blendstart(0),
 		m_stridelength(stride),
 		m_playtype(playtype),
 		m_priority(priority),
@@ -73,8 +75,8 @@ public:
 	};
 	virtual ~BL_ActionActuator();
 	virtual	bool Update(double curtime, bool frame);
-	CValue* GetReplica();
-	void ProcessReplica();
+	virtual CValue* GetReplica();
+	virtual void ProcessReplica();
 	
 	void SetBlendTime (float newtime);
 

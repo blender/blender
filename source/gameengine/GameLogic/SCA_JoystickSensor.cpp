@@ -1,4 +1,4 @@
-/**
+/*
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -39,6 +39,7 @@
 #include <config.h>
 #endif
 
+
 SCA_JoystickSensor::SCA_JoystickSensor(class SCA_JoystickManager* eventmgr,
 									   SCA_IObject* gameobj,
 									   short int joymode,
@@ -70,11 +71,9 @@ std::cout << " hat flag "	<< m_hatf		<< std::endl;
 }
 
 
-
 SCA_JoystickSensor::~SCA_JoystickSensor()
 {
 }
-
 
 
 CValue* SCA_JoystickSensor::GetReplica()
@@ -86,7 +85,6 @@ CValue* SCA_JoystickSensor::GetReplica()
 }
 
 
-
 bool SCA_JoystickSensor::IsPositiveTrigger()
 { 
 	bool result =	m_istrig;
@@ -94,10 +92,11 @@ bool SCA_JoystickSensor::IsPositiveTrigger()
 		result = !result;
 	return result;
 }
+
+
 bool SCA_JoystickSensor::Evaluate(CValue* event)
 {
-	SCA_Joystick js = m_pJoystickMgr->GetJoystickDevice();
-
+	SCA_Joystick *js = m_pJoystickMgr->GetJoystickDevice();
 	bool result = false;
 	
 	switch(m_joymode)
@@ -111,9 +110,9 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 			m_axisf == 3 == down
 			numberof== m_axis  -- max 2
 			*/
-			js.cSetPrecision(m_precision);
+			js->cSetPrecision(m_precision);
 			if(m_axisf == 1){
-				if(js.aUpAxisIsPositive(m_axis)){
+				if(js->aUpAxisIsPositive(m_axis)){
 					m_istrig =1;
 					result = true;
 				}else{
@@ -124,7 +123,7 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 				}
 			}
 			if(m_axisf == 3){
-				if(js.aDownAxisIsPositive(m_axis)){
+				if(js->aDownAxisIsPositive(m_axis)){
 					m_istrig = 1;
 					result = true;
 				}else{
@@ -135,7 +134,7 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 				}
 			}
 			if(m_axisf == 2){
-				if(js.aLeftAxisIsPositive(m_axis)){
+				if(js->aLeftAxisIsPositive(m_axis)){
 					m_istrig = 1;
 					result = true;
 				}else{
@@ -146,7 +145,7 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 				}
 			}
 			if(m_axisf == 0){
-				if(js.aRightAxisIsPositive(m_axis)){
+				if(js->aRightAxisIsPositive(m_axis)){
 					m_istrig = 1;
 					result = true;
 				}else{
@@ -166,7 +165,7 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 			m_button = the actual button in question
 			*/
 			if(m_buttonf == 0){
-				if(js.aButtonPressIsPositive(m_button)){
+				if(js->aButtonPressIsPositive(m_button)){
 					m_istrig = 1;
 					result = true;
 				}else {
@@ -177,7 +176,7 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 				}
 			}
 			if(m_buttonf == 1){
-				if(js.aButtonReleaseIsPositive(m_button)){
+				if(js->aButtonReleaseIsPositive(m_button)){
 					m_istrig = 1;
 					result = true;
 				}else {
@@ -196,7 +195,7 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 			direction= m_hatf -- max 12
 			*/
 			if(m_hat == 1){
-				if(js.aHatIsPositive(m_hatf)){
+				if(js->aHatIsPositive(m_hatf)){
 					m_istrig = 1;
 					result = true;
 				}else{
@@ -204,10 +203,10 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 						m_istrig = 0;
 						result = true;
 					}
-				}			
+				}
 			}
 			if(m_hat == 2){
-				if(js.aHatIsPositive(m_hatf)){
+				if(js->aHatIsPositive(m_hatf)){
 					m_istrig = 1;
 					result = true;
 				}else{
@@ -219,7 +218,7 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 			}
 			/*
 			if(m_hat == 3){
-				if(js.aHatIsPositive(m_hatf)){
+				if(js->aHatIsPositive(m_hatf)){
 					m_istrig = 1;
 					result = true;
 				}else{
@@ -237,7 +236,7 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 		printf("Error invalid switch statement\n");
 		break;
 	}
-	if(!js.IsTrig()){
+	if(!js->IsTrig()){
 		m_istrig = 0;
 	}
 	return result;
@@ -247,11 +246,10 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 bool SCA_JoystickSensor::isValid(SCA_JoystickSensor::KX_JOYSENSORMODE m)
 {
 	bool res = false;
-	
 	res = ((m > KX_JOYSENSORMODE_NODEF) && (m < KX_JOYSENSORMODE_MAX));
-	
 	return res;
 }
+
 
 /* ------------------------------------------------------------------------- */
 /* Python functions 														 */
@@ -277,6 +275,7 @@ PyTypeObject SCA_JoystickSensor::Type = {
 		0
 };
 
+
 PyParentObject SCA_JoystickSensor::Parents[] = {
 		&SCA_JoystickSensor::Type,
 		&SCA_ISensor::Type,
@@ -284,6 +283,7 @@ PyParentObject SCA_JoystickSensor::Parents[] = {
 		&CValue::Type,
 		NULL
 };
+
 
 PyMethodDef SCA_JoystickSensor::Methods[] = {
 	{"getAxis", 	 (PyCFunction) SCA_JoystickSensor::sPyGetAxis,		METH_NOARGS,	GetAxis_doc},
@@ -301,9 +301,11 @@ PyMethodDef SCA_JoystickSensor::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+
 PyObject* SCA_JoystickSensor::_getattr(const STR_String& attr) {
 	_getattr_up(SCA_ISensor);
 }
+
 
 /* get axis  ---------------------------------------------------------- */
 char SCA_JoystickSensor::GetAxis_doc[] = 
@@ -314,6 +316,8 @@ PyObject* SCA_JoystickSensor::PyGetAxis( PyObject* self,
 										PyObject* kwds) {
 	return Py_BuildValue("[ii]",m_axis, m_axisf);
 }
+
+
 /* set axis  ---------------------------------------------------------- */
 char SCA_JoystickSensor::SetAxis_doc[] = 
 "setAxis\n"
@@ -330,6 +334,8 @@ PyObject* SCA_JoystickSensor::PySetAxis( PyObject* self,
 	m_axisf = axisflag;
 	Py_Return;
 }
+
+
 /* get axis value ----------------------------------------------------- */
 char SCA_JoystickSensor::GetRealAxis_doc[] = 
 "getAxisValue\n"
@@ -338,13 +344,15 @@ PyObject* SCA_JoystickSensor::PyGetRealAxis( PyObject* self,
 											PyObject* args, 
 											PyObject* kwds) {
 	int a,b,c,d;
-	SCA_Joystick joy = m_pJoystickMgr->GetJoystickDevice();
-	a = joy.GetAxis10();
-	b = joy.GetAxis11();
-	c = joy.GetAxis20();
-	d = joy.GetAxis21();
+	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice();
+	a = joy->GetAxis10();
+	b = joy->GetAxis11();
+	c = joy->GetAxis20();
+	d = joy->GetAxis21();
 	return Py_BuildValue("[iiii]",a,b,c,d);
 }
+
+
 /* get threshold  ----------------------------------------------------- */
 char SCA_JoystickSensor::GetThreshold_doc[] = 
 "getThreshold\n"
@@ -354,6 +362,8 @@ PyObject* SCA_JoystickSensor::PyGetThreshold( PyObject* self,
 											 PyObject* kwds) {
 	return Py_BuildValue("i", m_precision);
 }
+
+
 /* set threshold  ----------------------------------------------------- */
 char SCA_JoystickSensor::SetThreshold_doc[] = 
 "setThreshold\n"
@@ -368,6 +378,8 @@ PyObject* SCA_JoystickSensor::PySetThreshold( PyObject* self,
 	m_precision = thresh;
 	Py_Return;
 }
+
+
 /* get button  -------------------------------------------------------- */
 char SCA_JoystickSensor::GetButton_doc[] = 
 "getButton\n"
@@ -377,6 +389,8 @@ PyObject* SCA_JoystickSensor::PyGetButton( PyObject* self,
 										  PyObject* kwds) {
 	return Py_BuildValue("[ii]",m_button, m_buttonf);
 }
+
+
 /* set button  -------------------------------------------------------- */
 char SCA_JoystickSensor::SetButton_doc[] = 
 "setButton\n"
@@ -392,6 +406,8 @@ PyObject* SCA_JoystickSensor::PySetButton( PyObject* self,
 	m_buttonf = buttonflag;
 	Py_Return;	
 }
+
+
 /* get hat	----------------------------------------------------------- */
 char SCA_JoystickSensor::GetHat_doc[] = 
 "getHat\n"
@@ -401,6 +417,8 @@ PyObject* SCA_JoystickSensor::PyGetHat( PyObject* self,
 									   PyObject* kwds) {
 	return Py_BuildValue("[ii]",m_hat, m_hatf);
 }
+
+
 /* set hat	----------------------------------------------------------- */
 char SCA_JoystickSensor::SetHat_doc[] = 
 "setHat\n"
@@ -416,6 +434,8 @@ PyObject* SCA_JoystickSensor::PySetHat( PyObject* self,
 	m_hatf = hatflag;
 	Py_Return;
 }
+
+
 /* get # of ----------------------------------------------------- */
 char SCA_JoystickSensor::NumberOfAxes_doc[] = 
 "getNumAxes\n"
@@ -424,10 +444,12 @@ PyObject* SCA_JoystickSensor::PyNumberOfAxes( PyObject* self,
 											PyObject* args, 
 											PyObject* kwds) {
 	int num;
-	SCA_Joystick joy = m_pJoystickMgr->GetJoystickDevice();
-	num = joy.GetNumberOfAxes();
+	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice();
+	num = joy->GetNumberOfAxes();
 	return Py_BuildValue("i",num);
 }
+
+
 char SCA_JoystickSensor::NumberOfButtons_doc[] = 
 "getNumButtons\n"
 "\tReturns the number of buttons .\n";
@@ -435,10 +457,12 @@ PyObject* SCA_JoystickSensor::PyNumberOfButtons( PyObject* self,
 											PyObject* args, 
 											PyObject* kwds) {
 	int num;
-	SCA_Joystick joy = m_pJoystickMgr->GetJoystickDevice();
-	num = joy.GetNumberOfButtons();
+	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice();
+	num = joy->GetNumberOfButtons();
 	return Py_BuildValue("i",num);
 }
+
+
 char SCA_JoystickSensor::NumberOfHats_doc[] = 
 "getNumHats\n"
 "\tReturns the number of hats .\n";
@@ -446,7 +470,7 @@ PyObject* SCA_JoystickSensor::PyNumberOfHats( PyObject* self,
 											PyObject* args, 
 											PyObject* kwds) {
 	int num;
-	SCA_Joystick joy = m_pJoystickMgr->GetJoystickDevice();
-	num = joy.GetNumberOfHats();
+	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice();
+	num = joy->GetNumberOfHats();
 	return Py_BuildValue("i",num);
 }

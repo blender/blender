@@ -37,9 +37,9 @@
 #include "SCA_LogicManager.h"
 #include "KX_GameObject.h"
 #include "KX_TouchEventManager.h"
-#include "SM_Object.h"
 #include "KX_SumoPhysicsController.h"
 #include <iostream>
+#include "PHY_IPhysicsEnvironment.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -52,13 +52,13 @@
 void KX_TouchSensor::SynchronizeTransform()
 {
 
-	if (m_sumoObj)
+	if (m_physCtrl)
 	{
-		m_sumoObj->setPosition(((KX_GameObject*)GetParent())->NodeGetWorldPosition());
-		m_sumoObj->setOrientation(
-			((KX_GameObject*)GetParent())->NodeGetWorldOrientation().getRotation()
-			);
-		m_sumoObj->calcXform();
+		MT_Vector3 pos = ((KX_GameObject*)GetParent())->NodeGetWorldPosition();
+		MT_Quaternion orn = ((KX_GameObject*)GetParent())->NodeGetWorldOrientation().getRotation();
+		m_physCtrl->setPosition(pos.x(),pos.y(),pos.z());
+		m_physCtrl->setOrientation(orn.x(),orn.y(),orn.z(),orn.w());
+		m_physCtrl->calcXform();
 	}
 	
 }
@@ -84,7 +84,7 @@ bool KX_TouchSensor::Evaluate(CValue* event)
 	return result;
 }
 
-KX_TouchSensor::KX_TouchSensor(SCA_EventManager* eventmgr,KX_GameObject* gameobj,/*SM_Object* sumoObj,*/bool bFindMaterial,const STR_String& touchedpropname,PyTypeObject* T)
+KX_TouchSensor::KX_TouchSensor(SCA_EventManager* eventmgr,KX_GameObject* gameobj,bool bFindMaterial,const STR_String& touchedpropname,PyTypeObject* T)
 :SCA_ISensor(gameobj,eventmgr,T),
 m_touchedpropname(touchedpropname),
 m_bFindMaterial(bFindMaterial),
@@ -94,7 +94,7 @@ m_bCollision(false),
 m_bTriggered(false),
 m_bLastTriggered(false)
 {
-	// KX_TouchEventManager* touchmgr = (KX_TouchEventManager*) eventmgr; /*unused*/
+	KX_TouchEventManager* touchmgr = (KX_TouchEventManager*) eventmgr;
 //	m_resptable = touchmgr->GetResponseTable();
 	
 //	m_solidHandle = m_sumoObj->getObjectHandle();
@@ -107,10 +107,8 @@ m_bLastTriggered(false)
 	client_info->m_auxilary_info = NULL;
 	client_info->m_sensors.push_back(this);
 	
-	KX_SumoPhysicsController *sphy = dynamic_cast<KX_SumoPhysicsController *>(gameobj->GetPhysicsController());
-	if (sphy)
-		m_sumoObj = sphy->GetSumoObject();
-
+	m_physCtrl = dynamic_cast<PHY_IPhysicsController*>(gameobj->GetPhysicsController());
+	MT_assert( !gameobj->GetPhysicsController() || m_physCtrl );
 }
 
 
@@ -136,10 +134,10 @@ CValue* KX_TouchSensor::GetReplica()
 void	KX_TouchSensor::ReParent(SCA_IObject* parent)
 {
 	KX_GameObject *gameobj = static_cast<KX_GameObject *>(parent);
-	KX_SumoPhysicsController *sphy = dynamic_cast<KX_SumoPhysicsController *>(((KX_GameObject*)parent)->GetPhysicsController());
+	PHY_IPhysicsController *sphy = dynamic_cast<PHY_IPhysicsController*>(((KX_GameObject*)parent)->GetPhysicsController());
 	if (sphy)
-		m_sumoObj = sphy->GetSumoObject();
-
+		m_physCtrl = sphy;
+	
 //	m_solidHandle = m_sumoObj->getObjectHandle();
 	KX_ClientObjectInfo *client_info = gameobj->getClientInfo();
 	client_info->m_gameobject = gameobj;
@@ -150,25 +148,25 @@ void	KX_TouchSensor::ReParent(SCA_IObject* parent)
 
 void KX_TouchSensor::RegisterSumo(KX_TouchEventManager *touchman)
 {
-	if (m_sumoObj)
+	if (m_physCtrl)
 	{
-		touchman->GetSumoScene()->requestCollisionCallback(*m_sumoObj);
+		touchman->GetPhysicsEnvironment()->requestCollisionCallback(m_physCtrl);
 		// collision
 		// Deprecated	
 
 	}
 }
 
-DT_Bool    KX_TouchSensor::HandleCollision(void* obj1,void* obj2,const DT_CollData * coll_data)
+bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_CollData* colldata)
 {
-	// KX_TouchEventManager* toucheventmgr = (KX_TouchEventManager*)m_eventmgr; /*unused*/
+	KX_TouchEventManager* toucheventmgr = (KX_TouchEventManager*)m_eventmgr;
 	KX_GameObject* parent = (KX_GameObject*)GetParent();
 
-	// need the mapping from SM_Objects to gameobjects now
+	// need the mapping from PHY_IPhysicsController to gameobjects now
 	
-	KX_ClientObjectInfo* client_info = static_cast<KX_ClientObjectInfo*> (obj1 == m_sumoObj? 
-					((SM_Object*)obj2)->getClientObject() : 
-					((SM_Object*)obj1)->getClientObject());
+	KX_ClientObjectInfo* client_info = static_cast<KX_ClientObjectInfo*> (object1 == m_physCtrl? 
+					((PHY_IPhysicsController*)object2)->getNewClientInfo(): 
+					((PHY_IPhysicsController*)object1)->getNewClientInfo());
 
 	KX_GameObject* gameobj = ( client_info ? 
 			client_info->m_gameobject : 
@@ -336,11 +334,10 @@ PyObject* KX_TouchSensor::PyGetHitObjectList(PyObject* self,
 				 * - this also doesn't work (obviously) for multi-materials... 
 				 */
 				KX_GameObject* gameob = (KX_GameObject*) m_colliders->GetValue(i);
-				KX_SumoPhysicsController* spc = dynamic_cast<KX_SumoPhysicsController*>(gameob->GetPhysicsController());
-				SM_Object* smob = spc?spc->GetSumoObject():NULL;
+				PHY_IPhysicsController* spc = dynamic_cast<PHY_IPhysicsController*>(gameob->GetPhysicsController());
 				
-				if (smob) {
-					KX_ClientObjectInfo* cl_inf = static_cast<KX_ClientObjectInfo*>(smob->getClientObject());
+				if (spc) {
+					KX_ClientObjectInfo* cl_inf = static_cast<KX_ClientObjectInfo*>(spc->getNewClientInfo());
 					
 					if (m_touchedpropname == ((char*)cl_inf->m_auxilary_info)) {
 						newList->Add(m_colliders->GetValue(i)->AddRef());

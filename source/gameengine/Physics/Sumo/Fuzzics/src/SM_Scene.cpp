@@ -140,7 +140,8 @@ void SM_Scene::requestCollisionCallback(SM_Object &object)
 //	DT_SetResponseClass(m_fixRespTable, object.getObjectHandle(), m_fixResponseClass[OBJECT_RESPONSE]);
 }
 
-void SM_Scene::remove(SM_Object& object) { 	
+void SM_Scene::remove(SM_Object& object) {
+	//std::cout << "SM_Scene::remove this =" << this << "object = " << &object << std::endl;
 	T_ObjectList::iterator i =
 		std::find(m_objectList.begin(), m_objectList.end(), &object);
 	if (!(i == m_objectList.end()))
@@ -358,6 +359,7 @@ DT_Bool SM_Scene::boing(
 
 SM_Scene::~SM_Scene()
 { 
+	//std::cout << "SM_Scene::~ SM_Scene(): destroy " << this << std::endl;
 //	if (m_objectList.begin() != m_objectList.end()) 
 //		std::cout << "SM_Scene::~SM_Scene: There are still objects in the Sumo scene!" << std::endl;
 	for (T_ObjectList::iterator it = m_objectList.begin() ; it != m_objectList.end() ; it++)

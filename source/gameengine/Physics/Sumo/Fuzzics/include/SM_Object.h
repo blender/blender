@@ -264,7 +264,13 @@ public:
 	
 	SM_ClientObject *getClientObject() { return m_client_object; }
 	void setClientObject(SM_ClientObject *client_object) { m_client_object = client_object; }
-	
+	void	setPhysicsClientObject(void* physicsClientObject)
+	{
+		m_physicsClientObject = physicsClientObject;
+	}
+	void*	getPhysicsClientObject() {
+		return m_physicsClientObject;
+	}
 	void relax();
 	
 	SM_MotionState &getCurrentFrame();
@@ -325,6 +331,8 @@ private:
 	// on an SM_Object, there must be a way that the SM_Object client
 	// can identify it's clientdata after a collision
 	SM_ClientObject        *m_client_object;
+	
+	void*					m_physicsClientObject;
 
 	DT_ShapeHandle          m_shape;                 // Shape for collision detection
 

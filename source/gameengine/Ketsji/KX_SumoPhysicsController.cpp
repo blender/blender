@@ -10,6 +10,8 @@
 #include "KX_MotionState.h"
 #include "KX_ClientObjectInfo.h"
 
+#include "PHY_IPhysicsEnvironment.h"
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -64,12 +66,9 @@ MT_Vector3 KX_SumoPhysicsController::GetLinearVelocity()
 	
 }
 
-void KX_SumoPhysicsController::resolveCombinedVelocities(
-		const MT_Vector3 & lin_vel,
-		const MT_Vector3 & ang_vel
-	)
+void		KX_SumoPhysicsController::resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ)
 {
-	SumoPhysicsController::resolveCombinedVelocities(lin_vel, ang_vel);
+	SumoPhysicsController::resolveCombinedVelocities(linvelX,linvelY,linvelZ,angVelX,angVelY,angVelZ);
 }
 
 void	KX_SumoPhysicsController::ApplyTorque(const MT_Vector3& torque,bool local)
@@ -215,3 +214,5 @@ KX_SumoPhysicsController::~KX_SumoPhysicsController()
 
 	
 }
+
+

@@ -72,6 +72,8 @@ public:
 	virtual	void		getOrientation(float &quatImag0,float &quatImag1,float &quatImag2,float &quatReal);
 	virtual	void		setOrientation(float quatImag0,float quatImag1,float quatImag2,float quatReal);
 	virtual	void		setPosition(float posX,float posY,float posZ);
+	virtual	void 		getPosition(PHY__Vector3&	pos) const;
+
 	virtual	void		setScaling(float scaleX,float scaleY,float scaleZ);
 	/*@}*/
 	
@@ -83,7 +85,7 @@ public:
 	virtual void		ApplyForce(float forceX,float forceY,float forceZ,bool local);
 	virtual void		SetAngularVelocity(float ang_velX,float ang_velY,float ang_velZ,bool local);
 	virtual void		SetLinearVelocity(float lin_velX,float lin_velY,float lin_velZ,bool local);
-	virtual void		resolveCombinedVelocities(const MT_Vector3 & lin_vel, const MT_Vector3 & ang_vel );
+	virtual void		resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ);
 	virtual void		applyImpulse(float attachX,float attachY,float attachZ, float impulseX,float impulseY,float impulseZ);
 	virtual void		SetActive(bool active){};
 	virtual void		SuspendDynamics();
@@ -117,10 +119,16 @@ public:
 	 */
 	virtual bool	SynchronizeMotionStates(float time);
 
-	// clientinfo for raycasts for example
-	virtual	void*				getClientInfo() { return m_clientInfo;}
-	virtual	void				setClientInfo(void* clientinfo) {m_clientInfo = clientinfo;};
+	virtual void	calcXform();
+	virtual void SetMargin(float margin) ;
+	virtual float GetMargin() const;
+	virtual float GetRadius() const ;
 
+
+	// clientinfo for raycasts for example
+	virtual	void*				getNewClientInfo();
+	virtual	void				setNewClientInfo(void* clientinfo);
+	
 	float	getFriction() { return m_friction;}
 	float	getRestitution() { return m_restitution;}
 
@@ -173,8 +181,6 @@ private:
 
 	class	PHY_IMotionState*	m_MotionState;
 	
-	void*				m_clientInfo;
-
 	
 };
 

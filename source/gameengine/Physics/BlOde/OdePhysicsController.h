@@ -62,6 +62,8 @@ public:
 	virtual	void		getOrientation(float &quatImag0,float &quatImag1,float &quatImag2,float &quatReal);
 	virtual	void		setOrientation(float quatImag0,float quatImag1,float quatImag2,float quatReal);
 	virtual	void		setPosition(float posX,float posY,float posZ);
+	virtual	void 		getPosition(PHY__Vector3&	pos) const;
+	
 	virtual	void		setScaling(float scaleX,float scaleY,float scaleZ);
 	
 	// physics methods
@@ -73,6 +75,10 @@ public:
 	virtual void		SetActive(bool active){};
 	virtual void		SuspendDynamics();
 	virtual void		RestoreDynamics();
+	virtual void		resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ)
+	{
+		//todo ?
+	}
 
 
 	/**  
@@ -102,9 +108,13 @@ public:
 	*/
 	virtual bool	SynchronizeMotionStates(float time);
 
+	virtual void	calcXform(){}
+	virtual void SetMargin(float margin) {}
+	virtual float GetMargin() const {return 0.f;}
+
 		// clientinfo for raycasts for example
-	virtual	void*				getClientInfo() { return m_clientInfo;}
-	virtual	void				setClientInfo(void* clientinfo) {m_clientInfo = clientinfo;};
+	virtual	void*				getNewClientInfo() { return m_clientInfo;}
+	virtual	void				setNewClientInfo(void* clientinfo) {m_clientInfo = clientinfo;};
 	void*						m_clientInfo;
 
 	struct	dxBody*				GetOdeBodyId() { return m_bodyId; }

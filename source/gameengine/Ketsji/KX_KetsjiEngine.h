@@ -296,7 +296,7 @@ public:
 	 * @param b Blue component of the override color.
 	 */
 	void GetOverrideFrameColor(float& r, float& g, float& b) const;
-
+	
 protected:
 	/**
 	 * Processes all scheduled scene activity.

@@ -360,31 +360,6 @@ void KX_GameObject::UpdateIPO(float curframetime,
 	UpdateTransform();
 }
 
-
-/*
-void KX_GameObject::RegisterSumoObject(class SM_Scene* sumoScene,
-									   DT_SceneHandle solidscene,
-									   class SM_Object* sumoObj,
-									   const char* matname,
-									   bool isDynamic,
-									   bool isActor)
-{
-	m_bDyna = isDynamic;
-
-	// need easy access, not via 'node' etc.
-	m_pPhysicsController = new KX_PhysicsController(sumoScene,solidscene,sumoObj,isDynamic);
-				
-	GetSGNode()->AddSGController(m_pPhysicsController);
-	
-	m_pClient_info->m_type = (isActor ? 1 : 0);
-	m_pClient_info->m_clientobject = this;
-
-	// store materialname in auxinfo, needed for touchsensors
-	m_pClient_info->m_auxilary_info = (matname? (void*)(matname+2) : NULL);
-	m_pPhysicsController->SetObject(this->GetSGNode());
-}
-*/
-
 bool
 KX_GameObject::GetVisible(
 	void
@@ -468,10 +443,11 @@ void KX_GameObject::ResolveCombinedVelocities(
 ){
 	if (m_pPhysicsController1)
 	{
+
+		MT_Vector3 lv = lin_vel_local ? NodeGetWorldOrientation() * lin_vel : lin_vel;
+		MT_Vector3 av = ang_vel_local ? NodeGetWorldOrientation() * ang_vel : ang_vel;
 		m_pPhysicsController1->resolveCombinedVelocities(
-			lin_vel_local ? NodeGetWorldOrientation() * lin_vel : lin_vel,
-			ang_vel_local ? NodeGetWorldOrientation() * ang_vel : ang_vel			
-		);		
+			lv.x(),lv.y(),lv.z(),av.x(),av.y(),av.z());
 	}
 }
 

@@ -27,28 +27,31 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 #include "SCA_JoystickSensor.h"
 #include "SCA_JoystickManager.h"
 #include "SCA_LogicManager.h"
-#include <vector>
+//#include <vector>
 #include "SCA_ISensor.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+//using namespace std;
 
-using namespace std;
 
 SCA_JoystickManager::SCA_JoystickManager(class SCA_LogicManager* logicmgr)
 	: SCA_EventManager(JOY_EVENTMGR),
 	m_logicmgr(logicmgr)
 {
-	Joystick.CreateJoystickDevice();
+	m_joystick = new SCA_Joystick();
+	m_joystick->CreateJoystickDevice();
 }
+
+
 SCA_JoystickManager::~SCA_JoystickManager()
 {
-	Joystick.DestroyJoystickDevice();
+	m_joystick->DestroyJoystickDevice();
+	delete m_joystick;
 }
 
 
@@ -59,12 +62,11 @@ void SCA_JoystickManager::NextFrame(double curtime,double deltatime)
 		SCA_JoystickSensor* joysensor = (SCA_JoystickSensor*) m_sensors[i];
 		if(!joysensor->IsSuspended())
 		{
-			Joystick.HandleEvents();
+			m_joystick->HandleEvents();
 			joysensor->Activate(m_logicmgr, NULL);
 		}
 	}
 }
-
 
 
 void SCA_JoystickManager::RegisterSensor(SCA_ISensor* sensor)
@@ -72,10 +74,11 @@ void SCA_JoystickManager::RegisterSensor(SCA_ISensor* sensor)
 	m_sensors.push_back(sensor);
 }
 
-SCA_Joystick SCA_JoystickManager::GetJoystickDevice()
+
+SCA_Joystick *SCA_JoystickManager::GetJoystickDevice()
 {
 	/* 
 	 *Return the instance of SCA_Joystick for use 
  	 */
-	return Joystick;
+	return m_joystick;
 }

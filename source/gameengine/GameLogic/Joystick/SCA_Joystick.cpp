@@ -28,7 +28,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 #include <SDL.h>
- 
+
 #include "SCA_Joystick.h"
 #include "SCA_JoystickPrivate.h"
 
@@ -47,10 +47,13 @@ SCA_Joystick::SCA_Joystick()
 	m_private = new PrivateData();
 }
 
+
 SCA_Joystick::~SCA_Joystick()
+
 {
 	delete m_private;
 }
+
 
 bool SCA_Joystick::CreateJoystickDevice()
 {
@@ -65,6 +68,7 @@ void SCA_Joystick::DestroyJoystickDevice()
 	if(m_isinit)
 		pDestroyJoystickDevice();
 }
+
 
 void SCA_Joystick::HandleEvents()
 {
@@ -90,6 +94,7 @@ void SCA_Joystick::cSetPrecision(int val)
 {
 	m_prec = val;
 }
+
 
 bool SCA_Joystick::aRightAxisIsPositive(int axis)
 {
@@ -164,7 +169,6 @@ int SCA_Joystick::pGetButtonPress(int button)
 	if(button == m_buttonnum)
 		return m_buttonnum;
 	return -2;
-
 }
 
 
@@ -279,6 +283,7 @@ int SCA_Joystick::GetNumberOfButtons()
 	return -1;
 }
 
+
 int SCA_Joystick::GetNumberOfHats()
 {
 	int number;
@@ -290,7 +295,6 @@ int SCA_Joystick::GetNumberOfHats()
 	}
 	return -1;
 }
-
 
 bool SCA_Joystick::pCreateJoystickDevice()
 {
@@ -328,6 +332,7 @@ void SCA_Joystick::pDestroyJoystickDevice()
 	SDL_QuitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_VIDEO );
 }
 
+
 void SCA_Joystick::pFillAxes()
 {
 	if(GetNumberOfAxes() == 1){
@@ -343,6 +348,7 @@ void SCA_Joystick::pFillAxes()
 		m_axis20 = 0;m_axis21 = 0;
 	}
 }
+
 
 int SCA_Joystick::pGetAxis(int axisnum, int udlr)
 {

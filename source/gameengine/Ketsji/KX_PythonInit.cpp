@@ -40,6 +40,8 @@
 #endif //WIN32
 
 #include "KX_PythonInit.h"
+//python physics binding
+#include "KX_PyConstraintBinding.h"
 
 #include "KX_KetsjiEngine.h"
 
@@ -211,7 +213,8 @@ static PyObject* gPySetPhysicsTicRate(PyObject*,
 	float ticrate;
 	if (PyArg_ParseTuple(args, "f", &ticrate))
 	{
-		SumoPhysicsEnvironment::setTicRate(ticrate);
+
+		PHY_GetActiveEnvironment()->setFixedTimeStep(true,ticrate);
 		Py_Return;
 	}
 	
@@ -220,7 +223,7 @@ static PyObject* gPySetPhysicsTicRate(PyObject*,
 
 static PyObject* gPyGetPhysicsTicRate(PyObject*, PyObject*, PyObject*)
 {
-	return PyFloat_FromDouble(SumoPhysicsEnvironment::getTicRate());
+	return PyFloat_FromDouble(PHY_GetActiveEnvironment()->getFixedTimeStep());
 }
 
 static STR_String gPyGetCurrentScene_doc =  

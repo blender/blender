@@ -152,7 +152,6 @@ bool KX_BlenderSceneConverter::TryAndLoadNewFile()
 	 * Find the specified scene by name, or the first
 	 * scene if nothing matches (shouldn't happen).
 	 */
-#if 0
 static struct Scene *GetSceneForName2(struct Main *maggie, const STR_String& scenename) {
 	Scene *sce;
 
@@ -162,7 +161,7 @@ static struct Scene *GetSceneForName2(struct Main *maggie, const STR_String& sce
 
 	return (Scene*) maggie->scene.first;
 }
-#endif
+
 
 void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 											class KX_Scene* destinationscene,
@@ -172,12 +171,10 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 											class RAS_ICanvas* canvas)
 {
 	//find out which physics engine
-	// Scene *blenderscene = GetSceneForName2(m_maggie, scenename); /*unused*/
+	Scene *blenderscene = GetSceneForName2(m_maggie, scenename);
 
 	e_PhysicsEngine physics_engine = UseSumo;
 
-	/* FIXME: Force physics engine = sumo.
-	This isn't really a problem - no other physics engines are available. 
 	if (blenderscene)
 	{
 		int i=0;
@@ -210,7 +207,7 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 		  
 		}
 	}
-	*/
+
 	switch (physics_engine)
 	{
 	
@@ -220,6 +217,7 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 			break;
 #endif
 #ifdef USE_ODE
+
 		case UseODE:
 			destinationscene ->SetPhysicsEnvironment(new ODEPhysicsEnvironment());
 			break;

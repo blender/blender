@@ -32,19 +32,43 @@
 class ODEPhysicsEnvironment : public PHY_IPhysicsEnvironment
 {
 
+	bool	m_useFixedTimeStep;
+	float	m_fixedTimeStep;
+	float	m_currentTime;
+
 public:
 	ODEPhysicsEnvironment();
 	virtual		~ODEPhysicsEnvironment();
+	virtual	void		beginFrame() {}
+	virtual void		endFrame() {}
+
+
 // Perform an integration step of duration 'timeStep'.
-	virtual	bool		proceed(double	timeStep);
+	virtual	bool		proceedDeltaTime(double  curTime,float timeStep);
+	virtual	void		setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep);
+	virtual	float		getFixedTimeStep();
+
 	virtual	void		setGravity(float x,float y,float z);
 	virtual int			createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,
 			float pivotX,float pivotY,float pivotZ,
 			float axisX,float axisY,float axisZ);
 
 	virtual void		removeConstraint(int constraintid);
-	virtual PHY_IPhysicsController* rayTest(void* ignoreClient,float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
+	virtual PHY_IPhysicsController* rayTest(PHY_IPhysicsController* ignoreClient,float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
 									float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ);
+
+
+	//gamelogic callbacks
+	virtual void addSensor(PHY_IPhysicsController* ctrl) {}
+	virtual void removeSensor(PHY_IPhysicsController* ctrl) {}
+	virtual void addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user)
+	{
+	}
+	virtual void requestCollisionCallback(PHY_IPhysicsController* ctrl) {}
+	virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position) {return 0;}
+	virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight) { return 0;}
+
+
 
 	struct dxWorld*	GetOdeWorld() { return m_OdeWorld;	};
 	struct	dxSpace* GetOdeSpace() { return m_OdeSpace;};

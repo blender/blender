@@ -58,7 +58,9 @@ void DummyPhysicsEnvironment::endFrame()
 	// end of logic frame: clear forces
 }
 
-bool DummyPhysicsEnvironment::proceed(double timeStep)
+
+
+bool		DummyPhysicsEnvironment::proceedDeltaTime(double  curTime,float timeStep)
 {
 	//step physics simulation, typically perform
 	
@@ -68,6 +70,17 @@ bool DummyPhysicsEnvironment::proceed(double timeStep)
 	// return true if an update was done.
 	return true;
 }
+void		DummyPhysicsEnvironment::setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep)
+{
+}
+ 
+float		DummyPhysicsEnvironment::getFixedTimeStep()
+{
+	return 0.f;
+}
+
+
+
 
 void DummyPhysicsEnvironment::setGravity(float x,float y,float z)
 {
@@ -95,7 +108,7 @@ void		DummyPhysicsEnvironment::removeConstraint(int constraintid)
 	}
 }
 
-PHY_IPhysicsController* DummyPhysicsEnvironment::rayTest(void* ignoreClient,float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
+PHY_IPhysicsController* DummyPhysicsEnvironment::rayTest(PHY_IPhysicsController* ignoreClient,float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
 									float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ)
 {
 	//collision detection / raytesting

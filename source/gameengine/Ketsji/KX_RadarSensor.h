@@ -65,6 +65,7 @@ public:
 
 	KX_RadarSensor(SCA_EventManager* eventmgr,
 		KX_GameObject* gameobj,
+			PHY_IPhysicsController* physCtrl,
 			double coneradius,
 			double coneheight,
 			int	axis,

@@ -42,6 +42,54 @@ typedef enum PHY_ScalarType {
 	PHY_FIXEDPOINT88
 } PHY_ScalarType;
 
+class	PHY_ResponseTable;
+
+class PHY_Shape;
+
+struct	PHY__Vector3
+{
+	float	m_vec[4];
+	operator const float* () const 
+	{ 
+		return &m_vec[0];
+	}	
+	operator float* () 
+	{ 
+		return &m_vec[0];
+	}	
+};
+//typedef 	float	PHY__Vector3[4];
+
+typedef enum
+{
+	PHY_FH_RESPONSE,
+	PHY_SENSOR_RESPONSE,		/* Touch Sensors */
+	PHY_CAMERA_RESPONSE,	/* Visibility Culling */
+	PHY_OBJECT_RESPONSE,	/* Object Dynamic Geometry Response */
+	PHY_STATIC_RESPONSE,	/* Static Geometry Response */
+	
+	PHY_NUM_RESPONSE
+};
+
+	typedef struct PHY_CollData {
+		PHY__Vector3 m_point1;               /* Point in object1 in world coordinates */ 
+		PHY__Vector3 m_point2;               /* Point in object2 in world coordinates */
+		PHY__Vector3 m_normal;               /* point2 - point1 */ 
+	} PHY_CollData;
+
+/* A response callback is called by SOLID for each pair of collding objects. 'client-data'
+   is a pointer to an arbitrary structure in the client application. The client objects are
+   pointers to structures in the client application associated with the coliding objects.
+   'coll_data' is the collision data computed by SOLID.
+*/
+
+	typedef bool (*PHY_ResponseCallback)(void *client_data,
+										   void *client_object1,
+										   void *client_object2,
+										   const PHY_CollData *coll_data);
+		
+
+
 /// PHY_PhysicsType enumerates all possible Physics Entities.
 /// It is mainly used to create/add Physics Objects
 
