@@ -1216,6 +1216,14 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 			G.afbreek= 1;
 		}
 	}
+
+	if(R.r.mode & R_BORDER) {
+		if(R.r.border.xmax <= R.r.border.xmin || 
+			R.r.border.ymax <= R.r.border.ymin) {
+			error("No border area selected.");
+			G.afbreek= 1;
+		}
+	}
 	
 	if(R.r.xparts*R.r.yparts>=2 && (R.r.mode & R_MOVIECROP) && (R.r.mode & R_BORDER)) {
 		error("Combination of border, crop and parts not allowed");
