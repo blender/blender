@@ -765,12 +765,7 @@ void render() {
 	if (R.r.renderer==R_YAFRAY)
 		yafrayRender();
 	else {
-		/* not too neat... should improve... */
-		//if(R.r.mode & R_UNIFIED) {
-		//	unifiedRenderingLoop();
-		//} else {
-			oldRenderLoop();
-		//}
+		oldRenderLoop();
 	}
 }
 
@@ -875,8 +870,6 @@ void oldRenderLoop(void)  /* here the PART and FIELD loops */
 					else zbufshade();
 				}
 				
-				if(RE_local_test_break()) break;
-
 				/* exception */
 				if( (R.r.mode & R_BORDER) && (R.r.mode & R_MOVIECROP));
 				else {
@@ -894,6 +887,8 @@ void oldRenderLoop(void)  /* here the PART and FIELD loops */
 						}
 					}
 				}
+
+				if(RE_local_test_break()) break;
 			}
 
 			/* JOIN PARTS OR INSERT BORDER */
