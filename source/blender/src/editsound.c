@@ -31,6 +31,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include <string.h>
 #include <fcntl.h>
@@ -40,8 +41,11 @@
 #endif
 
 #ifndef WIN32 
+#define __USE_XOPEN /* Needed for swab on linux */
 #include <unistd.h>
+#undef __USE_XOPEN
 #else
+
 #include <io.h>
 #endif
 #include "MEM_guardedalloc.h"
