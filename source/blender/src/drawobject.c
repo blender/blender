@@ -1259,6 +1259,16 @@ static void draw_dm_edges_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned 
 	dm->drawMappedEdgesEM(dm, draw_dm_edges_sel__setDrawOptions, cols);
 }
 
+	/* Draw edges */
+static int draw_dm_edges__setDrawOptions(void *userData, EditEdge *eed)
+{
+	return eed->h==0;
+}
+static void draw_dm_edges(DerivedMesh *dm) 
+{
+	dm->drawMappedEdgesEM(dm, draw_dm_edges__setDrawOptions, NULL);
+}
+
 	/* Draw edges with color interpolated based on selection */
 static int draw_dm_edges_sel_interp__setDrawOptions(void *userData, EditEdge *eed)
 {
@@ -1418,7 +1428,7 @@ static void draw_em_fancy_edges(DerivedMesh *cageDM)
 		}
 		else {
 			glColor4ubv(wire);
-			cageDM->drawMappedEdgesEM(cageDM, NULL, NULL);
+			draw_dm_edges(cageDM);
 		}
 
 		if (pass==0) {
