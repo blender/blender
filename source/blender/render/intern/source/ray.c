@@ -39,6 +39,7 @@
 #include "DNA_lamp_types.h"
 
 #include "BKE_utildefines.h"
+#include "BKE_global.h"
 
 #include "BLI_arithb.h"
 
@@ -1880,6 +1881,17 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 
 	shadfac[0]= shadfac[1]= shadfac[2]= 0.0;
 
+	/* if sky texture used, these values have to be reset back to original */
+	if(wrld->aocolor==WO_AOSKYCOL && G.scene->world) {
+		R.wrld.horr= G.scene->world->horr;
+		R.wrld.horg= G.scene->world->horg;
+		R.wrld.horb= G.scene->world->horb;
+		R.wrld.zenr= G.scene->world->zenr;
+		R.wrld.zeng= G.scene->world->zeng;
+		R.wrld.zenb= G.scene->world->zenb;
+	}
+
+	/* calculate the two perpendicular vectors */
 	VECCOPY(nrm, shi->vn);
 	if ((nrm[0]==0.0) && (nrm[1]==0.0)) {
 		if (nrm[2]<0) ru[0]=-1; else ru[0]=1;
