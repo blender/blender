@@ -42,7 +42,8 @@ struct rctf;
 
 void sdrawXORline(int x0, int y0, int x1, int y1);
 void sdrawXORline4(int nr, int x0, int y0, int x1, int y1);
-void sdrawXORcirc(short xofs, short yofs, float rad);
+
+void fdrawXORcirc(float xofs, float yofs, float rad);
 
 	/**
 	 * Draw an XOR'd line in the front buffer between
