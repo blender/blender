@@ -74,15 +74,15 @@ static void cspfill(short *buf, short *fill, int x)
 }
 
 
-static void cspadd(short *buf, short cont[][3], unsigned char *rect, int x)
+static void cspadd(short *buf, short *cont, unsigned char *rect, int x)
 {
 	short i;
 	for (;x>0;x--){
 		i = *(rect);
 		rect += 4;
-		buf[0] += cont[i][0];
-		buf[1] += cont[i][1];
-		buf[2] += cont[i][2];
+		buf[0] += cont[i*3];
+		buf[1] += cont[i*3 + 1];
+		buf[2] += cont[i*3 + 2];
 		buf += 3;
 	}
 }

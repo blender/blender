@@ -207,7 +207,7 @@ float adat_distort = 1.0;
  * 
  */
 
-void imb_convhamx(struct ImBuf *ibuf, unsigned char coltab[][4], short *deltab)
+void imb_convhamx(struct ImBuf *ibuf, unsigned char *coltab, short *deltab)
 {
 	short r,g,b,lr,lg,lb,dr,dg,db,col,fout,type,step;
 	int i;
@@ -225,9 +225,9 @@ void imb_convhamx(struct ImBuf *ibuf, unsigned char coltab[][4], short *deltab)
 		rect += 4*step;
 		i = ((ibuf->x * ibuf->y) + 2 - step - 1) / 2;
 
-		lb = coltab[0][1];
-		lg = coltab[0][2];
-		lr = coltab[0][3];
+		lb = coltab[1];
+		lg = coltab[2];
+		lr = coltab[3];
 		type = col = 0;
 
 		for ( ;i>0;i--){
@@ -273,9 +273,9 @@ void imb_convhamx(struct ImBuf *ibuf, unsigned char coltab[][4], short *deltab)
 				default:
 					/*printf("%04x %5d %5d  ", (b<<8) + (g<<4) + r, col, fout);*/
 					
-					lb = coltab[col][1];
-					lg = coltab[col][2];
-					lr = coltab[col][3];
+					lb = coltab[col*4 + 1];
+					lg = coltab[col*4 + 2];
+					lr = coltab[col*4 + 3];
 					/*printf("%01x%01x%01x %01x%01x%01x\n", b, g, r, lb, lg, lr);*/
 					col += 48;
 				}

@@ -92,7 +92,7 @@ static void addhamdither(short x, unsigned char *dit,
 
 static void convhamscanl(short x, short y,
 				  unsigned char *rgbbase,
-				  unsigned char coltab[][4],
+				  unsigned char *coltab,
 				  short *deltab,
 				  short bits)
 {
@@ -114,9 +114,9 @@ static void convhamscanl(short x, short y,
 
 	if ((hambase = (unsigned short *) malloc((x+4) * sizeof(unsigned short)))==0) return;
 
-	lb = coltab[0][1];
-	lg = coltab[0][2];
-	lr = coltab[0][3];
+	lb = coltab[1];
+	lg = coltab[2];
+	lr = coltab[3];
 	type = col = 0;
 
 	ham = hambase;
@@ -190,9 +190,9 @@ static void convhamscanl(short x, short y,
 				lb = b;
 				break;
 			default:
-				lb = coltab[col][1];
-				lg = coltab[col][2];
-				lr = coltab[col][3];
+				lb = coltab[col*4 + 1];
+				lg = coltab[col*4 + 2];
+				lr = coltab[col*4 + 3];
 			}
 			*ham = type + col;
 		} else *ham = HAMG + HAMFREE + g;
@@ -267,10 +267,10 @@ short imb_converttoham(struct ImBuf *ibuf)
 		IMB_dit2(ibuf, 2, 4);
 		IMB_dit2(ibuf, 1, 4);
 		IMB_dit2(ibuf, 0, 4);
-		imb_convhamx(ibuf, coltab, deltab);
+		imb_convhamx(ibuf, (uchar *)coltab, deltab);
 	} else {
 		for(;y > 0; y--){
-			convhamscanl(x, y, (uchar *)rect, coltab, deltab, ibuf->cbits);
+			convhamscanl(x, y, (uchar *)rect, (uchar *)coltab, deltab, ibuf->cbits);
 			rect += x;
 		}
 	}

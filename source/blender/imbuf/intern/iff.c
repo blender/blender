@@ -204,7 +204,7 @@ unsigned short imb_update_iff(int file, int code)
 		filelen -= 8;
 		if (buf[0] == code) break;
 		
-		skip = BIG_LONG(buf[1]) + 1 & ~1;
+		skip = (BIG_LONG(buf[1]) + 1) & ~1;
 		filelen -= skip;
 		lseek(file, skip, 1);
 	}

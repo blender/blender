@@ -351,10 +351,7 @@ ImBuf * imb_ibJpegImageFromFilename (char * filename, int flags)
 	FILE * infile;
 	ImBuf * ibuf;
 	
-	if ((infile = fopen(filename, "rb")) == NULL) {
-		/*fprintf(stderr, "can't open %s\n", filename);*/
-		return 0;
-	}
+	if ((infile = fopen(filename, "rb")) == NULL) return 0;
 
 	cinfo->err = jpeg_std_error(&jerr);
 	jerr.error_exit = jpeg_error;
@@ -494,7 +491,7 @@ static int save_stdjpeg(char * name, struct ImBuf * ibuf)
 	struct jpeg_compress_struct _cinfo, *cinfo = &_cinfo;
 	struct jpeg_error_mgr jerr;
 
-	if ((outfile = fopen(name, "wb")) == NULL) return(-1);
+	if ((outfile = fopen(name, "wb")) == NULL) return 0;
 	jpeg_default_quality = 75;
 
 	cinfo->err = jpeg_std_error(&jerr);
@@ -518,7 +515,7 @@ static int save_vidjpeg(char * name, struct ImBuf * ibuf)
 	struct jpeg_compress_struct _cinfo, *cinfo = &_cinfo;
 	struct jpeg_error_mgr jerr;
 
-	if ((outfile = fopen(name, "wb")) == NULL) return(-1);
+	if ((outfile = fopen(name, "wb")) == NULL) return 0;
 	jpeg_default_quality = 90;
 
 	cinfo->err = jpeg_std_error(&jerr);
@@ -584,7 +581,7 @@ static int save_maxjpeg(char * name, struct ImBuf * ibuf)
 	struct jpeg_compress_struct _cinfo, *cinfo = &_cinfo;
 	struct jpeg_error_mgr jerr;
 
-	if ((outfile = fopen(name, "wb")) == NULL) return(-1);
+	if ((outfile = fopen(name, "wb")) == NULL) return 0;
 	jpeg_default_quality = 100;
 
 	cinfo->err = jpeg_std_error(&jerr);
@@ -606,7 +603,6 @@ static int save_maxjpeg(char * name, struct ImBuf * ibuf)
 	if (jpeg_failed) remove(name);
 	return(jpeg_failed);
 }
-
 
 int imb_savejpeg(struct ImBuf * ibuf, char * name, int flags)
 {

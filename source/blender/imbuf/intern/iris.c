@@ -489,12 +489,8 @@ static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, char
 
 	goodwrite = 1;
 	outf = fopen(name, "wb");
+	if(!outf) return 0;
 
-	if(!outf) {
-		perror("fopen");
-		fprintf(stderr,"output_iris: can't open output file\n");
-		return 0;
-	}
 	tablen = ysize*zsize*sizeof(int);
 
 	image = (IMAGE *)malloc(sizeof(IMAGE));

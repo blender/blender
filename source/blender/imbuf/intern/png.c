@@ -192,6 +192,7 @@ short imb_savepng(struct ImBuf *ibuf, char *name, int flags)
 			 Flush);
 	} else {
 		fp = fopen(name, "wb");
+                if (!fp) return 0;
 		png_init_io(png_ptr, fp);
 	}
 

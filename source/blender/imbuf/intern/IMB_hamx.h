@@ -44,7 +44,7 @@ struct ImBuf;
 
 struct ImBuf *imb_loadanim(int *iffmem, int flags);
 short imb_enc_anim(struct ImBuf *ibuf, int file);  
-void imb_convhamx(struct ImBuf *ibuf, unsigned char coltab[][4], short *deltab);
+void imb_convhamx(struct ImBuf *ibuf, unsigned char *coltab, short *deltab);
 
 #endif
 

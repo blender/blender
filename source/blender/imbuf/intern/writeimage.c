@@ -65,8 +65,7 @@ short IMB_saveiff(struct ImBuf *ibuf,char *naam,int flags)
 
 	/* Put formats that take a filename here */
 	if (IS_jpg(ibuf)) {
-		if(imb_savejpeg(ibuf, naam, flags)) return (0);
-		else return (TRUE);
+		return imb_savejpeg(ibuf, naam, flags);
 	}
 	if (IS_png(ibuf)) {
 		return imb_savepng(ibuf,naam,flags);
