@@ -2441,11 +2441,11 @@ static void init_render_curve(Object *ob)
 				ver= RE_findOrAddVert(R.totvert++);
 				VECCOPY(ver->co, data);
 
-				if(vlr->v1->co[2] < 0.0) {
-					VECCOPY(vlr->n, n);
+				if(ver->co[2] < 0.0) {
+					VECCOPY(ver->n, n);
 				}
 				else {
-					vlr->n[0]= -n[0]; vlr->n[1]= -n[1]; vlr->n[2]= -n[2];
+					ver->n[0]= -n[0]; ver->n[1]= -n[1]; ver->n[2]= -n[2];
 				}
 			}
 
@@ -2476,7 +2476,7 @@ static void init_render_curve(Object *ob)
 				vlr->lay= ob->lay;
 			}
 			/* rotate verts */
-			for(a=0; a<dl->nr; a++, data+=3) {
+			for(a=0; a<dl->nr; a++) {
 				ver= RE_findOrAddVert(startvert+a);
 				MTC_Mat4MulVecfl(mat, ver->co);
 			}
