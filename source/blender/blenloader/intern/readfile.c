@@ -4235,6 +4235,7 @@ static void do_versions(Main *main)
 
 	}
 	if(main->versionfile <= 233) {
+		bScreen *sc;
 		Material *ma= main->mat.first;
 		Object *ob= main->object.first;
 		
@@ -4249,6 +4250,19 @@ static void do_versions(Main *main)
 		while(ob) {
 			if(ob->ipowin==0) ob->ipowin= ID_OB;
 			ob= ob->id.next;
+		}
+		
+		for (sc= main->screen.first; sc; sc= sc->id.next) {
+			ScrArea *sa;
+			for (sa= sc->areabase.first; sa; sa= sa->next) {
+				SpaceLink *sl;
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if(sl->spacetype==SPACE_VIEW3D) {
+						View3D *v3d= (View3D *)sl;
+						v3d->flag |= V3D_SELECT_OUTLINE;
+					}
+				}
+			}
 		}
 	}
 	
