@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -288,7 +289,7 @@ int gesture(void)
 		
 		return 1;
 	}
-	return 0;
+	else return 0;
 }
 
 void mouse_cursor(void)
@@ -397,6 +398,7 @@ static void deselectall_ex(Base *b)   /* deselect all except b */
 	countall();
 }
 
+/* smart function to sample a rect spiralling outside, nice for backbuf selection */
 static unsigned int samplerect(unsigned int *buf, int size, unsigned int dontdo)
 {
 	Base *base;
@@ -483,7 +485,7 @@ void set_active_object(Object *ob)
 void mouse_select(void)
 {
 	Base *base, *startbase=0, *basact=0, *oldbasact;
-	GLuint buffer[MAXPICKBUF];
+	unsigned int buffer[MAXPICKBUF];
 	int temp, a, dist=100;
 	short hits, mval[2];
 
@@ -619,8 +621,7 @@ void borderselect(void)
 	BPoint *bp;
 	MetaElem *ml;
 	struct EditVert *eve;
-	/* was IGLuint */
-	GLuint buffer[MAXPICKBUF];
+	unsigned int buffer[MAXPICKBUF];
 	int a, index;
 	short hits, val, tel;
 

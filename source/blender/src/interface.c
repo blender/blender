@@ -1728,6 +1728,14 @@ static void ui_set_name_menu(uiBut *but, int value)
 	menudata_free(md);
 }
 
+static ui_warp_pointer(short x, short y)
+{
+	/* OSX has very poor mousewarp support, it sends events;
+	   this causes a menu being pressed immediately ... */
+	#ifndef __APPLE__
+	warp_pointer(x, y);
+	#endif
+}
 
 static int ui_do_but_MENU(uiBut *but)
 {
@@ -1850,7 +1858,7 @@ static int ui_do_but_MENU(uiBut *but)
 		starty= endy-height;
 	}
 
-	warp_pointer(mval[0]+mousemove[0], mval[1]+mousemove[1]);
+	ui_warp_pointer(mval[0]+mousemove[0], mval[1]+mousemove[1]);
 
 	mousemove[0]= mval[0];
 	mousemove[1]= mval[1];
@@ -1884,7 +1892,7 @@ static int ui_do_but_MENU(uiBut *but)
 	
 	menudata_free(md);
 	
-	if((event & UI_RETURN_OUT)==0) warp_pointer(mousemove[0], mousemove[1]);
+	if((event & UI_RETURN_OUT)==0) ui_warp_pointer(mousemove[0], mousemove[1]);
 	
 	but->flag &= ~UI_SELECT;
 	ui_check_but(but);
@@ -3305,7 +3313,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	if(block->win != mywinget()) return UI_NOTHING;
 
 	/* filter some unwanted events */
-	if(uevent->event==LEFTSHIFTKEY || uevent->event==RIGHTSHIFTKEY) return UI_NOTHING;
+	if(uevent->event==0 || uevent->event==LEFTSHIFTKEY || uevent->event==RIGHTSHIFTKEY) return UI_NOTHING;
 
 	if(block->flag & UI_BLOCK_ENTER_OK) {
 		if(uevent->event == RETKEY && uevent->val) {
@@ -3702,7 +3710,7 @@ int uiDoBlocks(ListBase *lb, int event)
 			}
 
 			retval= ui_do_block(block, &uevent);
-			
+		
 			if(block->frontbuf == UI_HAS_DRAW_FRONT) {
 				glFinish();
 				glDrawBuffer(GL_BACK);
@@ -4583,7 +4591,7 @@ short pupmenu(char *instr)
 	}
 
 	if(mouseymove) {
-		warp_pointer(mval[0], mouseymove+mval[1]);
+		ui_warp_pointer(mval[0], mouseymove+mval[1]);
 		mousexmove= mval[0];
 		mouseymove= mval[1];
 	}
@@ -4622,7 +4630,7 @@ short pupmenu(char *instr)
 
 	menudata_free(md);
 	
-	if(mouseymove && (event & UI_RETURN_OUT)==0) warp_pointer(mousexmove, mouseymove);
+	if(mouseymove && (event & UI_RETURN_OUT)==0) ui_warp_pointer(mousexmove, mouseymove);
 	return val;
 }
 
@@ -4744,7 +4752,7 @@ short pupmenu_col(char *instr, int maxrow)
 		starty= endy-height;
 	}
 
-	warp_pointer(mval[0]+mousemove[0], mval[1]+mousemove[1]);
+	ui_warp_pointer(mval[0]+mousemove[0], mval[1]+mousemove[1]);
 
 	mousemove[0]= mval[0];
 	mousemove[1]= mval[1];
@@ -4773,7 +4781,7 @@ short pupmenu_col(char *instr, int maxrow)
 	
 	menudata_free(md);
 	
-	if((event & UI_RETURN_OUT)==0) warp_pointer(mousemove[0], mousemove[1]);
+	if((event & UI_RETURN_OUT)==0) ui_warp_pointer(mousemove[0], mousemove[1]);
 	
 	return val;	
 }

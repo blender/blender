@@ -465,10 +465,13 @@ GHOST_TSuccess GHOST_SystemCarbon::getCursorPosition(GHOST_TInt32& x, GHOST_TInt
 }
 
 
-GHOST_TSuccess GHOST_SystemCarbon::setCursorPosition(GHOST_TInt32 /*x*/, GHOST_TInt32 /*y*/) const
+GHOST_TSuccess GHOST_SystemCarbon::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y) const
 {
-    // Not supported in Carbon!
-    return GHOST_kFailure;
+	float xf=(float)x, yf=(float)y;
+
+	CGPostMouseEvent(CGPointMake(xf, yf), TRUE, 1, FALSE, 0);
+
+    return GHOST_kSuccess;
 }
 
 
