@@ -152,9 +152,11 @@ class Object:
     Recomputes the particle system. This method only applies to an Object of
     the type Effect.
     """
-  def getIpo():
+
+  def clearIpo():
     """
-		returns the Ipo (if any) associated to the Object.
+    Unlinks the ipo from this object.
+    @return: True if there was an ipo linked or False otherwise.
     """
 
   def clrParent(mode = 0, fast = 0):
@@ -221,6 +223,13 @@ class Object:
     Returns the object's inverse matrix.
     @rtype: Blender Matrix object
     @return: the inverse of the matrix of the Object
+    """
+
+  def getIpo():
+    """
+    Returns the Ipo associated to this object or None if there's no linked ipo.
+    @rtype: Ipo
+    @return: the wrapped ipo or None.
     """
 
   def getLocation():
@@ -379,6 +388,13 @@ class Object:
     @param y: The rotation angle in radians for the Y direction.
     @type z: float
     @param z: The rotation angle in radians for the Z direction.
+    """
+
+  def setIpo(ipo):
+    """
+    Links an ipo to this object.
+    @type ipo: Blender Ipo
+    @param ipo: an object type ipo.
     """
 
   def setLocation(x, y, z):

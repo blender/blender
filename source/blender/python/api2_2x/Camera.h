@@ -142,7 +142,7 @@ static PyObject *Camera_setDrawSize(BPy_Camera *self, PyObject *args);
 static PyMethodDef BPy_Camera_methods[] = {
  /* name, method, flags, doc */
   {"getIpo", (PyCFunction)Camera_getIpo, METH_NOARGS,
-      "() - Return Camera Data Ipo's"},
+      "() - Return Camera Data Ipo"},
   {"getName", (PyCFunction)Camera_getName, METH_NOARGS,
       "() - Return Camera Data name"},
   {"getType", (PyCFunction)Camera_getType, METH_NOARGS,

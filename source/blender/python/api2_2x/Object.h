@@ -55,6 +55,7 @@
 #include <DNA_userdef_types.h>
 #include <DNA_view3d_types.h>
 
+#include "bpy_types.h"
 #include "gen_utils.h"
 #include "modules.h"
 #include "vector.h"

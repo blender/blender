@@ -258,6 +258,11 @@ static PyObject *Camera_getIpo(BPy_Camera *self)
 	return Ipo_CreatePyObject (ipo);
 }
 
+
+
+
+
+
 static PyObject *Camera_getName(BPy_Camera *self)
 {
 
@@ -328,6 +333,8 @@ static PyObject *Camera_getDrawSize(BPy_Camera *self)
 	return EXPP_ReturnPyObjError (PyExc_RuntimeError,
 																	 "couldn't get Camera.drawSize attribute");
 }
+
+
 
 static PyObject *Camera_setIpo(BPy_Camera *self, PyObject *args)
 {
