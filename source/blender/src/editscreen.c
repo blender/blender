@@ -934,9 +934,10 @@ void screenmain(void)
 			event= screen_qread(&val, &ascii);
 		}
 		
-		// window_make_active(mainwin); // (removed, ton)
+		// window_make_active(mainwin); // (only for inputchange, removed, ton)
 
 		if (event==INPUTCHANGE) {
+			window_make_active(mainwin);
 			has_input= val;
 		}
 		
