@@ -31,6 +31,7 @@
  */
 
 #include <string.h>
+#include <stdlib.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -39,6 +40,7 @@
 #endif
 
 #include "DNA_action_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_image_types.h"
@@ -68,6 +70,7 @@
 #include "BIF_butspace.h"
 #include "BIF_drawscene.h"
 #include "BIF_editaction.h"
+#include "BIF_editarmature.h"
 #include "BIF_editview.h"
 #include "BIF_gl.h"
 #include "BIF_interface.h"
@@ -160,7 +163,7 @@ static void check_persistant(SpaceOops *soops, TreeElement *te, ID *id, short ty
 	tselem= ts->data;
 	for(a=0; a<ts->usedelem; a++, tselem++) {
 		if(tselem->id==id) {
-			if(tselem->type==type && tselem->nr==nr) {
+			if(type==0 ||(tselem->type==type && tselem->nr==nr)) {
 				te->store_index= a;
 				return;
 			}
@@ -183,7 +186,7 @@ static void check_persistant(SpaceOops *soops, TreeElement *te, ID *id, short ty
 	tselem= ts->data+ts->usedelem;
 	
 	tselem->type= type;
-	if(tselem->type) tselem->nr= nr; // we're picky! :)
+	if(type) tselem->nr= nr; // we're picky! :)
 	else tselem->nr= 0;
 	tselem->id= id;
 	tselem->flag= TSE_CLOSED;
@@ -218,27 +221,130 @@ static void outliner_height(SpaceOops *soops, ListBase *lb, int *h)
 	}
 }
 
+struct treesort {
+	TreeElement *te;
+	ID *id;
+	char *name;
+	short idcode;
+};
+
+static int treesort_alpha(const void *v1, const void *v2)
+{
+	const struct treesort *x1= v1, *x2= v2;
+	
+	/* first put objects last (hierarchy) */
+	if(x1->idcode==ID_OB && x2->idcode!=ID_OB) return 1;
+	else if(x2->idcode==ID_OB && x1->idcode!=ID_OB) return -1;
+	else {
+		int comp= strcmp(x1->name, x2->name);
+		
+		if( comp>0 ) return 1;
+		else if( comp<0) return -1;
+		return 0;
+	}
+}
+
+/* this is nice option for later? doesnt look too useful... */
+#if 0
+static int treesort_obtype_alpha(const void *v1, const void *v2)
+{
+	const struct treesort *x1= v1, *x2= v2;
+	
+	/* first put objects last (hierarchy) */
+	if(x1->idcode==ID_OB && x2->idcode!=ID_OB) return 1;
+	else if(x2->idcode==ID_OB && x1->idcode!=ID_OB) return -1;
+	else {
+		/* 2nd we check ob type */
+		if(x1->idcode==ID_OB && x2->idcode==ID_OB) {
+			if( ((Object *)x1->id)->type > ((Object *)x2->id)->type) return 1;
+			else if( ((Object *)x1->id)->type > ((Object *)x2->id)->type) return -1;
+			else return 0;
+		}
+		else {
+			int comp= strcmp(x1->name, x2->name);
+			
+			if( comp>0 ) return 1;
+			else if( comp<0) return -1;
+			return 0;
+		}
+	}
+}
+#endif
+
+/* sort happens on each subtree individual */
+static void outliner_sort(SpaceOops *soops, ListBase *lb)
+{
+	TreeElement *te;
+	TreeStoreElem *tselem;
+	int totelem=0;
+	
+	te= lb->last;
+	if(te==NULL) return;
+	tselem= TREESTORE(te);
+	
+	/* sorting rules; only object lists or deformgroups */
+	if( (tselem->type==TE_DEFGROUP) || (tselem->type==0 && te->idcode==ID_OB)) {
+		
+		/* count first */
+		for(te= lb->first; te; te= te->next) totelem++;
+		
+		if(totelem>1) {
+			struct treesort *tear= MEM_mallocN(totelem*sizeof(struct treesort), "tree sort array");
+			struct treesort *tp=tear;
+			
+			for(te= lb->first; te; te= te->next, tp++) {
+				tselem= TREESTORE(te);
+				tp->te= te;
+				tp->name= te->name;
+				tp->idcode= te->idcode;
+				tp->id= tselem->id;
+			}
+			
+			qsort(tear, totelem, sizeof(struct treesort), treesort_alpha);
+			
+			lb->first=lb->last= NULL;
+			tp= tear;
+			while(totelem--) {
+				BLI_addtail(lb, tp->te);
+				tp++;
+			}
+			MEM_freeN(tear);
+		}
+	}
+	
+	for(te= lb->first; te; te= te->next) {
+		outliner_sort(soops, &te->subtree);
+	}
+}
+
+/* Prototype, see function below */
+static void outliner_add_bone(SpaceOops *soops, ListBase *lb, 
+							  ID *id, Bone *curBone, TreeElement *parent, int *a);
+
+
 static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *idv, 
 										 TreeElement *parent, short type, short index)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
+	ID *id= idv;
 	int a;
 	
-	if(idv==NULL) return NULL;
+	if(id==NULL) return NULL;
 
 	te= MEM_callocN(sizeof(TreeElement), "tree elem");
 	/* add to the visual tree */
 	BLI_addtail(lb, te);
 	/* add to the storage */
-	check_persistant(soops, te, idv, type, index);
+	check_persistant(soops, te, id, type, index);
 	tselem= TREESTORE(te);	
 	
 	te->parent= parent;
-	te->index= index;	// for (ID *) arays
+	te->index= index;	// for data arays
+	te->name= id->name+2; // default, can be overridden by non-ID data
+	te->idcode= GS(id->name);
 	
-	if(idv && type==0) {
-		ID *id= idv;
+	if(type==0) {
 
 		/* tuck pointer back in object, to construct hierarchy */
 		if(GS(id->name)==ID_OB) id->newid= (ID *)te;
@@ -257,16 +363,31 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				outliner_add_element(soops, &te->subtree, ob->data, te, 0, 0);
 				outliner_add_element(soops, &te->subtree, ob->ipo, te, 0, 0);
 				outliner_add_element(soops, &te->subtree, ob->action, te, 0, 0);
-				if(0 && ob->nlastrips.first) {
+				
+				for(a=0; a<ob->totcol; a++) 
+					outliner_add_element(soops, &te->subtree, ob->mat[a], te, 0, a);
+
+				if(ob->nlastrips.first) {
 					bActionStrip *strip;
 					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TE_NLA, 0);
 					int a= 0;
+					tenla->name= "NLA strips";
 					for (strip=ob->nlastrips.first; strip; strip=strip->next, a++) {
-						outliner_add_element(soops, &tenla->subtree, strip->act, tenla, 0, a);
+						outliner_add_element(soops, &tenla->subtree, strip->act, tenla, TE_NLA_ACTION, a);
 					}
 				}
-				for(a=0; a<ob->totcol; a++) 
-					outliner_add_element(soops, &te->subtree, ob->mat[a], te, 0, a);
+				if(ob->defbase.first) {
+					bDeformGroup *defgroup;
+					TreeElement *ten;
+					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TE_DEFGROUP_BASE, 0);
+					int a= 0;
+					tenla->name= "Vertex Groups";
+					for (defgroup=ob->defbase.first; defgroup; defgroup=defgroup->next, a++) {
+						ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TE_DEFGROUP, a);
+						ten->name= defgroup->name;
+					}
+				}
+				
 			}
 			break;
 		case ID_ME:
@@ -338,10 +459,20 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				int a= 0;
 				
 				tselem= TREESTORE(parent);
-				if(GS(tselem->id->name)!=ID_NLA) { // dont expand NLA
+				if(tselem->type!=TE_NLA) { // dont expand NLA
 					for (chan=act->chanbase.first; chan; chan=chan->next, a++) {
 						outliner_add_element(soops, &te->subtree, chan->ipo, te, 0, a);
 					}
+				}
+			}
+			break;
+		case ID_AR:
+			{
+				bArmature *arm= (bArmature *)id;
+				Bone *curBone;
+				int a= 0;
+				for (curBone=arm->bonebase.first; curBone; curBone=curBone->next){
+					outliner_add_bone(soops, &te->subtree, id, curBone, te, &a);
 				}
 			}
 			break;
@@ -350,18 +481,33 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	return te;
 }
 
+/* special handling of hierarchical non-lib data */
+static void outliner_add_bone(SpaceOops *soops, ListBase *lb, ID *id, Bone *curBone, 
+							  TreeElement *parent, int *a)
+{
+	TreeElement *te= outliner_add_element(soops, lb, id, parent, TE_BONE, *a);
+
+	(*a)++;
+	te->name= curBone->name;
+	te->directdata= curBone;
+	for(curBone= curBone->childbase.first; curBone; curBone=curBone->next) {
+		outliner_add_bone(soops, &te->subtree, id, curBone, te, a);
+	}
+}
+
+
 static void outliner_make_hierarchy(SpaceOops *soops, ListBase *lb)
 {
 	TreeElement *te, *ten, *tep;
 	TreeStoreElem *tselem;
-	
+
 	/* build hierarchy */
 	te= lb->first;
 	while(te) {
 		ten= te->next;
 		tselem= TREESTORE(te);
 		
-		if(tselem->id && GS(tselem->id->name)==ID_OB) {
+		if(tselem->type==0 && te->idcode==ID_OB) {
 			Object *ob= (Object *)tselem->id;
 			if(ob->parent && ob->parent->id.newid) {
 				BLI_remlink(lb, te);
@@ -440,6 +586,7 @@ static void outliner_build_tree(SpaceOops *soops)
 		outliner_add_element(soops, &soops->tree, OBACT, NULL, 0, 0);
 	}
 	
+	outliner_sort(soops, &soops->tree);
 }
 
 /* **************** INTERACTIVE ************* */
@@ -491,14 +638,14 @@ static void tree_element_active_object(SpaceOops *soops, TreeElement *te)
 	Object *ob= NULL;
 	
 	/* if id is not object, we search back */
-	if(GS(tselem->id->name)==ID_OB) ob= (Object *)tselem->id;
+	if(te->idcode==ID_OB) ob= (Object *)tselem->id;
 	else {
 		TreeElement *tes= te->parent;
 		TreeStoreElem *tselems=NULL;
 		
 		while(tes) {
 			tselems= TREESTORE(tes);
-			if(GS(tselems->id->name)==ID_OB) break;
+			if(tes->idcode==ID_OB) break;
 			tes= tes->parent;
 		}
 		if(tes) ob= (Object *)tselems->id;
@@ -546,7 +693,7 @@ static int tree_element_active_material(SpaceOops *soops, TreeElement *te, int s
 	/* we search for the object parent */
 	while(tes) {
 		tselems= TREESTORE(tes);
-		if(GS(tselems->id->name)==ID_OB) break;
+		if(tes->idcode==ID_OB) break;
 		tes= tes->parent;
 	}
 	if(tes) ob= (Object *)tselems->id;
@@ -554,8 +701,7 @@ static int tree_element_active_material(SpaceOops *soops, TreeElement *te, int s
 	
 	/* searching in ob mat array? */
 	tes= te->parent;
-	tselems= TREESTORE(tes);
-	if(GS(tselems->id->name)==ID_OB) {
+	if(tes->idcode==ID_OB) {
 		if(set) {
 			ob->actcol= te->index+1;
 			ob->colbits |= (1<<te->index);	// make ob material active too
@@ -610,7 +756,7 @@ static int tree_element_active_texture(SpaceOops *soops, TreeElement *te, int se
 	tep= te->parent;
 	tselemp= TREESTORE(tep);
 	
-	if(GS(tselemp->id->name)==ID_WO) {
+	if(tep->idcode==ID_WO) {
 		World *wrld= (World *)tselemp->id;
 
 		if(set) {
@@ -625,7 +771,7 @@ static int tree_element_active_texture(SpaceOops *soops, TreeElement *te, int se
 			if(wrld->texact==te->index) return 1;
 		}
 	}
-	else if(GS(tselemp->id->name)==ID_LA) {
+	else if(tep->idcode==ID_LA) {
 		Lamp *la= (Lamp *)tselemp->id;
 		if(set) {
 			if(sbuts) {
@@ -641,7 +787,7 @@ static int tree_element_active_texture(SpaceOops *soops, TreeElement *te, int se
 			}
 		}
 	}
-	else if(GS(tselemp->id->name)==ID_MA) {
+	else if(tep->idcode==ID_MA) {
 		Material *ma= (Material *)tselemp->id;
 		if(set) {
 			if(sbuts) {
@@ -672,7 +818,7 @@ static int tree_element_active_lamp(SpaceOops *soops, TreeElement *te, int set)
 	/* we search for the object parent */
 	while(tes) {
 		tselems= TREESTORE(tes);
-		if(GS(tselems->id->name)==ID_OB) break;
+		if(tes->idcode==ID_OB) break;
 		tes= tes->parent;
 	}
 	if(tes) ob= (Object *)tselems->id;
@@ -717,7 +863,7 @@ static int tree_element_active_ipo(SpaceOops *soops, TreeElement *te, int set)
 	/* we search for the object parent */
 	while(tes) {
 		tselems= TREESTORE(tes);
-		if(GS(tselems->id->name)==ID_OB) break;
+		if(tes->idcode==ID_OB) break;
 		tes= tes->parent;
 	}
 	if(tes) ob= (Object *)tselems->id;
@@ -728,7 +874,7 @@ static int tree_element_active_ipo(SpaceOops *soops, TreeElement *te, int set)
 	tselems= TREESTORE(tes);
 	
 	if(set) {
-		ob->ipowin= GS(tselems->id->name);
+		ob->ipowin= tes->idcode;
 		if(ob->ipowin==ID_MA) tree_element_active_material(soops, tes, 1);
 		else if(ob->ipowin==ID_AC) {
 			bActionChannel *chan;
@@ -744,7 +890,7 @@ static int tree_element_active_ipo(SpaceOops *soops, TreeElement *te, int set)
 		
 		allqueue(REDRAWIPO, ob->ipowin);
 	}
-	else if(ob->ipowin==GS(tselems->id->name)) {
+	else if(ob->ipowin==tes->idcode) {
 		if(ob->ipowin==ID_MA) {
 			Material *ma= give_current_material(ob, ob->actcol);
 			if(ma==(Material *)tselems->id) return 1;
@@ -763,12 +909,51 @@ static int tree_element_active_ipo(SpaceOops *soops, TreeElement *te, int set)
 	return 0;
 }	
 
-/* generic call to check or make active in UI */
+static int tree_element_active_defgroup(TreeElement *te, TreeStoreElem *tselem, int set)
+{
+	Object *ob;
+	
+	/* id in tselem is object */
+	ob= (Object *)tselem->id;
+	if(set) {
+		ob->actdef= te->index+1;
+	}
+	else {
+		if(ob==OBACT)
+			if(ob->actdef== te->index+1) return 1;
+	}
+	return 0;
+}
+
+static int tree_element_active_bone(TreeElement *te, TreeStoreElem *tselem, int set)
+{
+	bArmature *arm= (bArmature *)tselem->id;
+	Bone *bone= te->directdata;
+
+	if(set) {
+		if(G.qual & LR_SHIFTKEY);
+		else deselectall_posearmature(0);
+		bone->flag |= BONE_SELECTED;
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWOOPS, 0);
+		allqueue(REDRAWACTION, 0);
+	}
+	else {
+		Object *ob= OBACT;
+		
+		if(ob && ob->data==arm) {
+			if (bone->flag & BONE_SELECTED) return 1;
+		}
+	}
+	return 0;
+}
+
+
+/* generic call for ID data check or make/check active in UI */
 static int tree_element_active(SpaceOops *soops, TreeElement *te, int set)
 {
-	TreeStoreElem *tselem= TREESTORE(te);
 
-	switch(GS(tselem->id->name)) {
+	switch(te->idcode) {
 		case ID_MA:
 			return tree_element_active_material(soops, te, set);
 		case ID_WO:
@@ -782,6 +967,20 @@ static int tree_element_active(SpaceOops *soops, TreeElement *te, int set)
 	}
 	return 0;
 }
+
+/* generic call for non-id data to make/check active in UI */
+static int tree_element_type_active(TreeElement *te, TreeStoreElem *tselem, int set)
+{
+	
+	switch(tselem->type) {
+		case TE_DEFGROUP:
+			return tree_element_active_defgroup(te, tselem, set);
+		case TE_BONE:
+			return tree_element_active_bone(te, tselem, set);
+	}
+	return 0;
+}
+
 
 static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short event, float *mval)
 {
@@ -803,26 +1002,30 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 			/* always checks active object */
 			tree_element_active_object(soops, te);
 			
-			/* editmode? */
-			if(GS(tselem->id->name)==ID_SCE) {
-				if(G.scene!=(Scene *)tselem->id) {
-					if(G.obedit) exit_editmode(2);
-					set_scene((Scene *)tselem->id);
+			if(tselem->type==0) { // the lib blocks
+				/* editmode? */
+				if(te->idcode==ID_SCE) {
+					if(G.scene!=(Scene *)tselem->id) {
+						if(G.obedit) exit_editmode(2);
+						set_scene((Scene *)tselem->id);
+					}
 				}
+				else if(ELEM4(te->idcode, ID_ME, ID_CU, ID_MB, ID_LT)) {
+					if(G.obedit) exit_editmode(2);
+					else enter_editmode();
+				}
+				else if(te->idcode==ID_AR) {
+					if(G.obedit) exit_editmode(2);
+					if(G.obpose) exit_posemode(1);
+					else enter_posemode();
+				}
+				else {	// rest of types
+					tree_element_active(soops, te, 1);
+				}
+				return 1;
 			}
-			else if(ELEM4(GS(tselem->id->name), ID_ME, ID_CU, ID_MB, ID_LT)) {
-				if(G.obedit) exit_editmode(2);
-				else enter_editmode();
-			}
-			else if(GS(tselem->id->name)==ID_AR) {
-				if(G.obedit) exit_editmode(2);
-				if(G.obpose) exit_posemode(1);
-				else enter_posemode();
-			}
-			else {	// rest of types
-				tree_element_active(soops, te, 1);
-			}
-			return 1;
+			else tree_element_type_active(te, tselem, 1);
+			
 		}
 		else return 0;
 	}
@@ -864,7 +1067,7 @@ static TreeElement *outliner_find_id(SpaceOops *soops, ListBase *lb, ID *id)
 		tselem= TREESTORE(te);
 		if(tselem->id==id) return te;
 		/* only deeper on scene or object */
-		if( GS(tselem->id->name)==ID_OB || GS(tselem->id->name)==ID_SCE) { 
+		if( te->idcode==ID_OB || te->idcode==ID_SCE) { 
 			tes= outliner_find_id(soops, &te->subtree, id);
 			if(tes) return tes;
 		}
@@ -893,45 +1096,61 @@ void outliner_show_active(struct ScrArea *sa)
 
 /* ***************** DRAW *************** */
 
-static void draw_id_icon_type(ID *id)
+static void tselem_draw_icon(TreeStoreElem *tselem)
 {
-	switch( GS(id->name)) {
-		case ID_SCE:
-			BIF_draw_icon(ICON_SCENE_DEHLT); break;
-		case ID_OB:
-			BIF_draw_icon(ICON_OBJECT); break;
-		case ID_ME:
-			BIF_draw_icon(ICON_MESH); break;
-		case ID_CU:
-			BIF_draw_icon(ICON_CURVE); break;
-		case ID_MB:
-			BIF_draw_icon(ICON_MBALL); break;
-		case ID_LT:
-			BIF_draw_icon(ICON_LATTICE); break;
-		case ID_LA:
-			BIF_draw_icon(ICON_LAMP_DEHLT); break;
-		case ID_MA:
-			BIF_draw_icon(ICON_MATERIAL_DEHLT); break;
-		case ID_TE:
-			BIF_draw_icon(ICON_TEXTURE_DEHLT); break;
-		case ID_IP:
-			BIF_draw_icon(ICON_IPO_DEHLT); break;
-		case ID_IM:
-			BIF_draw_icon(ICON_IMAGE_DEHLT); break;
-		case ID_SO:
-			BIF_draw_icon(ICON_SPEAKER); break;
-		case ID_AR:
-			BIF_draw_icon(ICON_WPAINT_DEHLT); break;
-		case ID_CA:
-			BIF_draw_icon(ICON_CAMERA_DEHLT); break;
-		case ID_KE:
-			BIF_draw_icon(ICON_EDIT); break;
-		case ID_WO:
-			BIF_draw_icon(ICON_WORLD); break;
-		case ID_AC:
-			BIF_draw_icon(ICON_ACTION); break;
-		case ID_NLA:
-			BIF_draw_icon(ICON_NLA); break;
+	if(tselem->type) {
+		switch( tselem->type) {
+			case TE_NLA:
+				BIF_draw_icon(ICON_NLA); break;
+			case TE_NLA_ACTION:
+				BIF_draw_icon(ICON_ACTION); break;
+			case TE_DEFGROUP_BASE:
+				BIF_draw_icon(ICON_VERTEXSEL); break;
+			case TE_BONE:
+				BIF_draw_icon(ICON_WPAINT_DEHLT); break;
+			default:
+				BIF_draw_icon(ICON_RING); break;
+		}
+	}
+	else {
+		switch( GS(tselem->id->name)) {
+			case ID_SCE:
+				BIF_draw_icon(ICON_SCENE_DEHLT); break;
+			case ID_OB:
+				BIF_draw_icon(ICON_OBJECT); break;
+			case ID_ME:
+				BIF_draw_icon(ICON_MESH); break;
+			case ID_CU:
+				BIF_draw_icon(ICON_CURVE); break;
+			case ID_MB:
+				BIF_draw_icon(ICON_MBALL); break;
+			case ID_LT:
+				BIF_draw_icon(ICON_LATTICE); break;
+			case ID_LA:
+				BIF_draw_icon(ICON_LAMP_DEHLT); break;
+			case ID_MA:
+				BIF_draw_icon(ICON_MATERIAL_DEHLT); break;
+			case ID_TE:
+				BIF_draw_icon(ICON_TEXTURE_DEHLT); break;
+			case ID_IP:
+				BIF_draw_icon(ICON_IPO_DEHLT); break;
+			case ID_IM:
+				BIF_draw_icon(ICON_IMAGE_DEHLT); break;
+			case ID_SO:
+				BIF_draw_icon(ICON_SPEAKER); break;
+			case ID_AR:
+				BIF_draw_icon(ICON_ARMATURE_DEHLT); break;
+			case ID_CA:
+				BIF_draw_icon(ICON_CAMERA_DEHLT); break;
+			case ID_KE:
+				BIF_draw_icon(ICON_EDIT); break;
+			case ID_WO:
+				BIF_draw_icon(ICON_WORLD); break;
+			case ID_AC:
+				BIF_draw_icon(ICON_ACTION); break;
+			case ID_NLA:
+				BIF_draw_icon(ICON_NLA); break;
+		}
 	}
 }
 
@@ -945,14 +1164,17 @@ static void outliner_draw_iconrow(SpaceOops *soops, TreeElement *parent, ListBas
 		tselem= TREESTORE(te);
 		
 		/* if hierarchy, we draw all linked data to object, and only object icons for children trees */
-		if(parent || GS(tselem->id->name)==ID_OB) {
+		if(parent || (tselem->type==0 && te->idcode==ID_OB)) {
 
 			/* active blocks get white circle */
 			active= 0;
-			if(GS(tselem->id->name)==ID_OB) active= (OBACT==(Object *)tselem->id);
-			else if(G.obpose && G.obpose->data==tselem->id) active= 1;
-			else if(G.obedit && G.obedit->data==tselem->id) active= 1;
-			else active= tree_element_active(soops, te, 0);
+			if(tselem->type==0) {
+				if(te->idcode==ID_OB) active= (OBACT==(Object *)tselem->id);
+				else if(G.obpose && G.obpose->data==tselem->id) active= 1;
+				else if(G.obedit && G.obedit->data==tselem->id) active= 1;
+				else active= tree_element_active(soops, te, 0);
+			}
+			else active= tree_element_type_active(te, tselem, 0);
 			
 			if(active) {
 				uiSetRoundBox(15);
@@ -962,12 +1184,13 @@ static void outliner_draw_iconrow(SpaceOops *soops, TreeElement *parent, ListBas
 			}
 			
 			glRasterPos2i(*offsx, ys);
-			draw_id_icon_type(tselem->id);
+			tselem_draw_icon(tselem);
 			(*offsx) += OL_X;
 		}
 		
-		// if object subtree, don't draw all elements except parent icons
-		if(GS(tselem->id->name)==ID_OB)
+		// if object subtree, just object children icons
+		if(tselem->type);
+		else if(te->idcode==ID_OB)
 			outliner_draw_iconrow(soops, NULL, &te->subtree, offsx, ys);
 		else
 			outliner_draw_iconrow(soops, parent, &te->subtree, offsx, ys);
@@ -988,41 +1211,47 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		glEnable(GL_BLEND);
 
 		/* colors for active/selected data */
-		if(GS(tselem->id->name)==ID_SCE) {
-			if(tselem->id == (ID *)G.scene) {
+		if(tselem->type==0) {
+			if(te->idcode==ID_SCE) {
+				if(tselem->id == (ID *)G.scene) {
+					glColor4ub(255, 255, 255, 100);
+					active= 2;
+				}
+			}
+			else if(te->idcode==ID_OB) {
+				Object *ob= (Object *)tselem->id;
+				
+				if(ob==OBACT || (ob->flag & SELECT)) {
+					char col[4];
+					
+					active= 2;
+					if(ob==OBACT) {
+						BIF_GetThemeColorType4ubv(TH_ACTIVE, SPACE_VIEW3D, col);
+						active= 1;
+					}
+					else BIF_GetThemeColorType4ubv(TH_SELECT, SPACE_VIEW3D, col);
+					col[3]= 100;
+					glColor4ubv(col);
+				}
+			}
+			else if(G.obpose && G.obpose->data==tselem->id) {
 				glColor4ub(255, 255, 255, 100);
 				active= 2;
 			}
-		}
-		else if(GS(tselem->id->name)==ID_OB) {
-			Object *ob= (Object *)tselem->id;
-			
-			if(ob==OBACT || (ob->flag & SELECT)) {
-				char col[4];
-				
+			else if(G.obedit && G.obedit->data==tselem->id) {
+				glColor4ub(255, 255, 255, 100);
 				active= 2;
-				if(ob==OBACT) {
-					BIF_GetThemeColorType4ubv(TH_ACTIVE, SPACE_VIEW3D, col);
-					active= 1;
-				}
-				else BIF_GetThemeColorType4ubv(TH_SELECT, SPACE_VIEW3D, col);
-				col[3]= 100;
-				glColor4ubv(col);
 			}
-		}
-		else if(G.obpose && G.obpose->data==tselem->id) {
-			glColor4ub(255, 255, 255, 100);
-			active= 2;
-		}
-		else if(G.obedit && G.obedit->data==tselem->id) {
-			glColor4ub(255, 255, 255, 100);
-			active= 2;
+			else {
+				if(tree_element_active(soops, te, 0)) {
+					glColor4ub(220, 220, 255, 100);
+					active= 2;
+				}
+			}
 		}
 		else {
-			if(tree_element_active(soops, te, 0)) {
-				glColor4ub(220, 220, 255, 100);
-				active= 2;
-			}
+			if( tree_element_type_active(te, tselem, 0) ) active= 1;
+			glColor4ub(220, 220, 255, 100);
 		}
 		
 		/* active circle */
@@ -1035,7 +1264,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		}
 		
 		/* open/close icon, only when sublevels, except for scene */
-		if(te->subtree.first || GS(tselem->id->name)==ID_SCE) {
+		if(te->subtree.first || te->idcode==ID_SCE) {
 			glRasterPos2i(startx, *starty+2); // icons a bit higher
 			if(tselem->flag & TSE_CLOSED) 
 				BIF_draw_icon(ICON_TRIA_CLOSED);
@@ -1047,25 +1276,23 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		/* datatype icon */
 		if(tselem->id) {
 			glRasterPos2i(startx+offsx, *starty+2); // icons a bit higher
-			draw_id_icon_type(tselem->id);
+			tselem_draw_icon(tselem);
 			offsx+= OL_X;
 		}
 		glDisable(GL_BLEND);
 		
 		/* name */
-		if(tselem->id) {
-			if(active==1) BIF_ThemeColor(TH_TEXT_HI); 
-			else BIF_ThemeColor(TH_TEXT);
-			glRasterPos2i(startx+offsx, *starty+5);
-			BIF_DrawString(G.font, tselem->id->name+2, 0);
-			
-			offsx+= OL_X + BIF_GetStringWidth(G.font, tselem->id->name+2, 0);
-		}
+		if(active==1) BIF_ThemeColor(TH_TEXT_HI); 
+		else BIF_ThemeColor(TH_TEXT);
+		glRasterPos2i(startx+offsx, *starty+5);
+		BIF_DrawString(G.font, te->name, 0);
+		
+		offsx+= OL_X + BIF_GetStringWidth(G.font, te->name, 0);
 		
 		/* closed item, we draw the icons, not when it's a scene though */
 		if(tselem->flag & TSE_CLOSED) {
 			if(te->subtree.first) {
-				if( GS(tselem->id->name)==ID_SCE);
+				if( te->idcode==ID_SCE);
 				else {
 					int tempx= startx+offsx;
 					// divider

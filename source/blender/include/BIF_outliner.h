@@ -39,15 +39,21 @@ typedef struct TreeElement {
 	ListBase subtree;
 	float xs, ys;
 	int store_index;	// offset in tree store
-	short flag, index;	// flag for non-saved stuff, index for (ID *) arrays
+	short flag, index;	// flag for non-saved stuff, index for data arrays
+	short idcode;		// from TreeStore id
+	char *name;
+	void *directdata;	// Armature Bones, ...
 }  TreeElement;
 
 /* TreeElement->flag */
 #define TE_ACTIVE	1
 
 /* TreeStoreElem types */
-#define TE_NLA		1
-
+#define TE_NLA				1
+#define TE_NLA_ACTION		2
+#define TE_DEFGROUP_BASE	3
+#define TE_DEFGROUP			4
+#define TE_BONE				5
 
 extern void draw_outliner(struct ScrArea *sa, struct SpaceOops *so);
 extern void outliner_free_tree(struct ListBase *lb);

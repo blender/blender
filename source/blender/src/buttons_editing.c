@@ -1715,8 +1715,8 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 {
 	uiBlock		*block;
-	EditBone	*curBone;
 	uiBut		*but;
+	EditBone	*curBone;
 	char		*boneString=NULL;
 	int			bx=148, by=180;
 	int			index;
@@ -1731,7 +1731,7 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 	uiNewPanelHeight(block, 204);
 
 
-	uiDefBut(block, LABEL, 0, "Selected Bones",						bx,by,158,18, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Selected Bones", bx,by,158,18, 0, 0, 0, 0, 0, "Only show in Armature Editmode");
 	by-=20;
 	for (curBone=G.edbo.first, index=0; curBone; curBone=curBone->next, index++){
 		if (curBone->flag & (BONE_SELECTED)) {
@@ -1764,24 +1764,11 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 			/* Dist and weight buttons */
 			uiBlockBeginAlign(block);
 			but=uiDefButS(block, MENU, REDRAWVIEW3D,
-							"Skinnable %x0|"
-							"Unskinnable %x1|"
-							"Head %x2|"
-							"Neck %x3|"
-							"Back %x4|"
-							"Shoulder %x5|"
-							"Arm %x6|"
-							"Hand %x7|"
-							"Finger %x8|"
-							"Thumb %x9|"
-							"Pelvis %x10|"
-							"Leg %x11|"
-							"Foot %x12|"
-							"Toe %x13|"
-							"Tentacle %x14",
-							bx-10,by-19,117,18,
-							&curBone->boneclass,
-							0.0, 0.0, 0.0, 0.0,
+							"Skinnable %x0|" "Unskinnable %x1|" "Head %x2|"
+							"Neck %x3|" "Back %x4|" "Shoulder %x5|" "Arm %x6|"
+							"Hand %x7|" "Finger %x8|" "Thumb %x9|" "Pelvis %x10|"
+							"Leg %x11|" "Foot %x12|" "Toe %x13|" "Tentacle %x14",
+							bx-10,by-19,117,18, &curBone->boneclass, 0.0, 0.0, 0.0, 0.0,
 							"Classification of armature element");
 
 			/* Dist and weight buttons */

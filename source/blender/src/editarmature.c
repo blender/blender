@@ -129,7 +129,7 @@ static int	count_bones (struct bArmature *arm, int flagmask, int allbones);
 
 static int	count_bonechildren (struct Bone *bone, int incount, int flagmask, int allbones);
 static int	add_trans_bonechildren (struct Object* ob, struct Bone* bone, struct TransOb* buffer, int index, char mode);
-static void deselect_bonechildren (struct Bone *bone, int mode);
+static void deselect_bonechildren (Object *ob, struct Bone *bone, int mode);
 static void selectconnected_posebonechildren (struct Bone *bone);
 
 static int	editbone_name_exists (char* name);
@@ -423,6 +423,7 @@ void selectconnected_armature(void)
 
 	countall();
 	allqueue (REDRAWVIEW3D, 0);
+	allqueue(REDRAWOOPS, 0);
 
 }
 
@@ -460,6 +461,7 @@ void selectconnected_posearmature(void)
 	countall();
 	allqueue (REDRAWVIEW3D, 0);
 	allqueue (REDRAWACTION, 0);
+	allqueue(REDRAWOOPS, 0);
 }
 
 static void selectconnected_posebonechildren (Bone *bone)
@@ -695,6 +697,7 @@ void delete_armature(void)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWOOPS, 0);
 	countall();
 }
 
@@ -726,6 +729,7 @@ static void delete_bone(EditBone* exBone)
 
 	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWOOPS, 0);
 
 	BLI_freelinkN (&G.edbo,exBone);
 }
@@ -761,6 +765,7 @@ void mouse_armature(void)
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
 		allqueue(REDRAWBUTSOBJECT, 0);
+		allqueue(REDRAWOOPS, 0);
 	};
 	countall();
 	rightmouse_transform();
@@ -2406,7 +2411,7 @@ static int add_trans_bonechildren (Object* ob, Bone* bone, TransOb* buffer, int 
 	return index;
 }
 
-static void deselect_bonechildren (Bone *bone, int mode)
+static void deselect_bonechildren (Object *ob, Bone *bone, int mode)
 {
 	Bone	*curBone;
 
@@ -2418,29 +2423,34 @@ static void deselect_bonechildren (Bone *bone, int mode)
 	else if (!(bone->flag & BONE_HIDDEN))
 		bone->flag |= BONE_SELECTED;
 
-	select_actionchannel_by_name(G.obpose->action, bone->name, mode);
+	select_actionchannel_by_name(ob->action, bone->name, mode);
 
 	for (curBone=bone->childbase.first; curBone; curBone=curBone->next){
-		deselect_bonechildren(curBone, mode);
+		deselect_bonechildren(ob, curBone, mode);
 	}
 }
 
 
 void deselectall_posearmature (int test){
+	Object *ob= OBACT;
 	int	selectmode	=	0;
 	Bone*	curBone;
 	
+	/* we call this from outliner, also without obpose, but with OBACT set OK */
+	if(G.obpose) ob= G.obpose;
+	
 	/*	Determine if we're selecting or deselecting	*/
 	if (test){
-		if (!count_bones (get_armature(G.obpose), BONE_SELECTED, 0))
+		if (!count_bones (get_armature(ob), BONE_SELECTED, 0))
 			selectmode = 1;
 	}
 	
 	/*	Set the flags accordingly	*/
-	for (curBone=get_armature(G.obpose)->bonebase.first; curBone; curBone=curBone->next)
-		deselect_bonechildren (curBone, selectmode);
+	for (curBone=get_armature(ob)->bonebase.first; curBone; curBone=curBone->next)
+		deselect_bonechildren (ob, curBone, selectmode);
 	
 	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWACTION, 0);
 
 }
