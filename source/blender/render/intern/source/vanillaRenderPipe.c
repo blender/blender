@@ -1346,7 +1346,7 @@ void std_transFloatColV2CharColV( RE_COLBUFTYPE *buf, char *target)
 	float fval;
 	float dither_value;
 
-	dither_value = (BLI_frand()*R.r.dither_intensity)/256.0; 
+	dither_value = ((BLI_frand()-0.5)*R.r.dither_intensity)/256.0; 
 	
 	/* alpha */
 	if((buf[3]+dither_value)<=0.0) target[3]= 0;

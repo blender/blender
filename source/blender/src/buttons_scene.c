@@ -1040,7 +1040,7 @@ static void render_panel_output(void)
 	uiDefButS(block, TOG|BIT|4, 0, "Extensions",	250, 10, 60, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds extensions to the output when rendering animations");
 
 	/* Dither control */
-	uiDefButF(block, NUM,B_DIFF, "Dither:",		205,31,105,19, &G.scene->r.dither_intensity, 0.0, 1.0, 0, 0, "The amount of dithering noise present in the output image (0.0 = no dithering)");
+	uiDefButF(block, NUM,B_DIFF, "Dither:",		205,31,105,19, &G.scene->r.dither_intensity, 0.0, 2.0, 0, 0, "The amount of dithering noise present in the output image (0.0 = no dithering)");
 
 	/* Toon shading buttons */
 	uiBlockBeginAlign(block);
