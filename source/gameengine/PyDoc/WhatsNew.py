@@ -5,6 +5,9 @@ New Python Functionality in this Version of Blender
 
 This document lists what has been changed in the Game Engine Python API.
 
+Blender CVS
+	- Added L{KX_GameObject}.getDistanceTo() method. (thanks Charlie C)
+
 Blender 2.36
 ------------
 	- Added L{KX_CameraActuator} methods (thanks snail)

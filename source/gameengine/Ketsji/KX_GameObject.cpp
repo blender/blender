@@ -621,7 +621,7 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"getParent", (PyCFunction)KX_GameObject::sPyGetParent,METH_VARARGS},
 	{"getMesh", (PyCFunction)KX_GameObject::sPyGetMesh,METH_VARARGS},
 	{"getPhysicsId", (PyCFunction)KX_GameObject::sPyGetPhysicsId,METH_VARARGS},
-	
+	KX_PYMETHODTABLE(KX_GameObject, getDistanceTo),
 	
 	{NULL,NULL} //Sentinel
 };
@@ -1099,6 +1099,27 @@ PyObject* KX_GameObject::PyGetPhysicsId(PyObject* self,
 	}
 	return PyInt_FromLong(physid);
 }
+
+KX_PYMETHODDEF_DOC(KX_GameObject, getDistanceTo,
+"getDistanceTo(other): get distance to another point/KX_GameObject")
+{
+	MT_Point3 b;
+	if (PyVecArgTo(args, b))
+	{
+		return PyFloat_FromDouble(NodeGetWorldPosition().distance(b));
+	}
+	PyErr_Clear();
+	
+	PyObject *pyother;
+	if (PyArg_ParseTuple(args, "O!", &KX_GameObject::Type, &pyother))
+	{
+		KX_GameObject *other = static_cast<KX_GameObject*>(pyother);
+		return PyFloat_FromDouble(NodeGetWorldPosition().distance(other->NodeGetWorldPosition()));
+	}
+	
+	return NULL;
+}
+
 
 /* --------------------------------------------------------------------- 
  * Some stuff taken from the header

@@ -148,3 +148,11 @@ class KX_GameObject:
 		"""
 		Returns the user data object associated with this game object's physics controller.
 		"""
+	def getDistanceTo(other):
+		"""
+		Returns the distance to another object or point.
+		
+		@param other: a point or another L{KX_GameObject} to measure the distance to.
+		@type other: L{KX_GameObject} or list [x, y, z]
+		@rtype: float
+		"""
