@@ -341,6 +341,7 @@ typedef struct Scene {
 #define R_NOPUNOFLIP	8
 #define R_CMAPCODE		16
 #define R_FACE_SPLIT	32
+#define R_DIVIDE_24		64 /* Tells render to divide face other way. */
 
 /* vertren->texofs (texcoordinate offset relative to vertren->orco */
 #define R_UVOFS3	1

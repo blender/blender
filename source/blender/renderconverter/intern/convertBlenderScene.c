@@ -2851,6 +2851,7 @@ void RE_freeRotateBlenderScene(void)
 	R.totvlak=R.totvert=R.totlamp=R.tothalo= 0;
 }
 
+
 static void check_non_flat_quads(void)
 {
 	VlakRen *vlr, *vlr1;
@@ -2860,32 +2861,58 @@ static void check_non_flat_quads(void)
 	for(a=R.totvlak-1; a>=0; a--) {
 		vlr= RE_findOrAddVlak(a);
 		
+		/* Face is divided along edge with the least displace gradient */
+		/* Flagged with R_DIVIDE_24 if divide is from vert 2 to 4 */
+		/* 		4---3		4---3 */
+		/*		|\ 1|	or  |1 /| */
+		/*		|0\ |		|/ 0| */
+		/*		1---2		1---2 	0 = orig face, 1 = new face */
+		
 		/* test if rendering as a quad or triangle */
 		if(vlr->v4) {
 
 			if(vlr->mat->mode & MA_WIRE);
 			else {
+				
 				/* blahj, render normals are inverted in render */
-				CalcNormFloat(vlr->v4->co, vlr->v3->co, vlr->v1->co, nor);
-
+				CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, nor);
+				
 				xn= nor[0]*vlr->n[0] + nor[1]*vlr->n[1] + nor[2]*vlr->n[2];
-				if( fabs(xn) < 0.9990 ) {
+				if( fabs(xn) < 0.99990 ) {
 				
 					if( xn<0.0 ) flipnorm= 1; else flipnorm= 0;
 					
 					/* recalc this nor, previous calc was with calcnormfloat4 */
-					if(flipnorm) CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->n);
-					else CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+					if(flipnorm) {
+						if (vlr->flag & R_DIVIDE_24) CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v4->co, vlr->n);
+						else CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->n);
+					}
+					else {
+						if (vlr->flag & R_DIVIDE_24) CalcNormFloat(vlr->v4->co, vlr->v2->co, vlr->v1->co, vlr->n);
+						else CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+					}
 					
 					vlr1= RE_findOrAddVlak(R.totvlak++);
 					*vlr1= *vlr;
 					vlr1->flag |= R_FACE_SPLIT;
+					
 					if(flipnorm) VecMulf(nor, -1.0);
 					VECCOPY(vlr1->n, nor);
-					vlr1->v2= vlr->v3;
-					vlr1->v3= vlr->v4;
+										
+					if (vlr->flag&R_DIVIDE_24) {
+						vlr1->v1=vlr->v2;
+						vlr1->v2=vlr->v3;
+						vlr1->v3=vlr->v4;
+						vlr->v3 =vlr->v4;
+					}
+					else {
+						vlr1->v1= vlr->v1;
+						vlr1->v2= vlr->v3;
+						vlr1->v3= vlr->v4;
+					}
+					
 					vlr->v4= vlr1->v4= 0;
-		
+					
 					vlr1->puno= 0;
 					if(vlr->puno & ME_FLIPV1) vlr1->puno |= ME_FLIPV1;
 					if(vlr->puno & ME_FLIPV3) vlr1->puno |= ME_FLIPV2;
@@ -3181,6 +3208,7 @@ void displace_render_face(VlakRen *vlr, float scale)
 {
 	ShadeInput shi;
 	VertRen vr;
+	float samp1,samp2, samp3, samp4 ;
 
 	/* set up shadeinput struct for multitex() */
 	
@@ -3193,19 +3221,24 @@ void displace_render_face(VlakRen *vlr, float scale)
 	
 	if (! (vlr->v1->flag)) displace_render_vert(&shi, vlr->v1, scale);
 	
-	if (! (vlr->v2->flag) ) displace_render_vert(&shi, vlr->v2, scale);
+	if (! (vlr->v2->flag)) displace_render_vert(&shi, vlr->v2, scale);
 	
  	if (! (vlr->v3->flag)) displace_render_vert(&shi, vlr->v3, scale);
 			
 	if (vlr->v4) {
 		if (! (vlr->v4->flag)) displace_render_vert(&shi, vlr->v4, scale);
+		
+		/* We want to split the quad along the opposite verts that are */
+		/*	closest in displace value.  This will help smooth edges.   */ 
+		if ( fabs(vlr->v1->accum-vlr->v3->accum) > fabs(vlr->v2->accum-vlr->v4->accum)) vlr->flag|=R_DIVIDE_24; 
+		else vlr->flag & ~R_DIVIDE_24;
 	}
 }
 
 void displace_render_vert(ShadeInput *shi, VertRen *vr, float scale)
 {
 	short texco= shi->matren->texco;
-	
+	float sample=0;
 	/* shi->co is current render coord, just make sure at least some vector is here */
 	VECCOPY(shi->co, vr->co);
 	/* vertex normal is used for textures type 'col' and 'var' */
@@ -3234,12 +3267,20 @@ void displace_render_vert(ShadeInput *shi, VertRen *vr, float scale)
 	do_material_tex(shi);
 
 	/* 0.25 could become button once?  */
-	vr->co[0] += 0.25*shi->displace[0] * scale ; 
-	vr->co[1] += 0.25*shi->displace[1] * scale ; 
-	vr->co[2] += 0.25*shi->displace[2] * scale ; 
+	vr->co[0] += 0.25 * shi->displace[0] * scale ; 
+	vr->co[1] += 0.25 * shi->displace[1] * scale ; 
+	vr->co[2] += 0.25 * shi->displace[2] * scale ; 
 	
 	/* we just don't do this vertex again, bad luck for other face using same vertex with
 	   different material... */
 	vr->flag |= 1;
-
+	
+	/* Pass sample back so displace_face can decide which way to split the quad */
+	sample  = shi->displace[0]*shi->displace[0];
+	sample += shi->displace[1]*shi->displace[1];
+	sample += shi->displace[2]*shi->displace[2];
+	
+	vr->accum=sample; /* Should be sqrt(sample), but I'm olny looking for "bigger".  Save the cycles. */
+	/* Does abusing this cause heartache for radiosity? */
+	return;
 }

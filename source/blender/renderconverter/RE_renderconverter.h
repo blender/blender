@@ -87,6 +87,7 @@ extern "C" {
 					   void (*vertexfunc)(float*),
 					   void (*termfunc)(void));
 		
+
 #ifdef __cplusplus
 }
 #endif
