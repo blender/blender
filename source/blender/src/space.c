@@ -2032,6 +2032,15 @@ void winqreadbutspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case WHEELDOWNMOUSE:
 			view2dmove(event);	/* in drawipo.c */
 			break;
+		case PAGEUPKEY:
+			event= WHEELUPMOUSE;
+			view2dmove(event);	/* in drawipo.c */
+			break;
+		case PAGEDOWNKEY:
+			event= WHEELDOWNMOUSE;
+			view2dmove(event);	/* in drawipo.c */
+			break;
+			
 		case RIGHTMOUSE:
 			nr= pupmenu("Align buttons%t|Free %x0|Horizontal%x1|Vertical%x2");
 			if (nr>=0) {
