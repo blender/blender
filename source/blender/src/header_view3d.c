@@ -3537,7 +3537,7 @@ void view3d_buttons(void)
 	xco+= 126+8;
 	
 	/* DRAWTYPE */
-	uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_BBOX, drawtype_pup(), xco,0,XIC+10,YIC, &(G.vd->drawtype), 1.0, 5.0, 0, 0, "Viewport Shading (Hotkeys: Z, Shift Z, Ctrl Z, Alt Z,");
+	uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_BBOX, drawtype_pup(), xco,0,XIC+10,YIC, &(G.vd->drawtype), 1.0, 5.0, 0, 0, "Viewport Shading (Hotkeys: Z, Shift Z, Ctrl Z, Alt Z");
 
 	// uiDefIconButS(block, ICONROW, B_REDR, ICON_BBOX,	xco,0,XIC+10,YIC, &(G.vd->drawtype), 1.0, 5.0, 0, 0, "Drawtype: boundbox/wire/solid/shaded (ZKEY, SHIFT+Z)");
 

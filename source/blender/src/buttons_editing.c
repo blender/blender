@@ -1702,7 +1702,7 @@ static void editing_panel_mesh_tools(Object *ob, Mesh *me)
 
 	uiDefBut(block, BUT,B_TOSPHERE,"To Sphere",		10,155,80,19, 0, 0, 0, 0, 0, "Moves selected vertices outwards into a spherical shape");
 	uiDefBut(block, BUT,B_VERTEXSMOOTH,"Smooth",	90,155,80,19, 0, 0, 0, 0, 0, "Flattens angles of selected faces");
-	uiDefBut(block, BUT,B_SPLIT,"Split",			170,155,85,19, 0, 0, 0, 0, 0, "Flattens angles of selected faces");
+	uiDefBut(block, BUT,B_SPLIT,"Split",			170,155,85,19, 0, 0, 0, 0, 0, "Splits selected verts to separate sub-mesh.");
 
 	uiDefBut(block, BUT,B_FLIPNORM,"Flip Normals",	10,135,80,19, 0, 0, 0, 0, 0, "Toggles the direction of the selected face's normals");
 	uiDefBut(block, BUT,B_REMDOUB,"Rem Doubles",	90,135,80,19, 0, 0, 0, 0, 0, "Removes duplicates from selected vertices");
