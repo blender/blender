@@ -567,7 +567,8 @@ static void subSurf_sync(SubSurf *ss) {
 	ccgSubSurf_initFullSync(ss->subSurf);
 
 	if (ss->controlType==SUBSURF_CONTROLTYPE_MESH) {
-		int i, fVerts[4];
+		CCGVertHDL fVerts[4];
+		int i;
 
 		for (i=0; i<ss->me->totvert; i++) {
 			ccgSubSurf_syncVert(ss->subSurf, (CCGVertHDL) i, ss->me->mvert[i].co);
@@ -602,12 +603,12 @@ static void subSurf_sync(SubSurf *ss) {
 			MFace *mf = &((MFace*) ss->me->mface)[i];
 
 			if (mf->v3) {
-				fVerts[0] = mf->v1;
-				fVerts[1] = mf->v2;
-				fVerts[2] = mf->v3;
-				fVerts[3] = mf->v4;
+				fVerts[0] = (CCGVertHDL) mf->v1;
+				fVerts[1] = (CCGVertHDL) mf->v2;
+				fVerts[2] = (CCGVertHDL) mf->v3;
+				fVerts[3] = (CCGVertHDL) mf->v4;
 
-				ccgSubSurf_syncFace(ss->subSurf, (CCGFaceHDL) i, fVerts[3]?4:3, (CCGVertHDL*) fVerts);
+				ccgSubSurf_syncFace(ss->subSurf, (CCGFaceHDL) i, fVerts[3]?4:3, fVerts);
 			}
 		}
 	} else {
