@@ -1041,7 +1041,7 @@ void screenmain(void)
 			}
 		}
 		
-		if (towin) {
+		if (towin && event) {
 			if (blenderqread(event, val))
 				addqueue_ext(G.curscreen->winakt, event, val, ascii);
 		}
