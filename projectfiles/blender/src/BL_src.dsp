@@ -304,10 +304,6 @@ SOURCE=..\..\..\source\blender\src\interface.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\src\isect.c
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\src\keyval.c
 # End Source File
 # Begin Source File
