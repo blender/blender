@@ -165,7 +165,7 @@ void convert_to_triface(int all)
 }
 
 
-short removedoublesflag(short flag, float limit)		/* return amount */
+int removedoublesflag(short flag, float limit)		/* return amount */
 {
 	EditMesh *em = G.editMesh;
 	/* all verts with (flag & 'flag') are being evaluated */

@@ -152,7 +152,7 @@ extern void vertex_loop_select(void);
 
 /* ******************* editmesh_tools.c */
 extern void convert_to_triface(int all);
-extern short removedoublesflag(short flag, float limit);
+extern int removedoublesflag(short flag, float limit);
 extern void xsortvert_flag(int flag);
 extern void hashvert_flag(int flag);
 extern void subdivideflag(int flag, float rad, int beauty);
