@@ -30,7 +30,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include <strings.h>		/*for strcasecmp */
+#if defined(__WIN32__) || defined(WIN32) || defined(_WIN32)
+	#include <string.h>		
+#else
+	#include <strings.h>	/*for strcasecmp */
+#endif
 #include <DNA_text_types.h>
 #include <MEM_guardedalloc.h>
 
