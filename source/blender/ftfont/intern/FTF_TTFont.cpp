@@ -39,6 +39,11 @@
 #include <string.h>
 #include <locale.h>
 #include "libintl.h"
+
+#ifdef __APPLE__
+#include <libgen.h>
+#endif
+
 #include "../FTF_Settings.h"
 
 #include "FTF_TTFont.h"
@@ -52,6 +57,7 @@
 
 #define FTF_MAX_STR_SIZE 256
 
+extern char bprogname[];
 
 int utf8towchar(wchar_t *w, char *c)
 {
@@ -136,6 +142,11 @@ int FTF_TTFont::SetFont(char* str, int size)
 
 void FTF_TTFont::SetLanguage(char* str)
 {
+#ifdef __APPLE__
+	char tmp[1024];
+	char msgpath[1024];
+#endif
+
 #if defined (_WIN32) || defined(__APPLE__)
 	char envstr[12];
 
@@ -157,10 +168,18 @@ void FTF_TTFont::SetLanguage(char* str)
 	
 	setlocale(LC_NUMERIC, "C");
 #endif
-	
+
+#ifdef __APPLE__
+	/* message catalogs are stored inside the application bundle */
+	strcpy(tmp, dirname(bprogname));
+	strcat(tmp, "/../Resources/message");
+	realpath(tmp, msgpath);
+	bindtextdomain(DOMAIN_NAME, msgpath);
+	textdomain(DOMAIN_NAME);
+#else
 	bindtextdomain(DOMAIN_NAME, MESSAGE_FILE);
 	textdomain(DOMAIN_NAME);
-
+#endif
 	strcpy(language, str);
 }
 

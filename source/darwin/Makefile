@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.4 2003/02/02 17:28:15 sgefant Exp $
+# $Id: Makefile,v 1.5 2003/02/09 18:32:55 sgefant Exp $
 #
 # ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
 #
@@ -44,6 +44,10 @@ all::
 	@cp $(DIR)/bin/$(APPLICATION) $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/
 	@echo "---> adding excutable attributes"
 	@chmod +x $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/$(APPLICATION)
+ifeq ($(APPLICATION), blender)
+	@echo "---> copying message files"
+	@cp -R ../../bin/message $(DIR)/bin/$(APPLICATION).app/Contents/Resources
+endif
 	@echo "---> removing CVS directories and Mac hidden files from distribution"
 	@find $(DIR)/bin/$(APPLICATION).app -name CVS -prune -exec rm -rf {} \;
 	@find $(DIR)/bin/$(APPLICATION).app -name .DS_Store -exec rm -f {} \;
