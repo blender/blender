@@ -110,9 +110,10 @@ typedef enum {
 typedef enum {
 	GHOST_kEventUnknown = 0,
 
-	GHOST_kEventCursorMove,
-	GHOST_kEventButtonDown,
-	GHOST_kEventButtonUp,
+	GHOST_kEventCursorMove,		/// Mouse move event
+	GHOST_kEventButtonDown,		/// Mouse button event
+	GHOST_kEventButtonUp,		/// Mouse button event
+	GHOST_kEventWheel,			/// Mouse wheel event
 
 	GHOST_kEventKeyDown,
 	GHOST_kEventKeyUp,
@@ -309,6 +310,11 @@ typedef struct {
 	/** The mask of the mouse button. */
 	GHOST_TButtonMask button;
 } GHOST_TEventButtonData;
+
+typedef struct {
+	/** Displacement of a mouse wheel. */
+	GHOST_TInt32 z;	
+} GHOST_TEventWheelData;
 
 typedef struct {
 	/** The key code. */

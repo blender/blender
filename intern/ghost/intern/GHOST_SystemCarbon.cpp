@@ -47,6 +47,7 @@
 #include "GHOST_EventKey.h"
 #include "GHOST_EventButton.h"
 #include "GHOST_EventCursor.h"
+#include "GHOST_EventWheel.h"
 #include "GHOST_TimerManager.h"
 #include "GHOST_TimerTask.h"
 #include "GHOST_WindowManager.h"
@@ -72,7 +73,8 @@ const EventTypeSpec	kEvents[] =
 	{ kEventClassMouse, kEventMouseUp },
 	{ kEventClassMouse, kEventMouseMoved },
 	{ kEventClassMouse, kEventMouseDragged },
-
+	{ kEventClassMouse, kEventMouseWheelMoved },
+	
 	{ kEventClassWindow, kEventWindowClose },
 	{ kEventClassWindow, kEventWindowActivated },
 	{ kEventClassWindow, kEventWindowDeactivated },
@@ -525,7 +527,7 @@ OSStatus GHOST_SystemCarbon::handleMouseEvent(EventRef event)
 	GHOST_IWindow* window = m_windowManager->getActiveWindow();
 	UInt32 kind = ::GetEventKind(event);
 	
-    switch (kind)
+	switch (kind)
     {
 		case kEventMouseDown:
 		case kEventMouseUp:
@@ -552,7 +554,26 @@ OSStatus GHOST_SystemCarbon::handleMouseEvent(EventRef event)
 				pushEvent(new GHOST_EventCursor(getMilliSeconds(), GHOST_kEventCursorMove, window, mousePos.h, mousePos.v));
 			}
             break;
-	}
+
+		case kEventMouseWheelMoved:
+			{
+				OSStatus status;
+				//UInt32 modifiers;
+				EventMouseWheelAxis axis;
+				SInt32 delta;
+				//status = ::GetEventParameter(event, kEventParamKeyModifiers, typeUInt32, NULL, sizeof(modifiers), NULL, &modifiers);
+				//GHOST_ASSERT(status == noErr, "GHOST_SystemCarbon::handleMouseEvent(): GetEventParameter() failed");
+				status = ::GetEventParameter(event, kEventParamMouseWheelAxis, typeMouseWheelAxis, NULL, sizeof(axis), NULL, &axis);
+				GHOST_ASSERT(status == noErr, "GHOST_SystemCarbon::handleMouseEvent(): GetEventParameter() failed");
+				status = ::GetEventParameter(event, kEventParamMouseWheelDelta, typeLongInteger, NULL, sizeof(delta), NULL, &delta);
+				GHOST_ASSERT(status == noErr, "GHOST_SystemCarbon::handleMouseEvent(): GetEventParameter() failed");
+				if (axis == kEventMouseWheelAxisY)
+				{
+					pushEvent(new GHOST_EventWheel(getMilliSeconds(), GHOST_kEventWheel, window, delta));
+				}
+			}
+			break;
+		}
 	
 	return noErr;
 }

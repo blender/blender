@@ -28,13 +28,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 15, 2001
+ * @file	GHOST_EventPrinter.h
+ * Declaration of GHOST_EventPrinter class.
  */
 
 #include "GHOST_EventPrinter.h"
@@ -70,6 +66,13 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent* event)
 		{
 		GHOST_TEventButtonData* buttonData = (GHOST_TEventButtonData*)((GHOST_IEvent*)event)->getData();
 		std::cout << "GHOST_kEventButtonDown, button: " << buttonData->button;
+		}
+		break;
+
+	case GHOST_kEventWheel:
+		{
+		GHOST_TEventWheelData* wheelData = (GHOST_TEventWheelData*)((GHOST_IEvent*)event)->getData();
+		std::cout << "GHOST_kEventWheel, z: " << wheelData->z;
 		}
 		break;
 
