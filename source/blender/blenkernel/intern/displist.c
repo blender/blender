@@ -351,27 +351,15 @@ static void freedisplist_object(Object *ob)
 	if(ob->type==OB_MESH) {
 		Mesh *me= ob->data;
 		freedisplist(&me->disp);
+		if (me->derived) {
+			me->derived->release(me->derived);
+			me->derived = NULL;
+		}
 	}
 	else if(ob->type==OB_CURVE || ob->type==OB_SURF || ob->type==OB_FONT) {
 		Curve *cu= ob->data;
 		freedisplist(&cu->disp);
 	}
-}
-
-void free_displist_by_type(ListBase *lb, int type) 
-{
-	DispList *dl;
-	
-	for (dl= lb->first; dl; ) {
-		DispList *next= dl->next;
-		
-		if (dl->type==type) {
-			BLI_remlink(lb, dl);
-			free_disp_elem(dl);
-		}
-		
-		dl= next;
-	}	
 }
 
 DispList *find_displist_create(ListBase *lb, int type)
@@ -1764,7 +1752,7 @@ void makeDispList(Object *ob)
 	
 	if(ob->type==OB_MESH) {
 		me= ob->data;
-		freedisplist(&(me->disp));
+		freedisplist(&me->disp);
 		if (me->derived) {
 			me->derived->release(me->derived);
 			me->derived= NULL;
