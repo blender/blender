@@ -34,6 +34,24 @@
 #ifndef BIF_GL_H
 #define BIF_GL_H
 
+	/* Although not really a great idea to copy these defines
+	 * from Windows' winnt.h, this lets us use GL without including
+	 * windows.h everywhere (or BLI_winstuff.h) which is a good thing.
+	 */
+#ifdef WIN32
+#ifndef APIENTRY
+#define APIENTRY	__stdcall
+#endif
+
+#ifndef CALLBACK
+#define CALLBACK	__stdcall
+#endif
+
+#ifndef WINGDIAPI
+#define WINGDIAPI	__declspec(dllimport)
+#endif
+#endif
+
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
