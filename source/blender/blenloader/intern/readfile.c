@@ -3928,6 +3928,8 @@ static void do_versions(Main *main)
 	if(main->versionfile <= 231) {	
 		Material *ma= main->mat.first;
 		Scene *sce;
+		Lamp *la;
+		
 		while(ma) {
 			if(ma->fresnel_tra_i==0.0) ma->fresnel_tra_i= 1.25;
 			if(ma->fresnel_mir_i==0.0) ma->fresnel_mir_i= 1.25;
@@ -3949,6 +3951,17 @@ static void do_versions(Main *main)
 		while(sce) {
 			if(sce->r.gauss==0.0) sce->r.gauss= 1.0;
 			sce= sce->id.next;
+		}
+		la= main->lamp.first;
+		while(la) {
+			if(la->k==0.0) la->k= 1.0;
+			if(la->ray_samp==0) la->ray_samp= 1;
+			if(la->ray_sampy==0) la->ray_sampy= 1;
+			if(la->ray_sampz==0) la->ray_sampz= 1;
+			if(la->area_size==0.0) la->area_size= 1.0;
+			if(la->area_sizey==0.0) la->area_sizey= 1.0;
+			if(la->area_sizez==0.0) la->area_sizez= 1.0;
+			la= la->id.next;
 		}
 	}
 	/* don't forget to set version number in blender.c! */

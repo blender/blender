@@ -56,8 +56,9 @@ typedef struct Lamp {
 	float clipsta, clipend, shadspotsize;
 	float bias, soft;
 	
-	short ray_samp, pad;
-	float ray_soft;
+	short ray_samp, ray_sampy, ray_sampz, ray_samp_type;
+	short area_shape, pad;
+	float area_size, area_sizey, area_sizez;
 	
 	/* texact is for buttons */
 	short texact, shadhalostep;
@@ -75,6 +76,7 @@ typedef struct Lamp {
 #define LA_SUN			1
 #define LA_SPOT			2
 #define LA_HEMI			3
+#define LA_AREA			4
 
 /* mode */
 #define LA_SHAD			1
@@ -87,11 +89,22 @@ typedef struct Lamp {
 #define LA_SQUARE		128
 #define LA_TEXTURE		256
 #define LA_OSATEX		512
-/* use bit 11 for shadow tests... temp only -nzc- */
 #define LA_DEEP_SHADOW  1024
 #define LA_NO_DIFF		2048
 #define LA_NO_SPEC		4096
 #define LA_SHAD_RAY		8192
+
+/* area shape */
+#define LA_AREA_SQUARE	0
+#define LA_AREA_RECT	1
+#define LA_AREA_CUBE	2
+#define LA_AREA_BOX		3
+
+/* ray_samp_type */
+#define LA_SAMP_ROUND	1
+#define LA_SAMP_UMBRA	2
+#define LA_SAMP_DITHER	4
+#define LA_SAMP_JITTER	8
 
 /* mapto */
 #define LAMAP_COL		1

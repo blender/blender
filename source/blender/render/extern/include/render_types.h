@@ -224,7 +224,7 @@ typedef struct LampRen
 	float xs, ys, dist;
 	float co[3];
 	short type, mode;
-	float r, g, b;
+	float r, g, b, k;
 	float energy, haint;
 	int lay;
 	float spotsi,spotbl;
@@ -249,18 +249,18 @@ typedef struct LampRen
 	/** A small depth offset to prevent self-shadowing. */
 	float bias;
 	
-	float ray_soft;
-	short ray_samp;
+	short ray_samp, ray_sampy, ray_sampz, ray_samp_type, area_shape, ray_totsamp;
+	float area_size, area_sizey, area_sizez;
 	
-	/** If the lamp casts shadows, one of these is filled. For the old
-     * renderer, shb is used, for the new pipeline the shadowBufOb,
-     * which should be a shadowbuffer handle. */
 	struct ShadBuf *shb;
-	void* shadowBufOb;
-
+	float *jitter;
+	
 	float imat[3][3];
 	float spottexfac;
 	float sh_invcampos[3], sh_zfac;	/* sh_= spothalo */
+	
+	float mat[3][3];	/* 3x3 part from lampmat x viewmat */
+	float area[8][3], areasize;
 	
 	struct LampRen *org;
 	struct MTex *mtex[8];

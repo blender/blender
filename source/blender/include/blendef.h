@@ -319,10 +319,11 @@
 
 /* BUTS: 400 */
 #define B_BUTSHOME		401
-#define B_BUTSPREVIEW		402
+#define B_BUTSPREVIEW	402
 #define B_MATCOPY		403
 #define B_MATPASTE		404
 #define B_MESHTYPE		405
+#define B_CONTEXT_SWITCH	406
 
 /* IMASEL: 450 */
 /* in imasel.h */

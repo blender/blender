@@ -1757,6 +1757,34 @@ static void init_render_mesh(Object *ob)
 }
 
 /* ------------------------------------------------------------------------- */
+
+static void area_lamp_vectors(LampRen *lar)
+{
+	float xsize= 0.5*lar->area_size, ysize= 0.5*lar->area_sizey;
+
+	/* corner vectors */
+	lar->area[0][0]= lar->co[0] - xsize*lar->mat[0][0] - ysize*lar->mat[1][0];
+	lar->area[0][1]= lar->co[1] - xsize*lar->mat[0][1] - ysize*lar->mat[1][1];
+	lar->area[0][2]= lar->co[2] - xsize*lar->mat[0][2] - ysize*lar->mat[1][2];	
+
+	/* corner vectors */
+	lar->area[1][0]= lar->co[0] - xsize*lar->mat[0][0] + ysize*lar->mat[1][0];
+	lar->area[1][1]= lar->co[1] - xsize*lar->mat[0][1] + ysize*lar->mat[1][1];
+	lar->area[1][2]= lar->co[2] - xsize*lar->mat[0][2] + ysize*lar->mat[1][2];	
+
+	/* corner vectors */
+	lar->area[2][0]= lar->co[0] + xsize*lar->mat[0][0] + ysize*lar->mat[1][0];
+	lar->area[2][1]= lar->co[1] + xsize*lar->mat[0][1] + ysize*lar->mat[1][1];
+	lar->area[2][2]= lar->co[2] + xsize*lar->mat[0][2] + ysize*lar->mat[1][2];	
+
+	/* corner vectors */
+	lar->area[3][0]= lar->co[0] + xsize*lar->mat[0][0] - ysize*lar->mat[1][0];
+	lar->area[3][1]= lar->co[1] + xsize*lar->mat[0][1] - ysize*lar->mat[1][1];
+	lar->area[3][2]= lar->co[2] + xsize*lar->mat[0][2] - ysize*lar->mat[1][2];	
+	/* only for correction button size, matrix size works on energy */
+	lar->areasize= lar->dist*lar->dist/(4.0*xsize*ysize);
+}
+
 /* If lar takes more lamp data, the decoupling will be better. */
 void RE_add_render_lamp(Object *ob, int doshadbuf)
 {
@@ -1784,8 +1812,9 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);
 
+	MTC_Mat3CpyMat4(lar->mat, mat);
 	MTC_Mat3CpyMat4(lar->imat, ob->imat);
-
+	
 	lar->bufsize = la->bufsize;
 	lar->samp = la->samp;
 	lar->soft = la->soft;
@@ -1793,10 +1822,7 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 	lar->clipsta = la->clipsta;
 	lar->clipend = la->clipend;
 	lar->bias = la->bias;
-	
-	lar->ray_soft= la->ray_soft;
-	lar->ray_samp= la->ray_samp;
-	
+		
 	lar->type= la->type;
 	lar->mode= la->mode;
 
@@ -1817,7 +1843,46 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 	lar->r= lar->energy*la->r;
 	lar->g= lar->energy*la->g;
 	lar->b= lar->energy*la->b;
+	lar->k= la->k;
 	
+	// area 
+	lar->ray_samp= la->ray_samp;
+	lar->ray_sampy= la->ray_sampy;
+	lar->ray_sampz= la->ray_sampz;
+
+	lar->area_size= la->area_size;
+	lar->area_sizey= la->area_sizey;
+	lar->area_sizez= la->area_sizez;
+	
+	lar->area_shape= la->area_shape;
+	lar->ray_samp_type= la->ray_samp_type;
+	
+	if(lar->type==LA_AREA) {
+		switch(lar->area_shape) {
+		case LA_AREA_SQUARE:
+			lar->ray_totsamp= lar->ray_samp*lar->ray_samp;
+			lar->ray_sampy= lar->ray_samp;
+			lar->area_sizey= lar->area_size;
+			break;
+		case LA_AREA_RECT:
+			lar->ray_totsamp= lar->ray_samp*lar->ray_sampy;
+			break;
+		case LA_AREA_CUBE:
+			lar->ray_totsamp= lar->ray_samp*lar->ray_samp*lar->ray_samp;
+			lar->ray_sampy= lar->ray_samp;
+			lar->ray_sampz= lar->ray_samp;
+			lar->area_sizey= lar->area_size;
+			lar->area_sizez= lar->area_size;
+			break;
+		case LA_AREA_BOX:
+			lar->ray_totsamp= lar->ray_samp*lar->ray_sampy*lar->ray_sampz;
+			break;
+		}
+		
+		area_lamp_vectors(lar);
+	}
+	else lar->ray_totsamp= 0;
+
 	lar->spotsi= la->spotsize;
 	if(lar->mode & LA_HALO) {
 		if(lar->spotsi>170.0) lar->spotsi= 170.0;
@@ -1826,7 +1891,6 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 	lar->spotbl= (1.0-lar->spotsi)*la->spotblend;
 
 	memcpy(lar->mtex, la->mtex, 8*4);
-
 
 	lar->lay= ob->lay;
 
@@ -2698,6 +2762,7 @@ void RE_freeRotateBlenderScene(void)
 			MEM_freeN(R.la[a]->shb);
 		}
 		if(R.la[a]->org) MEM_freeN(R.la[a]->org);
+		if(R.la[a]->jitter) MEM_freeN(R.la[a]->jitter);
 		MEM_freeN(R.la[a]);
 	}
 	a=0;

@@ -450,11 +450,12 @@ void count_object(Object *ob, int sel)
 		G.totmesh++;
 		me= get_mesh(ob);
 		if(me) {
-			G.totvert+= me->totvert;
-			G.totface+= me->totface;
+			int mult= (me->flag & ME_SUBSURF)?(1<<me->subdiv)*(1<<me->subdiv):1;
+			G.totvert+= me->totvert*mult;
+			G.totface+= me->totface*mult;
 			if(sel) {
-				G.totvertsel+= me->totvert;
-				G.totfacesel+= me->totface;
+				G.totvertsel+= me->totvert*mult;
+				G.totfacesel+= me->totface*mult;
 			}
 		}
 		break;

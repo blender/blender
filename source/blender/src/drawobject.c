@@ -580,7 +580,14 @@ static void drawlamp(Object *ob)
 		glEnd();
 	}
 	else {
-		if(la->mode & LA_SPHERE) {
+		if(la->type==LA_AREA) {
+			setlinestyle(0);
+			if(la->area_shape==LA_AREA_SQUARE) 
+				fdrawbox(-la->area_size*0.5, -la->area_size*0.5, la->area_size*0.5, la->area_size*0.5);
+			else if(la->area_shape==LA_AREA_RECT) 
+				fdrawbox(-la->area_size*0.5, -la->area_sizey*0.5, la->area_size*0.5, la->area_sizey*0.5);
+		}
+		else if(la->mode & LA_SPHERE) {
 
 			float tmat[4][4], imat[4][4];
 			
@@ -596,6 +603,7 @@ static void drawlamp(Object *ob)
 	
 	VECCOPY(vec, ob->obmat[3]);
 	
+	setlinestyle(3);
 	glBegin(GL_LINE_STRIP);
 		glVertex3fv(vec); 
 		vec[2]= 0; 

@@ -434,21 +434,23 @@ void *add_lamp(void)
 	
 	la=  alloc_libblock(&G.main->lamp, ID_LA, "Lamp");
 	
-	la->r= la->g= la->b= 1.0;
+	la->r= la->g= la->b= la->k= 1.0;
 	la->haint= la->energy= 1.0;
-	la->dist= 20.0f;
-	la->spotsize= 45.0f;
-	la->spotblend= 0.15f;
-	la->att2= 1.0f;
+	la->dist= 20.0;
+	la->spotsize= 45.0;
+	la->spotblend= 0.15;
+	la->att2= 1.0;
 	la->mode= LA_SHAD;
 	la->bufsize= 512;
-	la->clipsta= 0.5f;
-	la->clipend= 40.0f;
-	la->shadspotsize= 45.0f;
+	la->clipsta= 0.5;
+	la->clipend= 40.0;
+	la->shadspotsize= 45.0;
 	la->samp= 3;
-	la->bias= 1.0f;
-	la->soft= 3.0f;
-
+	la->bias= 1.0;
+	la->soft= 3.0;
+	la->ray_samp= la->ray_sampy= la->ray_sampz= 1; 
+	la->area_size=la->area_sizey=la->area_sizez= 1.0; 
+	
 	return la;
 }
 

@@ -447,7 +447,7 @@ static void lamp_preview_pixel(ShadeInput *shi, LampRen *la, int x, int y, char 
 		}
 		dist*=inpr;
 	}
-	else if(la->type==LA_LOCAL) dist*= shi->view[2];
+	else if ELEM(la->type, LA_LOCAL, LA_AREA) dist*= shi->view[2];
 	
 	col= 255.0*dist*la->r;
 	if(col<=0) rect[0]= 0; else if(col>=255) rect[0]= 255; else rect[0]= col;
@@ -1213,15 +1213,15 @@ void BIF_previewrender(SpaceButs *sbuts)
 	else if(tex) {
 		end_render_texture(tex);
 	}
-	else if(wrld) {
-		end_render_textures();
-	}
 	else if(la) {
 		if(R.totlamp) {
 			if(R.la[0]->org) MEM_freeN(R.la[0]->org);
 			MEM_freeN(R.la[0]);
 		}
 		R.totlamp= 0;
+		end_render_textures();
+	}
+	else if(wrld) {
 		end_render_textures();
 	}
 }

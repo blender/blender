@@ -1031,7 +1031,7 @@ static void render_panel_render(void)
 	
 	uiBlockBeginAlign(block);
 	uiDefButI(block, TOG|BIT|14, 0, "MBLUR",	495,114,66,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Motion Blur calculation");
-	uiDefButF(block, NUM,B_DIFF,"Bf:",			495,90,65,20,&G.scene->r.blurfac, 0.01, 5.0, 10, 0, "Sets motion blur factor");
+	uiDefButF(block, NUM,B_DIFF,"Bf:",			495,90,65,20,&G.scene->r.blurfac, 0.01, 5.0, 10, 2, "Sets motion blur factor");
 
 	uiBlockBeginAlign(block);
 	uiDefButS(block, NUM,B_DIFF,"Xparts:",		369,42,99,31,&G.scene->r.xparts,1.0, 64.0, 0, 0, "Sets the number of horizontal parts to render image in (For panorama sets number of camera slices)");
@@ -1061,7 +1061,7 @@ static void render_panel_render(void)
 	uiDefButI(block, TOG|BIT|7,0,"x",		665,50,20,23,&G.scene->r.mode, 0, 0, 0, 0, "Disables time difference in field calculations");
 
 	uiDefButI(block, TOG|BIT|17,0,"Gauss",	564,30,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Gauss sampling filter for antialiasing");
-	uiDefButF(block, NUM,B_DIFF,"",			624,30,60,20,&G.scene->r.gauss,0.5, 2.0, 0, 0, "Sets the Gauss filter size)");
+	uiDefButF(block, NUM,B_DIFF,"",			624,30,60,20,&G.scene->r.gauss,0.5, 1.5, 100, 2, "Sets the Gauss filter size)");
 	
 	uiDefButI(block, TOG|BIT|9,REDRAWVIEWCAM, "Border",	564,10,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Render a small cut-out of the image");
 	uiDefButI(block, TOG|BIT|2,0, "Gamma",	624,10,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Enable gamma correction");

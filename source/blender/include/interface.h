@@ -48,8 +48,7 @@
 #define UI_MOUSE_OVER	2
 #define UI_ACTIVE		4
 #define UI_HAS_ICON		8
-
-/* definitions for icons (and their alignment) in buttons */
+/* warn: rest of uiBut->flag in BIF_interface.c */
 
 
 /* block->frontbuf: (only internal here), to nice localize the old global var uiFrontBuf */

@@ -1646,6 +1646,7 @@ void do_lampbuts(unsigned short event)
 	case B_LAMPREDRAW:
 		BIF_preview_changed(G.buts);
 		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSSHADING, 0);
 		break;
 	case B_TEXCLEARLAMP:
 		la= G.buts->lockpoin;
@@ -1821,42 +1822,62 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|13, B_SHADRAY,"Ray Shadow",		10,180,80,19,&la->mode, 0, 0, 0, 0, "Use ray tracing for shadow");
-	uiDefButS(block, TOG|BIT|0, B_SHADBUF, "Buf.Shadow",10,160,80,19,&la->mode, 0, 0, 0, 0, "Lets spotlight produce shadows using shadow buffer");
+	uiDefButS(block, TOG|BIT|13, B_SHADRAY,"Ray Shadow",10,180,80,19,&la->mode, 0, 0, 0, 0, "Use ray tracing for shadow");
+	if(la->type==LA_SPOT) 
+		uiDefButS(block, TOG|BIT|0, B_SHADBUF, "Buf.Shadow",10,160,80,19,&la->mode, 0, 0, 0, 0, "Lets spotlight produce shadows using shadow buffer");
 	uiBlockEndAlign(block);
 	
-	uiDefButS(block, TOG|BIT|5, 0,"OnlyShadow",			10,120,80,19,&la->mode, 0, 0, 0, 0, "Causes spotlight to cast shadows only without illuminating objects");
-	uiDefButS(block, TOG|BIT|7, B_LAMPREDRAW,"Square",	10,90,80,19,&la->mode, 0, 0, 0, 0, "Sets square spotbundles");
- 	uiDefButS(block, TOG|BIT|1, 0,"Halo",				10,50,80,19,&la->mode, 0, 0, 0, 0, "Renders spotlight with a volumetric halo"); 
+	uiDefButS(block, TOG|BIT|5, 0,"OnlyShadow",			10,110,80,19,&la->mode, 0, 0, 0, 0, "Causes light to cast shadows only without illuminating objects");
 
-	uiBlockSetCol(block, TH_AUTO);
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI,B_LAMPREDRAW,"SpotSi ",	100,180,200,19,&la->spotsize, 1.0, 180.0, 0, 0, "Sets the angle of the spotlight beam in degrees");
-	uiDefButF(block, NUMSLI,B_MATPRV,"SpotBl ",		100,160,200,19,&la->spotblend, 0.0, 1.0, 0, 0, "Sets the softness of the spotlight edge");
-	uiBlockEndAlign(block);
+	if(la->type==LA_SPOT) {
+		uiDefButS(block, TOG|BIT|7, B_LAMPREDRAW,"Square",	10,70,80,19,&la->mode, 0, 0, 0, 0, "Sets square spotbundles");
+		uiDefButS(block, TOG|BIT|1, 0,"Halo",				10,50,80,19,&la->mode, 0, 0, 0, 0, "Renders spotlight with a volumetric halo"); 
 
-	uiDefButF(block, NUMSLI,0,"HaloInt ",			100,135,200,19,&la->haint, 0.0, 5.0, 0, 0, "Sets the intensity of the spotlight halo");
-	
-	if(la->mode & LA_SHAD) {
-		uiDefButS(block, NUM,B_SBUFF,"ShadowBufferSize:", 100,110,200,19,	&la->bufsize,512,5120, 0, 0, "Sets the size of the shadow buffer to nearest multiple of 16");
-	
+		uiBlockSetCol(block, TH_AUTO);
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM,REDRAWVIEW3D,"ClipSta:",	100,70,100,19,	&la->clipsta, 0.1*grid,1000.0*grid, 10, 0, "Sets the shadow map clip start: objects closer will not generate shadows");
-		uiDefButF(block, NUM,REDRAWVIEW3D,"ClipEnd:",	200,70,100,19,&la->clipend, 1.0, 5000.0*grid, 100, 0, "Sets the shadow map clip end beyond which objects will not generate shadows");
+		uiDefButF(block, NUMSLI,B_LAMPREDRAW,"SpotSi ",	100,180,200,19,&la->spotsize, 1.0, 180.0, 0, 0, "Sets the angle of the spotlight beam in degrees");
+		uiDefButF(block, NUMSLI,B_MATPRV,"SpotBl ",		100,160,200,19,&la->spotblend, 0.0, 1.0, 0, 0, "Sets the softness of the spotlight edge");
 		uiBlockEndAlign(block);
+	
+		uiDefButF(block, NUMSLI,0,"HaloInt ",			100,135,200,19,&la->haint, 0.0, 5.0, 0, 0, "Sets the intensity of the spotlight halo");
 		
-		uiDefButS(block, NUM,0,"Samples:",		100,30,100,19,	&la->samp,1.0,16.0, 0, 0, "Sets the number of shadow map samples");
-		uiDefButS(block, NUM,0,"Halo step:",	200,30,100,19,	&la->shadhalostep, 0.0, 12.0, 0, 0, "Sets the volumetric halo sampling frequency");
-		uiDefButF(block, NUM,0,"Bias:",			100,10,100,19,	&la->bias, 0.01, 5.0, 1, 0, "Sets the shadow map sampling bias");
-		uiDefButF(block, NUM,0,"Soft:",			200,10,100,19,	&la->soft,1.0,100.0, 100, 0, "Sets the size of the shadow sample area");
+		if(la->mode & LA_SHAD) {
+			uiDefButS(block, NUM,B_SBUFF,"ShadowBufferSize:", 100,110,200,19,	&la->bufsize,512,5120, 0, 0, "Sets the size of the shadow buffer to nearest multiple of 16");
+		
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUM,REDRAWVIEW3D,"ClipSta:",	100,70,100,19,	&la->clipsta, 0.1*grid,1000.0*grid, 10, 0, "Sets the shadow map clip start: objects closer will not generate shadows");
+			uiDefButF(block, NUM,REDRAWVIEW3D,"ClipEnd:",	200,70,100,19,&la->clipend, 1.0, 5000.0*grid, 100, 0, "Sets the shadow map clip end beyond which objects will not generate shadows");
+			uiBlockEndAlign(block);
+			
+			uiDefButS(block, NUM,0,"Samples:",		100,30,100,19,	&la->samp,1.0,16.0, 0, 0, "Sets the number of shadow map samples");
+			uiDefButS(block, NUM,0,"Halo step:",	200,30,100,19,	&la->shadhalostep, 0.0, 12.0, 0, 0, "Sets the volumetric halo sampling frequency");
+			uiDefButF(block, NUM,0,"Bias:",			100,10,100,19,	&la->bias, 0.01, 5.0, 1, 0, "Sets the shadow map sampling bias");
+			uiDefButF(block, NUM,0,"Soft:",			200,10,100,19,	&la->soft,1.0,100.0, 100, 0, "Sets the size of the shadow sample area");
+		}
 	}
-	else if(la->mode & LA_SHAD_RAY) {
+	else if(la->type==LA_AREA && (la->mode & LA_SHAD_RAY)) {
 		uiBlockBeginAlign(block);
-		uiDefButS(block, NUM,0,"Samples:",	100,70,100,19,	&la->ray_samp, 1,8, 100, 0, "Sets the amount of samples taken extra (samp x samp)");
-		uiDefButF(block, NUM,0,"Soft:",		200,70,100,19, &la->ray_soft, 0.01, 10.0, 100, 0, "Sets the size of the sampling area");
-		uiBlockEndAlign(block);
+		uiBlockSetCol(block, TH_AUTO);
+		if(la->area_shape==LA_AREA_SQUARE) 
+			uiDefButS(block, NUM,0,"Samples:",	100,180,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of samples taken extra (samp x samp)");
+		if(la->area_shape==LA_AREA_CUBE) 
+			uiDefButS(block, NUM,0,"Samples:",	100,160,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of samples taken extra (samp x samp x samp)");
+
+		if ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_BOX) {
+			uiDefButS(block, NUM,0,"SamplesX:",	100,180,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of X samples taken extra");
+			uiDefButS(block, NUM,0,"SamplesY:",	100,160,200,19,	&la->ray_sampy, 1.0, 16.0, 100, 0, "Sets the amount of Y samples taken extra");
+			if(la->area_shape==LA_AREA_BOX)
+				uiDefButS(block, NUM,0,"SamplesZ:",	100,140,200,19,	&la->ray_sampz, 1.0, 8.0, 100, 0, "Sets the amount of Z samples taken extra");
+		}
+		
+		uiBlockBeginAlign(block);
+		uiDefButS(block, TOG|BIT|1, 0,"Umbra",			100,110,100,19,&la->ray_samp_type, 0, 0, 0, 0, "Emphasis parts that are fully shadowed");
+		uiDefButS(block, TOG|BIT|0, 0,"Clip circle",	200,110,100,19,&la->ray_samp_type, 0, 0, 0, 0, "Use circular sampling mask");
+		uiDefButS(block, TOG|BIT|2, 0,"Dither",			100,90,100,19,&la->ray_samp_type, 0, 0, 0, 0, "Use 2x2 dithering for sampling");
+		uiDefButS(block, TOG|BIT|3, 0,"Jitter",			200,90,100,19,&la->ray_samp_type, 0, 0, 0, 0, "Use jittering for sampling");
 	}
-	
+	else uiDefBut(block, LABEL,0," ",	100,180,200,19,NULL, 0, 0, 0, 0, "");
+
 }
 
 
@@ -1882,15 +1903,32 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	xco= std_libbuttons(block, 8, 180, 0, NULL, B_LAMPBROWSE, id, (ID *)ob, &(G.buts->menunr), B_LAMPALONE, B_LAMPLOCAL, 0, 0, 0);	
 
 	uiBlockSetCol(block, TH_AUTO);
-	uiDefButF(block, NUM,B_LAMPREDRAW,"Dist:", xco,180,300-xco,20,&la->dist, 0.01, 5000.0, 100, 0, "Sets the distance value at which light intensity is halved");
+	uiDefButF(block, NUM,B_LAMPREDRAW,"Dist:", xco,180,300-xco,20,&la->dist, 0.01, 100.0*grid, 100, 0, "Sets the distance value at which light intensity is half");
 
+	uiBlockBeginAlign(block);
+	if(la->type==LA_AREA) {
+		//uiDefButS(block, MENU, B_LAMPREDRAW, "Shape %t|Square %x0|Rect %x1|Cube %x2|Box %x3",
+		uiDefButS(block, MENU, B_LAMPREDRAW, "Shape %t|Square %x0|Rect %x1",
+				10, 150, 100, 19, &la->area_shape, 0,0,0,0, "Sets area light shape");
+		uiDefButF(block, NUM,B_LAMPREDRAW,"Size ",	10,130,100,19, &la->area_size, 0.001, 100.0, 10, 0, "Area light size, doesn't affect energy amount");
+		if ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_BOX) 
+			uiDefButF(block, NUM,B_LAMPREDRAW,"SizeY ",	10,110,100,19, &la->area_sizey, 0.001, 100.0, 10, 0, "Area light size Y, doesn't affect energy amount");
+		if(la->area_shape==LA_AREA_BOX)
+			uiDefButF(block, NUM,B_LAMPREDRAW,"SizeZ ",	10,90,100,19, &la->area_sizez, 0.001, 100.0, 10, 0, "Area light size Z, doesn't affect energy amount");
+	}
+	else if ELEM(la->type, LA_LOCAL, LA_SPOT) {
+		uiBlockSetCol(block, TH_BUT_SETTING1);
+		uiDefButS(block, TOG|BIT|3, B_MATPRV,"Quad",		10,150,100,19,&la->mode, 0, 0, 0, 0, "Uses inverse quadratic proportion for light attenuation");
+		uiDefButS(block, TOG|BIT|6, REDRAWVIEW3D,"Sphere",	10,130,100,19,&la->mode, 0, 0, 0, 0, "Sets light intensity to zero for objects beyond the distance value");
+	}
+
+	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButS(block, TOG|BIT|3, B_MATPRV,"Quad",		10,150,100,19,&la->mode, 0, 0, 0, 0, "Uses inverse quadratic proportion for light attenuation");
-	uiDefButS(block, TOG|BIT|6, REDRAWVIEW3D,"Sphere",	10,130,100,19,&la->mode, 0, 0, 0, 0, "Sets light intensity to zero for objects beyond the distance value");
-	uiDefButS(block, TOG|BIT|2, 0,"Layer",				10,90,100,19,&la->mode, 0, 0, 0, 0, "Illuminates objects in the same layer as the lamp only");
-	uiDefButS(block, TOG|BIT|4, B_MATPRV,"Negative",	10,70,100,19,&la->mode, 0, 0, 0, 0, "Sets lamp to cast negative light");
+	uiDefButS(block, TOG|BIT|2, 0,"Layer",				10,70,100,19,&la->mode, 0, 0, 0, 0, "Illuminates objects in the same layer as the lamp only");
+	uiDefButS(block, TOG|BIT|4, B_MATPRV,"Negative",	10,50,100,19,&la->mode, 0, 0, 0, 0, "Sets lamp to cast negative light");
 	uiDefButS(block, TOG|BIT|11, 0,"No Diffuse",		10,30,100,19,&la->mode, 0, 0, 0, 0, "Disables diffuse shading of material illuminated by this lamp");
 	uiDefButS(block, TOG|BIT|12, 0,"No Specular",		10,10,100,19,&la->mode, 0, 0, 0, 0, "Disables specular shading of material illuminated by this lamp");
+	uiBlockEndAlign(block);
 
 	uiBlockSetCol(block, TH_AUTO);
 	uiDefButF(block, NUMSLI,B_MATPRV,"Energy ",	120,150,180,20, &(la->energy), 0.0, 10.0, 0, 0, "Sets the intensity of the light");
@@ -1904,9 +1942,14 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	uiDefButF(block, COL, B_COLLAMP, "",		120,52,180,24, &la->r, 0, 0, 0, 0, "");
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI,B_MATPRV,"Quad1 ",	120,30,180,19,&la->att1, 0.0, 1.0, 0, 0, "Set the light intensity value 1 for a quad lamp");
-	uiDefButF(block, NUMSLI,B_MATPRV,"Quad2 ",  120,10,180,19,&la->att2, 0.0, 1.0, 0, 0, "Set the light intensity value 2 for a quad lamp");
-	uiBlockEndAlign(block);
+	if ELEM(la->type, LA_LOCAL, LA_SPOT) {
+		uiDefButF(block, NUMSLI,B_MATPRV,"Quad1 ",	120,30,180,19,&la->att1, 0.0, 1.0, 0, 0, "Set the linear distance attenuatation for a quad lamp");
+		uiDefButF(block, NUMSLI,B_MATPRV,"Quad2 ",  120,10,180,19,&la->att2, 0.0, 1.0, 0, 0, "Set the qudratic distance attenuatation for a quad lamp");
+	}
+	else if(la->type==LA_AREA) {
+		if(la->k==0.0) la->k= 1.0;
+		uiDefButF(block, NUMSLI,0,"Gamma ",	120,10,180,19,&la->k, 0.001, 2.0, 100, 0, "Set the light gamma correction value");
+	}
 }
 
 
@@ -1926,10 +1969,10 @@ static void lamp_panel_preview(Object *ob, Lamp *la)
 	uiDefBut(block, LABEL, 0, " ",	20,20,10,10, 0, 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW,B_LAMPREDRAW,"Lamp",	200,175,80,25,&la->type,1.0,(float)LA_LOCAL, 0, 0, "Creates an omnidirectional point light source");
-	uiDefButS(block, ROW,B_LAMPREDRAW,"Spot",	200,150,80,25,&la->type,1.0,(float)LA_SPOT, 0, 0, "Creates a directional cone light source");
-	uiDefButS(block, ROW,B_LAMPREDRAW,"Sun",	200,125,80,25,&la->type,1.0,(float)LA_SUN, 0, 0, "Creates a constant direction parallel ray light source");
-	uiDefButS(block, ROW,B_LAMPREDRAW,"Hemi",	200,100,80,25,&la->type,1.0,(float)LA_HEMI, 0, 0, "Creates a 180 degree point light source");
-	uiBlockEndAlign(block);
+	uiDefButS(block, ROW,B_LAMPREDRAW,"Area",	200,150,80,25,&la->type,1.0,(float)LA_AREA, 0, 0, "Creates a directional area light source");
+	uiDefButS(block, ROW,B_LAMPREDRAW,"Spot",	200,125,80,25,&la->type,1.0,(float)LA_SPOT, 0, 0, "Creates a directional cone light source");
+	uiDefButS(block, ROW,B_LAMPREDRAW,"Sun",	200,100,80,25,&la->type,1.0,(float)LA_SUN, 0, 0, "Creates a constant direction parallel ray light source");
+	uiDefButS(block, ROW,B_LAMPREDRAW,"Hemi",	200,75,80,25,&la->type,1.0,(float)LA_HEMI, 0, 0, "Creates a 180 degree constant light source");
 }
 
 
@@ -2344,7 +2387,7 @@ static void material_panel_shading(Material *ma)
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI, B_MATPRV, "Spec ",		90,120,150,19, &(ma->spec), 0.0, 2.0, 0, 0, "Sets the degree of specularity");
 		if ELEM3(ma->spec_shader, MA_SPEC_COOKTORR, MA_SPEC_PHONG, MA_SPEC_BLINN) {
-			uiDefButS(block, NUMSLI, B_MATPRV, "Hard:",	90, 100, 150,19, &(ma->har), 1.0, 255, 0, 0, "Sets the hardness of the specularity");
+			uiDefButS(block, NUMSLI, B_MATPRV, "Hard:",	90, 100, 150,19, &(ma->har), 1.0, 511, 0, 0, "Sets the hardness of the specularity");
 		}
 		if(ma->spec_shader==MA_SPEC_BLINN)
 			uiDefButF(block, NUMSLI, B_MATPRV, "Refr:",	90, 80,150,19, &(ma->refrac), 1.0, 10.0, 0, 0, "Sets the material's Index of Refraction");

@@ -1227,6 +1227,60 @@ void halovert()
 
 /* ---------------- shaders ----------------------- */
 
+/* Stoke's form factor */
+static float area_lamp_energy(float *co, float *vn, LampRen *lar)
+{
+	float tvec[3], fac;
+	float vec[4][3];	/* vectors of rendered co to vertices lamp */
+	float cross[4][3];	/* cross products of this */
+	float rad[4];	/* angles between vecs */
+
+	VecSubf(vec[0], co, lar->area[0]);
+	VecSubf(vec[1], co, lar->area[1]);
+	VecSubf(vec[2], co, lar->area[2]);
+	VecSubf(vec[3], co, lar->area[3]);
+	
+	Normalise(vec[0]);
+	Normalise(vec[1]);
+	Normalise(vec[2]);
+	Normalise(vec[3]);
+
+	/* cross product */
+	Crossf(cross[0], vec[0], vec[1]);
+	Crossf(cross[1], vec[1], vec[2]);
+	Crossf(cross[2], vec[2], vec[3]);
+	Crossf(cross[3], vec[3], vec[0]);
+	Normalise(cross[0]);
+	Normalise(cross[1]);
+	Normalise(cross[2]);
+	Normalise(cross[3]);
+
+	/* angles */
+	rad[0]= vec[0][0]*vec[1][0]+ vec[0][1]*vec[1][1]+ vec[0][2]*vec[1][2];
+	rad[1]= vec[1][0]*vec[2][0]+ vec[1][1]*vec[2][1]+ vec[1][2]*vec[2][2];
+	rad[2]= vec[2][0]*vec[3][0]+ vec[2][1]*vec[3][1]+ vec[2][2]*vec[3][2];
+	rad[3]= vec[3][0]*vec[0][0]+ vec[3][1]*vec[0][1]+ vec[3][2]*vec[0][2];
+
+	rad[0]= acos(rad[0]);
+	rad[1]= acos(rad[1]);
+	rad[2]= acos(rad[2]);
+	rad[3]= acos(rad[3]);
+
+	/* Stoke formula */
+	VecMulf(cross[0], rad[0]);
+	VecMulf(cross[1], rad[1]);
+	VecMulf(cross[2], rad[2]);
+	VecMulf(cross[3], rad[3]);
+
+	VECCOPY(tvec, vn);
+	fac=  tvec[0]*cross[0][0]+ tvec[1]*cross[0][1]+ tvec[2]*cross[0][2];
+	fac+= tvec[0]*cross[1][0]+ tvec[1]*cross[1][1]+ tvec[2]*cross[1][2];
+	fac+= tvec[0]*cross[2][0]+ tvec[1]*cross[2][1]+ tvec[2]*cross[2][2];
+	fac+= tvec[0]*cross[3][0]+ tvec[1]*cross[3][1]+ tvec[2]*cross[3][2];
+
+	return pow(fac*lar->areasize, lar->k);	// corrected for buttons size and lar->dist^2
+}
+
 
 float spec(float inp, int hard)	
 {
@@ -1255,8 +1309,12 @@ float spec(float inp, int hard)
 	if(hard & 32) inp*= b1;
 	b1*= b1;
 	if(hard & 64) inp*=b1;
+	b1*= b1;
+	if(hard & 128) inp*=b1;
 
-	if(hard & 128) {
+	if(b1<0.001) b1= 0.0;	
+
+	if(hard & 256) {
 		b1*= b1;
 		inp*=b1;
 	}
@@ -1297,6 +1355,7 @@ float CookTorr_Spec(float *n, float *l, float *v, int hard)
 	if(nh<0.0) return 0.0;
 	nv= n[0]*v[0]+n[1]*v[1]+n[2]*v[2];
 	if(nv<0.0) nv= 0.0;
+
 	i= spec(nh, hard);
 
 	i= i/(0.1+nv);
@@ -1313,7 +1372,9 @@ float Blinn_Spec(float *n, float *l, float *v, float refrac, float spec_power )
 	if(spec_power == 0.0) return 0.0;
 	
 	/* conversion from 'hardness' (1-255) to 'spec_power' (50 maps at 0.1) */
-	spec_power= sqrt(1.0/spec_power);
+	if(spec_power<100.0)
+		spec_power= sqrt(1.0/spec_power);
+	else spec_power= 10.0/spec_power;
 	
 	h[0]= v[0]+l[0];
 	h[1]= v[1]+l[1];
@@ -1395,9 +1456,9 @@ float Toon_Diff( float *n, float *l, float *v, float size, float smooth )
 }
 
 /* Oren Nayar diffuse */
-float OrenNayar_Diff(float *n, float *l, float *v, float rough )
+float OrenNayar_Diff_i(float nl, float *n, float *l, float *v, float rough )
 {
-	float i, nh, nv, nl, vh, h[3];
+	float i, nh, nv, vh, h[3];
 	float a, b, t, A, B;
 	float Lit_A, View_A, Lit_B[3], View_B[3];
 	
@@ -1412,7 +1473,7 @@ float OrenNayar_Diff(float *n, float *l, float *v, float rough )
 	nv= n[0]*v[0]+n[1]*v[1]+n[2]*v[2]; /* Dot product between surface normal and view vector */
 	if(nv<=0.0) nv= 0.0;
 	
-	nl= n[0]*l[0]+n[1]*l[1]+n[2]*l[2]; /* Dot product between surface normal and light vector */
+	/* Dot product between surface normal and light vector */
 	if(nl<0.0) nl= 0.0;
 	
 	vh= v[0]*h[0]+v[1]*h[1]+v[2]*h[2]; /* Dot product between view vector and halfway vector */
@@ -1450,6 +1511,14 @@ float OrenNayar_Diff(float *n, float *l, float *v, float rough )
 	
 	return i;
 }
+
+/* Oren Nayar diffuse */
+float OrenNayar_Diff(float *n, float *l, float *v, float rough )
+{
+	float nl= n[0]*l[0] + n[1]*l[1] + n[2]*l[2];
+	OrenNayar_Diff_i(nl, n, l, v, rough);
+}
+
 
 /* --------------------------------------------- */
 
@@ -1767,8 +1836,9 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 		}
 
 		/* dot product and reflectivity*/
-		inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
 		
+		inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
+				
 		if(lar->mode & LA_NO_DIFF) {
 			i= 0.0;	// skip shaders
 		}
@@ -1776,8 +1846,16 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 			i= 0.5*inp + 0.5;
 		}
 		else {
-			/* diffuse shaders */
-			if(ma->diff_shader==MA_DIFF_ORENNAYAR) i= OrenNayar_Diff(vn, lv, view, ma->roughness);
+		
+			if(lar->type==LA_AREA) {
+				/* single sided */
+				if(lv[0]*lar->vec[0]+lv[1]*lar->vec[1]+lv[2]*lar->vec[2]>0.0)
+					inp= area_lamp_energy(shi->co, shi->vn, lar);
+				else inp= 0.0;
+			}
+			
+			/* diffuse shaders (oren nayer gets inp from area light) */
+			if(ma->diff_shader==MA_DIFF_ORENNAYAR) i= OrenNayar_Diff_i(inp, vn, lv, view, ma->roughness);
 			else if(ma->diff_shader==MA_DIFF_TOON) i= Toon_Diff(vn, lv, view, ma->param[0], ma->param[1]);
 			else i= inp;	// Lambert
 		}
@@ -1787,7 +1865,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 		}
 
 		/* shadow and spec */
-		if(inp> -0.41) {			/* heuristic value */
+		if(lampdist> 0.0) {
 			
 			if(i>0.0 && (R.r.mode & R_SHADOW)) {
 				if(ma->mode & MA_SHADOW) {
@@ -1837,7 +1915,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 				else {
 					/* specular shaders */
 					float specfac;
-										
+
 					if(ma->spec_shader==MA_SPEC_PHONG) 
 						specfac= Phong_Spec(vn, lv, view, ma->har);
 					else if(ma->spec_shader==MA_SPEC_COOKTORR) 
@@ -1846,6 +1924,9 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 						specfac= Blinn_Spec(vn, lv, view, ma->refrac, (float)ma->har);
 					else 
 						specfac= Toon_Spec(vn, lv, view, ma->param[2], ma->param[3]);
+				
+					/* area lamp correction */
+					if(lar->type==LA_AREA) specfac*= inp;
 					
 					t= shadfac[3]*ma->spec*lampdist*specfac;
 					

@@ -319,6 +319,35 @@ void do_butspace(unsigned short event)
 	else if(event>REDRAWVIEW3D) allqueue(event, 0);
 }
 
+void butspace_context_switch(SpaceButs *buts, Base *new)
+{
+	// change type automatically
+	if(new) {
+		int tab= buts->tab[CONTEXT_SHADING];
+		
+		if(tab == TAB_SHADING_WORLD) {
+			if(new->object->type==OB_LAMP) {
+				buts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
+			}
+			else buts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
+			
+		}
+		else if(tab == TAB_SHADING_TEX) {
+		}
+		else if(tab == TAB_SHADING_RAD) {
+		}
+		else if(new->object->type==OB_CAMERA) {
+			buts->tab[CONTEXT_SHADING]= TAB_SHADING_WORLD;
+		}
+		else if(new->object->type==OB_LAMP) {
+			buts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
+		}
+		else {
+			buts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
+		}
+	}
+}
+
 /* new active object */
 void redraw_test_buttons(Base *new)
 {
@@ -337,31 +366,8 @@ void redraw_test_buttons(Base *new)
 			
 			if(buts->mainb==CONTEXT_SHADING) {
 				buts->re_align= 1;
-				
-				// change type automatically
 				if(new) {
-					int tab= buts->tab[CONTEXT_SHADING];
-					
-					if(tab == TAB_SHADING_WORLD) {
-						if(new->object->type==OB_LAMP) {
-							buts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
-						}
-						else buts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
-						
-					}
-					else if(tab == TAB_SHADING_TEX) {
-					}
-					else if(tab == TAB_SHADING_RAD) {
-					}
-					else if(new->object->type==OB_CAMERA) {
-						buts->tab[CONTEXT_SHADING]= TAB_SHADING_WORLD;
-					}
-					else if(new->object->type==OB_LAMP) {
-						buts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
-					}
-					else {
-						buts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
-					}
+					butspace_context_switch(buts, new);
 					BIF_preview_changed(buts);
 				}
 			}

@@ -1468,6 +1468,7 @@ static void ui_draw_but_COL(uiBut *but)
 	if(but->embossfunc == ui_draw_round) {
 		char *cp= BIF_ThemeGetColorPtr(U.themes.first, 0, TH_CUSTOM);
 		cp[0]= colr; cp[1]= colg; cp[2]= colb;
+		but->flag &= ~UI_SELECT;
 		but->embossfunc(but->type, TH_CUSTOM, but->aspect, but->x1, but->y1, but->x2, but->y2, but->flag);
 	}
 	else {

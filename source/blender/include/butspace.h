@@ -107,6 +107,7 @@ void test_actionpoin_but(char *name, ID **idpp);
 void test_obcurpoin_but(char *name, ID **idpp);
 void test_idbutton_cb(void *namev, void *arg2_unused);
 
+void butspace_context_switch(SpaceButs *buts, struct Base *new);
 
 /* -------------- internal event defines ------------ */
 

@@ -136,9 +136,9 @@ void do_buts_buttons(short event)
 		scrarea_queue_winredraw(curarea);
 		break;
 	case B_BUTSPREVIEW:
-			BIF_preview_changed(G.buts);
-			scrarea_queue_headredraw(curarea);
-			scrarea_queue_winredraw(curarea);
+		BIF_preview_changed(G.buts);
+		scrarea_queue_headredraw(curarea);
+		scrarea_queue_winredraw(curarea);
 		break;
 	case B_MATCOPY:
 		if(G.buts->lockpoin) {
@@ -183,6 +183,10 @@ void do_buts_buttons(short event)
 	case B_MESHTYPE:
 		allqueue(REDRAWBUTSEDIT, 0);
 		allqueue(REDRAWVIEW3D, 0);
+		break;
+	case B_CONTEXT_SWITCH:
+		butspace_context_switch(G.buts, BASACT);
+		scrarea_queue_winredraw(curarea);
 		break;
 	}
 }
@@ -364,7 +368,7 @@ static uiBlock *sbuts_context_menu(void *arg_unused)
 	uiDefIconTextButS(block, BUTM, B_REDR, ICON_SCENE_DEHLT, "Scene|F10", 0, yco-=22, 100, 20, &G.buts->mainb, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextButS(block, BUTM, B_REDR, ICON_EDIT, "Editing|F9", 0, yco-=22, 100, 20, &G.buts->mainb, 4.0, 0.0, 0, 0, "");
 	uiDefIconTextButS(block, BUTM, B_REDR, ICON_OBJECT, "Object|F6", 0, yco-=22, 100, 20, &G.buts->mainb, 1.0, 0.0, 0, 0, "");
-	uiDefIconTextButS(block, BUTM, B_REDR, ICON_MATERIAL_DEHLT, "Shading|F5", 0, yco-=22, 100, 20, &G.buts->mainb, 3.0, 0.0, 0, 0, "");
+	uiDefIconTextButS(block, BUTM, B_CONTEXT_SWITCH, ICON_MATERIAL_DEHLT, "Shading|F5", 0, yco-=22, 100, 20, &G.buts->mainb, 3.0, 0.0, 0, 0, "");
 	uiDefIconTextButS(block, BUTM, B_REDR, ICON_GAME, "Logic|F4", 0, yco-=22, 100, 20, &G.buts->mainb, 6.0, 0.0, 0, 0, "");
 	uiDefIconTextButS(block, BUTM, B_REDR, ICON_SCRIPT, "Script", 0, yco-=22, 100, 20, &G.buts->mainb, 5.0, 0.0, 0, 0, "");
 	
@@ -421,7 +425,7 @@ void buts_buttons(void)
 	uiBlockBeginAlign(block);
 	uiDefIconButS(block, ROW, B_REDR,	ICON_GAME,			xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_LOGIC, 0, 0, "Logic (F4) ");
 	uiDefIconButS(block, ROW, B_REDR,	ICON_SCRIPT,		xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SCRIPT, 0, 0, "Script ");
-	uiDefIconButS(block, ROW, B_REDR,	ICON_MATERIAL_DEHLT,xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SHADING, 0, 0, "Shading (F5) ");
+	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_MATERIAL_DEHLT,xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SHADING, 0, 0, "Shading (F5) ");
 	uiDefIconButS(block, ROW, B_REDR,	ICON_OBJECT,		xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_OBJECT, 0, 0, "Object (F7) ");
 	uiDefIconButS(block, ROW, B_REDR,	ICON_EDIT,			xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_EDITING, 0, 0, "Editing (F9) ");
 	uiDefIconButS(block, ROW, B_REDR,	ICON_SCENE_DEHLT,	xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SCENE, 0, 0, "Scene (F10) ");
