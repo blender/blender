@@ -71,7 +71,7 @@ KX_PolygonMaterial::KX_PolygonMaterial(const STR_String &texname,
 											   PyTypeObject *T)
 		: PyObjectPlus(T),
 		  RAS_IPolyMaterial(texname,
-							material?STR_String(material->id.name):"",
+							material?STR_String(material->id.name):STR_String(""),
 							tile,
 							tilexrep,
 							tileyrep,
