@@ -1066,11 +1066,11 @@ static int ve_median_tot=0;
 static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 {
 	EditVert *eve;
-	float median[3];
-	int tot;
+	float median[4];
+	int tot, totw;
 	
-	median[0]= median[1]= median[2]= 0.0;
-	tot= 0;
+	median[0]= median[1]= median[2]= median[3]= 0.0;
+	tot= totw= 0;
 	
 	if(ob->type==OB_MESH) {
 		eve= G.edve.first;
@@ -1118,6 +1118,8 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 				while(a--) {
 					if(bp->f1 & 1) {
 						VecAddf(median, median, bp->vec);
+						median[3]+= bp->vec[3];
+						totw++;
 						tot++;
 					}
 					bp++;
@@ -1132,28 +1134,34 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 	median[0] /= (float)tot;
 	median[1] /= (float)tot;
 	median[2] /= (float)tot;
+	median[3] /= (float)tot;
 	
 	if(block) {	// buttons
 	
 		ve_median_tot= tot;
-		VECCOPY(ve_median, median);
+		QUATCOPY(ve_median, median);
 		
 		uiBlockBeginAlign(block);
 		if(ve_median_tot==1) {
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex X:",	10, 140, 300, 19, &(ve_median[0]), -lim, lim, 10, 3, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex Y:",	10, 120, 300, 19, &(ve_median[1]), -lim, lim, 10, 3, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex Z:",	10, 100, 300, 19, &(ve_median[2]), -lim, lim, 10, 3, "");
+			if(totw==tot)
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex W:",	10, 80, 300, 19, &(ve_median[3]), -10.0, 10.0, 10, 3, "");
 		}
 		else {
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median X:",	10, 140, 300, 19, &(ve_median[0]), -lim, lim, 10, 3, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Y:",	10, 120, 300, 19, &(ve_median[1]), -lim, lim, 10, 3, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Z:",	10, 100, 300, 19, &(ve_median[2]), -lim, lim, 10, 3, "");
+			if(totw==tot)
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median W:",	10, 80, 300, 19, &(ve_median[3]), -10.0, 10.0, 10, 3, "");
 		}
 		uiBlockEndAlign(block);
 	}
 	else {	// apply
 		
 		VecSubf(median, ve_median, median);
+		median[3]= ve_median[3]-median[3];
 		
 		if(ob->type==OB_MESH) {
 			eve= G.edve.first;
@@ -1199,6 +1207,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 					while(a--) {
 						if(bp->f1 & 1) {
 							VecAddf(bp->vec, bp->vec, median);
+							bp->vec[3]+= median[3];
 							tot++;
 						}
 						bp++;
