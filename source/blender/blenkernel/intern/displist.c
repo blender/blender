@@ -1834,7 +1834,8 @@ void makeDispList(Object *ob)
 					dl->parts= 1;
 					dl->nr= len;
 					dl->col= nu->mat_nr;
-
+					dl->rt= nu->flag;
+					
 					data= dl->verts;
 					if(nu->flagu & 1) dl->type= DL_POLY;
 					else dl->type= DL_SEGM;
@@ -1872,7 +1873,8 @@ void makeDispList(Object *ob)
 							if(nu->flagu & 1) dl->flag|= DL_CYCL_V;
 						}
 						dl->col= nu->mat_nr;
-	
+						dl->rt= nu->flag;
+						
 						data= dl->verts;
 						dl->type= DL_SURF;
 						

@@ -572,23 +572,21 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 					}
 					efa= efa->next;
 				}
-
-				makeDispList(G.obedit);
-				allqueue(REDRAWVIEW3D, 0);
-				if(event == B_SETSMOOTH) BIF_undo_push("Set Smooth");
-				else BIF_undo_push("Set Solid");
 			}
 			else {
 				nu= editNurb.first;
 				while(nu) {
 					if(isNurbsel(nu)) {
-						if(event==B_SETSMOOTH) nu->flag |= ME_SMOOTH;
-						else nu->flag &= ~ME_SMOOTH;
+						if(event==B_SETSMOOTH) nu->flag |= CU_SMOOTH;
+						else nu->flag &= ~CU_SMOOTH;
 					}
 					nu= nu->next;
 				}
-				
 			}
+			if(event == B_SETSMOOTH) BIF_undo_push("Set Smooth");
+			else BIF_undo_push("Set Solid");
+			makeDispList(G.obedit);
+			allqueue(REDRAWVIEW3D, 0);
 		}
 		else {
 			base= FIRSTBASE;
