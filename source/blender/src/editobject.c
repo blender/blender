@@ -3978,7 +3978,6 @@ void transform(int mode)
 	short pe[3] = {0,0,0}; // again for the same thing. Determines if the period key has been pressed.
 	short mi[3] = {1,1,1}; // same thing again. Determines whether or not the minus key has been pressed (in order to add or substract new numbers).
 
-	short drawhelpline = 0; // for new help lines code.
 	float vx[3] = {1,0,0}, vy[3] = {0,1,0}, vz[3] = {0,0,1};
 		
 	if (mode % 'x' == 0)
@@ -4335,7 +4334,10 @@ void transform(int mode)
 					if(G.obedit) calc_trans_verts();
 					special_trans_update(keyflags);
 					
-					set_constline_callback(mode, axismode, midtog, centre, imat, vx, vy, vz);
+					if (cameragrab && midtog)
+						set_constline_callback(mode, ZTRANSLOCAL, midtog, centre, imat, vx, vy, vz);
+					else
+						set_constline_callback(mode, axismode, midtog, centre, imat, vx, vy, vz);
 
 					if(fast==0) {
 						force_draw();
@@ -5069,95 +5071,37 @@ void transform(int mode)
 					break;
 				
 				case XKEY:
-					if (drawhelpline==0){
-						if (axismode==XTRANS)
-							axismode=XTRANSLOCAL;
-						else if (axismode==XTRANSLOCAL)
-							axismode=0;
-						else{
-							//xref= -xref;
-							axismode= XTRANS;
-						}
-					}
-					else if (drawhelpline==1){
-						if (axismode==XTRANS)
-							axismode=0;
-						else{
-							axismode= XTRANS;
-						}
-					}
+					if (axismode==XTRANS)
+						axismode=XTRANSLOCAL;
+					else if (axismode==XTRANSLOCAL)
+						axismode=0;
 					else{
-						if (axismode==XTRANSLOCAL)
-							axismode=0;
-						else{
-							axismode=XTRANSLOCAL;
-						}
+						axismode= XTRANS;
 					}
 					firsttime=1;
 					break;
 					
 				case YKEY:
-					if (drawhelpline==0){
-						if (axismode==YTRANS)
-							axismode=YTRANSLOCAL;
-						else if (axismode==YTRANSLOCAL)
-							axismode=0;
-						else{
-							//yref= -yref;
-							axismode= YTRANS;
-						}
-					}
-					else if (drawhelpline==1){
-						if (axismode==YTRANS)
-							axismode=0;
-						else{
-							axismode= YTRANS;
-						}
-					}
+					if (axismode==YTRANS)
+						axismode=YTRANSLOCAL;
+					else if (axismode==YTRANSLOCAL)
+						axismode=0;
 					else{
-						if (axismode==YTRANSLOCAL)
-							axismode=0;
-						else{
-							axismode=YTRANSLOCAL;
-						}
+						axismode= YTRANS;
 					}
 					firsttime=1;
 					break;
 					
 				case ZKEY:
-					if (drawhelpline==0){
-						if (axismode==ZTRANS)
-							axismode=ZTRANSLOCAL;
-						else if (axismode==ZTRANSLOCAL)
-							axismode=0;
-						else{
-							//zref= -zref;
-							axismode= ZTRANS;
-						}
-					}
-					else if (drawhelpline==1){
-						if (axismode==ZTRANS)
-							axismode=0;
-						else{
-							axismode= ZTRANS;
-						}
-					}
+					if (axismode==ZTRANS)
+						axismode=ZTRANSLOCAL;
+					else if (axismode==ZTRANSLOCAL)
+						axismode=0;
 					else{
-						if (axismode==ZTRANSLOCAL)
-							axismode=0;
-						else{
-							axismode=ZTRANSLOCAL;
-						}
+						axismode= ZTRANS;
 					}
 					firsttime=1;
 					break;
-				case LKEY:
-					// toggle between drawhelpline = 0,1,2 (None, Global, Local)
-					drawhelpline += 1;
-					if (drawhelpline==3) drawhelpline = 0;
-					firsttime = 1;
-					break;
-				
 				case WHEELDOWNMOUSE:
 				case PADPLUSKEY:
 					if(G.f & G_PROPORTIONAL) {
