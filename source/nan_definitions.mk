@@ -142,9 +142,9 @@ all debug::
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_FREETYPE ?= /sw
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
-    export NAN_SDL = $(LCGDIR)/sdl
-    export NAN_SDLCFLAGS = -I$(NAN_SDL)/include
-    export NAN_SDLLIBS = $(NAN_SDL)/lib/libSDL.a -framework Cocoa
+    export NAN_SDL ?= $(LCGDIR)/sdl
+    export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include
+    export NAN_SDLLIBS ?= $(NAN_SDL)/lib/libSDL.a -framework Cocoa
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
