@@ -586,6 +586,8 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else if((G.qual==0))
 						viewmove(0);
 				}
+				break;
+				
 			case WHEELUPMOUSE:
 				/* Regular:   Zoom in */
 				/* Shift:     Scroll up */
