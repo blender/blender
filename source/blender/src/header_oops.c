@@ -67,6 +67,7 @@
 #include "BIF_screen.h"
 #include "BIF_editoops.h"
 #include "BIF_oops.h"
+#include "BIF_outliner.h"
 #include "BIF_space.h"
 
 #include "BSE_drawipo.h"
@@ -130,6 +131,15 @@ static void do_oops_viewmenu(void *arg, int event)
 			scrarea_queue_winredraw(curarea);
 		}
 		break;
+	case 5:
+		outliner_toggle_visible(curarea);
+		break;
+	case 6:
+		outliner_show_hierarchy(curarea);
+		break;
+	case 7:
+		outliner_show_active(curarea);
+		break;
 	}
 }			
 
@@ -158,8 +168,13 @@ static uiBlock *oops_viewmenu(void *arg_unused)
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Oops Schematic", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 		
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");  
+
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show/Hide All|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hierarchy|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Active|NumPad .", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	}
 	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");  
 	if(!curarea->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	else uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Tile Window|Ctrl DownArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	

@@ -72,6 +72,7 @@
 #include "BIF_drawscene.h"
 #include "BIF_editaction.h"
 #include "BIF_editarmature.h"
+#include "BIF_editnla.h"
 #include "BIF_editview.h"
 #include "BIF_gl.h"
 #include "BIF_interface.h"
@@ -416,12 +417,14 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				}
 				if(ob->nlastrips.first) {
 					bActionStrip *strip;
+					TreeElement *ten;
 					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TE_NLA, 0);
 					int a= 0;
 					
 					tenla->name= "NLA strips";
 					for (strip=ob->nlastrips.first; strip; strip=strip->next, a++) {
-						outliner_add_element(soops, &tenla->subtree, strip->act, tenla, TE_NLA_ACTION, a);
+						ten= outliner_add_element(soops, &tenla->subtree, strip->act, tenla, TE_NLA_ACTION, a);
+						if(ten) ten->directdata= strip;
 					}
 				}
 				
@@ -921,6 +924,7 @@ static int tree_element_active_ipo(SpaceOops *soops, TreeElement *te, int set)
 			deselect_actionchannels(ob->action, 0);
 			select_channel(ob->action, chan, SELECT_ADD);
 			allqueue(REDRAWACTION, ob->ipowin);
+			if(G.obpose) allqueue(REDRAWVIEW3D, ob->ipowin);
 		}
 		
 		allqueue(REDRAWIPO, ob->ipowin);
@@ -959,6 +963,23 @@ static int tree_element_active_defgroup(TreeElement *te, TreeStoreElem *tselem, 
 	}
 	return 0;
 }
+
+static int tree_element_active_nla_action(TreeElement *te, TreeStoreElem *tselem, int set)
+{
+	if(set) {
+		bActionStrip *strip= te->directdata;
+		deselect_nlachannel_keys(0);
+		strip->flag |= ACTSTRIP_SELECT;
+		allqueue(REDRAWNLA, 0);
+	}
+	else {
+		/* id in tselem is action */
+		bActionStrip *strip= te->directdata;
+		if(strip->flag & ACTSTRIP_SELECT) return 1;
+	}
+	return 0;
+}
+
 
 static int tree_element_active_bone(TreeElement *te, TreeStoreElem *tselem, int set)
 {
@@ -1008,6 +1029,8 @@ static int tree_element_type_active(SpaceOops *soops, TreeElement *te, TreeStore
 {
 	
 	switch(tselem->type) {
+		case TE_NLA_ACTION:
+			return tree_element_active_nla_action(te, tselem, set);
 		case TE_DEFGROUP:
 			return tree_element_active_defgroup(te, tselem, set);
 		case TE_BONE:
@@ -1026,9 +1049,15 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 	
 	if(mval[1]>te->ys && mval[1]<te->ys+OL_H) {
 		TreeStoreElem *tselem= TREESTORE(te);
-		
-		/* open close icon */
-		if( (mval[0]>te->xs && mval[0]<te->xs+OL_X) || event==RETKEY || event==PADENTER) {
+		int openclose= 0;
+
+		/* open close icon, three things to check */
+		if(event==RETKEY || event==PADENTER) openclose= 1; // enter opens/closes always
+		else if((te->flag & TE_ICONROW)==0) {				// hidden icon, no open/close
+			if( mval[0]>te->xs && mval[0]<te->xs+OL_X) openclose= 1;
+		}
+
+		if(openclose) {
 			
 			/* all below close/open? */
 			if( (G.qual & LR_SHIFTKEY) ) {
@@ -1044,9 +1073,9 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 			return 1;
 		}
 		/* name and first icon */
-		else if(mval[0]>te->xs+OL_X) {
+		else if(mval[0]>te->xs && mval[0]<te->xend) {
 			
-			/* always checks active object */
+			/* always makes active object */
 			tree_element_active_object(soops, te);
 			
 			if(tselem->type==0) { // the lib blocks
@@ -1072,17 +1101,16 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 				else {	// rest of types
 					tree_element_active(soops, te, 1);
 				}
-				return 1;
+				
 			}
 			else tree_element_type_active(soops, te, tselem, 1);
 			
+			return 1;
 		}
-		else return 0;
 	}
-	else {
-		for(te= te->subtree.first; te; te= te->next) {
-			if(do_outliner_mouse_event(soops, te, event, mval)) return 1;
-		}
+	
+	for(te= te->subtree.first; te; te= te->next) {
+		if(do_outliner_mouse_event(soops, te, event, mval)) return 1;
 	}
 	return 0;
 }
@@ -1285,6 +1313,11 @@ static void outliner_draw_iconrow(SpaceOops *soops, TreeElement *parent, ListBas
 			
 			glRasterPos2i(*offsx, ys);
 			tselem_draw_icon(tselem);
+			te->xs= *offsx;
+			te->ys= ys;
+			te->xend= *offsx+OL_X;
+			te->flag |= TE_ICONROW;	// for click
+			
 			(*offsx) += OL_X;
 		}
 		
@@ -1350,7 +1383,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 			}
 		}
 		else {
-			if( tree_element_type_active(soops, te, tselem, 0) ) active= 1;
+			if( tree_element_type_active(soops, te, tselem, 0) ) active= 2;
 			glColor4ub(220, 220, 255, 100);
 		}
 		
@@ -1410,7 +1443,8 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 	/* store coord and continue */
 	te->xs= startx;
 	te->ys= *starty;
-	
+	te->xend= startx+offsx;
+		
 	*starty-= OL_H;
 	
 	if((tselem->flag & TSE_CLOSED)==0) {
@@ -1435,7 +1469,7 @@ static void outliner_draw_hierarchy(SpaceOops *soops, ListBase *lb, int startx, 
 		tselem= TREESTORE(te);
 		
 		/* horizontal line? */
-		if(tselem->type==0 && te->idcode==ID_OB) glRecti(startx, *starty+1, startx+OL_X, *starty-1);
+		if(tselem->type==0 && te->idcode==ID_OB) glRecti(startx, *starty, startx+OL_X, *starty-1);
 			
 		*starty-= OL_H;
 		
@@ -1446,7 +1480,7 @@ static void outliner_draw_hierarchy(SpaceOops *soops, ListBase *lb, int startx, 
 	if(lb->first!=lb->last) { // more than 1 element
 		te= lb->last;
 		tselem= TREESTORE(te);
-		if(tselem->type==0 && te->idcode==ID_OB) glRecti(startx, y1+OL_H, startx+2, y2);
+		if(tselem->type==0 && te->idcode==ID_OB) glRecti(startx, y1+OL_H, startx+1, y2);
 	}
 	
 }
@@ -1462,7 +1496,8 @@ static void outliner_draw_tree(SpaceOops *soops)
 	
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); // only once
 	
-	BIF_ThemeColorShade(TH_BACK, -20);
+	//BIF_ThemeColorShade(TH_BACK, -20);
+	glColor3ub(0,0,0);
 	starty= soops->v2d.tot.ymax-OL_H/2;
 	startx= 6;
 	outliner_draw_hierarchy(soops, &soops->tree, startx, &starty);

@@ -37,16 +37,18 @@
 typedef struct TreeElement {
 	struct TreeElement *next, *prev, *parent;
 	ListBase subtree;
-	float xs, ys;
+	float xs, ys;		// doe selection
 	int store_index;	// offset in tree store
 	short flag, index;	// flag for non-saved stuff, index for data arrays
 	short idcode;		// from TreeStore id
+	short xend;		// width of item display, for select
 	char *name;
 	void *directdata;	// Armature Bones, ...
 }  TreeElement;
 
 /* TreeElement->flag */
 #define TE_ACTIVE	1
+#define TE_ICONROW	2
 
 /* TreeStoreElem types */
 #define TE_NLA				1
