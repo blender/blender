@@ -105,6 +105,14 @@ struct DerivedMesh {
 			 */
 	void (*drawFacesEM)(DerivedMesh *dm, int useColor, unsigned char *baseCol, unsigned char *selCol);
 
+			/* Draw mapped verts as bgl points
+			 *  o Call setColor(offset+index) for each vert, where index is the
+			 *    vert's index in the EditMesh. Return offset+count where count
+			 *    is the total number of mapped verts.
+			 *  o Only if mapped EditVert->h==0
+			 */
+	int (*drawMappedVertsEMSelect)(DerivedMesh *dm, void (*setColor)(int index), int offset);
+
 			/* Draw mapped edges as lines
 			 *  o Call setColor(offset+index) for each edge, where index is the
 			 *    edge's index in the EditMesh. Return offset+count where count
@@ -112,6 +120,14 @@ struct DerivedMesh {
 			 *  o Only if mapped EditEdge->h==0
 			 */
 	int (*drawMappedEdgesEMSelect)(DerivedMesh *dm, void (*setColor)(int index), int offset);
+
+			/* Draw mapped faces
+			 *  o Call setColor(offset+index) for each face, where index is the
+			 *    face's index in the EditMesh. Return offset+count where count
+			 *    is the total number of mapped faces.
+			 *  o Only if mapped EditFace->h==0
+			 */
+	int (*drawMappedFacesEMSelect)(DerivedMesh *dm, void (*setColor)(int index), int offset);
 
 	void (*release)(DerivedMesh *dm);
 };

@@ -629,15 +629,7 @@ static EditFace *findnearestface(short *dist)
 static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 {
 	int optimal= subsurf_optimal(G.obedit);
-	DerivedMesh *dm = NULL;
-	Mesh *me = G.obedit->data;
-
-	if (me->flag&ME_OPT_EDGES) {
-		dm = mesh_get_derived(G.obedit);
-	} 
-	if (!dm) {
-		dm = mesh_get_base_derived(G.obedit);
-	}
+	DerivedMesh *dm = mesh_get_cage_derived(G.obedit);
 
 	glDrawBuffer(GL_FRONT);
 
