@@ -46,9 +46,10 @@
 
 class KX_Camera : public KX_GameObject
 {
-
+	Py_Header;
+protected:
 	/** Camera parameters (clips distances, focal lenght). These
-	 * params are closely tied to BLender. In the gameengine, only the
+	 * params are closely tied to Blender. In the gameengine, only the
 	 * projection and modelview matrices are relevant. There's a
 	 * conversion being done in the engine class. Why is it stored
 	 * here? It doesn't really have a function here. */
@@ -74,20 +75,57 @@ class KX_Camera : public KX_GameObject
 	 * Storage for the modelview matrix that is passed to the
 	 * rasterizer. */
 	MT_Matrix4x4 m_modelview_matrix;
+	
+	/**
+	 * true if the view frustum (modelview/projection matrix)
+	 * has changed - the clip planes (m_planes) will have to be
+	 * regenerated.
+	 */
+	bool         m_dirty;
+	
+	/**
+	 * View Frustum clip planes.
+	 */
+	MT_Vector4   m_planes[6];
+	
+	/**
+	 * This camera is frustum culling.
+	 * Some cameras (ie if the game was started from a non camera view should not cull.)
+	 */
+	bool         m_frustum_culling;
+	
+	/**
+	 * true if this camera has a valid projection matrix.
+	 */
+	bool         m_set_projection_matrix;
 
+	/**
+	 * Python module doc string.
+	 */
+	static char doc[];
+
+	/**
+	 * Extracts the camera clip frames from the projection and world-to-camera matrices.
+	 */
+	void ExtractClipPlanes();
 public:
 
-	KX_Camera(void* sgReplicationInfo,SG_Callbacks callbacks,const RAS_CameraData& camdata);
+	typedef enum { INSIDE, INTERSECT, OUTSIDE } ;
+
+	KX_Camera(void* sgReplicationInfo,SG_Callbacks callbacks,const RAS_CameraData& camdata, bool frustum_culling = true);
 	virtual ~KX_Camera();
 	
 	MT_Transform		GetWorldToCamera() const;
 	MT_Transform		GetCameraToWorld() const;
 
+	/**
+	 * Not implemented.
+	 */
 	void				CorrectLookUp(MT_Scalar speed);
-	const MT_Point3		GetCameraLocation();
+	const MT_Point3		GetCameraLocation() const;
 
 	/* I want the camera orientation as well. */
-	const MT_Quaternion GetCameraOrientation();
+	const MT_Quaternion GetCameraOrientation() const;
 		
 	/** Sets the projection matrix that is used by the rasterizer. */
 	void				SetProjectionMatrix(const MT_Matrix4x4 & mat);
@@ -96,21 +134,63 @@ public:
 	void				SetModelviewMatrix(const MT_Matrix4x4 & mat);
 		
 	/** Gets the projection matrix that is used by the rasterizer. */
-	const MT_Matrix4x4&		GetProjectionMatrix();
+	const MT_Matrix4x4&		GetProjectionMatrix() const;
+	
+	/** returns true if this camera has been set a projection matrix. */
+	bool				hasValidProjectionMatrix() const;
 	
 	/** Gets the modelview matrix that is used by the rasterizer. 
 	 *  @warning If the Camera is a dynamic object then this method may return garbage.  Use GetCameraToWorld() instead.
 	 */
-	const MT_Matrix4x4&		GetModelviewMatrix();
+	const MT_Matrix4x4&		GetModelviewMatrix() const;
 
-	/** Gets the focal lenght. */
-	float				GetLens();
+	/** Gets the focal length. */
+	float				GetLens() const;
 	/** Gets the near clip distance. */
-	float				GetCameraNear();
+	float				GetCameraNear() const;
 	/** Gets the far clip distance. */
-	float				GetCameraFar();
+	float				GetCameraFar() const;
 	/** Gets all camera data. */
 	RAS_CameraData*		GetCameraData();
+	
+	/**
+	 * Tests if the given sphere is inside this camera's view frustum.
+	 *
+	 * @param centre The centre of the sphere, in world coordinates.
+	 * @param radius The radius of the sphere.
+	 * @return INSIDE, INTERSECT, or OUTSIDE depending on the sphere's relation to the frustum.
+	 */
+	int SphereInsideFrustum(const MT_Point3& centre, const MT_Scalar &radius);
+	/**
+	 * Tests the given eight corners of a box with the view frustum.
+	 *
+	 * @param box a pointer to eight MT_Point3 representing the world coordinates of the corners of the box.
+	 * @return INSIDE, INTERSECT, or OUTSIDE depending on the box's relation to the frustum.
+	 */
+	int BoxInsideFrustum(const MT_Point3 *box);
+	/**
+	 * Tests the given point against the view frustum.
+	 * @return true if the given point is inside or on the view frustum; false if it is outside.
+	 */
+	bool PointInsideFrustum(const MT_Point3& x);
+	
+	/**
+	 * Gets this camera's culling status.
+	 */
+	bool GetFrustumCulling() const;
+
+	KX_PYMETHOD_DOC(KX_Camera, sphereInsideFrustum);
+	KX_PYMETHOD_DOC(KX_Camera, boxInsideFrustum);
+	KX_PYMETHOD_DOC(KX_Camera, pointInsideFrustum);
+	
+	KX_PYMETHOD_DOC(KX_Camera, getCameraToWorld);
+	KX_PYMETHOD_DOC(KX_Camera, getWorldToCamera);
+	KX_PYMETHOD_DOC(KX_Camera, getProjectionMatrix);
+	KX_PYMETHOD_DOC(KX_Camera, setProjectionMatrix);
+	
+	virtual PyObject* _getattr(const STR_String& attr); /* lens, near, far, projection_matrix */
+	virtual int       _setattr(const STR_String& attr, PyObject *pyvalue);
+
 };
 
 #endif //__KX_CAMERA
