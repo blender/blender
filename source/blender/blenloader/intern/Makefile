@@ -44,11 +44,7 @@ endif
 
 # OpenGL and Python
 CPPFLAGS += $(OGL_CPPFLAGS)
-ifeq ($(OS),$(findstring $(OS), "freebsd"))
-    CPPFLAGS += -I$(NAN_PYTHON)$(NAN_PYTHON_VERSION)
-else
-    CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
-endif
+CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 
 # zlib
 ifeq ($(OS),$(findstring $(OS), "solaris windows"))

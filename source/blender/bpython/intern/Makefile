@@ -47,11 +47,7 @@ CPPFLAGS += -DFUTURE_PYTHON_API  # see api.h for configuration
 
 # OpenGL and Python
 CPPFLAGS += -I$(OPENGL_HEADERS)
-ifeq ($(OS),$(findstring $(OS), "freebsd"))
-    CPPFLAGS += -I$(NAN_PYTHON)$(NAN_PYTHON_VERSION)
-else
-    CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
-endif
+CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 CPPFLAGS += -I$(NAN_BMFONT)/include/
 
 # Reference to the types in makesdna and imbuf

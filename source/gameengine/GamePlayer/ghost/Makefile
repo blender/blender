@@ -79,10 +79,6 @@ CPPFLAGS += -I../../../kernel/gen_messaging
 
 CPPFLAGS += -I$(NAN_STRING)/include
 CPPFLAGS += -I$(NAN_GHOST)/include
-ifeq ($(OS),$(findstring $(OS), "freebsd"))
-    CPPFLAGS += -I$(NAN_PYTHON)$(NAN_PYTHON_VERSION)
-else
-    CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
-endif
+CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 
 

@@ -52,11 +52,7 @@ CPPFLAGS += -I$(NAN_FUZZICS)/include
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I$(NAN_SUMO)/include
-ifeq ($(OS),$(findstring $(OS), "freebsd"))
-    CPPFLAGS += -I$(NAN_PYTHON)$(NAN_PYTHON_VERSION)
-else
-    CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
-endif
+CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 
 CPPFLAGS += -I$(NAN_BMFONT)/include
 CPPFLAGS += -I../../../gameengine/Converter

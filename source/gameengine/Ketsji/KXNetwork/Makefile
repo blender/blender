@@ -38,11 +38,7 @@ include nan_compile.mk
 
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
-ifeq ($(OS),$(findstring $(OS), "freebsd"))
-    CPPFLAGS += -I$(NAN_PYTHON)$(NAN_PYTHON_VERSION)
-else
-    CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
-endif
+CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I../../Expressions

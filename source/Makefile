@@ -259,7 +259,7 @@ ifeq ($(OS),freebsd)
     BINTARGETS += blenderplayer
     BINTARGETS += plugin
   endif
-    PYLIB = /usr/local/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
+    PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     PYLIB += $(NAN_MXTEXTTOOLS) 
 endif
 
