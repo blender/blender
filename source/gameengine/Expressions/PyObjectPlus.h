@@ -82,6 +82,38 @@ inline void Py_Fatal(char *M) {
   else \
     return rvalue 
 
+/**
+ * These macros are helpfull when embedding Python routines. The second
+ * macro is one that also requires a documentation string
+ */
+#define KX_PYMETHOD(class_name, method_name)			\
+	PyObject* Py##method_name(PyObject* self, PyObject* args, PyObject* kwds); \
+	static PyObject* sPy##method_name( PyObject* self, PyObject* args, PyObject* kwds) { \
+		return ((class_name*) self)->Py##method_name(self, args, kwds);		\
+	}; \
+
+#define KX_PYMETHOD_DOC(class_name, method_name)			\
+	PyObject* Py##method_name(PyObject* self, PyObject* args, PyObject* kwds); \
+	static PyObject* sPy##method_name( PyObject* self, PyObject* args, PyObject* kwds) { \
+		return ((class_name*) self)->Py##method_name(self, args, kwds);		\
+	}; \
+    static char method_name##_doc[]; \
+
+/* The line above should remain empty */
+/**
+ * Method table macro (with doc)
+ */
+#define KX_PYMETHODTABLE(class_name, method_name) \
+	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_VARARGS, class_name::method_name##_doc}
+
+/**
+ * Function implementation macro
+ */
+#define KX_PYMETHODDEF_DOC(class_name, method_name, doc_string) \
+char class_name::method_name##_doc[] = doc_string; \
+PyObject* class_name::Py##method_name(PyObject* self, PyObject* args, PyObject* kwds)
+
+
 
 /*------------------------------
  * PyObjectPlus

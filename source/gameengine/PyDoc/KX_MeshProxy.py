@@ -6,16 +6,56 @@ class KX_MeshProxy:
 	A mesh object.
 	
 	You can only change the vertex properties of a mesh object, not the mesh topology.
+	
+	To use mesh objects effectively, you should know a bit about how the game engine handles them.
+		1. Mesh Objects are converted from Blender at scene load.
+		2. The Converter groups polygons by Material.  This means they can be sent to the
+		   renderer efficiently.  A material holds:
+			1. The texture.
+			2. The Blender material.
+			3. The Tile properties
+			4. The face properties - (From the "Texture Face" panel)
+			5. Transparency & z sorting
+			6. Light layer
+			7. Polygon shape (triangle/quad)
+			8. Game Object
+		3. Verticies will be split by face if necessary.  Verticies can only be shared between
+		   faces if:
+			1. They are at the same position
+			2. UV coordinates are the same
+			3. Their normals are the same (both polygons are "Set Smooth")
+			4. They are the same colour
+		   For example: a cube has 24 verticies: 6 faces with 4 verticies per face.
+		   
+	The correct method of iterating over every L{KX_VertexProxy} in a game object::
+		import GameLogic
+		
+		co = GameLogic.getcurrentController()
+		obj = co.getOwner()
+		
+		m_i = 0
+		mesh = obj.getMesh(m_i) # There can be more than one mesh...
+		while mesh != None:
+			for mat in range(mesh.getNumMaterials()):
+				for v_index in range(mesh.getVertexArrayLength(mat)):
+					vertex = mesh.getVertex(mat, v_index)
+					# Do something with vertex here...
+					# ... eg: colour the vertex red.
+					vertex.colour = [1.0, 0.0, 0.0, 1.0]
+			m_i += 1
+			mesh = obj.getMesh(m_i)
+	
+			
 	"""
 	
-	def GetNumMaterials():
+	def getNumMaterials():
 		"""
 		Gets the number of materials associated with this object.
 		
 		@rtype: integer
 		"""
 	
-	def GetMaterialName(matid):
+	def getMaterialName(matid):
 		"""
 		Gets the name of the specified material.
 		
@@ -24,7 +64,7 @@ class KX_MeshProxy:
 		@rtype: string
 		@return: the attached material name.
 		"""
-	def GetTextureName(matid):
+	def getTextureName(matid):
 		"""
 		Gets the name of the specified material's texture.
 		
@@ -33,7 +73,7 @@ class KX_MeshProxy:
 		@rtype: string
 		@return: the attached material's texture name.
 		"""
-	def GetVertexArrayLength(matid):
+	def getVertexArrayLength(matid):
 		"""
 		Gets the length of the vertex array associated with the specified material.
 		
@@ -44,7 +84,7 @@ class KX_MeshProxy:
 		@rtype: integer
 		@return: the number of verticies in the vertex array.
 		"""
-	def GetVertex(matid, index):
+	def getVertex(matid, index):
 		"""
 		Gets the specified vertex from the mesh object.
 		

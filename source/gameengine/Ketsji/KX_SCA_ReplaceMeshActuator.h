@@ -82,6 +82,7 @@ class KX_SCA_ReplaceMeshActuator : public SCA_IActuator
 
 	/* 1. setMesh */
 	KX_PYMETHOD_DOC(KX_SCA_ReplaceMeshActuator,SetMesh);
+	KX_PYMETHOD_DOC(KX_SCA_ReplaceMeshActuator,getMesh);
 
 }; 
 

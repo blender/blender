@@ -42,7 +42,7 @@ struct SCA_DebugProp
 	STR_String 		m_name;
 };
 
-class SCA_IScene
+class SCA_IScene 
 {
 	std::vector<SCA_DebugProp*> m_debugList;
 public:

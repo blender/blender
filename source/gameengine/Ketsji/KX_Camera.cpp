@@ -515,14 +515,14 @@ KX_PYMETHODDEF_DOC(KX_Camera, sphereInsideFrustum,
 		MT_Point3 centre = MT_Point3FromPyList(pycentre);
 		if (PyErr_Occurred())
 		{
-			PyErr_SetString(PyExc_TypeError, "Expected list for argument centre.");
+			PyErr_SetString(PyExc_TypeError, "sphereInsideFrustum: Expected list for argument centre.");
 			Py_Return;
 		}
 		
 		return PyInt_FromLong(SphereInsideFrustum(centre, radius)); /* new ref */
 	}
 
-	PyErr_SetString(PyExc_TypeError, "Expected arguments: (centre, radius)");
+	PyErr_SetString(PyExc_TypeError, "sphereInsideFrustum: Expected arguments: (centre, radius)");
 	
 	Py_Return;
 }
@@ -558,8 +558,8 @@ KX_PYMETHODDEF_DOC(KX_Camera, boxInsideFrustum,
 		unsigned int num_points = PySequence_Size(pybox);
 		if (num_points != 8)
 		{
-			PyErr_Format(PyExc_TypeError, "Expected eight (8) points, got %d", num_points);
-			Py_Return;
+			PyErr_Format(PyExc_TypeError, "boxInsideFrustum: Expected eight (8) points, got %d", num_points);
+			return NULL;
 		}
 		
 		MT_Point3 box[8];
@@ -569,17 +569,14 @@ KX_PYMETHODDEF_DOC(KX_Camera, boxInsideFrustum,
 			box[p] = MT_Point3FromPyList(item);
 			Py_DECREF(item);
 			if (PyErr_Occurred())
-			{
-				Py_Return;
-			}
+				return NULL;
 		}
 		
 		return PyInt_FromLong(BoxInsideFrustum(box)); /* new ref */
 	}
 	
-	PyErr_SetString(PyExc_TypeError, "Expected argument: list of points.");
-	
-	Py_Return;
+	PyErr_SetString(PyExc_TypeError, "boxInsideFrustum: Expected argument: list of points.");
+	return NULL;
 }
 
 KX_PYMETHODDEF_DOC(KX_Camera, pointInsideFrustum,
@@ -603,13 +600,13 @@ KX_PYMETHODDEF_DOC(KX_Camera, pointInsideFrustum,
 	{
 		MT_Point3 point = MT_Point3FromPyList(pypoint);
 		if (PyErr_Occurred())
-			Py_Return;
+			return NULL;
 			
 		return PyInt_FromLong(PointInsideFrustum(point)); /* new ref */
 	}
 	
-	PyErr_SetString(PyExc_TypeError, "Expected point argument.");
-	Py_Return;
+	PyErr_SetString(PyExc_TypeError, "pointInsideFrustum: Expected point argument.");
+	return NULL;
 }
 
 KX_PYMETHODDEF_DOC(KX_Camera, getCameraToWorld,
@@ -686,14 +683,12 @@ KX_PYMETHODDEF_DOC(KX_Camera, setProjectionMatrix,
 	{
 		MT_Matrix4x4 mat = MT_Matrix4x4FromPyObject(pymat);
 		if (PyErr_Occurred())
-		{
-			Py_Return;
-		}
+			return NULL;
 		
 		SetProjectionMatrix(mat);
 		Py_Return;
 	}
 
-	PyErr_SetString(PyExc_TypeError, "Expected 4x4 list as matrix argument.");
-	Py_Return;
+	PyErr_SetString(PyExc_TypeError, "setProjectionMatrix: Expected 4x4 list as matrix argument.");
+	return NULL;
 }

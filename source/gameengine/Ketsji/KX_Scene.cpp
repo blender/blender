@@ -102,7 +102,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 				   class NG_NetworkDeviceInterface *ndi,
 				   class SND_IAudioDevice* adi,
 				   const STR_String& sceneName): 
-
+	PyObjectPlus(&KX_Scene::Type),
 	m_keyboardmgr(NULL),
 	m_mousemgr(NULL),
 	m_physicsEnvironment(0),
@@ -155,6 +155,8 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 
 	m_canvasDesignWidth = 0;
 	m_canvasDesignHeight = 0;
+	
+	m_attrlist = PyDict_New(); /* new ref */
 }
 
 
@@ -202,6 +204,8 @@ KX_Scene::~KX_Scene()
 	{
 		delete m_bucketmanager;
 	}
+	
+	Py_DECREF(m_attrlist);
 }
 
 
@@ -1114,4 +1118,106 @@ void KX_Scene::SetPhysicsEnvironment(class PHY_IPhysicsEnvironment* physEnv)
 		m_logicmgr->RegisterEventManager(touchmgr);
 		return;
 	}
+}
+
+//----------------------------------------------------------------------------
+//Python
+
+PyMethodDef KX_Scene::Methods[] = {
+	KX_PYMETHODTABLE(KX_Scene, getLightList),
+	KX_PYMETHODTABLE(KX_Scene, getObjectList),
+	KX_PYMETHODTABLE(KX_Scene, getName),
+	
+	{NULL,NULL} //Sentinel
+};
+
+PyTypeObject KX_Scene::Type = {
+	PyObject_HEAD_INIT(&PyType_Type)
+		0,
+		"KX_Scene",
+		sizeof(KX_Scene),
+		0,
+		PyDestructor,
+		0,
+		__getattr,
+		__setattr,
+		0, //&MyPyCompare,
+		__repr,
+		0, //&cvalue_as_number,
+		0,
+		0,
+		0,
+		0, 0, 0, 0, 0, 0
+};
+
+PyParentObject KX_Scene::Parents[] = {
+	&KX_Scene::Type,
+		&CValue::Type,
+		NULL
+};
+
+PyObject* KX_Scene::_getattr(const STR_String& attr)
+{
+	if (attr == "name")
+		return PyString_FromString(GetName());
+	
+	if (attr == "active_camera")
+	{
+		KX_Camera *camera = GetActiveCamera();
+		camera->AddRef();
+		return (PyObject*) camera;
+	}
+	
+	if (attr == "suspended")
+		return PyInt_FromLong(m_suspend);
+	
+	if (attr == "activity_culling")
+		return PyInt_FromLong(m_activity_culling);
+	
+	if (attr == "activity_culling_radius")
+		return PyFloat_FromDouble(m_activity_box_radius);
+	
+	PyObject* value = PyDict_GetItemString(m_attrlist, const_cast<char *>(attr.ReadPtr()));
+	if (value)
+	{
+		Py_INCREF(value);
+		return value;
+	}
+	
+	_getattr_up(PyObjectPlus);
+}
+
+int KX_Scene::_setattr(const STR_String &attr, PyObject *pyvalue)
+{
+
+	if (!PyDict_SetItemString(m_attrlist, const_cast<char *>(attr.ReadPtr()), pyvalue))
+		return 0;
+
+	return PyObjectPlus::_setattr(attr, pyvalue);
+}
+
+KX_PYMETHODDEF_DOC(KX_Scene, getLightList,
+"getLightList() -> list [KX_Light]\n"
+"Returns a list of all lights in the scene.\n"
+)
+{
+	m_lightlist->AddRef();
+	return (PyObject*) m_lightlist;
+}
+
+KX_PYMETHODDEF_DOC(KX_Scene, getObjectList,
+"getObjectList() -> list [KX_GameObject]\n"
+"Returns a list of all game objects in the scene.\n"
+)
+{
+	m_objectlist->AddRef();
+	return (PyObject*) m_objectlist;
+}
+
+KX_PYMETHODDEF_DOC(KX_Scene, getName,
+"getName() -> string\n"
+"Returns the name of the scene.\n"
+)
+{
+	return PyString_FromString(GetName());
 }

@@ -53,8 +53,17 @@ PyObject* listvalue_mapping_subscript(PyObject* list,PyObject* pyindex)
 			return (PyObject*) item;
 			
 	}
-	Py_Error(PyExc_IndexError, "Python ListIndex out of range");
-	Py_Return;
+	if (PyInt_Check(pyindex))
+	{
+		int index = PyInt_AsLong(pyindex);
+		return listvalue_buffer_item(list, index);
+	}
+	
+	PyObject *pyindex_str = PyObject_Repr(pyindex); /* new ref */
+	STR_String index_str(PyString_AsString(pyindex_str));
+	PyErr_Format(PyExc_KeyError, "'%s' not in list", index_str.Ptr());
+	Py_DECREF(pyindex_str);
+	return NULL;
 }
 
 
@@ -189,7 +198,7 @@ PyTypeObject CListValue::Type = {
 	__repr,			        /*tp_repr*/
 	0,			        /*tp_as_number*/
 	&listvalue_as_sequence, /*tp_as_sequence*/
-	0,			        /*tp_as_mapping*/
+	&instance_as_mapping,	        /*tp_as_mapping*/
 	0,			        /*tp_hash*/
 	0,				/*tp_call */
 };

@@ -49,6 +49,8 @@
 #include "RAS_FramingManager.h"
 #include "RAS_Rect.h"
 
+#include "PyObjectPlus.h"
+
 /**
  * @section Forward declarations
  */
@@ -86,9 +88,9 @@ class SG_IObject;
  * The KX_Scene holds all data for an independent scene. It relates
  * KX_Objects to the specific objects in the modules.
  * */
-class KX_Scene : public SCA_IScene
+class KX_Scene : public SCA_IScene, public PyObjectPlus
 {
-	//Py_Header;
+	Py_Header;
 protected:
 	RAS_BucketManager*	m_bucketmanager;
 	CListValue*			m_tempObjectList;
@@ -245,6 +247,11 @@ protected:
 	
 	void MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty);
 	void MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool visible);
+	
+	/**
+	 * This stores anything from python
+	 */
+	PyObject* m_attrlist;
 
 public:
 	KX_Scene(class SCA_IInputDevice* keyboarddevice,
@@ -486,25 +493,25 @@ public:
 	 */
 	void SetNodeTree(SG_Tree* root);
 
-#if 0
-	KX_PYMETHOD_DOC(KX_Scene, GetLightList);
-	KX_PYMETHOD_DOC(KX_Scene, GetObjectList);
-	KX_PYMETHOD_DOC(KX_Scene, GetName);
+	KX_PYMETHOD_DOC(KX_Scene, getLightList);
+	KX_PYMETHOD_DOC(KX_Scene, getObjectList);
+	KX_PYMETHOD_DOC(KX_Scene, getName);
+/*	
+	KX_PYMETHOD_DOC(KX_Scene, getActiveCamera);
+	KX_PYMETHOD_DOC(KX_Scene, getActiveCamera);
+	KX_PYMETHOD_DOC(KX_Scene, findCamera);
 	
-	KX_PYMETHOD_DOC(KX_Scene, GetActiveCamera);
-	KX_PYMETHOD_DOC(KX_Scene, SetActiveCamera);
-	KX_PYMETHOD_DOC(KX_Scene, FindCamera);
+	KX_PYMETHOD_DOC(KX_Scene, getGravity);
 	
-	KX_PYMETHOD_DOC(KX_Scene, SetGravity);
+	KX_PYMETHOD_DOC(KX_Scene, setActivityCulling);
+	KX_PYMETHOD_DOC(KX_Scene, setActivityCullingRadius);
 	
-	KX_PYMETHOD_DOC(KX_Scene, SetActivityCulling);
-	KX_PYMETHOD_DOC(KX_Scene, SetActivityCullingRadius);
-	
-	KX_PYMETHOD_DOC(KX_Scene, SetSceneViewport);
-	KX_PYMETHOD_DOC(KX_Scene, GetSceneViewport);
+	KX_PYMETHOD_DOC(KX_Scene, setSceneViewport);
+	KX_PYMETHOD_DOC(KX_Scene, setSceneViewport);
+	*/
 
 	virtual PyObject* _getattr(const STR_String& attr); /* name, active_camera, gravity, suspended, viewport, framing, activity_culling, activity_culling_radius */
-#endif
+	virtual int KX_Scene::_setattr(const STR_String &attr, PyObject *pyvalue);
 };
 
 typedef std::vector<KX_Scene*> KX_SceneList;

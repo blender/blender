@@ -86,6 +86,12 @@ def getCurrentController():
 	
 	@rtype: L{SCA_PythonController}
 	"""
+def getCurrentScene():
+	"""
+	Gets the current Scene.
+	
+	@rtype: L{KX_Scene}
+	"""
 def addActiveActuator(actuator, activate):
 	"""
 	Activates the given actuator.
@@ -118,3 +124,4 @@ def stopDSP():
 	Only the fmod sound driver supports this.
 	DSP can be computationally expensive.
 	"""
+

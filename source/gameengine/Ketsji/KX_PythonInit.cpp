@@ -160,7 +160,7 @@ static PyObject* gPyGetSpectrum(PyObject* self,
 
 
 
-static void gPyStartDSP(PyObject* self,
+static PyObject* gPyStartDSP(PyObject* self,
 						PyObject* args, 
 						PyObject* kwds)
 {
@@ -172,13 +172,15 @@ static void gPyStartDSP(PyObject* self,
 		{
 			audiodevice->StartUsingDSP();
 			usedsp = true;
+			Py_Return;
 		}
 	}
+	return NULL;
 }
 
 
 
-static void gPyStopDSP(PyObject* self,
+static PyObject* gPyStopDSP(PyObject* self,
 					   PyObject* args, 
 					   PyObject* kwds)
 {
@@ -190,16 +192,32 @@ static void gPyStopDSP(PyObject* self,
 		{
 			audiodevice->StopUsingDSP();
 			usedsp = false;
+			Py_Return;
 		}
 	}
+	return NULL;
 }
 
+
+static STR_String gPyGetCurrentScene_doc =  
+"getCurrentScene()\n"
+"Gets a reference to the current scene.\n";
+static PyObject* gPyGetCurrentScene(PyObject* self,
+					   PyObject* args, 
+					   PyObject* kwds)
+{
+	Py_INCREF(gp_KetsjiScene);
+	return (PyObject*) gp_KetsjiScene;
+}
+					   
 
 
 static struct PyMethodDef game_methods[] = {
 	{"getCurrentController",
 	(PyCFunction) SCA_PythonController::sPyGetCurrentController,
 	METH_VARARGS, SCA_PythonController::sPyGetCurrentController__doc__},
+	{"getCurrentScene", (PyCFunction) gPyGetCurrentScene,
+	METH_VARARGS, gPyGetCurrentScene_doc.Ptr()},
 	{"addActiveActuator",(PyCFunction) SCA_PythonController::sPyAddActiveActuator,
 	METH_VARARGS, SCA_PythonController::sPyAddActiveActuator__doc__},
 	{"getRandomFloat",(PyCFunction) gPyGetRandomFloat,

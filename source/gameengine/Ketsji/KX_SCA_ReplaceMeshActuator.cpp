@@ -84,6 +84,7 @@ PyParentObject KX_SCA_ReplaceMeshActuator::Parents[] = {
 
 PyMethodDef KX_SCA_ReplaceMeshActuator::Methods[] = {
   {"setMesh", (PyCFunction) KX_SCA_ReplaceMeshActuator::sPySetMesh, METH_VARARGS, SetMesh_doc},
+  KX_PYMETHODTABLE(KX_SCA_ReplaceMeshActuator, getMesh),
   {NULL,NULL} //Sentinel
 };
 
@@ -123,7 +124,13 @@ PyObject* KX_SCA_ReplaceMeshActuator::PySetMesh(PyObject* self,
 	return NULL;
 }
 
-
+KX_PYMETHODDEF_DOC(KX_SCA_ReplaceMeshActuator, getMesh,
+"getMesh() -> string\n"
+"Returns the name of the mesh to be substituted.\n"
+)
+{
+	return PyString_FromString(const_cast<char *>(m_mesh->GetName().ReadPtr()));
+}
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
