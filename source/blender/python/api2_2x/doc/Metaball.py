@@ -5,11 +5,18 @@ The Blender.Metaball submodule
 
 This module provides access to the B{Metaball Data} in Blender.
 
-Example::
-  import Blender
-  scene = Blender.Scene.getCurrent ()   # get the current scene
-  ob = Blender.Metaball.New ('mball')   # make  metaball
+Example:
+import Blender
+
+ob =  Blender.Object.New("Mball","mb")
+mb = Blender.Metaball.New()
+for i in range(20):
+  mb.addMetaelem([0, float(i),1.0,1.0, 2.0,1,2.0,1.0,1.0,1.0])
+ob.link(mb)
+sc = Blender.Scene.getCurrent()
+sc.link(ob)
 """
+
 
 def New (name):
   """
@@ -42,7 +49,31 @@ class Metaball:
   @cvar rot: The rotation of the metaball.
   @cvar size: The size of the metaball.
   """
+	def addMetaelem(paramslist):
+    """
+    Sets the name of a metaball object
+    @type name: list
+    @param name : the list of the parameters for creating a new metaelem
+		This list has ten elements :
+		param 1 : int : metaelem type
+				0 for a sphere
+				1 for a tubex
+				2 for a tubey
+				3 for a tubez
+				4 for a regular tube
+				5 for a plane
+				6 for an ellipsoid
+				7 for a cube
+		params 2,3,4 : floats, the x, y and z coordinates of the metaelem
+		param 5 : float, the rad value of the metaelem
+		param 6 : int, the lay value.
+		param 7 : float the s value of the metaelem
+		params 8,9,10 : the expx, expy and expz values of the metaelem.
 
+    @rtype: PyNone
+    @return:  PyNone
+    """
+		
   def getName():
     """
     Retreives the name of a metaball object

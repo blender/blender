@@ -31,6 +31,10 @@
 
 #include "Metaball.h"
 
+PyObject * Metaball_Init (void);
+PyObject * Metaball_CreatePyObject (MetaBall *metaball);
+MetaBall * Metaball_FromPyObject   (PyObject *py_obj);
+int        Metaball_CheckPyObject  (PyObject *py_obj);
 
 /*****************************************************************************/
 /* Python Metaball_Type structure definition:                                  */
@@ -177,9 +181,63 @@ PyObject *Metaball_Init (void)
   return (submodule);
 }
 
+int
+Metaball_CheckPyObject (PyObject * pyobj)
+{
+  return (pyobj->ob_type == &Metaball_Type);
+}
+
+
+MetaBall * Metaball_FromPyObject (PyObject * pyobj)
+{
+  return ((BPy_Metaball *) pyobj)->metaball;
+}
+
 /*******************************************************************************/
 /* Python BPy_Metaball methods:                                                  */
 /*******************************************************************************/
+void*MEM_callocN(unsigned int,char*);
+void allqueue(unsigned short,short);
+
+static PyObject *Metaball_addMetaelem(BPy_Metaball *self,PyObject*args)
+{
+	MetaElem *ml;
+	PyObject *listargs=0;
+	int type,lay;
+	float x,y,z,rad,s,expx,expy,expz;
+  if (!PyArg_ParseTuple(args, "O", &listargs))
+    return (EXPP_ReturnPyObjError(PyExc_TypeError,"expected a list"));
+	if (!PyList_Check(listargs))
+    return (EXPP_ReturnPyObjError(PyExc_TypeError,"expected a list"));
+
+
+	type = PyInt_AsLong( PyList_GetItem(listargs,0));
+	x = PyFloat_AsDouble(PyList_GetItem(listargs,1));
+	y = PyFloat_AsDouble(PyList_GetItem(listargs,2));
+	z = PyFloat_AsDouble(PyList_GetItem(listargs,3));
+	rad = PyFloat_AsDouble(PyList_GetItem(listargs,4));
+	lay = PyInt_AsLong(PyList_GetItem(listargs,5));
+	s = PyFloat_AsDouble(PyList_GetItem(listargs,6));
+	expx = PyFloat_AsDouble(PyList_GetItem(listargs,7));
+	expy = PyFloat_AsDouble(PyList_GetItem(listargs,8));
+	expz = PyFloat_AsDouble(PyList_GetItem(listargs,9));
+
+	ml= MEM_callocN(sizeof(MetaElem), "metaelem");
+	BLI_addhead(&(self->metaball->elems), ml);
+
+	ml->x= x;ml->y= y;ml->z= z;
+	ml->rad= rad;
+	ml->lay= lay;
+	ml->s= s;
+	ml->flag= SELECT; 
+	ml->type = type;
+  ml->expx= expx;ml->expy= expy;ml->expz= expz;
+	ml->type = type;
+	allqueue(0X4013, 0);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 static PyObject *Metaball_getName(BPy_Metaball *self)
 {
 

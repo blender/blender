@@ -82,6 +82,7 @@ struct PyMethodDef M_Metaball_methods[] = {
 /*****************************************************************************/
 /* Python BPy_Metaball methods declarations:                                     */
 /*****************************************************************************/
+static PyObject *Metaball_addMetaelem(BPy_Metaball *self,PyObject*args);
 static PyObject *Metaball_getBbox(BPy_Metaball *self);
 static PyObject *Metaball_getName(BPy_Metaball *self);
 static PyObject *Metaball_setName(BPy_Metaball *self,PyObject*args);
@@ -120,6 +121,8 @@ static PyMethodDef BPy_Metaball_methods[] = {
 	/* name, method, flags, doc */
   {"getName", (PyCFunction)Metaball_getName,\
    METH_NOARGS, "() - Return Metaball  name"},
+  {"addMetaelem", (PyCFunction)Metaball_addMetaelem,\
+   METH_VARARGS, "() -Adds a metaelem to the metaball"},
   {"setName", (PyCFunction)Metaball_setName,\
 	 METH_VARARGS, "() - Sets Metaball  name"},
   {"getWiresize", (PyCFunction)Metaball_getWiresize,\

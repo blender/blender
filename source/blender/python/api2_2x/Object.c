@@ -300,7 +300,7 @@ PyObject *M_Object_New(PyObject *self, PyObject *args)
 /*	else if (strcmp (str_type, "Ika") == 0)		type = OB_IKA; */
   else if (strcmp (str_type, "Lamp") == 0)	  type = OB_LAMP;
   else if (strcmp (str_type, "Lattice") == 0) type = OB_LATTICE;
-/*	else if (strcmp (str_type, "Mball") == 0)	type = OB_MBALL; */
+	else if (strcmp (str_type, "Mball") == 0)	type = OB_MBALL; 
   else if (strcmp (str_type, "Mesh") == 0)	  type = OB_MESH;
   else if (strcmp (str_type, "Surf") == 0)	  type = OB_SURF;
 /*	else if (strcmp (str_type, "Wave") == 0)	type = OB_WAVE; */
@@ -627,6 +627,9 @@ int EXPP_add_obdata(struct Object *object)
       object->data = (void *)add_lattice();
 	  object->dt = OB_WIRE;
 	  break;
+	case OB_MBALL:
+	  object->data = add_mball();
+	  break;
 
 	/* TODO the following types will be supported later
 	case OB_SURF:
@@ -635,9 +638,6 @@ int EXPP_add_obdata(struct Object *object)
 	  break;
 	case OB_FONT:
 	  object->data = add_curve(OB_FONT);
-	  break;
-	case OB_MBALL:
-	  object->data = add_mball();
 	  break;
 	case OB_IKA:
 	  object->data = add_ika();
@@ -1092,6 +1092,8 @@ static PyObject *Object_link (BPy_Object *self, PyObject *args)
 		data = (void *)Mesh_FromPyObject (py_data, self->object);
 	if (Lattice_CheckPyObject (py_data))
 		data = (void *)Lattice_FromPyObject (py_data);
+	if (Metaball_CheckPyObject (py_data))
+		data = (void *)Metaball_FromPyObject (py_data);
 
 	/* have we set data to something good? */
 	if( !data )
@@ -1143,6 +1145,13 @@ static PyObject *Object_link (BPy_Object *self, PyObject *args)
 			break;
 		case ID_LT:
 			if (self->object->type != OB_LATTICE)
+			{
+					return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+							"The 'link' object is incompatible with the base object"));
+			}
+			break;
+		case ID_MB:
+			if (self->object->type != OB_MBALL)
 			{
 					return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 							"The 'link' object is incompatible with the base object"));
