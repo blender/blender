@@ -1836,9 +1836,14 @@ int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
 void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac, int mask)
 {
 	Isect isec;
+	Material stored;
 	float fac, div=0.0, lampco[3];
 
-	if(shi->matren->mode & MA_SHADOW_TRA)  isec.mode= DDA_SHADOW_TRA;
+	if(shi->matren->mode & MA_SHADOW_TRA) {
+		isec.mode= DDA_SHADOW_TRA;
+		/* needed to prevent shade_ray changing matren (textures) */
+		stored= *(shi->matren);
+	}
 	else isec.mode= DDA_SHADOW;
 	
 	shadfac[3]= 1.0;	// 1=full light
@@ -1957,5 +1962,12 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac, int mask)
 		else
 			shadfac[3]= 1.0-fac/div;
 	}
+
+	if(shi->matren->mode & MA_SHADOW_TRA) {
+		/* needed to prevent shade_ray changing matren (textures) */
+		*(shi->matren)= stored;
+	}
+	
+	
 }
 
