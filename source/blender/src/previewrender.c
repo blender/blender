@@ -709,7 +709,7 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 	float eul[3], tmat[3][3], imat[3][3];
 	int temp, a;
 	char tracol;
-	
+		
 	mat= shi->matren;
 
 	v1= 1.0/PR_RECTX;
@@ -768,6 +768,9 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 			shi->ref[2]= (view[2]+inp*shi->vn[2]);
 		}
 
+		/* Clear displase vec for preview */
+		shi->displace[0]= shi->displace[1]= shi->displace[2]= 0.0;
+	
 		do_material_tex(shi);
 	
 		if(mat->texco & TEXCO_REFL) {
@@ -785,7 +788,14 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 	}
 	/* set it here, because ray_mirror will affect it */
 	alpha= mat->alpha;
-	
+
+	if(mat->mapto & MAP_DISPLACE) { /* Quick hack of fake displacement preview */
+		shi->vn[0]+=5.0*(shi->displace[1]+shi->displace[2]);
+		shi->vn[1]+=5.0*(shi->displace[0]+shi->displace[2]);
+		shi->vn[2]+=5.0*(shi->displace[0]+shi->displace[1]);
+		Normalise(shi->vn);
+	}
+		
 	if(mat->mode & (MA_ZTRA|MA_RAYTRANSP)) 
 		if(mat->fresnel_tra!=0.0) 
 			alpha*= fresnel_fac(view, shi->vn, mat->fresnel_tra_i, mat->fresnel_tra);
