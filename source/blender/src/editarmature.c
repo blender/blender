@@ -91,6 +91,8 @@
 #include "BSE_trans_types.h"
 #include "BSE_editaction.h"
 
+#include "PIL_time.h"
+
 #include "mydevice.h"
 #include "blendef.h"
 #include "nla.h"
@@ -1561,7 +1563,7 @@ static void add_bone_input (Object *ob)
 {
 	float		*cursLoc, cent[3], dx, dy;
 	float		mat[3][3], curs[3],	cmat[3][3], imat[3][3], rmat[4][4], itmat[4][4];
-	short		xo, yo, mval[2], afbreek=0;
+	short		xo, yo, mval[2], mvalo[2], afbreek=0, drawall;
 	short		val;
 	float		restmat[4][4], tempVec[4];
 	EditBone	*bone;
@@ -1618,9 +1620,10 @@ static void add_bone_input (Object *ob)
 
 		/*	Project cursor center to screenspace. */
 		getmouseco_areawin(mval);
-		xo= mval[0];
-		yo= mval[1];
+		xo= mvalo[0]= mval[0];
+		yo= mvalo[1]= mval[1];
 		window_to_3d(dvecp, xo, yo);
+		drawall= 2;
 
 		while (1) {
 
@@ -1687,7 +1690,17 @@ static void add_bone_input (Object *ob)
 			Mat4One (bone->obmat);
 			bone->size[0]=bone->size[1]=bone->size[2]=1.0F;
 
-			force_draw_plus(SPACE_BUTS, 1);
+			/* only draw if... */
+			if(drawall) {
+				drawall--;	// draw twice to have 2 identical buffers
+				force_draw_all(1);
+			}
+			else if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
+				mvalo[0]= mval[0];
+				mvalo[1]= mval[1];
+				force_draw(1);
+			}
+			else PIL_sleep_ms(10);
 			
 			while(qtest()) {
 				event= extern_qread(&val);

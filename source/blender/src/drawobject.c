@@ -2590,7 +2590,7 @@ static void drawmeshwire_wirextra(DispListMesh *dlm, int optimal, char alpha)
 		
 		/* (bleeding edges) to illustrate selection is defined on vertex basis */
 		/* but cannot do with subdivided edges... */
-		if(dlm==NULL && (G.scene->selectmode & SCE_SELECT_VERTEX)) {
+		if( (dlm==NULL || optimal==0) && (G.scene->selectmode & SCE_SELECT_VERTEX)) {
 			glShadeModel(GL_SMOOTH);
 			glBegin(GL_LINES);
 			

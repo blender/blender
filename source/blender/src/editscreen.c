@@ -3023,10 +3023,11 @@ void drawscredge_area(ScrArea *sa)
 	else sdrawline(x2, y1, x2, y2);
 	
 	/* left border area */
-	if(sa->headertype==HEADERTOP) sdrawline(x1, y1, x1, y2-SCR_ROUND+1);
-	else if(sa->headertype==HEADERDOWN) sdrawline(x1, y1+SCR_ROUND-1, x1, y2);
-	else sdrawline(x1, y1, x1, y2);
-	
+	if(x1>0) { // otherwise it draws the emboss of window over
+		if(sa->headertype==HEADERTOP) sdrawline(x1, y1, x1, y2-SCR_ROUND+1);
+		else if(sa->headertype==HEADERDOWN) sdrawline(x1, y1+SCR_ROUND-1, x1, y2);
+		else sdrawline(x1, y1, x1, y2);
+	}	
 	/* top border area */
 	if(sa->headertype==HEADERTOP) sdrawline(x1+SCR_ROUND, y2, x2-SCR_ROUND+1, y2);
 	else sdrawline(x1, y2, x2, y2);
