@@ -156,12 +156,13 @@ void free_txt_data(void) {
 }
 
 static int render_string (char *in) {
+	SpaceText *st= curarea->spacedata.first;
 	int r= 0, i;
 	
 	while(*in) {
 		if (*in=='\t') {
-			if (temp_char_pos && *(in-1)=='\t') i= TXT_TABSIZE;
-			else i= TXT_TABSIZE - (temp_char_pos%TXT_TABSIZE);
+			if (temp_char_pos && *(in-1)=='\t') i= st->tabnumber;
+			else i= st->tabnumber - (temp_char_pos%st->tabnumber);
 
 			while(i--) temp_char_write(' ', r);
 		} else temp_char_write(*in, r);
@@ -975,6 +976,24 @@ void run_python_script(SpaceText *st)
 	}
 }
 
+void set_tabs(Text *text) {
+	
+	TextLine *line = text->curl;
+	SpaceText *st = curarea->spacedata.first;
+	int pos = 0;
+	int max;
+	max = line->len;
+	st->currtab_set = 0;
+	while ( pos < max-1) {
+		if (line->line[pos] == '\t') {
+			st->currtab_set++;
+			pos++;
+		}
+		else {
+			pos++;
+		}
+	}
+}
 
 void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
@@ -1045,7 +1064,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if (event==LEFTMOUSE) {
 		if (val) {
 			short mval[2];
-
+			set_tabs(text);
 			getmouseco_areawin(mval);
 
 			if (mval[0]>2 && mval[0]<20 && mval[1]>2 && mval[1]<curarea->winy-2) {
@@ -1324,41 +1343,57 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case TABKEY:
 			txt_add_char(text, '\t');
+			st->currtab_set++;
+			printf("currenttab_set is :%d\n", st->currtab_set);
 			pop_space_text(st);
 			do_draw= 1;
 			break;
 		case RETKEY:
 			txt_split_curline(text);
+			int a = 0;
+			while ( a < st->currtab_set)
+			{
+				txt_add_char(text, '\t');
+				a++;
+			}
 			do_draw= 1;
 			pop_space_text(st);
 			break;
 		case BACKSPACEKEY:
 			txt_backspace_char(text);
+			set_tabs(text);
 			do_draw= 1;
 			pop_space_text(st);
 			break;
 		case DELKEY:
+			if ( text->curl->line[text->curc] == '\t') {
+					st->currtab_set--;
+			}
 			txt_delete_char(text);
 			do_draw= 1;
 			pop_space_text(st);
 			break;
 		case DOWNARROWKEY:
 			txt_move_down(text, G.qual & LR_SHIFTKEY);
+			set_tabs(text);
 			do_draw= 1;
 			pop_space_text(st);
 			break;
 		case LEFTARROWKEY:
 			txt_move_left(text, G.qual & LR_SHIFTKEY);
+			set_tabs(text);
 			do_draw= 1;
 			pop_space_text(st);
 			break;
 		case RIGHTARROWKEY:
 			txt_move_right(text, G.qual & LR_SHIFTKEY);
+			set_tabs(text);
 			do_draw= 1;
 			pop_space_text(st);
 			break;
 		case UPARROWKEY:
 			txt_move_up(text, G.qual & LR_SHIFTKEY);
+			set_tabs(text);
 			do_draw= 1;
 			pop_space_text(st);
 			break;

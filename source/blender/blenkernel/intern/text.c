@@ -1989,3 +1989,158 @@ int txt_add_char (Text *text, char add) {
 	if(!undoing) txt_undo_add_charop(text, UNDO_INSERT, add);
 	return 1;
 }
+
+//Antihc3(rick) used the paste function below 
+//used txt_cut_sel, txt_insert_buf modified
+
+void indent_paste(Text *text)
+{
+
+	indent(text, txt_cut_buffer);
+}
+
+void indent(Text *text, char *in_buffer)
+{
+	int i=0, len;
+
+	if (!text) return;
+	if (!text->curl) return;
+	if (!text->sell) return;
+	if (!in_buffer) return;
+
+	txt_delete_sel(text); //need to change this to remove the undo 	
+
+	/* Read the first line (or as close as possible */
+	len= strlen(in_buffer);
+	while ( i < len ) {
+		txt_add_char(text, '\t');
+		while (in_buffer[i] && in_buffer[i]!='\n') {
+			txt_add_char(text, in_buffer[i]);
+			i++;
+		}
+	
+		if (in_buffer[i]=='\n') {
+			txt_add_char(text, '\n');
+			
+		}
+	i++;
+	}
+}
+
+void unindent(Text *text)
+{
+	unindent_lines(text, txt_cut_buffer);
+}
+
+void unindent_lines(Text *text, char *in_buffer)
+{
+	int i=0, len;
+
+	if (!text) return;
+	if (!text->curl) return;
+	if (!text->sell) return;
+	if (!in_buffer) return;
+
+	txt_delete_sel(text);	
+
+	/* Read the first line (or as close as possible */
+	len = strlen(in_buffer);
+	while ( i < len ) {
+		if (in_buffer[i] != '\t') {
+			while (in_buffer[i] && in_buffer[i]!='\n') {
+				txt_add_char(text, in_buffer[i]);
+				i++;
+			}
+			
+			if (in_buffer[i]=='\n') {
+				txt_add_char(text, '\n');
+			
+			}
+		i++;
+		}
+		else {
+			i++;
+			while (in_buffer[i] && in_buffer[i]!='\n') {
+				txt_add_char(text, in_buffer[i]);
+				i++;
+			}
+			
+			if (in_buffer[i]=='\n') {
+				txt_add_char(text, '\n');
+			
+			}
+		i++;
+		}
+	}
+}
+
+void comment(Text *text)
+{
+	comment_paste(text, txt_cut_buffer);
+}
+
+void comment_paste(Text *text, char *in_buffer)
+{
+	int i=0, len;
+
+	if (!text) return;
+	if (!text->curl) return;
+	if (!text->sell) return;
+	if (!in_buffer) return;
+
+	txt_delete_sel(text); 	
+
+	/* Read the first line (or as close as possible */
+	
+	len= strlen(in_buffer);
+		while ( i < len ) {
+			txt_add_char(text, '#');
+			while (in_buffer[i] && in_buffer[i]!='\n') {
+				txt_add_char(text, in_buffer[i]);
+				i++;
+			}
+		
+			if (in_buffer[i]=='\n') {
+				txt_add_char(text, '\n');
+				
+			}
+		i++;
+		}
+}
+
+
+void uncomment(Text *text)
+{
+	uncomment_paste(text, txt_cut_buffer);
+}
+
+void uncomment_paste(Text *text, char *in_buffer)
+{
+	
+	int i=0, len;
+
+	if (!text) return;
+	if (!text->curl) return;
+	if (!text->sell) return;
+
+	if (!in_buffer) return;
+
+	txt_delete_sel(text);
+
+	/* Read the first line (or as close as possible */
+	len = strlen(in_buffer);
+	while ( i < len ) {
+		if (in_buffer[i] != '#') {
+			while (in_buffer[i] && in_buffer[i]!='\n') {
+				txt_add_char(text, in_buffer[i]);
+				i++;
+			}
+			
+			if (in_buffer[i]=='\n') {
+				txt_add_char(text, '\n');
+			
+			}		
+		}
+	i++;
+	}
+}

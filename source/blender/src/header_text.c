@@ -175,12 +175,17 @@ void do_text_buttons(unsigned short event)
 		case 0:
 			st->lheight= 12; break;
 		case 1:
-			st->lheight= 15; break;
+			st->lheight= 15; 
+			break;
 		}
-
+			
 		allqueue(REDRAWTEXT, 0);
 		allqueue(REDRAWHEADERS, 0);
 
+		break;
+	case B_TAB_NUMBERS:
+		allqueue(REDRAWTEXT, 0);
+		allqueue(REDRAWHEADERS, 0);
 		break;
 	}
 }
@@ -325,6 +330,37 @@ static void do_text_editmenu_selectmenu(void *arg, int event)
 	case 2:
 		txt_sel_line(text);
 		break;
+	case 3:
+		if (txt_has_sel(text)) {
+			txt_cut_sel(text);
+			indent_paste(text);
+			break;
+		}
+		else {
+			txt_add_char(text, '\t');
+			break;
+		}
+	case 4:
+		if ( txt_has_sel(text)) {
+			txt_cut_sel(text);
+			unindent(text);
+			break;
+		}
+		break;
+	case 5:
+		if ( txt_has_sel(text)) {
+			txt_cut_sel(text);
+			comment(text);
+			break;
+		}
+		break;
+	case 6:
+		if ( txt_has_sel(text)) {
+			txt_cut_sel(text);
+			uncomment(text);
+			break;
+		}
+		break;
 	default:
 		break;
 	}
@@ -366,7 +402,13 @@ static uiBlock *text_editmenu_selectmenu(void *arg_unused)
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select All|Ctrl A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Line", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
-
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Indent", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "UnIndent", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Comment", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "UnComment", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
 	
@@ -528,7 +570,9 @@ void text_buttons(void)
 	if(st->font_id>1) st->font_id= 0;
 	uiDefButI(block, MENU, B_TEXTFONT, "Screen 12 %x0|Screen 15%x1", xco,0,100,YIC, &st->font_id, 0, 0, 0, 0, "Displays available fonts");
 	xco+=100;
-
+	
+	uiDefButI(block, NUM, B_TAB_NUMBERS, "Tab:",		xco+=XIC, 0, XIC+50, YIC, &st->tabnumber, 2, 8, 0, 0, "Set spacing of Tab");
+	
 	/* always as last  */
 	curarea->headbutlen= xco+2*XIC;
 

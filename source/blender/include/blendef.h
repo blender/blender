@@ -346,6 +346,7 @@
 #define B_TEXTFONT		505
 #define B_TEXTSTORE		506
 #define B_TEXTLINENUM		507
+#define B_TAB_NUMBERS       508
 
 /* SCRIPT: 525 */
 #define B_SCRIPTBROWSE 526
@@ -452,4 +453,3 @@
 #define GS(a)	(*((short *)(a)))
 
 #endif
-

@@ -255,6 +255,10 @@ typedef struct SpaceText {
 	int left;
 	int showlinenrs;
 	
+	int tabnumber;
+	int currtab_set; 
+	/* had to make my 64 bits some how */
+	
 	float pix_per_line;
 
 	struct rcti txtscroll, txtbar;
@@ -516,4 +520,3 @@ typedef struct SpaceImaSel {
 #define IMS_INFILESLI		4
 
 #endif
-

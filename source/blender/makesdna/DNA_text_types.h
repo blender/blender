@@ -77,4 +77,3 @@ typedef struct Text {
 #define TXT_FOLLOW              0x0200 	// always follow cursor (console)
 
 #endif
-
