@@ -461,7 +461,6 @@ void buts_buttons(void)
 
 	curarea->butspacetype= SPACE_BUTS;
 	
-	
 	xco = 8;
 	
 	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, 
@@ -494,9 +493,9 @@ void buts_buttons(void)
 		/* pull down menus */
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 	
-		xmax= GetButStringLength("View");
+		xmax= GetButStringLength("Panels");
 		uiDefBlockBut(block, buts_viewmenu, NULL, 
-					  "View", xco, -2, xmax-3, 24, "");
+					  "Panels", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 
 	}
