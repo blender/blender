@@ -1347,6 +1347,14 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				data->tar = newlibadr(fd, id->lib, data->tar);
 			};
 			break;
+		case CONSTRAINT_TYPE_STRETCHTO:
+			{
+				bStretchToConstraint *data;
+				data= ((bStretchToConstraint*)con->data);
+				data->tar = newlibadr(fd, id->lib, data->tar);
+			};
+			break;
+
 		case CONSTRAINT_TYPE_NULL:
 			break;
 		}
@@ -4802,6 +4810,12 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 		case CONSTRAINT_TYPE_DISTANCELIMIT:
 			{
 				bDistanceLimitConstraint *data = (bDistanceLimitConstraint*)curcon->data;
+				expand_doit(fd, mainvar, data->tar);
+				break;
+			}
+		case CONSTRAINT_TYPE_STRETCHTO:
+			{
+				bStretchToConstraint *data = (bStretchToConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->tar);
 				break;
 			}

@@ -290,6 +290,9 @@ static void get_constraint_typestring (char *str, bConstraint *con)
 	case CONSTRAINT_TYPE_FOLLOWPATH:
 		strcpy (str, "Follow Path");
 		return;
+	case CONSTRAINT_TYPE_STRETCHTO:
+		strcpy (str, "Stretch To");
+		return;
 	default:
 		strcpy (str, "Unknown");
 		return;
@@ -315,6 +318,8 @@ static int get_constraint_col(bConstraint *con)
 		return TH_BUT_SETTING;
 	case CONSTRAINT_TYPE_FOLLOWPATH:
 		return TH_BUT_SETTING2;
+	case CONSTRAINT_TYPE_STRETCHTO:
+		return TH_BUT_SETTING;
 	default:
 		return TH_REDALERT;
 	}
@@ -524,7 +529,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					strcpy (data->subtarget, "");
 				uiBlockEndAlign(block);
 	
-				uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Tolerance:", *xco+((width/2)-117), *yco-64, 120, 18, &data->tolerance, 0.0001, 1.0, 0.0, 0.0, "Maximum distance to target after solving"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Tolerance:", *xco+((width/2)-117), *yco-64, 120, 18, &data->tolerance, 0.0001f, 1.0, 0.0, 0.0, "Maximum distance to target after solving"); 
 				uiDefButI(block, NUM, B_CONSTRAINT_REDRAW, "Iterations:", *xco+((width/2)+3), *yco-64, 120, 18, &data->iterations, 1, 10000, 0.0, 0.0, "Maximum number of solving iterations"); 
 				
 			}
@@ -656,6 +661,54 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiBlockEndAlign(block);
 			}
 			break;
+		case CONSTRAINT_TYPE_STRETCHTO:
+			{
+				bStretchToConstraint *data = con->data;
+				bArmature *arm;
+				height = 105;
+				BIF_ThemeColor(curCol);
+
+				glRects(*xco+3, *yco-height-39, *xco+width+30, *yco-18);
+				
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+
+
+				/* Draw target parameters */
+				uiBlockBeginAlign(block);
+				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+
+				arm = get_armature(data->tar);
+				if (arm){
+					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+				}
+				else
+					strcpy (data->subtarget, "");
+				uiBlockEndAlign(block);
+
+				
+				uiBlockBeginAlign(block);
+				uiDefButF(block,BUTM,B_CONSTRAINT_REDRAW,"R",*xco, *yco-60,20,18,&(data->orglength),0.0,0,0,0,"Recalculate RLenght");
+				uiDefButF(block,NUM,B_CONSTRAINT_REDRAW,"Rest Length:",*xco+20, *yco-60,237,18,&(data->orglength),0.0,100,0.5,0.5,"Lenght at Rest Position");
+				uiBlockEndAlign(block);
+
+				uiDefButF(block,NUM,B_CONSTRAINT_REDRAW,"Volume Variation:",*xco+20, *yco-82,237,18,&(data->bulge),0.0,100,0.5,0.5,"Factor between volume variation and stretching");
+
+				uiBlockBeginAlign(block);
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Vol:",*xco+12, *yco-104,30,18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"XZ",	 *xco+42, *yco-104,30,18, &data->volmode, 12.0, 0.0, 0, 0, "Keep Volume: Scaling X & Z");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",	 *xco+72, *yco-104,20,18, &data->volmode, 12.0, 1.0, 0, 0, "Keep Volume: Scaling X");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",	 *xco+92, *yco-104,20,18, &data->volmode, 12.0, 2.0, 0, 0, "Keep Volume: Scaling Z");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"NONE", *xco+112, *yco-104,50,18, &data->volmode, 12.0, 3.0, 0, 0, "Ignore Volume");
+				uiBlockEndAlign(block);
+
+				
+				uiBlockBeginAlign(block);
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST,"Plane:",*xco+170, *yco-104,40,18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",	  *xco+210, *yco-104,20,18, &data->plane, 12.0, 0.0, 0, 0, "Keep X axis");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",	  *xco+230, *yco-104,20,18, &data->plane, 12.0, 2.0, 0, 0, "Keep Z axis");
+				uiBlockEndAlign(block);
+				}
+			break;
 		case CONSTRAINT_TYPE_NULL:
 			{
 				height = 17;
@@ -711,6 +764,10 @@ static uiBlock *add_constraintmenu(void *arg_unused)
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_LOCKTRACK,"Locked Track",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_FOLLOWPATH,"Follow Path",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	
+	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_STRETCHTO,"Stretch To",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+
 	if (type==TARGET_BONE) {
 	
 		uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -719,9 +776,8 @@ static uiBlock *add_constraintmenu(void *arg_unused)
 		uiDefBut(block, BUTM, B_CONSTRAINT_ADD_ACTION,"Action",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 		
 	}
-	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
+
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_NULL,"Null",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	
 	uiTextBoundsBlock(block, 50);
@@ -851,6 +907,18 @@ void do_constraintbuts(unsigned short event)
 			allqueue (REDRAWBUTSOBJECT, 0);
 		}
 		break;
+	case B_CONSTRAINT_ADD_STRETCHTO:
+	{
+		bConstraint *con;
+		con = add_new_constraint(CONSTRAINT_TYPE_STRETCHTO);
+		add_constraint_to_client(con);
+			
+		test_scene_constraints();
+		allqueue(REDRAWVIEW3D,0);
+		allqueue(REDRAWBUTSOBJECT,0);
+	}
+		break;
+
 	case B_CONSTRAINT_DEL:
 		test_scene_constraints();
 		allqueue (REDRAWVIEW3D, 0);
@@ -1400,7 +1468,7 @@ void object_panel_effects(Object *ob)
 			uiBlockBeginAlign(block);
 			uiDefButS(block, ROW, B_CALCEFFECT, "RGB",		911,31,45,20, &paf->texmap, 14.0, 1.0, 0, 0, "Use RGB values as a factor for particle speed");
 			uiDefButS(block, ROW, B_CALCEFFECT, "Grad",		958,31,44,20, &paf->texmap, 14.0, 2.0, 0, 0, "Use texture gradient as a factor for particle speed");
-			uiDefButF(block, NUM, B_CALCEFFECT, "Nabla:",		911,9,91,20, &paf->nabla, 0.0001, 1.0, 1, 0, "Specify the dimension of the area for gradient calculation");
+			uiDefButF(block, NUM, B_CALCEFFECT, "Nabla:",		911,9,91,20, &paf->nabla, 0.0001f, 1.0, 1, 0, "Specify the dimension of the area for gradient calculation");
 
 		}
 	}

@@ -122,6 +122,12 @@ char constraint_has_target (bConstraint *con) {
 			if (data->tar)
 				return 1;
 		}
+	case CONSTRAINT_TYPE_STRETCHTO:
+		{
+			bStretchToConstraint *data = con->data;
+			if (data->tar)
+				return 1;
+		}
 		break;
 	}
 	// Unknown types or CONSTRAINT_TYPE_NULL or no target
@@ -130,52 +136,57 @@ char constraint_has_target (bConstraint *con) {
 
 Object *get_constraint_target(bConstraint *con)
 {
-	/*
-	 * If the target for this constraint is target, return a pointer 
-	 * to the name for this constraints subtarget ... NULL otherwise
-	 */
+/*
+* If the target for this constraint is target, return a pointer 
+* to the name for this constraints subtarget ... NULL otherwise
+	*/
 	switch (con->type) {
-
-		case CONSTRAINT_TYPE_ACTION:
+	case CONSTRAINT_TYPE_ACTION:
 		{
 			bActionConstraint *data = con->data;
 			return data->tar;
 		}
 		break;
-		case CONSTRAINT_TYPE_LOCLIKE:
+	case CONSTRAINT_TYPE_LOCLIKE:
 		{
 			bLocateLikeConstraint *data = con->data;
 			return data->tar;
 		}
 		break;
-		case CONSTRAINT_TYPE_ROTLIKE:
+	case CONSTRAINT_TYPE_ROTLIKE:
 		{
 			bRotateLikeConstraint *data = con->data;
 			return data->tar;
 		}
 		break;
-		case CONSTRAINT_TYPE_KINEMATIC:
+	case CONSTRAINT_TYPE_KINEMATIC:
 		{
 			bKinematicConstraint *data = con->data;
 			return data->tar;
 		}
 		break;
-		case CONSTRAINT_TYPE_TRACKTO:
+	case CONSTRAINT_TYPE_TRACKTO:
 		{
 			bTrackToConstraint *data = con->data;
 			return data->tar;
 		}
 		break;
-		case CONSTRAINT_TYPE_LOCKTRACK:
+	case CONSTRAINT_TYPE_LOCKTRACK:
 		{
 			bLockTrackConstraint *data = con->data;
 			return data->tar;
 		}
 		break;
-		case CONSTRAINT_TYPE_FOLLOWPATH: 
+	case CONSTRAINT_TYPE_FOLLOWPATH: 
 		{
 			bFollowPathConstraint *data = con->data;
 			return data->tar;
+		}
+		break;
+	case CONSTRAINT_TYPE_STRETCHTO:
+		{
+			bStretchToConstraint *data = con->data;
+			return (data->tar);
 		}
 		break;
 	}
@@ -310,6 +321,18 @@ void	*new_constraint_data (short type)
 			result = data;
 		}
 		break;
+	case CONSTRAINT_TYPE_STRETCHTO:
+		{
+			bStretchToConstraint *data;
+			data = MEM_callocN(sizeof(bStretchToConstraint), "StretchToConstraint");
+
+			data->volmode = 0;
+			data->plane = 0;
+			data->orglength = 0.0; 
+			data->bulge = 1.0;
+			result = data;
+		}
+		break; 
 	default:
 		result = NULL;
 		break;
@@ -722,6 +745,21 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 				Mat4One (mat);
 		}
 		break;
+	case CONSTRAINT_TYPE_STRETCHTO:
+		{
+			bStretchToConstraint *data;
+			data = (bStretchToConstraint*)con->data;
+
+			if (data->tar){
+				where_is_object_time (data->tar, ctime);	
+				constraint_target_to_mat4(data->tar, data->subtarget, mat, size, ctime);
+				valid = 1;
+			}
+			else
+				Mat4One (mat);
+		}
+		break;
+
 	default:
 		Mat4One(mat);
 		break;
@@ -796,6 +834,15 @@ void relink_constraints (struct ListBase *list)
 				ID_NEW(data->tar);
 			}
 			break;
+		case CONSTRAINT_TYPE_STRETCHTO:
+			{
+				bStretchToConstraint *data;
+				data = con->data;
+				
+				ID_NEW(data->tar);
+			}
+			break;
+			
 		}
 	}
 }
@@ -905,6 +952,14 @@ void copy_constraints (ListBase *dst, ListBase *src)
 				
 				con->data = MEM_dupallocN (con->data);
 				data = (bFollowPathConstraint*) con->data;
+			}
+			break;
+		case CONSTRAINT_TYPE_STRETCHTO:
+			{
+				bStretchToConstraint *data;
+				
+				con->data = MEM_dupallocN (con->data);
+				data = (bStretchToConstraint*) con->data;
 			}
 			break;
 		default:
@@ -1427,6 +1482,123 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 			}
 		}
 		break;
+	case CONSTRAINT_TYPE_STRETCHTO:
+		{
+			bStretchToConstraint *data;
+			float scale[3],vec[3],xx[3],zz[3],orth[3];
+			float totmat[3][3];
+			float tmat[4][4];
+			float dist;
+			data=(bStretchToConstraint*)constraint->data;			
+			
+			if (data->tar){
+					
+				/* store X orientation before destroying obmat */
+				xx[0] = ob->obmat[0][0];
+				xx[1] = ob->obmat[0][1];
+				xx[2] = ob->obmat[0][2];
+				Normalise(xx);
+
+				/* store Z orientation before destroying obmat */
+				zz[0] = ob->obmat[2][0];
+				zz[1] = ob->obmat[2][1];
+				zz[2] = ob->obmat[2][2];
+				Normalise(zz);
+
+				dist = VecLenf( ob->obmat[3], targetmat[3]);
+
+				if (data->orglength == 0)  data->orglength = dist;
+				if (data->bulge ==0) data->bulge = 1.0;
+
+				scale[1] = dist/data->orglength;
+				switch (data->volmode){
+				/* volume preserving scaling */
+				case VOLUME_XZ :
+					scale[0] = 1.0f - (float)sqrt(data->bulge) + (float)sqrt(data->bulge*(data->orglength/dist));
+ 					scale[2] = scale[0];
+					break;
+				case VOLUME_X:
+					scale[0] = 1.0f + data->bulge * (data->orglength /dist - 1);
+					scale[2] = 1.0;
+					break;
+				case VOLUME_Z:
+					scale[0] = 1.0;
+					scale[2] = 1.0f + data->bulge * (data->orglength /dist - 1);
+					break;
+					/* don't care for volume */
+				case NO_VOLUME:
+					scale[0] = 1.0;
+					scale[2] = 1.0;
+					break;
+				default: /* should not happen, but in case*/ 
+					return;	
+				} /* switch (data->volmode) */
+
+				/* Clear the object's rotation and scale */
+				ob->obmat[0][0]=ob->size[0]*scale[0];
+				ob->obmat[0][1]=0;
+				ob->obmat[0][2]=0;
+				ob->obmat[1][0]=0;
+				ob->obmat[1][1]=ob->size[1]*scale[1];
+				ob->obmat[1][2]=0;
+				ob->obmat[2][0]=0;
+				ob->obmat[2][1]=0;
+				ob->obmat[2][2]=ob->size[2]*scale[2];
+				
+				VecSubf(vec, ob->obmat[3], targetmat[3]);
+				Normalise(vec);
+				/* new Y aligns  object target connection*/
+				totmat[1][0] = -vec[0];
+				totmat[1][1] = -vec[1];
+				totmat[1][2] = -vec[2];
+				switch (data->plane){
+				case PLANE_X:
+					/* build new Z vector */
+					/* othogonal to "new Y" "old X! plane */
+					Crossf(orth, vec, xx);
+					Normalise(orth);
+					
+					/* new Z*/
+					totmat[2][0] = orth[0];
+					totmat[2][1] = orth[1];
+					totmat[2][2] = orth[2];
+					
+					/* we decided to keep X plane*/
+					Crossf(xx,orth, vec);
+					Normalise(xx);
+					totmat[0][0] = xx[0];
+					totmat[0][1] = xx[1];
+					totmat[0][2] = xx[2];
+					break;
+				case PLANE_Z:
+					/* build new X vector */
+					/* othogonal to "new Y" "old Z! plane */
+					Crossf(orth, vec, zz);
+					Normalise(orth);
+					
+					/* new X*/
+					totmat[0][0] = -orth[0];
+					totmat[0][1] = -orth[1];
+					totmat[0][2] = -orth[2];
+					
+					/* we decided to keep Z */
+					Crossf(zz,orth, vec);
+					Normalise(zz);
+					totmat[2][0] = zz[0];
+					totmat[2][1] = zz[1];
+					totmat[2][2] = zz[2];
+					break;
+				} /* switch (data->plane) */
+				
+
+				Mat4CpyMat4(tmat, ob->obmat);
+				
+				Mat4MulMat34(ob->obmat, totmat, tmat);
+
+			}
+		}
+		break;
+	
 	default:
 		printf ("Error: Unknown constraint type\n");
 		break;

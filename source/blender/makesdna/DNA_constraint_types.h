@@ -144,6 +144,15 @@ typedef struct bRotationConstraint{
 	float zmin, zmax;
 } bRotationConstraint;
 
+/* Stretch to constraint */
+typedef struct bStretchToConstraint{
+	Object		*tar;
+	int			volmode; 
+	int         plane;
+	float		orglength;
+	float		bulge;
+	char		subtarget[32];
+} bStretchToConstraint;
 
 
 /* bConstraint.type */
@@ -185,7 +194,7 @@ typedef struct bRotationConstraint{
 #define LOCLIKE_Z		0x00000004
 #define LOCSPACE		0x00000008
 
-/* Tracking flags */
+/* Axis flags */
 #define LOCK_X		0x00000000
 #define LOCK_Y		0x00000001
 #define LOCK_Z		0x00000002
@@ -201,37 +210,14 @@ typedef struct bRotationConstraint{
 #define TRACK_nY	0x00000004
 #define TRACK_nZ	0x00000005
 
-/* Tracking flags */
-#define LOCK_X		0x00000000
-#define LOCK_Y		0x00000001
-#define LOCK_Z		0x00000002
+#define VOLUME_XZ	0x00000000
+#define VOLUME_X	0x00000001
+#define VOLUME_Z	0x00000002
+#define NO_VOLUME	0x00000003
 
-#define UP_X		0x00000000
-#define UP_Y		0x00000001
-#define UP_Z		0x00000002
-
-#define TRACK_X		0x00000000
-#define TRACK_Y		0x00000001
-#define TRACK_Z		0x00000002
-#define TRACK_nX	0x00000003
-#define TRACK_nY	0x00000004
-#define TRACK_nZ	0x00000005
-
-/* Tracking flags */
-#define LOCK_X		0x00000000
-#define LOCK_Y		0x00000001
-#define LOCK_Z		0x00000002
-
-#define UP_X		0x00000000
-#define UP_Y		0x00000001
-#define UP_Z		0x00000002
-
-#define TRACK_X		0x00000000
-#define TRACK_Y		0x00000001
-#define TRACK_Z		0x00000002
-#define TRACK_nX	0x00000003
-#define TRACK_nY	0x00000004
-#define TRACK_nZ	0x00000005
+#define PLANE_X		0x00000000
+#define PLANE_Y		0x00000001
+#define PLANE_Z		0x00000002
 
 #endif
 

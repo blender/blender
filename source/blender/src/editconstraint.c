@@ -578,6 +578,23 @@ static short detect_constraint_loop (Object *owner, const char* substring, int d
 						}
 					}
 					break;
+				case CONSTRAINT_TYPE_STRETCHTO:
+					{
+						bStretchToConstraint *data = curcon->data;
+					
+						if (!exist_object(data->tar)){
+							data->tar = NULL;
+							break;
+						}
+
+						if (detect_constraint_loop (data->tar, data->subtarget, disable, CONSTRAINT_TYPE_LOCKTRACK)){
+							curcon->flag |= CONSTRAINT_DISABLE;
+							result = 1;
+							break;
+							//		return 1;
+						}
+					}
+					break;
 				case CONSTRAINT_TYPE_FOLLOWPATH:
 					{
 						bFollowPathConstraint *data = curcon->data;
@@ -824,6 +841,12 @@ char *get_con_subtarget_name(bConstraint *constraint, Object *target)
 		case CONSTRAINT_TYPE_LOCKTRACK:
 		{
 			bLockTrackConstraint *data = constraint->data;
+			if (data->tar==target) return data->subtarget;
+		}
+		break;
+		case CONSTRAINT_TYPE_STRETCHTO:
+		{
+			bStretchToConstraint *data = constraint->data;
 			if (data->tar==target) return data->subtarget;
 		}
 		break;
