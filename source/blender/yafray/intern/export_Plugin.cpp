@@ -764,8 +764,12 @@ void yafrayPluginRender_t::writeShader(const string &shader_name, Material* matr
 				if (tex->imaflag & TEX_CALCALPHA) ts += "calc_alpha ";
 				if (tex->imaflag & TEX_USEALPHA) ts += "use_alpha ";
 				if (tex->flag & TEX_NEGALPHA) ts += "neg_alpha";
-				mparams["alpha_flag"]=yafray::parameter_t(ts);
+				mparams["alpha_flag"] = yafray::parameter_t(ts);
 			}
+
+			// image as normalmap flag
+			if (tex->imaflag & TEX_NORMALMAP) mparams["normalmap"] = yafray::parameter_t("on");
+
 			lparams.push_back(mparams);
 		}
 	}

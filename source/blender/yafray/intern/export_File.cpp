@@ -784,6 +784,9 @@ void yafrayFileRender_t::writeShader(const string &shader_name, Material* matr, 
 				ostr << "\t\t<alpha_flag value=\"" << ts << "\" />\n";
 			}
 
+			// image as normalmap flag
+			if (tex->imaflag & TEX_NORMALMAP) ostr << "\t\t<normalmap value=\"on\" />\n";
+
 			ostr << "\t</modulator>\n";
 			xmlfile << ostr.str();
 
