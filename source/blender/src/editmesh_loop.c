@@ -722,66 +722,6 @@ parameters: mode tells the function what it should do with the loop:
 		LOOP_CUT = cut in half
 */	
 
-/* does the same as findnearestedge but both vertices of the edge should be on screen*/
-static EditEdge *findnearestvisibleedge()
-{
-	EditMesh *em = G.editMesh;
-	EditEdge *closest, *eed;
-	EditVert *eve;
-	short found=0, mval[2];
-	float distance[2], v1[2], v2[2], mval2[2];
-		
-	if(em->edges.first==0) return NULL;
-	else eed=em->edges.first;	
-	
-	/* reset flags */	
-	for(eve=em->verts.first; eve; eve=eve->next){
-		eve->f &= ~2;
-	}	
-	calc_meshverts_ext_f2();     	/*sets (eve->f & 2) for vertices that aren't visible*/
-	
-	closest=NULL;
-	getmouseco_areawin(mval);
-	
-	mval2[0] = (float)mval[0];    	/* cast to float because of the pdist function only taking floats...*/
-	mval2[1] = (float)mval[1];
-	
-	eed=em->edges.first;
-	while(eed) {      					/* compare the distance to the rest of the edges and find the closest one*/
-		if( !((eed->v1->f | eed->v2->f) & 2) && (eed->v1->h==0 && eed->v2->h==0) ){ 	/* only return edges with both vertices on screen */
-			v1[0] = eed->v1->xs;  			
-			v1[1] = eed->v1->ys;
-			v2[0] = eed->v2->xs;
-			v2[1] = eed->v2->ys;
-			
-			distance[1] = PdistVL2Dfl(mval2, v1, v2);
-			
-			if(distance[1]<50){    			/* TODO: make this maximum selecting distance selectable (the same with vertice select?) */
-				if(found) {              	/*do we have to compare it to other distances? */
-					if (distance[1]<distance[0]){
-						distance[0]=distance[1];
-						closest=eed;  	/*save the current closest edge*/
-					}
-				} else {
-					distance[0]=distance[1];
-					closest=eed;
-					found=1;
-				}
-			}
-		}
-		eed= eed->next;
-	}
-	
-	/* reset flags */	
-	for(eve=em->verts.first; eve; eve=eve->next){
-		eve->f &= ~2;
-	}
-	
-	if(found) return closest;
-	else return 0;
-}
-
-
 void loopoperations(char mode)
 {
 	EditMesh *em = G.editMesh;
@@ -802,6 +742,10 @@ void loopoperations(char mode)
 	
 	SetBlenderCursor(BC_VLOOPCURSOR);
 
+	/* Clear flags */
+	for(eed=em->edges.first; eed; eed=eed->next) eed->f2= 0;
+	for(efa= em->faces.first; efa; efa=efa->next) efa->f1= 0;
+	
 	start=NULL;
 	oldstart=NULL;
 
@@ -1196,6 +1140,13 @@ void loopoperations(char mode)
 			/* this also verifies other area/windows for clean swap */
 			screen_swapbuffers();
 			
+			/* backbuffer refresh for non-apples (no aux) */
+#ifndef __APPLE__
+			if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
+				backdrawview3d(0);
+			}
+#endif
+	
 			/*--------- END Preview Lines------------*/
 				
 		}/*if(start!=NULL){ */
