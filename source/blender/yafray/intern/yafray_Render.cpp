@@ -119,8 +119,9 @@ bool yafrayRender_t::exportScene()
 	clearAll();
 
 	// file exported, now render
-	string yfr = "yafray " + xmlpath;
-	if(system(yfr.c_str())==0)
+  char yfr[1024];
+  sprintf(yfr, "yafray -c %d \"%s\"", R.r.YF_numprocs, xmlpath.c_str());
+  if(system(yfr)==0)
 		displayImage();
 	else 
 	{

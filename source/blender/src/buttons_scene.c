@@ -1219,6 +1219,9 @@ static void render_panel_yafrayGI()
 	}
 	uiDefButF(block, NUMSLI, 0, "Gam ", 5,10,154,20, &G.scene->r.YF_gamma, 0.001, 5.0, 0, 0, "Gamma correction, 1 is off");
 	uiDefButF(block, NUMSLI, 0, "Exp ", 159,10,154,20, &G.scene->r.YF_exposure, 0.0, 10.0, 0, 0, "Exposure adjustment, 0 is off");
+        
+  uiDefButI(block, NUM, 0, "Processors:", 159,35,154,20,
+				&G.scene->r.YF_numprocs, 1.0, 8.0, 10, 10, "Number of processors to use");
 
 	if (G.scene->r.GImethod==2) {
 		if (G.scene->r.GIdepth==0) G.scene->r.GIdepth=2;
