@@ -499,7 +499,7 @@ static void ui_scale_panel_block(uiBlock *block)
 	if( block->maxx-block->minx > block->panel->sizex - 2*PNL_SAFETY ) {
 		facx= (block->panel->sizex - (2*PNL_SAFETY))/( block->maxx-block->minx );
 	}
-	else centrex= (block->panel->sizex-( block->maxx-block->minx ) - PNL_SAFETY)/2;
+	else centrex= (block->panel->sizex-( block->maxx-block->minx ) - 2*PNL_SAFETY)/2;
 	
 	// tabsy= PNL_HEADER*panel_has_tabs(block->panel);
 	if( (block->maxy-block->miny) > block->panel->sizey - 2*PNL_SAFETY - tabsy) {
