@@ -175,6 +175,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Metaball.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\MTex.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\NMesh.c
 # End Source File
 # Begin Source File
@@ -204,6 +208,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Sys.c
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\Text.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\Texture.c
 # End Source File
 # Begin Source File
 
@@ -323,6 +331,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\modules.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\MTex.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\NMesh.h
 # End Source File
 # Begin Source File
@@ -352,6 +364,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Sys.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\Text.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\Texture.h
 # End Source File
 # Begin Source File
 
