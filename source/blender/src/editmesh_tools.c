@@ -3356,7 +3356,7 @@ void bevel_mesh(float bsize, int allfaces)
 	removedoublesflag(1, limit);
 
 	/* flush selected vertices to edges/faces */
-	EM_select_flush();
+	EM_selectmode_set();
 
 #undef BEV_DEBUG
 }

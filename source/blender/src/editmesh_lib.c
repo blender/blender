@@ -1519,13 +1519,13 @@ int convex(float *v1, float *v2, float *v3, float *v4)
 	nor[1]= ABS(nor1[1]) + ABS(nor2[1]);
 	nor[2]= ABS(nor1[2]) + ABS(nor2[2]);
 
-	if(nor[2] > nor[0] && nor[2] > nor[1]) {
+	if(nor[2] >= nor[0] && nor[2] >= nor[1]) {
 		vec[0][0]= v1[0]; vec[0][1]= v1[1];
 		vec[1][0]= v2[0]; vec[1][1]= v2[1];
 		vec[2][0]= v3[0]; vec[2][1]= v3[1];
 		vec[3][0]= v4[0]; vec[3][1]= v4[1];
 	}
-	else if(nor[1] > nor[0] && nor[1]> nor[2]) {
+	else if(nor[1] >= nor[0] && nor[1]>= nor[2]) {
 		vec[0][0]= v1[0]; vec[0][1]= v1[2];
 		vec[1][0]= v2[0]; vec[1][1]= v2[2];
 		vec[2][0]= v3[0]; vec[2][1]= v3[2];
