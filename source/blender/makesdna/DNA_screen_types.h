@@ -128,6 +128,8 @@ typedef struct ScrArea {
 #define B_SCROLL 8
 #define HOR_SCROLL 12
 
+/* dunno who thought this below is nice code, but be warned, the values are written in
+   a file, and cannot be switched or altered. enum here is out of focus (ton) */
 enum {
 	SPACE_EMPTY,
 	SPACE_VIEW3D,

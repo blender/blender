@@ -197,7 +197,7 @@ typedef struct SpaceImage {
 typedef struct SpaceNla{
 	struct SpaceLink *next, *prev;
 	int spacetype;
-	int lock;
+	short menunr, lock;
 	struct ScrArea *area;
 
 	View2D v2d;	
