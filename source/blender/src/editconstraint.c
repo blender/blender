@@ -501,9 +501,10 @@ static short detect_constraint_loop (Object *owner, const char* substring, int d
 								//	return 1;
 							}
 						}
-						if (typefrom == CONSTRAINT_TYPE_TRACKTO && typefrom == CONSTRAINT_TYPE_LOCKTRACK){
+						else {
 							curcon->flag |= CONSTRAINT_NOREFRESH;
 						}
+
 						if (detect_constraint_loop (data->tar, data->subtarget, disable, CONSTRAINT_TYPE_TRACKTO)){
 							curcon->flag |= CONSTRAINT_DISABLE;
 							result = 1;
@@ -541,9 +542,10 @@ static short detect_constraint_loop (Object *owner, const char* substring, int d
 								//		return 1;
 							}
 						}
-						if (typefrom == CONSTRAINT_TYPE_TRACKTO && typefrom == CONSTRAINT_TYPE_LOCKTRACK){
+						else {
 							curcon->flag |= CONSTRAINT_NOREFRESH;
 						}
+
 						if (detect_constraint_loop (data->tar, data->subtarget, disable, CONSTRAINT_TYPE_LOCKTRACK)){
 							curcon->flag |= CONSTRAINT_DISABLE;
 							result = 1;
