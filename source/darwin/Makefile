@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.1.1.1 2002/10/12 11:37:43 hans Exp $
+# $Id: Makefile,v 1.2 2002/10/13 15:57:12 hans Exp $
 #
 # ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
 #
@@ -42,6 +42,8 @@ all::
 	@#cat $(APPLICATION).app/Contents/Info.plist | sed s/VERSION/`cat ../../VERSION`/ | sed s/DATE/`date +'%Y-%b-%d'`/ > $(DIR)/$(APPLICATION).app/Contents/Info.plist
 	@echo "---> copying binary"
 	@cp $(DIR)/$(APPLICATION) $(DIR)/$(APPLICATION).app/Contents/MacOS/
+	@echo "---> adding excutable attributes"
+	@chmod +x $(DIR)/$(APPLICATION).app/Contents/MacOS/$(APPLICATION)
 	@echo "---> removing CVS directories and Mac hidden files from distribution"
 	@find $(DIR)/$(APPLICATION).app -name CVS -prune -exec rm -rf {} \;
 	@find $(DIR)/$(APPLICATION).app -name .DS_Store -exec rm -f {} \;
