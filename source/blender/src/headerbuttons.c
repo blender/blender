@@ -482,7 +482,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 		uiDefButS(block, TOG, browse, "Add New" ,xco, yco, 110, YIC, menupoin, (float)*menupoin, 32767.0, 0, 0, "Add new data block");
 		xco+= 110;
 	}
-	xco+=XIC;
+	//xco+=XIC;
 	
 	uiBlockSetCol(block, oldcol);
 	uiBlockEndAlign(block);
