@@ -261,6 +261,9 @@ SND_OpenALDevice::SND_OpenALDevice()
 	{
 #ifdef OUDE_OPENAL
 		ALenum alc_error = ALC_NO_ERROR;	// openal_2.12
+#elif _WIN32
+		// alcGetError has no arguments on windows
+		ALenum alc_error = alcGetError();       // openal_2.14+
 #else
 		ALenum alc_error = alcGetError(NULL);	// openal_2.14+
 #endif
