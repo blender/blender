@@ -288,6 +288,50 @@ static void make_fgon(void)
 	}
 }
 
+/* precondition; 4 vertices selected, check for 4 edges and create face */
+static EditFace *addface_from_edges(void)
+{
+	EditMesh *em = G.editMesh;
+	EditEdge *eed, *eedar[4]={NULL, NULL, NULL, NULL};
+	EditVert *v1=NULL, *v2=NULL, *v3=NULL, *v4=NULL;
+	int a;
+	
+	/* find the 4 edges */
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		if(eed->f & SELECT) {
+			if(eedar[0]==NULL) eedar[0]= eed;
+			else if(eedar[1]==NULL) eedar[1]= eed;
+			else if(eedar[2]==NULL) eedar[2]= eed;
+			else eedar[3]= eed;
+		}
+	}
+	if(eedar[3]) {
+		/* first 2 points */
+		v1= eedar[0]->v1;
+		v2= eedar[0]->v2;
+		
+		/* find the 2 edges connected to first edge */
+		for(a=1; a<4; a++) {
+			if( eedar[a]->v1 == v2) v3= eedar[a]->v2;
+			else if(eedar[a]->v2 == v2) v3= eedar[a]->v1;
+			else if( eedar[a]->v1 == v1) v4= eedar[a]->v2;
+			else if(eedar[a]->v2 == v1) v4= eedar[a]->v1;
+		}
+		
+		/* verify if last edge exists */
+		if(v3 && v4) {
+			for(a=1; a<4; a++) {
+				if( eedar[a]->v1==v3 && eedar[a]->v2==v4) break;
+				if( eedar[a]->v2==v3 && eedar[a]->v1==v4) break;
+			}
+			if(a!=4) {
+				return addfacelist(v1, v2, v3, v4, NULL, NULL);
+			}
+		}
+	}
+	return NULL;
+}
+
 void addedgeface_mesh(void)
 {
 	EditMesh *em = G.editMesh;
@@ -352,11 +396,14 @@ void addedgeface_mesh(void)
 			if(tria==2) join_triangles();
 			else {
 				
-				if( convex(neweve[0]->co, neweve[1]->co, neweve[2]->co, neweve[3]->co) ) {
-					efa= addfacelist(neweve[0], neweve[1], neweve[2], neweve[3], NULL, NULL);
-					EM_select_face(efa, 1);
+				/* if 4 edges exist, we just create the face, convex or not */
+				efa= addface_from_edges();
+				if(efa==NULL) {
+					if( convex(neweve[0]->co, neweve[1]->co, neweve[2]->co, neweve[3]->co) ) {
+						efa= addfacelist(neweve[0], neweve[1], neweve[2], neweve[3], NULL, NULL);
+					}
+					else error("The selected vertices form a concave quad");
 				}
-				else error("The selected vertices form a concave quad");
 			}
 
 		}
@@ -367,6 +414,7 @@ void addedgeface_mesh(void)
 		float inp;	
 		/* dot product view mat with normal, should give info! */
 	
+		EM_select_face(efa, 1);
 		CalcNormFloat(efa->v1->co, efa->v2->co, efa->v3->co, efa->n);
 
 		inp= efa->n[0]*G.vd->viewmat[0][2] + efa->n[1]*G.vd->viewmat[1][2] + efa->n[2]*G.vd->viewmat[2][2];

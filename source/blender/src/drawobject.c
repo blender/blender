@@ -1506,6 +1506,10 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 	if(ob->transflag & OB_NEG_SCALE) glFrontFace(GL_CW);
 	else glFrontFace(GL_CCW);
 	
+	if(ob->type==OB_MBALL) {	// mball always smooth shaded
+		glShadeModel(GL_SMOOTH);
+	}
+	
 	dl= lb->first;
 	while(dl) {
 		data= dl->verts;
