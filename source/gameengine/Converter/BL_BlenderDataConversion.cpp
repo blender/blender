@@ -503,7 +503,7 @@ static PHY_ShapeProps *CreateShapePropsFromBlenderObject(struct Object* blendero
 	
 
 
-float my_boundbox_mesh(Mesh *me, float *loc, float *size)
+static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 {
 	MVert *mvert;
 	BoundBox *bb;
@@ -560,7 +560,7 @@ float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 
 
 
-void my_tex_space_mesh(Mesh *me)
+static void my_tex_space_mesh(Mesh *me)
 		{
 	KeyBlock *kb;
 	float *fp, loc[3], size[3], min[3], max[3];
@@ -610,30 +610,38 @@ void my_tex_space_mesh(Mesh *me)
 	
 }
 
-void my_get_local_bounds(Object *ob, float *centre, float *size)
+static void my_get_local_bounds(Object *ob, float *centre, float *size)
 {
 	BoundBox *bb= NULL;
 	/* uses boundbox, function used by Ketsji */
-	
-	if(ob->type==OB_MESH) {
-		bb= ( (Mesh *)ob->data )->bb;
-		if(bb==0) {
-			my_tex_space_mesh((struct Mesh *)ob->data);
+	switch (ob->type)
+	{
+		case OB_MESH:
 			bb= ( (Mesh *)ob->data )->bb;
-		}
+			if(bb==0) 
+			{
+				my_tex_space_mesh((struct Mesh *)ob->data);
+				bb= ( (Mesh *)ob->data )->bb;
+			}
+			break;
+		case OB_CURVE:
+		case OB_SURF:
+		case OB_FONT:
+			centre[0]= centre[1]= centre[2]= 0.0;
+			size[0]  = size[1]=size[2]=0.0;
+			break;
+		case OB_MBALL:
+			bb= ob->bb;
+			break;
 	}
-	else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
+	
+	if(bb==NULL) 
+	{
 		centre[0]= centre[1]= centre[2]= 0.0;
-		size[0]  = size[1]=size[2]=0.0;
+		size[0] = size[1]=size[2]=1.0;
 	}
-	else if(ob->type==OB_MBALL) {
-		bb= ob->bb;
-						}
-	if(bb==NULL) {
-		centre[0]= centre[1]= centre[2]= 0.0;
-		size[0] = size[1]=size[2]=0.0;
-					}
-	else {
+	else 
+	{
 		size[0]= 0.5*fabs(bb->vec[0][0] - bb->vec[4][0]);
 		size[1]= 0.5*fabs(bb->vec[0][1] - bb->vec[2][1]);
 		size[2]= 0.5*fabs(bb->vec[0][2] - bb->vec[1][2]);
@@ -641,7 +649,7 @@ void my_get_local_bounds(Object *ob, float *centre, float *size)
 		centre[0]= 0.5*(bb->vec[0][0] + bb->vec[4][0]);
 		centre[1]= 0.5*(bb->vec[0][1] + bb->vec[2][1]);
 		centre[2]= 0.5*(bb->vec[0][2] + bb->vec[1][2]);
-					}
+	}
 }
 	
 
@@ -707,6 +715,14 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 				objprop.m_boundobject.box.m_extends[1]=2.f*bb.m_extends[1];
 				objprop.m_boundobject.box.m_extends[2]=2.f*bb.m_extends[2];
 				break;
+			case OB_BOUND_POLYH:
+				if (blenderobject->type == OB_MESH)
+				{
+					objprop.m_boundclass = KX_BOUNDMESH;
+					break;
+				}
+				// Object is not a mesh... can't use polyheder. 
+				// Fall through and become a sphere.
 			case OB_BOUND_SPHERE:
 			{
 				objprop.m_boundclass = KX_BOUNDSPHERE;
@@ -725,11 +741,6 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 				objprop.m_boundclass = KX_BOUNDCONE;
 				objprop.m_boundobject.c.m_radius = MT_max(bb.m_extends[0], bb.m_extends[1]);
 				objprop.m_boundobject.c.m_height = 2.f*bb.m_extends[2];
-				break;
-			}
-			case OB_BOUND_POLYH:
-			{
-				objprop.m_boundclass = KX_BOUNDMESH;
 				break;
 			}
 		}
