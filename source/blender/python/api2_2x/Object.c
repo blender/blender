@@ -777,11 +777,9 @@ static PyObject *Object_getEuler (BPy_Object *self)
 static PyObject *Object_getInverseMatrix (BPy_Object *self)
 {
 	MatrixObject *inverse = (MatrixObject *)newMatrixObject(NULL, 4, 4);
-	
 	Mat4Invert (*inverse->matrix, self->object->obmat);
 
 	return ((PyObject *)inverse);
-
 }
 
 static PyObject *Object_getIpo(BPy_Object *self)
@@ -818,11 +816,12 @@ static PyObject *Object_getMaterials (BPy_Object *self)
 
 static PyObject *Object_getMatrix (BPy_Object *self)
 {
-	Object	* ob;
+	PyObject * matrix;
 
-	ob = self->object;
+	matrix = newMatrixObject(NULL, 4, 4);
+	object_to_mat4(self->object, *((MatrixObject*)matrix)->matrix);
 
-	return (PyObject*)newMatrixObject((float*)ob->obmat, 4, 4);
+	return matrix;
 }
 
 static PyObject *Object_getName (BPy_Object *self)
