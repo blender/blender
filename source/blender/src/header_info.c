@@ -700,7 +700,8 @@ static void do_info_file_exportmenu(void *arg, int event)
 	ScrArea *sa;
 
 	if(curarea->spacetype==SPACE_INFO) {
-		sa= closest_bigger_area();
+		sa= find_biggest_area_of_type(SPACE_SCRIPT);
+		if (!sa) sa= closest_bigger_area();
 		areawinset(sa->win);
 	}
 

@@ -301,6 +301,7 @@
 #define B_TEMPDIRFILESEL  	337
 /* yafray: for exportdir select */
 #define B_YAFRAYDIRFILESEL	338
+#define B_PYMENUEVAL	339 /* re-eval scripts registration in menus */
 /* END Definitions for the fileselect buttons in user prefs */
 
 /* IMAGE: 350 */

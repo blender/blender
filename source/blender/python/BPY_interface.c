@@ -273,7 +273,7 @@ void init_syspath(void)
 void BPY_post_start_python(void)
 {
   syspath_append(Py_BuildValue("s", U.pythondir));
-	BPyMenu_Init(); /* get dynamic menus (registered scripts) data */
+	BPyMenu_Init(0); /* get dynamic menus (registered scripts) data */
 }
 
 /*****************************************************************************/

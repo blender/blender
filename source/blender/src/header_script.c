@@ -114,6 +114,27 @@ static uiBlock *script_scripts_submenus(void *int_menutype)
 	return block;
 }
 
+static void do_script_scriptsmenu(void *arg, int event)
+{
+	ScrArea *sa;
+	char dir[FILE_MAXDIR];
+	
+	if(curarea->spacetype==SPACE_INFO) {
+		sa= closest_bigger_area();
+		areawinset(sa->win);
+	}
+
+	/* these are no defines, easier this way, the codes are in the function below */
+	switch(event) {
+	case 0: /* update menus */
+		BPyMenu_RemoveAllEntries();
+		if (BPyMenu_Init(1) == -1) error("Invalid scripts dir: check console");
+		break;
+	}
+
+//	allqueue(REDRAWSCRIPT, 0);
+}
+
 /* Scripts menu */
 static uiBlock *script_scriptsmenu(void *arg_unused)
 {
@@ -124,11 +145,13 @@ static uiBlock *script_scriptsmenu(void *arg_unused)
 	int i;
 
 	block= uiNewBlock(&curarea->uiblocks, "script_scriptsmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
-	//uiBlockSetButmFunc(block, do_script_scriptsmenu, NULL);
+	uiBlockSetButmFunc(block, do_script_scriptsmenu, NULL);
 
 	for (i = 0; i < PYMENU_TOTAL; i++) {
 		uiDefIconTextBlockBut(block, script_scripts_submenus, (void *)i, ICON_RIGHTARROW_THIN, BPyMenu_group_itoa(i), 0, yco-=20, menuwidth, 19, "");
 	}
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Update Menus", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "Use when you modify the scripts dir or its contents");
 
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);

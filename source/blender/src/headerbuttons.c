@@ -168,6 +168,7 @@
 #include "BDR_editmball.h"
 
 #include "BPY_extern.h"
+#include "BPY_menus.h"
 
 #include "mydevice.h"
 #include "blendef.h"
@@ -1502,6 +1503,11 @@ void do_global_buttons(unsigned short event)
 		activate_fileselect(FILE_SPECIAL, "SELECT RENDER PATH", U.renderdir, filesel_u_renderdir);
 		break;
 
+	case B_PYMENUEVAL: /* is button from space.c *info* */
+		BPyMenu_RemoveAllEntries(); /* free old data */
+		if (BPyMenu_Init(1) == -1) /* re-eval scripts registration in menus */
+			error("Invalid scripts dir: check console");
+		break;
 	case B_PYTHONDIRFILESEL:	/* is button from space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
 			sa= closest_bigger_area();

@@ -61,6 +61,7 @@ typedef struct BPyMenu {
 	char *name;
 	char *filename;
 	char *tooltip;
+	short version; /* Blender version */
 	struct BPySubMenu *submenus;
 	struct BPyMenu *next;
 } BPyMenu;
@@ -89,7 +90,7 @@ typedef enum {
 BPyMenu *BPyMenuTable[PYMENU_TOTAL];
 
 /* public functions: */
-void BPyMenu_Init(void);
+int BPyMenu_Init(int usedir);
 void BPyMenu_RemoveAllEntries(void);
 void BPyMenu_PrintAllEntries(void);
 char *BPyMenu_CreatePupmenuStr(BPyMenu *pym, short group);

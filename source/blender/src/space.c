@@ -1929,7 +1929,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 	medprefbut = 193;	/* standard size for medium preferences button */
 	largeprefbut = 292;	/* standard size for large preferences button */
 	smfileselbut = buth;	/* standard size for fileselect button (square) */
-	
+
 	edgespace = 3;		/* space from edge of end 'tab' to edge of end button */
 	midspace = 5;		/* horizontal space between buttons */
 
@@ -2474,8 +2474,11 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			0, 0, 0, 0, 0, "Select the default render output location");
 
 		uiDefBut(block, TEX, 0, "Python: ",
-			(xpos+edgespace+largeprefbut+midspace),y1,(largeprefbut-smfileselbut),buth,
+			(xpos+edgespace+largeprefbut+midspace),y1,(largeprefbut-2*smfileselbut),buth,
 			U.pythondir, 1.0, 63.0, 0, 0, "The default directory to search for Python scripts");
+		uiDefIconBut(block, BUT, B_PYMENUEVAL, ICON_SCRIPT,
+			(xpos+edgespace+(2*largeprefbut)+midspace-2*smfileselbut),y1,smfileselbut,buth,
+			0, 0, 0, 0, 0, "Re-evaluate scripts registration in menus");
 		uiDefIconBut(block, BUT, B_PYTHONDIRFILESEL, ICON_FILESEL,
 			(xpos+edgespace+(2*largeprefbut)+midspace-smfileselbut),y1,smfileselbut,buth,
 			0, 0, 0, 0, 0, "Select the default Python script location");

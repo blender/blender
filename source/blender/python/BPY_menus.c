@@ -184,7 +184,7 @@ static void bpymenu_set_tooltip (BPyMenu *pymenu, char *tip)
  * try to find an existing pymenu entry with the given type and name;
  * if found, update it with new info, otherwise create a new one and fill it.
  */
-static BPyMenu *bpymenu_AddEntry (short group, char *name, char *fname, char *tooltip)
+static BPyMenu *bpymenu_AddEntry (short group, short version, char *name, char *fname, char *tooltip)
 {
 	BPyMenu *menu, **iter;
 
@@ -204,6 +204,7 @@ static BPyMenu *bpymenu_AddEntry (short group, char *name, char *fname, char *to
 	if (!menu) return NULL;
 
 	menu->name = BLI_strdup(name);
+	menu->version = version;
 	menu->filename = BLI_strdup(fname);
 	menu->tooltip = NULL;
 	if (tooltip) menu->tooltip = BLI_strdup(tooltip);
@@ -250,7 +251,7 @@ static void bpymenu_CreateFromFile (void)
 {
 	FILE *fp;
 	char line[255], w1[255], w2[255], tooltip[255], *tip;
-	int parsing;
+	int parsing, version;
 	short group;
 	BPyMenu *pymenu = NULL;
 
@@ -298,16 +299,16 @@ static void bpymenu_CreateFromFile (void)
 			if (line[0] == '}') break;
 			else if (line[0] == '\n') continue;
 			else if (line[0] == '\'') { /* menu entry */
-				parsing = sscanf(line, "'%[^']' %s '%[^']'\n", w1, w2, tooltip);
+				parsing = sscanf(line, "'%[^']' %d %s '%[^']'\n", w1, &version, w2, tooltip);
 
 				if (parsing <= 0) { /* invalid line, get rid of it */
 					fgets(line, 255, fp); /* add error report later */
 				}
 				else if (parsing == 3) tip = tooltip; /* has tooltip */
 
-				pymenu = bpymenu_AddEntry(group, w1, w2, tip);
+				pymenu = bpymenu_AddEntry(group, (short)version, w1, w2, tip);
 				if (!pymenu) {
-					puts("BpyMenus error: couldn't create bpymenu entry.\n");
+					puts("BPyMenus error: couldn't create bpymenu entry.\n");
 					fclose(fp);
 					return;
 				}
@@ -351,7 +352,7 @@ static void bpymenu_WriteDataFile(void)
 		if (!pymenu) continue;
 		fprintf(fp, "\n%s {\n", BPyMenu_group_itoa(i));
 		while (pymenu) {
-			fprintf(fp, "'%s' %s", pymenu->name, pymenu->filename);
+			fprintf(fp,"'%s' %d %s", pymenu->name, pymenu->version, pymenu->filename);
 			if (pymenu->tooltip) fprintf(fp, " '%s'\n", pymenu->tooltip);
 			else fprintf(fp, "\n");
 			smenu = pymenu->submenus;
@@ -383,7 +384,7 @@ void BPyMenu_PrintAllEntries(void)
 		pymenu = BPyMenuTable[i];
 		printf("\n%s {\n", BPyMenu_group_itoa(i));
 		while (pymenu) {
-			printf("'%s' %s", pymenu->name, pymenu->filename);
+			printf("'%s' %d %s", pymenu->name, pymenu->version, pymenu->filename);
 			if (pymenu->tooltip) printf(" '%s'\n", pymenu->tooltip);
 			else printf("\n");
 			smenu = pymenu->submenus;
@@ -411,7 +412,7 @@ static void bpymenu_CreateFromDir (void)
 	char *s, *fname, str[FILE_MAXFILE+FILE_MAXDIR];
 	char line[100], w[100];
 	char name[100], submenu[100], subarg[100], tooltip[100];
-	int res = 0;
+	int res = 0, version = 0;
 
 	dir = opendir(U.pythondir);
 
@@ -470,12 +471,15 @@ static void bpymenu_CreateFromDir (void)
 		 * 
 		 * Name: 'script name for the menu'
 		 * Group: 'group name' (defines menu)
+		 * Blender: <short int> (minimal Blender version)
 		 * Submenu: 'submenu name' related_1word_arg
 		 * Tooltip: 'tooltip for the menu'
 		 *
 		 * notes:
 		 * - there may be more than one submenu line, or none:
 		 * submenus and the tooltip are optional;
+		 * - the Blender version is the same number reported by
+		 * Blender.Get('version') in BPython or G.version in C;
 		 * - only the first letter of each token is checked, both lower
 		 * and upper cases, so that's all that matters for recognition:
 		 * n 'script name' is enough for the name line, for example. */ 
@@ -488,6 +492,13 @@ static void bpymenu_CreateFromDir (void)
 		}
 
 		line[0] = '\0'; /* used as group for this part */
+
+		/* minimal Blender version: */
+		res = fscanf(fp, "%s %d\n", w, &version);
+		if ((res != 2) || (w[0] != 'b' && w[0] != 'B')) {
+			printf("BPyMenus error: wrong 'blender' line in %s.\n", str);
+			goto discard;
+		}
 
 		/* the group: */
 		res = fscanf(fp, "%[^']'%[^'\r\n]'\n", w, line);
@@ -502,7 +513,7 @@ static void bpymenu_CreateFromDir (void)
 			goto discard;
 		}
 
-		pymenu = bpymenu_AddEntry(res, name, fname, NULL);
+		pymenu = bpymenu_AddEntry(res, (short)version, name, fname, NULL);
 		if (!pymenu) {
 			printf("BPyMenus error: couldn't create entry for %s.\n", str);
 			fclose(fp);
@@ -537,52 +548,64 @@ discard:
  * - the BPYMENU_DATAFILE file (~/.Bpymenus) or
  * - the scripts dir, case it's newer than the datafile (then update the file).
  * then fill the bpymenu table with this data.
+ * if param usedir != 0, then the data is recreated from the dir anyway.
 */
-void BPyMenu_Init(void)
+int BPyMenu_Init(int usedir)
 {
 	char fname[FILE_MAXDIR+FILE_MAXFILE];
 	struct stat st;
-	time_t tdir, tfile;
+	time_t tdir, tfile = 0;
 	int result = 0;
 
 	result = stat(U.pythondir, &st);
 
 	if (result == -1) {
-		printf ("\n# Scripts dir: %s\nError: %s\n", U.pythondir, strerror(errno));
-		printf ("# Please go to 'Info window -> File Paths tab' and set a valid "
-						"# path for\nthe Blender Python scripts dir.\n");
-		return;
+		printf ("\n# Scripts dir: %s\n# Error: %s\n", U.pythondir, strerror(errno));
+		printf ("# Please go to 'Info window -> File Paths tab' and set a valid\n"
+						"# path for the Blender Python scripts dir.\n");
+		return -1;
 	}
 
 	if (!S_ISDIR(st.st_mode)) {
 		printf ("\n# Scripts dir: %s is not a directory!", U.pythondir);
-		printf ("# Please go to 'Info window -> File Paths tab' and set a valid "
+		printf ("# Please go to 'Info window -> File Paths tab' and set a valid\n"
 						"# path for\nthe Blender Python scripts dir.\n");
-		return;
+		return -1;
 	}
 
 	printf("Registering scripts in Blender menus:\n");
 
 	tdir = st.st_mtime;
 
-	BLI_make_file_string(NULL, fname, BLI_gethome(), BPYMENU_DATAFILE);
+	if (!usedir) { /* if we're not forced to use the dir */
+		BLI_make_file_string(NULL, fname, BLI_gethome(), BPYMENU_DATAFILE);
 
-	result = stat(fname, &st);
-	if ((result == -1) || !S_ISREG(st.st_mode)) tfile = 0;
-	else tfile = st.st_mtime;
+		result = stat(fname, &st);
+		if ((result != -1) && S_ISREG(st.st_mode)) tfile = st.st_mtime;
+	}
 
 	/* comparing dates */
 
 	if (tdir > tfile) { /* if so, dir is newer */
 		printf("Getting menu data from dir: %s\n", U.pythondir);
 		bpymenu_CreateFromDir();
-		bpymenu_WriteDataFile(); /* recreate the file */
-		return;
+
+		/* check if we got any data */
+		for (result = 0; result < PYMENU_TOTAL; result++)
+			if (BPyMenuTable[result]) break;
+		/* if we got, recreate the file */
+		if (result < PYMENU_TOTAL) bpymenu_WriteDataFile();
+		else
+			printf ("# Warning: Registering scripts in menus -- no info found.\n"
+							"# Either your scripts dir has no .py scripts or they don't\n"
+							"# have registration data.\n");
+
+		return 0;
 	}
 	else { /* file is newer */
 		printf("Getting menu data from file: %s\n", fname);
 		bpymenu_CreateFromFile();
 	}
 
-	return;
+	return 0;
 }

@@ -24,7 +24,8 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano, Jordi Rovira i Bonet, Joseph Gilbert
+ * Contributor(s): Willian P. Germano, Jordi Rovira i Bonet, Joseph Gilbert,
+ * Bala Gi
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -845,12 +846,6 @@ static PyObject *NMesh_update(PyObject *self, PyObject *args)
 	mesh_update(mesh);
 
 	nmesh_updateMaterials(nmesh);
-/**@ This is another ugly fix due to the weird material handling of blender.
-	* it makes sure that object material lists get updated (by their length)
-	* according to their data material lists, otherwise blender crashes.
-	* It just stupidly runs through all objects...BAD BAD BAD.
-	*/
-	test_object_materials((ID *)mesh);
 
 	if (nmesh->name && nmesh->name != Py_None)
 		new_id(&(G.main->mesh), &mesh->id, PyString_AsString(nmesh->name));
@@ -1775,6 +1770,14 @@ Material **nmesh_updateMaterials(BPy_NMesh *nmesh)
 		matlist = 0;
 	}
 	mesh->totcol = len;
+
+/**@ This is another ugly fix due to the weird material handling of blender.
+	* it makes sure that object material lists get updated (by their length)
+	* according to their data material lists, otherwise blender crashes.
+	* It just stupidly runs through all objects...BAD BAD BAD.
+	*/
+	test_object_materials((ID *)mesh);
+
 	return matlist;
 }
 
@@ -1949,12 +1952,6 @@ static int convert_NMeshToMesh (Mesh *mesh, BPy_NMesh *nmesh)
 			if (newmc) newmc += 4; /* there are 4 MCol's per face */
 		}
 	}
-
-	//-- balagi 01/14/2004 , fix supplied by ascotan
-	if(nmesh->materials){ 
-		mesh->mat = EXPP_newMaterialList_fromPyList (nmesh->materials); 
-	}
-	//-- balagi end
 
 	return 1;
 }
@@ -2213,6 +2210,9 @@ Mesh *Mesh_FromPyObject (PyObject *pyobj, Object *ob)
 			new_id(&(G.main->mesh), &mesh->id, PyString_AsString(nmesh->name));
 
 		mesh_update(mesh);
+
+		nmesh_updateMaterials(nmesh);
+
 		return mesh;
 	}
 

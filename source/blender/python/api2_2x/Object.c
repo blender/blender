@@ -27,7 +27,8 @@
  * the Python interface.
  *
  *
- * Contributor(s): Michel Selten
+ * Contributor(s): Michel Selten, Willian Germano, Jacques Guignot,
+ * Joseph Gilbert, Stephen Swaney, Bala Gi
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -992,17 +993,13 @@ static PyObject *Object_link (BPy_Object *self, PyObject *args)
 				"Linking this object type is not supported"));
 	}
 	self->object->data = data;
-	
-	//-- balagi 01/14/2004
-	/*
-		if a mesh is shared the self->object material list must be setup properly !
-	*/
-	if ( self->object->type == OB_MESH && id )
+
+	if ( self->object->type == OB_MESH)
 	{
+		self->object->totcol = 0;
 		EXPP_synchronizeMaterialLists(self->object, id);
 	}
-	//-- balagi end
-	
+
 	id_us_plus (id);
 	if (oldid)
 	{
@@ -1343,8 +1340,8 @@ static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args)
 			id = (ID*) object->object->data;
 			self->object->data = object->object->data;
 
-			//if a mesh is shared the self->object material list must be setup properly ! - balagi
 			if ( self->object->type == OB_MESH && id ){
+				self->object->totcol = 0;
 				EXPP_synchronizeMaterialLists(self->object, id);
 			}
 			
