@@ -485,35 +485,71 @@ void mywindow(float x1, float x2, float y1, float y2, float n, float f)
 	bwin_frustum(curswin, x1, x2, y1, y2, n, f);
 }
 
+#ifdef __APPLE__
+
+/* apple seems to round colors to below and up on some configs */
+
 unsigned int index_to_framebuffer(int index)
 {
 	unsigned int i= index;
 
 	switch(mainwin_color_depth) {
-	case 8:
-		i= ((i & 48)<<18) + ((i & 12)<<12) + ((i & 3)<<6);
-		i |= 0x3F3F3F;
-		break;
 	case 12:
 		i= ((i & 0xF00)<<12) + ((i & 0xF0)<<8) + ((i & 0xF)<<4);
 		/* sometimes dithering subtracts! */
-		i |= 0x0F0F0F;
+		i |= 0x070707;
 		break;
 	case 15:
 	case 16:
 		i= ((i & 0x7C00)<<9) + ((i & 0x3E0)<<6) + ((i & 0x1F)<<3);
-		i |= 0x070707;
+		i |= 0x030303;
 		break;
 	case 24:
 		break;
-	default:	// 18 bits... not enuf
+	default:	// 18 bits... 
 		i= ((i & 0x3F000)<<6) + ((i & 0xFC0)<<4) + ((i & 0x3F)<<2);
-		i |= 0x030303;
+		i |= 0x010101;
 		break;
 	}
 	
 	return i;
 }
+
+#else
+
+/* this is the old method as being in use for ages.... seems to work? colors are rounded to lower values */
+
+unsigned int index_to_framebuffer(int index)
+{
+	unsigned int i= index;
+	
+	switch(mainwin_color_depth) {
+		case 8:
+			i= ((i & 48)<<18) + ((i & 12)<<12) + ((i & 3)<<6);
+			i |= 0x3F3F3F;
+			break;
+		case 12:
+			i= ((i & 0xF00)<<12) + ((i & 0xF0)<<8) + ((i & 0xF)<<4);
+			/* sometimes dithering subtracts! */
+			i |= 0x0F0F0F;
+			break;
+		case 15:
+		case 16:
+			i= ((i & 0x7C00)<<9) + ((i & 0x3E0)<<6) + ((i & 0x1F)<<3);
+			i |= 0x070707;
+			break;
+		case 24:
+			break;
+		default:	// 18 bits... 
+			i= ((i & 0x3F000)<<6) + ((i & 0xFC0)<<4) + ((i & 0x3F)<<2);
+			i |= 0x030303;
+			break;
+	}
+	
+	return i;
+}
+
+#endif
 
 int framebuffer_to_index(unsigned int col)
 {
@@ -616,6 +652,7 @@ static int ov_x, ov_y, ov_sx, ov_sy;
 
 /*
 #if defined(__sgi) || defined(__sun) || defined(__sun__) || defined (__sparc) || defined (__sparc__)
+*/
 /* this is a dirty patch: gets sometimes the backbuffer */
 /* my_get_frontbuffer_image(0, 0, 1, 1);
 my_put_frontbuffer_image();
