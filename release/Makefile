@@ -102,6 +102,8 @@ install: package
 ifneq ($(OS), darwin)
 	@[ ! -d $(OCGDIR)/bin/.blender ] || \
 		cp -r $(OCGDIR)/bin/.blender $(DISTDIR)
+	cp $(NANBLENDERHOME)/bin/.blender/.Blanguages $(DISTDIR)/.blender
+	cp $(NANBLENDERHOME)/bin/.blender/.bfont.ttf $(DISTDIR)/.blender
 endif
 
 # Python scripts removed for 2.14
