@@ -6,6 +6,7 @@ blenloader_env = library_env.Copy ()
 
 source_files = ['intern/genfile.c',
                 'intern/readblenentry.c',
+                'intern/undofile.c',
                 'intern/readfile.c',
                 'intern/writefile.c']
 
