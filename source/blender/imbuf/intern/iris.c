@@ -382,6 +382,14 @@ struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 			rect[1] = rect[2] = rect[3];
 			rect += 4;
 		}
+        } else if (image.zsize == 2){
+                /* grayscale with alpha */
+                rect = (uchar *) ibuf->rect;
+                for (x = ibuf->x * ibuf->y; x > 0; x--) {
+                        rect[0] = rect[2];
+                        rect[1] = rect[2] = rect[3];
+                        rect += 4;
+                }
 	} else if (image.zsize == 3){
 		/* add alpha */
 		rect = (uchar *) ibuf->rect;
