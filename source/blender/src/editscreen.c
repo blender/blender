@@ -2433,6 +2433,7 @@ static void scrarea_draw_splitpoint(ScrArea *sa, char dir, float fac)
 static void splitarea_interactive(ScrArea *area, ScrEdge *onedge)
 {
 	ScrArea *sa= area;
+	ScrArea *scr;
 	float fac= 0.0;
 	unsigned short event;
 	short ok= 0, val, split = 0, mval[2], mvalo[2], first= 1;
@@ -2451,6 +2452,28 @@ static void splitarea_interactive(ScrArea *area, ScrEdge *onedge)
 	/* keep track of grid and minsize */
 	while(ok==0) {
 		getmouseco_sc(mval);
+
+		/* this part of code allows to choose, what window will be splited */
+		/* cursor is out of the current ScreenArea */
+		if((mval[0] < sa->v1->vec.x) || (mval[0] > sa->v3->vec.x) ||
+		(mval[1] < sa->v1->vec.y) || (mval[1] > sa->v3->vec.y)){
+			scr= (ScrArea*)G.curscreen->areabase.first;
+			while(scr){
+				if((mval[0] > scr->v1->vec.x) && (mval[0] < scr->v4->vec.x) &&
+				(mval[1] < scr->v2->vec.y) && (mval[1] > scr->v1->vec.y)){
+					/* test: is ScreenArea enough big for splitting */
+					split= testsplitpoint(scr, dir, fac);
+					if(split){
+						/* delete old line from previous ScreenArea */
+						if(!first) scrarea_draw_splitpoint(sa, dir, fac);
+						sa= scr;
+						first= 1;
+						break;
+					}
+				}
+				scr= scr->next;
+			}
+		}
 		
 		if (first || mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
 			if (!first) {
@@ -2478,6 +2501,21 @@ static void splitarea_interactive(ScrArea *area, ScrEdge *onedge)
 		}
 		
 		event= extern_qread(&val);
+
+		/* change direction of splitting between horizontal and vertical
+		 * patch was offered by Guillaume */
+		if(val && (event==TABKEY || event==MIDDLEMOUSE)) {
+			scrarea_draw_splitpoint(sa, dir, fac);
+			if(dir=='h') {
+				dir='v';
+				set_cursor(CURSOR_Y_MOVE);
+			} else {
+				dir='h';
+				set_cursor(CURSOR_X_MOVE);
+			}
+			first= 1;
+		}
+
 		if(val && event==LEFTMOUSE) {
 			if(dir=='h') {
 				fac= split- (sa->v1->vec.y);
