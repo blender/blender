@@ -94,6 +94,8 @@ extern void logic_buts(void);
 extern void script_panels(void);
 extern void do_scriptbuts(unsigned short event);
 
+/* ipowindow */
+extern void do_ipobuts(unsigned short event);	// drawipo.c (bad! ton)
 
 /* butspace.c */
 void test_meshpoin_but(char *name, struct ID **idpp);
@@ -191,7 +193,7 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_ANIMBUTS		1500
 
 #define B_RECALCPATH	1401
-#define B_MUL_IPO		1402
+
 #define B_AUTOTIMEOFS	1403
 #define B_FRAMEMAP		1404
 #define B_NEWEFFECT		1405
@@ -201,7 +203,7 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_CALCEFFECT	1409
 #define B_DELEFFECT		1410
 #define B_RECALCAL		1411
-#define B_SETSPEED		1412
+
 #define B_PRINTSPEED	1413
 #define B_PRINTLEN		1414
 #define B_RELKEY		1415
@@ -502,10 +504,6 @@ enum {
 };
 /* *********************** */
 
-#define B_INFOBUTS		3400
-/* defines local in space.c only */
-
-/* *********************** */
 
 
 /* *********************** */

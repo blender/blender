@@ -1451,7 +1451,7 @@ void clever_numbuts(void)
 		clever_numbuts_imasel();
 	}
 	else if(curarea->spacetype==SPACE_BUTS){
-		clever_numbuts_buts();
+		// clever_numbuts_buts();
 	}
 	else if(curarea->spacetype==SPACE_OOPS) {
 		clever_numbuts_oops();

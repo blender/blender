@@ -98,7 +98,8 @@ struct ScrArea;
 #define UI_MAKE_DOWN	256
 #define UI_MAKE_LEFT	512
 #define UI_MAKE_RIGHT	1024
-
+	/* dont draw hilite on mouse over */
+#define UI_NO_HILITE	2048
 
 /* Button types */
 #define CHA	32

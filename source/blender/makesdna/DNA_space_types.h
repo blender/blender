@@ -91,7 +91,7 @@ typedef struct SpaceIpo {
 	short showkey, blocktype;
 	short menunr, lock;
 	int flag;
-	int	reserved1;
+	float median[3];
 	rctf tot;
 } SpaceIpo;
 

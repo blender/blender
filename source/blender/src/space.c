@@ -1500,6 +1500,7 @@ static void changeview2dspace(ScrArea *sa, void *spacedata)
 
 void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
+	extern void do_ipobuts(unsigned short event); 	// drawipo.c
 	unsigned short event= evt->event;
 	short val= evt->val;
 	SpaceIpo *sipo= curarea->spacedata.first;
@@ -1508,15 +1509,19 @@ void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	int cfra, doredraw= 0;
 	short mval[2];
 	
-	if(curarea->win==0) return;
+
+	if(sa->win==0) return;
 
 	if(val) {
-		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
+		if( uiDoBlocks(&sa->uiblocks, event)!=UI_NOTHING ) event= 0;
 
 		switch(event) {
 		case UI_BUT_EVENT:
-			if(val>0) do_ipowin_buts((short)(val-1));
+			/* note: bad bad code, will be cleaned! is because event queues are all shattered */
+			if(val>0 && val < 32) do_ipowin_buts(val-1);
+			else do_ipobuts(val);
 			break;
+			
 		case LEFTMOUSE:
 			if( in_ipo_buttons() ) {
 				do_ipo_selectbuttons();
@@ -1561,11 +1566,11 @@ void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			allqueue(REDRAWNLA, 0);
 			break;
 		case PADPLUSKEY:
-			view2d_zoom(v2d, 0.1154f, curarea->winx, curarea->winy);
+			view2d_zoom(v2d, 0.1154, sa->winx, sa->winy);
 			doredraw= 1;
 			break;
 		case PADMINUS:
-			view2d_zoom(v2d, -0.15f, curarea->winx, curarea->winy);
+			view2d_zoom(v2d, -0.15, sa->winx, sa->winy);
 			doredraw= 1;
 			break;
 		case PAGEUPKEY:
@@ -1630,6 +1635,10 @@ void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				doredraw= 1;
 			}
 			break;
+		case NKEY:
+			add_blockhandler(sa, IPO_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
+			doredraw= 1;
+			break;
 		case RKEY:
 			if((G.qual==0))
 				ipo_record();
@@ -1658,7 +1667,7 @@ void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 	}
 
-	if(doredraw) scrarea_queue_winredraw(curarea);
+	if(doredraw) scrarea_queue_winredraw(sa);
 }
 
 void initipo(ScrArea *sa)

@@ -1157,10 +1157,6 @@ void do_object_panels(unsigned short event)
 		calc_curvepath(OBACT);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
-	case B_MUL_IPO:
-		scale_editipo();
-		allqueue(REDRAWBUTSOBJECT, 0);
-		break;
 	case B_AUTOTIMEOFS:
 		auto_timeoffs();
 		break;
@@ -1270,9 +1266,6 @@ void do_object_panels(unsigned short event)
 			base= base->next;
 		}
 		allqueue(REDRAWVIEW3D, 0);
-		break;
-	case B_SETSPEED:
-		set_speed_editipo(hspeed);
 		break;
 	case B_PRINTSPEED:
 		ob= OBACT;
@@ -1501,48 +1494,6 @@ static void object_panel_anim(Object *ob)
 	uiDefButF(block, NUM, REDRAWALL, "TimeOffset:",			23,17,114,30, &ob->sf, -9000.0, 9000.0, 100, 0, "Specify an offset in frames");
 	uiDefBut(block, BUT, B_AUTOTIMEOFS, "Automatic Time",	139,17,104,31, 0, 0, 0, 0, 0, "Generate automatic timeoffset values for all selected frames");
 		
-#if 0	
-	/* IPO BUTTONS AS LAST */
-	ScrArea *sa;
-
-	ok= 0;
-	if(G.sipo) {
-		/* do these exist? */
-		sa= G.curscreen->areabase.first;
-		while(sa) {
-			if(sa->spacetype==SPACE_IPO && sa->spacedata.first==G.sipo) break;
-			sa= sa->next;
-		}
-		if(sa) {
-			if(G.sipo->ipo && G.sipo->ipo->curve.first) ok= 1;
-		}
-	}
-	
-		sprintf(str, "%.3f", G.sipo->v2d.tot.xmin);
-		uiDefBut(block, LABEL, 0, str,			1020, 140, 100, 19, 0, 0, 0, 0, 0, "");
-		sprintf(str, "%.3f", G.sipo->v2d.tot.xmax);
-		uiDefBut(block, LABEL, 0, str,			1120, 140, 100, 19, 0, 0, 0, 0, 0, "");
-	
-		uiDefButF(block, NUM, B_DIFF, "Xmin:",		1020, 120, 100, 19, &G.sipo->tot.xmin, -G.sipo->v2d.max[0], G.sipo->v2d.max[0], 100, 0, "");
-		uiDefButF(block, NUM, B_DIFF, "Xmax:",		1120, 120, 100, 19, &G.sipo->tot.xmax, -G.sipo->v2d.max[0], G.sipo->v2d.max[0], 100, 0, "");
-		
-		sprintf(str, "%.3f", G.sipo->v2d.tot.ymin);
-		uiDefBut(block, LABEL, 0, str,			1020, 100, 100, 19, 0, 0, 0, 0, 0, "");
-		sprintf(str, "%.3f", G.sipo->v2d.tot.ymax);
-		uiDefBut(block, LABEL, 0, str,			1120, 100, 100, 19, 0, 0, 0, 0, 0, "");
-	
-		uiDefButF(block, NUM, B_DIFF, "Ymin:",		1020, 80, 100, 19, &G.sipo->tot.ymin, -G.sipo->v2d.max[1], G.sipo->v2d.max[1], 100, 0, "");
-		uiDefButF(block, NUM, B_DIFF, "Ymax:",		1120, 80, 100, 19, &G.sipo->tot.ymax, -G.sipo->v2d.max[1], G.sipo->v2d.max[1], 100, 0, "");
-	
-		uiDefBut(block, BUT, B_MUL_IPO,	"SET",		1220,79,50,62, 0, 0, 0, 0, 0, "");
-		
-		
-		/* SPEED BUTTON */
-		uiDefButF(block, NUM, B_DIFF, "Speed:",		1020,23,164,28, &hspeed, 0.0, 180.0, 1, 0, "");
-		
-		uiDefBut(block, BUT, B_SETSPEED,	"SET",		1185,23,83,29, 0, 0, 0, 0, 0, "");
-
-#endif	
 	
 }
 

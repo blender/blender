@@ -1078,7 +1078,8 @@ static int ui_do_but_TOG(uiBlock *block, uiBut *but)
 		}
 		ui_set_but_val(but, (double)lvalue);
 		if(but->type==ICONTOG) ui_check_but(but);
-		ui_draw_but(but);
+		// no frontbuffer draw for this one
+		if((but->flag & UI_NO_HILITE)==0) ui_draw_but(but);
 	}
 	else {
 		
@@ -1088,7 +1089,8 @@ static int ui_do_but_TOG(uiBlock *block, uiBut *but)
 		if(but->type==TOGN) push= !push;
 		ui_set_but_val(but, (double)push);
 		if(but->type==ICONTOG) ui_check_but(but);		
-		ui_draw_but(but);
+		// no frontbuffer draw for this one
+		if((but->flag & UI_NO_HILITE)==0) ui_draw_but(but);
 	}
 	
 	/* no while loop...this button is used for viewmove */
@@ -2470,7 +2472,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	}		
 
 	ui_set_ftf_font(block);	// sets just a pointer in ftf lib... the button dont have ftf handles
-	
+
 	Mat4CpyMat4(UIwinmat, block->winmat);
 	uiPanelPush(block); // push matrix; no return without pop!
 
@@ -2633,7 +2635,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 				if(but->flag & UI_MOUSE_OVER) {
 					if( (but->flag & UI_ACTIVE)==0) {
 						but->flag |= UI_ACTIVE;
-						if(but->type != LABEL /* && but->embossfunc != ui_emboss_N */) ui_draw_but(but);
+						if(but->type != LABEL && (but->flag & UI_NO_HILITE)==0) ui_draw_but(but);
 					}
 				}
 				/* hilite case 2 */
@@ -2642,7 +2644,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 						/* we dont clear active flag until mouse move, for Menu buttons to remain showing active item when opened */
 						if (uevent->event==MOUSEY) {
 							but->flag &= ~UI_ACTIVE;
-							if(but->type != LABEL /* && but->embossfunc != ui_emboss_N */) ui_draw_but(but);
+							if(but->type != LABEL && (but->flag & UI_NO_HILITE)==0) ui_draw_but(but);
 						}
 					}
 					else if(but->type==BLOCK || but->type==MENU) {	// automatic opens block button (pulldown)

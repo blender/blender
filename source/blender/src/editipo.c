@@ -673,7 +673,7 @@ void scale_editipo()
 	
 	facx= (G.sipo->tot.xmax-G.sipo->tot.xmin)/(G.sipo->v2d.tot.xmax-G.sipo->v2d.tot.xmin);
 	facy= (G.sipo->tot.ymax-G.sipo->tot.ymin)/(G.sipo->v2d.tot.ymax-G.sipo->v2d.tot.ymin);
-	
+
 	ei= G.sipo->editipo;
 	if(ei==0) return;
 	for(a=0; a<G.sipo->totipo; a++, ei++) {
@@ -1840,7 +1840,6 @@ EditIpo *get_editipo()
 	get_status_editipo();
 	
 	if(totipo_edit>1) {
-		error("Too many editipo's");
 		return 0;
 	}
 	if(G.sipo->editipo==0) return 0;
@@ -2102,8 +2101,11 @@ void add_vert_ipo()
 	if(mval[0]>G.v2d->mask.xmax) return;
 	
 	ei= get_editipo();
-	if(ei==0) return;
-
+	if(ei==0) {
+		error("Too many editipo's");
+		return;
+	}
+	
 	areamouseco_to_ipoco(G.v2d, mval, &x, &y);
 	
 	if(ei->icu==0) {
@@ -3459,7 +3461,7 @@ void set_speed_editipo(float speed)
 						didit= 1;
 					}
 					else {
-						error("Cannot set speed");
+						error("Only works for 3 visible curves with handles");
 					}
 				}
 			}

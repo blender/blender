@@ -48,6 +48,7 @@
 #include "BMF_Api.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_arithb.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_ipo_types.h"
@@ -63,6 +64,7 @@
 #include "BKE_curve.h"
 #include "BKE_ipo.h"
 #include "BKE_global.h"
+#include "BKE_key.h"
 
 #include "BIF_gl.h"
 #include "BIF_resources.h"
@@ -80,6 +82,7 @@
 #include "mydevice.h"
 #include "ipo.h" /* retains old stuff */
 #include "blendef.h"
+#include "butspace.h"	// shouldnt be...
 
 /* local define... also used in editipo ... */
 #define ISPOIN(a, b, c)                       ( (a->b) && (a->c) )  
@@ -772,16 +775,14 @@ static void draw_ipobuts(SpaceIpo *sipo)
 	
 	sprintf(naam, "ipowin %d", area->win);
 	block= uiNewBlock(&area->uiblocks, naam, UI_EMBOSSN, UI_HELV, area->win);
-	
+
 	ei= sipo->editipo;
 	y= area->winy-30+sipo->butofs;
 	for(a=0; a<sipo->totipo; a++, ei++, y-=IPOBUTY) {
 		
 		but= uiDefButI(block, TOG|BIT|a, a+1, ei->name,  v2d->mask.xmax+18, y, IPOBUTX-15, IPOBUTY-1, &(sipo->rowbut), 0, 0, 0, 0, "");
-			/* XXXXX, is this, the sole caller
-			 * of this function, really necessary?
-			 */
-		uiButSetFlag(but, UI_TEXT_LEFT);
+		// no hilite, its not visible, but most of all the winmatrix is not correct later on...
+		uiButSetFlag(but, UI_TEXT_LEFT|UI_NO_HILITE);
 		
 		if(ei->icu) {
 			cpack(ei->col);
@@ -1308,16 +1309,303 @@ static void draw_key(SpaceIpo *sipo, int visible)
 	setlinestyle(0);
 }
 
+/* ************************** buttons *********************** */
+
+
+#define B_SETSPEED		3401
+#define B_MUL_IPO		3402
+#define B_TRANS_IPO		3403
+#define B_IPO_NONE		3404
+
+static float hspeed= 0;
+
+
+static void boundbox_ipo_visible(SpaceIpo *si)
+{
+	EditIpo *ei;
+	Key *key;
+	KeyBlock *kb;
+	int a, first= 1;
+
+	ei= si->editipo;
+	if(ei==0)
+		return;
+
+	for(a=0; a<si->totipo; a++, ei++) {
+		
+		if(ei->icu) {
+			if(ei->flag & IPO_VISIBLE) {
+	
+				boundbox_ipocurve(ei->icu);
+				if(first) {
+					si->v2d.tot= ei->icu->totrct;
+					first= 0;
+				}
+				else BLI_union_rctf(&(si->v2d.tot), &(ei->icu->totrct));
+			}
+		}
+	}
+	/* keylines? */
+	if(si->blocktype==ID_KE) {
+		key= (Key *)si->from;
+		if(key && key->block.first) {
+			kb= key->block.first;
+			if(kb->pos < si->v2d.tot.ymin) si->v2d.tot.ymin= kb->pos;
+			kb= key->block.last;
+			if(kb->pos > si->v2d.tot.ymax) si->v2d.tot.ymax= kb->pos;
+		}
+	}
+	si->tot= si->v2d.tot;
+}
+
+
+/* is used for both read and write... */
+static void ipo_editvertex_buts(uiBlock *block, SpaceIpo *si, float min, float max)
+{
+	EditIpo *ei;
+	BezTriple *bezt;
+	float median[3];
+	int a, b, tot, iskey=0;
+	
+	median[0]= median[1]= median[2]= 0.0;
+	tot= 0;
+	
+	ei= G.sipo->editipo;
+	for(a=0; a<G.sipo->totipo; a++, ei++) {
+		
+		if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
+			if( (ei->flag & IPO_EDIT) || G.sipo->showkey) {
+
+				if(ei->icu->bezt) {
+					bezt= ei->icu->bezt;
+					b= ei->icu->totvert;
+					while(b--) {
+						// all three selected 
+						if(bezt->f2 & 1) {
+							VecAddf(median, median, bezt->vec[1]);
+							tot++;
+						}
+						else {
+							if(bezt->f1 & 1) {
+								VecAddf(median, median, bezt->vec[0]);
+								tot++;
+							}
+							if(bezt->f3 & 1) {
+								VecAddf(median, median, bezt->vec[2]);
+								tot++;
+							}
+						}
+						bezt++;
+					}
+					
+				}
+			}
+		}
+	}
+	/* check for keys */
+	if(tot==0) {
+		if(G.sipo->blocktype==ID_KE) {
+			Key *key= (Key *)G.sipo->from;
+			KeyBlock *kb;
+			
+			if(key==0) return;
+			iskey= 1;
+			
+			kb= key->block.first;
+			while(kb) {
+				if(kb->flag & SELECT) {
+					median[1]+= kb->pos;
+					tot++;
+				}
+				kb= kb->next;
+			}
+		}
+	}
+	if(tot==0) return;
+
+	median[0] /= (float)tot;
+	median[1] /= (float)tot;
+	median[2] /= (float)tot;
+	
+	if(block) {	// buttons
+	
+		VECCOPY(si->median, median);
+		
+		if(tot==1) {
+			if(iskey) 
+				uiDefButF(block, NUM, B_TRANS_IPO, "Key Y:",	10, 80, 300, 19, &(si->median[1]), min, max, 10, 0, "");
+			else {
+				uiDefButF(block, NUM, B_TRANS_IPO, "Vertex X:",	10, 100, 300, 19, &(si->median[0]), min, max, 100, 0, "");
+				uiDefButF(block, NUM, B_TRANS_IPO, "Vertex Y:",	10, 80, 300, 19, &(si->median[1]), min, max, 100, 0, "");
+			}
+		}
+		else {
+			if(iskey) 
+				uiDefButF(block, NUM, B_TRANS_IPO, "Median Key Y:",	10, 80, 300, 19, &(si->median[1]), min, max, 10, 0, "");
+			else {
+				uiDefButF(block, NUM, B_TRANS_IPO, "Median X:",	10, 100, 300, 19, &(si->median[0]), min, max, 100, 0, "");
+				uiDefButF(block, NUM, B_TRANS_IPO, "Median Y:",	10, 80, 300, 19, &(si->median[1]), min, max, 100, 0, "");
+			}
+		}
+	}
+	else if(iskey) {	// apply
+		VecSubf(median, si->median, median);
+
+		if(G.sipo->blocktype==ID_KE) {
+			Key *key= (Key *)G.sipo->from;
+			KeyBlock *kb;
+			
+			if(key==0) return;
+			
+			kb= key->block.first;
+			while(kb) {
+				if(kb->flag & SELECT) {
+					kb->pos+= median[1];
+					tot++;
+				}
+				kb= kb->next;
+			}			
+			sort_keys(key);
+		}
+	}
+	else {
+		
+		VecSubf(median, si->median, median);
+
+		ei= G.sipo->editipo;
+		for(a=0; a<G.sipo->totipo; a++, ei++) {
+			
+			if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
+				if( (ei->flag & IPO_EDIT) || G.sipo->showkey) {
+
+					if(ei->icu->bezt) {
+						bezt= ei->icu->bezt;
+						b= ei->icu->totvert;
+						while(b--) {
+							// all three selected
+							if(bezt->f2 & 1) {
+								VecAddf(bezt->vec[0], bezt->vec[0], median);
+								VecAddf(bezt->vec[1], bezt->vec[1], median);
+								VecAddf(bezt->vec[2], bezt->vec[2], median);
+							}
+							else {
+								if(bezt->f1 & 1) {
+									VecAddf(bezt->vec[0], bezt->vec[0], median);
+								}
+								if(bezt->f3 & 1) {
+									VecAddf(bezt->vec[2], bezt->vec[2], median);
+								}
+							}
+							bezt++;
+						}
+						
+					}
+				}
+			}
+		}
+	}
+}
+
+void do_ipobuts(unsigned short event)
+{
+
+	switch(event) {
+	case B_SETSPEED:
+		set_speed_editipo(hspeed);
+		break;
+	case B_MUL_IPO:
+		scale_editipo();
+		allqueue(REDRAWIPO, 0);
+		break;
+	case B_TRANS_IPO:
+		ipo_editvertex_buts(NULL, G.sipo, 0.0, 0.0);
+		editipo_changed(G.sipo, 1);
+		allqueue(REDRAWIPO, 0);
+		break;
+	}
+}
+
+
+static void ipo_panel_properties(short cntrl)	// IPO_HANDLER_PROPERTIES
+{
+	extern int totipo_vis;	// editipo.c
+	uiBlock *block;
+	float min, max;
+	
+	block= uiNewBlock(&curarea->uiblocks, "ipo_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
+	uiSetPanelHandler(IPO_HANDLER_PROPERTIES);  // for close and esc
+	if(uiNewPanel(curarea, block, "Transform Properties", "Ipo", 10, 230, 318, 204)==0) return;
+
+
+	boundbox_ipo_visible(G.sipo);	// should not be needed... transform/draw calls should update
+	
+	/* calculate a nice range for the button */
+	min= MIN2(G.sipo->tot.xmin, G.sipo->tot.ymin)-100.0;
+	min= MIN2(min, -100);
+	max= MAX2(G.sipo->tot.xmax, G.sipo->tot.ymax)+100.0;
+	max= MAX2(max, 100);
+
+	if(G.sipo->ipo && G.sipo->ipo->curve.first && totipo_vis) {
+		extern int totipo_vertsel;	// editipo.c
+		uiDefBut(block, LABEL, 0, "Visible curves",		10, 200, 150, 19, NULL, 1.0, 0.0, 0, 0, "");
+		
+		uiDefButF(block, NUM, B_MUL_IPO, "Xmin:",		10, 180, 150, 19, &G.sipo->tot.xmin, min, max, 100, 0, "");
+		uiDefButF(block, NUM, B_MUL_IPO, "Xmax:",		160, 180, 150, 19, &G.sipo->tot.xmax, min, max, 100, 0, "");
+		
+		uiDefButF(block, NUM, B_MUL_IPO, "Ymin:",		10, 160, 150, 19, &G.sipo->tot.ymin, min, max, 100, 0, "");
+		uiDefButF(block, NUM, B_MUL_IPO, "Ymax:",		160, 160, 150, 19, &G.sipo->tot.ymax, min, max, 100, 0, "");
+
+		/* SPEED BUTTON */
+		if(totipo_vertsel) {
+			uiDefButF(block, NUM, B_IPO_NONE, "Speed:",			10,130,150,19, &hspeed, 0.0, 180.0, 1, 0, "");
+			uiDefBut(block, BUT, B_SETSPEED,"SET",			160,130,50,19, 0, 0, 0, 0, 0, "");
+		}
+		
+		ipo_editvertex_buts(block, G.sipo, min, max);
+	}
+	/* this one also does keypositions */
+	if(G.sipo->ipo) ipo_editvertex_buts(block, G.sipo, min, max);
+}
+
+static void ipo_blockhandlers(ScrArea *sa)
+{
+	SpaceIpo *sipo= sa->spacedata.first;
+	short a;
+
+	/* warning; blocks need to be freed each time, handlers dont remove (for ipo moved to drawipospace) */
+
+	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
+		switch(sipo->blockhandler[a]) {
+
+		case IPO_HANDLER_PROPERTIES:
+			ipo_panel_properties(sipo->blockhandler[a+1]);
+			break;
+		
+		}
+		/* clear action value for event */
+		sipo->blockhandler[a+1]= 0;
+	}
+	uiDrawBlocksPanels(sa, 0);
+
+}
+
+
 void drawipospace(ScrArea *sa, void *spacedata)
 {
-	SpaceIpo *sipo= curarea->spacedata.first;
+	SpaceIpo *sipo= sa->spacedata.first;
 	View2D *v2d= &sipo->v2d;
 	EditIpo *ei;
 	float col[3];
 	int ofsx, ofsy, a, disptype;
 
+	bwin_clear_viewmat(sa->win);	/* clear buttons view */
+	glLoadIdentity();
+	
+	uiFreeBlocksWin(&sa->uiblocks, sa->win);	/* for panel handler to work */
+	
 	v2d->hor.xmax+=IPOBUTX;
-	calc_scrollrcts(G.v2d, curarea->winx, curarea->winy);
+	calc_scrollrcts(G.v2d, sa->winx, sa->winy);
 
 	BIF_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0); 
@@ -1329,10 +1617,10 @@ void drawipospace(ScrArea *sa, void *spacedata)
 
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
+	if(sa->winx>SCROLLB+10 && sa->winy>SCROLLH+10) {
 		if(v2d->scroll) {	
-			ofsx= curarea->winrct.xmin;	// ivm mywin 
-			ofsy= curarea->winrct.ymin;
+			ofsx= sa->winrct.xmin;	// ivm mywin 
+			ofsy= sa->winrct.ymin;
 			glViewport(ofsx+v2d->mask.xmin,  ofsy+v2d->mask.ymin, ( ofsx+v2d->mask.xmax-1)-(ofsx+v2d->mask.xmin)+1, ( ofsy+v2d->mask.ymax-1)-( ofsy+v2d->mask.ymin)+1); 
 			glScissor(ofsx+v2d->mask.xmin,  ofsy+v2d->mask.ymin, ( ofsx+v2d->mask.xmax-1)-(ofsx+v2d->mask.xmin)+1, ( ofsy+v2d->mask.ymax-1)-( ofsy+v2d->mask.ymin)+1);
 		} 
@@ -1384,12 +1672,12 @@ void drawipospace(ScrArea *sa, void *spacedata)
 		draw_ipovertices(1);
 		
 		/* restore viewport */
-		mywinset(curarea->win);
+		mywinset(sa->win);
 		
-		if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
+		if(sa->winx>SCROLLB+10 && sa->winy>SCROLLH+10) {
 			
-			/* ortho at pixel level curarea */
-			myortho2(-0.5, curarea->winx-0.5, -0.5, curarea->winy-0.5);
+			/* ortho at pixel level sa */
+			myortho2(-0.5, sa->winx-0.5, -0.5, sa->winy-0.5);
 			
 			if(v2d->scroll) {
 				drawscroll(disptype);
@@ -1404,10 +1692,14 @@ void drawipospace(ScrArea *sa, void *spacedata)
 		draw_ipogrid();
 	}
 	
-	myortho2(-0.5, curarea->winx-0.5, -0.5, curarea->winy-0.5);
+	myortho2(-0.5, sa->winx-0.5, -0.5, sa->winy-0.5);
 	draw_area_emboss(sa);
 
-	curarea->win_swap= WIN_BACK_OK;
+	/* it is important to end a view in a transform compatible with buttons */
+	bwin_scalematrix(sa->win, sipo->blockscale, sipo->blockscale, sipo->blockscale);
+	ipo_blockhandlers(sa);
+
+	sa->win_swap= WIN_BACK_OK;
 }
 
 void scroll_ipobuts()
@@ -1719,9 +2011,16 @@ EditIpo *select_proj_ipo(rctf *rectf, int event)
 	glInitNames();	/* whatfor? but otherwise it does not work */
 	glPushName(-1);
 	
+	/* get rid of buttons view */
+	glPushMatrix();
+	glLoadIdentity();
+	
 	init_pickselcode();	/* drawipo.c */
 	draw_ipocurves(0);	
 	
+	/* restore buttons view */
+	glPopMatrix();
+
 	G.f -= G_PICKSEL;
 	
 	hits= glRenderMode(GL_RENDER);

@@ -55,8 +55,7 @@ struct BWinEvent;
 #define VIEW3D_HANDLER_OBJECT		3
 
 /* ipo handler codes */
-#define IPO_HANDLER_SETTINGS	20
-
+#define IPO_HANDLER_PROPERTIES	20
 
 
 void	scrarea_do_windraw		(struct ScrArea *sa);

@@ -798,8 +798,11 @@ int blenderqread(unsigned short event, short val)
 
 	case NKEY:
 		if(textediting==0 && textspace==0 ) {
-			if(G.qual==0 || (G.qual==LR_SHIFTKEY)) {
-				if(curarea->spacetype!=SPACE_VIEW3D) {		// is new panel, in view3d queue
+			if(G.qual & LR_CTRLKEY);
+			else if(G.qual==0 || (G.qual & LR_SHIFTKEY)) {
+				if(curarea->spacetype==SPACE_VIEW3D);		// is new panel, in view3d queue
+				else if(curarea->spacetype==SPACE_IPO);			// is new panel, in ipo queue
+				else {
 					clever_numbuts();
 					return 0;
 				}
