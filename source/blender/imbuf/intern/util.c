@@ -41,6 +41,7 @@
 
 #include "IMB_targa.h"
 #include "IMB_png.h"
+#include "IMB_bmp.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
