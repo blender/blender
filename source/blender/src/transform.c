@@ -783,9 +783,9 @@ static void editmesh_set_connectivity_distance(int total, float *vectors, EditVe
 
 	/* f2 flag is used for 'selection' */
 	/* vn is offset on scratch array   */
-	for(eve= em->verts.first; eve; eve= eve->next, i++) {
+	for(eve= em->verts.first; eve; eve= eve->next) {
 		if(eve->h==0) {
-			eve->vn = (EditVert *)(i);
+			eve->vn = (EditVert *)(i++);
 
 			if(eve->f & SELECT) {
 				eve->f2= 2;
@@ -876,13 +876,6 @@ static void editmesh_set_connectivity_distance(int total, float *vectors, EditVe
 					done = 1;
 				}
 			}
-		}
-	}
-
-	/* set unused or clipped away vertices on huge dist */
-	for(i=0, eve= em->verts.first; eve; eve= eve->next, i++) {
-		if(eve->f2==0) {
-			E_NEAR(eve) = NULL;
 		}
 	}
 }
@@ -981,7 +974,7 @@ static void createTransEditVerts(void)
 
 				if(eve->f1) tob->flag |= TD_SELECTED;
 				if(propmode) {
-					if (E_NEAR(eve)) {
+					if (eve->f2) {
 						tob->dist= VecLength(E_VEC(eve));
 					}
 					else {
@@ -998,8 +991,8 @@ static void createTransEditVerts(void)
 		}	
 	}
 	if (propmode) {
-		free(nears);
 		free(vectors);
+		free(nears);
 	}
 
 }
