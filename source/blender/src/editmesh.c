@@ -6952,11 +6952,11 @@ CutCurve *get_mouse_trail(int *len, char mode){
 	}
 	mywinset(curarea->win);
 	glDrawBuffer(GL_FRONT);
-
-	persp(PERSP_WIN);
 	
 	headerprint("LMB to draw, Enter to finish, ESC to abort.");
 
+	persp(PERSP_WIN);
+	
 	event=extern_qread(&val);
 	while((event != RETKEY ) && (event != RIGHTMOUSE) ){  
 		event=extern_qread(&val);	/* Enter or RMB indicates finish */
