@@ -7087,46 +7087,6 @@ void select_select_keys(void)
 }
 
 
-MVert *verg_vert;
-
-int verg_hoogste_zco(const void *a1, const void *a2)
-{
-	const MFace *x1=a1, *x2=a2;
-	float z1, z2;
-	MVert *v1, *v2, *v3;
-	
-	v1= verg_vert+x1->v1;
-	v2= verg_vert+x1->v2;
-	v3= verg_vert+x1->v3;
-	z1= MAX3(v1->co[2], v2->co[2], v3->co[2]);
-	
-	v1= verg_vert+x2->v1;
-	v2= verg_vert+x2->v2;
-	v3= verg_vert+x2->v3;
-	z2= MAX3(v1->co[2], v2->co[2], v3->co[2]);
-
-	if( z1 > z2 ) return 1;
-	else if( z1 < z2) return -1;
-	return 0;
-}
-
-
-
-void sortfaces(void)
-{
-	Mesh *me;
-	
-	if(G.scene->id.lib) return;
-
-	if(G.obedit!=0 || BASACT==0 || OBACT->type!= OB_MESH) return;
-	if(okee("Sort faces")==0) return;
-
-	me= OBACT->data;
-	verg_vert= me->mvert;
-	
-	qsort(me->mface, me->totface, sizeof(MFace), verg_hoogste_zco);
-}
-
 int vergbaseco(const void *a1, const void *a2)
 {
 	Base **x1, **x2;

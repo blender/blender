@@ -109,8 +109,6 @@ void selectlinks(int nr);
 void image_aspect(void);
 void set_ob_ipoflags(void);
 void select_select_keys(void);
-int verg_hoogste_zco(const void *a1, const void *a2);
-void sortfaces(void);
 int vergbaseco(const void *a1, const void *a2);
 void auto_timeoffs(void);
 void texspace_edit(void);
