@@ -63,6 +63,8 @@ typedef struct TransDataExtension {
     float *size;         /* Size of the data to transform (Faculative)                                     */
     float  isize[3];	 /* Initial size                                                                   */
 	float  obmat[3][3];	 /* Object matrix */
+
+	void *bone;			/* BWARGH! old transform demanded it, added for now (ton) */
 } TransDataExtension;
 
 typedef struct TransData {
@@ -76,16 +78,6 @@ typedef struct TransData {
 	struct Object *ob;
 	struct TransDataExtension *ext;
     int    flag;         /* Various flags */
-
-/* NOTE TO TON: THESE MOVES TO TransDataExtension. NEED TO CHANGE POSEMODE */
-    float *rot;          /* Rotation of the data to transform (Faculative)                                 */
-    float  irot[3];      /* Initial rotation                                                               */
-    float *quat;         /* Rotation quaternion of the data to transform (Faculative)                      */
-    float  iquat[4];	 /* Initial rotation quaternion                                                    */
-    float *size;         /* Size of the data to transform (Faculative)                                     */
-    float  isize[3];	 /* Initial size                                                                   */
-	
-	void *bone;			/* BWARGH! old transform demanded it, added for now (ton) */
 } TransData;
 
 typedef struct TransInfo {

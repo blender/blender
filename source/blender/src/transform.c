@@ -186,18 +186,18 @@ static void add_pose_transdata(ListBase *lb, Object *ob, TransData **tdp)
 				VECCOPY(td->center, vec);
 				
 				td->ob = ob;
-				td->bone= bone; //	FIXME: Dangerous
-				
-				td->loc = bone->loc;
-				td->rot= NULL;
-				td->quat= bone->quat;
-				td->size= bone->size;
 				td->dist= 0.0f;
 				td->flag= TD_SELECTED|TD_USEQUAT;
+				td->loc = bone->loc;
+				VECCOPY(td->iloc, bone->loc);
+				
+				td->ext->rot= NULL;
+				td->ext->quat= bone->quat;
+				td->ext->size= bone->size;
+				td->ext->bone= bone; //	FIXME: Dangerous
 
-				memcpy (td->iquat, bone->quat, sizeof (bone->quat));
-				memcpy (td->isize, bone->size, sizeof (bone->size));
-				memcpy (td->iloc, bone->loc, sizeof (bone->loc));
+				QUATCOPY(td->ext->iquat, bone->quat);
+				VECCOPY(td->ext->isize, bone->size);
 				
 				/* Get the matrix of this bone minus the usertransform */
 				Mat4CpyMat4 (tempobmat, bone->obmat);
@@ -222,7 +222,8 @@ static void createTransPose(void)
 {
 	bArmature *arm;
 	TransData *td;
-	float mtx[3][3], smtx[3][3];
+	TransDataExtension *tdx;
+	int i;
 	
 	Trans.total= 0;	// to be able to return
 	
@@ -260,14 +261,12 @@ static void createTransPose(void)
 	if(Trans.total==0) return;
 	
 	/* init trans data */
-	Mat3CpyMat4(mtx, G.obpose->obmat);
-	Mat3Inv(smtx, mtx);
-	
     td = Trans.data = MEM_mallocN(Trans.total*sizeof(TransData), "TransPoseBone");
-
-	Mat3CpyMat4(mtx, G.obpose->obmat);
-	Mat3Inv(smtx, mtx);
+    tdx = MEM_mallocN(Trans.total*sizeof(TransDataExtension), "TransPoseBoneExt");
+	for(i=0; i<Trans.total; i++, td++, tdx++) td->ext= tdx;
 	
+	/* recursive fill trans data */
+	td= Trans.data;
 	add_pose_transdata(&arm->bonebase, G.obpose, &td);
 	
 }
@@ -653,7 +652,7 @@ static void createTransEditVerts(void)
 
 static void ObjectToTransData(TransData *tob, Object *ob) 
 {
-	float totmat[3][3], obinv[3][3], obmtx[3][3];
+	float obmtx[3][3];
 	Object *tr;
 	void *cfirst, *clast;
 
@@ -1206,7 +1205,7 @@ void initShear(TransInfo *t)
 int Shear(TransInfo *t, short mval[2]) 
 {
 	float vec[3];
-	float smat[3][3], tmat[3][3], totmat[3][3], omat[3][3], persmat[3][3], persinv[3][3];
+	float smat[3][3], tmat[3][3], totmat[3][3], persmat[3][3], persinv[3][3];
 	float value;
 	int i;
 	char str[50];
@@ -1347,7 +1346,7 @@ int Resize(TransInfo *t, short mval[2])
 
 			if (td->flag & TD_OBJECT) {
 				float obsizemat[3][3];
-				Mat3IsMat3MulMat4(obsizemat, tmat, td->ob->obmat);
+				Mat3MulMat3(obsizemat, tmat, td->smtx);
 				Mat3ToSize(obsizemat, fsize);
 			}
 			else {
@@ -1594,7 +1593,7 @@ int Rotation(TransInfo *t, short mval[2])
 				Mat3ToQuat(fmat, quat);	// Actual transform
 				//printf("Quat %f %f %f %f\n", quat[0], quat[1], quat[2], quat[3]);
 				
-				QuatMul(td->quat, quat, td->iquat);
+				QuatMul(td->ext->quat, quat, td->ext->iquat);
 			}
 			else {
 				float obmat[3][3];

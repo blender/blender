@@ -134,7 +134,7 @@ void recalcData(TransInfo *t)
 			
 			if (t->mode == TFM_ROTATION) {
 				chan->flag |= POSE_ROT;
-				memcpy (chan->quat, td->quat, sizeof (chan->quat));
+				memcpy (chan->quat, td->ext->quat, sizeof (chan->quat));
 			}
 			if (t->mode == TFM_TRANSLATION) {
 				chan->flag |= POSE_LOC;
@@ -142,10 +142,10 @@ void recalcData(TransInfo *t)
 			}
 			if (t->mode == TFM_RESIZE) {
 				chan->flag |= POSE_SIZE;
-				memcpy (chan->size, td->size, sizeof (chan->size));
+				memcpy (chan->size, td->ext->size, sizeof (chan->size));
 			}
 			
-			strcpy (chan->name, ((Bone*) td->bone)->name);
+			strcpy (chan->name, ((Bone*) td->ext->bone)->name);
 			
 			set_pose_channel (G.obpose->pose, chan);
 
@@ -424,11 +424,11 @@ void applyTransObjects(TransInfo *t)
     TransData *tob;
 	for (tob = t->data; tob < t->data + t->total; tob++) {
         VECCOPY(tob->iloc, tob->loc);
-		if (tob->rot) {
-			VECCOPY(tob->irot, tob->rot);
+		if (tob->ext->rot) {
+			VECCOPY(tob->ext->irot, tob->ext->rot);
 		}
-		if (tob->size) {
-			VECCOPY(tob->isize, tob->size);
+		if (tob->ext->size) {
+			VECCOPY(tob->ext->isize, tob->ext->size);
 		}
     }    
 	recalcData(t);
