@@ -195,7 +195,7 @@ PyObject *Blender_ReleaseGlobalDict(PyObject *self, PyObject *args)
                         "expected int argument (or nothing)");
         }
 
-        return Py_BuildValue("i", (EXPP_releaseGlobalDict ? 1:0));
+        return Py_BuildValue("i", (EXPP_releaseGlobalDict?1:0));
 }
 
 /*****************************************************************************/
@@ -229,5 +229,7 @@ void M_Blender_Init (void)
         PyDict_SetItemString (dict, "Window",   M_Window_Init());
         PyDict_SetItemString (dict, "Draw",     M_Draw_Init());
         PyDict_SetItemString (dict, "BGL",      M_BGL_Init());
+        PyDict_SetItemString (dict, "Effect",   M_Effect_Init());
         PyDict_SetItemString (dict, "Text",     M_Text_Init());
+        PyDict_SetItemString (dict, "World",    M_World_Init());
 }
