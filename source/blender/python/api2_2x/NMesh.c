@@ -1949,6 +1949,13 @@ static int convert_NMeshToMesh (Mesh *mesh, BPy_NMesh *nmesh)
 			if (newmc) newmc += 4; /* there are 4 MCol's per face */
 		}
 	}
+
+	//-- balagi 01/14/2004 , fix supplied by ascotan
+	if(nmesh->materials){ 
+		mesh->mat = EXPP_newMaterialList_fromPyList (nmesh->materials); 
+	}
+	//-- balagi end
+
 	return 1;
 }
 
