@@ -763,8 +763,8 @@ static void ui_draw_panel_header(uiBlock *block)
 		*/
 
 		BIF_ThemeColor(curarea, TH_TEXT_HI);
-		glRasterPos2f(16+block->minx+pnl_icons, block->maxy+5);
-		BIF_DrawString(block->curfont, block->panel->panelname, (U.transopts & TR_BUTTONS), 0);
+		glRasterPos2f(4+block->minx+pnl_icons, block->maxy+5);
+		BIF_DrawString(block->curfont, block->panel->panelname, (U.transopts & TR_BUTTONS), 1);
 		return;
 	}
 	
@@ -829,11 +829,11 @@ void ui_draw_panel(uiBlock *block)
 		uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
 		
 		// title
-		ofsx= 2*PNL_ICON;
+		ofsx= PNL_ICON+8;
 		if(panel->control & UI_PNL_CLOSE) ofsx+= PNL_ICON;
 		BIF_ThemeColor(curarea, TH_TEXT_HI);
-		glRasterPos2f(block->minx+40, block->maxy+5);
-		BIF_DrawString(block->curfont, panel->panelname, (U.transopts & TR_BUTTONS), 0);
+		glRasterPos2f(4+block->minx+ofsx, block->maxy+5);
+		BIF_DrawString(block->curfont, panel->panelname, (U.transopts & TR_BUTTONS), 1);
 
 		//  border
 		if(panel->flag & PNL_SELECT) {
@@ -863,7 +863,7 @@ void ui_draw_panel(uiBlock *block)
 			str[0]= panel->panelname[a];
 			if( isupper(str[0]) ) {
 				glRasterPos2f(block->minx+5, block->maxy-ofs);
-				BIF_DrawString(block->curfont, str, 0, 0);
+				BIF_DrawString(block->curfont, str, 0, 1);
 				ofs+= 15;
 			}
 		}
