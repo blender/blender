@@ -155,6 +155,9 @@ protected:
 
 	/** The active window. */
 	GHOST_IWindow* m_activeWindow;
+
+	/** Window that was active before entering fullscreen state. */
+	GHOST_IWindow* m_activeWindowBeforeFullScreen;
 };
 
 #endif // _GHOST_WINDOW_MANAGER_H_

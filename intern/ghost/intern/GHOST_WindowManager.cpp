@@ -47,8 +47,10 @@
 #include "GHOST_Window.h"
 
 
-GHOST_WindowManager::GHOST_WindowManager()
-: m_fullScreenWindow(0), m_activeWindow(0)
+GHOST_WindowManager::GHOST_WindowManager() : 
+	m_fullScreenWindow(0),
+	m_activeWindow(0),
+	m_activeWindowBeforeFullScreen(0)
 {
 }
 
@@ -130,6 +132,7 @@ GHOST_TSuccess GHOST_WindowManager::beginFullScreen(GHOST_IWindow* window,
 	GHOST_ASSERT(window->getValid(), "GHOST_WindowManager::beginFullScreen(): invalid window");
 	if (!getFullScreen()) {
 		m_fullScreenWindow = window;
+		m_activeWindowBeforeFullScreen = getActiveWindow();
 		setActiveWindow(m_fullScreenWindow);
 		success = GHOST_kSuccess;
 	}
@@ -147,6 +150,9 @@ GHOST_TSuccess GHOST_WindowManager::endFullScreen(void)
 			delete m_fullScreenWindow;
 			//GHOST_PRINT("GHOST_WindowManager::endFullScreen(): done\n");
 			m_fullScreenWindow = 0;
+			if (m_activeWindowBeforeFullScreen) {
+				setActiveWindow(m_activeWindowBeforeFullScreen);
+			}
 		}
         success = GHOST_kSuccess;
 	}
