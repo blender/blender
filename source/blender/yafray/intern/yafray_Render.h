@@ -63,6 +63,7 @@ extern void error (char *fmt, ...);
 #include <map>
 #include <string>
 #include <vector>
+#include <set>
 
 class yafrayRender_t
 {
@@ -90,8 +91,8 @@ class yafrayRender_t
 		std::map<std::string, std::vector<float> > dupliMtx_list;
 		std::map<std::string, Object*> dup_srcob;
 		std::map<void*, Object*> objectData;
-		std::map<Image*, Material*> imagetex;
-		std::map<Image*, std::string> imgtex_shader;
+		std::map<Image*, std::set<Material*> > imagetex;
+		std::map<std::string, std::string> imgtex_shader;
 
 		bool getAllMatTexObs();
 

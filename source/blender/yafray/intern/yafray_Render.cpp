@@ -131,7 +131,7 @@ bool yafrayRender_t::getAllMatTexObs()
 					if (fc_img) {
 						Material* fmat = vlr->mat;
 						// only save if TexFace enabled
-						if (fmat && (fmat->mode & MA_FACETEXTURE)) imagetex[fc_img] = fmat;
+						if (fmat && (fmat->mode & MA_FACETEXTURE)) imagetex[fc_img].insert(fmat);
 					}
 				}
 			}

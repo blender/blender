@@ -348,7 +348,7 @@ void yafrayPluginRender_t::writeTextures()
 {
 	// used to keep track of images already written
 	// (to avoid duplicates if also in imagetex for material TexFace texture)
-	map<Image*, bool> dupimg;
+	set<Image*> dupimg;
 
 	string ts;
 	yafray::paramMap_t params;
@@ -413,7 +413,7 @@ void yafrayPluginRender_t::writeTextures()
 				if (ima) {
 					// remember image to avoid duplicates later if also in imagetex
 					// (formerly done by removing from imagetex, but need image/material link)
-					dupimg[ima] = true;
+					dupimg.insert(ima);
 					params["type"] = yafray::parameter_t("image");
 					params["name"] = yafray::parameter_t(ima->id.name);
 					string texpath = ima->name;
@@ -531,7 +531,7 @@ void yafrayPluginRender_t::writeTextures()
 
 	// If used, textures for the material 'TexFace' case
 	if (!imagetex.empty()) {
-		for (map<Image*, Material*>::const_iterator imgtex=imagetex.begin();
+		for (map<Image*, set<Material*> >::const_iterator imgtex=imagetex.begin();
 					imgtex!=imagetex.end();++imgtex)
 		{
 			// skip if already written above
@@ -886,29 +886,33 @@ void yafrayPluginRender_t::writeMaterialsAndModulators()
 		params.clear();
 		lparams.clear();
 		int snum = 0;
-		for (map<Image*, Material*>::const_iterator imgtex=imagetex.begin();
+		for (map<Image*, set<Material*> >::const_iterator imgtex=imagetex.begin();
 				imgtex!=imagetex.end();++imgtex)
 		{
-			Material* matr = imgtex->second;
 
-			// mapper
-			params["type"] = yafray::parameter_t("blendermapper");
-			char temp[32];
-			sprintf(temp, "_ftex_mp%d", snum);
-			params["name"] = yafray::parameter_t(string(matr->id.name) + string(temp));
-			params["input"] = yafray::parameter_t(imgtex->first->id.name);
-			// all yafray default settings, except for texco, so no need to set others
-			params["texco"] = yafray::parameter_t("uv");
-			yafrayGate->addShader(params, lparams);
+			for (set<Material*>::const_iterator imgmat=imgtex->second.begin();
+					imgmat!=imgtex->second.end();++imgmat)
+			{
+				Material* matr = *imgmat;
+				// mapper
+				params["type"] = yafray::parameter_t("blendermapper");
+				char temp[32];
+				sprintf(temp, "_ftmap%d", snum);
+				params["name"] = yafray::parameter_t(string(matr->id.name) + string(temp));
+				params["input"] = yafray::parameter_t(imgtex->first->id.name);
+				// all yafray default settings, except for texco, so no need to set others
+				params["texco"] = yafray::parameter_t("uv");
+				yafrayGate->addShader(params, lparams);
 
-			// shader, remember name, used later when writing per-face-shaders
-			sprintf(temp, "_ftex_sh%d", snum);
-			string shader_name = string(matr->id.name) + string(temp);
-			imgtex_shader[imgtex->first] = shader_name;
+				// shader, remember name, used later when writing per-face-shaders
+				sprintf(temp, "_ftsha%d", snum);
+				string shader_name = string(matr->id.name) + string(temp);
+				imgtex_shader[string(matr->id.name) + string(imgtex->first->id.name)] = shader_name;
 
-			sprintf(temp, "_ftex_mp%d", snum++);
-			string facetexname = string(matr->id.name) + string(temp);
-			writeShader(shader_name, matr, facetexname);
+				sprintf(temp, "_ftmap%d", snum++);
+				string facetexname = string(matr->id.name) + string(temp);
+				writeShader(shader_name, matr, facetexname);
+			}
 
 		}
 	}
@@ -993,7 +997,7 @@ void yafrayPluginRender_t::genFace(vector<int> &faces,vector<string> &shaders,ve
 		TFace* tface = vlr->tface;
 		if (tface) {
 			Image* fimg = (Image*)tface->tpage;
-			if (fimg) fmatname = imgtex_shader[fimg];
+			if (fimg) fmatname = imgtex_shader[fmatname + string(fimg->id.name)];
 		}
 	}
 	else if (fmatname.length()==0) fmatname = "blender_default";

@@ -344,7 +344,7 @@ void yafrayFileRender_t::writeTextures()
 {
 	// used to keep track of images already written
 	// (to avoid duplicates if also in imagetex for material TexFace texture)
-	map<Image*, bool> dupimg;
+	set<Image*> dupimg;
 
 	string ts;
 	for (map<string, MTex*>::const_iterator blendtex=used_textures.begin();
@@ -495,7 +495,7 @@ void yafrayFileRender_t::writeTextures()
 				if (ima) {
 					// remember image to avoid duplicates later if also in imagetex
 					// (formerly done by removing from imagetex, but need image/material link)
-					dupimg[ima] = true;
+					dupimg.insert(ima);
 					ostr.str("");
 					// use image name instead of texname here
 					ostr << "<shader type=\"image\" name=\"" << ima->id.name << "\" >\n";
@@ -538,15 +538,16 @@ void yafrayFileRender_t::writeTextures()
 	
 	// If used, textures for the material 'TexFace' case
 	if (!imagetex.empty()) {
-		for (map<Image*, Material*>::const_iterator imgtex=imagetex.begin();
+		for (map<Image*, set<Material*> >::const_iterator imgtex=imagetex.begin();
 					imgtex!=imagetex.end();++imgtex)
 		{
 			// skip if already written above
-			if (dupimg.find(imgtex->first)==dupimg.end()) {
+			Image* ima = imgtex->first;
+			if (dupimg.find(ima)==dupimg.end()) {
 				ostr.str("");
-				ostr << "<shader type=\"image\" name=\"" << imgtex->first->id.name << "\" >\n";
+				ostr << "<shader type=\"image\" name=\"" << ima->id.name << "\" >\n";
 				ostr << "\t<attributes>\n";
-				string texpath(imgtex->first->name);
+				string texpath(ima->name);
 				adjustPath(texpath);
 				ostr << "\t\t<filename value=\"" << texpath << "\" />\n";
 				ostr << "\t</attributes>\n</shader>\n\n";
@@ -897,31 +898,35 @@ void yafrayFileRender_t::writeMaterialsAndModulators()
 		// Yafray doesn't have per-face-textures, only per-face-shaders,
 		// so create as many mappers/shaders as the images used by the object
 		int snum = 0;
-		for (map<Image*, Material*>::const_iterator imgtex=imagetex.begin();
+		for (map<Image*, set<Material*> >::const_iterator imgtex=imagetex.begin();
 				imgtex!=imagetex.end();++imgtex)
 		{
-			Material* matr = imgtex->second;
 
-			// mapper
-			ostr.str("");
-			ostr << "<shader type=\"blendermapper\" name=\"" << string(matr->id.name) + "_ftex_mp" << snum << "\" >\n";
-			ostr << "\t<attributes>\n";
-			ostr << "\t\t<input value=\"" << imgtex->first->id.name << "\" />\n";
-			// all yafray default settings, except for texco, so no need to set others
-			ostr << "\t\t<texco value=\"uv\" />\n";
-			ostr << "\t</attributes>\n";
-			ostr << "</shader>\n\n";
-			xmlfile << ostr.str();
+			for (set<Material*>::const_iterator imgmat=imgtex->second.begin();
+					imgmat!=imgtex->second.end();++imgmat)
+			{
+				Material* matr = *imgmat;
+				// mapper
+				ostr.str("");
+				ostr << "<shader type=\"blendermapper\" name=\"" << string(matr->id.name) + "_ftmap" << snum << "\" >\n";
+				ostr << "\t<attributes>\n";
+				ostr << "\t\t<input value=\"" << imgtex->first->id.name << "\" />\n";
+				// all yafray default settings, except for texco, so no need to set others
+				ostr << "\t\t<texco value=\"uv\" />\n";
+				ostr << "\t</attributes>\n";
+				ostr << "</shader>\n\n";
+				xmlfile << ostr.str();
 
-			// shader, remember name, used later when writing per-face-shaders
-			ostr.str("");
-			ostr << matr->id.name <<  "_ftex_sh" << snum;
-			string shader_name = ostr.str();
-			imgtex_shader[imgtex->first] = shader_name;
+				// shader, remember name, used later when writing per-face-shaders
+				ostr.str("");
+				ostr << matr->id.name <<  "_ftsha" << snum;
+				string shader_name = ostr.str();
+				imgtex_shader[string(matr->id.name) + string(imgtex->first->id.name)] = shader_name;
 
-			ostr.str("");
-			ostr << matr->id.name << "_ftex_mp" << snum++;
-			writeShader(shader_name, matr, ostr.str());
+				ostr.str("");
+				ostr << matr->id.name << "_ftmap" << snum++;
+				writeShader(shader_name, matr, ostr.str());
+			}
 
 		}
 	}
@@ -956,7 +961,7 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		TFace* tface = face0->tface;
 		if (tface) {
 			Image* fimg = (Image*)tface->tpage;
-			if (fimg) matname = imgtex_shader[fimg];
+			if (fimg) matname = imgtex_shader[string(face0mat->id.name) + string(fimg->id.name)];
 		}
 	}
 	bool shadow = face0mat->mode & MA_TRACEBLE;
@@ -1101,7 +1106,7 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 			TFace* tface = vlr->tface;
 			if (tface) {
 				Image* fimg = (Image*)tface->tpage;
-				if (fimg) fmatname = imgtex_shader[fimg];
+				if (fimg) fmatname = imgtex_shader[fmatname + string(fimg->id.name)];
 			}
 		}
 		else if (fmatname.length()==0) fmatname = "blender_default";
