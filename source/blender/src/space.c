@@ -423,15 +423,79 @@ static void align_view_to_selected(View3D *v3d)
 	}
 }
 
-void select_children(Object *ob)
+void select_children(Object *ob, int recursive)
 {
 	Base *base;
 
 	for (base= FIRSTBASE; base; base= base->next)
 		if (ob == base->object->parent) {
 			base->flag |= SELECT;
-			select_children(base->object);
+			base->object->flag |= SELECT;
+			if (recursive) select_children(base->object, 1);
 		}
+}
+
+void select_parent(void)	/* Makes parent active and de-selected OBACT */
+{
+	Base *base, *startbase, *basact, *oldbasact;
+
+	if (!(OBACT->parent)) return;
+	BASACT->flag &= (~SELECT);
+	BASACT->object->flag &= (~SELECT);
+	startbase=  FIRSTBASE;
+	if(BASACT && BASACT->next) startbase= BASACT->next;
+	base = startbase;
+	while(base) {
+		if(base->object==BASACT->object->parent) { basact=base; break; }
+		base=base->next;
+		if(base==0) base= FIRSTBASE;
+		if(base==startbase) break;
+	}
+	oldbasact = BASACT;
+	BASACT = basact;
+	basact->flag |= SELECT;		
+	if(oldbasact) if(oldbasact != basact) draw_object_ext(oldbasact);
+	basact->object->flag= basact->flag;
+	draw_object_ext(basact);
+	set_active_base(basact);
+}
+
+void group_menu(void)
+{
+	Base *base;
+	short nr, len;
+	char *str, tstr[40];
+
+	/* make menu string */
+	
+	str= MEM_mallocN(160, "groupmenu");
+	strcpy(str, "Group selection%t|Children%x1|"
+	            "Immediate children%x2|Parent%x3|"
+	            "Objects on shared layers%x4");
+
+	/* here we go */
+	
+	nr= pupmenu(str);
+	MEM_freeN(str);
+
+	if(nr==4) {
+		base= FIRSTBASE;
+		while(base) {
+			if (base->lay & OBACT->lay) {
+				base->flag |= SELECT;
+				base->object->flag |= SELECT;
+			}
+			base= base->next;
+		}		
+	}
+	else if(nr==2) select_children(OBACT, 0);
+	else if(nr==1) select_children(OBACT, 1);
+	else if(nr==3) select_parent();
+	
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSANIM, 0);
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWIPO, 0);
 }
 
 void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
@@ -856,10 +920,10 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case GKEY:
 				/* RMGRP if(G.qual & LR_CTRLKEY) add_selected_to_group();
-				else if(G.qual & LR_ALTKEY) rem_selected_from_group();
-				else if(G.qual & LR_SHIFTKEY) group_menu();
-				else */ 
-				if(G.qual & LR_ALTKEY) clear_object('g');
+				else if(G.qual & LR_ALTKEY) rem_selected_from_group(); */
+				
+				if(G.qual & LR_SHIFTKEY) group_menu();
+				else if(G.qual & LR_ALTKEY) clear_object('g');
 				else
 					transform('g');
 				break;
@@ -994,10 +1058,6 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else if(G.obedit->type==OB_MESH) separate_mesh();
 					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) separate_nurb();
 				}
-				else if (G.qual == LR_SHIFTKEY) {
-					select_children(OBACT);
-					allqueue(REDRAWVIEW3D, 0);					
-				}				
 				else if(G.qual & LR_CTRLKEY) make_parent();
 				else if(G.qual & LR_ALTKEY) clear_parent();
 				else {
