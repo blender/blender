@@ -28,11 +28,14 @@ ListBase _samples = {0,0}, *samples = &_samples;
 
 void sound_free_sound(bSound *sound)
 {
-	/* this crashes blender, PLEASE fix! */
-	// still crashes :(
-	//if (sound) {
-	//	sound_set_sample(sound, NULL);
-	//}
+	/* when sounds have been loaded, but not played, the packedfile was not copied
+	   to sample block and not freed otherwise */
+	if(sound->sample==NULL) {
+		if (sound->newpackedfile) {
+			freePackedFile(sound->newpackedfile); 
+			sound->newpackedfile = NULL;
+		}
+	}
 	if (sound->stream) MEM_freeN(sound->stream);
 }
 
