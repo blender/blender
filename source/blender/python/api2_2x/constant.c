@@ -115,10 +115,9 @@ static PyObject *new_const(void)
 /*****************************************************************************/
 /* Python C_constant methods:                                                */
 /*****************************************************************************/
-void constant_insert(C_constant *self, char *key, PyObject *value)
+int constant_insert (C_constant *self, char *name, PyObject *value)
 {
-  if (self->dict)
-    PyDict_SetItemString(self->dict, key, value); 
+	return PyDict_SetItemString (self->dict, name, value);
 }
 
 /*****************************************************************************/

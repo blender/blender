@@ -140,7 +140,7 @@ static PyObject *ImageRepr (C_Image *self);
 /*****************************************************************************/
 /* Python Image_Type structure definition:                                  */
 /*****************************************************************************/
-static PyTypeObject Image_Type =
+PyTypeObject Image_Type =
 {
   PyObject_HEAD_INIT(&PyType_Type)
   0,                                     /* ob_size */

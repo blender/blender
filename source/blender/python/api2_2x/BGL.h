@@ -135,7 +135,7 @@ static PyObject *Buffer_dimensions(PyObject *self);
 static PyObject *Buffer_getattr(PyObject *self, char *name);
 static PyObject *Buffer_repr(PyObject *self);
 
-PyTypeObject Buffer_Type = {
+PyTypeObject buffer_Type = {
   PyObject_HEAD_INIT(&PyType_Type)
   0,                            /*ob_size*/
   "Buffer",                     /*tp_name*/
@@ -179,7 +179,7 @@ PyTypeObject Buffer_Type = {
 
 #define buffer_str      "O!"
 #define buffer_var(number)  (bgl_buffer##number)->buf.asvoid
-#define buffer_ref(number)  &Buffer_Type, &bgl_buffer##number
+#define buffer_ref(number)  &buffer_Type, &bgl_buffer##number
 #define buffer_def(number)  Buffer *bgl_buffer##number
 
 /* GL Pointer fields, handled by buffer type */
@@ -187,62 +187,62 @@ PyTypeObject Buffer_Type = {
 
 #define GLbooleanP_str      "O!"
 #define GLbooleanP_var(number)  (bgl_buffer##number)->buf.asvoid
-#define GLbooleanP_ref(number)  &Buffer_Type, &bgl_buffer##number
+#define GLbooleanP_ref(number)  &buffer_Type, &bgl_buffer##number
 #define GLbooleanP_def(number)  Buffer *bgl_buffer##number
 
 #define GLbyteP_str     "O!"
 #define GLbyteP_var(number) (bgl_buffer##number)->buf.asvoid
-#define GLbyteP_ref(number) &Buffer_Type, &bgl_buffer##number
+#define GLbyteP_ref(number) &buffer_Type, &bgl_buffer##number
 #define GLbyteP_def(number) Buffer *bgl_buffer##number
 
 #define GLubyteP_str      "O!"
 #define GLubyteP_var(number)  (bgl_buffer##number)->buf.asvoid
-#define GLubyteP_ref(number)  &Buffer_Type, &bgl_buffer##number
+#define GLubyteP_ref(number)  &buffer_Type, &bgl_buffer##number
 #define GLubyteP_def(number)  Buffer *bgl_buffer##number
 
 #define GLintP_str      "O!"
 #define GLintP_var(number)  (bgl_buffer##number)->buf.asvoid
-#define GLintP_ref(number)  &Buffer_Type, &bgl_buffer##number
+#define GLintP_ref(number)  &buffer_Type, &bgl_buffer##number
 #define GLintP_def(number)  Buffer *bgl_buffer##number
 
 #define GLuintP_str     "O!"
 #define GLuintP_var(number) (bgl_buffer##number)->buf.asvoid
-#define GLuintP_ref(number) &Buffer_Type, &bgl_buffer##number
+#define GLuintP_ref(number) &buffer_Type, &bgl_buffer##number
 #define GLuintP_def(number) Buffer *bgl_buffer##number
 
 #define GLshortP_str      "O!"
 #define GLshortP_var(number)  (bgl_buffer##number)->buf.asvoid
-#define GLshortP_ref(number)  &Buffer_Type, &bgl_buffer##number
+#define GLshortP_ref(number)  &buffer_Type, &bgl_buffer##number
 #define GLshortP_def(number)  Buffer *bgl_buffer##number
 
 #define GLushortP_str     "O!"
 #define GLushortP_var(number) (bgl_buffer##number)->buf.asvoid
-#define GLushortP_ref(number) &Buffer_Type, &bgl_buffer##number
+#define GLushortP_ref(number) &buffer_Type, &bgl_buffer##number
 #define GLushortP_def(number) Buffer *bgl_buffer##number
 
 #define GLfloatP_str      "O!"
 #define GLfloatP_var(number)  (bgl_buffer##number)->buf.asvoid
-#define GLfloatP_ref(number)  &Buffer_Type, &bgl_buffer##number
+#define GLfloatP_ref(number)  &buffer_Type, &bgl_buffer##number
 #define GLfloatP_def(number)  Buffer *bgl_buffer##number
 
 #define GLdoubleP_str     "O!"
 #define GLdoubleP_var(number) (bgl_buffer##number)->buf.asvoid
-#define GLdoubleP_ref(number) &Buffer_Type, &bgl_buffer##number
+#define GLdoubleP_ref(number) &buffer_Type, &bgl_buffer##number
 #define GLdoubleP_def(number) Buffer *bgl_buffer##number
 
 #define GLclampfP_str     "O!"
 #define GLclampfP_var(number) (bgl_buffer##number)->buf.asvoid
-#define GLclampfP_ref(number) &Buffer_Type, &bgl_buffer##number
+#define GLclampfP_ref(number) &buffer_Type, &bgl_buffer##number
 #define GLclampfP_def(number) Buffer *bgl_buffer##number
 
 #define GLvoidP_str     "O!"
 #define GLvoidP_var(number) (bgl_buffer##number)->buf.asvoid
-#define GLvoidP_ref(number) &Buffer_Type, &bgl_buffer##number
+#define GLvoidP_ref(number) &buffer_Type, &bgl_buffer##number
 #define GLvoidP_def(number) Buffer *bgl_buffer##number
 
 #define buffer_str      "O!"
 #define buffer_var(number)  (bgl_buffer##number)->buf.asvoid
-#define buffer_ref(number)  &Buffer_Type, &bgl_buffer##number
+#define buffer_ref(number)  &buffer_Type, &bgl_buffer##number
 #define buffer_def(number)  Buffer *bgl_buffer##number
 
 /*@The standard GL typedefs are used as prototypes, we can't

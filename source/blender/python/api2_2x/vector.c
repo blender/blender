@@ -35,7 +35,7 @@
 /*****************************/
 /*    Vector Python Object   */
 /*****************************/
-#define VectorObject_Check(v)	((v)->ob_type == &Vector_Type)
+#define VectorObject_Check(v)	((v)->ob_type == &vector_Type)
 
 static void Vector_dealloc(VectorObject *self)
 {
@@ -191,7 +191,7 @@ static PySequenceMethods Vector_SeqMethods =
 	(intintobjargproc)	Vector_ass_slice,	  /* sq_ass_slice	*/
 };
 
-PyTypeObject Vector_Type =
+PyTypeObject vector_Type =
 {
 	PyObject_HEAD_INIT(&PyType_Type)
 	0,								           /*ob_size*/
@@ -213,7 +213,7 @@ PyObject *newVectorObject(float *vec, int size)
 {
 	VectorObject *self;
 	
-	self= PyObject_NEW(VectorObject, &Vector_Type);
+	self= PyObject_NEW(VectorObject, &vector_Type);
 	
 	self->vec= vec;
 	self->size= size;

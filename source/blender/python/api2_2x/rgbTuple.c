@@ -110,7 +110,7 @@ PyTypeObject rgbTuple_Type =
 /* Function:              rgbTuple_New                                       */
 /*****************************************************************************/
 PyObject *rgbTuple_New(float *rgb[3])
-{ /* this is the static one */
+{
   C_rgbTuple *rgbTuple;
 
   printf ("In rgbTuple_New()\n");

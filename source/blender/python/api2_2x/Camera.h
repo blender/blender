@@ -57,20 +57,14 @@
 #define EXPP_CAM_MODE_SHOWLIMITS 1
 #define EXPP_CAM_MODE_SHOWMIST   2
 
-/* Camera default and MIN, MAX values */
+/* Camera MIN, MAX values */
 
-#define EXPP_CAM_TYPE           EXPP_CAM_TYPE_PERSP
-#define EXPP_CAM_MODE           0
-#define EXPP_CAM_LENS           35.0
 #define EXPP_CAM_LENS_MIN       1.0
 #define EXPP_CAM_LENS_MAX       250.0
-#define EXPP_CAM_CLIPSTART      0.10
 #define EXPP_CAM_CLIPSTART_MIN  0.00
 #define EXPP_CAM_CLIPSTART_MAX  100.00
-#define EXPP_CAM_CLIPEND        100.0
 #define EXPP_CAM_CLIPEND_MIN    1.0
 #define EXPP_CAM_CLIPEND_MAX    5000.0
-#define EXPP_CAM_DRAWSIZE       0.5
 #define EXPP_CAM_DRAWSIZE_MIN   0.1
 #define EXPP_CAM_DRAWSIZE_MAX   10.0
 
@@ -207,7 +201,7 @@ int CameraCheckPyObject (PyObject *pyobj);
 /*****************************************************************************/
 /* Python Camera_Type structure definition:                                  */
 /*****************************************************************************/
-static PyTypeObject Camera_Type =
+PyTypeObject Camera_Type =
 {
   PyObject_HEAD_INIT(&PyType_Type)
   0,                                      /* ob_size */

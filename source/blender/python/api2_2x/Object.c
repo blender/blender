@@ -170,7 +170,7 @@ PyObject *M_Object_New(PyObject *self, PyObject *args)
     G.totobj++;
 
     /* Create a Python object from it. */
-    blen_object = (C_Object*)PyObject_NEW (C_Object, &object_type); 
+    blen_object = (C_Object*)PyObject_NEW (C_Object, &Object_Type); 
     blen_object->object = object;
     blen_object->data = NULL;
     blen_object->parent = NULL;
@@ -203,7 +203,7 @@ PyObject *M_Object_Get(PyObject *self, PyObject *args)
             return (PythonReturnErrorObject (PyExc_AttributeError,
                         "Unknown object specified."));
         }
-        blen_object = (C_Object*)PyObject_NEW (C_Object, &object_type); 
+        blen_object = (C_Object*)PyObject_NEW (C_Object, &Object_Type); 
         blen_object->object = object;
         blen_object->data = NULL;
 
@@ -262,7 +262,7 @@ PyObject *M_Object_GetSelected (PyObject *self, PyObject *args)
          (G.scene->basact->lay & G.vd->lay)))
     {
         /* Active object is first in the list. */
-        blen_object = (C_Object*)PyObject_NEW (C_Object, &object_type); 
+        blen_object = (C_Object*)PyObject_NEW (C_Object, &Object_Type); 
         if (blen_object == NULL)
         {
             Py_DECREF (list);
@@ -281,7 +281,7 @@ PyObject *M_Object_GetSelected (PyObject *self, PyObject *args)
              (base_iter->lay & G.vd->lay)) &&
             (base_iter != G.scene->basact))
         {
-            blen_object = (C_Object*)PyObject_NEW (C_Object, &object_type); 
+            blen_object = (C_Object*)PyObject_NEW (C_Object, &Object_Type); 
             if (blen_object == NULL)
             {
                 Py_DECREF (list);
@@ -777,7 +777,7 @@ PyObject* M_ObjectCreatePyObject (struct Object *obj)
 
     printf ("In M_ObjectCreatePyObject\n");
 
-    blen_object = (C_Object*)PyObject_NEW (C_Object, &object_type);
+    blen_object = (C_Object*)PyObject_NEW (C_Object, &Object_Type);
 
     if (blen_object == NULL)
     {
@@ -794,7 +794,7 @@ PyObject* M_ObjectCreatePyObject (struct Object *obj)
 /*****************************************************************************/
 int M_ObjectCheckPyObject (PyObject *py_obj)
 {
-    return (py_obj->ob_type == &object_type);
+    return (py_obj->ob_type == &Object_Type);
 }
 
 /*****************************************************************************/

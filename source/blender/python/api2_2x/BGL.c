@@ -64,7 +64,7 @@ static Buffer *make_buffer(int type, int ndimensions, int *dimensions)
  
   buf= MEM_mallocN(length*size, "Buffer buffer");
  
-  buffer= (Buffer *) PyObject_NEW(Buffer, &Buffer_Type);
+  buffer= (Buffer *) PyObject_NEW(Buffer, &buffer_Type);
   buffer->parent= NULL;
   buffer->ndimensions= ndimensions;
   buffer->dimensions= dimensions;
@@ -170,7 +170,7 @@ static PyObject *Buffer_item(PyObject *self, int i)
     }
     size= type_size(buf->type);
     
-    newbuf= (Buffer *) PyObject_NEW(Buffer, &Buffer_Type);
+    newbuf= (Buffer *) PyObject_NEW(Buffer, &buffer_Type);
     
     Py_INCREF(self);
     newbuf->parent= self;

@@ -152,7 +152,7 @@ static PyObject *TextRepr (C_Text *self);
 /*****************************************************************************/
 /* Python Text_Type structure definition:                                  */
 /*****************************************************************************/
-static PyTypeObject Text_Type =
+PyTypeObject Text_Type =
 {
   PyObject_HEAD_INIT(&PyType_Type)
   0,                                    /* ob_size */

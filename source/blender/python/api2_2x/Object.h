@@ -216,7 +216,7 @@ static PyObject* ObjectRepr    (C_Object *obj);
 /*****************************************************************************/
 /* Python TypeObject structure definition.                                   */
 /*****************************************************************************/
-static PyTypeObject object_type =
+PyTypeObject Object_Type =
 {
     PyObject_HEAD_INIT(&PyType_Type)
     0,                                /* ob_size */

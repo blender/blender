@@ -51,11 +51,12 @@ PyObject *M_constant_New (void);
 typedef struct {
   PyObject_HEAD
   PyObject *dict;
+
 } C_constant;
 
 /*****************************************************************************/
 /* Python C_constant methods declarations:                                   */
 /*****************************************************************************/
-void constant_insert(C_constant *self, char *name, PyObject *args);
+int constant_insert(C_constant *self, char *name, PyObject *value);
 
 #endif /* EXPP_constant_H */

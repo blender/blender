@@ -58,8 +58,14 @@ PyObject *      M_ObjectCreatePyObject (struct Object *obj);
 int             M_ObjectCheckPyObject (PyObject *py_obj);
 struct Object * M_ObjectFromPyObject (PyObject *py_obj);
 
+/* Types */
+PyObject *      M_Types_Init (void);
+
 /* NMesh Data */
 PyObject *      M_NMesh_Init (void);
+
+/* Material */
+PyObject *      M_Material_Init (void);
 
 /* Camera Data */
 PyObject * M_Camera_Init (void);

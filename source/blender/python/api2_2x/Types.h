@@ -24,47 +24,27 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Michel Selten, Willian P. Germano
+ * Contributor(s): Willian P. Germano
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#ifndef EXPP_gen_utils_h
-#define EXPP_gen_utils_h
+#ifndef EXPP_TYPES_H
+#define EXPP_TYPES_H
 
-#include <stdio.h>
-#include <string.h>
-#include <Python.h>
+#include "Python.h"
 
-#include <BKE_global.h>
-#include <BKE_main.h>
-#include <DNA_ID.h>
-#include <DNA_object_types.h>
-#include <DNA_scriptlink_types.h>
-#include <DNA_listBase.h>
+extern PyTypeObject Button_Type, Material_Type;
 
-int StringEqual (char * string1, char * string2);
-char * GetIdName (ID *id);
-ID *GetIdFromList(ListBase *list, char *name);
+extern PyTypeObject Object_Type;
+extern PyTypeObject NMesh_Type, NMFace_Type, NMVert_Type, NMCol_Type;
+extern PyTypeObject Camera_Type, Lamp_Type, Image_Type, Text_Type;
 
-PyObject *PythonReturnErrorObject (PyObject * type, char * error_msg);
-PyObject *PythonIncRef (PyObject *object);
+extern PyTypeObject vector_Type, buffer_Type, rgbTuple_Type,
+				            constant_Type;
 
-char * event_to_name (short event);
+static char M_Types_doc[] =
+"The Blender Types module\n\n\
+This module is a dictionary of all Blender Python types";
 
-float EXPP_ClampFloat (float value, float min, float max);
-int   EXPP_ClampInt (int value, int min, int max);
-
-PyObject *EXPP_incr_ret (PyObject *object);
-PyObject *EXPP_ReturnPyObjError (PyObject * type, char * error_msg);
-int EXPP_ReturnIntError (PyObject *type, char *error_msg);
-
-int EXPP_check_sequence_consistency (PyObject *seq, PyTypeObject *against);
-
-/* The following functions may need to be moved to the respective BKE or */
-/* DNA modules. */
-
-struct Object * GetObjectByName (char * name);
-
-
-#endif /* EXPP_gen_utils_h */
+#endif /* EXPP_TYPES_H */

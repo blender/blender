@@ -72,52 +72,38 @@
 #define EXPP_LAMP_MODE_OSATEX      512
 #define EXPP_LAMP_MODE_DEEPSHADOW 1024
 
-/* Lamp default and MIN, MAX values */
+/* Lamp MIN, MAX values */
 
-#define EXPP_LAMP_TYPE EXPP_LAMP_TYPE_LAMP
-#define EXPP_LAMP_MODE EXPP_LAMP_MODE_SHADOWS
-#define EXPP_LAMP_SAMPLES     3
 #define EXPP_LAMP_SAMPLES_MIN 1
 #define EXPP_LAMP_SAMPLES_MAX 16
-#define EXPP_LAMP_BUFFERSIZE 512
 #define EXPP_LAMP_BUFFERSIZE_MIN 512
 #define EXPP_LAMP_BUFFERSIZE_MAX 5120
-#define EXPP_LAMP_ENERGY      1.0
 #define EXPP_LAMP_ENERGY_MIN  0.0
 #define EXPP_LAMP_ENERGY_MAX 10.0
-#define EXPP_LAMP_DIST       20.0
 #define EXPP_LAMP_DIST_MIN    0.1
 #define EXPP_LAMP_DIST_MAX 5000.0
-#define EXPP_LAMP_SPOTSIZE      45.0
 #define EXPP_LAMP_SPOTSIZE_MIN   1.0
 #define EXPP_LAMP_SPOTSIZE_MAX 180.0
-#define EXPP_LAMP_SPOTBLEND     0.15
 #define EXPP_LAMP_SPOTBLEND_MIN 0.00
 #define EXPP_LAMP_SPOTBLEND_MAX 1.00
-#define EXPP_LAMP_CLIPSTART        0.5
 #define EXPP_LAMP_CLIPSTART_MIN    0.1
 #define EXPP_LAMP_CLIPSTART_MAX 1000.0
-#define EXPP_LAMP_CLIPEND       40.0
 #define EXPP_LAMP_CLIPEND_MIN    1.0
 #define EXPP_LAMP_CLIPEND_MAX 5000.0
-#define EXPP_LAMP_BIAS     1.00
 #define EXPP_LAMP_BIAS_MIN 0.01
 #define EXPP_LAMP_BIAS_MAX 5.00
-#define EXPP_LAMP_SOFTNESS       3.0
 #define EXPP_LAMP_SOFTNESS_MIN   1.0
 #define EXPP_LAMP_SOFTNESS_MAX 100.0
-#define EXPP_LAMP_HALOINT     1.0
 #define EXPP_LAMP_HALOINT_MIN 0.0
 #define EXPP_LAMP_HALOINT_MAX 5.0
-#define EXPP_LAMP_HALOSTEP      0
 #define EXPP_LAMP_HALOSTEP_MIN  0
 #define EXPP_LAMP_HALOSTEP_MAX 12
-#define EXPP_LAMP_QUAD1     0.0
 #define EXPP_LAMP_QUAD1_MIN 0.0
 #define EXPP_LAMP_QUAD1_MAX 1.0
-#define EXPP_LAMP_QUAD2     1.0
 #define EXPP_LAMP_QUAD2_MIN 0.0
 #define EXPP_LAMP_QUAD2_MAX 1.0
+#define EXPP_LAMP_COL_MIN 0.0
+#define EXPP_LAMP_COL_MAX 1.0
 
 /*****************************************************************************/
 /* Python API function prototypes for the Lamp module.                       */
@@ -166,7 +152,7 @@ struct PyMethodDef M_Lamp_methods[] = {
 typedef struct {
   PyObject_HEAD
   Lamp *lamp;
-	PyObject *color;
+	C_rgbTuple *color;
 
 } C_Lamp;
 
@@ -315,7 +301,7 @@ int LampCheckPyObject (PyObject *pyobj);
 /*****************************************************************************/
 /* Python TypeLamp structure definition:                                     */
 /*****************************************************************************/
-static PyTypeObject Lamp_Type =
+PyTypeObject Lamp_Type =
 {
   PyObject_HEAD_INIT(&PyType_Type)
   0,                                    /* ob_size */
