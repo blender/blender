@@ -1,5 +1,5 @@
 /* 
- *
+ * $Id$
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -193,10 +193,35 @@ extern PyTypeObject Curve_Type;
 /* Python BPy_Curve structure definition */
 typedef struct
 {
-  PyObject_HEAD			/* required py macro */
-  Curve * curve;
+	PyObject_HEAD			/* required py macro */
+	Curve * curve;
+	/* pointer for iterator:  does not point to owned memory */
+	Nurb *iter_pointer;
 }
 BPy_Curve;
+
+/**********
+  CurNurb data
+***********/
+
+extern PyTypeObject CurNurb_Type;
+
+#define BPy_CurNurb_Check(v)  ((v)->ob_type == &CurNurb_Type)	/* for type checking */
+
+/* Python BPy_CurNurb structure definition */
+typedef struct {
+	PyObject_HEAD		/* required py macro */
+	Nurb * nurb;		/* pointer to Blender data */
+
+	/* iterator stuff */
+	/* internal ptrs to point data.  do not free */			  
+	BPoint *bp;
+	BezTriple *bezt;
+	int atEnd; /* iter exhausted flag  */
+	int nextPoint;
+
+} BPy_CurNurb;
+
 
 /*****************************************************************************/
 /* World Data                                                             */

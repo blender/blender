@@ -1,5 +1,5 @@
 /* 
- *
+ * $Id$
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -511,6 +511,8 @@ void M_Blender_Init (void)
 	PyDict_SetItemString (dict, "Noise",		Noise_Init());
 	PyDict_SetItemString (dict, "Mathutils",Mathutils_Init());
 	PyDict_SetItemString (dict, "Library",  Library_Init());
+
+	PyDict_SetItemString (dict, "CurNurb",  CurNurb_Init());
 
 	PyModule_AddIntConstant(module, "TRUE",  1);
 	PyModule_AddIntConstant(module, "FALSE",  0);

@@ -1,5 +1,5 @@
 /* 
- *
+ * $Id$
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@ char M_Types_doc[] =
 "The Blender Types module\n\n\
 This module is a dictionary of all Blender Python types";
 
-struct PyMethodDef Null_methods[] = {{NULL, NULL}};
+struct PyMethodDef Null_methods[] = {{NULL, NULL, 0, NULL}};
 
 void types_InitAll(void)
 {
@@ -52,6 +52,7 @@ void types_InitAll(void)
 	Build_Type.ob_type = &PyType_Type;
 	Button_Type.ob_type = &PyType_Type;
 	Camera_Type.ob_type = &PyType_Type;
+	CurNurb_Type.ob_type = &PyType_Type;
 	Curve_Type.ob_type = &PyType_Type;
 	Effect_Type.ob_type = &PyType_Type;
 	Image_Type.ob_type = &PyType_Type;
@@ -112,7 +113,9 @@ PyObject *Types_Init (void)
 	PyDict_SetItemString(dict, "ArmatureType", (PyObject *)&Armature_Type);
 	PyDict_SetItemString(dict, "BoneType",		 (PyObject *)&Bone_Type);
 
-	PyDict_SetItemString(dict, "CurveType",		 (PyObject *)&Curve_Type);
+	PyDict_SetItemString(dict, "CurNurb_Type",  (PyObject *)&CurNurb_Type);
+	PyDict_SetItemString(dict, "CurveType",	 (PyObject *)&Curve_Type);
+
 	PyDict_SetItemString(dict, "IpoType",			 (PyObject *)&Ipo_Type);
 	PyDict_SetItemString(dict, "MetaballType", (PyObject *)&Metaball_Type);
 

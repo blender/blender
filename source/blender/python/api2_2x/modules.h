@@ -186,6 +186,12 @@ int        Lattice_CheckPyObject  (PyObject *pyobj);
 /* Noise */
 PyObject * Noise_Init (void);
 
+/* CurNurb */
+PyObject * CurNurb_Init (void);
+PyObject * CurNurb_CreatePyObject (Nurb *bzt);
+int        CurNurb_CheckPyObject (PyObject *pyobj);
+Nurb * CurNurb_FromPyObject (PyObject *pyobj);
+
 /* Init functions for other modules */
 PyObject * Window_Init (void);
 PyObject * Draw_Init (void);
