@@ -1837,8 +1837,19 @@ int Rotation(TransInfo *t, short mval[2])
 	
 void initTranslation(TransInfo *t) 
 {
+	
 	t->num.idx_max = 2;
 	t->transform = Translation;
+	
+	/* initgrabz() defines a factor for perspective depth correction, used in window_to_3d() */
+	if (G.obedit) {
+		float vec[3];
+		
+		VECCOPY(vec, t->center);
+		Mat4MulVecfl(G.obedit->obmat, vec);
+		initgrabz(vec[0], vec[1], vec[2]);
+	}
+	else initgrabz(t->center[0], t->center[1], t->center[2]); 
 }
 
 int Translation(TransInfo *t, short mval[2]) 
