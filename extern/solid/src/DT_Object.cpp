@@ -88,9 +88,16 @@ bool intersectComplexConvex(const DT_Shape& a, const MT_Transform& a2w, MT_Scala
 						    const DT_Shape& b, const MT_Transform& b2w, MT_Scalar b_margin,
                             MT_Vector3& v) 
 {
-	DT_Transform tb(b2w, (const DT_Convex&)b);
-    return intersect((const DT_Complex&)a, a2w, a_margin, 
+	if (a.getType() == COMPLEX)
+	{
+		DT_Transform tb(b2w, (const DT_Convex&)b);
+		return intersect((const DT_Complex&)a, a2w, a_margin, 
 		             (b_margin > MT_Scalar(0.0) ? static_cast<const DT_Convex&>(DT_Minkowski(tb, DT_Sphere(b_margin))) : static_cast<const DT_Convex&>(tb)), v);
+	}
+	
+	bool r = intersectComplexConvex(b, b2w, b_margin, a, a2w, a_margin, v);
+	v *= -1.;
+	return r;
 }
 
 bool intersectComplexComplex(const DT_Shape& a, const MT_Transform& a2w, MT_Scalar a_margin,
@@ -132,9 +139,16 @@ bool common_pointComplexConvex(const DT_Shape& a, const MT_Transform& a2w, MT_Sc
 							   const DT_Shape& b, const MT_Transform& b2w, MT_Scalar b_margin,
 							   MT_Vector3& v, MT_Point3& pa, MT_Point3& pb) 
 {
- 	DT_Transform tb(b2w, (const DT_Convex&)b);
-	return common_point((const DT_Complex&)a, a2w, a_margin,
-			            (b_margin > MT_Scalar(0.0) ? static_cast<const DT_Convex&>(DT_Minkowski(tb, DT_Sphere(b_margin))) : static_cast<const DT_Convex&>(tb)), v, pa, pb);
+	if (a.getType() == COMPLEX)
+	{
+		DT_Transform tb(b2w, (const DT_Convex&)b);
+		return common_point((const DT_Complex&)a, a2w, a_margin,
+					(b_margin > MT_Scalar(0.0) ? static_cast<const DT_Convex&>(DT_Minkowski(tb, DT_Sphere(b_margin))) : static_cast<const DT_Convex&>(tb)), v, pa, pb);
+	}
+	
+	bool r = common_pointComplexConvex(b, b2w, b_margin, a, a2w, a_margin, v, pb, pa);
+	v *= -1.;
+	return r;
 }
 
 bool common_pointComplexComplex(const DT_Shape& a, const MT_Transform& a2w, MT_Scalar a_margin,
@@ -176,8 +190,13 @@ bool penetration_depthComplexConvex(const DT_Shape& a, const MT_Transform& a2w, 
 									const DT_Shape& b, const MT_Transform& b2w, MT_Scalar b_margin,
                                     MT_Vector3& v, MT_Point3& pa, MT_Point3& pb) 
 {
-    return penetration_depth((const DT_Complex&)a, a2w, a_margin,
+    if (a.getType() == COMPLEX)
+    	return penetration_depth((const DT_Complex&)a, a2w, a_margin,
 							 DT_Transform(b2w, (const DT_Convex&)b), b_margin, v, pa, pb);
+
+    bool r = penetration_depthComplexConvex(b, b2w, b_margin, a, a2w, a_margin, v, pb, pa);
+    v *= -1.;
+    return r;
 }
 
 bool penetration_depthComplexComplex(const DT_Shape& a, const MT_Transform& a2w, MT_Scalar a_margin,
@@ -219,9 +238,14 @@ MT_Scalar closest_pointsComplexConvex(const DT_Shape& a, const MT_Transform& a2w
 									  const DT_Shape& b, const MT_Transform& b2w, MT_Scalar b_margin,
 									  MT_Point3& pa, MT_Point3& pb)
 {
+    if (a.getType() == COMPLEX)
+    {
 	DT_Transform tb(b2w, (const DT_Convex&)b);
-    return closest_points((const DT_Complex&)a, a2w, a_margin,
-						  (b_margin > MT_Scalar(0.0) ? static_cast<const DT_Convex&>(DT_Minkowski(tb, DT_Sphere(b_margin))) : static_cast<const DT_Convex&>(tb)), pa, pb);
+	return closest_points((const DT_Complex&)a, a2w, a_margin,
+							(b_margin > MT_Scalar(0.0) ? static_cast<const DT_Convex&>(DT_Minkowski(tb, DT_Sphere(b_margin))) : static_cast<const DT_Convex&>(tb)), pa, pb);
+    }
+    
+    return -closest_pointsComplexConvex(b, b2w, b_margin, a, a2w, a_margin, pb, pa);
 }
 
 MT_Scalar closest_pointsComplexComplex(const DT_Shape& a, const MT_Transform& a2w, MT_Scalar a_margin,
