@@ -33,6 +33,8 @@
 #ifndef BIF_LANGUAGE_H
 #define BIF_LANGUAGE_H
 
+struct BMF_Font;
+
 int  read_languagefile(void);		/* usiblender.c */
 void free_languagemenu(void);		/* usiblender.c */
 
@@ -43,4 +45,9 @@ void lang_setlanguage(void);		/* usiblender.c */
 char *language_pup(void);
 char *fontsize_pup(void);
 
+int BIF_DrawString(struct BMF_Font* font, char *str, int translate, int col);
+int BIF_DrawStringRGB(struct BMF_Font* font, char *str, int translate, float r, float g, float b);
+float BIF_GetStringWidth(struct BMF_Font* font, char *str, int translate);
+
 #endif /* BIF_LANGUAGE_H */
+
