@@ -961,6 +961,14 @@ static void render_particle_system(Object *ob, PartEff *paf)
 
 /* ------------------------------------------------------------------------- */
 
+/* when objects are duplicated, they are freed immediate, but still might be
+in use for render... */
+static Object *vlr_set_ob(Object *ob)
+{
+	if(ob->flag & OB_FROMDUPLI) return (Object *)ob->id.newid;
+	return ob;
+}
+
 static void render_static_particle_system(Object *ob, PartEff *paf)
 {
 	Particle *pa=0;
@@ -1173,14 +1181,6 @@ static Material *give_render_material(Object *ob, int nr)
 	if(ma==NULL) ma= &defmaterial;
 	
 	return ma;
-}
-
-/* when objects are duplicated, they are freed immediate, but still might be
-   in use for render... */
-static Object *vlr_set_ob(Object *ob)
-{
-	if(ob->flag & OB_FROMDUPLI) return (Object *)ob->newid;
-	return ob;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -2703,22 +2703,25 @@ void RE_freeRotateBlenderScene(void)
 		if(R.la[a]->jitter) MEM_freeN(R.la[a]->jitter);
 		MEM_freeN(R.la[a]);
 	}
+
+	/* note; these pointer arrays were allocated, with last element NULL to stop loop */
 	a=0;
 	while(R.blove[a]) {
 		MEM_freeN(R.blove[a]);
-		R.blove[a]=0;
+		R.blove[a]= NULL;
 		a++;
 	}
+
 	a=0;
 	while(R.blovl[a]) {
 		MEM_freeN(R.blovl[a]);
-		R.blovl[a]=0;
+		R.blovl[a]= NULL;
 		a++;
 	}
 	a=0;
 	while(R.bloha[a]) {
 		MEM_freeN(R.bloha[a]);
-		R.bloha[a]=0;
+		R.bloha[a]= NULL;
 		a++;
 	}
 

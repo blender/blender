@@ -85,13 +85,13 @@ VertRen *RE_findOrAddVert(int nr)
 	}
 	a= nr>>8;
 	
-	if (a>=rblovelen){  /* Need to allocate more columns...*/
-		// printf("Allocating %i more vert groups.  %i total.\n", 
+	if (a>=rblovelen-1){  /* Need to allocate more columns..., and keep last element NULL for free loop */
+		//printf("Allocating %i more vert groups.  %i total.\n", 
 		//	TABLEINITSIZE, rblovelen+TABLEINITSIZE );
 		temp=R.blove;
 		R.blove=(VertRen**)MEM_callocN(sizeof(void*)*(rblovelen+TABLEINITSIZE) , "Blove");
 		memcpy(R.blove, temp, rblovelen*sizeof(void*));
-		memset(&(R.blove[a]), 0, TABLEINITSIZE*sizeof(void*));
+		memset(&(R.blove[rblovelen]), 0, TABLEINITSIZE*sizeof(void*));
 		rblovelen+=TABLEINITSIZE; 
 		MEM_freeN(temp);	
 	}
@@ -118,13 +118,13 @@ HaloRen *RE_findOrAddHalo(int nr)
 	}
 	a= nr>>8;
 	
-	if (a>=rblohalen){  /* Need to allocate more columns...*/
+	if (a>=rblohalen-1){  /* Need to allocate more columns..., and keep last element NULL for free loop */
 		//printf("Allocating %i more halo groups.  %i total.\n", 
 		//	TABLEINITSIZE, rblohalen+TABLEINITSIZE );
 		temp=R.bloha;
-		R.bloha=(HaloRen**)MEM_callocN(sizeof(void*)*(rblohalen+TABLEINITSIZE) , "Blove");
+		R.bloha=(HaloRen**)MEM_callocN(sizeof(void*)*(rblohalen+TABLEINITSIZE) , "Bloha");
 		memcpy(R.bloha, temp, rblohalen*sizeof(void*));
-		memset(&(R.bloha[a]), 0, TABLEINITSIZE*sizeof(void*));
+		memset(&(R.bloha[rblohalen]), 0, TABLEINITSIZE*sizeof(void*));
 		rblohalen+=TABLEINITSIZE;  /*Does this really need to be power of 2?*/
 		MEM_freeN(temp);	
 	}
@@ -152,13 +152,13 @@ VlakRen *RE_findOrAddVlak(int nr)
 	}
 	a= nr>>8;
 	
-	if (a>=rblovllen){  /* Need to allocate more columns...*/
+	if (a>=rblovllen-1){  /* Need to allocate more columns..., and keep last element NULL for free loop */
 		// printf("Allocating %i more face groups.  %i total.\n", 
 		//	TABLEINITSIZE, rblovllen+TABLEINITSIZE );
 		temp=R.blovl;
-		R.blovl=(VlakRen**)MEM_callocN(sizeof(void*)*(rblovllen+TABLEINITSIZE) , "Blove");
+		R.blovl=(VlakRen**)MEM_callocN(sizeof(void*)*(rblovllen+TABLEINITSIZE) , "Blovl");
 		memcpy(R.blovl, temp, rblovllen*sizeof(void*));
-		memset(&(R.blovl[a]), 0, TABLEINITSIZE*sizeof(void*));
+		memset(&(R.blovl[rblovllen]), 0, TABLEINITSIZE*sizeof(void*));
 		rblovllen+=TABLEINITSIZE;  /*Does this really need to be power of 2?*/
 		MEM_freeN(temp);	
 	}
