@@ -514,7 +514,7 @@ int getConstraintSpaceDimension(TransInfo *t)
 }
 
 void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[]) {
-	strcpy(t->con.text + 1, text);
+	strncpy(t->con.text + 1, text, 48);
 	Mat3CpyMat3(t->con.mtx, space);
 	t->con.mode = mode;
 	getConstraintMatrix(t);
@@ -538,7 +538,7 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
 			setConstraint(t, t->data->axismtx, mode, text);
 		}
 		else {
-			strcpy(t->con.text + 1, text);
+			strncpy(t->con.text + 1, text, 48);
 			Mat3CpyMat3(t->con.mtx, t->data->axismtx);
 			t->con.mode = mode;
 			getConstraintMatrix(t);
@@ -575,17 +575,15 @@ void BIF_setSingleAxisConstraint(float vec[3], char *text) {
 	t->con.mode = (CON_AXIS0|CON_APPLY);
 	getConstraintMatrix(t);
 
-	startConstraint(t);
+	/* start copying with an offset of 1, to reserve a spot for the SPACE char */
+	if(text) strncpy(t->con.text+1, text, 48);	// 50 in struct
 
-	if(text) strncpy(t->con.text, text, 49);	// 50 in struct
 	
 	t->con.drawExtra = NULL;
 	t->con.applyVec = applyAxisConstraintVec;
 	t->con.applySize = applyAxisConstraintSize;
 	t->con.applyRot = applyAxisConstraintRot;
 	t->redraw = 1;
-	
-	startConstraint(t);
 }
 
 void BIF_setDualAxisConstraint(float vec1[3], float vec2[3]) {
@@ -600,16 +598,12 @@ void BIF_setDualAxisConstraint(float vec1[3], float vec2[3]) {
 	Mat3CpyMat3(t->con.mtx, space);
 	t->con.mode = (CON_AXIS0|CON_AXIS1|CON_APPLY);
 	getConstraintMatrix(t);
-
-	startConstraint(t);
 	
 	t->con.drawExtra = NULL;
 	t->con.applyVec = applyAxisConstraintVec;
 	t->con.applySize = applyAxisConstraintSize;
 	t->con.applyRot = applyAxisConstraintRot;
 	t->redraw = 1;
-	
-	startConstraint(t);
 }
 
 
@@ -680,6 +674,12 @@ void BIF_drawPropCircle()
 		
 		/* if editmode we restore */
 		if(G.obedit) myloadmatrix(G.vd->viewmat);
+	}
+}
+
+void initConstraint(TransInfo *t) {
+	if (t->con.mode & CON_APPLY) {
+		startConstraint(t);
 	}
 }
 

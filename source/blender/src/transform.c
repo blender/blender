@@ -1342,6 +1342,8 @@ void Transform(int mode)
 		break;
 	}
 
+	initConstraint(&Trans);
+
 	// Emptying event queue
 	while( qtest() ) {
 		event= extern_qread(&val);
@@ -1611,6 +1613,8 @@ void ManipulatorTransform(int mode)
 		initTrackball(&Trans);
 		break;
 	}
+
+	initConstraint(&Trans);
 	
 	Trans.flag |= T_USES_MANIPULATOR;
 	Trans.redraw = 1;
@@ -2526,7 +2530,6 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 		sprintf(&tvec[20], "%.4f", vec[1]);
 		sprintf(&tvec[40], "%.4f", vec[2]);
 	}
-	printf(" idxmax %d\n", t->num.idx_max);
 
 	if (t->con.mode & CON_APPLY) {
 		switch(t->num.idx_max) {
