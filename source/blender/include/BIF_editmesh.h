@@ -142,5 +142,13 @@ void sort_faces(void);
 void vertices_to_sphere(void);
 void fill_mesh(void);
 
+/* Editmesh Undo code */
+void undo_free_mesh(struct Mesh *me);
+void undo_push_mesh(char *name);
+void undo_pop_mesh(int steps);
+void undo_redo_mesh(void);
+void undo_clear_mesh(void);
+void undo_menu_mesh(void);
+ 
 #endif
 

@@ -1500,21 +1500,25 @@ void special_editmenu(void)
 		
 		switch(nr) {
 		case 1:
+			undo_push_mesh("Subdivide");
 			subdivideflag(1, 0.0, editbutflag);
 			break;
 		case 2:
 			randfac= 10;
 			if(button(&randfac, 1, 100, "Rand fac:")==0) return;
 			fac= -( (float)randfac )/100;
+			undo_push_mesh("Subdivide Fractal");
 			subdivideflag(1, fac, editbutflag);
 			break;
 		case 3:
+			undo_push_mesh("Subdivide Smooth");
 			subdivideflag(1, 0.0, editbutflag | B_SMOOTH);
 			break;
 		case 4:
 			mergemenu();
 			break;
 		case 5:
+			undo_push_mesh("Rem Doubles");
 			notice("Removed: %d", removedoublesflag(1, doublimit));
 			break;
 		case 6:
@@ -1552,9 +1556,6 @@ void special_editmenu(void)
 			break;
 		}
 	}
-
-
-
 
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
@@ -3743,6 +3744,24 @@ void view_editmove(unsigned char event)
 			break;
 	}
 }
+
+char *transform_mode_to_string(int mode)
+{
+       switch(mode) {
+               case 'g':       return("Grab"); break;
+               case 's':       return("Scale"); break;
+               case 'r':       return("Rotate"); break;
+               case 'G':       return("Grab proportional"); break;
+               case 'C':       return("Scale proportional"); break;
+               case 'R':       return("Rotate proportional"); break;
+               case 'S':       return("Shear"); break;
+               case 'N':       return("Shrink/Fatten"); break;
+               case 'w':       return("Warp"); break;
+               case 'd':       return("Duplicate"); break;
+               default:        return("Transform");
+       }
+}
+
 void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 {
 	short canceled = 0;
@@ -3780,6 +3799,10 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 	}
 	if(mode=='w' && G.obedit==0) return;
 	
+	if (G.obedit && G.obedit->type == OB_MESH) {
+               undo_push_mesh(transform_mode_to_string(mode));
+       }
+
 	/* what data will be involved? */
 	if(G.obedit) {
 		if(mode=='N') vertexnormals(0);
@@ -4734,6 +4757,7 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 	
 	if(event==ESCKEY || event==RIGHTMOUSE) {
 		canceled=1;
+		G.undo_edit_level--;
 		tv= transvmain;
 		tob= transmain;
 		for(a=0; a<tottrans; a++, tob++, tv++) {

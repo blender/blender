@@ -119,6 +119,7 @@ typedef struct UserDef {
 	short menuthreshold1, menuthreshold2;
 	char fontname[64];
 	struct ListBase themes;
+	short undosteps, pad0[3];
 } UserDef;
 
 extern UserDef U; /* from usiblender.c !!!! */

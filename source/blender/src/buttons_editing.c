@@ -1473,10 +1473,12 @@ void do_meshbuts(unsigned short event)
 			allqueue (REDRAWVIEW3D, 1);
 			break;
 		case B_ASSIGNVGROUP:
+			undo_push_mesh("Assign to vertex group");
 			assign_verts_defgroup ();
 			allqueue (REDRAWVIEW3D, 1);
 			break;
 		case B_REMOVEVGROUP:
+			undo_push_mesh("Remove from vertex group");
 			remove_verts_defgroup (0);
 			allqueue (REDRAWVIEW3D, 1);
 			break;
@@ -1577,11 +1579,13 @@ void do_meshbuts(unsigned short event)
 		G.f -= G_DISABLE_OK;
 		break;
 	case B_REMDOUB:
+		undo_push_mesh("Rem Doubles");
 		notice("Removed: %d", removedoublesflag(1, doublimit));
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_SUBDIV:
 		waitcursor(1);
+		undo_push_mesh("Subdivide");
 		subdivideflag(1, 0.0, editbutflag & B_BEAUTY);
 		countall();
 		waitcursor(0);
@@ -1591,6 +1595,7 @@ void do_meshbuts(unsigned short event)
 		randfac= 10;
 		if(button(&randfac, 1, 100, "Rand fac:")==0) return;
 		waitcursor(1);
+		undo_push_mesh("Fractal Subdivide");
 		fac= -( (float)randfac )/100;
 		subdivideflag(1, fac, editbutflag & B_BEAUTY);
 		countall();

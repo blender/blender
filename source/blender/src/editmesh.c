@@ -61,6 +61,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_material_types.h"
 #include "DNA_texture_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_key.h"
@@ -102,6 +103,9 @@
 static void free_editverts(ListBase *edve);
 static float convex(float *v1, float *v2, float *v3, float *v4);
 
+/* EditMesh Undo */
+void make_editMesh_real(Mesh *me);
+void load_editMesh_real(Mesh *me);
 /****/
 
 
@@ -170,7 +174,7 @@ struct HashEdge {
 	struct HashEdge *next;
 };
 
-struct HashEdge *hashedgetab=0;
+struct HashEdge *hashedgetab=NULL;
 
 /********* qsort routines *********/
 
@@ -935,6 +939,21 @@ static void free_editvert (EditVert *eve)
 void make_editMesh(void)
 {
 	Mesh *me;
+	int i;
+
+	me= get_mesh(G.obedit);
+	if (me != G.undo_last_data) {
+		G.undo_edit_level= -1;
+		G.undo_edit_highest= -1;
+		if (G.undo_clear) G.undo_clear();
+		G.undo_last_data= me;
+		G.undo_clear= undo_clear_mesh;
+	}
+	make_editMesh_real(me);
+}
+
+void make_editMesh_real(Mesh *me)
+{
 	MFace *mface;
 	TFace *tface;
 	MVert *mvert;
@@ -948,7 +967,6 @@ void make_editMesh(void)
 	/* because of reload */
 	free_editMesh();
 	
-	me= get_mesh(G.obedit);
 	G.totvert= tot= me->totvert;
 
 	if(tot==0) {
@@ -1167,9 +1185,20 @@ static void fix_faceindices(MFace *mface, EditVlak *evl, int nr)
 
 /* load from EditMode to Mesh */
 
-void load_editMesh(void)
+void load_editMesh()
 {
 	Mesh *me;
+
+	waitcursor(1);
+	countall();
+	me= get_mesh(G.obedit);
+       
+	load_editMesh_real(me);
+}
+
+
+void load_editMesh_real(Mesh *me)
+{
 	MFace *mface;
 	MVert *mvert;
 	MSticky *ms;
@@ -1184,11 +1213,6 @@ void load_editMesh(void)
 	int	usedDvert = 0;
 #endif
 
-	waitcursor(1);
-	countall();
-	
-	me= get_mesh(G.obedit);
-	
 	ototvert= me->totvert;
 	
 	/* are there keys? */
@@ -1478,9 +1502,7 @@ void load_editMesh(void)
 
 void remake_editMesh(void)
 {
-
-	if(okee("Reload Original data")==0) return;
-	
+	undo_push_mesh("Undo all changes");
 	make_editMesh();
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);
@@ -1651,6 +1673,8 @@ void convert_to_triface(int all)
 {
 	EditVlak *evl, *evln, *next;
 	
+	undo_push_mesh("Convert to triangles");
+	
 	evl= G.edvl.first;
 	while(evl) {
 		next= evl->next;
@@ -1695,6 +1719,10 @@ void deselectall_mesh(void)	/* toggle */
 			}
 			eve= eve->next;
 		}
+		
+		if (a) undo_push_mesh("Deselect all");
+		else undo_push_mesh("Select all");
+		
 		eve= G.edve.first;
 		while(eve) {
 			if(eve->h==0) {
@@ -1730,6 +1758,9 @@ void righthandfaces(int select)	/* makes faces righthand turning */
 	/* in case (selected) faces were not done: start over with 'find the ultimate ...' */
 
 	waitcursor(1);
+	
+	if (select==2) undo_push_mesh("Recalc normals inside");
+	if (select==1) undo_push_mesh("Recalc normals outside");
 
 	eed= G.eded.first;
 	while(eed) {
@@ -2331,6 +2362,7 @@ void edge_select(void)
 		if( (G.qual & LR_SHIFTKEY)==0) {
 			EditVert *eve;			
 			
+			undo_push_mesh("Edge select");
 			/* deselectall */
 			for(eve= G.edve.first; eve; eve= eve->next) eve->f&= ~1;
 
@@ -2367,6 +2399,7 @@ void mouse_mesh(void)
 		if(act) {
 			
 			if((G.qual & LR_SHIFTKEY)==0) {
+				undo_push_mesh("Vertex select");
 				tekenvertices_special(0, act);
 			}
 			if( (act->f & 1)==0) act->f+= 1;
@@ -2387,6 +2420,8 @@ static void selectconnectedAll(void)
 	short flag=1,toggle=0;
 
 	if(G.eded.first==0) return;
+	
+	undo_push_mesh("Select Connected (All)");
 
 	while(flag==1) {
 		flag= 0;
@@ -2441,7 +2476,8 @@ void selectconnected_mesh(void)
 		error(" Nothing indicated ");
 		return;
 	}
-
+	
+	undo_push_mesh("Select linked");
 	/* clear test flags */
 	eve= G.edve.first;
 	while(eve) {
@@ -3001,6 +3037,8 @@ void xsortvert_flag(int flag)
 	}
 	if(aantal==0) return;
 
+	undo_push_mesh("Xsort");
+	
 	/* allocate memory and sort */
 	sb= sortblock= (struct xvertsort *)MEM_mallocN(sizeof(struct xvertsort)*aantal,"sortremovedoub");
 	eve= G.edve.first;
@@ -3046,6 +3084,8 @@ void hashvert_flag(int flag)
 		eve= eve->next;
 	}
 	if(aantal==0) return;
+	
+	undo_push_mesh("Hash");
 
 	/* allocate memory */
 	sb= sortblock= (struct xvertsort *)MEM_mallocN(sizeof(struct xvertsort)*aantal,"sortremovedoub");
@@ -3882,9 +3922,10 @@ void extrude_mesh(void)
 	TEST_EDITMESH
 
 	if(okee("Extrude")==0) return;
-
+	
 	waitcursor(1);
-
+	undo_push_mesh("Extrude");
+	
 	a= extrudeflag(1,1);
 	waitcursor(0);
 	if(a==0) {
@@ -3904,9 +3945,9 @@ void adduplicate_mesh(void)
 	TEST_EDITMESH
 
 	waitcursor(1);
+	undo_push_mesh("Duplicate");
 	adduplicateflag(1);
 	waitcursor(0);
-
 	countall();  /* for G.totvert in calc_meshverts() */
 	transform('d');
 }
@@ -3919,7 +3960,7 @@ void split_mesh(void)
 	if(okee(" Split ")==0) return;
 
 	waitcursor(1);
-
+	undo_push_mesh("Split");
 	/* make duplicate first */
 	adduplicateflag(1);
 	/* old faces have 3x flag 128 set, delete them */
@@ -3937,8 +3978,11 @@ void separatemenu(void)
 {
 	short event;
 
-	event = pupmenu("Separate %t|Selected%x1|All loose parts%x2");
-
+	event = pupmenu("Separate (No undo!) %t|Selected%x1|All loose parts%x2");
+	
+	if (event==0) return;
+	waitcursor(1);
+	
 	switch (event) {
 
 		case 1: 
@@ -3948,6 +3992,7 @@ void separatemenu(void)
 			separate_mesh_loose();	    	    
 			break;
 	}
+	waitcursor(0);
 }
 
 
@@ -4290,6 +4335,8 @@ void extrude_repeat_mesh(int steps, float offs)
 
 	TEST_EDITMESH
 	waitcursor(1);
+	
+	undo_push_mesh("Extrude Repeat");
 
 	/* dvec */
 	dvec[0]= G.vd->persinv[2][0];
@@ -4331,6 +4378,8 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 	TEST_EDITMESH
 	
 	waitcursor(1);
+	
+	undo_push_mesh("Spin");
 
 	/* imat and centre and size */
 	Mat3CpyMat4(bmat, G.obedit->obmat);
@@ -4417,7 +4466,9 @@ void screw_mesh(int steps,int turns)
 		error("Only in frontview!");
 		return;
 	}
-
+	
+	undo_push_mesh("Screw");
+	
 	/* clear flags */
 	eve= G.edve.first;
 	while(eve) {
@@ -4668,11 +4719,13 @@ void delete_mesh(void)
 	if(event<1) return;
 
 	if(event==10 ) {
+		undo_push_mesh("Erase Vertices");
 		erase_edges(&G.eded);
 		erase_faces(&G.edvl);
 		erase_vertices(&G.edve);
 	} 
 	else if(event==4) {
+		undo_push_mesh("Erase Edges & Faces");
 		evl= G.edvl.first;
 		while(evl) {
 			nextvl= evl->next;
@@ -4714,6 +4767,7 @@ void delete_mesh(void)
 		}
 	} 
 	else if(event==1) {
+		undo_push_mesh("Erase Edges");
 		eed= G.eded.first;
 		while(eed) {
 			nexted= eed->next;
@@ -4757,14 +4811,19 @@ void delete_mesh(void)
 		}
 
 	}
-	else if(event==2) delvlakflag(1);
+	else if(event==2) {
+		undo_push_mesh("Erase Faces");
+		delvlakflag(1);
+	}
 	else if(event==3) {
+		undo_push_mesh("Erase All");
 //		if(G.edve.first) BLI_freelist(&G.edve);
 		if(G.edve.first) free_editverts(&G.edve);
 		if(G.eded.first) BLI_freelist(&G.eded);
 		if(G.edvl.first) freevlaklist(&G.edvl);
 	}
 	else if(event==5) {
+		undo_push_mesh("Erase Only Faces");
 		evl= G.edvl.first;
 		while(evl) {
 			nextvl= evl->next;
@@ -5175,6 +5234,8 @@ void vertexsmooth(void)
 		eve= eve->next;
 	}
 	if(teller==0) return;
+	
+	undo_push_mesh("Smooth");
 
 	adr=adror= (float *)MEM_callocN(3*sizeof(float *)*teller, "vertsmooth");
 	eve= G.edve.first;
@@ -5237,7 +5298,9 @@ void vertexnoise(void)
 	float b2, ofs, vec[3];
 
 	if(G.obedit==0) return;
-
+	
+	undo_push_mesh("Noise");
+	
 	ma= give_current_material(G.obedit, G.obedit->actcol);
 	if(ma==0 || ma->mtex[0]==0 || ma->mtex[0]->tex==0) {
 		return;
@@ -5609,6 +5672,8 @@ void join_triangles(void)
 	totedge = count_edges(G.eded.first);
 	if(totedge==0) return;
 
+	undo_push_mesh("Join triangles");
+	
 	evlar= (EVPTuple *) MEM_callocN(totedge * sizeof(EVPTuple), "jointris");
 
 	ok = collect_quadedges(evlar, G.eded.first, G.edvl.first);
@@ -5702,6 +5767,8 @@ void edge_flip(void)
 	totedge = count_edges(G.eded.first);
 	if(totedge==0) return;
 
+	undo_push_mesh("Flip edges");
+	
 	/* temporary array for : edge -> face[1], face[2] */
 	evlar= (EVPTuple *) MEM_callocN(totedge * sizeof(EVPTuple), "edgeflip");
 
@@ -5808,6 +5875,8 @@ void beauty_fill(void)
     if(totedge==0) return;
 
     if(okee("Beauty Fill")==0) return;
+    
+    undo_push_mesh("Beauty Fill");
 
     /* temp block with face pointers */
     evlar= (EVPTuple *) MEM_callocN(totedge * sizeof(EVPTuple), "beautyfill");
@@ -6360,6 +6429,9 @@ void vertices_to_sphere(void)
 	TEST_EDITMESH
 	
 	if(button(&perc, 1, 100, "Percentage:")==0) return;
+	
+	undo_push_mesh("To Sphere");
+	
 	fac= perc/100.0;
 	facm= 1.0-fac;
 	
@@ -6420,6 +6492,8 @@ void fill_mesh(void)
 	if(G.obedit==0 || (G.obedit->type!=OB_MESH)) return;
 
 	waitcursor(1);
+
+	undo_push_mesh("Fill");
 
 	/* copy all selected vertices */
 	eve= G.edve.first;
@@ -6998,7 +7072,9 @@ void KnifeSubdivide(char mode){
 	
 	if (G.obedit==0) return;
 	
-	/* Set a knife cursor here ??? */
+	undo_push_mesh("Knife");
+	
+	/* Set a knife cursor here */
 	oldcursor=get_cursor();
 	set_cursor(CURSOR_PENCIL); 
 	
@@ -7149,4 +7225,157 @@ short seg_intersect(EditEdge *e, CutCurve *c, int len){
 	}
 	return(isect);
 } 
+
+
+/*********************** EDITMESH UNDO ********************************/
+/* Mesh Edit undo by Alexander Ewring,                                */
+/* ported by Robert Wenzlaff                                          */
+/*                                                                    */
+/* Any meshedit function wishing to create an undo step, calls        */
+/*     undo_push_mesh("menu_name_of_step");                           */
+
+Mesh *undo_new_mesh(void)
+{
+       return(MEM_callocN(sizeof(Mesh), "undo_mesh"));
+}
+
+void undo_free_mesh(Mesh *me)
+{
+       if(me->mat) MEM_freeN(me->mat);
+       if(me->orco) MEM_freeN(me->orco);
+       if(me->mface) MEM_freeN(me->mface);
+       if(me->tface) MEM_freeN(me->tface);
+       if(me->mvert) MEM_freeN(me->mvert);
+       if(me->dvert) free_dverts(me->dvert, me->totvert);
+       if(me->mcol) MEM_freeN(me->mcol);
+       if(me->msticky) MEM_freeN(me->msticky);
+       if(me->bb) MEM_freeN(me->bb);
+       if(me->disp.first) freedisplist(&me->disp);
+       MEM_freeN(me);
+}
+
+
+void undo_push_mesh(char *name)
+{
+       Mesh *me;
+       int i;
+
+       countall();
+
+       G.undo_edit_level++;
+
+       if (G.undo_edit_level<0) {
+               printf("undo: ERROR: G.undo_edit_level negative\n");
+               return;
+       }
+
+
+       if (G.undo_edit[G.undo_edit_level].datablock != 0) {
+               undo_free_mesh(G.undo_edit[G.undo_edit_level].datablock);
+       }
+       if (strcmp(name, "U")!=0) {
+               for (i=G.undo_edit_level+1; i<(U.undosteps-1); i++) {
+                       if (G.undo_edit[i].datablock != 0) {
+                               undo_free_mesh(G.undo_edit[i].datablock);
+                               G.undo_edit[i].datablock= 0;
+                       }
+               }
+               G.undo_edit_highest= G.undo_edit_level;
+       }
+
+       me= undo_new_mesh();
+
+       if (G.undo_edit_level>=U.undosteps) {
+               G.undo_edit_level--;
+               undo_free_mesh((Mesh*)G.undo_edit[0].datablock);
+               G.undo_edit[0].datablock= 0;
+               for (i=0; i<(U.undosteps-1); i++) {
+                       G.undo_edit[i]= G.undo_edit[i+1];
+               }
+       }
+
+       if (strcmp(name, "U")!=0) strcpy(G.undo_edit[G.undo_edit_level].name, name);
+       //printf("undo: saving block: %d [%s]\n", G.undo_edit_level, G.undo_edit[G.undo_edit_level].name);
+
+       G.undo_edit[G.undo_edit_level].datablock= (void*)me;
+       load_editMesh_real(me);
+}
+
+void undo_pop_mesh(int steps)  /* steps == 1 is one step */
+{
+       if (G.undo_edit_level > (steps-2)) {
+		undo_push_mesh("U");
+		G.undo_edit_level-= steps;
+//printf("undo: restoring block: %d [%s]\n", G.undo_edit_level, G.undo_edit[G.undo_edit_level].name);    -
+               make_editMesh_real((Mesh*)G.undo_edit[G.undo_edit_level].datablock);
+               allqueue(REDRAWVIEW3D, 0);
+               makeDispList(G.obedit);
+               G.undo_edit_level--;
+       } else error("Can't undo");
+}
+
+
+void undo_redo_mesh(void)
+{
+       if ( (G.undo_edit[G.undo_edit_level+2].datablock) &&
+            ( (G.undo_edit_level+1) <= G.undo_edit_highest ) ) {
+               G.undo_edit_level++;
+               //printf("redo: restoring block: %d [%s]\n", G.undo_edit_level+1, G.undo_edit[G.undo_edit_level+1].name);-
+               make_editMesh_real((Mesh*)G.undo_edit[G.undo_edit_level+1].datablock);
+               allqueue(REDRAWVIEW3D, 0);
+               makeDispList(G.obedit);
+       } else error("Can't redo");
+}
+
+void undo_clear_mesh(void)
+{
+       int i;
+       Mesh *me;
+
+       for (i=0; i<=UNDO_EDIT_MAX; i++) {
+               me= (Mesh*) G.undo_edit[i].datablock;
+               if (me) {
+                       //printf("undo: freeing %d\n", i);
+                       undo_free_mesh(me);
+                       G.undo_edit[i].datablock= 0;
+               }
+       }
+}
+
+void undo_menu_mesh(void)
+{
+       short event=66;
+       int i, lasti;
+       char menu[2080];
+
+       TEST_EDITMESH
+
+       lasti= (G.undo_edit_level>30) ? G.undo_edit_level-30 : 0;
+
+       strcpy(menu, "UNDO %t");
+       strcat(menu, "|%l|All changes%x1|%l");
+
+       for (i=G.undo_edit_level; i>=lasti; i--) {
+               sprintf(menu+strlen(menu), "|%s%%x%d", G.undo_edit[i].name, i+2);
+       }
+
+       if (lasti) strcat(menu, "|%l|More...%x33|%l");
+
+       event= pupmenu(menu);
+
+       if (event==33){ /* More options.*/
+               strcpy(menu, "UNDO %t");
+               strcat(menu, "|%l|All changes%x1|%l");
+
+               for (i=lasti; i>=0; i--) {
+                       sprintf(menu+strlen(menu), "|%s%%x%d", G.undo_edit[i].name, i+2);
+               }
+               event= pupmenu(menu);
+       }
+
+       if(event<1) return;
+
+       if (event==1) remake_editMesh();
+       else undo_pop_mesh(G.undo_edit_level-event+3);
+}
 

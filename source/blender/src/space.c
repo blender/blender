@@ -1168,7 +1168,11 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case UKEY:
 				if(G.obedit) {
-					if(G.obedit->type==OB_MESH) remake_editMesh();
+					if(G.obedit->type==OB_MESH){
+						if (G.qual & LR_ALTKEY) undo_menu_mesh();
+						else if (G.qual & LR_SHIFTKEY) undo_redo_mesh();
+						else undo_pop_mesh(1);
+					}
 					else if(G.obedit->type==OB_ARMATURE) remake_editArmature();
 					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) remake_editNurb();
 					else if(G.obedit->type==OB_LATTICE) remake_editLatt();
@@ -1881,7 +1885,9 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 		uiBlockSetCol(block, BUTGREY);
 
-
+		uiDefButS(block, NUMSLI, B_DRAWINFO, "UndoSteps:",
+                       (xpos+edgespace+2*smallprefbut+8),y2,(medprefbut+2),buth,
+                       &(U.undosteps), 1, 64, 0, 0, "Number of undo steps avail. in Editmode.  Smaller conserves memory.");
 
 		uiDefBut(block, LABEL,0,"Auto keyframe on:",
 			(xpos+edgespace+(2*medprefbut)+midspace),y3label,medprefbut,buth,
@@ -1935,8 +1941,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefButS(block, TOG|BIT|6, 0, "Ipo",
 			(xpos+edgespace+(8*midspace)+(3*medprefbut)+(5*smallprefbut)),y1,smallprefbut,buth,
 			&(U.dupflag), 0, 0, 0, 0, "Causes ipo data to be duplicated with Shift+D");
-
-
+	
 	} else if(U.userpref == 2) { /* language & colors */
 
 #ifdef INTERNATIONAL

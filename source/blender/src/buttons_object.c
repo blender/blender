@@ -697,6 +697,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 	case B_MATASS:
 		if(G.obedit && G.obedit->actcol>0) {
 			if(G.obedit->type == OB_MESH) {
+				undo_push_mesh("Assign material index");
 				evl= G.edvl.first;
 				while(evl) {
 					if( vlakselectedAND(evl, 1) )
@@ -823,6 +824,8 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 		if(G.obedit) {
 			if(G.obedit->type == OB_MESH) {
 				evl= G.edvl.first;
+				if (event == B_SETSMOOTH) undo_push_mesh("Set Smooth");
+				else if (event==B_SETSOLID) undo_push_mesh("Set Solid");
 				while(evl) {
 					if( vlakselectedAND(evl, 1) ) {
 						if(event==B_SETSMOOTH) evl->flag |= ME_SMOOTH;

@@ -65,6 +65,7 @@
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_mesh_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_curve.h"
@@ -225,6 +226,8 @@ int BIF_read_homefile(void)
 			U.mixbufsize= 2048;
 		}		
 		space_set_commmandline_options();
+		
+		if (U.undosteps==0) U.undosteps=32;
 
 		reset_autosave();
 	}
@@ -563,6 +566,8 @@ void exit_usiblender(void)
 		BIF_close_render_display();
 		mainwindow_close();
 	}
+
+	if (G.undo_clear) G.undo_clear();
 
 	BLI_freelistN(&U.themes);
 	
