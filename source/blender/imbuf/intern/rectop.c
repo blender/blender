@@ -71,6 +71,7 @@ void IMB_rectop(struct ImBuf *dbuf,
 			int value)
 {
 	unsigned int *drect,*srect;
+	int tmp;
 
 	if (dbuf == 0) return;
 	if (operation == 0) return;
@@ -96,28 +97,31 @@ void IMB_rectop(struct ImBuf *dbuf,
 		srcy = 0;
 	}
 
-	if (width > dbuf->x - destx) width = dbuf->x - destx;
-	if (height > dbuf->y - desty) height = dbuf->y - desty;
-	if (sbuf){
-		if (width > sbuf->x - srcx) width = sbuf->x - srcx;
-		if (height > sbuf->y - srcy) height = sbuf->y - srcy;
-	}
+	tmp = dbuf->x - destx;
+	if (width > tmp) width = tmp;
+        tmp = dbuf->y  - desty;
+	if (height > tmp) height = tmp;
 
-	if (width <= 0) return;
-	if (height <= 0) return;
-
-	drect = dbuf->rect;
-	if (sbuf) srect = sbuf->rect;
-
-	drect += desty * dbuf->x;
-	drect += destx;
+	drect = dbuf->rect + desty * dbuf->x + destx;
 	destx = dbuf->x;
 
-	if (sbuf) {
+	if (sbuf){
+                tmp = sbuf->x - srcx;
+		if (width > tmp) width = tmp;
+                tmp = sbuf->y - srcy;
+		if (height > tmp) height = tmp;
+
+		if (width <= 0) return;
+		if (height <= 0) return;
+
+	        srect = sbuf->rect;
 		srect += srcy * sbuf->x;
 		srect += srcx;
 		srcx = sbuf->x;
 	} else{
+		if (width <= 0) return;
+		if (height <= 0) return;
+
 		srect = drect;
 		srcx = destx;
 	}
