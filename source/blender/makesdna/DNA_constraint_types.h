@@ -162,6 +162,8 @@ typedef struct bRotationConstraint{
 #define CONSTRAINT_TYPE_ACTION		12
 #define CONSTRAINT_TYPE_LOCKTRACK	13	/* New Tracking constraint that locks an axis in place - theeth */
 #define CONSTRAINT_TYPE_DISTANCELIMIT	14 
+#define CONSTRAINT_TYPE_STRETCHTO	15  /* claiming this to be mine :) is in tuhopuu bjornmose */ 
+
 
 /* bConstraint.flag */
 #define CONSTRAINT_EXPAND		0x00000001
