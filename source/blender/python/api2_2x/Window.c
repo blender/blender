@@ -65,7 +65,7 @@ PyObject *M_Window_Redraw(PyObject *self, PyObject *args)
           st = sa->spacedata.first;
           if (st->text->flags & TXT_FOLLOW) /* follow cursor display */
             pop_space_text(st);
-          if (/*disable_force_draw*/0) { /* XXX Blender.Draw ... */
+          if (EXPP_disable_force_draw) { /* from Draw.[ch] ... */
             scrarea_queue_redraw(sa);
           }
 

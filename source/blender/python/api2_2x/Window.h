@@ -54,7 +54,7 @@
 #include "modules.h"
 
 /* Used in Draw.c */
-int EXPP_disable_force_draw= 0;
+extern int EXPP_disable_force_draw;
 
 /* Callback used by the file and image selector access functions */
 static PyObject *(*EXPP_FS_PyCallback)(PyObject *arg) = NULL;

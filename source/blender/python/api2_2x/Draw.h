@@ -66,7 +66,7 @@
 #include "modules.h"
 
 /*@ hack to flag that window redraw has happened inside slider callback: */
-int EXPP_disable_force_draw;
+int EXPP_disable_force_draw = 0;
 
 /* From Window.h, used here by py_slider_update() */
 PyObject *M_Window_Redraw(PyObject *self, PyObject *args);
