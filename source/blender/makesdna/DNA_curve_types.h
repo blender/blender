@@ -70,7 +70,7 @@ typedef struct BevPoint {
 	short f1, f2;
 } BevPoint;
 
-
+/* note; alfa location in struct is abused by Key system */
 typedef struct BezTriple {
 	float vec[3][3];
 	float alfa;
@@ -79,6 +79,7 @@ typedef struct BezTriple {
 	char f1, f2, f3, hide;
 } BezTriple;
 
+/* note; alfa location in struct is abused by Key system */
 typedef struct BPoint {
 	float vec[4];
 	float alfa;

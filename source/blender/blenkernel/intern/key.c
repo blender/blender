@@ -841,6 +841,7 @@ void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock **k, flo
 				break;
 			case IPO_BEZTRIPLE:
 				flerp(9, (void *)poin, (void *)k1, (void *)k2, (void *)k3, (void *)k4, t);
+				flerp(1, (float *)(poin+36), (float *)(k1+36), (float *)(k2+36), (float *)(k3+36), (float *)(k4+36), t);
 				poin+= ofsp[0];				
 
 				break;

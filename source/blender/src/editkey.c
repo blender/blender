@@ -532,6 +532,7 @@ void curve_to_key(Curve *cu, KeyBlock *kb, ListBase *nurb)
 				fp+= 3;
 				VECCOPY(fp, bezt->vec[2]);
 				fp+= 3;
+				fp[0]= bezt->alfa;
 				fp+= 3;	/* alphas */
 				bezt++;
 			}
@@ -578,8 +579,9 @@ void key_to_curve(KeyBlock *kb, Curve  *cu, ListBase *nurb)
 				fp+= 3;
 				VECCOPY(bezt->vec[2], fp);
 				fp+= 3;
+				bezt->alfa= fp[0];
 				fp+= 3;	/* alphas */
-				
+			
 				tot-= 3;
 				bezt++;
 			}

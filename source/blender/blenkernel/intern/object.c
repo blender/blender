@@ -896,6 +896,7 @@ void disable_speed_curve(int val)
 	no_speed_curve= val;
 }
 
+/* ob can be NULL */
 float bsystem_time(Object *ob, Object *par, float cfra, float ofs)
 {
 	/* returns float ( see frame_to_float in ipo.c) */
@@ -907,11 +908,15 @@ float bsystem_time(Object *ob, Object *par, float cfra, float ofs)
 		if(R.r.mode & R_FIELDSTILL); else cfra+= .5;
 	}
 
-	/* motion blur */
-	cfra+= bluroffs;
 
-	/* global time */
-	cfra*= G.scene->r.framelen;	
+	if(ob && (ob->flag & OB_FROMDUPLI));
+	else {
+			/* motion blur */
+		cfra+= bluroffs;
+	
+		/* global time */
+		cfra*= G.scene->r.framelen;	
+	}
 	
 	/* ofset frames */
 	if(ob && (ob->ipoflag & OB_OFFS_PARENT)) {

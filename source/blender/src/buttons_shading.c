@@ -923,7 +923,8 @@ static void texture_panel_stucci(Tex *tex)
 	/* newnoise: noisebasis menu */
 	uiDefBut(block, LABEL, 0, "Noise Basis",		10, 30, 150, 19, 0, 0.0, 0.0, 0, 0, "");
 	uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(),	10, 10, 150, 19, &tex->noisebasis, 0,0,0,0, "Sets the noise basis used for turbulence");
-	uiDefButF(block, NUM, B_NOP, "Nabla: ",			160, 10, 150, 19, &tex->nabla, 0.001, 0.1, 1, 0, "Defines size of derivative offset used for calculating normal");	
+	// note, nabla not supported here!
+//	uiDefButF(block, NUM, B_NOP, "Nabla: ",			160, 10, 150, 19, &tex->nabla, 0.001, 0.1, 1, 0, "Defines size of derivative offset used for calculating normal");	
 
 }
 
