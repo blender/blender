@@ -476,6 +476,7 @@ int startquicktime (struct anim *anim)
 		SetMovieGWorld(anim->qtime->movie,
 				 anim->qtime->offscreenGWorld,
 				 GetGWorldDevice(anim->qtime->offscreenGWorld));
+		SetMoviePlayHints(anim->qtime->movie, hintsHighQuality, hintsHighQuality);
 
 		QT_get_frameIndexes(anim);
 	}
