@@ -682,7 +682,9 @@ void action_buttons(void)
 
 	uiBlockSetEmboss(block, UI_EMBOSSX);
 	
-	if (G.saction->action) {
+	// object action is allowed to be zero!
+	if (!get_action_mesh_key()) {
+	
 		/* NAME ETC */
 		ob=OBACT;
 		from = (ID*) ob;
