@@ -309,7 +309,7 @@ static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame)
 	qtexport->ibuf = IMB_allocImBuf (R.rectx, R.recty, 32, IB_rect, 0);
 
 	err = NewGWorldFromPtr( &qtexport->theGWorld,
-							k32RGBAPixelFormat,
+							k32ARGBPixelFormat,
 							trackFrame,
 							NULL, NULL, 0,
 							(unsigned char *)qtexport->ibuf->rect,
@@ -335,9 +335,7 @@ static void QT_DoAddVideoSamplesToMedia (int frame)
 	OSErr	err = noErr;
 	Rect	imageRect;
 
-#ifdef __APPLE__
 	register int		index;
-#endif
 	register int		boxsize;
 	register uint32_t	*readPos;
 	register uint32_t	*changePos;
@@ -358,10 +356,14 @@ static void QT_DoAddVideoSamplesToMedia (int frame)
 	//parse render bitmap into Quicktime's GWorld
 #ifdef __APPLE__
 	for( index = 0; index < boxsize; index++, changePos++, readPos++ )
-		*( changePos ) = *( readPos );
+		*( changePos ) = ( ( *readPos & 0xFFFFFFFF ) >> 8 ) |
+                         ( ( *readPos << 24 ) & 0xFF );
 #endif
+
 #ifdef _WIN32
-	memcpy(changePos, readPos, boxsize*4);
+	for( index = 0; index < boxsize; index++, changePos++, readPos++ )
+		*( changePos ) = ( ( *readPos & 0xFFFFFFFF ) << 8 ) |
+						 ( ( *readPos >> 24 ) & 0xFF );
 #endif
 	err = SCCompressSequenceFrame(qtdata->theComponent,
 		qtexport->thePixMap,
