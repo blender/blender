@@ -3632,6 +3632,7 @@ void draw_object(Base *base)
 		case OB_LAMP:
 			/* does a myloadmatrix */
 			drawlamp(ob);
+			if(dtx) mymultmatrix(ob->obmat);
 			break;
 		case OB_CAMERA:
 			drawcamera(ob);
