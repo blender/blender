@@ -618,9 +618,9 @@ void sampleFloatColV2FloatColV(float *sample, float *dest, int osaNr)
 	if (doGamma()) {
 		/* use a LUT and interpolation to do the gamma correction */
 		for(a=0; a < osaNr; a++, scol+=4) {
-			intcol[0] += gammaCorrect(scol[0]); 
-			intcol[1] += gammaCorrect(scol[1]); 
-			intcol[2] += gammaCorrect(scol[2]); 
+			intcol[0] += gammaCorrect( (scol[0]<1.0) ? scol[0]:1.0 ); 
+			intcol[1] += gammaCorrect( (scol[1]<1.0) ? scol[1]:1.0 ); 
+			intcol[2] += gammaCorrect( (scol[2]<1.0) ? scol[2]:1.0 ); 
 			intcol[3] += scol[3];
 		}
 
@@ -638,8 +638,10 @@ void sampleFloatColV2FloatColV(float *sample, float *dest, int osaNr)
 	} else {
 		/* no gamma */
 		for(a=0; a < osaNr; a++, scol+=4) {
-			intcol[0] += scol[0]; intcol[1] += scol[1];
-			intcol[2] += scol[2]; intcol[3] += scol[3];
+			intcol[0] += (scol[0]<1.0) ? scol[0]:1.0 ; 
+			intcol[1] += (scol[1]<1.0) ? scol[1]:1.0 ;
+			intcol[2] += (scol[2]<1.0) ? scol[2]:1.0 ; 
+			intcol[3] += scol[3];
 		}
     
 		dest[0]= intcol[0]/osaNr;
