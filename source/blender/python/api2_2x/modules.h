@@ -40,3 +40,5 @@ PyObject *g_blenderdict;
 void initBlender (void);
 PyObject* initObject (void);
 PyObject* ObjectCreatePyObject (struct Object *obj);
+PyObject* initCamera (void);
+PyObject* CameraCreatePyObject (struct Camera *cam);
