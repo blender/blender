@@ -101,7 +101,6 @@ static void do_ipo_editmenu_keymenu(void *arg, int event)
 				kb->type= 0;
 				switch(event){
 					case 0:
-						printf("has it done anything?!\n");
 						kb->type= KEY_LINEAR;
 						break;
 					case 1:
