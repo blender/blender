@@ -116,6 +116,7 @@ struct PyMethodDef M_Camera_methods[] = {
 /*****************************************************************************/
 /* Python BPy_Camera methods declarations:                                   */
 /*****************************************************************************/
+static PyObject *Camera_getIpo(BPy_Camera *self);
 static PyObject *Camera_getName(BPy_Camera *self);
 static PyObject *Camera_getType(BPy_Camera *self);
 static PyObject *Camera_getMode(BPy_Camera *self);
@@ -123,6 +124,7 @@ static PyObject *Camera_getLens(BPy_Camera *self);
 static PyObject *Camera_getClipStart(BPy_Camera *self);
 static PyObject *Camera_getClipEnd(BPy_Camera *self);
 static PyObject *Camera_getDrawSize(BPy_Camera *self);
+static PyObject *Camera_setIpo(BPy_Camera *self, PyObject *args);
 static PyObject *Camera_setName(BPy_Camera *self, PyObject *args);
 static PyObject *Camera_setType(BPy_Camera *self, PyObject *args);
 static PyObject *Camera_setIntType(BPy_Camera *self, PyObject *args);
@@ -138,6 +140,8 @@ static PyObject *Camera_setDrawSize(BPy_Camera *self, PyObject *args);
 /*****************************************************************************/
 static PyMethodDef BPy_Camera_methods[] = {
  /* name, method, flags, doc */
+  {"getIpo", (PyCFunction)Camera_getIpo, METH_NOARGS,
+      "() - Return Camera Data Ipo's"},
   {"getName", (PyCFunction)Camera_getName, METH_NOARGS,
       "() - Return Camera Data name"},
   {"getType", (PyCFunction)Camera_getType, METH_NOARGS,
@@ -153,6 +157,8 @@ static PyMethodDef BPy_Camera_methods[] = {
       "() - Return Camera clip end value"},
   {"getDrawSize", (PyCFunction)Camera_getDrawSize, METH_NOARGS,
       "() - Return Camera draw size value"},
+  {"setIpo", (PyCFunction)Camera_setIpo, METH_VARARGS,
+      "(O) - Set Camera Ipo"},
   {"setName", (PyCFunction)Camera_setName, METH_VARARGS,
       "(s) - Set Camera Data name"},
   {"setType", (PyCFunction)Camera_setType, METH_VARARGS,

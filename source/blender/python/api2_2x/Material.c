@@ -317,6 +317,7 @@ PyObject *Material_Init (void)
 /*****************************************************************************/
 /* Python BPy_Material methods declarations:																 */
 /*****************************************************************************/
+static PyObject *Material_getIpo(BPy_Material *self);
 static PyObject *Material_getName(BPy_Material *self);
 static PyObject *Material_getMode(BPy_Material *self);
 static PyObject *Material_getRGBCol(BPy_Material *self);
@@ -624,6 +625,16 @@ Material * GetMaterialByName (char * name)
 /*****************************************************************************/
 /* Python BPy_Material methods:																								 */
 /*****************************************************************************/
+
+static PyObject *Material_getIpo(BPy_Material *self)
+{
+	typedef struct Ipo Ipo;	
+PyObject *Ipo_CreatePyObject (Ipo *ipo);
+	struct Ipo*ipo = self->material->ipo;
+	if (!ipo) return EXPP_ReturnPyObjError(PyExc_RuntimeError,"Material has no Ipo");
+	return Ipo_CreatePyObject (ipo);
+}
+
 static PyObject *Material_getName(BPy_Material *self)
 {
 	PyObject *attr = PyString_FromString(self->material->id.name+2);

@@ -226,14 +226,15 @@ PyObject *World_Init (void)
 /* Python BPy_World methods:                                                */
 /*****************************************************************************/
 
-/**
- * \defgroup World_Methods World Method Functions
- *
- * These are the World PyObject method functions.  They are used to get and
- * set values for the World Data member variables.
- */
 
-/*@{*/
+
+static PyObject *World_getIpo(BPy_World *self)
+{
+PyObject *Ipo_CreatePyObject (Ipo *ipo);
+	struct Ipo*ipo = self->world->ipo;
+	if (!ipo) return EXPP_ReturnPyObjError(PyExc_RuntimeError,"World has no Ipo");
+	return Ipo_CreatePyObject (ipo);
+}
 
 /**
  * \brief World PyMethod getName

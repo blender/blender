@@ -79,6 +79,7 @@ struct PyMethodDef M_World_methods[] = {
 /*****************************************************************************/
 /* Python BPy_World methods declarations:                                   */
 /*****************************************************************************/
+static PyObject *World_getIpo(BPy_World *self);
 static PyObject *World_getName(BPy_World *self);
 static PyObject *World_setName(BPy_World *self, PyObject *args);
 static PyObject *World_getSkytype(BPy_World *self);
@@ -100,6 +101,8 @@ static PyObject *World_setMist(BPy_World *self, PyObject *args );
 /* Python BPy_World methods table:                                          */
 /*****************************************************************************/
 static PyMethodDef BPy_World_methods[] = {
+  {"getIpo", (PyCFunction)World_getIpo, METH_NOARGS,
+      "() - Return World Ipo"},
   {"getName", (PyCFunction)World_getName, METH_NOARGS,
       "() - Return World Data name"},
   {"setName", (PyCFunction)World_setName, METH_VARARGS,

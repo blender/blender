@@ -246,8 +246,23 @@ Camera * GetCameraByName (char * name)
 /*****************************************************************************/
 /* Python BPy_Camera methods:                                                */
 /*****************************************************************************/
+
+
+#include <DNA_ipo_types.h>
+
+
+static PyObject *Camera_getIpo(BPy_Camera *self)
+{
+PyObject *Ipo_CreatePyObject (Ipo *ipo);
+	struct Ipo*ipo = self->camera->ipo;
+	if (!ipo) return EXPP_ReturnPyObjError(PyExc_RuntimeError,"Camera has no Ipo");
+	return Ipo_CreatePyObject (ipo);
+}
+
+
 static PyObject *Camera_getName(BPy_Camera *self)
 {
+
   PyObject *attr = PyString_FromString(self->camera->id.name+2);
 
   if (attr) return attr;
@@ -316,6 +331,23 @@ static PyObject *Camera_getDrawSize(BPy_Camera *self)
                                    "couldn't get Camera.drawSize attribute");
 }
 
+
+static PyObject *Camera_setIpo(BPy_Camera *self, PyObject *args)
+{
+int camera_assignIpo(Camera*,Ipo*);
+	PyObject *ipo = 0;
+	Ipo*ptr;
+	Ipo *Ipo_FromPyObject (PyObject *pyobj);
+
+  if (!PyArg_ParseTuple(args, "O", &ipo))
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+                                     "expected ipo argument");
+ptr = Ipo_FromPyObject(ipo);
+//camera_assignIpo(self->camera, ptr);
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
 static PyObject *Camera_setName(BPy_Camera *self, PyObject *args)
 {
   char *name;
@@ -502,6 +534,11 @@ static PyObject *Camera_getAttr (BPy_Camera *self, char *name)
 {
   PyObject *attr = Py_None;
 
+  if (strcmp(name, "ipo") == 0)	
+		{
+			struct Ipo*ipo = self->camera->ipo;
+			if (ipo) attr =  Ipo_CreatePyObject (ipo);
+		}
   if (strcmp(name, "name") == 0)
     attr = PyString_FromString(self->camera->id.name+2);
   else if (strcmp(name, "type") == 0)
