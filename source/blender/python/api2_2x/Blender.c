@@ -29,61 +29,12 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include <Python.h>
-#include <stdio.h>
-
-#include <BKE_global.h>
-#include <BSE_headerbuttons.h>
-#include <DNA_ID.h>
-#include <DNA_object_types.h>
-#include <DNA_scene_types.h>
-/* #include <DNA_screen_types.h> */
-#include <DNA_userdef_types.h>
-#include <BKE_ipo.h>
-
-#include "gen_utils.h"
-#include "modules.h"
+#include "Blender.h"
 
 /*****************************************************************************/
-/* Python API function prototypes for the Blender module.                    */
+/* Global variables                                                          */
 /*****************************************************************************/
-PyObject *Blender_Set (PyObject *self, PyObject *args);
-PyObject *Blender_Get (PyObject *self, PyObject *args);
-PyObject *Blender_Redraw(PyObject *self, PyObject *args);
-
-/*****************************************************************************/
-/* The following string definitions are used for documentation strings.      */
-/* In Python these will be written to the console when doing a               */
-/* Blender.__doc__                                                           */
-/*****************************************************************************/
-char Blender_Set_doc[] =
-"(request, data) - Update settings in Blender\n\
-\n\
-(request) A string indentifying the setting to change\n\
-	'curframe'	- Sets the current frame using the number in data";
-
-char Blender_Get_doc[] =
-"(request) - Retrieve settings from Blender\n\
-\n\
-(request) A string indentifying the data to be returned\n\
-	'curframe'	- Returns the current animation frame\n\
-	'curtime'	- Returns the current animation time\n\
-	'staframe'	- Returns the start frame of the animation\n\
-	'endframe'	- Returns the end frame of the animation\n\
-	'filename'	- Returns the name of the last file read or written\n\
-	'version'	- Returns the Blender version number";
-
-char Blender_Redraw_doc[] = "() - Redraw all 3D windows";
-
-/*****************************************************************************/
-/* Python method structure definition.                                       */
-/*****************************************************************************/
-struct PyMethodDef Blender_methods[] = {
-	{"Set",    &Blender_Set, METH_VARARGS, Blender_Set_doc},
-	{"Get",    &Blender_Get, METH_VARARGS, Blender_Get_doc},
-	{"Redraw", &Blender_Redraw, METH_VARARGS, Blender_Redraw_doc},
-	{NULL, NULL}
-};
+PyObject *g_blenderdict;
 
 /*****************************************************************************/
 /* Function:              Blender_Set                                        */

@@ -38,7 +38,7 @@
 /*****************************************************************************/
 /* Global variables                                                          */
 /*****************************************************************************/
-PyObject *g_blenderdict;
+extern PyObject *g_blenderdict;
 
 void initBlender (void);
 PyObject* initObject (void);
