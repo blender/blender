@@ -82,9 +82,6 @@
 #include "BKE_ipo.h"
 
 
-/* These vars form the texture channel */
-float Tin, Tr, Tg, Tb, Ta, Txtra;
-extern int Talpha;
 
 
 /* ------------------------------------------------------------------------- */
@@ -244,6 +241,9 @@ ColorBand *add_colorband()
 
 int do_colorband(ColorBand *coba)
 {
+	/* These vars form the texture channel, in render/intern/texture.c */
+	extern float Tin, Tr, Tg, Tb, Ta;
+	extern int Talpha;
 	CBData *cbd1, *cbd2, *cbd0, *cbd3;
 	float fac, mfac, t[4];
 	int a;
