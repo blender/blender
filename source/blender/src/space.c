@@ -134,7 +134,7 @@
 #include "TPT_DependKludge.h"
 #ifdef NAN_TPT
 #include "BSE_trans_types.h"
-#include "../img/IMG_Api.h"
+#include "IMG_Api.h"
 #endif /* NAN_TPT */
 
 #include "SYS_System.h" /* for the user def menu ... should move elsewhere. */
@@ -321,6 +321,7 @@ static void restore_all_scene_cfra(LinkNode *storelist) {
 
 void start_game(void)
 {
+#if GAMEBLENDER == 1
 	Scene *sc, *startscene = G.scene;
 	LinkNode *scene_cfra_store;
 
@@ -378,6 +379,7 @@ void start_game(void)
 	allqueue(REDRAWACTION, 0);
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWIPO, 0);
+#endif
 }
 
 void changeview3d()

@@ -174,6 +174,7 @@ void winqreadsoundspace(unsigned short event, short val, char ascii)
 
 void sound_initialize_sounds(void)
 {
+#if GAMEBLENDER == 1
 	bSound* sound;
 
 	/* clear the soundscene */
@@ -187,6 +188,7 @@ void sound_initialize_sounds(void)
 		sound_sample_is_null(sound);
 		sound = (bSound *) sound->id.next;
 	}
+#endif
 }
 
 
@@ -194,6 +196,7 @@ void sound_initialize_sounds(void)
 bSound* sound_make_copy(bSound* originalsound)
 {
 	bSound* sound = NULL;
+#if GAMEBLENDER == 1
 	char name[160];
 	int len;
 	
@@ -236,6 +239,7 @@ bSound* sound_make_copy(bSound* originalsound)
 			sound->flags &= ~SOUND_FLAGS_3D;
 	}
 	
+#endif
 	return sound;
 }
 
@@ -429,6 +433,7 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 int sound_get_filetype_from_header(bSound* sound, PackedFile* pf)
 {
 	int i, filetype = SAMPLE_INVALID;
+#if GAMEBLENDER == 1
 	char buffer[25];
 	short shortbuf;
 	
@@ -507,6 +512,7 @@ int sound_get_filetype_from_header(bSound* sound, PackedFile* pf)
 		if (G.f & G_DEBUG) printf("Unsupported sound format: %s\n", sound->name);
 	}
 	
+#endif
 	return filetype;
 }
 
@@ -571,6 +577,7 @@ int check_filetype(bSound* sound, PackedFile* pf)
 int sound_load_sample(bSound* sound)
 {
 	int result = FALSE;
+#if GAMEBLENDER == 1
 	PackedFile* pf;
 	int freePF = FALSE;
 	int buffer = -1;
@@ -648,6 +655,8 @@ int sound_load_sample(bSound* sound)
 		result = TRUE;
 	}
 
+#endif
+
 	return result;
 }
 
@@ -656,6 +665,7 @@ int sound_load_sample(bSound* sound)
 bSound* sound_new_sound(char* name)
 {
 	bSound *sound = NULL;
+#if GAMEBLENDER == 1
 	int len, file;
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 	
@@ -700,6 +710,7 @@ bSound* sound_new_sound(char* name)
 		}
 	}
 	
+#endif 
 	return (sound);
 }
 
@@ -708,7 +719,7 @@ bSound* sound_new_sound(char* name)
 int sound_set_sample(bSound *sound, bSample *sample)
 {
 	int result = TRUE;
-
+#if GAMEBLENDER == 1
 	/* decrease the usernumber for this sample */
 	if (sound->sample)
 		sound->sample->id.us--;
@@ -744,6 +755,9 @@ int sound_set_sample(bSound *sound, bSample *sample)
 			}
 		}
 	}
+
+#endif 
+
 	return result;
 }
 
@@ -847,22 +861,27 @@ int sound_sample_is_null(bSound* sound)
 
 void sound_stop_all_sounds(void)
 {
+#if GAMEBLENDER == 1
 	SND_StopAllSounds(ghSoundScene);
 	SND_Proceed(ghAudioDeviceInterface, ghSoundScene);
+#endif 
 }
 
 
 
 void sound_end_all_sounds(void)
 {
+#if GAMEBLENDER == 1
 	sound_stop_all_sounds();
 	SND_RemoveAllSounds(ghSoundScene);
+#endif
 }
 
 
 
 void sound_play_sound(bSound* sound)
 {
+#if GAMEBLENDER == 1
 	/* first check if we want sound or not */
 	SND_IsPlaybackWanted(ghSoundScene);
 
@@ -947,6 +966,7 @@ void sound_play_sound(bSound* sound)
 			}
 		}
 	}
+#endif 
 }
 
 
@@ -982,6 +1002,7 @@ static void sound_init_listener(void)
 
 void sound_init_audio(void)
 {
+#if GAMEBLENDER == 1
 	int noaudio;
 	SYS_SystemHandle hSystem = NULL;
 	ghAudioDeviceInterface = NULL;
@@ -996,6 +1017,7 @@ void sound_init_audio(void)
 	ghSoundScene = SND_CreateScene(ghAudioDeviceInterface);
 
 	sound_init_listener();
+#endif 
 }
 
 
@@ -1016,7 +1038,9 @@ static void sound_exit_listener(void)
 
 void sound_exit_audio(void)
 {
+#if GAMEBLENDER == 1
 	SND_DeleteScene(ghSoundScene);
 	SND_ReleaseDevice();
 	sound_exit_listener();
+#endif 
 }

@@ -76,9 +76,11 @@ MODNAME(BLENDERMODULE) -> "_Blender"
 #define MODNAME(x) _MODNAME(x)
 
 // module configuration -- TODO: this should be set later from the Makefile...
+/* commented out by mein@cs.umn.edu default is non static now :)
 #if defined(__FreeBSD__) || defined(__linux__) || defined (__sgi) || defined(__sparc) || defined(__sparc__)
 #define STATIC_TEXTTOOLS 1
 #endif
+*/
 
 
 #define USE_NMESH 1     // still use NMesh structure for <mesh object>.data
