@@ -708,6 +708,8 @@ static void addparttorect(Part *pa)
 
 	/* calc the right offset in rects, zbuffer cannot exist... */
 
+	if(pa->rect==NULL) return;
+	
 	rtp= pa->rect;
 	rzp= pa->rectz;
 	rfp= pa->rectf;
