@@ -85,6 +85,7 @@ struct PyMethodDef M_Object_methods[] = {
 /*****************************************************************************/
 /* Python BPy_Object methods declarations:																		 */
 /*****************************************************************************/
+static PyObject *Object_getIpo (BPy_Object *self);
 static PyObject *Object_buildParts (BPy_Object *self);
 static PyObject *Object_clrParent (BPy_Object *self, PyObject *args);
 static PyObject *Object_getData (BPy_Object *self);
@@ -120,7 +121,9 @@ static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args);
 static PyMethodDef BPy_Object_methods[] = {
 		/* name, method, flags, doc */
 		{"buildParts",				(PyCFunction)Object_buildParts,				 METH_NOARGS,
-				"Recalcs particle system (if any) "},  
+				"Recalcs particle system (if any) "},
+    {"getIpo",        (PyCFunction)Object_getIpo,        METH_NOARGS,
+        "Recalcs particle system (if any) "},   
 {"clrParent",				 (PyCFunction)Object_clrParent,				 METH_VARARGS,
 				"Clears parent object. Optionally specify:\n\
 mode\n\t2: Keep object transform\nfast\n\t>0: Don't update scene \
@@ -491,6 +494,17 @@ PyObject *Object_Init (void)
 /*****************************************************************************/
 /* Python BPy_Object methods:																									 */
 /*****************************************************************************/
+
+#include <DNA_ipo_types.h>
+
+
+static PyObject *Object_getIpo(BPy_Object *self)
+{
+PyObject *Ipo_CreatePyObject (Ipo *ipo);
+	struct Ipo*ipo = self->object->ipo;
+	if (!ipo) return EXPP_ReturnPyObjError(PyExc_RuntimeError,"Object has no Ipo");
+	return Ipo_CreatePyObject (ipo);
+}
 
 
 static PyObject *Object_buildParts (BPy_Object *self)
