@@ -51,6 +51,7 @@
 /*****************************************************************************/
 static PyObject *M_Ipo_New (PyObject *self, PyObject *args);
 static PyObject *M_Ipo_Get (PyObject *self, PyObject *args);
+static PyObject *M_Ipo_Recalc (PyObject *self, PyObject *args);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.      */
@@ -70,6 +71,7 @@ struct PyMethodDef M_Ipo_methods[] = {
   {"New",(PyCFunction)M_Ipo_New, METH_VARARGS|METH_KEYWORDS,M_Ipo_New_doc},
   {"Get",         M_Ipo_Get,         METH_VARARGS, M_Ipo_Get_doc},
   {"get",         M_Ipo_Get,         METH_VARARGS, M_Ipo_Get_doc},
+  {"Recalc",         M_Ipo_Recalc,         METH_VARARGS, M_Ipo_Get_doc},
   {NULL, NULL, 0, NULL}
 };
 
@@ -92,8 +94,11 @@ static PyObject *Ipo_getRctf(C_Ipo *self);
 static PyObject *Ipo_setRctf(C_Ipo *self, PyObject *args);
 
 static PyObject *Ipo_getNcurves(C_Ipo *self);
+static PyObject *Ipo_getNBezPoints(C_Ipo *self, PyObject *args);
+static PyObject *Ipo_DeleteBezPoints(C_Ipo *self, PyObject *args);
 static PyObject *Ipo_getCurveBP(C_Ipo *self, PyObject *args);
 static PyObject *Ipo_getCurvecurval(C_Ipo *self, PyObject *args);
+
 
 static PyObject *Ipo_setCurveBeztriple(C_Ipo *self, PyObject *args);
 static PyObject *Ipo_getCurveBeztriple(C_Ipo *self, PyObject *args);
@@ -117,6 +122,10 @@ static PyMethodDef C_Ipo_methods[] = {
       "(str) - Change Ipo rctf"},
   {"getNcurves", (PyCFunction)Ipo_getNcurves, METH_NOARGS,
       "() - Return Ipo ncurves"},
+  {"getNBezPoints", (PyCFunction)Ipo_getNBezPoints, METH_VARARGS,
+      "() - Return curve number of Bez points"},
+  {"delBezPoint", (PyCFunction)Ipo_DeleteBezPoints, METH_VARARGS,
+      "() - Return curve number of Bez points"},
   {"getCurveBP", (PyCFunction)Ipo_getCurveBP, METH_VARARGS,
       "() - Return Ipo ncurves"},
   {"getCurveCurval", (PyCFunction)Ipo_getCurvecurval, METH_VARARGS,

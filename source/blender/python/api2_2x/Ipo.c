@@ -30,7 +30,7 @@
  */
 
 #include "Ipo.h"
-
+#include"Ipocurve.c"
 /*****************************************************************************/
 /* Function:              M_Ipo_New                                          */
 /* Python equivalent:     Blender.Ipo.New                                    */
@@ -131,6 +131,22 @@ static PyObject *M_Ipo_Get(PyObject *self, PyObject *args)
 	}
 }
 
+
+static PyObject * M_Ipo_Recalc(PyObject *self, PyObject *args)
+{	
+	void testhandles_ipocurve(IpoCurve *icu);
+
+IpoCurve *icu;
+	//C_IpoCurve *p = (C_IpoCurve*)args;
+ icu = IpoCurve_FromPyObject(args);
+ printf("%d\n",IpoCurve_CheckPyObject(args));
+ printf("%p\n",icu);
+ testhandles_ipocurve(icu); 
+ 
+Py_INCREF(Py_None);
+  return Py_None;
+
+}
 /*****************************************************************************/
 /* Function:              Ipo_Init                                           */
 /*****************************************************************************/
@@ -153,18 +169,24 @@ static PyObject *Ipo_getName(C_Ipo *self)
   PyObject *attr = PyString_FromString(self->ipo->id.name+2);
 
   if (attr) return attr;
-
-  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-                                                                                                                                 "couldn't get Ipo.name attribute"));
+  Py_INCREF(Py_None);
+  return Py_None;
 }
+
+
+
+
+
+
+
+
 static PyObject *Ipo_setName(C_Ipo *self, PyObject *args)
 {
   char *name;
   char buf[21];
 
   if (!PyArg_ParseTuple(args, "s", &name))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
-                                                                                                                                         "expected string argument"));
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,   "expected string argument"));
 
   PyOS_snprintf(buf, sizeof(buf), "%s", name);
 
@@ -237,6 +259,56 @@ static PyObject *Ipo_getNcurves(C_Ipo *self)
 }
 
 
+static PyObject *Ipo_getCurves(C_Ipo *self)
+{
+  PyObject *attr = PyList_New(0);
+  IpoCurve *icu;
+        for (icu=self->ipo->curve.first; icu; icu=icu->next){
+        PyList_Append(attr, IpoCurve_CreatePyObject(icu));
+        }
+	return attr;
+}
+
+
+static PyObject *Ipo_getNBezPoints(C_Ipo *self, PyObject *args)
+{ 
+	int num = 0 , i = 0;
+	IpoCurve *icu = 0;
+	if (!PyArg_ParseTuple(args, "i",&num))
+		return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected int argument"));
+	icu =self->ipo->curve.first;
+ if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"No IPO curve"));
+ for(i = 0;i<num;i++)
+	 {
+		 if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"Bad curve number"));
+		 icu=icu->next;
+                 
+	 }
+ return (PyInt_FromLong(icu->totvert) );
+}
+
+static PyObject *Ipo_DeleteBezPoints(C_Ipo *self, PyObject *args)
+{ 
+	int num = 0 , i = 0;
+	IpoCurve *icu = 0;
+	if (!PyArg_ParseTuple(args, "i",&num))
+		return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected int argument"));
+	icu =self->ipo->curve.first;
+ if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"No IPO curve"));
+ for(i = 0;i<num;i++)
+	 {
+		 if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"Bad curve number"));
+		 icu=icu->next;
+                 
+	 }
+ icu->totvert--;
+ return (PyInt_FromLong(icu->totvert) );
+}
+
+
+
+
+
 static PyObject *Ipo_getCurveBP(C_Ipo *self, PyObject *args)
 {       
 	struct BPoint *ptrbpoint;
@@ -252,7 +324,7 @@ static PyObject *Ipo_getCurveBP(C_Ipo *self, PyObject *args)
 		{
 			if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"Bad curve number"));
 			icu=icu->next;
-                 
+                
     }
 	ptrbpoint = icu->bp;
 	if(!ptrbpoint)return EXPP_ReturnPyObjError(PyExc_TypeError,"No base point");
@@ -370,6 +442,7 @@ static void IpoDeAlloc (C_Ipo *self)
 /*****************************************************************************/
 static PyObject *IpoGetAttr (C_Ipo *self, char *name)
 {
+if (strcmp (name, "curves") == 0)return Ipo_getCurves (self);
   return Py_FindMethod(C_Ipo_methods, (PyObject *)self, name);
 }
 

@@ -218,6 +218,7 @@ void M_Blender_Init (void)
   PyDict_SetItemString (dict, "Curve",    Curve_Init());
   PyDict_SetItemString (dict, "Armature", Armature_Init());
   PyDict_SetItemString (dict, "Ipo",      Ipo_Init());
+  PyDict_SetItemString (dict, "IpoCurve",      IpoCurve_Init());
   PyDict_SetItemString (dict, "Metaball", Metaball_Init());
   PyDict_SetItemString (dict, "Image",    Image_Init());
   PyDict_SetItemString (dict, "Window",   Window_Init());

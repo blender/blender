@@ -259,11 +259,8 @@ static PyObject *World_setName(BPy_World *self, PyObject *args)
 {
   char *name = 0;
   char buf[21];
-	puts("mlmlml");
   if (!PyArg_ParseTuple(args, "s", &name))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
-                                     "expected string argument"));
-	puts(name);
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected string argument"));
   snprintf(buf, sizeof(buf), "%s", name);
   rename_id(&self->world->id, buf);
 
