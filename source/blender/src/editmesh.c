@@ -2582,6 +2582,7 @@ void edge_select(void)
 				closest->v2->f |= 1;
 			}
 		}
+		countall();
 		allqueue(REDRAWVIEW3D, 0);
 	}
 }
