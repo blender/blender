@@ -199,31 +199,47 @@ void init_syspath(void)
     syspath_append(p);  /* append to module search path */
   }
 
-  /* sds */
-  /* bring in the site module so we can add site-package dirs to sys.path */
+  /* 
+   * bring in the site module so we can add 
+   * site-package dirs to sys.path 
+   */
+
   mod = PyImport_ImportModule("site"); /* new ref */
 
   if (mod) {
     PyObject* item;
-    int size, index;
+    int size = 0;
+    int index;
 
     /* get the value of 'sitedirs' from the module */
+
+    /* the ref man says GetDict() never fails!!! */
     d = PyModule_GetDict (mod); /* borrowed ref */
     p = PyDict_GetItemString (d, "sitedirs");  /* borrowed ref */
 
-    /* append each item in sitedirs list to path */
-    size = PyList_Size (p);
+    if( p ) {  /* we got our string */
+      /* append each item in sitedirs list to path */
+      size = PyList_Size (p);
 
-    for (index = 0; index < size; index++) {
-      item  = PySequence_GetItem (p, index);  /* new ref */
-      syspath_append (item);
+      for (index = 0; index < size; index++) {
+	item  = PySequence_GetItem (p, index);  /* new ref */
+	if( item )
+	  syspath_append (item);
+      }
     }
-
     Py_DECREF(mod);
   }
-  else PyErr_Clear();
+  else {  /* import 'site' failed */
+    PyErr_Clear();
+    printf("sys_init:warning - no sitedirs added from site module.\n");
+  }
 
-  /* set sys.executable to the Blender exe */
+  /* 
+   * initialize the sys module
+   * set sys.executable to the Blender exe 
+   * set argv[0] to the Blender exe
+   */
+
   mod = PyImport_ImportModule("sys"); /* new ref */
 
   if (mod) {
