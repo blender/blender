@@ -74,7 +74,7 @@ elif ( test $UNAME = "Darwin" ) then
         CC="cc";
         CFLAGS="-fPIC -funsigned-char -O2 -fno-common";
         LD="cc";
-        LDFLAGS=" -bundle -bundle_loader ../../blender.app/Contents/MacOS/blender -lm";
+        LDFLAGS="-flat_namespace -bundle -bundle_loader ../../blender.app/Contents/MacOS/blender -ldl -lm";
         EXT="so";
 fi
 
