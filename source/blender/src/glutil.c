@@ -297,7 +297,7 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, void *rect)
 		int old_row_length= glaGetOneInteger(GL_UNPACK_ROW_LENGTH);
 		float xzoom= glaGetOneFloat(GL_ZOOM_X);
 		float yzoom= glaGetOneFloat(GL_ZOOM_Y);
-
+		
 			/* The pixel space coordinate of the intersection of
 			 * the [zoomed] image with the origin.
 			 */
@@ -315,6 +315,19 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, void *rect)
 			 */
 		float rast_x= x + off_x*xzoom;
 		float rast_y= y + off_y*yzoom;
+
+			/* We cannot zoom in larger than window size. 
+			 * Let's assume that window size is 4 pixels minimum (ton) 
+			 */
+		if(xzoom>4.0 || yzoom>4.0) {
+			GLfloat scissor[4];
+			glGetFloatv(GL_SCISSOR_BOX, scissor);
+			
+			if( scissor[2] <= xzoom && scissor[3] <= floor(yzoom) ) {
+				printf("GL error; Zoomed in too far\n");
+				return;
+			}
+		}
 		
 		if (off_x<img_w && off_y<img_h) {
 			glaRasterPosSafe2f(rast_x, rast_y, origin_x, origin_y);

@@ -1856,7 +1856,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		base= base->next;
 	}
 	
-	/* then draw not selected and the duplis */
+	/* then draw not selected and the duplis, but skip editmode object */
 	base= G.scene->base.first;
 	while(base) {
 		
@@ -1888,18 +1888,18 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 				G.f &= ~G_PICKSEL;				
 			}
 			else if((base->flag & SELECT)==0) {
-				draw_object(base);
+				if(base->object!=G.obedit) draw_object(base);
 			}
 			
 		}
 		
 		base= base->next;
 	}
-	/* draw selected */
+	/* draw selected and editmode */
 	base= G.scene->base.first;
 	while(base) {
 		
-		if ( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) ) {
+		if (base->object==G.obedit || ( (base->flag & SELECT) && (base->lay & G.vd->lay)) ) {
 			draw_object(base);
 		}
 		
