@@ -2221,9 +2221,9 @@ static void material_panel_material(Object *ob, Material *ma)
 	uiBlockSetCol(block, TH_BUT_SETTING2);
 	xco= std_libbuttons(block, 8, 200, 0, NULL, B_MATBROWSE, id, idfrom, &(G.buts->menunr), B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
 
-	uiDefIconBut(block, BUT, B_MATCOPY, ICON_COPYUP,	xco+=XIC,198,XIC,YIC, 0, 0, 0, 0, 0, "Copies Material to the buffer");
+	uiDefIconBut(block, BUT, B_MATCOPY, ICON_COPYUP,	263,200,XIC,YIC, 0, 0, 0, 0, 0, "Copies Material to the buffer");
 	uiSetButLock(id && id->lib, "Can't edit library data");
-	uiDefIconBut(block, BUT, B_MATPASTE, ICON_PASTEUP,	xco+=XIC,198,XIC,YIC, 0, 0, 0, 0, 0, "Pastes Material from the buffer");
+	uiDefIconBut(block, BUT, B_MATPASTE, ICON_PASTEUP,	284,200,XIC,YIC, 0, 0, 0, 0, 0, "Pastes Material from the buffer");
 	
 	if(ob->actcol==0) ob->actcol= 1;	/* because of TOG|BIT button */
 	
