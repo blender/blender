@@ -1709,7 +1709,7 @@ cleanup:
 		error("Unable to make runtime: %s", cause);
 }
 
-#else !__APPLE__
+#else /* !__APPLE__ */
 
 static int handle_append_runtime(int handle, char *exename, char **cause_r) {
 	char *cause= NULL, *runtime= get_runtime_path(exename);
@@ -1787,4 +1787,4 @@ cleanup:
 		error("Unable to make runtime: %s", cause);
 }
 
-#endif // !__APPLE__
+#endif /* !__APPLE__ */
