@@ -2118,18 +2118,19 @@ static void material_panel_map_to(Material *ma)
 	
 	/* MAP TO */
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|0, B_MATPRV, "Col",	900,180,73,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect basic colour of the material");
-	uiDefButS(block, TOG3|BIT|1, B_MATPRV, "Nor",	973,180,73,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the rendered normal");
-	uiDefButS(block, TOG|BIT|2, B_MATPRV, "Csp",	1046,180,73,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the specularity colour");
-	uiDefButS(block, TOG|BIT|3, B_MATPRV, "Cmir",	1119,180,73,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affext the mirror colour");
-	uiDefButS(block, TOG3|BIT|4, B_MATPRV, "Ref",	1192,180,74,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of the materials reflectivity");
-
-	uiDefButS(block, TOG3|BIT|5, B_MATPRV, "Spec",	900,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of specularity");
-	uiDefButS(block, TOG3|BIT|8, B_MATPRV, "Hard",	960,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the hardness value");
-	uiDefButS(block, TOG3|BIT|9, B_MATPRV, "RayMir",1020,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the ray-mirror value");
-	uiDefButS(block, TOG3|BIT|7, B_MATPRV, "Alpha",	1080,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the alpha value");
-	uiDefButS(block, TOG3|BIT|6, B_MATPRV, "Emit",	1140,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
-	uiDefButS(block, TOG3|BIT|10, B_MATPRV, "Translu",1200,160,63,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the translucency value");
+	uiDefButS(block, TOG|BIT|0, B_MATPRV, "Col",	900,180,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect basic colour of the material");
+	uiDefButS(block, TOG3|BIT|1, B_MATPRV, "Nor",	960,180,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the rendered normal");
+	uiDefButS(block, TOG|BIT|2, B_MATPRV, "Csp",	1020,180,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the specularity colour");
+	uiDefButS(block, TOG|BIT|3, B_MATPRV, "Cmir",	1080,180,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affext the mirror colour");
+	uiDefButS(block, TOG3|BIT|4, B_MATPRV, "Ref",	1140,180,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of the materials reflectivity");
+	uiDefButS(block, TOG3|BIT|5, B_MATPRV, "Spec",	1200,180,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of specularity");
+	
+	uiDefButS(block, TOG3|BIT|8, B_MATPRV, "Hard",	900,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the hardness value");
+	uiDefButS(block, TOG3|BIT|9, B_MATPRV, "RayMir",960,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the ray-mirror value");
+	uiDefButS(block, TOG3|BIT|7, B_MATPRV, "Alpha",	1020,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the alpha value");
+	uiDefButS(block, TOG3|BIT|6, B_MATPRV, "Emit",	1080,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
+	uiDefButS(block, TOG3|BIT|10, B_MATPRV, "Translu",1140,160,65,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the translucency value");
+	uiDefButS(block, TOG|BIT|12, B_MATPRV, "Disp",	1205,160,55,19, &(mtex->mapto), 0, 0, 0, 0, "Let the texture displace the surface");
 	
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_MATPRV, "Mix",			1087,120,48,18, &(mtex->blendtype), 9.0, (float)MTEX_BLEND, 0, 0, "Sets texture to blend the values or colour");

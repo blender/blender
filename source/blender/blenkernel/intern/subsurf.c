@@ -610,6 +610,107 @@ static void hypermesh_subdivide(HyperMesh *me, HyperMesh *nme) {
 	}
 }
 
+/* Simple subdivition surface for radio and displacement */
+static void hypermesh_simple_subdivide(HyperMesh *me, HyperMesh *nme) {
+	HyperVert *v;
+	HyperEdge *e;
+	HyperFace *f;
+	LinkNode *link;
+	float co[3];
+	int j, k, count;
+
+	for (f= me->faces; f; f= f->next) { /* Adds vert at center of each existing face */
+		Vec3CpyI(co, 0.0, 0.0, 0.0);
+		for (j=0; j<f->nverts; j++)	Vec3Add(co, f->verts[j]->co);
+		Vec3MulN(co, (float)(1.0/f->nverts));
+
+		f->mid= hypermesh_add_vert(nme, co, NULL);
+	}
+		
+	for (e= me->edges; e; e= e->next) {  /* Add vert in middle of each edge */	
+		Vec3AvgT(co, e->v[0]->co, e->v[1]->co);
+		e->ep= hypermesh_add_vert(nme, co, NULL);
+	}
+
+	for (v= me->verts; v; v= v->next) {
+		v->nmv= hypermesh_add_vert(nme, v->co, v->orig);
+	}
+
+	for (e= me->edges; e; e= e->next) { /* Add originam edges */
+		hypermesh_add_edge(nme, e->v[0]->nmv, e->ep, e->flag);
+		hypermesh_add_edge(nme, e->v[1]->nmv, e->ep, e->flag);
+	}
+
+	for (f= me->faces; f; f= f->next) {
+		int last= f->nverts-1;
+		unsigned char vcol_mid[4];
+		unsigned char vcol_edge[4][4];
+		float uvco_mid[2];
+		float uvco_edge[4][4];
+		
+		if (me->hasvcol) {
+			int t[4]= {0, 0, 0, 0};
+			for (j=0; j<f->nverts; j++) {
+				t[0]+= f->vcol[j][0];
+				t[1]+= f->vcol[j][1];
+				t[2]+= f->vcol[j][2];
+				t[3]+= f->vcol[j][3];
+			}
+			vcol_mid[0]= t[0]/f->nverts;
+			vcol_mid[1]= t[1]/f->nverts;
+			vcol_mid[2]= t[2]/f->nverts;
+			vcol_mid[3]= t[3]/f->nverts;
+			
+			for (j=0; j<f->nverts; last= j, j++)
+				VColAvgT(vcol_edge[j], f->vcol[last], f->vcol[j]);
+			last= f->nverts-1;
+		}
+		if (me->hasuvco) {
+			Vec2CpyI(uvco_mid, 0.0, 0.0);
+			for (j=0; j<f->nverts; j++)
+				Vec2Add(uvco_mid, f->uvco[j]);
+			Vec2MulN(uvco_mid, (float)(1.0/f->nverts));
+
+			for (j=0; j<f->nverts; last= j, j++)
+				Vec2AvgT(uvco_edge[j], f->uvco[last], f->uvco[j]);
+			last= f->nverts-1;
+		}
+		
+		for (j=0; j<f->nverts; last=j, j++) {
+			HyperVert *nv[4];
+			HyperFace *nf;
+			
+			nv[0]= f->verts[last]->nmv;
+			nv[1]= f->edges[j]->ep;
+			nv[2]= f->mid;
+			nv[3]= f->edges[last]->ep;
+			
+			nf= hypermesh_add_face(nme, nv, 4, 0);
+			nf->orig= f->orig;
+			
+			if (me->hasvcol) {
+				nf->vcol= BLI_memarena_alloc(nme->arena, sizeof(*nf->vcol)*4);
+				
+				for (k=0; k<4; k++) {
+					nf->vcol[0][k]= f->vcol[last][k];
+					nf->vcol[1][k]= vcol_edge[j][k];
+					nf->vcol[2][k]= vcol_mid[k];
+					nf->vcol[3][k]= vcol_edge[last][k];
+				}
+			}
+			if (me->hasuvco) {
+				nf->uvco= BLI_memarena_alloc(nme->arena, sizeof(*nf->uvco)*4);
+				
+				Vec2Cpy(nf->uvco[0], f->uvco[last]);
+				Vec2Cpy(nf->uvco[1], uvco_edge[j]);
+				Vec2Cpy(nf->uvco[2], uvco_mid);
+				Vec2Cpy(nf->uvco[3], uvco_edge[last]);
+			}
+		}
+	}
+}
+
+
 static void hypermesh_free(HyperMesh *me) {
 	BLI_memarena_free(me->arena);
 			
@@ -914,9 +1015,10 @@ static DispList *subsurf_subdivide_to_displist(HyperMesh *hme, short subdiv, sho
 		tmp->hasuvco= hme->hasuvco;
 		tmp->orig_me= hme->orig_me;
 		
-		hypermesh_subdivide(hme, tmp);
-		hypermesh_free(hme);
+		if (flag & ME_SIMPLE_DIV) hypermesh_simple_subdivide(hme, tmp);
+		else hypermesh_subdivide(hme, tmp);      /* default to CC subdiv. */
 		
+		hypermesh_free(hme);
 		hme= tmp;
 	}
 

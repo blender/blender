@@ -7410,7 +7410,7 @@ CutCurve *get_mouse_trail(int *len, char mode){
 void KnifeSubdivide(char mode){
 
 	int oldcursor, len=0;
-	short isect=0, aligned=0;
+	short isect=0;
 	CutCurve *curve;		
 	EditEdge *eed; 
 	Window *win;	

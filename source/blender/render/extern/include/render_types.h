@@ -159,6 +159,7 @@ typedef struct VertRen
 	void *svert;			/* smooth vert, only used during initrender */
 	short clip, texofs;		/* texofs= flag */
 	float accum;			/* accum for radio weighting */
+	short flag;
 } VertRen;
 
 /* ------------------------------------------------------------------------- */

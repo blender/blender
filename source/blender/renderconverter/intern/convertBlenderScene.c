@@ -144,6 +144,12 @@ static int test_flipnorm(float *v1, float *v2, float *v3, VlakRen *vlr, float im
 static void init_render_object(Object *ob);
 static HaloRen *initstar(float *vec, float hasize);
 
+/* Displacement Texture */
+void displace_render_face(VlakRen *vlr, int tex, float scale);
+void do_displacement(Object *ob, int startface, int numface, int startvert, int numvert);
+short test_for_displace(Object *ob);
+void displace_render_vert(VertRen *vr, MTex *mtex, short mask, float scale);
+
 /* more prototypes for autosmoothing below */
 
 
@@ -1099,8 +1105,9 @@ static void init_render_displist_mesh(Object *ob)
 	float xn, yn, zn;
 	float mat[4][4], imat[3][3], *data, *nors, *orco=0, n1[3], flen;
 	int a, b, flipnorm= -1,  need_orco=0, startvert, p1, p2, p3, p4;
-	int old_totvert= R.totvert;
-	int old_totvlak= R.totvlak;
+	int old_totvert= R.totvert, numvert=0;
+	int old_totvlak= R.totvlak, numface=0;
+	short displace_chanels=0;
 
 	me= ob->data;
 
@@ -1123,6 +1130,9 @@ static void init_render_displist_mesh(Object *ob)
 		}
 	}
 
+	/* Test to see if there are displacement chanels */
+	displace_chanels=test_for_displace(ob);
+	
 	dl= me->disp.first;
 
 	/* Force a displist rebuild if this is a subsurf and we have a different subdiv level */
@@ -1147,7 +1157,7 @@ static void init_render_displist_mesh(Object *ob)
 	while(dl) {
 		if(dl->type==DL_SURF) {
 			startvert= R.totvert;
-			a= dl->nr*dl->parts;
+			numvert = a = dl->nr*dl->parts;
 			data= dl->verts;
 			nors= dl->nors;
 			
@@ -1195,6 +1205,7 @@ static void init_render_displist_mesh(Object *ob)
 
 					flen= CalcNormFloat4(v1->co, v3->co, v4->co, v2->co, n1);
 					if(flen!=0.0) {
+						numface++;
 						vlr= RE_findOrAddVlak(R.totvlak++);
 						vlr->ob= ob;
 						vlr->v1= v1;
@@ -1233,6 +1244,8 @@ static void init_render_displist_mesh(Object *ob)
 			int i;
 			
 			startvert= R.totvert;
+			numvert=dlm->totvert;
+			
 			for (i=0; i<dlm->totvert; i++) {
 				MVert *mv= &dlm->mvert[i];
 				
@@ -1274,6 +1287,7 @@ static void init_render_displist_mesh(Object *ob)
 				}
 
 				if(flen!=0.0) {
+					numface++;
 					vlr= RE_findOrAddVlak(R.totvlak++);
 					vlr->ob= ob;
 					vlr->v1= v1;
@@ -1310,8 +1324,11 @@ static void init_render_displist_mesh(Object *ob)
 		
 		dl= dl->next;
 	}
-
-
+	
+	if (displace_chanels) {
+		do_displacement(ob, old_totvlak, numface, old_totvert, numvert );
+	}
+	
 	normalenrender(old_totvert, old_totvlak);
 
 }
@@ -1510,7 +1527,9 @@ static void init_render_mesh(Object *ob)
 	float *extverts=0, *orco;
 	int a, a1, ok, do_puno, need_orco=0, totvlako, totverto, vertofs;
 	int start, end, flipnorm, do_autosmooth=0;
-
+	short displace_chanels=0;
+	int startface, numface=0;
+	
 	me= ob->data;
 	if (rendermesh_uses_displist(me) && me->subdivr>0) {
 		init_render_displist_mesh(ob);
@@ -1554,6 +1573,9 @@ static void init_render_mesh(Object *ob)
 		}
 	}
 
+	/* Test to see if there are displacement chanels */
+	displace_chanels=test_for_displace(ob);
+		
 	if(me->orco==0) {
 		need_orco= 0;
 		for(a=1; a<=ob->totcol; a++) {
@@ -1765,6 +1787,11 @@ static void init_render_mesh(Object *ob)
 				}
 			}
 		}
+	}
+	
+	if (displace_chanels) {
+		do_displacement(ob, totvlako, end, totverto, me->totvert );
+		do_puno=1;
 	}
 	
 	if(do_autosmooth || (me->flag & ME_AUTOSMOOTH)) {
@@ -3090,3 +3117,119 @@ void RE_rotateBlenderScene(void)
 	set_normalflags();
 }
 
+
+/* **************************************************************** */
+/*                Displacement mapping                              */
+/* **************************************************************** */
+extern float Tin, Tr, Tg, Tb; 
+
+short test_for_displace(Object *ob){
+/* Produce bitfield indicating which textures are displacement textures. */
+	Material *ma;
+	short result = 0; 
+	int i, j;
+	
+	for (i=1; i<=ob->totcol; i++) {
+		ma=give_render_material(ob, i);
+		if (ma) for(j=0; j<8; j++){
+			if (ma->mtex[j] && (ma->mtex[j]->mapto & MAP_DISPLACE)){
+				result |= 1<<j;
+			}
+		}
+	}
+	return result;
+}
+
+
+void do_displacement(Object *ob, int startface, int numface, int startvert, int numvert ){
+
+	int i, j;
+	Material *ma; 
+	MTex *mtex;
+	float co[3]={0,0,0}, min[3]={1e9, 1e9, 1e9}, max[3]={-1e9, -1e9, -1e9};
+	float scale=1.0f;
+	VertRen *vr;
+	VlakRen *vlr;
+	Mesh *me;
+	
+	minmax_object(ob, min, max);
+	VecSubf(min, max, min);
+	scale=MAX3(min[0], min[1], min[2]); /*Overall scale of obj */
+	
+	/* calculate vertex normals */
+	//normalenrender(startvert, startface);
+	
+	for(i=startvert; i<startvert+numvert; i++){ /* Clear vert flags */
+		vr=RE_findOrAddVert(i);
+		vr->flag=0;
+	}
+	
+	for(i=startface; i<startface+numface; i++){
+		vlr=RE_findOrAddVlak(i);
+
+		for(j=0; j<8; j++){
+			mtex = vlr->mat->mtex[j];
+			if ((mtex)&&( vlr->mat->mtex[j]->mapto & MAP_DISPLACE ) ) displace_render_face(vlr, j, scale);
+		}	
+		
+		/* Recaluclate the face normal */
+		if(vlr->v4) vlr->len= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co,
+							    vlr->v1->co, vlr->n);
+		else vlr->len= CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co,
+							    vlr->n);
+		
+	}
+}
+
+void displace_render_face(VlakRen *vlr, int tex, float scale){
+
+	MTex *mtex;
+	int mask;
+	float dp;
+	
+	VlakRen vlr2; 
+	VertRen vr;
+
+	mask = 1<<tex; /* Displace vert once per displace texture channel */
+	mtex=vlr->mat->mtex[tex];
+	
+	//VECCOPY(R.vn, vlr->n); 	/* extertex() needs face/puno */
+	//R.vlr=vlr;
+	
+	/* Displace the verts */
+	
+	if (! (vlr->v1->flag & mask)) displace_render_vert(vlr->v1, mtex, mask, scale);
+	
+	if (! (vlr->v2->flag & mask) ) displace_render_vert(vlr->v2, mtex, mask, scale);
+	
+ 	if (! (vlr->v3->flag & mask)) displace_render_vert(vlr->v3, mtex, mask, scale);
+			
+	if (vlr->v4) {
+		if (!(vlr->v4->flag & mask)) displace_render_vert(vlr->v4, mtex, mask, scale);
+	}
+}
+
+void displace_render_vert(VertRen *vr, MTex *mtex, short mask, float scale){
+
+	float co[3]={0,0,0}, dp, sample[3];
+
+	if ((mtex->texco & TEXCO_ORCO) && (vr->orco)) {
+		VECCOPY(co, vr->orco);
+	}
+	else if ((mtex->texco & TEXCO_STICKY) && (vr->sticky)) {
+		VECCOPY(co, vr->sticky);
+	}
+	else if (mtex->texco & TEXCO_GLOB) {
+		 /* VECCOPY(co, vr->co);  Interesting, but not right. */
+		 
+	}
+	
+	externtex(mtex, co);
+
+	vr->co[0]+=0.25*(Tin-0.5) * vr->n[0] * mtex->varfac *scale ; 
+	vr->co[1]+=0.25*(Tin-0.5) * vr->n[1] * mtex->varfac *scale ;
+	vr->co[2]+=0.25*(Tin-0.5) * vr->n[2] * mtex->varfac *scale ; 
+	
+	vr->flag |= mask;
+
+}

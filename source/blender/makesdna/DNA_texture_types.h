@@ -228,6 +228,7 @@ typedef struct Tex {
 #define MAP_ALPHA		128
 #define MAP_HAR			256
 #define MAP_XTRA		512
+#define MAP_DISPLACE	4096
 
 /* pr_type */
 #define MA_FLAT			0

@@ -165,6 +165,7 @@ typedef struct Mesh {
 #define ME_SMESH		64
 #define ME_SUBSURF		128
 #define ME_OPT_EDGES	256
+#define ME_SIMPLE_DIV   512
 
 /* puno = vertexnormal (mface) */
 #define ME_FLIPV1		1
