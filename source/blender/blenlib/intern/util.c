@@ -651,24 +651,36 @@ int BLI_testextensie(char *str, char *ext)
 	return (retval);
 }
 
+// copies from BKE_utildefines
+#ifndef FILE_MAXDIR
+#define FILE_MAXDIR  160
+#endif
+
+#ifndef FILE_MAXFILE
+#define FILE_MAXFILE 80
+#endif
+
 void BLI_split_dirfile(char *string, char *dir, char *file)
 {
 	int a;
+	int len;
 	
 	dir[0]= 0;
 	file[0]= 0;
 
 #ifdef WIN32
+	char_switch(string, '/', '\\'); /* make sure we have a valid path format */
+
 	if (strlen(string)) {
 		if (string[0] == '/' || string[0] == '\\') { 
-			strcpy(dir, string);
+			strncpy(dir, string, (FILE_MAXDIR+FILE_MAXFILE)-1);
 		} else if (string[1] == ':' && string[2] == '\\') {
-            strcpy(dir, string);
+            strncpy(dir, string, (FILE_MAXDIR+FILE_MAXFILE)-1);
         } else {
             BLI_getwdN(dir);
             strcat(dir,"/");
             strcat(dir,string);
-            strcpy(string,dir);
+            strncpy(string,dir,FILE_MAXDIR-1);
         }
 
         BLI_make_exist(dir);
@@ -680,9 +692,22 @@ void BLI_split_dirfile(char *string, char *dir, char *file)
         if(a>=4 && dir[a-1]=='\\') dir[a-1] = 0;
 
         if (S_ISDIR(BLI_exist(dir))) {
-            strcpy(file,string + strlen(dir));
 
-            if (strrchr(file,'\\')) strcpy(file,strrchr(file,'\\')+1);
+	    /* copy from end of string into file, to ensure filename itself isn't truncated 
+	       if string is too long. (aphex) */
+
+	    len = FILE_MAXFILE - strlen(string);
+
+	    if (len < 0)
+		strncpy(file,string + abs(len),FILE_MAXFILE-1);
+	    else
+		strncpy(file,string,FILE_MAXFILE-1);
+	    
+	    file[FILE_MAXFILE-1] = 0;
+
+            if (strrchr(string,'\\')){
+		strncpy(file,strrchr(string,'\\')+1,FILE_MAXFILE-1);
+	    }
 
             if (a = strlen(dir)) {
                 if (dir[a-1] != '\\') strcat(dir,"\\");
@@ -692,7 +717,7 @@ void BLI_split_dirfile(char *string, char *dir, char *file)
 			a = strlen(dir) - 1;
 			while(a>0 && dir[a] != '\\') a--;
 			dir[a + 1] = 0;
-			strcpy(file, string + strlen(dir));
+			strncpy(file, string + strlen(dir),FILE_MAXFILE-1);
 		}
 		
 	}
@@ -739,15 +764,6 @@ void BLI_split_dirfile(char *string, char *dir, char *file)
 	}
 #endif
 }
-
-// copies from BKE_utildefines
-#ifndef FILE_MAXDIR
-#define FILE_MAXDIR  160
-#endif
-
-#ifndef FILE_MAXFILE
-#define FILE_MAXFILE 80
-#endif
  
 static int add_win32_extension(char *name)
 {
