@@ -1377,7 +1377,7 @@ void activate_databrowse(ID *id, int idcode, int fromcode, int retval, short *me
 	
 	if(id==0) {
 		lb= wich_libbase(G.main, idcode);
-		id= lb->first;
+		id= lb->last;
 	}
 	
 	if(id) strcpy(str, id->name);

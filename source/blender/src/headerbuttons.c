@@ -4013,7 +4013,7 @@ void nla_buttons(void)
 
 	/* draw LOCK */
 	xco+= XIC/2;
-	uiDefIconButI(block, ICONTOG, 1, ICON_UNLOCKED,	xco+=XIC,0,XIC,YIC, &(G.snla->lock), 0, 0, 0, 0, "Lock redraw of other windows while editing");
+	uiDefIconButS(block, ICONTOG, 1, ICON_UNLOCKED,	xco+=XIC,0,XIC,YIC, &(G.snla->lock), 0, 0, 0, 0, "Lock redraw of other windows while editing");
 
 	uiDrawBlock(block);}
 

@@ -75,6 +75,7 @@
 #include "BSE_drawipo.h"
 #include "BSE_trans_types.h"
 #include "BSE_edit.h"
+#include "BSE_filesel.h"
 #include "BDR_editobject.h"
 
 #include "interface.h"
@@ -306,19 +307,63 @@ static void convert_nla(short mval[2])
 	}
 }
 
+static Base *nla_base=NULL;	/* global, bad, bad! put it in nla space later, or recode the 2 functions below (ton) */
+
+static void add_nla_block(int val)
+{
+	/* val is not used, databrowse needs it to optional pass an event */
+	bAction *act=NULL;
+	bActionStrip *strip;
+	int		cur;
+	short event;
+	
+	if(nla_base==NULL) return;
+	
+	event= G.snla->menunr;	/* set by databrowse or pupmenu */
+	
+	if (event!=-1){
+		for (cur = 1, act=G.main->action.first; act; act=act->id.next, cur++){
+			if (cur==event){
+				break;
+			}
+		}
+	}
+	
+	/* Bail out if no action was chosen */
+	if (!act){
+		return;
+	}
+	
+	/* Initialize the new action block */
+	strip = MEM_callocN(sizeof(bActionStrip), "bActionStrip");
+	
+	deselect_nlachannel_keys(0);
+	
+	/* Link the action to the strip */
+	strip->act = act;
+	strip->actstart = 1.0;
+	strip->actend = calc_action_end(act);
+	strip->start = G.scene->r.cfra; /* Should be mval[0] */
+	strip->end = strip->start + (strip->actend-strip->actstart);
+	strip->flag = ACTSTRIP_SELECT;
+	strip->repeat = 1.0;
+	
+	act->id.us++;
+	
+	BLI_addtail(&nla_base->object->nlastrips, strip);
+
+}
+
 static void add_nlablock(short mval[2])
 {
 	/* Make sure we are over an armature */
 	Base *base;
-	bAction *act=NULL;
-	bActionStrip *strip;
 	float ymin, ymax;
 	float x, y;
 	rctf	rectf;
 	short event;
 	char *str;
 	short nr;
-	int		cur;
 	
 	areamouseco_to_ipoco(G.v2d, mval, &x, &y);
 	
@@ -358,6 +403,9 @@ static void add_nlablock(short mval[2])
 		}
 	}	
 	
+	/* global... for the call above, because the NLA system seems not to have an 'active strip' stored */
+	nla_base= base;
+	
 	/* Make sure we have an armature */
 	if (!base){
 		error ("Not an armature!");
@@ -366,41 +414,22 @@ static void add_nlablock(short mval[2])
 	
 	/* Popup action menu */
 	IDnames_to_pupstring(&str, "Add action", NULL, &G.main->action, (ID *)G.scene, &nr);
+	
+	if(strncmp(str+13, "DataBrow", 8)==0) {
+		MEM_freeN(str);
 
-	event = pupmenu(str);
-	
-	if (event!=-1){
-		for (cur = 1, act=G.main->action.first; act; act=act->id.next, cur++){
-			if (cur==event){
-				break;
-			}
-		}
+		activate_databrowse((ID *)NULL, ID_AC, 0, 0, &G.snla->menunr, add_nla_block );
+		
+		return;			
+	}
+	else {
+		event = pupmenu(str);
+		MEM_freeN(str);
 	}
 	
-	MEM_freeN(str);
+	/* this is a callback for databrowse too */
+	add_nla_block(0);
 	
-	/* Bail out if no action was chosen */
-	if (!act){
-		return;
-	}
-	
-	/* Initialize the new action block */
-	strip = MEM_callocN(sizeof(bActionStrip), "bActionStrip");
-	
-	deselect_nlachannel_keys(0);
-	
-	/* Link the action to the strip */
-	strip->act = act;
-	strip->actstart = 1.0;
-	strip->actend = calc_action_end(act);
-	strip->start = G.scene->r.cfra; /* Should be mval[0] */
-	strip->end = strip->start + (strip->actend-strip->actstart);
-	strip->flag = ACTSTRIP_SELECT;
-	strip->repeat = 1.0;
-	
-	act->id.us++;
-	
-	BLI_addtail(&base->object->nlastrips, strip);
 }
 
 static void mouse_nlachannels(short mval[2])
