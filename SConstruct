@@ -1232,12 +1232,25 @@ def printadd(env, target, source):
 	print
 	
 
+def noaction(env, target, source):
+	print "Empty action"
+
+def BlenderDefault(target):
+	"""
+	The normal Blender build.
+	"""
+	def_env = Environment()
+	default = def_env.Command('nozip', 'blender$PROGSUFFIX', noaction)
+	if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
+		def_env.Depends(default, 'blenderplayer$PROGSUFFIX')
+	def_env.Alias(".", default)
+
 def BlenderRelease(target):
 	"""
-	Make a MacOSX bundle.
+	Make a Release package (tarball, zip, bundle).
 	
-	target = Name of bundle to make (string)
-	eg: BlenderBundle('blender')
+	target = Name of package to make (string)
+	eg: BlenderRelease('blender')
 	"""
 	if sys.platform == 'darwin':
 		bundle = Environment ()
@@ -1261,26 +1274,17 @@ def BlenderRelease(target):
 				'chmod +x $TARGET && ' + \
 				'find %s.app -name CVS -prune -exec rm -rf {} \; && '%target +
 				'find %s.app -name .DS_Store -exec rm -rf {} \;'%target)
-	elif sys.platform == 'win32':
+	elif sys.platform in ['win32', 'linux2', 'linux-i386']:
 		release_env = Environment()
-		blender_app = target
-		releaseit = release_env.Command('blender.zip', 'blender.exe', zipit)
+		releaseit = release_env.Command('blenderrelease', 'blender$PROGSUFFIX', zipit)
 		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
-			release_env.Depends(releaseit, 'blenderplayer.exe')
-		release_env.Alias("release", releaseit)
-	elif sys.platform == 'linux2' or sys.platform == 'linux-i386':
-		release_env = Environment()
-		blender_app = target
-		releaseit = release_env.Command('other', 'blender', zipit)
-		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
-			release_env.Depends(releaseit, 'blenderplayer')
+			release_env.Depends(releaseit, 'blenderplayer$PROGSUFFIX')
 		release_env.Alias("release", releaseit)
 	else:
 		release_env = Environment()
-		blender_app = target
-		releaseit = release_env.Command('blender.tar.gz', 'blender', printadd)
+		releaseit = release_env.Command('blender.tar.gz', 'blender$PROGSUFFIX', printadd)
 		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
-			release_env.Depends(releaseit, 'blenderplayer')
+			release_env.Depends(releaseit, 'blenderplayer$PROGSUFFIX')
 		release_env.Alias("release", releaseit)
 
 if user_options_dict['BUILD_BLENDER_DYNAMIC'] == 1:
@@ -1360,8 +1364,15 @@ if user_options_dict['BUILD_BLENDER_PLAYER'] == 1 and user_options_dict['BUILD_G
 			'bscmake /nologo /n /oblenderplayer.bsc @'+browser_tmp,
 			'del '+browser_tmp])
 
-release_target = env.Alias("release", BlenderRelease('blender'))
+release_target = env.Alias("release", BlenderRelease('blender$PROGSUFFIX'))
+default_target = env.Alias("default", BlenderDefault('blender$PROGSUFFIX'))
+
+Default("default")
 
 if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
 	env.Depends(release_target, 'blenderplayer$PROGSUFFIX')
 env.Depends(release_target, 'blender$PROGSUFFIX')
+
+if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
+	env.Depends(default_target, 'blenderplayer$PROGSUFFIX')
+env.Depends(default_target, 'blender$PROGSUFFIX')
