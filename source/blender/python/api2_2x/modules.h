@@ -119,6 +119,8 @@ bArmature * Armature_FromPyObject   (PyObject *py_obj);
 int         Armature_CheckPyObject  (PyObject *py_obj);
 
 /* Ipo Data */
+
+PyObject * IpoCurve_Init(void);
 PyObject * Ipo_Init (void);
 PyObject * Ipo_CreatePyObject (struct Ipo *ipo);
 Ipo      * Ipo_FromPyObject   (PyObject *py_obj);
