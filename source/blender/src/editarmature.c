@@ -2340,7 +2340,7 @@ void mousepose_armature(void)
 		return;
 
 	nearBone = get_nearest_bone(1);
-	
+
 	if (nearBone){
 		if (!(G.qual & LR_SHIFTKEY)){
 			deselectall_posearmature(0);

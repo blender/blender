@@ -772,7 +772,8 @@ static void set_action_key_time (bAction *act, bPoseChannel *chan, int adrcode, 
 	}
 
 	/* Ensure the channel appears selected in the action window */
-	achan->flag |= ACHAN_SELECTED;
+	/* ton: added flag hilighted, for display in ipowin. dunno what the difference is between select/hilite */
+	achan->flag |= ACHAN_SELECTED|ACHAN_HILIGHTED;
 
 	/* Ensure this action channel has a valid Ipo */
 	if (!achan->ipo){

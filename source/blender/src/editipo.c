@@ -3922,7 +3922,7 @@ void common_insertkey()
 
 				remake_action_ipos(act);
 			}
-			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWIPO, 0);
 			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);
 			
