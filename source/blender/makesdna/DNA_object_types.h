@@ -333,6 +333,7 @@ extern Object workob;
 #define OB_DONE				1024
 #define OB_RADIO			2048
 #define OB_FROMGROUP		4096
+#define OB_POSEMODE			8192
 
 /* ob->gameflag */
 #define OB_DYNAMIC		1

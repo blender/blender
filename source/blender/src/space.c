@@ -632,6 +632,8 @@ void BIF_undo_push(char *str)
 			undo_push_mesh(str);
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
 			undo_push_curve(str);
+		else if (G.obedit->type==OB_FONT)
+			undo_push_font(str);
 		else if (G.obedit->type==OB_MBALL)
 			undo_push_mball(str);
 	}
@@ -644,13 +646,8 @@ void BIF_undo_push(char *str)
 void BIF_undo(void)
 {	
 	if(G.obedit) {
-		if(G.obedit->type==OB_MESH)
+		if ELEM5(G.obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL)
 			undo_editmode_step(1);
-		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
-			undo_editmode_step(1);
-		else if (G.obedit->type==OB_MBALL)
-			undo_editmode_step(1);
-			
 	}
 	else {
 		if(G.f & G_WEIGHTPAINT)
@@ -667,13 +664,8 @@ void BIF_undo(void)
 void BIF_redo(void)
 {
 	if(G.obedit) {
-		if(G.obedit->type==OB_MESH)
+		if ELEM5(G.obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL)
 			undo_editmode_step(-1);
-		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
-			undo_editmode_step(-1);
-		else if (G.obedit->type==OB_MBALL)
-			undo_editmode_step(-1);
-	
 	}
 	else {
 		if(G.f & G_WEIGHTPAINT)

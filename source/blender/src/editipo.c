@@ -3997,7 +3997,16 @@ void common_insertkey()
 				base= base->next;
 			}
 		}
-		BIF_undo_push("Insert Key 3D Window");
+
+		if(event==0) BIF_undo_push("Insert Loc Key");
+		else if(event==1) BIF_undo_push("Insert Rot Key");
+		else if(event==2) BIF_undo_push("Insert Size Key");
+		else if(event==3) BIF_undo_push("Insert LocRot Key");
+		else if(event==4) BIF_undo_push("Insert LocRotSize Key");
+		else if(event==5) BIF_undo_push("Insert Layer Key");
+		else if(event==7) BIF_undo_push("Insert Vertex Key");
+		else if(event==9) BIF_undo_push("Insert Avail Key");
+
 		allspace(REMAKEIPO, 0);
 		allqueue(REDRAWIPO, 0);
 		allqueue(REDRAWVIEW3D, 0);

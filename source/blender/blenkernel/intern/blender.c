@@ -268,6 +268,7 @@ static void clear_global(void)
 static void setup_app_data(BlendFileData *bfd, char *filename) 
 {
 	Object *ob;
+	Base *base;
 	bScreen *curscreen= NULL;
 	Scene *curscene= NULL;
 	char mode;
@@ -339,7 +340,15 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 
 	G.f= bfd->globalf;
 	
-		/* few DispLists, but do text_to_curve */
+	/* check posemode */
+	for(base= G.scene->base.first; base; base=base->next) {
+		ob= base->object;
+		if(ob->flag & OB_POSEMODE) {
+			if(ob->type==OB_ARMATURE) G.obpose= ob;
+		}
+	}
+	
+	/* few DispLists, but do text_to_curve */
 	// this should be removed!!! But first a better displist system (ton)
 	for (ob= G.main->object.first; ob; ob= ob->id.next) {
 		if(ob->type==OB_FONT) {

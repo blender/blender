@@ -61,6 +61,7 @@
 #include "BKE_utildefines.h"
 
 #include "BIF_editfont.h"
+#include "BIF_editmode_undo.h"
 #include "BIF_toolbox.h"
 #include "BIF_space.h"
 #include "BIF_mywindow.h"
@@ -287,7 +288,7 @@ void txt_export_to_object(struct Text *text)
 
 	if(cu->str) MEM_freeN(cu->str);
 
-	cu->str= MEM_mallocN(nchars+1, "str");
+	cu->str= MEM_mallocN(nchars+4, "str");
 	
 	tmp= text->lines.first;
 	strcpy(cu->str, tmp->line);
@@ -369,7 +370,7 @@ void do_textedit(unsigned short event, short val, char _ascii)
 					
 						filelen = BLI_filesize(file);
 					
-						strp= MEM_mallocN(filelen+1, "tempstr");
+						strp= MEM_mallocN(filelen+4, "tempstr");
 						read(file, strp, filelen);
 						close(file);
 						strp[filelen]= 0;
@@ -493,6 +494,7 @@ void do_textedit(unsigned short event, short val, char _ascii)
 	if(doit || cursmove) {
 		text_to_curve(G.obedit, cursmove);
 		if(cursmove==0) makeDispList(G.obedit);
+		BIF_undo_push("Textedit");
 		allqueue(REDRAWVIEW3D, 0);
 	}
 }
@@ -530,7 +532,7 @@ void paste_editText(void)
 		cu= G.obedit->data;
 		filelen = BLI_filesize(file);
 				
-		strp= MEM_mallocN(filelen+1, "tempstr");
+		strp= MEM_mallocN(filelen+4, "tempstr");
 		read(file, strp, filelen);
 		close(file);
 		strp[filelen]= 0;
@@ -546,6 +548,7 @@ void paste_editText(void)
 		text_to_curve(G.obedit, 0);
 		makeDispList(G.obedit);
 		allqueue(REDRAWVIEW3D, 0);
+		BIF_undo_push("Paste text");
 	}
 }
 
@@ -555,7 +558,7 @@ void make_editText(void)
 	Curve *cu;
 
 	cu= G.obedit->data;
-	if(textbuf==NULL) textbuf= MEM_mallocN(MAXTEXT, "texteditbuf");
+	if(textbuf==NULL) textbuf= MEM_mallocN(MAXTEXT+4, "texteditbuf");
 	BLI_strncpy(textbuf, cu->str, MAXTEXT);
 	oldstr= cu->str;
 	cu->str= textbuf;
@@ -567,6 +570,7 @@ void make_editText(void)
 	makeDispList(G.obedit);
 	
 	textediting= 1;
+	BIF_undo_push("Original");
 }
 
 
@@ -579,7 +583,7 @@ void load_editText(void)
 	MEM_freeN(oldstr);
 	oldstr= NULL;
 	
-	cu->str= MEM_mallocN(cu->len+1, "tekstedit");
+	cu->str= MEM_mallocN(cu->len+4, "tekstedit");
 	strcpy(cu->str, textbuf);
 	
 	/* this memory system is weak... */
@@ -606,6 +610,7 @@ void remake_editText(void)
 	makeDispList(G.obedit);
 	
 	allqueue(REDRAWVIEW3D, 0);
+	BIF_undo_push("Reload");
 }
 
 
@@ -681,7 +686,50 @@ void to_upper(void)
 	makeDispList(G.obedit);
 
 	allqueue(REDRAWVIEW3D, 0);
-
+	BIF_undo_push("To upper");
 }
 
 
+/* **************** undo for font object ************** */
+
+static void undoFont_to_editFont(void *strv)
+{
+	Curve *cu= G.obedit->data;
+	char *str= strv;
+	
+	strncpy(textbuf, str+2, MAXTEXT);
+	cu->pos= *((short *)str);
+
+	text_to_curve(G.obedit, 0);
+	makeDispList(G.obedit);
+	
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static void *editFont_to_undoFont(void)
+{
+	Curve *cu= G.obedit->data;
+	char *str;
+	
+	str= MEM_callocN(MAXTEXT+4, "string undo");
+	
+	strncpy(str+2, textbuf, MAXTEXT);
+	*((short *)str)= cu->pos;
+	
+	return str;
+}
+
+static void free_undoFont(void *strv)
+{
+	MEM_freeN(strv);
+}
+
+/* and this is all the undo system needs to know */
+void undo_push_font(char *name)
+{
+	undo_editmode_push(name, free_undoFont, undoFont_to_editFont, editFont_to_undoFont);
+}
+
+
+
+/***/

@@ -39,6 +39,8 @@
 #include "BLI_winstuff.h"
 #endif
 
+#include <stdlib.h>
+
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
@@ -121,8 +123,11 @@ void enter_posemode(void)
 	case OB_ARMATURE:
 		arm= get_armature(ob);
 		if( arm==0 ) return;
+		
 		G.obpose= ob;
-		/*		make_poseMesh();	*/
+		ob->flag |= OB_POSEMODE;
+		base->flag= ob->flag;
+		
 		allqueue(REDRAWHEADERS, 0);	
 		allqueue(REDRAWBUTSALL, 0);	
 		allqueue(REDRAWOOPS, 0);
@@ -207,12 +212,16 @@ static void armature_bonechildren_filter_pose_keys (bPose *pose, Bone *bone)
 void exit_posemode (int freedata)
 {
 	Object *ob;
+	Base *base= BASACT;
 
-	if(G.obpose==0) return;
+	if(G.obpose==NULL) return;
 
 	ob= G.obpose;
+	ob->flag &= ~OB_POSEMODE;
+	base->flag= ob->flag;
 	
-	G.obpose= 0;
+	G.obpose= NULL;
+
 	makeDispList(ob);
 	
 	if(freedata) {
