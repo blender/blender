@@ -932,29 +932,30 @@ void nurbs_to_mesh(Object *ob)
 
 		}
 		else if(dl->type==DL_POLY) {
-			/* cyclic polys are filled */
-			/* startvert= vertcount;
-			a= dl->parts*dl->nr;
-			data= dl->verts;
-			while(a--) {
-				VECCOPY(mvert->co, data);
-				data+=3;
-				vertcount++;
-				mvert++;
-			}
-
-			for(a=0; a<dl->parts; a++) {
-				ofs= a*dl->nr;
-				for(b=0; b<dl->nr; b++) {
-					mface->v1= startvert+ofs+b;
-					if(b==dl->nr-1) mface->v2= startvert+ofs;
-					else mface->v2= startvert+ofs+b+1;
-					mface->edcode= ME_V1V2;
-					test_index_mface(mface, 2);
-					mface++;
+			/* 3d polys are not filled */
+			if(cu->flag & CU_3D) {
+				startvert= vertcount;
+				a= dl->parts*dl->nr;
+				data= dl->verts;
+				while(a--) {
+					VECCOPY(mvert->co, data);
+					data+=3;
+					vertcount++;
+					mvert++;
+				}
+	
+				for(a=0; a<dl->parts; a++) {
+					ofs= a*dl->nr;
+					for(b=0; b<dl->nr; b++) {
+						mface->v1= startvert+ofs+b;
+						if(b==dl->nr-1) mface->v2= startvert+ofs;
+						else mface->v2= startvert+ofs+b+1;
+						mface->edcode= ME_V1V2;
+						test_index_mface(mface, 2);
+						mface++;
+					}
 				}
 			}
-			*/
 		}
 		else if(dl->type==DL_INDEX3) {
 			startvert= vertcount;
