@@ -709,8 +709,7 @@ ListBase *get_constraint_client(char *name, short *clientType, void **clientdata
 						*clientdata = bone;
 					if (name)
 						sprintf (name, "%s>>%s", name, bone->name);
-					verify_pose_channel(G.obpose->pose, bone->name);
-					chan = get_pose_channel (G.obpose->pose, bone->name);
+					chan = verify_pose_channel(G.obpose->pose, bone->name);
 					list = &chan->constraints;
 
 				}			

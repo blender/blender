@@ -2058,8 +2058,7 @@ static void clear_armature_children (Bone *bone, bPose *pose, char mode){
 	if (!bone)
 		return;
 	
-	verify_pose_channel (pose, bone->name);
-	chan=get_pose_channel (pose, bone->name);
+	chan = verify_pose_channel (pose, bone->name);
 
 	if (!chan)
 		return;

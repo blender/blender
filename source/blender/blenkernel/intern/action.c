@@ -278,18 +278,18 @@ float calc_action_end(const bAction *act)
 	return size;
 }
 
-void verify_pose_channel(bPose* pose, const char* name) 
+bPoseChannel *verify_pose_channel(bPose* pose, const char* name)
 {
 	bPoseChannel *chan;
 
 	if (!pose){
-		return;
+		return NULL;
 	}
 
-	/*	See if this channel exists */
+	/*      See if this channel exists */
 	for (chan=pose->chanbase.first; chan; chan=chan->next){
 		if (!strcmp (name, chan->name))
-			return;
+			return chan;
 	}
 
 	/* If not, create it and add it */
@@ -297,12 +297,15 @@ void verify_pose_channel(bPose* pose, const char* name)
 
 	strcpy (chan->name, name);
 	chan->loc[0] = chan->loc[1] = chan->loc[2] = 0.0F;
-	chan->quat[1] = chan->quat[2] = chan->quat[3] = 0.0F; chan->quat[0] = 1.0F;
+	chan->quat[1] = chan->quat[2] = chan->quat[3] = 0.0F;
+	chan->quat[0] = 1.0F;
 	chan->size[0] = chan->size[1] = chan->size[2] = 1.0F;
 
 	chan->flag |= POSE_ROT|POSE_SIZE|POSE_LOC;
 
 	BLI_addtail (&pose->chanbase, chan);
+
+	return chan;
 }
 
 void get_pose_from_pose(bPose **pose, const bPose *src)

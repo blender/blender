@@ -267,32 +267,26 @@ void where_is_bone1_time (Object *ob, Bone *bone, float ctime)
 	
 	arm = get_armature(ob);
 
-	/* Ensure there is achannel for this bone*/
-	verify_pose_channel (pose, bone->name);
+	/* Ensure there is a channel for this bone*/
+	chan = verify_pose_channel (pose, bone->name);
+	if (!chan) return;
 
-	/* Search the pose for a channel with the same name, and copy the
-		transformations from the channel into the bone */
-	for (chan=pose->chanbase.first; chan; chan=chan->next){
-		if (!strcmp (chan->name, bone->name)){
-
-#if 1	/* If 1 attempt to use pose caching features */
-			/* Bail out if we've been recalced recently */
-			if (chan->flag & PCHAN_DONE){
-				Mat4CpyMat4 (bone->obmat, chan->obmat);
-				if (bone->parent){
-					if ((bone->flag & BONE_IK_TOPARENT))
-						where_is_bone1_time (ob, bone->parent, ctime);
-					else
-						where_is_bone_time (ob, bone->parent, ctime);
-				}
-				return;
-			}
+#if 1
+	/* If 1 attempt to use pose caching features */
+	/* Bail out if we've been recalced recently */
+	if (chan->flag & PCHAN_DONE){
+		Mat4CpyMat4 (bone->obmat, chan->obmat);
+		if (bone->parent){
+			if ((bone->flag & BONE_IK_TOPARENT))
+				where_is_bone1_time (ob, bone->parent, ctime);
 			else
-				chan->flag |= PCHAN_DONE;
-#endif
-			break;
+				where_is_bone_time (ob, bone->parent, ctime);
 		}
+		return;
 	}
+	else
+		chan->flag |= PCHAN_DONE;
+#endif
 
 #if 1
 	/* Ensure parents have been evaluated */
@@ -842,30 +836,23 @@ static void apply_pose_bonechildren (Bone* bone, bPose* pose, int doit)
 		bone->loc[0]=bone->loc[1]=bone->loc[2]=0.0F;
 	}
 
-	// Ensure there is achannel for this bone 
-	verify_pose_channel (pose, bone->name);
+	// Ensure there is a channel for this bone 
+	chan = verify_pose_channel (pose, bone->name);
 
+	if (chan) {
 	// Search the pose for a channel with the same name 
-	if (pose){
-		for (chan=pose->chanbase.first; chan; chan=chan->next){
-			if (!strcmp (chan->name, bone->name)){
-				if (chan->flag & POSE_LOC) 
-					memcpy (bone->loc, chan->loc, sizeof (bone->loc));
-				if (chan->flag & POSE_SIZE) 
-					memcpy (bone->size, chan->size, sizeof (bone->size));
-				if (chan->flag & POSE_ROT) 
-					memcpy (bone->quat, chan->quat, sizeof (bone->quat));			
+		if (chan->flag & POSE_LOC) 
+			memcpy (bone->loc, chan->loc, sizeof (bone->loc));
+		if (chan->flag & POSE_SIZE) 
+			memcpy (bone->size, chan->size, sizeof (bone->size));
+		if (chan->flag & POSE_ROT) 
+			memcpy (bone->quat, chan->quat, sizeof (bone->quat));			
 
-				if (doit){
-					bone_to_mat4(bone, bone->obmat);
-				}
-				else{
-					Mat4CpyMat4 (bone->obmat, chan->obmat);
-				}
-
-
-				break;
-			}
+		if (doit){
+			bone_to_mat4(bone, bone->obmat);
+		}
+		else{
+			Mat4CpyMat4 (bone->obmat, chan->obmat);
 		}
 	}
 	

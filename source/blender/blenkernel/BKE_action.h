@@ -100,8 +100,9 @@ struct  bPoseChannel *get_pose_channel(const struct bPose *pose,
  * already exists in this pose - if not a new one is
  * allocated and initialized.
  */
-void verify_pose_channel(struct bPose* pose, const char* name);
-	
+struct bPoseChannel *verify_pose_channel(struct bPose* pose, 
+										 const char* name);
+
 /**
  * Allocate a new bAction on the heap and copy 
  * the contents of src into it. If src is NULL NULL is returned.
