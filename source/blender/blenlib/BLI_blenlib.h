@@ -351,7 +351,7 @@ int BLI_strncasecmp(const char *s1, const char *s2, int n);
  * @param member The name of a member field of @a strct
  * @retval The offset in bytes of @a member within @a strct
  */
-#define BLI_STRUCT_OFFSET(strct, member)	(((struct) 0).(membr))
+#define BLI_STRUCT_OFFSET(strct, member)	((int) &((strct*) 0)->member)
 
 #ifdef __cplusplus
 }
