@@ -1020,6 +1020,8 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *dxt, float 
 int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex)
 {
 	int retval=0; /* return value, int:0, col:1, nor:2, everything:3 */
+
+	Talpha= 0;	/* is set when image texture returns alpha (considered premul) */
 	
 	switch(tex->type) {
 	
@@ -1107,6 +1109,54 @@ int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex)
 }
 
 /* ------------------------------------------------------------------------- */
+
+/* alphatype */
+#define T_ALPHA_PREMUL	1
+#define T_ALPHA_TRANSP	2
+
+/* in = destination, tex = texture, out = previous color */
+/* fact = texture strength, facg = button strength value */
+static void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg, int blendtype, int alphatype)
+{
+	float facm;
+	
+	switch(blendtype) {
+	case MTEX_BLEND:
+		if(alphatype & T_ALPHA_TRANSP) {
+			/* de-premul */
+			if(fact>0.0) fact= facg/fact;
+			facm= 1.0-facg;
+		}
+		else if(alphatype & T_ALPHA_PREMUL) {
+			facm= 1.0- fact*facg;
+			fact= facg;
+		}
+		else {
+			fact*= facg;
+			facm= 1.0-fact;
+		}
+		in[0]= (fact*tex[0] + facm*out[0]);
+		in[1]= (fact*tex[1] + facm*out[1]);
+		in[2]= (fact*tex[2] + facm*out[2]);
+		break;
+	case MTEX_MUL:
+		fact*= facg;
+		facm= 1.0-facg;
+		in[0]= (facm+fact*tex[0])*out[0];
+		in[1]= (facm+fact*tex[1])*out[1];
+		in[2]= (facm+fact*tex[2])*out[2];
+		break;
+	case MTEX_SUB:
+		fact= -fact;
+	case MTEX_ADD:
+		fact*= facg;
+		in[0]= (fact*tex[0] + out[0]);
+		in[1]= (fact*tex[1] + out[1]);
+		in[2]= (fact*tex[2] + out[2]);
+	}
+
+
+}
 
 void do_material_tex(ShadeInput *shi)
 {
@@ -1320,82 +1370,43 @@ void do_material_tex(ShadeInput *shi)
 
 			/* mapping */
 			if(mtex->mapto & (MAP_COL+MAP_COLSPEC+MAP_COLMIR)) {
-
+				float tcol[3];
+				int alphatype= 0;
+				
+				tcol[0]=Tr; tcol[1]=Tg; tcol[2]=Tb;
+				
 				if((rgbnor & TEX_RGB)==0) {
-					Tr= mtex->r;
-					Tg= mtex->g;
-					Tb= mtex->b;
+					tcol[0]= mtex->r;
+					tcol[1]= mtex->g;
+					tcol[2]= mtex->b;
 				}
 				else if(mtex->mapto & MAP_ALPHA) {
-					if(mtex->texflag & MTEX_ALPHAMIX) Tin= Ta;
-					else Tin= stencilTin;
+					alphatype= T_ALPHA_TRANSP;
 				}
-				else Tin= Ta;
-
-				fact= Tin*mtex->colfac;
-				facm= 1.0-fact;
-				if(mtex->blendtype==MTEX_MUL) facm= 1.0-mtex->colfac;
-				if(mtex->blendtype==MTEX_SUB) fact= -fact;
+				if(Talpha) alphatype |= T_ALPHA_PREMUL;
+				
+				Tin= Ta;
 
 				if(mtex->mapto & MAP_COL) {
-					if(mtex->blendtype==MTEX_BLEND) {
-						shi->matren->r= (fact*Tr + facm*mat_col->r);
-						shi->matren->g= (fact*Tg + facm*mat_col->g);
-						shi->matren->b= (fact*Tb + facm*mat_col->b);
-					}
-					else if(mtex->blendtype==MTEX_MUL) {
-						shi->matren->r= (facm+fact*Tr)*mat_col->r;
-						shi->matren->g= (facm+fact*Tg)*mat_col->g;
-						shi->matren->b= (facm+fact*Tb)*mat_col->b;
-					}
-					else {
-						shi->matren->r= (fact*Tr + mat_col->r);
-						shi->matren->g= (fact*Tg + mat_col->g);
-						shi->matren->b= (fact*Tb + mat_col->b);
-					}
+					texture_rgb_blend(&shi->matren->r, tcol, &mat_col->r, Tin, mtex->colfac, mtex->blendtype, alphatype);
 					mat_col= shi->matren;
 				}
 				if(mtex->mapto & MAP_COLSPEC) {
-					if(mtex->blendtype==MTEX_BLEND) {
-						shi->matren->specr= (fact*Tr + facm*mat_colspec->specr);
-						shi->matren->specg= (fact*Tg + facm*mat_colspec->specg);
-						shi->matren->specb= (fact*Tb + facm*mat_colspec->specb);
-					}
-					else if(mtex->blendtype==MTEX_MUL) {
-						shi->matren->specr= (facm+fact*Tr)*mat_colspec->specr;
-						shi->matren->specg= (facm+fact*Tg)*mat_colspec->specg;
-						shi->matren->specb= (facm+fact*Tb)*mat_colspec->specb;
-					}
-					else {
-						shi->matren->specr= (fact*Tr + mat_colspec->specr);
-						shi->matren->specg= (fact*Tg + mat_colspec->specg);
-						shi->matren->specb= (fact*Tb + mat_colspec->specb);
-					}
+					texture_rgb_blend(&shi->matren->specr, tcol, &mat_col->specr, Tin, mtex->colfac, mtex->blendtype, 0);
 					mat_colspec= shi->matren;
 				}
 				if(mtex->mapto & MAP_COLMIR) {
-					if(mtex->blendtype==MTEX_BLEND) {
-						// exception for envmap only
-						if(tex->type==TEX_ENVMAP) {
-							shi->refcol[0]= fact + facm*shi->refcol[0];
-							shi->refcol[1]= fact*Tr + facm*shi->refcol[1];
-							shi->refcol[2]= fact*Tg + facm*shi->refcol[2];
-							shi->refcol[3]= fact*Tb + facm*shi->refcol[3];
-						} else {
-							shi->matren->mirr= fact*Tr + facm*mat_colmir->mirr;
-							shi->matren->mirg= fact*Tg + facm*mat_colmir->mirg;
-							shi->matren->mirb= fact*Tb + facm*mat_colmir->mirb;
-						}
-					}
-					else if(mtex->blendtype==MTEX_MUL) {
-						shi->matren->mirr= (facm+fact*Tr)*mat_colmir->mirr;
-						shi->matren->mirg= (facm+fact*Tg)*mat_colmir->mirg;
-						shi->matren->mirb= (facm+fact*Tb)*mat_colmir->mirb;
+					// exception for envmap only
+					if(tex->type==TEX_ENVMAP && mtex->blendtype==MTEX_BLEND) {
+						fact= Tin*mtex->colfac;
+						facm= 1.0- fact;
+						shi->refcol[0]= fact + facm*shi->refcol[0];
+						shi->refcol[1]= fact*tcol[0] + facm*shi->refcol[1];
+						shi->refcol[2]= fact*tcol[1] + facm*shi->refcol[2];
+						shi->refcol[3]= fact*tcol[2] + facm*shi->refcol[3];
 					}
 					else {
-						shi->matren->mirr= (fact*Tr + mat_colmir->mirr);
-						shi->matren->mirg= (fact*Tg + mat_colmir->mirg);
-						shi->matren->mirb= (fact*Tb + mat_colmir->mirb);
+						texture_rgb_blend(&shi->matren->mirr, tcol, &mat_col->mirr, Tin, mtex->colfac, mtex->blendtype, 0);
 					}
 					mat_colmir= shi->matren;
 				}
@@ -1675,8 +1686,7 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
 			Tb= mtex->b;
 		}
 		else if(mtex->mapto & MAP_ALPHA) {
-			if(mtex->texflag & MTEX_ALPHAMIX) Tin= Ta; 
-			else Tin= 1.0;
+			Tin= 1.0;
 		}
 		else Tin= Ta;
 
@@ -2079,8 +2089,7 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi)
 					Tb= mtex->b;
 				}
 				else if(mtex->mapto & MAP_ALPHA) {
-					if(mtex->texflag & MTEX_ALPHAMIX) Tin= Ta;
-					else Tin= stencilTin;
+					Tin= stencilTin;
 				}
 				else Tin= Ta;
 
