@@ -753,7 +753,7 @@ void testface(int i, int j, int k, CUBE* old, int bit, int c1, int c2, int c3, i
 	/* test if no surface crossing */
 	if( (corn2->value > 0) == pos && (corn3->value > 0) == pos && (corn4->value > 0) == pos) return;
 	/* test if cube out of bounds */
-	if ( abs(i) > p->bounds || abs(j) > p->bounds || abs(k) > p->bounds) return;
+	/*if ( abs(i) > p->bounds || abs(j) > p->bounds || abs(k) > p->bounds) return;*/
 	/* test if already visited (always as last) */
 	if (setcenter(p->centers, i, j, k)) return;
 
