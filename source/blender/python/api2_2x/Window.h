@@ -52,6 +52,7 @@
 
 #include "gen_utils.h"
 #include "modules.h"
+#include "matrix.h"
 
 /* Used in Draw.c */
 extern int EXPP_disable_force_draw;

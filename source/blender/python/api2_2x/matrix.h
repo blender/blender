@@ -1,5 +1,4 @@
-/* $Id$
- *
+/* 
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -24,49 +23,55 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): Willian P. Germano & Joseph Gilbert
+ * Contributor(s): Joseph Gilbert
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  *
  */
 
-#ifndef EXPP_vector_h
-#define EXPP_vector_h
+#ifndef EXPP_matrix_h
+#define EXPP_matrix_h
 
 #include "Python.h"
+#include "BLI_arithb.h"
+#include "vector.h"
 #include "gen_utils.h"
 #include "Types.h"
-#include "matrix.h"
-#include "BKE_utildefines.h"
+#include "quat.h"
+#include "euler.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#define Matrix_CheckPyObject(v) ((v)->ob_type == &matrix_Type)
 
 /*****************************/
-//    Vector Python Object   
+/*    Matrix Python Object   */
 /*****************************/
+typedef float **ptRow;
 
-#define VectorObject_Check(v) ((v)->ob_type == &vector_Type)
-
-typedef struct {
+typedef struct _Matrix {
 	PyObject_VAR_HEAD
-	float * vec;
-	int size;
+
+	ptRow matrix;
+	int rowSize;
+	int colSize;
 	int flag;
 		//0 - no coercion
 		//1 - coerced from int
 		//2 - coerced from float
-} VectorObject;
+} MatrixObject;
 
-//prototypes
-PyObject *newVectorObject(float *vec, int size);
-PyObject *Vector_Zero(VectorObject *self);
-PyObject *Vector_Normalize(VectorObject *self);
-PyObject *Vector_Negate(VectorObject *self);
-PyObject *Vector_Resize2D(VectorObject *self);
-PyObject *Vector_Resize3D(VectorObject *self);
-PyObject *Vector_Resize4D(VectorObject *self);
+/*****************************************************************************/
+/* Python API function prototypes.												*/
+/*****************************************************************************/
+PyObject *newMatrixObject(float * mat, int rowSize, int colSize);
+PyObject *Matrix_Zero(MatrixObject *self);
+PyObject *Matrix_Identity(MatrixObject *self);
+PyObject *Matrix_Transpose(MatrixObject *self);
+PyObject *Matrix_Determinant(MatrixObject *self);
+PyObject *Matrix_Invert(MatrixObject *self);
+PyObject *Matrix_TranslationPart(MatrixObject *self);
+PyObject *Matrix_RotationPart(MatrixObject *self);
+PyObject *Matrix_Resize4x4(MatrixObject *self);
+PyObject *Matrix_toEuler(MatrixObject *self);
+PyObject *Matrix_toQuat(MatrixObject *self);
 
-#endif /* EXPP_vector_h */
-
+#endif /* EXPP_matrix_H */

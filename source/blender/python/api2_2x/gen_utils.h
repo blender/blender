@@ -24,7 +24,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Michel Selten, Willian P. Germano, Alex Mole
+ * Contributor(s): Michel Selten, Willian P. Germano, Alex Mole, Joseph Gilbert
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -47,6 +47,8 @@
 #include <DNA_material_types.h>
 #include <DNA_scriptlink_types.h>
 #include <DNA_listBase.h>
+
+#define Py_PI  3.14159265358979323846
 
 int StringEqual (const char * string1, const char * string2);
 char * GetIdName (ID *id);

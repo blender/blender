@@ -24,12 +24,16 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano, Alex Mole
+ * Contributor(s): Willian P. Germano, Alex Mole, Joseph Gilbert
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
 #include "Types.h"
+
+char M_Types_doc[] =
+"The Blender Types module\n\n\
+This module is a dictionary of all Blender Python types";
 
 struct PyMethodDef Null_methods[] = {{NULL, NULL}};
 
@@ -44,7 +48,10 @@ PyObject *Types_Init (void)
 	* do it now, we get an easy way to crash Blender. Maybe we'd better
 	* have an Init function for all these internal types that more than one
 	* module can use.  We could call it after setting the Blender dictionary */
+  matrix_Type.ob_type = &PyType_Type;
   vector_Type.ob_type = &PyType_Type;
+  euler_Type.ob_type = &PyType_Type;
+  quaternion_Type.ob_type = &PyType_Type;
   rgbTuple_Type.ob_type = &PyType_Type;
 	constant_Type.ob_type = &PyType_Type;
 	buffer_Type.ob_type = &PyType_Type;
@@ -100,6 +107,9 @@ PyObject *Types_Init (void)
   PyDict_SetItemString(dict, "bufferType",   (PyObject *)&buffer_Type);
   PyDict_SetItemString(dict, "constantType", (PyObject *)&constant_Type);
   PyDict_SetItemString(dict, "rgbTupleType", (PyObject *)&rgbTuple_Type);
+  PyDict_SetItemString(dict, "matrix_Type",  (PyObject *)&matrix_Type);
+  PyDict_SetItemString(dict, "eulerType",  (PyObject *)&euler_Type);
+  PyDict_SetItemString(dict, "quaternionType",  (PyObject *)&quaternion_Type);
   PyDict_SetItemString(dict, "BezTripleType", (PyObject *)&BezTriple_Type);
 
   return submodule;

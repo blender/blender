@@ -327,7 +327,7 @@ static PyObject *M_Window_GetViewMatrix(PyObject *self)
 		return Py_None;
 	}
 
-	viewmat = newMatrixObject (G.vd->viewmat);
+	viewmat = (PyObject*)newMatrixObject((float*)G.vd->viewmat, 4, 4);
 
 	if (!viewmat)
 		return (EXPP_ReturnPyObjError (PyExc_MemoryError,

@@ -1,6 +1,4 @@
-/* 
- *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+/* * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,33 +20,46 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * This is a new part of Blender.
+ * The Original Code is: all of this file.
  *
- * Contributor(s): Willian P. Germano, Alex Mole
+ * Contributor(s): Joseph Gilbert
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
-*/
+ *
+ */
 
-#ifndef EXPP_TYPES_H
-#define EXPP_TYPES_H
+#ifndef EXPP_euler_h
+#define EXPP_euler_h
 
 #include "Python.h"
+#include "gen_utils.h"
+#include "Types.h"
+#include <BLI_arithb.h>
+#include "quat.h"
+#include "matrix.h"
+#include "BKE_utildefines.h"
 
-extern PyTypeObject Button_Type, Material_Type;
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-extern PyTypeObject Texture_Type, MTex_Type;
+/*****************************/
+//    Euler Python Object   
+/*****************************/
 
-extern PyTypeObject Object_Type;
-extern PyTypeObject Scene_Type;
-extern PyTypeObject NMesh_Type, NMFace_Type, NMVert_Type, NMCol_Type;
-extern PyTypeObject Camera_Type, Lamp_Type, Image_Type, Text_Type;
-extern PyTypeObject Armature_Type, Bone_Type;
-extern PyTypeObject Curve_Type, Ipo_Type, Metaball_Type;
-extern PyTypeObject Lattice_Type;
+#define EulerObject_Check(v) ((v)->ob_type == &euler_Type)
 
-extern PyTypeObject  buffer_Type, rgbTuple_Type,
-	constant_Type, BezTriple_Type;
+typedef struct {
+	PyObject_VAR_HEAD
+	float * eul;
+} EulerObject;
 
-extern PyTypeObject vector_Type, matrix_Type, euler_Type, quaternion_Type;
+//prototypes
+PyObject *newEulerObject(float *eul);
+PyObject *Euler_Zero(EulerObject *self);
+PyObject *Euler_Unique(EulerObject *self);
+PyObject *Euler_ToMatrix(EulerObject *self);
+PyObject *Euler_ToQuat(EulerObject *self);
 
-#endif /* EXPP_TYPES_H */
+#endif /* EXPP_euler_h */
+

@@ -184,5 +184,7 @@ int        Lattice_CheckPyObject  (PyObject *pyobj);
 PyObject * Window_Init (void);
 PyObject * Draw_Init (void);
 PyObject * BGL_Init (void);
+PyObject * Mathutils_Init (void);
+
 
 #endif /* EXPP_modules_h */
