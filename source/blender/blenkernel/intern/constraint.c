@@ -306,7 +306,6 @@ void Mat4BlendMat4(float out[][4], float dst[][4], float src[][4], float srcweig
 	float qmat[3][3], smat[3][3];
 	int i;
 
-
 	dstweight = 1.0F-srcweight;
 
 	Mat3CpyMat4(mat3, dst);
@@ -633,7 +632,7 @@ short get_constraint_target (bConstraint *con, short ownertype, void* ownerdata,
 
 				if(cu->path==0 || cu->path->data==0) calc_curvepath(data->tar);
 
-				curvetime = ctime - data->offset;
+				curvetime= bsystem_time(data->tar, data->tar->parent, (float)ctime, 0.0) - data->offset;
 
 				if(calc_ipo_spec(cu->ipo, CU_SPEED, &curvetime)==0) {
 					curvetime /= cu->pathlen;
@@ -933,8 +932,6 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 				Mat4CpyMat4(tmat, ob->obmat);
 				
 				Mat4MulMat34(ob->obmat, totmat, tmat);
-
-			
 			}
 		}
 		break;
