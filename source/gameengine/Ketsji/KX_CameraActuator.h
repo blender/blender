@@ -37,6 +37,7 @@
 
 #include "SCA_IActuator.h"
 #include "MT_Scalar.h"
+#include "SCA_LogicManager.h"
 
 /**
  * The camera actuator does a Robbie Muller prespective for you. This is a 
@@ -51,16 +52,23 @@ class KX_CameraActuator : public SCA_IActuator
 	Py_Header;
 private :
 	/** Object that will be tracked. */
-	const CValue *m_ob;
+	CValue *m_ob;
 
 	/** height (float), */
-	const MT_Scalar m_height;
+	//const MT_Scalar m_height;
+	/** min (float), */
+	//const MT_Scalar m_minHeight;
+	/** max (float), */
+	//const MT_Scalar m_maxHeight;
+	
+	/** height (float), */
+	MT_Scalar m_height;
 	
 	/** min (float), */
-	const MT_Scalar m_minHeight;
+	MT_Scalar m_minHeight;
 	
 	/** max (float), */
-	const MT_Scalar m_maxHeight;
+	MT_Scalar m_maxHeight;
 	
 	/** xy toggle (pick one): true == x, false == y */
 	bool m_x;
@@ -81,7 +89,8 @@ private :
 	KX_CameraActuator(
 
 		SCA_IObject *gameobj,
-		const CValue *ob,
+		//const CValue *ob,
+		CValue *ob,
 		MT_Scalar hght,
 		MT_Scalar minhght,
 		MT_Scalar maxhght,
@@ -111,8 +120,19 @@ private :
 	/* --------------------------------------------------------------------- */
 
 	virtual PyObject* _getattr(const STR_String& attr);
-
 	
+	/* set object to look at */
+	KX_PYMETHOD_DOC(KX_CameraActuator,SetObject);
+	/* get current object  */
+	KX_PYMETHOD_DOC(KX_CameraActuator,GetObject);
+	KX_PYMETHOD_DOC(KX_CameraActuator,SetMin);
+	KX_PYMETHOD_DOC(KX_CameraActuator,GetMin);
+	KX_PYMETHOD_DOC(KX_CameraActuator,SetMax);
+	KX_PYMETHOD_DOC(KX_CameraActuator,GetMax);
+	KX_PYMETHOD_DOC(KX_CameraActuator,SetHeight);
+	KX_PYMETHOD_DOC(KX_CameraActuator,GetHeight);
+	KX_PYMETHOD_DOC(KX_CameraActuator,SetXY);
+	KX_PYMETHOD_DOC(KX_CameraActuator,GetXY);
 
 };
 

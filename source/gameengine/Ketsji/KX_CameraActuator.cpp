@@ -52,7 +52,7 @@ STR_String KX_CameraActuator::Y_AXIS_STRING = "y";
 
 KX_CameraActuator::KX_CameraActuator(
 	SCA_IObject* gameobj, 
-	const CValue *obj,
+	CValue *obj,
 	MT_Scalar hght,
 	MT_Scalar minhght,
 	MT_Scalar maxhght,
@@ -66,7 +66,6 @@ KX_CameraActuator::KX_CameraActuator(
 	m_maxHeight (maxhght),
 	m_x (xytog)
 {
-	// nothing to do
 }
 
 KX_CameraActuator::~KX_CameraActuator()
@@ -359,12 +358,169 @@ PyParentObject KX_CameraActuator::Parents[] = {
 };
 
 PyMethodDef KX_CameraActuator::Methods[] = {
+	{"setObject",(PyCFunction) KX_CameraActuator::sPySetObject, METH_VARARGS,	SetObject_doc},
+	{"getObject",(PyCFunction) KX_CameraActuator::sPyGetObject, METH_NOARGS,	GetObject_doc},
+	{"setMin"	,(PyCFunction) KX_CameraActuator::sPySetMin,	METH_VARARGS,	SetMin_doc},
+	{"getMin"	,(PyCFunction) KX_CameraActuator::sPyGetMin,	METH_NOARGS,	GetMin_doc},
+	{"setMax"	,(PyCFunction) KX_CameraActuator::sPySetMax,	METH_VARARGS,	SetMax_doc},
+	{"getMax"	,(PyCFunction) KX_CameraActuator::sPyGetMax,	METH_NOARGS,	GetMax_doc},
+	{"setHeight",(PyCFunction) KX_CameraActuator::sPySetHeight,	METH_VARARGS,	SetHeight_doc},
+	{"getHeight",(PyCFunction) KX_CameraActuator::sPyGetHeight,	METH_NOARGS,	GetHeight_doc},
+	{"setXY"	,(PyCFunction) KX_CameraActuator::sPySetXY,		METH_VARARGS,	SetXY_doc},
+	{"getXY"	,(PyCFunction) KX_CameraActuator::sPyGetXY,	METH_VARARGS,	GetXY_doc},
 	{NULL,NULL,NULL,NULL} //Sentinel
 };
 
 PyObject* KX_CameraActuator::_getattr(const STR_String& attr) {
 	_getattr_up(SCA_IActuator);
 }
+/* get obj  ---------------------------------------------------------- */
+char KX_CameraActuator::GetObject_doc[] = 
+"getObject\n"
+"\tReturns the object this sensor reacts to.\n";
+PyObject* KX_CameraActuator::PyGetObject(PyObject* self, 
+										PyObject* args, 
+										PyObject* kwds)
+{
+	return PyString_FromString(m_ob->GetName());
+}
+/* set obj  ---------------------------------------------------------- */
+char KX_CameraActuator::SetObject_doc[] = 
+"setObject\n"
+"\tSets the object this sensor reacts to.\n";
+PyObject* KX_CameraActuator::PySetObject(PyObject* self, 
+										PyObject* args, 
+										PyObject* kwds)
+{
+    
+	PyObject* gameobj;
+	if (PyArg_ParseTuple(args, "O!", &KX_GameObject::Type, &gameobj))
+	{
+		m_ob = (CValue*)gameobj;
+		Py_Return;
+	}
+	PyErr_Clear();
+	
+	char* objectname;
+	if (PyArg_ParseTuple(args, "s", &objectname))
+	{
+		CValue *object = (CValue*)SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String(objectname));
+		if(object)
+		{
+			m_ob = object;
+			Py_Return;
+		}
+	}
+	
+	return NULL;
+}
 
+/* get min  ---------------------------------------------------------- */
+char KX_CameraActuator::GetMin_doc[] = 
+"getMin\n"
+"\tReturns the minimum value set in the Min: field.\n";
+PyObject* KX_CameraActuator::PyGetMin(PyObject* self, 
+										PyObject* args, 
+										PyObject* kwds)
+{
+	return PyFloat_FromDouble(m_minHeight);
+}
+/* set min  ---------------------------------------------------------- */
+char KX_CameraActuator::SetMin_doc[] = 
+"setMin\n"
+"\tSets the minimum value.\n";
+PyObject* KX_CameraActuator::PySetMin(PyObject* self, 
+										PyObject* args, 
+										PyObject* kwds)
+{
+	float min;
+	if(PyArg_ParseTuple(args,"f", &min))
+	{
+		m_minHeight = min;
+		Py_Return;
+	}
+	return NULL;
+}
+/* get min  ---------------------------------------------------------- */
+char KX_CameraActuator::GetMax_doc[] = 
+"getMax\n"
+"\tReturns the maximum value set in the Max: field.\n";
+PyObject* KX_CameraActuator::PyGetMax(PyObject* self, 
+										PyObject* args, 
+										PyObject* kwds)
+{
+	return PyFloat_FromDouble(m_maxHeight);
+}
+/* set min  ---------------------------------------------------------- */
+char KX_CameraActuator::SetMax_doc[] = 
+"setMax\n"
+"\tSets the maximum value.\n";
+PyObject* KX_CameraActuator::PySetMax(PyObject* self, 
+										PyObject* args, 
+										PyObject* kwds)
+{
+	float max;
+	if(PyArg_ParseTuple(args,"f", &max))
+	{
+		m_maxHeight = max;
+		Py_Return;
+	}
+	return NULL;
+}
+/* get height  ---------------------------------------------------------- */
+char KX_CameraActuator::GetHeight_doc[] = 
+"getHeight\n"
+"\tReturns the height value set in the height: field.\n";
+PyObject* KX_CameraActuator::PyGetHeight(PyObject* self, 
+										PyObject* args, 
+										PyObject* kwds)
+{
+	return PyFloat_FromDouble(m_height);
+}
+/* set height  ---------------------------------------------------------- */
+char KX_CameraActuator::SetHeight_doc[] = 
+"setHeight\n"
+"\tSets the height value.\n";
+PyObject* KX_CameraActuator::PySetHeight(PyObject* self, 
+										PyObject* args, 
+										PyObject* kwds)
+{
+	float height;
+	if(PyArg_ParseTuple(args,"f", &height))
+	{
+		m_height = height;
+		Py_Return;
+	}
+	return NULL;
+}
+/* set XY  ---------------------------------------------------------- */
+char KX_CameraActuator::SetXY_doc[] = 
+"setXY\n"
+"\tSets axis the camera tries to get behind.\n"
+"\t1=x, 0=y\n";
+PyObject* KX_CameraActuator::PySetXY(PyObject* self, 
+										PyObject* args, 
+										PyObject* kwds)
+{
+	int value;
+	if(PyArg_ParseTuple(args,"i", &value))
+	{
+		m_x = value != 0;
+		Py_Return;
+	}
+	return NULL;
+}
+
+/* get XY -------------------------------------------------------------*/
+char KX_CameraActuator::GetXY_doc[] =
+"getXY\n"
+"\tGets the axis the camera tries to get behind.\n"
+"\tTrue = X, False = Y\n";
+PyObject* KX_CameraActuator::PyGetXY(PyObject* self,
+										PyObject* args, 
+										PyObject* kwds)
+{
+	return PyInt_FromLong(m_x);
+}
 
 /* eof */
