@@ -238,7 +238,9 @@ Section "Blender-VERSION (required)" SecCopyUI
   SetOutPath $INSTDIR
   ; Put file there
   File DISTDIR\blender.exe
+  File DISTDIR\blenderplayer.exe
   File DISTDIR\python23.dll
+  File DISTDIR\python23.zip
   File DISTDIR\sdl.dll
   File DISTDIR\gnu_gettext.dll
   File DISTDIR\Copyright.txt
@@ -247,6 +249,7 @@ Section "Blender-VERSION (required)" SecCopyUI
   File DISTDIR\Release_SHORTVERS.txt
   File DISTDIR\GPL-license.txt
   File DISTDIR\Help.url
+  File DISTDIR\zlib.pyd
      
   SetOutPath $BLENDERHOME\.blender
   File DISTDIR\.blender\.bfont.ttf
@@ -382,7 +385,9 @@ Section "Uninstall"
   DeleteRegKey HKLM SOFTWARE\BlenderFoundation
   ; remove files
   Delete $INSTDIR\blender.exe
+  Delete $INSTDIR\blenderplayer.exe
   Delete $INSTDIR\python23.dll
+  Delete $INSTDIR\python23.zip
   Delete $INSTDIR\sdl.dll
   Delete $INSTDIR\gnu_gettext.dll
   Delete $INSTDIR\Copyright.txt
@@ -392,6 +397,7 @@ Section "Uninstall"
   Delete $INSTDIR\Release_SHORTVERS.txt
   Delete $INSTDIR\Help.url
   Delete $INSTDIR\uninstall.exe
+  Delete $INSTDIR\zlib.pyd
   Delete $INSTDIR\.blender\.bfont.ttf
   Delete $INSTDIR\.blender\.Blanguages
   ; remove shortcuts, if any.

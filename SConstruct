@@ -1208,6 +1208,8 @@ def preparedist():
 	# finally copy auxiliaries (readme, license, etc.)
 	if sys.platform == 'win32':
 		shutil.copy("windows/extra/Help.url", "../dist/Help.url")
+		shutil.copy("windows/extra/Python23.zip", "../dist/Python23.zip")
+		shutil.copy("windows/extra/zlib.pyd", "../dist/zlib.pyd")
 	shutil.copy("text/copyright.txt", "../dist/copyright.txt")
 	shutil.copy("text/blender.html", "../dist/blender.html")
 	shutil.copy("text/GPL-license.txt", "../dist/GPL-license.txt")

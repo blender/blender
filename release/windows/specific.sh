@@ -73,6 +73,10 @@ cp -f $NAN_SDL/lib/sdl.dll $DISTDIR/sdl.dll
 # Add the Help.url to the ditribution
 cp -f extra/Help.url $DISTDIR/
 
+# Add Python23.zip & zlib.pyd
+cp -f extra/Python23.zip $DISTDIR/
+cp -f extra/zlib.pyd $DISTDIR/
+
 # Add the language files to package
 cp -f -R $NAN_OBJDIR/windows/bin/.blender $DISTDIR/
 # Remove the pesky CVS dirs
