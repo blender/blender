@@ -42,6 +42,9 @@
 
 int winqueue_break= 0;
 
+char bprogname[1];
+
+
 /* readfile.c */
 	/* struct PluginSeq; */
 void open_plugin_seq(struct PluginSeq *pis, char *seqname){}
@@ -163,6 +166,11 @@ extern IK_Chain_ExternPtr IK_CreateChain(void)
 	return 0;
 }
 
+/* exotic.c */
+int BPY_call_importloader(char *name)
+{
+	return 0;
+}
 
 
 /* texture.c */
