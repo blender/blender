@@ -114,26 +114,28 @@
 #define AN_INIT an_stringdec = stringdec; an_stringenc = stringenc;
 
 typedef struct ImBuf{
-	short	x,y;		/* breedte in pixels, hoogte in scanlines */
-	short	skipx;		/* breedte in ints om bij volgende scanline te komen */
-	uchar	depth;		/* actieve aantal bits/bitplanes */
-	uchar	cbits;		/* aantal active bits in cmap */
-	ushort	mincol;
-	ushort	maxcol;
+	short	x,y;		/* width in pixels, height in scanlines */
+	short	skipx;		/* width in ints to get to the next scanline */
+	unsigned char	depth;		/* active amount of bits/bitplanes */
+	unsigned char	cbits;		/* amount of active bits in cmap */
+	unsigned short	mincol;
+	unsigned short	maxcol;
 	int	type;		/* 0=abgr, 1=bitplanes */
 	int	ftype;
-	uint	*cmap;		/* int array van kleuren */
-	uint	*rect;		/* databuffer */
-	uint	**planes;	/* bitplanes */
-	uchar	*chardata;	/* voor cdi-compressie */
+	unsigned int	*cmap;		/* int array van kleuren */
+	unsigned int	*rect;		/* databuffer */
+	unsigned int	**planes;	/* bitplanes */
 	int	flags;
-	int	mall;		/* wat is er intern gemalloced en mag weer vrijgegeven worden */
+	int	mall;		/* what is malloced internal, and can be freed */
 	short	xorig, yorig;
-	char	name[127];
+	char	name[1023];
 	char	namenull;
 	int	userflags;
 	int	*zbuf;
-	void	*userdata;
+	void *userdata;
+	unsigned char *encodedbuffer;
+	unsigned int   encodedsize;
+	unsigned int   encodedbuffersize;
 } ImBuf;
 
 extern struct ImBuf *allocImBuf(short,short,uchar,uint,uchar);
