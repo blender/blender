@@ -104,7 +104,7 @@ static Octree g_oc;	/* can be scene pointer or so later... */
 
 /* just for statistics */
 static int raycount, branchcount, nodecount;
-static int accepted, rejected;
+static int accepted, rejected, coherent_ray;
 
 
 /* **************** ocval method ******************* */
@@ -217,12 +217,53 @@ static Node *addnode(void)
 	return g_oc.adrnode[nodecount>>12]+(nodecount & 4095);
 }
 
+static int face_in_node(VlakRen *vlr, short x, short y, short z, float rtf[][3])
+{
+	static float nor[3], d;
+	float fx, fy, fz;
+	
+	// init static vars 
+	if(vlr) {
+		CalcNormFloat(rtf[0], rtf[1], rtf[2], nor);
+		d= -nor[0]*rtf[0][0] - nor[1]*rtf[0][1] - nor[2]*rtf[0][2];
+		return 0;
+	}
+	
+	fx= x;
+	fy= y;
+	fz= z;
+	
+	if((x+0)*nor[0] + (y+0)*nor[1] + (z+0)*nor[2] + d > 0.0) {
+		if((x+1)*nor[0] + (y+0)*nor[1] + (z+0)*nor[2] + d < 0.0) return 1;
+		if((x+0)*nor[0] + (y+1)*nor[1] + (z+0)*nor[2] + d < 0.0) return 1;
+		if((x+1)*nor[0] + (y+1)*nor[1] + (z+0)*nor[2] + d < 0.0) return 1;
+	
+		if((x+0)*nor[0] + (y+0)*nor[1] + (z+1)*nor[2] + d < 0.0) return 1;
+		if((x+1)*nor[0] + (y+0)*nor[1] + (z+1)*nor[2] + d < 0.0) return 1;
+		if((x+0)*nor[0] + (y+1)*nor[1] + (z+1)*nor[2] + d < 0.0) return 1;
+		if((x+1)*nor[0] + (y+1)*nor[1] + (z+1)*nor[2] + d < 0.0) return 1;
+	}
+	else {
+		if((x+1)*nor[0] + (y+0)*nor[1] + (z+0)*nor[2] + d > 0.0) return 1;
+		if((x+0)*nor[0] + (y+1)*nor[1] + (z+0)*nor[2] + d > 0.0) return 1;
+		if((x+1)*nor[0] + (y+1)*nor[1] + (z+0)*nor[2] + d > 0.0) return 1;
+	
+		if((x+0)*nor[0] + (y+0)*nor[1] + (z+1)*nor[2] + d > 0.0) return 1;
+		if((x+1)*nor[0] + (y+0)*nor[1] + (z+1)*nor[2] + d > 0.0) return 1;
+		if((x+0)*nor[0] + (y+1)*nor[1] + (z+1)*nor[2] + d > 0.0) return 1;
+		if((x+1)*nor[0] + (y+1)*nor[1] + (z+1)*nor[2] + d > 0.0) return 1;
+	}
+
+	return 0;
+}
 
 static void ocwrite(VlakRen *vlr, short x, short y, short z, float rtf[][3])
 {
 	Branch *br;
 	Node *no;
 	short a, oc0, oc1, oc2, oc3, oc4, oc5;
+
+	if(face_in_node(NULL, x,y,z, rtf)==0) return;
 
 	x<<=2;
 	y<<=1;
@@ -382,7 +423,8 @@ void freeoctree(void)
 	}
 	
 	printf("branches %d nodes %d\n", branchcount, nodecount);
-	printf("raycount %d \n", raycount);
+	printf("raycount %d \n", raycount);	
+//	printf("ray coherent %d \n", coherent_ray);
 //	printf("accepted %d rejected %d\n", accepted, rejected);
 
 	branchcount= 0;
@@ -409,7 +451,8 @@ void makeoctree()
 	raycount=0;
 	accepted= 0;
 	rejected= 0;
-
+	coherent_ray= 0;
+	
 	g_oc.vlr_last= NULL;
 	INIT_MINMAX(g_oc.min, g_oc.max);
 	
@@ -515,8 +558,8 @@ void makeoctree()
 			filltriangle(0,2,ocvlak,ocmin);
 			filltriangle(1,2,ocvlak+2*OCRES*OCRES,ocmin);
 			
-			/* this is approximation here... should calculate for real
-			   if a node intersects plane */
+			/* init static vars here */
+			face_in_node(vlr, 0,0,0, rtf);
 			
 			for(x=ocmin[0];x<=ocmax[0];x++) {
 				a= OCRES*x;
@@ -932,7 +975,7 @@ static int d3dda(Isect *is)
 	float labdao,labdax,ldx,labday,ldy,labdaz,ldz, ddalabda;
 	float vec1[3], vec2[3];
 	int dx,dy,dz;	
-	int xo,yo,zo,c1=0;
+	int xo,yo,zo,c1=0; //, testcoh=0;
 	int ocx1,ocx2,ocy1, ocy2,ocz1,ocz2;
 	
 	/* clip with octree */
@@ -1076,10 +1119,13 @@ static int d3dda(Isect *is)
 		
 		/* this loop has been constructed to make sure the first and last node of ray
 		   are always included, even when ddalabda==1.0 or larger */
+
 		while(TRUE) {
 
 			no= ocread(xo, yo, zo);
 			if(no) {
+				//if(xo==ocx1 && yo==ocy1 && zo==ocz1);
+				//else testcoh= 1;
 				
 				/* calculate ray intersection with octree node */
 				VECCOPY(vec1, vec2);
@@ -1142,6 +1188,7 @@ static int d3dda(Isect *is)
 			/* to make sure the last node is always checked */
 			if(labdao>=1.0) break;
 		}
+		//if(testcoh==0) coherent_ray++;
 	}
 	
 	/* reached end, no intersections found */
