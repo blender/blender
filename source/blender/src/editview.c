@@ -252,7 +252,7 @@ int gesture(void)
 			/* not drawing yet... check for toolbox */
 			PIL_sleep_ms(10);
 			timer++;
-			if(timer>=10*U.menuthreshold1) {
+			if(timer>=10*U.tb_leftmouse) {
 				toolbox_n();
 				return 1;
 			}

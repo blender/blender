@@ -2225,7 +2225,7 @@ static short testsplitpoint(ScrArea *sa, char dir, float fac)
 static void splitarea(ScrArea *sa, char dir, float fac)
 {
 	bScreen *sc;
-	ScrArea *newa;
+	ScrArea *newa=NULL;
 	ScrVert *sv1, *sv2;
 	short split;
 	
@@ -2278,6 +2278,11 @@ static void splitarea(ScrArea *sa, char dir, float fac)
 		/* area right */
 		sa->v1= sv1;		
 		sa->v2= sv2;
+	}
+	
+	if(sa->spacetype==SPACE_BUTS) {
+		addqueue(sa->win, UI_BUT_EVENT, B_BUTSHOME);
+		addqueue(newa->win, UI_BUT_EVENT, B_BUTSHOME);
 	}
 	
 	/* remove double vertices en edges */

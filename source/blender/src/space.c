@@ -2001,7 +2001,38 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgespace+medprefbut+(4*midspace)+(3*smallprefbut)),y1,smallprefbut,buth,
 			&(U.menuthreshold2), 1, 40, 0, 0,
 			"Time in 1/10 seconds for auto open sublevels");
+
+
+		uiDefBut(block, LABEL,0,"Toolbox Thresh.:",
+			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y3label,medprefbut,buth,
+			0, 0, 0, 0, 0, "");
+
+		uiDefButS(block, NUM, 0, "LMB:",
+			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y2,smallprefbut,buth,
+			&(U.tb_leftmouse), 2, 40, 0, 0,
+			"Time in 1/10 seconds leftmouse hold to open toolbox");
+
+		uiDefButS(block, NUM, 0, "RMB:",
+			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y1,smallprefbut,buth,
+			&(U.tb_rightmouse), 2, 40, 0, 0,
+			"Time in 1/10 seconds for rightmouse to open toolbox");
+
 			
+		uiDefBut(block, LABEL,0,"View rotation:",
+			(xpos+edgespace+(3*midspace)+(3*medprefbut)+smallprefbut+2),y3label,medprefbut,buth,
+			0, 0, 0, 0, 0, "");
+
+		uiDefButS(block, TOG|BIT|5, B_DRAWINFO, "Trackball",
+			(xpos+edgespace+(3*midspace)+(3*medprefbut)+smallprefbut+2),y2,(smallprefbut+2),buth,
+			&(U.flag), 0, 0, 0, 0,
+			"Use trackball style rotation with middle mouse button");
+
+		uiDefButS(block, TOGN|BIT|5, B_DRAWINFO, "Turntable",
+			(xpos+edgespace+(3*midspace)+(3*medprefbut)+smallprefbut+2),y1,(smallprefbut+2),buth,
+			&(U.flag), 0, 0, 0, 0,
+			"Use turntable style rotation with middle mouse button");
+
+
 
 		uiDefButS(block, TOGN|BIT|10, B_DRAWINFO, "Rotate View",
 			(xpos+edgespace+(4*midspace)+(4*medprefbut)),y2,(smallprefbut+2),buth,
@@ -2021,19 +2052,6 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 
 
-		uiDefBut(block, LABEL,0,"View rotation method:",
-			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y3label,medprefbut,buth,
-			0, 0, 0, 0, 0, "");
-
-		uiDefButS(block, TOG|BIT|5, B_DRAWINFO, "Trackball",
-			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y2,(smallprefbut+2),buth,
-			&(U.flag), 0, 0, 0, 0,
-			"Use trackball style rotation with middle mouse button");
-
-		uiDefButS(block, TOGN|BIT|5, B_DRAWINFO, "Turntable",
-			(xpos+edgespace+(3*midspace)+(3*medprefbut)+smallprefbut+2),y2,(smallprefbut+2),buth,
-			&(U.flag), 0, 0, 0, 0,
-			"Use turntable style rotation with middle mouse button");
 
 		uiDefBut(block, LABEL,0,"Mousewheel:",
 			(xpos+edgespace+(4*midspace)+(5*medprefbut)),y3label,medprefbut,buth,

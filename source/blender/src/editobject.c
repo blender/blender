@@ -5507,7 +5507,7 @@ void std_rmouse_transform(void (*xf_func)(int))
 		else {
 			PIL_sleep_ms(10);
 			timer++;
-			if(timer>=10*U.menuthreshold1) {
+			if(timer>=10*U.tb_rightmouse) {
 				toolbox_n();
 				return;
 			}

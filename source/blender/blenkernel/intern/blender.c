@@ -272,6 +272,10 @@ static void setup_app_data(BlendFileData *bfd, char *filename) {
 			U.menuthreshold1= 5;
 			U.menuthreshold2= 2;
 		}
+		if(U.tb_leftmouse==0) {
+			U.tb_leftmouse= 5;
+			U.tb_rightmouse= 5;
+		}
 	}
 	
 	R.winpos= bfd->winpos;
