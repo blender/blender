@@ -191,8 +191,8 @@ Step 2:
 You can use the package installer fink (http://fink.sourceforge.net/) for some
 of the external libraries:
 1. openssl (fink install openssl)
-2. jpeg    (fink install jpeg)
-3. png     (fink install png)
+2. jpeg    (fink install libjpeg)
+3. png     (fink install libpng)
 
 Step 3:
 The rest of the external libraries are present in CVS in binary format so you
