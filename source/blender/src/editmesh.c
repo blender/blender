@@ -2053,24 +2053,28 @@ static EditEdge *findnearestedge()
 	getmouseco_areawin(mval);
 	closest=NULL;
 	
-	mval2[0] = (float)mval[0];    	/* cast to float because of the pdist function only taking floats...*/
+	mval2[0] = (float)mval[0];
 	mval2[1] = (float)mval[1];
 	
 	eed=G.eded.first;
-	while(eed) {      					/*compare the distance to the rest of the edges and find the closest one*/
-		if( !((eed->v1->f & eed->v2->f) & 2)){ 	/* Are both vertices of the edge invisible? then don't select the edge*/
-			v1[0] = eed->v1->xs;  			/* oh great! the screencoordinates are not an array....grrrr*/
+	/*compare the distance to the rest of the edges and find the closest one*/
+	while(eed) {
+		/* Are both vertices of the edge ofscreen or either of them hidden? then don't select the edge*/
+		if( !((eed->v1->f & 2) && (eed->v2->f & 2)) && (eed->v1->h==0 && eed->v2->h==0)){
+			v1[0] = eed->v1->xs;
 			v1[1] = eed->v1->ys;
 			v2[0] = eed->v2->xs;
 			v2[1] = eed->v2->ys;
 			
 			distance[1] = PdistVL2Dfl(mval2, v1, v2);
 			
-			if(distance[1]<50){    			/* TODO: make this maximum selecting distance selectable (the same with vertice select?) */
-				if(found) {              	/*do we have to compare it to other distances? */
+			if(distance[1]<50){
+				/*do we have to compare it to other distances? */    			
+				if(found) {
 					if (distance[1]<distance[0]){
 						distance[0]=distance[1];
-						closest=eed;  	/*save the current closest edge*/
+						/*save the current closest edge*/
+						closest=eed;  	
 					}
 				} else {
 					distance[0]=distance[1];
