@@ -183,6 +183,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Particle.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\Registry.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\rgbTuple.c
 # End Source File
 # Begin Source File
@@ -320,6 +324,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Object.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\Particle.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\Registry.h
 # End Source File
 # Begin Source File
 
