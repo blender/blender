@@ -32,7 +32,7 @@
  */
 
 #ifndef RENDER_H
-#define RENDER_H "$Id$"
+#define RENDER_H
 
 /* ------------------------------------------------------------------------- */
 /* This little preamble might be moved to a separate include. It contains    */

@@ -31,7 +31,7 @@
  */
 
 #ifndef RENDER_TYPES_H
-#define RENDER_TYPES_H "$Id$"
+#define RENDER_TYPES_H
 
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
