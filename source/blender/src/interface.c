@@ -477,7 +477,7 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 		bt->y2 += yof;
 
 		bt->aspect= 1.0;
-		// check_but recalculates drawstring size in pixels
+		// ui_check_but recalculates drawstring size in pixels
 		ui_check_but(bt);
 		
 		bt= bt->next;
@@ -1353,8 +1353,7 @@ static int ui_do_but_NUM(uiBut *but)
 	double value;
 	float deler, fstart, f, tempf;
 	int lvalue, temp; /*  , firsttime=1; */
-	short qual, sx, mval[2], pos=0;
-	
+	short retval=0, qual, sx, mval[2], pos=0;
 
 	but->flag |= UI_SELECT;
 	ui_draw_but(but);
@@ -1371,117 +1370,120 @@ static int ui_do_but_NUM(uiBut *but)
 	tempf= value;
 	
 	if(get_qual() & LR_SHIFTKEY) {	/* make it textbut */
-		if( uiActAsTextBut(but) ) return but->retval;
-		else return 0;
+		if( uiActAsTextBut(but) ) retval= but->retval;
 	}
-	
-	/* firsttime: this button can be approached with enter as well */
-	while (get_mbut() & L_MOUSE) {
-		qual= get_qual();
-		
-		deler= 500;
-		if( but->pointype!=FLO ) {
-
-			if( (but->max-but->min)<100 ) deler= 200.0;
-			if( (but->max-but->min)<25 ) deler= 50.0;
-
-		}
-		if(qual & LR_SHIFTKEY) deler*= 10.0;
-		if(qual & LR_ALTKEY) deler*= 20.0;
-
-		uiGetMouse(mywinget(), mval);
-		
-		if(mval[0] != sx) {
-		
-			f+= ((float)(mval[0]-sx))/deler;
-			if(f>1.0) f= 1.0;
-			if(f<0.0) f= 0.0;
-			sx= mval[0];
-			tempf= ( but->min + f*(but->max-but->min));
+	else {
+		retval= but->retval;
+		/* firsttime: this button can be approached with enter as well */
+		while (get_mbut() & L_MOUSE) {
+			qual= get_qual();
 			
+			deler= 500;
 			if( but->pointype!=FLO ) {
-				
-				temp= floor(tempf+.5);
-				
-				if(tempf==but->min || tempf==but->max);
-				else if(qual & LR_CTRLKEY) temp= 10*(temp/10);
-				
-				if( temp>=but->min && temp<=but->max) {
-				
-					value= ui_get_but_val(but);
-					lvalue= (int)value;
-					
-					if(temp != lvalue ) {
-						pos= 1;
-						ui_set_but_val(but, (double)temp);
-						ui_check_but(but);
-						ui_draw_but(but);
-						glFlush(); // flush display in subloops
-						
-						uibut_do_func(but);
-					}
-				}
-
-			}
-			else {
-				temp= 0;
-				if(qual & LR_CTRLKEY) {
-					if(tempf==but->min || tempf==but->max);
-					else if(but->max-but->min < 2.10) tempf= 0.1*floor(10*tempf);
-					else if(but->max-but->min < 21.0) tempf= floor(tempf);
-					else tempf= 10.0*floor(tempf/10.0);
-				}
-
-				if( tempf>=but->min && tempf<=but->max) {
-					value= ui_get_but_val(but);
-					
-					if(tempf != value ) {
-						pos= 1;
-						ui_set_but_val(but, tempf);
-						ui_check_but(but);
-						ui_draw_but(but);
-						glFlush(); // flush display in subloops
-					}
-				}
-
-			}
-		}
-		BIF_wait_for_statechange();
-	}
 	
-	/* click on the side arrows to increment/decrement, click inside
-	 * to edit the value directly */
-	if(pos==0) {  /* plus 1 or minus 1 */
-		if( but->pointype!=FLO ) {
-
-			if(sx < (but->x1 + (but->x2 - but->x1)/3 - 3)) temp--;
-			else if(sx > (but->x1 + (2*(but->x2 - but->x1)/3) + 3)) temp++;
-			else {
-				if( uiActAsTextBut(but) ) return but->retval;
-				else return 0;
+				if( (but->max-but->min)<100 ) deler= 200.0;
+				if( (but->max-but->min)<25 ) deler= 50.0;
+	
 			}
+			if(qual & LR_SHIFTKEY) deler*= 10.0;
+			if(qual & LR_ALTKEY) deler*= 20.0;
+	
+			uiGetMouse(mywinget(), mval);
 			
-			if( temp>=but->min && temp<=but->max)
-				ui_set_but_val(but, (double)temp);
-
-		}
-		else {
-		
-			if(sx < (but->x1 + (but->x2 - but->x1)/3 - 3)) tempf-= 0.01*but->a1;
-			else if(sx > but->x1 + (2*((but->x2 - but->x1)/3) + 3)) tempf+= 0.01*but->a1;
-			else {
-				if( uiActAsTextBut(but) ) return but->retval;
-				else return 0;
+			if(mval[0] != sx) {
+			
+				f+= ((float)(mval[0]-sx))/deler;
+				if(f>1.0) f= 1.0;
+				if(f<0.0) f= 0.0;
+				sx= mval[0];
+				tempf= ( but->min + f*(but->max-but->min));
+				
+				if( but->pointype!=FLO ) {
+					
+					temp= floor(tempf+.5);
+					
+					if(tempf==but->min || tempf==but->max);
+					else if(qual & LR_CTRLKEY) temp= 10*(temp/10);
+					
+					if( temp>=but->min && temp<=but->max) {
+					
+						value= ui_get_but_val(but);
+						lvalue= (int)value;
+						
+						if(temp != lvalue ) {
+							pos= 1;
+							ui_set_but_val(but, (double)temp);
+							ui_check_but(but);
+							ui_draw_but(but);
+							glFlush(); // flush display in subloops
+							
+							uibut_do_func(but);
+						}
+					}
+	
+				}
+				else {
+					temp= 0;
+					if(qual & LR_CTRLKEY) {
+						if(tempf==but->min || tempf==but->max);
+						else if(but->max-but->min < 2.10) tempf= 0.1*floor(10*tempf);
+						else if(but->max-but->min < 21.0) tempf= floor(tempf);
+						else tempf= 10.0*floor(tempf/10.0);
+					}
+	
+					if( tempf>=but->min && tempf<=but->max) {
+						value= ui_get_but_val(but);
+						
+						if(tempf != value ) {
+							pos= 1;
+							ui_set_but_val(but, tempf);
+							ui_check_but(but);
+							ui_draw_but(but);
+							glFlush(); // flush display in subloops
+						}
+					}
+	
+				}
 			}
-
-			if (tempf < but->min) tempf = but->min;
-			if (tempf > but->max) tempf = but->max;
-
-			ui_set_but_val(but, tempf);
-
+			BIF_wait_for_statechange();
+		}
+		
+		/* click on the side arrows to increment/decrement, click inside
+		* to edit the value directly */
+		if(pos==0) {  /* plus 1 or minus 1 */
+			if( but->pointype!=FLO ) {
+	
+				if(sx < (but->x1 + (but->x2 - but->x1)/3 - 3)) {
+					temp--;
+					if( temp>=but->min && temp<=but->max) ui_set_but_val(but, (double)temp);
+				}
+				else if(sx > (but->x1 + (2*(but->x2 - but->x1)/3) + 3)) {
+					temp++;
+					if( temp>=but->min && temp<=but->max) ui_set_but_val(but, (double)temp);
+				}
+				else {
+					if( uiActAsTextBut(but) ); else retval= 0;
+				}
+			}
+			else {
+			
+				if(sx < (but->x1 + (but->x2 - but->x1)/3 - 3)) {
+					tempf-= 0.01*but->a1;
+					if (tempf < but->min) tempf = but->min;
+					ui_set_but_val(but, tempf);
+				}
+				else if(sx > but->x1 + (2*((but->x2 - but->x1)/3) + 3)) {
+					tempf+= 0.01*but->a1;
+					if (tempf < but->min) tempf = but->min;
+					ui_set_but_val(but, tempf);
+				}
+				else {
+					if( uiActAsTextBut(but) ); else retval= 0;
+				}
+			}
 		}
 	}
-	
+
 	but->flag &= ~UI_SELECT;
 	ui_check_but(but);
 	ui_draw_but(but);	
@@ -1489,7 +1491,7 @@ static int ui_do_but_NUM(uiBut *but)
 	
 	uibut_do_func(but);
 	
-	return but->retval;
+	return retval;
 }
 
 static int ui_do_but_TOG3(uiBut *but)
