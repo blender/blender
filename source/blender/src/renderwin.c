@@ -635,7 +635,7 @@ static void printrenderinfo_cb(double time, int sample)
 
 /* -------------- callback system to allow ESC from rendering ----------------------- */
 
-/* WIN32: this function is called all the time, and should not use cpu or resources */
+/* POSIX & WIN32: this function is called all the time, and should not use cpu or resources */
 static int test_break()
 {
 
@@ -656,6 +656,8 @@ static int test_break()
 	if(G.afbreek==1) return 1;
 	else return 0;
 }
+
+
 
 #ifdef _WIN32
 /* we use the multimedia time here */
@@ -682,29 +684,6 @@ static void end_test_break_callback()
 
 #else
 /* all other OS's support signal(SIGVTALRM) */
-
-/* POSIX: this function is called all the time, and should not use cpu or resources */
-static int test_break()
-{
-	short val;
-
-	if(G.afbreek==2) { /* code for testing queue */
-
-		G.afbreek= 0;
-
-		blender_test_break(); /* tests blender interface */
-
-		if (G.afbreek==0 && render_win) { /* tests window */
-			winlay_process_events(0);
-			// render_win can be closed in winlay_process_events()
-			if (render_win == 0 || (render_win->flags & RW_FLAGS_ESCAPE))
-				G.afbreek= 1;
-		}
-	}
-
-	if(G.afbreek==1) return 1;
-	else return 0;
-}
 
 /* POSIX: this function goes in the signal() callback */
 static void interruptESC(int sig)
