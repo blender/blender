@@ -699,7 +699,7 @@ static void undoFont_to_editFont(void *strv)
 	
 	strncpy(textbuf, str+2, MAXTEXT);
 	cu->pos= *((short *)str);
-
+	cu->len= strlen(textbuf);
 	text_to_curve(G.obedit, 0);
 	makeDispList(G.obedit);
 	
