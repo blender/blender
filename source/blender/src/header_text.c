@@ -569,9 +569,10 @@ void text_buttons(void)
 	xco+=XIC;
 	if(st->font_id>1) st->font_id= 0;
 	uiDefButI(block, MENU, B_TEXTFONT, "Screen 12 %x0|Screen 15%x1", xco,0,100,YIC, &st->font_id, 0, 0, 0, 0, "Displays available fonts");
-	xco+=100;
+	xco+=110;
 	
-	uiDefButI(block, NUM, B_TAB_NUMBERS, "Tab:",		xco+=XIC, 0, XIC+50, YIC, &st->tabnumber, 2, 8, 0, 0, "Set spacing of Tab");
+	uiDefButI(block, NUM, B_TAB_NUMBERS, "Tab:",		xco, 0, XIC+50, YIC, &st->tabnumber, 2, 8, 0, 0, "Set spacing of Tab");
+	xco+= XIC+50;
 	
 	/* always as last  */
 	curarea->headbutlen= xco+2*XIC;

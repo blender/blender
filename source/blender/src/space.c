@@ -4031,6 +4031,7 @@ static void init_oopsspace(ScrArea *sa, int outliner)
 	if(outliner) soops->type= SO_OUTLINER;
 	
 	soops->spacetype= SPACE_OOPS;
+	soops->type= SO_OUTLINER;	// default starts new ones in outliner mode
 	soops->blockscale= 0.7;
 	init_v2d_oops(sa, soops);
 }

@@ -96,7 +96,9 @@ void 	indent			(struct Text *text, char *in_buffer);
 void 	unindent_lines		(struct Text *text, char *in_buffer);
 void 	comment_paste		(struct Text *text, char *in_buffer);
 void 	uncomment_paste		(struct Text *text, char *in_buffer);
-//void	set_tabs			(struct Text *text);
+void	uncomment			(struct Text *text);
+
+	//void	set_tabs			(struct Text *text);
 
 /* Undo opcodes */
 

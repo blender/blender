@@ -4527,6 +4527,10 @@ static void do_versions(Main *main)
 						View3D *v3d= (View3D *)sl;
 						if(set_zbuf_sel) v3d->flag |= V3D_ZBUF_SELECT;
 					}
+					else if(sl->spacetype==SPACE_TEXT) {
+						SpaceText *st= (SpaceText *)sl;
+						if(st->tabnumber==0) st->tabnumber= 2;
+					}
 				}
 			}
 		}

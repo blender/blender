@@ -403,7 +403,7 @@ int displist_has_faces(ListBase *lb)
 	
 	dl= lb->first;
 	while(dl) {
-		if ELEM5(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF, DL_MESH, DL_TRIA)
+		if ELEM6(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF, DL_MESH, DL_TRIA, DL_POLY)
 			return 1;
 		dl= dl->next;
 	}

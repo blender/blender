@@ -1929,7 +1929,14 @@ int view2dmove(unsigned short event)
 	
 	if ( (G.qual & LR_CTRLKEY) || (event==WHEELUPMOUSE) || (event==WHEELDOWNMOUSE) ) {
 		/* patch for oops & buttonswin, standard scroll no zoom */
-		if(curarea->spacetype==SPACE_OOPS);
+		if(curarea->spacetype==SPACE_OOPS) {
+			SpaceOops *soops= curarea->spacedata.first;
+			if(soops->type==SO_OUTLINER);
+			else if (view2dzoom(event)) {
+				curarea->head_swap= 0;
+				return 0;
+			}
+		}
 		else if(curarea->spacetype==SPACE_BUTS && (G.qual & LR_CTRLKEY)==0);
 		else if (view2dzoom(event)) {
 			curarea->head_swap= 0;
