@@ -1,7 +1,6 @@
 #!/usr/bin/python
 Import ('user_options_dict')
 Import ('library_env')
-Import ('sdl_env')
 
 render_env = library_env.Copy ()
 
@@ -38,7 +37,8 @@ render_env.Append (CPPPATH = ['intern/include',
                               '../quicktime',
                               '../include',
                               '../../kernel/gen_messaging',
-                              '../yafray'] +
-			      sdl_env['CPPPATH'])
+                              '../yafray'])
+
+render_env.Append (CPPPATH = user_options_dict['SDL_INCLUDE'])
 
 render_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_render', source=source_files)
