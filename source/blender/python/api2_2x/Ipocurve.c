@@ -35,7 +35,7 @@
 /* Function:              M_IpoCurve_New                                          */
 /* Python equivalent:     Blender.IpoCurve.New                                    */
 /*****************************************************************************/
-static PyObject *M_IpoCurve_New(PyObject *self, PyObject *args)
+PyObject *M_IpoCurve_New(PyObject *self, PyObject *args)
 {
 	return 0;
 }
@@ -63,7 +63,7 @@ PyObject *IpoCurve_Init (void)
 /*                        passed in, a list of all ipo data names in the  */
 /*                        current scene is returned.                         */
 /*****************************************************************************/
-static PyObject *M_IpoCurve_Get(PyObject *self, PyObject *args)
+PyObject *M_IpoCurve_Get(PyObject *self, PyObject *args)
 {
 	return 0;
 }
@@ -73,19 +73,19 @@ static PyObject *M_IpoCurve_Get(PyObject *self, PyObject *args)
 /* Python C_IpoCurve methods:                                                  */
 /*****************************************************************************/
 
-static PyObject *IpoCurve_setName(C_IpoCurve *self, PyObject *args)
+PyObject *IpoCurve_setName(C_IpoCurve *self, PyObject *args)
 {
 	return 0;
 }
 
-static PyObject *IpoCurve_Recalc(C_IpoCurve *self)
+PyObject *IpoCurve_Recalc(C_IpoCurve *self)
 {
 	void testhandles_ipocurve(IpoCurve *icu);
 	IpoCurve *icu = self->ipocurve;
 	testhandles_ipocurve(icu); 
 }
 
-static PyObject* IpoCurve_getName (C_IpoCurve *self)
+PyObject* IpoCurve_getName (C_IpoCurve *self)
 {
 	char * nametab[24] = {"LocX","LocY","LocZ","dLocX","dLocY","dLocZ","RotX","RotY","RotZ","dRotX","dRotY","dRotZ","SizeX","SizeY","SizeZ","dSizeX","dSizeY","dSizeZ","Layer","Time","ColR","ColG","ColB","ColA"};
 
@@ -101,12 +101,12 @@ return PyString_FromString(nametab[self->ipocurve->adrcode-1]);
 
 
 
-static void IpoCurveDeAlloc (C_IpoCurve *self)
+void IpoCurveDeAlloc (C_IpoCurve *self)
 {
   PyObject_DEL (self);
 }
 
-static PyObject* IpoCurve_getPoints (C_IpoCurve *self)
+PyObject* IpoCurve_getPoints (C_IpoCurve *self)
 {	
 struct BezTriple *bezt;
         PyObject* l = PyList_New(0);
@@ -141,7 +141,7 @@ struct BezTriple *bezt;
 /*              the function that accesses C_IpoCurve "member variables" and      */
 /*              methods.                                                     */
 /*****************************************************************************/
-static PyObject *IpoCurveGetAttr (C_IpoCurve *self, char *name)
+PyObject *IpoCurveGetAttr (C_IpoCurve *self, char *name)
 {
 if (strcmp (name, "bezierPoints") == 0)return IpoCurve_getPoints(self);
 if (strcmp (name, "name") == 0)return IpoCurve_getName(self);
@@ -153,7 +153,7 @@ if (strcmp (name, "name") == 0)return IpoCurve_getName(self);
 /* Description: This is a callback function for the C_IpoCurve type. It is the */
 /*              function that sets IpoCurve Data attributes (member variables).*/
 /*****************************************************************************/
-static int IpoCurveSetAttr (C_IpoCurve *self, char *name, PyObject *value)
+int IpoCurveSetAttr (C_IpoCurve *self, char *name, PyObject *value)
 {
 if (strcmp (name, "bezierPoints") == 0)return IpoCurve_setPoints(self,value);
   return 0; /* normal exit */
@@ -164,7 +164,7 @@ if (strcmp (name, "bezierPoints") == 0)return IpoCurve_setPoints(self,value);
 /* Description: This is a callback function for the C_IpoCurve type. It           */
 /*              builds a meaninful string to represent ipo objects.          */
 /*****************************************************************************/
-static PyObject *IpoCurveRepr (C_IpoCurve *self)
+PyObject *IpoCurveRepr (C_IpoCurve *self)
 {
 	char s[1024];	
 	sprintf(s,"IpoCurve %d %d %d %d %d %d %d %d \n",self->ipocurve->blocktype,self->ipocurve->adrcode,self->ipocurve->vartype,self->ipocurve->totvert,self->ipocurve->ipo,self->ipocurve->extrap,self->ipocurve->flag,self->ipocurve->rt);

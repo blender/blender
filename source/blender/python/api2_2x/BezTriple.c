@@ -35,7 +35,7 @@
 /* Function:              M_BezTriple_New                                          */
 /* Python equivalent:     Blender.BezTriple.New                                    */
 /*****************************************************************************/
-static PyObject *M_BezTriple_New(PyObject *self, PyObject *args)
+PyObject *M_BezTriple_New(PyObject *self, PyObject *args)
 {
 	return 0;
 }
@@ -48,7 +48,7 @@ static PyObject *M_BezTriple_New(PyObject *self, PyObject *args)
 /*                        passed in, a list of all ipo data names in the  */
 /*                        current scene is returned.                         */
 /*****************************************************************************/
-static PyObject *M_BezTriple_Get(PyObject *self, PyObject *args)
+PyObject *M_BezTriple_Get(PyObject *self, PyObject *args)
 {
 	return 0;
 }
@@ -57,12 +57,12 @@ static PyObject *M_BezTriple_Get(PyObject *self, PyObject *args)
 /*****************************************************************************/
 /* Python C_BezTriple methods:                                                  */
 /*****************************************************************************/
-static PyObject *BezTriple_getName(C_BezTriple *self)
+PyObject *BezTriple_getName(C_BezTriple *self)
 {
 	return 0;
 }
 
-static PyObject *BezTriple_setName(C_BezTriple *self, PyObject *args)
+PyObject *BezTriple_setName(C_BezTriple *self, PyObject *args)
 {
 	return 0;
 }
@@ -73,12 +73,12 @@ static PyObject *BezTriple_setName(C_BezTriple *self, PyObject *args)
 /* Description: This is a callback function for the C_BezTriple type. It is        */
 /*              the destructor function.                                     */
 /*****************************************************************************/
-static void BezTripleDeAlloc (C_BezTriple *self)
+void BezTripleDeAlloc (C_BezTriple *self)
 {
   PyObject_DEL (self);
 }
 
-static PyObject* BezTriple_getPoints (C_BezTriple *self)
+PyObject* BezTriple_getPoints (C_BezTriple *self)
 {	
 struct BezTriple *bezt = self->beztriple;
         PyObject* l = PyList_New(0);
@@ -108,7 +108,7 @@ int  BezTriple_setPoints (C_BezTriple *self,PyObject *value)
 /*              the function that accesses C_BezTriple "member variables" and      */
 /*              methods.                                                     */
 /*****************************************************************************/
-static PyObject *BezTripleGetAttr (C_BezTriple *self, char *name)
+PyObject *BezTripleGetAttr (C_BezTriple *self, char *name)
 {
 if (strcmp (name, "pt") == 0)return BezTriple_getPoints(self);
   return Py_FindMethod(C_BezTriple_methods, (PyObject *)self, name);
@@ -119,7 +119,7 @@ if (strcmp (name, "pt") == 0)return BezTriple_getPoints(self);
 /* Description: This is a callback function for the C_BezTriple type. It is the */
 /*              function that sets BezTriple Data attributes (member variables).*/
 /*****************************************************************************/
-static int BezTripleSetAttr (C_BezTriple *self, char *name, PyObject *value)
+int BezTripleSetAttr (C_BezTriple *self, char *name, PyObject *value)
 {
 if (strcmp (name, "pt") == 0)return BezTriple_setPoints(self,value);
   return 0; /* normal exit */
@@ -130,7 +130,7 @@ if (strcmp (name, "pt") == 0)return BezTriple_setPoints(self,value);
 /* Description: This is a callback function for the C_BezTriple type. It     */
 /*              builds a meaninful string to represent  BezTriple objects.   */
 /*****************************************************************************/
-static PyObject *BezTripleRepr (C_BezTriple *self)
+PyObject *BezTripleRepr (C_BezTriple *self)
 {
   return PyString_FromString("[BezTriple]");
 }

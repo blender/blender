@@ -49,24 +49,24 @@
 /*****************************************************************************/
 /* Python API function prototypes for the IpoCurve module.                   */
 /*****************************************************************************/
-static PyObject *M_IpoCurve_New (PyObject *self, PyObject *args);
-static PyObject *M_IpoCurve_Get (PyObject *self, PyObject *args);
+PyObject *M_IpoCurve_New (PyObject *self, PyObject *args);
+PyObject *M_IpoCurve_Get (PyObject *self, PyObject *args);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.      */
 /* In Python these will be written to the console when doing a               */
 /* Blender.IpoCurve.__doc__                                                  */
 /*****************************************************************************/
-char M_IpoCurve_doc[] = "";
-char M_IpoCurve_New_doc[] ="";
-char M_IpoCurve_Get_doc[] ="";
+static char M_IpoCurve_doc[] = "";
+static char M_IpoCurve_New_doc[] ="";
+static char M_IpoCurve_Get_doc[] ="";
 
 
 /*****************************************************************************/
 /* Python method structure definition for Blender.IpoCurve module:           */
 /*****************************************************************************/
 
-struct PyMethodDef M_IpoCurve_methods[] = {
+static struct PyMethodDef M_IpoCurve_methods[] = {
   {"New",(PyCFunction)M_IpoCurve_New, METH_VARARGS|METH_KEYWORDS,M_IpoCurve_New_doc},
   {"Get",         M_IpoCurve_Get,         METH_VARARGS, M_IpoCurve_Get_doc},
   {"get",         M_IpoCurve_Get,         METH_VARARGS, M_IpoCurve_Get_doc},
@@ -84,9 +84,9 @@ typedef struct {
 /*****************************************************************************/
 /* Python C_IpoCurve methods declarations:                                   */
 /*****************************************************************************/
-static PyObject *IpoCurve_getName(C_IpoCurve *self);
-static PyObject *IpoCurve_Recalc(C_IpoCurve *self);
-static PyObject *IpoCurve_setName(C_IpoCurve *self, PyObject *args);
+PyObject *IpoCurve_getName(C_IpoCurve *self);
+PyObject *IpoCurve_Recalc(C_IpoCurve *self);
+PyObject *IpoCurve_setName(C_IpoCurve *self, PyObject *args);
 
 /*****************************************************************************/
 /* Python C_IpoCurve methods table:                                          */
@@ -105,16 +105,16 @@ static PyMethodDef C_IpoCurve_methods[] = {
 /*****************************************************************************/
 /* Python IpoCurve_Type callback function prototypes:                        */
 /*****************************************************************************/
-static void IpoCurveDeAlloc (C_IpoCurve *self);
-//static int IpoCurvePrint (C_IpoCurve *self, FILE *fp, int flags);
-static int IpoCurveSetAttr (C_IpoCurve *self, char *name, PyObject *v);
-static PyObject *IpoCurveGetAttr (C_IpoCurve *self, char *name);
-static PyObject *IpoCurveRepr (C_IpoCurve *self);
+void IpoCurveDeAlloc (C_IpoCurve *self);
+//int IpoCurvePrint (C_IpoCurve *self, FILE *fp, int flags);
+int IpoCurveSetAttr (C_IpoCurve *self, char *name, PyObject *v);
+PyObject *IpoCurveGetAttr (C_IpoCurve *self, char *name);
+PyObject *IpoCurveRepr (C_IpoCurve *self);
 
 /*****************************************************************************/
 /* Python IpoCurve_Type structure definition:                                */
 /*****************************************************************************/
-PyTypeObject IpoCurve_Type =
+static PyTypeObject IpoCurve_Type =
 {
   PyObject_HEAD_INIT(NULL)
   0,                                      /* ob_size */
