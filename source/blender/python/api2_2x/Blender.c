@@ -99,6 +99,7 @@ static char Blender_Get_doc[] =
 	'endframe'	- Returns the end frame of the animation\n\
 	'filename'	- Returns the name of the last file read or written\n\
 	'datadir' - Returns the dir where scripts can save their data, if available\n\
+	'scriptsdir' - Returns the main dir where scripts are kept, if available\n\
 	'version'	- Returns the Blender version number";
 
 static char Blender_Redraw_doc[] = "() - Redraw all 3D windows";
@@ -234,6 +235,13 @@ static PyObject *Blender_Get (PyObject *self, PyObject *args)
 			char datadir[FILE_MAXDIR];
 			BLI_make_file_string("/", datadir, bpy_gethome(), "bpydata/");
 			if (BLI_exists(datadir)) return PyString_FromString(datadir);
+			else return EXPP_incr_ret (Py_None);
+		}
+		if (StringEqual (str, "scriptsdir"))
+		{
+			char scriptsdir[FILE_MAXDIR];
+			BLI_make_file_string("/", scriptsdir, bpy_gethome(), "scripts/");
+			if (BLI_exists(scriptsdir)) return PyString_FromString(scriptsdir);
 			else return EXPP_incr_ret (Py_None);
 		}
 		/* According to the old file (opy_blender.c), the following if

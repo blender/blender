@@ -37,6 +37,7 @@
 #include <BIF_drawimage.h>
 #include <BLI_blenlib.h>
 #include <IMB_imbuf_types.h> /* for the IB_rect define */
+#include <BIF_gl.h>
 #include "gen_utils.h"
 
 #include "Image.h"
@@ -237,6 +238,7 @@ static PyObject *Image_setName(BPy_Image *self, PyObject *args);
 static PyObject *Image_setXRep(BPy_Image *self, PyObject *args);
 static PyObject *Image_setYRep(BPy_Image *self, PyObject *args);
 static PyObject *Image_reload(BPy_Image *self); /* by Campbell */
+static PyObject *Image_glLoad(BPy_Image *self);
 
 /*****************************************************************************/
 /* Python BPy_Image methods table:																					 */
@@ -259,6 +261,9 @@ static PyMethodDef BPy_Image_methods[] = {
 			"() - Return Image object's bind code value"},											
 	{"reload", (PyCFunction)Image_reload, METH_NOARGS,
 			"() - Reload the image from the filesystem"},
+	{"glLoad", (PyCFunction)Image_glLoad, METH_NOARGS,
+			"() - Load the image data in OpenGL texture memory.\n\
+	The bindcode (int) is returned."},
 	{"setName", (PyCFunction)Image_setName, METH_VARARGS,
 					"(str) - Change Image object name"},
 	{"setXRep", (PyCFunction)Image_setXRep, METH_VARARGS,
@@ -458,6 +463,37 @@ static PyObject *Image_reload(BPy_Image *self)
 	
 	Py_INCREF(Py_None);
 	return Py_None;
+}
+
+static PyObject *Image_glLoad(BPy_Image *self)
+{
+	Image *img = self->image;
+	unsigned int *bind = &img->bindcode;
+
+	if (*bind == 0) {
+
+		if (!img->ibuf) /* if no image data is available */
+			load_image(img, IB_rect, "", 0); /* loading it */
+
+		if (!img->ibuf) /* didn't work */
+			return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+				"couldn't load image data in Blender");
+
+		glGenTextures(1, (GLuint *)bind);
+		glBindTexture(GL_TEXTURE_2D, *bind);
+
+		gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, img->ibuf->x, img->ibuf->y,
+			GL_RGBA, GL_UNSIGNED_BYTE, img->ibuf->rect);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+			GL_LINEAR_MIPMAP_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img->ibuf->x, img->ibuf->y, 0,
+			GL_RGBA, GL_UNSIGNED_BYTE, img->ibuf->rect);
+	}
+
+	return PyLong_FromUnsignedLong (img->bindcode);
 }
 
 static PyObject *Image_setName(BPy_Image *self, PyObject *args)

@@ -204,5 +204,6 @@ PyObject * Mathutils_Init (void);
 PyObject * NLA_Init (void);
 PyObject * Library_Init (void);
 PyObject * Sound_Init (void);
+PyObject * Theme_Init (void); /* Window.Theme */
 
 #endif /* EXPP_modules_h */

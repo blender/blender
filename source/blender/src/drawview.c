@@ -1933,7 +1933,12 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		G.vd->flag |= V3D_NEEDBACKBUFDRAW;
 		addafterqueue(curarea->win, BACKBUFDRAW, 1);
 	}
-	
+
+	/* scene redraw script link */
+	if(G.scene->scriptlink.totscript && !during_script()) {
+		BPY_do_pyscript((ID *)G.scene, SCRIPT_REDRAW);
+	}
+
 }
 
 

@@ -188,7 +188,9 @@ hierarchy (faster)"},
 	"(i = 0) - Returns list of materials assigned to the object.\n\
 if i is nonzero, empty slots are not ignored: they are returned as None's."},
   {"getMatrix", (PyCFunction)Object_getMatrix, METH_VARARGS,
-	"Returns the object matrix - worlspace or localspace (default)"},
+	"(str = 'localspace') - Returns the object matrix.\n\
+(str = 'localspace') - the wanted matrix: worldspace, localspace (default)\n\
+or oldlocal (not updated, it was the only choice before Blender 2.34)."},
   {"getName", (PyCFunction)Object_getName, METH_NOARGS,
 	"Returns the name of the object"},
   {"getParent", (PyCFunction)Object_getParent, METH_NOARGS,
@@ -947,13 +949,18 @@ static PyObject *Object_getMatrix (BPy_Object *self, PyObject *args)
 	matrix = newMatrixObject(NULL, 4, 4);
 
 	if (BLI_streq(space, "worldspace")){  	/* Worldspace matrix */
+		disable_where_script(1);
 		where_is_object(self->object);
+		disable_where_script(0);
 		Mat4CpyMat4(*((MatrixObject*)matrix)->matrix, self->object->obmat);
 	} else if (BLI_streq(space, "localspace")) { /* Localspace matrix*/
 		object_to_mat4(self->object, *((MatrixObject*)matrix)->matrix);
+	} else if (BLI_streq(space, "oldlocal")) { /* old behavior, prior to 2.34 */
+		Mat4CpyMat4(*((MatrixObject *)matrix)->matrix, self->object->obmat);
 	} else {
 		return (EXPP_ReturnPyObjError (PyExc_RuntimeError, 
-			"correct spaces are 'worldspace' and 'localspace', none defaults to 'localspace'"));
+			"wrong parameter, expected nothing or either 'localspace' (default),\n\
+'worldspace' or 'oldlocal'"));
 	}
 	return matrix;
 }

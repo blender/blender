@@ -25,16 +25,17 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Michel Selten, Willian P. Germano
+ * Contributor(s): Michel Selten, Willian P. Germano, Alex Mole
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include "gen_utils.h"
-#include "constant.h"
-
+#include <strings.h> /*for strcasecmp */
 #include <DNA_text_types.h>
 #include <MEM_guardedalloc.h>
+
+#include "gen_utils.h"
+#include "constant.h"
 
 /*****************************************************************************/
 /* Description: This function clamps an int to the given interval						 */
@@ -196,6 +197,22 @@ int EXPP_map_getIntVal (const EXPP_map_pair *map, const char *sval, int *ival)
 		while (map->sval)
 		{
 				if (StringEqual(sval, map->sval))
+				{
+						*ival = map->ival;
+						return 1;
+				}
+				++map;
+		}
+		return 0;
+}
+
+/* same as above, but string case is ignored */
+int EXPP_map_case_getIntVal (const EXPP_map_pair *map, const char *sval,
+	int *ival)
+{
+		while (map->sval)
+		{
+				if (!strcasecmp(sval, map->sval))
 				{
 						*ival = map->ival;
 						return 1;

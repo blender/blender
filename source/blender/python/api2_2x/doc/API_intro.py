@@ -7,7 +7,7 @@ The Blender Python API Reference
  Top Module:
  -----------
 
-  - L{Blender}
+  - L{Blender} (*)
 
  Submodules:
  -----------
@@ -29,9 +29,9 @@ The Blender Python API Reference
   - L{Metaball}
   - L{NMesh}
   - L{Noise}
-  - L{Object}
+  - L{Object} (*)
   - L{Registry}
-  - L{Scene}
+  - L{Scene} (*)
      - L{Radio}
      - L{Render}
   - L{Text}

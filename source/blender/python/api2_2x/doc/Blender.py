@@ -2,16 +2,15 @@
 
 # The module files in this folder are used to create the API documentation.
 # Doc system used: epydoc - http://epydoc.sf.net
-# command line:
-
+# pseudo command line (check the epy_docgen.sh file):
 # epydoc -o BPY_API_23x --url "http://www.blender.org" -t Blender.py \
 # -n "Blender" --no-private --no-frames Blender.py \
-# Types.py Scene.py Object.py NMesh.py Material.py Camera.py Lamp.py \
-# Armature.py Metaball.py Effect.py Curve.py Ipo.py World.py BGL.py Window.py \
-# Draw.py Image.py Text.py Lattice.py Texture.py Registry.py Sys.py Mathutils.py
+# Types.py Scene.py Object.py [ ... etc]
 
 """
 The main Blender module.
+
+B{New}: 'scriptsdir' parameter in L{Get}.
 
 Blender
 =======
@@ -40,6 +39,8 @@ def Get (request):
       - 'datadir' : the path to the dir where scripts should store and
             retrieve their data files, including saved configuration (can
             be None, if not found).
+      - 'scriptsdir': the path to the main dir where scripts are stored
+            (can be None, if not found).
       - 'version' : the Blender version number
   @return: The requested data.
   """

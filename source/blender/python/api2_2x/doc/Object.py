@@ -3,7 +3,7 @@
 """
 The Blender.Object submodule
 
-B{New}: L{Object.makeTrack}, scriptLink methods: L{Object.getScriptLinks}, ...
+B{New}: 'oldlocal' parameter in L{Object.Object.getMatrix}. 
 
 Object
 ======
@@ -290,16 +290,17 @@ class Object:
   def getMatrix(space = 'localspace'):
     """
     Returns the object matrix.
-    Use getMatrix() or getMatrix('localspace') to get the matrix relative to the objects parent.
-    Somtimes the absolute matrix of the object is required (taking into account vertex parents, tracking and ipo's)
-    in this case use getMatrix('worldspace')
-    @type space: string. Values are:
-    @param space: possible values are:
-      - localspace (default)
-      - worldspace
+    @type space: string
+    @param space: The desired matrix:
+      - localspace (default): relative to the object's parent;
+      - worldspace: absolute, taking vertex parents, tracking and ipo's into
+          account;
+      - oldlocal: old behavior, prior to Blender 2.34, where eventual changes
+          made by the script itself were not taken into account until the
+          script finished executing.
     Returns the object matrix.
     @rtype: Py_Matrix
-    @return: a python matrix 4x4
+    @return: a python 4x4 matrix object
     """
 
   def getName():

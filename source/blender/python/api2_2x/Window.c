@@ -1180,9 +1180,12 @@ static PyObject *M_Window_GetScreenInfo(PyObject *self, PyObject *args,
 /*****************************************************************************/
 PyObject *Window_Init (void)
 {
-	PyObject	*submodule, *Types, *Qual;
+	PyObject	*submodule, *Types, *Qual, *dict;
 
 	submodule = Py_InitModule3("Blender.Window", M_Window_methods, M_Window_doc);
+
+	dict = PyModule_GetDict(submodule);
+	if (dict) PyDict_SetItemString(dict, "Theme", Theme_Init());
 
 	Types = M_constant_New();
 	Qual = M_constant_New();
