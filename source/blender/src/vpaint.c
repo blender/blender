@@ -694,10 +694,10 @@ int calc_vp_alpha_dl(DispList *disp, MVert *mvert, int vert, short *mval)
 	short vertco[2];
 	
 	/* For safety's sake !*/
-	if (!disp || !disp->verts || !disp->nors)
+	if (!disp || !disp->verts)
 		return calc_vp_alpha (mvert+vert, mval);
 
-//	 make display list 
+	//	use display list 
 	if(Gvp.flag & VP_SOFT) {
 	 	project_short_noclip(disp->verts+(vert*3), vertco);
 		dx= mval[0]-vertco[0];
@@ -713,18 +713,19 @@ int calc_vp_alpha_dl(DispList *disp, MVert *mvert, int vert, short *mval)
 	}
 
 	if(Gvp.flag & VP_NORMALS) {
-
-		VECCOPY(nor, disp->nors+(vert*3));
-		
-//		 transpose ! 
-		fac= vpimat[2][0]*nor[0]+vpimat[2][1]*nor[1]+vpimat[2][2]*nor[2];
-		if(fac>0.0) {
-			dx= vpimat[0][0]*nor[0]+vpimat[0][1]*nor[1]+vpimat[0][2]*nor[2];
-			dy= vpimat[1][0]*nor[0]+vpimat[1][1]*nor[1]+vpimat[1][2]*nor[2];
+		if(disp->nors) {
+			VECCOPY(nor, disp->nors+(vert*3));
 			
-			alpha*= fac/sqrt(dx*dx + dy*dy + fac*fac);
+			// transpose ! 
+			fac= vpimat[2][0]*nor[0]+vpimat[2][1]*nor[1]+vpimat[2][2]*nor[2];
+			if(fac>0.0) {
+				dx= vpimat[0][0]*nor[0]+vpimat[0][1]*nor[1]+vpimat[0][2]*nor[2];
+				dy= vpimat[1][0]*nor[0]+vpimat[1][1]*nor[1]+vpimat[1][2]*nor[2];
+				
+				alpha*= fac/sqrt(dx*dx + dy*dy + fac*fac);
+			}
+			else return 0;
 		}
-		else return 0;
 	}
 	
 	return alpha;
@@ -825,7 +826,7 @@ void weight_paint(void)
 			else draw_sel_circle(mval, mvalo, Gvp.size, Gvp.size, 0);
 
 			firsttime= 0;
-
+			
 			/* which faces are involved */
 			if(Gvp.flag & VP_AREA) {
 				totindex= sample_backbuf_area(mval[0], mval[1]);
@@ -835,6 +836,7 @@ void weight_paint(void)
 				if(indexar[0]) totindex= 1;
 				else totindex= 0;
 			}
+			
 			MTC_Mat4SwapMat4(G.vd->persmat, mat);
 			
 			if(Gvp.flag & VP_COLINDEX) {
@@ -889,7 +891,7 @@ void weight_paint(void)
 					}
 					
 					if(mface->v4) {
-					if (calc_vp_alpha_dl(dl, me->mvert, mface->v4, mval)){
+						if (calc_vp_alpha_dl(dl, me->mvert, mface->v4, mval)){
 							dw= verify_defweight(me->dvert+mface->v4, ob->actdef-1);
 							uw= verify_defweight(wpaintundobuf+mface->v4, ob->actdef-1);
 							if (dw) dw->weight = editbutvweight*Gvp.a + (uw->weight*(1.0-Gvp.a));
