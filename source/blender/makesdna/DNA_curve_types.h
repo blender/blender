@@ -88,7 +88,8 @@ typedef struct BPoint {
 
 typedef struct Nurb {
 	struct Nurb *next, *prev;
-	short type, mat_nr;
+	short type;
+	short mat_nr;          /* index into material list */
 	short hide, flag;
 	short pntsu, pntsv;
 	short resolu, resolv;
