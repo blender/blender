@@ -1014,15 +1014,13 @@ static void view3d_panel_settings(cntrl)	// VIEW3D_HANDLER_BACKGROUND
 		uiBlockSetCol(block, BUTGREY);
 		uiDefButF(block, NUMSLI, B_BLENDBGPIC, "Blend:",	120,120,190,19,&vd->bgpic->blend, 0.0,1.0, 0, 0, "Set the BackGroundPic transparency");
 		
-		uiDefBut(block, LABEL, 0, "Select texture for animated backgroundimage", 
-															10,100,300,19, 0, 0, 0, 0, 0, "");
 		/* There is a bug here ... (what bug? where? what is this? - zr) */
 		/* (ton) the use of G.buts->texnr is hackish */
 		/* texture block: */
 		id= (ID *)vd->bgpic->tex;
 		IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->tex), id, &(G.buts->texnr));
 		if (strp[0]) 
-			uiDefButS(block, MENU, B_BGPICTEX, strp,		10, 80, 20,19, &(G.buts->texnr), 0, 0, 0, 0, "Browse");
+			uiDefButS(block, MENU, B_BGPICTEX, strp,		10, 80, 20,19, &(G.buts->texnr), 0, 0, 0, 0, "Select texture for animated backgroundimage");
 		MEM_freeN(strp);
 		
 		if (id) {

@@ -653,8 +653,16 @@ void drawscroll(int disptype)
 				scroll_prstr(fac, 3.0+(float)(hor.ymin), tim+G.scene->r.frs_sec*fac2/100.0, 'h', disptype);
 			}
 			else if(curarea->spacetype==SPACE_SOUND) {
-				fac2= val/(float)G.scene->r.frs_sec;
-				scroll_prstr(fac, 3.0+(float)(hor.ymin), fac2, 'h', disptype);
+				SpaceSound *ssound= curarea->spacedata.first;
+				
+				if(ssound->flag & SND_DRAWFRAMES) {
+					ipomachtx= 1;
+					scroll_prstr(fac, 3.0+(float)(hor.ymin), val, 'h', disptype);
+				}
+				else {
+					fac2= val/(float)G.scene->r.frs_sec;
+					scroll_prstr(fac, 3.0+(float)(hor.ymin), fac2, 'h', disptype);
+				}
 			}
 			else {
 				scroll_prstr(fac, 3.0+(float)(hor.ymin), val, 'h', disptype);

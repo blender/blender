@@ -98,11 +98,12 @@ void winqreadsoundspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *e
 /* Right. Now for some implementation: */
 void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
+	SpaceSound *ssound= spacedata;
 	unsigned short event= evt->event;
 	short val= evt->val;
 	float dx, dy;
 	int doredraw= 0, cfra, first = 0;
-	short mval[2];
+	short mval[2], nr;
 	
 	if(curarea->win==0) return;
 
@@ -110,30 +111,27 @@ void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		
 		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
 
-		switch(event)
-		{
+		switch(event) {
 		case LEFTMOUSE:
-			if( view2dmove(event)==0 )
-			{
-				do
+			
+			do {
+				getmouseco_areawin(mval);
+				areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
+				
+				cfra = (int)dx;
+				if(cfra< 1) cfra= 1;
+				
+				if( cfra!=CFRA || first )
 				{
-					getmouseco_areawin(mval);
-					areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
-					
-					cfra = (int)dx;
-					if(cfra< 1) cfra= 1;
-					
-					if( cfra!=CFRA || first )
-					{
-						first= 0;
-						CFRA= cfra;
-						update_for_newframe();
-						force_draw_plus(SPACE_VIEW3D);
-					}
-				
-				} while(get_mbut()&L_MOUSE);
-				
-			}
+					first= 0;
+					CFRA= cfra;
+					update_for_newframe();
+					force_draw_plus(SPACE_VIEW3D);
+				}
+			
+			} while(get_mbut()&L_MOUSE);
+			doredraw= 1;
+
 			break;
 		case MIDDLEMOUSE:
 		case WHEELUPMOUSE:
@@ -141,7 +139,13 @@ void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			view2dmove(event);	/* in drawipo.c */
 			break;
 		case RIGHTMOUSE:
-			/* mouse_select_seq(); */
+			nr= pupmenu("Time value%t|Frames %x1|Seconds%x2");
+			if (nr>0) {
+				if(nr==1) ssound->flag |= SND_DRAWFRAMES;
+				else ssound->flag &= ~SND_DRAWFRAMES;
+				doredraw= 1;
+			}
+
 			break;
 		case PADPLUSKEY:
 			dx= (float)(0.1154*(G.v2d->cur.xmax-G.v2d->cur.xmin));

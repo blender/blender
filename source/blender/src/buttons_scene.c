@@ -1207,7 +1207,7 @@ static void render_panel_format()
 	} else {
 		uiDefButS(block, NUM,0, "Quality:",           892,yofs,112,20, &G.scene->r.quality, 10.0, 100.0, 0, 0, "Quality setting for JPEG images, AVI Jpeg and SGI movies");
 	}
-	uiDefButS(block, NUM,REDRAWSEQ,"Frs/sec:",   1006,yofs,113,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
+	uiDefButS(block, NUM,REDRAWALL,"Frs/sec:",   1006,yofs,113,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
 
 
 

@@ -816,7 +816,7 @@ void ui_draw_panel(uiBlock *block)
 	
 	if(panel->flag & PNL_CLOSEDY) {
 		uiSetRoundBox(15);
-		glColor3ub(160, 160, 167);
+		BIF_ThemeColor(curarea, TH_HEADER);
 		uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
 		
 		// title
@@ -842,7 +842,7 @@ void ui_draw_panel(uiBlock *block)
 		int a, end, ofs;
 		
 		uiSetRoundBox(15);
-		glColor3ub(160, 160, 167);
+		BIF_ThemeColor(curarea, TH_HEADER);
 		uiRoundBox(block->minx, block->miny, block->minx+PNL_HEADER, block->maxy+PNL_HEADER, 10);
 	
 		// title, only capitals for now
@@ -875,12 +875,12 @@ void ui_draw_panel(uiBlock *block)
 		uiSetRoundBox(3);
 
 		if(panel->control & UI_PNL_SOLID) {
-			glColor3ub(160, 160, 167);
+			BIF_ThemeColor(curarea, TH_HEADER);
 			uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
 			// blend now for panels in 3d window, test...
 			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 			glEnable(GL_BLEND);
-			glColor4ub(198, 198, 198, 100);
+			BIF_ThemeColor4(curarea, TH_PANEL);
 			glRectf(block->minx, block->miny, block->maxx, block->maxy);
 
 			//if(align) {

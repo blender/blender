@@ -1376,19 +1376,19 @@ static void removenotused_scredges(void)
 void calc_arearcts(ScrArea *sa)
 {
 
-	if(sa->v1->vec.x>0) sa->totrct.xmin= sa->v1->vec.x+EDGEWIDTH2+1;
+	if(sa->v1->vec.x>0) sa->totrct.xmin= sa->v1->vec.x+1;
 	else sa->totrct.xmin= sa->v1->vec.x;
-	if(sa->v4->vec.x<G.curscreen->sizex-1) sa->totrct.xmax= sa->v4->vec.x-EDGEWIDTH2-1;
+	if(sa->v4->vec.x<G.curscreen->sizex-1) sa->totrct.xmax= sa->v4->vec.x-1;
 	else sa->totrct.xmax= sa->v4->vec.x;
 	
-	if(sa->v1->vec.y>0) sa->totrct.ymin= sa->v1->vec.y+EDGEWIDTH2+1;
+	if(sa->v1->vec.y>0) sa->totrct.ymin= sa->v1->vec.y+1;
 	else sa->totrct.ymin= sa->v1->vec.y;
-	if(sa->v2->vec.y<G.curscreen->sizey-1) sa->totrct.ymax= sa->v2->vec.y-EDGEWIDTH2-1;
+	if(sa->v2->vec.y<G.curscreen->sizey-1) sa->totrct.ymax= sa->v2->vec.y-1;
 	else sa->totrct.ymax= sa->v2->vec.y;
 	
 	sa->winrct= sa->totrct;
+	sa->headrct= sa->totrct;
 	if(sa->headertype) {
-		sa->headrct= sa->totrct;
 		if(sa->headertype==HEADERDOWN) {
 			sa->headrct.ymax= sa->headrct.ymin+HEADERY;
 			sa->winrct.ymin= sa->headrct.ymax+1;
@@ -1397,6 +1397,9 @@ void calc_arearcts(ScrArea *sa)
 			sa->headrct.ymin= sa->headrct.ymax-HEADERY;
 			sa->winrct.ymax= sa->headrct.ymin-1;
 		}
+	}
+	else {
+		sa->headrct.ymax= sa->headrct.ymin;
 	}
 	if(sa->winrct.ymin>sa->winrct.ymax) sa->winrct.ymin= sa->winrct.ymax;
 	
@@ -2192,11 +2195,11 @@ static short testsplitpoint(ScrArea *sa, char dir, float fac)
 	if(dir=='h') {
 		y= sa->v1->vec.y+ fac*(sa->v2->vec.y- sa->v1->vec.y);
 		
-		if(sa->v2->vec.y==G.curscreen->sizey-1 && sa->v2->vec.y- y < HEADERY+EDGEWIDTH2) 
-			y= sa->v2->vec.y- HEADERY-EDGEWIDTH2;
+		if(sa->v2->vec.y==G.curscreen->sizey-1 && sa->v2->vec.y- y < HEADERY) 
+			y= sa->v2->vec.y- HEADERY;
 
-		else if(sa->v1->vec.y==0 && y- sa->v1->vec.y < HEADERY+EDGEWIDTH2)
-			y= sa->v1->vec.y+ HEADERY+EDGEWIDTH2;
+		else if(sa->v1->vec.y==0 && y- sa->v1->vec.y < HEADERY)
+			y= sa->v1->vec.y+ HEADERY;
 
 		else if(y- sa->v1->vec.y < AREAMINY) y= sa->v1->vec.y+ AREAMINY;
 		else if(sa->v2->vec.y- y < AREAMINY) y= sa->v2->vec.y- AREAMINY;

@@ -31,6 +31,7 @@
  */
 
 #include <math.h>
+#include <stdio.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -58,6 +59,7 @@
 #include "BIF_editsound.h"
 
 #include "BSE_drawipo.h"
+#include "BMF_Api.h"
 
 /* local */
 void drawsoundspace(ScrArea *sa, void *spacedata);
@@ -142,16 +144,36 @@ static void draw_sample(bSample *sample)
 	}
 }
 
-static void draw_cfra_sound(void)
+static void draw_cfra_sound(SpaceSound *ssound)
 {
 	float vec[2];
 	
+	if(get_mbut()&L_MOUSE) {
+		short mval[2];
+		float x,  y;
+		char str[32];
+		/* little box with frame */
+		
+		getmouseco_areawin(mval);
+		if(mval[1]<17) mval[1]= 17;
+		areamouseco_to_ipoco(G.v2d, mval, &x, &y);
+		
+		if(ssound->flag & SND_DRAWFRAMES) 
+			sprintf(str, "   %d\n", (G.scene->r.cfra));
+		else sprintf(str, "   %.2f\n", (G.scene->r.cfra/(float)G.scene->r.frs_sec));
+		
+		glRasterPos2f(x, y);
+		glColor3ub(0, 0, 0);
+		BMF_DrawString(G.font, str);
+
+	}
+
 	vec[0]=  (G.scene->r.cfra);
 	vec[0]*= G.scene->r.framelen;
 
 	vec[1]= G.v2d->cur.ymin;
-	glColor3ub(0x20, 0x80, 0x20);
-	glLineWidth(3.0);
+	glColor3ub(0x20, 0x90, 0x20);
+	glLineWidth(4.0);
 
 	glBegin(GL_LINE_STRIP);
 		glVertex2fv(vec);
@@ -160,6 +182,7 @@ static void draw_cfra_sound(void)
 	glEnd();
 	
 	glLineWidth(1.0);
+	
 }
 
 
@@ -192,7 +215,7 @@ void drawsoundspace(ScrArea *sa, void *spacedata)
 		draw_sample(G.ssound->sound->sample);
 	}
 	
-	draw_cfra_sound();
+	draw_cfra_sound(spacedata);
 
 	/* restore viewport */
 	mywinset(curarea->win);

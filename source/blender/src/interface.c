@@ -2661,7 +2661,7 @@ static int ui_do_but_MENU(uiBut *but)
 	uiBlock *block;
 	ListBase listb={NULL, NULL};
 	double fvalue;
-	int width, height, a, xmax, starty;
+	int width, height=0, a, xmax, starty;
 	short startx;
 	int columns=1, rows=0, boxh, event;
 	short  x1, y1, active= -1;
@@ -5597,7 +5597,7 @@ short pupmenu(char *instr)
 	ListBase listb= {NULL, NULL};
 	int event;
 	static int lastselected= 0;
-	short width, height, mousexmove = 0, mouseymove, xmax, ymax, mval[2], val= -1;
+	short width, height=0, mousexmove = 0, mouseymove, xmax, ymax, mval[2], val= -1;
 	short a, startx, starty, endx, endy, boxh=TBOXH, x1, y1;
 	static char laststring[UI_MAX_NAME_STR];
 	MenuData *md;
@@ -5613,13 +5613,16 @@ short pupmenu(char *instr)
 	if(md->title) width= 2*strlen(md->title)+BIF_GetStringWidth(uiBlockGetCurFont(block), md->title, (U.transopts && TR_BUTTONS));
 	else width= 0;
 	for(a=0; a<md->nitems; a++) {
+		char *name= md->items[a].str;
+		
 		xmax= BIF_GetStringWidth(uiBlockGetCurFont(block), md->items[a].str, (U.transopts && TR_BUTTONS));
 		if(xmax>width) width= xmax;
+
+		if( strcmp(name, "%l")==0) height+= boxh/2;
+		else height+= boxh;
 	}
 
 	width+= 10;
-	
-	height= boxh*md->nitems;
 	
 	xmax = G.curscreen->sizex;
 	ymax = G.curscreen->sizey;
@@ -5673,14 +5676,16 @@ short pupmenu(char *instr)
 
 	y1= starty + boxh*(md->nitems-1);
 	x1= startx;
-	for(a=0; a<md->nitems; a++, y1-=boxh) {
+	for(a=0; a<md->nitems; a++) {
 		char *name= md->items[a].str;
 		
 		if( strcmp(name, "%l")==0) {
 			uiDefBut(block, SEPR, B_NOP, "", x1, y1, width, boxh, NULL, 0, 0.0, 0, 0, "");
+			y1 -= boxh/2;
 		}
 		else {
 			uiDefButS(block, BUTM, B_NOP, name, x1, y1, width, boxh-1, &val, (float) md->items[a].retval, 0.0, 0, 0, "");
+			y1 -= boxh;
 		}
 	}
 	

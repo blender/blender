@@ -54,8 +54,10 @@
 
 #include "DNA_ID.h"
 #include "DNA_screen_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
+#include "DNA_view2d_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BIF_editsound.h"
@@ -158,6 +160,10 @@ void do_sound_buttons(unsigned short event)
 		break;
 
 	case B_SOUNDHOME:
+		if(G.ssound->sound==NULL) {
+			G.v2d->tot.xmin= G.scene->r.sfra;
+			G.v2d->tot.xmax= G.scene->r.efra;
+		}
 		G.v2d->cur= G.v2d->tot;
 		test_view2d(G.v2d, curarea->winx, curarea->winy);
 		scrarea_queue_winredraw(curarea);

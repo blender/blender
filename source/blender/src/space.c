@@ -1945,7 +1945,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 				0, 0, 0, 0, 0, "");
 
 			uiBlockSetCol(block, BUTSALMON);
-	//(xpos+edgespace)
+	
 			uiDefBut(block, BUT, B_LOADUIFONT, "Select Font",
 				xpos,y1,medprefbut,buth,
 				0, 0, 0, 0, 0, "Select a new font for the interface");
