@@ -2669,6 +2669,199 @@ static int pose_do_update_flag(Object *ob) {
 	return do_update;
 }
 
+int clear_bone_nocalc(Object *ob, Bone *bone, void *ptr) {
+	/* When we aren't transform()-ing, we'll want to turn off
+	 * the no calc flag for bone bone in case the frame changes,
+	 * or something
+	 */
+	bone->flag &= ~BONE_NOCALC;
+	
+	return 0;
+}
+
+
+static void clear_bone_nocalc_ob(Object *ob) {
+	/* Let's clear no calc for all of the bones in the whole darn armature
+	 */
+	bArmature *arm;
+	arm = get_armature(ob);
+	if (arm) {
+		bone_looper(ob, arm->bonebase.first, NULL, 
+					clear_bone_nocalc);
+	}
+
+}
+
+int set_bone_nocalc(Object *ob, Bone *bone, void *ptr) {
+	/* Calculating bone transformation makes thins slow ...
+	 * lets set the no calc flag for a bone by default
+	 */
+	bone->flag |= BONE_NOCALC;
+	
+	return 0;
+}
+
+int selected_bone_docalc(Object *ob, Bone *bone, void *ptr) {
+	/* Let's clear the no calc flag for selected bones.
+	 * This function always returns 1 for non-no calc bones
+	 * (a.k.a., the 'do calc' bones) so that the bone_looper 
+	 * will count these
+	 */
+	if (bone->flag & BONE_NOCALC) {
+		if ( (bone->flag & BONE_SELECTED) ) {
+			bone->flag &= ~BONE_NOCALC;
+			return 1;
+		}
+		
+	}
+	else {
+		return 1;
+	}
+	return 0;
+}
+
+static int is_ik_root_docalc(Bone *bone) {
+	Bone		*rootBone;
+
+	/* The parents */
+	for (rootBone = bone; rootBone; rootBone=rootBone->parent) {
+		if (!rootBone->parent)
+			break;
+		else if (!(rootBone->flag & BONE_IK_TOPARENT))
+			break;
+	}
+
+	if (~rootBone->flag & BONE_NOCALC)
+		return 1;
+
+	return 0;
+}
+
+static void ik_chain_docalc(Bone *bone) {
+	/* Let's clear the no calc flag for an entire IK chain
+	 */
+	Bone		*curBone;
+
+	/* This bone */
+	bone->flag &= ~BONE_NOCALC;
+
+	/* The parents */
+	for (curBone = bone; curBone; curBone=curBone->parent) {
+		if (!curBone->parent)
+			break;
+		else if (!(curBone->flag & BONE_IK_TOPARENT))
+			break;
+		curBone->parent->flag &= ~BONE_NOCALC;
+	}
+
+	/* The children */
+	for (curBone = bone->childbase.first; curBone; curBone=curBone->next){
+		if (curBone->flag & BONE_IK_TOPARENT) {
+			curBone->flag &= ~BONE_NOCALC;
+		}
+	}
+}
+
+static void figure_bone_nocalc_constraint(Bone *conbone, bConstraint *con,
+										  Object *ob, bArmature *arm) {
+	/* If this bone has a constraint with a subtarget that has
+	 * the nocalc flag cleared, then we better clear the no calc flag
+	 * on this bone too (and the whole IK chain if this is an IK
+	 * constraint).
+	 *
+	 * Conversly, if this bone has an IK constraint and the root of
+	 * the chain has the no calc flag cleared, we had best clear that
+	 * flag for the whole chain.
+	 */
+	Bone *subtarbone;
+	char *subtar;
+
+	subtar = get_con_subtarget_name(con, ob);
+						
+	if (subtar) {
+		if ( (subtarbone = get_named_bone(arm, subtar)) ) {
+			if (~subtarbone->flag & BONE_NOCALC) {
+				if (con->type == CONSTRAINT_TYPE_KINEMATIC)
+					ik_chain_docalc(conbone);
+				else 
+					conbone->flag &= ~BONE_NOCALC;
+			}
+			else {
+				if (is_ik_root_docalc(conbone)) {
+					if (con->type == CONSTRAINT_TYPE_KINEMATIC)
+						ik_chain_docalc(conbone);
+					else
+						conbone->flag &= ~BONE_NOCALC;
+				}
+			}
+		}
+	}
+	else {
+		/* no subtarget ... target is regular object */
+		if (is_ik_root_docalc(conbone)) {
+			if (con->type == CONSTRAINT_TYPE_KINEMATIC)
+				ik_chain_docalc(conbone);
+			else
+				conbone->flag &= ~BONE_NOCALC;
+		}
+	}
+
+}
+
+static void figure_bone_nocalc(Object *ob) {
+	/* Let's figure out which bones need to be recalculated,
+	 * and which don't. Calculations are based on which bones
+	 * are selected, and the constraints that love them.
+	 */
+	bArmature *arm;
+	bPoseChannel *chan;
+	bConstraint *con;
+	Bone *conbone;
+
+	int numbones, oldnumbones, iterations;
+
+	arm = get_armature(ob);
+	if (!arm) return;
+
+	if (arm->flag & ARM_RESTPOS) return;
+
+	/* Set no calc for all bones
+	 */
+	bone_looper(ob, arm->bonebase.first, NULL, 
+				set_bone_nocalc);
+
+	oldnumbones = -1;
+	numbones    =  0;
+	iterations  =  0;
+
+	/* O.K., lets loop until we don't clear any more no calc bones
+	 */
+	while (oldnumbones != numbones) {
+		/* I wonder if this will ever get executed? */
+		if ( (++iterations) == 1000) {
+			printf("figurin' nocalc is talking too long\n");
+			break;
+		}
+
+		oldnumbones = numbones;
+
+		/* clear no calc for selected bones and count */
+		numbones = bone_looper(ob, arm->bonebase.first, NULL, 
+							   selected_bone_docalc);
+
+		if (ob->pose) {
+			for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
+				conbone = get_named_bone(arm, chan->name);
+				if (conbone) {
+					for (con = chan->constraints.first; con; con=con->next) {
+						figure_bone_nocalc_constraint(conbone, con, ob, arm);
+					}
+				}
+			}
+		}
+	}
+}
+
 /*** POSE FIGURIN' -- END ***/
 
 
@@ -3430,6 +3623,12 @@ void special_aftertrans_update(char mode, int flip, short canceled, int keyflags
 		bPose	*pose;
 		bPoseChannel *pchan;
 
+		/* we had better clear the no calc flags on the bones
+		 * ... else things won't look too good when changing
+		 * frames, etc.
+		 */
+		clear_bone_nocalc_ob(G.obpose);
+
 		if (U.uiflag & KEYINSERTACT && !canceled){
 			act=G.obpose->action;
 			pose=G.obpose->pose;
@@ -4144,6 +4343,8 @@ void transform(int mode)
 
 		switch (G.obpose->type) {
 		case OB_ARMATURE:
+			/* figure out which bones need calculating */
+			figure_bone_nocalc(G.obpose);
 			make_trans_bones(mode);
 			break;
 		}

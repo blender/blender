@@ -297,11 +297,6 @@ void where_is_bone1_time (Object *ob, Bone *bone, float ctime)
 			where_is_bone_time (ob, bone->parent, ctime);
 	}
 
-	/* Build the parent matrix : Depreciated */
-//	if (bone->parent)
-//		Mat4MulMat4(bone->parmat, bone->parent->obmat, bone->parent->parmat);
-//	else
-//		Mat4One (bone->parmat);
 #endif
 
 	if (arm){
@@ -310,6 +305,13 @@ void where_is_bone1_time (Object *ob, Bone *bone, float ctime)
 			Mat4One (chan->obmat);
 			return;
 		}
+	}
+
+	/* If the bone has been flagged as 'no calc', let's not
+	 * bother calculating it.
+	 */
+	if (bone->flag & BONE_NOCALC) {
+		return;
 	}
 
 	if (bone->flag & BONE_IK_TOPARENT){
@@ -839,8 +841,10 @@ static void apply_pose_bonechildren (Bone* bone, bPose* pose, int doit)
 	// Ensure there is a channel for this bone 
 	chan = verify_pose_channel (pose, bone->name);
 
-	if (chan) {
-	// Search the pose for a channel with the same name 
+	/* Only do this crazy stuff if the no calc flag
+	 * is cleared for this bone.
+	 */
+	if (chan && (~bone->flag & BONE_NOCALC)) {
 		if (chan->flag & POSE_LOC) 
 			memcpy (bone->loc, chan->loc, sizeof (bone->loc));
 		if (chan->flag & POSE_SIZE) 

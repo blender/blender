@@ -110,7 +110,11 @@ enum {
 		BONE_DONE		=	0x00000080,	/* For detecting cyclic dependancies */
 
 		BONE_ISEMPTY	=	0x00000100,
-		BONE_ISMUSCLE	=	0x00000200
+		BONE_ISMUSCLE	=	0x00000200,
+		BONE_NOCALC     =   0x00000400 /* Don't calculate bone 
+										* transformation, when flagged
+										* (note: this is a temporary flag)
+										*/
 };
 
 enum {
@@ -122,7 +126,8 @@ enum {
 		BONE_QUATROTBIT,
 		BONE_HIDDENBIT,
 		BONE_ISEMPTYBIT,
-		BONE_ISMUSCLEBIT
+		BONE_ISMUSCLEBIT,
+		BONE_NOCALCBIT
 };
 
 enum {

@@ -774,6 +774,66 @@ void add_influence_key_to_constraint (bConstraint *con){
 	printf("doesn't do anything yet\n");
 }
 
+char *get_con_subtarget_name(bConstraint *constraint, Object *target)
+{
+	/*
+	 * If the target for this constraint is target, return a pointer 
+	 * to the name for this constraints subtarget ... NULL otherwise
+	 */
+	switch (constraint->type) {
+
+		case CONSTRAINT_TYPE_ACTION:
+		{
+			bActionConstraint *data = constraint->data;
+			if (data->tar==target) return data->subtarget;
+		}
+		break;
+		case CONSTRAINT_TYPE_LOCLIKE:
+		{
+			bLocateLikeConstraint *data = constraint->data;
+			if (data->tar==target) return data->subtarget;
+		}
+		break;
+		case CONSTRAINT_TYPE_ROTLIKE:
+		{
+			bRotateLikeConstraint *data = constraint->data;
+			if (data->tar==target) return data->subtarget;
+		}
+		break;
+		case CONSTRAINT_TYPE_KINEMATIC:
+		{
+			bKinematicConstraint *data = constraint->data;
+			if (data->tar==target) return data->subtarget;
+		}
+		break;
+		case CONSTRAINT_TYPE_TRACKTO:
+		{
+			bTrackToConstraint *data = constraint->data;
+			if (data->tar==target) return data->subtarget;
+		}
+		break;
+		case CONSTRAINT_TYPE_LOCKTRACK:
+		{
+			bLockTrackConstraint *data = constraint->data;
+			if (data->tar==target) return data->subtarget;
+		}
+		break;
+		case CONSTRAINT_TYPE_FOLLOWPATH: 
+			/* wonder if this is relevent, since this constraint 
+			 * cannot have a subtarget - theeth 
+			 */
+		{
+			/*
+			 * bFollowPathConstraint *data = constraint->data;
+			 */
+			return NULL;
+		}
+		break;
+	}
+	
+	return NULL;  
+}
+
 Object *get_con_target(bConstraint *constraint)
 {
 	/*

@@ -1318,16 +1318,25 @@ static void validate_editbonebutton_cb(void *bonev, void *arg2_unused)
 	validate_editbonebutton(curBone);
 }
 
+static void armature_rest_pos_func(void *notused1, void *notused2) {
+	clear_object_constraint_status(OBACT);
+	make_displists_by_armature(OBACT);
+}
 
 static void editing_panel_armature_type(Object *ob, bArmature *arm)
 {
 	uiBlock		*block;
+	uiBut       *but;
 	int			bx=148, by=100;
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_armature_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Armature", "Editing", 320, 0, 318, 204)==0) return;
 	
-	uiDefButI(block, TOG|BIT|ARM_RESTPOSBIT,REDRAWVIEW3D, "Rest Pos", bx,by,97,20, &arm->flag, 0, 0, 0, 0, "Disable all animation for this object");
+	but = uiDefButI(block, TOG|BIT|ARM_RESTPOSBIT,REDRAWVIEW3D, 
+					"Rest Pos", bx,by,97,20, &arm->flag, 0, 0, 0, 0, 
+					"Disable all animation for this object");
+	uiButSetFunc(but, armature_rest_pos_func, NULL, NULL);
+
 	uiBlockBeginAlign(block);
 	uiDefButI(block, TOG|BIT|ARM_DRAWAXESBIT,REDRAWVIEW3D, "Draw Axes", bx,by-46,97,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
 	uiDefButI(block, TOG|BIT|ARM_DRAWNAMESBIT,REDRAWVIEW3D, "Draw Names", bx,by-69,97,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
