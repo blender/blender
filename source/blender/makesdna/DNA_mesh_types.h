@@ -53,11 +53,8 @@ struct bDeformGroup;
  * the other hand, it also interferes with sys/types.h, so we get rid
  * of it asap. */
 
-#define ushort unsigned short
-
 typedef struct MFace {
-/*  	unsigned short v1, v2, v3, v4; */
-	ushort v1, v2, v3, v4;
+	unsigned int v1, v2, v3, v4;
 	char puno, mat_nr;
 	char edcode, flag;
 } MFace;

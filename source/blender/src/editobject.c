@@ -1062,7 +1062,8 @@ void exit_editmode(int freedata)	/* freedata==0 at render */
 
 		/* temporal */
 		countall();
-		if(G.totvert>65000) {
+
+		if(G.totvert>2000000000L) {
 			error("too many vertices");
 			return;
 		}
