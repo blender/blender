@@ -8038,12 +8038,12 @@ void bevel_mesh(float bsize, int allfaces)
 /* 2 = edge quad                                       */
 /* 3 = fill polygon (vertex clusters)                  */
 
-	EditVlak *evl, *nextvl, *example;
+	EditVlak *evl, *example; //, *nextvl;
 	EditEdge *eed, *eed2;
-	EditVert *neweve[1024], *eve, *eve2, *eve3, *eve4, *v1, *v2, *v3, *v4;
+	EditVert *neweve[1024], *eve, *eve2, *eve3, *v1, *v2, *v3, *v4; //, *eve4;
 	float con1, con2, con3;
-	short found4, search;
-	float f1, f2, f3, f4;
+	//short found4,  search;
+	//float f1, f2, f3, f4;
 	float cent[3], min[3], max[3];
 	int a, b, c;
 	float limit= 0.001;
@@ -8437,10 +8437,9 @@ void bevel_mesh_recurs(float bsize, short recurs, int allfaces)
 
 void bevel_menu()
 {
-	EditVlak *evl;
 	char Finished = 0, Canceled = 0, str[100];
-	short mval[2], oval[2], curval[2], event = 0, recurs = 1;
-	float vec[3], d, drawd, centre[3];
+	short mval[2], oval[2], curval[2], event = 0, recurs = 1, nr;
+	float vec[3], d, drawd, centre[3], fac = 1;
 
 	getmouseco_areawin(mval);
 	oval[0] = mval[0]; oval[1] = mval[1];
@@ -8453,10 +8452,12 @@ void bevel_menu()
 
 	if(button(&recurs, 1, 4, "Recurs:")==0) return;
 
+	for (nr=0; nr<recurs-1; nr++) {
+		if (nr==0) fac += 1.0/3.0; else fac += 1.0/(3 * nr * 2.0);
+	}
+
 	while (Finished == 0)
 	{
-		short nr;
-
 		getmouseco_areawin(mval);
 		if (mval[0] != curval[0] || mval[1] != curval[1])
 		{
@@ -8466,17 +8467,12 @@ void bevel_menu()
 			window_to_3d(vec, mval[0]-oval[0], mval[1]-oval[1]);
 			d = Normalise(vec) / 10;
 
-			if (G.qual & LR_CTRLKEY)
-				d = (float) floor(d * 10.0)/10.0;
-			if (G.qual & LR_SHIFTKEY)
-				d /= 10;
 
-			drawd = d;
-			for (nr=0; nr<recurs-1; nr++) {
-				float tmp_d = d;
-				if (nr==0) tmp_d /= 3; else tmp_d /= 2;
-				drawd += tmp_d;
-			}
+			drawd = d * fac;
+			if (G.qual & LR_CTRLKEY)
+				drawd = (float) floor(drawd * 10.0)/10.0;
+			if (G.qual & LR_SHIFTKEY)
+				drawd /= 10;
 
 			/*------------- Preview lines--------------- */
 			
@@ -8539,7 +8535,7 @@ void bevel_menu()
 		}	
 	}
 	if (Canceled==0) {
-		bevel_mesh_recurs(d, recurs, 1);
+		bevel_mesh_recurs(drawd/fac, recurs, 1);
 		righthandfaces(1);
 	}
 }
