@@ -713,6 +713,7 @@ void BIF_undo_menu(void)
 
 static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
+	static short prev_event= 0;		// used to detect an alt/ctrl/shift event
 	unsigned short event= evt->event;
 	short val= evt->val;
 	char ascii= evt->ascii;
@@ -725,6 +726,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	
 	if(val) {
 
+		prev_event= event;	// for ctrl/alt/shift event
+		
 		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
 		if(event==MOUSEY || event==MOUSEX) return;
 		
@@ -1217,13 +1220,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						clear_object('g');
 					}
 				} else if((G.qual==0)) {
-					if(v3d->twflag & V3D_USE_MANIPULATOR) {
-						if((v3d->twtype & V3D_MANIPULATOR_TRANSLATE)==0) {
-							v3d->twtype= V3D_MANIPULATOR_TRANSLATE;
-							doredraw= 1;
-							break;
-						}
-					}
 #ifdef NEWTRANSFORM
 					Transform(TFM_TRANSLATION);
 #else
@@ -1490,13 +1486,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							loopoperations(LOOP_CUT);
 					}
 					else if((G.qual==0)) {
-						if(v3d->twflag & V3D_USE_MANIPULATOR) {
-							if((v3d->twtype & V3D_MANIPULATOR_ROTATE)==0) {
-								v3d->twtype= V3D_MANIPULATOR_ROTATE;
-								doredraw= 1;
-								break;
-							}
-						}
 #ifdef NEWTRANSFORM
 						Transform(TFM_ROTATION);
 #else
@@ -1505,13 +1494,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 				}
 				else if((G.qual==0)) {
-					if(v3d->twflag & V3D_USE_MANIPULATOR) {
-						if((v3d->twtype & V3D_MANIPULATOR_ROTATE)==0) {
-							v3d->twtype= V3D_MANIPULATOR_ROTATE;
-							doredraw= 1;
-							break;
-						}
-					}
 #ifdef NEWTRANSFORM
 					Transform(TFM_ROTATION);
 #else
@@ -1538,13 +1520,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else if(G.qual==LR_SHIFTKEY)
 						snapmenu();
 					else if(G.qual==0) {
-						if(v3d->twflag & V3D_USE_MANIPULATOR) {
-							if((v3d->twtype & V3D_MANIPULATOR_SCALE)==0) {
-								v3d->twtype= V3D_MANIPULATOR_SCALE;
-								doredraw= 1;
-								break;
-							}
-						}
 #ifdef NEWTRANSFORM
 						Transform(TFM_RESIZE);
 #else
@@ -1567,13 +1542,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					snapmenu();
 				}
 				else if((G.qual==0)) {
-					if(v3d->twflag & V3D_USE_MANIPULATOR) {
-						if((v3d->twtype & V3D_MANIPULATOR_SCALE)==0) {
-							v3d->twtype= V3D_MANIPULATOR_SCALE;
-							doredraw= 1;
-							break;
-						}
-					}
 #ifdef NEWTRANSFORM
 					Transform(TFM_RESIZE);
 #else
@@ -1820,6 +1788,25 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						G.vd->flag &= ~V3D_DISPIMAGE;
 						doredraw= 1;
 					}
+				}
+				break;
+			}
+		}
+	}
+	else {	// val==0, hotkeys for ctrl/alt/shift
+		if(prev_event==event) {
+			switch(event) {
+				
+			case RIGHTCTRLKEY: 
+			case LEFTCTRLKEY:
+				if(v3d->twflag & V3D_USE_MANIPULATOR) {
+					if(v3d->twtype & V3D_MANIPULATOR_TRANSLATE)
+						v3d->twtype= V3D_MANIPULATOR_ROTATE;
+					else if(v3d->twtype & V3D_MANIPULATOR_ROTATE)
+						v3d->twtype= V3D_MANIPULATOR_SCALE;
+					else if(v3d->twtype & V3D_MANIPULATOR_SCALE)
+						v3d->twtype= V3D_MANIPULATOR_TRANSLATE;
+					doredraw= 1;
 				}
 				break;
 			}

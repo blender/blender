@@ -1664,6 +1664,26 @@ void ManipulatorTransform(int mode)
 				ret_val = TRANS_CONFIRM;
 				break;
 			}
+			if(val) {
+				switch(event) {
+				case WHEELDOWNMOUSE:
+				case PADPLUSKEY:
+					if(G.f & G_PROPORTIONAL) {
+						Trans.propsize*= 1.1f;
+						calculatePropRatio(&Trans);
+						Trans.redraw= 1;
+					}
+					break;
+				case WHEELUPMOUSE:
+				case PADMINUS:
+					if(G.f & G_PROPORTIONAL) {
+						Trans.propsize*= 0.90909090f;
+						calculatePropRatio(&Trans);
+						Trans.redraw= 1;
+					}
+					break;
+				}			
+			}
 		}
 	}
 	

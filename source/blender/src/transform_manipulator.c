@@ -1384,15 +1384,17 @@ int BIF_do_manipulator(ScrArea *sa)
 		
 		/* cycling orientation modus */
 		getmouseco_areawin(mval);
-		if(mvalo[0]==mval[0] && mvalo[1]==mval[1]) {
-			if(v3d->twmode==V3D_MANIPULATOR_GLOBAL)
-				v3d->twmode= V3D_MANIPULATOR_LOCAL;
-			else if(v3d->twmode==V3D_MANIPULATOR_LOCAL)
-				if(G.obedit || G.obpose) v3d->twmode= V3D_MANIPULATOR_NORMAL;
-				else v3d->twmode= V3D_MANIPULATOR_GLOBAL;
-			else if(v3d->twmode==V3D_MANIPULATOR_NORMAL)
-				v3d->twmode= V3D_MANIPULATOR_GLOBAL;
-			
+		if(val==MAN_ROT_V || val==MAN_SCALE_C || val==MAN_TRANS_C) {
+			if(mvalo[0]==mval[0] && mvalo[1]==mval[1]) {
+				if(v3d->twmode==V3D_MANIPULATOR_GLOBAL)
+					v3d->twmode= V3D_MANIPULATOR_LOCAL;
+				else if(v3d->twmode==V3D_MANIPULATOR_LOCAL)
+					if(G.obedit || G.obpose) v3d->twmode= V3D_MANIPULATOR_NORMAL;
+					else v3d->twmode= V3D_MANIPULATOR_GLOBAL;
+				else if(v3d->twmode==V3D_MANIPULATOR_NORMAL)
+					v3d->twmode= V3D_MANIPULATOR_GLOBAL;
+				
+			}
 		}
 		
 	}
