@@ -80,19 +80,15 @@ typedef struct QuicktimeExport {
 
 	FSSpec		theSpec;
 	short		resRefNum;
-	short		resId;
-	short		movieResId;
 	Str255		qtfilename;
 
 	Media		theMedia;
 	Movie		theMovie;
 	Track		theTrack;
 
-	GWorldPtr	theGWorld;
-	PixMapHandle	thePixMap;
-
+	GWorldPtr			theGWorld;
+	PixMapHandle		thePixMap;
 	ImageDescription	**anImageDescription;
-	ImageSequence		anImageSequence;
 
 	ImBuf		*ibuf;	//imagedata for Quicktime's Gworld
 
@@ -169,7 +165,7 @@ OSErr QT_SaveCodecSettingsToScene(void)
 		CopyPascalStringToC(ci.typeName, str);
 		sprintf(qcd->qtcodecname, "Codec: %s", str);
 	} else {
-		printf("Quicktime: SaveExporterSettingsToMem failed\n"); 
+		printf("Quicktime: QT_SaveCodecSettingsToScene failed\n"); 
 	}
 
 	QTUnlockContainer(myContainer);
@@ -214,7 +210,7 @@ OSErr QT_GetCodecSettingsFromScene(void)
 //		CopyPascalStringToC(ci.typeName, str);
 //		printf("restored Codec: %s\n", str);
 	} else {
-		printf("Quicktime: GetExporterSettingsFromMem failed\n"); 
+		printf("Quicktime: QT_GetCodecSettingsFromScene failed\n"); 
 	}
 bail:
 	if (myHandle != NULL)
@@ -313,7 +309,12 @@ static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame)
 	qtexport->ibuf = IMB_allocImBuf (R.rectx, R.recty, 32, IB_rect, 0);
 
 	err = NewGWorldFromPtr( &qtexport->theGWorld,
+#ifdef __APPLE__
+							k32ARGBPixelFormat,
+#endif
+#ifdef _WIN32
 							k32RGBAPixelFormat,
+#endif
 							trackFrame,
 							NULL, NULL, 0,
 							(unsigned char *)qtexport->ibuf->rect,
@@ -339,6 +340,9 @@ static void QT_DoAddVideoSamplesToMedia (int frame)
 	OSErr	err = noErr;
 	Rect	imageRect;
 
+#ifdef __APPLE__
+	register int		index;
+#endif
 	register int		boxsize;
 	register uint32_t	*readPos;
 	register uint32_t	*changePos;
@@ -357,8 +361,15 @@ static void QT_DoAddVideoSamplesToMedia (int frame)
 	changePos = (uint32_t *) myPtr;
 
 	//parse render bitmap into Quicktime's GWorld
+#ifdef __APPLE__
+// Swap alpha byte to the end, so ARGB become RGBA; note this is big endian-centric.
+	for( index = 0; index < boxsize; index++, changePos++, readPos++ )
+		*( changePos ) = ( ( *readPos & 0xFFFFFFFF ) >> 8 ) |
+                         ( ( *readPos << 24 ) & 0xFF );
+#endif
+#ifdef _WIN32
 	memcpy(changePos, readPos, boxsize*4);
-
+#endif
 	err = SCCompressSequenceFrame(qtdata->theComponent,
 		qtexport->thePixMap,
 		&imageRect,
@@ -505,18 +516,18 @@ void append_qt(int frame) {
 
 void end_qt(void) {
 	OSErr err = noErr;
+	short resId = movieInDataForkResID;
 
 	if(qtexport->theMovie) {
-		QT_EndCreateMyVideoTrack ();
+		QT_EndCreateMyVideoTrack();
 
-		qtexport->resId = movieInDataForkResID;
-		err = AddMovieResource (qtexport->theMovie, qtexport->resRefNum, &qtexport->resId, qtexport->qtfilename);
+		err = AddMovieResource (qtexport->theMovie, qtexport->resRefNum, &resId, qtexport->qtfilename);
 		CheckError(err, "AddMovieResource error");
 
 		err = QT_AddUserDataTextToMovie(qtexport->theMovie, "Made with Blender", kUserDataTextInformation);
 		CheckError(err, "AddUserDataTextToMovie error");
 
-		err = UpdateMovieResource(qtexport->theMovie, qtexport->resRefNum, qtexport->resId, qtexport->qtfilename);
+		err = UpdateMovieResource(qtexport->theMovie, qtexport->resRefNum, resId, qtexport->qtfilename);
 		CheckError(err, "UpdateMovieResource error");
 
 		if(qtexport->resRefNum) CloseMovieFile(qtexport->resRefNum);
@@ -543,7 +554,7 @@ void free_qtcomponentdata(void) {
 
 
 static void check_renderbutton_framerate(void) {
-	//    To keep float framerates consistent between the codec dialog and frs/sec button.
+	// to keep float framerates consistent between the codec dialog and frs/sec button.
 	OSErr	err;	
 
 	err = SCGetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
@@ -593,22 +604,13 @@ int get_qtcodec_settings(void)
 		QT_GetCodecSettingsFromScene();
 		check_renderbutton_framerate();
 	} else {
-
-	// configure the standard image compression dialog box
-	// set some default settings
-//		qtdata->gSpatialSettings.codecType = nil;     
+		// configure the standard image compression dialog box
+		// set some default settings
 		qtdata->gSpatialSettings.codec = anyCodec;         
-//		qtdata->gSpatialSettings.depth;         
 		qtdata->gSpatialSettings.spatialQuality = codecMaxQuality;
-
 		qtdata->gTemporalSettings.temporalQuality = codecMaxQuality;
-//		qtdata->gTemporalSettings.frameRate;      
 		qtdata->gTemporalSettings.keyFrameRate = 25;   
-
 		qtdata->aDataRateSetting.dataRate = 90 * 1024;          
-//		qtdata->aDataRateSetting.frameDuration;     
-//		qtdata->aDataRateSetting.minSpatialQuality; 
-//		qtdata->aDataRateSetting.minTemporalQuality;
 
 		err = SCSetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
 		CheckError(err, "SCSetInfo1 error");
