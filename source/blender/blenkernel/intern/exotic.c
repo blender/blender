@@ -3542,6 +3542,18 @@ static void dos_clean(char *str)
 	}	
 }
 
+static void myfgets(char *str, int len, FILE *fp)
+{
+	char c;
+	
+	while(len>0 && (c=getc(dxf_fp)) ) {
+		*str= c;
+		str++;
+		len--;
+		if(c == '\n' || c=='\r') break;
+	}
+}
+
 static int read_groupf(char *str) 
 {
 	short c;
@@ -3554,13 +3566,13 @@ static int read_groupf(char *str)
 	ungetc(c, dxf_fp);
 	if (c==EOF) return -1;
 	
-	fgets(tmp, 255, dxf_fp);
-
+	myfgets(tmp, 255, dxf_fp);
+	
 	dos_clean(tmp);
 
 	if(sscanf(tmp, "%d\n", &ret)!=1) return -2;
 		
-	fgets(tmp, 255, dxf_fp);
+	myfgets(tmp, 255, dxf_fp);
 
 	dos_clean(tmp);
 
@@ -3907,7 +3919,7 @@ static void dxf_close_2dpoly(void)
 {
         p2dmhold= NULL;
         if (p2dhold==NULL) return;
-        
+
         G.obedit= p2dhold;
         make_editMesh();
         load_editMesh();
@@ -4278,7 +4290,7 @@ static void dxf_read_polyline(int noob) {
 		read_group(id, val);								
 	}
 
-	if (flag&1) {
+	if (flag & 9) {	// 1= closed curve, 8= 3d curve
 		if(!lwasp2d || strcmp(layname, oldplay)!=0) dxf_close_2dpoly();
 		if(p2dmhold != NULL && p2dmhold->totvert>MESH_MAX_VERTS)
 			dxf_close_2dpoly();
@@ -4288,7 +4300,6 @@ static void dxf_read_polyline(int noob) {
 				ob= NULL;
 				me= add_mesh(); G.totmesh++;
 				((ID *)me)->us=0;
-		
 				if (strlen(entname)) new_id(&G.main->mesh, (ID *)me, entname);
 				else if (strlen(layname)) new_id(&G.main->mesh, (ID *)me, layname);
 		
@@ -4318,7 +4329,8 @@ static void dxf_read_polyline(int noob) {
 		
 			p2dhold= ob;
 			p2dmhold= me;
-		} else {
+		} 
+		else {
 			ob= p2dhold;
 			me= p2dmhold;
 		}
@@ -4353,31 +4365,41 @@ static void dxf_read_polyline(int noob) {
 			if (vspace) { VECCOPY(mvert->co, vert);
 			} else VecSubf(mvert->co, vert, vcenter);
 		}
-
-		me->totface++;
-		ftmp= MEM_callocN(me->totface*sizeof(MFace), "mface");
-
-		if(me->mface) {
-			memcpy(ftmp, me->mface, (me->totface-1)*sizeof(MFace));
-			MEM_freeN(me->mface);
-        }
-        me->mface= ftmp;
-        ftmp=NULL;
-
-		mface= &(((MFace*)me->mface)[me->totface-1]);
 		
-		mface->v1= (me->totvert-nverts)+0;
-		mface->v2= (me->totvert-nverts)+1;
-		mface->v3= (me->totvert-nverts)+2;
-		if (nverts==4) mface->v4= (me->totvert-nverts)+3;
-		
-		mface->edcode= 3;
-		mface->mat_nr= 0;
+		/* make edges */
+		if(nverts>1) {
+			int a, oldtotface;
+			
+			oldtotface= me->totface;
+			me->totface+= nverts-1;
 
-		test_index_mface(mface, nverts);
+			ftmp= MEM_callocN(me->totface*sizeof(MFace), "mface");
+
+			if(me->mface) {
+				memcpy(ftmp, me->mface, oldtotface*sizeof(MFace));
+				MEM_freeN(me->mface);
+			}
+			me->mface= ftmp;
+			ftmp=NULL;
+
+			mface= me->mface;
+			mface+= oldtotface;
+			
+			for(a=1; a<nverts; a++, mface++) {
+				mface->v1= (me->totvert-nverts)+a-1;
+				mface->v2= (me->totvert-nverts)+a;
+			
+				mface->edcode= 3;
+				mface->mat_nr= 0;
+
+				test_index_mface(mface, 2);
+			}
+		}
 		
 		lwasp2d=1;
-	} else if (flag&64) {
+	
+	} 
+	else if (flag&64) {
 		if (noob) {
 			ob= NULL;
 			me= add_mesh(); G.totmesh++;
@@ -4561,7 +4583,7 @@ static void dxf_read_lwpolyline(int noob) {
 			nverts= atoi(val);
 		}
 	} 
-	
+	printf("nverts %d\n", nverts);	
 	if (nverts == 0)
 		return;
 
@@ -4611,14 +4633,12 @@ static void dxf_read_lwpolyline(int noob) {
    * TODO: give the polyline actual 2D faces if it is closed */
 
 	if (flag&1) {
-	  printf ("closed\n");	
 		if(me->mface) {
-			printf("adding face %d 0\n", nverts-1);
 			mface= &(((MFace*)me->mface)[nverts - 1]);
 			mface->v1 = nverts-1;
 			mface->v2 = 0;
-  	  mface->edcode = 1;
-	    mface->mat_nr = 0;
+			mface->edcode = 1;
+			mface->mat_nr = 0;
 		}
 	}  
 }
