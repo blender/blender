@@ -1199,7 +1199,7 @@ int face_pick_uv(Object* object, Mesh* mesh, TFace* face, short x, short y, floa
 	 * If face is a quad, there are two triangles to check.
 	 */
 	result = triangle_ray_intersect(v2, v1, v3, org, dir, ab);
-	if ( (num_verts == 3) || ((num_verts == 4)) && (result > 1) ) {
+	if ( (num_verts == 3) || ((num_verts == 4) && (result > 1)) ) {
 		/* Face is a triangle or a quad with a hit on the first triangle */
 		face_get_uv(face, 1, 0, 2, ab[0], ab[1], u, v);
 		/* printf("triangle 1, texture (u,v)=(%f, %f)\n", *u, *v); */

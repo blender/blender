@@ -560,8 +560,8 @@ void make_envmaps()
 	if(do_init) {
 		RE_local_init_render_display();
 		RE_local_clear_render_display(R.win);
-		allqueue(REDRAWBUTSTEX, 0);
-	}
+		allqueue(REDRAWBUTSSHADING, 0);			// bad!
+	}	
 }
 
 /* ------------------------------------------------------------------------- */
