@@ -1436,6 +1436,9 @@ static void ui_draw_text_icon(uiBut *but)
 			if (ok) glColor3ub(255, 255, 0);
 		}
 		
+		/* LABEL button exception */
+		if(but->type==LABEL && but->min!=0.0) BIF_ThemeColor(TH_BUT_TEXT_HI);
+		
 		glRasterPos2f( 0.375+floor(x), 0.375+floor((but->y1+but->y2- 9.0)/2.0));
 		BIF_DrawString(but->font, but->drawstr+but->ofs, (U.transopts & USER_TR_BUTTONS));
 

@@ -45,6 +45,7 @@
 
 #include "DNA_lamp_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "radio_types.h"
 #include "radio.h"  /* needs RG, some root data for radiosity                */
@@ -2193,8 +2194,8 @@ extern unsigned short usegamtab;
 void abufsetrow(int y)
 {
 	APixstr *ap, *apn;
-	float xs, ys;
-	int x, part, a, b, zrow[100][3], totvlak, alpha[32], tempgam, nr, intcol[4];
+	float ys;
+	int x, part, a, zrow[100][3], totvlak, alpha[32], tempgam, nr, intcol[4];
 	int sval, tempRf;
 	unsigned short *col, shortcol[4], tempcol[4], sampcol[16*4], *scol;
 	

@@ -3588,7 +3588,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			nu->pntsv= 4;
 			nu->orderu= 4;
 			nu->orderv= 4;
-			nu->flag= ME_SMOOTH;
+			nu->flag= CU_SMOOTH;
 			nu->bp= callocstructN(BPoint, 4*4, "addNurbprim6");
 			nu->flagu= 0;
 			nu->flagv= 0;
@@ -3624,7 +3624,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 
 			nu= addNurbprim(4, 1, 0);  /* circle */
 			nu->resolu= 32;
-			nu->flag= ME_SMOOTH;
+			nu->flag= CU_SMOOTH;
 			BLI_addtail(&editNurb, nu); /* temporal for extrude and translate */
 			vec[0]=vec[1]= 0.0;
 			vec[2]= -G.vd->grid;
@@ -3658,7 +3658,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			nu->orderu= 3;
 			nu->resolu= 24;
 			nu->resolv= 32;
-			nu->flag= ME_SMOOTH;
+			nu->flag= CU_SMOOTH;
 			nu->bp= callocstructN(BPoint, 5, "addNurbprim6");
 			nu->flagu= 0;
 			bp= nu->bp;
@@ -3702,7 +3702,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			xzproj= 0;
 			nu->resolu= 24;
 			nu->resolv= 32;
-			nu->flag= ME_SMOOTH;
+			nu->flag= CU_SMOOTH;
 			BLI_addtail(&editNurb, nu); /* temporal for extrude and translate */
 			spinNurb(0, 0);
 
@@ -3720,7 +3720,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 	}
 	
 	/* always do: */
-	nu->flag= ME_SMOOTH;
+	nu->flag= CU_SMOOTH;
 	
 	test2DNurb(nu);
 	

@@ -186,6 +186,7 @@ typedef struct Global {
 #define G_TEXTUREPAINT	65536
 #define G_NOFROZEN	(1 << 17) // frozen modules inactive
 #define G_DRAWEDGES	(1 << 18)
+#define G_DRAWCREASES	(1 << 19)
 
 /* G.fileflags */
 

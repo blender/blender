@@ -181,7 +181,7 @@ typedef struct IpoCurve {
 #define CU_FLUSH		3
 
 /* flag (nurb) */
-#define CU_SMOOTH		ME_SMOOTH
+#define CU_SMOOTH		1
 
 /* type (nurb) */
 #define CU_POLY			0

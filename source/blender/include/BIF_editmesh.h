@@ -81,7 +81,7 @@ void faceselect_align_view_to_selected(struct View3D *v3d, struct Mesh *me, int 
 void editmesh_align_view_to_selected(struct View3D *v3d, int axis);
 
 struct EditVert *addvertlist(float *vec);
-struct EditEdge *addedgelist(struct EditVert *v1, struct EditVert *v2);
+struct EditEdge *addedgelist(struct EditVert *v1, struct EditVert *v2, struct EditEdge *example);
 struct EditVlak *addvlaklist(struct EditVert *v1, struct EditVert *v2, struct EditVert *v3, struct EditVert *v4, struct EditVlak *example);
 struct EditEdge *findedgelist(struct EditVert *v1, struct EditVert *v2);
 

@@ -64,8 +64,9 @@ struct EditMesh;
 
 typedef struct DispListMesh DispListMesh;
 struct DispListMesh {
-	int totvert, totface;
+	int totvert, totedge, totface;
 	struct MVert *mvert;
+	struct MEdge *medge;
 	struct MCol *mcol;
 	struct MFace *mface;
 	struct TFace *tface;
@@ -102,11 +103,6 @@ typedef struct DispList {
 	unsigned int *col1, *col2;
 	struct DispListMesh *mesh;
 	
-	/* Begin NASTY_NLA_STUFF */
-//	int *offset, *run;	/* Used to index into the bone & weight lists */
-//	struct Bone *bones;
-//	float *weights;
-	/* End NASTY_NLA_STUFF */
 } DispList;
 
 extern void copy_displist(struct ListBase *lbn, struct ListBase *lb);

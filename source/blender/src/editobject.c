@@ -4458,6 +4458,7 @@ static char *transform_mode_to_string(int mode)
 'w'		-> Warp
 'N'		-> Shrink/Fatten
 'V'		-> Snap vertice
+'e'     -> Edge crease edit
 */
 void transform(int mode)
 {
@@ -4470,10 +4471,10 @@ void transform(int mode)
 	float persinv[3][3], persmat[3][3], viewinv[4][4], imat4[4][4];
 	float *curs, dx1, dx2, dy1, dy2, eul[3], quat[4], rot[3], phi0, phi1, deler, rad = 0.0;
 	float sizefac, size[3], sizelo[3], smat[3][3], xref=1.0, yref=1.0, zref= 1.0;
-	float si, co, dist, startomtrekfac = 0.0, omtrekfac, oldval[3];
-	int axismode=0, time, fast=0, a, midtog=0, firsttime=1, fout= 0, cameragrab= 0, gridflag;
+	float si, co, dist=0.0, startcircumfac = 0.0, circumfac, oldval[3];
+	int axismode=0, time, fast=0, a, midtog=0, firsttime=1, wrong= 0, cameragrab= 0, gridflag;
 	unsigned short event=0;
-	short mval[2], afbreek=0, doit, xn, yn, xc, yc, xo, yo = 0, val;
+	short mval[2], breakloop=0, doit, xn, yn, xc, yc, xo, yo = 0, val;
 	char str[100];
 	int	keyflags = 0;
 
@@ -4669,7 +4670,7 @@ void transform(int mode)
 	
 	if((mode=='r' || mode=='s' || mode=='S') && xc==32000) {
 		error("Centre far out of view");
-		fout= 1;
+		wrong= 1;
 	}
 
 	if(mode=='w' && G.obedit) {
@@ -4688,13 +4689,13 @@ void transform(int mode)
 		Mat4MulVecfl(G.vd->viewmat, axis);
 		rad= sqrt( (axis[0]-centre[0])*(axis[0]-centre[0])+(axis[1]-centre[1])*(axis[1]-centre[1]) );
 		dist= max[0]-centre[0];
-		if(dist==0.0) fout= 1;
-		else startomtrekfac= (90*rad*M_PI)/(360.0*dist);
+		if(dist==0.0) wrong= 1;
+		else startcircumfac= (90*rad*M_PI)/(360.0*dist);
 	}
 
 	getmouseco_areawin(mval);
 	xn=xo= mval[0];
-	yn=xo= mval[1];
+	yn=yo= mval[1];
 	dx1= xc-xn; 
 	dy1= yc-yn;
 	phi= phi0= phi1= 0.0;
@@ -4704,7 +4705,7 @@ void transform(int mode)
 
 	gridflag= U.flag;
 	
-	while(fout==0 && afbreek==0) {
+	while(wrong==0 && breakloop==0) {
 		
 		getmouseco_areawin(mval);
 		if(mval[0]!=xo || mval[1]!=yo || firsttime) {
@@ -5439,12 +5440,12 @@ void transform(int mode)
 				
 				window_to_3d(dvec, 1, 1);
 				
-				omtrekfac= startomtrekfac+ 0.05*( mval[1] - yn)*Normalise(dvec);
+				circumfac= startcircumfac+ 0.05*( mval[1] - yn)*Normalise(dvec);
 	
 				/* calc angle for print */
 				dist= max[0]-centre[0];
 				Dist1 = dist;
-				phi0= 360*omtrekfac*dist/(rad*M_PI);
+				phi0= 360*circumfac*dist/(rad*M_PI);
 
 				if ((typemode) && (addvec[0])){
 					phi0 = addvec[0];
@@ -5452,7 +5453,7 @@ void transform(int mode)
 				
 				if((G.qual & LR_CTRLKEY) && (typemode == 0)){
 					phi0= 5.0*floor(phi0/5.0);
-					omtrekfac= (phi0*rad*M_PI)/(360.0*dist);
+					circumfac= (phi0*rad*M_PI)/(360.0*dist);
 				}
 				
 				if (typemode && addvec[0])
@@ -5479,7 +5480,7 @@ void transform(int mode)
 						if ((typemode) && (addvec[0]))
 							phi0= (Dist1*addvec[0]*M_PI/(360.0*dist)) - 0.5*M_PI;
 						else
-							phi0= (omtrekfac*dist/rad) - 0.5*M_PI;
+							phi0= (circumfac*dist/rad) - 0.5*M_PI;
 					
 						co= cos(phi0);
 						si= sin(phi0);
@@ -5512,8 +5513,61 @@ void transform(int mode)
 					screen_swapbuffers();
 				}
 			}
+			else if(mode=='e') {
+				/* edge sharpening */
+				/* only  works in edit mode */
+				if (G.obedit && G.editMesh) {
+					EditMesh *em = G.editMesh;
+					EditEdge *ee;
+					Mesh *me= G.obedit->data;
+					float mincr=10.0, maxcr= 0.0;
+					
+					/* this is sufficient to invoke edges added in mesh, but only in editmode */
+					if(me->medge==NULL) {
+						me->medge= MEM_callocN(sizeof(MEdge), "fake medge");
+						me->totedge= 1;
+						allqueue(REDRAWBUTSEDIT, 0);
+					}
+					
+					dist= (0.005 * (mval[1] - yo));
+				
+					ee = em->edges.first;
+					while (ee) {
+						if ((ee->v1->f & 1) && (ee->v2->f & 1)) {
+							/* this edge is selected */
+							ee->crease += dist;
+							CLAMP(ee->crease, 0.0, 1.0);
+							if(mincr>ee->crease) mincr= ee->crease;
+							if(maxcr<ee->crease) maxcr= ee->crease;
+						}
+						ee = ee->next;
+					}
+					
+					if(mincr==10.0) wrong= 1;
+					else {
+						sprintf(str, "Edge sharpness range: %.3f - %.3f", mincr, maxcr); 
+						headerprint(str);
+					
+						if(G.obedit) calc_trans_verts();
+						special_trans_update(keyflags);
+					
+						if(fast==0) {
+							time= my_clock();
+							force_draw();
+							time= my_clock()-time;
+							if(time>50) fast= 1;
+						}
+						else {
+							scrarea_do_windraw(curarea);
+							screen_swapbuffers();
+						}
+					}
+				}
+				else {
+					wrong = 1;
+				}
+			}
 			/* Help line drawing starts here */
-
 		}
 		
 		while( qtest() ) {
@@ -5532,7 +5586,7 @@ void transform(int mode)
 				case SPACEKEY:
 				case PADENTER:
 				case RETKEY:
-					afbreek= 1;
+					breakloop= 1;
 					break;
 				case MIDDLEMOUSE:
 					midtog= ~midtog;
@@ -5957,7 +6011,7 @@ void transform(int mode)
 	
 				arrows_move_cursor(event);
 			}
-			if(event==0 || afbreek) break;
+			if(event==0 || breakloop) break;
 
 		}
 		xo= mval[0];

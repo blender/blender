@@ -60,6 +60,7 @@ typedef struct EditEdge
 	struct EditVert *v1, *v2, *vn;
 	short f,h;
 	short f1, dir;
+	float  crease;
 } EditEdge;
 
 typedef struct EditVlak

@@ -1102,38 +1102,32 @@ void tekenvertices(short sel)
 
 /* ************** DRAW DISPLIST ****************** */
 
-	/* DispListMesh */
+/* DispListMesh, comes from subsurf or decimator */
+
+static void displistmesh_draw_wire(DispListMesh *dlm) 
+{
+	MVert *mvert= dlm->mvert;
+	MEdge *medge;
+	int i, optim;
 	
-static void displistmesh_draw_wire(DispListMesh *dlm) {
-	int i;
+	if(dlm->medge) {
+		optim= dlm->flag & ME_OPT_EDGES;
+		medge= dlm->medge;
 	
-	for (i=0; i<dlm->totface; i++) {
-		MFace *mf= &dlm->mface[i];
-		
-		if(dlm->flag & ME_OPT_EDGES) {
-			int test= mf->edcode;
-			if(test) {
-				glBegin(GL_LINES);
-				if(test & ME_V1V2) {
-					glVertex3fv(dlm->mvert[mf->v1].co); 
-					glVertex3fv(dlm->mvert[mf->v2].co);
-				}
-				if(test & ME_V2V3) {
-					glVertex3fv(dlm->mvert[mf->v2].co); 
-					glVertex3fv(dlm->mvert[mf->v3].co);
-				}
-				if(test & ME_V3V4) {
-					glVertex3fv(dlm->mvert[mf->v3].co); 
-					glVertex3fv(dlm->mvert[mf->v4].co);
-				}
-				if(test & ME_V4V1) {
-					glVertex3fv(dlm->mvert[mf->v4].co); 
-					glVertex3fv(dlm->mvert[mf->v1].co);
-				}
-				glEnd();
+		glBegin(GL_LINES);
+		for (i=0; i<dlm->totedge; i++, medge++) {
+			if(optim==0 || (medge->flag & ME_EDGEDRAW)) {
+				glVertex3fv(mvert[medge->v1].co); 
+				glVertex3fv(mvert[medge->v2].co);
 			}
+	
 		}
-		else {	// old method
+		glEnd();
+	}
+	else {
+		for (i=0; i<dlm->totface; i++) {
+			MFace *mf= &dlm->mface[i];
+			
 			glBegin(GL_LINE_LOOP);
 			glVertex3fv(dlm->mvert[mf->v1].co);
 			glVertex3fv(dlm->mvert[mf->v2].co);
@@ -1147,7 +1141,8 @@ static void displistmesh_draw_wire(DispListMesh *dlm) {
 	}
 }
 
-static void displistmesh_draw_solid(DispListMesh *dlm, int drawsmooth, float *nors) {
+static void displistmesh_draw_solid(DispListMesh *dlm, int drawsmooth, float *nors) 
+{
 	int lmode, lshademodel= -1, lmat_nr= -1;
 	int i;
 
@@ -1200,7 +1195,8 @@ static void displistmesh_draw_solid(DispListMesh *dlm, int drawsmooth, float *no
 #undef PASSVERT
 }
 
-static void displistmesh_draw_shaded(DispListMesh *dlm, unsigned char *vcols1, unsigned char *vcols2) {
+static void displistmesh_draw_shaded(DispListMesh *dlm, unsigned char *vcols1, unsigned char *vcols2) 
+{
 	int i, lmode;
 	
 	glShadeModel(GL_SMOOTH);
@@ -2437,20 +2433,42 @@ static void drawmeshwire(Object *ob)
 				drawDispListwire(&me->disp);
 			}
 		}
-		BIF_ThemeColor(TH_WIRE);
 		
-		if(handles==0 && (G.f & G_DRAWEDGES)) {	/* Use edge Highlighting */
-			char col[4];
-			BIF_GetThemeColor3ubv(TH_EDGE_SELECT, col);
-			glShadeModel(GL_SMOOTH);
-			
+		if(handles==0 && (G.f & G_DRAWCREASES)) {	/* Use crease edge Highlighting */
+
 			eed= em->edges.first;
 			glBegin(GL_LINES);
 			while(eed) {
 				if(eed->h==0) {
-					if(eed->v1->f & 1) glColor3ub(col[0], col[1], col[2]); else BIF_ThemeColor(TH_WIRE);
+					BIF_ThemeColorBlend(TH_WIRE, TH_EDGE_SELECT, eed->crease);
 					glVertex3fv(eed->v1->co);
-					if(eed->v2->f & 1) glColor3ub(col[0], col[1], col[2]); else BIF_ThemeColor(TH_WIRE);
+					glVertex3fv(eed->v2->co);
+				}
+				eed= eed->next;
+			}
+			glEnd();
+		}
+		else if(handles==0 && (G.f & G_DRAWEDGES)) {	/* Use edge Highlighting */
+			char col[4], colhi[4];
+			
+			BIF_GetThemeColor3ubv(TH_EDGE_SELECT, colhi);
+			BIF_GetThemeColor3ubv(TH_WIRE, col);
+
+			glShadeModel(GL_SMOOTH);
+
+			eed= em->edges.first;
+			glBegin(GL_LINES);
+			while(eed) {
+				if(eed->h==0) {
+				
+					if(eed->v1->f & 1) glColor3ub(colhi[0], colhi[1], colhi[2]);
+					else glColor3ub(col[0], col[1], col[2]);
+				
+					glVertex3fv(eed->v1->co);
+					
+					if(eed->v2->f & 1) glColor3ub(colhi[0], colhi[1], colhi[2]);
+					else glColor3ub(col[0], col[1], col[2]);
+
 					glVertex3fv(eed->v2->co);
 				}
 				eed= eed->next;
@@ -2459,6 +2477,7 @@ static void drawmeshwire(Object *ob)
 			glShadeModel(GL_FLAT);
 		}
 		else if(handles==0) {
+			BIF_ThemeColor(TH_WIRE);
 			eed= em->edges.first;
 			glBegin(GL_LINES);
 			while(eed) {
@@ -2505,12 +2524,12 @@ static void drawmeshwire(Object *ob)
 		
 		if(me==NULL) return;
 		
-		if(me->bb==0) tex_space_mesh(me);
+		if(me->bb==NULL) tex_space_mesh(me);
 		if(me->totface>4) if(boundbox_clip(ob->obmat, me->bb)==0) return;
 		
 		/* check for drawing vertices only */
 		ok= 0;
-		if(me->totface==0) ok= 1;
+		if(me->totface==0 && me->totedge==0) ok= 1;
 		else {
 			ma= give_current_material(ob, 1);
 			if(ma && (ma->mode & MA_HALO)) ok= 1;
@@ -2548,142 +2567,166 @@ static void drawmeshwire(Object *ob)
 			if(mesh_uses_displist(me)) drawDispListwire(&me->disp); /* Subsurf */
 			else {
 				
+				/* build effect only works on faces */
 				start= 0; end= me->totface;
 				set_buildvars(ob, &start, &end);
 				mface+= start;
 				
-				for(a=start; a<end; a++, mface++) {
-					test= mface->edcode;
+				/* now decide whether to draw edges block */
+				if(me->medge && start==0 && end==me->totface) {
+					MEdge *medge= me->medge;
 					
-					if(test) {
-						if(extverts) {
-							f1= extverts+3*mface->v1;
-							f2= extverts+3*mface->v2;
-						}
-						else {
-							f1= (mvert+mface->v1)->co;
-							f2= (mvert+mface->v2)->co;
-						}
-						
-						if(mface->v4) {
+					glBegin(GL_LINES);
+					for(a=me->totedge; a>0; a--, medge++) {
+						if(medge->flag & ME_EDGEDRAW) {
 							if(extverts) {
-								f3= extverts+3*mface->v3;
-								f4= extverts+3*mface->v4;
+								f1= extverts+3*medge->v1;
+								f2= extverts+3*medge->v2;
 							}
 							else {
-								f3= (mvert+mface->v3)->co;
-								f4= (mvert+mface->v4)->co;
+								f1= (mvert+medge->v1)->co;
+								f2= (mvert+medge->v2)->co;
+							}
+							glVertex3fv(f1); glVertex3fv(f2); 
+						}
+					}
+					glEnd();
+				}
+				else {
+				
+					for(a=start; a<end; a++, mface++) {
+						test= mface->edcode;
+						
+						if(test) {
+							if(extverts) {
+								f1= extverts+3*mface->v1;
+								f2= extverts+3*mface->v2;
+							}
+							else {
+								f1= (mvert+mface->v1)->co;
+								f2= (mvert+mface->v2)->co;
 							}
 							
-							if(test== ME_V1V2+ME_V2V3+ME_V3V4+ME_V4V1) {
-								glBegin(GL_LINE_LOOP);
-									glVertex3fv(f1); glVertex3fv(f2); glVertex3fv(f3); glVertex3fv(f4);
-								glEnd();
-							}
-							else if(test== ME_V1V2+ME_V2V3+ME_V3V4) {
-	
-								glBegin(GL_LINE_STRIP);
-									glVertex3fv(f1); glVertex3fv(f2); glVertex3fv(f3); glVertex3fv(f4);
-								glEnd();
-							}
-							else if(test== ME_V2V3+ME_V3V4+ME_V4V1) {
-	
-								glBegin(GL_LINE_STRIP);
-									glVertex3fv(f2); glVertex3fv(f3); glVertex3fv(f4); glVertex3fv(f1);
-								glEnd();
-							}
-							else if(test== ME_V3V4+ME_V4V1+ME_V1V2) {
-	
-								glBegin(GL_LINE_STRIP);
-									glVertex3fv(f3); glVertex3fv(f4); glVertex3fv(f1); glVertex3fv(f2);
-								glEnd();
-							}
-							else if(test== ME_V4V1+ME_V1V2+ME_V2V3) {
-	
-								glBegin(GL_LINE_STRIP);
-									glVertex3fv(f4); glVertex3fv(f1); glVertex3fv(f2); glVertex3fv(f3);
-								glEnd();
-							}
-							else {
-								if(test & ME_V1V2) {
-	
-									glBegin(GL_LINE_STRIP);
-										glVertex3fv(f1); glVertex3fv(f2);
+							if(mface->v4) {
+								if(extverts) {
+									f3= extverts+3*mface->v3;
+									f4= extverts+3*mface->v4;
+								}
+								else {
+									f3= (mvert+mface->v3)->co;
+									f4= (mvert+mface->v4)->co;
+								}
+								
+								if(test== ME_V1V2+ME_V2V3+ME_V3V4+ME_V4V1) {
+									glBegin(GL_LINE_LOOP);
+										glVertex3fv(f1); glVertex3fv(f2); glVertex3fv(f3); glVertex3fv(f4);
 									glEnd();
 								}
-								if(test & ME_V2V3) {
-	
-									glBegin(GL_LINE_STRIP);
-										glVertex3fv(f2); glVertex3fv(f3);
-									glEnd();
-								}
-								if(test & ME_V3V4) {
-	
-									glBegin(GL_LINE_STRIP);
-										glVertex3fv(f3); glVertex3fv(f4);
-									glEnd();
-								}
-								if(test & ME_V4V1) {
-	
-									glBegin(GL_LINE_STRIP);
-										glVertex3fv(f4); glVertex3fv(f1);
-									glEnd();
-								}
-							}
-						}
-						else if(mface->v3) {
-							if(extverts) f3= extverts+3*mface->v3;
-							else f3= (mvert+mface->v3)->co;
+								else if(test== ME_V1V2+ME_V2V3+ME_V3V4) {
 		
-							if(test== ME_V1V2+ME_V2V3+ME_V3V1) {
-								glBegin(GL_LINE_LOOP);
-									glVertex3fv(f1); glVertex3fv(f2); glVertex3fv(f3);
-								glEnd();
-							}
-							else if(test== ME_V1V2+ME_V2V3) {
-	
-								glBegin(GL_LINE_STRIP);
-									glVertex3fv(f1); glVertex3fv(f2); glVertex3fv(f3);
-								glEnd();
-							}
-							else if(test== ME_V2V3+ME_V3V1) {
-	
-								glBegin(GL_LINE_STRIP);
-									glVertex3fv(f2); glVertex3fv(f3); glVertex3fv(f1);
-								glEnd();
-							}
-							else if(test== ME_V1V2+ME_V3V1) {
-	
-								glBegin(GL_LINE_STRIP);
-									glVertex3fv(f3); glVertex3fv(f1); glVertex3fv(f2);
-								glEnd();
-							}
-							else {
-								if(test & ME_V1V2) {
-	
 									glBegin(GL_LINE_STRIP);
-										glVertex3fv(f1); glVertex3fv(f2);
+										glVertex3fv(f1); glVertex3fv(f2); glVertex3fv(f3); glVertex3fv(f4);
 									glEnd();
 								}
-								if(test & ME_V2V3) {
-	
+								else if(test== ME_V2V3+ME_V3V4+ME_V4V1) {
+		
 									glBegin(GL_LINE_STRIP);
-										glVertex3fv(f2); glVertex3fv(f3);
+										glVertex3fv(f2); glVertex3fv(f3); glVertex3fv(f4); glVertex3fv(f1);
 									glEnd();
 								}
-								if(test & ME_V3V1) {
-	
+								else if(test== ME_V3V4+ME_V4V1+ME_V1V2) {
+		
 									glBegin(GL_LINE_STRIP);
-										glVertex3fv(f3); glVertex3fv(f1);
+										glVertex3fv(f3); glVertex3fv(f4); glVertex3fv(f1); glVertex3fv(f2);
 									glEnd();
+								}
+								else if(test== ME_V4V1+ME_V1V2+ME_V2V3) {
+		
+									glBegin(GL_LINE_STRIP);
+										glVertex3fv(f4); glVertex3fv(f1); glVertex3fv(f2); glVertex3fv(f3);
+									glEnd();
+								}
+								else {
+									if(test & ME_V1V2) {
+		
+										glBegin(GL_LINE_STRIP);
+											glVertex3fv(f1); glVertex3fv(f2);
+										glEnd();
+									}
+									if(test & ME_V2V3) {
+		
+										glBegin(GL_LINE_STRIP);
+											glVertex3fv(f2); glVertex3fv(f3);
+										glEnd();
+									}
+									if(test & ME_V3V4) {
+		
+										glBegin(GL_LINE_STRIP);
+											glVertex3fv(f3); glVertex3fv(f4);
+										glEnd();
+									}
+									if(test & ME_V4V1) {
+		
+										glBegin(GL_LINE_STRIP);
+											glVertex3fv(f4); glVertex3fv(f1);
+										glEnd();
+									}
 								}
 							}
-						}
-						else if(test & ME_V1V2) {
-	
-							glBegin(GL_LINE_STRIP);
-								glVertex3fv(f1); glVertex3fv(f2);
-							glEnd();
+							else if(mface->v3) {
+								if(extverts) f3= extverts+3*mface->v3;
+								else f3= (mvert+mface->v3)->co;
+			
+								if(test== ME_V1V2+ME_V2V3+ME_V3V1) {
+									glBegin(GL_LINE_LOOP);
+										glVertex3fv(f1); glVertex3fv(f2); glVertex3fv(f3);
+									glEnd();
+								}
+								else if(test== ME_V1V2+ME_V2V3) {
+		
+									glBegin(GL_LINE_STRIP);
+										glVertex3fv(f1); glVertex3fv(f2); glVertex3fv(f3);
+									glEnd();
+								}
+								else if(test== ME_V2V3+ME_V3V1) {
+		
+									glBegin(GL_LINE_STRIP);
+										glVertex3fv(f2); glVertex3fv(f3); glVertex3fv(f1);
+									glEnd();
+								}
+								else if(test== ME_V1V2+ME_V3V1) {
+		
+									glBegin(GL_LINE_STRIP);
+										glVertex3fv(f3); glVertex3fv(f1); glVertex3fv(f2);
+									glEnd();
+								}
+								else {
+									if(test & ME_V1V2) {
+		
+										glBegin(GL_LINE_STRIP);
+											glVertex3fv(f1); glVertex3fv(f2);
+										glEnd();
+									}
+									if(test & ME_V2V3) {
+		
+										glBegin(GL_LINE_STRIP);
+											glVertex3fv(f2); glVertex3fv(f3);
+										glEnd();
+									}
+									if(test & ME_V3V1) {
+		
+										glBegin(GL_LINE_STRIP);
+											glVertex3fv(f3); glVertex3fv(f1);
+										glEnd();
+									}
+								}
+							}
+							else if(test & ME_V1V2) {
+		
+								glBegin(GL_LINE_STRIP);
+									glVertex3fv(f1); glVertex3fv(f2);
+								glEnd();
+							}
 						}
 					}
 				}

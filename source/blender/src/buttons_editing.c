@@ -642,40 +642,47 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 
 	uiBlockBeginAlign(block);
 	uiDefButS(block, TOG|BIT|5, REDRAWVIEW3D, "Auto Smooth",10,180,154,19, &me->flag, 0, 0, 0, 0, "Treats all faces with angles less than Degr: as 'smooth' during render");
-	uiDefButS(block, NUM, B_DIFF, "Degr:",					10,160,154,19, &me->smoothresh, 1, 80, 0, 0, "Defines maximum angle between face normals that 'Auto Smooth' will operate on");
+	uiDefButS(block, NUM, B_DIFF, "Degr:",				10,160,154,19, &me->smoothresh, 1, 80, 0, 0, "Defines maximum angle between face normals that 'Auto Smooth' will operate on");
 
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButS(block, TOG|BIT|7, B_MAKEDISP, "SubSurf",		10,124,70,19, &me->flag, 0, 0, 0, 0, "Treats the active object as a Subdivision Surface");
-	uiDefButS(block, MENU, B_MAKEDISP, subsurfmenu,		80,124,84,19, &(me->subsurftype), 0, 0, 0, 0, "Selects type of Subsurf algorithm.");
+	uiDefButS(block, TOG|BIT|7, B_MAKEDISP, "SubSurf",	10,134,70,19, &me->flag, 0, 0, 0, 0, "Treats the active object as a Subdivision Surface");
+	uiDefButS(block, MENU, B_MAKEDISP, subsurfmenu,		80,134,84,19, &(me->subsurftype), 0, 0, 0, 0, "Selects type of Subsurf algorithm.");
 	uiBlockSetCol(block, TH_AUTO);
-	uiDefButS(block, NUM, B_MAKEDISP, "Subdiv:",			10,104,110,19, &me->subdiv, 0, 6, 0, 0, "Defines the level of subdivision to display in real time interactively");
-	uiDefButS(block, NUM, B_MAKEDISP, "",					120, 104, 44, 19, &me->subdivr, 0, 6, 0, 0, "Defines the level of subdivision to apply during rendering");
-	uiDefButS(block, TOG|BIT|8, B_MAKEDISP, "Optimal",		10,84,154,19, &me->flag, 0, 0, 0, 0, "Only draws optimal wireframe");
-
+	uiDefButS(block, NUM, B_MAKEDISP, "Subdiv:",		10, 114,110,19, &me->subdiv, 0, 6, 0, 0, "Defines the level of subdivision to display in real time interactively");
+	uiDefButS(block, NUM, B_DIFF, "",				120,114, 44, 19, &me->subdivr, 0, 6, 0, 0, "Defines the level of subdivision to apply during rendering");
+	uiDefButS(block, TOG|BIT|8, B_MAKEDISP, "Optimal",	10, 94,154,19, &me->flag, 0, 0, 0, 0, "Only draws optimal wireframe");
 
 	uiBlockBeginAlign(block);
-	if(me->msticky) val= 1.0; else val= 0.0;
-	uiDefBut(block, LABEL, 0, "Sticky", 10,50,70,20, 0, val, 0, 0, 0, "");
-	if(me->msticky==0) {
-		uiDefBut(block, BUT, B_MAKESTICKY, "Make",	80,50,84,19, 0, 0, 0, 0, 0, "Creates Sticky coordinates for the active object from the current camera view background picture");
+
+	if(me->medge) val= 1.0; else val= 0.0;
+	uiDefBut(block, LABEL, 0, "Edges", 					10,70,70,20, 0, val, 0, 0, 0, "");
+	if(me->medge==NULL) {
+		uiDefBut(block, BUT, B_MAKEEDGES, "Make",		80,70,84,19, 0, 0, 0, 0, 0, "Adds edges data to active Mesh object, enables creases/seams and faster wireframe draw");
 	}
-	else uiDefBut(block, BUT, B_DELSTICKY, "Delete", 80,50,84,19, 0, 0, 0, 0, 0, "Deletes Sticky texture coordinates");
+	else uiDefBut(block, BUT, B_DELEDGES, "Delete", 	80,70,84,19, 0, 0, 0, 0, 0, "Deletes edges data from active Mesh object");
 
 	if(me->mcol) val= 1.0; else val= 0.0;
-	uiDefBut(block, LABEL, 0, "VertCol", 10,30,70,20, 0, val, 0, 0, 0, "");
-	if(me->mcol==0) {
-		uiDefBut(block, BUT, B_MAKEVERTCOL, "Make",	80,30,84,19, 0, 0, 0, 0, 0, "Enables vertex colour painting on active object");
+	uiDefBut(block, LABEL, 0, "VertCol", 				10,50,70,20, 0, val, 0, 0, 0, "");
+	if(me->mcol==NULL) {
+		uiDefBut(block, BUT, B_MAKEVERTCOL, "Make",		80,50,84,19, 0, 0, 0, 0, 0, "Enables vertex colour painting on active object");
 	}
-	else uiDefBut(block, BUT, B_DELVERTCOL, "Delete", 80,30,84,19, 0, 0, 0, 0, 0, "Deletes vertex colours on active object");
+	else uiDefBut(block, BUT, B_DELVERTCOL, "Delete", 	80,50,84,19, 0, 0, 0, 0, 0, "Deletes vertex colours on active object");
 
 	if(me->tface) val= 1.0; else val= 0.0;
-	uiDefBut(block, LABEL, 0, "TexFace", 10,10,70,20, 0, val, 0, 0, 0, "");
-	if(me->tface==0) {
-		uiDefBut(block, BUT, B_MAKE_TFACES, "Make",	80,10,84,19, 0, 0, 0, 0, 0, "Enables the active object's faces for UV coordinate mapping");
+	uiDefBut(block, LABEL, 0, "TexFace", 				10,30,70,20, 0, val, 0, 0, 0, "");
+	if(me->tface==NULL) {
+		uiDefBut(block, BUT, B_MAKE_TFACES, "Make",		80,30,84,19, 0, 0, 0, 0, 0, "Enables the active object's faces for UV coordinate mapping");
 	}
-	else uiDefBut(block, BUT, B_DEL_TFACES, "Delete", 80,10,84,19, 0, 0, 0, 0, 0, "Deletes UV coordinates for active object's faces");
+	else uiDefBut(block, BUT, B_DEL_TFACES, "Delete", 	80,30,84,19, 0, 0, 0, 0, 0, "Deletes UV coordinates for active object's faces");
 	uiBlockEndAlign(block);
+
+	if(me->msticky) val= 1.0; else val= 0.0;
+	uiDefBut(block, LABEL, 0, "Sticky", 				10,10,70,20, 0, val, 0, 0, 0, "");
+	if(me->msticky==NULL) {
+		uiDefBut(block, BUT, B_MAKESTICKY, "Make",		80,10,84,19, 0, 0, 0, 0, 0, "Creates Sticky coordinates for the active object from the current camera view background picture");
+	}
+	else uiDefBut(block, BUT, B_DELSTICKY, "Delete", 	80,10,84,19, 0, 0, 0, 0, 0, "Deletes Sticky texture coordinates");
 
 
 	/* decimator */
@@ -1485,7 +1492,8 @@ static void parnr_to_editbone_cb(void *bonev, void *arg2_unused)
 	parnr_to_editbone(curBone);
 }
 
-static void build_bonestring (char *string, EditBone *bone){
+static void build_bonestring (char *string, EditBone *bone)
+{
 	EditBone *curBone;
 	EditBone *pBone;
 	int		skip=0;
@@ -1550,7 +1558,8 @@ static void constraint_ebone_name_fix(ListBase *conlist, EditBone *eBone)
 	}
 }
 
-static void validate_editbonebutton(EditBone *eBone){
+static void validate_editbonebutton(EditBone *eBone)
+{
 	EditBone	*prev;
 	bAction		*act=NULL;
 	bActionChannel *chan;
@@ -1642,7 +1651,8 @@ static void validate_editbonebutton_cb(void *bonev, void *arg2_unused)
 	validate_editbonebutton(curBone);
 }
 
-static void armature_rest_pos_func(void *notused1, void *notused2) {
+static void armature_rest_pos_func(void *notused1, void *notused2) 
+{
 	clear_object_constraint_status(OBACT);
 	make_displists_by_armature(OBACT);
 }
@@ -1764,8 +1774,6 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 
 /* *************************** MESH ******************************** */
 
-
-
 void do_meshbuts(unsigned short event)
 {
 	void decimate_faces(void);
@@ -1823,18 +1831,34 @@ void do_meshbuts(unsigned short event)
 		case B_DELSTICKY:
 
 			if(me->msticky) MEM_freeN(me->msticky);
-			me->msticky= 0;
+			me->msticky= NULL;
 			allqueue(REDRAWBUTSEDIT, 0);
 			break;
 		case B_MAKESTICKY:
 			make_sticky();
 			break;
+		
+		case B_MAKEEDGES:
+			/* in editmode we only have to set edge pointer */
+			if(ob==G.obedit) me->medge= MEM_callocN(sizeof(MEdge), "fake mesh edge");
+			else make_edges(me);
+			allqueue(REDRAWBUTSEDIT, 0);
+			break;
+		case B_DELEDGES:
+			if(me->medge) MEM_freeN(me->medge);
+			me->medge= NULL;
+			me->totedge= 0;
+			makeDispList(ob);
+			allqueue(REDRAWBUTSEDIT, 0);
+			allqueue(REDRAWVIEW3D, 0);
+			break;
+			
 		case B_MAKEVERTCOL:
 			make_vertexcol();
 			break;
 		case B_DELVERTCOL:
 			if(me->mcol) MEM_freeN(me->mcol);
-			me->mcol= 0;
+			me->mcol= NULL;
 			G.f &= ~G_VERTEXPAINT;
 			freedisplist(&(ob->disp));
 			allqueue(REDRAWBUTSEDIT, 0);
@@ -2016,10 +2040,11 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 	uiDefBut(block, BUT,B_REVEAL,	"Reveal",	1171,155,86,24, 0, 0, 0, 0, 0, "Reveals selected faces");
 	uiBlockEndAlign(block);
 
-	uiDefBut(block, BUT,B_SELSWAP,	"Select Swap",	1091,124,166,24, 0, 0, 0, 0, 0, "Selects unselected faces, and deselects selected faces");
+	uiDefBut(block, BUT,B_SELSWAP,	"Select Swap",	1091,130,166,24, 0, 0, 0, 0, 0, "Selects unselected faces, and deselects selected faces");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM,		  REDRAWVIEW3D, "NSize:",		1090, 90, 164, 19, &editbutsize, 0.001, 2.0, 10, 0, "Sets the length to use when displaying face normals");
+	uiDefButF(block, NUM,		  REDRAWVIEW3D, "NSize:",		1090, 110, 164, 19, &editbutsize, 0.001, 2.0, 10, 0, "Sets the length to use when displaying face normals");
+	uiDefButI(block, TOG|BIT|19, REDRAWVIEW3D, "Draw Creases",	1090,90,164,19, &G.f, 0, 0, 0, 0, "Displays face normals as lines");
 	uiDefButI(block, TOG|BIT|6, REDRAWVIEW3D, "Draw Normals",	1090,70,164,19, &G.f, 0, 0, 0, 0, "Displays face normals as lines");
 	uiDefButI(block, TOG|BIT|7, REDRAWVIEW3D, "Draw Faces",	1090,50,164,19, &G.f, 0, 0, 0, 0, "Displays all faces as shades");
 	uiDefButI(block, TOG|BIT|18, REDRAWVIEW3D, "Draw Edges", 1090,30,164,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights");

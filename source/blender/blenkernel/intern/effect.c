@@ -1120,11 +1120,6 @@ void build_particle_system(Object *ob)
 	/* init */
 	give_mesh_mvert(me, totpart, co, no,paf->seed);
 
-	if(me->disp.first) {
-		DispList *dl= me->disp.first;
-		if(dl->type==DL_MESH) printf("from disp\n");
-	}
-
 	printf("\n");
 	printf("Calculating particles......... \n");
 

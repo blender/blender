@@ -1991,21 +1991,22 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 {
 	mesh->mat= newdataadr(fd, mesh->mat);
 	test_pointer_array(fd, (void **)&mesh->mat);
+
 	mesh->mvert= newdataadr(fd, mesh->mvert);
-
-	mesh->dvert= newdataadr(fd, mesh->dvert);
-	direct_link_dverts(fd, mesh->totvert, mesh->dvert);
-
+	mesh->medge= newdataadr(fd, mesh->medge);
 	mesh->mface= newdataadr(fd, mesh->mface);
 	mesh->tface= newdataadr(fd, mesh->tface);
 	mesh->mcol= newdataadr(fd, mesh->mcol);
 	mesh->msticky= newdataadr(fd, mesh->msticky);
 
-	mesh->disp.first= mesh->disp.last= 0;
-	mesh->bb= 0;
+	mesh->dvert= newdataadr(fd, mesh->dvert);
+	direct_link_dverts(fd, mesh->totvert, mesh->dvert);
+
+	mesh->disp.first= mesh->disp.last= NULL;
+	mesh->bb= NULL;
 	mesh->oc= 0;
-	mesh->dface= 0;
-	mesh->orco= 0;
+	mesh->dface= NULL;
+	mesh->orco= NULL;
 
 	if (mesh->tface) {
 		TFace *tfaces= mesh->tface;

@@ -78,6 +78,8 @@ int update_realtime_texture(struct TFace *tface, double time);
 void mesh_delete_material_index(struct Mesh *me, int index);
 void mesh_set_smooth_flag(struct Mesh *me, int enableSmooth);
 
+void make_edges(struct Mesh *me);
+
 	/** Generate the mesh vertex normals by averaging over connected faces.
 	 *
 	 * @param me The mesh to update.

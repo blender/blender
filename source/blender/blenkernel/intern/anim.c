@@ -494,7 +494,7 @@ void free_duplilist()
 {
 	Object *ob;
 	
-	while( ob= duplilist.first) {
+	while( (ob= duplilist.first) ) {
 		BLI_remlink(&duplilist, ob);
 		MEM_freeN(ob);
 	}
@@ -509,7 +509,7 @@ void make_duplilist(Scene *sce, Object *ob)
 		if(ob->transflag & OB_DUPLIVERTS) {
 			if(ob->type==OB_MESH) {
 				if(ob->transflag & OB_DUPLIVERTS) {
-					if( paf=give_parteff(ob) ) particle_duplilist(sce, ob, paf);
+					if( (paf=give_parteff(ob)) ) particle_duplilist(sce, ob, paf);
 					else vertex_duplilist(sce, ob);
 				}
 			}

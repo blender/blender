@@ -40,6 +40,12 @@ typedef struct MFace {
 	char edcode, flag;
 } MFace;
 
+typedef struct MEdge {
+	unsigned int v1, v2;
+	char crease, pad;
+	short flag;
+} MEdge;
+
 typedef struct MDeformWeight {
 	int				def_nr;
 	float			weight;
@@ -65,5 +71,34 @@ typedef struct MCol {
 typedef struct MSticky {
 	float co[2];
 } MSticky;
+
+/* mvert->flag (1=SELECT) */
+#define ME_SPHERETEST	2
+#define ME_SPHERETEMP	4
+#define ME_HIDE			16
+
+/* medge->flag (1=SELECT)*/
+#define ME_EDGEDRAW		2
+
+
+/* puno = vertexnormal (mface) */
+#define ME_FLIPV1		1
+#define ME_FLIPV2		2
+#define ME_FLIPV3		4
+#define ME_FLIPV4		8
+#define ME_PROJXY		16
+#define ME_PROJXZ		32
+#define ME_PROJYZ		64
+
+/* edcode (mface) */
+#define ME_V1V2			1
+#define ME_V2V3			2
+#define ME_V3V1			4
+#define ME_V3V4			4
+#define ME_V4V1			8
+
+/* flag (mface) */
+#define ME_SMOOTH		1
+
 
 #endif

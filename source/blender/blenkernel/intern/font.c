@@ -53,7 +53,6 @@
 
 #include "DNA_packedFile_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_vfont_types.h"
@@ -241,7 +240,7 @@ static void buildchar(Curve *cu, unsigned char ascii, float ofsx, float ofsy, fl
 			nu2->resolu= cu->resolu;
 			nu2->bp = 0;
 			nu2->knotsu = nu2->knotsv = 0;
-			nu2->flag= ME_SMOOTH;
+			nu2->flag= CU_SMOOTH;
 			/* nu2->trim.first = 0; */
 			/* nu2->trim.last = 0; */
 			i = nu2->pntsu;

@@ -343,13 +343,16 @@ void free_hashedgetab(void)
 	}
 }
 
-EditEdge *addedgelist(EditVert *v1, EditVert *v2)
+EditEdge *addedgelist(EditVert *v1, EditVert *v2, EditEdge *example)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *v3;
 	EditEdge *eed;
 	int swap= 0;
 	
+	if(v1==v2) return NULL;
+	if(v1==NULL || v2==NULL) return NULL;
+
 	/* swap ? */
 	if(v1>v2) {
 		v3= v2; 
@@ -357,14 +360,11 @@ EditEdge *addedgelist(EditVert *v1, EditVert *v2)
 		v1= v3;
 		swap= 1;
 	}
-
-	if(v1==v2) return 0;
-	if(v1==0 || v2==0) return 0;
 	
 	/* find in hashlist */
 	eed= findedgelist(v1, v2);
 	
-	if(eed==0) {
+	if(eed==NULL) {
 
 		eed= (EditEdge *)calloc(sizeof(EditEdge), 1);
 		eed->v1= v1;
@@ -373,6 +373,12 @@ EditEdge *addedgelist(EditVert *v1, EditVert *v2)
 		eed->dir= swap;
 		insert_hashedge(eed);
 	}
+
+	/* copy crease data, seam flag? */
+	if(example) {
+		eed->crease = example->crease;
+	}
+
 	return eed;
 }
 
@@ -449,13 +455,14 @@ EditVlak *addvlaklist(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, Ed
 	
 
 	/* add face to list and do the edges */
-	e1= addedgelist(v1, v2);
-	if(v3) e2= addedgelist(v2, v3);
-	if(v4) e3= addedgelist(v3, v4); else e3= addedgelist(v3, v1);
-	if(v4) e4= addedgelist(v4, v1);
+	e1= addedgelist(v1, v2, example?example->e1:NULL);
+	e2= addedgelist(v2, v3, example?example->e2:NULL);
+	if(v4) e3= addedgelist(v3, v4, example?example->e3:NULL); 
+	else e3= addedgelist(v3, v1, example?example->e3:NULL);
+	if(v4) e4= addedgelist(v4, v1, example?example->e4:NULL);
 	
-	if(v1==v2 || v2==v3 || v1==v3) return 0;
-	if(e2==0) return 0;
+	if(v1==v2 || v2==v3 || v1==v3) return NULL;
+	if(e2==0) return NULL;
 
 	evl= (EditVlak *)calloc(sizeof(EditVlak), 1);
 	evl->v1= v1;
@@ -941,7 +948,7 @@ void make_editMesh_real(Mesh *me)
 	EditEdge *eed;
 	int tot, a;
 
-	if(G.obedit==0) return;
+	if(G.obedit==NULL) return;
 
 	/* because of reload */
 	free_editMesh();
@@ -994,16 +1001,6 @@ void make_editMesh_real(Mesh *me)
 
 #ifdef __NLA
 
-		/* OLD VERSION */
-		/*
-		eve->totweight = mvert->totweight;
-		if (mvert->dw){
-			eve->dw = BLI_callocN (sizeof(MDeformWeight) * mvert->totweight, "deformWeight");
-			memcpy (eve->dw, mvert->dw, sizeof(MDeformWeight) * mvert->totweight);
-		}
-		*/
-
-		/* NEW VERSION */
 		if (me->dvert){
 			eve->totweight = me->dvert[a].totweight;
 			if (me->dvert[a].dw){
@@ -1019,7 +1016,18 @@ void make_editMesh_real(Mesh *me)
 	else {
 		unsigned int *mcol;
 		
-		/* make edges and faces */
+		/* make edges */
+		if(me->medge) {
+			MEdge *medge= me->medge;
+			
+			for(a=0; a<me->totedge; a++, medge++) {
+				eed= addedgelist(evlist[medge->v1], evlist[medge->v2], NULL);
+				eed->crease= ((float)medge->crease)/255.0;
+			}
+
+		}
+		
+		/* make faces */
 		mface= me->mface;
 		tface= me->tface;
 		mcol= (unsigned int *)me->mcol;
@@ -1027,12 +1035,13 @@ void make_editMesh_real(Mesh *me)
 		for(a=0; a<me->totface; a++, mface++) {
 			eve1= evlist[mface->v1];
 			eve2= evlist[mface->v2];
-			if(mface->v3) eve3= evlist[mface->v3]; else eve3= 0;
-			if(mface->v4) eve4= evlist[mface->v4]; else eve4= 0;
+			if(mface->v3) eve3= evlist[mface->v3]; else eve3= NULL;
+			if(mface->v4) eve4= evlist[mface->v4]; else eve4= NULL;
 			
 			evl= addvlaklist(eve1, eve2, eve3, eve4, NULL);
-			
+
 			if(evl) {
+			
 				if(mcol) memcpy(evl->tf.col, mcol, 4*sizeof(int));
 
 				if(me->tface) {
@@ -1142,6 +1151,7 @@ static void fix_faceindices(MFace *mface, EditVlak *evl, int nr)
 			if(a & ME_FLIPV1) mface->puno |= ME_FLIPV2;
 			if(a & ME_FLIPV2) mface->puno |= ME_FLIPV3;
 			if(a & ME_FLIPV3) mface->puno |= ME_FLIPV1;
+
 		}
 	}
 	else if(nr==4) {
@@ -1176,9 +1186,9 @@ static void fix_faceindices(MFace *mface, EditVlak *evl, int nr)
 			if(a & ME_FLIPV2) mface->puno |= ME_FLIPV4;
 			if(a & ME_FLIPV3) mface->puno |= ME_FLIPV1;
 			if(a & ME_FLIPV4) mface->puno |= ME_FLIPV2;
+
 		}
 	}
-
 }
 
 
@@ -1200,25 +1210,20 @@ void load_editMesh()
 void load_editMesh_real(Mesh *me, int undo)
 {
 	EditMesh *em = G.editMesh;
-	MFace *mface;
 	MVert *mvert, *oldverts;
+	MEdge *medge=NULL;
+	MFace *mface;
 	MSticky *ms;
-	KeyBlock *actkey=0, *currkey;
+	KeyBlock *actkey=NULL, *currkey;
 	EditVert *eve;
 	EditVlak *evl;
 	EditEdge *eed;
 	float *fp, *newkey, *oldkey, nor[3];
-	int i, a, ototvert;
+	int i, a, ototvert, totedge=0;
 #ifdef __NLA
 	MDeformVert *dvert;
 	int	usedDvert = 0;
 #endif
-
-	ototvert= me->totvert;
-
-	/* lets save the old verts just in case we are actually working on
-	 * a key ... we now do processing of the keys at the end*/
-	oldverts = me->mvert;
 
 	/* this one also tests of edges are not in faces: */
 	/* eed->f==0: not in face, f==1: draw it */
@@ -1228,38 +1233,57 @@ void load_editMesh_real(Mesh *me, int undo)
 	
 	/* WATCH IT: in evl->f is punoflag (for vertex normal) */
 	vertexnormals( (me->flag & ME_NOPUNOFLIP)==0 );
-	
+		
 	eed= em->edges.first;
 	while(eed) {
-		if(eed->f==0) G.totface++;
+		totedge++;
+		if(me->medge==NULL && (eed->f==0)) G.totface++;
 		eed= eed->next;
 	}
 	
+	/* new Vertex block */
+	if(G.totvert==0) mvert= NULL;
+	else mvert= MEM_callocN(G.totvert*sizeof(MVert), "loadeditMesh vert");
+
+	/* new Edge block */
+	if(me->medge && totedge) {
+		medge= MEM_callocN(totedge*sizeof(MEdge), "loadeditMesh edge");
+	}
+	
 	/* new Face block */
-	if(G.totface==0) mface= 0;
-	else mface= MEM_callocN(G.totface*sizeof(MFace), "loadeditMesh1");
-	/* nieuw Vertex block */
-	if(G.totvert==0) mvert= 0;
-	else mvert= MEM_callocN(G.totvert*sizeof(MVert), "loadeditMesh2");
+	if(G.totface==0) mface= NULL;
+	else mface= MEM_callocN(G.totface*sizeof(MFace), "loadeditMesh face");
+	
 
 #ifdef __NLA
-	if (G.totvert==0) dvert=0;
+	if (G.totvert==0) dvert= NULL;
 	else dvert = MEM_callocN(G.totvert*sizeof(MDeformVert), "loadeditMesh3");
 
 	if (me->dvert) free_dverts(me->dvert, me->totvert);
 	me->dvert=dvert;
 #endif		
 
-	me->mvert= mvert;
 
+	/* lets save the old verts just in case we are actually working on
+	 * a key ... we now do processing of the keys at the end */
+	oldverts = me->mvert;
+	ototvert= me->totvert;
+
+	/* put new data in Mesh */
+	me->mvert= mvert;
+	me->totvert= G.totvert;
+
+	if(me->medge) MEM_freeN(me->medge);
+	me->medge= medge;
+	me->totedge= totedge;
+	
 	if(me->mface) MEM_freeN(me->mface);
 	me->mface= mface;
-	me->totvert= G.totvert;
 	me->totface= G.totface;
 		
 	/* the vertices, abuse ->vn as counter */
 	eve= em->verts.first;
-	a=0;
+	a= 0;
 
 	while(eve) {
 		VECCOPY(mvert->co, eve->co);
@@ -1307,12 +1331,26 @@ void load_editMesh_real(Mesh *me, int undo)
 	}
 #endif
 
+	/* the edges */
+	if(medge) {
+		eed= em->edges.first;
+		while(eed) {
+			medge->v1= (unsigned int) eed->v1->vn;
+			medge->v2= (unsigned int) eed->v2->vn;
+			if(eed->f<2) medge->flag = ME_EDGEDRAW;
+			medge->crease= (char)(255.0*eed->crease);
+			
+			medge++;
+			eed= eed->next;
+		}
+	}
+
 	/* the faces */
 	evl= em->faces.first;
 	i = 0;
 	while(evl) {
 		mface= &((MFace *) me->mface)[i];
-			
+		
 		mface->v1= (unsigned int) evl->v1->vn;
 		mface->v2= (unsigned int) evl->v2->vn;
 		mface->v3= (unsigned int) evl->v3->vn;
@@ -1359,7 +1397,8 @@ void load_editMesh_real(Mesh *me, int undo)
 			mface->edcode |= ME_V4V1; 
 			evl->e4->f= 2;
 		}
-			
+
+
 		/* no index '0' at location 3 or 4 */
 		if(evl->v4) fix_faceindices(mface, evl, 4);
 		else fix_faceindices(mface, evl, 3);
@@ -1369,19 +1408,21 @@ void load_editMesh_real(Mesh *me, int undo)
 	}
 		
 	/* add loose edges as a face */
-	eed= em->edges.first;
-	while(eed) {
-		if( eed->f==0 ) {
-			mface= &((MFace *) me->mface)[i];
-			mface->v1= (unsigned int) eed->v1->vn;
-			mface->v2= (unsigned int) eed->v2->vn;
-			test_index_mface(mface, 2);
-			mface->edcode= ME_V1V2;
-			i++;
+	if(medge==NULL) {
+		eed= em->edges.first;
+		while(eed) {
+			if( eed->f==0 ) {
+				mface= &((MFace *) me->mface)[i];
+				mface->v1= (unsigned int) eed->v1->vn;
+				mface->v2= (unsigned int) eed->v2->vn;
+				test_index_mface(mface, 2);
+				mface->edcode= ME_V1V2;
+				i++;
+			}
+			eed= eed->next;
 		}
-		eed= eed->next;
 	}
-		
+	
 	tex_space_mesh(me);
 
 	/* tface block, always when undo even when it wasnt used, 
@@ -3643,6 +3684,12 @@ short extrudeflag(short flag,short type)
 			if(eed->dir==1) evl2= addvlaklist(eed->v1, eed->v2, eed->v2->vn, eed->v1->vn, NULL);
 			else evl2= addvlaklist(eed->v2, eed->v1, eed->v1->vn, eed->v2->vn, NULL);
 			if (smooth) evl2->flag |= ME_SMOOTH;
+			
+			/* new edges, needs copied from old edge. actually we should find face that has this edge */
+			evl2->e1->crease= eed->crease;
+			evl2->e2->crease= eed->crease;
+			evl2->e3->crease= eed->crease;
+			if(evl2->e4) evl2->e4->crease= eed->crease;
 		}
 
 		eed= nexted;
@@ -3687,7 +3734,7 @@ short extrudeflag(short flag,short type)
 	while(eve) {
 		nextve= eve->prev;
 		if(eve->vn) {
-			if(eve->f1==1) addedgelist(eve,eve->vn);
+			if(eve->f1==1) addedgelist(eve, eve->vn, NULL);
 			else if( (eve->f & 128)==0) {
 				if(deloud) {
 					BLI_remlink(&em->verts,eve);
@@ -3828,7 +3875,7 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 				if(eed->v1->f & 128) eed->v1= eed->v1->vn;
 				if(eed->v2->f & 128) eed->v2= eed->v2->vn;
 
-				e1= addedgelist(eed->v1,eed->v2);
+				e1= addedgelist(eed->v1, eed->v2, eed);
 				
 				if(e1) e1->f= 1;
 				if(e1!=eed) free_editedge(eed);
@@ -4550,9 +4597,9 @@ void subdivideflag(int flag, float rad, int beauty)
 						evl->v1= e3->vn;
 						set_wuv(3, evl, 3+4, 2, 3, 0);
 					}
-					evl->e1= addedgelist(evl->v1, evl->v2);
-					evl->e2= addedgelist(evl->v2, evl->v3);
-					evl->e3= addedgelist(evl->v3, evl->v1);
+					evl->e1= addedgelist(evl->v1, evl->v2, evl->e1);
+					evl->e2= addedgelist(evl->v2, evl->v3, evl->e2);
+					evl->e3= addedgelist(evl->v3, evl->v1, evl->e3);
 					
 				}
 				else {  /* All the permutations of 4 faces */
@@ -4725,12 +4772,12 @@ void subdivideflag(int flag, float rad, int beauty)
 							set_wuv(4, evl, 4+4, 2+4, 3, 4);
 						}
 					}
-					evl->e1= addedgelist(evl->v1, evl->v2);
-					evl->e2= addedgelist(evl->v2, evl->v3);					
-					if(evl->v4) evl->e3= addedgelist(evl->v3, evl->v4);
-					else evl->e3= addedgelist(evl->v3, evl->v1);
-					if(evl->v4) evl->e4= addedgelist(evl->v4, evl->v1);
-					else evl->e4= 0;
+					evl->e1= addedgelist(evl->v1, evl->v2, evl->e1);
+					evl->e2= addedgelist(evl->v2, evl->v3, evl->e2);					
+					if(evl->v4) evl->e3= addedgelist(evl->v3, evl->v4, evl->e3);
+					else evl->e3= addedgelist(evl->v3, evl->v1, evl->e3);
+					if(evl->v4) evl->e4= addedgelist(evl->v4, evl->v1, evl->e4);
+					else evl->e4= NULL;
 				}
 			}
 		}
@@ -4744,8 +4791,8 @@ void subdivideflag(int flag, float rad, int beauty)
 		if( eed->vn ) {
 			eed->vn->f |= 16;			
 			if(eed->f==0) {  /* not used in face */				
-				addedgelist(eed->v1,eed->vn);
-				addedgelist(eed->vn,eed->v2);
+				addedgelist(eed->v1, eed->vn, eed);
+				addedgelist(eed->vn, eed->v2, eed);
 			}						
 			remedge(eed);
 			free_editedge(eed);
@@ -4794,7 +4841,7 @@ void adduplicateflag(int flag)
 		if( (eed->v1->f & 128) && (eed->v2->f & 128) ) {
 			v1= eed->v1->vn;
 			v2= eed->v2->vn;
-			addedgelist(v1,v2);
+			addedgelist(v1, v2, eed);
 		}
 		eed= eed->next;
 	}
@@ -5559,7 +5606,7 @@ void addvert_mesh(void)
 	eve->f= 1;
 
 	if(v1) {
-		addedgelist(v1, eve);
+		addedgelist(v1, eve, NULL);
 		v1->f= 0;
 	}
 	countall();
@@ -5591,7 +5638,7 @@ void addedgevlak_mesh(void)
 		eve= eve->next;
 	}
 	if(aantal==2) {
-		addedgelist(neweve[0], neweve[1]);
+		addedgelist(neweve[0], neweve[1], NULL);
 		allqueue(REDRAWVIEW3D, 0);
 		makeDispList(G.obedit);
 		return;
@@ -6039,10 +6086,10 @@ void add_primitiveMesh(int type)
 		else if(type==4) {  /* we need edges for a circle */
 			v3= v1;
 			for(a=1;a<tot;a++) {
-				addedgelist(v3,v3->next);
+				addedgelist(v3, v3->next, NULL);
 				v3= v3->next;
 			}
-			addedgelist(v3,v1);
+			addedgelist(v3, v1, NULL);
 		}
 		/* side faces */
 		if(ext) {
@@ -6085,7 +6132,7 @@ void add_primitiveMesh(int type)
 			Mat3MulVecfl(imat,vec);
 			eve= addvertlist(vec);
 			eve->f= 1+2+4;
-			if (a) addedgelist(eve->prev,eve);
+			if (a) addedgelist(eve->prev, eve, NULL);
 			phi+=phid;
 		}
 		/* extrude and translate */
@@ -6118,7 +6165,7 @@ void add_primitiveMesh(int type)
 			eve= addvertlist(vec);
 			eve->f= 1+2+4;
 			if(a==0) v1= eve;
-			else addedgelist(eve->prev, eve);
+			else addedgelist(eve->prev, eve, NULL);
 			phi+= phid;
 		}
 		
@@ -7038,11 +7085,13 @@ void join_mesh(void)
 	Material **matar, *ma;
 	Mesh *me;
 	MVert *mvert, *mvertmain;
+	MEdge *medge = NULL, *medgemain;
 	MFace *mface = NULL, *mfacemain;
 	TFace *tface = NULL, *tfacemain;
 	unsigned int *mcol=NULL, *mcolmain;
 	float imat[4][4], cmat[4][4];
-	int a, b, totcol, totvert=0, totface=0, ok=0, vertofs, map[MAXMAT];
+	int a, b, totcol, totedge=0, totvert=0, totface=0, ok=0, vertofs, map[MAXMAT];
+	int hasedges=0;
 #ifdef __NLA
 	int	i, j, index, haskey=0;
 	bDeformGroup *dg, *odg;
@@ -7055,7 +7104,6 @@ void join_mesh(void)
 	if(!ob || ob->type!=OB_MESH) return;
 	
 	/* count */
-	
 	base= FIRSTBASE;
 	while(base) {
 		if TESTBASE(base) {
@@ -7063,8 +7111,10 @@ void join_mesh(void)
 				me= base->object->data;
 				totvert+= me->totvert;
 				totface+= me->totface;
-				
+				if(me->medge) hasedges= 1;
+
 				if(base->object == ob) ok= 1;
+
 				if(me->key) {
 					haskey= 1;
 					break;
@@ -7084,6 +7134,20 @@ void join_mesh(void)
 	if(totvert==0 || totvert>MESH_MAX_VERTS) return;
 	
 	if(okee("Join selected meshes")==0) return;
+
+
+	/* if needed add edges to other meshes */
+	if(hasedges) {
+		for(base= FIRSTBASE; base; base= base->next) {
+			if TESTBASE(base) {
+				if(base->object->type==OB_MESH) {
+					me= base->object->data;
+					if(me->medge==NULL) make_edges(me);
+					totedge += me->totedge;
+				}
+			}
+		}
+	}
 	
 	/* new material indices and material array */
 	matar= MEM_callocN(sizeof(void *)*MAXMAT, "join_mesh");
@@ -7143,20 +7207,22 @@ void join_mesh(void)
 	}
 
 	me= ob->data;
-	mvert= mvertmain= MEM_mallocN(totvert*sizeof(MVert), "joinmesh1");
+	mvert= mvertmain= MEM_mallocN(totvert*sizeof(MVert), "joinmesh vert");
 
-	if (totface) mface= mfacemain= MEM_mallocN(totface*sizeof(MFace), "joinmesh2");
-	else mfacemain= 0;
+	if(totedge) medge= medgemain= MEM_callocN(totedge*sizeof(MEdge), "joinmesh edge");
+	else medgemain= NULL;
+	
+	if (totface) mface= mfacemain= MEM_mallocN(totface*sizeof(MFace), "joinmesh face");
+	else mfacemain= NULL;
 
-	if(me->mcol) mcol= mcolmain= MEM_callocN(totface*4*sizeof(int), "joinmesh3");
-	else mcolmain= 0;
+	if(me->mcol) mcol= mcolmain= MEM_callocN(totface*4*sizeof(int), "joinmesh mcol");
+	else mcolmain= NULL;
 
 	/* if active object doesn't have Tfaces, but one in the selection does,
 	   make TFaces for active, so we don't lose texture information in the
 	   join process */
 	if(me->tface || testSelected_TfaceMesh()) tface= tfacemain= MEM_callocN(totface*4*sizeof(TFace), "joinmesh4");
-	else
-		tfacemain= 0;
+	else tfacemain= NULL;
 
 #ifdef __NLA
 	if(me->dvert)
@@ -7258,6 +7324,18 @@ void join_mesh(void)
 					}
 					
 				}
+				
+				if(me->totedge) {
+					memcpy(medge, me->medge, me->totedge*sizeof(MEdge));
+					
+					a= me->totedge;
+					while(a--) {
+						medge->v1+= vertofs;
+						medge->v2+= vertofs;
+						medge++;
+					}
+				}
+				
 				vertofs+= me->totvert;
 				
 				if(base->object!=ob) {
@@ -7270,19 +7348,28 @@ void join_mesh(void)
 	
 	me= ob->data;
 	
+	if(me->mvert) MEM_freeN(me->mvert);
+	me->mvert= mvertmain;
+
+	if(me->medge) MEM_freeN(me->medge);
+	me->medge= medgemain;
+
 	if(me->mface) MEM_freeN(me->mface);
 	me->mface= mfacemain;
-	if(me->mvert) MEM_freeN(me->mvert);
+
 #ifdef __NLA
 	if(me->dvert) free_dverts(me->dvert, me->totvert);
 	me->dvert = dvertmain;
 #endif
-	me->mvert= mvertmain;
+
 	if(me->mcol) MEM_freeN(me->mcol);
 	me->mcol= (MCol *)mcolmain;
+	
 	if(me->tface) MEM_freeN(me->tface);
 	me->tface= tfacemain;
+	
 	me->totvert= totvert;
+	me->totedge= totedge;
 	me->totface= totface;
 	
 	/* old material array */
@@ -8801,10 +8888,10 @@ void bevel_mesh(float bsize, int allfaces)
 #endif
 			}
 
-   			addedgelist(evl->e1->v1->vn,evl->e1->v2->vn);
-   			addedgelist(evl->e2->v1->vn,evl->e2->v2->vn);   			
-   			addedgelist(evl->e3->v1->vn,evl->e3->v2->vn);   			
-   			if (evl->e4) addedgelist(evl->e4->v1->vn,evl->e4->v2->vn);   			   			
+   			addedgelist(evl->e1->v1->vn, evl->e1->v2->vn, evl->e1);
+   			addedgelist(evl->e2->v1->vn,evl->e2->v2->vn, evl->e2);   			
+   			addedgelist(evl->e3->v1->vn,evl->e3->v2->vn, evl->e3);   			
+   			if (evl->e4) addedgelist(evl->e4->v1->vn,evl->e4->v2->vn, evl->e4);  
 
    			if(evl->v4) {
 				v1= evl->v1->vn;

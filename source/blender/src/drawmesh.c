@@ -392,7 +392,7 @@ int set_tpage(TFace *tface)
 			printf("name: %d, tpx: %d\n", *bind, tpx);
 			printf("tile: %d, mode: %d\n", fCurtile, tilemode);
 			if (error)
-				printf("error: %d\n", error);
+				printf("error: %d\n", (int)error);
 		}
 		glBindTexture( GL_TEXTURE_2D, *bind);
 

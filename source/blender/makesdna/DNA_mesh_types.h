@@ -39,6 +39,7 @@ struct Ipo;
 struct Key;
 struct Material;
 struct MVert;
+struct MEdge;
 struct MCol;
 struct MSticky;
 struct Mesh;
@@ -69,6 +70,7 @@ typedef struct Mesh {
 
 	void *mface, *dface, *tface;
 	struct MVert *mvert;
+	struct MEdge *medge;
 	struct MDeformVert *dvert;	/* __NLA */
 	struct MCol *mcol;
 	struct MSticky *msticky;
@@ -78,20 +80,21 @@ typedef struct Mesh {
 	struct OcInfo *oc;		/* not written in file */
 	void *sumohandle;
 
-	int totvert, totface;
-
+	int totvert, totedge, totface;
 	int texflag;
+	
 	float loc[3];
 	float size[3];
 	float rot[3];
 	
 	short smoothresh, flag;
+
 	short subdiv, subdivr, subdivdone;
 	short totcol;
 	short subsurftype; 
 	short reserved1;	/* Padding */
 
-	float cubemapsize, rtf;
+	float cubemapsize;
 
 } Mesh;
 
@@ -116,25 +119,6 @@ typedef struct Mesh {
 /* Subsurf Type */
 #define ME_CC_SUBSURF 		0
 #define ME_SIMPLE_SUBSURF 	1
-
-/* puno = vertexnormal (mface) */
-#define ME_FLIPV1		1
-#define ME_FLIPV2		2
-#define ME_FLIPV3		4
-#define ME_FLIPV4		8
-#define ME_PROJXY		16
-#define ME_PROJXZ		32
-#define ME_PROJYZ		64
-
-/* edcode (mface) */
-#define ME_V1V2			1
-#define ME_V2V3			2
-#define ME_V3V1			4
-#define ME_V3V4			4
-#define ME_V4V1			8
-
-/* flag (mface) */
-#define ME_SMOOTH		1
 
 
 #define TF_DYNAMIC		1
@@ -168,11 +152,6 @@ typedef struct Mesh {
 #define TF_ADD		1
 #define TF_ALPHA	2
 #define TF_SUB		3
-
-/* mvert->flag (1=select) */
-#define ME_SPHERETEST	2
-#define ME_SPHERETEMP	4
-#define ME_HIDE			16
 
 #define MESH_MAX_VERTS 2000000000L
 

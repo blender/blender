@@ -118,6 +118,7 @@ void flip_subdivison(struct Object *ob, int);
 void mirrormenu(void);
 void mirror_edit(short mode);
 void mirror_object(short mode);
+void flag_edge_crease(void);
 
 #endif /*  BDR_EDITOBJECT_H */
 

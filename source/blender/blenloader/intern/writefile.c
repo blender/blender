@@ -846,12 +846,15 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 
 			/* direct data */
 			writedata(wd, DATA, sizeof(void *)*mesh->totcol, mesh->mat);
+
 			writestruct(wd, DATA, "MVert", mesh->totvert, mesh->mvert);
-			write_dverts(wd, mesh->totvert, mesh->dvert);
+			writestruct(wd, DATA, "MEdge", mesh->totedge, mesh->medge);
 			writestruct(wd, DATA, "MFace", mesh->totface, mesh->mface);
 			writestruct(wd, DATA, "TFace", mesh->totface, mesh->tface);
 			writestruct(wd, DATA, "MCol", 4*mesh->totface, mesh->mcol);
 			writestruct(wd, DATA, "MSticky", mesh->totvert, mesh->msticky);
+
+			write_dverts(wd, mesh->totvert, mesh->dvert);
 
 		}
 		mesh= mesh->id.next;

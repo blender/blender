@@ -162,14 +162,18 @@ void free_mesh(Mesh *me)
 
 	unlink_mesh(me);
 
-	if(me->mat) MEM_freeN(me->mat);
-	if(me->orco) MEM_freeN(me->orco);
-	if(me->mface) MEM_freeN(me->mface);
-	if(me->tface) MEM_freeN(me->tface);
 	if(me->mvert) MEM_freeN(me->mvert);
+	if(me->medge) MEM_freeN(me->medge);
+	if(me->mface) MEM_freeN(me->mface);
+	
+	if(me->tface) MEM_freeN(me->tface);
 	if(me->dvert) free_dverts(me->dvert, me->totvert);
 	if(me->mcol) MEM_freeN(me->mcol);
 	if(me->msticky) MEM_freeN(me->msticky);
+
+	if(me->mat) MEM_freeN(me->mat);
+	if(me->orco) MEM_freeN(me->orco);
+
 	if(me->bb) MEM_freeN(me->bb);
 	if(me->disp.first) freedisplist(&me->disp);
 }
@@ -238,13 +242,13 @@ Mesh *copy_mesh(Mesh *me)
 		id_us_plus((ID *)men->mat[a]);
 	}
 	id_us_plus((ID *)men->texcomesh);
-	men->mface= MEM_dupallocN(me->mface);
 
-	men->tface= MEM_dupallocN(me->tface);
-
-	men->dface= 0;
 	men->mvert= MEM_dupallocN(me->mvert);
-	memcpy (men->mvert, me->mvert, sizeof (MVert)*me->totvert);
+	men->medge= MEM_dupallocN(me->medge);
+	men->mface= MEM_dupallocN(me->mface);
+	men->tface= MEM_dupallocN(me->tface);
+	men->dface= NULL;
+
 	if (me->dvert){
 		men->dvert = MEM_mallocN (sizeof (MDeformVert)*me->totvert, "MDeformVert");
 		copy_dverts(men->dvert, me->dvert, me->totvert);
@@ -252,8 +256,8 @@ Mesh *copy_mesh(Mesh *me)
 
 	men->mcol= MEM_dupallocN(me->mcol);
 	men->msticky= MEM_dupallocN(me->msticky);
-	men->texcomesh= 0;
-	men->orco= 0;
+	men->texcomesh= NULL;
+	men->orco= NULL;
 	men->bb= MEM_dupallocN(men->bb);
 	
 	copy_displist(&men->disp, &me->disp);
@@ -783,6 +787,113 @@ void set_mesh(Object *ob, Mesh *me)
 	
 	test_object_materials((ID *)me);
 }
+
+/* ************** make edges in a Mesh, for outside of editmode */
+
+struct edgesort {
+	int v1, v2;
+	int flag;
+};
+
+/* edges have to be added with lowest index first for sorting */
+static void to_edgesort(struct edgesort *ed, int v1, int v2, int flag)
+{
+	if(v1<v2) {
+		ed->v1= v1; ed->v2= v2;
+	}
+	else {
+		ed->v1= v2; ed->v2= v1;
+	}
+	ed->flag= flag;
+}
+
+static int vergedgesort(const void *v1, const void *v2)
+{
+	const struct edgesort *x1=v1, *x2=v2;
+
+	if( x1->v1 > x2->v1) return 1;
+	else if( x1->v1 < x2->v1) return -1;
+	else if( x1->v2 > x2->v2) return 1;
+	else if( x1->v2 < x2->v2) return -1;
+	
+	return 0;
+}
+
+
+void make_edges(Mesh *me)
+{
+	MFace *mface;
+	MEdge *medge;
+	struct edgesort *edsort, *ed;
+	int a, totedge=0, final=0;
+	
+	/* we put all edges in array, sort them, and detect doubles that way */
+	
+	for(a= me->totface, mface= me->mface; a>0; a--, mface++) {
+		if(mface->v4) totedge+=4;
+		else if(mface->v3) totedge+=3;
+		else totedge+=1;
+	}
+	
+	if(totedge==0) return;
+	
+	ed= edsort= MEM_mallocN(totedge*sizeof(struct edgesort), "edgesort");
+	
+	for(a= me->totface, mface= me->mface; a>0; a--, mface++) {
+		
+		to_edgesort(ed, mface->v1, mface->v2, mface->edcode & ME_V1V2);
+		ed++;
+		if(mface->v4) {
+			to_edgesort(ed, mface->v2, mface->v3, mface->edcode & ME_V2V3);
+			ed++;
+			to_edgesort(ed, mface->v3, mface->v4, mface->edcode & ME_V3V4);
+			ed++;
+			to_edgesort(ed, mface->v4, mface->v1, mface->edcode & ME_V4V1);
+			ed++;
+		}
+		else if(mface->v3) {
+			to_edgesort(ed, mface->v2, mface->v3, mface->edcode & ME_V2V3);
+			ed++;
+			to_edgesort(ed, mface->v3, mface->v1, mface->edcode & ME_V3V1);
+			ed++;
+		}
+	}
+	
+	qsort(edsort, totedge, sizeof(struct edgesort), vergedgesort);
+	
+	/* count final amount */
+	for(a=totedge, ed=edsort; a>1; a--, ed++) {
+		/* edge is unique when it differs from next edge, or is last */
+		if(ed->v1 != (ed+1)->v1 || ed->v2 != (ed+1)->v2) final++;
+		else {
+			/* this makes sure identical edges both get draw flag */
+			if(ed->flag) (ed+1)->flag= 1;
+			else if((ed+1)->flag) ed->flag= 1;
+		}
+	}
+	final++;
+	
+	medge= me->medge= MEM_callocN(final*sizeof(MEdge), "make mesh edges");
+	me->totedge= final;
+	
+	for(a=totedge, ed=edsort; a>1; a--, ed++) {
+		/* edge is unique when it differs from next edge, or is last */
+		if(ed->v1 != (ed+1)->v1 || ed->v2 != (ed+1)->v2) {
+			medge->v1= ed->v1;
+			medge->v2= ed->v2;
+			if(ed->flag) medge->flag= ME_EDGEDRAW;
+			medge++;
+		}
+	}
+	/* last edge */
+	medge->v1= ed->v1;
+	medge->v2= ed->v2;
+	if(ed->flag) medge->flag= ME_EDGEDRAW;
+
+	MEM_freeN(edsort);
+}
+
+
 
 void mball_to_mesh(ListBase *lb, Mesh *me)
 {

@@ -176,12 +176,16 @@ struct _HyperVert {
 	LinkNode *edges, *faces;
 };
 
+/* hyper edge flag */
+#define DR_OPTIM	1
+
 struct _HyperEdge {
 	HyperEdge *next;
 
 	HyperVert *v[2];
 	HyperVert *ep;
-	int flag;		// added for drawing optim
+	int flag;		// added for drawing optimal
+	float sharp;    // sharpness weight
 	LinkNode *faces;
 };
 
@@ -264,16 +268,17 @@ static HyperVert *hypermesh_add_vert(HyperMesh *hme, float *co, float *orig) {
 	return hv;
 }
 
-static HyperEdge *hypermesh_add_edge(HyperMesh *hme, HyperVert *v1, HyperVert *v2, int flag) {
+static HyperEdge *hypermesh_add_edge(HyperMesh *hme, HyperVert *v1, HyperVert *v2, int flag, float sharp) {
 	HyperEdge *he= BLI_memarena_alloc(hme->arena, sizeof(*he));
 	
 	BLI_linklist_prepend_arena(&v1->edges, he, hme->arena);
 	BLI_linklist_prepend_arena(&v2->edges, he, hme->arena);
-	
+
 	he->v[0]= v1;
 	he->v[1]= v2;
 	he->ep= NULL;
 	he->faces= NULL;
+	he->sharp = sharp;
 	he->flag= flag;
 	
 	he->next= hme->edges;
@@ -301,17 +306,17 @@ static HyperFace *hypermesh_add_face(HyperMesh *hme, HyperVert **verts, int nver
 		HyperEdge *e= hypervert_find_edge(v, last);
 
 		if (!e)
-			e= hypermesh_add_edge(hme, v, last, flag);
+			e= hypermesh_add_edge(hme, v, last, flag, 0);
 
 		f->verts[j]= v;
 		f->edges[j]= e;
-		
+
 		BLI_linklist_prepend_arena(&v->faces, f, hme->arena);
 		BLI_linklist_prepend_arena(&e->faces, f, hme->arena);
 		
 		last= v;
 	}
-	
+
 	f->next= hme->faces;
 	hme->faces= f;
 	
@@ -331,12 +336,14 @@ static HyperMesh *hypermesh_new(void) {
 	return hme;
 }
 
-static HyperMesh *hypermesh_from_mesh(Mesh *me, float *extverts) {
+static HyperMesh *hypermesh_from_mesh(Mesh *me, float *extverts, int subdivLevels) {
 	HyperMesh *hme= hypermesh_new();
 	HyperVert **vert_tbl;
 	MFace *mface= me->mface;
+	MEdge *medge= me->medge;
+	float creasefac= ((float)subdivLevels)/255.0; // in Mesh sharpness is byte
 	int i, j;
-	
+
 	hme->orig_me= me;
 	if (me->tface)
 		hme->hasvcol= hme->hasuvco= 1;
@@ -350,6 +357,15 @@ static HyperMesh *hypermesh_from_mesh(Mesh *me, float *extverts) {
 			vert_tbl[i]= hypermesh_add_vert(hme, &extverts[i*3], NULL);
 		else
 			vert_tbl[i]= hypermesh_add_vert(hme, me->mvert[i].co, NULL);
+	}
+
+	if(medge) {
+		for (i=0; i<me->totedge; i++) {
+			MEdge *med= &medge[i];
+			
+			hypermesh_add_edge(hme, vert_tbl[med->v1], vert_tbl[med->v2], DR_OPTIM, 
+				creasefac*((float)med->crease) );
+		}
 	}
 
 	for (i=0; i<me->totface; i++) {
@@ -366,7 +382,7 @@ static HyperMesh *hypermesh_from_mesh(Mesh *me, float *extverts) {
 			if (nverts>3)
 				verts[3]= vert_tbl[mf->v4];
 		
-			f= hypermesh_add_face(hme, verts, nverts, 1);
+			f= hypermesh_add_face(hme, verts, nverts, DR_OPTIM); 
 			f->orig.ind= i;
 
 			if (hme->hasuvco) {
@@ -386,8 +402,8 @@ static HyperMesh *hypermesh_from_mesh(Mesh *me, float *extverts) {
 				for (j=0; j<nverts; j++)
 					*((unsigned int*) f->vcol[j])= *((unsigned int*) &mcol[j]);
 			}
-		} else {
-			hypermesh_add_edge(hme, vert_tbl[mf->v1], vert_tbl[mf->v2], 1);
+		} else if(medge==NULL) {
+			hypermesh_add_edge(hme, vert_tbl[mf->v1], vert_tbl[mf->v2], DR_OPTIM, 0.0); 
 		}
 	}
 
@@ -396,11 +412,12 @@ static HyperMesh *hypermesh_from_mesh(Mesh *me, float *extverts) {
 	return hme;
 }
 
-static HyperMesh *hypermesh_from_editmesh(EditMesh *em) {
+static HyperMesh *hypermesh_from_editmesh(EditMesh *em, int subdivLevels) {
 	HyperMesh *hme= hypermesh_new();
 	EditVert *ev, *prevev;
 	EditEdge *ee;
 	EditVlak *ef;
+	float creasefac= (float)subdivLevels;
 
 		/* we only add vertices with edges, 'f1' is a free flag */
 		/* added: check for hide flag in vertices */
@@ -421,7 +438,8 @@ static HyperMesh *hypermesh_from_editmesh(EditMesh *em) {
 				ee->v2->f1= 0;
 			}
 				
-			hypermesh_add_edge(hme, (HyperVert*) ee->v1->prev, (HyperVert*) ee->v2->prev, 1);
+			hypermesh_add_edge(hme, (HyperVert*) ee->v1->prev, (HyperVert*) ee->v2->prev, DR_OPTIM, 
+				creasefac*ee->crease);
 		}
 	}
 	for (ef= em->faces.first; ef; ef= ef->next) {
@@ -438,7 +456,7 @@ static HyperMesh *hypermesh_from_editmesh(EditMesh *em) {
 			if (nverts>3)
 				verts[3]= (HyperVert*) ef->v4->prev;
 	
-			f= hypermesh_add_face(hme, verts, nverts, 1);
+			f= hypermesh_add_face(hme, verts, nverts, DR_OPTIM);
 			f->orig.ef= ef;
 		}
 	}
@@ -457,13 +475,151 @@ static void VColAvgT(unsigned char *t, unsigned char *a, unsigned char *b) {
 	t[3]= (a[3]+b[3])>>1;
 }
 
+static void hypermesh_calc_sharp_edge(HyperEdge *e, float co[3])
+{
+	Vec3AvgT(co, e->v[0]->co, e->v[1]->co);
+}
+
+static void hypermesh_calc_smooth_edge(HyperEdge *e, float co[3])
+{
+	int count;
+	LinkNode *link;
+	HyperFace *f;
+	
+	Vec3AddT(co, e->v[0]->co, e->v[1]->co);
+	for (count=2, link= e->faces; link; count++, link= link->next) {
+		f= (HyperFace *) link->link;
+		Vec3Add(co, f->mid->co);
+	}
+	Vec3MulN(co, (float)(1.0/count));
+}
+
+static void hypermesh_lininterp_vert(float co[3], float co1[3], float co2[3], float w)
+{
+	float codiff[3];
+	
+	codiff[0] = co2[0] - co1[0];
+	codiff[1] = co2[1] - co1[1];
+	codiff[2] = co2[2] - co1[2];
+	
+	Vec3MulN(codiff, w);
+	
+	Vec3AddT(co, co1, codiff);
+}
+
+static void hypermesh_calc_interp_edge(HyperEdge *e, float co[3])
+{
+	float co1[3];
+	float co2[3];
+	
+	hypermesh_calc_smooth_edge(e, co1);
+	hypermesh_calc_sharp_edge(e, co2);
+	
+	hypermesh_lininterp_vert(co, co1, co2, e->sharp);
+}
+
+
+static void hypermesh_calc_smooth_vert(HyperVert *v, float co[3])
+{
+	float q[3], r[3], s[3];
+	LinkNode *link;
+	HyperFace *f;
+	HyperEdge *e;
+	int count = 0;
+	
+	if (hypervert_is_boundary(v)) {
+		Vec3CpyI(r, 0.0, 0.0, 0.0);
+	
+		for (count= 0, link= v->edges; link; link= link->next) {
+			if (hyperedge_is_boundary(link->link)) {
+				HyperVert *ov= hyperedge_other_vert(link->link, v);
+		
+				Vec3Add(r, ov->co);
+				count++;
+			}
+		}
+	
+		/* I believe CC give the factors as
+			3/2k and 1/4k, but that doesn't make
+			sense (to me) as they don't sum to unity... 
+			It's rarely important.
+		*/
+		Vec3MulNT(s, v->co, 0.75f);
+		Vec3Add(s, Vec3MulN(r, (float)(1.0/(4.0*count))));
+	} else {
+		Vec3Cpy(q, Vec3Cpy(r, Vec3CpyI(s, 0.0f, 0.0f, 0.0f)));
+	
+		for (count=0, link= v->faces; link; count++, link= link->next) {
+			f= (HyperFace *) link->link;
+			Vec3Add(q, f->mid->co);
+		}
+		Vec3MulN(q, (float)(1.0/count));
+	
+		for (count=0, link= v->edges; link; count++, link= link->next) {
+			e= (HyperEdge *) link->link;
+			Vec3Add(r, hyperedge_other_vert(e, v)->co);
+		}
+		Vec3MulN(r, (float)(1.0/count));
+	
+		Vec3MulNT(s, v->co, (float)(count-2));
+	
+		Vec3Add(s, q);
+		Vec3Add(s, r);
+		Vec3MulN(s, (float)(1.0/count));
+	}
+	
+	Vec3Cpy(co, s);
+	
+}
+
+static void hypermesh_calc_sharp_vert(HyperVert *v, float co[3])
+{
+	co[0] = v->co[0];
+	co[1] = v->co[1];
+	co[2] = v->co[2];
+}
+
+static void hypermesh_calc_creased_vert(HyperVert *v, float co[3])
+{
+	HyperVert *e1v = NULL, *e2v = NULL;
+	HyperEdge *he;
+	LinkNode *link;
+	int count;
+	
+	/* use the crease rule */
+	for (count= 0, link= v->edges; link; link= link->next) {
+		he = (HyperEdge *)link->link;
+		if (he->sharp != 0.0) {
+			if (e1v)
+				e2v = hyperedge_other_vert(he, v);
+			else
+				e1v = hyperedge_other_vert(he, v);
+		}
+	}
+	
+	co[0] = (e1v->co[0] + 6.0 * v->co[0] + e2v->co[0]) / 8.0;
+	co[1] = (e1v->co[1] + 6.0 * v->co[1] + e2v->co[1]) / 8.0;
+	co[2] = (e1v->co[2] + 6.0 * v->co[2] + e2v->co[2]) / 8.0;
+}
+
+static void hypermesh_calc_interp_vert(HyperVert *v, float co[3], float w)
+{
+	float co1[3];
+	float co2[3];
+	
+	hypermesh_calc_smooth_vert(v, co1);
+	hypermesh_calc_creased_vert(v, co2);
+	
+	hypermesh_lininterp_vert(co, co1, co2, w);
+}
+
 static void hypermesh_subdivide(HyperMesh *me, HyperMesh *nme) {
 	HyperVert *v;
 	HyperEdge *e;
 	HyperFace *f;
 	LinkNode *link;
 	float co[3];
-	int j, k, count;
+	int j, k;
 
 	for (f= me->faces; f; f= f->next) {
 		Vec3CpyI(co, 0.0, 0.0, 0.0);
@@ -475,70 +631,52 @@ static void hypermesh_subdivide(HyperMesh *me, HyperMesh *nme) {
 	}
 		
 	for (e= me->edges; e; e= e->next) {
-		if (hyperedge_is_boundary(e)) {
-			Vec3AvgT(co, e->v[0]->co, e->v[1]->co);
-		} else {
-			Vec3AddT(co, e->v[0]->co, e->v[1]->co);
-			for (count=2, link= e->faces; link; count++, link= link->next) {
-				f= (HyperFace *) link->link;
-				Vec3Add(co, f->mid->co);
-			}
-			Vec3MulN(co, (float)(1.0/count));
-		}
+		if (hyperedge_is_boundary(e) || (e->sharp > 1.0)) {
+         hypermesh_calc_sharp_edge(e, co);
+      }
+      else {
+         hypermesh_calc_interp_edge(e, co);
+      }
 		
 		e->ep= hypermesh_add_vert(nme, co, NULL);
 	}
 
 	for (v= me->verts; v; v= v->next) {
-		float q[3], r[3], s[3];
+		float s[3];
+		int sharpcnt = 0;
+		float avgw = 0.0;
 
-		if (hypervert_is_boundary(v)) {
-			Vec3CpyI(r, 0.0, 0.0, 0.0);
-
-			for (count= 0, link= v->edges; link; link= link->next) {
-				if (hyperedge_is_boundary(link->link)) {
-					HyperVert *ov= hyperedge_other_vert(link->link, v);
-
-					Vec3Add(r, ov->co);
-					count++;
-				}
+		/* count the sharp edges */
+		for (link= v->edges; link; link= link->next) {
+			if (((HyperEdge *)link->link)->sharp != 0.0) {
+				sharpcnt++;
+				avgw += ((HyperEdge *)link->link)->sharp;
 			}
-
-				/* I believe CC give the factors as
-					3/2k and 1/4k, but that doesn't make
-					sense (to me) as they don't sum to unity... 
-					It's rarely important.
-				*/
-			Vec3MulNT(s, v->co, 0.75f);
-			Vec3Add(s, Vec3MulN(r, (float)(1.0/(4.0*count))));
-		} else {
-			Vec3Cpy(q, Vec3Cpy(r, Vec3CpyI(s, 0.0f, 0.0f, 0.0f)));
-		
-			for (count=0, link= v->faces; link; count++, link= link->next) {
-				f= (HyperFace *) link->link;
-				Vec3Add(q, f->mid->co);
-			}
-			Vec3MulN(q, (float)(1.0/count));
-
-			for (count=0, link= v->edges; link; count++, link= link->next) {
-				e= (HyperEdge *) link->link;
-				Vec3Add(r, hyperedge_other_vert(e, v)->co);
-			}
-			Vec3MulN(r, (float)(1.0/count));
-		
-			Vec3MulNT(s, v->co, (float)(count-2));
-
-			Vec3Add(s, q);
-			Vec3Add(s, r);
-			Vec3MulN(s, (float)(1.0/count));
 		}
-
+		
+		avgw /= (float)sharpcnt;
+		if (avgw > 1.0)
+			avgw = 1.0;
+		
+		switch (sharpcnt) {
+		case 0:
+		case 1:
+			hypermesh_calc_smooth_vert(v, s);
+			break;
+		case 2:
+			hypermesh_calc_interp_vert(v, s, avgw);
+			break;
+		default:
+			hypermesh_calc_sharp_vert(v, s);
+			break;
+		}
+		
 		v->nmv= hypermesh_add_vert(nme, s, v->orig);
 	}
 
 	for (e= me->edges; e; e= e->next) {
-		hypermesh_add_edge(nme, e->v[0]->nmv, e->ep, e->flag);
-		hypermesh_add_edge(nme, e->v[1]->nmv, e->ep, e->flag);
+		hypermesh_add_edge(nme, e->v[0]->nmv, e->ep, e->flag, e->sharp>1.0?e->sharp-1.0:0.0);
+		hypermesh_add_edge(nme, e->v[1]->nmv, e->ep, e->flag, e->sharp>1.0?e->sharp-1.0:0.0);
 	}
 
 	for (f= me->faces; f; f= f->next) {
@@ -610,7 +748,7 @@ static void hypermesh_subdivide(HyperMesh *me, HyperMesh *nme) {
 	}
 }
 
-/* Simple subdivition surface for radio and displacement */
+/* Simple subdivision surface for radio and displacement */
 static void hypermesh_simple_subdivide(HyperMesh *me, HyperMesh *nme) {
 	HyperVert *v;
 	HyperEdge *e;
@@ -635,9 +773,9 @@ static void hypermesh_simple_subdivide(HyperMesh *me, HyperMesh *nme) {
 		v->nmv= hypermesh_add_vert(nme, v->co, v->orig);
 	}
 
-	for (e= me->edges; e; e= e->next) { /* Add originam edges */
-		hypermesh_add_edge(nme, e->v[0]->nmv, e->ep, e->flag);
-		hypermesh_add_edge(nme, e->v[1]->nmv, e->ep, e->flag);
+	for (e= me->edges; e; e= e->next) { /* Add original edges */
+		hypermesh_add_edge(nme, e->v[0]->nmv, e->ep, e->flag, 0.0);
+		hypermesh_add_edge(nme, e->v[1]->nmv, e->ep, e->flag, 0.0);
 	}
 
 	for (f= me->faces; f; f= f->next) {
@@ -748,28 +886,28 @@ static int hypermesh_get_nfaces(HyperMesh *hme) {
 	return count;
 }
 
-static int hypermesh_get_nlines(HyperMesh *hme) {
+static int hypermesh_get_nedges(HyperMesh *hme) {
 	HyperEdge *e;
-	int n= 0;
+	int count= 0;
 	
 	for (e= hme->edges; e; e= e->next)
-		if (!e->faces)
-			n++;
+			count++;
 	
-	return n;
+	return count;
 }
 
 /* flag is me->flag, for handles and 'optim' */
 static DispListMesh *hypermesh_to_displistmesh(HyperMesh *hme, short flag) {
 	int nverts= hypermesh_get_nverts(hme);
-	int nfaces= hypermesh_get_nfaces(hme) + hypermesh_get_nlines(hme);
+	int nedges= hypermesh_get_nedges(hme);
+	int nfaces= hypermesh_get_nfaces(hme);
 	DispListMesh *dlm= MEM_callocN(sizeof(*dlm), "dlmesh");
 	HyperFace *f;
 	HyperVert *v;
 	HyperEdge *e;
 	TFace *tfaces;
-	MFace *mfaces;
-	MFace *mf;
+	MEdge *med;
+	MFace *mfaces, *mf;
 	int i, j, handles=0;
 
 		/* hme->orig_me==NULL if we are working on an editmesh */
@@ -787,10 +925,14 @@ static DispListMesh *hypermesh_to_displistmesh(HyperMesh *hme, short flag) {
 	}
 	
 	dlm->totvert= nverts+handles;
-	dlm->totface= nfaces+handles;
+	dlm->totface= nfaces;
+	dlm->totedge= nedges+handles;
+	
 	/* calloc for clear flag and nor in mvert */
 	dlm->mvert= MEM_callocN(dlm->totvert*sizeof(*dlm->mvert), "dlm->mvert");
+	dlm->medge= MEM_callocN(dlm->totedge*sizeof(*dlm->medge), "dlm->medge");
 	dlm->mface= MEM_mallocN(dlm->totface*sizeof(*dlm->mface), "dlm->mface");
+
 	if (hme->orig_me) {
 		dlm->flag= hme->orig_me->flag;
 	} else {
@@ -808,6 +950,37 @@ static DispListMesh *hypermesh_to_displistmesh(HyperMesh *hme, short flag) {
 		v->nmv= (void*) i;
 	}
 	
+	/* we use by default edges for displistmesh now */
+	med= dlm->medge;
+	for (e= hme->edges; e; e= e->next, med++) {
+		med->v1= (int) e->v[0]->nmv;
+		med->v2= (int) e->v[1]->nmv;
+
+		/* flag only for optimal */
+		if(e->flag) med->flag = ME_EDGEDRAW;
+	}
+	
+	/* and we add the handles (med is re-used) */
+	if(handles) {
+		MVert *mv= dlm->mvert+nverts;
+
+		i= nverts;
+		for (v= hme->verts; v; v= v->next) {
+			if(v->orig) {
+				/* new vertex */
+				Vec3Cpy(mv->co, v->orig);
+
+				/* new edge */
+				med->v1= (int) v->nmv;
+				med->v2= i;
+				med->flag = ME_EDGEDRAW;
+				
+				med++; i++; mv++;
+			}
+		}
+	}
+
+	/* faces */
 	mf= dlm->mface;
 	for (i=0, f= hme->faces; f; i++, f= f->next) {
 			/* There is a complicated dependancy here:
@@ -838,6 +1011,7 @@ static DispListMesh *hypermesh_to_displistmesh(HyperMesh *hme, short flag) {
 			mf->puno= 0;
 		}
 		
+		/* although not used by 3d display, still needed for wire-render */
 		mf->edcode= 0;
 		if (f->edges[0]->flag) mf->edcode|= ME_V4V1;
 		if (f->edges[1]->flag) mf->edcode|= ME_V1V2;
@@ -870,48 +1044,6 @@ static DispListMesh *hypermesh_to_displistmesh(HyperMesh *hme, short flag) {
 		}
 		
 		mf++;
-	}
-
-	for (e= hme->edges; e; e= e->next) {
-		if (!e->faces) {
-			mf->v1= (int) e->v[0]->nmv;
-			mf->v2= (int) e->v[1]->nmv;
-			mf->v3= 0;
-			mf->v4= 0;
-			
-			mf->mat_nr= 0;
-			mf->flag= 0;
-			mf->puno= 0;
-			mf->edcode= ME_V1V2;
-				
-			mf++;
-		}
-	}
-	
-	/* and we add the handles */
-	if(handles) {
-		MVert *mv= dlm->mvert+nverts;
-		mf= dlm->mface+nfaces;
-		i= nverts;
-		for (v= hme->verts; v; v= v->next) {
-			if(v->orig) {
-				/* new vertex */
-				Vec3Cpy(mv->co, v->orig);
-
-				/* new face */
-				mf->v1= (int) v->nmv;
-				mf->v2= i;
-				mf->v3= 0;
-				mf->v4= 0;
-				
-				mf->mat_nr= 0;
-				mf->flag= 0;
-				mf->puno= 0;
-				mf->edcode= ME_V1V2;
-					
-				mf++; i++; mv++;
-			}
-		}
 	}	
 	
 	displistmesh_calc_vert_normals(dlm);
@@ -948,7 +1080,7 @@ DispListMesh *subsurf_make_dispListMesh_from_editmesh(EditMesh *em, int subdivLe
 	if (subdivLevels<1) {
 		return displistmesh_from_editmesh(em);
 	} else {
-		HyperMesh *hme= hypermesh_from_editmesh(em);
+		HyperMesh *hme= hypermesh_from_editmesh(em, subdivLevels);
 	
 		return subsurf_subdivide_to_displistmesh(hme, subdivLevels, flags, type);
 	}
@@ -958,7 +1090,7 @@ DispListMesh *subsurf_make_dispListMesh_from_mesh(Mesh *me, float *extverts, int
 	if (subdivLevels<1) {
 		return displistmesh_from_mesh(me, extverts);
 	} else {
-		HyperMesh *hme= hypermesh_from_mesh(me, extverts);
+		HyperMesh *hme= hypermesh_from_mesh(me, extverts, subdivLevels);
 
 		return subsurf_subdivide_to_displistmesh(hme, subdivLevels, flags, me->subsurftype);
 	}
@@ -972,7 +1104,7 @@ void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3])
 	 * calculated vert positions is incorrect for the verts 
 	 * on the boundary of the mesh.
 	 */
-	HyperMesh *hme= hypermesh_from_mesh(me, NULL);
+	HyperMesh *hme= hypermesh_from_mesh(me, NULL, 1);	// 1=subdivlevel
 	HyperMesh *nme= hypermesh_new();
 	float edge_sum[3], face_sum[3];
 	HyperVert *hv;
@@ -1005,3 +1137,4 @@ void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3])
 	hypermesh_free(nme);
 	hypermesh_free(hme);
 }
+

@@ -1239,7 +1239,6 @@ static void init_render_mesh(Object *ob)
 	VlakRen *vlr, *vlr1;
 	VertRen *ver;
 	Material *ma;
-	MFace *mfaceint = NULL;
 	MSticky *ms;
 	PartEff *paf;
 	DispList *dl;
@@ -1426,7 +1425,7 @@ static void init_render_mesh(Object *ob)
 				end= dlm?dlm->totface:me->totface;
 				set_buildvars(ob, &start, &end);
 				if (dlm) {
-					mfaceint= dlm->mface + start;
+					mface= dlm->mface + start;
 					if (dlm->tface) {
 						tface= dlm->tface + start;
 						vertcol= dlm->tface->col;
@@ -1436,7 +1435,6 @@ static void init_render_mesh(Object *ob)
 						vertcol= NULL;
 					}
 				} else {
-					mfaceint= NULL;
 					mface= ((MFace*) me->mface) + start;
 					if (me->tface) {
 						tface= ((TFace*) me->tface) + start;
@@ -1449,30 +1447,19 @@ static void init_render_mesh(Object *ob)
 				}
 				
 				for(a=start; a<end; a++) {
-					int mat_nr;
 					int v1, v2, v3, v4, edcode, flag;
-					if (mfaceint) {
-						mat_nr= mfaceint->mat_nr;
-						v1= mfaceint->v1;
-						v2= mfaceint->v2;
-						v3= mfaceint->v3;
-						v4= mfaceint->v4;
-						flag= mfaceint->flag;
-						/* if mfaceint, then dlm is not NULL too */
-						if(dlm->flag & ME_OPT_EDGES) edcode= mfaceint->edcode;
-						else edcode= ME_V1V2|ME_V2V3|ME_V3V4|ME_V4V1;
-					} 
-					else {
-						mat_nr= mface->mat_nr;
+					
+					if( mface->mat_nr==a1 ) {
 						v1= mface->v1;
 						v2= mface->v2;
 						v3= mface->v3;
 						v4= mface->v4;
 						flag= mface->flag;
 						edcode= mface->edcode;
-					}
-					if( mat_nr==a1 ) {
-
+						
+						/* cannot use edges data for render, this has no vcol or tface... */
+						if(dlm && (dlm->flag & ME_OPT_EDGES)==0) edcode= ME_V1V2|ME_V2V3|ME_V3V4|ME_V4V1;
+						
 						if(v3) {
 
 							vlr= RE_findOrAddVlak(R.totvlak++);
@@ -1527,11 +1514,7 @@ static void init_render_mesh(Object *ob)
 						}
 					}
 
-					if (mfaceint) {
-						mfaceint++;
-					} else {
-						mface++;
-					}
+					mface++;
 					if(tface) tface++;
 				}
 			}

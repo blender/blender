@@ -1015,6 +1015,11 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							extrude_ika(ob, 1);
 					}
 				}
+            if (G.qual == LR_SHIFTKEY) {
+               if (G.obedit && G.obedit->type==OB_MESH) {
+                  transform('e');
+               }
+            }
 				break;
 			case FKEY:
 				if(G.obedit) {
@@ -1042,7 +1047,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case GKEY:
 				/* RMGRP if(G.qual & LR_CTRLKEY) add_selected_to_group();
 				else if(G.qual & LR_ALTKEY) rem_selected_from_group(); */
-				
+
 				if((G.qual==LR_SHIFTKEY))
 					select_group_menu();
 				else if(G.qual==LR_ALTKEY)

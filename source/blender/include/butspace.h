@@ -337,6 +337,8 @@ enum {
 #define B_MAKESTICKY	2082
 #define B_MAKEVERTCOL	2083
 #define B_CHROMADEPTH	2084
+#define B_MAKEEDGES		2085
+#define B_DELEDGES		2086
 
 /* *********************** */
 #define B_CURVEBUTS		2200
