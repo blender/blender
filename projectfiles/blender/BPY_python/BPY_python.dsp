@@ -191,6 +191,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\MTex.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\NLA.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\NMesh.c
 # End Source File
 # Begin Source File
@@ -372,6 +376,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\modules.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\MTex.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\NLA.h
 # End Source File
 # Begin Source File
 
