@@ -1983,10 +1983,12 @@ static int ui_do_but_BUT(uiBut *but)
 		else
 			but->flag &= ~UI_SELECT;
 
-		if (but->flag != oflag)
+		if (but->flag != oflag) {
 			ui_draw_but(but);
-			
-		PIL_sleep_ms(1);
+			glFinish(); // flush display in subloops
+		}
+		
+		PIL_sleep_ms(10);
 	} while (get_mbut() & L_MOUSE);
 
 	activated= (but->flag & UI_SELECT);
@@ -2150,7 +2152,8 @@ static int ui_do_but_TEX(uiBut *but)
 	BLI_strncpy(backstr, but->poin, UI_MAX_DRAW_STR);
 
 	ui_draw_but(but);
-
+	glFinish(); // flush display in subloops
+	
 	while (get_mbut() & L_MOUSE) BIF_wait_for_statechange();
 	len= strlen(str);
 	but->min= 0.0;
