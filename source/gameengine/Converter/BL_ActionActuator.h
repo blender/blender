@@ -52,22 +52,22 @@ public:
 						PyTypeObject* T=&Type) 
 		: SCA_IActuator(gameobj,T),
 		
-		m_blendframe(0),
 		m_lastpos(0, 0, 0),
+		m_blendframe(0),
 		m_flag(0),
 		m_startframe (starttime),
 		m_endframe(endtime) ,
 		m_localtime(starttime),
 		m_lastUpdate(-1),
-		m_playtype(playtype),
 		m_blendin(blendin),
-		m_priority(priority),
 		m_stridelength(stride),
+		m_playtype(playtype),
+		m_priority(priority),
 		m_pose(NULL),
 		m_blendpose(NULL),
 		m_userpose(NULL),
-		m_propname(propname), 
-		m_action(action)
+		m_action(action),
+		m_propname(propname)
 	{
 	};
 	virtual ~BL_ActionActuator();
@@ -115,8 +115,8 @@ protected:
 	void SetLocalTime(float curtime);
 	bool ClampLocalTime();
 
-	float	m_blendframe;
 	MT_Point3	m_lastpos;
+	float	m_blendframe;
 	int		m_flag;
 	/** The frame this action starts */
 	float	m_startframe;
@@ -128,23 +128,23 @@ protected:
 	float	m_localtime;
 	
 	float	m_lastUpdate;
-	short	m_playtype;
 	float	m_blendin;
 	float	m_blendstart;
-	short	m_priority;
 	float	m_stridelength;
+	short	m_playtype;
+	short	m_priority;
 	struct bPose* m_pose;
 	struct bPose* m_blendpose;
 	struct bPose* m_userpose;
-	STR_String	m_propname;
 	struct bAction *m_action;
-
+	STR_String	m_propname;
 };
 
 enum {
 	ACT_FLAG_REVERSE	= 0x00000001,
 	ACT_FLAG_LOCKINPUT	= 0x00000002,
-	ACT_FLAG_KEYUP		= 0x00000004
+	ACT_FLAG_KEYUP		= 0x00000004,
+	ACT_FLAG_ACTIVE		= 0x00000008
 };
 
 #endif

@@ -166,18 +166,28 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	
 	// result = true if animation has to be continued, false if animation stops
 	// maybe there are events for us in the queue !
-	
-	for (vector<CValue*>::iterator i=m_events.end(); !(i==m_events.begin());)
+	if (frame)
 	{
-		i--;
-		if ((*i)->GetNumber() == 0.0f)
+		for (vector<CValue*>::iterator i=m_events.end(); !(i==m_events.begin());)
 		{
-			bNegativeEvent = true;
+			i--;
+			if ((*i)->GetNumber() == 0.0f)
+				bNegativeEvent = true;
+			else
+				bPositiveEvent= true;
+			(*i)->Release();
+			m_events.pop_back();
 		}
-		else
-			bPositiveEvent= true;
-		(*i)->Release();
-		m_events.pop_back();
+		
+		if (bPositiveEvent)
+			m_flag |= ACT_FLAG_ACTIVE;
+		
+		if (bNegativeEvent)
+		{
+			if (!(m_flag & ACT_FLAG_ACTIVE))
+				return false;
+			m_flag &= ~ACT_FLAG_ACTIVE;
+		}
 	}
 	
 	/*	We know that action actuators have been discarded from all non armature objects:
@@ -236,7 +246,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 			if (!(m_flag & ACT_FLAG_LOCKINPUT)){
 				m_flag &= ~ACT_FLAG_REVERSE;
 				m_flag |= ACT_FLAG_LOCKINPUT;
-				m_starttime = curtime;
+				SetStartTime(curtime);
 			}
 		}
 		else if (bNegativeEvent){
@@ -324,6 +334,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 				m_localtime = m_endframe;
 				m_flag &= ~ACT_FLAG_LOCKINPUT;
 			}
+			SetStartTime(curtime);
 		}
 		break;
 	case ACT_ACTION_PLAY:
