@@ -114,7 +114,7 @@ struct uiBut {
 
 	char *poin;
 	float min, max;
-	float a1, a2, rt[4];
+	float a1, a2, hsv[3];	// hsv is temp memory for hsv buttons
 	float aspect;
 
 	void (*func)(void *, void *);

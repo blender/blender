@@ -2208,39 +2208,38 @@ static float palette[UI_PALETTE_TOT+1][3]= {
 };  
 
 
-static void update_picker_buts(uiBlock *block, float *col)
+static void update_picker_buts(uiBlock *block, float *hsv)
 {
 	uiBut *bt;
-	float h, s, v;
+	float r, g, b;
 	
 	// this updates button strings, is hackish... but button pointers are on stack of caller function
-
-	rgb_to_hsv(col[0], col[1], col[2], &h, &s, &v);
+	hsv_to_rgb(hsv[0], hsv[1], hsv[2], &r, &g, &b);
 
 	for(bt= block->buttons.first; bt; bt= bt->next) {
 		if(bt->str[1]==' ') {
 			if(bt->str[0]=='R') {
-				ui_set_but_val(bt, col[0]);
+				ui_set_but_val(bt, r);
 				ui_check_but(bt);
 			}
 			else if(bt->str[0]=='G') {
-				ui_set_but_val(bt, col[1]);
+				ui_set_but_val(bt, g);
 				ui_check_but(bt);
 			}
 			else if(bt->str[0]=='B') {
-				ui_set_but_val(bt, col[2]);
+				ui_set_but_val(bt, b);
 				ui_check_but(bt);
 			}
 			else if(bt->str[0]=='H') {
-				ui_set_but_val(bt, h);
+				ui_set_but_val(bt, hsv[0]);
 				ui_check_but(bt);
 			}
 			else if(bt->str[0]=='S') {
-				ui_set_but_val(bt, s);
+				ui_set_but_val(bt, hsv[1]);
 				ui_check_but(bt);
 			}
 			else if(bt->str[0]=='V') {
-				ui_set_but_val(bt, v);
+				ui_set_but_val(bt, hsv[2]);
 				ui_check_but(bt);
 			}
 		}
@@ -2254,7 +2253,7 @@ static void do_palette_cb(void *bt1, void *col1)
 	uiBut *but1= (uiBut *)bt1;
 	uiBut *but;
 	float *col= (float *)col1;
-	float *fp;
+	float *fp, hsv[3];
 	
 	fp= (float *)but1->poin;
 	
@@ -2264,8 +2263,9 @@ static void do_palette_cb(void *bt1, void *col1)
 	else {
 		VECCOPY(col, fp);
 	}
-
-	update_picker_buts(but1->block, col);
+	
+	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
+	update_picker_buts(but1->block, hsv);
 	
 	for (but= but1->block->buttons.first; but; but= but->next) {
 		ui_draw_but(but);
@@ -2276,22 +2276,22 @@ static void do_palette_cb(void *bt1, void *col1)
 
 /* bt1 is num but, col1 is pointer to original color */
 /* callback to handle changes in num-buts in picker */
-static void do_palette1_cb(void *bt1, void *col1)
+static void do_palette1_cb(void *bt1, void *hsv1)
 {
 	uiBut *but1= (uiBut *)bt1;
 	uiBut *but;
-	float *col= (float *)col1;
+	float *hsv= (float *)hsv1;
 	float *fp= NULL;
 	
-	if(but1->str[0]=='H') fp= (float *)but1->poin;
-	else if(but1->str[0]=='S') fp= ((float *)but1->poin)-1;
-	else if(but1->str[0]=='V') fp= ((float *)but1->poin)-2;
+	if(but1->str[0]=='R') fp= (float *)but1->poin;
+	else if(but1->str[0]=='G') fp= ((float *)but1->poin)-1;
+	else if(but1->str[0]=='B') fp= ((float *)but1->poin)-2;
 	
 	if(fp) {
-		hsv_to_rgb(fp[0], fp[1], fp[2], col, col+1, col+2);
+		rgb_to_hsv(fp[0], fp[1], fp[2], hsv, hsv+1, hsv+2);
 	}
-	
-	update_picker_buts(but1->block, col);
+
+	update_picker_buts(but1->block, hsv);	
 	
 	for (but= but1->block->buttons.first; but; but= but->next) {
 		ui_draw_but(but);
@@ -2304,16 +2304,11 @@ static void do_palette1_cb(void *bt1, void *col1)
 
 /* color picker, Gimp version. mode: 'f' = floating panel, 'p' =  popup */
 /* col = read/write to, hsv/old = memory for temporal use */
-void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, char mode)
+void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, char mode, short retval)
 {
 	uiBut *bt;
 	float h, offs;
-	int a, retval=B_NOP;
-
-	if(mode=='p') {
-		// safety, put in beginning otherwise tooltips wont work
-		retval= 0;	// prevents event that closes popup
-	}
+	int a;
 
 	VECCOPY(old, col);	// old color stored there, for palette_cb to work
 	
@@ -2352,19 +2347,19 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 
 	uiBlockBeginAlign(block);
 	bt= uiDefButF(block, NUM, retval, "R ",	offs, 110, 80,20, col, 0.0, 1.0, 10, 2, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, col);
+	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
 	bt= uiDefButF(block, NUM, retval, "G ",	offs, 90, 80,20, col+1, 0.0, 1.0, 10, 2, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, col);
+	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
 	bt= uiDefButF(block, NUM, retval, "B ",	offs, 70, 80,20, col+2, 0.0, 1.0, 10, 2, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, col);
+	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
 	
 	uiBlockBeginAlign(block);
 	bt= uiDefButF(block, NUM, retval, "H ",	offs, 40, 80,20, hsv, 0.0, 1.0, 10, 2, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, col);
+	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
 	bt= uiDefButF(block, NUM, retval, "S ",	offs, 20, 80,20, hsv+1, 0.0, 1.0, 10, 2, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, col);
+	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
 	bt= uiDefButF(block, NUM, retval, "V ",	offs, 0, 80,20, hsv+2, 0.0, 1.0, 10, 2, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, col);
+	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
 	uiBlockEndAlign(block);
 }
 
@@ -2397,7 +2392,7 @@ static int ui_do_but_COL(uiBut *but)
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW;
 	block->themecol= TH_BUT_NUM;
 	
-	uiBlockPickerButtons(block, poin, hsv, old, 'p');
+	uiBlockPickerButtons(block, poin, hsv, old, 'p', 0);
 
 	/* and lets go */
 	block->direction= UI_TOP;
@@ -2416,14 +2411,25 @@ static int ui_do_but_COL(uiBut *but)
 
 }
 
+/* for picker, while editing hsv */
+static void ui_set_but_hsv(uiBut *but)
+{
+	float col[3];
+	
+	hsv_to_rgb(but->hsv[0], but->hsv[1], but->hsv[2], col, col+1, col+2);
+	ui_set_but_vectorf(but, col);
+}
+
 static int ui_do_but_HSVCUBE(uiBut *but)
 {
 	uiBut *bt;
-	float x, y, col[3], h,s,v;
+	float x, y;
 	short mval[2], mvalo[2];
 	
 	mvalo[0]= mvalo[1]= -32000;
 	
+	/* we work on persistant hsv, to prevent it being converted back and forth all the time */
+			   
 	while (get_mbut() & L_MOUSE) {
 		
 		uiGetMouse(mywinget(), mval);
@@ -2435,36 +2441,37 @@ static int ui_do_but_HSVCUBE(uiBut *but)
 			/* relative position within box */
 			x= ((float)mval[0]-but->x1)/(but->x2-but->x1);
 			y= ((float)mval[1]-but->y1)/(but->y2-but->y1);
+			CLAMP(x, 0.0, 1.0);
+			CLAMP(y, 0.0, 1.0);
 			
-			/* we're hacking values now to prevent rgb_to_hsv working wrong */
-			/* (ton) doesnt work yet... */
-			CLAMP(x, 0.0002, 0.9998);
-			CLAMP(y, 0.0002, 0.9998);
-			
-			/* assign position to color */
-			ui_get_but_vectorf(but, col);
-
-			/* another attempt to prevent hsv from hanging */
-			CLAMP(col[0], 0.0002, 0.9998);
-			CLAMP(col[1], 0.0002, 0.9998);
-			CLAMP(col[2], 0.0002, 0.9998);
-			
-			rgb_to_hsv(col[0], col[1], col[2], &h, &s, &v);
-			if(v==0.0) v= 0.0002;
-			if(s==0.0) s= 0.0002;
-			
-			if(but->a1==0) hsv_to_rgb(x, s, y, col, col+1, col+2);
-			else if(but->a1==1) hsv_to_rgb(x, y, v, col, col+1, col+2);
-			else if(but->a1==2) hsv_to_rgb(h, y, x, col, col+1, col+2);
-			else hsv_to_rgb(x, s, v, col, col+1, col+2);
+			if(but->a1==0) {
+				but->hsv[0]= x; 
+				but->hsv[2]= y; 
+				// hsv_to_rgb(x, s, y, col, col+1, col+2);
+			}
+			else if(but->a1==1) {
+				but->hsv[0]= x; 				
+				but->hsv[1]= y; 				
+				// hsv_to_rgb(x, y, v, col, col+1, col+2);
+			}
+			else if(but->a1==2) {
+ 				but->hsv[2]= x; 
+ 				but->hsv[1]= y; 
+				// hsv_to_rgb(h, y, x, col, col+1, col+2);
+			}
+			else {
+ 				but->hsv[0]= x; 
+				// hsv_to_rgb(x, s, v, col, col+1, col+2);
+			}
 	
-			ui_set_but_vectorf(but, col);
+			ui_set_but_hsv(but);	// converts to rgb
 			
 			// update button values and strings
-			update_picker_buts(but->block, col);
+			update_picker_buts(but->block, but->hsv);
 
 			/* we redraw the entire block */
 			for (bt= but->block->buttons.first; bt; bt= bt->next) {
+				if(but->poin == bt->poin) VECCOPY(bt->hsv, but->hsv);
 				ui_draw_but(bt);
 			}
 			ui_block_flush_back(but->block);
@@ -2546,10 +2553,8 @@ static void setup_file(uiBlock *block)
 	else {
 		but= block->buttons.first;
 		while(but) {
-			// if(but->rt[3]==1) {
 			ui_check_but(but);
 			fprintf(fp,"%d,%d,%d,%d   %s %s\n", (int)but->x1, (int)but->y1, (int)( but->x2-but->x1), (int)(but->y2-but->y1), but->str, but->tip);
-			// }
 			but= but->next;
 		}
 		fclose(fp);
@@ -2586,7 +2591,6 @@ static void edit_but(uiBlock *block, uiBut *but, uiEvent *uevent)
 			ui_draw_but(but);
 			ui_block_flush_back(but->block);
 			didit= 1;
-			but->rt[3]= 1;
 
 		}
 		/* idle for this poor code */
@@ -4283,6 +4287,12 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 		}
 	}
 	
+	if(but->type==HSVCUBE) { /* hsv buttons temp storage */
+		float rgb[3];
+		ui_get_but_vectorf(but, rgb);
+		rgb_to_hsv(rgb[0], rgb[1], rgb[2], but->hsv, but->hsv+1, but->hsv+2);
+	}
+
 	if ELEM8(but->type, HSVSLI , NUMSLI, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM) {
 		but->flag |= UI_TEXT_LEFT;
 	}

@@ -180,7 +180,7 @@ void uiFreeBlocksWin(struct ListBase *lb, int win);
 uiBlock *uiNewBlock(struct ListBase *lb, char *name, short dt, short font, short win);
 uiBlock *uiGetBlock(char *name, struct ScrArea *sa);
 
-void uiBlockPickerButtons(struct uiBlock *block, float *col, float *hsv, float *old, char mode);
+void uiBlockPickerButtons(struct uiBlock *block, float *col, float *hsv, float *old, char mode, short retval);
 
 
 /* automatic aligning, horiz or verical */

@@ -1554,13 +1554,14 @@ static void ui_draw_but_COL(uiBut *but)
 static void ui_draw_but_HSVCUBE(uiBut *but)
 {
 	int a;
-	float col[3], h,s,v;
+	float h,s,v;
 	float dx, dy, sx1, sx2, sy, x, y;
 	float col0[4][3];	// left half, rect bottom to top
 	float col1[4][3];	// right half, rect bottom to top
 	
-	ui_get_but_vectorf(but, col);
-	rgb_to_hsv(col[0], col[1], col[2], &h, &s, &v);
+	h= but->hsv[0];
+	s= but->hsv[1];
+	v= but->hsv[2];
 	
 	/* draw series of gouraud rects */
 	glShadeModel(GL_SMOOTH);
