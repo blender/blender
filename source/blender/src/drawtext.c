@@ -1421,6 +1421,16 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			do_draw= 1;
 			break;
 
+		case HOMEKEY:
+			txt_move_bol(text, G.qual & LR_SHIFTKEY);
+			do_draw= 1;
+			break;
+			
+		case ENDKEY:
+			txt_move_eol(text, G.qual & LR_SHIFTKEY);
+			do_draw= 1;
+			break;
+									
 		case WHEELUPMOUSE:
 			screen_skip(st, -U.wheellinescroll);
 			do_draw= 1;

@@ -1135,6 +1135,7 @@ static int ui_do_but_TEX(uiBut *but)
 	unsigned short dev;
 	short x, mval[2], len=0, dodraw;
 	char *str, backstr[UI_MAX_DRAW_STR];
+	short capturing;
 	
 	str= (char *)but->poin;
 	
@@ -1166,7 +1167,8 @@ static int ui_do_but_TEX(uiBut *but)
 	len= strlen(str);
 	but->min= 0.0;
 	
-	while(TRUE) {
+	capturing = TRUE;
+	while(capturing) {
 		char ascii;
 		short val;
 
@@ -1195,29 +1197,45 @@ static int ui_do_but_TEX(uiBut *but)
 		}
 		else if(val) {
 		
-			if(dev==RIGHTARROWKEY) {
+			switch (dev) {
+				
+			case RIGHTARROWKEY:
 				if(G.qual & LR_SHIFTKEY) but->pos= strlen(str);
 				else but->pos++;
 				if(but->pos>strlen(str)) but->pos= strlen(str);
 				dodraw= 1;
-			}
-			else if(dev==LEFTARROWKEY) {
+				break;
+				
+			case LEFTARROWKEY:
 				if(G.qual & LR_SHIFTKEY) but->pos= 0;
 				else if(but->pos>0) but->pos--;
 				dodraw= 1;
-			}
-			else if(dev==PADENTER || dev==RETKEY) {
 				break;
-			}
-			else if(dev==DELKEY) {
-					if(but->pos>=0 && but->pos<strlen(str)) {
-							for(x=but->pos; x<=strlen(str); x++)
-									str[x]= str[x+1];
-							str[--len]='\0';
-							dodraw= 1;
-					}
-			}
-			else if(dev==BACKSPACEKEY) {
+
+			case ENDKEY:
+				but->pos= strlen(str);
+				dodraw= 1;
+				break;
+
+			case HOMEKEY:
+				but->pos= 0;
+				dodraw= 1;
+				break;
+				
+			case PADENTER:
+			case RETKEY:
+				capturing = FALSE;
+				break;
+				
+			case DELKEY:
+				if(but->pos>=0 && but->pos<strlen(str)) {
+					for(x=but->pos; x<=strlen(str); x++)
+						str[x]= str[x+1];
+					str[--len]='\0';
+					dodraw= 1;
+				}
+				
+			case BACKSPACEKEY:
 				if(len!=0) {
 					if(get_qual() & LR_SHIFTKEY) {
 						str[0]= 0;
@@ -1233,8 +1251,10 @@ static int ui_do_but_TEX(uiBut *but)
 						dodraw= 1;
 					}
 				} 
+				break;
 			}
 		}
+
 		if(dodraw) {
 			ui_check_but(but);
 			ui_draw_but(but);
