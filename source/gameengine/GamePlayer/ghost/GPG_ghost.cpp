@@ -274,15 +274,17 @@ int main(int argc, char** argv)
 #endif // __APPLE__
 	
 	GEN_init_messaging_system();
-	
+ 
 	// Parse command line options
 #ifndef NDEBUG
 	printf("argv[0] = '%s'\n", argv[0]);
 #endif
+
 	for (i = 1; (i < argc) && !error;)
+
 	{
 #ifndef NDEBUG
-		printf("argv[%d] = '%s'\n", i, argv[i]);
+		printf("argv[%d] = '%s'   , %i\n", i, argv[i],argc);
 #endif
 		if (argv[i][0] == '-')
 		{
@@ -342,6 +344,10 @@ int main(int argc, char** argv)
 						error = true;
 						printf("error: too few options for window argument.\n");
 					}
+				} else { /* mac specific */
+				
+                    if (strncmp(argv[i], "-psn_", 5)==0) 
+                        i++; /* skip process serial number */
 				}
 				break;
 			case 'f':
