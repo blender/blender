@@ -1124,6 +1124,33 @@ static void ui_draw_default(int type, int colorid, float aspect, float x1, float
 
 // theme can define an embosfunc and sliderfunc, text drawing is standard, no theme.
 
+#if 0
+/* super minimal button as used in logic menu */
+static void ui_draw_round(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
+{
+	
+	/* paper */
+	if(flag & UI_SELECT) {
+		if(flag & UI_ACTIVE) BIF_ThemeColorShade(colorid, -40);
+		else BIF_ThemeColorShade(colorid, -30);
+	}
+	else {
+		if(flag & UI_ACTIVE) BIF_ThemeColorShade(colorid, +10);
+		else BIF_ThemeColor(colorid);
+	}
+	
+	uiSetRoundBox(15);
+	uiRoundBox(x1, y1, x2, y2, 6);
+
+	if(flag & UI_SELECT) {
+		BIF_ThemeColor(TH_TEXT);
+		uiRoundRect(x1, y1, x2, y2, 6);
+	}
+	else {
+	}
+}
+
+#endif
 
 /* super minimal button as used in logic menu */
 static void ui_draw_minimal(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
@@ -1413,7 +1440,11 @@ static void ui_draw_nothing(int type, int colorid, float asp, float x1, float y1
 
 void ui_set_embossfunc(uiBut *but, int drawtype)
 {
-	// standard builtin
+
+	// not really part of standard minimal themes, just make sure it is set
+	but->sliderfunc= ui_draw_slider;
+
+	// standard builtin first:
 	if(but->type==LABEL) but->embossfunc= ui_draw_nothing;
 	else if(drawtype==UI_EMBOSSM) but->embossfunc= ui_draw_minimal;
 	else if(drawtype==UI_EMBOSSN) but->embossfunc= ui_draw_nothing;
@@ -1428,7 +1459,6 @@ void ui_set_embossfunc(uiBut *but, int drawtype)
 		}
 		else {
 			but->embossfunc= ui_draw_minimal;
-			but->sliderfunc= ui_draw_slider;
 		}
 	}
 }
