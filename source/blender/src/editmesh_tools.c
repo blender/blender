@@ -3063,7 +3063,13 @@ void bevel_mesh(float bsize, int allfaces)
 		}
 	}
 	
-	delfaceflag(128);
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		if( (efa->v1->f & 128) && (efa->v2->f & 128) && (efa->v3->f & 128) ) {
+			if(efa->v4==NULL || (efa->v4->f & 128)) efa->f |= 128;
+		}
+	}
+
+	delfaceflag(128); // works with face flag now
 
 	/* tag all faces for shrink*/
 	efa= em->faces.first;
