@@ -1850,9 +1850,6 @@ void shade_lamp_loop()
 				else {
 					/* specular shaders */
 					float specfac;
-
-					/* we force a different lamp vector for sun light */
-					if(lar->type==LA_SUN) lv[2]-= 1.0;
 										
 					if(ma->spec_shader==MA_SPEC_PHONG) 
 						specfac= Phong_Spec(vn, lv, view, ma->har);
