@@ -5465,6 +5465,9 @@ void transform(int mode)
 			event= extern_qread(&val);
 			
 			if(val) {
+				/* no-numpad option likes minus for numeric input better */
+				if ((U.flag & USER_NONUMPAD) && typemode && event==PADMINUS) event = MINUSKEY;
+				
 				switch(event) {
 				case ESCKEY:
 				case LEFTMOUSE:
