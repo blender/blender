@@ -140,7 +140,7 @@ bDeformGroup* copy_defgroup (bDeformGroup *ingroup)
 /* *************** HOOK ****************** */
 
 /* vec==NULL: init
-   vec is supposed to be local coord
+   vec is supposed to be local coord, deform happens in local space
 */
 
 void hook_object_deform(Object *ob, int index, float *vec)
@@ -184,7 +184,8 @@ void hook_object_deform(Object *ob, int index, float *vec)
 				VecMat4MulVecfl(vect, hook->mat, vec);
 
 				if(hook->falloff!=0.0) {
-					len= VecLenf(vect, hook->parent->obmat[3]);
+					/* hook->cent is in local coords */
+					len= VecLenf(vec, hook->cent);
 					if(len > hook->falloff) fac= 0.0;
 					else if(len>0.0) fac*= sqrt(1.0 - len/hook->falloff);
 				}
