@@ -10,13 +10,6 @@ struct _CCGMeshIFC {
 	int			vertUserSize, edgeUserSize, faceUserSize;
 
 	int			vertDataSize;
-	void		(*vertDataZero)		(CCGMeshHDL m, void *t);
-	int			(*vertDataEqual)	(CCGMeshHDL m, void *a, void *b);
-	void		(*vertDataCopy)		(CCGMeshHDL m, void *t, void *a);
-	void		(*vertDataAdd)		(CCGMeshHDL m, void *ta, void *b);
-	void		(*vertDataSub)		(CCGMeshHDL m, void *ta, void *b);
-	void		(*vertDataMulN)		(CCGMeshHDL m, void *ta, double n);
-	void		(*vertDataAvg4)		(CCGMeshHDL m, void *t, void *a, void *b, void *c, void *d);
 };
 
 /***/

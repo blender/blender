@@ -77,45 +77,6 @@ typedef struct _VertData {
 	float no[3];
 } VertData;
 
-static void _subsurfNew_meshIFC_vertDataCopy(CCGMeshHDL mv, void *tv, void *av) {
-	float *t = tv, *a = av;
-	t[0] = a[0];
-	t[1] = a[1];
-	t[2] = a[2];
-}
-static int _subsurfNew_meshIFC_vertDataEqual(CCGMeshHDL mv, void *av, void *bv) {
-	float *a = av, *b = bv;
-	return (a[0]==b[0] && a[1]==b[1] && a[2]==b[2]);
-}
-static void _subsurfNew_meshIFC_vertDataZero(CCGMeshHDL mv, void *tv) {
-	float *t = tv;
-	t[0] = t[1] = t[2] = 0.0;
-}
-static void _subsurfNew_meshIFC_vertDataAdd(CCGMeshHDL mv, void *tav, void *bv) {
-	float *ta = tav, *b = bv;
-	ta[0]+= b[0];
-	ta[1]+= b[1];
-	ta[2]+= b[2];
-}
-static void _subsurfNew_meshIFC_vertDataSub(CCGMeshHDL mv, void *tav, void *bv) {
-	float *ta = tav, *b = bv;
-	ta[0]-= b[0];
-	ta[1]-= b[1];
-	ta[2]-= b[2];
-}
-static void _subsurfNew_meshIFC_vertDataMulN(CCGMeshHDL mv, void *tav, double n) {
-	float *ta = tav;
-	ta[0]*= (float) n;
-	ta[1]*= (float) n;
-	ta[2]*= (float) n;
-}
-static void _subsurfNew_meshIFC_ifc_vertDataAvg4(CCGMeshHDL mv, void *tv, void *av, void *bv, void *cv, void *dv) {
-	float *t = tv, *a = av, *b = bv, *c = cv, *d = dv;
-	t[0] = (a[0]+b[0]+c[0]+d[0])*0.25f;
-	t[1] = (a[1]+b[1]+c[1]+d[1])*0.25f;
-	t[2] = (a[2]+b[2]+c[2]+d[2])*0.25f;
-}
-
 ///
 
 static void *arena_alloc(CCGAllocatorHDL a, int numBytes) {
@@ -146,13 +107,6 @@ static CCGSubSurf *_getSubSurf(SubSurf *ss, int subdivLevels, int useArena) {
 		ifc.vertUserSize = ifc.edgeUserSize = ifc.faceUserSize = 4;
 	}
 	ifc.vertDataSize = sizeof(VertData);
-	ifc.vertDataZero = _subsurfNew_meshIFC_vertDataZero;
-	ifc.vertDataEqual = _subsurfNew_meshIFC_vertDataEqual;
-	ifc.vertDataCopy = _subsurfNew_meshIFC_vertDataCopy;
-	ifc.vertDataAdd = _subsurfNew_meshIFC_vertDataAdd;
-	ifc.vertDataSub = _subsurfNew_meshIFC_vertDataSub;
-	ifc.vertDataMulN = _subsurfNew_meshIFC_vertDataMulN;
-	ifc.vertDataAvg4 = _subsurfNew_meshIFC_ifc_vertDataAvg4;
 
 	if (useArena) {
 		allocatorIFC.alloc = arena_alloc;
@@ -194,7 +148,7 @@ static SubSurf *subSurf_fromMesh(Mesh *me, int useFlatSubdiv, int subdivLevels) 
 	ss->subSurf = _getSubSurf(ss, subdivLevels, 1);
 	ss->me = me;
 
-	ccgSubSurf_setAllowEdgeCreation(ss->subSurf, 1, useFlatSubdiv?subdivLevels:0.0);
+	ccgSubSurf_setAllowEdgeCreation(ss->subSurf, 1, useFlatSubdiv?subdivLevels:0.0f);
 
 	return ss;
 }

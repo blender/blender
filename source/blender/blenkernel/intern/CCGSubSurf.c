@@ -196,6 +196,22 @@ static CCGAllocatorIFC *_getStandardAllocatorIFC(void) {
 
 /***/
 
+static int VertDataEqual(float *a, float *b) {
+	return a[0]==b[0] && a[1]==b[1] && a[2]==b[2];
+}
+#define VertDataZero(av)				{ float *a = (float*) av; a[0] = a[1] = a[2] = 0.0f; }
+#define VertDataCopy(av, bv)			{ float *a = (float*) av, *b = (float*) bv; a[0] =b[0]; a[1] =b[1]; a[2] =b[2]; }
+#define VertDataAdd(av, bv)				{ float *a = (float*) av, *b = (float*) bv; a[0]+=b[0]; a[1]+=b[1]; a[2]+=b[2]; }
+#define VertDataSub(av, bv)				{ float *a = (float*) av, *b = (float*) bv; a[0]-=b[0]; a[1]-=b[1]; a[2]-=b[2]; }
+#define VertDataMulN(av, n)				{ float *a = (float*) av; a[0]*=n; a[1]*=n; a[2]*=n; }
+#define VertDataAvg4(tv, av, bv, cv, dv) \
+	{ \
+		float *t = (float*) tv, *a = (float*) av, *b = (float*) bv, *c = (float*) cv, *d = (float*) dv; \
+		t[0] = (a[0]+b[0]+c[0]+d[0])*.25; \
+		t[1] = (a[1]+b[1]+c[1]+d[1])*.25; \
+		t[2] = (a[2]+b[2]+c[2]+d[2])*.25; \
+	}
+
 static int _edge_isBoundary(CCGEdge *e);
 
 /***/
@@ -803,13 +819,13 @@ CCGError ccgSubSurf_syncVert(CCGSubSurf *ss, CCGVertHDL vHDL, void *vertData) {
 		v = _ehash_lookupWithPrev(ss->vMap, vHDL, &prevp);
 		if (!v) {
 			v = _vert_new(vHDL, ss->subdivLevels, ss->meshIFC.vertDataSize, ss);
-			ss->meshIFC.vertDataCopy(ss->meshData, _vert_getCo(v,0,ss->meshIFC.vertDataSize), vertData);
+			VertDataCopy(_vert_getCo(v,0,ss->meshIFC.vertDataSize), vertData);
 			_ehash_insert(ss->vMap, (EHEntry*) v);
 			v->flags = Vert_eEffected;
-		} else if (!ss->meshIFC.vertDataEqual(ss->meshData, vertData, _vert_getCo(v, 0, ss->meshIFC.vertDataSize))) {
+		} else if (!VertDataEqual(vertData, _vert_getCo(v, 0, ss->meshIFC.vertDataSize))) {
 			int i, j;
 
-			ss->meshIFC.vertDataCopy(ss->meshData, _vert_getCo(v,0,ss->meshIFC.vertDataSize), vertData);
+			VertDataCopy(_vert_getCo(v,0,ss->meshIFC.vertDataSize), vertData);
 			v->flags = Vert_eEffected;
 
 			for (i=0; i<v->numEdges; i++) {
@@ -832,13 +848,13 @@ CCGError ccgSubSurf_syncVert(CCGSubSurf *ss, CCGVertHDL vHDL, void *vertData) {
 		v = _ehash_lookupWithPrev(ss->oldVMap, vHDL, &prevp);
 		if (!v) {
 			v = _vert_new(vHDL, ss->subdivLevels, ss->meshIFC.vertDataSize, ss);
-			ss->meshIFC.vertDataCopy(ss->meshData, _vert_getCo(v,0,ss->meshIFC.vertDataSize), vertData);
+			VertDataCopy(_vert_getCo(v,0,ss->meshIFC.vertDataSize), vertData);
 			_ehash_insert(ss->vMap, (EHEntry*) v);
 			v->flags = Vert_eEffected;
-		} else if (!ss->meshIFC.vertDataEqual(ss->meshData, vertData, _vert_getCo(v, 0, ss->meshIFC.vertDataSize))) {
+		} else if (!VertDataEqual(vertData, _vert_getCo(v, 0, ss->meshIFC.vertDataSize))) {
 			*prevp = v->next;
 			_ehash_insert(ss->vMap, (EHEntry*) v);
-			ss->meshIFC.vertDataCopy(ss->meshData, _vert_getCo(v,0,ss->meshIFC.vertDataSize), vertData);
+			VertDataCopy(_vert_getCo(v,0,ss->meshIFC.vertDataSize), vertData);
 			v->flags = Vert_eEffected|Vert_eChanged;
 		} else {
 			*prevp = v->next;
@@ -1087,11 +1103,11 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 	for (ptrIdx=0; ptrIdx<numEffectedF; ptrIdx++) {
 		CCGFace *f = effectedF[ptrIdx];
 		void *co = FACE_getCenterData(f);
-		ss->meshIFC.vertDataZero(ss->meshData, co);
+		VertDataZero(co);
 		for (i=0; i<f->numVerts; i++) {
-			ss->meshIFC.vertDataAdd(ss->meshData, co, VERT_getCo(FACE_getVerts(f)[i], curLvl));
+			VertDataAdd(co, VERT_getCo(FACE_getVerts(f)[i], curLvl));
 		}
-		ss->meshIFC.vertDataMulN(ss->meshData, co, 1.0f/f->numVerts);
+		VertDataMulN(co, 1.0f/f->numVerts);
 
 		f->flags = 0;
 	}
@@ -1101,28 +1117,28 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 		float sharpness = EDGE_getSharpness(e, curLvl, ss);
 
 		if (_edge_isBoundary(e) || sharpness>=1.0) {
-			ss->meshIFC.vertDataCopy(ss->meshData, co, VERT_getCo(e->v0, curLvl));
-			ss->meshIFC.vertDataAdd(ss->meshData, co, VERT_getCo(e->v1, curLvl));
-			ss->meshIFC.vertDataMulN(ss->meshData, co, 0.5f);
+			VertDataCopy(co, VERT_getCo(e->v0, curLvl));
+			VertDataAdd(co, VERT_getCo(e->v1, curLvl));
+			VertDataMulN(co, 0.5f);
 		} else {
 			int numFaces = 0;
-			ss->meshIFC.vertDataCopy(ss->meshData, q, VERT_getCo(e->v0, curLvl));
-			ss->meshIFC.vertDataAdd(ss->meshData, q, VERT_getCo(e->v1, curLvl));
+			VertDataCopy(q, VERT_getCo(e->v0, curLvl));
+			VertDataAdd(q, VERT_getCo(e->v1, curLvl));
 			for (i=0; i<e->numFaces; i++) {
 				CCGFace *f = e->faces[i];
-				ss->meshIFC.vertDataAdd(ss->meshData, q, FACE_getCenterData(f));
+				VertDataAdd(q, FACE_getCenterData(f));
 				numFaces++;
 			}
-			ss->meshIFC.vertDataMulN(ss->meshData, q, 1.0f/(2.0f+numFaces));
+			VertDataMulN(q, 1.0f/(2.0f+numFaces));
 
-			ss->meshIFC.vertDataCopy(ss->meshData, r, VERT_getCo(e->v0, curLvl));
-			ss->meshIFC.vertDataAdd(ss->meshData, r, VERT_getCo(e->v1, curLvl));
-			ss->meshIFC.vertDataMulN(ss->meshData, r, 0.5f);
+			VertDataCopy(r, VERT_getCo(e->v0, curLvl));
+			VertDataAdd(r, VERT_getCo(e->v1, curLvl));
+			VertDataMulN(r, 0.5f);
 
-			ss->meshIFC.vertDataCopy(ss->meshData, co, q);
-			ss->meshIFC.vertDataSub(ss->meshData, r, q);
-			ss->meshIFC.vertDataMulN(ss->meshData, r, sharpness);
-			ss->meshIFC.vertDataAdd(ss->meshData, co, r);
+			VertDataCopy(co, q);
+			VertDataSub(r, q);
+			VertDataMulN(r, sharpness);
+			VertDataAdd(co, r);
 		}
 
 		e->flags = 0;
@@ -1152,49 +1168,49 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 		}
 
 		if (!v->numEdges) {
-			ss->meshIFC.vertDataCopy(ss->meshData, nCo, co);
+			VertDataCopy(nCo, co);
 		} else if (_vert_isBoundary(v)) {
 			int numBoundary = 0;
 
-			ss->meshIFC.vertDataZero(ss->meshData, r);
+			VertDataZero(r);
 			for (i=0; i<v->numEdges; i++) {
 				CCGEdge *e = v->edges[i];
 				if (_edge_isBoundary(e)) {
-					ss->meshIFC.vertDataAdd(ss->meshData, r, VERT_getCo(_edge_getOtherVert(e, v), curLvl));
+					VertDataAdd(r, VERT_getCo(_edge_getOtherVert(e, v), curLvl));
 					numBoundary++;
 				}
 			}
-			ss->meshIFC.vertDataCopy(ss->meshData, nCo, co);
-			ss->meshIFC.vertDataMulN(ss->meshData, nCo, 0.75);
-			ss->meshIFC.vertDataMulN(ss->meshData, r, 0.25f/numBoundary);
-			ss->meshIFC.vertDataAdd(ss->meshData, nCo, r);
+			VertDataCopy(nCo, co);
+			VertDataMulN(nCo, 0.75);
+			VertDataMulN(r, 0.25f/numBoundary);
+			VertDataAdd(nCo, r);
 		} else {
 			int numEdges = 0, numFaces = 0;
 
-			ss->meshIFC.vertDataZero(ss->meshData, q);
+			VertDataZero(q);
 			for (i=0; i<v->numFaces; i++) {
 				CCGFace *f = v->faces[i];
-				ss->meshIFC.vertDataAdd(ss->meshData, q, FACE_getCenterData(f));
+				VertDataAdd(q, FACE_getCenterData(f));
 				numFaces++;
 			}
-			ss->meshIFC.vertDataMulN(ss->meshData, q, 1.0f/numFaces);
-			ss->meshIFC.vertDataZero(ss->meshData, r);
+			VertDataMulN(q, 1.0f/numFaces);
+			VertDataZero(r);
 			for (i=0; i<v->numEdges; i++) {
 				CCGEdge *e = v->edges[i];
-				ss->meshIFC.vertDataAdd(ss->meshData, r, VERT_getCo(_edge_getOtherVert(e, v), curLvl));
+				VertDataAdd(r, VERT_getCo(_edge_getOtherVert(e, v), curLvl));
 				numEdges++;
 			}
-			ss->meshIFC.vertDataMulN(ss->meshData, r, 1.0f/numEdges);
+			VertDataMulN(r, 1.0f/numEdges);
 
-			ss->meshIFC.vertDataCopy(ss->meshData, nCo, co);
-			ss->meshIFC.vertDataMulN(ss->meshData, nCo, numEdges-2.0f);
-			ss->meshIFC.vertDataAdd(ss->meshData, nCo, q);
-			ss->meshIFC.vertDataAdd(ss->meshData, nCo, r);
-			ss->meshIFC.vertDataMulN(ss->meshData, nCo, 1.0f/numEdges);
+			VertDataCopy(nCo, co);
+			VertDataMulN(nCo, numEdges-2.0f);
+			VertDataAdd(nCo, q);
+			VertDataAdd(nCo, r);
+			VertDataMulN(nCo, 1.0f/numEdges);
 		}
 
 		if (sharpCount>1) {
-			ss->meshIFC.vertDataZero(ss->meshData, q);
+			VertDataZero(q);
 
 			for (i=0; i<v->numEdges; i++) {
 				CCGEdge *e = v->edges[i];
@@ -1202,30 +1218,30 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 
 				if (sharpness != 0.0) {
 					CCGVert *oV = _edge_getOtherVert(e, v);
-					ss->meshIFC.vertDataAdd(ss->meshData, q, VERT_getCo(oV, curLvl));
+					VertDataAdd(q, VERT_getCo(oV, curLvl));
 				}
 			}
 
-			ss->meshIFC.vertDataMulN(ss->meshData, q, (float) 1/sharpCount);
+			VertDataMulN(q, (float) 1/sharpCount);
 
 			if (sharpCount!=2 || allSharp) {
 					// q = q + (co-q)*avgSharpness
-				ss->meshIFC.vertDataCopy(ss->meshData, r, co);
-				ss->meshIFC.vertDataSub(ss->meshData, r, q);
-				ss->meshIFC.vertDataMulN(ss->meshData, r, avgSharpness);
-				ss->meshIFC.vertDataAdd(ss->meshData, q, r);
+				VertDataCopy(r, co);
+				VertDataSub(r, q);
+				VertDataMulN(r, avgSharpness);
+				VertDataAdd(q, r);
 			}
 
 				// r = co*.75 + q*.25
-			ss->meshIFC.vertDataCopy(ss->meshData, r, co);
-			ss->meshIFC.vertDataMulN(ss->meshData, r, .75);
-			ss->meshIFC.vertDataMulN(ss->meshData, q, .25);
-			ss->meshIFC.vertDataAdd(ss->meshData, r, q);
+			VertDataCopy(r, co);
+			VertDataMulN(r, .75);
+			VertDataMulN(q, .25);
+			VertDataAdd(r, q);
 
 				// nCo = nCo  + (r-nCo)*avgSharpness
-			ss->meshIFC.vertDataSub(ss->meshData, r, nCo);
-			ss->meshIFC.vertDataMulN(ss->meshData, r, avgSharpness);
-			ss->meshIFC.vertDataAdd(ss->meshData, nCo, r);
+			VertDataSub(r, nCo);
+			VertDataMulN(r, avgSharpness);
+			VertDataAdd(nCo, r);
 		}
 
 		v->flags = 0;
@@ -1253,8 +1269,8 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 
 	for (i=0; i<numEffectedE; i++) {
 		CCGEdge *e = effectedE[i];
-		ss->meshIFC.vertDataCopy(ss->meshData, EDGE_getCo(e, nextLvl, 0), VERT_getCo(e->v0, nextLvl));
-		ss->meshIFC.vertDataCopy(ss->meshData, EDGE_getCo(e, nextLvl, 2), VERT_getCo(e->v1, nextLvl));
+		VertDataCopy(EDGE_getCo(e, nextLvl, 0), VERT_getCo(e->v0, nextLvl));
+		VertDataCopy(EDGE_getCo(e, nextLvl, 2), VERT_getCo(e->v1, nextLvl));
 	}
 	for (i=0; i<numEffectedF; i++) {
 		CCGFace *f = effectedF[i];
@@ -1262,13 +1278,13 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 			CCGEdge *e = FACE_getEdges(f)[S];
 			CCGEdge *prevE = FACE_getEdges(f)[(S+f->numVerts-1)%f->numVerts];
 
-			ss->meshIFC.vertDataCopy(ss->meshData, FACE_getIFCo(f, nextLvl, S, 0, 0), FACE_getCenterData(f));
-			ss->meshIFC.vertDataCopy(ss->meshData, FACE_getIECo(f, nextLvl, S, 0), FACE_getCenterData(f));
-			ss->meshIFC.vertDataCopy(ss->meshData, FACE_getIFCo(f, nextLvl, S, 1, 1), VERT_getCo(FACE_getVerts(f)[S], nextLvl));
-			ss->meshIFC.vertDataCopy(ss->meshData, FACE_getIECo(f, nextLvl, S, 1), EDGE_getCo(FACE_getEdges(f)[S], nextLvl, 1));
+			VertDataCopy(FACE_getIFCo(f, nextLvl, S, 0, 0), FACE_getCenterData(f));
+			VertDataCopy(FACE_getIECo(f, nextLvl, S, 0), FACE_getCenterData(f));
+			VertDataCopy(FACE_getIFCo(f, nextLvl, S, 1, 1), VERT_getCo(FACE_getVerts(f)[S], nextLvl));
+			VertDataCopy(FACE_getIECo(f, nextLvl, S, 1), EDGE_getCo(FACE_getEdges(f)[S], nextLvl, 1));
 
-			ss->meshIFC.vertDataCopy(ss->meshData, FACE_getIFCo(f, nextLvl, S, 1, 0), _edge_getCoVert(e, FACE_getVerts(f)[S], nextLvl, 1, vertDataSize));
-			ss->meshIFC.vertDataCopy(ss->meshData, FACE_getIFCo(f, nextLvl, S, 0, 1), _edge_getCoVert(prevE, FACE_getVerts(f)[S], nextLvl, 1, vertDataSize));
+			VertDataCopy(FACE_getIFCo(f, nextLvl, S, 1, 0), _edge_getCoVert(e, FACE_getVerts(f)[S], nextLvl, 1, vertDataSize));
+			VertDataCopy(FACE_getIFCo(f, nextLvl, S, 0, 1), _edge_getCoVert(prevE, FACE_getVerts(f)[S], nextLvl, 1, vertDataSize));
 		}
 	}
 
@@ -1294,7 +1310,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 						void *co3 = FACE_getIFCo(f, curLvl, S, x+0, y+1);
 						void *co = FACE_getIFCo(f, nextLvl, S, fx, fy);
 
-						ss->meshIFC.vertDataAvg4(ss->meshData, co, co0, co1, co2, co3);
+						VertDataAvg4(co, co0, co1, co2, co3);
 					}
 				}
 			}
@@ -1312,7 +1328,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 					void *co3 = FACE_getIFCo(f, nextLvl, S, fx, 1);
 					void *co = FACE_getIECo(f, nextLvl, S, fx);
 					
-					ss->meshIFC.vertDataAvg4(ss->meshData, co, co0, co1, co2, co3);
+					VertDataAvg4(co, co0, co1, co2, co3);
 				}
 
 						/* interior face interior edge midpoints
@@ -1331,7 +1347,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 						void *co3 = FACE_getIFCo(f, nextLvl, S, fx+1, fy);
 						void *co = FACE_getIFCo(f, nextLvl, S, fx, fy);
 
-						ss->meshIFC.vertDataAvg4(ss->meshData, co, co0, co1, co2, co3);
+						VertDataAvg4(co, co0, co1, co2, co3);
 					}
 				}
 
@@ -1346,7 +1362,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 						void *co3 = FACE_getIFCo(f, nextLvl, S, fx, fy+1);
 						void *co = FACE_getIFCo(f, nextLvl, S, fx, fy);
 
-						ss->meshIFC.vertDataAvg4(ss->meshData, co, co0, co1, co2, co3);
+						VertDataAvg4(co, co0, co1, co2, co3);
 					}
 				}
 			}
@@ -1367,9 +1383,9 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 					void *co1 = EDGE_getCo(e, curLvl, x+1);
 					void *co = EDGE_getCo(e, nextLvl, fx);
 
-					ss->meshIFC.vertDataCopy(ss->meshData, co, co0);
-					ss->meshIFC.vertDataAdd(ss->meshData, co, co1);
-					ss->meshIFC.vertDataMulN(ss->meshData, co, 0.5);
+					VertDataCopy(co, co0);
+					VertDataAdd(co, co1);
+					VertDataMulN(co, 0.5);
 				}
 			} else {
 				for (x=0; x<edgeSize-1; x++) {
@@ -1379,25 +1395,25 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 					void *co = EDGE_getCo(e, nextLvl, fx);
 					int numFaces = 0;
 
-					ss->meshIFC.vertDataCopy(ss->meshData, q, co0);
-					ss->meshIFC.vertDataAdd(ss->meshData, q, co1);
+					VertDataCopy(q, co0);
+					VertDataAdd(q, co1);
 
 					for (i=0; i<e->numFaces; i++) {
 						CCGFace *f = e->faces[i];
-						ss->meshIFC.vertDataAdd(ss->meshData, q, _face_getIFCoEdge(f, e, nextLvl, fx, 1, subdivLevels, vertDataSize));
+						VertDataAdd(q, _face_getIFCoEdge(f, e, nextLvl, fx, 1, subdivLevels, vertDataSize));
 						numFaces++;
 					}
 
-					ss->meshIFC.vertDataMulN(ss->meshData, q, 1.0f/(2.0f+numFaces));
+					VertDataMulN(q, 1.0f/(2.0f+numFaces));
 
-					ss->meshIFC.vertDataCopy(ss->meshData, r, co0);
-					ss->meshIFC.vertDataAdd(ss->meshData, r, co1);
-					ss->meshIFC.vertDataMulN(ss->meshData, r, 0.5);
+					VertDataCopy(r, co0);
+					VertDataAdd(r, co1);
+					VertDataMulN(r, 0.5);
 
-					ss->meshIFC.vertDataCopy(ss->meshData, co, q);
-					ss->meshIFC.vertDataSub(ss->meshData, r, q);
-					ss->meshIFC.vertDataMulN(ss->meshData, r, sharpness);
-					ss->meshIFC.vertDataAdd(ss->meshData, co, r);
+					VertDataCopy(co, q);
+					VertDataSub(r, q);
+					VertDataMulN(r, sharpness);
+					VertDataAdd(co, r);
 				}
 			}
 		}
@@ -1432,81 +1448,81 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 			}
 
 			if (!v->numEdges) {
-				ss->meshIFC.vertDataCopy(ss->meshData, nCo, co);
+				VertDataCopy(nCo, co);
 			} else if (_vert_isBoundary(v)) {
 				int numBoundary = 0;
 
-				ss->meshIFC.vertDataZero(ss->meshData, r);
+				VertDataZero(r);
 				for (i=0; i<v->numEdges; i++) {
 					CCGEdge *e = v->edges[i];
 					if (_edge_isBoundary(e)) {
-						ss->meshIFC.vertDataAdd(ss->meshData, r, _edge_getCoVert(e, v, curLvl, 1, vertDataSize));
+						VertDataAdd(r, _edge_getCoVert(e, v, curLvl, 1, vertDataSize));
 						numBoundary++;
 					}
 				}
 
-				ss->meshIFC.vertDataCopy(ss->meshData, nCo, co);
-				ss->meshIFC.vertDataMulN(ss->meshData, nCo, 0.75);
-				ss->meshIFC.vertDataMulN(ss->meshData, r, 0.25f/numBoundary);
-				ss->meshIFC.vertDataAdd(ss->meshData, nCo, r);
+				VertDataCopy(nCo, co);
+				VertDataMulN(nCo, 0.75);
+				VertDataMulN(r, 0.25f/numBoundary);
+				VertDataAdd(nCo, r);
 			} else {
 				int cornerIdx = (1 + (1<<(curLvl))) - 2;
 				int numEdges = 0, numFaces = 0;
 
-				ss->meshIFC.vertDataZero(ss->meshData, q);
+				VertDataZero(q);
 				for (i=0; i<v->numFaces; i++) {
 					CCGFace *f = v->faces[i];
-					ss->meshIFC.vertDataAdd(ss->meshData, q, FACE_getIFCo(f, nextLvl, _face_getVertIndex(f,v), cornerIdx, cornerIdx));
+					VertDataAdd(q, FACE_getIFCo(f, nextLvl, _face_getVertIndex(f,v), cornerIdx, cornerIdx));
 					numFaces++;
 				}
-				ss->meshIFC.vertDataMulN(ss->meshData, q, 1.0f/numFaces);
-				ss->meshIFC.vertDataZero(ss->meshData, r);
+				VertDataMulN(q, 1.0f/numFaces);
+				VertDataZero(r);
 				for (i=0; i<v->numEdges; i++) {
 					CCGEdge *e = v->edges[i];
-					ss->meshIFC.vertDataAdd(ss->meshData, r, _edge_getCoVert(e, v, curLvl, 1,vertDataSize));
+					VertDataAdd(r, _edge_getCoVert(e, v, curLvl, 1,vertDataSize));
 					numEdges++;
 				}
-				ss->meshIFC.vertDataMulN(ss->meshData, r, 1.0f/numEdges);
+				VertDataMulN(r, 1.0f/numEdges);
 
-				ss->meshIFC.vertDataCopy(ss->meshData, nCo, co);
-				ss->meshIFC.vertDataMulN(ss->meshData, nCo, numEdges-2.0f);
-				ss->meshIFC.vertDataAdd(ss->meshData, nCo, q);
-				ss->meshIFC.vertDataAdd(ss->meshData, nCo, r);
-				ss->meshIFC.vertDataMulN(ss->meshData, nCo, 1.0f/numEdges);
+				VertDataCopy(nCo, co);
+				VertDataMulN(nCo, numEdges-2.0f);
+				VertDataAdd(nCo, q);
+				VertDataAdd(nCo, r);
+				VertDataMulN(nCo, 1.0f/numEdges);
 			}
 
 			if (sharpCount>1) {
-				ss->meshIFC.vertDataZero(ss->meshData, q);
+				VertDataZero(q);
 
 				for (i=0; i<v->numEdges; i++) {
 					CCGEdge *e = v->edges[i];
 					float sharpness = EDGE_getSharpness(e, curLvl, ss);
 
 					if (sharpness != 0.0) {
-						ss->meshIFC.vertDataAdd(ss->meshData, q, _edge_getCoVert(e, v, curLvl, 1, vertDataSize));
+						VertDataAdd(q, _edge_getCoVert(e, v, curLvl, 1, vertDataSize));
 					}
 				}
 
-				ss->meshIFC.vertDataMulN(ss->meshData, q, (float) 1/sharpCount);
+				VertDataMulN(q, (float) 1/sharpCount);
 
 				if (sharpCount!=2 || allSharp) {
 						// q = q + (co-q)*avgSharpness
-					ss->meshIFC.vertDataCopy(ss->meshData, r, co);
-					ss->meshIFC.vertDataSub(ss->meshData, r, q);
-					ss->meshIFC.vertDataMulN(ss->meshData, r, avgSharpness);
-					ss->meshIFC.vertDataAdd(ss->meshData, q, r);
+					VertDataCopy(r, co);
+					VertDataSub(r, q);
+					VertDataMulN(r, avgSharpness);
+					VertDataAdd(q, r);
 				}
 
 					// r = co*.75 + q*.25
-				ss->meshIFC.vertDataCopy(ss->meshData, r, co);
-				ss->meshIFC.vertDataMulN(ss->meshData, r, .75);
-				ss->meshIFC.vertDataMulN(ss->meshData, q, .25);
-				ss->meshIFC.vertDataAdd(ss->meshData, r, q);
+				VertDataCopy(r, co);
+				VertDataMulN(r, .75);
+				VertDataMulN(q, .25);
+				VertDataAdd(r, q);
 
 					// nCo = nCo  + (r-nCo)*avgSharpness
-				ss->meshIFC.vertDataSub(ss->meshData, r, nCo);
-				ss->meshIFC.vertDataMulN(ss->meshData, r, avgSharpness);
-				ss->meshIFC.vertDataAdd(ss->meshData, nCo, r);
+				VertDataSub(r, nCo);
+				VertDataMulN(r, avgSharpness);
+				VertDataAdd(nCo, r);
 			}
 		}
 
@@ -1538,13 +1554,13 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 					int fx = x*2;
 					void *co = EDGE_getCo(e, curLvl, x);
 					void *nCo = EDGE_getCo(e, nextLvl, fx);
-					ss->meshIFC.vertDataCopy(ss->meshData, r, EDGE_getCo(e, curLvl, x-1));
-					ss->meshIFC.vertDataAdd(ss->meshData, r, EDGE_getCo(e, curLvl, x+1));
-					ss->meshIFC.vertDataMulN(ss->meshData, r, 0.5);
-					ss->meshIFC.vertDataCopy(ss->meshData, nCo, co);
-					ss->meshIFC.vertDataMulN(ss->meshData, nCo, 0.75);
-					ss->meshIFC.vertDataMulN(ss->meshData, r, 0.25);
-					ss->meshIFC.vertDataAdd(ss->meshData, nCo, r);
+					VertDataCopy(r, EDGE_getCo(e, curLvl, x-1));
+					VertDataAdd(r, EDGE_getCo(e, curLvl, x+1));
+					VertDataMulN(r, 0.5);
+					VertDataCopy(nCo, co);
+					VertDataMulN(nCo, 0.75);
+					VertDataMulN(r, 0.25);
+					VertDataAdd(nCo, r);
 				}
 			} else {
 				for (x=1; x<edgeSize-1; x++) {
@@ -1553,37 +1569,37 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 					void *nCo = EDGE_getCo(e, nextLvl, fx);
 					int numFaces = 0;
 
-					ss->meshIFC.vertDataZero(ss->meshData, q);
-					ss->meshIFC.vertDataZero(ss->meshData, r);
-					ss->meshIFC.vertDataAdd(ss->meshData, r, EDGE_getCo(e, curLvl, x-1));
-					ss->meshIFC.vertDataAdd(ss->meshData, r, EDGE_getCo(e, curLvl, x+1));
+					VertDataZero(q);
+					VertDataZero(r);
+					VertDataAdd(r, EDGE_getCo(e, curLvl, x-1));
+					VertDataAdd(r, EDGE_getCo(e, curLvl, x+1));
 					for (i=0; i<e->numFaces; i++) {
 						CCGFace *f = e->faces[i];
-						ss->meshIFC.vertDataAdd(ss->meshData, q, _face_getIFCoEdge(f, e, nextLvl, fx-1, 1, subdivLevels, vertDataSize));
-						ss->meshIFC.vertDataAdd(ss->meshData, q, _face_getIFCoEdge(f, e, nextLvl, fx+1, 1, subdivLevels, vertDataSize));
+						VertDataAdd(q, _face_getIFCoEdge(f, e, nextLvl, fx-1, 1, subdivLevels, vertDataSize));
+						VertDataAdd(q, _face_getIFCoEdge(f, e, nextLvl, fx+1, 1, subdivLevels, vertDataSize));
 
-						ss->meshIFC.vertDataAdd(ss->meshData, r, _face_getIFCoEdge(f, e, curLvl, x, 1, subdivLevels, vertDataSize));
+						VertDataAdd(r, _face_getIFCoEdge(f, e, curLvl, x, 1, subdivLevels, vertDataSize));
 						numFaces++;
 					}
-					ss->meshIFC.vertDataMulN(ss->meshData, q, 1.0/(numFaces*2.0f));
-					ss->meshIFC.vertDataMulN(ss->meshData, r, 1.0/(2.0f + numFaces));
+					VertDataMulN(q, 1.0/(numFaces*2.0f));
+					VertDataMulN(r, 1.0/(2.0f + numFaces));
 
-					ss->meshIFC.vertDataCopy(ss->meshData, nCo, co);
-					ss->meshIFC.vertDataMulN(ss->meshData, nCo, (float) numFaces);
-					ss->meshIFC.vertDataAdd(ss->meshData, nCo, q);
-					ss->meshIFC.vertDataAdd(ss->meshData, nCo, r);
-					ss->meshIFC.vertDataMulN(ss->meshData, nCo, 1.0f/(2+numFaces));
+					VertDataCopy(nCo, co);
+					VertDataMulN(nCo, (float) numFaces);
+					VertDataAdd(nCo, q);
+					VertDataAdd(nCo, r);
+					VertDataMulN(nCo, 1.0f/(2+numFaces));
 
 					if (sharpCount==2) {
-						ss->meshIFC.vertDataCopy(ss->meshData, q, co);
-						ss->meshIFC.vertDataMulN(ss->meshData, q, 6.0f);
-						ss->meshIFC.vertDataAdd(ss->meshData, q, EDGE_getCo(e, curLvl, x-1));
-						ss->meshIFC.vertDataAdd(ss->meshData, q, EDGE_getCo(e, curLvl, x+1));
-						ss->meshIFC.vertDataMulN(ss->meshData, q, 1/8.0f);
+						VertDataCopy(q, co);
+						VertDataMulN(q, 6.0f);
+						VertDataAdd(q, EDGE_getCo(e, curLvl, x-1));
+						VertDataAdd(q, EDGE_getCo(e, curLvl, x+1));
+						VertDataMulN(q, 1/8.0f);
 
-						ss->meshIFC.vertDataSub(ss->meshData, q, nCo);
-						ss->meshIFC.vertDataMulN(ss->meshData, q, avgSharpness);
-						ss->meshIFC.vertDataAdd(ss->meshData, nCo, q);
+						VertDataSub(q, nCo);
+						VertDataMulN(q, avgSharpness);
+						VertDataAdd(nCo, q);
 					}
 				}
 			}
@@ -1597,21 +1613,21 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 				 *  o old interior edge points
 				 *  o new interior face midpoints
 				 */
-			ss->meshIFC.vertDataZero(ss->meshData, q);
+			VertDataZero(q);
 			for (S=0; S<f->numVerts; S++) {
-				ss->meshIFC.vertDataAdd(ss->meshData, q, FACE_getIFCo(f, nextLvl, S, 1, 1));
+				VertDataAdd(q, FACE_getIFCo(f, nextLvl, S, 1, 1));
 			}
-			ss->meshIFC.vertDataMulN(ss->meshData, q, 1.0f/f->numVerts);
-			ss->meshIFC.vertDataZero(ss->meshData, r);
+			VertDataMulN(q, 1.0f/f->numVerts);
+			VertDataZero(r);
 			for (S=0; S<f->numVerts; S++) {
-				ss->meshIFC.vertDataAdd(ss->meshData, r, FACE_getIECo(f, curLvl, S, 1));
+				VertDataAdd(r, FACE_getIECo(f, curLvl, S, 1));
 			}
-			ss->meshIFC.vertDataMulN(ss->meshData, r, 1.0f/f->numVerts);
+			VertDataMulN(r, 1.0f/f->numVerts);
 
-			ss->meshIFC.vertDataMulN(ss->meshData, FACE_getCenterData(f), f->numVerts-2.0f);
-			ss->meshIFC.vertDataAdd(ss->meshData, FACE_getCenterData(f), q);
-			ss->meshIFC.vertDataAdd(ss->meshData, FACE_getCenterData(f), r);
-			ss->meshIFC.vertDataMulN(ss->meshData, FACE_getCenterData(f), 1.0f/f->numVerts);
+			VertDataMulN(FACE_getCenterData(f), f->numVerts-2.0f);
+			VertDataAdd(FACE_getCenterData(f), q);
+			VertDataAdd(FACE_getCenterData(f), r);
+			VertDataMulN(FACE_getCenterData(f), 1.0f/f->numVerts);
 
 			for (S=0; S<f->numVerts; S++) {
 					/* interior face shift
@@ -1626,20 +1642,20 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 						void *co = FACE_getIFCo(f, curLvl, S, x, y);
 						void *nCo = FACE_getIFCo(f, nextLvl, S, fx, fy);
 						
-						ss->meshIFC.vertDataAvg4(ss->meshData, q, FACE_getIFCo(f, nextLvl, S, fx-1, fy-1),
+						VertDataAvg4(q, FACE_getIFCo(f, nextLvl, S, fx-1, fy-1),
 							FACE_getIFCo(f, nextLvl, S, fx+1, fy-1),
 							FACE_getIFCo(f, nextLvl, S, fx+1, fy+1),
 							FACE_getIFCo(f, nextLvl, S, fx-1, fy+1));
 
-						ss->meshIFC.vertDataAvg4(ss->meshData, r, FACE_getIFCo(f, nextLvl, S, fx-1, fy+0),
+						VertDataAvg4(r, FACE_getIFCo(f, nextLvl, S, fx-1, fy+0),
 							FACE_getIFCo(f, nextLvl, S, fx+1, fy+0),
 							FACE_getIFCo(f, nextLvl, S, fx+0, fy-1),
 							FACE_getIFCo(f, nextLvl, S, fx+0, fy+1));
 
-						ss->meshIFC.vertDataCopy(ss->meshData, nCo, co);
-						ss->meshIFC.vertDataSub(ss->meshData, nCo, q);
-						ss->meshIFC.vertDataMulN(ss->meshData, nCo, 0.25f);
-						ss->meshIFC.vertDataAdd(ss->meshData, nCo, r);
+						VertDataCopy(nCo, co);
+						VertDataSub(nCo, q);
+						VertDataMulN(nCo, 0.25f);
+						VertDataAdd(nCo, r);
 					}
 				}
 
@@ -1653,20 +1669,20 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 					void *co = FACE_getIECo(f, curLvl, S, x);
 					void *nCo = FACE_getIECo(f, nextLvl, S, fx);
 					
-					ss->meshIFC.vertDataAvg4(ss->meshData, q, FACE_getIFCo(f, nextLvl, (S+1)%f->numVerts, 1, fx-1),
+					VertDataAvg4(q, FACE_getIFCo(f, nextLvl, (S+1)%f->numVerts, 1, fx-1),
 						FACE_getIFCo(f, nextLvl, (S+1)%f->numVerts, 1, fx+1),
 						FACE_getIFCo(f, nextLvl, S, fx+1, +1),
 						FACE_getIFCo(f, nextLvl, S, fx-1, +1));
 
-					ss->meshIFC.vertDataAvg4(ss->meshData, r, FACE_getIECo(f, nextLvl, S, fx-1),
+					VertDataAvg4(r, FACE_getIECo(f, nextLvl, S, fx-1),
 						FACE_getIECo(f, nextLvl, S, fx+1),
 						FACE_getIFCo(f, nextLvl, (S+1)%f->numVerts, 1, fx),
 						FACE_getIFCo(f, nextLvl, S, fx, 1));
 
-					ss->meshIFC.vertDataCopy(ss->meshData, nCo, co);
-					ss->meshIFC.vertDataSub(ss->meshData, nCo, q);
-					ss->meshIFC.vertDataMulN(ss->meshData, nCo, 0.25f);
-					ss->meshIFC.vertDataAdd(ss->meshData, nCo, r);
+					VertDataCopy(nCo, co);
+					VertDataSub(nCo, q);
+					VertDataMulN(nCo, 0.25f);
+					VertDataAdd(nCo, r);
 				}
 			}
 		}
@@ -1679,8 +1695,8 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 		cornerIdx = gridSize-1;
 		for (i=0; i<numEffectedE; i++) {
 			CCGEdge *e = effectedE[i];
-			ss->meshIFC.vertDataCopy(ss->meshData, EDGE_getCo(e, nextLvl, 0), VERT_getCo(e->v0, nextLvl));
-			ss->meshIFC.vertDataCopy(ss->meshData, EDGE_getCo(e, nextLvl, edgeSize-1), VERT_getCo(e->v1, nextLvl));
+			VertDataCopy(EDGE_getCo(e, nextLvl, 0), VERT_getCo(e->v0, nextLvl));
+			VertDataCopy(EDGE_getCo(e, nextLvl, edgeSize-1), VERT_getCo(e->v1, nextLvl));
 		}
 		for (i=0; i<numEffectedF; i++) {
 			CCGFace *f = effectedF[i];
@@ -1688,19 +1704,19 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 				CCGEdge *e = FACE_getEdges(f)[S];
 				CCGEdge *prevE = FACE_getEdges(f)[(S+f->numVerts-1)%f->numVerts];
 
-				ss->meshIFC.vertDataCopy(ss->meshData, FACE_getIFCo(f, nextLvl, S, 0, 0), FACE_getCenterData(f));
-				ss->meshIFC.vertDataCopy(ss->meshData, FACE_getIECo(f, nextLvl, S, 0), FACE_getCenterData(f));
-				ss->meshIFC.vertDataCopy(ss->meshData, FACE_getIFCo(f, nextLvl, S, cornerIdx, cornerIdx), VERT_getCo(FACE_getVerts(f)[S], nextLvl));
-				ss->meshIFC.vertDataCopy(ss->meshData, FACE_getIECo(f, nextLvl, S, cornerIdx), EDGE_getCo(FACE_getEdges(f)[S], nextLvl, cornerIdx));
+				VertDataCopy(FACE_getIFCo(f, nextLvl, S, 0, 0), FACE_getCenterData(f));
+				VertDataCopy(FACE_getIECo(f, nextLvl, S, 0), FACE_getCenterData(f));
+				VertDataCopy(FACE_getIFCo(f, nextLvl, S, cornerIdx, cornerIdx), VERT_getCo(FACE_getVerts(f)[S], nextLvl));
+				VertDataCopy(FACE_getIECo(f, nextLvl, S, cornerIdx), EDGE_getCo(FACE_getEdges(f)[S], nextLvl, cornerIdx));
 				for (x=1; x<gridSize-1; x++) {
 					void *co = FACE_getIECo(f, nextLvl, S, x);
-					ss->meshIFC.vertDataCopy(ss->meshData, FACE_getIFCo(f, nextLvl, S, x, 0), co);
-					ss->meshIFC.vertDataCopy(ss->meshData, FACE_getIFCo(f, nextLvl, (S+1)%f->numVerts, 0, x), co);
+					VertDataCopy(FACE_getIFCo(f, nextLvl, S, x, 0), co);
+					VertDataCopy(FACE_getIFCo(f, nextLvl, (S+1)%f->numVerts, 0, x), co);
 				}
 				for (x=0; x<gridSize-1; x++) {
 					int eI = gridSize-1-x;
-					ss->meshIFC.vertDataCopy(ss->meshData, FACE_getIFCo(f, nextLvl, S, cornerIdx, x), _edge_getCoVert(e, FACE_getVerts(f)[S], nextLvl, eI,vertDataSize));
-					ss->meshIFC.vertDataCopy(ss->meshData, FACE_getIFCo(f, nextLvl, S, x, cornerIdx), _edge_getCoVert(prevE, FACE_getVerts(f)[S], nextLvl, eI,vertDataSize));
+					VertDataCopy(FACE_getIFCo(f, nextLvl, S, cornerIdx, x), _edge_getCoVert(e, FACE_getVerts(f)[S], nextLvl, eI,vertDataSize));
+					VertDataCopy(FACE_getIFCo(f, nextLvl, S, x, cornerIdx), _edge_getCoVert(prevE, FACE_getVerts(f)[S], nextLvl, eI,vertDataSize));
 				}
 			}
 		}
