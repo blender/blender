@@ -340,7 +340,7 @@ static HaloRen *initstar(float *vec, float hasize)
 
 	RE_projectverto(vec, hoco);
 
-	if(	(R.r.mode & R_PANORAMA) ||  RE_testclip(hoco)==0 ) {
+	if(	(R.r.mode & R_PANORAMA) || (R.r.xparts*R.r.yparts>1) || RE_testclip(hoco)==0 ) {
 		har= RE_findOrAddHalo(R.tothalo++);
 	
 		/* projectvert is done in function zbufvlaggen again, because of parts */
