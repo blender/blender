@@ -356,7 +356,6 @@ void audiostream_play(Uint32 startframe, Uint32 duration, int mixdown)
 		/* this call used to be in startup */
 		sound_init_audio();
 	}
-	else return;
 
    	if (!(duration + mixdown)) {
    		desired.freq=G.scene->audio.mixrate;
