@@ -238,3 +238,11 @@ the close future. But for now you don't need to download Ode.
 If you want to build ODE yourself, you'll have to edit a config file of ODE first.
 go to $NANBLENDERHOME/extern/ode/dist/config and edit the file "user-settings" so 
 that platform is equal to osx (PLATFORM=osx).
+
+QUICKTIME:
+In order to compile Blender with QuickTime support enabled, you need to have the 
+QuickTime 6 SDK installed (see http://developer.apple.com/quicktime/). This extra
+step is only necessary if you're using a version of MacOS X prior to 10.2.
+When using the new automake system, QuickTime support can be enabled by passing
+the "--enable-quicktime=yes" flag to ./configure. When building with the original 
+NaN Makefiles, QuickTime support is enabled automatically.
