@@ -648,8 +648,10 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex)
 	int face, face1;
 	
 	env= tex->env;
-	if(env==0 || env->object==0) return 0;
-	
+	if(env==0 || env->object==0) {
+		Tin= 0.0;
+		return 0;
+	}
 	if(env->stype==ENV_LOAD) {
 		env->ima= tex->ima;
 		if(env->ima && env->ima->ok) {
