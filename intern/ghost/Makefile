@@ -41,7 +41,7 @@ TESTDIRS = test
 
 include nan_subdirs.mk
 
-install: all
+install: all debug
 	@[ -d $(NAN_GHOST) ] || mkdir $(NAN_GHOST)
 	@[ -d $(NAN_GHOST)/include ] || mkdir $(NAN_GHOST)/include
 	@[ -d $(NAN_GHOST)/lib ] || mkdir $(NAN_GHOST)/lib
