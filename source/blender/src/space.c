@@ -629,6 +629,8 @@ void BIF_undo_push(char *str)
 			undo_push_mesh(str);
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
 			undo_push_curve(str);
+		else if (G.obedit->type==OB_MBALL)
+			undo_push_mball(str);
 	}
 	else {
 		if(U.uiflag & USER_GLOBALUNDO) 
@@ -642,6 +644,8 @@ void BIF_undo(void)
 		if(G.obedit->type==OB_MESH)
 			undo_editmode_step(1);
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
+			undo_editmode_step(1);
+		else if (G.obedit->type==OB_MBALL)
 			undo_editmode_step(1);
 			
 	}
@@ -665,6 +669,8 @@ void BIF_redo(void)
 			undo_editmode_step(-1);
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
 			undo_editmode_step(-1);
+		else if (G.obedit->type==OB_MBALL)
+			undo_editmode_step(-1);
 	
 	}
 	else {
@@ -686,6 +692,8 @@ void BIF_undo_menu(void)
 		if(G.obedit->type==OB_MESH)
 			undo_editmode_menu();
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
+			undo_editmode_menu();
+		else if (G.obedit->type==OB_MBALL)
 			undo_editmode_menu();
 		
 		allqueue(REDRAWALL, 0);

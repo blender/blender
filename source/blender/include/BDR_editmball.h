@@ -45,6 +45,8 @@ void deselectall_mball(void);
 void mouse_mball(void);
 void adduplicate_mball(void);
 void delete_mball(void); 
+void freeMetaElemlist(struct ListBase *lb);
+void undo_push_mball(char *name);
 
 #endif /*  BDR_EDITMBALL_H */
 

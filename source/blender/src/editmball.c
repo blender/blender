@@ -30,6 +30,8 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#include <string.h>
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -57,6 +59,7 @@
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
 #include "BIF_space.h"
+#include "BIF_editmode_undo.h"
 
 #include "BDR_editobject.h"
 #include "BDR_editmball.h"
@@ -207,6 +210,7 @@ void add_primitiveMball(int dummy_argument)
 	
 	allqueue(REDRAWALL, 0);
 	makeDispList(G.obedit);
+	BIF_undo_push("Add MetaElem");
 }
 
 void deselectall_mball()
@@ -229,6 +233,7 @@ void deselectall_mball()
 		ml= ml->next;
 	}
 	allqueue(REDRAWVIEW3D, 0);
+//	BIF_undo_push("Deselect MetaElem");
 }
 
 void mouse_mball()
@@ -304,6 +309,7 @@ void adduplicate_mball()
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 
+/* Delete all selected MetaElems (not MetaBall) */
 void delete_mball()
 {
 	MetaElem *ml, *next;
@@ -324,4 +330,87 @@ void delete_mball()
 	makeDispList(G.obedit);
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
+
+	BIF_undo_push("Delete MetaElem");
+}
+
+/* free all MetaElems from ListBase */
+void freeMetaElemlist(ListBase *lb)
+{
+	MetaElem *ml, *next;
+
+	if(lb==NULL) return;
+
+	ml= lb->first;
+	while(ml){
+		next= ml->next;
+		BLI_remlink(lb, ml);
+		MEM_freeN(ml);
+		ml= next;
+	}
+
+	lb->first= lb->last= NULL;
+	
+}
+
+/*  ************* undo for MetaBalls ************* */
+
+static void undoMball_to_editMball(void *lbv)
+{
+	ListBase *lb= lbv;
+	MetaElem *ml, *newml;
+	unsigned int nr, lastmlnr= 0;
+
+	/* we try to restore lastelem, which used in for example in button window */
+	for(ml= editelems.first; ml; ml= ml->next, lastmlnr++)
+		if(lastelem==ml) break;
+
+	freeMetaElemlist(&editelems);
+
+	/* copy 'undo' MetaElems to 'edit' MetaElems */
+	ml= lb->first;
+	while(ml){
+		newml= MEM_dupallocN(ml);
+		BLI_addtail(&editelems, newml);
+		ml= ml->next;
+	}
+	
+	for(nr=0, lastelem= editelems.first; lastelem; lastelem= lastelem->next, nr++)
+		if(nr==lastmlnr) break;
+	
+}
+
+static void *editMball_to_undoMball(void)
+{
+	ListBase *lb;
+	MetaElem *ml, *newml;
+
+	/* allocate memory for undo ListBase */
+	lb= MEM_callocN(sizeof(ListBase), "listbase undo");
+	lb->first= lb->last= NULL;
+	
+	/* copy contents of current ListBase to the undo ListBase */
+	ml= editelems.first;
+	while(ml){
+		newml= MEM_dupallocN(ml);
+		BLI_addtail(lb, newml);
+		ml= ml->next;
+	}
+	
+	return lb;
+}
+
+/* free undo ListBase of MetaElems */
+static void free_undoMball(void *lbv)
+{
+	ListBase *lb= lbv;
+	
+	freeMetaElemlist(lb);
+	MEM_freeN(lb);
+}
+
+/* this is undo system for MetaBalls */
+void undo_push_mball(char *name)
+{
+	undo_editmode_push(name, free_undoMball, undoMball_to_editMball, editMball_to_undoMball);
 }
