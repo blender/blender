@@ -100,6 +100,7 @@
 #include "BSE_editipo.h"
 #include "BSE_editaction.h"
 #include "BSE_filesel.h"
+#include "BSE_edit.h"
 
 #include "BLO_readfile.h"
 #include "BLO_writefile.h"
@@ -139,7 +140,7 @@ void BIF_read_file(char *name)
 	}
 
 	mainwindow_set_filename_to_title(G.main->name);
-
+	countall();
 	sound_initialize_sounds();
 
 	winqueue_break= 1;	/* leave queues everywhere */
@@ -174,7 +175,7 @@ int BIF_read_homefile(void)
 
 	if (success) {
 		mainwindow_set_filename_to_title(tstr);
-
+		countall();
 		G.save_over = 0;
 
 		/*  disable autoplay in .B.blend... */

@@ -646,12 +646,11 @@ void countall()
 		return;
 	}
 
-	if(G.vd==0) return;
-	if(G.scene==0) return;
+	if(G.scene==NULL) return;
 
 	base= (G.scene->base.first);
 	while(base) {
-		if(G.vd->lay & base->lay) {
+		if(G.scene->lay & base->lay) {
 			
 			G.totobj++;
 			if(base->flag & SELECT) G.totobjsel++;
