@@ -2323,6 +2323,9 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 
   /* x,y: window coordinate from 0 to rectx,y */
   /* return pointer to rendered face */
+  
+float bluroffsx, bluroffsy;	// set in initrender.c (ton)
+
 void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 {
 	ShadeResult shr;
@@ -2354,13 +2357,13 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 		dvlak= v1->co[0]*vlr->n[0]+v1->co[1]*vlr->n[1]+v1->co[2]*vlr->n[2];
 
 		/* COXYZ AND VIEW VECTOR  */
-		shi.view[0]= (x+(R.xstart)+1.0);
+		shi.view[0]= (x+(R.xstart)+1.0+bluroffsx);
 
 		if(R.flag & R_SEC_FIELD) {
 			if(R.r.mode & R_ODDFIELD) shi.view[1]= (y+R.ystart+0.5)*R.ycor;
 			else shi.view[1]= (y+R.ystart+1.5)*R.ycor;
 		}
-		else shi.view[1]= (y+R.ystart+1.0)*R.ycor;
+		else shi.view[1]= (y+R.ystart+1.0+bluroffsy)*R.ycor;
 		
 		shi.view[2]= -R.viewfac;
 

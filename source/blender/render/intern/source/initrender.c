@@ -480,6 +480,7 @@ void RE_make_existing_file(char *name)
 
 void RE_setwindowclip(int mode, int jmode)
 {
+	extern float bluroffsx, bluroffsy;	// rendercore.c... hackish (ton)
 	Camera *cam=0;
 	float lens, minx, miny, maxx, maxy;
 	float xd, yd, afmx, afmy;
@@ -533,12 +534,16 @@ void RE_setwindowclip(int mode, int jmode)
   	maxx= R.xend+.4999; 
   	maxy= R.ycor*(R.yend+.4999); 
 	/* My guess: (or rather, what should be) */
-/*    	minx= R.xstart - 0.5;  */
-/*    	miny= R.ycor * (R.ystart - 0.5);  */
+	/*    	minx= R.xstart - 0.5;  */
+	/*    	miny= R.ycor * (R.ystart - 0.5);  */
 	/* Since the SCS-s map directly to the pixel center coordinates, we need */
 	/* to stretch the clip area a bit, not just shift it. However, this gives*/
 	/* nasty problems for parts...                                           */
 
+	/* Dunno who wrote previous comment, but I found an error with uncorrected
+	   blur offset in shadepixel(). Now solved with 2 globals, seems to work.
+	   The whole method how to retrieve the correct coordinate needs revision. (ton) */
+	   
 	if(R.flag & R_SEC_FIELD) {
 		if(R.r.mode & R_ODDFIELD) {
 			miny-= .5*R.ycor;
@@ -552,10 +557,10 @@ void RE_setwindowclip(int mode, int jmode)
 
 	xd= yd= 0.0;
 	if(jmode!= -1) {
-		xd= jit[jmode % R.osa][0];
-		yd= R.ycor*jit[jmode % R.osa][1];
-
+		bluroffsx= xd= jit[jmode % R.osa][0];
+		bluroffsy= yd= R.ycor*jit[jmode % R.osa][1];
 	}
+	else bluroffsx=bluroffsy= 0.0;
 
 	minx= R.pixsize*(minx+xd);
 	maxx= R.pixsize*(maxx+xd);
