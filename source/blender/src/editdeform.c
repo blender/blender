@@ -59,6 +59,11 @@
 #include <config.h>
 #endif
 
+/* ----------------- function prototypes ---------------- */
+void remove_vert_def_nr (Object *, int , int );
+void add_vert_defnr (Object *, int , int vertnum, float , int );
+
+
 void sel_verts_defgroup (int select)
 {
 	EditMesh *em = G.editMesh;

@@ -65,6 +65,10 @@ static PyObject *M_Library_Datablocks( PyObject * self, PyObject * args );
 static PyObject *M_Library_Load( PyObject * self, PyObject * args );
 static PyObject *M_Library_LinkableGroups( PyObject * self );
 
+PyObject *Library_Init( void );
+void EXPP_Library_Close( void );
+
+
 /**
  * Module doc strings.
  */

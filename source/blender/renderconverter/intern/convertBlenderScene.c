@@ -107,9 +107,10 @@
 
 #include "butspace.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "radio.h"
+#include "YafRay_Api.h"
+
+extern void error (char *fmt, ...);  /* defined in BIF_toolbox.h, but we dont need to include the rest */ 
 
 /* yafray: Identity transform 'hack' removed, exporter now transforms vertices back to world.
  * Same is true for lamp coords & vec.
@@ -126,7 +127,7 @@ static Material *give_render_material(Object *ob, int nr);
 
 
 /* blenderWorldManipulation.c */
-static void split_u_renderfaces(int startvlak, int startvert, int usize, int plek, int cyclu);
+/*static void split_u_renderfaces(int startvlak, int startvert, int usize, int plek, int cyclu);*/
 static void split_v_renderfaces(int startvlak, int startvert, int usize, int vsize, int plek, int cyclu, int cyclv);
 static int contrpuntnormr(float *n, float *puno);
 static void as_addvert(VertRen *v1, VlakRen *vlr);
@@ -350,6 +351,7 @@ static HaloRen *initstar(float *vec, float hasize)
 
 /* ------------------------------------------------------------------------- */
 
+#if 0
 static void split_u_renderfaces(int startvlak, int startvert, int usize, int plek, int cyclu)
 {
 	VlakRen *vlr;
@@ -376,6 +378,7 @@ static void split_u_renderfaces(int startvlak, int startvert, int usize, int ple
 	}
 
 }
+#endif 
 
 /* ------------------------------------------------------------------------- */
 
@@ -1034,7 +1037,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 					VECCOPY(v1->co, vec);
 				}
 				else {
-					float cvec[3]={-1.0, 0.0, 0.0};
+//					float cvec[3]={-1.0, 0.0, 0.0};
 					
 					vlr= RE_findOrAddVlak(R.totvlak++);
 					vlr->ob= vlr_set_ob(ob);
@@ -1287,21 +1290,21 @@ static void init_render_mball(Object *ob)
 static void init_render_mesh(Object *ob)
 {
 	Mesh *me;
-	MVert *mvert;
+	MVert *mvert = NULL;
 	MFace *mface;
-	VlakRen *vlr, *vlr1;
+	VlakRen *vlr; //, *vlr1;
 	VertRen *ver;
 	Material *ma;
-	MSticky *ms;
+	MSticky *ms = NULL;
 	PartEff *paf;
 	DispList *dl;
-	TFace *tface;
+//	TFace *tface;
 	unsigned int *vertcol;
-	float xn, yn, zn, nor[3], imat[3][3], mat[4][4];
+	float xn, yn, zn,  imat[3][3], mat[4][4];  //nor[3],
 	float *extverts=0, *orco;
 	int a, a1, ok, do_puno, need_orco=0, totvlako, totverto, vertofs;
-	int start, end, do_autosmooth=0, totvert;
-	DispListMesh *dlm;
+	int start, end, do_autosmooth=0, totvert = 0;
+	DispListMesh *dlm = NULL;
 
 	me= ob->data;
 
@@ -1846,7 +1849,7 @@ static void init_render_surf(Object *ob)
 	int u, v;
 	int sizeu, sizev;
 	VlakRen *vlr1, *vlr2, *vlr3;
-	float n2[3], vn[3];
+	float  vn[3]; // n2[3],
 #endif
 
 	cu= ob->data;
@@ -2587,7 +2590,7 @@ static void init_render_curve(Object *ob)
 /* prevent phong interpolation for giving ray shadow errors (terminator problem) */
 static void set_phong_threshold(Object *ob, int startface, int numface, int startvert, int numvert )
 {
-	VertRen *ver;
+//	VertRen *ver;
 	VlakRen *vlr;
 	float thresh= 0.0, dot;
 	int tot=0, i;
@@ -3233,9 +3236,9 @@ static void do_displacement(Object *ob, int startface, int numface, int startver
 {
 	VertRen *vr;
 	VlakRen *vlr;
-	float min[3]={1e30, 1e30, 1e30}, max[3]={-1e30, -1e30, -1e30};
-	float scale[3]={1.0f, 1.0f, 1.0f}, temp[3], xn;
-	int i, texflag=0;
+//	float min[3]={1e30, 1e30, 1e30}, max[3]={-1e30, -1e30, -1e30};
+	float scale[3]={1.0f, 1.0f, 1.0f}, temp[3];//, xn
+	int i; //, texflag=0;
 	Object *obt;
 		
 	/* Object Size with parenting */
@@ -3264,8 +3267,8 @@ static void do_displacement(Object *ob, int startface, int numface, int startver
 static void displace_render_face(VlakRen *vlr, float *scale)
 {
 	ShadeInput shi;
-	VertRen vr;
-	float samp1,samp2, samp3, samp4, xn;
+//	VertRen vr;
+//	float samp1,samp2, samp3, samp4, xn;
 	short hasuv=0;
 	/* set up shadeinput struct for multitex() */
 	

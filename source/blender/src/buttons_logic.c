@@ -82,6 +82,9 @@
 #include "BIF_keyval.h"
 #include "BIF_editsound.h"
 
+#include "BIF_editsca.h"
+
+
 #include "BDR_editcurve.h"
 #include "BSE_buttons.h"
 #include "BSE_headerbuttons.h"
@@ -93,6 +96,8 @@
 #include "butspace.h" // own module
 
 /* internals */
+void buttons_enji(uiBlock *, Object *);
+void buttons_ketsji(uiBlock *, Object *);
 
 /****/
 

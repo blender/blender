@@ -106,6 +106,14 @@
 
 #include "butspace.h" // own module
 
+/* ---------function prototypes ------------- */
+void load_tex_image(char *);	
+void load_plugin_tex(char *);
+int vergcband(const void *, const void *);
+void save_env(char *);
+void drawcolorband(ColorBand *, float , float , float , float );
+
+
 static MTex mtexcopybuf;
 static MTex emptytex;
 static int packdummy = 0;

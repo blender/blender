@@ -78,7 +78,7 @@ void BMF_BitmapFont::DrawString(char* str)
 	glGetIntegerv(GL_UNPACK_ALIGNMENT, &alignment);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-	while (c = (unsigned char) *str++) {
+	while ( (c = (unsigned char) *str++) ) {
 		BMF_CharData & cd = m_fontData->chars[c];
 		
 		if (cd.data_offset==-1) {
@@ -101,7 +101,7 @@ int BMF_BitmapFont::GetStringWidth(char* str)
 	unsigned char c;
 	int length = 0;
 
-	while (c = (unsigned char) *str++) {
+	while ( (c = (unsigned char) *str++) ) {
 		length += m_fontData->chars[c].advance;
 	}
 	
@@ -185,7 +185,7 @@ void BMF_BitmapFont::DrawStringTexture(char *str, float x, float y, float z)
 	int baseLine = -(m_fontData->ymin);
 
 	glBegin(GL_QUADS);
-	while (c = (unsigned char) *str++) {
+	while ( (c = (unsigned char) *str++) ) {
 		BMF_CharData & cd = m_fontData->chars[c];
 		
 		if (cd.data_offset != -1) {

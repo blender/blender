@@ -402,7 +402,7 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 	}
 	
 	SG_IObject* replicanode = newobj->GetSGNode();
-	SG_Node* rootnode = (replicanode == m_rootnode ? NULL : m_rootnode);
+	// SG_Node* rootnode = (replicanode == m_rootnode ? NULL : m_rootnode); /*unused*/
 
 	replicanode->SetSGClientObject(newobj);
 

@@ -169,7 +169,7 @@ int RE_testclip(float *v)
 
 /*-APixstr---------------------(antialised pixel struct)------------------------------*/ 
 
-APixstr *addpsmainA()
+static APixstr *addpsmainA()
 {
 	APixstrMain *psm;
 
@@ -189,7 +189,7 @@ APixstr *addpsmainA()
 	return psm->ps;
 }
 
-void freepsA()
+static void freepsA()
 {
 	APixstrMain *psm, *next;
 
@@ -210,7 +210,7 @@ void freepsA()
 	apsmteller= 0;
 }
 
-APixstr *addpsA(void)
+static APixstr *addpsA(void)
 {
 	static APixstr *prev;
 
@@ -232,7 +232,7 @@ APixstr *addpsA(void)
  * @param v2 [4 floats, world coordinates] second vertex
  * @param v3 [4 floats, world coordinates] third vertex
  */
-void zbufinvulAc(int zvlnr, float *v1, float *v2, float *v3)  
+static void zbufinvulAc(int zvlnr, float *v1, float *v2, float *v3)  
 {
 	APixstr *ap, *apofs, *apn;
 	double x0,y0,z0,x1,y1,z1,x2,y2,z2,xx1;
@@ -478,7 +478,7 @@ void zbufinvulAc(int zvlnr, float *v1, float *v2, float *v3)
 	}
 }
 
-void zbuflineAc(int zvlnr, float *vec1, float *vec2)
+static void zbuflineAc(int zvlnr, float *vec1, float *vec2)
 {
 	APixstr *ap, *apn;
 	int *rectz;
@@ -650,7 +650,7 @@ static void hoco_to_zco(float *zco, float *hoco)
 	zco[2]= 0x7FFFFFFF *(hoco[2]/deler);
 }
 
-void zbufline(int zvlnr, float *vec1, float *vec2)
+static void zbufline(int zvlnr, float *vec1, float *vec2)
 {
 	int *rectz, *rectp;
 	int start, end, x, y, oldx, oldy, ofs;

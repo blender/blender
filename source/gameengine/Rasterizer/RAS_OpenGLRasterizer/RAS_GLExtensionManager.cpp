@@ -155,6 +155,7 @@ static void bglDeallocEntryPoints (void)
 
 // -------------------------
 
+/*unused*/
 static void * bglGetProcAddress (const GLubyte * pszProc)
 {
     if (!gBundleRefOpenGL)

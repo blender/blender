@@ -98,6 +98,7 @@ static Icon *icon_from_data(unsigned char *rect, GLuint texid, int xofs, int yof
 	return icon;
 }
 
+#if 0
 static float icon_x=0.0, icon_y=0.0;
 void BIF_icon_pos(float xs, float ys)
 {
@@ -142,6 +143,7 @@ static void icon_draw_tex(Icon *icon)
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 }
+#endif
 
 
 static void icon_draw(Icon *icon)

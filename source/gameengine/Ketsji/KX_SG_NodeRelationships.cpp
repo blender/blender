@@ -157,9 +157,9 @@ UpdateChildCoordinates(
 		// This is a vertex parent so we do not inherit orientation 
 		// information.
 
-		const MT_Vector3 & p_world_scale = parent->GetWorldScaling();
+		// const MT_Vector3 & p_world_scale = parent->GetWorldScaling(); /*unused*/
 		const MT_Point3 & p_world_pos = parent->GetWorldPosition();
-		const MT_Matrix3x3 & p_world_rotation = parent->GetWorldOrientation();
+		// const MT_Matrix3x3 & p_world_rotation = parent->GetWorldOrientation(); /*unused*/
 
 		child_w_scale = child_scale;
 		child_w_rotation = child_rotation;

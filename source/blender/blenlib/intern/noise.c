@@ -210,7 +210,7 @@ float hashvectf[768]= {
 #define lerp(t, a, b) ((a)+(t)*((b)-(a)))
 #define npfade(t) ((t)*(t)*(t)*((t)*((t)*6-15)+10))
 
-float grad(int hash, float x, float y, float z)
+static float grad(int hash, float x, float y, float z)
 {
 	int h = hash & 15;                     // CONVERT LO 4 BITS OF HASH CODE
 	float u = h<8 ? x : y,                 // INTO 12 GRADIENT DIRECTIONS.
@@ -219,7 +219,7 @@ float grad(int hash, float x, float y, float z)
 }
 
 /* instead of adding another permutation array, just use hash table defined above */
-float newPerlin(float x, float y, float z)
+static float newPerlin(float x, float y, float z)
 {
 	int A, AA, AB, B, BA, BB;
 	float u=floor(x), v=floor(y), w=floor(z);
@@ -243,7 +243,7 @@ float newPerlin(float x, float y, float z)
 }
 
 /* for use with BLI_gNoise()/BLI_gTurbulence(), returns unsigned improved perlin noise */
-float newPerlinU(float x, float y, float z)
+static float newPerlinU(float x, float y, float z)
 {
 	return (0.5+0.5*newPerlin(x, y, z));
 }
@@ -254,7 +254,7 @@ float newPerlinU(float x, float y, float z)
 /**************************/
 
 /* Was BLI_hnoise(), removed noisesize, so other functions can call it without scaling. */
-float orgBlenderNoise(float x, float y, float z)
+static float orgBlenderNoise(float x, float y, float z)
 {
 	register float cn1, cn2, cn3, cn4, cn5, cn6, i, *h;
 	float ox, oy, oz, jx, jy, jz;
@@ -324,7 +324,7 @@ float orgBlenderNoise(float x, float y, float z)
 }
 
 /* as orgBlenderNoise(), returning signed noise */
-float orgBlenderNoiseS(float x, float y, float z)
+static float orgBlenderNoiseS(float x, float y, float z)
 {
 	return (2.0*orgBlenderNoise(x, y, z)-1.0);
 }
@@ -532,7 +532,7 @@ float turbulence_perlin(float *point, float lofreq, float hifreq)
 }
 
 /* for use with BLI_gNoise/gTurbulence, returns signed noise */
-float orgPerlinNoise(float x, float y, float z)
+static float orgPerlinNoise(float x, float y, float z)
 {
 	float v[3];
 
@@ -543,7 +543,7 @@ float orgPerlinNoise(float x, float y, float z)
 }
 
 /* for use with BLI_gNoise/gTurbulence, returns unsigned noise */
-float orgPerlinNoiseU(float x, float y, float z)
+static float orgPerlinNoiseU(float x, float y, float z)
 {
 	float v[3];
 
@@ -585,13 +585,13 @@ float turbulencep(float noisesize, float x, float y, float z, int nr)
 /* Camberra omitted, didn't seem useful */
 
 /* distance squared */
-float dist_Squared(float x, float y, float z, float e) { return (x*x + y*y + z*z); }
+static float dist_Squared(float x, float y, float z, float e) { return (x*x + y*y + z*z); }
 /* real distance */
-float dist_Real(float x, float y, float z, float e) { return sqrt(x*x + y*y + z*z); }
+static float dist_Real(float x, float y, float z, float e) { return sqrt(x*x + y*y + z*z); }
 /* manhattan/taxicab/cityblock distance */
-float dist_Manhattan(float x, float y, float z, float e) { return (fabs(x) + fabs(y) + fabs(z)); }
+static float dist_Manhattan(float x, float y, float z, float e) { return (fabs(x) + fabs(y) + fabs(z)); }
 /* Chebychev */
-float dist_Chebychev(float x, float y, float z, float e)
+static float dist_Chebychev(float x, float y, float z, float e)
 {
 	float t;
 	x = fabs(x);
@@ -602,14 +602,14 @@ float dist_Chebychev(float x, float y, float z, float e)
 }
 
 /* minkovsky preset exponent 0.5 */
-float dist_MinkovskyH(float x, float y, float z, float e)
+static float dist_MinkovskyH(float x, float y, float z, float e)
 {
 	float d = sqrt(fabs(x)) + sqrt(fabs(y)) + sqrt(fabs(z));
 	return (d*d);
 }
 
 /* minkovsky preset exponent 4 */
-float dist_Minkovsky4(float x, float y, float z, float e)
+static float dist_Minkovsky4(float x, float y, float z, float e)
 {
 	x *= x;
 	y *= y;
@@ -618,7 +618,7 @@ float dist_Minkovsky4(float x, float y, float z, float e)
 }
 
 /* Minkovsky, general case, slow, maybe too slow to be useful */
-float dist_Minkovsky(float x, float y, float z, float e)
+static float dist_Minkovsky(float x, float y, float z, float e)
 {
  return pow(pow(fabs(x), e) + pow(fabs(y), e) + pow(fabs(z), e), 1.0/e);
 }
@@ -696,35 +696,35 @@ void voronoi(float x, float y, float z, float* da, float* pa, float me, int dtyp
 }
 
 /* returns different feature points for use in BLI_gNoise() */
-float voronoi_F1(float x, float y, float z)
+static float voronoi_F1(float x, float y, float z)
 {
 	float da[4], pa[12];
 	voronoi(x, y, z, da, pa, 1, 0);
 	return da[0];
 }
 
-float voronoi_F2(float x, float y, float z)
+static float voronoi_F2(float x, float y, float z)
 {
 	float da[4], pa[12];
 	voronoi(x, y, z, da, pa, 1, 0);
 	return da[1];
 }
 
-float voronoi_F3(float x, float y, float z)
+static float voronoi_F3(float x, float y, float z)
 {
 	float da[4], pa[12];
 	voronoi(x, y, z, da, pa, 1, 0);
 	return da[2];
 }
 
-float voronoi_F4(float x, float y, float z)
+static float voronoi_F4(float x, float y, float z)
 {
 	float da[4], pa[12];
 	voronoi(x, y, z, da, pa, 1, 0);
 	return da[3];
 }
 
-float voronoi_F1F2(float x, float y, float z)
+static float voronoi_F1F2(float x, float y, float z)
 {
 	float da[4], pa[12];
 	voronoi(x, y, z, da, pa, 1, 0);
@@ -732,7 +732,7 @@ float voronoi_F1F2(float x, float y, float z)
 }
 
 /* Crackle type pattern, just a scale/clamp of F2-F1 */
-float voronoi_Cr(float x, float y, float z)
+static float voronoi_Cr(float x, float y, float z)
 {
 	float t = 10*voronoi_F1F2(x, y, z);
 	if (t>1.f) return 1.f;
@@ -742,35 +742,35 @@ float voronoi_Cr(float x, float y, float z)
 
 /* Signed version of all 6 of the above, just 2x-1, not really correct though (range is potentially (0, sqrt(6)).
    Used in the musgrave functions */
-float voronoi_F1S(float x, float y, float z)
+static float voronoi_F1S(float x, float y, float z)
 {
 	float da[4], pa[12];
 	voronoi(x, y, z, da, pa, 1, 0);
 	return (2.0*da[0]-1.0);
 }
 
-float voronoi_F2S(float x, float y, float z)
+static float voronoi_F2S(float x, float y, float z)
 {
 	float da[4], pa[12];
 	voronoi(x, y, z, da, pa, 1, 0);
 	return (2.0*da[1]-1.0);
 }
 
-float voronoi_F3S(float x, float y, float z)
+static float voronoi_F3S(float x, float y, float z)
 {
 	float da[4], pa[12];
 	voronoi(x, y, z, da, pa, 1, 0);
 	return (2.0*da[2]-1.0);
 }
 
-float voronoi_F4S(float x, float y, float z)
+static float voronoi_F4S(float x, float y, float z)
 {
 	float da[4], pa[12];
 	voronoi(x, y, z, da, pa, 1, 0);
 	return (2.0*da[3]-1.0);
 }
 
-float voronoi_F1F2S(float x, float y, float z)
+static float voronoi_F1F2S(float x, float y, float z)
 {
 	float da[4], pa[12];
 	voronoi(x, y, z, da, pa, 1, 0);
@@ -778,7 +778,7 @@ float voronoi_F1F2S(float x, float y, float z)
 }
 
 /* Crackle type pattern, just a scale/clamp of F2-F1 */
-float voronoi_CrS(float x, float y, float z)
+static float voronoi_CrS(float x, float y, float z)
 {
 	float t = 10*voronoi_F1F2(x, y, z);
 	if (t>1.f) return 1.f;
@@ -795,7 +795,7 @@ float voronoi_CrS(float x, float y, float z)
 /*************/
 
 /* returns unsigned cellnoise */
-float cellNoiseU(float x, float y, float z)
+static float cellNoiseU(float x, float y, float z)
 {
   int xi = (int)(floor(x));
   int yi = (int)(floor(y));

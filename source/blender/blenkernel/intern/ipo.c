@@ -878,7 +878,7 @@ float read_ipo_poin(void *poin, int type)
 	return val;
 }
 
-void *give_tex_poin(Tex *tex, int adrcode, int *type )
+static void *give_tex_poin(Tex *tex, int adrcode, int *type )
 {
 	void *poin=0;
 

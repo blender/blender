@@ -65,7 +65,7 @@ KX_SCA_EndObjectActuator::~KX_SCA_EndObjectActuator()
 
 bool KX_SCA_EndObjectActuator::Update()
 {
-	bool result = false;	
+	// bool result = false;	/*unused*/
 	bool bNegativeEvent = IsNegativeEvent();
 	RemoveAllEvents();
 

@@ -66,7 +66,7 @@ void BLO_free_memfile(MemFile *memfile)
 {
 	MemFileChunk *chunk;
 	
-	while(chunk = (memfile->chunks.first) ) {
+	while( (chunk = (memfile->chunks.first) ) ) {
 		if(chunk->ident==0) MEM_freeN(chunk->buf);
 		BLI_remlink(&memfile->chunks, chunk);
 		MEM_freeN(chunk);

@@ -90,6 +90,9 @@ void sort_faces(void);
 #include "mydevice.h"
 #include "blendef.h"
 
+#include "BIF_meshtools.h" /* include ourself for prototypes */
+
+
 /* * ********************** no editmode!!! *********** */
 
 

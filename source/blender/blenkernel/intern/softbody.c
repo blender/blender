@@ -95,6 +95,9 @@ float rescale_friction_to_framerate = 1.0f; // since unit of drag is [kg/sec] we
 
 short SB_ENABLE = 0; // quick hack to switch sb integration in 3d header
 
+/* local prototypes */
+void softbody_scale_time(float steptime);
+int get_scalar_from_named_vertexgroup(Object *ob, char *name, int vertID, float *target);
 
 void softbody_scale_time(float steptime)
 {
@@ -243,7 +246,7 @@ void free_softbody(SoftBody *sb)
 /* ************ dynamics ********** */
 
 /* aye this belongs to arith.c */
-void Vec3PlusStVec(float *v, float s, float *v1)
+static void Vec3PlusStVec(float *v, float s, float *v1)
 {
 	v[0] += s*v1[0];
 	v[1] += s*v1[1];
@@ -494,6 +497,7 @@ static void softbody_restore_prev_step(Object *ob)
 
 
 /* unused */
+#if 0
 static void softbody_apply_goal(Object *ob, float dtime)
 {
 
@@ -518,6 +522,7 @@ static void softbody_apply_goal(Object *ob, float dtime)
 		
 	}
 }
+#endif
 
 static void softbody_apply_goalsnap(Object *ob)
 {
@@ -588,7 +593,7 @@ static void mesh_update_softbody(Object *ob)
 {
 	Mesh *me= ob->data;
 	MVert *mvert= me->mvert;
-	MEdge *medge= me->medge;
+/*	MEdge *medge= me->medge;  */ /*unused*/
 	BodyPoint *bp;
 	int a;
 	if(ob->soft) {
@@ -652,7 +657,7 @@ static void mesh_to_softbody(Object *ob)
 	Mesh *me= ob->data;
 	MVert *mvert= me->mvert;
 	MEdge *medge= me->medge;
-	MFace *mface= me->mface;
+/*	MFace *mface= me->mface; */ /*unused*/
 	BodyPoint *bp;
 	BodySpring *bs;
 	int a;

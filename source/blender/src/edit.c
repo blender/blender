@@ -121,6 +121,10 @@ extern void uvedit_selectionCB(short selecting, Object *editobj,
 
 void circle_selectCB(select_CBfunc func);
 
+/* local protos ---------------*/
+void snap_curs_to_firstsel(void);
+
+
 int get_border(rcti *rect, short col)
 {
 	float dvec[4], fac1, fac2;
@@ -931,7 +935,7 @@ void snap_curs_to_sel()
 #ifdef __NLA
 			if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
 #else
-			if ELEM5(G.obedit->type, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MABLL) make_trans_verts(bmat[0], bmat[1], 0);
+			if ELEM5(G.obedit->type, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
 #endif
 			if(tottrans==0) return;
 

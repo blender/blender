@@ -831,7 +831,7 @@ static void add_to_blurbuf(int blur)
 
 
 /* yafray: main yafray render/export call */
-void yafrayRender()
+static void yafrayRender(void)
 {
 	R.flag |= R_RENDERING;	/* !!! */
 

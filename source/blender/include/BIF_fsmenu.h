@@ -40,7 +40,7 @@ int		fsmenu_get_nentries		(void);
 	/** Returns true if the fsmenu entry at @a index exists and
 	 * is a seperator.
 	 */
-char*	fsmenu_is_entry_a_seperator	(int index);
+int	fsmenu_is_entry_a_seperator	(int index);
 
 	/** Returns the fsmenu entry at @a index (or NULL if a bad index)
      * or a seperator.

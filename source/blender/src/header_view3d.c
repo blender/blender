@@ -534,7 +534,7 @@ static uiBlock *view3d_select_object_typemenu(void *arg_unused)
 
 void do_view3d_select_object_layermenu(void *arg, int event)
 {
-	extern void selectall_layer(int layernum);
+	extern void selectall_layer(unsigned int layernum);
 	
 	switch(event) {
 	case 0:
@@ -1268,7 +1268,7 @@ static uiBlock *view3d_transform_scaleaxismenu(void *arg_unused)
 	return block;
 }
 
-void do_view3d_transformmenu(void *arg, int event)
+static void do_view3d_transformmenu(void *arg, int event)
 {
 	switch(event) {
 	case 1:
@@ -2528,7 +2528,7 @@ static uiBlock *view3d_edit_curvemenu(void *arg_unused)
 	return block;
 }
 
-void do_view3d_edit_mball_showhidemenu(void *arg, int event)
+static void do_view3d_edit_mball_showhidemenu(void *arg, int event)
 {
 	switch(event) {
 	case 10: /* show hidden control points */
@@ -3422,7 +3422,7 @@ static char *around_pup(void)
 	return (string);
 }
 
-char *propfalloff_pup(void)
+static char *propfalloff_pup(void)
 {
 	static char string[512];
 

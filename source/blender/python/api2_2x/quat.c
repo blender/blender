@@ -64,6 +64,13 @@ struct PyMethodDef Quaternion_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
+/* ****** prototypes ********** */
+PyObject *Quaternion_add( PyObject * q1, PyObject * q2 );
+PyObject *Quaternion_sub( PyObject * q1, PyObject * q2 );
+PyObject *Quaternion_mul( PyObject * q1, PyObject * q2 );
+int Quaternion_coerce( PyObject ** q1, PyObject ** q2 );
+
+
 /*****************************/
 //    Quaternion Python Object   
 /*****************************/

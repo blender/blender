@@ -11,6 +11,8 @@
 /* We want this flag, safer than putting in build system */
 #define NO_TIMER
 
+double  SuperLU_timer_ ();
+
 #ifdef SUN 
 /*
  * 	It uses the system call gethrtime(3C), which is accurate to 

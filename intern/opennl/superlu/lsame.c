@@ -1,3 +1,6 @@
+int lsame_(char *, char *);
+
+
 int lsame_(char *ca, char *cb)
 {
 /*  -- LAPACK auxiliary routine (version 2.0) --   

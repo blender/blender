@@ -113,6 +113,10 @@ PyObject *importText( char *name );
 void init_ourImport( void );
 PyObject *blender_import( PyObject * self, PyObject * args );
 
+int BPY_txt_do_python_Text( struct Text *text );
+void BPY_Err_Handle( char *script_name );
+PyObject *traceback_getFilename( PyObject * tb );
+
 /****************************************************************************
 * Description: This function will initialise Python and all the implemented 
 *	          api variations.
@@ -848,7 +852,7 @@ void BPY_free_finished_script( Script * script )
 	return;
 }
 
-void unlink_script( Script * script )
+static void unlink_script( Script * script )
 {	/* copied from unlink_text in drawtext.c */
 	bScreen *scr;
 	ScrArea *area;
@@ -1095,7 +1099,7 @@ void BPY_free_scriptlink( struct ScriptLink *slink )
 	return;
 }
 
-int CheckAllScriptsFromList( ListBase * list, Text * text )
+static int CheckAllScriptsFromList( ListBase * list, Text * text )
 {
 	ID *id;
 	ScriptLink *scriptlink;

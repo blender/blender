@@ -393,7 +393,9 @@ SND_WaveSlot* SND_OpenALDevice::LoadSample(const STR_String& name,
 			{
 				int buffer = waveslot->GetBuffer();
 				void* data = NULL;
+#ifndef __APPLE__
 				char loop = 'a';
+#endif
 				int sampleformat, bitrate, numberofchannels;
 				ALenum al_error = alGetError();
 				

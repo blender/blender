@@ -227,6 +227,12 @@ typedef struct OldNewMap {
 	int lasthit;
 } OldNewMap;
 
+
+/* local prototypes */
+void lib_link_screen_restore(Main *, char , Scene *);
+extern          short freeN(void *vmemh); /* defined in util.h */  
+
+
 static OldNewMap *oldnewmap_new(void) {
 	OldNewMap *onm= MEM_mallocN(sizeof(*onm), "OldNewMap");
 	onm->lasthit= 0;
@@ -2544,7 +2550,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			Sequence temp;
 			char *poin;
 			long offset;
-			int seted=0;
+			/*int seted=0;*/ /*unused*/
 			
 			offset= ((long)&(temp.seqbase)) - ((long)&temp);
 

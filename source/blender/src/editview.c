@@ -105,7 +105,8 @@ extern ListBase editNurb; /* originally from exports.h, memory from editcurve.c*
 /* editmball.c */
 extern ListBase editelems;
 
-
+/* local prototypes */
+void obedit_selectionCB(short , Object *, short *, float ); /* called in edit.c */ 
 
 void arrows_move_cursor(unsigned short event)
 {
@@ -835,7 +836,7 @@ void selectall_type(short obtype)
 	BIF_undo_push("Select all per type");
 }
 /* selects all objects on a particular layer */
-void selectall_layer(int layernum) 
+void selectall_layer(unsigned int layernum) 
 {
 	Base *base;
 	
@@ -1534,7 +1535,7 @@ void borderselect(void)
 	XXX These callback functions are still dirty, because they call globals... 
   */
 
-void mesh_selectionCB(int selecting, Object *editobj, short *mval, float rad)
+static void mesh_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 {
 	extern int em_solidoffs, em_wireoffs;	// let linker solve it... from editmesh_mods.c 
 	EditMesh *em = G.editMesh;
@@ -1615,7 +1616,7 @@ void mesh_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 }
 
 
-void nurbscurve_selectionCB(int selecting, Object *editobj, short *mval, float rad)
+static void nurbscurve_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 {
 	Nurb *nu;
 	BPoint *bp;
@@ -1681,7 +1682,7 @@ void nurbscurve_selectionCB(int selecting, Object *editobj, short *mval, float r
 
 }
 
-void lattice_selectionCB(int selecting, Object *editobj, short *mval, float rad)
+static void lattice_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 {
 	BPoint *bp;
 	float x, y, r;

@@ -341,7 +341,7 @@ PyObject *Matrix_Invert( MatrixObject * self )
 			      self->matrix[2][0], self->matrix[2][1],
 			      self->matrix[2][2] );
 	} else if( self->rowSize == 4 ) {
-		det = Det4x4( *self->matrix );
+		det = Det4x4( (float ( * )[4]) *self->matrix );
 	} else {
 		return EXPP_ReturnPyObjError( PyExc_StandardError,
 					      "error calculating determinant for inverse()\n" );
@@ -370,7 +370,7 @@ PyObject *Matrix_Invert( MatrixObject * self )
 					 ( PyExc_MemoryError,
 					   "problem allocating mat\n\n" ) );
 			}
-			Mat3Adj( ( float ( * )[3] ) mat, *self->matrix );
+			Mat3Adj( ( float ( * )[3] ) mat,( float ( * )[3] ) *self->matrix );
 		} else if( self->rowSize == 4 ) {
 			mat = PyMem_Malloc( self->rowSize * self->colSize *
 					    sizeof( float ) );
@@ -379,7 +379,7 @@ PyObject *Matrix_Invert( MatrixObject * self )
 					 ( PyExc_MemoryError,
 					   "problem allocating mat\n\n" ) );
 			}
-			Mat4Adj( ( float ( * )[4] ) mat, *self->matrix );
+			Mat4Adj( ( float ( * )[4] ) mat, ( float ( * )[4] ) *self->matrix );
 		}
 		//divide by determinate
 		for( x = 0; x < ( self->rowSize * self->colSize ); x++ ) {
@@ -437,7 +437,7 @@ PyObject *Matrix_Determinant( MatrixObject * self )
 			      self->matrix[2][0], self->matrix[2][1],
 			      self->matrix[2][2] );
 	} else if( self->rowSize == 4 ) {
-		det = Det4x4( *self->matrix );
+		det = Det4x4( (float ( * )[4]) *self->matrix );
 	} else {
 		return EXPP_ReturnPyObjError( PyExc_StandardError,
 					      "error in determinant()\n" );
@@ -458,9 +458,9 @@ PyObject *Matrix_Transpose( MatrixObject * self )
 		self->matrix[1][0] = self->matrix[0][1];
 		self->matrix[0][1] = t;
 	} else if( self->rowSize == 3 ) {
-		Mat3Transp( *self->matrix );
+		Mat3Transp( (float ( * )[3])*self->matrix );
 	} else if( self->rowSize == 4 ) {
-		Mat4Transp( *self->matrix );
+		Mat4Transp( (float ( * )[4])*self->matrix );
 	} else
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"unable to transpose matrix\n" ) );
@@ -492,9 +492,9 @@ PyObject *Matrix_Identity( MatrixObject * self )
 		self->matrix[1][0] = 0.0f;
 		self->matrix[1][1] = 1.0f;
 	} else if( self->rowSize == 3 ) {
-		Mat3One( *self->matrix );
+		Mat3One( ( float ( * )[3] ) *self->matrix );
 	} else if( self->rowSize == 4 ) {
-		Mat4One( *self->matrix );
+		Mat4One( ( float ( * )[4] ) *self->matrix );
 	} else
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"unable to create identity matrix\n" ) );
@@ -668,7 +668,7 @@ static int Matrix_len( MatrixObject * self )
 	return ( self->colSize * self->rowSize );
 }
 
-PyObject *Matrix_add( PyObject * m1, PyObject * m2 )
+static PyObject *Matrix_add( PyObject * m1, PyObject * m2 )
 {
 	float *mat;
 	int matSize, rowSize, colSize, x, y;
@@ -710,7 +710,7 @@ PyObject *Matrix_add( PyObject * m1, PyObject * m2 )
 	return newMatrixObject( mat, rowSize, colSize );
 }
 
-PyObject *Matrix_sub( PyObject * m1, PyObject * m2 )
+static PyObject *Matrix_sub( PyObject * m1, PyObject * m2 )
 {
 	float *mat;
 	int matSize, rowSize, colSize, x, y;
@@ -752,7 +752,7 @@ PyObject *Matrix_sub( PyObject * m1, PyObject * m2 )
 	return newMatrixObject( mat, rowSize, colSize );
 }
 
-PyObject *Matrix_mul( PyObject * m1, PyObject * m2 )
+static PyObject *Matrix_mul( PyObject * m1, PyObject * m2 )
 {
 	PyObject *retval;
 	int matSizeV, rowSizeV, colSizeV, rowSizeW, colSizeW, matSizeW, x, y,z;
@@ -830,7 +830,7 @@ PyObject *Matrix_mul( PyObject * m1, PyObject * m2 )
 }
 
 //coercion of unknown types to type MatrixObject for numeric protocols
-int Matrix_coerce( PyObject ** m1, PyObject ** m2 )
+static int Matrix_coerce( PyObject ** m1, PyObject ** m2 )
 {
 	long *tempI;
 	double *tempF;

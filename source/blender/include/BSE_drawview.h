@@ -65,5 +65,8 @@ void end_anim_sumo(void);
 void inner_play_anim_loop(int init, int mode);
 int play_anim(int mode);
 
+
+void make_axis_color(char *col, char *col2, char axis);
+
 #endif /* BSE_DRAWVIEW_H */
 

@@ -49,9 +49,8 @@ CPPFLAGS += $(LEVEL_2_CPP_WARNINGS)
 # path to our own external headerfiles. On win2k this needs to be
 # longer, to avoid the util.h include problem
 CPPFLAGS += -I..
-ifeq ($(OS),windows)
-    CPPFLAGS += -I../..
-endif
+CPPFLAGS += -I../..
+
 # also do dna
 CPPFLAGS += -I../../makesdna
 # path to blenlib

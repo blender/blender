@@ -2186,7 +2186,7 @@ static void namebutton_cb(void *voidp, void *arg2_unused)
 	}
 }
 
-void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
+static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
 {
 	uiBut *bt;
 	TreeElement *te;

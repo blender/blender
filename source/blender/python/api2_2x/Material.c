@@ -161,6 +161,10 @@ static PyObject *M_Material_New( PyObject * self, PyObject * args,
 				 PyObject * keywords );
 static PyObject *M_Material_Get( PyObject * self, PyObject * args );
 
+/* Not exposed nor used */
+Material *GetMaterialByName( char *name );
+
+
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.	 */
 /* In Python these will be written to the console when doing a		 */

@@ -1514,7 +1514,7 @@ static int write_file_handle(int handle, MemFile *compare, MemFile *current, int
 	ListBase mainlist;
 	char buf[13];
 	WriteData *wd;
-	int data;
+/*	int data; */ /*unused*/
 
 	mainlist.first= mainlist.last= G.main;
 	G.main->next= NULL;

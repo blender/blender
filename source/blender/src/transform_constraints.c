@@ -114,7 +114,7 @@ void recalcData();
 /* ************************** CONSTRAINTS ************************* */
 void getConstraintMatrix(TransInfo *t);
 
-void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3]) {
+static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3]) {
 	int i = 0;
 	Mat3MulVecfl(t->con.imtx, vec);
 
@@ -146,7 +146,7 @@ void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3]) {
 	Mat3MulVecfl(t->con.mtx, vec);
 }
 
-void getViewVector(TransInfo *t, float coord[3], float vec[3]) {
+static void getViewVector(TransInfo *t, float coord[3], float vec[3]) {
 	if (G.vd->persp)
 	{
 		float p1[4], p2[4];
@@ -171,7 +171,7 @@ void getViewVector(TransInfo *t, float coord[3], float vec[3]) {
 	}
 }
 
-void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3]) {
+static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3]) {
 	float norm[3], n[3], vec[3], factor;
 
 	getViewVector(t, in, norm);
@@ -196,7 +196,7 @@ void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3]) {
 	}
 }
 
-void planeProjection(TransInfo *t, float in[3], float out[3]) {
+static void planeProjection(TransInfo *t, float in[3], float out[3]) {
 	float vec[3], factor, angle, norm[3];
 
 	getViewVector(t, in, norm);
@@ -224,7 +224,7 @@ void planeProjection(TransInfo *t, float in[3], float out[3]) {
  *
  */
 
-void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], float out[3], float pvec[3])
+static void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], float out[3], float pvec[3])
 {
 	VECCOPY(out, in);
 	if (!td && t->con.mode & CON_APPLY) {
@@ -259,7 +259,7 @@ void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], float out[
  *
  */
 
-void applyAxisConstraintSize(TransInfo *t, TransData *td, float smat[3][3])
+static void applyAxisConstraintSize(TransInfo *t, TransData *td, float smat[3][3])
 {
 	if (!td && t->con.mode & CON_APPLY) {
 		float tmat[3][3];
@@ -318,7 +318,7 @@ void applyObjectConstraintSize(TransInfo *t, TransData *td, float smat[3][3])
  * (ie: not doing counterclockwise rotations when the mouse moves clockwise).
  */
 
-void applyAxisConstraintRot(TransInfo *t, TransData *td, float vec[3])
+static void applyAxisConstraintRot(TransInfo *t, TransData *td, float vec[3])
 {
 	if (!td && t->con.mode & CON_APPLY) {
 		int mode = t->con.mode & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
@@ -527,9 +527,9 @@ void BIF_setSingleAxisConstraint(float vec[3]) {
 	t->redraw = 1;
 }
 
-void BIF_drawConstraint()
+void BIF_drawConstraint(void)
 {
-	int i = -1;
+	//int i = -1;
 	TransInfo *t = BIF_GetTransInfo();
 	TransCon *tc = &(t->con);
 

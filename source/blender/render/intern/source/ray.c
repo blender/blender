@@ -116,6 +116,12 @@ static Octree g_oc;	/* can be scene pointer or so later... */
 static int raycount, branchcount, nodecount;
 static int accepted, rejected, coherent_ray;
 
+/* prototypes ------------------------ */
+void freeoctree(void);
+void makeoctree(void);
+float *test_jitter(int resol, int iter, float xsize, float ysize);
+int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr);
+
 /* **************** ocval method ******************* */
 /* within one octree node, a set of 3x15 bits defines a 'boundbox' to OR with */
 
@@ -447,7 +453,7 @@ void freeoctree(void)
 	nodecount= 0;
 }
 
-void makeoctree()
+void makeoctree(void)
 {
 	VlakRen *vlr=NULL;
 	VertRen *v1, *v2, *v3, *v4;
@@ -1848,7 +1854,7 @@ int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
 }
 
 /* aolight: function to create random unit sphere vectors for total random sampling */
-void RandomSpherical(float *v)
+static void RandomSpherical(float *v)
 {
 	float r;
 	v[2] = 2.f*BLI_frand()-1.f;

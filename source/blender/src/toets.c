@@ -112,7 +112,7 @@
 void schrijfplaatje(char *name);
 
 
-void write_imag(char *name)
+static void write_imag(char *name)
 {
 	/* from file select */
 	char str[256];

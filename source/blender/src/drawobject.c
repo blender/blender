@@ -3505,7 +3505,7 @@ static void tekentextcurs(void)
 	glEnd();
 }
 
-void drawspiral(float *cent, float rad, float tmat[][4], int start)
+static void drawspiral(float *cent, float rad, float tmat[][4], int start)
 {
 	float vec[3], vx[3], vy[3];
 	int a, tot=32;
@@ -4499,7 +4499,9 @@ void draw_object(Base *base)
 		/* Drawing the constraint lines */
 		list = &ob->constraints;
 		if (list){
+			/*
 			extern void make_axis_color(char *col, char *col2, char axis);	// drawview.c
+			 */
 			bConstraint *curcon;
 			float size[3], tmat[4][4];
 			char col[4], col2[4];

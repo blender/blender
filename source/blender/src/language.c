@@ -195,7 +195,7 @@ char *language_pup(void)
 }
 
 
-LANGMenuEntry *find_language(short langid)
+static LANGMenuEntry *find_language(short langid)
 {
 	LANGMenuEntry *lme = langmenu;
 
@@ -276,7 +276,7 @@ void start_interface_font(void)
 }
 
 
-char *first_dpointchar(char *string) 
+static char *first_dpointchar(char *string) 
 {
 	char *dpointchar;
 	
@@ -286,7 +286,7 @@ char *first_dpointchar(char *string)
 }
 
 
-void splitlangline(char *line, LANGMenuEntry *lme)
+static void splitlangline(char *line, LANGMenuEntry *lme)
 {
 	char *dpointchar= first_dpointchar(line);
 
@@ -300,7 +300,7 @@ void splitlangline(char *line, LANGMenuEntry *lme)
 }
 
 
-void puplang_insert_entry(char *line)
+static void puplang_insert_entry(char *line)
 {
 	LANGMenuEntry *lme, *prev;
 	int sorted = 0;

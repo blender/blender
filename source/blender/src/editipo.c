@@ -2630,7 +2630,7 @@ void mouse_select_ipo()
 	}
 }
 
-int icu_keys_bezier_loop(IpoCurve *icu,
+static int icu_keys_bezier_loop(IpoCurve *icu,
                          int (*bezier_function)(BezTriple *),
                          void (ipocurve_function)(struct IpoCurve *icu)) 
 {
@@ -2673,7 +2673,7 @@ int icu_keys_bezier_loop(IpoCurve *icu,
 
 }
 
-int ipo_keys_bezier_loop(Ipo *ipo,
+static int ipo_keys_bezier_loop(Ipo *ipo,
                          int (*bezier_function)(BezTriple *),
                          void (ipocurve_function)(struct IpoCurve *icu))
 {
@@ -2696,7 +2696,7 @@ int ipo_keys_bezier_loop(Ipo *ipo,
     return 0;
 }
 
-int selected_bezier_loop(int (*looptest)(EditIpo *),
+static int selected_bezier_loop(int (*looptest)(EditIpo *),
                          int (*bezier_function)(BezTriple *),
                          void (ipocurve_function)(struct IpoCurve *icu))
 {
@@ -2788,7 +2788,7 @@ int select_bezier_invert(BezTriple *bezt) {
   return 0;
 }
 
-int set_bezier_auto(BezTriple *bezt) 
+static int set_bezier_auto(BezTriple *bezt) 
 {
 	/* Sets the selected bezier handles to type 'auto' 
 	 */
@@ -2811,7 +2811,7 @@ int set_bezier_auto(BezTriple *bezt)
 	return 0;
 }
 
-int set_bezier_vector(BezTriple *bezt) 
+static int set_bezier_vector(BezTriple *bezt) 
 {
 	/* Sets the selected bezier handles to type 'vector' 
 	 */
@@ -2834,7 +2834,7 @@ int set_bezier_vector(BezTriple *bezt)
 	return 0;
 }
 
-int bezier_isfree(BezTriple *bezt) 
+static int bezier_isfree(BezTriple *bezt) 
 {
 	/* queries whether the handle should be set
 	 * to type 'free' (I think)
@@ -2844,7 +2844,7 @@ int bezier_isfree(BezTriple *bezt)
 	return 0;
 }
 
-int set_bezier_free(BezTriple *bezt) 
+static int set_bezier_free(BezTriple *bezt) 
 {
 	/* Sets selected bezier handles to type 'free' 
 	 */
@@ -2853,7 +2853,7 @@ int set_bezier_free(BezTriple *bezt)
 	return 0;
 }
 
-int set_bezier_align(BezTriple *bezt) 
+static int set_bezier_align(BezTriple *bezt) 
 {
 	/* Sets selected bezier handles to type 'align' 
 	 */
@@ -2862,7 +2862,7 @@ int set_bezier_align(BezTriple *bezt)
 	return 0;
 }
 
-int vis_edit_icu_bez(EditIpo *ei) {
+static int vis_edit_icu_bez(EditIpo *ei) {
 	/* A 4 part test for an EditIpo :
 	 *   is it a) visible
 	 *         b) in edit mode
@@ -2976,19 +2976,19 @@ void sethandles_ipo(int code)
 }
 
 
-void set_ipocurve_constant(struct IpoCurve *icu) {
+static void set_ipocurve_constant(struct IpoCurve *icu) {
 	/* Sets the type of the IPO curve to constant
 	 */
 	icu->ipo= IPO_CONST;
 }
 
-void set_ipocurve_linear(struct IpoCurve *icu) {
+static void set_ipocurve_linear(struct IpoCurve *icu) {
 	/* Sets the type of the IPO curve to linear
 	 */
 	icu->ipo= IPO_LIN;
 }
 
-void set_ipocurve_bezier(struct IpoCurve *icu) {
+static void set_ipocurve_bezier(struct IpoCurve *icu) {
 	/* Sets the type of the IPO curve to bezier
 	 */
 	icu->ipo= IPO_BEZ;

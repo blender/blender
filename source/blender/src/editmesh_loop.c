@@ -94,7 +94,7 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 
 /* *************** LOOP SELECT ************* */
 
-short edgeFaces(EditEdge *e){
+static short edgeFaces(EditEdge *e){
 	EditMesh *em = G.editMesh;
 	EditFace *search=NULL;
 	short count = 0;
@@ -112,7 +112,7 @@ short edgeFaces(EditEdge *e){
 	returns 1 if they do
 	returns 0 if they do not, or if the function is passed the same edge 2 times
 */
-short sharesFace(EditEdge* e1, EditEdge* e2)
+static short sharesFace(EditEdge* e1, EditEdge* e2)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *search=NULL;
@@ -400,7 +400,7 @@ typedef struct CutCurve {
 	short  y;
 } CutCurve;
 
-CutCurve *get_mouse_trail(int *len, char mode){
+static CutCurve *get_mouse_trail(int *len, char mode){
 
 	CutCurve *curve,*temp;
 	short event, val, ldown=0, restart=0, rubberband=0;

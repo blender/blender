@@ -94,7 +94,7 @@ m_bCollision(false),
 m_bTriggered(false),
 m_bLastTriggered(false)
 {
-	KX_TouchEventManager* touchmgr = (KX_TouchEventManager*) eventmgr;
+	// KX_TouchEventManager* touchmgr = (KX_TouchEventManager*) eventmgr; /*unused*/
 //	m_resptable = touchmgr->GetResponseTable();
 	
 //	m_solidHandle = m_sumoObj->getObjectHandle();
@@ -161,7 +161,7 @@ void KX_TouchSensor::RegisterSumo(KX_TouchEventManager *touchman)
 
 DT_Bool    KX_TouchSensor::HandleCollision(void* obj1,void* obj2,const DT_CollData * coll_data)
 {
-	KX_TouchEventManager* toucheventmgr = (KX_TouchEventManager*)m_eventmgr;
+	// KX_TouchEventManager* toucheventmgr = (KX_TouchEventManager*)m_eventmgr; /*unused*/
 	KX_GameObject* parent = (KX_GameObject*)GetParent();
 
 	// need the mapping from SM_Objects to gameobjects now

@@ -463,7 +463,7 @@ RAS_TexVert* RAS_MeshObject::GetVertex(short array,
 
 void RAS_MeshObject::ClearArrayData()
 {
-	for (unsigned int i=0;i<m_matVertexArrayS.size();i++)
+	for (int i=0;i<m_matVertexArrayS.size();i++)
 	{
 		KX_ArrayOptimizer** ao = m_matVertexArrayS.at(i);
 		if (ao)
@@ -567,7 +567,7 @@ struct RAS_MeshObject::polygonSlot
 		RAS_TexVert *vert = mesh->GetVertex(base.m_vtxarray, base.m_indexarray[0], poly->GetMaterial()->GetPolyMaterial());
 		m_z = MT_dot(pnorm, vert->getLocalXYZ()) + pval;
 		
-		for( unsigned int i = 1; i < m_poly->VertexCount(); i++)
+		for(int i = 1; i < m_poly->VertexCount(); i++)
 		{
 			vert = mesh->GetVertex(base.m_vtxarray, base.m_indexarray[i], poly->GetMaterial()->GetPolyMaterial());
 			float z = MT_dot(pnorm, vert->getLocalXYZ()) + pval;

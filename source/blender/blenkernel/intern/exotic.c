@@ -967,7 +967,7 @@ static void read_videoscape_nurbs(char *str)
 	Mat3ToEul(omat, ob->rot);
 	EulToMat3(ob->rot, mat);
 	Mat3Inv(imat, mat);
-	Mat3MulMat3(tmat, imat, omat);
+	Mat3MulMat3((float ( * )[3])tmat, imat, omat);
 	
 	while(tot--) {
 		nu= (Nurb*)MEM_callocN(sizeof(Nurb),"nu from exotic");

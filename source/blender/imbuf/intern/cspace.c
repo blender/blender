@@ -37,6 +37,8 @@
 #include "imbuf_patch.h"
 #include "IMB_imbuf_types.h"
 
+void IMB_cspace(struct ImBuf *ibuf, float mat[][4]);
+
 /************************************************************************/
 /*				COLORSPACE				*/
 /************************************************************************/

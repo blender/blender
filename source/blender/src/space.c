@@ -530,7 +530,7 @@ static void align_view_to_selected(View3D *v3d)
 	}
 }
 
-void select_children(Object *ob, int recursive)
+static void select_children(Object *ob, int recursive)
 {
 	Base *base;
 
@@ -542,7 +542,7 @@ void select_children(Object *ob, int recursive)
 		}
 }
 
-void select_parent(void)	/* Makes parent active and de-selected OBACT */
+static void select_parent(void)	/* Makes parent active and de-selected OBACT */
 {
 	Base *base, *startbase, *basact=NULL, *oldbasact;
 	
@@ -2036,7 +2036,8 @@ void space_mipmap_button_function(int event) {
 	allqueue(REDRAWVIEW3D, 0);
 }
 
-void space_sound_button_function(int event)
+#if 0
+static void space_sound_button_function(int event)
 {
 	int a;
 	SYS_SystemHandle syshandle;
@@ -2047,6 +2048,7 @@ void space_sound_button_function(int event)
 		SYS_WriteCommandLineInt(syshandle, "noaudio", a);
 	}
 }
+#endif
 
 #define B_ADD_THEME 	3301
 #define B_DEL_THEME 	3302
@@ -2064,7 +2066,7 @@ static short th_curcol= TH_BACK;
 static char *th_curcol_ptr= NULL;
 static char th_curcol_arr[4]={0, 0, 0, 255};
 
-void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
+static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 {
 	bTheme *btheme, *bt;
 	int spacetype= 0;
@@ -3462,7 +3464,7 @@ static void init_actionspace(ScrArea *sa)
 	
 }
 
-void free_actionspace(SpaceAction *saction)
+static void free_actionspace(SpaceAction *saction)
 {
 	/* don't free saction itself */
 	

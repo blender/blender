@@ -366,7 +366,7 @@ static void env_layerflags(unsigned int notlay)
 	}
 }
 
-void env_hideobject(Object *ob)
+static void env_hideobject(Object *ob)
 {
 	VlakRen *vlr = NULL;
 	int a;

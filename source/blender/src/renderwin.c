@@ -1118,6 +1118,8 @@ static void scalefastrect(unsigned int *recto, unsigned int *rectn, int oldx, in
 
 /* -------------- API: externally called --------------- */
 
+/* not used anywhere ??? */
+#if 0
 void BIF_renderwin_make_active(void)
 {
 	if(render_win) {
@@ -1125,6 +1127,7 @@ void BIF_renderwin_make_active(void)
 		mywinset(2);
 	}
 }
+#endif
 
 /* set up display, render an image or scene */
 void BIF_do_render(int anim)

@@ -524,7 +524,7 @@ static void check_packAll()
 	}
 }
 
-int write_runtime(char *str, char *exename)
+static int write_runtime(char *str, char *exename)
 {
 	char *freestr= NULL;
 	char *ext = 0;
@@ -578,14 +578,18 @@ static void write_runtime_check(char *str)
 /************************** MAIN MENU *****************************/
 /************************** FILE *****************************/
 
-void do_info_file_optionsmenu(void *arg, int event)
+#if 0
+static void do_info_file_optionsmenu(void *arg, int event)
 {
 	G.fileflags ^= (1 << event);
 
 	// allqueue(REDRAWINFO, 0);
 }
+#endif
 
 #if GAMEBLENDER == 1
+
+#if 0
 static uiBlock *info_file_optionsmenu(void *arg_unused)
 {
 	uiBlock *block;
@@ -660,6 +664,8 @@ static uiBlock *info_runtime_optionsmenu(void *arg_unused)
 		
 	return block;
 }
+#endif
+
 #endif
 
 static void do_info_file_importmenu(void *arg, int event)

@@ -208,7 +208,7 @@ int closedir (DIR *dp) {
 
 #else
 
-void BLI_WINSTUFF_C_IS_EMPTY_FOR_UNIX(void) 
+static void BLI_WINSTUFF_C_IS_EMPTY_FOR_UNIX(void) 
 {
   /*intentionally empty*/
 }

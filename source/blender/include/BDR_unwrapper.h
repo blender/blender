@@ -33,9 +33,9 @@
 #ifndef BDR_UNWRAPPER_H
 #define BDR_UNWRAPPER_H
 
-void set_seamtface(); /* set TF_SEAM flags in tfaces */
-void unwrap_lscm(); /* unwrap selected tfaces */
-void select_linked_tfaces_with_seams();
+void set_seamtface(void); /* set TF_SEAM flags in tfaces */
+void unwrap_lscm(void); /* unwrap selected tfaces */
+void select_linked_tfaces_with_seams(void);
 
 #endif /* BDR_UNWRAPPER_H */
 

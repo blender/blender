@@ -80,7 +80,7 @@ IK_LoadChain(
 	if (intern_cpp == NULL) return 0;
 
 	std::vector<IK_QSegment> & segs = intern_cpp->Chain().Segments();	
-	if (segs.size() != num_segs) {
+	if (segs.size() != (unsigned int) num_segs) {
 		segs = std::vector<IK_QSegment>(num_segs);
 	}
 

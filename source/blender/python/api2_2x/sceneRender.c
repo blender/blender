@@ -893,7 +893,7 @@ PyObject *RenderData_Play( BPy_RenderData * self )
 	if( self->renderContext->imtype == R_QUICKTIME ) {
 
 		strcpy( file, self->renderContext->pic );
-		BLI_convertstringcode( file, self->scene,
+		BLI_convertstringcode( file, (char *) self->scene,
 				       self->renderContext->cfra );
 		RE_make_existing_file( file );
 		if( strcasecmp( file + strlen( file ) - 4, ".mov" ) ) {

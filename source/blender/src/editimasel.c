@@ -77,6 +77,8 @@
 /* GLOBALS */
 extern char *fsmenu;
 
+void winqreadimaselspace(ScrArea *, void *, BWinEvent *);
+
 void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;

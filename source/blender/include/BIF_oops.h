@@ -41,12 +41,14 @@ struct Material;
 struct Mesh;
 struct MetaBall;
 struct Object;
+struct Lamp;
 void add_curve_oopslinks(struct Curve *cu, struct Oops *oops, short flag);
 void add_from_link(struct Oops *from, struct Oops *oops);
 void add_material_oopslinks(struct Material *ma, struct Oops *oops, short flag);
 void add_mball_oopslinks(struct MetaBall *mb, struct Oops *oops, short flag);
 void add_mesh_oopslinks(struct Mesh *me, struct Oops *oops, short flag);
 void add_object_oopslinks(struct Object *ob, struct Oops *oops, short flag);
+void add_lamp_oopslinks(struct Lamp *la, struct Oops *oops, short flag);
 struct Oops *add_oops(void *id);
 struct OopsLink *add_oopslink(char *name, struct Oops *oops, short type, void *from, float xof, float yof);
 struct Oops *add_test_oops(void *id);	/* incl links */

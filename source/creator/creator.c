@@ -110,7 +110,7 @@ static void print_version();
 
 /* defined in ghostwinlay and winlay, we can't include carbon here, conflict with DNA */
 #ifdef __APPLE__
-extern int checkAppleVideoCard();
+extern int checkAppleVideoCard(void);
 extern void getMacAvailableBounds(short *top, short *left, short *bottom, short *right);
 extern void	winlay_get_screensize(int *width_r, int *height_r);
 extern void	winlay_process_events(int wait_for_event);

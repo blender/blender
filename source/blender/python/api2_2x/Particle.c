@@ -124,6 +124,9 @@ static PyMethodDef BPy_Particle_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
+/**************** prototypes ********************/
+PyObject *Particle_Init( void );
+
 
 /*****************************************************************************/
 /* Python Particle_Type structure definition:                                */

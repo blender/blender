@@ -40,6 +40,8 @@
 #include "BKE_bad_level_calls.h"
 #include "BLI_blenlib.h"
 
+#include "BKE_screen.h"
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif

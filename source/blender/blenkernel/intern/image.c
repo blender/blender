@@ -297,7 +297,7 @@ void load_image(Image * ima, int flags, char *relabase, int framenum)
 }
 
 
-void de_interlace_ng(struct ImBuf *ibuf)	/* neogeo fields */
+static void de_interlace_ng(struct ImBuf *ibuf)	/* neogeo fields */
 {
 	struct ImBuf * tbuf1, * tbuf2;
 	
@@ -325,7 +325,7 @@ void de_interlace_ng(struct ImBuf *ibuf)	/* neogeo fields */
 	ibuf->y /= 2;
 }
 
-void de_interlace_st(struct ImBuf *ibuf)	/* standard fields */
+static void de_interlace_st(struct ImBuf *ibuf)	/* standard fields */
 {
 	struct ImBuf * tbuf1, * tbuf2;
 	

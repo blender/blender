@@ -128,7 +128,6 @@ void SCA_PythonController::SetDictionary(PyObject*	pythondictionary)
 	m_pythondictionary = PyDict_Copy(pythondictionary); /* new reference */
 }
 
-
 static char* sPyGetCurrentController__doc__;
 
 

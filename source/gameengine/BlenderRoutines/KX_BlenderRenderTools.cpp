@@ -336,7 +336,7 @@ int	KX_BlenderRenderTools::applyLights(int objectlayer)
 {
 // taken from blender source, incompatibility between Blender Object / GameObject	
 	
-	int count;
+	unsigned int count;
 	float vec[4];
 		
 	vec[3]= 1.0;

@@ -10,6 +10,10 @@
 
 #include "ssp_defs.h"
 
+/* prototypes --------------------------------- */
+void copy_mem_int(int, void *, void *);
+void user_bcopy(char *, char *, int);
+
 
 #if ( DEBUGlevel>=1 )           /* Debug malloc/free. */
 int superlu_malloc_total = 0;

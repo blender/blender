@@ -65,10 +65,10 @@ void Transform(int mode);
 
 struct TransInfo;
 
-struct TransInfo * BIF_GetTransInfo();
+struct TransInfo * BIF_GetTransInfo(void);
 void BIF_setSingleAxisConstraint(float vec[3]);
-void BIF_drawConstraint();
-void BIF_drawPropCircle();
+void BIF_drawConstraint(void);
+void BIF_drawPropCircle(void);
 
 #endif
 

@@ -153,9 +153,12 @@ static PyMethodDef BPy_Sound_methods[] = {
 	 "() - play this sound"},
 	{"setCurrent", ( PyCFunction ) Sound_setCurrent, METH_NOARGS,
 	 "() - make this the active sound in the sound buttons win (also redraws)"},
-	//{"reload", ( PyCFunction ) Sound_setCurrent, METH_NOARGS,
-	 //"() - reload this Sound object's sample.\n\
-//This is only useful if the original sound file has changed."},
+
+/*
+	{"reload", ( PyCFunction ) Sound_setCurrent, METH_NOARGS,
+	 "() - reload this Sound object's sample.\n\
+    This is only useful if the original sound file has changed."},
+*/
 	SOUND_FLOAT_METHOD_FUNCS( Volume )
 	SOUND_FLOAT_METHOD_FUNCS( Attenuation )
 	SOUND_FLOAT_METHOD_FUNCS( Pitch )

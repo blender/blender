@@ -103,7 +103,7 @@ bool SCA_PropertyActuator::Update()
 				CValue* oldprop = propowner->GetProperty(m_propname);
 				if (oldprop)
 				{
-					int waarde = (int)oldprop->GetNumber();
+					// int waarde = (int)oldprop->GetNumber();  /*unused*/
 					CExpression* expr = new COperator2Expr(VALUE_ADD_OPERATOR,new CConstExpr(oldprop->AddRef()),
 															userexpr->AddRef());
 

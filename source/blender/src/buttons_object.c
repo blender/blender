@@ -71,6 +71,8 @@
 #include "BDR_editcurve.h"
 #include "BDR_drawobject.h"
 
+//#include "BIF_editsca.h"
+
 #include "BIF_butspace.h"
 
 #include "mydevice.h"
@@ -133,14 +135,21 @@ static float prspeed=0.0;
 float prlen=0.0;
 
 
+/* ********************* function prototypes ******************** */
+void object_panel_draw(Object *);
+void object_panel_hooks(Object *);
+void object_panel_effects(Object *);
 
 /* ********************* CONSTRAINT ***************************** */
 
+#if 0
 static void add_influence_key_to_constraint_func (void *arg1v, void *unused)
 {
 	bConstraint *con = arg1v;
 	add_influence_key_to_constraint(con);
 }
+#endif
+
 static void activate_constraint_ipo_func (void *arg1v, void *unused)
 {
 

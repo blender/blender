@@ -36,6 +36,8 @@
 #include <config.h>
 #endif
 
+char *event_to_string(short);
+
 char *event_to_string(short evt) {
 #define smap(evt)	case evt: return #evt
 	switch (evt) {

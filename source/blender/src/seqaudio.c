@@ -79,6 +79,7 @@
 
 #include "BSE_view.h"
 #include "BSE_seqaudio.h"
+#include "BIF_editsound.h"
 
 #include "mydevice.h"
 #include "blendef.h"
@@ -94,9 +95,10 @@ int audio_scrub=0;
 int audio_playing=0;
 /////
 //
+/* local protos ------------------- */
+void audio_mixdown(void);
 
-
-void makewavstring (char *string) 
+static void makewavstring (char *string) 
 {
 	char txt[64];
 
@@ -199,7 +201,7 @@ void audio_mixdown()
 	return;
 }
 
-void audio_levels(Uint8 *buf, int len, float db, float facf, float pan)
+static void audio_levels(Uint8 *buf, int len, float db, float facf, float pan)
 {
 	int i;
 	float facl, facr, fac;
@@ -311,7 +313,7 @@ void audio_fill(void *mixdown, Uint8 *sstream, int len)
     }
 }    
 
-int audio_init(SDL_AudioSpec *desired)
+static int audio_init(SDL_AudioSpec *desired)
 {
 	SDL_AudioSpec *obtained, *hardware_spec;
 

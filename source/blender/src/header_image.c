@@ -88,7 +88,7 @@
 
 #include "TPT_DependKludge.h"
 
-void load_space_image(char *str)	/* called from fileselect */
+static void load_space_image(char *str)	/* called from fileselect */
 {
 	Image *ima=0;
  
@@ -111,7 +111,7 @@ void load_space_image(char *str)	/* called from fileselect */
 	allqueue(REDRAWIMAGE, 0);
 }
 
-void image_replace(Image *old, Image *new)
+static void image_replace(Image *old, Image *new)
 {
 	TFace *tface;
 	Mesh *me;
@@ -146,7 +146,7 @@ void image_replace(Image *old, Image *new)
 	else error("Nothing replaced");
 }
 
-void replace_space_image(char *str)		/* called from fileselect */
+static void replace_space_image(char *str)		/* called from fileselect */
 {
 	Image *ima=0;
 
@@ -174,7 +174,7 @@ void replace_space_image(char *str)		/* called from fileselect */
 	allqueue(REDRAWIMAGE, 0);
 }
 
-void save_paint(char *name)
+static void save_paint(char *name)
 {
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 	Image *ima = G.sima->image;

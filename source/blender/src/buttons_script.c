@@ -112,6 +112,8 @@
 #include "blendef.h"
 #include "butspace.h"
 
+/* ************************ function prototypes ********************** */
+void draw_scriptlink(uiBlock *, ScriptLink *, int , int , int ) ;
 
 
 

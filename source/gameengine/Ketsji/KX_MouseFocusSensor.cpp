@@ -120,7 +120,7 @@ bool KX_MouseFocusSensor::Evaluate(CValue* event)
 bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 {
 	
-  	bool res = false;
+  	// bool res = false; /*unused*/
 	m_hitPosition = MT_Vector3(0,0,0);
 	m_hitNormal =	MT_Vector3(1,0,0);
 	MT_Point3 resultpoint;

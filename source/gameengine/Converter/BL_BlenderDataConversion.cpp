@@ -300,7 +300,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				}
 	
 				Material* ma = give_current_material(blenderobj, 1 /* mface->mat_nr */);
-				const char* matnameptr = (ma ? ma->id.name : "");
+				//const char* matnameptr = (ma ? ma->id.name : ""); /*unused*/
 				
 				bool polyvisible = true;
 				if (mesh->tface && tface)
@@ -410,7 +410,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				int vtxarray = meshobj->FindVertexArray(nverts,polymat);
 				RAS_Polygon* poly = new RAS_Polygon(bucket,polyvisible,nverts,vtxarray);
 				if (skinMesh) {
-					int d1, d2, d3, d4;
+					int d1, d2, d3, d4=0;
 					bool flat;
 
 					/* If the face is set to solid, all fnors are the same */
@@ -715,7 +715,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 						 )
 					
 {
-	SYS_SystemHandle syshandle = SYS_GetSystem();
+	//SYS_SystemHandle syshandle = SYS_GetSystem(); /*unused*/
 	//int userigidbody = SYS_GetCommandLineInt(syshandle,"norigidbody",0);
 	//bool bRigidBody = (userigidbody == 0);
 

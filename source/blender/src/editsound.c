@@ -452,7 +452,7 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 
 
 /* ugly, but it works (for now) */
-int sound_get_filetype_from_header(bSound* sound, PackedFile* pf)
+static int sound_get_filetype_from_header(bSound* sound, PackedFile* pf)
 {
 	int filetype = SAMPLE_INVALID;
 	int i;
@@ -534,7 +534,7 @@ int sound_get_filetype_from_header(bSound* sound, PackedFile* pf)
 
 
 
-int check_filetype(bSound* sound, PackedFile* pf)
+static int check_filetype(bSound* sound, PackedFile* pf)
 {
 //	char* pdest;
 	sound->sample->type = SAMPLE_INVALID;

@@ -46,7 +46,7 @@ bool KX_WorldIpoController::Update(double currentTime)
 			(*i)->Execute(m_ipotime);//currentTime);
 		}
 		
-		KX_WorldInfo *world;
+		KX_WorldInfo *world = NULL;
 
 		if (m_modify_mist_start) {
 			world->setMistStart(m_mist_start);

@@ -236,7 +236,7 @@ void BLI_builddir(char *dirname, char *relname)
 		return;
 	}
 
-	if (dir = (DIR *)opendir(".")){
+	if ( (dir = (DIR *)opendir(".")) ){
 		while ((fname = (struct dirent*) readdir(dir)) != NULL) {
 			
 			if(hide_dot && fname->d_name[0]=='.' && fname->d_name[1]!='.' && fname->d_name[1]!=0);

@@ -395,7 +395,7 @@ Object *find_basis_mball(Object *basis)
 void calc_mballco(MetaElem *ml, float *vec)
 {
 	if(ml->mat) {
-		Mat4MulVecfl(ml->mat, vec);
+		Mat4MulVecfl((float ( * )[4])ml->mat, vec);
 	}
 }
 
@@ -407,7 +407,7 @@ float densfunc(MetaElem *ball, float x, float y, float z)
 	vec[0]= x;
 	vec[1]= y;
 	vec[2]= z;
-	Mat4MulVecfl(ball->imat, vec);
+	Mat4MulVecfl((float ( * )[4])ball->imat, vec);
 	dx= vec[0];
 	dy= vec[1];
 	dz= vec[2];

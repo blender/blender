@@ -233,7 +233,7 @@ PyObject *Bone_Init( void )
 //--------------- Bone module internal callbacks-----------------
 
 //--------------- updatePyBone------------------------------------
-int updatePyBone( BPy_Bone * self )
+static int updatePyBone( BPy_Bone * self )
 {
 	int x, y;
 	char *parent_str = "";
@@ -1691,7 +1691,7 @@ static PyObject *Bone_getRestMatrix( BPy_Bone * self, PyObject * args )
 		//use python vars
 		if( BLI_streq( local, worldspace ) ) {
 			VecSubf( delta, self->tail->vec, self->head->vec );
-			make_boneMatrixvr( *( ( MatrixObject * ) matrix )->
+			make_boneMatrixvr( (float ( * )[4]) *( ( MatrixObject * ) matrix )->
 					   matrix, delta, self->roll );
 		} else if( BLI_streq( local, bonespace ) ) {
 			return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
@@ -1701,12 +1701,12 @@ static PyObject *Bone_getRestMatrix( BPy_Bone * self, PyObject * args )
 		//use bone datastruct
 		if( BLI_streq( local, worldspace ) ) {
 			get_objectspace_bone_matrix( self->bone,
-						     *( ( MatrixObject * )
+						    ( float ( * )[4] ) *( ( MatrixObject * )
 							matrix )->matrix, 1,
 						     1 );
 		} else if( BLI_streq( local, bonespace ) ) {
 			VecSubf( delta, self->bone->tail, self->bone->head );
-			make_boneMatrixvr( *( ( MatrixObject * ) matrix )->
+			make_boneMatrixvr( (float ( * )[4]) *( ( MatrixObject * ) matrix )->
 					   matrix, delta, self->bone->roll );
 			if( self->bone->parent ) {
 				get_bone_root_pos( self->bone, root, 1 );

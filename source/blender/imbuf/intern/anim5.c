@@ -47,6 +47,7 @@
 
 #include "IMB_anim.h"
 
+#include "IMB_anim5.h"
 
 typedef struct Anhd{
 	unsigned char type, mask;
@@ -235,7 +236,7 @@ static void anim5decode(struct ImBuf * ibuf, uchar * dlta) {
 			do{
 				uchar noop;
 
-				if (noop = *(point++)){
+				if ( (noop = *(point++)) ){
 					uchar *plane;
 					uchar code;
 
@@ -308,7 +309,7 @@ static void anim5xordecode(struct ImBuf * ibuf, uchar * dlta) {
 			do{
 				uchar noop;
 
-				if (noop = *(point++)){
+				if ( (noop = *(point++)) ){
 					uchar *plane;
 					uchar code;
 

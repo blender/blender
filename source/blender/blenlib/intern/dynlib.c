@@ -31,7 +31,11 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+
 #include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
 #include "../PIL_dynlib.h"
 
 #ifdef HAVE_CONFIG_H
@@ -117,7 +121,7 @@ struct PILdynlib {
 	void *handle;
 };
 
-char *osxerror(int setget, const char *str, ...)
+static char *osxerror(int setget, const char *str, ...)
 {
 	static char errstr[ERR_STR_LEN];
 	static int err_filled = 0;
@@ -154,7 +158,7 @@ char *osxerror(int setget, const char *str, ...)
 	return retval;
 }
 
-void *osxdlopen(const char *path, int mode)
+static void *osxdlopen(const char *path, int mode)
 {
 	void *module = 0;
 	NSObjectFileImage ofi = 0;

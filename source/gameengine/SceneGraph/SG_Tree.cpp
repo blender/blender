@@ -366,9 +366,9 @@ SG_Tree* SG_TreeFactory::MakeTreeUp()
 	while (num_objects > 2)
 	{
 		/* Find the pair of bboxes that produce the smallest combined bbox. */
-		unsigned int minx, miny;
+		unsigned int minx = UINT_MAX, miny = UINT_MAX;
 		MT_Scalar min_volume = FLT_MAX;
-		SG_Tree *min;
+		SG_Tree *min = NULL;
 		//char temp[16];
 		for( y = 0; y < num_objects; y++)
 		{

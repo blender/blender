@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+int xerbla_(char *, int *);
 
 /* Subroutine */ int xerbla_(char *srname, int *info)
 {

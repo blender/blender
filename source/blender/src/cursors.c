@@ -115,11 +115,11 @@ void SetBlenderCursor(short curs){
 	}
 }
 
-
+/* unused no prototypes 
 short GetCurrentCursor(void){
 	return(CurrentCursor);
 }
-
+*/
 
 void InitCursorData(void){
 

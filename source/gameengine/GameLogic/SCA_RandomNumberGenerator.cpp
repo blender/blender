@@ -57,7 +57,7 @@
 #define TEMPERING_SHIFT_L(y)  (y >> 18)
 
 SCA_RandomNumberGenerator::SCA_RandomNumberGenerator(long seed) {
-	int mti = N + 1;
+	// int mti = N + 1; /*unused*/
 	m_seed = seed;
 	SetStartVector();
 }

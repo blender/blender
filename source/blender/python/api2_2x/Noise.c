@@ -59,6 +59,8 @@ static int left = 1;
 static int initf = 0;
 static unsigned long *next;
 
+PyObject *Noise_Init(void);
+
 /* initializes state[N] with a seed */
 static void init_genrand( unsigned long s )
 {
@@ -603,7 +605,7 @@ static PyMethodDef NoiseMethods[] = {
 
 /*----------------------------------------------------------------------*/
 
-PyObject *Noise_Init(  )
+PyObject *Noise_Init(void)
 {
 	PyObject *NoiseTypes, *DistanceMetrics,
 		*md =

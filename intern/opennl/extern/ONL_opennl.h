@@ -109,10 +109,10 @@ typedef void* NLContext ;
 /*
  * Contexts
  */
-    NLContext nlNewContext() ;
+    NLContext nlNewContext(void) ;
     void nlDeleteContext(NLContext context) ;
     void nlMakeCurrent(NLContext context) ;
-    NLContext nlGetCurrent() ;
+    NLContext nlGetCurrent(void) ;
 
 /*
  * State set/get
@@ -153,7 +153,7 @@ typedef void* NLContext ;
  * Solve
  */
 
-    NLboolean nlSolve() ;
+    NLboolean nlSolve(void) ;
 
 #ifdef __cplusplus
 }

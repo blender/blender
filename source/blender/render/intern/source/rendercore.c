@@ -841,7 +841,7 @@ float Toon_Diff( float *n, float *l, float *v, float size, float smooth )
 
 /* 'nl' is either dot product, or return value of area light */
 /* in latter case, only last multiplication uses 'nl' */
-float OrenNayar_Diff_i(float nl, float *n, float *l, float *v, float rough )
+static float OrenNayar_Diff_i(float nl, float *n, float *l, float *v, float rough )
 {
 	float i, nh, nv, vh, realnl, h[3];
 	float a, b, t, A, B;

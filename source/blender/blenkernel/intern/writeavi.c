@@ -58,6 +58,8 @@
 #include "DNA_scene_types.h"
 /* RPW - End */
 
+#include "BKE_writeavi.h"
+
 static AviMovie *avi=NULL;
 static int sframe;
 

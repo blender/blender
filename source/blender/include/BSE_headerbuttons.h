@@ -66,8 +66,8 @@ struct Scene *copy_scene(struct Scene *sce, int level);
 
 void buttons_active_id(struct ID **id, struct ID **idfrom);
 
-int start_progress_bar();
-void end_progress_bar();
+int start_progress_bar(void);
+void end_progress_bar(void);
 int progress_bar(float done, char *busy_info);
 
 void update_for_newframe(void);

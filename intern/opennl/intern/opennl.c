@@ -416,7 +416,7 @@ static void __nlSparseMatrix_mult_cols(
 /************************************************************************************/
 /* SparseMatrix x Vector routines, main driver routine */
 
-void __nlSparseMatrixMult(__NLSparseMatrix* A, NLfloat* x, NLfloat* y) {
+static void __nlSparseMatrixMult(__NLSparseMatrix* A, NLfloat* x, NLfloat* y) {
     if(A->storage & __NL_ROWS) {
         if(A->storage & __NL_SYMMETRIC) {
             __nlSparseMatrix_mult_rows_symmetric(A, x, y) ;
@@ -481,12 +481,12 @@ typedef struct {
 
 static __NLContext* __nlCurrentContext = NULL ;
 
-void __nlMatrixVectorProd_default(NLfloat* x, NLfloat* y) {
+static void __nlMatrixVectorProd_default(NLfloat* x, NLfloat* y) {
     __nlSparseMatrixMult(&(__nlCurrentContext->M), x, y) ;
 }
 
 
-NLContext nlNewContext() {
+NLContext nlNewContext(void) {
     __NLContext* result      = __NL_NEW(__NLContext) ;
     result->state            = __NL_STATE_INITIAL ;
     result->row_scaling      = 1.0 ;
@@ -533,15 +533,15 @@ void nlMakeCurrent(NLContext context) {
     __nlCurrentContext = (__NLContext*)(context) ;
 }
 
-NLContext nlGetCurrent() {
+NLContext nlGetCurrent(void) {
     return __nlCurrentContext ;
 }
 
-void __nlCheckState(NLenum state) {
+static void __nlCheckState(NLenum state) {
     __nl_assert(__nlCurrentContext->state == state) ;
 }
 
-void __nlTransition(NLenum from_state, NLenum to_state) {
+static void __nlTransition(NLenum from_state, NLenum to_state) {
     __nlCheckState(from_state) ;
     __nlCurrentContext->state = to_state ;
 }
@@ -737,7 +737,7 @@ NLboolean nlVariableIsLocked(NLuint index) {
 /************************************************************************************/
 /* System construction */
 
-void __nlVariablesToVector() {
+static void __nlVariablesToVector() {
     NLuint i ;
     __nl_assert(__nlCurrentContext->alloc_x) ;
     __nl_assert(__nlCurrentContext->alloc_variable) ;
@@ -750,7 +750,7 @@ void __nlVariablesToVector() {
     }
 }
 
-void __nlVectorToVariables() {
+static void __nlVectorToVariables() {
     NLuint i ;
     __nl_assert(__nlCurrentContext->alloc_x) ;
     __nl_assert(__nlCurrentContext->alloc_variable) ;
@@ -764,7 +764,7 @@ void __nlVectorToVariables() {
 }
 
 
-void __nlBeginSystem() {
+static void __nlBeginSystem() {
     __nlTransition(__NL_STATE_INITIAL, __NL_STATE_SYSTEM) ;
     __nl_assert(__nlCurrentContext->nb_variables > 0) ;
     __nlCurrentContext->variable = __NL_NEW_ARRAY(
@@ -773,11 +773,11 @@ void __nlBeginSystem() {
     __nlCurrentContext->alloc_variable = NL_TRUE ;
 }
 
-void __nlEndSystem() {
+static void __nlEndSystem() {
     __nlTransition(__NL_STATE_MATRIX_CONSTRUCTED, __NL_STATE_SYSTEM_CONSTRUCTED) ;    
 }
 
-void __nlBeginMatrix() {
+static void __nlBeginMatrix() {
     NLuint i ;
     NLuint n = 0 ;
     NLenum storage = __NL_ROWS ;
@@ -828,7 +828,7 @@ void __nlBeginMatrix() {
     __nlCurrentContext->current_row = 0 ;
 }
 
-void __nlEndMatrix() {
+static void __nlEndMatrix() {
     __nlTransition(__NL_STATE_MATRIX, __NL_STATE_MATRIX_CONSTRUCTED) ;    
     
     __nlRowColumnDestroy(&__nlCurrentContext->af) ;
@@ -846,14 +846,14 @@ void __nlEndMatrix() {
     }
 }
 
-void __nlBeginRow() {
+static void __nlBeginRow() {
     __nlTransition(__NL_STATE_MATRIX, __NL_STATE_ROW) ;
     __nlRowColumnZero(&__nlCurrentContext->af) ;
     __nlRowColumnZero(&__nlCurrentContext->al) ;
     __nlRowColumnZero(&__nlCurrentContext->xl) ;
 }
 
-void __nlScaleRow(NLfloat s) {
+static void __nlScaleRow(NLfloat s) {
     __NLRowColumn*    af = &__nlCurrentContext->af ;
     __NLRowColumn*    al = &__nlCurrentContext->al ;
     NLuint nf            = af->size ;
@@ -868,7 +868,7 @@ void __nlScaleRow(NLfloat s) {
     __nlCurrentContext->right_hand_side *= s ;
 }
 
-void __nlNormalizeRow(NLfloat weight) {
+static void __nlNormalizeRow(NLfloat weight) {
     __NLRowColumn*    af = &__nlCurrentContext->af ;
     __NLRowColumn*    al = &__nlCurrentContext->al ;
     NLuint nf            = af->size ;
@@ -885,7 +885,7 @@ void __nlNormalizeRow(NLfloat weight) {
     __nlScaleRow(weight / norm) ;
 }
 
-void __nlEndRow() {
+static void __nlEndRow() {
     __NLRowColumn*    af = &__nlCurrentContext->af ;
     __NLRowColumn*    al = &__nlCurrentContext->al ;
     __NLRowColumn*    xl = &__nlCurrentContext->xl ;
@@ -1137,7 +1137,7 @@ static NLboolean __nlSolve_SUPERLU( NLboolean do_perm) {
 /************************************************************************/
 /* nlSolve() driver routine */
 
-NLboolean nlSolve() {
+NLboolean nlSolve(void) {
     NLboolean result = NL_TRUE ;
 
     __nlCheckState(__NL_STATE_SYSTEM_CONSTRUCTED) ;

@@ -235,11 +235,11 @@ static void test_endian_zbuf(struct ImBuf *ibuf)
 
 struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 {
-	unsigned int *base, *lptr;
+	unsigned int *base, *lptr = NULL;
 	unsigned int *zbase, *zptr;
 	unsigned char *rledat;
 	int *starttab, *lengthtab;
-	FILE *inf;
+	FILE *inf = NULL;
 	IMAGE image;
 	int x, y, z, tablen;
 	int xsize, ysize, zsize;

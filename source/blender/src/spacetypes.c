@@ -59,6 +59,10 @@ struct _SpaceType {
 	SpaceHandleFP	winhandle;
 };
 
+/* local prototypes ----------------------- */
+void scrarea_do_windraw(ScrArea *area);
+void scrarea_do_winchange(ScrArea *area);
+void scrarea_do_winhandle(ScrArea *area, BWinEvent *evt);
 
 SpaceType *spacetype_new(char *name)
 {
@@ -77,7 +81,7 @@ void spacetype_set_winfuncs(SpaceType *st, SpaceDrawFP draw, SpaceChangeFP chang
 
 	/***/
 
-SpaceType *spacetype_from_code(int spacecode)
+static SpaceType *spacetype_from_code(int spacecode)
 {
 	switch (spacecode) {
 	case SPACE_ACTION:	return spaceaction_get_type();

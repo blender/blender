@@ -115,6 +115,10 @@ static IDType idtypes[]= {
 };
 static int nidtypes= sizeof(idtypes)/sizeof(idtypes[0]);
 
+/* local prototypes --------------------- */
+void BLO_blendhandle_print_sizes(BlendHandle *, void *); 
+
+
 static IDType *idtype_from_name(char *str) 
 {
 	int i= nidtypes;
@@ -191,7 +195,7 @@ void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp)
 			buf[2]= buf[2]?buf[2]:' ';
 			buf[3]= buf[3]?buf[3]:' ';
 			
-			fprintf(fp, "['%.4s', '%s', %d, %d], \n", buf, name, bhead->nr, bhead->len+sizeof(BHead));
+			fprintf(fp, "['%.4s', '%s', %d, %ld ], \n", buf, name, bhead->nr, bhead->len+sizeof(BHead));
 		}
 	}
 	fprintf(fp, "]\n");

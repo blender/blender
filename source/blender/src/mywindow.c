@@ -81,6 +81,10 @@ static bWindow *swinarray[MAXWIN]= {0};
 static bWindow mainwindow, renderwindow;
 static int mainwin_color_depth;
 
+/* prototypes --------------- */
+void mywindow_init_mainwin(Window *, int , int , int , int );
+void mywindow_build_and_set_renderwin( int , int , int , int);
+
 void mywindow_init_mainwin(Window *win, int orx, int ory, int sizex, int sizey)
 {
 	GLint r, g, b;

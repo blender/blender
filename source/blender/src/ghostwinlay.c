@@ -69,7 +69,9 @@
 #include <Carbon/Carbon.h>
 
 /*declarations*/
-int checkAppleVideoCard();
+int checkAppleVideoCard(void);
+void getMacAvailableBounds(short *, short *, short *, short *);
+
 #endif
 ///
 
@@ -114,7 +116,7 @@ struct _Window {
 		
 static int macPrefState = 0;
 		
-int checkAppleVideoCard() {
+int checkAppleVideoCard(void) {
 	long theErr;
 	unsigned long display_mask;
 	CGLRendererInfoObj rend;

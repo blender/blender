@@ -902,7 +902,7 @@ bool GHOST_SystemCarbon::handleMouseDown(EventRef event)
 							::ZoomWindow(window, part, true);
 							ghostWindow->setMac_windowState(1);
 					} else { // need to force size again
-						GHOST_TUns32 scr_x,scr_y;
+					//	GHOST_TUns32 scr_x,scr_y; /*unused*/
 						Rect outAvailableRect;
 						
 						ghostWindow->setMac_windowState(2);

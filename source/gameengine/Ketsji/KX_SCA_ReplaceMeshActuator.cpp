@@ -161,7 +161,7 @@ KX_SCA_ReplaceMeshActuator::~KX_SCA_ReplaceMeshActuator()
 
 bool KX_SCA_ReplaceMeshActuator::Update()
 {
-	bool result = false;	
+	// bool result = false;	/*unused*/
 	bool bNegativeEvent = IsNegativeEvent();
 	RemoveAllEvents();
 

@@ -67,7 +67,7 @@
 /* this one is only def-ed once, strangely... */
 #define GSS(x) (((uchar *)(x))[1] << 8 | ((uchar *)(x))[0])
 
-int IMB_ispic_name(char *name)
+static int IMB_ispic_name(char *name)
 {
 	struct stat st;
 	int fp, buf[10];

@@ -182,7 +182,7 @@ void SCA_LogicManager::BeginFrame(double curtime, double fixedtime)
 		(*ie)->NextFrame(curtime, fixedtime);
 
 	// for this frame, look up for activated sensors, and build the collection of triggered controllers
-	int numsensors = this->m_activatedsensors.size();
+	// int numsensors = this->m_activatedsensors.size(); /*unused*/
 
 	set<SmartControllerPtr> triggeredControllerSet;
 
@@ -201,7 +201,7 @@ void SCA_LogicManager::BeginFrame(double curtime, double fixedtime)
 	}
 
 	
-	int numtriggered = triggeredControllerSet.size();
+	// int numtriggered = triggeredControllerSet.size(); /*unused*/
 	for (set<SmartControllerPtr>::iterator tit=triggeredControllerSet.begin();
 	!(tit==triggeredControllerSet.end());tit++)
 	{

@@ -42,6 +42,7 @@ void remake_editText(void);
 void free_editText(void);
 void paste_editText(void);
 void txt_export_to_object(struct Text *text);
+void txt_export_to_objects(struct Text *text);
 void undo_push_font(char *);
 
 /**

@@ -89,7 +89,7 @@ GetReplica(
 
 /* three functions copied from blender arith... don't know if there's an equivalent */
 
-float Normalise(float *n)
+static float Kx_Normalise(float *n)
 {
 	float d;
 	
@@ -108,7 +108,7 @@ float Normalise(float *n)
 	return d;
 }
 
-void Crossf(float *c, float *a, float *b)
+static void Kx_Crossf(float *c, float *a, float *b)
 {
 	c[0] = a[1] * b[2] - a[2] * b[1];
 	c[1] = a[2] * b[0] - a[0] * b[2];
@@ -116,7 +116,7 @@ void Crossf(float *c, float *a, float *b)
 }
 
 
-void VecUpMat3(float *vec, float mat[][3], short axis)
+static void Kx_VecUpMat3(float *vec, float mat[][3], short axis)
 {
 
 	// Construct a camera matrix s.t. the specified axis
@@ -158,16 +158,16 @@ void VecUpMat3(float *vec, float mat[][3], short axis)
 	mat[coz][0]= vec[0];
 	mat[coz][1]= vec[1];
 	mat[coz][2]= vec[2];
-	Normalise((float *)mat[coz]);
+	Kx_Normalise((float *)mat[coz]);
 	
 	inp= mat[coz][2];
 	mat[coy][0]= - inp*mat[coz][0];
 	mat[coy][1]= - inp*mat[coz][1];
 	mat[coy][2]= 1.0 - inp*mat[coz][2];
 
-	Normalise((float *)mat[coy]);
+	Kx_Normalise((float *)mat[coy]);
 	
-	Crossf(mat[cox], mat[coy], mat[coz]);
+	Kx_Crossf(mat[cox], mat[coy], mat[coz]);
 	
 }
 
@@ -293,7 +293,7 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 	rc[0]= (lookat[0]-from[0]);
 	rc[1]= (lookat[1]-from[1]);
 	rc[2]= (lookat[2]-from[2]);
-	VecUpMat3(rc, mat, 3);	/* y up Track -z */
+	Kx_VecUpMat3(rc, mat, 3);	/* y up Track -z */
 	
 
 

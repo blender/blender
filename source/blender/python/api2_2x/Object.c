@@ -63,6 +63,10 @@ static PyObject *M_Object_New( PyObject * self, PyObject * args );
 PyObject *M_Object_Get( PyObject * self, PyObject * args );
 static PyObject *M_Object_GetSelected( PyObject * self, PyObject * args );
 
+extern int Text3d_CheckPyObject( PyObject * py_obj );
+extern struct Text3d *Text3d_FromPyObject( PyObject * py_obj );
+
+
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.	 */
 /* In Python these will be written to the console when doing a		 */
@@ -908,7 +912,7 @@ static PyObject *Object_getInverseMatrix( BPy_Object * self )
 {
 	MatrixObject *inverse =
 		( MatrixObject * ) newMatrixObject( NULL, 4, 4 );
-	Mat4Invert( *inverse->matrix, self->object->obmat );
+	Mat4Invert( (float ( * )[4])*inverse->matrix, self->object->obmat );
 
 	return ( ( PyObject * ) inverse );
 }
@@ -968,14 +972,14 @@ static PyObject *Object_getMatrix( BPy_Object * self, PyObject * args )
 		disable_where_script( 1 );
 		where_is_object( self->object );
 		disable_where_script( 0 );
-		Mat4CpyMat4( *( ( MatrixObject * ) matrix )->matrix,
+		Mat4CpyMat4((float ( * )[4]) *( ( MatrixObject * ) matrix )->matrix,
 			     self->object->obmat );
 	} else if( BLI_streq( space, "localspace" ) ) {	/* Localspace matrix */
 		object_to_mat4( self->object,
-				*( ( MatrixObject * ) matrix )->matrix );
+				( float ( * )[4] ) *( ( MatrixObject * ) matrix )->matrix );
 		/* old behavior, prior to 2.34, check this method's doc string: */
 	} else if( BLI_streq( space, "old_worldspace" ) ) {
-		Mat4CpyMat4( *( ( MatrixObject * ) matrix )->matrix,
+		Mat4CpyMat4( (float ( * )[4]) *( ( MatrixObject * ) matrix )->matrix,
 			     self->object->obmat );
 	} else {
 		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,

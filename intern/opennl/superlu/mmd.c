@@ -1,6 +1,12 @@
 
 typedef int shortint;
 
+
+/* prototypes -------------------- */
+int  genmmd_(int *, int *, int *, int *, int *, int *, int *, 
+					int *, int *, int *, int *, int *);
+
+
 /* *************************************************************** */
 /* *************************************************************** */
 /* ****     GENMMD ..... MULTIPLE MINIMUM EXTERNAL DEGREE     **** */

@@ -150,7 +150,7 @@ int updateProperyData( BPy_Property * self )
 }
 
 //--------------- checkValidData_ptr--------------------------------
-int checkValidData_ptr( BPy_Property * self )
+static int checkValidData_ptr( BPy_Property * self )
 {
 	int length;
 	//test pointer to see if data was removed (oops)

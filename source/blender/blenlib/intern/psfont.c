@@ -871,7 +871,7 @@ static int decodetype1(PackedFile * pf, char *outname)
 		datbytes = pf->size - pf->seek;
 		memcpy(bindat, ((char *) pf->data) + pf->seek, datbytes);
 
-		if ((bindat[2] << 8 + bindat[3]) == 0x800){
+		if ((bindat[2] << (8 + bindat[3])) == 0x800){
 			/* order data (remove 6 bytes headers) */
 			i = datbytes;
 			hptr = bptr = bindat + 4;

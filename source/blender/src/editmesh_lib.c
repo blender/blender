@@ -178,7 +178,8 @@ int EM_nfaces_selected(void)
 	return count;
 }
 
-int EM_nedges(void)
+#if 0
+static int EM_nedges(void)
 {
 	EditMesh *em = G.editMesh;
 	EditEdge *eed;
@@ -187,6 +188,7 @@ int EM_nedges(void)
 	for (eed= em->edges.first; eed; eed= eed->next) count++;
 	return count;
 }
+#endif
 
 int EM_nvertices_selected(void)
 {

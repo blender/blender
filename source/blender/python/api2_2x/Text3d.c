@@ -34,6 +34,8 @@
 #include "DNA_view3d_types.h"
 #include "DNA_vfont_types.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "BKE_object.h"
 #include "BDR_editobject.h"
 #include "BKE_displist.h"
@@ -140,8 +142,13 @@ struct PyMethodDef M_Text3d_methods[] = {
 
 /*****************************************************************************/
 /* Python BPy_Text3d methods declarations:				     */
+/* extern prototypes */
 /*****************************************************************************/
-static PyObject *Text2Text3d( BPy_Text3d * self, PyObject * args );
+/*static PyObject *Text2Text3d( BPy_Text3d * self, PyObject * args );*/  /*unused nor defined*/
+extern void freedisplist(struct ListBase *lb);
+extern VFont *get_builtin_font(void);
+int Text3d_CheckPyObject( PyObject * py_obj );
+struct Text3d *Text3d_FromPyObject( PyObject * py_obj );
 
 
 /* 
@@ -326,7 +333,7 @@ struct Text3d *Text3d_FromPyObject( PyObject * py_obj )
 	BPy_Text3d *blen_obj;
 
 	blen_obj = ( BPy_Text3d * ) py_obj;
-	return ((Text3d*) blen_obj->curve );
+	return ((struct Text3d*) blen_obj->curve );
 }
 
 static PyObject *Text3d_getName( BPy_Text3d * self )

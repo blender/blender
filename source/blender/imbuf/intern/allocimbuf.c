@@ -125,7 +125,7 @@ short addzbufImBuf(struct ImBuf * ibuf)
 	IMB_freezbufImBuf(ibuf);
 
 	size = ibuf->x * ibuf->y * sizeof(unsigned int);
-	if (ibuf->zbuf = MEM_mallocN(size, "addzbufImBuf")){
+	if ( (ibuf->zbuf = MEM_mallocN(size, "addzbufImBuf")) ){
 		ibuf->mall |= IB_zbuf;
 		return (TRUE);
 	}
@@ -145,7 +145,7 @@ short imb_addencodedbufferImBuf(struct ImBuf * ibuf)
 
 	ibuf->encodedsize = 0;
 
-	if (ibuf->encodedbuffer = MEM_mallocN(ibuf->encodedbuffersize, "addencodedbufferImBuf")){
+	if ( (ibuf->encodedbuffer = MEM_mallocN(ibuf->encodedbuffersize, "addencodedbufferImBuf") )){
 		ibuf->mall |= IB_mem;
 		return (TRUE);
 	}
@@ -199,7 +199,7 @@ short imb_addrectImBuf(struct ImBuf * ibuf)
 	imb_freerectImBuf(ibuf);
 
 	size = ibuf->x * ibuf->y * sizeof(unsigned int);
-	if (ibuf->rect = MEM_mallocN(size, "imb_addrectImBuf")){
+	if ( (ibuf->rect = MEM_mallocN(size, "imb_addrectImBuf")) ){
 		ibuf->mall |= IB_rect;
 		if (ibuf->depth > 32) return (addzbufImBuf(ibuf));
 		else return (TRUE);
@@ -219,7 +219,7 @@ short imb_addcmapImBuf(struct ImBuf *ibuf)
 	imb_checkncols(ibuf);
 	if (ibuf->maxcol == 0) return (TRUE);
 
-	if (ibuf->cmap = MEM_callocN(sizeof(unsigned int) * ibuf->maxcol, "imb_addcmapImBuf")){
+	if ( (ibuf->cmap = MEM_callocN(sizeof(unsigned int) * ibuf->maxcol, "imb_addcmapImBuf") ) ){
 		min = ibuf->maxcol * sizeof(unsigned int);
 		if (min > sizeof(dfltcmap)) min = sizeof(dfltcmap);
 		memcpy(ibuf->cmap, dfltcmap, min);

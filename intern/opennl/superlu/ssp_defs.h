@@ -225,7 +225,10 @@ extern void    sPrint_SuperNode_Matrix(char *, SuperMatrix *);
 extern void    sPrint_Dense_Matrix(char *, SuperMatrix *);
 extern void    print_lu_col(char *, int, int, int *, GlobalLU_t *);
 extern void    check_tempv(int, float *);
+extern int		print_int_vec(char *what, int n, int *vec);
 
+extern int		sp_symetree(int *acolst, int *acolend, int *arow, int n, int *parent);
+	
 #ifdef __cplusplus
   }
 #endif

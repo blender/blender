@@ -22,6 +22,14 @@
 #include <math.h>
 #include "ssp_defs.h"
 
+/* prototypes */
+void sprint_lu_col(char *msg, int jcol, int pivrow, int *xprune, GlobalLU_t *Glu);
+void scheck_tempv(int n, float *tempv);
+void sPrintPerf(SuperMatrix *, SuperMatrix *, mem_usage_t *,float , float , 
+				 float *, float *, char *, SuperLUStat_t *);
+int print_float_vec(char *what, int n, float *vec);
+/* ********** */
+
 void
 sCreate_CompCol_Matrix(SuperMatrix *A, int m, int n, int nnz, 
 		       float *nzval, int *rowind, int *colptr,

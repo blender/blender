@@ -1092,7 +1092,8 @@ static void renderZBufLine(int y, RE_COLBUFTYPE *colbuf1, RE_COLBUFTYPE *colbuf2
 static int zBufferAllFaces(void) 
 {
 	VlakRen *vlr=NULL;
-	unsigned int zvlnr, faceCounter;
+	unsigned int zvlnr;
+	int faceCounter;
     int keepLooping = 1; 
     float vec[3], hoco[4], mul, zval, fval; 
     Material *ma=0;
@@ -1163,7 +1164,7 @@ static int zBufferAllFaces(void)
 static int zBufferAllHalos(void)
 {
     HaloRen *har = NULL;
-    unsigned int haloCounter = 0;
+    int haloCounter = 0;
     int dist = 0;
     int keepLooping = 1;
     short miny = 0, maxy = 0, minx = 0, maxx = 0;
@@ -1238,7 +1239,7 @@ static int fillZBufDistances()
 
 
 
-
+#if 0
 /* ------------------------------------------------------------------------- */
 /**
  * One more filler: fill in halo data in z buffer.
@@ -1248,7 +1249,7 @@ void zBufferFillHalo(void)
 {
     /* so far, intentionally empty */
 }
-
+#endif
 
 /* ------------------------------------------------------------------------- */
 /* Colour buffer related:                                                    */

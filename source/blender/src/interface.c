@@ -3994,8 +3994,9 @@ uiBlock *uiGetBlock(char *name, ScrArea *sa)
 	return NULL;
 }
 
+#if 0
 /* used for making screenshots for menus, called in screendump.c */
-int uiIsMenu(int *x, int *y, int *sizex, int *sizey)
+static int uiIsMenu(int *x, int *y, int *sizex, int *sizey)
 {
 	uiBlock *block= curarea->uiblocks.first;
 	int minx, miny, maxx, maxy;
@@ -4025,6 +4026,7 @@ printf("%d %d %d %d\n", minx, miny, maxx, maxy);
 	
 	return 0;
 }
+#endif
 
 void ui_check_but(uiBut *but)
 {
@@ -4382,7 +4384,8 @@ void uiBlockEndAlign(uiBlock *block)
 	block->flag &= ~UI_BUT_ALIGN;	// all 4 flags
 }
 
-void uiBlockEndAligno(uiBlock *block)
+#if 0
+static void uiBlockEndAligno(uiBlock *block)
 {
 	uiBut *but;
 	
@@ -4401,6 +4404,7 @@ void uiBlockEndAligno(uiBlock *block)
 	}
 	block->flag &= ~UI_BUT_ALIGN;	// all 4 flags
 }
+#endif
 
 static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short x1, short y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  char *tip)
 {

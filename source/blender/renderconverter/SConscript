@@ -8,6 +8,8 @@ source_files = ['intern/convertBlenderScene.c']
 
 renderconv_env.Append (CPPPATH = ['.',
                                   '../blenlib',
+                                  '../yafray',
+                                  '../radiosity/extern/include',
                                   '#/intern/guardedalloc',
                                   '../makesdna',
                                   '../blenkernel',

@@ -1517,7 +1517,7 @@ static void test_add_new_tabs(ScrArea *sa)
 /* ------------ panel drag ---------------- */
 
 
-void ui_drag_panel(uiBlock *block)
+static void ui_drag_panel(uiBlock *block)
 {
 	Panel *panel= block->panel;
 	short align=0, first=1, ofsx, ofsy, dx=0, dy=0, dxo=0, dyo=0, mval[2], mvalo[2];

@@ -141,7 +141,7 @@ ifeq ($(CCC),g++)
     LEVEL_2_CPP_WARNINGS += -Wreorder
     LEVEL_2_CPP_WARNINGS += -Wctor-dtor-privacy
     LEVEL_2_CPP_WARNINGS += -Wnon-virtual-dtor
-    LEVEL_2_CPP_WARNINGS += -Wold-style-cast
+    #LEVEL_2_CPP_WARNINGS += -Wold-style-cast
     LEVEL_2_CPP_WARNINGS += -Woverloaded-virtual
     LEVEL_2_CPP_WARNINGS += -Wsign-promo
     LEVEL_2_CPP_WARNINGS += -Wsynth

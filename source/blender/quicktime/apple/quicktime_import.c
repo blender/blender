@@ -236,7 +236,7 @@ void free_anim_quicktime (struct anim *anim) {
 }
 
 
-OSErr QT_get_frameIndexes(struct anim *anim)
+static OSErr QT_get_frameIndexes(struct anim *anim)
 {
 	int i;
 	OSErr	anErr = noErr;
@@ -348,7 +348,7 @@ ImBuf * qtime_fetchibuf (struct anim *anim, int position)
 
 // following two functions only here to get movie pixeldepth
 
-int GetFirstVideoMedia(struct anim *anim)
+static int GetFirstVideoMedia(struct anim *anim)
 {
 	long    numTracks;
 	OSType  mediaType;
@@ -370,10 +370,10 @@ int GetFirstVideoMedia(struct anim *anim)
 	return 0;      // went through all tracks and no video
 }
 
-short GetFirstVideoTrackPixelDepth(struct anim *anim)
+static short GetFirstVideoTrackPixelDepth(struct anim *anim)
 {
 	SampleDescriptionHandle imageDescH =	(SampleDescriptionHandle)NewHandle(sizeof(Handle));
-	long	trackIndex = 0;
+//	long	trackIndex = 0; /*unused*/
 	
 	if(!GetFirstVideoMedia(anim))
 		return -1;
@@ -507,14 +507,16 @@ int imb_is_a_quicktime (char *name)
 	GraphicsImportComponent		theImporter = NULL;
 
 	FSSpec	theFSSpec;
-	Str255  dst;
+#ifdef _WIN32
+	Str255  dst; /*unused*/
+#endif
 	char	theFullPath[255];
 
-	Boolean						isMovieFile = false;
-	AliasHandle					myAlias = NULL;
-	Component					myImporter = NULL;
+//	Boolean						isMovieFile = false; /*unused*/
+//	AliasHandle					myAlias = NULL; /*unused*/
+//	Component					myImporter = NULL; /*unused*/
 #ifdef __APPLE__
-	FInfo						myFinderInfo;
+//	FInfo						myFinderInfo; /*unused*/
 	FSRef						myRef;
 #endif
 	OSErr						err = noErr;
@@ -564,7 +566,7 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 	int x, y, depth;
 	int have_gw = FALSE;
 	ImBuf *ibuf = NULL;
-	ImBuf *imbuf = NULL;
+//	ImBuf *imbuf = NULL; /*unused*/
 	GWorldPtr	offGWorld;
 	PixMapHandle		myPixMap = NULL;
 

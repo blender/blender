@@ -377,7 +377,7 @@ static int NMCol_setattr( PyObject * self, char *name, PyObject * v )
 	return 0;
 }
 
-PyObject *NMCol_repr( BPy_NMCol * self )
+static PyObject *NMCol_repr( BPy_NMCol * self )
 {
 	static char s[256];
 	sprintf( s, "[NMCol - <%d, %d, %d, %d>]", self->r, self->g, self->b,
@@ -2362,7 +2362,7 @@ static int check_validFaceUV( BPy_NMesh * nmesh )
 }
 
 /* this is a copy of unlink_mesh in mesh.c, because ... */
-void EXPP_unlink_mesh( Mesh * me )
+static void EXPP_unlink_mesh( Mesh * me )
 {
 	int a;
 

@@ -491,7 +491,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 	return xco;
 }
 
-void do_update_for_newframe(int mute)
+static void do_update_for_newframe(int mute)
 {
 	extern void audiostream_scrub(unsigned int frame);	/* seqaudio.c */
 	
@@ -559,7 +559,7 @@ static void show_splash(void)
 /* Functions for user preferences fileselect windows */
 
 /* yafray: export dir select */
-void filesel_u_yfexportdir(char *name)
+static void filesel_u_yfexportdir(char *name)
 {
 	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
 	BLI_split_dirfile(name, dir, file);
@@ -568,7 +568,7 @@ void filesel_u_yfexportdir(char *name)
 	allqueue(REDRAWALL, 0);
 }
 
-void filesel_u_fontdir(char *name)
+static void filesel_u_fontdir(char *name)
 {
 	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
 	BLI_split_dirfile(name, dir, file);
@@ -577,7 +577,7 @@ void filesel_u_fontdir(char *name)
 	allqueue(REDRAWALL, 0);
 }
 
-void filesel_u_textudir(char *name)
+static void filesel_u_textudir(char *name)
 {
 	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
 	BLI_split_dirfile(name, dir, file);
@@ -586,7 +586,7 @@ void filesel_u_textudir(char *name)
 	allqueue(REDRAWALL, 0);
 }
 
-void filesel_u_plugtexdir(char *name)
+static void filesel_u_plugtexdir(char *name)
 {
 	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
 	BLI_split_dirfile(name, dir, file);
@@ -595,7 +595,7 @@ void filesel_u_plugtexdir(char *name)
 	allqueue(REDRAWALL, 0);
 }
 
-void filesel_u_plugseqdir(char *name)
+static void filesel_u_plugseqdir(char *name)
 {
 	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
 	BLI_split_dirfile(name, dir, file);
@@ -604,7 +604,7 @@ void filesel_u_plugseqdir(char *name)
 	allqueue(REDRAWALL, 0);
 }
 
-void filesel_u_renderdir(char *name)
+static void filesel_u_renderdir(char *name)
 {
 	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
 	BLI_split_dirfile(name, dir, file);
@@ -613,7 +613,7 @@ void filesel_u_renderdir(char *name)
 	allqueue(REDRAWALL, 0);
 }
 
-void filesel_u_pythondir(char *name)
+static void filesel_u_pythondir(char *name)
 {
 	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
 	BLI_split_dirfile(name, dir, file);
@@ -622,7 +622,7 @@ void filesel_u_pythondir(char *name)
 	allqueue(REDRAWALL, 0);
 }
 
-void filesel_u_sounddir(char *name)
+static void filesel_u_sounddir(char *name)
 {
 	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
 	BLI_split_dirfile(name, dir, file);
@@ -631,7 +631,7 @@ void filesel_u_sounddir(char *name)
 	allqueue(REDRAWALL, 0);
 }
 
-void filesel_u_tempdir(char *name)
+static void filesel_u_tempdir(char *name)
 {
 	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
 	BLI_split_dirfile(name, dir, file);

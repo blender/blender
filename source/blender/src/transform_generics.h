@@ -60,7 +60,7 @@ void calculatePropRatio(TransInfo *t);
 
 void snapGrid(TransInfo *t, float *val);
 
-TransInfo * BIF_GetTransInfo();
+TransInfo * BIF_GetTransInfo(void);
 
 #endif
 

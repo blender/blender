@@ -308,7 +308,7 @@ static void progressiverad_rr()
 
 static RadFace *radfaces=NULL;
 
-void initradfaces()	
+static void initradfaces(void)	
 {
 	VlakRen *vlr= NULL;
 	RadFace *rf;
@@ -399,8 +399,9 @@ static void vecaddfac(float *vec, float *v1, float *v2, float fac)
 
 }
 
+#if 0
 /* unused now, doesnt work... */
-void filter_rad_values()
+static void filter_rad_values(void)
 {
 	VlakRen *vlr=NULL;
 	VertRen *v1=NULL;
@@ -485,6 +486,7 @@ void filter_rad_values()
 	}
 
 }
+#endif
 
 static void make_vertex_rad_values()
 {

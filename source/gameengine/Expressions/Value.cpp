@@ -83,7 +83,7 @@ int cvalue_coerce(PyObject** pv,PyObject** pw)
 {
 	if (PyInt_Check(*pw)) {
 		double db  = (double)PyInt_AsLong(*pw);
-		*pw = new CIntValue(db);
+		*pw = new CIntValue((int) db);
 		Py_INCREF(*pv);
 		return 0;
 	}

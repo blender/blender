@@ -276,7 +276,7 @@ PyObject* KX_SoundActuator::_getattr(const STR_String& attr)
 PyObject* KX_SoundActuator::PySetFilename(PyObject* self, PyObject* args, PyObject* kwds)
 {
 	char *soundName = NULL;
-	void *soundPointer = NULL;
+	// void *soundPointer = NULL; /*unused*/
 	
 	if (!PyArg_ParseTuple(args, "s", &soundName))
 		return NULL;

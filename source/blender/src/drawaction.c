@@ -102,6 +102,10 @@ static void draw_keylist(gla2DDrawInfo *di, int totvert, BezTriple **blist, floa
 void draw_icu_channel(gla2DDrawInfo *di, IpoCurve *icu, int flags, float ypos);
 static void draw_action_mesh_names(Key *key);
 
+/* missing local prototypes -------------------------------------------- */
+void meshactionbuts(SpaceAction *saction, Key *key);
+void do_actionbuts(unsigned short event);
+
 /* implementation ------------------------------------------------------ */
 
 extern void make_rvk_slider(uiBlock *block, Key *key, int i,
@@ -696,10 +700,11 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	curarea->win_swap= WIN_BACK_OK;
 }
 
-
+/* unused and blank
 void draw_channel_name(const char* name, short type, float ypos, int selected)
 {
 }
+*/
 
 static void draw_keylist(gla2DDrawInfo *di, int totvert, BezTriple **blist, float ypos)
 {

@@ -146,8 +146,9 @@ static void std_huff_tables (j_decompress_ptr dinfo) {
 	    bits_ac_chrominance, val_ac_chrominance);
 }
 
-static int Decode_JPEG(unsigned char *inBuffer, unsigned char *outBuffer, int width, int height, int bufsize) {
-	int rowstride, y;
+static int Decode_JPEG(unsigned char *inBuffer, unsigned char *outBuffer, unsigned int width, unsigned int height, int bufsize) {
+	int rowstride;
+	unsigned int y;
 	struct jpeg_decompress_struct dinfo;
 	struct jpeg_error_mgr jerr;
 
@@ -196,7 +197,8 @@ static int Decode_JPEG(unsigned char *inBuffer, unsigned char *outBuffer, int wi
 }
 
 static void Compress_JPEG(int quality, unsigned char *outbuffer, unsigned char *inBuffer, int width, int height, int bufsize) {
-	int i, y, rowstride;
+	int i, rowstride;
+	unsigned int y;
 	struct jpeg_compress_struct cinfo;
 	struct jpeg_error_mgr jerr;
 	unsigned char marker[60];

@@ -89,6 +89,12 @@
 void drawtextspace(ScrArea *sa, void *spacedata);
 void winqreadtextspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 
+/* missing locals */
+void txt_copy_selectbuffer (Text *text);
+void txt_paste_clipboard(Text *text); /* blank on non Win32 */
+void txt_copy_clipboard(Text *text); /* blank on non Win32 */
+
+
 static void *last_txt_find_string= NULL;
 
 static BMF_Font *spacetext_get_font(SpaceText *st) {

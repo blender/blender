@@ -121,6 +121,10 @@ static char *tbstr, *tbstr1, *keystr;
 static void (*tbfunc)(int);
 static int tbval;
 
+/* prototypes ----------------------- */
+TBcallback *callback_dummy(int level, int entry);
+
+
 /* *********** PC PATCH ************* */
 
 void ColorFunc(int i)

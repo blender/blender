@@ -79,6 +79,8 @@
 #include "envmap.h"
 #include "texture.h"
 
+/* prototypes */
+static int calcimanr(int cfra, Tex *tex);
 
 /* ------------------------------------------------------------------------- */
 

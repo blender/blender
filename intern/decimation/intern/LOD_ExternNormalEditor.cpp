@@ -241,7 +241,7 @@ ComputeVertexNormal(
 
 	// average the face normals surrounding this
 	// vertex and normalize
-	vector<LOD_Vertex> &verts = m_mesh.VertexSet();
+	// vector<LOD_Vertex> &verts = m_mesh.VertexSet(); /*unused*/
 	const vector<MT_Vector3> & face_normals = m_normals.Ref();
 
 	vector<LOD_FaceInd> vertex_faces;

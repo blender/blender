@@ -22,6 +22,12 @@
 #include "ssp_defs.h"
 #include "util.h"
 
+/* prototypes */
+flops_t LUFactFlops(SuperLUStat_t *stat);
+flops_t LUSolveFlops(SuperLUStat_t *stat);
+float SpaSize(int n, int np, float sum_npw);
+float DenseSize(int n, float sum_nw);
+
 /* 
  * Global statistics variale
  */

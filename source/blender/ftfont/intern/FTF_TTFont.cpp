@@ -240,6 +240,7 @@ int FTF_TTFont::SetFont(const unsigned char* str, int datasize, int fontsize)
 			return 1;
 		}
 	}
+	return 0;
 }
 
 void FTF_TTFont::SetLanguage(char* str)
@@ -372,6 +373,7 @@ float FTF_TTFont::GetStringWidth(char* str, unsigned int flag)
 	} else if(mode == FTF_TEXTUREFONT) {
 		return font->Advance(wstr);// * fsize;
 	}
+	return 0.0;
 }
 
 

@@ -69,6 +69,7 @@
 #include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_subsurf.h"
+#include "BKE_deform.h"
 
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
@@ -141,6 +142,15 @@ static EditBone * get_nearest_editbonepoint (int findunsel, int *selmask);
 
 static Bone *get_first_selected_bonechildren (Bone *bone);
 
+static EditBone *get_named_editbone(char *name);
+static void update_dup_subtarget(EditBone *dupBone);
+static int bone_skinnable(Object *ob, Bone *bone, void *data);
+static int add_defgroup_unique_bone(Object *ob, Bone *bone, void *data);
+static int dgroup_skinnable(Object *ob, Bone *bone, void *data);
+static void add_verts_to_closest_dgroup(Object *ob, Object *par);
+static int hide_selected_pose_bone(Object *ob, Bone *bone, void *ptr);
+static int hide_unselected_pose_bone(Object *ob, Bone *bone, void *ptr);
+static int show_pose_bone(Object *ob, Bone *bone, void *ptr);
 
 /* Functions */
 
@@ -2005,7 +2015,7 @@ void addvert_armature(void)
 }
 
 
-EditBone *get_named_editbone(char *name)
+static EditBone *get_named_editbone(char *name)
 {
 	EditBone  *eBone;
 
@@ -2018,7 +2028,7 @@ EditBone *get_named_editbone(char *name)
 	return NULL;
 }
 
-void update_dup_subtarget(EditBone *dupBone)
+static void update_dup_subtarget(EditBone *dupBone)
 {
 	/* If an edit bone has been duplicated, lets
 	 * update it's constraints if the subtarget
@@ -2588,7 +2598,7 @@ int ik_chain_looper(Object *ob, Bone *bone, void *data,
     return count;
 }
 
-int bone_skinnable(Object *ob, Bone *bone, void *data)
+static int bone_skinnable(Object *ob, Bone *bone, void *data)
 {
     /* Bones that are not of boneclass BONE_UNSKINNABLE
      * are regarded to be "skinnable" and are eligible for
@@ -2625,7 +2635,7 @@ int bone_skinnable(Object *ob, Bone *bone, void *data)
     return 0;
 }
 
-int add_defgroup_unique_bone(Object *ob, Bone *bone, void *data) {
+static int add_defgroup_unique_bone(Object *ob, Bone *bone, void *data) {
     /* This group creates a vertex group to ob that has the
      * same name as bone (provided the bone is skinnable). 
 	 * If such a vertex group aleady exist the routine exits.
@@ -2639,7 +2649,7 @@ int add_defgroup_unique_bone(Object *ob, Bone *bone, void *data) {
     return 0;
 }
 
-int dgroup_skinnable(Object *ob, Bone *bone, void *data) {
+static int dgroup_skinnable(Object *ob, Bone *bone, void *data) {
     /* Bones that are not of boneclass BONE_UNSKINNABLE
      * are regarded to be "skinnable" and are eligible for
      * auto-skinning.
@@ -2680,7 +2690,7 @@ int dgroup_skinnable(Object *ob, Bone *bone, void *data) {
     return 0;
 }
 
-void add_verts_to_closest_dgroup(Object *ob, Object *par)
+static void add_verts_to_closest_dgroup(Object *ob, Object *par)
 {
     /* This function implements a crude form of 
      * auto-skinning: vertices are assigned to the
@@ -2886,7 +2896,7 @@ void create_vgroups_from_armature(Object *ob, Object *par)
 	}
 } 
 
-int hide_selected_pose_bone(Object *ob, Bone *bone, void *ptr) {
+static int hide_selected_pose_bone(Object *ob, Bone *bone, void *ptr) {
 	if (bone->flag & BONE_SELECTED) {
 		bone->flag |= BONE_HIDDEN;
 		bone->flag &= ~BONE_SELECTED;
@@ -2908,7 +2918,7 @@ void hide_selected_pose_bones(void) {
 	force_draw(1);
 }
 
-int hide_unselected_pose_bone(Object *ob, Bone *bone, void *ptr) {
+static int hide_unselected_pose_bone(Object *ob, Bone *bone, void *ptr) {
 	if (~bone->flag & BONE_SELECTED) {
 		bone->flag |= BONE_HIDDEN;
 	}
@@ -2929,7 +2939,7 @@ void hide_unselected_pose_bones(void) {
 	force_draw(1);
 }
 
-int show_pose_bone(Object *ob, Bone *bone, void *ptr) {
+static int show_pose_bone(Object *ob, Bone *bone, void *ptr) {
 	if (bone->flag & BONE_HIDDEN) {
 		bone->flag &= ~BONE_HIDDEN;
 		bone->flag |= BONE_SELECTED;

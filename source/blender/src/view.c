@@ -86,6 +86,10 @@
 #define TRACKBALLSIZE  (1.1)
 #define BL_NEAR_CLIP 0.001
 
+
+/* local prototypes ----------*/
+void setcameratoview3d(void); /* windows.c & toets.c */
+
 void persp_general(int a)
 {
 	/* for all window types, not 3D */
@@ -753,7 +757,7 @@ void setviewmatrixview3d()
 	}
 }
 
-void setcameratoview3d()
+void setcameratoview3d(void)
 {
 	Object *ob;
 	float dvec[3];

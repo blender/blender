@@ -253,7 +253,7 @@ UpdateChain(
 
 	vector<IK_QSegment> &segs = chain.Segments(); 
 	
-	int seg_ind = 0;
+	unsigned int seg_ind = 0;
 	for (seg_ind = 0;seg_ind < segs.size(); seg_ind++) {
 	
 		MT_Vector3 dq;

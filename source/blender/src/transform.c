@@ -196,7 +196,7 @@ static void set_prop_dist(TransInfo *t)
 
 /* ************************** CONVERSIONS ************************* */
 
-void createTransTexspace(void)
+static void createTransTexspace(void)
 {
 	TransData *td;
 	Object *ob;

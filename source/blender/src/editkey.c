@@ -89,6 +89,10 @@
 
 extern ListBase editNurb; /* in editcurve.c */
 
+
+/* local prototypes ------------------ */
+void make_rvk_slider(uiBlock *, Key *, int , int , int , int , int );  /* used in drawaction.c too */
+
 /* temporary storage for slider values */
 float meshslidervals[64] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,

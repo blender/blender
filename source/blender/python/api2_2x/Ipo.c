@@ -456,7 +456,7 @@ static PyObject *Ipo_getNcurves( BPy_Ipo * self )
    stiv 6-jan-2004
 */
 
-int Ipo_laIcuName( char *s, int *param )
+static int Ipo_laIcuName( char *s, int *param )
 {
 	int ok = 0;
 	if( !strcmp( s, "Energy" ) ) {
@@ -502,7 +502,7 @@ int Ipo_laIcuName( char *s, int *param )
 	return ok;
 }
 
-int Ipo_woIcuName( char *s, int *param )
+static int Ipo_woIcuName( char *s, int *param )
 {
 	int ok = 0;
 	if( !strcmp( s, "HorR" ) ) {
@@ -572,7 +572,7 @@ int Ipo_woIcuName( char *s, int *param )
 	return ok;
 }
 
-int Ipo_maIcuName( char *s, int *param )
+static int Ipo_maIcuName( char *s, int *param )
 {
 	int ok = 0;
 	if( !strcmp( s, "R" ) ) {
@@ -682,7 +682,7 @@ int Ipo_maIcuName( char *s, int *param )
 	return ok;
 }
 
-int Ipo_keIcuName( char *s, int *param )
+static int Ipo_keIcuName( char *s, int *param )
 {
 	char key[10];
 	int ok = 0;
@@ -703,7 +703,7 @@ int Ipo_keIcuName( char *s, int *param )
 	return ok;
 }
 
-int Ipo_seqIcuName( char *s, int *param )
+static int Ipo_seqIcuName( char *s, int *param )
 {
 	int ok = 0;
 	if( !strcmp( s, "Fac" ) ) {
@@ -714,7 +714,7 @@ int Ipo_seqIcuName( char *s, int *param )
 	return ok;
 }
 
-int Ipo_cuIcuName( char *s, int *param )
+static int Ipo_cuIcuName( char *s, int *param )
 {
 	int ok = 0;
 	if( !strcmp( s, "Speed" ) ) {
@@ -725,7 +725,7 @@ int Ipo_cuIcuName( char *s, int *param )
 	return ok;
 }
 
-int Ipo_coIcuName( char *s, int *param )
+static int Ipo_coIcuName( char *s, int *param )
 {
 	int ok = 0;
 	if( !strcmp( s, "Inf" ) ) {
@@ -736,7 +736,7 @@ int Ipo_coIcuName( char *s, int *param )
 	return ok;
 }
 
-int Ipo_acIcuName( char *s, int *param )
+static int Ipo_acIcuName( char *s, int *param )
 {
 	int ok = 0;
 	if( !strcmp( s, "LocX" ) ) {
@@ -782,7 +782,7 @@ int Ipo_acIcuName( char *s, int *param )
 	return ok;
 }
 
-int Ipo_caIcuName( char *s, int *param )
+static int Ipo_caIcuName( char *s, int *param )
 {
 	int ok = 0;
 	if( !strcmp( s, "Lens" ) ) {
@@ -800,7 +800,7 @@ int Ipo_caIcuName( char *s, int *param )
 	return ok;
 }
 
-int Ipo_texIcuName( char *s, int *param )
+static int Ipo_texIcuName( char *s, int *param )
 {
 	int ok = 0;
 	if( !strcmp( s, "NSize" ) ) {
@@ -891,7 +891,7 @@ int Ipo_texIcuName( char *s, int *param )
 	return ok;
 }
 
-int Ipo_obIcuName( char *s, int *param )
+static int Ipo_obIcuName( char *s, int *param )
 {
 	int ok = 0;
 	if( !strcmp( s, "LocX" ) ) {

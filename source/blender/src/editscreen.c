@@ -128,6 +128,12 @@ static ScrArea *g_activearea= NULL;
 short winqueue_break= 0;
 ScrArea *curarea= 0;
 
+/* prototypes -------------------*/
+int afterqtest(short win, unsigned short evt);
+unsigned short screen_qread(short *val, char *ascii);
+void add_to_mainqueue(Window *win, void *user_data, short evt, short val, char ascii);
+static void drawscredge_area(ScrArea *sa);
+
 /**********************************************************************/
 
 static void screen_set_cursor(bScreen *sc) 
@@ -738,7 +744,7 @@ static void screen_edge_edit_event(ScrArea *actarea, ScrEdge *actedge, short evt
 
 /***/
 
-void mywindow_init_mainwin(Window *win, int orx, int ory, int sizex, int sizey);
+extern void mywindow_init_mainwin(Window *win, int orx, int ory, int sizex, int sizey);
 void test_scale_screen(bScreen *);
 
 static void resize_screens(int x, int y, int w, int h) {

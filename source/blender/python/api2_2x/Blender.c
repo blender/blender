@@ -79,6 +79,9 @@ static PyObject *Blender_Load( PyObject * self, PyObject * args );
 static PyObject *Blender_Save( PyObject * self, PyObject * args );
 static PyObject *Blender_UpdateMenus( PyObject * self);
 
+extern PyObject *Text3d_Init( void ); /* missing in some include */
+
+
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.	 */
 /* In Python these will be written to the console when doing a		 */

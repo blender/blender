@@ -55,6 +55,14 @@ struct PyMethodDef Vector_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
+/******prototypes*************/
+PyObject *Vector_add( PyObject * v1, PyObject * v2 );
+PyObject *Vector_sub( PyObject * v1, PyObject * v2 );
+PyObject *Vector_mul( PyObject * v1, PyObject * v2 );
+PyObject *Vector_div( PyObject * v1, PyObject * v2 );
+int Vector_coerce( PyObject ** v1, PyObject ** v2 );
+
+
 /*****************************/
 //    Vector Python Object   
 /*****************************/

@@ -64,10 +64,10 @@ struct BPy_Object;
 /* These are from blender/src/editdeform.c, should be declared elsewhere,
  * maybe in BIF_editdeform.h, after proper testing of vgrouping methods XXX */
 
-void create_dverts( Mesh * me );
-void add_vert_defnr( Object * ob, int def_nr, int vertnum, float weight,
+extern void create_dverts( Mesh * me );
+extern void add_vert_defnr( Object * ob, int def_nr, int vertnum, float weight,
 		     int assignmode );
-void remove_vert_def_nr( Object * ob, int def_nr, int vertnum );
+extern void remove_vert_def_nr( Object * ob, int def_nr, int vertnum );
 
 
 

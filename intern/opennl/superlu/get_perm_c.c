@@ -12,7 +12,7 @@
 extern int  genmmd_(int *, int *, int *, int *, int *, int *, int *, 
 		    int *, int *, int *, int *, int *);
 
-void
+static void
 get_colamd(
 	   const int m,  /* number of rows in matrix A. */
 	   const int n,  /* number of columns in matrix A. */
@@ -47,7 +47,7 @@ get_colamd(
     SUPERLU_FREE(p);
 }
 
-void
+static void
 getata(
        const int m,      /* number of rows in matrix A. */
        const int n,      /* number of columns in matrix A. */
@@ -189,7 +189,7 @@ getata(
 }
 
 
-void
+static void
 at_plus_a(
 	  const int n,      /* number of columns in matrix A. */
 	  const int nz,     /* number of nonzeros in matrix A */

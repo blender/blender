@@ -67,8 +67,11 @@
 #ifndef M_PI
 #define M_PI		3.14159265358979323846
 #endif
+
+/* used by object.c */
+void Mat4BlendMat4(float [][4], float [][4], float [][4], float );
+
 /* Local function prototypes */
-static void constraint_target_to_mat4 (Object *ob, const char *substring, float mat[][4], float size[3], float ctime);
 
 /* Functions */
 

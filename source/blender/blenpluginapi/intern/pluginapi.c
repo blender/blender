@@ -48,7 +48,7 @@
 #ifdef WIN32
 #include "blenpluginapi\util.h"
 #else
-#include "util.h"
+#include "blenpluginapi/util.h"
 #endif
 #include "iff.h"
 #include "plugin.h"
@@ -316,6 +316,8 @@ float turbulence1(float noisesize,
 	 * Otherwise they will not be imported from the archive
 	 * library on Unix. -zr
 	 */
+int pluginapi_force_ref(void); 
+
 int pluginapi_force_ref(void) 
 {
 	return (int) mallocN +

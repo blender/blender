@@ -78,6 +78,9 @@
 
 #define MAXTEXT	1000
 
+/* -- prototypes --------*/
+VFont *get_builtin_font(void);
+
 int textediting=0;
 
 static char findaccent(char char1, char code)

@@ -1,5 +1,8 @@
 #include "ssp_defs.h"
 
+int check_perm(char *, int , int *);
+
+
 void
 sp_preorder(superlu_options_t *options,  SuperMatrix *A, int *perm_c, 
 	    int *etree, SuperMatrix *AC)

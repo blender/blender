@@ -78,6 +78,9 @@
 #include "mydevice.h"
 #include "butspace.h" // own module
 
+/************************ function prototypes ***************************/
+void drawbutspace(ScrArea *, void *);
+
 
 /* Local vars ---------------------------------------------------------- */
 short bgpicmode=0, near=1000, far=1000;

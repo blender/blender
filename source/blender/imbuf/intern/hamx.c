@@ -332,7 +332,7 @@ static short dec_hamx(struct ImBuf * ibuf, unsigned char *body, int cmap[])
 struct ImBuf *imb_loadanim(int *iffmem, int flags)
 {
 	int chunk, totlen, len, *mem, cmaplen = 0;
-	unsigned int *cmap;
+	unsigned int *cmap = NULL;
 	uchar *body = 0;
 	struct Adat adat;
 	struct ImBuf *ibuf=0;

@@ -92,6 +92,12 @@ struct uvvertsort {
 	TFace *tface;
 };
 
+/* local prototypes */
+void clever_numbuts_sima(void);
+void sel_uvco_inside_radius(short , TFace *, int , float *, float *, short);
+void uvedit_selectionCB(short , Object *, short *, float ); /* used in edit.c*/ 
+
+
 static int compuvvert(const void *u1, const void *u2)
 {
 	const struct uvvertsort *v1=u1, *v2=u2;

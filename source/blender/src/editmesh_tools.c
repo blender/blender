@@ -93,6 +93,10 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "editmesh.h"
 
 
+/* local prototypes ---------------*/
+void bevel_menu(void);
+
+
 /********* qsort routines *********/
 
 
@@ -2836,7 +2840,7 @@ void edge_rotate_selected(int dir)
 
 /******************* BEVEL CODE STARTS HERE ********************/
 
-void bevel_displace_vec(float *midvec, float *v1, float *v2, float *v3, float d, float no[3])
+static void bevel_displace_vec(float *midvec, float *v1, float *v2, float *v3, float d, float no[3])
 {
 	float a[3], c[3], n_a[3], n_c[3], mid[3], ac, ac2, fac;
 
@@ -2869,7 +2873,7 @@ void bevel_displace_vec(float *midvec, float *v1, float *v2, float *v3, float d,
 	Lots of sqrts which would not be good for a real time algo
 	Using the mid  point of the extrapolation of both sides 
 	Useless for coplanar quads, but that doesn't happen too often */
-void fix_bevel_wrap(float *midvec, float *v1, float *v2, float *v3, float *v4, float d, float no[3]) 
+static void fix_bevel_wrap(float *midvec, float *v1, float *v2, float *v3, float *v4, float d, float no[3]) 
 {
 	float a[3], b[3], c[3], l_a, l_b, l_c, s_a, s_b, s_c, Pos1[3], Pos2[3], Dir[3];
 
@@ -2905,7 +2909,7 @@ void fix_bevel_wrap(float *midvec, float *v1, float *v2, float *v3, float *v4, f
 }
 
 
-char detect_wrap(float *o_v1, float *o_v2, float *v1, float *v2, float *no) 
+static char detect_wrap(float *o_v1, float *o_v2, float *v1, float *v2, float *no) 
 {
 	float o_a[3], a[3], o_c[3], c[3];
 
@@ -2923,7 +2927,7 @@ char detect_wrap(float *o_v1, float *o_v2, float *v1, float *v2, float *no)
 
 // Detects and fix a quad wrapping after the resize
 // Arguments are the orginal verts followed by the final verts and then the bevel size and the normal
-void fix_bevel_quad_wrap(float *o_v1, float *o_v2, float *o_v3, float *o_v4, float *v1, float *v2, float *v3, float *v4, float d, float *no) 
+static void fix_bevel_quad_wrap(float *o_v1, float *o_v2, float *o_v3, float *o_v4, float *v1, float *v2, float *v3, float *v4, float d, float *no) 
 {
 	float vec[3];
 	char wrap[4];
@@ -2997,7 +3001,7 @@ void fix_bevel_quad_wrap(float *o_v1, float *o_v2, float *o_v3, float *o_v4, flo
 // Detects and fix a tri wrapping after the resize
 // Arguments are the orginal verts followed by the final verts and the normal
 // Triangles cannot wrap partially (not in this situation
-void fix_bevel_tri_wrap(float *o_v1, float *o_v2, float *o_v3, float *v1, float *v2, float *v3, float *no) 
+static void fix_bevel_tri_wrap(float *o_v1, float *o_v2, float *o_v3, float *v1, float *v2, float *v3, float *no) 
 {
 	if (detect_wrap(o_v1, o_v2, v1, v2, no)) {
 		float vec[3];
@@ -3010,7 +3014,7 @@ void fix_bevel_tri_wrap(float *o_v1, float *o_v2, float *o_v3, float *v1, float 
 	}
 }
 
-void bevel_shrink_faces(float d, int flag)
+static void bevel_shrink_faces(float d, int flag)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
@@ -3051,7 +3055,7 @@ void bevel_shrink_faces(float d, int flag)
 	}	
 }
 
-void bevel_shrink_draw(float d, int flag)
+static void bevel_shrink_draw(float d, int flag)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
@@ -3120,7 +3124,7 @@ void bevel_shrink_draw(float d, int flag)
 	}	
 }
 
-void bevel_mesh(float bsize, int allfaces)
+static void bevel_mesh(float bsize, int allfaces)
 {
 	EditMesh *em = G.editMesh;
 //#define BEV_DEBUG
@@ -3526,7 +3530,7 @@ void bevel_mesh(float bsize, int allfaces)
 #undef BEV_DEBUG
 }
 
-void bevel_mesh_recurs(float bsize, short recurs, int allfaces) 
+static void bevel_mesh_recurs(float bsize, short recurs, int allfaces) 
 {
 	float d;
 	short nr;

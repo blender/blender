@@ -117,6 +117,10 @@ static short fTexwindx, fTexwindy, fTexwinsx, fTexwinsy;
 static int fDoMipMap = 1;
 static int fLinearMipMap = 0;
 
+/* local prototypes --------------- */
+void update_realtime_textures(void);
+
+
 /*  static int source, dest; also not used */
 
 /**

@@ -957,7 +957,7 @@ PyObject* KX_GameObject::PyGetMesh(PyObject* self,
 	
 	if (PyArg_ParseTuple(args, "|i", &mesh))
 	{
-		if (mesh < m_meshes.size() && mesh >= 0)
+		if (((unsigned int)mesh < m_meshes.size()) && mesh >= 0)
 		{
 			KX_MeshProxy* meshproxy = new KX_MeshProxy(m_meshes[mesh]);
 			return meshproxy;

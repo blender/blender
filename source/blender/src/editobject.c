@@ -144,6 +144,7 @@
 #include "BSE_editipo.h"
 #include "BSE_filesel.h"	/* For activate_databrowse() */
 #include "BSE_view.h"
+#include "BSE_drawview.h"
 #include "BSE_trans_types.h"
 #include "BSE_editipo_types.h"
 
@@ -188,6 +189,13 @@ float prop_cent[3];
 float centre[3], centroid[3];
 
 void mirrormenu(void);
+
+/* local prototypes -------------*/
+int pose_flags_reset_done(Object *); /* used in transform_generic.c */
+void figure_bone_nocalc(Object *); /* used in transform.c */
+void figure_pose_updating(void); /* used in transform.c */
+void constline_callback(void);  /* used in drawview.c */
+/* --------------------------------- */
 
 void add_object_draw(int type)	/* for toolbox or menus, only non-editmode stuff */
 {
@@ -292,7 +300,7 @@ void delete_obj(int ok)
 	BIF_undo_push("Delete object(s)");
 }
 
-int return_editmesh_indexar(int **indexar, float *cent)
+static int return_editmesh_indexar(int **indexar, float *cent)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
@@ -335,7 +343,7 @@ static void select_editmesh_hook(ObHook *hook)
 	EM_select_flush();
 }
 
-int return_editlattice_indexar(int **indexar, float *cent)
+static int return_editlattice_indexar(int **indexar, float *cent)
 {
 	BPoint *bp;
 	int *index, nr, totvert=0, a;
@@ -392,7 +400,7 @@ static void select_editlattice_hook(ObHook *hook)
 	}
 }
 
-int return_editcurve_indexar(int **indexar, float *cent)
+static int return_editcurve_indexar(int **indexar, float *cent)
 {
 	extern ListBase editNurb;
 	Nurb *nu;
@@ -3142,7 +3150,7 @@ static int is_ob_constraint_target(Object *ob, ListBase *conlist) {
 
 }
 
-int clear_bone_nocalc(Object *ob, Bone *bone, void *ptr) {
+static int clear_bone_nocalc(Object *ob, Bone *bone, void *ptr) {
 	/* When we aren't transform()-ing, we'll want to turn off
 	 * the no calc flag for bone bone in case the frame changes,
 	 * or something
@@ -3165,7 +3173,7 @@ static void clear_bone_nocalc_ob(Object *ob) {
 
 }
 
-int set_bone_nocalc(Object *ob, Bone *bone, void *ptr) {
+static int set_bone_nocalc(Object *ob, Bone *bone, void *ptr) {
 	/* Calculating bone transformation makes thins slow ...
 	 * lets set the no calc flag for a bone by default
 	 */
@@ -3174,7 +3182,7 @@ int set_bone_nocalc(Object *ob, Bone *bone, void *ptr) {
 	return 0;
 }
 
-int selected_bone_docalc(Object *ob, Bone *bone, void *ptr) {
+static int selected_bone_docalc(Object *ob, Bone *bone, void *ptr) {
 	/* Let's clear the no calc flag for selected bones.
 	 * This function always returns 1 for non-no calc bones
 	 * (a.k.a., the 'do calc' bones) so that the bone_looper 
@@ -3346,7 +3354,7 @@ void figure_bone_nocalc(Object *ob) {
 	figure_bone_nocalc_core(ob, arm);
 }
 
-int bone_nocalc2chan_trans_update(Object *ob, Bone *bone, void *ptr) {
+static int bone_nocalc2chan_trans_update(Object *ob, Bone *bone, void *ptr) {
 	/* Set PCHAN_TRANS_UPDATE for channels with bones that don't have
 	 * the no calc flag set ... I hate this.
 	 */
@@ -3364,7 +3372,7 @@ int bone_nocalc2chan_trans_update(Object *ob, Bone *bone, void *ptr) {
 	return 0;
 }
 
-void clear_gonna_move(void) {
+static void clear_gonna_move(void) {
 	Base *base;
 
 	/* clear the gonna move flag */
@@ -3373,7 +3381,7 @@ void clear_gonna_move(void) {
 	}
 }
 
-int is_parent_gonna_move(Object *ob) {
+static int is_parent_gonna_move(Object *ob) {
 	if ( (ob->parent) &&
 		 (ob->parent->flag & OB_GONNA_MOVE) ) {
 		return 1;
@@ -3381,7 +3389,7 @@ int is_parent_gonna_move(Object *ob) {
 	return 0;
 }
 
-int is_constraint_target_gonna_move(Object *ob) {
+static int is_constraint_target_gonna_move(Object *ob) {
 	Object *tarOb;
 	bConstraint *con;
 	bPoseChannel *chan;
@@ -3407,7 +3415,7 @@ int is_constraint_target_gonna_move(Object *ob) {
 	return 0;
 }
 
-void flag_moving_objects(void) {
+static void flag_moving_objects(void) {
 	Base *base;
 	int numgonnamove = 0, oldnumgonnamove = -1;
 
@@ -4862,7 +4870,8 @@ static void view_editmove(unsigned char event)
 
 static void constline(float *center, float *dir, char axis, float axismat[][3])
 {
-	extern void make_axis_color(char *col, char *col2, char axis);	// drawview.c
+/*	extern void make_axis_color(char *col, char *col2, char axis);	// drawview.c
+*/
 	float v1[3], v2[3], v3[3];
 	char col[3], col2[3];
 	

@@ -273,7 +273,7 @@ BuildHeap(
 
 	std::vector<int> & heap_vector = m_heap->HeapVector();
 
-	for (int i = 0; i < edge_set.size(); ++i) {
+	for (unsigned int i = 0; i < edge_set.size(); ++i) {
 		edge_set[i].HeapPos() = i;
 		heap_vector.push_back(i);
 	}

@@ -1154,7 +1154,7 @@ void set_faceselect()	/* toggle */
  * @param	org		origin of the view ray.
  * @param	dir		direction of the view ray.
  */
-void get_pick_ray(short x, short y, float org[3], float dir[3])
+static void get_pick_ray(short x, short y, float org[3], float dir[3])
 {
 	double mvmatrix[16];
 	double projmatrix[16];
@@ -1190,7 +1190,7 @@ void get_pick_ray(short x, short y, float org[3], float dir[3])
 }
 
 
-int triangle_ray_intersect(float tv0[3], float tv1[3], float tv2[3], float org[3], float dir[3], float uv[2])
+static int triangle_ray_intersect(float tv0[3], float tv1[3], float tv2[3], float org[3], float dir[3], float uv[2])
 {
 	float v1v0[3];
 	float v2v0[3];
@@ -1283,7 +1283,7 @@ int triangle_ray_intersect(float tv0[3], float tv1[3], float tv2[3], float org[3
  * @param	v4		vertex 4 coordinates.
  * @return	number of vertices of this face
  */
-int face_get_vertex_coordinates(Mesh* mesh, TFace* face, float v1[3], float v2[3], float v3[3], float v4[3])
+static int face_get_vertex_coordinates(Mesh* mesh, TFace* face, float v1[3], float v2[3], float v3[3], float v4[3])
 {
 	int num_vertices;
 	MVert *mv;
@@ -1316,7 +1316,7 @@ int face_get_vertex_coordinates(Mesh* mesh, TFace* face, float v1[3], float v2[3
  * @param	u		(u,v) coordinate.
  * @param	v		(u,v) coordinate.
  */
-void face_get_uv(TFace* face, int v1, int v2, int v3, float a, float b, float* u, float* v)
+static void face_get_uv(TFace* face, int v1, int v2, int v3, float a, float b, float* u, float* v)
 {
 	float uv01[2], uv21[2];
 
@@ -1359,7 +1359,7 @@ void face_get_uv(TFace* face, int v1, int v2, int v3, float a, float b, float* u
  *			0 == no intersection, (u,v) invalid
  *			1 == intersection, (u,v) valid
  */
-int face_pick_uv(Object* object, Mesh* mesh, TFace* face, short x, short y, float* u, float* v)
+static int face_pick_uv(Object* object, Mesh* mesh, TFace* face, short x, short y, float* u, float* v)
 {
 	float org[3], dir[3];
 	float ab[2];

@@ -88,7 +88,7 @@ CValue* SCA_RandomActuator::GetReplica()
 
 bool SCA_RandomActuator::Update()
 {
-	bool result = false;	
+	//bool result = false;	/*unused*/
 	bool bNegativeEvent = IsNegativeEvent();
 
 	RemoveAllEvents();

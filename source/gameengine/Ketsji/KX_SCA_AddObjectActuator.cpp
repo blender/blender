@@ -80,7 +80,7 @@ KX_SCA_AddObjectActuator::~KX_SCA_AddObjectActuator()
 
 bool KX_SCA_AddObjectActuator::Update()
 {
-	bool result = false;	
+	//bool result = false;	/*unused*/
 	bool bNegativeEvent = IsNegativeEvent();
 	RemoveAllEvents();
 	

@@ -165,6 +165,10 @@ short uv_calc_mapdir= 1, uv_calc_mapalign= 1, facesel_draw_edges= 0;
 
 extern ListBase editNurb;
 
+
+/* *************************** static functions prototypes ****************** */
+void validate_editbonebutton(EditBone *);
+
 /* *************************** MESH DECIMATE ******************************** */
 
 /* should be removed from this c file (ton) */

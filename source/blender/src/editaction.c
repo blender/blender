@@ -104,7 +104,7 @@ extern int count_action_levels (bAction *act);
 
 #define BEZSELECTED(bezt)   (((bezt)->f1 & 1) || ((bezt)->f2 & 1) || ((bezt)->f3 & 1))
 
-/* Local Function prototypes */
+/* Local Function prototypes, some are forward needed */
 
 static void insertactionkey(bAction *act, bActionChannel *achan, bPoseChannel *chan, int adrcode, short makecurve, float time);
 static void flip_name (char *name);
@@ -117,6 +117,11 @@ static void delete_actionchannels(void);
 static void select_poseelement_by_name (char *name, int select);
 static void hilight_channel (bAction *act, bActionChannel *chan, short hilight);
 static void set_action_key_time (bAction *act, bPoseChannel *chan, int adrcode, short makecurve, float time);
+
+static void remake_meshaction_ipos(Ipo *ipo);
+static void select_all_keys_frames(bAction *act, short *mval, short *mvalo, int selectmode);
+static void select_all_keys_channels(bAction *act, short *mval,  short *mvalo, int selectmode);
+
 /* Implementation */
 
 short showsliders = 0;
@@ -291,7 +296,7 @@ void remake_action_ipos(bAction *act)
 	}
 }
 
-void remake_meshaction_ipos(Ipo *ipo)
+static void remake_meshaction_ipos(Ipo *ipo)
 {
 	/* this puts the bezier triples in proper
 	 * order and makes sure the bezier handles
@@ -1944,7 +1949,7 @@ void set_ipotype_actionchannels(int ipotype) {
 	allqueue(REDRAWNLA, 0);
 }
 
-void select_all_keys_frames(bAction *act, short *mval, 
+static void select_all_keys_frames(bAction *act, short *mval, 
 							short *mvalo, int selectmode) {
 	
 	/* This function tries to select all action keys in
@@ -2020,7 +2025,7 @@ void select_all_keys_frames(bAction *act, short *mval,
 }
 
 
-void select_all_keys_channels(bAction *act, short *mval, 
+static void select_all_keys_channels(bAction *act, short *mval, 
                               short *mvalo, int selectmode) {
 	bActionChannel    *chan;
 	float              click, x,y;

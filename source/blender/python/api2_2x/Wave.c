@@ -33,6 +33,8 @@
 #include "Wave.h"
 #include "Effect.h"
 
+/******* prototypes **********/
+PyObject *Wave_Init( void );
 
 /*****************************************************************************/
 /* Python BPy_Wave methods table:                                            */

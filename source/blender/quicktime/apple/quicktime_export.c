@@ -112,13 +112,13 @@ static struct QuicktimeComponentData *qtdata;
 static int	sframe;
 
 
-void CheckError(OSErr err, char *msg)
+static void CheckError(OSErr err, char *msg)
 {
 	if(err != noErr) printf("%s: %d\n", msg, err);
 }
 
 
-OSErr QT_SaveCodecSettingsToScene(void)
+static OSErr QT_SaveCodecSettingsToScene(void)
 {	
 	QTAtomContainer		myContainer = NULL;
 	ComponentResult		myErr = noErr;
@@ -179,7 +179,7 @@ bail:
 }
 
 
-OSErr QT_GetCodecSettingsFromScene(void)
+static OSErr QT_GetCodecSettingsFromScene(void)
 {	
 	Handle				myHandle = NULL;
 	ComponentResult		myErr = noErr;
@@ -221,7 +221,7 @@ bail:
 }
 
 
-OSErr QT_AddUserDataTextToMovie (Movie theMovie, char *theText, OSType theType)
+static OSErr QT_AddUserDataTextToMovie (Movie theMovie, char *theText, OSType theType)
 {
 	UserData					myUserData = NULL;
 	Handle						myHandle = NULL;

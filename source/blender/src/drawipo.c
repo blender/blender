@@ -2070,7 +2070,8 @@ EditIpo *select_proj_ipo(rctf *rectf, int event)
 	/* this was IGLuint, but it's a useless typedef... */
 	GLuint buffer[MAXPICKBUF];
 	int a, b;
-	int code, hits;
+	int hits;
+	unsigned int code;
 	short mval[2];
 	
 	G.f |= G_PICKSEL;

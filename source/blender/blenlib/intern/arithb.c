@@ -1399,6 +1399,7 @@ void VecUpMat3(float *vec, float mat[][3], short axis)
 }
 
 /* A & M Watt, Advanced animation and rendering techniques, 1992 ACM press */
+void QuatInterpolW(float *, float *, float *, float );
 
 void QuatInterpolW(float *result, float *quat1, float *quat2, float t)
 {

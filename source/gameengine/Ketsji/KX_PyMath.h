@@ -44,11 +44,11 @@
 
 #include "KX_Python.h"
 
-static unsigned int Size(const MT_Matrix4x4&)          { return 4; }
-static unsigned int Size(const MT_Matrix3x3&)          { return 3; }
-static unsigned int Size(const MT_Tuple2&)                { return 2; }
-static unsigned int Size(const MT_Tuple3&)                { return 3; }
-static unsigned int Size(const MT_Tuple4&)                { return 4; }
+inline unsigned int Size(const MT_Matrix4x4&)          { return 4; }
+inline unsigned int Size(const MT_Matrix3x3&)          { return 3; }
+inline unsigned int Size(const MT_Tuple2&)                { return 2; }
+inline unsigned int Size(const MT_Tuple3&)                { return 3; }
+inline unsigned int Size(const MT_Tuple4&)                { return 4; }
 
 /**
  *  Converts the given python matrix to an MT class.

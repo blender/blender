@@ -228,7 +228,7 @@ unsigned int BLI_ghashutil_strhash(void *ptr) {
 	unsigned int i= 0;
 	unsigned char c;
 	
-	while (c= *s++)
+	while ( (c= *s++) )
 		i= i*37 + c;
 		
 	return i;

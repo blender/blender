@@ -85,7 +85,7 @@ void		BLI_gsqueue_push	(GSQueue *gq, void *item);
 	 * @param item A pointer to an appropriatly
 	 * sized structure (the size passed to BLI_gsqueue_new).
 	 */
-void		BLI_qsueue_pushback	(GSQueue *gq, void *item);
+void		BLI_gsqueue_pushback	(GSQueue *gq, void *item);
 
 	/**
 	 * Free the queue

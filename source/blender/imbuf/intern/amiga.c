@@ -388,7 +388,7 @@ static uchar *readbody(struct ImBuf *ibuf, uchar *body)
 
 struct ImBuf *imb_loadamiga(int *iffmem,int flags)
 {
-	int chunk,totlen,len,*cmap=0,cmaplen,*mem,ftype=0;
+	int chunk,totlen,len,*cmap=0,cmaplen =0,*mem,ftype=0;
 	uchar *body=0;
 	struct BitMapHeader bmhd;
 	struct ImBuf *ibuf=0;

@@ -407,7 +407,7 @@ DuplicateMesh(
 
 		// Run through the result and add in the triangle faces.
 
-		int i;
+		unsigned int i;
 		for (i = 0; i < triangle_indices.size(); i+=3) {
 			// duplicate the face data for this face.
 			o_f_data.Duplicate(i_f_data[*f_faces_it]);

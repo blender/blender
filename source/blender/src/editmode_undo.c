@@ -94,6 +94,15 @@ void undo_editmode_menu(void)				// history menu
 */
 /* ********************************************************************* */
 
+/* local prototypes --------------- */
+ void undo_editmode_step(int step);	// undo and redo
+ void undo_editmode_clear(void);		// free & clear all data
+ void undo_editmode_menu(void);		// history menu
+ void undo_editmode_push(char *name, void (*freedata)(void *), 
+						void (*to_editmode)(void *),  void *(*from_editmode)(void)); 
+ struct uiBlock *editmode_undohistorymenu(void *arg_unused);
+
+
 
 #define MAXUNDONAME	64
 typedef struct UndoElem {

@@ -120,6 +120,9 @@ static PyObject *Camera_getScriptLinks( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_addScriptLink( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_clearScriptLinks( BPy_Camera * self );
 
+Camera *GetCameraByName( char *name );
+
+
 /*****************************************************************************/
 /* Python BPy_Camera methods table:                                          */
 /*****************************************************************************/

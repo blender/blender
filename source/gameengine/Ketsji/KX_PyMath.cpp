@@ -66,7 +66,7 @@ bool PyObject_IsMT_Matrix(PyObject *pymat, unsigned int rank)
 			PyObject *pyrow = PySequence_GetItem(pymat, y); /* new ref */
 			if (PySequence_Check(pyrow))
 			{
-				if (PySequence_Size(pyrow) != rank)
+				if (((unsigned int)PySequence_Size(pyrow)) != rank)
 					ismatrix = false;
 			} else 
 				ismatrix = false;

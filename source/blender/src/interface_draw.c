@@ -91,6 +91,10 @@
 // globals
 extern float UIwinmat[4][4];
 
+// local prototypes 
+void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, float maxy);
+
+
 /* ************** safe rasterpos for pixmap alignment with pixels ************* */
 
 void ui_rasterpos_safe(float x, float y, float aspect)
@@ -147,7 +151,7 @@ void uiEmboss(float x1, float y1, float x2, float y2, int sel)
 
 static void ui_draw_icon(uiBut *but, BIFIconID icon)
 {
-	void BIF_icon_pos(float xs, float ys);
+	// void BIF_icon_pos(float xs, float ys);
 	int blend= 0;
 	float xs=0, ys=0;
 

@@ -431,7 +431,7 @@ static EditVert *findnearestvert_f(short *dist, short sel)
 }
 
 /* backbuffer version */
-EditVert *findnearestvert(short *dist, short sel)
+static EditVert *findnearestvert(short *dist, short sel)
 {
 	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
 		EditVert *eve=NULL;

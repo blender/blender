@@ -108,6 +108,8 @@ static PyObject *M_Window_GetScreens( PyObject * self );
 static PyObject *M_Window_SetScreen( PyObject * self, PyObject * args );
 static PyObject *M_Window_GetScreenInfo( PyObject * self, PyObject * args,
 					 PyObject * kwords );
+PyObject *Window_Init( void );
+
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.	    */

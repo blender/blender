@@ -78,6 +78,8 @@
 /* GLOBALS */
 extern char *fsmenu;
 
+void rectwrite_imasel(int , int , int , int , int , int , int , int , float , float , unsigned int *);
+
 void rectwrite_imasel(int winxmin, int winymin, int winxmax, int winymax, int x1, int y1, int xim, int yim, float zoomx, float zoomy, unsigned int *rect)
 {
 	int cx, cy, oldxim, x2, y2;

@@ -85,6 +85,8 @@
 #include "BIF_interface.h"
 #include "BIF_glutil.h"
 
+#include "BIF_previewrender.h"  /* include ourself for prototypes */
+
 #include "PIL_time.h"
 
 #include "RE_renderconverter.h"

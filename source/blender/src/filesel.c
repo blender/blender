@@ -104,6 +104,7 @@
 #include "blendef.h"
 #include "nla.h"
 
+#include "BIF_fsmenu.h"  /* include ourselves */
 
 #if defined WIN32 || defined __BeOS
 	int fnmatch(){return 0;}
@@ -133,6 +134,8 @@ static void library_to_filelist(SpaceFile *sfile);
 static void filesel_select_objects(struct SpaceFile *sfile);
 static void active_file_object(struct SpaceFile *sfile);
 static int groupname_to_code(char *group);
+
+extern void countall(void);
 
 /* local globals */
 

@@ -203,7 +203,7 @@ static void drawmeta_contents(Sequence *seqm, float x1, float y1, float x2, floa
 	END_SEQ
 }
 
-void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2)
+static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2)
 {
 	float f, height, midy;
 	int offset, sofs, eofs;
