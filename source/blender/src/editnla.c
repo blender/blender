@@ -68,6 +68,7 @@
 #include "BIF_mywindow.h"
 #include "BIF_editview.h"
 #include "BIF_toolbox.h"
+#include "BIF_editnla.h"
 
 #include "BSE_editipo.h"
 #include "BSE_editnla_types.h"
