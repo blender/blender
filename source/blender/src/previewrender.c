@@ -790,9 +790,10 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 	alpha= mat->alpha;
 
 	if(mat->mapto & MAP_DISPLACE) { /* Quick hack of fake displacement preview */
-		shi->vn[0]-=2.0*shi->displace[0];
-		shi->vn[1]-=2.0*shi->displace[1];
-		shi->vn[2]+=2.0*shi->displace[2];
+		shi->vn[0]-=2.0*shi->displace[2];
+		shi->vn[1]-=2.0*shi->displace[0];
+		shi->vn[2]+=2.0*shi->displace[1];
+		Normalise(shi->vn);
 	}
 		
 	if(mat->mode & (MA_ZTRA|MA_RAYTRANSP)) 
