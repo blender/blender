@@ -664,6 +664,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else if(G.obedit->type==OB_LATTICE) mouse_lattice();
 					else if(G.obedit->type==OB_ARMATURE) mouse_armature();
 				}
+				else if(G.obedit && ((G.qual & LR_CTRLKEY) && (G.qual & LR_ALTKEY))) mouse_mesh();
 				else if(G.obpose) { 
 					if (G.obpose->type==OB_ARMATURE) mousepose_armature();
 				}

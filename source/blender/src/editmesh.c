@@ -2105,7 +2105,9 @@ void mouse_mesh(void)
 {
 	EditVert *act=0;
 
-	if(G.qual & LR_ALTKEY) edge_select();
+	if(G.qual & LR_ALTKEY) {
+		if (G.qual & LR_CTRLKEY) edge_select();
+	}
 	else {
 	
 		act= findnearestvert(1);
