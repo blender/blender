@@ -41,9 +41,9 @@ all debug::
       $(error $(ERRTXT))
     endif
   endif
-    export SRCHOME ?= $(HOME)/develop/source
-    export NAN_LIBDIR ?= $(HOME)/develop/lib
-    export NAN_OBJDIR ?= $(HOME)/obj
+    export SRCHOME ?= $(NANBLENDERHOME)/source
+    export NAN_LIBDIR ?= $(NANBLENDERHOME)/lib
+    export NAN_OBJDIR ?= $(NANBLENDERHOME)/obj
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_PYTHON_VERSION ?= 2.0
     export NAN_OPENAL ?= $(LCGDIR)/openal
