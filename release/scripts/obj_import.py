@@ -33,7 +33,7 @@ Tooltip: 'Load a Wavefront OBJ File'
 
 NULL_MAT = '(null)' # Name for mesh's that have no mat set.
 
-MATLIMIT = 16
+MATLIMIT = 16 # This isnt about to change but probably should not be hard coded.
 
 DIR = ''
 
@@ -65,18 +65,6 @@ def stripPath(path):
 def stripName(name): # name is a string
    prefixDelimiter = '.'
    return name[ : name.find(prefixDelimiter) ]
-
-#===============================#
-# Join list items into a string #
-#===============================#
-def join(joinList):
-   joinedString = ""
-   for listItem in joinList:
-      joinedString = joinedString + ' ' + str(listItem)
-
-   # Remove the first space
-   joinedString = joinedString[1:]
-   return joinedString
 
 
 from Blender import *
@@ -139,7 +127,7 @@ def load_mtl(dir, mtl_file, mesh):
       elif l[0] == '#' or len(l) == 0:
          pass
       elif l[0] == 'newmtl':
-         currentMat = getMat(join(l[1:]))
+         currentMat = getMat(' '.join(l[1:]))
       elif l[0] == 'Ka':
          currentMat.setMirCol(eval(l[1]), eval(l[2]), eval(l[3]))
       elif l[0] == 'Kd':
@@ -161,7 +149,6 @@ def load_mtl(dir, mtl_file, mesh):
       elif l[0] == 'map_Ks':
          img_fileName = dir + l[1]
          load_image(currentMat, img_fileName, 'Ks', mesh)
-
       lIdx+=1
 
 #==================================================================================#
@@ -238,8 +225,12 @@ def load_obj(file):
          vIdxLs = []
          vtIdxLs = []
          for v in l[1:]:
-            #objVert = split( v, ['/'] )
-            objVert = v.split('/', -1)
+            # OBJ files can have // or / to seperate vert/texVert/normal
+            # this is a bit of a pain but we must deal with it.
+            # Well try // first and if that has a len of 1 then we'll try /
+            objVert = v.split('//', -1)
+            if len(objVert) == 1:
+              objVert = objVert[0].split('/', -1)
              
             # VERT INDEX
             vIdxLs.append(eval(objVert[0]) -1)
@@ -295,7 +286,7 @@ def load_obj(file):
          mesh = NMesh.GetRaw()
            
          # New mesh name
-         objectName = join(l[1:]) # Use join in case of spaces
+         objectName = '_'.join(l[1:]) # Use join in case of spaces
            
          # New texture list
          uvMapList = []
@@ -304,7 +295,7 @@ def load_obj(file):
          if l[1] == '(null)':
             currentMat = getMat(NULL_MAT)
          else:
-            currentMat = getMat(join(l[1:])) # Use join in case of spaces
+            currentMat = getMat(' '.join(l[1:])) # Use join in case of spaces
        
       elif l[0] == 'mtllib':
          mtl_fileName = l[1]
@@ -321,3 +312,4 @@ def load_obj(file):
       NMesh.PutRaw(mesh, fileName + '_' + objectName)
 
 Window.FileSelector(load_obj, 'Import OBJ')
+
