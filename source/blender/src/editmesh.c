@@ -3560,7 +3560,7 @@ void extrude_mesh(void)
 	a= extrudeflag(1,1);
 	waitcursor(0);
 	if(a==0) {
-		error("Can't extrude");
+		error("No valid vertices selected");
 	}
 	else {
 		countall();  /* for G.totvert in calc_meshverts() */
@@ -3766,7 +3766,7 @@ void extrude_repeat_mesh(int steps, float offs)
 	for(a=0;a<steps;a++) {
 		ok= extrudeflag(1,1);
 		if(ok==0) {
-			error("Can't extrude");
+			error("No valid vertices selected");
 			break;
 		}
 		translateflag(1, dvec);
@@ -3832,7 +3832,7 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 		if(mode==0) ok= extrudeflag(1,1);
 		else adduplicateflag(1);
 		if(ok==0) {
-			error("Can't spin");
+			error("No valid vertices selected");
 			break;
 		}
 		rotateflag(1, cent, bmat);

@@ -627,7 +627,7 @@ void test_obpoin_but(char *name, ID **idpp)
 	ID *id;
 	
 	if(idpp == (ID **)&(emptytex.object)) {
-		error("Add texture first");
+		error("You must add a Texture first!");
 		*idpp= 0;
 		return;
 	}
@@ -648,7 +648,7 @@ void test_obcurpoin_but(char *name, ID **idpp)
 	ID *id;
 	
 	if(idpp == (ID **)&(emptytex.object)) {
-		error("Add texture first");
+		error("You must add a Texture first!");
 		*idpp= 0;
 		return;
 	}
@@ -657,7 +657,7 @@ void test_obcurpoin_but(char *name, ID **idpp)
 	while(id) {
 		if( strcmp(name, id->name+2)==0 ) {
 			if (((Object *)id)->type != OB_CURVE) {
-				error ("Bevel object must be a Curve");
+				error ("Bevel object must be a Curve.");
 				break;
 			} 
 			*idpp= id;
@@ -1024,15 +1024,15 @@ void common_editbuts(void)
 	uiBlockSetCol(block, BUTGREY);
 	uiDefBut(block, LABEL, 0, "Drawtype",						28,200,100,18, 0, 0, 0, 0, 0, "");
 	uiDefButC(block, MENU, REDRAWVIEW3D, "Drawtype%t|Bounds %x1|Wire %x2|Solid %x3|Shaded %x4",	
-																28,180,100,18, &ob->dt, 0, 0, 0, 0, "Drawtype menu");
+																28,180,100,18, &ob->dt, 0, 0, 0, 0, "Sets the drawing type of the active object");
 	uiDefBut(block, LABEL, 0, "Draw Extra",						28,160,100,18, 0, 0, 0, 0, 0, "");
-	uiDefButC(block, TOG|BIT|0, REDRAWVIEW3D, "Bounds",		28, 140, 100, 18, &ob->dtx, 0, 0, 0, 0, "Display bounding object");
-	uiDefButS(block, MENU, REDRAWVIEW3D, "Bounding volume%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Polyheder",
-																28, 120, 100, 18, &ob->boundtype, 0, 0, 0, 0, "Choose between bound objects");
-	uiDefButC(block, TOG|BIT|5, REDRAWVIEW3D, "Wire",		28, 100, 100, 18, &ob->dtx, 0, 0, 0, 0, "Display wireframe in shaded mode");
-	uiDefButC(block, TOG|BIT|1, REDRAWVIEW3D, "Axis",		28, 80, 100, 18, &ob->dtx, 0, 0, 0, 0, "Draw axis");
-	uiDefButC(block, TOG|BIT|2, REDRAWVIEW3D, "TexSpace",	28, 60, 100, 18, &ob->dtx, 0, 0, 0, 0, "Display texture space");
-	uiDefButC(block, TOG|BIT|3, REDRAWVIEW3D, "Name",		28, 40, 100, 18, &ob->dtx, 0, 0, 0, 0, "Print object name");
+	uiDefButC(block, TOG|BIT|0, REDRAWVIEW3D, "Bounds",		28, 140, 100, 18, &ob->dtx, 0, 0, 0, 0, "Displays the active object's bounds");
+	uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Polyheder",
+																28, 120, 100, 18, &ob->boundtype, 0, 0, 0, 0, "Selects the boundary display type");
+	uiDefButC(block, TOG|BIT|5, REDRAWVIEW3D, "Wire",		28, 100, 100, 18, &ob->dtx, 0, 0, 0, 0, "Displays the active object's wireframe in shaded drawing modes");
+	uiDefButC(block, TOG|BIT|1, REDRAWVIEW3D, "Axis",		28, 80, 100, 18, &ob->dtx, 0, 0, 0, 0, "Displays the active object's centre and axis");
+	uiDefButC(block, TOG|BIT|2, REDRAWVIEW3D, "TexSpace",	28, 60, 100, 18, &ob->dtx, 0, 0, 0, 0, "Displays the active object's texture space");
+	uiDefButC(block, TOG|BIT|3, REDRAWVIEW3D, "Name",		28, 40, 100, 18, &ob->dtx, 0, 0, 0, 0, "Displays the active object's name");
 	
 	uiBlockSetCol(block, BUTGREY);
 	
@@ -1042,7 +1042,7 @@ void common_editbuts(void)
 			if(ob->type==OB_MESH) poin= &( ((Mesh *)ob->data)->texflag );
 			else if(ob->type==OB_MBALL) poin= &( ((MetaBall *)ob->data)->texflag );
 			else poin= &( ((Curve *)ob->data)->texflag );
-			uiDefButI(block, TOG|BIT|0, B_AUTOTEX, "AutoTexSpace",	143,180,130,19, poin, 0, 0, 0, 0, "To switch automatic calculation of texture space");
+			uiDefButI(block, TOG|BIT|0, B_AUTOTEX, "AutoTexSpace",	143,180,130,19, poin, 0, 0, 0, 0, "Adjusts active object's texture space automatically when transforming object");
 
 		sprintf(str,"%d Mat:", ob->totcol);
 		if(ob->totcol) min= 1.0; else min= 0.0;
@@ -1052,33 +1052,33 @@ void common_editbuts(void)
 			uiDefButF(block, COL, 0, "",			291,123,24,30, &(ma->r), 0, 0, 0, 0, "");
 			uiDefBut(block, LABEL, 0, ma->id.name+2, 318,146, 103, 30, 0, 0, 0, 0, 0, "");
 		}
-		uiDefButC(block, NUM, B_REDR,	str,		318,123,103,30, &ob->actcol, min, (float)(ob->totcol), 0, 0, "Total indices, active index");
+		uiDefButC(block, NUM, B_REDR,	str,		318,123,103,30, &ob->actcol, min, (float)(ob->totcol), 0, 0, "Displays total number of material indices and the current index");
 		uiDefBut(block, BUT,B_MATWICH,	"?",		423,123,31,30, 0, 0, 0, 0, 0, "In EditMode, sets the active material index from selected faces");
 		
 		uiBlockSetCol(block, BUTSALMON);
-		uiDefBut(block, BUT,B_MATNEW,	"New",		292,101,80,21, 0, 0, 0, 0, 0, "Add a new Material index");
-		uiDefBut(block, BUT,B_MATDEL,	"Delete",	374,101,80,21, 0, 0, 0, 0, 0, "Delete this Material index");
-		uiDefBut(block, BUT,B_MATASS,	"Assign",	291,47,162,26, 0, 0, 0, 0, 0, "In EditMode, assign the active index to selected faces");
+		uiDefBut(block, BUT,B_MATNEW,	"New",		292,101,80,21, 0, 0, 0, 0, 0, "Adds a new Material index");
+		uiDefBut(block, BUT,B_MATDEL,	"Delete",	374,101,80,21, 0, 0, 0, 0, 0, "Deletes this Material index");
+		uiDefBut(block, BUT,B_MATASS,	"Assign",	291,47,162,26, 0, 0, 0, 0, 0, "In EditMode, assigns the active index to selected faces");
 
 		uiBlockSetCol(block, BUTGREY);
-		uiDefBut(block, BUT,B_MATSEL,	"Select",	292,76,79,22, 0, 0, 0, 0, 0, "In EditMode, select faces that have the active index");
-		uiDefBut(block, BUT,B_MATDESEL,	"Deselect",	373,76,79,21, 0, 0, 0, 0, 0, "Deselect everything with current indexnumber");
+		uiDefBut(block, BUT,B_MATSEL,	"Select",	292,76,79,22, 0, 0, 0, 0, 0, "In EditMode, selects faces that have the active index");
+		uiDefBut(block, BUT,B_MATDESEL,	"Deselect",	373,76,79,21, 0, 0, 0, 0, 0, "Deselects everything with current indexnumber");
 		
 		if(ob->type!=OB_FONT) {
-			uiDefBut(block, BUT,B_HIDE,		"Hide",		1091,152,77,18, 0, 0, 0, 0, 0, "Hide selected faces");
-			uiDefBut(block, BUT,B_REVEAL,	"Reveal",	1171,152,86,18, 0, 0, 0, 0, 0, "Reveal selected faces");
-			uiDefBut(block, BUT,B_SELSWAP,	"Select Swap",	1091,129,166,18, 0, 0, 0, 0, 0, "Select not-selected, and deselect selected faces");
+			uiDefBut(block, BUT,B_HIDE,		"Hide",		1091,152,77,18, 0, 0, 0, 0, 0, "Hides selected faces");
+			uiDefBut(block, BUT,B_REVEAL,	"Reveal",	1171,152,86,18, 0, 0, 0, 0, 0, "Reveals selected faces");
+			uiDefBut(block, BUT,B_SELSWAP,	"Select Swap",	1091,129,166,18, 0, 0, 0, 0, 0, "Selects unselected faces, and deselects selected faces");
 		}
-		uiDefBut(block, BUT,B_SETSMOOTH,	"Set Smooth",	291,15,80,20, 0, 0, 0, 0, 0, "In EditMode: set 'smooth' rendering of selected faces");
-		uiDefBut(block, BUT,B_SETSOLID,	"Set Solid",	373,15,80,20, 0, 0, 0, 0, 0, "In EditMode: set 'solid' rendering of selected faces");
+		uiDefBut(block, BUT,B_SETSMOOTH,	"Set Smooth",	291,15,80,20, 0, 0, 0, 0, 0, "In EditMode, sets 'smooth' rendering of selected faces");
+		uiDefBut(block, BUT,B_SETSOLID,	"Set Solid",	373,15,80,20, 0, 0, 0, 0, 0, "In EditMode, sets 'solid' rendering of selected faces");
 
 	}
 	
 	if ELEM3(ob->type, OB_MESH, OB_SURF, OB_CURVE) {
 		uiBlockSetCol(block, BUTSALMON);
-		uiDefBut(block, BUT,B_DOCENTRE, "Centre",				961, 115, 100, 19, 0, 0, 0, 0, 0, "Shift object data to be centered about object's origin");
-		uiDefBut(block, BUT,B_DOCENTRENEW, "Centre New",			961, 95, 100, 19, 0, 0, 0, 0, 0, "Shift object's origin to center of object data");
-		uiDefBut(block, BUT,B_DOCENTRECURSOR, "Centre Cursor",		961, 75, 100, 19, 0, 0, 0, 0, 0, "Shift object's origin to cursor location");
+		uiDefBut(block, BUT,B_DOCENTRE, "Centre",				961, 115, 100, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
+		uiDefBut(block, BUT,B_DOCENTRENEW, "Centre New",			961, 95, 100, 19, 0, 0, 0, 0, 0, "Shifts object's origin to center of object data");
+		uiDefBut(block, BUT,B_DOCENTRECURSOR, "Centre Cursor",		961, 75, 100, 19, 0, 0, 0, 0, 0, "Shifts object's origin to cursor location");
 	}
 
 	
@@ -1131,7 +1131,7 @@ static void decimate_faces(void)
 
 	/* add warning for vertex col and tfaces */
 	if(me->tface || me->mcol) {
-		if(okee("This will remove UV coords and vertexcolors")==0) return;
+		if(okee("This will remove UV coordinates and vertexcolors")==0) return;
 		if(me->tface) MEM_freeN(me->tface);
 		if(me->mcol) MEM_freeN(me->mcol);
 		me->tface= NULL;
@@ -1142,7 +1142,7 @@ static void decimate_faces(void)
 	tottria= decimate_count_tria(ob);
 
 	if(tottria<3) {
-		error("Need more input faces than just 3");
+		error("You must have more than 3 input faces selected.");
 		return;
 	}
 	/* allocate and init */
@@ -1505,44 +1505,44 @@ void meshbuts(void)
 	me= get_mesh(ob);
 	
 	if(me) {
-		uiDefButS(block, TOG|BIT|1, REDRAWVIEW3D, "No V.Normal Flip",	143,160,130,18, &me->flag, 0, 0, 0, 0, "Disable flipping of vertexnormals during render");
+		uiDefButS(block, TOG|BIT|1, REDRAWVIEW3D, "No V.Normal Flip",	143,160,130,18, &me->flag, 0, 0, 0, 0, "Disables flipping of vertexnormals during render");
 		uiBlockSetCol(block, BUTGREEN);
-		uiDefButS(block, TOG|BIT|5, REDRAWVIEW3D, "Auto Smooth",	143,140,130,18, &me->flag, 0, 0, 0, 0, "Automatic detection of smooth rendered faces during render");
+		uiDefButS(block, TOG|BIT|5, REDRAWVIEW3D, "Auto Smooth",	143,140,130,18, &me->flag, 0, 0, 0, 0, "Treats all faces with angles less than Degr: as 'smooth' during render");
 		uiBlockSetCol(block, BUTGREY);
-		uiDefButS(block, NUM, B_DIFF, "Degr:",							143, 120, 130, 18, &me->smoothresh, 1, 80, 0, 0, "Maximum angle (between face normals) that defines smooth rendering");
+		uiDefButS(block, NUM, B_DIFF, "Degr:",							143, 120, 130, 18, &me->smoothresh, 1, 80, 0, 0, "Defines maximum angle between face normals that 'Auto Smooth' will operate on");
 		uiBlockSetCol(block, BUTGREEN);
-		uiDefButS(block, TOG|BIT|7, B_MAKEDISP, "SubSurf",	143,100,130,18, &me->flag, 0, 0, 0, 0, "Catmull-Clark Subdivision Surface");
+		uiDefButS(block, TOG|BIT|7, B_MAKEDISP, "SubSurf",	143,100,130,18, &me->flag, 0, 0, 0, 0, "Treats the active object as a Catmull-Clark Subdivision Surface");
 		uiBlockSetCol(block, BUTGREY);
-		uiDefButS(block, NUM, B_MAKEDISP, "Subdiv:",			143, 80, 100, 18, &me->subdiv, 0, 12, 0, 0, "Level of subdivision for interactive display");
-		uiDefButS(block, NUM, B_MAKEDISP, "",				243, 80, 30, 18, &me->subdivr, 0, 12, 0, 0, "Level of subdivision for rendering");
-		uiDefButS(block, TOG|BIT|2, REDRAWVIEW3D, "Double Sided",	1090,184,164,19, &me->flag, 0, 0, 0, 0, "Make faces doublesided");
+		uiDefButS(block, NUM, B_MAKEDISP, "Subdiv:",			143, 80, 100, 18, &me->subdiv, 0, 12, 0, 0, "Defines the level of subdivision to display in real time interactively");
+		uiDefButS(block, NUM, B_MAKEDISP, "",				243, 80, 30, 18, &me->subdivr, 0, 12, 0, 0, "Defines the level of subdivision to apply during rendering");
+		uiDefButS(block, TOG|BIT|2, REDRAWVIEW3D, "Double Sided",	1090,184,164,19, &me->flag, 0, 0, 0, 0, "Toggles selected faces as doublesided or single-sided");
 		
 		uiBlockSetCol(block, BUTSALMON);
 		
 		if(me->msticky) val= 1.0; else val= 0.0;
 		uiDefBut(block, LABEL, 0, "Sticky", 137,55,70,20, 0, val, 0, 0, 0, "");
 		if(me->msticky==0) {
-			uiDefBut(block, BUT, B_MAKESTICKY, "Make",	210,58,63,19, 0, 0, 0, 0, 0, "Make sticky texture coords (projected from view)");
+			uiDefBut(block, BUT, B_MAKESTICKY, "Make",	210,58,63,19, 0, 0, 0, 0, 0, "Creates Sticky coordinates for the active object from the current camera view background picture");
 		}
-		else uiDefBut(block, BUT, B_DELSTICKY, "Delete", 210,58,63,19, 0, 0, 0, 0, 0, "Delete sticky texture coords");
+		else uiDefBut(block, BUT, B_DELSTICKY, "Delete", 210,58,63,19, 0, 0, 0, 0, 0, "Deletes Sticky texture coordinates");
 	
 		if(me->mcol) val= 1.0; else val= 0.0;
 		uiDefBut(block, LABEL, 0, "VertCol", 140,33,70,20, 0, val, 0, 0, 0, "");
 		if(me->mcol==0) {
-			uiDefBut(block, BUT, B_MAKEVERTCOL, "Make",	209,36,64,19, 0, 0, 0, 0, 0, "Enable vertex colours");
+			uiDefBut(block, BUT, B_MAKEVERTCOL, "Make",	209,36,64,19, 0, 0, 0, 0, 0, "Enables vertex colour painting on active object");
 		}
-		else uiDefBut(block, BUT, B_DELVERTCOL, "Delete", 209,36,64,19, 0, 0, 0, 0, 0, "");
+		else uiDefBut(block, BUT, B_DELVERTCOL, "Delete", 209,36,64,19, 0, 0, 0, 0, 0, "Deletes vertex colours on active object");
 
 			if(me->tface) val= 1.0; else val= 0.0;
 			uiDefBut(block, LABEL, 0, "TexFace", 142,13,70,20, 0, val, 0, 0, 0, "");
 			if(me->tface==0) {
-				uiDefBut(block, BUT, B_MAKE_TFACES, "Make",	209,14,64,20, 0, 0, 0, 0, 0, "Enable texture face");
+				uiDefBut(block, BUT, B_MAKE_TFACES, "Make",	209,14,64,20, 0, 0, 0, 0, 0, "Enables the active object's faces for UV coordinate mapping");
 			}
-			else uiDefBut(block, BUT, B_DEL_TFACES, "Delete", 209,14,64,20, 0, 0, 0, 0, 0, "Delete texture face");
+			else uiDefBut(block, BUT, B_DEL_TFACES, "Delete", 209,14,64,20, 0, 0, 0, 0, 0, "Deletes UV coordinates for active object's faces");
 		
 		uiBlockSetCol(block, BUTGREY);
 	
-		uiDefIDPoinBut(block, test_meshpoin_but, 0, "TexMesh:",		477,185,249,19, &me->texcomesh, "Enter the name of a Meshblock");
+		uiDefIDPoinBut(block, test_meshpoin_but, 0, "TexMesh: ",		477,185,249,19, &me->texcomesh, "Enter the name of a Meshblock");
 	}		
 	
 
@@ -1558,55 +1558,55 @@ void meshbuts(void)
 		else decim_faces= tottria;
 
 		uiBlockSetCol(block, BUTPURPLE);
-		uiDefButI(block, NUMSLI,B_DECIM_FACES, "Decimator",	477,155,249,20, &decim_faces, 4.0, tottria, 10, 10, "The number of triangles to reduce to");
+		uiDefButI(block, NUMSLI,B_DECIM_FACES, "Decimator: ",	477,155,249,20, &decim_faces, 4.0, tottria, 10, 10, "Defines the number of triangular faces to decimate the active Mesh object to");
 		uiBlockSetCol(block, BUTSALMON);
-		uiDefBut(block, BUT,B_DECIM_CANCEL, "Cancel",	477,135,124,19, 0, 0, 0, 0, 0, "restore Mesh");
-		uiDefBut(block, BUT,B_DECIM_APPLY, "Apply",		602,135,124,19, 0, 0, 0, 0, 0, "apply decimation to Mesh");
+		uiDefBut(block, BUT,B_DECIM_CANCEL, "Cancel",	477,135,124,19, 0, 0, 0, 0, 0, "Restores the Mesh to its original number of faces");
+		uiDefBut(block, BUT,B_DECIM_APPLY, "Apply",		602,135,124,19, 0, 0, 0, 0, 0, "Applies the decimation to the active Mesh object");
 #endif
 	
 		uiBlockSetCol(block, BUTSALMON);
-		uiDefBut(block, BUT,B_EXTR,"Extrude",	477,100,249,24, 0, 0, 0, 0, 0, "Convert selected edges to faces");
-		uiDefBut(block, BUT,B_SPINDUP,"Spin Dup",	639,75,87,24, 0, 0, 0, 0, 0, "Use spin with duplication tool");
-		uiDefBut(block, BUT,B_SPIN, "Spin",		558,75,78,24, 0, 0, 0, 0, 0, "Use spin tool");
-		uiDefBut(block, BUT,B_SCREW,"Screw",		477,75,79,24, 0, 0, 0, 0, 0, "Use screw tool");
-		uiDefBut(block, BUT,B_EXTREP, "ExtrudeRepeat",477,15,128,19, 0, 0, 0, 0, 0, "Create a repetitive extrude along a straight line");
+		uiDefBut(block, BUT,B_EXTR,"Extrude",	477,100,249,24, 0, 0, 0, 0, 0, "Converts selected edges to faces and selects the new vertices");
+		uiDefBut(block, BUT,B_SPINDUP,"Spin Dupe",	639,75,87,24, 0, 0, 0, 0, 0, "Creates copies of the selected vertices in a circle around the cursor in the indicated viewport");
+		uiDefBut(block, BUT,B_SPIN, "Spin",		558,75,78,24, 0, 0, 0, 0, 0, "Extrudes the selected vertices in a circle around the cursor in the indicated viewport");
+		uiDefBut(block, BUT,B_SCREW,"Screw",		477,75,79,24, 0, 0, 0, 0, 0, "Activates the screw tool");  // Bish - This could use some more definition
+		uiDefBut(block, BUT,B_EXTREP, "Extrude Dupe",477,15,128,19, 0, 0, 0, 0, 0, "Creates copies of the selected vertices in a straight line away from the current viewport");
 	
 		uiBlockSetCol(block, BUTGREY);
-		uiDefButS(block, NUM, B_DIFF, "Degr:",		477,55,78,19, &degr,10.0,360.0, 0, 0, "Specify the number of degrees the spin revolves");
-		uiDefButS(block, NUM, B_DIFF, "Steps:",		558,55,78,19, &step,1.0,180.0, 0, 0, "Specify the total number of spin revolutions");
-		uiDefButS(block, NUM, B_DIFF, "Turns:",		639,55,86,19, &turn,1.0,360.0, 0, 0, "Specify the number of revolutions the screw turns");
-		uiDefButS(block, TOG|BIT|0, B_DIFF, "Clockwise",	639,35,86,19, &editbutflag, 0, 0, 0, 0, "Specify the direction for screw and spin");
-		uiDefButS(block, TOG|BIT|1, B_DIFF, "Keep Original",	477,35,156,19, &editbutflag, 0, 0, 0, 0, "Seperate original and new vertices and faces");
-		uiDefButF(block, NUM, B_DIFF, "Offset:",		608,15,117,19, &extr_offs, 0.01, 10.0, 100, 0, "Set the distance between each step of the extrude repeat");
+		uiDefButS(block, NUM, B_DIFF, "Degr:",		477,55,78,19, &degr,10.0,360.0, 0, 0, "Specifies the number of degrees 'Spin' revolves");
+		uiDefButS(block, NUM, B_DIFF, "Steps:",		558,55,78,19, &step,1.0,180.0, 0, 0, "Specifies the total number of 'Spin' slices");
+		uiDefButS(block, NUM, B_DIFF, "Turns:",		639,55,86,19, &turn,1.0,360.0, 0, 0, "Specifies the number of revolutions the screw turns");
+		uiDefButS(block, TOG|BIT|0, B_DIFF, "Clockwise",	639,35,86,19, &editbutflag, 0, 0, 0, 0, "Specifies the direction for 'Screw' and 'Spin'");
+		uiDefButS(block, TOG|BIT|1, B_DIFF, "Keep Original",	477,35,156,19, &editbutflag, 0, 0, 0, 0, "Keeps a copy of the original vertices and faces after executing tools");
+		uiDefButF(block, NUM, B_DIFF, "Offset:",		608,15,117,19, &extr_offs, 0.01, 10.0, 100, 0, "Sets the distance between each copy for 'Extrude Dupe'");
 	}
 
 	by=206;
 
 	uiBlockSetCol(block, BUTGREEN);
-	uiDefButS(block, TOG|BIT|2, 0, "Beauty",	847,by-=20,94,19, &editbutflag, 0, 0, 0, 0, "Split face in halves");
+	uiDefButS(block, TOG|BIT|2, 0, "Beauty",	847,by-=20,94,19, &editbutflag, 0, 0, 0, 0, "Causes 'Subdivide' to split faces in halves instead of quarters");
 	uiBlockSetCol(block, BUTSALMON);
 
-	uiDefBut(block, BUT,B_SPLIT,"Split",			847,by-=19,94,18, 0, 0, 0, 0, 0, "Split msh without removing faces");
-	uiDefBut(block, BUT,B_TOSPHERE,"To Sphere",	847,by-=19,94,18, 0, 0, 0, 0, 0, "Blow vertices up into spherical shape");
-	uiDefBut(block, BUT,B_SUBDIV,"Subdivide",	847,by-=19,94,18, 0, 0, 0, 0, 0, "Split face in quarters");
-	uiDefBut(block, BUT,B_FRACSUBDIV, "Fract Subd",847,by-=19,94,18, 0, 0, 0, 0, 0, "Split face with random factor");
+	uiDefBut(block, BUT,B_SPLIT,"Split",			847,by-=19,94,18, 0, 0, 0, 0, 0, "Separates selected faces from unselected faces");
+	uiDefBut(block, BUT,B_TOSPHERE,"To Sphere",	847,by-=19,94,18, 0, 0, 0, 0, 0, "Moves selected vertices outwards into a spherical shape");
+	uiDefBut(block, BUT,B_SUBDIV,"Subdivide",	847,by-=19,94,18, 0, 0, 0, 0, 0, "Splits selected faces into halves or quarters");
+	uiDefBut(block, BUT,B_FRACSUBDIV, "Fract Subd",847,by-=19,94,18, 0, 0, 0, 0, 0, "Subdivides selected faces with a random factor");
 	
 	uiDefBut(block, BUT,B_VERTEXNOISE,"Noise",				847,by-=19,94,18, 0, 0, 0, 0, 0, "Use vertex coordinate as texture coordinate");
-	uiDefBut(block, BUT,B_VERTEXSMOOTH,"Smooth",				847,by-=19,94,18, 0, 0, 0, 0, 0, "Flatten angels");
-	uiDefBut(block, BUT,B_XSORT,"Xsort",			847,by-=19,94,18, 0, 0, 0, 0, 0, "Sort vertices in the X direction");
-	uiDefBut(block, BUT,B_HASH,"Hash",			847,by-=19,94,18, 0, 0, 0, 0, 0, "Randomize vertices sequence");
+	uiDefBut(block, BUT,B_VERTEXSMOOTH,"Smooth",				847,by-=19,94,18, 0, 0, 0, 0, 0, "Flattens angles of selected faces");
+	uiDefBut(block, BUT,B_XSORT,"Xsort",			847,by-=19,94,18, 0, 0, 0, 0, 0, "Sorts selected vertice data in the X direction");
+	uiDefBut(block, BUT,B_HASH,"Hash",			847,by-=19,94,18, 0, 0, 0, 0, 0, "Randomizes selected vertice sequence data");
 
 	uiBlockSetCol(block, BUTGREY);
-	uiDefButF(block, NUM, B_DIFF, "Limit:",			959,151,100,19, &doublimit, 0.0001, 1.0, 10, 0, "Specify the limit in distance to remove doubles");
+	uiDefButF(block, NUM, B_DIFF, "Limit:",			959,151,100,19, &doublimit, 0.0001, 1.0, 10, 0, "Specifies the max distance 'Rem Doubles' will consider vertices as 'doubled'");
 
 	uiBlockSetCol(block, BUTSALMON);
 	
-	uiDefBut(block, BUT,B_REMDOUB,"Rem Doubles",	958,173,101,32, 0, 0, 0, 0, 0, "Remove doubles");
+	uiDefBut(block, BUT,B_REMDOUB,"Rem Doubles",	958,173,101,32, 0, 0, 0, 0, 0, "Removes duplicates from selected vertices");
 
-	uiDefBut(block, BUT,B_FLIPNORM,"Flip Normals",		961,55,100,19, 0, 0, 0, 0, 0, "Toggle the direction of the face normals");
+	uiDefBut(block, BUT,B_FLIPNORM,"Flip Normals",		961,55,100,19, 0, 0, 0, 0, 0, "Toggles the direction of the selected face's normals");
 
-	uiDefBut(block, BUT, B_SLOWERDRAW,"SlowerDraw",			961,35,100,19, 0, 0, 0, 0, 0, "Draw slow but accurate");
-	uiDefBut(block, BUT, B_FASTERDRAW,"FasterDraw",			961,15,100,19, 0, 0, 0, 0, 0, "Draw fast but less accurate");
+	uiDefBut(block, BUT, B_SLOWERDRAW,"SlowerDraw",			961,35,100,19, 0, 0, 0, 0, 0, "Displays the active object with all possible edges shown");
+	uiDefBut(block, BUT, B_FASTERDRAW,"FasterDraw",			961,15,100,19, 0, 0, 0, 0, 0, "Displays the active object faster by omitting some edges when drawing");
 
 #ifdef __NLA
 		
@@ -1642,45 +1642,48 @@ void meshbuts(void)
 		
 		by-=22;
 		if (defCount)
-			uiDefButS(block, MENU, REDRAWBUTSEDIT, menustr,	740, by,18,18, &ob->actdef, min, defCount, 0, 0, "Active deformation group");
+			uiDefButS(block, MENU, REDRAWBUTSEDIT, menustr,	740, by,18,18, &ob->actdef, min, defCount, 0, 0, "Browses available vertex groups");
 		MEM_freeN (menustr);
 #endif
 		if (ob->actdef){
 			defGroup = BLI_findlink(&ob->defbase, ob->actdef-1);
-			but= uiDefBut(block, TEX,REDRAWBUTSEDIT,"",			758,by,93-18,18, defGroup->name, 0, 32, 0, 0, "Change the current deformations group's name (and bone affiliation)");
+			but= uiDefBut(block, TEX,REDRAWBUTSEDIT,"",			758,by,93-18,18, defGroup->name, 0, 32, 0, 0, "Displays current vertex group name. Click to change. (Match bone name for deformation.)");
 			uiButSetFunc(but, verify_vertexgroup_name_func, defGroup, NULL);
 		}
-		uiDefButF(block, NUM, REDRAWVIEW3D, "Weight:",		740, by-=22, 93, 18, &editbutvweight, 0, 1, 10, 0, "Change the bone's deformation strength");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "Weight:",		740, by-=22, 93, 18, &editbutvweight, 0, 1, 10, 0, "Sets the current vertex group's bone deformation strength");
 
 	}
 		
 	if (G.obedit && G.obedit==ob){
 
 		uiBlockSetCol(block, BUTSALMON);
-/*		uiDefBut(block, BUT,B_AUTOVGROUP,"Auto Weight",			740,by-=22,93,18, 0, 0, 0, 0, 0, "Automatically assign deformation groups"); */
-		uiDefBut(block, BUT,B_NEWVGROUP,"New",				740,by-=22,45,18, 0, 0, 0, 0, 0, "Create a new deformation group");
-		uiDefBut(block, BUT,B_DELVGROUP,"Delete",			788,by,45,18, 0, 0, 0, 0, 0, "Remove the current deformation group");
+/*		uiDefBut(block, BUT,B_AUTOVGROUP,"Auto Weight",			740,by-=22,93,18, 0, 0, 0, 0, 0, "Automatically assigns deformation groups"); */
+		uiDefBut(block, BUT,B_NEWVGROUP,"New",				740,by-=22,45,18, 0, 0, 0, 0, 0, "Creates a new vertex group");
+		uiDefBut(block, BUT,B_DELVGROUP,"Delete",			788,by,45,18, 0, 0, 0, 0, 0, "Removes the current vertex group");
 
 		uiBlockSetCol(block, BUTSALMON);
-		uiDefBut(block, BUT,B_ASSIGNVGROUP,"Assign",			740,by-=22,93,18, 0, 0, 0, 0, 0, "Assign selected vertices to the current deformation group");
-		uiDefBut(block, BUT,B_REMOVEVGROUP,"Remove",			740,by-=22,93,18, 0, 0, 0, 0, 0, "Remove selected vertices from the current deformation group");
+		uiDefBut(block, BUT,B_ASSIGNVGROUP,"Assign",			740,by-=22,93,18, 0, 0, 0, 0, 0, "Assigns selected vertices to the current vertex group");
+		uiDefBut(block, BUT,B_REMOVEVGROUP,"Remove",			740,by-=22,93,18, 0, 0, 0, 0, 0, "Removes selected vertices from the current vertex group");
 
 		uiBlockSetCol(block, BUTGREY);
-		uiDefBut(block, BUT,B_SELVGROUP,"Select",			740,by-=22,93,18, 0, 0, 0, 0, 0, "Select vertices belonging to the current deformation group");
-		uiDefBut(block, BUT,B_DESELVGROUP,"Deselect",			740,by-=22,93,18, 0, 0, 0, 0, 0, "Deselect vertices belonging to the current deformation group");
+		uiDefBut(block, BUT,B_SELVGROUP,"Select",			740,by-=22,93,18, 0, 0, 0, 0, 0, "Selects vertices belonging to the current vertex group");
+		uiDefBut(block, BUT,B_DESELVGROUP,"Deselect",			740,by-=22,93,18, 0, 0, 0, 0, 0, "Deselects vertices belonging to the current vertex group");
 
 }
 #endif
 
 	uiBlockSetCol(block, BUTGREY);
-	uiDefButF(block, NUM,		  REDRAWVIEW3D, "NSize:",		1090, 90, 164, 19, &editbutsize, 0.001, 2.0, 10, 0, "Set the length of the face normals");
-	uiDefButI(block, TOG|BIT|6, REDRAWVIEW3D, "Draw Normals",	1090,70,164,19, &G.f, 0, 0, 0, 0, "Draw face normals");
-	uiDefButI(block, TOG|BIT|7, REDRAWVIEW3D, "Draw Faces",	1090,50,164,19, &G.f, 0, 0, 0, 0, "Draw faces");
-	uiDefButI(block, TOG|BIT|18, REDRAWVIEW3D, "Draw Edges", 1090,30,164,19, &G.f, 0, 0, 0, 0, "Draw edges");
-	uiDefButI(block, TOG|BIT|11, 0, "All edges",				1090,10,164,19, &G.f, 0, 0, 0, 0, "Draw edges normally, without optimisation");
+	uiDefButF(block, NUM,		  REDRAWVIEW3D, "NSize:",		1090, 90, 164, 19, &editbutsize, 0.001, 2.0, 10, 0, "Sets the length to use when displaying face normals");
+	uiDefButI(block, TOG|BIT|6, REDRAWVIEW3D, "Draw Normals",	1090,70,164,19, &G.f, 0, 0, 0, 0, "Displays face normals as lines");
+	uiDefButI(block, TOG|BIT|7, REDRAWVIEW3D, "Draw Faces",	1090,50,164,19, &G.f, 0, 0, 0, 0, "Displays all faces as shades");
+	uiDefButI(block, TOG|BIT|18, REDRAWVIEW3D, "Draw Edges", 1090,30,164,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights");
+	uiDefButI(block, TOG|BIT|11, 0, "All edges",				1090,10,164,19, &G.f, 0, 0, 0, 0, "Displays all edges in object mode without optimization");
 
 	uiDrawBlock(block);
 }
+
+// Bish made it to here. (reviewing tooltips)
+
 
 /* *************************** FONT ******************************** */
 
