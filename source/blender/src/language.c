@@ -27,9 +27,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-/* dynamic popup generation for languages */
-
-#ifdef INTERNATIONAL
 
 #include <string.h>
 #include <stdlib.h>
@@ -50,6 +47,9 @@
 
 #include "mydevice.h"		/* REDRAWALL */
 
+#include "BMF_Api.h"
+
+#ifdef INTERNATIONAL
 #include "FTF_Api.h"
 
 typedef struct _LANGMenuEntry LANGMenuEntry;
@@ -63,9 +63,65 @@ struct _LANGMenuEntry {
 };
 
 static LANGMenuEntry *langmenu= 0;
-
 static int tot_lang = 0;
+#endif // INTERNATIONAL
 
+int BIF_DrawString(BMF_Font* font, char *str, int translate, int col)
+{
+
+#ifdef INTERNATIONAL
+	if(G.ui_international == TRUE)
+		if(translate)
+			return FTF_DrawString(str, FTF_USE_GETTEXT | FTF_INPUT_UTF8, col);
+		else
+			return FTF_DrawString(str, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, col);
+	else
+		return BMF_DrawString(font, str);
+#else
+	return BMF_DrawString(font, str);
+#endif
+
+}
+
+int BIF_DrawStringRGB(BMF_Font* font, char *str, int translate, float r, float g, float b)
+{
+
+#ifdef INTERNATIONAL
+	if(G.ui_international == TRUE)
+		if(translate)
+			return FTF_DrawStringRGB(str, FTF_USE_GETTEXT | FTF_INPUT_UTF8, r, g, b);
+		else
+			return FTF_DrawStringRGB(str, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, r, g, b);
+	else
+		return BMF_DrawString(font, str);
+#else
+	return BMF_DrawString(font, str);
+#endif
+
+}
+
+
+float BIF_GetStringWidth(BMF_Font* font, char *str, int translate)
+{
+	float rt;
+
+#ifdef INTERNATIONAL
+	if(G.ui_international == TRUE)	//versionnumber
+		if(U.transopts & TR_BUTTONS)
+			rt= FTF_GetStringWidth(str, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+		else
+			rt= FTF_GetStringWidth(str, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
+	else
+		rt= BMF_GetStringWidth(font, str);
+#else
+	rt= BMF_GetStringWidth(font, str);
+#endif
+
+	return rt;
+}
+
+
+#ifdef INTERNATIONAL
 
 char *fontsize_pup(void)
 {

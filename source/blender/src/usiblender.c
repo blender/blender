@@ -51,7 +51,6 @@
 
 #include "BMF_Api.h"
 #ifdef INTERNATIONAL
-#include "FTF_Api.h"
 #include "BIF_language.h"
 #endif
 
@@ -137,7 +136,7 @@ void BIF_read_file(char *name)
 	extern short winqueue_break; /* editscreen.c */
 	extern char datatoc_splash_jpg[];
 	extern int datatoc_splash_jpg_size;
-	char infostring[400];
+
 	//here?
 	//sound_end_all_sounds();
 

@@ -46,9 +46,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "BMF_Api.h"
+#include "BIF_language.h"
 #ifdef INTERNATIONAL
 #include "FTF_Api.h"
-#include "BIF_language.h"
 #endif
 
 #include "BLI_blenlib.h"
@@ -3447,48 +3447,20 @@ static void info_text(int x, int y)
 	glColor3ub(0, 0, 0);
 
 	glRasterPos2i(x, y);
-#ifdef INTERNATIONAL
-		if(G.ui_international == TRUE)	//infoheader text
-			if(U.transopts & TR_MENUS)
-				FTF_DrawString(headerstr, FTF_USE_GETTEXT | FTF_INPUT_UTF8, 0);
-			else
-				FTF_DrawString(headerstr, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, 0);
-		else
-			BMF_DrawString(G.font, headerstr);
-#else
-		BMF_DrawString(G.font, headerstr);
-#endif
+
+	BIF_DrawString(G.font, headerstr, (U.transopts & TR_MENUS), 0);
 		
 	glRasterPos2i(x+120,  y);
-#ifdef INTERNATIONAL
-		if(G.ui_international == TRUE)	//versionnumber
-			if(U.transopts & TR_MENUS)
-				FTF_DrawString(infostr, FTF_USE_GETTEXT | FTF_INPUT_UTF8, 0);
-			else
-				FTF_DrawString(infostr, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, 0);
-		else
-			BMF_DrawString(G.font, infostr);
-#else
-		BMF_DrawString(G.font, infostr);
-#endif
+
+	BIF_DrawString(G.font, infostr, (U.transopts & TR_MENUS), 0);
 }
 
 static int GetButStringLength(char *str) {
 	int rt;
 
-#ifdef INTERNATIONAL
-	if(G.ui_international == TRUE)	//versionnumber
-		if(U.transopts & TR_BUTTONS)
-			rt= FTF_GetStringWidth(str, FTF_USE_GETTEXT | FTF_INPUT_UTF8) + 15;
-		else
-			rt= FTF_GetStringWidth(str, FTF_NO_TRANSCONV | FTF_INPUT_UTF8) + 15;
-	else
-		rt= BMF_GetStringWidth(G.font, str) + 15;
-#else
-	rt= BMF_GetStringWidth(G.font, str) + 15;
-#endif
+	rt= BIF_GetStringWidth(G.font, str, (U.transopts & TR_BUTTONS));
 
-	return rt;
+	return rt + 15;
 }
 
 
@@ -5005,23 +4977,8 @@ void file_buttons(void)
 	cpack(0x0);
 	glRasterPos2i(xco+=XIC+10,  5);
 
-#ifdef INTERNATIONAL
-	if(G.ui_international == TRUE) {
-		if(U.transopts & TR_BUTTONS) {
-			FTF_DrawString(sfile->title, FTF_USE_GETTEXT | FTF_INPUT_UTF8, 0);
-			xco+= FTF_GetStringWidth(sfile->title, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
-		} else {
-			FTF_DrawString(sfile->title, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, 0);
-			xco+= FTF_GetStringWidth(sfile->title, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
-		}
-	} else {
-		BMF_DrawString(uiBlockGetCurFont(block), sfile->title);
-		xco+= BMF_GetStringWidth(G.font, sfile->title);
-	}
-#else
-	BMF_DrawString(uiBlockGetCurFont(block), sfile->title);
-	xco+= BMF_GetStringWidth(G.font, sfile->title);
-#endif
+	BIF_DrawString(uiBlockGetCurFont(block), sfile->title, (U.transopts & TR_BUTTONS), 0);
+	xco+= BIF_GetStringWidth(G.font, sfile->title, (U.transopts & TR_BUTTONS));
 	
 	uiDefIconButS(block, ICONTOG|BIT|0, B_SORTFILELIST, ICON_LONGDISPLAY,xco+=XIC,0,XIC,YIC, &sfile->flag, 0, 0, 0, 0, "Toggles long info");
 	uiDefIconButS(block, TOG|BIT|3, B_RELOADDIR, ICON_GHOST,xco+=XIC,0,XIC,YIC, &sfile->flag, 0, 0, 0, 0, "Hides dot files");
@@ -5044,16 +5001,7 @@ void file_buttons(void)
 		cpack(0x0);
 		glRasterPos2i(xco,  5);
 
-#ifdef INTERNATIONAL
-		if(G.ui_international == TRUE) {
-			FTF_DrawString(naam, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, 0);
-		} else {
-			BMF_DrawString(uiBlockGetCurFont(block), naam);
-		}
-#else
-		BMF_DrawString(uiBlockGetCurFont(block), naam);
-#endif
-
+		BIF_DrawString(uiBlockGetCurFont(block), naam, 0, 0);
 	}
 	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;

@@ -52,9 +52,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BMF_Api.h"
-#ifdef INTERNATIONAL
-#include "FTF_Api.h"
-#endif
+#include "BIF_language.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -843,17 +841,7 @@ void tbox_drawelem_text(x, y, type)
 		}
 		
 		glRasterPos2i(x1+5, y1+tbfontyofs);
-#ifdef INTERNATIONAL
-		if(G.ui_international == TRUE)
-			if(U.transopts & TR_MENUS)
-				FTF_DrawString(tbstr, FTF_USE_GETTEXT | FTF_INPUT_UTF8, (type==0 || type==2)?0:1);
-			else
-				FTF_DrawString(tbstr, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, (type==0 || type==2)?0:1);
-		else
-			BMF_DrawString(G.font, tbstr);
-#else
-		BMF_DrawString(G.font, tbstr);
-#endif
+		BIF_DrawString(G.font, tbstr, (U.transopts & TR_MENUS), (type==0 || type==2)?0:1);
 		
 		if(keystr && keystr[0]) {
 			if(type & 1) {
@@ -862,32 +850,12 @@ void tbox_drawelem_text(x, y, type)
 				glRecti(x2-len2-2,  y1+2,  x2-3,  y2-2);
 				ColorFunc(TBOXWHITE);
 				glRasterPos2i(x2-len2,  y1+tbfontyofs);
-#ifdef INTERNATIONAL
-		if(G.ui_international == TRUE)	//toolbox hotkeys
-			if(U.transopts & TR_MENUS)
-				FTF_DrawString(keystr, FTF_USE_GETTEXT | FTF_INPUT_UTF8, 1);
-			else
-				FTF_DrawString(keystr, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, 1);
-		else
-			BMF_DrawString(G.font, keystr);
-#else
-		BMF_DrawString(G.font, keystr);
-#endif
+				BIF_DrawString(G.font, keystr, (U.transopts & TR_MENUS), 1);
 			}
 			else {
 				ColorFunc(TBOXBLACK);
 				glRasterPos2i(x2-len2,  y1+tbfontyofs);
-#ifdef INTERNATIONAL
-		if(G.ui_international == TRUE)	//toolbox hotkeys
-			if(U.transopts & TR_MENUS)
-				FTF_DrawString(keystr, FTF_USE_GETTEXT | FTF_INPUT_UTF8, 0);
-			else
-				FTF_DrawString(keystr, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, 0);
-		else
-			BMF_DrawString(G.font, keystr);
-#else
-		BMF_DrawString(G.font, keystr);
-#endif
+				BIF_DrawString(G.font, keystr, (U.transopts & TR_MENUS), 0);
 			}
 		}
 	}
@@ -1301,27 +1269,9 @@ void draw_numbuts_tip(char *str, int x1, int y1, int x2, int y2)
 	cpack(0x0);
 
 	temp= 0;
-#ifdef INTERNATIONAL
-	if(G.ui_international == TRUE) {
-		if(U.transopts & TR_BUTTONS) {
-			while( FTF_GetStringWidth(str+temp, FTF_USE_GETTEXT | FTF_INPUT_UTF8)>(x2 - x1-24)) temp++;
-			glRasterPos2i(x1+16, y2-30);
-			FTF_DrawString(str+temp, FTF_USE_GETTEXT | FTF_INPUT_UTF8, 0);
-		} else {
-			while( FTF_GetStringWidth(str+temp, FTF_NO_TRANSCONV | FTF_INPUT_UTF8)>(x2 - x1-24)) temp++;
-			glRasterPos2i(x1+16, y2-30);
-			FTF_DrawString(str+temp, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, 0);
-		}
-	} else {
-		while( BMF_GetStringWidth(G.fonts, str+temp)>(x2 - x1-24)) temp++;
-		glRasterPos2i(x1+16, y2-30);
-		BMF_DrawString(G.fonts, str+temp);
-	}
-#else
-	while( BMF_GetStringWidth(G.fonts, str+temp)>(x2 - x1-24)) temp++;
+	while( BIF_GetStringWidth(G.fonts, str+temp, (U.transopts & TR_BUTTONS))>(x2 - x1-24)) temp++;
 	glRasterPos2i(x1+16, y2-30);
-	BMF_DrawString(G.fonts, str+temp);
-#endif
+	BIF_DrawString(G.fonts, str+temp, (U.transopts & TR_BUTTONS), 0);
 }
 
 int do_clever_numbuts(char *name, int tot, int winevent)
