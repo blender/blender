@@ -182,6 +182,16 @@ GHOST_WindowX11(
 	XSetWMNormalHints(m_display, m_window, xsizehints);
 	XFree(xsizehints);
 
+	XClassHint * xclasshint = XAllocClassHint();
+	int len = title.Length() +1 ;
+	char *wmclass = (char *)malloc(sizeof(char) * len);
+	strncpy(wmclass, (const char*)title, sizeof(char) * len);
+	xclasshint->res_name = wmclass;
+	xclasshint->res_class = wmclass;
+	XSetClassHint(m_display, m_window, xclasshint);
+	free(wmclass);
+	XFree(xclasshint);
+
 	setTitle(title);
 	
 	// now set up the rendering context.
@@ -387,6 +397,8 @@ setOrder(
 ){
 	if (order == GHOST_kWindowOrderTop) {
 		XRaiseWindow(m_display,m_window);
+	        XSetInputFocus(m_display, m_window, RevertToPointerRoot,
+           		CurrentTime);
 		XFlush(m_display);
 	} else if (order == GHOST_kWindowOrderBottom) {
 		XLowerWindow(m_display,m_window);
