@@ -841,32 +841,58 @@ static uiBlock *post_render_menu(void *arg_unused)
 static uiBlock *framing_render_menu(void *arg_unused)
 {
 	uiBlock *block;
-	short yco = 65, xco = 0;
+	short yco = 170, xco = 0;
 	int randomcolorindex = 1234;
 
 	block= uiNewBlock(&curarea->uiblocks, "framing_options", UI_EMBOSS, UI_HELV, curarea->win);
 
 	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "",			-10, -10, 300, 105, NULL, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "",			-10, -10, 300, 209, NULL, 0, 0, 0, 0, "");
 
 	uiDefBut(block, LABEL, B_NOP, "Framing:", xco, yco, 68,19, 0, 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefButC(block, ROW, 0, "Stretch",		xco += 70, yco, 68, 19, &G.scene->framing.type, 1.0, SCE_GAMEFRAMING_SCALE , 0, 0, "Stretch or squeeze the viewport to fill the display window");
-	uiDefButC(block, ROW, 0, "Expose",		xco += 70, yco, 68, 19, &G.scene->framing.type, 1.0, SCE_GAMEFRAMING_EXTEND, 0, 0, "Show the entire viewport in the display window, viewing more horizontally or vertically");
-	uiDefButC(block, ROW, 0, "Bars",	    xco += 70, yco, 68, 19, &G.scene->framing.type, 1.0, SCE_GAMEFRAMING_BARS  , 0, 0, "Show the entire viewport in the display window, using bar horizontally or vertically");
+	uiDefButC(block, ROW, 0, "Stretch",	xco += 70, yco, 68, 19, &G.scene->framing.type, 1.0, SCE_GAMEFRAMING_SCALE , 0, 0, "Stretch or squeeze the viewport to fill the display window");
+	uiDefButC(block, ROW, 0, "Expose",	xco += 70, yco, 68, 19, &G.scene->framing.type, 1.0, SCE_GAMEFRAMING_EXTEND, 0, 0, "Show the entire viewport in the display window, viewing more horizontally or vertically");
+	uiDefButC(block, ROW, 0, "Letterbox",	    xco += 70, yco, 68, 19, &G.scene->framing.type, 1.0, SCE_GAMEFRAMING_BARS  , 0, 0, "Show the entire viewport in the display window, using bar horizontally or vertically");
 	uiBlockEndAlign(block);
-	
+
 	yco -= 25;
 	xco = 40;
 
 	uiDefButF(block, COL, 0, "",                0, yco - 58 + 18, 33, 58, &G.scene->framing.col[0], 0, 0, 0, randomcolorindex, "");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, 0, "R ", xco,yco,238,19, &G.scene->framing.col[0], 0.0, 1.0, randomcolorindex, 0, "Set the red component of the bars");
+	uiDefButF(block, NUMSLI, 0, "R ", xco,yco,243,18, &G.scene->framing.col[0], 0.0, 1.0, randomcolorindex, 0, "Set the red component of the bars");
 	yco -= 20;
-	uiDefButF(block, NUMSLI, 0, "G ", xco,yco,238,19, &G.scene->framing.col[1], 0.0, 1.0, randomcolorindex, 0, "Set the green component of the bars");
+	uiDefButF(block, NUMSLI, 0, "G ", xco,yco,243,18, &G.scene->framing.col[1], 0.0, 1.0, randomcolorindex, 0, "Set the green component of the bars");
 	yco -= 20;
-	uiDefButF(block, NUMSLI, 0, "B ", xco,yco,238,19, &G.scene->framing.col[2], 0.0, 1.0, randomcolorindex, 0, "Set the blue component of the bars");
+	uiDefButF(block, NUMSLI, 0, "B ", xco,yco,243,18, &G.scene->framing.col[2], 0.0, 1.0, randomcolorindex, 0, "Set the blue component of the bars");
+	uiBlockEndAlign(block);
+	
+	xco = 0;
+	uiDefBut(block, LABEL, 0, "Fullscreen:",		xco, yco-=30, 100, 19, 0, 0.0, 0.0, 0, 0, "");
+	uiDefButS(block, TOG, 0, "Fullscreen", xco+70, yco, 68, 19, &G.scene->r.fullscreen, 0.0, 0.0, 0, 0, "Starts player in a new fullscreen display");
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM, 0, "X:",		xco+40, yco-=27, 100, 19,		&G.scene->r.xplay, 10.0, 2000.0, 0, 0, "Displays current X screen/window resolution. Click to change.");
+	uiDefButS(block, NUM, 0, "Freq:",	xco+140, yco, 100, 19, &G.scene->r.freqplay, 10.0, 120.0, 0, 0, "Displays clock frequency of fullscreen display. Click to change.");
+	uiDefButS(block, NUM, 0, "Y:",		xco+40, yco-=21, 100, 19, &G.scene->r.yplay, 10.0, 2000.0, 0, 0, "Displays current Y screen/window resolution. Click to change.");
+	uiDefButS(block, NUM, 0, "Bits:",	xco+140, yco, 100, 19, &G.scene->r.depth, 8.0, 32.0, 800.0, 0, "Displays bit depth of full screen display. Click to change.");
+	uiBlockEndAlign(block);
+
+	/* stereo settings */
+	/* can't use any definition from the game engine here so hardcode it. Change it here when it changes there!
+	 * RAS_IRasterizer has definitions:
+	 * RAS_STEREO_NOSTEREO		 1
+	 * RAS_STEREO_QUADBUFFERED 2
+	 * RAS_STEREO_ABOVEBELOW	 3
+	 * RAS_STEREO_INTERLACED	 4	 future
+	 */
+	uiDefBut(block, LABEL, 0, "Stereo:", xco, yco-=30, 68, 19, 0, 0.0, 0.0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	uiDefButS(block, ROW, 0, "None", xco+=70, yco, 68, 19, &(G.scene->r.stereomode), 6.0, 1.0, 0, 0, "Disables stereo");
+	uiDefButS(block, ROW, 0, "Pageflip", xco+=70, yco, 68, 19, &(G.scene->r.stereomode), 6.0, 2.0, 0, 0, "Enables hardware pageflip stereo method");
+	uiDefButS(block, ROW, 0, "Syncdouble", xco+=70, yco, 68, 19, &(G.scene->r.stereomode), 6.0, 3.0, 0, 0, "Enables syncdoubling stereo method");
+	uiBlockEndAlign(block);
 
 	uiBlockSetDirection(block, UI_TOP);
 

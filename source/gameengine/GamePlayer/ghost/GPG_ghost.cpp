@@ -212,8 +212,8 @@ int main(int argc, char** argv)
 	int i;
 	bool error = false;
 	SYS_SystemHandle syshandle = SYS_GetSystem();
-	bool fullScreen = true;
-	bool fullScreenParFound = true;
+	bool fullScreen = false;
+	bool fullScreenParFound = false;
 	bool windowParFound = false;
 	bool closeConsole = true;
 	int stereomode = RAS_IRasterizer::RAS_STEREO_NOSTEREO;
