@@ -507,7 +507,7 @@ void draw_tfaces3D(Object *ob, Mesh *me)
 
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_LIGHTING);
-	bglPolygonOffset(G.vd->dist);
+	bglPolygonOffset(1.0);
 
 	/* Draw (Hidden) Edges */
 	if(G.f & G_DRAWEDGES || G.f & G_HIDDENEDGES){ 
@@ -631,7 +631,7 @@ void draw_tfaces3D(Object *ob, Mesh *me)
 	/* Draw Stippled Outline for selected faces */
 	mface= me->mface;
 	tface= me->tface;
-	bglPolygonOffset(G.vd->dist);
+	bglPolygonOffset(1.0);
 	for(a=me->totface; a>0; a--, mface++, tface++) {
 		if(mface->v3==0) continue;
 		if(tface->flag & TF_HIDE) continue;

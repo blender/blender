@@ -215,6 +215,7 @@ struct _HyperMesh {
 	HyperVert *verts;
 	HyperEdge *edges;
 	HyperFace *faces;
+	HyperFace *lastface;	// we add faces in same order they get delivered now (ton)
 	Mesh *orig_me;
 	short hasuvco, hasvcol;
 	
@@ -322,9 +323,12 @@ static HyperFace *hypermesh_add_face(HyperMesh *hme, HyperVert **verts, int nver
 		last= v;
 	}
 
-	f->next= hme->faces;
-	hme->faces= f;
-	
+	// less elegant, but for many reasons i prefer the order of faces to remain same (vpaint etc) (ton)
+	f->next= NULL;
+	if(hme->lastface) hme->lastface->next= f;
+	else hme->faces= f;
+	hme->lastface= f;
+
 	return f;	
 }
 
@@ -333,7 +337,7 @@ static HyperMesh *hypermesh_new(void) {
 
 	hme->verts= NULL;
 	hme->edges= NULL;
-	hme->faces= NULL;
+	hme->faces= hme->lastface= NULL;
 	hme->orig_me= NULL;
 	hme->hasuvco= hme->hasvcol= 0;
 	hme->arena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);

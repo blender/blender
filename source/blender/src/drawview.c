@@ -933,7 +933,7 @@ void backdrawview3d(int test)
 	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {
 		base= (G.scene->basact);
 		if(base && (base->lay & G.vd->lay)) {
-			draw_object(base);
+			draw_object_backbufsel(base->object);
 		}
 	}
 	else {

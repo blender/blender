@@ -810,18 +810,19 @@ void borderselect(void)
 					}
 				}
 				if(G.scene->selectmode & SCE_SELECT_EDGE) {
+					float cent[3];
 					short done= 0;
+					
 					calc_meshverts_ext_f2();	/* doesnt clip, drawobject.c */
 					
 					/* two stages, for nice edge select first do 'both points in rect' */
 					for(eed= em->edges.first; eed; eed= eed->next) {
 						if(eed->h==0) {
 							if( edge_fully_inside_rect(rect, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {
-								if(EM_zbuffer_visible(eed->v1->co, eed->v1->xs, eed->v1->ys)) {
-									if(EM_zbuffer_visible(eed->v2->co, eed->v2->xs, eed->v2->ys)) {
-										EM_select_edge(eed, val==LEFTMOUSE);
-										done = 1;
-									}
+								VecMidf(cent, eed->v1->co, eed->v2->co);
+								if(EM_zbuffer_visible(cent, (eed->v1->xs+eed->v2->xs)/2, (eed->v1->ys+eed->v2->ys)/2)) {
+									EM_select_edge(eed, val==LEFTMOUSE);
+									done = 1;
 								}
 							}
 						}
@@ -831,10 +832,10 @@ void borderselect(void)
 						for(eed= em->edges.first; eed; eed= eed->next) {
 							if(eed->h==0) {
 								if( edge_inside_rect(rect, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {
-									if(EM_zbuffer_visible(eed->v1->co, eed->v1->xs, eed->v1->ys)) {
-										if(EM_zbuffer_visible(eed->v2->co, eed->v2->xs, eed->v2->ys)) {
-											EM_select_edge(eed, val==LEFTMOUSE);
-										}
+									VecMidf(cent, eed->v1->co, eed->v2->co);
+									if(EM_zbuffer_visible(cent, (eed->v1->xs+eed->v2->xs)/2, (eed->v1->ys+eed->v2->ys)/2)) {
+										EM_select_edge(eed, val==LEFTMOUSE);
+										done = 1;
 									}
 								}
 							}
@@ -1084,7 +1085,6 @@ void mesh_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 	if(G.scene->selectmode & SCE_SELECT_EDGE) {
 		calc_meshverts_ext_f2();	/* doesnt clip, drawobject.c */
 		
-		/* two stages, for nice edge select first do 'both points in rect' */
 		for(eed= em->edges.first; eed; eed= eed->next) {
 			if(eed->h==0) {
 				if( edge_inside_circle(mval[0], mval[1], (short)rad, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {

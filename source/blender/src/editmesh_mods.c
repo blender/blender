@@ -155,7 +155,7 @@ int EM_zbuffer_visible(float *co, short xs, short ys)
 		persp(PERSP_VIEW);
 		mymultmatrix(G.obedit->obmat);
 
-		bglPolygonOffset(G.vd->dist);	// sets proj matrix
+		bglPolygonOffset(2.0);	// sets proj matrix
 		glGetFloatv(GL_PROJECTION_MATRIX, (float *)pmat);
 		glGetFloatv(GL_MODELVIEW_MATRIX, (float *)vmat);
 		Mat4MulMat4(persmat, vmat, pmat);	
@@ -178,8 +178,25 @@ int EM_zbuffer_visible(float *co, short xs, short ys)
 		unsigned int zvali;
 		
 		myglReadPixels(xs, ys, &zvali);
-		// glReadPixels(curarea->winrct.xmin+xs,  curarea->winrct.ymin+ys, 1, 1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT,  &zvali);
 		zval= ((float)zvali)/((float)0xFFFFFFFF);
+		if( vec4[2] <= zval) return 1;
+/*
+		myglReadPixels(xs+1, ys, &zvali);
+		zval= ((float)zvali)/((float)0xFFFFFFFF);
+		if( vec4[2] <= zval) return 1;
+
+		myglReadPixels(xs, ys+1, &zvali);
+		zval= ((float)zvali)/((float)0xFFFFFFFF);
+		if( vec4[2] <= zval) return 1;
+
+		myglReadPixels(xs-1, ys, &zvali);
+		zval= ((float)zvali)/((float)0xFFFFFFFF);
+		if( vec4[2] <= zval) return 1;
+
+		myglReadPixels(xs, ys-1, &zvali);
+		zval= ((float)zvali)/((float)0xFFFFFFFF);
+		if( vec4[2] <= zval) return 1;
+*/		
 		// printf("my proj %f zbuf %x %f mydiff %f\n", vec4[2], zvali, zval, vec4[2]-zval);
 	}
 	else {
@@ -256,14 +273,30 @@ static EditVert *findnearestvert(short *dist, short sel)
 	return act;
 }
 
+/* more samples */
+int EM_zbuffer_edge_visible(float *v1, float *v2, short *val1, short *val2)
+{
+	float cent[3];
+
+		/* midpoints work bad in persp mode... */
+	VecMidf(cent, v1, v2);
+	if(EM_zbuffer_visible(cent, (val1[0]+val2[0])/2, (val1[1]+val2[1])/2)) return 1;
+
+	// endpoints; should be both visible
+	if(EM_zbuffer_visible(v1, val1[0], val1[1])) 
+		if(EM_zbuffer_visible(v1, val2[0], val2[1])) 
+			return 1;
+	
+	return 0;
+}
 
 EditEdge *findnearestedge(short *dist)
 {
 	EditMesh *em = G.editMesh;
 	EditEdge *closest, *eed;
 	EditVert *eve;
-	short mval[2], distance;
 	float v1[2], v2[2], mval2[2];
+	short mval[2], distance;
 	
 	if(em->edges.first==NULL) return NULL;
 	else eed= em->edges.first;	
@@ -295,11 +328,9 @@ EditEdge *findnearestedge(short *dist)
 			distance= (short)PdistVL2Dfl(mval2, v1, v2);
 			
 			if(distance < *dist) {
-				if(EM_zbuffer_visible(eed->v1->co, eed->v1->xs, eed->v1->ys)) {
-					if(EM_zbuffer_visible(eed->v2->co, eed->v2->xs, eed->v2->ys)) {
-						*dist= distance;
-						closest= eed;
-					}
+				if(EM_zbuffer_edge_visible(eed->v1->co, eed->v2->co, &eed->v1->xs, &eed->v2->xs)) {
+					*dist= distance;
+					closest= eed;
 				}
 			}
 		}

@@ -705,7 +705,6 @@ void drawcamera(Object *ob)
 	glEnd();
 
 	if(G.vd->persp>=2) return;
-	if(G.f & G_BACKBUFSEL) return;
 	
 	/* arrow on top */
 	vec[0][2]= depth;
@@ -1276,13 +1275,13 @@ static void displistmesh_draw_wire(DispListMesh *dlm)
 	}
 }
 
-static void displistmesh_draw_solid(DispListMesh *dlm, int drawsmooth, float *nors) 
+static void displistmesh_draw_solid(DispListMesh *dlm, float *nors) 
 {
 	int lmode, lshademodel= -1, lmat_nr= -1;
 	int i;
 
 #define PASSVERT(ind) {									\
-	if (drawsmooth && lshademodel==GL_SMOOTH)				\
+	if (lshademodel==GL_SMOOTH)				\
 		glNormal3sv(dlm->mvert[(ind)].no);					\
 	glVertex3fv(dlm->mvert[(ind)].co);						\
 }
@@ -1293,29 +1292,26 @@ static void displistmesh_draw_solid(DispListMesh *dlm, int drawsmooth, float *no
 		
 		if (mf->v3) {
 			int nmode= mf->v4?GL_QUADS:GL_TRIANGLES;
+			int nshademodel= (mf->flag&ME_SMOOTH)?GL_SMOOTH:GL_FLAT;
 			
 			if (nmode!=lmode) {
 				glEnd();
 				glBegin(lmode= nmode);
 			}
 			
-			if (drawsmooth) {
-				int nshademodel= (mf->flag&ME_SMOOTH)?GL_SMOOTH:GL_FLAT;
-
-				if (nshademodel!=lshademodel) {
-					glEnd();
-					glShadeModel(lshademodel= nshademodel);
-					glBegin(lmode);
-				}
-			
-				if (mf->mat_nr!=lmat_nr) {
-					glEnd();
-					set_gl_material((lmat_nr= mf->mat_nr)+1);
-					glBegin(lmode);
-				}
+			if (nshademodel!=lshademodel) {
+				glEnd();
+				glShadeModel(lshademodel= nshademodel);
+				glBegin(lmode);
 			}
 			
-			if (drawsmooth && lshademodel==GL_FLAT)
+			if (mf->mat_nr!=lmat_nr) {
+				glEnd();
+				set_gl_material((lmat_nr= mf->mat_nr)+1);
+				glBegin(lmode);
+			}
+			
+			if (lshademodel==GL_FLAT)
 				glNormal3fv(&nors[i*3]);
 				
 			PASSVERT(mf->v1);
@@ -1502,18 +1498,14 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 	int parts, ofs, p1, p2, p3, p4, a, b, *index;
 	float *data, *v1, *v2, *v3, *v4;
 	float *ndata, *n1, *n2, *n3, *n4;
-	int drawsmooth= !(G.f & G_BACKBUFSEL);
 	
 	if(lb==0) return;
 	
-	/* drawsmooth abused here, except for Mesh this draws with smooth default */
-	if (drawsmooth) {
-		glShadeModel(GL_SMOOTH);
-		glEnable(GL_LIGHTING);
-		
-		if(ob->transflag & OB_NEG_SCALE) glFrontFace(GL_CW);
-		else glFrontFace(GL_CCW);
-	}
+	glShadeModel(GL_SMOOTH);
+	glEnable(GL_LIGHTING);
+	
+	if(ob->transflag & OB_NEG_SCALE) glFrontFace(GL_CW);
+	else glFrontFace(GL_CCW);
 	
 	dl= lb->first;
 	while(dl) {
@@ -1522,70 +1514,40 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 
 		switch(dl->type) {
 		case DL_SURF:
-			if(!drawsmooth) {
-				for(a=0; a<dl->parts; a++) {
-	
-					DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
-	
-					v1= data+ 3*p1; 
-					v2= data+ 3*p2;
-					v3= data+ 3*p3; 
-					v4= data+ 3*p4;
-	
-					glBegin(GL_QUAD_STRIP);
-					
-					glVertex3fv(v2);
-					glVertex3fv(v4);
 
-					for(; b<dl->nr; b++) {
-						
-						glVertex3fv(v1);
-						glVertex3fv(v3);
+			set_gl_material(dl->col+1);
 
-						v2= v1; v1+= 3;
-						v4= v3; v3+= 3;
-					}
+			for(a=0; a<dl->parts; a++) {
+				
+				DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
+				
+				v1= data+ 3*p1; 
+				v2= data+ 3*p2;
+				v3= data+ 3*p3; 
+				v4= data+ 3*p4;
+				n1= ndata+ 3*p1; 
+				n2= ndata+ 3*p2;
+				n3= ndata+ 3*p3; 
+				n4= ndata+ 3*p4;
+				
+				glBegin(GL_QUAD_STRIP);
+				
+				glNormal3fv(n2); glVertex3fv(v2);
+				glNormal3fv(n4); glVertex3fv(v4);
+
+				for(; b<dl->nr; b++) {
 					
-					
-					glEnd();
+					glNormal3fv(n1); glVertex3fv(v1);
+					glNormal3fv(n3); glVertex3fv(v3);
+
+					v2= v1; v1+= 3;
+					v4= v3; v3+= 3;
+					n2= n1; n1+= 3;
+					n4= n3; n3+= 3;
 				}
-			}
-			else {
-
-				set_gl_material(dl->col+1);
-
-				for(a=0; a<dl->parts; a++) {
-					
-					DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
-					
-					v1= data+ 3*p1; 
-					v2= data+ 3*p2;
-					v3= data+ 3*p3; 
-					v4= data+ 3*p4;
-					n1= ndata+ 3*p1; 
-					n2= ndata+ 3*p2;
-					n3= ndata+ 3*p3; 
-					n4= ndata+ 3*p4;
-					
-					glBegin(GL_QUAD_STRIP);
-					
-					glNormal3fv(n2); glVertex3fv(v2);
-					glNormal3fv(n4); glVertex3fv(v4);
-
-					for(; b<dl->nr; b++) {
-						
-						glNormal3fv(n1); glVertex3fv(v1);
-						glNormal3fv(n3); glVertex3fv(v3);
-
-						v2= v1; v1+= 3;
-						v4= v3; v3+= 3;
-						n2= n1; n1+= 3;
-						n4= n3; n3+= 3;
-					}
-					
-					
-					glEnd();
-				}
+				
+				
+				glEnd();
 			}
 			break;
 
@@ -1595,11 +1557,15 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 			data= dl->verts;
 			ndata= dl->nors;
 			index= dl->index;
-			
-			if(!drawsmooth) {
+
+			set_gl_material(dl->col+1);
+							
+			/* voor polys only one normal needed */
+			if(index3_nors_incr==0) {
 				while(parts--) {
 
 					glBegin(GL_TRIANGLES);
+						glNormal3fv(ndata);
 						glVertex3fv(data+3*index[0]);
 						glVertex3fv(data+3*index[1]);
 						glVertex3fv(data+3*index[2]);
@@ -1608,35 +1574,17 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 				}
 			}
 			else {
+				while(parts--) {
 
-				set_gl_material(dl->col+1);
-								
-				/* voor polys only one normal needed */
-				if(index3_nors_incr==0) {
-					while(parts--) {
-
-						glBegin(GL_TRIANGLES);
-							glNormal3fv(ndata);
-							glVertex3fv(data+3*index[0]);
-							glVertex3fv(data+3*index[1]);
-							glVertex3fv(data+3*index[2]);
-						glEnd();
-						index+= 3;
-					}
-				}
-				else {
-					while(parts--) {
-
-						glBegin(GL_TRIANGLES);
-							ofs= 3*index[0];
-							glNormal3fv(ndata+ofs); glVertex3fv(data+ofs);
-							ofs= 3*index[1];
-							glNormal3fv(ndata+ofs); glVertex3fv(data+ofs);
-							ofs= 3*index[2];
-							glNormal3fv(ndata+ofs); glVertex3fv(data+ofs);
-						glEnd();
-						index+= 3;
-					}
+					glBegin(GL_TRIANGLES);
+						ofs= 3*index[0];
+						glNormal3fv(ndata+ofs); glVertex3fv(data+ofs);
+						ofs= 3*index[1];
+						glNormal3fv(ndata+ofs); glVertex3fv(data+ofs);
+						ofs= 3*index[2];
+						glNormal3fv(ndata+ofs); glVertex3fv(data+ofs);
+					glEnd();
+					index+= 3;
 				}
 			}
 			break;
@@ -1648,56 +1596,39 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 			ndata= dl->nors;
 			index= dl->index;
 
-			if(!drawsmooth) {
-				while(parts--) {
+			set_gl_material(dl->col+1);
+		
+			while(parts--) {
 
-					glBegin(index[3]?GL_QUADS:GL_TRIANGLES);
-						glVertex3fv(data+3*index[0]);
-						glVertex3fv(data+3*index[1]);
-						glVertex3fv(data+3*index[2]);
-						if(index[3]) glVertex3fv(data+3*index[3]);
-					glEnd();
-					index+= 4;
-				}
-			}
-			else {
-				
-				set_gl_material(dl->col+1);
-			
-				while(parts--) {
-
-					glBegin(index[3]?GL_QUADS:GL_TRIANGLES);
-						ofs= 3*index[0];
+				glBegin(index[3]?GL_QUADS:GL_TRIANGLES);
+					ofs= 3*index[0];
+					glNormal3fv(ndata+ofs); glVertex3fv(data+ofs);
+					ofs= 3*index[1];
+					glNormal3fv(ndata+ofs); glVertex3fv(data+ofs);
+					ofs= 3*index[2];
+					glNormal3fv(ndata+ofs); glVertex3fv(data+ofs);
+					if(index[3]) {
+						ofs= 3*index[3];
 						glNormal3fv(ndata+ofs); glVertex3fv(data+ofs);
-						ofs= 3*index[1];
-						glNormal3fv(ndata+ofs); glVertex3fv(data+ofs);
-						ofs= 3*index[2];
-						glNormal3fv(ndata+ofs); glVertex3fv(data+ofs);
-						if(index[3]) {
-							ofs= 3*index[3];
-							glNormal3fv(ndata+ofs); glVertex3fv(data+ofs);
-						}
-					glEnd();
-					index+= 4;
-				}
+					}
+				glEnd();
+				index+= 4;
 			}
 			break;
 		
 		case DL_MESH:
 			if (!dl->nors)
 				addnormalsDispList(ob, lb);
-			displistmesh_draw_solid(dl->mesh, drawsmooth, dl->nors);
+			displistmesh_draw_solid(dl->mesh, dl->nors);
 			break;
 				
 		}
 		dl= dl->next;
 	}
 
-	if(drawsmooth) {
-		glShadeModel(GL_FLAT);
-		glDisable(GL_LIGHTING);
-		glFrontFace(GL_CCW);
-	}
+	glShadeModel(GL_FLAT);
+	glDisable(GL_LIGHTING);
+	glFrontFace(GL_CCW);
 }
 
 static void drawDispListshaded(ListBase *lb, Object *ob)
@@ -1838,7 +1769,7 @@ static void drawmeshsolid(Object *ob, float *nors)
 	MFace *mface;
 	EditFace *efa;
 	float *extverts=0, *v1, *v2, *v3, *v4;
-	int glmode, setsmooth=0, a, start, end, matnr= -1, vertexpaint, i;
+	int glmode, setsmooth=0, a, start, end, matnr= -1, vertexpaint;
 	short no[3], *n1, *n2, *n3, *n4 = NULL;
 	
 	vertexpaint= (G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT)) && (ob==((G.scene->basact) ? (G.scene->basact->object) : 0));
@@ -1848,15 +1779,13 @@ static void drawmeshsolid(Object *ob, float *nors)
 
 	glShadeModel(GL_FLAT);
 
-	if( (G.f & G_BACKBUFSEL)==0 ) {
-		glEnable(GL_LIGHTING);
-		init_gl_materials(ob);
+	glEnable(GL_LIGHTING);
+	init_gl_materials(ob);
 
-		two_sided( me->flag & ME_TWOSIDED );
+	two_sided( me->flag & ME_TWOSIDED );
 
-		if(ob->transflag & OB_NEG_SCALE) glFrontFace(GL_CW);
-		else glFrontFace(GL_CCW);
-	}
+	if(ob->transflag & OB_NEG_SCALE) glFrontFace(GL_CW);
+	else glFrontFace(GL_CCW);
 
 	mface= me->mface;
 	if( (G.f & G_FACESELECT) && ob==((G.scene->basact) ? (G.scene->basact->object) : 0)) tface= me->tface;
@@ -1926,15 +1855,13 @@ static void drawmeshsolid(Object *ob, float *nors)
 		for(a=start; a<end; a++, mface++, nors+=3) {
 			if(mface->v3) {
 				if(tface && (tface->flag & TF_HIDE)) {
-					if( (G.f & G_BACKBUFSEL)==0) {
-						glBegin(GL_LINE_LOOP);
-						glVertex3fv( (mvert+mface->v1)->co);
-						glVertex3fv( (mvert+mface->v2)->co);
-						glVertex3fv( (mvert+mface->v3)->co);
-						if(mface->v4) glVertex3fv( (mvert+mface->v1)->co);
-						glEnd();
-						tface++;
-					}
+					glBegin(GL_LINE_LOOP);
+					glVertex3fv( (mvert+mface->v1)->co);
+					glVertex3fv( (mvert+mface->v2)->co);
+					glVertex3fv( (mvert+mface->v3)->co);
+					if(mface->v4) glVertex3fv( (mvert+mface->v1)->co);
+					glEnd();
+					tface++;
 				}
 				else {
 					if(extverts) {
@@ -1964,84 +1891,69 @@ static void drawmeshsolid(Object *ob, float *nors)
 					if(v4) {if(glmode==GL_TRIANGLES) {glmode= GL_QUADS; glEnd(); glBegin(GL_QUADS);}}
 					else {if(glmode==GL_QUADS) {glmode= GL_TRIANGLES; glEnd(); glBegin(GL_TRIANGLES);}}
 						
-					if(G.f & G_BACKBUFSEL) {
-						if(vertexpaint) {
-							i= index_to_framebuffer(a+1);
-							cpack(i);
+					if(mface->mat_nr!=matnr) {
+						glEnd();
+
+						matnr= mface->mat_nr;
+						set_gl_material(matnr+1);
+
+						glBegin(glmode);
+					}
+
+					if( (me->flag & ME_AUTOSMOOTH)==0 && (mface->flag & ME_SMOOTH)) {
+						if(setsmooth==0) {
+							glEnd();
+							glShadeModel(GL_SMOOTH);
+							glBegin(glmode);
+							setsmooth= 1;
 						}
-	
+						n1= (mvert+mface->v1)->no;
+						n2= (mvert+mface->v2)->no;
+						n3= (mvert+mface->v3)->no;
+						if(v4) n4= (mvert+mface->v4)->no;
+					
+						if(mface->puno & ME_FLIPV1) {
+							no[0]= -n1[0]; no[1]= -n1[1]; no[2]= -n1[2];
+							glNormal3sv(no);
+						}
+						else glNormal3sv(n1);
+						glVertex3fv( v1 );
+						
+						if(mface->puno & ME_FLIPV2) {
+							no[0]= -n2[0]; no[1]= -n2[1]; no[2]= -n2[2];
+							glNormal3sv(no);
+						}
+						else glNormal3sv(n2);
+						glVertex3fv( v2 );
+						
+						if(mface->puno & ME_FLIPV3) {
+							no[0]= -n3[0]; no[1]= -n3[1]; no[2]= -n3[2];
+							glNormal3sv(no);
+						}
+						else glNormal3sv(n3);
+						glVertex3fv( v3 );
+						
+						if(v4) {
+							if(mface->puno & ME_FLIPV4) {
+								no[0]= -n4[0]; no[1]= -n4[1]; no[2]= -n4[2];
+								glNormal3sv(no);
+							}
+							else glNormal3sv(n4);
+							glVertex3fv( v4 );
+						}
+					}
+					else {
+						if(setsmooth==1) {
+							glEnd();
+							glShadeModel(GL_FLAT);
+							glBegin(glmode);
+							setsmooth= 0;
+						}
+						glNormal3fv(nors);
 						glVertex3fv( v1 );
 						glVertex3fv( v2 );
 						glVertex3fv( v3 );
 						if(v4) glVertex3fv( v4 );
-						
-					}
-					else {
-						
-						if(mface->mat_nr!=matnr) {
-							glEnd();
-
-							matnr= mface->mat_nr;
-							set_gl_material(matnr+1);
-
-							glBegin(glmode);
-						}
-	
-						if( (me->flag & ME_AUTOSMOOTH)==0 && (mface->flag & ME_SMOOTH)) {
-							if(setsmooth==0) {
-								glEnd();
-								glShadeModel(GL_SMOOTH);
-								glBegin(glmode);
-								setsmooth= 1;
-							}
-							n1= (mvert+mface->v1)->no;
-							n2= (mvert+mface->v2)->no;
-							n3= (mvert+mface->v3)->no;
-							if(v4) n4= (mvert+mface->v4)->no;
-						
-							if(mface->puno & ME_FLIPV1) {
-								no[0]= -n1[0]; no[1]= -n1[1]; no[2]= -n1[2];
-								glNormal3sv(no);
-							}
-							else glNormal3sv(n1);
-							glVertex3fv( v1 );
-							
-							if(mface->puno & ME_FLIPV2) {
-								no[0]= -n2[0]; no[1]= -n2[1]; no[2]= -n2[2];
-								glNormal3sv(no);
-							}
-							else glNormal3sv(n2);
-							glVertex3fv( v2 );
-							
-							if(mface->puno & ME_FLIPV3) {
-								no[0]= -n3[0]; no[1]= -n3[1]; no[2]= -n3[2];
-								glNormal3sv(no);
-							}
-							else glNormal3sv(n3);
-							glVertex3fv( v3 );
-							
-							if(v4) {
-								if(mface->puno & ME_FLIPV4) {
-									no[0]= -n4[0]; no[1]= -n4[1]; no[2]= -n4[2];
-									glNormal3sv(no);
-								}
-								else glNormal3sv(n4);
-								glVertex3fv( v4 );
-							}
-						}
-						else {
-							if(setsmooth==1) {
-								glEnd();
-								glShadeModel(GL_FLAT);
-								glBegin(glmode);
-								setsmooth= 0;
-							}
-							glNormal3fv(nors);
-							glVertex3fv( v1 );
-							glVertex3fv( v2 );
-							glVertex3fv( v3 );
-							if(v4) glVertex3fv( v4 );
-						}
 					}
 				}
 				if(tface) tface++;
@@ -2051,15 +1963,80 @@ static void drawmeshsolid(Object *ob, float *nors)
 		glEnd();
 	}
 	
-	/* SOLVE */
-/* 	if ELEM(ob->type, OB_SECTOR, OB_LIFE) glDisable(GL_CULL_FACE); */
-
-	if(G.f & G_BACKBUFSEL) {
-		glDisable(GL_CULL_FACE);
-	}
 	glDisable(GL_LIGHTING);
 	glFrontFace(GL_CCW);
 }
+
+#if 0
+// WIP: experiment with cleaner draw, but cant make it for this release (ton)
+static void drawmesh_vpaint(Object *ob)
+{
+	Mesh *me= ob->data;
+	MVert *mvert;
+	MFace *mface;
+	TFace *tface;
+	int totface, a, glmode;
+	char *mcol;
+	
+	if(mesh_uses_displist(me)) {
+		DispList *dl= find_displist(&me->disp, DL_MESH);
+		DispListMesh *dlm= dl->mesh;
+		
+		if(dlm==NULL) return;
+		if(dlm->tface==NULL && dlm->mcol==NULL) return;
+		
+		mvert= dlm->mvert;
+		mface= dlm->mface;
+		totface= dlm->totface;
+		mcol= (char *)dlm->mcol;
+		tface= dlm->tface;
+	}
+	else {
+
+		if(me->tface==NULL && me->mcol==NULL) return;
+		
+		mvert= me->mvert;
+		mface= me->mface;
+		totface= me->totface;
+		mcol= (char *)me->mcol;
+		tface= me->tface;
+	}
+	
+	glShadeModel(GL_SMOOTH);
+	glBegin(GL_QUADS);
+	glmode= GL_QUADS;
+	
+	for(a=0; a<totface; a++, mface++) {
+		if(mcol) {
+			for(a=0; a<totface; a++, mface++) {
+				if(mface->v3) {
+					
+					if(mface->v4) {if(glmode==GL_TRIANGLES) {glmode= GL_QUADS; glEnd(); glBegin(GL_QUADS);}}
+					else {if(glmode==GL_QUADS) {glmode= GL_TRIANGLES; glEnd(); glBegin(GL_TRIANGLES);}}
+					
+					glColor3ub(mcol[3], mcol[2], mcol[1]);
+					glVertex3fv( (mvert+mface->v1)->co );
+					glColor3ub(mcol[7], mcol[6], mcol[5]);
+					glVertex3fv( (mvert+mface->v2)->co );
+					glColor3ub(mcol[11], mcol[10], mcol[9]);
+					glVertex3fv( (mvert+mface->v3)->co );
+					if(mface->v4) {
+						glColor3ub(mcol[15], mcol[14], mcol[13]);
+						glVertex3fv( (mvert+mface->v4)->co );
+					}
+				}
+				mcol+=16;
+			}
+		}
+		else {
+			
+			tface++;
+		}
+	}
+	glEnd();
+	glShadeModel(GL_FLAT);
+}
+#endif
 
 static void drawmeshshaded(Object *ob, unsigned int *col1, unsigned int *col2)
 {
@@ -3849,14 +3826,14 @@ static void drawWireExtra(Object *ob, ListBase *lb)
 	}
 	else BIF_ThemeColor(TH_WIRE);
 
-	bglPolygonOffset(1);
+	bglPolygonOffset(1.0);
 	glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 	
 	if(ob->type==OB_MESH) drawmeshwire(ob);
 	else drawDispListwire(lb);
 
 	glDepthMask(1);
-	bglPolygonOffset(0);
+	bglPolygonOffset(0.0);
 }
 
 static void draw_extra_wire(Object *ob) 
@@ -3999,7 +3976,7 @@ void draw_object(Base *base)
 	mymultmatrix(ob->obmat);
 
 	/* which wire color */
-	if((G.f & (G_BACKBUFSEL+G_PICKSEL)) == 0) {
+	if((G.f & G_PICKSEL) == 0) {
 		project_short(ob->obmat[3], &base->sx);
 		
 		if(G.moving==1 && (base->flag & (SELECT+BA_PARSEL))) BIF_ThemeColor(TH_TRANSFORM);
@@ -4042,8 +4019,7 @@ void draw_object(Base *base)
 			
 			if(ob==G.obedit) dt= OB_WIRE;
 			else {
-				if(G.f & G_BACKBUFSEL) dt= OB_SOLID;
-				else dt= OB_SHADED;
+				dt= OB_SHADED;
 		
 				glClearDepth(1.0); glClear(GL_DEPTH_BUFFER_BIT);
 				glEnable(GL_DEPTH_TEST);
@@ -4060,8 +4036,6 @@ void draw_object(Base *base)
 		}
 	}
 	if(dt>=OB_WIRE ) {
-
-		if(dt>OB_SOLID) if(G.f & G_BACKBUFSEL) dt= OB_SOLID;
 
 		dtx= ob->dtx;
 		if(G.obedit==ob) {
@@ -4092,7 +4066,7 @@ void draw_object(Base *base)
 	
 	/* draw outline for selected solid objects */
 	if(G.vd->flag & V3D_SELECT_OUTLINE) {
-		if(dt>OB_WIRE && dt<OB_TEXTURE && ob!=G.obedit && (G.f & G_BACKBUFSEL)==0) {
+		if(dt>OB_WIRE && dt<OB_TEXTURE && ob!=G.obedit) {
 			if((G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT))==0)
 				draw_solid_select(ob);
 		}
@@ -4121,14 +4095,13 @@ void draw_object(Base *base)
 		}
 		else {
 			Material *ma= give_current_material(ob, 1);
-			
+
 			if(ob_from_decimator(ob)) drawDispListwire(&ob->disp);
 			else if(dt==OB_BOUNDBOX) draw_bounding_volume(ob);
 			else if(dt==OB_WIRE) drawmeshwire(ob);
 			else if(ma && (ma->mode & MA_HALO)) drawmeshwire(ob);
 			else if(me->tface) {
-				if(G.f & G_BACKBUFSEL) drawmeshsolid(ob, 0);					
-				else if(G.f & G_FACESELECT || G.vd->drawtype==OB_TEXTURE) {
+				if(G.f & G_FACESELECT || G.vd->drawtype==OB_TEXTURE) {
 					draw_tface_mesh(ob, ob->data, dt);
 				}
 				else drawDispList(ob, dt);
@@ -4136,7 +4109,7 @@ void draw_object(Base *base)
 			else drawDispList(ob, dt);
 		}
 		
-		if( (ob!=G.obedit) && ((G.f & (G_BACKBUFSEL+G_PICKSEL)) == 0) ) {
+		if( (ob!=G.obedit) && ((G.f & (G_PICKSEL)) == 0) ) {
 			paf = give_parteff(ob);
 			if( paf ) {
 				if(col) cpack(0xFFFFFF);	/* for visibility */
@@ -4243,7 +4216,7 @@ void draw_object(Base *base)
 	if(base->flag & OB_RADIO) return;
 	if(G.f & G_SIMULATION) return;
 
-	if((G.f & (G_BACKBUFSEL+G_PICKSEL))==0) {
+	if((G.f & (G_PICKSEL))==0) {
 		ListBase *list;
 
 		/* draw hook center and offset line */
@@ -4355,4 +4328,89 @@ void draw_object_ext(Base *base)
 		glDisable(GL_DEPTH_TEST);
 	}
 	curarea->win_swap= WIN_FRONT_OK;
+}
+
+/* ***************** BACKBUF SEL (BBS) ********* */
+
+/* two options, facecolors or black */
+static void bbs_mesh_solid(Object *ob, int facecol)
+{
+	
+	if(ob==G.obedit) {
+		
+	}
+	else {
+		Mesh *me= ob->data;
+		MVert *mvert;
+		MFace *mface;
+		int a, glmode, totface, div;
+		
+		/* experiment with drawing subsurf while painting, but this whole displist system works against me (ton) */
+/*		if(mesh_uses_displist(me)) {
+			DispList *dl= find_displist(&me->disp, DL_MESH);
+			DispListMesh *dlm= dl->mesh;
+			
+			if(dlm==NULL) return;
+			
+			mvert= dlm->mvert;
+			mface= dlm->mface;
+			totface= dlm->totface;
+			
+			div= me->subdiv; // restore original indices
+		}
+		else {
+*/
+			mvert= me->mvert;
+			mface= me->mface;
+			totface= me->totface;
+			
+			div= 0;
+/*		} */
+		
+		cpack(0);
+		glBegin(GL_QUADS);
+		glmode= GL_QUADS;
+		
+		for(a=0; a<totface; a++, mface++) {
+			if(mface->v3) {
+
+				if(mface->v4) {if(glmode==GL_TRIANGLES) {glmode= GL_QUADS; glEnd(); glBegin(GL_QUADS);}}
+				else {if(glmode==GL_QUADS) {glmode= GL_TRIANGLES; glEnd(); glBegin(GL_TRIANGLES);}}
+					
+				if(facecol) {
+					int i= index_to_framebuffer( (a>>div)+1);
+					cpack(i);
+				}
+				
+				glVertex3fv( (mvert+mface->v1)->co );
+				glVertex3fv( (mvert+mface->v2)->co );
+				glVertex3fv( (mvert+mface->v3)->co );
+				if(mface->v4) glVertex3fv( (mvert+mface->v4)->co );
+			}
+		}
+		glEnd();
+	}
+}
+
+void draw_object_backbufsel(Object *ob)
+{
+	Mesh *me;
+	
+	mymultmatrix(ob->obmat);
+
+	glClearDepth(1.0); glClear(GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
+	
+	switch( ob->type) {
+	case OB_MESH:
+		me= ob->data;
+		bbs_mesh_solid(ob, 1);	// 1= facecol
+		break;
+	case OB_CURVE:
+	case OB_SURF:
+		break;
+	}
+
+	myloadmatrix(G.vd->viewmat);
+
 }
