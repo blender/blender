@@ -1573,6 +1573,7 @@ static TBitem tb_object_select[]= {
 
 /* *************Edit ********** */
 
+
 static TBitem tb_mesh_edit[]= {
 {	0, "Exit Editmode|Tab", 	TB_TAB, NULL},
 {	0, "Undo|U", 			'u', 		NULL},
