@@ -68,7 +68,7 @@ GHOST_WindowX11(
 	GHOST_TDrawingContextType type,
 	const bool stereoVisual
 ) :
-	GHOST_Window(title,left,top,width,height,state,type),
+	GHOST_Window(title,left,top,width,height,state,type,stereoVisual),
 	m_display(display),
 	m_valid_setup (false),
 	m_system (system),
