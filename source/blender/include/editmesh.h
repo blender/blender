@@ -41,6 +41,7 @@
 #define UVCOPY(t, s) memcpy(t, s, 2 * sizeof(float));
 
 
+
 /* ******************* editmesh.c */
 extern void free_editvert(EditVert *eve);
 extern void free_editedge(EditEdge *eed);
@@ -82,6 +83,7 @@ extern float convex(float *v1, float *v2, float *v3, float *v4);
 
 /* ******************* editmesh_mods.c */
 extern EditEdge *findnearestedge(short *dist);
+extern void make_fgon(void);
 
 /* ******************* editmesh_tools.c */
 

@@ -704,6 +704,8 @@ short extrudeflag_vert(short flag)
 		}
 		eve= nextve;
 	}
+	// since its vertex select mode now, it also deselects higher order
+	EM_selectmode_flush();
 
 	return 1;
 }

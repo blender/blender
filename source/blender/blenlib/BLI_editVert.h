@@ -66,7 +66,8 @@ typedef struct EditEdge
 	short f1, f2;	/* short, f1 is (ab)used in subdiv */
 	unsigned char f, h, dir, seam;
 	float crease;
-	int fast; 		/* only 0 or 1, for editmesh_fastmalloc */
+	short fast; 		/* only 0 or 1, for editmesh_fastmalloc */
+	short fgoni;		/* index for fgon, for search */
 	HashEdge hash;
 } EditEdge;
 
@@ -80,7 +81,8 @@ typedef struct EditFace
 	struct TFace tf;	/* a copy of original tface. */
 	unsigned char mat_nr, flag;
 	unsigned char f, f1, h, puno;
-	short fast;			/* only 0 or 1, for editmesh_fastmalloc */
+	unsigned char fast;			/* only 0 or 1, for editmesh_fastmalloc */
+	unsigned char fgonf;		/* flag for fgon options */
 } EditFace;
 
 typedef struct EditMesh

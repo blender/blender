@@ -1153,7 +1153,8 @@ static void draw_vertices(short sel)
 			bglBegin(GL_POINTS);
 			for(efa= em->faces.first; efa; efa= efa->next) {
 				if(efa->h==0) {
-					if(sel == (efa->f & SELECT)) {
+					if(efa->fgonf==EM_FGON);
+					else if(sel == (efa->f & SELECT)) {
 						bglVertex3fv(efa->cent);
 					}
 				}
@@ -1183,7 +1184,8 @@ static void draw_vertices(short sel)
 		bglBegin(GL_POINTS);
 		for(efa= em->faces.first; efa; efa= efa->next) {
 			if(efa->h==0) {
-				if(sel == (efa->f & SELECT)) {
+				if(efa->fgonf==EM_FGON);
+				else if(sel == (efa->f & SELECT)) {
 					bglVertex3fv(efa->cent);
 				}
 			}
@@ -2521,27 +2523,50 @@ static void drawmeshwire(Object *ob)
 		else if(G.scene->selectmode == SCE_SELECT_FACE) {
 			/* draw faces twice, to have selected ones on top */
 			BIF_ThemeColor(TH_WIRE);
+			glBegin(GL_LINES);
 			for(efa= em->faces.first; efa; efa= efa->next) {
 				if(efa->h==0 && (efa->f & SELECT)==0) { 
-					glBegin(GL_LINE_LOOP);
-					glVertex3fv(efa->v1->co);
-					glVertex3fv(efa->v2->co);
-					glVertex3fv(efa->v3->co);
-					if(efa->v4) glVertex3fv(efa->v4->co);
-					glEnd();
+					if(efa->e1->h==0) {
+						glVertex3fv(efa->v1->co);
+						glVertex3fv(efa->v2->co);
+					}
+					if(efa->e2->h==0) {
+						glVertex3fv(efa->v2->co);
+						glVertex3fv(efa->v3->co);
+					}
+					if(efa->e3->h==0) {
+						glVertex3fv(efa->e3->v1->co);
+						glVertex3fv(efa->e3->v2->co);
+					}
+					if(efa->e4 && efa->e4->h==0) {
+						glVertex3fv(efa->e4->v1->co);
+						glVertex3fv(efa->e4->v2->co);
+					}
 				}
 			}
+			
 			BIF_ThemeColor(TH_EDGE_SELECT);
 			for(efa= em->faces.first; efa; efa= efa->next) {
 				if(efa->h==0 && (efa->f & SELECT)) { 
-					glBegin(GL_LINE_LOOP);
-					glVertex3fv(efa->v1->co);
-					glVertex3fv(efa->v2->co);
-					glVertex3fv(efa->v3->co);
-					if(efa->v4) glVertex3fv(efa->v4->co);
-					glEnd();
+					if(efa->e1->h==0) {
+						glVertex3fv(efa->v1->co);
+						glVertex3fv(efa->v2->co);
+					}
+					if(efa->e2->h==0) {
+						glVertex3fv(efa->v2->co);
+						glVertex3fv(efa->v3->co);
+					}
+					if(efa->e3->h==0) {
+						glVertex3fv(efa->e3->v1->co);
+						glVertex3fv(efa->e3->v2->co);
+					}
+					if(efa->e4 && efa->e4->h==0) {
+						glVertex3fv(efa->e4->v1->co);
+						glVertex3fv(efa->e4->v2->co);
+					}
 				}
 			}
+			glEnd();
 		}	
 		else if( (G.f & G_DRAWEDGES) || (G.scene->selectmode & SCE_SELECT_EDGE) ) {	
 			/* Use edge highlighting */

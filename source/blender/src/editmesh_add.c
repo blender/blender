@@ -190,7 +190,11 @@ void addedgeface_mesh(void)
 		makeDispList(G.obedit);
 		return;
 	}
-	if(amount<2 || amount>4) {
+	else if(amount > 4) {
+		//make_fgon();
+		return;
+	}
+	else if(amount<2) {
 		error("Incorrect number of vertices to make edge/face");
 		return;
 	}

@@ -246,18 +246,20 @@ EditEdge *addedgelist(EditVert *v1, EditVert *v2, EditEdge *example)
 	eed= findedgelist(v1, v2);
 
 	if(eed==NULL) {
-
+	
 		eed= (EditEdge *)callocedge(sizeof(EditEdge), 1);
 		eed->v1= v1;
 		eed->v2= v2;
 		BLI_addtail(&em->edges, eed);
 		eed->dir= swap;
 		insert_hashedge(eed);
+		
 		/* copy edge data:
 		   rule is to do this with addedgelist call, before addfacelist */
 		if(example) {
 			eed->crease= example->crease;
 			eed->seam = example->seam;
+			eed->h |= (example->h & EM_FGON);
 		}
 	}
 
@@ -330,12 +332,21 @@ EditFace *addfacelist(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, Ed
 	EditEdge *e1, *e2=0, *e3=0, *e4=0;
 
 	/* add face to list and do the edges */
-	e1= addedgelist(v1, v2, NULL);
-	e2= addedgelist(v2, v3, NULL);
-	if(v4) e3= addedgelist(v3, v4, NULL); 
-	else e3= addedgelist(v3, v1, NULL);
-	if(v4) e4= addedgelist(v4, v1, NULL);
-
+	if(example) {
+		e1= addedgelist(v1, v2, example->e1);
+		e2= addedgelist(v2, v3, example->e2);
+		if(v4) e3= addedgelist(v3, v4, example->e3); 
+		else e3= addedgelist(v3, v1, example->e3);
+		if(v4) e4= addedgelist(v4, v1, example->e4);
+	}
+	else {
+		e1= addedgelist(v1, v2, NULL);
+		e2= addedgelist(v2, v3, NULL);
+		if(v4) e3= addedgelist(v3, v4, NULL); 
+		else e3= addedgelist(v3, v1, NULL);
+		if(v4) e4= addedgelist(v4, v1, NULL);
+	}
+	
 	if(v1==v2 || v2==v3 || v1==v3) return NULL;
 	if(e2==0) return NULL;
 
@@ -704,6 +715,8 @@ void make_editMesh()
 				
 				if(medge->flag & ME_SEAM) eed->seam= 1;
 				if(medge->flag & SELECT) eed->f |= SELECT;
+				if(medge->flag & ME_FGON) eed->h= EM_FGON;	// 2 different defines!
+				if(medge->flag & ME_HIDE) eed->h |= 1;
 			}
 
 		}
@@ -743,6 +756,7 @@ void make_editMesh()
 					efa->f |= SELECT;
 					if(me->medge==NULL) EM_select_face(efa, 1);
 				}
+				if(mface->flag & ME_HIDE) efa->h= 1;
 			}
 
 			if(me->tface) tface++;
@@ -750,15 +764,12 @@ void make_editMesh()
 		}
 	}
 	
-	/* flush hide flags */
-	
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		if(eed->v1->h || eed->v2->h) eed->h= 1;
-		else eed->h= 0;
-	}	
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		if(efa->e1->h || efa->e2->h || efa->e3->h) efa->h= 1;
-		else if(efa->e4 && efa->e4->h) efa->h= 1;
+	/* flush hide flags when no medge */
+	if(me->medge==NULL) {
+		for(eed= em->edges.first; eed; eed= eed->next) {
+			if(eed->v1->h || eed->v2->h) eed->h |= 1;
+			else eed->h &= ~1;
+		}	
 	}
 	
 	MEM_freeN(evlist);
@@ -1009,6 +1020,8 @@ void load_editMesh(void)
 			medge->flag= eed->f & SELECT;
 			if(eed->f2<2) medge->flag |= ME_EDGEDRAW;
 			if(eed->seam) medge->flag |= ME_SEAM;
+			if(eed->h & EM_FGON) medge->flag |= ME_FGON;	// different defines yes
+			if(eed->h & 1) medge->flag |= ME_HIDE;
 			
 			medge->crease= (char)(255.0*eed->crease);
 
@@ -1030,10 +1043,12 @@ void load_editMesh(void)
 			
 		mface->mat_nr= efa->mat_nr;
 		mface->puno= efa->puno;
+		
 		mface->flag= efa->flag;
 		/* bit 0 of flag is already taken for smooth... */
 		if(efa->f & 1) mface->flag |= ME_FACE_SEL;
 		else mface->flag &= ~ME_FACE_SEL;
+		if(efa->h) mface->flag |= ME_HIDE;
 		
 		/* mat_nr in vertex */
 		if(me->totcol>1) {

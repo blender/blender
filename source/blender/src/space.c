@@ -637,9 +637,7 @@ void BIF_undo_push(char *str)
 }
 
 void BIF_undo(void)
-{
-	extern void undo_curve_step(int step);	// editcurve.c
-	
+{	
 	if(G.obedit) {
 		if(G.obedit->type==OB_MESH)
 			undo_editmode_step(1);
@@ -662,8 +660,6 @@ void BIF_undo(void)
 
 void BIF_redo(void)
 {
-	extern void undo_curve_step(int step);	// editcurve.c
-
 	if(G.obedit) {
 		if(G.obedit->type==OB_MESH)
 			undo_editmode_step(-1);

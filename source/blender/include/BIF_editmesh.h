@@ -43,6 +43,12 @@ struct Mesh;
 struct bDeformGroup;
 struct View3D;
 
+// edge and face flag both
+#define EM_FGON		2
+// face flag
+#define EM_FGON_DRAW	1
+
+
 /* ******************* editmesh.c */
 extern void make_editMesh(void);
 extern void load_editMesh(void);
