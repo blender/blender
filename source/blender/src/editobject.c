@@ -4677,13 +4677,9 @@ void transform(int mode)
 				else size[0]=size[1]=size[2]= (sqrt( (float)((yc-mval[1])*(yc-mval[1])+(mval[0]-xc)*(mval[0]-xc)) ))/sizefac;
 				
 				if (typemode){
-					size[0] = size[1] = size[2] = 1.0;
-					if (addvec[0] != 0)
-						size[0] = addvec[0];
-					if (addvec[1] != 0)
-						size[1] = addvec[1];
-					if (addvec[2] != 0)
-						size[2] = addvec[2];
+					size[0] = addvec[0];
+					size[1] = addvec[1];
+					size[2] = addvec[2];
 				}
 
 				if(axismode && mode=='s') {
@@ -4721,9 +4717,9 @@ void transform(int mode)
 				apply_keyb_grid(size+2, 0.0, 0.1, 0.01, gridflag & AUTOSIZEGRID);
 				
 				if(transmain) {
-					size[0]= MINSIZE(size[0], 0.01);
-					size[1]= MINSIZE(size[1], 0.01);
-					size[2]= MINSIZE(size[2], 0.01);
+					size[0]= MINSIZE(size[0], 0.001);
+					size[1]= MINSIZE(size[1], 0.001);
+					size[2]= MINSIZE(size[2], 0.001);
 				}
 				
 				if(size[0]!=oldval[0] ||size[1]!=oldval[1] ||size[2]!=oldval[2]) {
