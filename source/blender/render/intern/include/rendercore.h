@@ -44,7 +44,7 @@ void renderspothalo(unsigned short *col);
 void render_lighting_halo(struct HaloRen *har, float *colf);
 unsigned int    calchalo_z(struct HaloRen *har, unsigned int zz);
 float CookTorr(float *n, float *l, float *v, int hard);
-void shadelamplus(void);
+void shade_lamp_loop(void);
 /*  void renderflare(struct HaloRen *har); */
 void add_halo_flare(void);
 

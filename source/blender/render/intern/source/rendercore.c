@@ -1380,7 +1380,7 @@ void RE_calc_R_ref()
 
 }
 
-void shadelamplus()
+void shade_lamp_loop()
 {
 	LampRen *lar;
 	Material *ma;
@@ -2121,7 +2121,7 @@ void shadepixel(float x, float y, int vlaknr)
 		}
 	
 
-		shadelamplus();
+		shade_lamp_loop();
 
 		/* MIST */
 		if( (R.wrld.mode & WO_MIST) && (R.matren->mode & MA_NOMIST)==0 ){
