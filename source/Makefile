@@ -191,6 +191,9 @@ ifeq ($(INTERNATIONAL), true)
 	ifeq ($(OS), darwin)
 	    COMLIB += $(NAN_GETTEXT)/lib/libintl.a
 	endif
+	ifeq ($(OS), solaris)
+	    COMLIB += $(NAN_GETTEXT)/lib/libintl.a
+	endif
 endif
 
 ifeq ($(OS), irix)
@@ -370,21 +373,12 @@ ifeq ($(NAN_NO_OPENAL), true)
 else
   ifeq ($(OS),$(findstring $(OS), "freebsd linux windows"))
     ifeq ($(CPU),$(findstring $(CPU), "i386 powerpc x86_64"))
-      ifeq ($(OS),freebsd)
         NAN_SND_LIBS =  $(SOUNDSYSTEM)
         NAN_SND_LIBS += $(DUMMYSOUND)
         NAN_SND_LIBS += $(OPENALSOUND)
         NAN_SND_LIBS += $(SDLSOUND)
         NAN_SND_LIBS += $(NAN_OPENAL)/lib/libopenal.a
         NAN_SND_LIBS += $(SOUNDSYSTEM)
-      else
-        NAN_SND_LIBS =  $(SOUNDSYSTEM)
-        NAN_SND_LIBS += $(DUMMYSOUND)
-        NAN_SND_LIBS += $(OPENALSOUND)
-        NAN_SND_LIBS += $(SDLSOUND)
-        NAN_SND_LIBS += $(NAN_OPENAL)/lib/libopenal.a
-        NAN_SND_LIBS += $(SOUNDSYSTEM)
-      endif
     else
       ifeq ($(OS),windows)
         NAN_SND_LIBS =  $(SOUNDSYSTEM)
@@ -400,16 +394,25 @@ else
       endif
     endif
   else
-    ifeq ($(OS),$(findstring $(OS), "darwin solaris"))
+    ifeq ($(OS),darwin)
       NAN_SND_LIBS =  $(SOUNDSYSTEM)
       NAN_SND_LIBS += $(DUMMYSOUND)
       NAN_SND_LIBS += $(OPENALSOUND)
       NAN_SND_LIBS += $(NAN_OPENAL)/lib/libopenal.a
       NAN_SND_LIBS += $(SOUNDSYSTEM)
     else
-      NAN_SND_LIBS =  $(SOUNDSYSTEM)
-      NAN_SND_LIBS += $(DUMMYSOUND)
-      NAN_SND_LIBS += $(SOUNDSYSTEM)
+      ifeq ($OS),solaris)
+        NAN_SND_LIBS =  $(SOUNDSYSTEM)
+        NAN_SND_LIBS += $(DUMMYSOUND)
+        NAN_SND_LIBS += $(OPENALSOUND)
+        NAN_SND_LIBS += $(SDLSOUND)
+        NAN_SND_LIBS += $(NAN_OPENAL)/lib/libopenal.a
+        NAN_SND_LIBS += $(SOUNDSYSTEM)
+      else
+        NAN_SND_LIBS =  $(SOUNDSYSTEM)
+        NAN_SND_LIBS += $(DUMMYSOUND)
+        NAN_SND_LIBS += $(SOUNDSYSTEM)
+      endif
     endif
   endif
 endif
