@@ -75,7 +75,7 @@ struct bPoseChannel *set_pose_channel(struct bPose *pose,
  * Allocate a new pose on the heap, and copy the src pose and it's channels
  * into the new pose. *dst is set to the newly allocated structure.
  */ 
-void copy_pose(struct bPose **dst, const struct bPose *src,
+void copy_pose(struct bPose **dst, struct bPose *src,
 			   int copyconstraints);
 
 /**
@@ -108,7 +108,7 @@ struct bPoseChannel *verify_pose_channel(struct bPose* pose,
  * the contents of src into it. If src is NULL NULL is returned.
  */
 
-struct bAction *copy_action(const struct bAction *src);
+struct bAction *copy_action(struct bAction *src);
 
 /**
  * Some kind of bounding box operation on the action.

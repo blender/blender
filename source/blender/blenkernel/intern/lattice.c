@@ -243,7 +243,7 @@ void init_latt_deform(Object *oblatt, Object *ob)
 	lattice_modifier(oblatt, 's');
 	bp= deformLatt->def;
 
-	if(ob) where_is_object(ob);
+	//if(ob) where_is_object(ob); causes lag here, but why! (ton)
 
 	/* for example with a particle system: ob==0 */
 	if(ob==0) {

@@ -1305,7 +1305,7 @@ void solve_posechain (PoseChain *chain)
 
 		/* Retrieve the delta rotation from the solver */
 		Mat4One(M_basischange);
-		Mat4CpyMat3(M_basischange, chain->solver->segments[i].basis_change);
+		Mat4CpyMat3(M_basischange, (void *)chain->solver->segments[i].basis_change);	//basis_change = array[9]
 	
  
 		/**
@@ -1440,8 +1440,8 @@ PoseChain *ik_chain_to_posechain (Object *ob, Bone *bone)
 		Mat4MulMat4(M_basismat, R_bonemat, iR_parmat);
 		
 		/* Copy the matrix into the basis and transpose */
-		Mat3CpyMat4(segs[icurseg].basis, M_basismat);
-		Mat3Transp(segs[icurseg].basis);
+		Mat3CpyMat4((void *)segs[icurseg].basis, M_basismat);	// basis = array[9]
+		Mat3Transp((void *)segs[icurseg].basis);
 
 		/* Fill out the IK segment */
 		segs[icurseg].length = get_bone_length(curBone);

@@ -71,11 +71,10 @@
 #endif
 
 /* Local function prototypes */
+
 static void do_pose_constraint_channels(bPose *pose, bAction *act, 
 										float ctime);
-static void get_constraint_influence_from_pose(bPose *dst, bPose *src);
-static void blend_constraints(ListBase *dst, const ListBase *src,
-							  float srcweight, short mode);
+
 static void rest_pose(bPose *pose, int clearflag);
 
 /* Implementation */
@@ -112,6 +111,7 @@ static void rest_pose(bPose *pose, int clearflag)
 	}
 }
 
+#ifdef __NLA_BLENDCON
 static void blend_constraints(ListBase *dst, const ListBase *src,
 							  float srcweight, short mode)
 {
@@ -148,12 +148,13 @@ static void blend_constraints(ListBase *dst, const ListBase *src,
 		}
 	}
 }
+#endif
 
 void blend_poses(bPose *dst, const bPose *src, float srcweight, short mode)
 {
 	bPoseChannel *dchan;
 	const bPoseChannel *schan;
-	float	dquat[4], squat[4], mat[3][3];
+	float	dquat[4], squat[4]; //, mat[3][3];
 	float dstweight;
 	int i;
 	
@@ -343,6 +344,7 @@ void get_pose_from_pose(bPose **pose, const bPose *src)
 	}
 }
 
+#ifdef __NLA_BLENDCON
 static void get_constraint_influence_from_pose(bPose *dst, bPose *src)
 {
 	bConstraint *dcon, *scon;
@@ -360,6 +362,7 @@ static void get_constraint_influence_from_pose(bPose *dst, bPose *src)
 		}
 	}
 }
+#endif
 
 /* If the pose does not exist, a new one is created */
 
@@ -719,7 +722,7 @@ void free_action(bAction *act)
 		BLI_freelistN (&act->chanbase);
 }
 
-bAction* copy_action(const bAction *src)
+bAction* copy_action(bAction *src)
 {
 	bAction *dst = NULL;
 	bActionChannel *dchan, *schan;
@@ -752,12 +755,12 @@ bPoseChannel *copy_pose_channel(const bPoseChannel* src)
 	return dst;
 }
 
-void copy_pose(bPose **dst, const bPose *src, int copycon)
+void copy_pose(bPose **dst, bPose *src, int copycon)
 {
 	bPose *outPose;
-	const bPose * inPose;
+	bPose * inPose;
 	bPoseChannel	*newChan;
-	const bPoseChannel *curChan;
+	bPoseChannel *curChan;
 
 	inPose = src;
 	
@@ -777,7 +780,7 @@ void copy_pose(bPose **dst, const bPose *src, int copycon)
 		memcpy (newChan->loc, curChan->loc, sizeof (curChan->loc));
 		memcpy (newChan->size, curChan->size, sizeof (curChan->size));
 		memcpy (newChan->quat, curChan->quat, sizeof (curChan->quat));
-		Mat4CpyMat4 (newChan->obmat, curChan->obmat);
+		Mat4CpyMat4 (newChan->obmat, (void *)curChan->obmat);
 
 		BLI_addtail (&outPose->chanbase, newChan);
 		if (copycon){
