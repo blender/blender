@@ -2201,6 +2201,9 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 	uiButSetFlag(bt, UI_NO_HILITE);
 
 	// palette
+	
+	uiBlockSetEmboss(block, UI_EMBOSSP);
+	
 	bt=uiDefButF(block, COL, retval, "",		FPICK+DPICK, 0, BPICK,BPICK, old, 0.0, 0.0, -1, 0, "Old color, click to restore");
 	uiButSetFunc(bt, do_palette_cb, bt, col);
 	uiDefButF(block, COL, retval, "",		FPICK+DPICK, BPICK+DPICK, BPICK,60-BPICK-DPICK, col, 0.0, 0.0, -1, 0, "Active color");
@@ -2214,11 +2217,14 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 		uiButSetFunc(bt, do_palette_cb, bt, col);
 	}
 	uiBlockEndAlign(block);
+	
+	uiBlockSetEmboss(block, UI_EMBOSSX);
 
 	// buttons
 	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
 
 	offs= FPICK+2*DPICK+BPICK;
+
 
 	uiBlockBeginAlign(block);
 	bt= uiDefButF(block, NUM, retval, "R ",	offs, 110, 80,20, col, 0.0, 1.0, 10, 2, "");
