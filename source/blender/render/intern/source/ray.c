@@ -2061,7 +2061,7 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 	
 	shadfac[3] = 1.0 - sh/((float)actual);
 	
-	if(wrld->aocolor!=WO_AOPLAIN) {
+	if(wrld->aocolor!=WO_AOPLAIN && skyadded) {
 		div= shadfac[3]/((float)skyadded);
 		
 		shadfac[0]*= div;	// average color times distances/hits formula
