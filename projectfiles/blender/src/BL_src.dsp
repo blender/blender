@@ -375,6 +375,10 @@ SOURCE=..\..\..\source\blender\src\interface.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\interface_draw.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\interface_panel.c
 # End Source File
 # Begin Source File
