@@ -1033,7 +1033,7 @@ void screenmain(void)
 
 		if (event==INPUTCHANGE) {
 			window_make_active(mainwin);
-			has_input= val;
+			G.qual= get_qual();
 		}
 		
 			/* If the main window is active, find the current active ScrArea
