@@ -43,9 +43,12 @@
 #include <io.h>
 #endif
 
+#include "MTC_matrixops.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_arithb.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
@@ -317,9 +320,10 @@ void txt_export_to_objects(struct Text *text)
 {
 	ID *id;
 	Curve *cu;
-	struct TextLine *tmp, *curline;
+	struct TextLine *curline;
 	int nchars;
-	int linNum = 0;
+	int linenum = 0;
+	float offset[3] = {0.0,0.0,0.0};
 
 	if(!text) return;
 
@@ -332,27 +336,30 @@ void txt_export_to_objects(struct Text *text)
 	while(curline){	
 	 	/*skip lines with no text, but still make space for them*/
 		if(curline->line[0] == '\0'){
-			linNum++;
+			linenum++;
 			curline = curline->next;
 			continue;
 		}
 			
-	
 		nchars = 0;	
 		add_object(OB_FONT);
 	
 		base_init_from_view3d(BASACT, G.vd);
 		G.obedit= BASACT->object;
-		where_is_object(G.obedit);
-		
+		where_is_object(G.obedit);	
 		
 		/* Do the translation */
-		
-		G.obedit->loc[1] -= linNum;
+		offset[0] = 0;
+		offset[1] = -linenum;
+		offset[2] = 0;
 	
-		/* End Translation */
+		Mat4Mul3Vecfl(G.vd->viewinv,offset);
 		
-			
+		G.obedit->loc[0] += offset[0];
+		G.obedit->loc[1] += offset[1];
+		G.obedit->loc[2] += offset[2];
+		/* End Translation */
+					
 		cu= G.obedit->data;
 		
 		cu->vfont= get_builtin_font();
@@ -368,13 +375,13 @@ void txt_export_to_objects(struct Text *text)
 		cu->len= strlen(curline->line);
 		cu->pos= cu->len;
 
-
 		make_editText();
 		exit_editmode(1);
 
-		linNum++;
+		linenum++;
 		curline = curline->next;
 	}
+	BIF_undo_push("Add Text as Objects");
 	allqueue(REDRAWVIEW3D, 0);
 }
 
