@@ -58,12 +58,13 @@ class colorA_t : public color_t
 class parameter_t
 {
 	public:
-		parameter_t(const std::string &s):type(TYPE_STRING),used(false),str(s) {};
-		parameter_t(float f):type(TYPE_FLOAT),used(false),fnum(f) {};
-		parameter_t(const colorA_t &c):type(TYPE_COLOR),used(false)
-			,C(c) {};
-		parameter_t(const point3d_t &p):type(TYPE_POINT),used(false),P(p) {};
-		parameter_t():type(TYPE_NONE),used(false) {};
+		parameter_t(const std::string &s);
+		parameter_t(float f);
+		parameter_t(const colorA_t &c);
+		parameter_t(const point3d_t &p);
+		parameter_t();
+		~parameter_t();
+
 		const std::string 		&getStr() {used=true;return str;};
 		float 					&getFnum() {used=true;return fnum;};
 		const point3d_t &getP() {used=true;return P;};
@@ -78,20 +79,14 @@ class parameter_t
 		colorA_t C;
 };
 
-class paramMap_t : public std::map<std::string,parameter_t>
+class paramMap_t
 {
 	public:
-		virtual bool getParam(const std::string &name,std::string &s);
-		virtual bool getParam(const std::string &name,bool &b);
-		virtual bool getParam(const std::string &name,float &f);
-		virtual bool getParam(const std::string &name,double &f);
-		virtual bool getParam(const std::string &name,int &i);
-		virtual bool getParam(const std::string &name,point3d_t &p);
-		virtual bool getParam(const std::string &name,color_t &c);
-		virtual bool getParam(const std::string &name,colorA_t &c);
-		virtual bool includes(const std::string &label,int type);
-		virtual void checkUnused(const std::string &env);
-		virtual ~paramMap_t() {};
+		parameter_t & operator [] (const std::string &key);
+		void clear();
+		~paramMap_t() {};
+	protected:
+		std::map<std::string,parameter_t> dicc;
 };
 
 class light_t;
