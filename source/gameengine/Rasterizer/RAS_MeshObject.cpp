@@ -132,14 +132,14 @@ RAS_Polygon* RAS_MeshObject::GetPolygon(int num)
 
 	
 	
-set<RAS_MaterialBucket*>::iterator RAS_MeshObject::GetFirstMaterial()
+RAS_MaterialBucket::Set::iterator RAS_MeshObject::GetFirstMaterial()
 {
 	return m_materials.begin();
 }
 
 
 
-set<RAS_MaterialBucket*>::iterator RAS_MeshObject::GetLastMaterial()
+RAS_MaterialBucket::Set::iterator RAS_MeshObject::GetLastMaterial()
 {
 	return m_materials.end();
 }
@@ -260,36 +260,33 @@ int RAS_MeshObject::FindOrAddVertex(int vtxarray,
 	KX_ArrayOptimizer* ao = GetArrayOptimizer(mat);//*(m_matVertexArrays[*mat]);
 	
 	int numverts = ao->m_VertexArrayCache1[vtxarray]->size();//m_VertexArrayCount[vtxarray];
-	
+	RAS_TexVert newvert(xyz,uv,rgbacolor,newnormal, 0);
 #define KX_FIND_SHARED_VERTICES
 #ifdef KX_FIND_SHARED_VERTICES
 	
-	std::vector<RAS_MatArrayIndex>::iterator it = m_xyz_index_to_vertex_index_mapping[orgindex].begin();
-	int index=-1;
-	while (index < 0 && !(it == m_xyz_index_to_vertex_index_mapping[orgindex].end()))
+	for (std::vector<RAS_MatArrayIndex>::iterator it = m_xyz_index_to_vertex_index_mapping[orgindex].begin();
+	     it != m_xyz_index_to_vertex_index_mapping[orgindex].end();
+	     it++)
 	{
 		if ((*it).m_arrayindex1 == ao->m_index1 &&
-			((*it).m_array == vtxarray) && 
-			(*(RAS_IPolyMaterial*) (*it).m_matid) == *mat
+			(*it).m_array == vtxarray && 
+			*(*it).m_matid == *mat &&
+			(*ao->m_VertexArrayCache1[vtxarray])[(*it).m_index].closeTo(&newvert)
 			)
 		{
 			return (*it).m_index;
 		}
-		it++;
 	}
-	
-	if (index >= 0)
-		return index;
 #endif // KX_FIND_SHARED_VERTICES
 	
 	// no vertex found, add one
-	ao->m_VertexArrayCache1[vtxarray]->push_back(RAS_TexVert (xyz,uv,rgbacolor,newnormal, 0));
+	ao->m_VertexArrayCache1[vtxarray]->push_back(newvert);
 	//	printf("(%f,%f,%f) ",xyz[0],xyz[1],xyz[2]);
 	RAS_MatArrayIndex idx;
 	idx.m_arrayindex1 = ao->m_index1;
 	idx.m_array = vtxarray;
 	idx.m_index = numverts;
-	idx.m_matid = (int) mat;
+	idx.m_matid = mat;
 	m_xyz_index_to_vertex_index_mapping[orgindex].push_back(idx); 
 	
 	return numverts;

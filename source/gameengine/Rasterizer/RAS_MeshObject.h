@@ -89,10 +89,11 @@ class	RAS_MatArrayIndex
 public:
 
 	int	m_arrayindex1;
-	int	m_matid;
+	RAS_IPolyMaterial*	m_matid;
 	int	m_array;
 	int	m_index;
 
+/*
 	inline bool	Less(const RAS_MatArrayIndex& lhs) const {
 		bool result = 
 			(	(m_matid < lhs.m_matid)		||
@@ -104,13 +105,14 @@ public:
 		return result;
 			
 	}
-
+*/
 	
 };
+/*
 inline  bool operator <( const RAS_MatArrayIndex& rhs,const RAS_MatArrayIndex& lhs)
 {
 	return ( rhs.Less(lhs));
-}
+}*/
 
 /**
  * RAS_MeshObject stores mesh data for the renderer.
