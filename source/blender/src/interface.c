@@ -115,6 +115,7 @@ uiBut *UIbuttip;
 
 static void ui_set_but_val(uiBut *but, double value);
 static void ui_set_ftf_font(uiBlock *block);
+static void ui_do_but_tip(uiBut *buttip);
 
 /* ****************************** */
 
@@ -3231,12 +3232,13 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 	return su;
 }
 
-static void ui_do_but_tip(void)
+/* inside this function no global UIbuttip... qread is not safe */
+static void ui_do_but_tip(uiBut *buttip)
 {
 	uiSaveUnder *su;
 	int time;
 	
-	if (UIbuttip && UIbuttip->tip && UIbuttip->tip[0]) {
+	if (buttip && buttip->tip && buttip->tip[0]) {
 			/* Pause for a moment to see if we
 			 * should really display the tip
 			 * or if the user will keep moving
@@ -3253,8 +3255,8 @@ static void ui_do_but_tip(void)
 			 * as long as the mouse remains on top
 			 * of the button that owns it.
 			 */
-		uiPanelPush(UIbuttip->block); // panel matrix
-		su= ui_draw_but_tip(UIbuttip);
+		uiPanelPush(buttip->block); // panel matrix
+		su= ui_draw_but_tip(buttip);
 		
 		while (1) {
 			char ascii;
@@ -3265,7 +3267,7 @@ static void ui_do_but_tip(void)
 				short mouse[2];
 				uiGetMouse(su->oldwin, mouse);
 				
-				if (!uibut_contains_pt(UIbuttip, mouse))
+				if (!uibut_contains_pt(buttip, mouse))
 					break;
 			} else {
 				mainqpushback(evt, val, ascii);
@@ -3274,7 +3276,8 @@ static void ui_do_but_tip(void)
 		}
 		
 		ui_endpupdraw(su);
-		uiPanelPop(UIbuttip->block); // panel matrix
+		uiPanelPop(buttip->block); // panel matrix
+		/* still the evil global.... */
 		UIbuttip= NULL;
 	}
 }
@@ -3401,7 +3404,7 @@ int uiDoBlocks(ListBase *lb, int event)
 			
 			/* tooltip */	
 			if(retval==UI_NOTHING && (uevent.event==MOUSEX || uevent.event==MOUSEY)) {
-				if(U.flag & USER_TOOLTIPS) ui_do_but_tip();
+				if(U.flag & USER_TOOLTIPS) ui_do_but_tip(UIbuttip);
 			}
 		}
 		
@@ -3425,7 +3428,7 @@ int uiDoBlocks(ListBase *lb, int event)
 
 	/* tooltip */	
 	if(retval==UI_NOTHING && (uevent.event==MOUSEX || uevent.event==MOUSEY)) {
-		if(U.flag & USER_TOOLTIPS) ui_do_but_tip();
+		if(U.flag & USER_TOOLTIPS) ui_do_but_tip(UIbuttip);
 	}
 
 	/* doesnt harm :-) */
