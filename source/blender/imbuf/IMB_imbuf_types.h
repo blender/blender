@@ -192,6 +192,7 @@ typedef enum {
 #define IMAGIC 	0732
 #define IS_iris(x)		(x->ftype == IMAGIC)
 
+#define IS_jpg(x)		(x->ftype & JPG)
 #define IS_stdjpg(x)	((x->ftype & JPG_MSK) == JPG_STD)
 #define IS_vidjpg(x)	((x->ftype & JPG_MSK) == JPG_VID)
 #define IS_jstjpg(x)	((x->ftype & JPG_MSK) == JPG_JST)
