@@ -34,6 +34,8 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#ifndef HAVE_CONFIG_H
+
 #ifndef NO_SOUND
 
 #  if defined (_WIN32) && !defined(FREE_WINDOWS)
@@ -57,4 +59,6 @@
 #	endif
 #endif
 
-#endif
+#endif /* NO_SOUND */
+
+#endif /* HAVE_CONFIG_H */
