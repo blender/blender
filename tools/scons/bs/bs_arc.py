@@ -40,7 +40,7 @@ def appit(target, source, env):
 		commands.getoutput(cmd)
 		cmd = 'cp %s %s.app/Contents/MacOS/%s'%(target, target, target)
 		commands.getoutput(cmd)
-		if  user_options_dict['BUILD_BINARY'] == 'debug':
+		if  bs_globals.user_options_dict['BUILD_BINARY'] == 'debug':
 			print "building debug"
 		else :
 			cmd = 'strip -u -r %s.app/Contents/MacOS/%s'%(target, target)
@@ -65,7 +65,7 @@ def appit(target, source, env):
 		cmd = 'find %s.app -name .DS_Store -exec rm -rf {} \;'%target
 		commands.getoutput(cmd)
 		
-		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
+		if bs_globals.user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
 			target = 'blenderplayer' 
 			sourceinfo = "source/darwin/%s.app/Contents/Info.plist"%target
 			targetinfo = "%s.app/Contents/Info.plist"%target
@@ -78,7 +78,7 @@ def appit(target, source, env):
 			commands.getoutput(cmd)
 			cmd = 'cp %s %s.app/Contents/MacOS/%s'%(target, target, target)
 			commands.getoutput(cmd)
-			if  user_options_dict['BUILD_BINARY'] == 'debug':
+			if  bs_globals.user_options_dict['BUILD_BINARY'] == 'debug':
 				print "building debug player"
 			else :
 				cmd = 'strip -u -r %s.app/Contents/MacOS/%s'%(target, target)
