@@ -296,6 +296,7 @@ static void createTransTexspace(void)
 void count_bone_select(ListBase *lb, int *counter) 
 {
 	Bone *bone;
+	int deeper= 1;
 	
 	for(bone= lb->first; bone; bone= bone->next) {
 		if (bone->flag & BONE_SELECTED) {
@@ -303,10 +304,11 @@ void count_bone_select(ListBase *lb, int *counter)
 			/* ALERT! abusive global Trans here */
 			if ( (Trans.mode!=TFM_TRANSLATION) || (bone->flag & BONE_IK_TOPARENT)==0 ) {
 				(*counter)++;
-				return;	// no transform on children if one parent bone is selected
+				deeper= 0;	// no transform on children if one parent bone is selected
 			}
+			else deeper= 1;
 		}
-		count_bone_select( &bone->childbase, counter);
+		if(deeper) count_bone_select( &bone->childbase, counter);
 	}
 }
 
@@ -318,6 +320,7 @@ static void add_pose_transdata(ListBase *lb, Object *ob, TransData **tdp)
 	float	parmat[4][4], tempmat[4][4];
 	float tempobmat[4][4];
 	float vec[3];
+	int deeper= 1;
 	
 	for(bone= lb->first; bone; bone= bone->next) {
 		if (bone->flag & BONE_SELECTED) {
@@ -355,10 +358,12 @@ static void add_pose_transdata(ListBase *lb, Object *ob, TransData **tdp)
 				Mat3Inv (td->smtx, td->mtx);
 				
 				(*tdp)++;
-				return;	// see above function
+				td= *tdp;
+				deeper= 0;
 			}
+			else deeper= 1;
 		}
-		add_pose_transdata(&bone->childbase, ob, tdp);
+		if(deeper) add_pose_transdata(&bone->childbase, ob, tdp);
 	}
 }
 
