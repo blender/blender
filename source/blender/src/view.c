@@ -598,13 +598,15 @@ void setwinmatrixview3d(rctf *rect)		/* rect: for picking */
 	
 	dfac= near/d;
 
-	/* if(G.vd->persp==1 && G.vd->dproj>1.0) far= G.vd->dproj*far; */
-
 	if(G.vd->persp==0) {
-		/* x1= -winx*G.vd->dist/1000.0; */
-		x1= -G.vd->dist;
+		if(winx>winy) x1= -G.vd->dist;
+		else x1= -winx*G.vd->dist/winy;
+		
 		x2= -x1;
-		y1= -winy*G.vd->dist/winx;
+
+		if(winx>winy) y1= -winy*G.vd->dist/winx;
+		else y1= -G.vd->dist;
+		
 		y2= -y1;
 		orth= 1;
 	}
@@ -1086,6 +1088,13 @@ void view3d_home(int centre)
 		G.vd->ofs[2]= -(min[2]+max[2])/2.0;
 
 		G.vd->dist= size;
+		
+		// correction for window aspect ratio
+		if(curarea->winy>2 && curarea->winx>2) {
+			size= (float)curarea->winx/(float)curarea->winy;
+			if(size<1.0) size= 1.0/size;
+			G.vd->dist*= size;
+		}
 		
 		if(G.vd->persp==2) G.vd->persp= 1;
 		
