@@ -28,13 +28,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 10, 2001
+ * @file	GHOST_Rect.h
+ * Declaration of GHOST_Rect rectangle class.
  */
 
 #ifndef _H_GHOST_Rect

@@ -28,13 +28,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 10, 2001
+ * @file	GHOST_WindowCarbon.h
+ * Declaration of GHOST_WindowCarbon class.
  */
 
 #ifndef _GHOST_WINDOW_CARBON_H_
@@ -53,10 +49,17 @@
 
 /**
  * Window on Mac OSX/Carbon.
+ * WILL BE ADDED:
+ * Carbon windows have a size widget in the lower right corner of the window.
+ * To force it to be visible, the height of the client rectangle is reduced so
+ * that applications do not draw in that area. GHOST will manage that area
+ * which is called the gutter.
+ * END WILL BE ADDED
+ * When OpenGL contexts are active, GHOST will use AGL_BUFFER_RECT to prevent
+ * OpenGL drawing outside the reduced client rectangle.
  * @author	Maarten Gribnau
  * @date	May 23, 2001
  */
-
 class GHOST_WindowCarbon : public GHOST_Window {
 public:
 	/**

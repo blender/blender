@@ -29,14 +29,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-/**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 31, 2001
- */
-
 #include "GHOST_Buttons.h"
 
 #ifdef HAVE_CONFIG_H

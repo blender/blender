@@ -29,14 +29,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-/**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 31, 2001
- */
-
 #ifndef _GHOST_TYPES_H_
 #define _GHOST_TYPES_H_
 

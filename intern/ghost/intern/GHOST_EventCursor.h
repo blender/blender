@@ -28,13 +28,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 11, 2001
+ * @file	GHOST_EventCursor.h
+ * Declaration of GHOST_EventCursor class.
  */
 
 #ifndef _GHOST_EVENT_CURSOR_H_

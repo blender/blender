@@ -28,13 +28,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 15, 2001
+ * @file	GHOST_Buttons.h
+ * Declaration of GHOST_Buttons struct.
  */
 
 #ifndef _GHOST_BUTTONS_H_
@@ -43,6 +39,12 @@
 #include "GHOST_Types.h"
 
 
+/**
+ * This struct stores the state of the mouse buttons.
+ * Buttons can be set using button masks. 
+ * @author	Maarten Gribnau
+ * @date	May 15, 2001
+ */
 struct GHOST_Buttons {
     /**
      * Constructor.

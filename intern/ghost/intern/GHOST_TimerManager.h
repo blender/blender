@@ -28,13 +28,15 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+/**
+ * @file	GHOST_SystemX11.h
+ * Declaration of GHOST_SystemX11 class.
+ */
 
 /**
 
  * $Id$
  * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 31, 2001
  */
 
 #ifndef _GHOST_TIMER_MANAGER_H_
@@ -55,6 +57,8 @@ class GHOST_TimerTask;
  * Manages a list of timer tasks.
  * Timer tasks added are owned by the manager.
  * Don't delete timer task objects.
+ * @author	Maarten Gribnau
+ * @date	May 31, 2001
  */
 class GHOST_TimerManager
 {

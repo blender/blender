@@ -28,13 +28,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 10, 2001
+ * @file	GHOST_SystemCarbon.h
+ * Declaration of GHOST_SystemCarbon class.
  */
 
 #ifndef _GHOST_SYSTEM_CARBON_H_

@@ -28,13 +28,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 11, 2001
+ * @file	GHOST_Event.h
+ * Declaration of GHOST_Event class.
  */
 
 #ifndef _GHOST_EVENT_H_
@@ -48,7 +44,6 @@
  * @author	Maarten Gribnau
  * @date	May 11, 2001
  */
-
 class GHOST_Event : public GHOST_IEvent
 {
 public:

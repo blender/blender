@@ -28,13 +28,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 28, 2001
+ * @file	GHOST_TimerTask.h
+ * Declaration of GHOST_TimerTask class.
  */
 
 #ifndef _GHOST_TIMER_TASK_H_

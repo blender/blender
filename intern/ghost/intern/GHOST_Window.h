@@ -28,13 +28,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 7, 2001
+ * @file	GHOST_Window.h
+ * Declaration of GHOST_Window class.
  */
 
 #ifndef _GHOST_WINDOW_H_
@@ -46,14 +42,38 @@ class STR_String;
 
 /**
  * Platform independent implementation of GHOST_IWindow.
- * Dimensions are given in screen coordinates that are relative to the upper-left corner of the screen. 
+ * Dimensions are given in screen coordinates that are relative to the 
+ * upper-left corner of the screen.
+ * Implements part of the GHOST_IWindow interface and adds some methods to
+ * be implemented by childs of this class.
  * @author	Maarten Gribnau
  * @date	May 7, 2001
  */
-
 class GHOST_Window : public GHOST_IWindow
 {
 public:
+	/**
+	 * @section Interface inherited from GHOST_IWindow left for derived class
+	 * implementation.
+	 * virtual	bool getValid() const = 0;
+	 * virtual void setTitle(const STR_String& title) = 0;
+	 * virtual void getTitle(STR_String& title) const = 0;
+	 * virtual	void getWindowBounds(GHOST_Rect& bounds) const = 0;
+	 * virtual	void getClientBounds(GHOST_Rect& bounds) const = 0;
+	 * virtual	GHOST_TSuccess setClientWidth(GHOST_TUns32 width) = 0;
+	 * virtual	GHOST_TSuccess setClientHeight(GHOST_TUns32 height) = 0;
+	 * virtual	GHOST_TSuccess setClientSize(GHOST_TUns32 width, GHOST_TUns32 height) = 0;
+	 * virtual	void screenToClient(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const = 0;
+	 * virtual	void clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const = 0;
+	 * virtual GHOST_TWindowState getState() const = 0;
+	 * virtual GHOST_TSuccess setState(GHOST_TWindowState state) = 0;
+	 * virtual GHOST_TWindowOrder getOrder(void) = 0;
+	 * virtual GHOST_TSuccess setOrder(GHOST_TWindowOrder order) = 0;
+	 * virtual GHOST_TSuccess swapBuffers() = 0;
+	 * virtual GHOST_TSuccess activateDrawingContext() = 0;
+	 * virtual GHOST_TSuccess invalidate() = 0;
+	 */
+
 	/**
 	 * Constructor.
 	 * Creates a new window and opens it.

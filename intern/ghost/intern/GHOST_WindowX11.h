@@ -28,13 +28,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 7, 2001
+ * @file	GHOST_WindowX11.h
+ * Declaration of GHOST_WindowX11 class.
  */
 
 #ifndef _GHOST_WINDOWX11_H_

@@ -28,13 +28,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 11, 2001
+ * @file	GHOST_WindowManager.h
+ * Declaration of GHOST_WindowManager class.
  */
 
 #ifndef _GHOST_WINDOW_MANAGER_H_
@@ -49,12 +45,12 @@
 #include "GHOST_Rect.h"
 #include "GHOST_IWindow.h"
 
-//class GHOST_Window;
 
 /**
  * Manages system windows (platform independent implementation).
+ * @author	Maarten Gribnau
+ * @date	May 11, 2001
  */
-
 class GHOST_WindowManager
 {
 public:

@@ -28,13 +28,11 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 30, 2001
+ * @file	GHOST_ISystem.h
+ * Main interface file for C++ Api with declaration of GHOST_ISystem interface
+ * class.
+ * Contains the doxygen documentation main page.
  */
 
 #ifndef _GHOST_ISYSTEM_H_
@@ -47,18 +45,94 @@
 class GHOST_IEventConsumer;
 
 /**
+ *! \mainpage GHOST Main Page
+ *
+ * \section intro Introduction
+ *
+ * GHOST is yet another acronym. It stands for "Generic Handy Operating System
+ * Toolkit". It has been created to replace the OpenGL utility tool kit  
+ * <a href="http://www.opengl.org/developers/documentation/glut.html">GLUT</a>.
+ * GLUT was used in <a href="http://www.blender3d.com">Blender</a> until the
+ * point that Blender needed to be ported to Apple's Mac OSX. Blender needed a
+ * number of modifications in GLUT to work but the GLUT sources for OSX were
+ * unavailable at the time. The decision was made to build our own replacement
+ * for GLUT. In those days, NaN Technologies BV was the company that developed 
+ * Blender. 
+ * <br><br>
+ * Enough history. What does GHOST have to offer?<br>
+ * In short: everything that Blender needed from GLUT to run on all it's supported
+ * operating systems and some extra's.
+ * This includes :
+ * <ul>
+ * <li> Time(r) management.</li>
+ * <li> Display/window management (windows are only created on the main display).
+ * <li> Event management.</li>
+ * <li> Cursor shape management (no custom cursors for now).</li>
+ * <li> Access to the state of the mouse buttons and the keyboard.</li>
+ * <li> Menus for windows with events generated when they are accessed (this is
+ *     work in progress).</li>
+ * </ul>
+ * Font management has been moved to a separate library.
+ *
+ * \section Platforms
+ *
+ * \section Building GHOST
+ *
+ * \section interface Interface
+ * GHOST has two programming interfaces:
+ * <ul>
+ * <li>The C-API. For programs written in C.</li>
+ * <li>The C++-API. For programs written in C++.</li>
+ * </ul>
+ * GHOST itself is writtem in C++ and the C-API is a wrapper around the C++ 
+ * API.
+ *
+ * \subsection cplusplus_api The C++ API consists of the following files:
+ * <ul>
+ * <li>GHOST_IEvent.h</li>
+ * <li>GHOST_IEventConsumer.h</li>
+ * <li>GHOST_IMenu.h (in progress)</li>
+ * <li>GHOST_IMenuBar.h (in progress)</li>
+ * <li>GHOST_ISystem.h</li>
+ * <li>GHOST_ITimerTask.h</li>
+ * <li>GHOST_IWindow.h</li>
+ * <li>GHOST_Rect.h</li>
+ * <li>GHOST_Types.h</li>
+ * </ul>
+ * For an example of using the C++-API, have a look at the GHOST_C-Test.cpp
+ * program in the ?/ghost/test/gears/ directory.
+ *
+ * \subsection c_api The C-API
+ * To use GHOST in programs written in C, include the file GHOST_C-API.h in 
+ * your program. This file includes the GHOST_Types.h file for all GHOST types
+ * and defines functions that give you access to the same functionality present
+ * in the C++ API.<br>
+ * For an example of using the C-API, have a look at the GHOST_C-Test.c program
+ * in the ?/ghost/test/gears/ directory.
+ *
+ * \section work Work in progress
+ *
+ * \subsection menus Menu functionality
+ * Menu bars with pull-down menu's for windows are in development in the 
+ * current version of GHOST. The file GHOST_MenuDependKludge.h contains a 
+ * setting to turn menu functionality on or off.
+ */
+ 
+/**
  * Interface for classes that provide access to the operating system.
  * There should be only one system class in an application.
  * Therefore, the routines to create and dispose the system are static.
  * Provides:
- * 1. Time(r) management.
- * 2. Display/window management (windows are only created on the main display for now).
- * 3. Event management.
- * 4. Access to the state of the mouse buttons and the keyboard.
+ * 	-# Time(r) management.
+ * 	-# Display/window management (windows are only created on the main display).
+ * 	-# Event management.
+ * 	-# Cursor shape management (no custom cursors for now).
+ * 	-# Access to the state of the mouse buttons and the keyboard.
+ * 	-# Menus for windows with events generated when they are accessed (this is
+ *     work in progress).
  * @author	Maarten Gribnau
  * @date	May 30, 2001
  */
-
 class GHOST_ISystem
 {
 public:

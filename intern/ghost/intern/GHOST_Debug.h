@@ -30,11 +30,8 @@
  */
 
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	June 1, 2001
+ * @file	GHOST_Debug.h
+ * Macro's used in GHOST debug target.
  */
 
 #ifndef _GHOST_DEBUG_H_

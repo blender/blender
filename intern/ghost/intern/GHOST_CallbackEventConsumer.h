@@ -28,13 +28,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	October 25, 2001
+ * @file	GHOST_CallbackEventConsumer.h
+ * Declaration of GHOST_CallbackEventConsumer class.
  */
 
 #ifndef _GHOST_CALLBACK_EVENT_CONSUMER_H_
@@ -44,16 +40,22 @@
 #include "GHOST_C-api.h"
 
 /**
- * Interface class for objects interested in receiving events.
+ * Event consumer that will forward events to a call-back routine.
+ * Especially useful for the C-API.
+ * @author	Maarten Gribnau
+ * @date	October 25, 2001
  */
 class GHOST_CallbackEventConsumer : public GHOST_IEventConsumer
 {
 public:
 	/**
 	 * Constructor.
+	 * @param	eventCallback	The call-back routine invoked.
+	 * @param	userData		The data passed back though the call-back routine.
 	 */
-	GHOST_CallbackEventConsumer(GHOST_EventCallbackProcPtr eventCallback, 
-								GHOST_TUserDataPtr userData);
+	GHOST_CallbackEventConsumer(
+		GHOST_EventCallbackProcPtr eventCallback, 
+		GHOST_TUserDataPtr userData);
 
 	/**
 	 * Destructor.
@@ -70,7 +72,9 @@ public:
 	virtual	bool processEvent(GHOST_IEvent* event);
 
 protected:
+	/** The call-back routine invoked. */
 	GHOST_EventCallbackProcPtr	m_eventCallback;
+	/** The data passed back though the call-back routine. */
 	GHOST_TUserDataPtr			m_userData;
 };
 

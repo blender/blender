@@ -28,13 +28,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 17, 2001
+ * @file	GHOST_ModifierKeys.h
+ * Declaration of GHOST_ModifierKeys struct.
  */
 
 #ifndef _GHOST_MODIFIER_KEYS_H_
@@ -42,6 +38,12 @@
 
 #include "GHOST_Types.h"
 
+/**
+ * Stores the state of modifier keys.
+ * Discriminates between left and right modifier keys.
+ * @author	Maarten Gribnau
+ * @date	May 17, 2001
+ */
 struct GHOST_ModifierKeys
 {
     /**

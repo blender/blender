@@ -28,13 +28,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 7, 2001
+ * @file	GHOST_System.h
+ * Declaration of GHOST_System class.
  */
 
 #ifndef _GHOST_SYSTEM_H_
@@ -57,21 +53,14 @@ class GHOST_Window;
 class GHOST_WindowManager;
 
 /**
- * Implementation of platform independent functionality of the GHOST_ISystem interface.
- * GHOST_System is an abstract base class because not all methods of GHOST_ISystem are implemented.
- * There should be only one system class in an application.
- * Therefore, the routines to create and dispose the system are static.
- * Provides:
- * 1. Time(r) management.
- * 2. Display/window management (windows are only created on the main display for now).
- * 3. Event management.
- * 4. Cursor shape management (no custom cursors for now).
- * 5. Access to the state of the mouse buttons and the keyboard.
+ * Implementation of platform independent functionality of the GHOST_ISystem
+ * interface.
+ * GHOST_System is an abstract class because not all methods of GHOST_ISystem
+ * are implemented.
  * @see GHOST_ISystem.
  * @author	Maarten Gribnau
  * @date	May 7, 2001
  */
-
 class GHOST_System : public GHOST_ISystem
 {
 protected:

@@ -28,13 +28,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 31, 2001
+ * @file	GHOST_IWindow.h
+ * Declaration of GHOST_IWindow interface class.
  */
 
 #ifndef _GHOST_IWINDOW_H_
@@ -47,11 +43,22 @@
 
 /**
  * Interface for GHOST windows.
- * Dimensions are given in screen coordinates that are relative to the upper-left corner of the screen. 
+ *
+ * You can create a window with the system's GHOST_ISystem::createWindow 
+ * method.
+ * @see GHOST_ISystem#createWindow
+ *
+ * There are two coordinate systems:
+ * <ul>
+ * <li>The screen coordinate system. The origin of the screen is located in the
+ * upper left corner of the screen.</li> 
+ * <li>The client rectangle coordinate system. The client rectangle of a window
+ * is the area that is drawable by the application (excluding title bars etc.).
+ * </li> 
+ * </ul>
  * @author	Maarten Gribnau
  * @date	May 31, 2001
  */
-
 class GHOST_IWindow
 {
 public:

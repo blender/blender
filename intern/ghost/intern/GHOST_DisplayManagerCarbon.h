@@ -28,13 +28,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	September 21, 2001
+ * @file	GHOST_DisplayManagerCarbon.h
+ * Declaration of GHOST_DisplayManagerCarbon class.
  */
 
 #ifndef _GHOST_DISPLAY_MANAGER_CARBON_H_
@@ -50,8 +46,10 @@
 
 /**
  * Manages system displays  (Mac OSX/Carbon implementation).
+ * @see GHOST_DisplayManager
+ * @author	Maarten Gribnau
+ * @date	September 21, 2001
  */
-
 class GHOST_DisplayManagerCarbon : public GHOST_DisplayManager
 {
 public:

@@ -28,13 +28,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	September 21, 2001
+ * @file	GHOST_DisplayManagerX11.h
+ * Declaration of GHOST_DisplayManagerX11 class.
  */
 
 #ifndef _GHOST_DISPLAY_MANAGER_X11_H_
@@ -47,8 +43,9 @@ class GHOST_SystemX11;
 
 /**
  * Manages system displays  (X11 implementation).
+ * @author	Laurence Bourn
+ * @date	October 26, 2001
  */
-
 class GHOST_DisplayManagerX11 : public GHOST_DisplayManager
 {
 public:

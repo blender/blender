@@ -28,13 +28,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 31, 2001
+ * @file	GHOST_IEvent.h
+ * Declaration of GHOST_IEvent interface class.
  */
 
 #ifndef _GHOST_IEVENT_H_
@@ -45,7 +41,14 @@
 class GHOST_IWindow;
 
 /**
- * Interface class for events received the operating system.
+ * Interface class for events received from GHOST.
+ * You should not need to inherit this class. The system will pass these events
+ * to the GHOST_IEventConsumer::processEvent() method of event consumers.<br>
+ * Use the getType() method to retrieve the type of event and the getData() 
+ * method to get the event data out. Using the event type you can cast the 
+ * event data to the correct event dat structure.
+ * @see GHOST_IEventConsumer#processEvent
+ * @see GHOST_TEventType
  * @author	Maarten Gribnau
  * @date	May 31, 2001
  */

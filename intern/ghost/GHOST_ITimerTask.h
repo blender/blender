@@ -28,13 +28,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 31, 2001
+ * @file	GHOST_ITimerTask.h
+ * Declaration of GHOST_ITimerTask interface class.
  */
 
 #ifndef _GHOST_ITIMER_TASK_H_
@@ -45,6 +41,15 @@
 
 /**
  * Interface for a timer task.
+ * Timer tasks are created by the system and can be installed by the system.
+ * After installation, the timer callback-procedure or "timerProc" will be called 
+ * periodically. You should not need to inherit this class. It is passed to the
+ * application in the timer-callback.<br>
+ * <br>
+ * Note that GHOST processes timers in the UI thread. You should ask GHOST 
+ * process messages in order for the timer-callbacks to be called.
+ * @see GHOST_ISystem#installTimer
+ * @see GHOST_TimerProcPtr
  * @author	Maarten Gribnau
  * @date	May 31, 2001
  */

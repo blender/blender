@@ -28,13 +28,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 10, 2001
+ * @file	GHOST_WindowWin32.h
+ * Declaration of GHOST_WindowWin32 class.
  */
 
 #ifndef _GHOST_WINDOW_WIN32_H_
@@ -54,7 +50,6 @@
  * @author	Maarten Gribnau
  * @date	May 10, 2001
  */
-
 class GHOST_WindowWin32 : public GHOST_Window {
 public:
 	/**
