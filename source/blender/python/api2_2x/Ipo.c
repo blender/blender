@@ -344,7 +344,7 @@ static PyObject *Ipo_addCurve(BPy_Ipo *self, PyObject *args)
     IpoCurve *ptr;
 	int typenumber = -1;
 	char*type = 0;
-	static char *name="mmm";
+	static char *name="mmmppp";
 
 	if (!PyArg_ParseTuple(args, "s",&type))
 		return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected string argument"));
@@ -549,20 +549,32 @@ static PyObject *Ipo_EvaluateCurveOn(BPy_Ipo *self, PyObject *args)
 
 static PyObject *Ipo_getCurvecurval(BPy_Ipo *self, PyObject *args)
 {       
-        int num = 0,i;
-        IpoCurve *icu;
+	int numcurve = 0,i;
+	IpoCurve *icu;
+	char*stringname = 0;
 
-  if (!PyArg_ParseTuple(args, "i",&num))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected int argument"));
-        icu =self->ipo->curve.first;
-        if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"No IPO curve"));
-        for(i = 0;i<num;i++)
-                {
-                        if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"Bad ipo number"));
-                        icu=icu->next;
+  if (!PyArg_ParseTuple(args, "i",&numcurve))
+  if (!PyArg_ParseTuple(args, "s",&stringname))
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected int or string argument"));
+	icu =self->ipo->curve.first;
+	if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"No IPO curve"));
+	if (!stringname)
+	for(i = 0;i<numcurve;i++)
+		{
+			puts(type_from_num(icu->adrcode,icu->blocktype));
+			if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"Bad ipo number"));
+			icu=icu->next;
                  
-    }
-        return PyFloat_FromDouble(icu->curval);
+		}
+	else
+		while (icu){
+			if (!strcmp(type_from_num(icu->adrcode,icu->blocktype),stringname))break;
+			icu=icu->next;
+		}
+	if (icu) return PyFloat_FromDouble(icu->curval);
+	else { Py_INCREF(Py_None);
+  return Py_None;
+	}
 }
 
 

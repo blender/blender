@@ -151,8 +151,8 @@ class Ipo:
   def getCurvecurval(curvepos):
     """
 		Gets the current value of a curve of the Ipo.
-		@type curvepos: int
-		@param curvepos: the position of the curve in the ipo
+		@type curvepos: int or string
+		@param curvepos: the position of the curve in the ipo or the name of the curve
 		@rtype: float
 		@return: the current value of the selected curve of the Ipo.
     """
