@@ -1775,7 +1775,7 @@ static void drawmeshsolid(Object *ob, float *nors)
 	MFace *mface;
 	EditFace *efa;
 	float *extverts=0, *v1, *v2, *v3, *v4;
-	int glmode, setsmooth=0, a, start, end, matnr= -1, vertexpaint;
+	int glmode, setsmooth=0, a, start, end, matnr= -1, vertexpaint, do_wire=0;
 	short no[3], *n1, *n2, *n3, *n4 = NULL;
 	
 	vertexpaint= (G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT)) && (ob==((G.scene->basact) ? (G.scene->basact->object) : 0));
@@ -1859,7 +1859,8 @@ static void drawmeshsolid(Object *ob, float *nors)
 		glmode= GL_QUADS;
 		
 		for(a=start; a<end; a++, mface++, nors+=3) {
-			if(mface->v3) {
+			if(mface->v3==0) do_wire= 1;
+			else {
 				if(tface && (tface->flag & TF_HIDE)) {
 					glBegin(GL_LINE_LOOP);
 					glVertex3fv( (mvert+mface->v1)->co);
@@ -1967,6 +1968,21 @@ static void drawmeshsolid(Object *ob, float *nors)
 		}
 		
 		glEnd();
+		
+		if(do_wire) {
+			start= 0; end= me->totface;
+			set_buildvars(ob, &start, &end);
+			mface= me->mface+start;
+			BIF_ThemeColor(TH_WIRE);
+			glBegin(GL_LINES);
+			for(a=0; a<end; a++, mface++) {
+				if(mface->v3==0) {
+					glVertex3fv((mvert+mface->v1)->co);
+					glVertex3fv((mvert+mface->v2)->co);
+				}
+			}
+			glEnd();
+		}
 	}
 	
 	glDisable(GL_LIGHTING);
