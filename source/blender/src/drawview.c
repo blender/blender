@@ -2271,11 +2271,10 @@ void inner_play_anim_loop(int init, int mode)
 		audiostream_stop();
 		audiostream_start( CFRA );
 	}
-	else
-	{
+	else {
 		if (U.mixbufsize && (G.scene->audio.flag & AUDIO_SYNC)) CFRA = audiostream_pos();
 		else CFRA++;
-	};	
+	}
 }
 
 int play_anim(int mode)
@@ -2323,22 +2322,6 @@ int play_anim(int mode)
 					if(G.qual & LR_SHIFTKEY) viewmove(1);
 					else if(G.qual & LR_CTRLKEY) viewmove(2);
 					else viewmove(0);
-				}
-			}
-			else if(val) {
-				if(event==PAGEUPKEY) {
-					Group *group= G.main->group.first;
-					while(group) {
-						next_group_key(group);
-						group= group->id.next;
-					}
-				}
-				else if(event==PAGEDOWNKEY) {
-					Group *group= G.main->group.first;
-					while(group) {
-						prev_group_key(group);
-						group= group->id.next;
-					}
 				}
 			}
 		}

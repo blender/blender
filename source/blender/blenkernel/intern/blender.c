@@ -276,6 +276,7 @@ static void setup_app_data(BlendFileData *bfd, char *filename) {
 			U.tb_leftmouse= 5;
 			U.tb_rightmouse= 5;
 		}
+		if(U.mixbufsize==0) U.mixbufsize= 2048;
 	}
 	
 	R.winpos= bfd->winpos;
