@@ -818,7 +818,7 @@ static PyObject *NMesh_setMaterials (PyObject *self, PyObject *args)
 	BPy_NMesh *me = (BPy_NMesh *)self;
 	PyObject *pymats = NULL;
 
-	if (!PyArg_ParseTuple (args, "O!", &PyList_Type, pymats))
+	if (!PyArg_ParseTuple (args, "O!", &PyList_Type, &pymats))
 		return EXPP_ReturnPyObjError (PyExc_TypeError,
 			"expected a list of materials (None's also accepted) as argument");
 

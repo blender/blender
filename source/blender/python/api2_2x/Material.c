@@ -1835,26 +1835,26 @@ int EXPP_synchronizeMaterialLists (Object *object)
 {
 		Material	*** p_dataMaterials = give_matarar (object);
 		short				* nmaterials = give_totcolp (object);
+		int result = 0;
 
 		if (object->totcol > *nmaterials) {
 				/* More object mats than data mats */
-				*nmaterials = object->totcol;
-				return expandPtrArray ((void *) p_dataMaterials,
+				result = expandPtrArray ((void *) p_dataMaterials,
 															 *nmaterials,
 															 object->totcol);
+				*nmaterials = object->totcol;
 		}
 		else {
 				if (object->totcol < *nmaterials) {
 						/* More data mats than object mats */
-						object->totcol = *nmaterials;
-						return expandPtrArray ((void *) &object->mat,
+						result = expandPtrArray ((void *) &object->mat,
 																	 object->totcol,
 																	 *nmaterials);
+						object->totcol = *nmaterials;
 				}
-		}
+		} /* else no synchronization needed, they are of equal length */
 
-		/* No synchronization is needed; they're of equal length */
-		return 1;
+		return result; /* 1 if changed, 0 otherwise */
 }
 
 void EXPP_incr_mats_us (Material **matlist, int len)

@@ -1570,21 +1570,21 @@ static PyObject *Object_setMaterials (BPy_Object *self, PyObject *args)
 		if ((len < 0) || (len > MAXMAT))
 		{
 			return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-				"illegal material index!"));
+				"material list should have at least 1, at most 16 entries"));
 		}
 
 		if (self->object->mat)
 		{
-			EXPP_releaseMaterialList (self->object->mat, len);
+			EXPP_releaseMaterialList (self->object->mat, self->object->totcol);
 		}
 		/* Increase the user count on all materials */
 		for (i=0 ; i<len ; i++)
 		{
-			id_us_plus ((ID *) matlist[i]);
+			if (matlist[i]) id_us_plus ((ID *) matlist[i]);
 		}
 		self->object->mat = matlist;
 		self->object->totcol = len;
-		self->object->actcol = -1;
+		self->object->actcol = len;
 
 		switch (self->object->type)
 		{
@@ -1992,6 +1992,8 @@ static PyObject *Object_getScriptLinks (BPy_Object *self, PyObject *args)
 PyObject* Object_CreatePyObject (struct Object *obj)
 {
 	BPy_Object	  * blen_object;
+
+	if (!obj) return EXPP_incr_ret (Py_None);
 
 	blen_object = (BPy_Object*)PyObject_NEW (BPy_Object, &Object_Type);
 
