@@ -554,8 +554,6 @@ static void drawgrid(void)
 	BIF_ThemeColor(TH_GRID);
 	persp(PERSP_WIN);
 	
-	G.vd->gridview= G.vd->grid;
-	
 	if(dx<6.0) {
 		G.vd->gridview*= 10.0;
 		dx*= 10.0;
@@ -1794,6 +1792,9 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	myloadmatrix(G.vd->viewmat);
 	persp(PERSP_STORE);  // store correct view for persp(PERSP_VIEW) calls
 
+	// needs to be done always, gridview is adjusted in drawgrid() now
+	G.vd->gridview= G.vd->grid;
+	
 	if(G.vd->view==0 || G.vd->persp!=0) {
 		drawfloor();
 		if(G.vd->persp==2) {
