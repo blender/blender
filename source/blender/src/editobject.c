@@ -1065,9 +1065,10 @@ void exit_editmode(int freedata)	/* freedata==0 at render */
 			error("too many vertices");
 			return;
 		}
-		load_editMesh();
+		load_editMesh();	/* makes new displist */
 
 		if(freedata) free_editMesh();
+		
 		if(G.f & G_FACESELECT) allqueue(REDRAWIMAGE, 0);
 
 		build_particle_system(G.obedit);
@@ -1094,12 +1095,9 @@ void exit_editmode(int freedata)	/* freedata==0 at render */
 
 	ob= G.obedit;
 	
-	/* obedit has to be 0 for curve-extrude, not for smeshes */
-	if(ob->type==OB_CURVE) G.obedit= 0;
-	G.obedit= 0;
+	/* displist make is different in editmode */
+	if(freedata) G.obedit= NULL;
 	makeDispList(ob);
-	
-	
 
 	/* has this influence at other objects? */
 	if(ob->type==OB_CURVE) {
@@ -1133,9 +1131,6 @@ void exit_editmode(int freedata)	/* freedata==0 at render */
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
 		allqueue(REDRAWBUTSLOGIC, 0);
-	}
-	else {
-		G.obedit= ob;
 	}
 	scrarea_queue_headredraw(curarea);
 

@@ -402,16 +402,25 @@ static HyperMesh *hypermesh_from_editmesh(EditVert *everts, EditEdge *eedges, Ed
 	EditEdge *ee;
 	EditVlak *ef;
 
+		/* we only add vertices with edges, 'f1' is a free flag */
+	for (ev= everts; ev; ev= ev->next) ev->f1= 1;	
+
 		/* hack, tuck the new hypervert pointer into
 		 * the ev->prev link so we can find it easy, 
 		 * then restore real prev links later.
 		 */
-	for (ev= everts; ev; ev= ev->next) 
-		ev->prev= (EditVert*) hypermesh_add_vert(hme, ev->co, ev->co);
-
-	for (ee= eedges; ee; ee= ee->next)
+	for (ee= eedges; ee; ee= ee->next) {
+		if(ee->v1->f1) {
+			ee->v1->prev= (EditVert*) hypermesh_add_vert(hme, ee->v1->co, ee->v1->co);
+			ee->v1->f1= 0;
+		}
+		if(ee->v2->f1) {
+			ee->v2->prev= (EditVert*) hypermesh_add_vert(hme, ee->v2->co, ee->v2->co);
+			ee->v2->f1= 0;
+		}
+			
 		hypermesh_add_edge(hme, (HyperVert*) ee->v1->prev, (HyperVert*) ee->v2->prev, 1);
-	
+	}
 	for (ef= efaces; ef; ef= ef->next) {
 		int nverts= ef->v4?4:3;
 		HyperVert *verts[4];

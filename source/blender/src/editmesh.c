@@ -85,6 +85,7 @@
 #include "BIF_interface.h"
 #include "BIF_editmesh.h"
 #include "BIF_mywindow.h"
+#include "BIF_resources.h"
 #include "BIF_glutil.h"
 
 #include "BSE_view.h"
@@ -1992,39 +1993,29 @@ static EditVert *findnearestvert(short sel)
 
 static void tekenvertices_special(int mode, EditVert *act) /* teken = draw */
 {
-	/* for special cases:
+	/* hackish routine for visual speed:
 	 * mode 0: deselect the selected ones, draw then, except act
 	 * mode 1: only draw act
-	 * only for visual speed, after it redraws all
 	 */
 	EditVert *eve;
-	int doit=0;
 	
-	/* first test if there are special vertices */
-	
-	eve= (EditVert *)G.edve.first;
-	while(eve) {
-		eve->f1= 0;
-		if(eve->h==0) {
-			if(mode==0) {
-				if(eve!=act && eve->f & 1) {
-					doit= 1;
-					eve->f1= 1;
-					eve->f -= 1;
+	if(mode==0) {
+		eve= (EditVert *)G.edve.first;
+		while(eve) {
+			if(eve->h==0) {
+				if(mode==0) {
+					if(eve!=act && eve->f & 1) {
+						eve->f -= 1;
+					}
 				}
 			}
-			else if(mode==1) {
-				if(eve==act) eve->f1= 1;
-				doit= 1;
-			}
+			eve= eve->next;
 		}
-		eve= eve->next;
 	}
-	if(doit==0) return;
-	
-	if(G.f & (G_FACESELECT+G_DRAWFACES)) {
+
+	if(G.f & (G_FACESELECT|G_DRAWFACES|G_DRAWEDGES)) {
+		/* update full view later on */
 		allqueue(REDRAWVIEW3D, 0);
-		return;
 	}
 	
 	glDrawBuffer(GL_FRONT);
@@ -2034,11 +2025,35 @@ static void tekenvertices_special(int mode, EditVert *act) /* teken = draw */
 	persp(PERSP_VIEW);
 	mymultmatrix(G.obedit->obmat);
 
-	tekenvertices(0);
-	tekenvertices(1);
+	if(mode==0) {
+		/* zbuffering is off outside of internal drawing loops... */
+		if(G.vd->drawtype > OB_WIRE) {
+			G.zbuf= 1;
+			glEnable(GL_DEPTH_TEST);
+		}
+		tekenvertices(0);
+		glDisable(GL_DEPTH_TEST);
+	}
+	else {
+		/* only draw active vertex */
+		float size= BIF_GetThemeValuef(TH_VERTEX_SIZE);
+		char col[3];
+		
+		if(act->f & 1) BIF_GetThemeColor3ubv(TH_VERTEX_SELECT, col);
+		else BIF_GetThemeColor3ubv(TH_VERTEX, col);
+		glPointSize(size);
+		glColor3ub(col[0], col[1], col[2]);
+	
+		glBegin(GL_POINTS);
+		glVertex3fv(act->co);
+		glEnd();
+	
+		glPointSize(1.0);
+	}
 	
 	myloadmatrix(G.vd->viewmat);
 
+	glFlush();
 	glDrawBuffer(GL_BACK);
 	
 }
