@@ -1269,8 +1269,8 @@ void hide_mesh(int swap)
 	
 	if(G.scene->selectmode >= SCE_SELECT_EDGE) {
 		for(eed= em->edges.first; eed; eed= eed->next) {
-			if(eed->f1==1) eed->h= 1;
-			if(eed->h) a= 1; else a= 2;
+			if(eed->f1==1) eed->h |= 1;
+			if(eed->h & 1) a= 1; else a= 2;
 			eed->v1->f1 |= a;
 			eed->v2->f1 |= a;
 		}
@@ -1307,18 +1307,19 @@ void reveal_mesh(void)
 	for(eed= em->edges.first; eed; eed= eed->next) {
 		if(eed->h & 1) {
 			eed->h &= ~1;
-			eed->f |= SELECT;
+			EM_select_edge(eed, 1);
 		}
 	}
 
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		if(efa->h) {
 			efa->h= 0;
-			efa->f |= SELECT;
+			EM_select_face(efa, 1);
 		}
 	}
 	
-	EM_select_flush();
+	EM_fgon_flags();	// redo flags and indices for fgons
+	EM_selectmode_flush();
 	
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);

@@ -174,7 +174,7 @@ static void make_fgon(void)
 	EditFace *efa;
 	EditEdge *eed;
 	EditVert *eve;
-	float *nor=NULL, dot;	// reference
+	float *nor=NULL;	// reference
 	int done=0, ret;
 	
 	ret= pupmenu("FGon %t|Make|Clear");
@@ -200,7 +200,7 @@ static void make_fgon(void)
 	/* tagging edges. rule is:
 	   - edge used by exactly 2 selected faces
 	   - no vertices allowed with only tagged edges (return)
-	   - face normals should not differ too much 
+	   - face normals are allowed to difffer
 	 
 	*/
 	for(eed= em->edges.first; eed; eed= eed->next) {
@@ -249,22 +249,12 @@ static void make_fgon(void)
 		return;
 	}
 	
-	// check co-planar
+	// check for faces
 	if(nor==NULL) {
 		error("No faces selected to make FGon");
 		return;
 	}
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		if(efa->f & SELECT) {
-			dot= nor[0]*efa->n[0]+nor[1]*efa->n[1]+nor[2]*efa->n[2];
-			if(dot<0.9 && dot > -0.9) break;
-		}
-	}
-	if(efa) {
-		error("Not a set of co-planar faces to make FGon");
-		return;
-	}
-	
+
 	// and there we go
 	for(eed= em->edges.first; eed; eed= eed->next) {
 		if(eed->f1) {
