@@ -5534,10 +5534,11 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 						fd->libmap= basefd->libmap;
 						fd->flags|= FD_FLAGS_NOT_MY_LIBMAP;
+						
+						mainptr->curlib->filedata= fd;
+						mainptr->versionfile= fd->fileversion;
 					}
-
-					mainptr->curlib->filedata= fd;
-					mainptr->versionfile= fd->fileversion;
+					else mainptr->curlib->filedata= NULL;
 
 					if (!fd)
 						printf("ERROR: can't find lib %s \n", mainptr->curlib->name);

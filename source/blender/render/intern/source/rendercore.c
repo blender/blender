@@ -1724,18 +1724,18 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 	if(vlr->flag & R_SMOOTH) { 
 		float n1[3], n2[3], n3[3];
 		
-		if(vlr->puno & p1) {
+		if(shi->puno & p1) {
 			n1[0]= -v1->n[0]; n1[1]= -v1->n[1]; n1[2]= -v1->n[2];
 		} else {
 			n1[0]= v1->n[0]; n1[1]= v1->n[1]; n1[2]= v1->n[2];
 		}
-		if(vlr->puno & p2) {
+		if(shi->puno & p2) {
 			n2[0]= -v2->n[0]; n2[1]= -v2->n[1]; n2[2]= -v2->n[2];
 		} else {
 			n2[0]= v2->n[0]; n2[1]= v2->n[1]; n2[2]= v2->n[2];
 		}
 		
-		if(vlr->puno & p3) {
+		if(shi->puno & p3) {
 			n3[0]= -v3->n[0]; n3[1]= -v3->n[1]; n3[2]= -v3->n[2];
 		} else {
 			n3[0]= v3->n[0]; n3[1]= v3->n[1]; n3[2]= v3->n[2];

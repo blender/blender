@@ -325,6 +325,11 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 		G.curscreen= bfd->curscreen;
 		G.scene= G.curscreen->scene;
 	}
+	/* this can happen when active scene was lib-linked, and doesnt exist anymore */
+	if(G.scene==NULL) {
+		G.scene= G.main->scene.first;
+		G.curscreen->scene= G.scene;
+	}
 	
 	/* special cases, override loaded flags: */
 	if (G.f & G_DEBUG) bfd->globalf |= G_DEBUG;
