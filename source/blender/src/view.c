@@ -449,6 +449,8 @@ void viewmove(int mode)
 
 
 			if(mode==0) {	/* view rotate */
+
+				if (U.uiflag & USER_AUTOPERSP) G.vd->persp= 1;
 			
 				/* if turntable method, we don't change mvalball[0] */
 			

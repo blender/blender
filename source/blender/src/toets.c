@@ -59,6 +59,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
@@ -273,7 +274,8 @@ void persptoetsen(unsigned short event)
 			G.vd->viewquat[2]= 0.0;
 			G.vd->viewquat[3]= 0.0;
 			G.vd->view= 7;
-			if(G.vd->persp>=2) G.vd->persp= perspo;
+			if (U.uiflag & USER_AUTOPERSP) G.vd->persp= 0; 
+			else if(G.vd->persp>=2) G.vd->persp= perspo;
 		}
 		else if(event==PAD1) {
 			G.vd->viewquat[0]= 0.0;
@@ -281,7 +283,8 @@ void persptoetsen(unsigned short event)
 			G.vd->viewquat[2]= (float)-cos(M_PI/4.0);
 			G.vd->viewquat[3]= (float)-cos(M_PI/4.0);
 			G.vd->view=1;
-			if(G.vd->persp>=2) G.vd->persp= perspo;
+			if (U.uiflag & USER_AUTOPERSP) G.vd->persp= 0;
+			else if(G.vd->persp>=2) G.vd->persp= perspo;
 		}
 		else if(event==PAD3) {
 			G.vd->viewquat[0]= 0.5;
@@ -289,7 +292,8 @@ void persptoetsen(unsigned short event)
 			G.vd->viewquat[2]= 0.5;
 			G.vd->viewquat[3]= 0.5;
 			G.vd->view=3;
-			if(G.vd->persp>=2) G.vd->persp= perspo;
+			if (U.uiflag & USER_AUTOPERSP) G.vd->persp= 0;
+			else if(G.vd->persp>=2) G.vd->persp= perspo;
 		}
 		else if(event==PADMINUS) {
 			/* this min and max is also in viewmove() */
@@ -327,7 +331,8 @@ void persptoetsen(unsigned short event)
 			G.vd->viewquat[2]= 0.0;
 			G.vd->viewquat[3]= 0.0;
 			G.vd->view=7;
-			if(G.vd->persp>=2) G.vd->persp= perspo;
+			if (U.uiflag & USER_AUTOPERSP) G.vd->persp= 0;
+			else if(G.vd->persp>=2) G.vd->persp= perspo;
 		}
 		else if(event==PAD1) {
 			G.vd->viewquat[0]= (float)cos(M_PI/4.0);
@@ -335,7 +340,8 @@ void persptoetsen(unsigned short event)
 			G.vd->viewquat[2]= 0.0;
 			G.vd->viewquat[3]= 0.0;
 			G.vd->view=1;
-			if(G.vd->persp>=2) G.vd->persp= perspo;
+			if (U.uiflag & USER_AUTOPERSP) G.vd->persp= 0;
+			else if(G.vd->persp>=2) G.vd->persp= perspo;
 		}
 		else if(event==PAD3) {
 			G.vd->viewquat[0]= 0.5;
@@ -343,7 +349,8 @@ void persptoetsen(unsigned short event)
 			G.vd->viewquat[2]= -0.5;
 			G.vd->viewquat[3]= -0.5;
 			G.vd->view=3;
-			if(G.vd->persp>=2) G.vd->persp= perspo;
+			if (U.uiflag & USER_AUTOPERSP) G.vd->persp= 0;
+			else if(G.vd->persp>=2) G.vd->persp= perspo;
 		}
 		else if(event==PADMINUS) {
 			/* this min and max is also in viewmove() */

@@ -89,12 +89,13 @@ typedef enum {
 	ICON_POSE_HLT,
 	ICON_BORDERMOVE,
 	ICON_MAYBE_ITS_A_LASSO,
-	ICON_BLANK1,
+	ICON_BLANK1,	/* ATTENTION, someone decided to use this throughout blender
+	                   and didn't care to neither rename it nor update the PNG */
 	ICON_ROTATE,
 	ICON_CURSOR,
 	ICON_ROTATECOLLECTION,
 	ICON_ROTATECENTER,
-	ICON_BLANK7,
+	ICON_ALIGN,
 	ICON_BLANK8,
 	ICON_BLANK9,
 	ICON_BLANK10,

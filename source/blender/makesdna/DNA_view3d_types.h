@@ -120,6 +120,7 @@ typedef struct View3D {
 #define V3D_POSEMODE		128
 #define V3D_TEXTUREPAINT	256
 #define V3D_WEIGHTPAINT		512
+#define V3D_ALIGN			1024
 
 /* View3D->around */
 #define V3D_CENTRE		0

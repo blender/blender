@@ -4968,114 +4968,117 @@ void transform(int mode)
 							 * 2. distill from this the euler. Always do this step because MatToEul is pretty weak
 							 * 3. multiply with its own rotation, calculate euler.
 							 */
-						
-							/* Roll around local axis */
-							if (mode=='r' || mode=='R'){
-
-								if (tob && axismode && (turntable == 0)){
-									if (axismode == XTRANSLOCAL){ 
-										VECCOPY(vec, tob->axismat[0]);
-									}
-									if (axismode == YTRANSLOCAL){
-										VECCOPY(vec, tob->axismat[1]);
-									}
-									if (axismode == ZTRANSLOCAL){
-										VECCOPY(vec, tob->axismat[2]);
-									}
-									/* Correct the vector */
-									if ((axismode & TRANSLOCAL) && ((G.vd->viewmat[0][2] * vec[0]+G.vd->viewmat[1][2] * vec[1]+G.vd->viewmat[2][2] * vec[2])>0)){
-										vec[0]*=-1;
-										vec[1]*=-1;
-										vec[2]*=-1;
-									}
-
-									if (typemode)
-										VecRotToMat3(vec, addvec[0] * M_PI / 180.0, mat);
-									else
-										VecRotToMat3(vec, phi, mat);
-										
-								}
-							}
-							Mat3MulSerie(smat, tob->parmat, mat, tob->parinv, 0, 0, 0, 0, 0);
-
-							/* 2 */
-							if( (tob->ob->transflag & OB_QUAT) == 0 && tob->rot){
-								Mat3ToEul(smat, eul);
-								EulToMat3(eul, smat);
-							}
-						
-							/* 3 */
-							/* we now work with rot+drot */
-								
-							if(tob->ob->transflag & OB_QUAT || !tob->rot) {
 							
-								/* drot+rot TO DO! */
-								Mat3ToQuat(smat, quat);	// Original
-								QuatMul(tob->quat, quat, tob->oldquat);
-								
-								if(tob->flag & TOB_IPO) {
-									
-									if(tob->flag & TOB_IPODROT) {
-										/* VecSubf(rot, eul, tob->oldrot); */
-									}
-									else {
-										/* VecSubf(rot, eul, tob->olddrot); */
-									}
-	
-									/* VecMulf(rot, 9.0/M_PI_2); */
-									/* VecSubf(rot, rot, tob->oldrot+3); */
-
-									/* add_ipo_tob_poin(tob->rotx, tob->oldrot+3, rot[0]); */
-									/* add_ipo_tob_poin(tob->roty, tob->oldrot+4, rot[1]); */
-									/* add_ipo_tob_poin(tob->rotz, tob->oldrot+5, rot[2]); */
-	
-								}
-								else {
-									/* QuatSub(tob->quat, quat, tob->oldquat); */
-								}
-							}
-							else {
-								VecAddf(eul, tob->oldrot, tob->olddrot);
-								EulToMat3(eul, tmat);
-
-								Mat3MulMat3(totmat, smat, tmat);
-
-								Mat3ToEul(totmat, eul);
-
-								/* Eul is not allowed to differ too much from old eul.
-								 * This has only been tested for dx && dz
-								 */
-								
-								compatible_eul(eul, tob->oldrot);
+							if ((G.vd->flag & V3D_ALIGN)==0) {
 							
-								if(tob->flag & TOB_IPO) {
-									
-									if(tob->flag & TOB_IPODROT) {
-										VecSubf(rot, eul, tob->oldrot);
-									}
-									else {
-										VecSubf(rot, eul, tob->olddrot);
-									}
-	
-									VecMulf(rot, 9.0/M_PI_2);
-									VecSubf(rot, rot, tob->oldrot+3);
+    							/* Roll around local axis */
+    							if (mode=='r' || mode=='R'){
+
+    								if (tob && axismode && (turntable == 0)){
+    									if (axismode == XTRANSLOCAL){ 
+    										VECCOPY(vec, tob->axismat[0]);
+    									}
+    									if (axismode == YTRANSLOCAL){
+    										VECCOPY(vec, tob->axismat[1]);
+    									}
+    									if (axismode == ZTRANSLOCAL){
+    										VECCOPY(vec, tob->axismat[2]);
+    									}
+    									/* Correct the vector */
+    									if ((axismode & TRANSLOCAL) && ((G.vd->viewmat[0][2] * vec[0]+G.vd->viewmat[1][2] * vec[1]+G.vd->viewmat[2][2] * vec[2])>0)){
+    										vec[0]*=-1;
+    										vec[1]*=-1;
+    										vec[2]*=-1;
+    									}
+
+    									if (typemode)
+    										VecRotToMat3(vec, addvec[0] * M_PI / 180.0, mat);
+    									else
+    										VecRotToMat3(vec, phi, mat);
+    										
+    								}
+    							}
+    							Mat3MulSerie(smat, tob->parmat, mat, tob->parinv, 0, 0, 0, 0, 0);
+
+    							/* 2 */
+    							if( (tob->ob->transflag & OB_QUAT) == 0 && tob->rot){
+    								Mat3ToEul(smat, eul);
+    								EulToMat3(eul, smat);
+    							}
+    						
+    							/* 3 */
+    							/* we now work with rot+drot */
+    								
+    							if(tob->ob->transflag & OB_QUAT || !tob->rot) {
+    							
+    								/* drot+rot TO DO! */
+    								Mat3ToQuat(smat, quat);	// Original
+    								QuatMul(tob->quat, quat, tob->oldquat);
+    								
+    								if(tob->flag & TOB_IPO) {
+    									
+    									if(tob->flag & TOB_IPODROT) {
+    										/* VecSubf(rot, eul, tob->oldrot); */
+    									}
+    									else {
+    										/* VecSubf(rot, eul, tob->olddrot); */
+    									}
+    	
+    									/* VecMulf(rot, 9.0/M_PI_2); */
+    									/* VecSubf(rot, rot, tob->oldrot+3); */
+
+    									/* add_ipo_tob_poin(tob->rotx, tob->oldrot+3, rot[0]); */
+    									/* add_ipo_tob_poin(tob->roty, tob->oldrot+4, rot[1]); */
+    									/* add_ipo_tob_poin(tob->rotz, tob->oldrot+5, rot[2]); */
+    	
+    								}
+    								else {
+    									/* QuatSub(tob->quat, quat, tob->oldquat); */
+    								}
+    							}
+    							else {
+    								VecAddf(eul, tob->oldrot, tob->olddrot);
+    								EulToMat3(eul, tmat);
+
+    								Mat3MulMat3(totmat, smat, tmat);
+
+    								Mat3ToEul(totmat, eul);
+
+    								/* Eul is not allowed to differ too much from old eul.
+    								 * This has only been tested for dx && dz
+    								 */
+    								
+    								compatible_eul(eul, tob->oldrot);
+    							
+    								if(tob->flag & TOB_IPO) {
+    									
+    									if(tob->flag & TOB_IPODROT) {
+    										VecSubf(rot, eul, tob->oldrot);
+    									}
+    									else {
+    										VecSubf(rot, eul, tob->olddrot);
+    									}
+    	
+    									VecMulf(rot, 9.0/M_PI_2);
+    									VecSubf(rot, rot, tob->oldrot+3);
 
 
-									add_ipo_tob_poin(tob->rotx, tob->oldrot+3, rot[0]);
-									add_ipo_tob_poin(tob->roty, tob->oldrot+4, rot[1]);
-									add_ipo_tob_poin(tob->rotz, tob->oldrot+5, rot[2]);
-	
-								}
-								else {
-									VecSubf(tob->rot, eul, tob->olddrot);
-								}
-								
-								/* See if we've moved */
-								if (!VecCompare (tob->loc, tob->oldloc, 0.01)){
-									keyflags |= KEYFLAG_LOC;
-								}
+    									add_ipo_tob_poin(tob->rotx, tob->oldrot+3, rot[0]);
+    									add_ipo_tob_poin(tob->roty, tob->oldrot+4, rot[1]);
+    									add_ipo_tob_poin(tob->rotz, tob->oldrot+5, rot[2]);
+    	
+    								}
+    								else {
+    									VecSubf(tob->rot, eul, tob->olddrot);
+    								}
+    								
+    								/* See if we've moved */
+    								if (!VecCompare (tob->loc, tob->oldloc, 0.01)){
+    									keyflags |= KEYFLAG_LOC;
+    								}
 
-							}
+    							}
+    							}
 							
 							if(G.vd->around!=V3D_LOCAL && (!G.obpose))  {
 								float vec[3];	// make local, the other vec stores rot axis
@@ -5265,53 +5268,56 @@ void transform(int mode)
 							/* size local with respect to parent AND own rotation */
 							/* local wrt parent: */
 							
-							Mat3MulSerie(smat, tob->parmat, mat, tob->parinv, 0, 0,0 ,0, 0);
+							if ((G.vd->flag & V3D_ALIGN)==0)  {							
 							
-							/* local wrt own rotation: */
-							Mat3MulSerie(totmat, tob->obmat, smat, tob->obinv, 0, 0, 0,0 ,0);
+    							Mat3MulSerie(smat, tob->parmat, mat, tob->parinv, 0, 0,0 ,0, 0);
+    							
+    							/* local wrt own rotation: */
+    							Mat3MulSerie(totmat, tob->obmat, smat, tob->obinv, 0, 0, 0,0 ,0);
 
-							/* XXX this can yield garbage in case of inverted sizes (< 0.0)
-													*/
-							if(!midtog) {
-								sizelo[0]= size[0];
-								sizelo[1]= size[1];
-								sizelo[2]= size[2];
-							} else { 	
-							/* in this case the previous calculation of the size is wrong */
-								sizelo[0]= totmat[0][0];	
-								sizelo[1]= totmat[1][1];	
-								sizelo[2]= totmat[2][2];
-								apply_keyb_grid(sizelo, 0.0, 0.1, 0.01, gridflag & USER_AUTOSIZEGRID);
-								apply_keyb_grid(sizelo+1, 0.0, 0.1, 0.01, gridflag & USER_AUTOSIZEGRID);
-								apply_keyb_grid(sizelo+2, 0.0, 0.1, 0.01, gridflag & USER_AUTOSIZEGRID);
-							} 
+    							/* XXX this can yield garbage in case of inverted sizes (< 0.0)
+    													*/
+    							if(!midtog) {
+    								sizelo[0]= size[0];
+    								sizelo[1]= size[1];
+    								sizelo[2]= size[2];
+    							} else { 	
+    							/* in this case the previous calculation of the size is wrong */
+    								sizelo[0]= totmat[0][0];	
+    								sizelo[1]= totmat[1][1];	
+    								sizelo[2]= totmat[2][2];
+    								apply_keyb_grid(sizelo, 0.0, 0.1, 0.01, gridflag & USER_AUTOSIZEGRID);
+    								apply_keyb_grid(sizelo+1, 0.0, 0.1, 0.01, gridflag & USER_AUTOSIZEGRID);
+    								apply_keyb_grid(sizelo+2, 0.0, 0.1, 0.01, gridflag & USER_AUTOSIZEGRID);
+    							} 
 
-								/* x flip */
-/**/						/* sizelo[0]*= xref; */
-								/* y flip */
-/**/						/* sizelo[1]*= yref; */
-								/* z flip */
-/**/						/* sizelo[2]*= zref; */
+    								/* x flip */
+    /**/						/* sizelo[0]*= xref; */
+    								/* y flip */
+    /**/						/* sizelo[1]*= yref; */
+    								/* z flip */
+    /**/						/* sizelo[2]*= zref; */
 
 
-							/* what you see is what you want; not what you get! */
-							/* correction for delta size */
-							if(tob->flag & TOB_IPO) {
-								/* calculate delta size (equal for size and dsize) */
-								
-								vec[0]= (tob->oldsize[0]+tob->olddsize[0])*(sizelo[0] -1.0);
-								vec[1]= (tob->oldsize[1]+tob->olddsize[1])*(sizelo[1] -1.0);
-								vec[2]= (tob->oldsize[2]+tob->olddsize[2])*(sizelo[2] -1.0);
+    							/* what you see is what you want; not what you get! */
+    							/* correction for delta size */
+    							if(tob->flag & TOB_IPO) {
+    								/* calculate delta size (equal for size and dsize) */
+    								
+    								vec[0]= (tob->oldsize[0]+tob->olddsize[0])*(sizelo[0] -1.0);
+    								vec[1]= (tob->oldsize[1]+tob->olddsize[1])*(sizelo[1] -1.0);
+    								vec[2]= (tob->oldsize[2]+tob->olddsize[2])*(sizelo[2] -1.0);
 
-								add_ipo_tob_poin(tob->sizex, tob->oldsize+3, vec[0]);
-								add_ipo_tob_poin(tob->sizey, tob->oldsize+4, vec[1]);
-								add_ipo_tob_poin(tob->sizez, tob->oldsize+5, vec[2]);
-								
-							}
-							else {
-								tob->size[0]= (tob->oldsize[0]+tob->olddsize[0])*sizelo[0] -tob->olddsize[0];
-								tob->size[1]= (tob->oldsize[1]+tob->olddsize[1])*sizelo[1] -tob->olddsize[1];
-								tob->size[2]= (tob->oldsize[2]+tob->olddsize[2])*sizelo[2] -tob->olddsize[2];
+    								add_ipo_tob_poin(tob->sizex, tob->oldsize+3, vec[0]);
+    								add_ipo_tob_poin(tob->sizey, tob->oldsize+4, vec[1]);
+    								add_ipo_tob_poin(tob->sizez, tob->oldsize+5, vec[2]);
+    								
+    							}
+    							else {
+    								tob->size[0]= (tob->oldsize[0]+tob->olddsize[0])*sizelo[0] -tob->olddsize[0];
+    								tob->size[1]= (tob->oldsize[1]+tob->olddsize[1])*sizelo[1] -tob->olddsize[1];
+    								tob->size[2]= (tob->oldsize[2]+tob->olddsize[2])*sizelo[2] -tob->olddsize[2];
+    							}
 							}
 							
 							if(G.vd->around!=V3D_LOCAL && !G.obpose) {

@@ -535,6 +535,7 @@ static void drawgrid(void)
 	/* check zoom out */
 	BIF_ThemeColor(TH_GRID);
 	persp(PERSP_WIN);
+	setlinestyle(3);
 
 	if(dx<6.0) {
 		dx*= 10.0;
@@ -585,13 +586,16 @@ static void drawgrid(void)
 			else {
 				BIF_ThemeColorBlend(TH_BACK, TH_GRID, dx/60.0);
 				drawgrid_draw(wx, wy, x, y, dx);
-				BIF_ThemeColor(TH_GRID);
-				drawgrid_draw(wx, wy, x, y, dx*10);
+				BIF_ThemeColor(TH_GRID);				
+				setlinestyle(0);
+				drawgrid_draw(wx, wy, x, y, dx*10);			/* 1:1 */
 			}
 		}
 		else {
 			BIF_ThemeColorBlend(TH_BACK, TH_GRID, dx/60.0);
-			drawgrid_draw(wx, wy, x, y, dx);
+			setlinestyle(0);
+			drawgrid_draw(wx, wy, x, y, dx);				/* 1:1 */
+			setlinestyle(3);
 			BIF_ThemeColor(TH_GRID);
 			drawgrid_draw(wx, wy, x, y, dx*10);
 		}

@@ -267,6 +267,43 @@ void copy_view3d_lock(short val)
 	}
 }
 
+void handle_view3d_around()
+{
+	bScreen *sc;
+	int bit;
+	
+	if ((U.uiflag & USER_LOCKAROUND)==0) return;
+	
+	/* copies from G.vd->around to other view3ds */
+	
+	sc= G.main->screen.first;
+	
+	while(sc) {
+		if(sc->scene==G.scene) {
+			ScrArea *sa= sc->areabase.first;
+			while(sa) {
+				SpaceLink *sl= sa->spacedata.first;
+				while(sl) {
+					if(sl->spacetype==SPACE_VIEW3D) {
+						View3D *vd= (View3D*) sl;
+						if (vd != G.vd) {
+							vd->around= G.vd->around;
+							if (G.vd->flag & V3D_ALIGN)
+								vd->flag |= V3D_ALIGN;
+							else
+								vd->flag &= ~V3D_ALIGN;
+							scrarea_queue_headredraw(sa);
+						}
+					}
+					sl= sl->next;
+				}
+				sa= sa->next;
+			}
+		}
+		sc= sc->id.next;
+	}
+}
+
 void handle_view3d_lock()
 {
 	if (G.vd != NULL) {
@@ -2141,6 +2178,15 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			&(U.viewzoom), 40, USER_ZOOM_SCALE, 0, 0,
 			"Zooms in and out like scaling the view, mouse movements relative to center.");
 
+		uiDefButBitS(block, TOG, USER_AUTOPERSP, B_DRAWINFO, "Auto Persp",
+			(xpos+edgespace+(3*medprefbut)+(3*midspace)+smallprefbut+2),y3+10,smallprefbut,buth,
+			&(U.uiflag), 0, 0, 0, 0,
+			"Automatically switch between orthographic and perspective");
+			
+		uiDefButBitS(block, TOG, USER_LOCKAROUND, B_DRAWINFO, "Global Pivot",
+			(xpos+edgespace+(4*midspace)+(4*medprefbut)),y3+10,smallprefbut,buth,
+			&(U.uiflag), 0, 0, 0, 0,
+			"Use global pivot setting for all 3d views");			
 
 			
 		uiDefBut(block, LABEL,0,"View rotation:",
