@@ -20,6 +20,13 @@ fmod: http://www.fmod.org/
 If you do not have GL you will also need mesa:
 http://www.mesa3d.org
 
+--Notes on compiling mxTextTools----------------------------------------------
+To get the latest version to compile on my machine I had to
+edit mxSetup.py and remove /usr/include from INCLPATH for it to build
+properly.
+(after doing this you need to edit blender/source/Makefile and
+fix the pointer to it I'm still working on automating this)
+
 --------------Basic Makefile TIPS---------------------------------------
 Assuming you are using tcsh/csh do the following before compiling.
 #Set this to wherever you have extracted the source.
