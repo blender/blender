@@ -1637,38 +1637,51 @@ static int rcti_eq(rcti *a, rcti *b) {
 
 static void testareas(void)
 {
-	ScrArea *sa;
+	ScrArea *sa, *next;
 
 	/* test for header, if removed, or moved */
-	/* testen for window, if removed, or moved */
-
-	for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+	/* test for window, if removed, or moved */
+	
+	sa= G.curscreen->areabase.first;
+	while(sa) {
+		next= sa->next;
+		
 		rcti oldhr= sa->headrct;
 		rcti oldwr= sa->winrct;
 		
 		calc_arearcts(sa);
+		
+		/* ilegally scaled down area.... */
+		if(sa->totrct.xmin>=sa->totrct.xmax || sa->totrct.ymin>=sa->totrct.ymax) {
+			del_area(sa);
+			BLI_remlink(&G.curscreen->areabase, sa);
+			MEM_freeN(sa);
+			printf("Warning, removed zero sized window from screen %s\n", G.curscreen->id.name+2);
+		}
+		else {
+				/* test header */
+			if (sa->headwin) {
+				if (!rcti_eq(&oldhr, &sa->headrct)) {
+					mywinposition(sa->headwin, sa->headrct.xmin, sa->headrct.xmax, sa->headrct.ymin, sa->headrct.ymax);
+					addqueue(sa->headwin, CHANGED, 1);
+				}
+					
+				if(sa->headbutlen<sa->winx) {
+					sa->headbutofs= 0;
+					addqueue(sa->headwin, CHANGED, 1);
+				}
+				else if(sa->headbutofs+sa->winx > sa->headbutlen) {
+					sa->headbutofs= sa->headbutlen-sa->winx;
+					addqueue(sa->headwin, CHANGED, 1);
+				}
+			}
 
-			/* test header */
-		if (sa->headwin) {
-			if (!rcti_eq(&oldhr, &sa->headrct)) {
-				mywinposition(sa->headwin, sa->headrct.xmin, sa->headrct.xmax, sa->headrct.ymin, sa->headrct.ymax);
-				addqueue(sa->headwin, CHANGED, 1);
-			}
-				
-			if(sa->headbutlen<sa->winx) {
-				sa->headbutofs= 0;
-				addqueue(sa->headwin, CHANGED, 1);
-			}
-			else if(sa->headbutofs+sa->winx > sa->headbutlen) {
-				sa->headbutofs= sa->headbutlen-sa->winx;
-				addqueue(sa->headwin, CHANGED, 1);
+			if (!rcti_eq(&oldwr, &sa->winrct)) {
+				mywinposition(sa->win, sa->winrct.xmin, sa->winrct.xmax, sa->winrct.ymin, sa->winrct.ymax);
+				addqueue(sa->win, CHANGED, 1);
 			}
 		}
-
-		if (!rcti_eq(&oldwr, &sa->winrct)) {
-			mywinposition(sa->win, sa->winrct.xmin, sa->winrct.xmax, sa->winrct.ymin, sa->winrct.ymax);
-			addqueue(sa->win, CHANGED, 1);
-		}
+		sa= next;
 	}
 	
 		/* remake global windowarray */
@@ -2647,7 +2660,6 @@ void test_scale_screen(bScreen *sc)
 	}
 
 	/* make each window at least HEADERY high */
-
 	sa= sc->areabase.first;
 	while(sa) {
 

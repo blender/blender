@@ -823,20 +823,20 @@ void set_active_base(Base *base)
 	
 	BASACT= base;
 	
-	/* signals to buttons */
-	redraw_test_buttons(base->object);
+	if(base) {
+		/* signals to buttons */
+		redraw_test_buttons(base->object);
 
-	set_active_group();
-	
-	/* signal to ipo */
+		set_active_group();
+		
+		/* signal to ipo */
 
-	if (base) {
-		allqueue(REDRAWIPO, base->object->ipowin);
-		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWNLA, 0);
+		if (base) {
+			allqueue(REDRAWIPO, base->object->ipowin);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
+		}
 	}
-
-
 }
 
 void set_active_object(Object *ob)

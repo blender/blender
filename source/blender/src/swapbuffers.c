@@ -169,6 +169,7 @@ static void draw_debug_win(int win)
 	glColor3ub(0, 0, 0);
 	glRasterPos2i(5, 5);
 	
+	printf("win: %d - (%d, %d, %d, %d) %d\n", win, x, y, w, h, drawcounter++);
 	sprintf(buf, "win: %d - (%d, %d, %d, %d) %d\n", win, x, y, w, h, drawcounter++);
 	BMF_DrawString(G.font, buf);
 }
