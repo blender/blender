@@ -60,45 +60,10 @@ Example::
   #
     Draw.Register(show_win, ev, None)     # start the main loop
 
-Example with Buffer::
-  import Blender
-  from Blender import BGL
-  myByteBuffer = BGL.Buffer(BGL.GL_BYTE, [32,32])
-  BGL.glGetPolygonStipple(myByteBuffer)
-  print myByteBuffer.dimensions
-  print myByteBuffer.list
-  sliceBuffer = myByteBuffer[0:16]
-  print sliceBuffer   
-
 @see: U{www.opengl.org}
 @see: U{nehe.gamedev.net}
 
 """
-
-def buffer(type, dimensions, template):
-  """
-  This will create a new Buffer object for use with other BGL OpenGL commands.
-  Only the type of argument to store in the buffer and the dimensions of the buffer
-  are necessary. Buffers are zeroed by default unless a template is supplied, in 
-  which case the buffer is initialized to the template.
-
-  @type type: int
-  @param type: The format to store data in. The type should be one of 
-  GL_BYTE, GL_SHORT, GL_INT, or GL_FLOAT.
-  @type dimensions: An int or sequence object specifying the dimensions of the buffer.
-  @param dimensions: If the dimensions are specified as an int a linear array will 
-  be created for the buffer. If a sequence is passed for the dimensions, the buffer 
-  becomes n-Dimensional, where n is equal to the number of parameters passed in the 
-  sequence. Example: [256,2] is a two- dimensional buffer while [256,256,4] creates 
-  a three- dimensional buffer. You can think of each additional dimension as a subitem 
-  of the dimension to the left. i.e. [10,2] is a 10 element array each with 2 subitems.  
-  [(0,0), (0,1), (1,0), (1,1), (2,0), ...] etc.
-  @type template: A python sequence object (optional)
-  @param template: A sequence of matching dimensions which will be used to initialize
-  the Buffer. If a template is not passed in all fields will be initialized to 0.
-  @rtype: Buffer object
-  @return: The newly created buffer as a PyObject.
-  """
 
 def glAccum(op, value):
   """
@@ -1637,9 +1602,44 @@ class Buffer:
   parameter, while in other instances the user will want to create just a blank buffer 
   which will be zeroed by default.
 
+  Example with Buffer::
+    import Blender
+    from Blender import BGL
+    myByteBuffer = BGL.Buffer(BGL.GL_BYTE, [32,32])
+    BGL.glGetPolygonStipple(myByteBuffer)
+    print myByteBuffer.dimensions
+    print myByteBuffer.list
+    sliceBuffer = myByteBuffer[0:16]
+    print sliceBuffer 
+
   @cvar list: The contents of the Buffer.
   @cvar dimensions: The size of the Buffer.
   """
+
+  def __init__(type, dimensions, template = None):
+    """
+    This will create a new Buffer object for use with other BGL OpenGL commands.
+    Only the type of argument to store in the buffer and the dimensions of the buffer
+    are necessary. Buffers are zeroed by default unless a template is supplied, in 
+    which case the buffer is initialized to the template.
+
+    @type type: int
+    @param type: The format to store data in. The type should be one of 
+    GL_BYTE, GL_SHORT, GL_INT, or GL_FLOAT.
+    @type dimensions: An int or sequence object specifying the dimensions of the buffer.
+    @param dimensions: If the dimensions are specified as an int a linear array will 
+    be created for the buffer. If a sequence is passed for the dimensions, the buffer 
+    becomes n-Dimensional, where n is equal to the number of parameters passed in the 
+    sequence. Example: [256,2] is a two- dimensional buffer while [256,256,4] creates 
+    a three- dimensional buffer. You can think of each additional dimension as a subitem 
+    of the dimension to the left. i.e. [10,2] is a 10 element array each with 2 subitems.  
+    [(0,0), (0,1), (1,0), (1,1), (2,0), ...] etc.
+    @type template: A python sequence object (optional)
+    @param template: A sequence of matching dimensions which will be used to initialize
+    the Buffer. If a template is not passed in all fields will be initialized to 0.
+    @rtype: Buffer object
+    @return: The newly created buffer as a PyObject.
+    """
 
 
 
