@@ -83,6 +83,8 @@ static PyObject *IpoCurve_setExtrapolation (C_IpoCurve * self,
 					    PyObject * args);
 static PyObject *IpoCurve_getExtrapolation (C_IpoCurve * self);
 static PyObject *IpoCurve_getPoints (C_IpoCurve * self);
+static int IpoCurve_setPoints (C_IpoCurve * self, PyObject * value);
+static PyObject *IpoCurve_evaluate (C_IpoCurve * self, PyObject * args);
 
 /*****************************************************************************/
 /* Python C_IpoCurve methods table:                                          */
@@ -109,6 +111,8 @@ static PyMethodDef C_IpoCurve_methods[] = {
    "(str) - Change IpoCurve Data name"},
   {"getPoints", (PyCFunction) IpoCurve_getPoints, METH_NOARGS,
    "(str) - Change IpoCurve Data name"},
+  {"evaluate", (PyCFunction) IpoCurve_evaluate, METH_VARARGS,
+   "(float) - Evaluate curve at given time"},
   {NULL, NULL, 0, NULL}
 };
 
@@ -155,8 +159,6 @@ PyTypeObject IpoCurve_Type = {
 static PyObject *
 M_IpoCurve_New (PyObject * self, PyObject * args)
 {
-
-
   return 0;
 }
 
@@ -525,4 +527,27 @@ IpoCurve *
 IpoCurve_FromPyObject (PyObject * pyobj)
 {
   return ((C_IpoCurve *) pyobj)->ipocurve;
+}
+
+/***************************************************************************/
+/* Function:      IpoCurve_evaluate( time )                                */
+/* Description:   Evaluates IPO curve at the given time.                   */
+/***************************************************************************/
+
+static PyObject *
+IpoCurve_evaluate (C_IpoCurve * self, PyObject * args)
+{
+
+  float time = 0;
+  double eval = 0;
+
+  /* expecting float */
+  if (!PyArg_ParseTuple (args, "f", &time))
+    return (EXPP_ReturnPyObjError
+	    (PyExc_TypeError, "expected float argument"));
+
+  eval= (double)eval_icu(self->ipocurve, time);
+
+  return  PyFloat_FromDouble(eval);
+  
 }
