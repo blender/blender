@@ -392,6 +392,7 @@ int lattice_modifier(Object *ob, char mode)
 	/* conditions if it's needed */
 	if(ob->hooks.first);
 	else if(ob->parent && ob->partype==PARSKEL); 
+	else if((ob->softflag & OB_SB_ENABLE));
 	else return 0;
 	
 	if(mode=='s') { // "start"
@@ -412,6 +413,11 @@ int lattice_modifier(Object *ob, char mode)
 				bp++;
 			}
 		}
+		
+		if((ob->softflag & OB_SB_ENABLE)) {
+			sbObjectStep(ob, (float)G.scene->r.cfra);
+		}
+		
 	}
 	else { // end
 		MEM_freeN(lt->def);

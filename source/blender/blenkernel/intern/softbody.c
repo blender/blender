@@ -58,9 +58,11 @@ variables on the UI for now
 #include "MEM_guardedalloc.h"
 
 /* types */
+#include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_lattice_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
@@ -130,7 +132,9 @@ static void add_mesh_quad_diag_springs(Object *ob)
 			/* resize spring-array to hold additional quad springs */
 			bs_new= MEM_callocN( (ob->soft->totspring + nofquads *2 )*sizeof(BodySpring), "bodyspring");
 			memcpy(bs_new,ob->soft->bspring,(ob->soft->totspring )*sizeof(BodySpring));
-			MEM_freeN(ob->soft->bspring); /* do this before reassigning the pointer  or have a 1st class memory leak */
+			
+			if(ob->soft->bspring)
+				MEM_freeN(ob->soft->bspring); /* do this before reassigning the pointer  or have a 1st class memory leak */
 			ob->soft->bspring = bs_new; 
 			
 			/* fill the tail */
@@ -587,6 +591,7 @@ static void interpolate_exciter(Object *ob, int timescale, int time)
     - softbody_to_xxxx(Object *ob)      : after simulation, copy vertex locations back
 */
 
+/* helper  call */
 static int object_has_edges(Object *ob) 
 {
 	if(ob->type==OB_MESH) {
@@ -598,6 +603,24 @@ static int object_has_edges(Object *ob)
 	}
 	
 	return 0;
+}
+
+/* helper  call */
+static void set_body_point(Object *ob, BodyPoint *bp, float *vec)
+{
+	
+	VECCOPY(bp->pos, vec);
+	Mat4MulVecfl(ob->obmat, bp->pos);  // yep, sofbody is global coords
+	VECCOPY(bp->origS, bp->pos);
+	VECCOPY(bp->origE, bp->pos);
+	VECCOPY(bp->origT, bp->pos);
+	
+	bp->vec[0]= bp->vec[1]= bp->vec[2]= 0.0;
+	bp->weight= 1.0;
+	bp->goal= ob->soft->defgoal;
+	
+	bp->nofsprings= 0;
+	bp->springs= NULL;
 }
 
 
@@ -641,7 +664,6 @@ static void mesh_update_softbody(Object *ob)
 			*/
 		}
 	}
-
 }
 
 
@@ -687,27 +709,20 @@ static void mesh_to_softbody(Object *ob)
 	MEdge *medge= me->medge;
 	BodyPoint *bp;
 	BodySpring *bs;
+	float goalfac;
 	int a;
 	
 	/* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
 	renew_softbody(ob, me->totvert, me->totedge);
-	
+		
 	/* we always make body points */
 	sb= ob->soft;	
 	bp= sb->bpoint;
+	goalfac= ABS(sb->maxgoal - sb->mingoal);
+	
 	for(a=me->totvert; a>0; a--, mvert++, bp++) {
 		
-		VECCOPY(bp->pos, mvert->co);
-		Mat4MulVecfl(ob->obmat, bp->pos);  // yep, sofbody is global coords
-		VECCOPY(bp->origS, bp->pos);
-		VECCOPY(bp->origE, bp->pos);
-		VECCOPY(bp->origT, bp->pos);
-		
-		bp->vec[0]= bp->vec[1]= bp->vec[2]= 0.0;
-		bp->weight= 1.0;
-		bp->goal= 0.5;
-		bp->nofsprings= 0;
-		bp->springs= NULL;
+		set_body_point(ob, bp, mvert->co);
 		
 		if (1) { /* switch to vg scalars*/
 			/* get scalar values needed  *per vertex* from vertex group functions,
@@ -721,11 +736,15 @@ static void mesh_to_softbody(Object *ob)
 			float temp;
 			
 			error = get_scalar_from_named_vertexgroup(ob, name, me->totvert - a, &temp);
-			if (!error) bp->goal = temp;
-			if (bp->goal < sb->mingoal) bp->goal = sb->mingoal;
-			if (bp->goal > sb->maxgoal) bp->goal = sb->maxgoal;
+			if (!error) {
+				bp->goal = temp;
+				
+				/* works assuming goal is <0.0, 1.0> */
+				bp->goal= sb->mingoal + (bp->goal - sb->mingoal)*goalfac;
+				
+			}
 			/* a little ad hoc changing the goal control to be less *sharp* */
-			bp->goal = (float)pow(bp->goal,4.0f);
+			bp->goal = (float)pow(bp->goal, 4.0f);
 			
 			/* to proove the concept
 			this would enable per vertex *mass painting*
@@ -770,8 +789,6 @@ static void softbody_to_mesh(Object *ob)
 	BodyPoint *bp;
 	int a;
 
-	Mat4Invert(ob->imat, ob->obmat);
-	
 	bp= ob->soft->bpoint;
 	mvert= me->mvert;
 	for(a=me->totvert; a>0; a--, mvert++, bp++) {
@@ -784,14 +801,65 @@ static void softbody_to_mesh(Object *ob)
 /* makes totally fresh start situation */
 static void lattice_to_softbody(Object *ob)
 {
-
+	SoftBody *sb;
+	Lattice *lt= ob->data;
+	BodyPoint *bop;
+	BPoint *bp;
+	int a, totvert;
+	
+	totvert= lt->pntsu*lt->pntsv*lt->pntsw;
+	
+	/* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
+	renew_softbody(ob, totvert, 0);
+	
+	/* we always make body points */
+	sb= ob->soft;	
+	
+	for(a= totvert, bp= lt->def, bop= sb->bpoint; a>0; a--, bp++, bop++) {
+		set_body_point(ob, bop, bp->vec);
+	}
 }
 
 /* copies current sofbody position */
 static void softbody_to_lattice(Object *ob)
 {
-
+	SoftBody *sb;
+	Lattice *lt= ob->data;
+	BodyPoint *bop;
+	BPoint *bp;
+	int a, totvert;
+	
+	totvert= lt->pntsu*lt->pntsv*lt->pntsw;
+	sb= ob->soft;	
+	
+	for(a= totvert, bp= lt->def, bop= sb->bpoint; a>0; a--, bp++, bop++) {
+		VECCOPY(bp->vec, bop->pos);
+		Mat4MulVecfl(ob->imat, bp->vec);	// softbody is in global coords
+	}
 }
+
+/* copy original (new) situation in softbody, as result of matrices or deform */
+/* is assumed to enter function with ob->soft, but can be without points */
+static void lattice_update_softbody(Object *ob)
+{
+	Lattice *lt= ob->data;
+	BodyPoint *bop;
+	BPoint *bp;
+	int a, totvert;
+	
+	totvert= lt->pntsu*lt->pntsv*lt->pntsw;
+	
+	/* possible after a file read... */
+	if(ob->soft->totpoint!=totvert) sbObjectToSoftbody(ob);
+	
+	for(a= totvert, bp= lt->def, bop= ob->soft->bpoint; a>0; a--, bp++, bop++) {
+		VECCOPY(bop->origS, bop->origE);
+		VECCOPY(bop->origE, bp->vec);
+		Mat4MulVecfl(ob->obmat, bop->origE);
+		VECCOPY(bop->origT, bop->origE);
+	}	
+}
+
 
 /* copies softbody result back in object */
 /* only used in sbObjectStep() */
@@ -800,13 +868,16 @@ static void softbody_to_object(Object *ob)
 	
 	if(ob->soft==NULL) return;
 	
+	/* inverse matrix is not uptodate... */
+	Mat4Invert(ob->imat, ob->obmat);
+	
 	switch(ob->type) {
-		case OB_MESH:
-			softbody_to_mesh(ob);
-			break;
-		case OB_LATTICE:
-			softbody_to_lattice(ob);
-			break;
+	case OB_MESH:
+		softbody_to_mesh(ob);
+		break;
+	case OB_LATTICE:
+		softbody_to_lattice(ob);
+		break;
 	}
 }
 
@@ -817,12 +888,12 @@ static void object_update_softbody(Object *ob)
 {
 	
 	switch(ob->type) {
-		case OB_MESH:
-			mesh_update_softbody(ob);
-			break;
-		case OB_LATTICE:
-			//lattice_update_softbody(ob);
-			break;
+	case OB_MESH:
+		mesh_update_softbody(ob);
+		break;
+	case OB_LATTICE:
+		lattice_update_softbody(ob);
+		break;
 	}
 	
 }
@@ -838,17 +909,18 @@ SoftBody *sbNew(void)
 	
 	sb= MEM_callocN(sizeof(SoftBody), "softbody");
 	
-	sb->mediafrict= 1.0; 
+	sb->mediafrict= 0.5; 
 	sb->nodemass= 1.0;
 	sb->grav= 0.0; 
 	
-	sb->goalspring= 1.0; 
-	sb->goalfrict= 1.0; 
+	sb->goalspring= 0.5; 
+	sb->goalfrict= 0.0; 
 	sb->mingoal= 0.0;  
 	sb->maxgoal= 1.0;
+	sb->defgoal= 0.7;
 	
-	sb->inspring= 1.0;
-	sb->infrict= 1.0; 
+	sb->inspring= 0.5;
+	sb->infrict= 0.5; 
 	
 	return sb;
 }
@@ -917,7 +989,7 @@ void sbObjectStep(Object *ob, float framenr)
 			sbObjectToSoftbody(ob);
 	
 	sb= ob->soft;
-	
+
 	/* still no points? go away */
 	if(sb->totpoint==0) return;
 	

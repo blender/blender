@@ -1190,6 +1190,12 @@ void do_object_panels(unsigned short event)
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	
+	case B_SOFTBODY_CHANGE:
+		ob= OBACT;
+		if(ob) ob->softflag |= OB_SB_REDO;
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+		
 	default:
 		if(event>=B_SELEFFECT && event<B_SELEFFECT+MAX_EFFECT) {
 			ob= OBACT;
@@ -1475,16 +1481,17 @@ static void object_softbodies(Object *ob)
 		/* GOAL STUFF */
 		uiBlockBeginAlign(block);
 		uiDefButBitS(block, TOG, OB_SB_GOAL, B_DIFF, "Use Goal",	10,100,150,20, &ob->softflag, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
+		uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Goal:",		160,100,150,20, &sb->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
 		uiDefButF(block, NUM, B_DIFF, "GSpring:",	10,80,150,20, &sb->goalspring, 0.0, 0.999, 10, 0, "Goal (vertex target position) Spring Constant");
 		uiDefButF(block, NUM, B_DIFF, "GFrict:",	160,80,150,20, &sb->goalfrict  , 0.0, 10.0, 10, 0, "Goal (vertex target position) Friction Constant");
-		uiDefButF(block, NUM, B_DIFF, "GMin:",		10,60,150,20, &sb->mingoal, 0.0, 1.0, 10, 0, "Min Goal bound");
-		uiDefButF(block, NUM, B_DIFF, "GMax:",		160,60,150,20, &sb->maxgoal, 0.0, 1.0, 10, 0, "Max Goal bound");
+		uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "GMin:",		10,60,150,20, &sb->mingoal, 0.0, 1.0, 10, 0, "Min Goal bound");
+		uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "GMax:",		160,60,150,20, &sb->maxgoal, 0.0, 1.0, 10, 0, "Max Goal bound");
 		uiBlockEndAlign(block);
 		
 		/* EDGE SPRING STUFF */
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, OB_SB_EDGES, B_DIFF, "Use Edges",		10,30,150,20, &ob->softflag, 0, 0, 0, 0, "Use Robust 2nd order solver");
-		uiDefButBitS(block, TOG, OB_SB_QUADS, B_DIFF, "Stiff Quads",	160,30,150,20, &ob->softflag, 0, 0, 0, 0, "Sets object to have diagonal springs on 4-gons");
+		uiDefButBitS(block, TOG, OB_SB_EDGES, B_SOFTBODY_CHANGE, "Use Edges",		10,30,150,20, &ob->softflag, 0, 0, 0, 0, "Use Robust 2nd order solver");
+		uiDefButBitS(block, TOG, OB_SB_QUADS, B_SOFTBODY_CHANGE, "Stiff Quads",		160,30,150,20, &ob->softflag, 0, 0, 0, 0, "Sets object to have diagonal springs on 4-gons");
 		uiDefButF(block, NUM, B_DIFF, "ESpring:",	10,10,150,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge Spring Constant");
 		uiDefButF(block, NUM, B_DIFF, "EFrict:",	160,10,150,20, &sb->infrict, 0.0,  10.0, 10, 0, "Edge Friction Constant");
 		uiBlockEndAlign(block);

@@ -4677,6 +4677,7 @@ static void do_versions(Main *main)
 				sb->maxgoal= ob->sb_maxgoal;
 				sb->mediafrict= ob->sb_mediafrict; 
 				sb->rklimit= ob->softtime;
+				sb->defgoal= 0.7;
 				
 				ob->softflag |= OB_SB_GOAL|OB_SB_EDGES;
  			}

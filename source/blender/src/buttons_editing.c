@@ -1469,6 +1469,7 @@ void do_latticebuts(unsigned short event)
 		if(ob) {
 			if(ob==G.obedit) resizelattice(editLatt);
 			else resizelattice(ob->data);
+			ob->softflag |= OB_SB_REDO;
 		}
 		allqueue(REDRAWVIEW3D, 0);
 		break;

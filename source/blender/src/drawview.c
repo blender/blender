@@ -1152,8 +1152,22 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 			}
 			nu= nu->next;
 		}
-	
 	}
+	else if(ob->type==OB_LATTICE) {
+		BPoint *bp;
+		int a;
+		
+		a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+		bp= editLatt->def;
+		while(a--) {
+			if(bp->f1 & SELECT) {
+				VecAddf(median, median, bp->vec);
+				tot++;
+			}
+			bp++;
+		}
+	}
+	
 	if(tot==0) return;
 
 	median[0] /= (float)tot;
@@ -1266,7 +1280,6 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 						if(bp->f1 & 1) {
 							VecAddf(bp->vec, bp->vec, median);
 							bp->vec[3]+= median[3];
-							tot++;
 						}
 						bp++;
 					}
@@ -1277,6 +1290,21 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 				nu= nu->next;
 			}
 		}
+		else if(ob->type==OB_LATTICE) {
+			BPoint *bp;
+			int a;
+			
+			a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+			bp= editLatt->def;
+			while(a--) {
+				if(bp->f1 & SELECT) {
+					VecAddf(median, median, bp->vec);
+					VecAddf(bp->vec, bp->vec, median);
+				}
+				bp++;
+			}
+		}
+		
 		BIF_undo_push("Transform properties");
 	}
 }

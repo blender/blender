@@ -112,7 +112,7 @@ typedef struct SoftBody {
 	float inspring;		/* softbody inner springs */
 	float infrict;		/* softbody inner springs friction */
  	
-	float pad;
+	float defgoal;		/* default goal for vertices without vgroup */
 	
 } SoftBody;
 
