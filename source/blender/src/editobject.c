@@ -7931,7 +7931,8 @@ void make_displists_by_obdata(void *obdata) {
 
 void mirror_edit(short mode) 
 {
-	short axis, a;
+	int a;
+	short axis;
 	float mat[3][3], imat[3][3], min[3], max[3];
 	TransVert *tv;
 
@@ -8062,7 +8063,8 @@ void mirror_edit(short mode)
 void mirror_object(short mode) 
 {
 	TransOb *tob;
-	short a, axis;
+	int a;
+	short axis;
 	float off[3], imat[3][3];
 
 	setbaseflags_for_editing('s');
