@@ -1981,7 +1981,7 @@ void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 		uiDefButC(block, NUMSLI, B_UPDATE_THEME,"B ",	465,y1,200,20,  col+2, 0.0, 255.0, B_THEMECOL, 0, "");
 		uiBlockEndAlign(block);
 
-		uiDefButC(block, COL, B_THEMECOL, "",		675,y1,50,y3-y1+20, col, 0, 0, 0, 0, "");
+		uiDefButC(block, COL, B_UPDATE_THEME, "",		675,y1,50,y3-y1+20, col, 0, 0, 0, 0, "");
 				
 		/* copy paste */
 		uiBlockBeginAlign(block);

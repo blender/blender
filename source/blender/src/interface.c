@@ -2262,26 +2262,38 @@ static int ui_do_but_COL(uiBut *but)
 {
 	uiBlock *block;
 	ListBase listb={NULL, NULL};
-	float hsv[3], old[3];
+	float hsv[3], old[3], *poin= NULL, colstore[3];
 	short event;
 	
 	// signal to prevent calling up color picker
-	if(but->a1 == -1 || but->pointype!=FLO) {
+	if(but->a1 == -1) {
 		uibut_do_func(but);
 		return but->retval;
 	}
+	
+	// enable char button too, use temporal colstore for color
+	if(but->pointype!=FLO) {
+		if(but->pointype==CHA) {
+			ui_get_but_vectorf(but, colstore);
+			poin= colstore;
+		}
+		else return but->retval;
+	}
+	else poin= (float *)but->poin;
 	
 	block= uiNewBlock(&listb, "colorpicker", UI_EMBOSSP, UI_HELV, but->win);
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW;
 	block->themecol= TH_BUT_NUM;
 	
-	uiBlockPickerButtons(block, (float *)but->poin, hsv, old, 't');
+	uiBlockPickerButtons(block, poin, hsv, old, 't');
 
 	/* and lets go */
 	block->direction= UI_TOP;
 	ui_positionblock(block, but);
 	block->win= G.curscreen->mainwin;
 	event= uiDoBlocks(&listb, 0);
+	
+	if(but->pointype==CHA) ui_set_but_vectorf(but, colstore);
 	
 	return but->retval;
 
