@@ -1601,6 +1601,8 @@ void do_all_ipos()
 	Lamp *la;
 	Camera *ca;
 	bSound *snd;
+	Sequence *seq;
+	Editing *ed;
 	float ctime;
 	int set;
 
@@ -1690,6 +1692,18 @@ void do_all_ipos()
 			base= base->next;
 		}
 	}
+
+	/* intrr: process FAC Ipos used as volume envelopes */
+	ed= G.scene->ed;
+	if (ed) {
+		seq= ed->seqbasep->first;
+		while(seq) {
+			if ((seq->type == SEQ_SOUND) && (seq->ipo)
+			  &&(seq->startdisp<=G.scene->r.cfra+2) && (seq->enddisp>G.scene->r.cfra)) do_seq_ipo(seq);
+			seq= seq->next;
+		}
+	}
+
 }
 
 
