@@ -5,7 +5,7 @@ import sys
 from distutils import sysconfig
 import SCons.Script
 
-if sys.hexversion < 0x2030000:
+if hex(sys.hexversion) < 0x2030000:
 	print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
 	print
 	print "You need at least Python 2.3 to build Blender with SCons"
