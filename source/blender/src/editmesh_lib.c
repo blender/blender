@@ -1284,61 +1284,77 @@ void vertexnormals(int testflip)
 	/* calculate cosine angles and add to vertex normal */
 	efa= em->faces.first;
 	while(efa) {
-		VecSubf(n1, efa->v2->co, efa->v1->co);
-		VecSubf(n2, efa->v3->co, efa->v2->co);
-		Normalise(n1);
-		Normalise(n2);
+		if(efa->flag & ME_SMOOTH) {
+			VecSubf(n1, efa->v2->co, efa->v1->co);
+			VecSubf(n2, efa->v3->co, efa->v2->co);
+			Normalise(n1);
+			Normalise(n2);
 
-		if(efa->v4==0) {
-			VecSubf(n3, efa->v1->co, efa->v3->co);
-			Normalise(n3);
+			if(efa->v4==0) {
+				VecSubf(n3, efa->v1->co, efa->v3->co);
+				Normalise(n3);
+				
+				co[0]= saacos(-n3[0]*n1[0]-n3[1]*n1[1]-n3[2]*n1[2]);
+				co[1]= saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
+				co[2]= saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
+				
+			}
+			else {
+				VecSubf(n3, efa->v4->co, efa->v3->co);
+				VecSubf(n4, efa->v1->co, efa->v4->co);
+				Normalise(n3);
+				Normalise(n4);
+				
+				co[0]= saacos(-n4[0]*n1[0]-n4[1]*n1[1]-n4[2]*n1[2]);
+				co[1]= saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
+				co[2]= saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
+				co[3]= saacos(-n3[0]*n4[0]-n3[1]*n4[1]-n3[2]*n4[2]);
+			}
 			
-			co[0]= saacos(-n3[0]*n1[0]-n3[1]*n1[1]-n3[2]*n1[2]);
-			co[1]= saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
-			co[2]= saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
+			temp= efa->v1->no;
+			if(testflip && contrpuntnorm(efa->n, temp) ) co[0]= -co[0];
+			temp[0]+= co[0]*efa->n[0];
+			temp[1]+= co[0]*efa->n[1];
+			temp[2]+= co[0]*efa->n[2];
 			
-		}
-		else {
-			VecSubf(n3, efa->v4->co, efa->v3->co);
-			VecSubf(n4, efa->v1->co, efa->v4->co);
-			Normalise(n3);
-			Normalise(n4);
+			temp= efa->v2->no;
+			if(testflip && contrpuntnorm(efa->n, temp) ) co[1]= -co[1];
+			temp[0]+= co[1]*efa->n[0];
+			temp[1]+= co[1]*efa->n[1];
+			temp[2]+= co[1]*efa->n[2];
 			
-			co[0]= saacos(-n4[0]*n1[0]-n4[1]*n1[1]-n4[2]*n1[2]);
-			co[1]= saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
-			co[2]= saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
-			co[3]= saacos(-n3[0]*n4[0]-n3[1]*n4[1]-n3[2]*n4[2]);
-		}
-		
-		temp= efa->v1->no;
-		if(testflip && contrpuntnorm(efa->n, temp) ) co[0]= -co[0];
-		temp[0]+= co[0]*efa->n[0];
-		temp[1]+= co[0]*efa->n[1];
-		temp[2]+= co[0]*efa->n[2];
-		
-		temp= efa->v2->no;
-		if(testflip && contrpuntnorm(efa->n, temp) ) co[1]= -co[1];
-		temp[0]+= co[1]*efa->n[0];
-		temp[1]+= co[1]*efa->n[1];
-		temp[2]+= co[1]*efa->n[2];
-		
-		temp= efa->v3->no;
-		if(testflip && contrpuntnorm(efa->n, temp) ) co[2]= -co[2];
-		temp[0]+= co[2]*efa->n[0];
-		temp[1]+= co[2]*efa->n[1];
-		temp[2]+= co[2]*efa->n[2];
-		
-		if(efa->v4) {
-			temp= efa->v4->no;
-			if(testflip && contrpuntnorm(efa->n, temp) ) co[3]= -co[3];
-			temp[0]+= co[3]*efa->n[0];
-			temp[1]+= co[3]*efa->n[1];
-			temp[2]+= co[3]*efa->n[2];
-		}
-		
+			temp= efa->v3->no;
+			if(testflip && contrpuntnorm(efa->n, temp) ) co[2]= -co[2];
+			temp[0]+= co[2]*efa->n[0];
+			temp[1]+= co[2]*efa->n[1];
+			temp[2]+= co[2]*efa->n[2];
+			
+			if(efa->v4) {
+				temp= efa->v4->no;
+				if(testflip && contrpuntnorm(efa->n, temp) ) co[3]= -co[3];
+				temp[0]+= co[3]*efa->n[0];
+				temp[1]+= co[3]*efa->n[1];
+				temp[2]+= co[3]*efa->n[2];
+			}
+		}		
 		efa= efa->next;
 	}
-
+	/* check solid faces */
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		if((efa->flag & ME_SMOOTH)==0) {
+			f1= efa->v1->no;
+			if(f1[0]==0.0 && f1[1]==0.0 && f1[2]==0.0) VECCOPY(f1, efa->n);
+			f1= efa->v2->no;
+			if(f1[0]==0.0 && f1[1]==0.0 && f1[2]==0.0) VECCOPY(f1, efa->n);
+			f1= efa->v3->no;
+			if(f1[0]==0.0 && f1[1]==0.0 && f1[2]==0.0) VECCOPY(f1, efa->n);
+			if(efa->v4) {
+				f1= efa->v4->no;
+				if(f1[0]==0.0 && f1[1]==0.0 && f1[2]==0.0) VECCOPY(f1, efa->n);
+			}
+		}
+	}
+	
 	/* normalise vertex normals */
 	eve= em->verts.first;
 	while(eve) {

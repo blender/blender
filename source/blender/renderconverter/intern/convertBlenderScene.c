@@ -129,7 +129,6 @@ static Material *give_render_material(Object *ob, int nr);
 static void split_u_renderfaces(int startvlak, int startvert, int usize, int plek, int cyclu);
 static void split_v_renderfaces(int startvlak, int startvert, int usize, int vsize, int plek, int cyclu, int cyclv);
 static int contrpuntnormr(float *n, float *puno);
-static void normalenrender(int startvert, int startvlak);
 static void as_addvert(VertRen *v1, VlakRen *vlr);
 static void as_freevert(VertRen *ver);
 static void autosmooth(int startvert, int startvlak, int degr);
@@ -453,7 +452,7 @@ static int contrpuntnormr(float *n, float *puno)
 
 /* ------------------------------------------------------------------------- */
 
-static void normalenrender(int startvert, int startvlak)
+static void calc_vertexnormals(int startvert, int startvlak)
 {
 	VlakRen *vlr;
 	VertRen *ver, *adrve1, *adrve2, *adrve3, *adrve4;
@@ -469,34 +468,35 @@ static void normalenrender(int startvert, int startvlak)
 	/* calculate cos of angles and point-masses */
 	for(a= startvlak; a<R.totvlak; a++) {
 		vlr= RE_findOrAddVlak(a);
+		if(vlr->flag & ME_SMOOTH) {
+			adrve1= vlr->v1;
+			adrve2= vlr->v2;
+			adrve3= vlr->v3;
+			adrve4= vlr->v4;
 
-		adrve1= vlr->v1;
-		adrve2= vlr->v2;
-		adrve3= vlr->v3;
-		adrve4= vlr->v4;
+			VecSubf(n1, adrve2->co, adrve1->co);
+			Normalise(n1);
+			VecSubf(n2, adrve3->co, adrve2->co);
+			Normalise(n2);
+			if(adrve4==0) {
+				VecSubf(n3, adrve1->co, adrve3->co);
+				Normalise(n3);
 
-		VecSubf(n1, adrve2->co, adrve1->co);
-		Normalise(n1);
-		VecSubf(n2, adrve3->co, adrve2->co);
-		Normalise(n2);
-		if(adrve4==0) {
-			VecSubf(n3, adrve1->co, adrve3->co);
-			Normalise(n3);
+				*(tfl++)= saacos(-n1[0]*n3[0]-n1[1]*n3[1]-n1[2]*n3[2]);
+				*(tfl++)= saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
+				*(tfl++)= saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
+			}
+			else {
+				VecSubf(n3, adrve4->co, adrve3->co);
+				Normalise(n3);
+				VecSubf(n4, adrve1->co, adrve4->co);
+				Normalise(n4);
 
-			*(tfl++)= saacos(-n1[0]*n3[0]-n1[1]*n3[1]-n1[2]*n3[2]);
-			*(tfl++)= saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
-			*(tfl++)= saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
-		}
-		else {
-			VecSubf(n3, adrve4->co, adrve3->co);
-			Normalise(n3);
-			VecSubf(n4, adrve1->co, adrve4->co);
-			Normalise(n4);
-
-			*(tfl++)= saacos(-n4[0]*n1[0]-n4[1]*n1[1]-n4[2]*n1[2]);
-			*(tfl++)= saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
-			*(tfl++)= saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
-			*(tfl++)= saacos(-n3[0]*n4[0]-n3[1]*n4[1]-n3[2]*n4[2]);
+				*(tfl++)= saacos(-n4[0]*n1[0]-n4[1]*n1[1]-n4[2]*n1[2]);
+				*(tfl++)= saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
+				*(tfl++)= saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
+				*(tfl++)= saacos(-n3[0]*n4[0]-n3[1]*n4[1]-n3[2]*n4[2]);
+			}
 		}
 	}
 
@@ -511,47 +511,66 @@ static void normalenrender(int startvert, int startvlak)
 	tfl= adrco;
 	for(a=startvlak; a<R.totvlak; a++) {
 		vlr= RE_findOrAddVlak(a);
+		
+		if(vlr->flag & ME_SMOOTH) {
 
-		adrve1= vlr->v1;
-		adrve2= vlr->v2;
-		adrve3= vlr->v3;
-		adrve4= vlr->v4;
+			adrve1= vlr->v1;
+			adrve2= vlr->v2;
+			adrve3= vlr->v3;
+			adrve4= vlr->v4;
 
-		temp= adrve1->n;
-		fac= *(tfl++);
-		if( vlr->flag & R_NOPUNOFLIP);
-		else if( contrpuntnormr(vlr->n, temp) ) fac= -fac ;
-		*(temp++) +=fac*vlr->n[0];
-		*(temp++) +=fac*vlr->n[1];
-		*(temp)   +=fac*vlr->n[2];
-
-		temp= adrve2->n;
-		fac= *(tfl++);
-		if( vlr->flag & R_NOPUNOFLIP);
-		else  if( contrpuntnormr(vlr->n, temp) ) fac= -fac ;
-		*(temp++) +=fac*vlr->n[0];
-		*(temp++) +=fac*vlr->n[1];
-		*(temp)   +=fac*vlr->n[2];
-
-		temp= adrve3->n;
-		fac= *(tfl++);
-		if( vlr->flag & R_NOPUNOFLIP);
-		else if( contrpuntnormr(vlr->n, temp) ) fac= -fac ;
-		*(temp++) +=fac*vlr->n[0];
-		*(temp++) +=fac*vlr->n[1];
-		*(temp)   +=fac*vlr->n[2];
-
-		if(adrve4) {
-			temp= adrve4->n;
+			temp= adrve1->n;
 			fac= *(tfl++);
 			if( vlr->flag & R_NOPUNOFLIP);
 			else if( contrpuntnormr(vlr->n, temp) ) fac= -fac ;
 			*(temp++) +=fac*vlr->n[0];
 			*(temp++) +=fac*vlr->n[1];
 			*(temp)   +=fac*vlr->n[2];
+
+			temp= adrve2->n;
+			fac= *(tfl++);
+			if( vlr->flag & R_NOPUNOFLIP);
+			else  if( contrpuntnormr(vlr->n, temp) ) fac= -fac ;
+			*(temp++) +=fac*vlr->n[0];
+			*(temp++) +=fac*vlr->n[1];
+			*(temp)   +=fac*vlr->n[2];
+
+			temp= adrve3->n;
+			fac= *(tfl++);
+			if( vlr->flag & R_NOPUNOFLIP);
+			else if( contrpuntnormr(vlr->n, temp) ) fac= -fac ;
+			*(temp++) +=fac*vlr->n[0];
+			*(temp++) +=fac*vlr->n[1];
+			*(temp)   +=fac*vlr->n[2];
+
+			if(adrve4) {
+				temp= adrve4->n;
+				fac= *(tfl++);
+				if( vlr->flag & R_NOPUNOFLIP);
+				else if( contrpuntnormr(vlr->n, temp) ) fac= -fac ;
+				*(temp++) +=fac*vlr->n[0];
+				*(temp++) +=fac*vlr->n[1];
+				*(temp)   +=fac*vlr->n[2];
+			}
 		}
 	}
-
+	/* do solid faces */
+	for(a=startvlak; a<R.totvlak; a++) {
+		vlr= RE_findOrAddVlak(a);
+		if((vlr->flag & ME_SMOOTH)==0) {
+			float *f1= vlr->v1->n;
+			if(f1[0]==0.0 && f1[1]==0.0 && f1[2]==0.0) VECCOPY(f1, vlr->n);
+			f1= vlr->v2->n;
+			if(f1[0]==0.0 && f1[1]==0.0 && f1[2]==0.0) VECCOPY(f1, vlr->n);
+			f1= vlr->v3->n;
+			if(f1[0]==0.0 && f1[1]==0.0 && f1[2]==0.0) VECCOPY(f1, vlr->n);
+			if(vlr->v4) {
+				f1= vlr->v4->n;
+				if(f1[0]==0.0 && f1[1]==0.0 && f1[2]==0.0) VECCOPY(f1, vlr->n);
+			}			
+		}
+	}
+	
 	/* normalise vertex normals */
 	for(a=startvert; a<R.totvert; a++) {
 		ver= RE_findOrAddVert(a);
@@ -1548,7 +1567,7 @@ static void init_render_mesh(Object *ob)
 	}
 	
 	if(do_puno) {
-		normalenrender(totverto, totvlako);
+		calc_vertexnormals(totverto, totvlako);
 		do_puno= 0;
 	}
 	
@@ -1560,7 +1579,7 @@ static void init_render_mesh(Object *ob)
 		do_puno= 1;
 	}
 	
-	if(do_puno) normalenrender(totverto, totvlako);
+	if(do_puno) calc_vertexnormals(totverto, totvlako);
 	
 	mesh_modifier(ob, 'e');  // end
 }
@@ -3151,7 +3170,7 @@ static void do_displacement(Object *ob, int startface, int numface, int startver
 	}
 	
 	/* Recalc vertex normals */
-	normalenrender(startvert, startface);
+	calc_vertexnormals(startvert, startface);
 }
 
 static void displace_render_face(VlakRen *vlr, float *scale)
