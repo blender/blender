@@ -46,6 +46,8 @@
 
 #include "DNA_vec_types.h"
 
+#include "BKE_utildefines.h"
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
@@ -299,8 +301,8 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, void *rect)
 		/* The maximum pixel amounts the image can be cropped
 		 * at the lower left without exceeding the origin.
 		 */
-	int off_x= floor(max(ix, 0));
-	int off_y= floor(max(iy, 0));
+	int off_x= floor(MAX2(ix, 0));
+	int off_y= floor(MAX2(iy, 0));
 		
 		/* The zoomed space coordinate of the raster position 
 		 * (starting at the lower left most unclipped pixel).
@@ -324,8 +326,8 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, void *rect)
 		 * covers the entire screen).
 		 */
 	glGetFloatv(GL_SCISSOR_BOX, scissor);
-	draw_w = min(img_w-off_x, ceil((scissor[2]-rast_x)/xzoom));
-	draw_h = min(img_h-off_y, ceil((scissor[3]-rast_y)/yzoom));
+	draw_w = MIN2(img_w-off_x, ceil((scissor[2]-rast_x)/xzoom));
+	draw_h = MIN2(img_h-off_y, ceil((scissor[3]-rast_y)/yzoom));
 
 	if (draw_w>0 && draw_h>0) {
 		int old_row_length = glaGetOneInteger(GL_UNPACK_ROW_LENGTH);
