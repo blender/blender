@@ -30,7 +30,7 @@
 */
 
 #include "sceneRadio.h" /* includes Python.h */
-#include <radio.h>
+#include "radio.h"
 #include <BKE_object.h> /* disable_where_script() */
 
 #include "constant.h"
