@@ -66,6 +66,7 @@
 
 #ifdef __APPLE__
 #include <OpenGL/OpenGL.h>
+#include <Carbon/Carbon.h>
 #endif
 ///
 
@@ -115,6 +116,8 @@ int checkAppleVideoCard() {
 	long nrend;
 	int j;
 	long value;
+	long maxvram = 0;   /* we get always more than 1 renderer, check one, at least, has 8 Mo */
+	
 	
 	display_mask = CGDisplayIDToOpenGLDisplayMask (CGMainDisplayID() );	
 	
@@ -123,12 +126,14 @@ int checkAppleVideoCard() {
 		theErr = CGLDescribeRenderer (rend, 0, kCGLRPRendererCount, &nrend);
 		if (theErr == 0) {
 			for (j = 0; j < nrend; j++) {
-				theErr = CGLDescribeRenderer (rend, j, kCGLRPAccelerated, &value); 
-				if ((theErr == 0) && (value != 0)) {
-					theErr = CGLDescribeRenderer (rend, j, kCGLRPCompliant, &value); 
+				theErr = CGLDescribeRenderer (rend, j, kCGLRPVideoMemory, &value); 
+				if (value > maxvram)
+					maxvram = value;
+				if ((theErr == 0) && (value >= 10000000)) {
+					theErr = CGLDescribeRenderer (rend, j, kCGLRPAccelerated, &value); 
 					if ((theErr == 0) && (value != 0)) {
-						theErr = CGLDescribeRenderer (rend, j, kCGLRPVideoMemory, &value); 
-						if ((theErr == 0) && (value >= 10000000)) {
+						theErr = CGLDescribeRenderer (rend, j, kCGLRPCompliant, &value); 
+						if ((theErr == 0) && (value != 0)) {
 							/*fprintf(stderr,"make it big\n");*/
 							CGLDestroyRendererInfo (rend);
 							macPrefState = 8;
@@ -138,6 +143,17 @@ int checkAppleVideoCard() {
 				}
 			}
 		}
+	}
+	if (maxvram < 7500000 ) {       /* put a standard alert and quit*/ 
+		SInt16 junkHit;
+		char  inError[] = "* Not enough VRAM    ";
+		char  inText[] = "* blender needs at least 8Mb    ";
+		inError[0] = 16;
+		inText[0] = 28;
+				
+		fprintf(stderr, " vram is %i. not enough, aborting\n", maxvram);
+		StandardAlert (   kAlertStopAlert,  &inError,&inText,NULL,&junkHit);
+		abort();
 	}
 	CGLDestroyRendererInfo (rend);
 	return 0;

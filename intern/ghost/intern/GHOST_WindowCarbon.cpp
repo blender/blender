@@ -134,6 +134,7 @@ GHOST_WindowCarbon::GHOST_WindowCarbon(
 			//void *handler = &GHOST_WindowCarbon::myWEventHandlerProc;
 			
 			::SetWRefCon(m_windowRef,(SInt32)this);
+			setTitle(title);
 			err = InstallWindowEventHandler (m_windowRef, myWEventHandlerProc, GetEventTypeCount(kWEvents), kWEvents,NULL,NULL); 
 			if ( err != noErr) {
 				fprintf(stderr," error creating handler %i \n",err);
