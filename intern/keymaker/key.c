@@ -41,7 +41,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "key.h"	/* external interface */
+#include "blenkey.h"	/* external interface */
 #include "key_internal.h"
 
 char *Hexify(byte *in, unsigned int length) {

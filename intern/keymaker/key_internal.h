@@ -42,7 +42,7 @@
 #include "openssl/ripemd.h"
 #include "openssl/rc4.h"
 #include "openssl/err.h"
-#include "key.h"
+#include "blenkey.h"
 
 #include "mt19937int.h" /* Mersenne Twister (under artistic license) */
 

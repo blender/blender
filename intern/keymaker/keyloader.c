@@ -42,7 +42,7 @@
 #include <string.h>
 
 #include "key_pyc.h" /* the Python byte code */
-#include "key.h"	/* the external interface */
+#include "blenkey.h"	/* the external interface */
 #include "key_internal.h"
 
 #define TESTReadKeyFile 1
