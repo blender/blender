@@ -745,9 +745,9 @@ int blenderqread(unsigned short event, short val)
 					enter_meta();
 				else if(G.vd) {
 					/* also when Alt-E */
-					if(G.obedit==0) {
+					if(G.obedit==NULL) {
 						enter_editmode();
-						BIF_undo_push("Original");	// here, because all over code enter_editmode is abused
+						if(G.obedit) BIF_undo_push("Original");	// here, because all over code enter_editmode is abused
 					}
 					else
 						exit_editmode(2); // freedata, and undo

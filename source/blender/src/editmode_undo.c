@@ -53,10 +53,9 @@
 
 #include "BKE_displist.h"
 #include "BKE_global.h"
+#include "BKE_object.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_arithb.h"
-#include "BLI_editVert.h"
 #include "BLI_dynstr.h"
 
 #include "BKE_utildefines.h"
@@ -99,7 +98,8 @@ void undo_editmode_menu(void)				// history menu
 #define MAXUNDONAME	64
 typedef struct UndoElem {
 	struct UndoElem *next, *prev;
-	ID id;		// copy of editmode object ID
+	ID id;			// copy of editmode object ID
+	Object *ob;		// pointer to edited object
 	void *undodata;
 	char name[MAXUNDONAME];
 	void (*freedata)(void *);
@@ -182,16 +182,31 @@ void undo_editmode_push(char *name, void (*freedata)(void *),
 static void undo_clean_stack(void)
 {
 	UndoElem *uel, *next;
-	int mixed= 0;
+	int mixed= 0, checknames= 1;
+	
+	/* global undo changes pointers, so we also exceptionally allow identical names,
+	   but not when this object pointer exists in the stack, which happens for
+	   example when you rename objects and add new one with old name */
+	for(uel= undobase.first; uel; uel= uel->next) {
+		if( exist_object(uel->ob)) break;
+	}
+	if(uel) checknames= 0;
 	
 	uel= undobase.first; 
 	while(uel) {
 		next= uel->next;
-		if(strcmp(curundo->id.name, G.obedit->id.name)!=0) {
-			mixed= 1;
-			BLI_remlink(&undobase, uel);
-			uel->freedata(uel->undodata);
-			MEM_freeN(uel);
+		if(uel->ob != G.obedit) {
+			
+			/* for when global undo changes pointers... */
+			if(checknames && strcmp(uel->id.name, G.obedit->id.name)==0) {
+				uel->ob= G.obedit;
+			}
+			else {
+				mixed= 1;
+				BLI_remlink(&undobase, uel);
+				uel->freedata(uel->undodata);
+				MEM_freeN(uel);
+			}
 		}
 		uel= next;
 	}
