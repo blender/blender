@@ -102,6 +102,83 @@ extern int nla_filter (Base* base, int flags);	/* From drawnla.c */
 
 /* ******************** SPACE: NLA ********************** */
 
+static void shift_nlastrips_up(void) {
+	
+	Base *base;
+	bActionStrip *strip, *prevstrip;
+
+	for (base=G.scene->base.first; base; base=base->next) {
+		if (base->object->type == OB_ARMATURE) {
+
+			for (strip = base->object->nlastrips.first; 
+				 strip; strip=strip->next){
+				if (strip->flag & ACTSTRIP_SELECT) {
+					if ( (prevstrip = strip->prev) ) {
+						if (prevstrip->prev)
+							prevstrip->prev->next = strip;
+						if (strip->next)
+							strip->next->prev = prevstrip;
+						strip->prev = prevstrip->prev;
+						prevstrip->next = strip->next;
+						strip->next = prevstrip;
+						prevstrip->prev = strip;
+
+						if (prevstrip == base->object->nlastrips.first)
+							base->object->nlastrips.first = strip;
+						if (strip == base->object->nlastrips.last)
+							base->object->nlastrips.last = prevstrip;
+
+						strip = prevstrip;
+					}
+					else {
+						break;
+					}
+				}
+			}
+		}
+	}
+	allqueue (REDRAWNLA, 0);
+
+}
+
+static void shift_nlastrips_down(void) {
+	
+	Base *base;
+	bActionStrip *strip, *nextstrip;
+
+	for (base=G.scene->base.first; base; base=base->next) {
+		if (base->object->type == OB_ARMATURE) {
+			for (strip = base->object->nlastrips.last; 
+				 strip; strip=strip->prev){
+				if (strip->flag & ACTSTRIP_SELECT) {
+					if ( (nextstrip = strip->next) ) {
+						if (nextstrip->next)
+							nextstrip->next->prev = strip;
+						if (strip->prev)
+							strip->prev->next = nextstrip;
+						strip->next = nextstrip->next;
+						nextstrip->prev = strip->prev;
+						strip->prev = nextstrip;
+						nextstrip->next = strip;
+
+						if (nextstrip == base->object->nlastrips.last)
+							base->object->nlastrips.last = strip;
+						if (strip == base->object->nlastrips.first)
+							base->object->nlastrips.first = nextstrip;
+
+						strip = nextstrip;
+					}
+					else {
+						break;
+					}
+				}
+			}
+		}
+	}
+	allqueue (REDRAWNLA, 0);
+
+}
+
 void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
@@ -139,6 +216,14 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		
 		case HOMEKEY:
 			do_nla_buttons(B_NLAHOME);
+			break;
+
+		case PADMINUS:
+			shift_nlastrips_up();
+			break;
+
+		case PADPLUSKEY:
+			shift_nlastrips_down();
 			break;
 
 		case AKEY:
