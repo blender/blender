@@ -105,7 +105,7 @@ typedef struct {
 /*****************************************************************************/
 static PyObject *Image_getName(C_Image *self);
 static PyObject *Image_getFilename(C_Image *self);
-static PyObject *Image_rename(C_Image *self, PyObject *args);
+static PyObject *Image_setName(C_Image *self, PyObject *args);
 static PyObject *Image_setXRep(C_Image *self, PyObject *args);
 static PyObject *Image_setYRep(C_Image *self, PyObject *args);
 
@@ -118,7 +118,7 @@ static PyMethodDef C_Image_methods[] = {
           "() - Return Image Data name"},
   {"getFilename", (PyCFunction)Image_getFilename, METH_VARARGS,
           "() - Return Image Data filename"},
-  {"rename", (PyCFunction)Image_rename, METH_VARARGS,
+  {"setName", (PyCFunction)Image_setName, METH_VARARGS,
           "(str) - Change Image Data name"},
   {"setXRep", (PyCFunction)Image_setXRep, METH_VARARGS,
           "(int) - Change Image Data x repetition value"},

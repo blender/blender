@@ -109,7 +109,7 @@ typedef struct {
 static PyObject *Text_getName(C_Text *self);
 static PyObject *Text_getFilename(C_Text *self);
 static PyObject *Text_getNLines(C_Text *self);
-static PyObject *Text_rename(C_Text *self, PyObject *args);
+static PyObject *Text_setName(C_Text *self, PyObject *args);
 static PyObject *Text_clear(C_Text *self, PyObject *args);
 static PyObject *Text_write(C_Text *self, PyObject *args);
 static PyObject *Text_set(C_Text *self, PyObject *args);
@@ -126,7 +126,7 @@ static PyMethodDef C_Text_methods[] = {
           "() - Return Text Object filename"},
   {"getNLines", (PyCFunction)Text_getNLines, METH_VARARGS,
           "() - Return number of lines in text buffer"},
-  {"rename", (PyCFunction)Text_rename, METH_VARARGS,
+  {"setName", (PyCFunction)Text_setName, METH_VARARGS,
           "(str) - Change Text Object name"},
   {"clear", (PyCFunction)Text_clear, METH_VARARGS,
           "() - Clear Text buffer"},

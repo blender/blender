@@ -24,27 +24,47 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Michel Selten
+ * Contributor(s): Michel Selten, Willian P. Germano
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
+#ifndef EXPP_gen_utils_h
+#define EXPP_gen_utils_h
+
+#include <stdio.h>
+#include <string.h>
 #include <Python.h>
 
+#include <BKE_global.h>
+#include <BKE_main.h>
 #include <DNA_ID.h>
+#include <DNA_object_types.h>
+#include <DNA_scriptlink_types.h>
+#include <DNA_listBase.h>
 
 int StringEqual (char * string1, char * string2);
 char * GetIdName (ID *id);
+ID *GetIdFromList(ListBase *list, char *name);
+
 PyObject * PythonReturnErrorObject (PyObject * type, char * error_msg);
 PyObject * PythonIncRef (PyObject *object);
 PyObject * EXPP_incr_ret (PyObject *object);
+
 char * event_to_name (short event);
+
 float EXPP_ClampFloat (float value, float min, float max);
+int   EXPP_ClampInt (int value, int min, int max);
+
 int EXPP_ReturnIntError (PyObject *type, char *error_msg);
 PyObject *EXPP_ReturnPyObjError (PyObject * type, char * error_msg);
+
+int EXPP_check_sequence_consistency (PyObject *seq, PyTypeObject *against);
 
 /* The following functions may need to be moved to the respective BKE or */
 /* DNA modules. */
 
 struct Object * GetObjectByName (char * name);
 
+
+#endif /* EXPP_gen_utils_h */

@@ -239,7 +239,7 @@ static PyObject *Camera_getDrawSize(C_Camera *self)
                                    "couldn't get Camera.drawSize attribute"));
 }
 
-static PyObject *Camera_rename(C_Camera *self, PyObject *args)
+static PyObject *Camera_setName(C_Camera *self, PyObject *args)
 {
   char *name;
   char buf[21];
@@ -500,7 +500,7 @@ static int CameraSetAttr (C_Camera *self, char *name, PyObject *value)
 
 /* Now we just compare "name" with all possible C_Camera member variables */
   if (strcmp (name, "name") == 0)
-    error = Camera_rename (self, valtuple);
+    error = Camera_setName (self, valtuple);
   else if (strcmp (name, "type") == 0)
     error = Camera_setIntType (self, valtuple); /* special case */
   else if (strcmp (name, "mode") == 0)

@@ -1,4 +1,8 @@
-/* 
+
+
+/* Matrix and vector objects in Python */
+
+/* $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -22,33 +26,53 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * This is a new part of Blender.
+ * The Original Code is: all of this file.
  *
- * Contributor(s): Michel Selten
+ * Contributor(s): Willian P. Germano
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
-*/
-#include <Python.h>
+ *
+ */
+#ifndef EXPP_vector_h
+#define EXPP_vector_h
 
-#include <DNA_object_types.h>
-#include <DNA_camera_types.h>
-#include <DNA_lamp_types.h>
-#include <DNA_image_types.h>
+#include "Python.h"
 
-/*****************************************************************************/
-/* Global variables                                                          */
-/*****************************************************************************/
-extern PyObject *g_blenderdict;
+#include "BKE_utildefines.h"
 
-void initBlender (void);
-PyObject *initObject (void);
-PyObject *ObjectCreatePyObject (struct Object *obj);
-PyObject *M_NMesh_Init (void);
-PyObject *M_Camera_Init (void);
-PyObject *M_Lamp_Init (void);
-/*PyObject *M_Curve_Init (void);*/
-PyObject *M_Image_Init (void);
-PyObject *M_Window_Init (void);
-PyObject *M_Draw_Init (void);
-PyObject *M_BGL_Init (void);
-PyObject *M_Text_Init (void);
+#include "gen_utils.h"
+#include "vector.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+/*****************************/
+/*    Matrix Python Object   */
+/*****************************/
+/* temporar hack for typecasts */
+
+typedef float (*Matrix4Ptr)[4];
+
+typedef struct {
+	PyObject_VAR_HEAD
+	float *vec;
+	int size;
+
+} VectorObject;
+
+typedef struct {
+	PyObject_VAR_HEAD
+	PyObject *rows[4];
+	Matrix4Ptr mat;
+
+} MatrixObject;
+
+
+/* PROTOS */
+
+PyObject *newVectorObject(float *vec, int size);
+PyObject *newMatrixObject(Matrix4Ptr mat);
+void init_py_matrix(void);
+
+#endif /* EXPP_vector_h */

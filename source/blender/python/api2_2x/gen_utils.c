@@ -24,20 +24,23 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Michel Selten
+ * Contributor(s): Michel Selten, Willian P. Germano
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include <stdio.h>
-#include <string.h>
-#include <Python.h>
+#include "gen_utils.h"
 
-#include <BKE_global.h>
-#include <BKE_main.h>
-#include <DNA_ID.h>
-#include <DNA_object_types.h>
-#include <DNA_scriptlink_types.h>
+/*****************************************************************************/
+/* Description: This function clamps an int to the given interval            */
+/*              [min, max].                                                  */
+/*****************************************************************************/
+int EXPP_ClampInt (int value, int min, int max)
+{
+	if (value < min) return min;
+	else if (value > max) return max;
+	return value;
+}
 
 /*****************************************************************************/
 /* Description: This function clamps a float to the given interval           */
@@ -66,6 +69,22 @@ int StringEqual (char * string1, char * string2)
 char * GetIdName (ID *id)
 {
 	return ((id->name)+2);
+}
+
+/*****************************************************************************/
+/* Description: This function returns the ID of the object with given name   */
+/*              from a given list.                                           */
+/*****************************************************************************/
+ID *GetIdFromList(ListBase *list, char *name)
+{
+	ID *id = list->first;
+
+	while (id) {
+		if(strcmp(name, id->name+2) == 0) break;
+			id= id->next;
+	}
+
+	return id;
 }
 
 /*****************************************************************************/
@@ -147,5 +166,26 @@ struct Object * GetObjectByName (char * name)
 
 	/* There is no object with the given name */
 	return (NULL);
+}
+
+/*****************************************************************************/
+/* Description: Checks whether all objects in a PySequence are of a same     */
+/*              given type.  Returns 0 if not, 1 on success.                 */
+/*****************************************************************************/
+int EXPP_check_sequence_consistency(PyObject *seq, PyTypeObject *against)
+{
+	PyObject *ob;
+	int len = PySequence_Length(seq);
+	int i;
+
+	for (i = 0; i < len; i++) {
+		ob = PySequence_GetItem(seq, i);
+		if (ob->ob_type != against) {
+			Py_DECREF(ob);
+			return 0;
+		}
+		Py_DECREF(ob);
+	}
+	return 1;
 }
 

@@ -258,7 +258,7 @@ static PyObject *Text_getNLines(C_Text *self)
           "couldn't get Text.nlines attribute");
 }
 
-static PyObject *Text_rename(C_Text *self, PyObject *args)
+static PyObject *Text_setName(C_Text *self, PyObject *args)
 {
   char *name;
   char buf[21];
@@ -426,7 +426,7 @@ static int TextSetAttr (C_Text *self, char *name, PyObject *value)
                   "TextSetAttr: couldn't create PyTuple");
 
   if (strcmp (name, "name") == 0)
-    error = Text_rename (self, valtuple);
+    error = Text_setName (self, valtuple);
   else { /* Error: no such member in the Text Data structure */
     Py_DECREF(value);
     Py_DECREF(valtuple);

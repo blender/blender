@@ -341,7 +341,7 @@ static PyObject *Lamp_getQuad2(C_Lamp *self)
           "couldn't get Lamp.quad2 attribute"));
 }
 
-static PyObject *Lamp_rename(C_Lamp *self, PyObject *args)
+static PyObject *Lamp_setName(C_Lamp *self, PyObject *args)
 {
   char *name;
   char buf[21];
@@ -831,7 +831,7 @@ static int LampSetAttr (C_Lamp *self, char *name, PyObject *value)
                   "LampSetAttr: couldn't create tuple");
 
   if (strcmp (name, "name") == 0)
-    error = Lamp_rename (self, valtuple);
+    error = Lamp_setName (self, valtuple);
   else if (strcmp (name, "type") == 0)
     error = Lamp_setIntType (self, valtuple); /* special case */
   else if (strcmp (name, "mode") == 0)

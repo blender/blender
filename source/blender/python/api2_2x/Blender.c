@@ -215,8 +215,10 @@ void initBlender (void)
 	dict = PyModule_GetDict (module);
 	g_blenderdict = dict;
 	PyDict_SetItemString (dict, "Object", initObject());
+	PyDict_SetItemString (dict, "NMesh",  M_NMesh_Init());
 	PyDict_SetItemString (dict, "Camera", M_Camera_Init());
 	PyDict_SetItemString (dict, "Lamp",   M_Lamp_Init());
+/*	PyDict_SetItemString (dict, "Curve",  M_Curve_Init());*/
 	PyDict_SetItemString (dict, "Image",  M_Image_Init());
 	PyDict_SetItemString (dict, "Window", M_Window_Init());
 	PyDict_SetItemString (dict, "Draw",   M_Draw_Init());

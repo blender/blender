@@ -88,13 +88,13 @@ PyTypeObject constant_Type =
 /*****************************************************************************/
 static PyObject *new_const(void);
 
-PyObject *constant_New(void) /* can't be static, we call it in other files */
+PyObject *M_constant_New(void) /* can't be static, we call it in other files */
 {
   return new_const();
 }
 
 static PyObject *new_const(void)
-{ /* ... but this function needs to be static */
+{ /* this is the static one */
   C_constant *constant;
 
   printf ("In constant_New()\n");

@@ -178,7 +178,7 @@ static PyObject *Image_getFilename(C_Image *self)
           "couldn't get Image.filename attribute"));
 }
 
-static PyObject *Image_rename(C_Image *self, PyObject *args)
+static PyObject *Image_setName(C_Image *self, PyObject *args)
 {
   char *name;
   char buf[21];
@@ -297,7 +297,7 @@ static int ImageSetAttr (C_Image *self, char *name, PyObject *value)
                   "ImageSetAttr: couldn't create PyTuple");
 
   if (strcmp (name, "name") == 0)
-    error = Image_rename (self, valtuple);
+    error = Image_setName (self, valtuple);
   else if (strcmp (name, "xrep") == 0)
     error = Image_setXRep (self, valtuple);
   else if (strcmp (name, "yrep") == 0)

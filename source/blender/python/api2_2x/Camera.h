@@ -33,7 +33,6 @@
 #define EXPP_CAMERA_H
 
 #include <Python.h>
-#include <stdio.h>
 
 #include <BKE_main.h>
 #include <BKE_global.h>
@@ -127,7 +126,7 @@ struct PyMethodDef M_Camera_methods[] = {
 /*****************************************************************************/
 typedef struct {
   PyObject_HEAD
-  Camera   *camera;
+  Camera *camera;
 } C_Camera;
 
 /*****************************************************************************/
@@ -140,7 +139,7 @@ static PyObject *Camera_getLens(C_Camera *self);
 static PyObject *Camera_getClipStart(C_Camera *self);
 static PyObject *Camera_getClipEnd(C_Camera *self);
 static PyObject *Camera_getDrawSize(C_Camera *self);
-static PyObject *Camera_rename(C_Camera *self, PyObject *args);
+static PyObject *Camera_setName(C_Camera *self, PyObject *args);
 static PyObject *Camera_setType(C_Camera *self, PyObject *args);
 static PyObject *Camera_setIntType(C_Camera *self, PyObject *args);
 static PyObject *Camera_setMode(C_Camera *self, PyObject *args);
@@ -170,7 +169,7 @@ static PyMethodDef C_Camera_methods[] = {
       "() - Return Camera clip end value"},
   {"getDrawSize", (PyCFunction)Camera_getDrawSize, METH_NOARGS,
       "() - Return Camera draw size value"},
-  {"rename", (PyCFunction)Camera_rename, METH_VARARGS,
+  {"setName", (PyCFunction)Camera_setName, METH_VARARGS,
       "(str) - Change Camera Data name"},
   {"setType", (PyCFunction)Camera_setType, METH_VARARGS,
       "(str) - Change Camera type, which can be 'persp' or 'ortho'"},
@@ -190,11 +189,11 @@ static PyMethodDef C_Camera_methods[] = {
 /*****************************************************************************/
 /* Python Camera_Type callback function prototypes:                          */
 /*****************************************************************************/
-static void CameraDeAlloc (C_Camera *cam);
-static int CameraPrint (C_Camera *cam, FILE *fp, int flags);
-static int CameraSetAttr (C_Camera *cam, char *name, PyObject *v);
-static PyObject *CameraGetAttr (C_Camera *cam, char *name);
-static PyObject *CameraRepr (C_Camera *cam);
+static void CameraDeAlloc (C_Camera *self);
+static int CameraPrint (C_Camera *self, FILE *fp, int flags);
+static int CameraSetAttr (C_Camera *self, char *name, PyObject *v);
+static PyObject *CameraGetAttr (C_Camera *self, char *name);
+static PyObject *CameraRepr (C_Camera *self);
 
 /*****************************************************************************/
 /* Python Camera_Type structure definition:                                  */

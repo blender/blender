@@ -188,7 +188,7 @@ static PyObject *Lamp_getSoftness(C_Lamp *self);
 static PyObject *Lamp_getHaloInt(C_Lamp *self);
 static PyObject *Lamp_getQuad1(C_Lamp *self);
 static PyObject *Lamp_getQuad2(C_Lamp *self);
-static PyObject *Lamp_rename(C_Lamp *self, PyObject *args);
+static PyObject *Lamp_setName(C_Lamp *self, PyObject *args);
 static PyObject *Lamp_setType(C_Lamp *self, PyObject *args);
 static PyObject *Lamp_setIntType(C_Lamp *self, PyObject *args);
 static PyObject *Lamp_setMode(C_Lamp *self, PyObject *args);
@@ -250,7 +250,7 @@ static PyMethodDef C_Lamp_methods[] = {
           "() - return light intensity value #1 for a Quad Lamp"},
   {"getQuad2", (PyCFunction)Lamp_getQuad2, METH_NOARGS,
           "() - return light intensity value #2 for a Quad Lamp"},
-  {"rename", (PyCFunction)Lamp_rename, METH_VARARGS,
+  {"setName", (PyCFunction)Lamp_setName, METH_VARARGS,
           "(str) - rename Lamp"},
   {"setType", (PyCFunction)Lamp_setType, METH_VARARGS,
           "(str) - change Lamp type, which can be 'persp' or 'ortho'"},

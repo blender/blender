@@ -43,7 +43,7 @@
 /*****************************************************************************/
 /* Python API function prototypes for the constant module.                   */
 /*****************************************************************************/
-PyObject *constant_New (void);
+PyObject *M_constant_New (void);
 
 /*****************************************************************************/
 /* Python C_constant structure definition:                                   */
