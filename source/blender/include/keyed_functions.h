@@ -41,9 +41,7 @@
    functions too easily, some of those functions have nonsense names.
 */
 
-#define key_func1 make_beautiful_animation
-#define key_func2 key_return_true
-#define key_func3 calc_memleak
+#define key_func1 key_return_true
 /* add the corresponding function pointer defines here.
    Example:
 
@@ -56,11 +54,5 @@
    license_key.c:init_ftable() if necessary.
 */
 
-#define KEY_WRITE_RUNTIME		KEY_GETPTR(KEY_FUNC1)
-#define KEY_RETURN_TRUE			KEY_GETPTR(KEY_FUNC2)
-#define KEY_NLA_EVENT			KEY_GETPTR(KEY_FUNC3)
-
-/* PROTOS */
-int make_beautiful_animation(void *vp);
-int calc_memleak (void* ptr);
+#define KEY_RETURN_TRUE			KEY_GETPTR(KEY_FUNC1)
 

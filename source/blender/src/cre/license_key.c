@@ -129,10 +129,8 @@ static void init_ftable(void)  // initializes functiontable
 	int i;
 
 	g_functab[0] = &key_func1;
-	g_functab[1] = &key_func2;
-	g_functab[2] = &key_func3;
 
-	for (i = 3; i < PYKEY_TABLEN; i++)
+	for (i = 1; i < PYKEY_TABLEN; i++)
 	{
 		g_functab[i] = &sticky_shoes;
 	}

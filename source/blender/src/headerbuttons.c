@@ -2119,30 +2119,9 @@ static void check_packAll()
 }
 
 
-/* KEYED FUNCTIONS 
-   --------------- */
-
-/* this function name is meaningless and only called that way for some
-   obscurity 
-   It is called by a function table from the license_key;
-   see include/keyed_functions.h
-*/
-
-struct twostrings
-{
-	char *outname;
-	char *exename;
-};
-
-/** This function is called for writing runtimes.
-  * It's locked behind the key and called through a function table
-  * which is initialized properly by the Python key code (if valid)
-  */
-int make_beautiful_animation(void *vp) 
+int write_runtime(char *str, char *exename)
 {
 	char *freestr= NULL;
-	struct twostrings *twostrings = (struct twostrings *) vp;
-	char *str = twostrings->outname;
 	char *ext = 0;
 
 #ifdef _WIN32
@@ -2160,7 +2139,7 @@ int make_beautiful_animation(void *vp)
 	}
 
 	if (!BLI_exists(str) || saveover(str))
-		BLO_write_runtime(str, twostrings->exename);
+		BLO_write_runtime(str, exename);
 
 	if (freestr)
 		MEM_freeN(freestr);
@@ -2168,32 +2147,14 @@ int make_beautiful_animation(void *vp)
 	return 0;
 }
 
-/*
-int make_nice_software(void)
-{
-	Fptr f = KEY_RETURN_TRUE;
-	if (f) return f(0);
-	else return 0;
-}
-*/
-	
 static void write_runtime_check_dynamic(char *str) 
 {
-	struct twostrings twostrings;
-
-	twostrings.outname = str;
-	twostrings.exename = "blenderdynplayer.exe";
-
-	make_beautiful_animation((void *) &twostrings);
+	write_runtime(str, "blenderdynplayer.exe");
 }
 
 static void write_runtime_check(char *str) 
 {
-	struct twostrings twostrings;
 	char player[128];
-
-	twostrings.outname = str;
-	twostrings.exename = player;
 
 	strcpy(player, "blenderplayer");
 
@@ -2205,7 +2166,7 @@ static void write_runtime_check(char *str)
 	strcat(player, ".app");
 #endif
 
-	make_beautiful_animation((void *) &twostrings);
+	write_runtime(str, player);
 }
 /* end keyed functions */
 

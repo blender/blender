@@ -88,11 +88,6 @@
 
 /* Note: A lot of these pretty much duplicate the behaviour of the
 action windows.  The functions should be shared, not copy-pasted */
-typedef struct NlaParam{
-	SpaceNla *snla;
-	unsigned short event;
-	short val;
-}NlaParam;
 
 static void deselect_nlachannel_keys (int test);
 static void deselect_nlachannels(int test);
@@ -116,28 +111,16 @@ extern int nla_filter (Base* base, int flags);	/* From drawnla.c */
 
 /* ******************** SPACE: NLA ********************** */
 
-/* Protected creator function */
-int calc_memleak (void* ptr){
+void winqreadnlaspace(unsigned short event, short val, char ascii)
+{
+	SpaceNla *snla = curarea->spacedata.first;
 	int doredraw= 0;
 	short	mval[2];
 	float dx,dy;
 	int	cfra;
-	SpaceNla *snla;
-	NlaParam *params=(NlaParam*) ptr;
-	unsigned short event;
-	short val ;
-
-	if (!ptr)
-		return -1;
-
-	snla= params->snla;
-	event = params->event;
-	val = params->val;
 	
-	if(curarea->win==0) return 0;
-	
-	if (!snla)
-		return 0;
+	if (curarea->win==0) return;
+	if (!snla) return;
 	
 	if(val) {
 		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
@@ -239,25 +222,6 @@ int calc_memleak (void* ptr){
 	}
 	
 	if(doredraw) scrarea_queue_winredraw(curarea);
-	return 0;
-}
-
-void winqreadnlaspace(unsigned short event, short val, char ascii)
-{
-	NlaParam param;
-	Base *base;
-	bActionStrip *strip, *next;
-	short mval[2];
-	float dx, dy;
-	int cfra;
-
-	param.event = event;
-	param.val = val;
-	param.snla = curarea->spacedata.first;
-
-
-	/* Call the protected (&obfuscated) eventloop function */
-	calc_memleak(&param); /* enable NLA */
 }
 
 static void convert_nla(short mval[2])
