@@ -54,6 +54,7 @@
 #include "DNA_packedFile_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
@@ -538,6 +539,54 @@ void image_viewmove(void)
 			screen_swapbuffers();
 		}		
 		else BIF_wait_for_statechange();
+	}
+}
+
+void image_viewzoom(unsigned short event)
+{
+	SpaceImage *sima= curarea->spacedata.first;
+	int width, height;
+
+	if(U.uiflag & WHEELZOOMDIR) {
+		if (event==WHEELDOWNMOUSE || event == PADPLUSKEY) {
+			sima->zoom *= 2;
+		} else {
+			sima->zoom /= 2;
+			/* Check if the image will still be visible after zooming out */
+			if (sima->zoom < 1) {
+				calc_image_view(G.sima, 'p');
+				if (sima->image) {
+					if (sima->image->ibuf) {
+						width = sima->image->ibuf->x * sima->zoom;
+						height = sima->image->ibuf->y * sima->zoom;
+						if ((width < 4) && (height < 4)) {
+							/* Image will become too small, reset value */
+							sima->zoom *= 2;
+						}
+					}
+				}
+			}
+		}
+	} else {
+		if (event==WHEELUPMOUSE || event == PADPLUSKEY) {
+			sima->zoom *= 2;
+		} else {
+			sima->zoom /= 2;
+			/* Check if the image will still be visible after zooming out */
+			if (sima->zoom < 1) {
+				calc_image_view(G.sima, 'p');
+				if (sima->image) {
+					if (sima->image->ibuf) {
+						width = sima->image->ibuf->x * sima->zoom;
+						height = sima->image->ibuf->y * sima->zoom;
+						if ((width < 4) && (height < 4)) {
+							/* Image will become too small, reset value */
+							sima->zoom *= 2;
+						}
+					}
+				}
+			}
+		}
 	}
 }
 

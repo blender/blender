@@ -1999,7 +1999,6 @@ void winqreadimagespace(unsigned short event, short val, char ascii)
 {
 	SpaceImage *sima= curarea->spacedata.first;
 	View2D *v2d= &sima->v2d;
-	int width, height;
 #ifdef NAN_TPT
 	IMG_BrushPtr brush;
 	IMG_CanvasPtr canvas;
@@ -2108,31 +2107,16 @@ void winqreadimagespace(unsigned short event, short val, char ascii)
 		case MIDDLEMOUSE:
 			image_viewmove();
 			break;
+		case WHEELUPMOUSE:
+		case WHEELDOWNMOUSE:
 		case PADPLUSKEY:
-			sima->zoom *= 2;
+		case PADMINUS:
+			image_viewzoom(event);
 			scrarea_queue_winredraw(curarea);
 			break;
 		case HOMEKEY:
 			image_home();
 			break;
-		case PADMINUS:
-			sima->zoom /= 2;
-			/* Check if the image will still be visible after zooming out */
-			if (sima->zoom < 1) {
-				calc_image_view(G.sima, 'p');
-				if (sima->image) {
-					if (sima->image->ibuf) {
-						width = sima->image->ibuf->x * sima->zoom;
-						height = sima->image->ibuf->y * sima->zoom;
-						if ((width < 4) && (height < 4)) {
-							/* Image will become too small, reset value */
-							sima->zoom *= 2;
-						}
-					}
-				}
-			}
-			scrarea_queue_winredraw(curarea);
-			break;			
 	}
 }
 
