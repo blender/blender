@@ -56,6 +56,8 @@
 #define DDA_SHADOW_TRA 2
 
 #define DEPTH_SHADOW_TRA  10
+/* from float.h */
+#define FLT_EPSILON 1.19209290e-07F
 
 
 /* ********** structs *************** */
@@ -1134,49 +1136,43 @@ static int d3dda(Isect *is)
 		dox= ox1-ox2;
 		doy= oy1-oy2;
 		doz= oz1-oz2;
-		
-		if(dox!=0.0) {
-			if(dox<0.0) {
-				labdax= (ox1-ocx1-1.0)/dox;
-				ldx= -1.0/dox;
-				dx= 1;
-			} else {
-				labdax= (ox1-ocx1)/dox;
-				ldx= 1.0/dox;
-				dx= -1;
-			}
+
+		if(dox<-FLT_EPSILON) {
+			labdax= (ox1-ocx1-1.0)/dox;
+			ldx= -1.0/dox;
+			dx= 1;
+		} else if(dox>FLT_EPSILON) {
+			labdax= (ox1-ocx1)/dox;
+			ldx= 1.0/dox;
+			dx= -1;
 		} else {
 			labdax=1.0;
 			ldx=0;
 			dx= 0;
 		}
 
-		if(doy!=0.0) {
-			if(doy<0.0) {
-				labday= (oy1-ocy1-1.0)/doy;
-				ldy= -1.0/doy;
-				dy= 1;
-			} else {
-				labday= (oy1-ocy1)/doy;
-				ldy= 1.0/doy;
-				dy= -1;
-			}
+		if(doy<-FLT_EPSILON) {
+			labday= (oy1-ocy1-1.0)/doy;
+			ldy= -1.0/doy;
+			dy= 1;
+		} else if(doy>FLT_EPSILON) {
+			labday= (oy1-ocy1)/doy;
+			ldy= 1.0/doy;
+			dy= -1;
 		} else {
 			labday=1.0;
 			ldy=0;
 			dy= 0;
 		}
 
-		if(doz!=0.0) {
-			if(doz<0.0) {
-				labdaz= (oz1-ocz1-1.0)/doz;
-				ldz= -1.0/doz;
-				dz= 1;
-			} else {
-				labdaz= (oz1-ocz1)/doz;
-				ldz= 1.0/doz;
-				dz= -1;
-			}
+		if(doz<-FLT_EPSILON) {
+			labdaz= (oz1-ocz1-1.0)/doz;
+			ldz= -1.0/doz;
+			dz= 1;
+		} else if(doz>FLT_EPSILON) {
+			labdaz= (oz1-ocz1)/doz;
+			ldz= 1.0/doz;
+			dz= -1;
 		} else {
 			labdaz=1.0;
 			ldz=0;
