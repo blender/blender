@@ -3478,10 +3478,10 @@ static void info_text(int x, int y)
 		fac2 = 1.0;
 		fac3 = 0.9;
 	} else {
-		hsize = 142;
+		hsize = 150;
 		/* promise! Never change these lines again! (zr & ton did!) */
-		fac1= fabs(hashvectf[ 2*G.version+4]);
-		fac2= 0.5+0.1*hashvectf[ G.version+3];
+		fac1= fabs(hashvectf[ 2*G.version+5]);	
+		fac2= 0.5+0.1*hashvectf[ G.version+4]; /* was '4 and 3', for 2.28a patch... */
 		fac3= 0.7;
 	}
 
@@ -3489,6 +3489,7 @@ static void info_text(int x, int y)
 		headerstr= g_progress_info;
 	} else {
 		headerstr= versionstr; 
+		headerstr= "www.blender.org 2.28c";	/* patch! */
 	}
 	
 	swatch_color= hsv_to_cpack(fac1, fac2, fac3);
@@ -3501,8 +3502,8 @@ static void info_text(int x, int y)
 	glRasterPos2i(x, y);
 
 	BIF_DrawString(G.font, headerstr, (U.transopts & TR_MENUS), 0);
-		
-	glRasterPos2i(x+120,  y);
+	
+	glRasterPos2i(x-20+hsize,  y);
 
 	BIF_DrawString(G.font, infostr, (U.transopts & TR_MENUS), 0);
 }
