@@ -663,6 +663,9 @@ void drawcamera(Object *ob)
 	float vec[8][4], tmat[4][4], fac, facx, facy, depth;
 
 	cam= ob->data;
+	/* this code only works for perspective */
+	if(G.vd->persp==2 && ob==G.vd->camera && cam->type==CAM_ORTHO) return;
+	
 	glDisable(GL_LIGHTING);
 	glDisable(GL_CULL_FACE);
 	
