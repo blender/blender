@@ -1065,7 +1065,7 @@ void do_global_buttons(unsigned short event)
 				else if(ipo->blocktype==ID_LA) {
 					( (Lamp *)from)->ipo= ipo;
 					id_us_plus(idtest);
-					allqueue(REDRAWBUTSLAMP, 0);
+					allqueue(REDRAWBUTSSHADING, 0);
 				}
 				else if(ipo->blocktype==ID_CA) {
 					( (Camera *)from)->ipo= ipo;
@@ -1257,7 +1257,7 @@ void do_global_buttons(unsigned short event)
 			if(id) id->us--;
 			
 			allqueue(REDRAWBUTSHEAD, 0);
-			allqueue(REDRAWBUTSLAMP, 0);
+			allqueue(REDRAWBUTSSHADING, 0);
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWIPO, 0);
 			BIF_preview_changed(G.buts);
@@ -1315,7 +1315,6 @@ void do_global_buttons(unsigned short event)
 				
 				allqueue(REDRAWBUTSHEAD, 0);
 				allqueue(REDRAWBUTSSHADING, 0);
-				allqueue(REDRAWBUTSLAMP, 0);
 				allqueue(REDRAWIPO, 0);
 				BIF_preview_changed(G.buts);
 			}
@@ -1336,7 +1335,6 @@ void do_global_buttons(unsigned short event)
 		if(G.buts->mainb==CONTEXT_SHADING) {
 			if(G.buts->tab[CONTEXT_SHADING]==TAB_SHADING_TEX) {
 				autotexname(G.buts->lockpoin);
-				allqueue(REDRAWBUTSHEAD, 0);
 				allqueue(REDRAWBUTSSHADING, 0);
 			}
 			else if(G.buts->tab[CONTEXT_SHADING]==TAB_SHADING_MAT) {
@@ -1352,7 +1350,7 @@ void do_global_buttons(unsigned short event)
 			else if(G.buts->tab[CONTEXT_SHADING]==TAB_SHADING_LAMP) {
 				la= G.buts->lockpoin;
 				if(la->mtex[ la->texact]) autotexname(la->mtex[la->texact]->tex);
-				allqueue(REDRAWBUTSLAMP, 0);
+				allqueue(REDRAWBUTSSHADING, 0);
 			}
 		}
 		break;

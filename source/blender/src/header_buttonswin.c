@@ -458,21 +458,6 @@ void buts_buttons(void)
 		if(tab==TAB_SHADING_MAT) {
 		}
 		else if(tab==TAB_SHADING_TEX) {
-			if(G.buts->texfrom==0) {
-				if(idfrom) {
-					xco= std_libbuttons(block, xco, 0, 0, NULL, B_TEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
-				}
-			}
-			else if(G.buts->texfrom==1) {
-				if(idfrom) {
-					xco= std_libbuttons(block, xco, 0, 0, NULL, B_WTEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
-				}
-			}
-			else if(G.buts->texfrom==2) {
-				if(idfrom) {
-					xco= std_libbuttons(block, xco, 0, 0, NULL, B_LTEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
-				}
-			}
 		}
 		else if(tab==TAB_SHADING_LAMP) {
 			if(id) {

@@ -3287,17 +3287,6 @@ void allqueue(unsigned short event, short val)
 					}
 				}
 				break;
-			case REDRAWBUTSLAMP:
-				if(sa->spacetype==SPACE_BUTS) {
-					buts= sa->spacedata.first;
-					if(buts->mainb==CONTEXT_SHADING) {
-						buts->re_align= 1;
-						scrarea_queue_winredraw(sa);
-						scrarea_queue_headredraw(sa);
-					}
-				}
-				break;
-				
 				
 			case REDRAWDATASELECT:
 				if(sa->spacetype==SPACE_FILE) {

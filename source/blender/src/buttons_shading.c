@@ -43,7 +43,11 @@
 #include "BLI_winstuff.h"
 #endif
 
+#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.h"
+
 #include "MEM_guardedalloc.h"
+
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
@@ -54,6 +58,9 @@
 #include "DNA_lamp_types.h"
 #include "DNA_world_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_image_types.h"
+#include "DNA_packedFile_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -63,6 +70,9 @@
 #include "BKE_texture.h"
 #include "BKE_displist.h"
 #include "DNA_radio_types.h"
+#include "BKE_packedFile.h"
+#include "BKE_plugin_types.h"
+#include "BKE_image.h"
 
 #include "BLI_blenlib.h"
 #include "BMF_Api.h"
@@ -84,11 +94,14 @@
 #include "BIF_space.h"
 #include "BIF_previewrender.h"
 #include "BIF_butspace.h"
+#include "BIF_writeimage.h"
+#include "BIF_toets.h"
 
 #include "interface.h"
 #include "mydevice.h"
 #include "blendef.h"
 #include "radio.h"
+#include "render.h"
 
 /* -----includes for this file specific----- */
 
@@ -96,6 +109,1065 @@
 
 static MTex mtexcopybuf;
 static MTex emptytex;
+static int packdummy = 0;
+
+
+/* *************************** TEXTURE ******************************** */
+
+Tex *cur_imatex=0;
+int prv_win= 0;
+
+void load_tex_image(char *str)	/* called from fileselect */
+{
+	Image *ima=0;
+	Tex *tex;
+	
+	tex= cur_imatex;
+	if(tex->type==TEX_IMAGE || tex->type==TEX_ENVMAP) {
+
+		ima= add_image(str);
+		if(ima) {
+			if(tex->ima) {
+				tex->ima->id.us--;
+			}
+			tex->ima= ima;
+
+			free_image_buffers(ima);	/* force reading again */
+			ima->ok= 1;
+		}
+
+		allqueue(REDRAWBUTSSHADING, 0);
+
+		BIF_preview_changed(G.buts);
+	}
+}
+
+void load_plugin_tex(char *str)	/* called from fileselect */
+{
+	Tex *tex;
+	
+	tex= cur_imatex;
+	if(tex->type!=TEX_PLUGIN) return;
+	
+	if(tex->plugin) free_plugin_tex(tex->plugin);
+	
+	tex->stype= 0;
+	tex->plugin= add_plugin_tex(str);
+
+	allqueue(REDRAWBUTSSHADING, 0);
+	BIF_preview_changed(G.buts);
+}
+
+int vergcband(const void *a1, const void *a2)
+{
+	const CBData *x1=a1, *x2=a2;
+
+	if( x1->pos > x2->pos ) return 1;
+	else if( x1->pos < x2->pos) return -1;
+	return 0;
+}
+
+
+
+void save_env(char *name)
+{
+	Tex *tex;
+	char str[FILE_MAXFILE];
+	
+	strcpy(str, name);
+	BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
+	tex= G.buts->lockpoin;
+	
+	if(tex && GS(tex->id.name)==ID_TE) {
+		if(tex->env && tex->env->ok && saveover(str)) {
+			waitcursor(1);
+			BIF_save_envmap(tex->env, str);
+			strcpy(G.ima, name);
+			waitcursor(0);
+		}
+	}
+	
+}
+
+void drawcolorband(ColorBand *coba, float x1, float y1, float sizex, float sizey)
+{
+	CBData *cbd;
+	float v3[2], v1[2], v2[2];
+	int a;
+	
+	if(coba==0) return;
+	
+	glShadeModel(GL_SMOOTH);
+	cbd= coba->data;
+	
+	v1[0]= v2[0]= x1;
+	v1[1]= y1;
+	v2[1]= y1+sizey;
+	
+	glBegin(GL_QUAD_STRIP);
+	
+	glColor3fv( &cbd->r );
+	glVertex2fv(v1); glVertex2fv(v2);
+	
+	for(a=0; a<coba->tot; a++, cbd++) {
+		
+		v1[0]=v2[0]= x1+ cbd->pos*sizex;
+
+		glColor3fv( &cbd->r );
+		glVertex2fv(v1); glVertex2fv(v2);
+	}
+	
+	v1[0]=v2[0]= x1+ sizex;
+	glVertex2fv(v1); glVertex2fv(v2);
+	
+	glEnd();
+	glShadeModel(GL_FLAT);
+	
+
+	/* outline */
+	v1[0]= x1; v1[1]= y1;
+
+	cpack(0x0);
+	glBegin(GL_LINE_LOOP);
+		glVertex2fv(v1);
+		v1[0]+= sizex;
+		glVertex2fv(v1);
+		v1[1]+= sizey;
+		glVertex2fv(v1);
+		v1[0]-= sizex;
+		glVertex2fv(v1);
+	glEnd();
+
+
+	/* help lines */
+	
+	v1[0]= v2[0]=v3[0]= x1;
+	v1[1]= y1;
+	v2[1]= y1+0.5*sizey;
+	v3[1]= y1+sizey;
+	
+	cbd= coba->data;
+	glBegin(GL_LINES);
+	for(a=0; a<coba->tot; a++, cbd++) {
+		v1[0]=v2[0]=v3[0]= x1+ cbd->pos*sizex;
+		
+		glColor3ub(0, 0, 0);
+		glVertex2fv(v1);
+		glVertex2fv(v2);
+
+		if(a==coba->cur) {
+			glVertex2f(v1[0]-1, v1[1]);
+			glVertex2f(v2[0]-1, v2[1]);
+			glVertex2f(v1[0]+1, v1[1]);
+			glVertex2f(v2[0]+1, v2[1]);
+		}
+			
+		glColor3ub(255, 255, 255);
+		glVertex2fv(v2);
+		glVertex2fv(v3);
+		
+		if(a==coba->cur) {
+			glVertex2f(v2[0]-1, v2[1]);
+			glVertex2f(v3[0]-1, v3[1]);
+			glVertex2f(v2[0]+1, v2[1]);
+			glVertex2f(v3[0]+1, v3[1]);
+		}
+	}
+	glEnd();
+	
+
+	glFlush();
+}
+
+
+
+void do_texbuts(unsigned short event)
+{
+	Tex *tex;
+	ImBuf *ibuf;
+	ScrArea *sa;
+	ID *id;
+	CBData *cbd;
+	uiBlock *block;
+	float dx;
+	int a, nr;
+	short mvalo[2], mval[2];
+	char *name, str[80];
+	
+	tex= G.buts->lockpoin;
+	
+	switch(event) {
+	case B_TEXCHANNEL:
+		scrarea_queue_headredraw(curarea);
+		BIF_preview_changed(G.buts);
+		allqueue(REDRAWBUTSSHADING, 0);
+		break;
+	case B_TEXTYPE:
+		if(tex==0) return;
+		tex->stype= 0;
+		allqueue(REDRAWBUTSSHADING, 0);
+		BIF_preview_changed(G.buts);
+		break;
+	case B_DEFTEXVAR:
+		if(tex==0) return;
+		default_tex(tex);
+		allqueue(REDRAWBUTSSHADING, 0);
+		BIF_preview_changed(G.buts);
+		break;
+	case B_LOADTEXIMA:
+	case B_LOADTEXIMA1:
+		if(tex==0) return;
+		/* globals: temporal store them: we make another area a fileselect */
+		cur_imatex= tex;
+		prv_win= curarea->win;
+		
+		sa= closest_bigger_area();
+		areawinset(sa->win);
+		if(tex->ima) name= tex->ima->name;
+#ifdef _WIN32
+		else {
+			if (strcmp (U.textudir, "/") == 0)
+				name= G.sce;
+			else
+				name= U.textudir;
+		}
+#else
+		else name = U.textudir;
+#endif
+		
+		if(event==B_LOADTEXIMA)
+			activate_imageselect(FILE_SPECIAL, "SELECT IMAGE", name, load_tex_image);
+		else 
+			activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name, load_tex_image);
+		
+		break;
+	case B_NAMEIMA:
+		if(tex==0) return;
+		if(tex->ima) {
+			cur_imatex= tex;
+			prv_win= curarea->win;
+			
+			/* name in tex->ima has been changed by button! */
+			strcpy(str, tex->ima->name);
+			if(tex->ima->ibuf) strcpy(tex->ima->name, tex->ima->ibuf->name);
+
+			load_tex_image(str);
+		}
+		break;
+	case B_TEXREDR_PRV:
+		allqueue(REDRAWBUTSSHADING, 0);
+		BIF_preview_changed(G.buts);
+		break;
+	case B_TEXIMABROWSE:
+		if(tex) {
+			id= (ID*) tex->ima;
+			
+			if(G.buts->menunr== -2) {
+				activate_databrowse(id, ID_IM, 0, B_TEXIMABROWSE, &G.buts->menunr, do_texbuts);
+			} else if (G.buts->menunr>0) {
+				Image *newima= (Image*) BLI_findlink(&G.main->image, G.buts->menunr-1);
+				
+				if (newima && newima!=(Image*) id) {
+					tex->ima= newima;
+					id_us_plus((ID*) newima);
+					if(id) id->us--;
+				
+					allqueue(REDRAWBUTSSHADING, 0);
+					BIF_preview_changed(G.buts);
+				}
+			}
+		}
+		break;
+	case B_IMAPTEST:
+		if(tex) {
+			if( (tex->imaflag & (TEX_FIELDS+TEX_MIPMAP))== TEX_FIELDS+TEX_MIPMAP ) {
+				error("Cannot combine fields and mipmap");
+				tex->imaflag -= TEX_MIPMAP;
+				allqueue(REDRAWBUTSSHADING, 0);
+			}
+			
+			if(tex->ima && tex->ima->ibuf) {
+				ibuf= tex->ima->ibuf;
+				nr= 0;
+				if( !(tex->imaflag & TEX_FIELDS) && (ibuf->flags & IB_fields) ) nr= 1;
+				if( (tex->imaflag & TEX_FIELDS) && !(ibuf->flags & IB_fields) ) nr= 1;
+				if(nr) {
+					IMB_freeImBuf(ibuf);
+					tex->ima->ibuf= 0;
+					tex->ima->ok= 1;
+					BIF_preview_changed(G.buts);
+				}
+			}
+		}
+		break;
+	case B_RELOADIMA:
+		if(tex && tex->ima) {
+			// check if there is a newer packedfile
+
+			if (tex->ima->packedfile) {
+				PackedFile *pf;
+				pf = newPackedFile(tex->ima->name);
+				if (pf) {
+					freePackedFile(tex->ima->packedfile);
+					tex->ima->packedfile = pf;
+				} else {
+					error("Image not available. Keeping packed image.");
+				}
+			}
+
+			IMB_freeImBuf(tex->ima->ibuf);
+			tex->ima->ibuf= 0;
+			tex->ima->ok= 1;
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWIMAGE, 0);
+			BIF_preview_changed(G.buts);
+		}
+		allqueue(REDRAWBUTSSHADING, 0);	// redraw buttons
+		
+		break;
+
+	case B_TEXSETFRAMES:
+		if(tex->ima->anim) tex->frames = IMB_anim_get_duration(tex->ima->anim);
+		allqueue(REDRAWBUTSSHADING, 0);
+		break;
+
+	case B_PACKIMA:
+		if(tex && tex->ima) {
+			if (tex->ima->packedfile) {
+				if (G.fileflags & G_AUTOPACK) {
+					if (okee("Disable AutoPack ?")) {
+						G.fileflags &= ~G_AUTOPACK;
+					}
+				}
+				
+				if ((G.fileflags & G_AUTOPACK) == 0) {
+					unpackImage(tex->ima, PF_ASK);
+				}
+			} else {
+				if (tex->ima->ibuf && (tex->ima->ibuf->userflags & IB_BITMAPDIRTY)) {
+					error("Can't pack painted image. Save image from Image window first.");
+				} else {
+					tex->ima->packedfile = newPackedFile(tex->ima->name);
+				}
+			}
+			allqueue(REDRAWBUTSSHADING, 0);
+			allqueue(REDRAWHEADERS, 0);
+		}
+		break;
+	case B_LOADPLUGIN:
+		if(tex==0) return;
+
+		/* globals: store temporal: we make another area a fileselect */
+		cur_imatex= tex;
+		prv_win= curarea->win;
+			
+		sa= closest_bigger_area();
+		areawinset(sa->win);
+		if(tex->plugin) strcpy(str, tex->plugin->name);
+		else {
+			strcpy(str, U.plugtexdir);
+		}
+		activate_fileselect(FILE_SPECIAL, "SELECT PLUGIN", str, load_plugin_tex);
+		
+		break;
+
+	case B_NAMEPLUGIN:
+		if(tex==0 || tex->plugin==0) return;
+		strcpy(str, tex->plugin->name);
+		free_plugin_tex(tex->plugin);
+		tex->stype= 0;
+		tex->plugin= add_plugin_tex(str);
+		allqueue(REDRAWBUTSSHADING, 0);
+		BIF_preview_changed(G.buts);
+		break;
+	
+	case B_COLORBAND:
+		if(tex==0) return;
+		if(tex->coba==0) tex->coba= add_colorband();
+		allqueue(REDRAWBUTSSHADING, 0);
+		BIF_preview_changed(G.buts);
+		break;
+	
+	case B_ADDCOLORBAND:
+		if(tex==0 || tex->coba==0) return;
+		
+		if(tex->coba->tot < MAXCOLORBAND-1) tex->coba->tot++;
+		tex->coba->cur= tex->coba->tot-1;
+		
+		do_texbuts(B_CALCCBAND);
+		
+		break;
+
+	case B_DELCOLORBAND:
+		if(tex==0 || tex->coba==0 || tex->coba->tot<2) return;
+		
+		for(a=tex->coba->cur; a<tex->coba->tot; a++) {
+			tex->coba->data[a]= tex->coba->data[a+1];
+		}
+		if(tex->coba->cur) tex->coba->cur--;
+		tex->coba->tot--;
+
+		allqueue(REDRAWBUTSSHADING, 0);
+		BIF_preview_changed(G.buts);
+		break;
+
+	case B_CALCCBAND:
+	case B_CALCCBAND2:
+		if(tex==0 || tex->coba==0 || tex->coba->tot<2) return;
+		
+		for(a=0; a<tex->coba->tot; a++) tex->coba->data[a].cur= a;
+		qsort(tex->coba->data, tex->coba->tot, sizeof(CBData), vergcband);
+		for(a=0; a<tex->coba->tot; a++) {
+			if(tex->coba->data[a].cur==tex->coba->cur) {
+				if(tex->coba->cur!=a) addqueue(curarea->win, REDRAW, 0);	/* button cur */
+				tex->coba->cur= a;
+				break;
+			}
+		}
+		if(event==B_CALCCBAND2) return;
+		
+		allqueue(REDRAWBUTSSHADING, 0);
+		BIF_preview_changed(G.buts);
+		
+		break;
+		
+	case B_DOCOLORBAND:
+		if(tex==0 || tex->coba==0) return;
+		
+		block= uiFindOpenPanelBlockName(&curarea->uiblocks, "Colors");
+		if(block) {
+			cbd= tex->coba->data + tex->coba->cur;
+			uiGetMouse(mywinget(), mvalo);
+	
+			while(get_mbut() & L_MOUSE) {
+				uiGetMouse(mywinget(), mval);
+				if(mval[0]!=mvalo[0]) {
+					dx= mval[0]-mvalo[0];
+					dx/= 345.0;
+					cbd->pos+= dx;
+					CLAMP(cbd->pos, 0.0, 1.0);
+	
+					glDrawBuffer(GL_FRONT);
+					uiPanelPush(block);
+					drawcolorband(tex->coba, 10,150,300,20);
+					uiPanelPop(block);
+					glDrawBuffer(GL_BACK);
+					
+					do_texbuts(B_CALCCBAND2);
+					cbd= tex->coba->data + tex->coba->cur;	/* because qsort */
+					
+					mvalo[0]= mval[0];
+				}
+				BIF_wait_for_statechange();
+			}
+			allqueue(REDRAWBUTSSHADING, 0);
+			BIF_preview_changed(G.buts);
+		}
+		break;
+		
+	case B_ENV_DELETE:
+		if(tex->env) {
+			RE_free_envmap(tex->env);
+			tex->env= 0;
+			allqueue(REDRAWBUTSSHADING, 0);
+			BIF_preview_changed(G.buts);
+		}
+		break;
+	case B_ENV_FREE:
+		if(tex->env) {
+			RE_free_envmapdata(tex->env);
+			allqueue(REDRAWBUTSSHADING, 0);
+			BIF_preview_changed(G.buts);
+		}
+		break;
+	case B_ENV_FREE_ALL:
+		tex= G.main->tex.first;
+		while(tex) {
+			if(tex->id.us && tex->type==TEX_ENVMAP) {
+				if(tex->env) {
+					if(tex->env->stype!=ENV_LOAD) RE_free_envmapdata(tex->env);
+				}
+			}
+			tex= tex->id.next;
+		}
+		allqueue(REDRAWBUTSSHADING, 0);
+		BIF_preview_changed(G.buts);
+		break;
+	case B_ENV_SAVE:
+		if(tex->env && tex->env->ok) {
+			sa= closest_bigger_area();
+			areawinset(sa->win);
+			save_image_filesel_str(str);
+			activate_fileselect(FILE_SPECIAL, str, G.ima, save_env);
+		}
+		break;	
+	case B_ENV_OB:
+		if(tex->env && tex->env->object) {
+			BIF_preview_changed(G.buts);
+			if ELEM(tex->env->object->type, OB_CAMERA, OB_LAMP) {
+				error("Camera or Lamp not allowed");
+				tex->env->object= 0;
+			}
+		}
+		break;
+		
+	default:
+		if(event>=B_PLUGBUT && event<=B_PLUGBUT+23) {
+			PluginTex *pit= tex->plugin;
+			if(pit && pit->callback) {
+				pit->callback(event - B_PLUGBUT);
+				BIF_preview_changed(G.buts);
+			}
+		}
+	}
+}
+
+static void texture_panel_plugin(Tex *tex)
+{
+	uiBlock *block;
+	VarStruct *varstr;
+	PluginTex *pit;
+	short xco, yco, a;
+	
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_plugin", UI_EMBOSSX, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Plugin", "Texture", 640, 0, 318, 204)==0) return;
+	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+
+	if(tex->plugin && tex->plugin->doit) {
+		
+		pit= tex->plugin;
+
+		uiBlockSetCol(block, BUTGREEN);
+		for(a=0; a<pit->stypes; a++) {
+			uiDefButS(block, ROW, B_MATPRV, pit->stnames+16*a, (350+75*a), 170, 75, 18, &tex->stype, 2.0, (float)a, 0, 0, "");
+		}
+		
+		uiBlockSetCol(block, BUTGREY);
+		varstr= pit->varstr;
+		if(varstr) {
+			for(a=0; a<pit->vars; a++, varstr++) {
+				xco= 350 + 140*(a/6);
+				yco= 110 - 20*(a % 6);
+				pit->data[a] = varstr->def;
+				uiDefBut(block, varstr->type, B_PLUGBUT+a, varstr->name, xco,yco,137,19, &(pit->data[a]), varstr->min, varstr->max, 100, 0, varstr->tip);
+			}
+		}
+		uiDefBut(block, TEX, B_NAMEPLUGIN, "",		350,130,290,24, pit->name, 0.0, 159.0, 0, 0, "");
+	}
+
+	uiBlockSetCol(block, BUTSALMON);
+	uiDefBut(block, BUT, B_LOADPLUGIN, "Load Plugin", 350,150,137,24, 0, 0, 0, 0, 0, "");
+			
+}
+
+
+static void texture_panel_magic(Tex *tex)
+{
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_magic", UI_EMBOSSX, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Magic", "Texture", 640, 0, 318, 204)==0) return;
+	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+
+	uiBlockSetCol(block, BUTGREY);
+	uiDefButF(block, NUM, B_MATPRV, "Size :",		10, 110, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Set the dimension of the pattern");
+	uiDefButS(block, NUM, B_MATPRV, "Depth:",		10, 90, 150, 19, &tex->noisedepth, 0.0, 10.0, 0, 0, "Set the depth of the pattern");
+	uiDefButF(block, NUM, B_MATPRV, "Turbulence:",	10, 70, 150, 19, &tex->turbul, 0.0, 200.0, 10, 0, "Set the strength of the pattern");
+}
+
+static void texture_panel_blend(Tex *tex)
+{
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_blend", UI_EMBOSSX, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Blend", "Texture", 640, 0, 318, 204)==0) return;
+	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+
+	uiBlockSetCol(block, BUTGREEN);	
+	uiDefButS(block, ROW, B_MATPRV, "Lin",		10, 180, 75, 19, &tex->stype, 2.0, 0.0, 0, 0, "Use a linear progresion"); 
+	uiDefButS(block, ROW, B_MATPRV, "Quad",		85, 180, 75, 19, &tex->stype, 2.0, 1.0, 0, 0, "Use a quadratic progression"); 
+	uiDefButS(block, ROW, B_MATPRV, "Ease",		160, 180, 75, 19, &tex->stype, 2.0, 2.0, 0, 0, ""); 
+	uiDefButS(block, TOG|BIT|1, B_MATPRV, "Flip XY",	235, 180, 75, 19, &tex->flag, 0, 0, 0, 0, "Flip the direction of the progression a quarter turn");
+
+	uiDefButS(block, ROW, B_MATPRV, "Diag",		10, 160, 75, 19, &tex->stype, 2.0, 3.0, 0, 0, "Use a diagonal progression");
+	uiDefButS(block, ROW, B_MATPRV, "Sphere",	85, 160, 75, 19, &tex->stype, 2.0, 4.0, 0, 0, "Use progression with the shape of a sphere");
+	uiDefButS(block, ROW, B_MATPRV, "Halo",		160, 160, 75, 19, &tex->stype, 2.0, 5.0, 0, 0, "Use a quadratic progression with the shape of a sphere");
+	
+}
+
+
+
+static void texture_panel_wood(Tex *tex)
+{
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_wood", UI_EMBOSSX, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Wood", "Texture", 640, 0, 318, 204)==0) return;
+	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+
+	uiBlockSetCol(block, BUTGREEN);	
+	uiDefButS(block, ROW, B_MATPRV, "Bands",		10, 180, 75, 18, &tex->stype, 2.0, 0.0, 0, 0, "Use standard wood texture"); 
+	uiDefButS(block, ROW, B_MATPRV, "Rings",		85, 180, 75, 18, &tex->stype, 2.0, 1.0, 0, 0, "Use wood rings"); 
+	uiDefButS(block, ROW, B_MATPRV, "BandNoise",	160, 180, 75, 18, &tex->stype, 2.0, 2.0, 0, 0, "Add noise to standard wood"); 
+	uiDefButS(block, ROW, B_MATPRV, "RingNoise",	235, 180, 75, 18, &tex->stype, 2.0, 3.0, 0, 0, "Add noise to rings"); 
+
+	uiDefButS(block, ROW, B_MATPRV, "Soft noise",	10, 160, 75, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Use soft noise");
+	uiDefButS(block, ROW, B_MATPRV, "Hard noise",	85, 160, 75, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Use hard noise");
+
+	uiBlockSetCol(block, BUTGREY);	
+	uiDefButF(block, NUM, B_MATPRV, "NoiseSize :",	10, 130, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Set the dimension of the noise table");
+	uiDefButF(block, NUM, B_MATPRV, "Turbulence:",	160, 130, 150, 19, &tex->turbul, 0.0, 200.0, 10, 0, "Set the turbulence of the bandnoise and ringnoise types");
+
+
+}
+
+static void texture_panel_stucci(Tex *tex)
+{
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_stucci", UI_EMBOSSX, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Stucci", "Texture", 640, 0, 318, 204)==0) return;
+	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+
+	uiBlockSetCol(block, BUTGREEN);
+	uiDefButS(block, ROW, B_MATPRV, "Plastic",		10, 180, 100, 19, &tex->stype, 2.0, 0.0, 0, 0, "Use standard stucci");
+	uiDefButS(block, ROW, B_MATPRV, "Wall In",		110, 180, 100, 19, &tex->stype, 2.0, 1.0, 0, 0, "Set start value"); 
+	uiDefButS(block, ROW, B_MATPRV, "Wall Out",		210, 180, 100, 19, &tex->stype, 2.0, 2.0, 0, 0, "Set end value"); 
+	uiDefButS(block, ROW, B_MATPRV, "Soft noise",	10, 160, 100, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Use soft noise");
+	uiDefButS(block, ROW, B_MATPRV, "Hard noise",	110, 160, 100, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Use hard noise");
+
+	uiBlockSetCol(block, BUTGREY);	
+	uiDefButF(block, NUM, B_MATPRV, "NoiseSize :",	10, 110, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Set the dimension of the noise table");
+	uiDefButF(block, NUM, B_MATPRV, "Turbulence:",	10, 90, 150, 19, &tex->turbul, 0.0, 200.0, 10, 0, "Set the depth of the stucci");
+}
+
+static void texture_panel_marble(Tex *tex)
+{
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_marble", UI_EMBOSSX, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Marble", "Texture", 640, 0, 318, 204)==0) return;
+	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+
+	uiBlockSetCol(block, BUTGREEN);	
+	uiDefButS(block, ROW, B_MATPRV, "Soft",			10, 180, 75, 18, &tex->stype, 2.0, 0.0, 0, 0, "Use soft marble"); 
+	uiDefButS(block, ROW, B_MATPRV, "Sharp",		85, 180, 75, 18, &tex->stype, 2.0, 1.0, 0, 0, "Use more clearly defined marble"); 
+	uiDefButS(block, ROW, B_MATPRV, "Sharper",		160, 180, 75, 18, &tex->stype, 2.0, 2.0, 0, 0, "Use very clear defined marble"); 
+
+	uiDefButS(block, ROW, B_MATPRV, "Soft noise",	10, 160, 100, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Use soft noise");
+	uiDefButS(block, ROW, B_MATPRV, "Hard noise",	110, 160, 100, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Use hard noise");
+
+	uiBlockSetCol(block, BUTGREY);	
+	uiDefButF(block, NUM, B_MATPRV, "NoiseSize :",	10, 110, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Set the dimension of the noise table");
+	uiDefButS(block, NUM, B_MATPRV, "NoiseDepth:",	10, 90, 150, 19, &tex->noisedepth, 0.0, 6.0, 0, 0, "Set the depth of the marble calculation");
+	uiDefButF(block, NUM, B_MATPRV, "Turbulence:",	10, 70, 150, 19, &tex->turbul, 0.0, 200.0, 10, 0, "Set the turbulence of the sine bands");
+
+
+}
+
+static void texture_panel_clouds(Tex *tex)
+{
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_clouds", UI_EMBOSSX, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Clouds", "Texture", 640, 0, 318, 204)==0) return;
+	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+
+	uiBlockSetCol(block, BUTGREEN);	
+	uiDefButS(block, ROW, B_MATPRV, "Default",		10, 180, 70, 18, &tex->stype, 2.0, 0.0, 0, 0, "Use standard noise"); 
+	uiDefButS(block, ROW, B_MATPRV, "Color",		80, 180, 70, 18, &tex->stype, 2.0, 1.0, 0, 0, "Let Noise give RGB value"); 
+	uiDefButS(block, ROW, B_MATPRV, "Soft noise",	155, 180, 75, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Use soft noise");
+	uiDefButS(block, ROW, B_MATPRV, "Hard noise",	230, 180, 80, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Use hard noise");
+
+	uiBlockSetCol(block, BUTGREY);	
+	uiDefButF(block, NUM, B_MATPRV, "NoiseSize :",	10, 130, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Set the dimension of the noise table");
+	uiDefButS(block, NUM, B_MATPRV, "NoiseDepth:",	160, 130, 150, 19, &tex->noisedepth, 0.0, 6.0, 0, 0, "Set the depth of the cloud calculation");
+
+}
+
+
+static void texture_panel_envmap(Tex *tex)
+{
+	uiBlock *block;
+	EnvMap *env;
+	ID *id;
+	short a, xco, yco, dx, dy;
+	char *strp, str[32];
+	
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_envmap", UI_EMBOSSX, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Envmap", "Texture", 640, 0, 318, 204)==0) return;
+	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+
+	if(tex->env==0) {
+		tex->env= RE_add_envmap();
+		tex->env->object= OBACT;
+	}
+	if(tex->env) {
+		env= tex->env;
+		
+		uiBlockSetCol(block, BUTGREEN);
+		uiDefButS(block, ROW, B_REDR, 	"Static", 	10, 180, 100, 19, &env->stype, 2.0, 0.0, 0, 0, "Calculate map only once");
+		uiDefButS(block, ROW, B_REDR, 	"Anim", 	110, 180, 100, 19, &env->stype, 2.0, 1.0, 0, 0, "Calculate map each rendering");
+		uiDefButS(block, ROW, B_ENV_FREE, "Load", 	210, 180, 100, 19, &env->stype, 2.0, 2.0, 0, 0, "Load map from disk");
+		
+		if(env->stype==ENV_LOAD) {
+			/* file input */
+			uiBlockSetCol(block, BUTGREY);
+			id= (ID *)tex->ima;
+			IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->image), id, &(G.buts->menunr));
+			if(strp[0])
+				uiDefButS(block, MENU, B_TEXIMABROWSE, strp, 10,135,23,20, &(G.buts->menunr), 0, 0, 0, 0, "Browse");
+			MEM_freeN(strp);
+		
+			uiBlockSetCol(block, BUTSALMON);
+			uiDefBut(block, BUT, B_LOADTEXIMA1, "Load Image", 10,115,130,20, 0, 0, 0, 0, 0, "Load image - file view");
+			uiBlockSetCol(block, BUTPURPLE);
+			uiDefBut(block, BUT, B_LOADTEXIMA, "", 		140,115,20,20, 0, 0, 0, 0, 0, "Load image - thumb view");
+		
+			if(tex->ima) {
+				uiDefBut(block, TEX, B_NAMEIMA, "",			35,135,255,20, tex->ima->name, 0.0, 79.0, 0, 0, "Texture name");
+				sprintf(str, "%d", tex->ima->id.us);
+				uiDefBut(block, BUT, 0, str,				290,135,20,20, 0, 0, 0, 0, 0, "Number of users");
+				uiBlockSetCol(block, BUTSALMON);
+				uiDefBut(block, BUT, B_RELOADIMA, "Reload",	230,115,80,20, 0, 0, 0, 0, 0, "Reload");
+			
+				if (tex->ima->packedfile) packdummy = 1;
+				else packdummy = 0;
+				
+				uiBlockSetCol(block, BUTGREY);
+				uiDefIconButI(block, TOG|BIT|0, B_PACKIMA, ICON_PACKAGE, 205,115,24,20, &packdummy, 0, 0, 0, 0, "Pack/Unpack this Image");
+			}
+		}
+		else {
+			uiBlockSetCol(block, BUTSALMON);
+			uiDefBut(block, BUT, B_ENV_FREE, "Free Data", 	10,135,100,20, 0, 0, 0, 0, 0, "Release all images associated with environment map");
+			uiBlockSetCol(block, BUTGREY);
+			uiDefBut(block, BUT, B_ENV_SAVE, "Save EnvMap", 110,135,100,20, 0, 0, 0, 0, 0, "Save environment map");
+			uiBlockSetCol(block, BUTSALMON);
+			uiDefBut(block, BUT, B_ENV_FREE_ALL, "Free all EnvMaps", 210,135,100,20, 0, 0, 0, 0, 0, "Frees all rendered environment maps");
+		}
+
+		uiBlockSetCol(block, BUTGREY);
+		uiDefIDPoinBut(block, test_obpoin_but, B_ENV_OB, "Ob:",	10,90,150,20, &(env->object), "Object name");
+		if(env->stype!=ENV_LOAD) 
+			uiDefButS(block, NUM, B_ENV_FREE, 	"CubeRes", 		160,90,150,20, &env->cuberes, 50, 2048.0, 0, 0, "Set the resolution in pixels");
+
+		uiDefButF(block, NUM, B_MATPRV, "Filter :",				10,65,150,20, &tex->filtersize, 0.1, 25.0, 0, 0, "Adjust sharpness or blurriness of the reflection"),
+		uiDefButS(block, NUM, B_ENV_FREE, "Depth:",				160,65,150,20, &env->depth, 0, 5.0, 0, 0, "Number of times a map gets rendered again, for recursive mirror effect"),
+
+		uiDefButF(block, NUM, REDRAWVIEW3D, 	"ClipSta", 		10,40,150,20, &env->clipsta, 0.01, 50.0, 100, 0, "Set start value for clipping");
+		uiDefButF(block, NUM, 0, 	"ClipEnd", 					160,40,150,20, &env->clipend, 0.1, 5000.0, 1000, 0, "Set end value for clipping");
+
+		uiDefBut(block, LABEL, 0, "Don't render layer:",		10,10,140,22, 0, 0.0, 0.0, 0, 0, "");	
+		xco= 160;
+		yco= 10;
+		dx= 28;
+		dy= 26;
+		for(a=0; a<10; a++) {
+			uiDefButI(block, TOG|BIT|(a+10), 0, "",(xco+a*(dx/2)), yco, (dx/2), (dy/2), &env->notlay, 0, 0, 0, 0, "Render this layer");
+			uiDefButI(block, TOG|BIT|a, 0, "",	(xco+a*(dx/2)), (yco+dy/2), (dx/2), (1+dy/2), &env->notlay, 0, 0, 0, 0, "Render this layer");
+			if(a==4) xco+= 5;
+		}
+
+	}
+}
+
+
+static void texture_panel_image1(Tex *tex)
+{
+	uiBlock *block;
+	char str[32];
+	
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel1", UI_EMBOSSX, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Crop and Anim", "Texture", 960, 0, 318, 204)==0) return;
+	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+
+	if(tex->imaflag & TEX_ANIM5) {
+
+		/* print amount of frames anim */
+		if(tex->ima && tex->ima->anim) {
+			uiDefBut(block, BUT, B_TEXSETFRAMES, "<",      802, 110, 20, 18, 0, 0, 0, 0, 0, "Paste number of frames in Frames: button");
+			sprintf(str, "%d frs  ", IMB_anim_get_duration(tex->ima->anim));
+			uiDefBut(block, LABEL, 0, str,      834, 110, 90, 18, 0, 0, 0, 0, 0, "");
+			sprintf(str, "%d cur  ", tex->ima->lastframe);
+			uiDefBut(block, LABEL, 0, str,      834, 90, 90, 18, 0, 0, 0, 0, 0, "");
+		}
+		else uiDefBut(block, LABEL, 0, "<",      802, 110, 20, 18, 0, 0, 0, 0, 0, "");
+				
+		uiDefButS(block, NUM, B_MATPRV, "Frames :",	642,110,150,19, &tex->frames, 0.0, 18000.0, 0, 0, "Activate animation option");
+		uiDefButS(block, NUM, B_MATPRV, "Offset :",	642,90,150,19, &tex->offset, -9000.0, 9000.0, 0, 0, "Set the number of the first picture of the animation");
+		uiDefButS(block, NUM, B_MATPRV, "Fie/Ima:",	642,60,98,19, &tex->fie_ima, 1.0, 200.0, 0, 0, "Set the number of fields per rendered frame");
+		uiDefButS(block, NUM, B_MATPRV, "StartFr:",	642,30,150,19, &tex->sfra, 1.0, 9000.0, 0, 0, "Set the start frame of the animation");
+		uiDefButS(block, NUM, B_MATPRV, "Len:",		642,10,150,19, &tex->len, 0.0, 9000.0, 0, 0, "Set the length of the animation");
+	
+		uiDefButS(block, NUM, B_MATPRV, "Fra:",		802,70,73,19, &(tex->fradur[0][0]), 0.0, 18000.0, 0, 0, "Montage mode: frame start");
+		uiDefButS(block, NUM, B_MATPRV, "",			879,70,37,19, &(tex->fradur[0][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
+		uiDefButS(block, NUM, B_MATPRV, "Fra:",		802,50,73,19, &(tex->fradur[1][0]), 0.0, 18000.0, 0, 0, "Montage mode: frame start");
+		uiDefButS(block, NUM, B_MATPRV, "",			879,50,37,19, &(tex->fradur[1][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
+		uiDefButS(block, NUM, B_MATPRV, "Fra:",		802,30,73,19, &(tex->fradur[2][0]), 0.0, 18000.0, 0, 0, "Montage mode: frame start");
+		uiDefButS(block, NUM, B_MATPRV, "",			879,30,37,19, &(tex->fradur[2][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
+		uiDefButS(block, NUM, B_MATPRV, "Fra:",		802,10,73,19, &(tex->fradur[3][0]), 0.0, 18000.0, 0, 0, "Montage mode: frame start");
+		uiDefButS(block, NUM, B_MATPRV, "",			879,10,37,19, &(tex->fradur[3][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
+	
+		uiBlockSetCol(block, BUTGREEN);
+		uiDefButS(block, TOG|BIT|6, 0, "Cyclic",		743,60,48,19, &tex->imaflag, 0, 0, 0, 0, "Repeat animation image");
+	}
+}
+
+
+static void texture_panel_image(Tex *tex)
+{
+	uiBlock *block;
+	ID *id;
+	char *strp, str[32];
+	
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_image", UI_EMBOSSX, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Image", "Texture", 640, 0, 318, 204)==0) return;
+	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+
+	/* types */
+	uiBlockSetCol(block, BUTGREEN);
+	
+	uiDefButS(block, TOG|BIT|0, 0, "InterPol",			10, 180, 75, 18, &tex->imaflag, 0, 0, 0, 0, "Interpolate pixels of the image");
+	uiDefButS(block, TOG|BIT|1, B_MATPRV, "UseAlpha",	85, 180, 75, 18, &tex->imaflag, 0, 0, 0, 0, "Use the alpha layer");
+	uiDefButS(block, TOG|BIT|5, B_MATPRV, "CalcAlpha",	160, 180, 75, 18, &tex->imaflag, 0, 0, 0, 0, "Calculate an alpha based on the RGB");
+	uiDefButS(block, TOG|BIT|2, B_MATPRV, "NegAlpha",	235, 180, 75, 18, &tex->flag, 0, 0, 0, 0, "Reverse the alpha value");
+
+	uiDefButS(block, TOG|BIT|2, B_IMAPTEST, "MipMap",	10, 160, 60, 18, &tex->imaflag, 0, 0, 0, 0, "Generate a series of pictures used for mipmapping");
+	uiDefButS(block, TOG|BIT|3, B_IMAPTEST, "Fields",	70, 160, 50, 18, &tex->imaflag, 0, 0, 0, 0, "Work with field images");
+	uiDefButS(block, TOG|BIT|4, B_MATPRV, "Rot90",		120, 160, 50, 18, &tex->imaflag, 0, 0, 0, 0, "Rotate image 90 degrees when rendered");
+	uiDefButS(block, TOG|BIT|7, B_RELOADIMA, "Movie",	170, 160, 50, 18, &tex->imaflag, 0, 0, 0, 0, "Use a movie for an image");
+	uiDefButS(block, TOG|BIT|8, 0, "Anti",				220, 160, 40, 18, &tex->imaflag, 0, 0, 0, 0, "Use anti-aliasing");
+	uiDefButS(block, TOG|BIT|10, 0, "StField",			260, 160, 50, 18, &tex->imaflag, 0, 0, 0, 0, "");
+
+	/* file input */
+	uiBlockSetCol(block, BUTGREY);
+	id= (ID *)tex->ima;
+	IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->image), id, &(G.buts->menunr));
+	if(strp[0])
+		uiDefButS(block, MENU, B_TEXIMABROWSE, strp, 10,135,23,20, &(G.buts->menunr), 0, 0, 0, 0, "Browse");
+	MEM_freeN(strp);
+
+	uiBlockSetCol(block, BUTSALMON);
+	uiDefBut(block, BUT, B_LOADTEXIMA1, "Load Image", 10,115,130,20, 0, 0, 0, 0, 0, "Load image - file view");
+	uiBlockSetCol(block, BUTPURPLE);
+	uiDefBut(block, BUT, B_LOADTEXIMA, "", 		140,115,20,20, 0, 0, 0, 0, 0, "Load image - thumb view");
+
+	uiBlockSetCol(block, BUTGREY);
+
+	if(tex->ima) {
+		uiDefBut(block, TEX, B_NAMEIMA, "",			35,135,255,20, tex->ima->name, 0.0, 79.0, 0, 0, "Texture name");
+		sprintf(str, "%d", tex->ima->id.us);
+		uiDefBut(block, BUT, 0, str,				290,135,20,20, 0, 0, 0, 0, 0, "Number of users");
+		uiBlockSetCol(block, BUTSALMON);
+		uiDefBut(block, BUT, B_RELOADIMA, "Reload",	230,115,80,20, 0, 0, 0, 0, 0, "Reload");
+	
+		if (tex->ima->packedfile) packdummy = 1;
+		else packdummy = 0;
+		
+		uiBlockSetCol(block, BUTGREY);
+		uiDefIconButI(block, TOG|BIT|0, B_PACKIMA, ICON_PACKAGE, 205,115,24,20, &packdummy, 0, 0, 0, 0, "Pack/Unpack this Image");
+	}
+
+	/* crop extend clip */
+	
+	uiDefButF(block, NUM, B_MATPRV, "Filter :",	10,92,135,19, &tex->filtersize, 0.1, 25.0, 0, 0, "Set the filter size used by mipmap and interpol");
+	
+	uiBlockSetCol(block, BUTGREEN);
+	uiDefButS(block, ROW, 0, "Extend",			10,70,75,19, &tex->extend, 4.0, 1.0, 0, 0, "Extend the colour of the edge");
+	uiDefButS(block, ROW, 0, "Clip",			85,70,75,19, &tex->extend, 4.0, 2.0, 0, 0, "Return alpha 0.0 outside image");
+	uiDefButS(block, ROW, 0, "ClipCube",		160,70,75,19, &tex->extend, 4.0, 4.0, 0, 0, "Return alpha 0.0 outside cubeshaped area around image");
+	uiDefButS(block, ROW, 0, "Repeat",			235,70,75,19, &tex->extend, 4.0, 3.0, 0, 0, "Repeat image horizontally and vertically");
+
+	uiBlockSetCol(block, BUTGREY);
+	uiDefButS(block, NUM, B_MATPRV, "Xrepeat:",	10,50,150,19, &tex->xrepeat, 1.0, 512.0, 0, 0, "Set the degree of repetition in the X direction");
+	uiDefButS(block, NUM, B_MATPRV, "Yrepeat:",	160,50,150,19, &tex->yrepeat, 1.0, 512.0, 0, 0, "Set the degree of repetition in the Y direction");
+
+	uiDefButF(block, NUM, B_REDR, "MinX ",		10,28,150,19, &tex->cropxmin, -10.0, 10.0, 10, 0, "Set minimum X value for cropping");
+	uiDefButF(block, NUM, B_REDR, "MaxX ",		160,28,150,19, &tex->cropxmax, -10.0, 10.0, 10, 0, "Set maximum X value for cropping");
+	uiDefButF(block, NUM, B_REDR, "MinY ",		10,8,150,19, &tex->cropymin, -10.0, 10.0, 10, 0, "Set minimum Y value for cropping");
+	uiDefButF(block, NUM, B_REDR, "MaxY ",		160,8,150,19, &tex->cropymax, -10.0, 10.0, 10, 0, "Set maximum Y value for cropping");
+
+}
+
+static void drawcolorband_cb(void)
+{
+	ID *id, *idfrom;
+	
+	buttons_active_id(&id, &idfrom);
+	if( GS(id->name)==ID_TE) {
+		Tex *tex= (Tex *)id;
+		drawcolorband(tex->coba, 10,150,300,20);
+	}
+}
+
+static void texture_panel_colors(Tex *tex)
+{
+	uiBlock *block;
+	CBData *cbd;
+	
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_colors", UI_EMBOSSX, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Texture", "Texture");
+	if(uiNewPanel(curarea, block, "Colors", "Texture", 1280, 0, 318, 204)==0) return;
+		
+	
+	/* COLORBAND */
+	uiBlockSetCol(block, BUTSALMON);
+	uiDefButS(block, TOG|BIT|0, B_COLORBAND, "Colorband",10,180,100,20, &tex->flag, 0, 0, 0, 0, "Use colorband");
+
+	if(tex->flag & TEX_COLORBAND) {
+		uiDefBut(block, BUT, B_ADDCOLORBAND, "Add",		110,180,50,20, 0, 0, 0, 0, 0, "Add new colour to the colorband");
+		uiBlockSetCol(block, BUTGREY);
+		uiDefButS(block, NUM, B_REDR,		"Cur:",		160,180,100,20, &tex->coba->cur, 0.0, (float)(tex->coba->tot-1), 0, 0, "The active colour from the colorband");
+		uiBlockSetCol(block, BUTSALMON);
+		uiDefBut(block, BUT, B_DELCOLORBAND, "Del",		260,180,50,20, 0, 0, 0, 0, 0, "Delete the active colour");
+		uiBlockSetCol(block, BUTGREY);
+		uiDefBut(block, LABEL, B_DOCOLORBAND, "", 		10,150,300,20, 0, 0, 0, 0, 0, "Colorband"); /* only for event! */
+		
+		uiBlockSetDrawExtraFunc(block, drawcolorband_cb);
+		cbd= tex->coba->data + tex->coba->cur;
+		
+		uiDefButF(block, NUM, B_CALCCBAND, "Pos",	10,120,80,20, &cbd->pos, 0.0, 1.0, 10, 0, "Set the position of the active colour");
+		uiBlockSetCol(block, BUTGREEN);
+		uiDefButS(block, ROW, B_MATPRV, "E",		90,120,20,20, &tex->coba->ipotype, 5.0, 1.0, 0, 0, "Interpolation type Ease");
+		uiDefButS(block, ROW, B_MATPRV, "L",		110,120,20,20, &tex->coba->ipotype, 5.0, 0.0, 0, 0, "Interpolation type Linear");
+		uiDefButS(block, ROW, B_MATPRV, "S",		130,120,20,20, &tex->coba->ipotype, 5.0, 2.0, 0, 0, "Interpolation type Spline");
+		uiBlockSetCol(block, BUTGREY);
+		uiDefButF(block, COL, B_BANDCOL, "",		150,120,30,20, &(cbd->r), 0, 0, 0, 0, "");
+		uiDefButF(block, NUMSLI, B_MATPRV, "A ",	180,120,130,20, &cbd->a, 0.0, 1.0, 0, 0, "Set the alpha value");
+		
+		uiDefButF(block, NUMSLI, B_MATPRV, "R ",	10,100,100,20, &cbd->r, 0.0, 1.0, B_BANDCOL, 0, "Set the red value");
+		uiDefButF(block, NUMSLI, B_MATPRV, "G ",	110,100,100,20, &cbd->g, 0.0, 1.0, B_BANDCOL, 0, "Set the green value");
+		uiDefButF(block, NUMSLI, B_MATPRV, "B ",	210,100,100,20, &cbd->b, 0.0, 1.0, B_BANDCOL, 0, "Set the blue value");
+		
+	}
+
+	/* RGB-BRICON */
+	uiBlockSetCol(block, BUTGREY);
+	if((tex->flag & TEX_COLORBAND)==0) {
+		uiDefButF(block, NUMSLI, B_MATPRV, "R ",		60,80,200,20, &tex->rfac, 0.0, 2.0, 0, 0, "Set the red value");
+		uiDefButF(block, NUMSLI, B_MATPRV, "G ",		60,60,200,20, &tex->gfac, 0.0, 2.0, 0, 0, "Set the green value");
+		uiDefButF(block, NUMSLI, B_MATPRV, "B ",		60,40,200,20, &tex->bfac, 0.0, 2.0, 0, 0, "Set the blue value");
+	}
+	uiDefButF(block, NUMSLI, B_MATPRV, "Bright",		10,10,150,20, &tex->bright, 0.0, 2.0, 0, 0, "Set the brightness of the colour or intensity of a texture");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Contr",			160,10,150,20, &tex->contrast, 0.01, 2.0, 0, 0, "Set the contrast of the colour or intensity of a texture");
+
+}
+
+
+static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *la)
+{
+	extern char texstr[15][8]; // butspace.c
+	MTex *mt;
+	uiBlock *block;
+	ID *id, *idfrom;
+	int a, yco, loos;
+	char str[32], *strp;
+	
+
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_texture", UI_EMBOSSX, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Texture", "Texture", 320, 0, 318, 204)==0) return;
+
+	/* first do the browse but */
+	buttons_active_id(&id, &idfrom);
+
+	uiBlockSetCol(block, BUTPURPLE);
+	if(ma) {
+		std_libbuttons(block, 10, 180, 0, NULL, B_TEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
+	}
+	else if(wrld) {
+		std_libbuttons(block, 10, 180, 0, NULL, B_WTEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
+	}
+	else if(la) {
+		std_libbuttons(block, 10, 180, 0, NULL, B_LTEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
+	}
+
+
+	/* From button: removed */
+
+	/* CHANNELS */
+	yco= 10;
+	for(a= 7; a>=0; a--) {
+		
+		if(ma) mt= ma->mtex[a];
+		else if(wrld && a<6)  mt= wrld->mtex[a];
+		else if(la && a<6)  mt= la->mtex[a];
+		
+		if(mt && mt->tex) splitIDname(mt->tex->id.name+2, str, &loos);
+		else strcpy(str, "");
+		str[14]= 0;
+
+		if(ma) {
+			uiDefButC(block, ROW, B_TEXCHANNEL, str,	10,yco,140,19, &(ma->texact), 0.0, (float)a, 0, 0, "Linked channel");
+			yco+= 20;
+		}
+		else if(wrld && a<6) {
+			uiDefButS(block, ROW, B_TEXCHANNEL, str,	10,yco,140,19, &(wrld->texact), 0.0, (float)a, 0, 0, "");
+			yco+= 20;
+		}
+		else if(la && a<6) {
+			uiDefButS(block, ROW, B_TEXCHANNEL, str,	10,yco,140,19, &(la->texact), 0.0, (float)a, 0, 0, "");
+			yco+= 20;
+		}
+		
+	}
+
+	/* TYPES */
+	if(mtex && mtex->tex) {
+		Tex *tex= mtex->tex;
+		int xco;
+
+		uiBlockSetCol(block, BUTGREEN);
+		
+		uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+		xco= 275;
+		uiDefButS(block, ROW, B_TEXTYPE, texstr[0],			160, 110, 70, 20, &tex->type, 1.0, 0.0, 0, 0, "Default");
+
+		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_IMAGE],	160, 90, 70, 20, &tex->type, 1.0, (float)TEX_IMAGE, 0, 0, "Use image texture");
+		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_ENVMAP],240, 90, 70, 20, &tex->type, 1.0, (float)TEX_ENVMAP, 0, 0, "Use environment maps");
+
+		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_CLOUDS],160, 70, 70, 20, &tex->type, 1.0, (float)TEX_CLOUDS, 0, 0, "Use clouds texture");
+		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_MARBLE],240, 70, 70, 20, &tex->type, 1.0, (float)TEX_MARBLE, 0, 0, "Use marble texture");
+
+		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_STUCCI],160, 50, 70, 20, &tex->type, 1.0, (float)TEX_STUCCI, 0, 0, "Use strucci texture");
+		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_WOOD],	240, 50, 70, 20, &tex->type, 1.0, (float)TEX_WOOD, 0, 0, "Use wood texture");
+
+		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_MAGIC],	160, 30, 70, 20, &tex->type, 1.0, (float)TEX_MAGIC, 0, 0, "Use magic texture");
+		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_BLEND],	240, 30, 70, 20, &tex->type, 1.0, (float)TEX_BLEND, 0, 0, "Use blend texture");
+
+		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_NOISE],	160, 10, 70, 20, &tex->type, 1.0, (float)TEX_NOISE, 0, 0, "Use noise texture");
+		if(tex->plugin && tex->plugin->doit) strp= tex->plugin->pname; else strp= texstr[TEX_PLUGIN];
+		uiDefButS(block, ROW, B_TEXTYPE, strp,				240, 10, 70, 20, &tex->type, 1.0, (float)TEX_PLUGIN, 0, 0, "Use plugin");
+	}
+	else {
+		// label to avoid centering
+		uiDefBut(block, LABEL, 0, " ",	240, 10, 70, 20, 0, 0, 0, 0, 0, "");
+	}
+}
+
+static void texture_panel_preview(int preview)
+{
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_preview", UI_EMBOSSX, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Preview", "Texture", 0, 0, 318, 204)==0) return;
+	
+	if(preview) uiBlockSetDrawExtraFunc(block, BIF_previewdraw);
+
+	// label to force a boundbox for buttons not to be centered
+	uiDefBut(block, LABEL, 0, " ",	20,20,10,10, 0, 0, 0, 0, 0, "");
+	
+	uiBlockSetCol(block, BUTGREEN);
+
+	uiDefButC(block, ROW, B_TEXREDR_PRV, "Mat",		200,175,80,25, &G.buts->texfrom, 3.0, 0.0, 0, 0, "Display the texture of the active material");
+	uiDefButC(block, ROW, B_TEXREDR_PRV, "World",	200,150,80,25, &G.buts->texfrom, 3.0, 1.0, 0, 0, "Display the texture of the world block");
+	uiDefButC(block, ROW, B_TEXREDR_PRV, "Lamp",	200,125,80,25, &G.buts->texfrom, 3.0, 2.0, 0, 0, "Display the texture of the lamp");
+
+	uiDefBut(block, BUT, B_DEFTEXVAR, "Default Vars",200,10,80,20, 0, 0, 0, 0, 0, "Return to standard values");
+
+}
+
+
 
 /* *************************** RADIO ******************************** */
 
@@ -583,7 +1655,7 @@ void do_lampbuts(unsigned short event)
 			if(mtex->tex) mtex->tex->id.us--;
 			MEM_freeN(mtex);
 			la->mtex[ la->texact ]= 0;
-			allqueue(REDRAWBUTSLAMP, 0);
+			allqueue(REDRAWBUTSSHADING, 0);
 			allqueue(REDRAWOOPS, 0);
 			BIF_preview_changed(G.buts);
 		}
@@ -592,7 +1664,7 @@ void do_lampbuts(unsigned short event)
 		{ 
 			la= G.buts->lockpoin; 
 			la->bufsize = la->bufsize&=(~15); 
-			allqueue(REDRAWBUTSLAMP, 0); 
+			allqueue(REDRAWBUTSSHADING, 0); 
 			allqueue(REDRAWOOPS, 0); 
 			/*la->bufsize = la->bufsize % 64;*/ 
 		} 
@@ -839,13 +1911,13 @@ void do_matbuts(unsigned short event)
 	switch(event) {		
 	case B_ACTCOL:
 		scrarea_queue_headredraw(curarea);
-		allqueue(REDRAWBUTSMAT, 0);
+		allqueue(REDRAWBUTSSHADING, 0);
 		allqueue(REDRAWIPO, 0);
 		BIF_preview_changed(G.buts);
 		break;
 	case B_MATFROM:
 		scrarea_queue_headredraw(curarea);
-		allqueue(REDRAWBUTSMAT, 0);
+		allqueue(REDRAWBUTSSHADING, 0);
 		// BIF_previewdraw();  push/pop!
 		break;
 	case B_MATPRV:
@@ -854,7 +1926,7 @@ void do_matbuts(unsigned short event)
 		break;
 	case B_MATPRV_DRAW:
 		BIF_preview_changed(G.buts);
-		allqueue(REDRAWBUTSMAT, 0);
+		allqueue(REDRAWBUTSSHADING, 0);
 		break;
 	case B_TEXCLEAR:
 		ma= G.buts->lockpoin;
@@ -863,7 +1935,7 @@ void do_matbuts(unsigned short event)
 			if(mtex->tex) mtex->tex->id.us--;
 			MEM_freeN(mtex);
 			ma->mtex[ (int) ma->texact ]= 0;
-			allqueue(REDRAWBUTSMAT, 0);
+			allqueue(REDRAWBUTSSHADING, 0);
 			allqueue(REDRAWOOPS, 0);
 			BIF_preview_changed(G.buts);
 		}
@@ -1012,9 +2084,9 @@ static void material_panel_map_input(Material *ma)
 		else if(a==2) strcpy(str, "Y");
 		else strcpy(str, "Z");
 		
-		uiDefButC(block, ROW, B_MATPRV, str,			(short)xco, 50, 24, 18, &(mtex->projx), 6.0, (float)a, 0, 0, "");
-		uiDefButC(block, ROW, B_MATPRV, str,			(short)xco, 30, 24, 18, &(mtex->projy), 7.0, (float)a, 0, 0, "");
-		uiDefButC(block, ROW, B_MATPRV, str,			(short)xco, 10, 24, 18, &(mtex->projz), 8.0, (float)a, 0, 0, "");
+		uiDefButC(block, ROW, B_MATPRV, str,			xco, 50, 24, 18, &(mtex->projx), 6.0, (float)a, 0, 0, "");
+		uiDefButC(block, ROW, B_MATPRV, str,			xco, 30, 24, 18, &(mtex->projy), 7.0, (float)a, 0, 0, "");
+		uiDefButC(block, ROW, B_MATPRV, str,			xco, 10, 24, 18, &(mtex->projz), 8.0, (float)a, 0, 0, "");
 		xco+= 26;
 	}
 	
@@ -1263,14 +2335,14 @@ static void material_panel_material(Object *ob, Material *ma)
 		uiDefButF(block, COL, B_MIRCOL, "",		8,61,72,24, &(ma->mirr), 0, 0, 0, 0, "");
 	
 		if(ma->mode & MA_HALO) {
-			uiDefButC(block, ROW, REDRAWBUTSMAT, "Halo",		83,115,40,25, &(ma->rgbsel), 2.0, 0.0, 0, 0, "Mix the colour of the halo with the RGB sliders");
-			uiDefButC(block, ROW, REDRAWBUTSMAT, "Line",		83,88,40,25, &(ma->rgbsel), 2.0, 1.0, 0, 0, "Mix the colour of the lines with the RGB sliders");
-			uiDefButC(block, ROW, REDRAWBUTSMAT, "Ring",		83,61,40,25, &(ma->rgbsel), 2.0, 2.0, 0, 0, "Mix the colour of the rings with the RGB sliders");
+			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Halo",		83,115,40,25, &(ma->rgbsel), 2.0, 0.0, 0, 0, "Mix the colour of the halo with the RGB sliders");
+			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Line",		83,88,40,25, &(ma->rgbsel), 2.0, 1.0, 0, 0, "Mix the colour of the lines with the RGB sliders");
+			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Ring",		83,61,40,25, &(ma->rgbsel), 2.0, 2.0, 0, 0, "Mix the colour of the rings with the RGB sliders");
 		}
 		else {
-			uiDefButC(block, ROW, REDRAWBUTSMAT, "Col",			83,115,40,25, &(ma->rgbsel), 2.0, 0.0, 0, 0, "Set the basic colour of the material");
-			uiDefButC(block, ROW, REDRAWBUTSMAT, "Spe",			83,88,40,25, &(ma->rgbsel), 2.0, 1.0, 0, 0, "Set the colour of the specularity");
-			uiDefButC(block, ROW, REDRAWBUTSMAT, "Mir",			83,61,40,25, &(ma->rgbsel), 2.0, 2.0, 0, 0, "Use mirror colour");
+			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Col",			83,115,40,25, &(ma->rgbsel), 2.0, 0.0, 0, 0, "Set the basic colour of the material");
+			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Spe",			83,88,40,25, &(ma->rgbsel), 2.0, 1.0, 0, 0, "Set the colour of the specularity");
+			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Mir",			83,61,40,25, &(ma->rgbsel), 2.0, 2.0, 0, 0, "Use mirror colour");
 		}
 		if(ma->rgbsel==0) {colpoin= &(ma->r); rgbsel= B_MATCOL;}
 		else if(ma->rgbsel==1) {colpoin= &(ma->specr); rgbsel= B_SPECCOL;}
@@ -1294,10 +2366,10 @@ static void material_panel_material(Object *ob, Material *ma)
 		uiDefButF(block, NUMSLI, B_MATPRV, "SpecTra ",		128,32,175,20, &(ma->spectra), 0.0, 1.0, 0, 0, "Make specular areas opaque");
 		
 	}
-	uiDefButS(block, ROW, REDRAWBUTSMAT, "RGB",			8,32,35,20, &(ma->colormodel), 1.0, (float)MA_RGB, 0, 0, "Create colour by red, green and blue");
-	uiDefButS(block, ROW, REDRAWBUTSMAT, "HSV",			43,32,35,20, &(ma->colormodel), 1.0, (float)MA_HSV, 0, 0, "Mix colour with hue, saturation and value");
+	uiDefButS(block, ROW, REDRAWBUTSSHADING, "RGB",			8,32,35,20, &(ma->colormodel), 1.0, (float)MA_RGB, 0, 0, "Create colour by red, green and blue");
+	uiDefButS(block, ROW, REDRAWBUTSSHADING, "HSV",			43,32,35,20, &(ma->colormodel), 1.0, (float)MA_HSV, 0, 0, "Mix colour with hue, saturation and value");
 	uiBlockSetCol(block, BUTGREEN);
-	uiDefButS(block, TOG|BIT|0, REDRAWBUTSMAT, "DYN",	78,32,45,20, &(ma->dynamode), 0.0, 0.0, 0, 0, "Adjust parameters for dynamics options");
+	uiDefButS(block, TOG|BIT|0, REDRAWBUTSSHADING, "DYN",	78,32,45,20, &(ma->dynamode), 0.0, 0.0, 0, 0, "Adjust parameters for dynamics options");
 
 }
 
@@ -1374,6 +2446,77 @@ void world_panels()
 		world_panel_mistaph(wrld);
 		world_panel_texture(wrld);
 		world_panel_mapto(wrld);
+	}
+}
+
+void texture_panels()
+{
+	Material *ma=NULL;
+	Lamp *la=NULL;
+	World *wrld=NULL;
+	Object *ob= OBACT;
+	MTex *mtex= NULL;
+	
+	if(G.buts->texfrom==0) {
+		if(ob) {
+			ma= give_current_material(ob, ob->actcol);
+			if(ma) mtex= ma->mtex[ ma->texact ];
+		}
+	}
+	else if(G.buts->texfrom==1) {
+		wrld= G.scene->world;
+		if(wrld) mtex= wrld->mtex[ wrld->texact ];
+	}
+	else if(G.buts->texfrom==2) {
+		if(ob && ob->type==OB_LAMP) {
+			la= ob->data;
+			mtex= la->mtex[ la->texact ];
+		}
+	}
+	
+	texture_panel_preview(ma || wrld || la);	// for 'from' buttons
+	
+	if(ma || wrld || la) {
+	
+		texture_panel_texture(mtex, ma, wrld, la);
+		
+		if(mtex && mtex->tex) {
+			texture_panel_colors(mtex->tex);
+			
+			switch(mtex->tex->type) {
+			case TEX_IMAGE:
+				texture_panel_image(mtex->tex);
+				texture_panel_image1(mtex->tex);
+				break;
+			case TEX_ENVMAP:
+				texture_panel_envmap(mtex->tex);
+				break;
+			case TEX_CLOUDS:
+				texture_panel_clouds(mtex->tex);
+				break;
+			case TEX_MARBLE:
+				texture_panel_marble(mtex->tex);
+				break;
+			case TEX_STUCCI:
+				texture_panel_stucci(mtex->tex);
+				break;
+			case TEX_WOOD:
+				texture_panel_wood(mtex->tex);
+				break;
+			case TEX_BLEND:
+				texture_panel_blend(mtex->tex);
+				break;
+			case TEX_MAGIC:
+				texture_panel_magic(mtex->tex);
+				break;
+			case TEX_PLUGIN:
+				texture_panel_plugin(mtex->tex);
+				break;
+			case TEX_NOISE:
+				// no panel!
+				break;
+			}
+		}
 	}
 }
 

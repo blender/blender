@@ -260,7 +260,7 @@ void do_butspace(unsigned short event)
 		do_matbuts(event);
 	}
 	else if(event<=B_TEXBUTS) {
-		//do_texbuts(event);
+		do_texbuts(event);
 	}
 	else if(event<=B_ANIMBUTS) {
 		do_object_panels(event);
@@ -410,7 +410,8 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 			world_panels();
 		else if(tab==TAB_SHADING_RAD)
 			radio_panels();
-			
+		else if(tab==TAB_SHADING_TEX)
+			texture_panels();
 			
 		break;
 	case CONTEXT_EDITING:
@@ -436,7 +437,7 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 	/* when align changes, also do this for new panels */
 	/* don't always align, this function is called during AnmatePanels too */
 	if(sbuts->align)
-		if(sbuts->re_align || sbuts->mainbo!=sbuts->mainb)
+		if(sbuts->re_align || sbuts->mainbo!=sbuts->mainb || sbuts->tabo!=sbuts->tab[sbuts->mainb])
 			align= 1;
 
 	uiDrawBlocksPanels(sa, align);	

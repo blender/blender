@@ -638,7 +638,7 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 
 		else if(si->blocktype==ID_MA) allqueue(REDRAWBUTSSHADING, 0);
 		else if(si->blocktype==ID_WO) allqueue(REDRAWBUTSSHADING, 0);
-		else if(si->blocktype==ID_LA) allqueue(REDRAWBUTSLAMP, 0);
+		else if(si->blocktype==ID_LA) allqueue(REDRAWBUTSSHADING, 0);
 //		else if(si->blocktype==ID_SO) allqueue(REDRAWBUTSSOUND, 0);
 		else if(si->blocktype==ID_CA) {
 			allqueue(REDRAWBUTSEDIT, 0);

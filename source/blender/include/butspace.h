@@ -81,6 +81,8 @@ extern void world_panels(void);
 extern void do_worldbuts(unsigned short event);
 extern void radio_panels(void);
 extern void do_radiobuts(unsigned short event);
+extern void texture_panels(void);
+extern void do_texbuts(unsigned short event);
 
 /* logic */
 extern void do_logic_buts(unsigned short event);

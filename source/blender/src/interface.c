@@ -6167,12 +6167,12 @@ int uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int 
 	block->panel= pa;
 	pa->active= 1;
 
-	if(block->panel->paneltab) return 0;
-	if(block->panel->flag & PNL_CLOSED) return 0;
-
 	/* clear global */
 	panel_tabbed= group_tabbed= NULL;
 	
+	if(block->panel->paneltab) return 0;
+	if(block->panel->flag & PNL_CLOSED) return 0;
+
 	return 1;
 }
 
@@ -6404,7 +6404,7 @@ static void ui_draw_panel_header(uiBlock *block)
 			/* active tab */
 			uiSetRoundBox(15);
 			glColor3ub(140, 140, 147);
-			uiRoundBox(PNL_ICON+a*width, panel->sizey+3, PNL_ICON+(a+1)*width, panel->sizey+PNL_HEADER-3, 8);
+			uiRoundBox(2+PNL_ICON+a*width, panel->sizey+3, PNL_ICON+(a+1)*width, panel->sizey+PNL_HEADER-3, 8);
 
 			glColor3ub(255,255,255);
 			glRasterPos2f(10+PNL_ICON+a*width, panel->sizey+5);
@@ -6458,18 +6458,21 @@ static void ui_draw_panel(uiBlock *block)
 	else {
 		
 		uiSetRoundBox(3);
-		glColor3ub(160, 160, 167);
-		uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
+		//glColor3ub(160, 160, 167);
+		//uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
+
+		glColor3ub(218, 218, 218);
+		uiRoundRect(block->minx, block->miny, block->maxx, block->maxy+PNL_HEADER, 10);
 		
 		glColor3ub(198, 198, 198);
-		glRectf(block->minx, block->miny, block->maxx, block->maxy);
+		//glRectf(block->minx, block->miny, block->maxx, block->maxy);
 		
 		if(G.buts->align) {
 			glColor3ub(206, 206, 206);
 			if(G.buts->align==BUT_HORIZONTAL) ui_set_panel_pattern('h');
 			else ui_set_panel_pattern('v');
 
-			glRectf(block->minx, block->miny, block->maxx, block->maxy);
+			//glRectf(block->minx, block->miny, block->maxx, block->maxy);
 			glDisable(GL_POLYGON_STIPPLE);
 		}
 		
