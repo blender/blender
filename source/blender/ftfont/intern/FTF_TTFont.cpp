@@ -165,11 +165,11 @@ int FTF_TTFont::SetFont(char* str, int size)
 	int err = 0;
 	bool success = 0;
 
-	delete fonts;
+	if (fonts) delete fonts;
+	if (fontm) delete fontm;
+	if (fontl) delete fontl;
 	fonts= NULL;
-	delete fontm;
 	fontm= NULL;
-	delete fontl;
 	fontl= NULL;
 
 	font = new FTGLPixmapFont(str);
