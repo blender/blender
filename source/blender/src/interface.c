@@ -2302,24 +2302,26 @@ static int ui_do_but_HSVCUBE(uiBut *but)
 			
 			/* we're hacking values now to prevent rgb_to_hsv working wrong */
 			/* (ton) doesnt work yet... */
-			CLAMP(x, 0.0005, 0.9995);
-			CLAMP(y, 0.0005, 0.9995);
+			CLAMP(x, 0.0002, 0.9998);
+			CLAMP(y, 0.0002, 0.9998);
 			
 			/* assign position to color */
 			ui_get_but_vectorf(but, col);
+
+			/* another attempt to prevent hsv from hanging */
+			CLAMP(col[0], 0.0002, 0.9998);
+			CLAMP(col[1], 0.0002, 0.9998);
+			CLAMP(col[2], 0.0002, 0.9998);
+			
 			rgb_to_hsv(col[0], col[1], col[2], &h, &s, &v);
-			if(v==0.0) v= 0.0005;
-			if(s==0.0) s= 0.0005;
+			if(v==0.0) v= 0.0002;
+			if(s==0.0) s= 0.0002;
 			
 			if(but->a1==0) hsv_to_rgb(x, s, y, col, col+1, col+2);
 			else if(but->a1==1) hsv_to_rgb(x, y, v, col, col+1, col+2);
 			else if(but->a1==2) hsv_to_rgb(h, y, x, col, col+1, col+2);
 			else hsv_to_rgb(x, s, v, col, col+1, col+2);
-			
-			if(col[0]<0.001) col[0]= 0.0; else if (col[0]>0.999) col[0]= 1.0;
-			if(col[1]<0.001) col[1]= 0.0; else if (col[1]>0.999) col[1]= 1.0;
-			if(col[2]<0.001) col[2]= 0.0; else if (col[2]>0.999) col[2]= 1.0;
-			
+	
 			ui_set_but_vectorf(but, col);
 			
 			// update button values and strings
