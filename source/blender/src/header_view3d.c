@@ -2893,26 +2893,10 @@ void do_view3d_buttons(short event)
 	}
 }
 
-void view3d_buttons(void)
+static void view3d_header_pulldowns(uiBlock *block, short *xcoord)
 {
-	uiBlock *block;
-	int a;
-	short xco = 0;
-	short xmax;
+	short xmax, xco= *xcoord;
 	
-	block= uiNewBlock(&curarea->uiblocks, "header view3d", UI_EMBOSS, UI_HELV, curarea->headwin);
-
-	if(area_is_active_area(curarea)) uiBlockSetCol(block, TH_HEADER);
-	else uiBlockSetCol(block, TH_HEADERDESEL);
-
-	curarea->butspacetype= SPACE_VIEW3D;
-	
-	xco = 8;
-	
-	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), xco,0,XIC+10,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
-
-	xco+= XIC+22;
-
 	/* pull down menus */
 	uiBlockSetEmboss(block, UI_EMBOSSP);
 	
@@ -3014,7 +2998,43 @@ void view3d_buttons(void)
 		xco+= xmax;
 	}
 
-	/* end pulldowns, other buttons: */
+	*xcoord= xco;
+}
+
+void view3d_buttons(void)
+{
+	uiBlock *block;
+	int a;
+	short xco = 0;
+	
+	block= uiNewBlock(&curarea->uiblocks, "header view3d", UI_EMBOSS, UI_HELV, curarea->headwin);
+
+	if(area_is_active_area(curarea)) uiBlockSetCol(block, TH_HEADER);
+	else uiBlockSetCol(block, TH_HEADERDESEL);
+
+	curarea->butspacetype= SPACE_VIEW3D;
+	
+	xco = 8;
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), xco,0,XIC+10,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
+	xco+= XIC+10;
+
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+	if(curarea->flag & HEADER_NO_PULLDOWN) {
+		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_RIGHT,
+				xco,2,XIC,YIC-2,
+				&(curarea->flag), 0, 0, 0, 0, "Enables display of pulldown menus");
+	} else {
+		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_DOWN,
+				xco,2,XIC,YIC-2,
+				&(curarea->flag), 0, 0, 0, 0, "Hides pulldown menus");
+	}
+	uiBlockSetEmboss(block, UI_EMBOSS);
+	xco+=XIC;
+
+	if((curarea->flag & HEADER_NO_PULLDOWN)==0) 
+		view3d_header_pulldowns(block, &xco);
+
+	/* other buttons: */
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	/* mode */
@@ -3038,8 +3058,6 @@ void view3d_buttons(void)
 		G.vd->flag |= V3D_POSEMODE;
 	}
 	
-	xco+= 10;
-
 	uiDefIconTextButS(block, MENU, B_MODESELECT, (G.vd->modeselect),view3d_modeselect_pup() , 
 																xco,0,126,20, &(G.vd->modeselect), 0, 0, 0, 0, "Mode:");
 	

@@ -638,41 +638,53 @@ void ipo_buttons(void)
 	curarea->butspacetype= SPACE_IPO;
 
 	xco = 8;
-
-	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), xco,0,XIC+10,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
-
-	xco+= XIC+22;
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), xco,0,XIC+8,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
+	xco+= XIC+10;
 	
 	test_editipo();	/* test if current editipo is OK, make_editipo sets v2d->cur */
 
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+	if(curarea->flag & HEADER_NO_PULLDOWN) {
+		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_RIGHT,
+				xco,2,XIC,YIC-2,
+				&(curarea->flag), 0, 0, 0, 0, "Enables display of pulldown menus");
+	} else {
+		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_DOWN,
+				xco,2,XIC,YIC-2,
+				&(curarea->flag), 0, 0, 0, 0, "Hides pulldown menus");
+	}
+	uiBlockSetEmboss(block, UI_EMBOSS);
+	xco+=XIC;
+
 	/* pull down menus */
-	uiBlockSetEmboss(block, UI_EMBOSSP);
-
-	ei = get_editipo();
-
-	xmax= GetButStringLength("View");
-	uiDefBlockBut(block,ipo_viewmenu, NULL, "View", xco, 0, xmax, 20, "");
-	xco+=xmax;
-
-	xmax= GetButStringLength("Select");
-	uiDefBlockBut(block,ipo_selectmenu, NULL, "Select", xco, 0, xmax, 20, "");
-	xco+=xmax;
-
-	if (G.sipo->showkey) {
-		xmax= GetButStringLength("Key");
-		uiDefBlockBut(block,ipo_editmenu, NULL, "Key", xco, 0, xmax, 20, "");
+	if((curarea->flag & HEADER_NO_PULLDOWN)==0) {
+		uiBlockSetEmboss(block, UI_EMBOSSP);
+	
+		ei = get_editipo();
+	
+		xmax= GetButStringLength("View");
+		uiDefBlockBut(block,ipo_viewmenu, NULL, "View", xco, 0, xmax, 20, "");
+		xco+=xmax;
+	
+		xmax= GetButStringLength("Select");
+		uiDefBlockBut(block,ipo_selectmenu, NULL, "Select", xco, 0, xmax, 20, "");
+		xco+=xmax;
+	
+		if (G.sipo->showkey) {
+			xmax= GetButStringLength("Key");
+			uiDefBlockBut(block,ipo_editmenu, NULL, "Key", xco, 0, xmax, 20, "");
+		}
+		else if(ei != NULL && (ei->flag & IPO_EDIT)) {
+			xmax= GetButStringLength("Point");
+			uiDefBlockBut(block,ipo_editmenu, NULL, "Point", xco, 0, xmax, 20, "");
+		}
+		else {
+			xmax= GetButStringLength("Curve");
+			uiDefBlockBut(block,ipo_editmenu, NULL, "Curve", xco, 0, xmax, 20, "");
+		}
+			
+		xco+=xmax;
 	}
-	else if(ei != NULL && (ei->flag & IPO_EDIT)) {
-		xmax= GetButStringLength("Point");
-		uiDefBlockBut(block,ipo_editmenu, NULL, "Point", xco, 0, xmax, 20, "");
-	}
-	else {
-		xmax= GetButStringLength("Curve");
-		uiDefBlockBut(block,ipo_editmenu, NULL, "Curve", xco, 0, xmax, 20, "");
-	}
-		
-	xco+=xmax;
-
 
 	/* end of pull down menus */
 	uiBlockSetEmboss(block, UI_EMBOSSX);
@@ -703,7 +715,6 @@ void ipo_buttons(void)
 	else if (G.sipo->blocktype == ID_SEQ)
 		icon = ICON_SEQUENCE;
 
-	xco+= 5;
 	uiDefIconTextButS(block, MENU, B_IPOMAIN, icon, ipo_modeselect_pup(), xco,0,100,20, &(G.sipo->blocktype), 0, 0, 0, 0, "Display IPO type");
 
 	xco += 85;

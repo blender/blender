@@ -106,7 +106,7 @@ typedef struct ScrArea {
 	char win_swap, win_equal;
 	
 	short headbutlen, headbutofs;
-	short cursor, rt;
+	short cursor, flag;
 
 	ListBase spacedata;
 	ListBase uiblocks;
@@ -114,6 +114,9 @@ typedef struct ScrArea {
 } ScrArea;
 
 #define MAXWIN		128
+
+/* area->flag */
+#define HEADER_NO_PULLDOWN	1
 
 /* If you change EDGEWIDTH, also do the global arrat edcol[]  */
 #define EDGEWIDTH	1

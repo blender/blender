@@ -171,8 +171,8 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define WHEELZOOMDIR	4
 #define FILTERFILEEXTS	8
 #define DRAWVIEWINFO	16
-#define EVTTOCONSOLE	32		//print ghost events, here for tuhopuu compat. --phase
-#define FLIPINFOMENU	64
+#define EVTTOCONSOLE	32		// print ghost events, here for tuhopuu compat. --phase
+								// old flag for hide pulldown was here 
 #define FLIPFULLSCREEN	128
 #define ALLWINCODECS	256
 #define MENUOPENAUTO	512

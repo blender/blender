@@ -1673,19 +1673,19 @@ void info_buttons(void)
 	if(area_is_active_area(curarea)) uiBlockSetCol(block, TH_HEADER);
 	else uiBlockSetCol(block, TH_HEADERDESEL);
 	
-	if(U.uiflag & FLIPINFOMENU) {
-		uiDefIconButS(block, TOG|BIT|6, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_RIGHT,
+	if(curarea->flag & HEADER_NO_PULLDOWN) {
+		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_RIGHT,
 				xco,2,XIC,YIC-2,
-				&(U.uiflag), 0, 0, 0, 0, "Enables display of pulldown menus");/* dir	 */
+				&(curarea->flag), 0, 0, 0, 0, "Enables display of pulldown menus");
 	} else {
-		uiDefIconButS(block, TOG|BIT|6, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_DOWN,
+		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_DOWN,
 				xco,2,XIC,YIC-2,
-				&(U.uiflag), 0, 0, 0, 0, "Hides pulldown menus");/* dir		*/
+				&(curarea->flag), 0, 0, 0, 0, "Hides pulldown menus");
 	}
 	xco+=XIC;
 
-	if(U.uiflag & FLIPINFOMENU) {
-	} else {
+	if((curarea->flag & HEADER_NO_PULLDOWN)==0) {
+	
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 
 		/* the 'xmax - 3' rather than xmax is to prevent some weird flickering where the highlighted
@@ -1731,8 +1731,6 @@ void info_buttons(void)
 		uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 8,0,XIC+10,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
 		
 		/* STD SCREEN BUTTONS */
-//		xco+= XIC;
-		xco+= 4;
 		xco= std_libbuttons(block, xco, 0, 0, NULL, B_INFOSCR, (ID *)G.curscreen, 0, &G.curscreen->screennr, 1, 1, B_INFODELSCR, 0, 0);
 	
 		/* STD SCENE BUTTONS */

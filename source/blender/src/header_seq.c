@@ -424,34 +424,46 @@ void seq_buttons()
 	curarea->butspacetype= SPACE_SEQ;
 
 	xco = 8;
-	
 	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), xco,0,XIC+10,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
+	xco+= XIC+10;
 
-	xco+= XIC+22;
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+	if(curarea->flag & HEADER_NO_PULLDOWN) {
+		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_RIGHT,
+				xco,2,XIC,YIC-2,
+				&(curarea->flag), 0, 0, 0, 0, "Enables display of pulldown menus");
+	} else {
+		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_DOWN,
+				xco,2,XIC,YIC-2,
+				&(curarea->flag), 0, 0, 0, 0, "Hides pulldown menus");
+	}
+	uiBlockSetEmboss(block, UI_EMBOSS);
+	xco+=XIC;
+
 
 	/* pull down menus */
-	uiBlockSetEmboss(block, UI_EMBOSSP);
-
-	xmax= GetButStringLength("View");
-	uiDefBlockBut(block,seq_viewmenu, NULL, "View", xco, 0, xmax, 20, "");
-	xco+=xmax;
-
-	xmax= GetButStringLength("Select");
-	uiDefBlockBut(block,seq_selectmenu, NULL, "Select", xco, 0, xmax, 20, "");
-	xco+=xmax;
-
-	xmax= GetButStringLength("Add");
-	uiDefBlockBut(block, seq_addmenu, NULL, "Add", xco, 0, xmax, 20, "");
-	xco+= xmax;
-
-	xmax= GetButStringLength("Strip");
-	uiDefBlockBut(block, seq_editmenu, NULL, "Strip", xco, 0, xmax, 20, "");
-	xco+= xmax;
-
-	/* end of pull down menus */
-	uiBlockSetEmboss(block, UI_EMBOSSX);
-
-	xco+= 10;
+	if((curarea->flag & HEADER_NO_PULLDOWN)==0) {
+		uiBlockSetEmboss(block, UI_EMBOSSP);
+	
+		xmax= GetButStringLength("View");
+		uiDefBlockBut(block,seq_viewmenu, NULL, "View", xco, 0, xmax, 20, "");
+		xco+=xmax;
+	
+		xmax= GetButStringLength("Select");
+		uiDefBlockBut(block,seq_selectmenu, NULL, "Select", xco, 0, xmax, 20, "");
+		xco+=xmax;
+	
+		xmax= GetButStringLength("Add");
+		uiDefBlockBut(block, seq_addmenu, NULL, "Add", xco, 0, xmax, 20, "");
+		xco+= xmax;
+	
+		xmax= GetButStringLength("Strip");
+		uiDefBlockBut(block, seq_editmenu, NULL, "Strip", xco, 0, xmax, 20, "");
+		xco+= xmax;
+	
+		/* end of pull down menus */
+		uiBlockSetEmboss(block, UI_EMBOSS);
+	}
 	
 	/* IMAGE */
 	uiDefIconButS(block, TOG, B_REDR, ICON_IMAGE_COL,	xco,0,XIC,YIC, &sseq->mainb, 0, 0, 0, 0, "Toggles image display");
