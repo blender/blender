@@ -353,6 +353,8 @@ void initTrans (TransInfo *t)
 	t->ext = NULL;
 
 	getmouseco_areawin(t->imval);
+	t->con.imval[0] = t->imval[0];
+	t->con.imval[1] = t->imval[1];
 
 	t->transform		= NULL;
 

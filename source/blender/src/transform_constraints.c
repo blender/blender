@@ -613,9 +613,24 @@ void BIF_drawConstraint(void)
 	}
 	else {
 		if (tc->mode & CON_SELECT) {
-				drawLine(tc->center, tc->mtx[0], 'x', 0);
-				drawLine(tc->center, tc->mtx[1], 'y', 0);
-				drawLine(tc->center, tc->mtx[2], 'z', 0);
+			float vec[3];
+			short mval[2];
+			char col2[3] = {255,255,255};
+			getmouseco_areawin(mval);
+			window_to_3d(vec, (short)(mval[0] - t->con.imval[0]), (short)(mval[1] - t->con.imval[1]));
+			VecAddf(vec, vec, tc->center);
+
+			drawLine(tc->center, tc->mtx[0], 'x', 0);
+			drawLine(tc->center, tc->mtx[1], 'y', 0);
+			drawLine(tc->center, tc->mtx[2], 'z', 0);
+
+			glColor3ubv(col2);
+
+			setlinestyle(1);
+			glBegin(GL_LINE_STRIP); 
+				glVertex3fv(tc->center); 
+				glVertex3fv(vec); 
+			glEnd();
 		}
 
 		if (tc->mode & CON_AXIS0) {
@@ -720,6 +735,9 @@ void selectConstraint(TransInfo *t) {
 
 void postSelectConstraint(TransInfo *t)
 {
+	if (!(t->con.mode & CON_SELECT))
+		return;
+
 	t->con.mode &= ~CON_AXIS0;
 	t->con.mode &= ~CON_AXIS1;
 	t->con.mode &= ~CON_AXIS2;
@@ -748,8 +766,13 @@ void setNearestAxis(TransInfo *t)
 	}
 
 	getmouseco_areawin(coord);
+#if 1
+	mvec[0] = (float)(coord[0] - t->con.imval[0]);
+	mvec[1] = (float)(coord[1] - t->con.imval[1]);
+#else
 	mvec[0] = (float)(coord[0] - t->center2d[0]);
 	mvec[1] = (float)(coord[1] - t->center2d[1]);
+#endif
 	mvec[2] = 0.0f;
 
 	for (i = 0; i<3; i++) {
