@@ -98,10 +98,10 @@ typedef struct {
 	PyObject *uv;
 	PyObject *col;
 	short mode;
-	short flag;
+	short flag; /* tface->flag */
 	unsigned char transp;
 	Image *image;
-	char mat_nr, smooth;
+	char mat_nr, mf_flag /* was char smooth */;
 
 } BPy_NMFace;			/* an NMesh face */
 

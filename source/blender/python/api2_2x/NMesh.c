@@ -451,7 +451,7 @@ static PyObject *new_NMFace( PyObject * vertexlist )
 	mf->transp = TF_SOLID;
 	mf->col = PyList_New( 0 );
 
-	mf->smooth = 0;
+	mf->mf_flag = 0;
 	mf->mat_nr = 0;
 
 	return ( PyObject * ) mf;
@@ -505,7 +505,11 @@ static PyObject *NMFace_getattr( PyObject * self, char *name )
 	else if( strcmp( name, "materialIndex" ) == 0 )
 		return Py_BuildValue( "i", mf->mat_nr );
 	else if( strcmp( name, "smooth" ) == 0 )
-		return Py_BuildValue( "i", mf->smooth );
+		return Py_BuildValue( "i", (mf->mf_flag & ME_SMOOTH) ? 1:0 );
+	else if( strcmp( name, "sel" ) == 0 )
+		return Py_BuildValue( "i", (mf->mf_flag & ME_FACE_SEL) ? 1:0 );
+	else if( strcmp( name, "hide" ) == 0 )
+		return Py_BuildValue( "i", (mf->mf_flag & ME_HIDE) ? 1:0 );
 
 	else if( strcmp( name, "image" ) == 0 ) {
 		if( mf->image )
@@ -561,10 +565,10 @@ static PyObject *NMFace_getattr( PyObject * self, char *name )
 	}
 
 	else if( strcmp( name, "__members__" ) == 0 )
-		return Py_BuildValue( "[s,s,s,s,s,s,s,s,s,s,s]",
+		return Py_BuildValue( "[s,s,s,s,s,s,s,s,s,s,s,s,s]",
 				      "v", "col", "mat", "materialIndex",
 				      "smooth", "image", "mode", "flag",
-				      "transp", "uv", "normal" );
+				      "transp", "uv", "normal", "sel", "hide");
 	return Py_FindMethod( NMFace_methods, ( PyObject * ) self, name );
 }
 
@@ -596,9 +600,23 @@ static int NMFace_setattr( PyObject * self, char *name, PyObject * v )
 		return 0;
 	} else if( strcmp( name, "smooth" ) == 0 ) {
 		PyArg_Parse( v, "h", &ival );
-		mf->smooth = ival ? 1 : 0;
+		if (ival) mf->mf_flag |= ME_SMOOTH;
+		else mf->mf_flag &= ~ME_SMOOTH;
 
 		return 0;
+	} else if( strcmp( name, "sel" ) == 0 ) {
+		PyArg_Parse( v, "h", &ival );
+		if (ival) mf->mf_flag |= ME_FACE_SEL;
+		else mf->mf_flag &= ~ME_FACE_SEL;
+
+		return 0;
+	} else if( strcmp( name, "hide" ) == 0 ) {
+		PyArg_Parse( v, "h", &ival );
+		if (ival) mf->mf_flag |= ME_HIDE;
+		else mf->mf_flag &= ~ME_HIDE;
+
+		return 0;
+
 	} else if( strcmp( name, "uv" ) == 0 ) {
 
 		if( PySequence_Check( v ) ) {
@@ -1746,7 +1764,7 @@ static BPy_NMFace *nmface_from_data( BPy_NMesh * mesh, int vidxs[4],
 		newf->mode = tface->mode;	/* draw mode */
 		newf->flag = tface->flag;	/* select flag */
 		newf->transp = tface->transp;	/* transparency flag */
-		col = ( MCol * ) ( tface->col );	/* XXX weird, tface->col is uint[4] */
+		col = ( MCol * ) ( tface->col );	/* weird, tface->col is uint[4] */
 	} else {
 		newf->mode = TF_DYNAMIC;	/* just to initialize it to something meaninful, */
 		/* since without tfaces there are no tface->mode's, obviously. */
@@ -1755,7 +1773,7 @@ static BPy_NMFace *nmface_from_data( BPy_NMesh * mesh, int vidxs[4],
 	}
 
 	newf->mat_nr = mat_nr;
-	newf->smooth = flag & ME_SMOOTH;
+	newf->mf_flag = flag; /* MFace flag */
 
 	if( col ) {
 		newf->col = PyList_New( 4 );
@@ -2170,10 +2188,7 @@ static void mface_from_data( MFace * mf, TFace * tf, MCol * col,
 	mf->puno = 0;
 	mf->mat_nr = from->mat_nr;
 	mf->edcode = 0;
-	if( from->smooth )
-		mf->flag = ME_SMOOTH;
-	else
-		mf->flag = 0;
+	mf->flag = from->mf_flag;
 
 	if( col ) {
 		int len = PySequence_Length( from->col );

@@ -40,13 +40,15 @@ Example::
     - AUTOSMOOTH - turn auto smoothing of faces "on".
     - SUBSURF - turn Catmull-Clark subdivision of surfaces "on".
     - OPTIMAL - optimal drawing of edges when "SubSurf" is "on".
-@var FaceFlags: The available face selection flags.
+@var FaceFlags: The available *texture face* (uv face select mode) selection
+  flags.  Note: these refer to TexFace faces, available if nmesh.hasFaceUV()
+  returns true.
     - SELECT - selected.
     - HIDE - hidden.
     - ACTIVE - the active face.
-@var FaceModes: The available face modes. Note: these are only meaninful if
-  nmesh.hasFaceUV() returns true, since in Blender this info is stored at the
-  TexFace (TexFace button in Edit Mesh buttons) structure.
+@var FaceModes: The available *texture face* modes. Note: these are only
+  meaninful if nmesh.hasFaceUV() returns true, since in Blender this info is
+  stored at the TexFace (TexFace button in Edit Mesh buttons) structure.
     - ALL - set all modes at once.
     - BILLBOARD - always orient after camera.
     - HALO - halo face, always point to camera.
@@ -223,24 +225,50 @@ class NMFace:
 
   Example::
    import Blender
-   from Blender import NMesh
+   from Blender import NMesh, Window
+
+   in_emode = Window.EditMode()
+   if in_emode: Window.EditMode(0)
 
    me = NMesh.GetRaw("Mesh")
    faces = me.faces
+
+   ## Example for editmode faces selection:
+   selected_faces = []
+   for f in faces:
+     if f.sel:
+       selected_faces.append(f)
+   # ... unselect selected and select all the others:
+   for f in faces:
+     f.sel = 1 - f.sel # 1 becomes 0, 0 becomes 1
+
+   ## Example for uv textured faces selection:
    selected_faces = []
    SEL = NMesh.FaceFlags['SELECT']
    # get selected faces:
    for f in faces:
      if f.flag & SEL:
-     selected_faces.append(f)
+       selected_faces.append(f)
    # ... unselect selected and select all the others:
    for f in faces:
      if f.flag & SEL:
        f.flag &=~SEL # unselect these
      else: f.flag |= SEL # and select these
 
+   me.update()
+   if in_emode: Window.EditMode(1)
+   Blender.Redraw()
+
   @type v: list
   @cvar v: The list of face vertices (B{up to 4}).
+  @type sel: bool
+  @cvar sel: The selection state (1: selected, 0: unselected) of this NMesh's
+      faces *in edit mode*.  This is not the same as the selection state of
+      the textured faces (see L{NMesh.NMFace.flag}).
+  @type hide: bool
+  @cvar hide: The visibility state (1: hidden, 0: visible) of this NMesh's
+      faces *in edit mode*.  This is not the same as the visibility state of
+      the textured faces (see L{NMesh.NMFace.flag}).
   @cvar col: The list of vertex colours.
   @cvar mat: Same as I{materialIndex} below.
   @cvar materialIndex: The index of this face's material in its NMesh materials
@@ -249,12 +277,19 @@ class NMFace:
      face look smooth.
   @cvar image: The Image used as a texture for this face.
   @cvar mode: The display mode (see L{Mesh.FaceModes<FaceModes>})
-  @cvar flag: Bit vector specifying selection flags
-     (see L{NMesh.FaceFlags<FaceFlags>}).
+  @cvar flag: Bit vector specifying selection / visibility flags for uv
+     textured faces (visible in Face Select mode, see
+     L{NMesh.FaceFlags<FaceFlags>}).
   @cvar transp: Transparency mode bit vector
      (see L{NMesh.FaceTranspModes<FaceTranspModes>}).
   @cvar uv: List of per-face UV coordinates: [(u0, v0), (u1, v1), ...].
   @cvar normal: (or just B{no}) The normal vector for this face: [x,y,z].
+  @note: there are normal faces and textured faces in Blender, both currently
+    with their own selection and visibility states, due to a mix of old and new
+    code.  To (un)select or (un)hide normal faces (visible in editmode), use
+    L{NMFace.sel} and L{NMFace.hide} vars.  For textured faces (Face Select
+    mode in Blender) use the old L{NMFace.flag} bitflag.  Also check the
+    example above and note L{Window.EditMode}.
   @note: Assigning uv textures to mesh faces in Blender works like this:
     1. Select your mesh.
     2. Enter face select mode (press f) and select at least some face(s).
@@ -319,11 +354,15 @@ class NMesh:
     @return: The found edge. None if no edge was found.
     """
 
-  def removeEdge():
+  def removeEdge(v1, v2):
     """
     Remove an edge between two vertices.
     All faces using this edge are removed from faces list.
     You can only call this method if mesh has edge data.
+    @type v1: NMVert
+    @param v1: the first vertex of the edge.
+    @type v2: NMVert
+    @param v2: the second vertex of the edge.
     """
 
   def addFace(face):
@@ -335,9 +374,11 @@ class NMesh:
     @return: If mesh has edge data, return the list of face edges.
     """
 
-  def removeFace():
+  def removeFace(face):
     """
     Remove a face for face list and remove edges no more used by any other face (if edge data exists).
+    @type face: NMFace
+    @param face: the face to add to the mesh.
     """
 
   def addEdgesData():
@@ -443,6 +484,9 @@ class NMesh:
     @return:  It depends on the I{flag} parameter:
         - if None or zero: List of NMFace objects.
         - if non-zero: List of indices to NMFace objects.
+    @warn: this method exists to speed up retrieving of selected faces from
+       the actual mesh in Blender.  So, if you make changes to the nmesh, you
+       need to L{update} it before using this method.
     """
 
   def getVertexInfluences(index):
