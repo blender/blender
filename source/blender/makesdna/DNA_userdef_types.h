@@ -192,7 +192,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_PANELPINNED		1024
 #define USER_AUTOPERSP     		2048
 #define USER_LOCKAROUND     	4096
-
+#define USER_GLOBALUNDO     	8192
 
 /* transopts */
 

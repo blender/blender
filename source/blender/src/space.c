@@ -1438,12 +1438,13 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						wpaint_undo();
 					else if(G.f & G_VERTEXPAINT)
 						vpaint_undo();
-					else
-						// single_user();
-						BIF_undo_step(1);
+					else {
+						if(U.uiflag & USER_GLOBALUNDO) BIF_undo_step(1);
+						else single_user();
+					}
 				}
 				else if(G.qual==LR_SHIFTKEY)
-					BIF_undo_step(-1);
+					if(U.uiflag & USER_GLOBALUNDO) BIF_undo_step(-1);
 					
 				break;
 			case VKEY:
@@ -2314,12 +2315,16 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiBlockEndAlign(block);
 
 
-		uiDefBut(block, LABEL,0,"Mesh undo:",
+		uiDefBut(block, LABEL,0,"Editmode undo:",
 			(xpos+(2*edgsp)+mpref),y3label, mpref,buth,
 			0, 0, 0, 0, 0, "");
 		uiDefButS(block, NUMSLI, B_DRAWINFO, "Steps:",
 			(xpos+edgsp+mpref+midsp),y2,mpref,buth,
 			&(U.undosteps), 2, 64, 0, 0, "Number of undo steps available in Edit Mode (smaller values conserve memory)");
+
+		uiDefButBitS(block, TOG, USER_GLOBALUNDO, B_DRAWINFO, "Global undo",
+			(xpos+edgsp+mpref+midsp),y1,mpref,buth,
+			&(U.uiflag), 2, 64, 0, 0, "");
 
 
 		uiDefBut(block, LABEL,0,"Auto keyframe on:",

@@ -507,8 +507,9 @@ void BIF_write_undo(char *name)
 	char *err, tstr[FILE_MAXDIR+FILE_MAXFILE];
 	UndoElem *uel;
 	
-	/* calculate current filename */
+	if( (U.uiflag & USER_GLOBALUNDO==0)) return;
 	
+	/* calculate current filename */
 	counter++;
 	counter= counter % MAXUNDO;	
 	get_undosave_location(tstr, counter);
