@@ -25,7 +25,7 @@ try:
 	import operator
 except:
 	msg = "Error: you need a full Python install to run this script."
-	mod_meshtools.print_boxed(msg)
+	meshtools.print_boxed(msg)
 	Blender.Draw.PupMenu("ERROR%t|"+msg)
 
 # =================================

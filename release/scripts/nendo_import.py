@@ -54,7 +54,7 @@ edges during the course of modeling.
 # | Read and write Nendo File Format (*.nendo)              |
 # +---------------------------------------------------------+
 
-import Blender, mod_meshtools
+import Blender, meshtools
 import struct, time, sys, os
 
 # =============================
@@ -75,7 +75,7 @@ def read(filename):
 		uv = read_uv(file)
 		verts = make_verts(vert_table)
 		faces = make_faces(edge_table)
-		mod_meshtools.create_mesh(verts, faces, objname)
+		meshtools.create_mesh(verts, faces, objname)
 
 	Blender.Window.DrawProgressBar(1.0, "Done")    # clear progressbar
 	file.close()
@@ -83,7 +83,7 @@ def read(filename):
 	seconds = " in %.2f %s" % (end-start, "seconds")
 	message = "Successfully imported " + os.path.basename(filename) + seconds
 	message += " (%s)" % version.title()
-	mod_meshtools.print_boxed(message)
+	meshtools.print_boxed(message)
 
 # =======================
 # === Read The Header ===
@@ -93,7 +93,7 @@ def read_header(file):
 	misc,	 = struct.unpack(">H",  file.read(2))
 	numobjs, = struct.unpack(">B",  file.read(1))
 	if (version != "nendo 1.0") and (version != "nendo 1.1"):
-		mod_meshtools.print_boxed(file.name, "is not a Nendo file")
+		meshtools.print_boxed(file.name, "is not a Nendo file")
 		return
 	return version, numobjs
 
@@ -116,7 +116,7 @@ def read_edge_table(file, version):
 	numedges, = struct.unpack(">H", file.read(2))
 	edge_table = {}
 	for i in range(numedges):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/numedges, "Reading Edge Table")
 		edge = struct.unpack(">8H", file.read(16))
 		if version == "nendo 1.1":
@@ -132,7 +132,7 @@ def read_face_table(file):
 	numfaces, = struct.unpack(">H", file.read(2))
 	face_table = {}
 	for i in range(numfaces):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/numfaces, "Reading Face Table")
 		face_table[i] = struct.unpack(">H", file.read(2))[0]
 	return face_table
@@ -144,7 +144,7 @@ def read_vert_table(file):
 	numverts, = struct.unpack(">H", file.read(2))
 	vert_table = []
 	for i in range(numverts):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/numverts, "Reading Vertex Table")
 		w, x, y, z = struct.unpack(">H3f", file.read(14))
 		vert_table.append((w,(x, y, z)))
@@ -164,7 +164,7 @@ def read_uv(file):
 		print "%ix%i" % (xres, yres)
 		pixel = 0
 		while pixel < (xres*yres):
-			if not pixel%100 and mod_meshtools.show_progress:
+			if not pixel%100 and meshtools.show_progress:
 				Blender.Window.DrawProgressBar(float(pixel)/xres*yres, "Reading Texture")
 			count, = struct.unpack(">B", file.read(1))
 			rgb = file.read(3)
@@ -183,7 +183,7 @@ def make_verts(vert_table):
 	verts = []
 	for i in range(len(vert_table)):
 		vertex = vert_table[i][1]
-		vertex = mod_meshtools.apply_transform(vertex, matrix)
+		vertex = meshtools.apply_transform(vertex, matrix)
 		verts.append(vertex)
 	return verts
 

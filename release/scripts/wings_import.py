@@ -53,7 +53,7 @@ Notes:<br>
 # | Read and write Wings3D File Format (*.wings)            |
 # +---------------------------------------------------------+
 
-import Blender, mod_meshtools
+import Blender, meshtools
 import struct, time, sys, os, zlib, cStringIO
 
 # ==============================================
@@ -107,7 +107,7 @@ def read_edges(data):
 	misc, numedges = struct.unpack(">BL", data.read(5))
 	edge_table = {}  # the winged-edge table
 	for i in range(numedges):
-		if not i%100 and mod_meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/numedges, "Reading Edges")
+		if not i%100 and meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/numedges, "Reading Edges")
 		misc, etype = struct.unpack(">BL", data.read(5))
 		if etype == 2:				# Vertex Colors
 			data.read(10)			# or read_chunkheader(data)  # "color"
@@ -136,7 +136,7 @@ def read_edges(data):
 def read_faces(data):
 	misc, numfaces = struct.unpack(">BL", data.read(5))
 	for i in range(numfaces):
-		if not i%100 and mod_meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/numfaces, "Reading Faces")
+		if not i%100 and meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/numfaces, "Reading Faces")
 		if data.read(1) == '\x6C':  # a material follows
 			data.read(4)
 			read_chunkheader(data)
@@ -153,7 +153,7 @@ def read_verts(data):
 	misc, numverts = struct.unpack(">BL", data.read(5))
 	verts = []	# a list of verts
 	for i in range(numverts):
-		if not i%100 and mod_meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/numverts, "Reading Verts")
+		if not i%100 and meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/numverts, "Reading Verts")
 		data.read(10)
 		x, y, z = struct.unpack(">ddd", data.read(24))  # double precision
 		verts.append((x, -z, y))
@@ -305,7 +305,7 @@ def read(filename):
 		read_mode(data)
 		faces = make_faces(edge_table)
 		message += "%s %8s %8s %8s\n" % (objname.ljust(15), len(faces), len(edge_table), len(verts))
-		mod_meshtools.create_mesh(verts, faces, objname)
+		meshtools.create_mesh(verts, faces, objname)
 
 	material = data.read()
 	#for i in material[0:6]: print "%02X" % ord(i),
@@ -315,7 +315,7 @@ def read(filename):
 	end = time.clock()
 	seconds = "\nDone in %.2f %s" % (end-start, "seconds")
 	message += seconds
-	mod_meshtools.print_boxed(message)
+	meshtools.print_boxed(message)
 
 def fs_callback(filename):
 	read(filename)

@@ -39,7 +39,7 @@
  * slots are called groups here (Import, Export, etc).  This is how it works:
  * - scripts at dirs user pref U.pythondir and .blender/scripts/ are scanned
  * for registration info.
- * - this data is also saved to a .Bpymenus file at the user's home dir and
+ * - this data is also saved to a Bpymenus file at the user's .blender/ dir and
  * only re-created when the scripts folder gets modified.
  * - on start-up Blender uses this info to fill a table, which is used to
  * create the menu entries when they are needed (see header_info.c or
@@ -91,7 +91,7 @@ typedef enum {
 	PYMENU_UV,/* UV editing tools, to go in UV/Image editor space, 'UV' menu */
 	PYMENU_WIZARDS,/* complex 'app' scripts */
 
-	/* entries put below don't appear at the Scripts win->Scripts menu;
+	/* entries put after Wizards don't appear at the Scripts win->Scripts menu;
 	 * see define right below */
 
 	PYMENU_FACESELECT,
@@ -102,7 +102,7 @@ typedef enum {
 	PYMENU_TOTAL
 } PYMENUHOOKS;
 
-#define PYMENU_SCRIPTS_MENU_TOTAL PYMENU_FACESELECT
+#define PYMENU_SCRIPTS_MENU_TOTAL (PYMENU_WIZARDS + 1)
 
 /* BPyMenuTable holds all registered pymenus, as linked lists for each menu
  * where they can appear (see PYMENUHOOKS enum above).

@@ -30,10 +30,16 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
+#ifndef EXPP_INTERFACE_H
+#define EXPP_INTERFACE_H
+
 #include <DNA_ID.h>
 
 struct Script;
 
 void initBlenderApi2_2x( void );
+char *bpy_gethome( int append_scriptsdir );
 void discardFromBDict( char *key );
 void EXPP_Library_Close( void );   /* in Library.c, used by BPY_end_python */
+
+#endif /* EXPP_INTERFACE_H */

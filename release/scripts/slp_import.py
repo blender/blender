@@ -42,7 +42,7 @@ tolerance.
 # | Read and write SLP Triangle File Format (*.slp)         |
 # +---------------------------------------------------------+
 
-import Blender, mod_meshtools
+import Blender, meshtools
 #import time
 
 # ================================
@@ -86,13 +86,13 @@ def read(filename):
 
 	objname = Blender.sys.splitext(Blender.sys.basename(filename))[0]
 
-	mod_meshtools.create_mesh(verts, faces, objname)
+	meshtools.create_mesh(verts, faces, objname)
 	Blender.Window.DrawProgressBar(1.0, '')  # clear progressbar
 	file.close()
 	#end = time.clock()
 	#seconds = " in %.2f %s" % (end-start, "seconds")
 	message = "Successfully imported " + Blender.sys.basename(filename)# + seconds
-	mod_meshtools.print_boxed(message)
+	meshtools.print_boxed(message)
 
 def fs_callback(filename):
 	read(filename)

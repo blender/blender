@@ -57,7 +57,7 @@ specular highlights to the vertex colors.
 # | Write Videoscape File Format (*.obj NOT WAVEFRONT OBJ)  |
 # +---------------------------------------------------------+
 
-import Blender, mod_meshtools
+import Blender, meshtools
 #import time
 
 # =====================================
@@ -73,10 +73,10 @@ def write(filename):
 	mesh = Blender.NMesh.GetRaw(meshname)
 	obj = Blender.Object.Get(objname)
 
-	if not mod_meshtools.has_vertex_colors(mesh):
+	if not meshtools.has_vertex_colors(mesh):
 		message = "Please assign vertex colors before exporting.\n"
 		message += objname + " object was not saved."
-		mod_meshtools.print_boxed(message)
+		meshtools.print_boxed(message)
 		return
 
 	vcols = average_vertexcolors(mesh)
@@ -87,7 +87,7 @@ def write(filename):
 
 	# === Write Vertex List & Vertex Colors ===
 	for i in range(len(mesh.verts)):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Writing Verts")
 		file.write("% f % f % f 0x" % tuple(mesh.verts[i].co))
 		for j in range(len(vcols[i])):
@@ -96,7 +96,7 @@ def write(filename):
 
 	# === Write Face List ===
 	for i in range(len(mesh.faces)):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing Faces")
 		file.write("%d " % len(mesh.faces[i].v)) # numfaceverts
 		for j in range(len(mesh.faces[i].v)):
@@ -108,7 +108,7 @@ def write(filename):
 	#end = time.clock()
 	#seconds = " in %.2f %s" % (end-start, "seconds")
 	message = "Successfully exported " + Blender.sys.basename(filename)# + seconds
-	mod_meshtools.print_boxed(message)
+	meshtools.print_boxed(message)
 
 # ===========================================
 # === Vector Operations for Vertex Colors ===
@@ -122,7 +122,7 @@ vcolor_div = lambda u, s: [u[0]/s, u[1]/s, u[2]/s, u[3]/s]
 def average_vertexcolors(mesh, debug=0):
 	vertexcolors = {}
 	for i in range(len(mesh.faces)):	# get all vcolors that share this vertex
-		if not i%100 and mod_meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Finding Shared VColors")
+		if not i%100 and meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Finding Shared VColors")
 		for j in range(len(mesh.faces[i].v)):
 			index = mesh.faces[i].v[j].index
 			color = mesh.faces[i].col[j]
@@ -131,7 +131,7 @@ def average_vertexcolors(mesh, debug=0):
 	if debug: print 'before'; vcprint(vertexcolors)
 
 	for i in range(len(vertexcolors)):	# average them
-		if not i%100 and mod_meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Averaging Vertex Colors")
+		if not i%100 and meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Averaging Vertex Colors")
 		vcolor = [0,0,0,0]	# rgba
 		for j in range(len(vertexcolors[i])):
 			vcolor = vcolor_add(vcolor, vertexcolors[i][j])
@@ -147,7 +147,7 @@ def average_vertexcolors_slow_1(mesh, debug=0):
 	vertexcolors = []
 	i = 0
 	for vertex in mesh.verts:
-		if not i%100 and mod_meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Averaging Vertex Colors")
+		if not i%100 and meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Averaging Vertex Colors")
 		i += 1
 		vcolor = [0,0,0,0]	# rgba
 		shared = 0
@@ -169,7 +169,7 @@ def average_vertexcolors_slow_1(mesh, debug=0):
 def average_vertexcolors_slow_2(mesh, debug=0):
 	vertexcolors = []
 	for i in range(len(mesh.verts)):
-		if not i%100 and mod_meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Averaging Vertex Colors")
+		if not i%100 and meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Averaging Vertex Colors")
 		vcolor = [0,0,0,0]	# rgba
 		shared = 0
 		for j in range(len(mesh.faces)):
@@ -189,7 +189,7 @@ def average_vertexcolors_slow_2(mesh, debug=0):
 def average_vertexcolors_slow_3(mesh, debug=0):
 	vertexcolors = []
 	for i in range(len(mesh.verts)):
-		if not i%100 and mod_meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Averaging Vertex Colors")
+		if not i%100 and meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Averaging Vertex Colors")
 		vcolor = [0,0,0,0]	# rgba
 		shared = 0
 		for j in range(len(mesh.faces)):

@@ -52,7 +52,7 @@ Notes:<br>
 # | Read and write LightWave Object File Format (*.lwo)     |
 # +---------------------------------------------------------+
 
-import Blender, mod_meshtools
+import Blender, meshtools
 import struct, chunk, os, cStringIO, time, operator
 
 # =============================
@@ -81,10 +81,10 @@ def read(filename):
 			verts = read_verts(lwochunk)
 		elif lwochunk.chunkname == "POLS" and form_type == "LWO2": # Faces v6.0
 			faces = read_faces_6(lwochunk)
-			mod_meshtools.create_mesh(verts, faces, objname)
+			meshtools.create_mesh(verts, faces, objname)
 		elif lwochunk.chunkname == "POLS" and form_type == "LWOB": # Faces v5.5
 			faces = read_faces_5(lwochunk)
-			mod_meshtools.create_mesh(verts, faces, objname)
+			meshtools.create_mesh(verts, faces, objname)
 		else:													   # Misc Chunks
 			lwochunk.skip()
 
@@ -95,7 +95,7 @@ def read(filename):
 	if form_type == "LWO2": fmt = " (v6.0 Format)"
 	if form_type == "LWOB": fmt = " (v5.5 Format)"
 	message = "Successfully imported " + os.path.basename(filename) + fmt + seconds
-	mod_meshtools.print_boxed(message)
+	meshtools.print_boxed(message)
 
 # ==================
 # === Read Verts ===
@@ -106,7 +106,7 @@ def read_verts(lwochunk):
 	#$verts = []
 	verts = [None] * numverts
 	for i in range(numverts):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/numverts, "Reading Verts")
 		x, y, z = struct.unpack(">fff", data.read(12))
 		#$verts.append((x, z, y))
@@ -143,7 +143,7 @@ def read_faces_5(lwochunk):
 	faces = []
 	i = 0
 	while i < lwochunk.chunksize:
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 		   Blender.Window.DrawProgressBar(float(i)/lwochunk.chunksize, "Reading Faces")
 		facev = []
 		numfaceverts, = struct.unpack(">H", data.read(2))
@@ -186,7 +186,7 @@ def read_faces_6(lwochunk):
 		return ""
 	i = 0
 	while(i < lwochunk.chunksize-4):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 		   Blender.Window.DrawProgressBar(float(i)/lwochunk.chunksize, "Reading Faces")
 		facev = []
 		numfaceverts, = struct.unpack(">H", data.read(2))

@@ -59,7 +59,7 @@ field.
 # | Read and write Nendo File Format (*.nendo)              |
 # +---------------------------------------------------------+
 
-import Blender, mod_meshtools
+import Blender, meshtools
 import struct, time, sys, os
 
 # ==============================
@@ -82,15 +82,15 @@ def write(filename):
 		Blender.Draw.PupMenu("Nendo Export Error%t|"+message)
 		return
 
-	edge_table = mod_meshtools.generate_edgetable(mesh)
+	edge_table = meshtools.generate_edgetable(mesh)
 
 	try:
-		edge_table = mod_meshtools.generate_edgetable(mesh)
+		edge_table = meshtools.generate_edgetable(mesh)
 		assert len(edge_table) <= maxedges
 	except:
 		edge_table = {}
 		message = "Unable to generate Edge Table for the object named " + meshname
-		mod_meshtools.print_boxed(message)
+		meshtools.print_boxed(message)
 		Blender.Draw.PupMenu("Edge Table Error%t|"+message)
 		Blender.Window.DrawProgressBar(1.0, "")    # clear progressbar
 		return
@@ -109,7 +109,7 @@ def write(filename):
 	end = time.clock()
 	seconds = " in %.2f %s" % (end-start, "seconds")
 	message = "Successfully exported " + os.path.basename(filename) + seconds
-	mod_meshtools.print_boxed(message)
+	meshtools.print_boxed(message)
 
 # ====================
 # === Write Header ===

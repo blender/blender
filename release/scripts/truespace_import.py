@@ -68,7 +68,7 @@ how to handle it.
 # | Read and write Caligari trueSpace File Format (*.cob)   |
 # +---------------------------------------------------------+
 
-import Blender, mod_meshtools
+import Blender, meshtools
 import struct, chunk, os, cStringIO, time
 
 # =======================
@@ -146,7 +146,7 @@ def read_LocalAxes(data):
 		#print "% f % f % f" % row
 		rotation_matrix.append(list(row))
 	#print
-	rotation_matrix = mod_meshtools.transpose(rotation_matrix)
+	rotation_matrix = meshtools.transpose(rotation_matrix)
 
 # === Read Current Position ===
 def read_CurrentPosition(data):
@@ -162,7 +162,7 @@ def read_VertexList(data):
 	verts = []
 	numverts, = struct.unpack("<l", data.read(4))
 	for i in range(numverts):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/numverts, "Reading Verts")
 		x, y, z = struct.unpack("<fff", data.read(12))
 		verts.append((y, -x, z))
@@ -173,7 +173,7 @@ def read_UVCoords(data):
 	uvcoords = []
 	numuvcoords, = struct.unpack("<l", data.read(4))
 	for i in range(numuvcoords):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/numuvcoords, "Reading UV Coords")
 		uv = struct.unpack("<ff", data.read(8))
 		uvcoords.append(uv)
@@ -187,7 +187,7 @@ def read_FaceList(data, chunk):
 	faces = []				   ; facesuv = []
 	numfaces, = struct.unpack("<l", data.read(4))
 	for i in range(numfaces):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/numfaces, "Reading Faces")
 
 		face_flags, numfaceverts = struct.unpack("<Bh", data.read(3))
@@ -231,13 +231,13 @@ def read(filename):
 			break
 		if cobchunk.chunkname == "PolH":
 			verts, faces, objname, facesuv, uvcoords = read_polh(cobchunk)
-			mod_meshtools.create_mesh(verts, faces, objname, facesuv, uvcoords)
+			meshtools.create_mesh(verts, faces, objname, facesuv, uvcoords)
 
 			'''
 			object = Blender.Object.GetSelected()
 			obj = Blender.Object.Get(objname)
 			obj.loc = location
-			obj.rot = mod_meshtools.mat2euler(rotation_matrix)
+			obj.rot = meshtools.mat2euler(rotation_matrix)
 			obj.size = (transformation_matrix[0][0]/rotation_matrix[0][0],
 						transformation_matrix[1][1]/rotation_matrix[1][1],
 						transformation_matrix[2][2]/rotation_matrix[2][2])
@@ -251,7 +251,7 @@ def read(filename):
 	end = time.clock()
 	seconds = " in %.2f %s" % (end-start, "seconds")
 	message = "Successfully imported " + os.path.basename(filename) + seconds
-	mod_meshtools.print_boxed(message)
+	meshtools.print_boxed(message)
 	#print "objname :", objname
 	#print "numverts:", len(verts)
 	#print "numfaces:", len(faces)

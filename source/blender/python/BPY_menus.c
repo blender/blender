@@ -63,6 +63,7 @@
 
 #include "BPY_extern.h"
 #include "BPY_menus.h"
+#include "api2_2x/EXPP_interface.h" /* for bpy_gethome() */
 
 #include <errno.h>
 
@@ -337,8 +338,14 @@ static BPyMenu *bpymenu_AddEntry( short group, short version, char *name,
 			next = menu->next;
 		} else {	/* they are in the same dir */
 			if (DEBUG) {
-				printf("\nWarning: script %s's menu name is already in use.\n", fname );
-				printf("Edit the script and change its Name: '%s' field, please.\n" "Note: if you really want two scripts in the same menu with\n" "the same name, keep one in the default dir and the other in\n" "the user defined dir, where it will take precedence.\n", name);
+				fprintf(stderr, "\n\
+Warning: script %s's menu name is already in use.\n\
+Edit the script and change its \n\
+Name: '%s'\n\
+field, please.\n\
+Note: if you really want to have two scripts for the same menu with\n\
+the same name, keep one in the default dir and the other in\n\
+the user defined dir (only the later will be registered).\n", fname, name);
 			}
 			return NULL;
 		}
@@ -422,6 +429,7 @@ static int bpymenu_CreateFromFile( void )
 {
 	FILE *fp;
 	char line[255], w1[255], w2[255], tooltip[255], *tip;
+	char *homedir = NULL;
 	int parsing, version, is_userdir;
 	short group;
 	BPyMenu *pymenu = NULL;
@@ -432,13 +440,21 @@ static int bpymenu_CreateFromFile( void )
 		BPyMenuTable[group] = NULL;
 
 	/* let's try to open the file with bpymenu data */
-	BLI_make_file_string( "/", line, bpy_gethome(0), BPYMENU_DATAFILE );
+	homedir = bpy_gethome(0);
+	if (!homedir) {
+		if( DEBUG )
+			fprintf(stderr,
+				"BPyMenus error: couldn't open config file Bpymenus: no home dir.\n");
+		return -1;
+	}
+
+	BLI_make_file_string( "/", line, homedir, BPYMENU_DATAFILE );
 
 	fp = fopen( line, "rb" );
 
 	if( !fp ) {
 		if( DEBUG )
-			printf( "BPyMenus error: couldn't open config file %s.\n", line );
+			fprintf(stderr, "BPyMenus error: couldn't open config file %s.\n", line );
 		return -1;
 	}
 
@@ -449,7 +465,11 @@ static int bpymenu_CreateFromFile( void )
 	w1[0] = '\0';
 	fscanf( fp, "# User defined scripts dir: %[^\n]\n", w1 );
 	if( w1 ) {
-		if( strcmp( w1, U.pythondir ) != 0 )
+		char upythondir[FILE_MAXDIR];
+
+		BLI_strncpy(upythondir, U.pythondir, FILE_MAXDIR);
+		BLI_convertstringcode(upythondir, G.sce, 0);
+		if( strcmp( w1, upythondir ) != 0 )
 			return -1;
 		w1[0] = '\0';
 	}
@@ -471,7 +491,9 @@ static int bpymenu_CreateFromFile( void )
 		if( parsing == 1 ) {	/* got menu group string */
 			group = bpymenu_group_atoi( w1 );
 			if( group < 0 && DEBUG ) {	/* invalid type */
-				printf( "BPyMenus error parsing config file: wrong group: %s, " "will use 'Misc'.\n", w1 );
+				fprintf(stderr,
+					"BPyMenus error parsing config file: wrong group: %s,\n\
+will use 'Misc'.\n", w1 );
 			}
 		} else
 			continue;
@@ -526,15 +548,24 @@ static void bpymenu_WriteDataFile( void )
 	BPyMenu *pymenu;
 	BPySubMenu *smenu;
 	FILE *fp;
-	char fname[FILE_MAXDIR + FILE_MAXFILE];
+	char fname[FILE_MAXDIR], *homedir;
 	int i;
 
-	BLI_make_file_string( "/", fname, bpy_gethome(0), BPYMENU_DATAFILE );
+	homedir = bpy_gethome(0);
+
+	if (!homedir) {
+		if( DEBUG )
+			fprintf(stderr,
+				"BPyMenus error: couldn't write Bpymenus file: no home dir.\n\n");
+		return;
+	}
+
+	BLI_make_file_string( "/", fname, homedir, BPYMENU_DATAFILE );
 
 	fp = fopen( fname, "w" );
 	if( !fp ) {
 		if( DEBUG )
-			printf( "BPyMenus error: couldn't write %s file.",
+			fprintf(stderr, "BPyMenus error: couldn't write %s file.\n\n",
 				fname );
 		return;
 	}
@@ -542,8 +573,15 @@ static void bpymenu_WriteDataFile( void )
 	fprintf( fp,
 		 "# Blender: registered menu entries for bpython scripts\n" );
 
-	if( U.pythondir[0] != '\0' && strcmp(U.pythondir, "/") != 0)
-		fprintf( fp, "# User defined scripts dir: %s\n", U.pythondir );
+	if (U.pythondir[0] != '\0' &&
+			strcmp(U.pythondir, "/") != 0 && strcmp(U.pythondir, "//") != 0)
+	{
+		char upythondir[FILE_MAXDIR];
+
+		BLI_strncpy(upythondir, U.pythondir, FILE_MAXDIR);
+		BLI_convertstringcode(upythondir, G.sce, 0);
+		fprintf( fp, "# User defined scripts dir: %s\n", upythondir );
+	}
 
 	for( i = 0; i < PYMENU_TOTAL; i++ ) {
 		pymenu = BPyMenuTable[i];
@@ -777,7 +815,7 @@ static int bpymenu_ParseDir(char *dirname, char *parentdir, int is_userdir )
 	struct dirent *de;
 	struct stat status;
 	char *file_extension;
-	char path[FILE_MAXFILE + FILE_MAXDIR];
+	char path[FILE_MAXDIR];
 	char subdir[FILE_MAXDIR];
 	char *s = NULL;
 
@@ -827,23 +865,27 @@ static int bpymenu_ParseDir(char *dirname, char *parentdir, int is_userdir )
 				Dir_Depth++;
 				if (Dirs_Number > MAX_DIR_NUMBER) {
 					if (DEBUG) {
-						fprintf(stderr, "BPyMenus error: Too many subdirs.\n");
+						fprintf(stderr, "BPyMenus error: too many subdirs.\n");
 					}
+					closedir(dir);
 					return -1;
 				}
 				else if (Dir_Depth > MAX_DIR_DEPTH) {
-					Dir_Depth--;
 					if (DEBUG)
 						fprintf(stderr,
-							"BPyMenus error: Max depth reached traversing dirs.\n");
-					break;
+							"BPyMenus error: max depth reached traversing dir tree.\n");
+					closedir(dir);
+					return -1;
 				}
 				s = de->d_name;
 				if (parentdir) {
 					BLI_make_file_string(NULL, subdir, parentdir, de->d_name);
 					s = subdir;
 				}
-				if (bpymenu_ParseDir(path, s, is_userdir) == -1) return -1;
+				if (bpymenu_ParseDir(path, s, is_userdir) == -1) {
+					closedir(dir);
+					return -1;
+				}
 			}
 
 		}
@@ -889,112 +931,148 @@ static int bpymenu_GetStatMTime( char *name, int is_file, time_t * mtime )
 */
 int BPyMenu_Init( int usedir )
 {
-	char fname[FILE_MAXDIR + FILE_MAXFILE];
+	char fname[FILE_MAXDIR];
 	char dirname[FILE_MAXDIR];
-	char *upydir = U.pythondir;
-	time_t tdir1 = 0, tdir2 = 0, tfile = 0;
-	int res1 = 0, res2 = 0, resf = 0;
+	char upythondir[FILE_MAXDIR];
+	char *upydir = U.pythondir, *sdir = NULL;
+	time_t time_dir1 = 0, time_dir2 = 0, time_file = 0;
+	int stat_dir1 = 0, stat_dir2 = 0, stat_file = 0;
+	int i;
 
 	DEBUG = G.f & G_DEBUG;	/* is Blender in debug mode (started with -d) ? */
 
 	/* init global bpymenu table (it is a list of pointers to struct BPyMenus
 	 * for each available group: import, export, etc.) */
-	for( res1 = 0; res1 < PYMENU_TOTAL; res1++ )
-		BPyMenuTable[res1] = NULL;
+	for( i = 0; i < PYMENU_TOTAL; i++ )
+		BPyMenuTable[i] = NULL;
 
-	if( U.pythondir[0] == '\0' || strcmp(U.pythondir, "/") == 0)
+	if( U.pythondir[0] == '\0' ||
+			strcmp(U.pythondir, "/") == 0 || strcmp(U.pythondir, "//") == 0)
+	{
 		upydir = NULL;
-
-	BLI_strncpy(dirname, bpy_gethome(1), FILE_MAXDIR);
-
-	res1 = bpymenu_GetStatMTime( dirname, 0, &tdir1 );
-
-	if( res1 < 0 ) {
-		tdir1 = 0;
-		if( DEBUG ) {
-			printf( "\nDefault scripts dir: %s:\n%s\n", dirname,
-				strerror( errno ) );
-			if( upydir )
-				printf( "Getting scripts menu data from user defined dir: %s.\n", upydir );
-		}
-	} else {
-		syspath_append( dirname );
+	}
+	else {
+		BLI_strncpy(upythondir, upydir, FILE_MAXDIR);
+		BLI_convertstringcode(upythondir, G.sce, 0);
 	}
 
-	if( upydir ) {
-		res2 = bpymenu_GetStatMTime( U.pythondir, 0, &tdir2 );
+	sdir = bpy_gethome(1);
 
-		if( res2 < 0 ) {
-			tdir2 = 0;
+	if (sdir) {
+		BLI_strncpy(dirname, sdir, FILE_MAXDIR);
+		stat_dir1 = bpymenu_GetStatMTime( dirname, 0, &time_dir1 );
+
+		if( stat_dir1 < 0 ) {
+			time_dir1 = 0;
+			if( DEBUG ) {
+				fprintf(stderr,
+					"\nDefault scripts dir: %s:\n%s\n", dirname, strerror(errno));
+				if( upydir )
+					fprintf(stderr,
+						"Getting scripts menu data from user defined dir: %s.\n",
+						upythondir );
+			}
+		}
+	}
+	else stat_dir1 = -1;
+
+	if( upydir ) {
+		stat_dir2 = bpymenu_GetStatMTime( upythondir, 0, &time_dir2 );
+
+		if( stat_dir2 < 0 ) {
+			time_dir2 = 0;
 			if( DEBUG )
-				printf( "\nUser defined scripts dir: %s:\n%s.\n", upydir, strerror( errno ) );
-			if( res1 < 0 ) {
+				fprintf(stderr, "\nUser defined scripts dir: %s:\n%s.\n",
+					upythondir, strerror( errno ) );
+			if( stat_dir1 < 0 ) {
 				if( DEBUG )
-					printf( "To have scripts in menus, please add them to the" "default scripts dir: %s\n" "and/or go to 'Info window -> File Paths tab' and set a valid\n" "path for the user defined scripts dir.\n", dirname );
+					fprintf(stderr, "\
+To have scripts in menus, please add them to the default scripts dir:\n\
+%s\n\
+and / or go to 'Info window -> File Paths tab' and set a valid path for\n\
+the user defined scripts dir.\n", dirname );
 				return -1;
 			}
 		}
-	} else
-		res2 = -1;
+	}
+	else stat_dir2 = -1;
 
-	if( ( res1 < 0 ) && ( res2 < 0 ) ) {
+	if( ( stat_dir1 < 0 ) && ( stat_dir2 < 0 ) ) {
 		if( DEBUG ) {
-			printf( "\nCannot register scripts in menus, no scripts dir" " available.\nExpected default dir in %s .\n", dirname );
+			fprintf(stderr, "\nCannot register scripts in menus, no scripts dir"
+							" available.\nExpected default dir at: %s \n", dirname );
 		}
 		return -1;
 	}
 
 	if( DEBUG )
-		printf( "\nRegistering scripts in Blender menus ...\n\n" );
+		fprintf(stderr, "\nRegistering scripts in Blender menus ...\n\n" );
 
-	if (usedir) resf = -1;
+	if (usedir) stat_file = -1;
 	else { /* if we're not forced to use the dir */
-		BLI_make_file_string( "/", fname, bpy_gethome(0),
-				      BPYMENU_DATAFILE );
-		resf = bpymenu_GetStatMTime( fname, 1, &tfile );
-		if( resf < 0 )
-			tfile = 0;
+		char *homedir = bpy_gethome(0);
+
+		if (homedir) {
+			BLI_make_file_string( "/", fname, homedir, BPYMENU_DATAFILE );
+			stat_file = bpymenu_GetStatMTime( fname, 1, &time_file );
+			if( stat_file < 0 )
+				time_file = 0;
 
 		/* comparing dates */
 
-		if( ( tfile > tdir1 ) && ( tfile > tdir2 ) && !resf ) {	/* file is newer */
-			resf = bpymenu_CreateFromFile(  );	/* -1 if an error occurred */
-			if( !resf && DEBUG )
-				printf( "Getting menu data for scripts from file: %s\n\n", fname );
+			if((stat_file == 0)
+				&& (time_file > time_dir1) && (time_file > time_dir2))
+			{	/* file is newer */
+				stat_file = bpymenu_CreateFromFile(  );	/* -1 if an error occurred */
+				if( !stat_file && DEBUG )
+					fprintf(stderr,
+						"Getting menu data for scripts from file: %s\n\n", fname );
+			}
+			else stat_file = -1;
 		}
-		else resf = -1;	/* -1 to use dirs: didn't use file or it was corrupted */
+		else stat_file = -1;	/* -1 to use dirs: didn't use file or it was corrupted */
 	}
 
-	if( resf == -1 ) {	/* use dirs */
+	if( stat_file == -1 ) {	/* use dirs */
 		if( DEBUG ) {
-			printf( "Getting menu data for scripts from dir(s):\n%s\n\n", dirname );
+			fprintf(stderr,
+				"Getting menu data for scripts from dir(s):\ndefault: %s\n", dirname );
 			if( upydir )
-				printf( "%s\n", upydir );
+				fprintf(stderr, "user defined: %s", upythondir );
+			fprintf(stderr, "\n");
 		}
-		if( res1 == 0 )
-			bpymenu_ParseDir( dirname, NULL, 0 );
-		if( res2 == 0 ) {
+		if( stat_dir1 == 0 ) {
+			i = bpymenu_ParseDir( dirname, NULL, 0 );
+			if (i == -1 && DEBUG)
+				fprintf(stderr, "Default scripts dir does not seem valid.\n\n");
+		}
+		if( stat_dir2 == 0 ) {
 			BLI_strncpy(dirname, U.pythondir, FILE_MAXDIR);
 			BLI_convertstringcode(dirname, G.sce, 0);
-			bpymenu_ParseDir( dirname, NULL, 1 );
+			i = bpymenu_ParseDir( dirname, NULL, 1 );
+			if (i == -1 && DEBUG)
+				fprintf(stderr, "User defined scripts dir does not seem valid.\n\n");
 		}
 
 		/* check if we got any data */
-		for( res1 = 0; res1 < PYMENU_TOTAL; res1++ )
-			if( BPyMenuTable[res1] )
+		for( i = 0; i < PYMENU_TOTAL; i++ )
+			if( BPyMenuTable[i] )
 				break;
 
 		/* if we got, recreate the file */
-		if( res1 < PYMENU_TOTAL )
+		if( i < PYMENU_TOTAL )
 			bpymenu_WriteDataFile(  );
 		else if( DEBUG ) {
-			printf( "\nWarning: Registering scripts in menus -- no info found.\n" "Either your scripts dirs have no .py scripts or the scripts\n" "don't have a header with registration data.\n" "Default scripts dir is: %s\n", dirname );
+			fprintf(stderr, "\n\
+Warning: Registering scripts in menus -- no info found.\n\
+Either your scripts dirs have no .py scripts or the scripts\n\
+don't have a header with registration data.\n\
+Default scripts dir is:\n\
+%s\n", dirname );
 			if( upydir )
-				printf( "User defined scripts dir is: %s\n",
-					upydir );
+				fprintf(stderr, "User defined scripts dir is: %s\n",
+					upythondir );
 		}
-
-		return 0;
 	}
 
 	return 0;

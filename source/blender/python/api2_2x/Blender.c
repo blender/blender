@@ -60,9 +60,10 @@
 #include <BKE_ipo.h>
 #include <blendef.h>
 
+#include "EXPP_interface.h" /* for bpy_gethome() */
 #include "gen_utils.h"
 #include "modules.h"
-#include "../BPY_extern.h"	/* for bpy_gethome() */
+#include "../BPY_extern.h" /* BPY_txt_do_python_Text */
 #include "../BPY_menus.h"	/* to update menus */
 
 /**********************************************************/
@@ -217,19 +218,21 @@ static PyObject *Blender_Get( PyObject * self, PyObject * args )
 		ret = PyString_FromString( G.sce );
 	else if( StringEqual( str, "homedir" ) ) {
 		char *hdir = bpy_gethome(0);
-		if( BLI_exists( hdir ))
+		if( hdir && BLI_exists( hdir ))
 			ret = PyString_FromString( hdir );
 		else
 			ret = EXPP_incr_ret( Py_None );
 	}
 	else if( StringEqual( str, "datadir" ) ) {
 		char datadir[FILE_MAXDIR];
+		char *sdir = bpy_gethome(1);
 
-		BLI_make_file_string( "/", datadir, bpy_gethome(1), "bpydata/" );
-		if( BLI_exists( datadir ) )
-			ret = PyString_FromString( datadir );
-		else
-			ret = EXPP_incr_ret( Py_None );
+		if (sdir) {
+			BLI_make_file_string( "/", datadir, sdir, "bpydata/" );
+			if( BLI_exists( datadir ) )
+				ret = PyString_FromString( datadir );
+		}
+		if (!ret) ret = EXPP_incr_ret( Py_None );
 	}
 	else if(StringEqual(str, "udatadir")) {
 		if (U.pythondir[0] != '\0') {

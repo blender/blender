@@ -46,19 +46,19 @@ import Blender
 argv=__script__['arg']
 
 if argv=='SVG':
-  from mod_svg2obj import *
+  from svg2obj import *
 
 elif argv=='AI':
-  from mod_ai2obj import *
+  from ai2obj import *
 
 elif argv=='EPS':
-  from mod_eps2obj import *
+  from eps2obj import *
 
 elif argv=='Gimp_1_0':
-  from mod_gimp2obj import *
+  from gimp2obj import *
 
 elif argv=='Gimp_2_0':
-  from mod_svg2obj import *
+  from svg2obj import *
 
 text = 'Import %s' % argv
 Blender.Window.FileSelector (fonctionSELECT, text)

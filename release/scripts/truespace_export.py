@@ -63,7 +63,7 @@ how to handle it.
 # | Read and write Caligari trueSpace File Format (*.cob)   |
 # +---------------------------------------------------------+
 
-import Blender, mod_meshtools
+import Blender, meshtools
 import struct, os, cStringIO, time
 
 # ==============================
@@ -86,7 +86,7 @@ def write(filename):
 
 		grou = generate_grou('Group ' + `objects.index(object)+1`)
 		polh = generate_polh(objname, obj, mesh)
-		if mod_meshtools.has_vertex_colors(mesh): vcol = generate_vcol(mesh)
+		if meshtools.has_vertex_colors(mesh): vcol = generate_vcol(mesh)
 		unit = generate_unit()
 		mat1 = generate_mat1(mesh)
 
@@ -94,7 +94,7 @@ def write(filename):
 
 		write_chunk(file, "Grou", 0, 1, G, X, grou)
 		write_chunk(file, "PolH", 0, 4, P, G, polh)
-		if mod_meshtools.has_vertex_colors(mesh) and vcol:
+		if meshtools.has_vertex_colors(mesh) and vcol:
 			write_chunk(file, "VCol", 1, 0, V, P, vcol)
 		write_chunk(file, "Unit", 0, 1, U, P, unit)
 		write_chunk(file, "Mat1", 0, 5, M, P, mat1)
@@ -109,7 +109,7 @@ def write(filename):
 	end = time.clock()
 	seconds = " in %.2f %s" % (end-start, "seconds")
 	message = "Successfully exported " + os.path.basename(filename) + seconds
-	mod_meshtools.print_boxed(message)
+	meshtools.print_boxed(message)
 
 # =============================
 # === Write COB File Header ===
@@ -163,7 +163,7 @@ def write_CurrentPosition(data, obj):
 def write_VertexList(data, mesh):
 	data.write(struct.pack("<l", len(mesh.verts)))
 	for i in range(len(mesh.verts)):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Writing Verts")
 		x, y, z = mesh.verts[i].co
 		data.write(struct.pack("<fff", -y, x, z))
@@ -185,7 +185,7 @@ def write_UVCoordsList(data, mesh):
 	uvcoords = {}
 	uvidx = 0
 	for i in range(len(mesh.faces)):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing UV Coords")
 		numfaceverts = len(mesh.faces[i].v)
 		for j in range(numfaceverts-1, -1, -1): 	# Reverse order
@@ -206,7 +206,7 @@ def write_UVCoordsList(data, mesh):
 def write_FaceList(data, mesh, uvcoords):
 	data.write(struct.pack("<l", len(mesh.faces)))
 	for i in range(len(mesh.faces)):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing Faces")
 		numfaceverts = len(mesh.faces[i].v)
 		data.write(struct.pack("<B", 0x10))         # Cull Back Faces Flag
@@ -230,7 +230,7 @@ def generate_vcol(mesh):
 	uniquecolors = {}
 	unique_alpha = {}
 	for i in range(len(mesh.faces)):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing Vertex Colors")
 		numfaceverts = len(mesh.faces[i].v)
 		data.write(struct.pack("<ll", i, numfaceverts))

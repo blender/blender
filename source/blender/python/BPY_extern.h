@@ -78,7 +78,6 @@ extern "C" {
 
 	void init_syspath( int first_time );
 	void syspath_append( char *dir );
-	char *bpy_gethome( int append_scriptsdir );
 
 #ifdef __cplusplus
 }				/* extern "C" */

@@ -52,7 +52,7 @@ v5.5 format.
 # | Read and write LightWave Object File Format (*.lwo)     |
 # +---------------------------------------------------------+
 
-import Blender, mod_meshtools
+import Blender, meshtools
 import struct, chunk, os, cStringIO, time, operator
 
 # ==============================
@@ -65,11 +65,11 @@ def write(filename):
 	objects = Blender.Object.GetSelected()
 	objects.sort(lambda a,b: cmp(a.name, b.name))
 	if not objects:
-		mod_meshtools.print_boxed("No mesh objects are selected.")
+		meshtools.print_boxed("No mesh objects are selected.")
 		return
 
-	if len(objects) > 20 and mod_meshtools.show_progress:
-		mod_meshtools.show_progress = 0
+	if len(objects) > 20 and meshtools.show_progress:
+		meshtools.show_progress = 0
 
 	text = generate_text()
 	desc = generate_desc()
@@ -99,8 +99,8 @@ def write(filename):
 		if mesh.hasFaceUV():
 			vmad_uv = generate_vmad_uv(mesh)  # per face
 
-		if mod_meshtools.has_vertex_colors(mesh):
-			if mod_meshtools.average_vcols:
+		if meshtools.has_vertex_colors(mesh):
+			if meshtools.average_vcols:
 				vmap_vc = generate_vmap_vc(mesh)  # per vert
 			else:
 				vmad_vc = generate_vmad_vc(mesh)  # per face
@@ -115,8 +115,8 @@ def write(filename):
 			write_chunk(meshdata, "VMAD", vmad_uv)
 			chunks.append(vmad_uv)
 
-		if mod_meshtools.has_vertex_colors(mesh):
-			if mod_meshtools.average_vcols:
+		if meshtools.has_vertex_colors(mesh):
+			if meshtools.average_vcols:
 				write_chunk(meshdata, "VMAP", vmap_vc)
 				chunks.append(vmap_vc)
 			else:
@@ -142,7 +142,7 @@ def write(filename):
 	end = time.clock()
 	seconds = " in %.2f %s" % (end-start, "seconds")
 	message = "Successfully exported " + os.path.basename(filename) + seconds
-	mod_meshtools.print_boxed(message)
+	meshtools.print_boxed(message)
 
 # =======================================
 # === Generate Null-Terminated String ===
@@ -164,17 +164,17 @@ def get_used_material_names(objects):
 		meshname = object.data.name
 		mesh = Blender.NMesh.GetRaw(meshname)
 		if not mesh: continue
-		if (not mesh.materials) and (mod_meshtools.has_vertex_colors(mesh)):
+		if (not mesh.materials) and (meshtools.has_vertex_colors(mesh)):
 			# vcols only
-			if mod_meshtools.average_vcols:
+			if meshtools.average_vcols:
 				matnames["\251 Per-Vert Vertex Colors"] = None
 			else:
 				matnames["\251 Per-Face Vertex Colors"] = None
-		elif (mesh.materials) and (not mod_meshtools.has_vertex_colors(mesh)):
+		elif (mesh.materials) and (not meshtools.has_vertex_colors(mesh)):
 			# materials only
 			for material in mesh.materials:
 				matnames[material.name] = None
-		elif (not mesh.materials) and (not mod_meshtools.has_vertex_colors(mesh)):
+		elif (not mesh.materials) and (not meshtools.has_vertex_colors(mesh)):
 			# neither
 			matnames["\251 Blender Default"] = None
 		else:
@@ -228,9 +228,9 @@ def generate_layr(name, idx):
 def generate_pnts(mesh, matrix):
 	data = cStringIO.StringIO()
 	for i in range(len(mesh.verts)):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Writing Verts")
-		x, y, z = mod_meshtools.apply_transform(mesh.verts[i].co, matrix)
+		x, y, z = meshtools.apply_transform(mesh.verts[i].co, matrix)
 		data.write(struct.pack(">fff", x, z, y))
 	return data.getvalue()
 
@@ -255,7 +255,7 @@ def average_vertexcolors(mesh):
 	vcolor_add = lambda u, v: [u[0]+v[0], u[1]+v[1], u[2]+v[2], u[3]+v[3]]
 	vcolor_div = lambda u, s: [u[0]/s, u[1]/s, u[2]/s, u[3]/s]
 	for i in range(len(mesh.faces)):	# get all vcolors that share this vertex
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Finding Shared VColors")
 		for j in range(len(mesh.faces[i].v)):
 			index = mesh.faces[i].v[j].index
@@ -263,7 +263,7 @@ def average_vertexcolors(mesh):
 			r,g,b,a = color.r, color.g, color.b, color.a
 			vertexcolors.setdefault(index, []).append([r,g,b,a])
 	for i in range(len(vertexcolors)):	# average them
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Averaging Vertex Colors")
 		vcolor = [0,0,0,0]	# rgba
 		for j in range(len(vertexcolors[i])):
@@ -296,7 +296,7 @@ def generate_vmad_vc(mesh):
 	data.write(struct.pack(">H", 3))                        # dimension
 	data.write(generate_nstring("Blender's Vertex Colors")) # name
 	for i in range(len(mesh.faces)):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing Vertex Colors")
 		numfaceverts = len(mesh.faces[i].v)
 		for j in range(numfaceverts-1, -1, -1): 			# Reverse order
@@ -318,7 +318,7 @@ def generate_vmad_uv(mesh):
 	data.write(struct.pack(">H", 2))                         # dimension
 	data.write(generate_nstring("Blender's UV Coordinates")) # name
 	for i in range(len(mesh.faces)):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing UV Coordinates")
 		numfaceverts = len(mesh.faces[i].v)
 		for j in range(numfaceverts-1, -1, -1): 			# Reverse order
@@ -346,7 +346,7 @@ def generate_pols(mesh):
 	data = cStringIO.StringIO()
 	data.write("FACE")  # polygon type
 	for i in range(len(mesh.faces)):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing Faces")
 		data.write(struct.pack(">H", len(mesh.faces[i].v))) # numfaceverts
 		numfaceverts = len(mesh.faces[i].v)
@@ -362,18 +362,18 @@ def generate_ptag(mesh, material_names):
 	data = cStringIO.StringIO()
 	data.write("SURF")  # polygon tag type
 	for i in range(len(mesh.faces)): # numfaces
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing Surface Indices")
 		data.write(generate_vx(i))
-		if (not mesh.materials) and (mod_meshtools.has_vertex_colors(mesh)):		# vcols only
-			if mod_meshtools.average_vcols:
+		if (not mesh.materials) and (meshtools.has_vertex_colors(mesh)):		# vcols only
+			if meshtools.average_vcols:
 				name = "\251 Per-Vert Vertex Colors"
 			else:
 				name = "\251 Per-Face Vertex Colors"
-		elif (mesh.materials) and (not mod_meshtools.has_vertex_colors(mesh)):		# materials only
+		elif (mesh.materials) and (not meshtools.has_vertex_colors(mesh)):		# materials only
 			idx = mesh.faces[i].mat	#erialIndex
 			name = mesh.materials[idx].name
-		elif (not mesh.materials) and (not mod_meshtools.has_vertex_colors(mesh)):	# neither
+		elif (not mesh.materials) and (not meshtools.has_vertex_colors(mesh)):	# neither
 			name = "\251 Blender Default"
 		else:																		# both
 			idx = mesh.faces[i].mat
@@ -388,7 +388,7 @@ def generate_ptag(mesh, material_names):
 # ===================================================
 def generate_vcol_surf(mesh):
 	data = cStringIO.StringIO()
-	if mod_meshtools.average_vcols and mod_meshtools.has_vertex_colors(mesh):
+	if meshtools.average_vcols and meshtools.has_vertex_colors(mesh):
 		surface_name = generate_nstring("\251 Per-Vert Vertex Colors")
 	else:
 		surface_name = generate_nstring("\251 Per-Face Vertex Colors")
@@ -413,7 +413,7 @@ def generate_vcol_surf(mesh):
 	data.write(generate_nstring("Blender's Vertex Colors")) # name
 
 	data.write("CMNT")  # material comment
-	comment = "Vertex Colors: Exported from Blender\256 " + mod_meshtools.blender_version_str
+	comment = "Vertex Colors: Exported from Blender\256 " + meshtools.blender_version_str
 	comment = generate_nstring(comment)
 	data.write(struct.pack(">H", len(comment)))
 	data.write(comment)
@@ -452,7 +452,7 @@ def generate_surf(material_name):
 	data.write(struct.pack(">fH", gloss, 0))
 
 	data.write("CMNT")  # material comment
-	comment = material_name + ": Exported from Blender\256 " + mod_meshtools.blender_version_str
+	comment = material_name + ": Exported from Blender\256 " + meshtools.blender_version_str
 	comment = generate_nstring(comment)
 	data.write(struct.pack(">H", len(comment)))
 	data.write(comment)
@@ -490,7 +490,7 @@ def generate_default_surf():
 	data.write(struct.pack(">fH", gloss, 0))
 
 	data.write("CMNT")  # material comment
-	comment = material_name + ": Exported from Blender\256 " + mod_meshtools.blender_version_str
+	comment = material_name + ": Exported from Blender\256 " + meshtools.blender_version_str
 
 	# vals = map(chr, range(164,255,1))
 	# keys = range(164,255,1)
@@ -509,7 +509,7 @@ def generate_default_surf():
 # ============================================
 def generate_text():
 	comment  = "Lightwave Export Script for Blender "
-	comment +=	mod_meshtools.blender_version_str + "\n"
+	comment +=	meshtools.blender_version_str + "\n"
 	comment += "by Anthony D'Agostino\n"
 	comment += "scorpius@netzero.com\n"
 	comment += "http://ourworld.compuserve.com/homepages/scorpius\n"

@@ -52,14 +52,14 @@ specular highlights to the vertex colors.
 # | Read and write Radiosity File Format (*.radio)          |
 # +---------------------------------------------------------+
 
-import Blender, mod_meshtools
+import Blender, meshtools
 #import time
 
 try:
 	import struct
 except:
 	msg = "Error: you need a full Python install to run this script."
-	mod_meshtools.print_boxed(msg)
+	meshtools.print_boxed(msg)
 	Blender.Draw.PupMenu("ERROR%t|"+msg)
 
 # ================================
@@ -75,10 +75,10 @@ def write(filename):
 	mesh = Blender.NMesh.GetRaw(meshname)
 	obj = Blender.Object.Get(objname)
 
-	if not mod_meshtools.has_vertex_colors(mesh):
+	if not meshtools.has_vertex_colors(mesh):
 		message = "Please assign vertex colors before exporting. \n"
 		message += objname + " object was not saved."
-		mod_meshtools.print_boxed(message)
+		meshtools.print_boxed(message)
 		Blender.Draw.PupMenu("ERROR%t|"+message)
 		return
 
@@ -89,7 +89,7 @@ def write(filename):
 	# === Vertex List ===
 	file.write(struct.pack("<l", len(mesh.verts)))
 	for i in range(len(mesh.verts)):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Writing Verts")
 
 		x, y, z = mesh.verts[i].co
@@ -98,7 +98,7 @@ def write(filename):
 	# === Face List ===
 	file.write(struct.pack("<l", len(mesh.faces)))
 	for i in range(len(mesh.faces)):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing Faces")
 
 		file.write(struct.pack("<b", len(mesh.faces[i].v)))
@@ -116,7 +116,7 @@ def write(filename):
 	#end = time.clock()
 	#seconds = " in %.2f %s" % (end-start, "seconds")
 	message = "Successfully exported " + Blender.sys.basename(filename)# + seconds
-	mod_meshtools.print_boxed(message)
+	meshtools.print_boxed(message)
 
 def fs_callback(filename):
 	if filename.find('.radio', -6) <= 0: filename += '.radio'

@@ -1,7 +1,7 @@
 # $Id$
 #
 # --------------------------------------------------------------------------
-# mod_blender.py version 0.2 Jul 26, 2004
+# BPyBlender.py version 0.3 Mar 20, 2005
 # --------------------------------------------------------------------------
 # helper functions to be used by other scripts
 # --------------------------------------------------------------------------
@@ -32,6 +32,6 @@ basic_modules = [
 'Blender',
 'chunk','colorsys','copy','copy_reg','gzip','os','random','repr','stat',
 'string','StringIO','types','UserDict','webbrowser','whrandom',
-'zlib',
-'math'
+'zlib', 'math',
+'BPyBlender'
 ]

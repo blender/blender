@@ -37,14 +37,14 @@ file to open.
 # | Read and write Radiosity File Format (*.radio)          |
 # +---------------------------------------------------------+
 
-import Blender, mod_meshtools
+import Blender, meshtools
 #import time
 
 try:
 	import struct
 except:
 	msg = "Error: you need a full Python install to run this script."
-	mod_meshtools.print_boxed(msg)
+	meshtools.print_boxed(msg)
 	Blender.Draw.PupMenu("ERROR%t|"+msg)
 
 # ===============================
@@ -63,7 +63,7 @@ def read(filename):
 	# === Vertex List ===
 	numverts, = struct.unpack("<l", file.read(4))
 	for i in range(numverts):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/numverts, "Reading Verts")
 		x, y, z = struct.unpack("<fff", file.read(12))
 		mesh.verts.append(Blender.NMesh.Vert(x, y, z))
@@ -71,7 +71,7 @@ def read(filename):
 	# === Face List ===
 	numfaces, = struct.unpack("<l", file.read(4))
 	for i in range(numfaces):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/numfaces, "Reading Faces")
 
 		face = Blender.NMesh.Face()
@@ -105,7 +105,7 @@ def read(filename):
 	#end = time.clock()
 	#seconds = " in %.2f %s" % (end-start, "seconds")
 	message = "Successfully imported " + Blender.sys.basename(filename)# + seconds
-	mod_meshtools.print_boxed(message)
+	meshtools.print_boxed(message)
 
 def fs_callback(filename):
 	read(filename)

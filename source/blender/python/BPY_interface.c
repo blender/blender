@@ -147,9 +147,6 @@ void BPY_start_python( int argc, char **argv )
 	 * rest of our init msgs.
 	 */
 
-	if( first_time ) { /* so it only prints msg on first_time */
-	}
-
 	Py_Initialize(  );
 	PySys_SetArgv( argc_copy, argv_copy );
 
@@ -211,7 +208,7 @@ void init_syspath( int first_time )
 	PyObject *mod, *d;
 	PyObject *p;
 	char *c, *progname;
-	char execdir[FILE_MAXDIR + FILE_MAXFILE];	/*defines from DNA_space_types.h */
+	char execdir[FILE_MAXDIR];	/*defines from DNA_space_types.h */
 
 	int n;
 
@@ -310,9 +307,28 @@ that dir info is available.
 void BPY_post_start_python( void )
 {
 	PyObject *result, *dict;
+	char dirpath[FILE_MAXDIR];
+	char *sdir = NULL;
 
-	if( U.pythondir && U.pythondir[0] != '\0' )
-		syspath_append( U.pythondir );	/* append to module search path */
+	if(U.pythondir[0] != '\0' ) {
+		char modpath[FILE_MAXDIR];
+
+		BLI_strncpy(dirpath, U.pythondir, FILE_MAXDIR);
+		BLI_convertstringcode(dirpath, G.sce, 0);
+		syspath_append(dirpath);	/* append to module search path */
+
+		BLI_make_file_string("/", modpath, dirpath, "bpymodules/");
+		if (BLI_exists(modpath)) syspath_append(modpath);
+	}
+
+	sdir = bpy_gethome(1);
+	if (sdir) {
+
+		syspath_append(sdir);
+
+		BLI_make_file_string("/", dirpath, sdir, "bpymodules/");
+		if (BLI_exists(dirpath)) syspath_append(dirpath);
+	}
 
 	BPyMenu_Init( 0 );	/* get dynamic menus (registered scripts) data */
 
@@ -642,15 +658,29 @@ int BPY_menu_do_python( short menutype, int event )
 		}
 	}
 
-	if( !pyarg ) {		/* no submenus */
+	if( !pyarg ) { /* no submenus */
 		Py_INCREF( Py_None );
 		pyarg = Py_None;
 	}
 
-	if( pym->dir )		/* script is in U.pythondir */
-		BLI_make_file_string( "/", filestr, U.pythondir, pym->filename );
-	else /* script is in ~/.blender/scripts/ */
-		BLI_make_file_string( "/", filestr, bpy_gethome(1), pym->filename );
+	if( pym->dir ) { /* script is in U.pythondir */
+		char upythondir[FILE_MAXDIR];
+
+		/* dirs in Blender can be "//", which has a special meaning */
+		BLI_strncpy(upythondir, U.pythondir, FILE_MAXDIR);
+		BLI_convertstringcode(upythondir, G.sce, 0); /* if so, this expands it */
+		BLI_make_file_string( "/", filestr, upythondir, pym->filename );
+	}
+	else { /* script is in default scripts dir */
+		char *scriptsdir = bpy_gethome(1);
+
+		if (!scriptsdir) {
+			printf("Error loading script: can't find default scripts dir!");
+			return 0;
+		}
+
+		BLI_make_file_string( "/", filestr, scriptsdir, pym->filename );
+	}
 
 	fp = fopen( filestr, "rb" );
 	if( !fp ) {
@@ -782,8 +812,8 @@ int BPY_menu_do_python( short menutype, int event )
 	if( !py_res ) {		/* Failed execution of the script */
 
 		BPY_Err_Handle( script->id.name + 2 );
-		PyErr_Print(  );
 		ReleaseGlobalDictionary( py_dict );
+		script->py_globaldict = NULL;
 		if( G.main->script.first )
 			free_libblock( &G.main->script, script );
 		error( "Python script error: check console" );
@@ -1343,62 +1373,4 @@ void init_ourImport( void )
 	m = PyImport_AddModule( "__builtin__" );
 	d = PyModule_GetDict( m );
 	PyDict_SetItemString( d, "__import__", import );
-}
-
-/* this makes sure BLI_gethome() returns a path with '.blender' appended
- * Besides, this function now either returns userhome/.blender (if it exists)
- * or blenderInstallDir/.blender/ otherwise.
- * If append_scriptsdir is non NULL, "scripts/" is appended to the dir, to
- * get the path to the scripts folder.
- * Finally, if searched dir doesn't exist, NULL is returned.
-*/
-char *bpy_gethome(int append_scriptsdir)
-{
-	static char homedir[FILE_MAXDIR];
-	static char scriptsdir[FILE_MAXDIR];
-	char bprogdir[FILE_MAXDIR];
-	char *s;
-	int i;
-
-	if (append_scriptsdir) {
-		if (scriptsdir[0] != '\0')
-			return scriptsdir;
-	}
-	else if (homedir[0] != '\0')
-		return homedir;
-
-	s = BLI_gethome(  );
-
-	if( strstr( s, ".blender" ) )
-		PyOS_snprintf( homedir, FILE_MAXDIR, s );
-	else
-		BLI_make_file_string( "/", homedir, s, ".blender/" );
-
-	/* if userhome/.blender/ exists, return it */
-	if( BLI_exists( homedir ) ) {
-		if (append_scriptsdir) {
-			BLI_make_file_string("/", scriptsdir, homedir, "scripts/");
-			if (BLI_exists (scriptsdir)) return scriptsdir;
-		}
-		else return homedir;
-	}
-
-	/* otherwise, use argv[0] (bprogname) to get .blender/ in
-	 * Blender's installation dir */
-	s = BLI_last_slash( bprogname );
-
-	i = s - bprogname + 1;
-
-	PyOS_snprintf( bprogdir, i, bprogname );
-	BLI_make_file_string( "/", homedir, bprogdir, ".blender/" );
-
-	if (BLI_exists(homedir)) {
-		if (append_scriptsdir) {
-			BLI_make_file_string("/", scriptsdir, homedir, "scripts/");
-			if (BLI_exists(scriptsdir)) return scriptsdir;
-		}
-		else return homedir;
-	}
-
-	return NULL;
 }

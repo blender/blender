@@ -39,7 +39,7 @@ Usage:<br>
 # | Read and write RAW Triangle File Format (*.raw)         |
 # +---------------------------------------------------------+
 
-import Blender, mod_meshtools
+import Blender, meshtools
 import sys
 #import time
 
@@ -78,7 +78,7 @@ def write(filename):
 	#end = time.clock()
 	#seconds = " in %.2f %s" % (end-start, "seconds")
 	message = "Successfully exported " + Blender.sys.basename(filename)# + seconds
-	mod_meshtools.print_boxed(message)
+	meshtools.print_boxed(message)
 
 def fs_callback(filename):
 	if filename.find('.raw', -4) <= 0: filename += '.raw'

@@ -41,7 +41,7 @@ Notes:<br>
 # | Read and write Object File Format (*.off)               |
 # +---------------------------------------------------------+
 
-import Blender, mod_meshtools
+import Blender, meshtools
 #import time
 
 # =============================
@@ -67,7 +67,7 @@ def read(filename):
 
 	# === Vertex List ===
 	for i in range(numverts):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/numverts, "Reading Verts")
 		if has_uv:
 			x, y, z, u, v = map(float, file.readline().split())
@@ -78,7 +78,7 @@ def read(filename):
 
 	# === Face List ===
 	for i in range(numfaces):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/numfaces, "Reading Faces")
 		line = file.readline().split()
 		numfaceverts = len(line)-1
@@ -91,13 +91,13 @@ def read(filename):
 
 	objname = Blender.sys.splitext(Blender.sys.basename(filename))[0]
 
-	mod_meshtools.create_mesh(verts, faces, objname, faces, uv)
+	meshtools.create_mesh(verts, faces, objname, faces, uv)
 	Blender.Window.DrawProgressBar(1.0, '')  # clear progressbar
 	file.close()
 	#end = time.clock()
 	#seconds = " in %.2f %s" % (end-start, "seconds")
 	message = "Successfully imported " + Blender.sys.basename(filename)# + seconds
-	mod_meshtools.print_boxed(message)
+	meshtools.print_boxed(message)
 
 def fs_callback(filename):
 	read(filename)

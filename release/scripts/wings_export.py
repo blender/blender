@@ -56,7 +56,7 @@ Notes:<br>
 # | Read and write Wings3D File Format (*.wings)            |
 # +---------------------------------------------------------+
 
-import Blender, mod_meshtools
+import Blender, meshtools
 import struct, time, sys, os, zlib, cStringIO
 
 # ===============================================
@@ -74,7 +74,7 @@ def write_faces(data, mesh):
 	numfaces = len(mesh.faces)
 	data.write(struct.pack(">BL", 0x6C, numfaces))
 	#for i in range(numfaces):
-	#	 if not i%100 and mod_meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/numfaces, "Writing Faces")
+	#	 if not i%100 and meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/numfaces, "Writing Faces")
 	#	 data.write("\x6A")
 	data.write("\x6A" * numfaces) # same, but faster than the above loop
 	data.write("\x6A")
@@ -86,7 +86,7 @@ def write_verts(data, mesh):
 	numverts = len(mesh.verts)
 	data.write(struct.pack(">BL", 0x6C, numverts))
 	for i in range(numverts):
-		if not i%100 and mod_meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/numverts, "Writing Verts")
+		if not i%100 and meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/numverts, "Writing Verts")
 		data.write(struct.pack(">BLBL", 0x6C, 1, 0x6D, 24))
 		#data.write("\x6c\x00\x00\x00\x01\x6D\x00\x00\x00\x30")
 		x, y, z = mesh.verts[i].co
@@ -104,9 +104,9 @@ def write_edges(data, mesh, edge_table):
 	keys.sort()
 	for key in keys:
 		i = edge_table[key][6]
-		if not i%100 and mod_meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/numedges, "Writing Edges")
+		if not i%100 and meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/numedges, "Writing Edges")
 
-		if mod_meshtools.has_vertex_colors(mesh):
+		if meshtools.has_vertex_colors(mesh):
 			r1, g1, b1 = edge_table[key][7]
 			r2, g2, b2 = edge_table[key][8]
 			data.write("\x6C\x00\x00\x00\x02")
@@ -141,7 +141,7 @@ def write_mode(data, mesh):
 	data.write("\x6A")
 	data.write(struct.pack(">BL", 0x6C, 1))
 	write_chunkheader(data, 0x68, 0x02, "mode")
-	if mod_meshtools.has_vertex_colors(mesh):
+	if meshtools.has_vertex_colors(mesh):
 		data.write(struct.pack(">BH6s", 0x64, 6, "vertex"))
 	else:
 		data.write(struct.pack(">BH8s", 0x64, 8, "material"))
@@ -313,12 +313,12 @@ def write(filename):
 	obj = Blender.Object.Get(objname)
 
 	try:
-		edge_table = mod_meshtools.generate_edgetable(mesh)
+		edge_table = meshtools.generate_edgetable(mesh)
 	except:
 		edge_table = {}
 		message = "Unable to generate\nEdge Table for mesh.\n"
 		message += "Object name is: " + meshname
-		mod_meshtools.print_boxed(message)
+		meshtools.print_boxed(message)
 		Blender.Draw.PupMenu("Wings Export error|Unable to generate Edge Table for mesh")
 		return 
 
@@ -369,7 +369,7 @@ def write(filename):
 	message += "faces   : " + `len(mesh.faces)` + '\n'
 	message += "edges   : " + `len(edge_table)` + '\n'
 	message += "verts   : " + `len(mesh.verts)` + '\n'
-	mod_meshtools.print_boxed(message)
+	meshtools.print_boxed(message)
 
 def fs_callback(filename):
 	if filename.find('.wings', -6) <= 0: filename += '.wings'

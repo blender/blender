@@ -39,7 +39,7 @@ Notes:<br>
 # | Read and write Object File Format (*.off)               |
 # +---------------------------------------------------------+
 
-import Blender, mod_meshtools
+import Blender, meshtools
 #import time
 
 # ==============================
@@ -62,14 +62,14 @@ def write(filename):
 
 	# === Vertex List ===
 	for i in range(len(mesh.verts)):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Writing Verts")
 		x, y, z = mesh.verts[i].co
 		file.write("%f %f %f\n" % (x, y, z))
 
 	# === Face List ===
 	for i in range(len(mesh.faces)):
-		if not i%100 and mod_meshtools.show_progress:
+		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing Faces")
 		file.write(`len(mesh.faces[i].v)`+' ')
 		mesh.faces[i].v.reverse()
@@ -83,7 +83,7 @@ def write(filename):
 	#end = time.clock()
 	#seconds = " in %.2f %s" % (end-start, "seconds")
 	message = "Successfully exported " + Blender.sys.basename(filename)# + seconds
-	mod_meshtools.print_boxed(message)
+	meshtools.print_boxed(message)
 
 def fs_callback(filename):
 	if filename.find('.off', -4) <= 0: filename += '.off'
