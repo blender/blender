@@ -81,6 +81,8 @@
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
 
+#include "BPY_menus.h"
+
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -568,9 +570,9 @@ static void do_image_imagemenu(void *arg, int event)
 		if(G.sima->image) strcpy(name, G.sima->image->name);
 		else strcpy(name, U.textudir);
 		if(G.qual==LR_CTRLKEY)
-			activate_imageselect(FILE_SPECIAL, "SELECT IMAGE", name, load_space_image);
+			activate_imageselect(FILE_SPECIAL, "Open Image", name, load_space_image);
 		else
-			activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name, load_space_image);
+			activate_fileselect(FILE_SPECIAL, "Open Image", name, load_space_image);
 		break;
 	case 1: /* Replace */
 		if(G.sima->image) strcpy(name, G.sima->image->name);
@@ -813,7 +815,13 @@ static uiBlock *image_uvs_transformmenu(void *arg_unused)
 
 static void do_image_uvsmenu(void *arg, int event)
 {
-	switch(event)
+	extern int BPY_menu_do_python(short menutype, int event);	// BPY_interface.c
+	ScrArea *sa;
+
+	/* events >=20 are registered bpython scripts */
+	if (event >= 20) BPY_menu_do_python(PYMENU_UV, event - 20);
+
+	else switch(event)
 	{
 	case 1: /* UVs Constrained Rectangular */
 		if(G.sima->flag & SI_BE_SQUARE) G.sima->flag &= ~SI_BE_SQUARE;
@@ -846,6 +854,8 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 {
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
+	BPyMenu *pym;
+	int i = 0;
 
 	block= uiNewBlock(&curarea->uiblocks, "image_uvsmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_image_uvsmenu, NULL);
@@ -878,6 +888,16 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 	
+	/* note that we acount for the 3 previous entries with i+3: */
+	for (pym = BPyMenuTable[PYMENU_UV]; pym; pym = pym->next, i++) {
+
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, pym->name, 0, yco-=20, menuwidth, 19, 
+				 NULL, 0.0, 0.0, 1, i+20, 
+				 pym->tooltip?pym->tooltip:pym->filename);
+	}
+
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
+
 	uiDefIconTextBlockBut(block, image_uvs_showhidemenu, NULL, ICON_RIGHTARROW_THIN, "Show/Hide Faces", 0, yco-=20, menuwidth, 19, "");
 
 	if(curarea->headertype==HEADERTOP) {

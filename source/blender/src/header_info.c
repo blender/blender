@@ -698,10 +698,8 @@ static uiBlock *info_file_importmenu(void *arg_unused)
 	//uiBlockSetXOfs(block, -50);  // offset to parent button
 
 	for (pym = BPyMenuTable[PYMENU_IMPORT]; pym; pym = pym->next, i++) {
-		uiDefBut(block, BUTM, 1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i, pym->tooltip?pym->tooltip:pym->filename);
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i, pym->tooltip?pym->tooltip:pym->filename);
 	}
-
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -751,19 +749,18 @@ static uiBlock *info_file_exportmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_info_file_exportmenu, NULL);
 	//uiBlockSetXOfs(block, -50);  // offset to parent button
 
-	uiDefBut(block, BUTM, 1, "VRML 1.0...|Ctrl F2",
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "VRML 1.0...|Ctrl F2",
 			 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefBut(block, BUTM, 1, "DXF...|Shift F2",
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "DXF...|Shift F2",
 			 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefBut(block, BUTM, 1, "Videoscape...|Alt W",
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Videoscape...|Alt W",
 			 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 2, "");
 
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 
-			 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	/* note that we acount for the 3 previous entries with i+3: */
 	for (pym = BPyMenuTable[PYMENU_EXPORT]; pym; pym = pym->next, i++) {
-		uiDefBut(block, BUTM, 1, pym->name, 0, yco-=20, menuwidth, 19, 
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, pym->name, 0, yco-=20, menuwidth, 19, 
 				 NULL, 0.0, 0.0, 1, i+3, 
 				 pym->tooltip?pym->tooltip:pym->filename);
 	}

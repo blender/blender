@@ -1,10 +1,10 @@
 #!BPY
 
 """
-Name: 'UV Face Layout'
+Name: 'Save UV Face Layout...'
 Blender: 232
-Group: 'Export'
-Tooltip: 'Export the UV Faces layout of the  selected object to tga'
+Group: 'UV'
+Tooltip: 'Export the UV face layout of the selected object to a .TGA file'
 """ 
 
 # --------------------------------------------------------------------------

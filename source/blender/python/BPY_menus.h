@@ -87,6 +87,7 @@ typedef enum {
 	PYMENU_IMPORT,
 	PYMENU_EXPORT,
 	PYMENU_ANIMATION,
+	PYMENU_UV, /* UV editing tools, to go in UV/Image editor space, 'UV' menu */
 	PYMENU_TOTAL
 } PYMENUHOOKS;
 
