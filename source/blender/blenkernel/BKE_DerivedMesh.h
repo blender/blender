@@ -41,6 +41,8 @@
  *    and allow some of the functions to be collapsed.
  *  o Once accessor functions are added then single element draw
  *    functions can be implemented using primitive accessors.
+ *  o Add function to dispatch to renderer instead of using
+ *    conversion to DLM.
  */
 
 struct Object;
@@ -140,6 +142,7 @@ struct DerivedMesh {
 };
 
 DerivedMesh *mesh_get_derived(struct Object *ob);
+DerivedMesh *mesh_get_derived_render(struct Object *ob);
 DerivedMesh *mesh_get_base_derived(struct Object *ob);
 
 	/* Utility function, just chooses appropriate DerivedMesh based

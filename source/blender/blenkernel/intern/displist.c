@@ -204,6 +204,8 @@ DispListMesh *displistmesh_from_mesh(Mesh *me, float *extverts)
 		mfNew->edcode= 0;
 	}
 
+	displistmesh_calc_normals(dlm);
+
 	return dlm;
 }
 
@@ -224,6 +226,8 @@ void displistmesh_free(DispListMesh *dlm)
 DispListMesh *displistmesh_copy(DispListMesh *odlm) 
 {
 	DispListMesh *ndlm= MEM_dupallocN(odlm);
+	ndlm->editedge= NULL;
+	ndlm->editface= NULL;
 	ndlm->mvert= MEM_dupallocN(odlm->mvert);
 	ndlm->medge= MEM_dupallocN(odlm->medge);
 	ndlm->mface= MEM_dupallocN(odlm->mface);
@@ -1771,8 +1775,6 @@ void makeDispList(Object *ob)
 			dl= MEM_callocN(sizeof(*dl), "dl");
 			dl->type= DL_MESH;
 			dl->mesh= dlm;
-
-			free_displist_by_type(&me->disp, DL_MESH);
 			BLI_addtail(&me->disp, dl);
 		}
 
