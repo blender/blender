@@ -5369,8 +5369,10 @@ void transform(int mode)
 					omtrekfac= (phi0*rad*M_PI)/(360.0*dist);
 				}
 				
-				
-				sprintf(str, "Warp %3.3f (%3.3f)", phi0, addvec[0]); 
+				if (typemode && addvec[0])
+					sprintf(str, "Warp >%3.3f<", addvec[0]); 
+				else
+					sprintf(str, "Warp %3.3f", phi0); 
 				headerprint(str);
 	
 				/* each vertex transform individually */
