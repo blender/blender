@@ -66,28 +66,26 @@ typedef struct {
 	float *extverts, *nors;
 } MeshDerivedMesh;
 
+static float *meshDM__getVertCo(MeshDerivedMesh *mdm, int index)
+{
+	if (mdm->extverts) {
+		return mdm->extverts+3*index;
+	} else {
+		return ((Mesh*) mdm->ob->data)->mvert[index].co;
+	}
+}
+
 static void meshDM_drawVerts(DerivedMesh *dm)
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
 	Mesh *me = mdm->ob->data;
 	int a, start=0, end=me->totvert;
-	MVert *mvert = me->mvert;
-	float *extverts = mdm->extverts;
 
 	set_buildvars(mdm->ob, &start, &end);
 
 	glBegin(GL_POINTS);
-	if(extverts) {
-		extverts+= 3*start;
-		for(a= start; a<end; a++, extverts+=3) {
-			glVertex3fv(extverts);
-		}
-	}
-	else {
-		mvert+= start;
-		for(a= start; a<end; a++, mvert++) {
-			glVertex3fv(mvert->co);
-		}
+	for(a= start; a<end; a++) {
+		glVertex3fv(meshDM__getVertCo(mdm, a));
 	}
 	glEnd();
 }
@@ -96,10 +94,7 @@ static void meshDM_drawEdges(DerivedMesh *dm)
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
 	Mesh *me= mdm->ob->data;
 	int a, start= 0, end= me->totface;
-	MVert *mvert = me->mvert;
 	MFace *mface = me->mface;
-	float *extverts= mdm->extverts;
-	float *f1, *f2, *f3, *f4;
 
 	set_buildvars(mdm->ob, &start, &end);
 	mface+= start;
@@ -112,15 +107,8 @@ static void meshDM_drawEdges(DerivedMesh *dm)
 		glBegin(GL_LINES);
 		for(a=me->totedge; a>0; a--, medge++) {
 			if(medge->flag & ME_EDGEDRAW) {
-				if(extverts) {
-					f1= extverts+3*medge->v1;
-					f2= extverts+3*medge->v2;
-				}
-				else {
-					f1= (mvert+medge->v1)->co;
-					f2= (mvert+medge->v2)->co;
-				}
-				glVertex3fv(f1); glVertex3fv(f2); 
+				glVertex3fv(meshDM__getVertCo(mdm, medge->v1));
+				glVertex3fv(meshDM__getVertCo(mdm, medge->v2));
 			}
 		}
 		glEnd();
@@ -131,40 +119,30 @@ static void meshDM_drawEdges(DerivedMesh *dm)
 			int test= mface->edcode;
 			
 			if(test) {
-				if(extverts) {
-					f1= extverts+3*mface->v1;
-					f2= extverts+3*mface->v2;
-				}
-				else {
-					f1= (mvert+mface->v1)->co;
-					f2= (mvert+mface->v2)->co;
-				}
-				
 				if(test&ME_V1V2){
-					glVertex3fv(f1); glVertex3fv(f2);
+					glVertex3fv(meshDM__getVertCo(mdm, mface->v1));
+					glVertex3fv(meshDM__getVertCo(mdm, mface->v2));
 				}
 
 				if(mface->v3) {
-					if(extverts) f3= extverts+3*mface->v3;
-					else f3= (mvert+mface->v3)->co;
-
 					if(test&ME_V2V3){
-						glVertex3fv(f2); glVertex3fv(f3);
+						glVertex3fv(meshDM__getVertCo(mdm, mface->v2));
+						glVertex3fv(meshDM__getVertCo(mdm, mface->v3));
 					}
 
 					if (mface->v4) {
-						if(extverts) f4= extverts+3*mface->v4;
-						else f4= (mvert+mface->v4)->co;
-						
 						if(test&ME_V3V4){
-							glVertex3fv(f3); glVertex3fv(f4);
+							glVertex3fv(meshDM__getVertCo(mdm, mface->v3));
+							glVertex3fv(meshDM__getVertCo(mdm, mface->v4));
 						}
 						if(test&ME_V4V1){
-							glVertex3fv(f4); glVertex3fv(f1);
+							glVertex3fv(meshDM__getVertCo(mdm, mface->v4));
+							glVertex3fv(meshDM__getVertCo(mdm, mface->v1));
 						}
 					} else {
 						if(test&ME_V3V1){
-							glVertex3fv(f3); glVertex3fv(f1);
+							glVertex3fv(meshDM__getVertCo(mdm, mface->v3));
+							glVertex3fv(meshDM__getVertCo(mdm, mface->v1));
 						}
 					}
 				}
@@ -177,9 +155,7 @@ static void meshDM_drawLooseEdges(DerivedMesh *dm)
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
 	Mesh *me = mdm->ob->data;
-	MVert *mvert= me->mvert;
 	MFace *mface= me->mface;
-	float *extverts = mdm->extverts;
 	int a, start=0, end=me->totface;
 
 	set_buildvars(mdm->ob, &start, &end);
@@ -188,19 +164,8 @@ static void meshDM_drawLooseEdges(DerivedMesh *dm)
 	glBegin(GL_LINES);
 	for(a=start; a<end; a++, mface++) {
 		if(!mface->v3) {
-			float *v1, *v2;
-
-			if(extverts) {
-				v1= extverts+3*mface->v1;
-				v2= extverts+3*mface->v2;
-			}
-			else {
-				v1= (mvert+mface->v1)->co;
-				v2= (mvert+mface->v2)->co;
-			}
-				
-			glVertex3fv(v1);
-			glVertex3fv(v2);
+			glVertex3fv(meshDM__getVertCo(mdm, mface->v3));
+			glVertex3fv(meshDM__getVertCo(mdm, mface->v4));
 		} 
 	}
 	glEnd();
@@ -211,7 +176,6 @@ static void meshDM_drawFacesSolid(DerivedMesh *dm, void (*setMaterial)(int))
 	Mesh *me = mdm->ob->data;
 	MVert *mvert= me->mvert;
 	MFace *mface= me->mface;
-	float *extverts = mdm->extverts;
 	float *nors = mdm->nors;
 	int a, start=0, end=me->totface;
 	int glmode=-1, shademodel=-1, matnr=-1;
@@ -219,7 +183,7 @@ static void meshDM_drawFacesSolid(DerivedMesh *dm, void (*setMaterial)(int))
 	set_buildvars(mdm->ob, &start, &end);
 	mface+= start;
 	
-#define PASSVERT(co, index, punoBit) {			\
+#define PASSVERT(index, punoBit) {				\
 	if (shademodel==GL_SMOOTH) {				\
 		short *no = (mvert+index)->no;			\
 		if (mface->puno&punoBit) {				\
@@ -228,29 +192,15 @@ static void meshDM_drawFacesSolid(DerivedMesh *dm, void (*setMaterial)(int))
 			glNormal3sv(no);					\
 		}										\
 	}											\
-	glVertex3fv(co);							\
+	glVertex3fv(meshDM__getVertCo(mdm,index));	\
 }
 
 	glBegin(glmode=GL_QUADS);
 	for(a=start; a<end; a++, mface++, nors+=3) {
 		if(mface->v3) {
 			int new_glmode, new_matnr, new_shademodel;
-			float *v1, *v2, *v3, *v4;
-
-			if(extverts) {
-				v1= extverts+3*mface->v1;
-				v2= extverts+3*mface->v2;
-				v3= mface->v3?extverts+3*mface->v3:NULL;
-				v4= mface->v4?extverts+3*mface->v4:NULL;
-			}
-			else {
-				v1= (mvert+mface->v1)->co;
-				v2= (mvert+mface->v2)->co;
-				v3= mface->v3?(mvert+mface->v3)->co:NULL;
-				v4= mface->v4?(mvert+mface->v4)->co:NULL;
-			}
 				
-			new_glmode = v4?GL_QUADS:GL_TRIANGLES;
+			new_glmode = mface->v4?GL_QUADS:GL_TRIANGLES;
 			new_matnr = mface->mat_nr+1;
 			new_shademodel = (!(me->flag&ME_AUTOSMOOTH) && (mface->flag & ME_SMOOTH))?GL_SMOOTH:GL_FLAT;
 			
@@ -266,11 +216,11 @@ static void meshDM_drawFacesSolid(DerivedMesh *dm, void (*setMaterial)(int))
 			if(shademodel==GL_FLAT) 
 				glNormal3fv(nors);
 
-			PASSVERT(v1, mface->v1, ME_FLIPV1);
-			PASSVERT(v2, mface->v2, ME_FLIPV2);
-			PASSVERT(v3, mface->v3, ME_FLIPV3);
-			if (v4) {
-				PASSVERT(v4, mface->v4, ME_FLIPV4);
+			PASSVERT(mface->v1, ME_FLIPV1);
+			PASSVERT(mface->v2, ME_FLIPV2);
+			PASSVERT(mface->v3, ME_FLIPV3);
+			if (mface->v4) {
+				PASSVERT(mface->v4, ME_FLIPV4);
 			}
 		}
 	}
@@ -285,9 +235,7 @@ static void meshDM_drawFacesColored(DerivedMesh *dm, int useTwoSide, unsigned ch
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
 	Object *ob= mdm->ob;
 	Mesh *me= ob->data;
-	MVert *mvert= me->mvert;
 	MFace *mface= me->mface;
-	float *extverts= mdm->extverts;
 	int a, glmode, start=0, end=me->totface;
 	unsigned char *cp1, *cp2;
 
@@ -310,20 +258,6 @@ static void meshDM_drawFacesColored(DerivedMesh *dm, int useTwoSide, unsigned ch
 	for(a=start; a<end; a++, mface++, cp1+= 16) {
 		if(mface->v3) {
 			int new_glmode= mface->v4?GL_QUADS:GL_TRIANGLES;
-			float *v1, *v2, *v3, *v4;
-
-			if(extverts) {
-				v1= extverts+3*mface->v1;
-				v2= extverts+3*mface->v2;
-				v3= extverts+3*mface->v3;
-				v4= mface->v4?extverts+3*mface->v4:NULL;
-			}
-			else {
-				v1= (mvert+mface->v1)->co;
-				v2= (mvert+mface->v2)->co;
-				v3= (mvert+mface->v3)->co;
-				v4= mface->v4?(mvert+mface->v4)->co:NULL;
-			}
 
 			if (new_glmode!=glmode) {
 				glEnd();
@@ -331,26 +265,26 @@ static void meshDM_drawFacesColored(DerivedMesh *dm, int useTwoSide, unsigned ch
 			}
 				
 			glColor3ub(cp1[3], cp1[2], cp1[1]);
-			glVertex3fv( v1 );
+			glVertex3fv( meshDM__getVertCo(mdm,mface->v1) );
 			glColor3ub(cp1[7], cp1[6], cp1[5]);
-			glVertex3fv( v2 );
+			glVertex3fv( meshDM__getVertCo(mdm,mface->v2) );
 			glColor3ub(cp1[11], cp1[10], cp1[9]);
-			glVertex3fv( v3 );
-			if(v4) {
+			glVertex3fv( meshDM__getVertCo(mdm,mface->v3) );
+			if(mface->v4) {
 				glColor3ub(cp1[15], cp1[14], cp1[13]);
-				glVertex3fv( v4 );
+				glVertex3fv( meshDM__getVertCo(mdm,mface->v4) );
 			}
 				
 			if(useTwoSide) {
 				glColor3ub(cp2[11], cp2[10], cp2[9]);
-				glVertex3fv( v3 );
+				glVertex3fv( meshDM__getVertCo(mdm,mface->v3) );
 				glColor3ub(cp2[7], cp2[6], cp2[5]);
-				glVertex3fv( v2 );
+				glVertex3fv( meshDM__getVertCo(mdm,mface->v2) );
 				glColor3ub(cp2[3], cp2[2], cp2[1]);
-				glVertex3fv( v1 );
+				glVertex3fv( meshDM__getVertCo(mdm,mface->v1) );
 				if(mface->v4) {
 					glColor3ub(cp2[15], cp2[14], cp2[13]);
-					glVertex3fv( v4 );
+					glVertex3fv( meshDM__getVertCo(mdm,mface->v4) );
 				}
 			}
 		}
@@ -369,31 +303,17 @@ static void meshDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf,
 	MVert *mvert= me->mvert;
 	MFace *mface= me->mface;
 	TFace *tface = me->tface;
-	float *extverts = mdm->extverts;
 	float *nors = mdm->nors;
 	int a, start=0, end=me->totface;
 
 	set_buildvars(mdm->ob, &start, &end);
 	
 	for (a=start; a<end; a++) {
-		float *v1, *v2, *v3, *v4;
 		MFace *mf= &mface[a];
 		unsigned char *cp= NULL;
 		
 		if(mf->v3==0) continue;
 		if(tface && (tface->flag & (TF_HIDE|TF_INVISIBLE))) continue;
-
-		if (extverts) {
-			v1= extverts+3*mf->v1;
-			v2= extverts+3*mf->v2;
-			v3= extverts+3*mf->v3;
-			v4= mf->v4?(extverts+3*mf->v4):NULL;
-		} else {
-			v1= (mvert+mf->v1)->co;
-			v2= (mvert+mf->v2)->co;
-			v3= (mvert+mf->v3)->co;
-			v4= mf->v4?(mvert+mf->v4)->co:NULL;
-		}
 
 		if (setDrawParams(tface, mf->mat_nr)) {
 			if (tface) {
@@ -407,27 +327,27 @@ static void meshDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf,
 			glNormal3fv(&nors[a*3]);
 		}
 
-		glBegin(v4?GL_QUADS:GL_TRIANGLES);
+		glBegin(mface->v4?GL_QUADS:GL_TRIANGLES);
 		if (tface) glTexCoord2fv(tface->uv[0]);
 		if (cp) glColor3ub(cp[3], cp[2], cp[1]);
 		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v1].no);
-		glVertex3fv(v1);
+		glVertex3fv(meshDM__getVertCo(mdm, mface->v1));
 			
 		if (tface) glTexCoord2fv(tface->uv[1]);
 		if (cp) glColor3ub(cp[7], cp[6], cp[5]);
 		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v2].no);
-		glVertex3fv(v2);
+		glVertex3fv(meshDM__getVertCo(mdm, mface->v2));
 
 		if (tface) glTexCoord2fv(tface->uv[2]);
 		if (cp) glColor3ub(cp[11], cp[10], cp[9]);
 		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v3].no);
-		glVertex3fv(v3);
+		glVertex3fv(meshDM__getVertCo(mdm, mface->v3));
 
-		if(v4) {
+		if(mface->v4) {
 			if (tface) glTexCoord2fv(tface->uv[3]);
 			if (cp) glColor3ub(cp[15], cp[14], cp[13]);
 			if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v4].no);
-			glVertex3fv(v4);
+			glVertex3fv(meshDM__getVertCo(mdm, mface->v4));
 		}
 		glEnd();
 
