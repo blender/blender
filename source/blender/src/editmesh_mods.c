@@ -668,14 +668,14 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 			if(dl) dlm= dl->mesh;
 			if( (me->flag & ME_OPT_EDGES) && (me->flag & ME_SUBSURF) && me->subdiv) optimal= 1;
 			
+			if(eed->f & SELECT) BIF_ThemeColor(TH_EDGE_SELECT);
+			else BIF_ThemeColor(TH_WIRE);
+
 			if(dlm && optimal) {
 				MEdge *medge= dlm->medge;
 				MVert *mvert= dlm->mvert;
 				int b;
 				
-				if(eed->f & SELECT) BIF_ThemeColor(TH_EDGE_SELECT);
-				else BIF_ThemeColor(TH_WIRE);
-
 				glBegin(GL_LINES);
 				for (b=0; b<dlm->totedge; b++, medge++) {
 					if(medge->flag & ME_EDGEDRAW) {

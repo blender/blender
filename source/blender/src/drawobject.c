@@ -4337,6 +4337,8 @@ static void bbs_mesh_verts(Object *ob, int offset)
 	EditVert *eve;
 	int a= offset;
 	
+	glPointSize( BIF_GetThemeValuef(TH_VERTEX_SIZE) );
+	
 	bglBegin(GL_POINTS);
 	for(eve= G.editMesh->verts.first; eve; eve= eve->next, a++) {
 		if(eve->h==0) {
@@ -4345,6 +4347,8 @@ static void bbs_mesh_verts(Object *ob, int offset)
 		}
 	}
 	bglEnd();
+	
+	glPointSize(1.0);
 }		
 
 /* two options, edgecolors or black */
