@@ -282,9 +282,6 @@ void KX_BlenderRenderTools::DisableOpenGLLights()
 {
 	glDisable(GL_LIGHTING);
 	glDisable(GL_COLOR_MATERIAL);
-#ifndef SLOWPAINT
-	glDisableClientState(GL_NORMAL_ARRAY);
-#endif //SLOWPAINT
 }
 
 	
@@ -292,11 +289,8 @@ void KX_BlenderRenderTools::EnableOpenGLLights()
 {
 	glEnable(GL_LIGHTING);
 	
-	glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
 	glEnable(GL_COLOR_MATERIAL);
-#ifndef SLOWPAINT
-	glEnableClientState(GL_NORMAL_ARRAY);
-#endif //SLOWPAINT
+	glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, false);
 	if (bgl::QueryExtension(bgl::_GL_EXT_separate_specular_color) || bgl::QueryVersion(1, 2))
 		glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);

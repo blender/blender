@@ -143,9 +143,6 @@ bool RAS_OpenGLRasterizer::Init()
 	m_blueback = 0.4375;
 	m_alphaback = 0.0;
 	
-	// enable both vertexcolor AND lighting color
-	glEnable(GL_COLOR_MATERIAL);
-	
 	glClearColor(m_redback,m_greenback,m_blueback,m_alphaback);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

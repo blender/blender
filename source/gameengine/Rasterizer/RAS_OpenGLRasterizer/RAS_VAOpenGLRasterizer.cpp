@@ -75,7 +75,7 @@ bool RAS_VAOpenGLRasterizer::Init(void)
 	{
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glDisableClientState(GL_NORMAL_ARRAY);
+		glEnableClientState(GL_NORMAL_ARRAY);
 		glDisableClientState(GL_COLOR_ARRAY);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -125,7 +125,6 @@ void RAS_VAOpenGLRasterizer::Exit()
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
-	glDisable(GL_COLOR_MATERIAL);
 
 	RAS_OpenGLRasterizer::Exit();
 }

@@ -157,9 +157,8 @@ int GPC_RenderTools::ProcessLighting(int layer)
 void GPC_RenderTools::EnableOpenGLLights()
 {
 	glEnable(GL_LIGHTING);
-	glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
 	glEnable(GL_COLOR_MATERIAL);
-	glEnableClientState(GL_NORMAL_ARRAY);
+	glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
 	if (bgl::QueryExtension(bgl::_GL_EXT_separate_specular_color) || bgl::QueryVersion(1, 2))
 		glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
 }

@@ -226,45 +226,23 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 			MT_Point2 uv0(0.0,0.0),uv1(0.0,0.0),uv2(0.0,0.0),uv3(0.0,0.0);
 			// rgb3 is set from the adjoint face in a square
 			unsigned int rgb0,rgb1,rgb2,rgb3 = 0;
-			pt0 = MT_Point3(	mesh->mvert[mface->v1].co[0],
-								mesh->mvert[mface->v1].co[1],
-								mesh->mvert[mface->v1].co[2]);
-			no0 = MT_Vector3(
-				mesh->mvert[mface->v1].no[0]/32767.0,
-				mesh->mvert[mface->v1].no[1]/32767.0,
-				mesh->mvert[mface->v1].no[2]/32767.0
-				);
-						
-			pt1 = MT_Point3(	mesh->mvert[mface->v2].co[0],
-								mesh->mvert[mface->v2].co[1],
-								mesh->mvert[mface->v2].co[2]);
+			MT_Vector3	no0(mesh->mvert[mface->v1].no[0], mesh->mvert[mface->v1].no[1], mesh->mvert[mface->v1].no[2]),
+					no1(mesh->mvert[mface->v2].no[0], mesh->mvert[mface->v2].no[1], mesh->mvert[mface->v2].no[2]),
+					no2(mesh->mvert[mface->v3].no[0], mesh->mvert[mface->v3].no[1], mesh->mvert[mface->v3].no[2]),
+					no3(0.0, 0.0, 0.0);
+			MT_Point3	pt0(mesh->mvert[mface->v1].co),
+					pt1(mesh->mvert[mface->v2].co),
+					pt2(mesh->mvert[mface->v3].co),
+					pt3(0.0, 0.0, 0.0);
 			
-			no1 = MT_Vector3(
-				mesh->mvert[mface->v2].no[0]/32767.0,
-				mesh->mvert[mface->v2].no[1]/32767.0,
-				mesh->mvert[mface->v2].no[2]/32767.0
-				);
-			
-			pt2 = MT_Point3(	mesh->mvert[mface->v3].co[0],
-								mesh->mvert[mface->v3].co[1],
-								mesh->mvert[mface->v3].co[2]);
-	
-			no2 = MT_Vector3(
-				mesh->mvert[mface->v3].no[0]/32767.0,
-				mesh->mvert[mface->v3].no[1]/32767.0,
-				mesh->mvert[mface->v3].no[2]/32767.0
-				);
-			
+			no0 /= 32767.0;
+			no1 /= 32767.0;
+			no2 /= 32767.0;
 			if (mface->v4)
 			{
-				pt3 = MT_Point3(	mesh->mvert[mface->v4].co[0],
-									mesh->mvert[mface->v4].co[1],
-									mesh->mvert[mface->v4].co[2]);
-				no3 = MT_Vector3(
-					mesh->mvert[mface->v4].no[0]/32767.0,
-					mesh->mvert[mface->v4].no[1]/32767.0,
-					mesh->mvert[mface->v4].no[2]/32767.0
-					);
+				pt3 = MT_Point3(mesh->mvert[mface->v4].co);
+				no3 = MT_Vector3(mesh->mvert[mface->v4].no[0], mesh->mvert[mface->v4].no[1], mesh->mvert[mface->v4].no[2]);
+				no3 /= 32767.0;
 			}
 	
 			if((!mface->flag & ME_SMOOTH))
@@ -374,6 +352,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				{
 					polymat->m_specular = MT_Vector3(ma->specr, ma->specg, ma->specb)*ma->spec;
 					polymat->m_shininess = (float)ma->har/4.0; // 0 < ma->har <= 512
+					polymat->m_diffuse = MT_Vector3(ma->r, ma->g, ma->b)*(ma->emit + ma->ref);
 
 				} else
 				{

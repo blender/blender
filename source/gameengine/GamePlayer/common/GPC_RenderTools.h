@@ -64,7 +64,6 @@ public:
 	{
 		glDisable(GL_LIGHTING);
 		glDisable(GL_COLOR_MATERIAL);
-		glDisableClientState(GL_NORMAL_ARRAY);
 	}
 
 	void EnableOpenGLLights();
