@@ -164,11 +164,11 @@ int compare_property(bProperty *prop, char *str)
 	
 	switch(prop->type) {
 	case PROP_BOOL:
-		if(strcasecmp(str, "true")==0) {
+		if(BLI_strcasecmp(str, "true")==0) {
 			if(prop->data==1) return 0;
 			else return 1;
 		}
-		else if(strcasecmp(str, "false")==0) {
+		else if(BLI_strcasecmp(str, "false")==0) {
 			if(prop->data==0) return 0;
 			else return 1;
 		}
@@ -200,8 +200,8 @@ void set_property(bProperty *prop, char *str)
 
 	switch(prop->type) {
 	case PROP_BOOL:
-		if(strcasecmp(str, "true")==0) prop->data= 1;
-		else if(strcasecmp(str, "false")==0) prop->data= 0;
+		if(BLI_strcasecmp(str, "true")==0) prop->data= 1;
+		else if(BLI_strcasecmp(str, "false")==0) prop->data= 0;
 		else prop->data= (atoi(str)!=0);
 		break;
 	case PROP_INT:

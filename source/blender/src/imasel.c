@@ -105,7 +105,7 @@ int dir_compare(const void *a1, const void *a2)
 	use1 = *in1;
 	use2 = *in2;
 	
-	return strcasecmp(use1->name,  use2->name);
+	return BLI_strcasecmp(use1->name,  use2->name);
 }
 
 void issort( int te, ImaDir **firstentry)
@@ -148,7 +148,7 @@ int ima_compare(const void *a1, const void *a2)
 	in2= (OneSelectableIma **)a2;
 
 	use1 = *in1; use2 = *in2;
-	return strcasecmp(use1->file_name,  use2->file_name);
+	return BLI_strcasecmp(use1->file_name,  use2->file_name);
 }
 
 void imsort(OneSelectableIma **firstentry)

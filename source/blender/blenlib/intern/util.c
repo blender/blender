@@ -107,23 +107,23 @@ int BLI_stringdec(char *string, char *kop, char *staart, unsigned short *numlen)
 	len2 = len =  strlen( string);
 	
 	if (len > 6) {
-		if (strncasecmp(string + len - 6, ".blend", 6) == 0) len -= 6;
-		else if (strncasecmp(string + len - 6, ".trace", 6) == 0) len -= 6;
+		if (BLI_strncasecmp(string + len - 6, ".blend", 6) == 0) len -= 6;
+		else if (BLI_strncasecmp(string + len - 6, ".trace", 6) == 0) len -= 6;
 	}
 	
 	if (len == len2) {
 		if (len > 4) {
 			/* handle .jf0 en .jf1 for jstreams */
-			if (strncasecmp(string + len - 4, ".jf", 3) == 0) len -= 4;
-			else if (strncasecmp(string + len - 4, ".tga", 4) == 0) len -= 4;
-			else if (strncasecmp(string + len - 4, ".jpg", 4) == 0) len -= 4;
-			else if (strncasecmp(string + len - 4, ".png", 4) == 0) len -= 4;
-			else if (strncasecmp(string + len - 4, ".txt", 4) == 0) len -= 4;
-			else if (strncasecmp(string + len - 4, ".cyc", 4) == 0) len -= 4;
-			else if (strncasecmp(string + len - 4, ".enh", 4) == 0) len -= 4;
-			else if (strncasecmp(string + len - 4, ".rgb", 4) == 0) len -= 4;
-			else if (strncasecmp(string + len - 4, ".psx", 4) == 0) len -= 4;
-			else if (strncasecmp(string + len - 4, ".ble", 4) == 0) len -= 4;
+			if (BLI_strncasecmp(string + len - 4, ".jf", 3) == 0) len -= 4;
+			else if (BLI_strncasecmp(string + len - 4, ".tga", 4) == 0) len -= 4;
+			else if (BLI_strncasecmp(string + len - 4, ".jpg", 4) == 0) len -= 4;
+			else if (BLI_strncasecmp(string + len - 4, ".png", 4) == 0) len -= 4;
+			else if (BLI_strncasecmp(string + len - 4, ".txt", 4) == 0) len -= 4;
+			else if (BLI_strncasecmp(string + len - 4, ".cyc", 4) == 0) len -= 4;
+			else if (BLI_strncasecmp(string + len - 4, ".enh", 4) == 0) len -= 4;
+			else if (BLI_strncasecmp(string + len - 4, ".rgb", 4) == 0) len -= 4;
+			else if (BLI_strncasecmp(string + len - 4, ".psx", 4) == 0) len -= 4;
+			else if (BLI_strncasecmp(string + len - 4, ".ble", 4) == 0) len -= 4;
 		}
 	}
 	
@@ -413,7 +413,7 @@ int BLI_streq(char *a, char *b) {
 	return (strcmp(a, b)==0);
 }
 int BLI_strcaseeq(char *a, char *b) {
-	return (strcasecmp(a, b)==0);
+	return (BLI_strcasecmp(a, b)==0);
 }
 
 void BLI_makestringcode(char *fromfile, char *str)
@@ -641,7 +641,7 @@ int BLI_testextensie(char *str, char *ext)
 
 	if(a==0 || b==0 || b>=a) {
 		retval = 0;
-	} else if (strcasecmp(ext, str + a - b)) {
+	} else if (BLI_strcasecmp(ext, str + a - b)) {
 		retval = 0;	
 	} else {
 		retval = 1;
@@ -894,3 +894,40 @@ char* BLI_getbundle(void) {
 }
 #endif
 
+int BLI_strcasecmp(const char *s1, const char *s2) {
+	int i;
+
+	for (i=0; ; i++) {
+		char c1 = tolower(s1[i]);
+		char c2 = tolower(s2[i]);
+
+		if (c1<c2) {
+			return -1;
+		} else if (c1>c2) {
+			return 1;
+		} else if (c1==0) {
+			break;
+		}
+	}
+
+	return 0;
+}
+
+int BLI_strncasecmp(const char *s1, const char *s2, int n) {
+	int i;
+
+	for (i=0; i<n; i++) {
+		char c1 = tolower(s1[i]);
+		char c2 = tolower(s2[i]);
+
+		if (c1<c2) {
+			return -1;
+		} else if (c1>c2) {
+			return 1;
+		} else if (c1==0) {
+			break;
+		}
+	}
+
+	return 0;
+}

@@ -108,7 +108,7 @@ static void makewavstring (char *string)
 
 	RE_make_existing_file(string);
 
-	if (strcasecmp(string + strlen(string) - 4, ".wav")) {
+	if (BLI_strcasecmp(string + strlen(string) - 4, ".wav")) {
 		sprintf(txt, "%04d_%04d.wav", (G.scene->r.sfra) , (G.scene->r.efra) );
 		strcat(string, txt);
 	}

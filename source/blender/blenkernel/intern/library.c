@@ -706,7 +706,7 @@ static void sort_alpha_id(ListBase *lb, ID *id)
 		
 		idtest= lb->first;
 		while(idtest) {
-			if(strcasecmp(idtest->name, id->name)>0 || idtest->lib) {
+			if(BLI_strcasecmp(idtest->name, id->name)>0 || idtest->lib) {
 				BLI_insertlinkbefore(lb, idtest, id);
 				break;
 			}

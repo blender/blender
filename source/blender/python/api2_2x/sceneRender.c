@@ -928,7 +928,7 @@ PyObject *RenderData_Play( BPy_RenderData * self )
 		BLI_convertstringcode( file, (char *) self->scene,
 				       self->renderContext->cfra );
 		RE_make_existing_file( file );
-		if( strcasecmp( file + strlen( file ) - 4, ".mov" ) ) {
+		if( BLI_strcasecmp( file + strlen( file ) - 4, ".mov" ) ) {
 			sprintf( txt, "%04d_%04d.mov",
 				 ( self->renderContext->sfra ),
 				 ( self->renderContext->efra ) );
@@ -942,7 +942,7 @@ PyObject *RenderData_Play( BPy_RenderData * self )
 		BLI_convertstringcode( file, G.sce,
 				       self->renderContext->cfra );
 		RE_make_existing_file( file );
-		if( strcasecmp( file + strlen( file ) - 4, ".avi" ) ) {
+		if( BLI_strcasecmp( file + strlen( file ) - 4, ".avi" ) ) {
 			sprintf( txt, "%04d_%04d.avi",
 				 ( self->renderContext->sfra ),
 				 ( self->renderContext->efra ) );

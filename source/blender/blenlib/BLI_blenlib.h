@@ -328,6 +328,9 @@ void BLI_setScanFillObjectRef(void* ob);
  */
 void BLI_setScanFillColourRef(char* c);
 
+int BLI_strcasecmp(const char *s1, const char *s2);
+int BLI_strncasecmp(const char *s1, const char *s2, int n);
+
 #define PRNTSUB(type,arg)			printf(#arg ": %" #type " ", arg)
 
 #ifndef PRINT

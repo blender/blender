@@ -110,10 +110,6 @@ typedef struct _DIR {
 } DIR;
 
 void RegisterBlendExtension(char * str);
-#ifndef FREE_WINDOWS
-int strcasecmp (char *s1, char *s2);
-int strncasecmp (char *s1, char *s2, int n);
-#endif
 DIR *opendir (const char *path);
 struct dirent *readdir(DIR *dp);
 int closedir (DIR *dp);

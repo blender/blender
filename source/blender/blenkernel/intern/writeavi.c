@@ -70,7 +70,7 @@ void makeavistring (char *string)
 
 	RE_make_existing_file(string);
 
-	if (strcasecmp(string + strlen(string) - 4, ".avi")) {
+	if (BLI_strcasecmp(string + strlen(string) - 4, ".avi")) {
 		sprintf(txt, "%04d_%04d.avi", (G.scene->r.sfra) , (G.scene->r.efra) );
 		strcat(string, txt);
 	}

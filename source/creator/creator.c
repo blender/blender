@@ -267,7 +267,7 @@ int main(int argc, char **argv)
 	// need this.
 
 	BLI_where_am_i(bprogname, argv[0]);
-	
+
 		/* Hack - force inclusion of the plugin api functions,
 		 * see blenpluginapi:pluginapi.c
 		 */
@@ -422,7 +422,7 @@ int main(int argc, char **argv)
 					break;
 				case 'n':
 				case 'N':
-					if (strcasecmp(argv[a], "-noaudio") == 0|| strcasecmp(argv[a], "-nosound") == 0) {
+					if (BLI_strcasecmp(argv[a], "-noaudio") == 0|| BLI_strcasecmp(argv[a], "-nosound") == 0) {
 						/**
 						 	notify the gameengine that no audio is wanted, even if the user didn't give
 						   	the flag -g noaudio.
@@ -432,7 +432,7 @@ int main(int argc, char **argv)
 						audio = 0;
 						if (G.f & G_DEBUG) printf("setting audio to: %d\n", audio);
 					}
-					else if (strcasecmp(argv[a], "-nofrozen") == 0) {
+					else if (BLI_strcasecmp(argv[a], "-nofrozen") == 0) {
 						/* disable initialization of frozen python modules */
 						if (G.f & G_DEBUG) printf("disable frozen modules\n");
 						G.f |= G_NOFROZEN;

@@ -107,7 +107,7 @@ static void make_movie_name(char *string)
 
 	RE_make_existing_file(string);
 
-	if (strcasecmp(string + len - 3, ".mv")) {
+	if (BLI_strcasecmp(string + len - 3, ".mv")) {
 		sprintf(txt, "%04d_%04d.mv", sfra, efra);
 		strcat(string, txt);
 	}

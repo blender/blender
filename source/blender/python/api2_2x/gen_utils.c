@@ -30,13 +30,9 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#if defined(__WIN32__) || defined(WIN32) || defined(_WIN32)
-	#include <string.h>		
-#else
-	#include <strings.h>	/*for strcasecmp */
-#endif
 #include <DNA_text_types.h>
 #include <MEM_guardedalloc.h>
+#include <BLI_blenlib.h>
 
 #include "gen_utils.h"
 #include "constant.h"
@@ -234,7 +230,7 @@ int EXPP_map_case_getIntVal( const EXPP_map_pair * map, const char *sval,
 			     int *ival )
 {
 	while( map->sval ) {
-		if( !strcasecmp( sval, map->sval ) ) {
+		if( !BLI_strcasecmp( sval, map->sval ) ) {
 			*ival = map->ival;
 			return 1;
 		}

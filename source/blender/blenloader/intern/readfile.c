@@ -47,7 +47,7 @@
 #include <stdio.h> // for printf fopen fwrite fclose sprintf FILE
 #include <stdlib.h> // for getenv atoi
 #include <fcntl.h> // for open
-#include <string.h> // for strcasecmp strrchr strncmp strstr
+#include <string.h> // for strrchr strncmp strstr
 #include <math.h> // for fabs
 
 #ifndef WIN32

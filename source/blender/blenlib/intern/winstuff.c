@@ -99,64 +99,6 @@ void RegisterBlendExtension(char * str) {
 	}
 }
 
-static void strlower (char *str) {
-	while (*str) {
-		*str= tolower(*str);
-		str++;
-	}
-}
-
-static void strnlower (char *str, int n) {
-	while (n>0 && *str) {
-		*str= tolower(*str);
-		str++;
-		n--;
-	}
-}
-
-#ifndef FREE_WINDOWS
-int strcasecmp (char *s1, char *s2) {
-	char *st1, *st2;
-	int r;
-	
-	st1= MEM_mallocN(strlen(s1)+1, "temp string");
-	strcpy(st1, s1);
-
-	st2= MEM_mallocN(strlen(s2)+1, "temp string");
-	strcpy(st2, s2);
-
-	strlower(st1);
-	strlower(st2);
-	r= strcmp (st1, st2);
-	
-	MEM_freeN(st1);
-	MEM_freeN(st2);
-
-	return r;
-}
-
-int strncasecmp (char *s1, char *s2, int n) {
-	char *st1, *st2;
-	int r;
-	
-	st1= MEM_mallocN(n, "temp string");
-	memcpy(st1, s1, n);
-
-	st2= MEM_mallocN(n, "temp string");
-	memcpy(st2, s2, n);
-
-	strnlower(st1, n);
-	strnlower(st2, n);
-
-	r= strncmp (st1, st2, n);
-	
-	MEM_freeN(st1);
-	MEM_freeN(st2);
-
-	return r;	
-}
-#endif
-
 DIR *opendir (const char *path) {
 	if (GetFileAttributes(path) & FILE_ATTRIBUTE_DIRECTORY) {
 		DIR *newd= MEM_mallocN(sizeof(DIR), "opendir");

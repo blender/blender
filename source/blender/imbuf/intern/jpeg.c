@@ -55,11 +55,6 @@ static boolean handle_app1 (j_decompress_ptr cinfo);
 static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int flags);
 
 
-/* strncasecmp hack */
-#ifdef WIN32
-#define strncasecmp(a, b, n) strncmp(a, b, n)
-#endif
-
 /*
  * In principle there are 4 jpeg formats.
  * 
