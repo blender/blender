@@ -349,13 +349,13 @@ void scanlinesky(char *rect, int y)
 					view[2]= 0.0;
 				}
 				else {
-					view[0]= (x+(R.xstart)+1.0);
+					view[0]= (x+(R.xstart)+0.5);
 		
 					if(R.flag & R_SEC_FIELD) {
-						if(R.r.mode & R_ODDFIELD) view[1]= (y+R.ystart+0.5)*R.ycor;
-						else view[1]= (y+R.ystart+1.5)*R.ycor;
+						if(R.r.mode & R_ODDFIELD) view[1]= (y+R.ystart)*R.ycor;
+						else view[1]= (y+R.ystart+1.0)*R.ycor;
 					}
-					else view[1]= (y+R.ystart+1.0)*R.ycor;
+					else view[1]= (y+R.ystart+0.5)*R.ycor;
 					
 					view[2]= -R.viewfac;
 	
@@ -2392,13 +2392,13 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 		dvlak= v1->co[0]*vlr->n[0]+v1->co[1]*vlr->n[1]+v1->co[2]*vlr->n[2];
 
 		/* COXYZ AND VIEW VECTOR  */
-		shi.view[0]= (x+(R.xstart)+1.0+bluroffsx);
+		shi.view[0]= (x+(R.xstart)+bluroffsx +0.5);
 
 		if(R.flag & R_SEC_FIELD) {
-			if(R.r.mode & R_ODDFIELD) shi.view[1]= (y+R.ystart+0.5)*R.ycor;
-			else shi.view[1]= (y+R.ystart+1.5)*R.ycor;
+			if(R.r.mode & R_ODDFIELD) shi.view[1]= (y+R.ystart)*R.ycor;
+			else shi.view[1]= (y+R.ystart+1.0)*R.ycor;
 		}
-		else shi.view[1]= (y+R.ystart+1.0+bluroffsy)*R.ycor;
+		else shi.view[1]= (y+R.ystart+bluroffsy+0.5)*R.ycor;
 		
 		shi.view[2]= -R.viewfac;
 
@@ -2565,13 +2565,13 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 	if(R.flag & R_LAMPHALO) {
 		if(vlaknr<=0) {	/* calc view vector and put shi.co at far */
 		
-			shi.view[0]= (x+(R.xstart)+1.0);
+			shi.view[0]= (x+(R.xstart)+0.5);
 
 			if(R.flag & R_SEC_FIELD) {
-				if(R.r.mode & R_ODDFIELD) shi.view[1]= (y+R.ystart+0.5)*R.ycor;
-				else shi.view[1]= (y+R.ystart+1.5)*R.ycor;
+				if(R.r.mode & R_ODDFIELD) shi.view[1]= (y+R.ystart)*R.ycor;
+				else shi.view[1]= (y+R.ystart+1.0)*R.ycor;
 			}
-			else shi.view[1]= (y+R.ystart+1.0)*R.ycor;
+			else shi.view[1]= (y+R.ystart+0.5)*R.ycor;
 			
 			shi.view[2]= -R.viewfac;
 			
@@ -2599,7 +2599,7 @@ void shadepixel_short(float x, float y, int vlaknr, int mask, unsigned short *sh
 	float colf[4];
 	
 	shadepixel(x, y, vlaknr, mask, colf);
-
+	
 	if(colf[0]<=0.0) shortcol[0]= 0; else if(colf[0]>=1.0) shortcol[0]= 65535;
 	else shortcol[0]= 65535.0*colf[0];
 	if(colf[1]<=0.0) shortcol[1]= 0; else if(colf[1]>=1.0) shortcol[1]= 65535;
@@ -2660,16 +2660,14 @@ void addps(long *rd, int vlak, unsigned int z, short ronde)
 {
 	static PixStr *prev;
 	PixStr *ps, *last = NULL;
-	int vlakand;
 
 	if( IS_A_POINTER_CODE(*rd)) {	
 		ps= (PixStr *) POINTER_FROM_CODE(*rd);
-		vlakand= (vlak & 0x7FFFFF);
 		
-		if( (ps->vlak0 & 0x7FFFFF) == vlakand ) return;
+		if(ps->vlak0==vlak) return; 
 		
 		while(ps) {
-			if( (ps->vlak & 0x7FFFFF) == vlakand ) {
+			if( ps->vlak == vlak ) {
 				ps->mask |= (1<<ronde);
 				return;
 			}
@@ -2871,8 +2869,8 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 
 		xd= jit[v][0];
 		yd= jit[v][1];
-		Zjitx= -xd;
-		Zjity= -yd;
+		Zjitx= -xd -0.5;
+		Zjity= -yd -0.5;
 
 		if((R.r.mode & R_MBLUR)==0) RE_local_printrenderinfo(0.0, v);
 
@@ -2911,8 +2909,8 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 	if(R.flag & (R_ZTRA+R_HALO) ) {	 /* to get back correct values of zbuffer Z for transp and halos */
 		xd= jit[0][0];
 		yd= jit[0][1];
-		Zjitx= -xd;
-		Zjity= -yd;
+		Zjitx= -xd -0.5;
+		Zjity= -yd -0.5;
 		RE_setwindowclip(0, -1);
 		if((R.r.mode & R_MBLUR)==0) RE_local_printrenderinfo(0.0, v);
 		zbufferall();
@@ -2937,9 +2935,39 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 
 		if(y<R.recty) {
 			for(x=0; x<R.rectx; x++, rd++) {
-
-				if( IS_A_POINTER_CODE(*rd)) {	
+				int samp, curmask, face;
+				
+				if( IS_A_POINTER_CODE(*rd))
 					ps= (PixStr *) POINTER_FROM_CODE(*rd);
+				else ps= NULL;
+				
+				/* do all subpixels? */
+				if(TRUE) {
+					for(samp=0; samp<R.osa; samp++) {
+						curmask= 1<<samp;
+					
+						if(ps) {
+							PixStr *ps1= ps;
+							while(ps1) {
+								if(ps1->mask & curmask) break;
+								ps1= ps1->next;
+							}
+							if(ps1) face= ps1->vlak;
+							else face= ps->vlak0;
+						}
+						else face= (int)*rd;
+	
+						xs= (float)x + jit[samp][0];
+						ys= (float)y + jit[samp][1];
+						shadepixel_short(xs, ys, face, curmask, shortcol);
+	
+						if(shortcol[3]) add_filt_mask(curmask, shortcol, rb1, rb2, rb3);
+					}
+				}
+				else {	/* do collected faces together */
+				
+					if(ps) face= ps->vlak0;
+					else face= (int)*rd;
 					mask= 0;
 
 					while(ps) {
@@ -2947,32 +2975,23 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 						xs= (float)x+centLut[b & 15];
 						ys= (float)y+centLut[b>>4];
 
-						shadepixel_short(xs, ys, ps->vlak, ps->mask, shortcol);
+						shadepixel_short(xs, ys, ps->vlak, curmask, shortcol);
 
-						if(shortcol[3]) {
-							add_filt_mask(ps->mask, shortcol, rb1, rb2, rb3);
-						}
+						if(shortcol[3]) add_filt_mask(curmask, shortcol, rb1, rb2, rb3);
+
 						mask |= ps->mask;
-
 						ps= ps->next;
 					}
-					ps= (PixStr *) POINTER_FROM_CODE(*rd);
+
 					mask= (~mask) & fullmask;
+					if(mask) {
+						b= centmask[ps->mask];
+						xs= (float)x+centLut[b & 15];
+						ys= (float)y+centLut[b>>4];
 
-					b= centmask[mask];
-					xs= (float)x+centLut[b & 15];
-					ys= (float)y+centLut[b>>4];
-
-					shadepixel_short(xs, ys, ps->vlak0, mask, shortcol);
-
-					if(shortcol[3]) {
-						add_filt_mask(mask, shortcol, rb1, rb2, rb3);
-					}
-				}
-				else {
-					shadepixel_short((float)x, (float)y, (int)*rd, fullmask, shortcol);
-					if(shortcol[3]) {
-						add_filt_mask(fullmask, shortcol, rb1, rb2, rb3);
+						shadepixel_short(xs, ys, face, mask, shortcol);
+	
+						if(shortcol[3]) add_filt_mask(curmask, shortcol, rb1, rb2, rb3);
 					}
 				}
 
@@ -3066,7 +3085,7 @@ void zbufshade(void)
 	unsigned short *acol, shortcol[4];
 	char *charcol, *rt;
 
-	Zjitx=Zjity= -.5;
+	Zjitx=Zjity= -0.5;
 
 	zbufferall();
 

@@ -1041,35 +1041,23 @@ void zbufinvulGL(float *v1, float *v2, float *v3)  /* fills in R.rectot the valu
 {
 	double x0,y0,z0;
 	double x1,y1,z1,x2,y2,z2,xx1;
-	double zxd,zyd,zy0,tmp;
+	double zxd,zyd,zy0,tmp, zverg, zd;
 	float *minv,*maxv,*midv;
 	unsigned int *rectpofs,*rp;
-	int *rz,zverg,zvlak,x;
-	int my0,my2,sn1,sn2,rectx,zd,*rectzofs;
+	int *rz,zvlak,x;
+	int my0,my2,sn1,sn2,rectx,*rectzofs;
 	int y,omsl,xs0,xs1,xs2,xs3, dx0,dx1,dx2;
 
 	/* MIN MAX */
 	if(v1[1]<v2[1]) {
-		if(v2[1]<v3[1]) 	{
-			minv=v1;  midv=v2;  maxv=v3;
-		}
-		else if(v1[1]<v3[1]) 	{
-			minv=v1;  midv=v3;  maxv=v2;
-		}
-		else	{
-			minv=v3;  midv=v1;  maxv=v2;
-		}
+		if(v2[1]<v3[1]) { minv=v1;  midv=v2;  maxv=v3; }
+		else if(v1[1]<v3[1]) { minv=v1;  midv=v3;  maxv=v2; }
+		else { minv=v3;  midv=v1;  maxv=v2; }
 	}
 	else {
-		if(v1[1]<v3[1]) 	{
-			minv=v2;  midv=v1; maxv=v3;
-		}
-		else if(v2[1]<v3[1]) 	{
-			minv=v2;  midv=v3;  maxv=v1;
-		}
-		else	{
-			minv=v3;  midv=v2;  maxv=v1;
-		}
+		if(v1[1]<v3[1]) { minv=v2;  midv=v1; maxv=v3; }
+		else if(v2[1]<v3[1]) { minv=v2;  midv=v3;  maxv=v1; }
+		else { minv=v3;  midv=v2;  maxv=v1; }
 	}
 
 	if(minv[1] == maxv[1]) return;	/* no zero sized faces */
@@ -1084,7 +1072,7 @@ void zbufinvulGL(float *v1, float *v2, float *v3)  /* fills in R.rectot the valu
 
 	/* EDGES : THE LONGEST */
 	xx1= maxv[1]-minv[1];
-	if(xx1!=0.0) {
+	if(xx1>2.0/65536.0) {
 		z0= (maxv[0]-minv[0])/xx1;
 		
 		tmp= -65536.0*z0;
@@ -1099,7 +1087,7 @@ void zbufinvulGL(float *v1, float *v2, float *v3)  /* fills in R.rectot the valu
 	}
 	/* EDGES : THE TOP ONE */
 	xx1= maxv[1]-midv[1];
-	if(xx1!=0.0) {
+	if(xx1>2.0/65536.0) {
 		z0= (maxv[0]-midv[0])/xx1;
 		
 		tmp= -65536.0*z0;
@@ -1114,7 +1102,7 @@ void zbufinvulGL(float *v1, float *v2, float *v3)  /* fills in R.rectot the valu
 	}
 	/* EDGES : BOTTOM ONE */
 	xx1= midv[1]-minv[1];
-	if(xx1!=0.0) {
+	if(xx1>2.0/65536.0) {
 		z0= (midv[0]-minv[0])/xx1;
 		
 		tmp= -65536.0*z0;
@@ -1160,7 +1148,7 @@ void zbufinvulGL(float *v1, float *v2, float *v3)  /* fills in R.rectot the valu
 	zxd= -x0/z0;
 	zyd= -y0/z0;
 	zy0= my2*zyd+xx1;
-	zd= (int)CLAMPIS(zxd, INT_MIN, INT_MAX);
+	zd= zxd;
 
 	/* start-offset in rect */
 	rectx= R.rectx;
@@ -1193,14 +1181,14 @@ void zbufinvulGL(float *v1, float *v2, float *v3)  /* fills in R.rectot the valu
 
 		if(sn2>=rectx) sn2= rectx-1;
 		if(sn1<0) sn1= 0;
-		zverg= (int) CLAMPIS((sn1*zxd+zy0), INT_MIN, INT_MAX);
+		zverg= sn1*zxd+zy0;
 		rz= rectzofs+sn1;
 		rp= rectpofs+sn1;
 		x= sn2-sn1;
 
 		while(x>=0) {
 			if(zverg< *rz) {
-				*rz= zverg;
+				*rz= floor(zverg);
 				*rp= zvlak;
 			}
 			zverg+= zd;
@@ -1238,13 +1226,13 @@ void zbufinvulGL(float *v1, float *v2, float *v3)  /* fills in R.rectot the valu
 
 		if(sn2>=rectx) sn2= rectx-1;
 		if(sn1<0) sn1= 0;
-		zverg= (int) CLAMPIS((sn1*zxd+zy0), INT_MIN, INT_MAX);
+		zverg= sn1*zxd+zy0;
 		rz= rectzofs+sn1;
 		rp= rectpofs+sn1;
 		x= sn2-sn1;
 		while(x>=0) {
 			if(zverg< *rz) {
-				*rz= zverg;
+				*rz= floor(zverg);
 				*rp= zvlak;
 			}
 			zverg+= zd;
@@ -1993,7 +1981,7 @@ void zbuffershad(LampRen *lar)
 
 	Zmulx= ((float)R.rectx)/2.0;
 	Zmuly= ((float)R.recty)/2.0;
-	Zjitx= Zjity= -.5;
+	Zjitx= Zjity= -0.5;
 
 	fillrect(R.rectz,R.rectx,R.recty,0x7FFFFFFE);
 
@@ -2093,7 +2081,7 @@ void zbuffer_abuf()
 	Material *ma=0;
 	int v, len;
 	
-	Zjitx= Zjity= -.5;
+	Zjitx= Zjity= -0.5;
 	Zmulx= ((float)R.rectx)/2.0;
 	Zmuly= ((float)R.recty)/2.0;
 
@@ -2109,8 +2097,8 @@ void zbuffer_abuf()
 		copyto_abufz(Zsample);	/* init zbuffer */
 
 		if(R.r.mode & R_OSA) {
-			Zjitx= -jit[Zsample][0];
-			Zjity= -jit[Zsample][1];
+			Zjitx= -jit[Zsample][0]-0.5;
+			Zjity= -jit[Zsample][1]-0.5;
 		}
 		
 		for(v=0; v<R.totvlak; v++) {
@@ -2172,12 +2160,31 @@ int vergzvlak(const void *a1, const void *a2)
 
 void shadetrapixel(float x, float y, int vlak, int mask, unsigned short *shortcol)
 {
+	
 	if( (vlak & 0x7FFFFF) > R.totvlak) {
 		printf("error in shadetrapixel nr: %d\n", (vlak & 0x7FFFFF));
 		return;
 	}
-
-	shadepixel_short(x, y, vlak, mask, shortcol);
+	if(R.r.mode & R_OSA) {
+		int intcol[4]={0,0,0,0};
+		int a, tot=0;
+		
+		for(a=0; a<R.osa; a++) {
+			if(mask & (1<<a)) {
+				shadepixel_short(x+jit[a][0], y+jit[a][1], vlak, 1<<a, shortcol);
+				intcol[0]+= shortcol[0];
+				intcol[1]+= shortcol[1];
+				intcol[2]+= shortcol[2];
+				intcol[3]+= shortcol[3];
+				tot++;
+			}
+		}
+		shortcol[0]= intcol[0]/tot;
+		shortcol[1]= intcol[1]/tot;
+		shortcol[2]= intcol[2]/tot;
+		shortcol[3]= intcol[3]/tot;
+	}
+	else shadepixel_short(x, y, vlak, mask, shortcol);
 }
 
 extern unsigned short usegamtab;
@@ -2244,15 +2251,7 @@ void abufsetrow(int y)
 			}
 			if(totvlak==1) {
 				
-				if(R.r.mode & R_OSA ) {
-					b= centmask[ ap->mask[0] ];
-					xs= (float)x+centLut[b & 15];
-					ys= (float)y+centLut[b>>4];
-				}
-				else {
-					xs= x; ys= y;
-				}
-				shadetrapixel(xs, ys, ap->p[0], ap->mask[0], shortcol);
+				shadetrapixel((float)x, (float)y, ap->p[0], ap->mask[0], shortcol);
 	
 				nr= count_mask(ap->mask[0]);
 				if( (R.r.mode & R_OSA) && nr<R.osa) {
@@ -2288,15 +2287,7 @@ void abufsetrow(int y)
 				while(totvlak>0) {
 					totvlak--;
 					
-					if(R.r.mode & R_OSA) {
-						b= centmask[ zrow[totvlak][2] ];
-						xs= (float)x+centLut[b & 15];
-						ys= (float)y+centLut[b>>4];
-					}
-					else {
-						xs= x; ys= y;
-					}
-					shadetrapixel(xs, ys, zrow[totvlak][1], 0xFFFF, shortcol);
+					shadetrapixel((float)x, (float)y, zrow[totvlak][1], 0xFFFF, shortcol);
 					
 					a= count_mask(zrow[totvlak][2]);
 					if( (R.r.mode & R_OSA ) && a<R.osa) {
@@ -2310,12 +2301,7 @@ void abufsetrow(int y)
 								if(a==R.osa) break;
 								totvlak--;
 							
-								b= centmask[ zrow[totvlak][2] ];
-							
-								xs= (float)x+centLut[b & 15];
-								ys= (float)y+centLut[b>>4];
-							
-								shadetrapixel(xs, ys, zrow[totvlak][1], zrow[totvlak][2], shortcol);
+								shadetrapixel((float)x, (float)y, zrow[totvlak][1], zrow[totvlak][2], shortcol);
 								sval= addtosampcol(sampcol, shortcol, zrow[totvlak][2]);
 							}
 							scol= sampcol;

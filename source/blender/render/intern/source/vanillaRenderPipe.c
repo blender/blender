@@ -175,7 +175,7 @@ void zBufShadeAdvanced()
     int      y, keepLooping = 1;
     float xjit = 0.0, yjit = 0.0;
 
-    Zjitx=Zjity= -0.5; /* jitter preset: 0.5 pixel */
+    Zjitx=Zjity= -0.5; /* jitter preset: -0.5 pixel */
 
 	/* EDGE: for edge rendering we should compute a larger buffer, but this  */
 	/* may require modifications at a deeper level. For now, we just         */
@@ -198,8 +198,8 @@ void zBufShadeAdvanced()
         osaNr = 1;
         xjit = jit[0][0];
         yjit = jit[0][1];
-        jit[0][0] = 0.45;
-        jit[0][1] = 0.45;        
+        jit[0][0] = 0.0;
+        jit[0][1] = 0.0;        
     }
 
     RE_setwindowclip(0, -1); /* just to be sure, reset the view matrix       */
@@ -328,8 +328,8 @@ void calcZBufLine(int y)
             /* They are added in zbufclip()                                  */
             /* Negative: these offsets are added to the vertex coordinates   */
             /* so it equals translating viewpoint over the positive vector.  */
-            Zjitx= -jit[Zsample][0];
-            Zjity= -jit[Zsample][1];
+            Zjitx= -jit[Zsample][0]-0.5;
+            Zjity= -jit[Zsample][1]-0.5;
 
             keepLooping = fillZBufDistances();
             
@@ -1482,12 +1482,13 @@ int calcDepth(float x, float y, void *data, int type)
         
         /* jitter has been added to x, y ! */
         /* view vector view: screen coords */
-		view[0]= (x+(R.xstart) + 0.5  );
+		view[0]= (x+(R.xstart)+0.5);
         
         if(R.flag & R_SEC_FIELD) {
             if(R.r.mode & R_ODDFIELD) view[1]= (y + R.ystart)*R.ycor;
-            else view[1]= (y+R.ystart + 1.0)*R.ycor;
-        } else view[1]= (y+R.ystart  + 0.5 )*R.ycor;
+            else view[1]= (y + R.ystart + 1.0)*R.ycor;
+        } 
+		else view[1]= (y + R.ystart + 0.5)*R.ycor;
         
 
 		/* for pano, another rotation in the xz plane is needed.... */

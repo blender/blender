@@ -94,7 +94,7 @@
 #include "zbuf.h"
 #include "rendercore.h" /* part handler for the old renderer, shading functions */
 #include "renderPreAndPost.h"
-#include "outerRenderLoop.h"
+#include "vanillaRenderPipe.h"
 #include "renderHelp.h"
 #include "jitter.h"
 
@@ -178,8 +178,8 @@ float  calc_weight(float *weight, int i, int j)
 	fac*= fac;
 
 	for(a=0; a<R.osa; a++) {
-		x= jit[a][0]-0.5+ i;
-		y= jit[a][1]-0.5+ j;
+		x= jit[a][0] + i;
+		y= jit[a][1] + j;
 		dist= sqrt(x*x+y*y);
 
 		weight[a]= 0.0;
@@ -410,9 +410,11 @@ void RE_init_filt_mask(void)
 
 	for(a= (1<<R.osa)-1; a>0; a--) {
 		val= count_mask(a);
-		i= (15.9*(fpy1[a & 255]+fpy2[a>>8])/val);
-		i<<=4;
-		i+= (15.9*(fpx1[a & 255]+fpx2[a>>8])/val);
+		i= 8+(15.9*(fpy1[a & 255]+fpy2[a>>8])/val);
+		CLAMP(i, 0, 15);
+		j= 8+(15.9*(fpx1[a & 255]+fpx2[a>>8])/val);
+		CLAMP(j, 0, 15);
+		i= j + (i<<4);
 		centmask[a]= i;
 	}
 
@@ -527,22 +529,15 @@ void RE_setwindowclip(int mode, int jmode)
 
 	}
 
-	/* I think these offsets are wrong. They do not coincide with shadow     */
-	/* calculations, btw.                                                    */	
-  	minx= R.xstart+.5; 
-  	miny= R.ycor*(R.ystart+.5); 
-  	maxx= R.xend+.4999; 
-  	maxy= R.ycor*(R.yend+.4999); 
-	/* My guess: (or rather, what should be) */
-	/*    	minx= R.xstart - 0.5;  */
-	/*    	miny= R.ycor * (R.ystart - 0.5);  */
-	/* Since the SCS-s map directly to the pixel center coordinates, we need */
-	/* to stretch the clip area a bit, not just shift it. However, this gives*/
-	/* nasty problems for parts...                                           */
-
-	/* Dunno who wrote previous comment, but I found an error with uncorrected
-	   blur offset in shadepixel(). Now solved with 2 globals, seems to work.
-	   The whole method how to retrieve the correct coordinate needs revision. (ton) */
+	/* revision / simplification of subpixel offsets:
+	   - the matrix will go without offset from start (e.g. -100) to end (e.g. +99).
+	   - filling in with zbuffer will set offset of 0.5. to make sure clipped faces fill in too
+	   - in shadepixel() again that 0.5 offset is corrected
+	*/
+  	minx= R.xstart; 
+  	miny= R.ycor*(R.ystart); 
+  	maxx= R.xend; 
+  	maxy= R.ycor*(R.yend); 
 	   
 	if(R.flag & R_SEC_FIELD) {
 		if(R.r.mode & R_ODDFIELD) {
@@ -766,11 +761,11 @@ void render() {
 		yafrayRender();
 	else {
 		/* not too neat... should improve... */
-		if(R.r.mode & R_UNIFIED) {
-			unifiedRenderingLoop();
-		} else {
+		//if(R.r.mode & R_UNIFIED) {
+		//	unifiedRenderingLoop();
+		//} else {
 			oldRenderLoop();
-		}
+		//}
 	}
 }
 
@@ -856,21 +851,25 @@ void oldRenderLoop(void)  /* here the PART and FIELD loops */
 				if(RE_local_test_break()) break;
 
 
-				/* ZBUFFER & SHADE: zbuffer stores integer distances, and integer face indices */
+				/* rectot is for result and integer face indices */
 				R.rectot= (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
-				R.rectz =  (unsigned int *)MEM_mallocN(sizeof(int)*R.rectx*R.recty, "rectz");
-
+				
 				if(R.r.mode & R_MBLUR) {
 					RE_local_printrenderinfo(0.0, R.osa - blur);
 					if(G.background && blur<R.osa) printf("\n"); // newline for percentage print
 				}
 				else RE_local_printrenderinfo(0.0, -1);
 
-				/* choose render pipeline type, and whether or not to use the */
-				/* delta accumulation buffer. 3 choices.                      */
-				if(R.r.mode & R_OSA) zbufshadeDA();
-				else                 zbufshade();
+				if(R.r.mode & R_UNIFIED) {
+					zBufShadeAdvanced();
+				}
+				else {
+					R.rectz =  (unsigned int *)MEM_mallocN(sizeof(int)*R.rectx*R.recty, "rectz");
 
+					if(R.r.mode & R_OSA) zbufshadeDA();
+					else zbufshade();
+				}
+				
 				if(RE_local_test_break()) break;
 
 				/* exception */

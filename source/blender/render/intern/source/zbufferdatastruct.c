@@ -70,7 +70,7 @@
 
 /* if defined: all jittersamples are stored individually. _very_ serious     */
 /* performance hit ! also gives some buffer size problems in big scenes      */
-/* #define RE_INDIVIDUAL_SUBPIXELS */
+#define RE_INDIVIDUAL_SUBPIXELS
 
 /* ------------------------------------------------------------------------- */
 

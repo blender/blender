@@ -178,19 +178,25 @@ void initjit(float *jitarr, int num)
 	}
 
 	MEM_freeN(jit2);
+	
+	/* finally, move jittertab to be centered around (0,0) */
+	for(i=0; i<2*num; i+=2) {
+		jitarr[i] -= 0.5;
+		jitarr[i+1] -= 0.5;
+	}
+	
 }
 
 void init_render_jit(int nr)
 {
 	static int lastjit= 0;
-
+	
 	if(lastjit==nr) return;
 
 	memset(jit, 0, 64*2*4);
 	initjit(jit[0], nr);
 
 	lastjit= nr;
-
 }
 
 /* eof */
