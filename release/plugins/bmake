@@ -33,7 +33,14 @@
 # detect the system
 
 UNAME=`uname`
-if ( test $UNAME = "IRIX64" -o $UNAME = "IRIX" ) then
+EXT="so";
+if ( test "WIN32" = "$TARGET" ) then
+        CC="gcc";
+        CFLAGS="-funsigned-char -O2";
+
+        LD="ld";
+        LDFLAGS="-Bshareable -lm";
+elif ( test $UNAME = "IRIX64" -o $UNAME = "IRIX" ) then
 	CC="cc";
 	CFLAGS="-KPIC -O2 -mips3";
 
@@ -63,6 +70,12 @@ elif ( test $UNAME = "SunOS" ) then
 
 	LD="ld";
 	LDFLAGS="-r";
+elif ( test $UNAME = "Darwin" ) then
+        CC="cc";
+        CFLAGS="-fPIC -funsigned-char -O2 -fno-common";
+        LD="cc";
+        LDFLAGS=" -dynamiclib -lm";
+        EXT="dylib";
 fi
 
 if ( test "$#" = "1" ) then 
@@ -74,7 +87,7 @@ if ( test "$#" = "1" ) then
 
 	CFILE="$BASE_FILE.c"
 	OFILE="$BASE_FILE.o"
-	SOFILE="$BASE_FILE.so"
+	SOFILE="$BASE_FILE.$EXT"
 else 
 	if ( test -f $1$2 ) then
 		BASE_FILE=`echo $2 | sed -e "1 s/\.c//g"`;
@@ -83,8 +96,11 @@ else
 	fi
 
 	CFILE="$1$BASE_FILE.c"
+        if (test "$TARGET" = "WIN32" ) then
+                DLLFILE="$BASE_FILE.dll";
+        fi
 	OFILE="$BASE_FILE.o"
-	SOFILE="$BASE_FILE.so"
+	SOFILE="$BASE_FILE.$EXT"
 fi
 
 INCLUDES=
