@@ -5097,6 +5097,13 @@ void transform(int mode)
 					else{
 						axismode= XTRANS;
 					}
+                    if (mode == 'g') {
+                            if (axismode & XTRANS)
+                                    ax = 0;
+                    } else if (mode == 's') {
+                            if (axismode & XTRANS)
+                                    ax = 1;
+                    }
 					firsttime=1;
 					break;
 					
@@ -5108,6 +5115,13 @@ void transform(int mode)
 					else{
 						axismode= YTRANS;
 					}
+                    if (mode == 'g') {
+                            if (axismode & YTRANS)
+                                    ax = 1;
+                    } else if (mode == 's') {
+                            if (axismode & YTRANS)
+                                    ax = 2;
+                    }
 					firsttime=1;
 					break;
 					
@@ -5119,6 +5133,13 @@ void transform(int mode)
 					else{
 						axismode= ZTRANS;
 					}
+                    if (mode == 'g') {
+                            if (axismode & ZTRANS)
+                                    ax = 2;
+                    } else if (mode == 's') {
+                            if (axismode & ZTRANS)
+                                    ax = 3;
+                    }
 					firsttime=1;
 					break;
 				case WHEELDOWNMOUSE:
@@ -5259,6 +5280,8 @@ void transform(int mode)
 						if ((mode == 'S') || (mode == 'w') || (mode == 'C') || (mode == 'N'))
 							break;
 						if ((mode != 'r') && (mode != 'R')){
+                            if (axismode != 0)
+                                    break;
 							ax += 1;
 							if (mode == 's'){
 								if (ax == 4){ax=0;}
@@ -5306,6 +5329,12 @@ void transform(int mode)
 						typemode = 1;
 						del = 0;
 						if (mode == 's'){
+                            if (axismode & XTRANS)
+                                    ax = 1;
+                            if (axismode & YTRANS)
+                                    ax = 2;
+                            if (axismode & ZTRANS)
+                                    ax = 3;
 							if (ax == 0){
 								if (pe[0]){
 									int div = 1;
@@ -5377,6 +5406,12 @@ void transform(int mode)
 							}
 						}
 						else{
+                            if (axismode & XTRANS)
+                                    ax = 0;
+                            if (axismode & YTRANS)
+                                    ax = 1;
+                            if (axismode & ZTRANS)
+                                    ax = 2;
 							if (pe[ax]){
 								int div = 1;
 								int i;
