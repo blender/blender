@@ -247,14 +247,14 @@ static void draw_icon_centered(float *pos, unsigned int *rect, int rectsize)
 
 void helpline(float *vec)
 {
-	float vecrot[3];
-	short mval[2], mval1[2];
+	float vecrot[3], cent[2];
+	short mval[2];
 
 	VECCOPY(vecrot, vec);
 	if(G.obedit) Mat4MulVecfl(G.obedit->obmat, vecrot);
 
 	getmouseco_areawin(mval);
-	project_short_noclip(vecrot, mval1);
+	project_float(vecrot, cent);	// no overflow in extreme cases
 
 	persp(PERSP_WIN);
 	
@@ -265,7 +265,7 @@ void helpline(float *vec)
 	setlinestyle(3);
 	glBegin(GL_LINE_STRIP); 
 		glVertex2sv(mval); 
-		glVertex2sv(mval1); 
+		glVertex2fv(cent); 
 	glEnd();
 	setlinestyle(0);
 	
