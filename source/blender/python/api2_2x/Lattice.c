@@ -539,7 +539,7 @@ static PyObject *Lattice_insertKey(BPy_Lattice *self, PyObject *args)
 	//insert a keybock for the lattice
 	insert_lattkey(lt);
 
-	allqueue(REDRAWHEADERS, 0);
+	G.scene->r.cfra = oldfra;
 
 	Py_INCREF(Py_None);
 	return Py_None;
