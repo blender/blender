@@ -59,114 +59,70 @@ extern "C" {
  * Allocate a new pose channel on the heap and binary copy the 
  * contents of the src pose channel.
  */
-	struct bPoseChannel *
-copy_pose_channel (
-	const struct bPoseChannel *src
-);
+struct bPoseChannel *copy_pose_channel(const struct bPoseChannel *src);
 
 /**
  * Removes and deallocates all channels from a pose.
  * Does not free the pose itself.
  */
-	void	
-clear_pose (
-	struct bPose *pose
-);
+void clear_pose(struct bPose *pose);
 
 /* Sets the value of a pose channel */
-	struct bPoseChannel *
-set_pose_channel (
-	struct bPose *pose, 
-	struct bPoseChannel *chan
-);
+struct bPoseChannel *set_pose_channel(struct bPose *pose, 
+									  struct bPoseChannel *chan);
 
 /**
  * Allocate a new pose on the heap, and copy the src pose and it's channels
  * into the new pose. *dst is set to the newly allocated structure.
  */ 
-	void	
-copy_pose(
-	struct bPose **dst, 
-	const struct bPose *src, 
-	int copyconstraints
-);
+void copy_pose(struct bPose **dst, const struct bPose *src,
+			   int copyconstraints);
 
 /**
  * Deallocate the action's channels including constraint channels.
  * does not free the action structure.
  */
-	void	
-free_action(
-	struct bAction * id
-);
+void free_action(struct bAction * id);
 
-	void	
-make_local_action(
-	struct bAction *act
-);
+void make_local_action(struct bAction *act);
 
-	void	
-do_all_actions(
-	void
-);
+void do_all_actions(void);
 
 /**
  * Return a pointer to the pose channel of the given name
  * from this pose.
  */
- 
-	struct	bPoseChannel *
-get_pose_channel (
-	const struct bPose *pose,
-	const char *name
-);
+struct  bPoseChannel *get_pose_channel(const struct bPose *pose,
+									   const char *name);
 
 /** 
  * Looks to see if the channel with the given name
  * already exists in this pose - if not a new one is
  * allocated and initialized.
  */
-	void	
-verify_pose_channel (
-	struct bPose* pose,
-	const char* name
-);
+void verify_pose_channel(struct bPose* pose, const char* name);
 	
 /**
  * Allocate a new bAction on the heap and copy 
  * the contents of src into it. If src is NULL NULL is returned.
  */
 
-	struct	bAction* 
-copy_action(
-	const struct bAction *src
-);
+struct bAction *copy_action(const struct bAction *src);
 
 /**
  * Some kind of bounding box operation on the action.
  */
+float calc_action_start(const struct bAction *act);
 
-	float	
-calc_action_start (
-	const struct bAction *act
-);
-
-	float	
-calc_action_end (
-	const struct bAction *act
-);
+float calc_action_end(const struct bAction *act);
 
 /**
  * Evaluate the pose from the given action.
  * If the pose does not exist, a new one is created.
  * Some deep calls into blender are made here.
  */
-	void	
-get_pose_from_action (
-	struct bPose **pose,
-	struct bAction *act,
-	float ctime
-);
+void get_pose_from_action(struct bPose **pose, struct bAction *act,
+                                                  float ctime);
 
 /**
  * I think this duplicates the src into *pose.
@@ -174,40 +130,24 @@ get_pose_from_action (
  * If the pose does not contain channels from src
  * new channels are created.
  */ 
-	void	
-get_pose_from_pose (
-	struct bPose **pose,
-	const struct bPose *src
-);
+void get_pose_from_pose(struct bPose **pose, const struct bPose *src);
 
-	void	
-clear_pose_constraint_status (
-	struct Object *ob
-);
+void clear_pose_constraint_status(struct Object *ob);
 
 /**
  * Blends the common subset of channels from dst and src.
  * and writes result to dst.
  */
-	void	
-blend_poses (
-	struct bPose *dst,
-	const struct bPose *src,
-	float srcweight,
-	short mode
-);
+void blend_poses(struct bPose *dst, const struct bPose *src,
+                                 float srcweight, short mode);
 
 /**
  * Iterate through the action channels of the action
  * and return the channel with the given name.
  * Returns NULL if no channel.
  */
-
-	struct bActionChannel *
-get_named_actionchannel (
-	struct bAction *act,
-	const char *name
-);
+struct bActionChannel *get_named_actionchannel(struct bAction *act,
+											   const char *name);
 
 #ifdef __cplusplus
 };

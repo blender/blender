@@ -71,44 +71,17 @@
 #endif
 
 /* Local function prototypes */
-static 
-	void 
-do_pose_constraint_channels(
-	bPose *pose,
-	bAction *act,
-	float ctime
-);
-
-static 
-	void 
-get_constraint_influence_from_pose (
-	bPose *dst,
-	bPose *src
-);
-
-static 
-	void 
-blend_constraints(
-	ListBase *dst, 
-	const ListBase *src, 
-	float srcweight, 
-	short mode
-);
-
-static 
-	void 
-rest_pose (
-	bPose *pose,
-	int clearflag
-);
+static void do_pose_constraint_channels(bPose *pose, bAction *act, 
+										float ctime);
+static void get_constraint_influence_from_pose(bPose *dst, bPose *src);
+static void blend_constraints(ListBase *dst, const ListBase *src,
+							  float srcweight, short mode);
+static void rest_pose(bPose *pose, int clearflag);
 
 /* Implementation */
 
-	bPoseChannel *
-get_pose_channel (
-	const bPose *pose, 
-	const char *name
-){
+bPoseChannel *get_pose_channel(const bPose *pose, const char *name)
+{
 	bPoseChannel *chan;
 
 	for (chan=pose->chanbase.first; chan; chan=chan->next){
@@ -119,12 +92,8 @@ get_pose_channel (
 	return NULL;
 }
 
-static 
-	void 
-rest_pose (
-	bPose *pose,
-	int clearflag
-){
+static void rest_pose(bPose *pose, int clearflag)
+{
 	bPoseChannel *chan;
 	int i;
 
@@ -143,14 +112,9 @@ rest_pose (
 	}
 }
 
-static 
-	void 
-blend_constraints(
-	ListBase *dst, 
-	const ListBase *src, 
-	float srcweight, 
-	short mode
-){
+static void blend_constraints(ListBase *dst, const ListBase *src,
+							  float srcweight, short mode)
+{
 	bConstraint *dcon;
 	const bConstraint *scon;
 	float dstweight = 0;
@@ -185,7 +149,7 @@ blend_constraints(
 	}
 }
 
-void blend_poses ( bPose *dst, const bPose *src, float srcweight, short mode)
+void blend_poses(bPose *dst, const bPose *src, float srcweight, short mode)
 {
 	bPoseChannel *dchan;
 	const bPoseChannel *schan;
@@ -240,7 +204,7 @@ void blend_poses ( bPose *dst, const bPose *src, float srcweight, short mode)
 	}
 }
 
-void clear_pose_constraint_status ( Object *ob)
+void clear_pose_constraint_status(Object *ob)
 {
 	bPoseChannel *chan;
 
@@ -254,7 +218,7 @@ void clear_pose_constraint_status ( Object *ob)
 	}
 }
 
-float calc_action_start (const bAction *act)
+float calc_action_start(const bAction *act)
 {
 	const bActionChannel *chan;
 	const IpoCurve	*icu;
@@ -289,7 +253,7 @@ float calc_action_start (const bAction *act)
 		return size;
 }
 
-float calc_action_end (const bAction *act)
+float calc_action_end(const bAction *act)
 {
 	const bActionChannel	*chan;
 	const bConstraintChannel *conchan;
@@ -314,7 +278,7 @@ float calc_action_end (const bAction *act)
 	return size;
 }
 
-void verify_pose_channel (bPose* pose, const char* name) 
+void verify_pose_channel(bPose* pose, const char* name) 
 {
 	bPoseChannel *chan;
 
@@ -341,7 +305,7 @@ void verify_pose_channel (bPose* pose, const char* name)
 	BLI_addtail (&pose->chanbase, chan);
 }
 
-void get_pose_from_pose (bPose **pose, const bPose *src)
+void get_pose_from_pose(bPose **pose, const bPose *src)
 {
 	const bPoseChannel	*pchan;
 	bPoseChannel *newchan;
@@ -364,7 +328,7 @@ void get_pose_from_pose (bPose **pose, const bPose *src)
 	}
 }
 
-static void get_constraint_influence_from_pose (bPose *dst, bPose *src)
+static void get_constraint_influence_from_pose(bPose *dst, bPose *src)
 {
 	bConstraint *dcon, *scon;
 
@@ -384,7 +348,7 @@ static void get_constraint_influence_from_pose (bPose *dst, bPose *src)
 
 /* If the pose does not exist, a new one is created */
 
-void get_pose_from_action ( bPose **pose, bAction *act, float ctime) 
+void get_pose_from_action(bPose **pose, bAction *act, float ctime) 
 {
 	bActionChannel *achan;
 	bPoseChannel	*pchan;
@@ -649,7 +613,7 @@ static void do_pose_constraint_channels(bPose *pose, bAction *act, float ctime)
 	}
 }
 
-bActionChannel *get_named_actionchannel (bAction *act, const char *name)
+bActionChannel *get_named_actionchannel(bAction *act, const char *name)
 {
 	bActionChannel *chan;
 
@@ -664,7 +628,7 @@ bActionChannel *get_named_actionchannel (bAction *act, const char *name)
 	return NULL;
 }
 
-void clear_pose ( bPose *pose) 
+void clear_pose(bPose *pose) 
 {
 	bPoseChannel *chan;
 	
@@ -740,7 +704,7 @@ void free_action(bAction *act)
 		BLI_freelistN (&act->chanbase);
 }
 
-bAction* copy_action (const bAction *src)
+bAction* copy_action(const bAction *src)
 {
 	bAction *dst = NULL;
 	bActionChannel *dchan, *schan;
@@ -759,7 +723,7 @@ bAction* copy_action (const bAction *src)
 	return dst;
 }
 
-bPoseChannel *copy_pose_channel (const bPoseChannel* src)
+bPoseChannel *copy_pose_channel(const bPoseChannel* src)
 {
 	bPoseChannel *dst;
 
@@ -809,7 +773,7 @@ void copy_pose(bPose **dst, const bPose *src, int copycon)
 	*dst=outPose;
 }
 
-bPoseChannel *set_pose_channel (bPose *pose, bPoseChannel *chan)
+bPoseChannel *set_pose_channel(bPose *pose, bPoseChannel *chan)
 {
 	/*	chan is no longer valid for the calling function.
 		and should not be used by that function after calling
