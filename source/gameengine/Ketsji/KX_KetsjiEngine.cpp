@@ -83,7 +83,7 @@
 // not valid, skip rendering this frame.
 //#define NZC_GUARDED_OUTPUT
 #define DEFAULT_LOGIC_TIC_RATE 30.0
-#define DEFAULT_PHYSICS_TIC_RATE 60.0
+#define DEFAULT_PHYSICS_TIC_RATE 90.0
 
 const char KX_KetsjiEngine::m_profileLabels[tc_numCategories][15] = {
 	"Physics:",		// tc_physics
