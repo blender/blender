@@ -212,7 +212,7 @@ static void do_action_viewmenu(void *arg, int event)
 			play_anim(1);
 			break;	
 		case ACTMENU_VIEW_ALL: /* View All */
-			do_action_buttons(B_SIMAGEHOME);
+			do_action_buttons(B_ACTHOME);
 			break;
 		case ACTMENU_VIEW_MAXIMIZE: /* Maximize Window */
 			/* using event B_FULL */
