@@ -612,6 +612,8 @@ float CalcNormUV(float *a, float *b, float *c)
 #define UV_STD2_MAPPING 129
 #define UV_STD1_MAPPING 128
 #define UV_WINDOW_MAPPING 5
+#define UV_CYL_EX 32
+#define UV_SPHERE_EX 34
 
 /* Some macro tricks to make pupmenu construction look nicer :-)
    Sorry, just did it for fun. */
@@ -644,18 +646,20 @@ void uv_autocalc_tface()
 	if(me->totface==0) return;
 	
 	mode= pupmenu(MENUTITLE("UV Calculation")
-	              MENUSTRING("Cube",          UV_CUBE_MAPPING) "|"
-	              MENUSTRING("Cylinder",      UV_CYL_MAPPING) "|"
-                      MENUSTRING("Sphere",	  UV_SPHERE_MAPPING) "|"
-	              MENUSTRING("Bounds to 1/8", UV_BOUNDS8_MAPPING) "|"
-	              MENUSTRING("Bounds to 1/4", UV_BOUNDS4_MAPPING) "|"
-	              MENUSTRING("Bounds to 1/2", UV_BOUNDS2_MAPPING) "|"
-	              MENUSTRING("Bounds to 1/1", UV_BOUNDS1_MAPPING) "|"
-	              MENUSTRING("Standard 1/8",  UV_STD8_MAPPING) "|"
-	              MENUSTRING("Standard 1/4",  UV_STD4_MAPPING) "|"
-	              MENUSTRING("Standard 1/2",  UV_STD2_MAPPING) "|"
-	              MENUSTRING("Standard 1/1",  UV_STD1_MAPPING) "|"
-	              MENUSTRING("From Window",   UV_WINDOW_MAPPING) );
+				  MENUSTRING("Cube",          UV_CUBE_MAPPING) "|"
+				  MENUSTRING("Cylinder",      UV_CYL_MAPPING) "|"
+				  MENUSTRING("Sphere",	  UV_SPHERE_MAPPING) "|"
+				  MENUSTRING("Bounds to 1/8", UV_BOUNDS8_MAPPING) "|"
+				  MENUSTRING("Bounds to 1/4", UV_BOUNDS4_MAPPING) "|"
+				  MENUSTRING("Bounds to 1/2", UV_BOUNDS2_MAPPING) "|"
+				  MENUSTRING("Bounds to 1/1", UV_BOUNDS1_MAPPING) "|"
+				  MENUSTRING("Standard 1/8",  UV_STD8_MAPPING) "|"
+				  MENUSTRING("Standard 1/4",  UV_STD4_MAPPING) "|"
+				  MENUSTRING("Standard 1/2",  UV_STD2_MAPPING) "|"
+				  MENUSTRING("Standard 1/1",  UV_STD1_MAPPING) "|"
+				  MENUSTRING("From Window",   UV_WINDOW_MAPPING) "|"
+				  MENUSTRING("From Window To Sphere",  UV_SPHERE_EX) "|"
+				  MENUSTRING("From Window To Cylinder",  UV_CYL_EX)  );
 
 	switch(mode) {
 	case UV_CUBE_MAPPING:
@@ -886,6 +890,145 @@ void uv_autocalc_tface()
 			}
 		}
 		break;
+	case UV_CYL_EX:
+	case UV_SPHERE_EX:
+	{
+		float rotup[4][4],rotside[4][4], viewmatrix[4][4], finalmatrix[4][4],rotobj[4][4];
+		int k;
+		float upangle = 0.0, sideangle = 0.0, radius = 1.0;
+		static float upangledeg = 0.0, sideangledeg = 90.0;
+		short centermode;
+ 
+		centermode = G.vd->around;
+		/* check if we can do this, do it, otherways tell the user we can't and quit */
+		switch (centermode)
+		{
+		case  V3D_CENTRE : /*bounding box center*/
+			INIT_MINMAX(min, max);
+
+			tface= me->tface;
+			mface= me->mface;
+			for(a=0; a<me->totface; a++, mface++, tface++) {
+				if(tface->flag & TF_SELECT) {
+					if(mface->v3==0) continue; /* this is not realy a face */
+
+					DO_MINMAX( (me->mvert+mface->v1)->co, min, max);
+					DO_MINMAX( (me->mvert+mface->v2)->co, min, max);
+					DO_MINMAX( (me->mvert+mface->v3)->co, min, max);
+					if(mface->v4) DO_MINMAX( (me->mvert+mface->v3)->co, min, max);
+				}
+			}
+			VecMidf(cent, min, max);
+		break;
+		case  V3D_CURSOR : /*cursor center*/ 
+		{
+			float *cursx;
+			cursx= give_cursor();
+			/* shift to objects world */
+			cent[0]= cursx[0]-ob->obmat[3][0];
+			cent[1]= cursx[1]-ob->obmat[3][1];
+			cent[2]= cursx[2]-ob->obmat[3][2];
+		}
+		break;
+		case  V3D_LOCAL : /*object center*/
+		case  V3D_CENTROID : /*median refers to multiple objects centers. only one object here*/
+			cent[0]= cent[1]= cent[2]= 0.0;
+		break;
+		default : /* covered all known modes, but if there was a new one */
+			/* say something to the user if we can't*/
+			okee("this operation center does not work here!");
+			return; 
+		}
+
+		if(mode==UV_CYL_EX){
+			static float cylradius = 1.0; /* static to remeber last user response */
+			if (fbutton(&cylradius, 0.1, 90.0, "radius") == 0) return;
+			radius = cylradius;
+		}
+
+		/* get rotation of the current view matrix */
+		Mat4CpyMat4(viewmatrix,G.vd->viewmat);
+		/* but shifting */
+		for( k= 0; k< 4; k++) {
+			viewmatrix[3][k] =0.0;
+		}
+
+		/* get rotation of the current object matrix */
+		Mat4CpyMat4(rotobj,ob->obmat);
+		/* but shifting */
+		for( k= 0; k< 4; k++){
+			rotobj[3][k] =0.0;
+		}
+
+   		/* never assume local variables to be zeroed */
+		Mat4Clr(*rotup);
+		Mat4Clr(*rotside);
+
+		/* need this to compensate front/side.. against opengl x,y,z world definition */
+		/* this is "kanonen gegen spatzen" i know, a few plus minus 1 will do here */
+		/* i wanted to keep the reason here, so we're rotating*/
+		/* debug helper if (fbutton(&sideangledeg, -180.0, 180, "Side angle") ==0) return; */
+		sideangle = M_PI * (sideangledeg + 180.0) /180.0;
+		rotside[0][0] = cos(sideangle);  rotside[0][1] = -sin(sideangle);
+		rotside[1][0] = sin(sideangle);       rotside[1][1] = cos(sideangle);
+		rotside[2][2] = 1.0;
+      
+		/* debug helper if (fbutton(&upangledeg, -90.0, 90.0, "Up angle") ==0) return; */
+		upangle = M_PI * upangledeg /180.0;
+		rotup[1][1] = cos(upangle)/radius;  rotup[1][2] = -sin(upangle)/radius;
+		rotup[2][1] = sin(upangle)/radius;      rotup[2][2] = cos(upangle)/radius;
+		rotup[0][0] = 1.0/radius;
+		/* calculate transforms*/
+		Mat4MulSerie(finalmatrix,rotup,rotside,viewmatrix,rotobj,NULL,NULL,NULL,NULL);
+		/* now finalmatrix holds what we want */
+
+		tface= me->tface;
+		mface= me->mface;
+		for(a=0; a<me->totface; a++, mface++, tface++) {   /* go for all faces of the given mesh */
+			if(tface->flag & TF_SELECT) { /* if this face is selected in UI */
+				if(mface->v3==0) continue; /* must be ploygon with more than 2 vertices */
+				/* repeating this for all 3(4) vertices sucks. better make function*/
+				VecSubf(no, (me->mvert+mface->v1)->co, cent); /* shift to make cent the origin */
+				Mat4MulVecfl(finalmatrix, no);
+				if(mode==UV_CYL_EX) tubemap(no[0], no[1], no[2], tface->uv[0], &tface->uv[0][1]);
+				else spheremap(no[0], no[1], no[2], tface->uv[0], &tface->uv[0][1]);
+	
+				VecSubf(no, (me->mvert+mface->v2)->co, cent);
+				Mat4MulVecfl(finalmatrix, no);
+				if(mode==UV_CYL_EX) tubemap(no[0], no[1], no[2], tface->uv[1], &tface->uv[1][1]);
+				else spheremap(no[0], no[1], no[2], tface->uv[1], &tface->uv[1][1]);
+        
+				VecSubf(no, (me->mvert+mface->v3)->co, cent);
+				Mat4MulVecfl(finalmatrix, no);
+				if(mode==UV_CYL_EX) tubemap(no[0], no[1], no[2], tface->uv[2], &tface->uv[2][1]);
+				else spheremap(no[0], no[1], no[2], tface->uv[2], &tface->uv[2][1]);
+				n = 3;
+       
+				if(mface->v4) {
+        
+					VecSubf(no, (me->mvert+mface->v4)->co, cent);
+					Mat4MulVecfl(finalmatrix, no);
+					if(mode==UV_CYL_EX) tubemap(no[0], no[1], no[2], tface->uv[3], &tface->uv[3][1]);
+					else spheremap(no[0], no[1], no[2], tface->uv[3], &tface->uv[3][1]);
+				n = 4;
+				}
+				mi = 0; /* maximum index */
+
+				for (i = 1; i < n; i++) {
+					if (tface->uv[i][0] > tface->uv[mi][0]) mi = i;
+				}
+				for (i = 0; i < n; i++) {
+					if (i != mi) {
+						dx = tface->uv[mi][0] - tface->uv[i][0];
+						if (dx > 0.5) {
+							tface->uv[i][0] += 1.0;
+						} 
+					} 
+				} 
+			}
+		}
+	}
+	    break;
 	default:
 		return;
 	} // end switch
