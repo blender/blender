@@ -314,7 +314,6 @@ void do_texbuts(unsigned short event)
 		BIF_all_preview_changed();
 		break;
 	case B_LOADTEXIMA:
-	case B_LOADTEXIMA1:
 		if(tex==0) return;
 		/* globals: temporal store them: we make another area a fileselect */
 		cur_imatex= tex;
@@ -334,7 +333,7 @@ void do_texbuts(unsigned short event)
 		else name = U.textudir;
 #endif
 		
-		if(event==B_LOADTEXIMA)
+		if(G.qual==LR_CTRLKEY)
 			activate_imageselect(FILE_SPECIAL, "SELECT IMAGE", name, load_tex_image);
 		else 
 			activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name, load_tex_image);
@@ -806,10 +805,7 @@ static void texture_panel_envmap(Tex *tex)
 				uiDefButS(block, MENU, B_TEXIMABROWSE, strp, 10,135,23,20, &(G.buts->menunr), 0, 0, 0, 0, "Browse");
 			MEM_freeN(strp);
 		
-			uiDefBut(block, BUT, B_LOADTEXIMA1, "Load Image", 10,115,130,20, 0, 0, 0, 0, 0, "Load image - file view");
-			uiBlockSetCol(block, TH_BUT_SETTING1);
-			uiDefBut(block, BUT, B_LOADTEXIMA, "", 		140,115,20,20, 0, 0, 0, 0, 0, "Load image - thumb view");
-			uiBlockSetCol(block, TH_AUTO);
+			uiDefBut(block, BUT, B_LOADTEXIMA, "Load Image", 10,115,150,20, 0, 0, 0, 0, 0, "Load image - file select");
 		
 			if(tex->ima) {
 				uiDefBut(block, TEX, B_NAMEIMA, "",			35,135,255,20, tex->ima->name, 0.0, 79.0, 0, 0, "Texture name");
@@ -925,10 +921,7 @@ static void texture_panel_image(Tex *tex)
 		uiDefButS(block, MENU, B_TEXIMABROWSE, strp, 10,135,23,20, &(G.buts->menunr), 0, 0, 0, 0, "Browse");
 	MEM_freeN(strp);
 
-	uiDefBut(block, BUT, B_LOADTEXIMA1, "Load Image", 10,115,130,20, 0, 0, 0, 0, 0, "Load image - file view");
-	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefBut(block, BUT, B_LOADTEXIMA, "", 		140,115,20,20, 0, 0, 0, 0, 0, "Load image - thumb view");
-	uiBlockSetCol(block, TH_AUTO);
+	uiDefBut(block, BUT, B_LOADTEXIMA, "Load Image", 10,115,150,20, 0, 0, 0, 0, 0, "Load image - file view");
 
 	if(tex->ima) {
 		uiDefBut(block, TEX, B_NAMEIMA, "",			35,135,255,20, tex->ima->name, 0.0, 79.0, 0, 0, "Texture name");
@@ -944,7 +937,7 @@ static void texture_panel_image(Tex *tex)
 
 	/* crop extend clip */
 	
-	uiDefButF(block, NUM, B_TEXPRV, "Filter :",	10,92,135,19, &tex->filtersize, 0.1, 25.0, 0, 0, "Set the filter size used by mipmap and interpol");
+	uiDefButF(block, NUM, B_TEXPRV, "Filter :",	10,92,150,19, &tex->filtersize, 0.1, 25.0, 0, 0, "Set the filter size used by mipmap and interpol");
 	
 	uiDefButS(block, ROW, 0, "Extend",			10,70,75,19, &tex->extend, 4.0, 1.0, 0, 0, "Extend the colour of the edge");
 	uiDefButS(block, ROW, 0, "Clip",			85,70,75,19, &tex->extend, 4.0, 2.0, 0, 0, "Return alpha 0.0 outside image");

@@ -515,27 +515,28 @@ void do_render_panels(unsigned short event)
 	case B_FS_PIC:
 		sa= closest_bigger_area();
 		areawinset(sa->win);
-		activate_fileselect(FILE_SPECIAL, "SELECT OUTPUT PICTURES", G.scene->r.pic, output_pic);
+		if(G.qual == LR_CTRLKEY)
+			activate_imageselect(FILE_SPECIAL, "SELECT OUTPUT PICTURES", G.scene->r.pic, output_pic);
+		else
+			activate_fileselect(FILE_SPECIAL, "SELECT OUTPUT PICTURES", G.scene->r.pic, output_pic);
 		break;
+
 	case B_FS_BACKBUF:
 		sa= closest_bigger_area();
 		areawinset(sa->win);
-		activate_fileselect(FILE_SPECIAL, "SELECT BACKBUF PICTURE", G.scene->r.backbuf, backbuf_pic);
+		if(G.qual == LR_CTRLKEY)
+			activate_imageselect(FILE_SPECIAL, "SELECT BACKBUF PICTURE", G.scene->r.backbuf, backbuf_pic);
+		else
+			activate_fileselect(FILE_SPECIAL, "SELECT BACKBUF PICTURE", G.scene->r.backbuf, backbuf_pic);
 		break;
-	case B_IS_BACKBUF:
-		sa= closest_bigger_area();
-		areawinset(sa->win);
-		activate_imageselect(FILE_SPECIAL, "SELECT BACKBUF PICTURE", G.scene->r.backbuf, backbuf_pic);
-		break;
+
 	case B_FS_FTYPE:
 		sa= closest_bigger_area();
 		areawinset(sa->win);
-		activate_fileselect(FILE_SPECIAL, "SELECT FTYPE", G.scene->r.ftype, ftype_pic);
-		break;
-	case B_IS_FTYPE:
-		sa= closest_bigger_area();
-		areawinset(sa->win);
-		activate_imageselect(FILE_SPECIAL, "SELECT FTYPE", G.scene->r.ftype, ftype_pic);
+		if(G.qual == LR_CTRLKEY)
+			activate_imageselect(FILE_SPECIAL, "SELECT FTYPE", G.scene->r.ftype, ftype_pic);
+		else
+			activate_fileselect(FILE_SPECIAL, "SELECT FTYPE", G.scene->r.ftype, ftype_pic);
 		break;
 	
 	case B_PR_PAL:
@@ -952,15 +953,13 @@ static void render_panel_output()
 	block= uiNewBlock(&curarea->uiblocks, "render_panel_output", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Output", "Render", 0, 0, 318, 204)==0) return;
 	
-	uiDefBut(block, TEX,0,"",				30, 170, 268, 19,G.scene->r.pic, 0.0,79.0, 0, 0, "Directory/name to save rendered Pics to");
-	uiDefBut(block, BUT,B_FS_PIC," ",		8, 170, 20, 19, 0, 0, 0, 0, 0, "Open Fileselect to get Pics dir/name");
-	uiDefBut(block, TEX,0,"",				30, 148, 268, 19,G.scene->r.backbuf, 0.0,79.0, 0, 0, "Image to use as background for rendering");
-	uiDefBut(block, BUT,B_FS_BACKBUF," ",	15, 148, 10, 19, 0, 0, 0, 0, 0, "Open Fileselect to get Backbuf image");
-	uiDefBut(block, TEX,0,"",				30, 125, 268, 19,G.scene->r.ftype,0.0,79.0, 0, 0, "Image to use with FTYPE Image type");
-	uiDefBut(block, BUT,B_FS_FTYPE," ",		15, 125, 10, 19, 0, 0, 0, 0, 0, "Open Fileselect to get Ftype image");
-	uiDefIconBut(block, BUT, B_CLEARSET, ICON_X, 131, 95, 20, 19, 0, 0, 0, 0, 0, "Remove Set link");
-	uiDefBut(block, BUT,B_IS_BACKBUF," ",	8, 148, 10, 19, 0, 0, 0, 0, 0, "Open Imageselect to get Backbuf image");
-	uiDefBut(block, BUT,B_IS_FTYPE," ",		8, 125, 10, 19, 0, 0, 0, 0, 0, "Open Imageselect to get Ftype image");
+	uiDefBut(block, TEX,0,"",							30, 170, 268, 19,G.scene->r.pic, 0.0,79.0, 0, 0, "Directory/name to save rendered Pics to");
+	uiDefIconBut(block, BUT, B_FS_PIC, ICON_FILESEL,	8, 170, 20, 19, 0, 0, 0, 0, 0, "Open Fileselect to get Pics dir/name");
+	uiDefBut(block, TEX,0,"",							30, 148, 268, 19,G.scene->r.backbuf, 0.0,79.0, 0, 0, "Image to use as background for rendering");
+	uiDefIconBut(block, BUT,B_FS_BACKBUF, ICON_FILESEL, 8, 148, 20, 19, 0, 0, 0, 0, 0, "Open Fileselect to get Backbuf image");
+	uiDefBut(block, TEX,0,"",							30, 125, 268, 19,G.scene->r.ftype,0.0,79.0, 0, 0, "Image to use with FTYPE Image type");
+	uiDefIconBut(block, BUT,B_FS_FTYPE, ICON_FILESEL,	8, 125, 20, 19, 0, 0, 0, 0, 0, "Open Fileselect to get Ftype image");
+	uiDefIconBut(block, BUT, B_CLEARSET, ICON_X, 		131, 95, 20, 19, 0, 0, 0, 0, 0, "Remove Set link");
 
 	/* SET BUTTON */
 	id= (ID *)G.scene->set;

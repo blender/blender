@@ -248,31 +248,27 @@ void do_image_buttons(unsigned short event)
 
 		break;
 	case B_SIMAGELOAD:
-	case B_SIMAGELOAD1:
 		
 		if(G.sima->image) strcpy(name, G.sima->image->name);
 		else strcpy(name, U.textudir);
 		
-		if(event==B_SIMAGELOAD)
-			activate_imageselect(FILE_SPECIAL, "SELECT IMAGE", name,
-											load_space_image);
+		if(G.qual==LR_CTRLKEY)
+			activate_imageselect(FILE_SPECIAL, "SELECT IMAGE", name, load_space_image);
 		else
-			activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name,
-											load_space_image);
+			activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name, load_space_image);
 		break;
+		
 	case B_SIMAGEREPLACE:
-	case B_SIMAGEREPLACE1:
 		
 		if(G.sima->image) strcpy(name, G.sima->image->name);
 		else strcpy(name, U.textudir);
 		
-		if(event==B_SIMAGEREPLACE)
-			activate_imageselect(FILE_SPECIAL, "REPLACE IMAGE", name,
-											replace_space_image);
+		if(G.qual==LR_CTRLKEY)
+			activate_imageselect(FILE_SPECIAL, "REPLACE IMAGE", name, replace_space_image);
 		else
-			activate_fileselect(FILE_SPECIAL, "REPLACE IMAGE", name,
-											replace_space_image);
+			activate_fileselect(FILE_SPECIAL, "REPLACE IMAGE", name, replace_space_image);
 		break;
+		
 	case B_SIMAGEDRAW:
 		
 		if(G.f & G_FACESELECT) {
@@ -395,19 +391,11 @@ void image_buttons(void)
 	}
 	
 	uiBlockSetCol(block, TH_AUTO);
-	uiDefBut(block, BUT, B_SIMAGELOAD, "Load",		xco+=XIC,0,2*XIC,YIC, 0, 0, 0, 0, 0, "Loads image - thumbnail view");
-
-	uiBlockSetCol(block, TH_HEADER);
-	uiDefBut(block, BUT, B_SIMAGELOAD1, "",		(short)(xco+=2*XIC+2),0,10,YIC, 0, 0, 0, 0, 0, "Loads image - file select view");
-	xco+=XIC/2;
+	uiDefBut(block, BUT, B_SIMAGELOAD, "Load",		xco+=XIC,0,2*XIC,YIC, 0, 0, 0, 0, 0, "Loads image - file select");
 
 	if (G.sima->image) {
 		uiBlockSetCol(block, TH_AUTO);
-		uiDefBut(block, BUT, B_SIMAGEREPLACE, "Replace",xco+=XIC,0,(short)(3*XIC),YIC, 0, 0, 0, 0, 0, "Replaces current image - thumbnail view");
-		
-		uiBlockSetCol(block, TH_HEADER);
-		uiDefBut(block, BUT, B_SIMAGEREPLACE1, "",	(short)(xco+=3*XIC+2),0,10,YIC, 0, 0, 0, 0, 0, "Replaces current image - file select view");
-		xco+=XIC/2;
+		uiDefBut(block, BUT, B_SIMAGEREPLACE, "Replace",xco+=XIC,0,(short)(3*XIC),YIC, 0, 0, 0, 0, 0, "Replaces current image - file select");
 	
 		uiDefIconButS(block, TOG|BIT|4, 0, ICON_ENVMAP, xco+=XIC,0,XIC,YIC, &G.sima->image->flag, 0, 0, 0, 0, "Uses this image as a reflection map (Ignores UV Coordinates)");
 		xco+=XIC/2;
