@@ -32,6 +32,8 @@
 #ifndef _SUMOPhysicsEnvironment
 #define _SUMOPhysicsEnvironment
 
+#include "MT_Scalar.h"
+
 #include "PHY_IPhysicsEnvironment.h"
 
 /**
@@ -64,10 +66,9 @@ public:
 		return m_sumoScene;
 	}
 
-private:
-
-
-
+protected:
+	// At least 100Hz (isn't this CPU hungry ?)
+	static const MT_Scalar UpperBoundForFuzzicsIntegrator = 0.01;
 
 };
 

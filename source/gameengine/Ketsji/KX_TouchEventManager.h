@@ -43,7 +43,7 @@ class KX_TouchEventManager : public SCA_EventManager
 	class SCA_LogicManager* m_logicmgr;
 	SM_Scene *m_scene;
 
-	static DT_Bool KX_TouchEventManager::collisionResponse(void *client_data, 
+	static DT_Bool collisionResponse(void *client_data, 
 							void *object1,
 							void *object2,
 							const DT_CollData *coll_data);

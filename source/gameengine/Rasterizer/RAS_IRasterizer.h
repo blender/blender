@@ -216,7 +216,7 @@ public:
 	 * from camera coordinates to window coordinates.
 	 * @param mat The projection matrix.
 	 */
-	virtual void	SetProjectionMatrix(MT_Matrix4x4 & mat)=0;
+	virtual void	SetProjectionMatrix(const MT_Matrix4x4 & mat)=0;
 	/**
 	 * Sets the modelview matrix.
 	 */

@@ -59,7 +59,7 @@ public:
 		RAS_TEXT_RENDER_NODEF = 0,
 		RAS_TEXT_NORMAL,
 		RAS_TEXT_PADDED,
-		RAS_TEXT_MAX,
+		RAS_TEXT_MAX
 	};
 	
 	RAS_IRenderTools(

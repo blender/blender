@@ -50,10 +50,6 @@
 #include "MT_MinMax.h"
 
 
-// Tweak parameters
-static const MT_Scalar ImpulseThreshold = -10.;
-static const MT_Scalar FixThreshold = 0.01;
-static const MT_Scalar FixVelocity = 0.01;
 SM_Object::SM_Object(
 	DT_ShapeHandle shape, 
 	const SM_MaterialProps *materialProps,
@@ -459,28 +455,10 @@ DT_Bool SM_Object::fix(
 		MT_Vector3 error = normal * 0.5f;
 		obj1->m_error += error;
 		obj2->m_error -= error;
-		// Remove the velocity component in the normal direction
-		// Calculate collision parameters
-		/*MT_Vector3 rel_vel = obj1->getLinearVelocity() - obj2->getLinearVelocity();
-		if (normal.length() > FixThreshold && rel_vel.length() < FixVelocity) {
-			normal.normalize();
-			MT_Scalar  rel_vel_normal = 0.49*(normal.dot(rel_vel));
-
-			obj1->addLinearVelocity(-rel_vel_normal*normal);
-			obj2->addLinearVelocity(rel_vel_normal*normal);
-		}*/
 	}
 	else {
 		// Same again but now obj1 is non-dynamic
 		obj2->m_error -= normal;
-		/*MT_Vector3 rel_vel = obj2->getLinearVelocity();
-		if (normal.length() > FixThreshold && rel_vel.length() < FixVelocity) {
-			// Calculate collision parameters
-			normal.normalize();
-			MT_Scalar  rel_vel_normal = -0.99*(normal.dot(rel_vel));
-
-			obj2->addLinearVelocity(rel_vel_normal*normal);
-		}*/ 
 	}
 	
 	return DT_CONTINUE;
@@ -494,10 +472,6 @@ void SM_Object::relax(void)
 	
 	m_pos += m_error; 
 	m_error.setValue(0., 0., 0.); 
-/*	m_pos.getValue(pos);
-	DT_SetPosition(m_object, pos); 
-	m_xform.setOrigin(m_pos); 
-	m_xform.getValue(m_ogl_matrix); */
 	calcXform();
 	notifyClient();
 }

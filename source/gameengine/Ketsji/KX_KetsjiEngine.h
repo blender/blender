@@ -67,14 +67,14 @@ class KX_KetsjiEngine
 {
 
 private:
-	class RAS_ICanvas*					m_canvas; // 2D Canvas (2D Rendering Device Context)
+	class RAS_ICanvas*				m_canvas; // 2D Canvas (2D Rendering Device Context)
 	class RAS_IRasterizer*				m_rasterizer;  // 3D Rasterizer (3D Rendering)
-	class KX_ISystem*					m_kxsystem;
+	class KX_ISystem*				m_kxsystem;
 	class RAS_IRenderTools*				m_rendertools;
 	class KX_ISceneConverter*			m_sceneconverter;
-	class NG_NetworkDeviceInterface*	m_networkdevice;
+	class NG_NetworkDeviceInterface*		m_networkdevice;
 	class SND_IAudioDevice*				m_audiodevice;
-	PyObject*							m_pythondictionary;
+	PyObject*					m_pythondictionary;
 	class SCA_IInputDevice*				m_keyboarddevice;
 	class SCA_IInputDevice*				m_mousedevice;
 

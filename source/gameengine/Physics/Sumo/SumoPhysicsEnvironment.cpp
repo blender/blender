@@ -40,9 +40,6 @@
 
 //#include <SOLID/SOLID.h>
 
-const MT_Scalar UpperBoundForFuzzicsIntegrator = 0.01;
-// At least 100Hz (isn't this CPU hungry ?)
-
 
 SumoPhysicsEnvironment::SumoPhysicsEnvironment()
 {

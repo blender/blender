@@ -175,22 +175,20 @@ void SM_Scene::proceed(MT_Scalar timeStep, MT_Scalar subSampling) {
 	// Apply a forcefield (such as gravity)
 	for (i = m_objectList.begin(); i != m_objectList.end(); ++i) {
 		(*i)->applyForceField(m_forceField);
-		//(*i)->integrateForces(subStep);
-		//(*i)->integrateMomentum(subStep);
+		//(*i)->setTimeStep(timeStep);
 	}
 	
 	// Do the integration steps per object.
 	int step;
 	for (step = 0; step != num_samples; ++step) {
 
-
 		for (i = m_objectList.begin(); i != m_objectList.end(); ++i) {
 			(*i)->integrateForces(subStep);
-			//(*i)->backup();
-		// And second we update the object positions by performing
-		// an integration step for each object
+			// And second we update the object positions by performing
+			// an integration step for each object
 			(*i)->integrateMomentum(subStep);
 		}
+		
 		// I changed the order of the next 2 statements.
 		// Originally objects were first integrated with a call
 		// to proceed(). However if external objects were 
@@ -208,9 +206,6 @@ void SM_Scene::proceed(MT_Scalar timeStep, MT_Scalar subSampling) {
 #if 0
 	clearObjectCombinedVelocities();
 #endif
-/*	if (DT_Test(m_scene, m_fixRespTable))
-		for (i = m_objectList.begin(); i != m_objectList.end(); ++i)
-			(*i)->relax();  */
 	DT_Test(m_scene, m_fixRespTable);
 	
 	// Finish this timestep by saving al state information for the next

@@ -73,21 +73,10 @@ bool BL_MeshDeformer::Apply(RAS_IPolyMaterial *mat)
 		//	For each vertex
 		for (j=0; j<array[i]->size(); j++){
 			tv = &((*array[i])[j]);
-			MT_Point3 pt = tv->xyz();
-			
 			index = ((*diarray[i])[j]);
 
 			mvert = &(m_bmesh->mvert[((*mvarray[i])[index])]);
-			//	Do the nasty (in this case, copy the untransformed data from the blender mesh)
-			co[0]=mvert->co[0];
-			co[1]=mvert->co[1];
-			co[2]=mvert->co[2];
-			
-			pt[0] = co[0];
-			pt[1] = co[1];
-			pt[2] = co[2];
-			
-			tv->SetXYZ(pt);
+			tv->SetXYZ(MT_Point3(mvert->co));
 		}
 	}
 	return true;
@@ -101,6 +90,9 @@ BL_MeshDeformer::~BL_MeshDeformer()
 		delete []m_transnors;
 };
 
+/**
+ * @warning This function is expensive!
+ */
 void BL_MeshDeformer::RecalcNormals()
 {
 	int v, f;
@@ -143,12 +135,12 @@ void BL_MeshDeformer::RecalcNormals()
 	}
 	
 	for (v =0; v<m_bmesh->totvert; v++){
-		float nor[3];
+//		float nor[3];
 
 		m_transnors[v]=m_transnors[v].safe_normalized();
-		nor[0]=m_transnors[v][0];
-		nor[1]=m_transnors[v][1];
-		nor[2]=m_transnors[v][2];
+//		nor[0]=m_transnors[v][0];
+//		nor[1]=m_transnors[v][1];
+//		nor[2]=m_transnors[v][2];
 		
 	};
 }
