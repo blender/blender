@@ -100,9 +100,7 @@
 #include "mydevice.h"
 #include "nla.h"
 
-#ifdef __NLA
 #include "BKE_deform.h"
-#endif
 
 /* pretty stupid */
 /*  extern Lattice *editLatt; already in BKE_lattice.h  */
@@ -1071,66 +1069,45 @@ void tekenvertices(short sel)
 {
 	EditVert *eve;
 	float size;
+	char col[3];
+	
+	/* draws in zbuffer mode twice, to show invisible vertices transparent */
 	
 	size= BIF_GetThemeValuef(TH_VERTEX_SIZE);
-	glPointSize(size);
+	if(sel) BIF_GetThemeColor3ubv(TH_VERTEX_SELECT, col);
+	else BIF_GetThemeColor3ubv(TH_VERTEX, col);
 	
-	if(sel) BIF_ThemeColor(TH_VERTEX_SELECT);
-	else BIF_ThemeColor(TH_VERTEX);
+	if(G.zbuf) {
+		glPointSize(size>2.1?size/2.0: size);
+
+		glDisable(GL_DEPTH_TEST);
+		glColor4ub(col[0], col[1], col[2], 100);
+		
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_BLEND);
+
+		glBegin(GL_POINTS);
+		for(eve= G.edve.first; eve; eve= eve->next) {
+			if(eve->h==0 && (eve->f & 1)==sel ) glVertex3fv(eve->co);
+		}
+		glEnd();
+		
+		glDisable(GL_BLEND);
+		glEnable(GL_DEPTH_TEST);
+	}
+
+	glPointSize(size);
+	glColor3ub(col[0], col[1], col[2]);
 
 	glBegin(GL_POINTS);
-
-	eve= (EditVert *)G.edve.first;
-	while(eve) {
-		if(eve->h==0 && (eve->f & 1)==sel ) {
-			glVertex3fv(eve->co);
-		}
-		eve= eve->next;
+	for(eve= G.edve.first; eve; eve= eve->next) {
+		if(eve->h==0 && (eve->f & 1)==sel ) glVertex3fv(eve->co);
 	}
 	glEnd();
 
 	glPointSize(1.0);
 }
 
-void tekenvertices_ext(int mode)
-{
-	ScrArea *tempsa, *sa;
-	View3D *vd;
-	
-	if(G.f & (G_FACESELECT+G_DRAWFACES)) {
-		allqueue(REDRAWVIEW3D, 0);
-		return;
-	}
-	
-	if(G.zbuf) glDisable(GL_DEPTH_TEST);
-	
-	glDrawBuffer(GL_FRONT);
-
-	/* check all views */
-	tempsa= curarea;
-	sa= G.curscreen->areabase.first;
-	while(sa) {
-		if(sa->spacetype==SPACE_VIEW3D) {
-			vd= sa->spacedata.first;
-			if(G.obedit->lay & vd->lay) {
-				areawinset(sa->win);
-				mymultmatrix(G.obedit->obmat);
-
-				calc_meshverts();
-				if(mode==0 || mode==2) tekenvertices(0);
-				if(mode==1 || mode==2) tekenvertices(1);
-				sa->win_swap= WIN_FRONT_OK;
-				
-				myloadmatrix(G.vd->viewmat);
-			}
-		}
-		sa= sa->next;
-	}
-	if(curarea!=tempsa) areawinset(tempsa->win);
-	
-	glDrawBuffer(GL_BACK);
-	if(G.zbuf) glEnable(GL_DEPTH_TEST);
-}
 
 /* ************** DRAW DISPLIST ****************** */
 
@@ -1730,70 +1707,6 @@ static void drawDispListshaded(ListBase *lb, Object *ob)
 	glShadeModel(GL_FLAT);
 }
 
-/* wrappers for shaded+wire and solid+wire */
-static void drawMeshWireExtra(Object *ob) {
-	GLint origcolor[4];
-	float winmat[16], ofs;
-	
-	glGetIntegerv(GL_CURRENT_COLOR, origcolor);
-	
-	if(ob->flag & SELECT) {
-		if(ob==OBACT) BIF_ThemeColor(TH_ACTIVE);
-		else BIF_ThemeColor(TH_SELECT);
-	}
-	else BIF_ThemeColor(TH_WIRE);
-	
-	glMatrixMode(GL_PROJECTION);
-	glGetFloatv(GL_PROJECTION_MATRIX, (float *)winmat);
-	
-	if(winmat[15]>0.5) ofs= 0.00005*G.vd->dist;  // ortho tweaking
-	else ofs= 0.001;
-	winmat[14]-= ofs;
-	glLoadMatrixf(winmat);
-	glMatrixMode(GL_MODELVIEW);
-
-	drawmeshwire(ob);
-
-	glMatrixMode(GL_PROJECTION);
-	winmat[14]+= ofs;
-	glLoadMatrixf(winmat);
-	glMatrixMode(GL_MODELVIEW);
-
-	glColor4iv(origcolor);
-}
-
-static void drawDispListWireExtra(Object *ob, ListBase *lb) {
-	GLint origcolor[4];
-	float winmat[16], ofs;
-	
-	glGetIntegerv(GL_CURRENT_COLOR, origcolor);
-
-	if(ob->flag & SELECT) {
-		if(ob==OBACT) BIF_ThemeColor(TH_ACTIVE);
-		else BIF_ThemeColor(TH_SELECT);
-	}
-	else BIF_ThemeColor(TH_WIRE);
-
-	glMatrixMode(GL_PROJECTION);
-	glGetFloatv(GL_PROJECTION_MATRIX, (float *)winmat);
-	
-	if(winmat[15]>0.5) ofs= 0.00005*G.vd->dist;  // ortho tweaking
-	else ofs= 0.001;
-	winmat[14]-= ofs;
-	glLoadMatrixf(winmat);
-	glMatrixMode(GL_MODELVIEW);
-
-	drawDispListwire(lb);
-
-	glMatrixMode(GL_PROJECTION);
-	winmat[14]+= ofs;
-	glLoadMatrixf(winmat);
-	glMatrixMode(GL_MODELVIEW);
-
-	//glDisable(GL_POLYGON_OFFSET_LINE);
-
-	glColor4iv(origcolor);
-}
 
 static void drawmeshsolid(Object *ob, float *nors)
 {
@@ -1870,14 +1783,9 @@ static void drawmeshsolid(Object *ob, float *nors)
 		if(ob==G.obedit) {
 			calc_meshverts();
 		
-			if(G.zbuf) glDisable(GL_DEPTH_TEST);
 			tekenvertices(0);
 			tekenvertices(1);
-			if(G.zbuf) glEnable(GL_DEPTH_TEST);
 		}
-		
-		if(ob->dtx & OB_DRAWWIRE) drawMeshWireExtra(ob);
-
 	}
 	else {		/* [nors] should never be zero, but is weak code... the displist 
 				   system needs a make over (ton)
@@ -2141,8 +2049,6 @@ static void drawmeshshaded(Object *ob, unsigned int *col1, unsigned int *col2)
 	glEnd();
 	glShadeModel(GL_FLAT);
 	if(twoside) glDisable(GL_CULL_FACE);
-	
-	if(ob->dtx & OB_DRAWWIRE) drawMeshWireExtra(ob);
 }
 
 static void drawDispList(Object *ob, int dt)
@@ -2180,22 +2086,18 @@ static void drawDispList(Object *ob, int dt)
 					/* vertexpaint only true when selecting */
 				if (vertexpaint) {
 					drawmeshsolid(ob, NULL);
-					if(ob->dtx & OB_DRAWWIRE) drawMeshWireExtra(ob);					
 				} else {
 					init_gl_materials(ob);
 					two_sided(me->flag & ME_TWOSIDED);
 					drawDispListsolid(lb, ob);
-					if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(ob, lb);
 				}
 			}
 			else {
 				drawmeshsolid(ob, dl->nors);
-				if(ob->dtx & OB_DRAWWIRE) drawMeshWireExtra(ob);
 			}
 			
 		}
 		else if(dt==OB_SHADED) {
-#ifdef __NLA
 			if( G.f & G_WEIGHTPAINT && me->dvert) {
 				unsigned char *wtcol, *curwt;
 				MFace *curface;
@@ -2226,26 +2128,20 @@ static void drawDispList(Object *ob, int dt)
 				}
 				
 				drawmeshshaded(ob, (unsigned int*)wtcol, 0);
-				if(ob->dtx & OB_DRAWWIRE) drawMeshWireExtra(ob);
 				
 				MEM_freeN (wtcol);
 				
 			}
 			else
-#endif
+
 			if( G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) {
 				/* in order: vertexpaint already made mcol */
-///*
-
-//*/
 				if(me->mcol) {
 					drawmeshshaded(ob, (unsigned int *)me->mcol, 0);
-					if(ob->dtx & OB_DRAWWIRE) drawMeshWireExtra(ob);
 				} else if(me->tface) {
 					tface_to_mcol(me);
 					drawmeshshaded(ob, (unsigned int *)me->mcol, 0);	
 					MEM_freeN(me->mcol); me->mcol= 0;
-					if(ob->dtx & OB_DRAWWIRE) drawMeshWireExtra(ob);
 				}
 				else 
 					drawmeshwire(ob);
@@ -2261,10 +2157,8 @@ static void drawDispList(Object *ob, int dt)
 				if(dl) {
 					if(mesh_uses_displist(me)) {
 						drawDispListshaded(&me->disp, ob);
-						if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(ob, &me->disp);
 					} else {
 						drawmeshshaded(ob, dl->col1, dl->col2);
-						if(ob->dtx & OB_DRAWWIRE) drawMeshWireExtra(ob);
 					}
 				}
 			}
@@ -2298,14 +2192,11 @@ static void drawDispList(Object *ob, int dt)
 			if(dt==OB_SHADED) {
 				if(ob->disp.first==0) shadeDispList(ob);
 				drawDispListshaded(lb, ob);
-				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(ob, lb);
 			}
 			else {
 				init_gl_materials(ob);
 				two_sided(0);
 				drawDispListsolid(lb, ob);
-				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(ob, lb);
-
 			}
 			index3_nors_incr= 1;
 		}
@@ -2329,14 +2220,12 @@ static void drawDispList(Object *ob, int dt)
 			if(dt==OB_SHADED) {
 				if(ob->disp.first==0) shadeDispList(ob);
 				drawDispListshaded(lb, ob);
-				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(ob, lb);
 			}
 			else {
 				init_gl_materials(ob);
 				two_sided(0);
 			
 				drawDispListsolid(lb, ob);
-				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(ob, lb);
 			}
 		}
 		else {
@@ -2354,14 +2243,12 @@ static void drawDispList(Object *ob, int dt)
 				dl= lb->first;
 				if(dl && dl->col1==0) shadeDispList(ob);
 				drawDispListshaded(lb, ob);
-				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(ob, lb);
 			}
 			else {
 				init_gl_materials(ob);
 				two_sided(0);
 			
 				drawDispListsolid(lb, ob);	
-				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(ob, lb);
 			}
 		}
 		else drawDispListwire(lb);
@@ -2484,13 +2371,15 @@ static void drawmeshwire(Object *ob)
 	EditEdge *eed;
 	EditVlak *evl;
 	float fvec[3], cent[3], *f1, *f2, *f3, *f4, *extverts=0;
-	int a, start, end, test, /*  colbcol=0, */ ok;
+	int a, start, end, test, ok, handles=0;
 
 	me= get_mesh(ob);
 
 	if(ob==G.obedit || (G.obedit && ob->data==G.obedit->data)) {
 		
-		if(G.f & (G_FACESELECT+G_DRAWFACES)) {	/* faces */
+		if( (me->flag & ME_OPT_EDGES) && (me->flag & ME_SUBSURF)) handles= 1;
+		
+		if(handles==0 && (G.f & (G_FACESELECT+G_DRAWFACES))) {	/* faces */
 			char col1[4], col2[4];
 			
 			BIF_GetThemeColor4ubv(TH_FACE, col1);
@@ -2544,13 +2433,15 @@ static void drawmeshwire(Object *ob)
 			glDisable(GL_BLEND);
 		}
 
-		if(G.zbuf==0 && mesh_uses_displist(me)) {
-			cpack(0x505050);
+		if(mesh_uses_displist(me)) {
+			if(handles) BIF_ThemeColor(TH_WIRE);
+			else BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.5);
+			
 			drawDispListwire(&me->disp);
 		}
 		cpack(0x0);
 		
-		if(G.f & G_DRAWEDGES) {	/* Use edge Highlighting */
+		if(handles==0 && (G.f & G_DRAWEDGES)) {	/* Use edge Highlighting */
 			char col[4];
 			BIF_GetThemeColor3ubv(TH_EDGE_SELECT, col);
 			glShadeModel(GL_SMOOTH);
@@ -2569,7 +2460,7 @@ static void drawmeshwire(Object *ob)
 			glEnd();
 			glShadeModel(GL_FLAT);
 		}
-		else {
+		else if(handles==0) {
 			eed= G.eded.first;
 			glBegin(GL_LINES);
 			while(eed) {
@@ -2585,13 +2476,8 @@ static void drawmeshwire(Object *ob)
 		
 		calc_meshverts();
 
-		if(G.zbuf) glDisable(GL_DEPTH_TEST);
 		tekenvertices(0);
 		tekenvertices(1);
-#ifdef __NLA
-		tekenvertices(2);	/* __TEKENTEST */
-#endif
-		if(G.zbuf) glEnable(GL_DEPTH_TEST);
 
 		if(G.f & G_DRAWNORMALS) {	/* normals */
 			cpack(0xDDDD22);
@@ -3450,6 +3336,55 @@ static int ob_from_decimator(Object *ob)
 	return 0;
 }
 
+
+static void drawWireExtra(Object *ob, ListBase *lb) 
+{
+	float winmat[16], ofs;
+
+	if(ob!=G.obedit && (ob->flag & SELECT)) {
+		if(ob==OBACT) BIF_ThemeColor(TH_ACTIVE);
+		else BIF_ThemeColor(TH_SELECT);
+	}
+	else BIF_ThemeColor(TH_WIRE);
+
+	glMatrixMode(GL_PROJECTION);
+	glGetFloatv(GL_PROJECTION_MATRIX, (float *)winmat);
+	
+	if(winmat[15]>0.5) ofs= 0.00005*G.vd->dist;  // ortho tweaking
+	else ofs= 0.001;
+	winmat[14]-= ofs;
+	glLoadMatrixf(winmat);
+	glMatrixMode(GL_MODELVIEW);
+
+	if(ob->type==OB_MESH) drawmeshwire(ob);
+	else drawDispListwire(lb);
+
+	glMatrixMode(GL_PROJECTION);
+	winmat[14]+= ofs;
+	glLoadMatrixf(winmat);
+	glMatrixMode(GL_MODELVIEW);
+
+}
+
+static void draw_extra_wire(Object *ob) 
+{
+	Curve *cu;
+	
+	switch(ob->type) {
+	case OB_MESH:
+		drawWireExtra(ob, NULL);
+		break;
+	case OB_CURVE:
+	case OB_SURF:
+		cu= ob->data;
+		if(boundbox_clip(ob->obmat, cu->bb)) drawWireExtra(ob, &cu->disp);
+		break;
+	case OB_MBALL:
+		drawWireExtra(ob, &ob->disp);
+		break;
+	}
+}
+
 void draw_object(Base *base)
 {
 	PartEff *paf;
@@ -3654,14 +3589,9 @@ void draw_object(Base *base)
 						init_gl_materials(ob);
 						two_sided( me->flag & ME_TWOSIDED );
 						drawDispListsolid(&me->disp, ob);
-						/* this seems to be the place where the wire for subsurfs 
-						 * gets drawn.. so we draw an extra wire in grey here (editmode) */
-						if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(ob, &me->disp);
-						drawmeshwire(ob);
 					}
 					else {
 						drawmeshsolid(ob, 0);
-						if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(ob, &me->disp);
 					}
 				}
 				if(ob==G.obedit && (G.f & G_PROPORTIONAL)) draw_prop_circle();
@@ -3677,14 +3607,12 @@ void draw_object(Base *base)
 					if(G.f & G_BACKBUFSEL) drawmeshsolid(ob, 0);					
 					else if(G.f & G_FACESELECT || G.vd->drawtype==OB_TEXTURE) {
 						draw_tface_mesh(ob, ob->data, dt);
-						if(ob->dtx & OB_DRAWWIRE) drawMeshWireExtra(ob);
 					}
 					else drawDispList(ob, dt);
 				}
 				else drawDispList(ob, dt);
 			}
-			if( (ob!=G.obedit) 
-				&& ((G.f & (G_BACKBUFSEL+G_PICKSEL)) == 0) ) {
+			if( (ob!=G.obedit) && ((G.f & (G_BACKBUFSEL+G_PICKSEL)) == 0) ) {
 				paf = give_parteff(ob);
 				if( paf ) {
 					if(col) cpack(0xFFFFFF);	/* for visibility */
@@ -3737,14 +3665,9 @@ void draw_object(Base *base)
 			drawlattice(ob);
 			if(ob==G.obedit && (G.f & G_PROPORTIONAL)) draw_prop_circle();
 			break;
-		case OB_IKA:
-			draw_ika(ob, base->flag & SELECT);
-			break;
-#ifdef __NLA
 		case OB_ARMATURE:
 			draw_armature (ob);
 			break;
-#endif
 		default:
 			drawaxes(1.0);
 		}
@@ -3767,6 +3690,8 @@ void draw_object(Base *base)
 		}
 		if(dtx & OB_DRAWIMAGE) drawDispListwire(&ob->disp);
 	}
+	// dtx is set at zero in editmode, but we want this one!
+	if(ob->dtx & OB_DRAWWIRE && dt>=OB_SOLID) draw_extra_wire(ob);
 
 	if(dt<OB_SHADED) {
 		if((ob->gameflag & OB_ACTOR) && (ob->gameflag & OB_DYNAMIC)) {

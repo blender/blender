@@ -171,6 +171,7 @@ struct _HyperVert {
 	
 	float co[3];
 	int flag;		// added for drawing optim
+	float *orig;	// if set, pointer to original vertex, for handles
 	HyperVert *nmv;
 	LinkNode *edges, *faces;
 };
@@ -247,7 +248,7 @@ static HyperVert *hyperedge_other_vert(HyperEdge *e, HyperVert *a) {
 	return (a==e->v[0])?e->v[1]:e->v[0];
 }
 
-static HyperVert *hypermesh_add_vert(HyperMesh *hme, float *co) {
+static HyperVert *hypermesh_add_vert(HyperMesh *hme, float *co, float *orig) {
 	HyperVert *hv= BLI_memarena_alloc(hme->arena, sizeof(*hv));
 	
 	hv->nmv= NULL;
@@ -255,6 +256,7 @@ static HyperVert *hypermesh_add_vert(HyperMesh *hme, float *co) {
 	hv->faces= NULL;
 	
 	Vec3Cpy(hv->co, co);
+	hv->orig= orig;
 	
 	hv->next= hme->verts;
 	hme->verts= hv;
@@ -345,9 +347,9 @@ static HyperMesh *hypermesh_from_mesh(Mesh *me, DispList *dlverts) {
 	
 	for (i= 0; i<me->totvert; i++) {
 		if (dlverts)
-			vert_tbl[i]= hypermesh_add_vert(hme, &dlverts->verts[i*3]);
+			vert_tbl[i]= hypermesh_add_vert(hme, &dlverts->verts[i*3], NULL);
 		else
-			vert_tbl[i]= hypermesh_add_vert(hme, me->mvert[i].co);
+			vert_tbl[i]= hypermesh_add_vert(hme, me->mvert[i].co, NULL);
 	}
 
 	for (i=0; i<me->totface; i++) {
@@ -405,7 +407,7 @@ static HyperMesh *hypermesh_from_editmesh(EditVert *everts, EditEdge *eedges, Ed
 		 * then restore real prev links later.
 		 */
 	for (ev= everts; ev; ev= ev->next) 
-		ev->prev= (EditVert*) hypermesh_add_vert(hme, ev->co);
+		ev->prev= (EditVert*) hypermesh_add_vert(hme, ev->co, ev->co);
 
 	for (ee= eedges; ee; ee= ee->next)
 		hypermesh_add_edge(hme, (HyperVert*) ee->v1->prev, (HyperVert*) ee->v2->prev, 1);
@@ -453,7 +455,7 @@ static void hypermesh_subdivide(HyperMesh *me, HyperMesh *nme) {
 			Vec3Add(co, f->verts[j]->co);
 		Vec3MulN(co, (float)(1.0/f->nverts));
 
-		f->mid= hypermesh_add_vert(nme, co);
+		f->mid= hypermesh_add_vert(nme, co, NULL);
 	}
 		
 	for (e= me->edges; e; e= e->next) {
@@ -468,7 +470,7 @@ static void hypermesh_subdivide(HyperMesh *me, HyperMesh *nme) {
 			Vec3MulN(co, (float)(1.0/count));
 		}
 		
-		e->ep= hypermesh_add_vert(nme, co);
+		e->ep= hypermesh_add_vert(nme, co, NULL);
 	}
 
 	for (v= me->verts; v; v= v->next) {
@@ -515,7 +517,7 @@ static void hypermesh_subdivide(HyperMesh *me, HyperMesh *nme) {
 			Vec3MulN(s, (float)(1.0/count));
 		}
 
-		v->nmv= hypermesh_add_vert(nme, s);
+		v->nmv= hypermesh_add_vert(nme, s, v->orig);
 	}
 
 	for (e= me->edges; e; e= e->next) {
@@ -645,6 +647,16 @@ static int hypermesh_get_nverts(HyperMesh *hme) {
 	return count;
 }
 
+static int hypermesh_get_nverts_handles(HyperMesh *hme) {
+	HyperVert *v;
+	int count= 0;
+	
+	for (v= hme->verts; v; v= v->next)
+		if(v->orig) count++;
+	
+	return count;
+}
+
 static int hypermesh_get_nfaces(HyperMesh *hme) {
 	HyperFace *f;
 	int count= 0;
@@ -696,7 +708,7 @@ static DispList *hypermesh_to_displist(HyperMesh *hme) {
 	TFace *tfaces;
 	MFace *mfaces;
 	MFaceInt *mf;
-	int i, j;
+	int i, j, handles=0;
 
 		/* hme->orig_me==NULL if we are working on an editmesh */
 	if (hme->orig_me) {
@@ -707,11 +719,16 @@ static DispList *hypermesh_to_displist(HyperMesh *hme) {
 		mfaces= NULL;
 	}
 
+	/* added: handles for editmode */
+	if (hme->orig_me==NULL) {
+		handles= hypermesh_get_nverts_handles(hme);
+	}
+
 	dl->type= DL_MESH;
 	dl->mesh= dlm;
 	
-	dlm->totvert= nverts;
-	dlm->totface= nfaces;
+	dlm->totvert= nverts+handles;
+	dlm->totface= nfaces+handles;
 	dlm->mvert= MEM_mallocN(dlm->totvert*sizeof(*dlm->mvert), "dlm->mvert");
 	dlm->mface= MEM_mallocN(dlm->totface*sizeof(*dlm->mface), "dlm->mface");
 	if(hme->orig_me) dlm->flag= hme->orig_me->flag;
@@ -724,7 +741,6 @@ static DispList *hypermesh_to_displist(HyperMesh *hme) {
 	for (i=0, v= hme->verts; i<nverts; i++, v= v->next) {
 		MVert *mv= &dlm->mvert[i];
 		Vec3Cpy(mv->co, v->co);
-		mv->flag= v->flag;  // draw flag
 		v->nmv= (void*) i;
 	}
 	
@@ -838,6 +854,32 @@ static DispList *hypermesh_to_displist(HyperMesh *hme) {
 		}
 	}
 	
+	/* and we add the handles */
+	if(handles) {
+		MVert *mv= dlm->mvert+nverts;
+		mf= dlm->mface+nfaces;
+		i= nverts;
+		for (v= hme->verts; v; v= v->next) {
+			if(v->orig) {
+				/* new vertex */
+				Vec3Cpy(mv->co, v->orig);
+
+				/* new face */
+				mf->v1= (int) v->nmv;
+				mf->v2= i;
+				mf->v3= 0;
+				mf->v4= 0;
+				
+				mf->mat_nr= 0;
+				mf->flag= 0;
+				mf->puno= 0;
+				mf->edcode= ME_V1V2;
+					
+				mf++; i++; mv++;
+			}
+		}
+	}	
+	
 	add_mvert_normals_from_mfaces(dlm->mvert, dlm->totvert, dlm->mface, dlm->totface);
 
 	return dl;
@@ -866,13 +908,19 @@ static DispList *subsurf_subdivide_to_displist(HyperMesh *hme, short subdiv) {
 }
 
 void subsurf_make_editmesh(Object *ob) {
+	DispList *dl;
+	
 	if (G.eded.first) {
 		Mesh *me= ob->data;
 		HyperMesh *hme= hypermesh_from_editmesh(G.edve.first, G.eded.first, G.edvl.first);
 
 		free_displist_by_type(&me->disp, DL_MESH);
 		BLI_addtail(&me->disp, subsurf_subdivide_to_displist(hme, me->subdiv));
+		
+		dl= me->disp.first;
+		if(dl && dl->mesh) dl->mesh->flag= me->flag;
 	}
+	
 }
 
 void subsurf_make_mesh(Object *ob, short subdiv) {

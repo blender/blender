@@ -935,7 +935,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 					}
 					evl= evl->next;
 				}
-				tekenvertices_ext( event==B_MATSEL );
+				allqueue(REDRAWVIEW3D, 0);
 			}
 			else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
 				nu= editNurb.first;

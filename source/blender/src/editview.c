@@ -933,15 +933,10 @@ void mesh_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 		}
 		eve= eve->next;
 	}
-	if(G.f & (G_FACESELECT+G_DRAWFACES)) {
-		draw_sel_circle(0, 0, 0, 0, 0);	/* signal */
-		force_draw();
-	}
-	else {
-		if(selecting!=LEFTMOUSE) tekenvertices_ext(0);
-		/* always draw selected vertices */
-		tekenvertices_ext(1);
-	}
+
+	draw_sel_circle(0, 0, 0, 0, 0);	/* signal */
+	force_draw();
+
 }
 
 
@@ -1116,15 +1111,8 @@ void circle_select(void)
 						}
 						eve= eve->next;
 					}
-					if(G.f & (G_FACESELECT+G_DRAWFACES)) {
-						draw_sel_circle(0, 0, 0, 0, 0);	/* signal */
-						force_draw();
-					}
-					else {
-						if(selecting!=LEFTMOUSE) tekenvertices_ext(0);
-						/* always draw selected vertices */
-						tekenvertices_ext(1);
-					}
+					draw_sel_circle(0, 0, 0, 0, 0);	/* signal */
+					force_draw();
 				}
 				else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
 					

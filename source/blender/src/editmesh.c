@@ -2514,7 +2514,7 @@ static void selectconnectedAll(void)
 	}
 	countall();
 
-	tekenvertices_ext(1);
+	allqueue(REDRAWVIEW3D, 0);
 
 }
 
@@ -2577,7 +2577,7 @@ void selectconnected_mesh(void)
 	}
 	countall();
 	
-	tekenvertices_ext( sel==3 );
+	allqueue(REDRAWVIEW3D, 0);
 }
 
 

@@ -560,7 +560,6 @@ static void drawfloor(void)
 	gridlines= vd->gridlines/2;
 	grid= gridlines*vd->grid;
 	
-	BIF_ThemeColor(TH_GRID);
 	BIF_GetThemeColor3ubv(TH_GRID, col);
 	
 	for(a= -gridlines;a<=gridlines;a++) {
@@ -568,9 +567,10 @@ static void drawfloor(void)
 		if(a==0) {
 			glColor3ub(col[0]<36?0:col[0]-36, col[1]>199?255:col[1]+56, col[2]<36?0:col[2]-36);	/* y-as */
 		}
-		else if(a==1) {
-			BIF_ThemeColor(TH_GRID);
+		else if( (a % 10)==0) {
+			BIF_ThemeColorShade(TH_GRID, -10);
 		}
+		else BIF_ThemeColorShade(TH_GRID, 10);
 		
 	
 		glBegin(GL_LINE_STRIP);
@@ -582,15 +582,14 @@ static void drawfloor(void)
 		glEnd();
 	}
 	
-	BIF_ThemeColor(TH_GRID);
-	
 	for(a= -gridlines;a<=gridlines;a++) {
 		if(a==0) {
 			glColor3ub(col[0]>219?255:col[0]+36, col[1]<26?0:col[1]-26, col[2]<26?0:col[2]-26);	/* x-as */
 		}
-		else if(a==1) {
-			BIF_ThemeColor(TH_GRID);
+		else if( (a % 10)==0) {
+			BIF_ThemeColorShade(TH_GRID, -10);
 		}
+		else BIF_ThemeColorShade(TH_GRID, 10);
 	
 		glBegin(GL_LINE_STRIP);
         vert[1]= a*vd->grid;

@@ -56,7 +56,6 @@ void calc_meshverts_ext(void);
 void calc_meshverts_ext_f2(void);
 void calc_nurbverts_ext(void);
 void tekenvertices(short sel);
-void tekenvertices_ext(int mode);
 void drawcircball(float *cent, float rad, float tmat[][4]);
 void get_local_bounds(struct Object *ob, float *centre, float *size);
 void draw_object(struct Base *base);
