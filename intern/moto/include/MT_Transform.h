@@ -61,12 +61,16 @@ public:
     MT_Transform() {}
     MT_Transform(const float *m) { setValue(m); }
     MT_Transform(const double *m) { setValue(m); }
-    MT_Transform(const MT_Point3& p, const MT_Quaternion& q) { 
+    MT_Transform(const MT_Point3& p, const MT_Quaternion& q)
+    	: m_type(IDENTITY)
+	{ 
 		setOrigin(p);
 		setRotation(q);
 	}
 
-    MT_Transform(const MT_Point3& p, const MT_Matrix3x3& m) { 
+    MT_Transform(const MT_Point3& p, const MT_Matrix3x3& m) 
+    	: m_type(IDENTITY)
+	{ 
 		setOrigin(p);
 		setBasis(m);
 	}
