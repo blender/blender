@@ -65,6 +65,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_space_types.h"
 
 #include "BKE_mesh.h"
 #include "BKE_key.h"
@@ -102,6 +103,8 @@
 #include "nla.h"
 
 #include "BPY_extern.h"
+
+#include "butspace.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -146,10 +149,10 @@ static void init_render_object(Object *ob);
 static HaloRen *initstar(float *vec, float hasize);
 
 /* Displacement Texture */
-void displace_render_face(VlakRen *vlr, float scale);
+void displace_render_face(VlakRen *vlr, float *scale);
 void do_displacement(Object *ob, int startface, int numface, int startvert, int numvert);
 short test_for_displace(Object *ob);
-void displace_render_vert(ShadeInput *shi, VertRen *vr, float scale);
+void displace_render_vert(ShadeInput *shi, VertRen *vr, float *scale);
 
 /* more prototypes for autosmoothing below */
 
@@ -3091,34 +3094,53 @@ void do_displacement(Object *ob, int startface, int numface, int startvert, int 
 {
 	VertRen *vr;
 	VlakRen *vlr;
+	float min[3]={1e30, 1e30, 1e30}, max[3]={-1e30, -1e30, -1e30};
+	float scale[3]={1.0f, 1.0f, 1.0f}, temp[3];
+	int i, texflag=0;
+	BoundBox bb; 
 	Mesh *me;
-	float min[3]={1e9, 1e9, 1e9}, max[3]={-1e9, -1e9, -1e9};
-	float scale=1.0f;
-	int i;
-	BoundBox bb;
+	Curve *cu;
+	MetaBall *mb; 
+	Object *obt;
 
 	/* Calculate Texture space scale factor  - Still needs work.  */
 	if (ob->type & OB_MESH) {
-		if (( (Mesh *)(ob->data) )->bb == NULL) tex_space_mesh((Mesh *)(ob->data));
-		memcpy(&bb, ( (Mesh *)(ob->data) )->bb, 8*sizeof(float) );
+		me=(Mesh *)(ob->data);
+		if (me->bb == NULL) tex_space_mesh(me);
+		memcpy(&bb, me->bb, sizeof(BoundBox) );
+		texflag=me->texflag;
 	}
 	else if (ob->type & OB_CURVE | OB_SURF | OB_FONT) {
-		if (( (Curve *)(ob->data) )->bb == NULL) tex_space_curve((Curve *)(ob->data));
-		memcpy(&bb, ((Curve *)(ob->data) )->bb, 8*sizeof(float) );
+		cu=(Curve *)(ob->data);
+		if (cu->bb == NULL) tex_space_curve(cu);
+		memcpy(&bb, cu->bb, sizeof(BoundBox) );
+		texflag=cu->texflag;
 	}
 	else if (ob->type & OB_MBALL) {
-		if (( (MetaBall *)(ob->data) )->bb == NULL) tex_space_mball(ob);
-		memcpy(&bb, ( (MetaBall *)(ob->data) )->bb, 8*sizeof(float) );
+		mb=(MetaBall *)(ob->data);
+		if ( mb->bb == NULL) tex_space_mball(ob);
+		memcpy(&bb, mb->bb, sizeof(BoundBox) );
+		texflag=mb->texflag;
 	}
-	else memcpy(&bb, ob->bb, 8*sizeof(float) );
-		
-	for(i=0; i<8; i++){
-			DO_MINMAX(bb.vec[i], min, max);
+	else memcpy(&bb, ob->bb, sizeof(BoundBox) ); /* Need to test? */	
+	
+	/* Relative scale of Data  Treat amount of displ. */
+	/* We treat the amout of displacement the same as other texture coords */
+	if ( texflag & 1) { /* Bit 0 = Autotex */
+		for(i=0; i<8; i++){ DO_MINMAX(bb.vec[i], min, max); }
+		VecSubf(scale, max, min);
+		printf("data scale=%f, %f, %f\n", scale[0], scale[1], scale[2]);
 	}
 	
-	VecSubf(max, max, min);
-	scale = MAX3(max[0], max[1], max[2]);
-	printf("scale=%f\n", scale);
+	/* Object Size with parenting */
+	obt=ob;
+	while(obt){
+		VecAddf(temp, obt->size, obt->dsize);
+		scale[0]*=temp[0]; scale[1]*=temp[1]; scale[2]*=temp[2];
+		obt=obt->parent;
+	}
+	
+	printf("ob scale=%f, %f, %f\n", scale[0], scale[1], scale[2]);
 	
 	/* Clear all flags */
 	for(i=startvert; i<startvert+numvert; i++){ /* Clear vert flags */
@@ -3142,7 +3164,7 @@ void do_displacement(Object *ob, int startface, int numface, int startvert, int 
 	normalenrender(startvert, startface);
 }
 
-void displace_render_face(VlakRen *vlr, float scale)
+void displace_render_face(VlakRen *vlr, float *scale)
 {
 	ShadeInput shi;
 	VertRen vr;
@@ -3201,7 +3223,7 @@ void displace_render_face(VlakRen *vlr, float scale)
 	}
 }
 
-void displace_render_vert(ShadeInput *shi, VertRen *vr, float scale)
+void displace_render_vert(ShadeInput *shi, VertRen *vr, float *scale)
 {
 	short texco= shi->matren->texco;
 	float sample=0;
@@ -3233,9 +3255,9 @@ void displace_render_vert(ShadeInput *shi, VertRen *vr, float scale)
 	do_material_tex(shi);
 
 	/* 0.25 could become button once?  */
-	vr->co[0] += 0.5 * shi->displace[0] * scale ; 
-	vr->co[1] += 0.5 * shi->displace[1] * scale ; 
-	vr->co[2] += 0.5 * shi->displace[2] * scale ; 
+	vr->co[0] += 0.5 * shi->displace[0] * scale[0] ; 
+	vr->co[1] += 0.5 * shi->displace[1] * scale[1] ; 
+	vr->co[2] += 0.5 * shi->displace[2] * scale[2] ; 
 	
 	/* we just don't do this vertex again, bad luck for other face using same vertex with
 	   different material... */
