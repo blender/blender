@@ -234,8 +234,10 @@ Window *window_open(char *title, int posx, int posy, int sizex, int sizey, int s
 	inital_state= start_maximized?
 		GHOST_kWindowStateFullScreen:GHOST_kWindowStateNormal;
 #else
-	inital_state= start_maximized?
-		GHOST_kWindowStateMaximized:GHOST_kWindowStateNormal;
+	if (start_maximized == 2)
+		inital_state= GHOST_kWindowStateFullScreen;
+	else
+		inital_state= start_maximized?GHOST_kWindowStateMaximized:GHOST_kWindowStateNormal;
 #endif
 
 	ghostwin= GHOST_CreateWindow(g_system, 

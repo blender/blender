@@ -118,7 +118,7 @@ static void wait_for_event(void);
 /* ********* Globals *********** */
 
 static Window *mainwin= NULL;
-static int prefsizx= 0, prefsizy= 0, prefstax= 0, prefstay= 0, start_maximized= 1;
+static int prefsizx= 0, prefsizy= 0, prefstax= 0, prefstay= 0, start_maximized= 1, start_fullscreen = 0;
 static short dodrawscreen= 0;
 static ScrArea *areawinar[MAXWIN];
 static ScrArea *g_activearea= NULL;
@@ -1124,6 +1124,11 @@ void mainwindow_close(void) {
 
 /* *********  AREAS  ************* */
 
+void setfullscreen()
+{
+	start_fullscreen = 1;	
+}
+
 void setprefsize(int stax, int stay, int sizx, int sizy)
 {
 	int scrwidth, scrheight;
@@ -1674,8 +1679,12 @@ static bScreen *addscreen(char *name)		/* use setprefsize() if you want somethin
 	
 	sc->scene= G.scene;
 	
-	if (!mainwin) {
-		mainwin= window_open("Blender", sc->startx, sc->starty, sc->sizex, sc->sizey, start_maximized);
+  	if (!mainwin) {
+		if (start_fullscreen)
+			mainwin= window_open("Blender", sc->startx, sc->starty, sc->sizex, sc->sizey, 2);
+		else
+			mainwin= window_open("Blender", sc->startx, sc->starty, sc->sizex, sc->sizey, start_maximized);
+		
 		if (!mainwin) {
 			printf("ERROR: Unable to open Blender window\n");
 			exit(1);

@@ -345,6 +345,7 @@ int main(int argc, char **argv)
 					break;
 				case 'W':
 						/* XXX, fixme zr, borderless on win32 */
+ 					setfullscreen();
 					break;
 				case 'n':
 				case 'N':
