@@ -30,6 +30,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#include <stdio.h>
 #include "plugin.h"
 
 /* ******************** GLOBAL VARIABLES ***************** */
