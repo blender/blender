@@ -104,7 +104,7 @@ typedef struct TransInfo {
 #define	NOZERO			8
 #define NOFRACTION		16
 
-
+/* transinfo->mode */
 #define TFM_REPEAT			0
 #define TFM_TRANSLATION		1
 #define TFM_ROTATION		2
@@ -124,9 +124,10 @@ typedef struct TransInfo {
 #define PROP_LIN		3
 #define PROP_CONST		4
 
-/* TRANSDATA FLAGS */
+/* transdata->flag */
 #define TD_SELECTED		1
 #define	TD_NOACTION		2
+#define	TD_USEQUAT		4
 
 void Transform(int mode);
 

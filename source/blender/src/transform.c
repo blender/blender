@@ -83,19 +83,26 @@
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
 
-#include "BKE_global.h"
-#include "BKE_object.h"
-#include "BKE_utildefines.h"
-#include "BKE_lattice.h"
+#include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
+#include "BKE_effect.h"
+#include "BKE_global.h"
+#include "BKE_lattice.h"
+#include "BKE_mball.h"
+#include "BKE_object.h"
+#include "BKE_utildefines.h"
 
 #include "BSE_view.h"
 #include "BSE_edit.h"
+#include "BDR_editobject.h"		// reset_slowparents()
 
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
+#include "BLI_ghash.h"
+
+#include "PIL_time.h"
 
 #include "blendef.h"
 
@@ -140,69 +147,81 @@ static int allocTransData(void)
 
 /* ********************* pose mode ************* */
 
-/* callback */
-static int test_bone_select(Object *ob, Bone *bone, void *ptr) 
+/* callback, make sure it's identical structured as next one */
+static void count_bone_select(ListBase *lb, int *counter) 
 {
-	if (bone->flag & BONE_SELECTED) return 1;
-	return 0;
+	Bone *bone;
+	
+	for(bone= lb->first; bone; bone= bone->next) {
+		if (bone->flag & BONE_SELECTED) {
+			/* We don't let IK children get "grabbed" */
+			/* ALERT! abusive global Trans here */
+			if ( (Trans.mode!=TFM_TRANSLATION) || (bone->flag & BONE_IK_TOPARENT)==0 ) {
+				(*counter)++;
+				return;	// no transform on children if one parent bone is selected
+			}
+		}
+		count_bone_select( &bone->childbase, counter);
+	}
 }
 
 /* callback */
-static int add_pose_transdata(Object *ob, Bone *bone, void *ptr)
+static void add_pose_transdata(ListBase *lb, Object *ob, TransData **tdp)
 {
-	TransData **tvp= ptr;
-	TransData *tv= *tvp;
+	Bone *bone;
+	TransData *td= *tdp;
 	float	parmat[4][4], tempmat[4][4];
-	float tempobmat[4][4], smtx[3][3];
+	float tempobmat[4][4];
 	float vec[3];
 	
-	if (bone->flag & BONE_SELECTED){
+	for(bone= lb->first; bone; bone= bone->next) {
+		if (bone->flag & BONE_SELECTED) {
+			/* We don't let IK children get "grabbed" */
+			/* ALERT! abusive global Trans here */
+			if ( (Trans.mode!=TFM_TRANSLATION) || (bone->flag & BONE_IK_TOPARENT)==0 ) {
+				
+				get_bone_root_pos (bone, vec, 1);
+				
+				//VecAddf (centroid, centroid, vec);
+				VECCOPY(td->center, vec);
+				
+				td->ob = ob;
+				td->bone= bone; //	FIXME: Dangerous
+				
+				td->loc = bone->loc;
+				td->rot= NULL;
+				td->quat= bone->quat;
+				td->size= bone->size;
+				td->dist= 0.0f;
+				td->flag= TD_SELECTED|TD_USEQUAT;
 
-		/* We don't let IK children get "grabbed" */
-		/* if (!((mode=='g' || mode=='G') && (bone->flag & BONE_IK_TOPARENT))){ */
-				// commented out, no idea what it means (ton)
-		
-		get_bone_root_pos (bone, vec, 1);
-		
-		//VecAddf (centroid, centroid, vec);
-		
-		tv->ob = ob;
-		tv->bone= bone; //	FIXME: Dangerous
-		
-		tv->loc = bone->loc;
-		tv->rot= NULL;
-		tv->quat= bone->quat;
-		tv->size= bone->size;
-		tv->dist= 0.0f;
+				memcpy (td->iquat, bone->quat, sizeof (bone->quat));
+				memcpy (td->isize, bone->size, sizeof (bone->size));
+				memcpy (td->iloc, bone->loc, sizeof (bone->loc));
+				
+				/* Get the matrix of this bone minus the usertransform */
+				Mat4CpyMat4 (tempobmat, bone->obmat);
+				Mat4One (bone->obmat);
+				get_objectspace_bone_matrix(bone, tempmat, 1, 1);
+				Mat4CpyMat4 (bone->obmat, tempobmat);
 
-		memcpy (tv->iquat, bone->quat, sizeof (bone->quat));
-		memcpy (tv->isize, bone->size, sizeof (bone->size));
-		memcpy (tv->iloc, bone->loc, sizeof (bone->loc));
-		
-		printf("init loc %f %f %f\n", tv->iloc[0], tv->iloc[1], tv->iloc[2]);
-		
-		/* Get the matrix of this bone minus the usertransform */
-		Mat4CpyMat4 (tempobmat, bone->obmat);
-		Mat4One (bone->obmat);
-		get_objectspace_bone_matrix(bone, tempmat, 1, 1);
-		Mat4CpyMat4 (bone->obmat, tempobmat);
-
-		Mat4MulMat4 (parmat, tempmat, ob->obmat);	/* Original */
-		
-		Mat3CpyMat4 (smtx, parmat);
-		Mat3Inv (tv->smtx, smtx);
-		
-		Mat3CpyMat4 (tv->mtx, bone->obmat);
-		
-		(*tvp)++;
+				Mat4MulMat4 (parmat, tempmat, ob->obmat);	/* Original */
+				
+				Mat3CpyMat4 (td->mtx, parmat);
+				Mat3Inv (td->smtx, td->mtx);
+				
+				(*tdp)++;
+				return;	// see above function
+			}
+		}
+		add_pose_transdata(&bone->childbase, ob, tdp);
 	}
-	return 0;
 }
 
-static void createTransPoseVerts(void)
+static void createTransPose(void)
 {
 	bArmature *arm;
-	TransData *tv;
+	TransData *td;
 	float mtx[3][3], smtx[3][3];
 	
 	Trans.total= 0;	// to be able to return
@@ -232,26 +251,31 @@ static void createTransPoseVerts(void)
 	where_is_armature (G.obpose);
 	
 	/* count total */
-	Trans.total= bone_looper(G.obpose, arm->bonebase.first, NULL, test_bone_select);
+	count_bone_select(&arm->bonebase, &Trans.total);
+	
+	if(Trans.total==0 && Trans.mode==TFM_TRANSLATION) {
+		Trans.mode= TFM_ROTATION;
+		count_bone_select(&arm->bonebase, &Trans.total);
+	}		
 	if(Trans.total==0) return;
 	
 	/* init trans data */
 	Mat3CpyMat4(mtx, G.obpose->obmat);
 	Mat3Inv(smtx, mtx);
 	
-    tv = Trans.data = MEM_mallocN(Trans.total*sizeof(TransData), "TransPoseBone");
+    td = Trans.data = MEM_mallocN(Trans.total*sizeof(TransData), "TransPoseBone");
 	
 	Mat3CpyMat4(mtx, G.obpose->obmat);
 	Mat3Inv(smtx, mtx);
 	
-	bone_looper(G.obpose, arm->bonebase.first, &tv, add_pose_transdata);
+	add_pose_transdata(&arm->bonebase, G.obpose, &td);
 	
 }
 
 static void createTransArmatureVerts(void)
 {
 	EditBone *ebo;
-	TransData *tv;
+	TransData *td;
 	float mtx[3][3], smtx[3][3];
 
 	Trans.total = 0;
@@ -269,38 +293,38 @@ static void createTransArmatureVerts(void)
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-    tv = Trans.data = MEM_mallocN(Trans.total*sizeof(TransData), "TransEditBone");
+    td = Trans.data = MEM_mallocN(Trans.total*sizeof(TransData), "TransEditBone");
 	
 	for (ebo=G.edbo.first;ebo;ebo=ebo->next){
 		if (ebo->flag & BONE_TIPSEL){
-			VECCOPY (tv->iloc, ebo->tail);
-			tv->loc= ebo->tail;
-			tv->flag= TD_SELECTED;
+			VECCOPY (td->iloc, ebo->tail);
+			td->loc= ebo->tail;
+			td->flag= TD_SELECTED;
 
-			Mat3CpyMat3(tv->smtx, smtx);
-			Mat3CpyMat3(tv->mtx, mtx);
+			Mat3CpyMat3(td->smtx, smtx);
+			Mat3CpyMat3(td->mtx, mtx);
 
-			tv->size = NULL;
-			tv->rot = NULL;
+			td->size = NULL;
+			td->rot = NULL;
 
-			tv->dist = 0.0f;
+			td->dist = 0.0f;
 			
-			tv++;
+			td++;
 		}
 		if (ebo->flag & BONE_ROOTSEL){
-			VECCOPY (tv->iloc, ebo->head);
-			tv->loc= ebo->head;
-			tv->flag= TD_SELECTED;
+			VECCOPY (td->iloc, ebo->head);
+			td->loc= ebo->head;
+			td->flag= TD_SELECTED;
 
-			Mat3CpyMat3(tv->smtx, smtx);
-			Mat3CpyMat3(tv->mtx, mtx);
+			Mat3CpyMat3(td->smtx, smtx);
+			Mat3CpyMat3(td->mtx, mtx);
 
-			tv->size = NULL;
-			tv->rot = NULL;
+			td->size = NULL;
+			td->rot = NULL;
 
-			tv->dist = 0.0f;
+			td->dist = 0.0f;
 		
-			tv++;
+			td++;
 		}
 			
 	}
@@ -309,7 +333,7 @@ static void createTransArmatureVerts(void)
 static void createTransMBallVerts(void)
 {
  	MetaElem *ml;
-	TransData *tv;
+	TransData *td;
 	float mtx[3][3], smtx[3][3];
 	int count;
 
@@ -319,28 +343,28 @@ static void createTransMBallVerts(void)
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
     
-	tv = Trans.data;
+	td = Trans.data;
     ml= editelems.first;
 	while(ml) {
 		if(ml->flag & SELECT) {
-			tv->loc= &ml->x;
-			VECCOPY(tv->iloc, tv->loc);
-			VECCOPY(tv->center, tv->loc);
-			tv->flag= TD_SELECTED;
+			td->loc= &ml->x;
+			VECCOPY(td->iloc, td->loc);
+			VECCOPY(td->center, td->loc);
+			td->flag= TD_SELECTED;
 
-			Mat3CpyMat3(tv->smtx, smtx);
-			Mat3CpyMat3(tv->mtx, mtx);
+			Mat3CpyMat3(td->smtx, smtx);
+			Mat3CpyMat3(td->mtx, mtx);
 
-			tv->size = &ml->expx;
-			tv->isize[0] = ml->expx;
-			tv->isize[1] = ml->expy;
-			tv->isize[2] = ml->expz;
+			td->size = &ml->expx;
+			td->isize[0] = ml->expx;
+			td->isize[1] = ml->expy;
+			td->isize[2] = ml->expz;
 
-			tv->rot = NULL;
+			td->rot = NULL;
 
-			tv->dist = 0.0f;
+			td->dist = 0.0f;
 
-			tv++;
+			td++;
 		}
 		ml= ml->next;
 	}
@@ -348,7 +372,7 @@ static void createTransMBallVerts(void)
 
 static void createTransCurveVerts(void)
 {
-	TransData *tv = NULL;
+	TransData *td = NULL;
   	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
@@ -364,7 +388,7 @@ static void createTransCurveVerts(void)
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-    tv = Trans.data;
+    td = Trans.data;
 	nu= editNurb.first;
 	while(nu) {
 		if((nu->type & 7)==CU_BEZIER) {
@@ -373,51 +397,51 @@ static void createTransCurveVerts(void)
 			while(a--) {
 				if(bezt->hide==0) {
 					if(mode==1 || (bezt->f1 & 1)) {
-						VECCOPY(tv->iloc, bezt->vec[0]);
-						tv->loc= bezt->vec[0];
-						VECCOPY(tv->center, tv->loc);
-						tv->flag= TD_SELECTED;
-						tv->rot = NULL;
-						tv->size = NULL;
+						VECCOPY(td->iloc, bezt->vec[0]);
+						td->loc= bezt->vec[0];
+						VECCOPY(td->center, td->loc);
+						td->flag= TD_SELECTED;
+						td->rot = NULL;
+						td->size = NULL;
 
-						Mat3CpyMat3(tv->smtx, smtx);
-						Mat3CpyMat3(tv->mtx, mtx);
+						Mat3CpyMat3(td->smtx, smtx);
+						Mat3CpyMat3(td->mtx, mtx);
 
-						tv->dist = 0.0f;
+						td->dist = 0.0f;
 			
-						tv++;
+						td++;
 						count++;
 					}
 					if(mode==1 || (bezt->f2 & 1)) {
-						VECCOPY(tv->iloc, bezt->vec[1]);
-						tv->loc= bezt->vec[1];
-						VECCOPY(tv->center, tv->loc);
-						tv->flag= TD_SELECTED;
-						tv->rot = NULL;
-						tv->size = NULL;
+						VECCOPY(td->iloc, bezt->vec[1]);
+						td->loc= bezt->vec[1];
+						VECCOPY(td->center, td->loc);
+						td->flag= TD_SELECTED;
+						td->rot = NULL;
+						td->size = NULL;
 
-						Mat3CpyMat3(tv->smtx, smtx);
-						Mat3CpyMat3(tv->mtx, mtx);
+						Mat3CpyMat3(td->smtx, smtx);
+						Mat3CpyMat3(td->mtx, mtx);
 
-						tv->dist = 0.0f;
+						td->dist = 0.0f;
 			
-						tv++;
+						td++;
 						count++;
 					}
 					if(mode==1 || (bezt->f3 & 1)) {
-						VECCOPY(tv->iloc, bezt->vec[2]);
-						tv->loc= bezt->vec[2];
-						VECCOPY(tv->center, tv->loc);
-						tv->flag= TD_SELECTED;
-						tv->rot = NULL;
-						tv->size = NULL;
+						VECCOPY(td->iloc, bezt->vec[2]);
+						td->loc= bezt->vec[2];
+						VECCOPY(td->center, td->loc);
+						td->flag= TD_SELECTED;
+						td->rot = NULL;
+						td->size = NULL;
 
-						Mat3CpyMat3(tv->smtx, smtx);
-						Mat3CpyMat3(tv->mtx, mtx);
+						Mat3CpyMat3(td->smtx, smtx);
+						Mat3CpyMat3(td->mtx, mtx);
 
-						tv->dist = 0.0f;
+						td->dist = 0.0f;
 			
-						tv++;
+						td++;
 						count++;
 					}
 				}
@@ -430,19 +454,19 @@ static void createTransCurveVerts(void)
 			while(a--) {
 				if(bp->hide==0) {
 					if(mode==1 || (bp->f1 & 1)) {
-						VECCOPY(tv->iloc, bp->vec);
-						tv->loc= bp->vec;
-						VECCOPY(tv->center, tv->loc);
-						tv->flag= TD_SELECTED;
-						tv->rot = NULL;
-						tv->size = NULL;
+						VECCOPY(td->iloc, bp->vec);
+						td->loc= bp->vec;
+						VECCOPY(td->center, td->loc);
+						td->flag= TD_SELECTED;
+						td->rot = NULL;
+						td->size = NULL;
 
-						Mat3CpyMat3(tv->smtx, smtx);
-						Mat3CpyMat3(tv->mtx, mtx);
+						Mat3CpyMat3(td->smtx, smtx);
+						Mat3CpyMat3(td->mtx, mtx);
 
-						tv->dist = 0.0f;
+						td->dist = 0.0f;
 			
-						tv++;
+						td++;
 						count++;
 					}
 				}
@@ -455,7 +479,7 @@ static void createTransCurveVerts(void)
 
 static void createTransLatticeVerts(void)
 {
-	TransData *tv = NULL;
+	TransData *td = NULL;
 	int count = 0;
 	BPoint *bp;
 	float mtx[3][3], smtx[3][3];
@@ -474,26 +498,26 @@ static void createTransLatticeVerts(void)
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-	tv = Trans.data;
+	td = Trans.data;
 	bp= editLatt->def;
 	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 	while(a--) {
 		if(mode==1 || (bp->f1 & 1)) {
 			if(bp->hide==0) {
-				VECCOPY(tv->iloc, bp->vec);
-				tv->loc= bp->vec;
-				VECCOPY(tv->center, tv->loc);
-				tv->flag= TD_SELECTED;
+				VECCOPY(td->iloc, bp->vec);
+				td->loc= bp->vec;
+				VECCOPY(td->center, td->loc);
+				td->flag= TD_SELECTED;
 
-				Mat3CpyMat3(tv->smtx, smtx);
-				Mat3CpyMat3(tv->mtx, mtx);
+				Mat3CpyMat3(td->smtx, smtx);
+				Mat3CpyMat3(td->mtx, mtx);
 
-				tv->size = NULL;
-				tv->rot = NULL;
+				td->size = NULL;
+				td->rot = NULL;
 
-				tv->dist = 0.0f;
+				td->dist = 0.0f;
 
-				tv++;
+				td++;
 				count++;
 			}
 		}
@@ -628,6 +652,8 @@ static void createTransEditVerts(void)
 	}
 }
 
+/* *************************** Object Transform data ******************* */
+
 static void ObjectToTransData(TransData *tob, Object *ob) 
 {
 	float totmat[3][3], obinv[3][3], obmtx[3][3];
@@ -670,36 +696,192 @@ static void ObjectToTransData(TransData *tob, Object *ob)
 	Mat3MulMat3(tob->smtx, obmtx, obinv);
 }
 
+/* only used in function below, stuff to be removed */
+static Object *is_a_parent_selected_int(Object *startob, Object *ob, GHash *done_hash) 
+{
+	if (ob!=startob && TESTBASE(ob))
+		return ob;
+	
+	if (BLI_ghash_haskey(done_hash, ob))
+		return NULL;
+	else
+		BLI_ghash_insert(done_hash, ob, NULL);
+	
+	if (ob->parent) {
+		Object *par= is_a_parent_selected_int(startob, ob->parent, done_hash);
+		if (par)
+			return par;
+	}
+	return NULL;
+}
+
+/* only used in function below, stuff to be removed */
+static Object *is_a_parent_selected(Object *ob) 
+{
+	GHash *gh= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	Object *res= is_a_parent_selected_int(ob, ob, gh);
+	BLI_ghash_free(gh, NULL, NULL);
+	
+	return res;
+}
+
+
+
+/* sets flags in Bases to define whether they take part in transform */
+/* it deselects Bases, so we have to call the clear function always after */
+static void set_trans_object_base_flags(TransInfo *t)
+{
+	/*
+	 if Base selected and has parent selected:
+	 base->flag= BA_WASSEL+BA_PARSEL
+	 if base not selected and parent selected:
+	 base->flag= BA_PARSEL
+	 */
+	GHash *object_to_base_hash= NULL; 
+	Base *base;
+	
+	/* moved to start of function, it is needed for hooks now too */
+	if (!object_to_base_hash) {
+		Base *b;
+		object_to_base_hash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+		
+		for (b= FIRSTBASE; b; b= b->next)
+			BLI_ghash_insert(object_to_base_hash, b->object, b);
+	}
+	
+	/* makes sure base flags and object flags are identical */
+	copy_baseflags();
+	
+	for (base= FIRSTBASE; base; base= base->next) {
+		base->flag &= ~(BA_PARSEL+BA_WASSEL);
+		
+		if( (base->lay & G.vd->lay) && base->object->id.lib==0) {
+			Object *ob= base->object;
+			Object *parsel= is_a_parent_selected(ob);
+			
+			/* parentkey here? */
+			
+			if(parsel) {
+				if(base->flag & SELECT) {
+					base->flag &= ~SELECT;
+					base->flag |= (BA_PARSEL+BA_WASSEL);
+				}
+				else base->flag |= BA_PARSEL;
+			}
+			
+			if(t->mode==TFM_TRANSLATION)  {
+				if(ob->track && TESTBASE(ob->track) && (base->flag & SELECT)==0)  
+					base->flag |= BA_PARSEL;
+			}
+			
+			/* updates? */
+			if(ob->hooks.first) {
+				Base *b;
+				ObHook *hook= ob->hooks.first;
+				
+				while(hook) {
+					if(hook->parent) {
+						Object *parsel= is_a_parent_selected(hook->parent);
+						
+						b= BLI_ghash_lookup(object_to_base_hash, hook->parent);
+						if(parsel || ((base->flag | b->flag) & (SELECT | BA_PARSEL)) ) {
+							base->flag |= BA_DISP_UPDATE;
+						}
+					}
+					hook= hook->next;
+				}
+			}
+			
+			if(ob->parent && ob->parent->type==OB_LATTICE)
+				if(ob->parent->hooks.first) base->flag |= BA_DISP_UPDATE;
+			
+			if(base->flag & (SELECT | BA_PARSEL)) {
+				
+				base->flag |= BA_WHERE_UPDATE;
+				
+				if(ob->parent) {
+					if(ob->parent->type==OB_LATTICE) base->flag |= BA_DISP_UPDATE;
+					else if(ob->partype==PARSKEL) {
+						if ELEM3(ob->parent->type, OB_IKA, OB_CURVE, OB_ARMATURE) 
+							base->flag |= BA_DISP_UPDATE;
+					}
+				}
+				if(ob->track) {
+					;
+				}
+				
+				if( give_parteff(ob) ) base->flag |= BA_DISP_UPDATE;
+				
+				if(ob->type==OB_MBALL) {
+					Base *b;
+					
+					b= BLI_ghash_lookup(object_to_base_hash, find_basis_mball(ob));
+					b->flag |= BA_DISP_UPDATE;
+				}
+			}
+		}
+	}
+	
+	if (object_to_base_hash)
+		BLI_ghash_free(object_to_base_hash, NULL, NULL);
+	
+}
+
+static void clear_trans_object_base_flags(void)
+{
+	Base *base;
+	
+	base= FIRSTBASE;
+	while(base) {
+		if(base->flag & BA_WASSEL) base->flag |= SELECT;
+		base->flag &= ~(BA_PARSEL+BA_WASSEL);
+		
+		base->flag &= ~(BA_DISP_UPDATE+BA_WHERE_UPDATE+BA_DO_IPO);
+		
+		/* pose here? */
+		if (base->object->pose) {
+			Object *ob= base->object;
+			bPoseChannel *chan;
+			for (chan = ob->pose->chanbase.first; chan; chan=chan->next) {
+				chan->flag &= ~PCHAN_TRANS_UPDATE;
+			}
+		}
+		
+		base= base->next;
+	}
+	copy_baseflags();
+}
+
+
 static void createTransObject(void)
 {
 	TransData *tob = NULL;
 	Object *ob;
 	Base *base;
-	int totsel = 0, i;
+	int totsel= 0;
 
+	/* hackish... but we have to do it somewhere */
+	reset_slowparents();
+	
+	set_trans_object_base_flags(&Trans);
+	
 	/* count */	
-	base= FIRSTBASE;
-	while(base) {
+	for(base= FIRSTBASE; base; base= base->next) {
 		if TESTBASELIB(base) {
 			Trans.total++;
 			totsel++;
 		}
-		else if (G.f & G_PROPORTIONAL) {
-			ob= base->object;
-			if (G.vd->lay & ob->lay) {
-				Trans.total++;
-			}
-		}
-		base= base->next;
 	}
 
-	if(!Trans.total)
+	if(!Trans.total) {
+		/* clear here, main transform function escapes too */
+		clear_trans_object_base_flags();
 		return;
-
+	}
+	
 	tob = Trans.data = MEM_mallocN(Trans.total*sizeof(TransData), "TransOb");
 
-	base= FIRSTBASE;
-	while(base) {
+	for(base= FIRSTBASE; base; base= base->next) {
 		if TESTBASELIB(base) {
 			ob= base->object;
 			
@@ -711,46 +893,6 @@ static void createTransObject(void)
 
 			tob++;
 		}
-		base= base->next;
-	}
-
-
-	/* PROPORTIONAL*/
-	if (G.f & G_PROPORTIONAL) {
-		base= FIRSTBASE;
-		while(base) {
-			if (!TESTBASELIB(base)) {
-				TransData *td;
-				int i;
-				float dist;
-
-				ob= base->object;
-				
-				if (G.vd->lay & ob->lay) {
-					tob->flag = 0;
-
-					tob->ob = ob;
-				
-					ObjectToTransData(tob, ob);
-
-					tob->dist = -1;
-
-					td = Trans.data;
-					for (i = 0; i < totsel; i++, td++) {
-						dist = VecLenf(tob->center, td->center);
-						if (tob->dist == -1) {
-							tob->dist = dist;
-						}
-						else if (dist < tob->dist) {
-							tob->dist = dist;
-						}
-					}
-
-					tob++;
-				}
-			}
-			base= base->next;
-		}
 	}
 
 /*
@@ -758,37 +900,16 @@ static void createTransObject(void)
 	SINCE TRANSFORMATION IS ALREADY APPLIED ON PARENT
 
 	THERE MUST BE A BETTER WAY TO DO THIS
+ 
+	Yes there is! For now I copy the baseflag method from old transform (ton)
 */
-
-	tob = Trans.data;
-	for (i = 0; i < Trans.total; i++, tob++) {
-		ob = tob->ob->parent;
-		while (ob) {
-			TransData *td;
-			int j, found = 0;
-			td = Trans.data;
-			for (j = 0; j < Trans.total; j++, td++) {
-				if (ob == td->ob) {
-					found = 1;
-					tob->flag |= TD_NOACTION;
-					break;
-				}
-			}
-
-			if (found) {
-				break;
-			}
-
-			ob = ob->parent;
-		}
-	}
 
 }
 
 static void createTransData(void) 
 {
 	if (G.obpose) {
-		createTransPoseVerts();
+		createTransPose();
 	}
 	else if (G.obedit) {
 		if (G.obedit->type == OB_MESH) {
@@ -827,7 +948,8 @@ void Transform(int mode)
 	float mati[3][3];
 	unsigned short event;
 
-	/*joeedh -> hopefully may be what makes the old transform() constant*/	
+	/*joeedh -> hopefully may be what makes the old transform() constant*/
+	/* ton: I doubt, but it doesnt harm for now. shouldnt be needed though */
 	areawinset(curarea->win);
 
 	Mat3One(mati);
@@ -855,6 +977,9 @@ void Transform(int mode)
 	if (Trans.total == 0)
 		return;
 
+	/* EVIL! posemode code can switch translation to rotate when 1 bone is selected. will be removed (ton) */
+	mode= Trans.mode;
+	
 	calculatePropRatio(&Trans);
 	calculateCenter(&Trans);
 
@@ -884,7 +1009,9 @@ void Transform(int mode)
 	Trans.redraw = 1;
 
 	while (ret_val == 0) {
+		
 		getmouseco_areawin(mval);
+		
 		if (mval[0] != pmval[0] || mval[1] != pmval[1]) {
 			Trans.redraw = 1;
 		}
@@ -897,6 +1024,10 @@ void Transform(int mode)
 			}
 			Trans.redraw = 0;
 		}
+		
+		/* essential for idling subloop */
+		if( qtest()==0) PIL_sleep_ms(2);
+
 		while( qtest() ) {
 			event= extern_qread(&val);
 
@@ -991,8 +1122,28 @@ void Transform(int mode)
 	else {
 		BIF_undo_push("Transform");
 	}
-
+	
+	/* free data, reset vars */
 	postTrans(&Trans);
+	
+	/* mess from old transform, just for now (ton) */
+	{
+		char cmode='g';
+		
+		if(mode==TFM_RESIZE) cmode= 's';
+		else if(mode==TFM_ROTATION) cmode= 'r';
+		/* aftertrans does displists, ipos and action channels */
+		special_aftertrans_update(cmode, 0, ret_val == TRANS_CANCEL, 0 /*keyflags*/);
+		
+		if(G.obedit==NULL && G.obpose==NULL)
+			clear_trans_object_base_flags();
+	}
+	
+	
+	/* send events out for redraws */
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	scrarea_queue_headredraw(curarea);
 }
 
 /* ************************** WRAP *************************** */
@@ -1379,6 +1530,7 @@ int Rotation(TransInfo *t, short mval[2])
 		sprintf(str, "Rot: %.2f %s", 180.0*final/M_PI, t->proptext);
 	}
 
+	//printf("Axis %f %f %f\n", axis[0], axis[1], axis[2]);
 	VecRotToMat3(axis, final * td->factor, mat);
 
 	for(i = 0 ; i < t->total; i++, td++) {
@@ -1414,12 +1566,24 @@ int Rotation(TransInfo *t, short mval[2])
 			Mat3MulVecfl(td->smtx, vec);
 
 			VecAddf(td->loc, td->iloc, vec);
-
-			Mat3MulMat3(totmat, mat, td->mtx);
-			Mat3MulMat3(fmat, td->smtx, totmat);
-			Mat3ToEul(fmat, eul);
-			VECCOPY(td->rot, eul);
-
+			
+			if(td->flag & TD_USEQUAT) {
+				float quat[4];
+				
+				Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
+				
+				Mat3ToQuat(fmat, quat);	// Actual transform
+				//printf("Quat %f %f %f %f\n", quat[0], quat[1], quat[2], quat[3]);
+				
+				QuatMul(td->quat, quat, td->iquat);
+			}
+			else {
+				Mat3MulMat3(totmat, mat, td->mtx);
+				Mat3MulMat3(fmat, td->smtx, totmat);
+				
+				Mat3ToEul(fmat, eul);
+				VECCOPY(td->rot, eul);
+			}
 		}
 	}
 

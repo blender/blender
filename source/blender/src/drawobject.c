@@ -254,6 +254,7 @@ void helpline(float *vec)
 
 	VECCOPY(vecrot, vec);
 	if(G.obedit) Mat4MulVecfl(G.obedit->obmat, vecrot);
+	else if(G.obpose) Mat4MulVecfl(G.obpose->obmat, vecrot);
 
 	getmouseco_areawin(mval);
 	project_float(vecrot, cent);	// no overflow in extreme cases

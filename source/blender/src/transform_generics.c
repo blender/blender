@@ -88,12 +88,13 @@
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
+#include "BKE_ipo.h"
 #include "BKE_lattice.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
-#include "BSE_view.h"
 #include "BSE_edit.h"
+#include "BSE_view.h"
 
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
@@ -115,6 +116,7 @@ extern TransInfo Trans;
 
 /* ************************** GENERICS **************************** */
 
+/* called for objects updating while transform acts, once per redraw */
 void recalcData(TransInfo *t)
 {
 	Base *base;
@@ -137,7 +139,6 @@ void recalcData(TransInfo *t)
 			if (t->mode == TFM_TRANSLATION) {
 				chan->flag |= POSE_LOC;
 				memcpy (chan->loc, td->loc, sizeof (chan->loc));
-				printf("loc %f %f %f\n", chan->loc[0], chan->loc[1], chan->loc[2]);
 			}
 			if (t->mode == TFM_RESIZE) {
 				chan->flag |= POSE_SIZE;
@@ -171,23 +172,96 @@ void recalcData(TransInfo *t)
 
 			makeBevelList(G.obedit); // might be needed for deform
 			calc_curvepath(G.obedit);
+			
+			// deform, bevel, taper
+			base= FIRSTBASE;
+			while(base) {
+				if(base->lay & G.vd->lay) {
+					if(base->object->parent==G.obedit && base->object->partype==PARSKEL)
+						makeDispList(base->object);
+					else if(base->object->type==OB_CURVE) {
+						Curve *cu= base->object->data;
+						if(G.obedit==cu->bevobj || G.obedit==cu->taperobj)
+							makeDispList(base->object);
+					}
+				}
+				base= base->next;
+			}
+		}
+		else if(G.obedit->type==OB_ARMATURE){
+			EditBone *ebo;
+			
+			/* Ensure all bones are correctly adjusted */
+			for (ebo=G.edbo.first; ebo; ebo=ebo->next){
+				
+				if ((ebo->flag & BONE_IK_TOPARENT) && ebo->parent){
+					/* If this bone has a parent tip that has been moved */
+					if (ebo->parent->flag & BONE_TIPSEL){
+						VECCOPY (ebo->head, ebo->parent->tail);
+					}
+					/* If this bone has a parent tip that has NOT been moved */
+					else{
+						VECCOPY (ebo->parent->tail, ebo->head);
+					}
+				}
+			}
+		}
+		else if(G.obedit->type==OB_LATTICE) {
+			
+			if(editLatt->flag & LT_OUTSIDE) outside_lattice(editLatt);
+			
+			base= FIRSTBASE;
+			while(base) {
+				if(base->lay & G.vd->lay) {
+					if(base->object->parent==G.obedit) {
+						makeDispList(base->object);
+					}
+				}
+				base= base->next;
+			}
 		}
 		else if (G.obedit->type == OB_MBALL) {
      		makeDispList(G.obedit);	
   		}   	
 	}
 	else {
-		TransData *tob;
-		int i;
-		tob = t->data;
-		for (i = 0; i < t->total; i++, tob++) {
-			if (tob->ob->type == OB_MBALL) {
-     			makeDispList(tob->ob);	
-  			}   	
+		
+		base= FIRSTBASE;
+		while(base) {
+			if(base->flag & BA_DO_IPO) {
+				IpoCurve *icu;
+				
+				base->object->ctime= -1234567.0;
+				
+				icu= base->object->ipo->curve.first;
+				while(icu) {
+					calchandles_ipocurve(icu);
+					icu= icu->next;
+				}
+				
+			}
+			if(base->object->partype & PARSLOW) {
+				base->object->partype -= PARSLOW;
+				where_is_object(base->object);
+				base->object->partype |= PARSLOW;
+			}
+			else if(base->flag & BA_WHERE_UPDATE) {
+				where_is_object(base->object);
+			}
+			
+			base= base->next;
+		} 
+		
+		base= FIRSTBASE;
+		while(base) {
+			
+			if(base->flag & BA_DISP_UPDATE) makeDispList(base->object);
+			
+			base= base->next;
 		}
 	}
 	
-	/* ugly stuff for posemode */
+	/* ugly stuff for posemode, copied from old system */
 	base= FIRSTBASE;
 	while(base) {
 		extern int pose_flags_reset_done(Object *ob);	// linker solves
@@ -273,19 +347,15 @@ void drawLine(float *center, float *dir, char axis)
 	myloadmatrix(G.vd->viewmat);
 }
 
+/* Here I would suggest only TransInfo related issues, like free data & reset vars. Not redraws */
 void postTrans (TransInfo *t) 
 {
 
 	G.moving = 0; // Set moving flag off (display as usual)
 
-	//special_aftertrans_update();
-	
 	MEM_freeN(t->data);
 	t->data = NULL;
 	
-	scrarea_do_windraw(curarea);
-	screen_swapbuffers();
-
 }
 
 void apply_grid3(float *val, int max_index, float fac1, float fac2, float fac3)
@@ -371,6 +441,11 @@ void restoreTransObjects(TransInfo *t)
 		if (tob->size) {
 			VECCOPY(tob->size, tob->isize);
 		}
+		if(tob->flag & TD_USEQUAT) {
+			if (tob->quat) {
+				QUATCOPY(tob->quat, tob->iquat);
+			}
+		}
     }    
 	recalcData(t);
 } 
@@ -409,18 +484,18 @@ void calculateCenterCursor(TransInfo *t)
 	cursor = give_cursor();
 	VECCOPY(t->center, cursor);
 
-	if(G.obedit) {
+	if(G.obedit || G.obpose) {
+		Object *ob= G.obedit?G.obedit:G.obpose;
 		float mat[3][3], imat[3][3];
-		VecSubf(t->center, t->center, G.obedit->obmat[3]);
-		Mat3CpyMat4(mat, G.obedit->obmat);
+		float vec[3];
+		
+		VecSubf(t->center, t->center, ob->obmat[3]);
+		Mat3CpyMat4(mat, ob->obmat);
 		Mat3Inv(imat, mat);
 		Mat3MulVecfl(imat, t->center);
-	}
-
-	if (G.obedit) {
-		float vec[3];
+		
 		VECCOPY(vec, t->center);
-		Mat4MulVecfl(G.obedit->obmat, vec);
+		Mat4MulVecfl(ob->obmat, vec);
 		project_short_noclip(vec, t->center2d);
 	}
 	else {
@@ -440,10 +515,12 @@ void calculateCenterMedian(TransInfo *t)
 	VecMulf(partial, 1.0f / t->total);
 	VECCOPY(t->center, partial);
 
-	if (G.obedit) {
+	if (G.obedit || G.obpose) {
+		Object *ob= G.obedit?G.obedit:G.obpose;
 		float vec[3];
+		
 		VECCOPY(vec, t->center);
-		Mat4MulVecfl(G.obedit->obmat, vec);
+		Mat4MulVecfl(ob->obmat, vec);
 		project_short_noclip(vec, t->center2d);
 	}
 	else {
@@ -470,10 +547,12 @@ void calculateCenterBound(TransInfo *t)
 	VecAddf(t->center, min, max);
 	VecMulf(t->center, 0.5);
 
-	if (G.obedit) {
+	if (G.obedit || G.obpose) {
+		Object *ob= G.obedit?G.obedit:G.obpose;
 		float vec[3];
+		
 		VECCOPY(vec, t->center);
-		Mat4MulVecfl(G.obedit->obmat, vec);
+		Mat4MulVecfl(ob->obmat, vec);
 		project_short_noclip(vec, t->center2d);
 	}
 	else {
@@ -481,7 +560,8 @@ void calculateCenterBound(TransInfo *t)
 	}
 }
 
-void calculateCenter(TransInfo *t) {
+void calculateCenter(TransInfo *t) 
+{
 	switch(G.vd->around) {
 	case V3D_CENTRE:
 		calculateCenterBound(t);
