@@ -1556,6 +1556,9 @@ void Transform(int mode, int context)
 	case TFM_TRACKBALL:
 		initTrackball(&Trans);
 		break;
+	case TFM_PUSHPULL:
+		initPushPull(&Trans);
+		break;
 	}
 
 	initConstraint(&Trans);
@@ -3091,14 +3094,14 @@ void initPushPull(TransInfo *t)
 	t->snap[0] = 0.0f;
 	t->snap[1] = 1.0f;
 	t->snap[2] = t->snap[1] * 0.1f;
-	t->transform = ShrinkFatten;
+	t->transform = PushPull;
 }
 
 
 
 int PushPull(TransInfo *t, short mval[2]) 
 {
-	float vec[3];
+	float vec[3], axis[3];
 	float distance;
 	int i;
 	char str[50];
@@ -3125,6 +3128,9 @@ int PushPull(TransInfo *t, short mval[2])
 		sprintf(str, "Push/Pull: %.4f%s %s", distance, t->con.text, t->proptext);
 	}
 	
+	if (t->con.applyRot) {
+		t->con.applyRot(t, NULL, axis);
+	}
 	
 	for(i = 0 ; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
@@ -3132,7 +3138,6 @@ int PushPull(TransInfo *t, short mval[2])
 
 		VecSubf(vec, t->center, td->center);
 		if (t->con.applyRot) {
-			float axis[3];
 			t->con.applyRot(t, td, axis);
 			Projf(vec, vec, axis);
 		}

@@ -206,6 +206,9 @@ int Tilt(TransInfo *t, short mval[2]);
 void initTrackball(TransInfo *t);
 int Trackball(TransInfo *t, short mval[2]);
 
+void initPushPull(TransInfo *t);
+int PushPull(TransInfo *t, short mval[2]);
+
 /* exported from transform.c */
 struct ListBase;
 void count_bone_select(struct ListBase *lb, int *counter);

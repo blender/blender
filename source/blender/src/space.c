@@ -1447,7 +1447,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 
 			case PKEY:
-				
 				if(G.obedit) {
 					if(G.qual==LR_CTRLKEY || G.qual==(LR_SHIFTKEY|LR_CTRLKEY))
 						make_parent();
@@ -1455,9 +1454,13 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						separatemenu();
 					else if ((G.qual==0) && ELEM(G.obedit->type, OB_CURVE, OB_SURF))
 						separate_nurb();
+					else if (G.qual==LR_SHIFTKEY)
+						Transform(TFM_PUSHPULL, CTX_NONE);
 				}
 				else if(G.qual==LR_CTRLKEY || G.qual==(LR_SHIFTKEY|LR_CTRLKEY))
 					make_parent();
+				else if(G.qual==LR_SHIFTKEY)
+					Transform(TFM_PUSHPULL, CTX_NONE);
 				else if(G.qual==LR_ALTKEY)
 					clear_parent();
 				else if((G.qual==0)) {
