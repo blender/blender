@@ -73,6 +73,8 @@
 #include "BKE_world.h"
 #include "BKE_texture.h"
 
+#include "BSE_headerbuttons.h"
+
 #include "BIF_gl.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"		/* allqueue */
@@ -864,6 +866,7 @@ static void shade_preview_pixel(float *vec, int x, int y,char *rect, int smooth)
 
 void BIF_previewrender(SpaceButs *sbuts)
 {
+	ID *id, *idfrom;
 	Material *mat= NULL;
 	Tex *tex= NULL;
 	Lamp *la= NULL;
@@ -887,6 +890,10 @@ void BIF_previewrender(SpaceButs *sbuts)
 
 	ob= ((G.scene->basact)? (G.scene->basact)->object: 0);
 	
+	/* we cant trust this global lockpoin.. for example with headerless window */
+	buttons_active_id(&id, &idfrom);
+	G.buts->lockpoin= id;
+
 	if(sbuts->mainb==CONTEXT_SHADING) {
 		int tab= sbuts->tab[CONTEXT_SHADING];
 		
