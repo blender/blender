@@ -430,6 +430,13 @@ def main():
         somevars[key] = makevars[key]
 
     somevars['CFLAGS'] = string.join(cflags) # override
+
+    # a kludge for Irix gcc builds
+    irixgcccheck = parsesetup.getmakevars('Makefile')
+    if (string.find(irixgcccheck['host_triplet'],'irix') != -1):
+        if (string.find(irixgcccheck['CC'],'gcc') != -1):
+            somevars['CC'] = 'gcc'
+
     files = ['$(OPT)', '$(LDFLAGS)', base_config_c, base_frozen_c] + \
             files + supp_sources +  addfiles + libs + \
             ['$(MODLIBS)', '$(LIBS)', '$(SYSLIBS)']
