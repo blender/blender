@@ -6681,8 +6681,8 @@ void transform(int mode)
 	set_constline_callback(0, 0, 0, NULL, NULL, NULL, NULL, NULL);	// disable
 
 	/* undo after transform, since it's storing current situations */
-	/* extrude has no own undo-push, so on cancel we still insert it */
-	if(canceled==0 || strcmp(undostr, "Extrude")==0) 
+	/* extrude/duplicate has no own undo-push, so on cancel we still insert it */
+	if(canceled==0 || strcmp(undostr, "Extrude")==0 || strcmp(undostr, "Duplicate")==0) 
 		BIF_undo_push(undostr);
 }
 
