@@ -2868,14 +2868,18 @@ void apply_object()
 		ob= OBACT;
 		if(ob==0) return;
 		
-		if(ob->transflag & OB_DUPLI) make_duplilist_real();
-		else {
-			if(okee("Apply deformation")==0) return;
-			object_apply_deform(ob);
-			allqueue(REDRAWVIEW3D, 0);
-
-			return;
+		if(ob->transflag & OB_DUPLI) {
+			make_duplilist_real();
 		}
+		else {
+			if(okee("Apply deformation")==0) {
+				object_apply_deform(ob);
+				BIF_undo_push("Apply deformation");
+			}
+		}
+		allqueue(REDRAWVIEW3D, 0);
+
+		return;
 	}
 
 	if(okee("Apply size and rotation")==0) return;
