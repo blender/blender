@@ -193,21 +193,25 @@ static void do_view3d_view_cameracontrolsmenu(void *arg, int event)
 		G.qual |= LR_CTRLKEY;
 		persptoetsen(PAD4);
 		G.qual &= ~LR_CTRLKEY;
+		break;
 	case 5: /* Pan right */
 		/* ugly hack alert */
 		G.qual |= LR_CTRLKEY;
 		persptoetsen(PAD6);
 		G.qual &= ~LR_CTRLKEY;
+		break;
 	case 6: /* Pan up */
 		/* ugly hack alert */
 		G.qual |= LR_CTRLKEY;
 		persptoetsen(PAD8);
 		G.qual &= ~LR_CTRLKEY;
+		break;
 	case 7: /* Pan down */
 		/* ugly hack alert */
 		G.qual |= LR_CTRLKEY;
 		persptoetsen(PAD2);
 		G.qual &= ~LR_CTRLKEY;
+		break;
 	case 9: /* Zoom In */
 		persptoetsen(PADPLUSKEY);
 		break;
