@@ -1763,7 +1763,7 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 		lar->spottexfac= 1.0/(xn);
 
 		if(lar->mode & LA_ONLYSHADOW) {
-			if((lar->mode & LA_SHAD)==0) lar->mode -= LA_ONLYSHADOW;
+			if((lar->mode & (LA_SHAD|LA_SHAD_RAY))==0) lar->mode -= LA_ONLYSHADOW;
 		}
 
 	}
