@@ -1144,6 +1144,9 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else if((G.qual==0)) {
 						mirrormenu();
 					}
+					if(G.qual & (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY)) {
+						if(G.obedit->type==OB_MESH) select_non_manifold();
+					}
 				}
 				else if((G.qual==0)){
 				     movetolayer();
@@ -1440,11 +1443,30 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 			case PAD0: case PAD1: case PAD2: case PAD3: case PAD4:
 			case PAD5: case PAD6: case PAD7: case PAD8: case PAD9:
-			case PADMINUS: case PADPLUSKEY: case PADENTER:
+			case PADENTER:
 				persptoetsen(event);
 				doredraw= 1;
 				break;
-			
+			case PADMINUS:
+				if ( (G.qual==LR_CTRLKEY)
+					 && (G.obedit) && (G.obedit->type==OB_MESH) )
+					select_less();
+				else {
+					persptoetsen(event);
+					doredraw= 1;
+				}
+				break;
+
+			case PADPLUSKEY:
+				if ( (G.qual==LR_CTRLKEY)
+					 && (G.obedit) && (G.obedit->type==OB_MESH) )
+					select_more();
+				else {
+					persptoetsen(event);
+					doredraw= 1;
+				}
+				break;
+
 			case ESCKEY:
 				if(G.qual==0) {
 					if (G.vd->flag & V3D_DISPIMAGE) {

@@ -1584,6 +1584,10 @@ static TBitem tb_mesh_select[]= {
 {	0, "SEPR", 				0, NULL},
 {	0, "Face Loop|Shift R", 6, NULL},
 {	0, "Linked Vertices|Ctrl L", 4, NULL},
+{   0, "SEPR",                          0, NULL},
+{   0, "More|Ctrl Numpad +",            7, NULL},
+{   0, "Less|Ctrl Numpad -",            8, NULL},
+{   0, "Non-manifold|Shift Ctrl Alt M", 9, NULL},
 {  -1, "", 			0, do_view3d_select_meshmenu}};
 
 

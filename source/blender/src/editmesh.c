@@ -8532,3 +8532,180 @@ void bevel_menu()
 		righthandfaces(1);
 	}
 }
+
+void select_non_manifold(void)
+{
+	EditVert *eve;
+	EditEdge *eed;
+	EditVlak *evl;
+
+	/* Selects isolated verts, and edges that do not have 2 neighboring
+	 * faces
+	 */
+
+
+	eve= G.edve.first;
+	while(eve) {
+		/* this will count how many edges are connected
+		 * to this vert */
+		eve->f1= 0;
+		eve= eve->next;
+	}
+
+	eed= G.eded.first;
+	while(eed) {
+		/* this will count how many faces are connected to
+		 * this edge */
+		eed->f1= 0;
+		/* increase edge count for verts */
+		++eed->v1->f1;
+		++eed->v2->f1;
+		eed= eed->next;
+	}
+
+	evl= G.edvl.first;
+	while(evl) {
+		/* increase face count for edges */
+		++evl->e1->f1;
+		++evl->e2->f1;
+		++evl->e3->f1;
+		if (evl->e4)
+			++evl->e4->f1;			
+		evl= evl->next;
+	}
+
+	/* select verts that are attached to an edge that does not
+	 * have 2 neighboring faces */
+	eed= G.eded.first;
+	while(eed) {
+		if (eed->f1 != 2) {
+			eed->v1->f |= 1;
+			eed->v2->f |= 1;
+		}
+		eed= eed->next;
+	}
+
+	/* select isolated verts */
+	eve= G.edve.first;
+	while(eve) {
+		if (eve->f1 == 0) {
+			eve->f |= 1;
+		}
+		eve= eve->next;
+	}
+	addqueue(curarea->win,  REDRAW, 0);
+
+}
+
+void select_more(void)
+{
+	EditVert *eve;
+	EditEdge *eed;
+
+	eve= G.edve.first;
+	while(eve) {
+		eve->f1 = 0;
+		eve= eve->next;
+	}
+
+	eed= G.eded.first;
+	while(eed) {
+		if (eed->v1->f & 1)
+			eed->v2->f1 = 1;
+		if (eed->v2->f & 1)
+			eed->v1->f1 = 1;
+
+		eed= eed->next;
+	}
+
+	eve= G.edve.first;
+	while(eve) {
+		if (eve->f1 == 1)
+			eve->f |= 1;
+
+		eve= eve->next;
+	}
+
+	addqueue(curarea->win,  REDRAW, 0);
+}
+
+void select_less(void)
+{
+	EditVert *eve;
+	EditEdge *eed;
+	EditVlak *evl;
+
+	/* eve->f1 & 1 => isolated   */
+	/* eve->f1 & 2 => on an edge */
+	/* eve->f1 & 4 => shares edge with a deselected vert */ 
+	/* eve->f1 & 8 => at most one neighbor */ 
+
+	eve= G.edve.first;
+	while(eve) {
+		/* assume vert is isolated unless proven otherwise, */
+		/* assume at most one neighbor too */
+		eve->f1 = 1 | 8;
+
+		eve= eve->next;
+	}
+
+	eed= G.eded.first;
+	while(eed) {
+		/* this will count how many faces are connected to
+		 * this edge */
+		eed->f1= 0;
+
+		/* if vert wasn't isolated, it now has more than one neighbor */
+		if (~eed->v1->f1 & 1) eed->v1->f1 &= ~8;
+		if (~eed->v2->f1 & 1) eed->v2->f1 &= ~8;
+
+		/* verts on edge are clearly not isolated */
+		eed->v1->f1 &= ~1;
+		eed->v2->f1 &= ~1;
+
+		/* if one of the verts on the edge is deselected, 
+		 * deselect the other */
+		if (~eed->v1->f & 1)
+			eed->v2->f1 |= 4;
+		if (~eed->v2->f & 1)
+			eed->v1->f1 |= 4;
+
+		eed= eed->next;
+	}
+
+	evl= G.edvl.first;
+	while(evl) {
+		/* increase face count for edges */
+		++evl->e1->f1;
+		++evl->e2->f1;
+		++evl->e3->f1;
+		if (evl->e4)
+			++evl->e4->f1;			
+
+		evl= evl->next;
+	}
+
+	eed= G.eded.first;
+	while(eed) {
+		/* if the edge has only one neighboring face, then
+		 * deselect attached verts */
+		if (eed->f1 == 1) {
+			eed->v1->f1 |= 2;
+			eed->v2->f1 |= 2;
+		}
+
+		eed= eed->next;
+	}
+
+	/* deselect verts */
+	eve= G.edve.first;
+	while(eve) {
+		if (eve->f1) {
+			eve->f &= ~1;
+		}
+
+		eve= eve->next;
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+}
