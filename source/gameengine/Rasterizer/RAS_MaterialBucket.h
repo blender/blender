@@ -95,15 +95,9 @@ inline bool operator <( const KX_MeshSlot& rhs,const KX_MeshSlot& lhs)
  */
 class RAS_MaterialBucket
 {
+public:
 	typedef std::set<KX_MeshSlot> T_MeshSlotList;
 	
-	T_MeshSlotList				m_meshSlots;
-	bool						m_bScheduled;
-	bool						m_bModified;
-	RAS_IPolyMaterial*			m_material;
-	double*						m_pOGLMatrix;
-	
-public:
 	RAS_MaterialBucket(RAS_IPolyMaterial* mat);
 	virtual ~RAS_MaterialBucket() {}
 	
@@ -127,6 +121,15 @@ public:
 								bool color,
 								const MT_Vector4& rgbavec);
 	
+	void RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
+		RAS_IRenderTools* rendertools, const KX_MeshSlot &ms, int drawmode);
+	int ActivateMaterial(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
+		RAS_IRenderTools *rendertools);
+	
+	unsigned int NumMeshSlots();
+	T_MeshSlotList::iterator msBegin();
+	T_MeshSlotList::iterator msEnd();
+
 	struct less
 	{
 		bool operator()(const RAS_MaterialBucket* x, const RAS_MaterialBucket* y) const 
@@ -136,6 +139,14 @@ public:
 	};
 	
 	typedef set<RAS_MaterialBucket*, less> Set;
+private:
+	
+	T_MeshSlotList				m_meshSlots;
+	bool						m_bScheduled;
+	bool						m_bModified;
+	RAS_IPolyMaterial*			m_material;
+	double*						m_pOGLMatrix;
+	
 };
 
 #endif //__KX_BUCKET

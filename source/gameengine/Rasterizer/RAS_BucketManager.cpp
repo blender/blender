@@ -48,7 +48,7 @@
 
 #include "RAS_BucketManager.h"
 
-
+#include <set>
 
 RAS_BucketManager::RAS_BucketManager()
 {
@@ -61,10 +61,45 @@ RAS_BucketManager::~RAS_BucketManager()
 }
 
 
+
+void RAS_BucketManager::RenderAlphaBuckets(
+	const MT_Transform& cameratrans, RAS_IRasterizer* rasty, RAS_IRenderTools* rendertools)
+{
+	BucketList::iterator bit;
+	std::multiset<alphamesh, backtofront> alphameshset;
+	RAS_MaterialBucket::T_MeshSlotList::iterator mit;
+	
+	for (bit = m_AlphaBuckets.begin(); bit != m_AlphaBuckets.end(); ++bit)
+	{
+		(*bit)->ClearScheduledPolygons();
+		for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit)
+		{
+			if ((*mit).m_bVisible)
+			{
+				MT_Point3 pos((*mit).m_OpenGLMatrix[12], (*mit).m_OpenGLMatrix[13], (*mit).m_OpenGLMatrix[14]);
+				alphameshset.insert(alphamesh(MT_dot(cameratrans.getBasis()[2], pos) + cameratrans.getOrigin()[2], mit, *bit));
+			}
+		}
+	}
+	
+	// It shouldn't be strictly necessary to disable depth writes; but
+	// it is needed for compatibility.
+	rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_DISABLED);
+
+	std::multiset< alphamesh, backtofront>::iterator msit = alphameshset.begin();
+	for (; msit != alphameshset.end(); ++msit)
+	{
+		(*msit).m_bucket->RenderMeshSlot(cameratrans, rasty, rendertools, *(*msit).m_ms,
+			(*msit).m_bucket->ActivateMaterial(cameratrans, rasty, rendertools));
+	}
+	
+	rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_ENABLED);
+}
+
 void RAS_BucketManager::Renderbuckets(
 	const MT_Transform& cameratrans, RAS_IRasterizer* rasty, RAS_IRenderTools* rendertools)
 {
-	std::vector<RAS_MaterialBucket*>::iterator bucket;
+	BucketList::iterator bucket;
 	
 	rasty->EnableTextures(false);
 	rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_ENABLED);
@@ -73,33 +108,22 @@ void RAS_BucketManager::Renderbuckets(
 	rasty->ClearCachingInfo();
 
 	RAS_MaterialBucket::StartFrame();
-	for (bucket = m_MaterialBuckets.begin(); bucket != m_MaterialBuckets.end(); bucket++)
+	for (bucket = m_MaterialBuckets.begin(); bucket != m_MaterialBuckets.end(); ++bucket)
 	{
 		(*bucket)->ClearScheduledPolygons();
 	}
-	for (bucket = m_AlphaBuckets.begin(); bucket != m_AlphaBuckets.end(); bucket++)
-	{
-		(*bucket)->ClearScheduledPolygons();
-	}
-
-	for (bucket = m_MaterialBuckets.begin(); bucket != m_MaterialBuckets.end(); bucket++)
+	
+	for (bucket = m_MaterialBuckets.begin(); bucket != m_MaterialBuckets.end(); ++bucket)
 		(*bucket)->Render(cameratrans,rasty,rendertools);
 	
-	rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_DISABLED);
-	
-	for (bucket = m_AlphaBuckets.begin(); bucket != m_AlphaBuckets.end(); bucket++)
-	{
-		(*bucket)->Render(cameratrans,rasty,rendertools);
-	}
-
-	rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_ENABLED);
+	RenderAlphaBuckets(cameratrans, rasty, rendertools);	
 	
 	RAS_MaterialBucket::EndFrame();
 }
 
 RAS_MaterialBucket* RAS_BucketManager::RAS_BucketManagerFindBucket(RAS_IPolyMaterial * material)
 {
-	std::vector<RAS_MaterialBucket*>::iterator it;
+	BucketList::iterator it;
 	for (it = m_MaterialBuckets.begin(); it != m_MaterialBuckets.end(); it++)
 	{
 		if (*(*it)->GetPolyMaterial() == *material)
@@ -123,7 +147,7 @@ RAS_MaterialBucket* RAS_BucketManager::RAS_BucketManagerFindBucket(RAS_IPolyMate
 
 void RAS_BucketManager::RAS_BucketManagerClearAll()
 {
-	std::vector<RAS_MaterialBucket*>::iterator it;
+	BucketList::iterator it;
 	for (it = m_MaterialBuckets.begin(); it != m_MaterialBuckets.end(); it++)
 	{
 		delete (*it);

@@ -43,13 +43,42 @@
 class RAS_BucketManager
 {
 	//GEN_Map<class RAS_IPolyMaterial,class RAS_MaterialBucket*> m_MaterialBuckets;
-	std::vector<class RAS_MaterialBucket*> m_MaterialBuckets;
-	std::vector<class RAS_MaterialBucket*> m_AlphaBuckets;
+	
+	typedef std::vector<class RAS_MaterialBucket*> BucketList;
+	BucketList m_MaterialBuckets;
+	BucketList m_AlphaBuckets;
+
+	/**
+	 * struct alphamesh holds a mesh, (m_ms) it's depth, (m_z) and the bucket it came from (m_bucket.)
+	 */
+	struct alphamesh
+	{
+	public:
+		MT_Scalar m_z;
+		RAS_MaterialBucket::T_MeshSlotList::iterator m_ms;
+		RAS_MaterialBucket *m_bucket;
+		alphamesh(MT_Scalar z, RAS_MaterialBucket::T_MeshSlotList::iterator &ms, RAS_MaterialBucket *bucket) :
+			m_z(z),
+			m_ms(ms),
+			m_bucket(bucket)
+		{}
+	};
+	
+	struct backtofront
+	{
+		bool operator()(const alphamesh &a, const alphamesh &b)
+		{
+			return a.m_z < b.m_z;
+		}
+	};
+	
 
 public:
 	RAS_BucketManager();
 	virtual ~RAS_BucketManager();
 
+	void RenderAlphaBuckets(const MT_Transform& cameratrans, 
+		RAS_IRasterizer* rasty, RAS_IRenderTools* rendertools);
 	void Renderbuckets(const MT_Transform & cameratrans,
 							RAS_IRasterizer* rasty,
 							class RAS_IRenderTools* rendertools);

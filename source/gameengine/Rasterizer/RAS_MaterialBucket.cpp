@@ -154,28 +154,28 @@ void RAS_MaterialBucket::EndFrame()
 {
 }
 
-
-
-void RAS_MaterialBucket::Render(const MT_Transform& cameratrans,
-								RAS_IRasterizer* rasty,
-								RAS_IRenderTools* rendertools)
+unsigned int RAS_MaterialBucket::NumMeshSlots()
 {
+	return m_meshSlots.size();
+}
 
-	if (m_meshSlots.begin()== m_meshSlots.end())
-		return;
-		
+RAS_MaterialBucket::T_MeshSlotList::iterator RAS_MaterialBucket::msBegin()
+{
+	return m_meshSlots.begin();
+}
+
+RAS_MaterialBucket::T_MeshSlotList::iterator RAS_MaterialBucket::msEnd()
+{
+	return m_meshSlots.end();
+}
+
+int RAS_MaterialBucket::ActivateMaterial(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
+	RAS_IRenderTools *rendertools)
+{
 	rendertools->SetViewMat(cameratrans);
 
 	rasty->SetMaterial(*m_material);
 	
-	if (m_meshSlots.size() >0)
-	{
-		
-		rendertools->SetClientObject((*m_meshSlots.begin()).m_clientObj);
-	}
-	
-	//printf("RAS_MatBucket::Render: %d m_meshSlots\n", m_meshSlots.size());
-
 	bool dolights = m_material->GetDrawingMode()&16;
 
 	if ((rasty->GetDrawingMode() <= RAS_IRasterizer::KX_SOLID) || !dolights)
@@ -187,68 +187,91 @@ void RAS_MaterialBucket::Render(const MT_Transform& cameratrans,
 		bool bUseLights = rendertools->ProcessLighting(m_material->GetLightLayer());
 	}
 
-	int drawmode = (rasty->GetDrawingMode()  < RAS_IRasterizer::KX_SOLID ? 	
+	return (rasty->GetDrawingMode()  < RAS_IRasterizer::KX_SOLID ? 	
 		1:	(m_material->UsesTriangles() ? 0 : 2));
+}
+
+void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
+	RAS_IRenderTools* rendertools, const KX_MeshSlot &ms, int drawmode)
+{
+	if (!ms.m_bVisible)
+		return;
+	
+	rendertools->SetClientObject(ms.m_clientObj);
+
+	/* __NLA Do the deformation */
+	if (ms.m_pDeformer)
+		ms.m_pDeformer->Apply(m_material);
+	/* End __NLA */
+
+	rendertools->PushMatrix();
+	rendertools->applyTransform(rasty,ms.m_OpenGLMatrix,m_material->GetDrawingMode());
+
+	// Use the text-specific IndexPrimitives for text faces
+	if (m_material->GetDrawingMode() & RAS_IRasterizer::RAS_RENDER_3DPOLYGON_TEXT)
+	{
+		rasty->IndexPrimitives_3DText(
+				ms.m_mesh->GetVertexCache(m_material), 
+				ms.m_mesh->GetIndexCache(m_material), 
+				drawmode,
+				m_material,
+				rendertools, // needed for textprinting on polys
+				ms.m_bObjectColor,
+				ms.m_RGBAcolor);
+
+	}
+	// Use the (slower) IndexPrimitives_Ex which can recalc face normals & such
+	//	for deformed objects - eventually should be extended to recalc ALL normals
+	else if (ms.m_pDeformer){
+		rasty->IndexPrimitives_Ex(
+				ms.m_mesh->GetVertexCache(m_material), 
+				ms.m_mesh->GetIndexCache(m_material), 
+				drawmode,
+				m_material,
+				rendertools, // needed for textprinting on polys
+				ms.m_bObjectColor,
+				ms.m_RGBAcolor
+				);
+	}
+	// Use the normal IndexPrimitives
+	else
+	{
+		rasty->IndexPrimitives(
+				ms.m_mesh->GetVertexCache(m_material), 
+				ms.m_mesh->GetIndexCache(m_material), 
+				drawmode,
+				m_material,
+				rendertools, // needed for textprinting on polys
+				ms.m_bObjectColor,
+				ms.m_RGBAcolor
+				);
+	}
+	
+	rendertools->PopMatrix();
+}
+
+void RAS_MaterialBucket::Render(const MT_Transform& cameratrans,
+								RAS_IRasterizer* rasty,
+								RAS_IRenderTools* rendertools)
+{
+	if (m_meshSlots.begin()== m_meshSlots.end())
+		return;
+		
+	rendertools->SetViewMat(cameratrans);
+
+	rasty->SetMaterial(*m_material);
+	
+	if (m_meshSlots.size() >0)
+	{
+		rendertools->SetClientObject((*m_meshSlots.begin()).m_clientObj);
+	}
+	
+	int drawmode = ActivateMaterial(cameratrans, rasty, rendertools);
 
 	for (T_MeshSlotList::const_iterator it = m_meshSlots.begin();
-	! (it == m_meshSlots.end());it++)
+	! (it == m_meshSlots.end()); ++it)
 	{
-		//printf("RAS_MatBucket::Render: (%p) %s MeshSlot %s\n", this, it->m_mesh->m_class?"Skin":"Mesh", (const char *)(*it).m_mesh->GetName());
-		if ((*it).m_bVisible)
-		{
-			rendertools->SetClientObject((*it).m_clientObj);
-			
-			/* __NLA Do the deformation */
-			if ((*it).m_pDeformer)
-				(*it).m_pDeformer->Apply(m_material);
-			/* End __NLA */
-
-			rendertools->PushMatrix();
-			rendertools->applyTransform(rasty,(*it).m_OpenGLMatrix,m_material->GetDrawingMode());
-
-			// Use the text-specific IndexPrimitives for text faces
-			if (m_material->GetDrawingMode() & RAS_IRasterizer::RAS_RENDER_3DPOLYGON_TEXT)
-			{
-				rasty->IndexPrimitives_3DText(
-						(*it).m_mesh->GetVertexCache(m_material), 
-						(*it).m_mesh->GetIndexCache(m_material), 
-						drawmode,
-						m_material,
-						rendertools, // needed for textprinting on polys
-						(*it).m_bObjectColor,
-						(*it).m_RGBAcolor);
-
-			}
-			// Use the (slower) IndexPrimitives_Ex which can recalc face normals & such
-			//	for deformed objects - eventually should be extended to recalc ALL normals
-			else if ((*it).m_pDeformer){
-				rasty->IndexPrimitives_Ex(
-						(*it).m_mesh->GetVertexCache(m_material), 
-						(*it).m_mesh->GetIndexCache(m_material), 
-						drawmode,
-						m_material,
-						rendertools, // needed for textprinting on polys
-						(*it).m_bObjectColor,
-						(*it).m_RGBAcolor
-						);
-			}
-			// Use the normal IndexPrimitives
-			else
-			{
-				rasty->IndexPrimitives(
-						(*it).m_mesh->GetVertexCache(m_material), 
-						(*it).m_mesh->GetIndexCache(m_material), 
-						drawmode,
-						m_material,
-						rendertools, // needed for textprinting on polys
-						(*it).m_bObjectColor,
-						(*it).m_RGBAcolor
-						);
-			}
-			
-			rendertools->PopMatrix();
-		}
-		//printf("gets here\n");
+		RenderMeshSlot(cameratrans, rasty, rendertools, *it, drawmode);
 	}
 }
 
