@@ -916,7 +916,7 @@ static ScrArea *screen_find_area_for_pt(bScreen *sc, short *mval)
 
 void screenmain(void)
 {
-	int has_input= 0;	/* was one, why! (ton) */
+	int has_input= 1;
 	int firsttime = 1;
 	
 	window_make_active(mainwin);
@@ -1165,7 +1165,13 @@ void setprefsize(int stax, int stay, int sizx, int sizy)
 	if(sizy<256) sizy= 256;
 
 	if(stax+sizx>scrwidth) sizx= scrwidth-stax;
+
 	if(stay+sizy>scrheight) sizy= scrheight-stay;
+
+#ifdef __APPLE__
+	if(stay+sizy>scrheight-22) sizy= scrheight-22-stay;	// 22 = topbar
+#endif
+
 	if(sizx<320 || sizy<256) {
 		printf("ERROR: illegal prefsize\n");
 		return;

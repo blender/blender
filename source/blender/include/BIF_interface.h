@@ -141,11 +141,14 @@ short pupmenu(char *instr);
 short pupmenu_col(char *instr, int maxrow);
 
 extern void uiFreePanels(struct ListBase *lb);
-extern void uiNewPanel(struct ScrArea *sa, struct uiBlock *block, char *panelname, char *tabname, int ofsx, int ofsy, int sizex, int sizey);
+extern int uiNewPanel(struct ScrArea *sa, struct uiBlock *block, char *panelname, char *tabname, int ofsx, int ofsy, int sizex, int sizey);
 extern void uiScalePanelBlock(struct uiBlock *block);
 extern int uiIsPanelClosed(struct uiBlock *block);
 extern void uiAnimatePanels(struct ScrArea *sa);	
 extern void uiSetPanel_view2d(struct ScrArea *sa);
+extern void uiDrawBlocksPanels(struct ScrArea *sa, int re_align);
+extern void uiNewPanelHeight(struct uiBlock *block, int sizey);
+
 
 #endif /*  BIF_INTERFACE_H */
 

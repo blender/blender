@@ -76,6 +76,7 @@
 #include "BIF_gl.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"		/* allqueue */
+#include "BIF_butspace.h"	
 #include "BIF_drawimage.h"	/* rectwrite_part */
 #include "BIF_mywindow.h"
 #include "PIL_time.h"

@@ -84,6 +84,8 @@
 #include "BIF_writeimage.h"
 #include "BIF_writeavicodec.h"
 
+#include "butspace.h" // own module
+
 #ifdef WITH_QUICKTIME
 #include "quicktime_export.h"
 #endif
@@ -644,8 +646,7 @@ static void render_panel_output()
 
 
 	block= uiNewBlock(&curarea->uiblocks, "render_panel_output", UI_EMBOSSX, UI_HELV, curarea->win);
-	uiNewPanel(curarea, block, "Output", "Render", 0, 0, 318, 204);
-	if( uiIsPanelClosed(block) ) return;  // does draw when closed
+	if(uiNewPanel(curarea, block, "Output", "Render", 0, 0, 318, 204)==0) return;
 	
 	uiDefBut(block, TEX,0,"",				30, 170, 268, 19,G.scene->r.pic, 0.0,79.0, 0, 0, "Directory/name to save rendered Pics to");
 	uiDefBut(block, BUT,B_FS_PIC," ",		8, 170, 20, 19, 0, 0, 0, 0, 0, "Open Fileselect to get Pics dir/name");
@@ -701,9 +702,6 @@ static void render_panel_output()
 					 "The gamma value for blending oversampled images (1.0 = no correction).");
 		}		
 	}
-	
-	uiScalePanelBlock(block); // scales and centers
-	uiDrawBlock(block);
 }
 
 static void render_panel_render()
@@ -712,8 +710,7 @@ static void render_panel_render()
 
 
 	block= uiNewBlock(&curarea->uiblocks, "render_panel_render", UI_EMBOSSX, UI_HELV, curarea->win);
-	uiNewPanel(curarea, block, "Render", "Render", 320, 0, 318, 204);
-	if( uiIsPanelClosed(block) ) return;  // does draw when closed
+	if(uiNewPanel(curarea, block, "Render", "Render", 320, 0, 318, 204)==0) return;
 
 	uiBlockSetCol(block, BUTSALMON);
 	
@@ -757,8 +754,6 @@ static void render_panel_render()
 	uiDefButS(block, TOG|BIT|2,0, "Gamma",	626,11,58,24, &G.scene->r.mode, 0, 0, 0, 0, "Enable gamma correction");
 
 
-	uiScalePanelBlock(block); // scales and centers
-	uiDrawBlock(block);
 }
 
 static void render_panel_anim()
@@ -767,8 +762,7 @@ static void render_panel_anim()
 
 
 	block= uiNewBlock(&curarea->uiblocks, "render_panel_anim", UI_EMBOSSX, UI_HELV, curarea->win);
-	uiNewPanel(curarea, block, "Anim", "Render", 640, 0, 318, 204);
-	if( uiIsPanelClosed(block) ) return;  // does draw when closed
+	if(uiNewPanel(curarea, block, "Anim", "Render", 640, 0, 318, 204)==0) return;
 
 
 	uiBlockSetCol(block, BUTSALMON);
@@ -786,8 +780,6 @@ static void render_panel_anim()
 	uiDefButS(block, NUM,REDRAWSEQ,"Sta:",	692,10,94,24, &G.scene->r.sfra,1.0,18000.0, 0, 0, "The start frame of the animation");
 	uiDefButS(block, NUM,REDRAWSEQ,"End:",	790,10,95,24, &G.scene->r.efra,1.0,18000.0, 0, 0, "The end  frame of the animation");
 
-	uiScalePanelBlock(block); // scales and centers
-	uiDrawBlock(block);
 }
 
 static void render_panel_format()
@@ -797,8 +789,7 @@ static void render_panel_format()
 
 
 	block= uiNewBlock(&curarea->uiblocks, "render_panel_format", UI_EMBOSSX, UI_HELV, curarea->win);
-	uiNewPanel(curarea, block, "Format", "Render", 960, 0, 318, 204);
-	if( uiIsPanelClosed(block) ) return;  // does draw when closed
+	if(uiNewPanel(curarea, block, "Format", "Render", 960, 0, 318, 204)==0) return;
 
 	uiDefBlockBut(block, framing_render_menu, NULL, "Game framing settings |>> ", 892, 169, 227, 20, "Display game framing settings");
 
@@ -891,9 +882,6 @@ static void render_panel_format()
 	uiDefBut(block, BUT,B_PR_FULL, "FULL",		1146,30,100,18, 0, 0, 0, 0, 0, "Size preset: Image size - 1280x1024, Aspect ratio - 1x1");
 	uiDefButS(block, TOG|BIT|15, B_REDR, "Unified Renderer", 1146,10,100,18,  &G.scene->r.mode, 0, 0, 0, 0, "Use the unified renderer.");
 
-
-	uiScalePanelBlock(block); // scales and centers
-	uiDrawBlock(block);
 }
 
 
@@ -906,3 +894,41 @@ void render_panels()
 	render_panel_format();
 	
 }
+
+/* --------------------------------------------- */
+
+void anim_panels()
+{
+	uiBlock *block;
+	
+	
+	block= uiNewBlock(&curarea->uiblocks, "anim_panels", UI_EMBOSSX, UI_HELV, curarea->win);
+
+	uiDefButS(block, NUM,REDRAWSEQ,"Sta:",	320,17,93,27,&G.scene->r.sfra,1.0,18000.0, 0, 0, "Specify the start frame of the animation");
+	uiDefButS(block, NUM,REDRAWSEQ,"End:",	416,17,95,27,&G.scene->r.efra,1.0,18000.0, 0, 0, "Specify the end frame of the animation");
+
+	uiDefButS(block, NUM,B_FRAMEMAP,"Map Old:",	320,69,93,22,&G.scene->r.framapto,1.0,900.0, 0, 0, "Specify old map value in frames");
+	uiDefButS(block, NUM,B_FRAMEMAP,"Map New:",	416,69,95,22,&G.scene->r.images,1.0,900.0, 0, 0, "Specify new map value in frames");
+
+	uiDefButS(block, NUM,REDRAWSEQ,"Frs/sec:",   320,47,93,19, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
+	
+	uiBlockSetCol(block, BUTGREEN);
+	uiDefButS(block, TOG|BIT|1, B_SOUND_CHANGED, "Sync",	416,47,95,19, &G.scene->audio.flag, 0, 0, 0, 0, "Use sample clock for syncing animation to audio");
+
+
+	uiDrawBlock(block);
+	
+
+}
+
+/* --------------------------------------------- */
+
+void sound_panels()
+{
+
+
+
+}
+
+
+

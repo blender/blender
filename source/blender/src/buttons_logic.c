@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: 
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -78,7 +78,6 @@
 #include "BIF_interface.h"
 #include "BIF_butspace.h"
 #include "BIF_screen.h"
-#include "BIF_editsca.h"
 #include "BIF_keyval.h"
 #include "BIF_editsound.h"
 
@@ -89,24 +88,8 @@
 #include "mydevice.h"
 #include "interface.h"
 #include "nla.h"	/* For __NLA : Important, do not remove */
+#include "butspace.h" // own module
 
-#define B_DIFF			1
-#define B_ADD_PROP	2701
-#define B_CHANGE_PROP	2702
-
-#define B_ADD_SENS		2703
-#define B_CHANGE_SENS	2704
-#define B_DEL_SENS		2705
-
-#define B_ADD_CONT		2706
-#define B_CHANGE_CONT	2707
-#define B_DEL_CONT		2708
-
-#define B_ADD_ACT		2709
-#define B_CHANGE_ACT	2710
-#define B_DEL_ACT		2711
-
-#define B_SOUNDACT_BROWSE	2712
 
 /* internals */
 
@@ -352,7 +335,7 @@ static void sca_move_actuator(void *datav, void *data2_unused)
 	}
 }
 
-void do_gamebuts(unsigned short event)
+void do_logic_buts(unsigned short event)
 {
 	bProperty *prop;
 	bSensor *sens;
@@ -2289,7 +2272,7 @@ static uiBlock *actuator_menu(void *arg_unused)
 /* never used, see CVS 1.120 for the code */
 /*  static uiBlock *freecamera_menu(void) */
 
-void gamebuts(void)
+void logic_buts(void)
 {
 	ID **idar;
 	Object *ob;

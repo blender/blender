@@ -44,89 +44,41 @@
 #endif
 
 #include "MEM_guardedalloc.h"
-#include "DNA_action_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_effect_types.h"
-#include "DNA_group_types.h"
-#include "DNA_ika_types.h"
-#include "DNA_image_types.h"
-#include "DNA_key_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_material_types.h"
-#include "DNA_meta_types.h"
-#include "DNA_mesh_types.h"
+
 #include "DNA_object_types.h"
-#include "DNA_packedFile_types.h"
-#include "DNA_radio_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_sound_types.h"
+#include "DNA_view3d_types.h"
 #include "DNA_space_types.h"
 #include "DNA_texture_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_vfont_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_world_types.h"
 
-#include "BKE_anim.h"
-#include "BKE_armature.h"
-#include "BKE_constraint.h"
-#include "BKE_curve.h"
-#include "BKE_displist.h"
-#include "BKE_effect.h"
-#include "BKE_font.h"
 #include "BKE_global.h"
-#include "BKE_ika.h"
-#include "BKE_image.h"
-#include "BKE_ipo.h"
-#include "BKE_lattice.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_material.h"
-#include "BKE_mball.h"
-#include "BKE_mesh.h"
-#include "BKE_object.h"
-#include "BKE_packedFile.h"
-#include "BKE_plugin_types.h"
-#include "BKE_sound.h"
-#include "BKE_texture.h"
+#include "BKE_library.h"
 #include "BKE_utildefines.h"
-#include "BKE_writeavi.h"
 
 #include "BLI_blenlib.h"
 
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
 #include "BIF_keyval.h"
-#include "BIF_mainqueue.h"
-#include "BIF_resources.h"
-#include "BIF_screen.h"
-#include "BIF_mywindow.h"
-#include "BIF_space.h"
-#include "BIF_glutil.h"
 #include "BIF_interface.h"
-#include "BIF_editsca.h"
-#include "BIF_butspace.h"
-#include "BIF_previewrender.h"
 #include "BIF_toolbox.h"
-
+#include "BIF_space.h"
+#include "BIF_screen.h"
+#include "BIF_butspace.h"
 #include "BSE_headerbuttons.h"
+#include "BIF_previewrender.h"
+#include "BIF_mywindow.h"
+#include "BIF_glutil.h"
+#include "BIF_resources.h"
 
 #include "mydevice.h"
+#include "butspace.h" // own module
 
 
 /* Local vars ---------------------------------------------------------- */
 short bgpicmode=0, near=1000, far=1000;
-short degr= 90, step= 9, turn= 1, editbutflag= 1;
-float hspeed=0.1f, prspeed=0.0f, prlen=0.0f, doublimit= 0.001f;
-int decim_faces=0;
-
-float editbutvweight=1;
-float extr_offs= 1.0, editbutweight=1.0, editbutsize=0.1, cumapsize= 1.0;
 MTex emptytex;
 MTex mtexcopybuf;
 
@@ -281,7 +233,6 @@ void do_butspace(unsigned short event)
 	buts= curarea->spacedata.first;
 	if(buts->mainb==CONTEXT_SCENE) allqueue(REDRAWBUTSSCENE, curarea->win);
 	if(buts->mainb==CONTEXT_OBJECT) allqueue(REDRAWBUTSOBJECT, curarea->win);
-	if(buts->mainb==CONTEXT_TYPES) allqueue(REDRAWBUTSTYPES, curarea->win);
 	if(buts->mainb==CONTEXT_SHADING) allqueue(REDRAWBUTSSHADING, curarea->win);
 	if(buts->mainb==CONTEXT_EDITING) allqueue(REDRAWBUTSEDIT, curarea->win);
 	if(buts->mainb==CONTEXT_SCRIPT) allqueue(REDRAWBUTSSCRIPT, curarea->win);
@@ -303,7 +254,7 @@ void do_butspace(unsigned short event)
 		//do_texbuts(event);
 	}
 	else if(event<=B_ANIMBUTS) {
-		//do_animbuts(event);
+		do_object_panels(event);
 	}
 	else if(event<=B_WORLDBUTS) {
 		//do_worldbuts(event);
@@ -312,34 +263,31 @@ void do_butspace(unsigned short event)
 		do_render_panels(event);	// buttons_scene.c
 	}
 	else if(event<=B_COMMONEDITBUTS) {
-		//do_common_editbuts(event);
+		do_common_editbuts(event);
 	}
 	else if(event<=B_MESHBUTS) {
-		//do_meshbuts(event);
+		do_meshbuts(event);
 	}
 	else if(event<=B_CURVEBUTS) {
-		//do_curvebuts(event);
+		do_curvebuts(event);
 	}
 	else if(event<=B_FONTBUTS) {
-		//do_fontbuts(event);
-	}
-	else if(event<=B_IKABUTS) {
-		//do_ikabuts(event);
+		do_fontbuts(event);
 	}
 	else if(event<=B_CAMBUTS) {
 		;
 	}
 	else if(event<=B_MBALLBUTS) {
-		//do_mballbuts(event);
+		do_mballbuts(event);
 	}
 	else if(event<=B_LATTBUTS) {
-		//do_latticebuts(event);
+		do_latticebuts(event);
 	}
 	else if(event<=B_GAMEBUTS) {
-		do_gamebuts(event);	// editsca.c
+		do_logic_buts(event);	// buttons_logic.c
 	}
 	else if(event<=B_FPAINTBUTS) {
-		//do_fpaintbuts(event);
+		do_fpaintbuts(event);
 	}
 	else if(event<=B_RADIOBUTS) {
 		//do_radiobuts(event);
@@ -367,13 +315,15 @@ void redraw_test_buttons(Base *new)
 		if(sa->spacetype==SPACE_BUTS) {
 			buts= sa->spacedata.first;
 			
-			if(ELEM5(buts->mainb, CONTEXT_OBJECT, CONTEXT_TYPES, CONTEXT_EDITING, CONTEXT_SHADING, CONTEXT_LOGIC)) {
+			if(ELEM4(buts->mainb, CONTEXT_OBJECT, CONTEXT_EDITING, CONTEXT_SHADING, CONTEXT_LOGIC)) {
 				addqueue(sa->win, REDRAW, 1);
+				buts->re_align= 1;
 			}
 			
 			if(buts->mainb==CONTEXT_SHADING) {
-				// change type automatically
+				buts->re_align= 1;
 				
+				// change type automatically
 				if(new) {
 					if(buts->tab[CONTEXT_SHADING] == TAB_SHADING_WORLD);
 					else if(buts->tab[CONTEXT_SHADING] == TAB_SHADING_TEX);
@@ -395,68 +345,13 @@ void redraw_test_buttons(Base *new)
 }
 
 
-
-/* here the calls for building the button main/tabs tree */
-
-
-static void context_scene_buttons(ScrArea *sa, SpaceButs *sbuts)
-{
-
-	/* select tabs */
-	if(sbuts->tab[CONTEXT_SCENE] == TAB_SCENE_RENDER) 
-		render_panels();
-	
-}
-
-static void context_object_buttons(ScrArea *sa, SpaceButs *sbuts)
-{
-
-	/* select tabs */
-	
-}
-
-static void context_types_buttons(ScrArea *sa, SpaceButs *sbuts)
-{
-
-	/* select tabs */
-	
-}
-
-static void context_shading_buttons(ScrArea *sa, SpaceButs *sbuts)
-{
-
-	/* select tabs */
-	
-}
-
-static void context_editing_buttons(ScrArea *sa, SpaceButs *sbuts)
-{
-
-	/* select tabs */
-	
-}
-
-static void context_logic_buttons(ScrArea *sa, SpaceButs *sbuts)
-{
-
-	/* no tabs */
-	gamebuts();		/* (editsca.c) */
-	
-}
-
-static void context_script_buttons(ScrArea *sa, SpaceButs *sbuts)
-{
-
-	/* select tabs */
-	
-}
-
 /* callback */
 void drawbutspace(ScrArea *sa, void *spacedata)
 {
 	SpaceButs *sbuts= sa->spacedata.first;
 	View2D *v2d= &sbuts->v2d;
-
+	int align=0;
+	
 	myortho2(v2d->cur.xmin, v2d->cur.xmax, v2d->cur.ymin, v2d->cur.ymax);
 
 	glClearColor(0.73, 0.73, 0.73, 0.0);
@@ -468,29 +363,53 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 	/* select the context to be drawn, per contex/tab the actual context is tested */
 	switch(sbuts->mainb) {
 	case CONTEXT_SCENE:
-		context_scene_buttons(sa, sbuts);
+		/* select tabs */
+		if(sbuts->tab[CONTEXT_SCENE] == TAB_SCENE_RENDER) 
+			render_panels();
+		else if(sbuts->tab[CONTEXT_SCENE] == TAB_SCENE_ANIM) 
+			anim_panels();
+		else if(sbuts->tab[CONTEXT_SCENE] == TAB_SCENE_SOUND) 
+			sound_panels();
+
 		break;
 	case CONTEXT_OBJECT:
-		context_object_buttons(sa, sbuts);
+		/* no tabs */
+		object_panels();
 		break;
-	case CONTEXT_TYPES:
-		context_types_buttons(sa, sbuts);
+		
 		break;
 	case CONTEXT_SHADING:
-		context_shading_buttons(sa, sbuts);
+
 		break;
 	case CONTEXT_EDITING:
-		context_editing_buttons(sa, sbuts);
+		/* no tabs */
+		editing_panels();
+
 		break;
 	case CONTEXT_SCRIPT:
-		context_script_buttons(sa, sbuts);
+
 		break;
 	case CONTEXT_LOGIC:
-		context_logic_buttons(sa, sbuts);
+		/* no tabs */
+		logic_buts();
 		break;
 	}
 
 	uiClearButLock();
+
+
+	/* when align changes, also do this for new panels */
+	/* don't always align, this function is called during AnmatePanels too */
+	if(sbuts->align)
+		if(sbuts->re_align || sbuts->mainbo!=sbuts->mainb)
+			align= 1;
+
+	uiDrawBlocksPanels(sa, align);	
+	
+	sbuts->re_align= 0;
+	// also for memory for finding which texture you'd like to see
+	sbuts->mainbo= sbuts->mainb;
+	sbuts->tabo= sbuts->tab[sbuts->mainb];
 
 	myortho2(-0.5, (float)(sa->winx)-.05, -0.5, (float)(sa->winy)-0.5);
 	draw_area_emboss(sa);

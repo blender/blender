@@ -83,7 +83,7 @@ void	adduplicate_armature(void);
 void	addvert_armature(void);
 void	add_primitiveArmature(int type);
 void	apply_rot_armature (struct Object *ob, float mat[3][3]);
-void	armaturebuts(void);
+
 void	clear_armature(struct Object *ob, char mode);
 void	clever_numbuts_armature (void);
 void	clever_numbuts_posearmature (void);
@@ -105,6 +105,8 @@ void	remake_editArmature(void);
 void	selectconnected_armature(void);
 void	selectconnected_posearmature(void);
 void	select_bone_by_name (struct bArmature *arm, char *name, int select);
+void    unique_editbone_name (char* name);
+
 struct	Bone *get_first_selected_bone (void);
 void auto_align_armature(void);
 void create_vgroups_from_armature(Object *ob, Object *par);

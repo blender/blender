@@ -2168,11 +2168,23 @@ void extern_set_butspace(int fkey)
 	
 	sbuts= sa->spacedata.first;
 	
-	if(fkey==F4KEY) sbuts->mainb= CONTEXT_LOGIC;
-	else if(fkey==F5KEY) sbuts->mainb= CONTEXT_SHADING;
-	else if(fkey==F6KEY) sbuts->mainb= CONTEXT_SCRIPT;
-	else if(fkey==F7KEY) sbuts->mainb= CONTEXT_TYPES;
-	else if(fkey==F8KEY) sbuts->mainb= CONTEXT_OBJECT;
+	if(fkey==F4KEY) {
+		sbuts->mainb= CONTEXT_SHADING;
+		sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
+	}
+	else if(fkey==F5KEY) {
+		sbuts->mainb= CONTEXT_SHADING;
+		sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
+	}
+	else if(fkey==F6KEY) {
+		sbuts->mainb= CONTEXT_SHADING;
+		sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_TEX;
+	}
+	else if(fkey==F7KEY) sbuts->mainb= CONTEXT_OBJECT;
+	else if(fkey==F8KEY) {
+		sbuts->mainb= CONTEXT_SHADING;
+		sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_WORLD;
+	}
 	else if(fkey==F9KEY) sbuts->mainb= CONTEXT_EDITING;
 	else if(fkey==F10KEY) sbuts->mainb= CONTEXT_SCENE;
 
@@ -3169,6 +3181,8 @@ void allqueue(unsigned short event, short val)
 				
 			case REDRAWBUTSALL:
 				if(sa->spacetype==SPACE_BUTS) {
+					buts= sa->spacedata.first;
+					buts->re_align= 1;
 					scrarea_queue_winredraw(sa);
 					scrarea_queue_headredraw(sa);
 				}
@@ -3182,6 +3196,7 @@ void allqueue(unsigned short event, short val)
 				if(sa->spacetype==SPACE_BUTS) {
 					buts= sa->spacedata.first;
 					if(buts->mainb==CONTEXT_SCENE) {
+						buts->re_align= 1;
 						scrarea_queue_winredraw(sa);
 						scrarea_queue_headredraw(sa);
 					}
@@ -3191,15 +3206,7 @@ void allqueue(unsigned short event, short val)
 				if(sa->spacetype==SPACE_BUTS) {
 					buts= sa->spacedata.first;
 					if(buts->mainb==CONTEXT_OBJECT) {
-						scrarea_queue_winredraw(sa);
-						scrarea_queue_headredraw(sa);
-					}
-				}
-				break;
-			case REDRAWBUTSTYPES:
-				if(sa->spacetype==SPACE_BUTS) {
-					buts= sa->spacedata.first;
-					if(buts->mainb==CONTEXT_TYPES) {
+						buts->re_align= 1;
 						scrarea_queue_winredraw(sa);
 						scrarea_queue_headredraw(sa);
 					}
@@ -3209,6 +3216,7 @@ void allqueue(unsigned short event, short val)
 				if(sa->spacetype==SPACE_BUTS) {
 					buts= sa->spacedata.first;
 					if(buts->mainb==CONTEXT_SHADING) {
+						buts->re_align= 1;
 						scrarea_queue_winredraw(sa);
 						scrarea_queue_headredraw(sa);
 					}
@@ -3218,6 +3226,7 @@ void allqueue(unsigned short event, short val)
 				if(sa->spacetype==SPACE_BUTS) {
 					buts= sa->spacedata.first;
 					if(buts->mainb==CONTEXT_EDITING) {
+						buts->re_align= 1;
 						scrarea_queue_winredraw(sa);
 						scrarea_queue_headredraw(sa);
 					}
@@ -3227,6 +3236,7 @@ void allqueue(unsigned short event, short val)
 				if(sa->spacetype==SPACE_BUTS) {
 					buts= sa->spacedata.first;
 					if(buts->mainb==CONTEXT_SCRIPT) {
+						buts->re_align= 1;
 						scrarea_queue_winredraw(sa);
 						scrarea_queue_headredraw(sa);
 					}
@@ -3244,7 +3254,8 @@ void allqueue(unsigned short event, short val)
 			case REDRAWBUTSLAMP:
 				if(sa->spacetype==SPACE_BUTS) {
 					buts= sa->spacedata.first;
-					if(buts->mainb==CONTEXT_SHADING || buts->mainb==CONTEXT_TYPES) {
+					if(buts->mainb==CONTEXT_SHADING) {
+						buts->re_align= 1;
 						scrarea_queue_winredraw(sa);
 						scrarea_queue_headredraw(sa);
 					}

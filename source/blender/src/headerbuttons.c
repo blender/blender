@@ -148,6 +148,7 @@
 #include "BIF_usiblender.h"
 #include "BIF_previewrender.h"
 #include "BIF_writeimage.h"
+#include "BIF_butspace.h"
 
 #include "BSE_edit.h"
 #include "BSE_filesel.h"

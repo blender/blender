@@ -1444,7 +1444,7 @@ void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 	bConstraint *con;
 	float tmat[4][4], focusmat[4][4], lastmat[4][4];
 	int i, clear=1, tot=0;
-	float	a;
+	float	a=0;
 	float	aquat[4], quat[4];
 	float	aloc[3], loc[3];
 	float	asize[3], size[3];

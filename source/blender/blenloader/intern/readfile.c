@@ -47,6 +47,7 @@
 #include <stdio.h> // for printf fopen fwrite fclose sprintf FILE
 #include <stdlib.h> // for getenv atoi
 #include <fcntl.h> // for open
+#include <string.h> // for strcasecmp strrchr strncmp strstr
 
 #ifndef WIN32 
     #include <unistd.h> // for read close
@@ -117,6 +118,8 @@
 
 #include "BPY_extern.h" // for BPY_do_pyscript
 
+#include "BIF_butspace.h" // for do_versions, patching event codes
+
 #include "BLO_readfile.h"
 #include "readfile.h"
 
@@ -126,7 +129,6 @@
 
 #include "mydevice.h"
 
-#include <string.h> // for strcasecmp strrchr strncmp strstr
 
 
 

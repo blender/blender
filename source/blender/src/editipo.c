@@ -3762,7 +3762,7 @@ void common_insertkey()
 				}
 			}
 		}
-		else if(G.buts->mainb==CONTEXT_TYPES) {
+		else if(G.buts->mainb==CONTEXT_EDITING) {
 			ob= OBACT;
 			if(ob && ob->type==OB_CAMERA) {
 				id= G.buts->lockpoin;

@@ -106,6 +106,7 @@ void set_lasttface()
 	int a;
 	
 	lasttface= 0;
+	if(OBACT==NULL || OBACT->type!=OB_MESH) return;
 	
 	me= get_mesh(OBACT);
 	if(me==0 || me->tface==0) return;

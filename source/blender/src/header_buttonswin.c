@@ -69,6 +69,8 @@
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
+#include "BIF_butspace.h"
+
 #include "BKE_armature.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
@@ -252,7 +254,7 @@ void buttons_active_id(ID **id, ID **idfrom)
       *id= (ID *)ob;
     }
   }
-  else if(G.buts->mainb==CONTEXT_TYPES  || G.buts->mainb==CONTEXT_EDITING) {
+  else if(G.buts->mainb==CONTEXT_EDITING) {
     if(ob && ob->data) {
       *id= ob->data;
     }
@@ -352,11 +354,10 @@ static uiBlock *sbuts_context_menu(void *arg_unused)
 	/* should be branches from tree */
 	uiDefIconTextButS(block, BUTM, B_REDR, ICON_SCENE_DEHLT, "Scene|F10", 0, yco-=22, 100, 20, &G.buts->mainb, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextButS(block, BUTM, B_REDR, ICON_EDIT, "Editing|F9", 0, yco-=22, 100, 20, &G.buts->mainb, 4.0, 0.0, 0, 0, "");
-	uiDefIconTextButS(block, BUTM, B_REDR, ICON_OBJECT, "Object|F8", 0, yco-=22, 100, 20, &G.buts->mainb, 1.0, 0.0, 0, 0, "");
-	uiDefIconTextButS(block, BUTM, B_REDR, ICON_BBOX, "Types|F7", 0, yco-=22, 100, 20, &G.buts->mainb, 2.0, 0.0, 0, 0, "");
-	uiDefIconTextButS(block, BUTM, B_REDR, ICON_SCRIPT, "Script|F6", 0, yco-=22, 100, 20, &G.buts->mainb, 5.0, 0.0, 0, 0, "");
+	uiDefIconTextButS(block, BUTM, B_REDR, ICON_OBJECT, "Object|F6", 0, yco-=22, 100, 20, &G.buts->mainb, 1.0, 0.0, 0, 0, "");
+	uiDefIconTextButS(block, BUTM, B_REDR, ICON_SCRIPT, "Script", 0, yco-=22, 100, 20, &G.buts->mainb, 5.0, 0.0, 0, 0, "");
+	uiDefIconTextButS(block, BUTM, B_REDR, ICON_GAME, "Logic", 0, yco-=22, 100, 20, &G.buts->mainb, 6.0, 0.0, 0, 0, "");
 	uiDefIconTextButS(block, BUTM, B_REDR, ICON_MATERIAL_DEHLT, "Shading|F5", 0, yco-=22, 100, 20, &G.buts->mainb, 3.0, 0.0, 0, 0, "");
-	uiDefIconTextButS(block, BUTM, B_REDR, ICON_GAME, "Logic|F4", 0, yco-=22, 100, 20, &G.buts->mainb, 6.0, 0.0, 0, 0, "");
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -368,6 +369,7 @@ static uiBlock *sbuts_context_menu(void *arg_unused)
 
 	return block;
 }
+
 
 void buts_buttons(void)
 {
@@ -413,16 +415,15 @@ void buts_buttons(void)
 	}
 	
 	/* select the context to be drawn, per contex/tab the actual context is tested */
+	uiBlockSetEmboss(block, UI_EMBOSSX);	// normal
 	switch(G.buts->mainb) {
 	case CONTEXT_SCENE:
-		uiDefIconButC(block, ROW, B_REDR,		ICON_SCENE,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_RENDER, 0, 0, "Display buttons (F10)");
-		uiDefIconButC(block, ROW, B_BUTSPREVIEW,ICON_WORLD,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_WORLD, 0, 0, "World buttons");
+		uiDefIconButC(block, ROW, B_REDR,		ICON_SCENE,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_RENDER, 0, 0, "Render buttons ");
+		uiDefIconButC(block, ROW, B_REDR,		ICON_ANIM,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_ANIM, 0, 0, "Anim/playback buttons");
+		uiDefIconButC(block, ROW, B_REDR,		ICON_SOUND,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_SOUND, 0, 0, "Sound block buttons");
 		
 		break;
 	case CONTEXT_OBJECT:
-		
-		break;
-	case CONTEXT_TYPES:
 		
 		break;
 	case CONTEXT_SHADING:
@@ -445,19 +446,6 @@ void buts_buttons(void)
 	}
 
 #if 0
-	xco+= 2*XIC;
-	uiDefIconButS(block, ROW, B_REDR,			ICON_EYE,	xco+=XIC, t_base, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_VIEW, 0, 0, "View buttons");
-	
-	uiDefIconButS(block, ROW, B_REDR,			ICON_ANIM,	xco+=30, t_base, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_ANIM, 0, 0, "Animation buttons (F7)");
-	uiDefIconButS(block, ROW, B_REDR,			ICON_GAME,	xco+=30, t_base, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_GAME, 0, 0, "Realtime buttons (F8)");
-	uiDefIconButS(block, ROW, B_REDR,			ICON_EDIT,	xco+=30, t_base, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_EDIT, 0, 0, "Edit buttons (F9)");
-	uiDefIconButS(block, ROW, B_REDR,			ICON_CONSTRAINT,xco+=30, t_base, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_CONSTRAINT, 0, 0, "Constraint buttons");
-	uiDefIconButS(block, ROW, B_REDR,			ICON_SPEAKER,xco+=30, t_base, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_SOUND, 0, 0, "Sound buttons");
-	uiDefIconButS(block, ROW, B_REDR,			ICON_PAINT,xco+=30, t_base, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_FPAINT, 0, 0, "Paint buttons");
-	uiDefIconButS(block, ROW, B_REDR,			ICON_SCRIPT,xco+=30, t_base, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_SCRIPT, 0, 0, "Script buttons");
-	uiDefIconButS(block, ROW, B_REDR,			ICON_SCENE,	xco+=30, t_base, 50, YIC, &(G.buts->mainb), 1.0, (float)BUTS_RENDER, 0, 0, "Display buttons (F10)");
-	xco+= 80;
-
 	uiBlockSetCol(block, BUTGREY);
 	uiBlockSetEmboss(block, UI_EMBOSSX);
 	
@@ -620,10 +608,6 @@ void buts_buttons(void)
 	uiDefButS(block, NUM, B_NEWFRAME, "",	(short)(xco+20),0,60,YIC, &(G.scene->r.cfra), 1.0, 18000.0, 0, 0, "Displays Current Frame of animation. Click to change.");
 	xco+= 80;
 #endif
-
-	// memory for finding which texture you'd like to see
-	G.buts->mainbo= G.buts->mainb;
-	G.buts->tabo= G.buts->tab[G.buts->mainb];
 
 	/* always do as last */
 	uiDrawBlock(block);

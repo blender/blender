@@ -663,7 +663,7 @@ void shadeDispList(Object *ob)
 	Mesh *me;
 	Curve *cu;
 /*  	extern Material defmaterial;	 *//* initrender.c, already in bad lev calls*/
-	float *orco, imat[3][3], tmat[4][4], mat[4][4], vec[3], xn, yn, zn;
+	float *orco=NULL, imat[3][3], tmat[4][4], mat[4][4], vec[3], xn, yn, zn;
 	float *fp, *nor, n1[3];
 	unsigned int *col1, *col2, *vertcol;
 	int a, lastmat= -1, need_orco = 0;

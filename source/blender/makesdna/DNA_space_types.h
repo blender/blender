@@ -89,7 +89,8 @@ typedef struct SpaceIpo {
 
 typedef struct SpaceButs {
 	SpaceLink *next, *prev;
-	int spacetype, pad1;
+	int spacetype;
+	short re_align, pad1;
 	struct ScrArea *area;
 
 	short cursens, curact;
@@ -333,53 +334,7 @@ typedef struct SpaceImaSel {
 #define V3D_LOCAL		2
 */
 
-/* buts->mainb old */
-#define BUTS_VIEW			0
-#define BUTS_LAMP			1
-#define BUTS_MAT			2
-#define BUTS_TEX			3
-#define BUTS_ANIM			4
-#define BUTS_WORLD			5
-#define BUTS_RENDER			6
-#define BUTS_EDIT			7
-#define BUTS_GAME			8
-#define BUTS_FPAINT			9
-#define BUTS_RADIO			10
-#define BUTS_SCRIPT			11
-#define BUTS_SOUND			12
-#define BUTS_CONSTRAINT		13
-
-/* warning: the values of these defines are used in sbuts->tabs[7] */
-/* buts->mainb new */
-#define CONTEXT_SCENE	0
-#define CONTEXT_OBJECT	1
-#define CONTEXT_TYPES	2
-#define CONTEXT_SHADING	3
-#define CONTEXT_EDITING	4
-#define CONTEXT_SCRIPT	5
-#define CONTEXT_LOGIC	6
-
-/* buts->tab new */
-#define TAB_SCENE_RENDER	0
-#define TAB_SCENE_WORLD		1
-#define TAB_SCENE_SETTINGS	2
-
-#define TAB_SHADING_MAT 	0
-#define TAB_SHADING_TEX 	1
-#define TAB_SHADING_RAD 	2
-#define TAB_SHADING_WORLD	3
-#define TAB_SHADING_LAMP	4
-
-/* buts->scaflag */		
-#define BUTS_SENS_SEL		1
-#define BUTS_SENS_ACT		2
-#define BUTS_SENS_LINK		4
-#define BUTS_CONT_SEL		8
-#define BUTS_CONT_ACT		16
-#define BUTS_CONT_LINK		32
-#define BUTS_ACT_SEL		64
-#define BUTS_ACT_ACT		128
-#define BUTS_ACT_LINK		256
+/* buts defines in BIF_butspace.h */
 
 /* these values need to be hardcoded in blender.h SpaceFile: struct dna does not recognize defines */
 #define FILE_MAXDIR			160

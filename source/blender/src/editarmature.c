@@ -110,12 +110,10 @@ extern	float centre[3], centroid[3];	/* Originally defined in editobject.c */
 
 /* Local Function Prototypes */
 static void editbones_to_armature (ListBase *bones, Object *ob);
-static int editbone_to_parnr (EditBone *bone);
 
-static void validate_editbonebutton(EditBone *bone);
 static void fix_bonelist_roll (ListBase *bonelist, ListBase *editbonelist);
 static int	select_bonechildren_by_name (struct Bone *bone, char *name, int select);
-static void build_bonestring (char *string, struct EditBone *bone);
+
 static void draw_boneverti (float x, float y, float z, float size, int flag);
 static void draw_bone (int armflag, int boneflag, unsigned int id, char *name, float length);
 static void draw_bonechildren (struct Bone *bone, int flag, unsigned int *index);
@@ -124,7 +122,6 @@ static void make_boneList(struct ListBase* list, struct ListBase *bones, struct 
 static void make_bone_menu_children (struct Bone *bone, char *str, int *index);
 static void delete_bone(struct EditBone* exBone);
 static void clear_armature_children (struct Bone *bone, struct bPose *pose, char mode);
-static void parnr_to_editbone(EditBone *bone);
 
 static int	count_bones (struct bArmature *arm, int flagmask, int allbones);
 
@@ -134,11 +131,10 @@ static void deselect_bonechildren (struct Bone *bone, int mode);
 static void selectconnected_posebonechildren (struct Bone *bone);
 
 static int	editbone_name_exists (char* name);
-static void unique_editbone_name (char* name);
+
 static void *get_nearest_bone (int findunsel);
 static EditBone * get_nearest_editbonepoint (int findunsel, int *selmask);
 
-static void attach_bone_to_parent(EditBone *bone);
 static Bone *get_first_selected_bonechildren (Bone *bone);
 
 
@@ -1703,251 +1699,6 @@ static void add_bone_input (Object *ob)
 
 }
 
-static void validate_editbonebutton_cb(void *bonev, void *arg2_unused)
-{
-	EditBone *curBone= bonev;
-	validate_editbonebutton(curBone);
-}
-static void parnr_to_editbone_cb(void *bonev, void *arg2_unused)
-{
-	EditBone *curBone= bonev;
-	parnr_to_editbone(curBone);
-}
-static void attach_bone_to_parent_cb(void *bonev, void *arg2_unused)
-{
-	EditBone *curBone= bonev;
-	attach_bone_to_parent(curBone);
-}
-
-void armaturebuts(void)
-{
-	bArmature	*arm=NULL;
-	Object		*ob=NULL;
-	uiBlock		*block=NULL;
-	char		str[64];
-	int			bx=148, by=100;
-	EditBone	*curBone;
-	uiBut		*but;
-	char		*boneString=NULL;
-	int			index;
-
-	ob= OBACT;
-	if (ob==NULL) return;
-	
-	sprintf(str, "editbuttonswin %d", curarea->win);
-	block= uiNewBlock (&curarea->uiblocks, str, UI_EMBOSSX, UI_HELV, curarea->win);
-	
-	arm= ob->data;
-	if (arm==NULL) return;
-	
-	uiBlockSetCol(block, BUTGREEN);
-	uiDefButI(block, TOG|BIT|ARM_RESTPOSBIT,REDRAWVIEW3D, "Rest Pos", bx,by,97,20, &arm->flag, 0, 0, 0, 0, "Disable all animation for this object");
-	uiDefButI(block, TOG|BIT|ARM_DRAWAXESBIT,REDRAWVIEW3D, "Draw Axes", bx,by-46,97,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
-	uiDefButI(block, TOG|BIT|ARM_DRAWNAMESBIT,REDRAWVIEW3D, "Draw Names", bx,by-69,97,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
-	uiDefButI(block, TOG|BIT|ARM_DRAWXRAYBIT,REDRAWVIEW3D, "X-Ray", bx,by-92,97,20, &arm->flag, 0, 0, 0, 0, "Draw armature in front of shaded objects");
-
-	uiBlockSetCol(block, BUTGREY);
-	
-	/* Draw the bone name block */
-	
-	bx+=400; by=200;
-	
-	if (G.obedit==ob){
-		uiDefBut(block, LABEL, 0, "Selected Bones",						bx,by,128,18, 0, 0, 0, 0, 0, "");
-		by-=20;
-		for (curBone=G.edbo.first, index=0; curBone; curBone=curBone->next, index++){
-			if (curBone->flag & (BONE_SELECTED)){
-
-				/* Hide in posemode flag */
-				uiBlockSetCol(block, BUTGREEN);
-				uiDefButI(block, TOG|BIT|BONE_HIDDENBIT, REDRAWVIEW3D, "Hide", bx-50,by,48,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in posemode");
-				
-				/*	Bone naming button */
-				uiBlockSetCol(block, BUTGREY);
-				strcpy (curBone->oldname, curBone->name);
-				but=uiDefBut(block, TEX, REDRAWVIEW3D, "BO:", bx,by,97,18, &curBone->name, 0, 24, 0, 0, "Change the bone name");
-				uiButSetFunc(but, validate_editbonebutton_cb, curBone, NULL);
-				
-				uiDefBut(block, LABEL, 0, "child of", bx+106,by,100,18, NULL, 0.0, 0.0, 0.0, 0.0, "");
-
-				boneString = malloc((BLI_countlist(&G.edbo) * 64)+64);
-				build_bonestring (boneString, curBone);
-				
-				curBone->parNr = editbone_to_parnr(curBone->parent);
-				but = uiDefButI(block, MENU,REDRAWVIEW3D, boneString, bx+164,by,97,18, &curBone->parNr, 0.0, 0.0, 0.0, 0.0, "Parent");
-				uiButSetFunc(but, parnr_to_editbone_cb, curBone, NULL);
-
-				free(boneString);
-
-				/* IK to parent flag */
-				if (curBone->parent){
-					uiBlockSetCol(block, BUTGREEN);
-					but=uiDefButI(block, TOG|BIT|BONE_IK_TOPARENTBIT, REDRAWVIEW3D, "IK", bx+275,by,32,18, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "IK link to parent");
-					uiButSetFunc(but, attach_bone_to_parent_cb, curBone, NULL);
-				}
-
-				/* Dist and weight buttons */
-				uiBlockSetCol(block, BUTGREY);
-				but=uiDefButS(block, MENU, REDRAWVIEW3D,
-							  "Skinnable %x0|"
-							  "Unskinnable %x1|"
-							  "Head %x2|"
-							  "Neck %x3|"
-							  "Back %x4|"
-							  "Shoulder %x5|"
-							  "Arm %x6|"
-							  "Hand %x7|"
-							  "Finger %x8|"
-							  "Thumb %x9|"
-							  "Pelvis %x10|"
-							  "Leg %x11|"
-							  "Foot %x12|"
-							  "Toe %x13|"
-							  "Tentacle %x14",
-							  bx+320,by,97,18,
-							  &curBone->boneclass,
-							  0.0, 0.0, 0.0, 0.0, 
-							  "Classification of armature element");
-				
-				/* Dist and weight buttons */
-				uiBlockSetCol(block, BUTGREY);
-				uiDefButF(block, NUM,REDRAWVIEW3D, "Dist:", bx+425, by, 
-						  110, 18, &curBone->dist, 0.0, 1000.0, 10.0, 0.0, 
-						  "Bone deformation distance");
-				uiDefButF(block, NUM,REDRAWVIEW3D, "Weight:", bx+543, by, 
-						  110, 18, &curBone->weight, 0.0F, 1000.0F, 
-						  10.0F, 0.0F, "Bone deformation weight");
-				
-				by-=19;	
-			}
-		}
-	}
-
-	uiDrawBlock (block);
-
-}
-
-static int editbone_to_parnr (EditBone *bone)
-{
-	EditBone *ebone;
-	int	index;
-
-	for (ebone=G.edbo.first, index=0; ebone; ebone=ebone->next, index++){
-		if (ebone==bone)
-			return index;
-	}
-
-	return -1;
-}
-
-static void parnr_to_editbone(EditBone *bone)
-{
-	if (bone->parNr == -1){
-		bone->parent = NULL;
-		bone->flag &= ~BONE_IK_TOPARENT;
-	}
-	else{
-		bone->parent = BLI_findlink(&G.edbo, bone->parNr);
-		attach_bone_to_parent(bone);
-	}
-}
-
-static void attach_bone_to_parent(EditBone *bone)
-{
-	EditBone *curbone;
-
-	if (bone->flag & BONE_IK_TOPARENT) {
-
-	/* See if there are any other bones that refer to the same parent and disconnect them */
-		for (curbone = G.edbo.first; curbone; curbone=curbone->next){
-			if (curbone!=bone){
-				if (curbone->parent && (curbone->parent == bone->parent) && (curbone->flag & BONE_IK_TOPARENT))
-					curbone->flag &= ~BONE_IK_TOPARENT;
-			}
-		}
-
-	/* Attach this bone to its parent */
-		VECCOPY(bone->head, bone->parent->tail);
-	}
-
-}
-
-static void build_bonestring (char *string, EditBone *bone){
-	EditBone *curBone;
-	EditBone *pBone;
-	int		skip=0;
-	int		index;
-
-	sprintf (string, "Parent%%t| %%x%d", -1);	/* That space is there for a reason */
-	
-	for (curBone = G.edbo.first, index=0; curBone; curBone=curBone->next, index++){
-		/* Make sure this is a valid child */
-		if (curBone != bone){
-			skip=0;
-			for (pBone=curBone->parent; pBone; pBone=pBone->parent){
-				if (pBone==bone){
-					skip=1;
-					break;
-				}
-			}
-			
-			if (skip)
-				continue;
-			
-			sprintf (string, "%s|%s%%x%d", string, curBone->name, index);
-		}
-	}
-}
-
-static void validate_editbonebutton(EditBone *eBone){
-	EditBone	*prev;
-	bAction		*act=NULL;
-	bActionChannel *chan;
-	Base *base;
-
-	/* Separate the bone from the G.edbo */
-	prev=eBone->prev;
-	BLI_remlink (&G.edbo, eBone);
-
-	/*	Validate the name */
-	unique_editbone_name (eBone->name);
-
-	/* Re-insert the bone */
-	if (prev)
-		BLI_insertlink(&G.edbo, prev, eBone);
-	else
-		BLI_addhead (&G.edbo, eBone);
-
-	/* Rename channel if necessary */
-	if (G.obedit)
-		act = G.obedit->action;
-
-	if (act && !act->id.lib){
-		//	Find the appropriate channel
-		for (chan = act->chanbase.first; chan; chan=chan->next){
-			if (!strcmp (chan->name, eBone->oldname)){
-				strcpy (chan->name, eBone->name);
-			}
-		}
-		allqueue(REDRAWACTION, 0);
-	}
-
-	/* Update the parenting info of any users */
-	/*	Yes, I know this is the worst thing you have ever seen. */
-
-	for (base = G.scene->base.first; base; base=base->next){
-		Object *ob = base->object;
-
-		/* See if an object is parented to this armature */
-		if (ob->parent && ob->partype==PARBONE && (ob->parent->type==OB_ARMATURE) && (ob->parent->data == G.obedit->data)){
-			if (!strcmp(ob->parsubstr, eBone->oldname))
-				strcpy(ob->parsubstr, eBone->name);
-		}
-	}
-
-	exit_editmode(0);	/* To ensure new names make it to the edit armature */
-
-}
 
 void deselectall_armature(void)
 /*	Actually, it toggles selection, deselecting
@@ -2098,7 +1849,7 @@ static int	editbone_name_exists (char *name){
 		
 }
 
-static void unique_editbone_name (char *name){
+void unique_editbone_name (char *name){
 	char		tempname[64];
 	int			number;
 	char		*dot;

@@ -88,9 +88,8 @@
 							  if( (max)[0]<(vec)[0] ) (max)[0]= (vec)[0]; \
 							  if( (max)[1]<(vec)[1] ) (max)[1]= (vec)[1];
 
-
 /* interferes elsewhere */
-/* deze getallen ook invullen in blender.h SpaceFile: struct dna herkent geen defines */
+/* also fill in structs itself, dna cannot handle defines */
 #define FILE_MAXDIR			160
 #define FILE_MAXFILE		80
 

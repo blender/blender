@@ -2816,6 +2816,7 @@ static void ui_warp_pointer(short x, short y)
 	#endif
 }
 
+#if 0
 static int ui_do_but_MENUo(uiBut *but)
 {
 	uiBlock *block;
@@ -2956,6 +2957,7 @@ static int ui_do_but_MENUo(uiBut *but)
 
 	return event;	
 }
+#endif
 
 static int ui_do_but_MENU(uiBut *but)
 {
@@ -4193,8 +4195,10 @@ static void setup_file(uiBlock *block)
 	else {
 		but= block->buttons.first;
 		while(but) {
-			if(but->rt[3]==1) 
-				fprintf(fp,"%d,%d,%d,%d   %s %s\n", (int)but->x1, (int)but->y1, (int)( but->x2-but->x1), (int)(but->y2-but->y1), but->str, but->tip);
+			// if(but->rt[3]==1) {
+			ui_check_but(but);
+			fprintf(fp,"%d,%d,%d,%d   %s %s\n", (int)but->x1, (int)but->y1, (int)( but->x2-but->x1), (int)(but->y2-but->y1), but->str, but->tip);
+			// }
 			but= but->next;
 		}
 		fclose(fp);
@@ -5251,6 +5255,9 @@ void uiFreeBlock(uiBlock *block)
 		ui_free_but(but);
 	}
 
+	if(block->panel) block->panel->active= 0;
+
+	
 	MEM_freeN(block);
 	UIbuttip= NULL;
 }
@@ -5349,6 +5356,7 @@ static void ui_check_but(uiBut *but)
 	switch( but->type ) {
 	
 	case MENU:
+	case ICONTEXTROW:
 		
 		if(but->x2 - but->x1 > 24) {
 			value= ui_get_but_val(but);
@@ -5404,8 +5412,10 @@ static void ui_check_but(uiBut *but)
 		
 	}
 
-	if(but->drawstr[0])
+	if(but->drawstr[0]) {
 		but->strwidth= but->aspect*BIF_GetStringWidth(but->font, but->drawstr, (U.transopts & TR_BUTTONS));
+		// here should be check for less space for icon offsets...
+	}
 	else
 		but->strwidth= 0;
 
@@ -5414,32 +5424,45 @@ static void ui_check_but(uiBut *but)
 		but->x2= (but->x1+but->strwidth+6); 
 	}
 
-	/* calc but->ofs, to draw the string shorter if too long */
-	but->ofs= 0;
-	while(but->strwidth > (int)(but->x2-but->x1-7) ) {
-		but->ofs++;
+	if(but->strwidth==0) but->drawstr[0]= 0;
+	else {
 
-		if(but->drawstr[but->ofs]) 
-		but->strwidth= but->aspect*BIF_GetStringWidth(but->font, but->drawstr+but->ofs, (U.transopts & TR_BUTTONS));
-		else but->strwidth= 0;
-
-		/* textbut exception */
-		if(but->pos != -1) {
-			pos= but->pos+strlen(but->str);
-			if(pos-1 < but->ofs) {
-				pos= but->ofs-pos+1;
-				but->ofs -= pos;
-				if(but->ofs<0) {
-					but->ofs= 0;
-					pos--;
+		/* calc but->ofs, to draw the string shorter if too long */
+		but->ofs= 0;
+		while(but->strwidth > (int)(but->x2-but->x1-7) ) {
+			but->ofs++;
+	
+			if(but->drawstr[but->ofs]) 
+				but->strwidth= but->aspect*BIF_GetStringWidth(but->font, but->drawstr+but->ofs, (U.transopts & TR_BUTTONS));
+			else but->strwidth= 0;
+	
+			/* textbut exception */
+			if(but->pos != -1) {
+				pos= but->pos+strlen(but->str);
+				if(pos-1 < but->ofs) {
+					pos= but->ofs-pos+1;
+					but->ofs -= pos;
+					if(but->ofs<0) {
+						but->ofs= 0;
+						pos--;
+					}
+					but->drawstr[ strlen(but->drawstr)-pos ]= 0;
 				}
-				but->drawstr[ strlen(but->drawstr)-pos ]= 0;
 			}
+			
+			if(but->strwidth < 10) break;
 		}
 		
-		if(but->strwidth < 10) break;
+		/* fix for buttons that better not have text cut off to the right */
+		if(but->ofs) {
+			if ELEM4(but->type, NUM, TEX, NUMSLI, HSVSLI);	// only these cut off right
+			else {
+				but->drawstr[ strlen(but->drawstr)-but->ofs ]= 0;
+				but->ofs= 0;
+			}
+		}
 	}
-
+	
 	/* test for min and max, icon sliders, etc */
 	
 	switch( but->type ) {
@@ -5466,7 +5489,6 @@ static void ui_check_but(uiBut *but)
 
 	case ICONTEXTROW:
 		value= ui_get_but_val(but);
-		ui_set_name_menu(but, (int)value);
 		but->iconadd= (int)value- (int)(but->min);
 		break;
 	}
@@ -6058,35 +6080,56 @@ short pupmenu_col(char *instr, int maxrow)
 
 
 /* ofsx/ofsy only used for new panel definitions */
-void uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int ofsx, int ofsy, int sizex, int sizey)
+/* return 1 if visible (create buttons!) */
+int uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int ofsx, int ofsy, int sizex, int sizey)
 {
-	Panel *pa;
+	Panel *pa, *palign;
 	
 	/* check if Panel exists, then use that one */
 	pa= sa->panels.first;
 	while(pa) {
 		if( strncmp(pa->panelname, panelname, UI_MAX_NAME_STR)==0) {
 			if( strncmp(pa->tabname, tabname, UI_MAX_NAME_STR)==0) {
-				block->panel= pa;
-				return;
+				break;
 			}
 		}
 		pa= pa->next;
 	}
 	
-	/* new panel */
-	pa= MEM_callocN(sizeof(Panel), "new panel");
-	BLI_addtail(&sa->panels, pa);
-	strncpy(pa->panelname, panelname, UI_MAX_NAME_STR);
-	strncpy(pa->tabname, tabname, UI_MAX_NAME_STR);
-
-	pa->ofsx= ofsx & ~(PNL_GRID-1);
-	pa->ofsy= ofsy & ~(PNL_GRID-1);
-	pa->sizex= sizex;
-	pa->sizey= sizey;
-
+	if(pa==NULL) {
+		
+		/* new panel */
+		pa= MEM_callocN(sizeof(Panel), "new panel");
+		BLI_addtail(&sa->panels, pa);
+		strncpy(pa->panelname, panelname, UI_MAX_NAME_STR);
+		strncpy(pa->tabname, tabname, UI_MAX_NAME_STR);
+	
+		pa->ofsx= ofsx & ~(PNL_GRID-1);
+		pa->ofsy= ofsy & ~(PNL_GRID-1);
+		pa->sizex= sizex;
+		pa->sizey= sizey;
+		
+		/* pre align, for good sorting later on */
+		if(sa->spacetype==SPACE_BUTS && pa->prev) {
+			SpaceButs *sbuts= sa->spacedata.first;
+			
+			palign= pa->prev;
+			if(sbuts->align==BUT_VERTICAL) {
+				pa->ofsy= palign->ofsy - pa->sizey - PNL_HEADER;
+			}
+			else if(sbuts->align==BUT_HORIZONTAL) {
+				pa->ofsx= palign->ofsx + palign->sizex;
+			}
+		}
+	}
+	
 	block->panel= pa;
+	pa->active= 1;
 
+	if(block->panel->paneltab) return 0;
+	if(block->panel->flag & PNL_CLOSED) return 0;
+
+	return 1;
 }
 
 void uiFreePanels(ListBase *lb)
@@ -6096,6 +6139,16 @@ void uiFreePanels(ListBase *lb)
 	while( (panel= lb->first) ) {
 		BLI_remlink(lb, panel);
 		MEM_freeN(panel);
+	}
+}
+
+void uiNewPanelHeight(uiBlock *block, int sizey)
+{
+	if(sizey<64) sizey= 64;
+	
+	if(block->panel) {
+		block->panel->ofsy+= (block->panel->sizey - sizey);
+		block->panel->sizey= sizey;
 	}
 }
 
@@ -6116,7 +6169,7 @@ void uiScalePanelBlock(uiBlock *block)
 {
 	uiBut *but;
 	float facx= 1.0, facy= 1.0;
-	int centrex= 0, tabsy;
+	int centrex= 0, topy=0, tabsy;
 	
 	if(block->panel==NULL) return;
 
@@ -6129,16 +6182,17 @@ void uiScalePanelBlock(uiBlock *block)
 	else centrex= (block->panel->sizex-( block->maxx-block->minx ) - PNL_SAFETY)/2;
 	
 	tabsy= PNL_HEADER*panel_has_tabs(block->panel);
-	if( block->maxy-block->miny > block->panel->sizey - 2*PNL_SAFETY - tabsy) {
+	if( (block->maxy-block->miny) > block->panel->sizey - 2*PNL_SAFETY - tabsy) {
 		facy= (block->panel->sizey - (2*PNL_SAFETY) - tabsy)/( block->maxy-block->miny );
 	}
+	else topy= (block->panel->sizey- 2*PNL_SAFETY - tabsy) - ( block->maxy-block->miny ) ;
 
 	but= block->buttons.first;
 	while(but) {
 		but->x1= PNL_SAFETY+centrex+ facx*(but->x1-block->minx);
-		but->y1= PNL_SAFETY+ facy*(but->y1-block->miny);
+		but->y1= PNL_SAFETY+topy   + facy*(but->y1-block->miny);
 		but->x2= PNL_SAFETY+centrex+ facx*(but->x2-block->minx);
-		but->y2= PNL_SAFETY+ facy*(but->y2-block->miny);
+		but->y2= PNL_SAFETY+topy   + facy*(but->y2-block->miny);
 		if(facx!=1.0) ui_check_but(but);	/* for strlen */
 		but= but->next;
 	}
@@ -6153,40 +6207,32 @@ void uiSetPanel_view2d(ScrArea *sa)
 {
 	Panel *pa;
 	float minx=10000, maxx= -10000, miny=10000, maxy= -10000;
-	
-	if(sa->panels.first==NULL) return;
+	int done=0;
 	
 	pa= sa->panels.first;
 	while(pa) {
-		if(pa->ofsx < minx) minx= pa->ofsx;
-		if(pa->ofsx+pa->sizex > maxx) maxx= pa->ofsx+pa->sizex;
-		if(pa->ofsy < miny) miny= pa->ofsy;
-		if(pa->ofsy+pa->sizey+PNL_HEADER > maxy) maxy= pa->ofsy+pa->sizey+PNL_HEADER;
-	
+		if(pa->active) {
+			done= 1;
+			if(pa->ofsx < minx) minx= pa->ofsx;
+			if(pa->ofsx+pa->sizex > maxx) maxx= pa->ofsx+pa->sizex;
+			if(pa->ofsy < miny) miny= pa->ofsy;
+			if(pa->ofsy+pa->sizey+PNL_HEADER > maxy) maxy= pa->ofsy+pa->sizey+PNL_HEADER;
+		}
 		pa= pa->next;
 	}
-	
-	G.v2d->tot.xmin= minx-PNL_DIST;
-	G.v2d->tot.xmax= maxx+PNL_DIST;
-	G.v2d->tot.ymin= miny-PNL_DIST;
-	G.v2d->tot.ymax= maxy+PNL_DIST;
-	
-	
-}
-
-int uiIsPanelClosed(uiBlock *block)
-{
-	if(block->panel && block->panel->paneltab) {
-		/* needed for min max */
-		uiBoundsBlock(block, 0);
-		return 1;
+	if(done) {
+		G.v2d->tot.xmin= minx-PNL_DIST;
+		G.v2d->tot.xmax= maxx+PNL_DIST;
+		G.v2d->tot.ymin= miny-PNL_DIST;
+		G.v2d->tot.ymax= maxy+PNL_DIST;
 	}
-	else if(block->panel && (block->panel->flag & PNL_CLOSED)) {
-		/* draw does bounds too */
-		uiDrawBlock(block);
-		return 1;
+	else {
+		G.v2d->tot.xmin= 0;
+		G.v2d->tot.xmax= 1280;
+		G.v2d->tot.ymin= 0;
+		G.v2d->tot.ymax= 228;
 	}
-	return 0;
+	
 }
 
 static void ui_panel_push(uiBlock *block)
@@ -6258,7 +6304,7 @@ static void ui_draw_panel_tabs(uiBlock *block)
 	/* count */
 	pa= curarea->panels.first;
 	while(pa) {
-		if(pa!=panel) {
+		if(pa->active) {
 			if(pa->paneltab==panel) nr++;
 		}
 		pa= pa->next;
@@ -6272,7 +6318,8 @@ static void ui_draw_panel_tabs(uiBlock *block)
 	width= (panel->sizex - 2*PNL_SAFETY)/nr;
 	pa= curarea->panels.first;
 	while(pa) {
-		if(pa==panel) {
+		if(pa->active==0);
+		else if(pa==panel) {
 			/* active tab */
 			uiSetRoundBox(12);
 			glColor3ub(160, 160, 167);
@@ -6407,137 +6454,121 @@ static int get_panel_real_ofsy(Panel *pa)
 	else return pa->ofsy;
 }
 
+typedef struct PanelSort {
+	Panel *pa, *orig;
+} PanelSort;
 
-static Panel *find_highest_panel(ListBase *lb)
+static int find_leftmost_panel(const void *a1, const void *a2)
 {
-	Panel *pa, *patop=NULL;
-	int top= -100000, extra;
+	const PanelSort *ps1=a1, *ps2=a2;
 	
-	pa= lb->first;
-	while(pa) {
-		/* sorting based at name to keep tabs in order too */
-		extra= (pa->panelname[0]+pa->panelname[1] - 'A' - 'A')/4;
-		
-		if( pa->ofsy + pa->sizey + extra > top) {
-			top= pa->ofsy + pa->sizey+extra;
-			patop= pa;
-		}
-		pa= pa->next;
-	}
-	
-	return patop;
-}
+	if( ps1->pa->ofsx > ps2->pa->ofsx) return 1;
+	else if( ps1->pa->ofsx < ps2->pa->ofsx) return -1;
+	else if( ps1->pa->next == ps2->pa) return -1;
+	else if( ((long)ps1->pa) < ((long)ps2->pa)) return -1;
+	else if( ((long)ps1->pa) > ((long)ps2->pa)) return 1;
 
-static Panel *find_leftmost_panel(ListBase *lb)
-{
-	Panel *pa, *paleft=NULL;
-	int left= 100000, extra;
-	
-	pa= lb->first;
-	while(pa) {
-		/* sorting based at name to keep tabs in order too */
-		extra= (pa->panelname[0]+pa->panelname[1] - 'A' - 'A')/4;
-
-		if( pa->ofsx + extra < left) {
-			left= pa->ofsx + extra;
-			paleft= pa;
-		}
-		pa= pa->next;
-	}
-	return paleft;
-
+	return 0;
 }
 
 
-/* this also animates */
-static void ui_align_panel_step(ScrArea *sa, float fac)
+static int find_highest_panel(const void *a1, const void *a2)
+{
+	const PanelSort *ps1=a1, *ps2=a2;
+	
+	if( ps1->pa->ofsy < ps2->pa->ofsy) return 1;
+	else if( ps1->pa->ofsy > ps2->pa->ofsy) return -1;
+	else if( ((long)ps1->pa) < ((long)ps2->pa)) return -1;
+	else if( ((long)ps1->pa) > ((long)ps2->pa)) return 1;
+	
+	return 0;
+}
+
+/* this doesnt draw */
+/* returns 1 when it did something */
+int uiAlignPanelStep(ScrArea *sa, float fac)
 {
 	SpaceButs *sbuts= sa->spacedata.first;
-	ListBase lb1= {NULL, NULL};
-	Panel *pa, *panel, *next;
+	Panel *pa;
+	PanelSort *ps, *panelsort, *psnext;
+	int a, tot=0, done;
 	
-	/* find the desired positions of current panels first */
-	/* sorting */
-	while(sa->panels.first) {
-		if(sbuts->align==BUT_VERTICAL) 
-			pa= find_highest_panel(&sa->panels);
-		else
-			pa= find_leftmost_panel(&sa->panels);
-		
-		if(pa==NULL) printf("panel sort error (crash!)\n");
-		BLI_remlink(&sa->panels, pa);
-		BLI_addtail(&lb1, pa);
-	}
-	/* put back sorted */
-	sa->panels = lb1;
-
-	/* make copy */
-	duplicatelist(&lb1, &sa->panels);
-
-	/* now we fill in lb1 panels the desired location */
-	pa= lb1.first;
-	/* but, we start with the first panel that's not a tab */
-	while(pa) {
-		if(pa->paneltab==NULL) break;
-		pa= pa->next;
+	if(sa->spacetype!=SPACE_BUTS) {
+		printf("align not supported yet here\n");
+		return 0;
 	}
 	
-	/* default startloc current view2d topleft corner */
-	pa->ofsx= sbuts->v2d.tot.xmin+PNL_DIST;
-	pa->ofsy= sbuts->v2d.tot.ymax-PNL_DIST- pa->sizey-PNL_HEADER;
+	/* count active, not tabbed Panels */
+	for(pa= sa->panels.first; pa; pa= pa->next) {
+		if(pa->active && pa->paneltab==NULL) tot++;
+	}
 
-	if(sbuts->align==BUT_VERTICAL) {
-		next= pa->next;
-		while(next) {
-			if(next->paneltab==NULL) {
-				next->ofsx = pa->ofsx;
-				next->ofsy = get_panel_real_ofsy(pa) - pa->sizey-PNL_HEADER-PNL_DIST;
-				pa= next;
-			}
-			next= next->next;
+	if(tot==0) return 0;
+
+	panelsort= MEM_callocN( tot*sizeof(PanelSort), "panelsort");
+	
+	/* fill panelsort array */
+	ps= panelsort;
+	for(pa= sa->panels.first; pa; pa= pa->next) {
+		if(pa->active && pa->paneltab==NULL) {
+			ps->pa= MEM_dupallocN(pa);
+			ps->orig= pa;
+			ps++;
 		}
 	}
-	else {
-		next= pa->next;
-		while(next) {
-			if(next->paneltab==NULL) {
-				next->ofsx = pa->ofsx + pa->sizex+PNL_DIST;
-				next->ofsy = pa->ofsy;
-				pa= next;
-			}
-			next= next->next;
+	
+	if(sbuts->align==BUT_VERTICAL) 
+		qsort(panelsort, tot, sizeof(PanelSort), find_highest_panel);
+	else
+		qsort(panelsort, tot, sizeof(PanelSort), find_leftmost_panel);
+
+	/* now we fill in copied panels the desired location */
+	/* default startloc current view2d topleft corner */
+	ps= panelsort;
+	ps->pa->ofsx= sbuts->v2d.tot.xmin;
+	ps->pa->ofsy= sbuts->v2d.tot.ymax- ps->pa->sizey-PNL_HEADER;
+	for(a=0 ; a<tot-1; a++, ps++) {
+		psnext= ps+1;
+		
+		if(sbuts->align==BUT_VERTICAL) {
+			psnext->pa->ofsx = ps->pa->ofsx;
+			psnext->pa->ofsy = get_panel_real_ofsy(ps->pa) - ps->pa->sizey-PNL_HEADER-PNL_DIST;
+		}
+		else {
+			psnext->pa->ofsx = ps->pa->ofsx + ps->pa->sizex+PNL_DIST;
+			psnext->pa->ofsy = ps->pa->ofsy;
 		}
 	}
 	
 	/* we interpolate */
-	panel= sa->panels.first;
-	pa= lb1.first;
-	while(panel && pa) {
-		
-		if( (panel->flag & PNL_SELECT)==0) {
-			panel->ofsx= floor(0.5 + fac*pa->ofsx + (1.0-fac)*panel->ofsx);
-			panel->ofsy= floor(0.5 + fac*pa->ofsy + (1.0-fac)*panel->ofsy);
+	done= 0;
+	ps= panelsort;
+	for(a=0; a<tot; a++, ps++) {
+		if( (ps->pa->flag & PNL_SELECT)==0) {
+			if( (ps->orig->ofsx != ps->pa->ofsx) || (ps->orig->ofsy != ps->pa->ofsy)) {
+				ps->orig->ofsx= floor(0.5 + fac*ps->pa->ofsx + (1.0-fac)*ps->orig->ofsx);
+				ps->orig->ofsy= floor(0.5 + fac*ps->pa->ofsy + (1.0-fac)*ps->orig->ofsy);
+				done= 1;
+			}
 		}
-		panel= panel->next;
-		pa= pa->next;
 	}
-	
-	BLI_freelistN(&lb1);
-	
+
 	/* copy locations to tabs */
-	panel= sa->panels.first;
-	while(panel) {
-		if(panel->paneltab) {
-			panel->ofsx= panel->paneltab->ofsx;
-			panel->ofsy= panel->paneltab->ofsy;
+	for(pa= sa->panels.first; pa; pa= pa->next) {
+		if(pa->paneltab && pa->active) {
+			pa->ofsx= pa->paneltab->ofsx;
+			pa->ofsy= pa->paneltab->ofsy;
 		}
-		panel= panel->next;
 	}
+
+	/* free panelsort array */
+	ps= panelsort;
+	for(a=0; a<tot; a++, ps++) {
+		MEM_freeN(ps->pa);
+	}
+	MEM_freeN(panelsort);
 	
-	/* warn: this re-allocs uiblocks! */
-	scrarea_do_windraw(curarea);
-	ui_redraw_select_panel(curarea);
-	screen_swapbuffers();
+	return done;
 }
 
 
@@ -6551,7 +6582,17 @@ void uiAnimatePanels(ScrArea *sa)
 	/* for max 1 second, interpolate positions */
 	while(TRUE) {
 	
-		ui_align_panel_step(sa, fac);
+		if( uiAlignPanelStep(sa, fac) ) {
+			/* warn: this re-allocs uiblocks! */
+			scrarea_do_windraw(curarea);
+			ui_redraw_select_panel(curarea);
+			screen_swapbuffers();
+		}
+		else {
+			addqueue(curarea->win, REDRAW,1 );	// because 'Animate' is also called as redraw
+			break;
+		}
+		
 		if(result >= 1.0) break;
 		
 		if(result==0.0) { // firsttime
@@ -6571,6 +6612,58 @@ void uiAnimatePanels(ScrArea *sa)
 	}
 }
 
+/* only draws blocks with panels */
+void uiDrawBlocksPanels(ScrArea *sa, int re_align)
+{
+	uiBlock *block;
+	Panel *panot, *panew, *patest;
+	
+	/* scaling contents */
+	block= sa->uiblocks.first;
+	while(block) {
+		if(block->panel) uiScalePanelBlock(block);
+		block= block->next;
+	}
+
+	/* consistancy; are panels not made, whilst they have tabs */
+	for(panot= sa->panels.first; panot; panot= panot->next) {
+		if(panot->active==0) { // not made
+
+			for(panew= sa->panels.first; panew; panew= panew->next) {
+				if(panew->active) {
+					if(panew->paneltab==panot) { // panew is tab in notmade pa
+						break;
+					}
+				}
+			}
+			/* now panew can become the new parent, check all other tabs */
+			if(panew) {
+				for(patest= sa->panels.first; patest; patest= patest->next) {
+					if(patest->paneltab == panot) {
+						patest->paneltab= panew;
+					}
+				}
+				panot->paneltab= panew;
+				panew->paneltab= NULL;
+				addqueue(sa->win, REDRAW, 1);	// the buttons panew were not made
+			}
+		}	
+	}
+
+	/* re-align */
+	if(re_align) uiAlignPanelStep(sa, 1.0);
+
+	/* draw */
+	block= sa->uiblocks.first;
+	while(block) {
+		if(block->panel) uiDrawBlock(block);
+		block= block->next;
+	}
+
+}
+
+
+
 /* ------------ panel merging ---------------- */
 
 static void check_panel_overlap(ScrArea *sa, Panel *panel)
@@ -6582,7 +6675,7 @@ static void check_panel_overlap(ScrArea *sa, Panel *panel)
 	while(pa) {
 		pa->flag &= ~PNL_OVERLAP;
 		if(panel && (pa != panel)) {
-			if(pa->paneltab==NULL) {
+			if(pa->paneltab==NULL && pa->active) {
 				float safe= 0.2;
 				
 				if(pa->flag & PNL_CLOSED) safe= 0.05;
@@ -6606,8 +6699,10 @@ static void test_add_new_tabs(ScrArea *sa)
 	
 	pa= sa->panels.first;
 	while(pa) {
-		if(pa->flag & PNL_SELECT) pasel= pa;
-		if(pa->flag & PNL_OVERLAP) palap= pa;
+		if(pa->active) {
+			if(pa->flag & PNL_SELECT) pasel= pa;
+			if(pa->flag & PNL_OVERLAP) palap= pa;
+		}
 		pa= pa->next;
 	}
 	
@@ -6661,6 +6756,11 @@ static void ui_drag_panel(uiBlock *block)
 	Panel *panel= block->panel;
 	short first=1, ofsx, ofsy, dx, dy, dxo=0, dyo=0, mval[2], mvalo[2];
 
+	if(curarea->spacetype!=SPACE_BUTS) {
+		printf("align not supported yet here\n");
+		return;
+	}
+
 	uiGetMouse(block->win, mvalo);
 	ofsx= block->panel->ofsx;
 	ofsy= block->panel->ofsy;
@@ -6671,10 +6771,14 @@ static void ui_drag_panel(uiBlock *block)
 	
 		if( !(get_mbut() & L_MOUSE) ) break;	
 	
-		uiGetMouse(mywinget(), mval);
-		dx= (mval[0]-mvalo[0]) & ~(PNL_GRID-1);
-		dy= (mval[1]-mvalo[1]) & ~(PNL_GRID-1);
-
+		/* first clip for window, no dragging outside */
+		getmouseco_areawin(mval);
+		if( mval[0]>0 && mval[0]<curarea->winx && mval[1]>0 && mval[1]<curarea->winy) {
+			uiGetMouse(mywinget(), mval);
+			dx= (mval[0]-mvalo[0]) & ~(PNL_GRID-1);
+			dy= (mval[1]-mvalo[1]) & ~(PNL_GRID-1);
+		}
+		
 		if(dx!=dxo || dy!=dyo || first) {
 			dxo= dx; dyo= dy;		
 			first= 0;
@@ -6684,13 +6788,12 @@ static void ui_drag_panel(uiBlock *block)
 			
 			check_panel_overlap(curarea, panel);
 			
+			if(sbuts->align) uiAlignPanelStep(curarea, 0.2);
+
 			/* warn: this re-allocs blocks! */
-			if(sbuts->align==0) { 
-				scrarea_do_windraw(curarea);
-				ui_redraw_select_panel(curarea);
-				screen_swapbuffers();
-			}
-			else ui_align_panel_step(curarea, 0.2);
+			scrarea_do_windraw(curarea);
+			ui_redraw_select_panel(curarea);
+			screen_swapbuffers();
 			
 			/* so, we find the new block */
 			block= curarea->uiblocks.first;
@@ -6831,8 +6934,13 @@ static void ui_do_panel(uiBlock *block, uiEvent *uevent)
 	SpaceButs *sbuts= curarea->spacedata.first;
 	Panel *pa;
 	
+	if(curarea->spacetype!=SPACE_BUTS) {
+		printf("align not supported yet here\n");
+		return;
+	}
+
 	/* mouse coordinates in panel space! */
-	
+
 	if(uevent->event==LEFTMOUSE && block->panel->paneltab==NULL) {
 		
 		/* check if clicked in tabbed area */
