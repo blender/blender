@@ -1638,6 +1638,7 @@ static PyObject *Object_Select (BPy_Object *self, PyObject *args)
 			if (sel == 1){
 				base->flag |= SELECT;
 				self->object->flag= base->flag;
+				set_active_base( base );
 			} else { 
 				base->flag &= ~SELECT;
 				self->object->flag= base->flag;
