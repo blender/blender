@@ -559,7 +559,7 @@ static void lscm_projection_axes(float *min, float *max, float *p1, float *p2)
 		if(dx > dz) p1[0]= p2[2]= 1.0;   /* x, z */
 		else p1[2]= p2[0]= 1.0;          /* z, x */
 	}
-	else if(dz < dx && dz < dy) {
+	else {
 		if(dx > dy) p1[0]= p2[1]= 1.0;   /* x, y */
 		else p1[1]= p2[0]= 1.0;          /* y, x */
 	}
@@ -953,8 +953,8 @@ static void pack_seam_groups(Mesh *me, int *groups, int totgroup)
 		dy= (max[1]-min[1])*scale;
 
 		/* for padding */
-		dx += 0.05;
-		dy += 0.05;
+		dx += 0.01;
+		dy += 0.01;
 
 		add[0]= add[1]= 0.0;
 
@@ -983,8 +983,8 @@ static void pack_seam_groups(Mesh *me, int *groups, int totgroup)
 		}
 
 		/* for padding */
-		add[0] += 0.025;
-		add[1] += 0.025;
+		add[0] += 0.005;
+		add[1] += 0.005;
 
 		seam_group_scale(me, groups, a+1, scale);
 		seam_group_move(me, groups, a+1, add);
@@ -993,8 +993,8 @@ static void pack_seam_groups(Mesh *me, int *groups, int totgroup)
 	MEM_freeN(groupscale);
 
 	seam_group_normalize(me, groups, 0);
-	seam_group_scale(me, groups, 0, 0.9);
-	add[0]= add[1]= 0.05;
+	seam_group_scale(me, groups, 0, 0.98);
+	add[0]= add[1]= 0.01;
 	seam_group_move(me, groups, 0, add);
 }
 

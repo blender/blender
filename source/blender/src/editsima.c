@@ -123,11 +123,11 @@ static void setLinkedLimit(float *limit)
 {
 	if(G.sima->image && G.sima->image->ibuf && G.sima->image->ibuf->x > 0 &&
 	   G.sima->image->ibuf->y > 0) {
-		limit[0]= 5.0/(float)G.sima->image->ibuf->x;
-		limit[1]= 5.0/(float)G.sima->image->ibuf->y;
+		limit[0]= 0.5/(float)G.sima->image->ibuf->x;
+		limit[1]= 0.5/(float)G.sima->image->ibuf->y;
 	}
 	else
-		limit[0]= limit[1]= 5.0/256.0;
+		limit[0]= limit[1]= 0.5/256.0;
 }
 
 
