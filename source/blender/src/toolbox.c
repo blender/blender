@@ -1502,18 +1502,19 @@ typedef struct TBitem {
 
 static void tb_do_hotkey(void *arg, int event)
 {
-	unsigned short key=0, qual1=0, qual2=0;
+	unsigned short i, key=0;
+	unsigned short qual[] = { 0,0,0,0 };
 	
 	if(event & TB_CTRL) {
-		qual1= LEFTCTRLKEY;
+		qual[0] = LEFTCTRLKEY;
 		event &= ~TB_CTRL;
 	}
 	if(event & TB_ALT) {
-		qual1= LEFTALTKEY;
+		qual[1] = LEFTALTKEY;
 		event &= ~TB_ALT;
 	}
 	if(event & TB_SHIFT) {
-		qual1= LEFTSHIFTKEY;
+		qual[2] = LEFTSHIFTKEY;
 		event &= ~TB_SHIFT;
 	}
 	
@@ -1531,16 +1532,20 @@ static void tb_do_hotkey(void *arg, int event)
 		case 'd': key= PAGEDOWNKEY; break;
 		}
 	}
-	else asciitoraw(event, &key, &qual2);
+	else asciitoraw(event, &key, &qual[3]);
 
-	if(qual1) mainqenter(qual1, 1);
-	if(qual2) mainqenter(qual2, 1);
+	for (i=0;i<4;i++)
+	{
+		if(qual[i]) mainqenter(qual[i], 1);
+	}
 	mainqenter(key, 1);
 	mainqenter(key, 0);
 	mainqenter(EXECUTE, 1);
-	if(qual1) mainqenter(qual1, 0);
-	if(qual2) mainqenter(qual2, 0);
-	
+
+	for (i=0;i<4;i++)
+	{
+		if(qual[i]) mainqenter(qual[i], 0);
+	}
 }
 
 /* *************Select ********** */
@@ -1871,8 +1876,8 @@ static TBitem tb_view_dt[]= {
 
 static TBitem tb_view_alignview[]= {
 {	0, "Centre View to Cursor|C", 		'c', NULL},
-{	0, "Align Active Camera to View|Shift NumPad 0", 		
-TB_SHIFT|TB_PAD|'0', NULL},
+{	0, "Align Active Camera to View|Ctrl Alt NumPad 0",
+TB_CTRL|TB_ALT|TB_PAD|'0', NULL}, 
 {	0, "Align View to Selected|NumPad *", 		TB_PAD|'*', NULL},
 {  -1, "", 			0, tb_do_hotkey}};
 

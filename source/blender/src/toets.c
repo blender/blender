@@ -402,7 +402,7 @@ void persptoetsen(unsigned short event)
 			if(G.vd->camera) {
 				G.vd->persp= 2;
 				G.vd->view= 0;
-				if(G.qual & LR_SHIFTKEY) {
+				if(((G.qual & LR_CTRLKEY) && (G.qual & LR_ALTKEY)) || (G.qual & LR_SHIFTKEY)) {
 					void setcameratoview3d(void);	// view.c
 					setcameratoview3d();
 				}				

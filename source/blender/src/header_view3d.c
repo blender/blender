@@ -298,9 +298,9 @@ static void do_view3d_view_alignviewmenu(void *arg, int event)
 		/* This ugly hack is a symptom of the nasty persptoetsen function, 
 		 * but at least it works for now.
 		 */
-		G.qual |= LR_SHIFTKEY;
+		G.qual |= LR_CTRLKEY|LR_ALTKEY;
 		persptoetsen(PAD0);
-		G.qual &= ~LR_SHIFTKEY;
+		G.qual &= ~LR_CTRLKEY|LR_ALTKEY;
 		break;
 	case 5: /* Align View to Selected (object mode) */
 		mainqenter(PADASTERKEY, 1);
@@ -325,7 +325,7 @@ static uiBlock *view3d_view_alignviewmenu(void *arg_unused)
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center View to Cursor|C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center Cursor and View All|Shift C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align Active Camera to View|Shift NumPad 0",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align Active Camera to View|Ctrl Alt NumPad 0",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");	
 
 	if (((G.obedit) && (G.obedit->type == OB_MESH)) || (G.f & G_FACESELECT)) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align View to Selected (Top)|Shift V",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
