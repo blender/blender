@@ -107,8 +107,22 @@ static GHOST_TKey convertKey(int rawCode)
 	unsigned char vk = KeyTranslate(transData, rawCode, &dummy);	
 		/* Map numpad based on rawcodes first, otherwise they
 		 * look like non-numpad events.
+		 * Added too: mapping the number keys, for french keyboards etc (ton)
 		 */
+	// printf("GHOST: vk: %d %c raw: %d\n", vk, vk, rawCode);
+		 
 	switch (rawCode) {
+	case 18:	return GHOST_kKey1;
+	case 19:	return GHOST_kKey2;
+	case 20:	return GHOST_kKey3;
+	case 21:	return GHOST_kKey4;
+	case 23:	return GHOST_kKey5;
+	case 22:	return GHOST_kKey6;
+	case 26:	return GHOST_kKey7;
+	case 28:	return GHOST_kKey8;
+	case 25:	return GHOST_kKey9;
+	case 29:	return GHOST_kKey0;
+	
 	case 82: 	return GHOST_kKeyNumpad0;
 	case 83: 	return GHOST_kKeyNumpad1;
 	case 84: 	return GHOST_kKeyNumpad2;
