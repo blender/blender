@@ -90,8 +90,6 @@ all debug::
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_PYTHON_VERSION ?= 2.0
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-    export NAN_MXTEXTTOOLS ?= $(shell $(NAN_PYTHON_BINARY) -c \
-	'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= $(LCGDIR)/jpeg
@@ -131,8 +129,6 @@ all debug::
     export NAN_PYTHON ?= /sw
     export NAN_PYTHON_VERSION ?= 2.2
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-    export NAN_MXTEXTTOOLS ?= $(shell $(NAN_PYTHON_BINARY) -c \
-        'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= /sw
@@ -175,7 +171,6 @@ all debug::
     export NAN_PYTHON ?= /usr/local
     export NAN_PYTHON_VERSION ?= 2.2
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-    export NAN_MXTEXTTOOLS ?= 
     export NAN_OPENAL ?= /usr/local
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= /usr/local
@@ -215,7 +210,6 @@ all debug::
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_PYTHON_VERSION ?= 2.1
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-    export NAN_MXTEXTTOOLS ?= 
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= $(LCGDIR)/jpeg
@@ -255,7 +249,6 @@ all debug::
     export NAN_PYTHON ?= /usr
     export NAN_PYTHON_VERSION ?= 2.2
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-    export NAN_MXTEXTTOOLS ?=
     export NAN_OPENAL ?= /usr
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= /usr
@@ -296,8 +289,6 @@ all debug::
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_PYTHON_VERSION ?= 2.0
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-    export NAN_MXTEXTTOOLS ?= $(shell $(NAN_PYTHON_BINARY) -c \
-        'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= $(LCGDIR)/jpeg
@@ -337,7 +328,6 @@ all debug::
     export NAN_PYTHON ?= /usr/local
     export NAN_PYTHON_VERSION ?= 2.2
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-    export NAN_MXTEXTTOOLS ?=
     export NAN_OPENAL ?= /usr/local
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= /usr/local
@@ -385,8 +375,6 @@ all debug::
       export NAN_FREETYPE ?= $(LCGDIR)/freetype
       export NAN_ODE ?= $(LCGDIR)/ode
     endif
-    export NAN_MXTEXTTOOLS ?= $(shell $(NAN_PYTHON_BINARY) -c \
-	'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= $(LCGDIR)/jpeg
@@ -424,8 +412,6 @@ export NAN_PYTHON_BINARY ?= python
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_PYTHON_VERSION ?= 2.0
 	export NAN_PYTHON_BINARY ?= python
-    export NAN_MXTEXTTOOLS ?= $(shell $(NAN_PYTHON_BINARY) -c \
-	'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= $(LCGDIR)/jpeg
