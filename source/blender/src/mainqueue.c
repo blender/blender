@@ -57,7 +57,7 @@ unsigned short mainqread(short *val, char *ascii)
 		
 		*val= mainqueue[nevents].val;
 		*ascii= mainqueue[nevents].ascii;
-		if((*ascii<30)||(*ascii>126)) *ascii=0;
+		if((*ascii<32)||(*ascii==127)) *ascii=0;
 		return mainqueue[nevents].event;
 	} else
 		return 0;
