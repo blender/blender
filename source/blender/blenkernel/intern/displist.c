@@ -1755,7 +1755,6 @@ void makeDispList(Object *ob)
 	
 	if(ob->type==OB_MESH) {
 		me= ob->data;
-
 		freedisplist(&(me->disp));
 
 		tex_space_mesh(ob->data);
@@ -2411,8 +2410,8 @@ void test_all_displists(void)
 					}
 				}
 				if(ob!=G.obedit) {
-					if(( ((Mesh *)(ob->data))->key )||(ob->effect.first)) 
-						freedisplist_object(ob); //makeDispList(ob);
+					if(( ((Mesh *)(ob->data))->key )) 
+						freedisplist_object(ob);
 				}
 			}
 

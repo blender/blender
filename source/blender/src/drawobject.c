@@ -4104,9 +4104,12 @@ void draw_object(Base *base)
 		if(ob->disp.first==NULL) {
 			if(ob->parent && ob->partype==PARSKEL) makeDispList(ob);
 			else if(ob->hooks.first) makeDispList(ob);
-			else if(ob->effect.first) makeDispList(ob);
 			else if(ob->softflag) makeDispList(ob);
 			else if(me->disp.first==NULL && mesh_uses_displist(me)) makeDispList(ob);
+			else if(ob->effect.first) {	// as last check
+				Effect *eff= ob->effect.first;
+				if(eff->type==EFF_WAVE) makeDispList(ob);
+			}
 		}
 	}
 	
