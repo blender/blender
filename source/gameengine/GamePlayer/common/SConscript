@@ -46,18 +46,20 @@ gp_common_env.Append( CPPPATH = ['.',
 								'#source/gameengine/GamePlayer/ghost',
 								'#source/blender/misc',
 								'#source/blender/blenloader'])
-if sys.platform=='win32':
-	source_files += ['windows/GPW_Canvas.cpp',
-					 'windows/GPW_Engine.cpp',
-					 'windows/GPW_KeyboardDevice.cpp',
-					 'windows/GPW_System.cpp']
-	gp_common_env.Append ( CPPPATH = ['windows'])
-elif sys.platform=='linux2' or sys.platform=='linux-i386':
-	source_files += ['unix/GPU_Canvas.cpp',
-					 'unix/GPU_Engine.cpp',
-					 'unix/GPU_KeyboardDevice.cpp',
-					 'unix/GPU_System.cpp']
-	gp_common_env.Append ( CPPPATH = ['unix'])
+								
+#This is all plugin stuff!
+#if sys.platform=='win32':
+#	source_files += ['windows/GPW_Canvas.cpp',
+#					 'windows/GPW_Engine.cpp',
+#					 'windows/GPW_KeyboardDevice.cpp',
+#					 'windows/GPW_System.cpp']
+#	gp_common_env.Append ( CPPPATH = ['windows'])
+#elif sys.platform=='linux2' or sys.platform=='linux-i386':
+#	source_files += ['unix/GPU_Canvas.cpp',
+#					 'unix/GPU_Engine.cpp',
+#					 'unix/GPU_KeyboardDevice.cpp',
+#					 'unix/GPU_System.cpp']
+#	gp_common_env.Append ( CPPPATH = ['unix'])
 
 gp_common_env.Append (CPPPATH = user_options_dict['PYTHON_INCLUDE'])
 gp_common_env.Append (CPPPATH = user_options_dict['SOLID_INCLUDE'])
