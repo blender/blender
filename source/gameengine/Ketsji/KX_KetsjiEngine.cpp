@@ -835,10 +835,7 @@ void KX_KetsjiEngine::PostProcessScene(KX_Scene* scene)
 	{
 		KX_Camera* activecam = NULL;
 
-		RAS_CameraData camdata;
-		camdata.m_lens = 35.0f;
-		camdata.m_clipstart = 0.1f;
-		camdata.m_clipend = 100.0f;
+		RAS_CameraData camdata = RAS_CameraData();
 		activecam = new KX_Camera(scene,KX_Scene::m_callbacks,camdata);
 		activecam->SetName("__default__cam__");
 	
