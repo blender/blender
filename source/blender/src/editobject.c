@@ -4678,6 +4678,16 @@ void transform(int mode)
 				}
 				else size[0]=size[1]=size[2]= (sqrt( (float)((yc-mval[1])*(yc-mval[1])+(mval[0]-xc)*(mval[0]-xc)) ))/sizefac;
 				
+				if (typemode){
+					size[0] = size[1] = size[2] = 1.0;
+					if (addvec[0] != 0)
+						size[0] = addvec[0];
+					if (addvec[1] != 0)
+						size[1] = addvec[1];
+					if (addvec[2] != 0)
+						size[2] = addvec[2];
+				}
+
 				if(axismode && mode=='s') {
 					/* shear has no axismode */
 					if (!(G.obedit)){
@@ -4847,14 +4857,43 @@ void transform(int mode)
 							}
 						}
 					}
-					if(mode=='s') 
-						sprintf(str, "Sizex: %.3f   Sizey: %.3f  Sizez: %.3f", sizelo[0], sizelo[1], sizelo[2]);
-					else if (mode=='S')
-						sprintf(str, "Shear: %.3f ", sizelo[0]);
-					else if (mode=='C')
-						sprintf(str, "Size: %.3f ", sizelo[0]);
-					else if (mode=='N')
-						sprintf(str, "Shrink/Fatten: %.3f ", size[0]);
+					if(mode=='s') {
+						if (typemode){
+							switch (ax){
+							case 0:
+								sprintf(str, "Sizex: >%.3f<   Sizey: >%.3f<  Sizez: >%.3f<", sizelo[0], sizelo[1], sizelo[2]);
+								break;
+							case 1:
+								sprintf(str, "Sizex: >%.3f<   Sizey: %.3f  Sizez: %.3f", sizelo[0], sizelo[1], sizelo[2]);
+								break;
+							case 2:
+								sprintf(str, "Sizex: %.3f   Sizey: >%.3f<  Sizez: %.3f", sizelo[0], sizelo[1], sizelo[2]);
+								break;
+							case 3:
+								sprintf(str, "Sizex: %.3f   Sizey: %.3f  Sizez: >%.3f<", sizelo[0], sizelo[1], sizelo[2]);
+							}
+						}
+						else
+							sprintf(str, "Sizex: %.3f   Sizey: %.3f  Sizez: %.3f", sizelo[0], sizelo[1], sizelo[2]);
+					}
+					else if (mode=='S') {
+						if (typemode)
+							sprintf(str, "Shear: >%.3f<", sizelo[0]);
+						else
+							sprintf(str, "Shear: %.3f", sizelo[0]);
+					}
+					else if (mode=='C') {
+						if (typemode)
+							sprintf(str, "Size: >%.3f<", sizelo[0]);
+						else
+							sprintf(str, "Size: %.3f", sizelo[0]);
+					}
+					else if (mode=='N') {
+						if (typemode)
+							sprintf(str, "Shrink/Fatten: >%.3f< ", size[0]);
+						else
+							sprintf(str, "Shrink/Fatten: %.3f", size[0]);
+					}
 					
 					headerprint(str);
 					
