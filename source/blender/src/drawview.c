@@ -446,7 +446,8 @@ static void draw_bgpic(void)
 	glBlendFunc(GL_ONE,  GL_ZERO); 
 	glDisable(GL_BLEND);
 	if(G.zbuf) glEnable(GL_DEPTH_TEST);
-	 
+	
+	areawinset(curarea->win);	// restore viewport / scissor
 }
 
 void timestr(double time, char *str)

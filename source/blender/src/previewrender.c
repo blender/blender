@@ -276,6 +276,9 @@ static void end_previewrect(void)
 	glPopMatrix();
 	
 	glPixelZoom(1.0, 1.0);
+	
+	areawinset(curarea->win);	// restore viewport / scissor
+
 }
 
 static void display_pr_scanline(unsigned int *rect, int recty)
