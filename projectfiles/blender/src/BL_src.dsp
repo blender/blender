@@ -615,6 +615,10 @@ SOURCE=..\..\..\source\blender\include\BIF_spacetypes.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\include\BIF_transform.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\include\BIF_writeavicodec.h
 # End Source File
 # Begin Source File

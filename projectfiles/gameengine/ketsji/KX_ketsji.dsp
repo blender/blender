@@ -327,6 +327,10 @@ SOURCE=..\..\..\source\gameengine\Ketsji\KX_PythonInit.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\gameengine\Ketsji\KX_RayCast.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\gameengine\Ketsji\KX_RayEventManager.cpp
 # End Source File
 # Begin Source File
@@ -572,6 +576,10 @@ SOURCE=..\..\..\source\gameengine\Ketsji\KX_PyMath.h
 # Begin Source File
 
 SOURCE=..\..\..\source\gameengine\Ketsji\KX_PythonInit.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\gameengine\Ketsji\KX_RayCast.h
 # End Source File
 # Begin Source File
 

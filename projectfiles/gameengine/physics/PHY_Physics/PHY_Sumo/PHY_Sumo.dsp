@@ -103,6 +103,10 @@ SOURCE=..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\src\SM_Scene.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\..\..\source\gameengine\Physics\Sumo\SumoPHYCallbackBridge.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\..\..\source\gameengine\Physics\Sumo\SumoPhysicsController.cpp
 # End Source File
 # Begin Source File
@@ -140,6 +144,10 @@ SOURCE=..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include\SM_Props.h
 # Begin Source File
 
 SOURCE=..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include\SM_Scene.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\..\source\gameengine\Physics\Sumo\SumoPHYCallbackBridge.h
 # End Source File
 # Begin Source File
 
