@@ -1643,10 +1643,10 @@ void makeDispList(Object *ob)
 		tex_space_mesh(ob->data);
 
 		object_deform(ob);	
-
+		
 		if(ob->effect.first) object_wave(ob);
 		
-		if (mesh_uses_displist(me)) {
+		if (mesh_uses_displist(me)) {  /* subsurf */
 			DispListMesh *dlm;
 
 			if (ob==G.obedit) {
@@ -2247,7 +2247,7 @@ void test_all_displists(void)
 			else if(ob->type==OB_MESH) {
 				if(ob->effect.first) object_wave(ob);
 				if(ob!=G.obedit) {
-					if( ((Mesh *)(ob->data))->key ) makeDispList(ob);
+					if(( ((Mesh *)(ob->data))->key )||(ob->effect.first)) makeDispList(ob);
 				}
 			}
 

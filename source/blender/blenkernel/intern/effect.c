@@ -832,7 +832,7 @@ void object_wave(Object *ob)
 
 		if(dl->verts) MEM_freeN(dl->verts);
 		dl->nr= me->totvert;
-		dl->verts= MEM_mallocN(3*4*me->totvert, "wave");
+		dl->verts= MEM_mallocN(3*sizeof(float)*me->totvert, "wave");
 
 		wav= ob->effect.first;
 		while(wav) {
