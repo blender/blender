@@ -121,6 +121,7 @@
 #include "BIF_butspace.h" // for do_versions, patching event codes
 
 #include "BLO_readfile.h"
+#include "BLO_undofile.h"
 #include "readfile.h"
 
 #include "genfile.h"
@@ -767,6 +768,54 @@ static int fd_read_from_memory(FileData *filedata, void *buffer, int size)
 	return (readsize);
 }
 
+static int fd_read_from_memfile(FileData *filedata, void *buffer, int size)
+{
+	static unsigned int seek= 1<<30;	/* the current position */
+	static unsigned int offset= 0;		/* size of previous chunks */
+	static MemFileChunk *chunk=NULL;
+	
+	if(size==0) return 0;
+	
+	if(seek != filedata->seek) {
+		chunk= filedata->memfile->chunks.first;
+		seek= 0;
+		
+		while(chunk) {
+			if(seek + chunk->size > filedata->seek) break;
+			seek+= chunk->size;
+			chunk= chunk->next;
+		}
+		offset= seek;
+		seek= filedata->seek;
+	}
+	
+	if(chunk) {
+		/* first check if it's on the end if current chunk */
+		if( seek-offset == chunk->size) {
+			offset+= chunk->size;
+			chunk= chunk->next;
+		}
+		
+		/* debug, should never happen */
+		if(chunk==NULL) {
+			printf("illegal read, chunk zero\n");
+			return 0;
+		}
+		else if( (seek-offset)+size > chunk->size) {
+			size= chunk->size - (seek-offset);
+			printf("chunk too large, clipped to %d\n", size);
+		}
+		
+		memcpy(buffer, chunk->buf + (seek-offset), size);
+		filedata->seek += size;
+		seek+= size;
+		
+		return (size);
+		
+	}
+	return 0;
+}
+
 static FileData *filedata_new(void)
 {
 	extern char DNAstr[];	/* DNA.c */
@@ -849,6 +898,34 @@ FileData *blo_openblendermemory(void *mem, int memsize)
 		return fd;
 	}
 }
+
+FileData *blo_openblendermemfile(MemFile *memfile)
+{
+	if (!memfile) {
+		return NULL;
+	} else {
+		FileData *fd= filedata_new();
+		fd->memfile= memfile;
+
+		fd->read= fd_read_from_memfile;
+		fd->flags|= FD_FLAGS_NOT_MY_BUFFER;
+
+		decode_blender_header(fd);
+
+		if (fd->flags & FD_FLAGS_FILE_OK) {
+			if (!read_file_dna(fd)) {
+				blo_freefiledata(fd);
+				fd= NULL;
+			}
+		} else {
+			blo_freefiledata(fd);
+			fd= NULL;
+		}
+
+		return fd;
+	}
+}
+
 
 void blo_freefiledata(FileData *fd)
 {
@@ -2437,6 +2514,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 
 /* ************ READ SCREEN ***************** */
 
+/* note: file read without screens option G_FILE_NO_UI; 
+   check lib pointers in call below */
 static void lib_link_screen(FileData *fd, Main *main)
 {
 	bScreen *sc;
@@ -2478,8 +2557,8 @@ static void lib_link_screen(FileData *fd, Main *main)
 					}
 					else if(sl->spacetype==SPACE_BUTS) {
 						SpaceButs *sbuts= (SpaceButs *)sl;
-						sbuts->rect= 0;
-						sbuts->lockpoin= 0;
+						sbuts->rect= NULL;
+						sbuts->lockpoin= NULL;
 						if(main->versionfile<132) set_rects_butspace(sbuts);
 					}
 					else if(sl->spacetype==SPACE_FILE) {
@@ -2538,6 +2617,130 @@ static void lib_link_screen(FileData *fd, Main *main)
 		}
 		sc= sc->id.next;
 	}
+}
+
+static void *restore_pointer_by_name(Main *mainp, ID *id)
+{
+	ListBase *lb;
+	ID *idn=NULL;
+		
+	if(id) {
+		lb= wich_libbase(mainp, GS(id->name));
+		idn= lb->first;
+		while(idn) {
+			if( strcmp(idn->name, id->name)==0) {
+				if(idn->us==0) idn->us++;
+				break;
+			}
+			idn= idn->next;
+		}
+	}
+	return idn;
+}
+
+/* called from kernel/blender.c */
+void lib_link_screen_restore(Main *newmain, char mode, Scene *curscene)
+{
+	bScreen *sc;
+	ScrArea *sa;
+
+	sc= newmain->screen.first;
+	while(sc) {
+
+		if(mode=='u') sc->scene= restore_pointer_by_name(newmain, (ID *)sc->scene);
+		if(sc->scene==NULL || mode=='n') sc->scene= curscene;
+
+		sa= sc->areabase.first;
+		while(sa) {
+			SpaceLink *sl;
+
+			for (sl= sa->spacedata.first; sl; sl= sl->next) {
+				if(sl->spacetype==SPACE_VIEW3D) {
+					View3D *v3d= (View3D*) sl;
+				
+					if(mode=='u') v3d->camera= restore_pointer_by_name(newmain, (ID *)v3d->camera);
+					if(v3d->camera==NULL || mode=='n') v3d->camera= sc->scene->camera;
+					
+					if(v3d->scenelock) v3d->lay= sc->scene->lay;
+					
+					if(v3d->bgpic) {
+						v3d->bgpic->ima= restore_pointer_by_name(newmain, (ID *)v3d->bgpic->ima);
+						v3d->bgpic->tex= restore_pointer_by_name(newmain, (ID *)v3d->bgpic->tex);
+						if(v3d->bgpic->rect) freeN(v3d->bgpic->rect);
+						v3d->bgpic->rect= NULL;
+					}
+					if(v3d->localvd) {
+						if(mode=='u') v3d->localvd->camera= restore_pointer_by_name(newmain, (ID *)v3d->localvd->camera);
+						if(v3d->localvd->camera==NULL || mode=='n') v3d->localvd->camera= sc->scene->camera;
+					}
+				}
+				else if(sl->spacetype==SPACE_IPO) {
+					SpaceIpo *sipo= (SpaceIpo *)sl;
+					sipo->from= restore_pointer_by_name(newmain, (ID *)sipo->from);
+					// not free sipo->ipokey, creates dependency with src/
+					sipo->ipo= restore_pointer_by_name(newmain, (ID *)sipo->ipo);
+					if(sipo->editipo) MEM_freeN(sipo->editipo);
+					sipo->editipo= NULL;
+				}
+				else if(sl->spacetype==SPACE_BUTS) {
+					SpaceButs *sbuts= (SpaceButs *)sl;
+					sbuts->lockpoin= NULL;
+					if(sbuts->rect) MEM_freeN(sbuts->rect);
+					sbuts->rect= NULL;
+				}
+				else if(sl->spacetype==SPACE_FILE) {
+					SpaceFile *sfile= (SpaceFile *)sl;
+
+				}
+				else if(sl->spacetype==SPACE_IMASEL) {
+					check_imasel_copy((SpaceImaSel *)sl);
+				}
+				else if(sl->spacetype==SPACE_ACTION) {
+					SpaceAction *saction= (SpaceAction *)sl;
+					saction->action = restore_pointer_by_name(newmain, (ID *)saction->action);
+				}
+				else if(sl->spacetype==SPACE_IMAGE) {
+					SpaceImage *sima= (SpaceImage *)sl;
+
+					sima->image= restore_pointer_by_name(newmain, (ID *)sima->image);
+				}
+				else if(sl->spacetype==SPACE_NLA){
+					/* SpaceNla *snla= (SpaceNla *)sl;	*/
+				}
+				else if(sl->spacetype==SPACE_TEXT) {
+					SpaceText *st= (SpaceText *)sl;
+
+					st->text= restore_pointer_by_name(newmain, (ID *)st->text);
+				}
+				else if(sl->spacetype==SPACE_SCRIPT) {
+					SpaceScript *sc= (SpaceScript *)sl;
+
+					sc->script = NULL;
+				}
+				else if(sl->spacetype==SPACE_OOPS) {
+					SpaceOops *so= (SpaceOops *)sl;
+					Oops *oops;
+
+					oops= so->oops.first;
+					while(oops) {
+						oops->id= restore_pointer_by_name(newmain, (ID *)oops->id);
+						oops= oops->next;
+					}
+
+					so->lockpoin= NULL;
+				}
+				else if(sl->spacetype==SPACE_SOUND) {
+					SpaceSound *ssound= (SpaceSound *)sl;
+
+					ssound->sound= restore_pointer_by_name(newmain, (ID *)ssound->sound);
+				}
+			}
+			sa= sa->next;
+		}
+
+		sc= sc->id.next;
+	}
+
 }
 
 static void direct_link_screen(FileData *fd, bScreen *sc)
@@ -2881,12 +3084,17 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 
 static void link_global(FileData *fd, BlendFileData *bfd, FileGlobal *fg)
 {
-	// this is nonsense... will get rid of it once (ton)
+	// this is nonsense... make it struct once (ton)
 	bfd->winpos= fg->winpos;
 	bfd->fileflags= fg->fileflags;
 	bfd->displaymode= fg->displaymode;
 	bfd->globalf= fg->globalf;
 	bfd->curscreen= newlibadr(fd, 0, fg->curscreen);
+	bfd->curscene= newlibadr(fd, 0, fg->curscene);
+	// this happens in files older than 2.35
+	if(bfd->curscene==NULL) {
+		if(bfd->curscreen) bfd->curscene= bfd->curscreen->scene;
+	}
 }
 
 static void vcol_to_fcol(Mesh *me)
@@ -4344,29 +4552,9 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 	lib_link_all(fd, bfd->main);
 	link_global(fd, bfd, fg);	/* as last */
 
-	if (!bfd->curscreen)
-		bfd->curscreen= bfd->main->screen.first;
-
-	if (bfd->curscreen) {
-		bfd->curscene= bfd->curscreen->scene;
-		if (!bfd->curscene) {
-			bfd->curscene= bfd->main->scene.first;
-			bfd->curscreen->scene= bfd->curscene;
-		}
-	}
+	/* removed here: check for existance of curscreen/scene, moved to kernel setup_app */
 
 	MEM_freeN(fg);
-
-		/* require all files to have an active scene
-		 * and screen. (implicitly: require all files
-		 * to have at least one scene and one screen).
-		 */
-	if (!bfd->curscreen || !bfd->curscene) {
-		*error_r= (!bfd->curscreen)?BRE_NO_SCREEN:BRE_NO_SCENE;
-
-		BLO_blendfiledata_free(bfd);
-		return NULL;
-	}
 
 	return bfd;
 }
@@ -5202,7 +5390,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 /* reading runtime */
 
-BlendFileData *blo_read_blendafterruntime(int file, int actualsize, BlendReadError *error_r) {
+BlendFileData *blo_read_blendafterruntime(int file, int actualsize, BlendReadError *error_r) 
+{
 	BlendFileData *bfd = NULL;
 	FileData *fd = filedata_new();
 	fd->filedes = file;

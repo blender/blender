@@ -105,6 +105,7 @@ Oops *find_oops(ID *id)
 	return oops;
 }
 
+/* never even called! (ton) */
 int test_oops(Oops *oops)
 {
 	/* test if own ID block still exists */

@@ -59,6 +59,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_oops_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -321,6 +322,19 @@ void unlink_object(Object *ob)
 					if(v3d->localvd && v3d->localvd->camera==ob ) {
 						v3d->localvd->camera= 0;
 						if(v3d->localvd->persp>1) v3d->localvd->persp= 1;
+					}
+				}
+				else if(sl->spacetype==SPACE_IPO) {
+					SpaceIpo *sipo= (SpaceIpo *)sl;
+					if(sipo->from == (ID *)ob) sipo->from= NULL;
+				}
+				else if(sl->spacetype==SPACE_OOPS) {
+					SpaceOops *so= (SpaceOops *)sl;
+					Oops *oops;
+					oops= so->oops.first;
+					while(oops) {
+						if(oops->id==(ID *)ob) oops->id= NULL;
+						oops= oops->next;
 					}
 				}
 			}

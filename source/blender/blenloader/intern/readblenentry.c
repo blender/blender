@@ -61,6 +61,8 @@
 #include "BKE_library.h" // for free_main
 
 #include "BLO_readfile.h"
+#include "BLO_undofile.h"
+
 #include "readfile.h"
 
 #include "BLO_readblenfile.h"
@@ -113,7 +115,8 @@ static IDType idtypes[]= {
 };
 static int nidtypes= sizeof(idtypes)/sizeof(idtypes[0]);
 
-static IDType *idtype_from_name(char *str) {
+static IDType *idtype_from_name(char *str) 
+{
 	int i= nidtypes;
 	
 	while (i--)
@@ -122,7 +125,8 @@ static IDType *idtype_from_name(char *str) {
 	
 	return NULL;
 }
-static IDType *idtype_from_code(int code) {
+static IDType *idtype_from_code(int code) 
+{
 	int i= nidtypes;
 	
 	while (i--)
@@ -132,7 +136,8 @@ static IDType *idtype_from_code(int code) {
 	return NULL;
 }
 
-static int bheadcode_is_idcode(int code) {
+static int bheadcode_is_idcode(int code) 
+{
 	return idtype_from_code(code)?1:0;
 }
 
@@ -141,13 +146,15 @@ static int idcode_is_linkable(int code) {
 	return idt?(idt->flags&IDTYPE_FLAGS_ISLINKABLE):0;
 }
 
-char *BLO_idcode_to_name(int code) {
+char *BLO_idcode_to_name(int code) 
+{
 	IDType *idt= idtype_from_code(code);
 	
 	return idt?idt->name:NULL;
 }
 
-int BLO_idcode_from_name(char *name) {
+int BLO_idcode_from_name(char *name) 
+{
 	IDType *idt= idtype_from_name(name);
 	
 	return idt?idt->code:0;
@@ -155,11 +162,13 @@ int BLO_idcode_from_name(char *name) {
 	
 	/* Access routines used by filesel. */
 	 
-BlendHandle *BLO_blendhandle_from_file(char *file) {
+BlendHandle *BLO_blendhandle_from_file(char *file) 
+{
 	return (BlendHandle*) blo_openblenderfile(file);
 }
 
-void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp) {
+void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp) 
+{
 	FileData *fd= (FileData*) bh;
 	BHead *bhead;
 
@@ -188,7 +197,8 @@ void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp) {
 	fprintf(fp, "]\n");
 }
 
-LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh, int ofblocktype) {
+LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh, int ofblocktype) 
+{
 	FileData *fd= (FileData*) bh;
 	LinkNode *names= NULL;
 	BHead *bhead;
@@ -205,7 +215,8 @@ LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh, int ofblocktype) 
 	return names;
 }
 
-LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh) {
+LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh) 
+{
 	FileData *fd= (FileData*) bh;
 	GHash *gathered= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
 	LinkNode *names= NULL;
@@ -239,7 +250,8 @@ void BLO_blendhandle_close(BlendHandle *bh) {
 
 	/**********/
 
-BlendFileData *BLO_read_from_file(char *file, BlendReadError *error_r) {
+BlendFileData *BLO_read_from_file(char *file, BlendReadError *error_r) 
+{
 	BlendFileData *bfd = NULL;
 	FileData *fd;
 		
@@ -256,7 +268,8 @@ BlendFileData *BLO_read_from_file(char *file, BlendReadError *error_r) {
 	return bfd;	
 }
 
-BlendFileData *BLO_read_from_memory(void *mem, int memsize, BlendReadError *error_r) {
+BlendFileData *BLO_read_from_memory(void *mem, int memsize, BlendReadError *error_r) 
+{
 	BlendFileData *bfd = NULL;
 	FileData *fd;
 		
@@ -273,7 +286,26 @@ BlendFileData *BLO_read_from_memory(void *mem, int memsize, BlendReadError *erro
 	return bfd;	
 }
 
-void BLO_blendfiledata_free(BlendFileData *bfd) {
+BlendFileData *BLO_read_from_memfile(MemFile *memfile, BlendReadError *error_r) 
+{
+	BlendFileData *bfd = NULL;
+	FileData *fd;
+		
+	fd = blo_openblendermemfile(memfile);
+	if (fd) {
+		bfd= blo_read_file_internal(fd, error_r);
+		if (bfd) {
+			bfd->type= BLENFILETYPE_BLEND;
+			strcpy(bfd->main->name, "");
+		}
+		blo_freefiledata(fd);			
+	}
+
+	return bfd;	
+}
+
+void BLO_blendfiledata_free(BlendFileData *bfd)
+{
 	if (bfd->main) {
 		free_main(bfd->main);
 	}
@@ -285,7 +317,8 @@ void BLO_blendfiledata_free(BlendFileData *bfd) {
 	MEM_freeN(bfd);
 }
 
-char *BLO_bre_as_string(BlendReadError error) {
+char *BLO_bre_as_string(BlendReadError error) 
+{
 	switch (error) {
 	case BRE_NONE:
 		return "No error";

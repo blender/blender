@@ -122,15 +122,16 @@
 
 #include "PIL_time.h"
 
+// temporal, will go to include file
+void BIF_reset_undo(void);
+void BIF_write_undo(char *);	
+
+
 /***/
 
 void BIF_read_file(char *name)
 {
 	extern short winqueue_break; /* editscreen.c */
-	void BIF_reset_undo(void);
-	void BIF_write_undo(char *);	
-
-	BIF_reset_undo();
 
 	//here?
 	//sound_end_all_sounds();
@@ -149,6 +150,7 @@ void BIF_read_file(char *name)
 
 	winqueue_break= 1;	/* leave queues everywhere */
 
+	BIF_reset_undo();
 	BIF_write_undo("original");	/* save current state */
 }
 
@@ -232,6 +234,8 @@ int BIF_read_homefile(void)
 		space_set_commmandline_options();
 
 		if (U.undosteps==0) U.undosteps=32;
+		BIF_reset_undo();
+		BIF_write_undo("original");	/* save current state */
 
 		reset_autosave();
 
@@ -463,124 +467,6 @@ static void delete_autosave(void)
 		BLI_rename(tstr, str);
 	}
 }
-
-/***/
-
-#define MAXUNDONAME	64
-typedef struct UndoElem {
-	struct UndoElem *next, *prev;
-	char str[FILE_MAXDIR+FILE_MAXFILE];
-	char name[MAXUNDONAME];
-} UndoElem;
-
-#define MAXUNDO	 32
-static ListBase undobase={NULL, NULL};
-static UndoElem *curundo= NULL;
-
-static void get_undosave_location(char buf[FILE_MAXDIR+FILE_MAXFILE], int num)
-{
-	char numstr[32];
-	
-	sprintf(numstr, "%d.blend", num);
-	BLI_make_file_string("/", buf, U.tempdir, numstr);
-
-}
-
-static int read_undosave(char *tstr)
-{
-	char scestr[FILE_MAXDIR+FILE_MAXFILE];
-	int success;
-	
-	strcpy(scestr, G.sce);	/* temporal store */
-	
-	success= BKE_read_file(tstr, NULL);
-	strcpy(G.sce, scestr);
-
-	return success;
-}
-
-/* name can be a dynamic string */
-void BIF_write_undo(char *name)
-{
-	static int counter= 0;
-	int nr;
-	char *err, tstr[FILE_MAXDIR+FILE_MAXFILE];
-	UndoElem *uel;
-	
-	if( (U.uiflag & USER_GLOBALUNDO==0)) return;
-	
-	/* calculate current filename */
-	counter++;
-	counter= counter % MAXUNDO;	
-	get_undosave_location(tstr, counter);
-	
-	if(BLO_write_file(tstr, G.fileflags, &err)) {
-
-		/* remove all undos after (also when curundo==NULL) */
-		while(undobase.last != curundo) {
-			uel= undobase.last;
-			BLI_remlink(&undobase, uel);
-			MEM_freeN(uel);
-		}
-		
-		/* make new */
-		curundo= uel= MEM_mallocN(sizeof(UndoElem), "undo file");
-		strcpy(uel->str, tstr);
-		strncpy(uel->name, name, MAXUNDONAME-1);
-		BLI_addtail(&undobase, uel);
-		
-		/* and limit amount to the maximum */
-		nr= 0;
-		uel= undobase.last;
-		while(uel) {
-			nr++;
-			if(nr==MAXUNDO) break;
-			uel= uel->prev;
-		}
-		if(uel) {
-			while(undobase.first!=uel) {
-				UndoElem *first= undobase.first;
-				BLI_remlink(&undobase, first);
-				MEM_freeN(first);
-			}
-		}
-	}
-	
-}
-
-/* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation */
-void BIF_undo_step(int step)
-{
-	
-	if(step==1) {
-		/* curundo should never be NULL, after restart or load file it should call undo_save */
-		if(curundo==NULL || curundo->prev==NULL) error("No undo available");
-		else {
-			printf("undo %s\n", curundo->name);
-			curundo= curundo->prev;
-			read_undosave(curundo->str);
-		}
-	}
-	else {
-		
-		/* curundo has to remain current situation! */
-		
-		if(curundo==NULL || curundo->next==NULL) error("No redo available");
-		else {
-			read_undosave(curundo->next->str);
-			curundo= curundo->next;
-			printf("redo %s\n", curundo->name);
-		}
-	}
-}
-
-void BIF_reset_undo(void)
-{
-	
-	BLI_freelistN(&undobase);
-	curundo= NULL;
-}
-
 
 /***/
 

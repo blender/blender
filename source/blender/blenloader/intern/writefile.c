@@ -158,17 +158,22 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 
 #include "BLO_writefile.h"
 #include "BLO_readfile.h"
+#include "BLO_undofile.h"
 
 #include "readfile.h"
 #include "genfile.h"
+
+
+/* ********* my write, buffered writing with minimum 50k chunks ************ */
 
 typedef struct {
 	struct SDNA *sdna;
 
 	int file;
 	unsigned char *buf;
-
-	int tot, count, error;
+	MemFile *compare, *current;
+	
+	int tot, count, error, memsize;
 } WriteData;
 
 static WriteData *writedata_new(int file)
@@ -193,8 +198,16 @@ static WriteData *writedata_new(int file)
 static void writedata_do_write(WriteData *wd, void *mem, int memlen)
 {
 	if (wd->error) return;
-	if (write(wd->file, mem, memlen) != memlen)
-		wd->error= 1;
+
+	/* memory based save */
+	if(wd->current) {
+		add_memfilechunk(NULL, wd->current, mem, memlen);
+	}
+	else {
+		if (write(wd->file, mem, memlen) != memlen)
+			wd->error= 1;
+		
+	}
 }
 
 static void writedata_free(WriteData *wd)
@@ -215,16 +228,23 @@ int mywfile;
  * @param len Length of new chunk of data
  * @warning Talks to other functions with global parameters
  */
-	static void
-mywrite(
-	WriteData *wd,
-	void *adr,
-	int len)
+ 
+#define MYWRITE_FLUSH	NULL
+
+static void mywrite( WriteData *wd, void *adr, int len)
 {
 	if (wd->error) return;
 
-	wd->tot+= len;
+	if(adr==MYWRITE_FLUSH) {
+		if(wd->count) {
+			writedata_do_write(wd, wd->buf, wd->count);
+			wd->count= 0;
+		}
+		return;
+	}
 
+	wd->tot+= len;
+	
 	if(len>50000) {
 		if(wd->count) {
 			writedata_do_write(wd, wd->buf, wd->count);
@@ -239,6 +259,7 @@ mywrite(
 	}
 	memcpy(&wd->buf[wd->count], adr, len);
 	wd->count+= len;
+
 }
 
 /**
@@ -247,13 +268,15 @@ mywrite(
  * @param write_flags Write parameters
  * @warning Talks to other functions with global parameters
  */
-	static WriteData *
-bgnwrite(
-	int file,
-	int write_flags)
+static WriteData *bgnwrite(int file, MemFile *compare, MemFile *current, int write_flags)
 {
 	WriteData *wd= writedata_new(file);
 
+	wd->compare= compare;
+	wd->current= current;
+	/* this inits comparing */
+	add_memfilechunk(compare, NULL, NULL, 0);
+	
 	return wd;
 }
 
@@ -263,9 +286,7 @@ bgnwrite(
  * @return unknown global variable otherwise
  * @warning Talks to other functions with global parameters
  */
-	static int
-endwrite(
-	WriteData *wd)
+static int endwrite(WriteData *wd)
 {
 	int err;
 
@@ -273,10 +294,10 @@ endwrite(
 		writedata_do_write(wd, wd->buf, wd->count);
 		wd->count= 0;
 	}
-
+	
 	err= wd->error;
 	writedata_free(wd);
-
+if(wd->current) printf("undo size %d\n", wd->current->size);
 	return err;
 }
 
@@ -654,6 +675,9 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 		}
 		ob= ob->id.next;
 	}
+
+	/* flush helps the compression for undo-save */
+	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
 
@@ -709,6 +733,9 @@ static void write_ipos(WriteData *wd, ListBase *idbase)
 
 		ipo= ipo->id.next;
 	}
+
+	/* flush helps the compression for undo-save */
+	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
 static void write_keys(WriteData *wd, ListBase *idbase)
@@ -733,6 +760,8 @@ static void write_keys(WriteData *wd, ListBase *idbase)
 
 		key= key->id.next;
 	}
+	/* flush helps the compression for undo-save */
+	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
 static void write_cameras(WriteData *wd, ListBase *idbase)
@@ -816,6 +845,9 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 		}
 		cu= cu->id.next;
 	}
+
+	/* flush helps the compression for undo-save */
+	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
 static void write_dverts(WriteData *wd, int count, MDeformVert *dvlist)
@@ -880,6 +912,8 @@ static void write_images(WriteData *wd, ListBase *idbase)
 		}
 		ima= ima->id.next;
 	}
+	/* flush helps the compression for undo-save */
+	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
 static void write_textures(WriteData *wd, ListBase *idbase)
@@ -899,6 +933,9 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 		}
 		tex= tex->id.next;
 	}
+
+	/* flush helps the compression for undo-save */
+	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
 static void write_materials(WriteData *wd, ListBase *idbase)
@@ -1088,6 +1125,8 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 
 		sce= sce->id.next;
 	}
+	/* flush helps the compression for undo-save */
+	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
 static void write_screens(WriteData *wd, ListBase *scrbase)
@@ -1282,6 +1321,9 @@ static void write_armatures(WriteData *wd, ListBase *idbase)
 		}
 		arm=arm->id.next;
 	}
+
+	/* flush helps the compression for undo-save */
+	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
 static void write_actions(WriteData *wd, ListBase *idbase)
@@ -1331,6 +1373,9 @@ static void write_texts(WriteData *wd, ListBase *idbase)
 		}
 		text= text->id.next;
 	}
+
+	/* flush helps the compression for undo-save */
+	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
 static void write_sounds(WriteData *wd, ListBase *idbase)
@@ -1377,6 +1422,9 @@ static void write_sounds(WriteData *wd, ListBase *idbase)
 		}
 		sound= sound->id.next;
 	}
+
+	/* flush helps the compression for undo-save */
+	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
 static void write_groups(WriteData *wd, ListBase *idbase)
@@ -1423,6 +1471,7 @@ static void write_global(WriteData *wd)
 	FileGlobal fg;
 
 	fg.curscreen= G.curscreen;
+	fg.curscene= G.scene;
 	fg.displaymode= R.displaymode;
 	fg.winpos= R.winpos;
 	fg.fileflags= G.fileflags;
@@ -1431,8 +1480,10 @@ static void write_global(WriteData *wd)
 	writestruct(wd, GLOB, "FileGlobal", 1, &fg);
 }
 
-static int write_file_handle(int handle, int write_user_block, int write_flags)
+/* if *mem there's filesave to memory */
+static int write_file_handle(int handle, MemFile *compare, MemFile *current, int write_user_block, int write_flags)
 {
+	BHead bhead;
 	ListBase mainlist;
 	char buf[13];
 	WriteData *wd;
@@ -1443,21 +1494,18 @@ static int write_file_handle(int handle, int write_user_block, int write_flags)
 
 	blo_split_main(&mainlist);
 
-	wd= bgnwrite(handle, write_flags);
-
+	wd= bgnwrite(handle, compare, current, write_flags);
+	
 	sprintf(buf, "BLENDER%c%c%.3d", (sizeof(void*)==8)?'-':'_', (G.order==B_ENDIAN)?'V':'v', G.version);
 	mywrite(wd, buf, 12);
 
 	write_renderinfo(wd);
-
-	write_screens  (wd, &G.main->screen);
+	
+	if(current==NULL)
+		write_screens  (wd, &G.main->screen);	// no UI save
 	write_scenes   (wd, &G.main->scene);
-	write_objects  (wd, &G.main->object);
-	write_meshs    (wd, &G.main->mesh);
 	write_curves   (wd, &G.main->curve);
 	write_mballs   (wd, &G.main->mball);
-	write_materials(wd, &G.main->mat);
-	write_textures (wd, &G.main->tex);
 	write_images   (wd, &G.main->image);
 	write_cameras  (wd, &G.main->camera);
 	write_lamps    (wd, &G.main->lamp);
@@ -1472,6 +1520,10 @@ static int write_file_handle(int handle, int write_user_block, int write_flags)
 	write_groups   (wd, &G.main->group);
 	write_armatures(wd, &G.main->armature);
 	write_actions  (wd, &G.main->action);
+	write_objects  (wd, &G.main->object);
+	write_materials(wd, &G.main->mat);
+	write_textures (wd, &G.main->tex);
+	write_meshs    (wd, &G.main->mesh);
 	write_libraries(wd,  G.main->next);
 
 	write_global(wd);
@@ -1482,11 +1534,10 @@ static int write_file_handle(int handle, int write_user_block, int write_flags)
 	/* dna as last, because (to be implemented) test for which structs are written */
 	writedata(wd, DNA1, wd->sdna->datalen, wd->sdna->data);
 
-	data= ENDB;
-	mywrite(wd, &data, 4);
-
-	data= 0;
-	mywrite(wd, &data, 4);
+	/* end of file */
+	memset(&bhead, 0, sizeof(BHead));
+	bhead.code= ENDB;
+	mywrite(wd, &bhead, sizeof(BHead));
 
 	blo_join_main(&mainlist);
 	G.main= mainlist.first;
@@ -1494,6 +1545,7 @@ static int write_file_handle(int handle, int write_user_block, int write_flags)
 	return endwrite(wd);
 }
 
+/* return: success (1) */
 int BLO_write_file(char *dir, int write_flags, char **error_r)
 {
 	char userfilename[FILE_MAXDIR+FILE_MAXFILE];
@@ -1515,7 +1567,7 @@ int BLO_write_file(char *dir, int write_flags, char **error_r)
 
 	write_user_block= BLI_streq(dir, userfilename);
 
-	fout= write_file_handle(file, write_user_block, write_flags);
+	fout= write_file_handle(file, NULL,NULL, write_user_block, write_flags);
 	close(file);
 
 	if(!fout) {
@@ -1532,6 +1584,18 @@ int BLO_write_file(char *dir, int write_flags, char **error_r)
 
 	return 1;
 }
+
+/* return: success (1) */
+int BLO_write_file_mem(MemFile *compare, MemFile *current, int write_flags, char **error_r)
+{
+	int err;
+
+	err= write_file_handle(0, compare, current, 0, write_flags);
+	
+	if(err==0) return 1;
+	return 0;
+}
+
 
 	/* Runtime writing */
 
@@ -1632,7 +1696,7 @@ void BLO_write_runtime(char *file, char *exename) {
 	outfd= open(gamename, O_BINARY|O_WRONLY|O_CREAT|O_TRUNC, 0777);
 	if (outfd != -1) {
 
-		write_file_handle(outfd, 0, G.fileflags);
+		write_file_handle(outfd, NULL,NULL, 0, G.fileflags);
 
 		if (write(outfd, " ", 1) != 1) {
 			cause= "Unable to write to output file";
@@ -1712,7 +1776,7 @@ void BLO_write_runtime(char *file, char *exename) {
 
 	datastart= lseek(outfd, 0, SEEK_CUR);
 
-	write_file_handle(outfd, 0, G.fileflags);
+	write_file_handle(outfd, NULL,NULL, 0, G.fileflags);
 
 	if (!handle_write_msb_int(outfd, datastart) || (write(outfd, "BRUNTIME", 8)!=8)) {
 		cause= "Unable to write to output file";

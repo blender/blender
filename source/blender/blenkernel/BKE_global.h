@@ -202,6 +202,8 @@ typedef struct Global {
 #define G_FILE_LOCK_BIT                 7
 #define G_FILE_SIGN_BIT                 8
 #define G_FILE_PUBLISH_BIT				9
+#define G_FILE_NO_UI_BIT				10
+
 
 #define G_AUTOPACK               (1 << G_AUTOPACK_BIT)
 #define G_FILE_COMPRESS          (1 << G_FILE_COMPRESS_BIT)
@@ -213,6 +215,7 @@ typedef struct Global {
 #define G_FILE_LOCK              (1 << G_FILE_LOCK_BIT)
 #define G_FILE_SIGN              (1 << G_FILE_SIGN_BIT)
 #define G_FILE_PUBLISH			 (1 << G_FILE_PUBLISH_BIT)
+#define G_FILE_NO_UI			 (1 << G_FILE_NO_UI_BIT)
 
 /* G.windowstate */
 #define G_WINDOWSTATE_USERDEF		0

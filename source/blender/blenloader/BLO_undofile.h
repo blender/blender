@@ -1,9 +1,5 @@
-/**
- * blenlib/BKE_blender.h (mar-2001 nzc)
- *	
- * Blender util stuff?
- *
- * $Id$ 
+/*
+ * $Id:
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -24,7 +20,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * The Original Code is Copyright (C) 2004 Blender Foundation.
  * All rights reserved.
  *
  * The Original Code is: all of this file.
@@ -32,36 +28,31 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * external writefile function prototypes
  */
-#ifndef BKE_BLENDER_H
-#define BKE_BLENDER_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifndef BLO_UNDOFILE_H
+#define BLO_UNDOFILE_H
 
-struct ListBase;
-struct MemFile;
+typedef struct {
+	void *next, *prev;
+	
+	char *buf;
+	unsigned int ident, size;
+	
+} MemFileChunk;
 
-#define BLENDER_VERSION		234
+typedef struct MemFile {
+	ListBase chunks;
+	unsigned int size;
+} MemFile;
 
-int	BKE_read_file(char *dir, void *type_r);
-int BKE_read_file_from_memory(char* filebuf, int filelength, void *type_r);
-int BKE_read_file_from_memfile(struct MemFile *memfile);
+/* actually only used writefile.c */
+extern void add_memfilechunk(MemFile *compare, MemFile *current, char *buf, unsigned int size);
 
-void duplicatelist(struct ListBase *list1, struct ListBase *list2);
-void free_blender(void);
-void initglobals(void);
-
-void pushdata(void *data, int len);
-void popfirst(void *data);
-void poplast(void *data);
-void free_pushpop(void);
-void pushpop_test(void);
-
-#ifdef __cplusplus
-}
-#endif
+/* exports */
+extern void BLO_free_memfile(MemFile *memfile);
+extern void BLO_merge_memfile(MemFile *first, MemFile *second);
 
 #endif
 

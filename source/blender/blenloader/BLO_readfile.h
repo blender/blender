@@ -43,6 +43,7 @@ struct Main;
 struct UserDef;
 struct bScreen;
 struct Scene;
+struct MemFile;
 
 typedef struct BlendHandle	BlendHandle;
 
@@ -113,7 +114,7 @@ BlendFileData*	BLO_read_from_file		(char *file, BlendReadError *error_r);
 	 * code indicating the cause of the failure.
 	 * @return The data of the file.
 	 */
-BlendFileData*	BLO_read_from_memory	(void *mem, int memsize, BlendReadError *error_r);
+BlendFileData*	BLO_read_from_memory(void *mem, int memsize, BlendReadError *error_r);
 
 
 /**
@@ -124,6 +125,9 @@ BlendFileData*	BLO_read_from_memory	(void *mem, int memsize, BlendReadError *err
  * @return A static human readable string representation
  * of @a error.
  */
+ 
+BlendFileData *BLO_read_from_memfile(struct MemFile *memfile, BlendReadError *error_r);
+ 
 	char*
 BLO_bre_as_string(
 	BlendReadError error);

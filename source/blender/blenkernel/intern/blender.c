@@ -81,6 +81,7 @@
 
 #include "BLI_editVert.h"
 
+#include "BLO_undofile.h"
 #include "BLO_readfile.h" /* for BLO_read_file */
 
 #include "BKE_bad_level_calls.h" // for freeAllRad editNurb free_editMesh free_editText free_editArmature
@@ -223,7 +224,8 @@ void initglobals(void)
 
 /***/
 
-static void clear_global(void) {
+static void clear_global(void) 
+{
 	extern short winqueue_break;	/* screen.c */
 
 	freeAllRad();
@@ -261,8 +263,36 @@ static void clear_global(void) {
 	G.f &= ~(G_WEIGHTPAINT + G_VERTEXPAINT + G_FACESELECT);
 }
 
-static void setup_app_data(BlendFileData *bfd, char *filename) {
+static void setup_app_data(BlendFileData *bfd, char *filename) 
+{
 	Object *ob;
+	bScreen *curscreen= NULL;
+	Scene *curscene= NULL;
+	char mode;
+	
+	/* 'u' = undo save, 'n' = no UI load */
+	if(bfd->main->screen.first==NULL) mode= 'u';
+	else if(G.fileflags & G_FILE_NO_UI) mode= 'n';
+	else mode= 0;
+	
+	/* no load screens? */
+	if(mode) {
+		/* comes from readfile.c */
+		extern void lib_link_screen_restore(Main *, char, Scene *);
+		
+		SWAP(ListBase, G.main->screen, bfd->main->screen);
+		
+		/* we re-use current screen */
+		curscreen= G.curscreen;
+		/* but use new Scene pointer */
+		curscene= bfd->curscene;
+		if(curscene==NULL) curscene= bfd->main->scene.first;
+		/* and we enforce curscene to be in current screen */
+		curscreen->scene= curscene;
+
+		/* clear_global will free G.main, here we can still restore pointers */
+		lib_link_screen_restore(bfd->main, mode, curscene);
+	}
 	
 	clear_global();
 	
@@ -286,11 +316,19 @@ static void setup_app_data(BlendFileData *bfd, char *filename) {
 		if(U.mixbufsize==0) U.mixbufsize= 2048;
 	}
 	
-	R.winpos= bfd->winpos;
-	R.displaymode= bfd->displaymode;
-	G.curscreen= bfd->curscreen;
-	G.fileflags= bfd->fileflags;
-
+	/* case G_FILE_NO_UI or no screens in file */
+	if(mode) {
+		G.curscreen= curscreen;
+		G.scene= curscene;
+	}
+	else {
+		R.winpos= bfd->winpos;
+		R.displaymode= bfd->displaymode;
+		G.fileflags= bfd->fileflags;
+		G.curscreen= bfd->curscreen;
+		G.scene= G.curscreen->scene;
+	}
+	
 	/* special cases, override loaded flags: */
 	if (G.f & G_DEBUG) bfd->globalf |= G_DEBUG;
 	else bfd->globalf &= ~G_DEBUG;
@@ -298,7 +336,6 @@ static void setup_app_data(BlendFileData *bfd, char *filename) {
 	else bfd->globalf &= ~G_SCENESCRIPT;
 
 	G.f= bfd->globalf;
-	G.scene= G.curscreen->scene;
 	
 		/* few DispLists, but do text_to_curve */
 	// this should be removed!!! But first a better displist system (ton)
@@ -330,7 +367,8 @@ static void setup_app_data(BlendFileData *bfd, char *filename) {
 	MEM_freeN(bfd);
 }
 
-int BKE_read_file(char *dir, void *type_r) {
+int BKE_read_file(char *dir, void *type_r) 
+{
 	BlendReadError bre;
 	BlendFileData *bfd;
 	
@@ -376,3 +414,25 @@ int BKE_read_file_from_memory(char* filebuf, int filelength, void *type_r)
 	
 	return (bfd?1:0);
 }
+
+int BKE_read_file_from_memfile(MemFile *memfile)
+{
+	BlendReadError bre;
+	BlendFileData *bfd;
+	
+	if (!G.background)
+		waitcursor(1);
+		
+	bfd= BLO_read_from_memfile(memfile, &bre);
+	if (bfd) {
+		setup_app_data(bfd, "<memory>");
+	} else {
+		error("Loading failed: %s", BLO_bre_as_string(bre));
+	}
+	
+	if (!G.background)
+		waitcursor(0);
+	
+	return (bfd?1:0);
+}
+

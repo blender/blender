@@ -34,6 +34,7 @@
 #define READFILE_H
 
 struct OldNewMap;
+struct MemFile;
 
 typedef struct FileData {
 	// linked list of BHeadN's
@@ -45,7 +46,9 @@ typedef struct FileData {
 	int (*read)(struct FileData *filedata, void *buffer, int size);
 
 	// variables needed for reading from memory / stream
-	char * buffer;
+	char *buffer;
+	// variables needed for reading from memfile (undo)
+	struct MemFile *memfile;
 
 	// variables needed for reading from file
 	int filedes;
@@ -93,39 +96,18 @@ typedef struct BHeadN {
 void blo_join_main(ListBase *mainlist);
 void blo_split_main(ListBase *mainlist);
 
-	BlendFileData*
-blo_read_file_internal(
-	FileData *fd, 
-	BlendReadError *error_r);
+BlendFileData *blo_read_file_internal( FileData *fd,  BlendReadError *error_r);
+
+FileData *blo_openblenderfile( char *name);
+FileData *blo_openblendermemory( void *buffer, int buffersize);
+FileData *blo_openblendermemfile(struct MemFile *memfile);
+
+void blo_freefiledata( FileData *fd);
 
 
-	FileData*
-blo_openblenderfile(
-	char *name);
-
-	FileData*
-blo_openblendermemory(
-	void *buffer,
-	int buffersize);
-
-	void
-blo_freefiledata(
-	FileData *fd);
-
-
-	BHead*
-blo_firstbhead(
-	FileData *fd);
-
-	BHead*
-blo_nextbhead(
-	FileData *fd, 
-	BHead *thisblock);
-
-	BHead*
-blo_prevbhead(
-	FileData *fd, 
-	BHead *thisblock);
+BHead *blo_firstbhead(FileData *fd);
+BHead *blo_nextbhead(FileData *fd, BHead *thisblock);
+BHead *blo_prevbhead(FileData *fd, BHead *thisblock);
 	
 #endif
 

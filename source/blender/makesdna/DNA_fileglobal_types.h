@@ -40,6 +40,7 @@
  */
 typedef struct FileGlobal {
 	void *curscreen;
+	void *curscene;
 	short displaymode, winpos;
 	int fileflags;
 	int globalf;

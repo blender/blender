@@ -554,11 +554,14 @@ void markdirty_all()
 	ScrArea *sa;
 
 	for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
-		scrarea_queue_winredraw(sa);
-		sa->win_swap &= ~WIN_FRONT_OK;
-		
-		scrarea_queue_headredraw(sa);
-		sa->head_swap &= ~WIN_FRONT_OK;
+		if(sa->win) {
+			scrarea_queue_winredraw(sa);
+			sa->win_swap &= ~WIN_FRONT_OK;
+		}
+		if(sa->headwin) {
+			scrarea_queue_headredraw(sa);
+			sa->head_swap &= ~WIN_FRONT_OK;
+		}
 	}
 }
 
@@ -1870,6 +1873,7 @@ void setscreen(bScreen *sc)
 			sa= sa->next;
 		}		
 	}
+	else if(G.curscreen) markdirty_all();	/* at least redraw */
 
 	if (G.curscreen != sc) {
 		mywinset(sc->mainwin);
@@ -1916,7 +1920,7 @@ void setscreen(bScreen *sc)
 		
 		sa->cursor= CURSOR_STD;
 	}
-
+	
 	G.scene= sc->scene;
 	countall();
 	

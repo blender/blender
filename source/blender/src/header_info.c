@@ -883,12 +883,16 @@ static void do_info_filemenu(void *arg, int event)
 	case 13:
 		exit_usiblender();
 		break;
+	case 14:
+		G.fileflags ^= G_FILE_NO_UI;
+		break;
 	case 31: /* save default settings */
 		BIF_write_homefile();
 		break;
 	}
 	allqueue(REDRAWINFO, 0);
 }
+
 static uiBlock *info_filemenu(void *arg_unused)
 {
 	uiBlock *block;
@@ -901,6 +905,14 @@ static uiBlock *info_filemenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "New|Ctrl X",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Open...|F1",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reopen Last|Ctrl O",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+
+	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	if(G.fileflags & G_FILE_NO_UI) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Load UI",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
+	} else {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Load UI",	 	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
+	}
 
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
@@ -1290,7 +1302,7 @@ static uiBlock *info_gamemenu(void *arg_unused)
 	if(G.fileflags & (1 << G_FILE_ENABLE_ALL_FRAMES_BIT)) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Enable All Frames",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_ENABLE_ALL_FRAMES_BIT, "");
 	} else {
-					uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Enable All Frames",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_ENABLE_ALL_FRAMES_BIT, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Enable All Frames",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_ENABLE_ALL_FRAMES_BIT, "");
 	}
 
 	if(G.fileflags & (1 << G_FILE_SHOW_FRAMERATE_BIT)) {
