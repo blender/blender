@@ -1705,7 +1705,7 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 
 	memcpy(lar->mtex, la->mtex, 8*4);
 
-	lar->lay= ob->lay;
+	lar->lay= ob->lay & 0xFFFFFF;	// higher 8 bits are localview layers
 
 	lar->ld1= la->att1;
 	lar->ld2= la->att2;
