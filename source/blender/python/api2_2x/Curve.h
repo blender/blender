@@ -182,7 +182,7 @@ static void CurveDeAlloc (BPy_Curve *msh);
 static int CurveSetAttr (BPy_Curve *msh, char *name, PyObject *v);
 static PyObject *CurveGetAttr (BPy_Curve *msh, char *name);
 static PyObject *CurveRepr (BPy_Curve *msh);
-PyObject* Curve_CreatePyObject (struct Curve *curve);
+// PyObject* Curve_CreatePyObject (struct Curve *curve);
 //int Curve_CheckPyObject (PyObject *py_obj);
 //struct Curve* Curve_FromPyObject (PyObject *py_obj);
 
