@@ -325,6 +325,95 @@ static int calc_manipulator(ScrArea *sa)
 	return totsel;
 }
 
+/* ******************** DRAWING STUFFIES *********** */
+
+/* radring = radius of donut rings
+   radhole = radius hole
+   start = starting segment (based on nrings)
+   end   = end segment
+   nsides = amount of points in ring
+   nrigns = amount of rings
+*/
+static void partial_donut(float radring, float radhole, int start, int end, int nsides, int nrings)
+{
+	float theta, phi, theta1;
+	float cos_theta, sin_theta;
+	float cos_theta1, sin_theta1;
+	float ring_delta, side_delta;
+	int i, j;
+	
+	ring_delta= 2.0*M_PI/(float)nrings;
+	side_delta= 2.0*M_PI/(float)nsides;
+	
+	theta= M_PI+0.5*ring_delta;
+	cos_theta= cos(theta);
+	sin_theta= sin(theta);
+	
+	for(i= nrings - 1; i >= 0; i--) {
+		theta1= theta + ring_delta;
+		cos_theta1= cos(theta1);
+		sin_theta1= sin(theta1);
+		
+		if(i==start) {	// cap
+			glBegin(GL_POLYGON);
+			glNormal3f(-sin_theta1, -cos_theta1, 0.0);
+			phi= 0.0;
+			for(j= nsides; j >= 0; j--) {
+				float cos_phi, sin_phi, dist;
+				
+				phi += side_delta;
+				cos_phi= cos(phi);
+				sin_phi= sin(phi);
+				dist= radhole + radring * cos_phi;
+				
+				glVertex3f(cos_theta1 * dist, -sin_theta1 * dist,  radring * sin_phi);
+			}
+			glEnd();
+		}
+		if(i>=start && i<=end) {
+			glBegin(GL_QUAD_STRIP);
+			phi= 0.0;
+			for(j= nsides; j >= 0; j--) {
+				float cos_phi, sin_phi, dist;
+				
+				phi += side_delta;
+				cos_phi= cos(phi);
+				sin_phi= sin(phi);
+				dist= radhole + radring * cos_phi;
+				
+				glNormal3f(cos_theta1 * cos_phi, -sin_theta1 * cos_phi, sin_phi);
+				glVertex3f(cos_theta1 * dist, -sin_theta1 * dist, radring * sin_phi);
+				glNormal3f(cos_theta * cos_phi, -sin_theta * cos_phi, sin_phi);
+				glVertex3f(cos_theta * dist, -sin_theta * dist,  radring * sin_phi);
+			}
+			glEnd();
+		}
+		
+		if(i==end) {	// cap
+			glBegin(GL_POLYGON);
+			glNormal3f(sin_theta, cos_theta, 0.0);
+			phi= 0.0;
+			for(j= nsides; j >= 0; j--) {
+				float cos_phi, sin_phi, dist;
+				
+				phi -= side_delta;
+				cos_phi= cos(phi);
+				sin_phi= sin(phi);
+				dist= radhole + radring * cos_phi;
+				
+				glVertex3f(cos_theta * dist, -sin_theta * dist,  radring * sin_phi);
+			}
+			glEnd();
+		}
+		
+		
+		theta= theta1;
+		cos_theta= cos_theta1;
+		sin_theta= sin_theta1;
+	}
+}
+
+
 static void manipulator_setcolor(char mode)
 {
 	float vec[4];
@@ -370,11 +459,13 @@ static int Gval= 0xFFFF;	// defines drawmodus while moving...
 
 static void draw_manipulator_rotate(float mat[][4])
 {
-	GLUquadricObj *qobj = gluNewQuadric(); 
+	GLUquadricObj *qobj= gluNewQuadric(); 
 	double plane[4];
 	float size, vec[3], unitmat[4][4];
 	float cusize= CYWID*0.75;
-	int arcs= 0;
+	int arcs= (G.rt==2);
+	
+	if(G.rt==3) cusize= CYWID*0.25;
 	
 	/* when called while moving in mixed mode, do not draw when... */
 	if((Gval & MAN_ROT_C)==0) return;
@@ -397,7 +488,7 @@ static void draw_manipulator_rotate(float mat[][4])
 	if(arcs) {
 		/* clipplane makes nice handles, calc here because of multmatrix but with translate! */
 		VECCOPY(plane, G.vd->viewinv[2]);
-		plane[3]= -0.001; // clip full circle
+		plane[3]= -0.1; // clip more
 		glClipPlane(GL_CLIP_PLANE0, plane);
 	}
 	/* sets view screen aligned */
@@ -445,17 +536,17 @@ static void draw_manipulator_rotate(float mat[][4])
 		if(!(G.f & G_PICKSEL)) {
 			/* axis */
 			glBegin(GL_LINES);
-			if( (Gval & MAN_ROT_X) || (G.moving && (Gval & MAN_ROT_Y)) ) {
+			if( (Gval & MAN_ROT_X) || (G.moving && (Gval & MAN_ROT_Z)) ) {
 				manipulator_setcolor('x');
 				glVertex3f(0.0, 0.0, 0.0);
 				glVertex3f(1.0, 0.0, 0.0);
 			}		
-			if( (Gval & MAN_ROT_Y) || (G.moving && (Gval & MAN_ROT_Z)) ) {
+			if( (Gval & MAN_ROT_Y) || (G.moving && (Gval & MAN_ROT_X)) ) {
 				manipulator_setcolor('y');
 				glVertex3f(0.0, 0.0, 0.0);
 				glVertex3f(0.0, 1.0, 0.0);
 			}		
-			if( (Gval & MAN_ROT_Z) || (G.moving && (Gval & MAN_ROT_X)) ) {
+			if( (Gval & MAN_ROT_Z) || (G.moving && (Gval & MAN_ROT_Y)) ) {
 				manipulator_setcolor('z');
 				glVertex3f(0.0, 0.0, 0.0);
 				glVertex3f(0.0, 0.0, 1.0);
@@ -497,7 +588,7 @@ static void draw_manipulator_rotate(float mat[][4])
 		glDisable(GL_LIGHTING);
 	}
 	
-	if(arcs || G.moving) {
+	if(arcs==0 && G.moving) {
 		
 		if(arcs) glEnable(GL_CLIP_PLANE0);
 
@@ -521,66 +612,106 @@ static void draw_manipulator_rotate(float mat[][4])
 			glRotatef(-90.0, 1.0, 0.0, 0.0);
 			manipulator_setcolor('y');
 			drawcircball(unitmat[3], 1.0, unitmat);
-			glRotatef(-90.0, 1.0, 0.0, 0.0);
+			glRotatef(90.0, 1.0, 0.0, 0.0);
 		}
 		
 		if(arcs) glDisable(GL_CLIP_PLANE0);
 	}
-	if(arcs==0) {
+	// donut arcs
+	if(arcs) {
 		glEnable(GL_LIGHTING);
+		glEnable(GL_CLIP_PLANE0);
 		
-		/* Z axis has Rotate X */
-		glTranslatef(0.0, 0.0, 1.0);
-		if(Gval & MAN_ROT_X) {
-			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_X);
-			manipulator_setcolor('X');
-			glPushMatrix();
-			glRotatef(90.0, 1.0, 0.0, 0.0);
-			glTranslatef(0.0, 0.0, -0.5*CYLEN);
-			gluCylinder(qobj, cusize, cusize, CYLEN, 8, 2);
-			
-			gluQuadricOrientation(qobj, GLU_INSIDE);
-			gluDisk(qobj, 0.0, cusize, 8, 1); 
-			gluQuadricOrientation(qobj, GLU_OUTSIDE);
-			glTranslatef(0.0, 0.0, CYLEN);
-			gluDisk(qobj, 0.0, cusize, 8, 1); 
-			
-			glPopMatrix();
-		}	
-		/* X axis has Rotate Y */
-		glTranslatef(1.0, 0.0, -(1.0));
-		if(Gval & MAN_ROT_Y) {
-			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Y);
-			manipulator_setcolor('Y');
-			glPushMatrix();
-			
-			glTranslatef(0.0, 0.0, -0.5*CYLEN);
-			gluCylinder(qobj, cusize, cusize, CYLEN, 8, 2);
-			
-			gluQuadricOrientation(qobj, GLU_INSIDE);
-			gluDisk(qobj, 0.0, cusize, 8, 1); 
-			gluQuadricOrientation(qobj, GLU_OUTSIDE);
-			glTranslatef(0.0, 0.0, CYLEN);
-			gluDisk(qobj, 0.0, cusize, 8, 1); 
-			
-			glPopMatrix();
-		}	
-		/* Y axis has rotate Z */
-		glTranslatef(-(1.0), 1.0, 0.0);
+		/* Z circle */
 		if(Gval & MAN_ROT_Z) {
 			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Z);
 			manipulator_setcolor('Z');
-			glPushMatrix();
+			partial_donut(cusize/3.0, 1.0, 0, 48, 8, 48);
+		}
+		/* X circle */
+		if(Gval & MAN_ROT_X) {
+			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_X);
 			glRotatef(90.0, 0.0, 1.0, 0.0);
-			glTranslatef(0.0, 0.0, -0.5*CYLEN);
-			gluCylinder(qobj, cusize, cusize, CYLEN, 8, 2);
+			manipulator_setcolor('X');
+			partial_donut(cusize/3.0, 1.0, 0, 48, 8, 48);
+			glRotatef(-90.0, 0.0, 1.0, 0.0);
+		}	
+		/* Y circle */
+		if(Gval & MAN_ROT_Y) {
+			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Y);
+			glRotatef(-90.0, 1.0, 0.0, 0.0);
+			manipulator_setcolor('Y');
+			partial_donut(cusize/3.0, 1.0, 0, 48, 8, 48);
+			glRotatef(90.0, 1.0, 0.0, 0.0);
+		}
+		
+		glDisable(GL_CLIP_PLANE0);
+	}
+	
+	if(arcs==0) {
+		glEnable(GL_LIGHTING);
+		
+		/* Z handle on X axis */
+		if(Gval & MAN_ROT_Z) {
+			glPushMatrix();
+			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Z);
+			manipulator_setcolor('Z');
+
+			if(G.rt==3) {
+				partial_donut(cusize, 1.0, 21, 27, 8, 48);
+
+				/* Z handle on Y axis */
+				glRotatef(90.0, 0.0, 0.0, 1.0);
+				partial_donut(cusize, 1.0, 21, 27, 8, 48);
+			}
+			else {
+				partial_donut(cusize, 1.0, 23, 25, 8, 48);
+			}
+			glPopMatrix();
+		}	
+
+		/* Y handle on X axis */
+		if(Gval & MAN_ROT_Y) {
+			glPushMatrix();
+			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Y);
+			manipulator_setcolor('Y');
 			
-			gluQuadricOrientation(qobj, GLU_INSIDE);
-			gluDisk(qobj, 0.0, cusize, 8, 1); 
-			gluQuadricOrientation(qobj, GLU_OUTSIDE);
-			glTranslatef(0.0, 0.0, CYLEN);
-			gluDisk(qobj, 0.0, cusize, 8, 1); 
+			if(G.rt==3) {
+				glRotatef(90.0, 1.0, 0.0, 0.0);
+				partial_donut(cusize, 1.0, 21, 27, 8, 48);
+				
+				/* Y handle on Z axis */
+				glRotatef(90.0, 0.0, 0.0, 1.0);
+				partial_donut(cusize, 1.0, 21, 27, 8, 48);
+			}
+			else {
+				glRotatef(90.0, 1.0, 0.0, 0.0);
+				glRotatef(90.0, 0.0, 0.0, 1.0);
+				partial_donut(cusize, 1.0, 23, 25, 8, 48);
+			}
 			
+			glPopMatrix();
+		}
+		
+		/* X handle on Z axis */
+		if(Gval & MAN_ROT_X) {
+			glPushMatrix();
+			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_X);
+			manipulator_setcolor('X');
+			
+			if(G.rt==3) {
+				glRotatef(-90.0, 0.0, 1.0, 0.0);
+				partial_donut(cusize, 1.0, 21, 27, 8, 48);
+				
+				/* X handle on Y axis */
+				glRotatef(90.0, 0.0, 0.0, 1.0);
+				partial_donut(cusize, 1.0, 21, 27, 8, 48);
+			}
+			else {
+				glRotatef(-90.0, 0.0, 1.0, 0.0);
+				glRotatef(90.0, 0.0, 0.0, 1.0);
+				partial_donut(cusize, 1.0, 23, 25, 8, 48);
+			}
 			glPopMatrix();
 		}
 		
