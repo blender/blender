@@ -223,14 +223,14 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		if (m_bytecode)
 		{
 			// store the
-			int i=0;
-			i+=2; // so compiler doesn't complain about unused variable
 			PyRun_SimpleString("import GameLogic\n");
 		} else
 		{
 			// didn't compile, so instead of compile, complain
-			int i=0;
-			i++; // so compiler doesn't complain about unused variable
+			// something is wrong, tell the user what went wrong
+			printf("PYTHON SCRIPT ERROR:\n");
+			PyRun_SimpleString(m_scriptText.Ptr());
+			return;
 		}
 		m_bModified=false;
 	}
