@@ -170,10 +170,7 @@ public:
 		// not yet
 	}
 
-	void MakeScreenShot(const char* filename)
-	{
-		// not yet	
-	}
+	virtual void MakeScreenShot(const char* filename);
 
 	void ClearBuffer(int type);
 
