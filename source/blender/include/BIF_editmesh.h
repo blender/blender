@@ -62,8 +62,9 @@ void KnifeSubdivide(char mode);
 CutCurve *get_mouse_trail(int * length, char mode);
 #define TRAIL_POLYLINE 1 /* For future use, They don't do anything yet */
 #define TRAIL_FREEHAND 2
-#define TRAIL_MIXED    3 
+#define TRAIL_MIXED    3 /* (1|2) */
 #define TRAIL_AUTO     4 
+#define	TRAIL_MIDPOINTS 8
 
 short seg_intersect(struct EditEdge * e, CutCurve *c, int len);
 

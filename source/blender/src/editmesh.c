@@ -3731,7 +3731,7 @@ void subdivideflag(int flag, float rad, int beauty)
 	eed= G.eded.first;
 	while(eed) {
 		if(eed->f & flag) {
-		
+			/* Subdivide percentage is stored in 1/32768ths in eed->f1 */
 			if (beauty & B_PERCENTSUBD) percent=(float)(eed->f1)/32768.0;
 			else percent=0.5;
 			
@@ -7232,7 +7232,7 @@ CutCurve *get_mouse_trail(int *len, char mode){
 	while((event != RETKEY ) && (event != PADENTER ) && (event != RIGHTMOUSE) ){  
 		event=extern_qread(&val);	/* Enter or RMB indicates finish */
 		
-		if (event==ESCKEY){
+		if ((event==ESCKEY)||(event==RIGHTMOUSE)){
 			if (curve) MEM_freeN(curve);
 			*len=0;
 			glFinish();
@@ -7508,7 +7508,7 @@ short seg_intersect(EditEdge *e, CutCurve *c, int len){
 			if ((xi>=x2min)&&(xi<=x2max)&&(yi<=y2max)&&(yi>=y2min)){
 				if ((m2<=1.0)&&(m2>=-1.0)) perc = (xi-x21)/(x22-x21);	
 				else perc=(yi-y21)/(y22-y21); /*lower slope more accurate*/
-				isect=32768.0*(perc+0.0000153); 
+				isect=32768.0*(perc+0.0000153); /* Percentage in 1/32768ths */
 				break;
 			}
 		}	
