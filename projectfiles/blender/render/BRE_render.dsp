@@ -167,6 +167,10 @@ SOURCE=..\..\..\source\blender\render\intern\source\zbuf.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\render\intern\source\ray.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\render\intern\source\zbufferdatastruct.c
 # End Source File
 # End Group
