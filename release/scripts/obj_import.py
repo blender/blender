@@ -225,6 +225,55 @@ def load_obj(file):
 
 	fileLines = open(file, 'r').readlines()
 
+
+
+	uvMapList = [(0,0)] # store tuple uv pairs here
+
+	# This dummy vert makes life a whole lot easier-
+	# pythons index system then aligns with objs, remove later
+	vertList = [NMesh.Vert(0, 0, 0)] # store tuple uv pairs here
+
+	nullMat = getMat(NULL_MAT)
+	
+	currentMat = nullMat # Use this mat.
+	currentImg = NULL_IMG # Null image is a string, otherwise this should be set to an image object.\
+	currentSmooth = 0
+	
+	#==================================================================================#
+	# Make split lines, ignore blenk lines or comments.                                #
+	#==================================================================================#
+	lIdx = 0 
+	while lIdx < len(fileLines):
+		fileLines[lIdx] = fileLines[lIdx].split()
+		lIdx+=1
+	
+	#==================================================================================#
+	# Load all verts first (texture verts too)                                         #
+	#==================================================================================#
+	lIdx = 0
+	while lIdx < len(fileLines):
+		l = fileLines[lIdx]
+
+		# EMPTY LINE
+		if len(l) == 0 or l[0] == '#':
+			pass
+		
+		# VERTEX
+		elif l[0] == 'v':
+			# This is a new vert, make a new mesh
+			vertList.append( NMesh.Vert(float(l[1]), float(l[2]), float(l[3]) ) )
+			fileLines.remove(fileLines[lIdx])
+			lIdx-=1
+		
+		# UV COORDINATE
+		elif l[0] == 'vt':
+			# This is a new vert, make a new mesh
+			uvMapList.append( (float(l[1]), float(l[2])) )
+			fileLines.remove(fileLines[lIdx])
+			lIdx-=1
+		lIdx+=1
+	
+	
 	# Here we store a boolean list of which verts are used or not
 	# no we know weather to add them to the current mesh
 	# This is an issue with global vertex indicies being translated to per mesh indicies
@@ -234,47 +283,33 @@ def load_obj(file):
 	# objectName has a char in front of it that determins weather its a group or object.
 	# We ignore it when naming the object.
 	objectName = 'omesh' # If we cant get one, use this
-
 	meshList = {}
-	meshList[objectName] = (NMesh.GetRaw(), [-1]) # Mesh/meshList[objectName][1]
+	meshList[objectName] = (NMesh.GetRaw(), [-1]*len(vertList)) # Mesh/meshList[objectName][1]
+	meshList[objectName][0].verts.append(vertList[0])
 
-	uvMapList = [(0,0)] # store tuple uv pairs here
-
-	# This dummy vert makes life a whole lot easier-
-	# pythons index system then aligns with objs, remove later
-	vertList = [NMesh.Vert(0, 0, 0)] # store tuple uv pairs here
-
-	nullMat = getMat(NULL_MAT)
-  
-	currentMat = nullMat # Use this mat.
-	currentImg = NULL_IMG # Null image is a string, otherwise this should be set to an image object.\
-	currentSmooth = 0
-	# Main loop
+	#==================================================================================#
+	# Load all faces into objects, main loop                                           #
+	#==================================================================================#
 	lIdx = 0
+	# Face and Object loading LOOP
 	while lIdx < len(fileLines):
-		l = fileLines[lIdx].split()
-   
-		# EMPTY LINE
-		if len(l) == 0:
-			pass # Detect a line that will be idnored
-		
-		# COMMENT
-		elif l[0] == '#' or len(l) == 0:
+		l = fileLines[lIdx]
+
+		# COMMENTS AND EMPTY LINES
+		if len(l) == 0 or l[0] == '#':
 			pass
-		
+			
 		# VERTEX
 		elif l[0] == 'v':
-			# This is a new vert, make a new mesh
-			vertList.append( NMesh.Vert(float(l[1]), float(l[2]), float(l[3]) ) )
-			meshList[objectName][1].append(-1) # Ad the moment this vert is not used by any meshList[objectName][0].
+			pass
+			
 		# VERTEX NORMAL
 		elif l[0] == 'vn':
 			pass
 		
 		# UV COORDINATE
 		elif l[0] == 'vt':
-			# This is a new vert, make a new mesh
-			uvMapList.append( (float(l[1]), float(l[2])) )
+			pass
 		
 		# FACE
 		elif l[0] == 'f': 
@@ -294,9 +329,9 @@ def load_obj(file):
 				# OBJ files can have // or / to seperate vert/texVert/normal
 				# this is a bit of a pain but we must deal with it.
 				objVert = v.split('/', -1)
-     
+				
 				# Vert Index - OBJ supports negative index assignment (like python)
-    
+				
 				vIdxLs.append(int(objVert[0]))
 				if fHasUV:
 					# UV
@@ -314,7 +349,7 @@ def load_obj(file):
 						if vtIdxLs[-1] > len(uvMapList):
 							fHasUV = 0
 							print 'badly written OBJ file, invalid references to UV Texture coordinates.'
-  
+			
 			# Quads only, we could import quads using the method below but it polite to import a quad as a quad.
 			if len(vIdxLs) == 4:
 				for i in [0,1,2,3]:
@@ -324,7 +359,7 @@ def load_obj(file):
 						meshList[objectName][1][vIdxLs[i]] = len(meshList[objectName][0].verts)-1
 					else:
 						f.v.append(meshList[objectName][0].verts[meshList[objectName][1][vIdxLs[i]]])
-      
+				
 				# UV MAPPING
 				if fHasUV:
 					for i in [0,1,2,3]:
@@ -343,6 +378,7 @@ def load_obj(file):
 					f = NMesh.Face()
 					f = applyMat(meshList[objectName][0], f, currentMat)
 					for ii in [0, i+1, i+2]:
+						
 						if meshList[objectName][1][vIdxLs[ii]] == -1:
 							meshList[objectName][0].verts.append(vertList[vIdxLs[ii]])
 							f.v.append(meshList[objectName][0].verts[-1])
@@ -363,8 +399,8 @@ def load_obj(file):
 						meshList[objectName][0].faces.append(f) # move the face onto the mesh
 						if len(meshList[objectName][0].faces[-1]) > 0:
 							meshList[objectName][0].faces[-1].smooth = currentSmooth
-
-      
+		
+		
 		# FACE SMOOTHING
 		elif l[0] == 's':
 			if l[1] == 'off': currentSmooth = 0
@@ -375,26 +411,35 @@ def load_obj(file):
 		elif l[0] == 'o' or l[0] == 'g':
 			# This makes sure that if an object and a group have the same name then
 			# they are not put into the same object.
-			if l[0] == 'o':
-				newObjectName = 'ob_' + '_'.join(l[1:])
-			elif l[0] == 'g':
-				newObjectName = 'gp_' + '_'.join(l[1:])
-  
-			if newObjectName == '':
-				objectName = 'ob_mesh'
+			
+			# Only make a new group.object name if the verts in the existing object have been used, this is obscure
+			# but some files face groups seperating verts and faces which results in silly things. (no groups have names.)
+			if len(l) == 1 and len( meshList[objectName][0].faces ) == 0:
+				pass
+			
 			else:
-				objectName = newObjectName
-  
-			# If we havnt written to this mesh before then do so.
-			if objectName not in meshList.keys():
-				meshList[objectName] = (NMesh.GetRaw(), [-1])
-				meshList[objectName][0].verts.append( NMesh.Vert(0, 0, 0) )
-    
-				while len(meshList[objectName][1]) != len(vertList):
-					meshList[objectName][1].append(-1)
+				newObjectName = l[0] + '_'				
+				
+				# if there is no groups name then make gp_1, gp_2, gp_100 etc
+				
+				if len(l) == 1: # No name given, make a unique name up.
 					
-			if len(l) > 2:
-				print l
+					unique_count = 0
+					while newObjectName in meshList.keys():
+						newObjectName = l[0] + '_' + str(unique_count)
+						unique_count +=1
+				else: # The the object/group name given
+					newObjectName += '_'.join(l[1:])
+				
+				# Assign the new name
+				objectName = newObjectName
+					
+				# If we havnt written to this mesh before then do so.
+				# if we have then we'll just keep appending to it, this is required for soem files.
+				if objectName not in meshList.keys():
+					meshList[objectName] = (NMesh.GetRaw(), [-1]*len(vertList))
+					meshList[objectName][0].verts.append( vertList[0] )
+				
 
 		# MATERIAL
 		elif l[0] == 'usemtl':
@@ -413,9 +458,10 @@ def load_obj(file):
 		# MATERIAL FILE
 		elif l[0] == 'mtllib':
 			mtl_fileName = ' '.join(l[1:])
-
+		
 		lIdx+=1
-  
+
+	
 	#==============================================#
 	# Write all meshs in the dictionary            #
 	#==============================================#  
@@ -425,7 +471,7 @@ def load_obj(file):
 			load_mtl(DIR, mtl_fileName, meshList[mk][0])
 		if len(meshList[mk][0].verts) >1:
 			meshList[mk][0].verts.remove(meshList[mk][0].verts[0])
-    
+			
 			name = getUniqueName(mk)
 			ob = NMesh.PutRaw(meshList[mk][0], mk)
 			ob.name = mk
