@@ -1,4 +1,4 @@
-/**
+/*
  * allocimbuf.c
  *
  * $Id$
@@ -32,6 +32,15 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+/**
+ * \file allocimbuf.c
+ * \ingroup imbuf
+ * \brief Handles de/allocating memory for ImBuf struct variables.
+ *
+ * This file uses free() and MEM_mallocN() to allocate and deallocate memory
+ * to the members of the ImBuf struct.  It also zeroes out pointers and
+ * tracks buffer sizes.
+ */
 /* It's become a bit messy... Basically, only the IMB_ prefixed files
  * should remain. */
 
@@ -48,6 +57,9 @@
 #include <config.h>
 #endif
 
+/**
+ * Default cmap.  Used to initialize the ImBuf->cmap variable.
+ */
 static unsigned int dfltcmap[16] = {
 	0x00000000, 0xffffffff, 0x777777ff, 0xccccccff, 
 	0xcc3344ff, 0xdd8844ff, 0xccdd44ff, 0x888833ff, 
@@ -55,6 +67,13 @@ static unsigned int dfltcmap[16] = {
 	0x8888ddff, 0x4433ccff, 0xcc33ccff, 0xcc88ddff
 };
 
+/**
+ * \brief Clears memory associated to the ImBuf* ibuf->planes
+ *
+ * This function uses free() to de-allocate the memory associated with
+ * the planes member of the ImBuf struct, and sets the pointer to 0.
+ * The ibuf->mall also gets the IB_planes bit unset.
+ */
 void imb_freeplanesImBuf(struct ImBuf * ibuf)
 {
 	if (ibuf==0) return;
@@ -66,6 +85,13 @@ void imb_freeplanesImBuf(struct ImBuf * ibuf)
 }
 
 
+/**
+ * \brief Clears memory associated to the ImBuf* ibuf->rect
+ *
+ * This function uses free() to de-allocate the memory associated with
+ * the rect member of the ImBuf struct, and sets the pointer to 0.
+ * The ibuf->mall also gets the IB_rect bit unset.
+ */
 void imb_freerectImBuf(struct ImBuf * ibuf)
 {
 	if (ibuf==0) return;
@@ -76,6 +102,19 @@ void imb_freerectImBuf(struct ImBuf * ibuf)
 	ibuf->mall &= ~IB_rect;
 }
 
+/**
+ * \brief Clears memory associated to the ImBuf* ibuf->encodedbuffer
+ *
+ * This function uses free() to de-allocate the memory associated with
+ * the encodedbuffer member of the ImBuf struct, and sets the following
+ * variables to 0:
+ *
+ * encodedbuffer
+ * encodedbuffersize
+ * encodedsize
+ *
+ * The ibuf->mall also gets the IB_mem bit unset.
+ */
 static void freeencodedbufferImBuf(struct ImBuf * ibuf)
 {
 	if (ibuf==0) return;
@@ -88,6 +127,13 @@ static void freeencodedbufferImBuf(struct ImBuf * ibuf)
 	ibuf->mall &= ~IB_mem;
 }
 
+/**
+ * \brief Clears memory associated to the ImBuf* ibuf->zbuf
+ *
+ * This function uses free() to de-allocate the memory associated with
+ * the zbuf member of the ImBuf struct, and sets the pointer to 0.
+ * The ibuf->mall also gets the IB_zbuf bit unset.
+ */
 void IMB_freezbufImBuf(struct ImBuf * ibuf)
 {
 	if (ibuf==0) return;
@@ -98,6 +144,13 @@ void IMB_freezbufImBuf(struct ImBuf * ibuf)
 	ibuf->mall &= ~IB_zbuf;
 }
 
+/**
+ * \brief Clears memory associated to the ImBuf* ibuf->cmap
+ *
+ * This function uses free() to de-allocate the memory associated with
+ * the cmap member of the ImBuf struct, and sets the pointer to 0.
+ * The ibuf->mall also gets the IB_cmap bit unset.
+ */
 void IMB_freecmapImBuf(struct ImBuf * ibuf)
 {
 	if (ibuf == 0) return;
@@ -109,6 +162,13 @@ void IMB_freecmapImBuf(struct ImBuf * ibuf)
 }
 
 
+/**
+ * \brief Clears memory associated to the ImBuf ibuf
+ *
+ * This function uses the imb_free*ImBuf() functions to free the
+ * memory associated to the ibuf argument, and then frees the ibuf
+ * pointer using free()
+ */
 void IMB_freeImBuf(struct ImBuf * ibuf)
 {
 	if (ibuf){
@@ -122,6 +182,17 @@ void IMB_freeImBuf(struct ImBuf * ibuf)
 }
 
 
+/**
+ * \brief Allocates memory to the zbuf member of the ImBuf struct.
+ *
+ * This function uses MEM_mallocN(int,char *) to allocate memory to
+ * the zbuf member of the ImBuf struct.  Any memory associated to the
+ * zbuf member is overwritten.
+ *
+ * The IB_zbuf bit of the ibuf->mall variable is set.
+ * \return Returns FALSE if ibuf==0 or if MEM_mallocN() fails, otherwise
+ * returns TRUE
+ */
 static short addzbufImBuf(struct ImBuf * ibuf)
 {
 	int size;
@@ -139,6 +210,21 @@ static short addzbufImBuf(struct ImBuf * ibuf)
 }
 
 
+/**
+ * \brief Allocates memory to the encodedbuffer member of the ImBuf struct.
+ *
+ * This function uses MEM_mallocN(int,char *) to allocate memory to
+ * the encodedbuffer member of the ImBuf struct.  Any memory associated to the
+ * encodedbuffer member is overwritten.
+ * 
+ * The ibuf->encodedbuffersize is set to 10000 if it was previously 0.
+ *
+ * The ibuf->encodedsize is set to 0.
+ *
+ * The IB_mem bit of the ibuf->mall variable is set.
+ * \return Returns FALSE if ibuf==0 or if MEM_mallocN() fails, otherwise
+ * returns TRUE
+ */
 short imb_addencodedbufferImBuf(struct ImBuf * ibuf)
 {
 	if (ibuf==0) return(FALSE);
@@ -159,6 +245,19 @@ short imb_addencodedbufferImBuf(struct ImBuf * ibuf)
 }
 
 
+/**
+ * \brief Adds memory to ibuf->encodedbuffer
+ *
+ * This function doubles the size of encodedbuffer if it is less than 10000,
+ * otherwise sets encodedbuffersize to 10000.
+ *
+ * The ibuf members encodedbuffersize and encoded size also get set.
+ * \return Returns FALSE if:
+ *  - ibuf==0
+ *  - ibuf->encodedbuffersize < ibuf->encodedsize
+ *  - MEM_mallocN() fails (returns NULL)
+ * otherwise, returns TRUE
+ */
 short imb_enlargeencodedbufferImBuf(struct ImBuf * ibuf)
 {
 	unsigned int newsize, encodedsize;
@@ -195,6 +294,17 @@ short imb_enlargeencodedbufferImBuf(struct ImBuf * ibuf)
 	return (TRUE);
 }
 
+/**
+ * \brief Allocates memory to the rect member of the ImBuf struct.
+ *
+ * This function uses MEM_mallocN(int,char *) to allocate memory to
+ * the rect member of the ImBuf struct.  Any memory associated to the
+ * rect member is overwritten.
+ *
+ * The IB_rect bit of the ibuf->mall variable is set.
+ * \return Returns FALSE if ibuf==0 or if MEM_mallocN() fails, otherwise
+ * returns TRUE
+ */
 
 short imb_addrectImBuf(struct ImBuf * ibuf)
 {
@@ -214,6 +324,19 @@ short imb_addrectImBuf(struct ImBuf * ibuf)
 }
 
 
+/**
+ * \brief Allocates memory to the cmap member of the ImBuf struct.
+ *
+ * This function uses MEM_mallocN(int,char *) to allocate memory to
+ * the cmap member of the ImBuf struct.  Any memory associated to the
+ * cmap member is overwritten.
+ *
+ * The memory is initialized to the value of the dfltcmap variable.
+ *
+ * The IB_cmap bit of the ibuf->mall variable is set.
+ * \return Returns FALSE if ibuf==0 or if MEM_mallocN() fails, otherwise
+ * returns TRUE
+ */
 short imb_addcmapImBuf(struct ImBuf *ibuf)
 {
 	int min;
@@ -236,6 +359,19 @@ short imb_addcmapImBuf(struct ImBuf *ibuf)
 }
 
 
+/**
+ * \brief Adds memory to the planes member of ibuf.
+ *
+ * This function adds ibuf->depth number of planes to ibuf.
+ *
+ * Sets:
+ *  - ibuf->skipx
+ *  - IB_planes bit of ibuf->mall
+ * \return Returns FALSE if:
+ *  - ibuf==0
+ *  - MEM_mallocN() fails (returns 0)
+ * Otherwise, returns TRUE
+ */
 short imb_addplanesImBuf(struct ImBuf *ibuf)
 {
 	int size;
@@ -268,7 +404,21 @@ short imb_addplanesImBuf(struct ImBuf *ibuf)
 	return (TRUE);
 }
 
-
+/**
+ * \brief This functions allocates memory to an ImBuf struct.
+ *
+ * This function allocates memory for an ImBuf struct and returns a pointer
+ * to the struct.  The MEM_callocN() function us used to allocate the memory.
+ *
+ * The x and y parameters define the resolution of the image, the d parameter
+ * defines the (bit?) depth, the flags parameter defines whether the rect, zbuf or
+ * planes members should exist. The bitmap flag will set the IB_planes bit in the
+ * flags variable.
+ *
+ * \return Returns 0 if any of the imb_add*ImBuf() functions return FALSE. If the
+ * memory for ibuf is not allocated, the return also should be 0.  Otherwise, returns
+ * a pointer to an ImBuf struct.
+ */
 struct ImBuf *IMB_allocImBuf(short x,short y,uchar d,unsigned int flags,uchar bitmap)
 {
 	struct ImBuf *ibuf;
@@ -306,7 +456,12 @@ struct ImBuf *IMB_allocImBuf(short x,short y,uchar d,unsigned int flags,uchar bi
 	return (ibuf);
 }
 
-
+/**
+ * \brief Returns a pointer to a new imbuf which is a duplicate of the ibuf1 parameter.
+ *
+ * \return Returns 0 if any memory allocation fails (except for the cmap allocation. Is
+ * this right?), otherwise returns a copy of ibuf1.
+ */
 struct ImBuf *IMB_dupImBuf(struct ImBuf *ibuf1)
 {
 	struct ImBuf *ibuf2, tbuf;
