@@ -33,6 +33,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  *
  */
+
 #ifndef EXPP_vector_h
 #define EXPP_vector_h
 

@@ -172,9 +172,9 @@ PyObject *M_Lamp_Init (void)
 /* Three Python Lamp_Type helper functions needed by the Object module: */
 
 /*****************************************************************************/
-/* Function:    Lamp_createPyObject                                        */
-/* Description: This function will create a new C_Lamp from an existing    */
-/*              Blender camera structure.                                    */
+/* Function:    Lamp_createPyObject                                          */
+/* Description: This function will create a new C_Lamp from an existing      */
+/*              Blender lamp structure.                                      */
 /*****************************************************************************/
 PyObject *Lamp_createPyObject (Lamp *lamp)
 {
@@ -933,6 +933,20 @@ static int LampSetAttr (C_Lamp *self, char *name, PyObject *value)
 
   Py_DECREF(Py_None); /* was incref'ed by the called Lamp_set* function */
   return 0; /* normal exit */
+}
+
+/*****************************************************************************/
+/* Function:    LampCompare                                                  */
+/* Description: This is a callback function for the C_Lamp type. It          */
+/*              compares two Lamp_Type objects. Only the "==" and "!="       */
+/*              comparisons are meaninful. Returns 0 for equality and -1 if  */
+/*              they don't point to the same Blender Lamp struct.            */
+/*              In Python it becomes 1 if they are equal, 0 otherwise.       */
+/*****************************************************************************/
+static int LampCompare (C_Lamp *a, C_Lamp *b)
+{
+	Lamp *pa = a->lamp, *pb = b->lamp;
+	return (pa == pb) ? 0:-1;
 }
 
 /*****************************************************************************/

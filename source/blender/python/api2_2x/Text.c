@@ -443,6 +443,20 @@ static int TextSetAttr (C_Text *self, char *name, PyObject *value)
 }
 
 /*****************************************************************************/
+/* Function:    TextCompare                                                  */
+/* Description: This is a callback function for the C_Text type. It          */
+/*              compares two Text_Type objects. Only the "==" and "!="       */
+/*              comparisons are meaninful. Returns 0 for equality and -1 if  */
+/*              they don't point to the same Blender Text struct.            */
+/*              In Python it becomes 1 if they are equal, 0 otherwise.       */
+/*****************************************************************************/
+static int TextCompare (C_Text *a, C_Text *b)
+{
+	Text *pa = a->text, *pb = b->text;
+	return (pa == pb) ? 0:-1;
+}
+
+/*****************************************************************************/
 /* Function:    TextPrint                                                  */
 /* Description: This is a callback function for the C_Text type. It        */
 /*              builds a meaninful string to 'print' text objects.         */

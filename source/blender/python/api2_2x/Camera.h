@@ -192,6 +192,7 @@ static void CameraDeAlloc (C_Camera *self);
 static int CameraPrint (C_Camera *self, FILE *fp, int flags);
 static int CameraSetAttr (C_Camera *self, char *name, PyObject *v);
 static PyObject *CameraGetAttr (C_Camera *self, char *name);
+static int CameraCompare (C_Camera *a, C_Camera *b);
 static PyObject *CameraRepr (C_Camera *self);
 
 /*****************************************************************************/
@@ -218,7 +219,7 @@ static PyTypeObject Camera_Type =
   (printfunc)CameraPrint,                 /* tp_print */
   (getattrfunc)CameraGetAttr,             /* tp_getattr */
   (setattrfunc)CameraSetAttr,             /* tp_setattr */
-  0,                                      /* tp_compare */
+  (cmpfunc)CameraCompare,                 /* tp_compare */
   (reprfunc)CameraRepr,                   /* tp_repr */
   0,                                      /* tp_as_number */
   0,                                      /* tp_as_sequence */

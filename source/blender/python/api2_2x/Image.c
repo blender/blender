@@ -318,6 +318,20 @@ static int ImageSetAttr (C_Image *self, char *name, PyObject *value)
 }
 
 /*****************************************************************************/
+/* Function:    ImageCompare                                                 */
+/* Description: This is a callback function for the C_Image type. It         */
+/*              compares two Image_Type objects. Only the "==" and "!="      */
+/*              comparisons are meaninful. Returns 0 for equality and -1 if  */
+/*              they don't point to the same Blender Image struct.           */
+/*              In Python it becomes 1 if they are equal, 0 otherwise.       */
+/*****************************************************************************/
+static int ImageCompare (C_Image *a, C_Image *b)
+{
+	Image *pa = a->image, *pb = b->image;
+	return (pa == pb) ? 0:-1;
+}
+
+/*****************************************************************************/
 /* Function:    ImagePrint                                                  */
 /* Description: This is a callback function for the C_Image type. It        */
 /*              builds a meaninful string to 'print' image objects.         */

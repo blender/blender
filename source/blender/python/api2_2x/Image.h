@@ -130,11 +130,12 @@ static PyMethodDef C_Image_methods[] = {
 /*****************************************************************************/
 /* Python Image_Type callback function prototypes:                          */
 /*****************************************************************************/
-static void ImageDeAlloc (C_Image *cam);
-static int ImagePrint (C_Image *cam, FILE *fp, int flags);
-static int ImageSetAttr (C_Image *cam, char *name, PyObject *v);
-static PyObject *ImageGetAttr (C_Image *cam, char *name);
-static PyObject *ImageRepr (C_Image *cam);
+static void ImageDeAlloc (C_Image *self);
+static int ImagePrint (C_Image *self, FILE *fp, int flags);
+static int ImageSetAttr (C_Image *self, char *name, PyObject *v);
+static PyObject *ImageGetAttr (C_Image *self, char *name);
+static int ImageCompare (C_Image *a, C_Image *b);
+static PyObject *ImageRepr (C_Image *self);
 
 /*****************************************************************************/
 /* Python Image_Type structure definition:                                  */
@@ -142,26 +143,26 @@ static PyObject *ImageRepr (C_Image *cam);
 static PyTypeObject Image_Type =
 {
   PyObject_HEAD_INIT(&PyType_Type)
-  0,                                      /* ob_size */
+  0,                                     /* ob_size */
   "Image",                               /* tp_name */
-  sizeof (C_Image),                     /* tp_basicsize */
-  0,                                      /* tp_itemsize */
+  sizeof (C_Image),                      /* tp_basicsize */
+  0,                                     /* tp_itemsize */
   /* methods */
   (destructor)ImageDeAlloc,              /* tp_dealloc */
   (printfunc)ImagePrint,                 /* tp_print */
   (getattrfunc)ImageGetAttr,             /* tp_getattr */
   (setattrfunc)ImageSetAttr,             /* tp_setattr */
-  0,                                      /* tp_compare */
+  (cmpfunc)ImageCompare,                 /* tp_compare */
   (reprfunc)ImageRepr,                   /* tp_repr */
-  0,                                      /* tp_as_number */
-  0,                                      /* tp_as_sequence */
-  0,                                      /* tp_as_mapping */
-  0,                                      /* tp_as_hash */
+  0,                                     /* tp_as_number */
+  0,                                     /* tp_as_sequence */
+  0,                                     /* tp_as_mapping */
+  0,                                     /* tp_as_hash */
   0,0,0,0,0,0,
-  0,                                      /* tp_doc */ 
+  0,                                     /* tp_doc */ 
   0,0,0,0,0,0,
-  C_Image_methods,                      /* tp_methods */
-  0,                                      /* tp_members */
+  C_Image_methods,                       /* tp_methods */
+  0,                                     /* tp_members */
 };
 
 #endif /* EXPP_IMAGE_H */

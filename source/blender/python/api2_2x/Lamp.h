@@ -290,6 +290,7 @@ static PyMethodDef C_Lamp_methods[] = {
 static void LampDeAlloc (C_Lamp *lamp);
 static PyObject *LampGetAttr (C_Lamp *lamp, char *name);
 static int LampSetAttr (C_Lamp *lamp, char *name, PyObject *v);
+static int LampCompare (C_Lamp *a, C_Lamp *b);
 static PyObject *LampRepr (C_Lamp *lamp);
 static int LampPrint (C_Lamp *lamp, FILE *fp, int flags);
 
@@ -308,26 +309,26 @@ int LampCheckPyObject (PyObject *pyobj);
 static PyTypeObject Lamp_Type =
 {
   PyObject_HEAD_INIT(&PyType_Type)
-  0,                                      /* ob_size */
+  0,                                    /* ob_size */
   "Lamp",                               /* tp_name */
-  sizeof (C_Lamp),                     /* tp_basicsize */
-  0,                                      /* tp_itemsize */
+  sizeof (C_Lamp),                      /* tp_basicsize */
+  0,                                    /* tp_itemsize */
   /* methods */
   (destructor)LampDeAlloc,              /* tp_dealloc */
   (printfunc)LampPrint,                 /* tp_print */
   (getattrfunc)LampGetAttr,             /* tp_getattr */
   (setattrfunc)LampSetAttr,             /* tp_setattr */
-  0,                                      /* tp_compare */
+  (cmpfunc)LampCompare,                 /* tp_compare */
   (reprfunc)LampRepr,                   /* tp_repr */
-  0,                                      /* tp_as_number */
-  0,                                      /* tp_as_sequence */
-  0,                                      /* tp_as_mapping */
-  0,                                      /* tp_as_hash */
+  0,                                    /* tp_as_number */
+  0,                                    /* tp_as_sequence */
+  0,                                    /* tp_as_mapping */
+  0,                                    /* tp_as_hash */
   0,0,0,0,0,0,
-  0,                                      /* tp_doc */ 
+  0,                                    /* tp_doc */ 
   0,0,0,0,0,0,
-  C_Lamp_methods,                      /* tp_methods */
-  0,                                      /* tp_members */
+  C_Lamp_methods,                       /* tp_methods */
+  0,                                    /* tp_members */
 };
 
 #endif /* EXPP_LAMP_H */

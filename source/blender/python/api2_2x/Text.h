@@ -142,11 +142,12 @@ static PyMethodDef C_Text_methods[] = {
 /*****************************************************************************/
 /* Python Text_Type callback function prototypes:                          */
 /*****************************************************************************/
-static void TextDeAlloc (C_Text *cam);
-static int TextPrint (C_Text *cam, FILE *fp, int flags);
-static int TextSetAttr (C_Text *cam, char *name, PyObject *v);
-static PyObject *TextGetAttr (C_Text *cam, char *name);
-static PyObject *TextRepr (C_Text *cam);
+static void TextDeAlloc (C_Text *self);
+static int TextPrint (C_Text *self, FILE *fp, int flags);
+static int TextSetAttr (C_Text *self, char *name, PyObject *v);
+static PyObject *TextGetAttr (C_Text *self, char *name);
+static int TextCompare (C_Text *a, C_Text *b);
+static PyObject *TextRepr (C_Text *self);
 
 /*****************************************************************************/
 /* Python Text_Type structure definition:                                  */
@@ -154,26 +155,26 @@ static PyObject *TextRepr (C_Text *cam);
 static PyTypeObject Text_Type =
 {
   PyObject_HEAD_INIT(&PyType_Type)
-  0,                                      /* ob_size */
+  0,                                    /* ob_size */
   "Text",                               /* tp_name */
-  sizeof (C_Text),                     /* tp_basicsize */
-  0,                                      /* tp_itemsize */
+  sizeof (C_Text),                      /* tp_basicsize */
+  0,                                    /* tp_itemsize */
   /* methods */
   (destructor)TextDeAlloc,              /* tp_dealloc */
   (printfunc)TextPrint,                 /* tp_print */
   (getattrfunc)TextGetAttr,             /* tp_getattr */
   (setattrfunc)TextSetAttr,             /* tp_setattr */
-  0,                                      /* tp_compare */
+  (cmpfunc)TextCompare,                 /* tp_compare */
   (reprfunc)TextRepr,                   /* tp_repr */
-  0,                                      /* tp_as_number */
-  0,                                      /* tp_as_sequence */
-  0,                                      /* tp_as_mapping */
-  0,                                      /* tp_as_hash */
+  0,                                    /* tp_as_number */
+  0,                                    /* tp_as_sequence */
+  0,                                    /* tp_as_mapping */
+  0,                                    /* tp_as_hash */
   0,0,0,0,0,0,
-  0,                                      /* tp_doc */ 
+  0,                                    /* tp_doc */ 
   0,0,0,0,0,0,
-  C_Text_methods,                      /* tp_methods */
-  0,                                      /* tp_members */
+  C_Text_methods,                       /* tp_methods */
+  0,                                    /* tp_members */
 };
 
 #endif /* EXPP_TEXT_H */

@@ -583,6 +583,20 @@ static int CameraSetAttr (C_Camera *self, char *name, PyObject *value)
 }
 
 /*****************************************************************************/
+/* Function:    CameraCompare                                                */
+/* Description: This is a callback function for the C_Camera type. It        */
+/*              compares two Camera_Type objects. Only the "==" and "!="     */
+/*              comparisons are meaninful. Returns 0 for equality and -1 if  */
+/*              they don't point to the same Blender Camera struct.          */
+/*              In Python it becomes 1 if they are equal, 0 otherwise.       */
+/*****************************************************************************/
+static int CameraCompare (C_Camera *a, C_Camera *b)
+{
+	Camera *pa = a->camera, *pb = b->camera;
+	return (pa == pb) ? 0:-1;
+}
+
+/*****************************************************************************/
 /* Function:    CameraPrint                                                  */
 /* Description: This is a callback function for the C_Camera type. It        */
 /*              builds a meaninful string to 'print' camera objects.         */
