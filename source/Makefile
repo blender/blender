@@ -367,6 +367,7 @@ endif
 SOUNDSYSTEM = $(OCGDIR)/intern/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
 DUMMYSOUND  = $(OCGDIR)/intern/DummySoundSystem/$(DEBUG_DIR)libDummySoundSystem.a
 OPENALSOUND = $(OCGDIR)/intern/OpenALSoundSystem/$(DEBUG_DIR)libOpenALSoundSystem.a
+SDLSOUND    = $(OCGDIR)/intern/SDLSoundSystem/$(DEBUG_DIR)libSDLSoundSystem.a
 
 # Some kooky logic going on here ...
 ifeq ($(NAN_NO_OPENAL), true)
@@ -380,12 +381,14 @@ else
         NAN_SND_LIBS =  $(SOUNDSYSTEM)
         NAN_SND_LIBS += $(DUMMYSOUND)
         NAN_SND_LIBS += $(OPENALSOUND)
+        NAN_SND_LIBS += $(SDLSOUND)
         NAN_SND_LIBS += $(NAN_OPENAL)/lib/libopenal.a
         NAN_SND_LIBS += $(SOUNDSYSTEM)
       else
         NAN_SND_LIBS =  $(SOUNDSYSTEM)
         NAN_SND_LIBS += $(DUMMYSOUND)
         NAN_SND_LIBS += $(OPENALSOUND)
+        NAN_SND_LIBS += $(SDLSOUND)
         NAN_SND_LIBS += $(NAN_OPENAL)/lib/libopenal.a
         NAN_SND_LIBS += $(SOUNDSYSTEM)
       endif
@@ -394,6 +397,7 @@ else
         NAN_SND_LIBS =  $(SOUNDSYSTEM)
         NAN_SND_LIBS += $(DUMMYSOUND)
         NAN_SND_LIBS += $(OPENALSOUND)
+        NAN_SND_LIBS += $(SDLSOUND)
         NAN_SND_LIBS += $(NAN_OPENAL)/lib/openal_static.lib
         NAN_SND_LIBS += $(SOUNDSYSTEM)
       else
