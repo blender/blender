@@ -22,6 +22,9 @@
   Subject to the provisions of this License Agreement, BF grants You a
   limited, non-exclusive, personal, non-sublicenseable, non-transferable
   license to use the Software at any computer You own or use. 
+  Artwork you create with the Software - whether it is images, movies, 
+  scripts, exported 3d files or the .blend files themselves - is your sole 
+  property, and can be licensed or sold under any conditions you prefer. 
 
   2. Permitted copying and electronic distribution of Software
   
@@ -113,5 +116,5 @@
   Chamber of Commerce: 34176425
 
   http://www.blender.org
-  info@blender.org
+  foundation@blender.org
 
