@@ -52,6 +52,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "BMF_Api.h"
+#ifdef INTERNATIONAL
+#include "FTF_Api.h"
+#include "BIF_language.h"
+#endif
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -161,7 +165,7 @@ int BIF_read_homefile(void)
 {
 	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
 	char *home= BLI_gethome();
-	int success;
+	int success, result;
 
 	BLI_make_file_string(G.sce, tstr, home, ".B.blend");
 	strcpy(scestr, G.sce);	/* temporal store */
@@ -198,6 +202,32 @@ int BIF_read_homefile(void)
 		if (G.main->versionfile <= 222) {
 			U.vrmlflag= USERDEF_VRML_LAYERS;
 		}
+
+#ifdef INTERNATIONAL
+			/* userdef multilanguage options */
+		/*  uncomment with versionchange to 2.27 --phase */
+/*
+		if (G.main->versionfile <= 226) {
+			U.language= 0;
+			U.fontsize= 12;
+			U.encoding= 0;
+			sprintf(U.fontname, ".bfont.ttf");
+			if( FTF_SetFont(".bfont.ttf", 12) ) {
+				FTF_SetLanguage("en");
+				FTF_SetEncoding("ASCII");
+				G.ui_international = TRUE;
+			} else {
+				G.ui_international = FALSE;
+			}
+		}
+*/
+
+		if(U.transopts & TR_ALL)
+			set_ML_interface_font();
+		else
+			G.ui_international = FALSE;
+
+#endif // INTERNATIONAL
 
 		space_set_commmandline_options();
 
@@ -451,6 +481,10 @@ void BIF_init(void)
 	init_draw_rects();	/* drawobject.c */
 	init_gl_stuff();	/* drawview.c */
 
+#ifdef INTERNATIONAL
+	readMultiLingualFiles();
+#endif
+
 	BIF_read_homefile(); 
 
 	readBlog();
@@ -497,6 +531,9 @@ void exit_usiblender(void)
 	freeNurblist(&editNurb);
 
 	fsmenu_free();
+#ifdef INTERNATIONAL
+	languagesmenu_free();
+#endif	
 	
 	RE_free_render_data();
 	RE_free_filt_mask();

@@ -7131,6 +7131,7 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 	
 	ob= OBACT;
 	
+//	myortho2(v2d->cur.xmin, v2d->cur.xmax, v2d->cur.ymin-0.6, v2d->cur.ymax+0.6);
 	myortho2(v2d->cur.xmin, v2d->cur.xmax, v2d->cur.ymin, v2d->cur.ymax);
 	
 	glShadeModel(GL_SMOOTH);

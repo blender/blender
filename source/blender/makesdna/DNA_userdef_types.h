@@ -86,6 +86,8 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define WHEELZOOMDIR	4
 #define FILTERFILEEXTS	8
 #define DRAWVIEWINFO	16
+#define EVTTOCONSOLE	32		//print ghost events, here for tuhopuu compat. --phase
+#define FLIPINFOMENU	64
 
 /* transopts */
 
@@ -94,6 +96,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define TR_MENUS		4
 #define TR_FILESELECT	8
 #define TR_TEXTEDIT		16
+#define TR_ALL			32
 
 /* dupflag */
 

@@ -50,6 +50,9 @@
 #include "PIL_time.h"
 
 #include "BMF_Api.h"
+#ifdef INTERNATIONAL
+#include "FTF_Api.h"
+#endif
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -682,7 +685,17 @@ static void ui_draw_but_BUT(uiBut *but)
 		
 		glRasterPos2f( x, (but->y1+but->y2- 9.0)/2.0);
 		
+#ifdef INTERNATIONAL
+		if(G.ui_international == TRUE)
+			if(U.transopts & TR_BUTTONS)	// BUTTON TEXTS
+				FTF_DrawString(but->drawstr+but->ofs, FTF_USE_GETTEXT | FTF_INPUT_UTF8, but->flag & UI_SELECT);
+			else
+				FTF_DrawString(but->drawstr+but->ofs, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, but->flag & UI_SELECT);
+		else
+			BMF_DrawString(but->font, but->drawstr+but->ofs);
+#else
 		BMF_DrawString(but->font, but->drawstr+but->ofs);
+#endif
 	}
 }
 
@@ -707,21 +720,60 @@ static void ui_draw_but_TOG3(uiBut *but)
 				if( BTST( sp[1], but->bitnr )) ok= 1;
 			}
 			
-			if (ok) {
-				glColor3ub(255, 255, 0);
-			} else {
-				glColor3ub(255, 255, 255);
-			}
-		} else {
-			glColor3ub(0, 0, 0);
-		}
-
 		if(but->flag & UI_TEXT_LEFT) x= but->x1+4.0;
 		else x= (but->x1+but->x2-but->strwidth+1)/2.0;
 		
 		glRasterPos2f( x, (but->y1+but->y2- 9.0)/2.0);
+
+// silly structure for colored texts
+			if (ok) {
+				glColor3ub(255, 255, 0);
 		
+#ifdef INTERNATIONAL
+		if(G.ui_international == TRUE)
+			if(U.transopts & TR_BUTTONS)	// BUTTON TEXTS
+				FTF_DrawStringRGB(but->drawstr+but->ofs, FTF_USE_GETTEXT | FTF_INPUT_UTF8, 1.0, 1.0, 0.0);
+			else
+				FTF_DrawStringRGB(but->drawstr+but->ofs, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, 1.0, 1.0, 0.0);
+		else
+			BMF_DrawString(but->font, but->drawstr+but->ofs);
+#else
 		BMF_DrawString(but->font, but->drawstr+but->ofs);
+#endif
+			} else {
+				glColor3ub(255, 255, 255);
+
+#ifdef INTERNATIONAL
+		if(G.ui_international == TRUE)
+			if(U.transopts & TR_BUTTONS)	// BUTTON TEXTS
+				FTF_DrawString(but->drawstr+but->ofs, FTF_USE_GETTEXT | FTF_INPUT_UTF8, but->flag & UI_SELECT);
+			else
+				FTF_DrawString(but->drawstr+but->ofs, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, but->flag & UI_SELECT);
+		else
+			BMF_DrawString(but->font, but->drawstr+but->ofs);
+#else
+		BMF_DrawString(but->font, but->drawstr+but->ofs);
+#endif
+			}
+		} else {
+			glColor3ub(0, 0, 0);
+		
+		if(but->flag & UI_TEXT_LEFT) x= but->x1+4.0;
+		else x= (but->x1+but->x2-but->strwidth+1)/2.0;
+		
+		glRasterPos2f( x, (but->y1+but->y2- 9.0)/2.0);
+#ifdef INTERNATIONAL
+		if(G.ui_international == TRUE)
+			if(U.transopts & TR_BUTTONS)	// BUTTON TEXTS
+				FTF_DrawString(but->drawstr+but->ofs, FTF_USE_GETTEXT | FTF_INPUT_UTF8, but->flag & UI_SELECT);
+			else
+				FTF_DrawString(but->drawstr+but->ofs, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, but->flag & UI_SELECT);
+		else
+			BMF_DrawString(but->font, but->drawstr+but->ofs);
+#else
+		BMF_DrawString(but->font, but->drawstr+but->ofs);
+#endif
+		}
 	}
 }
 
@@ -746,7 +798,17 @@ static void ui_draw_but_TEX(uiBut *but)
 		if(pos >= but->ofs) {
 			ch= but->drawstr[pos];
 			but->drawstr[pos]= 0;
+#ifdef INTERNATIONAL
+			if(G.ui_international == TRUE)
+				if(U.transopts & TR_BUTTONS)	// BUTTON TEXTS
+					t= but->aspect*FTF_GetStringWidth(but->drawstr+but->ofs, FTF_USE_GETTEXT | FTF_INPUT_UTF8) + 3;
+				else
+					t= but->aspect*FTF_GetStringWidth(but->drawstr+but->ofs, FTF_NO_TRANSCONV | FTF_INPUT_UTF8) + 3;
+			else
+				t= but->aspect*BMF_GetStringWidth(but->font, but->drawstr+but->ofs) + 3;
+#else
 			t= but->aspect*BMF_GetStringWidth(but->font, but->drawstr+but->ofs) + 3;
+#endif
 
 			but->drawstr[pos]= ch;
 			glColor3ub(255,0,0);
@@ -763,14 +825,24 @@ static void ui_draw_but_TEX(uiBut *but)
 		
 		glRasterPos2f( x, (but->y1+but->y2- 9.0)/2.0);
 		
+#ifdef INTERNATIONAL
+		if(G.ui_international == TRUE)
+			if(U.transopts & TR_BUTTONS)	// BUTTON TEXTS
+				FTF_DrawString(but->drawstr+but->ofs, FTF_USE_GETTEXT | FTF_INPUT_UTF8, sel);
+			else
+				FTF_DrawString(but->drawstr+but->ofs, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, sel);
+		else
+			BMF_DrawString(but->font, but->drawstr+but->ofs);
+#else
 		BMF_DrawString(but->font, but->drawstr+but->ofs);
+#endif
 	}
 }
 
 static void ui_draw_but_BUTM(uiBut *but)
 {
 	float x;
-	short len;
+	short len, opt;
 	char *cpoin;
 	
 	but->embossfunc(but->col, but->aspect, but->x1, but->y1, but->x2, but->y2, but->flag);
@@ -784,22 +856,56 @@ static void ui_draw_but_BUTM(uiBut *but)
 			if(cpoin) *cpoin= 0;
 			
 			if(but->embossfunc==ui_emboss_P) {
-				if(but->flag & UI_ACTIVE) glColor3ub(255,255,255);
-				else glColor3ub(0,0,0);
+				if(but->flag & UI_ACTIVE) { opt = 1; glColor3ub(255,255,255); }
+				else { opt = 0; glColor3ub(0,0,0); }
 			} else {
-				glColor3ub(0,0,0);
+				opt = 0;glColor3ub(0,0,0);
 			}
 	
 			x= but->x1+4.0;
 			
 			glRasterPos2f( x, (but->y1+but->y2- 9.0)/2.0);
+
+#ifdef INTERNATIONAL
+			if(G.ui_international == TRUE)
+				if(U.transopts & TR_BUTTONS)	// BUTTON TEXTS
+					FTF_DrawString(but->drawstr, FTF_USE_GETTEXT | FTF_INPUT_UTF8, opt);
+				else
+					FTF_DrawString(but->drawstr, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, opt);
+			else
+				BMF_DrawString(but->font, but->drawstr);
+#else
 			BMF_DrawString(but->font, but->drawstr);
+#endif
 			
 			if(cpoin) {
+
+#ifdef INTERNATIONAL
+				if(G.ui_international == TRUE) {
+					if(U.transopts & TR_BUTTONS) {	// BUTTON TEXTS
+						len= FTF_GetStringWidth(cpoin+1, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+						glRasterPos2f( but->x2 - len*but->aspect-3, (but->y1+but->y2- 9.0)/2.0);
+						FTF_DrawString(cpoin+1, FTF_USE_GETTEXT | FTF_INPUT_UTF8, but->flag & UI_ACTIVE);
+						*cpoin= '|';
+					} else {
+						len= FTF_GetStringWidth(cpoin+1, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
+						glRasterPos2f( but->x2 - len*but->aspect-3, (but->y1+but->y2- 9.0)/2.0);
+						FTF_DrawString(cpoin+1, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, but->flag & UI_ACTIVE);
+						*cpoin= '|';
+					}
+				} else {
+					len= BMF_GetStringWidth(but->font, cpoin+1);
+					glRasterPos2f( but->x2 - len*but->aspect-3, (but->y1+but->y2- 9.0)/2.0);
+					BMF_DrawString(but->font, cpoin+1);
+					*cpoin= '|';
+				}
+#else
 				len= BMF_GetStringWidth(but->font, cpoin+1);
 				glRasterPos2f( but->x2 - len*but->aspect-3, (but->y1+but->y2- 9.0)/2.0);
 				BMF_DrawString(but->font, cpoin+1);
 				*cpoin= '|';
+#endif
+
 			}
 		}
 	}
@@ -825,7 +931,17 @@ static void ui_draw_but_LABEL(uiBut *but)
 		
 		glRasterPos2f( x, (but->y1+but->y2- 9.0)/2.0);
 		
+#ifdef INTERNATIONAL
+		if(G.ui_international == TRUE)
+			if(U.transopts & TR_BUTTONS)	// BUTTON TEXTS
+				FTF_DrawString(but->drawstr+but->ofs, FTF_USE_GETTEXT | FTF_INPUT_UTF8, sel);
+			else
+				FTF_DrawString(but->drawstr+but->ofs, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, sel);
+		else
+			BMF_DrawString(but->font, but->drawstr+but->ofs);
+#else
 		BMF_DrawString(but->font, but->drawstr+but->ofs);
+#endif
 	}
 }
 
@@ -1467,10 +1583,39 @@ static int ui_do_but_MENU(uiBut *but)
 	while (rows*columns<md->nitems) rows++;
 		
 	/* size and location */
-	if(md->title) width= 2*strlen(md->title)+BMF_GetStringWidth(block->curfont, md->title);
-	else width= 0;
+#ifdef INTERNATIONAL
+	if(G.ui_international == TRUE) {
+		if(md->title)
+			if(U.transopts & TR_MENUS)
+				width= 2*strlen(md->title)+FTF_GetStringWidth(md->title, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+			else
+				width= 2*strlen(md->title)+FTF_GetStringWidth(md->title, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
+		else
+			width= 0;
+	} else {
+		if(md->title)
+			width= 2*strlen(md->title)+BMF_GetStringWidth(block->curfont, md->title);
+		else
+			width= 0;
+	}
+#else
+	if(md->title)
+		width= 2*strlen(md->title)+BMF_GetStringWidth(block->curfont, md->title);
+	else
+		width= 0;
+#endif
 	for(a=0; a<md->nitems; a++) {
+#ifdef INTERNATIONAL
+		if(G.ui_international == TRUE)
+			if(U.transopts & TR_MENUS)
+				xmax= FTF_GetStringWidth(md->items[a].str, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+			else
+				xmax= FTF_GetStringWidth(md->items[a].str, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
+		else
+			xmax= BMF_GetStringWidth(block->curfont, md->items[a].str);
+#else
 		xmax= BMF_GetStringWidth(block->curfont, md->items[a].str);
+#endif
 		if(xmax>width) width= xmax;
 	}
 
@@ -1796,11 +1941,33 @@ static int ui_do_but_TEX(uiBut *but)
 	/* calculate cursor pos with current mousecoords */
 	BLI_strncpy(backstr, but->drawstr, UI_MAX_DRAW_STR);
 	but->pos= strlen(backstr)-but->ofs;
+#ifdef INTERNATIONAL
+	if(G.ui_international == TRUE)
+		if(U.transopts & TR_BUTTONS)
+			while((but->aspect*FTF_GetStringWidth(backstr+but->ofs, FTF_USE_GETTEXT | FTF_INPUT_UTF8) + but->x1) > mval[0]) {
+				if (but->pos <= 0) break;
+				but->pos--;
+				backstr[but->pos+but->ofs] = 0;
+			}
+		else
+			while((but->aspect*FTF_GetStringWidth(backstr+but->ofs, FTF_NO_TRANSCONV | FTF_INPUT_UTF8) + but->x1) > mval[0]) {
+				if (but->pos <= 0) break;
+				but->pos--;
+				backstr[but->pos+but->ofs] = 0;
+			}
+	else
+		while((but->aspect*BMF_GetStringWidth(but->font, backstr+but->ofs) + but->x1) > mval[0]) {
+			if (but->pos <= 0) break;
+			but->pos--;
+			backstr[but->pos+but->ofs] = 0;
+		}
+#else
 	while((but->aspect*BMF_GetStringWidth(but->font, backstr+but->ofs) + but->x1) > mval[0]) {
 		if (but->pos <= 0) break;
 		but->pos--;
 		backstr[but->pos+but->ofs] = 0;
 	}
+#endif
 	
 	but->pos -= strlen(but->str);
 	but->pos += but->ofs;
@@ -2987,14 +3154,14 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 				if(but->flag & UI_MOUSE_OVER) {
 					if( (but->flag & UI_ACTIVE)==0) {
 						but->flag |= UI_ACTIVE;
-						ui_draw_but(but);
+						if(but->type != LABEL) ui_draw_but(but);
 					}
 				}
 				/* hilite case 2 */
 				if(but->flag & UI_ACTIVE) {
 					if( (but->flag & UI_MOUSE_OVER)==0) {
 						but->flag &= ~UI_ACTIVE;
-						ui_draw_but(but);
+						if(but->type != LABEL) ui_draw_but(but);
 					}
 					if(but->flag & UI_ACTIVE) active= 1;
 				}
@@ -3074,8 +3241,29 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 	uiSaveUnder *su;
 	float x1, x2, y1, y2;
 	
-	x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*BMF_GetStringWidth(but->font, but->tip);
-	y1= but->y1-19; y2= but->y1-2;
+#ifdef INTERNATIONAL
+	if(G.ui_international == TRUE) {
+		float llx,lly,llz,urx,ury,urz;  //for FTF_GetBoundingBox()
+
+		if(U.transopts & TR_TOOLTIPS) {
+			FTF_GetBoundingBox(but->tip, &llx,&lly,&llz,&urx,&ury,&urz, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+
+			x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*FTF_GetStringWidth(but->tip, FTF_USE_GETTEXT | FTF_INPUT_UTF8);  //BMF_GetStringWidth(but->font, but->tip);
+			y1= but->y1-(ury+FTF_GetSize()); y2= but->y1;
+		} else {
+			FTF_GetBoundingBox(but->tip, &llx,&lly,&llz,&urx,&ury,&urz, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
+
+			x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*FTF_GetStringWidth(but->tip, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);  //BMF_GetStringWidth(but->font, but->tip);
+			y1= but->y1-(ury+FTF_GetSize()); y2= but->y1;
+		}
+	} else {
+  		x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*BMF_GetStringWidth(but->font, but->tip);
+  		y1= but->y1-19; y2= but->y1-2;
+	}
+#else
+  	x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*BMF_GetStringWidth(but->font, but->tip);
+  	y1= but->y1-19; y2= but->y1-2;
+#endif
 
 	/* for pulldown menus it doesnt work */
 	if(mywinget()==G.curscreen->mainwin);
@@ -3111,7 +3299,17 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 	
 	glColor3ub(0,0,0);
 	glRasterPos2f( x1+3, y1+4);
+#ifdef INTERNATIONAL
+	if(G.ui_international == TRUE)
+		if(U.transopts & TR_TOOLTIPS)
+			FTF_DrawString(but->tip, FTF_USE_GETTEXT | FTF_INPUT_UTF8, 0);
+		else
+			FTF_DrawString(but->tip, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, 0);
+	else
+		BMF_DrawString(but->font, but->tip);
+#else
 	BMF_DrawString(but->font, but->tip);
+#endif
 	
 	glFinish();		/* for geforce, to show it in the frontbuffer */
 	return su;
@@ -3557,8 +3755,34 @@ static void ui_check_but(uiBut *but)
 		
 	}
 	
-	if(but->drawstr[0]) but->strwidth= but->aspect*BMF_GetStringWidth(but->font, but->drawstr);
-	else but->strwidth= 0;
+#ifdef INTERNATIONAL
+	if(G.ui_international == TRUE) {
+		if(U.transopts & TR_BUTTONS) {
+			if(but->drawstr[0]) {
+				but->strwidth= but->aspect*FTF_GetStringWidth(but->drawstr, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+			} else {
+				but->strwidth= 0;
+			}
+		} else {
+			if(but->drawstr[0]) {
+				but->strwidth= but->aspect*FTF_GetStringWidth(but->drawstr, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
+			} else {
+				but->strwidth= 0;
+			}
+		}
+	} else {
+		if(but->drawstr[0]) {
+			but->strwidth= but->aspect*BMF_GetStringWidth(but->font, but->drawstr);
+		} else {
+			but->strwidth= 0;
+		}
+	}
+#else
+		if(but->drawstr[0])
+			but->strwidth= but->aspect*BMF_GetStringWidth(but->font, but->drawstr);
+		else
+			but->strwidth= 0;
+#endif
 
 	/* automatic width */
 	if(but->x2==0.0) {
@@ -3571,7 +3795,19 @@ static void ui_check_but(uiBut *but)
 		but->ofs++;
 
 		if(but->drawstr[but->ofs]) 
+#ifdef INTERNATIONAL
+			if(G.ui_international == TRUE) {
+				if(U.transopts & TR_BUTTONS) {
+					but->strwidth= but->aspect*FTF_GetStringWidth(but->drawstr+but->ofs, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+				} else {
+					but->strwidth= but->aspect*FTF_GetStringWidth(but->drawstr+but->ofs, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
+				}
+			} else {
+				but->strwidth= but->aspect*BMF_GetStringWidth(but->font, but->drawstr+but->ofs);
+			}
+#else
 			but->strwidth= but->aspect*BMF_GetStringWidth(but->font, but->drawstr+but->ofs);
+#endif
 		else but->strwidth= 0;
 
 		/* textbut exception */
@@ -3902,12 +4138,40 @@ short pupmenu(char *instr)
 	md= decompose_menu_string(instr);
 
 	/* size and location, title slightly bigger for bold */
+#ifdef INTERNATIONAL
+	if(G.ui_international == TRUE) {
+		if(U.transopts && TR_BUTTONS) {
+			if(md->title) width= 2*strlen(md->title)+FTF_GetStringWidth(md->title, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+			else width= 0;
+			for(a=0; a<md->nitems; a++) {
+				xmax= FTF_GetStringWidth( md->items[a].str, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+				if(xmax>width) width= xmax;
+			}
+		} else {
+			if(md->title) width= 2*strlen(md->title)+FTF_GetStringWidth(md->title, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
+			else width= 0;
+			for(a=0; a<md->nitems; a++) {
+				xmax= FTF_GetStringWidth( md->items[a].str, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
+				if(xmax>width) width= xmax;
+			}
+		}
+	} else {
+		if(md->title) width= 2*strlen(md->title)+BMF_GetStringWidth(uiBlockGetCurFont(block), md->title);
+		else width= 0;
+		for(a=0; a<md->nitems; a++) {
+			xmax= BMF_GetStringWidth(uiBlockGetCurFont(block), md->items[a].str);
+			if(xmax>width) width= xmax;
+		}
+	}
+#else
 	if(md->title) width= 2*strlen(md->title)+BMF_GetStringWidth(uiBlockGetCurFont(block), md->title);
 	else width= 0;
 	for(a=0; a<md->nitems; a++) {
 		xmax= BMF_GetStringWidth(uiBlockGetCurFont(block), md->items[a].str);
 		if(xmax>width) width= xmax;
 	}
+#endif
+
 	width+= 10;
 	
 	height= boxh*md->nitems;
@@ -4019,12 +4283,39 @@ short pupmenu_col(char *instr, int maxrow)
 	while (rows*columns<md->nitems) rows++;
 		
 	/* size and location */
+#ifdef INTERNATIONAL
+	if(G.ui_international == TRUE) {
+		if(U.transopts & TR_BUTTONS) {
+			if(md->title) width= 2*strlen(md->title)+FTF_GetStringWidth(md->title, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+			else width= 0;
+			for(a=0; a<md->nitems; a++) {
+				xmax= FTF_GetStringWidth( md->items[a].str, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+				if(xmax>width) width= xmax;
+			}
+		} else {
+			if(md->title) width= 2*strlen(md->title)+FTF_GetStringWidth(md->title, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
+			else width= 0;
+			for(a=0; a<md->nitems; a++) {
+				xmax= FTF_GetStringWidth( md->items[a].str, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
+				if(xmax>width) width= xmax;
+			}
+		}
+	} else {
+		if(md->title) width= 2*strlen(md->title)+BMF_GetStringWidth(uiBlockGetCurFont(block), md->title);
+		else width= 0;
+		for(a=0; a<md->nitems; a++) {
+			xmax= BMF_GetStringWidth(uiBlockGetCurFont(block), md->items[a].str);
+			if(xmax>width) width= xmax;
+		}
+	}
+#else
 	if(md->title) width= 2*strlen(md->title)+BMF_GetStringWidth(uiBlockGetCurFont(block), md->title);
 	else width= 0;
 	for(a=0; a<md->nitems; a++) {
-		xmax= BMF_GetStringWidth(uiBlockGetCurFont(uiBlockGetCurFont(block)), md->items[a].str);
+		xmax= BMF_GetStringWidth(uiBlockGetCurFont(block), md->items[a].str);
 		if(xmax>width) width= xmax;
 	}
+#endif
 
 	width+= 10;
 	if (width<50) width=50;

@@ -46,6 +46,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "BMF_Api.h"
+#ifdef INTERNATIONAL
+#include "FTF_Api.h"
+#include "BIF_language.h"
+#endif
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -1372,6 +1376,7 @@ void do_global_buttons(unsigned short event)
 
 	case B_RESETAUTOSAVE:
 		reset_autosave();
+		allqueue(REDRAWINFO, 0);
 		break;
 	case B_SOUNDTOGGLE:
 		SYS_WriteCommandLineInt(SYS_GetSystem(), "noaudio", (U.gameflags & USERDEF_DISABLE_SOUND));
@@ -1396,6 +1401,10 @@ void do_global_buttons(unsigned short event)
 		break;
 	case B_DRAWINFO: 	/* is button from space.c  *info* */
 		allqueue(REDRAWVIEW3D, 0);
+		break;
+
+	case B_FLIPINFOMENU: 	/* is button uit space.c  *info* */
+		scrarea_queue_headredraw(curarea);
 		break;
 
 	/* Fileselect windows for user preferences file paths */
@@ -1499,10 +1508,14 @@ void do_global_buttons(unsigned short event)
 		allqueue(REDRAWALL, 0);
 		break;
 
-	case B_SETENCODING: 	/* is button from space.c  *info* */
-		lang_setencoding();
+	case B_DOLANGUIFONT: 	/* is button from space.c  *info* */
+		if(U.transopts & TR_ALL)
+			set_ML_interface_font();
+		else
+			G.ui_international = FALSE;
 		allqueue(REDRAWALL, 0);
 		break;
+
 #endif
 		
 	case B_FULL:
@@ -2643,8 +2656,6 @@ static uiBlock *info_filemenu(void *arg_unused)
 
 static void do_info_editmenu(void *arg, int event)
 {
-	int oldqual;
-
 	switch(event) {
 		
 	case 0:
@@ -3288,12 +3299,12 @@ static void info_text(int x, int y)
 	}
 
 	if  (g_progress_bar) {
-		hsize = 4 + (120.0 * g_done);
+		hsize = 4 + (138.0 * g_done);
 		fac1 = 0.5 * g_done; // do some rainbow colours on progress
 		fac2 = 1.0;
 		fac3 = 0.9;
 	} else {
-		hsize = 124;
+		hsize = 142;
 		/* promise! Never change these lines again! (zr & ton did!) */
 		fac1= fabs(hashvectf[ 2*G.version+4]);
 		fac2= 0.5+0.1*hashvectf[ G.version+3];
@@ -3314,41 +3325,102 @@ static void info_text(int x, int y)
 	glColor3ub(0, 0, 0);
 
 	glRasterPos2i(x, y);
-	BMF_DrawString(G.fonts, headerstr);
+#ifdef INTERNATIONAL
+		if(G.ui_international == TRUE)	//infoheader text
+			if(U.transopts & TR_MENUS)
+				FTF_DrawString(headerstr, FTF_USE_GETTEXT | FTF_INPUT_UTF8, 0);
+			else
+				FTF_DrawString(headerstr, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, 0);
+		else
+			BMF_DrawString(G.font, headerstr);
+#else
+		BMF_DrawString(G.font, headerstr);
+#endif
 		
 	glRasterPos2i(x+120,  y);
-	BMF_DrawString(G.fonts, infostr);
+#ifdef INTERNATIONAL
+		if(G.ui_international == TRUE)	//versionnumber
+			if(U.transopts & TR_MENUS)
+				FTF_DrawString(infostr, FTF_USE_GETTEXT | FTF_INPUT_UTF8, 0);
+			else
+				FTF_DrawString(infostr, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, 0);
+		else
+			BMF_DrawString(G.font, infostr);
+#else
+		BMF_DrawString(G.font, infostr);
+#endif
 }
+
+static int GetButStringLength(char *str) {
+	int rt;
+
+#ifdef INTERNATIONAL
+	if(G.ui_international == TRUE)	//versionnumber
+		if(U.transopts & TR_BUTTONS)
+			rt= FTF_GetStringWidth(str, FTF_USE_GETTEXT | FTF_INPUT_UTF8) + 15;
+		else
+			rt= FTF_GetStringWidth(str, FTF_NO_TRANSCONV | FTF_INPUT_UTF8) + 15;
+	else
+		rt= BMF_GetStringWidth(G.font, str) + 15;
+#else
+	rt= BMF_GetStringWidth(G.font, str) + 15;
+#endif
+
+	return rt;
+}
+
 
 void info_buttons(void)
 {
 	uiBlock *block;
 	short xco= 32;
 	char naam[20];
+	int xmax;
 
 	sprintf(naam, "header %d", curarea->headwin);	
 	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSSM, UI_HELV, curarea->headwin);
 	uiBlockSetCol(block, BUTGREY);
 
-	uiDefBlockBut(block, info_filemenu, NULL, "File",	xco, 3, 40, 15, "");
-	xco+= 40;
-	uiDefBlockBut(block, info_editmenu, NULL, "Edit",	xco, 3, 40, 15, "");
-	xco+= 40;
+	if(U.uiflag & FLIPINFOMENU) {
+		uiDefIconButS(block, TOG|BIT|6, B_FLIPINFOMENU, ICON_RIGHTARROW,
+				xco,2,XIC,YIC-2,
+				&(U.uiflag), 0, 0, 0, 0, "View pulldown menus");/* dir   */
+	} else {
+		uiDefIconButS(block, TOG|BIT|6, B_FLIPINFOMENU, ICON_DOWNARROW_HLT,
+				xco,2,XIC,YIC-2,
+				&(U.uiflag), 0, 0, 0, 0, "Hide pulldown menus");/* dir   */
+	}
+	xco+=XIC;
+	if(U.uiflag & FLIPINFOMENU) {
+	} else {
+		xmax= GetButStringLength("File");
+		uiDefBlockBut(block, info_filemenu, NULL, "File",	xco, 3, xmax, 15, "");
+		xco+= xmax;
 
-	uiDefBlockBut(block, info_addmenu, NULL, "Add",	xco, 3, 40, 15, "");
-	xco+= 40;
+		xmax= GetButStringLength("Edit");
+		uiDefBlockBut(block, info_editmenu, NULL, "Edit",	xco, 3, xmax, 15, "");
+		xco+= xmax;
 
-	uiDefBlockBut(block, info_viewmenu, NULL, "View",	xco, 3, 40, 15, "");
-	xco+= 40;
+		xmax= GetButStringLength("Add");
+		uiDefBlockBut(block, info_addmenu, NULL, "Add",	xco, 3, xmax, 15, "");
+		xco+= xmax;
 
-	uiDefBlockBut(block, info_gamemenu, NULL, "Game",	xco, 3, 40, 15, "");
-	xco+= 40;
+		xmax= GetButStringLength("View");
+		uiDefBlockBut(block, info_viewmenu, NULL, "View",	xco, 3, xmax, 15, "");
+		xco+= xmax;
+		xmax= GetButStringLength("Game");
+		uiDefBlockBut(block, info_gamemenu, NULL, "Game",	xco, 3, xmax, 15, "");
+		xco+= xmax;
 
 #ifndef EXPERIMENTAL_MENUS
-	/* In the Maarten's new menu structure proposal, the tools menu moved to the file menu */
-	uiDefBlockBut(block, info_toolsmenu, NULL, "Tools",	xco, 3, 40, 15, "");
-	xco+= 40;
-#endif /* EXPERIMENTAL_MENUS */
+	// In the Maarten's new menu structure proposal, the tools menu moved to the file menu
+
+		xmax= GetButStringLength("Tools");
+		uiDefBlockBut(block, info_toolsmenu, NULL, "Tools",	xco, 3, xmax, 15, "");
+		xco+= xmax;
+#endif // EXPERIMENTAL_MENUS
+
+	}
 
 	/* pack icon indicates a packed file */
 		
@@ -3381,10 +3453,11 @@ void info_buttons(void)
 	uiDefIconBut(block, BUT, B_SHOWSPLASH, ICON_BLENDER, xco+1, 0,XIC,YIC, 0, 0, 0, 0, 0, "");
 	uiBlockSetEmboss(block, UI_EMBOSSX);
 
+/*
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	uiDefIconBut(block, LABEL, 0, ICON_PUBLISHER, xco+125, 0,XIC,YIC, 0, 0, 0, 0, 0, "");
 	uiBlockSetEmboss(block, UI_EMBOSSX);
-
+*/
 	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;
 	
@@ -4773,9 +4846,24 @@ void file_buttons(void)
 
 	cpack(0x0);
 	glRasterPos2i(xco+=XIC+10,  5);
+
+#ifdef INTERNATIONAL
+	if(G.ui_international == TRUE) {
+		if(U.transopts & TR_BUTTONS) {
+			FTF_DrawString(sfile->title, FTF_USE_GETTEXT | FTF_INPUT_UTF8, 0);
+			xco+= FTF_GetStringWidth(sfile->title, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+		} else {
+			FTF_DrawString(sfile->title, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, 0);
+			xco+= FTF_GetStringWidth(sfile->title, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
+		}
+	} else {
+		BMF_DrawString(uiBlockGetCurFont(block), sfile->title);
+		xco+= BMF_GetStringWidth(G.font, sfile->title);
+	}
+#else
 	BMF_DrawString(uiBlockGetCurFont(block), sfile->title);
-	
 	xco+= BMF_GetStringWidth(G.font, sfile->title);
+#endif
 	
 	uiDefIconButS(block, ICONTOG|BIT|0, B_SORTFILELIST, ICON_LONGDISPLAY,xco+=XIC,0,XIC,YIC, &sfile->flag, 0, 0, 0, 0, "Toggle long info");
 	uiDefIconButS(block, TOG|BIT|3, B_RELOADDIR, ICON_GHOST,xco+=XIC,0,XIC,YIC, &sfile->flag, 0, 0, 0, 0, "Hide dot files");
@@ -4797,7 +4885,17 @@ void file_buttons(void)
 		
 		cpack(0x0);
 		glRasterPos2i(xco,  5);
+
+#ifdef INTERNATIONAL
+		if(G.ui_international == TRUE) {
+			FTF_DrawString(naam, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, 0);
+		} else {
+			BMF_DrawString(uiBlockGetCurFont(block), naam);
+		}
+#else
 		BMF_DrawString(uiBlockGetCurFont(block), naam);
+#endif
+
 	}
 	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;

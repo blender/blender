@@ -32,7 +32,7 @@
 
 	/* TBOXX: width in pixels */
 #define TBOXXL  80
-#define TBOXXR  170
+#define TBOXXR  200
 #define TBOXX	(TBOXXL+TBOXXR)
 	/* TBOXEL: amount of element vertically */
 #define TBOXEL	14

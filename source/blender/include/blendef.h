@@ -188,6 +188,7 @@
 #define B_CONSOLETOG		61
 #define B_DRAWINFO			62
 #define B_REDRCURW3D		63
+#define B_FLIPINFOMENU		64
 
 
 #define B_SHOWSPLASH		70
@@ -282,6 +283,7 @@
 #define B_SETFONTSIZE		313
 #define B_SETENCODING		314
 #define B_SETTRANSBUTS		315
+#define B_DOLANGUIFONT		316
 
 /* Definitions for the fileselect buttons in user prefs */
 #define B_FONTDIRFILESEL  	320

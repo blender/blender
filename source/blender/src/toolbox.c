@@ -52,6 +52,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "BMF_Api.h"
+#ifdef INTERNATIONAL
+#include "FTF_Api.h"
+#endif
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -60,6 +63,7 @@
 #include "DNA_image_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BKE_plugin_types.h"
@@ -498,7 +502,7 @@ void bgnpupdraw(int startx, int starty, int endx, int endy)
 	oldcursor= get_cursor();
 	set_cursor(CURSOR_STD);
 	
-	tbfontyofs= (TBOXH-11)/2 +2;	/* for toolbox */
+	tbfontyofs= (TBOXH-11)/2 +1;	/* ypos text in toolbox */
 }
 
 void endpupdraw(void)
@@ -804,7 +808,6 @@ void tbox_drawelem_text(x, y, type)
 	tbox_setinfo(x, y);
 	if(tbstr && tbstr[0]) {
 		len1= 5+BMF_GetStringWidth(G.font, tbstr);
-//		if(tbstr1) len2= 5+BMF_GetStringWidth(G.font, tbstr1); else len2= 0;
 		if(keystr) len2= 5+BMF_GetStringWidth(G.font, keystr); else len2= 0;
 		
 		while(len1>0 && (len1+len2+5>x2-x1) ) {
@@ -813,9 +816,18 @@ void tbox_drawelem_text(x, y, type)
 		}
 		
 		glRasterPos2i(x1+5, y1+tbfontyofs);
+#ifdef INTERNATIONAL
+		if(G.ui_international == TRUE)
+			if(U.transopts & TR_MENUS)
+				FTF_DrawString(tbstr, FTF_USE_GETTEXT | FTF_INPUT_UTF8, 0);
+			else
+				FTF_DrawString(tbstr, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, 0);
+		else
+			BMF_DrawString(G.font, tbstr);
+#else
 		BMF_DrawString(G.font, tbstr);
+#endif
 		
-//		if(tbstr1 && tbstr1[0]) {
 		if(keystr && keystr[0]) {
 			if(type & 1) {
 				ColorFunc(TBOXBLACK);
@@ -823,14 +835,32 @@ void tbox_drawelem_text(x, y, type)
 				glRecti(x2-len2-2,  y1+2,  x2-3,  y2-2);
 				ColorFunc(TBOXWHITE);
 				glRasterPos2i(x2-len2,  y1+tbfontyofs);
-//				BMF_DrawString(G.font, tbstr1);
-				BMF_DrawString(G.font, keystr);
+#ifdef INTERNATIONAL
+		if(G.ui_international == TRUE)	//toolbox hotkeys
+			if(U.transopts & TR_MENUS)
+				FTF_DrawString(keystr, FTF_USE_GETTEXT | FTF_INPUT_UTF8, 1);
+			else
+				FTF_DrawString(keystr, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, 1);
+		else
+			BMF_DrawString(G.font, keystr);
+#else
+		BMF_DrawString(G.font, keystr);
+#endif
 			}
 			else {
 				ColorFunc(TBOXBLACK);
 				glRasterPos2i(x2-len2,  y1+tbfontyofs);
-//				BMF_DrawString(G.font, tbstr1);
-				BMF_DrawString(G.font, keystr);
+#ifdef INTERNATIONAL
+		if(G.ui_international == TRUE)	//toolbox hotkeys
+			if(U.transopts & TR_MENUS)
+				FTF_DrawString(keystr, FTF_USE_GETTEXT | FTF_INPUT_UTF8, 0);
+			else
+				FTF_DrawString(keystr, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, 0);
+		else
+			BMF_DrawString(G.font, keystr);
+#else
+		BMF_DrawString(G.font, keystr);
+#endif
 			}
 		}
 	}
@@ -1244,9 +1274,27 @@ void draw_numbuts_tip(char *str, int x1, int y1, int x2, int y2)
 	cpack(0x0);
 
 	temp= 0;
+#ifdef INTERNATIONAL
+	if(G.ui_international == TRUE) {
+		if(U.transopts & TR_BUTTONS) {
+			while( FTF_GetStringWidth(str+temp, FTF_USE_GETTEXT | FTF_INPUT_UTF8)>(x2 - x1-24)) temp++;
+			glRasterPos2i(x1+16, y2-30);
+			FTF_DrawString(str+temp, FTF_USE_GETTEXT | FTF_INPUT_UTF8, 0);
+		} else {
+			while( FTF_GetStringWidth(str+temp, FTF_NO_TRANSCONV | FTF_INPUT_UTF8)>(x2 - x1-24)) temp++;
+			glRasterPos2i(x1+16, y2-30);
+			FTF_DrawString(str+temp, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, 0);
+		}
+	} else {
+		while( BMF_GetStringWidth(G.fonts, str+temp)>(x2 - x1-24)) temp++;
+		glRasterPos2i(x1+16, y2-30);
+		BMF_DrawString(G.fonts, str+temp);
+	}
+#else
 	while( BMF_GetStringWidth(G.fonts, str+temp)>(x2 - x1-24)) temp++;
 	glRasterPos2i(x1+16, y2-30);
 	BMF_DrawString(G.fonts, str+temp);
+#endif
 }
 
 int do_clever_numbuts(char *name, int tot, int winevent)

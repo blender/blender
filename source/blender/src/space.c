@@ -46,6 +46,10 @@
 
 #include "MEM_guardedalloc.h"
 
+#ifdef INTERNATIONAL
+#include "BIF_language.h"
+#endif
+
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -1310,22 +1314,22 @@ void drawinfospace(void)
 
 	dx= (1280-90)/6;	/* spacing for use in equally dividing 'tab' row */
 
-        xpos = 45;		/* left padding */
-	ypos = 72;		/* bottom padding for buttons */
-	ypostab = 18;		/* bottom padding for 'tab' row */
+	xpos = 45;		/* left padding */
+	ypos = 50;		/* bottom padding for buttons */
+	ypostab = 10;		/* bottom padding for 'tab' row */
 
 
 	buth = 20;		/* standard button height */
 
-        smallprefbut = 94;	/* standard size for small preferences button */
-        medprefbut = 193;	/* standard size for medium preferences button */
-        largeprefbut = 292;	/* standard size for large preferences button */
-        smfileselbut = buth;	/* standard size for fileselect button (square) */
+	smallprefbut = 94;	/* standard size for small preferences button */
+	medprefbut = 193;	/* standard size for medium preferences button */
+	largeprefbut = 292;	/* standard size for large preferences button */
+	smfileselbut = buth;	/* standard size for fileselect button (square) */
+	
+	edgespace = 3;		/* space from edge of end 'tab' to edge of end button */
+	midspace = 5;		/* horizontal space between buttons */
 
-        edgespace = 3;		/* space from edge of end 'tab' to edge of end button */
-        midspace = 5;		/* horizontal space between buttons */
-
-	rspace = 4;		/* default space between rows */
+	rspace = 3;		/* default space between rows */
 
 	y1 = ypos;		/* bottom padding of 1st (bottom) button row */
 	y2 = ypos+buth+rspace;	/* bottom padding of 2nd button row */
@@ -1358,11 +1362,11 @@ void drawinfospace(void)
 		&U.userpref,1.0,3.0, 0, 0,"");
 
 	uiDefButI(block, ROW,B_USERPREF,"System & OpenGL",
-		(short)(xpos+4*dx),ypostab,(short)dx,buth,
+		(short)(xpos+5*dx),ypostab,(short)dx,buth,
 		&U.userpref,1.0,4.0, 0, 0,"");
 
 	uiDefButI(block, ROW,B_USERPREF,"File Paths",
-		(short)(xpos+5*dx),ypostab,(short)dx,buth,
+		(short)(xpos+4*dx),ypostab,(short)dx,buth,
 		&U.userpref,1.0,5.0, 0, 0,"");
 
 	uiBlockSetEmboss(block, UI_EMBOSSX);
@@ -1551,55 +1555,62 @@ void drawinfospace(void)
 		sprintf(curfont, "Interface Font: ");
 		strcat(curfont,U.fontname);
 
-		uiDefBut(block, LABEL,0,curfont,
+		uiDefButS(block, TOG|BIT|5, B_DOLANGUIFONT, "International",
 			xpos,y2,medprefbut,buth,
-			0, 0, 0, 0, 0, "");
+			&(U.transopts), 0, 0, 0, 0, "Activate international interface");
 
-		uiBlockSetCol(block, BUTSALMON);
+		if(U.transopts & TR_ALL) {
+			uiDefBut(block, LABEL,0,curfont,
+				(xpos+edgespace+medprefbut+midspace),y2,medprefbut,buth,
+				0, 0, 0, 0, 0, "");
 
-		uiDefBut(block, BUT, B_LOADUIFONT, "Select Font",
-			(xpos+edgespace),y1,medprefbut,buth,
-			0, 0, 0, 0, 0, "Select a new font for the interface");
+			uiBlockSetCol(block, BUTSALMON);
+	//(xpos+edgespace)
+			uiDefBut(block, BUT, B_LOADUIFONT, "Select Font",
+				xpos,y1,medprefbut,buth,
+				0, 0, 0, 0, 0, "Select a new font for the interface");
 
-		uiBlockSetCol(block, BUTGREY);
-
-
-		uiDefButI(block, MENU|INT, B_SETFONTSIZE, fontsize_pup(),
-			(xpos+edgespace+medprefbut+midspace),y2,medprefbut,buth,
-			&U.fontsize, 0, 0, 0, 0, "Current interface font size (points)");
-
-		uiDefButS(block, MENU|SHO, B_SETENCODING, encoding_pup(),
-			(xpos+edgespace+medprefbut+midspace),y1,medprefbut,buth,
-			&U.encoding, 0, 0, 0, 0, "Current interface font encoding");
+			uiBlockSetCol(block, BUTGREY);
 
 
+			uiDefButI(block, MENU|INT, B_SETFONTSIZE, fontsize_pup(),
+				(xpos+edgespace+medprefbut+midspace),y1,medprefbut,buth,
+				&U.fontsize, 0, 0, 0, 0, "Current interface font size (points)");
 
-		uiDefBut(block, LABEL,0,"Translate:",
-			(xpos+edgespace+(3*medprefbut)+(2*midspace)),y3label,medprefbut,buth,
-			0, 0, 0, 0, 0, "");
+	/*
+			uiDefButS(block, MENU|SHO, B_SETENCODING, encoding_pup(),
+				(xpos+edgespace+medprefbut+midspace),y1,medprefbut,buth,
+				&U.encoding, 0, 0, 0, 0, "Current interface font encoding");
 
-		uiDefButS(block, TOG|BIT|0, B_SETTRANSBUTS, "Tooltips",
-			(xpos+edgespace+(3*medprefbut)+(3*midspace)),y2,smallprefbut,buth,
-			&(U.transopts), 0, 0, 0, 0, "Translate tooltips");
 
-		uiDefButS(block, TOG|BIT|1, B_SETTRANSBUTS, "Buttons",
-			(xpos+edgespace+(3*medprefbut)+(4*midspace)+smallprefbut),y2,smallprefbut,buth,
-			&(U.transopts), 0, 0, 0, 0, "Translate button labels");
+			uiDefBut(block, LABEL,0,"Translate:",
+				(xpos+edgespace+(2.1*medprefbut)+(2*midspace)),y3label,medprefbut,buth,
+				0, 0, 0, 0, 0, "");
+	*/
 
-		uiDefButS(block, TOG|BIT|2, B_SETTRANSBUTS, "Toolbox",
-			(xpos+edgespace+(3*medprefbut)+(5*midspace)+(2*smallprefbut)),y2,smallprefbut,buth,
-			&(U.transopts), 0, 0, 0, 0, "Translate toolbox menu");
+			uiDefButS(block, TOG|BIT|0, B_SETTRANSBUTS, "Tooltips",
+				(xpos+edgespace+(2.2*medprefbut)+(3*midspace)),y1,smallprefbut,buth,
+				&(U.transopts), 0, 0, 0, 0, "Translate tooltips");
 
-		uiDefButS(block, MENU|SHO, B_SETLANGUAGE, language_pup(),
-			(xpos+edgespace+(3*medprefbut)+(3*midspace)),y1,medprefbut,buth,
-			&U.language, 0, 0, 0, 0, "Select interface language");
-			
-		/* uiDefButS(block, TOG|BIT|3, B_SETTRANSBUTS, "FTF All windows",
-			(xpos+edgespace+(4*medprefbut)+(4*midspace)),y1,medprefbut,buth,
-			&(U.transopts), 0, 0, 0, 0,
-			"Use FTF drawing for fileselect and textwindow "
-			"(under construction)");
-		*/
+			uiDefButS(block, TOG|BIT|1, B_SETTRANSBUTS, "Buttons",
+				(xpos+edgespace+(2.2*medprefbut)+(4*midspace)+smallprefbut),y1,smallprefbut,buth,
+				&(U.transopts), 0, 0, 0, 0, "Translate button labels");
+
+			uiDefButS(block, TOG|BIT|2, B_SETTRANSBUTS, "Toolbox",
+				(xpos+edgespace+(2.2*medprefbut)+(5*midspace)+(2*smallprefbut)),y1,smallprefbut,buth,
+				&(U.transopts), 0, 0, 0, 0, "Translate toolbox menu");
+
+			uiDefButS(block, MENU|SHO, B_SETLANGUAGE, language_pup(),
+				(xpos+edgespace+(2.2*medprefbut)+(3*midspace)),y2,medprefbut+(0.5*medprefbut)+3,buth,
+				&U.language, 0, 0, 0, 0, "Select interface language");
+				
+			/* uiDefButS(block, TOG|BIT|3, B_SETTRANSBUTS, "FTF All windows",
+				(xpos+edgespace+(4*medprefbut)+(4*midspace)),y1,medprefbut,buth,
+				&(U.transopts), 0, 0, 0, 0,
+				"Use FTF drawing for fileselect and textwindow "
+				"(under construction)");
+			*/
+		}
 
 /* end of INTERNATIONAL */
 #endif
@@ -1612,26 +1623,26 @@ void drawinfospace(void)
 			&(U.flag), 0, 0, 0, 0,
 			"Enables automatic saving of temporary files");
 
+		if(U.flag & AUTOSAVE) {
+			uiBlockSetCol(block, BUTSALMON);
 
-		uiBlockSetCol(block, BUTSALMON);
+			uiDefBut(block, BUT, B_LOADTEMP, "Open Recent",
+				(xpos+edgespace),y1,medprefbut,buth,
+				0, 0, 0, 0, 0,"Opens the most recently saved temporary file");
 
-		uiDefBut(block, BUT, B_LOADTEMP, "Open Recent",
-			(xpos+edgespace),y1,medprefbut,buth,
-			0, 0, 0, 0, 0,"Opens the most recently saved temporary file");
-
-		uiBlockSetCol(block, BUTGREY);
+			uiBlockSetCol(block, BUTGREY);
 
 
-		uiDefButI(block, NUM, B_RESETAUTOSAVE, "Minutes:",
-			(xpos+edgespace+medprefbut+midspace),y2,medprefbut,buth,
-			&(U.savetime), 1.0, 60.0, 0, 0,
-			"The time (in minutes) to wait between automatic temporary saves");
+			uiDefButI(block, NUM, B_RESETAUTOSAVE, "Minutes:",
+				(xpos+edgespace+medprefbut+midspace),y2,medprefbut,buth,
+				&(U.savetime), 1.0, 60.0, 0, 0,
+				"The time (in minutes) to wait between automatic temporary saves");
 
-		uiDefButS(block, NUM, 0, "Versions:",
-			(xpos+edgespace+medprefbut+midspace),y1,medprefbut,buth,
-			&U.versions, 0.0, 32.0, 0, 0,
-			"The number of old versions to maintain when saving");
-
+			uiDefButS(block, NUM, 0, "Versions:",
+				(xpos+edgespace+medprefbut+midspace),y1,medprefbut,buth,
+				&U.versions, 0.0, 32.0, 0, 0,
+				"The number of old versions to maintain when saving");
+		}
 
 	} else if (U.userpref == 4) { /* system & opengl */
 
@@ -1782,7 +1793,7 @@ static void changebutspace(ScrArea *sa, void *spacedata)
 	if(G.v2d==0) return;
 	
 	test_view2d(G.v2d, curarea->winx, curarea->winy);
-	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
+	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin-0.6, G.v2d->cur.ymax+0.6);
 }
 
 void winqreadbutspace(ScrArea *sa, void *spacedata, BWinEvent *evt)

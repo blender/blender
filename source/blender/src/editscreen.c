@@ -2808,7 +2808,7 @@ void drawscreen(void)
 	ScrEdge *se;
 	
 	mywinset(G.curscreen->mainwin);
-	myortho2(-0.5, (float)G.curscreen->sizex-0.5, -0.5, (float)G.curscreen->sizey-0.5);
+	myortho2(-0.5, (float)G.curscreen->sizex-0.5, -0.6, (float)G.curscreen->sizey-0.6);
 
 	/* two times, because there is no 'win_swap' for this  available */
 	glDrawBuffer(GL_FRONT);
