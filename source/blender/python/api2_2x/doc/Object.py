@@ -33,15 +33,15 @@ def New (type, name='type'):
 
   The example below creates a new Lamp object and puts it at the default
   location (0, 0, 0) in the current scene::
-     import Blender
-     
-     object = Blender.Object.New ('Lamp')
-     lamp = Blender.Lamp.New ('Spot')
-     object.link (lamp)
-     scene = Blender.Scene.getCurrent ()
-     scene.link (object)
+    import Blender
 
-     Blender.Redraw()
+    object = Blender.Object.New ('Lamp')
+    lamp = Blender.Lamp.New ('Spot')
+    object.link (lamp)
+    scene = Blender.Scene.getCurrent ()
+    scene.link (object)
+
+    Blender.Redraw()
   """
 
 def Get (name = None):
@@ -131,12 +131,11 @@ class Object:
     @cvar EffZ: The Z effector coordinate of the object. Only applies to IKA.
     @cvar Layer: The object layer.  This value is a bitmask with one position
         set for each of the 20 possible layers starting from the low order bit.
-	The easiest way to deal with these values in in hexadecimal notation.
-	Example::
-	    ob.Layer = 0x04    # sets layer 3 ( bit pattern 0100 )
-	
-	After setting the Layer value, call Blender.Redraw( -1 ) to update the
-	interface.
+        The easiest way to deal with these values in in hexadecimal notation.
+        Example::
+          ob.Layer = 0x04 # sets layer 3 ( bit pattern 0100 )
+        After setting the Layer value, call Blender.Redraw( -1 ) to update
+        the interface.
     @cvar parent: The parent object of the object. (Read-only)
     @cvar track: The object tracking this object. (Read-only)
     @cvar data: The data of the object. (Read-only)
@@ -475,7 +474,7 @@ class Object:
     @type timeOffset: float
     @param timeOffset: The new time offset for the object's animation.
     """
-	
+  
   def shareFrom(object):
     """
     Link data of self with object specified in the argument. This works only

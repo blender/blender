@@ -257,28 +257,32 @@ class Bone:
     
   def clearParent():
     """
-    Attempts to clear the parenting of this bone. Because the bone is no longer parented
-    it will be set in the armature as a root bone.
+    Attempts to clear the parenting of this bone. Because the bone is no longer
+    parented it will be set in the armature as a root bone.
     """
     
   def clearChildren():
     """
-    Attemps to remove all the children of this bone. Because each of the children no longer are
-    parented they will be set a root bones in the armature.
+    Attemps to remove all the children of this bone. Because each of the
+    children no longer are parented they will be set a root bones in the
+    armature.
     """
-    
+
   def setPose(flags, Action):
     """
-    Set the pose for this bone. The pose will be set at the Scene's current frame.
-    If an action is passed as the optional second parameter the pose will be added as a keyframe
-    to that action. Otherwise a default action will be created an the pose set to it.
+    Set the pose for this bone. The pose will be set at the Scene's current
+    frame. If an action is passed as the optional second parameter the pose
+    will be added as a keyframe to that action. Otherwise a default action
+    will be created an the pose set to it.
     @type flags: PyList of enums
-    @param flags: expects ROT, LOC, SIZE in a list. Whichever of these is passed the keyframe generated
-    will set information about the rotation, and/or location, and/or size of the bone.
+    @param flags: expects ROT, LOC, SIZE in a list. Whichever of these is
+        passed the keyframe generated will set information about the rotation,
+        and/or location, and/or size of the bone.
     @type Action: PyAction
-    @param Action: a python action that has either been created or returned from an object
+    @param Action: a python action that has either been created or returned
+        from an object
     """
-    
+
   def setBoneclass(boneclass):
     """
     Set the bones's boneclass.
@@ -300,16 +304,17 @@ class Bone:
 
   def getRestMatrix(locale = 'worldspace'):
     """
-    Return a matrix that represents the rotation and position 
-    of this bone. There are two types of matrices that can be 
-    returned - bonespace (in the coord. system of parent) or
-    worldspace (in the coord system of blender). The rotation will
-    be in either worldspace or bonespace. Translaction vectors (row 4)
-    will be the bone's head position (if worldspace) or the difference
+    Return a matrix that represents the rotation and position of this bone.
+    There are two types of matrices that can be returned:
+      1. bonespace (in the coord. system of parent) or
+      2. worldspace (in the coord system of blender).
+
+    The rotation will be in either worldspace or bonespace. Translation vectors
+    (row 4) will be the bone's head position (if worldspace) or the difference
     from this bone's head to the parent head (if bonespace).
-    @type locale: string Values are:
-      - worldspace
+    @type locale: string. Values are:
+    @param locale: possible values are:
+      - worldspace (default)
       - bonespace
-    @param locale: default is worldspace
     @rtype: 4x4 PyMatrix
     """

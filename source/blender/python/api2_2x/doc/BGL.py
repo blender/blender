@@ -68,7 +68,7 @@ Example::
 def glAccum(op, value):
   """
   Operate on the accumulation buffer
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/accum.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/accum.html}
 
   @type op: Enumerated constant
   @param op: The accumulation buffer operation. 
@@ -79,7 +79,7 @@ def glAccum(op, value):
 def glAlphaFunc(func, ref):
   """
   Specify the alpha test function
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/alphafunc.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/alphafunc.html}
   
   @type func: Enumerated constant
   @param func: Specifies the alpha comparison function. 
@@ -91,7 +91,7 @@ def glAlphaFunc(func, ref):
 def glAreTexturesResident(n, textures, residences):
   """
   Determine if textures are loaded in texture memory
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/aretexturesresident.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/aretexturesresident.html}
 
   @type n: int
   @param n: Specifies the number of textures to be queried.
@@ -105,7 +105,7 @@ def glAreTexturesResident(n, textures, residences):
 def glBegin(mode):
   """
   Delimit the vertices of a primitive or a group of like primatives
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/begin.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/begin.html}
 
   @type mode: Enumerated constant
   @param mode: Specifies the primitive that will be create from vertices between glBegin and
@@ -115,7 +115,7 @@ def glBegin(mode):
 def glBindTexture(target, texture):
   """
   Bind a named texture to a textureing target
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/bindtexture.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/bindtexture.html}
 
   @type target: Enumerated constant
   @param target: Specifies the target to which the texture is bound. 
@@ -126,7 +126,7 @@ def glBindTexture(target, texture):
 def glBitmap(width, height, xorig, yorig, xmove, ymove, bitmap):
   """
   Draw a bitmap
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/bitmap.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/bitmap.html}
 
   @type width, height: int
   @param width, height: Specify the pixel width and height of the bitmap image.
@@ -143,7 +143,7 @@ def glBitmap(width, height, xorig, yorig, xmove, ymove, bitmap):
 def glBlendFunc(sfactor, dfactor):
   """
   Specify pixel arithmetic
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/blendfunc.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/blendfunc.html}
 
   @type sfactor: Enumerated constant
   @param sfactor: Specifies how the red, green, blue, and alpha source blending factors are 
@@ -156,7 +156,7 @@ def glBlendFunc(sfactor, dfactor):
 def glCallList(list):
   """
   Execute a display list
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/calllist.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/calllist.html}
 
   @type list: unsigned int
   @param list: Specifies the integer name of the display list to be executed.
@@ -165,7 +165,7 @@ def glCallList(list):
 def glCallLists(n, type, lists):
   """
   Execute a list of display lists
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/calllists.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/calllists.html}
 
   @type n: int
   @param n: Specifies the number of display lists to be executed. 
@@ -180,7 +180,7 @@ def glCallLists(n, type, lists):
 def glClear(mask):
   """
   Clear buffers to preset values
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/clear.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/clear.html}
 
   @type mask: Enumerated constant(s)
   @param mask: Bitwise OR of masks that indicate the buffers to be cleared. 
@@ -189,7 +189,7 @@ def glClear(mask):
 def glClearAccum(red, green, blue, alpha):
   """
   Specify clear values for the accumulation buffer
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/clearaccum.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/clearaccum.html}
 
   @type red,green,blue,alpha: float
   @param red,green,blue,alpha: Specify the red, green, blue, and alpha values used when the 
@@ -199,7 +199,7 @@ def glClearAccum(red, green, blue, alpha):
 def glClearColor(red, green, blue, alpha):
   """
   Specify clear values for the color buffers
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/clearcolor.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/clearcolor.html}
 
   @type red,green,blue,alpha: float
   @param red,green,blue,alpha: Specify the red, green, blue, and alpha values used when the 
@@ -209,7 +209,7 @@ def glClearColor(red, green, blue, alpha):
 def glClearDepth(depth):
   """
   Specify the clear value for the depth buffer
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/cleardepth.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/cleardepth.html}
 
   @type depth: int
   @param depth: Specifies the depth value used when the depth buffer is cleared. 
@@ -219,7 +219,7 @@ def glClearDepth(depth):
 def glClearIndex(c):
   """
   Specify the clear value for the color index buffers
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/clearindex.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/clearindex.html}
 
   @type c: float
   @param c: Specifies the index used when the color index buffers are cleared. 
@@ -229,7 +229,7 @@ def glClearIndex(c):
 def glClearStencil(s):
   """
   Specify the clear value for the stencil buffer
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/clearstencil.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/clearstencil.html}
 
   @type s: int
   @param s: Specifies the index used when the stencil buffer is cleared. The initial value is 0. 
@@ -238,7 +238,7 @@ def glClearStencil(s):
 def glClipPlane (plane, equation):
   """
   Specify a plane against which all geometery is clipped
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/clipplane.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/clipplane.html}
 
   @type plane: Enumerated constant
   @param plane: Specifies which clipping plane is being positioned. 
@@ -256,7 +256,7 @@ def glColor (red, green, blue, alpha):
   glColor4uiv, glColor4usv}
 
   Set a new color.
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/color.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/color.html}
 
   @type red,green,blue,alpha: Depends on function prototype. 
   @param red,green,blue: Specify new red, green, and blue values for the current color. 
@@ -267,7 +267,7 @@ def glColor (red, green, blue, alpha):
 def glColorMask(red, green, blue, alpha):
   """
   Enable and disable writing of frame buffer color components
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/colormask.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/colormask.html}
 
   @type red,green,blue,alpha: int (boolean)
   @param red,green,blue,alpha: Specify whether red, green, blue, and alpha can or cannot be 
@@ -278,7 +278,7 @@ def glColorMask(red, green, blue, alpha):
 def glColorMaterial(face, mode):
   """
   Cause a material color to track the current color 
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/colormaterial.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/colormaterial.html}
 
   @type face: Enumerated constant
   @param face: Specifies whether front, back, or both front and back material parameters should 
@@ -290,7 +290,7 @@ def glColorMaterial(face, mode):
 def glCopyPixels(x, y, width, height, type):
   """
   Copy pixels in the frame buffer
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/copypixels.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/copypixels.html}
 
   @type x,y: int
   @param x,y: Specify the window coordinates of the lower left corner of the rectangular 
@@ -305,7 +305,7 @@ def glCopyPixels(x, y, width, height, type):
 def glCullFace(mode):
   """
   Specify whether front- or back-facing facets can be culled 
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/cullface.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/cullface.html}
 
   @type mode: Enumerated constant
   @param mode: Specifies whether front- or back-facing facets are candidates for culling. 
@@ -314,7 +314,7 @@ def glCullFace(mode):
 def glDeleteLists(list, range):
   """
   Delete a contiguous group of display lists
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/deletelists.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/deletelists.html}
 
   @type list: unsigned int
   @param list: Specifiex the integer name of the first display list to delete
@@ -325,7 +325,7 @@ def glDeleteLists(list, range):
 def glDeleteTextures(n, textures):
   """
   Delete named textures
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/deletetextures.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/deletetextures.html}
 
   @type n: int
   @param n: Specifes the number of textures to be deleted
@@ -336,7 +336,7 @@ def glDeleteTextures(n, textures):
 def glDepthFunc(func):
   """
   Specify the value used for depth buffer comparisons 
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/depthfunc.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/depthfunc.html}
 
   @type func: Enumerated constant
   @param func: Specifies the depth comparison function. 
@@ -345,7 +345,7 @@ def glDepthFunc(func):
 def glDepthMask(flag):
   """
   Enable or disable writing into the depth buffer
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/depthmask.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/depthmask.html}
 
   @type flag: int (boolean)
   @param flag: Specifies whether the depth buffer is enabled for writing. If flag is GL_FALSE,
@@ -356,7 +356,7 @@ def glDepthMask(flag):
 def glDepthRange(zNear, zFar):
   """
   Specify mapping of depth values from normalized device coordinates to window coordinates 
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/depthrange.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/depthrange.html}
 
   @type zNear: int
   @param zNear: Specifies the mapping of the near clipping plane to window coordinates. 
@@ -369,7 +369,7 @@ def glDepthRange(zNear, zFar):
 def glDisable(cap):
   """
   Disable server-side GL capabilities
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/enable.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/enable.html}
 
   @type cap: Enumerated constant
   @param cap: Specifies a symbolic constant indicating a GL capability.
@@ -378,7 +378,7 @@ def glDisable(cap):
 def glDrawBuffer(mode):
   """
   Specify which color buffers are to be drawn into
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/drawbuffer.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/drawbuffer.html}
 
   @type mode: Enumerated constant
   @param mode: Specifies up to four color buffers to be drawn into. 
@@ -387,7 +387,7 @@ def glDrawBuffer(mode):
 def glDrawPixels(width, height, format, type, pixels):
   """
   Write a block of pixels to the frame buffer
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/drawpixels.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/drawpixels.html}
 
   @type width, height: int
   @param width, height: Specify the dimensions of the pixel rectangle to be 
@@ -405,7 +405,7 @@ def glEdgeFlag (flag):
   B{glEdgeFlag, glEdgeFlagv}
 
   Flag edges as either boundary or nonboundary
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/edgeflag.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/edgeflag.html}
 
   @type flag: Depends of function prototype
   @param flag: Specifies the current edge flag value.The initial value is GL_TRUE. 
@@ -414,7 +414,7 @@ def glEdgeFlag (flag):
 def glEnable(cap):
   """
   Enable server-side GL capabilities
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/enable.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/enable.html}
 
   @type cap: Enumerated constant
   @param cap: Specifies a symbolic constant indicating a GL capability.
@@ -423,13 +423,13 @@ def glEnable(cap):
 def glEnd():
   """
   Delimit the vertices of a primitive or group of like primitives
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/begin.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/begin.html}
   """
 
 def glEndList():
   """
   Create or replace a display list
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/newlist.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/newlist.html}
   """
 
 def glEvalCoord (u,v):
@@ -438,7 +438,7 @@ def glEvalCoord (u,v):
   glEvalCoord2dv, glEvalCoord2fv}
 
   Evaluate enabled one- and two-dimensional maps
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/evalcoord.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/evalcoord.html}
 
   @type u: Depends on function prototype.
   @param u: Specifies a value that is the domain coordinate u to the basis function defined 
@@ -455,7 +455,7 @@ def glEvalMesh (mode, i1, i2):
   B{glEvalMesh1 or glEvalMesh2}
 
   Compute a one- or two-dimensional grid of points or lines
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/evalmesh.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/evalmesh.html}
 
   @type mode: Enumerated constant
   @param mode: In glEvalMesh1, specifies whether to compute a one-dimensional 
@@ -469,7 +469,7 @@ def glEvalPoint (i, j):
   B{glEvalPoint1 and glEvalPoint2}
 
   Generate and evaluate a single point in a mesh
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/evalpoint.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/evalpoint.html}
 
   @type i: int
   @param i: Specifies the integer value for grid domain variable i.
@@ -480,7 +480,7 @@ def glEvalPoint (i, j):
 def glFeedbackBuffer (size, type, buffer):
   """
   Controls feedback mode
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/feedbackbuffer.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/feedbackbuffer.html}
 
   @type size: int
   @param size:Specifies the maximum number of values that can be written into buffer. 
@@ -494,13 +494,13 @@ def glFeedbackBuffer (size, type, buffer):
 def glFinish():
   """
   Block until all GL execution is complete
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/finish.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/finish.html}
   """
 
 def glFlush():
   """
   Force Execution of GL commands in finite time
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/flush.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/flush.html}
   """
 
 def glFog (pname, param):
@@ -508,7 +508,7 @@ def glFog (pname, param):
   B{glFogf, glFogi, glFogfv, glFogiv}
 
   Specify fog parameters
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/fog.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/fog.html}
 
   @type pname: Enumerated constant
   @param pname: Specifies a single-valued fog parameter. If the function prototype
@@ -522,7 +522,7 @@ def glFog (pname, param):
 def glFrontFace(mode):
   """
   Define front- and back-facing polygons
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/frontface.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/frontface.html}
 
   @type mode: Enumerated constant
   @param mode: Specifies the orientation of front-facing polygons.
@@ -531,7 +531,7 @@ def glFrontFace(mode):
 def glFrustum(left, right, bottom, top, zNear, zFar):
   """
   Multiply the current matrix by a perspective matrix
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/frustum.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/frustum.html}
 
   @type left, right: double (float)
   @param left, right: Specify the coordinates for the left and right vertical 
@@ -547,7 +547,7 @@ def glFrustum(left, right, bottom, top, zNear, zFar):
 def glGenLists(range):
   """
   Generate a contiguous set of empty display lists
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/genlists.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/genlists.html}
 
   @type range: int
   @param range: Specifies the number of contiguous empty display lists to be generated. 
@@ -556,7 +556,7 @@ def glGenLists(range):
 def glGenTextures(n, textures):
   """
   Generate texture names
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/gentextures.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/gentextures.html}
 
   @type n: int
   @param n: Specifies the number of textures name to be generated.
@@ -569,7 +569,7 @@ def glGet (pname, param):
   B{glGetBooleanv, glGetfloatv, glGetFloatv, glGetIntegerv}
 
   Return the value or values of a selected parameter
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/get.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/get.html}
 
   @type pname: Enumerated constant
   @param pname: Specifies the parameter value to be returned. 
@@ -580,7 +580,7 @@ def glGet (pname, param):
 def glGetClipPlane(plane, equation):
   """
   Return the coefficients of the specified clipping plane 
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/getclipplane.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/getclipplane.html}
  
   @type plane: Enumerated constant
   @param plane: Specifies a clipping plane. The number of clipping planes depends on the 
@@ -594,7 +594,7 @@ def glGetClipPlane(plane, equation):
 def glGetError():
   """
   Return error information
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/geterror.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/geterror.html}
   """
 
 def glGetLight (light, pname, params):
@@ -602,7 +602,7 @@ def glGetLight (light, pname, params):
   B{glGetLightfv and glGetLightiv}
 
   Return light source parameter values
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/getlight.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/getlight.html}
  
   @type light: Enumerated constant
   @param light: Specifies a light source. The number of possible lights depends on the 
@@ -619,7 +619,7 @@ def glGetMap (target, query, v):
   B{glGetMapdv, glGetMapfv, glGetMapiv}
 
   Return evaluator parameters
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/getmap.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/getmap.html}
 
   @type target: Enumerated constant
   @param target: Specifies the symbolic name of a map. 
@@ -634,7 +634,7 @@ def glGetMaterial (face, pname, params):
   B{glGetMaterialfv, glGetMaterialiv}
 
   Return material parameters
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/getmaterial.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/getmaterial.html}
 
   @type face: Enumerated constant
   @param face: Specifies which of the two materials is being queried.  
@@ -650,7 +650,7 @@ def glGetPixelMap (map, values):
   B{glGetPixelMapfv, glGetPixelMapuiv, glGetPixelMapusv}
 
   Return the specified pixel map
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/getpixelmap.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/getpixelmap.html}
 
   @type map:  Enumerated constant
   @param map: Specifies the name of the pixel map to return. 
@@ -661,7 +661,7 @@ def glGetPixelMap (map, values):
 def glGetPolygonStipple(mask):
   """
   Return the polygon stipple pattern
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/getpolygonstipple.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/getpolygonstipple.html}
 
   @type mask: Buffer object I{type GL_BYTE}
   @param mask: Returns the stipple pattern. The initial value is all 1's.
@@ -670,7 +670,7 @@ def glGetPolygonStipple(mask):
 def glGetString(name):
   """
   Return a strin describing the current GL connection
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/getstring.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/getstring.html}
 
   @type name: Enumerated constant
   @param name: Specifies a symbolic constant. 
@@ -682,7 +682,7 @@ def glGetTexEnv (target, pname, params):
   B{glGetTexEnvfv, glGetTexEnviv}
 
   Return texture environment parameters
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/gettexenv.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/gettexenv.html}
 
   @type target: Enumerated constant
   @param target: Specifies a texture environment. Must be GL_TEXTURE_ENV. 
@@ -697,7 +697,7 @@ def glGetTexGen (coord, pname, params):
   B{glGetTexGendv, glGetTexGenfv, glGetTexGeniv}
  
   Return texture coordinate generation parameters
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/gettexgen.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/gettexgen.html}
 
   @type coord: Enumerated constant
   @param coord: Specifies a texture coordinate. 
@@ -710,7 +710,7 @@ def glGetTexGen (coord, pname, params):
 def glGetTexImage(target, level, format, type, pixels):
   """
   Return a texture image
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/getteximage.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/getteximage.html}
 
   @type target: Enumerated constant
   @param target: Specifies which texture is to be obtained. 
@@ -731,7 +731,7 @@ def glGetTexLevelParameter (target, level, pname, params):
   B{glGetTexLevelParameterfv, glGetTexLevelParameteriv}
 
   return texture parameter values for a specific level of detail 
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/gettexlevelparameter.html}
+  @see: U{opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/gettexlevelparameter.html}
 
   @type target: Enumerated constant
   @param target: Specifies the symbolic name of the target texture. 
@@ -749,7 +749,7 @@ def glGetTexParameter (target, pname, params):
   B{glGetTexParameterfv, glGetTexParameteriv}
 
   Return texture parameter values 
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/gettexparameter.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/gettexparameter.html}
 
   @type target: Enumerated constant
   @param target: Specifies the symbolic name of the target texture. 
@@ -762,7 +762,7 @@ def glGetTexParameter (target, pname, params):
 def glHint(target, mode):
   """
   Specify implementation-specific hints
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/hint.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/hint.html}
 
   @type target: Enumerated constant
   @param target: Specifies a symbolic constant indicating the behavior to be 
@@ -776,7 +776,7 @@ def glIndex (c):
   B{glIndexd, glIndexf, glIndexi, glIndexs,  glIndexdv, glIndexfv, glIndexiv, glIndexsv}
 
   Set the current color index
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/index_.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/index_.html}
 
   @type c: Buffer object. Depends on function prototype.
   @param c: Specifies a pointer to a one element array that contains the new value for
@@ -786,13 +786,13 @@ def glIndex (c):
 def glInitNames():
   """
   Initialize the name stack
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/initnames.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/initnames.html}
   """
 
 def glIsEnabled(cap):
   """
   Test whether a capability is enabled
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/isenabled.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/isenabled.html}
 
   @type cap: Enumerated constant
   @param cap: Specifies a constant representing a GL capability.
@@ -801,7 +801,7 @@ def glIsEnabled(cap):
 def glIsList(list):
   """
   Determine if a name corresponds to a display-list
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/islist.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/islist.html}
 
   @type list: unsigned int
   @param list: Specifies a potential display-list name.
@@ -810,7 +810,7 @@ def glIsList(list):
 def glIsTexture(texture):
   """
   Determine if a name corresponds to a texture
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/istexture.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/istexture.html}
 
   @type texture: unsigned int
   @param texture: Specifies a value that may be the name of a texture.
@@ -821,7 +821,7 @@ def glLight (light, pname, param):
   B{glLightf,glLighti, glLightfv, glLightiv}
 
   Set the light source parameters
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/light.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/light.html}
 
   @type light: Enumerated constant
   @param light: Specifies a light. The number of lights depends on the implementation, 
@@ -840,7 +840,7 @@ def glLightModel (pname, param):
   B{glLightModelf, glLightModeli, glLightModelfv, glLightModeliv}
 
   Set the lighting model parameters
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/lightmodel.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/lightmodel.html}
 
   @type pname:  Enumerated constant
   @param pname: Specifies a single-value light model parameter. 
@@ -852,7 +852,7 @@ def glLightModel (pname, param):
 def glLineStipple(factor, pattern):
   """
   Specify the line stipple pattern
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/linestipple.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/linestipple.html}
 
   @type factor: int
   @param factor: Specifies a multiplier for each bit in the line stipple pattern. 
@@ -868,7 +868,7 @@ def glLineStipple(factor, pattern):
 def glLineWidth(width):
   """
   Specify the width of rasterized lines.
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/linewidth.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/linewidth.html}
 
   @type width: float
   @param width: Specifies the width of rasterized lines. The initial value is 1. 
@@ -877,7 +877,7 @@ def glLineWidth(width):
 def glListBase(base):
   """
   Set the display-list base for glCallLists 
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/listbase.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/listbase.html}
 
   @type base: unsigned int
   @param base: Specifies an integer offset that will be added to glCallLists 
@@ -887,7 +887,7 @@ def glListBase(base):
 def glLoadIdentity():
   """
   Replace the current matrix with the identity matrix 
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/loadidentity.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/loadidentity.html}
   """
 
 def glLoadMatrix (m):
@@ -895,7 +895,7 @@ def glLoadMatrix (m):
   B{glLoadMatrixd, glLoadMatixf}
 
   Replace the current matrix with the specified matrix 
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/loadmatrix.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/loadmatrix.html}
 
   @type m: Buffer object. Depends on function prototype.
   @param m: Specifies a pointer to 16 consecutive values, which are used as the elements 
@@ -905,7 +905,7 @@ def glLoadMatrix (m):
 def glLoadName(name):
   """
   Load a name onto the name stack.
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/loadname.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/loadname.html}
 
   @type name: unsigned int
   @param name: Specifies a name that will replace the top value on the name stack. 
@@ -914,7 +914,7 @@ def glLoadName(name):
 def glLogicOp(opcode):
   """
   Specify a logical pixel operation for color index rendering 
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/logicop.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/logicop.html}
 
   @type opcode: Enumerated constant
   @param opcode: Specifies a symbolic constant that selects a logical operation. 
@@ -925,7 +925,7 @@ def glMap1 (target, u1, u2, stride, order, points):
   B{glMap1d, glMap1f}
 
   Define a one-dimensional evaluator
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/map1.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/map1.html}
 
   @type target: Enumerated constant
   @param target: Specifies the kind of values that are generated by the evaluator. 
@@ -949,7 +949,7 @@ def glMap2 (target, u1, u2, ustride, uorder, v1, v2, vstride, vorder, points):
   B{glMap2d, glMap2f}
 
   Define a two-dimensional evaluator
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/map2.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/map2.html}
 
   @type target: Enumerated constant
   @param target: Specifies the kind of values that are generated by the evaluator. 
@@ -988,7 +988,7 @@ def glMapGrid (un, u1,u2 ,vn, v1, v2):
   B{glMapGrid1d, glMapGrid1f, glMapGrid2d, glMapGrid2f}
 
   Define a one- or two-dimensional mesh
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/mapgrid.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/mapgrid.html}
 
   @type un: int
   @param un: Specifies the number of partitions in the grid range interval 
@@ -1006,7 +1006,7 @@ def glMapGrid (un, u1,u2 ,vn, v1, v2):
 def glMaterial (face, pname, params):
   """
   Specify material parameters for the lighting model.
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/material.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/material.html}
   
   @type face: Enumerated constant
   @param face: Specifies which face or faces are being updated. Must be one of:
@@ -1022,7 +1022,7 @@ def glMaterial (face, pname, params):
 def glMatrixMode(mode):
   """
   Specify which matrix is the current matrix.
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/matrixmode.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/matrixmode.html}
 
   @type mode: Enumerated constant
   @param mode: Specifies which matrix stack is the target for subsequent matrix operations. 
@@ -1033,7 +1033,7 @@ def glMultMatrix (m):
   B{glMultMatrixd, glMultMatrixf}
 
   Multiply the current matrix with the specified matrix
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/multmatrix.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/multmatrix.html}
 
   @type m: Buffer object. Depends on function prototype.
   @param m: Points to 16 consecutive values that are used as the elements of a 4x4 column
@@ -1043,7 +1043,7 @@ def glMultMatrix (m):
 def glNewList(list, mode):
   """
   Create or replace a display list
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/newlist.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/newlist.html}
   
   @type list: unsigned int
   @param list: Specifies the display list name
@@ -1057,7 +1057,7 @@ def glNormal3 (nx, ny, nz, v):
   Normal3s, Normal3sv}
 
   Set the current normal vector
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/normal.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/normal.html}
   
   @type nx, ny, nz: Depends on function prototype. (non - 'v' prototypes only)
   @param nx, ny, nz: Specify the x, y, and z coordinates of the new current normal. 
@@ -1070,7 +1070,7 @@ def glNormal3 (nx, ny, nz, v):
 def glOrtho(left, right, bottom, top, zNear, zFar):
   """
   Multiply the current matrix with an orthographic matrix
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/ortho.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/ortho.html}
   
   @type left, right: double (float)
   @param left, right: Specify the coordinates for the left and 
@@ -1086,7 +1086,7 @@ def glOrtho(left, right, bottom, top, zNear, zFar):
 def glPassThrough(token):
   """
   Place a marker in the feedback buffer
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/passthrough.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/passthrough.html}
 
   @type token: float
   @param token: Specifies a marker value to be placed in the feedback 
@@ -1098,7 +1098,7 @@ def glPixelMap (map, mapsize, values):
   B{glPixelMapfv, glPixelMapuiv, glPixelMapusv}
 
   Set up pixel transfer maps
-  @see:  U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/pixelmap.html}
+  @see:  U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/pixelmap.html}
 
   @type map: Enumerated constant
   @param map: Specifies a symbolic map name.
@@ -1113,7 +1113,7 @@ def glPixelStore (pname, param):
   B{glPixelStoref, glPixelStorei}
 
   Set pixel storage modes
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/pixelstore.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/pixelstore.html}
   
   @type pname: Enumerated constant
   @param pname: Specifies the symbolic name of the parameter to be set. 
@@ -1128,7 +1128,7 @@ def glPixelTransfer (pname, param):
   B{glPixelTransferf, glPixelTransferi}
 
   Set pixel transfer modes
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/pixeltransfer.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/pixeltransfer.html}
  
   @type pname: Enumerated constant
   @param pname: Specifies the symbolic name of the pixel transfer parameter to be set. 
@@ -1139,7 +1139,7 @@ def glPixelTransfer (pname, param):
 def glPixelZoom(xfactor, yfactor):
   """
   Specify the pixel zoom factors
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/pixelzoom.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/pixelzoom.html}
   
   @type xfactor, yfactor: float
   @param xfactor, yfactor: Specify the x and y zoom factors for pixel write operations.
@@ -1148,7 +1148,7 @@ def glPixelZoom(xfactor, yfactor):
 def glPointSize(size):
   """
   Specify the diameter of rasterized points
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/pointsize.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/pointsize.html}
   
   @type size: float
   @param size: Specifies the diameter of rasterized points. The initial value is 1.
@@ -1157,7 +1157,7 @@ def glPointSize(size):
 def glPolygonMode(face, mode):
   """
   Select a polygon rasterization mode
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/polygonmode.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/polygonmode.html}
  
   @type face: Enumerated constant
   @param face: Specifies the polygons that mode applies to. 
@@ -1171,7 +1171,7 @@ def glPolygonMode(face, mode):
 def glPolygonOffset(factor, units):
   """
   Set the scale and units used to calculate depth values
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/polygonoffset.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/polygonoffset.html}
   
   @type factor: float
   @param factor: Specifies a scale factor that is used to create a variable depth 
@@ -1184,7 +1184,7 @@ def glPolygonOffset(factor, units):
 def glPolygonStipple(mask):
   """
   Set the polygon stippling pattern
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/polygonstipple.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/polygonstipple.html}
   
   @type mask: Buffer object I{type GL_BYTE}
   @param mask: Specifies a pointer to a 32x32 stipple pattern that will be unpacked 
@@ -1194,25 +1194,25 @@ def glPolygonStipple(mask):
 def glPopAttrib():
   """
   Pop the server attribute stack
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/pushattrib.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/pushattrib.html}
   """
 
 def glPopMatrix():
   """
   Pop the current matrix stack
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/pushmatrix.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/pushmatrix.html}
   """
 
 def glPopName():
   """
   Pop the name stack
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/pushname.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/pushname.html}
   """
 
 def glPrioritizeTextures(n, textures, priorities):
   """
   Set texture residence priority
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/prioritizetextures.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/prioritizetextures.html}
   
   @type n: int
   @param n:Specifies the number of textures to be prioritized. 
@@ -1226,7 +1226,7 @@ def glPrioritizeTextures(n, textures, priorities):
 def glPushAttrib(mask):
   """
   Push the server attribute stack
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/pushattrib.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/pushattrib.html}
 
   @type mask: Enumerated constant(s)
   @param mask: Specifies a mask that indicates which attributes to save.
@@ -1235,13 +1235,13 @@ def glPushAttrib(mask):
 def glPushMatrix():
   """
   Push the current matrix stack
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/pushmatrix.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/pushmatrix.html}
   """
 
 def glPushName(name):
   """
   Push the name stack
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/pushname.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/pushname.html}
 
   @type name: unsigned int
   @param name: Specifies a name that will be pushed onto the name stack.
@@ -1256,7 +1256,7 @@ def glRasterPos (x,y,z,w):
   glRasterPos4dv, glRasterPos4fv, glRasterPos4iv, glRasterPos4sv}
 
   Specify the raster position for pixel operations
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/rasterpos.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/rasterpos.html}
 
   @type x, y, z, w: Depends on function prototype. (z and w for '3' and '4' prototypes only)
   @param x,y,z,w: Specify the x,y,z, and w object coordinates (if present) for the 
@@ -1267,7 +1267,7 @@ def glRasterPos (x,y,z,w):
 def glReadBuffer(mode):
   """
   Select a color buffer source for pixels.
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/readbuffer.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/readbuffer.html}
   
   @type mode: Enumerated constant
   @param mode: Specifies a color buffer. 
@@ -1276,7 +1276,7 @@ def glReadBuffer(mode):
 def glReadPixels(x, y, width, height, format, type, pixels):
   """
   Read a block of pixels from the frame buffer
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/readpixels.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/readpixels.html}
   
   @type x,y: int
   @param x,y:Specify the window coordinates of the first pixel that is read 
@@ -1298,7 +1298,7 @@ def glRect (x1,y1,x2,y2,v1,v2):
   B{glRectd, glRectf, glRecti, glRects, glRectdv, glRectfv, glRectiv, glRectsv}
 
   Draw a rectangle
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/rect.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/rect.html}
  
   @type x1, y1: Depends on function prototype. (for non 'v' prototypes only)
   @param x1, y1: Specify one vertex of a rectangle
@@ -1312,7 +1312,7 @@ def glRect (x1,y1,x2,y2,v1,v2):
 def glRenderMode(mode):
   """
   Set rasterization mode
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/rendermode.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/rendermode.html}
   
   @type mode: Enumerated constant
   @param mode: Specifies the rasterization mode. 
@@ -1323,7 +1323,7 @@ def glRotate (angle, x, y, z):
   B{glRotated, glRotatef}
 
   Multiply the current matrix by a rotation matrix
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/rotate.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/rotate.html}
 
   @type angle:  Depends on function prototype.
   @param angle:  Specifies the angle of rotation in degrees.
@@ -1336,7 +1336,7 @@ def glScale (x,y,z):
   B{glScaled, glScalef}
 
   Multiply the current matrix by a general scaling matrix
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/scale.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/scale.html}
 
   @type x,y,z: Depends on function prototype.
   @param x,y,z: Specify scale factors along the x,y, and z axes, respectively.
@@ -1345,7 +1345,7 @@ def glScale (x,y,z):
 def glScissor(x,y,width,height):
   """
   Define the scissor box
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/scissor.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/scissor.html}
  
   @type x,y: int
   @param x,y: Specify the lower left corner of the scissor box. Initially (0, 0). 
@@ -1358,7 +1358,7 @@ def glScissor(x,y,width,height):
 def glSelectBuffer(size, buffer):
   """
   Establish a buffer for selection mode values
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/selectbuffer.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/selectbuffer.html}
 
   @type size: int
   @param size: Specifies the size of buffer
@@ -1369,7 +1369,7 @@ def glSelectBuffer(size, buffer):
 def glShadeModel(mode):
   """
   Select flat or smooth shading
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/shademodel.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/shademodel.html}
   
   @type mode: Enumerated constant
   @param mode: Specifies a symbolic value representing a shading technique.  
@@ -1378,7 +1378,7 @@ def glShadeModel(mode):
 def glStencilFuc(func, ref, mask):
   """
   Set function and reference value for stencil testing
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/stencilfunc.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/stencilfunc.html}
 
   @type func: Enumerated constant
   @param func:Specifies the test function. 
@@ -1394,7 +1394,7 @@ def glStencilFuc(func, ref, mask):
 def glStencilMask(mask):
   """
   Control the writing of individual bits in the stencil planes
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/stencilmask.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/stencilmask.html}
   
   @type mask: unsigned int
   @param mask: Specifies a bit mask to enable and disable writing of individual bits 
@@ -1404,7 +1404,7 @@ def glStencilMask(mask):
 def glStencilOp(fail, zfail, zpass):
   """
   Set stencil test actions
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/stencilop.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/stencilop.html}
   
   @type fail: Enumerated constant
   @param fail: Specifies the action to take when the stencil test fails. 
@@ -1430,7 +1430,7 @@ def glTexCoord (s,t,r,q,v):
   glTexCoord4dv, glTexCoord4fv, glTexCoord4iv, glTexCoord4sv}
 
   Set the current texture coordinates
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/texcoord.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/texcoord.html}
   
   @type s,t,r,q: Depends on function prototype. (r and q for '3' and '4' prototypes only)
   @param s,t,r,q: Specify s, t, r, and q texture coordinates. Not all parameters are 
@@ -1445,7 +1445,7 @@ def glTexEnv  (target, pname, param):
   B{glTextEnvf, glTextEnvi, glTextEnvfv, glTextEnviv}
 
   Set texture environment parameters
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/texenv.html} 
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/texenv.html} 
 
   @type target: Enumerated constant
   @param target: Specifies a texture environment. Must be GL_TEXTURE_ENV.
@@ -1463,7 +1463,7 @@ def glTexGen (coord, pname, param):
   B{glTexGend, glTexGenf, glTexGeni, glTexGendv, glTexGenfv, glTexGeniv}
 
   Control the generation of texture coordinates
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/texgen.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/texgen.html}
   
   @type coord: Enumerated constant
   @param coord: Specifies a texture coordinate. 
@@ -1480,7 +1480,7 @@ def glTexGen (coord, pname, param):
 def glTexImage1D(target, level, internalformat, width, border, format, type, pixels):
   """
   Specify a one-dimensional texture image
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/teximage1d.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/teximage1d.html}
 
   @type target: Enumerated constant
   @param target: Specifies the target texture. 
@@ -1506,7 +1506,7 @@ def glTexImage1D(target, level, internalformat, width, border, format, type, pix
 def glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels):
   """
   Specify a two-dimensional texture image
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/teximage2d.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/teximage2d.html}
 
   @type target: Enumerated constant
   @param target: Specifies the target texture. 
@@ -1538,7 +1538,7 @@ def glTexParameter (target, pname, param):
   B{glTexParameterf, glTexParameteri, glTexParameterfv, glTexParameteriv}
 
   Set texture parameters
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/texparameter.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/texparameter.html}
 
   @type target: Enumerated constant
   @param target: Specifies the target texture.
@@ -1554,7 +1554,7 @@ def glTranslate (x, y, z):
   B{glTranslatef, glTranslated}
 
   Multiply the current matrix by a translation matrix
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/translate.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/translate.html}
 
   @type x,y,z: Depends on function prototype.
   @param x,y,z: Specify the x, y, and z coordinates of a translation vector. 
@@ -1568,7 +1568,7 @@ def glVertex (x,y,z,w,v):
   glVertex4fv, glVertex4iv, glVertex4sv}
 
   Specify a vertex
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/vertex.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/vertex.html}
   
   @type x,y,z,w: Depends on function prototype (z and w for '3' and '4' prototypes only)
   @param x,y,z,w: Specify x, y, z, and w coordinates of a vertex. Not all parameters 
@@ -1582,7 +1582,7 @@ def glVertex (x,y,z,w,v):
 def glViewport(x,y,width,height):
   """
   Set the viewport
-  @see: U{http://www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/viewport.html}
+  @see: U{www.opengl.org/developers/documentation/man_pages/hardcopy/GL/html/gl/viewport.html}
 
   @type x,y: int
   @param x,y: Specify the lower left corner of the viewport rectangle, 

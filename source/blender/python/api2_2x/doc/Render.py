@@ -16,7 +16,7 @@ Example::
   scn = Scene.GetCurrent()
   context = scn.getRenderingContext()
   
-  Render..enableDispWin()
+  Render.EnableDispWin()
   context.enableExtensions(1)
   context.setRenderPath("C:/myRenderdir/")
   context.sizePreset(Scene.PC)
@@ -29,7 +29,7 @@ Example::
   context.framesPerSec(15)
   context.startFrame(15)
   context.endFrame(22)
- context.renderAnim()
+  context.renderAnim()
 
   Render.CloseRenderWindow()
   print context.framesPerSec()

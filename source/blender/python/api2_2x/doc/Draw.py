@@ -182,8 +182,9 @@ def PupIntInput(text, default, min, max):
     default = 50
     min = 0
     max = 100
-    
-    result = Draw.PupIntInput('Set this value between 0 and 100', default, min, max)
+
+    msg = "Set this value between 0 and 100"
+    result = Draw.PupIntInput(msg, default, min, max)
     if result != None:
       print result
     else:
@@ -209,12 +210,13 @@ def PupFloatInput(text, default, min, max, clickStep, floatLen):
 
   Example::
     default = 50
-    min = 0
-    max = 100
-    clickStep = 10
+    min = 0.0
+    max = 10.0
+    clickStep = 100
     floatLen = 3
-    
-    result = Draw.PupIntInput('Set this value between 0 and 100', default, min, max, clickStep, floatLen)
+
+    msg = "Set this value between 0 and 100"
+    result = Draw.PupFloatInput(msg, default, min, max, clickStep, floatLen)
     if result != None:
       print result
     else:
