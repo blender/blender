@@ -109,7 +109,7 @@ extern 		 void group_menu(void);
 extern		 void mainwindow_toggle_fullscreen(int fullscreen);
 #endif
 
-extern		 void mainwindow_set_title(char *title);
+extern		 void mainwindow_set_filename_to_title(char *title);
 extern		 void mainwindow_raise(void);
 extern		 void mainwindow_make_active(void);
 extern		 void mainwindow_close(void);
