@@ -52,8 +52,10 @@
 
 #include "BKE_utildefines.h"
 #include "BKE_blender.h"
+#include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_packedFile.h"
 #include "BKE_scene.h"
 
 #include "BIF_gl.h"
@@ -84,6 +86,7 @@
 #include "mydevice.h"
 #include "render.h"
 #include "nla.h"
+#include "datatoc.h"
 
 /* for passing information between creator and gameengine */
 #include "SYS_System.h"
@@ -312,8 +315,10 @@ int main(int argc, char **argv)
 	/* for all platforms, even windos has it! */
 	if(G.background) signal(SIGINT, blender_esc);	/* ctrl c out bg render */
 
-
-	RE_init_render_data();	/* must be called here because R.winpos from default file */
+		/* background render uses this font too */
+	BKE_font_register_builtin(datatoc_Bfont, datatoc_Bfont_size);
+		/* must be called here because R.winpos from default file */
+	RE_init_render_data();
 	
 	if(G.background==0) {
 		for(a=1; a<argc; a++) {
