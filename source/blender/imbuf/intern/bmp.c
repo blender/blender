@@ -243,5 +243,9 @@ short imb_savebmp(struct ImBuf *ibuf, int outfile, int flags) {
       /* add padding here */
       for (t=0;t<extrabytes;t++) if (putc(0,ofile) == EOF) return 0;
    }
+   if (ofile) {
+	fflush(ofile);
+        fclose(ofile);
+   }
    return 1;
 }
