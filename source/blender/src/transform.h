@@ -196,6 +196,10 @@ int Trackball(TransInfo *t, short mval[2]);
 struct ListBase;
 void count_bone_select(struct ListBase *lb, int *counter);
 
+/* exported from transform_manipulator.c */
+struct ScrArea;
+void draw_manipulator_ext(struct ScrArea *sa, int type, char axis, int col, float vec[3], float mat[][3]);
+
 
 #endif
 

@@ -2646,7 +2646,6 @@ static void drawmeshwire_wirextra(DispListMesh *dlm, int optimal, char alpha)
 				}
 			}
 			else {
-				glBegin(GL_LINES);
 				for(eed= em->edges.first; eed; eed= eed->next) {
 					if(eed->h==0) {
 						if(eed->f & SELECT) glColor4ubv(sel);

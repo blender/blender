@@ -629,27 +629,37 @@ void BIF_drawConstraint(void)
 			window_to_3d(vec, (short)(mval[0] - t->con.imval[0]), (short)(mval[1] - t->con.imval[1]));
 			VecAddf(vec, vec, tc->center);
 
-			drawLine(tc->center, tc->mtx[0], 'x', 0);
-			drawLine(tc->center, tc->mtx[1], 'y', 0);
-			drawLine(tc->center, tc->mtx[2], 'z', 0);
+//			drawLine(tc->center, tc->mtx[0], 'x', 0);
+//			drawLine(tc->center, tc->mtx[1], 'y', 0);
+//			drawLine(tc->center, tc->mtx[2], 'z', 0);
 
+			draw_manipulator_ext(curarea, t->mode, 'c', 2, tc->center, tc->mtx);
 			glColor3ubv(col2);
-
+			
+			glDisable(GL_DEPTH_TEST);
 			setlinestyle(1);
 			glBegin(GL_LINE_STRIP); 
 				glVertex3fv(tc->center); 
 				glVertex3fv(vec); 
 			glEnd();
+			setlinestyle(0);
+			if(G.zbuf) glEnable(GL_DEPTH_TEST);	// warning for global!
 		}
 
 		if (tc->mode & CON_AXIS0) {
-			drawLine(tc->center, tc->mtx[0], 'x', DRAWLIGHT);
+			draw_manipulator_ext(curarea, t->mode, 'x', 0, tc->center, tc->mtx);
+			draw_manipulator_ext(curarea, t->mode, 'x', 2, tc->center, tc->mtx);
+//			drawLine(tc->center, tc->mtx[0], 'x', DRAWLIGHT);
 		}
 		if (tc->mode & CON_AXIS1) {
-			drawLine(tc->center, tc->mtx[1], 'y', DRAWLIGHT);
+			draw_manipulator_ext(curarea, t->mode, 'y', 0, tc->center, tc->mtx);
+			draw_manipulator_ext(curarea, t->mode, 'y', 2, tc->center, tc->mtx);
+//			drawLine(tc->center, tc->mtx[1], 'y', DRAWLIGHT);
 		}
 		if (tc->mode & CON_AXIS2) {
-			drawLine(tc->center, tc->mtx[2], 'z', DRAWLIGHT);
+			draw_manipulator_ext(curarea, t->mode, 'z', 0, tc->center, tc->mtx);
+			draw_manipulator_ext(curarea, t->mode, 'z', 2, tc->center, tc->mtx);
+//			drawLine(tc->center, tc->mtx[2], 'z', DRAWLIGHT);
 		}
 	}
 }
