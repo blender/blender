@@ -555,16 +555,19 @@ void select_parent(void)	/* Makes parent active and de-selected OBACT */
 	while(base) {
 		if(base->object==BASACT->object->parent) { basact=base; break; }
 		base=base->next;
-		if(base==0) base= FIRSTBASE;
+		if(base==NULL) base= FIRSTBASE;
 		if(base==startbase) break;
 	}
-	oldbasact = BASACT;
-	BASACT = basact;
-	basact->flag |= SELECT;		
-	
-	basact->object->flag= basact->flag;
-	
-	set_active_base(basact);
+	/* can be NULL if parent in other scene */
+	if(basact) {
+		oldbasact = BASACT;
+		BASACT = basact;
+		basact->flag |= SELECT;		
+		
+		basact->object->flag= basact->flag;
+		
+		set_active_base(basact);
+	}
 }
 
 
