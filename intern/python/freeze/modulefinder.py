@@ -354,6 +354,8 @@ class ModuleFinder:
         return imp.find_module(name, path)
 
     def report(self):
+        if not os.path.exists ('../frozen'):
+           os.mkdir ('../frozen')
         src_list = open ('../frozen/src.list', 'w')
         print
         print "  %-25s %s" % ("Name", "File")
