@@ -719,6 +719,9 @@ void window_lower(Window *win) {
 
 void window_raise(Window *win) {
 	GHOST_SetWindowOrder(win->ghostwin, GHOST_kWindowOrderTop);
+#ifdef _WIN32
+	markdirty_all(); /* to avoid redraw errors in fullscreen mode (aphex) */
+#endif
 }
 
 #ifdef _WIN32	//FULLSCREEN
