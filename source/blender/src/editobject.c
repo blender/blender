@@ -329,6 +329,7 @@ static void select_editmesh_hook(ObHook *hook)
 			if(index < hook->totindex-1) index++;
 		}
 	}
+	EM_select_flush();
 }
 
 int return_editlattice_indexar(int **indexar, float *cent)
