@@ -256,7 +256,7 @@ elif sys.platform == 'win32':
     build_blender_player = 'false'
     build_blender_plugin = 'false'
     release_flags = ['/G6', '/GF']
-    debug_flags = ['/Zi']
+    debug_flags = ['/Zi', '/Fr${TARGET.base}.sbr']
     extra_flags = ['/EHsc', '/J', '/W3', '/Gd', '/MT']
     cxxflags = []
     defines = ['WIN32', '_CONSOLE']
@@ -1022,3 +1022,11 @@ if sys.platform == 'darwin':
                     'chmod +x $TARGET && ' + \
                     'find $SOURCE -name CVS -prune -exec rm -rf {} \; && ' +
                     'find $SOURCE -name .DS_Store -exec rm -rf {} \;')
+elif sys.platform=='win32':
+    if user_options_dict['BUILD_BINARY']=='debug':
+        browser = Environment()
+        browser_tmp = root_build_dir+'bscmake.tmp'
+        browser.Command ('blender.bsc', 'blender$PROGSUFFIX',
+            ['dir /b/s '+root_build_dir+'*.sbr >'+browser_tmp,
+             'bscmake /nologo /n /oblender.bsc @'+browser_tmp,
+             'del '+browser_tmp])
