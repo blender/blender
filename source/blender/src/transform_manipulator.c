@@ -332,33 +332,48 @@ static void manipulator_setcolor(char mode)
 
 static int Gval= 0xFFFF;	// defines drawmodus while moving...
 
+
 static void draw_manipulator_rotate(float mat[][4])
 {
+	GLUquadricObj *qobj = gluNewQuadric(); 
 	double plane[4];
 	float size, vec[3], unitmat[4][4];
+	float cusize= CYWID*0.75;
+	int arcs= 0;
 	
 	/* when called while moving in mixed mode, do not draw when... */
 	if((Gval & MAN_ROT_C)==0) return;
 	
+	/* Init stuff */
 	glDisable(GL_DEPTH_TEST);
 	Mat4One(unitmat);
+	gluQuadricDrawStyle(qobj, GLU_FILL); 
+	gluQuadricNormals(qobj, GLU_SMOOTH);
+	glEnable(GL_CULL_FACE);		// backface removal
+	glShadeModel(GL_SMOOTH);
+	
 	
 	/* Screen aligned help circle */
+	VECCOPY(vec, mat[0]);
+	size= Normalise(vec);
 	glPushMatrix();
 	glTranslatef(mat[3][0], mat[3][1], mat[3][2]);
 	
+	if(arcs) {
 		/* clipplane makes nice handles, calc here because of multmatrix but with translate! */
 		VECCOPY(plane, G.vd->viewinv[2]);
 		plane[3]= -0.001; // clip full circle
 		glClipPlane(GL_CLIP_PLANE0, plane);
+	}
 	
 	glRotatef( -360.0*saacos(G.vd->viewquat[0])/M_PI, G.vd->viewquat[1], G.vd->viewquat[2], G.vd->viewquat[3]);
-	VECCOPY(vec, mat[0]);
-	size= Normalise(vec);
-	if((G.f & G_PICKSEL)==0) {
-		BIF_ThemeColorShade(TH_BACK, -30);
-		drawcircball(unitmat[3], size, unitmat);
-	}		
+	
+	if(arcs) {
+		if((G.f & G_PICKSEL)==0) {
+			BIF_ThemeColorShade(TH_BACK, -30);
+			drawcircball(unitmat[3], size, unitmat);
+		}
+	}
 	/* Screen aligned view rot circle */
 	if(Gval & MAN_ROT_V) {
 		if(G.f & G_PICKSEL) glLoadName(MAN_ROT_V);
@@ -376,9 +391,32 @@ static void draw_manipulator_rotate(float mat[][4])
 	}
 	else mymultmatrix(mat);
 	
+	/* axes */
+	if(arcs==0) {
+		if(!(G.f & G_PICKSEL)) {
+			/* axis */
+			glBegin(GL_LINES);
+			if(Gval & MAN_ROT_X) {
+				manipulator_setcolor('x');
+				glVertex3f(0.0, 0.0, 0.0);
+				glVertex3f(1.0, 0.0, 0.0);
+			}		
+			if(Gval & MAN_ROT_Y) {
+				manipulator_setcolor('y');
+				glVertex3f(0.0, 0.0, 0.0);
+				glVertex3f(0.0, 1.0, 0.0);
+			}		
+			if(Gval & MAN_ROT_Z) {
+				manipulator_setcolor('z');
+				glVertex3f(0.0, 0.0, 0.0);
+				glVertex3f(0.0, 0.0, 1.0);
+			}
+			glEnd();
+		}
+	}
+	
 	/* Trackball center */
 	if(Gval & MAN_ROT_T) {
-		GLUquadricObj *qobj = gluNewQuadric(); 
 		
 		if(G.f & G_PICKSEL) glLoadName(MAN_ROT_T);
 		
@@ -388,58 +426,114 @@ static void draw_manipulator_rotate(float mat[][4])
 		glVertex3fv(G.vd->viewinv[2]);
 		glEnd();
 		
+		glEnable(GL_LIGHTING);
 		BIF_GetThemeColor3fv(TH_TRANSFORM, vec);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, vec);
 		
-		/* only has to be set here */
-		gluQuadricDrawStyle(qobj, GLU_FILL); 
-		gluQuadricNormals(qobj, GLU_SMOOTH);
-		glEnable(GL_CULL_FACE);		// backface removal
-		glEnable(GL_LIGHTING);
-		glShadeModel(GL_SMOOTH);
-		
 		glTranslatef(G.vd->viewinv[2][0], G.vd->viewinv[2][1], G.vd->viewinv[2][2]);
-		
 		gluSphere(qobj, CYWID, 8, 6);
 		
 		/* restore */
-		glDisable(GL_CULL_FACE);
-		glDisable(GL_LIGHTING);
 		glTranslatef(-G.vd->viewinv[2][0], -G.vd->viewinv[2][1], -G.vd->viewinv[2][2]);
-		
-		gluDeleteQuadric(qobj);
+		glDisable(GL_LIGHTING);
 	}
+	
+	if(arcs || G.moving) {
 		
-	glEnable(GL_CLIP_PLANE0);
+		if(arcs) glEnable(GL_CLIP_PLANE0);
 
-	/* Z circle */
-	if(Gval & MAN_ROT_Z) {
-		if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Z);
-		manipulator_setcolor('z');
-		drawcircball(unitmat[3], 1.0, unitmat);
+		/* Z circle */
+		if(Gval & MAN_ROT_Z) {
+			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Z);
+			manipulator_setcolor('z');
+			drawcircball(unitmat[3], 1.0, unitmat);
+		}
+		/* X circle */
+		if(Gval & MAN_ROT_X) {
+			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_X);
+			glRotatef(90.0, 0.0, 1.0, 0.0);
+			manipulator_setcolor('x');
+			drawcircball(unitmat[3], 1.0, unitmat);
+			glRotatef(-90.0, 0.0, 1.0, 0.0);
+		}	
+		/* Y circle */
+		if(Gval & MAN_ROT_Y) {
+			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Y);
+			glRotatef(-90.0, 1.0, 0.0, 0.0);
+			manipulator_setcolor('y');
+			drawcircball(unitmat[3], 1.0, unitmat);
+			glRotatef(-90.0, 1.0, 0.0, 0.0);
+		}
+		
+		if(arcs) glDisable(GL_CLIP_PLANE0);
 	}
-	/* X circle */
-	if(Gval & MAN_ROT_X) {
-		if(G.f & G_PICKSEL) glLoadName(MAN_ROT_X);
-		glRotatef(90.0, 0.0, 1.0, 0.0);
-		manipulator_setcolor('x');
-		drawcircball(unitmat[3], 1.0, unitmat);
-		glRotatef(-90.0, 0.0, 1.0, 0.0);
-	}	
-	/* Y circle */
-	if(Gval & MAN_ROT_Y) {
-		if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Y);
-		glRotatef(-90.0, 1.0, 0.0, 0.0);
-		manipulator_setcolor('y');
-		drawcircball(unitmat[3], 1.0, unitmat);
-		glRotatef(-90.0, 1.0, 0.0, 0.0);
+	if(arcs==0) {
+		glEnable(GL_LIGHTING);
+		
+		/* Z axis has Rotate X */
+		glTranslatef(0.0, 0.0, 1.0);
+		if(Gval & MAN_ROT_X) {
+			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_X);
+			manipulator_setcolor('X');
+			glPushMatrix();
+			glRotatef(90.0, 1.0, 0.0, 0.0);
+			glTranslatef(0.0, 0.0, -0.5*CYLEN);
+			gluCylinder(qobj, cusize, cusize, CYLEN, 8, 2);
+			
+			gluQuadricOrientation(qobj, GLU_INSIDE);
+			gluDisk(qobj, 0.0, cusize, 8, 1); 
+			gluQuadricOrientation(qobj, GLU_OUTSIDE);
+			glTranslatef(0.0, 0.0, CYLEN);
+			gluDisk(qobj, 0.0, cusize, 8, 1); 
+			
+			glPopMatrix();
+		}	
+		/* X axis has Rotate Y */
+		glTranslatef(1.0, 0.0, -(1.0));
+		if(Gval & MAN_ROT_Y) {
+			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Y);
+			manipulator_setcolor('Y');
+			glPushMatrix();
+			
+			glTranslatef(0.0, 0.0, -0.5*CYLEN);
+			gluCylinder(qobj, cusize, cusize, CYLEN, 8, 2);
+			
+			gluQuadricOrientation(qobj, GLU_INSIDE);
+			gluDisk(qobj, 0.0, cusize, 8, 1); 
+			gluQuadricOrientation(qobj, GLU_OUTSIDE);
+			glTranslatef(0.0, 0.0, CYLEN);
+			gluDisk(qobj, 0.0, cusize, 8, 1); 
+			
+			glPopMatrix();
+		}	
+		/* Y axis has rotate Z */
+		glTranslatef(-(1.0), 1.0, 0.0);
+		if(Gval & MAN_ROT_Z) {
+			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Z);
+			manipulator_setcolor('Z');
+			glPushMatrix();
+			glRotatef(90.0, 0.0, 1.0, 0.0);
+			glTranslatef(0.0, 0.0, -0.5*CYLEN);
+			gluCylinder(qobj, cusize, cusize, CYLEN, 8, 2);
+			
+			gluQuadricOrientation(qobj, GLU_INSIDE);
+			gluDisk(qobj, 0.0, cusize, 8, 1); 
+			gluQuadricOrientation(qobj, GLU_OUTSIDE);
+			glTranslatef(0.0, 0.0, CYLEN);
+			gluDisk(qobj, 0.0, cusize, 8, 1); 
+			
+			glPopMatrix();
+		}
+		
 	}
 	
-	glDisable(GL_CLIP_PLANE0);
-	
+	/* restore */
 	myloadmatrix(G.vd->viewmat);
-	
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_LIGHTING);
+	gluDeleteQuadric(qobj);
 	if(G.zbuf) glEnable(GL_DEPTH_TEST);		// shouldn't be global, tsk!
+	
 }
 
 static void draw_manipulator_scale(float mat[][4])
@@ -602,7 +696,7 @@ static void draw_manipulator_translate(float mat[][4])
 		gluSphere(qobj, CYWID, 8, 6); 
 	}	
 	
-	/* Z cylinder */
+	/* Z Cone */
 	glTranslatef(0.0, 0.0, 1.0 - CYLEN);
 	if(Gval & MAN_TRANS_Z) {
 		if(G.f & G_PICKSEL) glLoadName(MAN_TRANS_Z);
@@ -612,7 +706,7 @@ static void draw_manipulator_translate(float mat[][4])
 		gluDisk(qobj, 0.0, CYWID, 8, 1); 
 		gluQuadricOrientation(qobj, GLU_OUTSIDE);
 	}	
-	/* X cylinder */
+	/* X Cone */
 	glTranslatef(1.0 - CYLEN, 0.0, -(1.0 - CYLEN));
 	if(Gval & MAN_TRANS_X) {
 		if(G.f & G_PICKSEL) glLoadName(MAN_TRANS_X);
@@ -624,7 +718,7 @@ static void draw_manipulator_translate(float mat[][4])
 		gluQuadricOrientation(qobj, GLU_OUTSIDE);
 		glRotatef(-90.0, 0.0, 1.0, 0.0);
 	}	
-	/* Y cylinder */
+	/* Y Cone */
 	glTranslatef(-(1.0 - CYLEN), 1.0 - CYLEN, 0.0);
 	if(Gval & MAN_TRANS_Y) {
 		if(G.f & G_PICKSEL) glLoadName(MAN_TRANS_Y);

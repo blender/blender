@@ -337,7 +337,7 @@ void drawLine(float *center, float *dir, char axis, short options)
 	glColor3ubv(col2);
 
 	setlinestyle(0);
-	glLineWidth(3.0);
+	glLineWidth(2.0);
 	glBegin(GL_LINE_STRIP); 
 		glVertex3fv(v1); 
 		glVertex3fv(v2); 
