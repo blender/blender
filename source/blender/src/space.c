@@ -4638,6 +4638,7 @@ void force_draw_plus(int type)
 	ScrArea *tempsa, *sa;
 
 	scrarea_do_windraw(curarea); 
+	scrarea_do_headdraw(curarea);
 
 	tempsa= curarea;
 	sa= G.curscreen->areabase.first;
@@ -4646,6 +4647,7 @@ void force_draw_plus(int type)
 			if(ELEM5(sa->spacetype, SPACE_VIEW3D, SPACE_IPO, SPACE_SEQ, SPACE_BUTS, SPACE_ACTION)) {
 				areawinset(sa->win);
 				scrarea_do_windraw(sa);
+				scrarea_do_headdraw(sa);
 			}
 		}
 		sa= sa->next;

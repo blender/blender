@@ -424,6 +424,7 @@ void selectconnected_armature(void)
 	countall();
 	allqueue (REDRAWVIEW3D, 0);
 	allqueue (REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWOOPS, 0);
 
 }
@@ -462,6 +463,7 @@ void selectconnected_posearmature(void)
 	countall();
 	allqueue (REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue (REDRAWACTION, 0);
 	allqueue(REDRAWOOPS, 0);
 }
@@ -698,7 +700,7 @@ void delete_armature(void)
 	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWOOPS, 0);
 	countall();
 }
@@ -731,6 +733,7 @@ static void delete_bone(EditBone* exBone)
 
 	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWOOPS, 0);
 
 	BLI_freelinkN (&G.edbo,exBone);
@@ -745,6 +748,7 @@ void remake_editArmature(void)
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWBUTSHEAD, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 }
 
 void mouse_armature(void)
@@ -1776,7 +1780,6 @@ void deselectall_armature(void)
 	};
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWBUTSHEAD, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWOOPS, 0);
 	countall();
@@ -2236,6 +2239,7 @@ void mousepose_armature(void)
 	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);		/* To force action ipo update */
 	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWOOPS, 0);
 
 	rightmouse_transform();
@@ -2461,6 +2465,7 @@ void deselectall_posearmature (int test){
 		deselect_bonechildren (ob, curBone, selectmode);
 	
 	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWACTION, 0);
