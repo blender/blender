@@ -161,9 +161,11 @@ void vertex_loop_select()
 			mvalo[0] = mval[0];
 			mvalo[1] = mval[1];
 
-			scrarea_do_windraw(curarea);
 			dist= 50;
 			nearest = findnearestedge(&dist);	// returns actual distance in dist
+			
+			scrarea_do_windraw(curarea);	// after findnearestedge, backbuf!
+
 			if (nearest && edgeFaces(nearest)==2) {
 				for(search = em->edges.first;search;search=search->next)
 					search->f &= ~32;
@@ -297,6 +299,12 @@ void vertex_loop_select()
 
 		screen_swapbuffers();
 
+		/* backbuffer refresh for non-apples (no aux) */
+#ifndef __APPLE__
+		if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
+			backdrawview3d(0);
+		}
+#endif
 		while(qtest()) 
 		{
 			val=0;
