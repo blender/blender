@@ -271,14 +271,12 @@ static void View(GHOST_IWindow* window, bool stereo, int eye = 0)
 {
 	window->activateDrawingContext();
 	GHOST_Rect bnds;
-	int noOfScanlines = 0, lowerScanline;
+	int noOfScanlines = 0, lowerScanline = 0;
 	int verticalBlankingInterval = 32;  // hard coded for testing purposes, display device dependant
 	float left, right, bottom, top;
 	float nearplane, farplane, zeroPlane, distance;
 	float eyeSeparation = 0.62;
 	window->getClientBounds(bnds);
-	GLfloat w = float(bnds.getWidth()) / float(bnds.getHeight());
-	GLfloat h = 1.0;
 
 	// viewport
 	if(stereo)
