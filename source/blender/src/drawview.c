@@ -444,7 +444,7 @@ static void drawgrid(void)
 	
 	persp(0);
 
-	cpack(0x484848);
+	cpack(0x606060);
 	
 	x+= (wx); 
 	y+= (wy);
@@ -496,7 +496,7 @@ static void drawfloor(void)
 	gridlines= vd->gridlines/2;
 	grid= gridlines*vd->grid;
 	
-	cpack(0x484848);
+	cpack(0x606060);
 
 	for(a= -gridlines;a<=gridlines;a++) {
 
@@ -505,7 +505,7 @@ static void drawfloor(void)
 			else cpack(0x402000);
 		}
 		else if(a==1) {
-			cpack(0x484848);
+			cpack(0x606060);
 		}
 		
 	
@@ -518,7 +518,7 @@ static void drawfloor(void)
 		glEnd();
 	}
 	
-	cpack(0x484848);
+	cpack(0x606060);
 	
 	for(a= -gridlines;a<=gridlines;a++) {
 		if(a==0) {
@@ -526,7 +526,7 @@ static void drawfloor(void)
 			else cpack(0);
 		}
 		else if(a==1) {
-			cpack(0x484848);
+			cpack(0x606060);
 		}
 	
 		glBegin(GL_LINE_STRIP);
@@ -828,7 +828,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			glClearColor(0.0, 0.0, 0.0, 0.0); 
 		}
 		else {
-			glClearColor(0.45, 0.45, 0.45, 0.0); 
+			glClearColor(0.55, 0.55, 0.55, 0.0); 
 		}
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
