@@ -283,7 +283,7 @@ void scanlinesky(char *rect, int y)
 				}
 			}
 			/* which scanline/ */
-			y= ((y+R.afmy+R.ystart)*R.backbuf->ibuf->y)/(2*R.afmy);
+			y= ((y+R.afmy+R.ystart)*R.backbuf->ibuf->y)/(R.recty);
 			
 			if(R.flag & R_SEC_FIELD) {
 				if((R.r.mode & R_ODDFIELD)==0) {
