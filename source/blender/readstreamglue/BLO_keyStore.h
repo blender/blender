@@ -38,9 +38,13 @@
 extern "C" {
 #endif
 
+typedef unsigned char byte;
+
+struct UserStructType;
+
 	void
 keyStoreConstructor(
-	UserStruct *keyUserStruct,
+	struct UserStruct *keyUserStruct,
 	char *privHexKey,
 	char *pubHexKey,
 	byte *ByteChecks,
