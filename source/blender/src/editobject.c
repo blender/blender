@@ -1943,7 +1943,7 @@ void copy_attr_menu()
 	 */
 	strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Drawtype%x4|Time Offset%x5|Dupli%x6|%l|Mass%x7|Damping%x8|Properties%x9|Logic Bricks%x10|%l");
 
-	ob= OBACT;
+	if(!(ob=OBACT)) return;
 	
 	strcat (str, "|Object Constraints%x22");
 	
@@ -1975,9 +1975,8 @@ void copy_attr(short event)
 	
 	if(G.scene->id.lib) return;
 
-	ob= OBACT;
+	if(!(ob=OBACT)) return;
 	
-	if(OBACT==0) return;
 	if(G.obedit) {
 		/* obedit_copymenu(); */
 		return;
@@ -2184,8 +2183,7 @@ void make_links_menu()
 	short event=0;
 	char str[140];
 	
-	if(OBACT==0) return;
-	ob= OBACT;
+	if(!(ob=OBACT)) return;
 	
 	strcpy(str, "Make Links %t|To Scene...%x1|%l|Object Ipo%x4");
 	
@@ -2226,8 +2224,7 @@ void make_links(short event)
 	short *totcolp, nr;
 	char *strp;
 
-	if(OBACT==0) return;
-	ob= OBACT;
+	if(!(ob=OBACT)) return;
 
 	if(event==1) {
 		IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->scene), 0, &nr);

@@ -1153,12 +1153,10 @@ static void do_view3d_edit_object_makelinksmenu(void *arg, int event)
 
 static uiBlock *view3d_edit_object_makelinksmenu(void *arg_unused)
 {
-	Object *ob;
+	Object *ob=NULL;
 	
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
-
-	ob= OBACT;
 
 	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_object_makelinksmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_edit_object_makelinksmenu, NULL);
@@ -1169,28 +1167,31 @@ static uiBlock *view3d_edit_object_makelinksmenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Object Ipo|Ctrl L, 2",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 	
-	if(ob->type==OB_MESH) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mesh Data|Ctrl L, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Materials|Ctrl L, 4",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	} else if(ob->type==OB_CURVE) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Curve Data|Ctrl L, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Materials|Ctrl L, 4",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	} else if(ob->type==OB_FONT) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Text Data|Ctrl L, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Materials|Ctrl L, 4",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	} else if(ob->type==OB_SURF) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Surface Data|Ctrl L, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Materials|Ctrl L, 4",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	} else if(ob->type==OB_MBALL) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Materials|Ctrl L, 3",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	} else if(ob->type==OB_CAMERA) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Camera Data|Ctrl L, 3",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	} else if(ob->type==OB_LAMP) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Lamp Data|Ctrl L, 3",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	} else if(ob->type==OB_LATTICE) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Lattice Data|Ctrl L, 3",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	} else if(ob->type==OB_ARMATURE) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Armature Data|Ctrl L, 3",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	if ((ob=OBACT)) {
+	
+		if(ob->type==OB_MESH) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mesh Data|Ctrl L, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Materials|Ctrl L, 4",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+		} else if(ob->type==OB_CURVE) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Curve Data|Ctrl L, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Materials|Ctrl L, 4",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+		} else if(ob->type==OB_FONT) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Text Data|Ctrl L, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Materials|Ctrl L, 4",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+		} else if(ob->type==OB_SURF) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Surface Data|Ctrl L, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Materials|Ctrl L, 4",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+		} else if(ob->type==OB_MBALL) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Materials|Ctrl L, 3",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+		} else if(ob->type==OB_CAMERA) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Camera Data|Ctrl L, 3",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+		} else if(ob->type==OB_LAMP) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Lamp Data|Ctrl L, 3",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+		} else if(ob->type==OB_LATTICE) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Lattice Data|Ctrl L, 3",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+		} else if(ob->type==OB_ARMATURE) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Armature Data|Ctrl L, 3",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+		}
 	}
 	
 	uiBlockSetDirection(block, UI_RIGHT);
@@ -1226,12 +1227,9 @@ static void do_view3d_edit_object_singleusermenu(void *arg, int event)
 
 static uiBlock *view3d_edit_object_singleusermenu(void *arg_unused)
 {
-	Object *ob;
-	
+
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
-
-	ob= OBACT;
 
 	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_object_singleusermenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_edit_object_singleusermenu, NULL);
@@ -1274,12 +1272,10 @@ static void do_view3d_edit_object_copyattrmenu(void *arg, int event)
 
 static uiBlock *view3d_edit_object_copyattrmenu(void *arg_unused)
 {
-	Object *ob;
+	Object *ob=NULL;
 	
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
-
-	ob= OBACT;
 
 	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_object_copyattrmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_edit_object_copyattrmenu, NULL);
@@ -1302,25 +1298,28 @@ static uiBlock *view3d_edit_object_copyattrmenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Object Constraints|Ctrl C, 11",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 22, "");
 	
-	if ((ob->type == OB_MESH) || (ob->type == OB_CURVE) || (ob->type == OB_SURF) ||
-			(ob->type == OB_FONT) || (ob->type == OB_MBALL)) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Texture Space|Ctrl C, 12",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
-	}	
+	if ((ob= OBACT)) {
 	
-	if(ob->type == OB_FONT) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Font Settings|Ctrl C, 13",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Bevel Settings|Ctrl C, 14",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
-	}
-	if(ob->type == OB_CURVE) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Bevel Settings|Ctrl C, 13",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
-	}
-
-	if(ob->type==OB_MESH) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Subdiv|Ctrl C, 13",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 21, "");
-	}
-
-	if( give_parteff(ob) ) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Particle Settings|Ctrl C, 14",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 20, "");
+		if ((ob->type == OB_MESH) || (ob->type == OB_CURVE) || (ob->type == OB_SURF) ||
+				(ob->type == OB_FONT) || (ob->type == OB_MBALL)) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Texture Space|Ctrl C, 12",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
+		}	
+		
+		if(ob->type == OB_FONT) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Font Settings|Ctrl C, 13",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Bevel Settings|Ctrl C, 14",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
+		}
+		if(ob->type == OB_CURVE) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Bevel Settings|Ctrl C, 13",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
+		}
+	
+		if(ob->type==OB_MESH) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Subdiv|Ctrl C, 13",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 21, "");
+		}
+	
+		if( give_parteff(ob) ) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Particle Settings|Ctrl C, 14",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 20, "");
+		}
 	}
 	
 	uiBlockSetDirection(block, UI_RIGHT);
@@ -2872,11 +2871,9 @@ static void do_view3d_faceselmenu(void *arg, int event)
 {
 	/* code copied from buttons.c :(	
 		would be nice if it was split up into functions */
-	Mesh *me;
-	Object *ob;
+	Mesh *me=NULL;
+	Object *ob=NULL;
 	extern TFace *lasttface; /* caches info on tface bookkeeping ?*/
-	
-	ob= OBACT;
 	
 	switch(event) {
 	case 0: /* copy draw mode */
