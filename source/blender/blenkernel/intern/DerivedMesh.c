@@ -386,22 +386,18 @@ static DerivedMesh *getMeshDerivedMesh(Object *ob, float *extverts, float *nors)
 	mdm->dm.convertToDispListMesh = meshDM_convertToDispListMesh;
 
 	mdm->dm.drawVerts = meshDM_drawVerts;
-	mdm->dm.drawMappedVertEM = NULL;
 	mdm->dm.drawMappedVertsEM = NULL;
-	mdm->dm.drawMappedVertsEMSelect = NULL;
 
 	mdm->dm.drawEdges = meshDM_drawEdges;
 	mdm->dm.drawMappedEdges = meshDM_drawEdges;
 	mdm->dm.drawLooseEdges = meshDM_drawLooseEdges;
 	mdm->dm.drawMappedEdgeEM = NULL;
 	mdm->dm.drawMappedEdgesEM = NULL;
-	mdm->dm.drawMappedEdgesEMSelect = NULL;
-	mdm->dm.drawMappedFacesEMSelect = NULL;
 
 	mdm->dm.drawFacesSolid = meshDM_drawFacesSolid;
 	mdm->dm.drawFacesColored = meshDM_drawFacesColored;
 	mdm->dm.drawFacesTex = meshDM_drawFacesTex;
-	mdm->dm.drawFacesEM = NULL;
+	mdm->dm.drawMappedFacesEM = NULL;
 
 	mdm->dm.release = MEM_freeN;
 	
@@ -428,42 +424,17 @@ static void emDM_getMappedVertCoEM(DerivedMesh *dm, void *vert, float co_r[3])
 	co_r[1] = eve->co[1];
 	co_r[2] = eve->co[2];
 }
-static void emDM_drawMappedVertEM(DerivedMesh *dm, void *vert)
-{
-	EditVert *eve = vert;
-
-	bglBegin(GL_POINTS);
-	bglVertex3fv(eve->co);
-	bglEnd();		
-}
-static void emDM_drawMappedVertsEM(DerivedMesh *dm, int sel)
+static void emDM_drawMappedVertsEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, void *vert), void *userData)
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditVert *eve;
 
 	bglBegin(GL_POINTS);
 	for(eve= emdm->em->verts.first; eve; eve= eve->next) {
-		if(eve->h==0 && (eve->f & SELECT)==sel ) 
+		if(!setDrawOptions || setDrawOptions(userData, eve))
 			bglVertex3fv(eve->co);
 	}
 	bglEnd();		
-}
-static int emDM_drawMappedVertsEMSelect(DerivedMesh *dm, void (*setColor)(int index), int offset)
-{
-	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
-	EditVert *eve;
-	int i = offset;
-
-	bglBegin(GL_POINTS);
-	for(eve= emdm->em->verts.first; eve; eve= eve->next, i++) {
-		if(eve->h==0) {
-			setColor(i);
-			bglVertex3fv(eve->co);
-		}
-	}
-	bglEnd();
-	
-	return i;
 }
 static void emDM_drawMappedEdgeEM(DerivedMesh *dm, void *edge)
 {
@@ -475,58 +446,43 @@ static void emDM_drawMappedEdgeEM(DerivedMesh *dm, void *edge)
 	glVertex3fv(eed->v2->co);
 	glEnd();
 }
-static void emDM_drawMappedEdgesEM(DerivedMesh *dm, int useColor, char *baseCol, char *selCol, int onlySeams) 
+static void emDM_drawMappedEdgesEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, void *edge), void *userData) 
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditEdge *eed;
 
 	glBegin(GL_LINES);
 	for(eed= emdm->em->edges.first; eed; eed= eed->next) {
-		if(eed->h==0 && (!onlySeams || eed->seam)) {
-			if (useColor==1) {
-				glColor4ubv((eed->f&SELECT)?selCol:baseCol);
-			} else if (useColor==2) {
-				glColor4ubv((eed->v1->f&SELECT)?selCol:baseCol);
-			}
+		if(!setDrawOptions || setDrawOptions(userData, eed)) {
 			glVertex3fv(eed->v1->co);
-			if (useColor==2) {
-				glColor4ubv((eed->v2->f&SELECT)?selCol:baseCol);
-			}
 			glVertex3fv(eed->v2->co);
 		}
 	}
 	glEnd();
 }
-static int emDM_drawMappedEdgesEMSelect(DerivedMesh *dm, void (*setColor)(int index), int offset)
+static void emDM_drawMappedEdgesInterpEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, void *edge), void (*setDrawInterpOptions)(void *userData, void *edge, float t), void *userData) 
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditEdge *eed;
-	int i;
 
-	i = offset;
 	glBegin(GL_LINES);
-	for(eed= emdm->em->edges.first; eed; eed= eed->next, i++) {
-		if (eed->h==0) {
-			setColor(i);
+	for(eed= emdm->em->edges.first; eed; eed= eed->next) {
+		if(!setDrawOptions || setDrawOptions(userData, eed)) {
+			setDrawInterpOptions(userData, eed, 0.0);
 			glVertex3fv(eed->v1->co);
+			setDrawInterpOptions(userData, eed, 1.0);
 			glVertex3fv(eed->v2->co);
 		}
 	}
 	glEnd();
-
-	return i;
 }
-static void emDM_drawFacesEM(DerivedMesh *dm, int useColor, unsigned char *baseCol, unsigned char *selCol)
+static void emDM_drawMappedFacesEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, void *face), void *userData)
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditFace *efa;
 
 	for (efa= emdm->em->faces.first; efa; efa= efa->next) {
-		if(efa->h==0) {
-			if (useColor) {
-				glColor4ubv((efa->f & SELECT)?selCol:baseCol);
-			}
-
+		if(!setDrawOptions || setDrawOptions(userData, efa)) {
 			glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
 			glVertex3fv(efa->v1->co);
 			glVertex3fv(efa->v2->co);
@@ -554,27 +510,6 @@ static void emDM_drawFacesSolid(DerivedMesh *dm, void (*setMaterial)(int))
 			glEnd();
 		}
 	}
-}
-static int emDM_drawMappedFacesEMSelect(DerivedMesh *dm, void (*setColor)(int index), int offset)
-{
-	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
-	EditFace *efa;
-	int i = offset;
-
-	for (efa= emdm->em->faces.first; efa; efa= efa->next, i++) {
-		if (efa->h==0) {
-			setColor(i);
-
-			glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
-			glVertex3fv(efa->v1->co);
-			glVertex3fv(efa->v2->co);
-			glVertex3fv(efa->v3->co);
-			if(efa->v4) glVertex3fv(efa->v4->co);
-			glEnd();
-		}
-	}
-
-	return i;
 }
 
 static int emDM_getNumVerts(DerivedMesh *dm)
@@ -607,22 +542,19 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em)
 	emdm->dm.convertToDispListMesh = emDM_convertToDispListMesh;
 
 	emdm->dm.drawVerts = NULL;
-	emdm->dm.drawMappedVertEM = emDM_drawMappedVertEM;
 	emdm->dm.drawMappedVertsEM = emDM_drawMappedVertsEM;
-	emdm->dm.drawMappedVertsEMSelect = emDM_drawMappedVertsEMSelect;
 
 	emdm->dm.drawEdges = NULL;
 	emdm->dm.drawMappedEdges = NULL;
 	emdm->dm.drawLooseEdges = NULL;
 	emdm->dm.drawMappedEdgeEM = emDM_drawMappedEdgeEM;
 	emdm->dm.drawMappedEdgesEM = emDM_drawMappedEdgesEM;
-	emdm->dm.drawMappedEdgesEMSelect = emDM_drawMappedEdgesEMSelect;
-	emdm->dm.drawMappedFacesEMSelect = emDM_drawMappedFacesEMSelect;
-
+	emdm->dm.drawMappedEdgesInterpEM = emDM_drawMappedEdgesInterpEM;
+	
 	emdm->dm.drawFacesSolid = emDM_drawFacesSolid;
 	emdm->dm.drawFacesColored = NULL;
 	emdm->dm.drawFacesTex = NULL;
-	emdm->dm.drawFacesEM = emDM_drawFacesEM;
+	emdm->dm.drawMappedFacesEM = emDM_drawMappedFacesEM;
 
 	emdm->dm.release = MEM_freeN;
 	
@@ -650,42 +582,17 @@ static void ssDM_getMappedVertCoEM(DerivedMesh *dm, void *vert, float co_r[3])
 	co_r[1] = eve->ssco[1];
 	co_r[2] = eve->ssco[2];
 }
-static void ssDM_drawMappedVertEM(DerivedMesh *dm, void *vert)
-{
-	EditVert *eve = vert;
-
-	bglBegin(GL_POINTS);
-	bglVertex3fv(eve->ssco);
-	bglEnd();		
-}
-static void ssDM_drawMappedVertsEM(DerivedMesh *dm, int sel)
+static void ssDM_drawMappedVertsEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, void *vert), void *userData)
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
 	EditVert *eve;
 
 	bglBegin(GL_POINTS);
 	for (eve=ssdm->em->verts.first; eve; eve=eve->next) {
-		if(eve->h==0 && (eve->f & SELECT)==sel && eve->ssco) 
+		if(eve->ssco && (!setDrawOptions || setDrawOptions(userData, eve)))
 			bglVertex3fv(eve->ssco);
 	}
 	bglEnd();
-}
-static int ssDM_drawMappedVertsEMSelect(DerivedMesh *dm, void (*setColor)(int index), int offset)
-{
-	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
-	EditVert *eve;
-	int i = offset;
-
-	bglBegin(GL_POINTS);
-	for(eve= ssdm->em->verts.first; eve; eve= eve->next, i++) {
-		if(eve->h==0 && eve->ssco) {
-			setColor(i);
-			bglVertex3fv(eve->ssco);
-		}
-	}
-	bglEnd();
-	
-	return i;
 }
 
 static void ssDM_drawMappedEdges(DerivedMesh *dm)
@@ -730,7 +637,7 @@ static void ssDM_drawMappedEdgeEM(DerivedMesh *dm, void *edge)
 	}
 	glEnd();
 }
-static void ssDM_drawMappedEdgesEM(DerivedMesh *dm, int useColor, unsigned char *baseCol, unsigned char *selCol, int onlySeams) 
+static void ssDM_drawMappedEdgesEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, void *edge), void *userData)
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
 	DispListMesh *dlm = ssdm->dlm;
@@ -743,45 +650,13 @@ static void ssDM_drawMappedEdgesEM(DerivedMesh *dm, int useColor, unsigned char 
 		if (medge->flag&ME_EDGEDRAW) {
 			EditEdge *eed = dlm->editedge[a];
 
-			if (eed && eed->h==0 && (!onlySeams || eed->seam)) {
-				if (useColor) {
-					glColor4ubv((eed->f&SELECT)?selCol:baseCol);
-				}
+			if (eed && (!setDrawOptions || setDrawOptions(userData, eed))) {
 				glVertex3fv(mvert[medge->v1].co); 
 				glVertex3fv(mvert[medge->v2].co);
 			}
 		}
 	}
 	glEnd();
-}
-static int ssDM_drawMappedEdgesEMSelect(DerivedMesh *dm, void (*setColor)(int index), int offset)
-{
-	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
-	DispListMesh *dlm = ssdm->dlm;
-	int i, endOffset;
-	MVert *mvert= dlm->mvert;
-	MEdge *medge= dlm->medge;
-	EditEdge *eed;
-
-	i = offset;
-	for(eed= ssdm->em->edges.first; eed; eed= eed->next)
-		eed->vn= (EditVert*) i++;
-	endOffset = i;
-
-	glBegin(GL_LINES);
-	for (i=0; i<dlm->totedge; i++, medge++) {
-		if(medge->flag & ME_EDGEDRAW) {
-			EditEdge *eed= dlm->editedge[i];
-			if(eed && eed->h==0) {
-				setColor((int) eed->vn);
-				glVertex3fv(mvert[medge->v1].co); 
-				glVertex3fv(mvert[medge->v2].co);
-			}
-		}
-	}
-	glEnd();
-
-	return endOffset;
 }
 static void ssDM_drawVerts(DerivedMesh *dm)
 {
@@ -938,7 +813,7 @@ static void ssDM_drawFacesColored(DerivedMesh *dm, int useTwoSided, unsigned cha
 	
 #undef PASSVERT
 }
-static void ssDM_drawFacesEM(DerivedMesh *dm, int useColor, unsigned char *baseCol, unsigned char *selCol)
+static void ssDM_drawMappedFacesEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, void *face), void *userData)
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
 	DispListMesh *dlm = ssdm->dlm;
@@ -947,48 +822,16 @@ static void ssDM_drawFacesEM(DerivedMesh *dm, int useColor, unsigned char *baseC
 
 	for(a=0; a<dlm->totface; a++, mface++) {
 		if(mface->v3) {
-			if (useColor) {
-				glColor4ubv((dlm->editface[a]->f & SELECT)?selCol:baseCol);
+			if (!setDrawOptions || setDrawOptions(userData, dlm->editface[a])) {
+				glBegin(mface->v4?GL_QUADS:GL_TRIANGLES);
+				glVertex3fv(dlm->mvert[mface->v1].co);
+				glVertex3fv(dlm->mvert[mface->v2].co);
+				glVertex3fv(dlm->mvert[mface->v3].co);
+				if (mface->v4) glVertex3fv(dlm->mvert[mface->v4].co);
+				glEnd();
 			}
-			
-			glBegin(mface->v4?GL_QUADS:GL_TRIANGLES);
-			glVertex3fv(dlm->mvert[mface->v1].co);
-			glVertex3fv(dlm->mvert[mface->v2].co);
-			glVertex3fv(dlm->mvert[mface->v3].co);
-			if (mface->v4) glVertex3fv(dlm->mvert[mface->v4].co);
-			glEnd();
 		}
 	}
-}
-static int ssDM_drawMappedFacesEMSelect(DerivedMesh *dm, void (*setColor)(int index), int offset)
-{
-	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
-	DispListMesh *dlm = ssdm->dlm;
-	MFace *mface= dlm->mface;
-	int i, endOffset;
-	EditFace *prevefa, *efa;
-
-	for (i=offset, efa=ssdm->em->faces.first; efa; efa= efa->next, i++)
-		efa->prev = (EditFace*) i;
-	endOffset = i;
-
-	for(i=0; i<dlm->totface; i++, mface++) {
-		if(mface->v3 && dlm->editface[i]->h==0) {
-			setColor((int) dlm->editface[i]->prev);
-			
-			glBegin(mface->v4?GL_QUADS:GL_TRIANGLES);
-			glVertex3fv(dlm->mvert[mface->v1].co);
-			glVertex3fv(dlm->mvert[mface->v2].co);
-			glVertex3fv(dlm->mvert[mface->v3].co);
-			if (mface->v4) glVertex3fv(dlm->mvert[mface->v4].co);
-			glEnd();
-		}
-	}
-
-	for (prevefa= NULL, efa= ssdm->em->faces.first; efa; prevefa= efa, efa= efa->next)
-		efa->prev= prevefa;
-
-	return endOffset;
 }
 
 static void ssDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf, int matnr)) 
@@ -1087,22 +930,19 @@ DerivedMesh *derivedmesh_from_displistmesh(EditMesh *em, DispListMesh *dlm)
 	ssdm->dm.convertToDispListMesh = ssDM_convertToDispListMesh;
 
 	ssdm->dm.drawVerts = ssDM_drawVerts;
-	ssdm->dm.drawMappedVertEM = ssDM_drawMappedVertEM;
 	ssdm->dm.drawMappedVertsEM = ssDM_drawMappedVertsEM;
-	ssdm->dm.drawMappedVertsEMSelect = ssDM_drawMappedVertsEMSelect;
 
 	ssdm->dm.drawEdges = ssDM_drawEdges;
 	ssdm->dm.drawMappedEdges = ssDM_drawMappedEdges;
 	ssdm->dm.drawLooseEdges = ssDM_drawLooseEdges;
 	ssdm->dm.drawMappedEdgeEM = ssDM_drawMappedEdgeEM;
 	ssdm->dm.drawMappedEdgesEM = ssDM_drawMappedEdgesEM;
-	ssdm->dm.drawMappedEdgesEMSelect = ssDM_drawMappedEdgesEMSelect;
-	ssdm->dm.drawMappedFacesEMSelect = ssDM_drawMappedFacesEMSelect;
+	ssdm->dm.drawMappedEdgesInterpEM = NULL;
 
 	ssdm->dm.drawFacesSolid = ssDM_drawFacesSolid;
 	ssdm->dm.drawFacesColored = ssDM_drawFacesColored;
 	ssdm->dm.drawFacesTex = ssDM_drawFacesTex;
-	ssdm->dm.drawFacesEM = ssDM_drawFacesEM;
+	ssdm->dm.drawMappedFacesEM = ssDM_drawMappedFacesEM;
 
 	ssdm->dm.release = ssDM_release;
 	

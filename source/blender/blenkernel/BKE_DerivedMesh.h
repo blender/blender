@@ -94,55 +94,33 @@ struct DerivedMesh {
 			 */
 	void (*drawFacesTex)(DerivedMesh *dm, int (*setDrawParams)(TFace *tf, int matnr));
 
-			/* Draw single mapped vert as bgl point (no options) */
-	void (*drawMappedVertEM)(DerivedMesh *dm, void *vert);
-
 			/* Draw mapped vertices as bgl points
-			 *  o Only if mapped EditVert->h==0
+			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-vert) returns true
 			 */
-	void (*drawMappedVertsEM)(DerivedMesh *dm, int sel);
+	void (*drawMappedVertsEM)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, void *vert), void *userData);
 
 			/* Draw single mapped edge as lines (no options) */
 	void (*drawMappedEdgeEM)(DerivedMesh *dm, void *edge);
 
 			/* Draw mapped edges as lines
-			 *  o If useColor==0, don't set color
-			 *  o If useColor==1, set color based on mapped (EditEdge->f&SELECT)
-			 *  o If useColor==2, set color based on mapped (EditVert->f&SELECT)
-			 *     - Should interpolate as nicely as possible across edge.
-			 *  o If onlySeams, only draw if mapped (EditEdge->seam)
-			 *  o Only if mapped EditEdge->h==0
+			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-edge) returns true
 			 */
-	void (*drawMappedEdgesEM)(DerivedMesh *dm, int useColor, unsigned char *baseCol, unsigned char *selCol, int onlySeams);
+	void (*drawMappedEdgesEM)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, void *edge), void *userData);
+
+			/* Draw mapped edges as lines with interpolation values
+			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-edge, mapped-v0, mapped-v1, t) returns true
+			 *
+			 * NOTE: This routine is optional!
+			 */
+	void (*drawMappedEdgesInterpEM)(DerivedMesh *dm, 
+									int (*setDrawOptions)(void *userData, void *edge), 
+									void (*setDrawInterpOptions)(void *userData, void *edge, float t),
+									void *userData);
 
 			/* Draw all faces
-			 *  o If useColor, set color based on mapped (EditFace->f&SELECT)
+			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-face) returns true
 			 */
-	void (*drawFacesEM)(DerivedMesh *dm, int useColor, unsigned char *baseCol, unsigned char *selCol);
-
-			/* Draw mapped verts as bgl points
-			 *  o Call setColor(offset+index) for each vert, where index is the
-			 *    vert's index in the EditMesh. Return offset+count where count
-			 *    is the total number of mapped verts.
-			 *  o Only if mapped EditVert->h==0
-			 */
-	int (*drawMappedVertsEMSelect)(DerivedMesh *dm, void (*setColor)(int index), int offset);
-
-			/* Draw mapped edges as lines
-			 *  o Call setColor(offset+index) for each edge, where index is the
-			 *    edge's index in the EditMesh. Return offset+count where count
-			 *    is the total number of mapped edges.
-			 *  o Only if mapped EditEdge->h==0
-			 */
-	int (*drawMappedEdgesEMSelect)(DerivedMesh *dm, void (*setColor)(int index), int offset);
-
-			/* Draw mapped faces
-			 *  o Call setColor(offset+index) for each face, where index is the
-			 *    face's index in the EditMesh. Return offset+count where count
-			 *    is the total number of mapped faces.
-			 *  o Only if mapped EditFace->h==0
-			 */
-	int (*drawMappedFacesEMSelect)(DerivedMesh *dm, void (*setColor)(int index), int offset);
+	void (*drawMappedFacesEM)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, void *face), void *userData);
 
 	void (*release)(DerivedMesh *dm);
 };

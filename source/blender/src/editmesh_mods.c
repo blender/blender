@@ -685,21 +685,31 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 			dm->drawMappedEdgeEM(dm, eed);
 		}
 		if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+			float co[3];
 			glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));
 			
 			BIF_ThemeColor((eed->f & SELECT)?TH_VERTEX_SELECT:TH_VERTEX);
 			
-			dm->drawMappedVertEM(dm, eed->v1);
-			dm->drawMappedVertEM(dm, eed->v2);
+			bglBegin(GL_POINTS);
+			dm->getMappedVertCoEM(dm, eed->v1, co);
+			bglVertex3fv(co);
+
+			dm->getMappedVertCoEM(dm, eed->v2, co);
+			bglVertex3fv(co);
+			bglEnd();
 		}
 	}
 	if(eve) {
 		if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+			float co[3];
 			glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));
 			
 			BIF_ThemeColor((eve->f & SELECT)?TH_VERTEX_SELECT:TH_VERTEX);
 			
-			dm->drawMappedVertEM(dm, eve);
+			bglBegin(GL_POINTS);
+			dm->getMappedVertCoEM(dm, eve, co);
+			bglVertex3fv(co);
+			bglEnd();
 		}
 	}
 

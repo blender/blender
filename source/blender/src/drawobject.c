@@ -1197,10 +1197,6 @@ static unsigned char *calc_weightpaint_colors(Object *ob)
  * logic!!!
  */
 
-	// draw editmesh face normals as lines
-	//  o no color
-	//  o only if efa->h==0, efa->fgonf!=EM_FGON
-	//  o scale normal by normalLength parameter
 static void draw_em_face_normals(EditMesh *em, float normalLength)
 {
 	EditFace *efa;
@@ -1218,9 +1214,6 @@ static void draw_em_face_normals(EditMesh *em, float normalLength)
 	glEnd();
 }
 
-	// draw editmesh face centers as bgl points
-	//  o no color
-	//  o only if efa->h, efa->fgonf!=EM_FGON, matching sel
 static void draw_em_face_centers(EditMesh *em, int sel) {
 	EditFace *efa;
 
@@ -1231,6 +1224,101 @@ static void draw_em_face_centers(EditMesh *em, int sel) {
 		}
 	}
 	bglEnd();
+}
+
+
+	/* Draw verts with color set based on selection */
+static int draw_dm_verts__setDrawOptions(void *userData, void *vert)
+{
+	EditVert *eve = vert;
+	int sel = *((int*) userData);
+
+	return (eve->h==0 && (eve->f&SELECT)==sel);
+}
+static void draw_dm_verts(DerivedMesh *dm, int sel)
+{
+	dm->drawMappedVertsEM(dm, draw_dm_verts__setDrawOptions, &sel);
+}
+
+	/* Draw edges with color set based on selection */
+static int draw_dm_edges_sel__setDrawOptions(void *userData, void *edge)
+{
+	EditEdge *eed = edge;
+	unsigned char **cols = userData;
+
+	if (eed->h==0) {
+		glColor4ubv(cols[(eed->f&SELECT)?1:0]);
+		return 1;
+	} else {
+		return 0;
+	}
+}
+static void draw_dm_edges_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol) 
+{
+	unsigned char *cols[2];
+	cols[0] = baseCol;
+	cols[1] = selCol;
+	dm->drawMappedEdgesEM(dm, draw_dm_edges_sel__setDrawOptions, cols);
+}
+
+	/* Draw edges with color interpolated based on selection */
+static int draw_dm_edges_sel_interp__setDrawOptions(void *userData, void *edge)
+{
+	EditEdge *eed = edge;
+
+	return (eed->h==0);
+}
+static void draw_dm_edges_sel_interp__setDrawInterpOptions(void *userData, void *edge, float t)
+{
+	EditEdge *eed = edge;
+	unsigned char **cols = userData;
+	unsigned char *col0 = cols[(eed->v1->f&SELECT)?1:0];
+	unsigned char *col1 = cols[(eed->v2->f&SELECT)?1:0];
+
+	glColor4ub(	col0[0] + (col1[0]-col0[0])*t,
+				col0[1] + (col1[1]-col0[1])*t,
+				col0[2] + (col1[2]-col0[2])*t,
+				col0[3] + (col1[3]-col0[3])*t);
+}
+static void draw_dm_edges_sel_interp(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol)
+{
+	unsigned char *cols[2];
+	cols[0] = baseCol;
+	cols[1] = selCol;
+	dm->drawMappedEdgesInterpEM(dm, draw_dm_edges_sel_interp__setDrawOptions, draw_dm_edges_sel_interp__setDrawInterpOptions, cols);
+}
+
+	/* Draw only seam edges */
+static int draw_dm_edges_seams__setDrawOptions(void *userData, void *edge)
+{
+	EditEdge *eed = edge;
+
+	return (eed->h==0 && eed->seam);
+}
+static void draw_dm_edges_seams(DerivedMesh *dm)
+{
+	dm->drawMappedVertsEM(dm, draw_dm_edges_seams__setDrawOptions, NULL);
+}
+
+	/* Draw faces with color set based on selection */
+static int draw_dm_faces_sel__setDrawOptions(void *userData, void *face)
+{
+	EditFace *efa = face;
+	unsigned char **cols = userData;
+
+	if (efa->h==0) {
+		glColor4ubv(cols[(efa->f&SELECT)?1:0]);
+		return 1;
+	} else {
+		return 0;
+	}
+}
+static void draw_dm_faces_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol) 
+{
+	unsigned char *cols[2];
+	cols[0] = baseCol;
+	cols[1] = selCol;
+	dm->drawMappedFacesEM(dm, draw_dm_faces_sel__setDrawOptions, cols);
 }
 
 /* Second section of routines: Combine first sets to form fancy
@@ -1279,7 +1367,7 @@ static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM)
 			if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 				glPointSize(size);
 				glColor4ubv(col);
-				cageDM->drawMappedVertsEM(cageDM, sel);
+				draw_dm_verts(cageDM, sel);
 			}
 			
 			if(G.scene->selectmode & SCE_SELECT_FACE) {
@@ -1325,20 +1413,20 @@ static void draw_em_fancy_edges(DerivedMesh *cageDM)
 		}
 
 		if(G.scene->selectmode == SCE_SELECT_FACE) {
-			cageDM->drawMappedEdgesEM(cageDM, 1, wire, sel, 0);
+			draw_dm_edges_sel(cageDM, wire, sel);
 		}	
 		else if( (G.f & G_DRAWEDGES) || (G.scene->selectmode & SCE_SELECT_EDGE) ) {	
-			if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+			if(cageDM->drawMappedEdgesInterpEM && (G.scene->selectmode & SCE_SELECT_VERTEX)) {
 				glShadeModel(GL_SMOOTH);
-				cageDM->drawMappedEdgesEM(cageDM, 2, wire, sel, 0);
+				draw_dm_edges_sel_interp(cageDM, wire, sel);
 				glShadeModel(GL_FLAT);
 			} else {
-				cageDM->drawMappedEdgesEM(cageDM, 1, wire, sel, 0);
+				draw_dm_edges_sel(cageDM, wire, sel);
 			}
 		}
 		else {
 			glColor4ubv(wire);
-			cageDM->drawMappedEdgesEM(cageDM, 0, NULL, NULL, 0);
+			cageDM->drawMappedEdgesEM(cageDM, NULL, NULL);
 		}
 
 		if (pass==0) {
@@ -1533,7 +1621,7 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *baseDM, Derived
 		if (realDM) {
 			BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
 			if (me->flag&ME_OPT_EDGES) {
-				realDM->drawMappedEdgesEM(realDM, 0, NULL, NULL, 0);
+				realDM->drawMappedEdgesEM(realDM, NULL, NULL);
 			} else {
 				realDM->drawEdges(realDM);
 			}
@@ -1550,7 +1638,7 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *baseDM, Derived
 		glEnable(GL_BLEND);
 		glDepthMask(0);		// disable write in zbuffer, needed for nice transp
 		
-		cageDM->drawFacesEM(cageDM, 1, col1, col2);
+		draw_dm_faces_sel(cageDM, col1, col2);
 
 		glDisable(GL_BLEND);
 		glDepthMask(1);		// restore write in zbuffer
@@ -1562,7 +1650,7 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *baseDM, Derived
 		BIF_ThemeColor(TH_EDGE_SEAM);
 		glLineWidth(2);
 
-		cageDM->drawMappedEdgesEM(cageDM, 0, NULL, NULL, 1);
+		draw_dm_edges_seams(cageDM);
 
 		glColor3ub(0,0,0);
 		glLineWidth(1);
@@ -3630,22 +3718,68 @@ void draw_object_ext(Base *base)
 
 /* ***************** BACKBUF SEL (BBS) ********* */
 
+static int bbs_mesh_verts__setDrawOptions(void *userData, void *vert)
+{
+	EditVert *eve = vert;
+
+	if (eve->h==0) {
+		set_framebuffer_index_color((int) eve->prev);
+		return 1;
+	} else {
+		return 0;
+	}
+}
 static int bbs_mesh_verts(DerivedMesh *dm, int offset)
 {
-	int retval;
-	
+	EditVert *eve, *preveve;
+
+	for (eve=G.editMesh->verts.first; eve; eve= eve->next)
+		eve->prev = (EditVert*) offset++;
+
 	glPointSize( BIF_GetThemeValuef(TH_VERTEX_SIZE) );
-	retval = dm->drawMappedVertsEMSelect(dm, set_framebuffer_index_color, offset);
+	dm->drawMappedVertsEM(dm, bbs_mesh_verts__setDrawOptions, NULL);
 	glPointSize(1.0);
 
-	return retval;
+	for (preveve=NULL, eve=G.editMesh->verts.first; eve; preveve=eve, eve= eve->next)
+		eve->prev = eve;
+
+	return offset;
 }		
 
+static int bbs_mesh_wire__setDrawOptions(void *userData, void *edge)
+{
+	EditEdge *eed = edge;
+
+	if (eed->h==0) {
+		set_framebuffer_index_color((int) eed->vn);
+		return 1;
+	} else {
+		return 0;
+	}
+}
 static int bbs_mesh_wire(DerivedMesh *dm, int offset)
 {
-	return dm->drawMappedEdgesEMSelect(dm, set_framebuffer_index_color, offset);
+	EditEdge *eed;
+
+	for(eed= G.editMesh->edges.first; eed; eed= eed->next)
+		eed->vn= (EditVert*) offset++;
+
+	dm->drawMappedEdgesEM(dm, bbs_mesh_wire__setDrawOptions, NULL);
+
+	return offset;
 }		
-		
+
+static int bbs_mesh_solid__setDrawOptions(void *userData, void *face)
+{
+	EditFace *efa = face;
+
+	if (efa->h==0) {
+		set_framebuffer_index_color((int) efa->prev);
+		return 1;
+	} else {
+		return 0;
+	}
+}
 /* two options, facecolors or black */
 static int bbs_mesh_solid(Object *ob, DerivedMesh *dm, int facecol)
 {
@@ -3658,12 +3792,12 @@ static int bbs_mesh_solid(Object *ob, DerivedMesh *dm, int facecol)
 			EditFace *efa, *prevefa;
 			int b;
 
-			dm->drawMappedFacesEMSelect(dm, set_framebuffer_index_color, 1);
-
 				// tuck original indices in efa->prev
 			for(b=1, efa= G.editMesh->faces.first; efa; efa= efa->next, b++) 
 				efa->prev= (EditFace *)(b);
 			a = b;
+
+			dm->drawMappedFacesEM(dm, bbs_mesh_solid__setDrawOptions, NULL);
 
 			if(G.scene->selectmode & SCE_SELECT_FACE) {
 				glPointSize(BIF_GetThemeValuef(TH_FACEDOT_SIZE));
@@ -3682,7 +3816,7 @@ static int bbs_mesh_solid(Object *ob, DerivedMesh *dm, int facecol)
 				efa->prev= prevefa;
 			return a;
 		} else {
-			dm->drawFacesEM(dm, 0, NULL, NULL);
+			dm->drawMappedFacesEM(dm, NULL, NULL);
 			return 1;
 		}
 	}
