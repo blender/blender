@@ -15,11 +15,36 @@ __version__ = "Part of IOSuite 0.5"
 __bpydoc__ = """\
 This script exports meshes to Nendo file format.
 
-Usage:
+Nendo is (was) a commercial polygon modeler that has about half of the
+features found in Wings. The .ndo file format is a simple, uncompressed,
+memory dump of structures that represent the mesh objects, uv coords,
+and image textures.
 
-Select meshes to be exported and run this script from "File->Export" menu.
+Usage:<br>
+	Select meshes to be exported and run this script from "File->Export" menu.
+
+Supported:<br>
+	1. Exports meshes only. Hint: use ALT-C to convert non-mesh objects,
+and CTRL-ALT-A if you have "dupliverts" objects.<br>
+	2. Exports Vertex Colors & Radiosity Solutions.
+
+Missing:<br>
+	Materials and UV Coordinates info will be ignored.
+
+Known issues:<br>
+	Exports only well-behaved and topologically correct meshes (i.e,
+closed meshes, manifolds, meshes imported from wings, etc). The mesh
+cannot have duplicate vertices, missing faces (holes), open edges, etc.<br>
+	PowerUser Hint: In editmode, if CTRL-ALT-SHIFT-M results in a selection,
+then your mesh is not a manifold and most likely will not export.
+
+Notes:<br>
+	Blender & Wings can read/write ndo files with a maximum of 65,535 edges.
+Nendo can read/write ndo files with a maximum of 32,767 edges.<br>
+	If you have a very large mesh that you want to import into nendo, modify
+the 'write_edge_table' function to use a signed integer (i.e., ">h") for the 'len(edge_table)'
+field.
 """
-
 
 # $Id$
 #

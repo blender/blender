@@ -15,10 +15,28 @@ __version__ = "Part of IOSuite 0.5"
 __bpydoc__ = """\
 This script imports LightWave files to Blender.
 
-Usage:
+LightWave is a full-featured commercial modeling and rendering
+application. The lwo file format is composed of 'chunks,' is well
+defined, and easy to read and write. It is similar in structure to the
+trueSpace cob format.
 
-Execute this script from the "File->Import" menu and choose a LightWave file to
-open.
+Usage:<br>
+	Execute this script from the "File->Import" menu and choose a LightWave
+file to open.
+
+Supported:<br>
+	Meshes only.
+
+Missing:<br>
+    Materials, UV Coordinates, and Vertex Color info will be ignored.
+
+Known issues:<br>
+	Triangulation of convex polygons works fine, and uses a very simple
+fanning algorithm. Convex polygons (i.e., shaped like the letter "U")
+require a different algorithm, and will be triagulated incorrectly.
+
+Notes:<br>
+	Also reads lwo files in the old LW v5.5 format.
 """
 
 # $Id$

@@ -15,12 +15,14 @@ __version__ = "Part of IOSuite 0.5"
 __bpydoc__ = """\
 This script imports Radiosity files to Blender.
 
-Usage:
+The Radiosity file format is my own personal format. I created it to
+learn how meshes and vertex colors were stored. See IO-Examples.zip, the
+example *.radio files on my web page.
 
-Execute this script from the "File->Import" menu and choose a Radiosity file to
-open.
+Usage:<br>
+	Execute this script from the "File->Import" menu and choose a Radiosity
+file to open.
 """
-
 
 # $Id$
 #

@@ -15,9 +15,14 @@ __version__ = "Part of IOSuite 0.5"
 __bpydoc__ = """\
 This script exports meshes to Raw Triangle file format.
 
-Usage:
+The raw triangle format is very simple; it has no verts or faces lists.
+It's just a simple ascii text file with the vertices of each triangle
+listed on each line. There were some very old utilities (when the PovRay
+forum was in existence on CompuServe) that preformed operations on these
+files.
 
-Select meshes to be exported and run this script from "File->Export" menu.
+Usage:<br>
+	Select meshes to be exported and run this script from "File->Export" menu.
 """
 
 

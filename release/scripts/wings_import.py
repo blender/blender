@@ -14,12 +14,30 @@ __url__ = ("blender", "elysiun",
 __version__ = "Part of IOSuite 0.5"
 
 __bpydoc__ = """\
-This script imports Wings 3d files to Blender.
+This script imports Wings3D files to Blender.
 
-Usage:
+Wings3D is an open source polygon modeler written in Erlang, a
+language similar to Lisp. The .wings file format is a binary
+representation of erlang terms (lists, tuples, atoms, etc.) and is
+compressed with zlib.
 
-Execute this script from the "File->Import" menu and choose a Wings file to
-open.
+Usage:<br>
+  Execute this script from the "File->Import" menu and choose a Wings file
+to open.
+
+Supported:<br>
+	Meshes only. Not guaranteed to work in all situations.
+
+Missing:<br>
+  Materials, UV Coordinates, and Vertex Color info will be ignored.
+
+Known issues:<br>
+	Triangulation of convex polygons works fine, and uses a very simple
+fanning algorithm. Convex polygons (i.e., shaped like the letter "U")
+require a different algorithm, and will be triagulated incorrectly.
+
+Notes:<br>
+	Last tested with Wings 3D 0.98.25 & Blender 2.35a.
 """
 
 # $Id$

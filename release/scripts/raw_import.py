@@ -15,12 +15,21 @@ __version__ = "Part of IOSuite 0.5"
 __bpydoc__ = """\
 This script imports Raw Triangle File format files to Blender.
 
-Usage:
+The raw triangle format is very simple; it has no verts or faces lists.
+It's just a simple ascii text file with the vertices of each triangle
+listed on each line. There were some very old utilities (when the PovRay
+forum was in existence on CompuServe) that preformed operations on these
+files.
 
-Execute this script from the "File->Import" menu and choose a Raw file to
+Usage:<br>
+	Execute this script from the "File->Import" menu and choose a Raw file to
 open.
-"""
 
+Notes:<br>
+	Generates the standard verts and faces lists, but without duplicate
+verts. Only *exact* duplicates are removed, there is no way to specify a
+tolerance.
+"""
 
 # $Id$
 #

@@ -15,9 +15,38 @@ __version__ = "Part of IOSuite 0.5"
 __bpydoc__ = """\
 This script exports meshes to TrueSpace file format.
 
-Usage:
+TrueSpace is a commercial modeling and rendering application. The .cob
+file format is composed of 'chunks,' is well defined, and easy to read and
+write. It's very similar to LightWave's lwo format.
 
-Select meshes to be exported and run this script from "File->Export" menu.
+Usage:<br>
+	Select meshes to be exported and run this script from "File->Export" menu.
+
+Supported:<br>
+	Vertex colors will be exported, if they are present.
+
+Known issues:<br>
+	Before exporting to .cob format, the mesh must have real-time UV
+coordinates.  Press the FKEY to assign them.
+
+Notes:<br>
+	There are a few differences between how Blender & TrueSpace represent
+their objects' transformation matrices. Blender simply uses a 4x4 matrix,
+and trueSpace splits it into the following two fields.
+
+	For the 'Local Axes' values: The x, y, and z-axis represent a simple
+rotation matrix.  This is equivalent to Blender's object matrix before
+it was combined with the object's scaling matrix. Dividing each value by
+the appropriate scaling factor (and transposing at the same time)
+produces the original rotation matrix.
+
+	For the 'Current Position' values:	This is equivalent to Blender's
+object matrix except that the last row is omitted and the xyz location
+is used in the last column. Binary format uses a 4x3 matrix, ascii
+format uses a 4x4 matrix.
+
+For Cameras: The matrix here gets a little confusing, and I'm not sure of 
+how to handle it.
 """
 
 

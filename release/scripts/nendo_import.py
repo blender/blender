@@ -15,12 +15,31 @@ __version__ = "Part of IOSuite 0.5"
 __bpydoc__ = """\
 This script imports Nendo files to Blender.
 
-Usage:
+Nendo is (was) a commercial polygon modeler that has about half of the
+features found in Wings. The .ndo file format is a simple, uncompressed,
+memory dump of structures that represent the mesh objects, uv coords,
+and image textures.
 
-Execute this script from the "File->Import" menu and choose a Nendo file to
-open.
+Usage:<br>
+	Execute this script from the "File->Import" menu and choose a Nendo file
+to open.
+
+Supported:<br>
+	Meshes only.
+
+Missing:<br>
+    Materials, UV Coordinates, and Vertex Color info will be ignored.
+
+Known issues:<br>
+	Triangulation of convex polygons works fine, and uses a very simple
+fanning algorithm. Convex polygons (i.e., shaped like the letter "U")
+require a different algorithm, and will be triagulated incorrectly.
+
+Notes:<br>
+	Last tested with Wings 3D 0.98.25 & Nendo 1.1.6. Some models cannot be
+imported due to the fact that Nendo erroneously creates doubled back
+edges during the course of modeling.
 """
-
 
 # $Id$
 #

@@ -202,8 +202,11 @@ def getUniqueName(name):
 			name += '.' + str(uniqueInt)
 			uniqueInt +=1
 		except:
-			return name
-
+			if NMesh.GetRaw(name) == None:
+				return name
+			else:
+				name += '.' + str(uniqueInt)
+				uniqueInt +=1
 
 #==================================================================================#
 # This loads data from .obj file                                                   #
@@ -215,16 +218,16 @@ def load_obj(file):
 		if len( meshList[objectName][0].materials ) >= MATLIMIT:
 			print 'Warning, max material limit reached, using an existing material'
 			return meshList[objectName][0]
-    
+		
 		mIdx = 0
 		for m in meshList[objectName][0].materials:
 			if m.getName() == mat.getName():
 				break
 			mIdx+=1
-    
+		
 		if mIdx == len(mesh.materials):
 			meshList[objectName][0].addMaterial(mat)
-    
+		
 		f.mat = mIdx
 		return f
 
@@ -263,25 +266,26 @@ def load_obj(file):
 	# Load all verts first (texture verts too)                                         #
 	#==================================================================================#
 	lIdx = 0
+	print len(fileLines)
 	while lIdx < len(fileLines):
-		l = fileLines[lIdx]
-
-		# EMPTY LINE
-		if len(l) == 0 or l[0] == '#':
-			pass
 		
-		# VERTEX
+		l = fileLines[lIdx]
+		if len(l) == 0:
+			fileLines.pop(lIdx)
+			lIdx-=1			
+			
 		elif l[0] == 'v':
 			# This is a new vert, make a new mesh
 			vertList.append( NMesh.Vert(float(l[1]), float(l[2]), float(l[3]) ) )
-			fileLines.remove(fileLines[lIdx])
+			fileLines.pop(lIdx)
 			lIdx-=1
+
 		
 		# UV COORDINATE
 		elif l[0] == 'vt':
 			# This is a new vert, make a new mesh
 			uvMapList.append( (float(l[1]), float(l[2])) )
-			fileLines.remove(fileLines[lIdx])
+			fileLines.pop(lIdx)
 			lIdx-=1
 		lIdx+=1
 	
@@ -298,6 +302,7 @@ def load_obj(file):
 	meshList = {}
 	meshList[objectName] = (NMesh.GetRaw(), [-1]*len(vertList)) # Mesh/meshList[objectName][1]
 	meshList[objectName][0].verts.append(vertList[0])
+	meshList[objectName][0].hasFaceUV(1)
 
 	#==================================================================================#
 	# Load all faces into objects, main loop                                           #
@@ -306,15 +311,15 @@ def load_obj(file):
 	# Face and Object loading LOOP
 	while lIdx < len(fileLines):
 		l = fileLines[lIdx]
-
-		# COMMENTS AND EMPTY LINES
-		if len(l) == 0 or l[0] == '#':
-			pass
-			
+		
 		# VERTEX
-		elif l[0] == 'v':
+		if l[0] == 'v':
 			pass
 			
+		# Comment
+		if l[0] == '#':
+			pass			
+		
 		# VERTEX NORMAL
 		elif l[0] == 'vn':
 			pass
@@ -374,8 +379,9 @@ def load_obj(file):
 				
 				# UV MAPPING
 				if fHasUV:
-					for i in [0,1,2,3]:
-						f.uv.append( uvMapList[ vtIdxLs[i] ] )
+					f.uv.extend([uvMapList[ vtIdxLs[0] ],uvMapList[ vtIdxLs[1] ],uvMapList[ vtIdxLs[2] ],uvMapList[ vtIdxLs[3] ]])
+					#for i in [0,1,2,3]:
+					#	f.uv.append( uvMapList[ vtIdxLs[i] ] )
 
 				if f.v > 0:
 					f = applyMat(meshList[objectName][0], f, currentMat)
@@ -400,9 +406,7 @@ def load_obj(file):
 
 					# UV MAPPING
 					if fHasUV:
-						f.uv.append( uvMapList[ vtIdxLs[0] ] )
-						f.uv.append( uvMapList[ vtIdxLs[i+1] ] )
-						f.uv.append( uvMapList[ vtIdxLs[i+2] ] )
+						f.uv.extent([uvMapList[ vtIdxLs[0] ], uvMapList[ vtIdxLs[i+1] ], uvMapList[ vtIdxLs[i+2] ]])
 
 					if f.v > 0:
 						f = applyMat(meshList[objectName][0], f, currentMat)
@@ -450,6 +454,7 @@ def load_obj(file):
 				# if we have then we'll just keep appending to it, this is required for soem files.
 				if objectName not in meshList.keys():
 					meshList[objectName] = (NMesh.GetRaw(), [-1]*len(vertList))
+					meshList[objectName][0].hasFaceUV(1)
 					meshList[objectName][0].verts.append( vertList[0] )
 				
 
@@ -466,7 +471,7 @@ def load_obj(file):
 				currentImg = NULL_IMG
 			else:
 				currentImg = getImg(DIR + ' '.join(l[1:])) # Use join in case of spaces 
-
+		
 		# MATERIAL FILE
 		elif l[0] == 'mtllib':
 			mtl_fileName = ' '.join(l[1:])
@@ -482,12 +487,24 @@ def load_obj(file):
 		if mtl_fileName != '':
 			load_mtl(DIR, mtl_fileName, meshList[mk][0])
 		if len(meshList[mk][0].verts) >1:
-			meshList[mk][0].verts.remove(meshList[mk][0].verts[0])
+			meshList[mk][0].verts.pop(0)
 			
 			name = getUniqueName(mk)
-			ob = NMesh.PutRaw(meshList[mk][0], mk)
-			ob.name = mk
+			ob = NMesh.PutRaw(meshList[mk][0], name)
+			ob.name = name
 
 	print "obj import time: ", sys.time() - time1
 
 Window.FileSelector(load_obj, 'Import Wavefront OBJ')
+
+'''
+# For testing compatability
+import os
+for obj in os.listdir('/obj/'):
+	if obj[-3:] == 'obj':
+		print obj
+		newScn = Scene.New(obj)
+		newScn.makeCurrent()
+		load_obj('/obj/' + obj)
+	
+'''

@@ -15,11 +15,29 @@ __version__ = "Part of IOSuite 0.5"
 __bpydoc__ = """\
 This script exports meshes to Radiosity file format.
 
-Usage:
+The Radiosity file format is my own personal format. I created it to
+learn how meshes and vertex colors were stored. See IO-Examples.zip, the
+example *.radio files on my web page.
 
-Select meshes to be exported and run this script from "File->Export" menu.
+Usage:<br>
+	Select meshes to be exported and run this script from "File->Export" menu.
+
+Notes:<br>
+	Before exporting to .radio format, the mesh must have vertex colors.
+Here's how to assign them:
+
+1. Use radiosity!
+
+2. Set up lights and materials, select a mesh, switch the drawing mode
+to "textured," press the VKEY.
+
+3. Press the VKEY and paint manually.
+
+4. Use a custom script to calculate and apply simple diffuse shading and
+specular highlights to the vertex colors.
+
+5. The Videoscape format also allows vertex colors to be specified.
 """
-
 
 # $Id$
 #

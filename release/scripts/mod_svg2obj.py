@@ -1,6 +1,7 @@
 """
-(c) jm soler juillet 2004, released under Blender Artistic Licence 
-    for the Blender 2.34 Python Scripts Bundle.
+SVG 2 OBJ translater, 0.2.6
+(c) jm soler juillet/novembre 2004, released under Blender Artistic Licence 
+    for the Blender 2.34/35 Python Scripts Bundle.
 #---------------------------------------------------------------------------
 # Page officielle :
 #   http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_import_svg.htm
@@ -9,7 +10,6 @@
 #---------------------------------------------------------------------------
 
 -- Concept : translate SVG file in GEO .obj file and try to load it. 
--- Real problem  :  the name of the blender file is changed ...
 -- Curiousity : the original matrix must be :
 
                          0.0 0.0 1.0 0.0
@@ -55,14 +55,17 @@ Changelog:
       0.2.3 : - read a few new relative displacements
       0.2.4 : - better hash for command with followed by a lone data 
                 (h,v) or uncommun number (a) 
+      0.2.5 : - correction for gimp import 
+      0.2.6 : - correction for illustrator 10 SVG  
+                
 ==================================================================================   
 =================================================================================="""
 
 SHARP_IMPORT=0
 SCALE=1
 scale=1
-DEBUG =0
-DEVELOPPEMENT=1
+DEBUG =0 #print
+DEVELOPPEMENT=0
     
 import sys
 #oldpath=sys.path
@@ -107,14 +110,19 @@ os.split=split
 os.join=join
 
 def filtreFICHIER(nom):
-     f=open(nom,'r')
+     f=open(nom,'rU')
      t=f.read()
      f.close()
+     
      t=t.replace('\r','')
      t=t.replace('\n','')
      
-     if t.upper().find('<SVG')==-1:
+     if t.upper().find('<SVG')==-1 :
          name = "OK?%t| Not a valid file or an empty file ... "  # if no %xN int is set, indices start from 1
+         result = Blender.Draw.PupMenu(name)
+         return "false"
+     elif  t.upper().find('<PATH')==-1:
+         name = "OK?%t| Sorry, no Path in this file ... "  # if no %xN int is set, indices start from 1
          result = Blender.Draw.PupMenu(name)
          return "false"
      else:
@@ -329,7 +337,7 @@ def courbe_vers_s(c,D,n0,CP):  #S,s
     if DEBUG==1: print B.co,BP.co
     CP=[l[4],l[5]]    
 
-    if D[c[1]+3] not in TAGcourbe :
+    if len(D)<c[1]+3 and D[c[1]+3] not in TAGcourbe :
         c[1]+=2
         courbe_vers_c(c, D, n0,CP)
     return  courbes,n0,CP
@@ -379,8 +387,10 @@ def courbe_vers_c(c, D, n0,CP): #c,C
     if DEBUG==1: print B.co,BP.co
 
     CP=[l[4],l[5]]
-    
-    if D[c[1]+4] not in TAGcourbe :
+    if DEBUG==1:
+       print 'D[c[1]]', D[c[1]], c
+       print D
+    if len(D)<c[1]+4 and D[c[1]+4] not in TAGcourbe :
         c[1]+=3
         courbe_vers_c(c, D, n0,CP)
 
@@ -402,7 +412,7 @@ def ligne_tracee_l(c, D, n0,CP): #L,l
 
     CP=[l[0],l[1]]
 
-    if D[c[1]+2] not in TAGcourbe :
+    if len(D)<c[1]+2 and D[c[1]+2] not in TAGcourbe :
         c[1]+=1
         ligne_tracee_l(c, D, n0,CP) #L
             
@@ -557,6 +567,13 @@ def format_PATH(t):
     #print "D0= :",D
        
     D=D.split(' ')
+    
+    try:
+      while D.index(''):
+         del D[D.index('')]
+    except:
+      pass
+    
     #print len(D)
     #for D0 in D:
         #print "  ---->  D  = :", D0
@@ -600,16 +617,12 @@ def scan_FILE(nom):
      #print t
 
      while t.find('path')!=-1:
-
          t,D=format_PATH(t)
-
          cursor=0
          for cell in D: 
             if DEBUG==2 : print 'cell : ',cell ,' --'                   
-            #print 'cell',cell
             if len(cell)>=1 and cell[0] in TAGcourbe:
-                   courbes,n0,CP=Actions[cell]([cell,cursor], D, n0,CP)
-            
+                   courbes,n0,CP=Actions[cell]([cell,cursor], D, n0,CP)            
             cursor+=1
 
   courbes.number_of_items=len(courbes.ITEM.keys())
@@ -642,6 +655,6 @@ def  ajustement(v,s):
 def fonctionSELECT(nom):
     scan_FILE(nom)
 
-if DEVELOPPEMENT==0:
+if DEVELOPPEMENT==1:
    Blender.Window.FileSelector (fonctionSELECT, 'SELECT a .SVG FILE')
    #sys.path=oldpath

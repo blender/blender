@@ -15,9 +15,32 @@ __version__ = "Part of IOSuite 0.5"
 __bpydoc__ = """\
 This script exports meshes (including vertex colors) to VideoScape File Format.
 
-Usage:
+The VideoScape file format is a simple format that is natively supported
+in Blender. I wrote this module because Blender's internal exporter
+doesn't export vertex colors correctly. Check the source for a *fast* algorithm for
+averaging vertex colors.
 
-Select meshes to be exported and run this script from "File->Export" menu.
+Usage:<br>
+	Select meshes to be exported and run this script from "File->Export" menu.
+
+Supported:<br>
+	Exports meshes only. Hint: use ALT-C to convert non-mesh objects,
+and CTRL-ALT-A if you have "dupliverts" objects.
+
+Notes:<br>
+	Before exporting, the mesh must have vertex colors. Here's how to assign them:
+
+1. Use radiosity!
+
+2. Set up lights and materials, select a mesh, switch the drawing mode
+to "textured," press the VKEY.
+
+3. Press the VKEY and paint manually.
+
+4. Use a custom script to calculate and apply simple diffuse shading and
+specular highlights to the vertex colors.
+
+5. The Videoscape format also allows vertex colors to be specified.
 """
 
 
@@ -32,8 +55,6 @@ Select meshes to be exported and run this script from "File->Export" menu.
 # | Import Export Suite v0.5                                |
 # +---------------------------------------------------------+
 # | Write Videoscape File Format (*.obj NOT WAVEFRONT OBJ)  |
-# | Includes a *fast* algorithm for averaging vertex colors |
-# | Blender's a|w doesn't export proper vertex colors       |
 # +---------------------------------------------------------+
 
 import Blender, mod_meshtools

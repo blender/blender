@@ -15,10 +15,18 @@ __version__ = "Part of IOSuite 0.5"
 __bpydoc__ = """\
 This script imports Pro Engineer files to Blender.
 
-Usage:
+This format can be exported from Pro/Engineer and most other CAD
+applications. Written at the request of a Blender user. It is almost
+identical to RAW format.
 
-Execute this script from the "File->Import" menu and choose an SLP file to
+Usage:<br>
+	Execute this script from the "File->Import" menu and choose an SLP file to
 open.
+
+Notes:<br>
+	Generates the standard verts and faces lists, but without duplicate
+verts. Only *exact* duplicates are removed, there is no way to specify a
+tolerance.
 """
 
 # $Id$

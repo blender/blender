@@ -1,10 +1,10 @@
 #!BPY
 
 """
-Name: 'Object File Format (.off)...'
+Name: 'DEC Object File Format (.off)...'
 Blender: 232
 Group: 'Export'
-Tooltip: 'Export selected mesh to Object File Format (*.off)'
+Tooltip: 'Export selected mesh to DEC Object File Format (*.off)'
 """
 
 __author__ = "Anthony D'Agostino (Scorpius)"
@@ -13,11 +13,19 @@ __url__ = ("blender", "elysiun",
 __version__ = "Part of IOSuite 0.5"
 
 __bpydoc__ = """\
-This script exports meshes to Object File Format.
+This script exports meshes to DEC Object File Format.
 
-Usage:
+The DEC (Digital Equipment Corporation) OFF format is very old and
+almost identical to Wavefront's OBJ. I wrote this so I could get my huge
+meshes into Moonlight Atelier. (DXF can also be used but the file size
+is five times larger than OFF!) Blender/Moonlight users might find this
+script to be very useful.
 
-Select meshes to be exported and run this script from "File->Export" menu.
+Usage:<br>
+	Select meshes to be exported and run this script from "File->Export" menu.
+
+Notes:<br>
+	Only exports a single selected mesh.
 """
 
 # +---------------------------------------------------------+

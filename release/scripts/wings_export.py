@@ -14,13 +14,34 @@ __url__ = ("blender", "elysiun",
 __version__ = "Part of IOSuite 0.5"
 
 __bpydoc__ = """\
-This script exports meshes to Wings 3D file format.
+This script exports meshes to Wings3D file format.
 
-Usage:
+Wings3D is an open source polygon modeler written in Erlang, a
+language similar to Lisp. The .wings file format is a binary
+representation of erlang terms (lists, tuples, atoms, etc.) and is
+compressed with zlib.
 
-Select meshes to be exported and run this script from "File->Export" menu.
+Usage:<br>
+	Select meshes to be exported and run this script from "File->Export" menu.
+
+Supported:<br>
+	1. Exports meshes only. Hint: use ALT-C to convert non-mesh objects,
+and CTRL-ALT-A if you have "dupliverts" objects.<br>
+	2. Exports Vertex Colors & Radiosity Solutions.
+
+Missing:<br>
+	Materials and UV Coordinates info will be ignored.
+
+Known issues:<br>
+	Exports only well-behaved and topologically correct meshes (i.e,
+closed meshes, manifolds, meshes imported from wings, etc). The mesh
+cannot have duplicate vertices, missing faces (holes), open edges, etc.<br>
+	PowerUser Hint: In editmode, if CTRL-ALT-SHIFT-M results in a selection,
+then your mesh is not a manifold and most likely will not export.
+
+Notes:<br>
+	Last tested with Wings 3D 0.98.25 & Blender 2.35a.
 """
-
 
 # $Id$
 #

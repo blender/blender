@@ -1,10 +1,10 @@
 #!BPY
 
 """
-Name: 'Object File Format (.off)...'
+Name: 'DEC Object File Format (.off)...'
 Blender: 232
 Group: 'Import'
-Tooltip: 'Import Object File Format (*.off)'
+Tooltip: 'Import DEC Object File Format (*.off)'
 """
 
 __author__ = "Anthony D'Agostino (Scorpius)"
@@ -13,12 +13,20 @@ __url__ = ("blender", "elysiun",
 __version__ = "Part of IOSuite 0.5"
 
 __bpydoc__ = """\
-This script imports Object File Format files to Blender.
+This script imports DEC Object File Format files to Blender.
 
-Usage:
+The DEC (Digital Equipment Corporation) OFF format is very old and
+almost identical to Wavefront's OBJ. I wrote this so I could get my huge
+meshes into Moonlight Atelier. (DXF can also be used but the file size
+is five times larger than OFF!) Blender/Moonlight users might find this
+script to be very useful.
 
-Execute this script from the "File->Import" menu and choose an OFF file to
+Usage:<br>
+	Execute this script from the "File->Import" menu and choose an OFF file to
 open.
+
+Notes:<br>
+	UV Coordinate support has been added.
 """
 
 
@@ -45,19 +53,27 @@ def read(filename):
 
 	verts = []
 	faces = []
+	uv = []
 
 	# === OFF Header ===
 	offheader = file.readline()
 	numverts, numfaces, null = file.readline().split()
 	numverts = int(numverts)
 	numfaces = int(numfaces)
+	if offheader.find('ST') >= 0:
+		has_uv = True
+	else:
+		has_uv = False
 
 	# === Vertex List ===
 	for i in range(numverts):
 		if not i%100 and mod_meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/numverts, "Reading Verts")
-		x, y, z = file.readline().split()
-		x, y, z = float(x), float(y), float(z)
+		if has_uv:
+			x, y, z, u, v = map(float, file.readline().split())
+			uv.append((u, v))
+		else:
+			x, y, z = map(float, file.readline().split())
 		verts.append((x, y, z))
 
 	# === Face List ===
@@ -75,7 +91,7 @@ def read(filename):
 
 	objname = Blender.sys.splitext(Blender.sys.basename(filename))[0]
 
-	mod_meshtools.create_mesh(verts, faces, objname)
+	mod_meshtools.create_mesh(verts, faces, objname, faces, uv)
 	Blender.Window.DrawProgressBar(1.0, '')  # clear progressbar
 	file.close()
 	#end = time.clock()

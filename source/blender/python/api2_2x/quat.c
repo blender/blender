@@ -531,13 +531,17 @@ PyTypeObject quaternion_Type = {
 	&Quaternion_SeqMethods,	/*tp_as_sequence */
 };
 
-/* 
- newQuaternionObject
- 
- if the quat arg is not null, this method allocates memory and copies *quat into it.
- we will free the memory in the dealloc routine.
-*/
-
+/** Creates a new quaternion object.
+ * 
+ * Memory for a new quaternion is allocated. The quaternion copies the given 
+ * list of parameters or initializes to the identity, if a <code>NULL</code>
+ * pointer is given as parameter. The memory will be freed in the dealloc
+ * routine.
+ * 
+ * @param quat Pointer to a list of floats for the quanternion parameters w, x, y, z.
+ * @return Quaternion Python object.
+ * @see Quaternion_Identity
+ */
 PyObject *newQuaternionObject( float *quat )
 {
 	QuaternionObject *self;
@@ -550,10 +554,7 @@ PyObject *newQuaternionObject( float *quat )
 	self->quat = PyMem_Malloc( 4 * sizeof( float ) );
 
 	if( !quat ) {
-		for( x = 0; x < 4; x++ ) {
-			self->quat[x] = 0.0f;
-		}
-		self->quat[3] = 1.0f;
+		Quaternion_Identity(self);
 	} else {
 		for( x = 0; x < 4; x++ ) {
 			self->quat[x] = quat[x];

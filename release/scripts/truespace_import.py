@@ -13,12 +13,46 @@ __url__ = ("blender", "elysiun",
 __version__ = "Part of IOSuite 0.5"
 
 __bpydoc__ = """\
-This script imports TrueSpace files to Blender.
+This script imports TrueSpace files to Blender
 
-Usage:
+TrueSpace is a commercial modeling and rendering application. The .cob
+file format is composed of 'chunks,' is well defined, and easy to read and
+write. It's very similar to LightWave's lwo format.
 
-Execute this script from the "File->Import" menu and choose a TrueSpace file to
-open.
+Usage:<br>
+	Execute this script from the "File->Import" menu and choose a TrueSpace
+file to open.
+
+Supported:<br>
+	Meshes only. Supports UV Coordinates. COB files in ascii format can't be
+read.
+
+Missing:<br>
+	Materials, and Vertex Color info will be ignored.
+
+Known issues:<br>
+	Triangulation of convex polygons works fine, and uses a very simple
+fanning algorithm. Convex polygons (i.e., shaped like the letter "U")
+require a different algorithm, and will be triagulated incorrectly.
+
+Notes:<br>
+	There are a few differences between how Blender & TrueSpace represent
+their objects' transformation matrices. Blender simply uses a 4x4 matrix,
+and trueSpace splits it into the following two fields.
+
+	For the 'Local Axes' values: The x, y, and z-axis represent a simple
+rotation matrix.  This is equivalent to Blender's object matrix before
+it was combined with the object's scaling matrix. Dividing each value by
+the appropriate scaling factor (and transposing at the same time)
+produces the original rotation matrix.
+
+	For the 'Current Position' values:  This is equivalent to Blender's
+object matrix except that the last row is omitted and the xyz location
+is used in the last column. Binary format uses a 4x3 matrix, ascii
+format uses a 4x4 matrix.
+
+For Cameras: The matrix here gets a little confusing, and I'm not sure of
+how to handle it.
 """
 
 # $Id$
@@ -227,19 +261,3 @@ def fs_callback(filename):
 
 Blender.Window.FileSelector(fs_callback, "Import COB")
 
-#	=== Matrix Differences between Blender & trueSpace ===
-#
-#	For the 'Local Axes' values:
-#	The x, y, and z-axis represent a simple rotation matrix.
-#	This is equivalent to Blender's object matrix before it was
-#	combined with the object's scaling matrix.  Dividing each value
-#	by the appropriate scaling factor (and transposing at the same
-#	time) produces the original rotation matrix.
-#
-#	For the 'Current Position' values:
-#	This is equivalent to Blender's object matrix except that the
-#	last row is omitted and the xyz location is used in the last
-#	column.  Binary format uses a 4x3 matrix, ascii format uses a 4x4
-#	matrix.
-#
-#	For Cameras: The matrix is a little confusing.

@@ -319,7 +319,7 @@ class Vector:
       v = Blender.Mathutils.Vector([1,0,0])
     @type list: PyList of float or int
     @param list: The list of values for the Vector object.
-    Must be 2, 3, or 4 values.
+    Must be 2, 3, or 4 values. The list is mapped to the parameters as [x,y,z,w].
     @rtype: Vector object.
     @return: It depends wheter a parameter was passed:
         - (list): Vector object initialized with the given values;
@@ -420,16 +420,16 @@ class Quaternion:
   in degrees.
   """
 
-  def __init__(list = None, angle = None):
+  def __init__(list, angle = None):
     """  
     Create a new quaternion object from initialized values.
 
     Example::
-      quat = Mathutils.Quaternion()
+      quat = Mathutils.Quaternion([1.0,0.0,0.0])
 
     @type list: PyList of int/float
     @param list: A 3d or 4d list to initialize quaternion.
-        4d if intializing, 3d if will be used as an axis of rotation.
+        4d if intializing [w,x,y,z], 3d if used as an axis of rotation.
     @type angle: float (optional)
     @param angle: An arbitrary rotation amount around 'list'.
         List is used as an axis of rotation in this case.
@@ -527,7 +527,7 @@ class Matrix:
 
   def determinant():
     """
-    Return a the determinant of a matrix.
+    Return the determinant of a matrix.
     @rtype: int
     @return: Return a the determinant of a matrix.
 
@@ -540,9 +540,12 @@ class Matrix:
 
   def rotationPart():
     """
-    Return the 3d rotation matrix.
+    Return the 3d submatrix corresponding to the linear term of the 
+    embedded affine transformation in 3d. This matrix represents rotation
+    and scale. Note that the (4,4) element of a matrix can be used for uniform
+    scaling, too.
     @rtype: Matrix object.
-    @return: Return the 3d rotation matrix.
+    @return: Return the 3d matrix for rotation and scale.
 
     """
 
@@ -561,17 +564,17 @@ class Matrix:
   
   def toEuler():
     """
-    Return a euler representing the rotation matrix.
+    Return an Euler representation of the rotation matrix.
     @rtype: Euler object
-    @return: Return a euler representing the rotation matrix.
+    @return: Euler representation of the rotation matrix.
 
     """
 
   def toQuat():
     """
-    Return a quaternion representation the rotation matrix
+    Return a quaternion representation of the rotation matrix
     @rtype: Quaternion object
-    @return: Quaternion representation the rotation matrix
+    @return: Quaternion representation of the rotation matrix
 
     """
 

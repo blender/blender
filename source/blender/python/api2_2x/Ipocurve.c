@@ -195,7 +195,8 @@ PyObject *IpoCurve_Init( void )
 /*****************************************************************************/
 static PyObject *M_IpoCurve_Get( PyObject * self, PyObject * args )
 {
-	return 0;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 /*****************************************************************************/

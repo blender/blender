@@ -15,9 +15,28 @@ __version__ = "Part of IOSuite 0.5"
 __bpydoc__ = """\
 This script exports meshes to LightWave file format.
 
-Usage:
+LightWave is a full-featured commercial modeling and rendering
+application. The lwo file format is composed of 'chunks,' is well
+defined, and easy to read and write. It is similar in structure to the
+trueSpace cob format.
 
-Select meshes to be exported and run this script from "File->Export" menu.
+Usage:<br>
+	Select meshes to be exported and run this script from "File->Export" menu.
+
+Supported:<br>
+	UV Coordinates, Meshes, Materials, Material Indices, Specular
+Highlights, and Vertex Colors. For added functionality, each object is
+placed on its own layer.
+
+Missing:<br>
+	Not too much, I hope! :).
+
+Known issues:<br>
+	Empty objects crash has been fixed.
+
+Notes:<br>
+	For compatibility reasons, it also reads lwo files in the old LW
+v5.5 format.
 """
 
 # $Id$

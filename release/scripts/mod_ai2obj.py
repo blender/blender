@@ -58,20 +58,17 @@ os.split=split
 os.join=join
 
 def filtreFICHIER(nom):
-     f=open(nom,'r')
+     f=open(nom,'rU')
      t=f.readlines()
      f.close()
      
-     if len(t)==1 and t[0].find('\r'):
-              t=t[0].split('\r')
-
      if len(t)>1: 
           return t   
      else:
          name = "OK?%t| Not a valid file or an empty file ... "  # if no %xN int is set, indices start from 1
          result = Draw.PupMenu(name)
           
-         return 'false' 
+         return 'false'
         
 #===============================
 # Data
@@ -140,6 +137,8 @@ def test_egalitedespositions(f1,f2):
 
 def Open_GEOfile(dir,nom):
     if BLversion>=233:
+       in_editmode = Blender.Window.EditMode()
+       if in_editmode: Blender.Window.EditMode(0)
        Blender.Load(dir+nom+'OOO.obj', 1)
        BO=Blender.Object.Get()
        BO[-1].RotY=0.0
