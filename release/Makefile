@@ -35,6 +35,7 @@ export VERSION := $(shell cat VERSION)
 
 BLENDNAME=blender-$(VERSION)-$(CONFIG_GUESS)$(TYPE)
 export DISTDIR=$(NAN_OBJDIR)/$(BLENDNAME)
+export CONFDIR=$(DISTDIR)/.blender
 
 release: all
 
@@ -106,11 +107,6 @@ ifneq ($(OS), darwin)
 	cp $(NANBLENDERHOME)/bin/.blender/.bfont.ttf $(DISTDIR)/.blender
 endif
 
-# Python scripts removed for 2.14
-#@echo "----> Copy python scripts"
-#@cp -r python $(DISTDIR)/python
-#@rm -fr $(DISTDIR)/python/CVS
-
 	@echo "----> Copy blender$(EXT0) executable"
     ifeq ($(TYPE),-static)
 	@cp $(OCGDIR)/bin/blenderstatic$(EXT0) $(DISTDIR)/blender$(EXT0)
@@ -121,7 +117,11 @@ endif
 	@cp $(OCGDIR)/bin/blender$(EXT0) $(DISTDIR)/blender$(EXT0)
     endif
     endif
-    ifneq ($(NOPLUGINS),true)
+
+	@echo "----> Make Config dir .blender"
+	@mkdir -p $(CONFDIR)
+
+ifneq ($(NOPLUGINS),true)
 	@echo "----> Copy and compile plugins"
 	@cp -r plugins $(DISTDIR)/plugins
 	@mkdir -p $(DISTDIR)/plugins/include
@@ -130,7 +130,25 @@ endif
 	@$(MAKE) -C $(DISTDIR)/plugins all  > /dev/null || exit 1;
 	@rm -fr $(DISTDIR)/plugins/CVS $(DISTDIR)/plugins/*/CVS \
              $(DISTDIR)/plugins/*/*.o
-    endif
+	@mkdir -p $(CONFDIR)/plugins/sequence
+	@mkdir -p $(CONFDIR)/plugins/texture
+
+	@mv $(DISTDIR)/plugins/sequence/*.so $(CONFDIR)/plugins/sequence
+	@mv $(DISTDIR)/plugins/texture/*.so $(CONFDIR)/plugins/texture
+
+endif
+
+	@echo "----> Copy python infrastructure"
+	@[ ! -d scripts ] || \
+	   @cp -r scripts $(CONFDIR)/scripts
+	@[ ! -d $(CONFDIR)/scripts ] || \
+	   @rm -fr $(CONFDIR)/scripts/CVS
+
+	@[ ! -d bpydata ] || \
+	   @cp -r bpydata $(CONFDIR)/scripts
+	@[ ! -d $(CONFDIR)/bpydata ] || \
+	   @rm -fr $(CONFDIR)/bpydata/CVS
+
     ifneq ($(NOSTRIP),true)
 	@echo "----> Strip blender executable"
       ifeq ($(OS),darwin)
