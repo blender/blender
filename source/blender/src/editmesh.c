@@ -2037,28 +2037,28 @@ static EditVert *findnearestvert(short sel)
 static EditEdge *findnearestedge()
 {
 	EditEdge *closest, *eed;
+	EditVert *eve;
 	short found=0, mval[2];
 	float distance[2], v1[2], v2[2], mval2[2];
 	
-	calc_meshverts_ext_f2();     	/*sets (eve->f & 2) for vertices that aren't visible*/
-	
 	if(G.eded.first==0) return NULL;
-	eed=G.eded.first;	
+	else eed=G.eded.first;	
+	
+	/* reset flags */	
+	for(eve=G.edve.first; eve; eve=eve->next){
+		eve->f &= ~2;
+	}	
+		
+	calc_meshverts_ext_f2();     	/*sets (eve->f & 2) for vertices that aren't visible*/
+	getmouseco_areawin(mval);
 	closest=NULL;
 	
-	/* reset test flags */
-	while(eed){	
-		eed->f &= ~4;
-		eed=eed->next;
-	}
-	
-	getmouseco_areawin(mval);
 	mval2[0] = (float)mval[0];    	/* cast to float because of the pdist function only taking floats...*/
 	mval2[1] = (float)mval[1];
 	
 	eed=G.eded.first;
 	while(eed) {      					/*compare the distance to the rest of the edges and find the closest one*/
-		if( !((eed->v1->f & 2) && (eed->v2->f & 2))){ 	/* Are both vertices of the edge invisible? then don't select the edge*/
+		if( !((eed->v1->f & eed->v2->f) & 2)){ 	/* Are both vertices of the edge invisible? then don't select the edge*/
 			v1[0] = eed->v1->xs;  			/* oh great! the screencoordinates are not an array....grrrr*/
 			v1[1] = eed->v1->ys;
 			v2[0] = eed->v2->xs;
@@ -2082,13 +2082,9 @@ static EditEdge *findnearestedge()
 		eed= eed->next;
 	}
 	
-	/* reset flags */
-	eed=G.eded.first;
-	while(eed) {		
-		eed->f &= ~(2|4);
-		eed->v1->f &= ~(2);
-		eed->v2->f &= ~(2);			
-		eed= eed->next;			
+	/* reset flags */	
+	for(eve=G.edve.first; eve; eve=eve->next){
+		eve->f &= ~2;
 	}
 	
 	if(found) return closest;
@@ -2637,7 +2633,7 @@ void edge_select(void)
 				closest->v2->f &= ~1;
 			}
 			else { 
-				/* select them */
+				/* select both */
 				closest->v1->f |= 1;
 				closest->v2->f |= 1;
 			}
