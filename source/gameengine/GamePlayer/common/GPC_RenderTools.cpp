@@ -312,11 +312,11 @@ void GPC_RenderTools::BL_RenderText(
 
 RAS_IPolyMaterial* GPC_RenderTools::CreateBlenderPolyMaterial(
 			const STR_String &texname,
-			bool ba,const STR_String& matname,int tile,int tilexrep,int tileyrep,int mode,int transparant,int lightlayer
-			,bool bIsTriangle,void* clientobject,void* tface)
+			bool ba,const STR_String& matname,int tile,int tilexrep,int tileyrep,int mode,bool transparant, bool zsort,
+			int lightlayer,bool bIsTriangle,void* clientobject,void* tface)
 {
 	return new GPC_PolygonMaterial(texname, ba,matname,tile,tilexrep,tileyrep,
-			mode,transparant,lightlayer,bIsTriangle,clientobject,tface);
+			mode,transparant,zsort,lightlayer,bIsTriangle,clientobject,tface);
 }
 
 

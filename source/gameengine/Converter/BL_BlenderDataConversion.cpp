@@ -364,8 +364,11 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				
 	
 				bool istriangle = (mface->v4==0);
+				bool zsort = ma?(ma->mode & MA_ZTRA) != 0:false;
 				
-				RAS_IPolyMaterial* polymat = rendertools->CreateBlenderPolyMaterial(imastr,false,matnameptr,tile,tilexrep,tileyrep,mode,transp, lightlayer,istriangle,blenderobj,tface);
+				RAS_IPolyMaterial* polymat = rendertools->CreateBlenderPolyMaterial(imastr, false, matnameptr,
+					tile, tilexrep, tileyrep, 
+					mode, transp, zsort, lightlayer, istriangle, blenderobj, tface);
 	
 				if (ma)
 				{
@@ -698,13 +701,20 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 		CreateMaterialFromBlenderObject(blenderobject, kxscene);
 					
 	KX_ObjectProperties objprop;
-	objprop.m_dyna = (blenderobject->gameflag & OB_DYNAMIC) != 0;
+	if ((objprop.m_isactor = (blenderobject->gameflag & OB_ACTOR)!=0))
+	{
+		objprop.m_dyna = (blenderobject->gameflag & OB_DYNAMIC) != 0;
+		objprop.m_angular_rigidbody = (blenderobject->gameflag & OB_RIGID_BODY) != 0;
+		objprop.m_ghost = (blenderobject->gameflag & OB_GHOST) != 0;
+	} else {
+		objprop.m_dyna = false;
+		objprop.m_angular_rigidbody = false;
+		objprop.m_ghost = false;
+	}
 	//mmm, for now, taks this for the size of the dynamicobject
 	// Blender uses inertia for radius of dynamic object
 	objprop.m_radius = blenderobject->inertia;
-	objprop.m_angular_rigidbody = (blenderobject->gameflag & OB_RIGID_BODY) != 0;
 	objprop.m_in_active_layer = (blenderobject->lay & activeLayerBitInfo) != 0;
-	objprop.m_ghost = (blenderobject->gameflag & OB_GHOST) != 0;
 	objprop.m_dynamic_parent=NULL;
 	objprop.m_isdeformable = ((blenderobject->gameflag2 & 2)) != 0;
 	objprop.m_boundclass = objprop.m_dyna?KX_BOUNDSPHERE:KX_BOUNDMESH;
@@ -763,7 +773,6 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 
 	}
 
-	objprop.m_isactor = (blenderobject->gameflag & OB_ACTOR)!=0;
 	objprop.m_concave = (blenderobject->boundtype & 4) != 0;
 	
 	switch (physics_engine)

@@ -55,7 +55,8 @@ protected:
 	int				m_tile;
 	int				m_tilexrep,m_tileyrep;
 	int				m_drawingmode;	// tface->mode
-	int				m_transparant;
+	bool				m_transparant;
+	bool				m_zsort;
 	int				m_lightlayer;
 	bool				m_bIsTriangle;
 	
@@ -84,7 +85,8 @@ public:
 					  int tilexrep,
 					  int tileyrep,
 					  int mode,
-					  int transparant,
+					  bool transparant,
+					  bool zsort,
 					  int lightlayer,
 					  bool bIsTriangle,
 					  void* clientobject);
@@ -108,11 +110,12 @@ public:
 
 	bool				Equals(const RAS_IPolyMaterial& lhs) const;
 	bool				Less(const RAS_IPolyMaterial& rhs) const;
-	int					GetLightLayer();
-	bool				IsTransparant();
-	bool				UsesTriangles();
+	int					GetLightLayer() const;
+	bool				IsTransparant() const;
+	bool				IsZSort() const;
+	bool				UsesTriangles() const;
 	unsigned int		hash() const;
-	int					GetDrawingMode();
+	int					GetDrawingMode() const;
 	const STR_String&	GetMaterialName() const;
 	const STR_String&	GetTextureName() const;
 };

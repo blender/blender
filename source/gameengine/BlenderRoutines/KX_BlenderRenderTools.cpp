@@ -424,13 +424,13 @@ int	KX_BlenderRenderTools::applyLights(int objectlayer)
 
 RAS_IPolyMaterial* KX_BlenderRenderTools::CreateBlenderPolyMaterial(
 		const STR_String &texname,
-		bool ba,const STR_String& matname,int tile,int tilexrep,int tileyrep,int mode,int transparant,int lightlayer
+		bool ba,const STR_String& matname,int tile,int tilexrep,int tileyrep,int mode,bool transparant,bool zsort, int lightlayer
 		,bool bIsTriangle,void* clientobject,void* tface)
 {
 	return new KX_BlenderPolyMaterial(
 
 		texname,
-		ba,matname,tile,tilexrep,tileyrep,mode,transparant,lightlayer
+		ba,matname,tile,tilexrep,tileyrep,mode,transparant,zsort, lightlayer
 		,bIsTriangle,clientobject,(struct TFace*)tface);
 }
 

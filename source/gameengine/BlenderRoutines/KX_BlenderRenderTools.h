@@ -84,17 +84,18 @@ public:
 	virtual void		PopMatrix();
 
 	virtual class RAS_IPolyMaterial* CreateBlenderPolyMaterial(const STR_String &texname,
-															   bool ba,
-															   const STR_String& matname,
-															   int tile,
-															   int tilexrep,
-															   int tileyrep,
-															   int mode,
-															   int transparant,
-															   int lightlayer,
-															   bool bIsTriangle,
-															   void* clientobject,
-															   void* tface);
+									bool ba,
+									const STR_String& matname,
+									int tile,
+									int tilexrep,
+									int tileyrep,
+									int mode,
+									bool transparant,
+									bool zsort,
+									int lightlayer,
+									bool bIsTriangle,
+									void* clientobject,
+									void* tface);
 };
 
 #endif //__KX_BLENDERRENDERTOOLS

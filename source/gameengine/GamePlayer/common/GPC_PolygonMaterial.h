@@ -41,7 +41,7 @@ class GPC_PolygonMaterial : public RAS_IPolyMaterial
 
 public:
 	GPC_PolygonMaterial(const STR_String& texname, bool ba, const STR_String& matname,
-			int tile, int tileXrep, int tileYrep, int mode, int transparant,
+			int tile, int tileXrep, int tileYrep, int mode, bool transparant, bool zsort,
 			int lightlayer, bool bIsTriangle, void* clientobject, void* tpage);
 	
 	virtual ~GPC_PolygonMaterial(void);

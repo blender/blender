@@ -69,6 +69,9 @@ void RAS_BucketManager::RenderAlphaBuckets(
 	std::multiset<alphamesh, backtofront> alphameshset;
 	RAS_MaterialBucket::T_MeshSlotList::iterator mit;
 	
+	/* Camera's near plane equation: cam_norm.dot(point) + cam_origin */
+	const MT_Vector3 cam_norm(cameratrans.getBasis()[2]);
+	const MT_Scalar cam_origin = cameratrans.getOrigin()[2];
 	for (bit = m_AlphaBuckets.begin(); bit != m_AlphaBuckets.end(); ++bit)
 	{
 		(*bit)->ClearScheduledPolygons();
@@ -77,7 +80,7 @@ void RAS_BucketManager::RenderAlphaBuckets(
 			if ((*mit).m_bVisible)
 			{
 				MT_Point3 pos((*mit).m_OpenGLMatrix[12], (*mit).m_OpenGLMatrix[13], (*mit).m_OpenGLMatrix[14]);
-				alphameshset.insert(alphamesh(MT_dot(cameratrans.getBasis()[2], pos) + cameratrans.getOrigin()[2], mit, *bit));
+				alphameshset.insert(alphamesh(MT_dot(cam_norm, pos) + cam_origin, mit, *bit));
 			}
 		}
 	}

@@ -42,7 +42,8 @@ RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 									 int tilexrep,
 									 int tileyrep,
 									 int mode,
-									 int transparant,
+									 bool transparant,
+									 bool zsort,
 									 int lightlayer,
 									 bool bIsTriangle,
 									 void* clientobject=NULL) :
@@ -54,6 +55,7 @@ RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 		m_tileyrep(tileyrep),
 		m_drawingmode (mode),
 		m_transparant(transparant),
+		m_zsort(zsort),
 		m_lightlayer(lightlayer),
 		m_bIsTriangle(bIsTriangle)
 {
@@ -71,6 +73,7 @@ bool RAS_IPolyMaterial::Equals(const RAS_IPolyMaterial& lhs) const
 			this->m_tilexrep	==		lhs.m_tilexrep &&
 			this->m_tileyrep	==		lhs.m_tileyrep &&
 			this->m_transparant	==		lhs.m_transparant &&
+			this->m_zsort		==		lhs.m_zsort &&
 			this->m_drawingmode	==		lhs.m_drawingmode &&
 			this->m_bIsTriangle	==		lhs.m_bIsTriangle &&
 			this->m_lightlayer  ==		lhs.m_lightlayer &&
@@ -117,50 +120,48 @@ bool RAS_IPolyMaterial::Less(const RAS_IPolyMaterial& rhs) const
 	    m_tilexrep > rhs.m_tilexrep)
 	    	return false;
 	
-	return (m_tilexrep < rhs.m_tilexrep ||
-	    m_tile < rhs.m_tile);
+	if (m_tilexrep < rhs.m_tilexrep ||
+	    m_tile < rhs.m_tile)
+	    	return true;
+	
+	return !(m_tile > rhs.m_tile ||
+		m_zsort > rhs.m_zsort);
 }
 
-int RAS_IPolyMaterial::GetLightLayer()
+int RAS_IPolyMaterial::GetLightLayer() const
 {
 	return m_lightlayer;
 }
 
-
-
-bool RAS_IPolyMaterial::IsTransparant()
+bool RAS_IPolyMaterial::IsTransparant() const
 {
-	return (m_transparant != 0);
+	return m_transparant;
 }
 
+bool RAS_IPolyMaterial::IsZSort() const
+{
+	return m_zsort;
+}
 
-
-bool RAS_IPolyMaterial::UsesTriangles()
+bool RAS_IPolyMaterial::UsesTriangles() const
 {
 	return m_bIsTriangle;
 }
-
-
 
 unsigned int RAS_IPolyMaterial::hash() const
 {
 	return m_texturename.hash();
 }
 
-
-
-int RAS_IPolyMaterial::GetDrawingMode()
+int RAS_IPolyMaterial::GetDrawingMode() const
 {
 	return m_drawingmode;
 }
-
-
 
 const STR_String& RAS_IPolyMaterial::GetMaterialName() const
 { 
 	return m_materialname;
 }
-
 
 const STR_String& RAS_IPolyMaterial::GetTextureName() const
 {

@@ -91,8 +91,7 @@ void* KX_SceneDestructionFunc(SG_IObject* node,void* gameobj,void* scene)
 	return NULL;
 };
 
-
-SG_Callbacks KX_Scene::m_callbacks = SG_Callbacks(KX_SceneReplicationFunc,KX_SceneDestructionFunc);
+SG_Callbacks KX_Scene::m_callbacks = SG_Callbacks(KX_SceneReplicationFunc,KX_SceneDestructionFunc,KX_GameObject::UpdateTransformFunc);
 
 // temporarily var until there is a button in the userinterface
 // (defined in KX_PythonInit.cpp)
@@ -797,7 +796,7 @@ void KX_Scene::UpdateMeshTransformations()
 	{
 		KX_GameObject* gameobj = (KX_GameObject*)m_objectlist->GetValue(i);
 		gameobj->GetOpenGLMatrix();
-		gameobj->UpdateNonDynas();
+//		gameobj->UpdateNonDynas();
 	}
 }
 
@@ -831,11 +830,12 @@ void KX_Scene::MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty)
 			if (gameobj)
 			{
 				int nummeshes = gameobj->GetMeshCount();
+				MT_Transform t(GetActiveCamera()->GetWorldToCamera() * gameobj->GetSGNode()->GetWorldTransform());
 				
 				for (int m=0;m<nummeshes;m++)
 				{
 					// this adds the vertices to the display list
-					(gameobj->GetMesh(m))->SchedulePolygons(rasty->GetDrawingMode(),rasty);
+					(gameobj->GetMesh(m))->SchedulePolygons(t, rasty->GetDrawingMode(),rasty);
 				}
 				gameobj->MarkVisible();
 			}
@@ -858,11 +858,13 @@ void KX_Scene::MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool vi
 		if (visible)
 		{
 			int nummeshes = gameobj->GetMeshCount();
+			MT_Transform t( GetActiveCamera()->GetWorldToCamera() * gameobj->GetSGNode()->GetWorldTransform());
+
 			
 			for (int m=0;m<nummeshes;m++)
 			{
 				// this adds the vertices to the display list
-				(gameobj->GetMesh(m))->SchedulePolygons(rasty->GetDrawingMode(),rasty);
+				(gameobj->GetMesh(m))->SchedulePolygons(t, rasty->GetDrawingMode(),rasty);
 			}
 		}
 		gameobj->MarkVisible(visible && gameobj->GetVisible());
@@ -895,7 +897,7 @@ void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty)
 		if (!vis)
 		{
 			MT_Vector3 scale = gameobj->GetSGNode()->GetWorldScaling();
-			MT_Scalar radius = scale[scale.closestAxis()] * gameobj->GetSGNode()->Radius();
+			MT_Scalar radius = fabs(scale[scale.closestAxis()] * gameobj->GetSGNode()->Radius());
 			switch (GetActiveCamera()->SphereInsideFrustum(gameobj->NodeGetWorldPosition(), radius))
 			{
 				case KX_Camera::INSIDE:
@@ -907,7 +909,7 @@ void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty)
 				case KX_Camera::INTERSECT:
 					// Test the object's bound box against the view frustum.
 					MT_Point3 box[8];
-					gameobj->GetSGNode()->getBBox(box);
+					gameobj->GetSGNode()->getBBox(box); 
 					vis = GetActiveCamera()->BoxInsideFrustum(box) != KX_Camera::OUTSIDE;
 					break;
 			}
@@ -916,11 +918,12 @@ void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty)
 		if (vis)
 		{
 			int nummeshes = gameobj->GetMeshCount();
+			MT_Transform t(GetActiveCamera()->GetWorldToCamera() * gameobj->GetSGNode()->GetWorldTransform());
 			
 			for (int m=0;m<nummeshes;m++)
 			{
 				// this adds the vertices to the display list
-				(gameobj->GetMesh(m))->SchedulePolygons(rasty->GetDrawingMode(),rasty);
+				(gameobj->GetMesh(m))->SchedulePolygons(t, rasty->GetDrawingMode(),rasty);
 			}
 			// Visibility/ non-visibility are marked
 			// elsewhere now.

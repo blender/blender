@@ -135,6 +135,40 @@ class RAS_MeshObject
 	vector<class RAS_Polygon*> 	m_Polygons;
 	STR_String					m_name;
 	static STR_String			s_emptyname;
+	bool					m_zsort;
+	
+	struct polygonSlot
+	{
+		float        m_z;
+		RAS_Polygon *m_poly;
+			
+		polygonSlot(float z, RAS_Polygon* poly) :
+			m_z(z),
+			m_poly(poly)
+		{}
+		/**
+		 * pnorm and pval form the plane equation that the distance from is used to
+		 * sort against.
+		 */
+		polygonSlot(const MT_Vector3 &pnorm, const MT_Scalar &pval, RAS_MeshObject* mesh, RAS_Polygon* poly);
+	};
+		
+	struct backtofront
+	{
+		bool operator()(const polygonSlot &a, const polygonSlot &b) const
+		{
+			return a.m_z < b.m_z;
+		}
+	};
+	
+	struct fronttoback
+	{
+		bool operator()(const polygonSlot &a, const polygonSlot &b) const
+		{
+			return a.m_z > b.m_z;
+		}
+	};
+
 	
 protected:
 	GEN_Map<class RAS_IPolyMaterial,KX_ArrayOptimizer*> m_matVertexArrayS;
@@ -184,7 +218,10 @@ public:
 
 	void				DebugColor(unsigned int abgr);
 	
+	void SortPolygons(const MT_Transform &transform);
+
 	void				SchedulePolygons(
+							const MT_Transform &transform,
 							int drawingmode,
 							class RAS_IRasterizer* rasty
 						);

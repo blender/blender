@@ -361,10 +361,10 @@ static int my_set_tpage(TFace *tface)
 
 
 GPC_PolygonMaterial::GPC_PolygonMaterial(const STR_String& texname, bool ba, const STR_String& matname,
-			int tile, int tileXrep, int tileYrep, int mode, int transparant,
+			int tile, int tileXrep, int tileYrep, int mode, bool transparant, bool zsort,
 			int lightlayer, bool bIsTriangle, void* clientobject, void* tpage) :
 			RAS_IPolyMaterial(texname, ba, matname, tile, tileXrep, tileYrep, mode,
-			transparant, lightlayer, bIsTriangle, clientobject), m_tface((struct TFace*)tpage)
+			transparant, zsort, lightlayer, bIsTriangle, clientobject), m_tface((struct TFace*)tpage)
 {
 	// clear local caching info
 	my_set_tpage(0);
