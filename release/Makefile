@@ -104,14 +104,6 @@ install: package
 #@cp -r python $(DISTDIR)/python
 #@rm -fr $(DISTDIR)/python/CVS
 
-    ifneq ($(NOSTRIP),true)
-	@echo "----> Strip blender executable"
-      ifeq ($(OS),darwin)
-	@strip -x $(OCGDIR)/bin/blender$(EXT0)/Contents/MacOS/blender
-      else
-	@strip -x $(DISTDIR)/blender$(EXT0)
-      endif
-    endif
 	@echo "----> Copy blender$(EXT0) executable"
     ifeq ($(TYPE),-static)
 	@cp $(OCGDIR)/bin/blenderstatic$(EXT0) $(DISTDIR)/blender$(EXT0)
@@ -131,6 +123,14 @@ install: package
 	@$(MAKE) -C $(DISTDIR)/plugins all  > /dev/null || exit 1;
 	@rm -fr $(DISTDIR)/plugins/CVS $(DISTDIR)/plugins/*/CVS \
              $(DISTDIR)/plugins/*/*.o
+    endif
+    ifneq ($(NOSTRIP),true)
+	@echo "----> Strip blender executable"
+      ifeq ($(OS),darwin)
+	@strip -x $(OCGDIR)/bin/blender$(EXT0)/Contents/MacOS/blender
+      else
+	@strip -x $(DISTDIR)/blender$(EXT0)
+      endif
     endif
 	@[ ! -x $(CONFIG_GUESS)/specific.sh ] || (\
 	    echo "**--> Execute specific.sh in $(CONFIG_GUESS)/" && \
