@@ -1807,6 +1807,8 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 	int oldx, oldy, oldcfra, doseq;
 	char name[FILE_MAXDIR];
 
+	if(seqar==NULL) return;
+	
 	seq= seqbase->first;
 	while(seq) {
 
@@ -1933,9 +1935,9 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 							if((G.f & G_PLAYANIM)==0) waitcursor(0);
 						}
 					}
-					else if(seq->type==SEQ_SCENE && se->ibuf==0) {
+					else if(seq->type==SEQ_SCENE && se->ibuf==0 && seq->scene) {	// scene can be NULL after deletions
 						View3D *vd;
-
+						
 						oldsce= G.scene;
 						set_scene_bg(seq->scene);
 

@@ -2398,7 +2398,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 
 			ed= sce->ed;
 			if(ed) {
-				WHILE_SEQ(ed->seqbasep) {
+				WHILE_SEQ(&ed->seqbase) {
 					if(seq->ipo) seq->ipo= newlibadr_us(fd, sce->id.lib, seq->ipo);
 					if(seq->scene) seq->scene= newlibadr(fd, sce->id.lib, seq->scene);
 					if(seq->sound) {
