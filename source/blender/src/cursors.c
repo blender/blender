@@ -48,7 +48,6 @@
 #include "BIF_graphics.h"
 #include "BIF_screen.h"
 
-#include "GHOST_C-api.h"
 #include "winlay.h"
 
 
@@ -99,7 +98,6 @@ void SetBlenderCursor(short curs){
 	win=winlay_get_active_window();
 
 	if (win==NULL) return; /* Can't set custom cursor before Window init */ 
-	if (win->ghostwin==NULL) return;
 
 	LastCursor=CurrentCursor;
 	CurrentCursor=curs;
@@ -110,23 +108,10 @@ void SetBlenderCursor(short curs){
 		set_cursor(CURSOR_STD);
 	}
 	else if ( (U.curssize==0) || (BlenderCursor[curs]->big_bm == NULL) ) {
-		/*printf("setting small cursor\n");*/
-		GHOST_SetCustomCursorShapeEx(win->ghostwin, 
-			BlenderCursor[curs]->small_bm, BlenderCursor[curs]->small_mask, 
-			BlenderCursor[curs]->small_sizex,BlenderCursor[curs]->small_sizey,
-			BlenderCursor[curs]->small_hotx,BlenderCursor[curs]->small_hoty,
-			BlenderCursor[curs]->fg_color, BlenderCursor[curs]->bg_color	
-			);
+		window_set_custom_cursor_ex(win, BlenderCursor[curs], 0);
 	}
 	else {
-		/*printf("setting big cursor\n");*/
-		GHOST_SetCustomCursorShapeEx(win->ghostwin, 
-			BlenderCursor[curs]->big_bm, BlenderCursor[curs]->big_mask, 
-			BlenderCursor[curs]->big_sizex,BlenderCursor[curs]->big_sizey,
-			BlenderCursor[curs]->big_hotx,BlenderCursor[curs]->big_hoty,
-			BlenderCursor[curs]->fg_color, BlenderCursor[curs]->bg_color	
-			);
-
+		window_set_custom_cursor_ex(win, BlenderCursor[curs], 1);
 	}
 }
 

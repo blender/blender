@@ -32,9 +32,8 @@
 
 /* Abstract window operations */
 
-#include "GHOST_C-api.h"
-	
 typedef struct _Window Window;
+typedef struct BCursor BCursor;
 typedef void	(*WindowHandlerFP)	(Window *win, void *user_data, short evt, short val, char ascii);
 
 Window*	window_open			(char *title, int x, int y, int width, int height, int start_maximized);
@@ -68,6 +67,7 @@ void	window_set_title	(Window *win, char *title);
 void	window_set_cursor	(Window *win, int cursor);
 void	window_set_custom_cursor	(Window *win, unsigned char mask[16][2], 
 				unsigned char bitmap[16][2], int hotx, int hoty );
+void	window_set_custom_cursor_ex	(Window *win, BCursor *cursor, int useBig);
 
 void	window_warp_pointer	(Window *win, int x, int y);
 
@@ -80,30 +80,3 @@ Window*	winlay_get_active_window(void);
 void	winlay_process_events	(int wait_for_event);
 
 void	winlay_get_screensize	(int *width_r, int *height_r);
-
-
-struct _Window {
-	GHOST_WindowHandle	ghostwin;
-	
-		/* Handler and private data for handler */
-	WindowHandlerFP		handler;
-	void				*user_data;
-	
-		/* Window state */
-	int		size[2], position[2];
-	int		active, visible;
-	
-		/* Last known mouse/button/qualifier state */
-	int		lmouse[2];
-	int		lqual;		/* (LR_SHFTKEY, LR_CTRLKEY, LR_ALTKEY) */
-	int		lmbut;		/* (L_MOUSE, M_MOUSE, R_MOUSE) */
-	int		commandqual;
-
-		/* Tracks the faked mouse button, if non-zero it is
-		 * the event number of the last faked button.
-		 */
-	int		faked_mbut;
-
-	GHOST_TimerTaskHandle	timer;
-	int						timer_event;
-};

@@ -57,11 +57,42 @@
 #include "BIF_mywindow.h"
 #include "BIF_screen.h"
 #include "BIF_usiblender.h"
+#include "BIF_cursors.h"
 
 #include "mydevice.h"
 #include "blendef.h"
 
 #include "winlay.h"
+
+///
+
+struct _Window {
+	GHOST_WindowHandle	ghostwin;
+	
+		/* Handler and private data for handler */
+	WindowHandlerFP		handler;
+	void				*user_data;
+	
+		/* Window state */
+	int		size[2], position[2];
+	int		active, visible;
+	
+		/* Last known mouse/button/qualifier state */
+	int		lmouse[2];
+	int		lqual;		/* (LR_SHFTKEY, LR_CTRLKEY, LR_ALTKEY) */
+	int		lmbut;		/* (L_MOUSE, M_MOUSE, R_MOUSE) */
+	int		commandqual;
+
+		/* Tracks the faked mouse button, if non-zero it is
+		 * the event number of the last faked button.
+		 */
+	int		faked_mbut;
+
+	GHOST_TimerTaskHandle	timer;
+	int						timer_event;
+};
+
+///
 
 static GHOST_SystemHandle g_system= 0;
 
@@ -304,6 +335,22 @@ void window_set_cursor(Window *win, int curs) {
 void window_set_custom_cursor(Window *win, unsigned char mask[16][2], 
 					unsigned char bitmap[16][2], int hotx, int hoty) {
 	GHOST_SetCustomCursorShape(win->ghostwin, bitmap, mask, hotx, hoty);
+}
+
+void window_set_custom_cursor_ex(Window *win, BCursor *cursor, int useBig) {
+	if (useBig) {
+		GHOST_SetCustomCursorShapeEx(win->ghostwin, 
+			cursor->big_bm, cursor->big_mask, 
+			cursor->big_sizex,cursor->big_sizey,
+			cursor->big_hotx,cursor->big_hoty,
+			cursor->fg_color, cursor->bg_color);
+	} else {
+		GHOST_SetCustomCursorShapeEx(win->ghostwin, 
+			cursor->small_bm, cursor->small_mask, 
+			cursor->small_sizex,cursor->small_sizey,
+			cursor->small_hotx,cursor->small_hoty,
+			cursor->fg_color, cursor->bg_color);
+	}
 }
 
 void window_make_active(Window *win) {
