@@ -96,8 +96,8 @@ struct PyMethodDef M_Scene_methods[] = {
 /*****************************************************************************/
 static PyObject *Scene_getName(BPy_Scene *self);
 static PyObject *Scene_setName(BPy_Scene *self, PyObject *arg);
-static PyObject *Scene_getSize(BPy_Scene *self);
-static PyObject *Scene_setSize(BPy_Scene *self, PyObject *arg);
+static PyObject *Scene_getWinSize(BPy_Scene *self);
+static PyObject *Scene_setWinSize(BPy_Scene *self, PyObject *arg);
 static PyObject *Scene_copy(BPy_Scene *self, PyObject *arg);
 static PyObject *Scene_startFrame(BPy_Scene *self, PyObject *args);
 static PyObject *Scene_endFrame(BPy_Scene *self, PyObject *args);
@@ -122,9 +122,9 @@ static PyMethodDef BPy_Scene_methods[] = {
       "() - Return Scene name"},
   {"setName", (PyCFunction)Scene_setName, METH_VARARGS,
           "(str) - Change Scene name"},
-  {"getSize", (PyCFunction)Scene_getSize, METH_NOARGS,
+  {"getWinSize", (PyCFunction)Scene_getWinSize, METH_NOARGS,
       "() - Return Scene size"},
-  {"setSize", (PyCFunction)Scene_setSize, METH_VARARGS,
+  {"setWinSize", (PyCFunction)Scene_setWinSize, METH_VARARGS,
           "(str) - Change Scene size"},
   {"copy",    (PyCFunction)Scene_copy, METH_VARARGS,
           "(duplicate_objects = 1) - Return a copy of this scene\n"
@@ -383,7 +383,7 @@ static PyObject *Scene_setName(BPy_Scene *self, PyObject *args)
 
 
 
-static PyObject *Scene_getSize(BPy_Scene *self)
+static PyObject *Scene_getWinSize(BPy_Scene *self)
 {
 PyObject* list = PyList_New (0);
 Scene *scene = self->scene;
@@ -392,7 +392,7 @@ PyList_Append (list,  PyInt_FromLong(scene->r.ysch));
  return list;
 }
 
-static PyObject *Scene_setSize(BPy_Scene *self, PyObject *args)
+static PyObject *Scene_setWinSize(BPy_Scene *self, PyObject *args)
 {
  	PyObject *listargs=0, * tmp;
 	int i;
