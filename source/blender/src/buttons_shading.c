@@ -2904,7 +2904,7 @@ static void material_panel_shading(Material *ma)
 		uiDefButI(block, TOG|BIT|22, 0, "Bias",				245,80,65,19, &(ma->mode), 0, 0, 0, 0, "Prevents ray traced shadow errors with phong interpolated normals (terminator problem)");
 		uiBlockEndAlign(block);
 
-		uiDefButI(block, TOG|BIT|16, 0,	"Radio",			245,55,65,19, &(ma->mode), 0, 0, 0, 0, "Enables material for radiosty rendering");
+		uiDefButI(block, TOG|BIT|16, 0,	"Radio",			245,55,65,19, &(ma->mode), 0, 0, 0, 0, "Enables material for radiosity rendering");
 
 	}
 

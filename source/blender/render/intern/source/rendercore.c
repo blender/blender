@@ -2607,16 +2607,6 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 		if(RE_local_test_break()) break; 
 	}
 	
-	if(R.flag & (R_ZTRA+R_HALO) ) {	 /* to get back correct values of zbuffer Z for transp and halos */
-		xd= jit[0][0];
-		yd= jit[0][1];
-		Zjitx= -xd -0.5;
-		Zjity= -yd -0.5;
-		RE_setwindowclip(0, -1);
-		if((R.r.mode & R_MBLUR)==0) RE_local_printrenderinfo(0.0, v);
-		zbufferall();
-	}
-
 	rd= R.rectdaps;
 	rz= R.rectz;
 	rt= R.rectot;

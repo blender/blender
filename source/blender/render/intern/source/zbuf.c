@@ -2129,9 +2129,13 @@ static void copyto_abufz(int sample)
 	int x, y, *rza;
 	long *rd;
 	
-	memcpy(Arectz, R.rectz+ R.rectx*Aminy, 4*R.rectx*(Amaxy-Aminy+1));
-
-	if( (R.r.mode & R_OSA)==0 || sample==0) return;
+	/* now, in OSA the pixstructs contain all faces filled in */
+	if(R.r.mode & R_OSA) fillrect(Arectz, R.rectx, Amaxy-Aminy+1, 0x7FFFFFFF);
+	else {
+		memcpy(Arectz, R.rectz+ R.rectx*Aminy, 4*R.rectx*(Amaxy-Aminy+1));
+		return;
+	}
+	//if( (R.r.mode & R_OSA)==0 || sample==0) return;
 		
 	rza= Arectz;
 	rd= (R.rectdaps+ R.rectx*Aminy);
@@ -2146,6 +2150,7 @@ static void copyto_abufz(int sample)
 
 				while(ps) {
 					if(sample & ps->mask) {
+						//printf("filled xy %d %d mask %d\n", x, y, sample);
 						*rza= ps->z;
 						break;
 					}
