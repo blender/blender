@@ -55,7 +55,7 @@
 /* Python World_Type callback function prototypes:                          */
 /*****************************************************************************/
 static void World_DeAlloc (BPy_World *self);
-static int World_Print (BPy_World *self, FILE *fp, int flags);
+//static int World_Print (BPy_World *self, FILE *fp, int flags);
 static int World_SetAttr (BPy_World *self, char *name, PyObject *v);
 static int World_Compare (BPy_World *a, BPy_World *b);
 static PyObject *World_GetAttr (BPy_World *self, char *name);

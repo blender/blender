@@ -88,7 +88,7 @@ PyTypeObject rgbTuple_Type =
   sizeof (BPy_rgbTuple),                  /* tp_basicsize */
   0,                                      /* tp_itemsize */
   /* methods */
-  (destructor)rgbTuple_deAlloc,           /* tp_dealloc */
+  (destructor)rgbTuple_dealloc,           /* tp_dealloc */
   0,                                      /* tp_print */
   (getattrfunc)rgbTuple_getAttr,          /* tp_getattr */
   (setattrfunc)rgbTuple_setAttr,          /* tp_setattr */
@@ -169,11 +169,11 @@ PyObject *rgbTuple_setCol (BPy_rgbTuple *self, PyObject *args)
 }
 
 /*****************************************************************************/
-/* Function:    rgbTuple_deAlloc                                             */
+/* Function:    rgbTuple_dealloc                                             */
 /* Description: This is a callback function for the BPy_rgbTuple type. It is */
 /*              the destructor function.                                     */
 /*****************************************************************************/
-static void rgbTuple_deAlloc (BPy_rgbTuple *self)
+static void rgbTuple_dealloc (BPy_rgbTuple *self)
 {
   PyObject_DEL (self);
 }
