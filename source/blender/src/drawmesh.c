@@ -499,7 +499,6 @@ void draw_tfaces3D(Object *ob, Mesh *me)
 	float *v1, *v2, *v3, *v4;
 	float *av1= NULL, *av2= NULL, *av3= NULL, *av4= NULL, *extverts= NULL; 
 	int a, activeFaceInSelection= 0;
-	extern void bPolygonOffset(short val);
 	
 	if(me==0 || me->tface==0) return;
 
@@ -508,7 +507,7 @@ void draw_tfaces3D(Object *ob, Mesh *me)
 
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_LIGHTING);
-	bPolygonOffset(1);
+	bglPolygonOffset(G.vd->dist);
 
 	/* Draw (Hidden) Edges */
 	if(G.f & G_DRAWEDGES || G.f & G_HIDDENEDGES){ 
@@ -632,7 +631,7 @@ void draw_tfaces3D(Object *ob, Mesh *me)
 	/* Draw Stippled Outline for selected faces */
 	mface= me->mface;
 	tface= me->tface;
-	bPolygonOffset(1);
+	bglPolygonOffset(G.vd->dist);
 	for(a=me->totface; a>0; a--, mface++, tface++) {
 		if(mface->v3==0) continue;
 		if(tface->flag & TF_HIDE) continue;
@@ -705,10 +704,7 @@ void draw_tfaces3D(Object *ob, Mesh *me)
 		setlinestyle(0);
 	}
 
-	/* We added 2 offsets, so go back 2, and disable */
-	bPolygonOffset(-1);
-	bPolygonOffset(-1);
-	bPolygonOffset(0);
+	bglPolygonOffset(0.0);	// resets correctly now, even after calling accumulated offsets
 }
 
 static int set_gl_light(Object *ob)

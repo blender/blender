@@ -187,6 +187,7 @@ struct _HyperEdge {
 	HyperVert *ep;
 	int flag;		// added for drawing optimal
 	float sharp;    // sharpness weight
+	EditEdge *ee;	// for selection state
 	LinkNode *faces;
 };
 
@@ -270,7 +271,8 @@ static HyperVert *hypermesh_add_vert(HyperMesh *hme, float *co, float *orig) {
 	return hv;
 }
 
-static HyperEdge *hypermesh_add_edge(HyperMesh *hme, HyperVert *v1, HyperVert *v2, int flag, float sharp) {
+static HyperEdge *hypermesh_add_edge(HyperMesh *hme, 
+			HyperVert *v1, HyperVert *v2, int flag, float sharp, EditEdge *ee) {
 	HyperEdge *he= BLI_memarena_alloc(hme->arena, sizeof(*he));
 	
 	BLI_linklist_prepend_arena(&v1->edges, he, hme->arena);
@@ -282,6 +284,7 @@ static HyperEdge *hypermesh_add_edge(HyperMesh *hme, HyperVert *v1, HyperVert *v
 	he->faces= NULL;
 	he->sharp = sharp;
 	he->flag= flag;
+	he->ee= ee;
 	
 	he->next= hme->edges;
 	hme->edges= he;
@@ -308,7 +311,7 @@ static HyperFace *hypermesh_add_face(HyperMesh *hme, HyperVert **verts, int nver
 		HyperEdge *e= hypervert_find_edge(v, last);
 
 		if (!e)
-			e= hypermesh_add_edge(hme, v, last, flag, 0);
+			e= hypermesh_add_edge(hme, v, last, flag, 0, NULL);
 
 		f->verts[j]= v;
 		f->edges[j]= e;
@@ -369,7 +372,7 @@ static HyperMesh *hypermesh_from_mesh(Mesh *me, float *extverts, int subdivLevel
 			if(med->flag & ME_SEAM) flag |= HE_SEAM;
 			
 			hypermesh_add_edge(hme, vert_tbl[med->v1], vert_tbl[med->v2], flag, 
-				creasefac*((float)med->crease) );
+				creasefac*((float)med->crease), NULL);
 		}
 	}
 
@@ -410,7 +413,7 @@ static HyperMesh *hypermesh_from_mesh(Mesh *me, float *extverts, int subdivLevel
 					*((unsigned int*) f->vcol[j])= *((unsigned int*) &mcol[j]);
 			}
 		} else if(medge==NULL) {
-			hypermesh_add_edge(hme, vert_tbl[mf->v1], vert_tbl[mf->v2], DR_OPTIM, 0.0); 
+			hypermesh_add_edge(hme, vert_tbl[mf->v1], vert_tbl[mf->v2], DR_OPTIM, 0.0, NULL); 
 		}
 	}
 
@@ -436,7 +439,7 @@ static HyperMesh *hypermesh_from_editmesh(EditMesh *em, int subdivLevels) {
 		 * then restore real prev links later.
 		 */
 	for (ee= em->edges.first; ee; ee= ee->next) {
-		if(ee->v1->h==0 && ee->v2->h==0) {
+		if(ee->h==0) {
 			if(ee->v1->f1) {
 				ee->v1->prev= (EditVert*) hypermesh_add_vert(hme, ee->v1->co, ee->v1->co);
 				ee->v1->f1= 0;
@@ -448,14 +451,13 @@ static HyperMesh *hypermesh_from_editmesh(EditMesh *em, int subdivLevels) {
 
 			flag= DR_OPTIM;
 			if(ee->seam) flag |= HE_SEAM;
+			
 			hypermesh_add_edge(hme, (HyperVert*) ee->v1->prev, (HyperVert*) ee->v2->prev, flag, 
-				creasefac*ee->crease);
+				creasefac*ee->crease, ee);
 		}
 	}
 	for (ef= em->faces.first; ef; ef= ef->next) {
-		if(ef->v1->h || ef->v2->h || ef->v3->h);
-		else if(ef->v4 && ef->v4->h);
-		else {
+		if(ef->h==0) {
 			int nverts= ef->v4?4:3;
 			HyperVert *verts[4];
 			HyperFace *f;
@@ -685,8 +687,8 @@ static void hypermesh_subdivide(HyperMesh *me, HyperMesh *nme) {
 	}
 
 	for (e= me->edges; e; e= e->next) {
-		hypermesh_add_edge(nme, e->v[0]->nmv, e->ep, e->flag, e->sharp>1.0?e->sharp-1.0:0.0);
-		hypermesh_add_edge(nme, e->v[1]->nmv, e->ep, e->flag, e->sharp>1.0?e->sharp-1.0:0.0);
+		hypermesh_add_edge(nme, e->v[0]->nmv, e->ep, e->flag, e->sharp>1.0?e->sharp-1.0:0.0, e->ee);
+		hypermesh_add_edge(nme, e->v[1]->nmv, e->ep, e->flag, e->sharp>1.0?e->sharp-1.0:0.0, e->ee);
 	}
 
 	for (f= me->faces; f; f= f->next) {
@@ -791,8 +793,8 @@ static void hypermesh_simple_subdivide(HyperMesh *me, HyperMesh *nme) {
 	}
 
 	for (e= me->edges; e; e= e->next) { /* Add original edges */
-		hypermesh_add_edge(nme, e->v[0]->nmv, e->ep, e->flag, 0.0);
-		hypermesh_add_edge(nme, e->v[1]->nmv, e->ep, e->flag, 0.0);
+		hypermesh_add_edge(nme, e->v[0]->nmv, e->ep, e->flag, 0.0, e->ee);
+		hypermesh_add_edge(nme, e->v[1]->nmv, e->ep, e->flag, 0.0, e->ee);
 	}
 
 	for (f= me->faces; f; f= f->next) {
@@ -949,7 +951,11 @@ static DispListMesh *hypermesh_to_displistmesh(HyperMesh *hme, short flag) {
 	dlm->mvert= MEM_callocN(dlm->totvert*sizeof(*dlm->mvert), "dlm->mvert");
 	dlm->medge= MEM_callocN(dlm->totedge*sizeof(*dlm->medge), "dlm->medge");
 	dlm->mface= MEM_mallocN(dlm->totface*sizeof(*dlm->mface), "dlm->mface");
-
+	/* these two blocks for live update of selection in editmode */
+	if (hme->orig_me==NULL) {
+		dlm->editedge= MEM_callocN(dlm->totedge*sizeof(EditEdge *), "dlm->editface");
+		dlm->editface= MEM_mallocN(dlm->totface*sizeof(EditFace *), "dlm->editedge");
+	}
 	if (hme->orig_me) {
 		dlm->flag= hme->orig_me->flag;
 	} else {
@@ -969,9 +975,11 @@ static DispListMesh *hypermesh_to_displistmesh(HyperMesh *hme, short flag) {
 	
 	/* we use by default edges for displistmesh now */
 	med= dlm->medge;
-	for (e= hme->edges; e; e= e->next, med++) {
+	for (i=0, e= hme->edges; e; e= e->next, med++, i++) {
 		med->v1= (int) e->v[0]->nmv;
 		med->v2= (int) e->v[1]->nmv;
+		
+		if (hme->orig_me==NULL) dlm->editedge[i]= e->ee;
 
 		if(e->flag & DR_OPTIM) med->flag |= ME_EDGEDRAW;
 		if(e->flag & HE_SEAM) med->flag |= ME_SEAM;
@@ -1026,6 +1034,9 @@ static DispListMesh *hypermesh_to_displistmesh(HyperMesh *hme, short flag) {
 			mf->mat_nr= origef->mat_nr;
 			mf->flag= origef->flag;
 			mf->puno= 0;
+			
+			// for subsurf draw in editmode
+			dlm->editface[i]= origef;
 		}
 		
 		/* although not used by 3d display, still needed for wire-render */

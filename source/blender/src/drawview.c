@@ -270,6 +270,8 @@ void init_gl_stuff(void)
 	glPixelTransferi(GL_BLUE_BIAS, 0);
 	glPixelTransferi(GL_ALPHA_SCALE, 1);
 	glPixelTransferi(GL_ALPHA_BIAS, 0);
+	glPixelTransferi(GL_DEPTH_BIAS, 0);
+	glPixelTransferi(GL_DEPTH_SCALE, 1);
 
 	a= 0;
 	for(x=0; x<32; x++) {

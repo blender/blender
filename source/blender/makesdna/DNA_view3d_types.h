@@ -122,6 +122,7 @@ typedef struct View3D {
 #define V3D_WEIGHTPAINT		512
 #define V3D_ALIGN			1024
 #define V3D_SELECT_OUTLINE	2048
+#define V3D_ZBUF_SELECT		4096
 
 /* View3D->around */
 #define V3D_CENTRE		 0

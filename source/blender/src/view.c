@@ -181,8 +181,8 @@ void project_short(float *vec, short *adr)	/* clips */
 			fy= (curarea->winy/2)+(curarea->winy/2)*vec4[1]/vec4[3];
 			
 			if(fy>0.0 && fy< (float)curarea->winy) {
-				adr[0]= floor(fx+0.5); 
-				adr[1]= floor(fy+0.5);
+				adr[0]= floor(fx); 
+				adr[1]= floor(fy);
 			}
 		}
 	}
@@ -206,8 +206,8 @@ void project_short_noclip(float *vec, short *adr)
 			fy= (curarea->winy/2)+(curarea->winy/2)*vec4[1]/vec4[3];
 			
 			if(fy>-32700.0 && fy<32700.0) {
-				adr[0]= floor(fx+0.5); 
-				adr[1]= floor(fy+0.5);
+				adr[0]= floor(fx); 
+				adr[1]= floor(fy);
 			}
 		}
 	}

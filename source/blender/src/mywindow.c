@@ -107,10 +107,14 @@ void mywindow_init_mainwin(Window *win, int orx, int ory, int sizex, int sizey)
 	glGetIntegerv(GL_BLUE_BITS, &b);
 
 	mainwin_color_depth= r + g + b;
-	
+	if(G.f & G_DEBUG) {
+		printf("Color depth r %d g %d b %d\n", (int)r, (int)g, (int)b);
+		glGetIntegerv(GL_AUX_BUFFERS, &r);
+		printf("Aux buffers: %d\n", (int)r);
+	}
 }
 
-/* XXXXXXXXXXXXXXXX very hacky, not allowed to release
+/* XXXXXXXXXXXXXXXX very hacky, not allowed to release again after 2.24
  * again after 2.24
  */
 void mywindow_build_and_set_renderwin(void)

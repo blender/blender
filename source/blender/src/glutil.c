@@ -477,4 +477,42 @@ void bglEnd(void)
 	
 }
 
+/* *************** glPolygonOffset hack ************* */
+
+/* dist is only for ortho now... */
+void bglPolygonOffset(float dist) 
+{
+	static float winmat[16], offset=0.0;	
+	
+	if(dist!=0.0) {
+		float offs;
+		
+		// glEnable(GL_POLYGON_OFFSET_FILL);
+		// glPolygonOffset(-1.0, -1.0);
+
+		/* hack below is to mimic polygon offset */
+		glMatrixMode(GL_PROJECTION);
+		glGetFloatv(GL_PROJECTION_MATRIX, (float *)winmat);
+		
+		if(winmat[15]>0.5) offs= 0.00005*dist;  // ortho tweaking
+		else offs= 0.001;  // should be clipping value or so...
+		
+		winmat[14]-= offs;
+		offset+= offs;
+		
+		glLoadMatrixf(winmat);
+		glMatrixMode(GL_MODELVIEW);
+	}
+	else {
+
+		glMatrixMode(GL_PROJECTION);
+		winmat[14]+= offset;
+		offset= 0.0;
+		glLoadMatrixf(winmat);
+		glMatrixMode(GL_MODELVIEW);
+	}
+}
+
+
+
 

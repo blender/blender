@@ -193,6 +193,8 @@ void bglEnd(void);
 void bglVertex3fv(float *vec);
 void bglVertex2fv(float *vec);
 
+/* own working polygon offset */
+void bglPolygonOffset(float dist);
 
 #endif /* BIF_GLUTIL_H */
 

@@ -3925,8 +3925,13 @@ void view3d_buttons(void)
 		uiDefIconButS(block, TOG|BIT|1, B_SEL_EDGE, ICON_EDGESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Edge select mode");
 		xco+= XIC;
 		uiDefIconButS(block, TOG|BIT|2, B_SEL_FACE, ICON_FACESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Face select mode");
-		xco+= XIC+20;
+		xco+= XIC;
 		uiBlockEndAlign(block);
+		if(G.vd->drawtype > OB_WIRE) {
+			uiDefIconButS(block, TOG|BIT|12, B_REDR, ICON_ORTHO, xco,0,XIC,YIC, &G.vd->flag, 1.0, 0.0, 0, 0, "Clip selection with Z buffer");
+			xco+= XIC;
+		}
+		xco+= 20;
 	}
 
 	uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE_DEHLT, xco,0,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (hold CTRL for anim)");

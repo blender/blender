@@ -61,6 +61,8 @@ struct Bone;
 struct Mesh;
 struct TFace;
 struct EditMesh;
+struct EditEdge;
+struct EditFace;
 
 typedef struct DispListMesh DispListMesh;
 struct DispListMesh {
@@ -70,6 +72,8 @@ struct DispListMesh {
 	struct MCol *mcol;
 	struct MFace *mface;
 	struct TFace *tface;
+	struct EditEdge **editedge;	// added for subsurf, drawobject.c
+	struct EditFace **editface;	// added for subsurf, drawobject.c
 	int flag;
 };
 

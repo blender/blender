@@ -793,13 +793,17 @@ void borderselect(void)
 				EditEdge *eed;
 				EditFace *efa;
 				
+				EM_zbuffer_visible(NULL, 0, 0);	// init
+				
 				if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 					calc_meshverts_ext();	/* clips, drawobject.c */
 					for(eve= em->verts.first; eve; eve= eve->next) {
 						if(eve->h==0 && eve->xs>rect.xmin && eve->xs<rect.xmax) {
 							if(eve->ys>rect.ymin && eve->ys<rect.ymax) {
-								if(val==LEFTMOUSE) eve->f|= 1;
-								else eve->f&= 254;
+								if(EM_zbuffer_visible(eve->co, eve->xs, eve->ys)) {
+									if(val==LEFTMOUSE) eve->f|= 1;
+									else eve->f&= 254;
+								}
 							}
 						}
 					}
@@ -812,8 +816,12 @@ void borderselect(void)
 					for(eed= em->edges.first; eed; eed= eed->next) {
 						if(eed->h==0) {
 							if( edge_fully_inside_rect(rect, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {
-								EM_select_edge(eed, val==LEFTMOUSE);
-								done = 1;
+								if(EM_zbuffer_visible(eed->v1->co, eed->v1->xs, eed->v1->ys)) {
+									if(EM_zbuffer_visible(eed->v2->co, eed->v2->xs, eed->v2->ys)) {
+										EM_select_edge(eed, val==LEFTMOUSE);
+										done = 1;
+									}
+								}
 							}
 						}
 					}
@@ -821,8 +829,13 @@ void borderselect(void)
 					if(done==0) {
 						for(eed= em->edges.first; eed; eed= eed->next) {
 							if(eed->h==0) {
-								if( edge_inside_rect(rect, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys))
-									EM_select_edge(eed, val==LEFTMOUSE);
+								if( edge_inside_rect(rect, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {
+									if(EM_zbuffer_visible(eed->v1->co, eed->v1->xs, eed->v1->ys)) {
+										if(EM_zbuffer_visible(eed->v2->co, eed->v2->xs, eed->v2->ys)) {
+											EM_select_edge(eed, val==LEFTMOUSE);
+										}
+									}
+								}
 							}
 						}
 					}
@@ -833,7 +846,9 @@ void borderselect(void)
 					for(efa= em->faces.first; efa; efa= efa->next) {
 						if(efa->h==0 && efa->xs>rect.xmin && efa->xs<rect.xmax) {
 							if(efa->ys>rect.ymin && efa->ys<rect.ymax) {
-								EM_select_face_fgon(efa, val==LEFTMOUSE);
+								if(EM_zbuffer_visible(efa->cent, efa->xs, efa->ys)) {
+									EM_select_face_fgon(efa, val==LEFTMOUSE);
+								}
 							}
 						}
 					}
@@ -1039,6 +1054,8 @@ void mesh_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 	EditEdge *eed;
 	EditFace *efa;
 	float x, y, r;
+	
+	EM_zbuffer_visible(NULL, 0, 0);	// init
 
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 		calc_meshverts_ext();	/* drawobject.c */
@@ -1049,8 +1066,10 @@ void mesh_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 				y= eve->ys-mval[1];
 				r= sqrt(x*x+y*y);
 				if(r<=rad) {
-					if(selecting==LEFTMOUSE) eve->f|= 1;
-					else eve->f&= 254;
+					if(EM_zbuffer_visible(eve->co, eve->xs, eve->ys)) {
+						if(selecting==LEFTMOUSE) eve->f|= 1;
+						else eve->f&= 254;
+					}
 				}
 			}
 			eve= eve->next;
@@ -1064,7 +1083,11 @@ void mesh_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 		for(eed= em->edges.first; eed; eed= eed->next) {
 			if(eed->h==0) {
 				if( edge_inside_circle(mval[0], mval[1], (short)rad, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {
-					EM_select_edge(eed, selecting==LEFTMOUSE);
+					if(EM_zbuffer_visible(eed->v1->co, eed->v1->xs, eed->v1->ys)) {
+						if(EM_zbuffer_visible(eed->v2->co, eed->v2->xs, eed->v2->ys)) {
+							EM_select_edge(eed, selecting==LEFTMOUSE);
+						}
+					}
 				}
 			}
 		}
@@ -1078,7 +1101,9 @@ void mesh_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 				y= efa->ys-mval[1];
 				r= sqrt(x*x+y*y);
 				if(r<=rad) {
-					EM_select_face_fgon(efa, selecting==LEFTMOUSE);
+					if(EM_zbuffer_visible(efa->cent, efa->xs, efa->ys)) {
+						EM_select_face_fgon(efa, selecting==LEFTMOUSE);
+					}
 				}
 			}
 		}

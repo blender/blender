@@ -211,11 +211,13 @@ DispListMesh *displistmesh_from_mesh(Mesh *me, float *extverts)
 void displistmesh_free(DispListMesh *dlm) 
 {
 	// also check on mvert and mface, can be NULL after decimator (ton)
-	if( dlm->mvert) MEM_freeN(dlm->mvert);
-	if( dlm->medge) MEM_freeN(dlm->medge);
+	if (dlm->mvert) MEM_freeN(dlm->mvert);
+	if (dlm->medge) MEM_freeN(dlm->medge);
 	if (dlm->mface) MEM_freeN(dlm->mface);
 	if (dlm->mcol) MEM_freeN(dlm->mcol);
 	if (dlm->tface) MEM_freeN(dlm->tface);
+	if (dlm->editedge) MEM_freeN(dlm->editedge);
+	if (dlm->editface) MEM_freeN(dlm->editface);
 	MEM_freeN(dlm);
 }
 

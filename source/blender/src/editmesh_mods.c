@@ -99,6 +99,47 @@ editmesh_mods.c, UI level access, no geometry changes
 
 /* ****************************** SELECTION ROUTINES **************** */
 
+/* return 1 if visible */
+int EM_zbuffer_visible(float *co, short xs, short ys)
+{
+	static float persmat[4][4];
+	float zval, vec4[4];
+	
+	if(G.vd->drawtype<OB_SOLID && (G.vd->flag & V3D_ZBUF_SELECT)==0) return 1;
+	
+	if(co==NULL) {	// init
+		float pmat[4][4], vmat[4][4];
+		areawinset(curarea->win);
+		persp(PERSP_VIEW);
+		mymultmatrix(G.obedit->obmat);
+
+		bglPolygonOffset(G.vd->dist);	// sets proj matrix
+		glGetFloatv(GL_PROJECTION_MATRIX, (float *)pmat);
+		glGetFloatv(GL_MODELVIEW_MATRIX, (float *)vmat);
+		Mat4MulMat4(persmat, vmat, pmat);	
+		bglPolygonOffset(0.0);			// restores proj matrix 
+
+		myloadmatrix(G.vd->viewmat);
+		
+		return 0;
+	}
+
+	// clip on window edge */
+	if(xs<0 || ys<0 || xs>=curarea->winx || ys>= curarea->winy) return 0;
+
+	VECCOPY(vec4, co);
+	vec4[3]= 1.0;
+	Mat4MulVec4fl(persmat, vec4);
+	vec4[2]/= vec4[3];
+	vec4[2]= 0.5 + vec4[2]/2;
+	
+	glReadPixels(curarea->winrct.xmin+xs,  curarea->winrct.ymin+ys, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT,  &zval);
+					
+					//printf("my proj %f zbuf %f mydiff %f\n", vec4[2], zval, vec4[2]-zval);
+	if( vec4[2] > zval) return 0;
+	return 1;
+}
+
 
 static EditVert *findnearestvert(short *dist, short sel)
 {
@@ -112,6 +153,7 @@ static EditVert *findnearestvert(short *dist, short sel)
 
 	/* do projection */
 	calc_meshverts_ext();	/* drawobject.c */
+	EM_zbuffer_visible(NULL, 0, 0);	/* NULL = init */
 	
 	/* we count from acto->next to last, and from first to acto */
 	/* does acto exist? */
@@ -130,9 +172,11 @@ static EditVert *findnearestvert(short *dist, short sel)
 			temp= abs(mval[0]- eve->xs)+ abs(mval[1]- eve->ys);
 			if( (eve->f & 1)==sel ) temp+=5;
 			if(temp< *dist) {
-				act= eve;
-				*dist= temp;
-				if(*dist<4) break;
+				if(EM_zbuffer_visible(eve->co, eve->xs, eve->ys)) {
+					act= eve;
+					*dist= temp;
+					if(*dist<4) break;
+				}
 			}
 		}
 		eve= eve->next;
@@ -145,9 +189,11 @@ static EditVert *findnearestvert(short *dist, short sel)
 				temp= abs(mval[0]- eve->xs)+ abs(mval[1]- eve->ys);
 				if( (eve->f & 1)==sel ) temp+=5;
 				if(temp< *dist) {
-					act= eve;
-					if(temp<4) break;
-					*dist= temp;
+					if(EM_zbuffer_visible(eve->co, eve->xs, eve->ys)) {
+						act= eve;
+						if(temp<4) break;
+						*dist= temp;
+					}
 				}
 				if(eve== acto) break;
 			}
@@ -177,6 +223,8 @@ EditEdge *findnearestedge(short *dist)
 	}	
 		
 	calc_meshverts_ext_f2();     	/*sets (eve->f & 2) for vertices that aren't visible*/
+	EM_zbuffer_visible(NULL, 0, 0);	/* NULL = init */
+
 	getmouseco_areawin(mval);
 	closest=NULL;
 	
@@ -196,8 +244,12 @@ EditEdge *findnearestedge(short *dist)
 			distance= (short)PdistVL2Dfl(mval2, v1, v2);
 			
 			if(distance < *dist) {
-				*dist= distance;
-				closest= eed;
+				if(EM_zbuffer_visible(eed->v1->co, eed->v1->xs, eed->v1->ys)) {
+					if(EM_zbuffer_visible(eed->v2->co, eed->v2->xs, eed->v2->ys)) {
+						*dist= distance;
+						closest= eed;
+					}
+				}
 			}
 		}
 		eed= eed->next;
@@ -224,6 +276,7 @@ static EditFace *findnearestface(short *dist)
 
 	/* do projection */
 	calc_mesh_facedots_ext();
+	EM_zbuffer_visible(NULL, 0, 0);	/* NULL = init */
 	
 	/* we count from acto->next to last, and from first to acto */
 	/* does acto exist? */
@@ -241,8 +294,10 @@ static EditFace *findnearestface(short *dist)
 		if(efa->h==0 && efa->fgonf!=EM_FGON) {
 			temp= abs(mval[0]- efa->xs)+ abs(mval[1]- efa->ys);
 			if(temp< *dist) {
-				act= efa;
-				*dist= temp;
+				if(EM_zbuffer_visible(efa->cent, efa->xs, efa->ys)) {
+					act= efa;
+					*dist= temp;
+				}
 			}
 		}
 		efa= efa->next;
@@ -254,8 +309,10 @@ static EditFace *findnearestface(short *dist)
 			if(efa->h==0 && efa->fgonf!=EM_FGON) {
 				temp= abs(mval[0]- efa->xs)+ abs(mval[1]- efa->ys);
 				if(temp< *dist) {
-					act= efa;
-					*dist= temp;
+					if(EM_zbuffer_visible(efa->cent, efa->xs, efa->ys)) {
+						act= efa;
+						*dist= temp;
+					}
 				}
 				if(efa== acto) break;
 			}
@@ -294,7 +351,7 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 		}
 
 		if(G.scene->selectmode & (SCE_SELECT_EDGE|SCE_SELECT_FACE)) {
-			if(efa->fgonf==0) {
+			if(0) {//efa->fgonf==0) {
 				if(efa->f & SELECT) BIF_ThemeColor(TH_EDGE_SELECT);
 				else BIF_ThemeColor(TH_WIRE);
 				
@@ -637,6 +694,7 @@ void hide_mesh(int swap)
 		for(eed= em->edges.first; eed; eed= eed->next) {
 			if((eed->f & SELECT)!=swap) {
 				eed->h |= 1;
+				eed->v1->h= eed->v2->h= 1;
 				EM_select_edge(eed, 0);
 			}
 		}
@@ -654,6 +712,15 @@ void hide_mesh(int swap)
 		for(efa= em->faces.first; efa; efa= efa->next) {
 			if((efa->f & SELECT)!=swap) {
 				efa->h= 1;
+				
+				efa->e1->h |= 1;
+				efa->e2->h |= 1;
+				efa->e3->h |= 1;
+				if(efa->e4) efa->e4->h |= 1;
+				
+				efa->v1->h= efa->v2->h= efa->v3->h= 1;
+				if(efa->v4) efa->v4->h= 1;
+				
 				EM_select_face(efa, 0);
 			}
 		}
@@ -682,7 +749,7 @@ void reveal_mesh(void)
 	}
 
 	for(eed= em->edges.first; eed; eed= eed->next) {
-		if(eed->h) {
+		if(eed->h & 1) {
 			eed->h &= ~1;
 			eed->f |= SELECT;
 		}
