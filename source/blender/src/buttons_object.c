@@ -136,6 +136,11 @@ float hspeed=0.1, prspeed=0.0, prlen=0.0;
 
 /* ********************* CONSTRAINT ***************************** */
 
+static void add_influence_key_to_constraint_func (void *arg1v, void *unused)
+{
+	bConstraint *con = arg1v;
+	add_influence_key_to_constraint(con);
+}
 static void activate_constraint_ipo_func (void *arg1v, void *unused)
 {
 
@@ -509,15 +514,15 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				else
 					strcpy (data->subtarget, "");
 
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"X",	*xco+((width/2)-84), *yco-60,19,18, &data->reserved1, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Y",	*xco+((width/2)-65), *yco-60,19,18, &data->reserved1, 12.0, 1.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Z",	*xco+((width/2)-46), *yco-60,19,18, &data->reserved1, 12.0, 2.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"-X",	*xco+((width/2)-27), *yco-60,24,18, &data->reserved1, 12.0, 3.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"-Y",	*xco+((width/2)-3), *yco-60,24,18, &data->reserved1, 12.0, 4.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"-Z",	*xco+((width/2)+21), *yco-60,24,18, &data->reserved1, 12.0, 5.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"X",	*xco+((width/2)+60), *yco-60,19,18, &data->reserved2, 13.0, 0.0, 0, 0, "Specify the axis that is points upward");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Y",	*xco+((width/2)+79), *yco-60,19,18, &data->reserved2, 13.0, 1.0, 0, 0, "Specify the axis that is points upward");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Z",	*xco+((width/2)+98), *yco-60,19,18, &data->reserved2, 13.0, 2.0, 0, 0, "Specify the axis that is points upward");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",	*xco+((width/2)-84), *yco-60,19,18, &data->reserved1, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Y",	*xco+((width/2)-65), *yco-60,19,18, &data->reserved1, 12.0, 1.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",	*xco+((width/2)-46), *yco-60,19,18, &data->reserved1, 12.0, 2.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-X",	*xco+((width/2)-27), *yco-60,24,18, &data->reserved1, 12.0, 3.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-Y",	*xco+((width/2)-3) , *yco-60,24,18, &data->reserved1, 12.0, 4.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-Z",	*xco+((width/2)+21), *yco-60,24,18, &data->reserved1, 12.0, 5.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",	*xco+((width/2)+60), *yco-60,19,18, &data->reserved2, 13.0, 0.0, 0, 0, "Specify the axis that is points upward");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Y",	*xco+((width/2)+79), *yco-60,19,18, &data->reserved2, 13.0, 1.0, 0, 0, "Specify the axis that is points upward");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",	*xco+((width/2)+98), *yco-60,19,18, &data->reserved2, 13.0, 2.0, 0, 0, "Specify the axis that is points upward");
 			}
 			break;
 		case CONSTRAINT_TYPE_LOCKTRACK:
@@ -539,15 +544,15 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				else
 					strcpy (data->subtarget, "");
 
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"X",		*xco+((width/2)-84), *yco-60,19,18, &data->trackflag, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Y",		*xco+((width/2)-65), *yco-60,19,18, &data->trackflag, 12.0, 1.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Z",		*xco+((width/2)-46), *yco-60,19,18, &data->trackflag, 12.0, 2.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"-X",		*xco+((width/2)-27), *yco-60,24,18, &data->trackflag, 12.0, 3.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"-Y",		*xco+((width/2)-3), *yco-60,24,18, &data->trackflag, 12.0, 4.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"-Z",		*xco+((width/2)+21), *yco-60,24,18, &data->trackflag, 12.0, 5.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"X",		*xco+((width/2)+60), *yco-60,19,18, &data->lockflag, 13.0, 0.0, 0, 0, "Specify the axis that is locked");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Y",		*xco+((width/2)+79), *yco-60,19,18, &data->lockflag, 13.0, 1.0, 0, 0, "Specify the axis that is locked");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Z",		*xco+((width/2)+98), *yco-60,19,18, &data->lockflag, 13.0, 2.0, 0, 0, "Specify the axis that is locked");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",		*xco+((width/2)-84), *yco-60,19,18, &data->trackflag, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Y",		*xco+((width/2)-65), *yco-60,19,18, &data->trackflag, 12.0, 1.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",		*xco+((width/2)-46), *yco-60,19,18, &data->trackflag, 12.0, 2.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-X",		*xco+((width/2)-27), *yco-60,24,18, &data->trackflag, 12.0, 3.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-Y",		*xco+((width/2)-3) , *yco-60,24,18, &data->trackflag, 12.0, 4.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-Z",		*xco+((width/2)+21), *yco-60,24,18, &data->trackflag, 12.0, 5.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",		*xco+((width/2)+60), *yco-60,19,18, &data->lockflag, 13.0, 0.0, 0, 0, "Specify the axis that is locked");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Y",		*xco+((width/2)+79), *yco-60,19,18, &data->lockflag, 13.0, 1.0, 0, 0, "Specify the axis that is locked");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",		*xco+((width/2)+98), *yco-60,19,18, &data->lockflag, 13.0, 2.0, 0, 0, "Specify the axis that is locked");
 			}
 			break;
 		case CONSTRAINT_TYPE_FOLLOWPATH:
@@ -567,15 +572,15 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				/* Draw Offset number button */
 				uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Offset:", *xco+((width/2))+20, *yco-40, 96, 18, &data->offset, -9000, 9000, 100.0, 0.0, "Offset from the position corresponding to the time frame"); 
 
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"X",		*xco+((width/2)-84), *yco-60,19,18, &data->trackflag, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Y",		*xco+((width/2)-65), *yco-60,19,18, &data->trackflag, 12.0, 1.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Z",		*xco+((width/2)-46), *yco-60,19,18, &data->trackflag, 12.0, 2.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"-X",		*xco+((width/2)-27), *yco-60,24,18, &data->trackflag, 12.0, 3.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"-Y",		*xco+((width/2)-3), *yco-60,24,18, &data->trackflag, 12.0, 4.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"-Z",		*xco+((width/2)+21), *yco-60,24,18, &data->trackflag, 12.0, 5.0, 0, 0, "Specify the axis that points to another object");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"X",		*xco+((width/2)+60), *yco-60,19,18, &data->upflag, 13.0, 0.0, 0, 0, "Specify the axis that is points upward");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Y",		*xco+((width/2)+79), *yco-60,19,18, &data->upflag, 13.0, 1.0, 0, 0, "Specify the axis that is points upward");
-				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Z",		*xco+((width/2)+98), *yco-60,19,18, &data->upflag, 13.0, 2.0, 0, 0, "Specify the axis that is points upward");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",		*xco+((width/2)-84), *yco-60,19,18, &data->trackflag, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Y",		*xco+((width/2)-65), *yco-60,19,18, &data->trackflag, 12.0, 1.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",		*xco+((width/2)-46), *yco-60,19,18, &data->trackflag, 12.0, 2.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-X",		*xco+((width/2)-27), *yco-60,24,18, &data->trackflag, 12.0, 3.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-Y",		*xco+((width/2)-3) , *yco-60,24,18, &data->trackflag, 12.0, 4.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"-Z",		*xco+((width/2)+21), *yco-60,24,18, &data->trackflag, 12.0, 5.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",		*xco+((width/2)+60), *yco-60,19,18, &data->upflag, 13.0, 0.0, 0, 0, "Specify the axis that is points upward");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Y",		*xco+((width/2)+79), *yco-60,19,18, &data->upflag, 13.0, 1.0, 0, 0, "Specify the axis that is points upward");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",		*xco+((width/2)+98), *yco-60,19,18, &data->upflag, 13.0, 2.0, 0, 0, "Specify the axis that is points upward");
 			}
 			break;
 		case CONSTRAINT_TYPE_NULL:
@@ -602,7 +607,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		/* If this is on a bone, add the constraint to the action (if any) */
 		but = uiDefBut(block, BUT, B_CONSTRAINT_REDRAW, "Key", *xco+227, *yco, 41, 20, 0, 0.0, 1.0, 0.0, 0.0, "Add an influence keyframe to the constraint");
 		/* Add a keyframe to the influence IPO */
-		uiButSetFunc (but, add_influence_key_to_constraint, con, NULL);
+		uiButSetFunc (but, add_influence_key_to_constraint_func, con, NULL);
 		(*yco)-=24;
 	}
 }
