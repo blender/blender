@@ -1215,10 +1215,9 @@ static void init_render_mball(Object *ob)
 		VECCOPY(ver->co, data);
 		MTC_Mat4MulVecfl(mat, ver->co);
 
-		/* render normals are inverted in render */
-		xn= -nors[0];
-		yn= -nors[1];
-		zn= -nors[2];
+		xn= nors[0];
+		yn= nors[1];
+		zn= nors[2];
 
 		/* transpose ! */
 		ver->n[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
@@ -1239,11 +1238,10 @@ static void init_render_mball(Object *ob)
 		vlr->v3= RE_findOrAddVert(startvert+index[2]);
 		vlr->v4= 0;
 
-		/* render normal are inverted */
 		vlr->len= CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->n);
 
 		vlr->mat= ma;
-		vlr->puno= 0;
+		vlr->puno= 15; // no flip
 		vlr->flag= ME_SMOOTH+R_NOPUNOFLIP;
 		vlr->ec= 0;
 		vlr->lay= ob->lay;
