@@ -272,6 +272,27 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 	return 1;
 }
 
+static Object *new_dupli_object(ListBase *lb, Object *ob, Object *par)
+{
+	Object *newob;
+	
+	newob= MEM_mallocN(sizeof(Object), "newobj dupli");
+	memcpy(newob, ob, sizeof(Object));
+	newob->flag |= OB_FROMDUPLI;
+	newob->id.newid= (ID *)par;	/* store duplicator */
+	
+	/* only basis-ball gets displist */
+	if(newob->type==OB_MBALL) newob->disp.first= newob->disp.last= NULL;
+
+	if(ob!=par) {	// dupliverts, particle
+		newob->parent= NULL;
+		newob->track= NULL;
+	}	
+	BLI_addtail(lb, newob);
+	
+	return newob;
+}
+
 void frames_duplilist(Object *ob)
 {
 	extern int enable_cu_speed;	/* object.c */
@@ -304,18 +325,10 @@ void frames_duplilist(Object *ob)
 			else ok= 0;
 		}
 		if(ok) {
-			newob= MEM_mallocN(sizeof(Object), "newobobj dupli");
-			memcpy(newob, ob, sizeof(Object));
-			
-			/*only the basis-ball gets a displist */
-			if(newob->type==OB_MBALL) newob->disp.first= newob->disp.last= 0;
+			newob= new_dupli_object(&duplilist, ob, ob);
 
-			BLI_addtail(&duplilist, newob);
 			do_ob_ipo(newob);
 			where_is_object(newob);
-
-			newob->flag |= OB_FROMDUPLI;
-			newob->id.newid= (ID *)ob;	/* store duplicator */
 		}
 	}
 
@@ -370,14 +383,7 @@ void vertex_duplilist(Scene *sce, Object *par)
 						VecSubf(vec, vec, pmat[3]);
 						VecAddf(vec, vec, ob->obmat[3]);
 						
-						newob= MEM_mallocN(sizeof(Object), "newobj dupli");
-						memcpy(newob, ob, sizeof(Object));
-						newob->flag |= OB_FROMDUPLI;
-						newob->id.newid= (ID *)par;	/* keep duplicator */
-						
-						/* only basis-ball gets displist */
-						if(newob->type==OB_MBALL) newob->disp.first= newob->disp.last= 0;
-						
+						newob= new_dupli_object(&duplilist, ob, par);
 						VECCOPY(newob->obmat[3], vec);
 						
 						if(par->transflag & OB_DUPLIROT) {
@@ -390,12 +396,6 @@ void vertex_duplilist(Scene *sce, Object *par)
 							Mat4CpyMat4(tmat, newob->obmat);
 							Mat4MulMat43(newob->obmat, tmat, mat);
 						}
-						
-						newob->parent= 0;
-						newob->track= 0;
-						/* newob->borig= base; */
-						
-						BLI_addtail(&duplilist, newob);
 						
 						VECCOPY(pvec, vec);
 					
@@ -444,39 +444,62 @@ void particle_duplilist(Scene *sce, Object *par, PartEff *paf)
 					pa= paf->keys;
 					for(a=0; a<paf->totpart; a++, pa+=paf->totkey) {
 						
-						if(ctime > pa->time) {
-							if(ctime < pa->time+pa->lifetime) {
-									
-								newob= MEM_mallocN(sizeof(Object), "newobj dupli");
-								memcpy(newob, ob, sizeof(Object));
-								newob->flag |= OB_FROMDUPLI;
-								newob->id.newid= (ID *)par;	/* keep duplicator */
-
-								/* only basis-ball gets displist */
-								if(newob->type==OB_MBALL) newob->disp.first= newob->disp.last= 0;
+						if(paf->flag & PAF_STATIC) {
+							float mtime;
+							
+							where_is_particle(paf, pa, pa->time, vec1);
+							mtime= pa->time+pa->lifetime+paf->staticstep-1;
+							
+							for(ctime= pa->time; ctime<mtime; ctime+=paf->staticstep) {
+								newob= new_dupli_object(&duplilist, ob, par);
+								
+								/* make sure hair grows until the end.. */ 
+								if(ctime>pa->time+pa->lifetime) ctime= pa->time+pa->lifetime;
 								
 								/* to give ipos in object correct offset */
 								where_is_object_time(newob, ctime-pa->time);
-								
+
 								where_is_particle(paf, pa, ctime, vec);
+								Mat4MulVecfl(par->obmat, vec);
+								
 								if(paf->stype==PAF_VECT) {
-									where_is_particle(paf, pa, ctime+1.0f, vec1);
-									
+									where_is_particle(paf, pa, ctime+1, vec1);
+									Mat4MulVecfl(par->obmat, vec1);
+
 									VecSubf(vec1, vec1, vec);
 									q2= vectoquat(vec1, ob->trackflag, ob->upflag);
-						
+									
 									QuatToMat3(q2, mat);
 									Mat4CpyMat4(tmat, newob->obmat);
 									Mat4MulMat43(newob->obmat, tmat, mat);
 								}
-
+								
 								VECCOPY(newob->obmat[3], vec);
+							}
+						}
+						else { // non static particles
+							   
+							if(ctime > pa->time) {
+								if(ctime < pa->time+pa->lifetime) {
+									newob= new_dupli_object(&duplilist, ob, par);
+
+									/* to give ipos in object correct offset */
+									where_is_object_time(newob, ctime-pa->time);
+									
+									where_is_particle(paf, pa, ctime, vec);
+									if(paf->stype==PAF_VECT) {
+										where_is_particle(paf, pa, ctime+1.0f, vec1);
+										
+										VecSubf(vec1, vec1, vec);
+										q2= vectoquat(vec1, ob->trackflag, ob->upflag);
 							
-								newob->parent= 0;
-								newob->track= 0;
-								
-								BLI_addtail(&duplilist, newob);
-								
+										QuatToMat3(q2, mat);
+										Mat4CpyMat4(tmat, newob->obmat);
+										Mat4MulMat43(newob->obmat, tmat, mat);
+									}
+
+									VECCOPY(newob->obmat[3], vec);
+								}
 							}
 						}						
 					}

@@ -161,8 +161,8 @@ void free_effects(ListBase *lb)
 Effect *copy_effect(Effect *eff) 
 {
 	Effect *effn;
-	
-	effn= MEM_dupallocN(eff);
+
+	effn= MEM_dupalloc(eff);
 	if(effn->type==EFF_PARTICLE) ((PartEff *)effn)->keys= 0;
 
 	return effn;	

@@ -949,6 +949,8 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 	Particle *pa=0;
 	HaloRen *har=0;
 	Material *ma=0;
+	VertRen *v1= NULL;
+	VlakRen *vlr;
 	float xn, yn, zn, imat[3][3], mat[4][4], hasize;
 	float mtime, ptime, ctime, vec[3], vec1[3], view[3], nor[3];
 	int a, mat_nr=1;
@@ -957,11 +959,11 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 	if(pa==NULL || (paf->flag & PAF_ANIMATED)) {
 		build_particle_system(ob);
 		pa= paf->keys;
-		if(pa==0) return;
+		if(pa==NULL) return;
 	}
 
 	ma= give_render_material(ob, 1);
-	if(ma==0) ma= &defmaterial;
+	if(ma==NULL) ma= &defmaterial;
 
 	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);	/* need to be that way, for imat texture */
@@ -987,7 +989,6 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 			/* make sure hair grows until the end.. */
 			if(ctime>pa->time+pa->lifetime) ctime= pa->time+pa->lifetime;
 			
-
 			/* watch it: also calc the normal of a particle */
 			if(paf->stype==PAF_VECT || ma->mode & MA_HALO_SHADE) {
 				where_is_particle(paf, pa, ctime+1.0, vec);
@@ -1004,44 +1005,73 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 				if(ma==0) ma= &defmaterial;
 			}
 
-			if(ma->ipo) {
-				/* correction for lifetime */
-				ptime= 100.0*(ctime-pa->time)/pa->lifetime;
-				calc_ipo(ma->ipo, ptime);
-				execute_ipo((ID *)ma, ma->ipo);
-			}
-
-			hasize= ma->hasize;
-
-			if(ma->mode & MA_HALOPUNO) {
-				xn= pa->no[0];
-				yn= pa->no[1];
-				zn= pa->no[2];
-
-				/* transpose ! */
-				nor[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
-				nor[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
-				nor[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-				Normalise(nor);
-
-				VECCOPY(view, vec);
-				Normalise(view);
-
-				zn= nor[0]*view[0]+nor[1]*view[1]+nor[2]*view[2];
-				if(zn>=0.0) hasize= 0.0;
-				else hasize*= zn*zn*zn*zn;
-			}
-
-			if(paf->stype==PAF_VECT) har= RE_inithalo(ma, vec, vec1, pa->co, hasize, paf->vectsize);
-			else {
-				har= RE_inithalo(ma, vec, 0, pa->co, hasize, 0);
-				if(har && (ma->mode & MA_HALO_SHADE)) {
-					VecSubf(har->no, vec, vec1);
-					Normalise(har->no);
-					har->lay= ob->lay;
+			if(ma->mode & MA_WIRE) {
+				if(ctime == pa->time) {
+					v1= RE_findOrAddVert(R.totvert++);
+					VECCOPY(v1->co, vec);
+				}
+				else {
+					float cvec[3]={-1.0, 0.0, 0.0};
+					
+					vlr= RE_findOrAddVlak(R.totvlak++);
+					vlr->ob= ob;
+					vlr->v1= v1;
+					vlr->v2= RE_findOrAddVert(R.totvert++);
+					vlr->v3= vlr->v2;
+					vlr->v4= NULL;
+					
+					v1= vlr->v2; // cycle
+					VECCOPY(v1->co, vec);
+					
+					VecSubf(vlr->n, vec, vec1);
+					Normalise(vlr->n);
+					VECCOPY(v1->n, vlr->n);
+					
+					vlr->mat= ma;
+					vlr->ec= ME_V1V2;
+					vlr->lay= ob->lay;
 				}
 			}
+			else {
+				if(ma->ipo) {
+					/* correction for lifetime */
+					ptime= 100.0*(ctime-pa->time)/pa->lifetime;
+					calc_ipo(ma->ipo, ptime);
+					execute_ipo((ID *)ma, ma->ipo);
+				}
 
+				hasize= ma->hasize;
+
+				if(ma->mode & MA_HALOPUNO) {
+					xn= pa->no[0];
+					yn= pa->no[1];
+					zn= pa->no[2];
+
+					/* transpose ! */
+					nor[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
+					nor[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
+					nor[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
+					Normalise(nor);
+
+					VECCOPY(view, vec);
+					Normalise(view);
+
+					zn= nor[0]*view[0]+nor[1]*view[1]+nor[2]*view[2];
+					if(zn>=0.0) hasize= 0.0;
+					else hasize*= zn*zn*zn*zn;
+				}
+
+				if(paf->stype==PAF_VECT) har= RE_inithalo(ma, vec, vec1, pa->co, hasize, paf->vectsize);
+				else {
+					har= RE_inithalo(ma, vec, 0, pa->co, hasize, 0);
+					if(har && (ma->mode & MA_HALO_SHADE)) {
+						VecSubf(har->no, vec, vec1);
+						Normalise(har->no);
+						har->lay= ob->lay;
+					}
+				}
+			}
+			
 			VECCOPY(vec1, vec);
 		}
 		ma->ren->seed1++;
@@ -1254,6 +1284,7 @@ static void init_render_mesh(Object *ob)
 	if(paf) {
 		if(paf->flag & PAF_STATIC) render_static_particle_system(ob, paf);
 		else render_particle_system(ob, paf);
+		mesh_modifier(ob, 'e');  // end
 		return;
 	}
 
@@ -1261,8 +1292,11 @@ static void init_render_mesh(Object *ob)
 	MTC_Mat4Invert(ob->imat, mat);
 	MTC_Mat3CpyMat4(imat, ob->imat);
 
-	if(me->totvert==0) return;
-
+	if(me->totvert==0) {
+		mesh_modifier(ob, 'e');  // end
+		return;
+	}
+	
 	totvlako= R.totvlak;
 	totverto= R.totvert;
 
@@ -1743,7 +1777,7 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 				lar->mode &= ~LA_SHAD_RAY;
 		}
 	}
-
+	
 	lar->org= MEM_dupallocN(lar);
 
 }
