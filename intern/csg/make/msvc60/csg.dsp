@@ -40,9 +40,9 @@ RSC=rc.exe
 # PROP Output_Dir "..\..\..\..\obj\windows\intern\bsp\"
 # PROP Intermediate_Dir "..\..\..\..\obj\windows\intern\bsp\"
 # PROP Target_Dir ""
+LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /G6 /MT /W3 /GX /Oy- /Ob0 /I "../../intern/blender" /I "../../extern" /I "../../intern" /I "../../../../lib/windows/memutil/include" /I "../.." /I "../../../../lib/windows/moto/include" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /FD /c
-# SUBTRACT CPP /Ox /Ot /Og /YX
+# ADD CPP /nologo /G6 /MT /W3 /GX /I "../../intern/blender" /I "../../extern" /I "../../intern" /I "../../../../../lib/windows/memutil/include" /I "../.." /I "../../../../../lib/windows/moto/include" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /FD /c
 # ADD BASE RSC /l 0x413 /d "NDEBUG"
 # ADD RSC /l 0x413 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -53,7 +53,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\bsp\libbsp.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	XCOPY /E /Y ..\..\extern\*.h ..\..\..\..\lib\windows\bsp\include\	ECHO Copying lib	XCOPY /E /Y ..\..\..\..\obj\windows\intern\bsp\*.lib ..\..\..\..\lib\windows\bsp\lib\*.a	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /E /Y ..\..\extern\*.h ..\..\..\..\..\lib\windows\bsp\include\	ECHO Copying lib	XCOPY /E /Y ..\..\..\..\obj\windows\intern\bsp\*.lib ..\..\..\..\lib\windows\bsp\lib\*.a	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "csg - Win32 Debug"
@@ -68,9 +68,9 @@ PostBuild_Cmds=ECHO Copying header files	XCOPY /E /Y ..\..\extern\*.h ..\..\..\.
 # PROP Output_Dir "..\..\..\..\obj\windows\intern\bsp\debug\"
 # PROP Intermediate_Dir "..\..\..\..\obj\windows\intern\bsp\debug\"
 # PROP Target_Dir ""
+LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "../../intern/blender" /I "../../extern" /I "../../intern" /I "../../../../lib/windows/memutil/include" /I "../.." /I "../../../../lib/windows/moto/include" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /FD /GZ /c
-# SUBTRACT CPP /X /YX
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "../../intern/blender" /I "../../extern" /I "../../intern" /I "../../../../../lib/windows/memutil/include" /I "../.." /I "../../../../../lib/windows/moto/include" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /FD /GZ /c
 # ADD BASE RSC /l 0x413 /d "_DEBUG"
 # ADD RSC /l 0x413 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -81,7 +81,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\bsp\debug\libbsp.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	XCOPY /E /Y ..\..\extern\*.h ..\..\..\..\lib\windows\bsp\include\	ECHO Copying lib	XCOPY /E /Y ..\..\..\..\obj\windows\intern\bsp\debug\*.lib ..\..\..\..\lib\windows\bsp\lib\debug\*.a	ECHO Copying Debug info.	XCOPY /E /Y ..\..\..\..\obj\windows\intern\bsp\debug\vc60.* ..\..\..\..\lib\windows\bsp\lib\debug\	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /E /Y ..\..\extern\*.h ..\..\..\..\..\lib\windows\bsp\include\	ECHO Copying lib	XCOPY /E /Y ..\..\..\..\obj\windows\intern\bsp\debug\*.lib ..\..\..\..\..\lib\windows\bsp\lib\debug\*.a	ECHO Copying Debug info.	XCOPY /E /Y ..\..\..\..\obj\windows\intern\bsp\debug\vc60.* ..\..\..\..\..\lib\windows\bsp\lib\debug\	ECHO Done
 # End Special Build Tool
 
 !ENDIF 
