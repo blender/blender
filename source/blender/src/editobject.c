@@ -6087,7 +6087,7 @@ void transform(int mode)
 					if(dist<1.0) dist= 2.0*(dist-0.5);
 					
 					for(tot= 0, ee = em->edges.first; ee; ee= ee->next, tot++) {
-						if ((ee->v1->f & 1) && (ee->v2->f & 1)) {
+						if(ee->f & SELECT) {
 							/* this edge is selected */
 							if(dist<1.0) 
 								ee->crease = (1.0 - dist) + dist*edge_creases[tot];
