@@ -356,6 +356,7 @@ void draw_sel_circle(short *mval, short *mvalo, float rad, float rado, int selec
 	}
 
 	persp(PERSP_WIN);
+	glReadBuffer(GL_FRONT);
 	glDrawBuffer(GL_FRONT);
 	setlinestyle(2);
 
@@ -372,7 +373,8 @@ void draw_sel_circle(short *mval, short *mvalo, float rad, float rado, int selec
 	glFlush();
 	persp(PERSP_VIEW);
 	glDrawBuffer(GL_BACK);
-	
+	glReadBuffer(GL_BACK);
+
 	no_mvalo= 0;
 }
 
@@ -399,16 +401,12 @@ void circle_selectCB(select_CBfunc callback)
 	getmouseco_areawin(mvalo);
 	mval[0]= mvalo[0]; mval[1]= mvalo[1];
 
-	draw_sel_circle(mval, NULL, rad, 0.0, selecting);
+	draw_sel_circle(mval, NULL, rad, 0.0, selecting); // draws frontbuffer, but sets backbuf again
 	
 	rado= rad;
 	
 	while(TRUE) {
 		
-		/* for when another window is open and a mouse cursor activates it */
-
-		//mywinset(curarea->win);
-
 		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1] || rado!=rad || firsttime) {
 			firsttime= 0;
 			
@@ -428,6 +426,9 @@ void circle_selectCB(select_CBfunc callback)
 		if (event) {
 			int afbreek= 0;
 
+			/* for when another window is open and a mouse cursor activates it */
+			if(event!=MOUSEY && event!=MOUSEX) mywinset(curarea->win);
+			
 			getmouseco_areawin(mval);	// important to do here, trust events!
 			
 			switch(event) {
@@ -448,7 +449,7 @@ void circle_selectCB(select_CBfunc callback)
 				if(val) if(rad>5.0) rad/= 1.2;
 				break;
 			
-			case ESCKEY: case SPACEKEY: case RIGHTMOUSE:
+			case ESCKEY: case SPACEKEY: case RIGHTMOUSE: case INPUTCHANGE: 
 			case GKEY: case SKEY: case RKEY: case XKEY: case EKEY: case TABKEY:
 				afbreek= 1;
 				break;
