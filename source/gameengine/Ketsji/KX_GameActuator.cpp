@@ -85,7 +85,6 @@ CValue* KX_GameActuator::GetReplica()
 
 bool KX_GameActuator::Update(double curtime, double deltatime)
 {
-	bool result = false;	
 	bool bNegativeEvent = IsNegativeEvent();
 	RemoveAllEvents();
 
