@@ -544,9 +544,12 @@ static int cubemap_glob(MTex *mtex, VlakRen *vlr, float x, float y, float z, flo
 	float x1, y1, z1, nor[3];
 	int ret;
 	
-	if(vlr==NULL) return 0;
-	
-	VECCOPY(nor, vlr->n);
+	if(vlr==NULL) {
+		nor[0]= 0.0; nor[1]= 0.0; nor[2]= 1.0;
+	}
+	else {
+		VECCOPY(nor, vlr->n);
+	}
 	MTC_Mat4Mul3Vecfl(R.viewinv, nor);
 	
 	x1= fabs(nor[0]);
