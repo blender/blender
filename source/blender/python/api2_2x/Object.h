@@ -73,4 +73,6 @@ typedef struct {
     struct Object   * object;
 } BPy_Object;
 
+int EXPP_add_obdata(struct Object *object);
+
 #endif /* EXPP_OBJECT_H */

@@ -15,13 +15,25 @@ Example::
   camdata = Camera.New('ortho')           # create new camera data
   camdata.setName('newCam')
   camdata.setLens(16.0)
-  camobj = Object.New('Camera')           # create a new camera object
-  camobj.link(camdata)                    # link data to object
   scene = Scene.New('NewScene')           # create a new scene
-  scene.link(camobj)                      # link object to scene
+  camobj = Object.New('Camera')           # create a new camera object
+  camobj.link(camdata)                    # (*) link data to object first
+  scene.link(camobj)                      # and then link object to scene
   scene.frameSettings(1, 100 ,1)          # set start, end and current frames
   scene.setWinSize(640, 480)              # set the render window dimensions
   scene.makeCurrent()                     # make this the current scene
+
+@warn: as done in the example (*), it's recommended to first link object data to
+    objects and only after that link objects to scene.  This is because if
+    there is no object data linked to an object ob, scene.link(ob) will
+    automatically create the missing data.  This is ok on its own, but I{if
+    after that} this object is linked to obdata, the automatically created one
+    will be discarded -- as expected -- but will stay in Blender's memory
+    space until the program is exited, since Blender doesn't really get rid of
+    most kinds of data.  So first linking obdata to object, then object to
+    scene is a tiny tiny bit faster than the other way around and also saves
+    some realtime memory (if many objects are created from scripts, the
+    savings become important).
 """
 
 def New (name = 'Scene'):
