@@ -1066,6 +1066,8 @@ static struct PyMethodDef NMesh_methods[] =
 	MethodDef(assignVertsToGroup),
 	MethodDef(removeVertsFromGroup),
 	MethodDef(getVertsFromGroup),
+	MethodDef(renameVertGroup),
+	MethodDef(getVertGroupNames),
 	MethodDef(hasVertexColours),
 	MethodDef(hasFaceUV),
 	MethodDef(hasVertexUV),
@@ -2214,6 +2216,7 @@ static PyObject *NMesh_addVertGroup (PyObject *self, PyObject *args)
 {
 	char* groupStr;
 	struct Object* object;
+	PyObject *tempStr;
 
 	if (!PyArg_ParseTuple(args, "s", &groupStr))
 		return EXPP_ReturnPyObjError (PyExc_TypeError,
@@ -2224,6 +2227,10 @@ static PyObject *NMesh_addVertGroup (PyObject *self, PyObject *args)
 			"mesh must be linked to an object first...");
 
 	object = ((BPy_NMesh*)self)->object;
+
+	//get clamped name
+	tempStr = PyString_FromStringAndSize(groupStr, 32);
+	groupStr = PyString_AsString(tempStr);
 
 	add_defgroup_name (object, groupStr);
 
@@ -2566,4 +2573,53 @@ static PyObject *NMesh_getVertsFromGroup (PyObject *self, PyObject *args)
 	vertexList = PyList_GetSlice(tempVertexList, 0, count);
 
 	return (vertexList);
+}
+
+static PyObject *NMesh_renameVertGroup (PyObject *self, PyObject *args)
+{
+	char * oldGr = NULL; 
+	char * newGr = NULL;
+	bDeformGroup * defGroup = NULL;
+	PyObject *tempStr;
+
+
+	if(!((BPy_NMesh*)self)->object)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+			"This mesh must be linked to an object");
+
+	if (!PyArg_ParseTuple(args, "ss", &oldGr, &newGr))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"Expected string & string argument");
+
+	defGroup = get_named_vertexgroup(((BPy_NMesh*)self)->object, oldGr);
+	if(defGroup == NULL)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+			"Couldn't find the expected vertex group");
+
+	//set name
+	tempStr = PyString_FromStringAndSize(newGr, 32);
+	newGr = PyString_AsString(tempStr);
+	memcpy (defGroup->name, newGr, 32);
+	unique_vertexgroup_name(defGroup, ((BPy_NMesh*)self)->object);
+
+	return EXPP_incr_ret (Py_None);
+}
+
+static PyObject *NMesh_getVertGroupNames (PyObject *self, PyObject *args)
+{
+	bDeformGroup * defGroup;
+	PyObject *list;
+
+	if(!((BPy_NMesh*)self)->object)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+			"This mesh must be linked to an object");
+
+	list = PyList_New(0); 
+	for (defGroup = (((BPy_NMesh*)self)->object)->defbase.first; defGroup; defGroup=defGroup->next){
+		if(PyList_Append(list,PyString_FromString(defGroup->name)) < 0)
+			return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+				"Couldn't add item to list");
+	}
+
+	return list;
 }
