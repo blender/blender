@@ -86,8 +86,12 @@ typedef struct Lamp {
 #define LA_OSATEX		512
 /* use bit 11 for shadow tests... temp only -nzc- */
 #define LA_DEEP_SHADOW  1024
+#define LA_NO_DIFF		2048
+#define LA_NO_SPEC		4096
 
 /* mapto */
 #define LAMAP_COL		1
-#endif
+
+
+#endif /* DNA_LAMP_TYPES_H */
 

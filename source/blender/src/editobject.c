@@ -193,17 +193,7 @@ void add_object_draw(int type)	/* for toolbox */
 		if (G.obedit) exit_editmode(1);
 		ob= add_object(type);
 		base_init_from_view3d(BASACT, G.vd);
-	
-		if(type==OB_IKA) {
-			where_is_object(ob);
-			while(TRUE) {
-				if( extrude_ika(ob, 1) ) break;
-			}
-			
-			calc_ika(ob->data, 0);
-			init_defstate_ika(ob);
-		}
-		
+
 		allqueue(REDRAWVIEW3D, 0);
 	}
 

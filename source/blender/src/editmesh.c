@@ -4194,8 +4194,8 @@ void add_primitiveMesh(int type)
 		But it also stores the added object struct in
 		G.scene->basact->object (BASACT->object) */
 
-		add_object(OB_MESH);
-		base_init_from_view3d(BASACT, G.vd);
+		add_object_draw(OB_MESH);
+
 		G.obedit= BASACT->object;
 		
 		where_is_object(G.obedit);

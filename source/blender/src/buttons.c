@@ -1079,7 +1079,6 @@ void common_editbuts(void)
 		uiDefBut(block, BUT,B_DOCENTRE, "Centre",				961, 115, 100, 19, 0, 0, 0, 0, 0, "Shift object data to be centered about object's origin");
 		uiDefBut(block, BUT,B_DOCENTRENEW, "Centre New",			961, 95, 100, 19, 0, 0, 0, 0, 0, "Shift object's origin to center of object data");
 		uiDefBut(block, BUT,B_DOCENTRECURSOR, "Centre Cursor",		961, 75, 100, 19, 0, 0, 0, 0, 0, "Shift object's origin to cursor location");
-		uiDefBut(block, BUT,B_DOCENTRECURSOR, "Test",		961, 55, 100, 19, 0, 0, 0, 0, 0, "plouplou");
 	}
 
 	
@@ -4238,7 +4237,7 @@ void matbuts(void)
 		/* shader buttons */
 		uiBlockSetCol(block, BUTGREY);
 		uiDefButS(block, MENU, B_MATPRV_DRAW, str1,		200,90,95,18, &(ma->diff_shader), 0.0, 0.0, 0, 0, "Set a diffuse shader");
-		uiDefButS(block, MENU, B_MATPRV_DRAW, str2,		295,90,90,18, &(ma->spec_shader), 0.0, 0.0, 0, 0, "Set a diffuse shader");
+		uiDefButS(block, MENU, B_MATPRV_DRAW, str2,		295,90,90,18, &(ma->spec_shader), 0.0, 0.0, 0, 0, "Set a specular shader");
 
 		if(ma->diff_shader==MA_DIFF_ORENNAYAR)
 			uiDefButF(block, NUM, B_MATPRV, "Rough:",		200, 70, 95,18, &(ma->roughness), 0.0, 3.14, 0, 0, "Oren Nayar Roughness");
@@ -4989,21 +4988,25 @@ void lampbuts(void)
 	uiDefButF(block, NUM,B_LAMPREDRAW,"Dist:",611,190,104,25,&la->dist, 0.01, 5000.0, 100, 0, "Set the distance value");
 
 	uiBlockSetCol(block, BUTBLUE);
-	uiDefButS(block, TOG|BIT|3, B_MATPRV,"Quad",		203,196,100,19,&la->mode, 0, 0, 0, 0, "Use inverse quadratic proportion");
-	uiDefButS(block, TOG|BIT|6, REDRAWVIEW3D,"Sphere",203,176,100,19,&la->mode, 0, 0, 0, 0, "Lamp only shines inside a sphere");
-	uiDefButS(block, TOG|BIT|0, REDRAWVIEW3D, "Shadows", 203,156,100,19,&la->mode, 0, 0, 0, 0, "Let lamp produce shadows");
- 	uiDefButS(block, TOG|BIT|1, 0,"Halo",				203,136,100,19,&la->mode, 0, 0, 0, 0, "Render spotlights with a volumetric halo"); 
-	uiDefButS(block, TOG|BIT|2, 0,"Layer",			203,116,100,19,&la->mode, 0, 0, 0, 0, "Illuminate objects in the same layer only");
-	uiDefButS(block, TOG|BIT|4, B_MATPRV,"Negative",	203,96,100,19,&la->mode, 0, 0, 0, 0, "Cast negative light");
-	uiDefButS(block, TOG|BIT|5, 0,"OnlyShadow",		203,76,100,19,&la->mode, 0, 0, 0, 0, "Render shadow only");
-	uiDefButS(block, TOG|BIT|7, B_LAMPREDRAW,"Square",		203,56,100,19,&la->mode, 0, 0, 0, 0, "Use square spotbundles");
+	uiDefButS(block, TOG|BIT|3, B_MATPRV,"Quad",		203,196,100,17,&la->mode, 0, 0, 0, 0, "Use inverse quadratic proportion");
+	uiDefButS(block, TOG|BIT|6, REDRAWVIEW3D,"Sphere",	203,178,100,17,&la->mode, 0, 0, 0, 0, "Lamp only shines inside a sphere");
+	uiDefButS(block, TOG|BIT|0, REDRAWVIEW3D, "Shadows", 203,160,100,17,&la->mode, 0, 0, 0, 0, "Let lamp produce shadows");
+ 	uiDefButS(block, TOG|BIT|1, 0,"Halo",				203,142,100,17,&la->mode, 0, 0, 0, 0, "Render spotlights with a volumetric halo"); 
+	uiDefButS(block, TOG|BIT|2, 0,"Layer",				203,124,100,17,&la->mode, 0, 0, 0, 0, "Illuminate objects in the same layer only");
+	uiDefButS(block, TOG|BIT|4, B_MATPRV,"Negative",	203,106,100,17,&la->mode, 0, 0, 0, 0, "Cast negative light");
+	uiDefButS(block, TOG|BIT|5, 0,"OnlyShadow",			203,88,100,17,&la->mode, 0, 0, 0, 0, "Render shadow only");
+	uiDefButS(block, TOG|BIT|7, B_LAMPREDRAW,"Square",	203,70,100,17,&la->mode, 0, 0, 0, 0, "Use square spotbundles");
+	uiDefButS(block, TOG|BIT|11, 0,"No Diffuse",		203,52,100,17,&la->mode, 0, 0, 0, 0, "No diffuse shading of material");
+	uiDefButS(block, TOG|BIT|12, 0,"No Specular",		203,34,100,17,&la->mode, 0, 0, 0, 0, "No specular shading of material");
+
+
 #ifdef __SHADOW_EXP
 	/* move this elsewhere */
 	uiDefButS(block, TOG|BIT|10, 0,"DeepShadow",		203,216,100,19,&la->mode, 0, 0, 0, 0, "");	
 #endif
 	
 	uiBlockSetCol(block, BUTGREY);
-	uiDefButS(block, NUM,B_SBUFF,"ShadowBuffSize:",	203,30,140,19,	&la->bufsize,512,5120, 0, 0, "Set the size of the shadow buffer");
+	uiDefButS(block, NUM,B_SBUFF,"ShadowBuffSize:",	203,10,140,19,	&la->bufsize,512,5120, 0, 0, "Set the size of the shadow buffer");
 	uiDefButF(block, NUM,REDRAWVIEW3D,"ClipSta:",	346,30,146,19,	&la->clipsta, 0.1*grid,1000.0*grid, 10, 0, "Set the shadow map clip start");
 	uiDefButF(block, NUM,REDRAWVIEW3D,"ClipEnd:",	346,9,146,19,&la->clipend, 1.0, 5000.0*grid, 100, 0, "Set the shadow map clip end");
 
@@ -7209,7 +7212,7 @@ static void do_constraintbuts(unsigned short event)
 		//	ListBase *chanbase;
 		//	bConstraintChannel *chan;
 
-			Object *ob = OBACT;
+		//	Object *ob = OBACT;
 			list = get_constraint_client(NULL, &type, NULL);
 		//	chanbase= get_constraint_client_channels(0);
 			if (list){
@@ -7460,11 +7463,21 @@ void redraw_test_buttons(Base *new)
 			buts= sa->spacedata.first;
 			
 			if(buts->mainb==BUTS_LAMP) {
-				allqueue(REDRAWBUTSLAMP, 0);
+				// change type automatically
+				if(new->object->type!=OB_LAMP) {
+					buts->mainb= BUTS_MAT;
+					allqueue(REDRAWBUTSMAT, 0);
+				}
+				else allqueue(REDRAWBUTSLAMP, 0);
 				BIF_preview_changed(buts);
 			}
 			else if(buts->mainb==BUTS_MAT) {
-				allqueue(REDRAWBUTSMAT, 0);
+				// change type automatically
+				if(new->object->type==OB_LAMP) {
+					buts->mainb= BUTS_LAMP;
+					allqueue(REDRAWBUTSLAMP, 0);
+				}
+				else allqueue(REDRAWBUTSMAT, 0);
 				BIF_preview_changed(buts);
 			}
 			else if(buts->mainb==BUTS_TEX) {

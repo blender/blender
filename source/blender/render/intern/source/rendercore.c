@@ -1796,7 +1796,10 @@ void shade_lamp_loop()
 		/* dot product and reflectivity*/
 		inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
 		
-		if(lar->type==LA_HEMI) {
+		if(lar->mode & LA_NO_DIFF) {
+			i= 0.0;	// skip shaders
+		}
+		else if(lar->type==LA_HEMI) {
 			i= 0.5*inp + 0.5;
 		}
 		else {
@@ -1822,7 +1825,7 @@ void shade_lamp_loop()
 			}
 			/* specularity */
 			
-			if(ma->spec!=0.0) {
+			if(ma->spec!=0.0 && !(lar->mode & LA_NO_SPEC)) {
 				
 				if(lar->type==LA_SUN || lar->type==LA_HEMI) {
 					if(lar->type==LA_SUN) {
@@ -1868,7 +1871,8 @@ void shade_lamp_loop()
 				}
 			}
 		}
-		if(i>0.0) {
+		/* in case 'no diffuse' we still do most calculus, spec can be in shadow */
+		if(i>0.0 && !(lar->mode & LA_NO_DIFF)) {
 			ir+= i*lar->r;
 			ig+= i*lar->g;
 			ib+= i*lar->b;

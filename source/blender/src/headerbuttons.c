@@ -4732,11 +4732,15 @@ void buts_buttons(void)
 	/* HOME */
 	uiDefIconBut(block, BUT, B_BUTSHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)");
 	
+	ob= OBACT;
+
 	/* choice menu */
 	xco+= 2*XIC;
 	uiDefIconButS(block, ROW, B_REDR,			ICON_EYE,	xco+=XIC, 0, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_VIEW, 0, 0, "View buttons");
-	uiDefIconButS(block, ROW, B_BUTSPREVIEW,		ICON_LAMP,	xco+=30, 0, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_LAMP, 0, 0, "Lamp buttons (F4)");
-	uiDefIconButS(block, ROW, B_BUTSPREVIEW,		ICON_MATERIAL,	xco+=30, 0, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_MAT, 0, 0, "Material buttons (F5)");
+	if(ob && ob->type==OB_LAMP)
+		uiDefIconButS(block, ROW, B_BUTSPREVIEW,		ICON_LAMP,	xco+=30, 0, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_LAMP, 0, 0, "Lamp buttons (F4)");
+	else
+		uiDefIconButS(block, ROW, B_BUTSPREVIEW,		ICON_MATERIAL,	xco+=30, 0, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_MAT, 0, 0, "Material buttons (F5)");
 	uiDefIconButS(block, ROW, B_BUTSPREVIEW,		ICON_TEXTURE,	xco+=30, 0, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_TEX, 0, 0, "Texture buttons (F6)");
 	uiDefIconButS(block, ROW, B_REDR,			ICON_ANIM,	xco+=30, 0, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_ANIM, 0, 0, "Animation buttons (F7)");
 	uiDefIconButS(block, ROW, B_REDR,			ICON_GAME,	xco+=30, 0, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_GAME, 0, 0, "Realtime buttons (F8)");
@@ -4750,7 +4754,6 @@ void buts_buttons(void)
 	uiDefIconButS(block, ROW, B_REDR,			ICON_SCENE,	xco+=30, 0, 50, YIC, &(G.buts->mainb), 1.0, (float)BUTS_RENDER, 0, 0, "Display buttons (F10)");
 	xco+= 80;
 	
-	ob= OBACT;
 	
 	buttons_active_id(&id, &idfrom);
 	
