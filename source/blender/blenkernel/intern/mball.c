@@ -41,6 +41,7 @@
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "MEM_guardedalloc.h"
 
 #include "DNA_material_types.h"
@@ -88,7 +89,6 @@ void unlink_mball(MetaBall *mb)
 /* do not free mball itself */
 void free_mball(MetaBall *mb)
 {
-	MetaElem *ml;
 	unlink_mball(mb);	
 	
 	if(mb->mat) MEM_freeN(mb->mat);
