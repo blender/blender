@@ -459,7 +459,7 @@ void buts_buttons(void)
 moved to buttonswin!
 
 			if(ob && (ob->type<OB_LAMP) && ob->type) {
-				xco= std_libbuttons(block, xco, 0, NULL, B_MATBROWSE, id, idfrom, &(G.buts->menunr), B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
+				xco= std_libbuttons(block, xco, 0, 0, NULL, B_MATBROWSE, id, idfrom, &(G.buts->menunr), B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
 			}
 		
 			/* COPY PASTE */
@@ -479,27 +479,27 @@ moved to buttonswin!
 		else if(tab==TAB_SHADING_TEX) {
 			if(G.buts->texfrom==0) {
 				if(idfrom) {
-					xco= std_libbuttons(block, xco, 0, NULL, B_TEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
+					xco= std_libbuttons(block, xco, 0, 0, NULL, B_TEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
 				}
 			}
 			else if(G.buts->texfrom==1) {
 				if(idfrom) {
-					xco= std_libbuttons(block, xco, 0, NULL, B_WTEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
+					xco= std_libbuttons(block, xco, 0, 0, NULL, B_WTEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
 				}
 			}
 			else if(G.buts->texfrom==2) {
 				if(idfrom) {
-					xco= std_libbuttons(block, xco, 0, NULL, B_LTEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
+					xco= std_libbuttons(block, xco, 0, 0, NULL, B_LTEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
 				}
 			}
 		}
 		else if(tab==TAB_SHADING_LAMP) {
 			if(id) {
-				xco= std_libbuttons(block, xco, 0, NULL, B_LAMPBROWSE, id, (ID *)ob, &(G.buts->menunr), B_LAMPALONE, B_LAMPLOCAL, 0, 0, 0);	
+				xco= std_libbuttons(block, xco, 0, 0, NULL, B_LAMPBROWSE, id, (ID *)ob, &(G.buts->menunr), B_LAMPALONE, B_LAMPLOCAL, 0, 0, 0);	
 			}
 		}
 		else if(tab==TAB_SHADING_WORLD) {
-			xco= std_libbuttons(block, xco, 0, NULL, B_WORLDBROWSE, id, idfrom, &(G.buts->menunr), B_WORLDALONE, B_WORLDLOCAL, B_WORLDDELETE, 0, B_KEEPDATA);
+			xco= std_libbuttons(block, xco, 0, 0, NULL, B_WORLDBROWSE, id, idfrom, &(G.buts->menunr), B_WORLDALONE, B_WORLDLOCAL, B_WORLDDELETE, 0, B_KEEPDATA);
 		}
 	}
 	else if(G.buts->mainb==CONTEXT_EDITING) {
@@ -542,7 +542,7 @@ moved to buttonswin!
 				local= B_LATTLOCAL;
 			}
 			
-			xco= std_libbuttons(block, xco, 0, NULL, browse, id, idfrom, &(G.buts->menunr), alone, local, 0, 0, B_KEEPDATA);
+			xco= std_libbuttons(block, xco, 0, 0, NULL, browse, id, idfrom, &(G.buts->menunr), alone, local, 0, 0, B_KEEPDATA);
  				
 			xco+= XIC;
 		}
@@ -555,7 +555,7 @@ moved to buttonswin!
 
 #if 0
 	else if (G.buts->mainb==BUTS_SOUND) {
-		xco= std_libbuttons(block, xco, 0, NULL, B_SOUNDBROWSE2, id, idfrom, &(G.buts->texnr), 1, 0, 0, 0, 0);
+		xco= std_libbuttons(block, xco, 0, 0, NULL, B_SOUNDBROWSE2, id, idfrom, &(G.buts->texnr), 1, 0, 0, 0, 0);
 	}
 
 	else if(G.buts->mainb==BUTS_CONSTRAINT){
@@ -566,12 +566,12 @@ moved to buttonswin!
 	char str[256];
 
 
-			xco= std_libbuttons(block, xco, 0, NULL, 0, id, idfrom, &(G.buts->menunr), B_OBALONE, B_OBLOCAL, 0, 0, 0);
+			xco= std_libbuttons(block, xco, 0, 0, NULL, 0, id, idfrom, &(G.buts->menunr), B_OBALONE, B_OBLOCAL, 0, 0, 0);
 
 			get_constraint_client(NULL, &type, &data);
 			if (data && type==TARGET_BONE){
 				sprintf(str, "BO:%s", ((Bone*)data)->name);
-				but= uiDefBut(block, LABEL, 1, str,	xco, 0, 135, YIC, ((Bone*)data)->name, 0.0, 19.0, 0, 0, "Displays Active Bone name. Click to change.");
+				but= uiDefBut(block, LABEL, 1, str,	xco, 0, 0, 135, YIC, ((Bone*)data)->name, 0.0, 19.0, 0, 0, "Displays Active Bone name. Click to change.");
 				xco+= 135;
 			}
 		}

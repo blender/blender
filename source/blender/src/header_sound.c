@@ -187,7 +187,7 @@ void sound_buttons(void)
 	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
 	uiDefIconBut(block, BUT, B_SOUNDHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)");
 
-	xco= std_libbuttons(block, xco+40, 0, NULL, B_SOUNDBROWSE, (ID *)G.ssound->sound, 0, &(G.ssound->sndnr), 1, 0, 0, 0, 0);	
+	xco= std_libbuttons(block, xco+40, 0, 0, NULL, B_SOUNDBROWSE, (ID *)G.ssound->sound, 0, &(G.ssound->sndnr), 1, 0, 0, 0, 0);	
 
 	if(G.ssound->sound) {
 		bSound *sound= G.ssound->sound;

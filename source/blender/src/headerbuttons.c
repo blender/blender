@@ -234,7 +234,7 @@ int GetButStringLength(char *str) {
 
 /* ********************** GLOBAL ****************************** */
 
-int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin,
+int std_libbuttons(uiBlock *block, short xco, short yco, int pin, short *pinpoin,
       int browse, ID *id, ID *parid, short *menupoin, int users, int lib,
       int del, int autobut, int keepbut)
 {
@@ -248,7 +248,7 @@ int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin,
   oldcol= uiBlockGetCol(block);
 
   if(id && pin) {
-    uiDefIconButS(block, ICONTOG, pin, ICON_PIN_DEHLT,  (short)xco,0,XIC,YIC, pinpoin, 0, 0, 0, 0, "Keeps this view displaying the current data regardless of what object is selected");
+    uiDefIconButS(block, ICONTOG, pin, ICON_PIN_DEHLT, xco,yco,XIC,YIC, pinpoin, 0, 0, 0, 0, "Keeps this view displaying the current data regardless of what object is selected");
     xco+= XIC;
   }
   if(browse) {
@@ -326,7 +326,7 @@ int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin,
           IDnames_to_pupstring(&str, NULL, extrastr, lb, id, menupoin);
       }
       
-      uiDefButS(block, MENU, browse, str, (short)xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses existing choices or adds NEW");
+      uiDefButS(block, MENU, browse, str, xco,yco,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses existing choices or adds NEW");
       
       uiClearButLock();
     
@@ -337,17 +337,17 @@ int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin,
       if(G.buts->mainb==CONTEXT_SHADING) {
         uiSetButLock(G.scene->id.lib!=0, "Can't edit library data");
         if(parid) uiSetButLock(parid->lib!=0, "Can't edit library data");
-        uiDefButS(block, MENU, browse, "ADD NEW %x 32767",(short) xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
+        uiDefButS(block, MENU, browse, "ADD NEW %x 32767",xco,yco,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
         uiClearButLock();
 //      } else if (G.buts->mainb == BUTS_SOUND) {
-//        uiDefButS(block, MENU, browse, "OPEN NEW %x 32766",(short) xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
+//        uiDefButS(block, MENU, browse, "OPEN NEW %x 32766",xco,yco,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
       }
     }
     else if(curarea->spacetype==SPACE_TEXT) {
-      uiDefButS(block, MENU, browse, "OPEN NEW %x 32766 | ADD NEW %x 32767", (short)xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
+      uiDefButS(block, MENU, browse, "OPEN NEW %x 32766 | ADD NEW %x 32767", xco,yco,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
     }
     else if(curarea->spacetype==SPACE_SOUND) {
-      uiDefButS(block, MENU, browse, "OPEN NEW %x 32766",(short)xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
+      uiDefButS(block, MENU, browse, "OPEN NEW %x 32766",xco,yco,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
     }
     else if(curarea->spacetype==SPACE_NLA) {
     }
@@ -355,14 +355,14 @@ int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin,
       uiSetButLock(G.scene->id.lib!=0, "Can't edit library data");
       if(parid) uiSetButLock(parid->lib!=0, "Can't edit library data");
 
-      uiDefButS(block, MENU, browse, "ADD NEW %x 32767", xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
+      uiDefButS(block, MENU, browse, "ADD NEW %x 32767", xco,yco,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
       uiClearButLock();
     }
     else if(curarea->spacetype==SPACE_IPO) {
       uiSetButLock(G.scene->id.lib!=0, "Can't edit library data");
       if(parid) uiSetButLock(parid->lib!=0, "Can't edit library data");
 
-      uiDefButS(block, MENU, browse, "ADD NEW %x 32767", (short)xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
+      uiDefButS(block, MENU, browse, "ADD NEW %x 32767", xco,yco,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
       uiClearButLock();
     }
   }
@@ -391,9 +391,10 @@ int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin,
     else if(strcmp(str1, "SR:")==0) strcpy(str1, "SCR:");
     
     if( GS(id->name)==ID_IP) len= 110;
+	else if(yco) len= 140; 	// comes from button panel
     else len= 120;
     
-    but= uiDefBut(block, TEX, B_IDNAME, str1,(short)xco, 0, (short)len, YIC, id->name+2, 0.0, 19.0, 0, 0, "Displays current Datablock name. Click to change.");
+    but= uiDefBut(block, TEX, B_IDNAME, str1,xco, yco, (short)len, YIC, id->name+2, 0.0, 19.0, 0, 0, "Displays current Datablock name. Click to change.");
     uiButSetFunc(but, test_idbutton_cb, id->name, NULL);
 
     uiClearButLock();
@@ -402,8 +403,8 @@ int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin,
     
     if(id->lib) {
       
-      if(parid && parid->lib) uiDefIconBut(block, BUT, 0, ICON_DATALIB,(short)xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Displays name of the current Indirect Library Datablock. Click to change.");
-      else uiDefIconBut(block, BUT, lib, ICON_PARLIB, (short)xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Displays current Library Datablock name. Click to make local.");
+      if(parid && parid->lib) uiDefIconBut(block, BUT, 0, ICON_DATALIB,xco,yco,XIC,YIC, 0, 0, 0, 0, 0, "Displays name of the current Indirect Library Datablock. Click to change.");
+      else uiDefIconBut(block, BUT, lib, ICON_PARLIB, xco,yco,XIC,YIC, 0, 0, 0, 0, 0, "Displays current Library Datablock name. Click to make local.");
       
       xco+= XIC;
     }
@@ -415,11 +416,11 @@ int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin,
       sprintf(str1, "%d", id->us);
       if(id->us<100) {
         
-        uiDefBut(block, BUT, users, str1, (short)xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
+        uiDefBut(block, BUT, users, str1, xco,yco,XIC,YIC, 0, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
         xco+= XIC;
       }
       else {
-        uiDefBut(block, BUT, users, str1, (short)xco, 0, XIC+10, YIC, 0, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
+        uiDefBut(block, BUT, users, str1, xco, yco, XIC+10, YIC, 0, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
         xco+= XIC+10;
       }
       
@@ -432,7 +433,7 @@ int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin,
       uiSetButLock (pin && *pinpoin, "Can't unlink pinned data");
       if(parid && parid->lib);
       else {
-        uiDefIconBut(block, BUT, del, ICON_X, (short)xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Deletes link to this Datablock");
+        uiDefIconBut(block, BUT, del, ICON_X, xco,yco,XIC,YIC, 0, 0, 0, 0, 0, "Deletes link to this Datablock");
         xco+= XIC;
       }
 
@@ -442,14 +443,14 @@ int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin,
     if(autobut) {
       if(parid && parid->lib);
       else {
-        uiDefIconBut(block, BUT, autobut, ICON_AUTO,(short)xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Generates an automatic name");
+        uiDefIconBut(block, BUT, autobut, ICON_AUTO,xco,yco,XIC,YIC, 0, 0, 0, 0, 0, "Generates an automatic name");
         xco+= XIC;
       }
       
       
     }
     if(keepbut) {
-      uiDefBut(block, BUT, keepbut, "F", (short)xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Saves this datablock even if it has no users");  
+      uiDefBut(block, BUT, keepbut, "F", xco,yco,XIC,YIC, 0, 0, 0, 0, 0, "Saves this datablock even if it has no users");  
       xco+= XIC;
     }
   }

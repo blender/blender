@@ -389,23 +389,23 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	if(me->msticky) val= 1.0; else val= 0.0;
 	uiDefBut(block, LABEL, 0, "Sticky", 10,57,70,20, 0, val, 0, 0, 0, "");
 	if(me->msticky==0) {
-		uiDefBut(block, BUT, B_MAKESTICKY, "Make",	60,59,63,19, 0, 0, 0, 0, 0, "Creates Sticky coordinates for the active object from the current camera view background picture");
+		uiDefBut(block, BUT, B_MAKESTICKY, "Make",	80,59,83,19, 0, 0, 0, 0, 0, "Creates Sticky coordinates for the active object from the current camera view background picture");
 	}
-	else uiDefBut(block, BUT, B_DELSTICKY, "Delete", 60,59,63,19, 0, 0, 0, 0, 0, "Deletes Sticky texture coordinates");
+	else uiDefBut(block, BUT, B_DELSTICKY, "Delete", 80,59,83,19, 0, 0, 0, 0, 0, "Deletes Sticky texture coordinates");
 
 	if(me->mcol) val= 1.0; else val= 0.0;
 	uiDefBut(block, LABEL, 0, "VertCol", 10,34,70,20, 0, val, 0, 0, 0, "");
 	if(me->mcol==0) {
-		uiDefBut(block, BUT, B_MAKEVERTCOL, "Make",	60,36,64,19, 0, 0, 0, 0, 0, "Enables vertex colour painting on active object");
+		uiDefBut(block, BUT, B_MAKEVERTCOL, "Make",	80,36,84,19, 0, 0, 0, 0, 0, "Enables vertex colour painting on active object");
 	}
-	else uiDefBut(block, BUT, B_DELVERTCOL, "Delete", 60,36,64,19, 0, 0, 0, 0, 0, "Deletes vertex colours on active object");
+	else uiDefBut(block, BUT, B_DELVERTCOL, "Delete", 80,36,84,19, 0, 0, 0, 0, 0, "Deletes vertex colours on active object");
 
 	if(me->tface) val= 1.0; else val= 0.0;
 	uiDefBut(block, LABEL, 0, "TexFace", 10,14,70,20, 0, val, 0, 0, 0, "");
 	if(me->tface==0) {
-		uiDefBut(block, BUT, B_MAKE_TFACES, "Make",	60,15,64,20, 0, 0, 0, 0, 0, "Enables the active object's faces for UV coordinate mapping");
+		uiDefBut(block, BUT, B_MAKE_TFACES, "Make",	80,15,84,20, 0, 0, 0, 0, 0, "Enables the active object's faces for UV coordinate mapping");
 	}
-	else uiDefBut(block, BUT, B_DEL_TFACES, "Delete", 60,15,64,20, 0, 0, 0, 0, 0, "Deletes UV coordinates for active object's faces");
+	else uiDefBut(block, BUT, B_DEL_TFACES, "Delete", 80,15,84,20, 0, 0, 0, 0, 0, "Deletes UV coordinates for active object's faces");
 	
 
 	/* decimator */

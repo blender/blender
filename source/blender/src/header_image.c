@@ -381,7 +381,7 @@ void image_buttons(void)
 	uiDefIconButS(block, TOG|BIT|0, B_BE_SQUARE, ICON_KEEPRECT,	xco+=XIC,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Toggles constraining UV polygons to squares while editing");
 	uiDefIconButS(block, ICONTOG|BIT|2, B_CLIP_UV, ICON_CLIPUV_DEHLT,xco+=XIC,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Toggles clipping UV with image size");		
 
-	xco= std_libbuttons(block, xco+40, 0, NULL, B_SIMABROWSE, (ID *)G.sima->image, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
+	xco= std_libbuttons(block, xco+40, 0, 0, NULL, B_SIMABROWSE, (ID *)G.sima->image, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
 
 	if (G.sima->image) {
 		if (G.sima->image->packedfile) {

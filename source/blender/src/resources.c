@@ -153,7 +153,7 @@ static void def_col(BIFColorID colorid, unsigned char r, unsigned char g, unsign
 		unsigned char col[3];
 
 		col[0]= r, col[1]= g, col[2]= b;
-		rgbaCCol_addNT(get_color(colorid, COLORSHADE_WHITE),	col, 70);
+		rgbaCCol_addNT(get_color(colorid, COLORSHADE_WHITE),	col, 80);
 		rgbaCCol_addNT(get_color(colorid, COLORSHADE_LIGHT),	col, 45);
 		rgbaCCol_addNT(get_color(colorid, COLORSHADE_HILITE),	col, 25);
 		rgbaCCol_addNT(get_color(colorid, COLORSHADE_LMEDIUM),	col, 10);

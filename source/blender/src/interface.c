@@ -1439,9 +1439,9 @@ static void ui_emboss_slider(uiBut *but, float fac)
 	glVertex2f(x2, ymid-yc);
 
 	if(but->flag & UI_ACTIVE) 
-		BIF_set_color(BUTGREY, COLORSHADE_WHITE);
-	else 
 		BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
+	else 
+		BIF_set_color(BUTGREY, COLORSHADE_LMEDIUM);
 
 	glVertex2f(x2, ymid+yc);
 	glVertex2f(x1,   ymid+yc);
@@ -2977,12 +2977,12 @@ static int ui_do_but_MENU(uiBut *but)
 		
 	/* size and location */
 	if(md->title)
-		width= 2*strlen(md->title)+BIF_GetStringWidth(block->curfont, md->title, (U.transopts & TR_MENUS));
+		width= 1.5*but->aspect*strlen(md->title)+BIF_GetStringWidth(block->curfont, md->title, (U.transopts & TR_MENUS));
 	else
 		width= 0;
 
 	for(a=0; a<md->nitems; a++) {
-		xmax= BIF_GetStringWidth(block->curfont, md->items[a].str, (U.transopts & TR_MENUS));
+		xmax= but->aspect*BIF_GetStringWidth(block->curfont, md->items[a].str, (U.transopts & TR_MENUS));
 		if(xmax>width) width= xmax;
 	}
 
@@ -4721,15 +4721,16 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 					}
 					else if(but->type==BLOCK || but->type==MENU) {	// automatic opens block button (pulldown)
 						int time;
-						
-						if(block->auto_open) time= 7;
-						else time= 0;
-						
-						for (; time<10; time++) {
-							if (anyqtest()) break;
-							else PIL_sleep_ms(40);
+						if(uevent->event!=LEFTMOUSE) {
+							if(block->auto_open) time= 14;
+							else time= 0;
+							
+							for (; time<20; time++) {
+								if (anyqtest()) break;
+								else PIL_sleep_ms(20);
+							}
+							if(time==20) ui_do_button(block, but, uevent);
 						}
-						if(time==10) ui_do_button(block, but, uevent);
 					}
 					if(but->flag & UI_ACTIVE) active= 1;
 				}
@@ -4795,17 +4796,22 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 			if( BLI_in_rctf(&block->parentrct, (float)uevent->mval[0], (float)uevent->mval[1]));
 			else if( ui_mouse_motion_towards_block(block, uevent));
 			else {
+				float midx, midy;
 				int safety;
-				if( block->parentrct.xmin < block->minx ) safety = 3; else safety= 40;
+				
+				midx= (block->parentrct.xmin+block->parentrct.xmax)/2.0;
+				midy= (block->parentrct.ymin+block->parentrct.ymax)/2.0;
+				
+				if( midx < block->minx ) safety = 3; else safety= 40;
 				if(uevent->mval[0]<block->minx-safety) return UI_RETURN_OUT;
 				
-				if( block->parentrct.ymin < block->miny ) safety = 3; else safety= 40;
+				if( midy < block->miny ) safety = 3; else safety= 40;
 				if(uevent->mval[1]<block->miny-safety) return UI_RETURN_OUT;
 				
-				if( block->parentrct.xmax > block->maxx ) safety = 3; else safety= 40;
+				if( midx > block->maxx ) safety = 3; else safety= 40;
 				if(uevent->mval[0]>block->maxx+safety) return UI_RETURN_OUT;
 				
-				if( block->parentrct.ymax > block->maxy ) safety = 3; else safety= 40;
+				if( midy > block->maxy ) safety = 3; else safety= 40;
 				if(uevent->mval[1]>block->maxy+safety) return UI_RETURN_OUT;
 			}
 		}
@@ -5408,6 +5414,7 @@ static void ui_check_but(uiBut *but)
 	if(but->drawstr[0]) {
 		but->strwidth= but->aspect*BIF_GetStringWidth(but->font, but->drawstr, (U.transopts & TR_BUTTONS));
 		// here should be check for less space for icon offsets...
+		if(but->type==MENU) okwidth -= 20;
 	}
 	else
 		but->strwidth= 0;
@@ -5418,6 +5425,7 @@ static void ui_check_but(uiBut *but)
 	}
 
 	if(but->strwidth==0) but->drawstr[0]= 0;
+	else if(but->type==BUTM);	// clip string
 	else {
 
 		/* calc but->ofs, to draw the string shorter if too long */

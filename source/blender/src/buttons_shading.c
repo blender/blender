@@ -353,7 +353,7 @@ void material_panel_shading(Material *ma)
 		}
 		uiBlockSetCol(block, BUTBLUE);
 		
-		uiDefButI(block, TOG|BIT|15, B_MATPRV, "Flare",		245,142,65,28, &(ma->mode), 0, 0, 0, 0, "Render halo as a lensflare");
+		uiDefButI(block, TOG|BIT|15, B_MATPRV_DRAW, "Flare",		245,142,65,28, &(ma->mode), 0, 0, 0, 0, "Render halo as a lensflare");
 		uiDefButI(block, TOG|BIT|8, B_MATPRV, "Rings",		245,123,65, 18, &(ma->mode), 0, 0, 0, 0, "Render rings over basic halo");
 		uiDefButI(block, TOG|BIT|9, B_MATPRV, "Lines",		245,104,65, 18, &(ma->mode), 0, 0, 0, 0, "Render star shaped lines over the basic halo");
 		uiDefButI(block, TOG|BIT|11, B_MATPRV, "Star",		245,85,65, 18, &(ma->mode), 0, 0, 0, 0, "Render halo as a star");
@@ -429,24 +429,24 @@ void material_panel_material(Object *ob, Material *ma)
 	/* first do the browse but */
 	buttons_active_id(&id, &idfrom);
 
-	if((ob->type<OB_LAMP) && ob->type) {
-		xco= std_libbuttons(block, 8, 0, NULL, B_MATBROWSE, id, idfrom, &(G.buts->menunr), B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
+	
+	uiBlockSetCol(block, BUTPURPLE);
+	xco= std_libbuttons(block, 8, 200, 0, NULL, B_MATBROWSE, id, idfrom, &(G.buts->menunr), B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
 
-		uiDefIconBut(block, BUT, B_MATCOPY, ICON_COPYUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies Material to the buffer");
-		uiSetButLock(id && id->lib, "Can't edit library data");
-		uiDefIconBut(block, BUT, B_MATPASTE, ICON_PASTEUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes Material from the buffer");
-	}
+	uiDefIconBut(block, BUT, B_MATCOPY, ICON_COPYUP,	xco+=XIC,198,XIC,YIC, 0, 0, 0, 0, 0, "Copies Material to the buffer");
+	uiSetButLock(id && id->lib, "Can't edit library data");
+	uiDefIconBut(block, BUT, B_MATPASTE, ICON_PASTEUP,	xco+=XIC,198,XIC,YIC, 0, 0, 0, 0, 0, "Pastes Material from the buffer");
 	
 	if(ob->actcol==0) ob->actcol= 1;	/* because of TOG|BIT button */
 	
 	/* indicate which one is linking a material */
 	uiBlockSetCol(block, BUTSALMON);
-	uiDefButS(block, TOG|BIT|(ob->actcol-1), B_MATFROM, "OB",	125,176,32,20, &ob->colbits, 0, 0, 0, 0, "Link material to object");
+	uiDefButS(block, TOG|BIT|(ob->actcol-1), B_MATFROM, "OB",	125,174,32,20, &ob->colbits, 0, 0, 0, 0, "Link material to object");
 	idn= ob->data;
 	strncpy(str, idn->name, 2);
 	str[2]= 0;
 	uiBlockSetCol(block, BUTGREEN);
-	uiDefButS(block, TOGN|BIT|(ob->actcol-1), B_MATFROM, str,	158,176,32,20, &ob->colbits, 0, 0, 0, 0, "Show the block the material is linked to");
+	uiDefButS(block, TOGN|BIT|(ob->actcol-1), B_MATFROM, str,	158,174,32,20, &ob->colbits, 0, 0, 0, 0, "Show the block the material is linked to");
 	uiBlockSetCol(block, BUTGREY);
 	
 	/* id is the block from which the material is used */
@@ -455,13 +455,13 @@ void material_panel_material(Object *ob, Material *ma)
 
 	sprintf(str, "%d Mat", ob->totcol);
 	if(ob->totcol) min= 1.0; else min= 0.0;
-	uiDefButC(block, NUM, B_ACTCOL, str,			191,176,114,20, &(ob->actcol), min, (float)ob->totcol, 0, 0, "Number of materials on object / Active material");
+	uiDefButC(block, NUM, B_ACTCOL, str,			191,174,114,20, &(ob->actcol), min, (float)ob->totcol, 0, 0, "Number of materials on object / Active material");
 	
 	uiSetButLock(id->lib!=0, "Can't edit library data");
 	
 	strncpy(str, id->name, 2);
 	str[2]= ':'; str[3]= 0;
-	but= uiDefBut(block, TEX, B_IDNAME, str,		8,176,115,20, id->name+2, 0.0, 18.0, 0, 0, "Show the block the material is linked to");
+	but= uiDefBut(block, TEX, B_IDNAME, str,		8,174,115,20, id->name+2, 0.0, 18.0, 0, 0, "Show the block the material is linked to");
 	uiButSetFunc(but, test_idbutton_cb, id->name, NULL);
 
 	if(ob->totcol==0) {
@@ -569,15 +569,18 @@ void material_panels()
 	Object *ob= OBACT;
 	
 	if(ob==0) return;
-	ma= give_current_material(ob, ob->actcol);
-
-	// always draw first 2 panels
-	material_panel_preview(ma);
-	material_panel_material(ob, ma);
 	
-	if(ma) material_panel_shading(ma);
+	// type numbers are ordered
+	if((ob->type<OB_LAMP) && ob->type) {
+		ma= give_current_material(ob, ob->actcol);
 
-	
+		// always draw first 2 panels
+		material_panel_preview(ma);
+		material_panel_material(ob, ma);
+		
+		if(ma) material_panel_shading(ma);
+
+	}
 }
 
 

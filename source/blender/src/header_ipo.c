@@ -280,7 +280,7 @@ void ipo_buttons(void)
 	/* NAME ETC */
 	id= (ID *)get_ipo_to_edit(&from);
 
-	xco= std_libbuttons(block, (short)(xco+1.5*XIC), B_IPOPIN, &G.sipo->pin, B_IPOBROWSE, (ID*)G.sipo->ipo, from, &(G.sipo->menunr), B_IPOALONE, B_IPOLOCAL, B_IPODELETE, 0, B_KEEPDATA);
+	xco= std_libbuttons(block, (short)(xco+1.5*XIC), 0, B_IPOPIN, &G.sipo->pin, B_IPOBROWSE, (ID*)G.sipo->ipo, from, &(G.sipo->menunr), B_IPOALONE, B_IPOLOCAL, B_IPODELETE, 0, B_KEEPDATA);
 
 	uiSetButLock(id && id->lib, "Can't edit library data");
 

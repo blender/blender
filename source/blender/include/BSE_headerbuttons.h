@@ -42,7 +42,7 @@ struct ID;
 #define YIC 20
 
 int std_libbuttons(struct uiBlock *block, 
-       int xco, int pin, short *pinpoin, 
+       short xco, short yco, int pin, short *pinpoin, 
        int browse, struct ID *id, struct ID *parid, 
        short *menupoin, int users, 
        int lib, int del, int autobut, int keepbut);

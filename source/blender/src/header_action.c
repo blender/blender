@@ -192,7 +192,7 @@ void action_buttons(void)
 		ob=OBACT;
 		from = (ID*) ob;
 
-		xco= std_libbuttons(block, xco+1.5*XIC, B_ACTPIN, &G.saction->pin, 
+		xco= std_libbuttons(block, xco+1.5*XIC, 0, B_ACTPIN, &G.saction->pin, 
 							B_ACTIONBROWSE, (ID*)G.saction->action, 
 							from, &(G.saction->actnr), B_ACTALONE, 
 							B_ACTLOCAL, B_ACTIONDELETE, 0, 0);	

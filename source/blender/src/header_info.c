@@ -1739,11 +1739,11 @@ void info_buttons(void)
 		/* STD SCREEN BUTTONS */
 //		xco+= XIC;
 		xco+= 4;
-		xco= std_libbuttons(block, xco, 0, NULL, B_INFOSCR, (ID *)G.curscreen, 0, &G.curscreen->screennr, 1, 1, B_INFODELSCR, 0, 0);
+		xco= std_libbuttons(block, xco, 0, 0, NULL, B_INFOSCR, (ID *)G.curscreen, 0, &G.curscreen->screennr, 1, 1, B_INFODELSCR, 0, 0);
 	
 		/* STD SCENE BUTTONS */
 		xco+= 5;
-		xco= std_libbuttons(block, xco, 0, NULL, B_INFOSCE, (ID *)G.scene, 0, &G.curscreen->scenenr, 1, 1, B_INFODELSCE, 0, 0);
+		xco= std_libbuttons(block, xco, 0, 0, NULL, B_INFOSCE, (ID *)G.scene, 0, &G.curscreen->scenenr, 1, 1, B_INFODELSCE, 0, 0);
 	}
 	else xco= 430;
 	

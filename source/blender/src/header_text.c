@@ -214,7 +214,7 @@ void text_buttons(void)
 	/* STD TEXT BUTTONS */
 	if (!BPY_spacetext_is_pywin(st)) {
 		xco+= 2*XIC;
-		xco= std_libbuttons(block, xco, 0, NULL, B_TEXTBROWSE, (ID*)st->text, 0, &(st->menunr), 0, 0, B_TEXTDELETE, 0, 0);
+		xco= std_libbuttons(block, xco, 0, 0, NULL, B_TEXTBROWSE, (ID*)st->text, 0, &(st->menunr), 0, 0, B_TEXTDELETE, 0, 0);
 
 		/*
 		if (st->text) {
