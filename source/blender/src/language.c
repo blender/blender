@@ -370,8 +370,8 @@ int read_languagefile(void)
 			strcpy(name, ".Blanguages");
 			lines= BLI_read_file_as_lines(name);
 			if(lines == NULL) {
-					error("File \".Blanguages\" not found");
-					return 0;
+				if(G.f & G_DEBUG) printf("File .Blanguages not found\n");
+				return 0;
 			}
 		}
 	}
