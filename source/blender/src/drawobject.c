@@ -2376,7 +2376,7 @@ static void drawmeshwire(Object *ob)
 			
 			evl= em->faces.first;
 			while(evl) {
-				if(evl->v1->h==0 && evl->v2->h==0 && evl->v3->h==0) {
+				if(evl->v1->h==0 && evl->v2->h==0 && evl->v3->h==0 && (evl->v4==NULL || evl->v4->h==0)) {
 					
 					if(1) {
 						if(vlakselectedAND(evl, 1)) glColor4ub(col2[0], col2[1], col2[2], col2[3]); 
