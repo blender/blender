@@ -2521,6 +2521,16 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 			}
 			break;
+		case PADPLUSKEY:
+			view2d_zoom(G.v2d, 0.1154, sa->winx, sa->winy);
+			test_view2d(G.v2d, sa->winx, sa->winy);
+			doredraw= 1;
+			break;
+		case PADMINUS:
+			view2d_zoom(G.v2d, -0.15, sa->winx, sa->winy);
+			test_view2d(G.v2d, sa->winx, sa->winy);
+			doredraw= 1;
+			break;
 		case MIDDLEMOUSE:
 		case WHEELUPMOUSE:
 		case WHEELDOWNMOUSE:

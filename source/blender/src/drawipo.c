@@ -361,13 +361,18 @@ int in_ipo_buttons(void)
 }
 
 
-void view2d_zoom(View2D *v2d, float factor, int winx, int winy) {
+void view2d_zoom(View2D *v2d, float factor, int winx, int winy) 
+{
 	float dx= factor*(v2d->cur.xmax-v2d->cur.xmin);
 	float dy= factor*(v2d->cur.ymax-v2d->cur.ymin);
-	v2d->cur.xmin+= dx;
-	v2d->cur.xmax-= dx;
-	v2d->cur.ymin+= dy;
-	v2d->cur.ymax-= dy;
+	if ((v2d->keepzoom & V2D_LOCKZOOM_X)==0) {
+		v2d->cur.xmin+= dx;
+		v2d->cur.xmax-= dx;
+	}
+	if ((v2d->keepzoom & V2D_LOCKZOOM_Y)==0) {
+		v2d->cur.ymin+= dy;
+		v2d->cur.ymax-= dy;
+	}
 	test_view2d(v2d, winx, winy);
 }
 

@@ -218,11 +218,13 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			do_nla_buttons(B_NLAHOME);
 			break;
 
-		case PADMINUS:
+		case EQUALKEY:
+		case PAGEUPKEY:
 			shift_nlastrips_up();
 			break;
 
-		case PADPLUSKEY:
+		case MINUSKEY:
+		case PAGEDOWNKEY:
 			shift_nlastrips_down();
 			break;
 
@@ -320,6 +322,17 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			else
 				mouse_nlachannels(mval);
+			break;
+
+		case PADPLUSKEY:
+			view2d_zoom(G.v2d, 0.1154, sa->winx, sa->winy);
+			test_view2d(G.v2d, sa->winx, sa->winy);
+			doredraw= 1;
+			break;
+		case PADMINUS:
+			view2d_zoom(G.v2d, -0.15, sa->winx, sa->winy);
+			test_view2d(G.v2d, sa->winx, sa->winy);
+			doredraw= 1;
 			break;
 		case MIDDLEMOUSE:
 		case WHEELUPMOUSE:
