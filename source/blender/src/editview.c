@@ -68,7 +68,7 @@
 #include "BIF_mywindow.h"
 #include "BIF_space.h"
 #include "BIF_screen.h"
-#include "BIF_buttons.h"
+#include "BIF_butspace.h"
 #include "BIF_editgroup.h"
 #include "BIF_editmesh.h"
 #include "BIF_editoops.h"
@@ -399,6 +399,7 @@ static void deselectall_except(Base *b)   /* deselect all except b */
 	countall();
 }
 
+#if 0
 /* smart function to sample a rect spiralling outside, nice for backbuf selection */
 static unsigned int samplerect(unsigned int *buf, int size, unsigned int dontdo)
 {
@@ -445,6 +446,7 @@ static unsigned int samplerect(unsigned int *buf, int size, unsigned int dontdo)
 	}
 	return retval;
 }
+#endif
 
 #define SELECTSIZE	51
 
@@ -591,9 +593,9 @@ void mouse_select(void)
 				}
 			}
 			
-			allqueue(REDRAWBUTSGAME, 0);
+			allqueue(REDRAWBUTSLOGIC, 0);
 			allqueue(REDRAWDATASELECT, 0);
-			allqueue(REDRAWBUTSCONSTRAINT, 0);
+			allqueue(REDRAWBUTSOBJECT, 0);
 			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);
 			allqueue(REDRAWHEADERS, 0);	/* To force display update for the posebutton */
@@ -659,7 +661,7 @@ void borderselect(void)
 				}
 				
 				allqueue(REDRAWBUTSEDIT, 0);
-				allqueue(REDRAWBUTSCONSTRAINT, 0);
+				allqueue(REDRAWBUTSOBJECT, 0);
 				allqueue(REDRAWACTION, 0);
 				allqueue(REDRAWNLA, 0);
 				allqueue(REDRAWVIEW3D, 0);
@@ -786,7 +788,7 @@ void borderselect(void)
 				}
 				
 				allqueue(REDRAWBUTSEDIT, 0);
-				allqueue(REDRAWBUTSCONSTRAINT, 0);
+				allqueue(REDRAWBUTSOBJECT, 0);
 				allqueue(REDRAWACTION, 0);
 				allqueue(REDRAWVIEW3D, 0);
 			}
@@ -851,7 +853,7 @@ void borderselect(void)
 				base= base->next;
 			}
 			/* new */
-			allqueue(REDRAWBUTSGAME, 0);
+			allqueue(REDRAWBUTSLOGIC, 0);
 			allqueue(REDRAWNLA, 0);
 		}
 		countall();

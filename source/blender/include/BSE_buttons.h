@@ -33,14 +33,6 @@
 #ifndef BSE_BUTTONS_H
 #define BSE_BUTTONS_H
 
-struct ID;
-
-void test_meshpoin_but(char *name, struct ID **idpp);
-void test_obpoin_but(char *name, struct ID **idpp);
-void test_scenepoin_but(char *name, struct ID **idpp);
-void test_matpoin_but(char *name, struct ID **idpp);
-void test_scriptpoin_but(char *name, struct ID **idpp);
-void test_actionpoin_but(char *name, ID **idpp);	/* __ NLA */
 void clever_numbuts_buts();
 
 #endif  /*  BSE_BUTTONS_H */

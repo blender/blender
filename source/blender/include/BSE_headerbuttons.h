@@ -36,6 +36,7 @@
 struct uiBlock;
 struct ID;
 
+void update_for_newframe_muted(void);
 void free_matcopybuf(void);
 void clear_matcopybuf(void);
 void write_videoscape_fs(void);

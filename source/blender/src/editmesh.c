@@ -3772,7 +3772,7 @@ void separate_mesh_loose(void)
 	ListBase edve, eded, edvl;
 	float trans[9];
 	int ok, vertsep=0, flag;	
-	short sel,toggle=0, done=0, check=1, loop=0;
+	short done=0, check=1;
 		
 	TEST_EDITMESH
 	waitcursor(1);	
@@ -5919,7 +5919,7 @@ void join_mesh(void)
 	exit_editmode(1);
 	
 	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSMAT, 0);
+	allqueue(REDRAWBUTSSHADING, 0);
 	makeDispList(G.obedit);
 
 }

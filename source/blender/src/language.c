@@ -237,7 +237,7 @@ void start_interface_font(void) {
 		strcat(tstr, ".bfont.ttf");
 		result = FTF_SetFont(tstr, U.fontsize);
 
-		sprintf(U.fontname, ".blender/.bfont.ttf\0");
+		sprintf(U.fontname, ".blender/.bfont.ttf");
 #elif defined (WIN32)
 		BLI_getInstallationDir(tstr);
 		strcat(tstr, "/.blender/.bfont.ttf\0");

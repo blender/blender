@@ -332,8 +332,12 @@ static int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin, int 
 					id= G.main->world.first;
 				}
 				else if(ob && ob->type && (ob->type<OB_LAMP)) {
-					if(G.buts->mainb==BUTS_MAT) id= G.main->mat.first;
-					else if(G.buts->mainb==BUTS_TEX) id= G.main->tex.first;
+					if(G.buts->mainb==CONTEXT_SHADING) {
+						int tab= G.buts->tab[CONTEXT_SHADING];
+						
+						if(tab==TAB_SHADING_MAT) id= G.main->mat.first;
+						else if(tab==TAB_SHADING_TEX) id= G.main->tex.first;
+					}
 				}
 			}
 			else if(curarea->spacetype==SPACE_TEXT) {
@@ -361,7 +365,7 @@ static int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin, int 
 			if( idtype==ID_SCE || idtype==ID_SCR ) uiClearButLock();
 			
 			if(curarea->spacetype==SPACE_BUTS)
-				uiSetButLock(idtype!=ID_SCR && G.obedit!=0 && G.buts->mainb==BUTS_EDIT, NULL);
+				uiSetButLock(idtype!=ID_SCR && G.obedit!=0 && G.buts->mainb==CONTEXT_EDITING, NULL);
 			
 			if(parid) uiSetButLock(parid->lib!=0, "Can't edit library data");
 
@@ -380,13 +384,13 @@ static int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin, int 
 			xco+= XIC;
 		}
 		else if(curarea->spacetype==SPACE_BUTS) {
-			if ELEM3(G.buts->mainb, BUTS_MAT, BUTS_TEX, BUTS_WORLD) {
+			if(G.buts->mainb==CONTEXT_SHADING) {
 				uiSetButLock(G.scene->id.lib!=0, "Can't edit library data");
 				if(parid) uiSetButLock(parid->lib!=0, "Can't edit library data");
 				uiDefButS(block, MENU, browse, "ADD NEW %x 32767",(short) xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
 				uiClearButLock();
-			} else if (G.buts->mainb == BUTS_SOUND) {
-				uiDefButS(block, MENU, browse, "OPEN NEW %x 32766",(short) xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
+//			} else if (G.buts->mainb == BUTS_SOUND) {
+//				uiDefButS(block, MENU, browse, "OPEN NEW %x 32766",(short) xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
 			}
 		}
 		else if(curarea->spacetype==SPACE_TEXT) {
@@ -508,6 +512,8 @@ static int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin, int 
 
 void do_update_for_newframe(int mute)
 {
+	extern void audiostream_scrub(unsigned int frame);	/* seqaudio.c */
+	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWACTION,0);
 	allqueue(REDRAWNLA,0);
@@ -515,9 +521,9 @@ void do_update_for_newframe(int mute)
 	allqueue(REDRAWINFO, 1);
 	allqueue(REDRAWSEQ, 1);
 	allqueue(REDRAWSOUND, 1);
-	allqueue(REDRAWBUTSHEAD, 1);
-	allqueue(REDRAWBUTSMAT, 1);
-	allqueue(REDRAWBUTSLAMP, 1);
+	allqueue(REDRAWBUTSHEAD, 0);
+	allqueue(REDRAWBUTSSHADING, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 
 	/* layers/materials, object ipos are calculted in where_is_object (too) */
 	do_all_ipos();
@@ -794,7 +800,7 @@ void do_global_buttons(unsigned short event)
 				assign_material(ob, (Material *)idtest, ob->actcol);
 				
 				allqueue(REDRAWBUTSHEAD, 0);
-				allqueue(REDRAWBUTSMAT, 0);
+				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWIPO, 0);
 				BIF_preview_changed(G.buts);
 			}
@@ -810,7 +816,7 @@ void do_global_buttons(unsigned short event)
 			if(ma) {
 				assign_material(ob, 0, ob->actcol);
 				allqueue(REDRAWBUTSHEAD, 0);
-				allqueue(REDRAWBUTSMAT, 0);
+				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWIPO, 0);
 				BIF_preview_changed(G.buts);
 			}
@@ -829,7 +835,7 @@ void do_global_buttons(unsigned short event)
 						if(mtex->tex) mtex->tex->id.us--;
 						MEM_freeN(mtex);
 						ma->mtex[ ma->texact ]= 0;
-						allqueue(REDRAWBUTSTEX, 0);
+						allqueue(REDRAWBUTSSHADING, 0);
 						allqueue(REDRAWIPO, 0);
 						BIF_preview_changed(G.buts);
 					}
@@ -843,7 +849,7 @@ void do_global_buttons(unsigned short event)
 						if(mtex->tex) mtex->tex->id.us--;
 						MEM_freeN(mtex);
 						wrld->mtex[ wrld->texact ]= 0;
-						allqueue(REDRAWBUTSTEX, 0);
+						allqueue(REDRAWBUTSSHADING, 0);
 						allqueue(REDRAWIPO, 0);
 						BIF_preview_changed(G.buts);
 					}
@@ -857,7 +863,7 @@ void do_global_buttons(unsigned short event)
 						if(mtex->tex) mtex->tex->id.us--;
 						MEM_freeN(mtex);
 						la->mtex[ la->texact ]= 0;
-						allqueue(REDRAWBUTSTEX, 0);
+						allqueue(REDRAWBUTSSHADING, 0);
 						allqueue(REDRAWIPO, 0);
 						BIF_preview_changed(G.buts);
 					}
@@ -919,8 +925,7 @@ void do_global_buttons(unsigned short event)
 				if(id) id->us--;
 				
 				allqueue(REDRAWBUTSHEAD, 0);
-				allqueue(REDRAWBUTSTEX, 0);
-				allqueue(REDRAWBUTSMAT, 0);
+				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWIPO, 0);
 				BIF_preview_changed(G.buts);
 			}
@@ -1079,7 +1084,7 @@ void do_global_buttons(unsigned short event)
 				else if(ipo->blocktype==ID_MA) {
 					( (Material *)from)->ipo= ipo;
 					id_us_plus(idtest);
-					allqueue(REDRAWBUTSMAT, 0);
+					allqueue(REDRAWBUTSSHADING, 0);
 				}
 				else if(ipo->blocktype==ID_SEQ) {
 					seq= (Sequence *)from;
@@ -1103,7 +1108,7 @@ void do_global_buttons(unsigned short event)
 				else if(ipo->blocktype==ID_WO) {
 					( (World *)from)->ipo= ipo;
 					id_us_plus(idtest);
-					allqueue(REDRAWBUTSWORLD, 0);
+					allqueue(REDRAWBUTSSHADING, 0);
 				}
 				else if(ipo->blocktype==ID_LA) {
 					( (Lamp *)from)->ipo= ipo;
@@ -1197,7 +1202,7 @@ void do_global_buttons(unsigned short event)
 			if(id) id->us--;
 			
 			allqueue(REDRAWBUTSHEAD, 0);
-			allqueue(REDRAWBUTSWORLD, 0);
+			allqueue(REDRAWBUTSSHADING, 0);
 			allqueue(REDRAWIPO, 0);
 			BIF_preview_changed(G.buts);
 		}
@@ -1206,7 +1211,7 @@ void do_global_buttons(unsigned short event)
 		if(G.scene->world) {
 			G.scene->world->id.us--;
 			G.scene->world= 0;
-			allqueue(REDRAWBUTSWORLD, 0);
+			allqueue(REDRAWBUTSSHADING, 0);
 			allqueue(REDRAWIPO, 0);
 		}
 		
@@ -1262,8 +1267,7 @@ void do_global_buttons(unsigned short event)
 				if(id) id->us--;
 				
 				allqueue(REDRAWBUTSHEAD, 0);
-				allqueue(REDRAWBUTSTEX, 0);
-				allqueue(REDRAWBUTSWORLD, 0);
+				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWIPO, 0);
 				BIF_preview_changed(G.buts);
 			}
@@ -1358,7 +1362,7 @@ void do_global_buttons(unsigned short event)
 				if(id) id->us--;
 				
 				allqueue(REDRAWBUTSHEAD, 0);
-				allqueue(REDRAWBUTSTEX, 0);
+				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWBUTSLAMP, 0);
 				allqueue(REDRAWIPO, 0);
 				BIF_preview_changed(G.buts);
@@ -1377,25 +1381,27 @@ void do_global_buttons(unsigned short event)
 		allqueue(REDRAWBUTSHEAD, 0);
 		break;		
 	case B_AUTOTEXNAME:
-		if(G.buts->mainb==BUTS_TEX) {
-			autotexname(G.buts->lockpoin);
-			allqueue(REDRAWBUTSHEAD, 0);
-			allqueue(REDRAWBUTSTEX, 0);
-		}
-		else if(G.buts->mainb==BUTS_MAT) {
-			ma= G.buts->lockpoin;
-			if(ma->mtex[ ma->texact]) autotexname(ma->mtex[ma->texact]->tex);
-			allqueue(REDRAWBUTSMAT, 0);
-		}
-		else if(G.buts->mainb==BUTS_WORLD) {
-			wrld= G.buts->lockpoin;
-			if(wrld->mtex[ wrld->texact]) autotexname(wrld->mtex[wrld->texact]->tex);
-			allqueue(REDRAWBUTSWORLD, 0);
-		}
-		else if(G.buts->mainb==BUTS_LAMP) {
-			la= G.buts->lockpoin;
-			if(la->mtex[ la->texact]) autotexname(la->mtex[la->texact]->tex);
-			allqueue(REDRAWBUTSLAMP, 0);
+		if(G.buts->mainb==CONTEXT_SHADING) {
+			if(G.buts->tab[CONTEXT_SHADING]==TAB_SHADING_TEX) {
+				autotexname(G.buts->lockpoin);
+				allqueue(REDRAWBUTSHEAD, 0);
+				allqueue(REDRAWBUTSSHADING, 0);
+			}
+			else if(G.buts->tab[CONTEXT_SHADING]==TAB_SHADING_MAT) {
+				ma= G.buts->lockpoin;
+				if(ma->mtex[ ma->texact]) autotexname(ma->mtex[ma->texact]->tex);
+				allqueue(REDRAWBUTSSHADING, 0);
+			}
+			else if(G.buts->tab[CONTEXT_SHADING]==TAB_SHADING_WORLD) {
+				wrld= G.buts->lockpoin;
+				if(wrld->mtex[ wrld->texact]) autotexname(wrld->mtex[wrld->texact]->tex);
+				allqueue(REDRAWBUTSSHADING, 0);
+			}
+			else if(G.buts->tab[CONTEXT_SHADING]==TAB_SHADING_LAMP) {
+				la= G.buts->lockpoin;
+				if(la->mtex[ la->texact]) autotexname(la->mtex[la->texact]->tex);
+				allqueue(REDRAWBUTSLAMP, 0);
+			}
 		}
 		break;
 
@@ -5741,7 +5747,7 @@ static void do_view3d_facesel_propertiesmenu(void *arg, int event)
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSGAME, 0);
+	allqueue(REDRAWBUTSLOGIC, 0);
 }
 
 static uiBlock *view3d_facesel_propertiesmenu(void *arg_unused)
@@ -5875,7 +5881,7 @@ static void do_view3d_faceselmenu(void *arg, int event)
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSGAME, 0);
+	allqueue(REDRAWBUTSLOGIC, 0);
 	allqueue(REDRAWIMAGE, 0);
 }
 
@@ -6853,8 +6859,8 @@ void ipo_buttons(void)
 	}
 	uiDefIconButS(block, ROW, B_IPOMAIN, ICON_SEQUENCE,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_SEQ, 0, 0, "Displays Sequence Ipos");
 
-	if(G.buts && G.buts->mainb == BUTS_SOUND && G.buts->lockpoin) 
-		uiDefIconButS(block, ROW, B_IPOMAIN, ICON_SOUND,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_SO, 0, 0, "Displays Sound Ipos");
+//	if(G.buts && G.buts->mainb == BUTS_SOUND && G.buts->lockpoin) 
+//		uiDefIconButS(block, ROW, B_IPOMAIN, ICON_SOUND,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_SO, 0, 0, "Displays Sound Ipos");
 
 	
 	uiClearButLock();
@@ -6999,80 +7005,84 @@ void buttons_active_id(ID **id, ID **idfrom)
 {
 	Object *ob= OBACT;
 	Material *ma;
-	ID * search;
 
 	*id= NULL;
 	*idfrom= (ID *)ob;
 	
-	if(G.buts->mainb==BUTS_LAMP) {
-		if(ob && ob->type==OB_LAMP) {
-			*id= ob->data;
-		}
-	}
-	else if(G.buts->mainb==BUTS_MAT) {
-		if(ob && (ob->type<OB_LAMP) && ob->type) {
-			*id= (ID *)give_current_material(ob, ob->actcol);
-			*idfrom= material_from(ob, ob->actcol);
-		}
-	}
-	else if(G.buts->mainb==BUTS_TEX) {
-		MTex *mtex;
+	if(G.buts->mainb==CONTEXT_SCENE) {
+		*id= (ID *)G.scene;
 		
-		if(G.buts->mainbo != G.buts->mainb) {
-			if(G.buts->mainbo==BUTS_LAMP) G.buts->texfrom= 2;
-			else if(G.buts->mainbo==BUTS_WORLD) G.buts->texfrom= 1;
-			else if(G.buts->mainbo==BUTS_MAT) G.buts->texfrom= 0;
+	}
+	else if(G.buts->mainb==CONTEXT_SHADING) {
+		int tab= G.buts->tab[CONTEXT_SHADING];
+		
+		if(tab==TAB_SHADING_LAMP) {
+			if(ob && ob->type==OB_LAMP) {
+				*id= ob->data;
+			}
 		}
-
-		if(G.buts->texfrom==0) {
-			if(ob && ob->type<OB_LAMP && ob->type) {
-				ma= give_current_material(ob, ob->actcol);
-				*idfrom= (ID *)ma;
-				if(ma) {
-					mtex= ma->mtex[ ma->texact ];
+		else if(tab==TAB_SHADING_MAT) {
+			if(ob && (ob->type<OB_LAMP) && ob->type) {
+				*id= (ID *)give_current_material(ob, ob->actcol);
+				*idfrom= material_from(ob, ob->actcol);
+			}
+		}
+		else if(tab==TAB_SHADING_WORLD) {
+			*id= (ID *)G.scene->world;
+			*idfrom= (ID *)G.scene;
+		}
+		else if(tab==TAB_SHADING_TEX) {
+			MTex *mtex;
+			
+//			if(G.buts->mainbo != G.buts->mainb) {
+//				if(G.buts->mainbo==BUTS_LAMP) G.buts->texfrom= 2;
+//				else if(G.buts->mainbo==BUTS_WORLD) G.buts->texfrom= 1;
+//				else if(G.buts->mainbo==BUTS_MAT) G.buts->texfrom= 0;
+//			}
+	
+			if(G.buts->texfrom==0) {
+				if(ob && ob->type<OB_LAMP && ob->type) {
+					ma= give_current_material(ob, ob->actcol);
+					*idfrom= (ID *)ma;
+					if(ma) {
+						mtex= ma->mtex[ ma->texact ];
+						if(mtex) *id= (ID *)mtex->tex;
+					}
+				}
+			}
+			else if(G.buts->texfrom==1) {
+				World *wrld= G.scene->world;
+				*idfrom= (ID *)wrld;
+				if(wrld) {
+					mtex= wrld->mtex[ wrld->texact];
+					if(mtex) *id= (ID *)mtex->tex;
+				}
+			}
+			else if(G.buts->texfrom==2) {
+				Lamp *la;
+				if(ob && ob->type==OB_LAMP) {
+					la= ob->data;
+					*idfrom= (ID *)la;
+					mtex= la->mtex[ la->texact];
 					if(mtex) *id= (ID *)mtex->tex;
 				}
 			}
 		}
-		else if(G.buts->texfrom==1) {
-			World *wrld= G.scene->world;
-			*idfrom= (ID *)wrld;
-			if(wrld) {
-				mtex= wrld->mtex[ wrld->texact];
-				if(mtex) *id= (ID *)mtex->tex;
-			}
-		}
-		else if(G.buts->texfrom==2) {
-			Lamp *la;
-			if(ob && ob->type==OB_LAMP) {
-				la= ob->data;
-				*idfrom= (ID *)la;
-				mtex= la->mtex[ la->texact];
-				if(mtex) *id= (ID *)mtex->tex;
-			}
-		}
 	}
-	else if ELEM3(G.buts->mainb, BUTS_ANIM, BUTS_GAME, BUTS_CONSTRAINT) {
+	else if(G.buts->mainb==CONTEXT_OBJECT || G.buts->mainb==CONTEXT_LOGIC) {
 		if(ob) {
 			*idfrom= (ID *)G.scene;
 			*id= (ID *)ob;
 		}
 	}
-	else if(G.buts->mainb==BUTS_WORLD) {
-		*id= (ID *)G.scene->world;
-		*idfrom= (ID *)G.scene;
-	}
-	else if(G.buts->mainb==BUTS_RENDER) {
-		*id= (ID *)G.scene;
-		
-	}
-	else if(G.buts->mainb==BUTS_EDIT) {
+	else if(G.buts->mainb==CONTEXT_TYPES  || G.buts->mainb==CONTEXT_EDITING) {
 		if(ob && ob->data) {
 			*id= ob->data;
 		}
 	}
 	else if (G.buts->mainb == BUTS_SOUND) {
-		// printf("lockp: %d\n", G.buts->lockpoin);
+#if 0
+		ID * search;
 
 		if (G.buts->lockpoin) {
 			search = G.main->sound.first;
@@ -7091,10 +7101,11 @@ void buttons_active_id(ID **id, ID **idfrom)
 			*id = G.main->sound.first;
 		}
 		//  printf("id:    %d\n\n", *id);
+#endif
 	}
 }
 
-#if 0
+
 static void validate_bonebutton(void *bonev, void *data2_unused){
 	Bone *bone= bonev;
 	bArmature *arm;
@@ -7102,7 +7113,7 @@ static void validate_bonebutton(void *bonev, void *data2_unused){
 	arm = get_armature(G.obpose);
 	unique_bone_name(bone, arm);
 }
-#endif
+
 
 static int bonename_exists(Bone *orig, char *name, ListBase *list)
 {
@@ -7158,8 +7169,7 @@ static void unique_bone_name (Bone *bone, bArmature *arm)
 static uiBlock *sbuts_context_menu(void *arg_unused)
 {
 	uiBlock *block;
-	short yco = 0, xco = 0;
-	int randomcolorindex = 1234;
+	short yco = 0;
 
 	block= uiNewBlock(&curarea->uiblocks, "context_options", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetCol(block, MENUCOL);
@@ -7815,7 +7825,7 @@ void load_space_sound(char *str)	/* called from fileselect */
 	}
 
 	allqueue(REDRAWSOUND, 0);
-	allqueue(REDRAWBUTSGAME, 0);
+	allqueue(REDRAWBUTSLOGIC, 0);
 }
 
 
@@ -7826,15 +7836,15 @@ void load_sound_buttons(char *str)	/* called from fileselect */
 	sound= sound_new_sound(str);
 	if (sound) {
 		if (curarea && curarea->spacetype==SPACE_BUTS) {
-			if (G.buts->mainb == BUTS_SOUND) {
-				G.buts->lockpoin = sound;
-			}
+//			if (G.buts->mainb == BUTS_SOUND) {
+//				G.buts->lockpoin = sound;
+//			}
 		}
 	} else {
 		error("Not a valid sample: %s", str);
 	}
 
-	allqueue(REDRAWBUTSSOUND, 0);
+	//allqueue(REDRAWBUTSSOUND, 0);
 }
 
 void do_action_buttons(unsigned short event)
@@ -7987,7 +7997,7 @@ void do_sound_buttons(unsigned short event)
 			if (idtest != id) {
 				G.buts->lockpoin = (bSound *)idtest;
 				if(idtest->us==0) idtest->us= 1;
-				allqueue(REDRAWBUTSSOUND, 0);
+				//allqueue(REDRAWBUTSSOUND, 0);
 				BIF_preview_changed(G.buts);
 			}
 		}
@@ -8166,7 +8176,7 @@ void save_paint(char *name)
 					BLI_strncpy(ima->name, name, sizeof(ima->name));
 					ima->ibuf->userflags &= ~IB_BITMAPDIRTY;
 					allqueue(REDRAWHEADERS, 0);
-					allqueue(REDRAWBUTSTEX, 0);
+					allqueue(REDRAWBUTSSHADING, 0);
 				} else {
 					error("Couldn't write image: %s", str);
 				}
@@ -8304,7 +8314,7 @@ void do_image_buttons(unsigned short event)
 					ima->packedfile = newPackedFile(ima->name);
 				}
 			}
-			allqueue(REDRAWBUTSTEX, 0);
+			allqueue(REDRAWBUTSSHADING, 0);
 			allqueue(REDRAWHEADERS, 0);
 		}
 		break;

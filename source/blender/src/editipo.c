@@ -91,7 +91,7 @@
 #include "BKE_global.h"
 #include "BKE_group.h"
 
-#include "BIF_buttons.h"
+#include "BIF_butspace.h"
 #include "BIF_editkey.h"
 #include "BIF_editseq.h"
 #include "BIF_editview.h"
@@ -627,7 +627,7 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 		allqueue(REDRAWIPO, 0);
 		allqueue (REDRAWACTION, 0);
 		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWBUTSANIM, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
 		
 		if(si->blocktype==ID_OB) {
 			Object *ob= (Object *)si->from;			
@@ -636,10 +636,10 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 			allqueue(REDRAWNLA, 0);
 		}
 
-		else if(si->blocktype==ID_MA) allqueue(REDRAWBUTSMAT, 0);
-		else if(si->blocktype==ID_WO) allqueue(REDRAWBUTSWORLD, 0);
+		else if(si->blocktype==ID_MA) allqueue(REDRAWBUTSSHADING, 0);
+		else if(si->blocktype==ID_WO) allqueue(REDRAWBUTSSHADING, 0);
 		else if(si->blocktype==ID_LA) allqueue(REDRAWBUTSLAMP, 0);
-		else if(si->blocktype==ID_SO) allqueue(REDRAWBUTSSOUND, 0);
+//		else if(si->blocktype==ID_SO) allqueue(REDRAWBUTSSOUND, 0);
 		else if(si->blocktype==ID_CA) {
 			allqueue(REDRAWBUTSEDIT, 0);
 			allqueue(REDRAWVIEW3D, 0);
@@ -788,15 +788,11 @@ Ipo *get_ipo_to_edit(ID **from)
 	}
 	else if(G.sipo->blocktype==ID_SO) {
 
-		if (G.buts && G.buts->mainb == BUTS_SOUND) {
-
-			bSound *sound = G.buts->lockpoin;
-
-			*from= (ID *)sound;
-
-			if(sound) return sound->ipo;
-
-		}
+//		if (G.buts && G.buts->mainb == BUTS_SOUND) {
+//			bSound *sound = G.buts->lockpoin;
+//			*from= (ID *)sound;
+//			if(sound) return sound->ipo;
+//		}
 	}
 
 	return NULL;
@@ -3630,140 +3626,143 @@ void common_insertkey()
 		insertkey_editipo();
 	}
 	else if(curarea->spacetype==SPACE_BUTS) {
-		
-		if(G.buts->mainb==BUTS_MAT) {
-			id= G.buts->lockpoin;
-			ma= G.buts->lockpoin;
-			if(id) {
-				event= pupmenu("Insert Key %t|RGB%x0|Alpha%x1|HaSize%x2|Mode %x3|All Color%x10|Ofs%x12|Size%x13|All Mapping%x11");
-				if(event== -1) return;
-				
-				map= texchannel_to_adrcode(ma->texact);
-				
-				if(event==0 || event==10) {
-					insertkey(id, MA_COL_R);
-					insertkey(id, MA_COL_G);
-					insertkey(id, MA_COL_B);
+		if(G.buts->mainb==CONTEXT_SHADING) {
+			int tab= G.buts->tab[CONTEXT_SHADING];
+			
+			if(tab==TAB_SHADING_MAT) {
+				id= G.buts->lockpoin;
+				ma= G.buts->lockpoin;
+				if(id) {
+					event= pupmenu("Insert Key %t|RGB%x0|Alpha%x1|HaSize%x2|Mode %x3|All Color%x10|Ofs%x12|Size%x13|All Mapping%x11");
+					if(event== -1) return;
+					
+					map= texchannel_to_adrcode(ma->texact);
+					
+					if(event==0 || event==10) {
+						insertkey(id, MA_COL_R);
+						insertkey(id, MA_COL_G);
+						insertkey(id, MA_COL_B);
+					}
+					if(event==1 || event==10) {
+						insertkey(id, MA_ALPHA);
+					}
+					if(event==2 || event==10) {
+						insertkey(id, MA_HASIZE);
+					}
+					if(event==3 || event==10) {
+						insertkey(id, MA_MODE);
+					}
+					if(event==10) {
+						insertkey(id, MA_SPEC_R);
+						insertkey(id, MA_SPEC_G);
+						insertkey(id, MA_SPEC_B);
+						insertkey(id, MA_REF);
+						insertkey(id, MA_EMIT);
+						insertkey(id, MA_AMB);
+						insertkey(id, MA_SPEC);
+						insertkey(id, MA_HARD);
+						insertkey(id, MA_MODE);
+					}
+					if(event==12 || event==11) {
+						insertkey(id, map+MAP_OFS_X);
+						insertkey(id, map+MAP_OFS_Y);
+						insertkey(id, map+MAP_OFS_Z);
+					}
+					if(event==13 || event==11) {
+						insertkey(id, map+MAP_SIZE_X);
+						insertkey(id, map+MAP_SIZE_Y);
+						insertkey(id, map+MAP_SIZE_Z);
+					}
+					if(event==11) {
+						insertkey(id, map+MAP_R);
+						insertkey(id, map+MAP_G);
+						insertkey(id, map+MAP_B);
+						insertkey(id, map+MAP_DVAR);
+						insertkey(id, map+MAP_COLF);
+						insertkey(id, map+MAP_NORF);
+						insertkey(id, map+MAP_VARF);
+					}
 				}
-				if(event==1 || event==10) {
-					insertkey(id, MA_ALPHA);
+			}
+			else if(tab==TAB_SHADING_WORLD) {
+				id= G.buts->lockpoin;
+				wo= G.buts->lockpoin;
+				if(id) {
+					event= pupmenu("Insert Key %t|ZenRGB%x0|HorRGB%x1|Mist%x2|stars %x3|Ofs%x12|Size%x13");
+					if(event== -1) return;
+					
+					map= texchannel_to_adrcode(wo->texact);
+					
+					if(event==0) {
+						insertkey(id, WO_ZEN_R);
+						insertkey(id, WO_ZEN_G);
+						insertkey(id, WO_ZEN_B);
+					}
+					if(event==1) {
+						insertkey(id, WO_HOR_R);
+						insertkey(id, WO_HOR_G);
+						insertkey(id, WO_HOR_B);
+					}
+					if(event==2) {
+						insertkey(id, WO_MISI);
+						insertkey(id, WO_MISTDI);
+						insertkey(id, WO_MISTSTA);
+						insertkey(id, WO_MISTHI);
+					}
+					if(event==3) {
+						insertkey(id, WO_STAR_R);
+						insertkey(id, WO_STAR_G);
+						insertkey(id, WO_STAR_B);
+						insertkey(id, WO_STARDIST);
+						insertkey(id, WO_STARSIZE);
+					}
+					if(event==12) {
+						insertkey(id, map+MAP_OFS_X);
+						insertkey(id, map+MAP_OFS_Y);
+						insertkey(id, map+MAP_OFS_Z);
+					}
+					if(event==13) {
+						insertkey(id, map+MAP_SIZE_X);
+						insertkey(id, map+MAP_SIZE_Y);
+						insertkey(id, map+MAP_SIZE_Z);
+					}
 				}
-				if(event==2 || event==10) {
-					insertkey(id, MA_HASIZE);
-				}
-				if(event==3 || event==10) {
-					insertkey(id, MA_MODE);
-				}
-				if(event==10) {
-					insertkey(id, MA_SPEC_R);
-					insertkey(id, MA_SPEC_G);
-					insertkey(id, MA_SPEC_B);
-					insertkey(id, MA_REF);
-					insertkey(id, MA_EMIT);
-					insertkey(id, MA_AMB);
-					insertkey(id, MA_SPEC);
-					insertkey(id, MA_HARD);
-					insertkey(id, MA_MODE);
-				}
-				if(event==12 || event==11) {
-					insertkey(id, map+MAP_OFS_X);
-					insertkey(id, map+MAP_OFS_Y);
-					insertkey(id, map+MAP_OFS_Z);
-				}
-				if(event==13 || event==11) {
-					insertkey(id, map+MAP_SIZE_X);
-					insertkey(id, map+MAP_SIZE_Y);
-					insertkey(id, map+MAP_SIZE_Z);
-				}
-				if(event==11) {
-					insertkey(id, map+MAP_R);
-					insertkey(id, map+MAP_G);
-					insertkey(id, map+MAP_B);
-					insertkey(id, map+MAP_DVAR);
-					insertkey(id, map+MAP_COLF);
-					insertkey(id, map+MAP_NORF);
-					insertkey(id, map+MAP_VARF);
+			}
+			else if(tab==TAB_SHADING_LAMP) {
+				id= G.buts->lockpoin;
+				la= G.buts->lockpoin;
+				if(id) {
+					event= pupmenu("Insert Key %t|RGB%x0|Energy%x1|Spotsi%x2|Ofs%x12|Size%x13");
+					if(event== -1) return;
+					
+					map= texchannel_to_adrcode(la->texact);
+					
+					if(event==0) {
+						insertkey(id, LA_COL_R);
+						insertkey(id, LA_COL_G);
+						insertkey(id, LA_COL_B);
+					}
+					if(event==1) {
+						insertkey(id, LA_ENERGY);
+					}
+					if(event==2) {
+						insertkey(id, LA_SPOTSI);
+					}
+					if(event==12) {
+						insertkey(id, map+MAP_OFS_X);
+						insertkey(id, map+MAP_OFS_Y);
+						insertkey(id, map+MAP_OFS_Z);
+					}
+					if(event==13) {
+						insertkey(id, map+MAP_SIZE_X);
+						insertkey(id, map+MAP_SIZE_Y);
+						insertkey(id, map+MAP_SIZE_Z);
+					}
+					
 				}
 			}
 		}
-		else if(G.buts->mainb==BUTS_WORLD) {
-			id= G.buts->lockpoin;
-			wo= G.buts->lockpoin;
-			if(id) {
-				event= pupmenu("Insert Key %t|ZenRGB%x0|HorRGB%x1|Mist%x2|stars %x3|Ofs%x12|Size%x13");
-				if(event== -1) return;
-				
-				map= texchannel_to_adrcode(wo->texact);
-				
-				if(event==0) {
-					insertkey(id, WO_ZEN_R);
-					insertkey(id, WO_ZEN_G);
-					insertkey(id, WO_ZEN_B);
-				}
-				if(event==1) {
-					insertkey(id, WO_HOR_R);
-					insertkey(id, WO_HOR_G);
-					insertkey(id, WO_HOR_B);
-				}
-				if(event==2) {
-					insertkey(id, WO_MISI);
-					insertkey(id, WO_MISTDI);
-					insertkey(id, WO_MISTSTA);
-					insertkey(id, WO_MISTHI);
-				}
-				if(event==3) {
-					insertkey(id, WO_STAR_R);
-					insertkey(id, WO_STAR_G);
-					insertkey(id, WO_STAR_B);
-					insertkey(id, WO_STARDIST);
-					insertkey(id, WO_STARSIZE);
-				}
-				if(event==12) {
-					insertkey(id, map+MAP_OFS_X);
-					insertkey(id, map+MAP_OFS_Y);
-					insertkey(id, map+MAP_OFS_Z);
-				}
-				if(event==13) {
-					insertkey(id, map+MAP_SIZE_X);
-					insertkey(id, map+MAP_SIZE_Y);
-					insertkey(id, map+MAP_SIZE_Z);
-				}
-			}
-		}
-		else if(G.buts->mainb==BUTS_LAMP) {
-			id= G.buts->lockpoin;
-			la= G.buts->lockpoin;
-			if(id) {
-				event= pupmenu("Insert Key %t|RGB%x0|Energy%x1|Spotsi%x2|Ofs%x12|Size%x13");
-				if(event== -1) return;
-				
-				map= texchannel_to_adrcode(la->texact);
-				
-				if(event==0) {
-					insertkey(id, LA_COL_R);
-					insertkey(id, LA_COL_G);
-					insertkey(id, LA_COL_B);
-				}
-				if(event==1) {
-					insertkey(id, LA_ENERGY);
-				}
-				if(event==2) {
-					insertkey(id, LA_SPOTSI);
-				}
-				if(event==12) {
-					insertkey(id, map+MAP_OFS_X);
-					insertkey(id, map+MAP_OFS_Y);
-					insertkey(id, map+MAP_OFS_Z);
-				}
-				if(event==13) {
-					insertkey(id, map+MAP_SIZE_X);
-					insertkey(id, map+MAP_SIZE_Y);
-					insertkey(id, map+MAP_SIZE_Z);
-				}
-				
-			}
-		}
-		else if(G.buts->mainb==BUTS_EDIT) {
+		else if(G.buts->mainb==CONTEXT_TYPES) {
 			ob= OBACT;
 			if(ob && ob->type==OB_CAMERA) {
 				id= G.buts->lockpoin;
@@ -3781,7 +3780,7 @@ void common_insertkey()
 				}
 			}
 		}
-		else if(G.buts->mainb==BUTS_SOUND) {
+		else if(FALSE /* && G.buts->mainb==BUTS_SOUND */) {
 			if(G.ssound) {
 				id= G.buts->lockpoin;
 				if(id) {
@@ -3846,7 +3845,7 @@ void common_insertkey()
 			allqueue(REDRAWIPO, 0);
 			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);
-			allqueue(REDRAWBUTSANIM, 0);
+			allqueue(REDRAWBUTSOBJECT, 0);
 			return;
 		}
 		
@@ -3854,7 +3853,7 @@ void common_insertkey()
 			Group *group= find_group(ob);
 			if(group) {
 				add_group_key(group);
-				allqueue(REDRAWBUTSANIM, 0);
+				allqueue(REDRAWBUTSOBJECT, 0);
 			}
 		}
 		

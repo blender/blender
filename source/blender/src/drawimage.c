@@ -31,6 +31,7 @@
  */
 
 #include <math.h>
+#include <string.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -258,7 +259,7 @@ void image_changed(SpaceImage *sima, int dotile)
 					tface++;
 				}
 				allqueue(REDRAWVIEW3D, 0);
-				allqueue(REDRAWBUTSGAME, 0);
+				allqueue(REDRAWBUTSEDIT, 0);
 			}
 		}
 	}

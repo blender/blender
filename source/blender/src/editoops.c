@@ -32,6 +32,7 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -418,7 +419,7 @@ static void do_activate_oops(Oops *oops)
 		ob= OBACT;
 		if(ob && oops->id) {
 			assign_material(ob, (Material *)oops->id, ob->actcol);
-			allqueue(REDRAWBUTSMAT, 0);
+			allqueue(REDRAWBUTSSHADING, 0);
 			scrarea_queue_winredraw(curarea);
 		}
 		break;

@@ -73,7 +73,7 @@
 #include "BIF_interface.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
-#include "BIF_buttons.h"
+#include "BIF_butspace.h"
 #include "BIF_renderwin.h"
 #include "BIF_toolbox.h"
 #include "BIF_toets.h"
@@ -392,6 +392,7 @@ void persptoetsen(unsigned short event)
 				G.vd->persp= 2;
 				G.vd->view= 0;
 				if(G.qual & LR_SHIFTKEY) {
+					void setcameratoview3d(void);	// view.c
 					setcameratoview3d();
 				}				
 			}

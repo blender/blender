@@ -737,6 +737,7 @@ static void add_sound_strip(char *name)
 	transform_seq('g');
 }
 
+#if 0
 static void reload_sound_strip(char *name)
 {
 	Editing *ed;
@@ -777,6 +778,7 @@ static void reload_sound_strip(char *name)
 
 	allqueue(REDRAWSEQ, 0);
 }
+#endif
 
 static void reload_image_strip(char *name)
 {

@@ -79,12 +79,6 @@
 /* GLOBALS */
 extern char *fsmenu;
 
-
-static void draw_icon_imasel(void)
-{
-	scrarea_queue_winredraw(curarea);
-}
-
 void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;

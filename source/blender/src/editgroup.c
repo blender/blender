@@ -118,7 +118,7 @@ void add_selected_to_group(void)
 	}
 	
 	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSANIM, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 }
 
 void rem_selected_from_group(void)
@@ -143,7 +143,7 @@ void rem_selected_from_group(void)
 	}
 	
 	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSANIM, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 }
 
 void prev_group_key(Group *group)

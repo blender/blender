@@ -98,7 +98,7 @@
 static void output_pic(char *name)
 {
 	strcpy(G.scene->r.pic, name);
-	allqueue(REDRAWBUTSRENDER, 0);
+	allqueue(REDRAWBUTSSCENE, 0);
 }
 
 static void backbuf_pic(char *name)
@@ -106,7 +106,7 @@ static void backbuf_pic(char *name)
 	Image *ima;
 	
 	strcpy(G.scene->r.backbuf, name);
-	allqueue(REDRAWBUTSRENDER, 0);
+	allqueue(REDRAWBUTSSCENE, 0);
 
 	ima= add_image(name);
 	if(ima) {
@@ -118,7 +118,7 @@ static void backbuf_pic(char *name)
 static void ftype_pic(char *name)
 {
 	strcpy(G.scene->r.ftype, name);
-	allqueue(REDRAWBUTSRENDER, 0);
+	allqueue(REDRAWBUTSSCENE, 0);
 }
 
 
@@ -126,7 +126,7 @@ static void scene_change_set(Scene *sc, Scene *set) {
 	if (sc->set!=set) {
 		sc->set= set;
 		
-		allqueue(REDRAWBUTSRENDER, 0);
+		allqueue(REDRAWBUTSSCENE, 0);
 		allqueue(REDRAWVIEW3D, 0);
 	}
 }
@@ -216,13 +216,13 @@ void do_render_panels(unsigned short event)
 		G.scene->r.xparts=  G.scene->r.yparts= 1;
 		
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
-		allqueue(REDRAWBUTSRENDER, 0);
+		allqueue(REDRAWBUTSSCENE, 0);
 		allqueue(REDRAWVIEWCAM, 0);
 		break;
 
 #ifdef WITH_QUICKTIME
 	case B_FILETYPEMENU:
-		allqueue(REDRAWBUTSRENDER, 0);
+		allqueue(REDRAWBUTSSCENE, 0);
 #if defined (_WIN32) || defined (__APPLE__)
 		// fall through to codec settings if this is the first
 		// time R_AVICODEC is selected for this scene.
@@ -286,7 +286,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.qtcodecdata->fourcc = qtcodecidx_to_fcc(qtcodec_idx-1);
 		/* if the selected codec differs from the previous one, reinit it */
 		qt_init_codecdata(G.scene->r.qtcodecdata);	
-		allqueue(REDRAWBUTSRENDER, 0);
+		allqueue(REDRAWBUTSSCENE, 0);
 #endif /* _WIN32 || __APPLE__ */
 		break;
 #endif /* WITH_QUICKTIME */
@@ -301,7 +301,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.xparts=  G.scene->r.yparts= 1;
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
-		allqueue(REDRAWBUTSRENDER, 0);
+		allqueue(REDRAWBUTSSCENE, 0);
 		allqueue(REDRAWVIEWCAM, 0);
 		break;
 	case B_PR_PRV:
@@ -315,7 +315,7 @@ void do_render_panels(unsigned short event)
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		allqueue(REDRAWVIEWCAM, 0);
-		allqueue(REDRAWBUTSRENDER, 0);
+		allqueue(REDRAWBUTSSCENE, 0);
 		break;
 	case B_PR_CDI:
 		G.scene->r.xsch= 384;
@@ -328,7 +328,7 @@ void do_render_panels(unsigned short event)
 
 		BLI_init_rctf(&G.scene->r.safety, 0.15, 0.85, 0.15, 0.85);
 		allqueue(REDRAWVIEWCAM, 0);
-		allqueue(REDRAWBUTSRENDER, 0);
+		allqueue(REDRAWBUTSSCENE, 0);
 		break;
 	case B_PR_PAL169:
 		G.scene->r.xsch= 720;
@@ -342,7 +342,7 @@ void do_render_panels(unsigned short event)
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		allqueue(REDRAWVIEWCAM, 0);
-		allqueue(REDRAWBUTSRENDER, 0);
+		allqueue(REDRAWBUTSSCENE, 0);
 		break;
 	case B_PR_D2MAC:
 		G.scene->r.xsch= 1024;
@@ -355,7 +355,7 @@ void do_render_panels(unsigned short event)
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		allqueue(REDRAWVIEWCAM, 0);
-		allqueue(REDRAWBUTSRENDER, 0);
+		allqueue(REDRAWBUTSSCENE, 0);
 		break;
 	case B_PR_MPEG:
 		G.scene->r.xsch= 368;
@@ -368,7 +368,7 @@ void do_render_panels(unsigned short event)
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		allqueue(REDRAWVIEWCAM, 0);
-		allqueue(REDRAWBUTSRENDER, 0);
+		allqueue(REDRAWBUTSSCENE, 0);
 		break;
 	case B_PR_PC:
 		G.scene->r.xsch= 640;
@@ -381,7 +381,7 @@ void do_render_panels(unsigned short event)
 
 		BLI_init_rctf(&G.scene->r.safety, 0.0, 1.0, 0.0, 1.0);
 		allqueue(REDRAWVIEWCAM, 0);
-		allqueue(REDRAWBUTSRENDER, 0);
+		allqueue(REDRAWBUTSSCENE, 0);
 		break;
 	case B_PR_PRESET:
 		G.scene->r.xsch= 720;
@@ -395,7 +395,7 @@ void do_render_panels(unsigned short event)
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		allqueue(REDRAWVIEWCAM, 0);
-		allqueue(REDRAWBUTSRENDER, 0);
+		allqueue(REDRAWBUTSSCENE, 0);
 		break;
 	case B_PR_PANO:
 		G.scene->r.xsch= 36;
@@ -409,7 +409,7 @@ void do_render_panels(unsigned short event)
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		allqueue(REDRAWVIEWCAM, 0);
-		allqueue(REDRAWBUTSRENDER, 0);
+		allqueue(REDRAWBUTSSCENE, 0);
 		break;
 	case B_PR_NTSC:
 		G.scene->r.xsch= 720;
@@ -422,7 +422,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.xparts=  G.scene->r.yparts= 1;
 		
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
-		allqueue(REDRAWBUTSRENDER, 0);
+		allqueue(REDRAWBUTSSCENE, 0);
 		allqueue(REDRAWVIEWCAM, 0);
 		break;
 
@@ -634,24 +634,6 @@ static char *avicodec_str(void)
 	return string;
 }
 #endif
-
-static void test_scenepoin_but(char *name, ID **idpp)
-{
-	ID *id;
-	
-	if( *idpp ) (*idpp)->us--;
-	
-	id= G.main->scene.first;
-	while(id) {
-		if( strcmp(name, id->name+2)==0 ) {
-			*idpp= id;
-			id_us_plus(id);
-			return;
-		}
-		id= id->next;
-	}
-	*idpp= 0;
-}
 
 static void render_panel_output()
 {

@@ -31,6 +31,7 @@
  */
 
 #include <math.h>
+#include <string.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -3376,7 +3377,6 @@ Nurb *addNurbprim(int type, int stype, int newname)
 		nu->type= type;
 		nu->resolu= 12;
 		nu->resolv= 12;
-		/* if(G.obedit && (G.mainb==5 || G.mainb==9)) nu->col= 0; */
 	}
 
 	switch(stype) {

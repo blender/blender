@@ -117,7 +117,7 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toets.h"
-#include "BIF_buttons.h"
+#include "BIF_butspace.h"
 #include "BIF_editdeform.h"
 #include "BIF_editfont.h"
 #include "BIF_editika.h"
@@ -915,7 +915,7 @@ void enter_editmode(void)
 		ok= 1;
 		G.obedit= ob;
 		make_editMesh();
-		allqueue(REDRAWBUTSGAME, 0);
+		allqueue(REDRAWBUTSLOGIC, 0);
 	}
 	if (ob->type==OB_ARMATURE){
 		arm=base->object->data;
@@ -1069,7 +1069,7 @@ void exit_editmode(int freedata)	/* freedata==0 at render */
 		countall();
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
-		allqueue(REDRAWBUTSGAME, 0);
+		allqueue(REDRAWBUTSLOGIC, 0);
 	}
 	else {
 		G.obedit= ob;
@@ -1430,7 +1430,7 @@ void special_editmenu(void)
 				}
 			}
 			allqueue(REDRAWVIEW3D, 0);
-			allqueue(REDRAWBUTSGAME, 0);
+			allqueue(REDRAWBUTSLOGIC, 0);
 		}
 		else if(G.f & G_VERTEXPAINT) {
 			Mesh *me= get_mesh(OBACT);
@@ -2063,7 +2063,7 @@ void copymenu()
 	
 	allqueue(REDRAWVIEW3D, 0);
 	if(event==20) {
-		allqueue(REDRAWBUTSANIM, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
 	}
 	
 }
@@ -5785,7 +5785,7 @@ void set_ob_ipoflags(void)
 		base= base->next;
 	}
 	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSANIM, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 	if(set) {
 		allqueue(REDRAWNLA, 0);
 		allqueue (REDRAWACTION, 0);
@@ -5938,7 +5938,7 @@ void auto_timeoffs(void)
 	MEM_freeN(basesort);
 
 	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSANIM, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 }
 
 void texspace_edit(void)

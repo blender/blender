@@ -237,8 +237,7 @@ void mouse_mball()
 	static MetaElem *startelem=0;
 	MetaElem *ml, *act=0;
 	int a, hits;
-	/* was IGLuint ...  but is stupid */
-	GLuint buffer[MAXPICKBUF];
+	unsigned int buffer[MAXPICKBUF];
 	
 	hits= selectprojektie(buffer, 0, 0, 0, 0);
 

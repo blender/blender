@@ -335,7 +335,7 @@ void BIF_previewdraw(SpaceButs *sbuts)
 			display_pr_scanline(sbuts->rect, y);
 		}
 
-		if (sbuts->mainb==BUTS_TEX) {
+		if (sbuts->mainb==CONTEXT_SHADING && sbuts->tab[CONTEXT_SHADING]==TAB_SHADING_TEX) {
 			draw_tex_crop(sbuts->lockpoin);
 		}
 	}
@@ -839,22 +839,40 @@ static void shade_preview_pixel(float *vec,
 
 void BIF_previewrender(SpaceButs *sbuts)
 {
-	Material *mat=0;
-	Tex *tex = NULL;
+	Material *mat= NULL;
+	Tex *tex= NULL;
+	Lamp *la= NULL;
+	World *wrld= NULL;
+	LampRen *lar= NULL;
 	Image *ima;
-	Lamp *la;
-	LampRen *lar = NULL;
 	HaloRen har;
 	Object *ob;
-	World *wrld;
 	float lens = 0.0, vec[3];
 	int x, y, starty, startx, endy, endx, radsq, xsq, ysq, last = 0;
 	unsigned int *rect;
 
 	if(sbuts->cury>=PR_RECTY) return;
+
+	ob= ((G.scene->basact)? (G.scene->basact)->object: 0);
 	
-	if ELEM4(sbuts->mainb, BUTS_MAT, BUTS_TEX, BUTS_LAMP, BUTS_WORLD);
-	else return;
+	if(sbuts->mainb==CONTEXT_SHADING) {
+		int tab= sbuts->tab[CONTEXT_SHADING];
+		
+		if(tab==TAB_SHADING_MAT) 
+			mat= sbuts->lockpoin;
+		else if(tab==TAB_SHADING_TEX) 
+			tex= sbuts->lockpoin;
+		else if(tab==TAB_SHADING_LAMP) {
+			if(ob && ob->type==OB_LAMP) la= ob->data;
+		}
+		else if(tab==TAB_SHADING_WORLD)
+			wrld= sbuts->lockpoin;
+	}
+	else if(sbuts->mainb==CONTEXT_OBJECT) {
+		if(ob && ob->type==OB_LAMP) la= ob->data;
+	}
+	
+	if(mat==NULL || tex==NULL || la==NULL || wrld==NULL) return;
 	
 	har.flarec= 0;	/* below is a test for postrender flare */
 	
@@ -867,10 +885,7 @@ void BIF_previewrender(SpaceButs *sbuts)
 	MTC_Mat4One(R.viewinv);
 	
 	R.osatex= 0;
-	if(sbuts->mainb==BUTS_MAT) {
-		mat= sbuts->lockpoin;
-		if(mat==0) return;
-
+	if(mat) {
 		/* rendervars */
 		init_render_world();
 		init_render_material(mat);
@@ -894,24 +909,21 @@ void BIF_previewrender(SpaceButs *sbuts)
 		
 		if(mat->mode & MA_HALO) init_previewhalo(&har, mat);
 	}
-	else if(sbuts->mainb==BUTS_TEX) {
-		tex= sbuts->lockpoin;
-		if(tex==0) return;
+	else if(tex) {
+
 		ima= tex->ima;
 		if(ima) last= ima->lastframe;
 		init_render_texture(tex);
 		free_unused_animimages();
 		if(tex->ima) {
-			if(tex->ima!=ima) allqueue(REDRAWBUTSTEX, 0);
-			else if(last!=ima->lastframe) allqueue(REDRAWBUTSTEX, 0);
+			if(tex->ima!=ima) allqueue(REDRAWBUTSSHADING, 0);
+			else if(last!=ima->lastframe) allqueue(REDRAWBUTSSHADING, 0);
 		}
 		if(tex->env && tex->env->object) 
 			MTC_Mat4Invert(tex->env->object->imat, tex->env->object->obmat);
 	}
-	else if(sbuts->mainb==BUTS_LAMP) {
-		ob= ((G.scene->basact)? (G.scene->basact)->object: 0);
-		if(ob==0 || ob->type!=OB_LAMP) return;
-		la= ob->data;
+	else if(la) {
+
 		init_render_world();
 		init_render_textures();	/* do not do it twice!! (brightness) */
 		R.totlamp= 0;
@@ -925,9 +937,7 @@ void BIF_previewrender(SpaceButs *sbuts)
 		
 		MTC_Mat3One(lar->imat);
 	}
-	else {
-		wrld= sbuts->lockpoin;
-		if(wrld==0) return;
+	else if(wrld) {
 		
 		lens= 35.0;
 		if(G.scene->camera) {
@@ -979,7 +989,7 @@ void BIF_previewrender(SpaceButs *sbuts)
 		rect= sbuts->rect + 1 + PR_RECTX*sbuts->cury;
 		
 		if(y== -PR_RECTY/2 || y==endy-1);		/* emboss */
-		else if(sbuts->mainb==BUTS_MAT) {
+		else if(mat) {
 			
 			if(mat->mode & MA_HALO) {
 				for(x=startx; x<endx; x++, rect++) {
@@ -1037,12 +1047,12 @@ void BIF_previewrender(SpaceButs *sbuts)
 				}
 			}
 		}
-		else if(sbuts->mainb==BUTS_TEX) {
+		else if(tex) {
 			for(x=startx; x<endx; x++, rect++) {
 				texture_preview_pixel(tex, x, y, (char *)rect);
 			}
 		}
-		else if(sbuts->mainb==BUTS_LAMP) {
+		else if(la) {
 			for(x=startx; x<endx; x++, rect++) {
 				lamp_preview_pixel(lar, x, y, (char *)rect);
 			}
@@ -1066,25 +1076,25 @@ void BIF_previewrender(SpaceButs *sbuts)
 		sbuts->cury++;
 	}
 
-	if(sbuts->cury>=PR_RECTY && sbuts->mainb==BUTS_TEX) 
+	if(sbuts->cury>=PR_RECTY && tex) 
 		draw_tex_crop(sbuts->lockpoin);
 	
 	glDrawBuffer(GL_BACK);
 	BIF_previewdraw(sbuts);
 	
-	if(sbuts->mainb==BUTS_MAT) {
+	if(mat) {
 		end_render_material(mat);
 		for(x=0; x<8; x++) {
 			if(mat->mtex[x] && mat->mtex[x]->tex) end_render_texture(mat->mtex[x]->tex);
 		}	
 	}
-	else if(sbuts->mainb==BUTS_TEX) {
+	else if(tex) {
 		end_render_texture(tex);
 	}
-	else if(sbuts->mainb==BUTS_WORLD) {
+	else if(wrld) {
 		end_render_textures();
 	}
-	else if(sbuts->mainb==BUTS_LAMP) {
+	else if(la) {
 		if(R.totlamp) {
 			if(R.la[0]->org) MEM_freeN(R.la[0]->org);
 			MEM_freeN(R.la[0]);

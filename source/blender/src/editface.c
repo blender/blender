@@ -32,6 +32,7 @@
 
 
 #include <math.h>
+#include <string.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -517,7 +518,7 @@ void face_select()
 	
 	/* image window redraw */
 	allqueue(REDRAWIMAGE, 0);
-	allqueue(REDRAWBUTSGAME, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -937,7 +938,6 @@ void set_faceselect()	/* toggle */
 	}
 
 	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSGAME, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWIMAGE, 0);
 	
@@ -1199,7 +1199,7 @@ int face_pick_uv(Object* object, Mesh* mesh, TFace* face, short x, short y, floa
 	 * If face is a quad, there are two triangles to check.
 	 */
 	result = triangle_ray_intersect(v2, v1, v3, org, dir, ab);
-	if ((num_verts == 3) || (num_verts == 4) && (result > 1)) {
+	if ( ((num_verts == 3) || (num_verts == 4)) && (result > 1) ) {
 		/* Face is a triangle or a quad with a hit on the first triangle */
 		face_get_uv(face, 1, 0, 2, ab[0], ab[1], u, v);
 		/* printf("triangle 1, texture (u,v)=(%f, %f)\n", *u, *v); */
@@ -1224,7 +1224,7 @@ void face_draw()
 	TFace *face, *face_old = 0;
 	short xy[2], xy_old[2];
 	//int a, index;
-	Image *img, *img_old = 0;
+	Image *img=NULL, *img_old = NULL;
 	IMG_BrushPtr brush;
 	IMG_CanvasPtr canvas = 0;
 	int rowBytes;
@@ -1425,7 +1425,6 @@ void get_same_uv(void)
 	
 	/* image window redraw */
 	allqueue(REDRAWIMAGE, 0);
-	allqueue(REDRAWBUTSGAME, 0);
 	allqueue(REDRAWVIEW3D, 0);
 }
 #endif /* NAN_TPT */

@@ -1534,7 +1534,7 @@ static void filesel_execute(SpaceFile *sfile)
 					}
 				}
 			}
-			sfile->returnfunc((char*) sfile->retval);
+			sfile->returnfunc((char*) (long)sfile->retval);
 		}
 		else {
 			if(strncmp(sfile->title, "SAVE", 4)==0) free_filesel_spec(sfile->dir);
@@ -2289,7 +2289,8 @@ static void library_to_filelist(SpaceFile *sfile)
 		if(sfile->libfiledata==0) return;
 	}
 	
-	if (idcode= groupname_to_code(group)) {
+	idcode= groupname_to_code(group);
+	if (idcode) {
 		names= BLO_blendhandle_get_datablock_names(sfile->libfiledata, idcode);
 	} else {
 		names= BLO_blendhandle_get_linkable_groups(sfile->libfiledata);
@@ -2367,7 +2368,7 @@ static void filesel_select_objects(SpaceFile *sfile)
 			}
 
 		}
-		allqueue(REDRAWBUTSRENDER, 0);
+		allqueue(REDRAWBUTSSCENE, 0);
 	}
 }
 

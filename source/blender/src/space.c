@@ -82,7 +82,7 @@
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
-#include "BIF_buttons.h"
+#include "BIF_butspace.h"
 #include "BIF_drawimage.h"
 #include "BIF_drawseq.h"
 #include "BIF_drawtext.h"
@@ -127,6 +127,7 @@
 #include "BDR_editcurve.h"
 #include "BDR_editface.h"
 #include "BDR_drawmesh.h"
+#include "BDR_drawobject.h"
 
 #include "BLO_readfile.h" /* for BLO_blendhandle_close */
 
@@ -493,7 +494,7 @@ void group_menu(void)
 	else if(nr==3) select_parent();
 	
 	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSANIM, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWIPO, 0);
 }
@@ -2024,7 +2025,7 @@ void winqreadbutspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		switch(event) {
 		case UI_BUT_EVENT:
-			do_blenderbuttons(val);
+			do_butspace(val);
 			break;
 			
 		case MIDDLEMOUSE:
@@ -3177,64 +3178,37 @@ void allqueue(unsigned short event, short val)
 					scrarea_queue_headredraw(sa);
 				}
 				break;
-			case REDRAWBUTSVIEW:
+			case REDRAWBUTSSCENE:
 				if(sa->spacetype==SPACE_BUTS) {
 					buts= sa->spacedata.first;
-					if(buts->mainb==BUTS_VIEW) {
+					if(buts->mainb==CONTEXT_SCENE) {
 						scrarea_queue_winredraw(sa);
 						scrarea_queue_headredraw(sa);
 					}
 				}
 				break;
-			case REDRAWBUTSLAMP:
+			case REDRAWBUTSOBJECT:
 				if(sa->spacetype==SPACE_BUTS) {
 					buts= sa->spacedata.first;
-					if(buts->mainb==BUTS_LAMP) {
+					if(buts->mainb==CONTEXT_OBJECT) {
 						scrarea_queue_winredraw(sa);
 						scrarea_queue_headredraw(sa);
 					}
 				}
 				break;
-			case REDRAWBUTSMAT:
+			case REDRAWBUTSTYPES:
 				if(sa->spacetype==SPACE_BUTS) {
 					buts= sa->spacedata.first;
-					if(buts->mainb==BUTS_MAT) {
+					if(buts->mainb==CONTEXT_TYPES) {
 						scrarea_queue_winredraw(sa);
 						scrarea_queue_headredraw(sa);
 					}
 				}
 				break;
-			case REDRAWBUTSTEX:
+			case REDRAWBUTSSHADING:
 				if(sa->spacetype==SPACE_BUTS) {
 					buts= sa->spacedata.first;
-					if(buts->mainb==BUTS_TEX) {
-						scrarea_queue_winredraw(sa);
-						scrarea_queue_headredraw(sa);
-					}
-				}
-				break;
-			case REDRAWBUTSANIM:
-				if(sa->spacetype==SPACE_BUTS) {
-					buts= sa->spacedata.first;
-					if(buts->mainb==BUTS_ANIM) {
-						scrarea_queue_winredraw(sa);
-						scrarea_queue_headredraw(sa);
-					}
-				}
-				break;
-			case REDRAWBUTSWORLD:
-				if(sa->spacetype==SPACE_BUTS) {
-					buts= sa->spacedata.first;
-					if(buts->mainb==BUTS_WORLD) {
-						scrarea_queue_winredraw(sa);
-						scrarea_queue_headredraw(sa);
-					}
-				}
-				break;
-			case REDRAWBUTSRENDER:
-				if(sa->spacetype==SPACE_BUTS) {
-					buts= sa->spacedata.first;
-					if(buts->mainb==BUTS_RENDER) {
+					if(buts->mainb==CONTEXT_SHADING) {
 						scrarea_queue_winredraw(sa);
 						scrarea_queue_headredraw(sa);
 					}
@@ -3243,25 +3217,7 @@ void allqueue(unsigned short event, short val)
 			case REDRAWBUTSEDIT:
 				if(sa->spacetype==SPACE_BUTS) {
 					buts= sa->spacedata.first;
-					if(buts->mainb==BUTS_EDIT) {
-						scrarea_queue_winredraw(sa);
-						scrarea_queue_headredraw(sa);
-					}
-				}
-				break;
-			case REDRAWBUTSGAME:
-				if(sa->spacetype==SPACE_BUTS) {
-					buts= sa->spacedata.first;
-					if ELEM(buts->mainb, BUTS_GAME, BUTS_FPAINT) {
-						scrarea_queue_winredraw(sa);
-						scrarea_queue_headredraw(sa);
-					}
-				}
-				break;
-			case REDRAWBUTSRADIO:
-				if(sa->spacetype==SPACE_BUTS) {
-					buts= sa->spacedata.first;
-					if(buts->mainb==BUTS_RADIO) {
+					if(buts->mainb==CONTEXT_EDITING) {
 						scrarea_queue_winredraw(sa);
 						scrarea_queue_headredraw(sa);
 					}
@@ -3270,30 +3226,32 @@ void allqueue(unsigned short event, short val)
 			case REDRAWBUTSSCRIPT:
 				if(sa->spacetype==SPACE_BUTS) {
 					buts= sa->spacedata.first;
-					if(buts->mainb==BUTS_SCRIPT) {
+					if(buts->mainb==CONTEXT_SCRIPT) {
 						scrarea_queue_winredraw(sa);
 						scrarea_queue_headredraw(sa);
 					}
 				}
 				break;
-			case REDRAWBUTSSOUND:
+			case REDRAWBUTSLOGIC:
 				if(sa->spacetype==SPACE_BUTS) {
 					buts= sa->spacedata.first;
-					if(buts->mainb==BUTS_SOUND) {
+					if(buts->mainb==CONTEXT_LOGIC) {
 						scrarea_queue_winredraw(sa);
 						scrarea_queue_headredraw(sa);
 					}
 				}
 				break;
-			case REDRAWBUTSCONSTRAINT:
+			case REDRAWBUTSLAMP:
 				if(sa->spacetype==SPACE_BUTS) {
 					buts= sa->spacedata.first;
-					if(buts->mainb==BUTS_CONSTRAINT) {
+					if(buts->mainb==CONTEXT_SHADING || buts->mainb==CONTEXT_TYPES) {
 						scrarea_queue_winredraw(sa);
 						scrarea_queue_headredraw(sa);
 					}
 				}
-				break;				
+				break;
+				
+				
 			case REDRAWDATASELECT:
 				if(sa->spacetype==SPACE_FILE) {
 					sfile= sa->spacedata.first;

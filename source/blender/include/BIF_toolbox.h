@@ -115,6 +115,7 @@ short sbutton (char *var, float min, float max, char *str);	/* __NLA */
 int movetolayer_buts (unsigned int *lay);
 void draw_numbuts_tip (char *str, int x1, int y1, int x2, int y2);
 int do_clever_numbuts (char *name, int tot, int winevent);
+void clever_numbuts_buts(void);
 void add_numbut (int nr, int type, char *str, float min, float max, void *poin, char *tip);
 void clever_numbuts (void);
 void replace_names_but (void);

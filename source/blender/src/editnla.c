@@ -46,14 +46,6 @@
 #include "BKE_nla.h"
 #include "BKE_action.h"
 
-#include "BIF_screen.h"
-#include "BIF_interface.h"
-#include "BIF_buttons.h"
-#include "BIF_space.h"
-#include "BIF_mywindow.h"
-#include "BIF_editview.h"
-#include "BIF_toolbox.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
@@ -68,6 +60,14 @@
 #include "DNA_action_types.h"
 #include "DNA_nla_types.h"
 #include "DNA_constraint_types.h"
+
+#include "BIF_screen.h"
+#include "BIF_interface.h"
+#include "BIF_butspace.h"
+#include "BIF_space.h"
+#include "BIF_mywindow.h"
+#include "BIF_editview.h"
+#include "BIF_toolbox.h"
 
 #include "BSE_editipo.h"
 #include "BSE_editnla_types.h"
@@ -131,7 +131,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		
 		switch(event) {
 		case UI_BUT_EVENT:
-			do_blenderbuttons(val);
+			do_butspace(val); // abuse!
 			break;
 		case HOMEKEY:
 			do_nla_buttons(B_NLAHOME);
@@ -347,7 +347,7 @@ static void add_nla_block(short event)
 
 }
 
-static void add_nla_databrowse_callback(int val)
+static void add_nla_databrowse_callback(unsigned short val)
 {
 	/* val is not used, databrowse needs it to optional pass an event */
 	short event;
@@ -1217,7 +1217,7 @@ static Base *get_nearest_nlastrip (bActionStrip **rstrip, short *sel)
 	short foundsel = 0;
 	rctf	rectf;
 	float ymin, ymax;
-	bActionStrip *strip, *firststrip, *foundstrip;
+	bActionStrip *strip, *firststrip=NULL, *foundstrip=NULL;
 	
 	getmouseco_areawin (mval);
 	

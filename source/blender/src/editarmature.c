@@ -692,7 +692,7 @@ void delete_armature(void)
 	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWBUTSCONSTRAINT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 	countall();
 }
 
@@ -722,7 +722,7 @@ static void delete_bone(EditBone* exBone)
 	}
 
 
-	allqueue(REDRAWBUTSCONSTRAINT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 
 	BLI_freelinkN (&G.edbo,exBone);
@@ -735,7 +735,7 @@ void remake_editArmature(void)
 	make_editArmature();
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSHEAD, 0);
-	allqueue(REDRAWBUTSCONSTRAINT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 
@@ -758,7 +758,7 @@ void mouse_armature(void)
 		}
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
-		allqueue(REDRAWBUTSCONSTRAINT, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
 	};
 	countall();
 	rightmouse_transform();
@@ -1976,7 +1976,7 @@ void deselectall_armature(void)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSHEAD, 0);
-	allqueue(REDRAWBUTSCONSTRAINT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 	countall();
 }
 
@@ -2173,7 +2173,7 @@ void extrude_armature(void)
 	countall();
 	transform('g');		
 	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWBUTSCONSTRAINT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 }
 
 void addvert_armature(void)
@@ -2267,7 +2267,7 @@ void adduplicate_armature(void)
 
 	transform('g');
 	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWBUTSCONSTRAINT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 }
 
 /*
@@ -2362,7 +2362,7 @@ void mousepose_armature(void)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);		/* To force action ipo update */
-	allqueue(REDRAWBUTSCONSTRAINT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 
 //	countall();
 	rightmouse_transform();
@@ -2653,20 +2653,6 @@ int bone_looper(Object *ob, Bone *bone, void *data,
     return count;
 }
 
-int add_defgroup_unique_bone(Object *ob, Bone *bone, void *data) {
-    /* This group creates a vertex group to ob that has the
-     * same name as bone (provided the bone is skinnable). 
-	 * If such a vertex group aleady exist the routine exits.
-     */
-	if ( bone_skinnable(ob, bone, NULL) ) {
-		if (!get_named_vertexgroup(ob,bone->name)) {
-			add_defgroup_name(ob, bone->name);
-			return 1;
-		}
-    }
-    return 0;
-}
-
 int bone_skinnable(Object *ob, Bone *bone, void *data)
 {
     /* Bones that are not of boneclass BONE_UNSKINNABLE
@@ -2700,6 +2686,20 @@ int bone_skinnable(Object *ob, Bone *bone, void *data)
             ++*hbone;
         }
         return 1;
+    }
+    return 0;
+}
+
+int add_defgroup_unique_bone(Object *ob, Bone *bone, void *data) {
+    /* This group creates a vertex group to ob that has the
+     * same name as bone (provided the bone is skinnable). 
+	 * If such a vertex group aleady exist the routine exits.
+     */
+	if ( bone_skinnable(ob, bone, NULL) ) {
+		if (!get_named_vertexgroup(ob,bone->name)) {
+			add_defgroup_name(ob, bone->name);
+			return 1;
+		}
     }
     return 0;
 }
@@ -2815,7 +2815,7 @@ void add_verts_to_closest_dgroup(Object *ob, Object *par)
 	/* Is subsurf on? Lets use the verts on the limit surface then */
 	if ( (mesh->flag&ME_SUBSURF) && (mesh->subdiv > 0) ) {
 		subverts = MEM_mallocN(3*mesh->totvert*sizeof(float), "subverts");
-		subsurf_calculate_limit_positions(mesh, subverts);
+		subsurf_calculate_limit_positions(mesh, (void *)subverts);	/* (ton) made void*, dunno how to cast */
 	}
 
     /* for each vertex in the mesh ...

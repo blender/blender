@@ -251,7 +251,6 @@ void areawinset(short win)
 			G.vd= curarea->spacedata.first;
 			break;
 		case SPACE_IPO:
-			if(G.sipo != curarea->spacedata.first) allqueue(REDRAWBUTSANIM, 0);
 			G.sipo= curarea->spacedata.first;
 			G.v2d= &G.sipo->v2d;
 			break;

@@ -84,6 +84,8 @@
 #include "mydevice.h"
 #include "interface.h"
 #include "blendef.h"
+#include "render.h"
+
 
 void audio_fill(void *mixdown, Uint8 *sstream, int len);
 /* ************ GLOBALS ************* */
@@ -115,7 +117,7 @@ void makewavstring (char *string)
 
 void audio_mixdown()
 {
-	int file, c, totlen, totframe, i, oldcfra, cfra2;
+	int file, c, totlen, totframe, i, oldcfra, cfra2=0;
 	char *buf;
 	Editing *ed;
 	Sequence *seq;

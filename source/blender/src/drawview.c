@@ -86,7 +86,7 @@
 #include "BIF_screen.h"
 #include "BIF_interface.h"
 #include "BIF_space.h"
-#include "BIF_buttons.h"
+#include "BIF_butspace.h"
 #include "BIF_drawimage.h"
 #include "BIF_editgroup.h"
 #include "BIF_mywindow.h"
@@ -1674,7 +1674,7 @@ int play_anim(int mode)
 	}
 	
 	/* speed button */
-	allqueue(REDRAWBUTSANIM, 0);
+	// allqueue(REDRAWBUTSOBJECT, 0);
 	/* groups could have changed ipo */
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWIPO, 0);

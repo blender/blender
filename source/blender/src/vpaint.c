@@ -454,7 +454,7 @@ void sample_vpaint()	/* frontbuf */
 	Gvp.b= cp[2];
 	Gvp.b /= 255.0;
 
-	allqueue(REDRAWBUTSGAME, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
 }
 
 void init_vertexpaint()
@@ -1124,7 +1124,6 @@ void set_wpaint(void)		/* toggle */
 	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWBUTSGAME, 0);
 	
 	if(G.f & G_WEIGHTPAINT) {
 		setcursor_space(SPACE_VIEW3D, CURSOR_VPAINT);
@@ -1168,7 +1167,6 @@ void set_vpaint(void)		/* toggle */
 	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWBUTSGAME, 0);
 	
 	if(G.f & G_VERTEXPAINT) {
 		setcursor_space(SPACE_VIEW3D, CURSOR_VPAINT);

@@ -32,6 +32,7 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -75,6 +76,7 @@
 #include "BIF_resources.h"
 #include "BIF_space.h"
 #include "BIF_interface.h"
+#include "BIF_butspace.h"
 #include "BIF_screen.h"
 #include "BIF_editsca.h"
 #include "BIF_keyval.h"
@@ -115,6 +117,7 @@ static char *actuator_pup(Object *owner);
 
 /****/
 
+
 static void del_property(void *selpropv, void *data2_unused)
 {
 	bProperty *prop, *selprop= selpropv;
@@ -137,7 +140,7 @@ static void del_property(void *selpropv, void *data2_unused)
 		a++;
 		prop= prop->next;
 	}
-	allqueue(REDRAWBUTSGAME, 0);
+	allqueue(REDRAWBUTSLOGIC, 0);
 	
 }
 
@@ -264,7 +267,7 @@ static void sca_move_sensor(void *datav, void *data2_unused)
 					BLI_remlink(&base->object->sensors, sens);
 					BLI_insertlink(&base->object->sensors, sens->next, sens);
 				}
-				allqueue(REDRAWBUTSGAME, 0);
+				allqueue(REDRAWBUTSLOGIC, 0);
 				break;
 			}
 			
@@ -302,7 +305,7 @@ static void sca_move_controller(void *datav, void *data2_unused)
 					BLI_remlink(&base->object->controllers, cont);
 					BLI_insertlink(&base->object->controllers, cont->next, cont);
 				}
-				allqueue(REDRAWBUTSGAME, 0);
+				allqueue(REDRAWBUTSLOGIC, 0);
 				break;
 			}
 			
@@ -340,7 +343,7 @@ static void sca_move_actuator(void *datav, void *data2_unused)
 					BLI_remlink(&base->object->actuators, act);
 					BLI_insertlink(&base->object->actuators, act->next, act);
 				}
-				allqueue(REDRAWBUTSGAME, 0);
+				allqueue(REDRAWBUTSLOGIC, 0);
 				break;
 			}
 			
@@ -368,7 +371,7 @@ void do_gamebuts(unsigned short event)
 		prop= new_property(PROP_FLOAT);
 		make_unique_prop_names(prop->name);
 		BLI_addtail(&ob->prop, prop);
-		allqueue(REDRAWBUTSGAME, 0);
+		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 	
 	case B_CHANGE_PROP:
@@ -382,7 +385,7 @@ void do_gamebuts(unsigned short event)
 			}
 			prop= prop->next;
 		}
-		allqueue(REDRAWBUTSGAME, 0);
+		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 	
 	case B_ADD_SENS:
@@ -398,7 +401,7 @@ void do_gamebuts(unsigned short event)
 			base= base->next;
 		}
 		
-		allqueue(REDRAWBUTSGAME, 0);
+		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 
 	case B_CHANGE_SENS:
@@ -415,7 +418,7 @@ void do_gamebuts(unsigned short event)
 			}
 			base= base->next;
 		}
-		allqueue(REDRAWBUTSGAME, 0);
+		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 	
 	case B_DEL_SENS:
@@ -432,7 +435,7 @@ void do_gamebuts(unsigned short event)
 			}
 			base= base->next;
 		}
-		allqueue(REDRAWBUTSGAME, 0);
+		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 	
 	case B_ADD_CONT:
@@ -447,7 +450,7 @@ void do_gamebuts(unsigned short event)
 			}
 			base= base->next;
 		}
-		allqueue(REDRAWBUTSGAME, 0);
+		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 
 	case B_CHANGE_CONT:
@@ -464,7 +467,7 @@ void do_gamebuts(unsigned short event)
 			}
 			base= base->next;
 		}
-		allqueue(REDRAWBUTSGAME, 0);
+		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 	
 
@@ -483,7 +486,7 @@ void do_gamebuts(unsigned short event)
 			}
 			base= base->next;
 		}
-		allqueue(REDRAWBUTSGAME, 0);
+		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 	
 	case B_ADD_ACT:
@@ -498,7 +501,7 @@ void do_gamebuts(unsigned short event)
 			}
 			base= base->next;
 		}
-		allqueue(REDRAWBUTSGAME, 0);
+		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 
 	case B_CHANGE_ACT:
@@ -515,7 +518,7 @@ void do_gamebuts(unsigned short event)
 			}
 			base= base->next;
 		}
-		allqueue(REDRAWBUTSGAME, 0);
+		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 
 	case B_DEL_ACT:
@@ -533,7 +536,7 @@ void do_gamebuts(unsigned short event)
 			}
 			base= base->next;
 		}
-		allqueue(REDRAWBUTSGAME, 0);
+		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 	
 	case B_SOUNDACT_BROWSE:
@@ -579,7 +582,7 @@ void do_gamebuts(unsigned short event)
 				break;
 			base= base->next;
 		}
-		allqueue(REDRAWBUTSGAME, 0);
+		allqueue(REDRAWBUTSLOGIC, 0);
 		allqueue(REDRAWSOUND, 0);
 
 		break;
@@ -2159,7 +2162,7 @@ static void do_sensor_menu(void *arg, int event)
 	}
 
 	if(idar) MEM_freeN(idar);
-	allqueue(REDRAWBUTSGAME, 0);
+	allqueue(REDRAWBUTSLOGIC, 0);
 }
 
 static uiBlock *sensor_menu(void *arg_unused)
@@ -2207,7 +2210,7 @@ static void do_controller_menu(void *arg, int event)
 	}
 
 	if(idar) MEM_freeN(idar);
-	allqueue(REDRAWBUTSGAME, 0);
+	allqueue(REDRAWBUTSLOGIC, 0);
 }
 
 static uiBlock *controller_menu(void *arg_unused)
@@ -2255,7 +2258,7 @@ static void do_actuator_menu(void *arg, int event)
 	}
 
 	if(idar) MEM_freeN(idar);
-	allqueue(REDRAWBUTSGAME, 0);
+	allqueue(REDRAWBUTSLOGIC, 0);
 }
 
 static uiBlock *actuator_menu(void *arg_unused)

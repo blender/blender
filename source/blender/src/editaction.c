@@ -77,7 +77,7 @@
 #include "BIF_toolbox.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
-#include "BIF_buttons.h"
+#include "BIF_butspace.h"
 #include "BIF_interface.h"
 #include "BIF_editview.h"
 #include "BIF_poseobject.h"
@@ -1790,7 +1790,7 @@ static void delete_actionchannel_keys(void)
 }
 static void delete_actionchannels (void)
 {
-	bConstraintChannel *conchan, *nextconchan;
+	bConstraintChannel *conchan=NULL, *nextconchan;
 	bActionChannel *chan, *next;
 	bAction	*act;
 	int freechan;
@@ -2165,7 +2165,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		switch(event) {
 		case UI_BUT_EVENT:
-			do_blenderbuttons(val);
+			do_butspace(val); // abuse!
 			break;
 		case HOMEKEY:
 			do_action_buttons(B_ACTHOME);

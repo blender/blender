@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <ctype.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

@@ -48,20 +48,8 @@ char *event_to_string(short evt) {
 	smap(RESHAPE);
 	smap(UI_BUT_EVENT);
 	smap(REDRAWVIEW3D);
-	smap(REDRAWBUTSHEAD);
-	smap(REDRAWBUTSALL);
-	smap(REDRAWBUTSVIEW);
-	smap(REDRAWBUTSLAMP);
-	smap(REDRAWBUTSMAT);
-	smap(REDRAWBUTSTEX);
-	smap(REDRAWBUTSANIM);
-	smap(REDRAWBUTSWORLD);
-	smap(REDRAWBUTSRENDER);
-	smap(REDRAWBUTSEDIT);
 	smap(REDRAWVIEWCAM);
 	smap(REDRAWHEADERS);
-	smap(REDRAWBUTSGAME);
-	smap(REDRAWBUTSRADIO);
 	smap(REDRAWVIEW3D_Z);
 	smap(REDRAWALL);
 	smap(REDRAWINFO);
@@ -78,9 +66,6 @@ char *event_to_string(short evt) {
 	smap(IMALEFTMOUSE);
 	smap(AFTERPIBREAD);
 	smap(REDRAWTEXT);
-	smap(REDRAWBUTSSCRIPT);
-	smap(REDRAWSOUND);
-	smap(REDRAWBUTSSOUND);
 	smap(REDRAWACTION);
 	smap(LEFTMOUSE);
 	smap(MIDDLEMOUSE);
@@ -200,7 +185,6 @@ char *event_to_string(short evt) {
 	smap(PAGEUPKEY);
 	smap(PAGEDOWNKEY);
 	smap(ENDKEY);
-	smap(REDRAWBUTSCONSTRAINT);
 	smap(REDRAWNLA);
 	}
 	#undef smap

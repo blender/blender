@@ -33,8 +33,22 @@
 #define BIF_BUTSPACE_H
 
 /* all internal calls and event codes for buttons space */
+struct Base;
+struct ID;
 
 extern void render_panels(void);
+extern void do_render_panels(unsigned short event);
+
+extern void do_butspace(unsigned short event);
+
+extern void redraw_test_buttons(struct Base *new);
+
+void test_meshpoin_but(char *name, struct ID **idpp);
+void test_obpoin_but(char *name, struct ID **idpp);
+void test_scenepoin_but(char *name, struct ID **idpp);
+void test_matpoin_but(char *name, struct ID **idpp);
+void test_scriptpoin_but(char *name, struct ID **idpp);
+void test_actionpoin_but(char *name, ID **idpp);
 
 
 /* -------------- event defines ------------ */

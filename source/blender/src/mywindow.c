@@ -84,7 +84,7 @@ static int mainwin_color_depth;
 
 void mywindow_init_mainwin(Window *win, int orx, int ory, int sizex, int sizey)
 {
-	int r, g, b;
+	GLint r, g, b;
 	
 	winlay_mainwindow= win;
 	

@@ -4286,7 +4286,7 @@ static void ui_delete_active_linkline(uiBlock *block)
 	}
 	
 	/* temporal! these buttons can be everywhere... */
-	allqueue(REDRAWBUTSGAME, 0);
+	allqueue(REDRAWBUTSLOGIC, 0);
 }
 
 static void ui_do_active_linklines(uiBlock *block, short *mval)

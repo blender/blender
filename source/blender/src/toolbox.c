@@ -60,6 +60,7 @@
 
 #include "DNA_image_types.h"
 #include "DNA_object_types.h"
+#include "DNA_lamp_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
@@ -1455,6 +1456,7 @@ void clever_numbuts(void)
 		clever_numbuts_oops();
 	}
 	else if(curarea->spacetype==SPACE_ACTION){
+		void stupid_damn_numbuts_action(void);	// editaction.c
 		stupid_damn_numbuts_action();
 	}
 	else if(curarea->spacetype==SPACE_FILE) {
@@ -1501,3 +1503,4 @@ void replace_names_but(void)
 	}
 	
 }
+
