@@ -1704,7 +1704,7 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 }
 
 
-static void editing_panel_materials(Object *ob)
+static void editing_panel_links(Object *ob)
 {
 	uiBlock *block;
 	ID *id, *idfrom;
@@ -1714,7 +1714,7 @@ static void editing_panel_materials(Object *ob)
 	char str[64];
 	uiBut *but;
 	
-	block= uiNewBlock(&curarea->uiblocks, "editing_panel_materials", UI_EMBOSS, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "editing_panel_links", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Link and Materials", "Editing", 0, 0, 318, 204)==0) return;
 
 	buttons_active_id(&id, &idfrom);
@@ -1985,7 +1985,7 @@ void editing_panels()
 	
 	switch(ob->type) {
 	case OB_MESH:
-		editing_panel_materials(ob); // no editmode!
+		editing_panel_links(ob); // no editmode!
 		editing_panel_mesh_type(ob, ob->data);	// no editmode!
 		/* modes */
 		if(G.obedit) {
@@ -2004,7 +2004,7 @@ void editing_panels()
 	case OB_CURVE:
 	case OB_SURF:
 		cu= ob->data;
-		editing_panel_materials(ob); // no editmode!
+		editing_panel_links(ob); // no editmode!
 		editing_panel_curve_type(ob, cu);
 		if(G.obedit) {
 			editing_panel_curve_tools(ob, cu);
@@ -2014,7 +2014,7 @@ void editing_panels()
 
 	case OB_MBALL:
 		mb= ob->data;
-		editing_panel_materials(ob); // no editmode!
+		editing_panel_links(ob); // no editmode!
 		editing_panel_mball_type(ob, mb);
 		if(G.obedit) {
 			editing_panel_mball_tools(ob, mb);
@@ -2023,23 +2023,26 @@ void editing_panels()
 
 	case OB_FONT:
 		cu= ob->data;
-		editing_panel_materials(ob); // no editmode!
+		editing_panel_links(ob); // no editmode!
 		editing_panel_curve_type(ob, cu);
 		editing_panel_font_type(ob, cu);
 		break;
 
 	case OB_LATTICE:
 		lt= ob->data;
+		editing_panel_links(ob); // no editmode!
 		editing_panel_lattice_type(ob, lt);
 		break;
 		
 	case OB_CAMERA:
 		cam= ob->data;
+		editing_panel_links(ob); // no editmode!
 		editing_panel_camera_type(ob, cam);
 		break;
 		
 	case OB_ARMATURE:
 		arm= ob->data;
+		editing_panel_links(ob); // no editmode!
 		editing_panel_armature_type(ob, arm);
 		if(G.obedit) {
 			editing_panel_armature_bones(ob, arm);

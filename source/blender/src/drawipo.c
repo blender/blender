@@ -433,7 +433,7 @@ void test_view2d(View2D *v2d, int winx, int winy)
 		dy= ((float)winy)/((float)winx);
 		
 		if(do_x==do_y) {
-			if( dy > 1.0) do_x= 1; else do_x= 0;
+			if( dy > 1.0) do_x= 0; else do_x= 1;
 		}
 
 		if( do_x ) {
