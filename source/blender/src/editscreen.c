@@ -624,7 +624,7 @@ void splash(void *data, int datasize, char *string)
 			BMF_DrawString(font, string);
 		}
 
-		glFinish();
+		glFlush();
 		glDrawBuffer(GL_BACK);
 		
 		IMB_freeImBuf(bbuf);
@@ -3019,7 +3019,7 @@ void screen_draw_info_text(bScreen *sc, char *text) {
 			glRasterPos2i(x,  y);
 			BMF_DrawString(G.fonts, text);
 			
-			glFinish();
+			glFlush();
 			glDrawBuffer(GL_BACK);
 			
 			sa->head_swap= WIN_FRONT_OK;

@@ -3369,7 +3369,7 @@ void mouse_mesh(void)
 
 			countall();
 
-			glFinish();
+			glFlush();
 			glDrawBuffer(GL_BACK);
 			
 			/* signal that frontbuf differs from back */
@@ -7976,7 +7976,7 @@ CutCurve *get_mouse_trail(int *len, char mode){
 		if( event==ESCKEY || event==RIGHTMOUSE ) {
 			if (curve) MEM_freeN(curve);
 			*len=0;
-			glFinish();
+			glFlush();
 			glDrawBuffer(GL_BACK);
 			return(NULL);
 			break;
@@ -7986,7 +7986,7 @@ CutCurve *get_mouse_trail(int *len, char mode){
 			glLineWidth(2.0);
 			sdrawXORline(curve[i-1].x, curve[i-1].y,mval[0], mval[1]); 
 			glLineWidth(1.0);
-			glFinish();
+			glFlush();
 			rubberband=0;
 		}
 		
@@ -8009,7 +8009,7 @@ CutCurve *get_mouse_trail(int *len, char mode){
 			if (restart) { 
 				for(j=1;j<i;j++) sdrawXORline(curve[j-1].x, curve[j-1].y, curve[j].x, curve[j].y);
 				if (rubberband) sdrawXORline(curve[j].x, curve[j].y, mval[0], mval[1]);
-				glFinish();
+				glFlush();
 				rubberband=0;
 				lasti=i=0;
 				restart=0;
@@ -8031,14 +8031,14 @@ CutCurve *get_mouse_trail(int *len, char mode){
 		
 		if ((i>1)&&(i!=lasti)) {  /*Draw recorded part of curve */
 			sdrawline(curve[i-2].x, curve[i-2].y, curve[i-1].x, curve[i-1].y);
-			glFinish();
+			glFlush();
 		}
 		
 		if ((i==lasti)&&(i>0)) { /*Draw rubberband */
 			glLineWidth(2.0);
 			sdrawXORline(curve[i-1].x, curve[i-1].y,mval[0], mval[1]);
 			glLineWidth(1.0);
-			glFinish();
+			glFlush();
 			rubberband=1;
 		}
 		lasti=i;
@@ -8056,7 +8056,7 @@ CutCurve *get_mouse_trail(int *len, char mode){
 		}
 	}
 
-	glFinish();
+	glFlush();
 	glDrawBuffer(GL_BACK);
 	persp(PERSP_VIEW);
 
@@ -9188,7 +9188,7 @@ void bevel_menu()
 			setlinestyle(0);
 			
 			persp(PERSP_VIEW);
-			glFinish(); // flush display for frontbuffer
+			glFlush(); // flush display for frontbuffer
 			glDrawBuffer(GL_BACK);
 		}
 		while(qtest()) {

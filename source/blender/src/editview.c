@@ -887,7 +887,7 @@ void borderselect(void)
 				base= base->next;
 			}
 			/* frontbuffer flush */
-			glFinish();
+			glFlush();
 			
 			allqueue(REDRAWDATASELECT, 0);
 			

@@ -89,7 +89,7 @@ void glutil_draw_front_xor_line(int x0, int y0, int x1, int y1)
 {
 	glDrawBuffer(GL_FRONT);
 	sdrawXORline(x0, y0, x1, y1);
-	glFinish();
+	glFlush();
 	glDrawBuffer(GL_BACK);
 }
 

@@ -248,7 +248,7 @@ static uiSaveUnder *ui_bgnpupdraw(int startx, int starty, int endx, int endy, in
 	glDrawBuffer(GL_FRONT);
 	
 	/* for geforce and other cards */
-	glFinish();
+	glFlush();
 
 	su= ui_save_under(startx-1, starty-1, endx-startx+2, endy-starty+6);
 	if(su) su->oldwin= oldwin;
@@ -269,7 +269,7 @@ static void ui_endpupdraw(uiSaveUnder *su)
 	glReadBuffer(GL_FRONT);
 	glDrawBuffer(GL_FRONT);
 	
-	glFinish();
+	glFlush();
 
 	if(su) {
 		ui_paste_under(su);
@@ -1029,7 +1029,7 @@ static int ui_do_but_BUT(uiBut *but)
 
 		if (but->flag != oflag) {
 			ui_draw_but(but);
-			glFinish(); // flush display in subloops
+			glFlush(); // flush display in subloops
 		}
 		
 		PIL_sleep_ms(10);
@@ -1178,7 +1178,7 @@ static int ui_do_but_TEX(uiBut *but)
 	BLI_strncpy(backstr, but->poin, UI_MAX_DRAW_STR);
 
 	ui_draw_but(but);
-	glFinish(); // flush display in subloops
+	glFlush(); // flush display in subloops
 	
 	while (get_mbut() & L_MOUSE) BIF_wait_for_statechange();
 	len= strlen(str);
@@ -1274,7 +1274,7 @@ static int ui_do_but_TEX(uiBut *but)
 		if(dodraw) {
 			ui_check_but(but);
 			ui_draw_but(but);
-			glFinish(); // flush display in subloops
+			glFlush(); // flush display in subloops
 		}
 	}
 	
@@ -1356,7 +1356,7 @@ static int ui_do_but_NUM(uiBut *but)
 
 	but->flag |= UI_SELECT;
 	ui_draw_but(but);
-	glFinish(); // flush display before subloop
+	glFlush(); // flush display before subloop
 	
 	uiGetMouse(mywinget(), mval);
 	value= ui_get_but_val(but);
@@ -1414,7 +1414,7 @@ static int ui_do_but_NUM(uiBut *but)
 						ui_set_but_val(but, (double)temp);
 						ui_check_but(but);
 						ui_draw_but(but);
-						glFinish(); // flush display in subloops
+						glFlush(); // flush display in subloops
 						
 						uibut_do_func(but);
 					}
@@ -1438,7 +1438,7 @@ static int ui_do_but_NUM(uiBut *but)
 						ui_set_but_val(but, tempf);
 						ui_check_but(but);
 						ui_draw_but(but);
-						glFinish(); // flush display in subloops
+						glFlush(); // flush display in subloops
 					}
 				}
 
@@ -1473,7 +1473,7 @@ static int ui_do_but_NUM(uiBut *but)
 	but->flag &= ~UI_SELECT;
 	ui_check_but(but);
 	ui_draw_but(but);	
-	glFinish(); // flush display in subloops
+	glFlush(); // flush display in subloops
 	
 	return but->retval;
 }
@@ -1702,7 +1702,7 @@ static int ui_do_but_SLI(uiBut *but)
 			ui_set_but_val(but, tempf);
 			ui_check_but(but);
 			ui_draw_but(but);
-			glFinish(); // flush display in subloops
+			glFlush(); // flush display in subloops
 			
 			if(but->a1) {	/* color number */
 				uiBut *bt= but->prev;
@@ -1754,7 +1754,7 @@ static int ui_do_but_SLI(uiBut *but)
 	}
 	ui_check_but(but);
 	ui_draw_but(but);
-	glFinish(); // flush display in subloops
+	glFlush(); // flush display in subloops
 	
 	return but->retval;
 }
@@ -2157,7 +2157,7 @@ static void edit_but(uiBlock *block, uiBut *but, uiEvent *uevent)
 			but->y2 += dy;
 			
 			ui_draw_but(but);
-			glFinish();
+			glFlush();
 			didit= 1;
 			but->rt[3]= 1;
 
@@ -2910,7 +2910,7 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 	glRasterPos2f( x1+3, y1+5);
 	BIF_DrawString(but->font, but->tip, (U.transopts & USER_TR_TOOLTIPS));
 	
-	glFinish();		/* to show it in the frontbuffer */
+	glFlush();		/* to show it in the frontbuffer */
 	return su;
 }
 
@@ -2987,7 +2987,7 @@ int uiDoBlocks(ListBase *lb, int event)
 	uevent.event= event;
 	uevent.val= 1;
 
-	/* this is a caching mechanism, to prevent too many calls to glFrontBuffer and glFinish, which slows down interface */
+	/* this is a caching mechanism, to prevent too many calls to glFrontBuffer and glFlush, which slows down interface */
 	block= lb->first;
 	while(block) {
 		block->frontbuf= UI_NEED_DRAW_FRONT;	// signal
@@ -3023,7 +3023,7 @@ int uiDoBlocks(ListBase *lb, int event)
 			
 			/* is there a glfinish cached? */
 			if(block->frontbuf == UI_HAS_DRAW_FRONT) {
-				glFinish();
+				glFlush();
 				glDrawBuffer(GL_BACK);
 				block->frontbuf= UI_NEED_DRAW_FRONT;
 			}
@@ -3055,7 +3055,7 @@ int uiDoBlocks(ListBase *lb, int event)
 
 			/* need to reveil drawing? (not in end of loop, because of free block */
 			if(block->frontbuf == UI_HAS_DRAW_FRONT) {
-				glFinish();
+				glFlush();
 				block->frontbuf= UI_NEED_DRAW_FRONT;
 			}
 
@@ -3095,7 +3095,7 @@ int uiDoBlocks(ListBase *lb, int event)
 	/* cleanup frontbuffer & flags */
 	block= lb->first;
 	while(block) {
-		if(block->frontbuf==UI_HAS_DRAW_FRONT) glFinish();
+		if(block->frontbuf==UI_HAS_DRAW_FRONT) glFlush();
 		block->frontbuf= 0;
 		block= block->next;
 	}

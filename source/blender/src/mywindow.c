@@ -349,7 +349,7 @@ void mywinset(int wid)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(&win->viewmat[0][0]);
 
-	glFinish();
+	glFlush();
 	
 	curswin= wid;
 }

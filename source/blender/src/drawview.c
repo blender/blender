@@ -2046,7 +2046,7 @@ void drawview3d_render(struct View3D *v3d)
 	
 	G.f &= ~G_SIMULATION;
 
-	glFinish();
+	glFlush();
 
 	glReadPixels(0, 0, R.rectx, R.recty, GL_RGBA, GL_UNSIGNED_BYTE, R.rectot);
 	glLoadIdentity();

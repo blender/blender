@@ -82,12 +82,12 @@ static void copy_back_to_front(void)
 	glDrawBuffer(GL_FRONT);
 	glCopyPixels(0, 0, winx, winy, GL_COLOR);
 	glDrawBuffer(GL_BACK);
-	glFinish();
+	glFlush();
 
 	if (actually_swap) {
 		glRasterPos2f(-0.5,-0.5);
 		glDrawPixels(winx, winy, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glFinish();
+		glFlush();
 		free(data);
 	}
 }

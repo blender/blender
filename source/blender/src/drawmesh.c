@@ -386,10 +386,13 @@ int set_tpage(TFace *tface)
 
 		glGenTextures(1, (GLuint *)bind);
 		
-		if(G.f & G_DEBUG) {
-			printf("var1: %s\n", ima->id.name+2);
-			printf("var1: %d, var2: %d\n", *bind, tpx);
-			printf("var1: %d, var2: %d\n", fCurtile, tilemode);
+		if((G.f & G_DEBUG) || !*bind) {
+			GLenum error = glGetError();
+			printf("Texture: %s\n", ima->id.name+2);
+			printf("name: %d, tpx: %d\n", *bind, tpx);
+			printf("tile: %d, mode: %d\n", fCurtile, tilemode);
+			if (error)
+				printf("error: %d\n", error);
 		}
 		glBindTexture( GL_TEXTURE_2D, *bind);
 
@@ -416,8 +419,6 @@ int set_tpage(TFace *tface)
 	}
 	else glBindTexture( GL_TEXTURE_2D, *bind);
 	
-	
-
 	glEnable(GL_TEXTURE_2D);
 
 	fCurpage= ima;

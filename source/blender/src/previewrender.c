@@ -288,7 +288,7 @@ static void display_pr_scanline(unsigned int *rect, int recty)
 	/* flush opengl for cards with frontbuffer slowness */
 	if(recty==PR_RECTY-1 || (PIL_check_seconds_timer() - lasttime > 0.05)) {
 		lasttime= PIL_check_seconds_timer();
-		glFinish();
+		glFlush();
 	}
 }
 

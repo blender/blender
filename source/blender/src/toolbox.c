@@ -500,7 +500,7 @@ void bgnpupdraw(int startx, int starty, int endx, int endy)
 	glReadBuffer(GL_FRONT);
 	glDrawBuffer(GL_FRONT);
 
-	glFinish();
+	glFlush();
 
 	my_get_frontbuffer_image(startx-1, starty-4, endx-startx+5, endy-starty+6);
 
@@ -512,7 +512,7 @@ void bgnpupdraw(int startx, int starty, int endx, int endy)
 
 void endpupdraw(void)
 {
-	glFinish();
+	glFlush();
 	my_put_frontbuffer_image();
 	
 	if(tboldwin) {
@@ -939,7 +939,7 @@ void drawtoolbox(void)
 			
 		}
 	}
-	glFinish();		/* for geforce, to show it in the frontbuffer */
+	glFlush();		/* for geforce, to show it in the frontbuffer */
 
 }
 
@@ -1020,7 +1020,7 @@ void toolbox(void)
 				tbox_drawelem(actx, acty, 3);
 			}
 			
-			glFinish();		/* for geforce, to show it in the frontbuffer */
+			glFlush();		/* for geforce, to show it in the frontbuffer */
 			
 			xo= actx;
 			yo= acty;

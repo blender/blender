@@ -1084,7 +1084,7 @@ static void set_active_file(SpaceFile *sfile, int act)
 		
 		glScissor(curarea->winrct.xmin, curarea->winrct.ymin, curarea->winx, curarea->winy);
 
-		glFinish();		/* for geforce, to show it in the frontbuffer */
+		glFlush();		/* for geforce, to show it in the frontbuffer */
 		glDrawBuffer(GL_BACK);
 	}
 	else if(redraw) {

@@ -240,7 +240,7 @@ static void draw_icon_centered(float *pos, unsigned int *rect, int rectsize)
 		/* use bitmap to shift rasterpos in pixels */
 	glBitmap(0, 0, 0.0, 0.0, -hsize, -hsize, &dummy);
 #if defined (__sun__) || defined ( __sun ) || defined (__sparc) || defined (__sparc__)
-	glFinish(); 
+	glFlush(); 
 #endif	
 	glDrawPixels(rectsize, rectsize, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 }
@@ -270,7 +270,7 @@ void helpline(float *vec)
 	setlinestyle(0);
 	
 	persp(PERSP_VIEW);
-	glFinish(); // flush display for frontbuffer
+	glFlush(); // flush display for frontbuffer
 	glDrawBuffer(GL_BACK);
 }
 
@@ -3830,7 +3830,7 @@ void draw_object_ext(Base *base)
 
 	G.f &= ~G_DRAW_EXT;
 
-	glFinish();		/* reveil frontbuffer drawing */
+	glFlush();		/* reveil frontbuffer drawing */
 	glDrawBuffer(GL_BACK);
 	
 	if(G.zbuf) {
