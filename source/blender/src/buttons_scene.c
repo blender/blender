@@ -954,9 +954,6 @@ static char *imagetype_pup(void)
 #endif
 
 	strcat(formatstring, "|%s %%x%d");	// add space for PNG
-#ifdef WITH_OPENEXR
-	strcat(formatstring, "|%s %%x%d");	// add space for OpenEXR
-#endif
 	strcat(formatstring, "|%s %%x%d");	// add space for BMP
 
 #ifdef _WIN32
@@ -981,9 +978,6 @@ static char *imagetype_pup(void)
 			"Targa",          R_TARGA,
 			"Targa Raw",      R_RAWTGA,
 			"PNG",            R_PNG,
-#ifdef WITH_OPENEXR
-			"OpenEXR",	  R_OPENEXR,
-#endif
 			"BMP",            R_BMP,
 			"Jpeg",           R_JPEG90,
 			"HamX",           R_HAMX,
@@ -1002,9 +996,6 @@ static char *imagetype_pup(void)
 			"Targa",          R_TARGA,
 			"Targa Raw",      R_RAWTGA,
 			"PNG",            R_PNG,
-#ifdef WITH_OPENEXR
-			"OpenEXR",	  R_OPENEXR,
-#endif
 			"BMP",            R_BMP,
 			"Jpeg",           R_JPEG90,
 			"HamX",           R_HAMX,

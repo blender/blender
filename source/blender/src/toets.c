@@ -192,17 +192,6 @@ void schrijfplaatje(char *name)
 		else if(R.r.imtype==R_PNG) {
 			ibuf->ftype= PNG;
 		}
-#ifdef WITH_OPENEXR
-		else if(R.r.imtype==R_OPENEXR) {
-			ibuf->ftype= OPENEXR;
-			if (ibuf->zbuf == 0) {
-				if (R.rectz) {
-					ibuf->zbuf = (int *)R.rectz;
-				}
-				else printf("Write OPENEXR: no zbuf !\n");
-			}
-		}
-#endif
 		else if(R.r.imtype==R_BMP) {
 			ibuf->ftype= BMP;
 		}
@@ -482,8 +471,6 @@ int save_image_filesel_str(char *str)
 	switch(G.scene->r.imtype) {
 	case R_PNG:
 		strcpy(str, "Save PNG"); return 1;
-	case R_OPENEXR:
-		strcpy(str, "Save OPENEXR"); return 1;
 	case R_BMP:
 		strcpy(str, "Save BMP"); return 1;
 	case R_TARGA:

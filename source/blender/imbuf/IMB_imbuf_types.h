@@ -152,9 +152,6 @@ typedef enum {
 #ifdef WITH_IMAGEMAGICK
 #define IMAGEMAGICK	(1 << 23)
 #endif
-#ifdef WITH_OPENEXR
-#define OPENEXR		(1 << 22)
-#endif
 
 #define RAWTGA	        (TGA | 1)
 
@@ -191,7 +188,6 @@ typedef enum {
 #define IS_hamx(x)		(x->ftype == AN_hamx)
 #define IS_tga(x)		(x->ftype & TGA)
 #define IS_png(x)		(x->ftype & PNG)
-#define IS_openexr(x)		(x->ftype & OPENEXR)
 #define IS_bmp(x)		(x->ftype & BMP)
 
 #define IMAGIC 	0732

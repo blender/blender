@@ -50,9 +50,6 @@
 #include "IMB_amiga.h"
 #include "IMB_png.h"
 #include "IMB_bmp.h"
-#ifdef WITH_OPENEXR
-#include "IMB_openexr.h"
-#endif
 
 #include "IMB_iff.h"
 #include "IMB_bitplanes.h"
@@ -73,11 +70,6 @@ short IMB_saveiff(struct ImBuf *ibuf,char *naam,int flags)
 	if (IS_png(ibuf)) {
 		return imb_savepng(ibuf,naam,flags);
 	}
-#ifdef WITH_OPENEXR
-	if (IS_openexr(ibuf)) {
-		return imb_save_openexr(ibuf,naam,flags);
-	}
-#endif
 	if (IS_bmp(ibuf)) {
 		return imb_savebmp(ibuf,naam,flags);
 	}

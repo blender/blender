@@ -82,10 +82,6 @@ if sys.platform == 'linux2' or sys.platform == 'linux-i386':
 	png_lib = ['png']
 	png_libpath = ['/usr/lib']
 	png_include = ['/usr/include']
-	# OpenEXR library information
-	openexr_lib = ['Iex', 'Half', 'IlmImf', 'Imath']
-	openexr_libpath = ['/usr/lib']
-	openexr_include = ['/usr/include/OpenEXR']
 	# jpeg library information
 	jpeg_lib = ['jpeg']
 	jpeg_libpath = ['/usr/lib']
@@ -132,15 +128,13 @@ if sys.platform == 'linux2' or sys.platform == 'linux-i386':
 	openal_lib = ['openal']
 	openal_libpath = ['/usr/lib']
 	openal_include = ['/usr/include']
-        use_openexr = 'false'
-	if use_openexr == 'true':
-		defines += ['WITH_OPENEXR']
 
 elif sys.platform == 'darwin':
 	use_international = 'true'
 	use_gameengine = 'true'
 	use_openal = 'true'
 	use_fmod = 'false'
+	use_openal = 'false'
 	use_quicktime = 'true'
 	use_precomp = 'true'
 	use_sumo = 'true'
@@ -247,9 +241,6 @@ elif sys.platform == 'darwin':
 	openal_lib = ['libopenal']
 	openal_libpath = [darwin_precomp + 'openal/lib']
 	openal_include = [darwin_precomp + 'openal/include']
-        use_openexr = 'false'
-	if use_openexr == 'true':
-		defines += ['WITH_OPENEXR']
 
 elif sys.platform == 'cygwin':
 	use_international = 'false'
@@ -330,9 +321,6 @@ elif sys.platform == 'cygwin':
 	openal_lib = []
 	openal_libpath = []
 	openal_include = []
-        use_openexr = 'false'
-	if use_openexr == 'true':
-		defines += ['WITH_OPENEXR']
 
 elif sys.platform == 'win32':
 	use_international = 'true'
@@ -434,9 +422,6 @@ elif sys.platform == 'win32':
 	openal_lib = ['openal_static']
 	openal_libpath = ['#../lib/windows/openal/lib']
 	openal_include = ['#../lib/windows/openal/include']
-        use_openexr = 'false'
-	if use_openexr == 'true':
-		defines += ['WITH_OPENEXR']
 
 elif string.find (sys.platform, 'sunos') != -1:
 	use_international = 'true'
@@ -515,9 +500,6 @@ elif string.find (sys.platform, 'sunos') != -1:
 	openal_lib = []
 	openal_libpath = []
 	openal_include = []
-        use_openexr = 'false'
-	if use_openexr == 'true':
-		defines += ['WITH_OPENEXR']
 
 elif string.find (sys.platform, 'irix') != -1:
 	use_international = 'false'
@@ -603,16 +585,10 @@ elif string.find (sys.platform, 'irix') != -1:
 	openal_lib = []
 	openal_libpath = []
 	openal_include = []
-        use_openexr = 'false'
-	if use_openexr == 'true':
-		defines += ['WITH_OPENEXR']
 
 elif string.find (sys.platform, 'hp-ux') != -1:
 	window_system = 'X11'
 	defines = []
-        use_openexr = 'false'
-	if use_openexr == 'true':
-		defines += ['WITH_OPENEXR']
 
 elif sys.platform=='openbsd3':
 	print "Building for OpenBSD 3.x"
@@ -692,9 +668,6 @@ elif sys.platform=='openbsd3':
 	openal_lib = ['openal']
 	openal_libpath = ['/usr/lib']
 	openal_include = ['/usr/include']
-        use_openexr = 'false'
-	if use_openexr == 'true':
-		defines += ['WITH_OPENEXR']
 	
 elif sys.platform=='freebsd4' or sys.platform=='freebsd5':
 	print "Building for FreeBSD"
@@ -774,9 +747,6 @@ elif sys.platform=='freebsd4' or sys.platform=='freebsd5':
 	openal_lib = ['openal']
 	openal_libpath = ['/usr/lib']
 	openal_include = ['/usr/include']
-        use_openexr = 'false'
-	if use_openexr == 'true':
-		defines += ['WITH_OPENEXR']
 
 else:
 	print "Unknown platform %s"%sys.platform
@@ -851,10 +821,6 @@ else:
 	config.write ("PNG_INCLUDE = %r\n"%(png_include))
 	config.write ("PNG_LIBPATH = %r\n"%(png_libpath))
 	config.write ("PNG_LIBRARY = %r\n"%(png_lib))
-	config.write ("USE_OPENEXR = %r\n"%(use_openexr))
-	config.write ("OPENEXR_INCLUDE = %r\n"%(openexr_include))
-	config.write ("OPENEXR_LIBPATH = %r\n"%(openexr_libpath))
-	config.write ("if USE_OPENEXR == 'true':\n\tOPENEXR_LIBRARY = %r\n"%(openexr_lib))
 	config.write ("JPEG_INCLUDE = %r\n"%(jpeg_include))
 	config.write ("JPEG_LIBPATH = %r\n"%(jpeg_libpath))
 	config.write ("JPEG_LIBRARY = %r\n"%(jpeg_lib))
@@ -935,9 +901,6 @@ user_options.AddOptions (
 		(BoolOption ('USE_QUICKTIME',
 					'Set to 1 to add support for QuickTime.',
 					'false')),
-		(BoolOption ('USE_OPENEXR',
-					'Set to 1 to add support for OpenEXR.',
-					'false')),
 		('HOST_CC', 'C compiler for the host platfor. This is the same as target platform when not cross compiling.'),
 		('HOST_CXX', 'C++ compiler for the host platform. This is the same as target platform when not cross compiling.'),
 		('TARGET_CC', 'C compiler for the target platform.'),
@@ -961,9 +924,6 @@ user_options.AddOptions (
 		('PNG_INCLUDE', 'Include directory for png header files.'),
 		('PNG_LIBPATH', 'Library path where the png library is located.'),
 		('PNG_LIBRARY', 'png library name.'),
-		('OPENEXR_INCLUDE', 'Include directory for OpenEXR header files.'),
-		('OPENEXR_LIBPATH', 'Library path where the OpenEXR library is located.'),
-		('OPENEXR_LIBRARY', 'openexr library names.'),
 		('JPEG_INCLUDE', 'Include directory for jpeg header files.'),
 		('JPEG_LIBPATH', 'Library path where the jpeg library is located.'),
 		('JPEG_LIBRARY', 'jpeg library name.'),
