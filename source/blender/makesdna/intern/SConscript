@@ -1,21 +1,7 @@
-import sys
 # Import the C flags set in the SConstruct file
 Import ('cflags')
 Import ('defines')
 Import ('user_options_dict')
-
-if sys.platform=='win32':
-    platform_linkflags = ['/SUBSYSTEM:CONSOLE',
-                          '/MACHINE:I386',
-                          '/ENTRY:mainCRTStartup',
-                          '/NODEFAULTLIB:"msvcprt.lib"',
-                          '/NODEFAULTLIB:"glut32.lib"',
-                          '/NODEFAULTLIB:"libcd.lib"',
-                          #'/NODEFAULTLIB:"libc.lib"',
-                          '/NODEFAULTLIB:"libcpd.lib"',
-                          '/NODEFAULTLIB:"libcp.lib"',
-                          '/NODEFAULTLIB:"libcmtd.lib"'
-                         ]
 
 # TODO: make sure the makesdna program does not get installed on the system.
 source_files = ['makesdna.c']
