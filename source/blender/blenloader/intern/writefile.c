@@ -1,4 +1,7 @@
-/**
+/* writefile.c
+ *
+ * .blend file writing
+ *
  * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -28,51 +31,53 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
- * .blend file writing
  */
 
 /*
-MIXED MODEL
-FILEFORMAAT: IFF-achtige structuur  (niet meer IFF compatible!)
+FILEFORMAT: IFF-style structure  (but not IFF compatible!)
  
 start file:
 	BLENDER_V100	12 bytes  (versie 1.00)
 					V = big endian, v = little endian
 					_ = 4 byte pointer, - = 8 byte pointer
 
-datablokken:		zie ook struct BHead
+datablocks:		also see struct BHead
 	<bh.code>			4 chars
-	<bh.len>			int,  len data achter BHead
-	<bh.old>			void,  oude pointer
+	<bh.len>			int,  len data after BHead
+	<bh.old>			void,  old pointer
 	<bh.SDNAnr>			int
-	<bh.nr>				int, bij array: aantal structs
+	<bh.nr>				int, in case of array: amount of structs
 	data			
 	...
 	...
 
-Vrijwel alle data in blender zijn structs. Elke struct krijgt
-een BHead header mee.  Met BHead kan de struktuur weer worden
-gelinkt en wordt met StructDNA vergeleken.
+Almost all data in Blender are structures. Each struct saved
+gets a BHead header.  With BHead the struct can be linked again
+and compared with StructDNA .
 
-SCHRIJVEN
+WRITE
 
-Voorkeur volgorde schrijven: (waarschijnlijk mag ook door
-elkaar, maar waarom zou je? ) In ieder geval MOET indirekte data
-ACHTER LibBlock
+Preferred writing order: (not really a must, but why would you do it random?)
+Any case: direct data is ALWAYS after the lib block
 
-(Locale data)
-- voor elk LibBlock
-	- schrijf LibBlock
-	- schrijf bijhorende direkte data
-(Externe data)
+(Local file data)
+- for each LibBlock
+	- write LibBlock
+	- write associated direct data
+(External file data)
 - per library
-	- schrijf library block
+	- write library block
 	- per LibBlock
-		- schrijf ID LibBlock
-- schrijf FileGlobal (een selectie uit globale data )
-- schrijf SDNA
-- schrijf USER als aangegeven (~/.B.blend)
+		- write the ID of LibBlock
+- write FileGlobal (some global vars)
+- write SDNA
+- write USER if filename is ~/.B.blend
 */
+
+/* for version 2.2+
+Important to know is that 'streaming' has been added to files, for Blender Publisher
+*/
+
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -399,7 +404,7 @@ static void writestruct(WriteData *wd, int filecode, char *structname, int nr, v
 	
 	if(adr==0 || nr==0) return;
 	
-	/* BHead vullen met data */
+	/* init BHead */
 	bh.code= filecode;
 	bh.old= adr;
 	bh.nr= nr;
@@ -419,7 +424,7 @@ static void writestruct(WriteData *wd, int filecode, char *structname, int nr, v
 	mywrite(wd, adr, bh.len);
 }
 
-static void writedata(WriteData *wd, int filecode, int len, void *adr)	/* geen struct */
+static void writedata(WriteData *wd, int filecode, int len, void *adr)	/* do not use for structs */
 {
 	BHead bh;
 	
@@ -429,7 +434,7 @@ static void writedata(WriteData *wd, int filecode, int len, void *adr)	/* geen s
 	len+= 3;
 	len-= ( len % 4);
 	
-	/* BHead vullen met data */
+	/* init BHead */
 	bh.code= filecode;
 	bh.old= adr;
 	bh.nr= 1;
@@ -446,7 +451,7 @@ static void write_scriptlink(WriteData *wd, ScriptLink *slink)
 	writedata(wd, DATA, sizeof(short)*slink->totscript, slink->flag);	
 }
 
-static void write_renderinfo(WriteData *wd)		/* alleen voor renderdaemon */
+static void write_renderinfo(WriteData *wd)		/* for renderdaemon */
 {
 	Scene *sce;
 	int data[8];
@@ -729,10 +734,10 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 	ob= idbase->first;
 	while(ob) {
 		if(ob->id.us>0) {
-			/* schrijf LibData */
+			/* write LibData */
 			writestruct(wd, ID_OB, "Object", 1, ob);
 			
-			/* alle direkte data */
+			/* direct data */
 			writedata(wd, DATA, sizeof(void *)*ob->totcol, ob->mat);
 			write_effects(wd, &ob->effect);
 			write_properties(wd, &ob->prop);
@@ -759,10 +764,10 @@ static void write_vfonts(WriteData *wd, ListBase *idbase)
 	vf= idbase->first;
 	while(vf) {
 		if(vf->id.us>0) {
-			/* schrijf LibData */
+			/* write LibData */
 			writestruct(wd, ID_VF, "VFont", 1, vf);
 		
-			/* alle direkte data */
+			/* direct data */
 			
 			if (vf->packedfile) {
 				pf = vf->packedfile;
@@ -783,10 +788,10 @@ static void write_ipos(WriteData *wd, ListBase *idbase)
 	ipo= idbase->first;
 	while(ipo) {
 		if(ipo->id.us>0) {
-			/* schrijf LibData */
+			/* write LibData */
 			writestruct(wd, ID_IP, "Ipo", 1, ipo);
 		
-			/* alle direkte data */
+			/* direct data */
 			icu= ipo->curve.first;
 			while(icu) {
 				writestruct(wd, DATA, "IpoCurve", 1, icu);
@@ -813,10 +818,10 @@ static void write_keys(WriteData *wd, ListBase *idbase)
 	key= idbase->first;
 	while(key) {
 		if(key->id.us>0) {
-			/* schrijf LibData */
+			/* write LibData */
 			writestruct(wd, ID_KE, "Key", 1, key);
 		
-			/* alle direkte data */
+			/* direct data */
 			kb= key->block.first;
 			while(kb) {
 				writestruct(wd, DATA, "KeyBlock", 1, kb);
@@ -836,10 +841,10 @@ static void write_cameras(WriteData *wd, ListBase *idbase)
 	cam= idbase->first;
 	while(cam) {
 		if(cam->id.us>0) {
-			/* schrijf LibData */
+			/* write LibData */
 			writestruct(wd, ID_CA, "Camera", 1, cam);
 		
-			/* alle direkte data */
+			/* direct data */
 			write_scriptlink(wd, &cam->scriptlink);
 		}
 		
@@ -855,10 +860,10 @@ static void write_mballs(WriteData *wd, ListBase *idbase)
 	mb= idbase->first;
 	while(mb) {
 		if(mb->id.us>0) {
-			/* schrijf LibData */
+			/* write LibData */
 			writestruct(wd, ID_MB, "MetaBall", 1, mb);
 			
-			/* alle direkte data */
+			/* direct data */
 			writedata(wd, DATA, sizeof(void *)*mb->totcol, mb->mat);
 			
 			ml= mb->elems.first;
@@ -879,17 +884,17 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 	cu= idbase->first;
 	while(cu) {
 		if(cu->id.us>0) {
-			/* schrijf LibData */
+			/* write LibData */
 			writestruct(wd, ID_CU, "Curve", 1, cu);
 			
-			/* alle direkte data */
+			/* direct data */
 			writedata(wd, DATA, sizeof(void *)*cu->totcol, cu->mat);
 			
 			if(cu->vfont) {
 				writedata(wd, DATA, cu->len+1, cu->str);
 			}
 			else {
-				/* is ook volgorde van inlezen */
+				/* is also the order of reading */
 				nu= cu->nurb.first;
 				while(nu) {
 					writestruct(wd, DATA, "Nurb", 1, nu);
@@ -935,10 +940,10 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 	mesh= idbase->first;
 	while(mesh) {
 		if(mesh->id.us>0) {
-			/* schrijf LibData */
+			/* write LibData */
 			writestruct(wd, ID_ME, "Mesh", 1, mesh);
 			
-			/* alle direkte data */
+			/* direct data */
 			writedata(wd, DATA, sizeof(void *)*mesh->totcol, mesh->mat);
 			writestruct(wd, DATA, "MVert", mesh->totvert, mesh->mvert);
 			write_dverts(wd, mesh->totvert, mesh->dvert);
@@ -960,7 +965,7 @@ static void write_images(WriteData *wd, ListBase *idbase)
 	ima= idbase->first;
 	while(ima) {
 		if(ima->id.us>0) {
-			/* schrijf LibData */
+			/* write LibData */
 			writestruct(wd, ID_IM, "Image", 1, ima);
 	
 			if (ima->packedfile) {
@@ -980,10 +985,10 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 	tex= idbase->first;
 	while(tex) {
 		if(tex->id.us>0) {
-			/* schrijf LibData */
+			/* write LibData */
 			writestruct(wd, ID_TE, "Tex", 1, tex);
 			
-			/* alle direkte data */
+			/* direct data */
 			if(tex->plugin) writestruct(wd, DATA, "PluginTex", 1, tex->plugin);
 			if(tex->coba) writestruct(wd, DATA, "ColorBand", 1, tex->coba);
 			if(tex->env) writestruct(wd, DATA, "EnvMap", 1, tex->env);
@@ -1000,7 +1005,7 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 	ma= idbase->first;
 	while(ma) {
 		if(ma->id.us>0) {
-			/* schrijf LibData */
+			/* write LibData */
 			writestruct(wd, ID_MA, "Material", 1, ma);
 			
 			for(a=0; a<8; a++) {
@@ -1021,7 +1026,7 @@ static void write_worlds(WriteData *wd, ListBase *idbase)
 	wrld= idbase->first;
 	while(wrld) {
 		if(wrld->id.us>0) {
-			/* schrijf LibData */
+			/* write LibData */
 			writestruct(wd, ID_WO, "World", 1, wrld);
 	
 			for(a=0; a<8; a++) {
@@ -1042,10 +1047,10 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 	la= idbase->first;
 	while(la) {
 		if(la->id.us>0) {
-			/* schrijf LibData */
+			/* write LibData */
 			writestruct(wd, ID_LA, "Lamp", 1, la);
 		
-			/* alle direkte data */
+			/* direct data */
 			for(a=0; a<8; a++) {
 				if(la->mtex[a]) writestruct(wd, DATA, "MTex", 1, la->mtex[a]);
 			}
@@ -1063,10 +1068,10 @@ static void write_lattices(WriteData *wd, ListBase *idbase)
 	lt= idbase->first;
 	while(lt) {
 		if(lt->id.us>0) {
-			/* schrijf LibData */
+			/* write LibData */
 			writestruct(wd, ID_LT, "Lattice", 1, lt);
 		
-			/* alle direkte data */
+			/* direct data */
 			writestruct(wd, DATA, "BPoint", lt->pntsu*lt->pntsv*lt->pntsw, lt->def);
 		}
 		lt= lt->id.next;
@@ -1081,10 +1086,10 @@ static void write_ikas(WriteData *wd, ListBase *idbase)
 	ika= idbase->first;
 	while(ika) {
 		if(ika->id.us>0) {
-			/* schrijf LibData */
+			/* write LibData */
 			writestruct(wd, ID_IK, "Ika", 1, ika);
 			
-			/* alle direkte data */
+			/* direct data */
 			li= ika->limbbase.first;
 			while(li) {
 				writestruct(wd, DATA, "Limb", 1, li);
@@ -1107,10 +1112,10 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	
 	sce= scebase->first;
 	while(sce) {
-		/* schrijf LibData */
+		/* write LibData */
 		writestruct(wd, ID_SCE, "Scene", 1, sce);
 		
-		/* alle direkte data */
+		/* direct data */
 		base= sce->base.first;
 		while(base) {
 			writestruct(wd, DATA, "Base", 1, base);
@@ -1124,7 +1129,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		if(ed) {
 			writestruct(wd, DATA, "Editing", 1, ed);
 	
-			/* ook schrijfflags op nul */
+			/* reset write flags too */
 			WHILE_SEQ(&ed->seqbase) {
 				if(seq->strip) seq->strip->done= 0;
 				writestruct(wd, DATA, "Sequence", 1, seq);
@@ -1133,7 +1138,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			
 			WHILE_SEQ(&ed->seqbase) {
 				if(seq->strip && seq->strip->done==0) {
-					/* strip wegschrijven met done op 0 ivm readfile */
+					/* write strip with 'done' at 0 because readfile */
 					
 					if(seq->plugin) writestruct(wd, DATA, "PluginSeq", 1, seq->plugin);
 					
@@ -1172,10 +1177,10 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 	
 	sc= scrbase->first;
 	while(sc) {
-		/* schrijf LibData */
+		/* write LibData */
 		writestruct(wd, ID_SCR, "Screen", 1, sc);
 		
-		/* alle direkte data */
+		/* direct data */
 		sv= sc->vertbase.first;
 		while(sv) {
 			writestruct(wd, DATA, "ScrVert", 1, sv);
@@ -1229,7 +1234,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 						oops= oopsn;
 					}
 	
-					/* NA de cleanup, ivm listbase! */
+					/* ater cleanup, because of listbase! */
 					writestruct(wd, DATA, "SpaceOops", 1, so);
 	
 					oops= so->oops.first;
@@ -1276,7 +1281,7 @@ static void write_libraries(WriteData *wd, Main *main)
 	
 		a=tot= set_listbasepointers(main, lbarray);
 	
-		/* test: wordt lib nog gebruikt */
+		/* test: is lib being used */
 		foundone= 0;
 		while(tot--) {
 			id= lbarray[tot]->first;
@@ -1541,7 +1546,7 @@ static int write_file_handle(int handle, int write_user_block, int write_flags)
 		write_userdef(wd);
 	}
 	
-	/* dna als laatste i.v.m. (nog te schrijven) test op welke gebruikt zijn */
+	/* dna as last, because (to be implemented) test for which structs are written */
 	writedata(wd, DNA1, wd->sdna->datalen, wd->sdna->data);
 	
 	data= ENDB;

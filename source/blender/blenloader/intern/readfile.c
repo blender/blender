@@ -1,4 +1,8 @@
-/**
+/*
+ * readfile.c
+ *
+ * .blend file reading
+ *
  * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -28,7 +32,7 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
- * .blend file reading
+ * 
  */
 
 #ifdef HAVE_CONFIG_H
@@ -127,50 +131,52 @@
 #include "mydevice.h"
 
 /*
-ZWAK PUNT: newadres berekening en meerdere files: oplossen
-bijvoorbeeld door per file aparte newadresarrays te maken? 
+ Remark: still a weak point is the newadress() function, that doesnt solve reading from
+ multiple files at the same time
+
+ (added remark: oh, i thought that was solved? will look at that... (ton)
     
-LEZEN
-- Bestaande Library (Main) pushen of vrijgeven
-- Nieuwe Main alloceren
+READ
+- Existing Library (Main) push or free
+- allocate new Main
 - load file
 - read SDNA
 - for each LibBlock
 	- read LibBlock
-	- als Library
+	- if a Library
 		- make a new Main
-		- ID's eraan hangen
+		- attach ID's to it
 	- else 
-		- lees bijhorende direkte data
-		- link direkte data (intern en aan LibBlock)
-- lees FileGlobal
-- lees USER data, als aangegeven (~/.B.blend)
-- file vrijgeven
-- per Library met Scene (per Main)
-	- file inlezen
-	- lees SDNA
-	- alle LibBlocks uit Scene opzoeken en ID's aan Main hagen
-		- als extern LibBlock
-			- zoek Main's af
-				- is al ingelezen:
-				- nog niet ingelezen
-				- of nieuwe Main maken
+		- read associated 'direct data'
+		- link direct data (internal and to LibBlock)
+- read FileGlobal
+- read USER data, only when indicated (file is ~/.B.blend)
+- free file
+- per Library (per Main)
+	- read file
+	- read SDNA
+	- find LibBlocks and attach IDs to Main
+		- if external LibBlock
+			- search all Main's 
+				- or it's already read,
+				- or not read yet
+				- or make new Main
 	- per LibBlock
-		- recursief dieper lezen
-		- lees bijhorende direkte data
-		- link direkte data (intern en aan LibBlock)
-	- file vrijgeven
-- per Library met nog niet gelezen LibBlocks
-	- file inlezen
-	- lees SDNA
+		- read recursive
+		- read associated direct data
+		- link direct data (internal and to LibBlock)
+	- free file
+- per Library with unread LibBlocks
+	- read file
+	- read SDNA
 	- per LibBlock
-		- recursief dieper lezen
-		- lees bijhorende direkte data
-		- link direkte data (intern en aan LibBlock)
-	- file vrijgeven
-- alle Main's samenvoegen
-- alle LibBlocks linken en indirekte pointers naar libblocks
-- FileGlobal goedzetten en pointers naar Global kopieeren
+               - read recursive
+               - read associated direct data
+               - link direct data (internal and to LibBlock)
+        - free file
+- join all Mains
+- link all LibBlocks and indirect pointers to libblocks
+- initialize FileGlobal and copy pointers to Global
 */
 
 /* also occurs in library.c */
@@ -370,7 +376,7 @@ static void oldnewmap_free(OldNewMap *onm) {
 
 static void read_libraries(FileData *basefd, ListBase *mainlist);
 
-/* ************ OTHER CRAP ***************** */
+/* ************ help functions ***************** */
 
 static void add_main_to_main(Main *mainvar, Main *from)
 {
@@ -467,7 +473,7 @@ static Main *blo_find_main(ListBase *mainlist, char *name)
 
 static void switch_endian_bh4(BHead4 *bhead)
 {
-	/* de ID_.. codes */
+	/* the ID_.. codes */
 	if((bhead->code & 0xFFFF)==0) bhead->code >>=16;
 
 	if (bhead->code != ENDB) {
@@ -479,7 +485,7 @@ static void switch_endian_bh4(BHead4 *bhead)
 
 static void switch_endian_bh8(BHead8 *bhead)
 {
-	/* de ID_.. codes */
+	/* the ID_.. codes */
 	if((bhead->code & 0xFFFF)==0) bhead->code >>=16;
 
 	if (bhead->code != ENDB) {
@@ -890,7 +896,7 @@ static void *newlibadr(FileData *fd, void *lib, void *adr)		/* only lib data */
 	return oldnewmap_liblookup_and_inc(fd->libmap, adr, lib);
 }
 
-static void *newlibadr_us_type(FileData *fd, short type, void *adr)	/* alleen Lib datablokken */
+static void *newlibadr_us_type(FileData *fd, short type, void *adr)	/* only Lib data */
 {
 	ID *id= oldnewmap_typelookup_and_inc(fd->libmap, adr, type);
 	
@@ -901,7 +907,7 @@ static void *newlibadr_us_type(FileData *fd, short type, void *adr)	/* alleen Li
 	return id;
 }
 
-static void *newlibadr_us(FileData *fd, void *lib, void *adr)	/* hoogt usernummer op */
+static void *newlibadr_us(FileData *fd, void *lib, void *adr)	/* increases user number */
 {
 	ID *id= newlibadr(fd, lib, adr);
 
@@ -926,7 +932,7 @@ static void change_libadr(FileData *fd, void *old, void *new)
 		 * Ton seemed to think it was necessary to look
 		 * through all entries, and not return after finding
 		 * a match, leaving this cryptic comment, 
-		 * // geen return blijkbaar kunnen er meer zijn?
+		 * // no return, maybe there can be more?
 		 * 
 		 * That doesn't make sense to me either but I am
 		 * too scared to remove it... it only would make
@@ -941,6 +947,12 @@ static void change_libadr(FileData *fd, void *old, void *new)
 		 * but I'm afraid I don't have time now. -zr
 		 * 
 		 */
+    /* the code is nasty, and needs a lot of energy to get into full understanding
+       again... i now translate dutch comments, maybe that gives me more insight!
+       But i guess it has to do with the assumption that 2 addresses can be allocated
+       in different sessions, and therefore be the same... like the remark in the top
+       of this c file (ton) */
+     
 	for (i=0; i<fd->libmap->nentries; i++) {
 		OldNew *entry= &fd->libmap->entries[i];
 		
@@ -952,7 +964,7 @@ static void change_libadr(FileData *fd, void *old, void *new)
 }
 
 
-/* ********** END OUDE POINTERS ****************** */
+/* ********** END OLD POINTERS ****************** */
 /* ********** READ FILE ****************** */
 
 static void switch_endian_structs(struct SDNA *filesdna, BHead *bhead)
@@ -992,7 +1004,7 @@ static void *read_struct(FileData *fd, BHead *bh)
 	return temp;	
 }
 
-static void link_list(FileData *fd, ListBase *lb)		/* alleen direkte data */
+static void link_list(FileData *fd, ListBase *lb)		/* only direct data */
 {
 	Link *ln, *prev;
 	
@@ -1154,7 +1166,7 @@ static void direct_link_ika(FileData *fd, Ika *ika)
 
 	ika->def= newdataadr(fd, ika->def);
 
-	/* afvangen fout uit V.138 en ouder */
+	/* error from V.138 and older */
 	if(ika->def==0) ika->totdef= 0;
 }
 
@@ -1468,7 +1480,7 @@ static void switch_endian_keyblock(Key *key, KeyBlock *kb)
 		cp= key->elemstr;	
 		poin= data;
 		
-		while( cp[0] ) {	/* cp[0]==aantal */
+		while( cp[0] ) {	/* cp[0]==amount */
 		
 			switch(cp[1]) {		/* cp[1]= type */
 			case IPO_FLOAT:
@@ -1872,7 +1884,7 @@ static void direct_link_material(FileData *fd, Material *ma)
 	for(a=0; a<8; a++) {
 		ma->mtex[a]= newdataadr(fd, ma->mtex[a]);
 	}
-	ma->ren= 0;	/* mag niet blijven hangen, maarja */
+	ma->ren= 0;	/* should not be needed, nevertheless... */
 }
 
 /* ************ READ MESH ***************** */
@@ -2004,9 +2016,7 @@ static void lib_link_object(FileData *fd, Main *main)
 			for(a=0; a<ob->totcol; a++) ob->mat[a]= newlibadr_us(fd, ob->id.lib, ob->mat[a]);
 			
 			ob->id.flag -= LIB_NEEDLINK;
-			/* dit stond er eerst: weggehaald omdat de fie give_base_to... er niet meer is */
-			/* if(ob->id.us) ob->id.flag -= LIB_NEEDLINK; */
-			/* als us==0 wordt verderop nog een base gemaakt */
+			/* if id.us==0 a new base will be created later on */
 			
 			/* WARNING! Also check expand_object(), should reflect the stuff below. */
 			lib_link_pose(fd, &ob->id, ob->pose);
@@ -2286,7 +2296,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		
 		ed->metastack.first= ed->metastack.last= 0;
 		
-		/* recursief sequenties linken, ook lb wordt goedgezet */
+		/* recursive link sequences, lb will be correctly initialized */
 		link_recurs_seq(fd, &ed->seqbase);
 		
 		ed->seqbasep= &ed->seqbase;
@@ -2295,7 +2305,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			seq->seq1= newdataadr(fd, seq->seq1);
 			seq->seq2= newdataadr(fd, seq->seq2);
 			seq->seq3= newdataadr(fd, seq->seq3);
-			/* eigenlijk een patch: na invoering drie-seq effects */
+			/* a patch: after introduction of effects with 3 input strips */
 			if(seq->seq3==0) seq->seq3= seq->seq2;
 			
 			seq->curelem= 0;
@@ -2307,7 +2317,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			if(seq->strip && seq->strip->done==0) {
 				seq->strip->done= 1;
 				
-				/* standaard: strips van effecten/meta's worden niet weggeschreven, wel malloccen */
+				/* standard: strips from effects/metas are not written, but are mallocced */
 				
 				if(seq->type==SEQ_IMAGE) {
 					seq->strip->stripdata= newdataadr(fd, seq->strip->stripdata);
@@ -2320,7 +2330,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 					}
 				}
 				else if(seq->type==SEQ_MOVIE) {
-					/* alleen eerste stripelem zit in file */
+					/* only first stripelem is in file */
 					se= newdataadr(fd, seq->strip->stripdata);
 					
 					if(se) {
@@ -2526,7 +2536,7 @@ static void direct_link_library(FileData *fd, Library *lib)
 {
 	Main *newmain;
 	
-	/* nieuwe main */
+	/* new main */
 	newmain= MEM_callocN(sizeof(Main), "directlink");
 	BLI_addtail(&fd->mainlist, newmain);
 	newmain->curlib= lib;
@@ -2618,12 +2628,12 @@ static void lib_link_group(FileData *fd, Main *main)
 	}
 }
 
-/* ************** ALG & MAIN ******************** */
+/* ************** GENERAL & MAIN ******************** */
 
 static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID **id_r)
 {
-	/* deze routine leest libblock en direkte data. Met linkfunkties
-	 * alles aan elkaar hangen.
+	/* this routine reads a libblock and its direct data. Use link functions
+	 * to connect it all
 	 */
 	
 	ID *id;
@@ -2638,7 +2648,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 		lb= wich_libbase(main, bhead->code);
 	}
 	
-	/* libblock inlezen */
+	/* read libblock */
 	id = read_struct(fd, bhead);
 	if (id_r)
 		*id_r= id;
@@ -2648,21 +2658,20 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	oldnewmap_insert(fd->libmap, bhead->old, id, 1);
 	BLI_addtail(lb, id);
 	
-	/* eerste acht bits wissen */
+	/* clear first 8 bits */
 	id->flag= (id->flag & 0xFF00) | flag | LIB_NEEDLINK;
 	id->lib= main->curlib;
 	if(id->flag & LIB_FAKEUSER) id->us= 1;
 	else id->us= 0;
 	
-	/* deze mag niet door de direct_link molen: is alleen het ID deel */
-	
+	/* this case cannot be direct_linked: it's just the ID part */
 	if(bhead->code==ID_ID) {
 		return blo_nextbhead(fd, bhead);
 	}
 	
 	bhead = blo_nextbhead(fd, bhead);
 	
-		/* alle data inlezen */
+		/* read all data */
 	while(bhead && bhead->code==DATA) {
 		void *data= read_struct(fd, bhead);
 	
@@ -2673,7 +2682,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 		bhead = blo_nextbhead(fd, bhead);
 	}
 	
-	/* pointers directe data goedzetten */
+	/* init pointers direct data */
 	switch( GS(id->name) ) {
 		case ID_SCR:
 			direct_link_screen(fd, (bScreen *)id);
@@ -2805,10 +2814,10 @@ static int map_223_keybd_code_to_224_keybd_code(int code)
 
 static void do_versions(Main *main)
 {
-	/* PAS OP: pointers van libdata zijn nog niet omgezet */
+	/* watch it: pointers from libdata have not been converted */
 	
 	if(main->versionfile == 100) {
-		/* tex->extend en tex->imageflag veranderd: */
+		/* tex->extend and tex->imageflag have changed: */
 		Tex *tex = main->tex.first;
 		while(tex) {
 			if(tex->id.flag & LIB_NEEDLINK) {
@@ -2840,7 +2849,7 @@ static void do_versions(Main *main)
 		}
 	}
 	if(main->versionfile <= 102) {
-		/* init halo's op 1.0 */
+		/* init halo's at 1.0 */
 		Material *ma = main->mat.first;
 		while(ma) {
 			ma->add= 1.0;
@@ -2848,7 +2857,7 @@ static void do_versions(Main *main)
 		}
 	}
 	if(main->versionfile <= 103) {
-		/* nieuwe variabele in object: colbits */
+		/* new variable in object: colbits */
 		Object *ob = main->object.first;
 		int a;
 		while(ob) {
@@ -2862,7 +2871,7 @@ static void do_versions(Main *main)
 		}
 	}
 	if(main->versionfile <= 104) {
-		/* de timeoffs zit op betere plek */
+		/* timeoffs moved */
 		Object *ob = main->object.first;
 		while(ob) {
 			if(ob->transflag & 1) {
@@ -2881,7 +2890,7 @@ static void do_versions(Main *main)
 		}
 	}
 	if(main->versionfile <= 106) {
-		/* mcol is veranderd */
+		/* mcol changed */
 		Mesh *me = main->mesh.first;
 		while(me) {
 			if(me->mcol) vcol_to_fcol(me);
@@ -2905,7 +2914,7 @@ static void do_versions(Main *main)
 		
 	}
 	if(main->versionfile <= 109) {
-		/* nieuwe variabele: gridlines */
+		/* new variable: gridlines */
 		bScreen *sc = main->screen.first;
 		while(sc) {
 			ScrArea *sa= sc->areabase.first;
@@ -2945,7 +2954,7 @@ static void do_versions(Main *main)
 		MFace *mface;
 		int a_int;
 	
-		/* edge drawflags veranderd */
+		/* edge drawflags changed */
 		while(me) {
 			a_int= me->totface;
 			mface= me->mface;
@@ -2960,74 +2969,8 @@ static void do_versions(Main *main)
 		}
 	}
 	
-	/* eentje overgeslagen voor bug in freeware versie */
 	
-	if(main->versionfile <= 121) {
-		/* O2 versie gemaakt. */
-	}
-	if(main->versionfile <= 122) {
-		/* dithering gaat soms af (backbuf, pas sinds 121) */
-		/* relatieve paden hersteld */
-		/* sequences: endframe van seq wordt op betere plek geprint */
-	}
-	if(main->versionfile <= 123) {
-		/* nog een paar O2 foutjes: keylines in ipo window */
-		/* vertices halo object (O2) nu ook goed */
-		/* zoomwin: ook op O2 */
-		/* bug eruit: schaduw render in ortho */
-	}
-	if(main->versionfile <= 124) {
-		/* inventor lezer */
-		/* key kleur 24 bits beveiligd */
-		/* schrijf plaatje: je kun niet naderhand 24bits naar 32
-		 * omzetten */
-	}
-	if(main->versionfile <= 125) {
-		/* bug vanwege compileer fout (makefile/.h dependency)*/
-	}
-	if(main->versionfile <= 126) {
-		/* overdraw text beter (clever numbuts) */
-		/* bug uit inventor lezer: node ambientColor werd niet
-		 * herkend */
-		/* bugje uit toolbox: clear loc= alt-g */
-	}
-	
-	if(main->versionfile <= 131) {
-		/* jpeq quality button */
-		/* anim5 and blacksmith demo */
-		/* foutje uit transp zbuf: te vroege afbreek */
-		/* geen paarse code meer als imap onvindbaar is meer */
-		/* locx werd niet geprint: string overflow! */
-		/* unieke namen: werkte niet */
-		/* toolbox menu: ook alt en ctrl keys */
-	}
-	if(main->versionfile <= 132) {
-		/* strings in Userdef: eroverheen! */
-		/* betere overdraw implementatie (numbuts) */
-		/* snapmenu redraw */
-		/* warp met 1 vertex */
-	}
-	if(main->versionfile <= 133) {
-		/* bug uit 'make edge face' (array overflow */
-		/* volledig X getekende menu's */
-		/* storage.c terug */
-	}
 	if(main->versionfile <= 134) {
-		/* Play (flipbook) restored */
-		/* Timecursor restored */
-		/* Debug option -d; prints a lot of info in console */
-		/* Text Object. Accentcodes fixed: ALT+BACKSPACE */
-		/* Cursor was sometimes wrong after reading files */
-		/* Texspace draw error: dashed lines */
-		/* Draw Schematic View now with icons in Objects */
-		/* Ortho camera: zbuffer improved. Near/far still not OK */
-		/* Text Object. Character pound= alt-l */
-		/* In editmode and 'set', draw error fixed. */
-		/* Scanline display during rendering had dropouts */
-		/* Sometimes-after render- frontbuffer drawing wasnt disabled */
-		/* Sometimes the render window got black and Blender 'hung' */
-		/* Better 'active window' implementation. */
-		/* Automatic name was too critical, more intuitive now */
 		Tex *tex = main->tex.first;
 		while (tex) {
 			if ((tex->rfac == 0.0) &&
@@ -3040,39 +2983,6 @@ static void do_versions(Main *main)
 			}
 			tex = tex->id.next;
 		}
-	}
-	if(main->versionfile <= 135) {
-		/* 'Windows' key resistant */
-		/* Preview-render: RGB flip (material, lamp, world) */
-		/* Fileselect draw error: 2nd time no redraw! */
-		/* Names error: names were not unique automatically */
-		/* Metaball display error: because of previous */
-		/* CTRL and ALT and SHIFT keys sometimes were locked */
-	}
-	if(main->versionfile <= 136) {
-		/* Files incompatibility Colorband PC-SGI solved */
-		/* RightMouse selecting was blocked after border-select */
-		/* Border select: print size */
-		/* Inventor: reads some 2.0 syntaxes too. Under development */
-		/* Shift/Ctrl/Alt release events got lost while moving view */
-		/* Particles draw (size) error fixed */
-		/* Display type 'DispView' works */
-		/* Metaballs convert to Mesh, normals error fixed. */
-	}
-	if(main->versionfile <= 137) {
-		/* who know */
-	}
-	if(main->versionfile <= 138) {
-		/* fixed: z buffer draw and Mesh with no materials: coredump! */
-		/* bug removed from calculation 3D Bevel Objects */
-		/* view translation in perspective fixed */
-		/* Drawing with ortho camera fixed */
-		/* timing error FreeBSD version fixed */
-		/* Mesa 3.0 included in static version */
-		/* New: LeftMouse+RightMouse allowed at numerber-button
-		 * to type in values */
-		/* Vertex paint bug fixed */
-		/* New: ALT+(1, 2, 3...) for layers 11, 12, 13... */
 	}
 	if(main->versionfile <= 140) {
 		/* r-g-b-fac in texure */
@@ -3766,7 +3676,7 @@ static void do_versions(Main *main)
 		}
 	}	
 
-	/* onder in blender.c de nummers wijzigen! */
+	/* don't forget to set version number in blender.c! */
 }
 
 static void lib_link_all(FileData *fd, Main *main)
@@ -3793,9 +3703,9 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_action(fd, main);
 	lib_link_vfont(fd, main);
 	
-	lib_link_mesh(fd, main);	/* als laatste: tpage images met users op nul */
+	lib_link_mesh(fd, main);	/* as last: tpage images with users at zero */
 	
-	lib_link_library(fd, main);	/* alleen users goedzetten */
+	lib_link_library(fd, main);	/* only init users */
 }
 
 BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
@@ -3851,7 +3761,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 	blo_join_main(&fd->mainlist);
 	
 	lib_link_all(fd, bfd->main);
-	link_global(fd, bfd, fg);	/* als laatste */
+	link_global(fd, bfd, fg);	/* as last */
 
 	if (!bfd->curscreen)
 		bfd->curscreen= bfd->main->screen.first;
@@ -3960,7 +3870,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 			}
 			else {
 				oldnewmap_insert(fd->libmap, bhead->old, id, 1);		
-				/* printf("expand: al ingelezen %s\n", id->name); */
+				/* printf("expand: already read %s\n", id->name); */
 			}
 		}
 	}
@@ -4356,7 +4266,7 @@ static void give_base_to_objects(Scene *sce, ListBase *lb)
 	Object *ob;
 	Base *base;
 	
-	/* alle objects die LIB_EXTERN en LIB_NEEDLINK zijn, een base geven */
+	/* give all objects which are LIB_EXTERN and LIB_NEEDLINK a base */
 	ob= lb->first;
 	while(ob) {
 
@@ -4416,7 +4326,7 @@ static void append_named_part(SpaceFile *sfile, Main *mainvar, Scene *scene, cha
 					}
 				}
 				
-				if(idcode==ID_OB) {	/* los object: base geven */
+				if(idcode==ID_OB) {	/* loose object: give a base */
 					base= MEM_callocN( sizeof(Base), "app_nam_part");
 					BLI_addtail(&scene->base, base);
 					
@@ -4457,7 +4367,7 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
 }
 
 
-	/* append aan G.scene */
+	/* append to G.scene */
 void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 {
 	FileData *fd= (FileData*) sfile->libfiledata;
@@ -4465,7 +4375,7 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	Main *mainl;
 	int a, totsel=0;
 	
-	/* zijn er geselecteerde files? */
+	/* are there files selected? */
 	for(a=0; a<sfile->totfile; a++) {
 		if(sfile->filelist[a].flags & ACTIVE) {
 			totsel++;
@@ -4473,7 +4383,7 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	}
 	
 	if(totsel==0) {
-		/* is de aangegeven file in de filelist? */
+		/* is the indicated file in the filelist? */
 		if(sfile->file[0]) {
 			for(a=0; a<sfile->totfile; a++) {
 				if( strcmp(sfile->filelist[a].relname, sfile->file)==0) break;
@@ -4488,15 +4398,15 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 			return;
 		}
 	}
-	/* nu hebben OF geselecteerde, OF 1 aangegeven file */
+	/* now we have or selected, or an indicated file */
 	
 	mainlist.first= mainlist.last= G.main;
 	G.main->next= NULL;
 	
-	/* mains maken */
+	/* make mains */
 	blo_split_main(&mainlist);
 	
-	/* welke moeten wij hebben? */
+	/* which one do we need? */
 	mainl = blo_find_main(&mainlist, dir);
 
 	if(totsel==0) {
@@ -4510,10 +4420,10 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 		}
 	}
 	
-	/* de main consistent maken */
+	/* make main consistant */
 	expand_main(fd, mainl);
 	
-	/* als expand nog andere libs gevonden heeft: */
+	/* do this when expand found other libs */
 	read_libraries(fd, &mainlist);
 
 	blo_join_main(&mainlist);
@@ -4521,14 +4431,11 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 
 	lib_link_all(fd, G.main);
 
-	/* losse objects aan G.scene hangen deze hebben nog een linkflag
-	   moet na lib_link ivm gelinkte scenes (ob->us==0) */
-
-	/* indirecte objects kunnen geen kwaad */
-	/* als je deze terugzet, denk aan de 'need_link' flag: doe een find naar 'give_base_to' */
+	/* give a base to loose objects */
 	/* give_base_to_objects(G.scene, &(G.main->object)); */
+	/* has been removed... erm, why? (ton) */
 
-	/* voorlopige patch om te voorkomen dat de switch_endian 2x gebeurt */
+	/* patch to prevent switch_endian happens twice */
 	if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
 		blo_freefiledata((FileData*) sfile->libfiledata);
 		sfile->libfiledata= 0;
@@ -4563,7 +4470,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 	while(doit) {
 		doit= 0;
 		
-		/* test 1: inlezen libdata */
+		/* test 1: read libdata */
 		mainptr= main->next;
 		
 		while(mainptr) {
@@ -4620,7 +4527,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 	}
 	mainptr= main->next;
 	while(mainptr) {
-		/* test of er libblocken niet zijn gelezen */
+		/* test if there are unread libblocks */
 		a= set_listbasepointers(mainptr, lbarray);
 		while(a--) {
 			ID *id= lbarray[a]->first;
@@ -4638,8 +4545,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 			}
 		}
 		
-		/* sommige mains moeten nog worden ingelezen, dan is
-		 * versionfile nog nul! */
+		/* some mains still have to be read, then
+		 * versionfile is still zero! */
 		if(mainptr->versionfile) do_versions(mainptr);
 
 		if(mainptr->curlib->filedata) blo_freefiledata(mainptr->curlib->filedata);
