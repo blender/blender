@@ -354,14 +354,12 @@ elif string.find (sys.platform, 'sunos') != -1:
     build_blender_plugin = 'false'
     release_flags = ['-O2']
     debug_flags = ['-O2', '-g']
-    extra_flags = ['-pipe', '-fPIC', '-funsigned-char']
+    extra_flags = ['-pipe', '-fPIC', '-funsigned-char', '-DSUN_OGL_NO_VERTEX_MACROS']
     cxxflags = []
     defines = []
-    env['ENV']['CC']='gcc'
-    env['ENV']['CXX']='g++'
     warn_flags = ['-Wall', '-W']
     window_system = 'X11'
-    platform_libs = ['m', 'util']
+    platform_libs = ['stdc++', 'dl', 'm']
     platform_libpath = []
     platform_linkflags = []
     extra_includes = []
@@ -378,10 +376,10 @@ elif string.find (sys.platform, 'sunos') != -1:
     jpeg_libpath = []
     jpeg_include = []
     # OpenGL library information
-    opengl_lib = ['GL', 'GLU']
+    opengl_lib = ['GL', 'GLU', 'X11']
     opengl_static = []
-    opengl_libpath = []
-    opengl_include = []
+    opengl_libpath = ['/usr/openwin/include']
+    opengl_include = ['/usr/openwin/lib']
     # SDL library information
     sdl_env.ParseConfig ('sdl-config --cflags --libs')
     sdl_cflags = sdl_env.Dictionary()['CCFLAGS']
