@@ -1,5 +1,14 @@
 /**
- * @mainpage IMB - Imbuf module external interface
+ * @file IMB_imbuf.h
+ * @brief IMage Buffer module.
+ *
+ * This module offers import/export of several graphical file formats.
+ * \ref IMB
+ * @ingroup imbuf
+ * @ingroup undoc
+ *
+ * @page IMB - Imbuf module external interface
+ *
  *
  * @section about About the IMB module
  *
@@ -62,7 +71,8 @@
  *       - jpeg_set_quality
  *       - jpeg_destroy_compress
  *     Additionally, it needs the types from the jpeg lib.
- *
+ */
+/*
  * $Id$ 
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -96,7 +106,16 @@
 #ifndef IMB_IMBUF_H
 #define IMB_IMBUF_H
 
+/**
+ *
+ * @attention defined in ???
+ */
 struct ImBuf;
+
+/**
+ *
+ * @attention defined in ???
+ */
 struct anim;
 
 /**
