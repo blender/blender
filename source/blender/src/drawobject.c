@@ -1000,9 +1000,8 @@ void calc_mesh_facedots_ext(void)
 }
 
 /* window coord, assuming all matrices are set OK */
-static void calc_meshverts(void)
+static void calc_meshverts(DerivedMesh *dm)
 {
-	DerivedMesh *dm = mesh_get_cage_derived(G.obedit);
 	float co[3], mat[4][4];
 	EditVert *eve;
 
@@ -1017,26 +1016,31 @@ static void calc_meshverts(void)
 	}
 
 	MTC_Mat4SwapMat4(G.vd->persmat, mat);
-	dm->release(dm);
 }
 
 /* window coord for current window, sets matrices temporal */
 void calc_meshverts_ext(void)
 {
+	int dmNeedsFree;
+	DerivedMesh *dm = mesh_get_cage_derived(G.obedit, &dmNeedsFree);
 
 	areawinset(curarea->win);
 	persp(PERSP_VIEW);
 	
 	mymultmatrix(G.obedit->obmat);
-	calc_meshverts();
+	calc_meshverts(dm);
 	myloadmatrix(G.vd->viewmat);
-	
+
+	if (dmNeedsFree) {
+		dm->release(dm);
+	}
 }
 
 /* window coord for current window, sets matrices temporal, sets (eve->f & 2) when not visible */
 void calc_meshverts_ext_f2(void)
 {
-	DerivedMesh *dm = mesh_get_cage_derived(G.obedit);
+	int dmNeedsFree;
+	DerivedMesh *dm = mesh_get_cage_derived(G.obedit, &dmNeedsFree);
 	float co[3], mat[4][4];
 	EditVert *eve;
 
@@ -1063,7 +1067,9 @@ void calc_meshverts_ext_f2(void)
 	MTC_Mat4SwapMat4(G.vd->persmat, mat);
 	myloadmatrix(G.vd->viewmat);
 
-	dm->release(dm);
+	if (dmNeedsFree) {
+		dm->release(dm);
+	}
 }
 
 
@@ -1569,8 +1575,7 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *baseDM, Derived
 	}
 
 	if(ob==G.obedit) {
-			// XXX Not clear this is needed here. - zr
-		calc_meshverts();
+		calc_meshverts(cageDM);
 		draw_em_fancy_verts(em, cageDM);
 
 		if(G.f & G_DRAWNORMALS) {
@@ -1620,8 +1625,8 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *realDM
 		// This is only for objects from the decimator and
 		// is a temporal solution, a reconstruction of the
 		// displist system should take care of it (zr/ton)
-	if(obDL && obDL->mesh) {
-		DispListMesh *dlm = obDL->mesh;
+	if(me->decimated) {
+		DispListMesh *dlm = me->decimated;
 		MVert *mvert= dlm->mvert;
 		MFace *mface= dlm->mface;
 		int i;
@@ -1751,9 +1756,6 @@ static void draw_mesh_object(Object *ob, int dt)
 	}
 
 	baseDM->release(baseDM);
-	if (realDM) {
-		realDM->release(realDM);
-	}
 }
 
 /* ************** DRAW DISPLIST ****************** */
@@ -3737,6 +3739,7 @@ static int bbs_mesh_solid(Object *ob, DerivedMesh *dm, int facecol)
 void draw_object_backbufsel(Object *ob)
 {
 	extern int em_solidoffs, em_wireoffs, em_vertoffs;	// let linker solve it... from editmesh_mods.c 
+	int dmNeedsFree;
 	DerivedMesh *dm;
 
 	mymultmatrix(ob->obmat);
@@ -3746,7 +3749,7 @@ void draw_object_backbufsel(Object *ob)
 
 	switch( ob->type) {
 	case OB_MESH:
-		dm = mesh_get_cage_derived(ob);
+		dm = mesh_get_cage_derived(ob, &dmNeedsFree);
 
 		if(G.obedit) {
 			em_solidoffs= bbs_mesh_solid(ob, dm, G.scene->selectmode & SCE_SELECT_FACE);
@@ -3764,7 +3767,9 @@ void draw_object_backbufsel(Object *ob)
 		}
 		else bbs_mesh_solid(ob, dm, 1);	// 1= facecol, faceselect
 
-		dm->release(dm);
+		if (dmNeedsFree) {
+			dm->release(dm);
+		}
 		break;
 	case OB_CURVE:
 	case OB_SURF:

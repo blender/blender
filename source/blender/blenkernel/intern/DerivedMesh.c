@@ -20,7 +20,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * The Original Code is Copyright (C) 2005 Blender Foundation.
  * All rights reserved.
  *
  * The Original Code is: all of this file.
@@ -1072,14 +1072,12 @@ static void ssDM_release(DerivedMesh *dm)
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
 
-	if (ssdm->needsFree) {
-		displistmesh_free(ssdm->dlm);
-	}
+	displistmesh_free(ssdm->dlm);
 
 	MEM_freeN(dm);
 }
 
-static DerivedMesh *getSSDerivedMesh(EditMesh *em, DispListMesh *dlm, int needsFree)
+DerivedMesh *derivedmesh_from_displistmesh(EditMesh *em, DispListMesh *dlm)
 {
 	SSDerivedMesh *ssdm = MEM_mallocN(sizeof(*ssdm), "dm");
 
@@ -1110,7 +1108,6 @@ static DerivedMesh *getSSDerivedMesh(EditMesh *em, DispListMesh *dlm, int needsF
 	
 	ssdm->dlm = dlm;
 	ssdm->em = em;
-	ssdm->needsFree = needsFree;
 
 	return (DerivedMesh*) ssdm;
 }
@@ -1145,50 +1142,28 @@ DerivedMesh *mesh_get_derived(Object *ob)
 	Mesh *me= ob->data;
 
 	if (mesh_uses_displist(me)) {
-		DispList *dl;
-
 		build_mesh_data(ob);
-		dl= find_displist(&me->disp, DL_MESH);
 
-			// XXX, This test should not be here because
-			// build_mesh_data should have made DLM... problem
-			// is there is an exception for objects from dupli,
-			// they only get displist built for first object.
-			//
-			// Would work fine except countall gets a derived
-			// mesh before the displist has been evaluated.
-		if (dl) {
-			if(G.obedit && me==G.obedit->data) {
-				return getSSDerivedMesh(G.editMesh, dl->mesh, 0);
-			} else {
-				return getSSDerivedMesh(NULL, dl->mesh, 0);
-			}
-		}
+		return me->derived;
 	} 
 
 	return NULL;
 }
 
-DerivedMesh *mesh_get_derived_render(Object *ob)
+DerivedMesh *mesh_get_derived_render(Object *ob, int *needsFree)
 {
 	Mesh *me= ob->data;
 
 	if (mesh_uses_displist(me)) {
 		if (me->subdiv==me->subdivr) {
-			DispList *dl= find_displist(&me->disp, DL_MESH);
-
-			if(G.obedit && me==G.obedit->data) {
-				return getSSDerivedMesh(G.editMesh, dl->mesh, 0);
-			} else {
-				return getSSDerivedMesh(NULL, dl->mesh, 0);
-			}
+			*needsFree = 0;
+			return me->derived;
 		} else {
+			*needsFree = 1;
 			if(G.obedit && me==G.obedit->data) {
-				DispListMesh *dlm = subsurf_make_dispListMesh_from_editmesh(G.editMesh, me->subdivr, me->flag, me->subsurftype);
-				return getSSDerivedMesh(G.editMesh, dlm, 1);
+				return subsurf_make_derived_from_editmesh(G.editMesh, me->subdivr, me->flag, me->subsurftype);
 			} else {
-				DispListMesh *dlm = subsurf_make_dispListMesh_from_mesh(me, me->subdivr, me->flag);
-				return getSSDerivedMesh(NULL, dlm, 1);
+				return subsurf_make_derived_from_mesh(me, me->subdivr, me->flag);
 			}
 		}
 	}
@@ -1212,15 +1187,18 @@ DerivedMesh *mesh_get_base_derived(Object *ob)
 	}
 }
 
-DerivedMesh *mesh_get_cage_derived(struct Object *ob)
+DerivedMesh *mesh_get_cage_derived(struct Object *ob, int *needsFree)
 {
 	Mesh *me= ob->data;
 	DerivedMesh *dm = NULL;
+
+	*needsFree = 0;
 
 	if (me->flag&ME_OPT_EDGES) {
 		dm = mesh_get_derived(ob);
 	}
 	if (!dm) {
+		*needsFree = 1;
 		dm = mesh_get_base_derived(ob);
 	}
 

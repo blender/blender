@@ -1234,8 +1234,6 @@ void build_particle_system(Object *ob)
 		DerivedMesh *dm = mesh_get_derived(ob);
 
 		dlm = dm->convertToDispListMesh(dm);
-
-		dm->release(dm);
 	} else {
 		dlm = NULL;
 	}

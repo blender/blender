@@ -46,6 +46,7 @@
  */
 
 struct Object;
+struct EditMesh;
 struct DispListMesh;
 
 typedef struct DerivedMesh DerivedMesh;
@@ -146,14 +147,18 @@ struct DerivedMesh {
 	void (*release)(DerivedMesh *dm);
 };
 
+	/* Internal function, just temporarily exposed */
+DerivedMesh *derivedmesh_from_displistmesh(struct EditMesh *em, struct DispListMesh *dlm);
+
 DerivedMesh *mesh_get_derived(struct Object *ob);
-DerivedMesh *mesh_get_derived_render(struct Object *ob);
 DerivedMesh *mesh_get_base_derived(struct Object *ob);
 
+DerivedMesh *mesh_get_derived_render(struct Object *ob, int *needsFree_r);
+
 	/* Utility function, just chooses appropriate DerivedMesh based
-	 * on mesh flags.
+	 * on mesh flags. Release result if *needsFree_r is true.
 	 */
-DerivedMesh *mesh_get_cage_derived(struct Object *ob);
+DerivedMesh *mesh_get_cage_derived(struct Object *ob, int *needsFree_r);
 
 #endif
 

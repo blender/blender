@@ -1354,9 +1354,12 @@ static void init_render_mesh(Object *ob)
 	do_puno= mesh_modifier(ob, 's');
 	
 	if (mesh_uses_displist(me)) {
-		DerivedMesh *dm = mesh_get_derived_render(ob);
+		int needsFree;
+		DerivedMesh *dm = mesh_get_derived_render(ob, &needsFree);
 		dlm = dm->convertToDispListMesh(dm);
-		dm->release(dm);
+		if (needsFree) {
+			dm->release(dm);
+		}
 
 		mvert= dlm->mvert;
 		totvert= dlm->totvert;

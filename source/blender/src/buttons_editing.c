@@ -264,7 +264,6 @@ static void decimate_faces(void)
 
 	if(LOD_LoadMesh(&lod) ) {
 		if( LOD_PreprocessMesh(&lod) ) {
-			DispList *dl;
 			DispListMesh *dlm;
 			MFace *mfaceint;
 
@@ -275,11 +274,11 @@ static void decimate_faces(void)
 			}
 
 			/* ok, put back the stuff in a displist */
-			freedisplist(&(ob->disp));
-			dl= MEM_callocN(sizeof(DispList), "disp");
-			BLI_addtail(&ob->disp, dl);
-			dl->type= DL_MESH;
-			dlm=dl->mesh= MEM_callocN(sizeof(DispListMesh), "dispmesh");
+			if (me->decimated) {
+				displistmesh_free(me->decimated);
+			}
+
+			dlm= me->decimated= MEM_callocN(sizeof(DispListMesh), "dispmesh");
 			dlm->mvert= MEM_callocN(lod.vertex_num*sizeof(MVert), "mvert");
 			dlm->mface= MEM_callocN(lod.face_num*sizeof(MFace), "mface");
 			dlm->totvert= lod.vertex_num;
@@ -320,8 +319,14 @@ static void decimate_cancel(void)
 
 	ob= OBACT;
 	if(ob) {
-		freedisplist(&ob->disp);
-		makeDispList(ob);
+		if (ob->type==OB_MESH) {
+			Mesh *me = ob->data;
+			
+			if (me->decimated) {
+				displistmesh_free(me->decimated);
+				me->decimated = NULL;
+			}
+		}
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -329,9 +334,6 @@ static void decimate_cancel(void)
 static void decimate_apply(void)
 {
 	Object *ob;
-	DispList *dl;
-	DispListMesh *dlm;
-	Mesh *me;
 	MFace *mface;
 	MFace *mfaceint;
 	int a;
@@ -339,11 +341,11 @@ static void decimate_apply(void)
 	if(G.obedit) return;
 
 	ob= OBACT;
-	if(ob) {
-		dl= ob->disp.first;
-		if(dl && dl->mesh) {
-			dlm= dl->mesh;
-			me= ob->data;
+	if(ob && ob->type==OB_MESH) {
+		Mesh *me = ob->data;
+
+		if (me->decimated) {
+			DispListMesh *dlm= me->decimated;
 
 			// vertices
 			if(me->mvert) MEM_freeN(me->mvert);
@@ -369,7 +371,8 @@ static void decimate_apply(void)
 				test_index_mface(mface, 3);
 			}
 
-			freedisplist(&ob->disp);
+			displistmesh_free(me->decimated);
+			me->decimated= NULL;
 
 			G.obedit= ob;
 			make_editMesh();
@@ -709,11 +712,11 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	/* decimator */
 	if(G.obedit==NULL) {
 		int tottria= decimate_count_tria(ob);
-		DispList *dl;
+		Mesh *me = ob->data;
 
-		// wacko, wait for new displist system (ton)
-		if( (dl=ob->disp.first) && dl->mesh);
-		else decim_faces= tottria;
+		if (!me->decimated) {
+			decim_faces= tottria;
+		}
 
 		uiBlockBeginAlign(block);
 		uiBlockSetCol(block, TH_BUT_SETTING1);

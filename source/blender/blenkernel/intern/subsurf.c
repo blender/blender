@@ -53,6 +53,7 @@
 #include "BKE_mesh.h"
 #include "BKE_subsurf.h"
 #include "BKE_displist.h"
+#include "BKE_DerivedMesh.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
@@ -1094,7 +1095,7 @@ static DispListMesh *subsurf_subdivide_to_displistmesh(HyperMesh *hme, short sub
 	return dlm;
 }
 
-DispListMesh *subsurf_make_dispListMesh_from_editmesh(EditMesh *em, int subdivLevels, int flags, short type) {
+static DispListMesh *subsurf_make_dispListMesh_from_editmesh(EditMesh *em, int subdivLevels, int flags, short type) {
 	if (subdivLevels<1) {
 		return displistmesh_from_editmesh(em);
 #ifdef USE_CCGSUBSURFLIB
@@ -1108,7 +1109,11 @@ DispListMesh *subsurf_make_dispListMesh_from_editmesh(EditMesh *em, int subdivLe
 	}
 }
 
-DispListMesh *subsurf_make_dispListMesh_from_mesh(Mesh *me, int subdivLevels, int flags) {
+DerivedMesh *subsurf_make_derived_from_editmesh(EditMesh *em, int subdivLevels, int flags, short type) {
+	return derivedmesh_from_displistmesh(em, subsurf_make_dispListMesh_from_editmesh(em, subdivLevels, flags, type));
+}
+
+static DispListMesh *subsurf_make_dispListMesh_from_mesh(Mesh *me, int subdivLevels, int flags) {
 	if (subdivLevels<1) {
 		return displistmesh_from_mesh(me, NULL);
 #ifdef USE_CCGSUBSURFLIB
@@ -1120,6 +1125,10 @@ DispListMesh *subsurf_make_dispListMesh_from_mesh(Mesh *me, int subdivLevels, in
 
 		return subsurf_subdivide_to_displistmesh(hme, subdivLevels, flags, me->subsurftype);
 	}
+}
+
+DerivedMesh *subsurf_make_derived_from_mesh(Mesh *me, int subdivLevels, int flags) {
+	return derivedmesh_from_displistmesh(NULL, subsurf_make_dispListMesh_from_mesh(me, subdivLevels, flags));
 }
 
 	// editarmature.c

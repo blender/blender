@@ -45,7 +45,6 @@
 #define DL_VERTCOL              6
 #define DL_VERTS                7
 #define DL_NORS                 8
-#define DL_MESH					9
 
 /* dl->flag */
 #define DL_CYCL_U		1
@@ -133,8 +132,6 @@ typedef struct DispList {
 	float *verts, *nors;
 	int *index;
 	unsigned int *col1, *col2;
-	struct DispListMesh *mesh;
-	
 } DispList;
 
 extern void copy_displist(struct ListBase *lbn, struct ListBase *lb);

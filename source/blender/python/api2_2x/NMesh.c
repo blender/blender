@@ -2169,7 +2169,6 @@ static PyObject *M_NMesh_GetRawFromObject( PyObject * self, PyObject * args )
 			DispListMesh *dlm = dm->convertToDispListMesh(dm);
 			nmesh = new_NMesh_internal( me, dlm, NULL );
 			displistmesh_free(dlm);
-			dm->release(dm);
 		}
 		else if( ( dl = find_displist( &ob->disp, DL_VERTS ) ) )
 			nmesh = new_NMesh_internal( me, NULL, dl->verts );

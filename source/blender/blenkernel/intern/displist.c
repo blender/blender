@@ -328,7 +328,6 @@ void free_disp_elem(DispList *dl)
 		if(dl->index) MEM_freeN(dl->index);
 		if(dl->col1) MEM_freeN(dl->col1);
 		if(dl->col2) MEM_freeN(dl->col2);
-		if(dl->mesh) displistmesh_free(dl->mesh);
 		MEM_freeN(dl);
 	}
 }
@@ -411,7 +410,7 @@ int displist_has_faces(ListBase *lb)
 	
 	dl= lb->first;
 	while(dl) {
-		if ELEM6(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF, DL_MESH, DL_TRIA, DL_POLY)
+		if ELEM5(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF, DL_TRIA, DL_POLY)
 			return 1;
 		dl= dl->next;
 	}
@@ -434,7 +433,6 @@ void copy_displist(ListBase *lbn, ListBase *lb)
 		dln->index= MEM_dupallocN(dl->index);
 		dln->col1= MEM_dupallocN(dl->col1);
 		dln->col2= MEM_dupallocN(dl->col2);
-		if (dl->mesh) dln->mesh= displistmesh_copy(dl->mesh);
 		
 		dl= dl->next;
 	}
@@ -946,8 +944,6 @@ void shadeDispList(Object *ob)
 			}
 
 			dlm= dm->convertToDispListMesh(dm);
-
-			dm->release(dm);
 
 			if (dlm && dlm->totvert) {
 				float *vnors, *vn;
@@ -1769,24 +1765,21 @@ void makeDispList(Object *ob)
 	if(ob->type==OB_MESH) {
 		me= ob->data;
 		freedisplist(&(me->disp));
+		if (me->derived) {
+			me->derived->release(me->derived);
+			me->derived= NULL;
+		}
 
 		tex_space_mesh(ob->data);
 		
 		if (ob!=G.obedit) mesh_modifier(ob, 's');
 
 		if (mesh_uses_displist(me)) {  /* subsurf */
-			DispListMesh *dlm;
-
 			if (ob==G.obedit) {
-				dlm= subsurf_make_dispListMesh_from_editmesh(em, me->subdiv, me->flag, me->subsurftype);
+				me->derived= subsurf_make_derived_from_editmesh(em, me->subdiv, me->flag, me->subsurftype);
 			} else {
-				dlm= subsurf_make_dispListMesh_from_mesh(me, me->subdiv, me->flag);
+				me->derived= subsurf_make_derived_from_mesh(me, me->subdiv, me->flag);
 			}
-
-			dl= MEM_callocN(sizeof(*dl), "dl");
-			dl->type= DL_MESH;
-			dl->mesh= dlm;
-			BLI_addtail(&me->disp, dl);
 		}
 
 		if (ob!=G.obedit) mesh_modifier(ob, 'e');

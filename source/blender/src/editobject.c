@@ -96,6 +96,7 @@
 #include "BKE_booleanops.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
@@ -2151,6 +2152,7 @@ void convertmenu(void)
 				
 				if (mesh_uses_displist(oldme)) {
 					DispListMesh *dlm;
+					DerivedMesh *dm;
 
 					basedel = base;
 
@@ -2177,8 +2179,11 @@ void convertmenu(void)
 						me->mat= MEM_dupallocN(oldme->mat);
 						for(a=0; a<ob1->totcol; a++) id_us_plus((ID *)me->mat[a]);
 					}
-						
-					dlm= subsurf_make_dispListMesh_from_mesh(oldme, oldme->subdiv, oldme->flag);
+					
+					dm= subsurf_make_derived_from_mesh(oldme, oldme->subdiv, oldme->flag);
+					dlm= dm->convertToDispListMesh(dm);
+					dm->release(dm);
+
 					displistmesh_to_mesh(dlm, ob1->data);
 					displistmesh_free(dlm);
 

@@ -495,8 +495,6 @@ void count_object(Object *ob, int sel)
 			if (dm) {
 				totvert= dm->getNumVerts(dm);
 				totface= dm->getNumFaces(dm);
-
-				dm->release(dm);
 			} else {
 				totvert= me->totvert;
 				totface= me->totface;

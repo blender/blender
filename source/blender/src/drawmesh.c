@@ -933,11 +933,12 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 
 		if(mesh_uses_displist(me) && editing==0) {
 			dm = mesh_get_derived(ob);
+			dm->drawFacesTex(dm, draw_tface_mesh__set_draw);
 		} else {
 			dm = mesh_get_base_derived(ob);
+			dm->drawFacesTex(dm, draw_tface_mesh__set_draw);
+			dm->release(dm);
 		}
-		dm->drawFacesTex(dm, draw_tface_mesh__set_draw);
-		dm->release(dm);
 
 		start = 0;
 		totface = me->totface;

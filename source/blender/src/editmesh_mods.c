@@ -628,7 +628,8 @@ static EditFace *findnearestface(short *dist)
 /* for interactivity, frontbuffer draw in current window */
 static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 {
-	DerivedMesh *dm = mesh_get_cage_derived(G.obedit);
+	int dmNeedsFree;
+	DerivedMesh *dm = mesh_get_cage_derived(G.obedit, &dmNeedsFree);
 
 	glDrawBuffer(GL_FRONT);
 
@@ -711,7 +712,9 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 	/* signal that frontbuf differs from back */
 	curarea->win_swap= WIN_FRONT_OK;
 
-	dm->release(dm);
+	if (dmNeedsFree) {
+		dm->release(dm);
+	}
 }
 
 

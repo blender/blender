@@ -39,11 +39,6 @@
 #include <config.h>
 #endif
 
-#ifdef _WIN32
-#pragma warning (once : 4244) // "conversion from double to float"
-#pragma warning (once : 4305) // "truncation from const double to float"
-#endif
-
 /* local */
 float noise3_perlin(float vec[3]);
 float turbulence_perlin(float *point, float lofreq, float hifreq);

@@ -2559,7 +2559,6 @@ static int write_object_stl(FILE *fpSTL, Object *ob, Mesh *me)
 		numfacets += write_displistmesh_stl(fpSTL, ob, dlm);
 
 		displistmesh_free(dlm);
-		dm->release(dm);
 	}
 	else {
 		numfacets += write_mesh_stl(fpSTL, ob, me);

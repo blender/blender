@@ -33,12 +33,12 @@
 
 struct Mesh;
 struct Object;
-struct Displist;
 struct DispListMesh;
+struct DerivedMesh;
 struct EditMesh;
 
-struct DispListMesh *subsurf_make_dispListMesh_from_editmesh(struct EditMesh *em, int subdivLevels, int flags, short type);
-struct DispListMesh *subsurf_make_dispListMesh_from_mesh(struct Mesh *me, int subdivLevels, int flags);
+struct DerivedMesh *subsurf_make_derived_from_editmesh(struct EditMesh *em, int subdivLevels, int flags, short type);
+struct DerivedMesh *subsurf_make_derived_from_mesh(struct Mesh *me, int subdivLevels, int flags);
 
 #ifdef USE_CCGSUBSURFLIB
 struct DispListMesh *subsurf_ccg_make_dispListMesh_from_editmesh(struct EditMesh *em, int subdivLevels, int flags);

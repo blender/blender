@@ -55,6 +55,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_main.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_subsurf.h"
@@ -151,6 +152,7 @@ void free_mesh(Mesh *me)
 
 	if(me->bb) MEM_freeN(me->bb);
 	if(me->disp.first) freedisplist(&me->disp);
+	if(me->derived) me->derived->release(me->derived);
 }
 
 void copy_dverts(MDeformVert *dst, MDeformVert *src, int copycount)
@@ -422,6 +424,7 @@ void tex_space_mesh(Mesh *me)
 void make_orco_displist_mesh(Object *ob, int subdivlvl)
 {
 	Mesh *me;
+	DerivedMesh *dm;
 	DispListMesh *dlm;
 	int i;
 	
@@ -432,7 +435,9 @@ void make_orco_displist_mesh(Object *ob, int subdivlvl)
 		cp_key(0, me->totvert, me->totvert, (char*) me->mvert->co, me->key, me->key->refkey, 0);
 	}
 
-	dlm= subsurf_make_dispListMesh_from_mesh(me, subdivlvl, me->flag);
+	dm= subsurf_make_derived_from_mesh(me, subdivlvl, me->flag);
+	dlm= dm->convertToDispListMesh(dm);
+	dm->release(dm);
 	
 		/* Restore correct key */
 	do_ob_key(ob);

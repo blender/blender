@@ -321,7 +321,6 @@ void BLI_adddirstrings()
 	struct direntry * file;
 	struct tm *tm;
 	time_t zero= 0;
-	struct passwd *pwuser;
 
 	file = &files[0];
 	
@@ -356,12 +355,15 @@ void BLI_adddirstrings()
 #ifdef WIN32
 		strcpy(files[num].owner,"user");
 #else
-		pwuser = getpwuid(files[num].s.st_uid);
-		if ( pwuser ) {
-		   strcpy(files[num].owner, pwuser->pw_name);
-		} else {
-		   sprintf(files[num].owner, "%d", files[num].s.st_uid);
-                }
+		{
+			struct passwd *pwuser;
+			pwuser = getpwuid(files[num].s.st_uid);
+			if ( pwuser ) {
+			strcpy(files[num].owner, pwuser->pw_name);
+			} else {
+				sprintf(files[num].owner, "%d", files[num].s.st_uid);
+            }
+		}
 #endif
 
 		tm= localtime(&files[num].s.st_mtime);

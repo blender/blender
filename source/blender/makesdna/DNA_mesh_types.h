@@ -35,6 +35,8 @@
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 
+struct DerivedMesh;
+struct DispListMesh;
 struct Ipo;
 struct Key;
 struct Material;
@@ -77,6 +79,11 @@ typedef struct Mesh {
 	struct Mesh *texcomesh;
 	float *orco;
 
+		/* not written in file, caches derived mesh */
+	struct DerivedMesh *derived;
+		/* hacky place to store temporary decimated mesh */
+	struct DispListMesh *decimated;
+
 	struct OcInfo *oc;		/* not written in file */
 	void *sumohandle;
 
@@ -87,14 +94,13 @@ typedef struct Mesh {
 	float size[3];
 	float rot[3];
 	
+	float cubemapsize, pad;
+
 	short smoothresh, flag;
 
-	short subdiv, subdivr, subdivdone;
+	short subdiv, subdivr;
 	short totcol;
 	short subsurftype; 
-	short reserved1;	/* Padding */
-
-	float cubemapsize;
 
 } Mesh;
 
