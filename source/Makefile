@@ -60,12 +60,10 @@ PYPLAYERLIB ?= $(PYLIB)
 
 ############# libraries ##################
 # COMLIB COMmon LIBraries for all targets
-# BCLIB Blender Creator LIBraries
 # BPLIB Browser Plugin LIBraries
 # SPLIB1 Standalone Player LIBraries (pre COMLIB)
 # SPLIB Standalone Player LIBraries (post COMLIB)
 # PULIB PUblisher LIBraries
-# GRCLIB Gui and Render LIBraries for Creator
 # GRPLIB Gui and Render LIBraries for Publisher
 # LLIBS dynamic system libraries
 # SADD Static OpenGL libraries
@@ -73,20 +71,6 @@ PYPLAYERLIB ?= $(PYLIB)
 # NSPLUGLIB PLUGin LIBraries for ns-style api
 # PLUGAPPLIB libs that form the application to be plugged in
 # Note: the order is important here
-
-    GRCLIB = $(OCGDIR)/creator/$(DEBUG_DIR)libcreator.a
-    GRCLIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrccreator.a
-    GRCLIB += $(OCGDIR)/blender/misc/$(DEBUG_DIR)libmisc.a
-    GRCLIB += $(OCGDIR)/blender/radiosity/$(DEBUG_DIR)libradiosity.a
-    GRCLIB += $(NAN_DECIMATION)/lib/libdecimation.a
-    GRCLIB += $(NAN_BSP)/lib/$(DEBUG_DIR)libbsp.a
-    GRCLIB += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
-    GRCLIB += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
-    GRCLIB += $(OCGDIR)/blender/img/$(DEBUG_DIR)libimg.a
-    GRCLIB += $(OCGDIR)/blender/renderconverter/$(DEBUG_DIR)librenderconverter.a
-    GRCLIB += $(OCGDIR)/blender/render/$(DEBUG_DIR)librender.a
-    GRCLIB += $(OCGDIR)/blender/bpython/$(DEBUG_DIR)libbpython.a
-    GRCLIB +=  $(OCGDIR)/blender/bpython/$(DEBUG_DIR)libfrozen.a
 
     GRPLIB = $(OCGDIR)/creator/$(DEBUG_DIR)libcreator.a
     GRPLIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrcpublisher.a
@@ -155,16 +139,6 @@ endif
     COMLIB += $(NAN_BMFONT)/lib/$(DEBUG_DIR)libbmfont.a
     COMLIB += $(NAN_PNG)/lib/libpng.a
 
-    BCLIB = $(NAN_IKSOLVER)/lib/libiksolver.a
-    BCLIB += $(NAN_MOTO)/lib/libmoto.a
-    BCLIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
-    BCLIB += $(OCGDIR)/blender/readstreamglue/$(DEBUG_DIR)libreadstreamglue.a
-    BCLIB += $(OCGDIR)/blender/writestreamglueSTUB/$(DEBUG_DIR)libwritestreamglueSTUB.a
-    BCLIB += $(OCGDIR)/blender/inflate/$(DEBUG_DIR)libinflate.a
-    BCLIB += $(OCGDIR)/blender/verify/$(DEBUG_DIR)libverify.a
-    BCLIB += $(OCGDIR)/blender/decryptSTUB/$(DEBUG_DIR)libdecryptSTUB.a
-    BCLIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrccreator.a
-
     PULIB = $(NAN_IKSOLVER)/lib/libiksolver.a
     PULIB += $(NAN_MOTO)/lib/libmoto.a
     PULIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
@@ -202,15 +176,12 @@ endif
     SPLIB += $(OCGDIR)/blender/verify/$(DEBUG_DIR)libverify.a
     SPLIB += $(OCGDIR)/blender/blenkernel/blenkernel_blc/$(DEBUG_DIR)libblenkernel_blc.a
 
-    BCLIB += $(NAN_BLENKEY)/lib/libblenkey.a
     PULIB += $(NAN_BLENKEY)/lib/libblenkey.a
     SPLIB += $(NAN_BLENKEY)/lib/libblenkey.a
   ifeq ($(OS),windows)
-    BCLIB += $(NAN_OPENSSL)/lib/libeay32.lib
     PULIB += $(NAN_OPENSSL)/lib/libeay32.lib
     SPLIB += $(NAN_OPENSSL)/lib/libeay32.lib
   else
-    BCLIB += $(NAN_OPENSSL)/lib/libcrypto.a
     PULIB += $(NAN_OPENSSL)/lib/libcrypto.a
     SPLIB += $(NAN_OPENSSL)/lib/libcrypto.a
   endif
@@ -268,24 +239,23 @@ endif
 include nan_link.mk
 
 ifeq ($(OS),beos)
-    BINTARGETS = blendercreator
+    BINTARGETS = blenderdynamic
 endif
 
 ifeq ($(OS),darwin)
-    PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
-	# Next line would enable MxTextTools (for VRML2 import) but results in a link error
-    # PYLIB += $(NAN_MXTEXTTOOLS) 
-    BINTARGETS = blendercreator.app
-    BINTARGETS += blenderpublisher.app
+    BINTARGETS = blenderdynamic.app
     BINTARGETS += blenderplayer.app
+    PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
+    # Next line would enable MxTextTools (for VRML2 import) 
+    # but results in a link error
+    # PYLIB += $(NAN_MXTEXTTOOLS) 
 endif
 
 ifeq ($(OS),freebsd)
   ifeq ($(OS_VERSION),$(findstring $(OS_VERSION), "3.4 4.0"))
-    BINTARGETS = blendercreator blenderstatic
+    BINTARGETS = blenderstatic
   else
-    BINTARGETS = blendercreator
-    BINTARGETS += blenderpublisher
+    BINTARGETS = blenderdynamic
     BINTARGETS += blenderplayer
     BINTARGETS += plugin
   endif
@@ -294,8 +264,7 @@ ifeq ($(OS),freebsd)
 endif
 
 ifeq ($(OS),irix)
-    BINTARGETS = blendercreator
-    BINTARGETS += blenderpublisher
+    BINTARGETS = blenderdynamic
     BINTARGETS += blenderplayer
     BINTARGETS += plugin
     PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
@@ -304,22 +273,20 @@ endif
 
 ifeq ($(OS),linux)
   ifeq ($(CPU),alpha)
-    BINTARGETS = blendercreator
-    BINTARGETS += blenderpublisher
+    BINTARGETS = blenderdynamic
     BINTARGETS += blenderplayer
   endif
   ifeq ($(CPU),i386)
     BINTARGETS = plugin
     # BINTARGETS += ptest
     BINTARGETS += xplink
-    BINTARGETS += blendercreator
-    BINTARGETS += blenderpublisher
+    BINTARGETS += blenderdynamic
     BINTARGETS += blenderplayer
     BINTARGETS += blenderstatic
   endif
   ifeq ($(CPU),powerpc)
-    BINTARGETS = blendercreator blenderstatic
-    BINTARGETS += blenderpublisher
+    BINTARGETS = blenderstatic
+    BINTARGETS += blenderdynamic
   endif
     PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     PYLIB += $(NAN_MXTEXTTOOLS)
@@ -331,8 +298,7 @@ ifeq ($(OS),openbsd)
 endif
 
 ifeq ($(OS),solaris)
-    BINTARGETS = blendercreator
-    BINTARGETS += blenderpublisher
+    BINTARGETS = blenderdynamic
     BINTARGETS += blenderplayer
   ifeq ($(CPU),sparc)
     BINTARGETS += plugin
@@ -341,7 +307,6 @@ ifeq ($(OS),solaris)
     PYLIB += $(NAN_MXTEXTTOOLS)
     PYLIB += $(NAN_ZLIB)/lib/libz.a
 
-    BCLIB += $(NAN_ZLIB)/lib/libz.a
     PULIB += $(NAN_ZLIB)/lib/libz.a
     SPLIB += $(NAN_ZLIB)/lib/libz.a
 endif
@@ -403,14 +368,11 @@ ifeq ($(OS),windows)
     # Might need to change this to $(NAN_MOZILLA_LIB)/nspr4.lib
     NSPLUGLIB += $(NAN_NSPR)/lib/nspr4.lib
 
-    BINTARGETS = blendercreator
-    BINTARGETS += blenderpublisher
+    BINTARGETS = blenderdynamic
     BINTARGETS += blenderplayer
     BINTARGETS += blenderdynplayer
     BINTARGETS += plugin
 
-    BCLIB += $(OCGDIR)/blender/icons/$(DEBUG_DIR)wincreator.res
-    BCLIB += $(NAN_ZLIB)/lib/libz.a
     PULIB += $(OCGDIR)/blender/icons/$(DEBUG_DIR)winpublisher.res
     PULIB += $(NAN_ZLIB)/lib/libz.a
     SPLIB += $(OCGDIR)/blender/icons/$(DEBUG_DIR)winplayer.res
@@ -479,16 +441,14 @@ link: $(BINTARGETS)
     endif
 
 linkclean:
-	@$(RM)  $(DIR)/blendercreator* \
-		$(DIR)/blenderstatic* \
-		$(DIR)/blenderpublisher* \
-		$(DIR)/blenderplayer*
+	@$(RM) $(DIR)/blenderstatic* \
+		$(DIR)/blenderplayer* \
+		$(DIR)/bin/*
 
 debuglinkclean:
-	@$(RM)  $(DIR)/debug/blendercreator* \
-		$(DIR)/debug/blenderstatic* \
-		$(DIR)/debug/blenderpublisher* \
-		$(DIR)/debug/blenderplayer*
+	@$(RM) $(DIR)/debug/blenderstatic* \
+		$(DIR)/debug/blenderplayer* \
+		$(DIR)/debug/bin/*
 
 # Shortcut for Tinderbox release builds. Mortals don't use this.
 release:
@@ -496,20 +456,16 @@ release:
 
 ############### Linker rules ###############
 
-blendercreator: $(DIR)/$(DEBUG_DIR)blendercreator$(EXT)
 blenderstatic: $(DIR)/$(DEBUG_DIR)blenderstatic
-blenderpublisher: $(DIR)/$(DEBUG_DIR)blenderpublisher$(EXT)
+blenderdynamic: $(DIR)/$(DEBUG_DIR)blenderdynamic$(EXT)
 blenderplayer: $(DIR)/$(DEBUG_DIR)blenderplayer$(EXT)
 blenderdynplayer: $(DIR)/$(DEBUG_DIR)blenderdynplayer$(EXT)
 
 blenderplayer.app: blenderplayer
 	@$(MAKE) -C darwin/ APPLICATION=blenderplayer
 
-blenderpublisher.app: blenderpublisher
-	@$(MAKE) -C darwin/ APPLICATION=blenderpublisher
-
-blendercreator.app: blendercreator
-	@$(MAKE) -C darwin/ APPLICATION=blendercreator
+blenderdynamic.app: blenderdynamic
+	@$(MAKE) -C darwin/ APPLICATION=blender
 
 # XPCOM connector only for linux so far...
 ifeq ($(OS),linux)
@@ -526,32 +482,24 @@ ifeq ($(OS),windows)
     plugin: $(DIR)/$(DEBUG_DIR)npB3DPlg$(SOEXT)
 endif
 
-$(DIR)/$(DEBUG_DIR)blendercreator$(EXT): $(OBJS) $(GRCLIB) $(COMLIB) $(BCLIB)
-	@echo "****> Link $@"
-    ifdef NAN_BUILDINFO
-	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
-    endif
-	$(CCC) $(LDFLAGS) -o $@ $(BUILDINFO_O) $(OBJS) $(GRCLIB) $(COMLIB) $(BCLIB) $(PYLIB) $(LLIBS) $(DADD) $(LOPTS)
-    ifdef NAN_BUILDINFO
-	/bin/rm $(BUILDINFO_O)
-    endif
-
-$(DIR)/$(DEBUG_DIR)blenderstatic: $(OBJS) $(GRCLIB) $(COMLIB) $(BCLIB)
+$(DIR)/$(DEBUG_DIR)blenderstatic: $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB)
 	@echo "****> Link $@"
     ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"static"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
     endif
-	$(CCC) $(LDFLAGS) -o $@ $(BUILDINFO_O) $(OBJS) $(GRCLIB) $(COMLIB) $(BCLIB) $(PYLIB) $(LLIBS) $(SADD) $(LOPTS)
+	mkdir -p $(DIR)/$(DEBUG_DIR)bin
+	$(CCC) $(LDFLAGS) -o $(DKR)/$(DEBUG_DIR)bin/blenderstatic $(BUILDINFO_O) $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB) $(PYLIB) $(LLIBS) $(SADD) $(LOPTS)
     ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
     endif
 
-$(DIR)/$(DEBUG_DIR)blenderpublisher$(EXT): $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB)
+$(DIR)/$(DEBUG_DIR)blenderdynamic$(EXT): $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB)
 	@echo "****> Link $@"
     ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
     endif
-	$(CCC) $(LDFLAGS) -o $@ $(BUILDINFO_O) $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB) $(PYLIB) $(LLIBS) $(DADD) $(LOPTS)
+	mkdir -p $(DIR)/$(DEBUG_DIR)bin
+	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blender$(EXT) $(BUILDINFO_O) $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB) $(PYLIB) $(LLIBS) $(DADD) $(LOPTS)
     ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
     endif
@@ -561,7 +509,8 @@ $(DIR)/$(DEBUG_DIR)blenderplayer$(EXT): $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB)
     ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
     endif
-	$(CCC) $(LDFLAGS) -o $@ $(BUILDINFO_O) $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB) $(PYPLAYERLIB) $(LLIBS) $(DADD) $(LOPTS)
+	mkdir -p $(DIR)/$(DEBUG_DIR)bin
+	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderplayer$(EXT) $(BUILDINFO_O) $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB) $(PYPLAYERLIB) $(LLIBS) $(DADD) $(LOPTS)
     ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
     endif
@@ -571,7 +520,8 @@ $(DIR)/$(DEBUG_DIR)blenderdynplayer$(EXT): $(OBJS) $(COMLIB) $(SPLIB)
     ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
     endif
-	$(CCC) $(LDFLAGS) -o $@ $(BUILDINFO_O) $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB) $(PYLIB) $(LLIBS) $(DADD) $(LOPTS)
+	mkdir -p $(DIR)/$(DEBUG_DIR)bin
+	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderdynplayer$(EXT) $(BUILDINFO_O) $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB) $(PYLIB) $(LLIBS) $(DADD) $(LOPTS)
     ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
     endif
@@ -627,4 +577,3 @@ $(DIR)/$(DEBUG_DIR)npTestPlugin$(SOEXT): $(NSPLUGLIB)
 	/bin/rm $(BUILDINFO_O)
     endif
 endif
-
