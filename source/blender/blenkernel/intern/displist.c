@@ -1669,7 +1669,7 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 	
 }
 
-void curve_to_filledpoly(Curve *cu, ListBase *dispbase)
+void curve_to_filledpoly(Curve *cu, ListBase *nurb, ListBase *dispbase)
 {
 	DispList *dl;
 	Nurb *nu;
@@ -1678,7 +1678,7 @@ void curve_to_filledpoly(Curve *cu, ListBase *dispbase)
 	
 	if(cu->flag & CU_3D) return;
 	
-	nu= cu->nurb.first;
+	nu= nurb->first;
 	while(nu) {
 		if(nu->flagu & CU_CYCLIC) break;
 		nu= nu->next;

@@ -2153,6 +2153,7 @@ static void drawDispList(Object *ob, int dt)
 	ListBase *lb=0;
 	DispList *dl;
 	Mesh *me;
+	Curve *cu;
 	int solid;
 
 	
@@ -2269,8 +2270,9 @@ static void drawDispList(Object *ob, int dt)
 		
 	case OB_FONT:
 	case OB_CURVE:
-	
-		lb= &((Curve *)ob->data)->disp;
+		cu= ob->data;
+		
+		lb= &cu->disp;
 		if(lb->first==0) makeDispList(ob);
 		
 		if(solid) {
@@ -2279,7 +2281,9 @@ static void drawDispList(Object *ob, int dt)
 			
 			/* rule: dl->type INDEX3 is always first in list */
 			if(dl->type!=DL_INDEX3) {
-				curve_to_filledpoly(ob->data, lb);
+				if(ob==G.obedit) curve_to_filledpoly(ob->data, &editNurb, lb);
+				else curve_to_filledpoly(ob->data, &cu->nurb, lb);
+				
 				dl= lb->first;
 			}
 			if(dl->nors==0) addnormalsDispList(ob, lb);
@@ -2291,14 +2295,22 @@ static void drawDispList(Object *ob, int dt)
 				drawDispListwire(lb);
 				draw_index_wire= 1;
 			}
-			else if(dt==OB_SHADED) {
-				if(ob->disp.first==0) shadeDispList(ob);
-				drawDispListshaded(lb, ob);
-			}
 			else {
-				init_gl_materials(ob);
-				two_sided(0);
-				drawDispListsolid(lb, ob);
+				if(dt==OB_SHADED) {
+					if(ob->disp.first==0) shadeDispList(ob);
+					drawDispListshaded(lb, ob);
+				}
+				else {
+					init_gl_materials(ob);
+					two_sided(0);
+					drawDispListsolid(lb, ob);
+				}
+				if(ob==G.obedit) {
+					cpack(0);
+					draw_index_wire= 0;
+					drawDispListwire(lb);
+					draw_index_wire= 1;
+				}
 			}
 			index3_nors_incr= 1;
 		}

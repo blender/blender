@@ -2202,7 +2202,7 @@ static void init_render_curve(Object *ob)
 	if(cu->disp.first==0) return;
 	
 	if(dl->type!=DL_INDEX3) {
-		curve_to_filledpoly(cu, &cu->disp);
+		curve_to_filledpoly(cu, &cu->nurb, &cu->disp);
 	}
 
 	if(cu->bev.first==0) makeBevelList(ob);

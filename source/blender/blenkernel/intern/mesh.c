@@ -962,7 +962,7 @@ void nurbs_to_mesh(Object *ob)
 		/* rule: dl->type INDEX3 always as first in list */
 		dl= cu->disp.first;
 		if(dl->type!=DL_INDEX3) {
-			curve_to_filledpoly(ob->data, &cu->disp);
+			curve_to_filledpoly(ob->data, &cu->nurb, &cu->disp);
 		}
 	}
 
