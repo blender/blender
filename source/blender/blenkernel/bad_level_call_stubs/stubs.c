@@ -72,6 +72,9 @@ void build_seqar(struct ListBase *seqbase, struct Sequence  ***seqar, int *totse
 	*totseq = 0;
 }
 
+/* blender.c */
+void mainqenter (unsigned short event, short val){}
+
 void BPY_do_pyscript(ID *id, short int event){}
 void BPY_clear_script(Script *script){}
 void BPY_free_compiled_text(struct Text *text){}

@@ -232,6 +232,7 @@ static PyObject *Image_getSize(BPy_Image *self);
 static PyObject *Image_getDepth(BPy_Image *self);
 static PyObject *Image_getXRep(BPy_Image *self);
 static PyObject *Image_getYRep(BPy_Image *self);
+static PyObject *Image_getBindCode(BPy_Image *self); 
 static PyObject *Image_setName(BPy_Image *self, PyObject *args);
 static PyObject *Image_setXRep(BPy_Image *self, PyObject *args);
 static PyObject *Image_setYRep(BPy_Image *self, PyObject *args);
@@ -243,19 +244,21 @@ static PyObject *Image_reload(BPy_Image *self); /* by Campbell */
 static PyMethodDef BPy_Image_methods[] = {
  /* name, method, flags, doc */
 	{"getName", (PyCFunction)Image_getName, METH_NOARGS,
-					"() - Return Image object name"},
+			"() - Return Image object name"},
 	{"getFilename", (PyCFunction)Image_getFilename, METH_NOARGS,
-					"() - Return Image object filename"},
+			"() - Return Image object filename"},
 	{"getSize", (PyCFunction)Image_getSize, METH_NOARGS,
-					"() - Return Image object [width, height] dimension in pixels"},
+			"() - Return Image object [width, height] dimension in pixels"},
 	{"getDepth", (PyCFunction)Image_getDepth, METH_NOARGS,
-					"() - Return Image object pixel depth"},
+			"() - Return Image object pixel depth"},
 	{"getXRep", (PyCFunction)Image_getXRep, METH_NOARGS,
-					"() - Return Image object x repetition value"},
+			"() - Return Image object x repetition value"},
 	{"getYRep", (PyCFunction)Image_getYRep, METH_NOARGS,
-					"() - Return Image object y repetition value"},
+			"() - Return Image object y repetition value"},
+	{"getBindCode", (PyCFunction)Image_getBindCode, METH_NOARGS,
+			"() - Return Image object's bind code value"},											
 	{"reload", (PyCFunction)Image_reload, METH_NOARGS,
-					"() - Reload the image from the filesystem"},
+			"() - Reload the image from the filesystem"},
 	{"setName", (PyCFunction)Image_setName, METH_VARARGS,
 					"(str) - Change Image object name"},
 	{"setXRep", (PyCFunction)Image_setXRep, METH_VARARGS,
@@ -435,6 +438,16 @@ static PyObject *Image_getYRep(BPy_Image *self)
 					"couldn't get Image.yrep attribute");
 }
 
+static PyObject *Image_getBindCode(BPy_Image *self)
+{
+	PyObject *attr = PyLong_FromUnsignedLong(self->image->bindcode);
+
+	if (attr) return attr;
+
+	return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+		"couldn't get Image.bindcode attribute");
+}
+
 static PyObject *Image_reload(BPy_Image *self)
 {
 	Image *img = self->image;
@@ -522,10 +535,12 @@ static PyObject *Image_getAttr (BPy_Image *self, char *name)
 		attr = PyInt_FromLong(self->image->xrep);
 	else if (strcmp(name, "yrep") == 0)
 		attr = PyInt_FromLong(self->image->yrep);
+	else if (strcmp(name, "bindcode") == 0)
+		attr = PyInt_FromLong(self->image->bindcode);
 
 	else if (strcmp(name, "__members__") == 0)
-		attr = Py_BuildValue("[s,s,s,s,s,s]",
-										"name", "filename", "size", "depth", "xrep", "yrep");
+		attr = Py_BuildValue("[s,s,s,s,s,s,s]",
+			"name", "filename", "size", "depth", "xrep", "yrep", "bindcode");
 
 	if (!attr)
 		return (EXPP_ReturnPyObjError (PyExc_MemoryError,
