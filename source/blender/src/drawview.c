@@ -1900,8 +1900,9 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	base= G.scene->base.first;
 	while(base) {
 		
-		if (base->object==G.obedit || ( (base->flag & SELECT) && (base->lay & G.vd->lay)) ) {
-			draw_object(base);
+		if(G.vd->lay & base->lay) {
+			if (base->object==G.obedit || ( base->flag & SELECT) ) 
+				draw_object(base);
 		}
 		
 		base= base->next;
