@@ -120,6 +120,7 @@ static char *give_seqname(Sequence *seq)
 	else if(seq->type==SEQ_ALPHAOVER) return "ALPHAOVER";
 	else if(seq->type==SEQ_ALPHAUNDER) return "ALPHAUNDER";
 	else if(seq->type==SEQ_OVERDROP) return "OVER DROP";
+	else if(seq->type==SEQ_SWEEP) return "SWEEP";
 	else if(seq->type==SEQ_PLUGIN) {
 		if(seq->plugin && seq->plugin->doit) return seq->plugin->pname;
 		return "PLUGIN";
@@ -164,6 +165,8 @@ static unsigned int seq_color(Sequence *seq)
 		return 0x9080A0;
 	case SEQ_OVERDROP:
 		return 0x5080B0;
+		case SEQ_SWEEP:
+		return 0x2080B0;
 	case SEQ_PLUGIN:
 		return 0x906000;
 	case SEQ_SOUND:
@@ -700,6 +703,15 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 	else if(last_seq->type>=SEQ_EFFECT) {
 		uiDefBut(block, LABEL, 0, "Striptype: Effect", 10,140,150,20, 0, 0, 0, 0, 0, "");
 		uiDefBut(block, TEX, 0, "Stripname: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
+
+		if(last_seq->type==SEQ_SWEEP){
+			SweepVars *sweep = (SweepVars *)last_seq->varstr;
+			char formatstring[1024];
+
+			strcpy(formatstring, "Select Sweep Type %t|Left to Right %x0|Right to Left %x1|Bottom to Top %x2|Top to Bottom %x3|Top left to Bottom right%x4|Bottom right to Top left %x5|Bottom left to Top right %x6|Top right to Bottom left %x7|Horizontal out %x8|Horizontal in %x9|Vertical out %x10|Vertical in %x11|Hor/Vert out %x12|Hor/Vert in %x13|Bottom left to Top right out %x14|Top left to Bottom right in %x15|Top left to Bottom right out %x16|Bottom left to Top right in %x17|Diagonal out %x18|Diagonal in %x19|Diagonal out 2 %x20|Diagonal in 2 %x21|");
+
+			uiDefButS(block, MENU,SEQ_BUT_MOVIE, formatstring,	10,90,220,22, &sweep->sweeptype, 0, 0, 0, 0, "What type of sweep should be performed");
+		}
 
 	}
 

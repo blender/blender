@@ -3,7 +3,7 @@
  *
  * Functions to draw the "Video Sequence Editor" window header
  * and handle user events sent to it.
- * 
+ *
  * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -79,7 +79,7 @@ extern Sequence *last_seq;
 static void do_seq_viewmenu(void *arg, int event)
 {
 	extern int play_anim(int mode);
-	
+
 	switch(event)
 	{
 	case 1: /* Play Back Animation */
@@ -110,7 +110,7 @@ static uiBlock *seq_viewmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "seq_viewmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_seq_viewmenu, NULL);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation|Alt A", 0, yco-=20, 
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation|Alt A", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation in 3D View|Alt Shift A", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
@@ -206,6 +206,9 @@ static void do_seq_addmenu_effectmenu(void *arg, int event)
 	case 8:
 		add_sequence(SEQ_PLUGIN);
 		break;
+	case 9:
+		add_sequence(SEQ_SWEEP);
+		break;
 	}
 }
 
@@ -225,13 +228,14 @@ static uiBlock *seq_addmenu_effectmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Alpha Over", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Alpha Under", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Alpha Over Drop", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Sweep", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Plugin...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
-	
+
 	return block;
 }
 
@@ -263,7 +267,7 @@ static uiBlock *seq_addmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "seq_addmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_seq_addmenu, NULL);
 
-	uiDefIconTextBlockBut(block, seq_addmenu_effectmenu, NULL, ICON_RIGHTARROW_THIN, "Effect", 0, yco-=20, 120, 19, "");	
+	uiDefIconTextBlockBut(block, seq_addmenu_effectmenu, NULL, ICON_RIGHTARROW_THIN, "Effect", 0, yco-=20, 120, 19, "");
 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
@@ -271,7 +275,7 @@ static uiBlock *seq_addmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scene", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Images", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Movie", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-		
+
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
@@ -470,23 +474,23 @@ void seq_buttons()
 		xmax= GetButStringLength("View");
 		uiDefBlockBut(block,seq_viewmenu, NULL, "View", xco, -2, xmax-3, 24, "");
 		xco+=xmax;
-	
+
 		xmax= GetButStringLength("Select");
 		uiDefBlockBut(block,seq_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
 		xco+=xmax;
-	
+
 		xmax= GetButStringLength("Add");
 		uiDefBlockBut(block, seq_addmenu, NULL, "Add", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
-	
+
 		xmax= GetButStringLength("Strip");
 		uiDefBlockBut(block, seq_editmenu, NULL, "Strip", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
-	
+
 		/* end of pull down menus */
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
-	
+
 	/* IMAGE */
 	uiDefIconButS(block, TOG, B_REDR, ICON_IMAGE_COL,	xco,0,XIC,YIC, &sseq->mainb, 0, 0, 0, 0, "Shows the sequence output image preview");
 
@@ -498,6 +502,6 @@ void seq_buttons()
 	/* CLEAR MEM */
 	xco+= 8;
 	uiDefBut(block, BUT, B_SEQCLEAR, "Refresh",	xco+=XIC,0,3*XIC,YIC, 0, 0, 0, 0, 0, "Clears all buffered images in memory");
-	
+
 	uiDrawBlock(block);
 }

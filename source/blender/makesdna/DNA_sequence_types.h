@@ -1,7 +1,7 @@
 /**
  * blenlib/DNA_sequence_types.h (mar-2001 nzc)
- *	
- * $Id$ 
+ *
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -48,7 +48,7 @@ typedef struct StripElem {
 	struct StripElem *se1, *se2, *se3;
 	short ok, nr;
 	int pad;
-		
+
 } StripElem;
 
 typedef struct Strip {
@@ -58,21 +58,21 @@ typedef struct Strip {
 	char dir[80];
 	short orx, ory;
 	int pad;
-		
+
 } Strip;
 
 
 typedef struct PluginSeq {
 	char name[80];
 	void *handle;
-	
+
 	char *pname;
-	
+
 	int vars, version;
 
 	void *varstr;
 	float *cfra;
-	
+
 	float data[32];
 
 	void (*doit)(void);
@@ -88,7 +88,7 @@ typedef struct Sequence {
 	struct Sequence *next, *prev, *newseq;
 	void *lib;
 	char name[24];
-	
+
 	short flag, type;
 	int len;
 	int start, startofs, endofs;
@@ -97,28 +97,30 @@ typedef struct Sequence {
 	int startdisp, enddisp;
 	float mul, handsize;
 	int sfra;
-	
+
 	Strip *strip;
 	StripElem *curelem;
-	
+
 	struct Ipo *ipo;
 	struct Scene *scene;
 	struct anim *anim;
 	float facf0, facf1;
-	
+
 	PluginSeq *plugin;
 
 	/* pointers for effects: */
 	struct Sequence *seq1, *seq2, *seq3;
-	
+
 	/* meta */
 	ListBase seqbase;
-	
+
 	struct bSound *sound;	/* the linked "bSound" object */
 	float level, pan;		/* level in dB (0=full), pan -1..1 */
 	int curpos;				/* last sample position in audio_fill() */
 	int pad;
-	
+
+	void *varstr;			/* Struct pointer for effect settings */
+
 } Sequence;
 #
 #
@@ -135,6 +137,12 @@ typedef struct Editing {
 	short flag, rt;
 	int pad;
 } Editing;
+
+/* ************* Effect Variable Structs ********* */
+typedef struct SweepVars {
+	short sweeptype;	
+} SweepVars;
+
 
 /* ***************** SEQUENCE ****************** */
 
@@ -162,6 +170,7 @@ typedef struct Editing {
 #define SEQ_MUL			14
 #define SEQ_OVERDROP	15
 #define SEQ_PLUGIN		24
+#define SEQ_SWEEP		25
 
 #endif
 

@@ -28,7 +28,7 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
- * 
+ *
  */
 
 #ifndef BSE_SEQUENCE_H
@@ -95,6 +95,18 @@ void do_mul_effect(float facf0, float facf1,
 				   int x, int y,
 				   unsigned int *rect1, unsigned int *rect2,
 				   unsigned int *out);
+/* Sweep effect */
+enum {DO_LEFT_RIGHT, DO_RIGHT_LEFT, DO_DOWN_UP, DO_UP_DOWN, 
+      DO_LOWER_LEFT_UPPER_RIGHT, DO_UPPER_RIGHT_LOWER_LEFT,
+      DO_UPPER_LEFT_LOWER_RIGHT, DO_LOWER_RIGHT_UPPER_LEFT, 
+      DO_HORZ_OUT, DO_HORZ_IN, DO_VERT_OUT, DO_VERT_IN,
+      DO_HORZ_VERT_OUT, DO_HORZ_VERT_IN, DO_LEFT_DOWN_RIGHT_UP_OUT,
+      DO_LEFT_DOWN_RIGHT_UP_IN, DO_LEFT_UP_RIGHT_DOWN_OUT, 
+      DO_LEFT_UP_RIGHT_DOWN_IN, DO_DIAG_OUT, DO_DIAG_IN, DO_DIAG_OUT_2,
+      DO_DIAG_IN_2};
+int check_zone(int x, int y, int xo, int yo, struct Sequence *seq, float facf0);
+void do_sweep_effect(struct Sequence *seq, float facf0, float facf1, int x, int y, unsigned int *rect1, unsigned int *rect2, unsigned int *out);
+
 void make_black_ibuf(struct ImBuf *ibuf);
 void multibuf(struct ImBuf *ibuf, float fmul);
 void do_effect(int cfra, struct Sequence *seq, struct StripElem *se);
