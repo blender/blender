@@ -62,6 +62,7 @@ extern struct EditEdge *findedgelist(struct EditVert *v1, struct EditVert *v2);
 
 
 /* ******************* editmesh_lib.c */
+extern void EM_fgon_flags(void);
 
 extern int faceselectedOR(EditFace *efa, int flag);
 extern int faceselectedAND(EditFace *efa, int flag);
@@ -83,7 +84,6 @@ extern float convex(float *v1, float *v2, float *v3, float *v4);
 
 /* ******************* editmesh_mods.c */
 extern EditEdge *findnearestedge(short *dist);
-extern void make_fgon(void);
 
 /* ******************* editmesh_tools.c */
 

@@ -238,7 +238,7 @@ static EditFace *findnearestface(short *dist)
 	getmouseco_areawin(mval);
 	efa= acto->next;
 	while(efa) {
-		if(efa->h==0) {
+		if(efa->h==0 && efa->fgonf!=EM_FGON) {
 			temp= abs(mval[0]- efa->xs)+ abs(mval[1]- efa->ys);
 			if(temp< *dist) {
 				act= efa;
@@ -251,7 +251,7 @@ static EditFace *findnearestface(short *dist)
 	if(*dist>3) {
 		efa= em->faces.first;
 		while(efa) {
-			if(efa->h==0) {
+			if(efa->h==0 && efa->fgonf!=EM_FGON) {
 				temp= abs(mval[0]- efa->xs)+ abs(mval[1]- efa->ys);
 				if(temp< *dist) {
 					act= efa;
@@ -294,15 +294,17 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 		}
 
 		if(G.scene->selectmode & (SCE_SELECT_EDGE|SCE_SELECT_FACE)) {
-			if(efa->f & SELECT) BIF_ThemeColor(TH_EDGE_SELECT);
-			else BIF_ThemeColor(TH_WIRE);
-			
-			glBegin(GL_LINE_LOOP);
-			glVertex3fv(efa->v1->co);
-			glVertex3fv(efa->v2->co);
-			glVertex3fv(efa->v3->co);
-			if(efa->v4) glVertex3fv(efa->v4->co);
-			glEnd();
+			if(efa->fgonf==0) {
+				if(efa->f & SELECT) BIF_ThemeColor(TH_EDGE_SELECT);
+				else BIF_ThemeColor(TH_WIRE);
+				
+				glBegin(GL_LINE_LOOP);
+				glVertex3fv(efa->v1->co);
+				glVertex3fv(efa->v2->co);
+				glVertex3fv(efa->v3->co);
+				if(efa->v4) glVertex3fv(efa->v4->co);
+				glEnd();
+			}
 		}
 		
 		if(G.scene->selectmode & SCE_SELECT_FACE) {
@@ -581,7 +583,7 @@ void selectconnected_mesh(int qual)
 			EM_select_edge(eed, sel);
 	}
 	for(efa= em->faces.first; efa; efa= efa->next) {
-		if(efa->v1->f1 && efa->v2->f1 && efa->v3->f1 && (efa->v4 && efa->v4->f1)) 
+		if(efa->v1->f1 && efa->v2->f1 && efa->v3->f1 && (efa->v4==NULL || efa->v4->f1)) 
 			EM_select_face(efa, sel);
 	}
 	/* no flush needed, connected geometry is done */
@@ -592,206 +594,6 @@ void selectconnected_mesh(int qual)
 	BIF_undo_push("Select Linked");
 	
 }
-
-/* results in:
-   - faces having ->fgonf flag set (also for draw)
-   - edges having ->fgoni index set (for select)
-*/
-
-static float editface_area(EditFace *efa)
-{
-	if(efa->v4) return AreaQ3Dfl(efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
-	else return AreaT3Dfl(efa->v1->co, efa->v2->co, efa->v3->co);
-}
-
-void fgon_flags()
-{
-	EditMesh *em = G.editMesh;
-	EditFace *efa, *efan, *efamax;
-	EditEdge *eed;
-	ListBase listb={NULL, NULL};
-	float size, maxsize;
-	short done, curindex= 1;
-	
-	// for each face with fgon edge AND not fgon flag set
-	for(eed= em->edges.first; eed; eed= eed->next) eed->fgoni= 0;  // index
-	for(efa= em->faces.first; efa; efa= efa->next) efa->fgonf= 0;  // flag
-	
-	// for speed & simplicity, put fgon face candidates in new listbase
-	efa= em->faces.first;
-	while(efa) {
-		efan= efa->next;
-		if( (efa->e1->h & EM_FGON) || (efa->e2->h & EM_FGON) || 
-			(efa->e3->h & EM_FGON) || (efa->e4 && (efa->e4->h & EM_FGON)) ) {
-			BLI_remlink(&em->faces, efa);
-			BLI_addtail(&listb, efa);
-		}
-		efa= efan;
-	}
-	
-	// find an undone face with fgon edge
-	for(efa= listb.first; efa; efa= efa->next) {
-		if(efa->fgonf==0) {
-			
-			// init this face
-			efa->fgonf= EM_FGON;
-			if(efa->e1->h & EM_FGON) efa->e1->fgoni= curindex;
-			if(efa->e2->h & EM_FGON) efa->e2->fgoni= curindex;
-			if(efa->e3->h & EM_FGON) efa->e3->fgoni= curindex;
-			if(efa->e4 && (efa->e4->h & EM_FGON)) efa->e4->fgoni= curindex;
-			
-			// we search for largest face, to give facedot drawing rights
-			maxsize= editface_area(efa);
-			efamax= efa;
-			
-			// now flush curendex over edges and set faceflags
-			done= 1;
-			while(done==1) {
-				done= 0;
-				
-				for(efan= listb.first; efan; efan= efan->next) {
-					if(efan->fgonf==0) {
-						// if one if its edges has index set, do other too
-						if( (efan->e1->fgoni==curindex) || (efan->e2->fgoni==curindex) ||
-							(efan->e3->fgoni==curindex) || (efan->e4 && (efan->e4->fgoni==curindex)) ) {
-							
-							efan->fgonf= EM_FGON;
-							if(efan->e1->h & EM_FGON) efan->e1->fgoni= curindex;
-							if(efan->e2->h & EM_FGON) efan->e2->fgoni= curindex;
-							if(efan->e3->h & EM_FGON) efan->e3->fgoni= curindex;
-							if(efan->e4 && (efan->e4->h & EM_FGON)) efan->e4->fgoni= curindex;
-							
-							size= editface_area(efan);
-							if(size>maxsize) {
-								efamax= efan;
-								maxsize= size;
-							}
-							done= 1;
-						}
-					}
-				}
-			}
-			
-			efamax->fgonf |= EM_FGON_DRAW;
-			curindex++;
-
-		}
-	}
-
-	// put fgon face candidates back in listbase
-	efa= listb.first;
-	while(efa) {
-		efan= efa->next;
-		BLI_remlink(&listb, efa);
-		BLI_addtail(&em->faces, efa);
-		efa= efan;
-	}
-}
-
-
-/* selected faces get hidden edges */
-void make_fgon(void)
-{
-	EditMesh *em = G.editMesh;
-	EditFace *efa;
-	EditEdge *eed;
-	EditVert *eve;
-	float *nor=NULL, dot;	// reference
-	int done=0;
-	
-	/* tagging edges. rule is:
-	   - edge used by exactly 2 selected faces
-	   - no vertices allowed with only tagged edges (return)
-	   - face normals should not differ too much 
-	 
-	*/
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		eed->f1= 0;	// amount of selected
-		eed->f2= 0; // amount of unselected
-	}
-	
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		if(efa->f & SELECT) {
-			if(nor==NULL) nor= efa->n;
-			if(efa->e1->f1 < 3) efa->e1->f1++;
-			if(efa->e2->f1 < 3) efa->e2->f1++;
-			if(efa->e3->f1 < 3) efa->e3->f1++;
-			if(efa->e4 && efa->e4->f1 < 3) efa->e4->f1++;
-		}
-		else {
-			if(efa->e1->f2 < 3) efa->e1->f2++;
-			if(efa->e2->f2 < 3) efa->e2->f2++;
-			if(efa->e3->f2 < 3) efa->e3->f2++;
-			if(efa->e4 && efa->e4->f2 < 3) efa->e4->f2++;
-		}
-	}
-	// now eed->f1 becomes tagged edge
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		if(eed->f1==2 && eed->f2==0) eed->f1= 1;
-		else eed->f1= 0;
-	}
-	
-	// no vertices allowed with only tagged edges
-	for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		if(eed->f1) {
-			eed->v1->f1 |= 1;
-			eed->v2->f1 |= 1;
-		}
-		else {
-			eed->v1->f1 |= 2;
-			eed->v2->f1 |= 2;
-		}
-	}
-	for(eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->f1==1) break;
-	}
-	if(eve) {
-		error("Cannot make polygon with interior vertices");
-		return;
-	}
-	
-	// check co-planar
-	if(nor==NULL) {
-		error("No faces selected to make FGon");
-		return;
-	}
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		if(efa->f & SELECT) {
-			dot= nor[0]*efa->n[0]+nor[1]*efa->n[1]+nor[2]*efa->n[2];
-			if(dot<0.9 && dot > -0.9) break;
-		}
-	}
-	if(efa) {
-		error("Not a set of co-planar faces to make FGon");
-		return;
-	}
-	
-	// and there we go
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		if(eed->f1) {
-			eed->h |= EM_FGON;
-			done= 1;
-		}
-	}
-	
-	if(done==0) {
-		error("Didn't find FGon to create");
-	}
-	else {
-		Mesh *me= G.obedit->data;
-		// signal to save edges with ngon flags
-		if(!me->medge)
-			me->medge= MEM_callocN(sizeof(MEdge), "fake mesh edge");
-		
-		fgon_flags();	// redo flags and indices for fgons
-
-		allqueue(REDRAWVIEW3D, 0);
-		makeDispList(G.obedit);
-		BIF_undo_push("Make FGon");
-	}
-}
-
 
 /* swap is 0 or 1, if 1 it hides not selected */
 void hide_mesh(int swap)
@@ -1059,7 +861,7 @@ void select_more(void)
 	/* new selected faces */
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		if(efa->h==0) {
-			if(efa->v1->f1 && efa->v2->f1 && efa->v3->f1 && (efa->v4 && efa->v4->f1)) 
+			if(efa->v1->f1 && efa->v2->f1 && efa->v3->f1 && (efa->v4==NULL || efa->v4->f1)) 
 				EM_select_face(efa, 1);
 		}
 	}
@@ -1142,7 +944,7 @@ void select_less(void)
 	}
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		if(efa->h==0) {
-			if(efa->v1->f1 && efa->v2->f1 && efa->v3->f1 && (efa->v4 && efa->v4->f1)) 
+			if(efa->v1->f1 && efa->v2->f1 && efa->v3->f1 && (efa->v4==NULL || efa->v4->f1)) 
 				EM_select_face(efa, 0);
 		}
 	}

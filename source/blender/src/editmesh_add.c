@@ -65,6 +65,7 @@
 
 #include "BIF_editmesh.h"
 #include "BIF_graphics.h"
+#include "BIF_interface.h"
 #include "BIF_mywindow.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
@@ -164,6 +165,128 @@ void addvert_mesh(void)
 
 }
 
+/* selected faces get hidden edges */
+static void make_fgon(void)
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	EditEdge *eed;
+	EditVert *eve;
+	float *nor=NULL, dot;	// reference
+	int done=0, ret;
+	
+	ret= pupmenu("FGon %t|Make|Clear");
+	if(ret<1) return;
+	
+	if(ret==2) {
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->f & SELECT) {
+				efa->fgonf= 0;
+				efa->e1->h &= ~EM_FGON;
+				efa->e2->h &= ~EM_FGON;
+				efa->e3->h &= ~EM_FGON;
+				if(efa->e4) efa->e4->h &= ~EM_FGON;
+			}
+		}
+		allqueue(REDRAWVIEW3D, 0);
+		makeDispList(G.obedit);
+		BIF_undo_push("Clear FGon");
+		return;
+	}
+
+	/* tagging edges. rule is:
+	   - edge used by exactly 2 selected faces
+	   - no vertices allowed with only tagged edges (return)
+	   - face normals should not differ too much 
+	 
+	*/
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		eed->f1= 0;	// amount of selected
+		eed->f2= 0; // amount of unselected
+	}
+	
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		if(efa->f & SELECT) {
+			if(nor==NULL) nor= efa->n;
+			if(efa->e1->f1 < 3) efa->e1->f1++;
+			if(efa->e2->f1 < 3) efa->e2->f1++;
+			if(efa->e3->f1 < 3) efa->e3->f1++;
+			if(efa->e4 && efa->e4->f1 < 3) efa->e4->f1++;
+		}
+		else {
+			if(efa->e1->f2 < 3) efa->e1->f2++;
+			if(efa->e2->f2 < 3) efa->e2->f2++;
+			if(efa->e3->f2 < 3) efa->e3->f2++;
+			if(efa->e4 && efa->e4->f2 < 3) efa->e4->f2++;
+		}
+	}
+	// now eed->f1 becomes tagged edge
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		if(eed->f1==2 && eed->f2==0) eed->f1= 1;
+		else eed->f1= 0;
+	}
+	
+	// no vertices allowed with only tagged edges
+	for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		if(eed->f1) {
+			eed->v1->f1 |= 1;
+			eed->v2->f1 |= 1;
+		}
+		else {
+			eed->v1->f1 |= 2;
+			eed->v2->f1 |= 2;
+		}
+	}
+	for(eve= em->verts.first; eve; eve= eve->next) {
+		if(eve->f1==1) break;
+	}
+	if(eve) {
+		error("Cannot make polygon with interior vertices");
+		return;
+	}
+	
+	// check co-planar
+	if(nor==NULL) {
+		error("No faces selected to make FGon");
+		return;
+	}
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		if(efa->f & SELECT) {
+			dot= nor[0]*efa->n[0]+nor[1]*efa->n[1]+nor[2]*efa->n[2];
+			if(dot<0.9 && dot > -0.9) break;
+		}
+	}
+	if(efa) {
+		error("Not a set of co-planar faces to make FGon");
+		return;
+	}
+	
+	// and there we go
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		if(eed->f1) {
+			eed->h |= EM_FGON;
+			done= 1;
+		}
+	}
+	
+	if(done==0) {
+		error("Didn't find FGon to create");
+	}
+	else {
+		Mesh *me= G.obedit->data;
+		// signal to save edges with ngon flags
+		if(!me->medge)
+			me->medge= MEM_callocN(sizeof(MEdge), "fake mesh edge");
+		
+		EM_fgon_flags();	// redo flags and indices for fgons
+
+		allqueue(REDRAWVIEW3D, 0);
+		makeDispList(G.obedit);
+		BIF_undo_push("Make FGon");
+	}
+}
+
 void addedgeface_mesh(void)
 {
 	EditMesh *em = G.editMesh;
@@ -191,7 +314,7 @@ void addedgeface_mesh(void)
 		return;
 	}
 	else if(amount > 4) {
-		//make_fgon();
+		make_fgon();
 		return;
 	}
 	else if(amount<2) {

@@ -159,6 +159,7 @@ void convert_to_triface(int all)
 		efa= next;
 	}
 	
+	EM_fgon_flags();	// redo flags and indices for fgons
 	BIF_undo_push("Convert Quads to Triangles");
 	
 }
@@ -414,6 +415,7 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 		}
 		eve= nextve;
 	}
+
 	return a;	/* amount */
 }
 
@@ -540,6 +542,7 @@ void extrude_mesh(void)
 		error("No valid selection");
 	}
 	else {
+		EM_fgon_flags();
 		countall();  /* for G.totvert in calc_meshverts() */
 		calc_meshverts();
 		transform('n');
@@ -593,14 +596,15 @@ void extrude_repeat_mesh(int steps, float offs)
 	Mat3MulVecfl(tmat, dvec);
 
 	for(a=0;a<steps;a++) {
-		ok= extrudeflag_vert(SELECT);
+		ok= extrudeflag(SELECT);
 		if(ok==0) {
 			error("No valid vertices are selected");
 			break;
 		}
 		translateflag(SELECT, dvec);
 	}
-
+	
+	EM_fgon_flags();
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);
@@ -662,7 +666,7 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 	ok= 1;
 
 	for(a=0;a<steps;a++) {
-		if(mode==0) ok= extrudeflag_vert(SELECT);
+		if(mode==0) ok= extrudeflag(SELECT);
 		else adduplicateflag(SELECT);
 		if(ok==0) {
 			error("No valid vertices are selected");
@@ -688,11 +692,14 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 			eve= nextve;
 		}
 	}
+	
+	EM_fgon_flags();
 	countall();
 	recalc_editnormals();
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);
-	BIF_undo_push("Spin");
+	
+	if(dvec==NULL) BIF_undo_push("Spin");
 }
 
 void screw_mesh(int steps,int turns)
@@ -940,6 +947,8 @@ void delete_mesh(void)
 			efa= nextvl;
 		}
 	}
+
+	EM_fgon_flags();	// redo flags and indices for fgons
 
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
@@ -1402,6 +1411,9 @@ void subdivideflag(int flag, float rad, int beauty)
 	eed= em->edges.first;
 	while(eed) {
 		if(eed->f2 & flag) {
+			/* for now */
+			eed->h &= ~EM_FGON;
+		
 			/* Subdivide percentage is stored in 1/32768ths in eed->f1 */
 			if (beauty & B_PERCENTSUBD) percent=(float)(eed->f1)/32768.0;
 			else percent=0.5;
@@ -1448,6 +1460,9 @@ void subdivideflag(int flag, float rad, int beauty)
 		efapin= *efa; /* make a copy of efa to recover uv pinning later */
 
 		if( faceselectedOR(efa, flag) ) {
+			/* for now */
+			efa->fgonf= 0;
+			
 			e1= efa->e1;
 			e2= efa->e2;
 			e3= efa->e3;

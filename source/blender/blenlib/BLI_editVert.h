@@ -38,6 +38,7 @@
 #ifndef BLI_EDITVERT_H
 #define BLI_EDITVERT_H
 
+/* note; changing this also might affect the undo copy in editmesh.c */
 typedef struct EditVert
 {
 	struct EditVert *next, *prev, *vn;
@@ -59,6 +60,7 @@ typedef struct HashEdge {
 	struct HashEdge *next;
 } HashEdge;
 
+/* note; changing this also might affect the undo copy in editmesh.c */
 typedef struct EditEdge
 {
 	struct EditEdge *next, *prev;
@@ -71,6 +73,7 @@ typedef struct EditEdge
 	HashEdge hash;
 } EditEdge;
 
+/* note; changing this also might affect the undo copy in editmesh.c */
 typedef struct EditFace
 {
 	struct EditFace *next, *prev;

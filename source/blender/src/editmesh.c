@@ -781,7 +781,8 @@ void make_editMesh()
 
 	/* this creates coherent selections. also needed for older files */
 	EM_selectmode_set();
-
+	
+	EM_fgon_flags();
 	countall();
 	
 	waitcursor(0);
@@ -1632,13 +1633,13 @@ typedef struct EditEdgeC
 {
 	int v1, v2;
 	unsigned char f, h, seam, pad;
-	float crease;
+	short crease, fgoni;
 } EditEdgeC;
 
 typedef struct EditFaceC
 {
 	int v1, v2, v3, v4;
-	unsigned char mat_nr, flag, f, h, puno, pad;
+	unsigned char mat_nr, flag, f, h, puno, fgonf;
 	short pad1;
 } EditFaceC;
 
@@ -1722,7 +1723,8 @@ static void *editMesh_to_undoMesh(void)
 		eedc->f= eed->f;
 		eedc->h= eed->h;
 		eedc->seam= eed->seam;
-		eedc->crease= eed->crease;
+		eedc->crease= (short)(eed->crease*255.0);
+		eedc->fgoni= eed->fgoni;
 	}
 	
 	/* copy faces */
@@ -1738,6 +1740,7 @@ static void *editMesh_to_undoMesh(void)
 		efac->f= efa->f;
 		efac->h= efa->h;
 		efac->puno= efa->puno;
+		efac->fgonf= efa->fgonf;
 		
 		if(tface) {
 			*tface= efa->tf;
@@ -1789,7 +1792,8 @@ static void undoMesh_to_editMesh(void *umv)
 		eed->f= eedc->f;
 		eed->h= eedc->h;
 		eed->seam= eedc->seam;
-		eed->crease= eedc->crease;
+		eed->fgoni= eedc->fgoni;
+		eed->crease= ((float)eedc->crease)/255.0;
 	}
 	
 	/* copy faces */
@@ -1805,6 +1809,7 @@ static void undoMesh_to_editMesh(void *umv)
 		efa->f= efac->f;
 		efa->h= efac->h;
 		efa->puno= efac->puno;
+		efa->fgonf= efac->fgonf;
 		
 		if(tface) {
 			efa->tf= *tface;

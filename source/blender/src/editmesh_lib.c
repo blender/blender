@@ -820,6 +820,8 @@ void adduplicateflag(int flag)
 			efa->f |= 128;
 		}
 	}
+
+	EM_fgon_flags();	// redo flags and indices for fgons
 }
 
 void delfaceflag(int flag)
@@ -1180,6 +1182,105 @@ float convex(float *v1, float *v2, float *v3, float *v4)
 	inpr= cross[0]*test[0]+cross[1]*test[1]+cross[2]*test[2];
 
 	return inpr;
+}
+
+
+/* ********************* Fake Polgon support (FGon) ***************** */
+
+
+/* results in:
+   - faces having ->fgonf flag set (also for draw)
+   - edges having ->fgoni index set (for select)
+*/
+
+static float editface_area(EditFace *efa)
+{
+	if(efa->v4) return AreaQ3Dfl(efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
+	else return AreaT3Dfl(efa->v1->co, efa->v2->co, efa->v3->co);
+}
+
+void EM_fgon_flags(void)
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa, *efan, *efamax;
+	EditEdge *eed;
+	ListBase listb={NULL, NULL};
+	float size, maxsize;
+	short done, curindex= 1;
+	
+	// for each face with fgon edge AND not fgon flag set
+	for(eed= em->edges.first; eed; eed= eed->next) eed->fgoni= 0;  // index
+	for(efa= em->faces.first; efa; efa= efa->next) efa->fgonf= 0;  // flag
+	
+	// for speed & simplicity, put fgon face candidates in new listbase
+	efa= em->faces.first;
+	while(efa) {
+		efan= efa->next;
+		if( (efa->e1->h & EM_FGON) || (efa->e2->h & EM_FGON) || 
+			(efa->e3->h & EM_FGON) || (efa->e4 && (efa->e4->h & EM_FGON)) ) {
+			BLI_remlink(&em->faces, efa);
+			BLI_addtail(&listb, efa);
+		}
+		efa= efan;
+	}
+	
+	// find an undone face with fgon edge
+	for(efa= listb.first; efa; efa= efa->next) {
+		if(efa->fgonf==0) {
+			
+			// init this face
+			efa->fgonf= EM_FGON;
+			if(efa->e1->h & EM_FGON) efa->e1->fgoni= curindex;
+			if(efa->e2->h & EM_FGON) efa->e2->fgoni= curindex;
+			if(efa->e3->h & EM_FGON) efa->e3->fgoni= curindex;
+			if(efa->e4 && (efa->e4->h & EM_FGON)) efa->e4->fgoni= curindex;
+			
+			// we search for largest face, to give facedot drawing rights
+			maxsize= editface_area(efa);
+			efamax= efa;
+			
+			// now flush curendex over edges and set faceflags
+			done= 1;
+			while(done==1) {
+				done= 0;
+				
+				for(efan= listb.first; efan; efan= efan->next) {
+					if(efan->fgonf==0) {
+						// if one if its edges has index set, do other too
+						if( (efan->e1->fgoni==curindex) || (efan->e2->fgoni==curindex) ||
+							(efan->e3->fgoni==curindex) || (efan->e4 && (efan->e4->fgoni==curindex)) ) {
+							
+							efan->fgonf= EM_FGON;
+							if(efan->e1->h & EM_FGON) efan->e1->fgoni= curindex;
+							if(efan->e2->h & EM_FGON) efan->e2->fgoni= curindex;
+							if(efan->e3->h & EM_FGON) efan->e3->fgoni= curindex;
+							if(efan->e4 && (efan->e4->h & EM_FGON)) efan->e4->fgoni= curindex;
+							
+							size= editface_area(efan);
+							if(size>maxsize) {
+								efamax= efan;
+								maxsize= size;
+							}
+							done= 1;
+						}
+					}
+				}
+			}
+			
+			efamax->fgonf |= EM_FGON_DRAW;
+			curindex++;
+
+		}
+	}
+
+	// put fgon face candidates back in listbase
+	efa= listb.first;
+	while(efa) {
+		efan= efa->next;
+		BLI_remlink(&listb, efa);
+		BLI_addtail(&em->faces, efa);
+		efa= efan;
+	}
 }
 
 

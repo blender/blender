@@ -826,25 +826,25 @@ void loopoperations(char mode)
 			while(efa){
 				if(efa->e1->f & 16){
 					/* since this edge is on the face, check if the face has any hidden verts */
-					if( !efa->v1->h && !efa->v2->h &&  !efa->v3->h && (efa->v4 && !efa->v4->h)  ){
+					if( !efa->v1->h && !efa->v2->h &&  !efa->v3->h && (efa->v4==NULL || !efa->v4->h)  ){
 						noface=0;
 						efa->e1->f &= ~16;
 					}
 				}
 				else if(efa->e2->f & 16){					
-					if( !efa->v1->h && !efa->v2->h &&  !efa->v3->h && (efa->v4 && !efa->v4->h)  ){
+					if( !efa->v1->h && !efa->v2->h &&  !efa->v3->h && (efa->v4==NULL || !efa->v4->h)  ){
 						noface=0;
 						efa->e2->f &= ~16;
 					}
 				}
 				else if(efa->e3->f & 16){					
-					if( !efa->v1->h && !efa->v2->h &&  !efa->v3->h && (efa->v4 && !efa->v4->h)  ){
+					if( !efa->v1->h && !efa->v2->h &&  !efa->v3->h && (efa->v4==NULL || !efa->v4->h)  ){
 						noface=0;
 						efa->e3->f &= ~16;
 					}
 				}
 				else if(efa->e4 && (efa->e4->f & 16)){					
-					if( !efa->v1->h && !efa->v2->h &&  !efa->v3->h && (efa->v4 && !efa->v4->h)  ){
+					if( !efa->v1->h && !efa->v2->h &&  !efa->v3->h && (efa->v4==NULL || !efa->v4->h)  ){
 						noface=0;
 						efa->e4->f &= ~16;
 					}
