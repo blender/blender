@@ -1756,12 +1756,17 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case RIGHTCTRLKEY: 
 			case LEFTCTRLKEY:
 				if(v3d->twflag & V3D_USE_MANIPULATOR) {
-					if(v3d->twtype & V3D_MANIPULATOR_TRANSLATE)
+					if(v3d->twtype & V3D_MANIPULATOR_SCALE) {
+						if(v3d->twtype== V3D_MANIPULATOR_SCALE) 
+							v3d->twtype= V3D_MANIPULATOR_TRANSLATE|V3D_MANIPULATOR_ROTATE|V3D_MANIPULATOR_SCALE;
+						else
+							v3d->twtype= V3D_MANIPULATOR_TRANSLATE;
+					}
+					else if(v3d->twtype & V3D_MANIPULATOR_TRANSLATE)
 						v3d->twtype= V3D_MANIPULATOR_ROTATE;
 					else if(v3d->twtype & V3D_MANIPULATOR_ROTATE)
 						v3d->twtype= V3D_MANIPULATOR_SCALE;
-					else if(v3d->twtype & V3D_MANIPULATOR_SCALE)
-						v3d->twtype= V3D_MANIPULATOR_TRANSLATE;
+					
 					doredraw= 1;
 				}
 				break;
