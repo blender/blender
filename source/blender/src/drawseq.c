@@ -66,7 +66,7 @@
 #include "BIF_screen.h"
 #include "BIF_drawseq.h"
 #include "BIF_editseq.h"
-#include "BIF_drawimage.h"
+#include "BIF_glutil.h"
 #include "BIF_resources.h"
 #include "BIF_space.h"
 #include "BIF_interface.h"
@@ -497,12 +497,16 @@ static void draw_image_seq(ScrArea *sa)
 	if(sseq==0) return;
 
 	/* calc location */
-	x1= sa->winrct.xmin+(sa->winx-sseq->zoom*ibuf->x)/2;
-	y1= sa->winrct.ymin+(sa->winy-sseq->zoom*ibuf->y)/2;
+	x1= (sa->winx-sseq->zoom*ibuf->x)/2;
+	y1= (sa->winy-sseq->zoom*ibuf->y)/2;
 
-	rectwrite_part(sa->winrct.xmin, sa->winrct.ymin,
-				sa->winrct.xmax, sa->winrct.ymax,
-				x1, y1, ibuf->x, ibuf->y, (float)sseq->zoom,(float)sseq->zoom, ibuf->rect);
+	/* needed for gla draw */
+	glaDefine2DArea(&curarea->winrct);
+	glPixelZoom((float)sseq->zoom, (float)sseq->zoom);
+	
+	glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->rect);
+	
+	glPixelZoom(1.0, 1.0);
 
 	sa->win_swap= WIN_BACK_OK;
 }
@@ -776,7 +780,6 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 	sseq= curarea->spacedata.first;
 	if(sseq->mainb==1) {
 		draw_image_seq(curarea);
-		curarea->win_swap= WIN_BACK_OK;
 		return;
 	}
 

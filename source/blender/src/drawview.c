@@ -93,17 +93,18 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
-#include "BIF_gl.h"
-#include "BIF_resources.h"
-#include "BIF_screen.h"
-#include "BIF_interface.h"
-#include "BIF_space.h"
 #include "BIF_butspace.h"
 #include "BIF_drawimage.h"
 #include "BIF_editgroup.h"
-#include "BIF_mywindow.h"
 #include "BIF_editarmature.h"
+#include "BIF_gl.h"
+#include "BIF_glutil.h"
+#include "BIF_interface.h"
+#include "BIF_mywindow.h"
 #include "BIF_poseobject.h"
+#include "BIF_resources.h"
+#include "BIF_screen.h"
+#include "BIF_space.h"
 
 #include "BDR_drawmesh.h"
 #include "BDR_drawobject.h"
@@ -427,9 +428,11 @@ static void draw_bgpic(void)
 
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
 	 
-	rectwrite_part(curarea->winrct.xmin, curarea->winrct.ymin, curarea->winrct.xmax, curarea->winrct.ymax, 
-                   x1+curarea->winrct.xmin, y1+curarea->winrct.ymin, ima->ibuf->x, ima->ibuf->y, zoomx, zoomy, bgpic->rect);
-
+	glaDefine2DArea(&curarea->winrct);
+	glPixelZoom(zoomx, zoomy);
+	glaDrawPixelsSafe(x1, y1, ima->ibuf->x, ima->ibuf->y, bgpic->rect);
+	glPixelZoom(1.0, 1.0);
+	
 	glBlendFunc(GL_ONE,  GL_ZERO); 
 	glDisable(GL_BLEND);
 	if(G.zbuf) glEnable(GL_DEPTH_TEST);

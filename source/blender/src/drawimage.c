@@ -86,71 +86,11 @@
 #include "butspace.h"  // event codes
 
 
-void rectwrite_part(int winxmin, int winymin, int winxmax, int winymax, int x1, int y1, int xim, int yim, float zoomx, float zoomy, unsigned int *rect)
-{
-	int cx, cy, oldxim, x2, y2;
-	
-	oldxim= xim;
-		
-	/* coordinates how its drawn at the screen */
-	x2= x1+ zoomx*xim;
-	y2= y1+ zoomy*yim;
-
-	/* partial clip */
-	if(x1<winxmin) {
-		/* with OpenGL, rects are not allowed to start outside of the left/bottom window edge */
-		cx= winxmin-x1+(int)zoomx;
-		/* make sure the rect will be drawn pixel-exact */
-		cx/= zoomx;
-		cx++;
-		x1+= zoomx*cx;
-		xim-= cx;
-		rect+= cx;
-	}
-	if(y1<winymin) {
-		cy= winymin-y1+(int)zoomy;
-		cy/= zoomy;
-		cy++;
-		y1+= zoomy*cy;
-		rect+= cy*oldxim;
-		yim-= cy;
-	}
-	if(x2>=winxmax) {
-		cx= x2-winxmax;
-		cx/= zoomx;
-		xim-= cx+3;
-	}
-	if(y2>=winymax) {
-		cy= y2-winymax;
-		cy/= zoomy;
-		yim-= cy+3;
-	}
-	
-	if(xim<=0) return;
-	if(yim<=0) return;
-
-	mywinset(G.curscreen->mainwin);
-	glScissor(winxmin, winymin, winxmax-winxmin+1, winymax-winymin+1);
-	
-	glPixelStorei(GL_UNPACK_ROW_LENGTH,  oldxim);
-	
-	glPixelZoom(zoomx,  zoomy);
-
-	glRasterPos2i(x1, y1);
-	glDrawPixels(xim, yim, GL_RGBA, GL_UNSIGNED_BYTE,  rect);
-
-	glPixelZoom(1.0,  1.0);
-
-	glPixelStorei(GL_UNPACK_ROW_LENGTH,  0);
-	
-	mywinset(curarea->win);
-}
-
 /**
  * Sets up the fields of the View2D member of the SpaceImage struct
  * This routine can be called in two modes:
- * mode == 'f': float mode ???
- * mode == 'p': pixel mode ???
+ * mode == 'f': float mode (0.0 - 1.0)
+ * mode == 'p': pixel mode (0 - size)
  *
  * @param     sima  the image space to update
  * @param     mode  the mode to use for the update
@@ -875,15 +815,20 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	}
 	else {
 		/* calc location */
-		x1= xmin+(curarea->winx-G.sima->zoom*ibuf->x)/2;
-		y1= ymin+(curarea->winy-G.sima->zoom*ibuf->y)/2;
+		x1= (curarea->winx-G.sima->zoom*ibuf->x)/2;
+		y1= (curarea->winy-G.sima->zoom*ibuf->y)/2;
 	
 		x1-= G.sima->zoom*G.sima->xof;
 		y1-= G.sima->zoom*G.sima->yof;
-	
 		
+		/* needed for gla draw */
+		glaDefine2DArea(&curarea->winrct);
+		glPixelZoom((float)G.sima->zoom, (float)G.sima->zoom);
+				
 		if(G.sima->flag & SI_EDITTILE) {
-			rectwrite_part(xmin, ymin, xmax, ymax, x1, y1, ibuf->x, ibuf->y, (float)G.sima->zoom, (float)G.sima->zoom, ibuf->rect);
+			glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->rect);
+			
+			glPixelZoom(1.0, 1.0);
 			
 			dx= ibuf->x/G.sima->image->xrep;
 			dy= ibuf->y/G.sima->image->yrep;
@@ -902,8 +847,8 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); glRects(sx+1,  sy+1,  sx+dx,  sy+dy); glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 		else if(G.sima->mode==SI_TEXTURE) {
+			
 			if(G.sima->image->tpageflag & IMA_TILES) {
-				
 				
 				/* just leave this a while */
 				if(G.sima->image->xrep<1) return;
@@ -926,17 +871,17 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 				/* rect= ibuf->rect; */
 				for(sy= 0; sy+dy<=ibuf->y; sy+= dy) {
 					for(sx= 0; sx+dx<=ibuf->x; sx+= dx) {
-						
-						rectwrite_part(xmin, ymin, xmax, ymax, 
-							x1+sx*G.sima->zoom, y1+sy*G.sima->zoom, dx, dy, (float)G.sima->zoom, (float)G.sima->zoom, rect);
+						glaDrawPixelsSafe(x1+sx*G.sima->zoom, y1+sy*G.sima->zoom, dx, dy, rect);
 					}
 				}
 				
 				MEM_freeN(rect);
 			}
 			else 
-				rectwrite_part(xmin, ymin, xmax, ymax, x1, y1, ibuf->x, ibuf->y, (float)G.sima->zoom,(float)G.sima->zoom, ibuf->rect);
-		
+				glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->rect);
+			
+			glPixelZoom(1.0, 1.0);
+			
 			draw_tfaces();
 		}
 	

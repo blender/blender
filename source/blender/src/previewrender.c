@@ -81,7 +81,6 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"		/* allqueue */
 #include "BIF_butspace.h"	
-#include "BIF_drawimage.h"	/* rectwrite_part */
 #include "BIF_mywindow.h"
 #include "BIF_interface.h"
 #include "BIF_glutil.h"
@@ -91,6 +90,7 @@
 #include "RE_renderconverter.h"
 
 #include "blendef.h"	/* CLAMP */
+#include "interface.h"	/* ui_graphics_to_window() SOLVE! (ton) */
 
 #define PR_RECTX	141
 #define PR_RECTY	141
@@ -101,8 +101,7 @@
 
 #define PR_FACY		(PR_YMAX-PR_YMIN-4)/(PR_RECTY)
 
-static rcti prerect;
-static int pr_sizex, pr_sizey;
+static rctf prerect;
 static float pr_facx, pr_facy;
 
 
@@ -236,61 +235,58 @@ static unsigned int previewback(int type, int x, int y)
 	}
 }
 
-static void view2d_to_window(int win, int *x_r, int *y_r)
-{
-	int x= *x_r, y= *y_r;
-	int size[2], origin[2];
-	float winmat[4][4];
-
-	bwin_getsinglematrix(win, winmat);
-	bwin_getsize(win, &size[0], &size[1]);
-	bwin_getsuborigin(win, &origin[0], &origin[1]);
-	
-	*x_r= origin[0] + (size[0]*(0.5 + 0.5*(x*winmat[0][0] + y*winmat[1][0] + winmat[3][0])));
-	*y_r= origin[1] + (size[1]*(0.5 + 0.5*(x*winmat[0][1] + y*winmat[1][1] + winmat[3][1])));
-}
-
 static void set_previewrect(int win, int xmin, int ymin, int xmax, int ymax)
 {
+	float pr_sizex, pr_sizey;
+	
 	prerect.xmin= xmin;
 	prerect.ymin= ymin;
 	prerect.xmax= xmax;
 	prerect.ymax= ymax;
 
-	view2d_to_window(win, &prerect.xmin, &prerect.ymin);
-	view2d_to_window(win, &prerect.xmax, &prerect.ymax);
+	ui_graphics_to_window(win, &prerect.xmin, &prerect.ymin);
+	ui_graphics_to_window(win, &prerect.xmax, &prerect.ymax);
 	
 	pr_sizex= (prerect.xmax-prerect.xmin);
 	pr_sizey= (prerect.ymax-prerect.ymin);
 
-	pr_facx= ( (float)pr_sizex-1)/PR_RECTX;
-	pr_facy= ( (float)pr_sizey-1)/PR_RECTY;
+	pr_facx= ( pr_sizex-1.0)/PR_RECTX;
+	pr_facy= ( pr_sizey-1.0)/PR_RECTY;
+
+	/* correction for gla draw */
+	prerect.xmin-= curarea->winrct.xmin;
+	prerect.ymin-= curarea->winrct.ymin;
+	
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	
+	glaDefine2DArea(&curarea->winrct);
+
+	glPixelZoom(pr_facx, pr_facy);
+	
+}
+
+static void end_previewrect(void)
+{
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+	
+	glPixelZoom(1.0, 1.0);
 }
 
 static void display_pr_scanline(unsigned int *rect, int recty)
 {
-	static double lasttime= 0;
-	/* we display 3 new scanlines, one old, the overlap is for wacky 3d cards that cant handle zoom proper */
-
-	if(recty % 2) return;
-	if(recty<2) return;
 	
-	rect+= (recty-2)*PR_RECTX;
-
-	/* enlarge a bit in the y direction, to avoid GL/mesa bug */
-	glPixelZoom(pr_facx, pr_facy);
-
-	glRasterPos2f( (float)PR_XMIN+0.5, 1.0+(float)PR_YMIN + (recty*PR_FACY) );
-	glDrawPixels(PR_RECTX, 3, GL_RGBA, GL_UNSIGNED_BYTE,  rect);
-
-	//glaDrawPixelsTex((float)PR_XMIN, (float)PR_YMIN + (recty*PR_FACY), PR_RECTX, 3, rect);
-
-	glPixelZoom(1.0, 1.0);
-	
-	/* flush opengl for cards with frontbuffer slowness */
-	if(recty==PR_RECTY-1 || (PIL_check_seconds_timer() - lasttime > 0.05)) {
-		lasttime= PIL_check_seconds_timer();
-		glFlush();
+	if(recty & 1) {
+		
+		rect+= (recty-1)*PR_RECTX;
+		
+		glaDrawPixelsSafe(prerect.xmin, prerect.ymin + (((float)recty-1.0)*pr_facy), PR_RECTX, 2, rect);
+		
 	}
 }
 
@@ -386,6 +382,8 @@ void BIF_previewdraw(void)
 		}
 	}
 	if(sbuts->cury==0) BIF_preview_changed(sbuts);
+	
+	end_previewrect();
 }
 
 static void sky_preview_pixel(float lens, int x, int y, char *rect)
@@ -1002,6 +1000,7 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 
 void BIF_previewrender(SpaceButs *sbuts)
 {
+	static double lasttime= 0;
 	ID *id, *idfrom;
 	Material *mat= NULL;
 	Tex *tex= NULL;
@@ -1139,7 +1138,9 @@ void BIF_previewrender(SpaceButs *sbuts)
 		init_render_textures();	/* dont do it twice!! (brightness) */
 	}
 
-	set_previewrect(sbuts->area->win, PR_XMIN, PR_YMIN, PR_XMAX, PR_YMAX);
+	uiPanelPush(block);	// sets UImat
+	
+	set_previewrect(sbuts->area->win, PR_XMIN, PR_YMIN, PR_XMAX, PR_YMAX); // uses UImat
 
 	if(sbuts->rect==NULL) {
 		sbuts->rect= MEM_callocN(sizeof(int)*PR_RECTX*PR_RECTY, "butsrect");
@@ -1175,7 +1176,6 @@ void BIF_previewrender(SpaceButs *sbuts)
 
 	/* here it starts! */
 	glDrawBuffer(GL_FRONT);
-	uiPanelPush(block);
 
 	for(y=starty; y<endy; y++) {
 		
@@ -1266,12 +1266,20 @@ void BIF_previewrender(SpaceButs *sbuts)
 
 		display_pr_scanline(sbuts->rect, sbuts->cury);
 		
+		/* flush opengl for cards with frontbuffer slowness */
+		if(sbuts->cury==PR_RECTY-1 || (PIL_check_seconds_timer() - lasttime > 0.05)) {
+			lasttime= PIL_check_seconds_timer();
+			glFlush();
+		}
+		
 		sbuts->cury++;
 	}
 
 	if(sbuts->cury>=PR_RECTY && tex) 
 		if (sbuts->tab[CONTEXT_SHADING]==TAB_SHADING_TEX) 
 			draw_tex_crop(sbuts->lockpoin);
+	
+	end_previewrect();
 	
 	glDrawBuffer(GL_BACK);
 	/* draw again for clean swapbufers */
