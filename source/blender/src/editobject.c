@@ -1844,7 +1844,8 @@ void movetolayer(void)
 	base= FIRSTBASE;
 	while(base) {
 		if TESTBASE(base) {
-			local= base->lay & 0xFF000000;
+			/* upper byte is used for local view */
+			local= base->lay & 0xFF000000;  
 			base->lay= lay + local;
 
 			base->object->lay= lay;
