@@ -24,6 +24,7 @@ config_file = ARGUMENTS.get('CONFIG', 'config.opts')
 
 # Blender version.
 version='2.33a'
+shortversion = '233a' # for wininst target -> nsis installer creation
 
 sdl_env = Environment ()
 freetype_env = Environment ()
@@ -1085,6 +1086,122 @@ def buildinfo(env, build_type):
 		obj = [env.Object (root_build_dir+'source/creator/%s_buildinfo'%build_type,
 						[root_build_dir+'source/creator/buildinfo.c'])]
 	return obj
+	
+def cleanCVS():
+	"""
+	walks the dist dir and removes all CVS dirs
+	"""
+	
+	try:
+		import shutil
+	except:
+		print "no shutil available"
+		print "make sure you use python 2.3"
+		print
+		return 0
+	
+	startdir = os.getcwd()
+	
+	for root, dirs, files in os.walk("dist", topdown=False):
+		for name in dirs:
+			if name in ['CVS']:
+				if os.path.isdir(root + "/" + name):
+					shutil.rmtree(root + "/" + name)
+	
+	os.chdir(startdir)
+	
+	return 1
+
+def preparedist():
+	"""
+	Prepare a directory for creating either archives or the installer
+	"""
+	
+	try:
+		import shutil
+	except:
+		print "no shutil available"
+		print "make sure you use python 2.3"
+		print
+		return 0
+	
+	startdir = os.getcwd()
+	
+	if os.path.isdir("dist") == 0:
+		os.makedirs("dist")
+	else:
+		shutil.rmtree("dist") # make sure we don't get old cruft
+		os.makedirs("dist")
+	
+	# first copy binaries
+	
+	if sys.platform == 'win32':
+		shutil.copy("blender.exe", "dist/blender.exe")
+		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
+			shutil.copy("blenderplayer.exe", "dist/blenderplayer.exe")
+		shutil.copy("../lib/windows/python/lib/python23.dll", "dist/python23.dll")
+		shutil.copy("../lib/windows/sdl/lib/SDL.dll", "dist/SDL.dll")
+		shutil.copy("../lib/windows/gettext/lib/gnu_gettext.dll", "dist/gnu_gettext.dll")
+	elif sys.platform in ['linux2', 'linux-i386']:
+		shutil.copy("blender", "dist/blender")
+		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
+			shutil.copy("blenderplayer", "dist/blenderplayer")
+	else:
+		print "update preparedist() for your platform!"
+		return 0
+	
+	# now copy .blender and necessary extras for it
+	if os.path.isdir("dist/.blender"):
+		shutil.rmtree("dist/.blender")
+	os.chdir("bin")
+	shutil.copytree(".blender/", "../dist/.blender")
+	os.chdir(startdir)
+	if os.path.isdir("dist/.blender/scripts"):
+		shutil.rmtree("dist/.blender/scripts")
+	if os.path.isdir("dist/.blender/bpydata"):
+		shutil.rmtree("dist/.blender/bpydata")
+		
+	os.makedirs("dist/.blender/bpydata")
+	shutil.copy("release/bpydata/readme.txt", "dist/.blender/bpydata/readme.txt")
+	
+	os.chdir("release")
+	shutil.copytree("scripts/", "../dist/.blender/scripts")
+	
+	# finally copy auxiliaries (readme, license, etc.)
+	if sys.platform == 'win32':
+		shutil.copy("windows/extra/Help.url", "../dist/Help.url")
+	shutil.copy("text/copyright.txt", "../dist/copyright.txt")
+	shutil.copy("text/blender.html", "../dist/blender.html")
+	shutil.copy("text/GPL-license.txt", "../dist/GPL-license.txt")
+	shutil.copy("text/Python-license.txt", "../dist/Python-lisence.txt")
+	
+	reltext = "release_" + string.join(version.split("."), '') + ".txt"
+	shutil.copy("text/" + reltext, "../dist/" + reltext)
+	
+	os.chdir(startdir)
+	
+	if cleanCVS()==0:
+		return 0
+
+	return 1
+
+def finalisedist(zipname):
+	"""
+	Fetch the package created and remove temp dir
+	"""
+	
+	try:
+		import shutil
+	except:
+		print "no shutil available"
+		print "make sure you use python 2.3"
+		print
+		return 0
+	
+	shutil.copy("dist/" + zipname, zipname)
+	shutil.rmtree("dist")
+	
+	return 1
 
 def add2arc(arc, file):
 	if sys.platform == 'win32':
@@ -1103,43 +1220,25 @@ def zipit(env, target, source):
 			print "no zipfile module found"
 		else:
 			print "no tarfile module found"
-		print
-		return
-	
-	try:
-		import shutil
-	except:
-		print "no shutil available"
+			print "make sure you use python 2.3"
 		print
 		return
 	
 	import glob
 	import time
 	
-	today = time.strftime("%Y%m%d", time.gmtime())
-	
-	print "Prepare the zip"
-	print
-	
-	# first copy files around
-	if sys.platform == 'win32':
-		shutil.copy("blender.exe", "bin/blender.exe")
-		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
-			shutil.copy("blenderplayer.exe", "bin/blenderplayer.exe")
-		shutil.copy("../lib/windows/python/lib/python23.dll", "bin/python23.dll")
-		shutil.copy("../lib/windows/sdl/lib/SDL.dll", "bin/SDL.dll")
-		shutil.copy("../lib/windows/gettext/lib/gnu_gettext.dll", "bin/gnu_gettext.dll")
-	elif sys.platform == 'linux2' or sys.platform == 'linux-i386':
-		shutil.copy("blender", "bin/blender")
-		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
-			shutil.copy("blenderplayer", "bin/blenderplayer")
-	else:
-		print "update zipit() for your platform!"
-		return
-	
+	startdir = os.getcwd()
 	pf=""
 	zipext = ""
 	zipname = ""
+	
+	today = time.strftime("%Y%m%d", time.gmtime()) # get time in the form 20040714
+	
+	if preparedist()==0:
+		print "check output for error"
+		return
+	
+	os.chdir(startdir + "/dist")
 	
 	if sys.platform == 'win32':
 		zipext += ".zip"
@@ -1149,16 +1248,6 @@ def zipit(env, target, source):
 		pf = "linux"
 	
 	zipname = "bf_blender_" + pf+ "_" + today + zipext
-	
-	os.chdir("release")
-	
-	if os.path.isdir("../bin/.blender/scripts"):
-		shutil.rmtree("../bin/.blender/scripts")
-
-	shutil.copytree("scripts/", "../bin/.blender/scripts")
-
-	os.chdir("..")	
-	os.chdir("bin")
 	
 	print
 	if sys.platform == 'win32':
@@ -1172,39 +1261,29 @@ def zipit(env, target, source):
 	else:
 		thezip = tarfile.open(zipname, 'w:gz')
 	
-	rootdir = glob.glob("*")
-	for file in rootdir:
-		if os.path.isdir(file) == 0:
-			if string.find(file, zipname)==-1:
+	for root, dirs, files in os.walk(".", topdown=False):
+		for name in files:
+			if name in [zipname]:
+				print "skipping self"
+			else:
+				file = root + "/" + name
 				print "adding: " + file
 				add2arc(thezip, file)
 	
-	dotblenderdir = os.listdir(".blender")
-	for resource in dotblenderdir:
-		if os.path.isdir(".blender/" + resource) == 0:
-			print ".blender/" + resource
-			add2arc(thezip, ".blender/" + resource)
-
-	scripts_list = glob.glob(".blender/scripts/*")
-	for script in scripts_list:
-		if os.path.isdir(script) == 0:
-			print script
-			add2arc(thezip, script)
-	
-	locales_list = glob.glob(".blender/locale/*")
-	for locale in locales_list:
-		if string.find(locale, "CVS")==-1:
-			print locale + "/LC_MESSAGES/blender.mo"
-			add2arc(thezip, locale + "/LC_MESSAGES/blender.mo")
-	
 	thezip.close()
+	
+	os.chdir(startdir)
+	
+	if finalisedist(zipname)==0:
+		print "encountered an error in finalisedist"
+		print
+		return
 	
 	print
 	print "Blender has been successfully packaged"
-	print "You can find the file %s in the bin/ directory"%zipname
+	print "You can find the file %s in the root source directory"%zipname
 	print
 	
-	os.chdir("..")
 
 def printadd(env, target, source):
 	"""
@@ -1237,13 +1316,100 @@ def noaction(env, target, source):
 
 def BlenderDefault(target):
 	"""
-	The normal Blender build.
+	The default Blender build.
 	"""
 	def_env = Environment()
 	default = def_env.Command('nozip', 'blender$PROGSUFFIX', noaction)
 	if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
 		def_env.Depends(default, 'blenderplayer$PROGSUFFIX')
 	def_env.Alias(".", default)
+
+def donsis(env, target, source):
+	"""
+	Create a Windows installer with NSIS
+	"""
+	print
+	print "Creating the Windows installer"
+	print
+	
+	startdir = os.getcwd()
+	
+	if preparedist()==0:
+		print "check output for error"
+		return
+	
+	os.chdir("release/windows/installer")
+	
+	nsis = open("00.sconsblender.nsi", 'r')
+	nsis_cnt = str(nsis.read())
+	nsis.close()
+	
+	# do root
+	rootlist = []
+	rootdir = os.listdir(startdir + "\\dist")
+	for rootitem in rootdir:
+		if os.path.isdir(startdir + "\\dist\\" + rootitem) == 0:
+			rootlist.append("File " + startdir + "\\dist\\" + rootitem)
+	rootstring = string.join(rootlist, "\n  ")
+	rootstring += "\n\n"
+	nsis_cnt = string.replace(nsis_cnt, "[ROOTDIRCONTS]", rootstring)
+	
+	# do scripts
+	scriptlist = []
+	scriptdir = os.listdir(startdir + "\\dist\\.blender\\scripts")
+	for scriptitem in scriptdir:
+		if os.path.isdir(startdir + "\\dist\\.blender\\scripts\\" + scriptitem) == 0:
+			scriptlist.append("File " + startdir + "\\dist\\.blender\\scripts\\" + scriptitem)
+	scriptstring = string.join(scriptlist, "\n  ")
+	scriptstring += "\n\n"
+	nsis_cnt = string.replace(nsis_cnt, "[SCRIPTCONTS]", scriptstring)
+	
+	# do dotblender
+	dotblendlist = []
+	dotblenddir = os.listdir(startdir+"\\dist\\.blender")
+	for dotblenditem in dotblenddir:
+		if os.path.isdir(startdir + "\\dist\\.blender\\" + dotblenditem) == 0:
+			dotblendlist.append("File " + startdir + "\\dist\\.blender\\" + dotblenditem)
+	dotblendstring = string.join(dotblendlist, "\n  ")
+	dotblendstring += "\n\n"
+	nsis_cnt = string.replace(nsis_cnt, "[DOTBLENDERCONTS]", dotblendstring)
+	
+	# do language files
+	langlist = []
+	langdir = os.listdir(startdir + "\\dist\\.blender\\locale")
+	for langitem in langdir:
+		if os.path.isdir(startdir + "\\dist\\.blender\\locale\\" + langitem) == 1:
+			langlist.append("File " + startdir + "\\dist\\.blender\\locale\\" + langitem + "\\LC_MESSAGES\\blender.mo")
+	langstring = string.join(langlist, "\n  ")
+	langstring += "\n\n"
+	nsis_cnt = string.replace(nsis_cnt, "[LANGUAGECONTS]", langstring)
+	
+	# var replacements
+	nsis_cnt = string.replace(nsis_cnt, "DISTDIR", startdir + "\\dist")
+	nsis_cnt = string.replace(nsis_cnt, "SHORTVER", shortversion)
+	nsis_cnt = string.replace(nsis_cnt, "VERSION", version)
+	
+	new_nsis = open("00.blender_tmp.nsi", 'w')
+	new_nsis.write(nsis_cnt)
+	new_nsis.close()
+	
+	sys.stdout = os.popen("makensis 00.blender_tmp.nsi", 'w')
+	
+	os.chdir(startdir)
+	
+	
+def BlenderNSIS(target):
+	"""
+	Entry for creating Windows installer
+	"""
+	if sys.platform == 'win32':
+		inst_env = Environment()
+		nsis_inst = inst_env.Command('nsisinstaller', 'blender$PROGSUFFIX', donsis)
+		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
+			inst_env.Depends(nsis_inst, 'blenderplayer$PROGSUFFIX')
+		inst_env.Alias("wininst", nsis_inst)
+	else:
+		print "This target is for the win32 platform only"
 
 def BlenderRelease(target):
 	"""
@@ -1366,8 +1532,14 @@ if user_options_dict['BUILD_BLENDER_PLAYER'] == 1 and user_options_dict['BUILD_G
 
 release_target = env.Alias("release", BlenderRelease('blender$PROGSUFFIX'))
 default_target = env.Alias("default", BlenderDefault('blender$PROGSUFFIX'))
+wininst_target = env.Alias("winist", BlenderNSIS('blender$PROGSUFFIX'))
 
 Default("default")
+
+if sys.platform == 'win32':
+	if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
+		env.Depends(wininst_target, 'blenderplayer$PROGSUFFIX')
+	env.Depends(wininst_target, 'blender$PROGSUFFIX')
 
 if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
 	env.Depends(release_target, 'blenderplayer$PROGSUFFIX')
