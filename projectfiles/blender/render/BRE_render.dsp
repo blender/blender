@@ -123,15 +123,11 @@ SOURCE=..\..\..\source\blender\render\intern\source\pixelshading.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\render\intern\source\RE_basicShadowBuffer.cpp
+SOURCE=..\..\..\source\blender\render\intern\source\ray.c
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\render\intern\source\RE_callbacks.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\render\intern\source\RE_DummyShadowBuffer.cpp
 # End Source File
 # Begin Source File
 
@@ -155,7 +151,7 @@ SOURCE=..\..\..\source\blender\render\intern\source\shadbuf.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\render\intern\source\shadowBuffer.cpp
+SOURCE=..\..\..\source\blender\render\intern\source\texture.c
 # End Source File
 # Begin Source File
 
@@ -164,10 +160,6 @@ SOURCE=..\..\..\source\blender\render\intern\source\vanillaRenderPipe.c
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\render\intern\source\zbuf.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\render\intern\source\ray.c
 # End Source File
 # Begin Source File
 
@@ -223,19 +215,7 @@ SOURCE=..\..\..\source\blender\render\intern\include\pixelshading.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\render\intern\include\RE_basicShadowBuffer.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\render\intern\include\RE_callbacks.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\render\intern\include\RE_DummyShadowBuffer.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\render\intern\include\RE_ShadowBuffer.h
 # End Source File
 # Begin Source File
 
@@ -256,10 +236,6 @@ SOURCE=..\..\..\source\blender\render\intern\include\renderPreAndPost.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\render\intern\include\shadbuf.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\render\intern\include\shadowBuffer.h
 # End Source File
 # Begin Source File
 
