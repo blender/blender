@@ -747,6 +747,12 @@ int calculate_structlens(void)
 							dna_error = 1;
 						}
 					}
+					
+					if(len % 4) {
+						printf("Sizeerror in struct: %s\n", types[structtype]);
+						dna_error = 1;
+					}
+					
 				}
 			}
 		}

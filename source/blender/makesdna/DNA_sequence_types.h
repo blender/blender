@@ -141,10 +141,7 @@ typedef struct Editing {
 /* ************* Effect Variable Structs ********* */
 typedef struct WipeVars {
 	float edgeWidth,angle;
-	short forward,spad1,spad2,spad3;
-	int ipad1;
-	float fpad1,fpad2;
-	short wipetype;
+	short forward, wipetype;
 } WipeVars;
 
 typedef struct GlowVars {	
