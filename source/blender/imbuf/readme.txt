@@ -42,3 +42,6 @@ and add in your additional files.
 If you have any external library info you will also need to add that 
 to the various build processes.
 
+Step 7:
+Its also good to add your image format to:
+makepicstring in blender/source/blender/blenkernel/intern/image.c
