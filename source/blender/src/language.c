@@ -270,6 +270,9 @@ void puplang_insert_entry(char *line)
 int read_languagefile(void) {
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 	LinkNode *l, *lines;
+#ifdef WIN32
+	int result;
+#endif
 	
 	/* .Blanguages */
 	BLI_make_file_string("/", name, BLI_gethome(), ".Blanguages");
@@ -285,8 +288,11 @@ int read_languagefile(void) {
 		strcat(name, "/Contents/Resources/.Blanguages");
 #elif defined (WIN32)
 		/* Check the installation dir in Windows */
-		BLI_getInstallationDir(name);
-		strcat(name,"/.blender/.Blanguages");
+		result = BLI_getInstallationDir(name);
+		if (!result)
+			strcpy(name,"/.blender/.Blanguages");
+		else
+			strcat(name,"/.blender/.Blanguages");
 #else
 		strcpy(name, ".blender/.Blanguages");
 #endif
