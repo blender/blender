@@ -4906,6 +4906,7 @@ void transform(int mode)
 				case LEFTMOUSE:
 				case RIGHTMOUSE:
 				case SPACEKEY:
+				case PADENTER:
 				case RETKEY:
 					afbreek= 1;
 					break;
