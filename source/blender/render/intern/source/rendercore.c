@@ -3206,7 +3206,7 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 							if(curmask & (1<<samp)) {
 								xs= (float)x + jit[samp][0];
 								ys= (float)y + jit[samp][1];
-								shadepixel_short(xs, ys, face, curmask, shortcol);
+								shadepixel_short(xs, ys, face, (1<<samp), shortcol);
 			
 								if(shortcol[3]) add_filt_mask(1<<samp, shortcol, rb1, rb2, rb3);
 							}
