@@ -45,6 +45,8 @@
 #define RIGHTMOUSE	0x003	
 #define MOUSEX		0x004	
 #define MOUSEY		0x005	
+#define WHEELUPMOUSE	0x00a	
+#define WHEELDOWNMOUSE	0x00b	
 
 /* timers */
 

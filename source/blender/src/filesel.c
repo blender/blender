@@ -1153,6 +1153,27 @@ static void do_filescroll(SpaceFile *sfile)
 	
 }
 
+static void do_filescrollwheel(SpaceFile *sfile, int move)
+{
+	// by phase
+	int lines, rt;
+
+	calc_file_rcts(sfile);
+
+	lines = (int)(textrct.ymax-textrct.ymin)/FILESEL_DY;
+	rt = lines * sfile->collums;
+
+	if(sfile->totfile > rt) {
+		sfile->ofs+= move;
+		if( sfile->ofs + rt > sfile->totfile + 1)
+			sfile->ofs = sfile->totfile - rt + 1;
+	}
+
+	if(sfile->ofs<0) {
+		sfile->ofs= 0;
+	}
+}
+
 void activate_fileselect(int type, char *title, char *file, void (*func)(char *))
 {
 	SpaceFile *sfile;
@@ -1715,6 +1736,19 @@ void winqreadfilespace(unsigned short event, short val, char ascii)
 			do_filesel_buttons(val, sfile);
 			break;		
 		
+		case WHEELDOWNMOUSE:
+			do_filescrollwheel(sfile, 3); //U.wheellinescroll);
+			act= find_active_file(sfile, mval[0], mval[1]);
+			set_active_file(sfile, act);
+			do_draw= 1;
+			break;
+		case WHEELUPMOUSE:
+			do_filescrollwheel(sfile, -3); //U.wheellinescroll);
+			act= find_active_file(sfile, mval[0], mval[1]);
+			set_active_file(sfile, act);
+			do_draw= 1;
+			break;
+
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 			if(mval[0]>scrollrct.xmin && mval[0]<scrollrct.xmax && mval[1]>scrollrct.ymin && mval[1]<scrollrct.ymax) {

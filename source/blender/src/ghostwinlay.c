@@ -435,6 +435,20 @@ static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private) {
 			break;
 		}
 	
+		case GHOST_kEventWheel:
+		{
+			GHOST_TEventWheelData* wheelData = (GHOST_TEventWheelData*) data;
+			if (wheelData->z > 0)
+			{
+				window_handle(win, WHEELUPMOUSE, 1);
+			}
+			else
+			{
+				window_handle(win, WHEELDOWNMOUSE, 1);
+			}
+			}
+			break;
+
 		case GHOST_kEventWindowDeactivate:
 		case GHOST_kEventWindowActivate: {
 			win->active= (type==GHOST_kEventWindowActivate);
