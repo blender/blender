@@ -10,8 +10,8 @@ This module provides access to B{Scene Rendering Contexts} in Blender.
 
 Example::
   import Blender
-  from Blender import Scene
-  from Blender import Scene.Render
+  from Blender import *
+  from Blender.Scene import Render
   
   scn = Scene.GetCurrent()
   context = scn.getRenderingContext()

@@ -124,9 +124,9 @@ class Action:
     @param channel: The name of a channel in this action to be removed
     """
     
-  def getAllChannelIpo():
+  def getAllChannelIpos():
     """
     Get the all the Ipos for this action
-    @rtype: PyList of PyIpos
+    @rtype: PyDict [channel : PyIpo]
     @return: the Ipos for all the channels in the action
     """
