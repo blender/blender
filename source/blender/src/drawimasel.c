@@ -438,7 +438,7 @@ void draw_sima_area(SpaceImaSel *simasel)
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	sprintf(naam, "win %d", curarea->win);
-	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSSF, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSSX, UI_HELV, curarea->win);
 	uiBlockSetCol(block, BUTBLUE);
 	
 	if (simasel->desx >  0){

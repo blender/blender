@@ -41,7 +41,7 @@ struct ScrArea;
 #define UI_EMBOSSX		0	/* Rounded embossed button */
 #define UI_EMBOSSW		1	/* Flat bordered button */
 #define UI_EMBOSSN		2	/* No border */
-#define UI_EMBOSSF		3	/* Square embossed button */
+
 #define UI_EMBOSSM		4	/* Colored Border */
 #define UI_EMBOSSP		5	/* Borderless coloured button */
 #define UI_EMBOSSA		6	/* same as EMBOSSX but with arrows to simulate */

@@ -1381,49 +1381,6 @@ static void ui_emboss_W(BIFColorID bc, float asp, float x1, float y1, float x2, 
 	}
 }
 
-/* minimal button with small black outline */
-static void ui_emboss_F(BIFColorID bc, float asp, float x1, float y1, float x2, float y2, int flag)
-{
-	float asp1;
-	
-	/* paper */
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_DARK);
-		else BIF_set_color(bc, COLORSHADE_GREY);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_HILITE);
-		else BIF_set_color(bc, COLORSHADE_MEDIUM);
-	}
-	
-	glRectf(x1+1, y1+1, x2-1, y2-1);
-
-	asp1= asp;
-
-	x1+= asp1;
-	x2-= asp1;
-	y1+= asp1;
-	y2-= asp1;
-
-	/* below */
-	if(flag & UI_SELECT) BIF_set_color(bc, COLORSHADE_WHITE);
-	else BIF_set_color(bc, COLORSHADE_DARK);
-	fdrawline(x1, y1, x2, y1);
-
-	/* right */
-	fdrawline(x2, y1, x2, y2);
-	
-	/* top */
-	if(flag & UI_SELECT) BIF_set_color(bc, COLORSHADE_DARK);
-	else BIF_set_color(bc, COLORSHADE_WHITE);
-	fdrawline(x1, y2, x2, y2);
-
-	/* left */
-	fdrawline(x1, y1, x1, y2);
-	
-	glColor3ub(0,0,0);
-	fdrawbox(x1-asp1, y1-asp1, x2+asp1, y2+asp1);
-}
 
 /* minimal for menus */
 static void ui_emboss_M(BIFColorID bc, float asp, float x1, float y1, float x2, float y2, int flag)
@@ -1729,16 +1686,11 @@ static void ui_draw_but_TEX(uiBut *but)
 	short pos, sel, t;
 	char ch;
 	
-	/* exception for text buttons using embossF */
-	sel= but->flag;
-	if(but->embossfunc==ui_emboss_F) sel |= UI_SELECT;
+	sel= but->flag & UI_SELECT;
 	
 	but->embossfunc = ui_emboss_TEX;
-
 	but->embossfunc(but->col, but->aspect, but->x1, but->y1, but->x2, but->y2, sel);
 	
-	sel= but->flag & UI_SELECT;
-
 	/* draw cursor */
 	if(but->pos != -1) {
 		
@@ -5347,7 +5299,6 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 
 	if(block->dt==UI_EMBOSSX) but->embossfunc= ui_emboss_X;
 	else if(block->dt==UI_EMBOSSW) but->embossfunc= ui_emboss_W;
-	else if(block->dt==UI_EMBOSSF) but->embossfunc= ui_emboss_F;
 	else if(block->dt==UI_EMBOSSM) but->embossfunc= ui_emboss_M;
 	else if(block->dt==UI_EMBOSSP) but->embossfunc= ui_emboss_P;
 	else if(block->dt==UI_EMBOSST) but->embossfunc= ui_emboss_TABL;

@@ -370,14 +370,10 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 	uiBlock *block;
 	Oops *oops;
 	int ofsx, ofsy;
-	char name[32];
 	
 	glClearColor(0.55, 0.55, 0.55, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	if(G.soops==0) return;	
-
-	sprintf(name, "win %d", curarea->win);
-	block= uiNewBlock(&curarea->uiblocks, name, UI_EMBOSSF, UI_HELVB, curarea->win);
 
 	boundbox_oops();
 	calc_scrollrcts(G.v2d, curarea->winx, curarea->winy);
@@ -430,8 +426,6 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 		drawscroll(0);		
 	}
 	draw_area_emboss(sa);	
-	
-	uiDrawBlock(block);
 	
 	curarea->win_swap= WIN_BACK_OK;
 }
