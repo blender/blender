@@ -1157,32 +1157,32 @@ static void editing_panel_lattice_type(Object *ob, Lattice *lt)
 	uiSetButLock(ob==G.obedit, "Unable to perform function in EditMode");
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, B_RESIZELAT,	"U:",				470, 178,100,19, &lt->pntsu, 1.0, 64.0, 0, 0, "");
-	uiDefButC(block, ROW, B_LATTCHANGED,		"Lin",		572, 178, 40, 19, &lt->typeu, 1.0, (float)KEY_LINEAR, 0, 0, "");
-	uiDefButC(block, ROW, B_LATTCHANGED,		"Card",		612, 178, 40, 19, &lt->typeu, 1.0, (float)KEY_CARDINAL, 0, 0, "");
-	uiDefButC(block, ROW, B_LATTCHANGED,		"B",		652, 178, 40, 19, &lt->typeu, 1.0, (float)KEY_BSPLINE, 0, 0, "");
+	uiDefButS(block, NUM, B_RESIZELAT,	"U:",				470, 178,100,19, &lt->pntsu, 1.0, 64.0, 0, 0, "Points in U direction");
+	uiDefButC(block, ROW, B_LATTCHANGED,		"Lin",		572, 178, 40, 19, &lt->typeu, 1.0, (float)KEY_LINEAR, 0, 0, "Set Linear interpolation");
+	uiDefButC(block, ROW, B_LATTCHANGED,		"Card",		612, 178, 40, 19, &lt->typeu, 1.0, (float)KEY_CARDINAL, 0, 0, "Set Cardinal interpolation");
+	uiDefButC(block, ROW, B_LATTCHANGED,		"B",		652, 178, 40, 19, &lt->typeu, 1.0, (float)KEY_BSPLINE, 0, 0, "Set B-spline interpolation");
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, B_RESIZELAT,	"V:",				470, 158,100,19, &lt->pntsv, 1.0, 64.0, 0, 0, "");
-	uiDefButC(block, ROW, B_LATTCHANGED,		"Lin",		572, 158, 40, 19, &lt->typev, 2.0, (float)KEY_LINEAR, 0, 0, "");
-	uiDefButC(block, ROW, B_LATTCHANGED,		"Card",		612, 158, 40, 19, &lt->typev, 2.0, (float)KEY_CARDINAL, 0, 0, "");
-	uiDefButC(block, ROW, B_LATTCHANGED,		"B",		652, 158, 40, 19, &lt->typev, 2.0, (float)KEY_BSPLINE, 0, 0, "");
+	uiDefButS(block, NUM, B_RESIZELAT,	"V:",				470, 158,100,19, &lt->pntsv, 1.0, 64.0, 0, 0, "Points in V direction");
+	uiDefButC(block, ROW, B_LATTCHANGED,		"Lin",		572, 158, 40, 19, &lt->typev, 2.0, (float)KEY_LINEAR, 0, 0, "Set Linear interpolation");
+	uiDefButC(block, ROW, B_LATTCHANGED,		"Card",		612, 158, 40, 19, &lt->typev, 2.0, (float)KEY_CARDINAL, 0, 0, "Set Cardinal interpolation");
+	uiDefButC(block, ROW, B_LATTCHANGED,		"B",		652, 158, 40, 19, &lt->typev, 2.0, (float)KEY_BSPLINE, 0, 0, "Set B-spline interpolation");
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, B_RESIZELAT,	"W:",				470, 138,100,19, &lt->pntsw, 1.0, 64.0, 0, 0, "");
-	uiDefButC(block, ROW, B_LATTCHANGED,		"Lin",		572, 138, 40, 19, &lt->typew, 3.0, (float)KEY_LINEAR, 0, 0, "");
-	uiDefButC(block, ROW, B_LATTCHANGED,		"Card",		612, 138, 40, 19, &lt->typew, 3.0, (float)KEY_CARDINAL, 0, 0, "");
-	uiDefButC(block, ROW, B_LATTCHANGED,		"B",		652, 138, 40, 19, &lt->typew, 3.0, (float)KEY_BSPLINE, 0, 0, "");
+	uiDefButS(block, NUM, B_RESIZELAT,	"W:",				470, 138,100,19, &lt->pntsw, 1.0, 64.0, 0, 0, "Points in W direction");
+	uiDefButC(block, ROW, B_LATTCHANGED,		"Lin",		572, 138, 40, 19, &lt->typew, 3.0, (float)KEY_LINEAR, 0, 0, "Set Linear interpolation");
+	uiDefButC(block, ROW, B_LATTCHANGED,		"Card",		612, 138, 40, 19, &lt->typew, 3.0, (float)KEY_CARDINAL, 0, 0, "Set Cardinal interpolation");
+	uiDefButC(block, ROW, B_LATTCHANGED,		"B",		652, 138, 40, 19, &lt->typew, 3.0, (float)KEY_BSPLINE, 0, 0, "Set B-spline interpolation");
 	uiBlockEndAlign(block);
 
-	uiDefBut(block, BUT, B_RESIZELAT,	"Make Regular",		470,101,99,32, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, BUT, B_RESIZELAT,	"Make Regular",		470,101,99,32, 0, 0, 0, 0, 0, "Make Lattice regular");
 
 	uiClearButLock();
-	uiDefButS(block, TOG|BIT|1, B_LATTCHANGED, "Outside",	571,101,120,31, &lt->flag, 0, 0, 0, 0, "");
+	uiDefButS(block, TOG|BIT|1, B_LATTCHANGED, "Outside",	571,101,120,31, &lt->flag, 0, 0, 0, 0, "Only draw, and take into account, the outer vertices");
 
 	if(lt->key) {
-		uiDefButS(block, NUM, B_DIFF, "Slurph:",			470,60,120,19, &(lt->key->slurph), -500.0, 500.0, 0, 0, "");
-		uiDefButS(block, TOG, B_RELKEY, "Relative Keys",	470,40,120,19, &lt->key->type, 0, 0, 0, 0, "");
+		uiDefButS(block, NUM, B_DIFF, "Slurph:",			470,60,120,19, &(lt->key->slurph), -500.0, 500.0, 0, 0, "Set time value to denote 'slurph' (sequential delay) vertices with key framing");
+		uiDefButS(block, TOG, B_RELKEY, "Relative Keys",	470,40,120,19, &lt->key->type, 0, 0, 0, 0, "Use relative keys (instead of absolute)");
 	}
 
 }
