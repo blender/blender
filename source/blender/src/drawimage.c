@@ -746,13 +746,13 @@ static void image_panel_properties(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 		char str[32];
 
 		sprintf(str, "Image: size %d x %d", G.sima->image->ibuf->x, G.sima->image->ibuf->y);
-		uiDefBut(block, LABEL, 0, str,		10,180,300,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, B_NOP, str,		10,180,300,19, 0, 0, 0, 0, 0, "");
 
 		uiBlockBeginAlign(block);
 		uiDefButS(block, TOG|BIT|1, B_TWINANIM, "Anim", 10,150,140,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Toggles use of animated texture");
 		uiDefButS(block, NUM, B_TWINANIM, "Start:",		10,130,140,19, &G.sima->image->twsta, 0.0, 128.0, 0, 0, "Displays the start frame of an animated texture");
 		uiDefButS(block, NUM, B_TWINANIM, "End:",		10,110,140,19, &G.sima->image->twend, 0.0, 128.0, 0, 0, "Displays the end frame of an animated texture");
-		uiDefButS(block, NUM, 0, "Speed", 				10,90,140,19, &G.sima->image->animspeed, 1.0, 100.0, 0, 0, "Displays Speed of the animation in frames per second");
+		uiDefButS(block, NUM, B_NOP, "Speed", 				10,90,140,19, &G.sima->image->animspeed, 1.0, 100.0, 0, 0, "Displays Speed of the animation in frames per second");
 		uiBlockEndAlign(block);
 
 		uiBlockBeginAlign(block);
@@ -768,6 +768,7 @@ static void image_panel_properties(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 {
 	extern VPaint Gvp;         /* from vpaint - this was copied from the paint panel*/
+	static float hsv[3], old[3];	// used as temp mem for picker
 	uiBlock *block;
 
 	block= uiNewBlock(&curarea->uiblocks, "image_panel_paint", UI_EMBOSS, UI_HELV, curarea->win);
@@ -776,18 +777,12 @@ static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 	if(uiNewPanel(curarea, block, "Paint", "Image", 10, 230, 318, 204)==0)
 		return;
 
-	/* Here we will define our stuff  - this was copied from the paint panel*/
-		
+	uiBlockPickerButtons(block, &Gvp.r, hsv, old, 'r');	/* 'r' is for numbuts on right */
+
+	//	offset= FPICK+2*DPICK+BPICK in interface.c... this goes wrong when defines change
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, 0, "R ",			979,160,194,19, &Gvp.r, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of red used for painting");
-	uiDefButF(block, NUMSLI, 0, "G ",			979,140,194,19, &Gvp.g, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of green used for painting");
-	uiDefButF(block, NUMSLI, 0, "B ",			979,120,194,19, &Gvp.b, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of blue used for painting");
-	uiBlockEndAlign(block);
-
-	uiDefButF(block, NUMSLI, 0, "Opacity ",		979,100,194,19, &Gvp.a, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
-	uiDefButF(block, NUMSLI, 0, "Size ",		979,80,194,19, &Gvp.size, 2.0, 64.0, 0, 0, "The size of the brush");
-
-	uiDefButF(block, COL, B_VPCOLSLI, "",		1176,100,28,80, &(Gvp.r), 0, 0, 0, 0, "");
+	uiDefButF(block, NUM, B_NOP, "A: ",		180+12+24,160,80,20, &Gvp.a, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
+	uiDefButF(block, NUM, B_NOP, "Size ",	180+12+24,140,80,20, &Gvp.size, 2.0, 64.0, 0, 0, "The size of the brush");
 }
 
 

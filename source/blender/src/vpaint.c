@@ -456,6 +456,7 @@ void sample_vpaint()	/* frontbuf */
 	Gvp.b /= 255.0;
 
 	allqueue(REDRAWBUTSEDIT, 0);
+	addqueue(curarea->win, REDRAW, 1); // needed for when panel is open...
 }
 
 void init_vertexpaint()

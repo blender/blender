@@ -2097,7 +2097,8 @@ static void update_picker_buts(uiBlock *block, float *col)
 	rgb_to_hsv(col[0], col[1], col[2], &h, &s, &v);
 
 	for(bt= block->buttons.first; bt; bt= bt->next) {
-		if(bt->str[0]=='R') {
+		if(bt->str[1]); // sting longer than 1 char
+		else if(bt->str[0]=='R') {
 			ui_set_but_val(bt, col[0]);
 			ui_check_but(bt);
 		}
@@ -2124,15 +2125,15 @@ static void update_picker_buts(uiBlock *block, float *col)
 	}
 }
 
-/* bt1 is palette but, bt2 is the parent button of the picker */
-static void do_palette_cb(void *bt1, void *bt2)
+/* bt1 is palette but, col1 is original color */
+/* callback to copy from/to palette */
+static void do_palette_cb(void *bt1, void *col1)
 {
 	uiBut *but1= (uiBut *)bt1;
-	uiBut *but2= (uiBut *)bt2;
 	uiBut *but;
-	float col[3], *fp;
+	float *col= (float *)col1;
+	float *fp;
 	
-	ui_get_but_vectorf(but2, col);
 	fp= (float *)but1->poin;
 	
 	if( (get_qual() & LR_CTRLKEY) ) {
@@ -2140,7 +2141,6 @@ static void do_palette_cb(void *bt1, void *bt2)
 	}
 	else {
 		VECCOPY(col, fp);
-		ui_set_but_vectorf(but2, col);
 	}
 
 	update_picker_buts(but1->block, col);
@@ -2151,13 +2151,14 @@ static void do_palette_cb(void *bt1, void *bt2)
 	glFlush(); // flush display in subloops
 }
 
-/* bt1 is num but, bt2 is the parent button of the picker */
-static void do_palette1_cb(void *bt1, void *bt2)
+/* bt1 is num but, col1 is pointer to original color */
+/* callback to handle changes in num-buts in picker */
+static void do_palette1_cb(void *bt1, void *col1)
 {
 	uiBut *but1= (uiBut *)bt1;
-	uiBut *but2= (uiBut *)bt2;
 	uiBut *but;
-	float *fp= NULL, col[3];
+	float *col= (float *)col1;
+	float *fp= NULL;
 	
 	if(but1->str[0]=='H') fp= (float *)but1->poin;
 	else if(but1->str[0]=='S') fp= ((float *)but1->poin)-1;
@@ -2165,17 +2166,6 @@ static void do_palette1_cb(void *bt1, void *bt2)
 	
 	if(fp) {
 		hsv_to_rgb(fp[0], fp[1], fp[2], col, col+1, col+2);
-		ui_set_but_vectorf(but2, col);
-	}
-	else {
-		if(but1->str[0]=='R') fp= (float *)but1->poin;
-		else if(but1->str[0]=='G') fp= ((float *)but1->poin)-1;
-		else if(but1->str[0]=='B') fp= ((float *)but1->poin)-2;
-		
-		if(fp) {
-			ui_set_but_vectorf(but2, fp);
-			VECCOPY(col, fp);
-		}
 	}
 	
 	update_picker_buts(but1->block, col);
@@ -2187,139 +2177,103 @@ static void do_palette1_cb(void *bt1, void *bt2)
 	glFlush(); // flush display in subloops
 }
 
-#if 0
-/* color picker, cube version */
-static int ui_do_but_COL1(uiBut *but)
+/* color picker, Gimp version. mode: 't' = RGB buttons on top */
+/* col = read/write to, hsv/old = memory for temporal use */
+void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, char mode)
 {
-	uiBlock *block;
 	uiBut *bt;
-	ListBase listb={NULL, NULL};
-	float col[3], hsv[3], h;
+	float h;
 	int a;
-	short event;
-	
-	// signal to prevent calling up color picker
-	if(but->a1 == -1 || but->pointype!=FLO) {
-		uibut_do_func(but);
-		return 0;
+
+	if(mode=='t') {
+		// safety, put in beginning otherwise tooltips wont work
+		uiDefBut(block, LABEL, B_NOP, "",	-DPICK,-DPICK, FPICK+3*DPICK+BPICK, FPICK+4*DPICK+BPICK+40, NULL, 0.0, 0.0, 0, 0, "");
 	}
 	
-	block= uiNewBlock(&listb, "colorpicker", UI_EMBOSSP, UI_HELV, but->win);
-	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
-	block->themecol= TH_BUT_NUM;
+	VECCOPY(old, col);	// old color stored there, for palette_cb to work
 	
-	// the cube intersections
-	bt= uiDefButF(block, HSVCUBE, 0, "",	0,DPICK+BPICK,SPICK,SPICK, (float *)but->poin, 0.0, 0.0, 0, 0, "");
+	// the cube intersection
+	bt= uiDefButF(block, HSVCUBE, B_NOP, "",	0,DPICK+BPICK,FPICK,FPICK, col, 0.0, 0.0, 2, 0, "");
 	uiButSetFlag(bt, UI_NO_HILITE);
-	bt= uiDefButF(block, HSVCUBE, 0, "",	0,2*DPICK+BPICK+SPICK,SPICK,SPICK, (float *)but->poin, 0.0, 0.0, 1, 0, "");
-	uiButSetFlag(bt, UI_NO_HILITE);
-	bt= uiDefButF(block, HSVCUBE, 0, "",	DPICK+SPICK,2*DPICK+BPICK+SPICK,SPICK,SPICK, (float *)but->poin, 0.0, 0.0, 2, 0, "");
+
+	bt= uiDefButF(block, HSVCUBE, B_NOP, "",	0,0,FPICK,BPICK, col, 0.0, 0.0, 3, 0, "");
 	uiButSetFlag(bt, UI_NO_HILITE);
 
 	// palette
-	uiDefButF(block, COL, 0, "",		0,0,60,BPICK, (float *)but->poin, 0.0, 0.0, -1, 0, "");
-	h= (DPICK+2*SPICK-64)/(UI_PALETTE_TOT/2.0);
-	for(a=0; a<UI_PALETTE_TOT/2; a++) {
-		bt= uiDefButF(block, COL, 0, "",	65.0+(float)a*h, BPICK/2, h, BPICK/2, palette[a+UI_PALETTE_TOT/2], 0.0, 0.0, -1, 0, "");
-		uiButSetFunc(bt, do_palette_cb, bt, but);
-		bt= uiDefButF(block, COL, 0, "",	65.0+(float)a*h, 0, h, BPICK/2, palette[a], 0.0, 0.0, -1, 0, "");		
-		uiButSetFunc(bt, do_palette_cb, bt, but);
+	bt=uiDefButF(block, COL, B_NOP, "",		FPICK+DPICK, 0, BPICK,BPICK, old, 0.0, 0.0, -1, 0, "Old color, click to restore");
+	uiButSetFunc(bt, do_palette_cb, bt, col);
+	uiDefButF(block, COL, B_NOP, "",		FPICK+DPICK, BPICK+DPICK, BPICK,60-BPICK-DPICK, col, 0.0, 0.0, -1, 0, "Active color");
+
+	h= (DPICK+BPICK+FPICK-64)/(UI_PALETTE_TOT/2.0);
+	uiBlockBeginAlign(block);
+	for(a= -1+UI_PALETTE_TOT/2; a>=0; a--) {
+		bt= uiDefButF(block, COL, B_NOP, "",	FPICK+DPICK, 65.0+(float)a*h, BPICK/2, h, palette[a+UI_PALETTE_TOT/2], 0.0, 0.0, -1, 0, "Click to choose, hold CTRL to store in palette");
+		uiButSetFunc(bt, do_palette_cb, bt, col);
+		bt= uiDefButF(block, COL, B_NOP, "",	FPICK+DPICK+BPICK/2, 65.0+(float)a*h, BPICK/2, h, palette[a], 0.0, 0.0, -1, 0, "Click to choose, hold CTRL to store in palette");		
+		uiButSetFunc(bt, do_palette_cb, bt, col);
 	}
-	
+	uiBlockEndAlign(block);
+
 	// buttons
-	ui_get_but_vectorf(but, col);
 	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
-	
-	bt= uiDefButF(block, NUM, 0, "R ",	DPICK+SPICK,BPICK+DPICK+SPICK-20,SPICK/2,20, col, 0.0, 1.0, 10, 2, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, but);
-	bt= uiDefButF(block, NUM, 0, "G ",	DPICK+SPICK,BPICK+DPICK+SPICK-40,SPICK/2,20, col+1, 0.0, 1.0, 10, 2, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, but);
-	bt= uiDefButF(block, NUM, 0, "B ",	DPICK+SPICK,BPICK+DPICK+SPICK-60,SPICK/2,20, col+2, 0.0, 1.0, 10, 2, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, but);
 
-	bt= uiDefButF(block, NUM, 0, "H ",	DPICK+1.5*SPICK,BPICK+DPICK+SPICK-20,SPICK/2,20, hsv, 0.0, 1.0, 10, 2, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, but);
-	bt= uiDefButF(block, NUM, 0, "S ",	DPICK+1.5*SPICK,BPICK+DPICK+SPICK-40,SPICK/2,20, hsv+1, 0.0, 1.0, 10, 2, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, but);
-	bt= uiDefButF(block, NUM, 0, "V ",	DPICK+1.5*SPICK,BPICK+DPICK+SPICK-60,SPICK/2,20, hsv+2, 0.0, 1.0, 10, 2, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, but);
-
-	// safety 
-	uiDefBut(block, LABEL, 0, "",	-DPICK,-DPICK,2*SPICK+3*DPICK,2*SPICK+4*DPICK+BPICK, NULL, 0.0, 0.0, 0, 0, "");
+	if(mode=='t') {  // on top
+		h= (FPICK+DPICK+BPICK)/3.0;
+		bt= uiDefButF(block, NUM, B_NOP, "R ",	0, BPICK+2*DPICK+FPICK+20, h,20, col, 0.0, 1.0, 10, 2, "");
+		uiButSetFunc(bt, do_palette1_cb, bt, col);
+		bt= uiDefButF(block, NUM, B_NOP, "G ",	h, BPICK+2*DPICK+FPICK+20, h,20, col+1, 0.0, 1.0, 10, 2, "");
+		uiButSetFunc(bt, do_palette1_cb, bt, col);
+		bt= uiDefButF(block, NUM, B_NOP, "B ",	2*h, BPICK+2*DPICK+FPICK+20, h,20, col+2, 0.0, 1.0, 10, 2, "");
+		uiButSetFunc(bt, do_palette1_cb, bt, col);
 	
-	/* and lets go */
-	block->direction= UI_TOP;
-	ui_positionblock(block, but);
-	block->win= G.curscreen->mainwin;
-	event= uiDoBlocks(&listb, 0);
-	
-	return but->retval;
+		bt= uiDefButF(block, NUM, B_NOP, "H ",	0, BPICK+2*DPICK+FPICK, h,20, hsv, 0.0, 1.0, 10, 2, "");
+		uiButSetFunc(bt, do_palette1_cb, bt, col);
+		bt= uiDefButF(block, NUM, B_NOP, "S ",	h, BPICK+2*DPICK+FPICK, h,20, hsv+1, 0.0, 1.0, 10, 2, "");
+		uiButSetFunc(bt, do_palette1_cb, bt, col);
+		bt= uiDefButF(block, NUM, B_NOP, "V ",	2*h, BPICK+2*DPICK+FPICK, h,20, hsv+2, 0.0, 1.0, 10, 2, "");
+		uiButSetFunc(bt, do_palette1_cb, bt, col);
+	}
+	else {  // on side
+		float offs= FPICK+2*DPICK+BPICK;
+		
+		uiBlockBeginAlign(block);
+		bt= uiDefButF(block, NUM, B_NOP, "R ",	offs, 110, 80,20, col, 0.0, 1.0, 10, 2, "");
+		uiButSetFunc(bt, do_palette1_cb, bt, col);
+		bt= uiDefButF(block, NUM, B_NOP, "G ",	offs, 90, 80,20, col+1, 0.0, 1.0, 10, 2, "");
+		uiButSetFunc(bt, do_palette1_cb, bt, col);
+		bt= uiDefButF(block, NUM, B_NOP, "B ",	offs, 70, 80,20, col+2, 0.0, 1.0, 10, 2, "");
+		uiButSetFunc(bt, do_palette1_cb, bt, col);
+		
+		uiBlockBeginAlign(block);
+		bt= uiDefButF(block, NUM, B_NOP, "H ",	offs, 40, 80,20, hsv, 0.0, 1.0, 10, 2, "");
+		uiButSetFunc(bt, do_palette1_cb, bt, col);
+		bt= uiDefButF(block, NUM, B_NOP, "S ",	offs, 20, 80,20, hsv+1, 0.0, 1.0, 10, 2, "");
+		uiButSetFunc(bt, do_palette1_cb, bt, col);
+		bt= uiDefButF(block, NUM, B_NOP, "V ",	offs, 0, 80,20, hsv+2, 0.0, 1.0, 10, 2, "");
+		uiButSetFunc(bt, do_palette1_cb, bt, col);
+		uiBlockEndAlign(block);
+	}
 }
-#endif
 
-/* color picker, Gimp version */
+
 static int ui_do_but_COL(uiBut *but)
 {
 	uiBlock *block;
-	uiBut *bt;
 	ListBase listb={NULL, NULL};
-	float col[3], hsv[3], h;
-	int a;
+	float hsv[3], old[3];
 	short event;
 	
 	// signal to prevent calling up color picker
 	if(but->a1 == -1 || but->pointype!=FLO) {
 		uibut_do_func(but);
-		return 0;
+		return but->retval;
 	}
 	
 	block= uiNewBlock(&listb, "colorpicker", UI_EMBOSSP, UI_HELV, but->win);
-	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
+	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW;
 	block->themecol= TH_BUT_NUM;
 	
-	// safety, put in beginning otherwise tooltips wont work
-	uiDefBut(block, LABEL, 0, "",	-DPICK,-DPICK, FPICK+3*DPICK+BPICK, FPICK+4*DPICK+BPICK+40, NULL, 0.0, 0.0, 0, 0, "");
-
-	ui_get_but_vectorf(but, col);
-	VECCOPY(palette[UI_PALETTE_TOT], col);	// old color stored there, for palette_cb to work
-	
-	// the cube intersection
-	bt= uiDefButF(block, HSVCUBE, 0, "",	0,DPICK+BPICK,FPICK,FPICK, (float *)but->poin, 0.0, 0.0, 2, 0, "");
-	uiButSetFlag(bt, UI_NO_HILITE);
-
-	bt= uiDefButF(block, HSVCUBE, 0, "",	0,0,FPICK,BPICK, (float *)but->poin, 0.0, 0.0, 3, 0, "");
-	uiButSetFlag(bt, UI_NO_HILITE);
-
-	// palette
-	bt=uiDefButF(block, COL, 0, "rt",		FPICK+DPICK, 0, BPICK,BPICK, palette[UI_PALETTE_TOT], 0.0, 0.0, -1, 0, "Old color, click to restore");
-	uiButSetFunc(bt, do_palette_cb, bt, but);
-	uiDefButF(block, COL, 0, "rt1",		FPICK+DPICK, BPICK+DPICK, BPICK,60-BPICK-DPICK, col, 0.0, 0.0, -1, 0, "Active color");
-
-	h= (DPICK+BPICK+FPICK-64)/(UI_PALETTE_TOT/2.0);
-	for(a=0; a<UI_PALETTE_TOT/2; a++) {
-		bt= uiDefButF(block, COL, 0, "",	FPICK+DPICK, 65.0+(float)a*h, BPICK/2, h, palette[a+UI_PALETTE_TOT/2], 0.0, 0.0, -1, 0, "Click to choose, hold CTRL to store in palette");
-		uiButSetFunc(bt, do_palette_cb, bt, but);
-		bt= uiDefButF(block, COL, 0, "",	FPICK+DPICK+BPICK/2, 65.0+(float)a*h, BPICK/2, h, palette[a], 0.0, 0.0, -1, 0, "Click to choose, hold CTRL to store in palette");		
-		uiButSetFunc(bt, do_palette_cb, bt, but);
-	}
-
-	// buttons
-	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
-
-	h= (FPICK+DPICK+BPICK)/3.0;
-	bt= uiDefButF(block, NUM, 0, "R ",	0, BPICK+2*DPICK+FPICK+20, h,20, col, 0.0, 1.0, 10, 2, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, but);
-	bt= uiDefButF(block, NUM, 0, "G ",	h, BPICK+2*DPICK+FPICK+20, h,20, col+1, 0.0, 1.0, 10, 2, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, but);
-	bt= uiDefButF(block, NUM, 0, "B ",	2*h, BPICK+2*DPICK+FPICK+20, h,20, col+2, 0.0, 1.0, 10, 2, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, but);
-
-	bt= uiDefButF(block, NUM, 0, "H ",	0, BPICK+2*DPICK+FPICK, h,20, hsv, 0.0, 1.0, 10, 2, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, but);
-	bt= uiDefButF(block, NUM, 0, "S ",	h, BPICK+2*DPICK+FPICK, h,20, hsv+1, 0.0, 1.0, 10, 2, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, but);
-	bt= uiDefButF(block, NUM, 0, "V ",	2*h, BPICK+2*DPICK+FPICK, h,20, hsv+2, 0.0, 1.0, 10, 2, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, but);
+	uiBlockPickerButtons(block, (float *)but->poin, hsv, old, 't');
 
 	/* and lets go */
 	block->direction= UI_TOP;
@@ -2378,7 +2332,8 @@ static int ui_do_but_HSVCUBE(uiBut *but)
 		}
 		else BIF_wait_for_statechange();
 	}
-	return 0;
+	
+	return but->retval;;
 }
 
 

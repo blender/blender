@@ -108,12 +108,14 @@
 #include "BDR_drawmesh.h"
 #include "BDR_drawobject.h"
 #include "BDR_editobject.h"
+#include "BDR_vpaint.h"
 
 #include "BSE_view.h"
 #include "BSE_drawview.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_seqaudio.h"
 #include "BSE_filesel.h"
+#include "BSE_trans_types.h"
 
 #include "RE_renderconverter.h"
 
@@ -1460,9 +1462,11 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(VIEW3D_HANDLER_OBJECT);  // for close and esc
 	if(uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 204)==0) return;
-
-	uiDefBut(block, TEX, B_IDNAME, "OB: ",	10,180,140,20, ob->id.name+2, 0.0, 18.0, 0, 0, "");
-	uiDefIDPoinBut(block, test_obpoin_but, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
+	
+	if((G.f & (G_VERTEXPAINT|G_TEXTUREPAINT))==0) {
+		uiDefBut(block, TEX, B_IDNAME, "OB: ",	10,180,140,20, ob->id.name+2, 0.0, 18.0, 0, 0, "");
+		uiDefIDPoinBut(block, test_obpoin_but, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
+	}
 
 	lim= 1000.0*MAX2(1.0, G.vd->grid);
 
@@ -1473,6 +1477,11 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	}
 	else if(ob==G.obpose) {
 		v3d_posearmature_buts(block, ob, lim);
+	}
+	else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT)) {
+		extern VPaint Gvp;         /* from vpaint */
+		static float hsv[3], old[3];	// used as temp mem for picker
+		uiBlockPickerButtons(block, &Gvp.r, hsv, old, 'r');	/* 'r' is for numbuts on right */
 	}
 	else {
 		uiBlockBeginAlign(block);
