@@ -74,8 +74,8 @@ elif ( test $UNAME = "Darwin" ) then
         CC="cc";
         CFLAGS="-fPIC -funsigned-char -O2 -fno-common";
         LD="cc";
-        LDFLAGS=" -dynamiclib -lm";
-        EXT="dylib";
+        LDFLAGS=" -bundle -bundle_loader ../../blender.app/Contents/MacOS/blender -lm";
+        EXT="so";
 fi
 
 if ( test "$#" = "1" ) then 

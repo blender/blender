@@ -81,7 +81,7 @@ all:
 	    NOPLUGINS="true" NOSTRIP="true"
     endif
     ifeq ($(OS),darwin)
-	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT0"=.app" EXT1=".tar" NOPLUGINS="true" \
+	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT0"=.app" EXT1=".tar" \
 	    COMPRESS="gzip -f --best" EXT2=".gz"
     endif
 

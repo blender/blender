@@ -36,6 +36,10 @@
 #include <config.h>
 #endif
 
+#if !defined(CHAR_MAX)
+#define CHAR_MAX 255
+#endif
+
 /*
  * XXX, should use mallocN so we can see
  * handle's not being released. fixme zr
@@ -100,13 +104,40 @@ void PIL_dynlib_close(PILdynlib *lib) {
 
 #else
 #ifdef __APPLE__
+#include <mach-o/dyld.h>
+
+struct PILdynlib {
+	NSModule *handle;
+};
 
 PILdynlib *PIL_dynlib_open(char *name) {
-	return NULL;
+   NSObjectFileImage img;
+
+   PILdynlib *lib= malloc(sizeof(*lib));
+   if (NSCreateObjectFileImageFromFile( name, &img) == 
+	NSObjectFileImageSuccess) {
+      lib->handle = NSLinkModule( img, name, NSLINKMODULE_OPTION_BINDNOW);
+      NSDestroyObjectFileImage(img);
+      return lib;
+   }
+   free(lib);
+   return NULL;
 }
 
 void *PIL_dynlib_find_symbol(PILdynlib* lib, char *symname) {
-	return NULL;
+   char *name;
+   NSSymbol cr;
+   int size;
+
+   size = strlen(symname) + 2 * sizeof(char);
+   if (size < CHAR_MAX) {
+      name = MEM_mallocN(size, "temp string");
+      sprintf(&name, "_%s",symname);
+      cr = NSLookupSymbolInModule(lib->handle, name);
+      free(name);
+      return NSAddressOfSymbol(cr);
+   }
+   return NULL;
 }
 
 char *PIL_dynlib_get_error_as_string(PILdynlib* lib) {
@@ -114,7 +145,8 @@ char *PIL_dynlib_get_error_as_string(PILdynlib* lib) {
 }
 	
 void PIL_dynlib_close(PILdynlib *lib) {
-	;
+	NSUnLinkModule(lib->handle,NSUNLINKMODULE_OPTION_NONE);
+	free(lib);
 }
 
 #else	/* Unix */
