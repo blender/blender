@@ -63,13 +63,6 @@
 
 #include "winlay.h"
 
-
-typedef struct {
-	unsigned short event;
-	short val;
-	char ascii;
-} QEvent;
-
 typedef struct {
 	struct bWindow *next, *prev;
 	int id, pad;
@@ -117,6 +110,8 @@ void mywindow_init_mainwin(Window *win, int orx, int ory, int sizex, int sizey)
 
 /* XXXXXXXXXXXXXXXX very hacky, not allowed to release
  * again after 2.24
+ *
+ * Nah ha! And you thought you'd be in business that long!
  */
 void mywindow_build_and_set_renderwin(void)
 {
@@ -145,26 +140,18 @@ int bwin_qtest(int winid)
 {
 	return !BLI_gsqueue_is_empty(bwin_from_winid(winid)->qevents);
 }
-unsigned short bwin_qread(int winid, short *val_r, char *ascii_r)
+int bwin_qread(int winid, BWinEvent *evt_r)
 {
 	if (bwin_qtest(winid)) {
-		QEvent evt;
-		BLI_gsqueue_pop(bwin_from_winid(winid)->qevents, &evt);
-		*val_r= evt.val;
-		*ascii_r= evt.ascii;
-		return evt.event;
+		BLI_gsqueue_pop(bwin_from_winid(winid)->qevents, evt_r);
+		return 1;
 	} else {
-		*val_r= 0;
 		return 0;
 	}
 }
-void bwin_qadd(int winid, unsigned short event, short val, char ascii)
+void bwin_qadd(int winid, BWinEvent *evt)
 {
-	QEvent evt;
-	evt.event= event;
-	evt.val= val;
-	evt.ascii= ascii;
-	BLI_gsqueue_push(bwin_from_winid(winid)->qevents, &evt);
+	BLI_gsqueue_push(bwin_from_winid(winid)->qevents, evt);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -383,7 +370,7 @@ int myswinopen(int parentid, int xmin, int xmax, int ymin, int ymax)
 		win->xmax= xmax;
 		win->ymax= ymax;
 	
-		win->qevents= BLI_gsqueue_new(sizeof(QEvent));
+		win->qevents= BLI_gsqueue_new(sizeof(BWinEvent));
 
 		Mat4One(win->viewmat);
 		Mat4One(win->winmat);

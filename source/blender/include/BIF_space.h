@@ -37,6 +37,7 @@ struct ListBase;
 struct ScrArea;
 struct SpaceButs;
 struct View2D;
+struct BWinEvent;
 
 #define REMAKEIPO		1
 #define OOPS_TEST		2
@@ -44,7 +45,7 @@ struct View2D;
 
 void	scrarea_do_windraw		(struct ScrArea *sa);
 void	scrarea_do_winchange	(struct ScrArea *sa);
-void	scrarea_do_winhandle	(struct ScrArea *sa, unsigned short event, short val, char ascii);
+void	scrarea_do_winhandle	(struct ScrArea *sa, struct BWinEvent *evt);
 void	scrarea_do_headdraw		(struct ScrArea *sa);
 void	scrarea_do_headchange	(struct ScrArea *sa);
 

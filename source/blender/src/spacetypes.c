@@ -129,13 +129,13 @@ void scrarea_do_winchange(ScrArea *area)
 		}
 	}
 }
-void scrarea_do_winhandle(ScrArea *area, unsigned short event, short val, char ascii)
+void scrarea_do_winhandle(ScrArea *area, BWinEvent *evt)
 {
 	SpaceType *st= spacetype_from_code(area->spacetype);
 
 	areawinset(area->win);
 	
 	if (st->winhandle) {
-		st->winhandle(event, val, ascii);
+		st->winhandle(evt->event, evt->val, evt->ascii);
 	}
 }

@@ -392,7 +392,11 @@ static void addqueue_ext(short win, unsigned short event, short val, char ascii)
 	if (win<4 || !areawinar[win]) {
 		printf("bad call to addqueue: %d (%d, %d)\n", win, event, val);
 	} else {
-		bwin_qadd(win, event, val, ascii);
+		BWinEvent evt;
+		evt.event= event;
+		evt.val= val;
+		evt.ascii= ascii;
+		bwin_qadd(win, &evt);
 	}
 }
 
@@ -419,21 +423,18 @@ static void scrollheader(ScrArea *area);
 static void scrarea_dispatch_header_events(ScrArea *sa)
 {
 	ScrArea *tempsa;
+	BWinEvent evt;
 	short do_redraw=0, do_change=0;
 	
 	areawinset(sa->headwin);
 	
-	while(bwin_qtest(sa->headwin)) {
-		char ascii;
-		short val;
-		unsigned short event= bwin_qread(sa->headwin, &val, &ascii);
+	while(bwin_qread(sa->headwin, &evt)) {
+		if(evt.val) {
+			if( uiDoBlocks(&curarea->uiblocks, evt.event)!=UI_NOTHING ) evt.event= 0;
 
-		if(val) {
-			if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
-
-			switch(event) {
+			switch(evt.event) {
 			case UI_BUT_EVENT:
-				do_headerbuttons(val);
+				do_headerbuttons(evt.val);
 				break;
 			
 			case LEFTMOUSE:
@@ -460,7 +461,7 @@ static void scrarea_dispatch_header_events(ScrArea *sa)
 				break;
 			default:
 				if (winqueue_break == 0) {
-					scrarea_do_winhandle(sa, event, val, ascii);
+					scrarea_do_winhandle(sa, &evt);
 					if (winqueue_break == 0) areawinset(sa->headwin);
 				}
 			}
@@ -481,25 +482,22 @@ static void scrarea_dispatch_header_events(ScrArea *sa)
 static void scrarea_dispatch_events(ScrArea *sa)
 {
 	ScrArea *tempsa;
+	BWinEvent evt;
 	short do_redraw=0, do_change=0;
 	
 	if(sa!=curarea || sa->win!=mywinget()) areawinset(sa->win);
 
-	while(bwin_qtest(sa->win)) {
-		char ascii;
-		short val;
-		unsigned short event= bwin_qread(sa->win, &val, &ascii);
-		
-		if(event==REDRAW) {
+	while(bwin_qread(sa->win, &evt)) {
+		if(evt.event==REDRAW) {
 			do_redraw= 1;
 		}
-		else if(event==CHANGED) {
+		else if(evt.event==CHANGED) {
 			sa->win_swap= 0;
 			do_change= 1;
 			do_redraw= 1;
 		}
 		else {
-			scrarea_do_winhandle(sa, event, val, ascii);
+			scrarea_do_winhandle(sa, &evt);
 		}
 		
 		if(winqueue_break) return;
@@ -900,6 +898,13 @@ void screenmain(void)
 			has_input= val;
 		}
 		
+			/* If the main window is active, find the current active ScrArea
+			 * underneath the mouse cursor, updating the headers & cursor for
+			 * the appropriate internal window if things have changed.
+			 * 
+			 * If the main window is not active, deactivate the internal 
+			 * window.
+			 */
 		if (has_input) {
 			ScrArea *newactarea;
 			int newactwin;

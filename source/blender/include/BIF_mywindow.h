@@ -40,6 +40,14 @@ struct rcti;
 
 /*---*/
 
+typedef struct BWinEvent {
+	unsigned short	event;
+	short			val;
+	char			ascii;
+} BWinEvent;
+
+/*---*/
+
 int mywinget(void);
 void mywinclose(int winid);
 void mywinposition(int winid, 
@@ -47,9 +55,27 @@ void mywinposition(int winid,
 				   int ymin, int ymax);
 /*---*/
 
+	/** Test if there are events available on a BWin queue.
+	 *
+	 * @param winid The ID of the window to query.
+	 * @return True if there is an event available for _qread'ing.
+	 */
 int bwin_qtest(int winid);
-unsigned short bwin_qread(int winid, short *val_r, char *ascii_r);
-void bwin_qadd(int winid, unsigned short event, short val, char ascii);
+
+	/** Read an event off of the BWin queue (if available).
+	 *
+	 * @param winid The ID of the window to read from.
+	 * @param event_r A pointer to return the event in. 
+	 * @return True if an event was read and @a event_r filled.
+	 */
+int bwin_qread(int winid, BWinEvent *event_r);
+
+	/** Add an event to the BWin queue.
+	 *
+	 * @param winid The ID of the window to add to.
+	 * @param event A pointer to copy the event from.
+	 */
+void bwin_qadd(int winid, BWinEvent *event);
 
 /*---*/
 
