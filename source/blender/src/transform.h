@@ -164,6 +164,8 @@ typedef struct TransInfo {
 #define T_NULL_ONE		512
 #define T_NO_ZERO		1024
 
+#define T_PROP_EDIT		2048
+
 
 /* transinfo->con->mode */
 #define CON_APPLY		1

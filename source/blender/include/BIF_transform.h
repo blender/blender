@@ -57,10 +57,11 @@
 
 /* TRANSFORM PROPORTIONAL FALLOFF MODES */
 #define PROP_SHARP		0
-#define PROP_SMOOTH		1
+#define PROP_LIN		1
 #define PROP_ROOT		2
-#define PROP_LIN		3
+#define PROP_SPHERE		3
 #define PROP_CONST		4
+#define PROP_SMOOTH		5
 
 void Transform(int mode, int context);
 

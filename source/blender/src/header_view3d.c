@@ -3437,10 +3437,11 @@ static char *propfalloff_pup(void)
 
 	strcpy(string, "Falloff:%t"); 
 	strcat(string, "|Sharp Falloff%x0"); 
-	strcat(string, "|Smooth Falloff%x1");
+	strcat(string, "|Linear Falloff%x1");
 	strcat(string, "|Root Falloff%x2"); 
-	strcat(string, "|Linear Falloff%x3");
+	strcat(string, "|Round Falloff%x3");
 	strcat(string, "|Constant, No Falloff%x4");
+	strcat(string, "|Smooth Falloff%x5");
 	return (string);
 }
 

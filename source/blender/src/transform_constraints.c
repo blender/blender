@@ -687,7 +687,7 @@ void BIF_drawPropCircle()
 {
 	TransInfo *t = BIF_GetTransInfo();
 
-	if (G.f & G_PROPORTIONAL) {
+	if (t->flag & T_PROP_EDIT) {
 		float tmat[4][4], imat[4][4];
 
 		BIF_ThemeColor(TH_GRID);

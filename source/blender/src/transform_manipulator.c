@@ -402,17 +402,17 @@ static void partial_donut(float radring, float radhole, int start, int end, int 
 	float ring_delta, side_delta;
 	int i, j;
 	
-	ring_delta= 2.0*M_PI/(float)nrings;
-	side_delta= 2.0*M_PI/(float)nsides;
+	ring_delta= 2.0f*(float)M_PI/(float)nrings;
+	side_delta= 2.0f*(float)M_PI/(float)nsides;
 	
-	theta= M_PI+0.5*ring_delta;
-	cos_theta= cos(theta);
-	sin_theta= sin(theta);
+	theta= (float)M_PI+0.5f*ring_delta;
+	cos_theta= (float)cos(theta);
+	sin_theta= (float)sin(theta);
 	
 	for(i= nrings - 1; i >= 0; i--) {
 		theta1= theta + ring_delta;
-		cos_theta1= cos(theta1);
-		sin_theta1= sin(theta1);
+		cos_theta1= (float)cos(theta1);
+		sin_theta1= (float)sin(theta1);
 		
 		if(i==start) {	// cap
 			glBegin(GL_POLYGON);
@@ -422,8 +422,8 @@ static void partial_donut(float radring, float radhole, int start, int end, int 
 				float cos_phi, sin_phi, dist;
 				
 				phi += side_delta;
-				cos_phi= cos(phi);
-				sin_phi= sin(phi);
+				cos_phi= (float)cos(phi);
+				sin_phi= (float)sin(phi);
 				dist= radhole + radring * cos_phi;
 				
 				glVertex3f(cos_theta1 * dist, -sin_theta1 * dist,  radring * sin_phi);
@@ -437,8 +437,8 @@ static void partial_donut(float radring, float radhole, int start, int end, int 
 				float cos_phi, sin_phi, dist;
 				
 				phi += side_delta;
-				cos_phi= cos(phi);
-				sin_phi= sin(phi);
+				cos_phi= (float)cos(phi);
+				sin_phi= (float)sin(phi);
 				dist= radhole + radring * cos_phi;
 				
 				glNormal3f(cos_theta1 * cos_phi, -sin_theta1 * cos_phi, sin_phi);
@@ -457,8 +457,8 @@ static void partial_donut(float radring, float radhole, int start, int end, int 
 				float cos_phi, sin_phi, dist;
 				
 				phi -= side_delta;
-				cos_phi= cos(phi);
-				sin_phi= sin(phi);
+				cos_phi= (float)cos(phi);
+				sin_phi= (float)sin(phi);
 				dist= radhole + radring * cos_phi;
 				
 				glVertex3f(cos_theta * dist, -sin_theta * dist,  radring * sin_phi);
@@ -482,12 +482,12 @@ static void manipulator_setcolor(char axis, int colcode)
 {
 	float vec[4];
 	
-	vec[3]= 0.7; // alpha set on 0.5, can be glEnabled or not
+	vec[3]= 0.7f; // alpha set on 0.5, can be glEnabled or not
 	
 	if(colcode==MAN_GREY) {
 		if(axis > 'Z') glColor4ub(0, 0, 0, 70);
 		else {
-			vec[0]= vec[1]= vec[2]= 1.0; vec[3]= 0.3;
+			vec[0]= vec[1]= vec[2]= 1.0f; vec[3]= 0.3f;
 			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, vec);
 		}
 	}
@@ -510,21 +510,21 @@ static void manipulator_setcolor(char axis, int colcode)
 			glColor3ub(50, 50, 225);
 			break;
 		case 'X':
-			vec[2]= vec[1]= 0.0; vec[0]= 1.0;
+			vec[2]= vec[1]= 0.0f; vec[0]= 1.0f;
 			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, vec);
 			break;
 		case 'Y':
-			vec[0]= vec[2]= 0.0; vec[1]= 1.0;
+			vec[0]= vec[2]= 0.0f; vec[1]= 1.0f;
 			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, vec);
 			break;
 		case 'Z':
-			vec[0]= vec[1]= 0.0; vec[2]= 1.0;
+			vec[0]= vec[1]= 0.0f; vec[2]= 1.0f;
 			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, vec);
 			break;
 		case 'C':
 			BIF_GetThemeColor3fv(TH_TRANSFORM, vec);
-			if(G.vd->twmode == V3D_MANIP_LOCAL) {vec[0]+= 0.25; vec[1]+=0.25; vec[2]+=0.25;}
-			else if(G.vd->twmode == V3D_MANIP_NORMAL) {vec[0]-= 0.2; vec[1]-=0.2; vec[2]-=0.2;}
+			if(G.vd->twmode == V3D_MANIP_LOCAL) {vec[0]+= 0.25f; vec[1]+=0.25f; vec[2]+=0.25f;}
+			else if(G.vd->twmode == V3D_MANIP_NORMAL) {vec[0]-= 0.2f; vec[1]-=0.2f; vec[2]-=0.2f;}
 			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, vec);
 			break;
 		}
@@ -587,17 +587,17 @@ static void draw_manipulator_rotate_ghost(float mat[][4], int drawflags)
 		glTranslatef(mat[3][0], mat[3][1], mat[3][2]);
 		
 		/* sets view screen aligned */
-		glRotatef( -360.0*saacos(G.vd->viewquat[0])/M_PI, G.vd->viewquat[1], G.vd->viewquat[2], G.vd->viewquat[3]);
+		glRotatef( -360.0f*saacos(G.vd->viewquat[0])/(float)M_PI, G.vd->viewquat[1], G.vd->viewquat[2], G.vd->viewquat[3]);
 	
-		vec[0]= Trans.imval[0] - Trans.center2d[0];
-		vec[1]= Trans.imval[1] - Trans.center2d[1];
-		vec[2]= 0.0;
+		vec[0]= (float)(Trans.imval[0] - Trans.center2d[0]);
+		vec[1]= (float)(Trans.imval[1] - Trans.center2d[1]);
+		vec[2]= 0.0f;
 		Normalise(vec);
 		
 		startphi= saacos( vec[1] );
 		if(vec[0]<0.0) startphi= -startphi;
 		
-		phi= fmod(-180.0*Trans.val/M_PI, 360.0);
+		phi= (float)fmod(-180.0*Trans.val/M_PI, 360.0);
 		if(phi > 180.0) phi-= 360.0;
 		else if(phi<-180.0) phi+= 360.0;
 		
@@ -660,14 +660,14 @@ static void draw_manipulator_rotate(float mat[][4], int moving, int drawflags, i
 	double plane[4];
 	float size, vec[3], unitmat[4][4];
 	float cywid= 0.33f*0.01f*(float)U.tw_handlesize;	
-	float cusize= cywid*0.65;
+	float cusize= cywid*0.65f;
 	int arcs= (G.rt==2);
 	int colcode;
 	
 	if(moving) colcode= MAN_MOVECOL;
 	else colcode= MAN_RGB;
 	
-	if(G.rt==3) cusize= cywid*0.3;
+	if(G.rt==3) cusize= cywid*0.3f;
 	
 	/* when called while moving in mixed mode, do not draw when... */
 	if((drawflags & MAN_ROT_C)==0) return;
@@ -694,7 +694,7 @@ static void draw_manipulator_rotate(float mat[][4], int moving, int drawflags, i
 		glClipPlane(GL_CLIP_PLANE0, plane);
 	}
 	/* sets view screen aligned */
-	glRotatef( -360.0*saacos(G.vd->viewquat[0])/M_PI, G.vd->viewquat[1], G.vd->viewquat[2], G.vd->viewquat[3]);
+	glRotatef( -360.0f*saacos(G.vd->viewquat[0])/(float)M_PI, G.vd->viewquat[1], G.vd->viewquat[2], G.vd->viewquat[3]);
 	
 	/* Screen aligned help circle */
 	if(arcs) {
@@ -707,17 +707,17 @@ static void draw_manipulator_rotate(float mat[][4], int moving, int drawflags, i
 	if(drawflags & MAN_ROT_V) {
 		if(G.f & G_PICKSEL) glLoadName(MAN_ROT_V);
 		BIF_ThemeColor(TH_TRANSFORM);
-		drawcircball(unitmat[3], 1.2*size, unitmat);
+		drawcircball(unitmat[3], 1.2f*size, unitmat);
 		
 		if(moving) {	
 			float vec[3];
-			vec[0]= Trans.imval[0] - Trans.center2d[0];
-			vec[1]= Trans.imval[1] - Trans.center2d[1];
-			vec[2]= 0.0;
+			vec[0]= (float)(Trans.imval[0] - Trans.center2d[0]);
+			vec[1]= (float)(Trans.imval[1] - Trans.center2d[1]);
+			vec[2]= 0.0f;
 			Normalise(vec);
-			VecMulf(vec, 1.2*size);
+			VecMulf(vec, 1.2f*size);
 			glBegin(GL_LINES);
-			glVertex3f(0.0, 0.0, 0.0);
+			glVertex3f(0.0f, 0.0f, 0.0f);
 			glVertex3fv(vec);
 			glEnd();
 		}
@@ -835,14 +835,14 @@ static void draw_manipulator_rotate(float mat[][4], int moving, int drawflags, i
 		if(drawflags & MAN_ROT_Z) {
 			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Z);
 			manipulator_setcolor('Z', colcode);
-			partial_donut(cusize/3.0, 1.0, 0, 48, 8, 48);
+			partial_donut(cusize/3.0f, 1.0f, 0, 48, 8, 48);
 		}
 		/* X circle */
 		if(drawflags & MAN_ROT_X) {
 			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_X);
 			glRotatef(90.0, 0.0, 1.0, 0.0);
 			manipulator_setcolor('X', colcode);
-			partial_donut(cusize/3.0, 1.0, 0, 48, 8, 48);
+			partial_donut(cusize/3.0f, 1.0f, 0, 48, 8, 48);
 			glRotatef(-90.0, 0.0, 1.0, 0.0);
 		}	
 		/* Y circle */
@@ -850,7 +850,7 @@ static void draw_manipulator_rotate(float mat[][4], int moving, int drawflags, i
 			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Y);
 			glRotatef(-90.0, 1.0, 0.0, 0.0);
 			manipulator_setcolor('Y', colcode);
-			partial_donut(cusize/3.0, 1.0, 0, 48, 8, 48);
+			partial_donut(cusize/3.0f, 1.0f, 0, 48, 8, 48);
 			glRotatef(90.0, 1.0, 0.0, 0.0);
 		}
 		
@@ -939,7 +939,7 @@ static void draw_manipulator_rotate(float mat[][4], int moving, int drawflags, i
 static void draw_manipulator_scale(float mat[][4], int moving, int drawflags, int combo, int colcode)
 {
 	float cywid= 0.33f*0.01f*(float)U.tw_handlesize;	
-	float cusize= cywid*0.75, dz;
+	float cusize= cywid*0.75f, dz;
 	
 	/* when called while moving in mixed mode, do not draw when... */
 	if((drawflags & MAN_SCALE_C)==0) return;
@@ -981,7 +981,7 @@ static void draw_manipulator_scale(float mat[][4], int moving, int drawflags, in
 		
 		dz= 1.0;
 	}
-	else dz= 1.0-3.0*cusize;
+	else dz= 1.0f-3.0f*cusize;
 	
 	/* Z cube */
 	glTranslatef(0.0, 0.0, dz);
@@ -1028,27 +1028,27 @@ static void draw_manipulator_scale(float mat[][4], int moving, int drawflags, in
 
 static void draw_cone(GLUquadricObj *qobj, float len, float width)
 {
-	glTranslatef(0.0, 0.0, -0.5*len);
+	glTranslatef(0.0, 0.0, -0.5f*len);
 	gluCylinder(qobj, width, 0.0, len, 8, 1);
 	gluQuadricOrientation(qobj, GLU_INSIDE);
 	gluDisk(qobj, 0.0, width, 8, 1); 
 	gluQuadricOrientation(qobj, GLU_OUTSIDE);
-	glTranslatef(0.0, 0.0, 0.5*len);
+	glTranslatef(0.0, 0.0, 0.5f*len);
 }
 
 static void draw_cylinder(GLUquadricObj *qobj, float len, float width)
 {
 	
-	width*= 0.8;	// just for beauty
+	width*= 0.8f;	// just for beauty
 	
-	glTranslatef(0.0, 0.0, -0.5*len);
+	glTranslatef(0.0, 0.0, -0.5f*len);
 	gluCylinder(qobj, width, width, len, 8, 1);
 	gluQuadricOrientation(qobj, GLU_INSIDE);
 	gluDisk(qobj, 0.0, width, 8, 1); 
 	gluQuadricOrientation(qobj, GLU_OUTSIDE);
 	glTranslatef(0.0, 0.0, len);
 	gluDisk(qobj, 0.0, width, 8, 1); 
-	glTranslatef(0.0, 0.0, -0.5*len);
+	glTranslatef(0.0, 0.0, -0.5f*len);
 }
 
 
@@ -1090,8 +1090,8 @@ static void draw_manipulator_translate(float mat[][4], int moving, int drawflags
 	gluSphere(qobj, cywid, 8, 6); 
 	
 	/* offset in combo mode */
-	if(combo & (V3D_MANIP_ROTATE|V3D_MANIP_SCALE)) dz= 1.0+cylen;
-	else dz= 1.0;
+	if(combo & (V3D_MANIP_ROTATE|V3D_MANIP_SCALE)) dz= 1.0f+cylen;
+	else dz= 1.0f;
 	
 	/* Z Cone */
 	glTranslatef(0.0, 0.0, dz);
@@ -1147,7 +1147,7 @@ static void draw_manipulator_rotate_cyl(float mat[][4], int moving, int drawflag
 	glTranslatef(mat[3][0], mat[3][1], mat[3][2]);
 	
 	/* sets view screen aligned */
-	glRotatef( -360.0*saacos(G.vd->viewquat[0])/M_PI, G.vd->viewquat[1], G.vd->viewquat[2], G.vd->viewquat[3]);
+	glRotatef( -360.0f*saacos(G.vd->viewquat[0])/(float)M_PI, G.vd->viewquat[1], G.vd->viewquat[2], G.vd->viewquat[3]);
 	
 	/* Screen aligned view rot circle */
 	if(drawflags & MAN_ROT_V) {
@@ -1156,15 +1156,15 @@ static void draw_manipulator_rotate_cyl(float mat[][4], int moving, int drawflag
 		
 		if(G.f & G_PICKSEL) glLoadName(MAN_ROT_V);
 		BIF_ThemeColor(TH_TRANSFORM);
-		drawcircball(unitmat[3], 1.2*size, unitmat);
+		drawcircball(unitmat[3], 1.2f*size, unitmat);
 		
 		if(moving) {
 			float vec[3];
-			vec[0]= Trans.imval[0] - Trans.center2d[0];
-			vec[1]= Trans.imval[1] - Trans.center2d[1];
-			vec[2]= 0.0;
+			vec[0]= (float)(Trans.imval[0] - Trans.center2d[0]);
+			vec[1]= (float)(Trans.imval[1] - Trans.center2d[1]);
+			vec[2]= 0.0f;
 			Normalise(vec);
-			VecMulf(vec, 1.2*size);
+			VecMulf(vec, 1.2f*size);
 			glBegin(GL_LINES);
 			glVertex3f(0.0, 0.0, 0.0);
 			glVertex3fv(vec);
@@ -1373,9 +1373,9 @@ void BIF_draw_manipulator(ScrArea *sa)
 		switch(v3d->around) {
 		case V3D_CENTRE:
 		case V3D_LOCAL:
-			v3d->twmat[3][0]= (G.scene->twmin[0] + G.scene->twmax[0])/2.0;
-			v3d->twmat[3][1]= (G.scene->twmin[1] + G.scene->twmax[1])/2.0;
-			v3d->twmat[3][2]= (G.scene->twmin[2] + G.scene->twmax[2])/2.0;
+			v3d->twmat[3][0]= (G.scene->twmin[0] + G.scene->twmax[0])/2.0f;
+			v3d->twmat[3][1]= (G.scene->twmin[1] + G.scene->twmax[1])/2.0f;
+			v3d->twmat[3][2]= (G.scene->twmin[2] + G.scene->twmax[2])/2.0f;
 			break;
 		case V3D_CENTROID:
 			VECCOPY(v3d->twmat[3], G.scene->twcent);
@@ -1502,12 +1502,12 @@ int BIF_do_manipulator(ScrArea *sa)
 	if(!(v3d->twflag & V3D_DRAW_MANIPULATOR)) return 0;
 	
 	// find the hotspots first test narrow hotspot
-	val= manipulator_selectbuf(sa, 0.5*(float)U.tw_hotspot);
+	val= manipulator_selectbuf(sa, 0.5f*(float)U.tw_hotspot);
 	if(val) {
 		short mvalo[2], mval[2];
 		
 		// drawflags still global, for drawing call above
-		drawflags= manipulator_selectbuf(sa, 0.2*(float)U.tw_hotspot);
+		drawflags= manipulator_selectbuf(sa, 0.2f*(float)U.tw_hotspot);
 		if(drawflags==0) drawflags= val;
 		
 		getmouseco_areawin(mvalo);

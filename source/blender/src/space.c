@@ -1425,16 +1425,18 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case OKEY:
 				ob= OBACT;
-				if (G.qual==LR_SHIFTKEY) {
-					extern int prop_mode;
-					prop_mode = (prop_mode+1)%5;
-					allqueue(REDRAWHEADERS, 0);
+				if (G.obedit) {
+					if (G.qual==LR_SHIFTKEY) {
+						extern int prop_mode;
+						prop_mode = (prop_mode+1)%6;
+						allqueue(REDRAWHEADERS, 0);
+					}
+					else if((G.qual==0)) {
+						G.f ^= G_PROPORTIONAL;
+						allqueue(REDRAWHEADERS, 0);
+					}
 				}
-				else if((G.qual==0)) {
-					G.f ^= G_PROPORTIONAL;
-					allqueue(REDRAWHEADERS, 0);
-				}
-				else if((G.qual==LR_CTRLKEY)) {
+				else if((G.qual==LR_SHIFTKEY)) {
 					if(ob && ob->type == OB_MESH) {
 						flip_subdivison(ob, -1);
 					}

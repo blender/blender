@@ -491,7 +491,7 @@ static void createTransMBallVerts(void)
 	TransDataExtension *tx;
 	float mtx[3][3], smtx[3][3];
 	int count=0, countsel=0;
-	int propmode = G.f & G_PROPORTIONAL;
+	int propmode = Trans.flag & T_PROP_EDIT;
 
 	/* count totals */
 	for(ml= editelems.first; ml; ml= ml->next) {
@@ -597,7 +597,7 @@ static void createTransCurveVerts(void)
 	float mtx[3][3], smtx[3][3];
 	int a;
 	int count=0, countsel=0;
-	int propmode = G.f & G_PROPORTIONAL;
+	int propmode = Trans.flag & T_PROP_EDIT;
 
 	/* count total of vertices, check identical as in 2nd loop for making transdata! */
 	for(nu= editNurb.first; nu; nu= nu->next) {
@@ -725,7 +725,7 @@ static void createTransLatticeVerts(void)
 	float mtx[3][3], smtx[3][3];
 	int a;
 	int count=0, countsel=0;
-	int propmode = G.f & G_PROPORTIONAL;
+	int propmode = Trans.flag & T_PROP_EDIT;
 
 	bp= editLatt->def;
 	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
@@ -918,7 +918,7 @@ static void createTransEditVerts(void)
 	float mtx[3][3], smtx[3][3];
 	float *vectors;
 	int count=0, countsel=0;
-	int propmode = G.f & G_PROPORTIONAL;
+	int propmode = Trans.flag & T_PROP_EDIT;
 		
 	// transform now requires awareness for select mode, so we tag the f1 flags in verts
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
@@ -1452,7 +1452,7 @@ static void createTransData(TransInfo *t)
 			printf("not done yet! only have mesh surface curve\n");
 		}
 		
-		if(G.f & G_PROPORTIONAL) {
+		if(t->flag & T_PROP_EDIT) {
 			if (ELEM(G.obedit->type, OB_CURVE, OB_MESH)) {
 				sort_trans_data(t);	// makes selected become first in array
 				set_prop_dist(t, 0);
@@ -1484,21 +1484,10 @@ static void createTransData(TransInfo *t)
 void Transform(int mode, int context) 
 {
 	int ret_val = 0;
-	short pmval[2] = {0, 0}, mval[2], val, oldprop;
+	short pmval[2] = {0, 0}, mval[2], val;
 	float mati[3][3];
 	unsigned short event;
 	char cmode = '\0';
-
-	/* STUPID HACK, but this needs fixing right now */
-	if (G.f & G_PROPORTIONAL)
-		oldprop = 1;
-	else
-		oldprop = 0;
-
-	if (context & CTX_NOPET) {
-		G.f &= ~G_PROPORTIONAL;
-	}
-
 
 	/*joeedh -> hopefully may be what makes the old transform() constant*/
 	/* ton: I doubt, but it doesnt harm for now. shouldnt be needed though */
@@ -1747,16 +1736,16 @@ void Transform(int mode, int context)
 					}
 					break;
 				case OKEY:
-					if (G.qual==LR_SHIFTKEY) {
+					if (Trans.flag & T_PROP_EDIT && G.qual==LR_SHIFTKEY) {
 						extern int prop_mode;
-						prop_mode = (prop_mode+1)%5;
+						prop_mode = (prop_mode+1)%6;
 						calculatePropRatio(&Trans);
 						Trans.redraw= 1;
 					}
 					break;
 				case WHEELDOWNMOUSE:
 				case PADPLUSKEY:
-					if(G.f & G_PROPORTIONAL) {
+					if(Trans.flag & T_PROP_EDIT) {
 						Trans.propsize*= 1.1f;
 						calculatePropRatio(&Trans);
 						Trans.redraw= 1;
@@ -1764,7 +1753,7 @@ void Transform(int mode, int context)
 					break;
 				case WHEELUPMOUSE:
 				case PADMINUS:
-					if(G.f & G_PROPORTIONAL) {
+					if(Trans.flag & T_PROP_EDIT) {
 						Trans.propsize*= 0.90909090f;
 						calculatePropRatio(&Trans);
 						Trans.redraw= 1;
@@ -1823,12 +1812,6 @@ void Transform(int mode, int context)
 		if(G.obedit==NULL && G.obpose==NULL)
 			clear_trans_object_base_flags();
 	}
-	
-	if (context & CTX_NOPET) {
-		if (oldprop)
-			G.f |= G_PROPORTIONAL;
-	}
-
 	
 	/* send events out for redraws */
 	allqueue(REDRAWVIEW3D, 0);
@@ -1945,7 +1928,7 @@ void ManipulatorTransform(int mode)
 				switch(event) {
 				case WHEELDOWNMOUSE:
 				case PADPLUSKEY:
-					if(G.f & G_PROPORTIONAL) {
+					if(Trans.flag & T_PROP_EDIT) {
 						Trans.propsize*= 1.1f;
 						calculatePropRatio(&Trans);
 						Trans.redraw= 1;
@@ -1953,7 +1936,7 @@ void ManipulatorTransform(int mode)
 					break;
 				case WHEELUPMOUSE:
 				case PADMINUS:
-					if(G.f & G_PROPORTIONAL) {
+					if(Trans.flag & T_PROP_EDIT) {
 						Trans.propsize*= 0.90909090f;
 						calculatePropRatio(&Trans);
 						Trans.redraw= 1;
@@ -2618,7 +2601,7 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 			t->con.applyRot(t, td, axis);
 			VecRotToMat3(axis, angle * td->factor, mat);
 		}
-		else if (G.f & G_PROPORTIONAL) {
+		else if (t->flag & T_PROP_EDIT) {
 			VecRotToMat3(axis, angle * td->factor, mat);
 		}
 
@@ -2747,7 +2730,7 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 			VECCOPY(t->center, td->center);
 		}
 		
-		if (G.f & G_PROPORTIONAL) {
+		if (t->flag & T_PROP_EDIT) {
 			VecRotToMat3(axis1, td->factor * angles[0], smat);
 			VecRotToMat3(axis2, td->factor * angles[1], totmat);
 			

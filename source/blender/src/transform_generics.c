@@ -387,6 +387,11 @@ void initTrans (TransInfo *t)
 
 	t->flag = 0;
 
+	/* setting PET flag */
+	if ((t->context & CTX_NOPET) == 0 && (G.f & G_PROPORTIONAL)) {
+		t->flag |= T_PROP_EDIT;
+	}
+
 	getmouseco_areawin(t->imval);
 	t->con.imval[0] = t->imval[0];
 	t->con.imval[1] = t->imval[1];
@@ -709,7 +714,7 @@ void calculatePropRatio(TransInfo *t)
 	float dist;
 	extern int prop_mode;
 
-	if (G.f & G_PROPORTIONAL) {
+	if (t->flag & T_PROP_EDIT) {
 		for(i = 0 ; i < t->total; i++, td++) {
 			if (td->flag & TD_SELECTED) {
 				td->factor = 1.0f;
@@ -742,7 +747,9 @@ void calculatePropRatio(TransInfo *t)
 					break;
 				case PROP_CONST:
 					td->factor = 1.0f;
-					//td->factor = (float)sqrt(2*dist - dist * dist);
+					break;
+				case PROP_SPHERE:
+					td->factor = (float)sqrt(2*dist - dist * dist);
 					break;
 				default:
 					td->factor = 1;
@@ -751,7 +758,7 @@ void calculatePropRatio(TransInfo *t)
 		}
 		switch(prop_mode) {
 		case PROP_SHARP:
-			strcpy(t->proptext, "(Quad)");
+			strcpy(t->proptext, "(Sharp)");
 			break;
 		case PROP_SMOOTH:
 			strcpy(t->proptext, "(Smooth)");
@@ -764,7 +771,9 @@ void calculatePropRatio(TransInfo *t)
 			break;
 		case PROP_CONST:
 			strcpy(t->proptext, "(Constant)");
-			//strcpy(t->proptext, "(Sphere)");
+			break;
+		case PROP_SPHERE:
+			strcpy(t->proptext, "(Sphere)");
 			break;
 		default:
 			strcpy(t->proptext, "");
