@@ -1791,7 +1791,7 @@ static void drawmeshsolid(Object *ob, float *nors)
 		if(ob->dtx & OB_DRAWWIRE) drawMeshWireExtra(ob);
 
 	}
-	else {
+	else if(nors) {		/* should never be zero, but is weak code... the displist system needs a make over (ton) */
 
 		start= 0; end= me->totface;
 		set_buildvars(ob, &start, &end);
