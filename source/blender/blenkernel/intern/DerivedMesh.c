@@ -569,17 +569,18 @@ typedef struct {
 
 	DispListMesh *dlm;
 	EditMesh *em;
-
-	int needsFree;
 } SSDerivedMesh;
 
 static void ssDM_getMappedVertCoEM(DerivedMesh *dm, void *vert, float co_r[3])
 {
 	EditVert *eve = vert;
 
-	co_r[0] = eve->ssco[0];
-	co_r[1] = eve->ssco[1];
-	co_r[2] = eve->ssco[2];
+		// !eve->ssco happens for old subsurf, verts w/ unattached faces
+	if (eve->ssco) {
+		co_r[0] = eve->ssco[0];
+		co_r[1] = eve->ssco[1];
+		co_r[2] = eve->ssco[2];
+	}
 }
 static void ssDM_drawMappedVertsEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditVert *vert), void *userData)
 {
