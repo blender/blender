@@ -57,6 +57,9 @@
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_key_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_lattice_types.h"
 
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
@@ -67,6 +70,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_action.h"
+#include "BKE_key.h"
 
 #include "BIF_gl.h"
 #include "BIF_mywindow.h"
@@ -107,16 +111,23 @@ static void mouse_actionchannels(bAction *act, short *mval,
                                  short *mvalo, int selectmode);
 static void borderselect_action(void);
 static void mouse_action(int selectmode);
+static void mouse_mesh_action(int selectmode, Key *key);
 static bActionChannel *get_nearest_actionchannel_key (float *index, short *sel, bConstraintChannel **conchan);
+static void sethandles_actionchannel_keys(int code);
 static void delete_actionchannels(void);
 static void delete_actionchannel_keys(void);
 static void duplicate_actionchannel_keys(void);
 static void transform_actionchannel_keys(char mode);
+static void transform_meshchannel_keys(char mode, Key *key);
 static void select_poseelement_by_name (char *name, int select);
 static void hilight_channel (bAction *act, bActionChannel *chan, short hilight);
 static void set_action_key_time (bAction *act, bPoseChannel *chan, int adrcode, short makecurve, float time);
+static void clever_numbuts_meshaction(Key *key, short* mval);
 
 /* Implementation */
+
+short showsliders = 0;
+short ACTWIDTH = NAMEWIDTH;
 
 static void select_poseelement_by_name (char *name, int select)
 {
@@ -277,6 +288,40 @@ void remake_action_ipos(bAction *act)
 	}
 }
 
+void remake_meshaction_ipos(Ipo *ipo)
+{
+	/* this puts the bezier triples in proper
+	 * order and makes sure the bezier handles
+	 * aren't too strange.
+	 */
+	IpoCurve *icu;
+
+	for (icu = ipo->curve.first; icu; icu=icu->next){
+		sort_time_ipocurve(icu);
+		testhandles_ipocurve(icu);
+	}
+}
+
+static void meshkey_do_redraw(Key *key)
+{
+	remake_meshaction_ipos(key->ipo);
+    do_all_ipos();
+    do_spec_key(key);
+
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWNLA, 0);
+
+}
+
+static void duplicate_meshchannel_keys(Key *key)
+{
+	duplicate_ipo_keys(key->ipo);
+	transform_meshchannel_keys ('g', key);
+}
+
+
 static void duplicate_actionchannel_keys(void)
 {
 	bAction *act;
@@ -396,6 +441,110 @@ static bActionChannel *get_nearest_actionchannel_key (float *index, short *sel, 
 	return firstchan;
 }
 
+static IpoCurve *get_nearest_meshchannel_key (float *index, short *sel)
+{
+	/* This function tries to find the RVK key that is
+	 * closest to the user's mouse click
+	 */
+    Key      *key;
+    IpoCurve *icu; 
+    IpoCurve *firsticu=NULL;
+    int	     foundsel=0;
+    float    firstvert=-1, foundx=-1;
+	int      i;
+    short    mval[2];
+    float    ymin, ymax, ybase;
+    rctf     rectf;
+
+    *index=0;
+
+    key = get_action_mesh_key();
+	
+    /* lets get the mouse position and process it so 
+     * we can start testing selections
+     */
+    getmouseco_areawin (mval);
+    mval[0]-=7;
+    areamouseco_to_ipoco(G.v2d, mval, &rectf.xmin, &rectf.ymin);
+    mval[0]+=14;
+    areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
+
+    ybase = key->totkey * (CHANNELHEIGHT + CHANNELSKIP);
+    *sel=0;
+
+    /* lets loop through the IpoCurves trying to find the closest
+     * bezier
+     */
+    for (icu = key->ipo->curve.first; icu ; icu = icu->next) {
+        /* lets not deal with the "speed" Ipo
+         */
+        if (!icu->adrcode) continue;
+
+        ymax = ybase	- (CHANNELHEIGHT+CHANNELSKIP)*(icu->adrcode-1);
+        ymin=ymax-(CHANNELHEIGHT+CHANNELSKIP);
+
+        /* Does this curve coorespond to the right
+         * strip?
+         */
+        if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))){
+			
+            /* loop through the beziers in the curve
+             */
+            for (i=0; i<icu->totvert; i++){
+
+                /* Is this bezier in the right area?
+                 */
+                if (icu->bezt[i].vec[1][0] > rectf.xmin && 
+                    icu->bezt[i].vec[1][0] <= rectf.xmax ){
+
+                    /* if no other curves have been picked ...
+                     */
+                    if (!firsticu){
+                        /* mark this curve/bezier as the first
+                         * selected
+                         */
+                        firsticu=icu;
+                        firstvert=icu->bezt[i].vec[1][0];
+
+                        /* sel = (is the bezier is already selected) ? 1 : 0;
+                         */
+                        *sel = icu->bezt[i].f2 & 1;	
+                    }
+
+                    /* if the bezier is selected ...
+                     */
+                    if (icu->bezt[i].f2 & 1){ 
+                        /* if we haven't found a selected one yet ...
+                         */
+                        if (!foundsel){
+                            /* record the found x value
+                             */
+                            foundsel=1;
+                            foundx = icu->bezt[i].vec[1][0];
+                        }
+                    }
+
+                    /* if the bezier is unselected and not at the x
+                     * position of a previous found selected bezier ...
+                     */
+                    else if (foundsel && icu->bezt[i].vec[1][0] != foundx){
+                        /* lets return this found curve/bezier
+                         */
+                        *index=icu->bezt[i].vec[1][0];
+                        *sel = 0;
+                        return icu;
+                    }
+                }
+            }
+        }
+	}
+	
+    /* return what we've found
+     */
+    *index=firstvert;
+    return firsticu;
+}
+
 static void mouse_action(int selectmode)
 {
 	bAction	*act;
@@ -437,6 +586,63 @@ static void mouse_action(int selectmode)
 		allqueue(REDRAWNLA, 0);
 
 	}
+}
+
+static void mouse_mesh_action(int selectmode, Key *key)
+{
+	/* Handle a right mouse click selection in an
+	 * action window displaying RVK data
+	 */
+
+    IpoCurve *icu;
+    short  sel;
+    float  selx;
+    short  mval[2];
+
+    /* going to assume that the only reason 
+     * we got here is because it has been 
+     * determined that we are a mesh with
+     * the right properties (i.e., have key
+     * data, etc)
+     */
+
+	/* get the click location, and the cooresponding
+	 * ipo curve and selection time value
+	 */
+    getmouseco_areawin (mval);
+    icu = get_nearest_meshchannel_key(&selx, &sel);
+
+    if (icu){
+        if (selectmode == SELECT_REPLACE) {
+			/* if we had planned to replace the
+			 * selection, then we will first deselect
+			 * all of the keys, and if the clicked on
+			 * key had been unselected, we will select 
+			 * it, otherwise, we are done.
+			 */
+            deselect_meshchannel_keys(key, 0);
+
+            if (sel == 0)
+                selectmode = SELECT_ADD;
+            else
+				/* the key is selected so we should
+				 * deselect -- but everything is now deselected
+				 * so we are done.
+				 */
+				return;
+        }
+		
+		/* select the key using the given mode
+		 * and redraw as mush stuff as needed.
+		 */
+		select_icu_key(icu, selx, selectmode);
+
+        allqueue(REDRAWIPO, 0);
+        allqueue(REDRAWVIEW3D, 0);
+        allqueue(REDRAWACTION, 0);
+        allqueue(REDRAWNLA, 0);
+
+    }
 }
 
 static void borderselect_action(void)
@@ -495,6 +701,61 @@ static void borderselect_action(void)
 		allqueue(REDRAWIPO, 0);
 	}
 }
+
+static void borderselect_mesh(Key *key)
+{ 
+	rcti     rect;
+	int      val, adrcodemax, adrcodemin;
+	short	 mval[2];
+	float	 xmin, xmax;
+	int      (*select_function)(BezTriple *);
+	IpoCurve *icu;
+
+	if ( (val = get_border(&rect, 3)) ){
+		/* set the selection function based on what
+		 * mouse button had been used in the border
+		 * select
+		 */
+		if (val == LEFTMOUSE)
+			select_function = select_bezier_add;
+		else
+			select_function = select_bezier_subtract;
+
+		/* get the minimum and maximum adrcode numbers
+		 * for the IpoCurves (this is the number that
+		 * relates an IpoCurve to the keyblock it
+		 * controls).
+		 */
+		mval[0]= rect.xmin;
+		mval[1]= rect.ymin+2;
+		adrcodemax = get_nearest_key_num(key, mval, &xmin);
+		adrcodemax = (adrcodemax >= key->totkey) ? key->totkey : adrcodemax;
+
+		mval[0]= rect.xmax;
+		mval[1]= rect.ymax-2;
+		adrcodemin = get_nearest_key_num(key, mval, &xmax);
+		adrcodemin = (adrcodemin < 1) ? 1 : adrcodemin;
+
+		/* Lets loop throug the IpoCurves and do borderselect
+		 * on the curves with adrcodes in our selected range.
+		 */
+		for (icu = key->ipo->curve.first; icu ; icu = icu->next) {
+			/* lets not deal with the "speed" Ipo
+			 */
+			if (!icu->adrcode) continue;
+			if ( (icu->adrcode >= adrcodemin) && 
+				 (icu->adrcode <= adrcodemax) ) {
+				borderselect_icu_key(icu, xmin, xmax, select_function);
+			}
+		}
+
+		/* redraw stuff */
+		allqueue(REDRAWNLA, 0);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWIPO, 0);
+	}
+}
+
 
 bActionChannel* get_hilighted_action_channel(bAction* action)
 {
@@ -1017,6 +1278,192 @@ static void transform_actionchannel_keys(char mode)
 	MEM_freeN (tv);
 }
 
+static void transform_meshchannel_keys(char mode, Key *key)
+{
+	/* this is the function that determines what happens
+	 * to those little blocky rvk key things you have selected 
+	 * after you press a 'g' or an 's'. I'd love to say that
+	 * I have an intimate knowledge of all of what this function
+	 * is doing, but instead I'm just going to pretend.
+	 */
+    TransVert *tv;
+    int /*sel=0,*/  i;
+    short	mvals[2], mvalc[2], cent[2];
+    float	sval[2], cval[2], lastcval[2];
+    short	cancel=0;
+    float	fac=0.0F;
+    int		loop=1;
+    int		tvtot=0;
+    float	deltax, startx;
+    float	cenf[2];
+    int		invert=0, firsttime=1;
+    char	str[256];
+
+	/* count all of the selected beziers, and
+	 * set all 3 control handles to selected
+	 */
+    tvtot=fullselect_ipo_keys(key->ipo);
+    
+    /* If nothing is selected, bail out 
+	 */
+    if (!tvtot)
+        return;
+	
+	
+    /* Build the transvert structure 
+	 */
+    tv = MEM_callocN (sizeof(TransVert) * tvtot, "transVert");
+    tvtot=0;
+
+    tvtot = add_trans_ipo_keys(key->ipo, tv, tvtot);
+
+    /* Do the event loop 
+	 */
+    cent[0] = curarea->winx + (G.saction->v2d.hor.xmax)/2;
+    cent[1] = curarea->winy + (G.saction->v2d.hor.ymax)/2;
+    areamouseco_to_ipoco(G.v2d, cent, &cenf[0], &cenf[1]);
+
+    getmouseco_areawin (mvals);
+    areamouseco_to_ipoco(G.v2d, mvals, &sval[0], &sval[1]);
+
+    startx=sval[0];
+    while (loop) {
+        /* Get the input
+		 * If we're cancelling, reset transformations
+		 * Else calc new transformation
+		 * Perform the transformations 
+		 */
+        while (qtest()) {
+            short val;
+            unsigned short event= extern_qread(&val);
+
+            if (val) {
+                switch (event) {
+                case LEFTMOUSE:
+                case SPACEKEY:
+                case RETKEY:
+                    loop=0;
+                    break;
+                case XKEY:
+                    break;
+                case ESCKEY:
+                case RIGHTMOUSE:
+                    cancel=1;
+                    loop=0;
+                    break;
+                default:
+                    arrows_move_cursor(event);
+                    break;
+                };
+            }
+        }
+        
+        if (cancel) {
+            for (i=0; i<tvtot; i++) {
+                tv[i].loc[0]=tv[i].oldloc[0];
+                tv[i].loc[1]=tv[i].oldloc[1];
+            }
+        } 
+		else {
+            getmouseco_areawin (mvalc);
+            areamouseco_to_ipoco(G.v2d, mvalc, &cval[0], &cval[1]);
+			
+            if (!firsttime && lastcval[0]==cval[0] && lastcval[1]==cval[1]) {
+                PIL_sleep_ms(1);
+            } else {
+                for (i=0; i<tvtot; i++){
+                    tv[i].loc[0]=tv[i].oldloc[0];
+
+                    switch (mode){
+                    case 'g':
+                        deltax = cval[0]-sval[0];
+                        fac= deltax;
+						
+                        apply_keyb_grid(&fac, 0.0, 1.0, 0.1, 
+                                        U.flag & AUTOGRABGRID);
+
+                        tv[i].loc[0]+=fac;
+                        break;
+                    case 's':
+                        startx=mvals[0]-(ACTWIDTH/2+(curarea->winrct.xmax
+                                                     -curarea->winrct.xmin)/2);
+                        deltax=mvalc[0]-(ACTWIDTH/2+(curarea->winrct.xmax
+                                                     -curarea->winrct.xmin)/2);
+                        fac= fabs(deltax/startx);
+						
+                        apply_keyb_grid(&fac, 0.0, 0.2, 0.1, 
+                                        U.flag & AUTOSIZEGRID);
+		
+                        if (invert){
+                            if (i % 03 == 0){
+                                memcpy (tv[i].loc, tv[i].oldloc, 
+                                        sizeof(tv[i+2].oldloc));
+                            }
+                            if (i % 03 == 2){
+                                memcpy (tv[i].loc, tv[i].oldloc, 
+                                        sizeof(tv[i-2].oldloc));
+                            }
+							
+                            fac*=-1;
+                        }
+                        startx= (G.scene->r.cfra);
+                        
+                        tv[i].loc[0]-= startx;
+                        tv[i].loc[0]*=fac;
+                        tv[i].loc[0]+= startx;
+		
+                        break;
+                    }
+                }
+            }
+			/* Display a message showing the magnitude of
+			 * the grab/scale we are performing
+			 */
+            if (mode=='s'){
+                sprintf(str, "sizeX: %.3f", fac);
+                headerprint(str);
+            }
+            else if (mode=='g'){
+                sprintf(str, "deltaX: %.3f", fac);
+                headerprint(str);
+            }
+	
+            if (G.saction->lock){
+				/* doubt any of this code ever gets
+				 * executed, but it might in the
+				 * future
+				 */
+				 
+                do_all_actions();
+                allqueue (REDRAWVIEW3D, 0);
+                allqueue (REDRAWACTION, 0);
+                allqueue (REDRAWIPO, 0);
+                allqueue(REDRAWNLA, 0);
+                force_draw_all();
+            }
+            else {
+                addqueue (curarea->win, REDRAWALL, 0);
+                force_draw ();
+            }
+        }
+		
+        lastcval[0]= cval[0];
+        lastcval[1]= cval[1];
+        firsttime= 0;
+    }
+	
+	/* fix up the Ipocurves and redraw stuff
+	 */
+    meshkey_do_redraw(key);
+
+    MEM_freeN (tv);
+
+	/* did you understand all of that? I pretty much understand
+	 * what it does, but the specifics seem a little weird and crufty.
+	 */
+}
+
+
 void deselect_actionchannel_keys (bAction *act, int test)
 {
 	bActionChannel	*chan;
@@ -1057,6 +1504,26 @@ void deselect_actionchannel_keys (bAction *act, int test)
 		for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
 			set_ipo_key_selection(conchan->ipo, sel);
 	}
+}
+
+void deselect_meshchannel_keys (Key *key, int test)
+{
+	/* should deselect the rvk keys
+	 */
+    int		sel=1;
+
+    /* Determine if this is selection or deselection */
+    if (test){
+        if (is_ipo_key_selected(key->ipo)){
+            sel = 0;
+        }
+    }
+    else {
+        sel=0;
+    }
+	
+    /* Set the flags */
+    set_ipo_key_selection(key->ipo, sel);
 }
 
 void deselect_actionchannels (bAction *act, int test)
@@ -1124,6 +1591,12 @@ static void hilight_channel (bAction *act, bActionChannel *chan, short select)
 			curchan->flag &= ~ACHAN_HILIGHTED;
 	}
 }
+
+/* select_mode = SELECT_REPLACE
+ *             = SELECT_ADD
+ *             = SELECT_SUBTRACT
+ *             = SELECT_INVERT
+ */
 
 static int select_channel(bAction *act, bActionChannel *chan,
                           int selectmode) {
@@ -1277,6 +1750,15 @@ static void mouse_actionchannels(bAction *act, short *mval,
 	allqueue (REDRAWNLA, 0);
 }
 
+static void delete_meshchannel_keys(Key *key)
+{
+	if (!okee("Erase selected keys"))
+		return;
+
+	delete_ipo_keys(key->ipo);
+
+	meshkey_do_redraw(key);
+}
 
 static void delete_actionchannel_keys(void)
 {
@@ -1367,6 +1849,13 @@ static void delete_actionchannels (void)
 	allqueue (REDRAWACTION, 0);
 	allqueue(REDRAWNLA, 0);
 
+}
+
+static void sethandles_meshchannel_keys(int code, Key *key)
+{
+    sethandles_ipo_keys(key->ipo, code);
+
+	meshkey_do_redraw(key);
 }
 
 static void sethandles_actionchannel_keys(int code)
@@ -1660,7 +2149,8 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	short	mval[2];
 	float dx,dy;
 	int	cfra;
-	
+	Key *key;
+
 	if(curarea->win==0) return;
 
 	saction= curarea->spacedata.first;
@@ -1673,6 +2163,8 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
 		
 		getmouseco_areawin(mval);
+
+		key = get_action_mesh_key();
 
 		switch(event) {
 		case UI_BUT_EVENT:
@@ -1690,92 +2182,172 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 
 		case DKEY:
-			if (G.qual & LR_SHIFTKEY && mval[0]>ACTWIDTH){
-				duplicate_actionchannel_keys();
-				remake_action_ipos(act);
+			if (key) {
+				if (G.qual & LR_SHIFTKEY && mval[0]>ACTWIDTH) {
+					duplicate_meshchannel_keys(key);
+				}
 			}
-			break;
-		case DELKEY:
-		case XKEY:
-			if (mval[0]<ACTWIDTH)
-				delete_actionchannels ();
-			else
-				delete_actionchannel_keys ();
-			break;
-		case GKEY:
-			if (mval[0]>=ACTWIDTH)
-				transform_actionchannel_keys ('g');
-			break;
-		case SKEY:
-			if (mval[0]>=ACTWIDTH)
-				transform_actionchannel_keys ('s');
-			break;
-		case AKEY:
-			if (mval[0]<ACTWIDTH){
-				deselect_actionchannels (act, 1);
-				allqueue (REDRAWVIEW3D, 0);
-				allqueue (REDRAWACTION, 0);
-				allqueue(REDRAWNLA, 0);
-				allqueue (REDRAWIPO, 0);
-			}
-			else{
-				deselect_actionchannel_keys (act, 1);
-				allqueue (REDRAWACTION, 0);
-				allqueue(REDRAWNLA, 0);
-				allqueue (REDRAWIPO, 0);
+			else {
+				if (G.qual & LR_SHIFTKEY && mval[0]>ACTWIDTH){
+					duplicate_actionchannel_keys();
+					remake_action_ipos(act);
+				}
 			}
 			break;
 
-			/*** set the Ipo handles ***/
+		case DELKEY:
+
+		case XKEY:
+			if (key) {
+				delete_meshchannel_keys(key);
+			}
+			else {
+				if (mval[0]<NAMEWIDTH)
+					delete_actionchannels ();
+				else
+					delete_actionchannel_keys ();
+			}
+			break;
+
+		case GKEY:
+			if (mval[0]>=ACTWIDTH) {
+				if (key) {
+					transform_meshchannel_keys('g', key);
+				}
+				else {
+					transform_actionchannel_keys ('g');
+				}
+			}
+			break;
+
+		case SKEY:
+			if (mval[0]>=ACTWIDTH) {
+				if (key) {
+					transform_meshchannel_keys('s', key);
+				}
+				else {
+					transform_actionchannel_keys ('s');
+				}
+			}
+			break;
+
+		case AKEY:
+			if (key) {
+				if (mval[0]<ACTWIDTH){
+					/* to do ??? */
+				}
+				else{
+					deselect_meshchannel_keys(key, 1);
+					allqueue (REDRAWACTION, 0);
+					allqueue(REDRAWNLA, 0);
+					allqueue (REDRAWIPO, 0);
+				}
+			}
+			else {
+				if (mval[0]<NAMEWIDTH){
+					deselect_actionchannels (act, 1);
+					allqueue (REDRAWVIEW3D, 0);
+					allqueue (REDRAWACTION, 0);
+					allqueue(REDRAWNLA, 0);
+					allqueue (REDRAWIPO, 0);
+				}
+				else if (mval[0]>ACTWIDTH){
+					deselect_actionchannel_keys (act, 1);
+					allqueue (REDRAWACTION, 0);
+					allqueue(REDRAWNLA, 0);
+					allqueue (REDRAWIPO, 0);
+				}
+			}
+			break;
+
 		case VKEY:
-			sethandles_actionchannel_keys(HD_VECT);
+			if (key) {
+				sethandles_meshchannel_keys(HD_VECT, key);
+				/* to do */
+			}
+			else {
+				sethandles_actionchannel_keys(HD_VECT);
+			}
 			break;
 		case HKEY:
-			if(G.qual & LR_SHIFTKEY) sethandles_actionchannel_keys(HD_AUTO);
-			else sethandles_actionchannel_keys(HD_ALIGN);
+			if (key) {
+				if(G.qual & LR_SHIFTKEY) {
+					sethandles_meshchannel_keys(HD_AUTO, key);
+				}
+				else { 
+					sethandles_meshchannel_keys(HD_ALIGN, key);
+				}
+			}
+			else {
+				if(G.qual & LR_SHIFTKEY) {
+					sethandles_actionchannel_keys(HD_AUTO);
+				}
+				else { 
+					sethandles_actionchannel_keys(HD_ALIGN);
+				}
+			}
 			break;
- 
+
 			/*** set the Ipo type  ***/
 		case TKEY:
-			set_ipotype_actionchannels();
+			if (key) {
+				/* to do */
+			}
+			else {
+				set_ipotype_actionchannels();
+			}
 			break;
 
 		case BKEY:
-			/* If the border select is initiated in the
-			 * part of the action window where the channel
-			 * names reside, then select the channels
-			 */
-			if (mval[0]<ACTWIDTH){
-				borderselect_function(mouse_actionchannels);
+			if (key) {
+				if (mval[0]<ACTWIDTH){
+					/* to do?? */
+				}
+				else {
+					borderselect_mesh(key);
+				}
 			}
-
-			/* If the border select is initiated in the
-			 * vertical scrollbar, then (de)select all keys
-			 * for the channels in the selection region
-			 */
-			else if (IN_2D_VERT_SCROLL(mval)) {
-				borderselect_function(select_all_keys_channels);
-			}
-
-			/* If the border select is initiated in the
-			 * horizontal scrollbar, then (de)select all keys
-			 * for the keyframes in the selection region
-			 */
-			else if (IN_2D_HORIZ_SCROLL(mval)) {
-				borderselect_function(select_all_keys_frames);
-			}
-
-			/* Other wise, select the action keys
-			 */
 			else {
-				borderselect_action();
+
+				/* If the border select is initiated in the
+				 * part of the action window where the channel
+				 * names reside, then select the channels
+				 */
+				if (mval[0]<NAMEWIDTH){
+					borderselect_function(mouse_actionchannels);
+				}
+				else if (mval[0]>ACTWIDTH){
+
+					/* If the border select is initiated in the
+					 * vertical scrollbar, then (de)select all keys
+					 * for the channels in the selection region
+					 */
+					if (IN_2D_VERT_SCROLL(mval)) {
+						borderselect_function(select_all_keys_channels);
+					}
+
+					/* If the border select is initiated in the
+					 * horizontal scrollbar, then (de)select all keys
+					 * for the keyframes in the selection region
+					 */
+					else if (IN_2D_HORIZ_SCROLL(mval)) {
+						borderselect_function(select_all_keys_frames);
+					}
+
+					/* Other wise, select the action keys
+					 */
+					else {
+						borderselect_action();
+					}
+				}
 			}
 			break;
+
 		case RIGHTMOUSE:
 			/* Right clicking in the channel area selects the
 			 * channel or constraint channel
 			 */
-			if (mval[0]<ACTWIDTH) {
+			if (mval[0]<NAMEWIDTH) {
 				if(G.qual & LR_SHIFTKEY)
 					mouse_actionchannels(act, mval, NULL, 
 										 SELECT_INVERT);
@@ -1783,40 +2355,50 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					mouse_actionchannels(act, mval, NULL, 
 										 SELECT_REPLACE);
 			}
+			else if (mval[0]>ACTWIDTH) {
 
-			/* Right clicking in the vertical scrollbar selects
-			 * all of the keys for that channel at that height
-			 */
-			else if (IN_2D_VERT_SCROLL(mval)) {
-				if(G.qual & LR_SHIFTKEY)
-					select_all_keys_channels(act, mval, NULL, 
-											 SELECT_INVERT);
-				else
-					select_all_keys_channels(act, mval, NULL, 
-											 SELECT_REPLACE);
-			}
+				/* Right clicking in the vertical scrollbar selects
+				 * all of the keys for that channel at that height
+				 */
+				if (IN_2D_VERT_SCROLL(mval)) {
+					if(G.qual & LR_SHIFTKEY)
+						select_all_keys_channels(act, mval, NULL, 
+												 SELECT_INVERT);
+					else
+						select_all_keys_channels(act, mval, NULL, 
+												 SELECT_REPLACE);
+				}
 
-			/* Right clicking in the horizontal scrollbar selects
-			 * all of the keys within 0.5 of the nearest integer
-			 * frame
-			 */
-			else if (IN_2D_HORIZ_SCROLL(mval)) {
-				if(G.qual & LR_SHIFTKEY)
-					select_all_keys_frames(act, mval, NULL, 
-										   SELECT_INVERT);
-				else
-					select_all_keys_frames(act, mval, NULL, 
-										   SELECT_REPLACE);
-			}
-
-			/* Clicking in the main area of the action window
-			 * selects keys
-			 */
-			else {
-				if(G.qual & LR_SHIFTKEY)
-					mouse_action(SELECT_INVERT);
-				else
-					mouse_action(SELECT_REPLACE);
+				/* Right clicking in the horizontal scrollbar selects
+				 * all of the keys within 0.5 of the nearest integer
+				 * frame
+				 */
+				else if (IN_2D_HORIZ_SCROLL(mval)) {
+					if(G.qual & LR_SHIFTKEY)
+						select_all_keys_frames(act, mval, NULL, 
+											   SELECT_INVERT);
+					else
+						select_all_keys_frames(act, mval, NULL, 
+											   SELECT_REPLACE);
+				}
+				
+				/* Clicking in the main area of the action window
+				 * selects keys
+				 */
+				else {
+					if (key) {
+						if(G.qual & LR_SHIFTKEY)
+							mouse_mesh_action(SELECT_INVERT, key);
+						else
+							mouse_mesh_action(SELECT_REPLACE, key);
+					}
+					else {
+						if(G.qual & LR_SHIFTKEY)
+							mouse_action(SELECT_INVERT);
+						else
+							mouse_action(SELECT_REPLACE);
+					}
+				}
 			}
 			break;
 
@@ -1854,3 +2436,119 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	
 }
 
+Key *get_action_mesh_key(void) {
+	/* gets the key data from the currently selected
+	 * mesh/lattice. If a mesh is not selected, or does not have
+	 * key data, then we return NULL (currently only
+	 * returns key data for RVK type meshes). If there
+	 * is an action that is pinned, return null
+	 */
+    Object *ob;
+    Key    *key;
+
+    ob = OBACT;
+    if (!ob) return NULL;
+
+	if (G.saction->pin) return NULL;
+
+    if (ob->type==OB_MESH ) {
+		key = ((Mesh *)ob->data)->key;
+    }
+	else if (ob->type==OB_LATTICE ) {
+		key = ((Lattice *)ob->data)->key;
+	}
+	else return NULL;
+
+	if (key) {
+		if (key->type == KEY_RELATIVE)
+			return key;
+	}
+
+    return NULL;
+}
+
+int get_nearest_key_num(Key *key, short *mval, float *x) {
+	/* returns the key num that cooresponds to the
+	 * y value of the mouse click. Does not check
+	 * if this is a valid keynum. Also gives the Ipo
+	 * x coordinate.
+	 */
+    int num;
+    float ybase, y;
+
+    areamouseco_to_ipoco(G.v2d, mval, x, &y);
+
+    ybase = key->totkey * (CHANNELHEIGHT + CHANNELSKIP);
+    num = (int) ((ybase - y) / (CHANNELHEIGHT+CHANNELSKIP));
+
+    return (num + 1);
+}
+
+static void clever_keyblock_names(Key *key, short* mval){
+    int        but=0, i, keynum;
+    char       str[64];
+	float      x, min, max;
+	KeyBlock   *kb;
+	/* get the keynum cooresponding to the y value
+	 * of the mouse pointer, return if this is
+	 * an invalid key number (and we don't deal
+	 * with the speed ipo).
+	 */
+
+    keynum = get_nearest_key_num(key, mval, &x);
+    if ( (keynum < 1) || (keynum >= key->totkey) )
+        return;
+
+	kb= key->block.first;
+	for (i=0; i<keynum; ++i) kb = kb->next; 
+
+	if (kb->name[0] == '\0') {
+		sprintf(str, "Key %d", keynum);
+	}
+	else {
+		strcpy(str, kb->name);
+	}
+
+	if ( (kb->slidermin >= kb->slidermax) ) {
+		kb->slidermin = 0.0;
+		kb->slidermax = 1.0;
+	}
+
+    add_numbut(but++, TEX, "KB: ", 0, 24, str, 
+               "Does this really need a tool tip?");
+	add_numbut(but++, NUM|FLO, "Slider min:", 
+			   -10000, kb->slidermax, &kb->slidermin, 0);
+	add_numbut(but++, NUM|FLO, "Slider max:", 
+			   kb->slidermin, 10000, &kb->slidermax, 0);
+
+    if (do_clever_numbuts(str, but, REDRAW)) {
+		strcpy(kb->name, str);
+        allqueue (REDRAWACTION, 0);
+        allqueue (REDRAWIPO, 0);
+	}
+
+	
+}
+
+void stupid_damn_numbuts_action(void){
+    /* I think this function might have been
+     * deemed clever if it could have been
+     * called from the event processing
+     * routine in this file -- rather than having
+     * to go from the NKEY event from blenderqread
+     * in toets.c (which returns 0 so nobody else
+     * can use the NKEY) then into the clever_numbuts
+     * routine in toolbox.c, the finally to this
+     * function. Grumble, grumble, grumble ...
+     */
+
+    Key *key;
+    short mval[2];
+
+    if ( (key = get_action_mesh_key()) ) {
+        getmouseco_areawin (mval);
+		if (mval[0]<NAMEWIDTH) {
+			clever_keyblock_names(key, mval);
+		}
+    }
+}

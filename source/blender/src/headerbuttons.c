@@ -4032,17 +4032,25 @@ void action_buttons(void)
 	uiDefIconBut(block, BUT, B_ACTHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)");
 
 	
-	/* NAME ETC */
-	ob=OBACT;
-	from = (ID*) ob;
+	if (!get_action_mesh_key()) {
+		/* NAME ETC */
+		ob=OBACT;
+		from = (ID*) ob;
 
-	xco= std_libbuttons(block, xco+1.5*XIC, B_ACTPIN, &G.saction->pin, B_ACTIONBROWSE, (ID*)G.saction->action, from, &(G.saction->actnr), B_ACTALONE, B_ACTLOCAL, B_ACTIONDELETE, 0, 0);	
+		xco= std_libbuttons(block, xco+1.5*XIC, B_ACTPIN, &G.saction->pin, 
+							B_ACTIONBROWSE, (ID*)G.saction->action, 
+							from, &(G.saction->actnr), B_ACTALONE, 
+							B_ACTLOCAL, B_ACTIONDELETE, 0, 0);	
 
 #ifdef __NLA_BAKE
-	/* Draw action baker */
-	uiDefBut(block, BUT, B_ACTBAKE, "Bake", xco+=XIC, 0, 64, YIC, 0, 0, 0, 0, 0, "Generates an Action with the constraint effects converted into ipo keys");
-	xco+=64;
+		/* Draw action baker */
+		uiDefBut(block, BUT, B_ACTBAKE, "Bake", 
+				 xco+=XIC, 0, 64, YIC, 0, 0, 0, 0, 0, 
+				 "Generate an action with the constraint "
+				 "effects converted into ipo keys");
+		xco+=64;
 #endif
+	}
 	uiClearButLock();
 
 	/* draw LOCK */

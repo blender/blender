@@ -1866,7 +1866,7 @@ EditIpo *get_editipo()
 }
 
 
-static Ipo *get_ipo(ID *from, short type, int make)
+Ipo *get_ipo(ID *from, short type, int make)
 {
 	Object *ob;
 	Material *ma;

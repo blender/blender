@@ -39,6 +39,7 @@ struct bPoseChannel;
 struct Object;
 struct Ipo;
 struct BWinEvent;
+struct Key;
 
 struct bActionChannel* get_hilighted_action_channel(struct bAction* action);
 void set_exprap_action(int mode);
@@ -49,10 +50,13 @@ void set_action_key (struct bAction *act, struct bPoseChannel *chan, int adrcode
 struct bAction *add_empty_action(void);
 void deselect_actionchannel_keys (struct bAction *act, int test);
 void deselect_actionchannels (struct bAction *act, int test);
+void deselect_meshchannel_keys (struct Key *key, int test);
 void winqreadactionspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 void remake_action_ipos(struct bAction *act);
 void select_actionchannel_by_name (struct bAction *act, char *name, int select);
 struct bAction *bake_action_with_client (struct bAction *act, struct Object *arm, float tolerance);
-
+struct Key *get_action_mesh_key(void);
+int get_nearest_key_num(struct Key *key, short *mval, float *x);
+void stupid_damn_numbuts_action(void);
 #endif /* BSE_EDITACTION_H */
 

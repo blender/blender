@@ -94,7 +94,7 @@ static int ipomachtx, ipomachty;
 
 static int vertymin, vertymax, horxmin, horxmax;	/* globals om LEFTMOUSE op scrollbar te testen */
 
-
+extern short ACTWIDTH;
 
 static void scroll_prstr(float x, float y, float val, char dir, int disptype)
 {

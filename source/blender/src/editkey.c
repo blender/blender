@@ -69,6 +69,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_displist.h"
 
 #include "BIF_editkey.h"
 #include "BIF_editview.h"
@@ -76,6 +77,7 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
+#include "BIF_interface.h"
 
 #include "BSE_editipo.h"
 #include "BSE_trans_types.h"
@@ -85,8 +87,199 @@
 #include "blendef.h"
 #include "mydevice.h"
 #include "ipo.h"
+#include "interface.h"
 
 extern ListBase editNurb; /* in editcurve.c */
+
+/* temporary storage for slider values */
+float meshslidervals[32] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+static IpoCurve *get_key_icu(Key *key, int keynum) {
+	/* return the Ipocurve that has the specified
+	 * keynum as ardcode -- return NULL if no such 
+	 * curve exists.
+	 */
+    IpoCurve *icu;
+	if (!(key->ipo)) {
+		key->ipo = get_ipo(key, ID_KE, 1);
+		return NULL;
+	}
+
+
+    for (icu = key->ipo->curve.first; icu ; icu = icu->next) {
+        if (!icu->adrcode) continue;
+        if (icu->adrcode == keynum) return icu;
+    }
+
+    return NULL;
+}
+
+static BezTriple *get_bezt_icu_time(IpoCurve *icu, float *frame, float *val) {
+	/* this function tries to find a bezier that is within
+	 * 0.25 time units from the specified frame. If there
+	 * are more than one such beziers, it returns the
+	 * closest one.
+	 */
+	int   i;
+	float d, dmin = 0.25, newframe;
+	BezTriple *bezt = NULL;
+	
+	newframe = *frame;
+
+	for (i=0; i<icu->totvert; i++){
+		d = fabs(icu->bezt[i].vec[1][0] - *frame);
+		if (d < dmin) {
+			dmin     = d;
+			newframe = icu->bezt[i].vec[1][0];
+			*val     = icu->bezt[i].vec[1][1];
+			bezt     = icu->bezt + i;
+		}
+	}
+
+	*frame = newframe;
+	return bezt;
+}
+
+static void rvk_slider_func(void *voidkey, void *voidkeynum) {
+	/* the callback for the rvk sliders ... copies the
+	 * value from the temporary array into a bezier at the
+	 * right frame on the right ipo curve (creating both the
+	 * ipo curve and the bezier if needed).
+	 */
+	int       *keynum = (int *) voidkeynum;
+	Key       *key = (Key *) voidkey;
+	float     cfra, rvkval;
+	IpoCurve  *icu=NULL;
+	BezTriple *bezt=NULL;
+
+	cfra = frame_to_float(CFRA);
+
+	icu    = get_key_icu(key, *keynum);
+
+	if (icu) {
+		/* if the ipocurve exists, try to get a bezier
+		 * for this frame
+		 */
+		bezt = get_bezt_icu_time(icu, &cfra, &rvkval);
+	}
+	else {
+		/* create an IpoCurve if one doesn't already
+		 * exist.
+		 */
+		icu = get_ipocurve(key->from, GS(key->from->name), 
+						   *keynum, key->ipo);
+	}
+	
+	/* create the bezier triple if one doesn't exist,
+	 * otherwise modify it's value
+	 */
+	if (!bezt) {
+		insert_vert_ipo(icu, cfra, meshslidervals[*keynum]);
+	}
+	else {
+		bezt->vec[1][1] = meshslidervals[*keynum];
+	}
+
+	/* make sure the Ipo's are properly process and
+	 * redraw as necessary
+	 */
+	sort_time_ipocurve(icu);
+	testhandles_ipocurve(icu);
+
+	do_all_ipos();
+	do_spec_key(key);
+	/* if I'm deformed by a lattice, update my
+	 * displists
+	 */
+	makeDispList(OBACT);
+
+	/* if I'm a lattice, update the displists of
+	 * my children
+	 */
+	if (OBACT->type==OB_LATTICE ) {
+		Base *base;
+
+		base= FIRSTBASE;
+		while(base) {
+			if (base->object->parent == OBACT) {
+				makeDispList(base->object);
+			}
+			base= base->next;
+		}
+	}
+	allqueue (REDRAWVIEW3D, 0);
+	allqueue (REDRAWACTION, 0);
+	allqueue (REDRAWNLA, 0);
+	allqueue (REDRAWIPO, 0);
+
+}
+
+static float getrvkval(Key *key, int keynum) {
+	/* get the value of the rvk from the
+	 * ipo curve at the current time -- return 0
+	 * if no ipo curve exists
+	 */
+	IpoCurve  *icu=NULL;
+	BezTriple *bezt=NULL;
+	float     rvkval = 0.0;
+	float     cfra;
+
+	cfra = frame_to_float(CFRA);
+	icu    = get_key_icu(key, keynum);
+	if (icu) {
+		bezt = get_bezt_icu_time(icu, &cfra, &rvkval);
+		if (!bezt) {
+			rvkval = eval_icu(icu, cfra);
+		}
+	}
+
+	return rvkval;
+
+}
+
+void make_rvk_slider(uiBlock *block, Key *key, int keynum,
+					 int x, int y, int w, int h)
+{
+	/* create a slider for the rvk */
+	uiBut         *but;
+	KeyBlock   *kb;
+	float min, max;
+	int i;
+
+	/* dang, need to pass a pointer to int to uiButSetFunc
+	 * that is on the heap, not the stack ... hence this
+	 * kludgy static array
+	 */
+	static int keynums[] = {0,1,2,3,4,5,6,7,
+							8,9,10,11,12,13,14,15,
+							16,17,18,19,20,21,22,23,
+							24,25,26,27,28,29,30,31};
+
+	meshslidervals[keynum] = getrvkval(key, keynum);
+
+	kb= key->block.first;
+	for (i=0; i<keynum; ++i) kb = kb->next; 
+
+	if ( (kb->slidermin >= kb->slidermax) ) {
+		kb->slidermin = 0.0;
+		kb->slidermax = 1.0;
+	}
+
+	min = (kb->slidermin < meshslidervals[keynum]) ? 
+		kb->slidermin: meshslidervals[keynum];
+
+	max = (kb->slidermax > meshslidervals[keynum]) ? 
+		kb->slidermax: meshslidervals[keynum];
+
+	but=uiDefButF(block, NUMSLI, REDRAWVIEW3D, "",
+				  x, y , w, h,
+				  meshslidervals+keynum, min, max, 10, 2,
+				  "Slider to control rvk");
+	uiButSetFunc(but, rvk_slider_func, key, keynums+keynum);
+}
 
 static void default_key_ipo(Key *key)
 {
@@ -168,10 +361,20 @@ void insert_meshkey(Mesh *me)
 	Key *key;
 	KeyBlock *kb, *kkb;
 	float curpos;
-	
+	short rel;
+
 	if(me->key==0) {
 		me->key= add_key( (ID *)me);
-		default_key_ipo(me->key);
+		rel = pupmenu("Relative Vertex Keys? %t|Yes Please! %x1"
+					  "|Naw, the other kind %x2");
+		switch (rel) {
+		case 1:
+			me->key->type = KEY_RELATIVE;
+			break;
+		default:
+			default_key_ipo(me->key);
+			break;
+		}
 	}
 	key= me->key;
 	

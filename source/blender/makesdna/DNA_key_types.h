@@ -48,7 +48,10 @@ typedef struct KeyBlock {
 	int pad;
 	
 	void *data;
-	
+	char  name[32];
+
+	float slidermin;
+	float slidermax;
 } KeyBlock;
 
 

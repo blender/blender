@@ -1452,9 +1452,9 @@ void clever_numbuts(void)
 	else if(curarea->spacetype==SPACE_OOPS) {
 		clever_numbuts_oops();
 	}
-//	else if(curarea->spacetype==SPACE_ACTION){
-//		stupid_damn_numbuts_action();
-//	}
+	else if(curarea->spacetype==SPACE_ACTION){
+		stupid_damn_numbuts_action();
+	}
 	else if(curarea->spacetype==SPACE_FILE) {
 		clever_numbuts_filesel();
 	}
