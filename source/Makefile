@@ -401,7 +401,7 @@ else
       NAN_SND_LIBS += $(NAN_OPENAL)/lib/libopenal.a
       NAN_SND_LIBS += $(SOUNDSYSTEM)
     else
-      ifeq ($OS),solaris)
+      ifeq ($(OS), solaris)
         NAN_SND_LIBS =  $(SOUNDSYSTEM)
         NAN_SND_LIBS += $(DUMMYSOUND)
         NAN_SND_LIBS += $(OPENALSOUND)

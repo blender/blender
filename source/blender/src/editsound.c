@@ -203,14 +203,14 @@ void sound_initialize_sounds(void)
 		/* clear the soundscene */
 		SND_RemoveAllSounds(ghSoundScene);
 		SND_RemoveAllSamples(ghSoundScene);
+	}
 	
-		/* initialize sounds */
-		sound = G.main->sound.first;
-		while (sound)
-		{
-			sound_sample_is_null(sound);
-			sound = (bSound *) sound->id.next;
-		}
+	/* initialize sample blocks (doesnt call audio system, needs to be done once after load */
+	sound = G.main->sound.first;
+	while (sound)
+	{
+		sound_sample_is_null(sound);
+		sound = (bSound *) sound->id.next;
 	}
 }
 
