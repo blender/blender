@@ -82,7 +82,8 @@
 #include "BLI_editVert.h"
 
 #include "BLO_undofile.h"
-#include "BLO_readfile.h" /* for BLO_read_file */
+#include "BLO_readfile.h" 
+#include "BLO_writefile.h" 
 
 #include "BKE_bad_level_calls.h" // for freeAllRad editNurb free_editMesh free_editText free_editArmature
 #include "BKE_utildefines.h" // O_BINARY FALSE
@@ -434,5 +435,197 @@ int BKE_read_file_from_memfile(MemFile *memfile)
 		waitcursor(0);
 	
 	return (bfd?1:0);
+}
+
+
+/* ***************** GLOBAL UNDO *************** */
+
+#define UNDO_DISK	0
+
+#define MAXUNDONAME	64
+typedef struct UndoElem {
+	struct UndoElem *next, *prev;
+	char str[FILE_MAXDIR+FILE_MAXFILE];
+	char name[MAXUNDONAME];
+	MemFile memfile;
+} UndoElem;
+
+#define MAXUNDO	 32
+static ListBase undobase={NULL, NULL};
+static UndoElem *curundo= NULL;
+
+
+static int read_undosave(UndoElem *uel)
+{
+	char scestr[FILE_MAXDIR+FILE_MAXFILE];
+	int success=0, fileflags;
+	
+	strcpy(scestr, G.sce);	/* temporal store */
+	fileflags= G.fileflags;
+	G.fileflags |= G_FILE_NO_UI;
+
+	if(UNDO_DISK) 
+		success= BKE_read_file(uel->str, NULL);
+	else
+		success= BKE_read_file_from_memfile(&uel->memfile);
+	
+	/* restore */
+	strcpy(G.sce, scestr);
+	G.fileflags= fileflags;
+
+	return success;
+}
+
+/* name can be a dynamic string */
+void BKE_write_undo(char *name)
+{
+	int nr, success;
+	UndoElem *uel;
+	
+	if( (U.uiflag & USER_GLOBALUNDO)==0) return;
+
+	/* remove all undos after (also when curundo==NULL) */
+	while(undobase.last != curundo) {
+		uel= undobase.last;
+		BLI_remlink(&undobase, uel);
+		BLO_free_memfile(&uel->memfile);
+		MEM_freeN(uel);
+	}
+	
+	/* make new */
+	curundo= uel= MEM_callocN(sizeof(UndoElem), "undo file");
+	strncpy(uel->name, name, MAXUNDONAME-1);
+	BLI_addtail(&undobase, uel);
+	
+	/* and limit amount to the maximum */
+	nr= 0;
+	uel= undobase.last;
+	while(uel) {
+		nr++;
+		if(nr==MAXUNDO) break;
+		uel= uel->prev;
+	}
+	if(uel) {
+		while(undobase.first!=uel) {
+			UndoElem *first= undobase.first;
+			BLI_remlink(&undobase, first);
+			/* the merge is because of compression */
+			BLO_merge_memfile(&first->memfile, &first->next->memfile);
+			MEM_freeN(first);
+		}
+	}
+
+
+	/* disk save version */
+	if(UNDO_DISK) {
+		static int counter= 0;
+		char *err, tstr[FILE_MAXDIR+FILE_MAXFILE];
+		char numstr[32];
+		
+		/* calculate current filename */
+		counter++;
+		counter= counter % MAXUNDO;	
+	
+		sprintf(numstr, "%d.blend", counter);
+		BLI_make_file_string("/", tstr, U.tempdir, numstr);
+	
+		success= BLO_write_file(tstr, G.fileflags, &err);
+		
+		strcpy(curundo->str, tstr);
+	}
+	else {
+		MemFile *prevfile=NULL;
+		char *err;
+		
+		if(curundo->prev) prevfile= &(curundo->prev->memfile);
+		
+		success= BLO_write_file_mem(prevfile, &curundo->memfile, G.fileflags, &err);
+		
+	}
+}
+
+/* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation */
+void BKE_undo_step(int step)
+{
+	
+	if(step==1) {
+		/* curundo should never be NULL, after restart or load file it should call undo_save */
+		if(curundo==NULL || curundo->prev==NULL) error("No undo available");
+		else {
+			printf("undo %s\n", curundo->name);
+			curundo= curundo->prev;
+			read_undosave(curundo);
+		}
+	}
+	else {
+		
+		/* curundo has to remain current situation! */
+		
+		if(curundo==NULL || curundo->next==NULL) error("No redo available");
+		else {
+			read_undosave(curundo->next);
+			curundo= curundo->next;
+			printf("redo %s\n", curundo->name);
+		}
+	}
+}
+
+void BKE_reset_undo(void)
+{
+	UndoElem *uel;
+	
+	uel= undobase.first;
+	while(uel) {
+		BLO_free_memfile(&uel->memfile);
+		uel= uel->next;
+	}
+	
+	BLI_freelistN(&undobase);
+	curundo= NULL;
+}
+
+
+void BKE_undo_menu(void)
+{
+	
+}
+
+	/* saves quit.blend */
+void BKE_undo_save_quit(void)
+{
+	UndoElem *uel;
+	MemFileChunk *chunk;
+	int file;
+	char str[FILE_MAXDIR+FILE_MAXFILE];
+	
+	if( (U.uiflag & USER_GLOBALUNDO)==0) return;
+	
+	uel= curundo;
+	if(uel==NULL) {
+		printf("No undo buffer to save recovery file\n");
+		return;
+	}
+	
+	/* no undo state to save */
+	if(undobase.first==undobase.last) return;
+		
+	BLI_make_file_string("/", str, U.tempdir, "quit.blend");
+
+	file = open(str,O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
+	if(file == -1) {
+		printf("Unable to save %s\n", str);
+		return;
+	}
+
+	chunk= uel->memfile.chunks.first;
+	while(chunk) {
+		if( write(file, chunk->buf, chunk->size) != chunk->size) break;
+		chunk= chunk->next;
+	}
+	
+	close(file);
+	
+	if(chunk) printf("Unable to save %s\n", str);
+	else printf("Saved session recovery to %s\n", str);
 }
 

@@ -85,7 +85,6 @@
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_anim.h"
 #include "BKE_blender.h"
 #include "BKE_booleanops.h"
@@ -110,6 +109,7 @@
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
 #include "BKE_texture.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
@@ -194,7 +194,7 @@ void add_object_draw(int type)	/* for toolbox */
 	setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 
 	if ELEM3(curarea->spacetype, SPACE_VIEW3D, SPACE_BUTS, SPACE_INFO) {
-		if (G.obedit) exit_editmode(1);
+		if (G.obedit) exit_editmode(2); // freedata, and undo
 		ob= add_object(type);
 		base_init_from_view3d(BASACT, G.vd);
 
@@ -255,6 +255,8 @@ void delete_obj(int ok)
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWNLA, 0);
+	
+	BIF_undo_push("Delete object(s)");
 }
 
 int return_editmesh_indexar(int **indexar, float *cent)
@@ -631,6 +633,7 @@ void add_hook(void)
 
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
+	BIF_undo_push("Add hook");
 }
 
 void make_track(void)
@@ -725,6 +728,7 @@ void make_track(void)
 		allqueue(REDRAWOOPS, 0);
 		sort_baselist(G.scene);
 	}
+	BIF_undo_push("make Track");
 }
 
 void apply_obmat(Object *ob)
@@ -802,6 +806,8 @@ void clear_parent(void)
 	test_scene_constraints();
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
+	
+	BIF_undo_push("Clear Parent");	
 }
 
 void clear_track(void)
@@ -830,6 +836,8 @@ void clear_track(void)
 	test_scene_constraints();
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
+	
+	BIF_undo_push("Clear Track");	
 }
 
 void clear_object(char mode)
@@ -837,14 +845,18 @@ void clear_object(char mode)
 	Base *base;
 	Object *ob;
 	float *v1, *v3, mat[3][3];
+	char *str=NULL;
 	
 	if(G.obedit) return;
 	if(G.scene->id.lib) return;
 	
-	if(mode=='r' && okee("Clear rotation")==0) return;
-	else if(mode=='g' && okee("Clear location")==0) return;
-	else if(mode=='s' && okee("Clear size")==0) return;
-	else if(mode=='o' && okee("Clear origin")==0) return;
+	if(mode=='r') str= "Clear rotation";
+	else if(mode=='g') str= "Clear location";
+	else if(mode=='s') str= "Clear size";
+	else if(mode=='o') str= "Clear origin";
+	else return;
+	
+	if(okee(str)==0) return;
 	
 	if (G.obpose){
 
@@ -859,6 +871,7 @@ void clear_object(char mode)
 		}
 
 		allqueue(REDRAWVIEW3D, 0);
+		BIF_undo_push(str);
 		return;
 	}
 
@@ -906,6 +919,7 @@ void clear_object(char mode)
 	}
 	
 	allqueue(REDRAWVIEW3D, 0);
+	BIF_undo_push(str);
 }
 
 void reset_slowparents(void)
@@ -939,7 +953,7 @@ void set_slowparent(void)
 		}
 		base= base->next;
 	}
-	
+	BIF_undo_push("Slow parent");
 }
 
 void make_vertex_parent(void)
@@ -953,7 +967,7 @@ void make_vertex_parent(void)
 	Object *par, *ob;
 	int a, v1=0, v2=0, v3=0, nr=1;
 	
-	/* we need 1 ot 3 selected vertices */
+	/* we need 1 to 3 selected vertices */
 	
 	if(G.obedit->type==OB_MESH) {
 		eve= em->verts.first;
@@ -1054,6 +1068,7 @@ void make_vertex_parent(void)
 	}
 	allqueue(REDRAWVIEW3D, 0);
 	
+	// BIF_undo_push(str); not, conflicts with editmode undo...
 }
 
 int test_parent_loop(Object *par, Object *ob)
@@ -1078,8 +1093,7 @@ void make_parent(void)
 {
 	Base *base;
 	Object *par;
-	Ika *ika;
-	short qual, ok, mode=0, limbnr=0, effchild=0;
+	short qual, mode=0, limbnr=0, effchild=0;
 	char *bonestr=NULL;
 	Bone	*bone=NULL;
 	int	bonenr;
@@ -1095,56 +1109,7 @@ void make_parent(void)
 	qual= G.qual;
 	par= BASACT->object;
 
-	if(par->type==OB_IKA) {
-		
-		if(qual & LR_SHIFTKEY)
-			mode= pupmenu("Make Parent Without Inverse%t|Use Vertex %x1|Use Limb %x2|Use Skeleton %x3");
-		else 
-			mode= pupmenu("Make Parent %t|Use Vertex %x1|Use Limb %x2|Use Skeleton %x3");
-		
-		if(mode==1) {
-			draw_ika_nrs(par, 0);
-			if(button(&limbnr, 0, 99, "Vertex: ")==0) {
-				allqueue(REDRAWVIEW3D, 0);
-				return;
-			}
-		}
-		else if(mode==2) {
-			draw_ika_nrs(par, 1);
-			if(button(&limbnr, 0, 99, "Limb: ")==0) {
-				allqueue(REDRAWVIEW3D, 0);
-				return;
-			}
-		}
-		else if(mode==3) {
-			ika= par->data;
-			if(ika->def==0) {
-				error("No skeleton available: use CTRL K");
-				return;
-			}
-		}
-		else return;
-
-		if(mode==1) mode= PARVERT1;
-		else if(mode==2) mode= PARLIMB;
-		else if(mode==3) mode= PARSKEL;
-
-		/* test effchild */
-		base= FIRSTBASE;
-		while(base) {
-			if TESTBASELIB(base) {
-				if(base->object->type==OB_IKA && base->object!=par && mode==PARVERT1 ) {
-					if(effchild==0) {
-						if(okee("Effector as child")) effchild= 1;
-						else effchild= 2;
-					}
-				}
-			}
-			if(effchild) break;
-			base= base->next;
-		}
-	}
-	else if(par->type == OB_CURVE){
+	if(par->type == OB_CURVE){
 		bConstraint *con;
 		bFollowPathConstraint *data;
 
@@ -1188,6 +1153,7 @@ void make_parent(void)
 			test_scene_constraints();
 			allqueue(REDRAWVIEW3D, 0);
 			sort_baselist(G.scene);
+			BIF_undo_push("make Parent");
 			return;
 		}
 	}
@@ -1294,91 +1260,67 @@ void make_parent(void)
 		if TESTBASELIB(base) {
 			if(base!=BASACT) {
 				
-				ok= 1;
-				if(base->object->type==OB_IKA) {
-				
-					if(effchild==1) {
-					
-						if( test_parent_loop(par, base->object)==0 ) {
-						
-							Ika *ika= base->object->data;
-							
-							ika->parent= par;
-							ika->par1= limbnr;
-							ika->partype= mode;
-							itterate_ika(base->object);
-							ok= 0;
-						}
-						else {
-							ok= 0;
-							error("Loop in parents");
-						}
-					}
+				if( test_parent_loop(par, base->object) ) {
+					error("Loop in parents");
 				}
-				
-				if(ok) {
-					if( test_parent_loop(par, base->object) ) {
-						error("Loop in parents");
+				else {
+					
+					/* the ifs below are horrible code (ton) */
+					
+					if(par->type==OB_IKA){
+						base->object->partype= mode;
+						base->object->par1= limbnr;
+					}
+					else if (par->type==OB_ARMATURE){
+						base->object->partype= mode;
+						if (bone)
+							strcpy (base->object->parsubstr, bone->name);
+						else
+							base->object->parsubstr[0]=0;
 					}
 					else {
-						
-						/* the ifs below are horrible code (ton) */
-						
-						if(par->type==OB_IKA){
-							base->object->partype= mode;
-							base->object->par1= limbnr;
+						if(qual & LR_ALTKEY) {
+							base->object->partype= PARVERT1;
 						}
-						else if (par->type==OB_ARMATURE){
+						else if(par->type==OB_CURVE) {
 							base->object->partype= mode;
-							if (bone)
-								strcpy (base->object->parsubstr, bone->name);
-							else
-								base->object->parsubstr[0]=0;
 						}
 						else {
-							if(qual & LR_ALTKEY) {
-								base->object->partype= PARVERT1;
-							}
-							else if(par->type==OB_CURVE) {
-								base->object->partype= mode;
-							}
-							else {
-								base->object->partype= PAROBJECT;
-							}
+							base->object->partype= PAROBJECT;
 						}
-						base->object->parent= par;
-						
-						/* calculate inverse parent matrix? */
-						if( (qual & LR_SHIFTKEY) ) {
-							/* not... */
-							Mat4One(base->object->parentinv);
-							memset(base->object->loc, 0, 3*sizeof(float));
-						}
-						else {
-							if(mode==PARSKEL && par->type == OB_ARMATURE) {
-								/* Prompt the user as to whether he wants to
-								 * add some vertex groups based on the bones
-								 * in the parent armature.
-								 */
-								create_vgroups_from_armature(base->object, 
-															 par);
+					}
+					base->object->parent= par;
+					
+					/* calculate inverse parent matrix? */
+					if( (qual & LR_SHIFTKEY) ) {
+						/* not... */
+						Mat4One(base->object->parentinv);
+						memset(base->object->loc, 0, 3*sizeof(float));
+					}
+					else {
+						if(mode==PARSKEL && par->type == OB_ARMATURE) {
+							/* Prompt the user as to whether he wants to
+								* add some vertex groups based on the bones
+								* in the parent armature.
+								*/
+							create_vgroups_from_armature(base->object, 
+															par);
 
-								base->object->partype= PAROBJECT;
-								what_does_parent(base->object);
-								Mat4One (base->object->parentinv);
-								base->object->partype= mode;
-							}
-							else
-								what_does_parent(base->object);
-							Mat4Invert(base->object->parentinv, workob.obmat);
+							base->object->partype= PAROBJECT;
+							what_does_parent(base->object);
+							Mat4One (base->object->parentinv);
+							base->object->partype= mode;
 						}
-						
-						if(par->type==OB_LATTICE) makeDispList(base->object);
-						if(par->type==OB_CURVE && mode==PARSKEL) makeDispList(base->object);
-						if(par->type==OB_ARMATURE && mode == PARSKEL){
-							verify_defgroups(base->object);
-							makeDispList(base->object);
-						}
+						else
+							what_does_parent(base->object);
+						Mat4Invert(base->object->parentinv, workob.obmat);
+					}
+					
+					if(par->type==OB_LATTICE) makeDispList(base->object);
+					if(par->type==OB_CURVE && mode==PARSKEL) makeDispList(base->object);
+					if(par->type==OB_ARMATURE && mode == PARSKEL){
+						verify_defgroups(base->object);
+						makeDispList(base->object);
 					}
 				}
 			}
@@ -1390,6 +1332,8 @@ void make_parent(void)
 	
 	test_scene_constraints();
 	sort_baselist(G.scene);
+
+	BIF_undo_push("make Parent");
 }
 
 
@@ -1499,13 +1443,13 @@ void make_displists_by_parent(Object *ob) {
 			makeDispList(base->object);
 }
 
-void exit_editmode(int freedata)	/* freedata==0 at render */
+void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do undo buffer too */
 {
 	Base *base;
 	Object *ob;
 	Curve *cu;
 
-	if(G.obedit==0) return;
+	if(G.obedit==NULL) return;
 
 	if(G.obedit->type==OB_MESH) {
 
@@ -1588,6 +1532,8 @@ void exit_editmode(int freedata)	/* freedata==0 at render */
 	}
 	scrarea_queue_headredraw(curarea);
 
+	if(G.obedit==NULL && freedata==2) 
+		BIF_undo_push("Editmode");
 }
 
 void check_editmode(int type)
@@ -1595,12 +1541,12 @@ void check_editmode(int type)
 	
 	if (G.obedit==0 || G.obedit->type==type) return;
 
-	exit_editmode(1);
+	exit_editmode(2); // freedata, and undo
 }
 
-static int centremode= 0; /* 0 == do centre, 1 == centre new, 2 == centre cursor */
+/* 0 == do centre, 1 == centre new, 2 == centre cursor */
 
-void docentre(void)
+void docentre(int centremode)
 {
 	EditMesh *em = G.editMesh;
 	Base *base;
@@ -1830,6 +1776,7 @@ void docentre(void)
 	}
 
 	allqueue(REDRAWVIEW3D, 0);
+	BIF_undo_push("Do Centre");	
 }
 
 void docentre_new(void)
@@ -1840,9 +1787,7 @@ void docentre_new(void)
 		error("Unable to center new in Edit Mode");
 	}
 	else {
-		centremode= 1;
-		docentre();
-		centremode= 0;
+		docentre(1);
 	}
 }
 
@@ -1854,9 +1799,7 @@ void docentre_cursor(void)
 		error("Unable to center cursor in Edit Mode");
 	}
 	else {
-		centremode= 2;
-		docentre();
-		centremode= 0;
+		docentre(2);
 	}
 }
 
@@ -1893,6 +1836,8 @@ void movetolayer(void)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWINFO, 0);
+	
+	BIF_undo_push("Move to layer");
 }
 
 
@@ -1943,7 +1888,8 @@ void special_editmenu(void)
 				}
 			}
 			allqueue(REDRAWVIEW3D, 0);
-			allqueue(REDRAWBUTSLOGIC, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
+			BIF_undo_push("Change texture face");
 		}
 		else if(G.f & G_VERTEXPAINT) {
 			Mesh *me= get_mesh(OBACT);
@@ -1959,6 +1905,7 @@ void special_editmenu(void)
 				do_shared_vertexcol(me);
 				
 				if(me->tface) mcol_to_tface(me, 1);
+				BIF_undo_push("Shared VertexCol");
 			}
 		}
 		else {
@@ -1996,6 +1943,7 @@ void special_editmenu(void)
  							} else if(ret==-1) {
 								error("Selected meshes must have faces to perform boolean operations");
 							}
+							else BIF_undo_push("Boolean");
 
 							waitcursor(0);
 						} else {
@@ -2215,7 +2163,7 @@ void convertmenu(void)
 					/* texspace and normals */
 					BASACT= base;
 					enter_editmode();
-					exit_editmode(1);
+					exit_editmode(1); // freedata, but no undo
 					BASACT= basact;
 				}
 			}
@@ -2262,6 +2210,7 @@ void convertmenu(void)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
+	BIF_undo_push("Convert Object");
 }
 
 	/* Change subdivision properties of mesh object ob, if
@@ -2281,6 +2230,8 @@ void flip_subdivison(Object *ob, int level)
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	makeDispList(ob);
+	
+	BIF_undo_push("Switch subsurf on/off");
 }
  
 void copymenu_properties(Object *ob)
@@ -2345,6 +2296,8 @@ void copymenu_properties(Object *ob)
 	}
 	MEM_freeN(str);
 	allqueue(REDRAWVIEW3D, 0);
+	
+	BIF_undo_push("Copy properties");
 }
 
 void copymenu_logicbricks(Object *ob)
@@ -2378,6 +2331,7 @@ void copymenu_logicbricks(Object *ob)
 		}
 		base= base->next;
 	}
+	BIF_undo_push("Copy logic");
 }
 
 void copy_attr_menu()
@@ -2604,6 +2558,7 @@ void copy_attr(short event)
 		allqueue(REDRAWBUTSOBJECT, 0);
 	}
 	
+	BIF_undo_push("Copy attributes");
 }
 
 void link_to_scene(unsigned short nr)
@@ -2818,6 +2773,8 @@ void make_links(short event)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWBUTSHEAD, 0);
+	
+	BIF_undo_push("Create links");
 }
 
 void make_duplilist_real()
@@ -2866,6 +2823,8 @@ void make_duplilist_real()
 	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
+	
+	BIF_undo_push("Make duplicates real");
 }
 
 void apply_object()
@@ -2928,7 +2887,7 @@ void apply_object()
 				/* texspace and normals */
 				BASACT= base;
 				enter_editmode();
-				exit_editmode(1);
+				exit_editmode(1); // freedata, but no undo
 				BASACT= basact;				
 				
 			}
@@ -2995,7 +2954,7 @@ void apply_object()
 				/* texspace and normals */
 				BASACT= base;
 				enter_editmode();
-				exit_editmode(1);
+				exit_editmode(1); // freedata, but no undo
 				BASACT= basact;
 			}
 		}
@@ -3003,6 +2962,7 @@ void apply_object()
 	}
 	
 	allqueue(REDRAWVIEW3D, 0);
+	BIF_undo_push("Apply object");
 }
 
 
@@ -6579,7 +6539,7 @@ void transform(int mode)
 
 	/* undo after transform, since it's storing current situations */
 	if(canceled==0 && G.obedit==NULL) 
-		BIF_write_undo(transform_mode_to_string(mode));
+		BIF_undo_push(transform_mode_to_string(mode));
 }
 
 void std_rmouse_transform(void (*xf_func)(int))
@@ -6612,7 +6572,9 @@ void std_rmouse_transform(void (*xf_func)(int))
 				return;
 			}
 		}
-	}	
+	}
+	/* if gets here it's a select, later on remove obedit check */
+	if(G.obedit==NULL) BIF_undo_push("Select");
 }
 
 void rightmouse_transform(void)
@@ -7027,6 +6989,7 @@ void single_user(void)
 
 		countall();
 		allqueue(REDRAWALL, 0);
+		BIF_undo_push("Single user");
 	}
 }
 
@@ -7190,7 +7153,7 @@ void make_local(void)
 
 
 	allqueue(REDRAWALL, 0);
-
+	BIF_undo_push("Make local");
 }
 
 
@@ -7552,6 +7515,7 @@ void selectlinks(int nr)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWDATASELECT, 0);
 	allqueue(REDRAWOOPS, 0);
+	BIF_undo_push("Select links");
 }
 
 void image_aspect(void)
@@ -7612,6 +7576,7 @@ void image_aspect(void)
 	}
 	
 	allqueue(REDRAWVIEW3D, 0);
+	BIF_undo_push("Image aspect");
 }
 
 void set_ob_ipoflags(void)
@@ -7692,6 +7657,8 @@ void select_select_keys(void)
 	allqueue(REDRAWVIEW3D, 0);
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWIPO, 0);
+
+	BIF_undo_push("Selet keys");
 
 }
 
@@ -7836,7 +7803,8 @@ void make_displists_by_obdata(void *obdata) {
 /* ******************************************************************** */
 /* Mirror function in Edit Mode */
 
-void mirror_edit(short mode) {
+void mirror_edit(short mode) 
+{
 	short axis, a;
 	float mat[3][3], imat[3][3], min[3], max[3];
 	TransVert *tv;
@@ -8043,6 +8011,9 @@ void mirrormenu(void){
 
 		if (mode==-1) return; /* return */
 		mirror_edit(mode); /* separating functionality from interface | call*/
+
+		BIF_undo_push("Mirror");
+
 	}
 }
 

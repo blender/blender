@@ -144,7 +144,6 @@ void beauty_fill(void);
 void join_triangles(void);
 void edge_flip(void);
 void join_mesh(void);
-void clever_numbuts_mesh(void);
 void sort_faces(void);
 void vertices_to_sphere(void);
 void fill_mesh(void);

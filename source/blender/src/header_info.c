@@ -886,6 +886,26 @@ static void do_info_filemenu(void *arg, int event)
 	case 14:
 		G.fileflags ^= G_FILE_NO_UI;
 		break;
+	case 15:	/* recover previous session */
+		{
+			extern short winqueue_break; /* editscreen.c */
+			int save_over;
+			char str[FILE_MAXDIR+FILE_MAXFILE];
+			char scestr[FILE_MAXDIR+FILE_MAXFILE];
+			
+			strcpy(scestr, G.sce);	/* temporal store */
+			save_over = G.save_over;
+			BLI_make_file_string("/", str, U.tempdir, "quit.blend");
+			BKE_read_file(str, NULL);
+			G.save_over = save_over;
+			strcpy(G.sce, scestr);
+
+			winqueue_break= 1;	/* leave queues everywhere */
+		
+			BKE_reset_undo();
+			BKE_write_undo("original");	/* save current state */
+		}
+		break;
 	case 31: /* save default settings */
 		BIF_write_homefile();
 		break;
@@ -905,6 +925,7 @@ static uiBlock *info_filemenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "New|Ctrl X",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Open...|F1",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reopen Last|Ctrl O",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Recover Last Session",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
 
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 

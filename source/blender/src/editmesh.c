@@ -7748,33 +7748,14 @@ void join_mesh(void)
 	test_object_materials((ID *)me);
 	
 	enter_editmode();
-	exit_editmode(1);
+	exit_editmode(1);	// freedata, but no undo
 	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSSHADING, 0);
-	makeDispList(G.obedit);
+	makeDispList(ob);
 
+	BIF_undo_push("Join Mesh");
 }
-
-void clever_numbuts_mesh(void)
-{
-	EditMesh *em = G.editMesh;
-	EditVert *eve;
-	
-	eve= em->verts.first;
-	while(eve) {
-		if(eve->f & 1) break;
-		eve= eve->next;
-	}
-	if(eve==0) return;
-
-	add_numbut(0, NUM|FLO, "LocX:", -G.vd->far, G.vd->far, eve->co, 0);
-	add_numbut(1, NUM|FLO, "LocY:", -G.vd->far, G.vd->far, eve->co+1, 0);
-	add_numbut(2, NUM|FLO, "LocZ:", -G.vd->far, G.vd->far, eve->co+2, 0);
-	
-	do_clever_numbuts("Active Vertex", 3, REDRAW);
-}
-
 
 static void permutate(void *list, int num, int size, int *index)
 {

@@ -3091,8 +3091,9 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 					if(inside || uevent->event!=LEFTMOUSE) {
 						butevent= ui_do_button(block, but, uevent);
 						
-						if(but->type!=BLOCK && but->type!=MENU) BIF_write_undo(but->str);
-
+						if( !(block->flag & UI_BLOCK_LOOP))
+							if(but->type!=BLOCK && but->type!=MENU) BIF_undo_push(but->str);
+				
 						if(butevent) addqueue(block->winq, UI_BUT_EVENT, (short)butevent);
 
 						/* i doubt about the next line! */

@@ -3436,7 +3436,7 @@ void do_view3d_buttons(short event)
 		}
 #endif /* NAN_VPT */
 		if(G.obedit==0) enter_editmode();
-		else exit_editmode(1);
+		else exit_editmode(2); // freedata, and undo
 		scrarea_queue_headredraw(curarea);
 		break;
 	case B_POSEMODE:
@@ -3590,7 +3590,7 @@ void do_view3d_buttons(short event)
 			G.f &= ~G_WEIGHTPAINT;		/* Switch off weight paint */
 			G.f &= ~G_FACESELECT;		/* Switch off face select */
 			if (G.obpose) exit_posemode(1); /* exit posemode */
-			if(G.obedit) exit_editmode(1);	/* exit editmode */
+			if(G.obedit) exit_editmode(2);	/* exit editmode and undo */
 		} else if (G.vd->modeselect == V3D_EDITMODE_SEL) {
 			if(!G.obedit) {
 				G.vd->flag &= ~V3D_MODE;
@@ -3603,7 +3603,7 @@ void do_view3d_buttons(short event)
 			}
 		} else if (G.vd->modeselect == V3D_FACESELECTMODE_SEL) {
 			if ((G.obedit) && (G.f & G_FACESELECT)) {
-				exit_editmode(1); /* exit editmode */
+				exit_editmode(2); /* exit editmode and undo */
 			} else if ((G.f & G_FACESELECT) && (G.f & G_VERTEXPAINT)) {
 				G.f &= ~G_VERTEXPAINT;	
 			} else if ((G.f & G_FACESELECT) && (G.f & G_TEXTUREPAINT)) {
@@ -3614,7 +3614,7 @@ void do_view3d_buttons(short event)
 				G.f &= ~G_TEXTUREPAINT;		/* Switch off texture paint */
 				G.f &= ~G_WEIGHTPAINT;		/* Switch off weight paint */
 				if (G.obpose) exit_posemode(1); /* exit posemode */
-				if (G.obedit) exit_editmode(1); /* exit editmode */
+				if (G.obedit) exit_editmode(2); /* exit editmode and undo */
 				
 				set_faceselect();
 			}
@@ -3624,7 +3624,7 @@ void do_view3d_buttons(short event)
 				G.f &= ~G_TEXTUREPAINT;		/* Switch off texture paint */
 				G.f &= ~G_WEIGHTPAINT;		/* Switch off weight paint */
 				if (G.obpose) exit_posemode(1); /* exit posemode */
-				if(G.obedit) exit_editmode(1);	/* exit editmode */
+				if(G.obedit) exit_editmode(2);	/* exit editmode and undo */
 					
 				set_vpaint();
 			}
@@ -3634,7 +3634,7 @@ void do_view3d_buttons(short event)
 				G.f &= ~G_VERTEXPAINT;		/* Switch off vertex paint */
 				G.f &= ~G_WEIGHTPAINT;		/* Switch off weight paint */
 				if (G.obpose) exit_posemode(1); /* exit posemode */
-				if(G.obedit) exit_editmode(1);	/* exit editmode */
+				if(G.obedit) exit_editmode(2);	/* exit editmode and undo */
 					
 				G.f |= G_TEXTUREPAINT;		/* Switch on texture paint flag */
 			}
@@ -3644,14 +3644,14 @@ void do_view3d_buttons(short event)
 				G.f &= ~G_VERTEXPAINT;		/* Switch off vertex paint */
 				G.f &= ~G_TEXTUREPAINT;		/* Switch off texture paint */
 				if (G.obpose) exit_posemode(1); /* exit posemode */
-				if(G.obedit) exit_editmode(1);	/* exit editmode */
+				if(G.obedit) exit_editmode(2);	/* exit editmode and undo */
 				
 				set_wpaint();
 			}
 		} else if (G.vd->modeselect == V3D_POSEMODE_SEL) {
 			if (!G.obpose) {
 				G.vd->flag &= ~V3D_MODE;
-				if(G.obedit) exit_editmode(1);	/* exit editmode */
+				if(G.obedit) exit_editmode(2);	/* exit editmode and undo */
 					
 				enter_posemode();
 			}

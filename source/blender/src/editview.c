@@ -392,7 +392,7 @@ void deselectall(void)	/* is toggle */
 	allqueue(REDRAWNLA, 0);
 	
 	countall();
-
+	BIF_undo_push("(De)select all");
 }
 
 /* selects all objects of a particular type, on currently visible layers */
@@ -414,7 +414,7 @@ void selectall_type(short obtype)
 	allqueue(REDRAWNLA, 0);
 	
 	countall();
-
+	BIF_undo_push("Select all per type");
 }
 /* selects all objects on a particular layer */
 void selectall_layer(int layernum) 
@@ -435,8 +435,9 @@ void selectall_layer(int layernum)
 	allqueue(REDRAWNLA, 0);
 	
 	countall();
-
+	BIF_undo_push("Select all per layer");
 }
+
 static void deselectall_except(Base *b)   /* deselect all except b */
 {
 	Base *base;
@@ -658,13 +659,14 @@ void mouse_select(void)
 			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);
 			allqueue(REDRAWHEADERS, 0);	/* To force display update for the posebutton */
+			
 		}
 		
 	}
 
 	countall();
 
-	rightmouse_transform();
+	rightmouse_transform();	// does undo push!
 }
 
 /* ------------------------------------------------------------------------- */
@@ -915,6 +917,9 @@ void borderselect(void)
 		
 		allqueue(REDRAWINFO, 0);
 	}
+	/* remove obedit check later */
+	if(G.obedit==NULL) BIF_undo_push("Border select");
+	
 } /* end of borderselect() */
 
 /* ------------------------------------------------------------------------- */
@@ -1322,6 +1327,7 @@ void fly(void)
 				}
 				else if(toets==SPACEKEY) {
 					loop= 0;
+					BIF_undo_push("Fly camera");
 					break;
 				}
 				else if(toets==LEFTMOUSE) {

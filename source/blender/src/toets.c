@@ -61,15 +61,16 @@
 #include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_utildefines.h"
-#include "BKE_global.h"
-#include "BKE_anim.h"
-#include "BKE_scene.h"
-#include "BKE_ipo.h"
 #include "BKE_action.h"
+#include "BKE_anim.h"
+#include "BKE_blender.h"
+#include "BKE_displist.h"
+#include "BKE_global.h"
+#include "BKE_ipo.h"
 #include "BKE_ika.h"
 #include "BKE_key.h"
-#include "BKE_displist.h"
+#include "BKE_scene.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_interface.h"
 #include "BIF_screen.h"
@@ -742,7 +743,7 @@ int blenderqread(unsigned short event, short val)
 					if(G.obedit==0)
 						enter_editmode();
 					else
-						exit_editmode(1);
+						exit_editmode(2); // freedata, and undo
 				}
 				return 0;
 			}
@@ -757,7 +758,7 @@ int blenderqread(unsigned short event, short val)
 		}
 		else if(G.qual==LR_SHIFTKEY) {
 			if(G.obedit)
-				exit_editmode(1);
+				exit_editmode(2); // freedata, and undo
 			if(G.f & G_FACESELECT)
 				set_faceselect();
 			if(G.f & G_VERTEXPAINT)
@@ -795,7 +796,7 @@ int blenderqread(unsigned short event, short val)
 				if(G.obedit==0)
 					enter_editmode();
 				else
-					exit_editmode(1);
+					exit_editmode(2); // freedata, and undo
 				return 0;
 			}			
 		}
@@ -908,8 +909,7 @@ int blenderqread(unsigned short event, short val)
 						}
 					}
 					else if(event==4) {
-						extern void BIF_write_undo(char *name);
-						BIF_write_undo("10 timer");
+						BKE_write_undo("10 timer");
 					}
 				}
 			
@@ -967,6 +967,13 @@ int blenderqread(unsigned short event, short val)
 			}
 		}
 		break;
+	case ZKEY:	// undo
+		if(G.qual & LR_CTRLKEY) { // all combos with ctrl/cammandkey are accepted
+			if(G.qual==LR_CTRLKEY) BIF_undo();
+			else BIF_redo(); // all combos with ctrl is redo
+			return 0;
+		}
+		break; 
 	}
 	
 	return 1;

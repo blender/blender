@@ -1233,14 +1233,17 @@ void duplicate_context_selected(void) {
 	}
 }
 
-void toggle_shading(void) {
-	if(G.qual & LR_CTRLKEY) {
-		reshadeall_displist();
-		G.vd->drawtype= OB_SHADED;
-	}
-	else if(G.qual & LR_SHIFTKEY) {
-		if(G.vd->drawtype== OB_SHADED) G.vd->drawtype= OB_WIRE;
-		else G.vd->drawtype= OB_SHADED;
+void toggle_shading(void) 
+{
+	if(G.qual & LR_SHIFTKEY) {
+		if(G.qual & LR_ALTKEY) {
+			reshadeall_displist();
+			G.vd->drawtype= OB_SHADED;
+		}
+		else {
+			if(G.vd->drawtype== OB_SHADED) G.vd->drawtype= OB_WIRE;
+			else G.vd->drawtype= OB_SHADED;
+		}
 	}
 	else if(G.qual & LR_ALTKEY) {
 		if(G.vd->drawtype== OB_TEXTURE) G.vd->drawtype= OB_SOLID;

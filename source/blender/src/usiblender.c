@@ -122,11 +122,6 @@
 
 #include "PIL_time.h"
 
-// temporal, will go to include file
-void BIF_reset_undo(void);
-void BIF_write_undo(char *);	
-
-
 /***/
 
 void BIF_read_file(char *name)
@@ -150,8 +145,8 @@ void BIF_read_file(char *name)
 
 	winqueue_break= 1;	/* leave queues everywhere */
 
-	BIF_reset_undo();
-	BIF_write_undo("original");	/* save current state */
+	BKE_reset_undo();
+	BKE_write_undo("original");	/* save current state */
 }
 
 int BIF_read_homefile(void)
@@ -213,7 +208,7 @@ int BIF_read_homefile(void)
 		}
 		if (U.savetime <= 0) {
 			U.savetime = 1;
-			error("%s is buggy, please cosider removing it.\n",
+			error("%s is buggy, please consider removing it.\n",
 				tstr);
 		}
 		if (G.main->versionfile <= 191) {
@@ -231,11 +226,32 @@ int BIF_read_homefile(void)
 			U.vrmlflag= USER_VRML_LAYERS;
 		}
 
+			/* added seam, normal color */
+		if (G.main->versionfile <= 234) {
+			bTheme *btheme;
+			
+			for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+				/* check for alpha==0 is safe, then color was never set */
+				if(btheme->tv3d.edge_seam[3]==0) {
+					btheme->tv3d.edge_seam[0]= 230;
+					btheme->tv3d.edge_seam[1]= 150;
+					btheme->tv3d.edge_seam[2]= 50;
+					btheme->tv3d.edge_seam[3]= 255;
+				}
+				if(btheme->tv3d.normal[3]==0) {
+					btheme->tv3d.normal[0]= 0x22;
+					btheme->tv3d.normal[1]= 0xDD;
+					btheme->tv3d.normal[2]= 0xDD;
+					btheme->tv3d.normal[3]= 255;
+				}
+			}
+		}
+		
 		space_set_commmandline_options();
 
 		if (U.undosteps==0) U.undosteps=32;
-		BIF_reset_undo();
-		BIF_write_undo("original");	/* save current state */
+		BKE_reset_undo();
+		BKE_write_undo("original");	/* save current state */
 
 		reset_autosave();
 
@@ -455,6 +471,7 @@ void BIF_write_autosave(void)
 	BLO_write_file(tstr, write_flags, &err);
 }
 
+/* if global undo; remove tempsave, otherwise rename */
 static void delete_autosave(void)
 {
 	char tstr[FILE_MAXDIR+FILE_MAXFILE];
@@ -464,7 +481,9 @@ static void delete_autosave(void)
 	if (BLI_exists(tstr)) {
 		char str[FILE_MAXDIR+FILE_MAXFILE];
 		BLI_make_file_string("/", str, U.tempdir, "quit.blend");
-		BLI_rename(tstr, str);
+
+		if(U.uiflag & USER_GLOBALUNDO) BLI_delete(tstr, 0, 0);
+		else BLI_rename(tstr, str);
 	}
 }
 
@@ -586,7 +605,9 @@ void exit_usiblender(void)
 
 	if (G.undo_clear) G.undo_clear();
 	undo_clear_curve();
-	BIF_reset_undo();
+	
+	BKE_undo_save_quit();	// saves quit.blend if global undo is on
+	BKE_reset_undo(); 
 	
 	BLI_freelistN(&U.themes);
 	

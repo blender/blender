@@ -1076,9 +1076,7 @@ void screenmain(void)
 			if((G.obedit && G.obedit->type==OB_FONT && g_activearea->spacetype==SPACE_VIEW3D)||g_activearea->spacetype==SPACE_TEXT||g_activearea->spacetype==SPACE_SCRIPT);
 			else {
 				if(val) {
-					int mode = 0;
-					mode= pupmenu("Quit Blender?%t|Cancel%x1|Confirm%x2");
-					if (mode == 2)
+					if(okee("Quit Blender?"))
 						exit_usiblender();
 				}
 				towin= 0;

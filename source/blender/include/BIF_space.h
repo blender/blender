@@ -120,6 +120,10 @@ extern       void start_game(void);
 extern		 void select_group_menu(void);
 extern		 void select_group(short nr);
 
+extern 		void BIF_undo_push(char *str);
+extern 		void BIF_undo(void);
+extern 		void BIF_redo(void);
+extern 		void BIF_undo_menu(void);
 
 #ifdef _WIN32	// FULLSCREEN
 extern		 void mainwindow_toggle_fullscreen(int fullscreen);

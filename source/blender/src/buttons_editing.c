@@ -549,7 +549,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 		}
 		break;
 	case B_DOCENTRE:
-		docentre();
+		docentre(0);
 		break;
 	case B_DOCENTRENEW:
 		docentre_new();

@@ -57,7 +57,7 @@ void make_parent(void);
 void make_displists_by_parent(struct Object *ob);
 void exit_editmode(int freedata);
 void check_editmode(int type);
-void docentre(void);
+void docentre(int centremode);
 void docentre_new(void);
 void docentre_cursor(void);
 void movetolayer(void);

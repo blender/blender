@@ -620,18 +620,87 @@ static unsigned short convert_for_nonumpad(unsigned short event)
 
 /* *************** */
 
-void BIF_undo()
+void BIF_undo_push(char *str)
 {
-
+	if(G.obedit) {
+		if(G.obedit->type==OB_MESH)
+			undo_push_mesh(str);
+		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
+			undo_push_curve(str);
+	}
+	else {
+		if(U.uiflag & USER_GLOBALUNDO) 
+			BKE_write_undo(str);
+	}
 }
 
-void BIF_redo()
+void BIF_undo(void)
 {
-
+	extern void undo_curve_step(int step);	// editcurve.c
+	
+	if(G.obedit) {
+		if(G.obedit->type==OB_MESH)
+			undo_pop_mesh(1);
+		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
+			undo_curve_step(1);
+			
+	}
+	else {
+		if (G.f & G_FACESELECT)
+			;
+		else if(G.f & G_WEIGHTPAINT)
+			wpaint_undo();
+		else if(G.f & G_VERTEXPAINT)
+			vpaint_undo();
+		else {
+			if(U.uiflag & USER_GLOBALUNDO) BKE_undo_step(1);
+		}
+	}
 }
 
-void BIF_undo_menu()
+void BIF_redo(void)
 {
+	extern void undo_curve_step(int step);	// editcurve.c
+
+	if(G.obedit) {
+		if(G.obedit->type==OB_MESH)
+			undo_redo_mesh();
+		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
+			undo_curve_step(-1);
+	
+	}
+	else {
+		if (G.f & G_FACESELECT)
+			;
+		else if(G.f & G_WEIGHTPAINT)
+			wpaint_undo();
+		else if(G.f & G_VERTEXPAINT)
+			vpaint_undo();
+		else {
+			if(U.uiflag & USER_GLOBALUNDO) BKE_undo_step(-1);
+		}
+	}
+}
+
+void BIF_undo_menu(void)
+{
+	if(G.obedit) {
+		if(G.obedit->type==OB_MESH)
+			undo_menu_mesh();
+		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
+			;//undo_menu_curve();
+	}
+	else {
+		if (G.f & G_FACESELECT)
+			;
+		else if(G.f & G_WEIGHTPAINT)
+			;
+		else if(G.f & G_VERTEXPAINT)
+			;
+		else {
+			if(U.uiflag & USER_GLOBALUNDO) BKE_undo_menu();
+		}
+	}
 
 }
 
@@ -1469,12 +1538,12 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else if(G.f & G_VERTEXPAINT)
 						vpaint_undo();
 					else {
-						if(U.uiflag & USER_GLOBALUNDO) BIF_undo_step(1);
+						if(U.uiflag & USER_GLOBALUNDO) BIF_undo();
 						else single_user();
 					}
 				}
 				else if(G.qual==LR_SHIFTKEY)
-					if(U.uiflag & USER_GLOBALUNDO) BIF_undo_step(-1);
+					if(U.uiflag & USER_GLOBALUNDO) BIF_redo();
 					
 				break;
 			case VKEY:
@@ -1536,7 +1605,6 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				scrarea_queue_headredraw(curarea);
 				scrarea_queue_winredraw(curarea);
 				break;
-				
 			
 			case HOMEKEY:
 				if(G.qual==0)

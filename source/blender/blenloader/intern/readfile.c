@@ -2720,7 +2720,7 @@ void lib_link_screen_restore(Main *newmain, char mode, Scene *curscene)
 
 				}
 				else if(sl->spacetype==SPACE_IMASEL) {
-					check_imasel_copy((SpaceImaSel *)sl);
+					;
 				}
 				else if(sl->spacetype==SPACE_ACTION) {
 					SpaceAction *saction= (SpaceAction *)sl;

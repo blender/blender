@@ -474,7 +474,10 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 
 #define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
 
-// initialize
+/* initialize
+   Note: when you add new colors, created & saved themes need initialized
+   in usiblender.c, search for "versionfile"
+*/
 void BIF_InitTheme(void)
 {
 	bTheme *btheme= U.themes.first;
