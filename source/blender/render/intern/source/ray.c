@@ -2101,8 +2101,8 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 		vec+= 3;
 	}
 	
-	div= wrld->aoenergy/(float)(actual);
-	shadfac[3] = wrld->aoenergy - (sh*div);
+	div= 1.0/(float)(actual);
+	shadfac[3] = 1.0 - (sh*div);
 	
 	if(wrld->aocolor!=WO_AOPLAIN) {
 		shadfac[0] *= div;

@@ -1644,14 +1644,14 @@ static void ambient_occlusion(World *wrld, ShadeInput *shi, ShadeResult *shr)
 {
 	float f, shadfac[4];
 	
-	if(wrld->mode & WO_AMB_OCC) {
+	if((wrld->mode & WO_AMB_OCC) && (R.r.mode & R_RAYTRACE)) {
 		ray_ao(shi, wrld, shadfac);
 
 		if(wrld->aocolor==WO_AOPLAIN) {
 			if (wrld->aomix==WO_AOADDSUB) shadfac[3] = 2.0*shadfac[3]-1.0;
 			else if (wrld->aomix==WO_AOSUB) shadfac[3] = shadfac[3]-1.0;
 
-			f= shadfac[3]*shi->matren->amb;
+			f= wrld->aoenergy*shadfac[3]*shi->matren->amb;
 			shr->diff[0] += f;
 			shr->diff[1] += f;
 			shr->diff[2] += f;
@@ -1667,7 +1667,7 @@ static void ambient_occlusion(World *wrld, ShadeInput *shi, ShadeResult *shr)
 				shadfac[1] = shadfac[1]-1.0;
 				shadfac[2] = shadfac[2]-1.0;
 			}
-			f= shi->matren->amb;
+			f= wrld->aoenergy*shi->matren->amb;
 			shr->diff[0] += f*shadfac[0];
 			shr->diff[1] += f*shadfac[1];
 			shr->diff[2] += f*shadfac[2];

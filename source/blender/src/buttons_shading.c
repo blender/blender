@@ -1731,7 +1731,7 @@ static void world_panel_amb_occ(World *wrld)
 		uiDefButS(block, ROW, B_REDR, "Sky Texture", 210, 25, 100, 20, &wrld->aocolor, 2.0, (float)WO_AOSKYTEX, 0, 0, "Does full Sky texture render for diffuse energy");
 		uiBlockEndAlign(block);
 		
-		uiDefButF(block, NUMSLI, 0, "Energy:", 10, 0, 300, 19, &wrld->aoenergy, 0.01, 50.0, 100, 0, "Sets global energy scale for AO");
+		uiDefButF(block, NUMSLI, 0, "Energy:", 10, 0, 300, 19, &wrld->aoenergy, 0.01, 3.0, 100, 0, "Sets global energy scale for AO");
 	}
 
 }
