@@ -4200,8 +4200,8 @@ static void edit_but(uiBlock *block, uiBut *but, uiEvent *uevent)
 		if( !(get_mbut() & L_MOUSE) ) break;	
 	
 		getmouseco_sc(mval);
-		dx= (mval[0]-mvalo[0])/4;
-		dy= (mval[1]-mvalo[1])/4;
+		dx= (mval[0]-mvalo[0]);
+		dy= (mval[1]-mvalo[1]);
 		
 		if(dx!=0 || dy!=0) {
 			mvalo[0]= mval[0];
@@ -5338,7 +5338,11 @@ static void ui_check_but(uiBut *but)
 	
 	ui_is_but_sel(but);
 	
-	okwidth= -7 + (but->x2 - but->x1); // changes for sliders etc
+	
+	if(but->type==NUMSLI || but->type==HSVSLI) 
+		okwidth= -7 + (but->x2 - but->x1)/2.0;
+	else 
+		okwidth= -7 + (but->x2 - but->x1); 
 	
 	/* name: */
 	switch( but->type ) {
@@ -5373,7 +5377,6 @@ static void ui_check_but(uiBut *but)
 		else {
 			sprintf(but->drawstr, "%s%d", but->str, (int)value);
 		}
-		okwidth= -7 + (but->x2 - but->x1)/2.0;
 		break;
 
 	case IDPOIN:
