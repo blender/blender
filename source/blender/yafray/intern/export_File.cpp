@@ -91,7 +91,7 @@ static string unixYafrayPath()
 	{
 		string fp=string(alternative[i])+"yafray";
 		struct stat st;
-		if(stat(alternative[i],&st)<0) continue;
+		if(stat(fp.c_str(),&st)<0) continue;
 		if(st.st_mode&S_IXOTH) return alternative[i];
 	}
 	return "";
