@@ -95,6 +95,7 @@ public:
 
 private:
 	void*			m_context;
+	void*			m_device;
 
 	unsigned int	m_buffers[NUM_BUFFERS];
 	unsigned int	m_sources[NUM_SOURCES];

@@ -78,6 +78,9 @@ void SND_DeviceManager::Unsubscribe()
 		delete m_instance;
 		m_instance = NULL;
 	}
+	
+	if (m_subscriptions < 0)
+		m_subscriptions = 0;
 }
 
 

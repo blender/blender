@@ -514,7 +514,7 @@ int sound_get_filetype_from_header(bSound* sound, PackedFile* pf)
 	{
 		filetype = SAMPLE_OGG_VORBIS;
 	}
-	else if ((!memcmp(buffer, "ID3", 3)) || (!memcmp(buffer, "ÿû", 2)))
+	else if ((!memcmp(buffer, "ID3", 3)) || (!memcmp(buffer, "", 2)))
 	{
 		filetype = SAMPLE_MP3;
 	}
@@ -1015,9 +1015,6 @@ void sound_init_audio(void)
 	SYS_SystemHandle hSystem = NULL;
 	
 	if(ghSoundScene==NULL) {
-		
-		printf("sound init audio\n");
-	
 		hSystem = SYS_GetSystem();
 		noaudio = SYS_GetCommandLineInt(hSystem,"noaudio",0);
 		
@@ -1043,5 +1040,6 @@ void sound_exit_audio(void)
 	if(ghSoundScene) {
 		SND_DeleteScene(ghSoundScene);
 		SND_ReleaseDevice();
+		ghSoundScene = NULL;
 	}
 }

@@ -205,6 +205,8 @@ ALvoid alutUnloadWAV(ALenum format,ALvoid *data,ALsizei size,ALsizei freq)
 
 
 SND_OpenALDevice::SND_OpenALDevice()
+	: m_context(NULL),
+	  m_device(NULL)
 {
     /* Removed the functionality for checking if noaudio was provided on */
     /* the commandline. */
@@ -229,6 +231,7 @@ SND_OpenALDevice::SND_OpenALDevice()
 			if (m_context) {
 				alcMakeContextCurrent(m_context);
 				m_audio = true;
+				m_device = dev;
 			}
 		}
 
@@ -302,13 +305,16 @@ void SND_OpenALDevice::MakeCurrent() const
 SND_OpenALDevice::~SND_OpenALDevice()
 {
 	if (m_context) {
-		alcMakeContextCurrent(m_context);
-
+		MakeCurrent();
+		
 		if (m_buffersinitialized)
 			alDeleteBuffers(NUM_BUFFERS, m_buffers);
 
 		if (m_sourcesinitialized)
 			alDeleteSources(NUM_SOURCES, m_sources);
+		
+		alcDestroyContext(m_context);
+		m_context = NULL;
 	}
 	
 	// let's see if we used the cd. if not, just leave it alone
@@ -322,6 +328,13 @@ SND_OpenALDevice::~SND_OpenALDevice()
 #ifndef __APPLE__
 	if (m_cdrom)
 		delete m_cdrom;
+#endif
+#ifdef OUDE_OPENAL
+	if (m_audio)
+		alutExit();
+#else
+	if (m_device)
+		alcCloseDevice((ALCdevice*) m_device);
 #endif
 }
 
@@ -570,7 +583,7 @@ void SND_OpenALDevice::StopObject(int id) const
 
 	alSourcefv(m_sources[id], AL_POSITION, obpos);
 	alSourcefv(m_sources[id], AL_VELOCITY, obvel);
-	
+
 	alSourcef(m_sources[id], AL_GAIN, 1.0);
 	alSourcef(m_sources[id], AL_PITCH, 1.0);
 	alSourcei(m_sources[id], AL_LOOPING, AL_FALSE);

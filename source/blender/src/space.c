@@ -456,9 +456,9 @@ void start_game(void)
 	scene_cfra_store= save_and_reset_all_scene_cfra();
 	
 
-	/* sound init is save, only handles once */
-	sound_init_audio();
+	/* game engine will do its own sounds. */
 	sound_stop_all_sounds();
+	sound_exit_audio();
 	
 	/* Before jumping into Ketsji, we configure some settings. */
 	space_set_commmandline_options();
