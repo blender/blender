@@ -2730,11 +2730,9 @@ void lib_link_screen_restore(Main *newmain, char mode, Scene *curscene)
 			for (sl= sa->spacedata.first; sl; sl= sl->next) {
 				if(sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D*) sl;
-				
+					
 					if(mode=='u') v3d->camera= restore_pointer_by_name(newmain, (ID *)v3d->camera, 1);
 					if(v3d->camera==NULL || mode=='n') v3d->camera= sc->scene->camera;
-					
-					if(v3d->scenelock) v3d->lay= sc->scene->lay;
 					
 					if(v3d->bgpic) {
 						v3d->bgpic->ima= restore_pointer_by_name(newmain, (ID *)v3d->bgpic->ima, 1);
@@ -2743,9 +2741,18 @@ void lib_link_screen_restore(Main *newmain, char mode, Scene *curscene)
 						v3d->bgpic->rect= NULL;
 					}
 					if(v3d->localvd) {
+						Base *base;
 						if(mode=='u') v3d->localvd->camera= restore_pointer_by_name(newmain, (ID *)v3d->localvd->camera, 1);
 						if(v3d->localvd->camera==NULL || mode=='n') v3d->localvd->camera= sc->scene->camera;
+						
+						/* localview can become invalid during undo/redo steps, so we exit it when no could be found */
+						for(base= sc->scene->base.first; base; base= base->next) {
+							if(base->lay & v3d->lay) break;
+						}
+						if(base==NULL) endlocalview(sa);
 					}
+					else if(v3d->scenelock) v3d->lay= sc->scene->lay;
+					
 				}
 				else if(sl->spacetype==SPACE_IPO) {
 					SpaceIpo *sipo= (SpaceIpo *)sl;
