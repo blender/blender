@@ -2382,9 +2382,11 @@ static void lib_link_scene(FileData *fd, Main *main)
 				next= base->next;
 
 				/* base->object= newlibadr_us(fd, sce->id.lib, base->object); */
-
 				base->object= newlibadr_us_type(fd, ID_OB, base->object);
-
+				
+				/* when save during radiotool, needs cleared */
+				base->flag &= ~OB_RADIO;
+				
 				if(base->object==0) {
 					printf("LIB ERROR: base removed\n");
 					BLI_remlink(&sce->base, base);
