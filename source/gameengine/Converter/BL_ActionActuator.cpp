@@ -218,7 +218,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	if (length){
 		if (m_localtime < m_starttime || m_localtime > m_endtime)
 		{
-			m_localtime = m_starttime + std::fmod(m_localtime, length);
+			m_localtime = m_starttime + fmod(m_localtime, length);
 			wrap = true;
 		}
 	}
