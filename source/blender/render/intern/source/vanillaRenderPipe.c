@@ -1096,7 +1096,7 @@ void zBufferFillFace(float *v1, float *v2, float *v3)
 		else	             { minv=v3; midv=v2; maxv=v1;}
 	}
 
-	if(minv[1] == maxv[1]) return;	/* beveiliging 'nul' grote vlakken */
+	if(minv[1] == maxv[1]) return;	/* security to remove 'zero' size faces */
 
 	my0  = ceil(minv[1]);
 	my2  = floor(maxv[1]);
@@ -1107,7 +1107,7 @@ void zBufferFillFace(float *v1, float *v2, float *v3)
 
 	if(my0<Aminy) my0= Aminy;
 
-	/* EDGES : DE LANGSTE */
+	/* EDGES : THE LONGEST */
 	xx1= maxv[1]-minv[1];
 	if(xx1>2.0/65536.0) {
 		z0= (maxv[0]-minv[0])/xx1;
@@ -1122,7 +1122,7 @@ void zBufferFillFace(float *v1, float *v2, float *v3)
 		dx0= 0;
 		xs0= 65536.0*(MIN2(minv[0],maxv[0]));
 	}
-	/* EDGES : DE BOVENSTE */
+	/* EDGES : THE TOP ONE */
 	xx1= maxv[1]-midv[1];
 	if(xx1>2.0/65536.0) {
 		z0= (maxv[0]-midv[0])/xx1;
@@ -1137,7 +1137,7 @@ void zBufferFillFace(float *v1, float *v2, float *v3)
 		dx1= 0;
 		xs1= 65536.0*(MIN2(midv[0],maxv[0]));
 	}
-	/* EDGES : DE ONDERSTE */
+	/* EDGES : THE BOTTOM ONE */
 	xx1= midv[1]-minv[1];
 	if(xx1>2.0/65536.0) {
 		z0= (midv[0]-minv[0])/xx1;
@@ -1165,9 +1165,9 @@ void zBufferFillFace(float *v1, float *v2, float *v3)
 	if(vec0[2]==0.0) return;
 
 	if(midv[1] == maxv[1]) omsl= my2;
-	if(omsl < Aminy) omsl= Aminy-1;  /* dan neemt ie de eerste lus helemaal */
+	if(omsl < Aminy) omsl= Aminy-1;  /* make sure it takes the first loop entirely */
 
-	while (my2 > Amaxy) {  /* my2 kan groter zijn */
+	while (my2 > Amaxy) {  /* my2 can be larger */
 		xs0+=dx0;
 		if (my2<=omsl) {
 			xs2+= dx2;
@@ -1289,7 +1289,7 @@ void zBufferFillEdge(float *vec1, float *vec2)
 	
 	if(fabs(dx) > fabs(dy)) {
 
-		/* alle lijnen van links naar rechts */
+		/* all lines from left to right */
 		if(vec1[0]<vec2[0]) {
 			VECCOPY(v1, vec1);
 			VECCOPY(v2, vec2);
@@ -1335,7 +1335,7 @@ void zBufferFillEdge(float *vec1, float *vec2)
 	}
 	else {
 	
-		/* alle lijnen van onder naar boven */
+		/* all lines from top to bottom */
 		if(vec1[1]<vec2[1]) {
 			VECCOPY(v1, vec1);
 			VECCOPY(v2, vec2);

@@ -118,9 +118,9 @@ void fillrect(unsigned int *rect, int x, unsigned int y, unsigned int val)
 	}
 }
 
-/* *************  ACCU ZBUF ************ */
+/* *************  ACCUMULATION ZBUF ************ */
 
-/*-APixstr---------------------------------------------------*/ 
+/*-APixstr---------------------(antialised pixel struct)------------------------------*/ 
 
 APixstr *addpsmainA()
 {
@@ -167,7 +167,7 @@ APixstr *addpsA(void)
 {
 	static APixstr *prev;
 
-	/* eerste PS maken */
+	/* make first PS */
 	if((apsmteller & 4095)==0) prev= addpsmainA();
 	else prev++;
 	apsmteller++;
@@ -175,7 +175,7 @@ APixstr *addpsA(void)
 	return prev;
 }
 
-/* vult kleur in, met windowcoordinaat, van Aminy->Amaxy */
+/* fills in color, with window coordinate, from Aminy->Amaxy */
 void zbufinvulAc(float *v1, float *v2, float *v3)  
 {
 	APixstr *ap, *apofs, *apn;
@@ -210,7 +210,7 @@ void zbufinvulAc(float *v1, float *v2, float *v3)
 		}
 	}
 
-	if(minv[1] == maxv[1]) return;	/* beveiliging 'nul' grote vlakken */
+	if(minv[1] == maxv[1]) return;	/* prevent 'zero' size faces */
 
 	my0= ceil(minv[1]);
 	my2= floor(maxv[1]);
@@ -220,7 +220,7 @@ void zbufinvulAc(float *v1, float *v2, float *v3)
 
 	if(my0<Aminy) my0= Aminy;
 
-	/* EDGES : DE LANGSTE */
+	/* EDGES : LONGEST */
 	xx1= maxv[1]-minv[1];
 	if(xx1>2.0/65536.0) {
 		z0= (maxv[0]-minv[0])/xx1;
@@ -235,7 +235,7 @@ void zbufinvulAc(float *v1, float *v2, float *v3)
 		dx0= 0;
 		xs0= 65536.0*(MIN2(minv[0],maxv[0]));
 	}
-	/* EDGES : DE BOVENSTE */
+	/* EDGES : THE TOP ONE */
 	xx1= maxv[1]-midv[1];
 	if(xx1>2.0/65536.0) {
 		z0= (maxv[0]-midv[0])/xx1;
@@ -250,7 +250,7 @@ void zbufinvulAc(float *v1, float *v2, float *v3)
 		dx1= 0;
 		xs1= 65536.0*(MIN2(midv[0],maxv[0]));
 	}
-	/* EDGES : DE ONDERSTE */
+	/* EDGES : BOTTOM ONE */
 	xx1= midv[1]-minv[1];
 	if(xx1>2.0/65536.0) {
 		z0= (midv[0]-minv[0])/xx1;
@@ -279,9 +279,9 @@ void zbufinvulAc(float *v1, float *v2, float *v3)
 	if(z0==0.0) return;
 
 	if(midv[1]==maxv[1]) omsl= my2;
-	if(omsl<Aminy) omsl= Aminy-1;  /* dan neemt ie de eerste lus helemaal */
+	if(omsl<Aminy) omsl= Aminy-1;  /* to make sure it does the first loop completely */
 
-	while (my2 > Amaxy) {  /* my2 kan groter zijn */
+	while (my2 > Amaxy) {  /* my2 can be larger */
 		xs0+=dx0;
 		if (my2<=omsl) {
 			xs2+= dx2;
@@ -299,7 +299,7 @@ void zbufinvulAc(float *v1, float *v2, float *v3)
 	zy0= my2*zyd+xx1;
 	zd= (int)CLAMPIS(zxd, INT_MIN, INT_MAX);
 
-	/* start-ofset in rect */
+	/* start-offset in rect */
 	rectx= R.rectx;
 	rectzofs= (int *)(Arectz+rectx*(my2-Aminy));
 	apofs= (APixbuf+ rectx*(my2-Aminy));
@@ -339,7 +339,7 @@ void zbufinvulAc(float *v1, float *v2, float *v3)
 		while(x>=0) {
 			if(zverg< *rz) {
 				apn= ap;
-				while(apn) {	/* loopunrolled */
+				while(apn) {	/* loop unrolled */
 					if(apn->p[0]==0) {apn->p[0]= Zvlnr; apn->z[0]= zverg; apn->mask[0]= mask; break; }
 					if(apn->p[0]==Zvlnr) {apn->mask[0]|= mask; break; }
 					if(apn->p[1]==0) {apn->p[1]= Zvlnr; apn->z[1]= zverg; apn->mask[1]= mask; break; }
@@ -397,7 +397,7 @@ void zbufinvulAc(float *v1, float *v2, float *v3)
 		while(x>=0) {
 			if(zverg< *rz) {
 				apn= ap;
-				while(apn) {	/* loopunrolled */
+				while(apn) {	/* loop unrolled */
 					if(apn->p[0]==0) {apn->p[0]= Zvlnr; apn->z[0]= zverg; apn->mask[0]= mask; break; }
 					if(apn->p[0]==Zvlnr) {apn->mask[0]|= mask; break; }
 					if(apn->p[1]==0) {apn->p[1]= Zvlnr; apn->z[1]= zverg; apn->mask[1]= mask; break; }
@@ -436,7 +436,7 @@ void zbuflineAc(float *vec1, float *vec2)
 	
 	if(fabs(dx) > fabs(dy)) {
 
-		/* alle lijnen van links naar rechts */
+		/* all lines from left to right */
 		if(vec1[0]<vec2[0]) {
 			VECCOPY(v1, vec1);
 			VECCOPY(v2, vec2);
@@ -478,7 +478,7 @@ void zbuflineAc(float *vec1, float *vec2)
 				if(vergz<*rectz) {
 				
 					apn= ap;
-					while(apn) {	/* loopunrolled */
+					while(apn) {	/* loop unrolled */
 						if(apn->p[0]==0) {apn->p[0]= Zvlnr; apn->z[0]= vergz; apn->mask[0]= mask; break; }
 						if(apn->p[0]==Zvlnr) {apn->mask[0]|= mask; break; }
 						if(apn->p[1]==0) {apn->p[1]= Zvlnr; apn->z[1]= vergz; apn->mask[1]= mask; break; }
@@ -500,7 +500,7 @@ void zbuflineAc(float *vec1, float *vec2)
 	}
 	else {
 	
-		/* alle lijnen van onder naar boven */
+		/* all lines from top to bottom */
 		if(vec1[1]<vec2[1]) {
 			VECCOPY(v1, vec1);
 			VECCOPY(v2, vec2);
@@ -545,7 +545,7 @@ void zbuflineAc(float *vec1, float *vec2)
 				if(vergz<*rectz) {
 					
 					apn= ap;
-					while(apn) {	/* loopunrolled */
+					while(apn) {	/* loop unrolled */
 						if(apn->p[0]==0) {apn->p[0]= Zvlnr; apn->z[0]= vergz; apn->mask[0]= mask; break; }
 						if(apn->p[0]==Zvlnr) {apn->mask[0]|= mask; break; }
 						if(apn->p[1]==0) {apn->p[1]= Zvlnr; apn->z[1]= vergz; apn->mask[1]= mask; break; }
@@ -595,7 +595,7 @@ float *vec1, *vec2;
 	
 	if(fabs(dx) > fabs(dy)) {
 
-		/* alle lijnen van links naar rechts */
+		/* all lines from left to right */
 		if(vec1[0]<vec2[0]) {
 			VECCOPY(v1, vec1);
 			VECCOPY(v2, vec2);
@@ -643,7 +643,7 @@ float *vec1, *vec2;
 		}
 	}
 	else {
-		/* alle lijnen van onder naar boven */
+		/* all lines from top to bottom */
 		if(vec1[1]<vec2[1]) {
 			VECCOPY(v1, vec1);
 			VECCOPY(v2, vec2);
@@ -699,7 +699,7 @@ void zbufclipwire(VlakRen *vlr)
 	float *f1, *f2, *f3, *f4= 0,  deler;
 	int c1, c2, c3, c4, ec, and, or;
 
-	/* edgecode: 1= tekenen */
+	/* edgecode: 1= draw */
 	ec = vlr->ec;
 	if(ec==0) return;
 
@@ -722,11 +722,11 @@ void zbufclipwire(VlakRen *vlr)
 		or= (c1 | c2 | c3);
 	}
 	
-	if(or) {	/* niet in midden */
-		if(and) {	/* helemaal eruit */
+	if(or) {	/* not in the middle */
+		if(and) {	/* out completely */
 			return;
 		}
-		else {	/* clippen */
+		else {	/* clipping */
 
 			if(ec & ME_V1V2) {
 				QUATCOPY(vez, f1);
@@ -819,8 +819,8 @@ void zbufclipwire(VlakRen *vlr)
 
 void zbufinvulGLinv(v1,v2,v3) 
 float *v1,*v2,*v3;
-/* vult in R.rectot de waarde Zvlnr in met R.rectz */
-/* KEERT Z-VERGELIJKING OM: ALLES ACHTER IS ZICHTBAAR */
+/* fills in R.rectot the value of Zvlnr using R.rectz */
+/* INVERSE Z COMPARISION: BACKSIDE GETS VISIBLE */
 {
 	double x0,y0,z0,x1,y1,z1,x2,y2,z2,xx1;
 	double zxd,zyd,zy0,tmp;
@@ -862,7 +862,7 @@ float *v1,*v2,*v3;
 
 	if(my0<0) my0=0;
 
-	/* EDGES : DE LANGSTE */
+	/* EDGES : LONGEST */
 	xx1= maxv[1]-minv[1];
 	if(xx1>2.0/65536.0) {
 		z0= (maxv[0]-minv[0])/xx1;
@@ -877,7 +877,7 @@ float *v1,*v2,*v3;
 		dx0= 0;
 		xs0= 65536.0*(MIN2(minv[0],maxv[0]));
 	}
-	/* EDGES : DE BOVENSTE */
+	/* EDGES : THE TOP ONE */
 	xx1= maxv[1]-midv[1];
 	if(xx1>2.0/65536.0) {
 		z0= (maxv[0]-midv[0])/xx1;
@@ -892,7 +892,7 @@ float *v1,*v2,*v3;
 		dx1= 0;
 		xs1= 65536.0*(MIN2(midv[0],maxv[0]));
 	}
-	/* EDGES : DE ONDERSTE */
+	/* EDGES : THE BOTTOM ONE */
 	xx1= midv[1]-minv[1];
 	if(xx1>2.0/65536.0) {
 		z0= (midv[0]-minv[0])/xx1;
@@ -922,9 +922,9 @@ float *v1,*v2,*v3;
 	if(z0==0.0) return;
 
 	if(midv[1]==maxv[1]) omsl= my2;
-	if(omsl<0) omsl= -1;  /* dan neemt ie de eerste lus helemaal */
+	if(omsl<0) omsl= -1;  /* then it does the first loop entirely */
 
-	while (my2 >= R.recty) {  /* my2 kan groter zijn */
+	while (my2 >= R.recty) {  /* my2 can be larger */
 		xs0+=dx0;
 		if (my2<=omsl) {
 			xs2+= dx2;
@@ -942,7 +942,7 @@ float *v1,*v2,*v3;
 	zy0= my2*zyd+xx1;
 	zd= (int)CLAMPIS(zxd, INT_MIN, INT_MAX);
 
-	/* start-ofset in rect */
+	/* start-offset in rect */
 	rectx= R.rectx;
 	rectzofs= (int *)(R.rectz+rectx*my2);
 	rectpofs= (R.rectot+rectx*my2);
@@ -1037,7 +1037,7 @@ float *v1,*v2,*v3;
 	}
 }
 
-void zbufinvulGL(float *v1, float *v2, float *v3)  /* vult in R.rectot de waarde Zvlnr in met R.rectz */
+void zbufinvulGL(float *v1, float *v2, float *v3)  /* fills in R.rectot the value Zvlnr using R.rectz */
 {
 	double x0,y0,z0;
 	double x1,y1,z1,x2,y2,z2,xx1;
@@ -1072,7 +1072,7 @@ void zbufinvulGL(float *v1, float *v2, float *v3)  /* vult in R.rectot de waarde
 		}
 	}
 
-	if(minv[1] == maxv[1]) return;	/* beveiliging 'nul' grote vlakken */
+	if(minv[1] == maxv[1]) return;	/* no zero sized faces */
 
 	my0= ceil(minv[1]);
 	my2= floor(maxv[1]);
@@ -1082,7 +1082,7 @@ void zbufinvulGL(float *v1, float *v2, float *v3)  /* vult in R.rectot de waarde
 
 	if(my0<0) my0= 0;
 
-	/* EDGES : DE LANGSTE */
+	/* EDGES : THE LONGEST */
 	xx1= maxv[1]-minv[1];
 	if(xx1!=0.0) {
 		z0= (maxv[0]-minv[0])/xx1;
@@ -1097,7 +1097,7 @@ void zbufinvulGL(float *v1, float *v2, float *v3)  /* vult in R.rectot de waarde
 		dx0= 0;
 		xs0= 65536.0*(MIN2(minv[0],maxv[0]));
 	}
-	/* EDGES : DE BOVENSTE */
+	/* EDGES : THE TOP ONE */
 	xx1= maxv[1]-midv[1];
 	if(xx1!=0.0) {
 		z0= (maxv[0]-midv[0])/xx1;
@@ -1112,7 +1112,7 @@ void zbufinvulGL(float *v1, float *v2, float *v3)  /* vult in R.rectot de waarde
 		dx1= 0;
 		xs1= 65536.0*(MIN2(midv[0],maxv[0]));
 	}
-	/* EDGES : DE ONDERSTE */
+	/* EDGES : BOTTOM ONE */
 	xx1= midv[1]-minv[1];
 	if(xx1!=0.0) {
 		z0= (midv[0]-minv[0])/xx1;
@@ -1142,9 +1142,9 @@ void zbufinvulGL(float *v1, float *v2, float *v3)  /* vult in R.rectot de waarde
 	if(z0==0.0) return;
 
 	if(midv[1]==maxv[1]) omsl= my2;
-	if(omsl<0) omsl= -1;  /* dan neemt ie de eerste lus helemaal */
+	if(omsl<0) omsl= -1;  /* then it takes the first loop entirely */
 
-	while (my2 >= R.recty) {  /* my2 kan groter zijn */
+	while (my2 >= R.recty) {  /* my2 can be larger */
 		xs0+=dx0;
 		if (my2<=omsl) {
 			xs2+= dx2;
@@ -1162,7 +1162,7 @@ void zbufinvulGL(float *v1, float *v2, float *v3)  /* vult in R.rectot de waarde
 	zy0= my2*zyd+xx1;
 	zd= (int)CLAMPIS(zxd, INT_MIN, INT_MAX);
 
-	/* start-ofset in rect */
+	/* start-offset in rect */
 	rectx= R.rectx;
 	rectzofs= (int *)(R.rectz+rectx*my2);
 	rectpofs= (R.rectot+rectx*my2);
@@ -1182,7 +1182,7 @@ void zbufinvulGL(float *v1, float *v2, float *v3)  /* vult in R.rectot de waarde
 
 	for(y=my2;y>omsl;y--) {
 		
-		/* dit is ongevoelig voor endians */
+		/* endian insensitive */
 		sn1= xs0>>16;
 		xs0+= dx0;
 
@@ -1260,7 +1260,7 @@ void zbufinvulGL(float *v1, float *v2, float *v3)  /* vult in R.rectot de waarde
 }
 
 
-void zbufinvulGL_onlyZ(float *v1, float *v2, float *v3)   /* vult alleen R.rectz. oneven z= 1x ingevuld */
+void zbufinvulGL_onlyZ(float *v1, float *v2, float *v3)   /* only fills in R.rectz */
 {
 	double x0,y0,z0,x1,y1,z1,x2,y2,z2,xx1;
 	double zxd,zyd,zy0,tmp;
@@ -1313,7 +1313,7 @@ void zbufinvulGL_onlyZ(float *v1, float *v2, float *v3)   /* vult alleen R.rectz
 
 	if(my0<0) my0=0;
 
-	/* EDGES : DE LANGSTE */
+	/* EDGES : LONGEST */
 	xx1= maxv[1]-minv[1];
 	if(xx1!=0.0) {
 		z0= (maxv[0]-minv[0])/xx1;
@@ -1328,7 +1328,7 @@ void zbufinvulGL_onlyZ(float *v1, float *v2, float *v3)   /* vult alleen R.rectz
 		dx0= 0;
 		xs0= 65536.0*(MIN2(minv[0],maxv[0]));
 	}
-	/* EDGES : DE BOVENSTE */
+	/* EDGES : TOP */
 	xx1= maxv[1]-midv[1];
 	if(xx1!=0.0) {
 		z0= (maxv[0]-midv[0])/xx1;
@@ -1343,7 +1343,7 @@ void zbufinvulGL_onlyZ(float *v1, float *v2, float *v3)   /* vult alleen R.rectz
 		dx1= 0;
 		xs1= 65536.0*(MIN2(midv[0],maxv[0]));
 	}
-	/* EDGES : DE ONDERSTE */
+	/* EDGES : BOTTOM */
 	xx1= midv[1]-minv[1];
 	if(xx1!=0.0) {
 		z0= (midv[0]-minv[0])/xx1;
@@ -1373,9 +1373,9 @@ void zbufinvulGL_onlyZ(float *v1, float *v2, float *v3)   /* vult alleen R.rectz
 	if(z0==0.0) return;
 
 	if(midv[1]==maxv[1]) omsl= my2;
-	if(omsl<0) omsl= -1;  /* dan neemt ie de eerste lus helemaal */
+	if(omsl<0) omsl= -1;  /* then it takes first loop entirely */
 
-	while (my2 >= R.recty) {  /* my2 kan groter zijn */
+	while (my2 >= R.recty) {  /* my2 can be larger */
 		xs0+=dx0;
 		if (my2<=omsl) {
 			xs2+= dx2;
@@ -1393,7 +1393,7 @@ void zbufinvulGL_onlyZ(float *v1, float *v2, float *v3)   /* vult alleen R.rectz
 	zy0= my2*zyd+xx1;
 	zd= (int)CLAMPIS(zxd, INT_MIN, INT_MAX);
 
-	/* start-ofset in rect */
+	/* start-offset in rect */
 	rectx= R.rectx;
 	rectzofs= (int *)(R.rectz+rectx*my2);
 
@@ -1515,12 +1515,12 @@ static short cliptestf(float p, float q, float *u1, float *u2)
 
 int RE_testclip(float *v)
 {
-	float abs4;	/* LET OP: deze func moet zelfde doen als cliptestf, anders problemen in zbufclip()*/
+	float abs4;	/* WATCH IT: this function should do the same as cliptestf, otherwise troubles in zbufclip()*/
 	short c=0;
 
 	abs4= fabs(v[3]);
 
-	if(v[2]< -abs4) c=16;			/* hier stond vroeger " if(v[2]<0) ", zie clippz() */
+	if(v[2]< -abs4) c=16;			/* this used to be " if(v[2]<0) ", see clippz() */
 	else if(v[2]> abs4) c+= 32;
 
 	if( v[0]>abs4) c+=2;
@@ -1543,10 +1543,11 @@ static void clipp(float *v1, float *v2, int b1, int *b2, int *b3, int a)
 	da= v2[a]-v1[a];
 	db= v2[3]-v1[3];
 
-	/* volgens het oorspronkelijke artikel van Liang&Barsky, wordt bij het clippen van
-	 * hoco's met het viewplane, het getal "0" gebruikt ipv "-w" .
-	 * Dit wijkt af van de andere clipping (links en onder) en vond ik ook niet erg
-	 * 'homogeen'. Het is dus een fout,  wie had dat gedacht van L&B!
+	/* according the original article by Liang&Barsky, for clipping of
+	 * homeginic coordinates with viewplane, the value of "0" is used instead of "-w" .
+	 * This differs from the other clipping cases (like left or top) and I considered
+	 * it to be not so 'homogenic'. But later it has proven to be an error,
+	 * who would have thought that of L&B!
 	 */
 
 	if(cliptestf(-da-db, v1[3]+v1[a], &u1,&u2)) {
@@ -1565,7 +1566,7 @@ static void clipp(float *v1, float *v2, int b1, int *b2, int *b3, int a)
 	}
 }
 
-static int clipline(float *v1, float *v2)	/* return 0: niet tekenen */
+static int clipline(float *v1, float *v2)	/* return 0: do not draw */
 {
 	float dz,dw, u1=0.0, u2=1.0;
 	float dx, dy;
@@ -1648,7 +1649,7 @@ static void maakvertpira(float *v1, float *v2, int *b1, int b2, int *clve)
 
 void RE_projectverto(float *v1, float *adr)
 {
-	/* berekent homogene co van vertex v1 */
+	/* calcs homogenic coord of vertex v1 */
 	float x,y,z;
 
 	x= v1[0]; 
@@ -1659,13 +1660,13 @@ void RE_projectverto(float *v1, float *adr)
 	adr[2]=                             z*R.winmat[2][2] + R.winmat[3][2];
 	adr[3]=                             z*R.winmat[2][3] + R.winmat[3][3];
 
-} /* end of void RE_projectverto(float *v1, float *adr) */
+}
 
 /* ------------------------------------------------------------------------- */
 
 void projectvert(float *v1, float *adr)
 {
-	/* berekent homogene co van vertex v1 */
+	/* calcs homogenic coord of vertex v1 */
 	float x,y,z;
 
 	x= v1[0]; 
@@ -1682,10 +1683,10 @@ void zbufclip(float *f1, float *f2, float *f3, int c1, int c2, int c3)
 {
 	float deler;
 
-	if(c1 | c2 | c3) {	/* niet in midden */
-		if(c1 & c2 & c3) {	/* helemaal eruit */
+	if(c1 | c2 | c3) {	/* not in middle */
+		if(c1 & c2 & c3) {	/* completely out */
 			return;
-		} else {	/* clippen */
+		} else {	/* clipping */
 			int arg, v, b, clipflag[3], b1, b2, b3, c4, clve=3, clvlo, clvl=1;
 
 			vez[0]= f1[0]; vez[1]= f1[1]; vez[2]= f1[2]; vez[3]= f1[3];
@@ -1697,7 +1698,7 @@ void zbufclip(float *f1, float *f2, float *f3, int c1, int c2, int c3)
 			vlzp[0][2]= vez+8;
 
 			clipflag[0]= ( (c1 & 48) | (c2 & 48) | (c3 & 48) );
-			if(clipflag[0]==0) {	/* anders opnieuw berekend verderop, na de eerste (z) clip */
+			if(clipflag[0]==0) {	/* othwerwise it needs to be calculated again, after the first (z) clip */
 				clipflag[1]= ( (c1 & 3) | (c2 & 3) | (c3 & 3) );
 				clipflag[2]= ( (c1 & 12) | (c2 & 12) | (c3 & 12) );
 			}
@@ -1710,8 +1711,8 @@ void zbufclip(float *f1, float *f2, float *f3, int c1, int c2, int c3)
 					
 					for(v=0; v<clvlo; v++) {
 					
-						if(vlzp[v][0]!=0) {	/* vlak is er nog */
-							b2= b3 =0;	/* clipvlaggen */
+						if(vlzp[v][0]!=0) {	/* face is still there */
+							b2= b3 =0;	/* clip flags */
 
 							if(b==0) arg= 2;
 							else if (b==1) arg= 0;
@@ -1722,17 +1723,17 @@ void zbufclip(float *f1, float *f2, float *f3, int c1, int c2, int c3)
 							clipp(vlzp[v][2],vlzp[v][0],2,&b2,&b3, arg);
 
 							if(b2==0 && b3==1) {
-								/* er helemaal in */;
+								/* completely 'in' */;
 							} else if(b3==0) {
 								vlzp[v][0]=0;
-								/* er helemaal uit */;
+								/* completely 'out' */;
 							} else {
 								b1=0;
 								maakvertpira(vlzp[v][0],vlzp[v][1],&b1,0,&clve);
 								maakvertpira(vlzp[v][1],vlzp[v][2],&b1,1,&clve);
 								maakvertpira(vlzp[v][2],vlzp[v][0],&b1,2,&clve);
 
-								/* als frontclip is gedaan: nu pas clipvlaggen zetten */
+								/* after front clip done: now set clip flags */
 								if(b==0) {
 									clipflag[1]= clipflag[2]= 0;
 									f1= vez;
@@ -1759,9 +1760,10 @@ void zbufclip(float *f1, float *f2, float *f3, int c1, int c2, int c3)
 				}
 			}
 
-			/* persp deling */
-			/* valt hier nog te optimaliseren door alleen te gebruiken vertices te doen? */
+            /* warning, this should never happen! */
 			if(clve>38) printf("clip overflow: clve clvl %d %d\n",clve,clvl);
+
+            /* perspective division */
 			f1=vez;
 			for(c1=0;c1<clve;c1++) {
 				deler= f1[3];
@@ -1779,7 +1781,7 @@ void zbufclip(float *f1, float *f2, float *f3, int c1, int c2, int c3)
 		}
 	}
 
-	/* persp deling: HCS to ZCS */
+	/* perspective division: HCS to ZCS */
 	
 	deler= f1[3];
 	vez[0]= Zmulx*(1.0+f1[0]/deler)+ Zjitx;
@@ -1799,7 +1801,7 @@ void zbufclip(float *f1, float *f2, float *f3, int c1, int c2, int c3)
 	zbuffunc(vez,vez+4,vez+8);
 }
 
-/* ***************** ZBUFFER MAINROUTINES **************** */
+/* ***************** ZBUFFER MAIN ROUTINES **************** */
 
 
 void zbufferall(void)
@@ -1967,7 +1969,6 @@ void zbuffershad(LampRen *lar)
 			ok= 1;
 			if((ma->mode & MA_TRACEBLE)==0) ok= 0;
 		}
-		/* traceble er weer in: automatische verwijdering niet geweldig */
 		
 		if(ok && (vlr->flag & R_VISIBLE) && (vlr->lay & lay)) {
 			zbufclip(vlr->v1->ho, vlr->v2->ho, vlr->v3->ho, vlr->v1->clip, vlr->v2->clip, vlr->v3->clip);
@@ -1994,8 +1995,7 @@ void bgnaccumbuf(void)
 	apsmteller= 0;
 	apsmfirst.next= 0;
 	apsmfirst.ps= 0;
-} /* End of void bgnaccumbuf(void) */
-
+} 
 /* ------------------------------------------------------------------------ */
 
 void endaccumbuf(void)
@@ -2005,7 +2005,7 @@ void endaccumbuf(void)
 	MEM_freeN(Arectz);
 	MEM_freeN(APixbuf);
 	freepsA();
-} /* End of void endaccumbuf(void) */
+}
 
 /* ------------------------------------------------------------------------ */
 
@@ -2042,7 +2042,7 @@ void copyto_abufz(int sample)
 			rd++; rza++;
 		}
 	}
-} /* end of void copyto_abufz(int sample) */
+}
 
 
 /* ------------------------------------------------------------------------ */
@@ -2057,7 +2057,7 @@ void zbuffer_abuf()
 	Zmulx= ((float)R.rectx)/2.0;
 	Zmuly= ((float)R.recty)/2.0;
 
-	/* clear APixstructen */
+	/* clear APixstructs */
 	len= sizeof(APixstr)*R.rectx*ABUFPART;
 	memset(APixbuf, 0, len);
 	
@@ -2073,8 +2073,6 @@ void zbuffer_abuf()
 			Zjity= -jit[Zsample][1];
 		}
 		
-/*        printf("Start facetrace\n"); */
-
 		for(v=0; v<R.totvlak; v++) {
 			if((v & 255)==0) {
 				Zvlr= R.blovl[v>>8];
@@ -2083,29 +2081,22 @@ void zbuffer_abuf()
 			
 			ma= Zvlr->mat;
 
-/*           printf("Face %d :%x at %f\n", v, ma, Zvlr->v1->ho[3]); */
-
-
 			if(ma->mode & (MA_ZTRA)) {
 
-						/* voordeeltje voor transp renderen */
+						/* a little advantage for transp rendering (a z offset) */
 				if( ma->zoffs != 0.0) {
 					mul= 0x7FFFFFFF;
 					zval= mul*(1.0+Zvlr->v1->ho[2]/Zvlr->v1->ho[3]);
 
 					VECCOPY(vec, Zvlr->v1->co);
-					/* z is negatief, wordt anders geclipt */ 
+					/* z is negative, otherwise its being clipped */ 
 					vec[2]-= ma->zoffs;
 					RE_projectverto(vec, hoco);
 					fval= mul*(1.0+hoco[2]/hoco[3]);
 
 					Azvoordeel= (int) fabs(zval - fval );
-
-		/* PATCH: als transp en niet transp dicht op elkaar liggen: Zbuf aliasing: eruit! */
-					/* Azvoordeel= 0xFFFF; */
 				}
 				else Azvoordeel= 0;
-				/* else Azvoordeel= 0xFFFF; */
 				
 				Zvlnr= v+1;
 		
@@ -2121,15 +2112,14 @@ void zbuffer_abuf()
 					}
 				}
 			}
-			if(!(v%256)&&RE_local_test_break()) break; /*RPW, HOS */
+			if(!(v % 256) && RE_local_test_break()) break; /*RPW, HOS */
 		}
 		
 		if((R.r.mode & R_OSA)==0) break;
 		if(RE_local_test_break()) break;
 	}
 	
-} /* end of void zbuffer_abuf() */
-
+}
 
 int vergzvlak(const void *a1, const void *a2)
 {
@@ -2177,7 +2167,7 @@ void abufsetrow(int y)
 			alpha[a]= a*x;
 		}
 	}
-	/* moet pixbuf worden gemaakt? */
+	/* does a pixbuf has to be created? */
 	if(y<Aminy || y>Amaxy) {
 		part= (y/ABUFPART);
 		Aminy= part*ABUFPART;
@@ -2187,7 +2177,7 @@ void abufsetrow(int y)
 		zbuffer_abuf();
 	}
 	
-	/* render rij */
+	/* render row */
 	col= Acolrow;
 	memset(col, 0, 2*4*R.rectx);
 	ap= APixbuf+R.rectx*(y-Aminy);
@@ -2197,7 +2187,7 @@ void abufsetrow(int y)
 	
 	for(x=0; x<R.rectx; x++, col+=4, ap++) {
 		if(ap->p[0]) {
-			/* sorteer op z */
+			/* sort in z */
 			totvlak= 0;
 			apn= ap;
 			while(apn) {
@@ -2254,7 +2244,7 @@ void abufsetrow(int y)
 					qsort(zrow, totvlak, sizeof(int)*3, vergzvlak);
 				}
 				
-				/* samenvoegen als pixels aanvullen */
+				/* join when pixels are adjacent */
 				
 				while(totvlak>0) {
 					totvlak--;
@@ -2275,7 +2265,7 @@ void abufsetrow(int y)
 							memset(sampcol, 0, 4*2*R.osa);
 							sval= addtosampcol(sampcol, shortcol, zrow[totvlak][2]);
 
-                     /* sval==0: aplha helemaal vol */
+                     /* sval==0: alpha completely full */
                      while( (sval != 0) && (totvlak>0) ) {
                        a= count_mask(zrow[totvlak-1][2]);
                        if(a==R.osa) break;

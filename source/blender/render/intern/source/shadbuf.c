@@ -84,7 +84,7 @@ void initshadowbuf(LampRen *lar, float mat[][4])
 
 	/* if(la->spsi<16) return; */
 
-	/* geheugen reserveren */
+	/* memory reservation */
 	shb= (struct ShadBuf *)MEM_callocN( sizeof(struct ShadBuf),"initshadbuf");
 	lar->shb= shb;
 
@@ -92,7 +92,7 @@ void initshadowbuf(LampRen *lar, float mat[][4])
 
 	VECCOPY(shb->co, lar->co);
 	
-	/* percentage: min en max in de gaten houden */
+	/* percentage render: keep track of min and max */
 	shb->size= (lar->bufsize*R.r.size)/100;
 	if(shb->size<512) shb->size= 512;
 	else if(shb->size > lar->bufsize) shb->size= lar->bufsize;
@@ -112,14 +112,14 @@ void initshadowbuf(LampRen *lar, float mat[][4])
 	}
 
 	MTC_Mat4Ortho(mat);
-	MTC_Mat4Invert(shb->winmat, mat);	/* winmat is hier temp */
+	MTC_Mat4Invert(shb->winmat, mat);	/* winmat is temp */
 
-	/* matrix: combinatie van inverse view en lampmat */
-	/* opnieuw berekenen: de ortho-render heeft geen correcte viewinv */
+	/* matrix: combination of inverse view and lampmat */
+	/* calculate again: the ortho-render has no correct viewinv */
 	MTC_Mat4Invert(viewinv, R.viewmat);
 	MTC_Mat4MulMat4(shb->viewmat, viewinv, shb->winmat);
 
-	/* projektie */
+	/* projection */
 	hoek= saacos(lar->spotsi);
 	temp= 0.5*shb->size*cos(hoek)/sin(hoek);
 	shb->d= lar->clipsta;
@@ -127,7 +127,8 @@ void initshadowbuf(LampRen *lar, float mat[][4])
 	shb->pixsize= (shb->d)/temp;
 
 	shb->far= lar->clipend;
-	/* bias is percentage, 2x groter gemaakt ivm invalshoek correctie */
+	/* bias is percentage, made 2x karger because of correction for angle of incidence */
+	/* when a ray is closer to parallel of a face, bias value is increased during render */
 	shb->bias= (0.02*lar->bias)*0x7FFFFFFF;
 	shb->bias= shb->bias*(100/R.r.size);
 	
@@ -135,7 +136,7 @@ void initshadowbuf(LampRen *lar, float mat[][4])
 /* ------------------------------------------------------------------------- */
 
 
-void lrectreadRectz(int x1, int y1, int x2, int y2, char *r1) /* leest deel uit rectz in r1 */
+void lrectreadRectz(int x1, int y1, int x2, int y2, char *r1) /* reads part from rectz in r1 */
 {
 	unsigned int len4, *rz;	
 
@@ -203,14 +204,14 @@ void makeshadowbuf(LampRen *lar)
 
 	panophi = getPanoPhi();
 	
-	/* viewvars onthouden */
+	/* store viewvars */
 	temprx= R.rectx; tempry= R.recty;
 	R.rectx= R.recty= shb->size;
 
 	shb->jit= give_jitter_tab(shb->samp);
 
-	/* matrices en window: in R.winmat komt transformatie
-		van obsview naar lampview,  inclusief lampwinmat */
+	/* matrices and window: in R.winmat the transformation is being put,
+		transforming from observer view to lamp view, including lamp window matrix */
 	
 	wsize= shb->pixsize*(shb->size/2.0);
 
@@ -221,12 +222,12 @@ void makeshadowbuf(LampRen *lar)
 	/* temp, will be restored */
 	MTC_Mat4SwapMat4(shb->persmat, R.winmat);
 
-	/* zbufferen */
+	/* zbuffering */
 	if(R.rectz) MEM_freeN(R.rectz);
  	R.rectz= (unsigned int *)MEM_mallocN(sizeof(int)*shb->size*shb->size,"makeshadbuf");
 	rcline= MEM_mallocN(256*4+sizeof(int),"makeshadbuf2");
 
-	/* onthouden: panorama rot */
+	/* store: panorama rot */
 	temp= panophi;
 	panophi= 0.0;
 	pushTempPanoPhi(0.0);
@@ -238,24 +239,10 @@ void makeshadowbuf(LampRen *lar)
 	panophi= temp;
 	
 	zbuffershad(lar);
-
-	/* alle pixels 1 x ingevuld verwijderen (oneven) */
-	/* probleem hierbij kan geven dat er abrupte overgangen van zacht gebied
-	 * naar geen zacht gebied is: bijv als eronder een klein vlakje zit
-	 * DAAROM ER WEER UIT
-	 * ook vanwege shadowhalo!
-	 * 
-		a= shb->size*shb->size;
-		rz= R.rectz;
-		while(a--) {
-		    if(*rz & 1) *rz= 0x7FFFFFFF;
-		    rz++;
-		}
-	 */
 	
 	square= lar->mode & LA_SQUARE;
-	
-	/* Z tiles aanmaken: dit systeem is 24 bits!!! */
+
+	/* create Z tiles (for compression): this system is 24 bits!!! */
 	
 	ztile= shb->zbuf;
 	ctile= shb->cbuf;
@@ -265,7 +252,7 @@ void makeshadowbuf(LampRen *lar)
 				
 		for(x=0; x<shb->size; x+=16) {
 
-			/* ligt rechthoek binnen spotbundel? */
+			/* is tile within spotbundle? */
 			a= shb->size/2;
 			if(x< a) minx= x+15-a;
 			else minx= x-a;	
@@ -286,13 +273,13 @@ void makeshadowbuf(LampRen *lar)
 					if( (*rz1 & 0xFFFFFF00) !=verg) break;
 				}
 			}
-			if(a==256) { /* compleet leeg vakje */
+			if(a==256) { /* complete empty tile */
 				*ctile= 0;
 				*ztile= *(rz1-1);
 			}
 			else {
-				
-				/* ACOMP enz. zijn defined L/B endian */
+
+				/* ACOMP etc. are defined to work L/B endian */
 				
 				rc= rcline;
 				rz1= (int *)rcline;
@@ -306,7 +293,7 @@ void makeshadowbuf(LampRen *lar)
 
 					if(byt1==0) break;
 				}
-				if(byt1 && byt2) {	/* alleen byte opslaan */
+				if(byt1 && byt2) {	/* only store byte */
 					*ctile= 1;
 					*ztile= (unsigned long)MEM_mallocN(256+4, "tile1");
 					rz= (int *)*ztile;
@@ -316,7 +303,7 @@ void makeshadowbuf(LampRen *lar)
 					rc= rcline;
 					for(a=0; a<256; a++, zt++, rc+=4) *zt= rc[GCOMP];	
 				}
-				else if(byt1) {		/* short opslaan */
+				else if(byt1) {		/* only store short */
 					*ctile= 2;
 					*ztile= (unsigned long)MEM_mallocN(2*256+4,"Tile2");
 					rz= (int *)*ztile;
@@ -329,7 +316,7 @@ void makeshadowbuf(LampRen *lar)
 						zt[1]= rc[GCOMP];
 					}
 				}
-				else {			/* triple opslaan */
+				else {			/* store triple */
 					*ctile= 3;
 					*ztile= (unsigned long)MEM_mallocN(3*256,"Tile3");
 
@@ -358,7 +345,7 @@ void makeshadowbuf(LampRen *lar)
 
 int firstreadshadbuf(struct ShadBuf *shb, int xs, int ys, int nr)
 {
-	/* return 1 als volledig gecomprimeerde shadbuftile && z==const */
+	/* return a 1 if fully compressed shadbuf-tile && z==const */
 	static int *rz;
 	int ofs;
 	char *ct;
@@ -367,7 +354,7 @@ int firstreadshadbuf(struct ShadBuf *shb, int xs, int ys, int nr)
 	if(xs<0) xs= 0; else if(xs>=shb->size) xs= shb->size-1;
 	if(ys<0) ys= 0; else if(ys>=shb->size) ys= shb->size-1;
    
-	/* z berekenen */
+	/* calc z */
 	ofs= (ys>>4)*(shb->size>>4) + (xs>>4);
 	ct= shb->cbuf+ofs;
 	if(*ct==0) {
@@ -383,7 +370,7 @@ int firstreadshadbuf(struct ShadBuf *shb, int xs, int ys, int nr)
 	return 0;
 }
 
-float readshadowbuf(struct ShadBuf *shb, int xs, int ys, int zs)	/* return 1.0 : volledig licht */
+float readshadowbuf(struct ShadBuf *shb, int xs, int ys, int zs)	/* return 1.0 : fully in light */
 {
 	float temp;
 	int *rz, ofs;
@@ -398,7 +385,7 @@ float readshadowbuf(struct ShadBuf *shb, int xs, int ys, int zs)	/* return 1.0 :
 	if(xs<0) xs= 0; else if(xs>=shb->size) xs= shb->size-1;
 	if(ys<0) ys= 0; else if(ys>=shb->size) ys= shb->size-1;
 
-	/* z berekenen */
+	/* calc z */
 	ofs= (ys>>4)*(shb->size>>4) + (xs>>4);
 	ct= shb->cbuf+ofs;
 	rz= *( (int **)(shb->zbuf+ofs) );
@@ -429,17 +416,17 @@ float readshadowbuf(struct ShadBuf *shb, int xs, int ys, int zs)	/* return 1.0 :
 
 	}
 	else {
-		/* got warning on this from alpha .... */
+		/* got warning on this from DEC alpha (64 bits).... */
 		/* but it's working code! (ton) */
  		zsamp= (int) rz;
 	}
 
-	/* if(zsamp >= 0x7FFFFE00) return 1.0; */	/* geen schaduw als op oneindig wordt gesampeld*/
+	/* if(zsamp >= 0x7FFFFE00) return 1.0; */	/* no shaduw when sampling at eternal distance */
 
-	if(zsamp > zs) return 1.0; 		/* absoluut geen schaduw */
-	else if( zsamp < zs-bias) return 0.0 ;	/* absoluut wel schaduw */
-	else {					/* zacht gebied */
-
+	if(zsamp > zs) return 1.0; 		/* absolute no shadow */
+	else if( zsamp < zs-bias) return 0.0 ;	/* absolute in shadow */
+	else {					/* soft area */
+		
 		temp=  ( (float)(zs- zsamp) )/(float)bias;
 		return 1.0 - temp*temp;
 			
@@ -447,7 +434,7 @@ float readshadowbuf(struct ShadBuf *shb, int xs, int ys, int zs)	/* return 1.0 :
 }
 
 
-float testshadowbuf(struct ShadBuf *shb, float inp)  	/* return 1.0: geen schaduw */
+float testshadowbuf(struct ShadBuf *shb, float inp)  	/* return 1.0: no shadow at all */
 {
 	float fac, co[4], dx[3], dy[3], aantal=0;
 	float xs1,ys1, siz, *j, xres, yres;
@@ -460,19 +447,19 @@ float testshadowbuf(struct ShadBuf *shb, float inp)  	/* return 1.0: geen schadu
 	
 	/* if(inp <= 0.0) return 1.0; */
 
-	/* renderco en osaco roteren */
+	/* rotate renderco en osaco */
 	siz= 0.5*(float)shb->size;
 	VECCOPY(co, R.co);
 	co[3]= 1.0;
 
-	MTC_Mat4MulVec4fl(shb->persmat, co);	/* rationele hom co */
+	MTC_Mat4MulVec4fl(shb->persmat, co);	/* rational hom co */
 
 	xs1= siz*(1.0+co[0]/co[3]);
 	ys1= siz*(1.0+co[1]/co[3]);
 
 	/* Clip for z: near and far clip values of the shadow buffer. We
-     * can test for -1.0/1.0 because of the properties of the
-     * coordinate transformations. */
+		* can test for -1.0/1.0 because of the properties of the
+		* coordinate transformations. */
 	fac= (co[2]/co[3]);
 
 	if(fac>=1.0) {
@@ -483,7 +470,7 @@ float testshadowbuf(struct ShadBuf *shb, float inp)  	/* return 1.0: geen schadu
 
 	zs= ((float)0x7FFFFFFF)*fac;
 
-	/* num*num samples nemen, gebied met fac vergroten */
+	/* take num*num samples, increase area with fac */
 	num= shb->samp*shb->samp;
 	fac= shb->soft;
 	
@@ -498,7 +485,7 @@ float testshadowbuf(struct ShadBuf *shb, float inp)  	/* return 1.0: geen schadu
 	co[1]= R.co[1]+O.dxco[1];
 	co[2]= R.co[2]+O.dxco[2];
 	co[3]= 1.0;
-	MTC_Mat4MulVec4fl(shb->persmat,co);	/* rationele hom co */
+	MTC_Mat4MulVec4fl(shb->persmat,co);	/* rational hom co */
 	dx[0]= xs1- siz*(1.0+co[0]/co[3]);
 	dx[1]= ys1- siz*(1.0+co[1]/co[3]);
 
@@ -506,7 +493,7 @@ float testshadowbuf(struct ShadBuf *shb, float inp)  	/* return 1.0: geen schadu
 	co[1]= R.co[1]+O.dyco[1];
 	co[2]= R.co[2]+O.dyco[2];
 	co[3]= 1.0;
-	MTC_Mat4MulVec4fl(shb->persmat,co);	/* rationele hom co */
+	MTC_Mat4MulVec4fl(shb->persmat,co);	/* rational hom co */
 	dy[0]= xs1- siz*(1.0+co[0]/co[3]);
 	dy[1]= ys1- siz*(1.0+co[1]/co[3]);
 
@@ -533,8 +520,8 @@ float testshadowbuf(struct ShadBuf *shb, float inp)  	/* return 1.0: geen schadu
 	    }
 	}
 
-	for(a=num;a>0;a--) {	
-		    /* i.p.v. jit ook met random geprobeerd: lelijk! */
+	for(a=num;a>0;a--) {
+		/* instead of jit i tried random: ugly! */
 		xs= xs1 + xres*j[0];
 		ys= ys1 + yres*j[1];
 		j+=2;
@@ -559,7 +546,7 @@ float readshadowbuf_halo(struct ShadBuf *shb, int xs, int ys, int zs)
 	if(xs<0 || ys<0) return 0.0;
 	if(xs>=shb->size || ys>=shb->size) return 0.0;
 
-	/* z berekenen */
+	/* calc z */
 	ofs= (ys>>4)*(shb->size>>4) + (xs>>4);
 	ct= shb->cbuf+ofs;
 	rz= *( (int **)(shb->zbuf+ofs) );
@@ -596,22 +583,22 @@ float readshadowbuf_halo(struct ShadBuf *shb, int xs, int ys, int zs)
  		zsamp= (int) rz;
 	}
 
-	/* geen schaduw als op oneindig wordt gesampeld*/
+	/* NO schadow when sampled at 'eternal' distance */
 
 	if(zsamp >= 0x7FFFFE00) return 1.0; 
 
-	if(zsamp > zs) return 1.0; 		/* absoluut geen schaduw */
+	if(zsamp > zs) return 1.0; 		/* absolute no shadww */
 	else {
 		/* bias is negative, so the (zs-bias) can be beyond 0x7fffffff */
 		zbias= 0x7fffffff - zs;
 		if(zbias > -bias) {
-			if( zsamp < zs-bias) return 0.0 ;	/* absoluut wel schaduw */
+			if( zsamp < zs-bias) return 0.0 ;	/* absolute in shadow */
 		}
-		else return 0.0 ;	/* absoluut wel schaduw */
+		else return 0.0 ;	/* absolute shadow */
 	}
-	
-	/* zacht gebied */
 
+	/* soft area */
+	
 	temp=  ( (float)(zs- zsamp) )/(float)bias;
 	return 1.0 - temp*temp;
 }
@@ -636,7 +623,7 @@ float shadow_halo(LampRen *lar, float *p1, float *p2)
 	co[1]= p1[1];
 	co[2]= p1[2]/lar->sh_zfac;
 	co[3]= 1.0;
-	MTC_Mat4MulVec4fl(shb->winmat, co);	/* rationele hom co */
+	MTC_Mat4MulVec4fl(shb->winmat, co);	/* rational hom co */
 	xf1= siz*(1.0+co[0]/co[3]);
 	yf1= siz*(1.0+co[1]/co[3]);
 	zf1= (co[2]/co[3]);
@@ -646,12 +633,12 @@ float shadow_halo(LampRen *lar, float *p1, float *p2)
 	co[1]= p2[1];
 	co[2]= p2[2]/lar->sh_zfac;
 	co[3]= 1.0;
-	MTC_Mat4MulVec4fl(shb->winmat, co);	/* rationele hom co */
+	MTC_Mat4MulVec4fl(shb->winmat, co);	/* rational hom co */
 	xf2= siz*(1.0+co[0]/co[3]);
 	yf2= siz*(1.0+co[1]/co[3]);
 	zf2= (co[2]/co[3]);
 
-	/* de 2dda */
+	/* the 2dda (a pixel line formula) */
 
 	xs1= (int)xf1;
 	ys1= (int)yf1;
@@ -737,33 +724,6 @@ float shadow_halo(LampRen *lar, float *p1, float *p2)
 	return 0.0;
 	
 }
-
-
-
-
-/* sampelen met filter
-	xstart= xs-1;
-	ystart= ys-1;
-	if(xstart<0) xstart= 0;
-	if(ystart<0) ystart= 0;
-	xend= xstart+2;
-	yend= ystart+2;
-	if(xend>=shb->size) { xstart= shb->size-3; xend= shb->size-1;}
-	if(yend>=shb->size) { ystart= shb->size-3; yend= shb->size-1;}
-
-	fid= filt3;
-	for(ys=ystart;ys<=yend;ys++) {
-		rz= shb->buf+ ys*shb->size+ xstart;
-		for(xs= xstart;xs<=xend;xs++,rz++) {
-			if( *rz+0x100000<zs) aantal+= *fid;
-			fid++;
-		}
-	}
-	
-
-	return 1.0-((float)aantal)/16.0;
-*/
-
 
 
 

@@ -63,7 +63,7 @@ void prepareScene()
 
 	RE_local_get_renderdata();
 
-	/* SCHADUWBUFFER */
+	/* SHADOW BUFFER */
 	for(a=0; a<R.totlamp; a++) {
 		if(RE_local_test_break()) break;
 		/* Again, switch between old and new shadowing system. The

@@ -161,7 +161,7 @@ HaloRen *RE_inithalo(Material *ma,
 	VECCOPY(har->co, vec);
 	har->hasize= hasize;
 
-	/* projectvert wordt in zbufvlaggen gedaan ivm parts/border/pano */
+	/* projectvert is done function 'zbufvlaggen' because of parts/border/pano */
 
 	/* halovect */
 	if(vec1) {

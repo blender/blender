@@ -75,7 +75,7 @@ void setPanoRot(int part)
 /*  	extern float panovco, panovsi; */
 	static float alpha= 1.0;
 
-	/* part==0 alles initialiseren */
+	/* part==0 init all */
 
 	if(part==0) {
 
@@ -84,7 +84,7 @@ void setPanoRot(int part)
 	}
 
 
-	/* we roteren alles om de y-as met phi graden */
+	/* rotate it all around the y-as with phi degrees */
 
 	panophi= -0.5*(R.r.xparts-1)*alpha + part*alpha;
 
@@ -98,7 +98,7 @@ void setPanoRot(int part)
 
 static int panotestclip(float *v)
 {
-	/* gebruiken voor halo's en info's */
+	/* to be used for halos en infos */
 	float abs4;
 	short c=0;
 
@@ -106,7 +106,7 @@ static int panotestclip(float *v)
 
 	abs4= fabs(v[3]);
 
-	if(v[2]< -abs4) c=16;		/* hier stond vroeger " if(v[2]<0) ", zie clippz() */
+	if(v[2]< -abs4) c=16;		/* this used to be " if(v[2]<0) ", see clippz() */
 	else if(v[2]> abs4) c+= 32;
 
 	if( v[1]>abs4) c+=4;
@@ -134,7 +134,7 @@ static int panotestclip(float *v)
 
 /* move to renderer */
 void setzbufvlaggen( void (*projectfunc)(float *, float *) )
-/* ook homoco's */
+/* homocos too */
 {
 	VlakRen *vlr = NULL;
 	VertRen *ver = NULL;
@@ -189,12 +189,12 @@ void setzbufvlaggen( void (*projectfunc)(float *, float *) )
 		hoco[3]*= 2.0;
 
 		if( panotestclip(hoco) ) {
-			har->miny= har->maxy= -10000;	/* de render clipt 'm weg */
+			har->miny= har->maxy= -10000;	/* that way render clips it */
 		}
 		else if(hoco[3]<0.0) {
-			har->miny= har->maxy= -10000;	/* de render clipt 'm weg */
+			har->miny= har->maxy= -10000;	/* render clips it */
 		}
-		else /* this seems to be strange code here...*/
+		else /* do the projection...*/
 		{
 			zn= hoco[3]/2.0;
 			har->xs= 0.5*R.rectx*(1.0+hoco[0]/zn); /* the 0.5 negates the previous 2...*/
@@ -210,7 +210,7 @@ void setzbufvlaggen( void (*projectfunc)(float *, float *) )
 			zn= hoco[3];
 			har->rad= fabs(har->xs- 0.5*R.rectx*(1.0+hoco[0]/zn));
 		
-			/* deze clip is eigenlijk niet OK */
+			/* this clip is not really OK, to prevent stars to become too large */
 			if(har->type & HA_ONLYSKY) {
 				if(har->rad>3.0) har->rad= 3.0;
 			}
@@ -220,9 +220,9 @@ void setzbufvlaggen( void (*projectfunc)(float *, float *) )
 			har->miny= har->ys - har->rad/R.ycor;
 			har->maxy= har->ys + har->rad/R.ycor;
 		
-			/* de Zd is bij pano nog steeds verkeerd: zie testfile in blenderbugs/halo+pano.blend */
+			/* the Zd value is still not really correct for pano */
 		
-			vec[2]-= har->hasize;	/* z is negatief, wordt anders geclipt */
+			vec[2]-= har->hasize;	/* z negative, otherwise it's clipped */
 			projectfunc(vec, hoco);
 			zn= hoco[3];
 			zn= fabs(har->zs - 0x7FFFFF*(1.0+hoco[2]/zn));
@@ -237,7 +237,7 @@ void setzbufvlaggen( void (*projectfunc)(float *, float *) )
 		
 	}
 
-	/* vlaggen op 0 zetten als eruit geclipt */
+	/* set flags at 0 if clipped away */
 	for(a=0; a<R.totvlak; a++) {
 		if((a & 255)==0) vlr= R.blovl[a>>8];
 		else vlr++;
@@ -261,13 +261,13 @@ void set_normalflags(void)
 	float vec[3], xn, yn, zn;
 	int a1;
 	
-	/* KLAP NORMAAL EN SNIJ PROJECTIE */
+	/* switch normal 'snproj' values (define which axis is the optimal one for calculations) */
 	for(a1=0; a1<R.totvlak; a1++) {
 		if((a1 & 255)==0) vlr= R.blovl[a1>>8];
 		else vlr++;
 
 		if(vlr->flag & R_NOPUNOFLIP) {
-			/* render normaal flippen, wel niet zo netjes, maar anders dan moet de render() ook over... */
+			/* we flip render normal here, is not that neat, but otherwise render() needs rewrite... */
 			vlr->n[0]= -vlr->n[0];
 			vlr->n[1]= -vlr->n[1];
 			vlr->n[2]= -vlr->n[2];
