@@ -167,11 +167,6 @@ void RE_sky(float *view, float *col)
 {
 	float lo[3];
 
-	if((R.wrld.skytype & (WO_SKYBLEND+WO_SKYTEX))==0) {
-		*( (unsigned int *)col)= R.wrld.fastcol;
-		return;
-	}
-
 	R.wrld.skytype |= WO_ZENUP;
 	
 	if(R.wrld.skytype & WO_SKYREAL) {
