@@ -5368,6 +5368,8 @@ void transform(int mode)
 
 					}
 
+					tv= transvmain;
+
 					if(mode=='n' && tv->nor) {
 						if (typemode)
 							sprintf(str, "D: >%.4f< Along faces normal", dot);
