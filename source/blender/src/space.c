@@ -726,10 +726,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	
 	if(val) {
 
-		prev_event= event;	// for ctrl/alt/shift event
-		
 		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
 		if(event==MOUSEY || event==MOUSEX) return;
+		
+		prev_event= event;	// for ctrl/alt/shift event
 		
 		if(event==UI_BUT_EVENT) do_butspace(val); // temporal, view3d deserves own queue?
 		

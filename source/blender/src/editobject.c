@@ -7615,7 +7615,7 @@ void adduplicate(float *dtrans)
 	clear_id_newpoins();
 	
 	countall();
-	if(dtrans==0) transform('d');
+	if(dtrans==0) Transform(TFM_TRANSLATION);
 	
 	set_active_base(BASACT);
 	
