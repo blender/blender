@@ -11,12 +11,21 @@ extern "C"
 class yafrayPluginRender_t : public yafrayRender_t
 {
 	public:
-		yafrayPluginRender_t() {handle=NULL;yafrayGate=NULL;}
+		yafrayPluginRender_t() 
+		{
+			handle=NULL;
+#ifdef WIN32
+			corehandle=NULL;
+#endif
+			yafrayGate=NULL;
+		}
 		virtual ~yafrayPluginRender_t();
 	protected:
 		std::string imgout;
-		//void *handle;
 		PILdynlib *handle;
+#ifdef WIN32
+		PILdynlib *corehandle;
+#endif
 
 		yafray::yafrayInterface_t *yafrayGate;
 

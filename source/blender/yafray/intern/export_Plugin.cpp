@@ -1,7 +1,6 @@
 #include"export_Plugin.h"
 
 #include <math.h>
-
 using namespace std;
 
 
@@ -94,7 +93,8 @@ static string YafrayPath()
 {
 #ifdef WIN32
 	string path=find_path();
-	return path+"\\libyafrayplugin.dll";
+	return path; 
+	
 #else
 	static char *alternative[]=
 	{
@@ -117,7 +117,7 @@ static string YafrayPath()
 static string YafrayPluginPath()
 {
 #ifdef WIN32
-	return find_path();
+	return find_path()+"\\plugins";
 #else
 	static char *alternative[]=
 	{
@@ -142,15 +142,30 @@ yafrayPluginRender_t::~yafrayPluginRender_t()
 {
 	if(yafrayGate!=NULL) delete yafrayGate;
 	if(handle!=NULL) PIL_dynlib_close(handle);
+#ifdef WIN32
+	if(corehandle!=NULL) PIL_dynlib_close(corehandle);
+#endif
 }
 
 bool yafrayPluginRender_t::initExport()
 {
-	imgout="YBPtest.tga";
 	if(handle==NULL)
 	{
 		string location=YafrayPath();
-		//handle=dlopen(location.c_str(),RTLD_NOW);
+#ifdef WIN32
+		/* Win 32 loader cannot find needed libs in yafray dir, so we have to load them
+		 * by hand. This could be fixed using setdlldirectory function, but it is not
+		 * available in all win32 versions
+		 */
+		corehandle=PIL_dynlib_open((char *)(location+"\\yafraycore.dll").c_str());
+		if(corehandle==NULL)
+		{
+			cerr<<"Error loading yafray plugin: "<<PIL_dynlib_get_error_as_string(corehandle)<<endl;
+			return false;
+		}
+		location+="\\yafrayplugin.dll";
+#endif
+
 		handle=PIL_dynlib_open((char *)location.c_str());
 		 if(handle==NULL)
 		{
@@ -158,19 +173,17 @@ bool yafrayPluginRender_t::initExport()
 			cerr<<"Error loading yafray plugin: "<<PIL_dynlib_get_error_as_string(handle)<<endl;
 			return false;
 		}
+		yafray::yafrayConstructor *constructor;
+		constructor=(yafray::yafrayConstructor *)PIL_dynlib_find_symbol(handle,YAFRAY_SYMBOL);
+		if(constructor==NULL)
+		{
+			cerr<<"Error loading yafray plugin: "<<PIL_dynlib_get_error_as_string(handle)<<endl;
+			return false;
+		}
+		yafrayGate=constructor(1,YafrayPluginPath());
+		
+		cout<<"YafRay plugin loaded"<<endl;
 	}
-	yafray::yafrayConstructor *constructor;
-	//constructor=(yafray::yafrayConstructor *)dlsym(handle,YAFRAY_SYMBOL);
-	constructor=(yafray::yafrayConstructor *)PIL_dynlib_find_symbol(handle,YAFRAY_SYMBOL);
-	if(constructor==NULL)
-	{
-		cerr<<"Error loading yafray plugin: "<<PIL_dynlib_get_error_as_string(handle)<<endl;
-		return false;
-	}
-	if(yafrayGate!=NULL) delete yafrayGate;
-	yafrayGate=constructor(1,YafrayPluginPath());
-	
-	cout<<"YafRay plugin loaded"<<endl;
 	
 	if(R.rectot == NULL)
 		R.rectot = (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
