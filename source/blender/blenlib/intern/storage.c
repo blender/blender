@@ -60,7 +60,7 @@
 #include <sys/statfs.h>
 #endif
 
-#ifdef defined (__FreeBSD__) || defined (__OpenBSD__) 
+#if defined (__FreeBSD__) || defined (__OpenBSD__) 
 #include <sys/param.h>
 #include <sys/mount.h>
 #endif
