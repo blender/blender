@@ -496,7 +496,7 @@ char *BLI_gethome(void) {
 
 		ret = getenv("HOME");
 		if(ret) {
-			sprintf(dir, "%s\.blender", ret);
+			sprintf(dir, "%s\\.blender", ret);
 			if (BLI_exists(dir)) return dir;
 		}
 
@@ -506,7 +506,7 @@ char *BLI_gethome(void) {
 
 		if (BLI_exists(dir))
 		{
-			strcat(dir,"/.blender");
+			strcat(dir,"\\.blender");
 			if (BLI_exists(dir)) return(dir);
 		}
 
@@ -515,10 +515,10 @@ char *BLI_gethome(void) {
 		ret = getenv("USERPROFILE");
 		if (ret) {
 			if (BLI_exists(ret)) { /* from fop, also below... */
-				sprintf(dir, "%s/Application Data/Blender Foundation/Blender", ret);
+				sprintf(dir, "%s\\Application Data\\Blender Foundation\\Blender", ret);
 				BLI_recurdir_fileops(dir);
 				if (BLI_exists(dir)) {
-					strcat(dir,"/.blender");
+					strcat(dir,"\\.blender");
 					if(BLI_exists(dir)) return(dir);
 				}
 			}
