@@ -11,10 +11,9 @@
 <br>
 <ol>
   <li><a href="#intro">About</a></li>
-  <li><a href="#pack">Package Contents</a></li>
+  <li><a href="#pack">Package Contents and Install</a></li>
   <li><a href="#start">Getting Started:</a></li>
   <ol>
-    <li><a href="#start_install">Installing</a></li>
     <li><a href="#start_run">Running</a></li>
     <li><a href="#start_1st">First steps</a>,
 <a href="#start_3dview">The 3d View</a></li>
@@ -42,7 +41,7 @@ licence.  The full program sources are available online.</p>
 
 <p align="right"><a href="#top">back to top</a></p>
 
-<h2><a name="pack">2. Package Contents</a></h2>
+<h2><a name="pack">2. Package Contents and Install</a></h2>
 
 <p>This is what you should get from a downloaded Blender package:</p>
 
@@ -60,6 +59,55 @@ plugins and more.</p>
 <p>If you are interested in the development of the program, information for
 coders and the CVS repository with the sources can be found at the
 <a href="http://www.blender.org">developer's site.</a></p>
+
+<h3><a name="start_install">Installation notes:</a></h3>
+
+<p>Installing is mostly a matter of executing a self-installer package or unpacking it to
+some folder. Blender has a minimum of system dependencies (like OpenGL and SDL), and doesn't 
+install by overwriting libraries in your system. There are also some extra
+files needed for a good install, like an antialiased font and standard python scripts, but these 
+are optional. Typically these will go to your HOME/.blender/
+directory. Below you find instructions for it per OS.
+</p>
+
+<p><b>Windows:</b> the .exe installer handles registry of file types for you. The .zip download has 
+a .blender directory included, which can be manually copied.<br>
+The directory .blender is located by Blender while checking the following list:<br>
+- whether environment variable HOME exists, <br>
+- or, if environment USERPROFILE exists, and the installer has created there the Application Data\Blender Foundation\Blender\ 
+directory, <br>
+- or it uses the .blender directory from the installation directory (where blender.exe resides) <br>
+Also note that Blender comes with two dll files, which have to reside next to blender.exe.</p>
+
+<p><b>Linux, FreeBSD, Irix, Solaris:</b> after unpacking the distribution, you can copy the .blender 
+directory from it to your home directory. </p>
+
+<p><b>OSX:</b> the .blender directory is in Blender.app/Contents/Resources/. This is being located 
+by default. If you like to alter some of the files, copy this directory to your home dir.</p>
+
+<p><b>Other settings:</b><br>
+There are many paths you can set in Blender itself, to tell it where to
+look for your collections of texture and sound files, fonts, plugins and
+additional scripts, besides where it should save rendered images, temporary
+data, etc.  If you're only starting, there's no need to worry about this now.
+</p>
+
+<p><b>Python:</b><br>
+Some downloaded scripts may require extra Python modules not shipped with
+Blender.  Installing the whole Python distribution is a way to solve this
+issue for most cases except scripts that require extensions (3rd party
+modules), but we are starting to add more modules to Blender itself so that
+most scripts don't depend on full Python installs anymore.</p>
+
+<p>Even if you do have the right version of Python installed you may need to
+tell the embedded Python interpreter where the installation is.  To do that
+it's enough to set a system variable called PYTHON to the full path to the
+stand-alone Python executable (to find out execute "import sys; print
+sys.executable" inside the stand-alone interpreter, not in Blender).  To check
+which Python was linked to your Blender binary, execute "import sys; print
+sys.version" at Blender's text editor), it's probably 2.3.something -- only the
+two first numbers should have to match with yours.</p>
+
 
 <p align="right"><a href="#top">back to top</a></p>
 
@@ -96,33 +144,6 @@ programming language -- <a href="http://www.python.org">Python</a> in our case
 -- development is considerably faster and easier than normal C/C++ coding.
 Naturally, they run slower than compiled code, but still fast enough for
 <em>many</em> purposes or for mixed approaches like some plugins use.</p>
-
-<h3><a name="start_install">Installation notes:</a></h3>
-
-<p>If you are reading this, you probably already have Blender installed.
-Anyway, it's a matter of executing a self-installer package or unpacking it to
-some folder.</p>
-
-<p>There are many paths you can set in Blender itself, to tell it where to
-look for your collections of texture and sound files, fonts, plugins and
-additional scripts, besides where it should save rendered images, temporary
-data, etc.  If you're only starting, there's no need to worry about this now.
-</p>
-
-<p>Some downloaded scripts may require extra Python modules not shipped with
-Blender.  Installing the whole Python distribution is a way to solve this
-issue for most cases except scripts that require extensions (3rd party
-modules), but we are starting to add more modules to Blender itself so that
-most scripts don't depend on full Python installs anymore.</p>
-
-<p>Even if you do have the right version of Python installed you may need to
-tell the embedded Python interpreter where the installation is.  To do that
-it's enough to set a system variable called PYTHON to the full path to the
-stand-alone Python executable (to find out execute "import sys; print
-sys.executable" inside the stand-alone interpreter, not in Blender).  To check
-which Python was linked to your Blender binary, execute "import sys; print
-sys.version" at Blender's text editor), it's probably 2.3.something -- only the
-two first numbers should have to match with yours.</p>
 
 <h3><a name="start_run">Running:</a></h3>
 
