@@ -352,6 +352,30 @@ void deselectall_tface()
 
 }
 
+void selectswap_tface(void)
+{
+	Mesh *me;
+	TFace *tface;
+	int a;
+		
+	me= get_mesh(OBACT);
+	if(me==0 || me->tface==0) return;
+	
+	tface= me->tface;
+	a= me->totface;
+	while(a--) {
+		if(tface->flag & TF_HIDE);
+		else {
+			if(tface->flag & TF_SELECT) tface->flag &= ~TF_SELECT;
+			else tface->flag |= TF_SELECT;
+		}
+		tface++;
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWIMAGE, 0);
+}
+
 void rotate_uv_tface()
 {
 	Mesh *me;
@@ -427,16 +451,15 @@ void rotate_uv_tface()
  * @param	me	the mesh with the faces to be picked
  * @param	x	the x-coordinate to pick at
  * @param	y	the y-coordinate to pick at
- * @return the face under the cursor (0 if there was no face found)
+ * @return the face under the cursor (-1 if there was no face found)
  */
-TFace* face_pick(Mesh *me, short x, short y)
+unsigned int face_pick(Mesh *me, short x, short y)
 {
 	unsigned int col;
 	int index;
-	TFace *ret = 0;
 
 	if (me==0 || me->tface==0) {
-		return ret;
+		return -1;
 	}
 
 	/* Have OpenGL draw in the back buffer with color coded face indices */
@@ -462,11 +485,9 @@ TFace* face_pick(Mesh *me, short x, short y)
 	/* Convert the color back to a face index */
 	index = framebuffer_to_index(col);
 	if (col==0 || index<=0 || index>me->totface) {
-		return ret;
+		return -1;
 	}
-	/* Return the face */
-	ret = ((TFace*)me->tface) + (index-1);
-	return ret;
+	return (index-1);
 }
 
 void face_select()
@@ -474,8 +495,10 @@ void face_select()
 	Object *ob;
 	Mesh *me;
 	TFace *tface, *tsel;
+	MFace *msel;
 	short mval[2];
 	int a;
+	unsigned int index;
 
 	/* Get the face under the cursor */
 	ob = OBACT;
@@ -484,8 +507,11 @@ void face_select()
 	}
 	me = get_mesh(ob);
 	getmouseco_areawin(mval);
-	tsel = face_pick(me, mval[0], mval[1]);
-	if (!tsel) return;
+	index = face_pick(me, mval[0], mval[1]);
+	if (index==-1) return;
+	
+	tsel= (((TFace*)me->tface)+index);
+	msel= (((MFace*)me->mface)+index);
 
 	if (tsel->flag & TF_HIDE) return;
 	
@@ -498,13 +524,24 @@ void face_select()
 		}
 		else {
 			tface->flag &= ~(TF_ACTIVE+TF_SELECT);
+			if (G.qual & LR_ALTKEY)
+				tface->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
 		}
 		tface++;
 	}
 	
 	tsel->flag |= TF_ACTIVE;
-	
-	if (G.qual & LR_SHIFTKEY) {
+
+	if (G.qual & LR_ALTKEY) {
+		if(tsel->flag & TF_SELECT && !(~tsel->flag & (TF_SEL1|TF_SEL2|TF_SEL3))
+		   && (!msel->v4 || tsel->flag & TF_SEL4))
+			tsel->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+		else {
+			tsel->flag |= TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4;
+			tsel->flag |= TF_SELECT;
+		}
+	}
+	else if (G.qual & LR_SHIFTKEY) {
 		if (tsel->flag & TF_SELECT) {
 			tsel->flag &= ~TF_SELECT;
 		}
@@ -523,7 +560,6 @@ void face_select()
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWVIEW3D, 0);
 }
-
 
 void face_borderselect()
 {
@@ -1386,6 +1422,7 @@ void face_draw()
 	IMG_BrushPtr brush;
 	IMG_CanvasPtr canvas = 0;
 	int rowBytes;
+	unsigned int face_index;
 	char *warn_packed_file = 0;
 	float uv[2], uv_old[2];
 	extern VPaint Gvp;
@@ -1416,7 +1453,9 @@ void face_draw()
 		if ((xy[0] != xy_old[0]) || (xy[1] != xy_old[1])) {
 
 			/* Get face to draw on */
-			face = face_pick(me, xy[0], xy[1]);
+			face_index = face_pick(me, xy[0], xy[1]);
+			if (face_index == -1) face = NULL;
+			else face = (((TFace*)me->tface)+face_index);
 
 			/* Check if this is another face. */
 			if (face != face_old) {

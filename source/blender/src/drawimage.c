@@ -63,6 +63,7 @@
 #include "BKE_image.h"
 
 #include "BDR_editface.h"
+#include "BDR_editobject.h"
 
 #include "BIF_gl.h"
 #include "BIF_space.h"
@@ -300,88 +301,186 @@ void uvco_to_areaco_noclip(float *vec, short *mval)
 	mval[1]= y;
 }
 
-
 void draw_tfaces(void)
 {
-	TFace *tface;
-	MFace *mface;
+	TFace *tface,*activetface = NULL;
+	MFace *mface,*activemface = NULL;
 	Mesh *me;
 	int a;
-	
-	glPointSize(2.0);
-	
+	char col1[4], col2[4];
+ 	
+ 	glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));
+
 	if(G.f & G_FACESELECT) {
 		me= get_mesh((G.scene->basact) ? (G.scene->basact->object) : 0);
 		if(me && me->tface) {
-			
 			calc_image_view(G.sima, 'f');	/* float */
 			myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
+
+			/* draw shadow mesh */
+			if(G.sima->flag & SI_DRAWSHADOW){		
+				tface= me->tface;
+				mface= me->mface;
+				a= me->totface;			
+				while(a--) {
+					if(tface->flag & TF_HIDE);
+					else if(mface->v3) {
+						cpack(0x707070);
+						glBegin(GL_LINE_LOOP);
+						glVertex2fv(tface->uv[0]);
+						glVertex2fv(tface->uv[1]);
+						glVertex2fv(tface->uv[2]);
+						if(mface->v4) glVertex2fv(tface->uv[3]);
+						glEnd();
+					} 
+					tface++;
+					mface++;					
+				}
+			}
+			
+			/* draw transparent faces */
+			if(G.f & G_DRAWFACES) {
+				BIF_GetThemeColor4ubv(TH_FACE, col1);
+				BIF_GetThemeColor4ubv(TH_FACE_SELECT, col2);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glEnable(GL_BLEND);
+				tface= me->tface;
+				mface= me->mface;
+				a= me->totface;			
+				while(a--) {
+					if(mface->v3 && (tface->flag & TF_SELECT)) {
+						if(!(~tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) &&
+						   (!mface->v4 || tface->flag & TF_SEL4))
+							glColor4ubv(col2);
+						else
+							glColor4ubv(col1);
+							
+						glBegin(mface->v4?GL_QUADS:GL_TRIANGLES);
+							glVertex2fv(tface->uv[0]);
+							glVertex2fv(tface->uv[1]);
+							glVertex2fv(tface->uv[2]);
+							if(mface->v4) glVertex2fv(tface->uv[3]);
+						glEnd();
+					}
+					tface++;
+					mface++;					
+				}
+				glDisable(GL_BLEND);
+			}
+
 
 			tface= me->tface;
 			mface= me->mface;
 			a= me->totface;
-			
 			while(a--) {
 				if(mface->v3 && (tface->flag & TF_SELECT) ) {
-				
+					if(tface->flag & TF_ACTIVE){
+						activetface= tface; 
+						activemface= mface; 
+					}
+
 					cpack(0x0);
-					glBegin(GL_LINE_LOOP);
-						glVertex2fv( tface->uv[0] );
-						glVertex2fv( tface->uv[1] );
-						glVertex2fv( tface->uv[2] );
-						if(mface->v4) glVertex2fv( tface->uv[3] );
+ 					glBegin(GL_LINE_LOOP);
+						glVertex2fv(tface->uv[0]);
+						glVertex2fv(tface->uv[1]);
+						glVertex2fv(tface->uv[2]);
+						if(mface->v4) glVertex2fv(tface->uv[3]);
 					glEnd();
 				
 					setlinestyle(2);
-					/* colors: R=x G=y */
-					
-					if(tface->flag & TF_ACTIVE) cpack(0xFF00); 
-					else cpack(0xFFFFFF);
-	
-					glBegin(GL_LINE_STRIP);
-						glVertex2fv( tface->uv[0] );
-						glVertex2fv( tface->uv[1] );
-					glEnd();
-					
-					if(tface->flag & TF_ACTIVE) cpack(0xFF); else cpack(0xFFFFFF);
-	
-					glBegin(GL_LINE_STRIP);
-						glVertex2fv( tface->uv[0] );
-						if(mface->v4) glVertex2fv( tface->uv[3] ); else glVertex2fv( tface->uv[2] );
-					glEnd();
-					
 					cpack(0xFFFFFF);
+					glBegin(GL_LINE_STRIP);
+						glVertex2fv(tface->uv[0]);
+						glVertex2fv(tface->uv[1]);
+					glEnd();
+
+					glBegin(GL_LINE_STRIP);
+						glVertex2fv(tface->uv[0]);
+						if(mface->v4) glVertex2fv(tface->uv[3]);
+						else glVertex2fv(tface->uv[2]);
+					glEnd();
 	
 					glBegin(GL_LINE_STRIP);
-						glVertex2fv( tface->uv[1] );
-						glVertex2fv( tface->uv[2] );
-						if(mface->v4) glVertex2fv( tface->uv[3] );
+						glVertex2fv(tface->uv[1]);
+						glVertex2fv(tface->uv[2]);
+						if(mface->v4) glVertex2fv(tface->uv[3]);
 					glEnd();
-					
 					setlinestyle(0);
+				}
 					
+				tface++;
+				mface++;
+			}
+
+			/* draw active face edges */
+			if (activetface){
+				/* colors: R=u G=v */
+
+				setlinestyle(2);
+				tface=activetface; 
+				mface=activemface; 
+
+				cpack(0x0);
+				glBegin(GL_LINE_LOOP);
+				glVertex2fv(tface->uv[0]);
+					glVertex2fv(tface->uv[1]);
+					glVertex2fv(tface->uv[2]);
+					if(mface->v4) glVertex2fv(tface->uv[3]);
+				glEnd();
+					
+				cpack(0xFF00);
+				glBegin(GL_LINE_STRIP);
+					glVertex2fv(tface->uv[0]);
+					glVertex2fv(tface->uv[1]);
+				glEnd();
+
+				cpack(0xFF);
+				glBegin(GL_LINE_STRIP);
+					glVertex2fv(tface->uv[0]);
+					if(mface->v4) glVertex2fv(tface->uv[3]);
+					else glVertex2fv(tface->uv[2]);
+				glEnd();
+
+				cpack(0xFFFFFF);
+				glBegin(GL_LINE_STRIP);
+					glVertex2fv(tface->uv[1]);
+					glVertex2fv(tface->uv[2]);
+					if(mface->v4) glVertex2fv(tface->uv[3]);
+				glEnd();
+ 				
+				setlinestyle(0);
+			}
+
+            /* to make sure vertices markers are visible, draw them last */
+			BIF_GetThemeColor3ubv(TH_VERTEX, col1);
+			BIF_GetThemeColor3ubv(TH_VERTEX_SELECT, col2);
+			glColor4ubv(col2);
+			tface= me->tface;
+			mface= me->mface;
+			a= me->totface;
+			while(a--) {
+				if(mface->v3  && (tface->flag & TF_SELECT) ) {
 					glBegin(GL_POINTS);
 					
-					if(tface->flag & TF_SEL1) BIF_ThemeColor(TH_VERTEX_SELECT); 
-					else BIF_ThemeColor(TH_VERTEX); 
+					if(tface->flag & TF_SEL1) glColor3ubv(col2);
+					else glColor3ubv(col1);
 					glVertex2fv(tface->uv[0]);
 					
-					if(tface->flag & TF_SEL2) BIF_ThemeColor(TH_VERTEX_SELECT); 
-					else BIF_ThemeColor(TH_VERTEX); 
+					if(tface->flag & TF_SEL2) glColor3ubv(col2);
+					else glColor3ubv(col1);
 					glVertex2fv(tface->uv[1]);
 					
-					if(tface->flag & TF_SEL3) BIF_ThemeColor(TH_VERTEX_SELECT); 
-					else BIF_ThemeColor(TH_VERTEX); 
+					if(tface->flag & TF_SEL3) glColor3ubv(col2);
+					else glColor3ubv(col1);
 					glVertex2fv(tface->uv[2]);
 					
 					if(mface->v4) {
-						if(tface->flag & TF_SEL4) BIF_ThemeColor(TH_VERTEX_SELECT); 
-						else BIF_ThemeColor(TH_VERTEX); 
+						if(tface->flag & TF_SEL4) glColor3ubv(col2);
+						else glColor3ubv(col1);
 						glVertex2fv(tface->uv[3]);
 					}
 					glEnd();
 				}
-					
 				tface++;
 				mface++;
 			}
@@ -410,6 +509,53 @@ static unsigned int *get_part_from_ibuf(ImBuf *ibuf, short startx, short starty,
 		rp+= len;
 	}
 	return rectmain;
+}
+
+static void draw_image_prop_circle(ImBuf *ibuf)
+{
+	float aspx, aspy;
+	extern float prop_cent[3];
+
+	if(G.moving && G.f & G_PROPORTIONAL) {
+
+		if(ibuf==0 || ibuf->rect==0 || ibuf->x==0 || ibuf->y==0) {
+			aspx= aspy= 1.0;
+		}
+		else {
+			aspx= 256.0/ibuf->x;
+			aspy= 256.0/ibuf->y;
+		}
+
+		/* scale and translate the circle into place and draw it */
+		glPushMatrix();
+		glScalef(aspx, aspy, 1.0);
+		glTranslatef((1/aspx)*prop_cent[0] - prop_cent[0],
+		             (1/aspy)*prop_cent[1] - prop_cent[1], 0.0);
+		draw_prop_circle();
+		glPopMatrix();
+	}
+}
+
+static void draw_image_view_icon(void)
+{
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
+	
+	glRasterPos2f(5.0, 5.0);
+
+	if(G.sima->flag & SI_STICKYUVS || G.sima->flag & SI_LOCALSTICKY)
+		BIF_draw_icon(ICON_A_WACKY_VERT_AND_SOME_LINES);
+	else
+		BIF_draw_icon(ICON_SOME_WACKY_VERTS_AND_LINES);
+
+	glRasterPos2f(25.0, 5.0);
+	if(G.sima->flag & SI_SELACTFACE)
+		BIF_draw_icon(ICON_CLIPUV_HLT);
+	else
+		BIF_draw_icon(ICON_CLIPUV_DEHLT);
+	
+	glBlendFunc(GL_ONE,  GL_ZERO); 
+	glDisable(GL_BLEND);
 }
 
 void drawimagespace(ScrArea *sa, void *spacedata)
@@ -516,7 +662,11 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	
 		calc_image_view(G.sima, 'f');	/* float */
 	}
+
+	draw_image_prop_circle(ibuf);
+
 	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
+	draw_image_view_icon();
 	draw_area_emboss(sa);
 	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 }

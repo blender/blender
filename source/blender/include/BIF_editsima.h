@@ -37,4 +37,9 @@ void mouse_select_sima(void);
 void select_swap_tface_uv(void);
 void tface_do_clip(void);
 void transform_tface_uv(int mode);
+void hide_tface_uv(int swap);
+void reveal_tface_uv(void);
+void stitch_uv_tface(int mode);
+void unlink_selection(void);
+void select_linked_tface_uv(void);
 

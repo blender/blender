@@ -70,6 +70,7 @@
 
 #include "BIF_gl.h"
 #include "BIF_mywindow.h"
+#include "BIF_resources.h"
 
 #include "BDR_editface.h"
 #include "BDR_vpaint.h"
@@ -537,8 +538,41 @@ void draw_tfaces3D(Object *ob, Mesh *me)
 	DispList *dl;
 	float *v1, *v2, *v3, *v4, *extverts= NULL;
 	int a;
+	char col[4];
 	
 	if(me==0 || me->tface==0) return;
+
+	glEnable(GL_DEPTH_TEST);
+	
+	/* Draw Faces, selected in the UV editor */
+	if(G.f & G_DRAWFACES) {
+		mface= me->mface;
+		tface= me->tface;
+
+		BIF_GetThemeColor4ubv(TH_FACE_SELECT, col);
+			
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_BLEND);
+		glDepthMask(0); // disable write in zbuffer, needed for nice transp
+				
+		for(a=me->totface; a>0; a--, mface++, tface++) {
+			if(mface->v3 && (tface->flag & TF_SELECT)) {
+				if(!(~tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) &&
+				    (!mface->v4 || tface->flag & TF_SEL4)) {
+					glColor4ub(col[0], col[1], col[2], col[3]);
+					glBegin(mface->v4?GL_QUADS:GL_TRIANGLES);
+						glVertex3fv((me->mvert+mface->v1)->co);
+						glVertex3fv((me->mvert+mface->v2)->co);
+						glVertex3fv((me->mvert+mface->v3)->co);
+						if(mface->v4) glVertex3fv((me->mvert+mface->v4)->co);
+					glEnd();
+				}
+			}
+		}
+
+		glDisable(GL_BLEND);
+		glDepthMask(1); // restore write in zbuffer
+	}
 
 	glDisable(GL_DEPTH_TEST);
 

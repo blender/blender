@@ -3311,6 +3311,9 @@ void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				IMG_CanvasDispose(canvas);
 				allqueue(REDRAWHEADERS, 0);
 				break;
+			case RIGHTMOUSE:
+				sample_vpaint();
+				break;
 		}
 #endif /* NAN_TPT */
 	}
@@ -3325,7 +3328,10 @@ void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				image_viewmove();
 				break;
 			case RIGHTMOUSE:
-				mouse_select_sima();
+				if(G.f & G_FACESELECT)
+					mouse_select_sima();
+				else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT))
+					sample_vpaint();
 				break;
 			case AKEY:
 				if((G.qual==0))
@@ -3339,9 +3345,35 @@ void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if((G.qual==0))
 					transform_tface_uv('g');
 				break;
+			case HKEY:
+				if(G.qual==LR_ALTKEY)
+					reveal_tface_uv();
+				else if((G.qual==LR_SHIFTKEY))
+					hide_tface_uv(1);
+				else if((G.qual==0))
+					hide_tface_uv(0);
+				break;
+			case LKEY:
+				if((G.qual==0))
+				select_linked_tface_uv();
+			else if(G.qual==LR_ALTKEY)
+				unlink_selection();
+			break;
 			case NKEY:
 				if(G.qual==LR_CTRLKEY)
 					replace_names_but();
+				break;
+			case OKEY:
+				if (G.qual==LR_SHIFTKEY) {
+					extern int prop_mode;
+					prop_mode= !prop_mode;
+				}
+				else if((G.qual==0)) {
+					if(G.f & G_PROPORTIONAL)
+						G.f &= ~G_PROPORTIONAL;
+					else
+						G.f |= G_PROPORTIONAL;
+				}
 				break;
 			case RKEY:
 				if((G.qual==0))
@@ -3350,6 +3382,15 @@ void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case SKEY:
 				if((G.qual==0))
 					transform_tface_uv('s');
+				break;
+			case VKEY:
+				if((G.qual==0))
+					stitch_uv_tface(0);
+				else if(G.qual==LR_SHIFTKEY)
+					stitch_uv_tface(1);
+				break;
+			case WKEY:
+				transform_tface_uv('w');
 				break;
 		}
 	}

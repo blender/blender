@@ -422,7 +422,7 @@ void vpaint_dogamma()
 	if(me->tface) mcol_to_tface(me, 1);
 }
 
-
+/* used for both 3d view and image window */
 void sample_vpaint()	/* frontbuf */
 {
 	unsigned int col;

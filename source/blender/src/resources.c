@@ -569,6 +569,9 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tima.back, 	53, 53, 53, 255);
 	SETCOL(btheme->tima.vertex, 0xff, 0x70, 0xff, 255);
 	SETCOL(btheme->tima.vertex_select, 0xff, 0xff, 0x70, 255);
+	btheme->tima.vertex_size= 2;
+	SETCOL(btheme->tima.face,   0, 50, 150, 40);
+	SETCOL(btheme->tima.face_select, 200, 100, 200, 80);
 
 	/* space imageselect */
 	btheme->timasel= btheme->tv3d;
@@ -673,6 +676,14 @@ char *BIF_ThemeColorsPup(int spacetype)
 			sprintf(str, "View Sliders %%x%d|", TH_SHADE1); strcat(cp, str);
 			sprintf(str, "Channels %%x%d|", TH_SHADE2); strcat(cp, str);
 			sprintf(str, "Channels Selected %%x%d|", TH_HILITE); strcat(cp, str);
+		}
+		else if(spacetype==SPACE_IMAGE) {
+			strcat(cp,"%l|");
+			sprintf(str, "Vertex %%x%d|", TH_VERTEX); strcat(cp, str);
+			sprintf(str, "Vertex Selected %%x%d|", TH_VERTEX_SELECT); strcat(cp, str);
+			sprintf(str, "Vertex Size %%x%d|", TH_VERTEX_SIZE); strcat(cp, str);
+			sprintf(str, "Face %%x%d|", TH_FACE); strcat(cp, str);
+			sprintf(str, "Face Selected %%x%d", TH_FACE_SELECT); strcat(cp, str);
 		}
 		else if(spacetype==SPACE_SEQ) {
 			sprintf(str, "Window Sliders %%x%d|", TH_SHADE1); strcat(cp, str);

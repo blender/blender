@@ -156,7 +156,7 @@ void replace_space_image(char *str)		/* called from fileselect */
 	ima= add_image(str);
 	if(ima) {
  
-		if(G.sima->image != ima) {
+		if(G.sima->image && G.sima->image != ima) {
 			image_replace(G.sima->image, ima);
 		}
  
@@ -362,6 +362,20 @@ static void do_image_viewmenu(void *arg, int event)
 	case 2: /* Maximize Window */
 		/* using event B_FULL */
 		break;
+	case 5: /* Draw Shadow Mesh */
+		if(G.sima->flag & SI_DRAWSHADOW)
+			G.sima->flag &= ~SI_DRAWSHADOW;
+		else
+			G.sima->flag |= SI_DRAWSHADOW;
+		allqueue(REDRAWIMAGE, 0);
+		break;
+	case 6: /* Draw Faces */
+		if(G.f & G_DRAWFACES)
+			G.f &= ~G_DRAWFACES;
+		else
+			G.f |= G_DRAWFACES;
+		allqueue(REDRAWIMAGE, 0);
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -375,6 +389,12 @@ static uiBlock *image_viewmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "image_viewmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_image_viewmenu, NULL);
 	
+	if(G.f & G_DRAWFACES) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Draw Faces", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Draw Faces|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	if(G.sima->flag & SI_DRAWSHADOW) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Draw Shadow Mesh", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Draw Shadow mesh|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
 	if(BTST(G.sima->lock, 0)) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Update Automatically|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	} else {
@@ -411,6 +431,37 @@ static void do_image_selectmenu(void *arg, int event)
 	case 1: /* Select/Deselect All */
 		select_swap_tface_uv();
 		break;
+	case 2: /* Unlink Selection */
+		unlink_selection();
+		break;
+	case 3: /* Select Linked UVs */
+		select_linked_tface_uv();
+		break;
+	case 4: /* Toggle Local UVs Stick to Vertex in Mesh */
+		if(G.sima->flag & SI_LOCALSTICKY)
+			G.sima->flag &= ~SI_LOCALSTICKY;
+		else {
+			G.sima->flag |= SI_LOCALSTICKY;
+			G.sima->flag &= ~SI_STICKYUVS;
+		}
+		allqueue(REDRAWIMAGE, 0);
+		break;  
+	case 5: /* Toggle UVs Stick to Vertex in Mesh */
+		if(G.sima->flag & SI_STICKYUVS)
+			G.sima->flag &= ~SI_STICKYUVS;
+		else {
+			G.sima->flag |= SI_STICKYUVS;
+			G.sima->flag &= ~SI_LOCALSTICKY;
+		}
+		allqueue(REDRAWIMAGE, 0);
+		break;  
+	case 6: /* Toggle Active Face Select */
+		if(G.sima->flag & SI_SELACTFACE)
+			G.sima->flag &= ~SI_SELACTFACE;
+		else
+			G.sima->flag |= SI_SELACTFACE;
+		allqueue(REDRAWIMAGE, 0);
+		break;
 	}
 }
 
@@ -422,9 +473,26 @@ static uiBlock *image_selectmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "image_selectmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_image_selectmenu, NULL);
 
+	if(G.sima->flag & SI_SELACTFACE) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Active Face Select|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Active Face Select|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
+
+	if(G.sima->flag & SI_LOCALSTICKY) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Stick Local UVs to Mesh Vertex|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Stick Local UVs to Mesh Vertex|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+
+	if(G.sima->flag & SI_STICKYUVS) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Stick UVs to Mesh Vertex|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Stick UVs to Mesh Vertex|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
+
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select|B", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unlink Selection|Alt L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Linked UVs|L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -484,14 +552,19 @@ static void do_image_imagemenu(void *arg, int event)
 	case 0: /* Open */
 		if(G.sima->image) strcpy(name, G.sima->image->name);
 		else strcpy(name, U.textudir);
-		
-		activate_fileselect(FILE_SPECIAL, "Open Image", name, load_space_image);
+		if(G.qual==LR_CTRLKEY)
+			activate_imageselect(FILE_SPECIAL, "SELECT IMAGE", name, load_space_image);
+		else
+			activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name, load_space_image);
 		break;
 	case 1:
 		if(G.sima->image) strcpy(name, G.sima->image->name);
 		else strcpy(name, U.textudir);
 		
-		activate_fileselect(FILE_SPECIAL, "Replace Image", name, replace_space_image);
+		if(G.qual==LR_CTRLKEY)
+			activate_imageselect(FILE_SPECIAL, "Replace Image", name, load_space_image);
+		else
+			activate_fileselect(FILE_SPECIAL, "Replace Image", name, load_space_image);
 		break;
 	case 2: /* Pack Image */
 		ima = G.sima->image;
@@ -542,7 +615,25 @@ static void do_image_imagemenu(void *arg, int event)
 			}
 		}
 		break;
-
+	case 6: /* Reload Image */
+		ima = G.sima->image;
+		if (ima) {
+			if (ima->packedfile) {
+				PackedFile *pf;
+				pf = newPackedFile(ima->name);
+				if (pf) {
+					freePackedFile(ima->packedfile);
+					ima->packedfile = pf;
+				}
+				else
+					error("Image not available. Keeping packed image.");
+			}
+			free_image_buffers(ima);	/* force read again */
+			ima->ok= 1;
+			image_changed(G.sima, 0);
+		}
+		allqueue(REDRAWIMAGE, 0);
+		break;
 	}
 }
 
@@ -555,9 +646,11 @@ static uiBlock *image_imagemenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_image_imagemenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Open...|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Replace...|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	
 	if (G.sima->image) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Replace...|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reload|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 		
 		if (G.sima->image->packedfile) {
@@ -594,6 +687,73 @@ static uiBlock *image_imagemenu(void *arg_unused)
 	return block;
 }
 
+static void do_image_uvs_showhidemenu(void *arg, int event)
+{
+	switch(event) {
+	case 4: /* show hidden faces */
+		reveal_tface_uv();
+		break;
+	case 5: /* hide selected faces */
+		hide_tface_uv(0);
+		break;
+	case 6: /* hide deselected faces */
+		hide_tface_uv(1);
+		break;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *image_uvs_showhidemenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "image_uvs_showhidemenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_image_uvs_showhidemenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hidden Faces|Alt H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Selected Faces|H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Deselected Faces|Shift H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
+static void do_image_uvs_propfalloffmenu(void *arg, int event)
+{
+	extern int prop_mode;
+	
+	switch(event) {
+	case 0: /* proportional edit - sharp*/
+		prop_mode = 0;
+		break;
+	case 1: /* proportional edit - smooth*/
+		prop_mode = 1;
+		break;
+		}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *image_uvs_propfalloffmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+	extern int prop_mode;
+
+	block= uiNewBlock(&curarea->uiblocks, "image_uvs_propfalloffmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_image_uvs_propfalloffmenu, NULL);
+	
+	if (prop_mode==0) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Sharp|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Sharp|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	if (prop_mode==1) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Smooth|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Smooth|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+		
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
 static void do_image_uvsmenu(void *arg, int event)
 {
 	switch(event)
@@ -605,6 +765,25 @@ static void do_image_uvsmenu(void *arg, int event)
 	case 2: /* UVs Clipped to Image Size */
 		if(BTST(G.sima->flag, 2)) G.sima->flag = BCLR(G.sima->flag, 2);
 		else G.sima->flag = BSET(G.sima->flag, 2);
+		break;
+	case 3: /* Limit Stitch UVs */
+		stitch_uv_tface(1);
+		break;
+	case 4: /* Stitch UVs */
+		stitch_uv_tface(0);
+		break;
+	case 5: /* Proportional Edit (toggle) */
+		if(G.f & G_PROPORTIONAL)
+			G.f &= ~G_PROPORTIONAL;
+		else
+			G.f |= G_PROPORTIONAL;
+		break;
+	case 7: /* UVs Snap to Pixel */
+		if(BTST(G.sima->flag, 7)) G.sima->flag = BCLR(G.sima->flag, 7);
+		else G.sima->flag = BSET(G.sima->flag, 7);
+		break;
+	case 8:
+		transform_tface_uv('w');
 		break;
 	}
 }
@@ -619,12 +798,33 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 
 	// uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Transform Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	// uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	if(BTST(G.sima->flag, 7)) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "UVs Snap To Pixels|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "UVs Snap To Pixels|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 
 	if(BTST(G.sima->flag, 0)) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Quads Constrained Rectangular|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Quads Constrained Rectangular|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	
 	if(BTST(G.sima->flag, 2)) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Layout Clipped to Image Size|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Layout Clipped to Image Size|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Weld / Align...|W", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Limit Stitch...|Shift V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Stitch|V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	if(G.f & G_PROPORTIONAL) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Proportional Editing|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	} else {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Proportional Editing|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	}
+	uiDefIconTextBlockBut(block, image_uvs_propfalloffmenu, NULL, ICON_RIGHTARROW_THIN, "Proportional Falloff", 0, yco-=20, 120, 19, "");
+
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
+	
+	uiDefIconTextBlockBut(block, image_uvs_showhidemenu, NULL, ICON_RIGHTARROW_THIN, "Show/Hide Faces", 0, yco-=20, menuwidth, 19, "");
 
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -683,6 +883,7 @@ void image_buttons(void)
 		
 		xmax= GetButStringLength("Select");
 		uiDefBlockBut(block, image_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
+        
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Image");
@@ -716,8 +917,9 @@ void image_buttons(void)
 	
 	
 	uiDefIconButS(block, TOG|BIT|0, B_BE_SQUARE, ICON_KEEPRECT,	xco+=XIC,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Toggles constraining UV polygons to squares while editing");
-	uiDefIconButS(block, ICONTOG|BIT|2, B_CLIP_UV, ICON_CLIPUV_DEHLT,xco+=XIC,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Toggles clipping UV with image size");		*/
-
+	uiDefIconButS(block, ICONTOG|BIT|2, B_CLIP_UV, ICON_CLIPUV_DEHLT,xco+=XIC,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Toggles clipping UV with image size");
+	*/
+    
 	xco= std_libbuttons(block, xco, 0, 0, NULL, B_SIMABROWSE, (ID *)G.sima->image, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
 
 	
@@ -788,3 +990,4 @@ void image_buttons(void)
 	
 	uiDrawBlock(block);
 }
+
