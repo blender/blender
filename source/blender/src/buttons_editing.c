@@ -656,7 +656,7 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	uiBlock *block;
 	float val;
 	/* Hope to support more than two subsurf algorithms */
-	char subsurfmenu[]="Subsurf Type%t|Catmull-Clark%x0|CCGSubSurf%x2|Simple Subdiv.%x1";
+	char subsurfmenu[]="Subsurf Type%t|Catmull-Clark%x0|Simple Subdiv.%x1";
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if( uiNewPanel(curarea, block, "Mesh", "Editing", 320, 0, 318, 204)==0) return;

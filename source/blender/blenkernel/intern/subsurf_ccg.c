@@ -1017,3 +1017,47 @@ DerivedMesh *subsurf_make_derived_from_mesh(Mesh *me, int subdivLevels) {
 	return derivedmesh_from_displistmesh(NULL, dlm);
 }
 
+void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3]) 
+{
+		/* Finds the subsurf limit positions for the verts in a mesh 
+		 * and puts them in an array of floats. Please note that the 
+		 * calculated vert positions is incorrect for the verts 
+		 * on the boundary of the mesh.
+		 */
+	SubSurf *ss = subSurf_fromMesh(me, 0, 1);
+	float edge_sum[3], face_sum[3];
+	CCGVertIterator *vi;
+
+	subSurf_sync(ss, 0);
+
+	vi = ccgSubSurf_getVertIterator(ss->subSurf);
+	for (; !ccgVertIterator_isStopped(vi); ccgVertIterator_next(vi)) {
+		CCGVert *v = ccgVertIterator_getCurrent(vi);
+		int idx = (int) ccgSubSurf_getVertVertHandle(ss->subSurf, v);
+		int N = ccgSubSurf_getVertNumEdges(ss->subSurf, v);
+		int numFaces = ccgSubSurf_getVertNumFaces(ss->subSurf, v);
+		float *co;
+		int i;
+                
+		edge_sum[0]= edge_sum[1]= edge_sum[2]= 0.0;
+		face_sum[0]= face_sum[1]= face_sum[2]= 0.0;
+
+		for (i=0; i<N; i++) {
+			CCGEdge *e = ccgSubSurf_getVertEdge(ss->subSurf, v, i);
+			VecAddf(edge_sum, edge_sum, ccgSubSurf_getEdgeData(ss->subSurf, e, 1));
+		}
+		for (i=0; i<numFaces; i++) {
+			CCGFace *f = ccgSubSurf_getVertFace(ss->subSurf, v, i);
+			VecAddf(face_sum, face_sum, ccgSubSurf_getFaceCenterData(ss->subSurf, f));
+		}
+
+		co = ccgSubSurf_getVertData(ss->subSurf, v);
+		positions_r[idx][0] = (co[0]*N*N + edge_sum[0]*4 + face_sum[0])/(N*(N+5));
+		positions_r[idx][1] = (co[1]*N*N + edge_sum[1]*4 + face_sum[1])/(N*(N+5));
+		positions_r[idx][2] = (co[2]*N*N + edge_sum[2]*4 + face_sum[2])/(N*(N+5));
+	}
+	ccgVertIterator_free(vi);
+
+	subSurf_free(ss);
+}
+
