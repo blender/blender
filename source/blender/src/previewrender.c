@@ -1020,7 +1020,15 @@ void BIF_previewrender(SpaceButs *sbuts)
 		if(ob && ob->type==OB_LAMP) la= ob->data;
 	}
 	
-	if(mat==NULL && tex==NULL && la==NULL && wrld==NULL) return;
+	/* return: when no active block to render. but we do draw black if possible */
+	if(mat==NULL && tex==NULL && la==NULL && wrld==NULL) {
+		if(sbuts->rect) {
+			memset(sbuts->rect, 0, sizeof(int)*PR_RECTX*PR_RECTY);
+			sbuts->cury= PR_RECTY;
+			addqueue(curarea->win, REDRAW, 1);
+		}
+		return;
+	}
 	
 	har.flarec= 0;	/* below is a test for postrender flare */
 	
@@ -1103,7 +1111,7 @@ void BIF_previewrender(SpaceButs *sbuts)
 
 	set_previewrect(sbuts->area->win, PR_XMIN, PR_YMIN, PR_XMAX, PR_YMAX);
 
-	if(sbuts->rect==0) {
+	if(sbuts->rect==NULL) {
 		sbuts->rect= MEM_callocN(sizeof(int)*PR_RECTX*PR_RECTY, "butsrect");
 		
 		/* built in emboss */
