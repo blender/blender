@@ -189,11 +189,6 @@ PYPLAYERLIB ?= $(PYLIB)
     SPLIB1 += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
     SPLIB1 += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
 
-    SSRLIB1 = $(OCGDIR)/gameengine/GamePlayer/common/$(DEBUG_DIR)libcommon.a
-    SSRLIB1 += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
-    SSRLIB1 += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
-    SSRLIB1 += $(NAN_PNG)/lib/libpng.a
-
     SPLIB = $(OCGDIR)/blender/makesdna/$(DEBUG_DIR)DNA.o
     SPLIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
     SPLIB += $(OCGDIR)/blender/readstreamglue/$(DEBUG_DIR)libreadstreamglue.a
@@ -267,13 +262,6 @@ else
     PLUGREMLIB += $(NAN_OPENSSL)/lib/libcrypto.a
 endif
 
-    SSRLIB  = $(OCGDIR)/ssr/$(DEBUG_DIR)GPG_Application.o
-    SSRLIB += $(OCGDIR)/ssr/$(DEBUG_DIR)GPG_Canvas.o
-    SSRLIB += $(OCGDIR)/ssr/$(DEBUG_DIR)GPG_KeyboardDevice.o
-    SSRLIB += $(OCGDIR)/ssr/$(DEBUG_DIR)GPG_System.o
-    SSRLIB += $(OCGDIR)/ssr/$(DEBUG_DIR)GPG_ghost.o
-    SSRLIB += $(OCGDIR)/ssr/$(DEBUG_DIR)createPngFromGL.o
-
 ######################## OS dependencies (alphabetic!) ################
 
 include nan_link.mk
@@ -299,9 +287,6 @@ ifeq ($(OS),freebsd)
     BINTARGETS += blenderpublisher
     BINTARGETS += blenderplayer
     BINTARGETS += plugin
-  ifeq ($(OS_VERSION),4.5)
-    BINTARGETS += blenderssr
-  endif
   endif
     PYLIB = /usr/local/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     PYLIB += $(NAN_MXTEXTTOOLS) 
@@ -350,7 +335,6 @@ ifeq ($(OS),solaris)
     BINTARGETS += blenderplayer
   ifeq ($(CPU),sparc)
     BINTARGETS += plugin
-    BINTARGETS += blenderssr
   endif
     PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     PYLIB += $(NAN_MXTEXTTOOLS)
@@ -516,7 +500,6 @@ blenderstatic: $(DIR)/$(DEBUG_DIR)blenderstatic
 blenderpublisher: $(DIR)/$(DEBUG_DIR)blenderpublisher$(EXT)
 blenderplayer: $(DIR)/$(DEBUG_DIR)blenderplayer$(EXT)
 blenderdynplayer: $(DIR)/$(DEBUG_DIR)blenderdynplayer$(EXT)
-blenderssr: $(DIR)/$(DEBUG_DIR)libblenderssr$(SOEXT)
 
 blenderplayer.app: blenderplayer
 	@$(MAKE) -C darwin/ APPLICATION=blenderplayer
@@ -643,14 +626,4 @@ $(DIR)/$(DEBUG_DIR)npTestPlugin$(SOEXT): $(NSPLUGLIB)
 	/bin/rm $(BUILDINFO_O)
     endif
 endif
-
-$(DIR)/$(DEBUG_DIR)libblenderssr$(SOEXT): $(OBJS) $(SSRLIB1) $(COMLIB) $(SPLIB) $(SSRLIB)
-	@echo "****> Link $@"
-    ifdef NAN_BUILDINFO
-	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
-    endif
-	$(CCC) $(DYNLDFLAGS) -o $@ $(BUILDINFO_O) $(OBJS) $(SSRLIB) $(SSRLIB1) $(COMLIB) $(SPLIB) $(PYPLAYERLIB) $(LLIBS) $(DADD) $(LOPTS)
-    ifdef NAN_BUILDINFO
-	/bin/rm $(BUILDINFO_O)
-    endif
 
