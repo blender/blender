@@ -294,14 +294,14 @@ void persptoetsen(unsigned short event)
 					G.vd->camzoom-= 10;
 					if(G.vd->camzoom<-30) G.vd->camzoom= -30;
 				}
-			else if(G.vd->dist<10.0*G.vd->far) G.vd->dist*=1.2;
+			else if(G.vd->dist<10.0*G.vd->far) G.vd->dist*=1.2f;
 		}
 		else if(event==PADPLUSKEY) {
 			if(G.vd->persp==2) {
 					G.vd->camzoom+= 10;
 					if(G.vd->camzoom>300) G.vd->camzoom= 300;
 			}
-			else if(G.vd->dist> 0.001*G.vd->grid) G.vd->dist*=.83333;
+			else if(G.vd->dist> 0.001*G.vd->grid) G.vd->dist*=.83333f;
 		}
 		else {
 
@@ -347,20 +347,20 @@ void persptoetsen(unsigned short event)
 			if(G.vd->persp==2) {
 				G.vd->camzoom= MAX2(-30, G.vd->camzoom-5);
 			}
-			else if(G.vd->dist<10.0*G.vd->far) G.vd->dist*=1.2;
+			else if(G.vd->dist<10.0*G.vd->far) G.vd->dist*=1.2f;
 		}
 		else if(event==PADPLUSKEY) {
 			if(G.vd->persp==2) {
 				G.vd->camzoom= MIN2(300, G.vd->camzoom+5);
 			}
-			else if(G.vd->dist> 0.001*G.vd->grid) G.vd->dist*=.83333;
+			else if(G.vd->dist> 0.001*G.vd->grid) G.vd->dist*=.83333f;
 		}
 		else if(event==PAD5) {
 			if(G.vd->persp==1) G.vd->persp=0;
 			else G.vd->persp=1;
 		}
 		else if(event==PAD0) {
-			if(G.qual & LR_ALTKEY) {
+			if(G.qual==LR_ALTKEY) {
 				if(oldcamera && is_an_active_object(oldcamera)) {
 					G.vd->camera= oldcamera;
 				}
@@ -368,7 +368,7 @@ void persptoetsen(unsigned short event)
 				handle_view3d_lock();
 			}
 			else if(BASACT) {
-				if(G.qual & LR_CTRLKEY) {
+				if(G.qual==LR_CTRLKEY) {
 					if(G.vd->camera != OBACT) {
 						if(G.vd->camera && G.vd->camera->type==OB_CAMERA)
 							oldcamera= G.vd->camera;
@@ -536,7 +536,7 @@ int blenderqread(unsigned short event, short val)
 			activate_fileselect(FILE_BLENDER, "LOAD FILE", G.sce, BIF_read_file);
 			return 0;
 		}
-		else if(G.qual & LR_SHIFTKEY) {
+		else if(G.qual==LR_SHIFTKEY) {
 			activate_fileselect(FILE_LOADLIB, "LOAD LIBRARY", G.lib, 0);
 			return 0;
 		}
@@ -548,11 +548,11 @@ int blenderqread(unsigned short event, short val)
 			activate_fileselect(FILE_BLENDER, "SAVE FILE", dir, BIF_write_file);
 			return 0;
 		}
-		else if(G.qual & LR_CTRLKEY) {
+		else if(G.qual==LR_CTRLKEY) {
 			write_vrml_fs();
 			return 0;
 		}
-		else if(G.qual & LR_SHIFTKEY) {
+		else if(G.qual==LR_SHIFTKEY) {
 			write_dxf_fs();
 			return 0;
 		}
@@ -562,12 +562,12 @@ int blenderqread(unsigned short event, short val)
 			BIF_save_rendered_image();
 			return 0;
 		}
-		else if(G.qual & LR_CTRLKEY) {
+		else if(G.qual==LR_CTRLKEY) {
 			BIF_screendump();
 		}
 		break;
 	case F4KEY:
-		if(G.qual & LR_SHIFTKEY) {
+		if(G.qual==LR_SHIFTKEY) {
 
 			memset(str, 0, 16);
 			ob= OBACT;
@@ -576,69 +576,86 @@ int blenderqread(unsigned short event, short val)
 			activate_fileselect(FILE_MAIN, "DATA SELECT", str, 0);
 			return 0;
 		}
-		else extern_set_butspace(event);
-		
+		else if(G.qual==0) {
+			extern_set_butspace(event);
+		}
 		break;
 	case F5KEY:
-		if(G.qual & LR_SHIFTKEY) {
+		if(G.qual==LR_SHIFTKEY) {
 			newspace(curarea, SPACE_VIEW3D);
 			return 0;
 		}
-		else extern_set_butspace(event);
+		else if(G.qual==0) {
+			extern_set_butspace(event);
+		}
 		break;
 	case F6KEY:
-		if(G.qual & LR_SHIFTKEY) {
+		if(G.qual==LR_SHIFTKEY) {
 			newspace(curarea, SPACE_IPO);
 			return 0;
 		}
-		else extern_set_butspace(event);
+		else if(G.qual==0) {
+			extern_set_butspace(event);
+		}
 		break;
 	case F7KEY:
-		if(G.qual & LR_SHIFTKEY) {
+		if(G.qual==LR_SHIFTKEY) {
 			newspace(curarea, SPACE_BUTS);
 			return 0;
 		}
-		else extern_set_butspace(event);
+		else if(G.qual==0) {
+			extern_set_butspace(event);
+		}
 		break;
 	case F8KEY:
-		if(G.qual & LR_SHIFTKEY) {
+		if(G.qual==LR_SHIFTKEY) {
 			newspace(curarea, SPACE_SEQ);
 			return 0;
 		}
-		else extern_set_butspace(event);
+		else if(G.qual==0) {
+			extern_set_butspace(event);
+		}
 		break;
 	case F9KEY:
-		if(G.qual & LR_SHIFTKEY) {
+		if(G.qual==LR_SHIFTKEY) {
 			newspace(curarea, SPACE_OOPS);
 			return 0;
 		}
-		else extern_set_butspace(event);
+		else if(G.qual==0) {
+			extern_set_butspace(event);
+		}
 		break;
 	case F10KEY:
-		if(G.qual & LR_SHIFTKEY) {
+		if(G.qual==LR_SHIFTKEY) {
 			newspace(curarea, SPACE_IMAGE);
 			return 0;
 		}
-		else extern_set_butspace(event);
+		else if(G.qual==0) {
+			extern_set_butspace(event);
+		}
 		break;
 	case F11KEY:
-		if(G.qual & LR_SHIFTKEY) {
+		if(G.qual==LR_SHIFTKEY) {
 			newspace(curarea, SPACE_TEXT);
 			return 0;
 		}
-		else BIF_toggle_render_display();
-		return 0;
+		else if(G.qual==0) {
+			BIF_toggle_render_display();
+			return 0;
+		}
 		break;
 	case F12KEY:
-		if(G.qual & LR_SHIFTKEY) {
-			if (G.qual & LR_CTRLKEY){
-				newspace(curarea, SPACE_NLA);
-				return 0;
-			}
+		if(G.qual==LR_SHIFTKEY) {
 			newspace(curarea, SPACE_ACTION);
 			return 0;
 		}
-		else BIF_do_render(0);
+		else if (G.qual==(LR_SHIFTKEY|LR_CTRLKEY)) {
+			newspace(curarea, SPACE_NLA);
+			return 0;
+		}
+		else if(G.qual==0) {
+			BIF_do_render(0);
+		}
 		return 0;
 		break;
 	
@@ -648,15 +665,20 @@ int blenderqread(unsigned short event, short val)
 
 #ifdef _WIN32	// FULLSCREEN
 			if(event==DOWNARROWKEY){
-				if (G.qual & LR_ALTKEY) mainwindow_toggle_fullscreen(0);
-				else CFRA-= 10;
+				if (G.qual==LR_ALTKEY)
+					mainwindow_toggle_fullscreen(0);
+				else if(G.qual==0)
+					CFRA-= 10;
 			}
 #else
-			if(event==DOWNARROWKEY) CFRA-= 10;
+			if((event==DOWNARROWKEY)&&(G.qual==0))
+				CFRA-= 10;
 #endif
-			else CFRA--;
+			else if((event==LEFTARROWKEY)&&(G.qual==0))
+				CFRA--;
 			
-			if(G.qual & LR_SHIFTKEY) CFRA= SFRA;
+			if(G.qual==LR_SHIFTKEY)
+				CFRA= SFRA;
 			if(CFRA<1) CFRA=1;
 	
 			update_for_newframe();
@@ -670,49 +692,64 @@ int blenderqread(unsigned short event, short val)
 
 #ifdef _WIN32	// FULLSCREEN
 			if(event==UPARROWKEY){ 
-				if(G.qual & LR_ALTKEY) mainwindow_toggle_fullscreen(1);
-				else CFRA+= 10;
+				if(G.qual==LR_ALTKEY)
+					mainwindow_toggle_fullscreen(1);
+				else if(G.qual==0)
+					CFRA+= 10;
 			}
 #else
-			if(event==UPARROWKEY) CFRA+= 10;
+			if((event==UPARROWKEY)&&(G.qual==0))
+				CFRA+= 10;
 #endif
-			else CFRA++;
+			else if((event==RIGHTARROWKEY)&&(G.qual==0))
+				CFRA++;
 
-			if(G.qual & LR_SHIFTKEY) CFRA= EFRA;
+			if(G.qual==LR_SHIFTKEY)
+				CFRA= EFRA;
 			
 			update_for_newframe();
 		}
 		break;
-	
+
 	case ESCKEY:
 		sound_stop_all_sounds();
 		break;
 	case TABKEY:
-		if(G.qual==0 ) {
+		if(G.qual==0) {
 			if(textspace==0) {
-				if(curarea->spacetype==SPACE_IPO) set_editflag_editipo();
-				else if(curarea->spacetype==SPACE_SEQ) enter_meta();
+				if(curarea->spacetype==SPACE_IPO)
+					set_editflag_editipo();
+				else if(curarea->spacetype==SPACE_SEQ)
+					enter_meta();
 				else if(G.vd) {
 					/* also when Alt-E */
-					if(G.obedit==0) enter_editmode();
-					else exit_editmode(1);
+					if(G.obedit==0)
+						enter_editmode();
+					else
+						exit_editmode(1);
 				}
 				return 0;
 			}
 		}
-		else if(G.qual & LR_CTRLKEY){
-			if(G.obpose) exit_posemode(1);
+		else if(G.qual==LR_CTRLKEY){
+			if(G.obpose)
+				exit_posemode(1);
 			else
 				enter_posemode();
 			allqueue(REDRAWHEADERS, 0);	
 			
 		}
-		else if(G.qual & LR_SHIFTKEY) {
-			if(G.obedit) exit_editmode(1);
-			if(G.f & G_FACESELECT) set_faceselect();
-			if(G.f & G_VERTEXPAINT) set_vpaint();
-			if(G.f & G_WEIGHTPAINT) set_wpaint();
-			if(G.obpose) exit_posemode(1);
+		else if(G.qual==LR_SHIFTKEY) {
+			if(G.obedit)
+				exit_editmode(1);
+			if(G.f & G_FACESELECT)
+				set_faceselect();
+			if(G.f & G_VERTEXPAINT)
+				set_vpaint();
+			if(G.f & G_WEIGHTPAINT)
+				set_wpaint();
+			if(G.obpose)
+				exit_posemode(1);
 		}
 		break;
 
@@ -721,18 +758,23 @@ int blenderqread(unsigned short event, short val)
 
 	case AKEY:
 		if(textediting==0 && textspace==0) {
-			if(G.qual & LR_ALTKEY) {
-				if(G.qual & LR_SHIFTKEY) play_anim(1);
-				else play_anim(0);
+			if(G.qual==(LR_SHIFTKEY|LR_ALTKEY)){
+				play_anim(1);
+				return 0;
+			}
+			else if(G.qual==LR_ALTKEY) {
+				play_anim(0);
 				return 0;
 			}
 		}
 		break;
 	case EKEY:
-		if(G.qual & LR_ALTKEY) {
+		if(G.qual==LR_ALTKEY) {
 			if(G.vd && textspace==0) {
-				if(G.obedit==0) enter_editmode();
-				else exit_editmode(1);
+				if(G.obedit==0)
+					enter_editmode();
+				else
+					exit_editmode(1);
 				return 0;
 			}			
 		}
@@ -756,8 +798,7 @@ int blenderqread(unsigned short event, short val)
 
 	case NKEY:
 		if(textediting==0 && textspace==0 ) {
-			if(G.qual & LR_CTRLKEY);
-			else if(G.qual==0 || (G.qual & LR_SHIFTKEY)) {
+			if(G.qual==0 || (G.qual==LR_SHIFTKEY)) {
 				if(curarea->spacetype!=SPACE_VIEW3D) {		// is new panel, in view3d queue
 					clever_numbuts();
 					return 0;
@@ -768,7 +809,7 @@ int blenderqread(unsigned short event, short val)
 		
 	case OKEY:
 		if(textediting==0) {
-			if(G.qual & LR_CTRLKEY) {
+			if(G.qual==LR_CTRLKEY) {
 				/* There seem to be crashes here sometimes.... String
 				 * bound overwrites? I changed dir and str sizes,
 				 * let's see if this reoccurs. */
@@ -785,74 +826,70 @@ int blenderqread(unsigned short event, short val)
 		
 	case SKEY:
 		if(G.obpose==0 && G.obedit==0) {
-			if(G.qual & LR_CTRLKEY) {
-				if(G.qual & LR_SHIFTKEY);
-				else {
-					strcpy(dir, G.sce);
-					if (untitled(dir)) {
-						activate_fileselect(FILE_BLENDER, "SAVE FILE", dir, BIF_write_file);
-					} else {
-						BIF_write_file(dir);
-						free_filesel_spec(dir);
-					}
-					return 0;
+			if(G.qual==LR_CTRLKEY) {
+				strcpy(dir, G.sce);
+				if (untitled(dir)) {
+					activate_fileselect(FILE_BLENDER, "SAVE FILE", dir, BIF_write_file);
+				} else {
+					BIF_write_file(dir);
+					free_filesel_spec(dir);
 				}
+				return 0;
 			}
 		}
 		break;
 	
 	case TKEY:
-		if(G.qual & LR_ALTKEY) {
-		if(G.qual & LR_CTRLKEY) {
+		if (G.qual==(LR_SHIFTKEY|LR_ALTKEY|LR_CTRLKEY)) {
 			int a;
+			double delta, stime;
 
-			if (G.qual & LR_SHIFTKEY) {
-				double delta, stime;
+			waitcursor(1);
+			
+			stime= PIL_check_seconds_timer();
+			for(a=0; a<100000; a++) {
+				scrarea_do_windraw(curarea);
 
+				delta= PIL_check_seconds_timer()-stime;
+				if (delta>5.0) break;
+			}
+			
+			waitcursor(0);
+			notice("FPS: %f (%d iterations)", a/delta, a);
+			return 0;
+		}
+		else if(G.qual==(LR_ALTKEY|LR_CTRLKEY)) {
+			int a;
+			int event= pupmenu("10 Timer%t|draw|draw+swap");
+			if(event>0) {
+				double stime= PIL_check_seconds_timer();
+				char tmpstr[128];
+				int time;
+
+				printf("start timer\n");
 				waitcursor(1);
-				
-				stime= PIL_check_seconds_timer();
-				for(a=0; a<100000; a++) {
+								
+				for(a=0; a<10; a++) {
 					scrarea_do_windraw(curarea);
-
-					delta= PIL_check_seconds_timer()-stime;
-					if (delta>5.0) break;
+					if(event==2) screen_swapbuffers();
 				}
+			
+				time= (PIL_check_seconds_timer()-stime)*1000;
 				
+				if(event==1) sprintf(tmpstr, "draw %%t|%d", time);
+				if(event==2) sprintf(tmpstr, "d+sw %%t|%d", time);
+			
 				waitcursor(0);
-				notice("FPS: %f (%d iterations)", a/delta, a);
-			} else {
-				int event= pupmenu("10 Timer%t|draw|draw+swap");
-				if(event>0) {
-					double stime= PIL_check_seconds_timer();
-					char tmpstr[128];
-					int time;
+				pupmenu(tmpstr);
 
-					printf("start timer\n");
-					waitcursor(1);
-									
-					for(a=0; a<10; a++) {
-						scrarea_do_windraw(curarea);
-						if(event==2) screen_swapbuffers();
-					}
-				
-					time= (PIL_check_seconds_timer()-stime)*1000;
-					
-					if(event==1) sprintf(tmpstr, "draw %%t|%d", time);
-					if(event==2) sprintf(tmpstr, "d+sw %%t|%d", time);
-				
-					waitcursor(0);
-					pupmenu(tmpstr);
-
-				}
 			}
 			return 0;
-		}}
+		}
 		break;
 				
 	case UKEY:
 		if(textediting==0) {
-			if(G.qual & LR_CTRLKEY) {
+			if(G.qual==LR_CTRLKEY) {
 				if(okee("SAVE USER DEFAULTS")) {
 					BIF_write_homefile();
 				}
@@ -863,20 +900,17 @@ int blenderqread(unsigned short event, short val)
 		
 	case WKEY:
 		if(textediting==0) {
-			if(G.qual & LR_CTRLKEY) {
-				if(G.qual & LR_SHIFTKEY);
-				else {
-					strcpy(dir, G.sce);
-					if (untitled(dir)) {
-						activate_fileselect(FILE_BLENDER, "SAVE FILE", dir, BIF_write_file);
-					} else {
-						BIF_write_file(dir);
-						free_filesel_spec(dir);
-					}
-					return 0;
+			if(G.qual==LR_CTRLKEY) {
+				strcpy(dir, G.sce);
+				if (untitled(dir)) {
+					activate_fileselect(FILE_BLENDER, "SAVE FILE", dir, BIF_write_file);
+				} else {
+					BIF_write_file(dir);
+					free_filesel_spec(dir);
 				}
+				return 0;
 			}
-			else if(G.qual & LR_ALTKEY) {
+			else if(G.qual==LR_ALTKEY) {
 				write_videoscape_fs();
 			}
 		}
@@ -884,7 +918,7 @@ int blenderqread(unsigned short event, short val)
 		
 	case XKEY:
 		if(textspace==0) {
-			if(G.qual & LR_CTRLKEY) {
+			if(G.qual==LR_CTRLKEY) {
 				if(okee("ERASE ALL")) {
 					if( BIF_read_homefile()==0) error("No file ~/.B.blend");
 				}

@@ -1313,6 +1313,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 				break;
 			case VKEY:
+				ob= OBACT;
 				if((G.qual==LR_SHIFTKEY)) {
 					if ((G.obedit) && G.obedit->type==OB_MESH) {
 						align_view_to_selected(v3d);
@@ -1355,7 +1356,8 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case XKEY:
 			case DELKEY:
-				delete_context_selected();
+				if(G.qual==0)
+					delete_context_selected();
 				break;
 			case YKEY:
 				if((G.qual==0) && (G.obedit)) {
@@ -1371,39 +1373,49 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 			
 			case HOMEKEY:
-				view3d_home(0);
+				if(G.qual==0)
+					view3d_home(0);
 				break;
 			case COMMAKEY:
-				G.vd->around= V3D_CENTRE;
-				scrarea_queue_headredraw(curarea);
+				if(G.qual==0) {
+					G.vd->around= V3D_CENTRE;
+					scrarea_queue_headredraw(curarea);
+				}
 				break;
 				
 			case PERIODKEY:
-				G.vd->around= V3D_CURSOR;
-				scrarea_queue_headredraw(curarea);
+				if(G.qual==0) {
+					G.vd->around= V3D_CURSOR;
+					scrarea_queue_headredraw(curarea);
+				}
 				break;
 			
 			case PADSLASHKEY:
-				if(G.vd->localview) {
-					G.vd->localview= 0;
-					endlocalview(curarea);
+				if(G.qual==0) {
+					if(G.vd->localview) {
+						G.vd->localview= 0;
+						endlocalview(curarea);
+					}
+					else {
+						G.vd->localview= 1;
+						initlocalview();
+					}
+					scrarea_queue_headredraw(curarea);
 				}
-				else {
-					G.vd->localview= 1;
-					initlocalview();
-				}
-				scrarea_queue_headredraw(curarea);
 				break;
 			case PADASTERKEY:	/* '*' */
-				ob= OBACT;
-				if(ob) {
-					obmat_to_viewmat(ob);
-					if(G.vd->persp==2) G.vd->persp= 1;
-					scrarea_queue_winredraw(curarea);
+				if(G.qual==0) {
+					ob= OBACT;
+					if(ob) {
+						obmat_to_viewmat(ob);
+						if(G.vd->persp==2) G.vd->persp= 1;
+						scrarea_queue_winredraw(curarea);
+					}
 				}
 				break;
 			case PADPERIOD:	/* '.' */
-				centreview();
+				if(G.qual==0)
+					centreview();
 				break;
 			
 			case PAGEUPKEY:
@@ -1428,9 +1440,11 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			
 			case ESCKEY:
-				if (G.vd->flag & V3D_DISPIMAGE) {
-					G.vd->flag &= ~V3D_DISPIMAGE;
-					doredraw= 1;
+				if(G.qual==0) {
+					if (G.vd->flag & V3D_DISPIMAGE) {
+						G.vd->flag &= ~V3D_DISPIMAGE;
+						doredraw= 1;
+					}
 				}
 				break;
 			}
@@ -1457,10 +1471,10 @@ void initview3d(ScrArea *sa)
 	vd->drawtype= OB_WIRE;
 	vd->view= 7;
 	vd->dist= 10.0;
-	vd->lens= 35.0;
-	vd->near= 0.01;
-	vd->far= 500.0;
-	vd->grid= 1.0;
+	vd->lens= 35.0f;
+	vd->near= 0.01f;
+	vd->far= 500.0f;
+	vd->grid= 1.0f;
 	vd->gridlines= 16;
 	vd->lay= vd->layact= 1;
 	if(G.scene) {
@@ -1544,11 +1558,11 @@ void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			allqueue(REDRAWNLA, 0);
 			break;
 		case PADPLUSKEY:
-			view2d_zoom(v2d, 0.1154, curarea->winx, curarea->winy);
+			view2d_zoom(v2d, 0.1154f, curarea->winx, curarea->winy);
 			doredraw= 1;
 			break;
 		case PADMINUS:
-			view2d_zoom(v2d, -0.15, curarea->winx, curarea->winy);
+			view2d_zoom(v2d, -0.15f, curarea->winx, curarea->winy);
 			doredraw= 1;
 			break;
 		case PAGEUPKEY:
@@ -1660,11 +1674,11 @@ void initipo(ScrArea *sa)
 
 	sipo->v2d.cur= sipo->v2d.tot;
 
-	sipo->v2d.min[0]= 0.01;
-	sipo->v2d.min[1]= 0.01;
+	sipo->v2d.min[0]= 0.01f;
+	sipo->v2d.min[1]= 0.01f;
 
-	sipo->v2d.max[0]= 15000.0;
-	sipo->v2d.max[1]= 10000.0;
+	sipo->v2d.max[0]= 15000.0f;
+	sipo->v2d.max[1]= 10000.0f;
 	
 	sipo->v2d.scroll= L_SCROLL+B_SCROLL;
 	sipo->v2d.keeptot= 0;
@@ -1807,7 +1821,6 @@ void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 		uiDefButC(block, NUMSLI, B_UPDATE_THEME,"B ",	465,y1,200,20,  col+2, 0.0, 255.0, B_THEMECOL, 0, "");
 
 		uiDefButC(block, COL, B_THEMECOL, "",		675,y1,50,y3-y1+20, col, 0, 0, 0, 0, "");
-		
 		if ELEM3(th_curcol, TH_PANEL, TH_FACE, TH_FACE_SELECT) {
 			uiDefButC(block, NUMSLI, B_UPDATE_THEME,"A ",	465,y3+25,200,20,  col+3, 0.0, 255.0, B_THEMECOL, 0, "");
 		}
@@ -1838,7 +1851,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	fac= ((float)curarea->winx)/1280.0;
+	fac= ((float)curarea->winx)/1280.0f;
 	myortho2(0.0, 1280.0, 0.0, curarea->winy/fac);
 	
 	sprintf(naam, "infowin %d", curarea->win);
@@ -2531,11 +2544,11 @@ void winqreadbutspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 			break;
 		case PADPLUSKEY:
-			view2d_zoom(&sbuts->v2d, 0.06, curarea->winx, curarea->winy);
+			view2d_zoom(&sbuts->v2d, 0.06f, curarea->winx, curarea->winy);
 			scrarea_queue_winredraw(curarea);
 			break;
 		case PADMINUS:
-			view2d_zoom(&sbuts->v2d, -0.075, curarea->winx, curarea->winy);
+			view2d_zoom(&sbuts->v2d, -0.075f, curarea->winx, curarea->winy);
 			scrarea_queue_winredraw(curarea);
 			break;
 		case RENDERPREVIEW:
@@ -2582,19 +2595,19 @@ void set_rects_butspace(SpaceButs *buts)
 {
 	/* buts space goes from (0,0) to (1280, 228) */
 
-	buts->v2d.tot.xmin= 0.0;
-	buts->v2d.tot.ymin= 0.0;
-	buts->v2d.tot.xmax= 1279.0;
-	buts->v2d.tot.ymax= 228.0;
+	buts->v2d.tot.xmin= 0.0f;
+	buts->v2d.tot.ymin= 0.0f;
+	buts->v2d.tot.xmax= 1279.0f;
+	buts->v2d.tot.ymax= 228.0f;
 	
-	buts->v2d.min[0]= 256.0;
-	buts->v2d.min[1]= 42.0;
+	buts->v2d.min[0]= 256.0f;
+	buts->v2d.min[1]= 42.0f;
 
-	buts->v2d.max[0]= 2048.0;
-	buts->v2d.max[1]= 450.0;
+	buts->v2d.max[0]= 2048.0f;
+	buts->v2d.max[1]= 450.0f;
 	
-	buts->v2d.minzoom= 0.5;
-	buts->v2d.maxzoom= 1.21;
+	buts->v2d.minzoom= 0.5f;
+	buts->v2d.maxzoom= 1.21f;
 	
 	buts->v2d.scroll= 0;
 	buts->v2d.keepaspect= 1;
@@ -2860,9 +2873,11 @@ void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case XKEY:
 		case DELKEY:
-			if(sseq->mainb) break;
-			if((G.qual==0))
-				del_seq();
+			if(G.qual==0) {
+				if(sseq->mainb) break;
+				if((G.qual==0))
+					del_seq();
+			}
 			break;
 		}
 	}
@@ -2896,7 +2911,7 @@ void init_seqspace(ScrArea *sa)
 	sseq->v2d.max[0]= 32000.0;
 	sseq->v2d.max[1]= MAXSEQ;
 	
-	sseq->v2d.minzoom= 0.1;
+	sseq->v2d.minzoom= 0.1f;
 	sseq->v2d.maxzoom= 10.0;
 	
 	sseq->v2d.scroll= L_SCROLL+B_SCROLL;
@@ -2946,7 +2961,7 @@ void init_actionspace(ScrArea *sa)
 	saction->v2d.max[0]= 32000.0;
 	saction->v2d.max[1]= 1000.0;
 	
-	saction->v2d.minzoom= 0.01;
+	saction->v2d.minzoom= 0.01f;
 	saction->v2d.maxzoom= 10;
 
 	saction->v2d.scroll= R_SCROLL+B_SCROLL;
@@ -3069,7 +3084,7 @@ void init_soundspace(ScrArea *sa)
 	ssound->v2d.max[0]= 32000.0;
 	ssound->v2d.max[1]= 259;
 	
-	ssound->v2d.minzoom= 0.1;
+	ssound->v2d.minzoom= 0.1f;
 	ssound->v2d.maxzoom= 10.0;
 	
 	ssound->v2d.scroll= B_SCROLL;
@@ -3378,7 +3393,7 @@ void init_v2d_oops(View2D *v2d)
 	v2d->max[0]= 320.0;
 	v2d->max[1]= 320.0;
 	
-	v2d->minzoom= 0.01;
+	v2d->minzoom= 0.01f;
 	v2d->maxzoom= 2.0;
 	
 	/* v2d->scroll= L_SCROLL+B_SCROLL; */
