@@ -3926,7 +3926,7 @@ void uiFreeBlock(uiBlock *block)
 {
 	uiBut *but;
 
-	if(block->flag & UI_BLOCK_BUSY) printf("var1: %x\n", block);	
+	if(block->flag & UI_BLOCK_BUSY) printf("attempt to free busy buttonblock: %p\n", block);	
 
 	while( (but= block->buttons.first) ) {
 		BLI_remlink(&block->buttons, but);	

@@ -298,7 +298,7 @@ static LinkNode *save_and_reset_all_scene_cfra(void)
 	Scene *sc;
 	
 	for (sc= G.main->scene.first; sc; sc= sc->id.next) {
-		BLI_linklist_prepend(&storelist, (void*) sc->r.cfra);
+		BLI_linklist_prepend(&storelist, (void*) (long) sc->r.cfra);
 		sc->r.cfra= 1;
 
 		set_scene_bg(sc);

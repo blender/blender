@@ -332,38 +332,49 @@ static void renderwin_handler(Window *win, void *user_data, short evt, short val
 
 	if (evt==RESHAPE) {
 		renderwin_reshape(rw);
-	} else if (evt==REDRAW) {
+	} 
+	else if (evt==REDRAW) {
 		renderwin_draw(rw, 0);
 #ifndef __APPLE__
-	} else if (evt==WINCLOSE) {
+	} 
+	else if (evt==WINCLOSE) {
 		BIF_close_render_display();
 #endif
-	} else if (evt==INPUTCHANGE) {
+	} 
+	else if (evt==INPUTCHANGE) {
 		rw->active= val;
 
 		if (!val && (rw->flags&RW_FLAGS_OLDZOOM)) {
 			rw->flags&= ~RW_FLAGS_OLDZOOM;
 			renderwin_reset_view(rw);
 		}
-	} else if (ELEM(evt, MOUSEX, MOUSEY)) {
+	} 
+	else if (ELEM(evt, MOUSEX, MOUSEY)) {
 		rw->lmouse[evt==MOUSEY]= val;
 		renderwin_mouse_moved(rw);
-	} else if (ELEM3(evt, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE)) {
+	} 
+	else if (ELEM3(evt, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE)) {
 		int which= (evt==LEFTMOUSE)?0:(evt==MIDDLEMOUSE)?1:2;
 		rw->mbut[which]= val;
 		renderwin_mousebut_changed(rw);
-	} else if (val) {
+	} 
+	else if (val) {
 		if (evt==ESCKEY) {
 			if (rw->flags&RW_FLAGS_OLDZOOM) {
 				rw->flags&= ~RW_FLAGS_OLDZOOM;
 				renderwin_reset_view(rw);
-			} else {
+			} 
+			else {
 				rw->flags|= RW_FLAGS_ESCAPE;
 				mainwindow_raise();
+				mainwindow_make_active();
+				rw->active= 0;
 			}
-		} else if (evt==JKEY) {
+		} 
+		else if (evt==JKEY) {
 			BIF_swap_render_rects();
-		} else if (evt==ZKEY) {
+		} 
+		else if (evt==ZKEY) {
 			if (rw->flags&RW_FLAGS_OLDZOOM) {
 				rw->flags&= ~RW_FLAGS_OLDZOOM;
 				renderwin_reset_view(rw);
@@ -372,29 +383,36 @@ static void renderwin_handler(Window *win, void *user_data, short evt, short val
 				rw->flags|= RW_FLAGS_OLDZOOM;
 				renderwin_mouse_moved(rw);
 			}
-		} else if (evt==PADPLUSKEY) {
+		} 
+		else if (evt==PADPLUSKEY) {
 			if (rw->zoom<15.9) {
 				rw->zoom*= 2.0;
 				renderwin_queue_redraw(rw);
 			}
-		} else if (evt==PADMINUS) {
+		} 
+		else if (evt==PADMINUS) {
 			if (rw->zoom>0.26) {
 				rw->zoom*= 0.5;
 				renderwin_queue_redraw(rw);
 			}
-		} else if (evt==PADENTER || evt==HOMEKEY) {
+		} 
+		else if (evt==PADENTER || evt==HOMEKEY) {
 			if (rw->flags&RW_FLAGS_OLDZOOM) {
 				rw->flags&= ~RW_FLAGS_OLDZOOM;
 			}
 			renderwin_reset_view(rw);
-		} else if (evt==F3KEY) {
+		} 
+		else if (evt==F3KEY) {
 			mainwindow_raise();
 			mainwindow_make_active();
+			rw->active= 0;
 			areawinset(find_biggest_area()->win);
 			BIF_save_rendered_image();
-		} else if (evt==F11KEY) {
+		} 
+		else if (evt==F11KEY) {
 			BIF_toggle_render_display();
-		} else if (evt==F12KEY) {
+		} 
+		else if (evt==F12KEY) {
 			BIF_do_render(0);
 		}
 	}
@@ -491,6 +509,7 @@ static void renderwin_init_display_cb(void)
 
 			renderwin_reset_view(render_win);
 			render_win->flags&= ~RW_FLAGS_ESCAPE;
+			render_win->active= 1;
 		}
 	}
 }
@@ -746,7 +765,8 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 		RE_set_renderdisplay_callback(renderwin_progress_display_cb);
 
 		renderwin_init_display_cb();
-	} else {
+	} 
+	else {
 #ifndef __APPLE__		
 		BIF_close_render_display();
 #endif
@@ -909,16 +929,25 @@ void BIF_toggle_render_display(void)
 {
 	ScrArea *sa= find_dispimage_v3d();
 	
-	if (render_win && render_win->active) {
-		if (R.displaymode == R_DISPLAYVIEW) {
-			BIF_close_render_display();
+	if(R.rectot==NULL);		// do nothing
+	else if (render_win) {
+		if(render_win->active) {
+			mainwindow_raise();
+			mainwindow_make_active();
+			render_win->active= 0;
 		}
-		mainwindow_raise();
-	} else if (sa) {
+		else {
+			window_raise(render_win->win);
+			window_make_active(render_win->win);
+			render_win->active= 1;
+		}
+	} 
+	else if (sa) {
 		View3D *vd= sa->spacedata.first;
 		vd->flag &= ~V3D_DISPIMAGE;
 		scrarea_queue_winredraw(sa);
-	} else {
+	} 
+	else {
 		if (R.displaymode == R_DISPLAYWIN) {
 			renderwin_init_display_cb();
 		} else {
