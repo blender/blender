@@ -390,8 +390,8 @@ static void applyObjectConstraintSize(TransInfo *t, TransData *td, float smat[3]
 			smat[2][2] = 1.0f;
 		}
 
-		Mat3MulMat3(tmat, smat, td->axismtx);
-		Mat3MulMat3(smat, imat, tmat);
+		Mat3MulMat3(tmat, smat, imat);
+		Mat3MulMat3(smat, td->axismtx, tmat);
 	}
 }
 /*
@@ -600,7 +600,7 @@ void BIF_setSingleAxisConstraint(float vec[3]) {
 	getConstraintMatrix(t);
 
 	VECCOPY(t->con.center, t->center);
-	if (G.obedit) {
+	if (t->flag & T_OBJECT) {
 		Mat4MulVecfl(G.obedit->obmat, t->con.center);
 	}
 
