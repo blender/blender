@@ -69,6 +69,12 @@
 #include <sys/time.h>
 #endif
 
+#include <sys/param.h>
+
+#ifdef __APPLE__
+#include <CoreFoundation/CoreFoundation.h>
+#endif
+
 /* local */
 
 static int add_win32_extension(char *name);
@@ -833,4 +839,22 @@ void BLI_where_am_i(char *fullname, char *name)
 #endif
 	}
 }
+
+/* 
+ * returns absolute path to the app bundle
+ * only useful on OS X 
+ */
+#ifdef __APPLE__
+char* BLI_getbundle(void) {
+	CFURLRef bundleURL;
+	CFStringRef pathStr;
+	char path[MAXPATHLEN];
+	CFBundleRef mainBundle = CFBundleGetMainBundle();
+
+	bundleURL = CFBundleCopyBundleURL(mainBundle);
+	pathStr = CFURLCopyFileSystemPath(bundleURL, kCFURLPOSIXPathStyle);
+	CFStringGetCString(pathStr, path, MAXPATHLEN, kCFStringEncodingASCII);
+	return path;
+}
+#endif
 

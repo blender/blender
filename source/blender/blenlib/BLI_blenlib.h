@@ -203,6 +203,15 @@ void BLI_free_file_lines(struct LinkNode *lines);
 	 */
 void BLI_where_am_i(char *fullname, char *name);
 
+	/**
+	 * determines the full path to the application bundle on OS X
+	 *
+	 * @return path to application bundle
+	 */
+#ifdef __APPLE__
+char* BLI_getbundle(void);
+#endif
+		
 /* BLI_storage.h */
 int    BLI_filesize(int file);
 double BLI_diskfree(char *dir);
