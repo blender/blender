@@ -114,6 +114,7 @@ void texspace_edit(void);
 void first_base(void);
 void make_displists_by_obdata(void *obdata);
 void flip_subdivison(struct Object *ob, int);
+void mirrormenu(void);
 
 #endif /*  BDR_EDITOBJECT_H */
 

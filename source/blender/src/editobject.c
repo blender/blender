@@ -6702,7 +6702,7 @@ void make_displists_by_obdata(void *obdata) {
 /* ******************************************************************** */
 /* Mirror function in Edit Mode */
 
-void mirrormenu(){
+void mirrormenu(void){
 	short mode = 0, axis, a;
 	float *curs, mat[3][3], imat[3][3], min[3], max[3];
 	TransVert *tv;

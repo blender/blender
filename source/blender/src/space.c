@@ -449,7 +449,7 @@ static void align_view_to_selected(View3D *v3d)
 	if (nr!=-1) {
 		int axis= nr;
 
-		if (G.obedit && (G.obedit->type == OB_MESH)) {
+		if ((G.obedit) && (G.obedit->type == OB_MESH)) {
 			editmesh_align_view_to_selected(v3d, axis);
 			addqueue(v3d->area->win, REDRAW, 1);
 		} else if (G.f & G_FACESELECT) {
@@ -563,7 +563,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		
 		/* TEXTEDITING?? */
-		if(G.obedit && G.obedit->type==OB_FONT) {
+		if((G.obedit) && G.obedit->type==OB_FONT) {
 			switch(event) {
 			
 			case LEFTMOUSE:
@@ -571,14 +571,20 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case MIDDLEMOUSE:
 				if(U.flag & VIEWMOVE) {
-					if(G.qual & LR_SHIFTKEY) viewmove(0);
-					else if(G.qual & LR_CTRLKEY) viewmove(2);
-					else viewmove(1);
+					if((G.qual==LR_SHIFTKEY))
+						viewmove(0);
+					else if(G.qual==LR_CTRLKEY)
+						viewmove(2);
+					else if((G.qual==0))
+						viewmove(1);
 				}
 				else {
-					if(G.qual & LR_SHIFTKEY) viewmove(1);
-					else if(G.qual & LR_CTRLKEY) viewmove(2);
-					else viewmove(0);
+					if((G.qual==LR_SHIFTKEY))
+						viewmove(1);
+					else if(G.qual==LR_CTRLKEY)
+						viewmove(2);
+					else if((G.qual==0))
+						viewmove(0);
 				}
 			case WHEELUPMOUSE:
 				/* Regular:   Zoom in */
@@ -643,18 +649,20 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 
 			case UKEY:
-				if(G.qual & LR_ALTKEY) {
+				if(G.qual==LR_ALTKEY) {
 					remake_editText();
 					doredraw= 1;
-				} else {
+				} 
+				else {
 					do_textedit(event, val, ascii);
 				}
 				break;
 			case VKEY:
-				if(G.qual & LR_ALTKEY) {
+				if(G.qual==LR_ALTKEY) {
 					paste_editText();
 					doredraw= 1;
-				} else {
+				} 
+				else {
 					do_textedit(event, val, ascii);
 				}
 				break;
@@ -678,7 +686,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 				
 			case LEFTMOUSE:
-				if (G.obedit || !(G.f&(G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))) {
+				if ((G.obedit) || !(G.f&(G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))) {
 					mouse_cursor();
 				}
 				else if (G.f & G_VERTEXPAINT) {
@@ -693,31 +701,47 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case MIDDLEMOUSE:
 				if(U.flag & VIEWMOVE) {
-					if(G.qual & LR_SHIFTKEY) viewmove(0);
-					else if(G.qual & LR_CTRLKEY) viewmove(2);
-					else viewmove(1);
+					if((G.qual==LR_SHIFTKEY))
+						viewmove(0);
+					else if(G.qual==LR_CTRLKEY)
+						viewmove(2);
+					else if((G.qual==0))
+						viewmove(1);
 				}
 				else {
-					if(G.qual & LR_SHIFTKEY) viewmove(1);
-					else if(G.qual & LR_CTRLKEY) viewmove(2);
-					else viewmove(0);
+					if((G.qual==LR_SHIFTKEY))
+						viewmove(1);
+					else if(G.qual==LR_CTRLKEY)
+						viewmove(2);
+					else if((G.qual==0))
+						viewmove(0);
 				}
 				break;
 			case RIGHTMOUSE:
-				if(G.obedit && (G.qual & LR_CTRLKEY)==0) {
-					if(G.obedit->type==OB_MESH) mouse_mesh();
-					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) mouse_nurb();
-					else if(G.obedit->type==OB_MBALL) mouse_mball();
-					else if(G.obedit->type==OB_LATTICE) mouse_lattice();
-					else if(G.obedit->type==OB_ARMATURE) mouse_armature();
+				if((G.obedit) && (G.qual & LR_CTRLKEY)==0) {
+					if(G.obedit->type==OB_MESH)
+						mouse_mesh();
+					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
+						mouse_nurb();
+					else if(G.obedit->type==OB_MBALL)
+						mouse_mball();
+					else if(G.obedit->type==OB_LATTICE)
+						mouse_lattice();
+					else if(G.obedit->type==OB_ARMATURE)
+						mouse_armature();
 				}
-				else if(G.obedit && ((G.qual & LR_CTRLKEY) && (G.qual & LR_ALTKEY))) mouse_mesh();
+				else if((G.obedit) && (G.qual==(LR_CTRLKEY|LR_ALTKEY)))
+					mouse_mesh();
 				else if(G.obpose) { 
-					if (G.obpose->type==OB_ARMATURE) mousepose_armature();
+					if (G.obpose->type==OB_ARMATURE)
+						mousepose_armature();
 				}
-				else if( G.qual & LR_CTRLKEY ) mouse_select();
-				else if(G.f & G_FACESELECT) face_select();
-				else if( G.f & (G_VERTEXPAINT|G_TEXTUREPAINT)) sample_vpaint();
+				else if(G.qual==LR_CTRLKEY)
+					mouse_select();
+				else if(G.f & G_FACESELECT)
+					face_select();
+				else if( G.f & (G_VERTEXPAINT|G_TEXTUREPAINT))
+					sample_vpaint();
 				else
 					mouse_select();
 				break;
@@ -785,7 +809,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			
 			case ONEKEY:
 				ob= OBACT;
-				if(G.qual & LR_CTRLKEY) {
+				if(G.qual==LR_CTRLKEY) {
 					if(G.obedit) {
 							flip_subdivison(G.obedit, 1);
 					}
@@ -797,7 +821,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					do_layer_buttons(0); break;
 			case TWOKEY:
 				ob= OBACT;
-				if(G.qual & LR_CTRLKEY) {
+				if(G.qual==LR_CTRLKEY) {
 					if(G.obedit) {
 							flip_subdivison(G.obedit, 2);
 					}
@@ -810,7 +834,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case THREEKEY:
 				ob= OBACT;
-				if(G.qual & LR_CTRLKEY) {
+				if(G.qual==LR_CTRLKEY) {
 					if(G.obedit) {
 							flip_subdivison(G.obedit, 3);
 					}
@@ -819,7 +843,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 				}
 				else
-				do_layer_buttons(2); break;
+					do_layer_buttons(2); break;
 			case FOURKEY:
 				ob= OBACT;
 				if(G.qual & LR_CTRLKEY) {
@@ -852,18 +876,23 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				do_layer_buttons(-1); break;
 				
 			case AKEY:
-				if(G.qual & LR_CTRLKEY) apply_object();
-				else if(G.qual & LR_SHIFTKEY) {
+				if(G.qual==LR_CTRLKEY) apply_object();
+				else if((G.qual==LR_SHIFTKEY)) {
 					tbox_setmain(0);
 					toolbox();
 				}
 				else {
 					if(G.obedit) {
-						if(G.obedit->type==OB_MESH) deselectall_mesh();
-						else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) deselectall_nurb();
-						else if(G.obedit->type==OB_MBALL) deselectall_mball();
-						else if(G.obedit->type==OB_LATTICE) deselectall_Latt();
-						else if(G.obedit->type==OB_ARMATURE) deselectall_armature();
+						if(G.obedit->type==OB_MESH)
+							deselectall_mesh();
+						else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
+							deselectall_nurb();
+						else if(G.obedit->type==OB_MBALL)
+							deselectall_mball();
+						else if(G.obedit->type==OB_LATTICE)
+							deselectall_Latt();
+						else if(G.obedit->type==OB_ARMATURE)
+							deselectall_armature();
 					}
 					else if (G.obpose){
 						switch (G.obpose->type){
@@ -885,28 +914,30 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				break;
 			case BKEY:
-				if(G.qual & LR_SHIFTKEY) set_render_border();
-				else borderselect();
+				if((G.qual==LR_SHIFTKEY))
+					set_render_border();
+				else if((G.qual==0))
+					borderselect();
 				break;
 			case CKEY:
-				if(G.qual & LR_CTRLKEY) {
+				if(G.qual==LR_CTRLKEY) {
 					copymenu();
 				}
-				else if(G.qual & LR_ALTKEY) {
+				else if(G.qual==LR_ALTKEY) {
 					convertmenu();	/* editobject.c */
 				}
-				else if(G.qual & LR_SHIFTKEY) {
+				else if((G.qual==LR_SHIFTKEY)) {
 					view3d_home(1);
 					curs= give_cursor();
 					curs[0]=curs[1]=curs[2]= 0.0;
 					allqueue(REDRAWVIEW3D, 0);
 				}
-				else if(G.obedit!=0 && ELEM(G.obedit->type, OB_CURVE, OB_SURF) ) {
+				else if((G.obedit) && ELEM(G.obedit->type, OB_CURVE, OB_SURF) ) {
 					makecyclicNurb();
 					makeDispList(G.obedit);
 					allqueue(REDRAWVIEW3D, 0);
 				}
-				else {
+				else if((G.qual==0)){
 					curs= give_cursor();
 					G.vd->ofs[0]= -curs[0];
 					G.vd->ofs[1]= -curs[1];
@@ -916,18 +947,19 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			
 				break;
 			case DKEY:
-				if(G.qual & LR_SHIFTKEY) {
+				if((G.qual==LR_SHIFTKEY)) {
 					duplicate_context_selected();
 				}
-				else if(G.qual & LR_ALTKEY) {
-					if(G.obpose) error ("Duplicate not possible in posemode.");
-					else
-					if(G.obedit==0) adduplicate(0);
+				else if(G.qual==LR_ALTKEY) {
+					if(G.obpose)
+						error ("Duplicate not possible in posemode.");
+					else if((G.obedit==0))
+						adduplicate(0);
 				}
-				else if(G.qual & LR_CTRLKEY) {
+				else if(G.qual==LR_CTRLKEY) {
 					imagestodisplist();
 				}
-				else {
+				else if((G.qual==0)){
 					pupval= pupmenu("Draw mode%t|BoundBox %x1|Wire %x2|OpenGL Solid %x3|Shaded Solid %x4|Textured Solid %x5");
 					if(pupval>0) {
 						G.vd->drawtype= pupval;
@@ -938,29 +970,42 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 				break;
 			case EKEY:
-				if(G.obedit) {
-					if(G.obedit->type==OB_MESH) extrude_mesh();
-					else if(G.obedit->type==OB_CURVE) addvert_Nurb('e');
-					else if(G.obedit->type==OB_SURF) extrude_nurb();
-					else if(G.obedit->type==OB_ARMATURE) extrude_armature();
-				}
-				else {
-					ob= OBACT;
-					if(ob && ob->type==OB_IKA) if(okee("extrude IKA")) extrude_ika(ob, 1);
+				if (G.qual==0){
+					if(G.obedit) {
+						if(G.obedit->type==OB_MESH)
+							extrude_mesh();
+						else if(G.obedit->type==OB_CURVE)
+							addvert_Nurb('e');
+						else if(G.obedit->type==OB_SURF)
+							extrude_nurb();
+						else if(G.obedit->type==OB_ARMATURE)
+							extrude_armature();
+					}
+					else {
+						ob= OBACT;
+						if(ob && ob->type==OB_IKA) if(okee("extrude IKA"))
+							extrude_ika(ob, 1);
+					}
 				}
 				break;
 			case FKEY:
 				if(G.obedit) {
 					if(G.obedit->type==OB_MESH) {
-						if(G.qual & LR_SHIFTKEY) fill_mesh();
-						else if(G.qual & LR_ALTKEY) beauty_fill();
-						else if(G.qual & LR_CTRLKEY) edge_flip();
-						else addedgevlak_mesh();
+						if((G.qual==LR_SHIFTKEY))
+							fill_mesh();
+						else if(G.qual==LR_ALTKEY)
+							beauty_fill();
+						else if(G.qual==LR_CTRLKEY)
+							edge_flip();
+						else if (G.qual==0)
+							addedgevlak_mesh();
 					}
 					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) addsegment_nurb();
 				}
-				else if(G.qual & LR_CTRLKEY) sort_faces();
-				else if(G.qual & LR_SHIFTKEY) fly();
+				else if(G.qual==LR_CTRLKEY)
+					sort_faces();
+				else if((G.qual==LR_SHIFTKEY))
+					fly();
 				else {
 						set_faceselect();
 					}
@@ -970,48 +1015,67 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				/* RMGRP if(G.qual & LR_CTRLKEY) add_selected_to_group();
 				else if(G.qual & LR_ALTKEY) rem_selected_from_group(); */
 				
-				if(G.qual & LR_SHIFTKEY) group_menu();
-				else if(G.qual & LR_ALTKEY) clear_object('g');
-				else
+				if((G.qual==LR_SHIFTKEY))
+					group_menu();
+				else if(G.qual==LR_ALTKEY)
+					clear_object('g');
+				else if((G.qual==0))
 					transform('g');
 				break;
 			case HKEY:
 				if(G.obedit) {
 					if(G.obedit->type==OB_MESH) {
-						if(G.qual & LR_ALTKEY) reveal_mesh();
-						else hide_mesh(G.qual & LR_SHIFTKEY);
+						if(G.qual==LR_ALTKEY)
+							reveal_mesh();
+						else if((G.qual==LR_SHIFTKEY))
+							hide_mesh(1);
+						else if((G.qual==0)) 
+							hide_mesh(0);
 					}
 					else if(G.obedit->type== OB_SURF) {
-						if(G.qual & LR_ALTKEY) revealNurb();
-						else hideNurb(G.qual & LR_SHIFTKEY);
+						if(G.qual==LR_ALTKEY)
+							revealNurb();
+						else if((G.qual==LR_SHIFTKEY))
+							hideNurb(1);
+						else if((G.qual==0))
+							hideNurb(0);
 					}
 					else if(G.obedit->type==OB_CURVE) {
-					
-						if(G.qual & LR_CTRLKEY) autocalchandlesNurb_all(1);	/* flag=1, selected */
-						else if(G.qual & LR_SHIFTKEY) sethandlesNurb(1);
-						else sethandlesNurb(3);
+						if(G.qual==LR_CTRLKEY)
+							autocalchandlesNurb_all(1);	/* flag=1, selected */
+						else if((G.qual==LR_SHIFTKEY))
+							sethandlesNurb(1);
+						else if((G.qual==0))
+							sethandlesNurb(3);
 						
 						makeDispList(G.obedit);
 						
 						allqueue(REDRAWVIEW3D, 0);
 					}
 				}
-				else if(G.f & G_FACESELECT) hide_tface();
+				else if(G.f & G_FACESELECT)
+					hide_tface();
 				
 				break;
 			case IKEY:
 				break;
 				
 			case JKEY:
-				if(G.qual & LR_CTRLKEY) {
+				if(G.qual==LR_CTRLKEY) {
 					if( (ob= OBACT) ) {
-						if(ob->type == OB_MESH) join_mesh();
-						else if(ob->type == OB_CURVE) join_curve(OB_CURVE);
-						else if(ob->type == OB_SURF) join_curve(OB_SURF);
-						else if(ob->type == OB_ARMATURE) join_armature ();
+						if(ob->type == OB_MESH)
+							join_mesh();
+						else if(ob->type == OB_CURVE)
+							join_curve(OB_CURVE);
+						else if(ob->type == OB_SURF)
+							join_curve(OB_SURF);
+						else if(ob->type == OB_ARMATURE)
+							join_armature ();
 					}
-					else if (G.obedit && ELEM(G.obedit->type, OB_CURVE, OB_SURF)) addsegment_nurb();
-				} else if(G.obedit) {
+					else if ((G.obedit) && ELEM(G.obedit->type, OB_CURVE, OB_SURF))
+						addsegment_nurb();
+				}
+				else if(G.obedit) {
 					if(G.obedit->type==OB_MESH) {
 						join_triangles();
 					}
@@ -1021,72 +1085,98 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case KKEY:
 				if(G.obedit) {
 					if (G.obedit->type==OB_MESH) {
-						if (G.qual & LR_SHIFTKEY) KnifeSubdivide(KNIFE_PROMPT);
-						else LoopMenu();
+						if (G.qual==LR_SHIFTKEY)
+							KnifeSubdivide(KNIFE_PROMPT);
+						else if (G.qual==0)
+							LoopMenu();
 					}
-					else if(G.obedit->type==OB_SURF) printknots();
+					else if(G.obedit->type==OB_SURF)
+						printknots();
 				}
 				else {
-					if(G.qual & LR_SHIFTKEY) {
-						if(G.f & G_FACESELECT) clear_vpaint_selectedfaces();
-						else if(G.f & G_VERTEXPAINT) clear_vpaint();
-						else select_select_keys();
+					if((G.qual==LR_SHIFTKEY)) {
+						if(G.f & G_FACESELECT)
+							clear_vpaint_selectedfaces();
+						else if(G.f & G_VERTEXPAINT)
+							clear_vpaint();
+						else
+							select_select_keys();
 					}
-					else if(G.qual & LR_CTRLKEY) make_skeleton();
+					else if(G.qual==LR_CTRLKEY)
+						make_skeleton();
 /* 					else if(G.qual & LR_ALTKEY) delete_skeleton(); */
-					else set_ob_ipoflags();
+					else if (G.qual==0)
+						set_ob_ipoflags();
 				}
 				
 				break;
 			case LKEY:
 				if(G.obedit) {
-					if(G.obedit->type==OB_MESH) selectconnected_mesh();
-					if(G.obedit->type==OB_ARMATURE) selectconnected_armature();
-					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) selectconnected_nurb();
+					if(G.obedit->type==OB_MESH)
+						selectconnected_mesh();
+					if(G.obedit->type==OB_ARMATURE)
+						selectconnected_armature();
+					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
+						selectconnected_nurb();
 				}
 				else if(G.obpose) {
-					if(G.obpose->type==OB_ARMATURE) selectconnected_posearmature();
+					if(G.obpose->type==OB_ARMATURE)
+						selectconnected_posearmature();
 				}
 				else {
-				
-					if(G.qual & LR_SHIFTKEY) selectlinks();
-					else if(G.qual & LR_CTRLKEY) linkmenu();
-					else if(G.f & G_FACESELECT) select_linked_tfaces();
-					else make_local();
+					if((G.qual==LR_SHIFTKEY))
+						selectlinks();
+					else if(G.qual==LR_CTRLKEY)
+						linkmenu();
+					else if(G.f & G_FACESELECT)
+						select_linked_tfaces();
+					else if((G.qual==0))
+						make_local();
 				}
 				break;
  			case MKEY:
-				if((G.obedit) && (G.qual & LR_ALTKEY)) {
-					if(G.obedit->type==OB_MESH) mergemenu();
+				if(G.obedit){
+					if(G.qual==LR_ALTKEY) {
+						if(G.obedit->type==OB_MESH)
+							mergemenu();
+					}
+					else if((G.qual==0))
+						mirrormenu();
 				}
-				else {
-				     	movetolayer();
+				else if((G.qual==0)){
+				     movetolayer();
 				}
  				break;
 			case NKEY:
-				if(G.obedit && (G.qual & LR_CTRLKEY)) {
+				if(G.obedit) {
 					switch (G.obedit->type){
 					case OB_ARMATURE:
-						if (okee("Recalc bone roll angles")) auto_align_armature();
+						if(G.qual==LR_CTRLKEY){
+							if (okee("Recalc bone roll angles")) {
+								auto_align_armature();
+								allqueue(REDRAWVIEW3D, 0);
+							}
+						}
 						break;
 					case OB_MESH: 
-						if(G.qual & LR_SHIFTKEY) {
+						if(G.qual==(LR_SHIFTKEY|LR_CTRLKEY)) {
 							if(okee("Recalc normals inside")) {
 								undo_push_mesh("Recalc normals inside");
 								righthandfaces(2);
+								allqueue(REDRAWVIEW3D, 0);
 							}
 						}
-						else {
+						else if(G.qual==LR_CTRLKEY){
 							if(okee("Recalc normals outside")) {
 								undo_push_mesh("Recalc normals outside");
 								righthandfaces(1);
+								allqueue(REDRAWVIEW3D, 0);
 							}
 						}
 						break;
 					}
-					allqueue(REDRAWVIEW3D, 0);
 				}
-				else {
+				else if((G.qual==0)){
 					add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, UI_PNL_TO_MOUSE);
 					allqueue(REDRAWVIEW3D, 0);
 				}
@@ -1096,110 +1186,144 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(G.obedit) {
 					extern int prop_mode;
 
-					if (G.qual & LR_SHIFTKEY) prop_mode= !prop_mode;
-					else G.f ^= G_PROPORTIONAL;
-
-					allqueue(REDRAWHEADERS, 0);
+					if (G.qual==LR_SHIFTKEY) {
+						prop_mode= !prop_mode;
+						allqueue(REDRAWHEADERS, 0);
+					}
+					else if((G.qual==0)) {
+						G.f ^= G_PROPORTIONAL;
+						allqueue(REDRAWHEADERS, 0);
+					}
 				}
-				else if(G.qual & LR_SHIFTKEY) {
+				else if((G.qual==LR_SHIFTKEY)) {
 					if(ob && ob->type == OB_MESH) {
 						flip_subdivison(ob, 0);
 					}
 				}
-				else if(G.qual & LR_ALTKEY) clear_object('o');
+				else if(G.qual==LR_ALTKEY) clear_object('o');
 				break;
 
 			case PKEY:
 				
 				if(G.obedit) {
-					if(G.qual) {
-						if(G.qual & LR_CTRLKEY) make_parent();
-					}
-					else if(G.obedit->type==OB_MESH) separatemenu();
-					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) separate_nurb();
+					if(G.qual==LR_CTRLKEY)
+						make_parent();
+					else if((G.qual==0) && G.obedit->type==OB_MESH)
+						separatemenu();
+					else if ((G.qual==0) && ELEM(G.obedit->type, OB_CURVE, OB_SURF))
+						separate_nurb();
 				}
-				else if(G.qual & LR_CTRLKEY) make_parent();
-				else if(G.qual & LR_ALTKEY) clear_parent();
-				else {
+				else if(G.qual==LR_CTRLKEY)
+					make_parent();
+				else if(G.qual==LR_ALTKEY)
+					clear_parent();
+				else if((G.qual==0)) {
                 	start_game();
 				}
 				break;				
 			case RKEY:
-				if(G.obedit==0 && (G.f & G_FACESELECT)) rotate_uv_tface();
-				else if(G.qual & LR_ALTKEY) clear_object('r');
+				if((G.obedit==0) && (G.f & G_FACESELECT) && (G.qual==0))
+					rotate_uv_tface();
+				else if(G.qual==LR_ALTKEY)
+					clear_object('r');
 				else if (G.obedit) {
-					if(G.qual & LR_SHIFTKEY) {
+					if((G.qual==LR_SHIFTKEY)) {
 						if ELEM(G.obedit->type,  OB_CURVE, OB_SURF)					
 							selectrow_nurb();
 						else if (G.obedit->type==OB_MESH)
 							loop('s');
 					}
-					else if(G.qual & LR_CTRLKEY) {
+					else if(G.qual==LR_CTRLKEY) {
 						if (G.obedit->type==OB_MESH)
 							loop('c');
 					}
-					else transform('r');
+					else if((G.qual==0))
+						transform('r');
 				}
-				else transform('r');
+				else if((G.qual==0))
+					transform('r');
 				break;
 			case SKEY:
-				if(G.qual & LR_ALTKEY) {
-					if(G.obedit) transform('N');	/* scale by vertex normal */
-					else clear_object('s');
+				if(G.obedit) {
+					if(G.qual==LR_ALTKEY)
+						transform('N'); /* scale along normal */
+					else if(G.qual==LR_CTRLKEY)
+						transform('S');
+					else if((G.qual==0))
+						transform('s');
 				}
-				else if(G.qual & LR_SHIFTKEY) snapmenu();
-				else if(G.qual & LR_CTRLKEY) {
-					if(G.obedit) transform('S');
+				else if(G.qual==LR_ALTKEY) {
+					clear_object('s');
 				}
-				else transform('s');
+				else if((G.qual==LR_SHIFTKEY))
+					snapmenu();
+				else if((G.qual==0))
+					transform('s');
 				break;
 			case TKEY:
-				if(G.qual & LR_CTRLKEY) {
-					if(G.obedit) {
-						if(G.obedit->type==OB_MESH) {
-							convert_to_triface(0);
-							allqueue(REDRAWVIEW3D, 0);
-							countall();
-							makeDispList(G.obedit);
-						}
+				if(G.obedit)
+					if((G.qual==LR_CTRLKEY) && G.obedit->type==OB_MESH) {
+						convert_to_triface(0);
+						allqueue(REDRAWVIEW3D, 0);
+						countall();
+						makeDispList(G.obedit);
 					}
-					else make_track();
+					else if((G.qual==LR_ALTKEY) && G.obedit->type==OB_CURVE)
+						clear_tilt();
+					else if((G.qual==0))
+						transform('t');
+				else if(G.qual==LR_CTRLKEY) {
+					make_track();
 				}
-				else if(G.qual & LR_ALTKEY) {
-					if(G.obedit && G.obedit->type==OB_CURVE) clear_tilt();
-					else clear_track();
+				else if(G.qual==LR_ALTKEY) {
+					clear_track();
 				}
-				else {
-					if(G.obedit) transform('t');
-					else texspace_edit();
+				else if((G.qual==0)){
+					texspace_edit();
 				}
 				
 				break;
 			case UKEY:
 				if(G.obedit) {
 					if(G.obedit->type==OB_MESH){
-						if (G.qual & LR_ALTKEY) undo_menu_mesh();
-						else if (G.qual & LR_SHIFTKEY) undo_redo_mesh();
-						else undo_pop_mesh(1);
+						if (G.qual==LR_ALTKEY)
+							undo_menu_mesh();
+						else if (G.qual==LR_SHIFTKEY)
+							undo_redo_mesh();
+						else if((G.qual==0))
+							undo_pop_mesh(1);
 					}
-					else if(G.obedit->type==OB_ARMATURE) remake_editArmature();
-					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) remake_editNurb();
-					else if(G.obedit->type==OB_LATTICE) remake_editLatt();
+					else if(G.obedit->type==OB_ARMATURE)
+						remake_editArmature();
+					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
+						remake_editNurb();
+					else if(G.obedit->type==OB_LATTICE)
+						remake_editLatt();
 				}
-				else if(G.f & G_FACESELECT) uv_autocalc_tface();
-				else if(G.f & G_WEIGHTPAINT) wpaint_undo();
-				else if(G.f & G_VERTEXPAINT) vpaint_undo();
-				else single_user();
+				else if((G.qual==0)){
+					if (G.f & G_FACESELECT)
+						uv_autocalc_tface();
+					else if(G.f & G_WEIGHTPAINT)
+						wpaint_undo();
+					else if(G.f & G_VERTEXPAINT)
+						vpaint_undo();
+					else
+						single_user();
+				}
 				
 				break;
 			case VKEY:
-				if(G.qual==LR_SHIFTKEY) {
-					if (G.obedit && G.obedit->type==OB_MESH) {
-						align_view_to_selected(v3d);
-					} else if (G.f & G_FACESELECT) {
+				if((G.qual==LR_SHIFTKEY)) {
+					if ((G.obedit) && G.obedit->type==OB_MESH) {
 						align_view_to_selected(v3d);
 					}
-				} else {
+					else if (G.f & G_FACESELECT) {
+						align_view_to_selected(v3d);
+					}
+				}
+				else if(G.qual==LR_ALTKEY)
+					image_aspect();
+				else if (G.qual==0){
 					if(G.obedit) {
 						if(G.obedit->type==OB_CURVE) {
 							sethandlesNurb(2);
@@ -1207,25 +1331,26 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							allqueue(REDRAWVIEW3D, 0);
 						}
 					}
-					else if(G.qual & LR_ALTKEY) image_aspect();
-					else set_vpaint();
+					else if(ob && ob->type == OB_MESH) 
+						set_vpaint();
 				}
 				break;
 			case WKEY:
-				if(G.qual & LR_SHIFTKEY) {
+				if((G.qual==LR_SHIFTKEY)) {
 					transform('w');
 				}
-				else if(G.qual & LR_ALTKEY) {
+				else if(G.qual==LR_ALTKEY) {
 					/* if(G.obedit && G.obedit->type==OB_MESH) write_videoscape(); */
 				}
-				else if(G.qual & LR_CTRLKEY) {
+				else if(G.qual==LR_CTRLKEY) {
 					if(G.obedit) {
 						if ELEM(G.obedit->type,  OB_CURVE, OB_SURF) {
 							switchdirectionNurb2();
 						}
 					}
 				}
-				else special_editmenu();
+				else if((G.qual==0))
+					special_editmenu();
 				
 				break;
 			case XKEY:
@@ -1233,7 +1358,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				delete_context_selected();
 				break;
 			case YKEY:
-				if(G.obedit) {
+				if((G.qual==0) && (G.obedit)) {
 					if(G.obedit->type==OB_MESH) split_mesh();
 				}
 				break;
@@ -1282,13 +1407,17 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			
 			case PAGEUPKEY:
-				if(G.qual & LR_CTRLKEY) movekey_obipo(1);
-				else nextkey_obipo(1);	/* in editipo.c */
+				if(G.qual==LR_CTRLKEY)
+					movekey_obipo(1);
+				else if((G.qual==0))
+					nextkey_obipo(1);	/* in editipo.c */
 				break;
 
 			case PAGEDOWNKEY:
-				if(G.qual & LR_CTRLKEY) movekey_obipo(-1);
-				else nextkey_obipo(-1);
+				if(G.qual==LR_CTRLKEY)
+					movekey_obipo(-1);
+				else if((G.qual==0))
+					nextkey_obipo(-1);
 				break;
 				
 			case PAD0: case PAD1: case PAD2: case PAD3: case PAD4:
@@ -1369,7 +1498,7 @@ void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		switch(event) {
 		case UI_BUT_EVENT:
-			if(val>0) do_ipowin_buts(val-1);
+			if(val>0) do_ipowin_buts((short)(val-1));
 			break;
 		case LEFTMOUSE:
 			if( in_ipo_buttons() ) {
@@ -1423,68 +1552,91 @@ void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			doredraw= 1;
 			break;
 		case PAGEUPKEY:
-			if(G.qual & LR_CTRLKEY) movekey_ipo(1);
-			else nextkey_ipo(1);
+			if(G.qual==LR_CTRLKEY)
+				movekey_ipo(1);
+			else if((G.qual==0))
+				nextkey_ipo(1);
 			break;
 		case PAGEDOWNKEY:
-			if(G.qual & LR_CTRLKEY) movekey_ipo(-1);
-			else nextkey_ipo(-1);
+			if(G.qual==LR_CTRLKEY)
+				movekey_ipo(-1);
+			else if((G.qual==0))
+				nextkey_ipo(-1);
 			break;
 		case HOMEKEY:
-			do_ipo_buttons(B_IPOHOME);
+			if((G.qual==0))
+				do_ipo_buttons(B_IPOHOME);
 			break;
 			
 		case AKEY:
-			if(in_ipo_buttons()) {
-				swap_visible_editipo();
+			if((G.qual==0)) {
+				if(in_ipo_buttons()) {
+					swap_visible_editipo();
+				}
+				else swap_selectall_editipo();
+				allspace (REMAKEIPO, 0);
+				allqueue (REDRAWNLA, 0);
+				allqueue (REDRAWACTION, 0);
 			}
-			else swap_selectall_editipo();
-			allspace (REMAKEIPO, 0);
-			allqueue (REDRAWNLA, 0);
-			allqueue (REDRAWACTION, 0);
 			break;
 		case BKEY:
-			borderselect_ipo();
+			if((G.qual==0))
+				borderselect_ipo();
 			break;
 		case CKEY:
-			move_to_frame();
+			if((G.qual==0))
+				move_to_frame();
 			break;
 		case DKEY:
-			if(G.qual & LR_SHIFTKEY) add_duplicate_editipo();
+			if((G.qual==LR_SHIFTKEY))
+				add_duplicate_editipo();
 			break;
 		case GKEY:
-			transform_ipo('g');
+			if((G.qual==0))
+				transform_ipo('g');
 			break;
 		case HKEY:
-			if(G.qual & LR_SHIFTKEY) sethandles_ipo(HD_AUTO);
-			else sethandles_ipo(HD_ALIGN);
+			if((G.qual==LR_SHIFTKEY))
+				sethandles_ipo(HD_AUTO);
+			else if((G.qual==0))
+				sethandles_ipo(HD_ALIGN);
 			break;
 		case JKEY:
-			join_ipo();
+			if((G.qual==0))
+				join_ipo();
 			break;
 		case KKEY:
-			ipo_toggle_showkey();
-			scrarea_queue_headredraw(curarea);
-			allqueue(REDRAWVIEW3D, 0);
-			doredraw= 1;
+			if((G.qual==0)) {
+				ipo_toggle_showkey();
+				scrarea_queue_headredraw(curarea);
+				allqueue(REDRAWVIEW3D, 0);
+				doredraw= 1;
+			}
 			break;
 		case RKEY:
-			ipo_record();
+			if((G.qual==0))
+				ipo_record();
 			break;
 		case SKEY:
-			if(G.qual & LR_SHIFTKEY) ipo_snapmenu();
-			else transform_ipo('s');
+			if((G.qual==LR_SHIFTKEY))
+				ipo_snapmenu();
+			else if((G.qual==0))
+				transform_ipo('s');
 			break;
 		case TKEY:
-			set_ipotype();
+			if((G.qual==0))
+				set_ipotype();
 			break;
 		case VKEY:
-			sethandles_ipo(HD_VECT);
+			if((G.qual==0))
+				sethandles_ipo(HD_VECT);
 			break;
 		case XKEY:
 		case DELKEY:
-			if(G.qual & LR_SHIFTKEY) delete_key();
-			else del_ipo();
+			if((G.qual==LR_SHIFTKEY))
+				delete_key();
+			else if((G.qual==0))
+				del_ipo();
 			break;
 		}
 	}
@@ -2595,16 +2747,19 @@ void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(sseq->zoom>8) sseq->zoom= 8;
 			}
 			else {
-				if(G.qual) {
-					if(G.qual & LR_SHIFTKEY) insert_gap(25, CFRA);
-					else if(G.qual & LR_ALTKEY) insert_gap(250, CFRA);
-					allqueue(REDRAWSEQ, 0);
-				}
-				else {
+				if((G.qual==0)) {
 					dx= 0.1154*(v2d->cur.xmax-v2d->cur.xmin);
 					v2d->cur.xmin+= dx;
 					v2d->cur.xmax-= dx;
 					test_view2d(G.v2d, curarea->winx, curarea->winy);
+				}
+				else if((G.qual==LR_SHIFTKEY)) {
+					insert_gap(25, CFRA);
+					allqueue(REDRAWSEQ, 0);
+				}
+				else if(G.qual==LR_ALTKEY) {
+					insert_gap(250, CFRA);
+					allqueue(REDRAWSEQ, 0);
 				}
 			}
 			doredraw= 1;
@@ -2615,10 +2770,9 @@ void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(sseq->zoom<1) sseq->zoom= 1;
 			}
 			else {
-				if(G.qual) {
-					if(G.qual & LR_SHIFTKEY) no_gaps();
-				}
-				else {
+				if((G.qual==LR_SHIFTKEY))
+					no_gaps();
+				else if((G.qual==0)) {
 					dx= 0.15*(v2d->cur.xmax-v2d->cur.xmin);
 					v2d->cur.xmin-= dx;
 					v2d->cur.xmax+= dx;
@@ -2628,7 +2782,8 @@ void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			doredraw= 1;
 			break;
 		case HOMEKEY:
-			do_seq_buttons(B_SEQHOME);
+			if((G.qual==0))
+				do_seq_buttons(B_SEQHOME);
 			break;
 		case PADPERIOD:	
 			if(last_seq) {
@@ -2641,61 +2796,73 @@ void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			
 		case AKEY:
 			if(sseq->mainb) break;
-			if(G.qual & LR_SHIFTKEY) {
+			if((G.qual==LR_SHIFTKEY)) {
 				add_sequence(-1);
 			}
-			else swap_select_seq();
+			else if((G.qual==0))
+				swap_select_seq();
 			break;
 		case BKEY:
 			if(sseq->mainb) break;
-			borderselect_seq();
+			if((G.qual==0))
+				borderselect_seq();
 			break;
 		case CKEY:
-			if(last_seq && (last_seq->flag & (SEQ_LEFTSEL+SEQ_RIGHTSEL))) {
-				if(last_seq->flag & SEQ_LEFTSEL) CFRA= last_seq->startdisp;
-				else CFRA= last_seq->enddisp-1;
-				
-				dx= CFRA-(v2d->cur.xmax+v2d->cur.xmin)/2;
-				v2d->cur.xmax+= dx;
-				v2d->cur.xmin+= dx;
-				update_for_newframe();
+			if((G.qual==0)) {
+				if(last_seq && (last_seq->flag & (SEQ_LEFTSEL+SEQ_RIGHTSEL))) {
+					if(last_seq->flag & SEQ_LEFTSEL) CFRA= last_seq->startdisp;
+					else CFRA= last_seq->enddisp-1;
+					
+					dx= CFRA-(v2d->cur.xmax+v2d->cur.xmin)/2;
+					v2d->cur.xmax+= dx;
+					v2d->cur.xmin+= dx;
+					update_for_newframe();
+				}
+				else
+					change_sequence();
 			}
-			else change_sequence();
 			break;
 		case DKEY:
 			if(sseq->mainb) break;
-			if(G.qual & LR_SHIFTKEY) add_duplicate_seq();
+			if((G.qual==LR_SHIFTKEY)) add_duplicate_seq();
 			break;
 		case EKEY:
 			break;
 		case FKEY:
-			set_filter_seq();
+			if((G.qual==0))
+				set_filter_seq();
 			break;
 		case GKEY:
 			if(sseq->mainb) break;
-			transform_seq('g');
+			if((G.qual==0))
+				transform_seq('g');
 			break;
 		case MKEY:
-			if(G.qual & LR_ALTKEY) un_meta();
-			else {
+			if(G.qual==LR_ALTKEY)
+				un_meta();
+			else if((G.qual==0)){
 				if ((last_seq) && (last_seq->type == SEQ_SOUND)) 
 				{
 					last_seq->flag ^= SEQ_MUTE;
 					doredraw = 1;
 				}
-				else make_meta();
+				else
+					make_meta();
 			}
 			break;
 		case SKEY:
-			if(G.qual & LR_SHIFTKEY) seq_snapmenu();
+			if((G.qual==LR_SHIFTKEY))
+				seq_snapmenu();
 			break;
 		case TKEY:
-			touch_seq_files();
+			if((G.qual==0))
+				touch_seq_files();
 			break;
 		case XKEY:
 		case DELKEY:
 			if(sseq->mainb) break;
-			del_seq();
+			if((G.qual==0))
+				del_seq();
 			break;
 		}
 	}
@@ -3012,22 +3179,28 @@ void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				mouse_select_sima();
 				break;
 			case AKEY:
-				select_swap_tface_uv();
+				if((G.qual==0))
+					select_swap_tface_uv();
 				break;
 			case BKEY:
-				borderselect_sima();
+				if((G.qual==0))
+					borderselect_sima();
 				break;
 			case GKEY:
-				transform_tface_uv('g');
+				if((G.qual==0))
+					transform_tface_uv('g');
 				break;
 			case NKEY:
-				if(G.qual & LR_CTRLKEY) replace_names_but();
+				if(G.qual==LR_CTRLKEY)
+					replace_names_but();
 				break;
 			case RKEY:
-				transform_tface_uv('r');
+				if((G.qual==0))
+					transform_tface_uv('r');
 				break;
 			case SKEY:
-				transform_tface_uv('s');
+				if((G.qual==0))
+					transform_tface_uv('s');
 				break;
 		}
 	}
@@ -3045,7 +3218,8 @@ void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			scrarea_queue_winredraw(curarea);
 			break;
 		case HOMEKEY:
-			image_home();
+			if((G.qual==0))
+				image_home();
 			break;
 	}
 }
@@ -3125,28 +3299,38 @@ void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		break;
 		
 	case HOMEKEY:	
-		do_oops_buttons(B_OOPSHOME);
+		if((G.qual==0))
+			do_oops_buttons(B_OOPSHOME);
 		break;
 		
 	case AKEY:
-		swap_select_all_oops();
-		scrarea_queue_winredraw(curarea);
+		if((G.qual==0)) {
+			swap_select_all_oops();
+			scrarea_queue_winredraw(curarea);
+		}
 		break;
 	case BKEY:
-		borderselect_oops();
+		if((G.qual==0))
+			borderselect_oops();
 		break;
 	case GKEY:
-		transform_oops('g');
+		if((G.qual==0))
+			transform_oops('g');
 		break;
 	case LKEY:
-		if(G.qual & LR_SHIFTKEY) select_backlinked_oops();
-		else select_linked_oops();
+		if((G.qual==LR_SHIFTKEY))
+			select_backlinked_oops();
+		else if((G.qual==0))
+			select_linked_oops();
 		break;
 	case SKEY:
 		
-		if(G.qual & LR_ALTKEY) shrink_oops();
-		else if(G.qual & LR_SHIFTKEY) shuffle_oops();
-		else transform_oops('s');
+		if(G.qual==LR_ALTKEY)
+			shrink_oops();
+		else if((G.qual==LR_SHIFTKEY))
+			shuffle_oops();
+		else if((G.qual==0))
+			transform_oops('s');
 		break;
 
 	case ONEKEY:
