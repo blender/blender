@@ -207,8 +207,8 @@ static char findaccent(char char1, char code)
 }
 
 
-static char *textbuf=0;
-static char *oldstr;
+static char *textbuf=NULL;
+static char *oldstr=NULL;
 
 static int insert_into_textbuf(Curve *cu, char c)
 {
@@ -555,7 +555,7 @@ void make_editText(void)
 	Curve *cu;
 
 	cu= G.obedit->data;
-	if(textbuf==0) textbuf= MEM_mallocN(MAXTEXT, "texteditbuf");
+	if(textbuf==NULL) textbuf= MEM_mallocN(MAXTEXT, "texteditbuf");
 	BLI_strncpy(textbuf, cu->str, MAXTEXT);
 	oldstr= cu->str;
 	cu->str= textbuf;
@@ -577,14 +577,14 @@ void load_editText(void)
 	cu= G.obedit->data;
 
 	MEM_freeN(oldstr);
-	oldstr= 0;
+	oldstr= NULL;
 	
 	cu->str= MEM_mallocN(cu->len+1, "tekstedit");
 	strcpy(cu->str, textbuf);
 	
 	/* this memory system is weak... */
 	MEM_freeN(textbuf);
-	textbuf= 0;
+	textbuf= NULL;
 	
 	cu->len= strlen(cu->str);
 	textediting= 0;
@@ -612,7 +612,7 @@ void remake_editText(void)
 void free_editText(void)
 {
 	if(oldstr) MEM_freeN(oldstr);
-	textbuf= oldstr= 0;
+	textbuf= oldstr= NULL;
 	textediting= 0;
 }
 

@@ -1479,7 +1479,7 @@ void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do un
 		load_editNurb();
 		if(freedata) freeNurblist(&editNurb);
 	}
-	else if(G.obedit->type==OB_FONT && freedata==1) {
+	else if(G.obedit->type==OB_FONT && freedata) {
 		load_editText();
 	}
 	else if(G.obedit->type==OB_LATTICE) {
