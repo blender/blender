@@ -420,7 +420,7 @@ void BIF_write_homefile(void)
 	   To be removed at v2.4 or so! ;)
 	*/
 
-#ifdef WIN32
+#if 0
 	char dir[FILE_MAXDIR+FILE_MAXFILE];
 	BLI_getInstallationDir(dir);
 

@@ -507,14 +507,8 @@ char *BLI_gethome(void) {
 
 		if (BLI_exists(dir))
 		{
-			//strcat(dir,".blender/");
-			strcpy(tmpdir,dir);
-			strcat(tmpdir,"/.blender/.B.blend");
-			if (BLI_exists(tmpdir))
-			{
-				strcat(dir,"/.blender/");
-				return(dir);
-			}
+			strcat(dir,"/.blender");
+			if (BLI_exists(dir)) return(dir);
 		}
 
 		/* 

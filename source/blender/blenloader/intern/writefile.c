@@ -1608,7 +1608,7 @@ int BLO_write_file(char *dir, int write_flags, char **error_r)
 		return 0;
 	}
 	
-#ifdef WIN32
+#if 0
 	BLI_getInstallationDir(tmpdir);
 
 	if(BLI_exists(tmpdir))
