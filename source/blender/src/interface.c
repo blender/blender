@@ -2934,7 +2934,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	if(uevent==0 || uevent->event==LEFTSHIFTKEY || uevent->event==RIGHTSHIFTKEY) return UI_NOTHING;
 	
 	if(block->flag & UI_BLOCK_ENTER_OK) {
-		if(uevent->event == RETKEY && uevent->val) {
+		if((uevent->event==RETKEY || uevent->event==PADENTER) && uevent->val) {
 			// printf("qual: %d %d %d\n", uevent->qual, get_qual(), G.qual);
 			if ((G.qual & LR_SHIFTKEY) == 0) {
 				return UI_RETURN_OK;
@@ -3007,9 +3007,6 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	case RIGHTARROWKEY:
 		break;
 
-	case RETKEY:	// prevent treating this as mousemove. for example when you enter at popup 
-		break;
-		
 	case PAD8: case PAD2:
 	case UPARROWKEY:
 	case DOWNARROWKEY:
@@ -3122,6 +3119,11 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 			if(but->retval==uevent->val) but->flag |= UI_ACTIVE;
 		}
 		break;
+
+	case PADENTER:
+	case RETKEY:	// prevent treating this as mousemove. for example when you enter at popup 
+		if(block->flag & UI_BLOCK_LOOP) break;
+		
 	default:
 
 		for(but= block->buttons.first; but; but= but->next) {
