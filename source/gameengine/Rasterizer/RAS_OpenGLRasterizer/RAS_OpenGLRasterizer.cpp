@@ -48,6 +48,8 @@
 #include "MT_CmMatrix4x4.h"
 #include "RAS_IRenderTools.h" // rendering text
 
+#include "RAS_GLExtensionManager.h"
+
 
 RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas)
 	:RAS_IRasterizer(canvas),
@@ -126,6 +128,7 @@ static void Myinit_gl_stuff(void)
 	}
 	
 	glPolygonStipple(patc);
+		
 }
 
 
@@ -264,6 +267,8 @@ void RAS_OpenGLRasterizer::Exit()
 	glBlendFunc(GL_ONE, GL_ZERO);
 
 	glDisable(GL_LIGHTING);
+	if (bgl::QueryExtension(bgl::_GL_EXT_separate_specular_color) || bgl::QueryVersion(1, 2))
+		glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SINGLE_COLOR);
 	
 	EndFrame();
 }

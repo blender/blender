@@ -42,7 +42,7 @@ struct RAS_LightObject
 		LIGHT_NORMAL
 	};
 	bool	m_modified;
-	int		m_layer;
+	int	m_layer;
 	
 	float	m_energy;
 	float	m_distance;
@@ -52,12 +52,15 @@ struct RAS_LightObject
 	float	m_blue;
 
 	float	m_att1;
+	float	m_att2;
 	float	m_spotsize;
 	float	m_spotblend;
 
 	LightType	m_type;
 	MT_CmMatrix4x4*	m_worldmatrix;
 	
+	bool	m_nodiffuse;
+	bool	m_nospecular;
 };
 
 #endif //__RAS_LIGHTOBJECT_H

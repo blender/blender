@@ -265,7 +265,10 @@ bool QueryVersion(int major, int minor)
 	
 	if (gl_major == 0)
 	{
-		STR_String gl_version = STR_String((const char *) glGetString(GL_VERSION));
+		const char *gl_version_str = (const char *) glGetString(GL_VERSION);
+		if (!gl_version_str)
+			return false;
+		STR_String gl_version = STR_String(gl_version_str);
 		int i = gl_version.Find('.');
 		gl_major = gl_version.Left(i).ToInt();
 		gl_minor = gl_version.Mid(i+1, gl_version.FindOneOf(". ", i+1) - i - 1).ToInt();
@@ -308,6 +311,11 @@ to their source.  Cunning like a weasel.
 
  ******************************************************************************/
 
+#if defined(GL_ATI_pn_triangles)
+PFNGLPNTRIANGLESIATIPROC glPNTrianglesiATI;
+PFNGLPNTRIANGLESFATIPROC glPNTrianglesfATI;
+#endif
+
 
 
 } // namespace bgl
@@ -326,6 +334,28 @@ static void LinkExtensions()
 {
 	static bool doDebugMessages = m_debug;
 	extensions = STR_String((const char *) glGetString(GL_EXTENSIONS)).Explode(' ');
+
+#if defined(GL_ATI_pn_triangles)
+	if (QueryExtension("GL_ATI_pn_triangles"))
+	{
+		glPNTrianglesiATI = reinterpret_cast<PFNGLPNTRIANGLESIATIPROC>(bglGetProcAddress((const GLubyte *) "glPNTrianglesiATI"));
+		glPNTrianglesfATI = reinterpret_cast<PFNGLPNTRIANGLESFATIPROC>(bglGetProcAddress((const GLubyte *) "glPNTrianglesfATI"));
+		if (glPNTrianglesiATI && glPNTrianglesfATI) {
+			EnableExtension(_GL_ATI_pn_triangles);
+			if (doDebugMessages)
+				std::cout << "Enabled GL_ATI_pn_triangles" << std::endl;
+		} else {
+			std::cout << "ERROR: GL_ATI_pn_triangles implementation is broken!" << std::endl;
+		}
+	}
+#endif
+
+        if (QueryExtension("GL_EXT_separate_specular_color"))
+        {
+                EnableExtension(_GL_EXT_separate_specular_color);
+                if (doDebugMessages)
+                        std::cout << "Detected GL_EXT_separate_specular_color" << std::endl;
+        }
 
 	doDebugMessages = false;
 }

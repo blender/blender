@@ -327,7 +327,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 			return false;
 		
 		// SYS_WriteCommandLineInt(syshandle, "fixedtime", 0);
-		SYS_WriteCommandLineInt(syshandle, "vertexarrays",1);		
+		// SYS_WriteCommandLineInt(syshandle, "vertexarrays",1);		
 		//bool properties	= (SYS_GetCommandLineInt(syshandle, "show_properties", 0) != 0);
 		//bool profile = (SYS_GetCommandLineInt(syshandle, "show_profile", 0) != 0);
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);

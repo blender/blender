@@ -468,7 +468,7 @@ for i in glext_h:
 			fns = []
 			fnlist = []
 	if (ext != ""):
-		line = re.search('.*(gl.*) \(.*\);', i)
+		line = re.search('.* (gl.*) \(.*\);', i)
 		if (line):
 			fns += [line.group(1)]
 		line = re.search('.*PFN(.*)PROC.*', i)
@@ -501,7 +501,7 @@ for i in glext_h:
 			fns = []
 			fnlist = []
 	if (ext != ""):
-		line = re.search('.*(gl.*) \(.*\);', i)
+		line = re.search('.* (gl.*) \(.*\);', i)
 		if (line):
 			fns += [line.group(1)]
 		line = re.search('.*PFN(.*)PROC.*', i)
@@ -534,7 +534,7 @@ for i in glext_h:
 			fns = []
 			fnlist = []
 	if (ext != ""):
-		line = re.search('.*(gl.*) \(.*\);', i)
+		line = re.search('.* (gl.*) \(.*\);', i)
 		if (line):
 			fns += [line.group(1)]
 		line = re.search('.*PFN(.*)PROC.*', i)
@@ -578,7 +578,7 @@ for i in glext_h:
 		if (line):
 			defines += [(line.group(1), line.group(2))]
 		
-		line = re.search('(.*)(gl.*)(\(.*\));', i) # GLAPI void APIENTRY glMultiTexCoord2f (GLenum, GLfloat, GLfloat);
+		line = re.search('(.* )(gl.*)(\(.*\));', i) # GLAPI void APIENTRY glMultiTexCoord2f (GLenum, GLfloat, GLfloat);
 		if (line):
 			fns += [(line.group(1), line.group(2), line.group(3))] 
 

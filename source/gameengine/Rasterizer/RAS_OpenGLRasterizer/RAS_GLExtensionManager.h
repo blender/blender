@@ -38,6 +38,7 @@
 #include <GL/gl.h>
 #endif
 
+#include "EXT_separate_specular_color.h"
 
 namespace bgl
 {
@@ -363,8 +364,12 @@ namespace bgl
 	 */
 	void InitExtensions(int debug);
 
-
+#if defined(GL_ATI_pn_triangles)
+extern PFNGLPNTRIANGLESIATIPROC glPNTrianglesiATI;
+extern PFNGLPNTRIANGLESFATIPROC glPNTrianglesfATI;
+#endif
 
 } /* namespace bgl */
+
 
 #endif /* __RAS_GLEXTENSIONMANAGER_H__ */

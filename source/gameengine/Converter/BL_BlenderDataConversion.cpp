@@ -359,7 +359,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				}
 					
 				
-				Material* ma = give_current_material(blenderobj, 1);
+				Material* ma = give_current_material(blenderobj, 1 /* mface->mat_nr */);
 				const char* matnameptr = (ma ? ma->id.name : "");
 				
 	
@@ -372,8 +372,8 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	
 				if (ma)
 				{
-					polymat->m_specular = MT_Vector3(ma->spec * ma->specr,ma->spec * ma->specg,ma->spec * ma->specb);
-					polymat->m_shininess = (float)ma->har;
+					polymat->m_specular = MT_Vector3(ma->specr, ma->specg, ma->specb)*ma->spec;
+					polymat->m_shininess = (float)ma->har/4.0; // 0 < ma->har <= 512
 
 				} else
 				{
@@ -809,6 +809,7 @@ static KX_LightObject *gamelight_from_blamp(Lamp *la, unsigned int layerflag, KX
 	KX_LightObject *gamelight;
 	
 	lightobj.m_att1 = la->att1;
+	lightobj.m_att2 = (la->mode & LA_QUAD)?la->att2:0.0;
 	lightobj.m_red = la->r;
 	lightobj.m_green = la->g;
 	lightobj.m_blue = la->b;
@@ -818,6 +819,16 @@ static KX_LightObject *gamelight_from_blamp(Lamp *la, unsigned int layerflag, KX
 	lightobj.m_spotblend = la->spotblend;
 	lightobj.m_spotsize = la->spotsize;
 	
+	lightobj.m_nodiffuse = (la->mode & LA_NO_DIFF) != 0;
+	lightobj.m_nospecular = (la->mode & LA_NO_SPEC) != 0;
+	
+	if (la->mode & LA_NEG)
+	{
+		lightobj.m_red = -lightobj.m_red;
+		lightobj.m_green = -lightobj.m_green;
+		lightobj.m_blue = -lightobj.m_blue;
+	}
+		
 	if (la->type==LA_SUN) {
 		lightobj.m_type = RAS_LightObject::LIGHT_SUN;
 	} else if (la->type==LA_SPOT) {

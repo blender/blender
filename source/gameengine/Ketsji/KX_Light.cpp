@@ -98,6 +98,9 @@ PyObject* KX_LightObject::_getattr(const STR_String& attr)
 	if (attr == "lin_attenuation")
 		return PyFloat_FromDouble(m_lightobj.m_att1);
 	
+	if (attr == "quad_attenuation")
+		return PyFloat_FromDouble(m_lightobj.m_att2);
+	
 	if (attr == "spotsize")
 		return PyFloat_FromDouble(m_lightobj.m_spotsize);
 	
@@ -162,6 +165,12 @@ int       KX_LightObject::_setattr(const STR_String& attr, PyObject *pyvalue)
 		if (attr == "lin_attenuation")
 		{
 			m_lightobj.m_att1 = value;
+			return 0;
+		}
+		
+		if (attr == "quad_attenuation")
+		{
+			m_lightobj.m_att2 = value;
 			return 0;
 		}
 		
