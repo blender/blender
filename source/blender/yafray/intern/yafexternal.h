@@ -82,9 +82,20 @@ class parameter_t
 class paramMap_t
 {
 	public:
-		parameter_t & operator [] (const std::string &key);
-		void clear();
-		~paramMap_t() {};
+		paramMap_t();
+		virtual bool getParam(const std::string &name,const std::string *&s);
+		virtual bool getParam(const std::string &name,bool &b);
+		virtual bool getParam(const std::string &name,float &f);
+		virtual bool getParam(const std::string &name,double &f);
+		virtual bool getParam(const std::string &name,int &i);
+		virtual bool getParam(const std::string &name,point3d_t &p);
+		virtual bool getParam(const std::string &name,color_t &c);
+		virtual bool getParam(const std::string &name,colorA_t &c);
+		virtual bool includes(const std::string &label,int type)const;
+		virtual void checkUnused(const std::string &env)const;
+		virtual parameter_t & operator [] (const std::string &key);
+		virtual void clear();
+		virtual ~paramMap_t();
 	protected:
 		std::map<std::string,parameter_t> dicc;
 };

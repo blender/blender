@@ -207,12 +207,12 @@ bool yafrayPluginRender_t::writeRender()
 {
 	yafray::paramMap_t params;
 	params["camera_name"]=yafray::parameter_t("MAINCAM");
-	params["raydepth"]=yafray::parameter_t(R.r.YF_raydepth);
+	params["raydepth"]=yafray::parameter_t((float)R.r.YF_raydepth);
 	params["gamma"]=yafray::parameter_t(R.r.YF_gamma);
 	params["exposure"]=yafray::parameter_t(R.r.YF_exposure);
 	if(R.r.YF_AA)
 	{
-		params["AA_passes"]=yafray::parameter_t(R.r.YF_AApasses);
+		params["AA_passes"]=yafray::parameter_t((int)R.r.YF_AApasses);
 		params["AA_minsamples"]=yafray::parameter_t(R.r.YF_AAsamples);
 	}
 	else
@@ -235,7 +235,7 @@ bool yafrayPluginRender_t::writeRender()
 	}
 	if (hasworld) params["background_name"]=yafray::parameter_t("world_background");
 	params["AA_pixelwidth"]=yafray::parameter_t(1.5);
-	params["AA_threshold"]=yafray::parameter_t(0.05);
+	params["AA_threshold"]=yafray::parameter_t(0.05f);
 	params["bias"]=yafray::parameter_t(R.r.YF_raybias);
 	//params["outfile"]=yafray::parameter_t(imgout);
 	blenderYafrayOutput_t output;
@@ -532,7 +532,9 @@ void yafrayPluginRender_t::writeMaterialsAndModulators()
 		params["type"]=yafray::parameter_t("blendershader");
 		params["name"]=yafray::parameter_t(blendmat->first);
 		float diff=matr->alpha;
+
 		params["color"]=yafray::parameter_t(yafray::color_t(matr->r*diff,matr->g*diff,matr->b*diff));
+
 		params["specular_color"]=yafray::parameter_t(yafray::color_t(matr->specr,
 																																 matr->specg,
 																																 matr->specb));
@@ -896,7 +898,7 @@ void yafrayPluginRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_
 		caus=true;
 	}
 	bool has_orco=(VLR_list[0]->v1->orco!=NULL);
-	float sm_angle=0.1;
+	float sm_angle=0.1f;
 	if (obj->type==OB_MESH) 
 	{
 		Mesh* mesh = (Mesh*)obj->data;
