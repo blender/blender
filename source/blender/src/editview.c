@@ -655,10 +655,6 @@ void mouse_select(void)
 			allqueue(REDRAWHEADERS, 0);	/* To force display update for the posebutton */
 		}
 		
-		/* now its getting confusing... finish() only works in frontbuffer here */
-		glDrawBuffer(GL_FRONT);
-		glFinish();		/* reveil frontbuffer drawing */
-		glDrawBuffer(GL_BACK);
 	}
 
 	countall();

@@ -3738,8 +3738,6 @@ void draw_object(Base *base)
 
 void draw_object_ext(Base *base)
 {
-	ScrArea *tempsa, *sa;
-	View3D *vd;
 	
 	if(G.vd==NULL || base==NULL) return;
 	
@@ -3751,29 +3749,13 @@ void draw_object_ext(Base *base)
 	G.f |= G_DRAW_EXT;
 
 	glDrawBuffer(GL_FRONT);
+	persp(PERSP_VIEW);
 
-	/* check all views */
-	tempsa= curarea;
-	sa= G.curscreen->areabase.first;
-	while(sa) {
-		if(sa->spacetype==SPACE_VIEW3D) {
-			/* limited drawing in both buffers: selectbuffer! */
-			
-			vd= sa->spacedata.first;
-			if(base->lay & vd->lay) {
-				areawinset(sa->win);
+	draw_object(base);
 
-				draw_object(base);
-
-				sa->win_swap= WIN_FRONT_OK;
-			}
-		}
-		sa= sa->next;
-	}
-	if(curarea!=tempsa) areawinset(tempsa->win);
-	
 	G.f &= ~G_DRAW_EXT;
 
+	glFinish();		/* reveil frontbuffer drawing */
 	glDrawBuffer(GL_BACK);
 	
 	if(G.zbuf) {
