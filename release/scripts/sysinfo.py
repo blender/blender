@@ -1,8 +1,8 @@
 #!BPY
 """
-Name: 'System Info'
+Name: 'System Information...'
 Blender: 233
-Group: 'Utils'
+Group: 'Help'
 Tooltip: 'Information about your Blender environment, useful to diagnose problems.'
 """
 
@@ -144,5 +144,5 @@ if (warnings):
   output.write(", documented in the text above.")
 else: output.write("\n==\nNo problems were found.")
 
-exitmsg = "Done!|Please check the text %s at the Text Editor window." % output.name
+exitmsg = "Done!|Please check the text %s in the Text Editor window." % output.name
 Blender.Draw.PupMenu(exitmsg)

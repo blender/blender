@@ -1590,11 +1590,24 @@ static uiBlock *info_help_websitesmenu(void *arg_unused)
 
 static void do_info_helpmenu(void *arg, int event)
 {
-	switch(event) {
-		
-	case 0:
+
+	extern int BPY_menu_do_python(short menutype, int event);	// BPY_interface.c
+	ScrArea *sa;
+
+	if(curarea->spacetype==SPACE_INFO) {
+		sa= find_biggest_area_of_type(SPACE_SCRIPT);
+		if (!sa) sa= closest_bigger_area();
+		areawinset(sa->win);
+	}
+
+	/* events >=2 are registered bpython scripts */
+	if (event >= 2) BPY_menu_do_python(PYMENU_HELP, event - 2);
+
+	else switch(event) {
+									
+	case 0: /* About Blender */
 		break;
-	case 1:
+	case 1: /* Benchmark */
 		/* dodgy hack turning on CTRL ALT SHIFT key to do a benchmark 
 		 *	rather than copying lines and lines of code from toets.c :( 
 		 */
@@ -1612,6 +1625,7 @@ static void do_info_helpmenu(void *arg, int event)
 		}
 		break;
 	}
+	
 	allqueue(REDRAWINFO, 0);
 }
 
@@ -1621,6 +1635,8 @@ static uiBlock *info_helpmenu(void *arg_unused)
 	uiBlock *block;
 	short yco= 0;
 	short menuwidth=120;
+	BPyMenu *pym;
+	int i = 0;
 	
 	block= uiNewBlock(&curarea->uiblocks, "info_helpmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_info_helpmenu, NULL);
@@ -1649,6 +1665,13 @@ static uiBlock *info_helpmenu(void *arg_unused)
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Release Notes *",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 */
+
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	for (pym = BPyMenuTable[PYMENU_HELP]; pym; pym = pym->next, i++) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i+2, pym->tooltip?pym->tooltip:pym->filename);
+	}
+
 	uiBlockSetDirection(block, UI_DOWN);
 	uiTextBoundsBlock(block, 80);
 

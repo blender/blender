@@ -77,6 +77,7 @@ static int bpymenu_group_atoi (char *str)
 {
 	if (!strcmp(str, "Import")) return PYMENU_IMPORT;
 	else if (!strcmp(str, "Export")) return PYMENU_EXPORT;
+	else if (!strcmp(str, "Help")) return PYMENU_HELP;
 	else if (!strcmp(str, "Generators")) return PYMENU_GENERATORS;
 	else if (!strcmp(str, "Modifiers")) return PYMENU_MODIFIERS;
 	else if (!strcmp(str, "Wizards")) return PYMENU_WIZARDS;
@@ -101,6 +102,9 @@ char *BPyMenu_group_itoa (short menugroup)
 		case PYMENU_GENERATORS:
 			return "Generators";
 			break;
+		case PYMENU_HELP:
+			return "Help";
+			break;
 		case PYMENU_MODIFIERS:
 			return "Modifiers";
 			break;
@@ -115,10 +119,13 @@ char *BPyMenu_group_itoa (short menugroup)
 			break;
 		case PYMENU_UV:
 			return "UV";
+			break;
 		case PYMENU_UTILS:
 			return "Utils";
+			break;
 		case PYMENU_TOOLS:
 			return "Tools";
+			break;
 		case PYMENU_MISC:
 			return "Misc";
 			break;

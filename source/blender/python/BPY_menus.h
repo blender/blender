@@ -84,6 +84,7 @@ typedef enum {
 	PYMENU_MODIFIERS, /* modifies existing obj *data* */
 	PYMENU_MISC,
 	PYMENU_MATERIALS,
+	PYMENU_HELP, /* inserted in the info header 'Help' menu */
 	PYMENU_GENERATORS, /* creates new objects */
 	PYMENU_IMPORT,
 	PYMENU_EXPORT,
