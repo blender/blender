@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -30,7 +30,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  *
  */
-
+/**
+ * \file BLO_readblenfile.c
+ * \brief This file handles the loading if .blend files
+ * \ingroup mainmodule
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -55,8 +59,17 @@
 
 #define CACHESIZE 100000
 
+/** Magic number for the file header */
 char *headerMagic = "BLENDFI";
 
+/**
+ * \brief Set the version number into the array.
+ *
+ * version contains the integer number of the version
+ * i.e. 227
+ * array[1] gets set to the div of the number by 100 i.e. 2
+ * array[2] gets the remainder i.e. 27
+ */
 void BLO_setversionnumber(char array[4], int version)
 {
 	memset(array, 0, sizeof(array));
@@ -65,6 +78,13 @@ void BLO_setversionnumber(char array[4], int version)
 	array[2] = version % 100;
 }
 
+/**
+ * Sets version number using BLENDER_VERSION
+ * Function that calls the setversionnumber(char[],int) with 
+ * the BLENDER_VERSION constant and sets the resultant array
+ * with the version parts.  
+ * see BLO_setversionnumber(char[],int).
+ */
 void BLO_setcurrentversionnumber(char array[4])
 {
 	BLO_setversionnumber(array, BLENDER_VERSION);
@@ -74,6 +94,9 @@ void BLO_setcurrentversionnumber(char array[4])
 #define O_BINARY 0
 #endif
 
+/**
+ * Defines the data struct for the .blend file
+ */
 struct BLO_readblenfileStruct {
 	struct readStreamGlueStruct *streamGlue;
 	int fileDes;
@@ -117,6 +140,14 @@ static BlendFileData *readblenfilegeneric(
 
 // implementation of static functions
 
+/**
+ * \brief Reads data from the already opened file.
+ * Given the file structure a buffer and the size of the block
+ * the function will read from the file if it is open.
+ * If not it will return -1 indicating an unopened file.
+ * 
+ * \return Returns the size of the file read, or -1.
+ */
 static int readfromfilehandle(
 	struct BLO_readblenfileStruct *readblenfileStruct,
 	void *buffer,
@@ -131,6 +162,15 @@ static int readfromfilehandle(
 	return(readsize);
 }
 
+/**
+ * \brief Reads and erases from readblenfileStruct->fromBuffer
+ *
+ * Copies information from the from the fromBuffer to the buffer, then 
+ * decrements the size of the fromBuffer, and moves the pointer along
+ * thereby effectively removing the data forever.
+ *
+ * \return Returns the size of the read from memory
+ */	
 static int readfrommemory(
 	struct BLO_readblenfileStruct *readblenfileStruct,
 	void *buffer,
@@ -153,6 +193,14 @@ static int readfrommemory(
 	return(readsize);
 }
 
+/**
+ * Read in data from the file into a cache.
+ *
+ * \return Returns the size of the read.
+ *
+ * \attention Note: there is some code missing to return CR if the 
+ * structure indicates it.
+*/
 static int fillcache(
 	struct BLO_readblenfileStruct *readblenfileStruct)
 {
@@ -179,7 +227,15 @@ static int fillcache(
 	return (readsize);
 }
 
-
+/**
+ * \brief Read data from the cache into a buffer.
+ * Marks the last read location with a seek value.
+ *
+ * \return Returns the size of the read from the cache.
+ *
+ * \attention Note: missing some handling code if the location is
+ * \attention outside of the cache.
+ */
 static unsigned int readfromcache(
 	struct BLO_readblenfileStruct *readblenfileStruct,
 	void * buffer,
@@ -198,6 +254,15 @@ static unsigned int readfromcache(
 	return(readsize);
 }
 
+/**
+ * \brief Converts from BRS error code to BRE error code.
+ *
+ * Error conversion method to convert from
+ * the BRS type errors and return a BRE 
+ * type error code.
+ * Decodes based on the function, the generic,
+ * and the specific portions of the error.
+ */
 static BlendReadError brs_to_bre(int err)
 {
 	int errFunction = BRS_GETFUNCTION(err);
@@ -649,3 +714,5 @@ static char *brs_error_to_string(int err) {
 	return errString;
 }
 #endif
+
+
