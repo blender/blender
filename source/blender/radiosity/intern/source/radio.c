@@ -35,42 +35,42 @@
 
     $Id$
 
-    - mainlus
-    - toetsafhandeling
+    - mainloop
+    - interactivity
 
 	
 	- PREPROCES
 		- collect meshes 
-		- spitconnected	(alle vlakken met verschillende kleur en normaal)
-		- setedgepointers (nodes wijzen naar buren)
+		- spitconnected	(all faces with different color and normals)
+		- setedgepointers (nodes pointing to neighbours)
 
 	- EDITING
-		- min-max patch en min-max elementsize
-		- ahv bovenstaande evt patches subdividen
-		- lampsubdivide
+		- min-max patch en min-max element size
+		- using this info patches subdividing
+		- lamp subdivide
 	
-		- als er teveel lampen zijn voor de subdivide shooting:
-			- tijdelijk patches samenvoegen
-			- met de hand aangeven?
+		- if there are too many lamps for subdivide shooting:
+			- temporal join patches 
 	
 	- SUBDIVIDE SHOOTING
-		- behalve laatste shooting bepaalt dit patch-subdivide
-		- als gesubdivide patches nog > 2*minsize : doorgaan
-		- op eind zoveel mogelijk elements maken
-		- ook onthouden of lamp (nog) subdivide veroorzaakt.
+		- except for last shooting, this defines patch subdivide
+		- if subdivided patches still > 2*minsize : continue
+		- at the end create as many elements as possible
+		- als store if lamp (can still) cause subdivide.
 		
 	- REFINEMENT SHOOTING
-		- testen op overflows (shootpatch subdividen)
-		- testen op extreme kleur verlopen:
-			- als nog kan: shootpatch subdividen
-			- elements subdividen = overnieuw beginnen ?
-		- ittereren stoppen nadat ?
+		- test for overflows (shootpatch subdivide)
+		- testen for extreme color transitions:
+			- if possible: shootpatch subdivide
+			- elements subdivide = start over ?
+		- continue itterate until ?
 		
 	- DEFINITIVE SHOOTING
-		- user geeft aan hoeveel vlakken maximaal en itteratie lengte.
-		- nodes omzetten naar minder geheugen-intensief formaat
-		- element- nodes weer samenvoegen waarin niets gebeurt (faces)
-		- elements subdividen waarin veel gebeurt
+		- user indicates how many faces maximum and duration of itteration.
+		
+	- POST PROCESS
+		- join element- nodes when nothing happens in it (filter nodes, filter faces)
+		- define gamma & mul
 
  *************************************** */
 
@@ -181,8 +181,10 @@ void rad_status_str(char *str)
 void rad_printstatus()
 {
 	/* actions always are started from a buttonswindow */
-	scrarea_do_windraw(curarea);
-	screen_swapbuffers();
+	if(curarea) {
+		scrarea_do_windraw(curarea);
+		screen_swapbuffers();
+	}
 }
 
 void rad_setlimits()
