@@ -119,7 +119,7 @@ void meshactionbuts(SpaceAction *saction, Key *key)
 	uiBlock       *block;
 	uiBut         *but;
     short ofsx, ofsy = 0; 
-#define RVKBGCOL .6, .6, .8
+#define RVKBGCOL .6, .65, .7
 #define XIC 20
 #define YIC 20
 
@@ -139,7 +139,7 @@ void meshactionbuts(SpaceAction *saction, Key *key)
     y = key->totkey*(CHANNELHEIGHT+CHANNELSKIP) 
 	  - CHANNELHEIGHT/2  - G.v2d->cur.ymin;
 
-    uiBlockSetCol(block, BUTPURPLE);
+    uiBlockSetCol(block, BUTGREY);
 
 	/* make the little 'open the sliders' widget */
     glColor3f(RVKBGCOL); 
