@@ -559,7 +559,6 @@ void extrude_mesh(void)
 		EM_fgon_flags();
 		countall(); 
 		
-#ifdef NEWTRANSFORM
 		/* individual faces? */
 		if(nr==2) {
 			Transform(TFM_SHRINKFATTEN);
@@ -572,9 +571,6 @@ void extrude_mesh(void)
 			}
 			Transform(TFM_TRANSLATION);
 		}
-#else
-		transform('g');
-#endif
 	}
 
 }

@@ -708,13 +708,9 @@ int gesture(void)
 				else if(curarea->spacetype==SPACE_IMAGE) transform_tface_uv(i);
 				else if(curarea->spacetype==SPACE_OOPS) transform_oops('g');
 				else {
-#ifdef NEWTRANSFORM
 					if(i=='g') Transform(TFM_TRANSLATION);
 					else if(i=='r') Transform(TFM_ROTATION);
 					else Transform(TFM_RESIZE);
-#else
-					transform(i);
-#endif
 				}
 			}
 		}

@@ -1220,11 +1220,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						clear_object('g');
 					}
 				} else if((G.qual==0)) {
-#ifdef NEWTRANSFORM
 					Transform(TFM_TRANSLATION);
-#else
-					transform('g');
-#endif
 				}
 				break;
 			case HKEY:
@@ -1426,11 +1422,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				ob= OBACT;
 				if (G.qual==LR_SHIFTKEY) {
 					extern int prop_mode;
-#ifdef NEWTRANSFORM
 					prop_mode = (prop_mode+1)%5;
-#else
-					prop_mode= !prop_mode;
-#endif
 					allqueue(REDRAWHEADERS, 0);
 				}
 				else if((G.qual==0)) {
@@ -1486,50 +1478,28 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							loopoperations(LOOP_CUT);
 					}
 					else if((G.qual==0)) {
-#ifdef NEWTRANSFORM
 						Transform(TFM_ROTATION);
-#else
-						transform('r');
-#endif
 					}
 				}
 				else if((G.qual==0)) {
-#ifdef NEWTRANSFORM
 					Transform(TFM_ROTATION);
-#else
-					transform('r');
-#endif
 				}
 				break;
 			case SKEY:
 				if(G.obedit) {
 					if(G.qual==LR_ALTKEY)
-#ifdef NEWTRANSFORM
 						Transform(TFM_SHRINKFATTEN);
-#else
-						transform('N'); /* scale along normal */
-#endif
 					else if(G.qual==LR_CTRLKEY)
-#ifdef NEWTRANSFORM
 						Transform(TFM_SHEAR);
 					else if(G.qual==(LR_CTRLKEY|LR_ALTKEY))
 						Transform(TFM_SHEAR);
-#else
-						transform('S');
-#endif
 					else if(G.qual==LR_SHIFTKEY)
 						snapmenu();
 					else if(G.qual==0) {
-#ifdef NEWTRANSFORM
 						Transform(TFM_RESIZE);
-#else
-						transform('s');
-#endif
 					}
 					else if(G.qual==(LR_SHIFTKEY|LR_CTRLKEY)){
-#ifdef NEWTRANSFORM
 						Transform(TFM_TOSPHERE);
-#endif
 					}
 					
 				}
@@ -1542,18 +1512,12 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					snapmenu();
 				}
 				else if((G.qual==0)) {
-#ifdef NEWTRANSFORM
 					Transform(TFM_RESIZE);
-#else
-					transform('s');
-#endif
 				}
-#ifdef NEWTRANSFORM
 				else if(G.qual==(LR_SHIFTKEY|LR_CTRLKEY))
 					Transform(TFM_TOSPHERE);
 				else if(G.qual==(LR_CTRLKEY|LR_ALTKEY))
 					Transform(TFM_SHEAR);
-#endif
 				break;
 			case TKEY:
 				if(G.obedit){
@@ -1568,11 +1532,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							clear_tilt();
 						}
 						else if (G.qual==0) {
-#ifdef NEWTRANSFORM
 							Transform(TFM_TILT);
-#else
-							transform('t');
-#endif
 						}
 					}
 				}
@@ -1638,11 +1598,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case WKEY:
 				if((G.qual==LR_SHIFTKEY)) {
-#ifdef NEWTRANSFORM
 					Transform(TFM_WARP);
-#else
-					transform('w');
-#endif
 				}
 				else if(G.qual==LR_ALTKEY) {
 					/* if(G.obedit && G.obedit->type==OB_MESH) write_videoscape(); */

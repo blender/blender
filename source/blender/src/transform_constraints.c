@@ -255,26 +255,25 @@ static void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], flo
 	VECCOPY(out, in);
 	if (!td && t->con.mode & CON_APPLY) {
 		Mat3MulVecfl(t->con.pmtx, out);
-		if (out[0] != 0.0f || out[1] != 0.0f || out[2] != 0.0f) {
-			if (getConstraintSpaceDimension(t) == 2) {
+		if (getConstraintSpaceDimension(t) == 2) {
+			if (out[0] != 0.0f || out[1] != 0.0f || out[2] != 0.0f) {
 				planeProjection(t, in, out);
 			}
-			else if (getConstraintSpaceDimension(t) == 1) {
-				float c[3];
-
-				if (t->con.mode & CON_AXIS0) {
-					VECCOPY(c, t->con.mtx[0]);
-				}
-				else if (t->con.mode & CON_AXIS1) {
-					VECCOPY(c, t->con.mtx[1]);
-				}
-				else if (t->con.mode & CON_AXIS2) {
-					VECCOPY(c, t->con.mtx[2]);
-				}
-				axisProjection(t, c, in, out);
-			}
 		}
+		else if (getConstraintSpaceDimension(t) == 1) {
+			float c[3];
 
+			if (t->con.mode & CON_AXIS0) {
+				VECCOPY(c, t->con.mtx[0]);
+			}
+			else if (t->con.mode & CON_AXIS1) {
+				VECCOPY(c, t->con.mtx[1]);
+			}
+			else if (t->con.mode & CON_AXIS2) {
+				VECCOPY(c, t->con.mtx[2]);
+			}
+			axisProjection(t, c, in, out);
+		}
 		postConstraintChecks(t, out, pvec);
 	}
 }
@@ -296,26 +295,25 @@ static void applyObjectConstraintVec(TransInfo *t, TransData *td, float in[3], f
 	if (t->con.mode & CON_APPLY) {
 		if (!td) {
 			Mat3MulVecfl(t->con.pmtx, out);
-			if (out[0] != 0.0f || out[1] != 0.0f || out[2] != 0.0f) {
-				if (getConstraintSpaceDimension(t) == 2) {
+			if (getConstraintSpaceDimension(t) == 2) {
+				if (out[0] != 0.0f || out[1] != 0.0f || out[2] != 0.0f) {
 					planeProjection(t, in, out);
 				}
-				else if (getConstraintSpaceDimension(t) == 1) {
-					float c[3];
-
-					if (t->con.mode & CON_AXIS0) {
-						VECCOPY(c, t->con.mtx[0]);
-					}
-					else if (t->con.mode & CON_AXIS1) {
-						VECCOPY(c, t->con.mtx[1]);
-					}
-					else if (t->con.mode & CON_AXIS2) {
-						VECCOPY(c, t->con.mtx[2]);
-					}
-					axisProjection(t, c, in, out);
-				}
 			}
+			else if (getConstraintSpaceDimension(t) == 1) {
+				float c[3];
 
+				if (t->con.mode & CON_AXIS0) {
+					VECCOPY(c, t->con.mtx[0]);
+				}
+				else if (t->con.mode & CON_AXIS1) {
+					VECCOPY(c, t->con.mtx[1]);
+				}
+				else if (t->con.mode & CON_AXIS2) {
+					VECCOPY(c, t->con.mtx[2]);
+				}
+				axisProjection(t, c, in, out);
+			}
 			postConstraintChecks(t, out, pvec);
 			VECCOPY(out, pvec);
 		}

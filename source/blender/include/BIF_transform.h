@@ -33,8 +33,6 @@
 #ifndef BIF_TRANSFORM_H
 #define BIF_TRANSFORM_H
 
-#define NEWTRANSFORM	1
-
 /* ******************** Macros & Prototypes *********************** */
 
 /* MODE AND NUMINPUT FLAGS */
