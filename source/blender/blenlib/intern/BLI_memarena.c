@@ -55,7 +55,7 @@ MemArena *BLI_memarena_new(int bufsize) {
 	return ma;
 }
 void BLI_memarena_free(MemArena *ma) {
-	BLI_linklist_free(ma->bufs, MEM_freeN);
+	BLI_linklist_free(ma->bufs, (void(*)(void*)) MEM_freeN);
 	MEM_freeN(ma);
 }
 

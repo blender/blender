@@ -139,7 +139,6 @@ void RAS_VAOpenGLRasterizer::IndexPrimitives( const vecVertexArray& vertexarrays
 							bool useObjectColor,
 							const MT_Vector4& rgbacolor)
 {
-	unsigned char* mypointer=NULL;
 	static const GLsizei vtxstride = sizeof(RAS_TexVert);
 	GLenum drawmode;
 	switch (mode)
@@ -187,7 +186,7 @@ void RAS_VAOpenGLRasterizer::IndexPrimitives( const vecVertexArray& vertexarrays
 		vertexarray = &((*vertexarrays[vt]) [0]);
 		const KX_IndexArray & indexarray = (*indexarrays[vt]);
 		numindices = indexarray.size();
-		int numverts = vertexarrays[vt]->size();
+		// int numverts = vertexarrays[vt]->size();
 
 		if (!numindices)
 			continue;

@@ -174,9 +174,6 @@ ComputeFrustum(
 	RAS_FrameFrustum &frustum
 ){
 
-	const int winx = availableViewport.GetWidth();
-	const int winy = availableViewport.GetHeight();
-
 	RAS_FrameSettings::RAS_FrameType type = settings.FrameType();
 
 	const float design_width = float(settings.DesignAspectWidth());

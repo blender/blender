@@ -707,7 +707,6 @@ PyObject *newVectorObject( float *vec, int size )
 PyObject *newVectorProxy( float *vec, int size)
 {
 	VectorObject *proxy;
-	int x;
 
 	proxy = PyObject_NEW( VectorObject, &vector_Type );
 

@@ -53,7 +53,7 @@ bool PyObject_IsMT_Matrix(PyObject *pymat, unsigned int rank)
 	if (!pymat)
 		return false;
 		
-	unsigned int x, y;
+	unsigned int y;
 	if (PySequence_Check(pymat))
 	{
 		unsigned int rows = PySequence_Size(pymat);

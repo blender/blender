@@ -526,7 +526,6 @@ DT_Bool SM_Object::fix(
 	void *object2,
 	const DT_CollData *coll_data
 ){
-	SM_Scene  *scene = (SM_Scene *)client_data; 
 	SM_Object *obj1  = (SM_Object *)object1;  
 	SM_Object *obj2  = (SM_Object *)object2;  
 	

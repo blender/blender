@@ -997,14 +997,6 @@ void KX_Scene::LogicEndFrame()
 		KX_GameObject* gameobj = (KX_GameObject*)m_euthanasyobjects->GetValue(i);
 		this->RemoveObject(gameobj);
 	}
-	
-	numobj = m_euthanasyobjects->GetCount();
-	if (numobj != 0)
-	{
-		// huh?
-		int ii=0;
-	}
-	// numobj is 0 we hope
 }
 
 
