@@ -181,6 +181,7 @@ CONFIGURATOR_EXE=$(CONFIGURATOR_SRC:%.c=%.exe)
 # were discovered by fbuild to be the fastest on that platform. believe it or
 # not, O2 makes this code run much slower for most compilers.
 
+debug: all
 all: ode-lib drawstuff-lib ode-test drawstuff-test
 	@echo SUCCESS
 
@@ -249,7 +250,6 @@ clean:
 
 %.exe: %$(OBJ)
 	$(CC) $(C_EXEOUT)$@ $< $(ODE_LIB) $(DRAWSTUFF_LIB) $(RESOURCE_FILE) $(LINK_OPENGL) $(LINK_MATH)
-
 
 # windows specific rules
 
