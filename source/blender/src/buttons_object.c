@@ -130,7 +130,7 @@
 
 #include "butspace.h" // own module
 
-static float hspeed=0.1, prspeed=0.0;
+static float prspeed=0.0;
 float prlen=0.0;
 
 
@@ -1180,7 +1180,6 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 
 void object_panel_draw(Object *ob)
 {
-	ID *id;
 	uiBlock *block;
 	int xco, a, dx, dy;
 	
@@ -1206,9 +1205,6 @@ void object_panel_draw(Object *ob)
 		uiDefButI(block, TOG|BIT|(a+10), B_OBLAY+a+10, "",	(short)(xco+a*(dx/2)), 165, (short)(dx/2), (short)(dy/2), &(BASACT->lay), 0, 0, 0, 0, "");
 
 	uiBlockEndAlign(block);
-
-	id= ob->data;
-	if(id && id->lib) uiSetButLock(1, "Can't edit library data");
 
 	uiDefBut(block, LABEL, 0, "Drawtype",						28,200,100,18, 0, 0, 0, 0, 0, "");
 	uiDefButC(block, MENU, REDRAWVIEW3D, "Drawtype%t|Bounds %x1|Wire %x2|Solid %x3|Shaded %x4",	
@@ -1605,10 +1601,14 @@ void object_panels()
 	/* check context here */
 	ob= OBACT;
 	if(ob) {
+		if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+
 		object_panel_anim(ob);
 		object_panel_draw(ob);
 		object_panel_constraint();
 		if(ob->type==OB_MESH) object_panel_effects(ob);
+		
+		uiClearButLock();
 	}
 }
 
