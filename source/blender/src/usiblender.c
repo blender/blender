@@ -419,23 +419,9 @@ void BIF_write_homefile(void)
 	char *err, tstr[FILE_MAXDIR+FILE_MAXFILE];
 	int write_flags;
 	
-	/* "change-over" period for Windows - Ctrl+U now saves in ~/.blender,
-	   but blender still checks the old locations.
-	   To be removed at v2.4 or so! ;)
-	*/
-
-#if 0
-	char dir[FILE_MAXDIR+FILE_MAXFILE];
-	BLI_getInstallationDir(dir);
-
-	strcat(dir,"/.blender/");
-
-	BLI_make_file_string("/", tstr, dir, ".B.blend");
-#else
 	BLI_make_file_string("/", tstr, BLI_gethome(), ".B.blend");
-#endif
 		
-		/*  force save as regular blend file */
+	/*  force save as regular blend file */
 	write_flags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_LOCK | G_FILE_SIGN);
 	BLO_write_file(tstr, write_flags, &err);
 }

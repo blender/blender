@@ -210,6 +210,17 @@ void start_interface_font(void) {
 		if(!result) {	// else try loading font from current dir
 			result = FTF_SetFont(U.fontname, U.fontsize);
 		}
+
+		// try home dir (special case for .bfont.ttf) (aphex)
+
+		if(!result) {
+			strcpy(tstr, BLI_gethome());
+			if (strstr(tstr,".blender") == 0) {
+				strcat(tstr,".blender/");
+			}
+			strcat(tstr, U.fontname);
+			result = FTF_SetFont(tstr, U.fontsize);
+		}
 	} else {
 		U.language= 0;
 		U.fontsize= 11;
@@ -226,13 +237,14 @@ void start_interface_font(void) {
 		strncpy(U.fontname, tstr, 255);		
 		
 #elif defined (WIN32)
-		BLI_getInstallationDir(tstr);
-		strcat(tstr, "/.blender/.bfont.ttf\0");
+		strcat(tstr, BLI_gethome());
+		strcat(tstr, "/.bfont.ttf\0");
+		printf("path: %s\n", tstr);
 		result = FTF_SetFont(tstr, U.fontsize);
 
-		sprintf(U.fontname, ".blender/.bfont.ttf\0");
+		sprintf(U.fontname, "/.bfont.ttf\0");
 #else
-		sprintf(U.fontname, ".blender/.bfont.ttf\0");
+		sprintf(U.fontname, "/.bfont.ttf\0");
 
 		result = FTF_SetFont(U.fontname, U.fontsize);
 #endif
@@ -331,11 +343,8 @@ int read_languagefile(void) {
 		strcat(name, "/Contents/Resources/.Blanguages");
 #elif defined (WIN32)
 		/* Check the installation dir in Windows */
-		result = BLI_getInstallationDir(name);
-		if (!result)
-			strcpy(name,"/.blender/.Blanguages");
-		else
-			strcat(name,"/.blender/.Blanguages");
+		strcat(name, BLI_gethome());
+		strcpy(name,"/.Blanguages");
 #else
 		strcpy(name, ".blender/.Blanguages");
 #endif

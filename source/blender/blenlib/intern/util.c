@@ -497,11 +497,19 @@ char *BLI_gethome(void) {
 		if(ret) {
 			if (BLI_exists(ret)) return ret;
 		}
-
-		/* 
-		   "change-over" period - blender still checks in
-		   old locations, but Ctrl+U now saves in ~/.blender
-		*/
+				
+		/* add user profile support for WIN 2K / NT */
+		ret = getenv("USERPROFILE");
+		if (ret) {
+			if (BLI_exists(ret)) { /* from fop, also below... */
+				sprintf(dir, "%s/Application Data/Blender Foundation/Blender", ret);
+				BLI_recurdir_fileops(dir);
+				if (BLI_exists(dir)) {
+					strcat(dir,"/.blender");
+					if(BLI_exists(dir)) return(dir);
+				}
+			}
+		}
 
 		BLI_getInstallationDir(dir);
 
@@ -509,26 +517,6 @@ char *BLI_gethome(void) {
 		{
 			strcat(dir,"/.blender");
 			if (BLI_exists(dir)) return(dir);
-		}
-
-		/* 
-		   everything below this point to be removed -
-		   blender should use the same %HOME% across
-		   all versions of Windows... (aphex)
-		*/
-				
-		/* add user profile support for WIN 2K / NT */
-		ret = getenv("USERPROFILE");
-		if (ret) {
-			if (BLI_exists(ret)) { /* from fop, also below... */
-				sprintf(dir, "%s/Application Data/Not a Number/Blender", ret);
-				BLI_recurdir_fileops(dir);
-				if (BLI_exists(dir)) {
-					return(dir);
-				} else {
-					return(ret);
-				}
-			}
 		}
 
 		/* 

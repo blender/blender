@@ -118,9 +118,7 @@ FTF_TTFont::FTF_TTFont(void)
 		if(BLI_exist(messagepath) == NULL) {	// locale not in home dir
 
 #ifdef WIN32 
-			/* message catalogs are stored in the installation dir */
-			BLI_getInstallationDir(messagepath);
-			strcat(messagepath, "/.blender/locale");
+			BLI_make_file_string("/", messagepath, BLI_gethome(), "/locale");
 			if(BLI_exist(messagepath) == NULL) {
 #endif
 #ifdef __APPLE__

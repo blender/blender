@@ -6,31 +6,34 @@
 
 !include "MUI.nsh"
 
-!define MUI_PRODUCT "Blender" 
-!define MUI_VERSION "VERSION"
-
-!insertmacro MUI_LANGUAGEFILE_STRING MUI_TEXT_WELCOME_INFO_TEXT "This wizard will guide you through the installation of ${MUI_PRODUCT}.\r\n\r\nIt is recommended that you close all other applications before starting Setup.\r\n\r\n"
-
-!define MUI_WELCOMEPAGE
-!define MUI_LICENSEPAGE
-!define MUI_COMPONENTSPAGE
-  !define MUI_COMPONENTSPAGE_SMALLDESC
-    
-!define MUI_DIRECTORYPAGE
+Name "Blender VERSION" 
 
 !define MUI_ABORTWARNING
 
-!define MUI_FINISHPAGE
-    !define MUI_FINISHPAGE_RUN "$INSTDIR\blender.exe"
-  
-!define MUI_UNINSTALLER
-!define MUI_UNCONFIRMPAGE
-  
-!define MUI_HEADERBITMAP "00.header.bmp"
-!define MUI_SPECIALBITMAP "01.installer.bmp"
-!define MUI_ICON "00.installer.ico"
-!define MUI_UNICON "00.installer.ico"
+!define MUI_WELCOMEPAGE_TEXT  "This wizard will guide you through the installation of Blender.\r\n\r\nIt is recommended that you close all other applications before starting Setup.\r\n\r\n"
+!define MUI_WELCOMEFINISHPAGE_BITMAP "01.installer.bmp"
+!define MUI_HEADERIMAGE
+!define MUI_HEADERIMAGE_BITMAP  "00.header.bmp"
+!define MUI_COMPONENTSPAGE_SMALLDESC
+!define MUI_FINISHPAGE_RUN "$INSTDIR\blender.exe"
 !define MUI_CHECKBITMAP "00.checked.bmp"
+
+!insertmacro MUI_PAGE_WELCOME
+!insertmacro MUI_PAGE_LICENSE "DISTDIR\Copyright.txt"
+!insertmacro MUI_PAGE_COMPONENTS
+    
+!insertmacro MUI_PAGE_DIRECTORY
+!insertmacro MUI_PAGE_INSTFILES
+!insertmacro MUI_PAGE_FINISH
+  
+!insertmacro MUI_UNPAGE_WELCOME
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
+!insertmacro MUI_UNPAGE_FINISH
+
+
+Icon "00.installer.ico"
+UninstallIcon "00.installer.ico"
 
 ;--------------------------------
 ;Languages
@@ -48,9 +51,6 @@
   
 ;--------------------------------
 ;Data
-  
-  LicenseData "DISTDIR\Copyright.txt"
-  
 
 Caption "Blender VERSION Installer"
 OutFile "DISTDIR\..\VERSION\blender-VERSION-windows.exe"
@@ -62,6 +62,140 @@ ComponentText "This will install Blender VERSION on your computer."
 
 DirText "Use the field below to specify the folder where you want Blender to be copied to. To specify a different folder, type a new name or use the Browse button to select an existing folder."
 
+; GetWindowsVersion
+;
+; Based on Yazno's function, http://yazno.tripod.com/powerpimpit/
+; Updated by Joost Verburg
+;
+; Returns on top of stack
+;
+; Windows Version (95, 98, ME, NT x.x, 2000, XP, 2003)
+; or
+; '' (Unknown Windows Version)
+;
+; Usage:
+;   Call GetWindowsVersion
+;   Pop $R0
+;   ; at this point $R0 is "NT 4.0" or whatnot
+
+Function GetWindowsVersion
+
+  Push $R0
+  Push $R1
+
+  ReadRegStr $R0 HKLM \
+  "SOFTWARE\Microsoft\Windows NT\CurrentVersion" CurrentVersion
+
+  IfErrors 0 lbl_winnt
+   
+  ; we are not NT
+  ReadRegStr $R0 HKLM \
+  "SOFTWARE\Microsoft\Windows\CurrentVersion" VersionNumber
+ 
+  StrCpy $R1 $R0 1
+  StrCmp $R1 '4' 0 lbl_error
+ 
+  StrCpy $R1 $R0 3
+ 
+  StrCmp $R1 '4.0' lbl_win32_95
+  StrCmp $R1 '4.9' lbl_win32_ME lbl_win32_98
+ 
+  lbl_win32_95:
+    StrCpy $R0 '95'
+  Goto lbl_done
+ 
+  lbl_win32_98:
+    StrCpy $R0 '98'
+  Goto lbl_done
+ 
+  lbl_win32_ME:
+    StrCpy $R0 'ME'
+  Goto lbl_done
+ 
+  lbl_winnt:
+
+  StrCpy $R1 $R0 1
+ 
+  StrCmp $R1 '3' lbl_winnt_x
+  StrCmp $R1 '4' lbl_winnt_x
+ 
+  StrCpy $R1 $R0 3
+ 
+  StrCmp $R1 '5.0' lbl_winnt_2000
+  StrCmp $R1 '5.1' lbl_winnt_XP
+  StrCmp $R1 '5.2' lbl_winnt_2003 lbl_error
+ 
+  lbl_winnt_x:
+    StrCpy $R0 "NT $R0" 6
+  Goto lbl_done
+ 
+  lbl_winnt_2000:
+    Strcpy $R0 '2000'
+  Goto lbl_done
+ 
+  lbl_winnt_XP:
+    Strcpy $R0 'XP'
+  Goto lbl_done
+ 
+  lbl_winnt_2003:
+    Strcpy $R0 '2003'
+  Goto lbl_done
+ 
+  lbl_error:
+    Strcpy $R0 ''
+  lbl_done:
+ 
+  Pop $R1
+  Exch $R0
+
+FunctionEnd
+
+Var BLENDERHOME
+Var dirchanged
+
+Function SetWinXPPath
+  StrCpy $BLENDERHOME "$APPDATA\Blender Foundation\Blender"
+FunctionEnd
+
+Function SetWin9xPath
+  StrCpy $BLENDERHOME $INSTDIR
+FunctionEnd
+ 
+Function .onInit
+
+  Strcpy $dirchanged '0'
+  
+; Sets $BLENDERHOME to suit Windows version...
+  
+  IfFileExists "$APPDATA\Blender Foundation\Blender\.blender\.bfont.tff" do_win2kXP
+  
+  Call GetWindowsVersion
+  Pop $R0
+  
+  StrCpy $R1 $R0 2
+  StrCmp $R1 "NT" do_win2kxp
+  StrCmp $R0 "2000" do_win2kxp
+  StrCmp $R0 "XP" do_win2kxp
+  StrCmp $R0 "2003" do_win2kxp
+  
+  ;else...
+  Call SetWin9xPath
+  Goto end
+
+  do_win2kXP:
+    Call SetWinXPPath
+    
+  end:
+    
+FunctionEnd
+
+Function .onInstSuccess
+  Strcmp $dirchanged "0" done
+  MessageBox MB_OK "Please note that your user defaults and python scripts can now found at $BLENDERHOME\.blender. This does not effect the functionality of Blender in any way and can safely be ignored unless you enjoy digging around in your App data directory!"
+done:
+  BringToFront
+FunctionEnd 
+
 Section "Blender-VERSION (required)" SecCopyUI
   SectionIn RO
   ; Set output path to the installation directory.
@@ -70,15 +204,36 @@ Section "Blender-VERSION (required)" SecCopyUI
   File DISTDIR\blender.exe
   File DISTDIR\python22.dll
   File DISTDIR\sdl.dll
+  File DISTDIR\solid.dll
   File DISTDIR\gnu_gettext.dll
   File DISTDIR\Copyright.txt
   File DISTDIR\Readme.txt
   File DISTDIR\Release_SHORTVERS.txt
   File DISTDIR\GPL-license.txt
   File DISTDIR\Help.url
-  SetOutPath $INSTDIR\.blender
+     
+  SetOutPath $BLENDERHOME\.blender
   File DISTDIR\.blender\.bfont.ttf
-  SetOutPath $INSTDIR\.blender\scripts
+  
+  ; If data (particularly .b.blend) exists in $INSTDIR\.blender but the OS is NT/Win2k/XP, copy to new location...
+  
+  IfFileExists "$INSTDIR\.blender\.b.blend" check_version done
+  
+  check_version:
+    StrCmp $BLENDERHOME $INSTDIR done ; Win9x?
+    ; else...
+    CopyFiles /SILENT "$INSTDIR\.blender\.b*" "$BLENDERHOME\.blender"
+    CopyFiles /SILENT "$INSTDIR\.blender\scripts\*.*" "$BLENDERHOME\.blender\scripts"
+    
+    ; Remove the old dir!
+    
+    RMDir /r $INSTDIR\.blender
+    
+    Strcpy $dirchanged '1'
+    
+  done:
+  
+  SetOutPath $BLENDERHOME\.blender\scripts
   File DISTDIR\.blender\scripts\ac3d_export.py
   File DISTDIR\.blender\scripts\ac3d_import.py
   File DISTDIR\.blender\scripts\blender2cal3d.py
@@ -94,35 +249,35 @@ Section "Blender-VERSION (required)" SecCopyUI
   File DISTDIR\.blender\scripts\uv_export.py
   File DISTDIR\.blender\scripts\videoscape_export.py
   File DISTDIR\.blender\scripts\wrl2export.py
-  SetOutPath $INSTDIR\.blender\bpydata
+  SetOutPath $BLENDERHOME\.blender\bpydata
   File DISTDIR\.blender\bpydata\readme.txt
   
   ; Additional Languages files
-  SetOutPath $INSTDIR\.blender
+  SetOutPath $BLENDERHOME\.blender
   File DISTDIR\.blender\.Blanguages
-  SetOutPath $INSTDIR\.blender\locale\ca\LC_MESSAGES
+  SetOutPath $BLENDERHOME\.blender\locale\ca\LC_MESSAGES
   File DISTDIR\.blender\locale\ca\LC_MESSAGES\blender.mo
-  SetOutPath $INSTDIR\.blender\locale\cs\LC_MESSAGES
+  SetOutPath $BLENDERHOME\.blender\locale\cs\LC_MESSAGES
   File DISTDIR\.blender\locale\cs\LC_MESSAGES\blender.mo
-  SetOutPath $INSTDIR\.blender\locale\de\LC_MESSAGES
+  SetOutPath $BLENDERHOME\.blender\locale\de\LC_MESSAGES
   File DISTDIR\.blender\locale\de\LC_MESSAGES\blender.mo
-  SetOutPath $INSTDIR\.blender\locale\fi\LC_MESSAGES
+  SetOutPath $BLENDERHOME\.blender\locale\fi\LC_MESSAGES
   File DISTDIR\.blender\locale\fi\LC_MESSAGES\blender.mo
-  SetOutPath $INSTDIR\.blender\locale\es\LC_MESSAGES
+  SetOutPath $BLENDERHOME\.blender\locale\es\LC_MESSAGES
   File DISTDIR\.blender\locale\es\LC_MESSAGES\blender.mo
-  SetOutPath $INSTDIR\.blender\locale\fr\LC_MESSAGES
+  SetOutPath $BLENDERHOME\.blender\locale\fr\LC_MESSAGES
   File DISTDIR\.blender\locale\fr\LC_MESSAGES\blender.mo
-  SetOutPath $INSTDIR\.blender\locale\it\LC_MESSAGES
+  SetOutPath $BLENDERHOME\.blender\locale\it\LC_MESSAGES
   File DISTDIR\.blender\locale\it\LC_MESSAGES\blender.mo
-  SetOutPath $INSTDIR\.blender\locale\ja\LC_MESSAGES
+  SetOutPath $BLENDERHOME\.blender\locale\ja\LC_MESSAGES
   File DISTDIR\.blender\locale\ja\LC_MESSAGES\blender.mo
-  SetOutPath $INSTDIR\.blender\locale\nl\LC_MESSAGES
+  SetOutPath $BLENDERHOME\.blender\locale\nl\LC_MESSAGES
   File DISTDIR\.blender\locale\nl\LC_MESSAGES\blender.mo
-  SetOutPath $INSTDIR\.blender\locale\sv\LC_MESSAGES
+  SetOutPath $BLENDERHOME\.blender\locale\sv\LC_MESSAGES
   File DISTDIR\.blender\locale\sv\LC_MESSAGES\blender.mo
-  SetOutPath $INSTDIR\.blender\locale\zh_cn\LC_MESSAGES
+  SetOutPath $BLENDERHOME\.blender\locale\zh_cn\LC_MESSAGES
   File DISTDIR\.blender\locale\zh_cn\LC_MESSAGES\blender.mo
-  SetOutPath $INSTDIR\.blender\locale\pt_br\LC_MESSAGES
+  SetOutPath $BLENDERHOME\.blender\locale\pt_br\LC_MESSAGES
   File DISTDIR\.blender\locale\pt_br\LC_MESSAGES\blender.mo
   
   SetOutPath $INSTDIR
@@ -160,7 +315,7 @@ Section "Open .blend files with Blender-VERSION" Section4
   WriteRegStr HKCR "blendfile\shell" "" "open"
   WriteRegStr HKCR "blendfile\DefaultIcon" "" $INSTDIR\blender.exe,1
   WriteRegStr HKCR "blendfile\shell\open\command" "" \
-    '$INSTDIR\blender.exe "%1"'
+    '"$INSTDIR\blender.exe" "%1"'
   
 SectionEnd
 
@@ -174,6 +329,7 @@ Section "Uninstall"
   Delete $INSTDIR\blender.exe
   Delete $INSTDIR\python22.dll
   Delete $INSTDIR\sdl.dll
+  Delete $INSTDIR\solid.dll
   Delete $INSTDIR\gnu_gettext.dll
   Delete $INSTDIR\Copyright.txt
   Delete $INSTDIR\Readme.txt
@@ -181,25 +337,25 @@ Section "Uninstall"
   Delete $INSTDIR\Release_SHORTVERS.txt
   Delete $INSTDIR\Help.url
   Delete $INSTDIR\uninstall.exe
-  Delete $INSTDIR\.blender\.bfont.ttf
-  Delete $INSTDIR\.blender\.Blanguages
+  Delete $BLENDERHOME\.blender\.bfont.ttf
+  Delete $BLENDERHOME\.blender\.Blanguages
   ; remove shortcuts, if any.
   Delete "$SMPROGRAMS\Blender Foundation\Blender\*.*"
   Delete "$DESKTOP\Blender.lnk"
   ; remove directories used.
-  RMDir /r $INSTDIR\.blender\locale 
-  RMDir /r $INSTDIR\.blender\scripts
-  RMDir /r $INSTDIR\.blender\bpydata
-  RMDir $INSTDIR\.blender
+  RMDir /r $BLENDERHOME\.blender\locale 
+  RMDir /r $BLENDERHOME\.blender\scripts
+  RMDir /r $BLENDERHOME\.blender\bpydata
+  RMDir $BLENDERHOME\.blender
   RMDir "$SMPROGRAMS\Blender Foundation\Blender"
   RMDir "$SMPROGRAMS\Blender Foundation"
   RMDir "$INSTDIR"
   RMDir "$INSTDIR\.."
 SectionEnd
 
-!insertmacro MUI_FUNCTIONS_DESCRIPTION_BEGIN
+!insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT ${SecCopyUI} $(DESC_SecCopyUI)
   !insertmacro MUI_DESCRIPTION_TEXT ${Section2} $(DESC_Section2)
   !insertmacro MUI_DESCRIPTION_TEXT ${Section3} $(DESC_Section3)
   !insertmacro MUI_DESCRIPTION_TEXT ${Section4} $(DESC_Section4)
-!insertmacro MUI_FUNCTIONS_DESCRIPTION_END
+!insertmacro MUI_FUNCTION_DESCRIPTION_END

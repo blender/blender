@@ -1493,16 +1493,7 @@ int BLO_write_file(char *dir, int write_flags, char **error_r)
 		return 0;
 	}
 	
-#if 0
-	BLI_getInstallationDir(tmpdir);
-
-	if(BLI_exists(tmpdir))
-		strcat(tmpdir,"/.blender/");
-
-	BLI_make_file_string(G.sce, userfilename, tmpdir, ".B.blend");
-#else
 	BLI_make_file_string(G.sce, userfilename, BLI_gethome(), ".B.blend");
-#endif
 
 	write_user_block= BLI_streq(dir, userfilename);
 

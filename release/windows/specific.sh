@@ -49,7 +49,7 @@ awk '{printf("%s\r\n", $0);}' $DISTDIR/GPL-license.txt > $DISTDIR/temp.txt
 mv -f $DISTDIR/temp.txt $DISTDIR/GPL-license.txt
 
 # Add Release info text
-cp -f ../../Release_$SHORTVERS.txt $DISTDIR/Release_$SHORTVERS.txt
+cp -f ../text/Release_$SHORTVERS.txt $DISTDIR/Release_$SHORTVERS.txt
 awk '{printf("%s\r\n", $0);}' $DISTDIR/Release_$SHORTVERS.txt > $DISTDIR/temp.txt
 mv -f $DISTDIR/temp.txt $DISTDIR/Release_$SHORTVERS.txt
 
@@ -68,6 +68,9 @@ cp -f $NAN_GETTEXT/lib/gnu_gettext.dll $DISTDIR/gnu_gettext.dll
 
 # Add SDL DLL to package
 cp -f $NAN_SDL/lib/sdl.dll $DISTDIR/sdl.dll
+
+# Add SOLID DLL to package
+cp -f $NAN_SOLID/lib/win32/vc6/solid.dll $DISTDIR/solid.dll
 
 # Add the Help.url to the ditribution
 cp -f extra/Help.url $DISTDIR/
