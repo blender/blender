@@ -32,6 +32,6 @@
 # Bounces make to subdirectories.
 
 SOURCEDIR = source/blender/bpython
-DIRS = frozen intern
+DIRS = intern frozen
 
 include nan_subdirs.mk
