@@ -605,7 +605,7 @@ void window_warp_pointer(Window *win, int x, int y) {
 }
 
 void window_queue_redraw(Window *win) {
-	GHOST_InvalidateWindow(win->ghostwin);
+	GHOST_InvalidateWindow(win->ghostwin); // ghost will send back a redraw to blender
 }
 
 /***/

@@ -75,7 +75,27 @@
 #include "winlay.h"
 #include "render.h"
 
-/***/
+/* ------------ renderwin struct, to prevent too much global vars --------- */
+/* ------------ only used for display in a 2nd window  --------- */
+
+
+/* flags escape presses during event handling
+* so we can test for user break later.
+*/
+#define RW_FLAGS_ESCAPE		(1<<0)
+/* old zoom style (2x, locked to mouse, exits
+* when mouse leaves window), to be removed
+* at some point.
+*/
+#define RW_FLAGS_OLDZOOM		(1<<1)
+/* on when image is being panned with middlemouse
+*/
+#define RW_FLAGS_PANNING		(1<<2)
+/* on when the mouse is dragging over the image
+* to examine pixel values.
+*/
+#define RW_FLAGS_PIXEL_EXAMINING	(1<<3)
+
 
 typedef struct {
 	Window *win;
@@ -86,22 +106,6 @@ typedef struct {
 	int mbut[3];
 	int lmouse[2];
 	
-	/* flags escape presses during event handling 
-	 * so we can test for user break later.
-	 */
-#define RW_FLAGS_ESCAPE		(1<<0)
-	/* old zoom style (2x, locked to mouse, exits
-	 * when mouse leaves window), to be removed
-	 * at some point.
-	 */
-#define RW_FLAGS_OLDZOOM		(1<<1)
-	/* on when image is being panned with middlemouse
-	 */
-#define RW_FLAGS_PANNING		(1<<2)
-	/* on when the mouse is dragging over the image
-	 * to examine pixel values.
-	 */
-#define RW_FLAGS_PIXEL_EXAMINING	(1<<3)
 	unsigned int flags;
 	
 	float pan_mouse_start[2], pan_ofs_start[2];
@@ -109,7 +113,13 @@ typedef struct {
 	char *info_text;
 } RenderWin;
 
-static RenderWin *renderwin_new(Window *win)
+static RenderWin *render_win= NULL;
+
+/* --------------- help functions for RenderWin struct ---------------------------- */
+
+
+/* only called in function open_renderwin */
+static RenderWin *renderwin_alloc(Window *win)
 {
 	RenderWin *rw= MEM_mallocN(sizeof(*rw), "RenderWin");
 	rw->win= win;
@@ -118,30 +128,17 @@ static RenderWin *renderwin_new(Window *win)
 	rw->flags= 0;
 	rw->zoomofs[0]= rw->zoomofs[1]= 0;
 	rw->info_text= NULL;
-	
+
 	rw->lmouse[0]= rw->lmouse[1]= 0;
 	rw->mbut[0]= rw->mbut[1]= rw->mbut[2]= 0;
 
 	return rw;
 }
-static void renderwin_destroy(RenderWin *rw)
-{
-	if (rw->info_text) MEM_freeN(rw->info_text);
-	window_destroy(rw->win);
-	MEM_freeN(rw);
-}
 
-/***/
-
-static void close_renderwin(void);
-
-static RenderWin *render_win= NULL;
-
-/**/
 
 static void renderwin_queue_redraw(RenderWin *rw)
 {
-	window_queue_redraw(rw->win);
+	window_queue_redraw(rw->win); // to ghost
 }
 
 static void renderwin_reshape(RenderWin *rw)
@@ -206,6 +203,15 @@ static void renderwin_set_infotext(RenderWin *rw, char *info_text)
 	rw->info_text= info_text?BLI_strdup(info_text):NULL;
 }
 
+static void renderwin_reset_view(RenderWin *rw)
+{
+	if (rw->info_text) renderwin_set_infotext(rw, NULL);
+
+	rw->zoom= 1.0;
+	rw->zoomofs[0]= rw->zoomofs[1]= 0;
+	renderwin_queue_redraw(rw);
+}
+
 static void renderwin_draw(RenderWin *rw, int just_clear)
 {
 	float disprect[2][2];
@@ -241,33 +247,7 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 	window_swap_buffers(rw->win);
 }
 
-	/* XXX, this is not good, we do this without any regard to state
-	 * ... better is to make this an optimization of a more clear
-	 * implementation. the bug shows up when you do something like
-	 * open the window, then draw part of the progress, then get
-	 * a redraw event. whatever can go wrong will.
-	 */
-static void renderwin_progress(RenderWin *rw, int start_y, int nlines, int rect_w, int rect_h, unsigned char *rect)
-{
-	float disprect[2][2];
-	rcti win_rct;
-
-	win_rct.xmin= win_rct.ymin= 0;
-	window_get_size(rw->win, &win_rct.xmax, &win_rct.ymax);
-	renderwin_get_disprect(rw, disprect);
-
-	window_make_active(rw->win);
-
-	glEnable(GL_SCISSOR_TEST);
-	glaDefine2DArea(&win_rct);
-
-	glDrawBuffer(GL_FRONT);
-	glPixelZoom(rw->zoom, rw->zoom);
-	glaDrawPixelsSafe(disprect[0][0], disprect[0][1] + start_y*rw->zoom, rect_w, nlines, &rect[start_y*rect_w*4]);
-	glPixelZoom(1.0, 1.0);
-	glFlush();
-	glDrawBuffer(GL_BACK);
-}
+/* ------ interactivity calls for RenderWin ------------- */
 
 static void renderwin_mouse_moved(RenderWin *rw)
 {
@@ -332,30 +312,23 @@ static void renderwin_mousebut_changed(RenderWin *rw)
 	}
 }
 
-static void renderwin_reset_view(RenderWin *rw)
-{
-	if (rw->info_text) renderwin_set_infotext(rw, NULL);
 
-	rw->zoom= 1.0;
-	rw->zoomofs[0]= rw->zoomofs[1]= 0;
-	renderwin_queue_redraw(rw);
-}
-
+/* handler for renderwin, passed on to Ghost */
 static void renderwin_handler(Window *win, void *user_data, short evt, short val, char ascii)
 {
 	RenderWin *rw= user_data;
-	
+
 	if (evt==RESHAPE) {
 		renderwin_reshape(rw);
 	} else if (evt==REDRAW) {
 		renderwin_draw(rw, 0);
 #ifndef __APPLE__
 	} else if (evt==WINCLOSE) {
-		close_renderwin();
+		BIF_close_render_display();
 #endif
 	} else if (evt==INPUTCHANGE) {
 		rw->active= val;
-		
+
 		if (!val && (rw->flags&RW_FLAGS_OLDZOOM)) {
 			rw->flags&= ~RW_FLAGS_OLDZOOM;
 			renderwin_reset_view(rw);
@@ -415,10 +388,30 @@ static void renderwin_handler(Window *win, void *user_data, short evt, short val
 	}
 }
 
-/**/
 
-	/* Render window render callbacks */
+/* opens window and allocs struct */
+static void open_renderwin(int winpos[2], int winsize[2])
+{
+	Window *win;
 
+	win= window_open("Blender:Render", winpos[0], winpos[1], winsize[0], winsize[1], 0);
+
+	render_win= renderwin_alloc(win);
+
+	/* Ghost calls handler */
+	window_set_handler(win, renderwin_handler, render_win);
+
+	winlay_process_events(0);
+	window_make_active(render_win->win);
+	winlay_process_events(0);
+
+	renderwin_draw(render_win, 1);
+	renderwin_draw(render_win, 1);
+}
+
+/* -------------- callbacks for render loop: Window (RenderWin) ----------------------- */
+
+/* calculations for window size and position */
 void calc_renderwin_rectangle(int posmask, int renderpos_r[2], int rendersize_r[2]) 
 {
 	int scr_w, scr_h, x, y, div= 0;
@@ -459,32 +452,7 @@ void calc_renderwin_rectangle(int posmask, int renderpos_r[2], int rendersize_r[
 	renderpos_r[1]= 30 + (scr_h-90-rendersize_r[1])*(ndc_y*0.5 + 0.5);
 }
 	
-static void open_renderwin(int winpos[2], int winsize[2])
-{
-	Window *win;
-
-	win= window_open("Blender:Render", winpos[0], winpos[1], winsize[0], winsize[1], 0);
-			
-	render_win= renderwin_new(win);
-			
-	window_set_handler(win, renderwin_handler, render_win);
-
-	winlay_process_events(0);
-	window_make_active(render_win->win);
-	winlay_process_events(0);
-			
-	renderwin_draw(render_win, 1);
-	renderwin_draw(render_win, 1);
-}
-
-static void close_renderwin(void)
-{
-	if (render_win) {
-		renderwin_destroy(render_win);
-		render_win= NULL;
-	}
-}
-
+/* init renderwin, alloc/open/resize */
 static void renderwin_init_display_cb(void) 
 {
 	if (G.afbreek == 0) {
@@ -506,7 +474,7 @@ static void renderwin_init_display_cb(void)
 				 * and size we reopen the window all the time... we need
 				 * a ghost _set_position to fix this -zr
 				 */
-			close_renderwin();
+			BIF_close_render_display();
 			open_renderwin(renderpos, rendersize);
 
 			renderwin_reset_view(render_win);
@@ -514,6 +482,8 @@ static void renderwin_init_display_cb(void)
 		}
 	}
 }
+
+/* callback for redraw render win */
 static void renderwin_clear_display_cb(short ignore) 
 {
 	if (render_win) {
@@ -522,17 +492,52 @@ static void renderwin_clear_display_cb(short ignore)
 	}
 }
 
-static void renderwin_progress_display_cb(int y1, int y2, int w, int h, unsigned int *rect) 
+/* XXX, this is not good, we do this without any regard to state
+* ... better is to make this an optimization of a more clear
+* implementation. the bug shows up when you do something like
+* open the window, then draw part of the progress, then get
+* a redraw event. whatever can go wrong will.
+*/
+
+/* in render window; display a couple of scanlines of rendered image (see callback below) */
+static void renderwin_progress(RenderWin *rw, int start_y, int nlines, int rect_w, int rect_h, unsigned char *rect)
+{
+	float disprect[2][2];
+	rcti win_rct;
+
+	win_rct.xmin= win_rct.ymin= 0;
+	window_get_size(rw->win, &win_rct.xmax, &win_rct.ymax);
+	renderwin_get_disprect(rw, disprect);
+
+	window_make_active(rw->win);
+
+	glEnable(GL_SCISSOR_TEST);
+	glaDefine2DArea(&win_rct);
+
+	glDrawBuffer(GL_FRONT);
+	glPixelZoom(rw->zoom, rw->zoom);
+	glaDrawPixelsSafe(disprect[0][0], disprect[0][1] + start_y*rw->zoom, rect_w, nlines, &rect[start_y*rect_w*4]);
+	glPixelZoom(1.0, 1.0);
+	glFlush();
+	glDrawBuffer(GL_BACK);
+}
+
+
+/* in render window; display a couple of scanlines of rendered image */
+static void renderwin_progress_display_cb(int y1, int y2, int w, int h, unsigned int *rect)
 {
 	if (render_win) {
 		renderwin_progress(render_win, y1, y2-y1+1, w, h, (unsigned char*) rect);
 	}
 }
 
-	/* Render view render callbacks */
+
+/* -------------- callbacks for render loop: in View3D ----------------------- */
+
 
 static View3D *render_view3d = NULL;
 
+/* init Render view callback */
 static void renderview_init_display_cb(void)
 {
 	ScrArea *sa;
@@ -556,6 +561,8 @@ static void renderview_init_display_cb(void)
 	}
 }
 
+
+/* in 3d view; display a couple of scanlines of rendered image */
 static void renderview_progress_display_cb(int y1, int y2, int w, int h, unsigned int *rect)
 {
 	if (render_view3d) {
@@ -591,8 +598,10 @@ static void renderview_progress_display_cb(int y1, int y2, int w, int h, unsigne
 	}
 }
 
-	/* Shared render callbacks */
+/* -------------- callbacks for render loop: interactivity ----------------------- */
 
+
+/* callback for break rendering process */
 static int test_break(void)
 {
 	if (!G.afbreek) {
@@ -609,6 +618,7 @@ static int test_break(void)
 	return G.afbreek;
 }
 
+/* callback for print info in top header in interface */
 static void printrenderinfo_cb(double time, int sample)
 {
 	extern int mem_in_use;
@@ -628,40 +638,35 @@ static void printrenderinfo_cb(double time, int sample)
 	
 	screen_draw_info_text(G.curscreen, str);
 }
-	
-/***/
 
-void BIF_renderwin_set_custom_cursor(unsigned char mask[16][2], unsigned char bitmap[16][2])
-{
-	if (render_win) {
-		window_set_custom_cursor(render_win->win, mask, bitmap);
-	}
-}
+/* -------------- callbacks for render loop: init & run! ----------------------- */
 
-static void do_crap(int force_dispwin)
+
+/* - initialize displays
+   - both opengl render as blender render
+   - set callbacks
+   - cleanup
+*/
+
+static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 {
 	if (R.displaymode == R_DISPLAYWIN || force_dispwin) {
 		RE_set_initrenderdisplay_callback(NULL);
-		RE_set_clearrenderdisplay_callback(renderwin_clear_display_cb);	
+		RE_set_clearrenderdisplay_callback(renderwin_clear_display_cb);
 		RE_set_renderdisplay_callback(renderwin_progress_display_cb);
 
 		renderwin_init_display_cb();
 	} else {
 		BIF_close_render_display();
-		
+
 		RE_set_initrenderdisplay_callback(renderview_init_display_cb);
-		RE_set_clearrenderdisplay_callback(NULL);	
+		RE_set_clearrenderdisplay_callback(NULL);
 		RE_set_renderdisplay_callback(renderview_progress_display_cb);
 	}
 
-	RE_set_test_break_callback(test_break);	
+	RE_set_test_break_callback(test_break);
 	RE_set_timecursor_callback(set_timecursor);
 	RE_set_printrenderinfo_callback(printrenderinfo_cb);
-}
-
-static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
-{
-	do_crap(force_dispwin);
 	
 	if (render_win) window_set_cursor(render_win->win, CURSOR_WAIT);
 	waitcursor(1);
@@ -690,18 +695,7 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 	mainwindow_make_active();
 }
 
-void BIF_do_render(int anim)
-{
-	do_render(NULL, anim, 0);
-}
-
-void BIF_do_ogl_render(View3D *ogl_render_view3d, int anim)
-{
-	G.scene->r.scemode |= R_OGL;
-	do_render(ogl_render_view3d, anim, 1);
-	G.scene->r.scemode &= ~R_OGL;
-}
-
+/* finds area with a 'dispview' set */
 static ScrArea *find_dispimage_v3d(void)
 {
 	ScrArea *sa;
@@ -717,20 +711,7 @@ static ScrArea *find_dispimage_v3d(void)
 	return NULL;
 }
 
-static void redraw_render_display(void)
-{
-	if (R.displaymode == R_DISPLAYWIN) {
-			// don't open render_win if rendering has been
-			// canceled or the render_win has been actively closed
-		if (render_win) {
-			renderwin_queue_redraw(render_win);
-		}
-	} else {
-		renderview_init_display_cb();
-		renderview_progress_display_cb(0, R.recty-1, R.rectx, R.recty, R.rectot);
-	}
-}
-
+/* used for swapping with spare buffer, when images are different size */
 static void scalefastrect(unsigned int *recto, unsigned int *rectn, int oldx, int oldy, int newx, int newy)
 {
 	unsigned int *rect, *newrect;
@@ -752,6 +733,22 @@ static void scalefastrect(unsigned int *recto, unsigned int *rectn, int oldx, in
 			ofsx += stepx;
 		}
 	}
+}
+
+/* -------------- API: externally called --------------- */
+
+/* set up display, render an image or scene */
+void BIF_do_render(int anim)
+{
+	do_render(NULL, anim, 0);
+}
+
+/* set up display, render the current area view in an image */
+void BIF_do_ogl_render(View3D *ogl_render_view3d, int anim)
+{
+	G.scene->r.scemode |= R_OGL;
+	do_render(ogl_render_view3d, anim, 1);
+	G.scene->r.scemode &= ~R_OGL;
 }
 
 void BIF_swap_render_rects(void)
@@ -778,10 +775,36 @@ void BIF_swap_render_rects(void)
 	R.rectot= R.rectspare;
 	R.rectspare= temp;
 
-	redraw_render_display();
+	/* redraw */
+	if (R.displaymode == R_DISPLAYWIN) {
+		// don't open render_win if rendering has been
+	    // canceled or the render_win has been actively closed
+		if (render_win) {
+			renderwin_queue_redraw(render_win);
+		}
+	} else {
+		renderview_init_display_cb();
+		renderview_progress_display_cb(0, R.recty-1, R.rectx, R.recty, R.rectot);
+	}
 }				
 
-void BIF_toggle_render_display(void)
+/* called from usiblender.c too, to free and close renderwin */
+void BIF_close_render_display(void)
+{
+	if (render_win) {
+
+		if (render_win->info_text) MEM_freeN(render_win->info_text);
+
+		window_destroy(render_win->win); /* ghost close window */
+		MEM_freeN(render_win);
+
+		render_win= NULL;
+	}
+}
+
+
+/* typical with F11 key, show image or hide/close */
+void BIF_toggle_render_display(void) 
 {
 	ScrArea *sa= find_dispimage_v3d();
 	
@@ -807,7 +830,9 @@ void BIF_toggle_render_display(void)
 	}
 }
 
-void BIF_close_render_display(void)
+void BIF_renderwin_set_custom_cursor(unsigned char mask[16][2], unsigned char bitmap[16][2])
 {
-	close_renderwin();
+	if (render_win) {
+		window_set_custom_cursor(render_win->win, mask, bitmap);
+	}
 }
