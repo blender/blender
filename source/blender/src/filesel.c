@@ -1515,6 +1515,7 @@ static void filesel_execute(SpaceFile *sfile)
 		}
 		else {
 			if(strncmp(sfile->title, "Save", 4)==0) free_filesel_spec(sfile->dir);
+			if(strncmp(sfile->title, "Export", 6)==0) free_filesel_spec(sfile->dir);
 			
 			strcpy(name, sfile->dir);
 			strcat(name, sfile->file);
