@@ -66,6 +66,11 @@ Example::
     - ADD - add to background (halo).
     - ALPHA - draw with transparency.
     - SUB - subtract from background.
+@var EdgeFlags: The available edge flags.
+    - SELECT - selected.
+    - EDGEDRAW - edge is drawn out of edition mode.
+    - SEAM - edge is a seam for LSCM UV unwrapping
+    - FGON - edge is part of a F-Gon.
 """
 
 def Col(col = [255, 255, 255, 255]):
@@ -139,16 +144,18 @@ def GetRawFromObject(name):
       be created.
   """
 
-def PutRaw(nmesh, name = None, recalculate_normals = 1):
+def PutRaw(nmesh, name = None, recalculate_normals = 1, store_edges = 0):
   """
   Put an NMesh object back in Blender.
   @type nmesh: NMesh
   @type name: string
   @type recalculate_normals: int
+  @type store_edges: int
   @param name: The name of the mesh data object in Blender which will receive
      this nmesh data.  It can be an existing mesh data object or a new one.
   @param recalculate_normals: If non-zero, the vertex normals for the mesh will
      be recalculated.
+  @param store_edges: if non-zero, the edges data are stored
   @rtype: None or Object
   @return: It depends on the 'name' parameter:
       - I{name} refers to an existing mesh data obj already linked to an
@@ -191,6 +198,21 @@ class NMVert:
      coordinates.  This makes the per face option more flexible, since two
      adjacent faces won't have to be mapped to a continuous region in an image:
      each face can be independently mapped to any part of its texture.
+  """
+
+class NMEdge:
+  """
+  The NMEdge object
+  =================
+    This object holds mesh edge data.
+  @type v1: NMVert
+  @cvar v1: The first vertex of the edge.
+  @type v2: NMVert
+  @cvar v2: The second vertex of the edge.
+  @type crease: int
+  @cvar crease: The crease value of the edge. It is in the range [0,255].
+  @type flag: int
+  @cvar flag: The bitmask describing edge properties. See L{NMesh.EdgeFlags<EdgeFlags>}.
   """
 
 class NMFace:
@@ -264,11 +286,71 @@ class NMesh:
   @cvar verts: The list of NMesh vertices (NMVerts).
   @cvar users: The number of Objects using (linked to) this mesh.
   @cvar faces: The list of NMesh faces (NMFaces).
+  @cvar edges: None if mesh has no edge data, else a list of L{NMEdge} edges. Use L{addEdgesData} to create edge data if it do not exist.
   @cvar mode:  The mode flags for this mesh.  See L{setMode}.
   @cvar subDivLevels: The [display, rendering] subdivision levels in [1, 6].
   @cvar maxSmoothAngle: The max angle for auto smoothing.  See L{setMode}.
   """
 
+  def addEdge(v1, v2):
+    """
+    Create an edge between two vertices.
+    If an edge already exists between those vertices, it is returned. (in blender, only zero or one edge can link two vertices).
+    Created edge is automatically added to edges list.
+    You can only call this method if mesh has edge data.
+    @type v1: NMVert
+    @param v1: the first vertex of the edge.
+    @type v2: NMVert
+    @param v2: the second vertex of the edge.
+    @rtype: NMEdge
+    @return: The created or already existing edge.
+    """
+
+  def findEdge(v1, v2):
+    """
+    Try to find an edge between two vertices.
+    If no edge exists between v1 and v2, None is returned.
+    You can only call this method if mesh has edge data.
+    @type v1: NMVert
+    @param v1: the first vertex of the edge.
+    @type v2: NMVert
+    @param v2: the second vertex of the edge.
+    @rtype: NMEdge
+    @return: The found edge. None if no edge was found.
+    """
+
+  def removeEdge():
+    """
+    remove an edge between two vertices.
+    All faces using this edge are removed from faces list.
+    You can only call this method if mesh has edge data.
+    @type v1: NMVert
+    @param v1: the first vertex of the edge.
+    @type v2: NMVert
+    @param v2: the second vertex of the edge.
+    """
+
+  def addFace(face):
+    """
+    Add a face to face list and add to edge list (if edge data exists) necessary edges.
+    @type face: NMFace
+    @param face: the face to add to the mesh.
+    @rtype: list of NMEdge
+    @return: If mesh has edge data, return the list of face edges.
+    """
+
+  def removeFace():
+    """
+    Remove a face for face list and remove edges no more used by any other face (if edge data exists).
+    @type face: NMFace
+    @param face: the face to add to the mesh.
+    """
+
+  def addEdgesData():
+    """
+    If edge data does not exist for the mesh (ie L{edges}==None), then create them.
+    """
+    
   def addMaterial(material):
     """
     Add a new material to this NMesh's list of materials.  This method is the
@@ -412,7 +494,7 @@ class NMesh:
        add them.
     """
 
-  def update(recalc_normals = 0):
+  def update(recalc_normals = 0, store_edges = 0):
     """
     Update the mesh in Blender.  The changes made are put back to the mesh in
     Blender, if available, or put in a newly created mesh object if this NMesh
@@ -420,6 +502,8 @@ class NMesh:
     @type recalc_normals: int
     @param recalc_normals: If given and equal to 1, the vertex normals are
         recalculated.
+    @type store_edges: int
+    @param store_edges: if not 0, then edge data are stored.
     @note: if your mesh disappears after it's updated, try
         L{Object.Object.makeDisplayList}.  'Subsurf' meshes (see L{getMode},
         L{setMode}) need their display lists updated, too.

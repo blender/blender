@@ -68,6 +68,8 @@ static PyObject *World_setIpo( BPy_World * self, PyObject * args );
 static PyObject *World_clearIpo( BPy_World * self );
 static PyObject *World_getName( BPy_World * self );
 static PyObject *World_setName( BPy_World * self, PyObject * args );
+static PyObject *World_getMode( BPy_World * self );
+static PyObject *World_setMode( BPy_World * self, PyObject * args );
 static PyObject *World_getSkytype( BPy_World * self );
 static PyObject *World_setSkytype( BPy_World * self, PyObject * args );
 static PyObject *World_getMistype( BPy_World * self );
@@ -162,7 +164,11 @@ static PyMethodDef BPy_World_methods[] = {
 	{"getName", ( PyCFunction ) World_getName, METH_NOARGS,
 	 "() - Return World Data name"},
 	{"setName", ( PyCFunction ) World_setName, METH_VARARGS,
-	 "() - Return World Data name"},
+	 "() - Set World Data name"},
+	{"getMode", ( PyCFunction ) World_getMode, METH_NOARGS,
+	 "() - Return World Data mode"},
+	{"setMode", ( PyCFunction ) World_setMode, METH_VARARGS,
+	 "(i) - Set World Data mode"},
 	{"getSkytype", ( PyCFunction ) World_getSkytype, METH_NOARGS,
 	 "() - Return World Data skytype"},
 	{"setSkytype", ( PyCFunction ) World_setSkytype, METH_VARARGS,

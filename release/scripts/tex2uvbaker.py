@@ -11,7 +11,7 @@ __author__ = "Jean-Michel Soler (jms)"
 __url__ = ("blender", "elysiun",
 "Script online, http://jmsoler.free.fr/util/blenderfile/py/text2uvbaker.py",
 "Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
-__version__ = "0.2.2 2004/08/01"
+__version__ = "0.2.3 2004/12/30"
 
 __bpydoc__ = """\
 This script "bakes" Blender procedural materials (including textures): it saves
@@ -33,7 +33,7 @@ Notes:<br>
 """
 
 #---------------------------------------------
-# Last release : 0.2.2 ,  2004/08/01 , 22h13
+# Last release : 0.2.3 ,  2004/12/30 , 22h13
 #---------------------------------------------
 #---------------------------------------------
 # (c) jm soler  07/2004 : 'Procedural Texture Baker'
@@ -43,12 +43,40 @@ Notes:<br>
 #     original mesh.
 #     released under Blender Artistic Licence
 #
-#  0.2.2 : if the uv mesh objet exists it used,
-#          no creation of a new one. As the lamp and  
-#          the camera
-#  0.2.1 : This script automaticaly frame and shoot the
-#  new uv mesh . The image file is saved ine the
-#  /render folder.
+#
+#   0.2.3 :  
+#        Great thanks for Apollux  who sees a lot of these 
+#        problems
+#
+#        --Everytime you run the script a new set 
+#        of objects is created. File size and memory 
+#        consumption can go  pretty high if you are 
+#        not aware of that . 
+#        Now it ONLY creates 3 objects: a flattened 
+#         mesh, a camera and a lamp.
+#        --all the 3 objects was placed on layer 1, but if 
+#        that layer was not visible while you used the script 
+#        all you will get a is an empty render. 
+#        Now the layer is tst and activated befor the shoot 
+#        --The flattened mesh was really flattend only after 
+#        frame 100 (if you playbacked the animation, you can 
+#        actually see the mesh becoming flat on the first 100 
+#        frames). No more.
+#        -- When the script is run, it changes temporary to 
+#        the new cammera, set the render output to a square 
+#        (i.e. 1024 x 1024 or else), does the render, and then 
+#        resets the render output and the active camera to the 
+#        original one. But if no original camera was found
+#        this produce an error.    
+#
+#  0.2.2 : 
+#        if the uv mesh objet exists it used,
+#        no creation of a new one. As the lamp and  
+#        the camera
+#  0.2.1 : 
+#        This script automaticaly frame and shoot the
+#        new uv mesh . The image file is saved ine the
+#        /render folder.
 #
 #---------------------------------------------
 #  On user-friendly side :
@@ -83,9 +111,9 @@ Basic instructions:
 - Run this script and check the console.
 """
 
-def GET_newobject (TYPE):
+def GET_newobject (TYPE,NAME):
    SCENE = Blender.Scene.getCurrent()
-   OBJECT = Blender.Object.New(TYPE)
+   OBJECT = Blender.Object.New(TYPE,NAME)
    SCENE.link(OBJECT)
    return OBJECT, SCENE
 
@@ -138,7 +166,7 @@ def SHOOT (XYlimit, frame, obj, name, FRAME):
    except:
       Cam = Blender.Camera.New()
       Cam.name = 'UVCamera'
-      CAM, SC = GET_newobject('Camera')
+      CAM, SC = GET_newobject('Camera','UVCAMERA')
       CAM.link(Cam)
       CAM.setName('UVCAMERA')
       Cam.lens = 30
@@ -151,22 +179,23 @@ def SHOOT (XYlimit, frame, obj, name, FRAME):
    CAM.setEuler (0.0, 0.0, 0.0)
 
    try:
-      LAMP = Blender.Object.Get('Eclairage')
+      LAMP = Blender.Object.Get('ECLAIRAGE')
       lampe = LAMP.getData()
       SC = Blender.Scene.getCurrent()
 
    except:
       lampe = Blender.Lamp.New()
       lampe.name = 'lumin'
-      LAMP, SC = GET_newobject('Lamp')
+      LAMP, SC = GET_newobject('Lamp','ECLAIRAGE')
       LAMP.link(lampe)
-      LAMP.setName('Eclairage')
+      LAMP.setName('ECLAIRAGE')
 
    LAMP.setLocation(obj.getLocation())
    LAMP.LocX += XYlimit[0] / 2.0
    LAMP.LocY += XYlimit[1] / 2.0
    LAMP.LocZ += max (XYlimit[0], XYlimit[1])
    LAMP.setEuler (0.0, 0.0, 0.0)
+
    context = SC.getRenderingContext()
    Camold = SC.getCurrentCamera()
    SC.setCurrentCamera(CAM)
@@ -189,16 +218,27 @@ def SHOOT (XYlimit, frame, obj, name, FRAME):
    SAVE_image (context, name, FRAME)
    context.imageSizeY(OLDy)
    context.imageSizeX(OLDx)
-   SC.setCurrentCamera(Camold)
+
+   if Camold :SC.setCurrentCamera(Camold)
+
    Blender.Set ('curframe', frame)
 
 def Mesh2UVCoord ():
-   try:
+   if 1:#try:
       MESH3D = Object.GetSelected()[0]
 
       if MESH3D.getType() == 'Mesh':
          MESH = MESH3D.getData()
-         MESH2 = Blender.NMesh.GetRaw()
+
+         try:
+            NewOBJECT=Blender.Object.Get('UVOBJECT')
+            CurSCENE=Blender.Scene.getCurrent()            
+            MESH2 = NewOBJECT.getData()
+            MESH2.faces=[]
+
+         except:
+            NewOBJECT, CurSCENE = GET_newobject('Mesh','UVOBJECT')
+            MESH2 = Blender.NMesh.GetRaw()
 
          for f in MESH.faces:
             f1 = Blender.NMesh.Face()
@@ -218,25 +258,14 @@ def Mesh2UVCoord ():
 
          MESH2.materials = MESH.materials[:]
 
-         try:
-            NewOBJECT=Blender.Object.Get('UVOBJECT')
-            CurSCENE=Blender.Scene.getCurrent()            
-         except:
-            NewOBJECT, CurSCENE = GET_newobject('Mesh')
 
-         NewOBJECT.link(MESH2)
-
-         #NewOBJECT, CurSCENE = GET_newobject('Mesh')
          #NewOBJECT.link(MESH2)
-
+          
          NewOBJECT.setLocation (OBJPOS, OBJPOS, 0.0)
          NewOBJECT.setEuler (0.0, 0.0, 0.0)
 
          MESH2.removeAllKeys()
 
-         MESH2.update()
-         MESH2.insertKey (1, 'absolute')
-         MESH2.update()
 
          for f in MESH2.faces:
             for v in f.v:
@@ -247,6 +276,10 @@ def Mesh2UVCoord ():
                v.co[2] = 0.0
 
          print XYLIMIT
+
+         MESH2.update()
+         MESH2.insertKey (1, 'absolute')
+         MESH2.update()
 
          MESH2.update()
          MESH2.insertKey (FRAME, 'absolute')
@@ -271,9 +304,9 @@ def Mesh2UVCoord ():
          result = Draw.PupMenu(name)
          print 'problem : no object selected or not mesh'
 
-   except:
-      name = "Error%t|Active object is not a mesh or has no UV coordinates"
-      result = Draw.PupMenu(name)
+   #except:
+   #   name = "Error%t|Active object is not a mesh or has no UV coordinates"
+   #   result = Draw.PupMenu(name)
       print 'problem : no object selected or not mesh'
 
 Mesh2UVCoord() 

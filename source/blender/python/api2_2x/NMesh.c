@@ -26,7 +26,7 @@
  * This is a new part of Blender.
  *
  * Contributor(s): Willian P. Germano, Jordi Rovira i Bonet, Joseph Gilbert,
- * Bala Gi, Alexander Szakaly
+ * Bala Gi, Alexander Szakaly, Stephane Soppera
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -46,6 +46,7 @@
 #include "BIF_editmesh.h"	/* vertexnormals_mesh() : still needed???*/
 #include "BIF_meshtools.h"   /* current loc of vertexnormals_mesh() */
 #include "BIF_space.h"
+#include "BKE_deform.h"
 #include "BKE_mesh.h"
 #include "BKE_main.h"
 #include "BKE_global.h"
@@ -86,7 +87,16 @@
 static PyObject *g_nmeshmodule = NULL;
 
 static int unlink_existingMeshData( Mesh * mesh );
-static int convert_NMeshToMesh( Mesh * mesh, BPy_NMesh * nmesh );
+static int convert_NMeshToMesh( Mesh * mesh, BPy_NMesh * nmesh, int store_edges );
+/* <start> */
+static PyObject *NMesh_printDebug( PyObject * self );
+/* <end> */
+static PyObject *NMesh_addEdge( PyObject * self, PyObject * args );
+static PyObject *NMesh_findEdge( PyObject * self, PyObject * args );
+static PyObject *NMesh_removeEdge( PyObject * self, PyObject * args );
+static PyObject *NMesh_addEdgesData( PyObject * self );
+static PyObject *NMesh_addFace( PyObject * self, PyObject * args );
+static PyObject *NMesh_removeFace( PyObject * self, PyObject * args );
 static PyObject *NMesh_addVertGroup( PyObject * self, PyObject * args );
 static PyObject *NMesh_removeVertGroup( PyObject * self, PyObject * args );
 static PyObject *NMesh_assignVertsToGroup( PyObject * self, PyObject * args );
@@ -94,8 +104,37 @@ static PyObject *NMesh_removeVertsFromGroup( PyObject * self,
 					     PyObject * args );
 static PyObject *NMesh_getVertsFromGroup( PyObject * self, PyObject * args );
 static PyObject *NMesh_renameVertGroup( PyObject * self, PyObject * args );
-static PyObject *NMesh_getVertGroupNames( PyObject * self, PyObject * args );
+static PyObject *NMesh_getVertGroupNames( PyObject * self );
 
+/* <start> */
+
+static char NMesh_printDebug_doc[] =
+  "print debug info about the mesh.";
+
+/* <end> */
+
+static char NMesh_addEdge_doc[] =
+  "create an edge between two vertices.\n\
+If an edge already exists between those vertices, it is returned. (in blender, only zero \
+or one edge can link two vertices.\n\
+Created edge is automatically added to edges list.";
+
+static char NMesh_findEdge_doc[] =
+  "find an edge between two vertices.";
+
+static char NMesh_removeEdge_doc[] =
+  "remove an edge between two vertices.\n\
+All faces using this edge are removed from faces list.";
+
+static char NMesh_addEdgesData_doc[] =
+  "add edges data to the mesh.";
+
+static char NMesh_addFace_doc[] =
+  "add a face to face list and add to edge list (if edge data exists) necessary edges.";
+
+static char NMesh_removeFace_doc[] =
+  "remove a face for face list and remove edges no more used by any other face (if \
+edge data exists).";
 
 static char NMesh_addVertGroup_doc[] =
 	"add a named and empty vertex(deform) Group to a mesh that has been linked\n\
@@ -202,8 +241,9 @@ specified by index. The list contains pairs with the \n\
 bone name and the weight.";
 
 
-static char NMesh_update_doc[] = "(recalc_normals = 0) - updates the Mesh.\n\
-if recalc_normals is given and is equal to 1, normal vectors are recalculated.";
+static char NMesh_update_doc[] = "(recalc_normals = 0, store_edges = 0) - updates the Mesh.\n\
+if recalc_normals is given and is equal to 1, normal vectors are recalculated.\n\
+if store_edges is given qnd is equal to 1, egdes data are stored.";
 
 static char NMesh_getMode_doc[] =
 	"() - get the mode flags of this nmesh as an or'ed int value.";
@@ -242,10 +282,11 @@ This returns the mesh as used by the object, which\n\
 means it contains all deformations and modifications.";
 
 static char M_NMesh_PutRaw_doc[] =
-	"(mesh, [name, renormal]) - Return a raw mesh to Blender\n\n\
+	"(mesh, [name, renormal, store_edges]) - Return a raw mesh to Blender\n\n\
 (mesh) The NMesh object to store\n\
 [name] The mesh to replace\n\
-[renormal=1] Flag to control vertex normal recalculation\n\n\
+[renormal=1] Flag to control vertex normal recalculation\n\
+[store_edges=0] Store edges data in the blender mesh\n\
 If the name of a mesh to replace is not given a new\n\
 object is created and returned.";
 
@@ -840,6 +881,109 @@ PyTypeObject NMVert_Type = {
 	&NMVert_SeqMethods,	/*tp_as_sequence */
 };
 
+
+/*****************************
+ * NMEdge
+ *****************************/
+
+static BPy_NMEdge *new_NMEdge( BPy_NMVert * v1, BPy_NMVert * v2, char crease, short flag)
+{
+  BPy_NMEdge *edge=NULL;
+
+  if (!v1 || !v2) return NULL;
+  if (!BPy_NMVert_Check(v1) || !BPy_NMVert_Check(v2)) return NULL;
+
+  edge = PyObject_NEW( BPy_NMEdge, &NMEdge_Type );
+
+  edge->v1=EXPP_incr_ret((PyObject*)v1);
+  edge->v2=EXPP_incr_ret((PyObject*)v2);
+  edge->flag=flag;
+  edge->crease=crease;
+
+  return edge;
+}
+
+static void NMEdge_dealloc( PyObject * self )
+{
+  BPy_NMEdge *edge=(BPy_NMEdge *)self;
+
+  Py_DECREF(edge->v1);
+  Py_DECREF(edge->v2);
+
+  PyObject_DEL(self);
+}
+
+static PyObject *NMEdge_getattr( PyObject * self, char *name )
+{
+  BPy_NMEdge *edge=(BPy_NMEdge *)self;
+
+  if      ( strcmp( name, "v1" ) == 0 )
+		return EXPP_incr_ret( edge->v1 );
+  else if ( strcmp( name, "v2" ) == 0 )
+    return EXPP_incr_ret( edge->v2 );
+  else if ( strcmp( name, "flag" ) == 0 )
+    return PyInt_FromLong( edge->flag );
+  else if ( strcmp( name, "crease" ) == 0 )
+    return PyInt_FromLong( edge->crease );
+  else if( strcmp( name, "__members__" ) == 0 )
+    return Py_BuildValue( "[s,s,s,s]",
+                          "v1", "v2", "flag", "crease" );
+  
+  return EXPP_ReturnPyObjError( PyExc_AttributeError, name );
+}
+
+static int NMEdge_setattr( PyObject * self, char *name, PyObject * v )
+{
+  BPy_NMEdge *edge=(BPy_NMEdge *)self;
+
+  if ( strcmp( name, "flag" ) == 0 )
+  {
+    short flag=0;
+    if( !PyInt_Check( v ) )
+      return EXPP_ReturnIntError( PyExc_TypeError,
+                                  "expected int argument" );
+
+    flag = ( short ) PyInt_AsLong( v );
+
+    edge->flag = flag;
+
+    return 0;
+  }
+  else if ( strcmp( name, "crease" ) == 0 )
+  {
+    char crease=0;
+    if( !PyInt_Check( v ) )
+      return EXPP_ReturnIntError( PyExc_TypeError,
+                                  "expected int argument" );
+
+    crease = ( char ) PyInt_AsLong( v );
+
+    edge->crease = crease;
+
+    return 0;
+  }
+
+  return EXPP_ReturnIntError( PyExc_AttributeError, name );
+}
+
+PyTypeObject NMEdge_Type = {
+	PyObject_HEAD_INIT( NULL ) 
+	0,	/*ob_size */
+	"Blender NMEdge",	/*tp_name */
+	sizeof( BPy_NMEdge ),	/*tp_basicsize */
+	0,			/*tp_itemsize */
+	/* methods */
+	( destructor ) NMEdge_dealloc,	/*tp_dealloc */
+	( printfunc ) 0,	/*tp_print */
+	( getattrfunc ) NMEdge_getattr,	/*tp_getattr */
+	( setattrfunc ) NMEdge_setattr,	/*tp_setattr */
+};
+
+
+
+
+
+
 static void NMesh_dealloc( PyObject * self )
 {
 	BPy_NMesh *me = ( BPy_NMesh * ) self;
@@ -848,6 +992,7 @@ static void NMesh_dealloc( PyObject * self )
 	Py_DECREF( me->verts );
 	Py_DECREF( me->faces );
 	Py_DECREF( me->materials );
+	Py_XDECREF( me->edges );
 
 	PyObject_DEL( self );
 }
@@ -1020,7 +1165,7 @@ static PyObject *NMesh_getSelectedFaces( PyObject * self, PyObject * args )
 	return l;
 }
 
-static PyObject *NMesh_getActiveFace( PyObject * self, PyObject * args )
+static PyObject *NMesh_getActiveFace( PyObject * self )
 {
 	if( ( ( BPy_NMesh * ) self )->sel_face < 0 )
 		return EXPP_incr_ret( Py_None );
@@ -1108,13 +1253,13 @@ static PyObject *NMesh_hasVertexColours( PyObject * self, PyObject * args )
 
 static PyObject *NMesh_update( PyObject * self, PyObject * args )
 {
-	int recalc_normals = 0;
+	int recalc_normals = 0, store_edges = 0;
 	BPy_NMesh *nmesh = ( BPy_NMesh * ) self;
 	Mesh *mesh = nmesh->mesh;
 
-	if( !PyArg_ParseTuple( args, "|i", &recalc_normals ) )
+	if( !PyArg_ParseTuple( args, "|ii", &recalc_normals, &store_edges ) )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "expected nothing or an int (0 or 1) as argument" );
+					      "expected nothing, one or two int(s) (0 or 1) as argument" );
 
 	if( recalc_normals && recalc_normals != 1 )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
@@ -1122,9 +1267,9 @@ static PyObject *NMesh_update( PyObject * self, PyObject * args )
 
 	if( mesh ) {
 		unlink_existingMeshData( mesh );
-		convert_NMeshToMesh( mesh, nmesh );
+		convert_NMeshToMesh( mesh, nmesh, store_edges );
 	} else {
-		nmesh->mesh = Mesh_fromNMesh( nmesh );
+		nmesh->mesh = Mesh_fromNMesh( nmesh, store_edges );
 		mesh = nmesh->mesh;
 	}
 
@@ -1215,7 +1360,7 @@ static PyObject *NMesh_getVertexInfluences( PyObject * self, PyObject * args )
 	return influence_list;
 }
 
-Mesh *Mesh_fromNMesh( BPy_NMesh * nmesh )
+Mesh *Mesh_fromNMesh( BPy_NMesh * nmesh , int store_edges )
 {
 	Mesh *mesh = NULL;
 	mesh = add_mesh(  );
@@ -1226,24 +1371,9 @@ Mesh *Mesh_fromNMesh( BPy_NMesh * nmesh )
 
 	mesh->id.us = 0;	/* no user yet */
 	G.totmesh++;
-	convert_NMeshToMesh( mesh, nmesh );
+	convert_NMeshToMesh( mesh, nmesh, store_edges );
 
 	return mesh;
-}
-
-PyObject *NMesh_link( PyObject * self, PyObject * args )
-{				/*
-				   BPy_Object *bl_obj;
-
-				   if (!PyArg_ParseTuple(args, "O!", &Object_Type, &bl_obj))
-				   return EXPP_ReturnPyErrorObj (PyExc_TypeError,
-				   "NMesh can only be linked to Objects");
-
-				   bl_obj->data = (PyObject *)self; */
-
-/* Better use object.link(nmesh), no need for this nmesh.link(object) */
-
-	return EXPP_incr_ret( Py_None );
 }
 
 static PyObject *NMesh_getMaxSmoothAngle( BPy_NMesh * self )
@@ -1353,21 +1483,25 @@ static PyObject *NMesh_setMode( PyObject * self, PyObject * args )
 	return Py_None;
 }
 
+/* METH_VARARGS: function(PyObject *self, PyObject *args) */
 #undef MethodDef
 #define MethodDef(func) {#func, NMesh_##func, METH_VARARGS, NMesh_##func##_doc}
 
 static struct PyMethodDef NMesh_methods[] = {
+	MethodDef( addEdge ),
+	MethodDef( findEdge ),
+	MethodDef( removeEdge ),
+	MethodDef( addFace ),
+	MethodDef( removeFace ),
 	MethodDef( addVertGroup ),
 	MethodDef( removeVertGroup ),
 	MethodDef( assignVertsToGroup ),
 	MethodDef( removeVertsFromGroup ),
 	MethodDef( getVertsFromGroup ),
 	MethodDef( renameVertGroup ),
-	MethodDef( getVertGroupNames ),
 	MethodDef( hasVertexColours ),
 	MethodDef( hasFaceUV ),
 	MethodDef( hasVertexUV ),
-	MethodDef( getActiveFace ),
 	MethodDef( getSelectedFaces ),
 	MethodDef( getVertexInfluences ),
 	MethodDef( getMaterials ),
@@ -1379,13 +1513,19 @@ static struct PyMethodDef NMesh_methods[] = {
 	MethodDef( setMode ),
 	MethodDef( setMaxSmoothAngle ),
 	MethodDef( setSubDivLevels ),
-	{"getMode", ( PyCFunction ) NMesh_getMode, METH_NOARGS,
-	 NMesh_getMode_doc},
-	{"getMaxSmoothAngle", ( PyCFunction ) NMesh_getMaxSmoothAngle,
-	 METH_NOARGS,
-	 NMesh_getMaxSmoothAngle_doc},
-	{"getSubDivLevels", ( PyCFunction ) NMesh_getSubDivLevels, METH_NOARGS,
-	 NMesh_getSubDivLevels_doc},
+
+/* METH_NOARGS: function(PyObject *self) */
+#undef MethodDef
+#define MethodDef(func) {#func, (PyCFunction)NMesh_##func, METH_NOARGS,\
+	NMesh_##func##_doc}
+
+	MethodDef( printDebug ),
+	MethodDef( addEdgesData ),
+	MethodDef( getVertGroupNames ),
+	MethodDef( getActiveFace ),
+	MethodDef( getMode ),
+	MethodDef( getMaxSmoothAngle ),
+	MethodDef( getSubDivLevels ),
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1425,11 +1565,18 @@ static PyObject *NMesh_getattr( PyObject * self, char *name )
 	else if( strcmp( name, "faces" ) == 0 )
 		return EXPP_incr_ret( me->faces );
 
+  else if( strcmp( name, "edges" ) == 0 )
+  {
+    if (me->edges)
+      return EXPP_incr_ret( me->edges );
+    else
+      return EXPP_incr_ret( Py_None );
+  }
 	else if( strcmp( name, "__members__" ) == 0 )
-		return Py_BuildValue( "[s,s,s,s,s,s,s]",
+		return Py_BuildValue( "[s,s,s,s,s,s,s,s]",
 				      "name", "materials", "verts", "users",
 				      "faces", "maxSmoothAngle",
-				      "subdivLevels" );
+				      "subdivLevels", "edges" );
 
 	return Py_FindMethod( NMesh_methods, ( PyObject * ) self, name );
 }
@@ -1529,7 +1676,20 @@ static int NMesh_setattr( PyObject * self, char *name, PyObject * v )
 							    "couldn't retrieve subdiv values from list" );
 		}
 	}
-
+  else if( strcmp( name, "edges" ) == 0 )
+  {
+    if (me->edges)
+    {
+      if (PySequence_Check(v))
+      {
+        Py_DECREF(me->edges);
+        me->edges = EXPP_incr_ret( v );
+      }
+    }
+    else
+      return EXPP_ReturnIntError( PyExc_RuntimeError, 
+               "mesh has no edge information" );
+  }
 	else
 		return EXPP_ReturnIntError( PyExc_AttributeError, name );
 
@@ -1611,9 +1771,15 @@ static BPy_NMFace *nmface_from_data( BPy_NMesh * mesh, int vidxs[4],
 	return newf;
 }
 
-static BPy_NMVert *nmvert_from_data( BPy_NMesh * me,
-				     MVert * vert, MSticky * st, float *co,
-				     int idx, char flag )
+static BPy_NMEdge *nmedge_from_data( BPy_NMesh * mesh, MEdge *edge )
+{
+  BPy_NMVert *v1=(BPy_NMVert *)PyList_GetItem( mesh->verts, edge->v1 );
+  BPy_NMVert *v2=(BPy_NMVert *)PyList_GetItem( mesh->verts, edge->v2 );
+  return new_NMEdge(v1, v2, edge->crease, edge->flag);
+}
+
+static BPy_NMVert *nmvert_from_data( MVert * vert, MSticky * st, float *co,
+	int idx, char flag )
 {
 	BPy_NMVert *mv = PyObject_NEW( BPy_NMVert, &NMVert_Type );
 
@@ -1667,6 +1833,7 @@ static PyObject *new_NMesh_internal( Mesh * oldmesh,
 	me->subdiv[0] = NMESH_SUBDIV;
 	me->subdiv[1] = NMESH_SUBDIV;
 	me->smoothresh = NMESH_SMOOTHRESH;
+  me->edges = NULL; /* no edge data by default */
 
 	me->object = NULL;	/* not linked to any object yet */
 
@@ -1682,7 +1849,8 @@ static PyObject *new_NMesh_internal( Mesh * oldmesh,
 		MFace *mfaces;
 		TFace *tfaces;
 		MCol *mcols;
-		int i, totvert, totface;
+    MEdge *medges;
+		int i, totvert, totface, totedge;
 
 		if( dlm ) {
 			me->name = EXPP_incr_ret( Py_None );
@@ -1694,9 +1862,11 @@ static PyObject *new_NMesh_internal( Mesh * oldmesh,
 			mfaces = dlm->mface;
 			tfaces = dlm->tface;
 			mcols = dlm->mcol;
+      medges = dlm->medge;
 
 			totvert = dlm->totvert;
 			totface = dlm->totface;
+      totedge = dlm->totedge;
 		} else {
 			me->name = PyString_FromString( oldmesh->id.name + 2 );
 			me->mesh = oldmesh;
@@ -1710,9 +1880,11 @@ static PyObject *new_NMesh_internal( Mesh * oldmesh,
 			mfaces = oldmesh->mface;
 			tfaces = oldmesh->tface;
 			mcols = oldmesh->mcol;
+      medges = oldmesh->medge;
 
 			totvert = oldmesh->totvert;
 			totface = oldmesh->totface;
+      totedge = oldmesh->totedge;
 
 			me->sel_face = get_active_faceindex( oldmesh );
 		}
@@ -1732,8 +1904,7 @@ static PyObject *new_NMesh_internal( Mesh * oldmesh,
 			float *vco = extverts ? &extverts[i * 3] : oldmv->co;
 
 			PyList_SetItem( me->verts, i,
-					( PyObject * ) nmvert_from_data( me,
-									 oldmv,
+					( PyObject * ) nmvert_from_data( oldmv,
 									 oldst,
 									 vco,
 									 i,
@@ -1762,6 +1933,17 @@ static PyObject *new_NMesh_internal( Mesh * oldmesh,
 									 oldtf,
 									 oldmc ) );
 		}
+
+    if (medges)
+    {
+      me->edges = PyList_New( totedge );
+      for( i = 0; i < totedge; i++ )
+      {
+        MEdge *edge = &medges[i];
+        PyList_SetItem( me->edges, i, (PyObject*)nmedge_from_data ( me, edge ) );
+      }
+    }
+
 		me->materials =
 			EXPP_PyList_fromMaterialList( oldmesh->mat,
 						      oldmesh->totcol, 0 );
@@ -2170,7 +2352,93 @@ PyObject *NMesh_assignMaterials_toObject( BPy_NMesh * nmesh, Object * ob )
 	return EXPP_incr_ret( Py_None );
 }
 
-static int convert_NMeshToMesh( Mesh * mesh, BPy_NMesh * nmesh )
+static void fill_medge_from_nmesh(Mesh * mesh, BPy_NMesh * nmesh)
+{
+  int i,j;
+  MEdge *faces_edges=NULL;
+  int   tot_faces_edges=0;
+  int tot_valid_faces_edges=0;
+  int nmeshtotedges=PyList_Size(nmesh->edges);
+  int tot_valid_nmedges=0;
+  BPy_NMEdge **valid_nmedges=NULL;
+
+  valid_nmedges=MEM_callocN(nmeshtotedges*sizeof(BPy_NMEdge *), "make BPy_NMEdge");
+
+  /* First compute the list of edges that exists because faces exists */
+  make_edges(mesh);
+
+  faces_edges=mesh->medge;
+  tot_faces_edges=mesh->totedge;
+  tot_valid_faces_edges=tot_faces_edges;
+
+  mesh->medge=NULL;
+	mesh->totedge = 0;
+
+  /* Flag each edge in faces_edges that is already in nmesh->edges list.
+   * Flaging an edge means MEdge v1=v2=0.
+   * Each time an edge is flagged, tot_valid_faces_edges is decremented.
+   *
+   * Also store in valid_nmedges pointers to each valid NMEdge in nmesh->edges.
+   * An invalid NMEdge is an edge that has a vertex that is not in the vertices 
+   * list. Ie its index is -1. 
+   * Each time an valid NMEdge is flagged, tot_valid_nmedges is incremented.
+   */
+  for( i = 0; i < nmeshtotedges; ++i )
+  {
+    int v1idx,v2idx;
+    BPy_NMEdge *edge=( BPy_NMEdge *) PyList_GetItem(nmesh->edges, i);
+    BPy_NMVert *v=(BPy_NMVert *)edge->v1;
+    v1idx=v->index;
+    v=(BPy_NMVert *)edge->v2;
+    v2idx=v->index;
+    if (-1 == v1idx || -1 == v2idx) continue;
+    valid_nmedges[tot_valid_nmedges]=edge;
+    ++tot_valid_nmedges;
+    for( j = 0; j < tot_faces_edges; j++ )
+    {
+      MEdge *me=faces_edges+j;
+      if ( ((int)me->v1==v1idx && (int)me->v2==v2idx) ||
+           ((int)me->v1==v2idx && (int)me->v2==v1idx) )
+      {
+        me->v1=0; me->v2=0;
+        --tot_valid_faces_edges;
+      }
+    }
+  }
+
+  /* Now we have the total count of valid edges */
+  mesh->totedge=tot_valid_nmedges+tot_valid_faces_edges;
+  mesh->medge=MEM_callocN(mesh->totedge*sizeof(MEdge), "make mesh edges");
+  for ( i = 0; i < tot_valid_nmedges; ++i )
+  {
+    BPy_NMEdge *edge=valid_nmedges[i];
+    MEdge *medge=mesh->medge+i;
+    int v1=((BPy_NMVert *)edge->v1)->index;
+    int v2=((BPy_NMVert *)edge->v2)->index;
+    medge->v1=v1;
+    medge->v2=v2;
+    medge->flag=edge->flag;
+    medge->crease=edge->crease;
+  }
+  for ( i = 0, j = tot_valid_nmedges; i < tot_faces_edges; ++i )
+  {
+    MEdge *edge=faces_edges+i;
+    if (edge->v1!=0 || edge->v2!=0)  // valid edge
+    {
+      MEdge *medge=mesh->medge+j;
+      medge->v1=edge->v1;
+      medge->v2=edge->v2;
+      medge->flag=ME_EDGEDRAW;
+      medge->crease=0;
+      ++j;
+    }
+  }
+
+  MEM_freeN( valid_nmedges );
+  MEM_freeN( faces_edges );
+}
+
+static int convert_NMeshToMesh( Mesh * mesh, BPy_NMesh * nmesh, int store_edges)
 {
 	MFace *newmf;
 	TFace *newtf;
@@ -2187,6 +2455,7 @@ static int convert_NMeshToMesh( Mesh * mesh, BPy_NMesh * nmesh )
 	mesh->msticky = NULL;
 	mesh->tface = NULL;
 	mesh->mat = NULL;
+  mesh->medge = NULL;
 
 	/* Minor note: we used 'mode' because 'flag' was already used internally
 	 * by nmesh */
@@ -2257,6 +2526,19 @@ static int convert_NMeshToMesh( Mesh * mesh, BPy_NMesh * nmesh )
 
 		Py_DECREF( mf );
 	}
+  /* do the same for edges if there is edge data */
+  if (nmesh->edges)
+  {
+    int nmeshtotedges=PyList_Size(nmesh->edges);
+    for( i = 0; i < nmeshtotedges; ++i )
+    {
+      BPy_NMEdge *edge=( BPy_NMEdge *) PyList_GetItem(nmesh->edges, i);
+      BPy_NMVert *v=(BPy_NMVert *)edge->v1;
+      v->index=-1;
+      v=(BPy_NMVert *)edge->v2;
+      v->index=-1;
+    }
+  }
 
 	for( i = 0; i < mesh->totvert; i++ ) {
 		BPy_NMVert *mv =
@@ -2317,6 +2599,15 @@ static int convert_NMeshToMesh( Mesh * mesh, BPy_NMesh * nmesh )
 		}
 	}
 
+  /* After face data has been written, write edge data.
+   * Edge data are not stored before face ones since we need
+   * mesh->mface to be correctly initialized.
+   */
+  if (nmesh->edges && store_edges)
+  {
+    fill_medge_from_nmesh(mesh, nmesh);
+  }
+
 	return 1;
 }
 
@@ -2327,11 +2618,12 @@ static PyObject *M_NMesh_PutRaw( PyObject * self, PyObject * args )
 	Object *ob = NULL;
 	BPy_NMesh *nmesh;
 	int recalc_normals = 1;
+  int store_edges = 0;
 
-	if( !PyArg_ParseTuple( args, "O!|si",
-			       &NMesh_Type, &nmesh, &name, &recalc_normals ) )
+	if( !PyArg_ParseTuple( args, "O!|sii",
+			       &NMesh_Type, &nmesh, &name, &recalc_normals, &store_edges ) )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "expected an NMesh object and optionally also a string and an int" );
+					      "expected an NMesh object and optionally also a string and two ints" );
 
 	if( !PySequence_Check( nmesh->verts ) )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
@@ -2376,7 +2668,7 @@ static PyObject *M_NMesh_PutRaw( PyObject * self, PyObject * args )
 			PyString_AsString( nmesh->name ) );
 
 	unlink_existingMeshData( mesh );
-	convert_NMeshToMesh( mesh, nmesh );
+	convert_NMeshToMesh( mesh, nmesh, store_edges );
 	nmesh->mesh = mesh;
 
 	if( recalc_normals )
@@ -2524,6 +2816,22 @@ static PyObject *M_NMesh_FaceTranspModesDict( void )
 	return FTM;
 }
 
+static PyObject *M_NMesh_EdgeFlagsDict( void )
+{
+	PyObject *EF = M_constant_New(  );
+
+	if( EF ) {
+		BPy_constant *d = ( BPy_constant * ) EF;
+
+		constant_insert(d, "SELECT", PyInt_FromLong(1));
+		constant_insert(d, "EDGEDRAW", PyInt_FromLong(ME_EDGEDRAW));
+		constant_insert(d, "SEAM", PyInt_FromLong(ME_SEAM));
+		constant_insert(d, "FGON", PyInt_FromLong(ME_FGON));
+	}
+
+	return EF;
+}
+
 PyObject *NMesh_Init( void )
 {
 	PyObject *submodule;
@@ -2532,6 +2840,7 @@ PyObject *NMesh_Init( void )
 	PyObject *FaceFlags = M_NMesh_FaceFlagsDict(  );
 	PyObject *FaceModes = M_NMesh_FaceModesDict(  );
 	PyObject *FaceTranspModes = M_NMesh_FaceTranspModesDict(  );
+  PyObject *EdgeFlags = M_NMesh_EdgeFlagsDict(  );
 
 	NMCol_Type.ob_type = &PyType_Type;
 	NMFace_Type.ob_type = &PyType_Type;
@@ -2551,6 +2860,8 @@ PyObject *NMesh_Init( void )
 	if( FaceTranspModes )
 		PyModule_AddObject( submodule, "FaceTranspModes",
 				    FaceTranspModes );
+  if( EdgeFlags )
+    PyModule_AddObject( submodule, "EdgeFlags", EdgeFlags );
 
 	g_nmeshmodule = submodule;
 	return submodule;
@@ -2581,29 +2892,376 @@ Mesh *Mesh_FromPyObject( PyObject * pyobj, Object * ob )
 
 		if( nmesh->mesh ) {
 			mesh = nmesh->mesh;
-			unlink_existingMeshData( mesh );
-			convert_NMeshToMesh( mesh, nmesh );
 		} else {
-			nmesh->mesh = Mesh_fromNMesh( nmesh );
+			nmesh->mesh = Mesh_fromNMesh( nmesh, 1 );
 			mesh = nmesh->mesh;
-		}
 
-		nmesh->object = ob;	/* linking for vgrouping methods */
+		  nmesh->object = ob;	/* linking for vgrouping methods */
 
-		if( nmesh->name && nmesh->name != Py_None )
-			new_id( &( G.main->mesh ), &mesh->id,
-				PyString_AsString( nmesh->name ) );
+		  if( nmesh->name && nmesh->name != Py_None )
+			  new_id( &( G.main->mesh ), &mesh->id,
+				  PyString_AsString( nmesh->name ) );
 
-		mesh_update( mesh );
+		  mesh_update( mesh );
 
-		nmesh_updateMaterials( nmesh );
-
+		  nmesh_updateMaterials( nmesh );
+    }
 		return mesh;
 	}
 
 	return NULL;
 }
 
+#define POINTER_CROSS_EQ(a1, a2, b1, b2) (((a1)==(b1) && (a2)==(b2)) || ((a1)==(b2) && (a2)==(b1)))
+
+static PyObject *findEdge( BPy_NMesh *nmesh, BPy_NMVert *v1, BPy_NMVert *v2, int create)
+{
+  int i;
+
+  for ( i = 0; i < PyList_Size(nmesh->edges); ++i )
+  {
+    BPy_NMEdge *edge=(BPy_NMEdge*)PyList_GetItem( nmesh->edges, i );
+    if (!BPy_NMEdge_Check(edge)) continue;
+    if ( POINTER_CROSS_EQ((BPy_NMVert*)edge->v1, (BPy_NMVert*)edge->v2, v1, v2) )
+    {
+      return EXPP_incr_ret((PyObject*)edge);
+    }
+  }
+
+  /* if this line is reached, edge has not been found */
+  if (create)
+  {
+    PyObject *newEdge=(PyObject *)new_NMEdge(v1, v2, 0, ME_EDGEDRAW);
+    PyList_Append(nmesh->edges, newEdge);
+    return newEdge;
+  }
+  else
+    return EXPP_incr_ret( Py_None );
+}
+
+static void removeEdge( BPy_NMesh *nmesh, BPy_NMVert *v1, BPy_NMVert *v2, int ununsedOnly)
+{
+  int i,j;
+  BPy_NMEdge *edge=NULL;
+  int edgeUsedByFace=0;
+  int totedge=PyList_Size(nmesh->edges);
+
+  /* find the edge in the edge list */
+  for ( i = 0; i < totedge; ++i )
+  {
+    edge=(BPy_NMEdge*)PyList_GetItem( nmesh->edges, i );
+    if (!BPy_NMEdge_Check(edge)) continue;
+    if ( POINTER_CROSS_EQ((BPy_NMVert*)edge->v1, (BPy_NMVert*)edge->v2, v1, v2) )
+    {
+      break;
+    }
+  }
+
+  if (i==totedge || !edge) // edge not found
+    return;
+
+  for  ( j = PyList_Size(nmesh->faces)-1; j >= 0 ; --j )
+  {
+    BPy_NMFace *face=(BPy_NMFace *)PyList_GetItem(nmesh->faces, j);
+    int k, del_face=0;
+    int totv;
+    if (!BPy_NMFace_Check(face)) continue;
+    totv=PyList_Size(face->v);
+    if (totv<2) continue;
+    for ( k = 0; k < totv && !del_face; ++k )
+    {
+      BPy_NMVert *fe_v1=(BPy_NMVert *)PyList_GetItem(face->v, k ? k-1 : totv-1);
+      BPy_NMVert *fe_v2=(BPy_NMVert *)PyList_GetItem(face->v, k);
+      if ( POINTER_CROSS_EQ(v1, v2, fe_v1, fe_v2) )
+      {
+        edgeUsedByFace=1;
+        del_face=1;
+      }
+    }
+    if (del_face && !ununsedOnly) 
+    {
+      PySequence_DelItem(nmesh->faces, j);
+    }
+  }
+
+  if (!ununsedOnly || (ununsedOnly && !edgeUsedByFace) )
+    PySequence_DelItem(nmesh->edges, PySequence_Index(nmesh->edges, (PyObject*)edge));
+}
+
+
+static PyObject *NMesh_addEdge( PyObject * self, PyObject * args )
+{
+  BPy_NMesh *bmesh=(BPy_NMesh *)self;
+  BPy_NMVert *v1=NULL, *v2=NULL;
+
+  if (!bmesh->edges)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "NMesh has no edge data." );
+
+  if (!PyArg_ParseTuple
+	    ( args, "O!O!", &NMVert_Type, &v1, &NMVert_Type, &v2 ) ) {
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected NMVert, NMVert" );
+	}
+
+  if (v1==v2)
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "vertices must be different" );
+
+  return findEdge(bmesh, v1, v2, 1);
+}
+
+static PyObject *NMesh_findEdge( PyObject * self, PyObject * args )
+{
+  BPy_NMesh *bmesh=(BPy_NMesh *)self;
+  BPy_NMVert *v1=NULL, *v2=NULL;
+
+  if (!bmesh->edges)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "NMesh has no edge data." );
+
+  if (!PyArg_ParseTuple
+	    ( args, "O!O!", &NMVert_Type, &v1, &NMVert_Type, &v2 ) ) {
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected NMVert, NMVert" );
+	}
+
+  if (v1==v2)
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "vertices must be different" );
+
+  return findEdge(bmesh, v1, v2, 0);
+}
+
+static PyObject *NMesh_removeEdge( PyObject * self, PyObject * args )
+{
+  BPy_NMesh *bmesh=(BPy_NMesh *)self;
+  BPy_NMVert *v1=NULL, *v2=NULL;
+
+  if (!bmesh->edges)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "NMesh has no edge data." );
+
+  if (!PyArg_ParseTuple
+	    ( args, "O!O!", &NMVert_Type, &v1, &NMVert_Type, &v2 ) ) {
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected NMVert, NMVert" );
+	}
+
+  if (v1==v2)
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "vertices must be different" );
+  removeEdge(bmesh, v1, v2, 0);
+
+  return EXPP_incr_ret( Py_None );
+}
+
+
+static PyObject *NMesh_addEdgesData( PyObject * self )
+{
+  /* Here we uses make_edges to create edges data.
+   * Since Mesh corresponding to NMesh may not content the same data as
+   * the NMesh and since maybe the NMesh has been created from scratch,
+   * we creates a temporary Mesh to use to call make_edges
+   */
+  BPy_NMesh *nmesh=(BPy_NMesh *)self;
+  Mesh *tempMesh=NULL;
+  int i;
+
+  if (nmesh->edges)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "NMesh has already edge data." );
+
+  tempMesh=MEM_callocN(sizeof(Mesh), "temp mesh");
+  convert_NMeshToMesh(tempMesh, nmesh, 0);
+
+  make_edges(tempMesh);
+
+  nmesh->edges = PyList_New( tempMesh->totedge );
+  for( i = 0; i < tempMesh->totedge; ++i )
+  {
+    MEdge *edge = (tempMesh->medge) + i;
+    /* By using nmedge_from_data, an important assumption is made:
+     * every vertex in nmesh has been written in tempMesh in the same order
+     * than in nmesh->verts.
+     * Actually this assumption is needed since nmedge_from_data get the 
+     * two NMVert for the newly created edge by using a PyList_GetItem with
+     * the indices stored in edge. Those indices are valid for nmesh only if
+     * nmesh->verts and tempMesh->mvert are identical (same number of vertices
+     * in same order).
+     */
+    PyList_SetItem( nmesh->edges, i, (PyObject*)nmedge_from_data ( nmesh, edge ) );
+  }
+
+  unlink_existingMeshData(tempMesh);
+  MEM_freeN(tempMesh);
+
+  return EXPP_incr_ret( Py_None );
+}
+
+static PyObject *NMesh_addFace( PyObject * self, PyObject * args )
+{
+  BPy_NMesh *nmesh=(BPy_NMesh *)self;
+
+  BPy_NMFace *face;
+  int totv=0;
+  
+  if (!PyArg_ParseTuple
+	    ( args, "O!", &NMFace_Type, &face ) ) {
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected NMFace argument" );
+	}
+
+  totv=PyList_Size(face->v);
+
+  /*
+   * Before edges data exists, having faces with two vertices was
+   * the only way of storing edges not attached to any face.
+   */
+  if (totv!=2 || !nmesh->edges)
+    PyList_Append(nmesh->faces, (PyObject*)face);
+
+  if (nmesh->edges)
+  {
+    
+    if (totv>=2)
+    {
+      /* when totv==2, there is only one edge, when totv==3 there is three edges
+       * and when totv==4 there is four edges.
+       * that's why in the following line totv==2 is a special case */
+      PyObject *edges = PyList_New((totv==2) ? 1 : totv);
+      if (totv==2)
+      {
+        BPy_NMVert *fe_v1=(BPy_NMVert *)PyList_GetItem(face->v, 0);
+        BPy_NMVert *fe_v2=(BPy_NMVert *)PyList_GetItem(face->v, 1);
+        BPy_NMEdge *edge=(BPy_NMEdge *)findEdge(nmesh, fe_v1, fe_v2, 1);
+        PyList_SetItem(edges, 0, (PyObject*)edge); // PyList_SetItem steals the reference
+      }
+      else
+      {
+        int k;
+        for ( k = 0; k < totv; ++k )
+        {
+          BPy_NMVert *fe_v1=(BPy_NMVert *)PyList_GetItem(face->v, k ? k-1 : totv-1);
+          BPy_NMVert *fe_v2=(BPy_NMVert *)PyList_GetItem(face->v, k);
+          BPy_NMEdge *edge=(BPy_NMEdge *)findEdge(nmesh, fe_v1, fe_v2, 1);
+          PyList_SetItem(edges, k, (PyObject*)edge); // PyList_SetItem steals the reference
+        }
+      }
+      return edges;
+    }
+  }
+
+  return EXPP_incr_ret( Py_None );
+}
+
+static PyObject *NMesh_removeFace( PyObject * self, PyObject * args )
+{
+  BPy_NMesh *nmesh=(BPy_NMesh *)self;
+
+  BPy_NMFace *face;
+  int totv=0;
+  
+  if (!PyArg_ParseTuple
+	    ( args, "O!", &NMFace_Type, &face ) ) {
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected NMFace argument" );
+	}
+
+  totv=PyList_Size(face->v);
+
+  {
+    int index=PySequence_Index(nmesh->faces, (PyObject*)face);
+    if (index>=0)
+      PySequence_DelItem(nmesh->faces, index);
+  }
+
+  if (nmesh->edges)
+  {
+    
+    if (totv>=2)
+    {
+      /* when totv==2, there is only one edge, when totv==3 there is three edges
+       * and when totv==4 there is four edges.
+       * that's why in the following line totv==2 is a special case */
+      if (totv==2)
+      {
+        BPy_NMVert *fe_v1=(BPy_NMVert *)PyList_GetItem(face->v, 0);
+        BPy_NMVert *fe_v2=(BPy_NMVert *)PyList_GetItem(face->v, 1);
+        removeEdge(nmesh, fe_v1, fe_v2, 1);
+      }
+      else
+      {
+        int k;
+        for ( k = 0; k < totv; ++k )
+        {
+          BPy_NMVert *fe_v1=(BPy_NMVert *)PyList_GetItem(face->v, k ? k-1 : totv-1);
+          BPy_NMVert *fe_v2=(BPy_NMVert *)PyList_GetItem(face->v, k);
+          removeEdge(nmesh, fe_v1, fe_v2, 1);
+        }
+      }
+    }
+  }
+
+  return EXPP_incr_ret( Py_None );
+}
+
+
+/* <start> */
+
+static PyObject *NMesh_printDebug( PyObject * self )
+{
+  BPy_NMesh *bmesh=(BPy_NMesh *)self;
+
+  Mesh *mesh=bmesh->mesh;
+
+  printf("**Vertices\n");
+  {
+    int i;
+    for (i=0; i<mesh->totvert; ++i)
+    {
+      MVert *v=mesh->mvert+i;
+      double x=v->co[0];
+      double y=v->co[1];
+      double z=v->co[2];
+      printf(" %2d : %.3f %.3f %.3f\n", i, x, y, z);
+    }
+  }
+
+  printf("**Edges\n");
+  if (mesh->medge)
+  {
+    int i;
+    for (i=0; i<mesh->totedge; ++i)
+    {
+      MEdge *e=mesh->medge+i;
+      int v1 = e->v1;
+      int v2 = e->v2;
+      int flag = e->flag;
+      printf(" %2d : %2d %2d flag=%d\n", i, v1, v2, flag);
+    }
+  }
+  else
+    printf("  No edge informations\n");
+
+  printf("**Faces\n");
+  {
+    int i;
+    for (i=0; i<mesh->totface; ++i)
+    {
+      MFace *e=((MFace*)(mesh->mface))+i;
+      int v1 = e->v1;
+      int v2 = e->v2;
+      int v3 = e->v3;
+      int v4 = e->v4;
+      printf(" %2d : %2d %2d %2d %2d\n", i, v1, v2, v3, v4);
+    }
+  }
+
+	return EXPP_incr_ret( Py_None );
+}
+
+/* <end> */
 static PyObject *NMesh_addVertGroup( PyObject * self, PyObject * args )
 {
 	char *groupStr;
@@ -3024,7 +3682,8 @@ static PyObject *NMesh_renameVertGroup( PyObject * self, PyObject * args )
 	return EXPP_incr_ret( Py_None );
 }
 
-static PyObject *NMesh_getVertGroupNames( PyObject * self, PyObject * args )
+
+static PyObject *NMesh_getVertGroupNames( PyObject * self )
 {
 	bDeformGroup *defGroup;
 	PyObject *list;

@@ -25,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano, Tom Musgrove
+ * Contributor(s): Willian P. Germano, Tom Musgrove, Michael Reimpell, Yann Vernier
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -68,7 +68,7 @@
 extern int EXPP_disable_force_draw;
 
 /* Callback used by the file and image selector access functions */
-static PyObject *( *EXPP_FS_PyCallback ) ( PyObject * arg ) = NULL;
+static PyObject *EXPP_FS_PyCallback = NULL;
 
 /*****************************************************************************/
 /* Python API function prototypes for the Window module.		*/
@@ -452,13 +452,24 @@ static PyObject *M_Window_QRedrawAll( PyObject * self, PyObject * args )
 
 static void getSelectedFile( char *name )
 {
-	if( !EXPP_FS_PyCallback )
-		return;
-
-	PyObject_CallFunction( ( PyObject * ) EXPP_FS_PyCallback, "s", name );
-
-	EXPP_FS_PyCallback = NULL;
-
+	PyObject *callback;
+	PyObject *result; 
+	
+	callback = EXPP_FS_PyCallback;
+	result = PyObject_CallFunction( EXPP_FS_PyCallback, "s", name );
+	if ((!result) && (G.f & G_DEBUG)) {
+		fprintf(stderr, "BPy error: Callback call failed!\n");
+	}
+	Py_XDECREF(result);
+	/* Catch changes of EXPP_FS_PyCallback during the callback call
+	 * due to calls to Blender.Window.FileSelector or
+	 * Blender.Window.ImageSelector inside the python callback. */
+    if (callback == EXPP_FS_PyCallback) {
+        Py_DECREF(EXPP_FS_PyCallback);
+        EXPP_FS_PyCallback = NULL;
+    } else {
+        Py_DECREF(callback);
+    }
 	return;
 }
 
@@ -470,12 +481,12 @@ static PyObject *M_Window_FileSelector( PyObject * self, PyObject * args )
 	Script *script = G.main->script.last;
 	int startspace = 0;
 
-	if( !PyArg_ParseTuple( args, "O!|ss",
-			       &PyFunction_Type, &EXPP_FS_PyCallback, &title,
-			       &filename ) )
+	if( (!PyArg_ParseTuple( args, "O|ss", &EXPP_FS_PyCallback, &title, &filename ) )
+		|| (!PyCallable_Check(EXPP_FS_PyCallback)))
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "\nexpected a callback function (and optionally one or two strings) "
 					      "as argument(s)" );
+	Py_XINCREF(EXPP_FS_PyCallback);
 
 /* trick: we move to a spacescript because then the fileselector will properly
  * unset our SCRIPT_FILESEL flag when the user chooses a file or cancels the
@@ -514,13 +525,13 @@ static PyObject *M_Window_ImageSelector( PyObject * self, PyObject * args )
 	Script *script = G.main->script.last;
 	int startspace = 0;
 
-	if( !PyArg_ParseTuple( args, "O!|ss",
-			       &PyFunction_Type, &EXPP_FS_PyCallback, &title,
-			       &filename ) )
+	if( !PyArg_ParseTuple( args, "O|ss", &EXPP_FS_PyCallback, &title, &filename ) 
+		|| (!PyCallable_Check(EXPP_FS_PyCallback)))
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_AttributeError,
 			   "\nexpected a callback function (and optionally one or two strings) "
 			   "as argument(s)" ) );
+	Py_XINCREF(EXPP_FS_PyCallback);
 
 /* trick: we move to a spacescript because then the fileselector will properly
  * unset our SCRIPT_FILESEL flag when the user chooses a file or cancels the

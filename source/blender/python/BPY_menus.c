@@ -647,14 +647,13 @@ static int bpymenu_CreateFromDir( char *dirname, int whichdir )
 	int scriptGroup;
 	BPyMenu *scriptMenu = NULL;
 	/* other */
-	int scanDir = 1;
 	int returnValue = 0;
 	
 	/* open directory stream */
 	dir = opendir(dirname);
 	if (dir != NULL) {
 		/* directory stream opened */
-		while (((dirEntry = readdir(dir)) != NULL) && (scanDir == 1)) {
+		while ((dirEntry = readdir(dir)) != NULL) {
 			/* Check if filename does not start with a dot,
 			 * ends with '.py' and is a regular file. */
 			BLI_make_file_string("/", fileName, dirname, dirEntry->d_name);
@@ -722,10 +721,7 @@ static int bpymenu_CreateFromDir( char *dirname, int whichdir )
 											if (DEBUG) {
 												fprintf(stderr, "BPyMenus error: Couldn't create entry for: %s\n", fileName);
 											}
-											/* abort */
 											parserState = 0;
-											scanDir = 0;
-											returnValue = -2;
 										} else {
 											parserState++;
 										}

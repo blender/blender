@@ -2,30 +2,44 @@
 
 """
 Name: 'Motion Capture (.bvh)...'
-Blender: 232
+Blender: 236
 Group: 'Import'
 Tip: 'Import a (.bvh) motion capture file'
 """
 
 __author__ = "Campbell Barton"
-__url__ = ("blender", "elysiun")
-__version__ = "1.0 03/25/04"
+__url__ = ("blender", "elysiun", "http://jmsoler.free.fr/util/blenderfile/py/bvh_import.py")
+__version__ = "1.0.2 04/12/28"
 
 __bpydoc__ = """\
 This script imports BVH motion capture data to Blender.
 
-Supported:<br>
+Supported: Poser 3.01<br>
 
 Missing:<br>
 
 Known issues:<br>
 
 Notes:<br>
+   Jean-Michel Soler improved importer to support Poser 3.01 files.
 
 """
 
 # $Id$
 #
+
+#===============================================#
+# BVH Import script 1.03 patched by Campbell    #
+# Small optimizations and scale input           #
+# 01/01/2005,                                   #  
+#===============================================#
+
+#===============================================#
+# BVH Import script 1.02 patched by Jm Soler    #
+# to the Poser 3.01 bvh file                    # 
+# 28/12/2004,                                   #  
+#===============================================#
+
 #===============================================#
 # BVH Import script 1.0 by Campbell Barton      #
 # 25/03/2004, euler rotation code taken from    #
@@ -67,7 +81,7 @@ Notes:<br>
 import string
 import math
 import Blender
-from Blender import Window, Object, Scene, Ipo
+from Blender import Window, Object, Scene, Ipo, Draw
 from Blender.Scene import Render
 
 
@@ -80,13 +94,12 @@ from Blender.Scene import Render
 #  
 # except:
 #   print 'psyco is not present on this system'
- 
+
+# Default scale
+scale = 0.01
 
 # Update as we load?
 debug = 0
-
-# Global scale facctor # sHOULD BE 1 BY DEFAULT
-scale = 1
 
 # Get the current scene.
 scn = Scene.GetCurrent()
@@ -99,6 +112,9 @@ channelCurves = []
 # We need this so we can loop through the objects and edit there IPO's 
 # Chenging there rotation to EULER rotation
 objectList = []
+
+def getScale():
+	return Draw.PupFloatInput('BVH Scale: ', 0.01, 0.001, 10.0, 0.1, 3)
 
 def MAT(m):
 	if len(m) == 3:
@@ -127,7 +143,6 @@ def eulerRotate(x,y,z):
       for k in range(3):
         for j in range(3):
           mat3[i][k]=mat3[i][k]+mat1[i][j]*mat2[j][k]
-    mat1 = mat2 = i = k = j = None # Save memory
     return mat3
   
   
@@ -162,7 +177,6 @@ def eulerRotate(x,y,z):
     mat3[2][1]=t*y*z-s*x
     mat3[2][2]=t*z*z+c
     
-    rot4 = s = c = t = x = y = z = None # Save some memory
     return mat3
  
   eul = [x,y,z]
@@ -202,8 +216,6 @@ def eulerRotate(x,y,z):
   y =- eul[1]/-10
   z =- eul[2]/-10
   
-
-  eul = mat = zmat = xmat = ymat = jj = None
   return x, y, z # Returm euler roration values.
 
 
@@ -213,6 +225,7 @@ def eulerRotate(x,y,z):
 # from the BVA file to create an empty          #
 #===============================================#
 def makeJoint(name, parent, prefix, offset, channels):
+  global scale
   # Make Empty, with the prefix in front of the name
   ob = Object.New('Empty', prefix + name) # New object, ob is shorter and nicer to use.
   scn.link(ob) # place the object in the current scene
@@ -253,8 +266,6 @@ def makeJoint(name, parent, prefix, offset, channels):
   # Add to object list
   objectList.append(ob)
   
-  ob = newIpo = opParent = None
-  
   # Redraw if debugging
   if debug: Blender.Redraw()
   
@@ -280,13 +291,22 @@ def makeEnd(parent, prefix, offset):
   
 
 
+
 #===============================================#
 # MAIN FUNCTION - All things are done from here #
 #===============================================#
 def loadBVH(filename):
+  global scale
   print ''
   print 'BVH Importer 1.0 by Campbell Barton (Ideasman) - ideasman@linuxmail.org'
-    
+  alpha='abcdefghijklmnopqrstuvewxyz'
+  ALPHA=alpha+alpha.upper()
+  ALPHA+=' 0123456789+-{}. '  
+  time1 = Blender.sys.time()
+  tmpScale = getScale()
+  if tmpScale != None:
+    scale = tmpScale
+  
   # File loading stuff
   # Open the file for importing
   file = open(filename, 'r')  
@@ -294,10 +314,19 @@ def loadBVH(filename):
   # Make a list of lines
   lines = []
   for fileLine in fileData:
+    fileLine=fileLine.replace('..','.')
     newLine = string.split(fileLine)
     if newLine != []:
-      lines.append(string.split(fileLine))
-    fileData = None
+      t=[]
+      for n in newLine:
+         for n0 in n:
+           if n0 not in ALPHA:
+              n=n.replace(n0,'')  
+         t.append(n)
+      lines.append(t)
+
+    
+  del fileData
   # End file loading code
 
   # Call object names with this prefix, mainly for scenes with multiple BVH's - Can imagine most partr names are the same
@@ -320,18 +349,25 @@ def loadBVH(filename):
   #channelList [(<objectName>, [channelType1, channelType2...]),  (<objectName>, [channelType1, channelType2...)]
   channelList = []
   channelIndex = -1
+
   
+
   lineIdx = 1 # An index for the file.
   while lineIdx < len(lines) -1:
     #...
     if lines[lineIdx][0] == 'ROOT' or lines[lineIdx][0] == 'JOINT':
+      if lines[lineIdx][0] == 'JOINT' and len(lines[lineIdx])>2:
+         for j in range(2,len(lines[lineIdx])) :
+             lines[lineIdx][1]+='_'+lines[lineIdx][j]
+
       # MAY NEED TO SUPPORT MULTIPLE ROOT's HERE!!!, Still unsure weather multiple roots are possible.??
 
       print len(parent) * '  ' + 'node:',lines[lineIdx][1],' parent:',parent[-1]
-      
+      print lineIdx
       name = lines[lineIdx][1]
+      print name,lines[lineIdx+1],lines[lineIdx+2]
       lineIdx += 2 # Incriment to the next line (Offset)
-      offset = ( eval(lines[lineIdx][1]), eval(lines[lineIdx][2]), eval(lines[lineIdx][3]) )
+      offset = ( float(lines[lineIdx][1]), float(lines[lineIdx][2]), float(lines[lineIdx][3]) )
       lineIdx += 1 # Incriment to the next line (Channels)
       
       # newChannel[Xposition, Yposition, Zposition, Xrotation, Yrotation, Zrotation]
@@ -367,7 +403,7 @@ def loadBVH(filename):
     # Account for an end node
     if lines[lineIdx][0] == 'End' and lines[lineIdx][1] == 'Site': # There is somtimes a name afetr 'End Site' but we will ignore it.
       lineIdx += 2 # Incriment to the next line (Offset)
-      offset = ( eval(lines[lineIdx][1]), eval(lines[lineIdx][2]), eval(lines[lineIdx][3]) )
+      offset = ( float(lines[lineIdx][1]), float(lines[lineIdx][2]), float(lines[lineIdx][3]) )
       makeEnd(parent, prefix, offset)
 
       # Just so we can remove the Parents in a uniform way- End end never has kids
@@ -431,21 +467,46 @@ def loadBVH(filename):
         if debug: Blender.Redraw() 
         while obIdx < len(objectList) -1:
           if channelList[obIdx][0] != -1:
-            objectList[obIdx].getIpo().getCurve('LocX').addBezier((currentFrame, scale * eval(lines[lineIdx][channelList[obIdx][0]])))
+            VAL0=lines[lineIdx][channelList[obIdx][0]]  
+            if VAL0.find('.')==-1:
+               VAL0=VAL0[:len(VAL0)-6]+'.'+VAL0[-6:] 
+            objectList[obIdx].getIpo().getCurve('LocX').addBezier((currentFrame, scale * float(VAL0)))
+
           if channelList[obIdx][1] != -1:
-            objectList[obIdx].getIpo().getCurve('LocY').addBezier((currentFrame, scale * eval(lines[lineIdx][channelList[obIdx][1]])))
+            VAL1=lines[lineIdx][channelList[obIdx][0]]  
+            if VAL1.find('.')==-1:
+               VAL1=VAL1[:len(VAL1)-6]+'.'+VAL1[-6:] 
+            objectList[obIdx].getIpo().getCurve('LocY').addBezier((currentFrame, scale * float(VAL1)))
+
           if channelList[obIdx][2] != -1:
-            objectList[obIdx].getIpo().getCurve('LocZ').addBezier((currentFrame, scale * eval(lines[lineIdx][channelList[obIdx][2]])))
+            VAL2=lines[lineIdx][channelList[obIdx][0]]  
+            if VAL2.find('.')==-1:
+               VAL2=VAL2[:len(VAL2)-6]+'.'+VAL2[-6:] 
+            objectList[obIdx].getIpo().getCurve('LocZ').addBezier((currentFrame, scale * float(VAL2)))
           
           if channelList[obIdx][3] != '-1' or channelList[obIdx][4] != '-1' or channelList[obIdx][5] != '-1':
-            x, y, z = eulerRotate(eval(lines[lineIdx][channelList[obIdx][3]]), eval(lines[lineIdx][channelList[obIdx][4]]), eval(lines[lineIdx][channelList[obIdx][5]]))
+            VAL3=lines[lineIdx][channelList[obIdx][3]]  
+            if VAL3.find('.')==-1:
+               VAL3=VAL3[:len(VAL3)-6]+'.'+VAL3[-6:]
+ 
+            VAL4=lines[lineIdx][channelList[obIdx][4]]
+            if VAL4.find('.')==-1:
+               VAL4=VAL4[:len(VAL4)-6]+'.'+VAL4[-6:]
+
+            VAL5=lines[lineIdx][channelList[obIdx][5]] 
+            if VAL5.find('.')==-1:
+               VAL5=VAL5[:len(VAL5)-6]+'.'+VAL5[-6:]
+
+            x, y, z = eulerRotate(float(VAL3), float(VAL4), float(VAL5))
+
             objectList[obIdx].getIpo().getCurve('RotX').addBezier((currentFrame, x))
             objectList[obIdx].getIpo().getCurve('RotY').addBezier((currentFrame, y))
             objectList[obIdx].getIpo().getCurve('RotZ').addBezier((currentFrame, z))
+
           obIdx += 1
           # Done importing motion data #
         
-        lines[lineIdx] = None # Scrap old motion data, save some memory?
+        # lines[lineIdx] = None # Scrap old motion data, save some memory?
         lineIdx += 1
       # We have finished now
       print currentFrame, 'done.'
@@ -457,5 +518,6 @@ def loadBVH(filename):
       
     # Main file loop
     lineIdx += 1
+  print "bvh import time: ", Blender.sys.time() - time1
 
 Blender.Window.FileSelector(loadBVH, "Import BVH")

@@ -52,6 +52,7 @@ extern PyTypeObject NMesh_Type;
 extern PyTypeObject NMFace_Type;
 extern PyTypeObject NMVert_Type;
 extern PyTypeObject NMCol_Type;
+extern PyTypeObject NMEdge_Type;
 
 
 struct BPy_Object;
@@ -71,6 +72,7 @@ void remove_vert_def_nr( Object * ob, int def_nr, int vertnum );
 #define BPy_NMFace_Check(v)      ((v)->ob_type == &NMFace_Type)
 #define BPy_NMVert_Check(v)      ((v)->ob_type == &NMVert_Type)
 #define BPy_NMCol_Check(v)       ((v)->ob_type == &NMCol_Type)
+#define BPy_NMEdge_Check(v)      ((v)->ob_type == &NMEdge_Type)
 
 /* Typedefs for the new types */
 
@@ -104,6 +106,14 @@ typedef struct {
 } BPy_NMFace;			/* an NMesh face */
 
 typedef struct {
+  PyObject_HEAD		/* required python macro   */
+  PyObject *v1;
+  PyObject *v2;
+  char crease;
+  short flag;
+} BPy_NMEdge;     /* an NMesh edge */
+
+typedef struct {
 	PyObject_HEAD		/* required python macro   */
 	Mesh * mesh;
 	Object *object;		/* for vertex grouping info, since it's stored on the object */
@@ -111,6 +121,7 @@ typedef struct {
 	PyObject *materials;
 	PyObject *verts;
 	PyObject *faces;
+  PyObject *edges;
 	int sel_face;		/*@ XXX remove */
 	short smoothresh;	/* max AutoSmooth angle */
 	short subdiv[2];	/* SubDiv Levels: display and rendering */
@@ -134,7 +145,7 @@ int NMesh_CheckPyObject( PyObject * pyobj );
 
 void mesh_update( Mesh * mesh );
 PyObject *new_NMesh( Mesh * oldmesh );
-Mesh *Mesh_fromNMesh( BPy_NMesh * nmesh );
+Mesh *Mesh_fromNMesh( BPy_NMesh * nmesh , int store_edges );
 PyObject *NMesh_assignMaterials_toObject( BPy_NMesh * nmesh, Object * ob );
 Material **nmesh_updateMaterials( BPy_NMesh * nmesh );
 Material **newMaterialList_fromPyList( PyObject * list );
