@@ -82,6 +82,7 @@ struct PyMethodDef M_Object_methods[] = {
 /*****************************************************************************/
 /* Python BPy_Object methods declarations:                                     */
 /*****************************************************************************/
+static PyObject *Object_buildParts (BPy_Object *self);
 static PyObject *Object_clrParent (BPy_Object *self, PyObject *args);
 static PyObject *Object_getData (BPy_Object *self);
 static PyObject *Object_getDeltaLocation (BPy_Object *self);
@@ -113,7 +114,9 @@ static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args);
 /*****************************************************************************/
 static PyMethodDef BPy_Object_methods[] = {
     /* name, method, flags, doc */
-    {"clrParent",        (PyCFunction)Object_clrParent,        METH_VARARGS,
+    {"buildParts",        (PyCFunction)Object_buildParts,        METH_NOARGS,
+        "Recalcs particle system (if any) "},  
+{"clrParent",        (PyCFunction)Object_clrParent,        METH_VARARGS,
         "Clears parent object. Optionally specify:\n\
 mode\n\t2: Keep object transform\nfast\n\t>0: Don't update scene \
 hierarchy (faster)"},
@@ -546,6 +549,17 @@ PyObject *Object_Init (void)
 /*****************************************************************************/
 /* Python BPy_Object methods:                                                  */
 /*****************************************************************************/
+
+
+static PyObject *Object_buildParts (BPy_Object *self)
+{
+void build_particle_system(Object *ob);
+	struct Object *obj = self->object;
+	build_particle_system( obj);
+  Py_INCREF (Py_None);
+            return (Py_None);
+}
+
 static PyObject *Object_clrParent (BPy_Object *self, PyObject *args)
 {
     int       mode=0;
@@ -974,15 +988,15 @@ static PyObject *Object_setDeltaLocation (BPy_Object *self, PyObject *args)
     float   dloc2;
     float   dloc3;
 
-    if (!PyArg_Parse (args, "fff", &dloc1, &dloc2, &dloc3))
+    if (!PyArg_ParseTuple (args, "fff", &dloc1, &dloc2, &dloc3))
     {
         return (PythonReturnErrorObject (PyExc_AttributeError,
                 "expected three float arguments"));
     }
 
-    self->object->dloc[1] = dloc1;
-    self->object->dloc[2] = dloc2;
-    self->object->dloc[3] = dloc3;
+    self->object->dloc[0] = dloc1;
+    self->object->dloc[1] = dloc2;
+    self->object->dloc[2] = dloc3;
 
     Py_INCREF (Py_None);
     return (Py_None);
@@ -1024,15 +1038,15 @@ static PyObject *Object_setEuler (BPy_Object *self, PyObject *args)
     float   drot2;
     float   drot3;
 
-    if (!PyArg_Parse (args, "fff", &drot1, &drot2, &drot3))
+    if (!PyArg_ParseTuple (args, "fff", &drot1, &drot2, &drot3))
     {
         return (PythonReturnErrorObject (PyExc_AttributeError,
                 "expected three float arguments"));
     }
 
-    self->object->drot[1] = drot1;
-    self->object->drot[2] = drot2;
-    self->object->drot[3] = drot3;
+    self->object->drot[0] = drot1;
+    self->object->drot[1] = drot2;
+    self->object->drot[2] = drot3;
 
     Py_INCREF (Py_None);
     return (Py_None);
@@ -1044,15 +1058,15 @@ static PyObject *Object_setLocation (BPy_Object *self, PyObject *args)
     float   loc2;
     float   loc3;
 
-    if (!PyArg_Parse (args, "fff", &loc1, &loc2, &loc3))
+    if (!PyArg_ParseTuple (args, "fff", &loc1, &loc2, &loc3))
     {
         return (PythonReturnErrorObject (PyExc_AttributeError,
                 "expected three float arguments"));
     }
 
-    self->object->loc[1] = loc1;
-    self->object->loc[2] = loc2;
-    self->object->loc[3] = loc3;
+    self->object->loc[0] = loc1;
+    self->object->loc[1] = loc2;
+    self->object->loc[2] = loc3;
 
     Py_INCREF (Py_None);
     return (Py_None);
