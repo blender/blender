@@ -93,8 +93,7 @@ static string YafrayPath()
 {
 #ifdef WIN32
 	string path=find_path();
-	return path; 
-	
+	return path;
 #else
 	static char *alternative[]=
 	{
@@ -105,10 +104,10 @@ static string YafrayPath()
 
 	for(int i=0;alternative[i]!=NULL;++i)
 	{
-		string fp=string(alternative[i])+"libyafrayplugin.so";
+		string fp = string(alternative[i]) + "libyafrayplugin.so";
 		struct stat st;
-		if(stat(fp.c_str(),&st)<0) continue;
-		if(st.st_mode&S_IROTH) return fp;
+		if (stat(fp.c_str(), &st)<0) continue;
+		if (st.st_mode & S_IROTH) return fp;
 	}
 	return "";
 #endif
@@ -129,8 +128,8 @@ static string YafrayPluginPath()
 	for(int i=0;alternative[i]!=NULL;++i)
 	{
 		struct stat st;
-		if(stat(alternative[i],&st)<0) continue;
-		if(S_ISDIR(st.st_mode) && (st.st_mode&S_IXOTH)) return alternative[i];
+		if (stat(alternative[i], &st)<0) continue;
+		if (S_ISDIR(st.st_mode) && (st.st_mode & S_IXOTH)) return alternative[i];
 	}
 	return "";
 #endif
@@ -140,59 +139,64 @@ static string YafrayPluginPath()
 
 yafrayPluginRender_t::~yafrayPluginRender_t()
 {
-	if(yafrayGate!=NULL) delete yafrayGate;
-	if(handle!=NULL) PIL_dynlib_close(handle);
+	if (yafrayGate!=NULL) delete yafrayGate;
+	if (handle!=NULL) PIL_dynlib_close(handle);
 #ifdef WIN32
-	if(corehandle!=NULL) PIL_dynlib_close(corehandle);
+	if (corehandle!=NULL) PIL_dynlib_close(corehandle);
 #endif
 }
 
 bool yafrayPluginRender_t::initExport()
 {
-	if(handle==NULL)
+	// bug #1897: when forcing render without yafray present, handle can be valid,
+	// but find_symbol might have failed, trying second time will crash.
+	// So make sure plugin loaded correctly and only get handle once.
+	if ((!plugin_loaded) || (handle==NULL))
 	{
-		string location=YafrayPath();
+		string location = YafrayPath();
 #ifdef WIN32
 		/* Win 32 loader cannot find needed libs in yafray dir, so we have to load them
 		 * by hand. This could be fixed using setdlldirectory function, but it is not
 		 * available in all win32 versions
 		 */
-		corehandle=PIL_dynlib_open((char *)(location+"\\yafraycore.dll").c_str());
-		if(corehandle==NULL)
+		corehandle = PIL_dynlib_open((char *)(location + "\\yafraycore.dll").c_str());
+		if (corehandle==NULL)
 		{
-			cerr<<"Error loading yafray plugin: "<<PIL_dynlib_get_error_as_string(corehandle)<<endl;
+			cerr << "Error loading yafray plugin: " << PIL_dynlib_get_error_as_string(corehandle) << endl;
 			return false;
 		}
-		location+="\\yafrayplugin.dll";
+		location += "\\yafrayplugin.dll";
 #endif
 
-		handle=PIL_dynlib_open((char *)location.c_str());
-		 if(handle==NULL)
-		{
-			//cerr<<"Error loading yafray plugin: "<<dlerror()<<endl;
-			cerr<<"Error loading yafray plugin: "<<PIL_dynlib_get_error_as_string(handle)<<endl;
-			return false;
+		if (handle==NULL) {
+			handle = PIL_dynlib_open((char *)location.c_str());
+			if (handle==NULL)
+			{
+				cerr << "Error loading yafray plugin: " << PIL_dynlib_get_error_as_string(handle) << endl;
+				return false;
+			}
 		}
 		yafray::yafrayConstructor *constructor;
-		constructor=(yafray::yafrayConstructor *)PIL_dynlib_find_symbol(handle,YAFRAY_SYMBOL);
-		if(constructor==NULL)
+		constructor = (yafray::yafrayConstructor *)PIL_dynlib_find_symbol(handle, YAFRAY_SYMBOL);
+		if (constructor==NULL)
 		{
-			cerr<<"Error loading yafray plugin: "<<PIL_dynlib_get_error_as_string(handle)<<endl;
+			cerr << "Error loading yafray plugin: " << PIL_dynlib_get_error_as_string(handle) << endl;
 			return false;
 		}
-		yafrayGate=constructor(1,YafrayPluginPath());
+		yafrayGate = constructor(1, YafrayPluginPath());
 		
-		cout<<"YafRay plugin loaded"<<endl;
+		cout << "YafRay plugin loaded" << endl;
+		plugin_loaded = true;
 	}
 	
-	if(R.rectot == NULL) {
+	if (R.rectot==NULL) {
 		R.rectot = (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
 		unsigned int *bpt=R.rectot, count=R.rectx*R.recty;
 		while (--count) bpt[count] = 0xff800000;
 		cout << "Image allocated" << endl;
 	}
 
-	if (R.rectz == NULL) {
+	if (R.rectz==NULL) {
 		R.rectz = (unsigned int *)MEM_mallocN(sizeof(int)*R.rectx*R.recty, "rectz");
 		unsigned int *zbuf=R.rectz, count=R.rectx*R.recty;
 		while (--count) zbuf[count] = 0x7fffffff;

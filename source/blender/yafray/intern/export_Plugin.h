@@ -13,6 +13,7 @@ class yafrayPluginRender_t : public yafrayRender_t
 	public:
 		yafrayPluginRender_t() 
 		{
+			plugin_loaded = false;
 			handle=NULL;
 #ifdef WIN32
 			corehandle=NULL;
@@ -21,6 +22,7 @@ class yafrayPluginRender_t : public yafrayRender_t
 		}
 		virtual ~yafrayPluginRender_t();
 	protected:
+		bool plugin_loaded;
 		std::string imgout;
 		PILdynlib *handle;
 #ifdef WIN32
