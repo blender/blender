@@ -695,6 +695,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 				where_is_object_time (data->tar, ctime);	
 
 				Mat4One (totmat);
+				Mat4One (mat);
 
 				cu= data->tar->data;
 				OldFlag = cu->flag;
@@ -708,36 +709,36 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 
 				if(!(cu->flag & CU_PATH)) cu->flag += CU_PATH;
 
-				if(cu->path==0 || cu->path->data==0) calc_curvepath(data->tar);
+				if(cu->path==NULL || cu->path->data==NULL) calc_curvepath(data->tar);
+				if(cu->path && cu->path->data) {
+					curvetime= bsystem_time(data->tar, data->tar->parent, (float)ctime, 0.0) - data->offset;
 
-				curvetime= bsystem_time(data->tar, data->tar->parent, (float)ctime, 0.0) - data->offset;
-
-				if(calc_ipo_spec(cu->ipo, CU_SPEED, &curvetime)==0) {
-					curvetime /= cu->pathlen;
-					CLAMP(curvetime, 0.0, 1.0);
-				}
-
-				if(where_on_path(data->tar, curvetime, vec, dir) ) {
-
-					if(data->followflag){
-						quat= vectoquat(dir, (short) data->trackflag, (short) data->upflag);
-
-						Normalise(dir);
-						q[0]= (float)cos(0.5*vec[3]);
-						x1= (float)sin(0.5*vec[3]);
-						q[1]= -x1*dir[0];
-						q[2]= -x1*dir[1];
-						q[3]= -x1*dir[2];
-						QuatMul(quat, q, quat);
-						
-
-						QuatToMat4(quat, totmat);
+					if(calc_ipo_spec(cu->ipo, CU_SPEED, &curvetime)==0) {
+						curvetime /= cu->pathlen;
+						CLAMP(curvetime, 0.0, 1.0);
 					}
-					VECCOPY(totmat[3], vec);
 
-					Mat4MulSerie(mat, data->tar->obmat, totmat, NULL, NULL, NULL, NULL, NULL, NULL);
+					if(where_on_path(data->tar, curvetime, vec, dir) ) {
+
+						if(data->followflag){
+							quat= vectoquat(dir, (short) data->trackflag, (short) data->upflag);
+
+							Normalise(dir);
+							q[0]= (float)cos(0.5*vec[3]);
+							x1= (float)sin(0.5*vec[3]);
+							q[1]= -x1*dir[0];
+							q[2]= -x1*dir[1];
+							q[3]= -x1*dir[2];
+							QuatMul(quat, q, quat);
+							
+
+							QuatToMat4(quat, totmat);
+						}
+						VECCOPY(totmat[3], vec);
+
+						Mat4MulSerie(mat, data->tar->obmat, totmat, NULL, NULL, NULL, NULL, NULL, NULL);
+					}
 				}
-
 				cu->flag = OldFlag;
 				valid=1;
 			}
