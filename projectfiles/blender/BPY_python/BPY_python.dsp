@@ -171,6 +171,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Lattice.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\Library.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\Material.c
 # End Source File
 # Begin Source File
