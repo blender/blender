@@ -701,7 +701,7 @@ static void ui_draw_but_BUT(uiBut *but)
 
 static void ui_draw_but_TOG3(uiBut *but)
 {
-	float x;
+	float x, r, g, b;
 
 	but->embossfunc(but->col, but->aspect, but->x1, but->y1, but->x2, but->y2, but->flag);
 	
@@ -720,60 +720,35 @@ static void ui_draw_but_TOG3(uiBut *but)
 				if( BTST( sp[1], but->bitnr )) ok= 1;
 			}
 			
-		if(but->flag & UI_TEXT_LEFT) x= but->x1+4.0;
-		else x= (but->x1+but->x2-but->strwidth+1)/2.0;
-		
-		glRasterPos2f( x, (but->y1+but->y2- 9.0)/2.0);
-
-// silly structure for colored texts
 			if (ok) {
 				glColor3ub(255, 255, 0);
-		
-#ifdef INTERNATIONAL
-		if(G.ui_international == TRUE)
-			if(U.transopts & TR_BUTTONS)	// BUTTON TEXTS
-				FTF_DrawStringRGB(but->drawstr+but->ofs, FTF_USE_GETTEXT | FTF_INPUT_UTF8, 1.0, 1.0, 0.0);
-			else
-				FTF_DrawStringRGB(but->drawstr+but->ofs, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, 1.0, 1.0, 0.0);
-		else
-			BMF_DrawString(but->font, but->drawstr+but->ofs);
-#else
-		BMF_DrawString(but->font, but->drawstr+but->ofs);
-#endif
+				r= g= 1.0;
+				b= 0.0;
 			} else {
 				glColor3ub(255, 255, 255);
-
-#ifdef INTERNATIONAL
-		if(G.ui_international == TRUE)
-			if(U.transopts & TR_BUTTONS)	// BUTTON TEXTS
-				FTF_DrawString(but->drawstr+but->ofs, FTF_USE_GETTEXT | FTF_INPUT_UTF8, but->flag & UI_SELECT);
-			else
-				FTF_DrawString(but->drawstr+but->ofs, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, but->flag & UI_SELECT);
-		else
-			BMF_DrawString(but->font, but->drawstr+but->ofs);
-#else
-		BMF_DrawString(but->font, but->drawstr+but->ofs);
-#endif
+				r= g= b= 1.0;
 			}
 		} else {
 			glColor3ub(0, 0, 0);
-		
+			r= g= b= 0.0;
+		}
+
 		if(but->flag & UI_TEXT_LEFT) x= but->x1+4.0;
 		else x= (but->x1+but->x2-but->strwidth+1)/2.0;
 		
 		glRasterPos2f( x, (but->y1+but->y2- 9.0)/2.0);
+		
 #ifdef INTERNATIONAL
 		if(G.ui_international == TRUE)
 			if(U.transopts & TR_BUTTONS)	// BUTTON TEXTS
-				FTF_DrawString(but->drawstr+but->ofs, FTF_USE_GETTEXT | FTF_INPUT_UTF8, but->flag & UI_SELECT);
+				FTF_DrawStringRGB(but->drawstr+but->ofs, FTF_USE_GETTEXT | FTF_INPUT_UTF8, r, g, b);
 			else
-				FTF_DrawString(but->drawstr+but->ofs, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, but->flag & UI_SELECT);
+				FTF_DrawStringRGB(but->drawstr+but->ofs, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, r, g, b);
 		else
 			BMF_DrawString(but->font, but->drawstr+but->ofs);
 #else
 		BMF_DrawString(but->font, but->drawstr+but->ofs);
 #endif
-		}
 	}
 }
 
