@@ -207,9 +207,22 @@ bool KX_RaySensor::Evaluate(CValue* event)
 				KX_SumoPhysicsController *hitspc = dynamic_cast<KX_SumoPhysicsController *> (static_cast<KX_GameObject*> (hitgameobj) ->GetPhysicsController());
 				if (hitspc)
 				{
-					MT_Scalar marg = hitspc->GetSumoObject()->getMargin();
+					/* We add 0.01 of fudge, so that if the margin && radius == 0., we don't endless loop. */
+					MT_Scalar marg = 0.01 + hitspc->GetSumoObject()->getMargin();
 					if (hitspc->GetSumoObject()->getShapeProps())
-						marg += hitspc->GetSumoObject()->getShapeProps()->m_radius;
+					{
+						marg += 2*hitspc->GetSumoObject()->getShapeProps()->m_radius;
+					}
+					
+					/* Calculate the other side of this object */
+					MT_Point3 hitObjPos;
+					hitspc->GetWorldPosition(hitObjPos);
+					MT_Vector3 hitvector = hitObjPos - resultpoint;
+					if (hitvector.dot(hitvector) > MT_EPSILON)
+					{
+						hitvector.normalize();
+						marg *= 2.*todir.dot(hitvector);
+					}
 					frompoint = resultpoint + marg * todir;
 				} else {
 					ready = true;
