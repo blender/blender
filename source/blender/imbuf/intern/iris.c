@@ -212,7 +212,7 @@ static int writetab(FILE *outf, unsigned int *tab, int len)
 /*  unsigned int *tab; */
 /*  int len; */
 {
-	int r;
+	int r = 0;
 
 	while(len) {
 		r = putlong(outf,*tab++);
@@ -548,7 +548,7 @@ static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, int 
 {
 	FILE *outf;
 	IMAGE *image;
-	int tablen, y, z, pos, len;
+	int tablen, y, z, pos, len = 0;
 	int *starttab, *lengthtab;
 	unsigned char *rlebuf;
 	unsigned int *lumbuf;
