@@ -589,7 +589,7 @@ endif
 
 # Windows build needs a def file? Why? For exposing functions from the
 # dll to the outside world. However, this is alsi done internally..
-DEFFILE = \\\\server\\nzc\\develop\\source\\gameengine\\GamePlayer\\netscape\\src\\npB3DPlg.def
+DEFFILE = ./gameengine/GamePlayer/netscape/src/npB3DPlg.def
 
 # Windows needs a specific name format for dll.s so we give it one.
 ifeq ($(OS),windows)
