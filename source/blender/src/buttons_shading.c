@@ -1330,7 +1330,7 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 	}
 	else {
 		// label to avoid centering
-		uiDefBut(block, LABEL, 0, " ",	240, 10, 70, 20, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, " ",	160, 10, 140, 20, 0, 0, 0, 0, 0, "");
 	}
 }
 
@@ -2818,9 +2818,9 @@ static void material_panel_material(Object *ob, Material *ma)
 	uiBlockSetCol(block, TH_BUT_SETTING2);
 	std_libbuttons(block, 8, 200, 0, NULL, B_MATBROWSE, id, idfrom, &(G.buts->menunr), B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
 	
-	uiDefIconBut(block, BUT, B_MATCOPY, ICON_COPYUP,	263,200,XIC,YIC, 0, 0, 0, 0, 0, "Copies Material to the buffer");
+	uiDefIconBut(block, BUT, B_MATCOPY, ICON_COPYUP,	262,200,XIC,YIC, 0, 0, 0, 0, 0, "Copies Material to the buffer");
 	uiSetButLock(id && id->lib, "Can't edit library data");
-	uiDefIconBut(block, BUT, B_MATPASTE, ICON_PASTEUP,	284,200,XIC,YIC, 0, 0, 0, 0, 0, "Pastes Material from the buffer");
+	uiDefIconBut(block, BUT, B_MATPASTE, ICON_PASTEUP,	283,200,XIC,YIC, 0, 0, 0, 0, 0, "Pastes Material from the buffer");
 	
 	if(ob->actcol==0) ob->actcol= 1;	/* because of TOG|BIT button */
 	
@@ -2848,7 +2848,7 @@ static void material_panel_material(Object *ob, Material *ma)
 	
 	sprintf(str, "%d Mat", ob->totcol);
 	if(ob->totcol) min= 1.0; else min= 0.0;
-	uiDefButC(block, NUM, B_ACTCOL, str,			191,174,114,20, &(ob->actcol), min, (float)ob->totcol, 0, 0, "Shows the number of materials on object and the active material");
+	uiDefButC(block, NUM, B_ACTCOL, str,			191,174,112,20, &(ob->actcol), min, (float)ob->totcol, 0, 0, "Shows the number of materials on object and the active material");
 	uiBlockEndAlign(block);
 	
 	if(ob->totcol==0) return;
@@ -2860,7 +2860,7 @@ static void material_panel_material(Object *ob, Material *ma)
 	if(ma->dynamode & MA_DRAW_DYNABUTS) {
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI, 0, "Restitut ",		128,120,175,20, &ma->reflect, 0.0, 1.0, 0, 0, "Elasticity of collisions");
-		uiDefButF(block, NUMSLI, 0, "Friction ",  		128,98 ,175,20, &ma->friction, 0.0, 100.0, 0, 0,   "Coulomb friction coefficient");
+		uiDefButF(block, NUMSLI, 0, "Friction ",  		128,82 ,175,20, &ma->friction, 0.0, 100.0, 0, 0,   "Coulomb friction coefficient");
 		uiDefButF(block, NUMSLI, 0, "Fh Force ",		128,76 ,175,20, &ma->fh, 0.0, 1.0, 0, 0, "Upward spring force within the Fh area");
 		uiBlockEndAlign(block);
 		uiDefButF(block, NUM, 0,	 "Fh Damp ",		8,120,100,20, &ma->xyfrict, 0.0, 1.0, 10, 0, "Damping of the Fh spring force");
@@ -2871,15 +2871,15 @@ static void material_panel_material(Object *ob, Material *ma)
 		if(!(ma->mode & MA_HALO)) {
 			uiBlockBeginAlign(block);
 			uiBlockSetCol(block, TH_BUT_SETTING1);
-			uiDefButI(block, TOG|BIT|4, B_REDR,	"VCol Light",	8,146,75,20, &(ma->mode), 0, 0, 0, 0, "Adds vertex colours as extra light");
-			uiDefButI(block, TOG|BIT|7, B_REDR, "VCol Paint",	85,146,72,20, &(ma->mode), 0, 0, 0, 0, "Replaces material's colours with vertex colours");
-			uiDefButI(block, TOG|BIT|11, B_REDR, "TexFace",		160,146,62,20, &(ma->mode), 0, 0, 0, 0, "Sets UV-Editor assigned texture as color and texture info for faces");
-			uiDefButI(block, TOG|BIT|2, B_MATPRV, "Shadeless",	223,146,80,20, &(ma->mode), 0, 0, 0, 0, "Makes material insensitive to light or shadow");
+			uiDefButI(block, TOG|BIT|4, B_REDR,	"VCol Light",	8,146,73,20, &(ma->mode), 0, 0, 0, 0, "Adds vertex colours as extra light");
+			uiDefButI(block, TOG|BIT|7, B_REDR, "VCol Paint",	82,146,73,20, &(ma->mode), 0, 0, 0, 0, "Replaces material's colours with vertex colours");
+			uiDefButI(block, TOG|BIT|11, B_REDR, "TexFace",		156,146,73,20, &(ma->mode), 0, 0, 0, 0, "Sets UV-Editor assigned texture as color and texture info for faces");
+			uiDefButI(block, TOG|BIT|2, B_MATPRV, "Shadeless",	230,146,73,20, &(ma->mode), 0, 0, 0, 0, "Makes material insensitive to light or shadow");
 			uiBlockSetCol(block, TH_AUTO);
-			uiDefButF(block, NUM, 0, "Zoffs:",					8,127,120,19, &(ma->zoffs), 0.0, 10.0, 0, 0, "Gives faces an artificial offset in the Z buffer");
+			uiDefButF(block, NUM, 0, "Zoffs:",					8,127,147,19, &(ma->zoffs), 0.0, 10.0, 0, 0, "Gives faces an artificial offset in the Z buffer");
 			uiBlockSetCol(block, TH_BUT_SETTING1);
-			uiDefButI(block, TOG|BIT|3, 0,	"Wire",				128,127,96,19, &(ma->mode), 0, 0, 0, 0, "Renders only the edges of faces as a wireframe");
-			uiDefButI(block, TOG|BIT|8, 0,	"ZInvert",			224,127,79,19, &(ma->mode), 0, 0, 0, 0, "Renders material's faces with inverted Z Buffer");
+			uiDefButI(block, TOG|BIT|3, 0,	"Wire",				156,127,73,19, &(ma->mode), 0, 0, 0, 0, "Renders only the edges of faces as a wireframe");
+			uiDefButI(block, TOG|BIT|8, 0,	"ZInvert",			230,127,73,19, &(ma->mode), 0, 0, 0, 0, "Renders material's faces with inverted Z Buffer");
 
 		}
 		uiBlockSetCol(block, TH_AUTO);

@@ -676,7 +676,6 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 		uiDefBut(block, BUT, B_MAKE_TFACES, "Make",		80,30,84,19, 0, 0, 0, 0, 0, "Enables the active object's faces for UV coordinate mapping");
 	}
 	else uiDefBut(block, BUT, B_DEL_TFACES, "Delete", 	80,30,84,19, 0, 0, 0, 0, 0, "Deletes UV coordinates for active object's faces");
-	uiBlockEndAlign(block);
 
 	if(me->msticky) val= 1.0; else val= 0.0;
 	uiDefBut(block, LABEL, 0, "Sticky", 				10,10,70,20, 0, val, 0, 0, 0, "");
@@ -685,6 +684,7 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	}
 	else uiDefBut(block, BUT, B_DELSTICKY, "Delete", 	80,10,84,19, 0, 0, 0, 0, 0, "Deletes Sticky texture coordinates");
 
+	uiBlockEndAlign(block);
 
 	/* decimator */
 	if(G.obedit==NULL) {
@@ -1445,32 +1445,32 @@ static void editing_panel_lattice_type(Object *ob, Lattice *lt)
 	uiSetButLock(ob==G.obedit, "Unable to perform function in EditMode");
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, B_RESIZELAT,	"U:",				470, 178,100,19, &lt->pntsu, 1.0, 64.0, 0, 0, "Points in U direction");
+
+	uiDefButS(block, NUM, B_RESIZELAT,	"U:",				469, 178,100,19, &lt->pntsu, 1.0, 64.0, 0, 0, "Points in U direction");
 	uiDefButC(block, ROW, B_LATTCHANGED,		"Lin",		572, 178, 40, 19, &lt->typeu, 1.0, (float)KEY_LINEAR, 0, 0, "Set Linear interpolation");
-	uiDefButC(block, ROW, B_LATTCHANGED,		"Card",		612, 178, 40, 19, &lt->typeu, 1.0, (float)KEY_CARDINAL, 0, 0, "Set Cardinal interpolation");
+	uiDefButC(block, ROW, B_LATTCHANGED,		"Card",		613, 178, 40, 19, &lt->typeu, 1.0, (float)KEY_CARDINAL, 0, 0, "Set Cardinal interpolation");
 	uiDefButC(block, ROW, B_LATTCHANGED,		"B",		652, 178, 40, 19, &lt->typeu, 1.0, (float)KEY_BSPLINE, 0, 0, "Set B-spline interpolation");
 
-	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, B_RESIZELAT,	"V:",				470, 158,100,19, &lt->pntsv, 1.0, 64.0, 0, 0, "Points in V direction");
-	uiDefButC(block, ROW, B_LATTCHANGED,		"Lin",		572, 158, 40, 19, &lt->typev, 2.0, (float)KEY_LINEAR, 0, 0, "Set Linear interpolation");
-	uiDefButC(block, ROW, B_LATTCHANGED,		"Card",		612, 158, 40, 19, &lt->typev, 2.0, (float)KEY_CARDINAL, 0, 0, "Set Cardinal interpolation");
-	uiDefButC(block, ROW, B_LATTCHANGED,		"B",		652, 158, 40, 19, &lt->typev, 2.0, (float)KEY_BSPLINE, 0, 0, "Set B-spline interpolation");
+	uiDefButS(block, NUM, B_RESIZELAT,	"V:",				469, 156,100,19, &lt->pntsv, 1.0, 64.0, 0, 0, "Points in V direction");
+	uiDefButC(block, ROW, B_LATTCHANGED,		"Lin",		572, 156, 40, 19, &lt->typev, 2.0, (float)KEY_LINEAR, 0, 0, "Set Linear interpolation");
+	uiDefButC(block, ROW, B_LATTCHANGED,		"Card",		613, 156, 40, 19, &lt->typev, 2.0, (float)KEY_CARDINAL, 0, 0, "Set Cardinal interpolation");
+	uiDefButC(block, ROW, B_LATTCHANGED,		"B",		652, 156, 40, 19, &lt->typev, 2.0, (float)KEY_BSPLINE, 0, 0, "Set B-spline interpolation");
 
-	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, B_RESIZELAT,	"W:",				470, 138,100,19, &lt->pntsw, 1.0, 64.0, 0, 0, "Points in W direction");
-	uiDefButC(block, ROW, B_LATTCHANGED,		"Lin",		572, 138, 40, 19, &lt->typew, 3.0, (float)KEY_LINEAR, 0, 0, "Set Linear interpolation");
-	uiDefButC(block, ROW, B_LATTCHANGED,		"Card",		612, 138, 40, 19, &lt->typew, 3.0, (float)KEY_CARDINAL, 0, 0, "Set Cardinal interpolation");
-	uiDefButC(block, ROW, B_LATTCHANGED,		"B",		652, 138, 40, 19, &lt->typew, 3.0, (float)KEY_BSPLINE, 0, 0, "Set B-spline interpolation");
+	uiDefButS(block, NUM, B_RESIZELAT,	"W:",				469, 134,100,19, &lt->pntsw, 1.0, 64.0, 0, 0, "Points in W direction");
+	uiDefButC(block, ROW, B_LATTCHANGED,		"Lin",		572, 134, 40, 19, &lt->typew, 3.0, (float)KEY_LINEAR, 0, 0, "Set Linear interpolation");
+	uiDefButC(block, ROW, B_LATTCHANGED,		"Card",		613, 134, 40, 19, &lt->typew, 3.0, (float)KEY_CARDINAL, 0, 0, "Set Cardinal interpolation");
+	uiDefButC(block, ROW, B_LATTCHANGED,		"B",		652, 134, 40, 19, &lt->typew, 3.0, (float)KEY_BSPLINE, 0, 0, "Set B-spline interpolation");
+
 	uiBlockEndAlign(block);
 
-	uiDefBut(block, BUT, B_RESIZELAT,	"Make Regular",		470,101,99,32, 0, 0, 0, 0, 0, "Make Lattice regular");
+	uiDefBut(block, BUT, B_RESIZELAT,	"Make Regular",		469,98,102,31, 0, 0, 0, 0, 0, "Make Lattice regular");
 
 	uiClearButLock();
-	uiDefButS(block, TOG|BIT|1, B_LATTCHANGED, "Outside",	571,101,120,31, &lt->flag, 0, 0, 0, 0, "Only draw, and take into account, the outer vertices");
+	uiDefButS(block, TOG|BIT|1, B_LATTCHANGED, "Outside",	571,98,122,31, &lt->flag, 0, 0, 0, 0, "Only draw, and take into account, the outer vertices");
 
 	if(lt->key) {
-		uiDefButS(block, NUM, B_DIFF, "Slurph:",			470,60,120,19, &(lt->key->slurph), -500.0, 500.0, 0, 0, "Set time value to denote 'slurph' (sequential delay) vertices with key framing");
-		uiDefButS(block, TOG, B_RELKEY, "Relative Keys",	470,40,120,19, &lt->key->type, 0, 0, 0, 0, "Use relative keys (instead of absolute)");
+		uiDefButS(block, NUM, B_DIFF, "Slurph:",			469,60,120,19, &(lt->key->slurph), -500.0, 500.0, 0, 0, "Set time value to denote 'slurph' (sequential delay) vertices with key framing");
+		uiDefButS(block, TOG, B_RELKEY, "Relative Keys",	469,40,120,19, &lt->key->type, 0, 0, 0, 0, "Use relative keys (instead of absolute)");
 	}
 
 }
@@ -2152,9 +2152,9 @@ static void editing_panel_links(Object *ob)
 	if(ma) uiDefBut(block, LABEL, 0, ma->id.name+2, 318,153, 103, 20, 0, 0, 0, 0, 0, "");
 
 	uiBlockBeginAlign(block);
-	if(ma) uiDefButF(block, COL, B_REDR, "",			291,123,24,30, &(ma->r), 0, 0, 0, 0, "");
-	uiDefButC(block, NUM, B_REDR,	str,		318,123,103,30, &ob->actcol, min, (float)(ob->totcol), 0, 0, "Displays total number of material indices and the current index");
-	uiDefBut(block, BUT,B_MATWICH,	"?",		423,123,31,30, 0, 0, 0, 0, 0, "In EditMode, sets the active material index from selected faces");
+	if(ma) uiDefButF(block, COL, B_REDR, "",			292,123,31,30, &(ma->r), 0, 0, 0, 0, "");
+	uiDefButC(block, NUM, B_REDR,	str,		324,123,100,30, &ob->actcol, min, (float)(ob->totcol), 0, 0, "Displays total number of material indices and the current index");
+	uiDefBut(block, BUT,B_MATWICH,	"?",		424,123,30,30, 0, 0, 0, 0, 0, "In EditMode, sets the active material index from selected faces");
 
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_MATNEW,	"New",		292,98,80,20, 0, 0, 0, 0, 0, "Adds a new Material index");
