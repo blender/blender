@@ -28,7 +28,7 @@ def makemakefile(outfp, makevars, files, target):
         outfp.write("\n\ninclude nan_definitions.mk\n")
         outfp.write("ifeq ($(OS),windows)\n")
         outfp.write("  CC=$(NANBLENDERHOME)/source/tools/cygwin/cl_wrapper.pl\n")
-        outfp.write("  CFLAGS=-I../../../../../lib/windows/python/include/python2.2/ $(OPT)\n")
+        outfp.write("  CFLAGS=-I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION) $(OPT)\n")
         outfp.write("endif\n")
 
 	outfp.write("\nall: %s\n\n" % libtarget)
