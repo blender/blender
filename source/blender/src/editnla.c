@@ -979,6 +979,8 @@ static void delete_nlachannel_keys(void)
 	}
 	
 	allspace(REMAKEALLIPO, 0);
+        allspace(REMAKEIPO,0);
+	allqueue (REDRAWVIEW3D, 0);
 	allqueue(REDRAWNLA, 0);
 	allqueue(REDRAWIPO, 0);
 }
