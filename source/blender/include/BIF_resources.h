@@ -265,6 +265,7 @@ enum {
 	TH_AUTO,	/* for buttons, to signal automatic color assignment */
 	
 // uibutton colors
+	TH_BUT_OUTLINE,
 	TH_BUT_NEUTRAL,
 	TH_BUT_ACTION,
 	TH_BUT_SETTING,

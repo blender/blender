@@ -209,10 +209,10 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon)
 #define MM_WHITE_OP	glColor4ub(255, 255, 255, 60)
 #define MM_WHITE_TR	glColor4ub(255, 255, 255, 0)
 
-#define MM_LIGHT	BIF_ThemeColorShade(TH_BUT_NEUTRAL, 45)
-#define MM_MEDIUM	BIF_ThemeColor(TH_BUT_NEUTRAL)
-#define MM_GREY		BIF_ThemeColorShade(TH_BUT_NEUTRAL, -45)
-#define MM_DARK		BIF_ThemeColorShade(TH_BUT_NEUTRAL, -80)
+#define MM_LIGHT	BIF_ThemeColorShade(TH_BUT_OUTLINE, 45)
+#define MM_MEDIUM	BIF_ThemeColor(TH_BUT_OUTLINE)
+#define MM_GREY		BIF_ThemeColorShade(TH_BUT_OUTLINE, -45)
+#define MM_DARK		BIF_ThemeColorShade(TH_BUT_OUTLINE, -80)
 
 /* base shaded button */
 static void shaded_button(float x1, float y1, float x2, float y2, float asp, int colorid, int flag, int mid)

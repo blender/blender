@@ -293,6 +293,8 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 		if(colorid < TH_THEMEUI) {
 		
 			switch(colorid) {
+			case TH_BUT_OUTLINE:
+				cp= btheme->tui.outline; break;
 			case TH_BUT_NEUTRAL:
 				cp= btheme->tui.neutral; break;
 			case TH_BUT_ACTION:
@@ -460,6 +462,7 @@ void BIF_InitTheme(void)
 	BIF_SetTheme(NULL);	// make sure the global used in this file is set
 
 	/* UI buttons (todo) */
+	SETCOL(btheme->tui.outline, 	0xA0,0xA0,0xA0, 255);
 	SETCOL(btheme->tui.neutral, 	0xA0,0xA0,0xA0, 255);
 	SETCOL(btheme->tui.action, 		0xB0,0xA0,0x90, 255);
 	SETCOL(btheme->tui.setting, 	0x88,0xA0,0xA4, 255);
@@ -602,6 +605,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 	char str[32];
 	
 	if(spacetype==0) {
+		sprintf(str, "Outline %%x%d|", TH_BUT_OUTLINE); strcat(cp, str);
 		sprintf(str, "Neutral %%x%d|", TH_BUT_NEUTRAL); strcat(cp, str);
 		sprintf(str, "Action %%x%d|", TH_BUT_ACTION); strcat(cp, str);
 		sprintf(str, "Setting %%x%d|", TH_BUT_SETTING); strcat(cp, str);
@@ -611,13 +615,13 @@ char *BIF_ThemeColorsPup(int spacetype)
 		sprintf(str, "Text Input %%x%d|", TH_BUT_TEXTFIELD); strcat(cp, str);
 		sprintf(str, "Popup %%x%d|", TH_BUT_POPUP); strcat(cp, str);
 		sprintf(str, "Text %%x%d|", TH_BUT_TEXT); strcat(cp, str);
-		sprintf(str, "Text hilight %%x%d|", TH_BUT_TEXT_HI); strcat(cp, str);
+		sprintf(str, "Text Highlight %%x%d|", TH_BUT_TEXT_HI); strcat(cp, str);
 			strcat(cp,"%l|");
 		sprintf(str, "Menu Background %%x%d|", TH_MENU_BACK); strcat(cp, str);
 		sprintf(str, "Menu Item %%x%d|", TH_MENU_ITEM); strcat(cp, str);
-		sprintf(str, "Menu Item hilight %%x%d|", TH_MENU_HILITE); strcat(cp, str);
+		sprintf(str, "Menu Item Highlight %%x%d|", TH_MENU_HILITE); strcat(cp, str);
 		sprintf(str, "Menu Text %%x%d|", TH_MENU_TEXT); strcat(cp, str);
-		sprintf(str, "Menu Text hilight %%x%d|", TH_MENU_TEXT_HI); strcat(cp, str);
+		sprintf(str, "Menu Text Highlight %%x%d|", TH_MENU_TEXT_HI); strcat(cp, str);
 		strcat(cp,"%l|");
 		sprintf(str, "Drawtype %%x%d|", TH_BUT_DRAWTYPE); strcat(cp, str);
 	}
@@ -625,7 +629,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 		// first defaults for each space
 		sprintf(str, "Background %%x%d|", TH_BACK); strcat(cp, str);
 		sprintf(str, "Text %%x%d|", TH_TEXT); strcat(cp, str);
-		sprintf(str, "Text hilight %%x%d|", TH_TEXT_HI); strcat(cp, str);
+		sprintf(str, "Text Highlight %%x%d|", TH_TEXT_HI); strcat(cp, str);
 		sprintf(str, "Header %%x%d|", TH_HEADER); strcat(cp, str);
 		
 		if(spacetype==SPACE_VIEW3D) {
@@ -648,7 +652,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 			sprintf(str, "Panel %%x%d|", TH_PANEL); strcat(cp, str);
 			strcat(cp,"%l|");
 			sprintf(str, "Window Sliders %%x%d|", TH_SHADE1); strcat(cp, str);
-			sprintf(str, "Buttons back %%x%d|", TH_SHADE2); strcat(cp, str);
+			sprintf(str, "Ipo Channels %%x%d|", TH_SHADE2); strcat(cp, str);
 			sprintf(str, "Vertex %%x%d|", TH_VERTEX); strcat(cp, str);
 			sprintf(str, "Vertex Selected %%x%d|", TH_VERTEX_SELECT); strcat(cp, str);
 		}
@@ -665,16 +669,16 @@ char *BIF_ThemeColorsPup(int spacetype)
 		else if(spacetype==SPACE_ACTION) {
 			//sprintf(str, "Panel %%x%d|", TH_PANEL); strcat(cp, str);
 			strcat(cp,"%l|");
-			sprintf(str, "RVK sliders %%x%d|", TH_FACE); strcat(cp, str);
+			sprintf(str, "RVK Sliders %%x%d|", TH_FACE); strcat(cp, str);
 			sprintf(str, "View Sliders %%x%d|", TH_SHADE1); strcat(cp, str);
-			sprintf(str, "Bars %%x%d|", TH_SHADE2); strcat(cp, str);
-			sprintf(str, "Bars selected %%x%d|", TH_HILITE); strcat(cp, str);
+			sprintf(str, "Channels %%x%d|", TH_SHADE2); strcat(cp, str);
+			sprintf(str, "Channels Selected %%x%d|", TH_HILITE); strcat(cp, str);
 		}
 		else if(spacetype==SPACE_SEQ) {
-			sprintf(str, "Window sliders %%x%d|", TH_SHADE1); strcat(cp, str);
+			sprintf(str, "Window Sliders %%x%d|", TH_SHADE1); strcat(cp, str);
 		}
 		else if(spacetype==SPACE_SOUND) {
-			sprintf(str, "Window slider %%x%d|", TH_SHADE1); strcat(cp, str);
+			sprintf(str, "Window Slider %%x%d|", TH_SHADE1); strcat(cp, str);
 		}
 		else if(spacetype==SPACE_BUTS) {
 			sprintf(str, "Panel %%x%d|", TH_PANEL); strcat(cp, str);
@@ -683,8 +687,8 @@ char *BIF_ThemeColorsPup(int spacetype)
 			sprintf(str, "Main Shade %%x%d|", TH_SHADE1); strcat(cp, str);
 		}
 		else if(spacetype==SPACE_TEXT) {
-			sprintf(str, "Scroll bar %%x%d|", TH_SHADE1); strcat(cp, str);
-			sprintf(str, "Selected text %%x%d|", TH_SHADE2); strcat(cp, str);
+			sprintf(str, "Scroll Bar %%x%d|", TH_SHADE1); strcat(cp, str);
+			sprintf(str, "Selected Text %%x%d|", TH_SHADE2); strcat(cp, str);
 			sprintf(str, "Cursor %%x%d|", TH_HILITE); strcat(cp, str);
 		}
 	}

@@ -40,6 +40,7 @@
 // global, button colors
 
 typedef struct ThemeUI {
+	char outline[4];
 	char neutral[4];
 	char action[4];
 	char setting[4];
@@ -58,6 +59,7 @@ typedef struct ThemeUI {
 
 	char but_drawtype, pad;
 	short pad1;
+	int pad2;
 
 } ThemeUI;
 
