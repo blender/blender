@@ -182,12 +182,13 @@ BlendFileData *load_game_data(char *progname, char *filename) {
 		}
 	}
 	
-	//MAART
-	if (0) { //bfd && bfd->type == BLENFILETYPE_BLEND) {
+	/*
+	if (bfd && bfd->type == BLENFILETYPE_BLEND) {
 		BLO_blendfiledata_free(bfd);
 		bfd = NULL;
 		error = BRE_NOT_A_PUBFILE;
 	}
+	*/
 	
 	if (!bfd) {
 		if (filename) {
