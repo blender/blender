@@ -309,18 +309,12 @@ static void convert_nla(short mval[2])
 
 static Base *nla_base=NULL;	/* global, bad, bad! put it in nla space later, or recode the 2 functions below (ton) */
 
-static void add_nla_block(int val)
+static void add_nla_block(short event)
 {
-	/* val is not used, databrowse needs it to optional pass an event */
 	bAction *act=NULL;
 	bActionStrip *strip;
 	int		cur;
-	short event;
-	
-	if(nla_base==NULL) return;
-	
-	event= G.snla->menunr;	/* set by databrowse or pupmenu */
-	
+
 	if (event!=-1){
 		for (cur = 1, act=G.main->action.first; act; act=act->id.next, cur++){
 			if (cur==event){
@@ -352,6 +346,18 @@ static void add_nla_block(int val)
 	
 	BLI_addtail(&nla_base->object->nlastrips, strip);
 
+}
+
+static void add_nla_databrowse_callback(int val)
+{
+	/* val is not used, databrowse needs it to optional pass an event */
+	short event;
+	
+	if(nla_base==NULL) return;
+	
+	event= G.snla->menunr;	/* set by databrowse or pupmenu */
+	
+	add_nla_block(event);
 }
 
 static void add_nlablock(short mval[2])
@@ -418,18 +424,21 @@ static void add_nlablock(short mval[2])
 	if(strncmp(str+13, "DataBrow", 8)==0) {
 		MEM_freeN(str);
 
-		activate_databrowse((ID *)NULL, ID_AC, 0, 0, &G.snla->menunr, add_nla_block );
+		activate_databrowse((ID *)NULL, ID_AC, 0, 0, &G.snla->menunr, 
+							add_nla_databrowse_callback );
 		
 		return;			
 	}
 	else {
 		event = pupmenu(str);
 		MEM_freeN(str);
+		add_nla_block(event);
 	}
 	
-	/* this is a callback for databrowse too */
-	add_nla_block(0);
-	
+	/* Ton: this is a callback for databrowse too
+	   Hos: no, I don't think it is
+	   add_nla_block(0);
+	*/
 }
 
 static void mouse_nlachannels(short mval[2])
