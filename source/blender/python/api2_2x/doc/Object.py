@@ -100,13 +100,15 @@ class Object:
 
   def buildParts():
     """
-		recomputes the particle system
+    Recomputes the particle system. This method only applies to an Object of
+    the type Effect.
     """
+
   def clrParent(mode = 0, fast = 0):
     """
     Clears parent object.
-    @type mode: int
-    @type fast: int
+    @type mode: Integer
+    @type fast: Integer
     @param mode: A mode flag. If mode flag is 2, then the object transform will
         be kept. Any other value, or no value at all will update the object
         transform.
@@ -118,6 +120,7 @@ class Object:
     """
     Returns the Datablock object containing the object's data. For example the
     Mesh, Lamp or the Camera.
+    @rtype: Object type specific
     @return: Depending on the type of the Object, it returns a specific object
     for the data requested.
     """
@@ -125,22 +128,38 @@ class Object:
   def getDeltaLocation():
     """
     Returns the object's delta location in a list (x, y, z)
+    @rtype: A vector triple
     @return: (x, y, z)
     """
 
   def getDrawMode():
     """
     Returns the object draw mode.
+    @rtype: Integer
+    @return: a sum of the following:
+        - 2  - axis
+        - 4  - texspace
+        - 8  - drawname
+        - 16 - drawimage
+        - 32 - drawwire
     """
 
   def getDrawType():
     """
     Returns the object draw type
+    @rtype: Integer
+    @return: One of the following:
+        - 1 - Bounding box
+        - 2 - Wire
+        - 3 - Solid
+        - 4 - Shaded
+        - 5 - Textured
     """
 
   def getEuler():
     """
     Returns the object's rotation as Euler rotation vector (rotX, rotY, rotZ).
+    @rtype: A vector triple
     @return: (rotX, rotY, rotZ)
     """
 
@@ -154,6 +173,7 @@ class Object:
   def getLocation():
     """
     Returns the object's location (x, y, z).
+    @rtype: A vector triple
     @return: (x, y, z)
     """
 
@@ -175,6 +195,7 @@ class Object:
     """
     Returns the name of the object
     @rtype: string
+    @return: The name of the object
     """
 
   def getParent():
@@ -214,18 +235,15 @@ class Object:
     must be a list of valid Objects.
     @type objects: Blender Object
     @param objects: A Blender Object.
-    @type noninverse: int
-    @param noninverse: 0 - make parent with inverse
-    1 - make parent without inverse
-    @type fast: int
-    @param fast: 0 - update scene hierarchy automatically
-    1 - don't update scene hierarchy - which is faster. In this case, you must
-    explicitely update the Scene hierarchy.
-    """
-
-  def materialUsage(material_source = 'Data'):
-    """
-    Determines the way the material is used and returns the status.
+    @type noninverse: Integer
+    @param noninverse:
+        0 - make parent with inverse
+        1 - make parent without inverse
+    @type fast: Integer
+    @param fast:
+        0 - update scene hierarchy automatically
+        1 - don't update scene hierarchy (faster). In this case, you must
+        explicitely update the Scene hierarchy.
     """
 
   def setDeltaLocation(delta_location):
@@ -240,18 +258,25 @@ class Object:
     """
     Sets the object's drawing mode. The drawing mode can be a mix of modes. To
     enable these, add up the values.
-    @type drawmode: int
+    @type drawmode: Integer
     @param drawmode: A sum of the following:
-    2  - axis
-    4  - texspace
-    8  - drawname
-    16 - drawimage
-    32 - drawwire
+        - 2  - axis
+        - 4  - texspace
+        - 8  - drawname
+        - 16 - drawimage
+        - 32 - drawwire
     """
 
   def setDrawType(drawtype):
     """
     Sets the object's drawing type.
+    @type drawtype: Integer
+    @param drawtype: One of the following:
+        - 1 - Bounding box
+        - 2 - Wire
+        - 3 - Solid
+        - 4 - Shaded
+        - 5 - Textured
     """
 
   def setEuler(rotation):
