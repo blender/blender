@@ -168,7 +168,7 @@ int  zBufferEdgeRenderObjects(void);
 /**
  * Add edge pixels to the original image. It blends <bron> over <doel>.
  */
-void addEdgeOver(char *doel, char *bron);
+void addEdgeOver(unsigned char *dst, unsigned char *src);
 
 /* ------------------------------------------------------------------------- */
 
@@ -498,37 +498,48 @@ void renderEdges(char *colourRect)
 
 /* ------------------------------------------------------------------------- */
 
-void addEdgeOver(char *doel, char *bron)   /* adds bron (source) to doel (goal) */
-{	
-	float c;
-	int mul;
-	
-	if( bron[3] == 0) return;
-	if( bron[3] == 255) { /* has been tested, saves a lot  */
-		*((unsigned int *)doel)= *((unsigned int *)bron);
-		return;
-	}
+/* adds src to dst */
+void addEdgeOver(unsigned char *dst, unsigned char *src)   
+{
+   unsigned char inverse;
+   unsigned char alpha;
+   unsigned int  c;
 
-	/* This must be a special blend-mode, because we get a 'weird' data      */
-	/* input format now. With edge = (c_e, a_e), picture = (c_p, a_p), we    */
-	/* get: result = ( c_e*a_e + c_p(1 - a_e), a_p ).                        */
-	
-	mul = 255 - bron[3];
+   alpha = src[3];
+  
+   if( alpha == 0) return;
+   if( alpha == 255) { 
+      /* when full opacity, just copy the pixel */
+      /* this code assumes an int is 32 bit, fix 
 
-	/* Not sure if the conversion to float is really necessary here... I will*/
-	/* think about it another day.                                           */
-	c = ((mul * doel[0] + bron[0] * bron[3])/255.0);
-	if(c>255) {doel[0]=255;} else { doel[0]= c;}
-	c = ((mul * doel[1] + bron[1] * bron[3])/255.0);
-	if(c>255) {doel[1]=255;} else { doel[1]= c;}
-	c = ((mul * doel[2] + bron[2] * bron[3])/255.0);
-	if(c>255) {doel[2]=255;} else { doel[2]= c;}
+      *(( unsigned int *)dst)= *((unsigned int *)src);
+	replaced with memcpy
+		*/
+       memcpy(dst,src,4);
+       return;
+   }
+  
+   /* This must be a special blend-mode, because we get a 'weird' data      */
+   /* input format now. With edge = (c_e, a_e), picture = (c_p, a_p), we    */
+   /* get: result = ( c_e*a_e + c_p(1 - a_e), a_p ).                        */
+  
+   inverse = 255 - alpha;
+  
+   c = ((unsigned int)inverse * (unsigned int) dst[0] + (unsigned int)src[0] *
+	(unsigned int)alpha) >> 8;
+   dst[0] = c;
+
+   c = ((unsigned int)inverse * (unsigned int) dst[1] + (unsigned int)src[1] *
+	(unsigned int)alpha) >> 8;
+   dst[1] = c;
+   c = ((unsigned int)inverse * (unsigned int) dst[2] + (unsigned int)src[2] *
+	(unsigned int)alpha) >> 8;
+   dst[2] = c;
 }
 
 void calcEdgeRenderColBuf(char* colTargetBuffer)
 {
 
-/*      int part; */
     int keepLooping = 1;
 	int sample;
 	
