@@ -62,7 +62,9 @@ KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
 			 m_ResetMargin(resetmargin)
 
 {
+	gameobj->getClientInfo()->m_sensors.remove(this);
 	m_client_info = new KX_ClientObjectInfo(gameobj, KX_ClientObjectInfo::NEAR);
+	m_client_info->m_sensors.push_back(this);
 	
 	DT_ShapeHandle shape = (DT_ShapeHandle) vshape;
 	m_sumoObj = new SM_Object(shape,NULL,NULL,NULL);
@@ -90,7 +92,9 @@ KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
 			 m_ResetMargin(resetmargin)
 
 {
+	gameobj->getClientInfo()->m_sensors.remove(this);
 	m_client_info = new KX_ClientObjectInfo(gameobj, KX_ClientObjectInfo::NEAR);
+	m_client_info->m_sensors.push_back(this);
 	
 	m_sumoObj = new SM_Object(DT_NewSphere(0.0),NULL,NULL,NULL);
 	m_sumoObj->setMargin(m_Margin);
@@ -115,7 +119,7 @@ CValue* KX_NearSensor::GetReplica()
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
 	
-	replica->m_client_info = new KX_ClientObjectInfo(m_client_info->m_clientobject, KX_ClientObjectInfo::NEAR);
+	replica->m_client_info = new KX_ClientObjectInfo(m_client_info->m_gameobject, KX_ClientObjectInfo::NEAR);
 	
 	replica->m_sumoObj = new SM_Object(DT_NewSphere(0.0),NULL,NULL,NULL);
 	replica->m_sumoObj->setMargin(m_Margin);
@@ -132,7 +136,8 @@ void KX_NearSensor::ReParent(SCA_IObject* parent)
 {
 	SCA_ISensor::ReParent(parent);
 	
-	m_client_info->m_clientobject = static_cast<KX_GameObject*>(parent); 
+	m_client_info->m_gameobject = static_cast<KX_GameObject*>(parent); 
+	m_client_info->m_sensors.push_back(this);
 	
 	SynchronizeTransform();
 }
@@ -197,7 +202,7 @@ DT_Bool KX_NearSensor::HandleCollision(void* obj1,void* obj2,const DT_CollData *
 					((SM_Object*)obj1)->getClientObject());
 
 	KX_GameObject* gameobj = ( client_info ? 
-			static_cast<KX_GameObject*>(client_info->m_clientobject) : 
+			client_info->m_gameobject :
 			NULL);
 	
 	if (gameobj && (gameobj != parent))

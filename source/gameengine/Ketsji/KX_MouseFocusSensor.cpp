@@ -42,7 +42,6 @@
 #endif
 
 #include "MT_Point3.h"
-#include "KX_ClientObjectInfo.h"
 #include "RAS_FramingManager.h"
 #include "RAS_ICanvas.h"
 #include "RAS_IRasterizer.h"
@@ -51,11 +50,11 @@
 #include "KX_Camera.h"
 #include "KX_MouseFocusSensor.h"
 
-#include "KX_ClientObjectInfo.h"
 #include "SM_Object.h"
 #include "SM_Scene.h"
 #include "SumoPhysicsEnvironment.h"
 #include "KX_SumoPhysicsController.h"
+#include "KX_ClientObjectInfo.h"
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
@@ -259,7 +258,7 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 		/* all this casting makes me nervous... */
 		KX_ClientObjectInfo* client_info 
 			= ( hitSMObj ?
-				(KX_ClientObjectInfo*) hitSMObj->getClientObject() :
+				static_cast<KX_ClientObjectInfo*>( hitSMObj->getClientObject() ):
 				NULL);
 		
 		if (!client_info)
@@ -268,7 +267,7 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 			return false;
 		} 
 	
-		KX_GameObject* hitKXObj = (KX_GameObject*)client_info->m_clientobject;
+		KX_GameObject* hitKXObj = client_info->m_gameobject;
 		
 		if (client_info->m_type > KX_ClientObjectInfo::ACTOR)
 		{

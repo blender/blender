@@ -43,8 +43,10 @@ class PHY_IPhysicsEnvironment
 {
 	public:
 		virtual		~PHY_IPhysicsEnvironment();
+		virtual	void		beginFrame() = 0;
+		virtual void		endFrame() = 0;
 		/// Perform an integration step of duration 'timeStep'.
-		virtual	void		proceed(double	timeStep)=0;
+		virtual	bool		proceed(double	timeStep)=0;
 		virtual	void		setGravity(float x,float y,float z)=0;
 
 		virtual int			createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,

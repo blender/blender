@@ -66,6 +66,14 @@ struct SM_MaterialProps {
 	bool      m_fh_normal;             ///< Should the object slide off slopes?
 };
 
+class SM_ClientObject
+{
+public:
+	SM_ClientObject() {}
+	virtual ~SM_ClientObject() {}
+	
+	virtual bool hasCollisionCallback() = 0;
+};
 
 /**
  * SM_Object is an internal part of the Sumo physics engine.
@@ -227,7 +235,6 @@ public:
 
 	SM_Object *getDynamicParent() ;
 
-	void beginFrame();
 	void integrateForces(MT_Scalar timeStep);
 	void integrateMomentum(MT_Scalar timeSteo);
 
@@ -255,8 +262,8 @@ public:
 	);
 	
 	
-	void *getClientObject() { return m_client_object; }
-	void setClientObject(void *client_object) { m_client_object = client_object; }
+	SM_ClientObject *getClientObject() { return m_client_object; }
+	void setClientObject(SM_ClientObject *client_object) { m_client_object = client_object; }
 	
 	void relax();
 	
@@ -301,7 +308,7 @@ private:
     // as the collision callback now has only information
 	// on an SM_Object, there must be a way that the SM_Object client
 	// can identify it's clientdata after a collision
-	void                   *m_client_object;
+	SM_ClientObject        *m_client_object;
 
 	DT_ShapeHandle          m_shape;                 // Shape for collision detection
 

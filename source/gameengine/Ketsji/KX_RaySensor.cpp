@@ -195,7 +195,7 @@ bool KX_RaySensor::Evaluate(CValue* event)
 		if (hitObj)
 		{
 	
-			KX_ClientObjectInfo* info = (KX_ClientObjectInfo*)hitObj->getClientObject();
+			KX_ClientObjectInfo* info = static_cast<KX_ClientObjectInfo*>(hitObj->getClientObject());
 			bool bFound = false;
 			
 			if (!info)
@@ -205,7 +205,7 @@ bool KX_RaySensor::Evaluate(CValue* event)
 				break;
 			} 
 			
-			SCA_IObject *hitgameobj = (SCA_IObject*)info->m_clientobject;
+			SCA_IObject *hitgameobj = info->m_gameobject;
 			
 			if (hitgameobj == obj || info->m_type > KX_ClientObjectInfo::ACTOR)
 			{

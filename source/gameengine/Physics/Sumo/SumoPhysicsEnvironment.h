@@ -48,8 +48,10 @@ class SumoPhysicsEnvironment : public PHY_IPhysicsEnvironment
 public:
 	SumoPhysicsEnvironment();
 	virtual		~SumoPhysicsEnvironment();
+	virtual	void		beginFrame();
+	virtual void		endFrame();
 // Perform an integration step of duration 'timeStep'.
-	virtual	void		proceed(double curtime);
+	virtual	bool		proceed(double curtime);
 	virtual	void		setGravity(float x,float y,float z);
 	virtual int		createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,
 			float pivotX,float pivotY,float pivotZ,

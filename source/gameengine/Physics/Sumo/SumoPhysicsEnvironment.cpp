@@ -62,9 +62,19 @@ MT_Scalar SumoPhysicsEnvironment::getTicRate()
 	return PhysicsTicRate;
 }
 
-void SumoPhysicsEnvironment::proceed(double curtime)
+void SumoPhysicsEnvironment::beginFrame()
 {
-	m_sumoScene->proceed(curtime, PhysicsTicRate);
+	m_sumoScene->beginFrame();
+}
+
+void SumoPhysicsEnvironment::endFrame()
+{
+	m_sumoScene->endFrame();
+}
+
+bool SumoPhysicsEnvironment::proceed(double curtime)
+{
+	return m_sumoScene->proceed(curtime, PhysicsTicRate);
 }
 
 void SumoPhysicsEnvironment::setGravity(float x,float y,float z)

@@ -8,6 +8,7 @@
 #include "SM_Scene.h"
 #include "KX_GameObject.h"
 #include "KX_MotionState.h"
+#include "KX_ClientObjectInfo.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

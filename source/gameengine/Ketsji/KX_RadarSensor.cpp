@@ -88,7 +88,7 @@ CValue* KX_RadarSensor::GetReplica()
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
 	
-	replica->m_client_info = new KX_ClientObjectInfo(m_client_info->m_clientobject, KX_ClientObjectInfo::RADAR);
+	replica->m_client_info = new KX_ClientObjectInfo(m_client_info->m_gameobject, KX_ClientObjectInfo::RADAR);
 	
 	replica->m_sumoObj = new SM_Object(DT_NewCone(m_coneradius, m_coneheight),NULL,NULL,NULL);
 	replica->m_sumoObj->setMargin(m_Margin);

@@ -32,10 +32,16 @@
 #ifndef __KX_CLIENTOBJECT_INFO_H
 #define __KX_CLIENTOBJECT_INFO_H
 
+#include <SM_Object.h>
+
+#include <list>
+
+class SCA_ISensor;
+class KX_GameObject;
 /**
  * Client Type and Additional Info. This structure can be use instead of a bare void* pointer, for safeness, and additional info for callbacks
  */
-struct KX_ClientObjectInfo
+struct KX_ClientObjectInfo : public SM_ClientObject
 {
 	enum clienttype {
 		STATIC,
@@ -44,14 +50,31 @@ struct KX_ClientObjectInfo
 		RADAR,
 		NEAR
 	}		m_type;
-	void*		m_clientobject;
+	KX_GameObject*	m_gameobject;
 	void*		m_auxilary_info;
+	std::list<SCA_ISensor*>	m_sensors;
 public:
-	KX_ClientObjectInfo(void *clientobject, clienttype type = STATIC, void *auxilary_info = NULL) :
+	KX_ClientObjectInfo(KX_GameObject *gameobject, clienttype type = STATIC, void *auxilary_info = NULL) :
+		SM_ClientObject(),
 		m_type(type),
-		m_clientobject(clientobject),
+		m_gameobject(gameobject),
 		m_auxilary_info(auxilary_info)
 	{}
+	
+	KX_ClientObjectInfo(const KX_ClientObjectInfo &copy)
+		: SM_ClientObject(copy),
+		  m_type(copy.m_type),
+		  m_gameobject(copy.m_gameobject),
+		  m_auxilary_info(copy.m_auxilary_info)
+	{
+	}
+	
+	virtual ~KX_ClientObjectInfo() {}
+	
+	virtual bool hasCollisionCallback() 
+	{
+		return m_sensors.size() != 0;
+	}
 	
 	bool isActor() { return m_type <= ACTOR; }
 };

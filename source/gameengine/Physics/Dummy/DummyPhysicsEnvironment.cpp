@@ -48,14 +48,24 @@ DummyPhysicsEnvironment::~DummyPhysicsEnvironment()
 	//destroy physicsengine data
 }
 
-void DummyPhysicsEnvironment::proceed(double timeStep)
+void DummyPhysicsEnvironment::beginFrame()
+{
+	// beginning of logic frame: apply forces
+}
+
+void DummyPhysicsEnvironment::endFrame()
+{
+	// end of logic frame: clear forces
+}
+
+bool DummyPhysicsEnvironment::proceed(double timeStep)
 {
 	//step physics simulation, typically perform
 	
 	//collision detection 
 	//solve constraints
 	//integrate solution
-
+	// return true if an update was done.
 }
 
 void DummyPhysicsEnvironment::setGravity(float x,float y,float z)

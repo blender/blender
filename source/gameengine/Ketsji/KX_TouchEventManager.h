@@ -37,11 +37,32 @@
 #include "KX_GameObject.h"
 
 #include <vector>
+#include <set>
+
+class SCA_ISensor;
+class SM_Object;
 
 class KX_TouchEventManager : public SCA_EventManager
 {
+	struct Collision
+	{
+		static int next_id;
+		int          m_id;
+		SCA_ISensor *m_sensor;
+		SM_Object   *m_object1;
+		SM_Object   *m_object2;
+		
+		Collision(SCA_ISensor *sensor, SM_Object *obj1, SM_Object *obj2);
+		
+		bool operator<(const Collision &other) const;
+		bool operator==(const Collision &other) const;
+	};
+
 	class SCA_LogicManager* m_logicmgr;
 	SM_Scene *m_scene;
+	
+	std::set<Collision> m_collisions;
+	
 
 	static DT_Bool collisionResponse(void *client_data, 
 							void *object1,

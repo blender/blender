@@ -103,8 +103,9 @@ m_bLastTriggered(false)
 	m_colliders = new CListValue();
 	
 	KX_ClientObjectInfo *client_info = gameobj->getClientInfo();
-	client_info->m_clientobject = gameobj;
+	client_info->m_gameobject = gameobj;
 	client_info->m_auxilary_info = NULL;
+	client_info->m_sensors.push_back(this);
 	
 	KX_SumoPhysicsController *sphy = dynamic_cast<KX_SumoPhysicsController *>(gameobj->GetPhysicsController());
 	if (sphy)
@@ -141,8 +142,9 @@ void	KX_TouchSensor::ReParent(SCA_IObject* parent)
 
 //	m_solidHandle = m_sumoObj->getObjectHandle();
 	KX_ClientObjectInfo *client_info = gameobj->getClientInfo();
-	client_info->m_clientobject = parent;
+	client_info->m_gameobject = gameobj;
 	client_info->m_auxilary_info = NULL;
+	client_info->m_sensors.push_back(this);
 	SCA_ISensor::ReParent(parent);
 }
 
@@ -164,12 +166,12 @@ DT_Bool    KX_TouchSensor::HandleCollision(void* obj1,void* obj2,const DT_CollDa
 
 	// need the mapping from SM_Objects to gameobjects now
 	
-	KX_ClientObjectInfo* client_info =(KX_ClientObjectInfo*) (obj1 == m_sumoObj? 
+	KX_ClientObjectInfo* client_info = static_cast<KX_ClientObjectInfo*> (obj1 == m_sumoObj? 
 					((SM_Object*)obj2)->getClientObject() : 
 					((SM_Object*)obj1)->getClientObject());
 
 	KX_GameObject* gameobj = ( client_info ? 
-			(KX_GameObject*)client_info->m_clientobject : 
+			client_info->m_gameobject : 
 			NULL);
 	
 	if (gameobj && (gameobj != parent) && client_info->isActor())
@@ -338,7 +340,7 @@ PyObject* KX_TouchSensor::PyGetHitObjectList(PyObject* self,
 				SM_Object* smob = spc?spc->GetSumoObject():NULL;
 				
 				if (smob) {
-					KX_ClientObjectInfo* cl_inf = (KX_ClientObjectInfo*) smob->getClientObject();
+					KX_ClientObjectInfo* cl_inf = static_cast<KX_ClientObjectInfo*>(smob->getClientObject());
 					
 					if (m_touchedpropname == ((char*)cl_inf->m_auxilary_info)) {
 						newList->Add(m_colliders->GetValue(i)->AddRef());

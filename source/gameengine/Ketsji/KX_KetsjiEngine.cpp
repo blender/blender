@@ -315,17 +315,13 @@ void KX_KetsjiEngine::NextFrame()
 	m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(), true);
 
 	double curtime;
+	double localtime = m_previoustime;
 	if (m_bFixedTime)
-	{
-		m_deltatime = 1.0/m_ticrate;
 		curtime = m_previoustime + m_deltatime;
-	}
 	else
-	{
 		curtime = m_kxsystem->GetTimeInSeconds();
-		m_deltatime += curtime - m_previoustime;
-		m_previoustime = curtime;
-	}
+	m_deltatime += curtime - m_previoustime;
+	m_previoustime = curtime;
 
 	// Compute the number of logic frames to do each update (fixed tic bricks)
 	int frames = (int) (m_deltatime*m_ticrate);
@@ -337,13 +333,17 @@ void KX_KetsjiEngine::NextFrame()
 	
 	if (!frames)
 	{
-		for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); sceneit++)
+		for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); ++sceneit)
 		// for each scene, call the proceed functions
 		{
 			KX_Scene* scene = *sceneit;
 	
 			if (!scene->IsSuspended())
 			{
+				// set Python hooks for each scene
+				PHY_SetActiveEnvironment(scene->GetPhysicsEnvironment());
+				PHY_SetActiveScene(scene);
+				
 				// Do some cleanup work for this logic frame
 				m_logger->StartLog(tc_logic, m_kxsystem->GetTimeInSeconds(), true);
 				scene->LogicUpdateFrame(curtime, false);
@@ -356,7 +356,6 @@ void KX_KetsjiEngine::NextFrame()
 				// many iterations of the physics solver.
 				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
 				scene->GetPhysicsEnvironment()->proceed(curtime);
-		
 				// Update scenegraph after physics step. This maps physics calculations
 				// into node positions.		
 				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
@@ -371,7 +370,8 @@ void KX_KetsjiEngine::NextFrame()
 	
 	while (frames--)
 	{
-		for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); sceneit++)
+		localtime += 1.0/m_ticrate;
+		for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); ++sceneit)
 		// for each scene, call the proceed functions
 		{
 			KX_Scene* scene = *sceneit;
@@ -385,6 +385,10 @@ void KX_KetsjiEngine::NextFrame()
 	
 			if (!scene->IsSuspended())
 			{
+				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
+				scene->GetPhysicsEnvironment()->endFrame();
+				scene->GetPhysicsEnvironment()->beginFrame();
+			
 				m_logger->StartLog(tc_network, m_kxsystem->GetTimeInSeconds(), true);
 				scene->GetNetworkScene()->proceed(curtime);
 	
@@ -416,7 +420,6 @@ void KX_KetsjiEngine::NextFrame()
 				// many iterations of the physics solver.
 				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
 				scene->GetPhysicsEnvironment()->proceed(curtime);
-		
 				// Update scenegraph after physics step. This maps physics calculations
 				// into node positions.		
 				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);

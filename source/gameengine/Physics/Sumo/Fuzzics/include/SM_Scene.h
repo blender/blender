@@ -101,13 +101,15 @@ public:
 	
 	void requestCollisionCallback(SM_Object &object);
 
+	void beginFrame();
+	void endFrame();
 
 	// Perform an integration step of duration 'timeStep'.
 	// 'subSampling' is the maximum duration of a substep, i.e.,
 	// The maximum time interval between two collision checks.
 	// 'subSampling' can be used to control aliasing effects
 	// (fast moving objects traversing through walls and such). 
-	void proceed(MT_Scalar curtime, MT_Scalar ticrate);
+	bool proceed(MT_Scalar curtime, MT_Scalar ticrate);
 
 	/**
 	 * Test whether any objects lie on the line defined by from and

@@ -101,16 +101,6 @@ SM_Object::SM_Object(
 	m_suspended = false;
 }
 
-	void
-SM_Object::
-beginFrame(
-){
-	if (!m_suspended) {
-		m_prev_state = *this;
-		m_prev_state.setLinearVelocity(actualLinVelocity());
-		m_prev_state.setAngularVelocity(actualAngVelocity());
-	}
-}
 
 	void 
 SM_Object::
@@ -118,6 +108,9 @@ integrateForces(
 	MT_Scalar timeStep
 ){
 	if (!m_suspended) {
+		m_prev_state = *this;
+		m_prev_state.setLinearVelocity(actualLinVelocity());
+		m_prev_state.setAngularVelocity(actualAngVelocity());
 		if (isDynamic()) {
 			// Integrate momentum (forward Euler)
 			m_lin_mom += m_force * timeStep;
@@ -348,49 +341,68 @@ void SM_Object::dynamicCollision(const MT_Point3 &local2,
 	}
 }
 
+static void AddCallback(SM_Scene *scene, SM_Object *obj1, SM_Object *obj2)
+{
+	// If we have callbacks on either of the client objects, do a collision test
+	// and add a callback if they intersect.
+	DT_Vector3 v;
+	if ((obj1->getClientObject() && obj1->getClientObject()->hasCollisionCallback()) || 
+	    (obj2->getClientObject() && obj2->getClientObject()->hasCollisionCallback()) &&
+	     DT_GetIntersect(obj1->getObjectHandle(), obj2->getObjectHandle(), v))
+		scene->addPair(obj1, obj2);
+}
+
 DT_Bool SM_Object::boing(
 	void *client_data,  
 	void *object1,
 	void *object2,
 	const DT_CollData *coll_data
 ){
-	//if (!coll_data)
-	//	return DT_CONTINUE;
-
 	SM_Scene  *scene = (SM_Scene *)client_data; 
 	SM_Object *obj1  = (SM_Object *)object1;  
 	SM_Object *obj2  = (SM_Object *)object2;  
 	
-	scene->addPair(obj1, obj2); // Record this collision for client callbacks
+	// at this point it is unknown whether we are really intersecting (broad phase)
+	
+	DT_Vector3 p1, p2;
+	if (!obj2->isDynamic()) {
+		std::swap(obj1, obj2);
+	}
 	
 	// If one of the objects is a ghost then ignore it for the dynamics
 	if (obj1->isGhost() || obj2->isGhost()) {
+		AddCallback(scene, obj1, obj2);
 		return DT_CONTINUE;
 	}
 
 	// Objects do not collide with parent objects
 	if (obj1->getDynamicParent() == obj2 || obj2->getDynamicParent() == obj1) {
+		AddCallback(scene, obj1, obj2);
 		return DT_CONTINUE;
 	}
 	
 	if (!obj2->isDynamic()) {
-		std::swap(obj1, obj2);
-	}
-
-	if (!obj2->isDynamic()) {
+		AddCallback(scene, obj1, obj2);
 		return DT_CONTINUE;
 	}
 
 	// Get collision data from SOLID
-	DT_Vector3 p1, p2;
 	if (!DT_GetPenDepth(obj1->getObjectHandle(), obj2->getObjectHandle(), p1, p2))
 		return DT_CONTINUE;
+	
 	MT_Point3 local1(p1), local2(p2);
 	MT_Vector3 normal(local2 - local1);
 	MT_Scalar dist = normal.length();
 	
 	if (dist < MT_EPSILON)
 		return DT_CONTINUE;
+		
+	// Now we are definately intersecting.
+
+	// Set callbacks for game engine.
+	if ((obj1->getClientObject() && obj1->getClientObject()->hasCollisionCallback()) || 
+	    (obj2->getClientObject() && obj2->getClientObject()->hasCollisionCallback()))
+		scene->addPair(obj1, obj2);
 	
 	local1 -= obj1->m_pos;
 	local2 -= obj2->m_pos;

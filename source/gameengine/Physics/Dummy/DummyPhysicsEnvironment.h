@@ -48,8 +48,10 @@ class DummyPhysicsEnvironment  : public PHY_IPhysicsEnvironment
 public:
 	DummyPhysicsEnvironment ();
 	virtual		~DummyPhysicsEnvironment ();
+	virtual void		beginFrame();
+	virtual void		endFrame();
 // Perform an integration step of duration 'timeStep'.
-	virtual	void		proceed (double	timeStep);
+	virtual	bool		proceed (double	timeStep);
 	virtual	void		setGravity(float x,float y,float z);
 
 	virtual int			createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,
