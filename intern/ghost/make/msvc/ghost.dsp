@@ -144,6 +144,10 @@ SOURCE=..\..\intern\GHOST_EventPrinter.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\intern\GHOST_EventWheel.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\intern\GHOST_EventWindow.h
 # End Source File
 # Begin Source File
