@@ -45,6 +45,9 @@ void drawConstraint();
 //void drawPropCircle(TransInfo *t);
 void drawPropCircle();
 
+void stopConstraint(TransInfo *t);
+void startConstraint(TransInfo *t);
+
 void getConstraintMatrix(TransInfo *t);
 
 void initSelectConstraint(TransInfo *t);

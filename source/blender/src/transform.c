@@ -205,7 +205,7 @@ void createTransTexspace(void)
 	ob= OBACT;
 	Trans.total = 1;
 	td= Trans.data= MEM_callocN(sizeof(TransData), "TransTexspace");
-	td->ext= MEM_callocN(sizeof(TransDataExtension), "TransTexspace");
+	td->ext= Trans.ext= MEM_callocN(sizeof(TransDataExtension), "TransTexspace");
 	
 	td->flag= TD_SELECTED;
 	VECCOPY(td->center, ob->obmat[3]);
@@ -360,7 +360,7 @@ static void createTransPose(void)
 	
 	/* init trans data */
     td = Trans.data = MEM_mallocN(Trans.total*sizeof(TransData), "TransPoseBone");
-    tdx = MEM_mallocN(Trans.total*sizeof(TransDataExtension), "TransPoseBoneExt");
+    tdx = Trans.ext = MEM_mallocN(Trans.total*sizeof(TransDataExtension), "TransPoseBoneExt");
 	for(i=0; i<Trans.total; i++, td++, tdx++) {
 		td->ext= tdx;
 		td->tdi = NULL;
@@ -447,7 +447,7 @@ static void createTransMBallVerts(void)
 	else Trans.total = countsel;
 	
 	Trans.data= MEM_mallocN(Trans.total*sizeof(TransData), "TransObData(MBall EditMode)");
-	tx = MEM_mallocN(Trans.total*sizeof(TransDataExtension), "MetaElement_TransExtension");
+	tx = Trans.ext = MEM_mallocN(Trans.total*sizeof(TransDataExtension), "MetaElement_TransExtension");
 
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
@@ -858,7 +858,7 @@ static void ObjectToTransData(TransData *td, Object *ob)
 
 	VECCOPY(td->center, ob->obmat[3]);
 
-	Mat3CpyMat4(td->mtx, ob->obmat);
+	Mat3CpyMat4(td->axismtx, ob->obmat);
 
 	if (ob->parent)
 	{
@@ -1078,7 +1078,7 @@ static void createTransObject(void)
 	}
 	
 	td = Trans.data = MEM_mallocN(Trans.total*sizeof(TransData), "TransOb");
-	tx = MEM_mallocN(Trans.total*sizeof(TransDataExtension), "TransObExtension");
+	tx = Trans.ext = MEM_mallocN(Trans.total*sizeof(TransDataExtension), "TransObExtension");
 
 	for(base= FIRSTBASE; base; base= base->next) {
 		if TESTBASELIB(base) {
@@ -1315,22 +1315,22 @@ void Transform(int mode)
 					break;
 				case XKEY:
 					if (cmode == 'X') {
-						Trans.con.mode &= ~CON_APPLY;
+						stopConstraint(&Trans);
 						cmode = '\0';
 					}
 					else if(cmode == 'x') {
 						if (G.qual == 0)
-							setLocalConstraint(&Trans, (CON_APPLY|CON_AXIS0), "along local X");
+							setLocalConstraint(&Trans, (CON_AXIS0), "along local X");
 						else if (G.qual == LR_CTRLKEY)
-							setLocalConstraint(&Trans, (CON_APPLY|CON_AXIS1|CON_AXIS2), "locking local X");
+							setLocalConstraint(&Trans, (CON_AXIS1|CON_AXIS2), "locking local X");
 
 						cmode = 'X';
 					}
 					else {
 						if (G.qual == 0)
-							setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS0), "along global X");
+							setConstraint(&Trans, mati, (CON_AXIS0), "along global X");
 						else if (G.qual == LR_CTRLKEY)
-							setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS1|CON_AXIS2), "locking global X");
+							setConstraint(&Trans, mati, (CON_AXIS1|CON_AXIS2), "locking global X");
 
 						cmode = 'x';
 					}
@@ -1338,22 +1338,22 @@ void Transform(int mode)
 					break;
 				case YKEY:
 					if (cmode == 'Y') {
-						Trans.con.mode &= ~CON_APPLY;
+						stopConstraint(&Trans);
 						cmode = '\0';
 					}
 					else if(cmode == 'y') {
 						if (G.qual == 0)
-							setLocalConstraint(&Trans, (CON_APPLY|CON_AXIS1), "along global Y");
+							setLocalConstraint(&Trans, (CON_AXIS1), "along global Y");
 						else if (G.qual == LR_CTRLKEY)
-							setLocalConstraint(&Trans, (CON_APPLY|CON_AXIS0|CON_AXIS2), "locking global Y");
+							setLocalConstraint(&Trans, (CON_AXIS0|CON_AXIS2), "locking global Y");
 
 						cmode = 'Y';
 					}
 					else {
 						if (G.qual == 0)
-							setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS1), "along local Y");
+							setConstraint(&Trans, mati, (CON_AXIS1), "along local Y");
 						else if (G.qual == LR_CTRLKEY)
-							setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS0|CON_AXIS2), "locking local Y");
+							setConstraint(&Trans, mati, (CON_AXIS0|CON_AXIS2), "locking local Y");
 
 						cmode = 'y';
 					}
@@ -1361,22 +1361,22 @@ void Transform(int mode)
 					break;
 				case ZKEY:
 					if (cmode == 'Z') {
-						Trans.con.mode &= ~CON_APPLY;
+						stopConstraint(&Trans);
 						cmode = '\0';
 					}
 					else if(cmode == 'z') {
 						if (G.qual == 0)
-							setLocalConstraint(&Trans, (CON_APPLY|CON_AXIS2), "along local Z");
+							setLocalConstraint(&Trans, (CON_AXIS2), "along local Z");
 						else if (G.qual == LR_CTRLKEY)
-							setLocalConstraint(&Trans, (CON_APPLY|CON_AXIS0|CON_AXIS1), "locking local Z");
+							setLocalConstraint(&Trans, (CON_AXIS0|CON_AXIS1), "locking local Z");
 
 						cmode = 'Z';
 					}
 					else {
 						if (G.qual == 0)
-							setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS2), "along global Z");
+							setConstraint(&Trans, mati, (CON_AXIS2), "along global Z");
 						else if (G.qual == LR_CTRLKEY)
-							setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS0|CON_AXIS1), "locking global Z");
+							setConstraint(&Trans, mati, (CON_AXIS0|CON_AXIS1), "locking global Z");
 
 						cmode = 'z';
 					}
@@ -1434,8 +1434,10 @@ void Transform(int mode)
 		BIF_undo_push("Transform");
 	}
 	
+	printf("before postrans\n");
 	/* free data, reset vars */
 	postTrans(&Trans);
+	printf("after postrans\n");
 	
 	/* mess from old transform, just for now (ton) */
 	{
@@ -1641,8 +1643,8 @@ int Resize(TransInfo *t, short mval[2])
 			continue;
 
 		if (!(td->flag & TD_OBJECT)) {
-			Mat3MulMat3(smat, mat, td->smtx);
-			Mat3MulMat3(tmat, td->mtx, smat);
+			Mat3MulMat3(smat, mat, td->mtx);
+			Mat3MulMat3(tmat, td->smtx, smat);
 		}
 		else {
 			Mat3CpyMat3(tmat, mat);
@@ -1840,11 +1842,7 @@ int Rotation(TransInfo *t, short mval[2])
 	float dphi;
 
 	float vec[3], axis[3];
-	float mat[3][3], totmat[3][3], omat[3][3], smat[3][3];
-
-	if (G.obedit) {
-		Mat3CpyMat4(omat, G.obedit->obmat);
-	}
+	float mat[3][3], totmat[3][3], smat[3][3];
 
 	VECCOPY(axis, G.vd->persinv[2]);
 	Normalise(axis);
@@ -1854,6 +1852,14 @@ int Rotation(TransInfo *t, short mval[2])
 
 	if(G.qual & LR_SHIFTKEY) t->fac += dphi/30.0f;
 	else t->fac += dphi;
+
+	/*
+	clamping angle between -2 PI and 2 PI (not sure if useful so commented out - theeth)
+	if (t->fac >= 2 * M_PI)
+		t->fac -= 2 * M_PI;
+	else if (t->fac <= -2 * M_PI)
+		t->fac -= -2 * M_PI;
+	*/
 
 	final = t->fac;
 
@@ -1896,8 +1902,8 @@ int Rotation(TransInfo *t, short mval[2])
 			VecRotToMat3(axis, final * td->factor, mat);
 		}
 
-		if (G.obedit) {
-			Mat3MulMat3(totmat, mat, omat);
+		if (!(td->flag & TD_OBJECT)) {
+			Mat3MulMat3(totmat, mat, td->mtx);
 			Mat3MulMat3(smat, td->smtx, totmat);
 
 			VecSubf(vec, td->iloc, t->center);
@@ -2010,6 +2016,34 @@ void initTranslation(TransInfo *t)
 	else initgrabz(t->center[0], t->center[1], t->center[2]); 
 }
 
+void headerTranslation(TransInfo *t, float vec[3], char *str) {
+	char tvec[60];
+	if (hasNumInput(&t->num)) {
+		outputNumInput(&(t->num), tvec);
+	}
+	else {
+		sprintf(&tvec[0], "%.4f", vec[0]);
+		sprintf(&tvec[20], "%.4f", vec[1]);
+		sprintf(&tvec[40], "%.4f", vec[2]);
+	}
+
+	if (t->con.mode & CON_APPLY) {
+		switch(t->num.idx_max) {
+		case 0:
+			sprintf(str, "D: %s%s %s", &tvec[0], t->con.text, t->proptext);
+			break;
+		case 1:
+			sprintf(str, "D: %s   D: %s%s %s", &tvec[0], &tvec[20], t->con.text, t->proptext);
+			break;
+		case 2:
+			sprintf(str, "D: %s   D: %s  D: %s%s %s", &tvec[0], &tvec[20], &tvec[40], t->con.text, t->proptext);
+		}
+	}
+	else {
+		sprintf(str, "Dx: %s   Dy: %s  Dz: %s%s %s", &tvec[0], &tvec[20], &tvec[40], t->con.text, t->proptext);
+	}
+}
+
 int Translation(TransInfo *t, short mval[2]) 
 {
 	float vec[3], tvec[3];
@@ -2019,32 +2053,16 @@ int Translation(TransInfo *t, short mval[2])
 
 	window_to_3d(vec, (short)(mval[0] - t->imval[0]), (short)(mval[1] - t->imval[1]));
 
-	if (t->con.applyVec) {
-		t->con.applyVec(t, NULL, vec, tvec);
+	if (t->con.mode & CON_APPLY) {
+		float pvec[3] = {0.0f, 0.0f, 0.0f};
+		t->con.applyVec(t, NULL, vec, tvec, pvec);
 		VECCOPY(vec, tvec);
+		headerTranslation(t, pvec, str);
 	}
 	else {
 		snapGrid(t, vec);
 		applyNumInput(&t->num, vec);
-	}
-
-	/* header print for NumInput */
-	if (hasNumInput(&t->num)) {
-		char c[60];
-
-		outputNumInput(&(t->num), c);
-
-		if (t->con.mode & CON_APPLY)
-			sprintf(str, "Dx: %s   Dy: %s  Dz: %s %s %s", &c[0], &c[20], &c[40], t->con.text, t->proptext);
-		else 
-			sprintf(str, "Dx: %s   Dy: %s  Dz: %s %s", &c[0], &c[20], &c[40], t->proptext);
-	}
-	else {
-		/* default header print */
-		if (t->con.mode & CON_APPLY)
-			sprintf(str, "Dx: %.4f   Dy: %.4f  Dz: %.4f %s %s", vec[0], vec[1], vec[2], t->con.text, t->proptext);
-		else
-			sprintf(str, "Dx: %.4f   Dy: %.4f  Dz: %.4f %s", vec[0], vec[1], vec[2], t->proptext);
+		headerTranslation(t, vec, str);
 	}
 
 
@@ -2053,7 +2071,8 @@ int Translation(TransInfo *t, short mval[2])
 			continue;
 
 		if (t->con.applyVec) {
-			t->con.applyVec(t, td, vec, tvec);
+			float pvec[3];
+			t->con.applyVec(t, td, vec, tvec, pvec);
 		}
 		else {
 			VECCOPY(tvec, vec);

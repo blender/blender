@@ -49,9 +49,12 @@ typedef struct TransCon {
     float center[3];     /* transformation centre to define where to draw the view widget             
                             ALWAYS in global space. Unlike the transformation center                  */
     int   mode;          /* Mode flags of the Constraint                                              */
-    void  (*applyVec)(struct TransInfo *, struct TransData *, float *, float *);
+	void  (*drawExtra)(struct TransInfo *);
+						 /* For constraints that needs to draw differently from the other
+							uses this instead of the generic draw function							  */
+    void  (*applyVec)(struct TransInfo *, struct TransData *, float *, float *, float *);
                          /* Apply function pointer for linear vectorial transformation                */
-                         /* The last two parameters are pointers to the in/out vectors                */
+                         /* The last three parameters are pointers to the in/out/printable vectors    */
     void  (*applySize)(struct TransInfo *, struct TransData *, float [3][3]);
                          /* Apply function pointer for rotation transformation (prototype will change */
     void  (*applyRot)(struct TransInfo *, struct TransData *, float [3]);
@@ -89,9 +92,10 @@ typedef struct TransData {
 	float  factor;       /* Factor of the transformation (for Proportionnal Editing)                       */
     float *loc;          /* Location of the data to transform                                              */
     float  iloc[3];      /* Initial location                                                               */
-    float  center[3];
+    float  center[3];	 /* Individual data center                                                         */
     float  mtx[3][3];    /* Transformation matrix from data space to global space                          */
     float  smtx[3][3];   /* Transformation matrix from global space to data space                          */
+	float  axismtx[3][3];/* Axis orientation matrix of the data                                            */
 	struct Object *ob;
 	TransDataExtension *ext;	/* for objects, poses. 1 single malloc per TransInfo! */
 	TransDataIpokey *tdi;		/* for objects, ipo keys. per transdata a malloc */
@@ -113,6 +117,7 @@ typedef struct TransInfo {
 	short       idx_max;
 	float		snap[3];		/* Snapping Gears						*/
     TransData  *data;           /* transformed data (array)             */
+	TransDataExtension *ext;	/* transformed data extension (array)   */
     TransCon    con;            /* transformed constraint               */
     NumInput    num;            /* numerical input                      */
     float       val;            /* init value for some transformations  */
@@ -143,6 +148,7 @@ typedef struct TransInfo {
 #define CON_AXIS1		4
 #define CON_AXIS2		8
 #define CON_SELECT		16
+#define CON_NOFLIP		32	/* does not reorient vector to face viewport when on */
 
 #define PROP_SHARP		0
 #define PROP_SMOOTH		1

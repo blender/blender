@@ -347,14 +347,45 @@ void drawLine(float *center, float *dir, char axis)
 	myloadmatrix(G.vd->viewmat);
 }
 
+void initTrans (TransInfo *t)
+{
+
+	G.moving = 1; // Set moving flag on (display object in white)
+
+	t->data = NULL;
+	t->ext = NULL;
+
+	getmouseco_areawin(t->imval);
+
+	t->transform		= NULL;
+
+	t->total			=
+		t->num.idx		=
+		t->num.idx_max	=
+		t->num.ctrl[0]	= 
+		t->num.ctrl[1]	= 
+		t->num.ctrl[2]	= 0;
+
+	t->val = 0.0f;
+
+	t->num.val[0]		= 
+		t->num.val[1]	= 
+		t->num.val[2]	= 0.0f;
+}
+
 /* Here I would suggest only TransInfo related issues, like free data & reset vars. Not redraws */
 void postTrans (TransInfo *t) 
 {
-	TransDataExtension *tx = t->data->ext;
 	TransData *td;
 	int a;
 	
 	G.moving = 0; // Set moving flag off (display as usual)
+
+	stopConstraint(t);
+	t->con.applyVec	= NULL;
+	t->con.applySize= NULL;
+	t->con.applyRot	= NULL;
+	t->con.mode		= 0;
 
 	/* since ipokeys are optional on objects, we mallocced them per trans-data */
 	for(a=0, td= t->data; a<t->total; a++, td++) {
@@ -364,7 +395,7 @@ void postTrans (TransInfo *t)
 	MEM_freeN(t->data);
 	t->data = NULL;
 
-	if (tx) MEM_freeN(tx);
+	if (t->ext) MEM_freeN(t->ext);
 	
 }
 
@@ -407,26 +438,8 @@ void apply_grid3(float *val, int max_index, float fac1, float fac2, float fac3)
 	}
 }
 
-void apply_grid1(float *val, int max_index, float factor)
-{
-	/* fac1 is for 'nothing', fac2 for CTRL, fac3 for SHIFT */
-	float fac1 = 0.0;
-	float fac2 = G.vd->grid * factor;
-	float fac3 = 0.1f * fac2;
-	apply_grid3(val, max_index, fac1, fac2, fac3);
-}
-
-void apply_grid2(float *val, int max_index, float factor, float factor2)
-{
-	/* fac1 is for 'nothing', fac2 for CTRL, fac3 for SHIFT */
-	float fac1 = 0.0;
-	float fac2 = G.vd->grid * factor;
-	float fac3 = factor2 * fac2;
-	apply_grid3(val, max_index, fac1, fac2, fac3);
-}
-
 void snapGrid(TransInfo *t, float *val) {
-	apply_grid3(val, t->num.idx_max, t->snap[0], t->snap[1], t->snap[2]);
+	apply_grid3(val, t->idx_max, t->snap[0], t->snap[1], t->snap[2]);
 }
 
 void applyTransObjects(TransInfo *t)
@@ -494,33 +507,6 @@ void restoreTransObjects(TransInfo *t)
 	}	
 	recalcData(t);
 } 
-
-void initTrans (TransInfo *t)
-{
-
-	G.moving = 1; // Set moving flag on (display object in white)
-
-	t->data = NULL;
-
-	getmouseco_areawin(t->imval);
-
-	t->transform		= NULL;
-	t->con.applyVec		= NULL;
-	t->con.applyRot	= NULL;
-	t->con.mode		=
-		t->total			=
-		t->num.idx		=
-		t->num.idx_max	=
-		t->num.ctrl[0]	= 
-		t->num.ctrl[1]	= 
-		t->num.ctrl[2]	= 0;
-
-	t->val = 0.0f;
-
-	t->num.val[0]		= 
-		t->num.val[1]	= 
-		t->num.val[2]	= 0.0f;
-}
 
 void calculateCenterCursor(TransInfo *t)
 {
@@ -639,9 +625,11 @@ void calculatePropRatio(TransInfo *t)
 				td->factor = 1.0f;
 			}
 			else if (td->dist > t->propsize) {
+				td->flag &= TD_NOACTION;
 				td->factor = 0.0f;
 			}
 			else {
+				td->flag &= ~TD_NOACTION;
 				dist= (t->propsize-td->dist)/t->propsize;
 				switch(prop_mode) {
 				case PROP_SHARP:
