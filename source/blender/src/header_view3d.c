@@ -1931,7 +1931,7 @@ void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 		loopoperations(LOOP_CUT);
 		break;
 	case 5: /* Make Edge/Face */
-		addedgevlak_mesh();
+		addedgeface_mesh();
 		break;
 	case 6:
 		bevel_menu();
@@ -2016,7 +2016,7 @@ static void do_view3d_edit_mesh_facesmenu(void *arg, int event)
 		edge_flip();
 		break;
 	case 5: /* Make Edge/Face */
-		addedgevlak_mesh();
+		addedgeface_mesh();
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);

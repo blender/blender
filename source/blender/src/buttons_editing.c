@@ -388,7 +388,7 @@ static void decimate_apply(void)
 void do_common_editbuts(unsigned short event) // old name, is a mix of object and editing events.... 
 {
 	EditMesh *em = G.editMesh;
-	EditVlak *evl;
+	EditFace *efa;
 	Base *base;
 	Object *ob;
 	Mesh *me;
@@ -404,16 +404,16 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 	case B_MATWICH:
 		if(G.obedit && G.obedit->actcol>0) {
 			if(G.obedit->type == OB_MESH) {
-				evl= em->faces.first;
-				while(evl) {
-					if( vlakselectedAND(evl, 1) ) {
-						if(index== -1) index= evl->mat_nr;
-						else if(index!=evl->mat_nr) {
+				efa= em->faces.first;
+				while(efa) {
+					if( faceselectedAND(efa, 1) ) {
+						if(index== -1) index= efa->mat_nr;
+						else if(index!=efa->mat_nr) {
 							error("Mixed colors");
 							return;
 						}
 					}
-					evl= evl->next;
+					efa= efa->next;
 				}
 			}
 			else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
@@ -449,11 +449,11 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 		if(G.obedit && G.obedit->actcol>0) {
 			if(G.obedit->type == OB_MESH) {
 				undo_push_mesh("Assign material index");
-				evl= em->faces.first;
-				while(evl) {
-					if( vlakselectedAND(evl, 1) )
-						evl->mat_nr= G.obedit->actcol-1;
-					evl= evl->next;
+				efa= em->faces.first;
+				while(efa) {
+					if( faceselectedAND(efa, 1) )
+						efa->mat_nr= G.obedit->actcol-1;
+					efa= efa->next;
 				}
 				allqueue(REDRAWVIEW3D_Z, 0);
 				makeDispList(G.obedit);
@@ -561,15 +561,15 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 	case B_SETSOLID:
 		if(G.obedit) {
 			if(G.obedit->type == OB_MESH) {
-				evl= em->faces.first;
+				efa= em->faces.first;
 				if (event == B_SETSMOOTH) undo_push_mesh("Set Smooth");
 				else if (event==B_SETSOLID) undo_push_mesh("Set Solid");
-				while(evl) {
-					if( vlakselectedAND(evl, 1) ) {
-						if(event==B_SETSMOOTH) evl->flag |= ME_SMOOTH;
-						else evl->flag &= ~ME_SMOOTH;
+				while(efa) {
+					if( faceselectedAND(efa, 1) ) {
+						if(event==B_SETSMOOTH) efa->flag |= ME_SMOOTH;
+						else efa->flag &= ~ME_SMOOTH;
 					}
-					evl= evl->next;
+					efa= efa->next;
 				}
 
 				makeDispList(G.obedit);

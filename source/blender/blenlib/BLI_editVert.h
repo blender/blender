@@ -63,16 +63,16 @@ typedef struct EditEdge
 	float crease;
 } EditEdge;
 
-typedef struct EditVlak
+typedef struct EditFace
 {
-	struct EditVlak *next, *prev;
+	struct EditFace *next, *prev;
 	struct EditVert *v1, *v2, *v3, *v4;
 	struct EditEdge *e1, *e2, *e3, *e4;
 	float n[3];
 	struct TFace tf;	/* a copy of original tface. */
 	unsigned char mat_nr, flag;
 	unsigned char f, f1;
-} EditVlak;
+} EditFace;
 
 typedef struct EditMesh
 {

@@ -113,7 +113,7 @@ DispListMesh *displistmesh_from_editmesh(EditMesh *em)
 	DispListMesh *dlm= MEM_callocN(sizeof(*dlm),"dlm");
 	EditVert *eve, *evePrev;
 	EditEdge *eed;
-	EditVlak *evl;
+	EditFace *evl;
 	MFace *mfNew;
 	int i;
 
@@ -1457,7 +1457,7 @@ static void curve_to_displist(ListBase *nubase, ListBase *dispbase)
 static void filldisplist(ListBase *dispbase, ListBase *to)
 {
 	EditVert *eve, *v1, *vlast;
-	EditVlak *evl;
+	EditFace *evl;
 	DispList *dlnew=0, *dl;
 	float *f1;
 	int colnr=0, cont=1, tot, a, *index;
@@ -1519,9 +1519,9 @@ static void filldisplist(ListBase *dispbase, ListBase *to)
 
 		if(totvert && BLI_edgefill(0)!=0) {
 
-			/* count faces (vlak in dutch!) */
+			/* count faces  */
 			tot= 0;
-			evl= fillvlakbase.first;
+			evl= fillfacebase.first;
 			while(evl) {
 				tot++;
 				evl= evl->next;
@@ -1553,7 +1553,7 @@ static void filldisplist(ListBase *dispbase, ListBase *to)
 				}
 				
 				/* index data */
-				evl= fillvlakbase.first;
+				evl= fillfacebase.first;
 				index= dlnew->index;
 				while(evl) {
 					index[0]= (long)evl->v1->vn;

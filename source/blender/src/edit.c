@@ -519,7 +519,7 @@ void countall()
 	MetaElem *ml;
 	/* struct BodyPoint *bop; */
 	struct EditVert *eve;
-	struct EditVlak *evl;
+	struct EditFace *efa;
 #ifdef __NLA
 	struct EditBone *ebo;
 #endif
@@ -538,14 +538,14 @@ void countall()
 				if(eve->f & 1) G.totvertsel++;
 				eve= eve->next;
 			}
-			evl= em->faces.first;
-			while(evl) {
+			efa= em->faces.first;
+			while(efa) {
 				G.totface++;
-				if(evl->v1->f & 1) {
-					if(evl->v2->f & 1) {
-						if(evl->v3->f & 1) {
-							if(evl->v4)  {
-								if(evl->v4->f & 1) G.totfacesel++;
+				if(efa->v1->f & 1) {
+					if(efa->v2->f & 1) {
+						if(efa->v3->f & 1) {
+							if(efa->v4)  {
+								if(efa->v4->f & 1) G.totfacesel++;
 							}
 							else {
 								G.totfacesel++;
@@ -553,7 +553,7 @@ void countall()
 						}
 					}
 				}
-				evl= evl->next;
+				efa= efa->next;
 			}
 		}
 #ifdef __NLA

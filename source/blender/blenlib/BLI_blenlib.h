@@ -65,11 +65,11 @@
 #ifndef BLI_BLENLIB_H
 #define BLI_BLENLIB_H
 
-#include "DNA_listBase.h" /* braindamage for the masses... needed
-                             because fillvlakbase and fillvertbase are
-                             used outside */
+/* braindamage for the masses... needed
+	because fillfacebase and fillvertbase are used outside */
+#include "DNA_listBase.h" 
 
-extern ListBase fillvlakbase;
+extern ListBase fillfacebase;
 extern ListBase fillvertbase;
 /**
  * @attention Defined in scanfill.c

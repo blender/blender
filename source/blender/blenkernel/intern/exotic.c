@@ -1942,7 +1942,7 @@ static void displist_to_mesh(DispList *dlfirst)
 	MVert *mvert;
 	MFace *mface;
 	float *data, vec[3], min[3], max[3];
-	int a, b, startve, *idata, totedge=0, tottria=0, totquad=0, totvert=0, totvlak, totcol=0, colnr;
+	int a, b, startve, *idata, totedge=0, tottria=0, totquad=0, totvert=0, totface, totcol=0, colnr;
 	int p1, p2, p3, p4;
 		
 	/* count first */
@@ -2096,14 +2096,14 @@ static void displist_to_mesh(DispList *dlfirst)
 		}
 	}
 	
-	totvlak= totquad+tottria+totedge;
+	totface= totquad+tottria+totedge;
 
-	printf("Import: %d vertices %d faces\n", totvert, totvlak);
+	printf("Import: %d vertices %d faces\n", totvert, totface);
 	
 	if(totvert) me->mvert= MEM_callocN(totvert*sizeof(MVert), "mvert");
-	if(totvlak) me->mface= MEM_callocN(totvlak*sizeof(MFace), "mface");
+	if(totface) me->mface= MEM_callocN(totface*sizeof(MFace), "mface");
 	me->totvert= totvert;
-	me->totface= totvlak;
+	me->totface= totface;
 	
 	mvert= me->mvert;
 	mface= me->mface;
@@ -2682,7 +2682,7 @@ static void write_videoscape_mesh(Object *ob, char *str)
 	MFace *mface;
 	FILE *fp;
 	EditVert *eve;
-	EditVlak *evl;
+	EditFace *evl;
 	unsigned int kleur[32];
 	float co[3];
 	int a;

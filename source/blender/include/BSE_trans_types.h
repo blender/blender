@@ -34,7 +34,7 @@
 #define BSE_TRANS_TYPES_H
 
 struct Object;
-/*  struct EditVlak; */
+/*  struct EditFace; */
 /*  struct EditEdge; */
 /*  struct EditVert; */
 /*  struct ListBase; */

@@ -1189,7 +1189,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						else if(G.qual==LR_CTRLKEY)
 							edge_flip();
 						else if (G.qual==0)
-							addedgevlak_mesh();
+							addedgeface_mesh();
 					}
 					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) addsegment_nurb();
 				}

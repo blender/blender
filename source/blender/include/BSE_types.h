@@ -56,7 +56,7 @@ struct BezTriple;
 
 struct Nurb;
 
-struct EditVlak;
+struct EditFace;
 struct EditVert;
 struct EditEdge;
 struct EditIpo;

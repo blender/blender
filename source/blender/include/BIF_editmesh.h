@@ -33,7 +33,7 @@
 #ifndef BIF_EDITMESH_H
 #define BIF_EDITMESH_H
 
-struct EditVlak;
+struct EditFace;
 struct EditEdge;
 struct EditVert;
 struct Mesh;
@@ -82,12 +82,12 @@ void editmesh_align_view_to_selected(struct View3D *v3d, int axis);
 
 struct EditVert *addvertlist(float *vec);
 struct EditEdge *addedgelist(struct EditVert *v1, struct EditVert *v2, struct EditEdge *example);
-struct EditVlak *addvlaklist(struct EditVert *v1, struct EditVert *v2, struct EditVert *v3, struct EditVert *v4, struct EditVlak *example);
+struct EditFace *addfacelist(struct EditVert *v1, struct EditVert *v2, struct EditVert *v3, struct EditVert *v4, struct EditFace *example);
 struct EditEdge *findedgelist(struct EditVert *v1, struct EditVert *v2);
 
 void remedge(struct EditEdge *eed);
 
-int vlakselectedAND(struct EditVlak *evl, int flag);
+int faceselectedAND(struct EditFace *efa, int flag);
 
 void recalc_editnormals(void);
 void flip_editnormals(void);
@@ -135,7 +135,7 @@ void spin_mesh(int steps,int degr,float *dvec, int mode);
 void screw_mesh(int steps,int turns);
 void selectswap_mesh(void);
 void addvert_mesh(void);
-void addedgevlak_mesh(void);
+void addedgeface_mesh(void);
 void delete_mesh(void);
 void add_primitiveMesh(int type);
 void hide_mesh(int swap);

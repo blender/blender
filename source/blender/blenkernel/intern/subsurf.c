@@ -206,7 +206,7 @@ struct _HyperFace {
 		/* for getting back tface, matnr, etc */
 	union {
 		int ind;
-		EditVlak *ef;
+		EditFace *ef;
 	} orig;
 };
 
@@ -423,7 +423,7 @@ static HyperMesh *hypermesh_from_editmesh(EditMesh *em, int subdivLevels) {
 	HyperMesh *hme= hypermesh_new();
 	EditVert *ev, *prevev;
 	EditEdge *ee;
-	EditVlak *ef;
+	EditFace *ef;
 	float creasefac= (float)subdivLevels;
 	int flag;
 
@@ -1021,7 +1021,7 @@ static DispListMesh *hypermesh_to_displistmesh(HyperMesh *hme, short flag) {
 			mf->flag= origmf->flag;
 			mf->puno= 0;
 		} else {
-			EditVlak *origef= f->orig.ef;
+			EditFace *origef= f->orig.ef;
 			
 			mf->mat_nr= origef->mat_nr;
 			mf->flag= origef->flag;

@@ -1724,7 +1724,7 @@ static void drawmeshsolid(Object *ob, float *nors)
 	MVert *mvert;
 	TFace *tface;
 	MFace *mface;
-	EditVlak *evl;
+	EditFace *efa;
 	float *extverts=0, *v1, *v2, *v3, *v4;
 	int glmode, setsmooth=0, a, start, end, matnr= -1, vertexpaint, i;
 	short no[3], *n1, *n2, *n3, *n4 = NULL;
@@ -1758,36 +1758,36 @@ static void drawmeshsolid(Object *ob, float *nors)
 
 	if(ob==G.obedit || (G.obedit && ob->data==G.obedit->data)) {
 		
-		evl= em->faces.first;
-		while(evl) {
-			if(evl->v1->h==0 && evl->v2->h==0 && evl->v3->h==0) {
+		efa= em->faces.first;
+		while(efa) {
+			if(efa->v1->h==0 && efa->v2->h==0 && efa->v3->h==0) {
 				
-				if(evl->mat_nr!=matnr) {
-					matnr= evl->mat_nr;
+				if(efa->mat_nr!=matnr) {
+					matnr= efa->mat_nr;
 					set_gl_material(matnr+1);
 				}
 				
-				if(evl->v4 && evl->v4->h==0) {
+				if(efa->v4 && efa->v4->h==0) {
 				
 					glBegin(GL_QUADS);
-						glNormal3fv(evl->n);
-						glVertex3fv(evl->v1->co);
-						glVertex3fv(evl->v2->co);
-						glVertex3fv(evl->v3->co);
-						glVertex3fv(evl->v4->co);
+						glNormal3fv(efa->n);
+						glVertex3fv(efa->v1->co);
+						glVertex3fv(efa->v2->co);
+						glVertex3fv(efa->v3->co);
+						glVertex3fv(efa->v4->co);
 					glEnd();
 				}
 				else {
 
 					glBegin(GL_TRIANGLES);
-						glNormal3fv(evl->n);
-						glVertex3fv(evl->v1->co);
-						glVertex3fv(evl->v2->co);
-						glVertex3fv(evl->v3->co);
+						glNormal3fv(efa->n);
+						glVertex3fv(efa->v1->co);
+						glVertex3fv(efa->v2->co);
+						glVertex3fv(efa->v3->co);
 					glEnd();
 				}
 			}
-			evl= evl->next;
+			efa= efa->next;
 		}
 		
 		glDisable(GL_LIGHTING);
@@ -2380,7 +2380,7 @@ static void drawmeshwire(Object *ob)
 	DispList *dl;
 	Material *ma;
 	EditEdge *eed;
-	EditVlak *evl;
+	EditFace *efa;
 	float fvec[3], cent[3], *f1, *f2, *f3, *f4, *extverts=NULL;
 	int a, start, end, test, ok, handles=0;
 
@@ -2400,47 +2400,47 @@ static void drawmeshwire(Object *ob)
 			glEnable(GL_BLEND);
 			glDepthMask(0);		// disable write in zbuffer, needed for nice transp
 			
-			evl= em->faces.first;
-			while(evl) {
-				if(evl->v1->h==0 && evl->v2->h==0 && evl->v3->h==0 && (evl->v4==NULL || evl->v4->h==0)) {
+			efa= em->faces.first;
+			while(efa) {
+				if(efa->v1->h==0 && efa->v2->h==0 && efa->v3->h==0 && (efa->v4==NULL || efa->v4->h==0)) {
 					
 					if(1) {
-						if(vlakselectedAND(evl, 1)) glColor4ub(col2[0], col2[1], col2[2], col2[3]); 
+						if(faceselectedAND(efa, 1)) glColor4ub(col2[0], col2[1], col2[2], col2[3]); 
 						else glColor4ub(col1[0], col1[1], col1[2], col1[3]);
 						
-						glBegin(evl->v4?GL_QUADS:GL_TRIANGLES);
-						glVertex3fv(evl->v1->co);
-						glVertex3fv(evl->v2->co);
-						glVertex3fv(evl->v3->co);
-						if(evl->v4) glVertex3fv(evl->v4->co);
+						glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
+						glVertex3fv(efa->v1->co);
+						glVertex3fv(efa->v2->co);
+						glVertex3fv(efa->v3->co);
+						if(efa->v4) glVertex3fv(efa->v4->co);
 						glEnd();
 						
 					} else {
-						if(vlakselectedAND(evl, 1)) glColor4ub(col2[0], col2[1], col2[2], col2[3]); 
+						if(faceselectedAND(efa, 1)) glColor4ub(col2[0], col2[1], col2[2], col2[3]); 
 						else glColor4ub(col1[0], col1[1], col1[2], col1[3]);
 					
-						if(evl->v4 && evl->v4->h==0) {
+						if(efa->v4 && efa->v4->h==0) {
 						
-							CalcCent4f(cent, evl->v1->co, evl->v2->co, evl->v3->co, evl->v4->co);
+							CalcCent4f(cent, efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
 							glBegin(GL_QUADS);
-								VecMidf(fvec, cent, evl->v1->co); glVertex3fv(fvec);
-								VecMidf(fvec, cent, evl->v2->co); glVertex3fv(fvec);
-								VecMidf(fvec, cent, evl->v3->co); glVertex3fv(fvec);
-								VecMidf(fvec, cent, evl->v4->co); glVertex3fv(fvec);
+								VecMidf(fvec, cent, efa->v1->co); glVertex3fv(fvec);
+								VecMidf(fvec, cent, efa->v2->co); glVertex3fv(fvec);
+								VecMidf(fvec, cent, efa->v3->co); glVertex3fv(fvec);
+								VecMidf(fvec, cent, efa->v4->co); glVertex3fv(fvec);
 							glEnd();
 						}
 						else {
 	
-							CalcCent3f(cent, evl->v1->co, evl->v2->co, evl->v3->co);
+							CalcCent3f(cent, efa->v1->co, efa->v2->co, efa->v3->co);
 							glBegin(GL_TRIANGLES);
-								VecMidf(fvec, cent, evl->v1->co); glVertex3fv(fvec);
-								VecMidf(fvec, cent, evl->v2->co); glVertex3fv(fvec);
-								VecMidf(fvec, cent, evl->v3->co); glVertex3fv(fvec);
+								VecMidf(fvec, cent, efa->v1->co); glVertex3fv(fvec);
+								VecMidf(fvec, cent, efa->v2->co); glVertex3fv(fvec);
+								VecMidf(fvec, cent, efa->v3->co); glVertex3fv(fvec);
 							glEnd();
 						}
 					}
 				}
-				evl= evl->next;
+				efa= efa->next;
 			}
 			glDisable(GL_BLEND);
 			glDepthMask(1);		// restore write in zbuffer
@@ -2545,20 +2545,20 @@ static void drawmeshwire(Object *ob)
 
 			glBegin(GL_LINES);
 			
-			evl= em->faces.first;
-			while(evl) {
-				if(evl->v1->h==0 && evl->v2->h==0 && evl->v3->h==0) {
-					if(evl->v4) CalcCent4f(fvec, evl->v1->co, evl->v2->co, evl->v3->co, evl->v4->co);
-					else CalcCent3f(fvec, evl->v1->co, evl->v2->co, evl->v3->co);
+			efa= em->faces.first;
+			while(efa) {
+				if(efa->v1->h==0 && efa->v2->h==0 && efa->v3->h==0) {
+					if(efa->v4) CalcCent4f(fvec, efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
+					else CalcCent3f(fvec, efa->v1->co, efa->v2->co, efa->v3->co);
 
 					glVertex3fv(fvec);
-					fvec[0]+= editbutsize*evl->n[0];
-					fvec[1]+= editbutsize*evl->n[1];
-					fvec[2]+= editbutsize*evl->n[2];
+					fvec[0]+= editbutsize*efa->n[0];
+					fvec[1]+= editbutsize*efa->n[1];
+					fvec[2]+= editbutsize*efa->n[2];
 					glVertex3fv(fvec);
 					
 				}
-				evl= evl->next;
+				efa= efa->next;
 			}
 
 			glEnd();

@@ -115,7 +115,7 @@ typedef struct ScFillVert {
 int vergscdata(const void *a1, const void *a2);
 int vergpoly(const void *a1, const void *a2);
 void *new_mem_element(int size);
-void addfillvlak(EditVert *v1, EditVert *v2, EditVert *v3);
+void addfillface(EditVert *v1, EditVert *v2, EditVert *v3);
 int boundinside(PolyFill *pf1, PolyFill *pf2);
 int boundisect(PolyFill *pf2, PolyFill *pf1);
 void mergepolysSimp(PolyFill *pf1, PolyFill *pf2)	/* pf2 added to pf1 */;
@@ -137,7 +137,7 @@ ScFillVert *scdata;
 
 ListBase fillvertbase = {0,0};
 ListBase filledgebase = {0,0};
-ListBase fillvlakbase = {0,0};
+ListBase fillfacebase = {0,0};
 
 short cox, coy;
 
@@ -227,7 +227,7 @@ void BLI_end_edgefill(void)
 	
 	fillvertbase.first= fillvertbase.last= 0;
 	filledgebase.first= filledgebase.last= 0;
-	fillvlakbase.first= fillvlakbase.last= 0;
+	fillfacebase.first= fillfacebase.last= 0;
 }
 
 /* ****  FILL ROUTINES *************************** */
@@ -262,13 +262,13 @@ EditEdge *BLI_addfilledge(EditVert *v1, EditVert *v2)
 	return newed;
 }
 
-void addfillvlak(EditVert *v1, EditVert *v2, EditVert *v3)
+void addfillface(EditVert *v1, EditVert *v2, EditVert *v3)
 {
 	/* does not make edges */
-	EditVlak *evl;
+	EditFace *evl;
 
-	evl= new_mem_element(sizeof(EditVlak));
-	BLI_addtail(&fillvlakbase, evl);
+	evl= new_mem_element(sizeof(EditFace));
+	BLI_addtail(&fillfacebase, evl);
 	
 	evl->v1= v1;
 	evl->v2= v2;
@@ -596,7 +596,7 @@ void scanfill(PolyFill *pf)
 	EditVert *eve,*v1,*v2,*v3;
 	EditEdge *eed,*nexted,*ed1,*ed2,*ed3;
 	float miny = 0.0;
-	int a,b,verts, maxvlak, totvlak;	/* vlak = face in dutch! */
+	int a,b,verts, maxface, totface;	
 	short nr, test, twoconnected=0;
 
 	nr= pf->nr;
@@ -695,8 +695,8 @@ void scanfill(PolyFill *pf)
 	if(pf->f==0) twoconnected= 1;
 
 	/* (temporal) security: never much more faces than vertices */
-	totvlak= 0;
-	maxvlak= 2*verts;		/* 2*verts: based at a filled circle within a triangle */
+	totface= 0;
+	maxface= 2*verts;		/* 2*verts: based at a filled circle within a triangle */
 
 	sc= scdata;
 	for(a=0;a<verts;a++) {
@@ -719,7 +719,7 @@ void scanfill(PolyFill *pf)
 			ed2= ed1->next;
 
 			if(callLocalInterruptCallBack()) break;
-			if(totvlak>maxvlak) {
+			if(totface>maxface) {
 				/* printf("Fill error: endless loop. Escaped at vert %d,  tot: %d.\n", a, verts); */
 				a= verts;
 				break;
@@ -774,8 +774,8 @@ void scanfill(PolyFill *pf)
 				else {
 					/* new triangle */
 					/* printf("add face %x %x %x\n",v1,v2,v3); */
-					addfillvlak(v1, v2, v3);
-					totvlak++;
+					addfillface(v1, v2, v3);
+					totface++;
 					BLI_remlink((ListBase *)&(sc->first),ed1);
 					BLI_addtail(&filledgebase,ed1);
 					ed1->v2->f= 0;
@@ -1128,107 +1128,9 @@ int BLI_edgefill(int mode)  /* THE MAIN FILL ROUTINE */
 	addlisttolist(&fillvertbase,&tempve);
 	addlisttolist(&filledgebase,&temped);
 
-	/* evl= fillvlakbase.first;	
-	while(evl) {
-		printf("new face %x %x %x\n",evl->v1,evl->v2,evl->v3);
-		evl= evl->next;
-	}*/
-
-
 	/* FREE */
 
 	MEM_freeN(pflist);
 	return 1;
 
 }
-
-/*
-  MOVED TO EDITMESH.C since it's really bad to leave it here
-  
-void fill_mesh(void)
-{
-	EditMesh *em = G.editMesh;
-	EditVert *eve,*v1;
-	EditEdge *eed,*e1,*nexted;
-	EditVlak *evl,*nextvl;
-	short ok;
-
-	if(G.obedit==0 || (G.obedit->type!=OB_MESH)) return;
-
-	waitcursor(1);
-
-	/ * alle selected vertices kopieeren * /
-	eve= em->verts.first;
-	while(eve) {
-		if(eve->f & 1) {
-			v1= addfillvert(eve->co);
-			eve->vn= v1;
-			v1->vn= eve;
-			v1->h= 0;
-		}
-		eve= eve->next;
-	}
-	/ * alle selected edges kopieeren * /
-	eed= em->edges.first;
-	while(eed) {
-		if( (eed->v1->f & 1) && (eed->v2->f & 1) ) {
-			e1= addfilledge(eed->v1->vn, eed->v2->vn);
-			e1->v1->h++; 
-			e1->v2->h++;
-		}
-		eed= eed->next;
-	}
-	/ * van alle selected vlakken vertices en edges verwijderen om dubbels te voorkomen * /
-	/ * alle edges tellen punten op, vlakken trekken af,
-	   edges met vertices ->h<2 verwijderen * /
-	evl= em->faces.first;
-	ok= 0;
-	while(evl) {
-		nextvl= evl->next;
-		if( vlakselectedAND(evl, 1) ) {
-			evl->v1->vn->h--;
-			evl->v2->vn->h--;
-			evl->v3->vn->h--;
-			if(evl->v4) evl->v4->vn->h--;
-			ok= 1;
-			
-		}
-		evl= nextvl;
-	}
-	if(ok) {	/ * er zijn vlakken geselecteerd * /
-		eed= filledgebase.first;
-		while(eed) {
-			nexted= eed->next;
-			if(eed->v1->h<2 || eed->v2->h<2) {
-				remlink(&filledgebase,eed);
-			}
-			eed= nexted;
-		}
-	}
-
-	/ * tijd=clock(); * /
-
-	ok= edgefill(0);
-
-	/ * printf("time: %d\n",(clock()-tijd)/1000); * /
-
-	if(ok) {
-		evl= fillvlakbase.first;
-		while(evl) {
-			addvlaklist(evl->v1->vn, evl->v2->vn, evl->v3->vn, 0, evl);
-			evl= evl->next;
-		}
-	}
-	/ * else printf("fill error\n"); * /
-
-	end_edgefill();
-
-	waitcursor(0);
-
-	countall();
-	allqueue(REDRAWVIEW3D, 0);
-}
-
-MOVED TO editmesh.c !!!!! (you bastards!)
-
- */
