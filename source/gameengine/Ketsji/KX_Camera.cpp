@@ -252,13 +252,13 @@ void KX_Camera::ExtractFrustumSphere()
 	hfar = clip_camcs_matrix*hfar;
 	
 	// Tranform to 3d camera local space.
-	MT_Point3 near(hnear[0]/hnear[3], hnear[1]/hnear[3], hnear[2]/hnear[3]);
-	MT_Point3 far(hfar[0]/hfar[3], hfar[1]/hfar[3], hfar[2]/hfar[3]);
+	MT_Point3 nearpoint(hnear[0]/hnear[3], hnear[1]/hnear[3], hnear[2]/hnear[3]);
+	MT_Point3 farpoint(hfar[0]/hfar[3], hfar[1]/hfar[3], hfar[2]/hfar[3]);
 	
 	// Compute centre
 	m_frustum_centre = MT_Point3(0., 0.,
-		(near.dot(near) - far.dot(far))/(2.0*(m_camdata.m_clipend - m_camdata.m_clipstart)));
-	m_frustum_radius = m_frustum_centre.distance(far);
+		(nearpoint.dot(nearpoint) - farpoint.dot(farpoint))/(2.0*(m_camdata.m_clipend - m_camdata.m_clipstart)));
+	m_frustum_radius = m_frustum_centre.distance(farpoint);
 	
 	// Transform to world space.
 	m_frustum_centre = GetCameraToWorld()(m_frustum_centre);
