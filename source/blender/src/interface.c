@@ -4273,7 +4273,8 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	if(block->win != mywinget()) return UI_NOTHING;
 
 	/* filter some unwanted events */
-	if(uevent==0 || uevent->event==0 || uevent->event==LEFTSHIFTKEY || uevent->event==RIGHTSHIFTKEY) return UI_NOTHING;
+	/* btw: we allow event==0 for first time in menus, draws the hilited item */
+	if(uevent==0 || uevent->event==LEFTSHIFTKEY || uevent->event==RIGHTSHIFTKEY) return UI_NOTHING;
 	
 	if(block->flag & UI_BLOCK_ENTER_OK) {
 		if(uevent->event == RETKEY && uevent->val) {
