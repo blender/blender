@@ -62,7 +62,7 @@ void			KX_OdePhysicsController::SetObject (SG_IObject* object)
 
 	// cheating here...
 	KX_GameObject* gameobj = (KX_GameObject*)	object->GetSGClientObject();
-	gameobj->m_pPhysicsController1 = this;
+	gameobj->SetPhysicsController(this);
 	
 }
 

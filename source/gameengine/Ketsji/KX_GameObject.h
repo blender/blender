@@ -65,6 +65,7 @@ class SM_Object;
 class KX_GameObject : public SCA_IObject
 {
 	Py_Header;
+protected:
 
 	bool								m_bDyna;
 	KX_ClientObjectInfo*				m_pClient_info;
@@ -83,7 +84,6 @@ class KX_GameObject : public SCA_IObject
 	KX_IPhysicsController*				m_pPhysicsController1;
 	SG_Node*							m_pSGNode;
 
-protected:
 	MT_CmMatrix4x4						m_OpenGL_4x4Matrix;
 	
 public:
@@ -570,7 +570,7 @@ public:
 	virtual 
 		PyObject*			
 	_getattr(
-		char *attr
+		const STR_String& attr
 	);
 
 		PyObject*					
