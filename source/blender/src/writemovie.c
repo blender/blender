@@ -56,6 +56,8 @@
 #include "BIF_writemovie.h"
 #include "BIF_toolbox.h"
 
+#include "render.h"
+
 #define error(str) {perror(str) ; error("%s", str); G.afbreek= 1;}
 #define QUIT(str) {error(str); return;}
 
