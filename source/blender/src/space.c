@@ -1467,6 +1467,7 @@ void initview3d(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, vd);	/* addhead! not addtail */
 
 	vd->spacetype= SPACE_VIEW3D;
+	vd->blockscale= 0.7;
 	vd->viewquat[0]= 1.0;
 	vd->viewquat[1]= vd->viewquat[2]= vd->viewquat[3]= 0.0;
 	vd->persp= 1;
@@ -1677,6 +1678,8 @@ void initipo(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, sipo);
 
 	sipo->spacetype= SPACE_IPO;
+	sipo->blockscale= 0.7;
+	
 	/* sipo space loopt van (0,-?) tot (??,?) */
 	sipo->v2d.tot.xmin= 0.0;
 	sipo->v2d.tot.ymin= -10.0;
