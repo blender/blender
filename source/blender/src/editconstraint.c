@@ -491,7 +491,10 @@ static short detect_constraint_loop (Object *owner, const char* substring, int d
 				case CONSTRAINT_TYPE_TRACKTO:
 					{
 						bTrackToConstraint *data = curcon->data;
-						if (!exist_object(data->tar)) data->tar = NULL;
+						if (!exist_object(data->tar)) {
+							data->tar = NULL;
+							break;
+						}
 						
 						if (typefrom != CONSTRAINT_TYPE_TRACKTO && typefrom != CONSTRAINT_TYPE_LOCKTRACK){
 							if (add_constraint_element (data->tar, data->subtarget, owner, substring)){

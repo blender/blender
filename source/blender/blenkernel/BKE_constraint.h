@@ -55,6 +55,7 @@ void do_constraint_channels (struct ListBase *conbase, struct ListBase *chanbase
 short get_constraint_target (struct bConstraint *con, short ownertype, void *ownerdata, float mat[][4], float size[3], float time);
 struct bConstraintChannel *find_constraint_channel (ListBase *list, const char *name);
 void free_constraint_channels (ListBase *chanbase);
+char constraint_has_target (struct bConstraint *con);
 
 /* Constraint target/owner types */
 #define TARGET_OBJECT			1	//	string is ""

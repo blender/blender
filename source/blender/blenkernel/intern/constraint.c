@@ -70,6 +70,62 @@ static void constraint_target_to_mat4 (Object *ob, const char *substring, float 
 
 /* Functions */
 
+char constraint_has_target (bConstraint *con) {
+	switch (con->type){
+	case CONSTRAINT_TYPE_TRACKTO:
+		{
+			bTrackToConstraint *data = con->data;
+			if (data->tar)
+				return 1;
+		}
+		break;
+	case CONSTRAINT_TYPE_KINEMATIC:
+		{
+			bKinematicConstraint *data = con->data;
+			if (data->tar)
+				return 1;
+		}
+		break;
+	case CONSTRAINT_TYPE_FOLLOWPATH:
+		{
+			bFollowPathConstraint *data = con->data;
+			if (data->tar)
+				return 1;
+		}
+		break;
+	case CONSTRAINT_TYPE_ROTLIKE:
+		{
+			bRotateLikeConstraint *data = con->data;
+			if (data->tar)
+				return 1;
+		}
+		break;
+	case CONSTRAINT_TYPE_LOCLIKE:
+		{
+			bLocateLikeConstraint *data = con->data;
+			if (data->tar)
+				return 1;
+		}
+		break;
+	case CONSTRAINT_TYPE_ACTION:
+		{
+			bActionConstraint *data = con->data;
+			if (data->tar)
+				return 1;
+		}
+		break;
+	case CONSTRAINT_TYPE_LOCKTRACK:
+		{
+			bLockTrackConstraint *data = con->data;
+			if (data->tar)
+				return 1;
+		}
+		break;
+	}
+	// Unknown types or CONSTRAINT_TYPE_NULL or  no target
+	return 0;
+}
+
 void unique_constraint_name (bConstraint *con, ListBase *list){
 	char		tempname[64];
 	int			number;

@@ -3716,7 +3716,7 @@ void draw_object(Base *base)
 			glColor3ubv(col2);
 			
 			for (curcon = list->first; curcon; curcon=curcon->next){
-				if ((curcon->flag & CONSTRAINT_EXPAND)&&(curcon->type!=CONSTRAINT_TYPE_NULL)){
+				if ((curcon->flag & CONSTRAINT_EXPAND)&&(curcon->type!=CONSTRAINT_TYPE_NULL)&&(constraint_has_target(curcon))){
 					get_constraint_target(curcon, TARGET_OBJECT, NULL, tmat, size, bsystem_time(ob, 0, (float)(G.scene->r.cfra), ob->sf));
 					setlinestyle(3);
 					glBegin(GL_LINES);
