@@ -470,11 +470,11 @@ void particle_duplilist(Scene *sce, Object *par, PartEff *paf)
 								/* to give ipos in object correct offset */
 								where_is_object_time(newob, ctime-pa->time);
 
-								where_is_particle(paf, pa, ctime, vec);
+								where_is_particle(paf, pa, ctime-0.5, vec);	// makes sure there's always a vec
 								Mat4MulVecfl(par->obmat, vec);
 								
 								if(paf->stype==PAF_VECT) {
-									where_is_particle(paf, pa, ctime+1, vec1);
+									where_is_particle(paf, pa, ctime+0.5, vec1); // makes sure there's always a vec
 									Mat4MulVecfl(par->obmat, vec1);
 
 									VecSubf(vec1, vec1, vec);

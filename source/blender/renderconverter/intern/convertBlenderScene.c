@@ -2749,6 +2749,9 @@ static void set_fullsample_flag(void)
 }
 
 /* 10 times larger than normal epsilon, test it on default nurbs sphere with ray_transp */
+#ifdef FLT_EPSILON
+#undef FLT_EPSILON
+#endif
 #define FLT_EPSILON 1.19209290e-06F
 
 
@@ -3002,6 +3005,14 @@ void RE_rotateBlenderScene(void)
 							init_render_object(ob);
 						}
 					}
+					/* before make duplis, update particle for current frame */
+					if(ob->transflag & OB_DUPLIVERTS) {
+						PartEff *paf= give_parteff(ob);
+						if(paf) {
+							if(paf->flag & PAF_ANIMATED) build_particle_system(ob);
+						}
+					}
+					
 					make_duplilist(sce, ob);
 					if(ob->type==OB_MBALL) {
 						init_render_object(ob);

@@ -1187,6 +1187,9 @@ void build_particle_system(Object *ob)
 		pushdata(par, sizeof(Object));
 		par= par->parent;
 	}
+	
+	/* for static particles, calculate system on current frame */
+	do_mat_ipo(ma);
 
 	/* set it all at first frame */
 	G.scene->r.cfra= cfralast= (int)floor(ftime);
@@ -1203,9 +1206,10 @@ void build_particle_system(Object *ob)
 		}
 		par= par->parent;
 	}
-	do_mat_ipo(ma);
-
+	
 	if((paf->flag & PAF_STATIC)==0) {
+		do_mat_ipo(ma);	// nor for static
+		
 		where_is_object(ob);
 		Mat4CpyMat4(prevobmat, ob->obmat);
 		Mat4Invert(ob->imat, ob->obmat);
