@@ -4471,6 +4471,7 @@ void transform(int mode)
 	TransVert *tv;
 	float vec[3], min[3], max[3], dvec[3], d_dvec[3], dvecp[3], rot0[3], rot1[3], rot2[3], axis[3];
 	float totmat[3][3], omat[3][3], imat[3][3], mat[3][3], tmat[3][3], phi, dphi;
+	float oldcurs[3];
 
 	float persinv[3][3], persmat[3][3], viewinv[4][4], imat4[4][4];
 	float *curs, dx1, dx2, dy1, dy2, eul[3], quat[4], rot[3], phi0, phi1, deler, rad = 0.0;
@@ -4489,7 +4490,7 @@ void transform(int mode)
 	short numchange[3] = {0,0,0}; // Determines whether or not one axis recieved changes (mainly for scaling)
 
 	float vx[3] = {1,0,0}, vy[3] = {0,1,0}, vz[3] = {0,0,1};
-		
+
 	if (mode % 'x' == 0)
 		axismode = XTRANSLOCAL;
 	else if (mode % 'X' == 0)
@@ -4502,7 +4503,7 @@ void transform(int mode)
 		axismode = ZTRANSLOCAL;
 	else if (mode % 'Z' == 0)
 		axismode = ZTRANS;
-	
+
 	if (mode % 'g' == 0)
 		mode = 'g';
 	else if (mode % 'r' == 0)
@@ -4521,14 +4522,14 @@ void transform(int mode)
 	/* this can cause floating exception at dec alpha */
 	d_dvec[0]= d_dvec[1]= d_dvec[2]= 0.0;
 	dvec[0]= dvec[1]= dvec[2]= 0.0;
-	
+
 	if(G.scene->id.lib) return;
-	
+
 	if(mode=='t') {
 		if(G.obedit==0 || G.obedit->type!=OB_CURVE) return;
 	}
 	if(mode=='w' && G.obedit==0) return;
-	
+
 	if (G.obedit && G.obedit->type == OB_MESH) {
                undo_push_mesh(transform_mode_to_string(mode));
        }
@@ -4536,7 +4537,7 @@ void transform(int mode)
 	/* what data will be involved? */
 	if(G.obedit) {
 		if(mode=='N') vertexnormals(0);
-	
+
 		/* min en max needed for warp */
 		if(mode=='G' || mode=='R' || mode=='C') make_trans_verts(min, max, 1);
 		else make_trans_verts(min, max, 0);
@@ -4557,56 +4558,62 @@ void transform(int mode)
 		if (mode=='g' || mode=='G') opt= 'g';
 		else if (mode=='r' || mode=='R') opt= 'r';
 		else if (mode=='s' || mode=='S') opt= 's';
-		
+
 		setbaseflags_for_editing(opt);
 		figure_pose_updating();
 		make_trans_objects();
 	}
-	
+
 	if(tottrans==0) {
-		if(G.obedit==0) clearbaseflags_for_editing();
-		return;
+/*		if(G.obedit==0) clearbaseflags_for_editing();*/
+		mode='0';
+		curs = give_cursor();
+		VECCOPY(oldcurs, curs);		
+/*		return;*/
 	}
-	
+
 	if(G.obedit==0 && mode=='S') return;
 	
-	if(G.vd->around==V3D_LOCAL) {
-		if(G.obedit) {
-			centre[0]= centre[1]= centre[2]= 0.0;
-		}
+	if (mode!='0') {
 
-	}
-	if(G.vd->around==V3D_CENTROID  || G.vd->around==V3D_CENTROID_LOC) {
-		VECCOPY(centre, centroid);
-	}
-	else if(G.vd->around==V3D_CURSOR || G.vd->around==V3D_CURSOR_LOC) {
-		curs= give_cursor();
-		VECCOPY(centre, curs);
-		
-		if(G.obedit) {
-			VecSubf(centre, centre, G.obedit->obmat[3]);
-			Mat3CpyMat4(mat, G.obedit->obmat);
-			Mat3Inv(imat, mat);
-			Mat3MulVecfl(imat, centre);
-		}
+        if(G.vd->around==V3D_LOCAL) {
+        	if(G.obedit) {
+        		centre[0]= centre[1]= centre[2]= 0.0;
+        	}
 
-	}
-	
-	/* Always rotate around object centroid */
-	if (G.obpose){
-		VECCOPY (centre, centroid);
-	}
+        }
+        if(G.vd->around==V3D_CENTROID) {
+        	VECCOPY(centre, centroid);
+        }
+        else if(G.vd->around==V3D_CURSOR) {
+        	curs= give_cursor();
+        	VECCOPY(centre, curs);
 
-	/* moving: is shown in drawobject() */
-	if(G.obedit) G.moving= 2;
-	else G.moving= 1;
-	
+        	if(G.obedit) {
+        		VecSubf(centre, centre, G.obedit->obmat[3]);
+        		Mat3CpyMat4(mat, G.obedit->obmat);
+        		Mat3Inv(imat, mat);
+        		Mat3MulVecfl(imat, centre);
+        	}
+
+        }
+
+        /* Always rotate around object centroid */
+        if (G.obpose){
+        	VECCOPY (centre, centroid);
+        }
+
+        /* moving: is shown in drawobject() */
+        if(G.obedit) G.moving= 2;
+        else G.moving= 1;
+    }
+
 	areawinset(curarea->win);
-	
+
 	/* the persinv is polluted with translation, do not use!! */
 	Mat3CpyMat4(persmat, G.vd->persmat);
 	Mat3Inv(persinv, persmat);
-	
+
 	VECCOPY(rot0, persinv[0]);
 	Normalise(rot0);
 	VECCOPY(rot1, persinv[1]);
@@ -4632,7 +4639,7 @@ void transform(int mode)
 			centre[1]+= -6.0*rot2[1];
 			centre[2]+= -6.0*rot2[2];
 		}
-		
+
 		initgrabz(centre[0], centre[1], centre[2]);
 		project_short_noclip(centre, mval);
 
@@ -4642,7 +4649,7 @@ void transform(int mode)
 			centre[2]+= 6.0*rot2[2];
 		}
 	}
-	
+
 	VECCOPY(prop_cent, centre);
 
 	xc= mval[0];
@@ -4651,14 +4658,14 @@ void transform(int mode)
 	if(G.obedit) {
 		Mat3CpyMat4(omat, G.obedit->obmat);
 		Mat3Inv(imat, omat);
-		
+
 		Mat4Invert(imat4, G.obedit->obmat);
 	}
 
 	else if(G.obpose) {
 		Mat3CpyMat4(omat, G.obpose->obmat);
 		Mat3Inv(imat, omat);
-		
+
 		Mat4Invert(imat4, G.obpose->obmat);
 	}
 
@@ -4671,7 +4678,7 @@ void transform(int mode)
 			}
 		}
 	}
-	
+
 	if((mode=='r' || mode=='s' || mode=='S') && xc==32000) {
 		error("Centre far out of view");
 		wrong= 1;
@@ -4682,7 +4689,7 @@ void transform(int mode)
 		Mat4MulVecfl(G.vd->viewmat, min);
 		Mat4MulVecfl(G.obedit->obmat, max);
 		Mat4MulVecfl(G.vd->viewmat, max);
-		
+
 		centre[0]= (min[0]+max[0])/2.0;
 		centre[1]= (min[1]+max[1])/2.0;
 		centre[2]= (min[2]+max[2])/2.0;
@@ -4700,24 +4707,24 @@ void transform(int mode)
 	getmouseco_areawin(mval);
 	xn=xo= mval[0];
 	yn=yo= mval[1];
-	dx1= xc-xn; 
+	dx1= xc-xn;
 	dy1= yc-yn;
 	phi= phi0= phi1= 0.0;
-	
+
 	sizefac= sqrt( (float)((yc-yn)*(yc-yn)+(xn-xc)*(xn-xc)) );
 	if(sizefac<2.0) sizefac= 2.0;
 
 	gridflag= U.flag;
-	
+
 	while(wrong==0 && breakloop==0) {
-		
+
 		getmouseco_areawin(mval);
 		if(mval[0]!=xo || mval[1]!=yo || firsttime) {
 			if(firsttime) {
-				
+
 				/* not really nice, but who cares! */
 				oldval[0]= oldval[1]= oldval[2]= MAXFLOAT;
-				
+
 				/* proportional precalc */
 				if(mode=='G' || mode=='R' || mode=='C') {
 					if(transvmain) {
@@ -4729,8 +4736,8 @@ void transform(int mode)
 				}
 			}
 			firsttime= 0;
-			
-			if(mode=='g' || mode=='G') {
+
+			if(mode=='g' || mode=='G' || mode=='0') {
 				char gmode[10] = "";
 
 				keyflags |= KEYFLAG_LOC;
@@ -4741,7 +4748,7 @@ void transform(int mode)
 				if (axismode==XTRANS) strcpy(gmode, "X Axis: ");
 				if (axismode==YTRANS) strcpy(gmode, "Y Axis: ");
 				if (axismode==ZTRANS) strcpy(gmode, "Z Axis: ");
-				
+
 				if(axismode) {
 					if(cameragrab) {
 						dx1= 0.002*(mval[1]-yn)*G.vd->grid;
@@ -4780,7 +4787,7 @@ void transform(int mode)
 
 				if(dvec[0]!=oldval[0] ||dvec[1]!=oldval[1] ||dvec[2]!=oldval[2]) {
 					VECCOPY(oldval, dvec);
-					
+
 					/* speedup for vertices */
 					if (G.obedit) {
 						VECCOPY(dvecp, dvec);
@@ -4802,44 +4809,50 @@ void transform(int mode)
 						}
 					}
 
-					
+
 					/* apply */
 					tob= transmain;
 					tv= transvmain;
-					for(a=0; a<tottrans; a++, tob++, tv++) {
-						
-						if(transmain) {
-							VECCOPY(dvecp, dvec);
-							if(axismode & TRANSLOCAL)
-								Mat3MulVecfl(tob->axismat, dvecp);
-							
-							if(transmode==TRANS_TEX) Mat3MulVecfl(tob->obinv, dvecp);
+					if (mode!='0') {
+            			for(a=0; a<tottrans; a++, tob++, tv++) {
 
-							if(tob->flag & TOB_IKA) {
-								VecAddf(tob->eff, tob->oldeff, dvecp);
-							}
-							else
-								Mat3MulVecfl(tob->parinv, dvecp);
-							
-							if(tob->flag & TOB_IPO) {
-								add_ipo_tob_poin(tob->locx, tob->oldloc, dvecp[0]);
-								add_ipo_tob_poin(tob->locy, tob->oldloc+1, dvecp[1]);
-								add_ipo_tob_poin(tob->locz, tob->oldloc+2, dvecp[2]);
-							}
-							else if(tob->loc) {
-								VecAddf(tob->loc, tob->oldloc, dvecp);
-							}
-						}
-						else {
-							if(mode=='G') {
-								tv->loc[0]= tv->oldloc[0]+tv->fac*dvecp[0];
-								tv->loc[1]= tv->oldloc[1]+tv->fac*dvecp[1];
-								tv->loc[2]= tv->oldloc[2]+tv->fac*dvecp[2];
-							}
-							else VecAddf(tv->loc, tv->oldloc, dvecp);
-						}
+            				if(transmain) {
+            					VECCOPY(dvecp, dvec);
+            					if(axismode & TRANSLOCAL)
+            						Mat3MulVecfl(tob->axismat, dvecp);
 
-					}
+            					if(transmode==TRANS_TEX) Mat3MulVecfl(tob->obinv, dvecp);
+
+            					if(tob->flag & TOB_IKA) {
+            						VecAddf(tob->eff, tob->oldeff, dvecp);
+            					}
+            					else
+            						Mat3MulVecfl(tob->parinv, dvecp);
+
+            					if(tob->flag & TOB_IPO) {
+            						add_ipo_tob_poin(tob->locx, tob->oldloc, dvecp[0]);
+            						add_ipo_tob_poin(tob->locy, tob->oldloc+1, dvecp[1]);
+            						add_ipo_tob_poin(tob->locz, tob->oldloc+2, dvecp[2]);
+            					}
+            					else if(tob->loc) {
+            						VecAddf(tob->loc, tob->oldloc, dvecp);
+            					}
+            				}
+            				else {
+            					if(mode=='G') {
+            						tv->loc[0]= tv->oldloc[0]+tv->fac*dvecp[0];
+            						tv->loc[1]= tv->oldloc[1]+tv->fac*dvecp[1];
+            						tv->loc[2]= tv->oldloc[2]+tv->fac*dvecp[2];
+            					}
+            					else VecAddf(tv->loc, tv->oldloc, dvecp);
+            				}
+
+            			}
+            		}
+            		else {
+    	           		VecAddf(curs, oldcurs, dvec);
+        	       		allqueue(REDRAWVIEW3D, 1);            		
+            		}
 					if (typemode){
 						switch (ax){
 						case 0:
@@ -4860,7 +4873,7 @@ void transform(int mode)
 
 					if(G.obedit) calc_trans_verts();
 					special_trans_update(keyflags);
-					
+
 					if (cameragrab && midtog)
 						set_constline_callback(mode, ZTRANSLOCAL, midtog, centre, imat, vx, vy, vz);
 					else
@@ -4883,12 +4896,12 @@ void transform(int mode)
 				keyflags |= KEYFLAG_ROT;
 				dx2= xc-mval[0];
 				dy2= yc-mval[1];
-				
+
 				if(midtog && (mode=='r' || mode=='R')) {
 					turntable = 1;
 					phi0+= .007*(float)(dy2-dy1);
 					phi1+= .007*(float)(dx1-dx2);
-				
+
 					apply_keyb_grid(&phi0, 0.0, (5.0/180)*M_PI, (1.0/180)*M_PI, gridflag & USER_AUTOROTGRID);
 					apply_keyb_grid(&phi1, 0.0, (5.0/180)*M_PI, (1.0/180)*M_PI, gridflag & USER_AUTOROTGRID);
 
@@ -4914,14 +4927,14 @@ void transform(int mode)
 				else {
 					deler= sqrt( (dx1*dx1+dy1*dy1)*(dx2*dx2+dy2*dy2));
 					if(deler>1.0) {
-					
+
 						dphi= (dx1*dx2+dy1*dy2)/deler;
 						dphi= saacos(dphi);
 						if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
-								
+
 						if(G.qual & LR_SHIFTKEY) phi+= dphi/30.0;
 						else phi+= dphi;
-						
+
 						apply_keyb_grid(&phi, 0.0, (5.0/180)*M_PI, (1.0/180)*M_PI, gridflag & USER_AUTOROTGRID);
 
 						if(axismode) {
@@ -4935,7 +4948,7 @@ void transform(int mode)
 								if (axismode & TRANSLOCAL) VecMulf(vec, -1.0);
 							}
 						}
-						
+
 						if(typemode){
 							doit= 1;
 							if(axismode) {
@@ -4944,7 +4957,7 @@ void transform(int mode)
 							else VecRotToMat3(rot2, addvec[0]*M_PI/180.0, mat);
 						}
 						else if(oldval[2]!=phi) {
-							dx1= dx2; 
+							dx1= dx2;
 							dy1= dy2;
 							oldval[2]= phi;
 							doit= 1;
@@ -4956,11 +4969,12 @@ void transform(int mode)
 					}
 
 				}
-				if(doit) {
+				
+				if(doit && (mode!='0')) {
 					/* apply */
 					tob= transmain;
 					tv= transvmain;
-					
+
 					for(a=0; a<tottrans; a++, tob++, tv++) {
 						if(transmain) {
 							/* rotation in three steps:
@@ -4968,14 +4982,14 @@ void transform(int mode)
 							 * 2. distill from this the euler. Always do this step because MatToEul is pretty weak
 							 * 3. multiply with its own rotation, calculate euler.
 							 */
-							
-							if (/*(G.vd->flag & V3D_ALIGN)==0*/ G.vd->around != V3D_CURSOR_LOC && G.vd->around != V3D_CENTROID_LOC){
-							
+
+							if ((G.vd->flag & V3D_ALIGN)==0) {
+
     							/* Roll around local axis */
     							if (mode=='r' || mode=='R'){
 
     								if (tob && axismode && (turntable == 0)){
-    									if (axismode == XTRANSLOCAL){ 
+    									if (axismode == XTRANSLOCAL){
     										VECCOPY(vec, tob->axismat[0]);
     									}
     									if (axismode == YTRANSLOCAL){
@@ -4995,7 +5009,7 @@ void transform(int mode)
     										VecRotToMat3(vec, addvec[0] * M_PI / 180.0, mat);
     									else
     										VecRotToMat3(vec, phi, mat);
-    										
+
     								}
     							}
     							Mat3MulSerie(smat, tob->parmat, mat, tob->parinv, 0, 0, 0, 0, 0);
@@ -5005,32 +5019,32 @@ void transform(int mode)
     								Mat3ToEul(smat, eul);
     								EulToMat3(eul, smat);
     							}
-    						
+
     							/* 3 */
     							/* we now work with rot+drot */
-    								
+
     							if(tob->ob->transflag & OB_QUAT || !tob->rot) {
-    							
+
     								/* drot+rot TO DO! */
     								Mat3ToQuat(smat, quat);	// Original
     								QuatMul(tob->quat, quat, tob->oldquat);
-    								
+
     								if(tob->flag & TOB_IPO) {
-    									
+
     									if(tob->flag & TOB_IPODROT) {
     										/* VecSubf(rot, eul, tob->oldrot); */
     									}
     									else {
     										/* VecSubf(rot, eul, tob->olddrot); */
     									}
-    	
+
     									/* VecMulf(rot, 9.0/M_PI_2); */
     									/* VecSubf(rot, rot, tob->oldrot+3); */
 
     									/* add_ipo_tob_poin(tob->rotx, tob->oldrot+3, rot[0]); */
     									/* add_ipo_tob_poin(tob->roty, tob->oldrot+4, rot[1]); */
     									/* add_ipo_tob_poin(tob->rotz, tob->oldrot+5, rot[2]); */
-    	
+
     								}
     								else {
     									/* QuatSub(tob->quat, quat, tob->oldquat); */
@@ -5047,18 +5061,18 @@ void transform(int mode)
     								/* Eul is not allowed to differ too much from old eul.
     								 * This has only been tested for dx && dz
     								 */
-    								
+
     								compatible_eul(eul, tob->oldrot);
-    							
+
     								if(tob->flag & TOB_IPO) {
-    									
+
     									if(tob->flag & TOB_IPODROT) {
     										VecSubf(rot, eul, tob->oldrot);
     									}
     									else {
     										VecSubf(rot, eul, tob->olddrot);
     									}
-    	
+
     									VecMulf(rot, 9.0/M_PI_2);
     									VecSubf(rot, rot, tob->oldrot+3);
 
@@ -5066,12 +5080,12 @@ void transform(int mode)
     									add_ipo_tob_poin(tob->rotx, tob->oldrot+3, rot[0]);
     									add_ipo_tob_poin(tob->roty, tob->oldrot+4, rot[1]);
     									add_ipo_tob_poin(tob->rotz, tob->oldrot+5, rot[2]);
-    	
+
     								}
     								else {
     									VecSubf(tob->rot, eul, tob->olddrot);
     								}
-    								
+
     								/* See if we've moved */
     								if (!VecCompare (tob->loc, tob->oldloc, 0.01)){
     									keyflags |= KEYFLAG_LOC;
@@ -5079,10 +5093,10 @@ void transform(int mode)
 
     							}
     						}
-							
+
 							if(G.vd->around!=V3D_LOCAL && (!G.obpose))  {
 								float vec[3];	// make local, the other vec stores rot axis
-								
+
 								/* translation */
 								VecSubf(vec, tob->obvec, centre);
 								Mat3MulVecfl(mat, vec);
@@ -5090,7 +5104,7 @@ void transform(int mode)
 								/* vec now is the location where the object has to be */
 								VecSubf(vec, vec, tob->obvec);
 								Mat3MulVecfl(tob->parinv, vec);
-								
+
 								if(tob->flag & TOB_IPO) {
 									add_ipo_tob_poin(tob->locx, tob->oldloc, vec[0]);
 									add_ipo_tob_poin(tob->locy, tob->oldloc+1, vec[1]);
@@ -5106,7 +5120,7 @@ void transform(int mode)
 								if(tv->val) *(tv->val)= tv->oldval-phi;
 							}
 							else {
-							
+
 								if(mode=='R') {
 
 									if(midtog) {
@@ -5127,21 +5141,21 @@ void transform(int mode)
 										else
 											VecRotToMat3(rot2, tv->fac*phi, mat);
 									}
-									
+
 								}
 
 								Mat3MulMat3(totmat, mat, omat);
 								Mat3MulMat3(smat, imat, totmat);
-							
+
 								VecSubf(vec, tv->oldloc, centre);
 								Mat3MulVecfl(smat, vec);
-								
+
 								VecAddf(tv->loc, vec, centre);
 							}
 						}
 					}
-					
-					
+
+
 					if(midtog){
 						if (typemode){
 							if (ax == 1)
@@ -5177,14 +5191,14 @@ void transform(int mode)
 							sprintf(str, "Rot: %.2f", 180.0*phi/M_PI);
 					}
 					headerprint(str);
-					
+
 					time= my_clock();
 
 					if(G.obedit) calc_trans_verts();
 					special_trans_update(keyflags);
-					
+
 					set_constline_callback(mode, axismode, midtog, centre, imat, vx, vy, vz);
-					
+
 					if(fast==0) {
 						force_draw();
 						time= my_clock()-time;
@@ -5194,7 +5208,7 @@ void transform(int mode)
 						scrarea_do_windraw(curarea);
 						screen_swapbuffers();
 					}
-					if(tottrans>1 || G.vd->around==V3D_CURSOR || G.vd->around==V3D_CURSOR_LOC) helpline(centre);
+					if(tottrans>1 || G.vd->around==V3D_CURSOR) helpline(centre);
 					else if (G.obpose) helpline (centre);
 				}
 			}
@@ -5207,7 +5221,7 @@ void transform(int mode)
 					size[2]= 1.0;
 				}
 				else size[0]=size[1]=size[2]= (sqrt( (float)((yc-mval[1])*(yc-mval[1])+(mval[0]-xc)*(mval[0]-xc)) ))/sizefac;
-				
+
 				if (typemode){
 					if (numchange[0]) size[0] = addvec[0]; else size[0] = 1;
 					if (numchange[1]) size[1] = addvec[1]; else size[1] = 1;
@@ -5232,14 +5246,14 @@ void transform(int mode)
 /* X en Y flip, there are 2 methods: at  |**| removing comments makes flips local
 
 				if(transvmain) {
-	
+
 						// x flip
 					val= test_midtog_proj(mval[0]+10, mval[1], mval);
 					size[val]*= xref;
 						// y flip
 					val= test_midtog_proj(mval[0], mval[1]+10, mval);
 					size[val]*= yref;
-					
+
 				} */
 
 
@@ -5247,31 +5261,31 @@ void transform(int mode)
 				apply_keyb_grid(size, 0.0, 0.1, 0.01, gridflag & USER_AUTOSIZEGRID);
 				apply_keyb_grid(size+1, 0.0, 0.1, 0.01, gridflag & USER_AUTOSIZEGRID);
 				apply_keyb_grid(size+2, 0.0, 0.1, 0.01, gridflag & USER_AUTOSIZEGRID);
-				
+
 				if(transmain) {
 					size[0]= MINSIZE(size[0], 0.001);
 					size[1]= MINSIZE(size[1], 0.001);
 					size[2]= MINSIZE(size[2], 0.001);
 				}
-				
+
 				if(size[0]!=oldval[0] ||size[1]!=oldval[1] ||size[2]!=oldval[2]) {
 					VECCOPY(oldval, size);
-					
+
 					SizeToMat3(size, mat);
 
 					/* apply */
 					tob= transmain;
 					tv= transvmain;
-					
+
 					for(a=0; a<tottrans; a++, tob++, tv++) {
 						if(transmain) {
 							/* size local with respect to parent AND own rotation */
 							/* local wrt parent: */
-							
-							if ( /*(G.vd->flag & V3D_ALIGN)==0 */ G.vd->around != V3D_CURSOR_LOC && G.vd->around != V3D_CENTROID_LOC) {	
-								 							
+
+							if ((G.vd->flag & V3D_ALIGN)==0) {
+
     							Mat3MulSerie(smat, tob->parmat, mat, tob->parinv, 0, 0,0 ,0, 0);
-    							
+
     							/* local wrt own rotation: */
     							Mat3MulSerie(totmat, tob->obmat, smat, tob->obinv, 0, 0, 0,0 ,0);
 
@@ -5281,15 +5295,15 @@ void transform(int mode)
     								sizelo[0]= size[0];
     								sizelo[1]= size[1];
     								sizelo[2]= size[2];
-    							} else { 	
+    							} else {
     							/* in this case the previous calculation of the size is wrong */
-    								sizelo[0]= totmat[0][0];	
-    								sizelo[1]= totmat[1][1];	
+    								sizelo[0]= totmat[0][0];
+    								sizelo[1]= totmat[1][1];
     								sizelo[2]= totmat[2][2];
     								apply_keyb_grid(sizelo, 0.0, 0.1, 0.01, gridflag & USER_AUTOSIZEGRID);
     								apply_keyb_grid(sizelo+1, 0.0, 0.1, 0.01, gridflag & USER_AUTOSIZEGRID);
     								apply_keyb_grid(sizelo+2, 0.0, 0.1, 0.01, gridflag & USER_AUTOSIZEGRID);
-    							} 
+    							}
 
     								/* x flip */
     /**/						/* sizelo[0]*= xref; */
@@ -5303,7 +5317,7 @@ void transform(int mode)
     							/* correction for delta size */
     							if(tob->flag & TOB_IPO) {
     								/* calculate delta size (equal for size and dsize) */
-    								
+
     								vec[0]= (tob->oldsize[0]+tob->olddsize[0])*(sizelo[0] -1.0);
     								vec[1]= (tob->oldsize[1]+tob->olddsize[1])*(sizelo[1] -1.0);
     								vec[2]= (tob->oldsize[2]+tob->olddsize[2])*(sizelo[2] -1.0);
@@ -5311,19 +5325,19 @@ void transform(int mode)
     								add_ipo_tob_poin(tob->sizex, tob->oldsize+3, vec[0]);
     								add_ipo_tob_poin(tob->sizey, tob->oldsize+4, vec[1]);
     								add_ipo_tob_poin(tob->sizez, tob->oldsize+5, vec[2]);
-    								
+
     							}
     							else {
     								tob->size[0]= (tob->oldsize[0]+tob->olddsize[0])*sizelo[0] -tob->olddsize[0];
     								tob->size[1]= (tob->oldsize[1]+tob->olddsize[1])*sizelo[1] -tob->olddsize[1];
     								tob->size[2]= (tob->oldsize[2]+tob->olddsize[2])*sizelo[2] -tob->olddsize[2];
     							}
+							} else {
+								sizelo[0]= size[0];
+								sizelo[1]= size[1];
+								sizelo[2]= size[2];
 							}
-							else{  //to make the scaling header update correctly if ob centers only is on
-    								sizelo[0]= size[0];
-    								sizelo[1]= size[1];
-    								sizelo[2]= size[2];
-							}
+
 							if(G.vd->around!=V3D_LOCAL && !G.obpose) {
 								/* translation */
 								VecSubf(vec, tob->obvec, centre);
@@ -5345,10 +5359,10 @@ void transform(int mode)
 							}
 						}
 						else {	/* vertices */
-						
+
 							/* for print */
 							VECCOPY(sizelo, size);
-							
+
 							if(mode=='C') {
 								size[0]= tv->fac*size[0]+ 1.0-tv->fac;;
 								size[1]= tv->fac*size[1]+ 1.0-tv->fac;;
@@ -5356,12 +5370,12 @@ void transform(int mode)
 								SizeToMat3(size, mat);
 								VECCOPY(size, oldval);
 							}
-							
+
 							if(mode=='S') {	/* shear */
 								Mat3One(tmat);
 								tmat[0][0]= tmat[2][2]= tmat[1][1]= 1.0;
 								tmat[1][0]= size[0]-1.0;
-								
+
 								Mat3MulMat3(totmat, persmat, omat);
 								Mat3MulMat3(mat, tmat, totmat);
 								Mat3MulMat3(totmat, persinv, mat);
@@ -5375,7 +5389,7 @@ void transform(int mode)
 									Mat3MulMat3(smat, totmat, omat);
 								}
 							}
-							
+
 							if(mode=='N' && tv->nor!=NULL) {
 								tv->loc[0]= tv->oldloc[0] + (size[0]-1.0)*tv->nor[0];
 								tv->loc[1]= tv->oldloc[1] + (size[1]-1.0)*tv->nor[1];
@@ -5385,7 +5399,7 @@ void transform(int mode)
 								VecSubf(vec, tv->oldloc, centre);
 								Mat3MulVecfl(smat, vec);
 								VecAddf(tv->loc, vec, centre);
-							
+
 								if(G.obedit->type==OB_MBALL) *(tv->val)= size[0]*tv->oldval;
 							}
 						}
@@ -5427,16 +5441,16 @@ void transform(int mode)
 						else
 							sprintf(str, "Shrink/Fatten: %.3f", size[0]);
 					}
-					
+
 					headerprint(str);
-					
+
 					time= my_clock();
 
 					if(G.obedit) calc_trans_verts();
 					special_trans_update(keyflags);
-				
+
 					set_constline_callback(mode, axismode, midtog, centre, imat, vx, vy, vz);
-				
+
 					if(fast==0) {
 						force_draw();
 						time= my_clock()-time;
@@ -5446,16 +5460,16 @@ void transform(int mode)
 						scrarea_do_windraw(curarea);
 						screen_swapbuffers();
 					}
-					if(tottrans>1 || G.vd->around==V3D_CURSOR || G.vd->around==V3D_CURSOR_LOC) helpline(centre);
+					if(tottrans>1 || G.vd->around==V3D_CURSOR) helpline(centre);
 				}
 			}
 			else if(mode=='w') {
 				float Dist1;
-				
+
 				window_to_3d(dvec, 1, 1);
-				
+
 				circumfac= startcircumfac+ 0.05*( mval[1] - yn)*Normalise(dvec);
-	
+
 				/* calc angle for print */
 				dist= max[0]-centre[0];
 				Dist1 = dist;
@@ -5464,58 +5478,58 @@ void transform(int mode)
 				if ((typemode) && (addvec[0])){
 					phi0 = addvec[0];
 				}
-				
+
 				if((G.qual & LR_CTRLKEY) && (typemode == 0)){
 					phi0= 5.0*floor(phi0/5.0);
 					circumfac= (phi0*rad*M_PI)/(360.0*dist);
 				}
-				
+
 				if (typemode && addvec[0])
-					sprintf(str, "Warp >%3.3f<", addvec[0]); 
+					sprintf(str, "Warp >%3.3f<", addvec[0]);
 				else
-					sprintf(str, "Warp %3.3f", phi0); 
+					sprintf(str, "Warp %3.3f", phi0);
 				headerprint(str);
-	
+
 				/* each vertex transform individually */
 				tob= transmain;
 				tv= transvmain;
-					
+
 				for(a=0; a<tottrans; a++, tob++, tv++) {
 					if(transvmain) {
-						
+
 						/* translate point to centre, rotate in such a way that outline==distance */
-						
+
 						VECCOPY(vec, tv->oldloc);
 						Mat4MulVecfl(G.obedit->obmat, vec);
 						Mat4MulVecfl(G.vd->viewmat, vec);
-								
+
 						dist= vec[0]-centre[0];
 
 						if ((typemode) && (addvec[0]))
 							phi0= (Dist1*addvec[0]*M_PI/(360.0*dist)) - 0.5*M_PI;
 						else
 							phi0= (circumfac*dist/rad) - 0.5*M_PI;
-					
+
 						co= cos(phi0);
 						si= sin(phi0);
-						
+
 						vec[0]= (centre[0]-axis[0]);
 						vec[1]= (vec[1]-axis[1]);
-						
+
 						tv->loc[0]= si*vec[0]+co*vec[1]+axis[0];
-						
+
 						tv->loc[1]= co*vec[0]-si*vec[1]+axis[1];
 						tv->loc[2]= vec[2];
-						
+
 						Mat4MulVecfl(viewinv, tv->loc);
 						Mat4MulVecfl(imat4, tv->loc);
-						
+
 					}
 				}
-				
+
 				if(G.obedit) calc_trans_verts();
 				special_trans_update(keyflags);
-				
+
 				if(fast==0) {
 					time= my_clock();
 					force_draw();
@@ -5535,16 +5549,16 @@ void transform(int mode)
 					EditEdge *ee;
 					Mesh *me= G.obedit->data;
 					float mincr=10.0, maxcr= 0.0;
-					
+
 					/* this is sufficient to invoke edges added in mesh, but only in editmode */
 					if(me->medge==NULL) {
 						me->medge= MEM_callocN(sizeof(MEdge), "fake medge");
 						me->totedge= 1;
 						allqueue(REDRAWBUTSEDIT, 0);
 					}
-					
+
 					dist= (0.005 * (mval[1] - yo));
-				
+
 					ee = em->edges.first;
 					while (ee) {
 						if ((ee->v1->f & 1) && (ee->v2->f & 1)) {
@@ -5556,15 +5570,15 @@ void transform(int mode)
 						}
 						ee = ee->next;
 					}
-					
+
 					if(mincr==10.0) wrong= 1;
 					else {
-						sprintf(str, "Edge sharpness range: %.3f - %.3f", mincr, maxcr); 
+						sprintf(str, "Edge sharpness range: %.3f - %.3f", mincr, maxcr);
 						headerprint(str);
-					
+
 						if(G.obedit) calc_trans_verts();
 						special_trans_update(keyflags);
-					
+
 						if(fast==0) {
 							time= my_clock();
 							force_draw();
@@ -5583,16 +5597,16 @@ void transform(int mode)
 			}
 			/* Help line drawing starts here */
 		}
-		
+
 		while( qtest() ) {
 			float add_num = 0; // numerical value to be added
 
 			event= extern_qread(&val);
-			
+
 			if(val) {
 				/* no-numpad option likes minus for numeric input better */
 				if ((U.flag & USER_NONUMPAD) && typemode && event==PADMINUS) event = MINUSKEY;
-				
+
 				switch(event) {
 				case ESCKEY:
 				case LEFTMOUSE:
@@ -5629,6 +5643,7 @@ void transform(int mode)
 					}
 					firsttime= 1;
 					break;
+				case CKEY:
 				case GKEY:
 				case RKEY:
 				case SKEY:
@@ -5642,24 +5657,30 @@ void transform(int mode)
 					getmouseco_areawin(mval);
 					xn=xo= mval[0];
 					yn=xo= mval[1];
-					dx1= xc-xn; 
+					dx1= xc-xn;
 					dy1= yc-yn;
 					phi= phi0= phi1= 0.0;
 					sizefac= sqrt( (float)((yc-yn)*(yc-yn)+(xn-xc)*(xn-xc)) );
 					if(sizefac<2.0) sizefac= 2.0;
-					
+
 					if (G.obedit && (G.f & G_PROPORTIONAL)) {
 						if(event==GKEY) mode= 'G';
 						else if(event==RKEY) mode= 'R';
-						else if(event==SKEY) mode= 'C';						
+						else if(event==SKEY) mode= 'C';
 					} else {
-						if(event==GKEY) mode= 'g';
+						if (event==CKEY) {
+        					mode='0'; 
+        					G.moving = 0;
+        					curs = give_cursor();
+        					VECCOPY(oldcurs, curs);									
+        				}
+						else if(event==GKEY) mode= 'g';
 						else if(event==RKEY) mode= 'r';
 						else if(event==SKEY) mode= 's';
 					}
 
 					firsttime= 1;
-					
+
 					tob= transmain;
 					tv= transvmain;
 					for(a=0; a<tottrans; a++, tob++, tv++) {
@@ -5671,7 +5692,7 @@ void transform(int mode)
 						}
 					}
 					break;
-				
+
 				case XKEY:
 					if (axismode==XTRANS)
 						axismode=XTRANSLOCAL;
@@ -5689,7 +5710,7 @@ void transform(int mode)
                     }
 					firsttime=1;
 					break;
-					
+
 				case YKEY:
 					if (axismode==YTRANS)
 						axismode=YTRANSLOCAL;
@@ -5707,7 +5728,7 @@ void transform(int mode)
                     }
 					firsttime=1;
 					break;
-					
+
 				case ZKEY:
 					if (axismode==ZTRANS)
 						axismode=ZTRANSLOCAL;
@@ -5813,7 +5834,7 @@ void transform(int mode)
 							getmouseco_areawin(mval);
 							xn=xo= mval[0];
 							yn=xo= mval[1];
-							dx1= xc-xn; 
+							dx1= xc-xn;
 							dy1= yc-yn;
 							phi= phi0= phi1= 0.0;
 							sizefac= sqrt( (float)((yc-yn)*(yc-yn)+(xn-xc)*(xn-xc)) );
@@ -5960,7 +5981,7 @@ void transform(int mode)
 								}
 								numchange[ax-1]=1;
 							}
-							
+
 						}
 						else if (mode == 'N'){
 							if (pe[0]){
@@ -6022,7 +6043,7 @@ void transform(int mode)
 					}
 					break;
 				}
-	
+
 				arrows_move_cursor(event);
 			}
 			if(event==0 || breakloop) break;
@@ -6030,12 +6051,12 @@ void transform(int mode)
 		}
 		xo= mval[0];
 		yo= mval[1];
-				
+
 		if( qtest()==0) PIL_sleep_ms(1);
-		
+
 	}
 	G.moving= 0;
-	
+
 	if(event==ESCKEY || event==RIGHTMOUSE) {
 		canceled=1;
 		G.undo_edit_level--;
@@ -6052,8 +6073,9 @@ void transform(int mode)
 		}
 		if(G.obedit) calc_trans_verts();
 		special_trans_update(keyflags);
+		if (mode == '0') VECCOPY(curs, oldcurs);		
 	}
-	
+
 	a= 0;
 	if(xref<0) a++;
 	if(yref<0) a++;
@@ -6062,9 +6084,9 @@ void transform(int mode)
 
 	allqueue(REDRAWVIEW3D, 0);
 	scrarea_queue_headredraw(curarea);
-	
+
 	clearbaseflags_for_editing();
-	
+
 	if(transmain) MEM_freeN(transmain);
 	transmain= 0;
 	if(transvmain) MEM_freeN(transvmain);
@@ -7341,10 +7363,10 @@ void mirror_edit(short mode) {
 	tv = transvmain;
 
 	// Taking care of all the centre modes
-	if(G.vd->around==V3D_CENTROID || G.vd->around==V3D_CENTROID_LOC) {
+	if(G.vd->around==V3D_CENTROID) {
 		VecCopyf(centre, centroid);
 	}
-	else if(G.vd->around==V3D_CURSOR || G.vd->around==V3D_CURSOR_LOC) {
+	else if(G.vd->around==V3D_CURSOR) {
 		float *curs;
 		curs= give_cursor();
 		VECCOPY(centre, curs);
@@ -7468,10 +7490,10 @@ void mirror_object(short mode) {
 	tob = transmain;
 
 	// Taking care of all the centre modes
-	if(G.vd->around==V3D_CENTROID  || G.vd->around==V3D_CENTROID_LOC) {
+	if(G.vd->around==V3D_CENTROID) {
 		VecCopyf(centre, centroid);
 	}
-	else if(G.vd->around==V3D_CURSOR || G.vd->around==V3D_CURSOR_LOC) {
+	else if(G.vd->around==V3D_CURSOR) {
 		float *curs;
 		curs= give_cursor();
 		VECCOPY(centre, curs);
