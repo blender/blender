@@ -4565,11 +4565,13 @@ void transform(int mode)
 	}
 
 	if(tottrans==0) {
-/*		if(G.obedit==0) clearbaseflags_for_editing();*/
+		if (mode!='g') {
+			if(G.obedit==0) clearbaseflags_for_editing();
+			return;
+		}
 		mode='0';
 		curs = give_cursor();
 		VECCOPY(oldcurs, curs);		
-/*		return;*/
 	}
 
 	if(G.obedit==0 && mode=='S') return;
