@@ -129,10 +129,14 @@ static float *Vec3AddT(float *t, float *a, float *b) {
 static float *Vec2Add(float *ta, float *b) {
 	ta[0]+= b[0];
 	ta[1]+= b[1];
-	ta[2]+= b[2];
 	return ta;
 }
 
+static float *Vec2MulNT(float *t, float *a, float n) {
+	t[0]= a[0]*n;
+	t[1]= a[1]*n;
+	return t;
+}
 static float *Vec3MulNT(float *t, float *a, float n) {
 	t[0]= a[0]*n;
 	t[1]= a[1]*n;
@@ -147,6 +151,11 @@ static float *Vec3Add(float *ta, float *b) {
 	return ta;
 }
 
+static float *Vec2MulN(float *ta, float n) {
+	ta[0]*= n;
+	ta[1]*= n;
+	return ta;
+}
 static float *Vec3MulN(float *ta, float n) {
 	ta[0]*= n;
 	ta[1]*= n;
@@ -545,7 +554,7 @@ static void hypermesh_subdivide(HyperMesh *me, HyperMesh *nme) {
 			Vec2CpyI(uvco_mid, 0.0, 0.0);
 			for (j=0; j<f->nverts; j++)
 				Vec2Add(uvco_mid, f->uvco[j]);
-			Vec3MulN(uvco_mid, (float)(1.0/f->nverts));
+			Vec2MulN(uvco_mid, (float)(1.0/f->nverts));
 
 			for (j=0; j<f->nverts; last= j, j++)
 				Vec2AvgT(uvco_edge[j], f->uvco[last], f->uvco[j]);
