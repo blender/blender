@@ -808,6 +808,9 @@ static PyObject *NMesh_update(PyObject *self, PyObject *args)
   */
   test_object_materials((ID *)mesh);
 
+	if (nmesh->name && nmesh->name != Py_None)
+		new_id(&(G.main->mesh), &mesh->id, PyString_AsString(nmesh->name));
+
   if (!during_script())
     allqueue(REDRAWVIEW3D, 0);
 
@@ -965,17 +968,13 @@ static int NMesh_setattr(PyObject *self, char *name, PyObject *v)
   BPy_NMesh *me = (BPy_NMesh *)self;
 
   if (!strcmp(name, "name")) {
-    char buf[21];
 
     if (!PyString_Check(v))
       return EXPP_ReturnIntError (PyExc_TypeError,
               "expected string argument");
 
-    PyOS_snprintf(buf, sizeof(buf), "%s", PyString_AsString(v));
-    rename_id(&me->mesh->id, buf);
-
     Py_DECREF (me->name);
-    me->name = PyString_FromString(me->mesh->id.name+2);
+    me->name = EXPP_incr_ret(v);
   }
 
   else if (!strcmp(name, "verts") || !strcmp(name, "faces") ||
@@ -1736,7 +1735,10 @@ static PyObject *M_NMesh_PutRaw(PyObject *self, PyObject *args)
     else
       mesh = (Mesh *)ob->data;
   }
+
   if (name) new_id(&(G.main->mesh), &mesh->id, name);
+	else if (nmesh->name && nmesh->name != Py_None)
+		new_id(&(G.main->mesh), &mesh->id, PyString_AsString(nmesh->name));
 
   unlink_existingMeshData(mesh);
   convert_NMeshToMesh(mesh, nmesh);
