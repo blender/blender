@@ -29,11 +29,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include "modules.h"
+%module Blender
 
-void initBlenderApi2_2x (void)
-{
-	printf ("initBlenderApi2_2x\n");
-	initBlender ();
-}
-
+void copy (void);

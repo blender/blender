@@ -23,20 +23,21 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
+ * The Original Code is: source/blender/bpyton/include/BPY_extern.h
  *
- * Contributor(s): none yet.
+ * Contributor(s): Michel Selten
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-struct Text;
-struct ID;
-struct ScriptLink;
-struct ListBase;
-struct SpaceText;
+struct Text;       /* defined in DNA_text_types.h        */
+struct ID;         /* defined in DNA_ID.h                */
+struct ScriptLink; /* defined in DNA_scriptlink_types.h  */
+struct ListBase;   /* defined in DNA_listBase.h          */
+struct SpaceText;  /* defined in DNA_space_types.h       */
+/*
 struct _object;  // forward declaration for PyObject !
-
+*/
 
 void BPY_start_python(void);
 void BPY_end_python(void);

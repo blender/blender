@@ -29,11 +29,13 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include "modules.h"
+#include <stdio.h>
 
-void initBlenderApi2_2x (void)
+void BlenderCopy (void)
 {
-	printf ("initBlenderApi2_2x\n");
-	initBlender ();
+	printf ("self.copy\n");
 }
-
+/* The following line has to be copied to Blender_wrap.c each time swig is
+   called to generate new wrapper functions.
+	PyDict_SetItemString (d, "Object", initObject());
+*/

@@ -29,11 +29,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
+%module Object
+
+%{
 #include "modules.h"
-
-void initBlenderApi2_2x (void)
-{
-	printf ("initBlenderApi2_2x\n");
-	initBlender ();
-}
-
+%}
+void copy (void);
+void shareFrom (int object);
+int getMatrix (void);

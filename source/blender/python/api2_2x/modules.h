@@ -28,12 +28,8 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
+#include <Python.h>
 
-#include "modules.h"
-
-void initBlenderApi2_2x (void)
-{
-	printf ("initBlenderApi2_2x\n");
-	initBlender ();
-}
+void initBlender (void);
+PyObject* initObject (void);
 
