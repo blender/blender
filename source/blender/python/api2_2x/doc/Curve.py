@@ -8,13 +8,30 @@ Curve Data
 
 This module provides access to B{Curve Data} objects in Blender.
 
-Example::
+A Blender Curve can consist of multiple curves. Try converting a Text object to a Curve to see an example of this.   Each curve is of
+type Bezier or Nurb.  The underlying curves can be accessed with
+the [] operator.  Operator [] returns an object of type CurNurb.
+
+The Curve module also supports the Python iterator interface.  This means you can access the curves in a Curve or the control points in a CurNurb using a python for statement.
+
+
+Add a Curve to a Scene Example::
   from Blender import Curve, Object, Scene
   c = Curve.New()             # create new  curve data
   cur = Scene.getCurrent()    # get current scene
   ob = Object.New('Curve')    # make curve object
   ob.link(c)                  # link curve data with this object
   cur.link(ob)                # link object into scene
+
+Iterator Example::
+  ob = Object.GetSelected()[0]
+  curve = ob.getData()
+  for cur in curve:
+    print type( cur ), cur
+    for point in cur:
+      print type( point ), point
+
+
 """
 
 def New ( name = 'CurData'):
@@ -42,6 +59,7 @@ class Curve:
   The Curve Data object
   =====================
   This object gives access to Curve-specific data in Blender.
+  
   @cvar name: The Curve Data name.
   @cvar pathlen: The Curve Data path length.
   @cvar totcol: The Curve Data maximal number of linked materials.
@@ -230,6 +248,28 @@ class Curve:
     See L{getControlPoint} for the length of the list.
     """
 
+  def appendPoint( numcurve, new_control_point ):
+    """
+      add a new control point to the indicated curve.
+      @rtype: PyNone
+      @type numcurve: int
+      @type new_control_point: list xyzw or BezTriple
+      @param numcurve:  index for spline in Curve, starting from 0
+      @param new_control_point: depends on curve's type.
+        - type bezier: a BezTriple 
+	- type nurb: a list of four floats for the xyzw values
+      @raise AttributeError:  throws exeption if numcurve is out of range.
+    """
+
+  def appendNurb( new_point ):
+      """
+      add a new curve to this Curve.  The new point is added to the new curve.  Blender does not support a curve with zero points.  The new curve is added to the end of the list of curves in the Curve.
+      @rtype: PyNone
+      @return: PyNone
+      @type new_point: BezTriple or list of xyzw coords for a Nurb curve.
+      @param new_point: see L{CurNurb.append} for description of parameter.
+      """
+
   def getLoc():
     """
     Get the curve's location value.
@@ -271,3 +311,78 @@ class Curve:
     @type size: list[3]
     @param size: The new Curve's size values. 
     """
+
+  def getMaterials():
+    """
+    Returns a list of materials assigned to the Curve.
+    @rtype: list of Material Objects
+    @return: list of Material Objects assigned to the Curve.
+    """
+
+  def update():
+    """
+    Updates display list for a Curve.
+    Used after making changes to control points.
+    
+    You B{must} use this if you want to see your changes!
+    @rtype: PyNone
+    @return: PyNone
+    """
+
+  def isNurb( curve_num):
+      """
+      method used to determine whether a CurNurb is of type Bezier or of type Nurb.
+      @rtype: integer
+      @return:  Zero of curve is type Bezier, One if curve is of type Nurb.
+      @type curve_num: integer
+      @param curve_num: zero-based index into list of curves in this Curve.
+      @raise AttributeError:  throws execption if curve_num is out of range.
+      """
+
+
+class CurNurb:
+    """
+    The CurNurb Object
+    ==================
+    This object provides access to the control points of the curves that make up a Blender Curve.
+
+    The CurNurb supports the python iterator protocol which means you can use a python for statement to access the points in a curve.
+
+    The CurNurb also supports the sequence protocol which means you can access the control points of a CurNurb using the [] operator.
+    """
+
+
+    def append( new_point ):
+      """
+      Appends a new point to a curve.  This method appends points to both Bezier and Nurb curves.  The type of the argument must match the type of the curve.  An empty curve will assume the type of the first appended point.
+      @rtype: PyNone
+      @return: PyNone
+      @type new_point: BezTriple or list of 4 floats
+      @param new_point: the new point to be appended to the curve.  The new point can be either a BezTriple type or a list of 4 floats in x,y,z,w format for a Nurb curve.
+      """
+
+    def setMatIndex( index ):
+      """
+      Sets the Material index for this CurNurb.
+      @rtype: PyNone
+      @return: PyNone
+      @type index:  integer
+      @param index: the new value for the Material number of this CurNurb.  No range checking is done.
+      """
+
+    def getMatIndex():
+      """
+      Returns the Material index for this CurNurb.
+      @rtype: integer
+      @return: integer
+      """
+
+    def isNurb():
+      """
+      Boolean method used to determine whether a CurNurb is of type Bezier or of type Nurb.
+      @rtype: boolean
+      @return:  True or False
+      """
+
+  
+    
