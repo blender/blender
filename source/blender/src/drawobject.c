@@ -4017,7 +4017,7 @@ void draw_object(Base *base)
 	if(ob==((G.scene->basact) ? (G.scene->basact->object) : 0) && (G.f & (G_FACESELECT+G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT))) {
 		if(ob->type==OB_MESH) {
 			
-			if(ob==G.obedit) dt= OB_WIRE;
+			if(ob==G.obedit);
 			else {
 				dt= OB_SHADED;
 		

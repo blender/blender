@@ -751,10 +751,12 @@ void make_editMesh()
 				efa->mat_nr= mface->mat_nr;
 				efa->flag= mface->flag & ~ME_HIDE;
 				
-				/* select face flag, if no edges we flush down */
-				if(mface->flag & ME_FACE_SEL) {
-					efa->f |= SELECT;
-					if(me->medge==NULL) EM_select_face(efa, 1);
+				if((G.f & G_FACESELECT)==0) {
+					/* select face flag, if no edges we flush down */
+					if(mface->flag & ME_FACE_SEL) {
+						efa->f |= SELECT;
+						if(me->medge==NULL) EM_select_face(efa, 1);
+					}
 				}
 				if(mface->flag & ME_HIDE) efa->h= 1;
 				
