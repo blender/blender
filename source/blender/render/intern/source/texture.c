@@ -1214,8 +1214,7 @@ void do_material_tex(ShadeInput *shi)
 
 			if( mtex->mapto & MAP_DISPLACE ) {
 				/* Now that most textures offer both Nor and Intensity, allow  */
-				/* both to work, and let user select with slider.  However Nor slider */
-				/* goes to 5.0 while var only goes to 1.0, so we introduce a factor of 0.2 */
+				/* both to work, and let user select with slider.   */
 				if(tex->nor) {
 					if(mtex->maptoneg & MAP_DISPLACE) tex->norfac= -mtex->norfac;
 					else tex->norfac= mtex->norfac;
