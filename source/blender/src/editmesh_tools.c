@@ -1431,9 +1431,9 @@ void subdivideflag(int flag, float rad, int beauty)
 			}
 			else if(rad< 0.0) {  /* fractal subdivide */
 				fac= rad* VecLenf(eed->v1->co, eed->v2->co);
-				vec1[0]= fac*BLI_drand();
-				vec1[1]= fac*BLI_drand();
-				vec1[2]= fac*BLI_drand();
+				vec1[0]= fac*(0.5-BLI_drand());
+				vec1[1]= fac*(0.5-BLI_drand());
+				vec1[2]= fac*(0.5-BLI_drand());
 				VecAddf(vec, vec, vec1);
 			}
 			
