@@ -1389,7 +1389,7 @@ void enter_editmode(void)
 	if(G.scene->id.lib) return;
 	base= BASACT;
 	if(base==0) return;
-	if((base->lay & G.vd->lay)==0) return;
+	if((G.vd==NULL || (base->lay & G.vd->lay))==0) return;
 	
 	ob= base->object;
 	if(ob->data==0) return;
