@@ -584,6 +584,7 @@ static void mouse_action(int selectmode)
 		else
 			select_ipo_key(chan->ipo, selx, selectmode);
 
+		BIF_undo_push("Select Action");
 		allqueue(REDRAWIPO, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWACTION, 0);
@@ -641,6 +642,7 @@ static void mouse_mesh_action(int selectmode, Key *key)
 		 */
 		select_icu_key(icu, selx, selectmode);
 
+		BIF_undo_push("Select Action key");
         allqueue(REDRAWIPO, 0);
         allqueue(REDRAWVIEW3D, 0);
         allqueue(REDRAWACTION, 0);
@@ -702,6 +704,7 @@ void borderselect_action(void)
 				ymax=ymin;
 			}
 		}	
+		BIF_undo_push("Border Select Action");
 		allqueue(REDRAWNLA, 0);
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWIPO, 0);
@@ -756,6 +759,7 @@ void borderselect_mesh(Key *key)
 		}
 
 		/* redraw stuff */
+		BIF_undo_push("Border select Action Key");
 		allqueue(REDRAWNLA, 0);
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWIPO, 0);
@@ -1006,6 +1010,7 @@ void paste_posebuf (int flip){
 				}
 			}
 		}
+		BIF_undo_push("Paste Action Pose");
 	}
 }
 
@@ -1272,6 +1277,8 @@ void transform_actionchannel_keys(char mode)
 
 	do_all_actions();
 	remake_action_ipos(act);
+
+	if(cancel==0) BIF_undo_push("Transform Action");
 	allqueue (REDRAWVIEW3D, 0);
 	allqueue (REDRAWACTION, 0);
 	allqueue(REDRAWNLA, 0);
@@ -1456,6 +1463,7 @@ void transform_meshchannel_keys(char mode, Key *key)
 	/* fix up the Ipocurves and redraw stuff
 	 */
     meshkey_do_redraw(key);
+	BIF_undo_push("Transform Action Keys");
 
     MEM_freeN (tv);
 
@@ -1754,6 +1762,7 @@ void delete_meshchannel_keys(Key *key)
 	if (!okee("Erase selected keys"))
 		return;
 
+	BIF_undo_push("Delete Action keys");
 	delete_ipo_keys(key->ipo);
 
 	meshkey_do_redraw(key);
@@ -1783,6 +1792,7 @@ void delete_actionchannel_keys(void)
 	}
 
 	remake_action_ipos (act);
+	BIF_undo_push("Delete Action keys");
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);
@@ -1845,6 +1855,7 @@ static void delete_actionchannels (void)
 
 	}
 
+	BIF_undo_push("Delete Action channels");
 	allqueue (REDRAWACTION, 0);
 	allqueue(REDRAWNLA, 0);
 
@@ -1854,6 +1865,7 @@ void sethandles_meshchannel_keys(int code, Key *key)
 {
     sethandles_ipo_keys(key->ipo, code);
 
+	BIF_undo_push("Set handles Action keys");
 	meshkey_do_redraw(key);
 }
 
@@ -1878,6 +1890,7 @@ void sethandles_actionchannel_keys(int code)
 	/* Clean up and redraw stuff
 	 */
 	remake_action_ipos (act);
+	BIF_undo_push("Set handles Action channel");
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);
@@ -1923,6 +1936,7 @@ void set_ipotype_actionchannels(int ipotype) {
 	/* Clean up and redraw stuff
 	 */
 	remake_action_ipos (act);
+	BIF_undo_push("Set Ipo type Action channel");
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);
@@ -1998,6 +2012,7 @@ void select_all_keys_frames(bAction *act, short *mval,
 								 selectmode);
 		}
 	}	
+
 	allqueue(REDRAWNLA, 0);
 	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);
@@ -2140,6 +2155,7 @@ static void borderselect_function(void (*select_func)(bAction *act,
 		else if (val == RIGHTMOUSE)
 			select_func(act, mval, mvalo, SELECT_SUBTRACT);
 	}
+	BIF_undo_push("Border select Action");
 	
 }
 
@@ -2300,6 +2316,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				 */
 				if (mval[0]<NAMEWIDTH){
 					borderselect_function(mouse_actionchannels);
+					BIF_undo_push("Select Action");
 				}
 				else if (mval[0]>ACTWIDTH){
 
@@ -2467,6 +2484,8 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						mouse_actionchannels(act, mval, NULL,  SELECT_INVERT);
 					else
 						mouse_actionchannels(act, mval, NULL,  SELECT_REPLACE);
+					
+					BIF_undo_push("Select Action");
 				}
 				else numbuts_action();
 			}
@@ -2495,6 +2514,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else
 						select_all_keys_frames(act, mval, NULL, 
 											   SELECT_REPLACE);
+					BIF_undo_push("Select all Action");
 				}
 				
 				/* Clicking in the main area of the action window

@@ -137,6 +137,7 @@ void shift_nlastrips_up(void) {
 			}
 		}
 	}
+	BIF_undo_push("Shift NLA strip");
 	allqueue (REDRAWNLA, 0);
 
 }
@@ -175,6 +176,7 @@ void shift_nlastrips_down(void) {
 			}
 		}
 	}
+	BIF_undo_push("Shift NLA strips");
 	allqueue (REDRAWNLA, 0);
 
 }
@@ -243,6 +245,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				allqueue (REDRAWNLA, 0);
 				allqueue (REDRAWIPO, 0);
+				BIF_undo_push("(De)select all NLA");
 			}
 			break;
 
@@ -416,6 +419,7 @@ static void convert_nla(short mval[2])
 				/* Unlink action */
 				base->object->action = NULL;
 				
+				BIF_undo_push("Convert NLA");
 				allqueue (REDRAWNLA, 0);
 			}
 			
@@ -466,6 +470,7 @@ static void add_nla_block(short event)
 	
 	BLI_addtail(&nla_base->object->nlastrips, strip);
 
+	BIF_undo_push("Add NLA strip");
 }
 
 static void add_nla_databrowse_callback(unsigned short val)
@@ -1026,6 +1031,7 @@ void transform_nlachannel_keys(char mode)
 		firsttime= 0;
 	}
 	
+	if(cancel==0) BIF_undo_push("Select all NLA");
 	allspace(REMAKEALLIPO, 0);
 	allqueue (REDRAWVIEW3D, 0);
 	allqueue (REDRAWNLA, 0);
@@ -1075,8 +1081,9 @@ void delete_nlachannel_keys(void)
 		}
 	}
 	
+	BIF_undo_push("Delete NLA keys");
 	allspace(REMAKEALLIPO, 0);
-        allspace(REMAKEIPO,0);
+	allspace(REMAKEIPO,0);
 	allqueue (REDRAWVIEW3D, 0);
 	allqueue(REDRAWNLA, 0);
 	allqueue(REDRAWIPO, 0);
@@ -1129,6 +1136,7 @@ void duplicate_nlachannel_keys(void)
 		}
 	}
 	
+	BIF_undo_push("Duplicate NLA");
 	transform_nlachannel_keys ('g');
 }
 
@@ -1219,6 +1227,7 @@ void borderselect_nla(void)
 				
 			}	/* End of object filter */
 		}	
+		BIF_undo_push("Border select NLA");
 		allqueue(REDRAWNLA, 0);
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWIPO, 0);
@@ -1253,6 +1262,7 @@ static void mouse_nla(int selectmode)
 			select_ipo_key(conchan->ipo, selx, selectmode);
 		
 		
+		BIF_undo_push("Select NLA");
 		allqueue(REDRAWIPO, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWNLA, 0);
@@ -1274,6 +1284,7 @@ static void mouse_nla(int selectmode)
 				select_ipo_key(conchan->ipo, selx, selectmode);
 		}
 		
+		BIF_undo_push("Select NLA");
 		allqueue(REDRAWIPO, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWNLA, 0);
@@ -1293,6 +1304,7 @@ static void mouse_nla(int selectmode)
 		else
 			rstrip->flag |= ACTSTRIP_SELECT;
 		
+		BIF_undo_push("Select NLA");
 		allqueue(REDRAWIPO, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWNLA, 0);
@@ -1746,5 +1758,7 @@ void delete_nlachannels(void){
 				}
 			}
 		}
+		BIF_undo_push("Delete NLA channels");
+
 	}
 }

@@ -749,6 +749,7 @@ void do_global_buttons(unsigned short event)
 					
 				set_mesh(ob, (Mesh *)idtest);
 				
+				BIF_undo_push("Browse Mesh");
 				allqueue(REDRAWBUTSEDIT, 0);
 				allqueue(REDRAWVIEW3D, 0);
 				allqueue(REDRAWACTION,0);
@@ -797,6 +798,7 @@ void do_global_buttons(unsigned short event)
 			if(idtest!=id) {
 				assign_material(ob, (Material *)idtest, ob->actcol);
 				
+				BIF_undo_push("Browse Material");
 				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWIPO, 0);
 				BIF_preview_changed(G.buts);
@@ -812,6 +814,7 @@ void do_global_buttons(unsigned short event)
 			ma= give_current_material(ob, ob->actcol);
 			if(ma) {
 				assign_material(ob, 0, ob->actcol);
+				BIF_undo_push("Unlink Material");
 				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWIPO, 0);
 				allqueue(REDRAWOOPS, 0);
@@ -866,6 +869,7 @@ void do_global_buttons(unsigned short event)
 					}
 				}
 			}
+			BIF_undo_push("Unlink Texture");
 		}
 		break;
 	case B_EXTEXBROWSE: 
@@ -921,6 +925,7 @@ void do_global_buttons(unsigned short event)
 				id_us_plus(idtest);
 				if(id) id->us--;
 				
+				BIF_undo_push("Browse Texture");
 				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWIPO, 0);
 				allqueue(REDRAWOOPS, 0);
@@ -934,6 +939,8 @@ void do_global_buttons(unsigned short event)
 		if (act)
 			act->id.us--;
 		ob->action=NULL;
+		
+		BIF_undo_push("Unlink Action");
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWNLA, 0);
 		allqueue(REDRAWIPO, 0);
@@ -986,6 +993,7 @@ void do_global_buttons(unsigned short event)
 				if(id) id->us--;
 				
 				// Update everything
+				BIF_undo_push("Browse Action");
 				do_global_buttons (B_NEWFRAME);
 				allqueue(REDRAWVIEW3D, 0);
 				allqueue(REDRAWNLA, 0);
@@ -1133,6 +1141,7 @@ void do_global_buttons(unsigned short event)
 				
 				if(id) id->us--;
 				
+				BIF_undo_push("Browse Ipo");
 				scrarea_queue_winredraw(curarea);
 				scrarea_queue_headredraw(curarea);
 				allqueue(REDRAWIPO, 0);
@@ -1164,9 +1173,10 @@ void do_global_buttons(unsigned short event)
 		}
 		else if(ipo->blocktype==IPO_CO) ((Object *)from)->activecon->ipo= 0;
 
-		else error("Warn bugs@blender.nl!");
+		else error("Warn bugtracker!");
 		
 		editipo_changed(G.sipo, 1); /* doredraw */
+		BIF_undo_push("Unlink Ipo");
 		allqueue(REDRAWIPO, 0);
 		allqueue(REDRAWNLA, 0);
 		allqueue (REDRAWACTION, 0);
@@ -1205,6 +1215,7 @@ void do_global_buttons(unsigned short event)
 			id_us_plus(idtest);
 			if(id) id->us--;
 			
+			BIF_undo_push("Browse World");
 			allqueue(REDRAWBUTSSHADING, 0);
 			allqueue(REDRAWIPO, 0);
 			allqueue(REDRAWOOPS, 0);
@@ -1215,6 +1226,8 @@ void do_global_buttons(unsigned short event)
 		if(G.scene->world) {
 			G.scene->world->id.us--;
 			G.scene->world= 0;
+
+			BIF_undo_push("Unlink World");
 			allqueue(REDRAWBUTSSHADING, 0);
 			allqueue(REDRAWIPO, 0);
 		}
@@ -1270,6 +1283,7 @@ void do_global_buttons(unsigned short event)
 				id_us_plus(idtest);
 				if(id) id->us--;
 				
+				BIF_undo_push("Texture browse");
 				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWIPO, 0);
 				allqueue(REDRAWOOPS, 0);
@@ -1308,6 +1322,7 @@ void do_global_buttons(unsigned short event)
 			id_us_plus(idtest);
 			if(id) id->us--;
 			
+			BIF_undo_push("Lamp browse");
 			allqueue(REDRAWBUTSSHADING, 0);
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWIPO, 0);
@@ -1365,6 +1380,7 @@ void do_global_buttons(unsigned short event)
 				id_us_plus(idtest);
 				if(id) id->us--;
 				
+				BIF_undo_push("Texture Browse");
 				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWIPO, 0);
 				allqueue(REDRAWOOPS, 0);
@@ -1376,11 +1392,14 @@ void do_global_buttons(unsigned short event)
 	case B_IMAGEDELETE:
 		G.sima->image= 0;
 		image_changed(G.sima, 0);
+		BIF_undo_push("Unlink Image");
 		allqueue(REDRAWIMAGE, 0);
 		break;
 	
 	case B_AUTOMATNAME:
 		automatname(G.buts->lockpoin);
+
+		BIF_undo_push("Auto name");
 		allqueue(REDRAWBUTSSHADING, 0);
 		allqueue(REDRAWOOPS, 0);
 		break;		
@@ -1401,6 +1420,7 @@ void do_global_buttons(unsigned short event)
 				la= G.buts->lockpoin;
 				if(la->mtex[ la->texact]) autotexname(la->mtex[la->texact]->tex);
 			}
+			BIF_undo_push("Auto name");
 			allqueue(REDRAWBUTSSHADING, 0);
 			allqueue(REDRAWOOPS, 0);
 		}
@@ -2035,6 +2055,7 @@ void do_global_buttons2(short event)
 		break;
 	}
 	
+	BIF_undo_push("Make single user or local");
 	allqueue(REDRAWBUTSALL, 0);
 	allqueue(REDRAWOOPS, 0);
 }
