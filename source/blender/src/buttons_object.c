@@ -72,6 +72,7 @@
 #include "BDR_editcurve.h"
 #include "BDR_editface.h"
 #include "BDR_drawobject.h"
+
 #include "BIF_butspace.h"
 
 #include "mydevice.h"
@@ -1033,18 +1034,102 @@ void object_panel_draw(Object *ob)
 	
 }
 
+void object_panel_hooks(Object *ob)
+{
+	uiBlock *block;
+	ObHook *hook;
+	int tothook=0, nr, active;
+	char *cp;
+	
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_hooks", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Draw", "Object");
+	if(uiNewPanel(curarea, block, "Hooks", "Object", 320, 0, 318, 204)==0) return;
 
+	if(ob->hooks.first==NULL) {
+		uiDefBut(block, LABEL, 0, "Add hooks in Editmode", 10,180,300,19, NULL, 0, 0, 0, 0, "");
+		return;
+	}
+	
+	/* build menu */
+	for(hook= ob->hooks.first; hook; hook= hook->next) tothook++;
+	
+	cp= MEM_callocN(32*tothook+32, "temp string");
+	strcpy(cp, "Active Hook %t|");
+
+	for(hook= ob->hooks.first; hook; hook= hook->next) {
+		strcat(cp, hook->name);
+		strcat(cp, " |");
+	}
+	/* active is stored in first hook */
+	hook= ob->hooks.first;
+	if(hook->active<1 || hook->active > tothook) hook->active= 1;
+	active= hook->active;
+	
+	uiDefButS(block, MENU, B_REDR, cp, 10,180,150,19, &hook->active, 0, 0, 0, 0, "Set active hook");
+	MEM_freeN(cp);
+
+	for(nr=1, hook= ob->hooks.first; hook; hook= hook->next, nr++) {
+		if(nr==active) break;
+	}
+	if(hook==NULL) printf("error in object_panel_hooks\n");
+	
+	uiBlockBeginAlign(block);
+	uiDefButC(block, TEX, B_REDR, "Name: ", 				160,180,150,19, hook->name, 0, 32, 0, 0, "Set name of hook");
+	uiDefIDPoinBut(block, test_obpoin_but, B_CLR_HOOK, "Parent:", 	160, 160, 150, 19, &hook->parent, "Parent Object for hook, also recalculates and clears offset"); 
+	uiDefButF(block, NUMSLI, B_MAKEDISP, "Force: ", 		160,140,150,19, &hook->force, 0.0, 1.0, 100, 0, "Set force of hook");
+
+	uiBlockBeginAlign(block);
+	uiDefBut(block, BUT, B_DEL_HOOK, "Delete", 				10,100,150,19, NULL, 0.0, 0.0, 0, 0, "Delete hook");
+	uiDefBut(block, BUT, B_CLR_HOOK, "Clear offset", 		160,100,150,19, NULL, 0.0, 0.0, 0, 0, "Recalculate and clear offset (transform) of hook");
+}
 
 
 void do_object_panels(unsigned short event)
 {
 	Object *ob;
+	ObHook *hook;
 	Effect *eff;
 	
 	ob= OBACT;
 
 	switch(event) {
-		
+	case B_TRACKBUTS:
+		ob= OBACT;
+		if(ob && ob->parent && ob->parent->type==OB_CURVE) freedisplist(&ob->disp);
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+	case B_DEL_HOOK:
+		hook= ob->hooks.first;
+		if(hook) {
+			int active= hook->active, nr;
+			for(nr=1, hook=ob->hooks.first; hook; hook=hook->next, nr++) {
+				if(active==nr) break;
+			}
+			if(hook) {
+				BLI_remlink(&ob->hooks, hook);
+				if(hook->indexar) MEM_freeN(hook->indexar);
+				MEM_freeN(hook);
+			}
+			freedisplist(&ob->disp);
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSOBJECT, 0);
+		}
+		break;
+	case B_CLR_HOOK:
+		hook= ob->hooks.first;
+		if(hook) {
+			int active= hook->active, nr;
+			for(nr=1, hook=ob->hooks.first; hook; hook=hook->next, nr++) {
+				if(active==nr) break;
+			}
+			if(hook && hook->parent) {
+				Mat4Invert(hook->parent->imat, hook->parent->obmat);
+				/* apparently this call goes from right to left... */
+				Mat4MulSerie(hook->parentinv, hook->parent->imat, ob->obmat, NULL, 
+							NULL, NULL, NULL, NULL, NULL);
+			}
+		}
+		break;
 	case B_RECALCPATH:
 		calc_curvepath(OBACT);
 		allqueue(REDRAWVIEW3D, 0);
@@ -1079,7 +1164,11 @@ void do_object_panels(unsigned short event)
 		allqueue(REDRAWBUTSOBJECT, 0);
 		allqueue(REDRAWIPO, 0);
 		break;
-		
+	case B_CURVECHECK:
+		curve_changes_other_objects(OBACT);
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+	
 	default:
 		if(event>=B_SELEFFECT && event<B_SELEFFECT+MAX_EFFECT) {
 			ob= OBACT;
@@ -1101,7 +1190,6 @@ void do_object_panels(unsigned short event)
 
 }
 
-
 static void object_panel_anim(Object *ob)
 {
 	uiBlock *block;
@@ -1111,12 +1199,12 @@ static void object_panel_anim(Object *ob)
 	if(uiNewPanel(curarea, block, "Anim settings", "Object", 0, 0, 318, 204)==0) return;
 	
 	uiBlockBeginAlign(block);
-	uiDefButC(block, ROW,REDRAWVIEW3D,"TrackX",	24,190,59,19, &ob->trackflag, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButC(block, ROW,REDRAWVIEW3D,"Y",		85,190,19,19, &ob->trackflag, 12.0, 1.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButC(block, ROW,REDRAWVIEW3D,"Z",		104,190,19,19, &ob->trackflag, 12.0, 2.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButC(block, ROW,REDRAWVIEW3D,"-X",		124,190,24,19, &ob->trackflag, 12.0, 3.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButC(block, ROW,REDRAWVIEW3D,"-Y",		150,190,24,19, &ob->trackflag, 12.0, 4.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButC(block, ROW,REDRAWVIEW3D,"-Z",		178,190,24,19, &ob->trackflag, 12.0, 5.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButC(block, ROW,B_TRACKBUTS,"TrackX",	24,190,59,19, &ob->trackflag, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButC(block, ROW,B_TRACKBUTS,"Y",		85,190,19,19, &ob->trackflag, 12.0, 1.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButC(block, ROW,B_TRACKBUTS,"Z",		104,190,19,19, &ob->trackflag, 12.0, 2.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButC(block, ROW,B_TRACKBUTS,"-X",		124,190,24,19, &ob->trackflag, 12.0, 3.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButC(block, ROW,B_TRACKBUTS,"-Y",		150,190,24,19, &ob->trackflag, 12.0, 4.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButC(block, ROW,B_TRACKBUTS,"-Z",		178,190,24,19, &ob->trackflag, 12.0, 5.0, 0, 0, "Specify the axis that points to another object");
 	uiBlockBeginAlign(block);
 	uiDefButC(block, ROW,REDRAWVIEW3D,"UpX",	226,190,45,19, &ob->upflag, 13.0, 0.0, 0, 0, "Specify the axis that points up");
 	uiDefButC(block, ROW,REDRAWVIEW3D,"Y",		274,190,20,19, &ob->upflag, 13.0, 1.0, 0, 0, "Specify the axis that points up");
@@ -1485,6 +1573,7 @@ void object_panels()
 
 		object_panel_anim(ob);
 		object_panel_draw(ob);
+		object_panel_hooks(ob);
 		object_panel_constraint();
 		if(ob->type==OB_MESH) {
 			object_panel_effects(ob);

@@ -89,7 +89,6 @@ typedef struct PartDeflect {
 	float f_power;       /* The power law - real gravitation is 2 (square)  */
 } PartDeflect;
 
-
 typedef struct Object {
 	ID id;
 
@@ -191,7 +190,8 @@ typedef struct Object {
 
 	ListBase constraints;
 	ListBase nlastrips;
-
+	ListBase hooks;
+	
 	PartDeflect *pd;	/* particle deflector/attractor/collision data */
 	struct Life *life;
 
@@ -200,6 +200,24 @@ typedef struct Object {
 
 	float toonedge, smoothresh;	/* smoothresh is phong interpolation ray_shadow correction in render */
 } Object;
+
+typedef struct ObHook {
+	struct ObHook *next, *prev;
+	
+	struct Object *parent;
+	float parentinv[4][4];	/* matrix making current transform unmodified */
+	float mat[4][4];		/* temp matrix while hooking */
+	float cent[3];			/* visualization of hook */
+	int pad;
+	
+	char name[32];
+
+	int *indexar;
+	int totindex, curindex; /* curindex is cache for fast lookup */
+	short type, active;		/* active is only first hook, for button menu */
+	float force;
+} ObHook;
+
 
 /* this work object is defined in object.c */
 extern Object workob;

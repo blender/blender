@@ -174,6 +174,7 @@ typedef struct IpoCurve {
 #define CU_FOLLOW		16
 #define CU_UV_ORCO		32
 #define CU_NOPUNOFLIP	64
+#define CU_STRETCH		128
 
 /* spacemode */
 #define CU_LEFT			0

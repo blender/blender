@@ -1197,9 +1197,13 @@ void make_displists_by_armature (Object *ob)
 		for (base= G.scene->base.first; base; base= base->next){
 			if ((ob==base->object->parent) && (base->lay & G.scene->lay))
 				if ((base->object->partype==PARSKEL) || (base->object->type==OB_MBALL))
-					makeDispList(base->object);		
+					freedisplist(&base->object->disp);		
 		}
 	}
+/*
+(ton) changed this; now a free displist is sufficient, drawobject.c will make disp
+*/
+
 }	
 
 void get_objectspace_bone_matrix (struct Bone* bone, float M_accumulatedMatrix[][4], int root, int posed)

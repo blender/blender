@@ -53,22 +53,26 @@
 #include "DNA_key_types.h"
 #include "DNA_ika_types.h"
 
-#include "BKE_utildefines.h"
+#include "BKE_anim.h"
 #include "BKE_armature.h"
-#include "BKE_library.h"
-#include "BKE_global.h"
-#include "BKE_main.h"
-#include "BKE_screen.h"
-#include "BKE_displist.h"
-#include "BKE_lattice.h"
-#include "BKE_key.h"
-#include "BKE_object.h"
-#include "BKE_ika.h"
 #include "BKE_curve.h"
+#include "BKE_deform.h"
+#include "BKE_displist.h"
+#include "BKE_global.h"
+#include "BKE_ika.h"
+#include "BKE_key.h"
+#include "BKE_lattice.h"
+#include "BKE_library.h"
+#include "BKE_main.h"
+#include "BKE_object.h"
+#include "BKE_screen.h"
+#include "BKE_utildefines.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#include "blendef.h"
 
 Lattice *editLatt=0, *deformLatt=0;
 
@@ -236,6 +240,7 @@ void init_latt_deform(Object *oblatt, Object *ob)
 	
 	fp= latticedata= MEM_mallocN(sizeof(float)*3*deformLatt->pntsu*deformLatt->pntsv*deformLatt->pntsw, "latticedata");
 	
+	lattice_modifier(oblatt, 's');
 	bp= deformLatt->def;
 
 	if(ob) where_is_object(ob);
@@ -279,6 +284,9 @@ void init_latt_deform(Object *oblatt, Object *ob)
 		}
 		vec[2]+= dw;
 	}
+
+	lattice_modifier(oblatt, 'e');
+
 }
 
 void calc_latt_deform(float *co)
@@ -383,6 +391,119 @@ void end_latt_deform()
 	latticedata= 0;
 }
 
+	/* calculations is in local space of deformed object
+	   so we store in latmat transform from path coord inside object 
+	 */
+typedef struct {
+	float dmin[3], dmax[3], dsize, dloc[3];
+	float curvespace[4][4], objectspace[4][4];
+} CurveDeform;
+
+static void init_curve_deform(Object *par, Object *ob, CurveDeform *cd)
+{
+	Mat4Invert(ob->imat, ob->obmat);
+	Mat4MulMat4(cd->objectspace, par->obmat, ob->imat);
+	Mat4Invert(cd->curvespace, cd->objectspace);
+
+	// offset vector for 'no smear'
+	Mat4Invert(par->imat, par->obmat);
+	VecMat4MulVecfl(cd->dloc, par->imat, ob->obmat[3]);
+
+}
+
+/* this makes sure we can extend for non-cyclic */
+static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir)	/* returns OK */
+{
+	Curve *cu= ob->data;
+	BevList *bl;
+	float ctime1;
+	int cycl=0;
+	
+	/* test for cyclic */
+	bl= cu->bev.first;
+	if(bl && bl->poly> -1) cycl= 1;
+
+	if(cycl==0) {
+		ctime1= CLAMPIS(ctime, 0.0, 1.0);
+	}
+	else ctime1= ctime;
+
+	if(where_on_path(ob, ctime1, vec, dir)) {
+		
+		if(cycl==0) {
+			Path *path= cu->path;
+			float dvec[3];
+			
+			if(ctime < 0.0) {
+				VecSubf(dvec, path->data+4, path->data);
+				VecMulf(dvec, ctime*(float)path->len);
+				VECADD(vec, vec, dvec);
+			}
+			else if(ctime > 1.0) {
+				VecSubf(dvec, path->data+4*path->len-4, path->data+4*path->len-8);
+				VecMulf(dvec, (ctime-1.0)*(float)path->len);
+				VECADD(vec, vec, dvec);
+			}
+		}
+		return 1;
+	}
+	return 0;
+}
+
+	/* for each point, rotate & translate to curve */
+	/* use path, since it has constant distances */
+	/* co: local coord, result local too */
+static void calc_curve_deform(Object *par, float *co, short axis, CurveDeform *cd)
+{
+	Curve *cu= par->data;
+	float fac, loc[3], dir[3], *quat, mat[3][3], cent[3];
+	short upflag, index;
+	
+	if(axis==OB_POSX || axis==OB_NEGX) {
+		upflag= OB_POSZ;
+		cent[0]= 0.0;
+		cent[1]= co[1];
+		cent[2]= co[2];
+		index= 0;
+	}
+	else if(axis==OB_POSY || axis==OB_NEGY) {
+		upflag= OB_POSZ;
+		cent[0]= co[0];
+		cent[1]= 0.0;
+		cent[2]= co[2];
+		index= 1;
+	}
+	else {
+		upflag= OB_POSY;
+		cent[0]= co[0];
+		cent[1]= co[1];
+		cent[2]= 0.0;
+		index= 2;
+	}
+	/* to be sure */
+	if(cu->path==NULL) calc_curvepath(par);
+
+	/* options */
+	if(cu->flag & CU_STRETCH)
+		fac= (co[index]-cd->dmin[index])/(cd->dmax[index] - cd->dmin[index]);
+	else
+		fac= (cd->dloc[index])/(cu->path->totdist) + (co[index]-cd->dmin[index])/(cu->path->totdist);
+	
+	if( where_on_path_deform(par, fac, loc, dir)) {	/* returns OK */
+
+		quat= vectoquat(dir, axis, upflag);
+		QuatToMat3(quat, mat);
+	
+		/* local rotation */
+		Mat3MulVecfl(mat, cent);
+		
+		/* translation */
+		VECADD(co, cent, loc);
+		
+	}
+
+}
+
 
 static int _object_deform(Object *ob, int applyflag)
 {
@@ -391,32 +512,59 @@ static int _object_deform(Object *ob, int applyflag)
 	DispList *dl;
 	MVert *mvert;
 	float *fp;
-	int a, tot;
+	int a, tot, flag;
 
-	if(ob->parent==0) return 0;
+	if(ob->parent==NULL) return 0;
 	
 	/* always try to do the entire deform in this function: apply! */
-	
-	if(ob->parent->type==OB_LATTICE) {
+
+	if(ob->parent->type==OB_CURVE) {
+		CurveDeform cd;
+		
+		if (ob->partype != PARSKEL){
+			return 0;
+		}
+		cu= ob->parent->data;
+		flag= cu->flag;
+		cu->flag |= (CU_PATH|CU_FOLLOW); // needed for path & bevlist
+		
+		if(ob->type==OB_MESH) {
+			
+			me= ob->data;
+			if(me->totvert==0) return 0;
+			
+			/* init deform */
+			init_curve_deform(ob->parent, ob, &cd);
+			
+			/* transformation to curve space, and min max*/
+			INIT_MINMAX(cd.dmin, cd.dmax);
+			
+			for(a=0, mvert=me->mvert; a<me->totvert; a++, mvert++) {
+				Mat4MulVecfl(cd.curvespace, mvert->co);
+				DO_MINMAX(mvert->co, cd.dmin, cd.dmax);
+			}
+
+			mvert= me->mvert;
+			for(a=0; a<me->totvert; a++, mvert++) {
+				calc_curve_deform(ob->parent, mvert->co, ob->trackflag, &cd);
+				/* move coord back to objectspace */
+				Mat4MulVecfl(cd.objectspace, mvert->co);
+			}
+		}
+		/* restore */
+		cu->flag = flag;
+		return 1;
+	}
+	else if(ob->parent->type==OB_LATTICE) {
 		
 		init_latt_deform(ob->parent, ob);
 		
 		if(ob->type==OB_MESH) {
 			me= ob->data;
 			
-			dl= find_displist_create(&ob->disp, DL_VERTS);
-			
 			mvert= me->mvert;
-			if(dl->verts) MEM_freeN(dl->verts);
-			dl->nr= me->totvert;
-			dl->verts= fp= MEM_mallocN(3*sizeof(float)*me->totvert, "deform1");
-
-			for(a=0; a<me->totvert; a++, mvert++, fp+=3) {
-				if(applyflag) calc_latt_deform(mvert->co);
-				else {
-					VECCOPY(fp, mvert->co);
-					calc_latt_deform(fp);
-				}
+			for(a=0; a<me->totvert; a++, mvert++) {
+				calc_latt_deform(mvert->co);
 			}
 		}
 		else if(ob->type==OB_MBALL) {
@@ -479,9 +627,6 @@ static int _object_deform(Object *ob, int applyflag)
 			}
 		}
 		end_latt_deform();
-
-		boundbox_displist(ob);	
-
 		return 1;
 	}
 	else if(ob->parent->type==OB_ARMATURE) {
@@ -495,96 +640,15 @@ static int _object_deform(Object *ob, int applyflag)
 		case OB_MESH:
 			me= ob->data;
 			
-			dl= find_displist_create(&ob->disp, DL_VERTS);
-			
 			mvert= me->mvert;
-			if(dl->verts) MEM_freeN(dl->verts);
-			dl->nr= me->totvert;
-			dl->verts= fp= MEM_mallocN(3*sizeof(float)*me->totvert, "deform1");
-
-			for(a=0; a<me->totvert; a++, mvert++, fp+=3) {
-				if(applyflag){
-					calc_armature_deform(ob->parent, mvert->co, a);
-				}
-				else {
-					VECCOPY(fp, mvert->co);
-					calc_armature_deform(ob->parent, fp, a);
-				}
+			for(a=0; a<me->totvert; a++, mvert++) {
+				calc_armature_deform(ob->parent, mvert->co, a);
 			}
-
 			break;
-		default:
+		case OB_CURVE:
+		case OB_SURF:
 			break;
 		}
-		
-		boundbox_displist(ob);	
-		return 1;
-	}
-	else if(ob->parent->type==OB_IKA) {
-
-		Ika *ika;
-		
-		if(ob->partype!=PARSKEL) return 0;
-		
-		ika= ob->parent->data;
-		if(ika->def==0) return 0;
-		
-		init_skel_deform(ob->parent, ob);
-		
-		if(ob->type==OB_MESH) {
-			me= ob->data;
-			
-			dl= find_displist_create(&ob->disp, DL_VERTS);
-			
-			mvert= me->mvert;
-			if(dl->verts) MEM_freeN(dl->verts);
-			dl->nr= me->totvert;
-			dl->verts= fp= MEM_mallocN(3*sizeof(float)*me->totvert, "deform1");
-
-			for(a=0; a<me->totvert; a++, mvert++, fp+=3) {
-				if(applyflag) calc_skel_deform(ika, mvert->co);
-				else {
-					VECCOPY(fp, mvert->co);
-					calc_skel_deform(ika, fp);
-				}
-			}
-		}
-		else if ELEM(ob->type, OB_CURVE, OB_SURF) {
-		
-			cu= ob->data;
-			if(applyflag) {
-				Nurb *nu;
-				BPoint *bp;
-				
-				nu= cu->nurb.first;
-				while(nu) {
-					if(nu->bp) {
-						a= nu->pntsu*nu->pntsv;
-						bp= nu->bp;
-						while(a--) {
-							calc_skel_deform(ika, bp->vec);
-							bp++;
-						}
-					}
-					nu= nu->next;
-				}
-			}
-			
-			/* when apply, do this too, looks more interactive */
-			dl= cu->disp.first;
-			while(dl) {
-				
-				fp= dl->verts;
-				tot= dl->nr*dl->parts;
-				for(a=0; a<tot; a++, fp+=3) {
-					calc_skel_deform(ika, fp);
-				}
-				
-				dl= dl->next;
-			}
-		}
-		
-		boundbox_displist(ob);
 		
 		return 1;
 	}

@@ -33,6 +33,7 @@
 #ifndef BDR_EDITCURVE_H
 #define BDR_EDITCURVE_H
 
+struct Object;
 struct Curve;
 struct Nurb;
 struct BezTriple;
@@ -89,6 +90,7 @@ void add_primitiveNurb(int type);
 void clear_tilt(void);
 void clever_numbuts_curve(void);         
 int bezt_compare (const void *e1, const void *e2);
+void curve_changes_other_objects(struct Object *ob);
 
 extern void undo_push_curve(char *name);
 extern void undo_clear_curve(void);

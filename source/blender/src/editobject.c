@@ -224,13 +224,10 @@ void free_and_unlink_base(Base *base)
 void delete_obj(int ok)
 {
 	Base *base;
-extern int undo_push(char *);
 	
 	if(G.obpose) return;
 	if(G.obedit) return;
 	if(G.scene->id.lib) return;
-	
-//if (undo_push("Erase")) return;	
 	
 	base= FIRSTBASE;
 	while(base) {
@@ -260,6 +257,381 @@ extern int undo_push(char *);
 	allqueue(REDRAWNLA, 0);
 }
 
+int return_editmesh_indexar(int **indexar, float *cent)
+{
+	EditMesh *em = G.editMesh;
+	EditVert *eve;
+	int *index, nr, totvert=0;
+	
+	for(eve= em->verts.first; eve; eve= eve->next) {
+		if(eve->f & SELECT) totvert++;
+	}
+	if(totvert==0) return 0;
+	
+	*indexar= index= MEM_mallocN(4*totvert, "hook indexar");
+	nr= 0;
+	cent[0]= cent[1]= cent[2]= 0.0;
+	
+	for(eve= em->verts.first; eve; eve= eve->next) {
+		if(eve->f & SELECT) {
+			*index= nr; index++;
+			VecAddf(cent, cent, eve->co);
+		}
+		nr++;
+	}
+	
+	VecMulf(cent, 1.0/(float)totvert);
+	
+	return totvert;
+}
+
+static void select_editmesh_hook(ObHook *hook)
+{
+	EditMesh *em = G.editMesh;
+	EditVert *eve;
+	int index=0, nr=0;
+	
+	for(eve= em->verts.first; eve; eve= eve->next, nr++) {
+		if(nr==hook->indexar[index]) {
+			eve->f |= SELECT;
+			if(index < hook->totindex-1) index++;
+		}
+	}
+}
+
+int return_editlattice_indexar(int **indexar, float *cent)
+{
+	BPoint *bp;
+	int *index, nr, totvert=0, a;
+	
+	// count
+	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+	bp= editLatt->def;
+	while(a--) {
+		if(bp->f1 & SELECT) {
+			if(bp->hide==0) totvert++;
+		}
+		bp++;
+	}
+
+	if(totvert==0) return 0;
+	
+	*indexar= index= MEM_mallocN(4*totvert, "hook indexar");
+	nr= 0;
+	cent[0]= cent[1]= cent[2]= 0.0;
+	
+	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+	bp= editLatt->def;
+	while(a--) {
+		if(bp->f1 & SELECT) {
+			if(bp->hide==0) {
+				*index= nr; index++;
+				VecAddf(cent, cent, bp->vec);
+			}
+		}
+		bp++;
+		nr++;
+	}
+	
+	VecMulf(cent, 1.0/(float)totvert);
+	
+	return totvert;
+}
+
+static void select_editlattice_hook(ObHook *hook)
+{
+	BPoint *bp;
+	int index=0, nr=0, a;
+	
+	// count
+	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+	bp= editLatt->def;
+	while(a--) {
+		if(hook->indexar[index]==nr) {
+			bp->f1 |= SELECT;
+			if(index < hook->totindex-1) index++;
+		}
+		nr++;
+		bp++;
+	}
+}
+
+int return_editcurve_indexar(int **indexar, float *cent)
+{
+	extern ListBase editNurb;
+	Nurb *nu;
+	BPoint *bp;
+	BezTriple *bezt;
+	int *index, a, nr, totvert=0;
+	
+	for(nu= editNurb.first; nu; nu= nu->next) {
+		if((nu->type & 7)==CU_BEZIER) {
+			bezt= nu->bezt;
+			a= nu->pntsu;
+			while(a--) {
+				if(bezt->f1 & SELECT) totvert++;
+				if(bezt->f2 & SELECT) totvert++;
+				if(bezt->f3 & SELECT) totvert++;
+				bezt++;
+			}
+		}
+		else {
+			bp= nu->bp;
+			a= nu->pntsu*nu->pntsv;
+			while(a--) {
+				if(bp->f1 & SELECT) totvert++;
+				bp++;
+			}
+		}
+	}
+	if(totvert==0) return 0;
+	
+	*indexar= index= MEM_mallocN(4*totvert, "hook indexar");
+	nr= 0;
+	cent[0]= cent[1]= cent[2]= 0.0;
+	
+	for(nu= editNurb.first; nu; nu= nu->next) {
+		if((nu->type & 7)==CU_BEZIER) {
+			bezt= nu->bezt;
+			a= nu->pntsu;
+			while(a--) {
+				if(bezt->f1 & SELECT) {
+					*index= nr; index++;
+					VecAddf(cent, cent, bezt->vec[0]);
+				}
+				nr++;
+				if(bezt->f2 & SELECT) {
+					*index= nr; index++;
+					VecAddf(cent, cent, bezt->vec[1]);
+				}
+				nr++;
+				if(bezt->f3 & SELECT) {
+					*index= nr; index++;
+					VecAddf(cent, cent, bezt->vec[2]);
+				}
+				nr++;
+				bezt++;
+			}
+		}
+		else {
+			bp= nu->bp;
+			a= nu->pntsu*nu->pntsv;
+			while(a--) {
+				if(bp->f1 & SELECT) {
+					*index= nr; index++;
+					VecAddf(cent, cent, bp->vec);
+				}
+				nr++;
+				bp++;
+			}
+		}
+	}
+	
+	VecMulf(cent, 1.0/(float)totvert);
+	
+	return totvert;
+}
+
+static void select_editcurve_hook(ObHook *hook)
+{
+	extern ListBase editNurb;
+	Nurb *nu;
+	BPoint *bp;
+	BezTriple *bezt;
+	int index=0, a, nr=0;
+	
+	for(nu= editNurb.first; nu; nu= nu->next) {
+		if((nu->type & 7)==CU_BEZIER) {
+			bezt= nu->bezt;
+			a= nu->pntsu;
+			while(a--) {
+				if(nr == hook->indexar[index]) {
+					bezt->f1 |= SELECT;
+					if(index<hook->totindex-1) index++;
+				}
+				nr++;
+				if(nr == hook->indexar[index]) {
+					bezt->f2 |= SELECT;
+					if(index<hook->totindex-1) index++;
+				}
+				nr++;
+				if(nr == hook->indexar[index]) {
+					bezt->f3 |= SELECT;
+					if(index<hook->totindex-1) index++;
+				}
+				nr++;
+
+				bezt++;
+			}
+		}
+		else {
+			bp= nu->bp;
+			a= nu->pntsu*nu->pntsv;
+			while(a--) {
+				if(nr == hook->indexar[index]) {
+					bp->f1 |= SELECT;
+					if(index<hook->totindex-1) index++;
+				}
+				nr++;
+				bp++;
+			}
+		}
+	}
+}
+
+void add_hook(void)
+{
+	Object *ob=NULL;
+	ObHook *hook=NULL;
+	float cent[3];
+	int tot=0, *indexar, mode;
+
+	if(G.obedit==NULL) return;
+	
+	if(G.obedit->hooks.first)
+		mode= pupmenu("Hooks %t|Add Hook, To New Empty %x1|Add Hook, To Selected Object %x2|Remove... %x3|Reassign... %x4|Select... %x5|Clear Offset...%x6");
+	else
+		mode= pupmenu("Hooks %t|Add, New Empty %x1|Add, To Selected Object %x2");
+
+	if(mode<1) return;
+	
+	/* preconditions */
+
+	if(mode==2) { // selected object
+		Base *base= FIRSTBASE;
+		while(base) {
+			if TESTBASELIB(base) {
+				if(base!=BASACT) {
+					ob= base->object;
+					break;
+				}
+			}
+			base= base->next;
+		}
+		if(ob==NULL) {
+			error("Requires selected Object");
+			return;
+		}
+	}
+	else if(mode!=1) {
+		int maxlen=0, a, nr;
+		char *cp;
+		
+		// make pupmenu with hooks
+		for(hook= G.obedit->hooks.first; hook; hook= hook->next) maxlen+=32;
+		
+		if(maxlen==0) {
+			error("Object has no hooks yet");
+			return;
+		}
+		
+		cp= MEM_callocN(maxlen+32, "temp string");
+		if(mode==3) strcpy(cp, "Remove %t|");
+		else if(mode==4) strcpy(cp, "Reassign %t|");
+		else if(mode==5) strcpy(cp, "Select %t|");
+		else if(mode==6) strcpy(cp, "Clear Offset %t|");
+		
+		for(hook= G.obedit->hooks.first; hook; hook= hook->next) {
+			strcat(cp, hook->name);
+			strcat(cp, " |");
+		}
+	
+		nr= pupmenu(cp);
+		MEM_freeN(cp);
+		
+		if(nr<1) return;
+		
+		a= 1;
+		for(hook= G.obedit->hooks.first; hook; hook= hook->next, a++) {
+			if(a==nr) break;
+		}
+		ob= hook->parent;
+	}
+
+	/* do it, new hooks or reassign */
+	if(mode==1 || mode==2 || mode==4) {
+	
+		switch(G.obedit->type) {
+		case OB_MESH:
+			tot= return_editmesh_indexar(&indexar, cent);
+			break;
+		case OB_CURVE:
+		case OB_SURF:
+			tot= return_editcurve_indexar(&indexar, cent);
+			break;
+		case OB_LATTICE:
+			tot= return_editlattice_indexar(&indexar, cent);
+			break;
+		}
+		
+		if(tot==0) {
+			error("Requires selected vertices");
+		}
+		else {
+			
+			if(mode==1) {
+				Base *base= BASACT;
+
+				ob= add_object(OB_EMPTY);
+				/* transform cent to global coords for loc */
+				VecMat4MulVecfl(ob->loc, G.obedit->obmat, cent);
+				
+				/* restore, add_object sets active */
+				BASACT= base;
+			}
+			/* if mode is 2 or 4, ob has been set */
+									
+			/* new hook */
+			if(mode==1 || mode==2) {
+				hook= MEM_callocN(sizeof(ObHook), "new hook");
+				BLI_addtail(&G.obedit->hooks, hook);
+				strncpy(hook->name, ob->id.name+2, 30);
+				hook->force= 1.0;
+			}
+			else MEM_freeN(hook->indexar); // reassign, hook was set
+
+			hook->parent= ob;
+			hook->indexar= indexar;
+			VECCOPY(hook->cent, cent);
+			hook->totindex= tot;
+			
+			if(mode==1 || mode==2) {
+				/* matrix calculus */
+				/* vert x (obmat x hook->imat) x hook->obmat x ob->imat */
+				/*        (parentinv         )                          */
+				
+				where_is_object(ob);
+		
+				Mat4Invert(ob->imat, ob->obmat);
+				/* apparently this call goes from right to left... */
+				Mat4MulSerie(hook->parentinv, ob->imat, G.obedit->obmat, NULL, 
+							NULL, NULL, NULL, NULL, NULL);
+			}
+		}
+	}
+	else if(mode==3) { // remove
+		BLI_remlink(&G.obedit->hooks, hook);
+		MEM_freeN(hook->indexar);
+		MEM_freeN(hook);
+	}
+	else if(mode==5) { // select
+		if(G.obedit->type==OB_MESH) select_editmesh_hook(hook);
+		else if(G.obedit->type==OB_LATTICE) select_editlattice_hook(hook);
+		else if(G.obedit->type==OB_CURVE) select_editcurve_hook(hook);
+		else if(G.obedit->type==OB_SURF) select_editcurve_hook(hook);
+	}
+	else if(mode==6) { // clear offset
+		where_is_object(ob);	// ob is hook->parent
+
+		Mat4Invert(ob->imat, ob->obmat);
+		/* this call goes from right to left... */
+		Mat4MulSerie(hook->parentinv, ob->imat, G.obedit->obmat, NULL, 
+					NULL, NULL, NULL, NULL, NULL);
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+}
 
 void make_track(void)
 {
@@ -463,6 +835,7 @@ void clear_track(void)
 void clear_object(char mode)
 {
 	Base *base;
+	Object *ob;
 	float *v1, *v3, mat[3][3];
 	
 	if(G.obedit) return;
@@ -492,28 +865,30 @@ void clear_object(char mode)
 	base= FIRSTBASE;
 	while(base) {
 		if TESTBASELIB(base) {
+			ob= base->object;
+			
 			if(mode=='r') {
-				memset(base->object->rot, 0, 3*sizeof(float));
-				memset(base->object->drot, 0, 3*sizeof(float));
-				QuatOne(base->object->quat);
-				QuatOne(base->object->dquat);
+				memset(ob->rot, 0, 3*sizeof(float));
+				memset(ob->drot, 0, 3*sizeof(float));
+				QuatOne(ob->quat);
+				QuatOne(ob->dquat);
 			}
 			else if(mode=='g') {
-				memset(base->object->loc, 0, 3*sizeof(float));
-				memset(base->object->dloc, 0, 3*sizeof(float));
+				memset(ob->loc, 0, 3*sizeof(float));
+				memset(ob->dloc, 0, 3*sizeof(float));
 			}
 			else if(mode=='s') {
-				memset(base->object->dsize, 0, 3*sizeof(float));
-				base->object->size[0]= 1.0;
-				base->object->size[1]= 1.0;
-				base->object->size[2]= 1.0;
+				memset(ob->dsize, 0, 3*sizeof(float));
+				ob->size[0]= 1.0;
+				ob->size[1]= 1.0;
+				ob->size[2]= 1.0;
 			}
 			else if(mode=='o') {
-				if(base->object->parent) {
-					v1= base->object->loc;
-					v3= base->object->parentinv[3];
+				if(ob->parent) {
+					v1= ob->loc;
+					v3= ob->parentinv[3];
 					
-					Mat3CpyMat4(mat, base->object->parentinv);
+					Mat3CpyMat4(mat, ob->parentinv);
 					VECCOPY(v3, v1);
 					v3[0]= -v3[0];
 					v3[1]= -v3[1];
@@ -521,6 +896,11 @@ void clear_object(char mode)
 					Mat3MulVecfl(mat, v3);
 				}
 			}
+			
+			if(ob->parent && ob->partype==PARSKEL)
+				freedisplist(&ob->disp);
+			else if(ob->hooks.first)
+				freedisplist(&ob->disp);
 		}
 		base= base->next;
 	}
@@ -768,11 +1148,17 @@ void make_parent(void)
 		bConstraint *con;
 		bFollowPathConstraint *data;
 
-		mode= pupmenu("Make Parent %t|Normal Parent %x1|Follow Path %x2");
-		if (mode == 0){
+		mode= pupmenu("Make Parent %t|Normal Parent %x1|Follow Path %x2|Curve Deform %x3");
+		if(mode==0){
 			return;
 		}
-		else if (mode == 2){
+		else if(mode==1) {
+			mode= PAROBJECT;
+		}
+		else if(mode==3) {
+			mode= PARSKEL;
+		}
+		else if(mode==2) {
 
 			base= FIRSTBASE;
 			while(base) {
@@ -936,6 +1322,8 @@ void make_parent(void)
 					}
 					else {
 						
+						/* the ifs below are horrible code (ton) */
+						
 						if(par->type==OB_IKA){
 							base->object->partype= mode;
 							base->object->par1= limbnr;
@@ -947,14 +1335,17 @@ void make_parent(void)
 							else
 								base->object->parsubstr[0]=0;
 						}
-						
-						else if(qual & LR_ALTKEY) {
-							base->object->partype= PARVERT1;
-						}
 						else {
-							base->object->partype= PAROBJECT;
+							if(qual & LR_ALTKEY) {
+								base->object->partype= PARVERT1;
+							}
+							else if(par->type==OB_CURVE) {
+								base->object->partype= mode;
+							}
+							else {
+								base->object->partype= PAROBJECT;
+							}
 						}
-						
 						base->object->parent= par;
 						
 						/* calculate inverse parent matrix? */
@@ -983,7 +1374,7 @@ void make_parent(void)
 						}
 						
 						if(par->type==OB_LATTICE) makeDispList(base->object);
-						if(par->type==OB_IKA && mode==PARSKEL) makeDispList(base->object);
+						if(par->type==OB_CURVE && mode==PARSKEL) makeDispList(base->object);
 						if(par->type==OB_ARMATURE && mode == PARSKEL){
 							verify_defgroups(base->object);
 							makeDispList(base->object);
@@ -3100,8 +3491,18 @@ static void setbaseflags_for_editing(int mode)	/* 0,'g','r','s' */
 			base->flag= BA_PARSEL
 				
 	*/
-	GHash *object_to_base_hash= NULL; /* built on demand, see below - zr */
+	GHash *object_to_base_hash= NULL; 
 	Base *base;
+
+	/* moved to start of function, it is needed for hooks now too */
+	if (!object_to_base_hash) {
+		Base *b;
+		object_to_base_hash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+		
+		for (b= FIRSTBASE; b; b= b->next)
+			BLI_ghash_insert(object_to_base_hash, b->object, b);
+	}
+	
 	
 	copy_baseflags();
 
@@ -3133,14 +3534,36 @@ static void setbaseflags_for_editing(int mode)	/* 0,'g','r','s' */
 				if(ika->parent && parsel) base->flag |= BA_WHERE_UPDATE;
 			}
 			
+			if(ob->hooks.first) {
+				Base *b;
+				ObHook *hook= ob->hooks.first;
+				
+				while(hook) {
+					if(hook->parent) {
+						Object *parsel= is_a_parent_selected(hook->parent);
+						
+						b= BLI_ghash_lookup(object_to_base_hash, hook->parent);
+						if(parsel || ((base->flag | b->flag) & (SELECT | BA_PARSEL)) ) {
+							base->flag |= BA_DISP_UPDATE;
+						}
+					}
+					hook= hook->next;
+				}
+			}
+			
+			if(ob->parent && ob->parent->type==OB_LATTICE)
+				if(ob->parent->hooks.first) base->flag |= BA_DISP_UPDATE;
+			
 			if(base->flag & (SELECT | BA_PARSEL)) {
 				
 				base->flag |= BA_WHERE_UPDATE;
 				
 				if(ob->parent) {
 					if(ob->parent->type==OB_LATTICE) base->flag |= BA_DISP_UPDATE;
-					if(ob->parent->type==OB_IKA && ob->partype==PARSKEL) base->flag |= BA_DISP_UPDATE;
-					if(ob->parent->type==OB_ARMATURE && ob->partype==PARSKEL) base->flag |= BA_DISP_UPDATE;
+					else if(ob->partype==PARSKEL) {
+						if ELEM3(ob->parent->type, OB_IKA, OB_CURVE, OB_ARMATURE) 
+							base->flag |= BA_DISP_UPDATE;
+					}
 				}
 				if(ob->track) {
 					;
@@ -3151,16 +3574,6 @@ static void setbaseflags_for_editing(int mode)	/* 0,'g','r','s' */
 				if(ob->type==OB_MBALL) {
 					Base *b;
 					
-						/* Only bother building the object to base
-						 * hash if we are going to be needing it... - zr
-						 */
-					if (!object_to_base_hash) {
-						object_to_base_hash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
-						
-						for (b= FIRSTBASE; b; b= b->next)
-							BLI_ghash_insert(object_to_base_hash, b->object, b);
-					}
-
 					b= BLI_ghash_lookup(object_to_base_hash, find_basis_mball(ob));
 					b->flag |= BA_DISP_UPDATE;
 				}
@@ -3693,14 +4106,16 @@ void special_trans_update(int keyflags)
 	if(G.obedit) {
 		if(G.obedit->type==OB_CURVE) {
 			cu= G.obedit->data;
-			if(cu->flag & CU_3D) makeBevelList(G.obedit);
 			
+			makeBevelList(G.obedit); // might be needed for deform
 			calc_curvepath(G.obedit);
 			
 			base= FIRSTBASE;
 			while(base) {
 				if(base->lay & G.vd->lay) {
-					if(base->object->type==OB_CURVE) {
+					if(base->object->parent==G.obedit && base->object->partype==PARSKEL)
+						makeDispList(base->object);
+					else if(base->object->type==OB_CURVE) {
 						Curve *cu= base->object->data;
 						if(G.obedit==cu->bevobj || G.obedit==cu->taperobj)
 							makeDispList(base->object);

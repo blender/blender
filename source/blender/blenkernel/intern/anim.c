@@ -97,8 +97,6 @@ void calc_curvepath(Object *ob)
 	if(cu->path) free_path(cu->path);
 	cu->path= 0;
 	
-	if((cu->flag & CU_PATH)==0) return;
-	
 	bl= cu->bev.first;
 	if(bl==0) {
 		makeDispList(ob);
@@ -213,10 +211,13 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 	float *fp, *p0, *p1, *p2, *p3, fac;
 	float data[4];
 	int cycl=0, s0, s1, s2, s3;
-	
+
 	if(ob==0 || ob->type != OB_CURVE) return 0;
 	cu= ob->data;
-	if(cu->path==0 || cu->path->data==0) calc_curvepath(ob);
+	if(cu->path==0 || cu->path->data==0) {
+		calc_curvepath(ob);
+		if(cu->path==0 || cu->path->data==0) return 0;
+	}
 	path= cu->path;
 	fp= path->data;
 	
@@ -224,7 +225,6 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 	bl= cu->bev.first;
 	if(bl && bl->poly> -1) cycl= 1;
 
-	/* ctime is between 0.0-1.0 */
 	ctime *= (path->len-1);
 	
 	s1= (int)floor(ctime);

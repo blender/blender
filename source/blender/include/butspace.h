@@ -209,11 +209,14 @@ void butspace_context_switch(SpaceButs *buts, struct Base *new);
 #define B_ANIMBUTS		1500
 
 #define B_RECALCPATH	1401
-
+#define B_TRACKBUTS		1402
+#define B_DEL_HOOK		1403
+#define B_CLR_HOOK		1404
 
 #define B_PRINTSPEED	1413
 #define B_PRINTLEN		1414
 #define B_RELKEY		1415
+#define B_CURVECHECK	1416
 
 	/* this has MAX_EFFECT settings! Next free define is 1450... */
 #define B_SELEFFECT	1430	

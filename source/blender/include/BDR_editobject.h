@@ -119,6 +119,7 @@ void mirrormenu(void);
 void mirror_edit(short mode);
 void mirror_object(short mode);
 void flag_edge_crease(void);
+void add_hook(void);
 
 #endif /*  BDR_EDITOBJECT_H */
 

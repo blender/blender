@@ -70,6 +70,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_displist.h"
+#include "BKE_deform.h"
 #include "BKE_object.h"
 #include "BKE_world.h"
 #include "BKE_mesh.h"
@@ -328,6 +329,20 @@ void freedisplist(ListBase *lb)
 		BLI_remlink(lb, dl);
 		free_disp_elem(dl);
 		dl= lb->first;
+	}
+}
+
+static void freedisplist_object(Object *ob)
+{
+	freedisplist(&ob->disp);
+
+	if(ob->type==OB_MESH) {
+		Mesh *me= ob->data;
+		freedisplist(&me->disp);
+	}
+	else if(ob->type==OB_CURVE || ob->type==OB_SURF || ob->type==OB_FONT) {
+		Curve *cu= ob->data;
+		freedisplist(&cu->disp);
 	}
 }
 
@@ -1740,8 +1755,9 @@ void makeDispList(Object *ob)
 
 		tex_space_mesh(ob->data);
 		
-		/* deform: input mesh, output ob dl_verts. is used by subsurf */
-		object_deform(ob);	
+		if(ob!=G.obedit) {
+			mesh_modifier(ob, 's');
+		}
 		
 		if(ob->effect.first) object_wave(ob);
 		
@@ -1752,7 +1768,7 @@ void makeDispList(Object *ob)
 				dlm= subsurf_make_dispListMesh_from_editmesh(em, me->subdiv, me->flag, me->subsurftype);
 			} else {
 				DispList *dlVerts= find_displist(&ob->disp, DL_VERTS);
-
+				// not needed anymore, recode it (ton)
 				dlm= subsurf_make_dispListMesh_from_mesh(me, dlVerts?dlVerts->verts:NULL, 
 													me->subdiv, me->flag);
 			}
@@ -1764,6 +1780,8 @@ void makeDispList(Object *ob)
 			free_displist_by_type(&me->disp, DL_MESH);
 			BLI_addtail(&me->disp, dl);
 		}
+		
+		if(ob!=G.obedit) mesh_modifier(ob, 'e');
 	}
 	else if(ob->type==OB_MBALL) {
 		
@@ -1783,8 +1801,11 @@ void makeDispList(Object *ob)
 		freedisplist(dispbase);
 		
 		if(ob==G.obedit) nu= editNurb.first;
-		else nu= cu->nurb.first;
-
+		else {
+			curve_modifier(ob, 's');
+			nu= cu->nurb.first;
+		}
+		
 		while(nu) {
 			if(nu->hide==0) {
 				if(nu->pntsv==1) {
@@ -1856,7 +1877,8 @@ void makeDispList(Object *ob)
 		}
 		
 		tex_space_curve(cu);
-		
+
+		if(ob!=G.obedit) curve_modifier(ob, 'e');
 		if(ob!=G.obedit) object_deform(ob);
 	}
 	else if ELEM(ob->type, OB_CURVE, OB_FONT) {
@@ -1871,6 +1893,8 @@ void makeDispList(Object *ob)
 		cu->path= 0;
 		
 		BLI_freelistN(&(cu->bev));
+		
+		if(ob!=G.obedit) curve_modifier(ob, 's');
 		
 		if(ob==G.obedit) {
 			if(ob->type==OB_CURVE) curve_to_displist(&editNurb, dispbase);
@@ -1986,12 +2010,14 @@ void makeDispList(Object *ob)
 			}
 		}
 
+		if(ob!=G.obedit) curve_modifier(ob, 'e');
 		if(ob!=G.obedit) object_deform(ob);
 
 		tex_space_curve(cu);
 
 	}
 	
+	boundbox_displist(ob);
 }
 
 
@@ -2294,12 +2320,13 @@ void imagestodisplist(void)
 }
 
 /* on frame change */
-
+/* new method: only frees displists, and relies on 
+   drawobject.c & convertscene.c to build it when needed
+*/
 void test_all_displists(void)
 {
 	Base *base;
 	Object *ob;
-	int done;	/* prevent displist to be made too often */
 	unsigned int lay;
 	
 	/* background */	
@@ -2310,8 +2337,6 @@ void test_all_displists(void)
 		if(base->lay & lay) {
 			ob= base->object;
 			
-			done= 0;
-			
 			if(ob->type==OB_MBALL && (ob->ipo || ob->parent)) {
 				// find metaball object holding the displist
 				// WARNING: if more metaballs have IPO's the displist
@@ -2321,44 +2346,62 @@ void test_all_displists(void)
 				if(ob->disp.first == NULL) {
 					ob= find_basis_mball(ob);
 				}
-				// makeDispList(ob);
 				freedisplist(&ob->disp);
 			}
 			else if(ob->parent) {
 				
-				done= 1;
 				if (ob->parent->type == OB_LATTICE)
-					makeDispList(ob);
+					freedisplist_object(ob);
 				else if ((ob->parent->type == OB_IKA) && (ob->partype == PARSKEL))
-					makeDispList(ob);
+					freedisplist_object(ob);
 				else if ((ob->parent->type==OB_ARMATURE) && (ob->partype == PARSKEL))
-					makeDispList(ob);
-				else done= 0;
+					freedisplist_object(ob);
+				else if ((ob->parent->type==OB_CURVE) && (ob->partype == PARSKEL))
+					freedisplist_object(ob);
+			}
+
+			if(ob->hooks.first) {
+				ObHook *hook;
+				for(hook= ob->hooks.first; hook; hook= hook->next) {
+					if(hook->parent) freedisplist_object(ob);
+					break;
+				}
 			}
 
 			/* warn, ob pointer changed in case of OB_MALL */
-			if(done==0) {
-				if ELEM(ob->type, OB_CURVE, OB_SURF) {
-					if(ob!=G.obedit) {
-						if( ((Curve *)(ob->data))->key ) makeDispList(ob);
-					}
-				}
-				else if(ob->type==OB_FONT) {
+
+			if ELEM(ob->type, OB_CURVE, OB_SURF) {
+				if(ob!=G.obedit) {
 					Curve *cu= ob->data;
-					if(cu->textoncurve) {
-						if( ((Curve *)cu->textoncurve->data)->key ) {
-							text_to_curve(ob, 0);
-							makeDispList(ob);
-						}
+					
+					if(cu->key ) freedisplist_object(ob); //makeDispList(ob);
+					if(cu->bevobj) {
+						Curve *cu1= cu->bevobj->data;
+						if(cu1->key ) freedisplist_object(ob);
 					}
-				}
-				else if(ob->type==OB_MESH) {
-					if(ob->effect.first) object_wave(ob);
-					if(ob!=G.obedit) {
-						if(( ((Mesh *)(ob->data))->key )||(ob->effect.first)) makeDispList(ob);
+					if(cu->taperobj) {
+						Curve *cu1= cu->taperobj->data;
+						if(cu1->key ) freedisplist_object(ob);
 					}
 				}
 			}
+			else if(ob->type==OB_FONT) {
+				Curve *cu= ob->data;
+				if(cu->textoncurve) {
+					if( ((Curve *)cu->textoncurve->data)->key ) {
+						text_to_curve(ob, 0);
+						freedisplist_object(ob); //makeDispList(ob);
+					}
+				}
+			}
+			else if(ob->type==OB_MESH) {
+				if(ob->effect.first) object_wave(ob);
+				if(ob!=G.obedit) {
+					if(( ((Mesh *)(ob->data))->key )||(ob->effect.first)) 
+						freedisplist_object(ob); //makeDispList(ob);
+				}
+			}
+
 		}
 		if(base->next==0 && G.scene->set && base==G.scene->base.last) base= G.scene->set->base.first;
 		else base= base->next;

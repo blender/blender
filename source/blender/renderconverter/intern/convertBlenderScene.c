@@ -68,27 +68,27 @@
 #include "DNA_meta_types.h"
 #include "DNA_space_types.h"
 
-#include "BKE_mesh.h"
-#include "BKE_key.h"
+#include "BKE_anim.h"
+#include "BKE_armature.h"
 #include "BKE_action.h"
 #include "BKE_curve.h"
-#include "BKE_armature.h"
-#include "BKE_object.h"
-#include "BKE_texture.h"
+#include "BKE_constraint.h"
+#include "BKE_displist.h"
+#include "BKE_deform.h"
+#include "BKE_effect.h"
+#include "BKE_global.h"
+#include "BKE_key.h"
+#include "BKE_ipo.h"
+#include "BKE_ika.h"
+#include "BKE_lattice.h"
 #include "BKE_material.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
-#include "BKE_anim.h"
-#include "BKE_global.h"
-#include "BKE_effect.h"
-#include "BKE_world.h"
-#include "BKE_ipo.h"
-#include "BKE_ika.h"
-#include "BKE_displist.h"
-#include "BKE_lattice.h"
-#include "BKE_constraint.h"
-#include "BKE_utildefines.h"
+#include "BKE_mesh.h"
+#include "BKE_object.h"
 #include "BKE_subsurf.h"
+#include "BKE_texture.h"
+#include "BKE_utildefines.h"
 #include "BKE_world.h"
 
 #include "render.h"
@@ -1247,8 +1247,8 @@ static void init_render_mesh(Object *ob)
 
 	me= ob->data;
 
-	/* object_deform changes imat */
-	do_puno= object_deform(ob);
+	/* object_deform changes imat! */
+	do_puno= mesh_modifier(ob, 's');
 
 	paf = give_parteff(ob);
 	if(paf) {
@@ -1299,8 +1299,6 @@ static void init_render_mesh(Object *ob)
 			if((me->subdivdone-1)!=me->subdivr) {
 				DispList *dlVerts;
 
-				object_deform(ob);
-
 				dlVerts= find_displist(&ob->disp, DL_VERTS);
 				dlm= subsurf_make_dispListMesh_from_mesh(me, dlVerts?dlVerts->verts:NULL, me->subdivr, me->flag);
 				dl= MEM_callocN(sizeof(*dl), "dl");
@@ -1317,16 +1315,19 @@ static void init_render_mesh(Object *ob)
 			}
 		}
 
-		if(dl==0 || dl->type!=DL_MESH) return;
-		dlm= dl->mesh;
-
-		mvert= dlm->mvert;
-		totvert= dlm->totvert;
-
-		if(need_orco) {
-			make_orco_displist_mesh(ob, me->subdivr);
+		if(dl==NULL || dl->type!=DL_MESH);  // here used to be a return, but why?
+		else {
+			dlm= dl->mesh;
+	
+			mvert= dlm->mvert;
+			totvert= dlm->totvert;
+	
+			if(need_orco) {
+				make_orco_displist_mesh(ob, me->subdivr);
+			}
+			ms= NULL; // no stick in displistmesh
 		}
-		ms= NULL; // no stick in displistmesh
+		
 	} else {
 		dlm= NULL;
 		mvert= me->mvert;
@@ -1527,7 +1528,8 @@ static void init_render_mesh(Object *ob)
 	}
 	
 	if(do_puno) normalenrender(totverto, totvlako);
-
+	
+	mesh_modifier(ob, 'e');  // end
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1797,6 +1799,8 @@ static void init_render_surf(Object *ob)
 	if(cu->orco==0 && need_orco) make_orco_surf(cu);
 	orco= cu->orco;
 
+	curve_modifier(ob, 's');
+
 	/* make a complete new displist, the base-displist can be different */
 	displist.first= displist.last= 0;
 	nu= cu->nurb.first;
@@ -1840,6 +1844,9 @@ static void init_render_surf(Object *ob)
 		end_latt_deform();
 	}
 	
+	/* note; deform will be included in modifier() later */
+	curve_modifier(ob, 'e');
+
 	if(ob->partype==PARSKEL && ob->parent && ob->parent->type==OB_ARMATURE) {
 /*  		bArmature *arm= ob->parent->data; */
 		init_armature_deform(ob->parent, ob);
@@ -2162,6 +2169,8 @@ static void init_render_curve(Object *ob)
 	nu= cu->nurb.first;
 	if(nu==0) return;
 
+	curve_modifier(ob, 's');
+
 	/* test displist */
 	if(cu->disp.first==0) makeDispList(ob);
 	dl= cu->disp.first;
@@ -2233,6 +2242,9 @@ static void init_render_curve(Object *ob)
 			}
 		}
 	}
+
+	/* modifier() will get deform included later */
+	curve_modifier(ob, 'e');
 
 	if(ob->parent && ob->parent->type==OB_LATTICE) {
 		lt= ob->parent->data;

@@ -2122,7 +2122,7 @@ static void lib_link_object(FileData *fd, Main *main)
 	bSensor *sens;
 	bController *cont;
 	bActuator *act;
-
+	ObHook *hook;
 	void *poin;
 	int warn=0, a;
 
@@ -2240,6 +2240,10 @@ static void lib_link_object(FileData *fd, Main *main)
 			}
 
 			lib_link_scriptlink(fd, &ob->id, &ob->scriptlink);
+			
+			for(hook= ob->hooks.first; hook; hook= hook->next) {
+				hook->parent= newlibadr(fd, ob->id.lib, hook->parent);
+			}
 		}
 		ob= ob->id.next;
 	}
@@ -2270,7 +2274,8 @@ static void direct_link_object(FileData *fd, Object *ob)
 	bSensor *sens;
 	bController *cont;
 	bActuator *act;
-
+	ObHook *hook;
+	
 	ob->disp.first=ob->disp.last= 0;
 
 	ob->pose= newdataadr(fd, ob->pose);
@@ -2335,7 +2340,18 @@ static void direct_link_object(FileData *fd, Object *ob)
 		act= act->next;
 	}
 
-	ob->bb= 0;
+	link_list(fd, &ob->hooks);
+	for(hook= ob->hooks.first; hook; hook= hook->next) {
+		hook->indexar= newdataadr(fd, hook->indexar);
+		if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
+			int a;
+			for(a=0; a<hook->totindex; a++) {
+				SWITCH_INT(hook->indexar[a]);
+			}
+		}
+	}
+	
+	ob->bb= NULL;
 }
 
 /* ************ READ SCENE ***************** */

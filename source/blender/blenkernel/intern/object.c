@@ -148,6 +148,16 @@ void update_base_layer(Object *ob)
 	}
 }
 
+static void free_hooks(ListBase *lb)
+{
+	while(lb->first) {
+		ObHook *hook= lb->first;
+		if(hook->indexar) MEM_freeN(hook->indexar);
+		BLI_remlink(lb, hook);
+		MEM_freeN(hook);
+	}
+}
+
 /* do not free object itself */
 void free_object(Object *ob)
 {
@@ -193,7 +203,9 @@ void free_object(Object *ob)
 	free_constraints(&ob->constraints);
 	free_constraint_channels(&ob->constraintChannels);
 	free_nlastrips(&ob->nlastrips);
-
+	
+	free_hooks(&ob->hooks);
+	
 	freedisplist(&ob->disp);
 	
 	BPY_free_scriptlink(&ob->scriptlink);
@@ -210,6 +222,7 @@ void unlink_object(Object *ob)
 	Scene *sce;
 	Curve *cu;
 	Tex *tex;
+	ObHook *hook;
 	Group *group;
 	int a;
 
@@ -225,6 +238,9 @@ void unlink_object(Object *ob)
 				if(ob->type==OB_LATTICE) freedisplist(&obt->disp);
 			}
 			if(obt->track==ob) obt->track= NULL;
+			for(hook=obt->hooks.first; hook; hook= hook->next) {
+				if(hook->parent==ob) hook->parent= NULL;
+			}
 			if ELEM(obt->type, OB_CURVE, OB_FONT) {
 				cu= obt->data;
 				if(cu->bevobj==ob) cu->bevobj= NULL;
@@ -752,7 +768,8 @@ Object *copy_object(Object *ob)
 	id_us_plus((ID *)obn->action);
 	for(a=0; a<obn->totcol; a++) id_us_plus((ID *)obn->mat[a]);
 	
-	obn->disp.first= obn->disp.last= 0;
+	obn->disp.first= obn->disp.last= NULL;
+	obn->hooks.first= obn->hooks.last= NULL;
 	
 	return obn;
 }
@@ -969,7 +986,8 @@ void ob_parcurve(Object *ob, Object *par, float mat[][4])
 
 		if(cu->flag & CU_FOLLOW) {
 			quat= vectoquat(dir, ob->trackflag, ob->upflag);
-
+			
+			/* the tilt */
 			Normalise(dir);
 			q[0]= (float)cos(0.5*vec[3]);
 			x1= (float)sin(0.5*vec[3]);

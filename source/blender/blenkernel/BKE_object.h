@@ -93,7 +93,6 @@ void minmax_object(struct Object *ob, float *min, float *max);
 void solve_tracking (struct Object *ob, float targetmat[][4]);
 void solve_constraints (struct Object *ob, short obtype, void *obdata, float ctime);
 
-	
 #ifdef __cplusplus
 }
 #endif

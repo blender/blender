@@ -1,8 +1,8 @@
 /*  BKE_deform.h   June 2001
  *  
- *  support for deformation groups
+ *  support for deformation groups and hooks
  * 
- *	Reevan McKay
+ *	Reevan McKay et al
  *
  * $Id$
  *
@@ -45,6 +45,13 @@ struct bDeformGroup;
 void copy_defgroups (struct ListBase *lb1, struct ListBase *lb2);
 struct bDeformGroup* copy_defgroup (struct bDeformGroup *ingroup);
 void color_temperature (float input, unsigned char *r, unsigned char *g, unsigned char *b);
+
+void hook_object_deform(struct Object *ob, int index, float *vec);
+
+int curve_modifier(struct Object *ob, char mode);
+int mesh_modifier(struct Object *ob, char mode);
+int lattice_modifier(struct Object *ob, char mode);
+
 
 #endif
 

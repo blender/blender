@@ -74,15 +74,16 @@
 #include "BKE_utildefines.h"
 #include "BKE_curve.h"
 #include "BKE_constraint.h" // for the get_constraint_target function
-#include "BKE_object.h"
-#include "BKE_global.h"
+#include "BKE_deform.h"		// lattice_modifier()
 #include "BKE_displist.h"
+#include "BKE_effect.h"
+#include "BKE_global.h"
+#include "BKE_ipo.h"
+#include "BKE_lattice.h"
+#include "BKE_mesh.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
-#include "BKE_ipo.h"
-#include "BKE_mesh.h"
-#include "BKE_effect.h"
-#include "BKE_lattice.h"
+#include "BKE_object.h"
 
 #include "BIF_gl.h"
 #include "BIF_mywindow.h"
@@ -861,6 +862,7 @@ static void drawlattice(Object *ob)
 		cpack(0x004000);
 	}
 	else {
+		lattice_modifier(ob, 's');
 		bp= lt->def;
 	}
 	
@@ -950,6 +952,8 @@ static void drawlattice(Object *ob)
 		
 		if(G.zbuf) glEnable(GL_DEPTH_TEST); 
 	}
+	else lattice_modifier(ob, 'e');
+
 }
 
 /* ***************** ******************** */
@@ -3701,6 +3705,33 @@ static void draw_extra_wire(Object *ob)
 	}
 }
 
+/* should be called in view space */
+static void draw_hooks(Object *ob)
+{
+	ObHook *hook;
+	float vec[3];
+	
+	for(hook= ob->hooks.first; hook; hook= hook->next) {
+		
+		VecMat4MulVecfl(vec, ob->obmat, hook->cent);
+		if(hook->parent) {
+			setlinestyle(3);
+			glBegin(GL_LINES);
+			glVertex3fv(hook->parent->obmat[3]);
+			glVertex3fv(vec);
+			glEnd();
+			setlinestyle(0);
+		}
+
+		glPointSize(3.0);
+		bglBegin(GL_POINTS);
+		bglVertex3fv(vec);
+		bglEnd();
+		glPointSize(1.0);
+
+	}
+}
+
 void draw_object(Base *base)
 {
 	PartEff *paf;
@@ -3873,6 +3904,17 @@ void draw_object(Base *base)
 		}
 	}
 
+	/* exception for mesh..., needs to be here for outline draw */
+	if(ob->type==OB_MESH) {
+		me= ob->data;
+		/* check for need for displist (it's zero when parent, key, or hook changed) */
+		if(ob->disp.first==NULL) {
+			if(ob->parent && ob->partype==PARSKEL) makeDispList(ob);
+			else if(ob->hooks.first) makeDispList(ob);
+			else if(mesh_uses_displist(me)) makeDispList(ob);
+		}
+	}
+	
 	/* draw outline for selected solid objects */
 	if(G.vd->flag & V3D_SELECT_OUTLINE) {
 		if(dt>OB_WIRE && ob!=G.obedit && (G.f & G_BACKBUFSEL)==0) {
@@ -3886,17 +3928,6 @@ void draw_object(Base *base)
 	case OB_MESH:
 		me= ob->data;
 
-#if 0
-		/* this is a source of great slowness */
-		/* Force a refresh of the display list if the parent is an armature */
-		if (ob->parent && ob->parent->type==OB_ARMATURE && ob->partype==PARSKEL){
-#if 0			/* Turn this on if there are problems with deformation lag */
-			where_is_armature (ob->parent);
-#endif
-			if (ob != G.obedit)
-				makeDispList (ob);
-		}
-#endif
 		if(base->flag & OB_RADIO);
 		else if(ob==G.obedit || (G.obedit && ob->data==G.obedit->data)) {
 			if(dt<=OB_WIRE) drawmeshwire(ob);
@@ -4013,7 +4044,7 @@ void draw_object(Base *base)
 		if(dtx & OB_DRAWIMAGE) drawDispListwire(&ob->disp);
 		if((dtx & OB_DRAWWIRE) && dt>=OB_SOLID) draw_extra_wire(ob);
 	}
-
+	
 	if(dt<OB_SHADED) {
 		if((ob->gameflag & OB_ACTOR) && (ob->gameflag & OB_DYNAMIC)) {
 			float tmat[4][4], imat[4][4], vec[3];
@@ -4039,6 +4070,9 @@ void draw_object(Base *base)
 
 	if((G.f & (G_BACKBUFSEL+G_PICKSEL))==0) {
 		ListBase *list;
+
+		/* draw hook center and offset line */
+		if(ob->hooks.first && ob!=G.obedit) draw_hooks(ob);
 
 		/* help lines and so */
 		if(ob->parent && (ob->parent->lay & G.vd->lay)) {

@@ -655,7 +655,8 @@ static void write_constraint_channels(WriteData *wd, ListBase *chanbase)
 static void write_objects(WriteData *wd, ListBase *idbase)
 {
 	Object *ob;
-
+	ObHook *hook;
+	
 	ob= idbase->first;
 	while(ob) {
 		if(ob->id.us>0) {
@@ -677,6 +678,11 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 			write_nlastrips(wd, &ob->nlastrips);
 			
 			writestruct(wd, DATA, "PartDeflect", 1, ob->pd);
+			
+			for(hook= ob->hooks.first; hook; hook= hook->next) {
+				writestruct(wd, DATA, "ObHook", 1, hook);
+				writedata(wd, DATA, sizeof(int)*hook->totindex, hook->indexar);
+			}
 		}
 		ob= ob->id.next;
 	}

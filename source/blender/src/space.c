@@ -1127,7 +1127,9 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case HKEY:
 				if(G.obedit) {
 					if(G.obedit->type==OB_MESH) {
-						if(G.qual==LR_ALTKEY)
+						if(G.qual==LR_CTRLKEY)
+							add_hook();
+						else if(G.qual==LR_ALTKEY)
 							reveal_mesh();
 						else if((G.qual==LR_SHIFTKEY))
 							hide_mesh(1);
@@ -1135,7 +1137,9 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							hide_mesh(0);
 					}
 					else if(G.obedit->type== OB_SURF) {
-						if(G.qual==LR_ALTKEY)
+						if(G.qual==LR_CTRLKEY)
+							add_hook();
+						else if(G.qual==LR_ALTKEY)
 							revealNurb();
 						else if((G.qual==LR_SHIFTKEY))
 							hideNurb(1);
@@ -1143,17 +1147,24 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							hideNurb(0);
 					}
 					else if(G.obedit->type==OB_CURVE) {
-						undo_push_curve("Handle change");
 						if(G.qual==LR_CTRLKEY)
-							autocalchandlesNurb_all(1);	/* flag=1, selected */
-						else if((G.qual==LR_SHIFTKEY))
-							sethandlesNurb(1);
-						else if((G.qual==0))
-							sethandlesNurb(3);
-						
-						makeDispList(G.obedit);
-						
-						allqueue(REDRAWVIEW3D, 0);
+							add_hook();
+						else {
+							undo_push_curve("Handle change");
+							if(G.qual==LR_CTRLKEY)
+								autocalchandlesNurb_all(1);	/* flag=1, selected */
+							else if((G.qual==LR_SHIFTKEY))
+								sethandlesNurb(1);
+							else if((G.qual==0))
+								sethandlesNurb(3);
+							
+							makeDispList(G.obedit);
+							
+							allqueue(REDRAWVIEW3D, 0);
+						}
+					}
+					else if(G.obedit->type==OB_LATTICE) {
+						if(G.qual==LR_CTRLKEY) add_hook();
 					}
 				}
 				else if(G.f & G_FACESELECT)

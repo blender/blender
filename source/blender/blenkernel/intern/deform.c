@@ -36,10 +36,23 @@
  */
 
 #include <string.h>
+
 #include "MEM_guardedalloc.h"
-#include "BLI_blenlib.h"
+
+#include "DNA_curve_types.h"
+#include "DNA_lattice_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
+
+#include "BKE_curve.h"
 #include "BKE_deform.h"
+#include "BKE_displist.h"
+#include "BKE_lattice.h"
+#include "BKE_utildefines.h"
+
+#include "BLI_blenlib.h"
+#include "BLI_arithb.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -115,5 +128,245 @@ bDeformGroup* copy_defgroup (bDeformGroup *ingroup)
 	outgroup->next=outgroup->prev=NULL;
 
 	return outgroup;
+}
+
+/* *************** HOOK ****************** */
+
+/* vec==NULL: init
+   vec is supposed to be local coord
+*/
+
+void hook_object_deform(Object *ob, int index, float *vec)
+{
+	float totforce;
+	ObHook *hook;
+	float vect[3], vectot[3];
+	
+	if(ob->hooks.first==NULL) return;
+	
+	/* reinitialize if... */
+	if(vec==NULL) {
+		totforce= 0.0;
+		for(hook= ob->hooks.first; hook; hook= hook->next) {
+			if(hook->parent) {
+				hook->curindex= 0;
+				Mat4Invert(ob->imat, ob->obmat);
+				/* apparently this call goes from right to left... */
+				Mat4MulSerie(hook->mat, ob->imat, hook->parent->obmat, hook->parentinv, NULL, 
+							NULL, NULL, NULL, NULL);
+			}
+		}
+		return;
+	}
+
+	totforce= 0.0;
+	vectot[0]= vectot[1]= vectot[2]= 0.0;
+	
+	for(hook= ob->hooks.first; hook; hook= hook->next) {
+		if(hook->parent) {
+			
+			/* is 'index' in hook array? */
+			while(hook->curindex < hook->totindex-1) {
+				if( hook->indexar[hook->curindex] < index ) hook->curindex++;
+				else break;
+			}
+			
+			if( hook->indexar[hook->curindex]==index ) {
+				float fac= hook->force;
+				
+				totforce+= fac;
+				
+				VecMat4MulVecfl(vect, hook->mat, vec);
+				vectot[0]+= fac*vect[0];
+				vectot[1]+= fac*vect[1];
+				vectot[2]+= fac*vect[2];
+			}
+		}
+	}
+
+	/* if totforce < 1.0, we take old position also into account */
+	if(totforce<1.0) {
+		vectot[0]+= (1.0-totforce)*vec[0];
+		vectot[1]+= (1.0-totforce)*vec[1];
+		vectot[2]+= (1.0-totforce)*vec[2];
+	}
+	else VecMulf(vectot, 1.0/totforce);
+	
+	VECCOPY(vec, vectot);
+}
+
+
+/* modifiers: hooks, deform, softbody 
+   mode=='s' is start, 'e' end 
+*/
+
+int mesh_modifier(Object *ob, char mode)
+{
+	static MVert *mvert=NULL;
+	Mesh *me= ob->data;
+	MVert *mv;
+	int a, done=0;
+	
+	/* conditions if it's needed */
+	if(ob->hooks.first);
+	else if(ob->parent && ob->parent->type==OB_LATTICE);
+	else if(ob->parent && ob->partype==PARSKEL); 
+	else return 0;
+	
+	if(me->totvert==0) return 0;
+	
+	if(mode=='s') { // "start"
+		/* copy  */
+		mvert= MEM_dupallocN(me->mvert);
+		
+		/* hooks */
+		if(ob->hooks.first) {
+			done= 1;
+			
+			/* NULL signals initialize */
+			hook_object_deform(ob, 0, NULL);
+			
+			for(a=0, mv= me->mvert; a<me->totvert; a++, mv++) {
+				hook_object_deform(ob, a, mv->co);
+			}
+		}
+		
+		/* deform: input mesh, output ob dl_verts. is used by subsurf */
+		done |= object_deform(ob);	
+		
+		/* put deformed vertices in dl->verts, optional subsurf will replace that */
+		if(done) {
+			DispList *dl= find_displist_create(&ob->disp, DL_VERTS);
+			float *fp;
+			
+			if(dl->verts) MEM_freeN(dl->verts);
+			dl->nr= me->totvert;
+			if(dl->nr) {
+				
+				/* make disp array */
+				dl->verts= fp= MEM_mallocN(3*sizeof(float)*me->totvert, "deform1");
+				mv= me->mvert;
+				for(a=0; a<me->totvert; a++, mv++, fp+=3) {
+					VECCOPY(fp, mv->co);
+				}
+			}
+		}
+	}
+	else { // end
+		if(mvert) {
+			MEM_freeN(me->mvert);
+			me->mvert= mvert;
+			mvert= NULL;
+		}
+	}
+	
+	return done;
+}
+
+int curve_modifier(Object *ob, char mode)
+{
+	static ListBase nurb={NULL, NULL};
+	Curve *cu= ob->data;
+	Nurb *nu, *newnu;
+	BezTriple *bezt;
+	BPoint *bp;
+	int a, index, done= 0;
+	
+	/* conditions if it's needed */
+	if(ob->hooks.first);
+	else if(ob->parent && ob->partype==PARSKEL); 
+	else if(ob->parent && ob->parent->type==OB_LATTICE);
+	else return 0;
+	
+	if(mode=='s') { // "start"
+		/* copy  */
+		nurb.first= nurb.last= NULL;	
+		nu= cu->nurb.first;
+		while(nu) {
+			newnu= duplicateNurb(nu);
+			BLI_addtail(&nurb, newnu);
+			nu= nu->next;
+		}
+		
+		/* hooks */
+		if(ob->hooks.first) {
+			done= 1;
+			
+			/* NULL signals initialize */
+			hook_object_deform(ob, 0, NULL);
+			index= 0;
+			
+			nu= cu->nurb.first;
+			while(nu) {
+				if((nu->type & 7)==CU_BEZIER) {
+					bezt= nu->bezt;
+					a= nu->pntsu;
+					while(a--) {
+						hook_object_deform(ob, index++, bezt->vec[0]);
+						hook_object_deform(ob, index++, bezt->vec[1]);
+						hook_object_deform(ob, index++, bezt->vec[2]);
+						bezt++;
+					}
+				}
+				else {
+					bp= nu->bp;
+					a= nu->pntsu*nu->pntsv;
+					while(a--) {
+						hook_object_deform(ob, index++, bp->vec);
+						bp++;
+					}
+				}
+					
+				nu= nu->next;
+			}
+		}
+	}
+	else {
+		/* paste */
+		freeNurblist(&cu->nurb);
+		cu->nurb= nurb;
+	}
+	
+	return done;
+}
+
+int lattice_modifier(Object *ob, char mode)
+{
+	static BPoint *bpoint;
+	Lattice *lt= ob->data;
+	BPoint *bp;
+	int a, index, done= 0;
+	
+	/* conditions if it's needed */
+	if(ob->hooks.first);
+	else if(ob->parent && ob->partype==PARSKEL); 
+	else return 0;
+	
+	if(mode=='s') { // "start"
+		/* copy  */
+		bpoint= MEM_dupallocN(lt->def);
+		
+		/* hooks */
+		if(ob->hooks.first) {
+			done= 1;
+			
+			/* NULL signals initialize */
+			hook_object_deform(ob, 0, NULL);
+			index= 0;
+			bp= lt->def;
+			a= lt->pntsu*lt->pntsv*lt->pntsw;
+			while(a--) {
+				hook_object_deform(ob, index++, bp->vec);
+				bp++;
+			}
+		}
+	}
+	else { // end
+		MEM_freeN(lt->def);
+		lt->def= bpoint;
+		bpoint= NULL;
+	}
+	
+	return done;
 }
 

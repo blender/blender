@@ -450,6 +450,8 @@ void separate_nurb()
 	
 	G.obedit= 0;	/* displists behave different in edit mode */
 	makeDispList(OBACT);	/* this is the separated one */
+
+	curve_changes_other_objects(oldob);
 	
 	G.obedit= oldob;
 	BASACT= oldbase;
@@ -1053,6 +1055,8 @@ void switchdirectionNurb2(void)
 	}
 	
 	makeDispList(G.obedit);
+	curve_changes_other_objects(G.obedit);
+
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -1714,6 +1718,8 @@ void subdivideNurb()
 
 
 	makeDispList(G.obedit);
+	curve_changes_other_objects(G.obedit);
+
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
@@ -2298,7 +2304,10 @@ void merge_nurb()
 	
 	countall();
 	lastnu= NULL;
+
 	makeDispList(G.obedit);
+	curve_changes_other_objects(G.obedit);
+
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 }
@@ -2455,6 +2464,8 @@ void addsegment_nurb()
 		lastnu= NULL;	/* for selected */
 
 		makeDispList(G.obedit);
+		curve_changes_other_objects(G.obedit);
+
 		countall();
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
@@ -2653,6 +2664,24 @@ void spinNurb(float *dvec, short mode)
 	}
 }
 
+void curve_changes_other_objects(Object *ob)
+{
+	Base *base= FIRSTBASE;
+	while(base) {
+		if(base->lay & G.vd->lay) {
+			if(base->object->parent==ob && base->object->partype==PARSKEL)
+				freedisplist(&base->object->disp);
+			
+			if(base->object->type==OB_CURVE) {
+				Curve *cu= base->object->data;
+				if(ob==cu->bevobj || ob==cu->taperobj)
+					makeDispList(base->object);
+			}
+		}
+		base= base->next;
+	}
+}
+
 void addvert_Nurb(int mode)
 {
 	Nurb *nu;
@@ -2787,17 +2816,7 @@ void addvert_Nurb(int mode)
 
 	if(mode!='e') {
 		/* dependencies with other objects, should become event */
-		Base *base= FIRSTBASE;
-		while(base) {
-			if(base->lay & G.vd->lay) {
-				if(base->object->type==OB_CURVE) {
-					Curve *cu= base->object->data;
-					if(G.obedit==cu->bevobj || G.obedit==cu->taperobj)
-						makeDispList(base->object);
-				}
-			}
-			base= base->next;
-		}
+		curve_changes_other_objects(G.obedit);
 	}
 }
 
@@ -2941,6 +2960,8 @@ void makecyclicNurb()
 		nu= nu->next;
 	}
 	makeDispList(G.obedit);
+	curve_changes_other_objects(G.obedit);
+
 }
 
 void selectconnected_nurb()
@@ -3325,6 +3346,8 @@ void delNurb()
 
 	countall();
 	makeDispList(G.obedit);
+	curve_changes_other_objects(G.obedit);
+
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 }
@@ -3880,7 +3903,8 @@ void add_primitiveCurve(int stype)
 	
 	BLI_addtail(&editNurb, nu);
 	makeDispList(G.obedit);
-	
+	curve_changes_other_objects(G.obedit);
+
 	countall();
 	allqueue(REDRAWALL, 0);
 }
@@ -4061,7 +4085,6 @@ void undo_push_curve(char *name)
 /* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at previous step */
 void undo_curve_step(int step)
 {
-	Base *base;
 	UndoElem *uel, *next;
 	
 	/* prevent undo to happen on wrong object */
@@ -4108,19 +4131,7 @@ void undo_curve_step(int step)
 	lastnu= NULL;	/* for selected */
 
 	makeDispList(G.obedit);
-
-	/* dependencies with other objects */
-	base= FIRSTBASE;
-	while(base) {
-		if(base->lay & G.vd->lay) {
-			if(base->object->type==OB_CURVE) {
-				Curve *cu= base->object->data;
-				if(G.obedit==cu->bevobj || G.obedit==cu->taperobj)
-					makeDispList(base->object);
-			}
-		}
-		base= base->next;
-	}
+	curve_changes_other_objects(G.obedit);
 
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
