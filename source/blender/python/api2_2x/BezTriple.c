@@ -125,7 +125,7 @@ if (strcmp (name, "pt") == 0)return BezTriple_getPoints(self);
 /*****************************************************************************/
 static int BezTripleSetAttr (C_BezTriple *self, char *name, PyObject *value)
 {
-if (strcmp (name, "pt") == 0)return BezTriple_setPoints(self,value);
+	if (strcmp (name, "pt") == 0) BezTriple_setPoints(self,value);
   return 0; /* normal exit */
 }
 
