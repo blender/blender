@@ -1009,6 +1009,7 @@ void ob_parcurve(Object *ob, Object *par, float mat[][4])
 		CLAMP(ctime, 0.0, 1.0);
 	}
 
+	/* vec: 4 items! */
  	if( where_on_path(par, ctime, vec, dir) ) {
 
 		if(cu->flag & CU_FOLLOW) {

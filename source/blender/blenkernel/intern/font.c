@@ -509,6 +509,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 				CLAMP(ctime, 0.0, 1.0);
 
 				/* calc the right loc AND the right rot separately */
+				/* vec, tvec need 4 items */
 				where_on_path(cu->textoncurve, ctime, vec, tvec);
 				where_on_path(cu->textoncurve, ctime+dtime, tvec, rotvec);
 				

@@ -202,6 +202,7 @@ int interval_test(int min, int max, int p1, int cycl)
 	return p1;
 }
 
+/* warning, *vec needs FOUR items! */
 int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK */
 {
 	Curve *cu;

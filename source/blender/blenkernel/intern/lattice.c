@@ -411,7 +411,7 @@ static void init_curve_deform(Object *par, Object *ob, CurveDeform *cd)
 
 }
 
-/* this makes sure we can extend for non-cyclic */
+/* this makes sure we can extend for non-cyclic. *vec needs 4 items! */
 static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir)	/* returns OK */
 {
 	Curve *cu= ob->data;
@@ -427,7 +427,8 @@ static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir)
 		ctime1= CLAMPIS(ctime, 0.0, 1.0);
 	}
 	else ctime1= ctime;
-
+	
+	/* vec needs 4 items */
 	if(where_on_path(ob, ctime1, vec, dir)) {
 		
 		if(cycl==0) {
@@ -456,7 +457,7 @@ static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir)
 static void calc_curve_deform(Object *par, float *co, short axis, CurveDeform *cd)
 {
 	Curve *cu= par->data;
-	float fac, loc[3], dir[3], *quat, mat[3][3], cent[3];
+	float fac, loc[4], dir[3], *quat, mat[3][3], cent[3];
 	short upflag, index;
 	
 	if(axis==OB_POSX || axis==OB_NEGX) {
