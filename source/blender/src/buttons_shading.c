@@ -646,7 +646,14 @@ void do_texbuts(unsigned short event)
 		allqueue(REDRAWBUTSSHADING, 0);	// redraw buttons
 		
 		break;
-
+	case B_UNLINKIMA:
+		if(tex && tex->ima) {
+			tex->ima->id.us--;
+			tex->ima= NULL;
+			allqueue(REDRAWBUTSSHADING, 0);	// redraw buttons
+			BIF_all_preview_changed(); 
+		}
+		break;
 	case B_TEXSETFRAMES:
 		if(tex->ima->anim) tex->frames = IMB_anim_get_duration(tex->ima->anim);
 		allqueue(REDRAWBUTSSHADING, 0);
@@ -1239,9 +1246,11 @@ static void texture_panel_image(Tex *tex)
 		uiDefButS(block, MENU, B_TEXIMABROWSE, strp, 10,135,23,20, &(G.buts->menunr), 0, 0, 0, 0, "Selects an existing texture or creates new");
 		
 		if(tex->ima) {
-			uiDefBut(block, TEX, B_NAMEIMA, "",			35,135,255,20, tex->ima->name, 0.0, 79.0, 0, 0, "Displays name of the Image file: click to change");
+			uiDefBut(block, TEX, B_NAMEIMA, "",			35,135,235,20, tex->ima->name, 0.0, 79.0, 0, 0, "Displays name of the Image file: click to change");
+			uiDefIconBut(block, BUT, B_UNLINKIMA, ICON_X,	270,135,20,20, 0, 0, 0, 0, 0, "Unlink Image block from Texture");
+			
 			sprintf(str, "%d", tex->ima->id.us);
-			uiDefBut(block, BUT, 0, str,				290,135,20,20, 0, 0, 0, 0, 0, "Displays number of users of texture: click to make single user");
+			uiDefBut(block, BUT, 0, str,				290,135,20,20, 0, 0, 0, 0, 0, "Displays number of users of texture");
 			uiBlockEndAlign(block);
 			
 			uiDefBut(block, BUT, B_RELOADIMA, "Reload",	230,115,80,19, 0, 0, 0, 0, 0, "Reloads Image");
