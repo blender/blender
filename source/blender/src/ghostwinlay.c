@@ -68,7 +68,7 @@ static GHOST_TStandardCursor convert_cursor(int curs) {
 	switch(curs) {
 	default:
 	case CURSOR_STD:		return GHOST_kStandardCursorDefault;
-	case CURSOR_VPAINT:		return GHOST_kStandardCursorLeftArrow;
+	case CURSOR_VPAINT:		return GHOST_kStandardCursorRightArrow;
 	case CURSOR_FACESEL:	return GHOST_kStandardCursorRightArrow;
 	case CURSOR_WAIT:		return GHOST_kStandardCursorWait;
 	case CURSOR_EDIT:		return GHOST_kStandardCursorCrosshair;
@@ -487,8 +487,16 @@ static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private) {
 				 * XXX quick hack so OSX version works better
 				 * when the window is clicked on (focused). 
 				 */
-				window_handle(win, MOUSEX, win->lmouse[0]);
-				window_handle(win, MOUSEY, win->lmouse[1]);
+				if(1) {
+					int cx, cy, wx, wy;
+					GHOST_GetCursorPosition(g_system, &wx, &wy);
+
+					GHOST_ScreenToClient(win->ghostwin, wx, wy, &cx, &cy);
+					win->lmouse[0]= cx;
+					win->lmouse[1]= (win->size[1]-1) - cy;
+					window_handle(win, MOUSEX, win->lmouse[0]);
+					window_handle(win, MOUSEY, win->lmouse[1]);
+				}
 			}
 			
 			break;
