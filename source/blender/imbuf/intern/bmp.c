@@ -206,7 +206,7 @@ short imb_savebmp(struct ImBuf *ibuf, char *name, int flags) {
    bytesize = (ibuf->x * 3 + extrabytes) * ibuf->y;
 
    data = (uchar *) ibuf->rect;
-   ofile = fopen(name,"ab");
+   ofile = fopen(name,"wb");
 
    putShortLSB(19778,ofile); /* "BM" */
    putIntLSB(0,ofile); /* This can be 0 for BI_RGB bitmaps */

@@ -290,7 +290,7 @@ short imb_savetarga(struct ImBuf * ibuf, char *name, int flags)
         if (ibuf->depth==32) {
            buf[17] |= 0x08;
         }
-	fildes = fopen(name,"ab");
+	fildes = fopen(name,"wb");
 	
 
 	if (fwrite(buf, 1, 18,fildes) != 18) return (0);
