@@ -473,13 +473,15 @@ int BPY_txt_do_python(struct SpaceText* st)
 /*****************************************************************************/
 int BPY_menu_do_python(short menutype, int event)
 {
-  PyObject *py_dict, *py_result, *pyarg = NULL;
+  PyObject *py_dict, *py_res, *pyarg = NULL;
 	BPy_constant *info;
 	BPyMenu *pym;
 	BPySubMenu *pysm;
 	FILE *fp = NULL;
+	char *buffer;
 	char filestr[FILE_MAXDIR+FILE_MAXFILE];
 	Script *script = G.main->script.first;
+	int len;
 
 	if ((menutype < 0) || (menutype > PYMENU_TOTAL) || (event < 0))
 		return 0;
@@ -555,11 +557,30 @@ int BPY_menu_do_python(short menutype, int event)
 
   clearScriptLinks ();
 
-	py_result = PyRun_File(fp, pym->filename, Py_file_input, py_dict, py_dict);
+	/* Previously we used PyRun_File to run directly the code on a FILE object,
+	 * but as written in the Python/C API Ref Manual, chapter 2,
+	 * 'FILE structs for different C libraries can be different and incompatible'
+	 * 
+	 * So now we load the script file data to a buffer */
+
+	fseek(fp, 0L, SEEK_END);
+	len = ftell(fp);
+	fseek(fp, 0L, SEEK_SET);
+
+	buffer = MEM_mallocN(len+1, "pyfilebuf"); /* len+1 to add '\0' */
+	len = fread(buffer, 1, len, fp);
+
+	buffer[len] = '\0';
 
 	fclose(fp);
 
-	if (!py_result) { /* Failed execution of the script */
+	/* run the string buffer */
+
+	py_res = PyRun_String(buffer, Py_file_input, py_dict, py_dict);
+
+	MEM_freeN(buffer);
+
+	if (!py_res) { /* Failed execution of the script */
 
     BPY_Err_Handle(script->id.name+2);
 		PyErr_Print();
@@ -572,7 +593,7 @@ int BPY_menu_do_python(short menutype, int event)
     return 0;
 	}
 	else {
-		Py_DECREF (py_result);
+		Py_DECREF (py_res);
 		script->flags &=~SCRIPT_RUNNING;
 		if (!script->flags) {
 			ReleaseGlobalDictionary(py_dict);
