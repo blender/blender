@@ -379,6 +379,8 @@ void start_game(void)
 	allqueue(REDRAWACTION, 0);
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWIPO, 0);
+#else
+	notice("Game engine is disabled in this release!");
 #endif
 }
 
