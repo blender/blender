@@ -17,6 +17,9 @@ class SCA_ILogicBrick:
 		"""
 		Sets the priority of this logic brick.
 		
+		This determines the order controllers are evaluated, and actuators are activated.
+		Bricks with lower priority will be executed first.
+		
 		@type priority: integer
 		@param priority: the priority of this logic brick.
 		"""

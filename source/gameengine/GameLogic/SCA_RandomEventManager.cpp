@@ -51,7 +51,7 @@ SCA_RandomEventManager::SCA_RandomEventManager(class SCA_LogicManager* logicmgr)
 }
 
 
-void SCA_RandomEventManager::NextFrame(double curtime,double deltatime)
+void SCA_RandomEventManager::NextFrame()
 {
 	for (vector<class SCA_ISensor*>::const_iterator i= m_sensors.begin();!(i==m_sensors.end());i++)
 	{

@@ -47,15 +47,18 @@ SG_Spatial(
 ): 
 
 	SG_IObject(clientobj,clientinfo,callbacks),
-	m_localPosition(MT_Point3(0,0,0)),
-	m_localRotation(1,0,0,0,1,0,0,0,1),
+	m_localPosition(MT_Point3(0.0,0.0,0.0)),
+	m_localRotation(MT_Matrix3x3(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0)),
 	m_localScaling(MT_Vector3(1.f,1.f,1.f)),
 	
-	m_worldPosition(MT_Point3(0,0,0)),
-	m_worldRotation(0,0,0,0,0,0,0,0,0),
+	m_worldPosition(MT_Point3(0.0,0.0,0.0)),
+	m_worldRotation(MT_Matrix3x3(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0)),
 	m_worldScaling(MT_Vector3(1.f,1.f,1.f)),
 
-	m_parent_relation (NULL)
+	m_parent_relation (NULL),
+	
+	m_bbox(MT_Point3(-1.0, -1.0, -1.0), MT_Point3(1.0, 1.0, 1.0)),
+	m_radius(1.0)
 {
 }
 
@@ -302,7 +305,9 @@ void SG_Spatial::SetBBox(SG_BBox& bbox)
 
 MT_Transform SG_Spatial::GetWorldTransform() const
 {
-	return MT_Transform(m_worldPosition, m_worldRotation.scaled(m_worldScaling[0], m_worldScaling[1], m_worldScaling[2]));
+	return MT_Transform(m_worldPosition, 
+		m_worldRotation.scaled(
+		m_worldScaling[0], m_worldScaling[1], m_worldScaling[2]));
 }
 
 bool SG_Spatial::inside(const MT_Point3 &point) const

@@ -53,7 +53,8 @@ SM_Scene::SM_Scene() :
 	m_respTable(DT_CreateRespTable()),
 	m_secondaryRespTable(DT_CreateRespTable()),
 	m_fixRespTable(DT_CreateRespTable()),
-	m_forceField(0.0, 0.0, 0.0)
+	m_forceField(0.0, 0.0, 0.0),
+	m_lastTime(-1.0)
 {
 	for (int i = 0 ; i < NUM_RESPONSE; i++)
 	{
@@ -158,20 +159,43 @@ void SM_Scene::remove(SM_Object& object) {
 		// tried to remove an object that is not in the scene
 		//assert(false);
 	}
-}	
+}
 
-void SM_Scene::proceed(MT_Scalar timeStep, MT_Scalar subSampling) {
-	// Don't waste time...but it's OK to spill a little.
-	//if (timeStep < 0.001)
-	//	return;
-
+void SM_Scene::proceed(MT_Scalar curtime, MT_Scalar ticrate) {
+	if (m_lastTime < 0.0)
+	{
+		m_lastTime = curtime;
+		return;
+	}
+		
 	// Divide the timeStep into a number of subsamples of size roughly 
-	// equal to subSampling (might be a little smaller).
-	int num_samples = (int)ceil(timeStep / subSampling);
-
-	MT_Scalar subStep = timeStep / num_samples;
+	// equal to subS (might be a little smaller).
+	MT_Scalar timeStep = curtime - m_lastTime;
+	MT_Scalar subStep = 1.0/ticrate;
+	int num_samples = int(timeStep * ticrate);
+	
 	T_ObjectList::iterator i;
+	
+	// No timestep! (should do a mini update)
+	if (!num_samples)
+	{
+		// Apply a forcefield (such as gravity)
+#if 0
+		for (i = m_objectList.begin(); i != m_objectList.end(); ++i) 
+		{
+			//(*i)->applyForceField(m_forceField);
+			//(*i)->integrateForces(timeStep);
+			// And second we update the object positions by performing
+			// an integration step for each object
+			(*i)->integrateMomentum(timeStep);
+			//(*i)->clearForce();
+		}
+#endif
+		return;	
+	}
 
+	m_lastTime += MT_Scalar(num_samples)*subStep;
+	
 	// Apply a forcefield (such as gravity)
 	for (i = m_objectList.begin(); i != m_objectList.end(); ++i) {
 		(*i)->applyForceField(m_forceField);
@@ -183,6 +207,7 @@ void SM_Scene::proceed(MT_Scalar timeStep, MT_Scalar subSampling) {
 	for (step = 0; step != num_samples; ++step) {
 
 		for (i = m_objectList.begin(); i != m_objectList.end(); ++i) {
+			(*i)->beginFrame();
 			(*i)->integrateForces(subStep);
 			// And second we update the object positions by performing
 			// an integration step for each object
@@ -210,7 +235,6 @@ void SM_Scene::proceed(MT_Scalar timeStep, MT_Scalar subSampling) {
 	
 	// Finish this timestep by saving al state information for the next
 	// timestep and clearing the accumulated forces. 
-
 	for (i = m_objectList.begin(); i != m_objectList.end(); ++i) {
 		(*i)->relax();
 		(*i)->proceedKinematic(timeStep);

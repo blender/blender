@@ -35,6 +35,7 @@
 #include <config.h>
 #endif
 
+
 SCA_EventManager::SCA_EventManager(EVENT_MANAGER_TYPE mgrtype)
 	:m_mgrtype(mgrtype)
 {
@@ -59,6 +60,15 @@ void SCA_EventManager::RemoveSensor(class SCA_ISensor* sensor)
 	}
 }
 
+void SCA_EventManager::NextFrame(double curtime, double fixedtime)
+{
+	NextFrame();
+}
+
+void SCA_EventManager::NextFrame()
+{
+	assert(false && "Event managers should override a NextFrame method");
+}
 
 void SCA_EventManager::EndFrame()
 {

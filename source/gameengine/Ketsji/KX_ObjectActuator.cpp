@@ -68,7 +68,7 @@ KX_ObjectActuator(
 {
 }
 
-bool KX_ObjectActuator::Update(double curtime,double deltatime)
+bool KX_ObjectActuator::Update()
 {
 	
 	bool bNegativeEvent = IsNegativeEvent();

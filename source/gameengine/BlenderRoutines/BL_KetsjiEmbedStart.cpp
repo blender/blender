@@ -35,6 +35,8 @@
 #include <config.h>
 #endif
 
+#include <signal.h>
+
 #ifdef WIN32
 // don't show stl-warnings
 #pragma warning (disable:4786)
@@ -100,7 +102,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 	BlendFileData *bfd= NULL;
 	
 	bgl::InitExtensions(1);
-
+	
 	do
 	{
 		View3D *v3d= (View3D*) area->spacedata.first;
@@ -220,6 +222,26 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				exitrequested = KX_EXIT_REQUEST_QUIT_GAME;
 			}
 		}
+		
+		Scene *blscene = NULL;
+		if (!bfd)
+		{
+			blscene = (Scene*) maggie->scene.first;
+			for (Scene *sce= (Scene*) maggie->scene.first; sce; sce= (Scene*) sce->id.next)
+			{
+				if (startscenename == (sce->id.name+2))
+				{
+					blscene = sce;
+					break;
+				}
+			}
+		} else {
+			blscene = bfd->curscene;
+		}
+
+		// Quad buffered needs a special window.
+		if (blscene->r.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
+			rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->r.stereomode);
 		
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
 		{

@@ -62,10 +62,7 @@ class KX_VisibilityActuator : public SCA_IActuator
 			);
 
 	virtual bool
-		Update(
-			double curtime,
-			double deltatime
-			);
+		Update();
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */

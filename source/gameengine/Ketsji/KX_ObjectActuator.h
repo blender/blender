@@ -113,7 +113,7 @@ public:
 	CValue* GetReplica();
 
 	void SetForceLoc(const double force[3])	{ /*m_force=force;*/ }
-	bool Update(double curtime,double deltatime);
+	virtual bool Update();
 
 
 

@@ -41,6 +41,7 @@
 #include "KX_BlenderKeyboardDevice.h"
 
 KX_BlenderKeyboardDevice::KX_BlenderKeyboardDevice()
+	: m_hookesc(false)
 {
 
 }
@@ -108,7 +109,9 @@ bool	KX_BlenderKeyboardDevice::ConvertBlenderEvent(unsigned short incode,short v
 
 		if (val > 0)
 		{
-			if (kxevent == SCA_IInputDevice::KX_ESCKEY && val != 0)
+			if (kxevent == KX_ESCKEY && val != 0 && !m_hookesc)
+				result = true;
+			if (kxevent == KX_PAUSEKEY && val && (IsPressed(KX_LEFTCTRLKEY) || IsPressed(KX_RIGHTCTRLKEY)))
 				result = true;
 
 			// todo: convert val ??
@@ -161,4 +164,9 @@ bool	KX_BlenderKeyboardDevice::ConvertBlenderEvent(unsigned short incode,short v
 		}
 	}
 	return result;
+}
+
+void KX_BlenderKeyboardDevice::HookEscape()
+{
+	m_hookesc = true;
 }

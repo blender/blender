@@ -47,7 +47,7 @@ public:
 		: SCA_EventManager(RAY_EVENTMGR),
 		  m_logicmgr(logicmgr)
 	{}
-	virtual void NextFrame(double curtime,double deltatime);
+	virtual void NextFrame();
 	virtual void	RegisterSensor(SCA_ISensor* sensor);
 };
 

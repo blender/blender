@@ -38,7 +38,7 @@
 #include <config.h>
 #endif
 
-MT_Scalar SumoPhysicsEnvironment::UpperBoundForFuzzicsIntegrator = 0.01;
+MT_Scalar SumoPhysicsEnvironment::PhysicsTicRate = 60.0;
 
 SumoPhysicsEnvironment::SumoPhysicsEnvironment()
 {
@@ -52,9 +52,19 @@ SumoPhysicsEnvironment::~SumoPhysicsEnvironment()
 	delete m_sumoScene;
 }
 
-void SumoPhysicsEnvironment::proceed(double timeStep)
+void SumoPhysicsEnvironment::setTicRate(MT_Scalar ticrate)
 {
-	m_sumoScene->proceed(timeStep,UpperBoundForFuzzicsIntegrator);
+	PhysicsTicRate = ticrate;
+}
+
+MT_Scalar SumoPhysicsEnvironment::getTicRate()
+{
+	return PhysicsTicRate;
+}
+
+void SumoPhysicsEnvironment::proceed(double curtime)
+{
+	m_sumoScene->proceed(curtime, PhysicsTicRate);
 }
 
 void SumoPhysicsEnvironment::setGravity(float x,float y,float z)

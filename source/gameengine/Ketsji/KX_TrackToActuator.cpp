@@ -174,7 +174,7 @@ KX_TrackToActuator::~KX_TrackToActuator()
 
 
 
-bool KX_TrackToActuator::Update(double curtime,double deltatime)
+bool KX_TrackToActuator::Update(double curtime, bool frame)
 {
 	bool result = false;	
 	bool bNegativeEvent = IsNegativeEvent();
@@ -327,7 +327,6 @@ bool KX_TrackToActuator::Update(double curtime,double deltatime)
 		
 		curobj->NodeSetLocalOrientation(mat);
 		
-		//cout << "\n TrackTo!";
 		result = true;
 	}
 

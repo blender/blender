@@ -159,8 +159,7 @@ KX_SCA_ReplaceMeshActuator::~KX_SCA_ReplaceMeshActuator()
 
 
 
-bool KX_SCA_ReplaceMeshActuator::Update(double curtime,
-										double deltatime)
+bool KX_SCA_ReplaceMeshActuator::Update()
 {
 	bool result = false;	
 	bool bNegativeEvent = IsNegativeEvent();

@@ -40,20 +40,30 @@
 class KX_IpoActuator : public SCA_IActuator
 {
 	Py_Header;
+private:
+	/** Computes the IPO start time from the current time
+	    and the current frame. */
+	void SetStartTime(float curtime);
+	/** Computes the current frame from the current time
+	    and the IPO start time. */
+	void SetLocalTime(float curtime);
+
 protected:
 	bool	m_bNegativeEvent;
 
 	/** Begin frame of the ipo. */
-	float	m_starttime;
+	float	m_startframe;
 	
 	/** End frame of the ipo. */
-	float   m_endtime;
+	float   m_endframe;
 
 	/** Include children in the transforms? */
 	bool	m_recurse;
 
 	/** Current active frame of the ipo. */
 	float   m_localtime;
+	
+	float	m_starttime;
 
 	/** play backwards or forwards? (positive means forward). */
 	float	m_direction;
@@ -114,7 +124,7 @@ public:
 
 	void		SetStart(float starttime);
 	void		SetEnd(float endtime);
-	virtual		bool Update(double curtime,double deltatime);
+	virtual		bool Update(double curtime, bool frame);
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */

@@ -60,11 +60,8 @@ class KX_SCA_EndObjectActuator : public SCA_IActuator
 	GetReplica(
 	);
 
-		bool 
-	Update(
-		double curtime,
-		double deltatime
-	);
+	virtual bool 
+	Update();
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */

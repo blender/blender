@@ -32,12 +32,16 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#include <cmath>
+ 
 #include "KX_IpoActuator.h"
 #include "KX_GameObject.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#include "KX_KetsjiEngine.h"
 
 /* ------------------------------------------------------------------------- */
 /* Type strings                                                              */
@@ -100,10 +104,11 @@ KX_IpoActuator::KX_IpoActuator(SCA_IObject* gameobj,
 							   PyTypeObject* T) 
 	: SCA_IActuator(gameobj,T),
 	m_bNegativeEvent(false),
-	m_starttime (starttime),
-	m_endtime(endtime),
+	m_startframe (starttime),
+	m_endframe(endtime),
 	m_recurse(recurse),
 	m_localtime(starttime),
+	m_starttime(-1.0),
 	m_direction(1),
 	m_propname(propname),
 	m_ipo_as_force(ipo_as_force),
@@ -115,22 +120,35 @@ KX_IpoActuator::KX_IpoActuator(SCA_IObject* gameobj,
 
 void KX_IpoActuator::SetStart(float starttime) 
 { 
-	m_starttime=starttime;
+	m_startframe=starttime;
 }
 
 void KX_IpoActuator::SetEnd(float endtime) 
 { 
-	m_endtime=endtime;
+	m_endframe=endtime;
 }
 
-
-bool KX_IpoActuator::Update(double curtime,double delta_time)
+void KX_IpoActuator::SetStartTime(float curtime)
 {
-	SCA_IActuator::Update(curtime,delta_time);
+	if (m_direction > 0)
+		m_starttime = curtime - (m_localtime - m_startframe)/KX_FIXED_FRAME_PER_SEC;
+	else
+		m_starttime = curtime - (m_endframe - m_localtime)/KX_FIXED_FRAME_PER_SEC;
+}
+
+void KX_IpoActuator::SetLocalTime(float curtime)
+{
+	float delta_time = (curtime - m_starttime)*KX_FIXED_FRAME_PER_SEC;
+	if (m_direction > 0)
+		m_localtime = m_startframe + delta_time;
+	else
+		m_localtime = m_endframe - delta_time;
+}
+
+bool KX_IpoActuator::Update(double curtime, bool frame)
+{
 	// result = true if animation has to be continued, false if animation stops
 	// maybe there are events for us in the queue !
-	
-
 	bool bNegativeEvent = false;
 	int numevents = m_events.size();
 
@@ -138,10 +156,8 @@ bool KX_IpoActuator::Update(double curtime,double delta_time)
 	{
 		i--;
 		if ((*i)->GetNumber() == 0.0f)
-		{
-			int ka=0;
 			bNegativeEvent = true;
-		}
+		
 		(*i)->Release();
 		m_events.pop_back();
 	}
@@ -152,101 +168,195 @@ bool KX_IpoActuator::Update(double curtime,double delta_time)
 	}
 	
 
-	double  start_smaller_then_end = ( m_starttime < m_endtime ? 1.0 : -1.0);
-
-	double deltaframetime = start_smaller_then_end  * delta_time * KX_FIXED_FRAME_PER_SEC;
+	double  start_smaller_then_end = ( m_startframe < m_endframe ? 1.0 : -1.0);
 
 	bool result=true;
+	if (m_starttime < 0.0)
+		m_starttime = curtime;
 	
 	switch (m_type)
 	{
 		
 	case KX_ACT_IPO_PLAY:
+	{
+		// Check if playing forwards.  result = ! finished
+		if (start_smaller_then_end > 0.0)
+			result = (m_localtime < m_endframe && !(m_localtime == m_startframe && bNegativeEvent));
+		else
+			result = (m_localtime > m_endframe && !(m_localtime == m_startframe && bNegativeEvent));
+		
+		if (result)
 		{
-			
-			if (start_smaller_then_end > 0.0)
-				result = (m_localtime < m_endtime && !(m_localtime == m_starttime && bNegativeEvent));
-			else
-				result = (m_localtime > m_endtime && !(m_localtime == m_starttime && bNegativeEvent));
-			if (result)
-			{
-				m_localtime += m_direction * deltaframetime;
-				
-				/* Perform clamping */
-				if ((m_localtime*start_smaller_then_end)>(m_endtime*start_smaller_then_end))
-					m_localtime=m_endtime;
+			SetLocalTime(curtime);
+		
+			/* Perform clamping */
+			if ((m_localtime*start_smaller_then_end)>(m_endframe*start_smaller_then_end))
+				m_localtime=m_endframe;
 
-				CIpoAction ipoaction(
-					(KX_GameObject*)GetParent(), 
-					m_localtime, 
-					m_recurse, 
-					m_ipo_as_force,
-					m_force_ipo_local);
-				GetParent()->Execute(ipoaction);
-			} else
-			{
-				m_localtime=m_starttime;
-				m_direction=1;
-			}
-			break;
-		}
-	case KX_ACT_IPO_PINGPONG:
-		{
-			result = true;
-			if (bNegativeEvent && ((m_localtime == m_starttime )|| (m_localtime == m_endtime)))
-			{
-				result = false;
-			} else
-			{
-				m_localtime += m_direction * deltaframetime;
-			}
-			
-			if (m_localtime*start_smaller_then_end < m_starttime*start_smaller_then_end)
-			{
-				m_localtime = m_starttime;
-				result = false;
-				m_direction = 1;
-			}else
-			if (m_localtime*start_smaller_then_end > m_endtime*start_smaller_then_end)
-			{
-				m_localtime = m_endtime;
-				result = false;
-				m_direction = -1;
-			} 
-			
 			CIpoAction ipoaction(
-				(KX_GameObject*) GetParent(),
-				m_localtime,
+				(KX_GameObject*)GetParent(), 
+				m_localtime, 
 				m_recurse, 
 				m_ipo_as_force,
 				m_force_ipo_local);
 			GetParent()->Execute(ipoaction);
-			break;
+		} else
+		{
+			m_localtime=m_startframe;
+			m_starttime=curtime;
+			m_direction=1;
+		}
+		break;
+	}
+	case KX_ACT_IPO_PINGPONG:
+	{
+		result = true;
+		if (bNegativeEvent && ((m_localtime == m_startframe )|| (m_localtime == m_endframe)))
+			result = false;
+		else
+			SetLocalTime(curtime);
+		
+		if (m_localtime*start_smaller_then_end < m_startframe*start_smaller_then_end)
+		{
+			m_localtime = m_startframe;
+			result = false;
+			m_direction = 1;
+		}
+		else if (m_localtime*start_smaller_then_end > m_endframe*start_smaller_then_end)
+		{
+			m_localtime = m_endframe;
+			result = false;
+			m_direction = -1;
+		} 
+		
+		CIpoAction ipoaction(
+			(KX_GameObject*) GetParent(),
+			m_localtime,
+			m_recurse, 
+			m_ipo_as_force,
+			m_force_ipo_local);
+		GetParent()->Execute(ipoaction);
+		break;
+	}
+	case KX_ACT_IPO_FLIPPER:
+	{
+		result = true;
+		if (numevents)
+		{
+			if (bNegativeEvent)
+				m_direction = -1;
+			else
+				m_direction = 1;
+			SetStartTime(curtime);
 		}
 
-	case KX_ACT_IPO_FLIPPER:
+		SetLocalTime(curtime);
+
+		if (m_localtime*start_smaller_then_end > m_endframe*start_smaller_then_end)
 		{
-			result = true;
-			if (numevents)
-			{
-				if (bNegativeEvent)
-					m_direction = -1;
-				else
-					m_direction = 1;
-			}
+			m_localtime = m_endframe;
+		} 
+		else if (m_localtime*start_smaller_then_end < m_startframe*start_smaller_then_end)
+		{
+			m_localtime = m_startframe;
+			result = false;
+		}
+		
+		CIpoAction ipoaction(
+			(KX_GameObject*) GetParent(),
+			m_localtime,
+			m_recurse,
+			m_ipo_as_force,
+			m_force_ipo_local);
+		GetParent()->Execute(ipoaction);
+		break;
+	}
 
-			m_localtime += m_direction * deltaframetime;
-
-			if (m_localtime*start_smaller_then_end > m_endtime*start_smaller_then_end)
+	case KX_ACT_IPO_LOOPSTOP:
+	{
+		if (numevents)
+		{
+			if (bNegativeEvent)
 			{
-				m_localtime = m_endtime;
-			} else
-			 if (m_localtime*start_smaller_then_end < m_starttime*start_smaller_then_end)
-			 {
-				m_localtime = m_starttime;
 				result = false;
-			 }
-			
+				m_bNegativeEvent = false;
+				numevents = 0;
+			}
+			SetStartTime(curtime);
+		} // fall through to loopend, and quit the ipo animation immediatly 
+	}
+	case KX_ACT_IPO_LOOPEND:
+	{
+		if (numevents){
+			if (bNegativeEvent){
+				m_bNegativeEvent = true;
+			}
+		}
+		
+		if (bNegativeEvent && m_localtime == m_startframe){
+			result = false;
+		} 
+		else{
+			if (m_localtime*start_smaller_then_end < m_endframe*start_smaller_then_end)
+			{
+				SetLocalTime(curtime);
+			}
+			else{
+				if (!m_bNegativeEvent){
+					/* Perform wraparound */
+					SetLocalTime(curtime);
+					m_localtime = m_startframe + std::fmod(m_localtime, m_startframe - m_endframe);
+					SetStartTime(curtime);
+				}
+				else
+				{	
+					/* Perform clamping */
+					m_localtime=m_endframe;
+					result = false;
+					m_bNegativeEvent = false;
+				}
+			}
+		}
+		
+		CIpoAction ipoaction(
+			(KX_GameObject*) GetParent(),
+			m_localtime,
+			m_recurse,
+			m_ipo_as_force,
+			m_force_ipo_local);
+		GetParent()->Execute(ipoaction);
+		break;
+	}
+	
+	case KX_ACT_IPO_KEY2KEY:
+	{
+		// not implemented yet
+		result = false;
+		break;
+	}
+	
+	case KX_ACT_IPO_FROM_PROP:
+	{
+		result = !bNegativeEvent;
+
+		CValue* propval = GetParent()->GetProperty(m_propname);
+		if (propval)
+		{
+			float target = propval->GetNumber(); 
+			float delta_time = (curtime - m_starttime)*KX_FIXED_FRAME_PER_SEC;
+			if (target > m_localtime)
+			{
+				m_localtime += delta_time;
+				if (m_localtime > target)
+					m_localtime = target;
+			}
+			else
+			{
+				m_localtime -= delta_time;
+				if (m_localtime < target)
+					m_localtime = target;
+			}
+	
 			CIpoAction ipoaction(
 				(KX_GameObject*) GetParent(),
 				m_localtime,
@@ -254,99 +364,20 @@ bool KX_IpoActuator::Update(double curtime,double delta_time)
 				m_ipo_as_force,
 				m_force_ipo_local);
 			GetParent()->Execute(ipoaction);
-			break;
-		}
 
-		case KX_ACT_IPO_LOOPSTOP:
+		} else
 		{
-			if (numevents)
-			{
-				if (bNegativeEvent)
-				{
-					result = false;
-					m_bNegativeEvent = false;
-					numevents = 0;
-				}
-			} // fall through to loopend, and quit the ipo animation immediatly 
-		}
-	
-		case KX_ACT_IPO_LOOPEND:
-			{
-				if (numevents){
-					if (bNegativeEvent){
-						m_bNegativeEvent = true;
-					}
-				}
-				
-				if (bNegativeEvent && m_localtime == m_starttime){
-					result = false;
-				} 
-				else{
-					if (m_localtime*start_smaller_then_end < m_endtime*start_smaller_then_end){
-						m_localtime += m_direction * deltaframetime;
-					}
-					else{
-						if (!m_bNegativeEvent){
-							/* Perform wraparound */
-							float slop = m_localtime-m_endtime;
-							float length = fabs(m_starttime-m_endtime);
-							m_localtime = m_starttime + (slop - (int(slop/length)*(int(length))));
-							
-						}
-						else
-						{	
-							/* Perform clamping */
-							if ((m_localtime*start_smaller_then_end)>(m_endtime*start_smaller_then_end))
-								m_localtime=m_endtime;
-							
-							result = false;
-							m_bNegativeEvent = false;
-						}
-					}
-				}	
-				CIpoAction ipoaction(
-					(KX_GameObject*) GetParent(),
-					m_localtime,
-					m_recurse,
-					m_ipo_as_force,
-					m_force_ipo_local);
-				GetParent()->Execute(ipoaction);
-				break;
-		}
-	case KX_ACT_IPO_KEY2KEY:
-		{
-			// not implemented yet
 			result = false;
-			break;
 		}
-	case KX_ACT_IPO_FROM_PROP:
-		{
-			result = !bNegativeEvent;
-
-			 CValue* propval = GetParent()->GetProperty(m_propname);
-			 if (propval)
-			 {
-				m_localtime = propval->GetNumber();
-				CIpoAction ipoaction(
-					(KX_GameObject*) GetParent(),
-					m_localtime,
-					m_recurse,
-					m_ipo_as_force,
-					m_force_ipo_local);
-				GetParent()->Execute(ipoaction);
-
-			 } else
-			 {
-				 result = false;
-			 }
-			break;
-		}
+		break;
+	}
 		
 	default:
-		{
-			result = false;
-		}
+		result = false;
 	}
+	
+	if (!result && m_type != KX_ACT_IPO_LOOPSTOP)
+		m_starttime = -1.0;
 
 	return result;
 }
@@ -472,8 +503,8 @@ PyObject* KX_IpoActuator::PySet(PyObject* self,
 	case KX_ACT_IPO_LOOPSTOP:
 	case KX_ACT_IPO_LOOPEND:
 		m_type         = modenum;
-		m_starttime    = startFrame;
-		m_endtime      = stopFrame;
+		m_startframe    = startFrame;
+		m_endframe      = stopFrame;
 		m_ipo_as_force = PyArgToBool(forceToggle);
 		break;
 	default:
@@ -516,7 +547,7 @@ PyObject* KX_IpoActuator::PySetStart(PyObject* self,
 		return NULL;		
 	}
 	
-	m_starttime = startArg;
+	m_startframe = startArg;
 
 	Py_Return;
 }
@@ -527,7 +558,7 @@ char KX_IpoActuator::GetStart_doc[] =
 PyObject* KX_IpoActuator::PyGetStart(PyObject* self, 
 									 PyObject* args, 
 									 PyObject* kwds) {
-	return PyFloat_FromDouble(m_starttime);
+	return PyFloat_FromDouble(m_startframe);
 }
 
 /* 6. setEnd:                                                                */
@@ -543,7 +574,7 @@ PyObject* KX_IpoActuator::PySetEnd(PyObject* self,
 		return NULL;		
 	}
 	
-	m_endtime = endArg;
+	m_endframe = endArg;
 
 	Py_Return;
 }
@@ -554,7 +585,7 @@ char KX_IpoActuator::GetEnd_doc[] =
 PyObject* KX_IpoActuator::PyGetEnd(PyObject* self, 
 								   PyObject* args, 
 								   PyObject* kwds) {
-	return PyFloat_FromDouble(m_endtime);
+	return PyFloat_FromDouble(m_endframe);
 }
 
 /* 6. setIpoAsForce:                                                           */

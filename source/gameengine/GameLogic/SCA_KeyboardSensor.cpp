@@ -62,7 +62,8 @@ SCA_KeyboardSensor::SCA_KeyboardSensor(SCA_KeyboardManager* keybdmgr,
 	 m_targetprop(targetProp),
 	 m_toggleprop(toggleProp)
 {
-	
+	if (hotkey == SCA_IInputDevice::KX_ESCKEY)
+		keybdmgr->GetInputDevice()->HookEscape();
 //	SetDrawColor(0xff0000ff);
 	m_val=0;
 }

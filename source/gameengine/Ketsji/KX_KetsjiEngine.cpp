@@ -65,6 +65,7 @@
 #include "KX_PythonInit.h"
 #include "KX_PyConstraintBinding.h"
 #include "PHY_IPhysicsEnvironment.h"
+#include "SumoPhysicsEnvironment.h"
 
 #include "SND_Scene.h"
 #include "SND_IAudioDevice.h"
@@ -81,7 +82,8 @@
 // If define: little test for Nzc: guarded drawing. If the canvas is
 // not valid, skip rendering this frame.
 //#define NZC_GUARDED_OUTPUT
-
+#define DEFAULT_LOGIC_TIC_RATE 30.0
+#define DEFAULT_PHYSICS_TIC_RATE 60.0
 
 const char KX_KetsjiEngine::m_profileLabels[tc_numCategories][15] = {
 	"Physics:",		// tc_physics
@@ -95,47 +97,70 @@ const char KX_KetsjiEngine::m_profileLabels[tc_numCategories][15] = {
 	"Outside:"		// tc_outside
 };
 
-
+double KX_KetsjiEngine::m_ticrate = DEFAULT_LOGIC_TIC_RATE;
 
 
 /**
  *	Constructor of the Ketsji Engine
  */
 KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
-:
+     :	m_canvas(NULL),
 	m_rasterizer(NULL),
-	m_bInitialized(false),
-	m_activecam(0)
-{
-	m_kxsystem = system;
-	m_bFixedTime = false;
+	m_kxsystem(system),
+	m_rendertools(NULL),
+	m_sceneconverter(NULL),
+	m_networkdevice(NULL),
+	m_audiodevice(NULL),
+	m_pythondictionary(NULL),
+	m_keyboarddevice(NULL),
+	m_mousedevice(NULL),
 
+	m_propertiesPresent(false),
+
+	m_bInitialized(false),
+	m_activecam(0),
+	m_bFixedTime(false),
+	
+	m_firstframe(true),
+	
+	m_previoustime(0.0),
+	m_deltatime(0.0),
+
+	m_exitcode(KX_EXIT_REQUEST_NO_REQUEST),
+	m_exitstring(""),
+	
+	m_drawingmode(5),
+	m_cameraZoom(1.0),
+	
+	m_overrideCam(false),
+	m_overrideCamUseOrtho(false),
+
+	m_stereo(false),
+	m_curreye(0),
+
+	m_logger(NULL),
+	
+	// Set up timing info display variables
+	m_show_framerate(false),
+	m_show_profile(false),
+	m_showProperties(false),
+	m_showBackground(false),
+	m_show_debug_properties(false),
+
+	// Default behavior is to hide the cursor every frame.
+	m_hideCursor(false),
+
+	m_overrideFrameColor(false),
+	m_overrideFrameColorR(0.0),
+	m_overrideFrameColorG(0.0),
+	m_overrideFrameColorB(0.0)
+{
 	// Initialize the time logger
 	m_logger = new KX_TimeCategoryLogger (25);
 
 	for (int i = tc_first; i < tc_numCategories; i++)
 		m_logger->AddCategory((KX_TimeCategory)i);
-
-	// Set up timing info display variables
-	m_show_framerate = false;
-	m_show_profile   = false;
-	m_show_debug_properties = false;
-	m_propertiesPresent = false;
-
-	// Default behavior is to hide the cursor every frame.
-	m_hideCursor = false;
-
-	m_overrideFrameColor = false;
-	m_overrideFrameColorR = (float)0;
-	m_overrideFrameColorG = (float)0;
-	m_overrideFrameColorB = (float)0;
-	
-	m_cameraZoom = 1.0;
-	m_drawingmode = 5; /* textured drawing mode */
-	m_overrideCam = false;
-
-	m_exitcode = KX_EXIT_REQUEST_NO_REQUEST;
-	m_exitstring = "";
+		
 }
 
 
@@ -145,8 +170,7 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
  */
 KX_KetsjiEngine::~KX_KetsjiEngine()
 {
-	if (m_logger)
-		delete m_logger;
+	delete m_logger;
 }
 
 
@@ -230,60 +254,12 @@ void KX_KetsjiEngine::SetSceneConverter(KX_ISceneConverter* sceneconverter)
  */
 void KX_KetsjiEngine::StartEngine()
 {
-	m_previoustime = 0.0;
-	m_missedtime = 0.0;
+	m_previoustime = m_kxsystem->GetTimeInSeconds();
 	m_firstframe = true;
-	
-	// for all scenes, initialize the scenegraph for the first time
-	m_lasttime = m_kxsystem->GetTimeInSeconds()*100.0;
-
 	m_bInitialized = true;
+	m_ticrate = DEFAULT_LOGIC_TIC_RATE;
+	SumoPhysicsEnvironment::setTicRate(DEFAULT_PHYSICS_TIC_RATE);
 }
-
-
-
-#define DELTALENGTH 25 
-
-double	KX_KetsjiEngine::CalculateAverage(double newdelta)
-{
-	if (m_deltatimes.size() < DELTALENGTH)
-	{
-		m_deltatimes.push_back(newdelta);
-	} else
-	{
-		//
-		double totaltime = 0.0;
-		double newlasttime,lasttime = newdelta;
-		double peakmin = 10000;
-		double peakmax = -10000;
-
-		for (int i=m_deltatimes.size()-1;i>=0;i--)
-		{	newlasttime = m_deltatimes[i];
-			totaltime += newlasttime;
-			if (peakmin > newlasttime)
-				peakmin = newlasttime;
-			if (peakmax < newlasttime)
-				peakmax = newlasttime;
-
-			m_deltatimes[i] = lasttime;
-			lasttime = newlasttime;
-		};
-		double averagetime;
-		
-		if (peakmin < peakmax)
-		{
-		 	averagetime = ((totaltime - peakmin) - peakmax) / (double) (m_deltatimes.size()-2); 
-		} else
-		{	
-			averagetime = totaltime / (double) m_deltatimes.size();
-		}
-		return averagetime;
-	}	
-
-	return newdelta;
-}
-
-
 
 bool KX_KetsjiEngine::BeginFrame()
 {
@@ -338,105 +314,137 @@ void KX_KetsjiEngine::NextFrame()
 {
 	m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(), true);
 
-	double deltatime = 0.02; 
 	double curtime;
-
 	if (m_bFixedTime)
 	{
-		curtime = m_previoustime + deltatime;
+		m_deltatime = 1.0/m_ticrate;
+		curtime = m_previoustime + m_deltatime;
 	}
 	else
 	{
 		curtime = m_kxsystem->GetTimeInSeconds();
-		if (m_previoustime)
-			deltatime = curtime - m_previoustime;
-
-		if (deltatime > 0.1)
-			deltatime = 0.1;
-
-		deltatime = CalculateAverage(deltatime);
+		m_deltatime += curtime - m_previoustime;
+		m_previoustime = curtime;
 	}
 
-	m_previoustime = curtime;
-
+	// Compute the number of logic frames to do each update (fixed tic bricks)
+	int frames = (int) (m_deltatime*m_ticrate);
+	//printf("LogicUpdate: %0.1f %0.3f %d\n", curtime, m_deltatime, frames);
+	
+	m_deltatime -= double(frames)/m_ticrate;
+	
 	KX_SceneList::iterator sceneit;
-	for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); sceneit++)
-	// for each scene, call the proceed functions
+	
+	if (!frames)
 	{
-		KX_Scene* scene = *sceneit;
-
-
-
-		/* Suspension holds the physics and logic processing for an
-		 * entire scene. Objects can be suspended individually, and
-		 * the settings for that preceed the logic and physics
-		 * update. */
-		m_logger->StartLog(tc_logic, m_kxsystem->GetTimeInSeconds(), true);
-		scene->UpdateObjectActivity();
-
-		if (!scene->IsSuspended())
+		for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); sceneit++)
+		// for each scene, call the proceed functions
 		{
-			m_logger->StartLog(tc_network, m_kxsystem->GetTimeInSeconds(), true);
-			scene->GetNetworkScene()->proceed(curtime, deltatime);
-
-			// set Python hooks for each scene
-			PHY_SetActiveEnvironment(scene->GetPhysicsEnvironment());
-			PHY_SetActiveScene(scene);
-
-			// Process sensors, and controllers
-			m_logger->StartLog(tc_logic, m_kxsystem->GetTimeInSeconds(), true);
-			scene->LogicBeginFrame(curtime,deltatime);
-
-			// Scenegraph needs to be updated again, because Logic Controllers 
-			// can affect the local matrices.
-			m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
-			scene->UpdateParents(curtime);
-
-			// Process actuators
-
-			// Do some cleanup work for this logic frame
-			m_logger->StartLog(tc_logic, m_kxsystem->GetTimeInSeconds(), true);
-			scene->LogicUpdateFrame(curtime,deltatime);		
-			scene->LogicEndFrame();
-
-			// Actuators can affect the scenegraph
-			m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
-			scene->UpdateParents(curtime);
-
-			// Perform physics calculations on the scene. This can involve 
-			// many iterations of the physics solver.
-			m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
-			scene->GetPhysicsEnvironment()->proceed(deltatime);
-
-			// Update scenegraph after physics step. This maps physics calculations
-			// into node positions.		
-			m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
-			scene->UpdateParents(curtime);
-
-		} // suspended
-
-		DoSound(scene);
-
-		m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(), true);
+			KX_Scene* scene = *sceneit;
+	
+			if (!scene->IsSuspended())
+			{
+				// Do some cleanup work for this logic frame
+				m_logger->StartLog(tc_logic, m_kxsystem->GetTimeInSeconds(), true);
+				scene->LogicUpdateFrame(curtime, false);
+	
+				// Actuators can affect the scenegraph
+				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
+				scene->UpdateParents(curtime);
+	
+				// Perform physics calculations on the scene. This can involve 
+				// many iterations of the physics solver.
+				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
+				scene->GetPhysicsEnvironment()->proceed(curtime);
+		
+				// Update scenegraph after physics step. This maps physics calculations
+				// into node positions.		
+				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
+				scene->UpdateParents(curtime);
+			} // suspended
+	
+			DoSound(scene);
+	
+			m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(), true);
+		}
 	}
+	
+	while (frames--)
+	{
+		for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); sceneit++)
+		// for each scene, call the proceed functions
+		{
+			KX_Scene* scene = *sceneit;
+	
+			/* Suspension holds the physics and logic processing for an
+			* entire scene. Objects can be suspended individually, and
+			* the settings for that preceed the logic and physics
+			* update. */
+			m_logger->StartLog(tc_logic, m_kxsystem->GetTimeInSeconds(), true);
+			scene->UpdateObjectActivity();
+	
+			if (!scene->IsSuspended())
+			{
+				m_logger->StartLog(tc_network, m_kxsystem->GetTimeInSeconds(), true);
+				scene->GetNetworkScene()->proceed(curtime);
+	
+				// set Python hooks for each scene
+				PHY_SetActiveEnvironment(scene->GetPhysicsEnvironment());
+				PHY_SetActiveScene(scene);
+	
+				// Process sensors, and controllers
+				m_logger->StartLog(tc_logic, m_kxsystem->GetTimeInSeconds(), true);
+				scene->LogicBeginFrame(curtime);
+	
+				// Scenegraph needs to be updated again, because Logic Controllers 
+				// can affect the local matrices.
+				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
+				scene->UpdateParents(curtime);
+	
+				// Process actuators
+	
+				// Do some cleanup work for this logic frame
+				m_logger->StartLog(tc_logic, m_kxsystem->GetTimeInSeconds(), true);
+				scene->LogicUpdateFrame(curtime, true);
+				scene->LogicEndFrame();
+	
+				// Actuators can affect the scenegraph
+				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
+				scene->UpdateParents(curtime);
+	
+				// Perform physics calculations on the scene. This can involve 
+				// many iterations of the physics solver.
+				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
+				scene->GetPhysicsEnvironment()->proceed(curtime);
+		
+				// Update scenegraph after physics step. This maps physics calculations
+				// into node positions.		
+				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
+				scene->UpdateParents(curtime);
+			} // suspended
+	
+			DoSound(scene);
+	
+			m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(), true);
+		}
 
-	// update system devices
-	m_logger->StartLog(tc_logic, m_kxsystem->GetTimeInSeconds(), true);
-
-	if (m_keyboarddevice)
-		m_keyboarddevice->NextFrame();
-
-	if (m_mousedevice)
-		m_mousedevice->NextFrame();
-
-	if (m_networkdevice)
-		m_networkdevice->NextFrame();
-
-	if (m_audiodevice)
-		m_audiodevice->NextFrame();
-
-	// scene management
-	ProcessScheduledScenes();
+		// update system devices
+		m_logger->StartLog(tc_logic, m_kxsystem->GetTimeInSeconds(), true);
+		if (m_keyboarddevice)
+			m_keyboarddevice->NextFrame();
+	
+		if (m_mousedevice)
+			m_mousedevice->NextFrame();
+		
+		if (m_networkdevice)
+			m_networkdevice->NextFrame();
+	
+		if (m_audiodevice)
+			m_audiodevice->NextFrame();
+	
+		// scene management
+		ProcessScheduledScenes();
+	}
 
 	// Start logging time spend outside main loop
 	m_logger->StartLog(tc_outside, m_kxsystem->GetTimeInSeconds(), true);
@@ -1177,7 +1185,15 @@ bool KX_KetsjiEngine::GetUseFixedTime(void) const
 	return m_bFixedTime;
 }
 
+double KX_KetsjiEngine::GetTicRate()
+{
+	return m_ticrate;
+}
 
+void KX_KetsjiEngine::SetTicRate(double ticrate)
+{
+	m_ticrate = ticrate;
+}
 
 void KX_KetsjiEngine::SetTimingDisplay(bool frameRate, bool profile, bool properties)
 {

@@ -60,7 +60,7 @@ KX_NetworkMessageActuator::~KX_NetworkMessageActuator()
 }
 
 // returns true if the actuators needs to be running over several frames
-bool KX_NetworkMessageActuator::Update(double curtime, double deltatime)
+bool KX_NetworkMessageActuator::Update()
 {
 	//printf("update messageactuator\n");
 	bool bNegativeEvent = IsNegativeEvent();

@@ -71,7 +71,7 @@ public:
 	{
 	};
 	virtual ~BL_ActionActuator();
-	virtual	bool Update(double curtime,double deltatime);
+	virtual	bool Update(double curtime, bool frame);
 	CValue* GetReplica();
 	void ProcessReplica();
 
@@ -113,11 +113,13 @@ protected:
 	MT_Point3	m_lastpos;
 	int		m_flag;
 	float	m_starttime;
+	float	m_startWallTime;
 	float	m_endtime;
 	float	m_localtime;
 	float	m_lastUpdate;
 	short	m_playtype;
 	float	m_blendin;
+	float	m_blendstart;
 	short	m_priority;
 	float	m_stridelength;
 	struct bPose* m_pose;

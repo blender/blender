@@ -19,6 +19,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+ 
+#ifdef USE_ODE
+
 #include "OdePhysicsController.h"
 #include "PHY_IMotionState.h"
 
@@ -609,3 +612,4 @@ void ODEPhysicsController::WriteMotionStateToDynamics(bool nondynaonly)
 {
 
 }
+#endif

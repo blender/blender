@@ -50,7 +50,10 @@ SCA_IInputDevice::~SCA_IInputDevice()
 {
 }	
 
-
+void SCA_IInputDevice::HookEscape()
+{
+	assert(false && "This device does not support hooking escape.");
+}
 
 void SCA_IInputDevice::ClearStatusTable(int tableid)
 {

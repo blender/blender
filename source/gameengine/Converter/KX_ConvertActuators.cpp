@@ -486,13 +486,7 @@ void BL_ConvertActuators(char* maggiename,
 				- let the object-with-property report itself to the act when converted
 				*/
 				if (propact->ob)
-				{
-					KX_GameObject* tempObj = converter->FindGameObject(propact->ob);
-					if (tempObj)
-					{
-						destinationObj = tempObj;
-					}
-				} 
+					destinationObj = converter->FindGameObject(propact->ob);
 				
 				SCA_PropertyActuator* tmppropact = new SCA_PropertyActuator(
 					gameobj,
@@ -550,7 +544,7 @@ void BL_ConvertActuators(char* maggiename,
 					{
 						RAS_MeshObject *tmpmesh = NULL;
 						if (editobact->me)
-							RAS_MeshObject *tmpmesh = BL_ConvertMesh(
+							tmpmesh = BL_ConvertMesh(
 								editobact->me,
 								blenderobject,
 								rendertools,
@@ -572,7 +566,7 @@ void BL_ConvertActuators(char* maggiename,
 					{
 						SCA_IObject* originalval = NULL;
 						if (editobact->ob)
-							SCA_IObject* originalval = converter->FindGameObject(editobact->ob);
+							originalval = converter->FindGameObject(editobact->ob);
 							
 						KX_TrackToActuator* tmptrackact 
 							= new KX_TrackToActuator(gameobj, 

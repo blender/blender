@@ -81,7 +81,7 @@ bool GPC_KeyboardDevice::ConvertEvent(int incode, int val)
 
 		if (val > 0)
 		{
-			if (kxevent == SCA_IInputDevice::KX_ESCKEY && val != 0)
+			if (kxevent == SCA_IInputDevice::KX_ESCKEY && val != 0 && !m_hookesc)
 				result = true;
 
 			// todo: convert val ??
@@ -124,4 +124,9 @@ bool GPC_KeyboardDevice::ConvertEvent(int incode, int val)
 		exit(1);
 	}	
 	return result;
+}
+
+void GPC_KeyboardDevice::HookEscape()
+{
+	m_hookesc = true;
 }

@@ -97,11 +97,10 @@ private:
 	bool				m_bFixedTime;
 	
 	bool				m_firstframe;
+	
 	double				m_previoustime;
-	double				m_missedtime;
-	double				m_lasttime; // old style time
-	double				m_dtime;
-	std::vector<double>	m_deltatimes;
+	double				m_deltatime;
+	static double			m_ticrate;
 
 	int					m_exitcode;
 	STR_String			m_exitstring;
@@ -167,8 +166,6 @@ private:
 	/** Blue component of framing bar color. */
 	float					m_overrideFrameColorB;
 
-	double					CalculateAverage(double newdeltatime);
-	
 	void					SetupRenderFrame(KX_Scene *scene);
 	void					RenderFrame(KX_Scene* scene);
 	void					RenderDebugProperties();
@@ -234,6 +231,15 @@ public:
 	 * @return Current setting for display all frames.
 	 */ 
 	bool GetUseFixedTime(void) const;
+	
+	/**
+	 * Gets the number of logic updates per second.
+	 */
+	static double GetTicRate();
+	/**
+	 * Sets the number of logic updates per second.
+	 */
+	static void SetTicRate(double ticrate);
 
 	/**
 	 * Activates or deactivates timing information display.

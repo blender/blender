@@ -291,6 +291,8 @@ public:
 	 */
 	virtual int		GetNumJustEvents();
 	
+	virtual void		HookEscape();
+	
 	/* Next frame: we calculate the new key states. This goes as follows:
 	*
 	* KX_NO_INPUTSTATUS -> KX_NO_INPUTSTATUS

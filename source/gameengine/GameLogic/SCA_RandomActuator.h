@@ -91,7 +91,7 @@ class SCA_RandomActuator : public SCA_IActuator
 					  const STR_String &propName,
 					  PyTypeObject* T=&Type);
 	virtual ~SCA_RandomActuator();
-	virtual bool Update(double curtime,double deltatime);
+	virtual bool Update();
 	
 	virtual CValue* GetReplica();
 	

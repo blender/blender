@@ -73,7 +73,7 @@ void KX_NetworkEventManager::RemoveSensor(class SCA_ISensor* sensor)
 	SCA_EventManager::RemoveSensor(sensor);
 }
 
-void KX_NetworkEventManager::NextFrame(double curtime, double deltatime)
+void KX_NetworkEventManager::NextFrame()
 {
 // printf("KX_NetworkEventManager::proceed %.2f - %.2f\n", curtime, deltatime);
 	// each frame, the logicmanager will call the network

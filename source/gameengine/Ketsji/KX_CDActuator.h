@@ -76,7 +76,7 @@ public:
 
 	~KX_CDActuator();
 
-	bool Update(double curtime,double deltatime);
+	virtual bool Update();
 
 	CValue* GetReplica();
 

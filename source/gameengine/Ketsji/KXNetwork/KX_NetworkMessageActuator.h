@@ -57,7 +57,7 @@ public:
 		PyTypeObject* T=&Type);
 	virtual ~KX_NetworkMessageActuator();
 
-	virtual bool Update(double curtime, double deltatime);
+	virtual bool Update();
 	virtual CValue* GetReplica();
 
 	/* ------------------------------------------------------------ */

@@ -64,11 +64,6 @@ void SCA_IActuator::RemoveAllEvents()
 
 
 
-bool SCA_IActuator::Update(double curtime,double deltatime)
-{
-	return true;
-}
-
 
 
 bool SCA_IActuator::IsNegativeEvent() const
@@ -91,7 +86,19 @@ bool SCA_IActuator::IsNegativeEvent() const
 	return !bPositiveEvent && bNegativeEvent;
 }
 
+bool SCA_IActuator::Update(double curtime, bool frame)
+{
+	if (frame)
+		return Update();
+	
+	return true;
+}
 
+bool SCA_IActuator::Update()
+{
+	assert(false && "Actuators should override an Update method.");
+	return false;
+}
 
 void SCA_IActuator::ProcessReplica()
 {

@@ -92,11 +92,8 @@ public:
 	GetReplica(
 	) ;
 
-		bool 
-	Update(
-		double curtime,
-		double deltatime
-	);
+	virtual bool 
+	Update();
 
 	virtual PyObject*  
 	_getattr(

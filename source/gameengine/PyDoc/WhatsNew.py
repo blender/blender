@@ -5,6 +5,10 @@ New Python Functionality in this Version of Blender
 
 This document lists what has been changed in the Game Engine Python API.
 
+Blender CVS
+------------
+	- Added tic rate methods to L{GameLogic}
+
 Blender 2.34
 ------------
 

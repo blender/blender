@@ -69,11 +69,8 @@ class KX_SCA_ReplaceMeshActuator : public SCA_IActuator
 	GetReplica(
 	);
 
-		bool 
-	Update(
-		double curtime,
-		double deltatime
-	);
+	virtual bool 
+	Update();
 
 	virtual PyObject*  
 	_getattr(

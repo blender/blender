@@ -41,7 +41,7 @@ class SCA_AlwaysEventManager : public SCA_EventManager
 	class SCA_LogicManager* m_logicmgr;
 public:
 	SCA_AlwaysEventManager(class SCA_LogicManager* logicmgr);
-	virtual void NextFrame(double curtime,double deltatime);
+	virtual void NextFrame();
 	virtual void	RegisterSensor(SCA_ISensor* sensor);
 
 

@@ -41,6 +41,8 @@
 
 #include "KX_PythonInit.h"
 
+#include "KX_KetsjiEngine.h"
+
 #include "SCA_IInputDevice.h"
 #include "SCA_PropertySensor.h"
 #include "SCA_RandomActuator.h"
@@ -58,6 +60,7 @@
 
 #include "KX_PyMath.h"
 
+#include "SumoPhysicsEnvironment.h"
 // FIXME: Enable for access to blender python modules.  This is disabled because
 // python has dependencies on a lot of other modules and is a pain to link.
 //#define USE_BLENDER_PYTHON
@@ -182,6 +185,43 @@ static PyObject* gPyStopDSP(PyObject*,
 	return NULL;
 }
 
+static PyObject* gPySetLogicTicRate(PyObject*,
+					PyObject* args,
+					PyObject*)
+{
+	float ticrate;
+	if (PyArg_ParseTuple(args, "f", &ticrate))
+	{
+		KX_KetsjiEngine::SetTicRate(ticrate);
+		Py_Return;
+	}
+	
+	return NULL;
+}
+
+static PyObject* gPyGetLogicTicRate(PyObject*, PyObject*, PyObject*)
+{
+	return PyFloat_FromDouble(KX_KetsjiEngine::GetTicRate());
+}
+
+static PyObject* gPySetPhysicsTicRate(PyObject*,
+					PyObject* args,
+					PyObject*)
+{
+	float ticrate;
+	if (PyArg_ParseTuple(args, "f", &ticrate))
+	{
+		SumoPhysicsEnvironment::setTicRate(ticrate);
+		Py_Return;
+	}
+	
+	return NULL;
+}
+
+static PyObject* gPyGetPhysicsTicRate(PyObject*, PyObject*, PyObject*)
+{
+	return PyFloat_FromDouble(SumoPhysicsEnvironment::getTicRate());
+}
 
 static STR_String gPyGetCurrentScene_doc =  
 "getCurrentScene()\n"
@@ -209,6 +249,10 @@ static struct PyMethodDef game_methods[] = {
 	{"setGravity",(PyCFunction) gPySetGravity, METH_VARARGS,"set Gravitation"},
 	{"getSpectrum",(PyCFunction) gPyGetSpectrum, METH_VARARGS,"get audio spectrum"},
 	{"stopDSP",(PyCFunction) gPyStopDSP, METH_VARARGS,"stop using the audio dsp (for performance reasons)"},
+	{"getLogicTicRate", (PyCFunction) gPyGetLogicTicRate, METH_VARARGS, "Gets the logic tic rate"},
+	{"setLogicTicRate", (PyCFunction) gPySetLogicTicRate, METH_VARARGS, "Sets the logic tic rate"},
+	{"getPhysicsTicRate", (PyCFunction) gPyGetPhysicsTicRate, METH_VARARGS, "Gets the physics tic rate"},
+	{"setPhysicsTicRate", (PyCFunction) gPySetPhysicsTicRate, METH_VARARGS, "Sets the physics tic rate"},
 	{NULL, (PyCFunction) NULL, 0, NULL }
 };
 

@@ -172,7 +172,7 @@ void VecUpMat3(float *vec, float mat[][3], short axis)
 	
 }
 
-bool KX_CameraActuator::Update(double curtime,double deltatime)
+bool KX_CameraActuator::Update(double curtime, bool frame)
 {
 	bool result = true;
 

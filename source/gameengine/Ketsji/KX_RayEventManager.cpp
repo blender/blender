@@ -45,7 +45,7 @@ using namespace std;
 #include <config.h>
 #endif
 
-void KX_RayEventManager::NextFrame(double curtime,double deltatime)
+void KX_RayEventManager::NextFrame()
 {
 	for (vector<class SCA_ISensor*>::const_iterator i= m_sensors.begin();!(i==m_sensors.end());i++)
 	{

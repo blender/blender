@@ -183,4 +183,38 @@ def stopDSP():
 	Only the fmod sound driver supports this.
 	DSP can be computationally expensive.
 	"""
+def getLogicTicRate():
+	"""
+	Gets the logic update frequency.
+	
+	@return: The logic frequency in Hz
+	@rtype: float
+	"""
+def setLogicTicRate(ticrate):
+	"""
+	Sets the logic update frequency.
+	
+	The logic update frequency is the number of times logic bricks are executed every second.
+	The default is 30 Hz.
+	
+	@param ticrate: The new logic update frequency (in Hz).
+	@type ticrate: float
+	"""
+def getPhysicsTicRate():
+	"""
+	Gets the physics update frequency
+	
+	@return: The physics update frequency in Hz
+	@rtype: float
+	"""
+def setPhysicsTicRate(ticrate):
+	"""
+	Sets the physics update frequency
+	
+	The physics update frequency is the number of times the physics system is executed every second.
+	The default is 60 Hz.
+	
+	@param ticrate: The new update frequency (in Hz).
+	@type ticrate: float
+	"""
 

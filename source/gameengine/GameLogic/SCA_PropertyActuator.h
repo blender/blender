@@ -62,41 +62,23 @@ public:
 
 
 	SCA_PropertyActuator(
-
 		SCA_IObject* gameobj,
-
 		CValue* sourceObj,
-
 		const STR_String& propname,
-
 		const STR_String& expr,
-
 		int acttype,
-
 		PyTypeObject* T=&Type
-
 	);
 
 
 	~SCA_PropertyActuator();
 
-
 		CValue* 
-
 	GetReplica(
-
 	);
 
-
-		bool 
-
-	Update(
-
-		double curtime,
-
-		double deltatime
-
-	);
+	virtual bool 
+	Update();
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */

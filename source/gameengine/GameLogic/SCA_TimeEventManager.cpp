@@ -70,9 +70,9 @@ void SCA_TimeEventManager::RegisterSensor(SCA_ISensor* sensor)
 
 
 
-void SCA_TimeEventManager::NextFrame(double curtime,double deltatime)
+void SCA_TimeEventManager::NextFrame(double curtime, double fixedtime)
 {
-	if (m_timevalues.size() > 0)
+	if (m_timevalues.size() > 0 && fixedtime > 0.0)
 	{
 		CFloatValue* floatval = new CFloatValue(curtime);
 		
@@ -80,7 +80,7 @@ void SCA_TimeEventManager::NextFrame(double curtime,double deltatime)
 		for (vector<CValue*>::iterator it = m_timevalues.begin();
 		!(it == m_timevalues.end()); it++)
 		{
-			float newtime = (*it)->GetNumber() + deltatime;
+			float newtime = (*it)->GetNumber() + fixedtime;
 			floatval->SetFloat(newtime);
 			(*it)->SetValue(floatval);
 		}

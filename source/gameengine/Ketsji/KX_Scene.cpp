@@ -944,7 +944,7 @@ void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty)
 }
 
 // logic stuff
-void KX_Scene::LogicBeginFrame(double curtime,double deltatime)
+void KX_Scene::LogicBeginFrame(double curtime)
 {
 	// have a look at temp objects ...
 	int lastobj = m_tempObjectList->GetCount() - 1;
@@ -956,7 +956,7 @@ void KX_Scene::LogicBeginFrame(double curtime,double deltatime)
 		
 		if (propval)
 		{
-			float timeleft = propval->GetNumber() - deltatime;
+			float timeleft = propval->GetNumber() - 1.0/KX_KetsjiEngine::GetTicRate();
 			
 			if (timeleft > 0)
 			{
@@ -973,14 +973,14 @@ void KX_Scene::LogicBeginFrame(double curtime,double deltatime)
 			// all object is the tempObjectList should have a clock
 		}
 	}
-	m_logicmgr->BeginFrame(curtime,deltatime);
+	m_logicmgr->BeginFrame(curtime, 1.0/KX_KetsjiEngine::GetTicRate());
 }
 
 
 
-void KX_Scene::LogicUpdateFrame(double curtime,double deltatime)
+void KX_Scene::LogicUpdateFrame(double curtime, bool frame)
 {
-	m_logicmgr->UpdateFrame(curtime,deltatime);
+	m_logicmgr->UpdateFrame(curtime, frame);
 }
 
 

@@ -57,7 +57,7 @@ public:
 	/**
 	 * progress one frame, handle all network traffic
 	 */
-	void proceed(double curtime, double deltatime);
+	void proceed(double curtime);
 
 	/**
 	 * add a networkobject to the scene

@@ -87,7 +87,7 @@ protected:
 		return replica;
 	};
 
-	virtual bool Update(double curtime,double deltatime);
+	virtual bool Update(double curtime, bool frame);
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */

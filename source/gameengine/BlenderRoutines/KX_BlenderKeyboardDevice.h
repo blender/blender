@@ -36,6 +36,7 @@
 
 class KX_BlenderKeyboardDevice : public BL_BlenderInputDevice
 {
+	bool	m_hookesc;
 public:
 	KX_BlenderKeyboardDevice();
 	virtual ~KX_BlenderKeyboardDevice();
@@ -44,6 +45,7 @@ public:
 //	virtual const SCA_InputEvent&	GetEventValue(SCA_IInputDevice::KX_EnumInputs inputcode);
 	virtual bool	ConvertBlenderEvent(unsigned short incode,short val);
 	virtual void	NextFrame();
+	virtual void	HookEscape();
 };
 
 #endif //__KX_BLENDERKEYBOARDDEVICE

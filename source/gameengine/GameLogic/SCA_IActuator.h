@@ -60,8 +60,8 @@ public:
 	 */
 
 
-	virtual bool Update(double curtime,
-						double deltatime);
+	virtual bool Update(double curtime, bool frame);
+	virtual bool Update();
 
 	/** 
 	 * Add an event to an actuator.

@@ -86,7 +86,7 @@ KX_ConstraintActuator::~KX_ConstraintActuator()
 	// there's nothing to be done here, really....
 } /* end of destructor */
 
-bool KX_ConstraintActuator::Update(double curtime,double deltatime)
+bool KX_ConstraintActuator::Update(double curtime, bool frame)
 {
 
 	bool result = false;	
@@ -109,12 +109,15 @@ bool KX_ConstraintActuator::Update(double curtime,double deltatime)
 	switch (m_locrot) {
 	case KX_ACT_CONSTRAINT_LOCX:
 		Clamp(position[0], m_minimumBound, m_maximumBound);
+		result = true;
 		break;
 	case KX_ACT_CONSTRAINT_LOCY:
 		Clamp(position[1], m_minimumBound, m_maximumBound);
+		result = true;
 		break;
 	case KX_ACT_CONSTRAINT_LOCZ:
 		Clamp(position[2], m_minimumBound, m_maximumBound);
+		result = true;
 		break;
 	
 //	case KX_ACT_CONSTRAINT_ROTX:
@@ -154,7 +157,7 @@ bool KX_ConstraintActuator::Update(double curtime,double deltatime)
 		; /* error */
 	}
 
-	return false;
+	return result;
 } /* end of KX_ConstraintActuator::Update(double curtime,double deltatime)   */
 
 void KX_ConstraintActuator::Clamp(MT_Scalar &var, 

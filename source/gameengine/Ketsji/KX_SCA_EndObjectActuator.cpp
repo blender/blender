@@ -63,9 +63,7 @@ KX_SCA_EndObjectActuator::~KX_SCA_EndObjectActuator()
 
 
 
-bool KX_SCA_EndObjectActuator::Update(double curtime,
-									  double deltatime
-									  )
+bool KX_SCA_EndObjectActuator::Update()
 {
 	bool result = false;	
 	bool bNegativeEvent = IsNegativeEvent();

@@ -52,7 +52,7 @@ SCA_AlwaysEventManager::SCA_AlwaysEventManager(class SCA_LogicManager* logicmgr)
 
 
 
-void SCA_AlwaysEventManager::NextFrame(double curtime,double deltatime)
+void SCA_AlwaysEventManager::NextFrame()
 {
 	for (vector<class SCA_ISensor*>::const_iterator i= m_sensors.begin();!(i==m_sensors.end());i++)
 	{

@@ -454,7 +454,7 @@ void RAS_OpenGLRasterizer::SetEye(StereoEye eye)
 				m_2DCanvas->ClearBuffer(RAS_ICanvas::COLOR_BUFFER);
 				glColorMask(GL_FALSE, GL_FALSE, GL_TRUE, GL_FALSE);
 			} else {
-				glAccum(GL_LOAD, 1.0);
+				//glAccum(GL_LOAD, 1.0);
 				glColorMask(GL_TRUE, GL_FALSE, GL_FALSE, GL_FALSE);
 				ClearDepthBuffer();
 			}

@@ -56,7 +56,7 @@ NG_NetworkScene::~NG_NetworkScene()
 /**
  * progress one frame, handle all network traffic
  */
-void NG_NetworkScene::proceed(double curtime, double deltatime)
+void NG_NetworkScene::proceed(double curtime)
 {
 	if (!m_networkdevice) return;
 	if (!m_networkdevice->IsOnline()) return;

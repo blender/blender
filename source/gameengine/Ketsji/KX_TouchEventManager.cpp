@@ -109,7 +109,7 @@ void KX_TouchEventManager::EndFrame()
 
 
 
-void KX_TouchEventManager::NextFrame(double curtime,double deltatime)
+void KX_TouchEventManager::NextFrame()
 {
 	if (m_sensors.size() > 0)
 	{

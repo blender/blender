@@ -101,15 +101,23 @@ SM_Object::SM_Object(
 	m_suspended = false;
 }
 
+	void
+SM_Object::
+beginFrame(
+){
+	if (!m_suspended) {
+		m_prev_state = *this;
+		m_prev_state.setLinearVelocity(actualLinVelocity());
+		m_prev_state.setAngularVelocity(actualAngVelocity());
+	}
+}
+
 	void 
 SM_Object::
 integrateForces(
 	MT_Scalar timeStep
 ){
 	if (!m_suspended) {
-		m_prev_state = *this;
-		m_prev_state.setLinearVelocity(actualLinVelocity());
-		m_prev_state.setAngularVelocity(actualAngVelocity());
 		if (isDynamic()) {
 			// Integrate momentum (forward Euler)
 			m_lin_mom += m_force * timeStep;
@@ -447,7 +455,8 @@ DT_Bool SM_Object::fix(
 	// Get collision data from SOLID
 	MT_Vector3 normal(local2 - local1);
 	
-	if (normal.dot(normal) < MT_EPSILON)
+	MT_Scalar dist = normal.dot(normal);
+	if (dist < MT_EPSILON || dist > obj2->m_shapeProps->m_radius*obj2->m_shapeProps->m_radius)
 		return DT_CONTINUE;
 		
 	// This distinction between dynamic and non-dynamic objects should not be 

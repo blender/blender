@@ -75,7 +75,7 @@ public:
 	~KX_SoundActuator();
 
 	void setSoundObject(class SND_SoundObject* soundobject);
-	bool Update(double curtime,double deltatime);
+	virtual bool Update(double curtime, bool frame);
 
 	CValue* GetReplica();
 

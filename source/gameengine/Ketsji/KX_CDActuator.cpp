@@ -85,7 +85,7 @@ CValue* KX_CDActuator::GetReplica()
 
 
 
-bool KX_CDActuator::Update(double curtime,double deltatime)
+bool KX_CDActuator::Update()
 {
 	bool result = false;
 	bool bNegativeEvent = IsNegativeEvent();

@@ -96,20 +96,13 @@ private :
 
 
 	/** Methods Inherited from  CValue */
-
-
 	CValue* GetReplica();
 	
 
 	/** Methods inherited from SCA_IActuator */
-
-
-	bool Update(
-
+	virtual bool Update(
 		double curtime,
-
-		double deltatime
-
+		bool frame
 	);
 
 

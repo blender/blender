@@ -58,9 +58,11 @@ protected:
 	 * System dependent keyboard codes are stored as ints.
 	 */
 	std::map<int, KX_EnumInputs> m_reverseKeyTranslateTable;
+	bool m_hookesc;
 
 public:
 	GPC_KeyboardDevice()
+		: m_hookesc(false)
 	{
 	}
 
@@ -81,6 +83,8 @@ public:
 	}
 
 	virtual bool ConvertEvent(int incode, int val);
+	
+	virtual void HookEscape();
 };
 
 #endif  // _GPC_KEYBOARDDEVICE_H

@@ -30,6 +30,8 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
+#include <cmath>
+
 #include "SCA_LogicManager.h"
 #include "BL_ActionActuator.h"
 #include "BL_ArmatureObject.h"
@@ -95,7 +97,7 @@ CValue* BL_ActionActuator::GetReplica() {
 	return replica;
 };
 
-bool BL_ActionActuator::Update(double curtime,double deltatime)
+bool BL_ActionActuator::Update(double curtime, bool frame)
 {
 	bool bNegativeEvent = false;
 	bool bPositiveEvent = false;
@@ -149,6 +151,7 @@ bool BL_ActionActuator::Update(double curtime,double deltatime)
 				m_flag &= ~ACT_FLAG_REVERSE;
 				m_flag |= ACT_FLAG_LOCKINPUT;
 				m_localtime = m_starttime;
+				m_startWallTime = curtime;
 			}
 		}
 		if (bNegativeEvent){
@@ -181,6 +184,7 @@ bool BL_ActionActuator::Update(double curtime,double deltatime)
 			if (!(m_flag & ACT_FLAG_LOCKINPUT)){
 				m_flag &= ~ACT_FLAG_REVERSE;
 				m_localtime = m_starttime;
+				m_startWallTime = curtime;
 				m_flag |= ACT_FLAG_LOCKINPUT;
 			}
 		}
@@ -204,31 +208,19 @@ bool BL_ActionActuator::Update(double curtime,double deltatime)
 		}
 		else{
 			if (m_flag & ACT_FLAG_REVERSE)
-				m_localtime -= deltatime* KX_FIXED_FRAME_PER_SEC;
+				m_localtime = m_endtime - (curtime - m_startWallTime) * KX_FIXED_FRAME_PER_SEC;
 			else
-				m_localtime += deltatime* KX_FIXED_FRAME_PER_SEC;
+				m_localtime = m_starttime + (curtime - m_startWallTime) * KX_FIXED_FRAME_PER_SEC;
 		}
 	}
 	
 	/* Check if a wrapping response is needed */
 	if (length){
-		if (m_flag & ACT_FLAG_REVERSE){
-			if (m_localtime < m_starttime){
-				m_localtime = m_endtime+(
-					(int)((m_localtime - m_starttime)/length)
-					*(int)length);
-				wrap = true;
-			}			
+		if (m_localtime < m_starttime || m_localtime > m_endtime)
+		{
+			m_localtime = m_starttime + std::fmod(m_localtime, length);
+			wrap = true;
 		}
-		else{
-			if (m_localtime > m_endtime){
-				m_localtime = m_starttime+(
-					(int)((m_localtime - m_endtime)/length)
-					*(int)length);
-				wrap = true;
-			}
-		}
-		
 	}
 	else
 		m_localtime = m_starttime;
@@ -238,9 +230,8 @@ bool BL_ActionActuator::Update(double curtime,double deltatime)
 	case ACT_ACTION_FROM_PROP:
 		{
 			CValue* propval = GetParent()->GetProperty(m_propname);
-			if (propval)		 {
+			if (propval)
 				m_localtime = propval->GetNumber();
-			};
 			
 			if (bNegativeEvent){
 				keepgoing=false;
@@ -285,11 +276,8 @@ bool BL_ActionActuator::Update(double curtime,double deltatime)
 	}
 	
 	
-	if (bNegativeEvent){
+	if (bNegativeEvent)
 		m_blendframe=0.0;
-		
-	}
-	
 	
 	/* Apply the pose if necessary*/
 	if (apply){
@@ -316,6 +304,7 @@ bool BL_ActionActuator::Update(double curtime,double deltatime)
 				/* If this is the start of a blending sequence... */
 				if ((m_blendframe==0.0) || (!m_blendpose)){
 					obj->GetMRDPose(&m_blendpose);
+					m_blendstart = curtime;
 				}
 				
 				/* Find percentages */
@@ -323,7 +312,7 @@ bool BL_ActionActuator::Update(double curtime,double deltatime)
 				blend_poses(m_pose, m_blendpose, 1.0 - newweight, POSE_BLEND);
 
 				/* Increment current blending percentage */
-				m_blendframe+=(deltatime*KX_FIXED_FRAME_PER_SEC);
+				m_blendframe = (curtime - m_blendstart)*KX_FIXED_FRAME_PER_SEC;
 				if (m_blendframe>m_blendin)
 					m_blendframe = m_blendin;
 				

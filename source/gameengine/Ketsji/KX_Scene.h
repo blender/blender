@@ -292,10 +292,8 @@ public:
 	 * @section Logic stuff
 	 * Initiate an update of the logic system.
 	 */
-	void LogicBeginFrame(double curtime,
-						 double deltatime);
-	void LogicUpdateFrame(double curtime,
-						  double deltatime);
+	void LogicBeginFrame(double curtime);
+	void LogicUpdateFrame(double curtime, bool frame);
 
 		void						
 	LogicEndFrame(
@@ -515,7 +513,7 @@ public:
 	*/
 
 	virtual PyObject* _getattr(const STR_String& attr); /* name, active_camera, gravity, suspended, viewport, framing, activity_culling, activity_culling_radius */
-	virtual int KX_Scene::_setattr(const STR_String &attr, PyObject *pyvalue);
+	virtual int _setattr(const STR_String &attr, PyObject *pyvalue);
 };
 
 typedef std::vector<KX_Scene*> KX_SceneList;

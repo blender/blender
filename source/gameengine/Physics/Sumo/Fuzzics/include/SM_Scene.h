@@ -107,7 +107,7 @@ public:
 	// The maximum time interval between two collision checks.
 	// 'subSampling' can be used to control aliasing effects
 	// (fast moving objects traversing through walls and such). 
-	void proceed(MT_Scalar timeStep, MT_Scalar subSampling);
+	void proceed(MT_Scalar curtime, MT_Scalar ticrate);
 
 	/**
 	 * Test whether any objects lie on the line defined by from and
@@ -178,6 +178,8 @@ private:
 	 * timestep. The list is built during the proceed(). During that
 	 * time, it is not valid. */
 	T_PairList          m_pairList;
+	
+	MT_Scalar           m_lastTime;
 };
 
 #endif

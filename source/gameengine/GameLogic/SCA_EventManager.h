@@ -58,7 +58,8 @@ public:
 	virtual ~SCA_EventManager();
 	
 	virtual void	RemoveSensor(class SCA_ISensor* sensor);
-	virtual void	NextFrame(double curtime,double deltatime)=0;
+	virtual void	NextFrame(double curtime, double fixedtime);
+	virtual void	NextFrame();
 	virtual void	EndFrame();
 	virtual void	RegisterSensor(class SCA_ISensor* sensor)=0;
 	int		GetType();

@@ -46,7 +46,7 @@ public:
 	SCA_TimeEventManager(class SCA_LogicManager* logicmgr);
 	virtual ~SCA_TimeEventManager();
 
-	virtual void	NextFrame(double curtime,double deltatime);
+	virtual void	NextFrame(double curtime, double fixedtime);
 	virtual void	RegisterSensor(class SCA_ISensor* sensor);
 	void			AddTimeProperty(CValue* timeval);
 	void			RemoveTimeProperty(CValue* timeval);

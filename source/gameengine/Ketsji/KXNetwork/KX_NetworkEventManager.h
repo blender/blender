@@ -48,7 +48,7 @@ public:
 	virtual void RegisterSensor(class SCA_ISensor* sensor);
 	virtual void RemoveSensor(class SCA_ISensor* sensor);
 
-	virtual void NextFrame(double curtime, double deltatime);
+	virtual void NextFrame();
 	virtual void EndFrame();
 
 	SCA_LogicManager* GetLogicManager() { return m_logicmgr; }

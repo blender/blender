@@ -59,7 +59,7 @@ void SCA_PropertyEventManager::RegisterSensor(SCA_ISensor* sensor)
 
 
 
-void SCA_PropertyEventManager::NextFrame(double curtime,double deltatime)
+void SCA_PropertyEventManager::NextFrame()
 {
 	// check for changed properties
 	for (vector<SCA_ISensor*>::const_iterator it = m_sensors.begin();!(it==m_sensors.end());it++)

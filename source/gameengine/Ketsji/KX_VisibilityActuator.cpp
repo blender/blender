@@ -69,10 +69,7 @@ KX_VisibilityActuator::GetReplica(
 }
 
 bool
-KX_VisibilityActuator::Update(
-	double curtime,
-	double deltatime
-	)
+KX_VisibilityActuator::Update()
 {
 	bool bNegativeEvent = IsNegativeEvent();
 	

@@ -123,8 +123,8 @@ public:
 	void	RegisterToActuator(SCA_IController* controller,
 							   class SCA_IActuator* actuator);
 	
-	void	BeginFrame(double curtime,double deltatime);
-	void	UpdateFrame(double curtime,double deltatime);
+	void	BeginFrame(double curtime, double fixedtime);
+	void	UpdateFrame(double curtime, bool frame);
 	void	EndFrame();
 	void	AddActivatedSensor(SCA_ISensor* sensor);
 	void	AddActiveActuator(SCA_IActuator* sensor,class CValue* event);

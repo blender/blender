@@ -72,7 +72,7 @@ protected:
 
 	virtual CValue* GetReplica();
 
-	virtual bool Update(double curtime,double deltatime);
+	virtual bool Update();
 	
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */

@@ -227,6 +227,7 @@ public:
 
 	SM_Object *getDynamicParent() ;
 
+	void beginFrame();
 	void integrateForces(MT_Scalar timeStep);
 	void integrateMomentum(MT_Scalar timeSteo);
 

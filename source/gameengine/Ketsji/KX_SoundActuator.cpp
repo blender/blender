@@ -94,8 +94,10 @@ CValue* KX_SoundActuator::GetReplica()
 
 
 
-bool KX_SoundActuator::Update(double curtime,double deltatime)
+bool KX_SoundActuator::Update(double curtime, bool frame)
 {
+	if (!frame)
+		return true;
 	bool result = false;
 
 	// do nothing on negative events, otherwise sounds are played twice!

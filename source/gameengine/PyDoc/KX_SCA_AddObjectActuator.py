@@ -17,7 +17,7 @@ class KX_SCA_AddObjectActuator(SCA_IActuator):
 		"""
 		Sets the game object to add.
 		
-		A copy of the object will be added to the scene.
+		A copy of the object will be added to the scene when the actuator is activated.
 		
 		If the object does not exist, this function is ignored.
 		
@@ -36,6 +36,8 @@ class KX_SCA_AddObjectActuator(SCA_IActuator):
 	def setTime(time):
 		"""
 		Sets the lifetime of added objects, in frames.
+		
+		If time == 0, the object will last forever.
 		
 		@type time: integer
 		@param time: The minimum value for time is 0.

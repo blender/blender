@@ -78,8 +78,7 @@ KX_SCA_AddObjectActuator::~KX_SCA_AddObjectActuator()
 
 
 
-bool KX_SCA_AddObjectActuator::Update(double curtime,
-									  double deltatime)
+bool KX_SCA_AddObjectActuator::Update()
 {
 	bool result = false;	
 	bool bNegativeEvent = IsNegativeEvent();

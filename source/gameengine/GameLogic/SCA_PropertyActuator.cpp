@@ -58,7 +58,7 @@ SCA_PropertyActuator::~SCA_PropertyActuator()
 {
 }
 
-bool SCA_PropertyActuator::Update(double curtime,double deltatime)
+bool SCA_PropertyActuator::Update()
 {
 	bool result = false;
 

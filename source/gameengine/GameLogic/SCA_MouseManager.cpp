@@ -74,7 +74,7 @@ SCA_IInputDevice* SCA_MouseManager::GetInputDevice()
 
 
 
-void SCA_MouseManager::NextFrame(double curtime,double deltatime)
+void SCA_MouseManager::NextFrame()
 {
 	if (m_mousedevice)
 	{

@@ -55,7 +55,7 @@ class KX_TouchEventManager : public SCA_EventManager
 public:
 	KX_TouchEventManager(class SCA_LogicManager* logicmgr,  
 		SM_Scene *scene);
-	virtual void NextFrame(double curtime,double deltatime);
+	virtual void NextFrame();
 	virtual void	EndFrame();
 	virtual void	RemoveSensor(class SCA_ISensor* sensor);
 	virtual void RegisterSensor(SCA_ISensor* sensor);

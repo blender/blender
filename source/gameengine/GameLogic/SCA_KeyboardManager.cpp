@@ -66,7 +66,7 @@ SCA_IInputDevice* SCA_KeyboardManager::GetInputDevice()
 
 
 
-void SCA_KeyboardManager::NextFrame(double curtime,double deltatime)
+void SCA_KeyboardManager::NextFrame()
 {
 	//const SCA_InputEvent& event =	GetEventValue(SCA_IInputDevice::KX_EnumInputs inputcode)=0;
   //	cerr << "SCA_KeyboardManager::NextFrame"<< endl;

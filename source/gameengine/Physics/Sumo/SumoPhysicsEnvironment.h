@@ -49,7 +49,7 @@ public:
 	SumoPhysicsEnvironment();
 	virtual		~SumoPhysicsEnvironment();
 // Perform an integration step of duration 'timeStep'.
-	virtual	void		proceed(double	timeStep);
+	virtual	void		proceed(double curtime);
 	virtual	void		setGravity(float x,float y,float z);
 	virtual int		createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,
 			float pivotX,float pivotY,float pivotZ,
@@ -59,7 +59,8 @@ public:
 	virtual PHY_IPhysicsController* rayTest(void* ignoreClient,float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
 									float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ);
 
-
+	static void setTicRate(MT_Scalar ticrate);
+	static MT_Scalar getTicRate();
 	// sumo specific
 	SM_Scene* GetSumoScene()
 	{
@@ -67,8 +68,8 @@ public:
 	}
 
 protected:
-	// At least 100Hz (isn't this CPU hungry ?)
-	static MT_Scalar UpperBoundForFuzzicsIntegrator;
+	// 60Hz (Default)
+	static MT_Scalar PhysicsTicRate;
 
 };
 

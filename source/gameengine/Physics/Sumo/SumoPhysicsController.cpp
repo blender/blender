@@ -83,7 +83,7 @@ float SumoPhysicsController::getMass()
 	return 0.f;
 }
 
-bool SumoPhysicsController::SynchronizeMotionStates(float time)
+bool SumoPhysicsController::SynchronizeMotionStates(float)
 {
 	if (m_bFirstTime)
 	{
@@ -370,12 +370,12 @@ void		SumoPhysicsController::PostProcessReplica(class PHY_IMotionState* motionst
 	m_sumoScene->add(* (m_sumoObj));
 }
 
-void			SumoPhysicsController::SetSimulatedTime(float time)
+void			SumoPhysicsController::SetSimulatedTime(float)
 {
 }
 	
 	
-void	SumoPhysicsController::WriteMotionStateToDynamics(bool nondynaonly)
+void	SumoPhysicsController::WriteMotionStateToDynamics(bool)
 {
 
 }

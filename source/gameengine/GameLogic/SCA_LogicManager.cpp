@@ -42,6 +42,7 @@
 #include <config.h>
 #endif
 
+
 SCA_LogicManager::SCA_LogicManager()
 {
 }
@@ -175,13 +176,10 @@ void SCA_LogicManager::RegisterToActuator(SCA_IController* controller,SCA_IActua
 
 
 
-void SCA_LogicManager::BeginFrame(double curtime,double deltatime)
+void SCA_LogicManager::BeginFrame(double curtime, double fixedtime)
 {
-	for (vector<SCA_EventManager*>::const_iterator ie=m_eventmanagers.begin();
-	!(ie==m_eventmanagers.end());ie++)
-	{
-		(*ie)->NextFrame(curtime,deltatime);
-	}
+	for (vector<SCA_EventManager*>::const_iterator ie=m_eventmanagers.begin(); !(ie==m_eventmanagers.end()); ie++)
+		(*ie)->NextFrame(curtime, fixedtime);
 
 	// for this frame, look up for activated sensors, and build the collection of triggered controllers
 	int numsensors = this->m_activatedsensors.size();
@@ -214,11 +212,10 @@ void SCA_LogicManager::BeginFrame(double curtime,double deltatime)
 
 
 
-void SCA_LogicManager::UpdateFrame(double curtime,double deltatime)
+void SCA_LogicManager::UpdateFrame(double curtime, bool frame)
 {
 	vector<SmartActuatorPtr>::iterator ra;
-	for (ra = m_removedActuators.begin();
-	!(ra == m_removedActuators.end());ra++)
+	for (ra = m_removedActuators.begin(); !(ra == m_removedActuators.end()); ra++)
 	{
 		m_activeActuators.erase(*ra);
 		(*ra)->SetActive(false);
@@ -228,7 +225,7 @@ void SCA_LogicManager::UpdateFrame(double curtime,double deltatime)
 	for (set<SmartActuatorPtr>::iterator ia = m_activeActuators.begin();!(ia==m_activeActuators.end());ia++)
 	{
 		//SCA_IActuator* actua = *ia;
-		if (!(*ia)->Update(curtime,deltatime))
+		if (!(*ia)->Update(curtime, frame))
 		{
 			//*ia = m_activeactuators.back();
 			m_removedActuators.push_back(*ia);
@@ -238,8 +235,7 @@ void SCA_LogicManager::UpdateFrame(double curtime,double deltatime)
 		}
 	}
 	
-	for ( ra = m_removedActuators.begin();
-	!(ra == m_removedActuators.end());ra++)
+	for ( ra = m_removedActuators.begin(); !(ra == m_removedActuators.end()); ra++)
 	{
 		m_activeActuators.erase(*ra);
 		(*ra)->SetActive(false);
