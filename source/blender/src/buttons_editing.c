@@ -457,9 +457,6 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 						efa->mat_nr= G.obedit->actcol-1;
 					efa= efa->next;
 				}
-				allqueue(REDRAWVIEW3D_Z, 0);
-				makeDispList(G.obedit);
-				BIF_undo_push("Assign material index");
 			}
 			else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
 				nu= editNurb.first;
@@ -469,6 +466,9 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 					nu= nu->next;
 				}
 			}
+			allqueue(REDRAWVIEW3D_Z, 0);
+			makeDispList(G.obedit);
+			BIF_undo_push("Assign material index");
 		}
 		break;
 	case B_MATSEL:

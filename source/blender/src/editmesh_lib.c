@@ -1489,9 +1489,24 @@ float convex(float *v1, float *v2, float *v3, float *v4)
 	float cross[3], test[3];
 	float inpr;
 	
-	CalcNormFloat(v1, v2, v3, cross);
-	CalcNormFloat(v1, v3, v4, test);
-
+	/* make sure we do not test a (close to) zero sized tria in quad */
+	test[0]= AreaT3Dfl(v1, v2, v3);
+	test[1]= AreaT3Dfl(v2, v3, v4);
+	test[2]= AreaT3Dfl(v3, v4, v1);
+	
+	if(test[0]<test[1] && test[0]<test[2]) {
+		CalcNormFloat(v2, v3, v4, cross);
+		CalcNormFloat(v2, v4, v1, test);
+	}
+	else if(test[1]<test[0] && test[1]<test[2]) {
+		CalcNormFloat(v3, v4, v1, cross);
+		CalcNormFloat(v3, v1, v2, test);
+	}
+	else  {
+		CalcNormFloat(v4, v1, v2, cross);
+		CalcNormFloat(v4, v2, v3, test);
+	}
+	
 	inpr= cross[0]*test[0]+cross[1]*test[1]+cross[2]*test[2];
 
 	return inpr;

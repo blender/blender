@@ -2570,18 +2570,18 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiBlockSetCol(block, TH_BUT_SETTING1);
 		uiDefButI(block, TOG|BIT|0, B_RECALCLIGHT, "On",
 			xpos+edgsp+2*mpref/6, y2, mpref/6, buth, 
-			&U.light[cur_light].flag, 0.0, 0.0, 0, 0, "");
+			&U.light[cur_light].flag, 0.0, 0.0, 0, 0, "Enable this OpenGL light in Solid draw mode");
 			
 		uiBlockSetCol(block, TH_AUTO);
 		uiDefButS(block, ROW, B_REDR, "Vec",
 			xpos+edgsp+3*mpref/6, y2, mpref/6, buth, 
-			&cur_light_var, 123.0, 0.0, 0, 0, "");
+			&cur_light_var, 123.0, 0.0, 0, 0, "Lamp vector for OpenGL light");
 		uiDefButS(block, ROW, B_REDR, "Col",
 			xpos+edgsp+4*mpref/6, y2, mpref/6, buth, 
-			&cur_light_var, 123.0, 1.0, 0, 0, "");
+			&cur_light_var, 123.0, 1.0, 0, 0, "Diffuse Color for OpenGL light");
 		uiDefButS(block, ROW, B_REDR, "Spec",
 			xpos+edgsp+5*mpref/6, y2, mpref/6, buth, 
-			&cur_light_var, 123.0, 2.0, 0, 0, "");
+			&cur_light_var, 123.0, 2.0, 0, 0, "Specular color for OpenGL light");
 
 		if(cur_light_var==1) {
 			uiDefButF(block, NUM, B_RECALCLIGHT, "R ",
