@@ -299,6 +299,11 @@ static void do_view3d_view_alignviewmenu(void *arg, int event)
 	case 5: /* Align View to Selected (object mode) */
 		mainqenter(PADASTERKEY, 1);
 		break;
+	case 6: /* Center View and Cursor to Origin */
+		view3d_home(1);
+		curs= give_cursor();
+		curs[0]=curs[1]=curs[2]= 0.0;
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -312,7 +317,8 @@ static uiBlock *view3d_view_alignviewmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_view_alignviewmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_view_alignviewmenu, NULL);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Centre View to Cursor|C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center View to Cursor|C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center Cursor and View All|Shift C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align Active Camera to View|Shift NumPad 0",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");	
 
 	if (((G.obedit) && (G.obedit->type == OB_MESH)) || (G.f & G_FACESELECT)) {
