@@ -334,7 +334,7 @@ void BIF_read_autosavefile(void)
 
 static void readBlog(void)
 {
-	char name[FILE_MAXDIR+FILE_MAXFILE];
+	char name[FILE_MAXDIR+FILE_MAXFILE], filename[FILE_MAXFILE];
 	LinkNode *l, *lines;
 
 	BLI_make_file_string("/", name, BLI_gethome(), ".Blog");
@@ -384,6 +384,12 @@ static void readBlog(void)
 	}
 
 	fsmenu_append_seperator();
+	
+	/* add last saved file */
+	BLI_split_dirfile(G.sce, name, filename);
+	
+	fsmenu_insert_entry(name, 0);
+	
 	BLI_free_file_lines(lines);
 }
 
