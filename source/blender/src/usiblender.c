@@ -52,6 +52,7 @@
 #include "BMF_Api.h"
 #ifdef INTERNATIONAL
 #include "BIF_language.h"
+#include "FTF_Api.h"
 #endif
 
 #include "BLI_blenlib.h"
@@ -569,7 +570,9 @@ void exit_usiblender(void)
 		mainwindow_close();
 	}
 
+#ifdef INTERNATIONAL
 	FTF_End();
+#endif
 
 	if (G.undo_clear) G.undo_clear();
 
