@@ -1,11 +1,10 @@
-/*  mball.c
+/** mball.c
  *  
+ * MetaBalls are created from a single Object (with a name without number in it),
+ * here the DispList and BoundBox also is located.
+ * All objects with the same name (but with a number in it) are added to this.
  *  
- *  MetaBalls are created from a single Object (with a name without number in it),
- *  here the DispList and BoundBox also is located.
- *  All objects with the same name (but with a number in it) are added to this.
- *  
- *  texture coordinates are patched within the displist
+ * texture coordinates are patched within the displist
  * 
  * $Id$
  *
@@ -33,7 +32,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Jiri Hnidek <jiri.hnidek@vslib.cz>.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -94,7 +93,6 @@ void free_mball(MetaBall *mb)
 	
 	if(mb->mat) MEM_freeN(mb->mat);
 	if(mb->bb) MEM_freeN(mb->bb);
-	/* free bounding boxes of  MetaElems */
 	BLI_freelistN(&mb->elems);
 	if(mb->disp.first) freedisplist(&mb->disp);
 }
@@ -182,7 +180,12 @@ void make_local_mball(MetaBall *mb)
 		}
 	}
 }
-
+/** Compute bounding box of all MetaElems/MetaBalls.
+ *
+ * Bounding box is computed from polygonized surface. Object *ob is
+ * basic MetaBall (usaualy with name Meta). All other MetaBalls (whith
+ * names Meta.001, Meta.002, etc) are included in this Bounding Box.
+ */
 void tex_space_mball(Object *ob)
 {
 	DispList *dl;
@@ -264,7 +267,11 @@ void make_orco_mball(Object *ob)
 		data+= 3;
 	}
 }
-
+/** \brief Test, if Object *ob is basic MetaBall.
+ *
+ * It test last character of Object ID name. If last character
+ * is digit it return 0, else it return 1.
+ */
 int is_basis_mball(Object *ob)
 {
 	int len;
@@ -275,6 +282,13 @@ int is_basis_mball(Object *ob)
 	return 1;
 }
 
+/** \brief This function finds basic MetaBall.
+ *
+ * Basic MetaBall doesn't include any number at the end of
+ * its name. All MetaBalls with same base of name can be
+ * blended. MetaBalls with different basic name can't be
+ * blended.
+ */
 Object *find_basis_mball(Object *basis)
 {
 	Base *base;
@@ -337,7 +351,7 @@ Object *find_basis_mball(Object *basis)
  * (start.x+(i-0.5)*size, start.y+(j-0.5)*size, start.z+(k-0.5)*size) */
 
 #define HASHBIT	    (5)
-#define HASHSIZE    (size_t)(1<<(3*HASHBIT))   /* hash table size (32768) */
+#define HASHSIZE    (size_t)(1<<(3*HASHBIT))   /*! < hash table size (32768) */
 
 #define HASH(i,j,k) ((((( (i) & 31)<<5) | ( (j) & 31))<<5 ) | ( (k) & 31) )
 
@@ -433,7 +447,9 @@ int getedge (EDGELIST *table[],
 void addtovertices (VERTICES *vertices, VERTEX v);
 void vnormal (MB_POINT *point, PROCESS *p, MB_POINT *v);
 void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
-			   float (*function)(float, float, float), MB_POINT *p, MetaBall *mb);
+			   float (*function)(float, float, float), MB_POINT *p, MetaBall *mb, int f);
+void add_cube(PROCESS *mbproc, int i, int j, int k, int count);
+void find_first_points(PROCESS *mbproc, MetaBall *mb, int a);
 void polygonize(PROCESS *mbproc, MetaBall *mb);
 float init_meta(Object *ob);
 
@@ -1140,7 +1156,7 @@ int vertid (CORNER *c1, CORNER *c2, PROCESS *p, MetaBall *mb)
 	b.y = c2->y; 
 	b.z = c2->z;
 
-	converge(&a, &b, c1->value, c2->value, p->function, &v.position, mb); /* position */
+	converge(&a, &b, c1->value, c2->value, p->function, &v.position, mb, 1); /* position */
 	vnormal(&v.position, p, &v.normal);
 
 	addtovertices(&p->vertices, v);			   /* save vertex */
@@ -1155,117 +1171,232 @@ int vertid (CORNER *c1, CORNER *c2, PROCESS *p, MetaBall *mb)
 
 /* converge: from two points of differing sign, converge to zero crossing */
 /* watch it: p1 and p2 are used to calculate */
-
 void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
-			   float (*function)(float, float, float), MB_POINT *p, MetaBall *mb)
+			   float (*function)(float, float, float), MB_POINT *p, MetaBall *mb, int f)
 {
 	int i = 0;
-	MB_POINT *pos, *neg;
+	MB_POINT pos, neg;
 	float positive = 0.0f, negative = 0.0f;
 	float dx = 0.0f ,dy = 0.0f ,dz = 0.0f;
 	
 	if (v1 < 0) {
-		pos= p2;
-		neg= p1;
+		pos= *p2;
+		neg= *p1;
 		positive = v2;
 		negative = v1;
 	}
 	else {
-		pos= p1;
-		neg= p2;
+		pos= *p1;
+		neg= *p2;
 		positive = v1;
 		negative = v2;
 	}
 
-	dx = pos->x - neg->x;
-	dy = pos->y - neg->y;
-	dz = pos->z - neg->z;
+	dx = pos.x - neg.x;
+	dy = pos.y - neg.y;
+	dz = pos.z - neg.z;
 
 /* Aproximation by linear interpolation is faster then binary subdivision,
  * but it results sometimes (mb->thresh < 0.2) into the strange results */
-	if(mb->thresh >0.2){
-	/*if(mb->flag == MB_UPDATE_LINEAR) ... next possibility of Update*/
+	if((mb->thresh >0.2) && (f==1)){
 	if((dy == 0.0f) && (dz == 0.0f)){
-		p->x = neg->x - negative*dx/(positive-negative);
-		p->y = neg->y;
-		p->z = neg->z;
+		p->x = neg.x - negative*dx/(positive-negative);
+		p->y = neg.y;
+		p->z = neg.z;
 		return;
 	}
   	if((dx == 0.0f) && (dz == 0.0f)){
-		p->x = neg->x;
-		p->y = neg->y - negative*dy/(positive-negative);
-		p->z = neg->z;
+		p->x = neg.x;
+		p->y = neg.y - negative*dy/(positive-negative);
+		p->z = neg.z;
 		return;
 	}
 	if((dx == 0.0f) && (dy == 0.0f)){
-		p->x = neg->x;
-		p->y = neg->y;
-		p->z = neg->z - negative*dz/(positive-negative);
+		p->x = neg.x;
+		p->y = neg.y;
+		p->z = neg.z - negative*dz/(positive-negative);
 		return;
 	}
 	}
 
-/*if(mb->thresh <= 0.2) then surface vertex is computed by binary subdivision*/
 	if((dy == 0.0f) && (dz == 0.0f)){
-		p->y = neg->y;
-		p->z = neg->z;
+		p->y = neg.y;
+		p->z = neg.z;
 		while (1) {
-			p->x = 0.5f*(pos->x + neg->x);
+			p->x = 0.5f*(pos.x + neg.x);
 			if (i++ == RES) return;
-			if ((function(p->x,p->y,p->z)) > 0.0)	pos->x = p->x; else neg->x = p->x; 
+			if ((function(p->x,p->y,p->z)) > 0.0)	pos.x = p->x; else neg.x = p->x; 
 		}
 	}
 
 	if((dx == 0.0f) && (dz == 0.0f)){
-	p->x = neg->x;
-	p->z = neg->z;
+		p->x = neg.x;
+		p->z = neg.z;
 		while (1) {
-			p->y = 0.5f*(pos->y + neg->y);
+			p->y = 0.5f*(pos.y + neg.y);
 			if (i++ == RES) return;
-			if ((function(p->x,p->y,p->z)) > 0.0)	pos->y = p->y; else neg->y = p->y;
+			if ((function(p->x,p->y,p->z)) > 0.0)	pos.y = p->y; else neg.y = p->y;
 		}
   	}
    
 	if((dx == 0.0f) && (dy == 0.0f)){
-		p->x = neg->x;
-		p->y = neg->y;
+		p->x = neg.x;
+		p->y = neg.y;
 		while (1) {
-			p->z = 0.5f*(pos->z + neg->z);
+			p->z = 0.5f*(pos.z + neg.z);
 			if (i++ == RES) return;
-			if ((function(p->x,p->y,p->z)) > 0.0)	pos->z = p->z; else neg->z = p->z;
+			if ((function(p->x,p->y,p->z)) > 0.0)	pos.z = p->z; else neg.z = p->z;
 		}
 	}
 
 	/* This is necessary to find start point */
 	while (1) {
-		p->x = 0.5f*(pos->x + neg->x);
-		p->y = 0.5f*(pos->y + neg->y);
-		p->z = 0.5f*(pos->z + neg->z);
+		p->x = 0.5f*(pos.x + neg.x);
+		p->y = 0.5f*(pos.y + neg.y);
+		p->z = 0.5f*(pos.z + neg.z);
     
 		if (i++ == RES) return;
    
 		if ((function(p->x, p->y, p->z)) > 0.0){
-			pos->x = p->x;
-			pos->y = p->y;
-			pos->z = p->z;
+			pos.x = p->x;
+			pos.y = p->y;
+			pos.z = p->z;
 		}
 		else{
-			neg->x = p->x;
-			neg->y = p->y;
-			neg->z = p->z;
+			neg.x = p->x;
+			neg.y = p->y;
+			neg.z = p->z;
 		}
 	}
 }
-/* ************************************** */
 
+/* ************************************** */
+void add_cube(PROCESS *mbproc, int i, int j, int k, int count)
+{
+	CUBES *ncube;
+	int n;
+	int a, b, c;
+
+	/* hmmm, not only one, but eight cube will be added on the stack 
+	 * ... */
+	for(a=i-1; a<i+count; a++)
+		for(b=j-1; b<j+count; b++)
+			for(c=k-1; c<k+count; c++) {
+				/* test if cube has been found before */
+				if( setcenter(mbproc->centers, a, b, c)==0 ) {
+					/* push cube on stack: */
+					ncube= (CUBES *) new_pgn_element(sizeof(CUBES));
+					ncube->next= mbproc->cubes;
+					mbproc->cubes= ncube;
+
+					ncube->cube.i= a;
+					ncube->cube.j= b;
+					ncube->cube.k= c;
+
+					/* set corners of initial cube: */
+					for (n = 0; n < 8; n++)
+					ncube->cube.corners[n] = setcorner(mbproc, a+MB_BIT(n,2), b+MB_BIT(n,1), c+MB_BIT(n,0));
+				}
+			}
+}
+
+
+void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
+{
+	MB_POINT IN, in, OUT, out; /*point;*/
+	MetaElem *ml;
+	int i, j, k, c_i, c_j, c_k;
+	int index[3]={1,0,-1};
+	float f =0.0f;
+	float in_v, out_v;
+
+	ml = mainb[a];
+
+	f = 1-(mb->thresh/ml->s);
+
+	/* Skip, when Stiffness of MetaElement is too small ... MetaElement can't be
+	 * visible alone ... but still can influence others MetaElements :-) */
+	if(f > 0.0) {
+		IN.x = in.x= ml->x;
+		IN.y = in.y= ml->y;
+		IN.z = in.z= ml->z;
+
+		calc_mballco(ml, (float *)&in);
+		in_v = mbproc->function(in.x, in.y, in.z);
+
+		for(i=0;i<3;i++){
+			switch (ml->type) {
+				case MB_BALL:
+					OUT.x = out.x= IN.x + index[i]*ml->rad;
+					break;
+				case MB_TUBE:
+				case MB_PLANE:
+				case MB_ELIPSOID:
+				case MB_CUBE:
+					OUT.x = out.x= IN.x + index[i]*(ml->expx + ml->rad);
+					break;
+			}
+
+			for(j=0;j<3;j++) {
+				switch (ml->type) {
+					case MB_BALL:
+						OUT.y = out.y= IN.y + index[j]*ml->rad;
+						break;
+					case MB_TUBE:
+					case MB_PLANE:
+					case MB_ELIPSOID:
+					case MB_CUBE:
+						OUT.y = out.y= IN.y + index[j]*(ml->expy + ml->rad);
+						break;
+				}
+			
+				for(k=0;k<3;k++) {
+					out.x = OUT.x;
+					out.y = OUT.y;
+					switch (ml->type) {
+						case MB_BALL:
+						case MB_TUBE:
+						case MB_PLANE:
+							out.z= IN.z + index[k]*ml->rad;
+							break;
+						case MB_ELIPSOID:
+						case MB_CUBE:
+							out.z= IN.z + index[k]*(ml->expz + ml->rad);
+							break;
+					}
+
+					calc_mballco(ml, (float *)&out);
+
+					out_v = mbproc->function(out.x, out.y, out.z);
+
+					/* find "first point" on Implicit Surface of MetaElemnt ml */
+					converge(&in, &out, in_v, out_v, mbproc->function, &mbproc->start, mb, 0);
+	
+					/* indexes of CUBE, which includes "first point" */
+					c_i= (int)floor(mbproc->start.x/mbproc->size );
+					c_j= (int)floor(mbproc->start.y/mbproc->size );
+					c_k= (int)floor(mbproc->start.z/mbproc->size );
+		
+					mbproc->start.x= mbproc->start.y= mbproc->start.z= 0.0;
+
+					/* add CUBE (with indexes c_i, c_j, c_k) to the stack,
+					 * this cube includes found point of Implicit Surface */
+					if (ml->flag & MB_NEGATIVE)
+						add_cube(mbproc, c_i, c_j, c_k, 2);
+					else
+						add_cube(mbproc, c_i, c_j, c_k, 1);
+						
+					
+				}
+			}
+		}
+	}
+}
 
 void polygonize(PROCESS *mbproc, MetaBall *mb)
 {
-	MB_POINT in, out;
 	CUBE c;
-	CUBES *ncube;
-/*  	CORNER *setcorner(); */
-	int a, n, i, j, k;
+	int a;
 
 	mbproc->vertices.count = mbproc->vertices.max = 0;
 	mbproc->vertices.ptr = NULL;
@@ -1276,130 +1407,13 @@ void polygonize(PROCESS *mbproc, MetaBall *mb)
 	mbproc->edges =	MEM_callocN(2*HASHSIZE * sizeof(EDGELIST *), "mbproc->edges");
 	makecubetable();
 
-	/* find first point on balls */
 	for(a=0; a<totelem; a++) {
-		
-		in.x= mainb[a]->x;
-		in.y= mainb[a]->y;
-		in.z= mainb[a]->z;
-		calc_mballco(mainb[a], (float *)&in);
-		
-		/* added factor 2.0 to be sure it always finds the ball... still unsure why! */
-		
-		out.x= in.x + 2.0f*mainb[a]->rad;
-		out.y= in.y + 2.0f*mainb[a]->rad;
-		out.z= in.z + 2.0f*mainb[a]->rad;
-		calc_mballco(mainb[a], (float *)&out);
-		
-		converge(&in, &out, -1.0, 1.0, mbproc->function, &mbproc->start, mb);
-	
-		/* NEW1: make sure correct starting position */
-		i= (int)floor(mbproc->start.x/mbproc->size );
-		j= (int)floor(mbproc->start.y/mbproc->size );
-		k= (int)floor(mbproc->start.z/mbproc->size );
-		
-		mbproc->start.x= mbproc->start.y= mbproc->start.z= 0.0;
 
-/* but it doesn't always work, sometimes it doesn't see a ball, but why? (ton) */
-		
-		/* test if cube has been found before */
-		if( setcenter(mbproc->centers, i, j, k)==0 ) {
-
-			/* push cube on stack: */
-			ncube= (CUBES *) new_pgn_element(sizeof(CUBES));
-			ncube->next= mbproc->cubes;
-			mbproc->cubes= ncube;
-
-			ncube->cube.i= i;
-			ncube->cube.j= j;
-			ncube->cube.k= k;
-
-			/* set corners of initial cube: */
-			for (n = 0; n < 8; n++)
-				ncube->cube.corners[n] = setcorner(mbproc, i+MB_BIT(n,2), j+MB_BIT(n,1), k+MB_BIT(n,0));
-		}
-
-		/* we do a triple test and add a cube if necessary */
-		i++;
-		
-		/* test if cube has been found before */
-		if( setcenter(mbproc->centers, i, j, k)==0 ) {
-
-			/* push cube on stack: */
-			ncube= (CUBES *) new_pgn_element(sizeof(CUBES));
-			ncube->next= mbproc->cubes;
-			mbproc->cubes= ncube;
-
-			ncube->cube.i= i;
-			ncube->cube.j= j;
-			ncube->cube.k= k;
-
-			/* set corners of initial cube: */
-			for (n = 0; n < 8; n++)
-				ncube->cube.corners[n] = setcorner(mbproc, i+MB_BIT(n,2), j+MB_BIT(n,1), k+MB_BIT(n,0));
-		}
-		
-		i--;
-		j++;
-		
-		/* test if cube has been found before */
-		if( setcenter(mbproc->centers, i, j, k)==0 ) {
-
-			/* push cube on stack: */
-			ncube= (CUBES *) new_pgn_element(sizeof(CUBES));
-			ncube->next= mbproc->cubes;
-			mbproc->cubes= ncube;
-
-			ncube->cube.i= i;
-			ncube->cube.j= j;
-			ncube->cube.k= k;
-
-			/* set corners of initial cube: */
-			for (n = 0; n < 8; n++)
-				ncube->cube.corners[n] = setcorner(mbproc, i+MB_BIT(n,2), j+MB_BIT(n,1), k+MB_BIT(n,0));
-		}
-		
-		j--;
-		k++;
-		
-		/* test if cube has been found before */
-		if( setcenter(mbproc->centers, i, j, k)==0 ) {
-
-			/* push cube on stack: */
-			ncube= (CUBES *) new_pgn_element(sizeof(CUBES));
-			ncube->next= mbproc->cubes;
-			mbproc->cubes= ncube;
-
-			ncube->cube.i= i;
-			ncube->cube.j= j;
-			ncube->cube.k= k;
-
-			/* set corners of initial cube: */
-			for (n = 0; n < 8; n++)
-				ncube->cube.corners[n] = setcorner(mbproc, i+MB_BIT(n,2), j+MB_BIT(n,1), k+MB_BIT(n,0));
-		}
-
-		i++;
-		j++;
-		
-		/* test if cube has been found before */
-		if( setcenter(mbproc->centers, i, j, k)==0 ) {
-
-			/* push cube on stack: */
-			ncube= (CUBES *) new_pgn_element(sizeof(CUBES));
-			ncube->next= mbproc->cubes;
-			mbproc->cubes= ncube;
-
-			ncube->cube.i= i;
-			ncube->cube.j= j;
-			ncube->cube.k= k;
-
-			/* set corners of initial cube: */
-			for (n = 0; n < 8; n++)
-				ncube->cube.corners[n] = setcorner(mbproc, i+MB_BIT(n,2), j+MB_BIT(n,1), k+MB_BIT(n,0));
-		}
+		/* try to find 8 points on the surface for each MetaElem */
+		find_first_points(mbproc, mb, a);	
 	}
-	
+
+	/* polygonize all MetaElems of current MetaBall */
 	while (mbproc->cubes != NULL) { /* process active cubes till none left */
 		c = mbproc->cubes->cube;
 
@@ -1417,7 +1431,6 @@ void polygonize(PROCESS *mbproc, MetaBall *mb)
 		testface(c.i, c.j, c.k-1, &c, 0, LBN, LTN, RBN, RTN, mbproc);
 		testface(c.i, c.j, c.k+1, &c, 0, LBF, LTF, RBF, RTF, mbproc);
 	}
-	
 }
 
 float init_meta(Object *ob)	/* return totsize */
