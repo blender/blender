@@ -349,7 +349,7 @@ class Lamp:
     @param event: "FrameChanged" or "Redraw".
     """
 
-    def getIpo():
+  def getIpo():
     """
     Get the Ipo associated with this Lamp object, if any.
     @rtype: Ipo
