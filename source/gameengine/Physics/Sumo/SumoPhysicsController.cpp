@@ -78,7 +78,7 @@ float SumoPhysicsController::getMass()
 	if (m_sumoObj)
 	{
 		const SM_ShapeProps *shapeprops = m_sumoObj->getShapeProps();
-		return shapeprops->m_mass;
+		if(shapeprops!=NULL) return shapeprops->m_mass;
 	}
 	return 0.f;
 }
