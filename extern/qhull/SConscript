@@ -14,7 +14,7 @@ elif sys.platform=='win32':
 elif sys.platform=='sunos':
 	qhull_env.Append (CCFLAGS = ['Xc', '-v', '-fast'])
 elif sys.platform=='darwin':
-	qhull_env.Append (CCFLAGS = ['-O2', '-pipe', '-fPIC', '-funsigned-char', '-ffast-math'])
+	qhull_env.Append (CCFLAGS = ['-O3', '-pipe', '-fPIC', '-funsigned-char', '-ffast-math', '-mpowerpc' ])
 else:
 	qhull_env.Append (CCFLAGS = cflags)
 qhull_env.Append (CPPDEFINES = defines)

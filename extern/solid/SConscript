@@ -21,7 +21,7 @@ elif sys.platform=='linux2' or sys.platform=='linux-i386':
 	cflags += ['-O2']
 elif sys.platform=='darwin' :
 	defines += ['NDEBUG']
-	cflags += ['-O2',  '-pipe', '-fPIC', '-funsigned-char', '-ffast-math']
+	cflags += ['-O3','-pipe', '-fPIC', '-funsigned-char', '-ffast-math', '-mpowerpc' ]
 
 else:
     print "################################################"

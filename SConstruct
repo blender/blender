@@ -165,11 +165,12 @@ elif sys.platform == 'darwin':
     fink_path = '/sw/'
     # TODO : try -mpowerpc -mpowerpc-gopt -mpowerpc-gfxopt optims
     #           doing actual profiling
-    extra_flags = ['-pipe', '-fPIC', '-funsigned-char', '-ffast-math', '-mpowerpc' , '-malign-natural']
-
-#'-force_cpusubtype_ALL', '-mpowerpc-gpopt', 
+    extra_flags = ['-pipe', '-fPIC', '-funsigned-char', '-ffast-math', '-mpowerpc'] 
+    
+    # , '-malign-natural'] malign is causing problems with jpeg lib but worth a 1-2% speedup
+    #'-force_cpusubtype_ALL', '-mpowerpc-gpopt', 
     cxxflags = []
-    defines = ['_THREAD_SAFE']
+    defines = ['_THREAD_SAFE' ]
     if use_quicktime == 'true':
         defines += ['WITH_QUICKTIME']
     warn_flags = ['-Wall']    # , '-W'
@@ -1297,8 +1298,11 @@ def appit(target, source, env):
 			commands.getoutput(cmd)
 			cmd = 'cp %s %s.app/Contents/MacOS/%s'%(target, target, target)
 			commands.getoutput(cmd)
-			cmd = 'strip -u -r %s.app/Contents/MacOS/%s'%(target, target)
-			commands.getoutput(cmd)
+			if  user_options_dict['BUILD_BINARY'] == 'debug':
+				print "building debug"
+			else :
+				cmd = 'strip -u -r %s.app/Contents/MacOS/%s'%(target, target)
+				commands.getoutput(cmd)
 			cmd = '%s.app/Contents/Resources/'%target
 			shutil.copy('bin/.blender/.bfont.ttf', cmd)
 			shutil.copy('bin/.blender/.Blanguages', cmd)
