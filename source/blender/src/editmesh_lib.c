@@ -1509,20 +1509,22 @@ EditFace *exist_face(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4)
 /* evaluate if entire quad is a proper convex quad */
 int convex(float *v1, float *v2, float *v3, float *v4)
 {
-	float nor[3], vec[4][2];
+	float nor[3], nor1[3], nor2[3], vec[4][2];
 	
-	/* define projection */
-	CalcNormFloat4(v1, v2, v3, v4, nor);
-	nor[0]= ABS(nor[0]);
-	nor[1]= ABS(nor[1]);
-	nor[2]= ABS(nor[2]);
-	if(nor[2] >= nor[0] && nor[2]>= nor[1]) {
+	/* define projection, do both trias apart, quad is undefined! */
+	CalcNormFloat(v1, v2, v3, nor1);
+	CalcNormFloat(v1, v3, v4, nor2);
+	nor[0]= ABS(nor1[0]) + ABS(nor2[0]);
+	nor[1]= ABS(nor1[1]) + ABS(nor2[1]);
+	nor[2]= ABS(nor1[2]) + ABS(nor2[2]);
+
+	if(nor[2] > nor[0] && nor[2] > nor[1]) {
 		vec[0][0]= v1[0]; vec[0][1]= v1[1];
 		vec[1][0]= v2[0]; vec[1][1]= v2[1];
 		vec[2][0]= v3[0]; vec[2][1]= v3[1];
 		vec[3][0]= v4[0]; vec[3][1]= v4[1];
 	}
-	else if(nor[1] >= nor[0] && nor[1]>= nor[2]) {
+	else if(nor[1] > nor[0] && nor[1]> nor[2]) {
 		vec[0][0]= v1[0]; vec[0][1]= v1[2];
 		vec[1][0]= v2[0]; vec[1][1]= v2[2];
 		vec[2][0]= v3[0]; vec[2][1]= v3[2];

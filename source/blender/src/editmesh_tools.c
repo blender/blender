@@ -3312,7 +3312,7 @@ void bevel_mesh(float bsize, int allfaces)
 						else if( convex(neweve[0]->co, neweve[2]->co, neweve[3]->co, neweve[1]->co) ) {
 							efa= addfacelist(neweve[0], neweve[2], neweve[3], neweve[1], NULL, NULL);
 						}
-						else {
+						else if( convex(neweve[0]->co, neweve[2]->co, neweve[1]->co, neweve[3]->co) ) {
 							efa= addfacelist(neweve[0], neweve[2], neweve[1], neweve[3], NULL, NULL);
 						}
 					}				
