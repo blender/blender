@@ -1781,6 +1781,7 @@ static void lib_link_curve(FileData *fd, Main *main)
 			for(a=0; a<cu->totcol; a++) cu->mat[a]= newlibadr_us(fd, cu->id.lib, cu->mat[a]);
 
 			cu->bevobj= newlibadr(fd, cu->id.lib, cu->bevobj);
+			cu->taperobj= newlibadr(fd, cu->id.lib, cu->taperobj);
 			cu->textoncurve= newlibadr(fd, cu->id.lib, cu->textoncurve);
 			cu->vfont= newlibadr_us(fd, cu->id.lib, cu->vfont);
 
@@ -4535,6 +4536,7 @@ static void expand_curve(FileData *fd, Main *mainvar, Curve *cu)
 	expand_doit(fd, mainvar, cu->key);
 	expand_doit(fd, mainvar, cu->ipo);
 	expand_doit(fd, mainvar, cu->bevobj);
+	expand_doit(fd, mainvar, cu->taperobj);
 	expand_doit(fd, mainvar, cu->textoncurve);
 }
 

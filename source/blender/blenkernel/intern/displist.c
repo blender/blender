@@ -1666,6 +1666,54 @@ void set_displist_onlyzero(int val)
 	dl_onlyzero= val;
 }
 
+/* taper rules:
+  - only 1 curve
+  - first point left, last point right
+  - based on subdivided points in original curve, not on points in taper curve (still)
+*/
+static float calc_taper(Object *taperobj, int cur, int tot)
+{
+	Curve *cu;
+	DispList *dl;
+	
+	if(taperobj==NULL) return 1.0;
+	
+	cu= taperobj->data;
+	dl= cu->disp.first;
+	if(dl==NULL) {
+		makeDispList(taperobj);
+		dl= cu->disp.first;
+	}
+	if(dl) {
+		float fac= ((float)cur)/(float)(tot-1);
+		float minx, dx, *fp;
+		int a;
+		
+		/* horizontal size */
+		minx= dl->verts[0];
+		dx= dl->verts[3*(dl->nr-1)] - minx;
+		if(dx>0.0) {
+		
+			fp= dl->verts;
+			for(a=0; a<dl->nr; a++, fp+=3) {
+				if( (fp[0]-minx)/dx >= fac) {
+					/* interpolate with prev */
+					if(a>0) {
+						float fac1= (fp[-3]-minx)/dx;
+						float fac2= (fp[0]-minx)/dx;
+						if(fac1!=fac2)
+							return fp[1]*(fac1-fac)/(fac1-fac2) + fp[-2]*(fac-fac2)/(fac1-fac2);
+					}
+					return fp[1];
+				}
+			}
+			return fp[-2];	// last y coord
+		}
+	}
+	
+	return 1.0;
+}
+
 void makeDispList(Object *ob)
 {
 	EditMesh *em = G.editMesh;
@@ -1888,14 +1936,18 @@ void makeDispList(Object *ob)
 
 						data= dl->verts;
 						bevp= (BevPoint *)(bl+1);
-						a= bl->nr;
-						while(a--) {	/* for each point of poly make a bevel piece */
-
+						for(a=0; a<bl->nr; a++) {	/* for each point of poly make a bevel piece */
+							float fac;
+							
+							/* returns 1.0 if no taper, of course */
+							fac= calc_taper(cu->taperobj, a, bl->nr);
+							
 							/* rotate bevel piece and write in data */
 							fp1= dlb->verts;
 							b= dlb->nr;
 
 							while(b--) {
+								
 								if(cu->flag & CU_3D) {
 								
 									vec[0]= fp1[1]+widfac;
@@ -1904,14 +1956,14 @@ void makeDispList(Object *ob)
 									
 									Mat3MulVecfl(bevp->mat, vec);
 									
-									data[0]= bevp->x+ vec[0];
-									data[1]= bevp->y+ vec[1];
-									data[2]= bevp->z+ vec[2];
+									data[0]= bevp->x+ fac*vec[0];
+									data[1]= bevp->y+ fac*vec[1];
+									data[2]= bevp->z+ fac*vec[2];
 								}
 								else {
-									data[0]= bevp->x+ (fp1[1]+widfac)*bevp->sina;
-									data[1]= bevp->y+ (fp1[1]+widfac)*bevp->cosa;
-									data[2]= bevp->z+ fp1[2];
+									data[0]= bevp->x+ fac*(fp1[1]+widfac)*bevp->sina;
+									data[1]= bevp->y+ fac*(fp1[1]+widfac)*bevp->cosa;
+									data[2]= bevp->z+ fac*fp1[2];
 								}
 
 								data+=3;

@@ -218,28 +218,29 @@ void unlink_object(Object *ob)
 	/* check all objects: parents en bevels */
 	obt= G.main->object.first;
 	while(obt) {
-		if(obt->id.lib==0) {
+		if(obt->id.lib==NULL) {
 			if(obt->parent==ob) {
-				obt->parent= 0;
+				obt->parent= NULL;
 				if(ob->type==OB_LATTICE) freedisplist(&obt->disp);
 			}
-			if(obt->track==ob) obt->track= 0;
+			if(obt->track==ob) obt->track= NULL;
 			if ELEM(obt->type, OB_CURVE, OB_FONT) {
 				cu= obt->data;
-				if(cu->bevobj==ob) cu->bevobj= 0;
-				if(cu->textoncurve==ob) cu->textoncurve= 0;
+				if(cu->bevobj==ob) cu->bevobj= NULL;
+				if(cu->taperobj==ob) cu->taperobj= NULL;
+				if(cu->textoncurve==ob) cu->textoncurve= NULL;
 			}
 			if(obt->type==OB_IKA) {
 				Ika *ika= obt->data;
 				Deform *def= ika->def;
 				
-				if(ika->parent==ob) ika->parent= 0;
+				if(ika->parent==ob) ika->parent= NULL;
 				a= ika->totdef;
 				while(a--) {
 					if(def->ob==ob) {
 						ika->totdef= 0;
 						MEM_freeN(ika->def);
-						ika->def= 0;
+						ika->def= NULL;
 						break;
 					}
 					def++;

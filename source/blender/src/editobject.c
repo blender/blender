@@ -1175,7 +1175,7 @@ void exit_editmode(int freedata)	/* freedata==0 at render */
 					text_to_curve(base->object, 0);
 					makeDispList(base->object);
 				}
-				if(cu->bevobj== ob) {
+				if(cu->bevobj==ob || cu->taperobj==ob) {
 					makeDispList(base->object);
 				}
 			}
@@ -2142,6 +2142,7 @@ void copy_attr(short event)
 						cu1= base->object->data;
 						
 						cu1->bevobj= cu->bevobj;
+						cu1->taperobj= cu->taperobj;
 						cu1->width= cu->width;
 						cu1->bevresol= cu->bevresol;
 						cu1->ext1= cu->ext1;
@@ -3931,6 +3932,7 @@ void special_aftertrans_update(char mode, int flip, short canceled, int keyflags
 				cu= ob->data;
 				
 				if(cu->bevobj && (cu->bevobj->flag & SELECT) ) doit= 1;
+				else if(cu->taperobj && (cu->taperobj->flag & SELECT) ) doit= 1;
 				else if(cu->textoncurve) {
 					if(cu->textoncurve->flag & SELECT) doit= 1;
 					else if(ob->flag & SELECT) doit= 1;
@@ -3946,6 +3948,8 @@ void special_aftertrans_update(char mode, int flip, short canceled, int keyflags
 				cu= ob->data;
 				
 				if(cu->bevobj && (cu->bevobj->flag & SELECT) ) 
+					makeDispList(ob);
+				else if(cu->taperobj && (cu->taperobj->flag & SELECT) ) 
 					makeDispList(ob);
 			}
 			
@@ -4561,8 +4565,8 @@ void transform(int mode)
 	if(mode=='w' && G.obedit==0) return;
 
 	if (G.obedit && G.obedit->type == OB_MESH) {
-               undo_push_mesh(transform_mode_to_string(mode));
-       }
+		undo_push_mesh(transform_mode_to_string(mode));
+	}
 
 	/* what data will be involved? */
 	if(G.obedit) {
@@ -6142,6 +6146,10 @@ void transform(int mode)
 	if(edge_creases) MEM_freeN(edge_creases);
 	
 	tottrans= 0;
+
+	/* undo after transform, since it's storing current situations */
+	//if(canceled==0 && G.obedit==NULL) 
+	//	BIF_write_undo(transform_mode_to_string(mode));
 }
 
 void std_rmouse_transform(void (*xf_func)(int))
@@ -6300,6 +6308,7 @@ void single_obdata_users(int flag)
 				case OB_FONT:
 					ob->data= cu= copy_curve(ob->data);
 					ID_NEW(cu->bevobj);
+					ID_NEW(cu->taperobj);
 					makeDispList(ob);
 					break;
 				case OB_LATTICE:

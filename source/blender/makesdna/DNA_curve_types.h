@@ -110,7 +110,7 @@ typedef struct Curve {
 	
 	ListBase nurb;
 	ListBase disp;
-	struct Object *bevobj, *textoncurve;
+	struct Object *bevobj, *taperobj, *textoncurve;
 	struct Ipo *ipo;
 	Path *path;
 	struct Key *key;

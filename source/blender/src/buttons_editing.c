@@ -1270,7 +1270,8 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 		uiDefButF(block, NUM, B_MAKEDISP, "Ext1:",		760,70,150,19, &cu->ext1, 0.0, 5.0, 10, 0, "");
 		uiDefButF(block, NUM, B_MAKEDISP, "Ext2:",		760,50,150,19, &cu->ext2, 0.0, 2.0, 1, 0, "");
 		uiDefButS(block, NUM, B_MAKEDISP, "BevResol:",	760,30,150,19, &cu->bevresol, 0.0, 10.0, 0, 0, "");
-		uiDefIDPoinBut(block, test_obcurpoin_but, B_MAKEDISP, "BevOb:",		760,10,150,19, &cu->bevobj, "");
+		uiDefIDPoinBut(block, test_obcurpoin_but, B_MAKEDISP, "BevOb:",		760,10,150,19, &cu->bevobj, "Curve object name that defines the bevel shape");
+		uiDefIDPoinBut(block, test_obcurpoin_but, B_MAKEDISP, "TaperOb:",		760,-10,150,19, &cu->taperobj, "Curve object name that defines the taper (width)");
 
 		uiBlockBeginAlign(block);
 		uiBlockSetCol(block, TH_BUT_SETTING1);
