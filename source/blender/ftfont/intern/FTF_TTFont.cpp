@@ -275,7 +275,7 @@ float FTF_TTFont::DrawStringRGB(char* str, unsigned int flag, float r, float g, 
 float FTF_TTFont::GetStringWidth(char* str, unsigned int flag)
 {
 	char ustr[FTF_MAX_STR_SIZE*2]={0};
-	wchar_t wstr[255]={'\0'};
+	wchar_t wstr[511]={'\0'};
 	int len=0;
 
 	if (FTF_USE_GETTEXT & flag) 

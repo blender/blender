@@ -2500,6 +2500,44 @@ void do_info_file_optionsmenu(void *arg, int event)
 	// allqueue(REDRAWINFO, 0);
 }
 
+//#ifdef NEW_WINDOW_TYPE_MENUS
+
+static char *windowtype_pup(void)
+{
+	static char string[1024];
+
+	strcpy(string, "Window type:%t"); //14
+	strcat(string, "|3D Viewport %x1"); //30
+
+	strcat(string, "|%l"); // 33
+
+	strcat(string, "|Ipo Curve Editor %x2"); //54
+	strcat(string, "|Action Editor %x12"); //73
+	strcat(string, "|Animation Mixer %x13"); //94
+
+	strcat(string, "|%l"); //97
+
+	strcat(string, "|UV/Image Editor %x6"); //117
+
+	strcat(string, "|Video Sequence Editor %x8"); //143
+	strcat(string, "|Audio Timeline %x11"); //163
+	strcat(string, "|Text Editor %x9"); //179
+
+	strcat(string, "|%l"); //192
+
+
+	strcat(string, "|User Preferences %x7"); //213
+	strcat(string, "|OOPS Schematic %x3"); //232
+	strcat(string, "|Buttons Window %x4"); //251
+
+	strcat(string, "|%l"); //254
+
+	strcat(string, "|Image Browser %x10");
+	strcat(string, "|File Browser %x5");
+
+	return (string);
+}
+
 
 static uiBlock *info_file_optionsmenu(void *arg_unused)
 {
@@ -3456,7 +3494,7 @@ void info_buttons(void)
 	if (G.fileflags & G_AUTOPACK) {
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		uiDefIconBut(block, LABEL, 0, ICON_PACKAGE, xco, 0, XIC, YIC, &G.fileflags, 0.0, 0.0, 0, 0, "This is a Packed file. See File menu.");
-		xco += 24;
+		xco += XIC;
 		uiBlockSetEmboss(block, UI_EMBOSSX);
 	}
 
@@ -3464,10 +3502,11 @@ void info_buttons(void)
 	
 	if (curarea->full == 0) {
 		curarea->butspacetype= SPACE_INFO;
-		uiDefIconButC(block, ICONROW,B_NEWSPACE, ICON_VIEW3D, 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current window type ");
+		uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
 		
 		/* STD SCREEN BUTTONS */
-		xco+= XIC;
+//		xco+= XIC;
+		xco+= 4;
 		xco= std_libbuttons(block, xco, 0, NULL, B_INFOSCR, (ID *)G.curscreen, 0, &G.curscreen->screennr, 1, 1, B_INFODELSCR, 0, 0);
 	
 		/* STD SCENE BUTTONS */
@@ -3562,7 +3601,8 @@ void seq_buttons()
 	uiBlockSetCol(block, BUTPURPLE);
 
 	curarea->butspacetype= SPACE_SEQ;
-	uiDefIconButC(block, ICONROW,B_NEWSPACE, ICON_VIEW3D, 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current window type ");
+
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
 
 	/* FULL WINDOW */
 	xco= 25;
@@ -3903,7 +3943,7 @@ void nla_buttons(void)
 	uiBlockSetCol(block, BUTCHOKE);
 
 	curarea->butspacetype= SPACE_NLA;
-	uiDefIconButC(block, ICONROW,B_NEWSPACE, ICON_VIEW3D, 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current window type ");
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
 
 	/* FULL WINDOW */
 	xco= 25;
@@ -3952,7 +3992,7 @@ void action_buttons(void)
 	uiBlockSetCol(block, BUTPINK);
 
 	curarea->butspacetype= SPACE_ACTION;
-	uiDefIconButC(block, ICONROW,B_NEWSPACE, ICON_VIEW3D, 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current window type");
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
 
 	/* FULL WINDOW */
 	xco= 25;
@@ -3997,8 +4037,8 @@ void view3d_buttons(void)
 	uiBlockSetCol(block, BUTBLUE);	
 
 	curarea->butspacetype= SPACE_VIEW3D;
-	uiDefIconButC(block, ICONROW,B_NEWSPACE, ICON_VIEW3D, 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current window type ");
-	
+
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
 
 	/* FULL WINDOW */
 	xco= 25;
@@ -4272,7 +4312,8 @@ void ipo_buttons(void)
 	uiBlockSetCol(block, BUTSALMON);
 
 	curarea->butspacetype= SPACE_IPO;
-	uiDefIconButC(block, ICONROW,B_NEWSPACE, ICON_VIEW3D, 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current window type ");
+
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
 
 	test_editipo();	/* test if current editipo is OK, make_editipo sets v2d->cur */
 
@@ -4648,7 +4689,8 @@ void buts_buttons(void)
 	uiBlockSetCol(block, BUTGREY);
 
 	curarea->butspacetype= SPACE_BUTS;
-	uiDefIconButC(block, ICONROW,B_NEWSPACE, ICON_VIEW3D, 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current window type ");
+
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
 
 	/* FULL WINDOW */
 	xco= 25;
@@ -4887,7 +4929,7 @@ void file_buttons(void)
 	uiBlockSetCol(block, BUTGREY);
 
 	curarea->butspacetype= SPACE_FILE;
-	uiDefIconButC(block, ICONROW,B_NEWSPACE, ICON_VIEW3D, 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current window type");
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
 
 	/* FULL WINDOW */
 	xco= 25;
@@ -5007,7 +5049,8 @@ void oops_buttons(void)
 	uiBlockSetCol(block, BUTGREEN);
 
 	curarea->butspacetype= SPACE_OOPS;
-	uiDefIconButC(block, ICONROW,B_NEWSPACE, ICON_VIEW3D, 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current window type");
+
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
 
 	/* FULL WINDOW */
 	xco= 25;
@@ -5181,7 +5224,8 @@ void text_buttons(void)
 	uiBlockSetCol(block, BUTGREY);
 
 	curarea->butspacetype= SPACE_TEXT;
-	uiDefIconButC(block, ICONROW,B_NEWSPACE, ICON_VIEW3D, 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current window type");
+
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
 
 	/* FULL WINDOW */
 	xco= 25;
@@ -5437,7 +5481,8 @@ void sound_buttons(void)
 	uiBlockSetCol(block, BUTYELLOW);
 
 	curarea->butspacetype= SPACE_SOUND;
-	uiDefIconButC(block, ICONROW,B_NEWSPACE, ICON_VIEW3D, 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current window type");
+
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
 
 	/* FULL WINDOW */
 	xco= 25;
@@ -5759,7 +5804,8 @@ void image_buttons(void)
 	what_image(G.sima);
 
 	curarea->butspacetype= SPACE_IMAGE;
-	uiDefIconButC(block, ICONROW,B_NEWSPACE, ICON_VIEW3D, 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current window type ");
+
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
 
 	/* FULL WINDOW */
 	xco= 25;
@@ -5877,7 +5923,8 @@ void imasel_buttons(void)
 	uiBlockSetCol(block, BUTBLUE);
 
 	curarea->butspacetype= SPACE_IMASEL;
-	uiDefIconButC(block, ICONROW,B_NEWSPACE, ICON_VIEW3D, 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current window type");
+
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
 	
 	/* FULL WINDOW */
 	xco= 25;

@@ -35,7 +35,7 @@
 
 /* general defines */
 
-#define UI_MAX_DRAW_STR	180
+#define UI_MAX_DRAW_STR	400
 #define UI_MAX_NAME_STR	64
 #define UI_ARRAY	29
 
@@ -78,6 +78,7 @@
 #define LINK	(22<<9)
 #define INLINK	(23<<9)
 #define KEYEVT	(24<<9)
+#define ICONTEXTROW (25<<9)
 
 #define BUTTYPE	(31<<9)
 
@@ -98,6 +99,10 @@
 #define UI_ACTIVE		4
 #define UI_HAS_ICON		8
 #define UI_TEXT_LEFT	16
+/* definitions for icons (and their alignment) in buttons */
+#define UI_ICON_LEFT		32
+#define UI_ICON_RIGHT		64
+/* definitions for icons (and their alignment) in buttons */
 
 /* uiBlock->flag */
 #define UI_BLOCK_LOOP		1
@@ -115,6 +120,7 @@
 #define UI_EMBOSSF		3	/* Square embossed button */
 #define UI_EMBOSSM		4	/* Colored Border */
 #define UI_EMBOSSP		5	/* Borderless coloured button */
+#define UI_EMBOSSA		6	/* same as EMBOSSX but with arrows to simulate */
 
 /* uiBlock->direction */
 #define UI_TOP		0

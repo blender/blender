@@ -384,12 +384,31 @@ static void ui_endpupdraw(uiSaveUnder *su)
 
 static void ui_draw_icon(uiBut *but, BIFIconID icon)
 {
-	float xs= (but->x1+but->x2- BIF_get_icon_width(icon))/2.0;
-	float ys= (but->y1+but->y2- BIF_get_icon_height(icon))/2.0;
+	float xs, ys;
+	
+	/* check for left aligned icons (in case of IconTextBut) */
+	if (but->type == ICONTEXTROW) {
+		xs= (but->x1+but->x2- BIF_get_icon_width(icon))/2.0;
+		ys= (but->y1+but->y2- BIF_get_icon_height(icon))/2.0;
+	}
+	else if(but->flag & UI_ICON_LEFT) {
+	        if (but->type==BUTM) {
+	         	xs= but->x1+1.0;
+	        }
+		else {
+			xs= but->x1+6.0;
+		}
+		ys= (but->y1+but->y2- BIF_get_icon_height(icon))/2.0;
+	}
+	else {
+		xs= (but->x1+but->x2- BIF_get_icon_width(icon))/2.0;
+		ys= (but->y1+but->y2- BIF_get_icon_height(icon))/2.0;
+	}
+	/* END check for left aligned icons (in case of IconTextBut) */
 
 	glRasterPos2f(xs, ys);
 
-	if(but->aspect>1.1) glPixelZoom(1.0/but->aspect, 1.0/but->aspect);	
+	if(but->aspect>1.1) glPixelZoom(1.0/but->aspect, 1.0/but->aspect);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -480,6 +499,69 @@ static void ui_emboss_X(BIFColorID bc, float asp, float x1, float y1, float x2, 
 	/* outline */
 	glColor3ub(0,0,0);
 	ui_draw_outlineX(x1, y1, x2, y2, asp);
+}
+
+static void ui_emboss_A(BIFColorID bc, float asp, float x1, float y1, float x2, float y2, int flag)
+{
+	short a;
+
+	/* paper */
+	if(flag & UI_SELECT) {
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_DARK);
+		else BIF_set_color(bc, COLORSHADE_GREY);
+	}
+	else {
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_HILITE);
+		else BIF_set_color(bc, COLORSHADE_MEDIUM);
+	}
+	
+	glRectf(x1+1, y1+1, x2-1, y2-1);
+
+	x1+= asp;
+	x2-= asp;
+	y1+= asp;
+	y2-= asp;
+
+	/* below */
+	if(flag & UI_SELECT) BIF_set_color(bc, COLORSHADE_MEDIUM);
+	else BIF_set_color(bc, COLORSHADE_DARK);
+	fdrawline(x1, y1, x2, y1);
+
+	/* right */
+	fdrawline(x2, y1, x2, y2);
+	
+	/* top */
+	if(flag & UI_SELECT) BIF_set_color(bc, COLORSHADE_DARK);
+	else BIF_set_color(bc, COLORSHADE_WHITE);
+	fdrawline(x1, y2, x2, y2);
+
+	/* left */
+	fdrawline(x1, y1, x1, y2);
+	
+	/* outline */
+	glColor3ub(0,0,0);
+	ui_draw_outlineX(x1, y1, x2, y2, asp);
+
+	
+	/* code to draw side arrows as in iconrow */
+	/* teken pijltjes, icon is standaard RGB */
+	a= (y1+y2)/2;
+
+	glColor3ub(0,0,0);
+	sdrawline((short)(x1-1), (short)(a-2), (short)(x1-1), (short)(a+2));
+	sdrawline((short)(x1-2), (short)(a-1), (short)(x1-2), (short)(a+1));
+	sdrawline((short)(x1-3), a, (short)(x1-3), a);
+	glColor3ub(255,255,255);
+	sdrawline((short)(x1-3), (short)(a-1), (short)(x1-1), (short)(a-3));
+
+	x2+=1;
+	
+	glColor3ub(0,0,0);
+	sdrawline((short)(x2+1), (short)(a-2), (short)(x2+1), (short)(a+2));
+	sdrawline((short)(x2+2), (short)(a-1), (short)(x2+2), (short)(a+1));
+	sdrawline((short)(x2+3), a, (short)(x2+3), a);
+	glColor3ub(255,255,255);
+	sdrawline((short)(x2+3), (short)(a-1), (short)(x2+1), (short)(a-3));
 }
 
 void uiEmboss(float x1, float y1, float x2, float y2, int sel)
@@ -672,19 +754,34 @@ static void ui_draw_but_BUT(uiBut *but)
 	float x;
 	
 	but->embossfunc(but->col, but->aspect, but->x1, but->y1, but->x2, but->y2, but->flag);
-	
-	if( but->flag & UI_HAS_ICON ) {
+
+	/* check for button text label */
+	if (but->type == ICONTEXTROW) {
 		ui_draw_icon(but, (BIFIconID) (but->icon+but->iconadd));
 	}
 	else if(but->drawstr[0]!=0) {
-		if(but->flag & UI_SELECT) glColor3ub(255,255,255);
-		else glColor3ub(0,0,0);
+		
+		/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
+		and offset the text label to accomodate it */
+	        if ( (but->flag & UI_HAS_ICON) && (but->flag & UI_ICON_LEFT) ) {
+			ui_draw_icon(but, but->icon);
 
-		if(but->flag & UI_TEXT_LEFT) x= but->x1+4.0;
-		else x= (but->x1+but->x2-but->strwidth+1)/2.0;
+			if(but->flag & UI_TEXT_LEFT) x= but->x1+24.0;
+			else x= (but->x1+but->x2-but->strwidth+1)/2.0;
+		}
+		else {
+		        if(but->flag & UI_TEXT_LEFT) x= but->x1+4.0;
+			else x= (but->x1+but->x2-but->strwidth+1)/2.0;
+		}
 		
+		if(but->flag & UI_SELECT) {
+			glColor3ub(255,255,255);
+		} else {
+			glColor3ub(0,0,0);
+		}
+
 		glRasterPos2f( x, (but->y1+but->y2- 9.0)/2.0);
-		
+
 #ifdef INTERNATIONAL
 		if(G.ui_international == TRUE)
 			if(U.transopts & TR_BUTTONS)	// BUTTON TEXTS
@@ -696,6 +793,10 @@ static void ui_draw_but_BUT(uiBut *but)
 #else
 		BMF_DrawString(but->font, but->drawstr+but->ofs);
 #endif
+	}
+	/* if there's no text label, then check to see if there's an icon only and draw it */
+	else if( but->flag & UI_HAS_ICON ) {
+		ui_draw_icon(but, (BIFIconID) (but->icon+but->iconadd));
 	}
 }
 
@@ -817,72 +918,87 @@ static void ui_draw_but_TEX(uiBut *but)
 static void ui_draw_but_BUTM(uiBut *but)
 {
 	float x;
-	short len, opt;
+	short len;
 	char *cpoin;
 	
 	but->embossfunc(but->col, but->aspect, but->x1, but->y1, but->x2, but->y2, but->flag);
 	
-	if( but->flag & UI_HAS_ICON ) {
-		ui_draw_icon(but, but->icon);
-	}
-	else {
-		if(but->drawstr[0]!=0) {
-			cpoin= strchr(but->drawstr, '|');
-			if(cpoin) *cpoin= 0;
-			
-			if(but->embossfunc==ui_emboss_P) {
-				if(but->flag & UI_ACTIVE) { opt = 1; glColor3ub(255,255,255); }
-				else { opt = 0; glColor3ub(0,0,0); }
-			} else {
-				opt = 0;glColor3ub(0,0,0);
+	/* check for button text label */
+	if(but->drawstr[0]!=0) {
+		
+		cpoin= strchr(but->drawstr, '|');
+		if(cpoin) *cpoin= 0;
+
+		if(but->embossfunc==ui_emboss_P) {
+			if(but->flag & UI_ACTIVE) glColor3ub(255,255,255);
+			else glColor3ub(0,0,0);
+		}
+		else {
+			glColor3ub(0,0,0);
+		}
+
+		/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
+		and offset the text label to accomodate it */
+		if ( (but->flag & UI_HAS_ICON) && (but->flag & UI_ICON_LEFT) ) {
+			ui_draw_icon(but, but->icon);
+
+			x= but->x1+24.0;
+		}
+		else {
+		        x= but->x1+4.0;
+		}
+
+		glRasterPos2f( x, (but->y1+but->y2- 9.0)/2.0);
+
+#ifdef INTERNATIONAL
+		if(G.ui_international == TRUE) {
+			if(U.transopts & TR_BUTTONS) {	// BUTTON TEXTS
+				FTF_DrawString(but->drawstr, FTF_USE_GETTEXT | FTF_INPUT_UTF8, but->flag & UI_ACTIVE);
 			}
-	
-			x= but->x1+4.0;
-			
-			glRasterPos2f( x, (but->y1+but->y2- 9.0)/2.0);
-
-#ifdef INTERNATIONAL
-			if(G.ui_international == TRUE)
-				if(U.transopts & TR_BUTTONS)	// BUTTON TEXTS
-					FTF_DrawString(but->drawstr, FTF_USE_GETTEXT | FTF_INPUT_UTF8, opt);
-				else
-					FTF_DrawString(but->drawstr, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, opt);
-			else
-				BMF_DrawString(but->font, but->drawstr);
-#else
+			else {
+				FTF_DrawString(but->drawstr, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, but->flag & UI_ACTIVE);
+			}
+		}
+		else {
 			BMF_DrawString(but->font, but->drawstr);
+		}
+#else
+		BMF_DrawString(but->font, but->drawstr);
 #endif
-			
-			if(cpoin) {
-
+		
+		if(cpoin) {
 #ifdef INTERNATIONAL
-				if(G.ui_international == TRUE) {
-					if(U.transopts & TR_BUTTONS) {	// BUTTON TEXTS
-						len= FTF_GetStringWidth(cpoin+1, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
-						glRasterPos2f( but->x2 - len*but->aspect-3, (but->y1+but->y2- 9.0)/2.0);
-						FTF_DrawString(cpoin+1, FTF_USE_GETTEXT | FTF_INPUT_UTF8, but->flag & UI_ACTIVE);
-						*cpoin= '|';
-					} else {
-						len= FTF_GetStringWidth(cpoin+1, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
-						glRasterPos2f( but->x2 - len*but->aspect-3, (but->y1+but->y2- 9.0)/2.0);
-						FTF_DrawString(cpoin+1, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, but->flag & UI_ACTIVE);
-						*cpoin= '|';
-					}
-				} else {
-					len= BMF_GetStringWidth(but->font, cpoin+1);
+			if(G.ui_international == TRUE) {
+				if(U.transopts & TR_BUTTONS) {	// BUTTON TEXTS
+					len= FTF_GetStringWidth(cpoin+1, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
 					glRasterPos2f( but->x2 - len*but->aspect-3, (but->y1+but->y2- 9.0)/2.0);
-					BMF_DrawString(but->font, cpoin+1);
+					FTF_DrawString(cpoin+1, FTF_USE_GETTEXT | FTF_INPUT_UTF8, but->flag & UI_ACTIVE);
 					*cpoin= '|';
 				}
-#else
+				else {
+					len= FTF_GetStringWidth(cpoin+1, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
+					glRasterPos2f( but->x2 - len*but->aspect-3, (but->y1+but->y2- 9.0)/2.0);
+					FTF_DrawString(cpoin+1, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, but->flag & UI_ACTIVE);
+					*cpoin= '|';
+				}
+			}
+			else {
 				len= BMF_GetStringWidth(but->font, cpoin+1);
 				glRasterPos2f( but->x2 - len*but->aspect-3, (but->y1+but->y2- 9.0)/2.0);
 				BMF_DrawString(but->font, cpoin+1);
 				*cpoin= '|';
-#endif
-
 			}
+#else
+			len= BMF_GetStringWidth(but->font, cpoin+1);
+			glRasterPos2f( but->x2 - len*but->aspect-3, (but->y1+but->y2- 9.0)/2.0);
+			BMF_DrawString(but->font, cpoin+1);
+			*cpoin= '|';
+#endif
 		}
+	}
+	/* if there's no text label, then check to see if there's an icon only and draw it */
+	else if( but->flag & UI_HAS_ICON ) {
+		ui_draw_icon(but, but->icon);
 	}
 }
 
@@ -890,33 +1006,49 @@ static void ui_draw_but_LABEL(uiBut *but)
 {
 	float x;
 	int sel;
-	
+
 	sel= but->min!=0.0;
 
 	if(sel) glColor3ub(255,255,255);
 	else glColor3ub(0,0,0);
+	
+	/* check for button text label */
+	if(but->drawstr[0]!=0) {
 
-	if( but->flag & UI_HAS_ICON ) {
-		ui_draw_icon(but, but->icon);
-	}
-	else if(but->drawstr[0]!=0) {
-		
-		if(but->flag & UI_TEXT_LEFT) x= but->x1+4.0;
-		else x= (but->x1+but->x2-but->strwidth+1)/2.0;
-		
+	        /* If there's an icon too (made with uiDefIconTextBut) then draw the icon
+		and offset the text label to accomodate it */
+		if ( (but->flag & UI_HAS_ICON) && (but->flag & UI_ICON_LEFT) ) {
+			ui_draw_icon(but, but->icon);
+
+			if(but->flag & UI_TEXT_LEFT) x= but->x1+24.0;
+			else x= (but->x1+but->x2-but->strwidth+1)/2.0;
+		}
+		else {
+		        if(but->flag & UI_TEXT_LEFT) x= but->x1+4.0;
+			else x= (but->x1+but->x2-but->strwidth+1)/2.0;
+		}
+
 		glRasterPos2f( x, (but->y1+but->y2- 9.0)/2.0);
-		
+
 #ifdef INTERNATIONAL
-		if(G.ui_international == TRUE)
-			if(U.transopts & TR_BUTTONS)	// BUTTON TEXTS
+		if(G.ui_international == TRUE) {
+			if(U.transopts & TR_BUTTONS) {	// BUTTON TEXTS
 				FTF_DrawString(but->drawstr+but->ofs, FTF_USE_GETTEXT | FTF_INPUT_UTF8, sel);
-			else
+			}
+			else {
 				FTF_DrawString(but->drawstr+but->ofs, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, sel);
-		else
+			}
+		}
+		else {
 			BMF_DrawString(but->font, but->drawstr+but->ofs);
+		}
 #else
 		BMF_DrawString(but->font, but->drawstr+but->ofs);
 #endif
+	}
+	/* if there's no text label, then check to see if there's an icon only and draw it */
+	else if( but->flag & UI_HAS_ICON ) {
+		ui_draw_icon(but, but->icon);
 	}
 }
 
@@ -996,6 +1128,28 @@ static void ui_draw_but(uiBut *but)
 
 		break;
 		
+	case ICONTEXTROW:
+		ui_draw_but_BUT(but);
+		
+		/* teken pijltjes, icon is standaard RGB */
+		a= (but->y1+but->y2)/2;
+		
+		glColor3ub(0,0,0);
+		sdrawline((short)(but->x1-1), (short)(a-2), (short)(but->x1-1), (short)(a+2));
+		sdrawline((short)(but->x1-2), (short)(a-1), (short)(but->x1-2), (short)(a+1));
+		sdrawline((short)(but->x1-3), a, (short)(but->x1-3), a);
+		glColor3ub(255,255,255);
+		sdrawline((short)(but->x1-3), (short)(a-1), (short)(but->x1-1), (short)(a-3));
+
+		glColor3ub(0,0,0);
+		sdrawline((short)(but->x2+1), (short)(a-2), (short)(but->x2+1), (short)(a+2));
+		sdrawline((short)(but->x2+2), (short)(a-1), (short)(but->x2+2), (short)(a+1));
+		sdrawline((short)(but->x2+3), a, (short)(but->x2+3), a);
+		glColor3ub(255,255,255);
+		sdrawline((short)(but->x2+3), (short)(a-1), (short)(but->x2+1), (short)(a-3));
+
+		break;
+
 	case MENU:
 	
 		ui_draw_but_BUT(but);
@@ -2324,6 +2478,104 @@ static int ui_do_but_ICONROW(uiBut *but)
 	return but->retval;
 }
 
+static int ui_do_but_ICONTEXTROW(uiBut *but)
+{
+	uiBlock *block;
+	ListBase listb={NULL, NULL};
+	int width, a, xmax, ypos;
+	int event;
+	MenuData *md;
+
+	but->flag |= UI_SELECT;
+	ui_draw_but(but);
+
+	block= uiNewBlock(&listb, "menu", UI_EMBOSSP, UI_HELV, but->win);
+	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
+
+	md= decompose_menu_string(but->str);
+
+	/* size and location */
+	/* expand menu width to fit labels */
+#ifdef INTERNATIONAL
+	if(G.ui_international == TRUE) {
+		if(md->title)
+			if(U.transopts & TR_MENUS)
+				width= 2*strlen(md->title)+FTF_GetStringWidth(md->title, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+			else
+				width= 2*strlen(md->title)+FTF_GetStringWidth(md->title, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
+		else
+			width= 0;
+	} else {
+		if(md->title)
+			width= 2*strlen(md->title)+BMF_GetStringWidth(block->curfont, md->title);
+		else
+			width= 0;
+	}
+#else
+	if(md->title)
+		width= 2*strlen(md->title)+BMF_GetStringWidth(block->curfont, md->title);
+	else
+		width= 0;
+#endif
+	for(a=0; a<md->nitems; a++) {
+#ifdef INTERNATIONAL
+		if(G.ui_international == TRUE)
+			if(U.transopts & TR_MENUS)
+				xmax= FTF_GetStringWidth(md->items[a].str, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+			else
+				xmax= FTF_GetStringWidth(md->items[a].str, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
+		else
+			xmax= BMF_GetStringWidth(block->curfont, md->items[a].str);
+#else
+		xmax= BMF_GetStringWidth(block->curfont, md->items[a].str);
+#endif
+		if(xmax>width) width= xmax;
+	}
+
+	width+= 30;
+	if (width<50) width=50;
+
+	ypos = 0;
+
+	/* loop through the menu options and draw them out with icons & text labels */
+	for(a=0; a<md->nitems; a++) {
+
+		/* add a space if there's a separator (%l) */
+	        if (strcmp(md->items[a].str, "%l")==0) {
+			ypos +=3;
+		}
+		else {
+			uiDefIconTextBut(block, BUTM|but->pointype, but->retval, (short)(md->items[a].retval-but->min), md->items[a].str, 0, ypos,(short)width, 19, but->poin, (float) md->items[a].retval, 0.0, 0, 0, "");
+			ypos += 20;
+		}
+	}
+
+	block->direction= UI_TOP;
+	ui_positionblock(block, but);
+
+	/* the block is made with but-win, but is handled in mainwin space...
+	   this is needs better implementation */
+	block->win= G.curscreen->mainwin;
+
+	uiBoundsBlock(block, 3);
+
+	uiDoBlocks(&listb, 0);
+
+	/* ready, restore stuff */
+	UIfrontbuf= 1;
+	
+	menudata_free(md);
+
+	but->flag &= ~UI_SELECT;
+	ui_check_but(but);
+	ui_draw_but(but);
+
+	uibut_do_func(but);
+
+	return but->retval;
+
+}
+
 static int ui_do_but_IDPOIN(uiBut *but)
 {
 	char str[UI_MAX_DRAW_STR];
@@ -2874,6 +3126,10 @@ static int ui_do_button(uiBlock *block, uiBut *but, uiEvent *uevent)
 		if(uevent->val) retval= ui_do_but_ICONROW(but);		
 		break;
 		
+	case ICONTEXTROW:
+		if(uevent->val) retval= ui_do_but_ICONTEXTROW(but);
+		break;
+
 	case IDPOIN:
 		if(uevent->val) retval= ui_do_but_IDPOIN(but);	
 		break;
@@ -3800,7 +4056,6 @@ static void ui_check_but(uiBut *but)
 		else
 			but->strwidth= 0;
 #endif
-
 	/* automatic width */
 	if(but->x2==0.0) {
 		but->x2= (but->x1+but->strwidth+6); 
@@ -3865,6 +4120,12 @@ static void ui_check_but(uiBut *but)
 		
 	case ICONROW:
 		value= ui_get_but_val(but);
+		but->iconadd= (int)value- (int)(but->min);
+		break;
+
+	case ICONTEXTROW:
+		value= ui_get_but_val(but);
+		ui_set_name_menu(but, (int)value);
 		but->iconadd= (int)value- (int)(but->min);
 		break;
 	}
@@ -3942,6 +4203,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	else if(block->dt==UI_EMBOSSF) but->embossfunc= ui_emboss_F;
 	else if(block->dt==UI_EMBOSSM) but->embossfunc= ui_emboss_M;
 	else if(block->dt==UI_EMBOSSP) but->embossfunc= ui_emboss_P;
+	else if(block->dt==UI_EMBOSSA) but->embossfunc= ui_emboss_A;
 	else but->embossfunc= ui_emboss_N;
 	
 	but->pos= -1;	/* cursor invisible */
@@ -4016,6 +4278,39 @@ uiBut *uiDefIconButC(uiBlock *block, int type, int retval, int icon, short x1, s
 {
 	return uiDefIconBut(block, type|CHA, retval, icon, x1, y1, x2, y2, (void*) poin, min, max, a1, a2, tip);
 }
+
+/* Button containing both string label and icon */
+uiBut *uiDefIconTextBut(uiBlock *block, int type, int retval, int icon, char *str, short x1, short y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  char *tip)
+{
+	uiBut *but= ui_def_but(block, type, retval, str, x1, y1, x2, y2, poin, min, max, a1, a2, tip);
+
+	but->icon= (BIFIconID) icon;
+	but->flag|= UI_HAS_ICON;
+
+	but->flag|= UI_ICON_LEFT;
+
+	ui_check_but(but);
+
+	return but;
+}
+
+uiBut *uiDefIconTextButF(uiBlock *block, int type, int retval, int icon, char *str, short x1, short y1, short x2, short y2, float *poin, float min, float max, float a1, float a2,  char *tip)
+{
+	return uiDefIconTextBut(block, type|FLO, retval, icon, str, x1, y1, x2, y2, (void*) poin, min, max, a1, a2, tip);
+}
+uiBut *uiDefIconTextButI(uiBlock *block, int type, int retval, int icon, char *str, short x1, short y1, short x2, short y2, int *poin, float min, float max, float a1, float a2,  char *tip)
+{
+	return uiDefIconTextBut(block, type|INT, retval, icon, str, x1, y1, x2, y2, (void*) poin, min, max, a1, a2, tip);
+}
+uiBut *uiDefIconTextButS(uiBlock *block, int type, int retval, int icon, char *str, short x1, short y1, short x2, short y2, short *poin, float min, float max, float a1, float a2,  char *tip)
+{
+	return uiDefIconTextBut(block, type|SHO, retval, icon, str, x1, y1, x2, y2, (void*) poin, min, max, a1, a2, tip);
+}
+uiBut *uiDefIconTextButC(uiBlock *block, int type, int retval, int icon, char *str, short x1, short y1, short x2, short y2, char *poin, float min, float max, float a1, float a2,  char *tip)
+{
+	return uiDefIconTextBut(block, type|CHA, retval, icon, str, x1, y1, x2, y2, (void*) poin, min, max, a1, a2, tip);
+}
+/* END Button containing both string label and icon */
 
 void uiAutoBlock(uiBlock *block, float minx, float miny, float sizex, float sizey, int flag)
 {
