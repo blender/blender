@@ -47,6 +47,9 @@
 
 struct Object;
 struct EditMesh;
+struct EditVert;
+struct EditEdge;
+struct EditFace;
 struct DispListMesh;
 
 typedef struct DerivedMesh DerivedMesh;
@@ -97,7 +100,7 @@ struct DerivedMesh {
 			/* Draw mapped vertices as bgl points
 			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-vert) returns true
 			 */
-	void (*drawMappedVertsEM)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, void *vert), void *userData);
+	void (*drawMappedVertsEM)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, struct EditVert *eve), void *userData);
 
 			/* Draw single mapped edge as lines (no options) */
 	void (*drawMappedEdgeEM)(DerivedMesh *dm, void *edge);
@@ -105,7 +108,7 @@ struct DerivedMesh {
 			/* Draw mapped edges as lines
 			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-edge) returns true
 			 */
-	void (*drawMappedEdgesEM)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, void *edge), void *userData);
+	void (*drawMappedEdgesEM)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, struct EditEdge *eed), void *userData);
 
 			/* Draw mapped edges as lines with interpolation values
 			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-edge, mapped-v0, mapped-v1, t) returns true
@@ -113,14 +116,14 @@ struct DerivedMesh {
 			 * NOTE: This routine is optional!
 			 */
 	void (*drawMappedEdgesInterpEM)(DerivedMesh *dm, 
-									int (*setDrawOptions)(void *userData, void *edge), 
-									void (*setDrawInterpOptions)(void *userData, void *edge, float t),
+									int (*setDrawOptions)(void *userData, struct EditEdge *eed), 
+									void (*setDrawInterpOptions)(void *userData, struct EditEdge *eed, float t),
 									void *userData);
 
 			/* Draw all faces
 			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-face) returns true
 			 */
-	void (*drawMappedFacesEM)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, void *face), void *userData);
+	void (*drawMappedFacesEM)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, struct EditFace *efa), void *userData);
 
 	void (*release)(DerivedMesh *dm);
 };

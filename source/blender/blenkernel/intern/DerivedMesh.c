@@ -331,23 +331,23 @@ static void meshDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf,
 		if (tface) glTexCoord2fv(tface->uv[0]);
 		if (cp) glColor3ub(cp[3], cp[2], cp[1]);
 		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v1].no);
-		glVertex3fv(meshDM__getVertCo(mdm, mface->v1));
+		glVertex3fv(meshDM__getVertCo(mdm, mf->v1));
 			
 		if (tface) glTexCoord2fv(tface->uv[1]);
 		if (cp) glColor3ub(cp[7], cp[6], cp[5]);
 		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v2].no);
-		glVertex3fv(meshDM__getVertCo(mdm, mface->v2));
+		glVertex3fv(meshDM__getVertCo(mdm, mf->v2));
 
 		if (tface) glTexCoord2fv(tface->uv[2]);
 		if (cp) glColor3ub(cp[11], cp[10], cp[9]);
 		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v3].no);
-		glVertex3fv(meshDM__getVertCo(mdm, mface->v3));
+		glVertex3fv(meshDM__getVertCo(mdm, mf->v3));
 
 		if(mface->v4) {
 			if (tface) glTexCoord2fv(tface->uv[3]);
 			if (cp) glColor3ub(cp[15], cp[14], cp[13]);
 			if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v4].no);
-			glVertex3fv(meshDM__getVertCo(mdm, mface->v4));
+			glVertex3fv(meshDM__getVertCo(mdm, mf->v4));
 		}
 		glEnd();
 
@@ -424,7 +424,7 @@ static void emDM_getMappedVertCoEM(DerivedMesh *dm, void *vert, float co_r[3])
 	co_r[1] = eve->co[1];
 	co_r[2] = eve->co[2];
 }
-static void emDM_drawMappedVertsEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, void *vert), void *userData)
+static void emDM_drawMappedVertsEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditVert *vert), void *userData)
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditVert *eve;
@@ -446,7 +446,7 @@ static void emDM_drawMappedEdgeEM(DerivedMesh *dm, void *edge)
 	glVertex3fv(eed->v2->co);
 	glEnd();
 }
-static void emDM_drawMappedEdgesEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, void *edge), void *userData) 
+static void emDM_drawMappedEdgesEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditEdge *edge), void *userData) 
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditEdge *eed;
@@ -460,7 +460,7 @@ static void emDM_drawMappedEdgesEM(DerivedMesh *dm, int (*setDrawOptions)(void *
 	}
 	glEnd();
 }
-static void emDM_drawMappedEdgesInterpEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, void *edge), void (*setDrawInterpOptions)(void *userData, void *edge, float t), void *userData) 
+static void emDM_drawMappedEdgesInterpEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditEdge *edge), void (*setDrawInterpOptions)(void *userData, EditEdge *edge, float t), void *userData) 
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditEdge *eed;
@@ -476,7 +476,7 @@ static void emDM_drawMappedEdgesInterpEM(DerivedMesh *dm, int (*setDrawOptions)(
 	}
 	glEnd();
 }
-static void emDM_drawMappedFacesEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, void *face), void *userData)
+static void emDM_drawMappedFacesEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditFace *face), void *userData)
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditFace *efa;
@@ -582,7 +582,7 @@ static void ssDM_getMappedVertCoEM(DerivedMesh *dm, void *vert, float co_r[3])
 	co_r[1] = eve->ssco[1];
 	co_r[2] = eve->ssco[2];
 }
-static void ssDM_drawMappedVertsEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, void *vert), void *userData)
+static void ssDM_drawMappedVertsEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditVert *vert), void *userData)
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
 	EditVert *eve;
@@ -637,7 +637,7 @@ static void ssDM_drawMappedEdgeEM(DerivedMesh *dm, void *edge)
 	}
 	glEnd();
 }
-static void ssDM_drawMappedEdgesEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, void *edge), void *userData)
+static void ssDM_drawMappedEdgesEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditEdge *edge), void *userData)
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
 	DispListMesh *dlm = ssdm->dlm;
@@ -813,7 +813,7 @@ static void ssDM_drawFacesColored(DerivedMesh *dm, int useTwoSided, unsigned cha
 	
 #undef PASSVERT
 }
-static void ssDM_drawMappedFacesEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, void *face), void *userData)
+static void ssDM_drawMappedFacesEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditFace *face), void *userData)
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
 	DispListMesh *dlm = ssdm->dlm;

@@ -1228,9 +1228,8 @@ static void draw_em_face_centers(EditMesh *em, int sel) {
 
 
 	/* Draw verts with color set based on selection */
-static int draw_dm_verts__setDrawOptions(void *userData, void *vert)
+static int draw_dm_verts__setDrawOptions(void *userData, EditVert *eve)
 {
-	EditVert *eve = vert;
 	int sel = *((int*) userData);
 
 	return (eve->h==0 && (eve->f&SELECT)==sel);
@@ -1241,9 +1240,8 @@ static void draw_dm_verts(DerivedMesh *dm, int sel)
 }
 
 	/* Draw edges with color set based on selection */
-static int draw_dm_edges_sel__setDrawOptions(void *userData, void *edge)
+static int draw_dm_edges_sel__setDrawOptions(void *userData, EditEdge *eed)
 {
-	EditEdge *eed = edge;
 	unsigned char **cols = userData;
 
 	if (eed->h==0) {
@@ -1262,15 +1260,12 @@ static void draw_dm_edges_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned 
 }
 
 	/* Draw edges with color interpolated based on selection */
-static int draw_dm_edges_sel_interp__setDrawOptions(void *userData, void *edge)
+static int draw_dm_edges_sel_interp__setDrawOptions(void *userData, EditEdge *eed)
 {
-	EditEdge *eed = edge;
-
 	return (eed->h==0);
 }
-static void draw_dm_edges_sel_interp__setDrawInterpOptions(void *userData, void *edge, float t)
+static void draw_dm_edges_sel_interp__setDrawInterpOptions(void *userData, EditEdge *eed, float t)
 {
-	EditEdge *eed = edge;
 	unsigned char **cols = userData;
 	unsigned char *col0 = cols[(eed->v1->f&SELECT)?1:0];
 	unsigned char *col1 = cols[(eed->v2->f&SELECT)?1:0];
@@ -1289,10 +1284,8 @@ static void draw_dm_edges_sel_interp(DerivedMesh *dm, unsigned char *baseCol, un
 }
 
 	/* Draw only seam edges */
-static int draw_dm_edges_seams__setDrawOptions(void *userData, void *edge)
+static int draw_dm_edges_seams__setDrawOptions(void *userData, EditEdge *eed)
 {
-	EditEdge *eed = edge;
-
 	return (eed->h==0 && eed->seam);
 }
 static void draw_dm_edges_seams(DerivedMesh *dm)
@@ -1301,9 +1294,8 @@ static void draw_dm_edges_seams(DerivedMesh *dm)
 }
 
 	/* Draw faces with color set based on selection */
-static int draw_dm_faces_sel__setDrawOptions(void *userData, void *face)
+static int draw_dm_faces_sel__setDrawOptions(void *userData, EditFace *efa)
 {
-	EditFace *efa = face;
 	unsigned char **cols = userData;
 
 	if (efa->h==0) {
