@@ -33,7 +33,7 @@ include nan_definitions.mk
 
 VERSION := $(shell cat VERSION)
 
-BLENDNAME=blender-creator-$(VERSION)-$(CONFIG_GUESS)$(TYPE)
+BLENDNAME=blender-$(VERSION)-$(CONFIG_GUESS)$(TYPE)
 DISTDIR=$(NAN_OBJDIR)/$(BLENDNAME)
 
 all:
@@ -78,6 +78,10 @@ all:
 	@$(MAKE) pkg TYPE="" TAR="zip -r9" EXT0=".exe" EXT1=".zip" \
 	    NOPLUGINS="true" NOSTRIP="true"
     endif
+    ifeq ($(OS),darwin)
+	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT0"=.app" EXT1=".tar" NOPLUGINS="true" \
+	    COMPRESS="gzip -f --best" EXT2=".gz"
+    endif
 
 # OS independent targets below:
 
@@ -110,11 +114,19 @@ install: package
     ifeq ($(TYPE),-static)
 	@cp $(OCGDIR)/bin/blenderstatic$(EXT0) $(DISTDIR)/blender$(EXT0)
     else
-	@cp $(OCGDIR)/bin/blender$(EXT0) $(DISTDIR)/blender$(EXT0)
+        ifeq ($(OS),darwin)
+	    @cp -r $(OCGDIR)/bin/blender$(EXT0) $(DISTDIR)/blender$(EXT0)
+        else
+	    @cp $(OCGDIR)/bin/blender$(EXT0) $(DISTDIR)/blender$(EXT0)
+        endif
     endif
     ifneq ($(NOSTRIP),true)
 	@echo "----> Strip blender executable"
-	@strip $(DISTDIR)/blender$(EXT0)
+        ifeq ($(OS),darwin)
+	    @strip $(OCGDIR)/bin/blender$(EXT0)/Contents/MacOS/blender
+        else
+	    @strip $(DISTDIR)/blender$(EXT0)
+        endif
     endif
 	@[ ! -x $(CONFIG_GUESS)/specific.sh ] || (\
 	    echo "**--> Execute specific.sh in $(CONFIG_GUESS)/" && \
