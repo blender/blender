@@ -174,47 +174,46 @@ ifeq ($(OS),solaris)
 endif
 
 ifeq ($(OS),windows)
-	ifeq ($(FREE_WINDOWS),true)
-		CC  = gcc
-		CCC = g++
-		CFLAGS += -pipe -mno-cygwin -mwindows
-		CCFLAGS += -pipe -mno-cygwin -mwindows
-		CPPFLAGS += -DFREE_WINDOWS
-		#CPPFLAGS += -I/usr/include/mingw
-		REL_CFLAGS += -O2
-		REL_CCFLAGS += -O2
-		#NAN_DEPEND = true
-		#OPENGL_HEADERS = /usr/include/w32api
-		OPENGL_HEADERS = ./
-		AR = ar
-		ARFLAGS = ruv
-		ARFLAGSQUIET = ru
-		WINRC = $(wildcard *.rc)	
-		RANLIB = ranlib
-	else
-	    CC	= $(SRCHOME)/tools/cygwin/cl_wrapper.pl
-		CCC = $(SRCHOME)/tools/cygwin/cl_wrapper.pl
-	    JAVAC = $(SRCHOME)/tools/cygwin/java_wrapper.pl -c
-	    JAVAH = $(SRCHOME)/tools/cygwin/java_wrapper.pl -h
-		REL_CFLAGS	+= /O2
-	    REL_CCFLAGS += /O2 -GX
-		DBG_CFLAGS	+= /Fd$(DIR)/debug/
-		DBG_CCFLAGS += /Fd$(DIR)/debug/
-		CFLAGS += /MT
-		CCFLAGS += /MT
-		NAN_DEPEND = true
-		OPENGL_HEADERS = .
-		CPPFLAGS += -DWIN32 -D_WIN32 -D__WIN32
-		CPPFLAGS += -D_M_IX86
-		CPPFLAGS += -I"/cygdrive/c/Program Files/Microsoft Visual Studio/VC98/include"
-		JAVA_HEADERS = /cygdrive/c/j2sdk1.4.0-beta3/include
-		JAVA_SYSTEM_HEADERS = /cygdrive/c/j2sdk1.4.0-beta3/include/win32
-		CPP = $(SRCHOME)/tools/cygwin/cl_wrapper.pl
-		AR = ar
-		ARFLAGS = ruv
-		ARFLAGSQUIET = ru
-		WINRC = $(wildcard *.rc)
-	endif
+  ifeq ($(FREE_WINDOWS),true)
+    CC  = gcc
+    CCC = g++
+    CFLAGS += -pipe -mno-cygwin -mwindows
+    CCFLAGS += -pipe -mno-cygwin -mwindows
+    CPPFLAGS += -DFREE_WINDOWS
+    REL_CFLAGS += -O2
+    REL_CCFLAGS += -O2
+    #NAN_DEPEND = true
+    #OPENGL_HEADERS = /usr/include/w32api
+    OPENGL_HEADERS = ./
+    AR = ar
+    ARFLAGS = ruv
+    ARFLAGSQUIET = ru
+    WINRC = $(wildcard *.rc)	
+    RANLIB = ranlib
+  else
+    CC	= $(SRCHOME)/tools/cygwin/cl_wrapper.pl
+    CCC = $(SRCHOME)/tools/cygwin/cl_wrapper.pl
+    JAVAC = $(SRCHOME)/tools/cygwin/java_wrapper.pl -c
+    JAVAH = $(SRCHOME)/tools/cygwin/java_wrapper.pl -h
+    REL_CFLAGS	+= /O2
+    REL_CCFLAGS += /O2 -GX
+    DBG_CFLAGS	+= /Fd$(DIR)/debug/
+    DBG_CCFLAGS += /Fd$(DIR)/debug/
+    CFLAGS += /MT
+    CCFLAGS += /MT
+    NAN_DEPEND = true
+    OPENGL_HEADERS = .
+    CPPFLAGS += -DWIN32 -D_WIN32 -D__WIN32
+    CPPFLAGS += -D_M_IX86
+    CPPFLAGS += -I"/cygdrive/c/Program Files/Microsoft Visual Studio/VC98/include"
+    JAVA_HEADERS = /cygdrive/c/j2sdk1.4.0-beta3/include
+    JAVA_SYSTEM_HEADERS = /cygdrive/c/j2sdk1.4.0-beta3/include/win32
+    CPP = $(SRCHOME)/tools/cygwin/cl_wrapper.pl
+    AR = ar
+    ARFLAGS = ruv
+    ARFLAGSQUIET = ru
+    WINRC = $(wildcard *.rc)
+  endif
 endif
 
 ifeq (debug, $(findstring debug, $(MAKECMDGOALS)))
@@ -263,9 +262,6 @@ $(DIR)/$(DEBUG_DIR)%.o: %.cpp
     else
 	$(CCC) -c $(CCFLAGS) $(CPPFLAGS) $< -o $@
     endif
-
-#$(DIR)/$(DEBUG_DIR)%.res: %.rc
-#	$(SRCHOME)/tools/cygwin/cl_wrapper.pl - rc /fo$@ $<
 
 $(DIR)/$(DEBUG_DIR)%.res: %.rc
 ifeq ($(FREE_WINDOWS),true)
