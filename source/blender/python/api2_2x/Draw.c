@@ -74,9 +74,6 @@
 #include "interface.h"
 #include "mydevice.h"		/*@ for all the event constants */
 
-/* This one was an extern in BPY_main.h, but only opy_draw.c was using it */
-int g_window_redrawn;
-
 /*@ hack to flag that window redraw has happened inside slider callback: */
 int EXPP_disable_force_draw = 0;
 
@@ -338,6 +335,8 @@ PyTypeObject Button_Type = {
 	( setattrfunc ) Button_setattr,	/*tp_setattr */
 	( cmpfunc ) 0,		/*tp_cmp */
 	( reprfunc ) Button_repr,	/*tp_repr */
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 
 static void Button_dealloc( PyObject * self )
@@ -826,25 +825,20 @@ static void py_slider_update( void *butv, void *data2_unused )
 	uiBut *but = butv;
 
 	EXPP_disable_force_draw = 1;
-	/*@
-	   Disable forced drawing, otherwise the button object which
-	   is still being used might be deleted 
-	 */
+	/*@ Disable forced drawing, otherwise the button object which
+	 * is still being used might be deleted */
 
-	/*@  
-	   spacetext_do_pywin_buttons(curarea->spacedata.first, but->retval); */
-
-	g_window_redrawn = 0;
 	curarea->win_swap = WIN_BACK_OK;
 	/* removed global uiFrontBuf (contact ton when this goes wrong here) */
-	spacescript_do_pywin_buttons( curarea->spacedata.first,
-				      uiButGetRetVal( but ) );
 
-	if( !g_window_redrawn ) {	/*@ if Redraw already called */
-		disable_where_script( 1 );
-		M_Window_Redraw( 0, Py_BuildValue( "(i)", SPACE_VIEW3D ) );
-		disable_where_script( 0 );
-	}
+	disable_where_script( 1 );
+
+	spacescript_do_pywin_buttons( curarea->spacedata.first,
+		uiButGetRetVal( but ) );
+	/* XXX useless right now: */
+	M_Window_Redraw( 0, Py_BuildValue( "(i)", SPACE_VIEW3D ) );
+
+	disable_where_script( 0 );
 
 	EXPP_disable_force_draw = 0;
 }
@@ -1025,28 +1019,35 @@ static PyObject *Method_Number( PyObject * self, PyObject * args )
 static PyObject *Method_String( PyObject * self, PyObject * args )
 {
 	uiBlock *block;
-	char *name, *tip = NULL, *newstr;
+	char *info_arg = NULL, *tip = NULL, *newstr = NULL;
+	char *info_str = NULL, *info_str0 = " ";
 	int event;
-	int x, y, w, h, len;
+	int x, y, w, h, len, real_len = 0;
 	Button *but;
 
-	if( !PyArg_ParseTuple( args, "siiiiisi|s", &name, &event,
-			       &x, &y, &w, &h, &newstr, &len, &tip ) )
+	if( !PyArg_ParseTuple( args, "siiiiisi|s", &info_arg, &event,
+			&x, &y, &w, &h, &newstr, &len, &tip ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected a string, five ints, a string, an int and\n\
-			optionally another string as arguments" );
+			"expected a string, five ints, a string, an int and\n\
+	optionally another string as arguments" );
+
+	real_len = strlen(newstr);
+	if (real_len > len) real_len = len;
 
 	but = newbutton(  );
 	but->type = 3;
 	but->slen = len;
-	but->val.asstr = MEM_mallocN( len + 1, "button string" );
+	but->val.asstr = MEM_mallocN( len + 1, "pybutton str" );
 
-	strncpy( but->val.asstr, newstr, len );
-	but->val.asstr[len] = '\0';
+	BLI_strncpy( but->val.asstr, newstr, len + 1 ); /* adds '\0' */
+	but->val.asstr[real_len] = '\0';
+
+	if (info_arg[0] == '\0') info_str = info_str0;
+	else info_str = info_arg;
 
 	block = Get_uiBlock(  );
 	if( block )
-		uiDefBut( block, TEX, event, name, x, y, w, h,
+		uiDefBut( block, TEX, event, info_str, x, y, w, h,
 			  but->val.asstr, 0, len, 0, 0, tip );
 
 	return ( PyObject * ) but;

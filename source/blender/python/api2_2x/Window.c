@@ -376,33 +376,28 @@ PyObject *M_Window_Redraw( PyObject * self, PyObject * args )
 	if( wintype < 0 )
 		redraw_all = 1;
 
-	if( !during_script(  ) ) {
+	if( !during_script( ) ) {
 		tempsa = curarea;
 		sa = G.curscreen->areabase.first;
 
 		while( sa ) {
 
 			if( sa->spacetype == wintype || redraw_all ) {
-				if( sa->spacetype == SPACE_TEXT ) {
-					st = sa->spacedata.first;
-					if( st->text ) {
-						if( st->text->flags & TXT_FOLLOW )	/* follow cursor display */
-							pop_space_text( st );
-
-						// XXX making a test: Jul 07, 2004.
-						// we don't need to prevent text win redraws anymore,
-						// since now there's a scripts space instead.
-						//if (EXPP_disable_force_draw) { /* defined in Draw.[ch] ... */
-						//      scrarea_queue_redraw(sa);
-					}
+				if (sa->spacetype == SPACE_SCRIPT && EXPP_disable_force_draw) {
+						scrarea_queue_redraw(sa);
 				}
-				//} else {
-				scrarea_do_windraw( sa );
-				if( sa->headwin )
-					scrarea_do_headdraw( sa );
-				//}
+				else {
+					if( sa->spacetype == SPACE_TEXT ) {
+						st = sa->spacedata.first;
+						if( st->text ) {
+							if( st->text->flags & TXT_FOLLOW )	/* follow cursor display */
+								pop_space_text( st );
+						}
+					}
+					scrarea_do_windraw( sa );
+					if( sa->headwin ) scrarea_do_headdraw( sa );
+				}
 			}
-
 			sa = sa->next;
 		}
 
@@ -478,7 +473,7 @@ static PyObject *M_Window_FileSelector( PyObject * self, PyObject * args )
 	char *title = "SELECT FILE";
 	char *filename = G.sce;
 	SpaceScript *sc;
-	Script *script = G.main->script.last;
+	Script *script = NULL;
 	int startspace = 0;
 
 	if( (!PyArg_ParseTuple( args, "O|ss", &EXPP_FS_PyCallback, &title, &filename ) )
@@ -499,8 +494,14 @@ static PyObject *M_Window_FileSelector( PyObject * self, PyObject * args )
 
 	sc = curarea->spacedata.first;
 
-	/* did we get the right script? */
-	if( !( script->flags & SCRIPT_RUNNING ) ) {
+	/* let's find the script that called us */
+	script = G.main->script.first;
+	while (script) {
+		if (script->flags & SCRIPT_RUNNING) break;
+		script = script->id.next;
+	}
+
+	if( !script ) {
 		/* if not running, then we were already on a SpaceScript space, executing
 		 * a registered callback -- aka: this script has a gui */
 		script = sc->script;	/* this is the right script */
@@ -522,7 +523,7 @@ static PyObject *M_Window_ImageSelector( PyObject * self, PyObject * args )
 	char *title = "SELECT IMAGE";
 	char *filename = G.sce;
 	SpaceScript *sc;
-	Script *script = G.main->script.last;
+	Script *script = NULL;
 	int startspace = 0;
 
 	if( !PyArg_ParseTuple( args, "O|ss", &EXPP_FS_PyCallback, &title, &filename ) 
@@ -544,11 +545,16 @@ static PyObject *M_Window_ImageSelector( PyObject * self, PyObject * args )
 
 	sc = curarea->spacedata.first;
 
-	/* did we get the right script? */
-	if( !( script->flags & SCRIPT_RUNNING ) ) {
-		/* if not running, then we're on a SpaceScript space, executing a
-		 * registered callback -- aka: this script has a gui */
-		SpaceScript *sc = curarea->spacedata.first;
+	/* let's find the script that called us */
+	script = G.main->script.first;
+	while (script) {
+		if (script->flags & SCRIPT_RUNNING) break;
+		script = script->id.next;
+	}
+
+	if( !script ) {
+		/* if not running, then we were already on a SpaceScript space, executing
+		 * a registered callback -- aka: this script has a gui */
 		script = sc->script;	/* this is the right script */
 	} else {		/* still running, use the trick */
 		script->lastspace = startspace;
