@@ -36,6 +36,8 @@ directly manipulate or export its data.
 #
 # Copyright (C) 2003: Martin Poirier, theeth@yahoo.com
 #
+# Thanks to Jonathan Hudson for help with the vertex groups part
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -79,5 +81,22 @@ for ob in ob_list:
         except:
             pass
         new_ob.setName(new_name)
+
+        ob_mesh = ob.getData()
+        new_ob_mesh = new_ob.getData()
+
+        # If SubSurf is off on the original, copy the vertex weight
+        if not ob_mesh.getMode() & Blender.NMesh.Modes['SUBSURF']:
+            for vgroupname in ob_mesh.getVertGroupNames():
+                vlist = ob_mesh.getVertsFromGroup(vgroupname, True)
+                new_ob_mesh.addVertGroup(vgroupname)
+                for vpair in vlist:
+                    new_ob_mesh.assignVertsToGroup(vgroupname, [vpair[0]], vpair[1], 'add')
+        # If it's on, just add the vertex groups
+        else:
+            for vgroupname in ob_mesh.getVertGroupNames():
+                new_ob_mesh.addVertGroup(vgroupname)
+
+        new_ob_mesh.update()
 
 Blender.Window.EditMode(1)
