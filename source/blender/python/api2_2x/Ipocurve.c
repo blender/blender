@@ -224,7 +224,7 @@ IpoCurve_getInterpolation (C_IpoCurve * self)
   if (icu->ipo == IPO_BEZ)
     str = "Bezier";
   if (icu->ipo == IPO_CONST)
-    str = "Bonstant";
+    str = "Constant";
   if (icu->ipo == IPO_LIN)
     str = "Linear";
 
@@ -290,7 +290,7 @@ IpoCurve_addBezier (C_IpoCurve * self, PyObject * args)
   PyObject *popo = 0;
   if (!PyArg_ParseTuple (args, "O", &popo))
     return (EXPP_ReturnPyObjError
-	    (PyExc_TypeError, "expected tuple argument"));
+          (PyExc_TypeError, "expected tuple argument"));
 
   x = PyFloat_AsDouble (PyTuple_GetItem (popo, 0));
   y = PyFloat_AsDouble (PyTuple_GetItem (popo, 1));
@@ -341,27 +341,50 @@ IpoCurve_Recalc (C_IpoCurve * self)
 static PyObject *
 IpoCurve_getName (C_IpoCurve * self)
 {
-  char *nametab[24] =
-    { "LocX", "LocY", "LocZ", "dLocX", "dLocY", "dLocZ", "RotX", "RotY",
-    "RotZ", "dRotX", "dRotY", "dRotZ", "SizeX", "SizeY", "SizeZ", "dSizeX",
-    "dSizeY",
-    "dSizeZ", "Layer", "Time", "ColR", "ColG", "ColB", "ColA"
-  };
+  const int objectType=self->ipocurve->blocktype;
+  const int trackType=self->ipocurve->adrcode;
+  
+  const char * ob_nametab[24] = {"LocX","LocY","LocZ","dLocX","dLocY","dLocZ",
+    "RotX","RotY","RotZ","dRotX","dRotY","dRotZ","SizeX","SizeY","SizeZ",
+    "dSizeX","dSizeY","dSizeZ","Layer","Time","ColR","ColG","ColB","ColA"};
+    
+  const char * ac_nametab[5] = {"QuatW", "QuatX", "QuatY", "QuatZ","TotIpo"};
+  
+  switch (objectType) {
+  case ID_OB: {
+    if (self->ipocurve->adrcode <= 0 ) {
+      return PyString_FromString("Index too small");
+    } else if (self->ipocurve->adrcode >= 25 ) {
+      return PyString_FromString("Index too big");
+    } else {  
+      return PyString_FromString(ob_nametab[trackType-1]);
+    }
+  }
+  break;
+  
+  case ID_AC: {
+    switch (trackType) {
+    case 1: case 2: case 3: case 13: case 14: case 15:
+      return PyString_FromString(ob_nametab[trackType-1]);
+    break;
+    
+    case 25: case 26: case 27: case 28:
+      return PyString_FromString(ac_nametab[trackType-25]);
+      break;
+    case 10:
+      return PyString_FromString(ac_nametab[4]);
+      break;
+    default:
+      return PyString_FromString("Index out of range");
+    }
+  }
+  break;
 
-  if (self->ipocurve->blocktype != ID_OB)
+  default:
     return EXPP_ReturnPyObjError (PyExc_TypeError,
-				  "This function doesn't support this ipocurve type yet");
-
-  //      printf("IpoCurve_getName %d\n",self->ipocurve->vartype);
-  if (self->ipocurve->adrcode <= 0)
-    return PyString_FromString ("Index too small");
-  if (self->ipocurve->adrcode >= 25)
-    return PyString_FromString ("Index too big");
-
-  return PyString_FromString (nametab[self->ipocurve->adrcode - 1]);
-
+                    "This function doesn't support this ipocurve type yet");
+  }
 }
-
 
 static void
 IpoCurveDeAlloc (C_IpoCurve * self)

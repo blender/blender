@@ -102,6 +102,7 @@ static PyObject *Object_getMatrix (BPy_Object *self);
 static PyObject *Object_getName (BPy_Object *self);
 static PyObject *Object_getParent (BPy_Object *self);
 static PyObject *Object_getSize (BPy_Object *self, PyObject *args);
+static PyObject *Object_getTimeOffset (BPy_Object *self);
 static PyObject *Object_getTracked (BPy_Object *self);
 static PyObject *Object_getType (BPy_Object *self);
 static PyObject *Object_getBoundBox (BPy_Object *self);
@@ -119,6 +120,7 @@ static PyObject *Object_setLocation (BPy_Object *self, PyObject *args);
 static PyObject *Object_setMaterials (BPy_Object *self, PyObject *args);
 static PyObject *Object_setName (BPy_Object *self, PyObject *args);
 static PyObject *Object_setSize (BPy_Object *self, PyObject *args);
+static PyObject *Object_setTimeOffset (BPy_Object *self, PyObject *args);
 static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args);
 
 /*****************************************************************************/
@@ -159,6 +161,8 @@ hierarchy (faster)"},
 	"Returns the object's parent object"},
   {"getSize", (PyCFunction)Object_getSize, METH_VARARGS,
 	"Returns the object's size (x, y, z)"},
+  {"getTimeOffset", (PyCFunction)Object_getTimeOffset, METH_NOARGS,
+	"Returns the object's time offset"},
   {"getTracked", (PyCFunction)Object_getTracked, METH_NOARGS,
 	"Returns the object's tracked object"},
   {"getType", (PyCFunction)Object_getType, METH_NOARGS,
@@ -208,6 +212,8 @@ objects."},
   {"setSize", (PyCFunction)Object_setSize, METH_VARARGS,
 	"Set the object's size. The first argument must be a vector\n\
 triple."},
+  {"setTimeOffset", (PyCFunction)Object_setTimeOffset, METH_VARARGS,
+	"Set the object's time offset."},
   {"shareFrom", (PyCFunction)Object_shareFrom, METH_VARARGS,
 	"Link data of self with object specified in the argument. This\n\
 works only if self and the object specified are of the same type."},
@@ -843,6 +849,17 @@ static PyObject *Object_getSize (BPy_Object *self, PyObject *args)
 			"couldn't get Object.size attributes"));
 }
 
+static PyObject *Object_getTimeOffset (BPy_Object *self)
+{
+	PyObject *attr = Py_BuildValue ("f", self->object->sf);
+
+	if (attr) return (attr);
+
+	return (PythonReturnErrorObject (PyExc_RuntimeError,
+			"couldn't get Object.sf attributes"));
+}
+
+
 static PyObject *Object_getTracked (BPy_Object *self)
 {
 	PyObject	*attr;
@@ -1385,6 +1402,22 @@ static PyObject *Object_setSize (BPy_Object *self, PyObject *args)
 	self->object->size[0] = sizex;
 	self->object->size[1] = sizey;
 	self->object->size[2] = sizez;
+
+	Py_INCREF (Py_None);
+	return (Py_None);
+}
+
+static PyObject *Object_setTimeOffset (BPy_Object *self, PyObject *args)
+{
+	float newTimeOffset;
+
+	if (!PyArg_ParseTuple (args, "f", &newTimeOffset))
+	{
+		return (PythonReturnErrorObject (PyExc_AttributeError,
+				"expected a float as argument"));
+	}
+
+	self->object->sf=newTimeOffset;
 
 	Py_INCREF (Py_None);
 	return (Py_None);
