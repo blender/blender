@@ -1703,9 +1703,9 @@ void deselectall_mesh(void)	/* toggle */
 			}
 			eve= eve->next;
 		}
-		tekenvertices_ext(a==0);
 	}
 	countall();
+	allqueue(REDRAWVIEW3D, 0);
 }
 
 
@@ -2009,6 +2009,7 @@ static void tekenvertices_special(int mode, EditVert *act) /* teken = draw */
 			vd= sa->spacedata.first;
 			if(G.obedit->lay & vd->lay) {
 				areawinset(sa->win);
+				persp(PERSP_VIEW);
 				mymultmatrix(G.obedit->obmat);
 
 				MTC_Mat4SwapMat4(G.vd->persmat, mat);
