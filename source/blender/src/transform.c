@@ -1917,14 +1917,14 @@ int Shear(TransInfo *t, short mval[2])
 
 void initResize(TransInfo *t) 
 {
-	Trans.fac = (float)sqrt( (float)
+	t->fac = (float)sqrt( (float)
 		(
-			(Trans.center2d[1] - Trans.imval[1])*(Trans.center2d[1] - Trans.imval[1])
+			(t->center2d[1] - t->imval[1])*(t->center2d[1] - t->imval[1])
 		+
-			(Trans.center2d[0] - Trans.imval[0])*(Trans.center2d[0] - Trans.imval[0])
+			(t->center2d[0] - t->imval[0])*(t->center2d[0] - t->imval[0])
 		) );
 
-	if(Trans.fac==0.0f) Trans.fac= 1.0f;	// prevent Inf
+	if(t->fac==0.0f) t->fac= 1.0f;	// prevent Inf
 	
 	t->idx_max = 2;
 	t->num.idx_max = 2;
@@ -2611,23 +2611,15 @@ int Translation(TransInfo *t, short mval[2])
 void initShrinkFatten(TransInfo *t) 
 {
 	if (G.obedit->type != OB_MESH) {
+		initTransModeFlags(t, TFM_RESIZE);
 		initResize(t);
 		return;
 	}
 
-	t->val /= (float)t->total;
-
-	Trans.fac = (float)sqrt( (float)
-		(
-			(Trans.center2d[1] - Trans.imval[1])*(Trans.center2d[1] - Trans.imval[1])
-		+
-			(Trans.center2d[0] - Trans.imval[0])*(Trans.center2d[0] - Trans.imval[0])
-		) );
-
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
-	t->snap[1] = G.vd->grid * 0.1f;
+	t->snap[1] = G.vd->grid * 1.0f;
 	t->snap[2] = t->snap[1] * 0.1f;
 	t->transform = ShrinkFatten;
 }
@@ -2642,19 +2634,11 @@ int ShrinkFatten(TransInfo *t, short mval[2])
 	char str[50];
 	TransData *td = t->data;
 
-	ratio = (float)sqrt( (float)
-		(
-			(t->center2d[1] - mval[1])*(t->center2d[1] - mval[1])
-		+
-			(t->center2d[0] - mval[0])*(t->center2d[0] - mval[0])
-		) ) / t->fac;
+	window_to_3d(t->vec, (short)(mval[0] - t->imval[0]), (short)(mval[1] - t->imval[1]));
+	Projf(vec, t->vec, G.vd->viewinv[1]);
+	ratio = Normalise(vec);
 
-	ratio -= 1.0f;
-
-	if (ratio < 0.0f)
-		ratio = 0.0f;
-
-	if (mval[1] < t->center2d[1])
+	if (mval[1] < t->imval[1])
 		ratio *= -1;
 
 	snapGrid(t, &ratio);
@@ -2691,8 +2675,6 @@ int ShrinkFatten(TransInfo *t, short mval[2])
 	headerprint(str);
 
 	force_draw(0);
-
-	helpline (t->center);
 
 	return 1;
 }
