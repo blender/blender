@@ -502,12 +502,12 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 	uiDefBut(block, NUM|FLO, B_REDR, "Action End:", 160,120,150,19, &strip->actend, 1.0, 18000.0, 100, 0, "Last frame of the action to map to the playrange");
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, NUM|FLO, B_REDR, "Blendin:", 	10,80,150,19, &strip->blendin, 1.0, 18000.0, 100, 0, "Number of frames of ease-in");
-	uiDefBut(block, NUM|FLO, B_REDR, "Blendout:", 	160,80,150,19, &strip->blendout, 1.0, 18000.0, 100, 0, "Number of frames of ease-out");
+	uiDefBut(block, NUM|FLO, B_REDR, "Blendin:", 	10,80,150,19, &strip->blendin, 0.0, 18000.0, 100, 0, "Number of frames of ease-in");
+	uiDefBut(block, NUM|FLO, B_REDR, "Blendout:", 	160,80,150,19, &strip->blendout, 0.0, 18000.0, 100, 0, "Number of frames of ease-out");
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, NUM|FLO, B_REDR, "Repeat:", 	10,40,150,19, &strip->repeat, 1.0, 18000.0, 100, 0, "Number of times the action should repeat");
-	uiDefBut(block, NUM|FLO, B_REDR, "Stride:", 	160,40,150,19, &strip->stridelen, 1.0, 18000.0, 100, 0, "Distance covered by one complete cycle of the action specified in the Action Range");
+	uiDefBut(block, NUM|FLO, B_REDR, "Repeat:", 	10,40,150,19, &strip->repeat, 0.0001, 18000.0, 100, 0, "Number of times the action should repeat");
+	uiDefBut(block, NUM|FLO, B_REDR, "Stride:", 	160,40,150,19, &strip->stridelen, 0.0001, 18000.0, 100, 0, "Distance covered by one complete cycle of the action specified in the Action Range");
 
 	uiBlockBeginAlign(block);
 	uiDefBut(block, TOG|SHO|BIT|ACTSTRIP_USESTRIDEBIT, B_REDR, "Use Path",	10,0,100,19, &strip->flag, 0, 0, 0, 0, "Plays action based on path position & stride. Only armatures parented to a path");
