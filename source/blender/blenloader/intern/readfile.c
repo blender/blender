@@ -1195,8 +1195,13 @@ static void lib_link_constraint_channels(FileData *fd, ID *id, ListBase *chanbas
 static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 {
 	bConstraint *con;
-	
+
 	for (con = conlist->first; con; con=con->next) {
+		/*  patch for error introduced by changing constraints (dunno how) */
+		if(con->data==NULL) {
+			con->type= CONSTRAINT_TYPE_NULL;
+		}
+		
 		switch (con->type) {
 		case CONSTRAINT_TYPE_ACTION:
 			{
