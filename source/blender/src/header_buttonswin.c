@@ -392,7 +392,115 @@ static uiBlock *sbuts_context_menu(void *arg_unused)
 }
 #endif
 
-static void do_buts_viewmenu(void *arg, int event)
+static void do_buts_view_shadingmenu(void *arg, int event)
+{
+	G.buts->mainb = CONTEXT_SHADING;
+	
+	allqueue(REDRAWBUTSALL, 0);
+}
+
+
+static uiBlock *buts_view_shadingmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "buts_view_shadingmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_buts_view_shadingmenu, NULL);
+	
+	if((G.buts->mainb == CONTEXT_SHADING) && (G.buts->tab[CONTEXT_SHADING]==TAB_SHADING_LAMP)) {
+		uiDefIconTextButC(block, BUTM, B_REDR, ICON_CHECKBOX_HLT, "Lamp|F5",
+		0, yco-=20, menuwidth, 19, &(G.buts->tab[CONTEXT_SHADING]), (float)TAB_SHADING_LAMP, 0.0, 0, 10, "");
+	} else {
+		uiDefIconTextButC(block, BUTM, B_REDR, ICON_CHECKBOX_DEHLT, "Lamp|F5",
+		0, yco-=20, menuwidth, 19, &(G.buts->tab[CONTEXT_SHADING]), (float)TAB_SHADING_LAMP, 0.0, 0, 10, "");
+	}
+	
+	if((G.buts->mainb == CONTEXT_SHADING) && (G.buts->tab[CONTEXT_SHADING]==TAB_SHADING_MAT)) {
+		uiDefIconTextButC(block, BUTM, B_REDR, ICON_CHECKBOX_HLT, "Material|F5",
+		0, yco-=20, menuwidth, 19, &(G.buts->tab[CONTEXT_SHADING]), (float)TAB_SHADING_MAT, 0.0, 0, 10, "");
+	} else {
+		uiDefIconTextButC(block, BUTM, B_REDR, ICON_CHECKBOX_DEHLT, "Material|F5",
+		0, yco-=20, menuwidth, 19, &(G.buts->tab[CONTEXT_SHADING]), (float)TAB_SHADING_MAT, 0.0, 0, 10, "");
+	}
+	
+	if((G.buts->mainb == CONTEXT_SHADING) && (G.buts->tab[CONTEXT_SHADING]==TAB_SHADING_TEX)) {
+		uiDefIconTextButC(block, BUTM, B_REDR, ICON_CHECKBOX_HLT, "Texture|F6",
+		0, yco-=20, menuwidth, 19, &(G.buts->tab[CONTEXT_SHADING]), (float)TAB_SHADING_TEX, 0.0, 0, 10, "");
+	} else {
+		uiDefIconTextButC(block, BUTM, B_REDR, ICON_CHECKBOX_DEHLT, "Texture|F6",
+		0, yco-=20, menuwidth, 19, &(G.buts->tab[CONTEXT_SHADING]), (float)TAB_SHADING_TEX, 0.0, 0, 10, "");
+	}
+	
+	if((G.buts->mainb == CONTEXT_SHADING) && (G.buts->tab[CONTEXT_SHADING]==TAB_SHADING_RAD)) {
+		uiDefIconTextButC(block, BUTM, B_REDR, ICON_CHECKBOX_HLT, "Radiosity",
+		0, yco-=20, menuwidth, 19, &(G.buts->tab[CONTEXT_SHADING]), (float)TAB_SHADING_RAD, 0.0, 0, 10, "");
+	} else {
+		uiDefIconTextButC(block, BUTM, B_REDR, ICON_CHECKBOX_DEHLT, "Radiosity",
+		0, yco-=20, menuwidth, 19, &(G.buts->tab[CONTEXT_SHADING]), (float)TAB_SHADING_RAD, 0.0, 0, 10, "");
+	}
+	
+	if((G.buts->mainb == CONTEXT_SHADING) && (G.buts->tab[CONTEXT_SHADING]==TAB_SHADING_WORLD)) {
+		uiDefIconTextButC(block, BUTM, B_REDR, ICON_CHECKBOX_HLT, "World|F8",
+		0, yco-=20, menuwidth, 19, &(G.buts->tab[CONTEXT_SHADING]), (float)TAB_SHADING_WORLD, 1.0, 0, 10, "");
+	} else {
+		uiDefIconTextButC(block, BUTM, B_REDR, ICON_CHECKBOX_DEHLT, "World|F8",
+		0, yco-=20, menuwidth, 19, &(G.buts->tab[CONTEXT_SHADING]), (float)TAB_SHADING_WORLD, 1.0, 0, 10, "");
+	}
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+		
+	return block;
+}
+
+static void do_buts_view_scenemenu(void *arg, int event)
+{
+	G.buts->mainb = CONTEXT_SCENE;
+	
+	allqueue(REDRAWBUTSALL, 0);
+}
+
+
+static uiBlock *buts_view_scenemenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "buts_view_scenemenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_buts_view_scenemenu, NULL);
+	
+	if((G.buts->mainb == CONTEXT_SCENE) && (G.buts->tab[CONTEXT_SCENE]==TAB_SCENE_RENDER)) {
+		uiDefIconTextButC(block, BUTM, B_REDR, ICON_CHECKBOX_HLT, "Render|F10",
+		0, yco-=20, menuwidth, 19, &(G.buts->tab[CONTEXT_SCENE]), (float)TAB_SCENE_RENDER, 0.0, 0, 10, "");
+	} else {
+		uiDefIconTextButC(block, BUTM, B_REDR, ICON_CHECKBOX_DEHLT, "Render|F10",
+		0, yco-=20, menuwidth, 19, &(G.buts->tab[CONTEXT_SCENE]), (float)TAB_SCENE_RENDER, 0.0, 0, 10, "");
+	}
+	
+	if((G.buts->mainb == CONTEXT_SCENE) && (G.buts->tab[CONTEXT_SCENE]==TAB_SCENE_ANIM)) {
+		uiDefIconTextButC(block, BUTM, B_REDR, ICON_CHECKBOX_HLT, "Animation",
+		0, yco-=20, menuwidth, 19, &(G.buts->tab[CONTEXT_SCENE]), (float)TAB_SCENE_ANIM, 0.0, 0, 10, "");
+	} else {
+		uiDefIconTextButC(block, BUTM, B_REDR, ICON_CHECKBOX_DEHLT, "Animation",
+		0, yco-=20, menuwidth, 19, &(G.buts->tab[CONTEXT_SCENE]), (float)TAB_SCENE_ANIM, 0.0, 0, 10, "");
+	}
+	
+	if((G.buts->mainb == CONTEXT_SCENE) && (G.buts->tab[CONTEXT_SCENE]==TAB_SCENE_SOUND)) {
+		uiDefIconTextButC(block, BUTM, B_REDR, ICON_CHECKBOX_HLT, "Sound",
+		0, yco-=20, menuwidth, 19, &(G.buts->tab[CONTEXT_SCENE]), (float)TAB_SCENE_SOUND, 0.0, 0, 10, "");
+	} else {
+		uiDefIconTextButC(block, BUTM, B_REDR, ICON_CHECKBOX_DEHLT, "Sound",
+		0, yco-=20, menuwidth, 19, &(G.buts->tab[CONTEXT_SCENE]), (float)TAB_SCENE_SOUND, 0.0, 0, 10, "");
+	}
+		
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+		
+	return block;
+}
+
+static void do_buts_view_alignmenu(void *arg, int event)
 {
 	SpaceButs *sbuts= curarea->spacedata.first;
 	
@@ -406,19 +514,53 @@ static void do_buts_viewmenu(void *arg, int event)
 				do_buts_buttons(B_BUTSHOME);
 			}
 			break;
+	}
+	
+	allqueue(REDRAWBUTSALL, 0);
+}
+
+
+static uiBlock *buts_view_alignmenu(void *arg_unused)
+{
+	SpaceButs *sbuts= curarea->spacedata.first;
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "buts_view_alignmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_buts_view_alignmenu, NULL);
+	
+	if (sbuts->align == 1) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Horizontal", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Horizontal", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+
+	if (sbuts->align == 2) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Vertical", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Vertical", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	
+	if (sbuts->align == 0) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Free", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Free", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+		
+	return block;
+}
+
+static void do_buts_viewmenu(void *arg, int event)
+{	
+	switch(event) {
 		case 3: /* View All */
 			do_buts_buttons(B_BUTSHOME);
 			break;
 		case 4: /* Maximize Window */
 			/* using event B_FULL */
 			break;
+		case 10: /* empty for the context events */
+			break;	
 	}
-	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSALL, 0);
 }
 
 static uiBlock *buts_viewmenu(void *arg_unused)
 {
-	SpaceButs *sbuts= curarea->spacedata.first;
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
@@ -426,15 +568,46 @@ static uiBlock *buts_viewmenu(void *arg_unused)
 					  UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_buts_viewmenu, NULL);
 	
-	if (sbuts->align == 1) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Horizontal Align", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Horizontal Align", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	if(G.buts->mainb==CONTEXT_LOGIC) {
+		uiDefIconTextButS(block, BUTM, B_REDR, ICON_CHECKBOX_HLT, "Logic|F4",
+		0, yco-=20, menuwidth, 19, &(G.buts->mainb), CONTEXT_LOGIC, 0.0, 0, 10, "");
+	} else {
+		uiDefIconTextButS(block, BUTM, B_REDR, ICON_CHECKBOX_DEHLT, "Logic|F4",
+		0, yco-=20, menuwidth, 19, &(G.buts->mainb), CONTEXT_LOGIC, 0.0, 0, 10, "");
+	}
+	
+	if(G.buts->mainb==CONTEXT_SCRIPT) {
+		uiDefIconTextButS(block, BUTM, B_REDR, ICON_CHECKBOX_HLT, "Script",
+		0, yco-=20, menuwidth, 19, &(G.buts->mainb), (float)CONTEXT_SCRIPT, 0.0, 0, 10, "");
+	} else {
+		uiDefIconTextButS(block, BUTM, B_REDR, ICON_CHECKBOX_DEHLT, "Script",
+		0, yco-=20, menuwidth, 19, &(G.buts->mainb), (float)CONTEXT_SCRIPT, 0.0, 0, 10, "");
+	}
+	
+	uiDefIconTextBlockBut(block, buts_view_shadingmenu, NULL, ICON_RIGHTARROW_THIN, "Shading", 0, yco-=20, 120, 19, "");
 
-	if (sbuts->align == 2) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Vertical Align", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Vertical Align", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	if(G.buts->mainb==CONTEXT_OBJECT) {
+		uiDefIconTextButS(block, BUTM, B_REDR, ICON_CHECKBOX_HLT, "Object|F7",
+		0, yco-=20, menuwidth, 19, &(G.buts->mainb), (float)CONTEXT_OBJECT, 0.0, 0, 10, "");
+	} else {
+		uiDefIconTextButS(block, BUTM, B_REDR, ICON_CHECKBOX_DEHLT, "Object|F7",
+		0, yco-=20, menuwidth, 19, &(G.buts->mainb), (float)CONTEXT_OBJECT, 0.0, 0, 10, "");
+	}
 	
-	if (sbuts->align == 0) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Free Align", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Free Align", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	if(G.buts->mainb==CONTEXT_EDITING) {
+		uiDefIconTextButS(block, BUTM, B_REDR, ICON_CHECKBOX_HLT, "Editing|F9",
+		0, yco-=20, menuwidth, 19, &(G.buts->mainb), (float)CONTEXT_EDITING, 0.0, 0, 10, "");
+	} else {
+		uiDefIconTextButS(block, BUTM, B_REDR, ICON_CHECKBOX_DEHLT, "Editing|F9",
+		0, yco-=20, menuwidth, 19, &(G.buts->mainb), (float)CONTEXT_EDITING, 0.0, 0, 10, "");
+	}
 	
+	uiDefIconTextBlockBut(block, buts_view_scenemenu, NULL, ICON_RIGHTARROW_THIN, "Scene", 0, yco-=20, 120, 19, "");
+	
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBlockBut(block, buts_view_alignmenu, NULL, ICON_RIGHTARROW_THIN, "Align", 0, yco-=20, 120, 19, "");
+
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
