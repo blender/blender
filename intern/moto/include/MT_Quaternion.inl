@@ -64,13 +64,19 @@ GEN_INLINE MT_Scalar MT_Quaternion::angle(const MT_Quaternion& q) const
 {
 	MT_Scalar s = sqrt(length2() * q.length2());
 	assert(s != MT_Scalar(0.0));
-	return acos(dot(q) / s);
+	
+	s = dot(q) / s;
+	
+	s = MT_clamp(s, -1.0, 1.0);
+	
+	return acos(s);
 }
 
 GEN_INLINE MT_Quaternion MT_Quaternion::slerp(const MT_Quaternion& q, const MT_Scalar& t) const
 {
 	MT_Scalar theta = angle(q);
-	if (theta != MT_Scalar(0.0))
+	
+	if (!MT_fuzzyZero(theta))
 	{
 		MT_Scalar d = MT_Scalar(1.0) / sin(theta);
 		MT_Scalar s0 = sin((MT_Scalar(1.0) - t) * theta);

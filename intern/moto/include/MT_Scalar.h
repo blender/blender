@@ -83,5 +83,13 @@ inline MT_Scalar MT_random() {
     return MT_Scalar(MT_rand()) / MT_Scalar(MT_RAND_MAX);
 }
 
+inline MT_Scalar MT_clamp(const MT_Scalar x, const MT_Scalar min, const MT_Scalar max)
+{
+	if (x < min)
+		return min;
+	else if (x > max)
+		return max;
+	return x;
+}
 #endif
 
