@@ -245,18 +245,7 @@ void unifiedRenderingLoop(void)  /* here the PART en FIELD loops */
 	unsigned int *rt, *rt1, *rt2;
 	int len;
 	short blur, a,fields,fi,parts;  /* pa is global because of print */
-	unsigned int *border_buf= NULL;
-	unsigned int border_x= 0;
-	unsigned int border_y= 0;
 	
-	if((R.r.mode & R_BORDER) && !(R.r.mode & R_MOVIECROP)) {
-		border_buf= R.rectot;
-		border_x= R.rectx;
-		border_y= R.recty;
-		R.rectot= 0;
-	}
-
-
 	if (R.rectz) MEM_freeN(R.rectz);
 	R.rectz = 0;
 
@@ -372,13 +361,8 @@ void unifiedRenderingLoop(void)  /* here the PART en FIELD loops */
 
 				if(parts>1 || (R.r.mode & R_BORDER)) {
 					if(R.rectot) MEM_freeN(R.rectot);
-					if(R.r.mode & R_BORDER) {
-						if(border_x<R.rectx || border_y<R.recty || border_buf==NULL)
-							R.rectot= (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
-						else 
-							R.rectot= border_buf;
-					}
-					else R.rectot=(unsigned int *)MEM_mallocN(sizeof(int)*R.rectx*R.recty, "rectot");
+
+					R.rectot=(unsigned int *)MEM_mallocN(sizeof(int)*R.rectx*R.recty, "rectot");
 					
 					part= R.parts.first;
 					for(pa=0; pa<parts; pa++) {
