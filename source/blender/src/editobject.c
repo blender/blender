@@ -447,6 +447,7 @@ void clear_object(char mode)
 		case OB_ARMATURE:
 			clear_armature (G.obpose, mode);
 #if 1
+			clear_pose_constraint_status(G.obpose);
 			make_displists_by_armature (G.obpose);
 #endif
 			break;
@@ -2589,6 +2590,88 @@ static Object *is_a_parent_selected(Object *ob) {
 	return res;
 }
 
+/*** POSE FIGURIN' -- START ***/
+
+static void clear_pose_update_flag(Object *ob) {
+	/* Clear the flag for each pose channel that indicates that
+	 * pose should be updated on every redraw
+	 */
+	bPoseChannel *chan;
+	
+	if (ob->pose) {
+		for (chan = ob->pose->chanbase.first; chan; 
+			 chan=chan->next){
+			chan->flag &= ~PCHAN_TRANS_UPDATE;
+		}
+	}
+}
+
+static void pose_flags_reset_done(Object *ob) {
+	/* Clear the constraint done status for every pose channe;
+	 * that has been flagged as needing constant updating
+	 */
+	bPoseChannel *chan;
+
+	if (ob->pose) {
+		for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
+			if (chan->flag & PCHAN_TRANS_UPDATE) {
+				chan->flag &= ~PCHAN_DONE;
+			}
+
+		}
+	}
+
+}
+
+static int is_ob_constraint_target(Object *ob, ListBase *conlist) {
+	/* Is this object the target of a constraint in this list? 
+	 */
+
+	bConstraint *con;
+
+	for (con=conlist->first; con; con=con->next)
+	{
+		if (get_con_target(con) == ob)
+			return 1;
+	}
+	return 0;
+
+}
+
+static int pose_do_update_flag(Object *ob) {
+	/* Figure out which pose channels need constant updating.
+	 */
+	Base *base;
+	bPoseChannel *chan;
+	int do_update = 0;
+
+	if (ob->pose) {
+		for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
+			if (chan->constraints.first) {
+				for (base= FIRSTBASE; base; base= base->next) {
+					if (is_ob_constraint_target(base->object, 
+												&chan->constraints)) {
+						if( (base->flag & SELECT) || (ob->flag & SELECT)) {
+							/* If this armature is selected, or if the
+							 * object that is the target of a constraint
+							 * is selected, then lets constantly update
+							 * this pose channel.
+							 */
+							chan->flag |= PCHAN_TRANS_UPDATE;
+							do_update = 1;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return do_update;
+}
+
+/*** POSE FIGURIN' -- END ***/
+
+
 static void setbaseflags_for_editing(int mode)	/* 0,'g','r','s' */
 {
 	/*
@@ -2624,7 +2707,10 @@ static void setbaseflags_for_editing(int mode)	/* 0,'g','r','s' */
 				if(ob->track && TESTBASE(ob->track) && (base->flag & SELECT)==0)  
 					base->flag |= BA_PARSEL;
 			}
-			
+
+			if (pose_do_update_flag(base->object))
+				base->flag |= BA_WHERE_UPDATE;
+
 			/* updates? */
 			if(ob->type==OB_IKA) {
 				Ika *ika= ob->data;
@@ -2681,6 +2767,8 @@ void clearbaseflags_for_editing()
 		base->flag &= ~(BA_PARSEL+BA_WASSEL);
 		
 		base->flag &= ~(BA_DISP_UPDATE+BA_WHERE_UPDATE+BA_DO_IPO);
+
+		clear_pose_update_flag(base->object);
 		
 		base= base->next;
 	}
@@ -3278,6 +3366,10 @@ void special_trans_update(int keyflags)
 				base->object->partype |= PARSLOW;
 			}
 			else if(base->flag & BA_WHERE_UPDATE) {
+				/* deal with the armature case */
+				pose_flags_reset_done(base->object);
+				make_displists_by_armature(base->object);
+
 				where_is_object(base->object);
 				if(base->object->type==OB_IKA) {
 					itterate_ika(base->object);
@@ -3298,8 +3390,9 @@ void special_trans_update(int keyflags)
 		
 	}
 
-#if 0
+#if 1
 	if (G.obpose && G.obpose->type == OB_ARMATURE)
+		clear_pose_constraint_status(G.obpose);
 		make_displists_by_armature(G.obpose);
 #endif
 

@@ -1572,10 +1572,16 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		}
 	}
 	
+#if 0
+	/* Lets be a little more selective about when and where we do this,
+	 * or else armatures/poses/displists get recalculated all of the
+	 * time
+	 */
 	/* Clear the constraint "done" flags */
 	for (base = G.scene->base.first; base; base=base->next){
 		clear_object_constraint_status(base->object);
 	}
+#endif
 
 	/* draw set first */
 	if(G.scene->set) {
@@ -1780,6 +1786,12 @@ void drawview3d_render(struct View3D *v3d)
 	/* abuse! to make sure it doesnt draw the helpstuff */
 	G.f |= G_SIMULATION;
 
+	/* Clear the constraint "done" flags -- this must be done
+	 * before displists are calculated for objects that are
+	 * deformed by armatures */
+	for (base = G.scene->base.first; base; base=base->next){
+		clear_object_constraint_status(base->object);
+	}
 	do_all_ipos();
 	BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
 	do_all_keys();
@@ -2244,7 +2256,8 @@ void inner_play_anim_loop(int init, int mode)
 	static ScrArea *oldsa;
 	static double swaptime;
 	static int curmode;
-	
+	Base *base;
+
 	/* init */
 	if(init) {
 		oldsa= curarea;
@@ -2258,6 +2271,13 @@ void inner_play_anim_loop(int init, int mode)
 	}
 
 	set_timecursor(CFRA);
+
+	/* Clear the constraint "done" flags -- this must be done
+	 * before displists are calculated for objects that are
+	 * deformed by armatures */
+	for (base = G.scene->base.first; base; base=base->next){
+		clear_object_constraint_status(base->object);
+	}
 	do_all_ipos();
 	BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
 	do_all_keys();
@@ -2307,7 +2327,8 @@ int play_anim(int mode)
 	int cfraont;
 	unsigned short event=0;
 	short val;
-	
+	Base *base;
+
 	/* patch for very very old scenes */
 	if(SFRA==0) SFRA= 1;
 	if(EFRA==0) EFRA= 250;
@@ -2356,7 +2377,14 @@ int play_anim(int mode)
 
 	if(event==SPACEKEY);
 	else CFRA= cfraont;
-	
+
+	/* Clear the constraint "done" flags -- this must be done
+	 * before displists are calculated for objects that are
+	 * deformed by armatures */
+	for (base = G.scene->base.first; base; base=base->next){
+		clear_object_constraint_status(base->object);
+	}
+
 	do_all_ipos();
 	do_all_keys();
 	do_all_actions();

@@ -492,6 +492,8 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 
 void do_update_for_newframe(int mute)
 {
+	Base *base;
+
 	extern void audiostream_scrub(unsigned int frame);	/* seqaudio.c */
 	
 	allqueue(REDRAWVIEW3D, 0);
@@ -504,6 +506,13 @@ void do_update_for_newframe(int mute)
 	allqueue(REDRAWBUTSHEAD, 0);
 	allqueue(REDRAWBUTSSHADING, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
+
+	/* Clear the constraint "done" flags -- this must be done
+	 * before displists are calculated for objects that are
+	 * deformed by armatures */
+	for (base = G.scene->base.first; base; base=base->next){
+		clear_object_constraint_status(base->object);
+	}
 
 	/* layers/materials, object ipos are calculted in where_is_object (too) */
 	do_all_ipos();

@@ -774,3 +774,58 @@ bConstraintChannel *add_new_constraint_channel(const char* name)
 void add_influence_key_to_constraint (bConstraint *con){
 	printf("doesn't do anything yet\n");
 }
+
+Object *get_con_target(bConstraint *constraint)
+{
+	/*
+	 * If the target for this constraint is target, return a pointer 
+	 * to the name for this constraints subtarget ... NULL otherwise
+	 */
+	switch (constraint->type) {
+
+		case CONSTRAINT_TYPE_ACTION:
+		{
+			bActionConstraint *data = constraint->data;
+			return data->tar;
+		}
+		break;
+		case CONSTRAINT_TYPE_LOCLIKE:
+		{
+			bLocateLikeConstraint *data = constraint->data;
+			return data->tar;
+		}
+		break;
+		case CONSTRAINT_TYPE_ROTLIKE:
+		{
+			bRotateLikeConstraint *data = constraint->data;
+			return data->tar;
+		}
+		break;
+		case CONSTRAINT_TYPE_KINEMATIC:
+		{
+			bKinematicConstraint *data = constraint->data;
+			return data->tar;
+		}
+		break;
+		case CONSTRAINT_TYPE_TRACKTO:
+		{
+			bTrackToConstraint *data = constraint->data;
+			return data->tar;
+		}
+		break;
+		case CONSTRAINT_TYPE_LOCKTRACK:
+		{
+			bLockTrackConstraint *data = constraint->data;
+			return data->tar;
+		}
+		break;
+		case CONSTRAINT_TYPE_FOLLOWPATH: 
+		{
+			bFollowPathConstraint *data = constraint->data;
+			return data->tar;
+		}
+		break;
+	}
+	
+	return NULL;  
+}

@@ -56,8 +56,7 @@ struct ListBase *get_constraint_client_channels (int forcevalid);
 struct ListBase *get_constraint_client(char *name, short *clienttype, void** clientdata);
 int test_constraints (struct Object *owner, const char *substring, int disable);
 void test_scene_constraints (void);
-
-/*  void unique_constraint_name (struct bConstraint *con, struct ListBase *list); */
+struct Object *get_con_target(struct bConstraint *constraint);
 
 #endif
 

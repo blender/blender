@@ -3551,7 +3551,8 @@ void draw_object(Base *base)
 		case OB_MESH:
 			me= ob->data;
 
-#if 1
+#if 0
+			/* this is a source of great slowness */
 #ifdef __NLA
 			/* Force a refresh of the display list if the parent is an armature */
 			if (ob->parent && ob->parent->type==OB_ARMATURE && ob->partype==PARSKEL){
