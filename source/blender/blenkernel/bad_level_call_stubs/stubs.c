@@ -66,7 +66,7 @@ void force_draw_all(void){}
 	/* struct Sequence; */
 
 /* MAART: added "seqar = 0; totseq = 0" because the loader will crash without it. */ 
-void build_seqar(ListBase *seqbase, struct Sequence  ***seqar, int *totseq)
+void build_seqar(struct ListBase *seqbase, struct Sequence  ***seqar, int *totseq)
 {
 	*seqar = 0;
 	*totseq = 0;

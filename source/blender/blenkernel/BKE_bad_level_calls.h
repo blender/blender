@@ -53,6 +53,7 @@ void setscreen(struct bScreen *sc);
 void force_draw_all(void);
   /* otherwise the WHILE_SEQ doesn't work */
 struct Sequence;
+struct ListBase;
 void build_seqar(struct ListBase *seqbase, struct Sequence  ***seqar, int *totseq);
 
 struct ID;
