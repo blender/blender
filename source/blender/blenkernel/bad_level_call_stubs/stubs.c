@@ -213,3 +213,8 @@ char texstr[20][12];	/* buttons.c */
 
 /* editsca.c */
 void make_unique_prop_names(char *str) {}
+
+/* DerivedMesh.c */
+void bglBegin(int mode) {}
+void bglVertex3fv(float *vec) {}
+void bglEnd(void) {}
