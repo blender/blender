@@ -84,6 +84,7 @@
 #include "render.h"
 
 #define TRACKBALLSIZE  (1.1)
+#define BL_NEAR_CLIP 0.001
 
 void persp_general(int a)
 {
@@ -172,7 +173,7 @@ void project_short(float *vec, short *adr)	/* clips */
 	
 	Mat4MulVec4fl(G.vd->persmat, vec4);
 
-	if( vec4[3]>0.1 ) {
+	if( vec4[3]>BL_NEAR_CLIP ) {	/* 0.001 is the NEAR clipping cutoff for picking */
 		fx= (curarea->winx/2)+(curarea->winx/2)*vec4[0]/vec4[3];
 		
 		if( fx>0 && fx<curarea->winx) {
@@ -197,7 +198,7 @@ void project_short_noclip(float *vec, short *adr)
 	
 	Mat4MulVec4fl(G.vd->persmat, vec4);
 
-	if( vec4[3]>0.1 ) {
+	if( vec4[3]>BL_NEAR_CLIP ) {	/* 0.001 is the NEAR clipping cutoff for picking */
 		fx= (curarea->winx/2)+(curarea->winx/2)*vec4[0]/vec4[3];
 		
 		if( fx>-32700 && fx<32700) {
@@ -222,7 +223,7 @@ void project_float(float *vec, float *adr)
 	
 	Mat4MulVec4fl(G.vd->persmat, vec4);
 
-	if( vec4[3]>0.1 ) {
+	if( vec4[3]>BL_NEAR_CLIP ) {
 		adr[0]= (curarea->winx/2.0)+(curarea->winx/2.0)*vec4[0]/vec4[3];	
 		adr[1]= (curarea->winy/2.0)+(curarea->winy/2.0)*vec4[1]/vec4[3];
 	}
@@ -547,11 +548,11 @@ void setwinmatrixview3d(rctf *rect)		/* rect: for picking */
 	float lens, dfac, fac, x1, y1, x2, y2;
 	short orth;
 	
-	lens= G.vd->lens;
-	near= G.vd->near;
-	far= G.vd->far;
+	lens= G.vd->lens;	
 	
 	if(G.vd->persp==2) {
+		near= G.vd->near;
+		far= G.vd->far;
 		if(G.vd->camera) {
 			if(G.vd->camera->type==OB_LAMP ) {
 				Lamp *la;
@@ -578,6 +579,9 @@ void setwinmatrixview3d(rctf *rect)		/* rect: for picking */
 				}
 			}
 		}
+	}else{
+		near= G.vd->near*G.vd->dist;
+		far= G.vd->far*G.vd->dist;
 	}
 	
 	if(v3d_windowmode) {
