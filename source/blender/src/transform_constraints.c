@@ -794,7 +794,7 @@ void setNearestAxis(TransInfo *t)
 		}
 	}
 
-	if (len[0] < len[1] && len[0] < len[2]) {
+	if (len[0] <= len[1] && len[0] <= len[2]) {
 		if (G.qual & LR_SHIFTKEY) {
 			t->con.mode |= (CON_AXIS1|CON_AXIS2);
 			strcpy(t->con.text, " locking global X");
@@ -804,7 +804,7 @@ void setNearestAxis(TransInfo *t)
 			strcpy(t->con.text, " along global X");
 		}
 	}
-	else if (len[1] < len[0] && len[1] < len[2]) {
+	else if (len[1] <= len[0] && len[1] <= len[2]) {
 		if (G.qual & LR_SHIFTKEY) {
 			t->con.mode |= (CON_AXIS0|CON_AXIS2);
 			strcpy(t->con.text, " locking global Y");
@@ -814,7 +814,7 @@ void setNearestAxis(TransInfo *t)
 			strcpy(t->con.text, " along global Y");
 		}
 	}
-	else if (len[2] < len[1] && len[2] < len[0]) {
+	else if (len[2] <= len[1] && len[2] <= len[0]) {
 		if (G.qual & LR_SHIFTKEY) {
 			t->con.mode |= (CON_AXIS0|CON_AXIS1);
 			strcpy(t->con.text, " locking global Z");

@@ -2330,7 +2330,8 @@ int Rotation(TransInfo *t, short mval[2])
 	int dy3 = mval[1] - t->imval[1];
 
 	float deler= ((dx1*dx1+dy1*dy1)+(dx2*dx2+dy2*dy2)-(dx3*dx3+dy3*dy3))
-		/ (2 * A * B);
+		/ (2 * (A*B?A*B:1.0f));
+	/* (A*B?A*B:1.0f) this takes care of potential divide by zero errors */
 
 	float dphi;
 
