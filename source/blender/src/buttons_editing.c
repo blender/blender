@@ -1057,20 +1057,21 @@ static void editing_panel_mball_type(Object *ob, MetaBall *mb)
 	
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mball_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "MetaBall", "Editing", 320, 0, 318, 204)==0) return;
-	
-	if (ob==find_basis_mball(ob)) {
-		uiBlockBeginAlign(block);
-		uiDefButF(block, NUMSLI, B_RECALCMBALL, "Wiresize:",	470,178,250,19, &mb->wiresize, 0.05, 1.0, 0, 0, "");
-		uiDefButF(block, NUMSLI, 0, "Rendersize:",			470,158,250,19, &mb->rendersize, 0.05, 1.0, 0, 0, "");
-		uiDefButF(block, NUMSLI, B_RECALCMBALL, "Threshold:", 470,138,250,19, &mb->thresh, 0.0001, 5.0, 0, 0, "");
 
-		uiBlockBeginAlign(block);
-		uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiDefBut(block, LABEL, 0, "Update:",		471,108,120,19, 0, 0, 0, 0, 0, "");
-		uiDefButS(block, ROW, B_DIFF, "Always",	471, 85, 120, 19, &mb->flag, 0.0, 0.0, 0, 0, "");
-		uiDefButS(block, ROW, B_DIFF, "Half Res",	471, 65, 120, 19, &mb->flag, 0.0, 1.0, 0, 0, "");
-		uiDefButS(block, ROW, B_DIFF, "Fast",		471, 45, 120, 19, &mb->flag, 0.0, 2.0, 0, 0, "");
-	}
+	ob= find_basis_mball(ob);
+	mb= ob->data;
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, B_RECALCMBALL, "Wiresize:",	470,178,250,19, &mb->wiresize, 0.05, 1.0, 0, 0, "");
+	uiDefButF(block, NUMSLI, 0, "Rendersize:",			470,158,250,19, &mb->rendersize, 0.05, 1.0, 0, 0, "");
+	uiDefButF(block, NUMSLI, B_RECALCMBALL, "Threshold:", 470,138,250,19, &mb->thresh, 0.0001, 5.0, 0, 0, "");
+
+	uiBlockBeginAlign(block);
+	uiBlockSetCol(block, TH_BUT_SETTING1);
+	uiDefBut(block, LABEL, 0, "Update:",		471,108,120,19, 0, 0, 0, 0, 0, "");
+	uiDefButS(block, ROW, B_DIFF, "Always",	471, 85, 120, 19, &mb->flag, 0.0, 0.0, 0, 0, "");
+	uiDefButS(block, ROW, B_DIFF, "Half Res",	471, 65, 120, 19, &mb->flag, 0.0, 1.0, 0, 0, "");
+	uiDefButS(block, ROW, B_DIFF, "Fast",		471, 45, 120, 19, &mb->flag, 0.0, 2.0, 0, 0, "");
 	
 }
 
