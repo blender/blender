@@ -254,8 +254,11 @@ void initEdgeRenderBuffer()
 void freeEdgeRenderBuffer(void)
 {
 	if(edgeBuffer) MEM_freeN(edgeBuffer);
+	edgeBuffer= NULL;
 	if(colBuffer)  MEM_freeN(colBuffer);
+	colBuffer= NULL;
 	if(matBuffer)  MEM_freeN(matBuffer);
+	matBuffer= NULL;
 } /* end of void freeEdgeRenderBuffer(void) */
 
 /* ------------------------------------------------------------------------- */
