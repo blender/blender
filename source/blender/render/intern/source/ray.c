@@ -107,12 +107,10 @@ typedef struct Node
 /* ******** globals ***************** */
 
 static Octree g_oc;	/* can be scene pointer or so later... */
-static int coh_test=0;	/* coherence optimize */
 
 /* just for statistics */
 static int raycount, branchcount, nodecount;
 static int accepted, rejected, coherent_ray;
-
 
 /* **************** ocval method ******************* */
 /* within one octree node, a set of 3x15 bits defines a 'boundbox' to OR with */
@@ -471,7 +469,7 @@ void makeoctree()
 
 	memset(g_oc.adrnode, 0, sizeof(g_oc.adrnode));
 	memset(g_oc.adrbranch, 0, sizeof(g_oc.adrbranch));
-
+	
 	branchcount=0;
 	nodecount=0;
 	raycount=0;
@@ -1045,6 +1043,35 @@ static short cliptest(float p, float q, float *u1, float *u2)
 	return 1;
 }
 
+/* extensive coherence checks/storage cancels out the benefit of it, and gives errors... we
+   need better methods, sample code commented out below (ton) */
+ 
+/*
+
+in top: static short coh_nodes[16*16*16][6];
+in makeoctree: memset(coh_nodes, 0, sizeof(coh_nodes));
+ 
+static void add_coherence_test(int ocx1, int ocx2, int ocy1, int ocy2, int ocz1, int ocz2)
+{
+	short *sp;
+	
+	sp= coh_nodes[ (ocx2 & 15) + 16*(ocy2 & 15) + 256*(ocz2 & 15) ];
+	sp[0]= ocx1; sp[1]= ocy1; sp[2]= ocz1;
+	sp[3]= ocx2; sp[4]= ocy2; sp[5]= ocz2;
+	
+}
+
+static int do_coherence_test(int ocx1, int ocx2, int ocy1, int ocy2, int ocz1, int ocz2)
+{
+	short *sp;
+	
+	sp= coh_nodes[ (ocx2 & 15) + 16*(ocy2 & 15) + 256*(ocz2 & 15) ];
+	if(sp[0]==ocx1 && sp[1]==ocy1 && sp[2]==ocz1 &&
+	   sp[3]==ocx2 && sp[4]==ocy2 && sp[5]==ocz2) return 1;
+	return 0;
+}
+
+*/
 
 /* return 1: found valid intersection */
 /* starts with is->vlrorig */
@@ -1065,7 +1092,6 @@ static int d3dda(Isect *is)
 	raycount++;
 	is->vlrorig->raycount= raycount;
 	is->vlrcontr= NULL;	/*  to check shared edge */
-
 
 	/* only for shadow! */
 	if(is->mode==DDA_SHADOW) {
@@ -1144,19 +1170,9 @@ static int d3dda(Isect *is)
 		}
 	}
 	else {
-		static int coh_ocx1,coh_ocx2,coh_ocy1, coh_ocy2,coh_ocz1,coh_ocz2;
+		//static int coh_ocx1,coh_ocx2,coh_ocy1, coh_ocy2,coh_ocz1,coh_ocz2;
 		float dox, doy, doz;
-		int coherent=1, nodecount=0, eqval;
-		
-		/* check coherence; 
-			coh_test: 0=don't, 1=check 
-			coherent: for current ray 
-		*/
-		if(coh_test) {
-			if(coh_ocx1==ocx1 && coh_ocy1==ocy1 && coh_ocz1==ocz1
-			   && coh_ocx2==ocx2 && coh_ocy2==ocy2 && coh_ocz2==ocz2);
-			else coh_test= 0;
-		}
+		int eqval;
 		
 		/* calc labda en ld */
 		dox= ox1-ox2;
@@ -1164,12 +1180,12 @@ static int d3dda(Isect *is)
 		doz= oz1-oz2;
 
 		if(dox<-FLT_EPSILON) {
-			labdax= (ox1-ocx1-1.0)/dox;
 			ldx= -1.0/dox;
+			labdax= (ocx1-ox1+1.0)*ldx;
 			dx= 1;
 		} else if(dox>FLT_EPSILON) {
-			labdax= (ox1-ocx1)/dox;
 			ldx= 1.0/dox;
+			labdax= (ox1-ocx1)*ldx;
 			dx= -1;
 		} else {
 			labdax=1.0;
@@ -1178,12 +1194,12 @@ static int d3dda(Isect *is)
 		}
 
 		if(doy<-FLT_EPSILON) {
-			labday= (oy1-ocy1-1.0)/doy;
 			ldy= -1.0/doy;
+			labday= (ocy1-oy1+1.0)*ldy;
 			dy= 1;
 		} else if(doy>FLT_EPSILON) {
-			labday= (oy1-ocy1)/doy;
 			ldy= 1.0/doy;
+			labday= (oy1-ocy1)*ldy;
 			dy= -1;
 		} else {
 			labday=1.0;
@@ -1192,12 +1208,12 @@ static int d3dda(Isect *is)
 		}
 
 		if(doz<-FLT_EPSILON) {
-			labdaz= (oz1-ocz1-1.0)/doz;
 			ldz= -1.0/doz;
+			labdaz= (ocz1-oz1+1.0)*ldz;
 			dz= 1;
 		} else if(doz>FLT_EPSILON) {
-			labdaz= (oz1-ocz1)/doz;
 			ldz= 1.0/doz;
+			labdaz= (oz1-ocz1)*ldz;
 			dz= -1;
 		} else {
 			labdaz=1.0;
@@ -1218,9 +1234,7 @@ static int d3dda(Isect *is)
 		while(TRUE) {
 
 			no= ocread(xo, yo, zo);
-			nodecount++;
 			if(no) {
-				if(nodecount>3) coherent= 0;
 				
 				/* calculate ray intersection with octree node */
 				VECCOPY(vec1, vec2);
@@ -1233,10 +1247,6 @@ static int d3dda(Isect *is)
 				
 				is->ddalabda= ddalabda;
 				if( testnode(is, no, xo,yo,zo) ) return 1;
-			}
-			else if(coh_test) {
-				coherent_ray++;
-				return 0;
 			}
 
 			labdao= ddalabda;
@@ -1303,12 +1313,6 @@ static int d3dda(Isect *is)
 			/* to make sure the last node is always checked */
 			if(labdao>=1.0) break;
 		}
-		if(coherent) {
-			coh_test= 1;
-			coh_ocx1= ocx1; coh_ocy1= ocy1;coh_ocz1= ocz1;
-			coh_ocx2= ocx2; coh_ocy2= ocy2;coh_ocz2= ocz2;
-		}
-		else coh_test= 0;
 	}
 	
 	/* reached end, no intersections found */
@@ -1337,7 +1341,7 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 	shi->matren= shi->mat->ren;
 	
 	/* face normal, check for flip */
-	if((shi->matren->mode & MA_RAYTRANSP)==0) {
+	if((shi->matren->mode & (MA_RAYTRANSP|MA_ZTRA))==0) {
 		float l= vlr->n[0]*shi->view[0]+vlr->n[1]*shi->view[1]+vlr->n[2]*shi->view[2];
 		if(l<0.0) {	
 			flip= 1;
@@ -1487,21 +1491,31 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 		
 		shi.mask= mask;
 		shi.osatex= osatex;
+		shi.depth= 1;	// only now to indicate tracing
 		
 		shade_ray(&isec, &shi, &shr);
 		
 		if(depth>0) {
 
-			if(shi.matren->mode & MA_RAYTRANSP && shr.alpha!=1.0) {
+			if(shi.matren->mode & (MA_RAYTRANSP|MA_ZTRA) && shr.alpha!=1.0) {
 				float f, f1, refract[3], tracol[3];
 				
-				refraction(refract, shi.vn, shi.view, shi.matren->ang);
-				traceray(depth-1, shi.co, refract, tracol, shi.vlr, shi.mask, osatex);
+				if(shi.matren->mode & MA_RAYTRANSP) {
+					refraction(refract, shi.vn, shi.view, shi.matren->ang);
+					traceray(depth-1, shi.co, refract, tracol, shi.vlr, shi.mask, osatex);
+				}
+				else
+					traceray(depth-1, shi.co, shi.view, tracol, shi.vlr, shi.mask, osatex);
 				
 				f= shr.alpha; f1= 1.0-f;
 				shr.diff[0]= f*shr.diff[0] + f1*tracol[0];
 				shr.diff[1]= f*shr.diff[1] + f1*tracol[1];
 				shr.diff[2]= f*shr.diff[2] + f1*tracol[2];
+				
+				shr.spec[0] *=f;
+				shr.spec[1] *=f;
+				shr.spec[2] *=f;
+				
 				shr.alpha= 1.0;
 			}
 
@@ -1687,17 +1701,19 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 	float i, f, f1, fr, fg, fb, vec[3], mircol[3], tracol[3];
 	int do_tra, do_mir;
 	
-	do_tra= ((shi->matren->mode & MA_RAYTRANSP) && shr->alpha!=1.0);
+	do_tra= ((shi->matren->mode & (MA_RAYTRANSP|MA_ZTRA)) && shr->alpha!=1.0);
 	do_mir= ((shi->matren->mode & MA_RAYMIRROR) && shi->matren->ray_mirror!=0.0);
 	vlr= shi->vlr;
 	
-	coh_test= 0;		// reset coherence optimize
-
 	if(do_tra) {
 		float refract[3];
 		
-		refraction(refract, shi->vn, shi->view, shi->matren->ang);
-		traceray(shi->matren->ray_depth_tra, shi->co, refract, tracol, shi->vlr, shi->mask, 0);
+		if(shi->matren->mode & MA_RAYTRANSP) {
+			refraction(refract, shi->vn, shi->view, shi->matren->ang);
+			traceray(shi->matren->ray_depth_tra, shi->co, refract, tracol, shi->vlr, shi->mask, 0);
+		}
+		else
+			traceray(shi->matren->ray_depth_tra, shi->co, shi->view, tracol, shi->vlr, shi->mask, 0);
 		
 		f= shr->alpha; f1= 1.0-f;
 		shr->diff[0]= f*shr->diff[0] + f1*tracol[0];
@@ -1760,6 +1776,7 @@ static void ray_trace_shadow_tra(Isect *is, int depth)
 		
 		shi.mask= 1;
 		shi.osatex= 0;
+		shi.depth= 1;	// only now to indicate tracing
 		
 		shade_ray(is, &shi, &shr);
 		
@@ -1960,7 +1977,6 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 	isec.vlrorig= shi->vlr;
 	isec.mode= DDA_SHADOW;
 	isec.lay= -1;
-	coh_test= 0;		// reset coherence optimize
 
 	shadfac[0]= shadfac[1]= shadfac[2]= 0.0;
 
@@ -2072,7 +2088,6 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 	if(lar->mode & LA_LAYER) isec.lay= lar->lay; else isec.lay= -1;
 	
 	shadfac[3]= 1.0;	// 1=full light
-	coh_test= 0;		// reset coherence optimize
 	
 	if(lar->type==LA_SUN || lar->type==LA_HEMI) {
 		lampco[0]= shi->co[0] - g_oc.ocsize*lar->vec[0];
@@ -2082,6 +2097,9 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 	else {
 		VECCOPY(lampco, lar->co);
 	}
+	
+	/* only when not tracing, first hit optimm */
+	if(shi->depth==0) g_oc.vlr_last= lar->vlr_last;
 	
 	/* transp-shadow and soft not implemented yet */
 	if(lar->ray_totsamp<2 ||  isec.mode == DDA_SHADOW_TRA) {
@@ -2162,6 +2180,8 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 		*(shi->matren)= stored;
 	}
 	
-	
+	/* for first hit optim, set last interesected shadow face */
+	if(shi->depth==0) lar->vlr_last= g_oc.vlr_last;
+
 }
 

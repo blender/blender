@@ -2649,6 +2649,7 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 	
 	/* mask is used to indicate amount of samples (ray shad/mir and AO) */
 	shi.mask= mask;
+	shi.depth= 0;	// means first hit, not raytracing
 	
 	if(vlaknr==0) {	/* sky */
 		col[0]= 0.0; col[1]= 0.0; col[2]= 0.0; col[3]= 0.0;

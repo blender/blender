@@ -62,6 +62,7 @@ typedef struct ShadeInput
 	float xs, ys;	/* pixel to be rendered */
 	short osatex;
 	int mask;
+	int depth;
 	
 } ShadeInput;
 
@@ -269,6 +270,9 @@ typedef struct LampRen
 	int YF_numphotons, YF_numsearch;
 	short YF_phdepth, YF_useqmc, YF_bufsize;
 	float YF_causticblur, YF_ltradius;
+	
+	/* ray optim */
+	VlakRen *vlr_last;
 	
 	struct LampRen *org;
 	struct MTex *mtex[8];
