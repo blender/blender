@@ -269,17 +269,22 @@ void set_normalflags(void)
 		if((a1 & 255)==0) vlr= R.blovl[a1>>8];
 		else vlr++;
 		
-		vec[0]= vlr->v1->co[0];
-		vec[1]= vlr->v1->co[1];
-		vec[2]= vlr->v1->co[2];
+		/* abuse of this flag... this is code that just sets face normal in direction of camera */
+		/* that convention we should get rid of */
+		if((vlr->flag & R_NOPUNOFLIP)==0) {
 
-		if( (vec[0]*vlr->n[0] +vec[1]*vlr->n[1] +vec[2]*vlr->n[2])<0.0 ) {
-			vlr->puno= vlr->puno ^ 15;
-			vlr->n[0]= -vlr->n[0];
-			vlr->n[1]= -vlr->n[1];
-			vlr->n[2]= -vlr->n[2];
+			vec[0]= vlr->v1->co[0];
+			vec[1]= vlr->v1->co[1];
+			vec[2]= vlr->v1->co[2];
+			
+			if( (vec[0]*vlr->n[0] +vec[1]*vlr->n[1] +vec[2]*vlr->n[2])<0.0 ) {
+				vlr->puno= vlr->puno ^ 15;
+				vlr->n[0]= -vlr->n[0];
+				vlr->n[1]= -vlr->n[1];
+				vlr->n[2]= -vlr->n[2];
+			}
 		}
-
+		
 		/* recalculate puno. Displace & flipped matrices can screw up */
 		vlr->puno= 0;
 		if( Inpf(vlr->n, vlr->v1->n) < 0.0 ) vlr->puno |= ME_FLIPV1;
