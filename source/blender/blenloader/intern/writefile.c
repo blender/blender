@@ -659,7 +659,7 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 	
 	ob= idbase->first;
 	while(ob) {
-		if(ob->id.us>0) {
+		if(ob->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_OB, "Object", 1, ob);
 
@@ -699,7 +699,7 @@ static void write_vfonts(WriteData *wd, ListBase *idbase)
 
 	vf= idbase->first;
 	while(vf) {
-		if(vf->id.us>0) {
+		if(vf->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_VF, "VFont", 1, vf);
 
@@ -723,7 +723,7 @@ static void write_ipos(WriteData *wd, ListBase *idbase)
 
 	ipo= idbase->first;
 	while(ipo) {
-		if(ipo->id.us>0) {
+		if(ipo->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_IP, "Ipo", 1, ipo);
 
@@ -756,7 +756,7 @@ static void write_keys(WriteData *wd, ListBase *idbase)
 
 	key= idbase->first;
 	while(key) {
-		if(key->id.us>0) {
+		if(key->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_KE, "Key", 1, key);
 
@@ -781,7 +781,7 @@ static void write_cameras(WriteData *wd, ListBase *idbase)
 
 	cam= idbase->first;
 	while(cam) {
-		if(cam->id.us>0) {
+		if(cam->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_CA, "Camera", 1, cam);
 
@@ -800,7 +800,7 @@ static void write_mballs(WriteData *wd, ListBase *idbase)
 
 	mb= idbase->first;
 	while(mb) {
-		if(mb->id.us>0) {
+		if(mb->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_MB, "MetaBall", 1, mb);
 
@@ -824,7 +824,7 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 
 	cu= idbase->first;
 	while(cu) {
-		if(cu->id.us>0) {
+		if(cu->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_CU, "Curve", 1, cu);
 
@@ -883,7 +883,7 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 
 	mesh= idbase->first;
 	while(mesh) {
-		if(mesh->id.us>0) {
+		if(mesh->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_ME, "Mesh", 1, mesh);
 
@@ -911,7 +911,7 @@ static void write_images(WriteData *wd, ListBase *idbase)
 
 	ima= idbase->first;
 	while(ima) {
-		if(ima->id.us>0) {
+		if(ima->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_IM, "Image", 1, ima);
 
@@ -933,7 +933,7 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 
 	tex= idbase->first;
 	while(tex) {
-		if(tex->id.us>0) {
+		if(tex->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_TE, "Tex", 1, tex);
 
@@ -956,7 +956,7 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 
 	ma= idbase->first;
 	while(ma) {
-		if(ma->id.us>0) {
+		if(ma->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_MA, "Material", 1, ma);
 
@@ -980,7 +980,7 @@ static void write_worlds(WriteData *wd, ListBase *idbase)
 
 	wrld= idbase->first;
 	while(wrld) {
-		if(wrld->id.us>0) {
+		if(wrld->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_WO, "World", 1, wrld);
 
@@ -1001,7 +1001,7 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 
 	la= idbase->first;
 	while(la) {
-		if(la->id.us>0) {
+		if(la->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_LA, "Lamp", 1, la);
 
@@ -1022,7 +1022,7 @@ static void write_lattices(WriteData *wd, ListBase *idbase)
 
 	lt= idbase->first;
 	while(lt) {
-		if(lt->id.us>0) {
+		if(lt->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_LT, "Lattice", 1, lt);
 
@@ -1040,7 +1040,7 @@ static void write_ikas(WriteData *wd, ListBase *idbase)
 
 	ika= idbase->first;
 	while(ika) {
-		if(ika->id.us>0) {
+		if(ika->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_IK, "Ika", 1, ika);
 
@@ -1325,7 +1325,7 @@ static void write_armatures(WriteData *wd, ListBase *idbase)
 
 	arm=idbase->first;
 	while (arm) {
-		if (arm->id.us>0) {
+		if (arm->id.us>0 || wd->current) {
 			writestruct(wd, ID_AR, "bArmature", 1, arm);
 
 			/* Direct data */
@@ -1348,7 +1348,7 @@ static void write_actions(WriteData *wd, ListBase *idbase)
 	bActionChannel	*chan;
 	act=idbase->first;
 	while (act) {
-		if (act->id.us>0) {
+		if (act->id.us>0 || wd->current) {
 			writestruct(wd, ID_AC, "bAction", 1, act);
 
 			for (chan=act->chanbase.first; chan; chan=chan->next) {
@@ -1411,7 +1411,7 @@ static void write_sounds(WriteData *wd, ListBase *idbase)
 
 	sound= idbase->first;
 	while(sound) {
-		if(sound->id.us>0) {
+		if(sound->id.us>0 || wd->current) {
 			// do we need to save the packedfile as well ?
 			sample = sound->sample;
 			if (sample) {
@@ -1452,7 +1452,7 @@ static void write_groups(WriteData *wd, ListBase *idbase)
 
 	group= idbase->first;
 	while(group) {
-		if(group->id.us>0) {
+		if(group->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_GR, "Group", 1, group);
 
