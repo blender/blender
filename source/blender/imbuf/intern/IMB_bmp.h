@@ -44,7 +44,7 @@ struct ImBuf;
 
 int imb_is_a_bmp(void *buf);
 struct ImBuf *imb_bmp_decode(unsigned char *mem, int size, int flags);
-short imb_savebmp(struct ImBuf *ibuf, int outfile, int flags);
+short imb_savebmp(struct ImBuf *ibuf, char *name, int flags);
 
 #endif
 

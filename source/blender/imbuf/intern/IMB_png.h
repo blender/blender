@@ -45,7 +45,7 @@ struct ImBuf;
 int imb_is_a_png(void *buf);
 struct ImBuf *imb_loadpng(unsigned char *mem, int size, int flags);
 
-short imb_savepng(struct ImBuf *ibuf, int file, int flags);
+short imb_savepng(struct ImBuf *ibuf, char *name, int flags);
 
 #endif
 

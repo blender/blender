@@ -33,10 +33,6 @@
 
 #include "png.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #include "BLI_winstuff.h"
 #endif
@@ -106,7 +102,7 @@ static void ReadData( png_structp png_ptr, png_bytep data, png_size_t length)
 	longjmp(png_jmpbuf(png_ptr), 1);
 }
 
-short imb_savepng(struct ImBuf *ibuf, int file, int flags)
+short imb_savepng(struct ImBuf *ibuf, char *name, int flags)
 {
 	png_structp png_ptr;
 	png_infop info_ptr;
@@ -198,7 +194,7 @@ short imb_savepng(struct ImBuf *ibuf, int file, int flags)
 			 WriteData,
 			 Flush);
 	} else {
-		fp = fdopen(file, "wb");
+		fp = fopen(name, "wb");
 		png_init_io(png_ptr, fp);
 	}
 

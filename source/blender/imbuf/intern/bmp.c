@@ -44,10 +44,6 @@
 #include "IMB_cmap.h"
 #include "IMB_bmp.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* some code copied from article on microsoft.com, copied
   here for enhanced BMP support in the future
   http://www.microsoft.com/msj/defaultframe.asp?page=/msj/0197/mfcp1/mfcp1.htm&nav=/msj/0197/newnav.htm
@@ -199,7 +195,7 @@ int putShortLSB(unsigned short us,FILE *ofile) {
 } 
 
 /* Found write info at http://users.ece.gatech.edu/~slabaugh/personal/c/bitmapUnix.c */
-short imb_savebmp(struct ImBuf *ibuf, int outfile, int flags) {
+short imb_savebmp(struct ImBuf *ibuf, char *name, int flags) {
 
    BMPINFOHEADER infoheader;
    int bytesize, extrabytes, x, y, t, ptr;
@@ -210,7 +206,7 @@ short imb_savebmp(struct ImBuf *ibuf, int outfile, int flags) {
    bytesize = (ibuf->x * 3 + extrabytes) * ibuf->y;
 
    data = (uchar *) ibuf->rect;
-   ofile = fdopen(outfile,"ab");
+   ofile = fopen(name,"ab");
 
    putShortLSB(19778,ofile); /* "BM" */
    putIntLSB(0,ofile); /* This can be 0 for BI_RGB bitmaps */

@@ -45,7 +45,7 @@ struct ImBuf;
 int imb_is_a_targa(void *buf);
 
 struct ImBuf *imb_loadtarga(unsigned char *mem, int flags);
-short imb_savetarga(struct ImBuf * ibuf, int file, int flags);
+short imb_savetarga(struct ImBuf * ibuf, char *name, int flags);
 
 #endif
 

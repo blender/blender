@@ -30,10 +30,6 @@
  * $Id$
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #include "BLI_winstuff.h"
 #include <io.h>
@@ -242,7 +238,7 @@ static int dumptarga(struct ImBuf * ibuf, FILE * file)
 }
 
 
-short imb_savetarga(struct ImBuf * ibuf, int file, int flags)
+short imb_savetarga(struct ImBuf * ibuf, char *name, int flags)
 {
 	char buf[20];
 	FILE *fildes;
@@ -294,14 +290,16 @@ short imb_savetarga(struct ImBuf * ibuf, int file, int flags)
         if (ibuf->depth==32) {
            buf[17] |= 0x08;
         }
+	fildes = fopen(name,"ab");
+	
 
-	if (write(file, buf, 18) != 18) return (0);
+	if (fwrite(buf, 1, 18,fildes) != 18) return (0);
+
 	if (ibuf->cmap){
 		for (i = 0 ; i<ibuf->maxcol ; i++){
-			if (write(file,((uchar *)(ibuf->cmap + i)) + 1,3) != 3) return (0);
+			if (fwrite(((uchar *)(ibuf->cmap + i)) + 1,1,3,fildes) != 3) return (0);
 		}
 	}
-	fildes = fdopen(file,"ab");
 	
 	if (ibuf->cmap && (flags & IB_cmap) == 0) IMB_converttocmap(ibuf);
 	

@@ -55,11 +55,6 @@
 #include "IMB_bitplanes.h"
 #include "IMB_divers.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
 short IMB_saveiff(struct ImBuf *ibuf,char *naam,int flags)
 {
 	short ok=TRUE,delpl=FALSE;
@@ -73,6 +68,18 @@ short IMB_saveiff(struct ImBuf *ibuf,char *naam,int flags)
 		if(imb_savejpeg(ibuf, naam, flags)) return (0);
 		else return (TRUE);
 	}
+	if (IS_png(ibuf)) {
+		return imb_savepng(ibuf,naam,flags);
+        }
+        if (IS_bmp(ibuf)) {
+                return imb_savebmp(ibuf,naam,flags);
+        }
+	if (IS_tga(ibuf)) {
+		return imb_savetarga(ibuf,naam,flags);
+        }
+	if (IS_iris(ibuf)) {
+		return imb_saveiris(ibuf,naam,flags);
+        }
 
 	file = open(naam, O_BINARY | O_RDWR | O_CREAT | O_TRUNC, 0666);
 	if (file < 0) return (FALSE);
@@ -84,40 +91,8 @@ short IMB_saveiff(struct ImBuf *ibuf,char *naam,int flags)
 	}
 
 	/* Put formats that take a filehandle here */
-	if (IS_png(ibuf)) {
-		ok = imb_savepng(ibuf,file,flags);
-		if (ok) {
-			close (file);
-			return (ok);
-		}
-	}
-
-        if (IS_bmp(ibuf)) {
-                ok = imb_savebmp(ibuf,file,flags);
-                if (ok) {
-                        close (file);
-                        return (ok);
-                }
-        }
-
-	if (IS_tga(ibuf)) {
-		ok = imb_savetarga(ibuf,file,flags);
-		if (ok) {
-			close (file);
-			return (ok);
-		}
-	}
 	
-	if (IS_iris(ibuf)) {
-		ok = imb_saveiris(ibuf,file,flags);
-		if (ok) {
-			close (file);
-			return (ok);
-		}
-	}
-	
-	if (ok) ok = imb_start_iff(ibuf,file);
-
+	ok = imb_start_iff(ibuf,file);
 	if (IS_amiga(ibuf)){
 		IMB_flipy(ibuf);
 		if (flags & IB_rect){

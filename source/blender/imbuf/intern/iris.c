@@ -41,10 +41,6 @@
 #include "IMB_allocimbuf.h"
 #include "IMB_iris.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 typedef struct {
     unsigned short	imagic;		/* stuff saved on disk . . */
     unsigned short 	type;
@@ -114,10 +110,6 @@ static void expandrow(unsigned char *optr, unsigned char *iptr, int z);
 static void interleaverow(unsigned char *lptr, unsigned char *cptr, int z, int n);
 static int compressrow(unsigned char *lbuf, unsigned char *rlebuf, int z, int cnt);
 static void lumrow(unsigned char *rgbptr, unsigned char *lumptr, int n);
-
-/* not used... */
-/*  static void copybw(int *lptr, int n); */
-/*  static void setalpha(unsigned char *lptr, int n); */
 
 /*
  *	byte order independent read/write of shorts and ints.
@@ -423,53 +415,6 @@ static void interleaverow(unsigned char *lptr, unsigned char *cptr, int z, int n
 	}
 }
 
-/* not used? */
-/*static void copybw(int *lptr, int n) */
-/*  int *lptr; */
-/*  int n; */
-/*{
-	while(n>=8) {
-		lptr[0] = 0xff000000+(0x010101*(lptr[0]&0xff));
-		lptr[1] = 0xff000000+(0x010101*(lptr[1]&0xff));
-		lptr[2] = 0xff000000+(0x010101*(lptr[2]&0xff));
-		lptr[3] = 0xff000000+(0x010101*(lptr[3]&0xff));
-		lptr[4] = 0xff000000+(0x010101*(lptr[4]&0xff));
-		lptr[5] = 0xff000000+(0x010101*(lptr[5]&0xff));
-		lptr[6] = 0xff000000+(0x010101*(lptr[6]&0xff));
-		lptr[7] = 0xff000000+(0x010101*(lptr[7]&0xff));
-		lptr += 8;
-		n-=8;
-	}
-	while(n--) {
-		*lptr = 0xff000000+(0x010101*(*lptr&0xff));
-		lptr++;
-	}
-}
-*/
-
-/* not used ? */
-/*static void setalpha(unsigned char *lptr, int n)*/
-/*  unsigned char *lptr; */
-/*{
-	while(n>=8) {
-		lptr[0*4] = 0xff;
-		lptr[1*4] = 0xff;
-		lptr[2*4] = 0xff;
-		lptr[3*4] = 0xff;
-		lptr[4*4] = 0xff;
-		lptr[5*4] = 0xff;
-		lptr[6*4] = 0xff;
-		lptr[7*4] = 0xff;
-		lptr += 4*8;
-		n -= 8;
-	}
-	while(n--) {
-		*lptr = 0xff;
-		lptr += 4;
-	}
-}
-*/
-
 static void expandrow(unsigned char *optr, unsigned char *iptr, int z)
 {
 	unsigned char pixel, count;
@@ -532,7 +477,7 @@ static void expandrow(unsigned char *optr, unsigned char *iptr, int z)
  *  Added: zbuf write
  */
 
-static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, int file, int *zptr)
+static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, char *name, int *zptr)
 {
 	FILE *outf;
 	IMAGE *image;
@@ -543,10 +488,10 @@ static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, int 
 	int rlebuflen, goodwrite;
 
 	goodwrite = 1;
-	outf = fdopen(file, "wb");
+	outf = fopen(name, "wb");
 
 	if(!outf) {
-		perror("fdopen");
+		perror("fopen");
 		fprintf(stderr,"output_iris: can't open output file\n");
 		return 0;
 	}
@@ -690,7 +635,7 @@ static int compressrow(unsigned char *lbuf, unsigned char *rlebuf, int z, int cn
 	return optr - (unsigned char *)rlebuf;
 }
 
-short imb_saveiris(struct ImBuf * ibuf, int file, int flags)
+short imb_saveiris(struct ImBuf * ibuf, char *name, int flags)
 {
 	short zsize;
 	int ret;
@@ -701,7 +646,7 @@ short imb_saveiris(struct ImBuf * ibuf, int file, int flags)
 	IMB_convert_rgba_to_abgr(ibuf->x*ibuf->y, ibuf->rect);
 	test_endian_zbuf(ibuf);
 
-	ret = output_iris(ibuf->rect, ibuf->x, ibuf->y, zsize, file, ibuf->zbuf);
+	ret = output_iris(ibuf->rect, ibuf->x, ibuf->y, zsize, name, ibuf->zbuf);
 
 	/* restore! Quite clumsy, 2 times a switch... maybe better a malloc ? */
 	IMB_convert_rgba_to_abgr(ibuf->x*ibuf->y, ibuf->rect);
