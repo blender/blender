@@ -65,3 +65,6 @@ if user_options_dict['USE_INTERNATIONAL'] == 1:
 blenkernel_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_blenkernel', source=source_files)
 
 SConscript(['bad_level_call_stubs/SConscript'])
+
+blenkernel_env.Append (CPPPATH = user_options_dict['OPENGL_INCLUDE'])
+
