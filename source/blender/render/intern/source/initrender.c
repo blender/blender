@@ -795,18 +795,7 @@ void oldRenderLoop(void)  /* here the PART and FIELD loops */
 	unsigned int *rt, *rt1, *rt2;
 	int len, y;
 	short blur, a,fields,fi,parts;  /* pa is a global because of print */
-	unsigned int *border_buf= NULL;
-	unsigned int border_x= 0;
-	unsigned int border_y= 0;
 	
-	if((R.r.mode & R_BORDER) && !(R.r.mode & R_MOVIECROP)) {
-		border_buf= R.rectot;
-		border_x= R.rectx;
-		border_y= R.recty;
-		R.rectot= 0;
-	}
-
-
 	if (R.rectz) MEM_freeN(R.rectz);
 	R.rectz = 0;
 
@@ -909,11 +898,11 @@ void oldRenderLoop(void)  /* here the PART and FIELD loops */
 						part= MEM_callocN(sizeof(Part), "part");
 						BLI_addtail(&R.parts, part);
 						part->rect= R.rectot;
-						R.rectot= 0;
+						R.rectot= NULL;
 						
 						if (R.rectz) {
 							MEM_freeN(R.rectz);
-							R.rectz= 0;
+							R.rectz= NULL;
 						}
 					}
 				}
@@ -931,13 +920,8 @@ void oldRenderLoop(void)  /* here the PART and FIELD loops */
 
 				if(parts>1 || (R.r.mode & R_BORDER)) {
 					if(R.rectot) MEM_freeN(R.rectot);
-					if(R.r.mode & R_BORDER) {
-						if(border_x<R.rectx || border_y<R.recty || border_buf==NULL)
-							R.rectot= (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
-						else 
-							R.rectot= border_buf;
-					}
-					else R.rectot=(unsigned int *)MEM_mallocN(sizeof(int)*R.rectx*R.recty, "rectot");
+					
+					R.rectot=(unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
 					
 					part= R.parts.first;
 					for(pa=0; pa<parts; pa++) {
@@ -999,7 +983,7 @@ void oldRenderLoop(void)  /* here the PART and FIELD loops */
 		R.r.yasp/=2;
 
 		if(R.rectot) MEM_freeN(R.rectot);	/* happens when a render has been stopped */
-		R.rectot=(unsigned int *)MEM_mallocN(sizeof(int)*R.rectx*R.recty, "rectot");
+		R.rectot=(unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
 
 		if(RE_local_test_break()==0) {
 			rt= R.rectot;
@@ -1076,7 +1060,14 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 	R.r= G.scene->r;
 	R.r.postigamma= 1.0/R.r.postgamma;
 	
-	/* to be sure: when a premature return */
+	/* WINDOW size (sch='scherm' dutch for screen...) */
+	R.r.xsch= (R.r.size*R.r.xsch)/100;
+	R.r.ysch= (R.r.size*R.r.ysch)/100;
+
+	R.afmx= R.r.xsch/2;
+	R.afmy= R.r.ysch/2;
+
+	/* to be sure: when a premature return (rectx can differ from xsch) */
 	R.rectx= R.r.xsch;
 	R.recty= R.r.ysch;
 
@@ -1146,13 +1137,6 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 		}
 	}
 	else R.osa= 0;
-
-	/* WINDOW */
-	R.r.xsch= (R.r.size*R.r.xsch)/100;
-	R.r.ysch= (R.r.size*R.r.ysch)/100;
-
-	R.afmx= R.r.xsch/2;
-	R.afmy= R.r.ysch/2;
 
 	/* when rendered without camera object */
 	/* it has to done here because of envmaps */

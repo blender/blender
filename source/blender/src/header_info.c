@@ -1431,9 +1431,9 @@ static void do_info_rendermenu(void *arg, int event)
 		break;
 	case 6:
 		/* dodgy hack turning on SHIFT key to do a proper render border select
-		strangely, set_render_border(); won't work :( 
+		set_render_border(); only works when 3d window active
 		
-		This code copied from toolbox.c */
+		This code copied from toolbox.c, only works when 3d window is cameraview */
 
 		if(select_area(SPACE_VIEW3D)) {
 			mainqenter(LEFTSHIFTKEY, 1);

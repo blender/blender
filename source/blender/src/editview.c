@@ -1268,6 +1268,9 @@ void set_render_border(void)
 		CLAMP(G.scene->r.border.ymax, 0.0, 1.0);
 		
 		allqueue(REDRAWVIEWCAM, 1);
+		// if it was not set, we do this
+		G.scene->r.mode |= R_BORDER;
+		allqueue(REDRAWBUTSSCENE, 1);
 	}
 }
 
