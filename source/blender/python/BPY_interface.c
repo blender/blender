@@ -52,7 +52,7 @@
 
 #include "BPY_extern.h"
 
-#include "api2_2x/interface.h"
+#include "api2_2x/EXPP_interface.h"
 
 /*****************************************************************************/
 /* Structure definitions                                                     */
