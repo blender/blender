@@ -317,14 +317,14 @@ void do_textedit(unsigned short event, short val, char _ascii)
 	Curve *cu;
 	static int accentcode= 0;
 	int x, doit=0, cursmove=0;
-        int ascii = _ascii;
+	int ascii = _ascii;
 
 	cu= G.obedit->data;
 
 	if(ascii) {
 	
-		/* o.a. afvangen van TAB (TAB==9) */
-		if( (ascii > 31 && ascii < 200 && ascii != 127) || (ascii==13) || (ascii==10) || (ascii==8)) {
+		/* handle case like TAB (TAB==9) */
+		if( (ascii > 31 && ascii < 254 && ascii != 127) || (ascii==13) || (ascii==10) || (ascii==8)) {
 	
 			if(accentcode) {
 				if(cu->pos>0) textbuf[cu->pos-1]= findaccent(textbuf[cu->pos-1], ascii);
@@ -332,6 +332,9 @@ void do_textedit(unsigned short event, short val, char _ascii)
 			}
 			else if(cu->len<MAXTEXT-1) {
 				if(G.qual & LR_ALTKEY ) {
+				
+					/* might become obsolete, apple has default values for this, other OS's too? */
+				
 					if(ascii=='t') ascii= 137;
 					else if(ascii=='c') ascii= 169;
 					else if(ascii=='f') ascii= 164;

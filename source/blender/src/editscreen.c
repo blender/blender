@@ -44,6 +44,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>  /* isprint */
 #include <stdio.h>
 #include <math.h>
 
@@ -390,12 +391,15 @@ static void headmenu(ScrArea *sa)
 static void addqueue_ext(short win, unsigned short event, short val, char ascii)
 {
 	if (win<4 || !areawinar[win]) {
-		printf("bad call to addqueue: %d (%d, %d)\n", win, event, val);
-	} else {
+		if(win==0) // other win ids are for mainwin & renderwin
+			printf("bad call to addqueue: %d (%d, %d)\n", win, event, val);
+	} 
+	else {
 		BWinEvent evt;
 		evt.event= event;
 		evt.val= val;
 		evt.ascii= ascii;
+		
 		bwin_qadd(win, &evt);
 	}
 }
@@ -1635,19 +1639,15 @@ static unsigned short convert_for_nonumpad(unsigned short event)
 
 void add_to_mainqueue(Window *win, void *user_data, short evt, short val, char ascii)
 {
-	short qual= window_get_qual(win);
 
 	statechanged= 1;
 
 	if (U.flag & NONUMPAD) {
 		evt= convert_for_nonumpad(evt);
 	}
-	
-		/* enforce some guarentees about ascii values... these should
-		 * be enforced in ghost probably - zr
-		 */
 
-	if (!val || !isprint(ascii) || (qual&~LR_SHIFTKEY)) {
+	/*  accept the extended ascii set (ton) */
+	if( !val || ascii<32 ) {
 		ascii= '\0';
 	}
 
@@ -2239,7 +2239,7 @@ static void scrarea_draw_splitpoint(ScrArea *sa, char dir, float fac)
 static void splitarea_interactive(ScrArea *area, ScrEdge *onedge)
 {
 	ScrArea *sa= area;
-	float fac;
+	float fac= 0.0;
 	unsigned short event;
 	short ok= 0, val, split = 0, mval[2], mvalo[2], first= 1;
 	char dir;
@@ -2323,7 +2323,7 @@ View3D *find_biggest_view3d(void)
 ScrArea *find_biggest_area_of_type(int spacecode)
 {
 	ScrArea *sa, *biggest= NULL;
-	int bigsize;
+	int bigsize= 0;
 	
 	for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
 		if (spacecode==0 || sa->spacetype==spacecode) {
@@ -2756,9 +2756,9 @@ void drawedge(short x1, short y1, short x2, short y2)
 	int a;
 	
 	if(x1==x2) {		/* vertical */
-		if (y2<y1)
-			y1^= y2^= y1^= y2;
-		
+		if (y2<y1) {
+			SWAP(short, y1, y2);
+		}
 		if (y1==0) y1-= EDGE_EXTEND;
 		if (y2==G.curscreen->sizey) y2+= EDGE_EXTEND;
 		
@@ -2776,9 +2776,9 @@ void drawedge(short x1, short y1, short x2, short y2)
 		glEnd();
 	}
 	else {				/* horizontal */
-		if (x2<x1)
-			x1^= x2^= x1^= x2;
-		
+		if (x2<x1) {
+			SWAP(short, x1, x2);
+		}
 		if (x1==0) x1-= EDGE_EXTEND;
 		if (x2==G.curscreen->sizex) x2+= EDGE_EXTEND;
 
