@@ -300,14 +300,18 @@ void addedgeface_mesh(void)
 	if( (G.vd->lay & G.obedit->lay)==0 ) return;
 
 	/* how many selected ? */
-	eve= em->verts.first;
-	while(eve) {
+	if(G.scene->selectmode & SCE_SELECT_EDGE) {
+		/* in edge mode finding selected vertices means flushing down edge codes... */
+		/* can't make face with only edge selection info... */
+		EM_selectmode_set();
+	}
+	
+	for(eve= em->verts.first; eve; eve= eve->next) {
 		if(eve->f & SELECT) {
 			amount++;
 			if(amount>4) break;			
 			neweve[amount-1]= eve;
 		}
-		eve= eve->next;
 	}
 	if(amount==2) {
 		eed= addedgelist(neweve[0], neweve[1], NULL);
@@ -357,6 +361,8 @@ void addedgeface_mesh(void)
 					efa= addfacelist(neweve[0], neweve[2], neweve[3], neweve[1], NULL, NULL);
 				else 
 					efa= addfacelist(neweve[0], neweve[2], neweve[1], neweve[3], NULL, NULL);
+				
+				EM_select_face(efa, 1);
 			}
 
 		}

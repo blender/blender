@@ -1311,6 +1311,8 @@ void separate_mesh(void)
 		return;
 	}
 	
+	EM_selectmode_set();	// enforce full consistant selection flags 
+	
 	/* we are going to abuse the system as follows:
 	 * 1. add a duplicate object: this will be the new one, we remember old pointer
 	 * 2: then do a split if needed.

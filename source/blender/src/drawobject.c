@@ -3867,7 +3867,7 @@ static void drawSolidSelect(Object *ob, ListBase *lb)
 			}
 			
 			drawmeshwire(ob);
-			
+
 			if(dlm && flag) dlm->flag |= flag;
 		}
 		else drawDispListwire(lb);
