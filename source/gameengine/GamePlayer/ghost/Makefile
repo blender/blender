@@ -60,8 +60,9 @@ CPPFLAGS += -I../../SoundSystem
 CPPFLAGS += -I../../SoundSystem/SND_OpenAL
 
 # Sumo
-CPPFLAGS += -I../../../sumo/Fuzzics/include
-CPPFLAGS += -I../../../sumo/include
+CPPFLAGS += -I$(SRCHOME)/gameengine/Physics/Sumo/include
+CPPFLAGS += -I$(SRCHOME)/gameengine/Physics/Sumo/Fuzzics/include
+
 CPPFLAGS += -I$(NAN_MOTO)/include
 
 # Blender includes

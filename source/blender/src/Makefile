@@ -84,7 +84,7 @@ CPPFLAGS += -I../../gameengine/SoundSystem
 # Only used by py_demo.c !!!
 CPPFLAGS += -I../radiosity/extern/include
 
-CPPFLAGS += -I$(SRCHOME)/sumo/include
+CPPFLAGS += -I$(SRCHOME)/gameengine/Physics/Sumo/include
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
 CPPFLAGS += -I$(NAN_DECIMATION)/include

@@ -47,8 +47,8 @@ CPPFLAGS += -I$(SRCHOME)/gameengine/SoundSystem
 CPPFLAGS += -I$(SRCHOME)/gameengine/Network
 CPPFLAGS += -I$(SRCHOME)/gameengine/Network/LoopBackNetwork
 
-CPPFLAGS += -I$(SRCHOME)/sumo/Fuzzics/include
-CPPFLAGS += -I$(SRCHOME)/sumo/include
+CPPFLAGS += -I$(SRCHOME)/gameengine/Physics/Sumo/Fuzzics/include
+CPPFLAGS += -I$(SRCHOME)/gameengine/Physics/Sumo/include
 
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I$(NAN_STRING)/include    
