@@ -1260,7 +1260,9 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 	//R.osatex= 0;
 	//R.vlr= 0;	
 	///* at cubemap */
-	R.flag= 0;
+	
+	/* these flags remain on, until reset in caller to render (renderwin.c) */
+	R.flag &= (R_RENDERING|R_ANIMRENDER);
 }
 
 void RE_animrender(struct View3D *ogl_render_view3d)
@@ -1310,7 +1312,7 @@ void RE_animrender(struct View3D *ogl_render_view3d)
 	for((G.scene->r.cfra)=(G.scene->r.sfra); (G.scene->r.cfra)<=(G.scene->r.efra); (G.scene->r.cfra)++) {
 		double starttime= PIL_check_seconds_timer();
 
-		R.flag= R_ANIMRENDER;
+		R.flag |= R_ANIMRENDER; // unused now (ton)
 
 		RE_initrender(ogl_render_view3d);
 		
