@@ -28,7 +28,7 @@
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\loader\debug/BLO_loader_bak.pch"
+				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\loader\debug/BLO_loader.pch"
 				AssemblerListingLocation="..\..\..\..\obj\windows\blender\loader\debug/"
 				ObjectFile="..\..\..\..\obj\windows\blender\loader\debug/"
 				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\loader\debug/"
@@ -40,7 +40,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\loader\debug\BLO_loader_bak.lib"
+				OutputFile="..\..\..\..\obj\windows\blender\loader\debug\BLO_loader.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -74,7 +74,7 @@
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\loader\mtdll_debug/BLO_loader_bak.pch"
+				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\loader\mtdll_debug/BLO_loader.pch"
 				AssemblerListingLocation="..\..\..\..\obj\windows\blender\loader\mtdll_debug/"
 				ObjectFile="..\..\..\..\obj\windows\blender\loader\mtdll_debug/"
 				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\loader\mtdll_debug/"
@@ -85,7 +85,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\loader\mtdll_debug\BLO_loader_bak.lib"
+				OutputFile="..\..\..\..\obj\windows\blender\loader\mtdll_debug\BLO_loader.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -120,7 +120,7 @@
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\loader\mtdll/BLO_loader_bak.pch"
+				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\loader\mtdll/BLO_loader.pch"
 				AssemblerListingLocation="..\..\..\..\obj\windows\blender\loader\mtdll/"
 				ObjectFile="..\..\..\..\obj\windows\blender\loader\mtdll/"
 				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\loader\mtdll/"
@@ -130,7 +130,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\loader\mtdll\BLO_loader_bak.lib"
+				OutputFile="..\..\..\..\obj\windows\blender\loader\mtdll\BLO_loader.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -165,7 +165,7 @@
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\loader/BLO_loader_bak.pch"
+				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\loader/BLO_loader.pch"
 				AssemblerListingLocation="..\..\..\..\obj\windows\blender\loader/"
 				ObjectFile="..\..\..\..\obj\windows\blender\loader/"
 				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\loader/"
@@ -176,7 +176,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\loader\BLO_loader_bak.lib"
+				OutputFile="..\..\..\..\obj\windows\blender\loader\BLO_loader.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
