@@ -2126,7 +2126,7 @@ static TBitem tb_transform_editmode1[]= {
 {	0, "Snap", 		0, tb_transform_snap},
 {	0, "SEPR", 					0, NULL},
 {	0, "Proportional Edit|O", 	'o', 		NULL},
-{  -1, "", 			0, tb_do_hotkey}};
+{  -1, "", 			0, tb_do_transform}};
 
 
 static TBitem tb_transform_editmode2[]= {
@@ -2139,7 +2139,7 @@ static TBitem tb_transform_editmode2[]= {
 {	0, "SEPR", 					0, NULL},
 {	ICON_MENU_PANEL, "Properties|n", 'n', NULL},
 {	0, "Snap", 		0, tb_transform_snap},
-{  -1, "", 			0, tb_do_hotkey}};
+{  -1, "", 			0, tb_do_transform}};
 
 
 /* *************ADD ********** */
