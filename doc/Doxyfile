@@ -297,7 +297,7 @@ WARN_FORMAT            = "$file:$line: $text"
 # and error messages should be written. If left blank the output is written 
 # to stderr.
 
-WARN_LOGFILE           = 
+WARN_LOGFILE           =
 
 #---------------------------------------------------------------------------
 # configuration options related to the input files
@@ -308,7 +308,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT =  doxygen.main ../source/creator/
+INPUT =  doxygen.main ../source/creator/ ../source/blender/src/B.blend.c ../source/blender/src/blenderbuttons.c ../source/blender/readblenfile/intern/BLO_readblenfile.c ../intern/ghost/GHOST_C-api.h ../source/blender/imbuf/
 
 # cmccad - The following lines are directories which will eventually be included:
 #
@@ -395,7 +395,7 @@ FILTER_SOURCE_FILES    = NO
 # If the SOURCE_BROWSER tag is set to YES then a list of source files will 
 # be generated. Documented entities will be cross-referenced with these sources.
 
-SOURCE_BROWSER         = NO
+SOURCE_BROWSER         = YES
 
 # Setting the INLINE_SOURCES tag to YES will include the body 
 # of functions and classes directly in the documentation.
