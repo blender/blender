@@ -101,9 +101,9 @@ editmesh_mods.c, UI level access, no geometry changes
 
 /* ****************************** SELECTION ROUTINES **************** */
 
-int em_solidoffs=0, em_wireoffs=0;	// set in drawobject.c ... for colorindices
+int em_solidoffs=0, em_wireoffs=0, em_vertoffs;	// set in drawobject.c ... for colorindices
 
-/* copied from vpaint */
+/* samples a single pixel (copied from vpaint) */
 static unsigned int sample_backbuf(int x, int y)
 {
 	unsigned int col;
@@ -124,6 +124,7 @@ static unsigned int sample_backbuf(int x, int y)
 	return framebuffer_to_index(col);
 }
 
+/* reads full rect, converts indices */
 static unsigned int *read_backbuf(short xmin, short ymin, short xmax, short ymax)
 {
 	unsigned int *dr, *buf;
@@ -152,7 +153,7 @@ static unsigned int *read_backbuf(short xmin, short ymin, short xmax, short ymax
 	a= (xmaxc-xminc+1)*(ymaxc-yminc+1);
 	dr= buf;
 	while(a--) {
-		*dr= framebuffer_to_index(*dr);
+		if(*dr) *dr= framebuffer_to_index(*dr);
 		dr++;
 	}
 	
@@ -224,98 +225,44 @@ static unsigned int sample_backbuf_rect(unsigned int *buf, int size, int min, in
 	return 0;
 }
 
+/* facilities for border select and circle select */
+static char *selbuf= NULL;
 
-// caching
-
-static unsigned int *zbuffer= NULL;
-static short zminx, zminy, zmaxx, zmaxy;
-
-void EM_set_zbufselect_cache(short minx, short miny, short maxx, short maxy)
+/* reads rect, and builds selection array for quick lookup */
+/* returns if all is OK */
+int EM_init_backbuf_border(short xmin, short ymin, short xmax, short ymax)
 {
-
-	if(G.vd->drawtype<OB_SOLID || (G.vd->flag & V3D_ZBUF_SELECT)==0) return;
-
-	if(minx<0) minx= 0;
-	if(miny<0) miny= 0;
-	if(maxx>=curarea->winx) maxx= curarea->winx;
-	if(maxy>=curarea->winy) maxy= curarea->winy;
-
-	if(minx<=maxx && miny<=maxy) {
-		zbuffer= MEM_mallocN( (maxx-minx+1)*(maxy-miny+1)*sizeof(int), "zbuffer select");
-		glReadPixels(curarea->winrct.xmin+minx, curarea->winrct.ymin+miny, (maxx-minx+1), (maxy-miny+1), 
-					 GL_DEPTH_COMPONENT, GL_UNSIGNED_INT,  zbuffer);
-		zminx= minx; zminy= miny;
-		zmaxx= maxx; zmaxy= maxy;
-	}
-}
-
-void EM_free_zbufselect_cache(void)
-{
-	if(zbuffer) MEM_freeN(zbuffer);
-	zbuffer= NULL;
-}
-
-static void myglReadPixels(short xs, short ys, unsigned int *data)
-{
-
-	if(zbuffer) {
-		if(xs<zminx || xs>zmaxx || ys<zminy || ys>zmaxy) *data= 0xFFFFFFFF;
-		else *data= zbuffer[ (zmaxx-zminx+1)*(ys-zminy) + (xs-zminx) ];
-	}
-	else 
-		glReadPixels(curarea->winrct.xmin+xs,  curarea->winrct.ymin+ys, 1, 1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT,  data);
-
-}
-
-/* return 1 if visible */
-int EM_zbuffer_visible(float *co, short xs, short ys)
-{
-	static float persmat[4][4];
-	float zval, vec4[4];
+	unsigned int *buf, *dr;
+	int a;
 	
-	if(G.vd->drawtype<OB_SOLID || (G.vd->flag & V3D_ZBUF_SELECT)==0) return 1;
+	if(G.obedit==NULL || G.vd->drawtype<OB_SOLID || (G.vd->flag & V3D_ZBUF_SELECT)==0) return 0;
+	if(em_vertoffs==0) return 0;
 	
-	if(co==NULL) {	// init
-		float pmat[4][4], vmat[4][4];
-		areawinset(curarea->win);
-		persp(PERSP_VIEW);
-		mymultmatrix(G.obedit->obmat);
+	selbuf= MEM_callocN(em_vertoffs+1, "selbuf");
 
-		bglPolygonOffset(2.0);	// sets proj matrix
-		glGetFloatv(GL_PROJECTION_MATRIX, (float *)pmat);
-		glGetFloatv(GL_MODELVIEW_MATRIX, (float *)vmat);
-		Mat4MulMat4(persmat, vmat, pmat);	
-		bglPolygonOffset(0.0);			// restores proj matrix 
-
-		myloadmatrix(G.vd->viewmat);		
-		return 0;
+	dr= buf= read_backbuf(xmin, ymin, xmax, ymax);
+	a= (xmax-xmin+1)*(ymax-ymin+1);
+	while(a--) {
+		if(*dr>0 && *dr<=em_vertoffs) selbuf[*dr]= 1;
+		dr++;
 	}
-
-	// clip on window edge */
-	if(xs<0 || ys<0 || xs>=curarea->winx || ys>= curarea->winy) return 0;
-
-	VECCOPY(vec4, co);
-	vec4[3]= 1.0;
-	Mat4MulVec4fl(persmat, vec4);
-	vec4[2]/= vec4[3];
-	vec4[2]= 0.5 + vec4[2]/2;
-
-	if(1) {
-		unsigned int zvali;
-		
-		myglReadPixels(xs, ys, &zvali);
-		zval= ((float)zvali)/((float)0xFFFFFFFF);
-		if( vec4[2] <= zval) return 1;
-	}
-	else {
-		glReadPixels(curarea->winrct.xmin+xs,  curarea->winrct.ymin+ys, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT,  &zval);
-		// printf("my proj %f zbuf %f mydiff %f\n", vec4[2], zval, vec4[2]-zval);
-	}
-	
-	if( vec4[2] > zval) return 0;
+	MEM_freeN(buf);
 	return 1;
 }
 
+int EM_check_backbuf_border(int index)
+{
+	if(selbuf==NULL) return 1;
+	if(index>0 && index<=em_vertoffs)
+		return selbuf[index];
+	return 0;
+}
+
+void EM_free_backbuf_border(void)
+{
+	if(selbuf) MEM_freeN(selbuf);
+	selbuf= NULL;
+}
 
 static EditVert *findnearestvert_f(short *dist, short sel)
 {
@@ -329,7 +276,6 @@ static EditVert *findnearestvert_f(short *dist, short sel)
 
 	/* do projection */
 	calc_meshverts_ext();	/* drawobject.c */
-	EM_zbuffer_visible(NULL, 0, 0);	/* NULL = init */
 	
 	/* we count from acto->next to last, and from first to acto */
 	/* does acto exist? */
@@ -348,11 +294,9 @@ static EditVert *findnearestvert_f(short *dist, short sel)
 			temp= abs(mval[0]- eve->xs)+ abs(mval[1]- eve->ys);
 			if( (eve->f & 1)==sel ) temp+=5;
 			if(temp< *dist) {
-				if(EM_zbuffer_visible(eve->co, eve->xs, eve->ys)) {
-					act= eve;
-					*dist= temp;
-					if(*dist<4) break;
-				}
+				act= eve;
+				*dist= temp;
+				if(*dist<4) break;
 			}
 		}
 		eve= eve->next;
@@ -365,11 +309,9 @@ static EditVert *findnearestvert_f(short *dist, short sel)
 				temp= abs(mval[0]- eve->xs)+ abs(mval[1]- eve->ys);
 				if( (eve->f & 1)==sel ) temp+=5;
 				if(temp< *dist) {
-					if(EM_zbuffer_visible(eve->co, eve->xs, eve->ys)) {
-						act= eve;
-						if(temp<4) break;
-						*dist= temp;
-					}
+					act= eve;
+					if(temp<4) break;
+					*dist= temp;
 				}
 				if(eve== acto) break;
 			}
@@ -407,24 +349,6 @@ EditVert *findnearestvert(short *dist, short sel)
 	else return findnearestvert_f(dist, sel);
 }
 
-
-/* more samples */
-int EM_zbuffer_edge_visible(float *v1, float *v2, short *val1, short *val2)
-{
-	float cent[3];
-
-		/* midpoints work bad in persp mode... */
-	VecMidf(cent, v1, v2);
-	if(EM_zbuffer_visible(cent, (val1[0]+val2[0])/2, (val1[1]+val2[1])/2)) return 1;
-
-	// endpoints; should be both visible
-	if(EM_zbuffer_visible(v1, val1[0], val1[1])) 
-		if(EM_zbuffer_visible(v1, val2[0], val2[1])) 
-			return 1;
-	
-	return 0;
-}
-
 /* helper for findnearest edge */
 static float dist_mval_edge(short *mval, EditEdge *eed)
 {
@@ -457,7 +381,6 @@ static EditEdge *findnearestedge_f(short *dist)
 	}	
 		
 	calc_meshverts_ext_f2();     	/*sets (eve->f & 2) for vertices that aren't visible*/
-	EM_zbuffer_visible(NULL, 0, 0);	/* NULL = init */
 
 	getmouseco_areawin(mval);
 	closest=NULL;
@@ -470,10 +393,8 @@ static EditEdge *findnearestedge_f(short *dist)
 			
 			distance= dist_mval_edge(mval, eed);
 			if(distance < *dist) {
-				if(EM_zbuffer_edge_visible(eed->v1->co, eed->v2->co, &eed->v1->xs, &eed->v2->xs)) {
-					*dist= distance;
-					closest= eed;
-				}
+				*dist= distance;
+				closest= eed;
 			}
 		}
 		eed= eed->next;
@@ -528,7 +449,6 @@ static EditFace *findnearestface_f(short *dist)
 
 	/* do projection */
 	calc_mesh_facedots_ext();
-	EM_zbuffer_visible(NULL, 0, 0);	/* NULL = init */
 	
 	/* we count from acto->next to last, and from first to acto */
 	/* does acto exist? */
@@ -546,10 +466,8 @@ static EditFace *findnearestface_f(short *dist)
 		if(efa->h==0 && efa->fgonf!=EM_FGON) {
 			temp= abs(mval[0]- efa->xs)+ abs(mval[1]- efa->ys);
 			if(temp< *dist) {
-				if(EM_zbuffer_visible(efa->cent, efa->xs, efa->ys)) {
-					act= efa;
-					*dist= temp;
-				}
+				act= efa;
+				*dist= temp;
 			}
 		}
 		efa= efa->next;
@@ -561,10 +479,8 @@ static EditFace *findnearestface_f(short *dist)
 			if(efa->h==0 && efa->fgonf!=EM_FGON) {
 				temp= abs(mval[0]- efa->xs)+ abs(mval[1]- efa->ys);
 				if(temp< *dist) {
-					if(EM_zbuffer_visible(efa->cent, efa->xs, efa->ys)) {
-						act= efa;
-						*dist= temp;
-					}
+					act= efa;
+					*dist= temp;
 				}
 				if(efa== acto) break;
 			}

@@ -4334,7 +4334,7 @@ void draw_object_ext(Base *base)
 
 /* ***************** BACKBUF SEL (BBS) ********* */
 
-static void bbs_mesh_verts(Object *ob, int offset)
+static int bbs_mesh_verts(Object *ob, int offset)
 {
 	EditVert *eve;
 	int a= offset;
@@ -4351,6 +4351,7 @@ static void bbs_mesh_verts(Object *ob, int offset)
 	bglEnd();
 	
 	glPointSize(1.0);
+	return a;
 }		
 
 /* two options, edgecolors or black */
@@ -4507,7 +4508,7 @@ static int bbs_mesh_solid(Object *ob, int facecol)
 
 void draw_object_backbufsel(Object *ob)
 {
-	extern int em_solidoffs, em_wireoffs;	// let linker solve it... from editmesh_mods.c 
+	extern int em_solidoffs, em_wireoffs, em_vertoffs;	// let linker solve it... from editmesh_mods.c 
 	
 	mymultmatrix(ob->obmat);
 
@@ -4527,7 +4528,10 @@ void draw_object_backbufsel(Object *ob)
 				em_wireoffs= bbs_mesh_wire(ob, em_solidoffs);
 			else em_wireoffs= em_solidoffs;
 			
-			if(G.scene->selectmode & SCE_SELECT_VERTEX) bbs_mesh_verts(ob, em_wireoffs);
+			if(G.scene->selectmode & SCE_SELECT_VERTEX) 
+				em_vertoffs= bbs_mesh_verts(ob, em_wireoffs);
+			else em_vertoffs= em_wireoffs;
+			
 			bglPolygonOffset(0.0);
 		}
 		else bbs_mesh_solid(ob, 1);	// 1= facecol, faceselect

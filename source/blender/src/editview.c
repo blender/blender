@@ -788,20 +788,22 @@ void borderselect(void)
 		else if(G.obedit) {
 			/* used to be a bigger test, also included sector and life */
 			if(G.obedit->type==OB_MESH) {
+				extern int em_solidoffs, em_wireoffs;	// let linker solve it... from editmesh_mods.c 
 				EditMesh *em = G.editMesh;
 				EditVert *eve;
 				EditEdge *eed;
 				EditFace *efa;
+				int index, bbsel=0; // bbsel: no clip needed with screencoords
 				
-				EM_zbuffer_visible(NULL, 0, 0);	// init
-				EM_set_zbufselect_cache(rect.xmin, rect.ymin, rect.xmax, rect.ymax);
-				
+				bbsel= EM_init_backbuf_border(rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+
 				if(G.scene->selectmode & SCE_SELECT_VERTEX) {
-					calc_meshverts_ext();	/* clips, drawobject.c */
-					for(eve= em->verts.first; eve; eve= eve->next) {
-						if(eve->h==0 && eve->xs>rect.xmin && eve->xs<rect.xmax) {
-							if(eve->ys>rect.ymin && eve->ys<rect.ymax) {
-								if(EM_zbuffer_visible(eve->co, eve->xs, eve->ys)) {
+					if(bbsel==0) calc_meshverts_ext();	/* clips, drawobject.c */
+					index= em_wireoffs;
+					for(eve= em->verts.first; eve; eve= eve->next, index++) {
+						if(eve->h==0) {
+							if(bbsel || (eve->xs>rect.xmin && eve->xs<rect.xmax && eve->ys>rect.ymin && eve->ys<rect.ymax)) {
+								if(EM_check_backbuf_border(index)) {
 									if(val==LEFTMOUSE) eve->f|= 1;
 									else eve->f&= 254;
 								}
@@ -810,17 +812,15 @@ void borderselect(void)
 					}
 				}
 				if(G.scene->selectmode & SCE_SELECT_EDGE) {
-					float cent[3];
 					short done= 0;
 					
-					calc_meshverts_ext_f2();	/* doesnt clip, drawobject.c */
-					
+					if(bbsel==0) calc_meshverts_ext_f2();	/* doesnt clip, drawobject.c */
+					index= em_solidoffs;
 					/* two stages, for nice edge select first do 'both points in rect' */
-					for(eed= em->edges.first; eed; eed= eed->next) {
+					for(eed= em->edges.first; eed; eed= eed->next, index++) {
 						if(eed->h==0) {
-							if( edge_fully_inside_rect(rect, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {
-								VecMidf(cent, eed->v1->co, eed->v2->co);
-								if(EM_zbuffer_visible(cent, (eed->v1->xs+eed->v2->xs)/2, (eed->v1->ys+eed->v2->ys)/2)) {
+							if(bbsel || edge_fully_inside_rect(rect, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {
+								if(EM_check_backbuf_border(index)) {
 									EM_select_edge(eed, val==LEFTMOUSE);
 									done = 1;
 								}
@@ -829,11 +829,11 @@ void borderselect(void)
 					}
 					
 					if(done==0) {
-						for(eed= em->edges.first; eed; eed= eed->next) {
+						index= em_solidoffs;
+						for(eed= em->edges.first; eed; eed= eed->next, index++) {
 							if(eed->h==0) {
-								if( edge_inside_rect(rect, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {
-									VecMidf(cent, eed->v1->co, eed->v2->co);
-									if(EM_zbuffer_visible(cent, (eed->v1->xs+eed->v2->xs)/2, (eed->v1->ys+eed->v2->ys)/2)) {
+								if(bbsel || edge_inside_rect(rect, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {
+									if(EM_check_backbuf_border(index)) {
 										EM_select_edge(eed, val==LEFTMOUSE);
 										done = 1;
 									}
@@ -844,11 +844,12 @@ void borderselect(void)
 				}
 				
 				if(G.scene->selectmode & SCE_SELECT_FACE) {
-					calc_mesh_facedots_ext();
-					for(efa= em->faces.first; efa; efa= efa->next) {
-						if(efa->h==0 && efa->xs>rect.xmin && efa->xs<rect.xmax) {
-							if(efa->ys>rect.ymin && efa->ys<rect.ymax) {
-								if(EM_zbuffer_visible(efa->cent, efa->xs, efa->ys)) {
+					if(bbsel==0) calc_mesh_facedots_ext();
+					index= 1;
+					for(efa= em->faces.first; efa; efa= efa->next, index++) {
+						if(efa->h==0) {
+							if(bbsel || (efa->xs>rect.xmin && efa->xs<rect.xmax && efa->ys>rect.ymin && efa->ys<rect.ymax)) {
+								if(EM_check_backbuf_border(index)) {
 									EM_select_face_fgon(efa, val==LEFTMOUSE);
 								}
 							}
@@ -856,7 +857,7 @@ void borderselect(void)
 					}
 				}
 				
-				EM_free_zbufselect_cache();
+				EM_free_backbuf_border();
 					
 				EM_selectmode_flush();
 				allqueue(REDRAWVIEW3D, 0);
@@ -1053,45 +1054,47 @@ void borderselect(void)
 
 void mesh_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 {
+	extern int em_solidoffs, em_wireoffs;	// let linker solve it... from editmesh_mods.c 
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	EditEdge *eed;
 	EditFace *efa;
 	float x, y, r;
+	int index, bbsel=0; // if bbsel we dont clip with screencoords
 	short rads= (short)(rad+1.0);
 	
-	EM_zbuffer_visible(NULL, 0, 0);	// init
-	EM_set_zbufselect_cache(mval[0]-rads, mval[1]-rads, mval[0]+rads, mval[1]+rads);
-
+	bbsel= EM_init_backbuf_border(mval[0]-rads, mval[1]-rads, mval[0]+rads, mval[1]+rads);
+	
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
-		calc_meshverts_ext();	/* drawobject.c */
-		eve= em->verts.first;
-		while(eve) {
+		if(bbsel==0) calc_meshverts_ext();	/* drawobject.c */
+		index= em_wireoffs;
+		for(eve= em->verts.first; eve; eve= eve->next, index++) {
 			if(eve->h==0) {
-				x= eve->xs-mval[0];
-				y= eve->ys-mval[1];
-				r= sqrt(x*x+y*y);
-				if(r<=rad) {
-					if(EM_zbuffer_visible(eve->co, eve->xs, eve->ys)) {
+				if(bbsel && EM_check_backbuf_border(index)) {
+					if(selecting==LEFTMOUSE) eve->f|= 1;
+					else eve->f&= 254;
+				}
+				else {
+					x= eve->xs-mval[0];
+					y= eve->ys-mval[1];
+					r= sqrt(x*x+y*y);
+					if(r<=rad) {
 						if(selecting==LEFTMOUSE) eve->f|= 1;
 						else eve->f&= 254;
 					}
 				}
 			}
-			eve= eve->next;
 		}
 	}
 
 	if(G.scene->selectmode & SCE_SELECT_EDGE) {
-		calc_meshverts_ext_f2();	/* doesnt clip, drawobject.c */
-		
-		for(eed= em->edges.first; eed; eed= eed->next) {
+		if(bbsel==0) calc_meshverts_ext_f2();	/* doesnt clip, drawobject.c */
+		index= em_solidoffs;
+		for(eed= em->edges.first; eed; eed= eed->next, index++) {
 			if(eed->h==0) {
-				if( edge_inside_circle(mval[0], mval[1], (short)rad, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {
-					if(EM_zbuffer_visible(eed->v1->co, eed->v1->xs, eed->v1->ys)) {
-						if(EM_zbuffer_visible(eed->v2->co, eed->v2->xs, eed->v2->ys)) {
-							EM_select_edge(eed, selecting==LEFTMOUSE);
-						}
+				if(bbsel || edge_inside_circle(mval[0], mval[1], (short)rad, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {
+					if(EM_check_backbuf_border(index)) {
+						EM_select_edge(eed, selecting==LEFTMOUSE);
 					}
 				}
 			}
@@ -1099,22 +1102,25 @@ void mesh_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 	}
 	
 	if(G.scene->selectmode & SCE_SELECT_FACE) {
-		calc_mesh_facedots_ext();
-		for(efa= em->faces.first; efa; efa= efa->next) {
+		if(bbsel==0) calc_mesh_facedots_ext();
+		index= 1;
+		for(efa= em->faces.first; efa; efa= efa->next, index++) {
 			if(efa->h==0) {
-				x= efa->xs-mval[0];
-				y= efa->ys-mval[1];
-				r= sqrt(x*x+y*y);
-				if(r<=rad) {
-					if(EM_zbuffer_visible(efa->cent, efa->xs, efa->ys)) {
+				if(bbsel && EM_check_backbuf_border(index)) {
+					EM_select_face_fgon(efa, selecting==LEFTMOUSE);
+				}
+				else {
+					x= efa->xs-mval[0];
+					y= efa->ys-mval[1];
+					r= sqrt(x*x+y*y);
+					if(r<=rad) {
 						EM_select_face_fgon(efa, selecting==LEFTMOUSE);
 					}
 				}
 			}
 		}
 	}
-	
-	EM_free_zbufselect_cache();
+	EM_free_backbuf_border();
 	EM_selectmode_flush();
 
 	draw_sel_circle(0, 0, 0, 0, 0);	/* signal */

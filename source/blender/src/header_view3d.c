@@ -3928,7 +3928,7 @@ void view3d_buttons(void)
 		xco+= XIC;
 		uiBlockEndAlign(block);
 		if(G.vd->drawtype > OB_WIRE) {
-			uiDefIconButS(block, TOG|BIT|12, B_REDR, ICON_ORTHO, xco,0,XIC,YIC, &G.vd->flag, 1.0, 0.0, 0, 0, "Clip selection with Z buffer");
+			uiDefIconButS(block, TOG|BIT|12, B_REDR, ICON_ORTHO, xco,0,XIC,YIC, &G.vd->flag, 1.0, 0.0, 0, 0, "Limit selection to visible (clipped with depth buffer)");
 			xco+= XIC;
 		}
 		xco+= 20;
