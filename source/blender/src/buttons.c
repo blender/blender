@@ -5707,9 +5707,9 @@ void worldbuts(void)
 	
 	uiDefButF(block, NUM,REDRAWVIEW3D, "Sta:",571,150,100,17, &wrld->miststa, 0.0, 1000.0, 10, 0, "Specify the starting distance of the mist");
 	uiDefButF(block, NUM,REDRAWVIEW3D, "Di:",571,133,100,17, &wrld->mistdist, 0.0,1000.0, 10, 00, "Specify the depth of the mist");
-	uiDefButF(block, NUM,B_DIFF,"Hi:",	571,116,100,17, &wrld->misthi,0.0,100.0, 10, 0, "Specify the factor for a less dense mist with increasing height");
+	uiDefButF(block, NUM,B_DIFF,"Hi:",		571,116,100,17, &wrld->misthi,0.0,100.0, 10, 0, "Specify the factor for a less dense mist with increasing height");
 	
-	uiDefButF(block, NUMSLI,0, "misi",571,99,120,17,	&(wrld->misi), 0., 1.0, 0, 0, "Set the mist intensity");
+	uiDefButF(block, NUM, 0, "misi",		571,99,100,17,	&(wrld->misi), 0., 1.0, 0, 0, "Set the mist intensity");
 
 		uiBlockSetCol(block, BUTGREEN);
 	uiDefButS(block, TOG|BIT|1,B_DIFF,	"Stars",571,82,100,17, &wrld->mode, 0, 0, 0, 0, "Enable stars");
