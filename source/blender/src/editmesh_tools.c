@@ -530,21 +530,31 @@ void hashvert_flag(int flag)
 
 void extrude_mesh(void)
 {
-	short a;
+	short nr, xmode= 0;
 
 	TEST_EDITMESH
-
-	if(okee("Extrude")==0) return;
 	
-	a= extrudeflag(SELECT);
+	if(G.scene->selectmode & SCE_SELECT_VERTEX)
+		nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3|Only Vertices%x4");
+	else if(G.scene->selectmode & SCE_SELECT_EDGE)
+		nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3");
+	else
+		nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2");
+		
+	if(nr<1) return;
 
-	if(a==0) {
+	if(nr==1)  xmode= extrudeflag(SELECT);
+	else if(nr==4) xmode= extrudeflag_verts_indiv(SELECT);
+	else if(nr==3) xmode= extrudeflag_edges_indiv(SELECT);
+	else xmode= extrudeflag_face_indiv(SELECT);
+	
+	if(xmode==0) {
 		error("No valid selection");
 	}
 	else {
 		EM_fgon_flags();
 		countall(); 
-		transform('n');
+		transform(xmode);
 	}
 
 }

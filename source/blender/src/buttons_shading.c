@@ -1199,7 +1199,7 @@ static void texture_panel_image(Tex *tex)
 		uiDefButS(block, MENU, B_TEXIMABROWSE, strp, 10,135,23,20, &(G.buts->menunr), 0, 0, 0, 0, "Selects an existing texture or creates new");
 		
 		if(tex->ima) {
-			uiDefBut(block, TEX, B_NAMEIMA, "",			35,135,255,20, tex->ima->name, 0.0, 79.0, 0, 0, "Displays name of the texture block: click to change");
+			uiDefBut(block, TEX, B_NAMEIMA, "",			35,135,255,20, tex->ima->name, 0.0, 79.0, 0, 0, "Displays name of the Image file: click to change");
 			sprintf(str, "%d", tex->ima->id.us);
 			uiDefBut(block, BUT, 0, str,				290,135,20,20, 0, 0, 0, 0, 0, "Displays number of users of texture: click to make single user");
 			uiBlockEndAlign(block);

@@ -2544,10 +2544,12 @@ static void drawmeshwire_wirextra(DispListMesh *dlm, int optimal, char alpha)
 		}
 		else {
 			/* draw faces twice, to have selected ones on top */
+			/* we draw unselected the edges though, so they show in face mode */
 			glColor4ubv(wire);
-			for(efa= em->faces.first; efa; efa= efa->next) {
-				if(efa->h==0 && (efa->f & SELECT)==0) { 
-					glVertex_efa_edges(efa);
+			for(eed= em->edges.first; eed; eed= eed->next) {
+				if(eed->h==0) { 
+					glVertex3fv(eed->v1->co);
+					glVertex3fv(eed->v2->co);
 				}
 			}
 			glColor4ubv(sel);

@@ -460,6 +460,176 @@ static void set_edge_directions(void)
 	}	
 }
 
+/* individual face extrude */
+short extrudeflag_face_indiv(short flag)
+{
+	EditMesh *em = G.editMesh;
+	EditVert *eve, *v1, *v2, *v3, *v4;
+	EditEdge *eed;
+	EditFace *efa, *nextfa;
+	
+	if(G.obedit==0 || get_mesh(G.obedit)==0) return 0;
+	
+	/* selected edges with 1 or more selected face become faces */
+	/* selected faces each makes new faces */
+	/* always remove old faces, keeps volumes manifold */
+	/* select the new extrusion, deselect old */
+	
+	/* step 1; init, count faces in edges */
+	recalc_editnormals();
+	
+	for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;	// new select flag
+
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		eed->f2= 0; // amount of unselected faces
+	}
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		if(efa->f & SELECT);
+		else {
+			efa->e1->f2++;
+			efa->e2->f2++;
+			efa->e3->f2++;
+			if(efa->e4) efa->e4->f2++;
+		}
+	}
+
+	/* step 2: make new faces from faces */
+	for(efa= em->faces.last; efa; efa= efa->prev) {
+		if(efa->f & SELECT) {
+			v1= addvertlist(efa->v1->co);
+			v2= addvertlist(efa->v2->co);
+			v3= addvertlist(efa->v3->co);
+			v1->f1= v2->f1= v3->f1= 1;
+			VECCOPY(v1->no, efa->n);
+			VECCOPY(v2->no, efa->n);
+			VECCOPY(v3->no, efa->n);
+			if(efa->v4) {
+				v4= addvertlist(efa->v4->co); 
+				v4->f1= 1;
+				VECCOPY(v4->no, efa->n);
+			}
+			else v4= NULL;
+			
+			/* side faces, clockwise */
+			addfacelist(efa->v2, v2, v1, efa->v1, efa, NULL);
+			addfacelist(efa->v3, v3, v2, efa->v2, efa, NULL);
+			if(efa->v4) {
+				addfacelist(efa->v4, v4, v3, efa->v3, efa, NULL);
+				addfacelist(efa->v1, v1, v4, efa->v4, efa, NULL);
+			}
+			else {
+				addfacelist(efa->v1, v1, v3, efa->v3, efa, NULL);
+			}
+			/* top face */
+			addfacelist(v1, v2, v3, v4, efa, NULL);
+		}
+	}
+	
+	/* step 3: remove old faces */
+	efa= em->faces.first;
+	while(efa) {
+		nextfa= efa->next;
+		if(efa->f & SELECT) {
+			BLI_remlink(&em->faces, efa);
+			free_editface(efa);
+		}
+		efa= nextfa;
+	}
+
+	/* step 4: redo selection */
+	EM_clear_flag_all(SELECT);
+	
+	for(eve= em->verts.first; eve; eve= eve->next) {
+		if(eve->f1)  eve->f |= SELECT;
+	}
+	
+	EM_select_flush();
+	
+	return 'n';
+}
+
+
+/* extrudes individual edges */
+short extrudeflag_edges_indiv(short flag) 
+{
+	EditMesh *em = G.editMesh;
+	EditVert *eve;
+	EditEdge *eed;
+	EditFace *efa;
+	float nor[3]={0.0, 0.0, 0.0};
+	
+	for(eve= em->verts.first; eve; eve= eve->next) eve->vn= NULL;
+
+	set_edge_directions();
+
+	/* sample for next loop */
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		efa->e1->vn= (EditVert *)efa;
+		efa->e2->vn= (EditVert *)efa;
+		efa->e3->vn= (EditVert *)efa;
+		if(efa->e4) efa->e4->vn= (EditVert *)efa;
+	}
+	/* make the faces */
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		if(eed->f & flag) {
+			if(eed->v1->vn==NULL) eed->v1->vn= addvertlist(eed->v1->co);
+			if(eed->v2->vn==NULL) eed->v2->vn= addvertlist(eed->v2->co);
+			
+			if(eed->dir==1) addfacelist(eed->v1, eed->v2, eed->v2->vn, eed->v1->vn, (EditFace *)eed->vn, NULL);
+			else addfacelist(eed->v2, eed->v1, eed->v1->vn, eed->v2->vn, (EditFace *)eed->vn, NULL);
+
+			/* for transform */
+			if(eed->vn) {
+				efa= (EditFace *)eed->vn;
+				if(efa->f & SELECT) VecAddf(nor, nor, efa->n);
+			}
+		}
+	}
+	Normalise(nor);
+	
+	/* set correct selection */
+	EM_clear_flag_all(SELECT);
+	for(eve= em->verts.last; eve; eve= eve->prev) {
+		if(eve->vn) {
+			eve->vn->f |= flag;
+			VECCOPY(eve->vn->no, nor); // transform() uses it
+		}
+	}
+
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		if(eed->v1->f & eed->v2->f & flag) eed->f |= flag;
+	}
+	
+	if(nor[0]==0.0 && nor[1]==0.0 && nor[2]==0.0) return 'g';
+	return 'n';
+}
+
+/* extrudes individual vertices */
+short extrudeflag_verts_indiv(short flag) 
+{
+	EditMesh *em = G.editMesh;
+	EditVert *eve;
+	
+	/* make the edges */
+	for(eve= em->verts.first; eve; eve= eve->next) {
+		if(eve->f & flag) {
+			eve->vn= addvertlist(eve->co);
+			addedgelist(eve, eve->vn, NULL);
+		}
+		else eve->vn= NULL;
+	}
+	
+	/* set correct selection */
+	EM_clear_flag_all(SELECT);
+
+	for(eve= em->verts.last; eve; eve= eve->prev) if(eve->vn) eve->vn->f |= flag;
+
+	return 'g';
+}
+
+
+/* this is actually a recode of extrudeflag(), using proper edge/face select */
+/* hurms, doesnt use 'flag' yet, but its not called by primitive making stuff anyway */
 static short extrudeflag_edge(short flag)
 {
 	/* all select edges/faces: extrude */
@@ -467,7 +637,7 @@ static short extrudeflag_edge(short flag)
 	EditMesh *em = G.editMesh;
 	EditVert *eve, *nextve;
 	EditEdge *eed, *nexted;
-	EditFace *efa, *nextfa, *efa2;
+	EditFace *efa, *nextfa;
 	float nor[3]={0.0, 0.0, 0.0};
 	short del_old= 0;
 	
@@ -532,16 +702,8 @@ static short extrudeflag_edge(short flag)
 				if(eed->v2->vn==NULL)
 					eed->v2->vn= addvertlist(eed->v2->co);
 					
-				if(eed->dir==1) efa2= addfacelist(eed->v1, eed->v2, eed->v2->vn, eed->v1->vn, NULL, NULL);
-				else efa2= addfacelist(eed->v2, eed->v1, eed->v1->vn, eed->v2->vn, NULL, NULL);
-
-				if(eed->vn) {
-					/* btw, we dont do it in addfacelist, it copies edges too */
-					efa= (EditFace *)eed->vn;
-					efa2->mat_nr= efa->mat_nr;
-					efa2->tf= efa->tf;
-					efa2->flag= efa->flag;
-				}
+				if(eed->dir==1) addfacelist(eed->v1, eed->v2, eed->v2->vn, eed->v1->vn, (EditFace *)eed->vn, NULL);
+				else addfacelist(eed->v2, eed->v1, eed->v1->vn, eed->v2->vn, (EditFace *)eed->vn, NULL);
 			}
 		}
 	}
@@ -620,11 +782,11 @@ static short extrudeflag_edge(short flag)
 		}
 	}
 	
+	Normalise(nor);	// translation normal grab
+	
 	/* step 7: redo selection */
 	EM_clear_flag_all(SELECT);
 
-	Normalise(nor);	// translation normal grab
-	
 	for(eve= em->verts.first; eve; eve= eve->next) {
 		if(eve->vn) {
 			eve->vn->f |= SELECT;
@@ -634,7 +796,8 @@ static short extrudeflag_edge(short flag)
 
 	EM_select_flush();
 	
-	return 1;
+	if(nor[0]==0.0 && nor[1]==0.0 && nor[2]==0.0) return 'g';
+	return 'n';
 }
 
 short extrudeflag_vert(short flag)
@@ -856,7 +1019,8 @@ short extrudeflag_vert(short flag)
 	// since its vertex select mode now, it also deselects higher order
 	EM_selectmode_flush();
 
-	return 1;
+	if(nor[0]==0.0 && nor[1]==0.0 && nor[2]==0.0) return 'g';
+	return 'n';
 }
 
 /* generic extrude */
