@@ -718,11 +718,12 @@ int calculate_structlens(void)
 						
 						/* 2-4 aligned/ */
 						if(typelens[type]>3 && (len % 4) ) {
-							printf("Align 4 error in struct: %s %s\n", types[structtype], cp);
+							printf("Align 4 error in struct: %s %s (add %d padding bytes)\n", types[structtype], cp, len%4);
+							printf("   \n", len%4);
 							dna_error = 1;
 						}
 						else if(typelens[type]==2 && (len % 2) ) {
-							printf("Align 2 error in struct: %s %s\n", types[structtype], cp);
+							printf("Align 2 error in struct: %s %s (add %d padding bytes)\n", types[structtype], cp, len%2);
 							dna_error = 1;
 						}
 
