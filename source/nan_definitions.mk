@@ -57,6 +57,7 @@ all debug::
     export NAN_SOLID ?= $(SRCHOME)/sumo/SOLID-3.0
     export NAN_SUMO ?= $(SRCHOME)/sumo
     export NAN_FUZZICS ?= $(SRCHOME)/sumo/Fuzzics
+    export NAN_ODE ?= $(SRCHOME)/ode
     export NAN_OPENSSL ?= $(LCGDIR)/openssl
     export NAN_BLENKEY ?= $(LCGDIR)/blenkey
     export NAN_DECIMATION ?= $(LCGDIR)/decimation

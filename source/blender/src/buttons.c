@@ -559,9 +559,9 @@ enum {
 
 static char *physics_pup(void)
 {
-	/* the number needs to match defines in game.h */
-	return "Physics %t|Sumo %x0|"
-		"ODE %x4 |None %x7|";
+  /* the number needs to match defines in KX_PhysicsBlenderSceneConverter.cpp */
+  return "Physics %t|None %x1|Sumo %x2|"
+         "ODE %x3 |Dynamo %x4|";
 }
 
 

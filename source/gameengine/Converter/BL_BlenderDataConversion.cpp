@@ -139,6 +139,7 @@
 
 #include "SG_Node.h"
 
+// defines USE_ODE to choose physics engine
 #include "KX_ConvertPhysicsObject.h"
 
 

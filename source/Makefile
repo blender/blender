@@ -38,7 +38,7 @@ endif
 
 include nan_definitions.mk
 
-DIRS = creator blender kernel sumo gameengine
+DIRS = ode creator blender kernel sumo gameengine
 
 ifeq ($(OS),windows)
     DIRS += icons
@@ -114,6 +114,11 @@ PYPLAYERLIB ?= $(PYLIB)
     GRPLIB += $(OCGDIR)/blender/bpython/$(DEBUG_DIR)libbpython.a
     GRPLIB += $(NAN_PYTHON)/frozen/libfrozen.a
 
+# nlin: the reason that some libraries appear more than once below is
+# to handle circular dependencies in linking among libraries... some
+# linkers (e.g. under Linux) need libs to be specified multiple times
+# to properly resolve circular dependencies. ugly, but it works...
+# the repeat entries could probably be trimmed down.
     COMLIB = $(OCGDIR)/blender/blenkernel/$(DEBUG_DIR)libblenkernel.a
     COMLIB += $(OCGDIR)/blender/blenloader/$(DEBUG_DIR)libblenloader.a
     COMLIB += $(OCGDIR)/blender/blenpluginapi/$(DEBUG_DIR)libblenpluginapi.a
@@ -124,6 +129,15 @@ PYPLAYERLIB ?= $(PYLIB)
     COMLIB += $(OCGDIR)/gameengine/bloutines/$(DEBUG_DIR)libbloutines.a
     COMLIB += $(OCGDIR)/gameengine/blconverter/$(DEBUG_DIR)libblconverter.a
     COMLIB += $(OCGDIR)/gameengine/blphys/common/$(DEBUG_DIR)libcommon.a
+    COMLIB += $(OCGDIR)/gameengine/blphys/blode/$(DEBUG_DIR)libblode.a
+    COMLIB += $(OCGDIR)/gameengine/blphys/sumo/$(DEBUG_DIR)libsumo.a
+    COMLIB += $(OCGDIR)/gameengine/blphys/dummy/$(DEBUG_DIR)libdummy.a
+    COMLIB += $(OCGDIR)/gameengine/blphys/common/$(DEBUG_DIR)libcommon.a
+    COMLIB += $(OCGDIR)/gameengine/blphys/sumo/$(DEBUG_DIR)libsumo.a
+    COMLIB += $(OCGDIR)/gameengine/blphys/dummy/$(DEBUG_DIR)libdummy.a
+    COMLIB += $(OCGDIR)/gameengine/ketsji/$(DEBUG_DIR)libketsji.a
+    COMLIB += $(OCGDIR)/gameengine/blphys/common/$(DEBUG_DIR)libcommon.a
+    COMLIB += $(OCGDIR)/gameengine/blphys/blode/$(DEBUG_DIR)libblode.a
     COMLIB += $(OCGDIR)/gameengine/blphys/sumo/$(DEBUG_DIR)libsumo.a
     COMLIB += $(OCGDIR)/gameengine/blphys/dummy/$(DEBUG_DIR)libdummy.a
     COMLIB += $(OCGDIR)/gameengine/blphys/common/$(DEBUG_DIR)libcommon.a

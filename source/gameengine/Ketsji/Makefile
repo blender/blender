@@ -49,6 +49,7 @@ CPPFLAGS += -I../Network -IKXNetwork
 CPPFLAGS += -I../Physics/common
 CPPFLAGS += -I../Physics/Dummy
 CPPFLAGS += -I../Physics/Sumo
+CPPFLAGS += -I../Physics/BlOde
 CPPFLAGS += -I.
 
 ###########################

@@ -31,6 +31,7 @@
  */
 #pragma warning (disable : 4786)
 
+// defines USE_ODE to choose physics engine
 #include "KX_ConvertPhysicsObject.h"
 #include "KX_GameObject.h"
 #include "RAS_MeshObject.h"
@@ -50,11 +51,11 @@
 #ifdef USE_ODE
 
 #include "KX_OdePhysicsController.h"
-#include "odephysicsenvironment.h"
+#include "OdePhysicsEnvironment.h"
 #endif //USE_ODE
 
 
-// USE_SUMO_SOLID is defined in headerfile KX_ConvertPhysicsObjects.h
+// USE_SUMO_SOLID is defined in headerfile KX_ConvertPhysicsObject.h
 #ifdef USE_SUMO_SOLID
 
 
@@ -235,7 +236,7 @@ void	KX_ConvertSumoObject(	class	KX_GameObject* gameobj,
 	// physics object get updated here !
 
 	
-	// lazy evaluation because Havok doesn't support scaling !gameobj->UpdateTransform();
+	// lazy evaluation because we might not support scaling !gameobj->UpdateTransform();
 
 	if (objprop->m_in_active_layer && sumoObj)
 	{

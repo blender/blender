@@ -57,4 +57,4 @@ CPPFLAGS += -I../../kernel/gen_system
 CPPFLAGS += -I../Rasterizer/RAS_OpenGLRasterizer
 CPPFLAGS += -I../Network -I../Ketsji/KXNetwork
 CPPFLAGS += -I../Physics/common -I../Physics/Dummy
-
+CPPFLAGS += -I../Physics/BlOde

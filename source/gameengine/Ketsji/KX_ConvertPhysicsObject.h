@@ -38,8 +38,7 @@
 //#define USE_SUMO_SOLID
 //solid is not available yet
 
-//#define USE_ODE
-//ode is not available yet
+#define USE_ODE
 
 
 class RAS_MeshObject;

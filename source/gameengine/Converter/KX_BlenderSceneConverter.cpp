@@ -43,12 +43,13 @@
 
 #include "DummyPhysicsEnvironment.h"
 
+//to decide to use sumo/ode or dummy physics - defines USE_ODE
+#include "KX_ConvertPhysicsObject.h"
+
 #ifdef USE_ODE
 #include "OdePhysicsEnvironment.h"
 #endif //USE_ODE
 
-//to decide to use sumo/ode or dummy physics
-#include "KX_ConvertPhysicsObject.h"
 #ifdef USE_SUMO_SOLID
 #include "SumoPhysicsEnvironment.h"
 #endif
@@ -181,24 +182,29 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 			switch (blenderscene->world->pad1)
 			{
 				
-			case 4:
-				{
-					physics_engine = UseODE;
-					break;
-				}
-			case 5:
-				{
-					physics_engine = UseDynamo;
-					break;
-				}
-			case 7:
+			case 1:
 				{
 					physics_engine = UseNone;
 					break;
 				};
-			default:
+			case 2:
 				{
 					physics_engine = UseSumo;
+					break;
+				}
+			case 3:
+				{
+					physics_engine = UseODE;
+					break;
+				}
+			case 4:
+				{
+					physics_engine = UseDynamo;
+					break;
+				}
+			default:
+				{
+					physics_engine = UseODE;
 				}
 			}
 		}
