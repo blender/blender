@@ -3607,6 +3607,9 @@ void draw_object(Base *base)
 			}
 			else {
 				if(base->flag & SELECT) rect= rect_sel;
+				/* The center of the active object (which need not 
+				 * be selected) gets drawn as if it were selected
+				 */
 				else if(base==(G.scene->basact)) rect= rect_sel;
 				else rect= rect_desel;
 			}

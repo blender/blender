@@ -633,7 +633,13 @@ void winqread3d(unsigned short event, short val, char ascii)
 					}
 					else {
 						if(G.f & G_FACESELECT) deselectall_tface();
-						else deselectall();
+						else {
+							/* by design, the center of the active object 
+							 * (which need not necessarily by selected) will
+							 * still be drawn as if it were selected.
+							 */
+							deselectall();
+						}
 					}
 				}
 				break;
