@@ -327,6 +327,9 @@ void 	BIF_ThemeColor4(int colorid);
 // sets color plus offset for shade
 void 	BIF_ThemeColorShade(int colorid, int offset);
 
+// sets color plus offset for alpha
+void		BIF_ThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset);
+
 // sets color, which is blend between two theme colors
 void 	BIF_ThemeColorBlend(int colorid1, int colorid2, float fac);
 
