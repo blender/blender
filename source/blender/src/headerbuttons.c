@@ -2519,7 +2519,7 @@ static char *windowtype_pup(void)
 
 	strcat(string, "|Ipo Curve Editor %x2"); //54
 	strcat(string, "|Action Editor %x12"); //73
-	strcat(string, "|Animation Mixer %x13"); //94
+	strcat(string, "|NLA Editor %x13"); //94
 
 	strcat(string, "|%l"); //97
 
