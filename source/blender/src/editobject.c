@@ -4228,9 +4228,9 @@ void transform(int mode)
 					}
 					else {
 						window_to_3d(dvec, mval[0]-xn, mval[1]-yn);
-						if(axismode==XTRANS) dvec[1]=dvec[2]= 0.0;
-						if(axismode==YTRANS) dvec[0]=dvec[2]= 0.0;
-						if(axismode==ZTRANS) dvec[0]=dvec[1]= 0.0;
+						if(axismode & XTRANS) dvec[1]=dvec[2]= 0.0;
+						if(axismode & YTRANS) dvec[0]=dvec[2]= 0.0;
+						if(axismode & ZTRANS) dvec[0]=dvec[1]= 0.0;
 					}
 				}
 				else window_to_3d(dvec, mval[0]-xn, mval[1]-yn);
@@ -4274,14 +4274,9 @@ void transform(int mode)
 					for(a=0; a<tottrans; a++, tob++, tv++) {
 						
 						if(transmain) {
-							float tvec[3];
-
-							VECCOPY(tvec, dvec);
-							if(axismode==XTRANSLOCAL) Projf(dvec, tvec, tob->axismat[0]);
-							if(axismode==YTRANSLOCAL) Projf(dvec, tvec, tob->axismat[1]);
-							if(axismode==ZTRANSLOCAL) Projf(dvec, tvec, tob->axismat[2]);
-							
 							VECCOPY(dvecp, dvec);
+							if(axismode & TRANSLOCAL)
+								Mat3MulVecfl(tob->axismat, dvecp);
 							
 							if(transmode==TRANS_TEX) Mat3MulVecfl(tob->obinv, dvecp);
 
