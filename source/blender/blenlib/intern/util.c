@@ -69,9 +69,8 @@
 #include <sys/time.h>
 #endif
 
-#include <sys/param.h>
-
 #ifdef __APPLE__
+#include <sys/param.h>
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
