@@ -29,20 +29,90 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
+#include <Python.h>
 #include <stdio.h>
 
-void copy (void)
+/*****************************************************************************/
+/* Python API function prototypes for the Blender module.                    */
+/*****************************************************************************/
+PyObject *Object_New(PyObject *self, PyObject *args);
+PyObject *Object_Get(PyObject *self, PyObject *args);
+PyObject *Object_GetSelected (PyObject *self, PyObject *args);
+
+/*****************************************************************************/
+/* The following string definitions are used for documentation strings.      */
+/* In Python these will be written to the console when doing a               */
+/* Blender.__doc__                                                           */
+/*****************************************************************************/
+char Object_New_doc[] =
+"(type) - Add a new object of type 'type' in the current scene";
+
+char Object_Get_doc[] =
+"(name) - return the object with the name 'name', returns None if not\
+	found.\n\
+	If 'name' is not specified, it returns a list of all objects in the\n\
+	current scene.";
+
+char Object_GetSelected_doc[] =
+"() - Returns a list of selected Objects in the active layer(s)\n\
+The active object is the first in the list, if visible";
+
+/*****************************************************************************/
+/* Python method structure definition.                                       */
+/*****************************************************************************/
+struct PyMethodDef Object_methods[] = {
+	{"New",         Object_New,         METH_VARARGS, Object_New_doc},
+	{"Get",         Object_Get,         METH_VARARGS, Object_Get_doc},
+	{"get",         Object_Get,         METH_VARARGS, Object_Get_doc},
+	{"getSelected", Object_GetSelected, METH_VARARGS, Object_GetSelected_doc},
+	{NULL, NULL}
+
+};
+
+/*****************************************************************************/
+/* Function:              Object_New                                         */
+/* Python equivalent:     Blender.Object.New                                 */
+/*****************************************************************************/
+PyObject *Object_New(PyObject *self, PyObject *args)
 {
-	printf ("Object.copy\n");
+	printf ("In Object_New()\n");
+	return (Py_None);
 }
 
-void shareFrom (int object)
+/*****************************************************************************/
+/* Function:              Object_Get                                         */
+/* Python equivalent:     Blender.Object.Get                                 */
+/*****************************************************************************/
+PyObject *Object_Get(PyObject *self, PyObject *args)
 {
-	printf ("Object.shareFrom(%d)\n", object);
+	printf ("In Object_Get()\n");
+
+	return (Py_None);
 }
 
-int getMatrix (void)
+/*****************************************************************************/
+/* Function:              Object_GetSelected                                 */
+/* Python equivalent:     Blender.Object.getSelected                         */
+/*****************************************************************************/
+PyObject *Object_GetSelected (PyObject *self, PyObject *args)
 {
-	printf ("Object.getMatrix\n");
-	return (0);
+	printf ("In Object_GetSelected()\n");
+
+	return (Py_None);
 }
+
+/*****************************************************************************/
+/* Function:              initObject                                         */
+/*****************************************************************************/
+PyObject *initObject (void)
+{
+	PyObject	* module;
+	PyObject	* dict;
+
+	printf ("In initObject()\n");
+
+	module = Py_InitModule("Blender.Object", Object_methods);
+
+	return (module);
+}
+

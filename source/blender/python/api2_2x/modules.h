@@ -30,6 +30,13 @@
 */
 #include <Python.h>
 
+/*****************************************************************************/
+/* Global variables                                                          */
+/*****************************************************************************/
+PyObject *g_blenderdict;
+
+extern struct PyMethodDef Object_methods[];
+
 void initBlender (void);
 PyObject* initObject (void);
 

@@ -29,6 +29,12 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
+#include <stdio.h>
+
+#include <DNA_ID.h>
+
+#include "datablock.h"
+#include "gen_utils.h"
 #include "modules.h"
 
 void initBlenderApi2_2x (void)
@@ -37,3 +43,41 @@ void initBlenderApi2_2x (void)
 	initBlender ();
 }
 
+void setScriptLinks(ID *id, short event)
+{
+	PyObject *link;
+	int       obj_id;
+
+	if (!g_blenderdict)
+	{
+		/* Not initialized yet. This can happen at first file load. */
+		return;
+	}
+
+	obj_id = MAKE_ID2 (id->name[0], id->name[1]);
+	if (obj_id == ID_SCE)
+	{
+		Py_INCREF(Py_None);
+		link = Py_None;
+	}
+	else
+	{
+		link = DataBlockFromID(id);
+	}
+
+	if (!link)
+	{
+		printf ("Internal error, unable to create PyBlock for script link\n");
+		printf ("This is a bug; please report to bugs@blender.nl");
+		Py_INCREF(Py_False);
+		PyDict_SetItemString(g_blenderdict, "bylink", Py_False);
+		return;
+	} else {
+		Py_INCREF(Py_True);
+		PyDict_SetItemString(g_blenderdict, "bylink", Py_True);
+	}
+
+	PyDict_SetItemString(g_blenderdict, "link", link);
+	PyDict_SetItemString(g_blenderdict, "event",
+			Py_BuildValue("s", event_to_name(event)));
+}

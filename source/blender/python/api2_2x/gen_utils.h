@@ -29,6 +29,8 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-%module Blender
+int StringEqual (char * string1, char * string2);
+PyObject * PythonReturnErrorObject (PyObject * type, char * error_msg);
+PyObject * PythonIncRef (PyObject *object);
+char * event_to_name(short event);
 
-void copy (void);

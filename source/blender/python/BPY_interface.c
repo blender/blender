@@ -36,6 +36,7 @@
 
 #include <BKE_text.h>
 #include <DNA_ID.h>
+#include <DNA_scriptlink_types.h>
 #include <DNA_space_types.h>
 #include <DNA_text_types.h>
 
@@ -43,31 +44,31 @@
 
 #include "api2_2x/interface.h"
 
-/*
- * Structure definitions
- */
+/*****************************************************************************/
+/* Structure definitions                                                     */
+/*****************************************************************************/
 #define FILENAME_LENGTH 24
 typedef struct _ScriptError {
 	char filename[FILENAME_LENGTH];
 	int lineno;
 } ScriptError;
 
-/*
- * Global variables
- */
+/*****************************************************************************/
+/* Global variables                                                          */
+/*****************************************************************************/
 ScriptError g_script_error;
 
-/*
- * Function prototypes
- */
+/*****************************************************************************/
+/* Function prototypes                                                       */
+/*****************************************************************************/
 PyObject * RunPython(Text *text, PyObject *globaldict);
 char *     GetName(Text *text);
 
-/*
- * Description: This function will initialise Python and all the implemented
- *              api variations.
- * Notes:       Currently only the api for 2.2x will be initialised.
- */   
+/*****************************************************************************/
+/* Description: This function will initialise Python and all the implemented */
+/*              api variations.                                              */
+/* Notes:       Currently only the api for 2.2x will be initialised.         */
+/*****************************************************************************/
 void BPY_start_python(void)
 {
 	printf ("In BPY_start_python\n");
@@ -81,41 +82,41 @@ void BPY_start_python(void)
 	return;
 }
 
-/*
- * Description:
- * Notes:       Not implemented yet
- */   
+/*****************************************************************************/
+/* Description:                                                              */
+/* Notes:       Not implemented yet                                          */
+/*****************************************************************************/
 void BPY_end_python(void)
 {
 	printf ("In BPY_end_python\n");
 	return;
 }
 
-/*
- * Description: This function will return the linenumber on which an error
- *              has occurred in the Python script.
- */   
+/*****************************************************************************/
+/* Description: This function will return the linenumber on which an error   */
+/*              has occurred in the Python script.                           */
+/*****************************************************************************/
 int BPY_Err_getLinenumber(void)
 {
 	printf ("In BPY_Err_getLinenumber\n");
 	return g_script_error.lineno;
 }
 
-/*
- * Description: This function will return the filename of the python script.
- */   
+/*****************************************************************************/
+/* Description: This function will return the filename of the python script. */
+/*****************************************************************************/
 const char *BPY_Err_getFilename(void)
 {
 	printf ("In BPY_Err_getFilename\n");
 	return g_script_error.filename;
 }
 
-/*
- * Description: This function executes the script passed by st.
- * Notes:       Currently, the script is compiled each time it is executed,
- *              This should be optimized to store the compiled bytecode as has
- *              been done by the previous implementation.
- */   
+/*****************************************************************************/
+/* Description: This function executes the script passed by st.              */
+/* Notes:       Currently, the script is compiled each time it is executed,  */
+/*              This should be optimized to store the compiled bytecode as   */
+/*              has been done by the previous implementation.                */
+/*****************************************************************************/
 struct _object *BPY_txt_do_python(struct SpaceText* st)
 {
 	PyObject *	dict;
@@ -134,30 +135,30 @@ struct _object *BPY_txt_do_python(struct SpaceText* st)
 	return dict;
 }
 
-/*
- * Description:
- * Notes:       Not implemented yet
- */   
+/*****************************************************************************/
+/* Description:                                                              */
+/* Notes:       Not implemented yet                                          */
+/*****************************************************************************/
 void BPY_free_compiled_text(struct Text* text)
 {
 	printf ("In BPY_free_compiled_text\n");
 	return;
 }
 
-/*
- * Description:
- * Notes:       Not implemented yet
- */   
+/*****************************************************************************/
+/* Description:                                                              */
+/* Notes:       Not implemented yet                                          */
+/*****************************************************************************/
 void BPY_clear_bad_scriptlinks(struct Text *byebye)
 {
 	printf ("In BPY_clear_bad_scriptlinks\n");
 	return;
 }
 
-/*
- * Description:
- * Notes:       Not implemented yet
- */   
+/*****************************************************************************/
+/* Description:                                                              */
+/* Notes:       Not implemented yet                                          */
+/*****************************************************************************/
 void BPY_do_all_scripts(short event)
 {
 	printf ("In BPY_do_all_scripts(event=%d)\n",event);
@@ -165,69 +166,124 @@ void BPY_do_all_scripts(short event)
 }
 
 /*
- * Description:
- * Notes:       Not implemented yet
+ * Description: Execute a Python script when an event occurs. The following
+ *              events are possible: frame changed, load script and redraw.
+ *              Only events happening to one of the following object types are
+ *              handled: Object, Lamp, Camera, Material, World and Scene
+ * Notes:       The call to BLO_findstruct_offset needs to be removed.
+ *              Somehow the object triggered by the event has to be retrieved.
  */   
 void BPY_do_pyscript(struct ID *id, short event)
 {
-	printf ("In BPY_do_pyscript(id=?, event=%d)\n",event);
+	int            obj_id;
+	char           structname[10];
+	int            offset;
+	ScriptLink   * scriptlink;
+
+	printf ("In BPY_do_pyscript(id=%s, event=%d)\n",id->name, event);
+
+	/* First get the object type that the script is linked to. */
+	obj_id = MAKE_ID2(id->name[0], id->name[1]);
+	switch (obj_id)
+	{
+		case ID_OB:
+			sprintf (structname, "Object");
+			break;
+		case ID_LA:
+			sprintf (structname, "Lamp");
+			break;
+		case ID_CA:
+			sprintf (structname, "Camera");
+			break;
+		case ID_MA:
+			sprintf (structname, "Material");
+			break;
+		case ID_WO:
+			sprintf (structname, "World");
+			break;
+		case ID_SCE:
+			sprintf (structname, "Scene");
+			break;
+		default:
+			/* TODO: Do we need to generate a nice error message here? */
+			return;
+	}
+
+/* TODO: Replace the following piece of code. See the Notes for info. */
+	/* Check if a script is provided */
+	offset = BLO_findstruct_offset (structname, "scriptlink");
+	if (offset < 0)
+	{
+		printf ("Internal error, unable to find script link\n");
+		return;
+	}
+	scriptlink = (ScriptLink*) (((char*)id) + offset);
+
+	if (!scriptlink->totscript)
+	{
+		/* no script provided */
+		return;
+	}
+	
+	/* Get all links from blender and set them in the Python environment */
+	setScriptLinks (id, event);
 	return;
 }
 
-/*
- * Description:
- * Notes:       Not implemented yet
- */   
+/*****************************************************************************/
+/* Description:                                                              */
+/* Notes:       Not implemented yet                                          */
+/*****************************************************************************/
 void BPY_free_scriptlink(struct ScriptLink *slink)
 {
 	printf ("In BPY_free_scriptlink\n");
 	return;
 }
 
-/*
- * Description:
- * Notes:       Not implemented yet
- */   
+/*****************************************************************************/
+/* Description:                                                              */
+/* Notes:       Not implemented yet                                          */
+/*****************************************************************************/
 void BPY_copy_scriptlink(struct ScriptLink *scriptlink)
 {
 	printf ("In BPY_copy_scriptlink\n");
 	return;
 }
 
-/*
- * Description:
- * Notes:       Not implemented yet
- */   
+/*****************************************************************************/
+/* Description:                                                              */
+/* Notes:       Not implemented yet                                          */
+/*****************************************************************************/
 int BPY_call_importloader(char *name)
 {
 	printf ("In BPY_call_importloader(name=%s)\n",name);
 	return (0);
 }
 
-/*
- * Description:
- * Notes:       Not implemented yet
- */   
+/*****************************************************************************/
+/* Description:                                                              */
+/* Notes:       Not implemented yet                                          */
+/*****************************************************************************/
 int BPY_spacetext_is_pywin(struct SpaceText *st)
 {
 	/* No printf is done here because it is called with every mouse move */
 	return (0);
 }
 
-/*
- * Description:
- * Notes:       Not implemented yet
- */   
+/*****************************************************************************/
+/* Description:                                                              */
+/* Notes:       Not implemented yet                                          */
+/*****************************************************************************/
 void BPY_spacetext_do_pywin_draw(struct SpaceText *st)
 {
 	printf ("In BPY_spacetext_do_pywin_draw\n");
 	return;
 }
 
-/*
- * Description:
- * Notes:       Not implemented yet
- */   
+/*****************************************************************************/
+/* Description:                                                              */
+/* Notes:       Not implemented yet                                          */
+/*****************************************************************************/
 void BPY_spacetext_do_pywin_event(struct SpaceText *st,
                                   unsigned short event,
                                   short val)
@@ -237,15 +293,15 @@ void BPY_spacetext_do_pywin_event(struct SpaceText *st,
 	return;
 }
 
-/*
- * Private functions
- */
+/*****************************************************************************/
+/* Private functions                                                         */
+/*****************************************************************************/
 
-/*
- * Description: This function executes the python script passed by text.
- *              The Python dictionary containing global variables needs to
- *              be passed in globaldict.
- */   
+/*****************************************************************************/
+/* Description: This function executes the python script passed by text.     */
+/*              The Python dictionary containing global variables needs to   */
+/*              be passed in globaldict.                                     */
+/*****************************************************************************/
 PyObject * RunPython(Text *text, PyObject *globaldict)
 {
 	PyObject * ret;
@@ -259,10 +315,10 @@ PyObject * RunPython(Text *text, PyObject *globaldict)
 	return ret;
 }
 
-/*
- * Description: This function returns the value of the name field of the
- *              given Text struct.
- */   
+/*****************************************************************************/
+/* Description: This function returns the value of the name field of the     */
+/*              given Text struct.                                           */
+/*****************************************************************************/
 char * GetName(Text *text)
 {
 	return (text->id.name+2);

@@ -29,11 +29,41 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-%module Object
+#include <stdio.h>
+#include <string.h>
+#include <Python.h>
 
-%{
-#include "modules.h"
-%}
-void copy (void);
-void shareFrom (int object);
-int getMatrix (void);
+#include <DNA_scriptlink_types.h>
+
+int StringEqual (char * string1, char * string2)
+{
+	return (strcmp(string1, string2)==0);
+}
+
+PyObject * PythonReturnErrorObject (PyObject * type, char * error_msg)
+{
+	PyErr_SetString (type, error_msg);
+	return NULL;
+}
+
+PyObject * PythonIncRef (PyObject *object)
+{
+	Py_INCREF (object);
+	return (object);
+}
+
+char * event_to_name(short event)
+{
+	switch (event)
+	{
+		case SCRIPT_FRAMECHANGED:
+			return "FrameChanged";
+		case SCRIPT_ONLOAD:
+			return "OnLoad";
+		case SCRIPT_REDRAW:
+			return "Redraw";
+		default:
+			return "Unknown";
+	}
+}	
+

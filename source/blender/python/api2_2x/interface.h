@@ -29,5 +29,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-void initBlenderApi2_2x (void);
+#include <DNA_ID.h>
 
+void initBlenderApi2_2x (void);
+void setScriptLinks(ID *id, short event);
