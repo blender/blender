@@ -79,7 +79,6 @@ Duplicate(
 	int record_index
 ){
 	if (m_width) {
-		int output = Size();
 		IncSize();
 		memcpy(&m_data[ m_data.size() - 1 - m_width ], 
 			&m_data[ record_index * m_width], m_width);
