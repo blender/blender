@@ -2008,7 +2008,7 @@ static VFontData *objfnt_to_vfontdata(objfnt *fnt)
 					}
 				} while (!stop);
 
-				if (last[0] == first[0] && last[1] == first[1]) meet = 1;
+				if ((count>0) && last[0] == first[0] && last[1] == first[1]) meet = 1;
 				else meet = 0;
 
 				/* is er meer dan 1 uniek punt ?*/
