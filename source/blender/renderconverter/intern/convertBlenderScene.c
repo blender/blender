@@ -1278,13 +1278,13 @@ static void init_render_mesh(Object *ob)
 
 	me= ob->data;
 
-	/* object_deform changes imat! */
-	do_puno= mesh_modifier(ob, 's');
-	
 	paf = give_parteff(ob);
 	if(paf) {
+		mesh_modifier(ob, 's');
+		
 		if(paf->flag & PAF_STATIC) render_static_particle_system(ob, paf);
 		else render_particle_system(ob, paf);
+		
 		mesh_modifier(ob, 'e');  // end
 		return;
 	}
@@ -1294,7 +1294,6 @@ static void init_render_mesh(Object *ob)
 	MTC_Mat3CpyMat4(imat, ob->imat);
 
 	if(me->totvert==0) {
-		mesh_modifier(ob, 'e');  // end
 		return;
 	}
 	
@@ -1315,7 +1314,18 @@ static void init_render_mesh(Object *ob)
 			}
 		}
 	}
-
+	
+	/* we do this before deform */
+	if(need_orco) {
+		if (mesh_uses_displist(me)) 
+			make_orco_displist_mesh(ob, me->subdivr);
+		else
+			make_orco_mesh(me);
+	}			
+	
+	/* after orco, because this changes mesh vertices (too) */
+	do_puno= mesh_modifier(ob, 's');
+	
 	if (mesh_uses_displist(me)) {
 		dl= me->disp.first;
 
@@ -1349,9 +1359,6 @@ static void init_render_mesh(Object *ob)
 			mvert= dlm->mvert;
 			totvert= dlm->totvert;
 	
-			if(need_orco) {
-				make_orco_displist_mesh(ob, me->subdivr);
-			}
 			ms= NULL; // no stick in displistmesh
 		}
 		
@@ -1363,9 +1370,6 @@ static void init_render_mesh(Object *ob)
 		dl= find_displist(&ob->disp, DL_VERTS);
 		if(dl) extverts= dl->verts;
 	
-		if(need_orco) {
-			make_orco_mesh(me);
-		}
 		ms= me->msticky;
 	}
 	

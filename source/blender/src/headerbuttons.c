@@ -1668,9 +1668,11 @@ void do_global_buttons2(short event)
 	/* general:  Single User is allowed when from==LOCAL 
 	 *			 Make Local is allowed when (from==LOCAL && id==LIB)
 	 */
-	
+		
+	if(event<B_LOCAL_ALONE) return;
+
 	ob= OBACT;
-	
+
 	switch(event) {
 		
 	case B_LAMPALONE:

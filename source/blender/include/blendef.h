@@ -154,6 +154,10 @@
 
 /* do_global_buttons(event) */
 
+// (first event)
+#define B_LOCAL_ALONE	20
+
+
 #define B_ACTLOCAL		24	/* __NLA */
 #define	B_ACTALONE		25	/* __NLA */
 #define B_ARMLOCAL		26	/* __NLA */
