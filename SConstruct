@@ -818,6 +818,7 @@ library_env.Replace (AR = user_options_dict['TARGET_AR'])
 library_env.Append (CCFLAGS = cflags)
 library_env.Append (CXXFLAGS = cxxflags)
 library_env.Append (CPPDEFINES = defines)
+library_env.SConsignFile (root_build_dir+'/scons-signatures')
 
 #-----------------------------------------------------------------------------
 # Settings to be exported to other SConscript files
