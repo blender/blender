@@ -491,18 +491,30 @@ char *BLI_gethome(void) {
 	#else /* Windows */
 		char * ret;
 		static char dir[512];
+		char tmpdir[512];
 
 		ret = getenv("HOME");
 		if(ret) {
 			if (BLI_exists(ret)) return ret;
 		}
 
+		/* 
+		   "change-over" period - blender still checks in
+		   old locations, but Ctrl+U now saves in ~/.blender
+		*/
+
 		BLI_getInstallationDir(dir);
 
 		if (BLI_exists(dir))
 		{
-			strcat(dir,"/.blender/");
-			return(dir);
+			//strcat(dir,"/.blender/");
+			strcpy(tmpdir,dir);
+			strcat(tmpdir,"/.blender/.B.blend");
+			if (BLI_exists(tmpdir))
+			{
+				strcat(dir,"/.blender/");
+				return(dir);
+			}
 		}
 
 		/* 
