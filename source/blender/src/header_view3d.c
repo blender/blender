@@ -581,6 +581,9 @@ static void do_view3d_select_meshmenu(void *arg, int event)
 		case 5: /* select random */
 			// selectrandom_mesh();
 			break;
+		case 6: /* select Faceloop */
+			loop('s');
+			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -603,7 +606,7 @@ static uiBlock *view3d_select_meshmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	//uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Edge Loop|Shift R",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Faceloop|Shift R",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Random Vertices...",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Connected Vertices|Ctrl L",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 		
@@ -1272,6 +1275,9 @@ static void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 	case 3: /* knife subdivide */
 		KnifeSubdivide(KNIFE_PROMPT);
 		break;
+	case 4: /* Loop subdivide */
+		loop('c');
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -1284,6 +1290,7 @@ static uiBlock *view3d_edit_mesh_edgesmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_mesh_edgesmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_edit_mesh_edgesmenu, NULL);
 	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Loop Subdivide...|Ctrl R",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Knife Subdivide...|Shift K",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");

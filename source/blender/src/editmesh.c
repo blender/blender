@@ -85,6 +85,7 @@
 #include "BIF_interface.h"
 #include "BIF_editmesh.h"
 #include "BIF_mywindow.h"
+#include "BIF_glutil.h"
 
 #include "BSE_view.h"
 #include "BSE_edit.h"
@@ -940,8 +941,7 @@ static void free_editvert (EditVert *eve)
 
 void make_editMesh(void)
 {
-	Mesh *me;
-	int i;
+	Mesh *me;	
 
 	me= get_mesh(G.obedit);
 	if (me != G.undo_last_data) {
@@ -2103,12 +2103,10 @@ static EditEdge *findnearestedge()
 	else return 0;
 }
 
+#if 0
 /* this is a template function to demonstrate a loop with drawing...
    it is a temporal mode, so use with wisdom! if you can avoid, always better. (ton)
 */
-
-/* Goof: after you tested this, comment it out with: #if 0 .... #endif, so others can use it too */
-
 void loop(int mode)
 {
 	EditEdge *eed;
@@ -2163,232 +2161,436 @@ void loop(int mode)
 	/* send event to redraw this window, does header too */
 	addqueue(curarea->win, REDRAW, 1); 
 }
+#endif
 
 /* 
 functionality: various loop functions
 parameters: mode tells the function what it should do with the loop:
 		's' = select
 		'c' = cut in half
-*/
-		
-void loop_o(int mode)
+*/	
+void loop(int mode)
 {
-	EditEdge *start, *eed, *opposite,*currente;
-	EditVlak *evl, *currentvl, *formervl;
-	Mesh *me;
-	short lastface=0, foundedge=0, done=0, c=0, found=0, tri=0, side=1, totface=0;	
+	EditEdge *start, *eed, *opposite,*currente, *oldstart;
+	EditVlak *evl, *currentvl, *formervl;	
+	short lastface=0, foundedge=0, c=0, tri=0, side=1, totface=0, searching=1, event=0;
 	
-	TEST_EDITMESH	
+	if ((G.obedit==0) || (G.edvl.first==0)) return;
 	
-	me= get_mesh(G.obedit);		
+	if(mode=='c')undo_push_mesh("Loop Subdivide");
+	else if(mode=='s')undo_push_mesh("Faceloop select");	
 	
-	start=findnearestedge();			
-	
-	if(start!=NULL){         		/* Did we find anything that is selectable? */
+	while(searching){
+		
+		/* reset variables */
+		start=eed=opposite=currente=0;
+		evl=currentvl=formervl=0;
+		side=1;
+		lastface=foundedge=c=tri=totface=0;		
 			
-		/* Clear flags */		
-		eed=G.eded.first;
-		while(eed) {		
-			eed->f &= ~(2|4|8|32);
-			eed->v1->f &= ~(1|2|16);
-			eed->v2->f &= ~(1|2|16);			
-			eed= eed->next;			
-		}
+		/* Look for an edge close by */
+		start=findnearestedge();		
 		
-		evl= G.edvl.first;
-		while(evl){
-			evl->f &= ~4;
-			totface++;
-			evl=evl->next;
-		}
-		
-				
-		/* Tag the starting edge */
-		start->f |= (2|4);				
-		start->v1->f |= 2;
-		start->v2->f |= 2;		
-		
-		currente=start;						
-		
-		while(!lastface && c<totface){
-			
-			/*----------Get Loop------------------------*/
-			tri=foundedge=lastface=0;			
-									
-			evl= G.edvl.first;		
-			while(evl && !foundedge && !tri){
-								
-				if(!(evl->v4)){	/* Exception for triangular faces */
-					
-					if((evl->e1->f | evl->e2->f | evl->e3->f) & 2){
-						tri=1;
-						currentvl=evl;						
-					}						
-				}
-				else{
-					
-					if((evl->e1->f | evl->e2->f | evl->e3->f | evl->e4->f) & 2){
-						
-						if(c==0){	/* just pick a face, doesn't matter wich side of the edge we go to */
-							if(!(evl->f & 4)){
-								
-								if(!(evl->e1->v1->f & 2) && !(evl->e1->v2->f & 2)){
-									opposite=evl->e1;														
-									foundedge=1;
-								}
-								else if(!(evl->e2->v1->f & 2) && !(evl->e2->v2->f & 2)){
-									opposite=evl->e2;
-									foundedge=1;
-								}
-								else if(!(evl->e3->v1->f & 2) && !(evl->e3->v2->f & 2)){
-									opposite=evl->e3;
-									foundedge=1;
-								}
-								else if(!(evl->e4->v1->f & 2) && !(evl->e4->v2->f & 2)){
-									opposite=evl->e4;
-									foundedge=1;
-								}
-								
-								currentvl=evl;
-								formervl=evl;
-								
-								/* mark this side of the edge so we know in which direction we went */
-								if(side==1) evl->f |= 4;
-							}
-						}
-						else {	
-							if(evl!=formervl){	/* prevent going backwards in the loop */
+		/* Did we find anything that is selectable? */
+		if(start && start!=oldstart){   
 							
-								if(!(evl->e1->v1->f & 2) && !(evl->e1->v2->f & 2)){
-									opposite=evl->e1;
-									foundedge=1;
+			/* If we stay in the neighbourhood of this edge, we don't have to recalculate the loop everytime*/
+			oldstart=start;	
+			
+			/* Clear flags */		
+			eed=G.eded.first;
+			while(eed) {		
+				eed->f &= ~(2|4|8|32);
+				if(mode!='s'){
+					eed->v1->f &= ~1;
+					eed->v2->f &= ~1;
+				}
+				eed->v1->f &= ~(2|8|16);
+				eed->v2->f &= ~(2|8|16);			
+				eed= eed->next;			
+			}
+			
+			evl= G.edvl.first;
+			while(evl){
+				evl->f &= ~(4|8);
+				totface++;
+				evl=evl->next;
+			}
+					
+			/* Tag the starting edge */
+			start->f |= (2|4|8);				
+			start->v1->f |= 2;
+			start->v2->f |= 2;		
+			
+			currente=start;						
+			
+			/*-----Limit the Search----- */
+			while(!lastface && c<totface+1){
+				
+				/*----------Get Loop------------------------*/
+				tri=foundedge=lastface=0;													
+				evl= G.edvl.first;		
+				while(evl && !foundedge && !tri){
+									
+					if(!(evl->v4)){	/* Exception for triangular faces */
+						
+						if((evl->e1->f | evl->e2->f | evl->e3->f) & 2){
+							tri=1;
+							currentvl=evl;						
+						}						
+					}
+					else{
+						
+						if((evl->e1->f | evl->e2->f | evl->e3->f | evl->e4->f) & 2){
+							
+							if(c==0){	/* just pick a face, doesn't matter wich side of the edge we go to */
+								if(!(evl->f & 4)){
+									
+									if(!(evl->e1->v1->f & 2) && !(evl->e1->v2->f & 2)){
+										opposite=evl->e1;														
+										foundedge=1;
+									}
+									else if(!(evl->e2->v1->f & 2) && !(evl->e2->v2->f & 2)){
+										opposite=evl->e2;
+										foundedge=1;
+									}
+									else if(!(evl->e3->v1->f & 2) && !(evl->e3->v2->f & 2)){
+										opposite=evl->e3;
+										foundedge=1;
+									}
+									else if(!(evl->e4->v1->f & 2) && !(evl->e4->v2->f & 2)){
+										opposite=evl->e4;
+										foundedge=1;
+									}
+									
+									currentvl=evl;
+									formervl=evl;
+									
+									/* mark this side of the edge so we know in which direction we went */
+									if(side==1) evl->f |= 4;
 								}
-								else if(!(evl->e2->v1->f & 2) && !(evl->e2->v2->f & 2)){
-									opposite=evl->e2;
-									foundedge=1;
-								}
-								else if(!(evl->e3->v1->f & 2) && !(evl->e3->v2->f & 2)){
-									opposite=evl->e3;
-									foundedge=1;
-								}
-								else if(!(evl->e4->v1->f & 2) && !(evl->e4->v2->f & 2)){
-									opposite=evl->e4;
-									foundedge=1;
-								}
+							}
+							else {	
+								if(evl!=formervl){	/* prevent going backwards in the loop */
 								
-								currentvl=evl;
+									if(!(evl->e1->v1->f & 2) && !(evl->e1->v2->f & 2)){
+										opposite=evl->e1;
+										foundedge=1;
+									}
+									else if(!(evl->e2->v1->f & 2) && !(evl->e2->v2->f & 2)){
+										opposite=evl->e2;
+										foundedge=1;
+									}
+									else if(!(evl->e3->v1->f & 2) && !(evl->e3->v2->f & 2)){
+										opposite=evl->e3;
+										foundedge=1;
+									}
+									else if(!(evl->e4->v1->f & 2) && !(evl->e4->v2->f & 2)){
+										opposite=evl->e4;
+										foundedge=1;
+									}
+									
+									currentvl=evl;
+								}
 							}
 						}
 					}
+				evl=evl->next;
 				}
-			evl=evl->next;
-			}
-			/*----------END Get Loop------------------------*/
-			
-		
-			/*----------Selection-----------------------------*/
-			if(foundedge){
-			
+				/*----------END Get Loop------------------------*/
 				
-				/* select the current edge */
-				currente->v1->f |= 1;
-				currente->v2->f |= 1;								
-				
-				/* mark the edge as done */
-				currente->f |= 8;
-					
-				if(opposite->f & 4) lastface=1;	/* found the starting edge! close loop */								
-				else{
+			
+				/*----------Decisions-----------------------------*/
+				if(foundedge){
+					/* mark the edge and face as done */					
+					currente->f |= 8;
+					currentvl->f |= 8;
+
+					if(opposite->f & 4) lastface=1;	/* found the starting edge! close loop */								
+					else{
+						/* un-set the testflags */
+						currente->f &= ~2;
+						currente->v1->f &= ~2;
+						currente->v2->f &= ~2;							
+						
+						/* set the opposite edge to be the current edge */				
+						currente=opposite;							
+						
+						/* set the current face to be the FORMER face (to prevent going backwards in the loop) */
+						formervl=currentvl;
+						
+						/* set the testflags */
+						currente->f |= 2;
+						currente->v1->f |= 2;
+						currente->v2->f |= 2;			
+					}
+					c++;
+				}
+				else{	
 					/* un-set the testflags */
 					currente->f &= ~2;
 					currente->v1->f &= ~2;
 					currente->v2->f &= ~2;
+					
+					/* mark the edge and face as done */
+					currente->f |= 8;
+					currentvl->f |= 8;
+					
+					/* cheat to correctly split tri's:
+					 * Set eve->f & 16 for the last vertex of the loop
+					 */
+					if(tri){
+						currentvl->v1->f |= 16;
+						currentvl->v2->f |= 16;
+						currentvl->v3->f |= 16;
+						
+						currente->v1->f &= ~16;
+						currente->v2->f &= ~16;
+					}
+						
+					/* is the the first time we've ran out of possible faces?
+					*  try to start from the beginning but in the opposite direction to select as many
+					*  verts as possible.
+					*/				
+					if(side==1){					
+						currente=start;
+						currente->f |= 2;
+						currente->v1->f |= 2;
+						currente->v2->f |= 2;					
+						side++;
+						c=0;
+					}
+					else lastface=1;				
+				}				
+				/*----------END Decisions-----------------------------*/
 				
-					/* set the opposite edge to be the current edge */				
-					currente=opposite;
-					
-					/* set the current face to be the FORMER face (to prevent going backwards in the loop) */
-					formervl=currentvl;
-					
-					/* set the testflags */
-					currente->f |= 2;
-					currente->v1->f |= 2;
-					currente->v2->f |= 2;			
-				}
-				c++;	/* if only.... */	
 			}
-			else{
-				currente->v1->f |= 1;
-				currente->v2->f |= 1;
+			/*-----END Limit the Search----- */
+			
+			
+			/*------------- Preview lines--------------- */
+			
+			/* uses callback mechanism to draw it all in current area */
+			scrarea_do_windraw(curarea);			
+			
+			/* set window matrix to perspective, default an area returns with buttons transform */
+			persp(PERSP_VIEW);
+			/* make a copy, for safety */
+			glPushMatrix();
+			/* multiply with the object transformation */
+			mymultmatrix(G.obedit->obmat);
+			
+			glColor3ub(255, 255, 0);
+			
+			if(mode=='s'){
+				evl= G.edvl.first;
+				while(evl){
+					if(evl->f & 8){
+						int a=0;						
+						
+						if(!(evl->e1->f & 8)){
+							glBegin(GL_LINES);							
+							glVertex3fv(evl->e1->v1->co);
+							glVertex3fv(evl->e1->v2->co);
+							glEnd();	
+						}
+						
+						if(!(evl->e2->f & 8)){
+							glBegin(GL_LINES);							
+							glVertex3fv(evl->e2->v1->co);
+							glVertex3fv(evl->e2->v2->co);
+							glEnd();	
+						}
+						
+						if(!(evl->e3->f & 8)){
+							glBegin(GL_LINES);							
+							glVertex3fv(evl->e3->v1->co);
+							glVertex3fv(evl->e3->v2->co);
+							glEnd();	
+						}
+						
+						if(evl->e4){
+							if(!(evl->e4->f & 8)){
+								glBegin(GL_LINES);							
+								glVertex3fv(evl->e4->v1->co);
+								glVertex3fv(evl->e4->v2->co);
+								glEnd();	
+							}
+						}
+					}
+					evl=evl->next;
+				}
+			}
+				
+			if(mode=='c'){
+				evl= G.edvl.first;
+				while(evl){
+					if(evl->f & 8){
+						float cen[2][3];
+						int a=0;
+						glBegin(GL_LINES);
+						
+						if(evl->e1->f & 8){
+							cen[a][0]= (evl->e1->v1->co[0] + evl->e1->v2->co[0])/2.0;
+							cen[a][1]= (evl->e1->v1->co[1] + evl->e1->v2->co[1])/2.0;
+							cen[a][2]= (evl->e1->v1->co[2] + evl->e1->v2->co[2])/2.0;
+							
+							evl->e1->v1->f |= 8;
+							evl->e1->v2->f |= 8;
+							
+							a++;
+						}
+						if((evl->e2->f & 8) && a!=2){
+							cen[a][0]= (evl->e2->v1->co[0] + evl->e2->v2->co[0])/2.0;
+							cen[a][1]= (evl->e2->v1->co[1] + evl->e2->v2->co[1])/2.0;
+							cen[a][2]= (evl->e2->v1->co[2] + evl->e2->v2->co[2])/2.0;
+							
+							evl->e1->v1->f |= 8;
+							evl->e1->v2->f |= 8;
+							
+							a++;
+						}
+						if((evl->e3->f & 8) && a!=2){
+							cen[a][0]= (evl->e3->v1->co[0] + evl->e3->v2->co[0])/2.0;
+							cen[a][1]= (evl->e3->v1->co[1] + evl->e3->v2->co[1])/2.0;
+							cen[a][2]= (evl->e3->v1->co[2] + evl->e3->v2->co[2])/2.0;
+							
+							evl->e1->v1->f |= 8;
+							evl->e1->v2->f |= 8;
+							
+							a++;
+						}
+						
+						if(evl->e4){
+							if((evl->e4->f & 8) && a!=2){
+								cen[a][0]= (evl->e4->v1->co[0] + evl->e4->v2->co[0])/2.0;
+								cen[a][1]= (evl->e4->v1->co[1] + evl->e4->v2->co[1])/2.0;
+								cen[a][2]= (evl->e4->v1->co[2] + evl->e4->v2->co[2])/2.0;
 								
-				/* un-set the testflags */
-				currente->f &= ~2;
-				currente->v1->f &= ~2;
-				currente->v2->f &= ~2;
-				
-				/* mark the edge as done */
-				currente->f |= 8;
-				
-				/* cheat to correctly split tri's */
-				if(tri){					
-					currente->v1->f |= 8;
-					currente->v2->f |= 8;
+								evl->e1->v1->f |= 8;
+								evl->e1->v2->f |= 8;
+							
+								a++;
+							}
+						}
+						else{	/* if it's a triangular face, set the remaining vertex as the cutcurve coordinate */
+							if(evl->v1->f & 16){
+								cen[a][0]= evl->v1->co[0];
+								cen[a][1]= evl->v1->co[1];
+								cen[a][2]= evl->v1->co[2];
+								evl->v1->f &= ~16;
+							}
+							else if(evl->v2->f & 16){
+								cen[a][0]= evl->v2->co[0];
+								cen[a][1]= evl->v2->co[1];
+								cen[a][2]= evl->v2->co[2];
+								evl->v2->f &= ~16;
+							}
+							else if(evl->v3->f & 16){
+								cen[a][0]= evl->v3->co[0];
+								cen[a][1]= evl->v3->co[1];
+								cen[a][2]= evl->v3->co[2];
+								evl->v3->f &= ~16;
+							}
+						}
+							
+						
+						glVertex3fv(cen[0]);
+						glVertex3fv(cen[1]);
+						
+						glEnd();						
+					}
+					evl=evl->next;
 				}
-					
-				/* is the the first time we've ran out of possible faces?
-				*  try to start from the beginning but in the opposite direction to select as many
-				*  verts as possible.
-				*/				
-				if(side==1){					
-					currente=start;
-					currente->f |= 2;
-					currente->v1->f |= 2;
-					currente->v2->f |= 2;					
-					side++;
-					c=0;
-				}
-				else lastface=1;				
 			}
-			/*----------END Selection-----------------------------*/
 			
-		}
-		
-		/*----------Subdivide-----------------------------*/
-		
-		if(mode=='c'){			
-			subdivideflag(8, 0, B_KNIFE); /* B_KNIFE tells subdivide that edgeflags are already set */
+			/* restore matrix transform */
+			glPopMatrix();	
+	
+			/* this also verifies other area/windows for clean swap */
+			screen_swapbuffers();
 			
-			eed=G.eded.first;
-			while(eed) {							
-				if(eed->v1->f & 16) eed->v1->f |= 1;
-				else eed->v1->f &= ~1;
+			/*--------- END Preview Lines------------*/
 				
-				if(eed->v2->f & 16) eed->v2->f |= 1;
-				else eed->v2->f &= ~1;
-				
-				eed= eed->next;			
+		}/*if(start!=NULL){ */
+		
+		while(qtest()) {
+			unsigned short val=0;			
+			event= extern_qread(&val);	// extern_qread stores important events for the mainloop to handle 
+
+			/* val==0 on key-release event */
+			if(val && (event==ESCKEY || event==RIGHTMOUSE || event==LEFTMOUSE || event==RETKEY)){
+				searching=0;
 			}
-		}
-		/*----------END Subdivide-----------------------------*/
+		}	
 		
-		/* Clear flags */		
-		eed=G.eded.first;
-		while(eed) {		
-			eed->f &= ~(2|4|8|32);
-			eed->v1->f &= ~(2|16);
-			eed->v2->f &= ~(2|16);			
-			eed= eed->next;			
-		}
+	}/*while(event!=ESCKEY && event!=RIGHTMOUSE && event!=LEFTMOUSE && event!=RETKEY){*/
+	
+	/*----------Select Loop------------*/
+	if(mode=='s' && start!=NULL && (event==LEFTMOUSE || event==RETKEY)){
+		EditVert *eve;						
+			
+		/* deselectall */
+		for(eve= G.edve.first; eve; eve= eve->next) eve->f&= ~1;
 		
 		evl= G.edvl.first;
 		while(evl){
-			evl->f &= ~4;
+			if(evl->f & 8){
+				evl->v1->f |= 1;
+				evl->v2->f |= 1;
+				evl->v3->f |= 1;
+				if(evl->v4)evl->v4->f |= 1;
+			}					
 			evl=evl->next;
 		}
-		
-		
-		allqueue(REDRAWVIEW3D, 0);			
 	}
+	/*----------END Select Loop------------*/
+	
+	/*----------Cut Loop---------------*/			
+	if(mode=='c' && start!=NULL && (event==LEFTMOUSE || event==RETKEY)){
+		
+		/* subdivide works on selected verts... */
+		eed=G.eded.first;
+		while(eed) {		
+			if(eed->f & 8){
+				eed->v1->f |= 1;
+				eed->v2->f |= 1;
+			}			
+			eed= eed->next;			
+		}
+		
+		subdivideflag(8, 0, B_KNIFE); /* B_KNIFE tells subdivide that edgeflags are already set */
+		
+		eed=G.eded.first;
+		while(eed) {							
+			if(eed->v1->f & 16) eed->v1->f |= 1;
+			else eed->v1->f &= ~1;
+			
+			if(eed->v2->f & 16) eed->v2->f |= 1;
+			else eed->v2->f &= ~1;
+			
+			eed= eed->next;			
+		}
+	}
+	/*----------END Cut Loop-----------------------------*/
+	
+	
+	/* Clear flags */		
+	eed=G.eded.first;
+	while(eed) {		
+		eed->f &= ~(2|4|8|32);
+		eed->v1->f &= ~(2|16);
+		eed->v2->f &= ~(2|16);
+		eed= eed->next;			
+	}
+	
+	evl= G.edvl.first;
+	while(evl){
+		evl->f &= ~(4|8);
+		evl=evl->next;
+	}
+	
+	addqueue(curarea->win, REDRAW, 1); 
 }
 
 void edge_select(void)
@@ -7418,4 +7620,3 @@ void undo_menu_mesh(void)
        if (event==1) remake_editMesh();
        else undo_pop_mesh(G.undo_edit_level-event+3);
 }
-
