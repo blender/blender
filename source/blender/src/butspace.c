@@ -362,15 +362,14 @@ void redraw_test_buttons(Base *new)
 			if(ELEM5(buts->mainb, CONTEXT_OBJECT, CONTEXT_EDITING, CONTEXT_SHADING, CONTEXT_LOGIC, CONTEXT_SCRIPT)) {
 				addqueue(sa->win, REDRAW, 1);
 				buts->re_align= 1;
-			}
 			
-			if(buts->mainb==CONTEXT_SHADING) {
-				buts->re_align= 1;
 				if(new) {
-					butspace_context_switch(buts, new);
 					BIF_preview_changed(buts);
 				}
 			}
+			// always to context switch
+			if(new) butspace_context_switch(buts, new);
+
 		}
 		sa= sa->next;
 	}
