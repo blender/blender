@@ -40,7 +40,8 @@ extern "C" {
 	typedef unsigned int DT_ResponseClass;
 
 	typedef enum DT_ResponseType { 
-		DT_NO_RESPONSE,                  /* No response (obsolete) */              
+		DT_NO_RESPONSE,                  /* No response (obsolete) */
+		DT_BROAD_RESPONSE,               /* Broad phase response is returned. */
 		DT_SIMPLE_RESPONSE,              /* No collision data */
 		DT_WITNESSED_RESPONSE,           /* A point common to both objects
 											is returned as collision data
@@ -145,7 +146,9 @@ extern "C" {
 
 	extern DECLSPEC void DT_GetBBox(DT_ObjectHandle object, DT_Vector3 min, DT_Vector3 max);
 
-
+	
+	extern DECLSPEC DT_Bool  DT_GetIntersect(DT_ObjectHandle object1, DT_ObjectHandle object2,
+												DT_Vector3 v);
 /* This next command returns the distance between the objects. De returned
    closest points are given in world coordinates.
 */

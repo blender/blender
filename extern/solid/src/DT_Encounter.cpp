@@ -32,6 +32,10 @@ DT_Bool DT_Encounter::exactTest(const DT_RespTable *respTable, int& count) const
 
    switch (responseList.getType()) 
    {
+   case DT_BROAD_RESPONSE:
+	   return (respTable->getResponseClass(m_obj_ptr1) < respTable->getResponseClass(m_obj_ptr2)) ?
+			   responseList(m_obj_ptr1->getClientObject(), m_obj_ptr2->getClientObject(), 0) :   
+			   responseList(m_obj_ptr2->getClientObject(), m_obj_ptr1->getClientObject(), 0);    
    case DT_SIMPLE_RESPONSE: 
 	   if (intersect(*m_obj_ptr1, *m_obj_ptr2, m_sep_axis)) 
 	   {

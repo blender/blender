@@ -372,6 +372,14 @@ void DT_GetBBox(DT_ObjectHandle object, DT_Vector3 min, DT_Vector3 max)
 	bbox.getMax().getValue(max);
 }
 
+DT_Bool DT_GetIntersect(DT_ObjectHandle object1, DT_ObjectHandle object2, DT_Vector3 vec)
+{
+	MT_Vector3 v;
+	DT_Bool result = intersect(*(DT_Object*)object1, *(DT_Object*)object2, v);
+	v.getValue(vec);
+	return result;
+}
+
 DT_Scalar DT_GetClosestPair(DT_ObjectHandle object1, DT_ObjectHandle object2,
 							DT_Vector3 point1, DT_Vector3 point2) 
 {
