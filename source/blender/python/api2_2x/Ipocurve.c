@@ -131,7 +131,7 @@ struct BezTriple *bezt;
 						bezt = self->ipocurve->bezt + i;
   PyList_Append( l, BezTriple_CreatePyObject(bezt));
 					}
-  return l;
+  return 0;
 }
 
 
