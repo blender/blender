@@ -52,12 +52,14 @@
 #include "DNA_object_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_text_types.h"
 
 #include "BKE_displist.h"
 #include "BKE_font.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_editfont.h"
 #include "BIF_toolbox.h"
@@ -205,6 +207,7 @@ static char findaccent(char char1, char code)
 	else return char1;
 }
 
+
 static char *textbuf=0;
 static char *oldstr;
 
@@ -225,6 +228,89 @@ static int insert_into_textbuf(Curve *cu, char c)
 		return 0;
 	}
 }
+
+
+static VFont *get_builtin_font(void)
+{
+	VFont *vf;
+	
+	for (vf= G.main->vfont.first; vf; vf= vf->id.next)
+		if (BLI_streq(vf->name, "<builtin>"))
+			return vf;
+	
+	return load_vfont("<builtin>");
+}
+
+
+void txt_export_to_object(struct Text *text)
+{
+	ID *id;
+	Curve *cu;
+	struct TextLine *tmp;
+	int nchars = 0;
+//	char sdir[FILE_MAXDIR];
+//	char sfile[FILE_MAXFILE];
+
+	if(!text) return;
+
+	id = (ID *)text;
+
+	if (G.obedit && G.obedit->type==OB_FONT) return;
+	check_editmode(OB_FONT);
+	
+	add_object(OB_FONT);
+
+	base_init_from_view3d(BASACT, G.vd);
+	G.obedit= BASACT->object;
+	where_is_object(G.obedit);
+
+	cu= G.obedit->data;
+
+/*	
+//		renames object, careful with long filenames.
+
+	if (text->name) {
+	//ID *find_id(char *type, char *name)	
+		BLI_split_dirfile(text->name, sdir, sfile);
+//		rename_id((ID *)G.obedit, sfile);
+		rename_id((ID *)cu, sfile);
+		id->us++;
+	}
+*/	
+	cu->vfont= get_builtin_font();
+	cu->vfont->id.us++;
+
+	tmp= text->lines.first;
+	while(cu->len<MAXTEXT && tmp) {
+		nchars += strlen(tmp->line) + 1;
+		tmp = tmp->next;
+	}
+
+	if(cu->str) MEM_freeN(cu->str);
+
+	cu->str= MEM_mallocN(nchars+1, "str");
+	
+	tmp= text->lines.first;
+	strcpy(cu->str, tmp->line);
+	cu->len= strlen(tmp->line);
+	cu->pos= cu->len;
+
+	tmp= tmp->next;
+
+	while(cu->len<MAXTEXT && tmp) {
+		strcat(cu->str, "\n");
+		strcat(cu->str, tmp->line);
+		cu->len+= strlen(tmp->line) + 1;
+		cu->pos= cu->len;
+		tmp= tmp->next;
+	}
+
+	make_editText();
+	exit_editmode(1);
+
+	allqueue(REDRAWVIEW3D, 0);
+}
+
 
 void do_textedit(unsigned short event, short val, char _ascii)
 {
@@ -399,6 +485,59 @@ void do_textedit(unsigned short event, short val, char _ascii)
 	}
 }
 
+
+void paste_editText(void)
+{
+	Curve *cu;
+	int file, filelen, doit= 0;
+	char *strp;
+
+
+#ifdef WIN32
+	file= open("C:\\windows\\temp\\cutbuf.txt", O_BINARY|O_RDONLY);
+
+//	The following is more likely to work on all Win32 installations.
+//	suggested by Douglas Toltzman. Needs windows include files...
+/*
+	char tempFileName[MAX_PATH];
+	DWORD pathlen;
+	static const char cutbufname[]="cutbuf.txt";
+
+	if ((pathlen=GetTempPath(sizeof(tempFileName),tempFileName)) > 0 &&
+		pathlen + sizeof(cutbufname) <= sizeof(tempFileName))
+	{
+		strcat(tempFileName,cutbufname);
+		file= open(tempFileName, O_BINARY|O_RDONLY);
+	}
+*/
+#else
+	file= open("/tmp/.cutbuffer", O_BINARY|O_RDONLY);
+#endif
+
+	if(file>0) {
+		cu= G.obedit->data;
+		filelen = BLI_filesize(file);
+				
+		strp= MEM_mallocN(filelen+1, "tempstr");
+		read(file, strp, filelen);
+		close(file);
+		strp[filelen]= 0;
+		if(cu->len+filelen<MAXTEXT) {
+			strcat( textbuf, strp);
+			cu->len= strlen(textbuf);
+			cu->pos= cu->len;
+		}
+		MEM_freeN(strp);
+		doit = 1;
+	}
+	if(doit) {
+		text_to_curve(G.obedit, 0);
+		makeDispList(G.obedit);
+		allqueue(REDRAWVIEW3D, 0);
+	}
+}
+
+
 void make_editText(void)
 {
 	Curve *cu;
@@ -417,6 +556,7 @@ void make_editText(void)
 	
 	textediting= 1;
 }
+
 
 void load_editText(void)
 {
@@ -438,6 +578,7 @@ void load_editText(void)
 	textediting= 0;
 }
 
+
 void remake_editText(void)
 {
 	Curve *cu;
@@ -455,6 +596,7 @@ void remake_editText(void)
 	allqueue(REDRAWVIEW3D, 0);
 }
 
+
 void free_editText(void)
 {
 	if(oldstr) MEM_freeN(oldstr);
@@ -462,16 +604,6 @@ void free_editText(void)
 	textediting= 0;
 }
 
-static VFont *get_builtin_font(void)
-{
-	VFont *vf;
-	
-	for (vf= G.main->vfont.first; vf; vf= vf->id.next)
-		if (BLI_streq(vf->name, "<builtin>"))
-			return vf;
-	
-	return load_vfont("<builtin>");
-}
 
 void add_primitiveFont(int dummy_argument)
 {

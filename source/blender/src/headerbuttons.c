@@ -537,6 +537,84 @@ static void show_splash(void)
 	splash((void *)datatoc_splash_jpg, datatoc_splash_jpg_size, string);
 }
 
+
+/* Functions for user preferences fileselect windows */
+
+void filesel_u_fontdir(char *name)
+{
+	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
+	BLI_split_dirfile(name, dir, file);
+
+	strcpy(U.fontdir, dir);
+	allqueue(REDRAWALL, 0);
+}
+
+void filesel_u_textudir(char *name)
+{
+	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
+	BLI_split_dirfile(name, dir, file);
+
+	strcpy(U.textudir, dir);
+	allqueue(REDRAWALL, 0);
+}
+
+void filesel_u_plugtexdir(char *name)
+{
+	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
+	BLI_split_dirfile(name, dir, file);
+
+	strcpy(U.plugtexdir, dir);
+	allqueue(REDRAWALL, 0);
+}
+
+void filesel_u_plugseqdir(char *name)
+{
+	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
+	BLI_split_dirfile(name, dir, file);
+
+	strcpy(U.plugseqdir, dir);
+	allqueue(REDRAWALL, 0);
+}
+
+void filesel_u_renderdir(char *name)
+{
+	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
+	BLI_split_dirfile(name, dir, file);
+
+	strcpy(U.renderdir, dir);
+	allqueue(REDRAWALL, 0);
+}
+
+void filesel_u_pythondir(char *name)
+{
+	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
+	BLI_split_dirfile(name, dir, file);
+
+	strcpy(U.pythondir, dir);
+	allqueue(REDRAWALL, 0);
+}
+
+void filesel_u_sounddir(char *name)
+{
+	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
+	BLI_split_dirfile(name, dir, file);
+
+	strcpy(U.sounddir, dir);
+	allqueue(REDRAWALL, 0);
+}
+
+void filesel_u_tempdir(char *name)
+{
+	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
+	BLI_split_dirfile(name, dir, file);
+
+	strcpy(U.tempdir, dir);
+	allqueue(REDRAWALL, 0);
+}
+
+/* END Functions for user preferences fileselect windows */
+
+
 void do_global_buttons(unsigned short event)
 {
 	ListBase *lb;
@@ -549,7 +627,9 @@ void do_global_buttons(unsigned short event)
 	Sequence *seq;
 	bAction *act;
 	ID *id, *idtest, *from;
+	ScrArea *sa;
 	int nr= 1;
+	char buf[FILE_MAXDIR+FILE_MAXFILE];
 
 	
 	ob= OBACT;
@@ -1309,6 +1389,122 @@ void do_global_buttons(unsigned short event)
 	case B_LOADTEMP: 	/* is button uit space.c */
 		BIF_read_autosavefile();
 		break;
+
+	case B_USERPREF:
+		allqueue(REDRAWINFO, 0);
+//		BIF_printf("userpref %d\n", U.userpref);
+		break;
+	case B_DRAWINFO: 	/* is button uit space.c  *info* */
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+
+	/* Fileselect windows for user preferences file paths */
+
+	case B_FONTDIRFILESEL: 	/* is button uit space.c  *info* */
+		if(curarea->spacetype==SPACE_INFO) {
+			sa= closest_bigger_area();
+			areawinset(sa->win);
+		}
+
+		activate_fileselect(FILE_SPECIAL, "SELECT FONT PATH", U.fontdir, filesel_u_fontdir);
+		break;
+
+	case B_TEXTUDIRFILESEL: 	/* is button uit space.c  *info* */
+		if(curarea->spacetype==SPACE_INFO) {
+			sa= closest_bigger_area();
+			areawinset(sa->win);
+		}
+
+		activate_fileselect(FILE_SPECIAL, "SELECT TEXTURE PATH", U.textudir, filesel_u_textudir);
+		break;
+	
+	case B_PLUGTEXDIRFILESEL: 	/* is button uit space.c  *info* */
+		if(curarea->spacetype==SPACE_INFO) {
+			sa= closest_bigger_area();
+			areawinset(sa->win);
+		}
+
+		activate_fileselect(FILE_SPECIAL, "SELECT TEX PLUGIN PATH", U.plugtexdir, filesel_u_plugtexdir);
+		break;
+	
+	case B_PLUGSEQDIRFILESEL: 	/* is button uit space.c  *info* */
+		if(curarea->spacetype==SPACE_INFO) {
+			sa= closest_bigger_area();
+			areawinset(sa->win);
+		}
+
+		activate_fileselect(FILE_SPECIAL, "SELECT SEQ PLUGIN PATH", U.plugseqdir, filesel_u_plugseqdir);
+		break;
+	
+	case B_RENDERDIRFILESEL: 	/* is button uit space.c  *info* */
+		if(curarea->spacetype==SPACE_INFO) {
+			sa= closest_bigger_area();
+			areawinset(sa->win);
+		}
+
+		activate_fileselect(FILE_SPECIAL, "SELECT RENDER PATH", U.renderdir, filesel_u_renderdir);
+		break;
+	
+	case B_PYTHONDIRFILESEL: 	/* is button uit space.c  *info* */
+		if(curarea->spacetype==SPACE_INFO) {
+			sa= closest_bigger_area();
+			areawinset(sa->win);
+		}
+
+		activate_fileselect(FILE_SPECIAL, "SELECT SCRIPT PATH", U.pythondir, filesel_u_pythondir);
+		break;
+
+	case B_SOUNDDIRFILESEL: 	/* is button uit space.c  *info* */
+		if(curarea->spacetype==SPACE_INFO) {
+			sa= closest_bigger_area();
+			areawinset(sa->win);
+		}
+
+		activate_fileselect(FILE_SPECIAL, "SELECT SOUND PATH", U.sounddir, filesel_u_sounddir);
+		break;
+
+	case B_TEMPDIRFILESEL: 	/* is button uit space.c  *info* */
+		if(curarea->spacetype==SPACE_INFO) {
+			sa= closest_bigger_area();
+			areawinset(sa->win);
+		}
+
+		activate_fileselect(FILE_SPECIAL, "SELECT TEMP FILE PATH", U.tempdir, filesel_u_tempdir);
+		break;
+
+	/* END Fileselect windows for user preferences file paths */
+
+
+#ifdef INTERNATIONAL
+	case B_LOADUIFONT: 	/* is button uit space.c  *info* */
+		if(curarea->spacetype==SPACE_INFO) {
+			sa= closest_bigger_area();
+			areawinset(sa->win);
+		}
+		BLI_make_file_string("/", buf, U.fontdir, U.fontname);
+		activate_fileselect(FILE_SPECIAL, "LOAD UI FONT", buf, set_interface_font);
+		break;
+
+	case B_SETLANGUAGE: 	/* is button uit space.c  *info* */
+		lang_setlanguage();
+		allqueue(REDRAWALL, 0);
+		break;
+
+	case B_SETFONTSIZE: 	/* is button uit space.c  *info* */
+		FTF_SetSize(U.fontsize);
+		allqueue(REDRAWALL, 0);
+		break;
+		
+	case B_SETTRANSBUTS: 	/* is button uit space.c  *info* */
+		allqueue(REDRAWALL, 0);
+		break;
+
+	case B_SETENCODING: 	/* is button uit space.c  *info* */
+		lang_setencoding();
+		allqueue(REDRAWALL, 0);
+		break;
+#endif
+		
 	case B_FULL:
 		if(curarea->spacetype!=SPACE_INFO) {
 			area_fullscreen();

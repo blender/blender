@@ -765,6 +765,19 @@ void drawname(Object *ob)
 	BMF_DrawString(G.font, ob->id.name+2);
 }
 
+
+static void draw_selected_name(char *name)
+{
+	char info[128];
+
+	sprintf(info, "(%d) %s", CFRA, name);
+
+	cpack(0xFFFFFF);
+	glRasterPos2i(30,  10);
+	BMF_DrawString(G.fonts, info);
+}
+
+
 static void draw_view_icon(void)
 {
 	BIFIconID icon;
@@ -975,6 +988,9 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	if(G.vd->persp>1) drawviewborder();
 	drawcursor();
 	draw_view_icon();
+
+	ob= OBACT;
+	if(ob!=0 && (U.uiflag & DRAWVIEWINFO)) draw_selected_name(ob->id.name+2);
 	
 	persp(1);
 

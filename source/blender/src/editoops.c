@@ -59,6 +59,7 @@
 
 #include "BKE_global.h"
 #include "BKE_scene.h"
+#include "BKE_library.h"
 #include "BKE_material.h"
 
 #include "BIF_space.h"
@@ -67,6 +68,7 @@
 #include "BIF_editview.h"
 #include "BIF_drawscene.h"
 #include "BIF_mywindow.h"
+#include "BIF_toolbox.h"
 
 #include "BDR_editobject.h"
 
@@ -75,12 +77,15 @@
 
 #include "blendef.h"
 #include "mydevice.h"
+#include "interface.h"
 
 
 typedef struct TransOops {
 	float *loc;
 	float oldloc[2];
 } TransOops;
+
+struct ID *idt;
 
 
 static void oops_to_select_objects(void)
@@ -597,4 +602,47 @@ void select_backlinked_oops(void)
 	
 	oops_to_select_objects();	/* ook redr */
 	
+}
+
+
+void clever_numbuts_oops()
+{
+	Oops *oops;
+	Object *ob;
+	ID *id = idt;
+	char str1[10];
+	static char naam[256];
+	static char naam2[256];
+	static short doit;
+	int len;
+
+	if(G.soops->lockpoin) {
+		oops= G.soops->lockpoin;
+		ob = (Object *)oops->id;
+		if(oops->type==ID_LI) strcpy(naam, ((Library *)oops->id)->name);
+		else strcpy(naam, oops->id->name);
+
+		strcpy(naam2, naam+2);
+		str1[0]= oops->id->name[0];
+		str1[1]= oops->id->name[1];
+		str1[2]= ':';
+		str1[3]= 0;
+		if(strcmp(str1, "SC:")==0) strcpy(str1, "SCE:");
+		else if(strcmp(str1, "SR:")==0) strcpy(str1, "SCR:");
+		
+//		if( GS(id->name)==ID_IP) len= 110;
+//		else len= 120;
+		len = 110;
+
+		add_numbut(0, TEX, str1, 0, len, naam2, "Rename Object");
+		if((oops->type==ID_OB || oops->type==ID_ME) && ob->type != OB_EMPTY) {
+	//		add_numbut(1, TEX, str1, 0, len, naam2, "Name Object");
+			add_numbut(1, TOG|SHO, "Rename Linked Data", 0, 0, &doit, "Rename corresponding Datablock as well");
+			do_clever_numbuts("Rename Datablock", 2, REDRAW); 
+		} else {
+			do_clever_numbuts("Rename Datablock", 1, REDRAW); 
+		}
+
+		rename_id((ID *)oops->id, naam2);
+	}
 }

@@ -57,5 +57,6 @@ void free_filesel_spec(char *dir);
 void winqreadfilespace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 void main_to_filelist(struct SpaceFile *sfile);   
 
+void clever_numbuts_filesel(void);
 #endif
 

@@ -85,6 +85,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define	KEYINSERTOBJ	2
 #define WHEELZOOMDIR	4
 #define FILTERFILEEXTS	8
+#define DRAWVIEWINFO	16
 
 /* transopts */
 

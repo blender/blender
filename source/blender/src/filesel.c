@@ -1783,6 +1783,20 @@ static void fs_fake_users(SpaceFile *sfile)
 	scrarea_queue_winredraw(curarea);
 }
 
+
+static int get_hilited_entry(SpaceFile *sfile)
+{
+	int a, count=0;
+
+	for(a=0; a<sfile->totfile; a++) {
+		if(sfile->filelist[a].flags & HILITE) {
+			return a;
+		}
+	}
+	return -1;
+}
+
+
 void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
@@ -1992,6 +2006,25 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			reread_other_fs();
 			
 			break;
+
+		case XKEY:
+			test = get_hilited_entry(sfile);
+
+			if (test != -1 && !(S_ISDIR(sfile->filelist[test].type))){
+				BLI_make_file_string(G.sce, str, sfile->dir, sfile->filelist[test].relname);
+
+				if( okee("Remove %s", str) ) {
+					ret = BLI_delete(str, 0, 0);
+					if (ret) {
+						error("Command failed, see console");
+					} else {
+						freefilelist(sfile);
+						do_draw= 1;
+					}
+				}
+			}
+			break;
+
 		case RKEY:
 			if(sfile->type==FILE_MAIN) {
 				databrowse_replace(sfile, groupname_to_code(sfile->dir));
@@ -2501,4 +2534,38 @@ void main_to_filelist(SpaceFile *sfile)
 }
 
 
+void clever_numbuts_filesel()
+{
+	SpaceFile *sfile;
+	char orgname[FILE_MAXDIR+FILE_MAXFILE+12];
+	char filename[FILE_MAXDIR+FILE_MAXFILE+12];
+	char newname[FILE_MAXDIR+FILE_MAXFILE+12];
+	int test;
+	int len;
+	
+	sfile= curarea->spacedata.first;
+
+	if(sfile->type==FILE_MAIN) return;
+	
+	len = 110;
+	test = get_hilited_entry(sfile);
+
+	if (test != -1 && !(S_ISDIR(sfile->filelist[test].type))){
+		BLI_make_file_string(G.sce, orgname, sfile->dir, sfile->filelist[test].relname);
+		strcpy(filename, sfile->filelist[test].relname);
+		
+		add_numbut(0, TEX, "", 0, len, filename, "Rename File");
+
+		if( do_clever_numbuts("Rename File", 1, REDRAW) ) {
+			BLI_make_file_string(G.sce, newname, sfile->dir, filename);
+
+			if( strcmp(orgname, newname) != 0 ) {
+				BLI_rename(orgname, newname);
+				freefilelist(sfile);
+			}
+		}
+
+		scrarea_queue_winredraw(curarea);
+	}
+}
 

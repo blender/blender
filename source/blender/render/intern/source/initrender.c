@@ -81,7 +81,9 @@
 #include "BSE_drawview.h"
 #include "BSE_sequence.h"
 
+#ifdef WITH_QUICKTIME
 #include "quicktime_export.h"
+#endif
 
 /* this module */
 #include "render.h"

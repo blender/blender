@@ -62,6 +62,7 @@
 #include "BIF_interface.h"
 #include "BIF_imasel.h"
 #include "BIF_mywindow.h"
+#include "BIF_toolbox.h"
 
 #include "BSE_filesel.h"
 #include "BSE_drawimasel.h"
@@ -94,6 +95,7 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	short mval[2];
 	short area_event;
 	short queredraw = 0;
+	int ret = 0;
 	char  name[256];
 	char *selname;
 	static double prevtime=0;
@@ -335,6 +337,15 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 		break;
 
+	case IKEY:
+		if ((G.qual == 0)&&(simasel->file)){
+			sprintf(name, "$IMAGEEDITOR %s%s", simasel->dir, simasel->file);
+			system(name);
+			queredraw = 1;
+		}
+
+		break;
+	
 	case PKEY:
 		if(G.qual & LR_SHIFTKEY) {
 			extern char bprogname[];	/* usiblender.c */
@@ -353,15 +364,24 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 		break;
 		
-	case IKEY:
-		if ((G.qual == 0)&&(simasel->file)){
-			sprintf(name, "$IMAGEEDITOR %s%s", simasel->dir, simasel->file);
-			system(name);
-			queredraw = 1;
-		}
+	case RKEY:
+	case XKEY:
+		if (simasel->hilite_ima){
+			strcpy(name, simasel->dir);
+			strcat(name, simasel->hilite_ima->file_name);
 
+			if( okee("Remove %s", name) ) {
+				ret = BLI_delete(name, 0, 0);
+				if (ret) {
+					error("Command failed, see console");
+				} else {
+					clear_ima_dir(simasel);
+					queredraw = 1;
+				}
+			}
+		}
 		break;
-	
+
 	case PADPLUSKEY:
 	case EQUALKEY:
 		BLI_newname(simasel->file, +1);
@@ -411,3 +431,32 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 }
 
 
+void clever_numbuts_imasel()
+{
+	SpaceImaSel *simasel;
+	static char orgname[FILE_MAXDIR+FILE_MAXFILE+12];
+	static char filename[FILE_MAXDIR+FILE_MAXFILE+12];
+	static char newname[FILE_MAXDIR+FILE_MAXFILE+12];
+	int len;
+	
+	simasel= curarea->spacedata.first;
+	len = 110;
+
+	if (simasel->hilite_ima){
+		BLI_make_file_string(G.sce, orgname, simasel->dir, simasel->hilite_ima->file_name);
+		strcpy(filename, simasel->hilite_ima->file_name);
+
+		add_numbut(0, TEX, "", 0, len, filename, "Rename Image");
+		if( do_clever_numbuts("Rename Image", 1, REDRAW) ) {
+			BLI_make_file_string(G.sce, newname, simasel->dir, filename);
+
+			if( strcmp(orgname, newname) != 0 ) {
+				BLI_rename(orgname, newname);
+
+				clear_ima_dir(simasel);
+			}
+		}
+
+		scrarea_queue_winredraw(curarea);
+	}
+}

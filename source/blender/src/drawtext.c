@@ -68,6 +68,7 @@
 #include "BIF_keyval.h"
 #include "BIF_interface.h"
 #include "BIF_drawtext.h"
+#include "BIF_editfont.h"
 #include "BIF_spacetypes.h"
 #include "BIF_usiblender.h"
 #include "BIF_screen.h"
@@ -742,6 +743,135 @@ static int jumptoline_interactive(SpaceText *st) {
 	}
 }
 
+
+int bufferlength;
+static char *copybuffer = NULL;
+
+void txt_copy_selectbuffer (Text *text)
+{
+	int length=0;
+	TextLine *tmp, *linef, *linel;
+	int charf, charl;
+	
+	if (!text) return;
+	if (!text->curl) return;
+	if (!text->sell) return;
+
+	if (!txt_has_sel(text)) return;
+	
+	if (copybuffer) {
+		MEM_freeN(copybuffer);
+		copybuffer= NULL;
+	}
+
+	if (text->curl==text->sell) {
+		linef= linel= text->curl;
+		
+		if (text->curc < text->selc) {
+			charf= text->curc;
+			charl= text->selc;
+		} else{
+			charf= text->selc;
+			charl= text->curc;
+		}
+	} else if (txt_get_span(text->curl, text->sell)<0) {
+		linef= text->sell;
+		linel= text->curl;
+
+		charf= text->selc;		
+		charl= text->curc;
+	} else {
+		linef= text->curl;
+		linel= text->sell;
+		
+		charf= text->curc;
+		charl= text->selc;
+	}
+
+	if (linef == linel) {
+		length= charl-charf;
+
+		copybuffer= MEM_mallocN(length+1, "cut buffera");
+		
+		BLI_strncpy(copybuffer, linef->line + charf, length+1);
+	} else {
+		length+= linef->len - charf;
+		length+= charl;
+		length++; /* For the '\n' */
+		
+		tmp= linef->next;
+		while (tmp && tmp!= linel) {
+			length+= tmp->len+1;
+			tmp= tmp->next;
+		}
+		
+		copybuffer= MEM_mallocN(length+1, "cut bufferb");
+		
+		strncpy(copybuffer, linef->line+ charf, linef->len-charf);
+		length= linef->len-charf;
+		
+		copybuffer[length++]='\n';
+		
+		tmp= linef->next;
+		while (tmp && tmp!=linel) {
+			strncpy(copybuffer+length, tmp->line, tmp->len);
+			length+= tmp->len;
+			
+			copybuffer[length++]='\n';			
+			
+			tmp= tmp->next;
+		}
+		strncpy(copybuffer+length, linel->line, charl);
+		length+= charl;
+		
+		copybuffer[length]=0;
+	}
+
+	bufferlength = length;
+}
+
+
+void txt_paste_clipboard(Text *text) {
+#ifdef _WIN32
+	char * buffer = NULL;
+
+	if ( OpenClipboard(NULL) ) {
+		HANDLE hData = GetClipboardData( CF_TEXT );
+		buffer = (char*)GlobalLock( hData );
+		txt_insert_buf(text, buffer);
+		GlobalUnlock( hData );
+		CloseClipboard();
+	}
+#endif
+}
+
+void txt_copy_clipboard(Text *text) {
+#ifdef _WIN32
+	txt_copy_selectbuffer(text);
+
+	if (OpenClipboard(NULL)) {
+		HLOCAL clipbuffer;
+		char* buffer;
+
+		EmptyClipboard();
+		clipbuffer = LocalAlloc(LMEM_FIXED,((bufferlength+1)));
+		buffer = (char *) LocalLock(clipbuffer);
+
+		strncpy(buffer, copybuffer, bufferlength);
+		buffer[bufferlength] =  '\0';
+		LocalUnlock(clipbuffer);
+		SetClipboardData(CF_TEXT,clipbuffer);
+		CloseClipboard();
+	}
+
+	if (copybuffer) {
+		MEM_freeN(copybuffer);
+		copybuffer= NULL;
+	}
+#endif
+}
+
+
 void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
@@ -760,8 +890,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	text= st->text;
 	
 	if (!text) {
-		if (val && !ELEM(G.qual, 0, LR_SHIFTKEY)) {
-			if (event==FKEY && (G.qual & LR_ALTKEY) && (G.qual & LR_SHIFTKEY)) {
+			if (event==RIGHTMOUSE) {
 				switch (pupmenu("File %t|New %x0|Open... %x1")) {
 				case 0:
 					st->text= add_empty_text();
@@ -774,7 +903,22 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE", G.sce, add_text_fs);
 					break;
 				}
-			} else if (event==QKEY) {
+			}
+			if (val && !ELEM(G.qual, 0, LR_SHIFTKEY)) {
+			if (event==FKEY && (G.qual & LR_ALTKEY) && (G.qual & LR_SHIFTKEY)) {
+				switch (pupmenu("File %t|New %x0|Open... %x1")) {
+				case 0:
+					st->text= add_empty_text();
+					st->top= 0;
+				
+					allqueue(REDRAWTEXT, 0);
+					allqueue(REDRAWHEADERS, 0);
+					break;
+				case 1:
+					activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE", G.sce, add_text_fs);
+					break;
+			}
+		} else if (event==QKEY) {
 				if(okee("QUIT BLENDER")) exit_usiblender();
 			}
 		}
@@ -798,6 +942,35 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	} else if (event==MIDDLEMOUSE) {
 		if (val) {
 			do_textscroll(st, 1);
+		}
+	} else if (event==RIGHTMOUSE) {
+		if (val) {
+			p= pupmenu("File %t|New %x0|Open... %x1|Save %x2|Save As...%x3");
+
+			switch(p) {
+				case 0:
+					st->text= add_empty_text();
+					st->top= 0;
+					
+					allqueue(REDRAWTEXT, 0);
+					allqueue(REDRAWHEADERS, 0);
+					break;
+
+				case 1:
+					activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE", G.sce, add_text_fs);
+					break;
+					
+				case 3:
+					text->flags |= TXT_ISMEM;
+					
+				case 2:
+					txt_write_file(text);
+					do_draw= 1;
+					break;
+
+				default:
+					break;
+			}
 		}
 	} else if (ascii) {
 		if (txt_add_char(text, ascii)) {
@@ -962,11 +1135,11 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		switch(event) {
 		case AKEY:
-			if (G.qual & LR_CTRLKEY) {
+			if (G.qual & LR_ALTKEY) {
 				txt_move_bol(text, G.qual & LR_SHIFTKEY);
 				do_draw= 1;
 				pop_space_text(st);
-			} else if (G.qual & LR_ALTKEY) {
+			} else if (G.qual & LR_CTRLKEY) {
 				txt_sel_all(text);
 				do_draw= 1;
 			}
@@ -974,7 +1147,11 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		case CKEY:
 			if (G.qual & LR_ALTKEY || G.qual & LR_CTRLKEY) {
-				txt_copy_sel(text);
+				if(G.qual & LR_SHIFTKEY)
+					txt_copy_clipboard(text);
+				else
+					txt_copy_sel(text);
+
 				do_draw= 1;	
 			}
 			break;
@@ -1007,6 +1184,13 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 			
+		case MKEY:
+			if (G.qual & LR_ALTKEY) {
+				txt_export_to_object(text);
+				do_draw= 1;	
+			}
+			break;
+
 		case PKEY:
 			if (G.qual & LR_ALTKEY) {
 				if (!BPY_txt_do_python(st)) {
@@ -1058,7 +1242,8 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			
 		case UKEY:
 			if (G.qual & LR_ALTKEY) {
-				if (G.qual & LR_SHIFTKEY) txt_print_undo(text);
+				if (G.qual & LR_SHIFTKEY) txt_do_redo(text);
+					//txt_print_undo(text); //debug buffer in console
 				else {
 					txt_do_undo(text);
 					do_draw= 1;
@@ -1068,7 +1253,11 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		case VKEY:
 			if (G.qual & LR_ALTKEY || G.qual & LR_CTRLKEY) {
-				txt_paste(text);
+				if(G.qual & LR_SHIFTKEY)
+					txt_paste_clipboard(text);
+				else
+					txt_paste(text);
+
 				do_draw= 1;	
 				pop_space_text(st);
 			}

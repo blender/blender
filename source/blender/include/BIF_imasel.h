@@ -55,5 +55,7 @@ void init_imaselspace(struct ScrArea *sa);
 void check_imasel_copy(struct SpaceImaSel *simasel);
 void free_imasel(struct SpaceImaSel *simasel);
 
+void clever_numbuts_imasel(void);
+
 #endif
 

@@ -38,6 +38,9 @@ void make_editText(void);
 void load_editText(void);
 void remake_editText(void);
 void free_editText(void);
+void paste_editText(void);
+void txt_export_to_object(struct Text *text);
+
 /**
  * @attention The argument is discarded. It is there for
  * compatibility.

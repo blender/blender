@@ -185,6 +185,10 @@
 /* EVENT < 50: alone's en locals */
 
 #define B_KEEPDATA			60
+#define B_CONSOLETOG		61
+#define B_DRAWINFO			62
+#define B_REDRCURW3D		63
+
 
 #define B_SHOWSPLASH		70
 #define B_RESETAUTOSAVE		71
@@ -269,6 +273,26 @@
 #define B_INFODELSCE	305
 #define B_FILEMENU		306
 #define B_PACKFILE		307
+
+#define B_CONSOLEOUT		308
+#define B_CONSOLENUMLINES	309
+#define B_USERPREF			310
+#define B_LOADUIFONT		311
+#define B_SETLANGUAGE		312
+#define B_SETFONTSIZE		313
+#define B_SETENCODING		314
+#define B_SETTRANSBUTS		315
+
+/* Definitions for the fileselect buttons in user prefs */
+#define B_FONTDIRFILESEL  	320
+#define B_TEXTUDIRFILESEL  	321
+#define B_PLUGTEXDIRFILESEL  	322
+#define B_PLUGSEQDIRFILESEL  	323
+#define B_RENDERDIRFILESEL  	324
+#define B_PYTHONDIRFILESEL  	325
+#define B_SOUNDDIRFILESEL  	326
+#define B_TEMPDIRFILESEL  	327
+/* END Definitions for the fileselect buttons in user prefs */
 
 /* IMAGE: 350 */
 #define B_SIMAGEHOME		351

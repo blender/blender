@@ -79,6 +79,8 @@
 #include "BIF_editseq.h"
 #include "BIF_editlattice.h"
 #include "BIF_editsima.h"
+#include "BIF_editoops.h"
+#include "BIF_imasel.h"
 #include "BIF_screen.h"
 #include "BIF_tbcallback.h"
 #include "BIF_editnla.h"
@@ -89,6 +91,7 @@
 
 #include "BSE_editipo.h"
 #include "BSE_buttons.h"
+#include "BSE_filesel.h"
 
 #include "IMB_imbuf.h"
 
@@ -1424,11 +1427,21 @@ void clever_numbuts(void)
 	else if(curarea->spacetype==SPACE_IMAGE) {
 		clever_numbuts_sima();
 	}
+	else if(curarea->spacetype==SPACE_IMASEL) {
+		clever_numbuts_imasel();
+	}
 	else if(curarea->spacetype==SPACE_BUTS){
 		clever_numbuts_buts();
 	}
-	
-	
+	else if(curarea->spacetype==SPACE_OOPS) {
+		clever_numbuts_oops();
+	}
+//	else if(curarea->spacetype==SPACE_ACTION){
+//		stupid_damn_numbuts_action();
+//	}
+	else if(curarea->spacetype==SPACE_FILE) {
+		clever_numbuts_filesel();
+	}
 }
 
 
