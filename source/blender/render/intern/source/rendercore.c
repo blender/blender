@@ -124,11 +124,11 @@ void gamtabdit(unsigned short *in, char *out)
 
 }
 
-float mistfactor(float *co)	/* dist en hoogte, return alpha */
+float mistfactor(float *co)	/* dist en height, return alpha */
 {
 	float fac, hi;
 	
-	fac= R.zcor - R.wrld.miststa;	/* R.zcor wordt per pixel berekend */
+	fac= R.zcor - R.wrld.miststa;	/* R.zcor is calculated per pixel */
 
 	/* fac= -co[2]-R.wrld.miststa; */
 
@@ -145,9 +145,9 @@ float mistfactor(float *co)	/* dist en hoogte, return alpha */
 	}
 	else fac= 0.0;
 	
-	/* de hoogte schakelt de mist af */
+	/* height switched off mist */
 	if(R.wrld.misthi!=0.0 && fac!=0.0) {
-		/* op hoogte misthi is mist volledig weg */
+		/* at height misthi the mist is completely gone */
 
 		hi= R.viewinv[0][2]*co[0]+R.viewinv[1][2]*co[1]+R.viewinv[2][2]*co[2]+R.viewinv[3][2];
 		
@@ -222,7 +222,7 @@ void RE_sky(char *col)
 		col[1]= 255.0*R.wrld.horg;
 		col[2]= 255.0*R.wrld.horb;
 	}
-	col[3]= 1;	/* om verkeerde optimalisatie alphaover van flares te voorkomen */
+	col[3]= 1;	/* to prevent wrong optimalisation alphaover of flares */
 }
 
 /* ------------------------------------------------------------------------- */
@@ -255,7 +255,7 @@ void scanlinesky(char *rect, int y)
 				*( ( unsigned int *)rect)= col;
 			}
 			else {
-				/* voorkomen dat 'col' in afbeelding voorkomt */
+				/* prevent  'col' to be in the image */
 				cp1= (char *)rect;
 				if( cp[0]==cp1[0] && cp[1]==cp1[1] && cp[2]==cp1[2] ) {
 
@@ -284,7 +284,7 @@ void scanlinesky(char *rect, int y)
 					return;
 				}
 			}
-			/* welke scanline/ */
+			/* which scanline/ */
 			y= ((y+R.afmy+R.ystart)*R.backbuf->ibuf->y)/(2*R.afmy);
 			
 			if(R.flag & R_SEC_FIELD) {
@@ -298,7 +298,7 @@ void scanlinesky(char *rect, int y)
 				
 			rt= (R.backbuf->ibuf->rect + y*R.backbuf->ibuf->x);
 			
-			/* op welke plek */
+			/* at which location */
 			fac= ((float)R.backbuf->ibuf->x)/(float)(2*R.afmx);
 			ofs= (R.afmx+R.xstart)*fac;
 			rt+= ofs;
@@ -423,7 +423,6 @@ void do_lamphalo_tex(LampRen *lar, float *p1, float *p2, float *intens)
 	totin/= (float)steps;
 	
 	*intens *= totin;
-   /* why isn't there a return value here? */
 }
 
 
@@ -439,14 +438,14 @@ void spothalo(struct LampRen *lar, float *view, float *intens)
 	*intens= 0.0;
 	haint= lar->haint;
 	
-	VECCOPY(npos, lar->sh_invcampos);	/* in initlamp berekend */
+	VECCOPY(npos, lar->sh_invcampos);	/* in initlamp calculated */
 	
-	/* view roteren */
+	/* rotate view */
 	VECCOPY(nray, view);
 	MTC_Mat3MulVecd(lar->imat, nray);
 	
 	if(R.wrld.mode & WO_MIST) {
-		/* een beetje patch... */
+		/* patchy... */
 		R.zcor= -lar->co[2];
 		haint *= mistfactor(lar->co);
 		if(haint==0.0) {
@@ -455,8 +454,8 @@ void spothalo(struct LampRen *lar, float *view, float *intens)
 	}
 
 
-	/* maxz roteren */
-	if(R.co[2]==0) doclip= 0;	/* is als halo op sky */
+	/* rotate maxz */
+	if(R.co[2]==0) doclip= 0;	/* for when halo at sky */
 	else {
 		p1[0]= R.co[0]-lar->co[0];
 		p1[1]= R.co[1]-lar->co[1];
@@ -469,13 +468,13 @@ void spothalo(struct LampRen *lar, float *view, float *intens)
 		if( fabs(nray[2]) <0.000001 ) use_yco= 1;
 	}
 	
-	/* z scalen zodat het volume genormaliseerd is */	
+	/* scale z to make sure volume is normalized */	
 	nray[2]*= lar->sh_zfac;
-	/* nray hoeft niet genormaliseerd */
+	/* nray does not need normalization */
 	
 	ladist= lar->sh_zfac*lar->dist;
 	
-	/* oplossen */
+	/* solve */
 	a = nray[0] * nray[0] + nray[1] * nray[1] - nray[2]*nray[2];
 	b = nray[0] * npos[0] + nray[1] * npos[1] - nray[2]*npos[2];
 	c = npos[0] * npos[0] + npos[1] * npos[1] - npos[2]*npos[2];
@@ -502,27 +501,27 @@ void spothalo(struct LampRen *lar, float *view, float *intens)
 		}
 	}
 	if(snijp==2) {
-		/* sorteren */
+		/* sort */
 		if(t1>t2) {
 			a= t1; t1= t2; t2= a;
 		}
 
-		/* z van snijpunten met diabolo */
+		/* z of intersection points with diabolo */
 		p1[2]= npos[2] + t1*nray[2];
 		p2[2]= npos[2] + t2*nray[2];
 
-		/* beide punten evalueren */
+		/* evaluate both points */
 		if(p1[2]<=0.0) ok1= 1;
 		if(p2[2]<=0.0 && t1!=t2) ok2= 1;
 		
-		/* minstens 1 punt met negatieve z */
+		/* at least 1 point with negative z */
 		if(ok1==0 && ok2==0) return;
 		
-		/* snijpunt met -ladist, de bodem van de kegel */
+		/* intersction point with -ladist, the bottom of the cone */
 		if(use_yco==0) {
 			t3= (-ladist-npos[2])/nray[2];
 				
-			/* moet 1 van de snijpunten worden vervangen? */
+			/* de we have to replace one of the intersection points? */
 			if(ok1) {
 				if(p1[2]<-ladist) t1= t3;
 			}
@@ -540,7 +539,7 @@ void spothalo(struct LampRen *lar, float *view, float *intens)
 		}
 		else if(ok1==0 || ok2==0) return;
 		
-		/* minstens 1 zichtbaar snijpunt */
+		/* at least 1 visible interesction point */
 		if(t1<0.0 && t2<0.0) return;
 		
 		if(t1<0.0) t1= 0.0;
@@ -548,12 +547,12 @@ void spothalo(struct LampRen *lar, float *view, float *intens)
 		
 		if(t1==t2) return;
 		
-		/* voor zekerheid nog eens sorteren */
+		/* sort again to be sure */
 		if(t1>t2) {
 			a= t1; t1= t2; t2= a;
 		}
 		
-		/* t0 berekenen: is de maximale zichtbare z (als halo door vlak doorsneden wordt) */ 
+		/* calculate t0: is the maximum visible z (when halo is intersected by face) */ 
 		if(doclip) {
 			if(use_yco==0) t0= (maxz-npos[2])/nray[2];
 			else t0= (maxy-npos[1])/nray[1];
@@ -562,7 +561,7 @@ void spothalo(struct LampRen *lar, float *view, float *intens)
 			if(t0<t2) t2= t0;
 		}
 
-		/* bereken punten */
+		/* calc points */
 		p1[0]= npos[0] + t1*nray[0];
 		p1[1]= npos[1] + t1*nray[1];
 		p1[2]= npos[2] + t1*nray[2];
@@ -571,7 +570,7 @@ void spothalo(struct LampRen *lar, float *view, float *intens)
 		p2[2]= npos[2] + t2*nray[2];
 		
 			
-		/* nu hebben we twee punten, hiermee maken we drie lengtes */
+		/* now we have 2 points, make three lengths with it */
 		
 		a= sqrt(p1[0]*p1[0]+p1[1]*p1[1]+p1[2]*p1[2]);
 		b= sqrt(p2[0]*p2[0]+p2[1]*p2[1]+p2[2]*p2[2]);
@@ -584,13 +583,13 @@ void spothalo(struct LampRen *lar, float *view, float *intens)
 		c/= ladist;
 		
 		*intens= c*( (1.0-a)+(1.0-b) );
-		
-		/* LET OP: a,b en c NIET op 1.0 clippen, dit geeft kleine
-		   overflowtjes op de rand (vooral bij smalle halo's) */
+
+		/* WATCH IT: do not clip a,b en c at 1.0, this gives nasty little overflows
+			at the edges (especially with narrow halos) */
 		if(*intens<=0.0) return;
-		
-		/* zachte gebied */
-		/* vervalt omdat t0 nu ook voor p1/p2 wordt gebruikt */
+
+		/* soft area */
+		/* not needed because t0 has been used for p1/p2 as well */
 		/* if(doclip && t0<t2) { */
 		/* 	*intens *= (t0-t1)/(t2-t1); */
 		/* } */
@@ -632,8 +631,8 @@ void renderspothalo(unsigned short *col)
 				colt= i;
 				if(colt>65535) scol[3]= 65535; else scol[3]= colt;
 
-				/* erg vervelend: gammagecorrigeerd renderen EN addalphaADD gaat niet goed samen */
-				/* eigenlijk moet er een aparte 'optel' gamma komen */
+				/* really bad: gamma corrected rendering AND addalphaADD doesnt work together */
+				/* actually we should invent a special add-gamma type */
 				
 				colt= i*lar->r;
 				if(colt>65535) scol[0]= 65535; else scol[0]= colt;
@@ -673,10 +672,10 @@ void render_lighting_halo(HaloRen *har, float *colf)
 	for(a=0; a<R.totlamp; a++) {
 		lar= R.la[a];
 
-		/* test op lamplayer */
+		/* test for lamplayer */
 		if(lar->mode & LA_LAYER) if((lar->lay & har->lay)==0) continue;
 
-		/* lampdist berekening */
+		/* lampdist cacluation */
 		if(lar->type==LA_SUN || lar->type==LA_HEMI) {
 			VECCOPY(lv, lar->vec);
 			lampdist= 1.0;
@@ -690,7 +689,7 @@ void render_lighting_halo(HaloRen *har, float *colf)
 			lv[1]/= ld;
 			lv[2]/= ld;
 			
-			/* ld wordt verderop nog gebruikt (texco's) */
+			/* ld is re-used further on (texco's) */
 			
 			if(lar->mode & LA_QUAD) {
 				t= 1.0;
@@ -719,8 +718,6 @@ void render_lighting_halo(HaloRen *har, float *colf)
 
 		if(lar->type==LA_SPOT) {
 
-			/* hier de fie Inp() vertaagt! */
-			
 			if(lar->mode & LA_SQUARE) {
 				if(lv[0]*lar->vec[0]+lv[1]*lar->vec[1]+lv[2]*lar->vec[2]>0.0) {
 					float x, lvrot[3];
@@ -747,7 +744,7 @@ void render_lighting_halo(HaloRen *har, float *colf)
 				i= 1.0;
 				soft= 1.0;
 				if(t<lar->spotbl && lar->spotbl!=0.0) {
-					/* zachte gebied */
+					/* soft area */
 					i= t/lar->spotbl;
 					t= i*i;
 					soft= (3.0*t-2.0*t*i);
@@ -755,10 +752,10 @@ void render_lighting_halo(HaloRen *har, float *colf)
 				}
 				if(lar->mode & LA_ONLYSHADOW) {
 					/* if(ma->mode & MA_SHADOW) { */
-						/* inprodukt positief: voorzijde vlak! */
+						/* dot product positive: front side face! */
 						inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
 						if(inp>0.0) {
-							/* testshadowbuf==0.0 : 100% schaduw */
+							/* testshadowbuf==0.0 : 100% shadow */
 							shadfac = testshadowbuf(lar->shb, inp);
 							if( shadfac>0.0 ) {
 								shadfac*= inp*soft*lar->energy;
@@ -777,7 +774,7 @@ void render_lighting_halo(HaloRen *har, float *colf)
 
 		}
 
-		/* inprodukt en reflectivity*/
+		/* dot product and  reflectivity*/
 		
 		inp= 1.0-fabs(vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2]);
 		
@@ -793,8 +790,8 @@ void render_lighting_halo(HaloRen *har, float *colf)
 			/* i*= lampdist*ma->ref; */
 		}
 
-		/* schaduw  */
-		if(i> -0.41) {			/* beetje willekeurig, beetje getest */
+		/* shadow  */
+		if(i> -0.41) {			/* heuristic valua! */
 			shadfac= 1.0;
 			if(lar->shb) {
 				/* if(ma->mode & MA_SHADOW) { */
@@ -826,17 +823,17 @@ void render_lighting_halo(HaloRen *har, float *colf)
 extern float hashvectf[];
 void RE_shadehalo(HaloRen *har, char *col, unsigned int zz, float dist, float xn, float yn, short flarec)
 {
-	/* in col invullen */
+	/* fill in in col */
 	float t, zn, radist, ringf=0.0, linef=0.0, alpha, si, co, colf[4];
 	int colt, a;
    
 	if(R.wrld.mode & WO_MIST) {
        if(har->type & HA_ONLYSKY) {
-           /* sterren geen mist */
+           /* stars have no mist */
            alpha= har->alfa;
        }
        else {
-           /* een beetje patch... */
+           /* patchy... */
            R.zcor= -har->co[2];
            alpha= mistfactor(har->co)*har->alfa;
        }
@@ -856,14 +853,14 @@ void RE_shadehalo(HaloRen *har, char *col, unsigned int zz, float dist, float xn
 
 	radist= sqrt(dist);
 
-	/* let op: hiermee wordt gesjoemeld: flarec wordt op nul gezet in de pixstruct */
+	/* watch it: abused value: flarec was set to zero in pixstruct */
 	if(flarec) har->pixels+= (int)(har->rad-radist);
 
 	if(har->ringc) {
 		float *rc, fac;
 		int ofs;
 		
-		/* per ring een alicirc */
+		/* per ring an antialised circle */
 		ofs= har->seed;
 		
 		for(a= har->ringc; a>0; a--, ofs+=2) {
@@ -912,7 +909,7 @@ void RE_shadehalo(HaloRen *har, char *col, unsigned int zz, float dist, float xn
 		float *rc, fac;
 		int ofs;
 		
-		/* per starpoint een aliline */
+		/* per starpoint an antialaised line */
 		ofs= har->seed;
 		
 		for(a= har->linec; a>0; a--, ofs+=3) {
@@ -932,7 +929,7 @@ void RE_shadehalo(HaloRen *har, char *col, unsigned int zz, float dist, float xn
 
 	if(har->starpoints) {
 		float ster, hoek;
-		/* rotatie */
+		/* rotation */
 		hoek= atan2(yn, xn);
 		hoek*= (1.0+0.25*har->starpoints);
 		
@@ -949,7 +946,7 @@ void RE_shadehalo(HaloRen *har, char *col, unsigned int zz, float dist, float xn
 		}
 	}
 	
-	/* halo wordt doorsneden? */
+	/* halo intersected? */
 	if(har->zs> zz-har->zd) {
 		t= ((float)(zz-har->zs))/(float)har->zd;
 		alpha*= sqrt(sqrt(t));
@@ -1055,7 +1052,7 @@ void scanlinehaloPS(unsigned int *rectz, long *rectdelta, unsigned int *rectt, s
 		if((a & 255)==0) har= R.bloha[a>>8];
 		else har++;
 
-		if(!(a%256)&&RE_local_test_break()) break;  /* Hos, RPW - fix slow render bug, */
+		if( !(a % 256) && RE_local_test_break() ) break;  /* Hos, RPW - fix slow render bug, */
 													/* !(loopvar%256) keeps checking for */
 													/* ESC too often and bogging down render */
 													/* (Based on discovery by Rob Haarsma) */
@@ -1079,7 +1076,7 @@ void scanlinehaloPS(unsigned int *rectz, long *rectdelta, unsigned int *rectt, s
 				ysq= yn*yn;
 				for(x=minx; x<=maxx; x++) {
 					
-					flarec= har->flarec;	/* har->pixels mag maar 1 x geteld worden */
+					flarec= har->flarec;	/* har->pixels is inly allowd to count once */
 
 					if( IS_A_POINTER_CODE(*rd)) {
 						xn= x-har->xs;
@@ -1164,7 +1161,7 @@ void scanlinehalo(unsigned int *rectz, unsigned int *rectt, short ys)
 		if((a & 255)==0) har= R.bloha[a>>8];
 		else har++;
 
-		if(!(a%256)&&RE_local_test_break()) break;/*Hos, RPW, fixes Slow Render Bug*/
+		if( !(a % 256) && RE_local_test_break() ) break; /* Hos, RPW, fixes Slow Render Bug */
 
 		if(ys>har->maxy);
 		else if(ys<har->miny);
@@ -1218,7 +1215,7 @@ void halovert()
 		if((a & 255)==0) har= R.bloha[a>>8];
 		else har++;
 
-		if(!(a%256)&&RE_local_test_break()) break;/*Hos, RPW, fixes slow render bug */
+		if( !(a % 256) && RE_local_test_break() ) break; /* Hos, RPW, fixes slow render bug */
 
 		if(har->maxy<0);
 		else if(R.recty<har->miny);
@@ -1272,7 +1269,7 @@ void halovert()
 					rectt+= R.rectx;
 					rectz+= R.rectx;
 					
-					if(!(y%256)&&RE_local_test_break()) break;/*Hos,RPW, Fixes slow render bug */
+					if( !(y % 256) && RE_local_test_break() ) break; /* Hos,RPW, Fixes slow render bug */
 				}
 
 			}
@@ -1395,7 +1392,7 @@ void shadelamplus()
 	view= R.view;
 	ma= R.matren;
 	
-	/* aparte lus */
+	/* separate loop */
 	if(ma->mode & MA_ONLYSHADOW) {
 		shadfac= ir= 0.0;
 		for(a=0; a<R.totlamp; a++) {
@@ -1404,7 +1401,7 @@ void shadelamplus()
 			if(lar->mode & LA_LAYER) if((lar->lay & R.vlr->lay)==0) continue;
 			
 			if(lar->shb) {
-				/* alleen testen binnen spotbundel */
+				/* only test within spotbundel */
 				lv[0]= R.co[0]-lar->co[0];
 				lv[1]= R.co[1]-lar->co[1];
 				lv[2]= R.co[2]-lar->co[2];
@@ -1508,10 +1505,10 @@ void shadelamplus()
 	for(a=0; a<R.totlamp; a++) {
 		lar= R.la[a];
 
-		/* test op lamplayer */
+		/* test for lamp layer */
 		if(lar->mode & LA_LAYER) if((lar->lay & R.vlr->lay)==0) continue;
 
-		/* lampdist berekening */
+		/* lampdist calculation */
 		if(lar->type==LA_SUN || lar->type==LA_HEMI) {
 			VECCOPY(lv, lar->vec);
 			lampdist= 1.0;
@@ -1525,7 +1522,7 @@ void shadelamplus()
 			lv[1]/= ld;
 			lv[2]/= ld;
 			
-			/* ld wordt verderop nog gebruikt (texco's) */
+			/* ld is re-used further on (texco's) */
 			
 			if(lar->mode & LA_QUAD) {
 				t= 1.0;
@@ -1553,8 +1550,6 @@ void shadelamplus()
 		if(lar->mode & LA_TEXTURE)  do_lamp_tex(lar, lv);
 
 		if(lar->type==LA_SPOT) {
-
-			/* hier de fie Inp() vertaagt! */
 			
 			if(lar->mode & LA_SQUARE) {
 				if(lv[0]*lar->vec[0]+lv[1]*lar->vec[1]+lv[2]*lar->vec[2]>0.0) {
@@ -1582,7 +1577,7 @@ void shadelamplus()
 				i= 1.0;
 				soft= 1.0;
 				if(t<lar->spotbl && lar->spotbl!=0.0) {
-					/* zachte gebied */
+					/* soft area */
 					i= t/lar->spotbl;
 					t= i*i;
 					soft= (3.0*t-2.0*t*i);
@@ -1590,10 +1585,10 @@ void shadelamplus()
 				}
 				if(lar->mode & LA_ONLYSHADOW && lar->shb) {
 					if(ma->mode & MA_SHADOW) {
-						/* inprodukt positief: voorzijde vlak! */
+						/* dot product positive: front side face! */
 						inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
 						if(inp>0.0) {
-							/* testshadowbuf==0.0 : 100% schaduw */
+							/* testshadowbuf==0.0 : 100% shadow */
 							shadfac = 1.0 - testshadowbuf(lar->shb, inp);
 							if(shadfac>0.0) {
 								shadfac*= inp*soft*lar->energy;
@@ -1611,7 +1606,7 @@ void shadelamplus()
 			if(lar->mode & LA_ONLYSHADOW) continue;
 
 			if(lar->mode & LA_OSATEX) {
-				R.osatex= 1;	/* signaal voor multitex() */
+				R.osatex= 1;	/* signal for multitex() */
 				
 				O.dxlv[0]= lv[0] - (R.co[0]-lar->co[0]+O.dxco[0])/ld;
 				O.dxlv[1]= lv[1] - (R.co[1]-lar->co[1]+O.dxco[1])/ld;
@@ -1624,7 +1619,7 @@ void shadelamplus()
 			
 		}
 
-		/* inprodukt en reflectivity*/
+		/* dot product and reflectivity*/
 		inp=i= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
 		if(lar->type==LA_HEMI) {
 			i= 0.5*i+0.5;
@@ -1633,8 +1628,8 @@ void shadelamplus()
 			i*= lampdist*ma->ref;
 		}
 
-		/* schaduw en spec */
-		if(i> -0.41) {			/* beetje willekeurig, beetje getest */
+		/* shadow and spec */
+		if(i> -0.41) {			/* heuristic value */
 			shadfac= 1.0;
 			if(lar->shb) {
 				if(ma->mode & MA_SHADOW) {
@@ -1664,8 +1659,6 @@ void shadelamplus()
 					if(lar->type==LA_HEMI) {
 						t= 0.5*t+0.5;
 					}
-					/* let op: shadfac en lampdist uit onderstaande */
-					
 					/* no more speclim */
 
 					t= ma->spec*RE_Spec(t, ma->har);
@@ -1738,7 +1731,7 @@ void shadelamplus()
 
 
 void shadepixel(float x, float y, int vlaknr)
-  /* x,y: windowcoordinaat van 0 tot rectx,y */
+  /* x,y: window coordinate from 0 to rectx,y */
 {
 	static VlakRen *vlr;
 	static VertRen *v1, *v2, *v3;
@@ -1748,7 +1741,7 @@ void shadepixel(float x, float y, int vlaknr)
 	float u, v, l, dl, hox, hoy, detsh, fac, deler, alpha;
 	char *cp1, *cp2, *cp3;
 	
-	if(R.vlaknr== -1) {	/* doet initrender */
+	if(R.vlaknr== -1) {	/* does initrender */
 		vlr= R.vlr= 0;
 	}
 	
@@ -1764,7 +1757,7 @@ void shadepixel(float x, float y, int vlaknr)
 			R.mat= vlr->mat;
 			R.matren= R.mat->ren;
 
-			if(R.matren==0) {	/* tijdelijk voor debug */
+			if(R.matren==0) {	/* for debug */
 				shortcol[3]= 65535;
 				shortcol[2]= 0;
 				shortcol[1]= 65535;
@@ -1781,7 +1774,7 @@ void shadepixel(float x, float y, int vlaknr)
 			v1= vlr->v1;
 			dvlak= v1->co[0]*vlr->n[0]+v1->co[1]*vlr->n[1]+v1->co[2]*vlr->n[2];
 
-			if( (vlr->flag & R_SMOOTH) || (R.matren->texco & NEED_UV)) {	/* uv nodig */
+			if( (vlr->flag & R_SMOOTH) || (R.matren->texco & NEED_UV)) {	/* uv needed */
 				if(vlaknr & 0x800000) {
 					v2= vlr->v3;
 					v3= vlr->v4;
@@ -1808,7 +1801,7 @@ void shadepixel(float x, float y, int vlaknr)
 				t00/= detsh; t01/=detsh; 
 				t10/=detsh; t11/=detsh;
 				
-				if(vlr->flag & R_SMOOTH) { /* puno's goedzetten */
+				if(vlr->flag & R_SMOOTH) { /* adjust punos (vertexnormals) */
 					if(vlr->puno & ME_FLIPV1) {
 						n1[0]= -v1->n[0]; n1[1]= -v1->n[1]; n1[2]= -v1->n[2];
 					} else {
@@ -1855,7 +1848,7 @@ void shadepixel(float x, float y, int vlaknr)
 			}
 		}
 
-		/* COXYZ nieuwe methode */
+		/* COXYZ  */
 		if( (G.special1 & G_HOLO) && ((Camera *)G.scene->camera->data)->flag & CAM_HOLO2) {
 			R.view[0]= (x+(R.xstart)+1.0+holoofs);
 		}
@@ -1904,7 +1897,7 @@ void shadepixel(float x, float y, int vlaknr)
 		}
 
 		fac= Normalise(R.view);
-		R.zcor*= fac;	/* voor mist */
+		R.zcor*= fac;	/* for mist */
 		
 		if(R.osatex) {
 			if( (R.matren->texco & TEXCO_REFL) ) {
@@ -1913,7 +1906,7 @@ void shadepixel(float x, float y, int vlaknr)
 			}
 		}
 
-		/* UV en TEX*/
+		/* UV and TEX*/
 		if( (vlr->flag & R_SMOOTH) || (R.matren->texco & NEED_UV)) {
 			if(vlr->snproj==0) {
 				u= (R.co[0]-v3->co[0])*t11-(R.co[1]-v3->co[1])*t10;
@@ -2085,11 +2078,11 @@ void shadepixel(float x, float y, int vlaknr)
 			}
 			
 			
-			/* hierna klopt de u en v EN O.dxuv en O.dyuv niet meer */
+			/* after this the u and v AND O.dxuv and O.dyuv are incorrect */
 			if(R.matren->texco & TEXCO_STICKY) {
 				if(v2->sticky) {
 					
-					/* opnieuw u en v berekenen */
+					/* recalc u and v again */
 					hox= x/Zmulx -1.0;
 					hoy= y/Zmuly -1.0;
 					u= (hox - v3->ho[0]/v3->ho[3])*s11 - (hoy - v3->ho[1]/v3->ho[3])*s10;
@@ -2136,7 +2129,7 @@ void shadepixel(float x, float y, int vlaknr)
 		}
 		else alpha= 1.0;
 
-		/* RAYTRACE (tijdelijk?) UITGESCHAKELD */
+		/* RAYTRACE WAS HERE! */
 
 		if(R.matren->alpha!=1.0 || alpha!=1.0) {
 			fac= alpha*(R.matren->alpha);
@@ -2161,7 +2154,7 @@ void shadepixel(float x, float y, int vlaknr)
 	}
 	
 	if(R.flag & R_LAMPHALO) {
-		if(vlaknr<=0) {	/* bereken viewvec en zet R.co op far */
+		if(vlaknr<=0) {	/* calc view vector and put R.co at far */
 		
 			if( (G.special1 & G_HOLO) && ((Camera *)G.scene->camera->data)->flag & CAM_HOLO2) {
 				R.view[0]= (x+(R.xstart)+1.0+holoofs);
@@ -2270,7 +2263,7 @@ void addps(long *rd, int vlak, unsigned int z, short ronde)
 		return;
 	}
 
-	/* eerste PS maken */
+	/* make first PS (pixel struct) */
 	if((psmteller & 4095)==0) prev= addpsmain();
 	else prev++;
 	psmteller++;
@@ -2298,7 +2291,7 @@ float count_maskf(unsigned short mask)
 
 void add_filt_mask(unsigned int mask, unsigned short *col, unsigned int *rb1, unsigned int *rb2, unsigned int *rb3)
 {
-	/* bereken de waarde van mask */
+	/* calc the value of mask */
 	unsigned int a, maskand, maskshift;
 	int j;
 	unsigned short val, r, g, b, al;
@@ -2353,7 +2346,7 @@ void edge_enhance(void)
 	int val, y, x, col, *rz, *rz1, *rz2, *rz3;
 	char *cp;
 	
-	/* alle getallen in zbuffer 3 naar rechts shiften */
+	/* shift values in zbuffer 3 to the right */
 	rz= (int *)R.rectz;
 	if(rz==0) return;
 	
@@ -2363,13 +2356,6 @@ void edge_enhance(void)
 		}
 	}
 
-	/* eerste order, werkt toch niet goed!:
-			val= abs(rz1[0]-rz2[1])+ 2*abs(rz1[1]-rz2[1])+ abs(rz1[2]-rz2[1]);
-			val+= 2*abs(rz2[0]-rz2[1])+ 2*abs(rz1[2]-rz2[1]);
-			val+= abs(rz3[0]-rz2[1])+ 2*abs(rz3[1]-rz2[1])+ abs(rz3[2]-rz2[1]);
-			*rz= val;
-	*/
-	
 	rz1= (int *)R.rectz;
 	rz2= rz1+R.rectx;
 	rz3= rz2+R.rectx;
@@ -2427,7 +2413,7 @@ void edge_enhance(void)
 
 }
 
-/* ********************* HOOFDLUSSEN ******************** */
+/* ********************* MAINLOOPS ******************** */
 
 extern unsigned short *Acolrow;
 /*  short zbuffermetdehand(); */
@@ -2488,12 +2474,12 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 				rz+= R.rectx;
 			}
 		}
-			/* 1 is voor osa */
+			/* 1 is for osa */
 		if(R.r.mode & R_EDGE) edge_enhance();
 		
-		if(!(v%256)&&RE_local_test_break()) break; /*Hos,RPW, fixes slow render bug*/
+		if( !(v % 256) && RE_local_test_break()) break; /*Hos,RPW, fixes slow render bug*/
 	}
-	if(R.flag & (R_ZTRA+R_HALO) ) {	 /* om de juiste zbuffer Z voor transp en halo's terug te halen */
+	if(R.flag & (R_ZTRA+R_HALO) ) {	 /* to get back correct values of zbuffer Z for transp and halos */
 		xd= jit[0][0];
 		yd= jit[0][1];
 		Zjitx= -xd;
@@ -2510,7 +2496,7 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 
 
 	fullmask= (1<<R.osa)-1;
-	/* de rowbuf is 4 pixels breder dan het plaatje! */
+	/* the rowbuf is 4 pixels larger than an image! */
 	rowbuf1= MEM_callocN(3*(R.rectx+4)*4*sizeof(float), "ZbufshadeDA3");
 	rowbuf2= MEM_callocN(3*(R.rectx+4)*4*sizeof(float), "ZbufshadeDA3");
 	rowbuf3= MEM_callocN(3*(R.rectx+4)*4*sizeof(float), "ZbufshadeDA3");
@@ -2571,7 +2557,7 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 		
 			colrb= (unsigned short *)(rowbuf3+4);
 			
-			/* LET OP: ENDIAN */
+			/* WATCH IT: ENDIAN */
 			
 			for(x=0; x<R.rectx; x++,colrt+=4) {
 				colrt[0]= ( (char *) (gamtab+colrb[0+MOST_SIG_BYTE]) )[MOST_SIG_BYTE];
@@ -2597,13 +2583,13 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 			}
 			
 			if(R.flag & R_HALO) {
-				/* van deze pixels zijn de pixstr al 1 scanline oud */
+				/* from these pixels the pixstr is 1 scanline old */
 				scanlinehaloPS(rz-R.rectx, rd-2*R.rectx, ((unsigned int *)colrt)-R.rectx, y-1);
 				
 			}		
 			scanlinesky(colrt-4*R.rectx, y-1);
 			
-			/* scanline begint netjes: halo's gebruiken ook textures! */
+			/* scanline starts nicely: halos use textures as well! */
 			R.vlaknr= -1;
 			
 		}
@@ -2623,7 +2609,7 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 			}
 			rz+= R.rectx;
 		}
-		if(!(y%256)&&RE_local_test_break()) break; /*Hos,RPW, fixes slow render bug */
+		if(!(y % 256) && RE_local_test_break()) break; /* Hos,RPW, fixes slow render bug */
 	}
 
 	if( (R.r.mode & R_EDGE) && RE_local_test_break()==0) {
@@ -2633,8 +2619,6 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 			addalphaOver((char *)rt, (char *)rp);
 		}
 	}
-
-	/* hier stond dof */
 	
 	MEM_freeN(R.rectdaps); 
 	freeps();
@@ -2669,7 +2653,7 @@ void zbufshade(void)
 
 	#ifdef BBIG_ENDIAN
 	#else
-	charcol++;		/* short anders uitlezen */
+	charcol++;		/* short is read different then */
 	#endif
 
 	if(R.flag & R_ZTRA) bgnaccumbuf();
@@ -2724,7 +2708,7 @@ void zbufshade(void)
 									R.rectot);
 		}
 		
-		if(!(y%256)&&RE_local_test_break()) break; /*Hos,RPW, Fixes Slow render bug */
+		if(!(y % 256) && RE_local_test_break()) break; /*Hos,RPW, Fixes Slow render bug */
 	}
 
 	if(R.flag & R_ZTRA) endaccumbuf();
@@ -2737,7 +2721,7 @@ void zbufshade(void)
 
 /* ------------------------------------------------------------------------ */
 
-void renderhalo(HaloRen *har)	/* postprocess versie */
+void renderhalo(HaloRen *har)	/* postprocess version */
 {
 	
 	float dist, xsq, ysq, xn, yn;
@@ -2787,12 +2771,12 @@ void renderhalo(HaloRen *har)	/* postprocess versie */
 	
 				rectt+= R.rectx;
 				
-				if(!(y%256)&&RE_local_test_break()) break; /* Hos,RPW, fixes slow render bug */
+				if( !(y % 256) && RE_local_test_break()) break; /* Hos,RPW, fixes slow render bug */
 			}
 	
 		}
 	}
-} /* end of void renderhalo(HaloRen *har), postprocess versie */
+} /* end of void renderhalo(HaloRen *har), postprocess version */
 
 /* ------------------------------------------------------------------------ */
 
@@ -2811,13 +2795,13 @@ void RE_renderflare(HaloRen *har)
 	alfa= har->alfa;
 	
 	visifac= R.ycor*(har->pixels);
-	/* alle stralen opgeteld / r^3  == 1.0! */
+	/* all radials added / r^3  == 1.0! */
 	visifac /= (har->rad*har->rad*har->rad);
 	visifac*= visifac;
 
 	ma= har->mat;
 	
-	/* eerste halo: gewoon doen */
+	/* first halo: just do */
 	
 	har->rad= rad*ma->flaresize*visifac;
 	har->radsq= har->rad*har->rad;
@@ -2827,7 +2811,7 @@ void RE_renderflare(HaloRen *har)
 	
 	renderhalo(har);
 	
-	/* volgende halo's: de flares */
+	/* next halo's: the flares */
 	rc= hashvectf + ma->seed2;
 	
 	for(b=1; b<har->flarec; b++) {
@@ -2876,7 +2860,7 @@ void RE_renderflare(HaloRen *har)
 
 void add_halo_flare(void)
 {
-/*  	extern void RE_projectverto(); */ /* uit zbuf.c */
+/*  	extern void RE_projectverto(); */ /*  zbuf.c */
 	HaloRen *har = NULL;
 	int a, mode;
 	
@@ -2887,7 +2871,7 @@ void add_halo_flare(void)
 	R.xend= R.xstart+R.rectx-1;
 	R.yend= R.ystart+R.recty-1;
 
-	RE_setwindowclip(1,-1); /*  geen jit:(-1) */
+	RE_setwindowclip(1,-1); /*  no jit:(-1) */
 	setzbufvlaggen(RE_projectverto);
 	
 	for(a=0; a<R.tothalo; a++) {

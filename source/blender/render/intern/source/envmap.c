@@ -301,7 +301,7 @@ void env_rotate_scene(float mat[][4], int mode)
 		xn= ver->n[0];
 		yn= ver->n[1];
 		zn= ver->n[2];
-		/* geen transpose ! */
+		/* no transpose ! */
 		ver->n[0]= imat[0][0]*xn+imat[1][0]*yn+imat[2][0]*zn;
 		ver->n[1]= imat[0][1]*xn+imat[1][1]*yn+imat[2][1]*zn;
 		ver->n[2]= imat[0][2]*xn+imat[1][2]*yn+imat[2][2]*zn;
@@ -322,7 +322,7 @@ void env_rotate_scene(float mat[][4], int mode)
 		xn= vlr->n[0];
 		yn= vlr->n[1];
 		zn= vlr->n[2];
-		/* geen transpose ! */
+		/* no transpose ! */
 		vlr->n[0]= imat[0][0]*xn+imat[1][0]*yn+imat[2][0]*zn;
 		vlr->n[1]= imat[0][1]*xn+imat[1][1]*yn+imat[2][1]*zn;
 		vlr->n[2]= imat[0][2]*xn+imat[1][2]*yn+imat[2][2]*zn;
@@ -424,7 +424,7 @@ void render_envmap(EnvMap *env)
 		RE_local_clear_render_display(R.win);
 		fillrect(R.rectot, R.rectx, R.recty, 0);
 		
-		RE_setwindowclip(1,-1); /*  geen jit:(-1) */
+		RE_setwindowclip(1,-1); /*  no jit:(-1) */
 		
 		MTC_Mat4CpyMat4(tmat, G.scene->camera->obmat);
 		MTC_Mat4Ortho(tmat);

@@ -204,7 +204,7 @@ void *renderFacePixel(float x, float y, int vlaknr)
     return vlr;
 #endif
     
-    if(R.vlaknr== -1) {	/* doet initrender */
+    if(R.vlaknr== -1) {	/* set by initrender */
         /* also set in the pixelrender loop */
         vlr= R.vlr= 0;
     }
@@ -225,7 +225,7 @@ void *renderFacePixel(float x, float y, int vlaknr)
             R.mat= vlr->mat;
             R.matren= R.mat->ren;
             
-            if(R.matren==0) {	/* tijdelijk voor debug */
+            if(R.matren==0) {	/* purple color, for debug */
 				collector[3] = RE_UNITY_COLOUR_FLOAT;
 				collector[2] = 0.0;
 				collector[1] = RE_UNITY_COLOUR_FLOAT;
@@ -242,7 +242,7 @@ void *renderFacePixel(float x, float y, int vlaknr)
             v1= vlr->v1;
             dvlak= MTC_dot3Float(v1->co, vlr->n);
             
-            if( (vlr->flag & R_SMOOTH) || (R.matren->texco & NEED_UV)) {	/* uv nodig */
+            if( (vlr->flag & R_SMOOTH) || (R.matren->texco & NEED_UV)) {	/* uv needed */
                 if(vlaknr & 0x800000) {
                     v2= vlr->v3;
                     v3= vlr->v4;
@@ -269,7 +269,7 @@ void *renderFacePixel(float x, float y, int vlaknr)
                 t00/= detsh; t01/=detsh; 
                 t10/=detsh; t11/=detsh;
                 
-                if(vlr->flag & R_SMOOTH) { /* puno's goedzetten */
+                if(vlr->flag & R_SMOOTH) { /* set vertex normals ("punos") */
                     if(vlr->puno & ME_FLIPV1) MTC_cp3FloatInv(v1->n, n1);
                     else                      MTC_cp3Float(v1->n, n1);
 					
@@ -303,7 +303,6 @@ void *renderFacePixel(float x, float y, int vlaknr)
         
 		/* This trafo might be migrated to a separate function. It is used   */
 		/* quite often.                                                      */
-        /* COXYZ nieuwe methode */
         if( (G.special1 & G_HOLO)
 			&& (((Camera *)G.scene->camera->data)->flag & CAM_HOLO2) ) {
             R.view[0]= (x+(R.xstart)+1.0+holoofs);
@@ -353,7 +352,7 @@ void *renderFacePixel(float x, float y, int vlaknr)
         }
         
         fac= Normalise(R.view);
-        R.zcor*= fac;	/* voor mist */
+        R.zcor*= fac;	/* for mist */
         
         if(R.osatex) {
             if( (R.matren->texco & TEXCO_REFL) ) {
@@ -535,11 +534,11 @@ void *renderFacePixel(float x, float y, int vlaknr)
                 if(vlr->tface) render_realtime_texture();
             }
             
-            /* hierna klopt de u en v EN O.dxuv en O.dyuv niet meer */
+            /* after this, the u en v AND O.dxuv and O.dyuv are incorrect */
             if(R.matren->texco & TEXCO_STICKY) {
                 if(v2->sticky) {
                     
-                    /* opnieuw u en v berekenen */
+                    /* recalc u en v  */
                     hox= x/Zmulx -1.0;
                     hoy= y/Zmuly -1.0;
                     u= (hox - v3->ho[0]/v3->ho[3])*s11
@@ -590,7 +589,7 @@ void *renderFacePixel(float x, float y, int vlaknr)
         }
         else alpha= 1.0;
         
-        /* RAYTRACE (tijdelijk?) UITGESCHAKELD */
+        /* RAYTRACE WAS HERE! */
         
         if(R.matren->alpha!=1.0 || alpha!=1.0) {
             fac= alpha*(R.matren->alpha);
@@ -616,7 +615,7 @@ void *renderFacePixel(float x, float y, int vlaknr)
 	/* here makes it difficult to do proper overlaying later on.             */
 	/* It starts off with a coordinate transform again.                      */
 	if(R.flag & R_LAMPHALO) {
-		if(vlaknr<=0) {	/* bereken viewvec en zet R.co op far */
+		if(vlaknr<=0) {	/* calculate view vector and set R.co at far */
 
 			/* this view vector stuff should get its own function */
 			if( (G.special1 & G_HOLO) && 
@@ -696,15 +695,15 @@ void shadeSpotHaloPixelFloat(float *col)
 				if(factor > RE_FULL_COLOUR_FLOAT) rescol[3]= 1.0;
 				else rescol[3]= factor;
 
-				/* erg vervelend: gammagecorrigeerd renderen EN addalphaADD  */
-				/* gaat niet goed samen                                      */
-				/* eigenlijk moet er een aparte 'optel' gamma komen          */
+				/* nasty issue: gamma corrected rendering AND 'addalphaADD'  */
+				/* do not work well togethe                                  */
+				/* actually, we should invent a new 'add' gamma type... (ton) */
 				/*
 				  There is a strange thing here: the spothalo seems to be
 				  calculated in the space you would get when you go from
 				  value space through inverse gamma! So we gamma-transform
 				  to value-space, then integrate, blend, and gamma correct
-				  _again_. 
+				  _again_. -nzc-
 				*/
 				
 				rescol[0] = factor * lar->r; /* Lampren rgb's are floats     */
@@ -762,14 +761,14 @@ void spotHaloFloat(struct LampRen *lar, float *view, float *intens)
 	*intens= 0.0;
 	haint= lar->haint;
 	
-	VECCOPY(npos, lar->sh_invcampos);	/* in initlamp berekend */
+	VECCOPY(npos, lar->sh_invcampos);	/* calculated in initlamp */
 	
-	/* view roteren */
+	/* rotate view */
 	VECCOPY(nray, view);
 	MTC_Mat3MulVecd(lar->imat, nray);
 	
 	if(R.wrld.mode & WO_MIST) {
-		/* een beetje patch... */
+		/* a bit patchy... */
 		R.zcor= -lar->co[2];
 		haint *= mistfactor(lar->co);
 		if(haint==0.0) {
@@ -778,8 +777,8 @@ void spotHaloFloat(struct LampRen *lar, float *view, float *intens)
 	}
 
 
-	/* maxz roteren */
-	if(R.co[2]==0) doclip= 0;	/* is als halo op sky */
+	/* rotate maxz */
+	if(R.co[2]==0) doclip= 0;	/* for when halo over a sky */
 	else {
 		p1[0]= R.co[0]-lar->co[0];
 		p1[1]= R.co[1]-lar->co[1];
@@ -792,13 +791,13 @@ void spotHaloFloat(struct LampRen *lar, float *view, float *intens)
 		if( fabs(nray[2]) <0.000001 ) use_yco= 1;
 	}
 	
-	/* z scalen zodat het volume genormaliseerd is */	
+	/* scale z to make sure we've got a normalized volume */	
 	nray[2]*= lar->sh_zfac;
-	/* nray hoeft niet genormaliseerd */
+	/* nray does not need normalize */
 	
 	ladist= lar->sh_zfac*lar->dist;
 	
-	/* oplossen */
+	/* solve */
 	a = nray[0] * nray[0] + nray[1] * nray[1] - nray[2]*nray[2];
 	b = nray[0] * npos[0] + nray[1] * npos[1] - nray[2]*npos[2];
 	c = npos[0] * npos[0] + npos[1] * npos[1] - npos[2]*npos[2];
@@ -825,27 +824,27 @@ void spotHaloFloat(struct LampRen *lar, float *view, float *intens)
 		}
 	}
 	if(snijp==2) {
-		/* sorteren */
+		/* sort */
 		if(t1>t2) {
 			a= t1; t1= t2; t2= a;
 		}
 
-		/* z van snijpunten met diabolo */
+		/* the z of intersection points with 'diabolo' shape */
 		p1[2]= npos[2] + t1*nray[2];
 		p2[2]= npos[2] + t2*nray[2];
 
-		/* beide punten evalueren */
+		/* evaluate both points */
 		if(p1[2]<=0.0) ok1= 1;
 		if(p2[2]<=0.0 && t1!=t2) ok2= 1;
 		
-		/* minstens 1 punt met negatieve z */
+		/* at least 1 point with negative z */
 		if(ok1==0 && ok2==0) return;
 		
-		/* snijpunt met -ladist, de bodem van de kegel */
+		/* intersction point with -ladist, the bottom of the cone */
 		if(use_yco==0) {
 			t3= (-ladist-npos[2])/nray[2];
 				
-			/* moet 1 van de snijpunten worden vervangen? */
+			/* does one intersection point has to be replaced? */
 			if(ok1) {
 				if(p1[2]<-ladist) t1= t3;
 			}
@@ -863,7 +862,7 @@ void spotHaloFloat(struct LampRen *lar, float *view, float *intens)
 		}
 		else if(ok1==0 || ok2==0) return;
 		
-		/* minstens 1 zichtbaar snijpunt */
+		/* at least 1 visible intersection point */
 		if(t1<0.0 && t2<0.0) return;
 		
 		if(t1<0.0) t1= 0.0;
@@ -871,13 +870,12 @@ void spotHaloFloat(struct LampRen *lar, float *view, float *intens)
 		
 		if(t1==t2) return;
 		
-		/* voor zekerheid nog eens sorteren */
+		/* to be sure, sort again */
 		if(t1>t2) {
 			a= t1; t1= t2; t2= a;
 		}
 		
-		/* t0 berekenen: is de maximale zichtbare z (als halo door vlak      */
-		/* doorsneden wordt)                                                 */ 
+		/* calculate t0: is de maximal visible z (for when halo was intersected with face */
 		if(doclip) {
 			if(use_yco==0) t0= (maxz-npos[2])/nray[2];
 			else t0= (maxy-npos[1])/nray[1];
@@ -886,7 +884,7 @@ void spotHaloFloat(struct LampRen *lar, float *view, float *intens)
 			if(t0<t2) t2= t0;
 		}
 
-		/* bereken punten */
+		/* calculate points */
 		p1[0]= npos[0] + t1*nray[0];
 		p1[1]= npos[1] + t1*nray[1];
 		p1[2]= npos[2] + t1*nray[2];
@@ -895,7 +893,7 @@ void spotHaloFloat(struct LampRen *lar, float *view, float *intens)
 		p2[2]= npos[2] + t2*nray[2];
 		
 			
-		/* nu hebben we twee punten, hiermee maken we drie lengtes */
+		/* now we've got two points, we make three lengths with that */
 		
 		a= sqrt(p1[0]*p1[0]+p1[1]*p1[1]+p1[2]*p1[2]);
 		b= sqrt(p2[0]*p2[0]+p2[1]*p2[1]+p2[2]*p2[2]);
@@ -909,12 +907,12 @@ void spotHaloFloat(struct LampRen *lar, float *view, float *intens)
 		
 		*intens= c*( (1.0-a)+(1.0-b) );
 		
-		/* LET OP: a,b en c NIET op 1.0 clippen, dit geeft kleine
-		   overflowtjes op de rand (vooral bij smalle halo's) */
+		/* WATCH IT: do not clip a,b en c at 1.0, this gives nasty little overflows
+		   at the edges (especially with narrow halos) */
 		if(*intens<=0.0) return;
 		
-		/* zachte gebied */
-		/* vervalt omdat t0 nu ook voor p1/p2 wordt gebruikt */
+		/* soft area */
+		/* not needed because t0 has been used for p1/p2 as well */
 		/* if(doclip && t0<t2) { */
 		/* 	*intens *= (t0-t1)/(t2-t1); */
 		/* } */
@@ -925,6 +923,7 @@ void spotHaloFloat(struct LampRen *lar, float *view, float *intens)
 			/* from shadbuf.c, returns float */
 			*intens *= shadow_halo(lar, p1, p2);
 		}
+		/* this was a test, for textured halos! unfortunately i could not get transformations right... (ton) */
 		/* if(lar->mode & LA_TEXTURE)  do_lamphalo_tex(lar, p1, p2, intens); */
 		
 	}
@@ -947,7 +946,7 @@ void shadeLampLusFloat()
 	view= R.view;
 	ma= R.matren;
 	
-	/* aparte lus */
+	/* separate loop */
 	if(ma->mode & MA_ONLYSHADOW) {
 		shadfac= ir= 0.0;
 		for(a=0; a<R.totlamp; a++) {
@@ -956,7 +955,7 @@ void shadeLampLusFloat()
 			if(lar->mode & LA_LAYER) if((lar->lay & R.vlr->lay)==0) continue;
 			
 			if(lar->shb) {
-				/* alleen testen binnen spotbundel */
+				/* only test within spotbundle */
 				lv[0]= R.co[0]-lar->co[0];
 				lv[1]= R.co[1]-lar->co[1];
 				lv[2]= R.co[2]-lar->co[2];
@@ -1049,10 +1048,10 @@ void shadeLampLusFloat()
 	for(a=0; a<R.totlamp; a++) {
 		lar= R.la[a];
 
-		/* test op lamplayer */
+		/* test for lamplayer */
 		if(lar->mode & LA_LAYER) if((lar->lay & R.vlr->lay)==0) continue;
 
-		/* lampdist berekening */
+		/* lampdist calculation */
 		if(lar->type==LA_SUN || lar->type==LA_HEMI) {
 			VECCOPY(lv, lar->vec);
 			lampdist= 1.0;
@@ -1066,7 +1065,7 @@ void shadeLampLusFloat()
 			lv[1]/= ld;
 			lv[2]/= ld;
 			
-			/* ld wordt verderop nog gebruikt (texco's) */
+			/* ld is used further on too (texco's) */
 			
 			if(lar->mode & LA_QUAD) {
 				t= 1.0;
@@ -1095,7 +1094,7 @@ void shadeLampLusFloat()
 
 		if(lar->type==LA_SPOT) {
 
-			/* hier de fie Inp() vertaagt! */
+			/* using here a function call Inp() slows down! */
 			
 			if(lar->mode & LA_SQUARE) {
 				if(lv[0]*lar->vec[0]+lv[1]*lar->vec[1]+lv[2]*lar->vec[2]>0.0) {
@@ -1123,7 +1122,7 @@ void shadeLampLusFloat()
 				i= 1.0;
 				soft= 1.0;
 				if(t<lar->spotbl && lar->spotbl!=0.0) {
-					/* zachte gebied */
+					/* soft area */
 					i= t/lar->spotbl;
 					t= i*i;
 					soft= (3.0*t-2.0*t*i);
@@ -1131,13 +1130,12 @@ void shadeLampLusFloat()
 				}
 				if(lar->mode & LA_ONLYSHADOW && lar->shb) {
 					if(ma->mode & MA_SHADOW) {
-						/* inprodukt positief: voorzijde vlak! */
+						/* dot product positive: front side face! */
 						inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
 						if(inp>0.0) {
 					
-							/* testshadowbuf==0.0 : 100% schaduw */
+							/* testshadowbuf==0.0 : 100% shadow */
 							RE_testshadowbuf(lar->shadowBufOb, lar->shb, inp, shadfacvec);
-/*  					testshadowbuf(lar->shb, inp, shadfacvec); */
 							shadfac = 1.0 - shadfacvec[0];
 							
 							if(shadfac>0.0) {
@@ -1156,7 +1154,7 @@ void shadeLampLusFloat()
 			if(lar->mode & LA_ONLYSHADOW) continue;
 
 			if(lar->mode & LA_OSATEX) {
-				R.osatex= 1;	/* signaal voor multitex() */
+				R.osatex= 1;	/* signal for multitex() */
 				
 				O.dxlv[0]= lv[0] - (R.co[0]-lar->co[0]+O.dxco[0])/ld;
 				O.dxlv[1]= lv[1] - (R.co[1]-lar->co[1]+O.dxco[1])/ld;
@@ -1169,7 +1167,7 @@ void shadeLampLusFloat()
 			
 		}
 
-		/* inprodukt en reflectivity*/
+		/* dot product and reflectivity*/
 		inp=i= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
 		if(lar->type==LA_HEMI) {
 			i= 0.5*i+0.5;
@@ -1178,14 +1176,13 @@ void shadeLampLusFloat()
 			i*= lampdist*ma->ref;
 		}
 
-		/* schaduw en spec */
-		if(i> -0.41) {			/* beetje willekeurig, beetje getest */
+		/* shadow and spec */
+		if(i> -0.41) {			/* heuristic value... :) */
 			shadfac= 1.0;
 			if(lar->shb) {
 				if(ma->mode & MA_SHADOW) {
 					float shadfacvec[3] = {1.0, 1.0, 1.0};
 					RE_testshadowbuf(lar->shadowBufOb, lar->shb, inp, shadfacvec);
-/*  					testshadowbuf(lar->shb, inp, shadfacvec); */
 					shadfac = shadfacvec[0];
 
 /*  					shadfac = 1.0; : no shadow */ 
@@ -1214,10 +1211,8 @@ void shadeLampLusFloat()
 					if(lar->type==LA_HEMI) {
 						t= 0.5*t+0.5;
 					}
-					/* let op: shadfac en lampdist uit onderstaande */
+					/* watch it: shadfac and lampdist used below */
 					
-					/* no more speclim */
-
 					t= ma->spec*RE_Spec(t, ma->har);
 					isr+= t*(lar->r * ma->specr);
 					isg+= t*(lar->g * ma->specg);
@@ -1345,18 +1340,18 @@ void shadeHaloFloat(HaloRen *har,
 					float dist, float xn, 
 					float yn, short flarec)
 {
-	/* in col invullen */
+	/* fill in col */
 	/* migrate: fill collector */
 	float t, zn, radist, ringf=0.0, linef=0.0, alpha, si, co, colf[4];
 	int a;
    
 	if(R.wrld.mode & WO_MIST) {
        if(har->type & HA_ONLYSKY) {
-           /* sterren geen mist */
+           /* stars but no mist */
            alpha= har->alfa;
        }
        else {
-           /* een beetje patch... */
+           /* a but patchy... */
            R.zcor= -har->co[2];
            alpha= mistfactor(har->co)*har->alfa;
        }
@@ -1373,14 +1368,14 @@ void shadeHaloFloat(HaloRen *har,
 
 	radist= sqrt(dist);
 
-	/* let op: hiermee wordt gesjoemeld: flarec wordt op nul gezet in de pixstruct */
+	/* watch it: not used nicely: flarec is set at zero in pixstruct */
 	if(flarec) har->pixels+= (int)(har->rad-radist);
 
 	if(har->ringc) {
 		float *rc, fac;
 		int ofs;
 		
-		/* per ring een alicirc */
+		/* per ring an antialised circle */
 		ofs= har->seed;
 		
 		for(a= har->ringc; a>0; a--, ofs+=2) {
@@ -1429,7 +1424,7 @@ void shadeHaloFloat(HaloRen *har,
 		float *rc, fac;
 		int ofs;
 		
-		/* per starpoint een aliline */
+		/* per starpoint an antialiased line */
 		ofs= har->seed;
 		
 		for(a= har->linec; a>0; a--, ofs+=3) {
@@ -1449,7 +1444,7 @@ void shadeHaloFloat(HaloRen *har,
 
 	if(har->starpoints) {
 		float ster, hoek;
-		/* rotatie */
+		/* rotation */
 		hoek= atan2(yn, xn);
 		hoek*= (1.0+0.25*har->starpoints);
 		
@@ -1466,7 +1461,7 @@ void shadeHaloFloat(HaloRen *har,
 		}
 	}
 	
-	/* halo wordt doorsneden? */
+	/* halo being intersected? */
 	if(har->zs> zz-har->zd) {
 		t= ((float)(zz-har->zs))/(float)har->zd;
 		alpha*= sqrt(sqrt(t));
@@ -1835,7 +1830,7 @@ void shadeSkyPixelFloat(float y)
 		
 	}
 
-	/* Why are this R. members? */
+	/* Why are this R. members? because textures need it (ton) */
 	if(R.inprz>1.0) R.inprz= 1.0;
 	R.inprh= 1.0-R.inprz;
 
@@ -1852,9 +1847,6 @@ void shadeSkyPixelFloat(float y)
 	}
 
 	collector[3]= RE_UNITY_COLOUR_FLOAT;
-	/* om verkeerde optimalisatie alphaover van flares te voorkomen          */
-	/* ??? seems strange to me...  This used to be a 1 when the colours      */
-    /* were chars. might need a separate flag for this...                    */
 }
 
 

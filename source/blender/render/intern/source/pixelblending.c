@@ -174,12 +174,13 @@ int addtosampcol(unsigned short *sampcol, unsigned short *shortcol, int mask)
 
 /* ------------------------------------------------------------------------- */
 
-void addAlphaOverShort(unsigned short *doel, unsigned short *bron)   /* vult bron over doel in met alpha van bron */
+void addAlphaOverShort(unsigned short *doel, unsigned short *bron) 
+/* fills in bron (source) over doel (target) with alpha from bron */
 {
 	unsigned int c;
 	unsigned int mul;
 
-	if( doel[3]==0 || bron[3]>=0xFFF0) {	/* is getest, scheelt veel */
+	if( doel[3]==0 || bron[3]>=0xFFF0) {	/* has been tested */
 		*((unsigned int *)doel)= *((unsigned int *)bron);
 		*((unsigned int *)(doel+2))= *((unsigned int *)(bron+2));
 		return;
@@ -204,13 +205,14 @@ void addAlphaOverShort(unsigned short *doel, unsigned short *bron)   /* vult bro
 
 /* ------------------------------------------------------------------------- */
 
-void addAlphaUnderShort(unsigned short *doel, unsigned short *bron)   /* vult bron onder doel in met alpha van doel */
+void addAlphaUnderShort(unsigned short *doel, unsigned short *bron)   
+/* fills in bron (source) under doel (target) using alpha from doel */
 {
 	unsigned int c;
 	unsigned int mul;
 
 	if(doel[3]>=0xFFF0) return;
-	if( doel[3]==0 ) {	/* is getest, scheelt veel */
+	if( doel[3]==0 ) {	/* was tested */
 		*((unsigned int *)doel)= *((unsigned int *)bron);
 		*((unsigned int *)(doel+2))= *((unsigned int *)(bron+2));
 		return;
@@ -243,8 +245,7 @@ void addAlphaOverFloat(float *dest, float *source)
     
     /* I may want to disable this clipping */
 #ifdef RE_FLOAT_COLOUR_CLIPPING
-    if( /*  (-RE_FULL_COLOUR_FLOAT < source[3]) */
-/*          && */ (source[3] >  RE_FULL_COLOUR_FLOAT) ) {	/* is getest, scheelt veel */
+    if( (source[3] >  RE_FULL_COLOUR_FLOAT) ) {
         dest[0] = source[0];
         dest[1] = source[1];
         dest[2] = source[2];
@@ -299,7 +300,7 @@ void addAlphaUnderFloat(float *dest, float *source)
     if( dest[3] >= RE_FULL_COLOUR_FLOAT) return;
 #endif
     if( (-RE_EMPTY_COLOUR_FLOAT < dest[3])
-        && (dest[3] <  RE_EMPTY_COLOUR_FLOAT) ) {	/* is getest, scheelt veel */
+        && (dest[3] <  RE_EMPTY_COLOUR_FLOAT) ) {	
         dest[0] = source[0];
         dest[1] = source[1];
         dest[2] = source[2];
@@ -372,8 +373,7 @@ void cpIntColV2CharColV(unsigned int *source, char *dest)
 
 void cpCharColV2FloatColV(char *source, float *dest)
 {
-	/* What about endianness? Might be caught at this level :) */
-    dest[0] = source[0]/255.0;  
+	dest[0] = source[0]/255.0;  
     dest[1] = source[1]/255.0;  
     dest[2] = source[2]/255.0;
     dest[3] = source[3]/255.0;
@@ -442,7 +442,6 @@ void cpCharColV(char *source, char *dest)
 
 /* ------------------------------------------------------------------------- */
 void addalphaAddfacFloat(float *dest, float *source, char addfac)
-  /* doel= bron over doel  */
 {
     float m; /* weiging factor of destination */
     float c; /* intermediate colour           */
@@ -655,7 +654,7 @@ void sampleFloatColV2FloatColV(float *sample, float *dest, int osaNr)
 /* The following functions are 'old' blending functions:                     */
 
 /* ------------------------------------------------------------------------- */
-void keyalpha(char *doel)   /* maakt premul 255 */
+void keyalpha(char *doel)   /* makes premul 255 */
 {
 	int c;
 	short div;
@@ -680,14 +679,14 @@ void keyalpha(char *doel)   /* maakt premul 255 */
 }
 
 /* ------------------------------------------------------------------------- */
-/* vult bron onder doel in met alpha van doel*/
+/* fills in bron (source) under doel (target) with alpha of doel*/
 void addalphaUnder(char *doel, char *bron)   
 {
 	int c;
 	int mul;
 
 	if(doel[3]==255) return;
-	if( doel[3]==0) {	/* is getest, scheelt  */
+	if( doel[3]==0) {	/* tested  */
 		*((unsigned int *)doel)= *((unsigned int *)bron);
 		return;
 	}
@@ -712,14 +711,14 @@ void addalphaUnder(char *doel, char *bron)
 }
 
 /* ------------------------------------------------------------------------- */
-/* gamma-gecorr: vult bron onder doel in met alpha van doel */
+/* gamma-corrected */
 void addalphaUnderGamma(char *doel, char *bron)
 {
 	unsigned int tot;
 	int c, doe, bro;
 	int mul;
 
-	/* hier doel[3]==0 of doel==255 afvangen gebeurt al in skylus */
+	/* if doel[3]==0 or doel==255 has been handled in sky loop */
 	mul= 256-doel[3];
 	
 	doe= igamtab1[(int)doel[0]];
@@ -754,7 +753,7 @@ void addalphaOver(char *doel, char *bron)
 	int mul;
 
 	if(bron[3]==0) return;
-	if( bron[3]==255) {	/* is getest, scheelt  */
+	if( bron[3]==255) {	/* tested */
 		*((unsigned int *)doel)= *((unsigned int *)bron);
 		return;
 	}
@@ -776,11 +775,11 @@ void addalphaOver(char *doel, char *bron)
 }
 
 /* ------------------------------------------------------------------------- */
-void addalphaAdd(char *doel, char *bron)   /* telt bron bij doel */
+void addalphaAdd(char *doel, char *bron)   /* adds bron (source) to doel (target) */
 {
 	int c;
 
-	if( doel[3]==0 || bron[3]==255) {	/* is getest, scheelt veel */
+	if( doel[3]==0 || bron[3]==255) {	/* tested */
 		*((unsigned int *)doel)= *((unsigned int *)bron);
 		return;
 	}
@@ -798,7 +797,7 @@ void addalphaAdd(char *doel, char *bron)   /* telt bron bij doel */
 	else doel[3]= c;
 }
 /* ------------------------------------------------------------------------- */
-void addalphaAddshort(unsigned short *doel, unsigned short *bron)   /* telt bron bij doel */
+void addalphaAddshort(unsigned short *doel, unsigned short *bron)   /* adds bron (source) to doel (target) */
 {
 	int c;
 
@@ -847,7 +846,6 @@ void addalphaAddFloat(float *dest, float *source)
  *  Z= X alphaover Y:
  *  Zrgb= (1-Xa)*Yrgb + Xrgb
  * 
- *	Om ook de add te doen moet (1-Xa) moduleren met 1 via fac
  *  (1-fac)*(1-Xa) + fac <=>
  *  1-Xa-fac+fac*Xa+fac <=> 
  *  Xa*(fac-1)+1

@@ -367,7 +367,7 @@ void renderEdges(char *colourRect)
 		}
 	}
 		
-	/* alle getallen in zbuffer 3 naar rechts shiften */
+	/* shift values in zbuffer 3 to the right */
   	rz = edgeBuffer;
 	if(rz==0) return;
 	
@@ -498,13 +498,13 @@ void renderEdges(char *colourRect)
 
 /* ------------------------------------------------------------------------- */
 
-void addEdgeOver(char *doel, char *bron)   /* telt bron bij doel */
+void addEdgeOver(char *doel, char *bron)   /* adds bron (source) to doel (goal) */
 {	
 	float c;
 	int mul;
 	
 	if( bron[3] == 0) return;
-	if( bron[3] == 255) { /* is getest, scheelt  */
+	if( bron[3] == 255) { /* has been tested, saves a lot  */
 		*((unsigned int *)doel)= *((unsigned int *)bron);
 		return;
 	}
@@ -659,7 +659,7 @@ void fillEdgeRenderFace(float *v1, float *v2, float *v3)
 		else	             { minv=v3; midv=v2; maxv=v1;}
 	}
 
-	if(minv[1] == maxv[1]) return;	/* beveiliging 'nul' grote vlakken */
+	if(minv[1] == maxv[1]) return;	/* security, for 'zero' size faces */
 
 	my0  = ceil(minv[1]);
 	my2  = floor(maxv[1]);
@@ -670,7 +670,7 @@ void fillEdgeRenderFace(float *v1, float *v2, float *v3)
 
 	if(my0<Aminy) my0= Aminy;
 
-	/* EDGES : DE LANGSTE */
+	/* EDGES : THE LONGEST */
 	xx1= maxv[1]-minv[1];
 	if(xx1>2.0/65536.0) {
 		z0= (maxv[0]-minv[0])/xx1;
@@ -685,7 +685,7 @@ void fillEdgeRenderFace(float *v1, float *v2, float *v3)
 		dx0= 0;
 		xs0= 65536.0*(MIN2(minv[0],maxv[0]));
 	}
-	/* EDGES : DE BOVENSTE */
+	/* EDGES : THE TOP ONE */
 	xx1= maxv[1]-midv[1];
 	if(xx1>2.0/65536.0) {
 		z0= (maxv[0]-midv[0])/xx1;
@@ -700,7 +700,7 @@ void fillEdgeRenderFace(float *v1, float *v2, float *v3)
 		dx1= 0;
 		xs1= 65536.0*(MIN2(midv[0],maxv[0]));
 	}
-	/* EDGES : DE ONDERSTE */
+	/* EDGES : THE BOTTOM ONE */
 	xx1= midv[1]-minv[1];
 	if(xx1>2.0/65536.0) {
 		z0= (midv[0]-minv[0])/xx1;
@@ -725,9 +725,9 @@ void fillEdgeRenderFace(float *v1, float *v2, float *v3)
 	if(vec0[2]==0.0) return;
 
 	if(midv[1] == maxv[1]) omsl= my2;
-	if(omsl < Aminy) omsl= Aminy-1;  /* dan neemt ie de eerste lus helemaal */
+	if(omsl < Aminy) omsl= Aminy-1;  /* that way it does the first loop entirely */
 
-	while (my2 > Amaxy) {  /* my2 kan groter zijn */
+	while (my2 > Amaxy) {  /* my2 can really be larger */
 		xs0+=dx0;
 		if (my2<=omsl) {
 			xs2+= dx2;
@@ -852,7 +852,7 @@ void fillEdgeRenderEdge(float *vec1, float *vec2)
 	
 	if(fabs(dx) > fabs(dy)) {
 
-		/* alle lijnen van links naar rechts */
+		/* alle lines from left to right */
 		if(vec1[0]<vec2[0]) {
 			VECCOPY(v1, vec1);
 			VECCOPY(v2, vec2);
@@ -900,7 +900,7 @@ void fillEdgeRenderEdge(float *vec1, float *vec2)
 	}
 	else {
 	
-		/* alle lijnen van onder naar boven */
+		/* all lines from top to bottom */
 		if(vec1[1]<vec2[1]) {
 			VECCOPY(v1, vec1);
 			VECCOPY(v2, vec2);

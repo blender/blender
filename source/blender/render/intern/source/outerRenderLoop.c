@@ -83,12 +83,12 @@ void addToBlurBuffer(int blur)
 		}
 	}
 	else if(blur==R.osa-1) {
-		/* eerste keer */
+		/* first time */
 		blurrect= MEM_mallocN(R.rectx*R.recty*sizeof(int), "rectblur");
 		if(R.rectot) memcpy(blurrect, R.rectot, R.rectx*R.recty*4);
 	}
 	else if(blurrect) {
-		/* accumuleren */
+		/* accumulate */
 
 		facr= 256/(R.osa-blur);
 		facb= 256-facr;
@@ -122,7 +122,7 @@ void addToBlurBuffer(int blur)
 			}
 		}
 		if(blur==0) {
-			/* laatste keer */
+			/* last time */
 			if(R.rectot) MEM_freeN(R.rectot);
 			R.rectot= blurrect;
 			blurrect= 0;
@@ -138,7 +138,7 @@ void addPartToRect(short nr, Part *part)
 	unsigned int *rt, *rp;
 	short y, heigth, len;
 
-	/* de juiste offset in rectot */
+	/* the correct offset in rectot */
 
 	rt= R.rectot+ (partsCoordinates[nr][1]*R.rectx+ partsCoordinates[nr][0]);
 	rp= part->rect;
@@ -177,20 +177,20 @@ void initParts()
 		ymaxb= R.recty;
 	}
 
-	xparts= R.r.xparts;	/* voor border */
+	xparts= R.r.xparts;	/* for border */
 	yparts= R.r.yparts;
 
 	for(nr=0;nr<xparts*yparts;nr++)
-		partsCoordinates[nr][0]= -1;	/* array leegmaken */
+		partsCoordinates[nr][0]= -1;	/* clear array */
 
 	xpart= R.rectx/xparts;
 	ypart= R.recty/yparts;
 
-	/* als border: testen of aantal parts minder kan */
+	/* if border: test if amount of parts can be reduced */
 	if(R.r.mode & R_BORDER) {
-		a= (xmaxb-xminb-1)/xpart+1; /* zoveel parts in border */
+		a= (xmaxb-xminb-1)/xpart+1; /* amount of parts in border */
 		if(a<xparts) xparts= a;
-		a= (ymaxb-yminb-1)/ypart+1; /* zoveel parts in border */
+		a= (ymaxb-yminb-1)/ypart+1; /* amount of parts in border */
 		if(a<yparts) yparts= a;
 
 		xpart= (xmaxb-xminb)/xparts;
@@ -222,7 +222,7 @@ void initParts()
 	}
 }
 
-short setPart(short nr)	/* return 0 als geen goede part */
+short setPart(short nr)	/* return 0 if incorrect part */
 {
 
 	if(partsCoordinates[nr][0]== -1) return 0;
@@ -239,12 +239,12 @@ short setPart(short nr)	/* return 0 als geen goede part */
 
 /* ------------------------------------------------------------------------- */
 
-void unifiedRenderingLoop(void)  /* hierbinnen de PART en FIELD lussen */
+void unifiedRenderingLoop(void)  /* here the PART en FIELD loops */
 {
 	Part *part;
 	unsigned int *rt, *rt1, *rt2;
 	int len;
-	short blur, a,fields,fi,parts;  /* pa is globaal ivm print */
+	short blur, a,fields,fi,parts;  /* pa is global because of print */
 	unsigned int *border_buf= NULL;
 	unsigned int border_x= 0;
 	unsigned int border_y= 0;
@@ -260,13 +260,13 @@ void unifiedRenderingLoop(void)  /* hierbinnen de PART en FIELD lussen */
 	if (R.rectz) MEM_freeN(R.rectz);
 	R.rectz = 0;
 
-	/* FIELDLUS */
+	/* FIELD LOOP */
 	fields= 1;
 	parts= R.r.xparts*R.r.yparts;
 
 	if(R.r.mode & R_FIELDS) {
 		fields= 2;
-		R.rectf1= R.rectf2= 0;	/* fieldrecten */
+		R.rectf1= R.rectf2= 0;	/* field rects */
 		R.r.ysch/= 2;
 		R.afmy/= 2;
 		R.r.yasp*= 2;
@@ -286,7 +286,7 @@ void unifiedRenderingLoop(void)  /* hierbinnen de PART en FIELD lussen */
 		if(fi==1) R.flag |= R_SEC_FIELD;
 	
 
-		/* MOTIONBLUR lus */
+		/* MOTIONBLUR loop */
 		if(R.r.mode & R_MBLUR) blur= R.osa;
 		else blur= 1;
 
@@ -304,7 +304,7 @@ void unifiedRenderingLoop(void)  /* hierbinnen de PART en FIELD lussen */
 	
 			if(R.r.mode & R_MBLUR) set_mblur_offs(R.osa-blur);
 
-			initParts(); /* altijd doen ivm border */
+			initParts(); /* always do because of border */
 			setPart(0);
 	
 			RE_local_init_render_display();
@@ -319,7 +319,7 @@ void unifiedRenderingLoop(void)  /* hierbinnen de PART en FIELD lussen */
 				
 				if(RE_local_test_break()) break;
 				
-				if(pa) {	/* want pa==0 is al gedaan */
+				if(pa) {	/* because pa==0 has been done */
 					if(setPart(pa)==0) break;
 				}
 
@@ -328,7 +328,7 @@ void unifiedRenderingLoop(void)  /* hierbinnen de PART en FIELD lussen */
 
 				if(R.r.mode & R_PANORAMA) setPanoRot(pa);
 
-				/* HOMOGENE COORDINATEN EN ZBUF EN CLIP OPT (per part) */
+				/* HOMOGENIC COORDINATES AND ZBUF AND CLIP OPTIMISATION (per part) */
 				/* There may be some interference with z-coordinate    */
 				/* calculation here?                                   */
 
@@ -347,10 +347,10 @@ void unifiedRenderingLoop(void)  /* hierbinnen de PART en FIELD lussen */
 				
 				if(RE_local_test_break()) break;
 				
-				/* uitzondering */
+				/* exception */
 				if( (R.r.mode & R_BORDER) && (R.r.mode & R_MOVIECROP));
 				else {
-					/* PART OF BORDER AFHANDELEN */
+					/* HANDLE PARTS OR BORDER */
 					if(parts>1 || (R.r.mode & R_BORDER)) {
 						
 						part= MEM_callocN(sizeof(Part), "part");
@@ -366,9 +366,9 @@ void unifiedRenderingLoop(void)  /* hierbinnen de PART en FIELD lussen */
 				}
 			}
 
-			/* PARTS SAMENVOEGEN OF BORDER INVOEGEN */
+			/* JOIN PARTS OR INSERT BORDER */
 
-			/* uitzondering: crop */
+			/* exception: crop */
 			if( (R.r.mode & R_BORDER) && (R.r.mode & R_MOVIECROP)) ;
 			else {
 				R.rectx= R.r.xsch;
@@ -420,16 +420,16 @@ void unifiedRenderingLoop(void)  /* hierbinnen de PART en FIELD lussen */
 				addToBlurBuffer(blur);
 			}
 
-			/* EINDE (blurlus) */
+			/* END (blur loop) */
 			finalizeScene();
 
 			if(RE_local_test_break()) break;
 		}
 
-		/* definitief vrijgeven */
+		/* definite free */
 		addToBlurBuffer(-1);
 
-		/* FIELD AFHANDELEN */
+		/* HANDLE FIELD */
 		if(R.r.mode & R_FIELDS) {
 			if(R.flag & R_SEC_FIELD) R.rectf2= R.rectot;
 			else R.rectf1= R.rectot;
@@ -439,14 +439,14 @@ void unifiedRenderingLoop(void)  /* hierbinnen de PART en FIELD lussen */
 		if(RE_local_test_break()) break;
 	}
 
-	/* FIELDS SAMENVOEGEN */
+	/* JOIN FIELDS */
 	if(R.r.mode & R_FIELDS) {
 		R.r.ysch*= 2;
 		R.afmy*= 2;
 		R.recty*= 2;
 		R.r.yasp/=2;
 
-		if(R.rectot) MEM_freeN(R.rectot);	/* komt voor bij afbreek */
+		if(R.rectot) MEM_freeN(R.rectot);	/* happens when break */
 		R.rectot=(unsigned int *)MEM_mallocN(sizeof(int)*R.rectx*R.recty, "rectot");
 
 		if(RE_local_test_break()==0) {
@@ -478,7 +478,6 @@ void unifiedRenderingLoop(void)  /* hierbinnen de PART en FIELD lussen */
 	/* if(R.r.mode & R_PANORAMA) R.rectx*= R.r.xparts; */
 	/* R.recty= R.r.ysch; */
 
-	/* als border: wel de skybuf doen */
 	/*
 	  This may be tricky
 	 */
@@ -495,7 +494,7 @@ void unifiedRenderingLoop(void)  /* hierbinnen de PART en FIELD lussen */
 
 	set_mblur_offs(0);
 
-	/* VRIJGEVEN */
+	/* FREE */
 
 	/* zbuf test */
 

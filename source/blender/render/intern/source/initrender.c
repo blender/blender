@@ -100,13 +100,13 @@
 #define ELEM3(a, b, c, d)       ( ELEM(a, b, c) || (a)==(d) ) 
 
 
-/* uit render.c */
+/* from render.c */
 extern float fmask[256], centLut[16];
 extern unsigned short *mask1[9], *mask2[9], /*  *igamtab1, */ *igamtab2/*,  *gamtab */;
 extern char cmask[256], *centmask;
 
 Material defmaterial;
-short pa; /* pa is globaal part ivm print */
+short pa; /* pa is global part, for print */
 short allparts[65][4];
 int qscount;
 
@@ -159,7 +159,7 @@ void RE_free_render_data()
 	end_render_material(&defmaterial);
 }
 
-/* ****************** GAMMA, MASKERS en LUTS **************** */
+/* ****************** GAMMA, MASKS and LUTS **************** */
 
 float  calc_weight(float *weight, int i, int j)
 {
@@ -225,7 +225,7 @@ void RE_init_filt_mask(void)
 
 	}
 
-	if(R.r.alphamode==R_ALPHAKEY) gamma= 1.0;	/* ??? */
+	if(R.r.alphamode==R_ALPHAKEY) gamma= 1.0;	/* gamma correction of alpha is nasty */
 
 	if(R.r.mode & R_GAMMA) gamma= 2.0;
 	else gamma= 1.0;
@@ -234,7 +234,7 @@ void RE_init_filt_mask(void)
 	if(gamma!= lastgamma) {
 		lastgamma= gamma;
 
-		/* gamtab: in short, uit short */
+		/* gamtab: in short, out short */
 		for(a=0; a<65536; a++) {
 			val= a;
 			val/= 65535.0;
@@ -244,7 +244,7 @@ void RE_init_filt_mask(void)
 
 			gamtab[a]= (65535.99*val);
 		}
-		/* inv gamtab1 : in byte, uit short */
+		/* inverse gamtab1 : in byte, out short */
 		for(a=1; a<=256; a++) {
 			if(gamma==2.0) igamtab1[a-1]= a*a-1;
 			else if(gamma==1.0) igamtab1[a-1]= 256*a-1;
@@ -254,7 +254,7 @@ void RE_init_filt_mask(void)
 			}
 		}
 
-		/* inv gamtab2 : in short, uit short */
+		/* inverse gamtab2 : in short, out short */
 		for(a=0; a<65536; a++) {
 			val= a;
 			val/= 65535.0;
@@ -280,7 +280,7 @@ void RE_init_filt_mask(void)
 		memset(mask2[a], 0, 256*2);
 	}
 
-	/* bereken totw */
+	/* calculate totw */
 	totw= 0.0;
 	for(j= -1; j<2; j++) {
 		for(i= -1; i<2; i++) {
@@ -290,7 +290,7 @@ void RE_init_filt_mask(void)
 
 	for(j= -1; j<2; j++) {
 		for(i= -1; i<2; i++) {
-			/* bereken ahv jit met ofset de gewichten */
+			/* calculate using jit, with offset the weights */
 
 			memset(weight, 0, 32*2);
 			calc_weight(weight, i, j);
@@ -337,7 +337,7 @@ void RE_init_filt_mask(void)
 		}
 	}
 
-	/* centmask: de juiste subpixel ofset per masker */
+	/* centmask: the correct subpixel offset per mask */
 
 	fpx1= MEM_mallocN(256*sizeof(float), "initgauss4");
 	fpx2= MEM_mallocN(256*sizeof(float), "initgauss4");
@@ -457,7 +457,7 @@ void RE_make_existing_file(char *name)
 	strcpy(di, name);
 	BLI_splitdirstring(di, fi);
 
-	/* exist testen */
+	/* test exist */
 	if (BLI_exists(di) == 0) {
 		BLI_recurdir_fileops(di);
 	}
@@ -466,11 +466,11 @@ void RE_make_existing_file(char *name)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+/* code for holographic hack, used in the neogeo days. SHould be removed (ton) */
+
 extern float holoofs;	/* render.c */
 void RE_setwindowclip(int mode, int jmode)
 {
-	/* jmode>=0: alleen jitter doen, anders berekenen  */
-	/* mode==1 zet persmat en grvec */
 	Camera *cam=0;
 	float lens, fac, minx, miny, maxx, maxy;
 	float xd, yd, afmx, afmy;
@@ -509,7 +509,7 @@ void RE_setwindowclip(int mode, int jmode)
 			R.viewfac= R.ycor*(afmy*lens)/16.0;
 		}
 		if(R.r.mode & R_ORTHO) {
-			R.near*= 100.0; /* R.far niet doen */
+			R.near*= 100.0; 
 			R.viewfac*= 100.0;
 		}
 
@@ -572,8 +572,6 @@ void RE_setwindowclip(int mode, int jmode)
 	maxy= R.pixsize*(maxy+yd);
 
 	if(R.r.mode & R_ORTHO) {
-		/* hier de near & far vermenigvuldigen is voldoende! */
-
 		i_window(minx, maxx, miny, maxy, R.near, 100.0*R.far, R.winmat);
 	}
 	else i_window(minx, maxx, miny, maxy, R.near, R.far, R.winmat);
@@ -605,20 +603,20 @@ void initparts()
 		ymaxb= R.recty;
 	}
 
-	xparts= R.r.xparts;	/* voor border */
+	xparts= R.r.xparts;	/* for border */
 	yparts= R.r.yparts;
 
 	for(nr=0;nr<xparts*yparts;nr++)
-		allparts[nr][0]= -1;	/* array leegmaken */
+		allparts[nr][0]= -1;	/* clear array */
 
 	xpart= R.rectx/xparts;
 	ypart= R.recty/yparts;
 
-	/* als border: testen of aantal parts minder kan */
+	/* if border: test if amount of parts can be fewer */
 	if(R.r.mode & R_BORDER) {
-		a= (xmaxb-xminb-1)/xpart+1; /* zoveel parts in border */
+		a= (xmaxb-xminb-1)/xpart+1; /* amount of parts in border */
 		if(a<xparts) xparts= a;
-		a= (ymaxb-yminb-1)/ypart+1; /* zoveel parts in border */
+		a= (ymaxb-yminb-1)/ypart+1; /* amount of parts in border */
 		if(a<yparts) yparts= a;
 
 		xpart= (xmaxb-xminb)/xparts;
@@ -651,7 +649,7 @@ void initparts()
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-short setpart(short nr)	/* return 0 als geen goede part */
+short setpart(short nr)	/* return 0 if incorrect part */
 {
 
 	if(allparts[nr][0]== -1) return 0;
@@ -672,7 +670,7 @@ void addparttorect(short nr, Part *part)
 	unsigned int *rt, *rp;
 	short y, heigth, len;
 
-	/* de juiste offset in rectot */
+	/* the right offset in rectot */
 
 	rt= R.rectot+ (allparts[nr][1]*R.rectx+ allparts[nr][0]);
 	rp= part->rect;
@@ -726,12 +724,12 @@ void add_to_blurbuf(int blur)
 		}
 	}
 	else if(blur==R.osa-1) {
-		/* eerste keer */
+		/* first time */
 		blurrect= MEM_mallocN(R.rectx*R.recty*sizeof(int), "rectblur");
 		if(R.rectot) memcpy(blurrect, R.rectot, R.rectx*R.recty*4);
 	}
 	else if(blurrect) {
-		/* accumuleren */
+		/* accumulate */
 
 		facr= 256/(R.osa-blur);
 		facb= 256-facr;
@@ -765,7 +763,7 @@ void add_to_blurbuf(int blur)
 			}
 		}
 		if(blur==0) {
-			/* laatste keer */
+			/* last time */
 			if(R.rectot) MEM_freeN(R.rectot);
 			R.rectot= blurrect;
 			blurrect= 0;
@@ -785,12 +783,12 @@ void render() {
 }
 
 
-void oldRenderLoop(void)  /* hierbinnen de PART en FIELD lussen */
+void oldRenderLoop(void)  /* here the PART and FIELD loops */
 {
 	Part *part;
 	unsigned int *rt, *rt1, *rt2;
 	int len, y;
-	short blur, a,fields,fi,parts;  /* pa is globaal ivm print */
+	short blur, a,fields,fi,parts;  /* pa is a global because of print */
 	unsigned int *border_buf= NULL;
 	unsigned int border_x= 0;
 	unsigned int border_y= 0;
@@ -806,13 +804,13 @@ void oldRenderLoop(void)  /* hierbinnen de PART en FIELD lussen */
 	if (R.rectz) MEM_freeN(R.rectz);
 	R.rectz = 0;
 
-	/* FIELDLUS */
+	/* FIELD LOOP */
 	fields= 1;
 	parts= R.r.xparts*R.r.yparts;
 
 	if(R.r.mode & R_FIELDS) {
 		fields= 2;
-		R.rectf1= R.rectf2= 0;	/* fieldrecten */
+		R.rectf1= R.rectf2= 0;	/* field rects */
 		R.r.ysch/= 2;
 		R.afmy/= 2;
 		R.r.yasp*= 2;
@@ -832,7 +830,7 @@ void oldRenderLoop(void)  /* hierbinnen de PART en FIELD lussen */
 		if(fi==1) R.flag |= R_SEC_FIELD;
 	
 
-		/* MOTIONBLUR lus */
+		/* MOTIONBLUR loop */
 		if(R.r.mode & R_MBLUR) blur= R.osa;
 		else blur= 1;
 
@@ -850,7 +848,7 @@ void oldRenderLoop(void)  /* hierbinnen de PART en FIELD lussen */
 	
 			if(R.r.mode & R_MBLUR) set_mblur_offs(R.osa-blur);
 
-			initparts(); /* altijd doen ivm border */
+			initparts(); /* always do, because of border */
 			setpart(0);
 	
 			RE_local_init_render_display();
@@ -865,7 +863,7 @@ void oldRenderLoop(void)  /* hierbinnen de PART en FIELD lussen */
 				
 				if(RE_local_test_break()) break;
 				
-				if(pa) {	/* want pa==0 is al gedaan */
+				if(pa) {	/* because case pa==0 has been done */
 					if(setpart(pa)==0) break;
 				}
 
@@ -874,7 +872,7 @@ void oldRenderLoop(void)  /* hierbinnen de PART en FIELD lussen */
 
 				if(R.r.mode & R_PANORAMA) setPanoRot(pa);
 
-				/* HOMOGENE COORDINATEN EN ZBUF EN CLIP OPT (per part) */
+				/* HOMOGENIC COORDINATES AND ZBUF AND CLIP OPTIMISATION (per part) */
 				/* There may be some interference with z-coordinate    */
 				/* calculation here?                                   */
 
@@ -882,7 +880,7 @@ void oldRenderLoop(void)  /* hierbinnen de PART en FIELD lussen */
 				if(RE_local_test_break()) break;
 
 				
-				/* ZBUFFER & SHADE: zbuffer stores int distances, int face indices */
+				/* ZBUFFER & SHADE: zbuffer stores integer distances, and integer face indices */
 				R.rectot= (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
 				R.rectz =  (unsigned int *)MEM_mallocN(sizeof(int)*R.rectx*R.recty, "rectz");
 
@@ -896,10 +894,10 @@ void oldRenderLoop(void)  /* hierbinnen de PART en FIELD lussen */
 				
 				if(RE_local_test_break()) break;
 				
-				/* uitzondering */
+				/* exception */
 				if( (R.r.mode & R_BORDER) && (R.r.mode & R_MOVIECROP));
 				else {
-					/* PART OF BORDER AFHANDELEN */
+					/* HANDLE PART OR BORDER */
 					if(parts>1 || (R.r.mode & R_BORDER)) {
 						
 						part= MEM_callocN(sizeof(Part), "part");
@@ -915,9 +913,9 @@ void oldRenderLoop(void)  /* hierbinnen de PART en FIELD lussen */
 				}
 			}
 
-			/* PARTS SAMENVOEGEN OF BORDER INVOEGEN */
+			/* JOIN PARTS OR INSERT BORDER */
 
-			/* uitzondering: crop */
+			/* exception: crop */
 			if( (R.r.mode & R_BORDER) && (R.r.mode & R_MOVIECROP)) ;
 			else {
 				R.rectx= R.r.xsch;
@@ -968,16 +966,16 @@ void oldRenderLoop(void)  /* hierbinnen de PART en FIELD lussen */
 				add_to_blurbuf(blur);
 			}
 
-			/* EINDE (blurlus) */
+			/* END (blur loop) */
 			finalizeScene();
 
 			if(RE_local_test_break()) break;
 		}
 
-		/* definitief vrijgeven */
+		/* definite free */
 		add_to_blurbuf(-1);
 
-		/* FIELD AFHANDELEN */
+		/* HANDLE FIELD */
 		if(R.r.mode & R_FIELDS) {
 			if(R.flag & R_SEC_FIELD) R.rectf2= R.rectot;
 			else R.rectf1= R.rectot;
@@ -987,14 +985,14 @@ void oldRenderLoop(void)  /* hierbinnen de PART en FIELD lussen */
 		if(RE_local_test_break()) break;
 	}
 
-	/* FIELDS SAMENVOEGEN */
+	/* JOIN FIELDS */
 	if(R.r.mode & R_FIELDS) {
 		R.r.ysch*= 2;
 		R.afmy*= 2;
 		R.recty*= 2;
 		R.r.yasp/=2;
 
-		if(R.rectot) MEM_freeN(R.rectot);	/* komt voor bij afbreek */
+		if(R.rectot) MEM_freeN(R.rectot);	/* happens when a render has been stopped */
 		R.rectot=(unsigned int *)MEM_mallocN(sizeof(int)*R.rectx*R.recty, "rectot");
 
 		if(RE_local_test_break()==0) {
@@ -1026,7 +1024,7 @@ void oldRenderLoop(void)  /* hierbinnen de PART en FIELD lussen */
 	/* if(R.r.mode & R_PANORAMA) R.rectx*= R.r.xparts; */
 	/* R.recty= R.r.ysch; */
 
-	/* als border: wel de skybuf doen */
+	/* if border: still do skybuf */
 	if(R.r.mode & R_BORDER) {
 		if( (R.r.mode & R_MOVIECROP)==0) {
 			if(R.r.bufflag & 1) {
@@ -1040,7 +1038,7 @@ void oldRenderLoop(void)  /* hierbinnen de PART en FIELD lussen */
 
 	set_mblur_offs(0);
 
-	/* VRIJGEVEN */
+	/* FREE */
 
 	/* zbuf test */
 
@@ -1068,17 +1066,17 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 	Image *bima;
 	char name[256];
 	
-	/* scenedata naar R */
+	/* scene data to R */
 	R.r= G.scene->r;
 	R.r.postigamma= 1.0/R.r.postgamma;
 	
-	/* voor zekerheid: bij voortijdige return */
+	/* to be sure: when a premature return */
 	R.rectx= R.r.xsch;
 	R.recty= R.r.ysch;
 
-	/* MAG ER WEL WORDEN GERENDERD */
+	/* IS RENDERING ALLOWED? */
 
-	/* verboden combinatie */
+	/* forbidden combination */
 	if((R.r.mode & R_BORDER) && (R.r.mode & R_PANORAMA)) {
 		error("No border allowed for Panorama");
 		G.afbreek= 1;
@@ -1099,7 +1097,7 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 	}
 
 	
-	/* BACKBUF TESTEN */
+	/* TEST BACKBUF */
 	/* If an image is specified for use as backdrop, that image is loaded    */
 	/* here.                                                                 */
 	if((R.r.bufflag & 1) && (G.scene->r.scemode & R_OGL)==0) {
@@ -1127,7 +1125,7 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 	}
 
 	
-	usegamtab= 0; /* zie hieronder */
+	usegamtab= 0; /* see also further */
 
 	if(R.r.mode & (R_OSA|R_MBLUR)) {
 		R.osa= R.r.osa;
@@ -1136,7 +1134,7 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 		init_render_jit(R.osa);
 		RE_init_filt_mask();
 
-		/* wordt af en toe tijdelijk op nul gezet, o.a. in transp zbuf */
+		/* this value sometimes is reset temporally, for example in transp zbuf */
 		if(R.r.mode & R_GAMMA) {
 			if((R.r.mode & R_OSA)) usegamtab= 1;
 		}
@@ -1175,7 +1173,7 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 
 		if(RE_local_test_break()==0) do_render_seq();
 
-		/* displayen */
+		/* display */
 		if(R.rectot) RE_local_render_display(0, R.recty-1,
 											 R.rectx, R.recty,
 											 R.rectot);
@@ -1207,11 +1205,11 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 				if(cam->type==CAM_ORTHO) R.r.mode |= R_ORTHO;
 			}
 
-			render(); /* keert terug met complete rect xsch-ysch */
+			render(); /* returns with complete rect xsch-ysch */
 		}
 	}
 	
-	/* nog eens displayen: fields/seq/parts/pano etc */
+	/* display again: fields/seq/parts/pano etc */
 	if(R.rectot) {	
 		RE_local_init_render_display();
 		RE_local_render_display(0, R.recty-1,
@@ -1222,9 +1220,9 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 
 	RE_local_printrenderinfo((PIL_check_seconds_timer() - start_time), -1);
 	
-	/* variabelen weer goed */
+	/* restore variables */
 	R.osatex= 0;
-	R.vlr= 0;	/* bij cubemap */
+	R.vlr= 0;	/* at cubemap */
 	R.flag= 0;
 }
 
@@ -1235,10 +1233,10 @@ void RE_animrender(struct View3D *ogl_render_view3d)
 
 	if(G.scene==0) return;
 
-	/* scenedata naar R: (voor backbuf, R.rectx enz) */
+	/* scenedata to R: (for backbuf, R.rectx etc) */
 	R.r= G.scene->r;
 
-	/* START ANIMLUS overal wordt NIET de cfra uit R.r gebruikt: ivm rest blender */
+	/* START ANIMLOOP, everywhere NOT the cfra from R.r is gebruikt: because of rest blender */
 	cfrao= (G.scene->r.cfra);
 
 	if(G.scene->r.scemode & R_OGL) R.r.mode &= ~R_PANORAMA;
@@ -1275,7 +1273,7 @@ void RE_animrender(struct View3D *ogl_render_view3d)
 
 		RE_initrender(ogl_render_view3d);
 		
-		/* SCHRIJF PLAATJE */
+		/* WRITE IMAGE */
 		if(RE_local_test_break()==0) {
 
 			if (0) {
@@ -1297,7 +1295,7 @@ void RE_animrender(struct View3D *ogl_render_view3d)
 
 			timestr(PIL_check_seconds_timer()-starttime, name);
 			printf(" Time: %s\n", name);
-			fflush(stdout); /* nodig voor renderd !! */
+			fflush(stdout); /* needed for renderd !! */
 		}
 
 		if(G.afbreek==1) break;
@@ -1306,7 +1304,7 @@ void RE_animrender(struct View3D *ogl_render_view3d)
 
 	(G.scene->r.cfra)= cfrao;
 
-	/* restoren tijd */
+	/* restore time */
 	if(R.r.mode & (R_FIELDS|R_MBLUR)) {
 		do_all_ipos();
 		do_all_keys();
