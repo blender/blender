@@ -1006,6 +1006,8 @@ if user_options_dict['BUILD_BLENDER_DYNAMIC'] == 1:
         dy_blender.Program (target='blender',
                             source=d_obj + ['source/icons/winblender.res'])
     else:
+        if sys.platform == 'cygwin':
+            dy_blender.Replace (CC='g++')
         dy_blender.Program (target='blender', source=d_obj)
 if user_options_dict['BUILD_BLENDER_STATIC'] == 1:
     st_blender = link_env.Copy ()
