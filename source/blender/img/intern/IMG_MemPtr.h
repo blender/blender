@@ -37,10 +37,6 @@
 
 #include <stddef.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /**
  * A memory pointer for memory of any type.
  * It can be used to avoid memory leaks when allocating memory in constructors.

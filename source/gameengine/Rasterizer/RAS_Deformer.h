@@ -33,10 +33,6 @@
 #ifndef RAS_DEFORMER
 #define RAS_DEFORMER
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
 #endif //WIN32

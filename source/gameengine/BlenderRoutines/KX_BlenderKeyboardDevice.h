@@ -32,10 +32,6 @@
 #ifndef __KX_BLENDERKEYBOARDDEVICE
 #define __KX_BLENDERKEYBOARDDEVICE
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "KX_BlenderInputDevice.h"
 
 class KX_BlenderKeyboardDevice : public BL_BlenderInputDevice

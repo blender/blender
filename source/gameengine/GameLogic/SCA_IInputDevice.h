@@ -36,10 +36,6 @@
 #ifndef KX_INPUTDEVICE_H
 #define KX_INPUTDEVICE_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class SCA_InputEvent 
 {
 	

@@ -33,10 +33,6 @@
 #ifndef BIF_OOPS_H
 #define BIF_OOPS_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct Curve;
 struct Oops;
 struct OopsLink;

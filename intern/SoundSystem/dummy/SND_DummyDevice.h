@@ -34,10 +34,6 @@
 
 #include "SND_AudioDevice.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class SND_DummyDevice : public SND_AudioDevice
 {
 public:

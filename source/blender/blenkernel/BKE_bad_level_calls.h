@@ -37,10 +37,6 @@
 #ifndef BKE_BAD_LEVEL_CALLS_H
 #define BKE_BAD_LEVEL_CALLS_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* readfile.c */
 struct PluginSeq;
 void open_plugin_seq(struct PluginSeq *pis, char *seqname);

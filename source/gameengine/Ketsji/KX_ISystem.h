@@ -40,10 +40,6 @@ using namespace std;
 
 #include "STR_String.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /**
  * System Abstraction, needed only for getting some timing stuff from the host.
  */

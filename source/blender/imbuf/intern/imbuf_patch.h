@@ -38,10 +38,6 @@
 #ifndef IMBUF_PATCH_H
 #define IMBUF_PATCH_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* most of imbuf uses this aloc, and it will disappear soon
  * (hopefully) (25-10-2001 nzc) */
 #include "MEM_guardedalloc.h"

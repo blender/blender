@@ -37,10 +37,6 @@
 
 #include <stdlib.h> // for NULL !
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /**
  * @section GEN_SmartPtr 
  * This class defines a smart pointer similar to that defined in 

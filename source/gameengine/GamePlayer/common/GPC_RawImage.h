@@ -33,10 +33,6 @@
 #ifndef __GPC_RAWIMAGE_H__
 #define __GPC_RAWIMAGE_H__
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /**
  * This memory resource reads images from the application resources.
  * Images are expected to be stored as raw RGBA bytes.

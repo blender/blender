@@ -33,10 +33,6 @@
 #ifndef __GPC_RAWLOADDOTBLENDARRAY_H
 #define __GPC_RAWLOADDOTBLENDARRAY_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 void GetRawLoadingAnimation(unsigned char **data, int *dataSize);
 
 #endif  // __GPC_RAWLOADDOTBLENDARRAY_H

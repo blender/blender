@@ -39,19 +39,13 @@
 #include "Value.h"
 #include <vector>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class SCA_ISensor;
 class SCA_IController;
 class SCA_IActuator;
 
-
 typedef std::vector<SCA_ISensor *>       SCA_SensorList;
 typedef std::vector<SCA_IController *>   SCA_ControllerList;
 typedef std::vector<SCA_IActuator *>     SCA_ActuatorList;
-
 
 class SCA_IObject :	public CValue
 {

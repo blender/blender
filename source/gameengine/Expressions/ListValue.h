@@ -16,10 +16,6 @@
 #if !defined _LISTVALUE_H
 #define _LISTVALUE_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "Value.h"
 
 class CListValue : public CPropValue  

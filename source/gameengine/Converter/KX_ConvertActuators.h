@@ -32,10 +32,6 @@
 #ifndef __KX_CONVERTACTUATORS_H
 #define __KX_CONVERTACTUATORS_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 void BL_ConvertActuators(char* maggiename,
 	 struct Object* blenderobject,
 	 class KX_GameObject* gameobj,

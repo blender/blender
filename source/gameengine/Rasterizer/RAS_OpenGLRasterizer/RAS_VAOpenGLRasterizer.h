@@ -32,10 +32,6 @@
 #ifndef __KX_VERTEXARRAYOPENGLRASTERIZER
 #define __KX_VERTEXARRAYOPENGLRASTERIZER
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "RAS_OpenGLRasterizer.h"
 
 class RAS_VAOpenGLRasterizer : public RAS_OpenGLRasterizer

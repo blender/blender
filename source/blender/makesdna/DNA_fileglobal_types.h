@@ -34,10 +34,6 @@
 #ifndef DNA_FILEGLOBAL_TYPES_H
 #define DNA_FILEGLOBAL_TYPES_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /**
  * FileGlobal stores a part of the current user-unterface settings at
  * the moment of saving, and the file-specific settings.

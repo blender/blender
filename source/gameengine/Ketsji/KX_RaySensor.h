@@ -38,10 +38,6 @@
 #include "SCA_ISensor.h"
 #include "MT_Point3.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class KX_RaySensor : public SCA_ISensor
 {
 	Py_Header;

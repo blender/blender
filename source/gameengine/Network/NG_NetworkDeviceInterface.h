@@ -38,10 +38,6 @@
 #include "NG_NetworkMessage.h"
 #include <vector>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class NG_NetworkDeviceInterface
 {
 private:

@@ -36,10 +36,6 @@
 #ifndef BKE_LIBRARY_TYPES_H
 #define BKE_LIBRARY_TYPES_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct ListBase;
 struct ID;
 struct Main;

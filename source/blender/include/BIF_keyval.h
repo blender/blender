@@ -33,10 +33,6 @@
 #ifndef BIF_KEYVAL_H
 #define BIF_KEYVAL_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 char *key_event_to_string(unsigned short event);
 
 #endif

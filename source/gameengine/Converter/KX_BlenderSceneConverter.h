@@ -38,10 +38,6 @@
 #include "KX_HashedPtr.h"
 #include "KX_IpoConvert.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class KX_WorldInfo;
 class SCA_IActuator;
 class SCA_IController;

@@ -33,10 +33,6 @@
 #ifndef BSE_EDITIPO_TYPES_H
 #define BSE_EDITIPO_TYPES_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct BezTriple;
 
 typedef struct IpoKey {

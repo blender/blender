@@ -39,10 +39,6 @@
 
 #include "SND_Object.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class SND_CDObject : public SND_Object
 {
 private:

@@ -35,10 +35,6 @@
 #ifndef ZBUFFERDATASTRUCT_TYPES_H
 #define ZBUFFERDATASTRUCT_TYPES_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #define  RE_ZBUFLEN 64       /* number of lines in the accumulation buffer  */
 
 /**

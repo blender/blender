@@ -34,10 +34,6 @@
 #ifndef BKE_CURVE_H
 #define BKE_CURVE_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct Curve;
 struct ListBase;
 struct Object;

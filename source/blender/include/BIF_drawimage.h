@@ -33,10 +33,6 @@
 #ifndef BIF_DRAWIMAGE_H
 #define BIF_DRAWIMAGE_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct SpaceImage;
 
 void calc_image_view(struct SpaceImage *sima, char mode);

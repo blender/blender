@@ -33,10 +33,6 @@
 #ifndef BSE_DRAWNLA_H
 #define BSE_DRAWNLA_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 void drawnlaspace(void);
 
 #endif /* BSE_DRAWNLA */

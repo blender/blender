@@ -33,10 +33,6 @@
 #ifndef BDR_EDITFACE_H
 #define BDR_EDITFACE_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct TFace;
 struct Mesh;
 

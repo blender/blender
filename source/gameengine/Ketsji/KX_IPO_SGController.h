@@ -38,10 +38,6 @@
 #include "KX_IPOTransform.h"
 #include "KX_IInterpolator.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class KX_IpoSGController : public SG_Controller
 {
 	KX_IPOTransform     m_ipo_xform;

@@ -33,10 +33,6 @@
 
 #include "BLO_sign_verify_Header.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* external struct for signer info */
 
 struct BLO_SignerInfo {

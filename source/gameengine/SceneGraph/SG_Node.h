@@ -35,10 +35,6 @@
 #include "SG_Spatial.h"
 #include <vector>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 typedef std::vector<SG_Node*> NodeList;
 
 class SG_Node : public SG_Spatial

@@ -34,10 +34,6 @@
 
 #include "PHY_IPhysicsEnvironment.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /**
 *	DummyPhysicsEnvironment  is an empty placeholder
 *   Alternatives are ODE,Sumo and Dynamo PhysicsEnvironments

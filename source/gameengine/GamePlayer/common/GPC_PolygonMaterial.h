@@ -35,11 +35,6 @@
 
 #include "RAS_IPolygonMaterial.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
 class GPC_PolygonMaterial : public RAS_IPolyMaterial
 {
 	struct TFace* m_tface;

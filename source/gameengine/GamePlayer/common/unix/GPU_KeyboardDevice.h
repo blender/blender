@@ -40,10 +40,6 @@
  // Intrinsic.h . Yes, we are a bunch of sado-masochists. Let's hurt
  // ourselves!
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "GPC_KeyboardDevice.h"
 
 class GPU_KeyboardDevice : public GPC_KeyboardDevice

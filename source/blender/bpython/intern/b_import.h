@@ -31,10 +31,6 @@
  */
 /* b_import.c */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 PyObject *importText (char *name);
 PyObject *blender_import (PyObject *self, PyObject *args);
 void init_ourImport (void);

@@ -32,10 +32,6 @@
 #ifndef BIF_EDITARMATURE_H
 #define BIF_EDITARMATURE_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct Object;
 struct Bone;
 struct bArmature;

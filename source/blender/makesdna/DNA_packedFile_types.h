@@ -36,10 +36,6 @@
 #ifndef DNA_PACKEDFILE_TYPES_H
 #define DNA_PACKEDFILE_TYPES_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 typedef struct PackedFile {
 	int size;
 	int seek;

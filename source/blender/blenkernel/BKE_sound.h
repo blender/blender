@@ -34,10 +34,6 @@
 #ifndef BKE_SOUND_H
 #define BKE_SOUND_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct PackedFile;
 struct bSound;
 struct bSample;

@@ -33,10 +33,6 @@
 #ifndef INTERFACE_H
 #define INTERFACE_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* general defines */
 
 #define UI_MAX_DRAW_STR	180

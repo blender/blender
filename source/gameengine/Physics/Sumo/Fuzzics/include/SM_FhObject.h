@@ -3,10 +3,6 @@
 
 #include "SM_Object.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class SM_FhObject : public SM_Object {
 public:
 	SM_FhObject() {}

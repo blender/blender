@@ -41,10 +41,6 @@
 #include "MT_Matrix3x3.h"
 #include "SoundDefines.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /**
  *   SND_Object is an interface class for soundobjects, listeners and other
  *   kinds of sound related thingies. 

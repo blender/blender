@@ -40,10 +40,6 @@
 
 #include "DNA_listBase.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /**
  * The following structures are defined in DNA_action_types.h
  */

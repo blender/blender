@@ -30,10 +30,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct SpaceButs;
 
 void    BIF_preview_changed	(struct SpaceButs *area);

@@ -13,17 +13,11 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #pragma warning (disable:4786)
 #endif //WIN32
 
 /////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////
-////
 //// Baseclass CValue
 //// Together with CExpression, CValue and it's derived classes can be used to
 //// parse expressions into a parsetree with error detecting/correcting capabilities
@@ -41,16 +35,12 @@
 //// Some small editor-specific things added
 //// A helperclass CompressorArchive handles the serialization
 //// 
-////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
 #ifndef __VALUE_H__
 #define __VALUE_H__
 
 #include <map>		// array functionality for the propertylist
 #include "STR_String.h"	// STR_String class
-
-
-
 
 #ifndef GEN_NO_ASSERT
 #undef  assert
@@ -67,9 +57,6 @@
 #undef  debug
 #define	debug(exp)			((void)NULL)
 #endif
-
-
-
 
 #ifndef GEN_NO_ASSERTD
 #undef  assertd

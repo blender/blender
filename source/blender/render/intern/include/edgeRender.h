@@ -35,12 +35,6 @@
 #ifndef EDGERENDER_H
 #define EDGERENDER_H 
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-/* ------------------------------------------------------------------------- */
-
 /**
  * Add edges to <targetbuf>, which is of size <iw> by <ih>. Use <osanr>
  * samples, and intensity <i>. <compat> indicates an extra shift in the

@@ -33,10 +33,6 @@
 #ifndef __GPC_RAWLOGOARRAYS_H
 #define __GPC_RAWLOGOARRAYS_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 void GetRawBlenderLogo(unsigned char **data, int *width, int *height);
 void GetRawBlender3DLogo(unsigned char **data, int *width, int *height);
 #if 0

@@ -33,10 +33,6 @@
 #ifndef _GPW_CANVAS_H_
 #define _GPW_CANVAS_H_
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #pragma warning (disable:4786) // suppress stl-MSVC debug info warning
 #endif

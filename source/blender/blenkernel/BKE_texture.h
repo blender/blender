@@ -34,10 +34,6 @@
 #ifndef BKE_TEXTURE_H
 #define BKE_TEXTURE_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct Tex;
 struct MTex;
 struct PluginTex;

@@ -33,10 +33,6 @@
 #ifndef BIF_DRAWOOPS_H
 #define BIF_DRAWOOPS_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 void give_oopslink_line(Oops *oops, OopsLink *ol, float *v1, float *v2);
 void mysbox(float x1, float y1, float x2, float y2);
 void boundbox_oops(void);

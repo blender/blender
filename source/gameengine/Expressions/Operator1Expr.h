@@ -18,10 +18,6 @@
 
 #include "Expression.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class COperator1Expr : public CExpression  
 {
 	//PLUGIN_DECLARE_SERIAL_EXPRESSION (COperator1Expr,CExpression)

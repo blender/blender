@@ -33,12 +33,7 @@
 #define __KX_ISCENECONVERTER_H
 
 #include "STR_String.h"
-
 #include "KX_Python.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 class KX_ISceneConverter 
 {

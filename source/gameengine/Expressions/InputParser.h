@@ -17,10 +17,6 @@
 #ifndef __INPUTPARSER_H__
 #define __INPUTPARSER_H__
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class CParser;
 #include "Expression.h"
 

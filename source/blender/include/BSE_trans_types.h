@@ -33,10 +33,6 @@
 #ifndef BSE_TRANS_TYPES_H
 #define BSE_TRANS_TYPES_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct Object;
 /*  struct EditVlak; */
 /*  struct EditEdge; */

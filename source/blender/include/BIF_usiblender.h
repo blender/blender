@@ -33,10 +33,6 @@
 #ifndef BIF_USIBLENDER_H
 #define BIF_USIBLENDER_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 void exit_usiblender(void);
 
 void	BIF_init(void);

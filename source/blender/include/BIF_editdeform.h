@@ -33,10 +33,6 @@
 #ifndef BIF_DEFORM_H
 #define BIF_DEFORM_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct Object;
 struct MDeformVert;
 struct MDeformWeight;

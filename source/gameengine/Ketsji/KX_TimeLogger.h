@@ -33,14 +33,9 @@
 #ifndef __KX_TIME_LOGGER_H
 #define __KX_TIME_LOGGER_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #pragma warning (disable:4786) // suppress stl-MSVC debug info warning
 #endif
-
 
 #include <deque>
 

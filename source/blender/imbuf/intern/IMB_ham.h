@@ -35,10 +35,6 @@
 #ifndef IMB_HAM_H
 #define IMB_HAM_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct ImBuf;
 
 short imb_converttoham(struct ImBuf *ibuf);

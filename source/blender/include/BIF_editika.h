@@ -30,10 +30,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct Object;
 void draw_ika(struct Object *ob, int sel);
 void draw_ika_nrs(struct Object *ob, int type);

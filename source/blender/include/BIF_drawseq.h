@@ -33,10 +33,6 @@
 #ifndef BIF_DRAWSEQ_H
 #define BIF_DRAWSEQ_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct Sequence;
 void drawseqspace(void);
 void drawseq(struct Sequence *seq);

@@ -32,10 +32,6 @@
 #ifndef PHY_IPHYSICSCONTROLLER_H
 #define PHY_IPHYSICSCONTROLLER_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /**
 	PHY_IPhysicsController is the abstract simplified Interface to a physical object.
 	It contains the IMotionState and IDeformableMesh Interfaces.

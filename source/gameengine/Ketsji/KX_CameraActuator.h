@@ -38,11 +38,6 @@
 #include "SCA_IActuator.h"
 #include "MT_Scalar.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
 /**
  * The camera actuator does a Robbie Muller prespective for you. This is a 
  * weird set of rules that positions the camera sort of behind the object,

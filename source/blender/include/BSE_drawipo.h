@@ -33,10 +33,6 @@
 #ifndef BSE_DRAWIPO_H
 #define BSE_DRAWIPO_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct EditIpo;
 struct View2D;
 struct rctf;

@@ -39,10 +39,6 @@
 
 #include "STR_String.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class SND_WaveSlot
 {
 	STR_String		m_samplename;

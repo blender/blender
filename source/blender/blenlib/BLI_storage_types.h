@@ -38,10 +38,6 @@
 
 #include <sys/stat.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #define HDRSIZE 512
 #define NAMSIZE 200
 

@@ -30,10 +30,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 void clever_numbuts_sima(void);
 void borderselect_sima(void);
 void mouseco_to_curtile(void);

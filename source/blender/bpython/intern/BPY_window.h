@@ -30,8 +30,5 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 void window_update_curCamera(Object *camera);
 

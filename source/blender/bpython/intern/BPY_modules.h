@@ -31,10 +31,6 @@
  * these prototypes and init functions should be homogenized
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 extern PyObject *init_blender(void);
 extern PyObject *init_py_nmesh(void);
 extern PyObject *init_py_draw(void);

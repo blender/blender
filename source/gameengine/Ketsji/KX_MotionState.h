@@ -34,10 +34,6 @@
 
 #include "PHY_IMotionState.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class KX_MotionState : public PHY_IMotionState
 {
 	class	SG_Spatial*		m_node;

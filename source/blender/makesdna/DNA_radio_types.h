@@ -38,10 +38,6 @@
 #ifndef DNA_RADIO_TYPES_H
 #define DNA_RADIO_TYPES_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 typedef struct Radio {
 	short hemires, maxiter;
 	short drawtype, flag;			/* bit 0 en 1: limits laten zien */

@@ -31,10 +31,6 @@
  */
 /* tools.c */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 extern PyObject *BPY_incr_ret (PyObject *ob);
 extern PyObject *BPY_err_ret_ob (PyObject *type, char *err);
 extern int py_err_ret_int (PyObject *type, char *err);

@@ -36,13 +36,6 @@
 #define TEXTURE_EXT_H "$Id$"
 #define TEXTURE_EXT_H "Copyright (C) 2001 NaN Technologies B.V.
 
-/* no types!!! */
-/*  #include "texture_types.h" */
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct Tex;
 struct MTex;
 struct HaloRen;

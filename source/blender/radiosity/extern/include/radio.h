@@ -43,10 +43,6 @@
 /* type include */
 #include "radio_types.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 extern RadGlobal RG;
 
 /* radfactors.c */

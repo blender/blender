@@ -33,10 +33,6 @@
 #ifndef BIF_EDITVIEW_H
 #define BIF_EDITVIEW_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct Base;
 struct Object;
 

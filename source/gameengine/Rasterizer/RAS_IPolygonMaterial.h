@@ -34,10 +34,6 @@
 
 #include "STR_HashedString.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /**
  * Polygon Material on which the material buckets are sorted
  *

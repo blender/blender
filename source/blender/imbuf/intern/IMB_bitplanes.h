@@ -35,10 +35,6 @@
 #ifndef IMB_BITPLANES_H
 #define IMB_BITPLANES_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct ImBuf;
 
 void imb_bptolong(struct ImBuf *ibuf);

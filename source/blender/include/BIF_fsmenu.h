@@ -34,10 +34,6 @@
 #ifndef BSE_FSMENU_H
 #define BSE_FSMENU_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 	/** Returns the number of entries in the Fileselect Menu */
 int		fsmenu_get_nentries		(void);
 

@@ -40,10 +40,6 @@
 #ifndef BLI_MEMARENA_H
 #define BLI_MEMARENA_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 	/* A reasonable standard buffer size, big
 	 * enough to not cause much internal fragmentation, 
 	 * small enough not to waste resources

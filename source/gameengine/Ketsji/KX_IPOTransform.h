@@ -37,10 +37,6 @@
 
 #include "MT_Transform.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class KX_IPOTransform {
 public:
 	KX_IPOTransform() :

@@ -33,10 +33,6 @@
 #ifndef BSE_EDITACTION_TYPES_H
 #define BSE_EDITACTION_TYPES_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #define	CHANNELHEIGHT	16
 #define	CHANNELSKIP		2
 #define ACTWIDTH	128

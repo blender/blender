@@ -37,10 +37,6 @@
 #include "SCA_IActuator.h"
 #include "NG_NetworkMessage.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class KX_NetworkMessageActuator : public SCA_IActuator
 {
 	Py_Header;

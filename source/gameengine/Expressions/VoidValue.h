@@ -35,11 +35,6 @@
 
 #include "Value.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
 //
 // Void value, used to transport *any* type of data
 //

@@ -35,10 +35,6 @@
 #ifndef BKE_DISPLIST_H
 #define BKE_DISPLIST_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #define DL_POLY                 0
 #define DL_SEGM                 1
 #define DL_SURF                 2

@@ -33,10 +33,6 @@
 #define  __KX_EMPTYOBJECT
 #include "KX_GameObject.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class KX_EmptyObject : public KX_GameObject
 {
 public:

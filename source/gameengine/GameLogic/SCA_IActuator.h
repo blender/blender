@@ -35,10 +35,6 @@
 #include "SCA_ILogicBrick.h"
 #include <vector>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class SCA_IActuator : public SCA_ILogicBrick
 {
 protected:

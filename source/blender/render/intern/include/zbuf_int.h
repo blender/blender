@@ -40,10 +40,6 @@
 #include "render_types.h"
 #include "zbuf_types.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /**
  * Convert a homogenous coordinate to a z buffer coordinate. The
  * function makes use of Zmulx, Zmuly, the x and y scale factors for

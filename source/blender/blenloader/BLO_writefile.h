@@ -34,10 +34,6 @@
 #ifndef BLO_WRITEFILE_H
 #define BLO_WRITEFILE_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 int BLO_write_file(char *dir, int write_flags, char **error_r);
 void BLO_write_runtime(char *file, char *exename);
 

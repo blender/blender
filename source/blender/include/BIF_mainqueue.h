@@ -35,10 +35,6 @@
 #ifndef BIF_MAINQUEUE_H
 #define BIF_MAINQUEUE_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #define MAXQUEUE 256
 
 unsigned short	mainqtest		(void);

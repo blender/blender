@@ -21,10 +21,6 @@
 
 #include "Expression.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class CIfExpr : public CExpression  
 {
 	//PLUGIN_DECLARE_SERIAL_EXPRESSION (CIfExpr,CExpression)

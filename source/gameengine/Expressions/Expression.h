@@ -18,13 +18,7 @@
 
 #include "Value.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-//extern int gRefCountExpr;	// only for debugging purposes (detect mem.leaks)
-
-
+//extern int gRefCountExpr; // only for debugging purposes (detect mem.leaks)
 
 
 #define PLUGIN_DECLARE_SERIAL_EXPRESSION(class_name,base_class_name)									\

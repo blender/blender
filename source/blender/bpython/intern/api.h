@@ -34,11 +34,6 @@
  * see Makefile
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
 #undef EXPERIMENTAL  /* undefine this for release, please :-) */
 
 /* Uncomment this if you want to have the new blender module

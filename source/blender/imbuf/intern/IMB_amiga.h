@@ -35,10 +35,6 @@
 #ifndef IMB_AMIGA_H
 #define IMB_AMIGA_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct ImBuf;
 
 struct ImBuf *imb_loadamiga(int *iffmem,int flags);

@@ -34,10 +34,6 @@
 #ifndef BKE_VFONT_H
 #define BKE_VFONT_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct VFont;
 struct Object;
 struct Curve;

@@ -35,10 +35,6 @@
 
 #include <iostream>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "KXH_ketsji_hooks.h"
 #include "GPC_Canvas.h"
 

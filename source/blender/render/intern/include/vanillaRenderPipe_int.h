@@ -38,10 +38,6 @@
 #include "vanillaRenderPipe_types.h"
 #include "zbufferdatastruct_types.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /**
  * Z buffer initializer, for new pipeline.
  * <LI>

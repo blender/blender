@@ -32,10 +32,6 @@
 #ifndef BLO_SOUNDFILE_H
 #define BLO_SOUNDFILE_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "DNA_sound_types.h"
 #include "DNA_packedFile_types.h"
 

@@ -35,10 +35,6 @@
 
 #include "GPC_System.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class GPU_System : public GPC_System
 {
 public:

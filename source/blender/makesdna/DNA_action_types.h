@@ -39,10 +39,6 @@
 #ifndef DNA_ACTION_TYPES_H
 #define DNA_ACTION_TYPES_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 #include "DNA_view2d_types.h"

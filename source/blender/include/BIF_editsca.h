@@ -33,10 +33,6 @@
 #ifndef BIF_EDITSCA_H
 #define BIF_EDITSCA_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 void make_unique_prop_names(char *str);
 void do_gamebuts(unsigned short event);
 void gamebuts(void);

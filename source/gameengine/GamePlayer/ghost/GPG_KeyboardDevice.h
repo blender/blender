@@ -34,10 +34,6 @@
 #ifndef _GPG_KEYBOARDDEVICE_H_
 #define _GPG_KEYBOARDDEVICE_H_
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #pragma warning (disable : 4786)
 #endif // WIN32

@@ -44,10 +44,6 @@
 #include <set>
 using namespace std;
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 typedef vector< vector<class RAS_TexVert>* >  vecVertexArray;
 typedef vector<unsigned int> KX_IndexArray;
 typedef vector< KX_IndexArray* > vecIndexArrays;

@@ -37,9 +37,5 @@
 #ifndef BLI_SCANFILL_H
 #define BLI_SCANFILL_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #endif
 

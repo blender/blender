@@ -34,10 +34,6 @@
 #ifndef BKE_TEXT_H
 #define BKE_TEXT_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -36,10 +36,6 @@
 #define EDITLATTICE_EXT_H "$Id$"
 #define EDITLATTICE_EXT_H "Copyright (C) 2001 NaN Technologies B.V.
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 void end_latt_deform(void);
 
 #endif /* EDITLATTICE_EXT_H */

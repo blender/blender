@@ -38,10 +38,6 @@
 #include <vector>
 using namespace std;
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class KX_RayEventManager : public SCA_EventManager
 {
 

@@ -33,10 +33,6 @@
 #ifndef BDR_EDITMBALL_H
 #define BDR_EDITMBALL_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 void make_editMball(void);
 void load_editMball(void);
 

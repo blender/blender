@@ -35,10 +35,6 @@
 #ifndef IMB_BMP_H
 #define IMB_BMP_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct ImBuf;
 
 int imb_is_a_bmp(void *buf);

@@ -32,10 +32,6 @@
 #ifndef KX_PYTHON_H
 #define KX_PYTHON_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 //#define USE_DL_EXPORT
 #include "Python.h"
 

@@ -34,10 +34,6 @@
 #ifndef PLAYANIM_EXT_H
 #define PLAYANIM_EXT_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* used in apps */
 extern void playanim(int argc, char **argv);
 

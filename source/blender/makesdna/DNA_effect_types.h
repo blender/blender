@@ -34,10 +34,6 @@
 #ifndef DNA_EFFECT_TYPES_H
 #define DNA_EFFECT_TYPES_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* DENK ERAAN: NIEUWE EFFECTEN OOK IN DE WRITEFILE.C IVM DNA!!! */
 
 #define PAF_MAXMULT		4

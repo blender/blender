@@ -39,10 +39,6 @@
 #include "BoolValue.h"
 #include "SCA_IInputDevice.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class SCA_MouseSensor : public SCA_ISensor
 {
 	Py_Header;

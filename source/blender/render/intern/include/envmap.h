@@ -35,13 +35,6 @@
 #ifndef ENVMAP_EXT_H
 #define ENVMAP_EXT_H 
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-/* no types!!! */
-/*  #include "envmap_types.h" */
-
 /**
  * Make environment maps for all objects in the scene that have an
  * environment map as texture. 

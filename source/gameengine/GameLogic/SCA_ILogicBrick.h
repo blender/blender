@@ -36,10 +36,6 @@
 #include "SCA_IObject.h"
 #include "BoolValue.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class SCA_ILogicBrick : public CValue
 {
 	Py_Header;

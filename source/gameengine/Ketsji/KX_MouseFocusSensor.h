@@ -35,11 +35,6 @@
 #define __KX_MOUSEFOCUSSENSOR
 
 #include "SCA_MouseSensor.h"
-/*  #include "SCA_IInputDevice.h" */
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 /**
  * The mouse focus sensor extends the basic SCA_MouseSensor. It has

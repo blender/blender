@@ -34,10 +34,6 @@
 #ifndef BKE_OBJECT_H
 #define BKE_OBJECT_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -34,10 +34,6 @@
 #ifndef PARTICLE_EFFECT_H
 #define PARTICLE_EFFECT_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* effect.c */
 extern Effect *add_effect(int type);
 extern PartEff *give_parteff(Object *ob);

@@ -35,10 +35,6 @@
 #ifndef _H_IMG_Pixmap
 #define _H_IMG_Pixmap
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "IMG_Types.h"
 #include "IMG_Color.h"
 #include "IMG_Rect.h"

@@ -37,10 +37,6 @@
 
 #include "SCA_ILogicBrick.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /**
  * Interface Class for all logic Sensors. Implements
  * pulsemode,pulsefrequency */

@@ -37,10 +37,6 @@
 #include "MT_Point2.h"
 #include "MT_Transform.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 static MT_Point3 g_pt3;
 static MT_Point2 g_pt2;
 

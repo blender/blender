@@ -33,10 +33,6 @@
 #ifndef BIF_WRITEIMAGE_H
 #define BIF_WRITEIMAGE_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct ImBuf;
 struct EnvMap;
 

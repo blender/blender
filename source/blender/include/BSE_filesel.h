@@ -34,10 +34,6 @@
 #ifndef BSE_FILESEL_H
 #define BSE_FILESEL_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct SpaceFile;
 struct direntry;
 struct ID;

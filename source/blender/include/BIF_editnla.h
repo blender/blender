@@ -33,10 +33,6 @@
 #ifndef BIF_EDITNLA_H
 #define BIF_EDITNLA_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 void clever_numbuts_nla(void);
 
 #endif

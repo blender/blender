@@ -35,10 +35,6 @@
 
 #include "STR_String.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class NG_NetworkObject
 {
 	STR_String m_name;

@@ -18,10 +18,6 @@
 #include "MT_Vector3.h"
 #include "MT_Point3.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class SM_Object;
 
 class SM_Scene {

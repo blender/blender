@@ -38,10 +38,6 @@
 #include "BoolValue.h"
 #include <list>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /**
  * The keyboard sensor listens to the keyboard, and passes on events
  * on selected keystrokes. It has an alternate mode in which it logs

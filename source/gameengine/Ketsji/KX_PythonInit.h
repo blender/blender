@@ -35,10 +35,6 @@
 #include "KX_Python.h"
 #include "STR_String.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 typedef enum {
 	psl_Lowest = 0,
 	psl_Highest

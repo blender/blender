@@ -32,10 +32,6 @@
 #ifndef RAS_FRAMINGMANAGER_H
 #define RAS_FRAMINGMANAGER_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class RAS_Rect;
 
 /**

@@ -38,10 +38,6 @@
 #include "RAS_MaterialBucket.h"
 #include "GEN_Map.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class RAS_BucketManager
 {
 

@@ -35,10 +35,6 @@
 #ifndef IMB_PNG_H
 #define IMB_PNG_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct ImBuf;
 
 int imb_is_a_png(void *buf);

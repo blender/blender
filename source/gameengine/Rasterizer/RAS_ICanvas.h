@@ -32,10 +32,6 @@
 #ifndef __RAS_ICANVAS
 #define __RAS_ICANVAS
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /**
  * 2D rendering device context. The connection from 3d rendercontext to 2d surface.
  */

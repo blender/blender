@@ -32,10 +32,6 @@
 #ifndef BIF_IMASEL_H
 #define BIF_IMASEL_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct SpaceImaSel;
 struct OneSelectableIma;
 struct ScrArea;

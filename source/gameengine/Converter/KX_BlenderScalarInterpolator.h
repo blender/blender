@@ -36,10 +36,6 @@
 
 #include "KX_IScalarInterpolator.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 typedef unsigned short BL_IpoChannel;
 
 class BL_ScalarInterpolator : public KX_IScalarInterpolator {

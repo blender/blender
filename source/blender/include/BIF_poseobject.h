@@ -33,10 +33,6 @@
 #ifndef BIF_POSEOBJECT
 #define BIF_POSEOBJECT
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /**
  * Activates posemode
  */

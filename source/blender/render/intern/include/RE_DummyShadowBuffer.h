@@ -35,10 +35,6 @@
 
 #include "RE_ShadowBuffer.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct LampRen;
 
 class RE_DummyShadowBuffer : public RE_ShadowBuffer {

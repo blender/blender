@@ -32,15 +32,6 @@
  * STUB: give back the dataStreamPubKey
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
-	int
-getPubKey(byte *dataStreamPubKey,
-		  int dataStreamPubKeyLen,
-		  byte **publisherPubKey,
-		  int *publisherPubKeyLen);
-
+int getPubKey(byte *dataStreamPubKey, int dataStreamPubKeyLen,
+		  byte **publisherPubKey, int *publisherPubKeyLen);
 

@@ -34,10 +34,6 @@
 
 #include "Expression.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class CIdentifierExpr : public CExpression
 {
 	CValue*		m_idContext;

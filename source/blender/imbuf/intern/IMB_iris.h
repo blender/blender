@@ -35,10 +35,6 @@
 #ifndef IMB_IRIS_H
 #define IMB_IRIS_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct ImBuf;
 
 struct ImBuf *imb_loadiris(unsigned char *mem, int flags);

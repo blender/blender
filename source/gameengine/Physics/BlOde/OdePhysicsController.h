@@ -25,11 +25,6 @@
 
 #include "PHY_IPhysicsController.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
 /**
 	ODE Physics Controller, a special kind of a PhysicsController.
 	A Physics Controller is a special kind of Scene Graph Transformation Controller.

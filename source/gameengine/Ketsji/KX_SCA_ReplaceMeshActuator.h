@@ -46,10 +46,6 @@
 
 #include "RAS_MeshObject.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class KX_SCA_ReplaceMeshActuator : public SCA_IActuator
 {
 	Py_Header;

@@ -32,10 +32,6 @@
 #ifndef PHY__MOTIONSTATE_H
 #define PHY__MOTIONSTATE_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /**
 	PHY_IMotionState is the Interface to explicitly synchronize the world transformation.
 	Default implementations for mayor graphics libraries like OpenGL and DirectX can be provided.

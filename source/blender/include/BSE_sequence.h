@@ -34,10 +34,6 @@
 #ifndef BSE_SEQUENCE_H
 #define BSE_SEQUENCE_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct PluginSeq;
 struct StripElem;
 struct Strip;

@@ -32,10 +32,6 @@
 #ifndef __EXPRESSION_INCLUDE
 #define __EXPRESSION_INCLUDE
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #define EXP_DECLARE_HANDLE(name) typedef struct name##__ { int unused; } *name
 
 EXP_DECLARE_HANDLE(EXP_ValueHandle);

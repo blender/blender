@@ -65,10 +65,6 @@
 #ifndef BLI_BLENLIB_H
 #define BLI_BLENLIB_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "DNA_listBase.h" /* braindamage for the masses... needed
                              because fillvlakbase and fillvertbase are
                              used outside */

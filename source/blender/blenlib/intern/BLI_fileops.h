@@ -39,10 +39,6 @@
 #ifndef BLI_FILEOPS_H
 #define BLI_FILEOPS_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 char *first_slash(char *string);
 
 /* only for the sane unix world: direct calls to system functions :( */

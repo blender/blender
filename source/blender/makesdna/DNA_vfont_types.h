@@ -34,10 +34,6 @@
 #ifndef DNA_VFONT_TYPES_H
 #define DNA_VFONT_TYPES_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "DNA_ID.h"
 
 struct PackedFile;

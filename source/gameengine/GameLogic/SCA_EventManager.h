@@ -35,10 +35,6 @@
 #include <vector>
 #include <algorithm>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class SCA_EventManager
 {
 protected:

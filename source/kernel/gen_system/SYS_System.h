@@ -35,10 +35,6 @@
 #ifndef __SYSTEM_INCLUDE
 #define __SYSTEM_INCLUDE
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #define SYS_DECLARE_HANDLE(name) typedef struct name##__ { int unused; } *name
 
 SYS_DECLARE_HANDLE(SYS_SystemHandle);

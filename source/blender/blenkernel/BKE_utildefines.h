@@ -36,10 +36,6 @@
 #ifndef BKE_UTILDEFINES_H
 #define BKE_UTILDEFINES_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifndef FALSE
 #define FALSE 0
 #endif

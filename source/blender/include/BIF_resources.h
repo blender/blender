@@ -33,10 +33,6 @@
 #ifndef BIF_RESOURCES_H
 #define BIF_RESOURCES_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 typedef enum {
 #define BIFICONID_FIRST		(ICON_VIEW3D)
 	ICON_VIEW3D,

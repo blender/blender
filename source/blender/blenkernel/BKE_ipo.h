@@ -34,10 +34,6 @@
 #ifndef BKE_IPO_H
 #define BKE_IPO_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 typedef struct CfraElem {
 	struct CfraElem *next, *prev;
 	float cfra;

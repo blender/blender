@@ -35,10 +35,6 @@
 #ifndef DATATOC_H
 #define DATATOC_H 
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 extern int datatoc_B_blend_size;
 extern char datatoc_B_blend[];
 

@@ -36,10 +36,6 @@
 #ifndef BLI_LINKLIST_H
 #define BLI_LINKLIST_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct MemArena;
 
 typedef void (*LinkNodeFreeFP)(void *link);

@@ -34,10 +34,6 @@
 #ifndef BKE_MBALL_H
 #define BKE_MBALL_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct MetaBall;
 struct Object;
 struct MetaElem;

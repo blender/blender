@@ -44,14 +44,9 @@
 #include "BKE_osa_types.h"
 #include "DNA_material_types.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef __cplusplus
 extern "C" { 
 #endif
-
 
 /* For #undefs of stupid windows defines */
 #ifdef WIN32

@@ -35,10 +35,6 @@
 #ifndef VANILLARENDERPIPE_TYPES_H
 #define VANILLARENDERPIPE_TYPES_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* Render defines */
 #define  RE_MAX_OSA_COUNT 16 /* The max. number of possible oversamples     */
 #define  RE_MAX_FACES_PER_PIXEL 500 /* max. nr of faces rendered behind one */

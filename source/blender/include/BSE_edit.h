@@ -33,10 +33,6 @@
 #ifndef BSE_EDIT_H
 #define BSE_EDIT_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct Object;
 struct rcti;
 

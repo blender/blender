@@ -34,10 +34,6 @@
 
 #include "MT_CmMatrix4x4.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct RAS_LightObject
 {
 	enum LightType{

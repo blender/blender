@@ -33,10 +33,6 @@
 #ifndef BSE_HEADERBUTTONS_H
 #define BSE_HEADERBUTTONS_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct uiBlock;
 struct ID;
 

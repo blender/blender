@@ -34,10 +34,6 @@
 #ifndef BKE_KEY_H
 #define BKE_KEY_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct Key;
 struct KeyBlock;
 struct ID;

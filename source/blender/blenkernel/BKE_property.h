@@ -34,10 +34,6 @@
 #ifndef BKE_PROPERTY_H
 #define BKE_PROPERTY_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct bProperty;
 struct ListBase;
 struct Object;

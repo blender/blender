@@ -35,10 +35,6 @@
 #ifndef IMB_CMAP_H
 #define IMB_CMAP_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct ImBuf;
 
 void imb_makecolarray(struct ImBuf *ibuf, unsigned char *mem, short nocols);

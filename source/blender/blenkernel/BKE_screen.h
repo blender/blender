@@ -34,12 +34,7 @@
 #ifndef BKE_SCREEN_H
 #define BKE_SCREEN_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 void free_screen(struct bScreen *sc); 
-
 
 #endif
 

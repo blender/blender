@@ -32,12 +32,7 @@
 #ifndef __KX_HASHEDPTR
 #define __KX_HASHEDPTR
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 unsigned int			KX_Hash(unsigned int inDWord);
-
 
 class CHashedPtr
 {

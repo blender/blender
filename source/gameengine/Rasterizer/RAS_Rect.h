@@ -33,10 +33,6 @@
 #ifndef _RAS_RECT
 #define _RAS_RECT
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /** 
  * @section interface class.
  * RAS_Rect just encodes a simple rectangle.

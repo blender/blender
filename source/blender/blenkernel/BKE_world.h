@@ -34,10 +34,6 @@
 #ifndef BKE_WORLD_H
 #define BKE_WORLD_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct World;
 
 void free_world(struct World *sc); 

@@ -14,10 +14,6 @@
 #include "SumoPhysicsController.h"
 #include "KX_IPhysicsController.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class KX_SumoPhysicsController : public KX_IPhysicsController,	
 									public SumoPhysicsController
 

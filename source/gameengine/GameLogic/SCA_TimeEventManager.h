@@ -36,10 +36,6 @@
 #include "Value.h"
 #include <vector>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 using namespace std;
 
 class SCA_TimeEventManager : public SCA_EventManager

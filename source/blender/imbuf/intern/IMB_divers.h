@@ -35,10 +35,6 @@
 #ifndef IMB_DIVERS_H
 #define IMB_DIVERS_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct ImBuf;
 
 void imb_checkncols(struct ImBuf *ibuf);

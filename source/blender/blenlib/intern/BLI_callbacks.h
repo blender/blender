@@ -37,10 +37,6 @@
 #ifndef BLI_CALLBACKS_H
 #define BLI_CALLBACKS_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 // This is blenlib internal only
 void callLocalErrorCallBack(char* msg);
 int callLocalInterruptCallBack(void);

@@ -20,11 +20,6 @@
 #include "Expression.h"
 #include "Value.h"	// Added by ClassView
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
 class COperator2Expr : public CExpression  
 {
 	//PLUGIN_DECLARE_SERIAL_EXPRESSION (COperator2Expr,CExpression)

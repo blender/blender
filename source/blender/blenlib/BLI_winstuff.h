@@ -33,10 +33,6 @@
  */
 #pragma warning(once: 4761 4305 4244 4018)
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 

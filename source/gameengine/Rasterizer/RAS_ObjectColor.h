@@ -32,10 +32,6 @@
 #ifndef __RAS_OBJECTCOLOR_H
 #define __RAS_OBJECTCOLOR_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct	RAS_ObjectColor {
 	float	m_red;
 	float	m_green;

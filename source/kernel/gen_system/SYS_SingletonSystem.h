@@ -38,10 +38,6 @@
 #include "STR_HashedString.h"
 #include "GEN_DataCache.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class SYS_SingletonSystem
 {
 public:

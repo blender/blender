@@ -35,11 +35,6 @@
 #ifndef GAMMACORRECTIONTABLES_H
 #define GAMMACORRECTIONTABLES_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
 /* Default gamma. For most CRTs, gamma ranges from 2.2 to 2.5 (Foley), so    */
 /* 2.35 seems appropriate enough. Experience teaches a different number      */
 /* though. Old blender: 2.0. It  might be nice to make this a slider         */

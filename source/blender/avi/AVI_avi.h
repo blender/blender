@@ -56,10 +56,6 @@
 
 #include <stdio.h> /* for FILE */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 typedef struct _AviChunk {
   int fcc;
   int size;

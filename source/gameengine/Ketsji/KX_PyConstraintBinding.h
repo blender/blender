@@ -34,10 +34,6 @@
 
 #include <Python.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 PyObject*				initPythonConstraintBinding();
 void	PHY_RemovePythonConstraintBinding();
 void	PHY_SetActiveEnvironment(class	PHY_IPhysicsEnvironment* env);

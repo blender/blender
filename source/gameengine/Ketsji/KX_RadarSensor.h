@@ -35,10 +35,6 @@
 #include "KX_NearSensor.h"
 #include "MT_Point3.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /**
 * Radar 'cone' sensor. Very similar to a near-sensor, but instead of a sphere, a cone is used.
 */

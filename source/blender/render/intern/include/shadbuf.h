@@ -35,10 +35,6 @@
 #ifndef SHADBUF_EXT_H
 #define SHADBUF_EXT_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "render_types.h"
 
 #ifdef __cplusplus

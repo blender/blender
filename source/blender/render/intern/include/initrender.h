@@ -40,10 +40,6 @@
 #include "DNA_effect_types.h"        /* for PartEff type */
 #include "render_types.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* Functions */
 
 void init_def_material(void);

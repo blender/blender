@@ -34,10 +34,6 @@
 #include "GHOST_IEventConsumer.h"
 #include "STR_String.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class KX_KetsjiEngine;
 class KX_ISceneConverter;
 class NG_LoopBackNetworkDeviceInterface;

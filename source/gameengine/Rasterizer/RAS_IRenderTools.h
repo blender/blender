@@ -38,10 +38,6 @@
 #include <vector>
 #include <algorithm>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class		RAS_IPolyMaterial;
 struct		RAS_LightObject;
 

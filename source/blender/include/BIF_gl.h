@@ -37,10 +37,6 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 	/*
 	 * these should be phased out. cpack should be replaced in
 	 * code with calls to glColor3ub, lrectwrite probably should

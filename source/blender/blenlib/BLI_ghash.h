@@ -35,10 +35,6 @@
 #ifndef BLI_GHASH_H
 #define BLI_GHASH_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct GHash;
 typedef struct GHash GHash;
 

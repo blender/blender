@@ -37,11 +37,6 @@
 
 #include "SCA_IController.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
 class SCA_ExpressionController : public SCA_IController
 {
 //	Py_Header;

@@ -33,16 +33,10 @@
 #define KX_CONVERTPHYSICSOBJECTS
 
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
 //#define USE_SUMO_SOLID
 //solid is not available yet
 
 #define USE_ODE
-
 
 class RAS_MeshObject;
 class KX_Scene;

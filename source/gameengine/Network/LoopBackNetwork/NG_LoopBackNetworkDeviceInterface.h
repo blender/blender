@@ -36,10 +36,6 @@
 #include <deque>
 #include "NG_NetworkDeviceInterface.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class NG_LoopBackNetworkDeviceInterface : public NG_NetworkDeviceInterface
 {
 	enum {

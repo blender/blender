@@ -34,10 +34,6 @@
 #ifndef DNA_CONSTRAINT_TYPES_H
 #define DNA_CONSTRAINT_TYPES_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "DNA_ID.h"
 #include "DNA_ipo_types.h"
 #include "DNA_object_types.h"

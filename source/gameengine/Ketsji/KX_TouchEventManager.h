@@ -39,11 +39,6 @@
 #include <vector>
 using namespace std;
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
 class KX_TouchEventManager : public SCA_EventManager
 {
 	class SCA_LogicManager* m_logicmgr;

@@ -25,10 +25,6 @@
 #include "KX_IPhysicsController.h"
 #include "OdePhysicsController.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /**
 	Physics Controller, a special kind of Scene Graph Transformation Controller.
 	It get's callbacks from Physics in case a transformation change took place.

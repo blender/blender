@@ -33,10 +33,6 @@
 #ifndef BLO_READFILE_H
 #define BLO_READFILE_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif

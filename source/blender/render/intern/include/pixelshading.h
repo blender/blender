@@ -37,15 +37,8 @@
 #ifndef PIXELSHADING_H
 #define PIXELSHADING_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-/* ------------------------------------------------------------------------- */
-
 #include "render.h"
 #include "vanillaRenderPipe_types.h"
-/* ------------------------------------------------------------------------- */
 
 /**
  * Render the pixel at (x,y) for object ap. Apply the jitter mask. 

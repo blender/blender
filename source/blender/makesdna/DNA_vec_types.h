@@ -36,12 +36,7 @@
 #ifndef DNA_VEC_TYPES_H
 #define DNA_VEC_TYPES_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* types */
-
 typedef struct vec2s {
 	short x, y;
 } vec2s;

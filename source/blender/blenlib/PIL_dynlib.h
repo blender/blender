@@ -32,10 +32,6 @@
 #ifndef __PIL_DYNLIB_H__
 #define __PIL_DYNLIB_H__
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 typedef struct PILdynlib PILdynlib;
 
 	PILdynlib*

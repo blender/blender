@@ -34,10 +34,6 @@
 #ifndef LOD_DEPENDKLUDGE_H
 #define LOD_DEPENDKLUDGE_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #define NAN_DECIMATION
 
 #endif //LOD_DEPENDKLUDGE_H

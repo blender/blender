@@ -3,10 +3,6 @@
 
 #include "MT_Transform.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class SM_MotionState {
 public:
 	SM_MotionState() :

@@ -35,10 +35,6 @@
 #ifndef IMB_ALLOCIMBUF_H
 #define IMB_ALLOCIMBUF_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct ImBuf;
 
 short imb_addrectImBuf(struct ImBuf * ibuf);

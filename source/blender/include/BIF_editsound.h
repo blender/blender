@@ -33,10 +33,6 @@
 #ifndef BIF_EDITSOUND_H
 #define BIF_EDITSOUND_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct bSound;
 struct bSample;
 struct ListBase;

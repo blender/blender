@@ -38,10 +38,6 @@
 #include "zbuf_types.h"
 #include "render_types.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /*  float   CookTorr(float *n, float *l, float *v, int hard); */
 void    do_lamphalo_tex(LampRen *lar, float *p1, float *p2, float *intens);
 void    spothalo(struct LampRen *lar, float *view, float *intens);

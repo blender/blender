@@ -36,12 +36,6 @@
 #ifndef PIXELBLENDING_TYPES_H
 #define PIXELBLENDING_TYPES_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-/*  #include "blender.h" */
-
 /* Threshold for a 'full' pixel: pixels with alpha above this level are      */
 /* considered opaque This is the decimal value for 0xFFF0 / 0xFFFF           */
 #define RE_FULL_COLOUR_FLOAT 0.9998

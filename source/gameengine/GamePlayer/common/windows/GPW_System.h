@@ -38,14 +38,9 @@
 
 #include "GPC_System.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #if defined(__CYGWIN32__)
 #	define __int64 long long
 #endif
-
 
 class GPW_System : public GPC_System
 {

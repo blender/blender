@@ -32,10 +32,6 @@
 #ifndef __RAS_OPENGLRASTERIZER
 #define __RAS_OPENGLRASTERIZER
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #pragma warning (disable:4786)
 #endif
@@ -43,7 +39,6 @@
 #include "MT_CmMatrix4x4.h"
 #include <vector>
 using namespace std;
-
 
 #include "RAS_IRasterizer.h"
 #include "RAS_MaterialBucket.h"

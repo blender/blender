@@ -34,10 +34,6 @@
 #ifndef DNA_VIEW2D_TYPES_H
 #define DNA_VIEW2D_TYPES_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "DNA_vec_types.h"
 
 typedef struct View2D {

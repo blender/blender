@@ -34,12 +34,7 @@
 
 #include "SG_Controller.h"
 #include "SG_Spatial.h"
-
 #include "KX_IInterpolator.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 class KX_ObColorIpoSGController : public SG_Controller
 {

@@ -34,10 +34,6 @@
 #ifndef BKE_IKA_H
 #define BKE_IKA_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct Ika;
 struct Limb;
 struct Object;

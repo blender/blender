@@ -36,10 +36,6 @@
 #include "SCA_IActuator.h"
 #include "MT_Point3.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class BL_ActionActuator : public SCA_IActuator  
 {
 public:

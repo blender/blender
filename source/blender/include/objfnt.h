@@ -31,10 +31,6 @@
 #ifndef OBJFNTDEF
 #define OBJFNTDEF
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 typedef struct chardesc {
     short movex, movey;		/* advance */
     short llx, lly;		/* bounding box */

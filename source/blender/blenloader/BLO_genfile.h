@@ -34,10 +34,6 @@
 #ifndef BLO_GENFILE_H
 #define BLO_GENFILE_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 int BLO_findstruct_offset(char *structname, char *member);// used by py_main.c
 
 #endif

@@ -34,10 +34,6 @@
 
 #include "SCA_IObject.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class KX_VertexProxy	: public SCA_IObject
 {
 	Py_Header;

@@ -36,17 +36,10 @@
 #ifndef BLI_UTIL_H
 #define BLI_UTIL_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #define mallocstructN(x,y,name) (x*)MEM_mallocN((y)* sizeof(x),name)
 #define callocstructN(x,y,name) (x*)MEM_callocN((y)* sizeof(x),name)
 
-
 struct ListBase;
-
-/*  void addlisttolist(struct ListBase *list1, struct ListBase *list2); */
 
 #endif
 

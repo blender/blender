@@ -35,10 +35,6 @@
 #ifndef __KX_ANDCONTROLLER
 #define __KX_ANDCONTROLLER
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "SCA_IController.h"
 
 class SCA_ANDController : public SCA_IController

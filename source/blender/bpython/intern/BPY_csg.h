@@ -30,12 +30,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "BPY_macros.h"
-
 #include "opy_datablock.h"
 #include "b_interface.h"
 

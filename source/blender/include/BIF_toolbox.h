@@ -30,10 +30,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 	/* TBOXX: breedte in pixels */
 #define TBOXXL  80
 #define TBOXXR  170

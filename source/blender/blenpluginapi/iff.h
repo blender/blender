@@ -34,10 +34,6 @@
 #include <sys/types.h>
 #include "util.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #define IB_rect			(1 << 0)
 #define IB_planes		(1 << 1)
 #define IB_cmap			(1 << 2)

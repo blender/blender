@@ -33,10 +33,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 	/* XXX, should die, no good reason to write 
 	 * regular (non-file related) endian dependant
 	 * code.

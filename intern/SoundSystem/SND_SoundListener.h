@@ -39,11 +39,6 @@
 
 #include "SND_Object.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
 class SND_SoundListener : public SND_Object
 {
 public:

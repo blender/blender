@@ -40,10 +40,6 @@
 
 #include "KX_ClientObjectInfo.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class KX_TouchSensor : public SCA_ISensor
 {
 protected:

@@ -35,10 +35,6 @@
 #ifndef _H_IMG_PixmapRGBA32
 #define _H_IMG_PixmapRGBA32
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "IMG_Pixmap.h"
 #include "IMG_MemPtr.h"
 

@@ -32,10 +32,6 @@
 #ifndef __RAS_MESHOBJECT
 #define __RAS_MESHOBJECT
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 // disable the STL warnings ("debug information length > 255")
 #pragma warning (disable:4786)

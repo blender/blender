@@ -35,10 +35,6 @@
 #include "STR_HashedString.h"
 #include "GEN_Map.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 template <class T> 
 class GEN_DataCache
 {

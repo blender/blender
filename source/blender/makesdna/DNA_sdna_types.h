@@ -34,12 +34,6 @@
 #ifndef DNA_SDNA_H
 #define DNA_SDNA_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#
-#
 struct SDNA {
 	char *data;
 	int datalen, nr_names;

@@ -33,10 +33,6 @@
 #ifndef __GEN_HASHEDPTR
 #define __GEN_HASHEDPTR
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 unsigned int GEN_Hash(unsigned int inDWord);
 
 class GEN_HashedPtr

@@ -36,10 +36,6 @@
 #define RENDERCORE_H 
 #include "render_types.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct HaloRen;
 
 float   mistfactor(float *co);	/* dist en hoogte, return alpha */
