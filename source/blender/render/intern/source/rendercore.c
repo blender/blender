@@ -250,10 +250,17 @@ void scanlinesky(char *rect, int y)
 		
 		cp= (char *)&col;
 		cp[3]= 0;
-		cp[0]= 255.0*R.wrld.horr;
-		cp[1]= 255.0*R.wrld.horg;
-		cp[2]= 255.0*R.wrld.horb;
-		
+		/* raytrace cam change the R.wrld.horr, so we make sure we have the good one */
+		if(G.scene->world) {
+			cp[0]= 255.0*G.scene->world->horr;
+			cp[1]= 255.0*G.scene->world->horg;
+			cp[2]= 255.0*G.scene->world->horb;
+		}
+		else {
+			cp[0]= 255.0*R.wrld.horr;
+			cp[1]= 255.0*R.wrld.horg;
+			cp[2]= 255.0*R.wrld.horb;
+		}
 		for(x=0; x<R.rectx; x++, rect+= 4) {
 			if(rect[3]==0) {
 				*( ( unsigned int *)rect)= col;
