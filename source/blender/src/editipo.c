@@ -2663,75 +2663,300 @@ void mouse_select_ipo()
 	}
 }
 
-void sethandles_ipo(int code)
+int icu_keys_bezier_loop(IpoCurve *icu,
+                         int (*bezier_function)(BezTriple *),
+                         void (ipocurve_function)(struct IpoCurve *icu)) 
 {
+    /*  This loops through the beziers in the Ipocurve, and executes 
+     *  the generic user provided 'bezier_function' on each one. 
+     *  Optionally executes the generic function ipocurve_function on the 
+     *  IPO curve after looping (eg. calchandles_ipocurve)
+     */
+
+    int b;
+    BezTriple *bezt;
+
+    b    = icu->totvert;
+    bezt = icu->bezt;
+
+    /* if bezier_function has been specified
+     * then loop through each bezier executing
+     * it.
+     */
+
+    if (bezier_function != NULL) {
+        while(b--) {
+            /* exit with return code 1 if the bezier function 
+             * returns 1 (good for when you are only interested
+             * in finding the first bezier that
+             * satisfies a condition).
+             */
+            if (bezier_function(bezt)) return 1;
+            bezt++;
+        }
+    }
+
+    /* if ipocurve_function has been specified 
+     * then execute it
+     */
+    if (ipocurve_function != NULL)
+        ipocurve_function(icu);
+
+    return 0;
+
+}
+
+int ipo_keys_bezier_loop(Ipo *ipo,
+                         int (*bezier_function)(BezTriple *),
+                         void (ipocurve_function)(struct IpoCurve *icu))
+{
+    /*  This loops through the beziers that are attached to
+     *  the selected keys on the Ipocurves of the Ipo, and executes 
+     *  the generic user provided 'bezier_function' on each one. 
+     *  Optionally executes the generic function ipocurve_function on a 
+     *  IPO curve after looping (eg. calchandles_ipocurve)
+     */
+
+    IpoCurve *icu;
+
+    /* Loop through each curve in the Ipo
+     */
+    for (icu=ipo->curve.first; icu; icu=icu->next){
+        if (icu_keys_bezier_loop(icu,bezier_function, ipocurve_function))
+            return 1;
+    }
+
+    return 0;
+}
+
+int selected_bezier_loop(int (*looptest)(EditIpo *),
+                         int (*bezier_function)(BezTriple *),
+                         void (ipocurve_function)(struct IpoCurve *icu))
+{
+	/*  This loops through the beziers that are attached to
+	 *  selected keys in editmode in the IPO window, and executes 
+	 *  the generic user-provided 'bezier_function' on each one 
+	 *  that satisfies the 'looptest' function. Optionally executes
+	 *  the generic function ipocurve_function on a IPO curve
+	 *  after looping (eg. calchandles_ipocurve)
+	 */
+
+	EditIpo *ei;
+	BezTriple *bezt;
+	int a, b;
+
+	/* Get the first Edit Ipo from the selected Ipos
+	 */
+	ei= G.sipo->editipo;
+
+	/* Loop throught all of the selected Ipo's
+	 */
+	for(a=0; a<G.sipo->totipo; a++, ei++) {
+		/* Do a user provided test on the Edit Ipo
+		 * to determine whether we want to process it
+		 */
+		if (looptest(ei)) {
+			/* Loop through the selected
+			 * beziers on the Edit Ipo
+			 */
+			bezt = ei->icu->bezt;
+			b    = ei->icu->totvert;
+			
+			/* if bezier_function has been specified
+			 * then loop through each bezier executing
+			 * it.
+			 */
+			if (bezier_function != NULL) {
+				while(b--) {
+					/* exit with return code 1 if the bezier function 
+					 * returns 1 (good for when you are only interested
+					 * in finding the first bezier that
+					 * satisfies a condition).
+					 */
+					if (bezier_function(bezt)) return 1;
+					bezt++;
+				}
+			}
+
+			/* if ipocurve_function has been specified 
+			 * then execute it
+			 */
+			if (ipocurve_function != NULL)
+				ipocurve_function(ei->icu);
+		}
+		/* nufte flourdje zim ploopydu <-- random dutch looking comment ;) */
+	}
+
+	return 0;
+}
+
+int set_bezier_auto(BezTriple *bezt) 
+{
+	/* Sets the selected bezier handles to type 'auto' 
+	 */
+
+	/* is a handle selected? If so
+	 * set it to type auto
+	 */
+	if(bezt->f1 || bezt->f3) {
+		if(bezt->f1) bezt->h1= 1; /* the secret code for auto */
+		if(bezt->f3) bezt->h2= 1;
+
+		/* if the handles are not of the same type, set them
+		 * to type free
+		 */
+		if(bezt->h1!=bezt->h2) {
+			if ELEM(bezt->h1, HD_ALIGN, HD_AUTO) bezt->h1= HD_FREE;
+			if ELEM(bezt->h2, HD_ALIGN, HD_AUTO) bezt->h2= HD_FREE;
+		}
+	}
+	return 0;
+}
+
+int set_bezier_vector(BezTriple *bezt) 
+{
+	/* Sets the selected bezier handles to type 'vector' 
+	 */
+
+	/* is a handle selected? If so
+	 * set it to type vector
+	 */
+	if(bezt->f1 || bezt->f3) {
+		if(bezt->f1) bezt->h1= 2; /* the code for vector */
+		if(bezt->f3) bezt->h2= 2;
+    
+		/* if the handles are not of the same type, set them
+		 * to type free
+		 */
+		if(bezt->h1!=bezt->h2) {
+			if ELEM(bezt->h1, HD_ALIGN, HD_AUTO) bezt->h1= HD_FREE;
+			if ELEM(bezt->h2, HD_ALIGN, HD_AUTO) bezt->h2= HD_FREE;
+		}
+	}
+	return 0;
+}
+
+int bezier_isfree(BezTriple *bezt) 
+{
+	/* queries whether the handle should be set
+	 * to type 'free' (I think)
+	 */
+	if(bezt->f1 && bezt->h1) return 1;
+	if(bezt->f3 && bezt->h2) return 1;
+	return 0;
+}
+
+int set_bezier_free(BezTriple *bezt) 
+{
+	/* Sets selected bezier handles to type 'free' 
+	 */
+	if(bezt->f1) bezt->h1= HD_FREE;
+	if(bezt->f3) bezt->h2= HD_FREE;
+	return 0;
+}
+
+int set_bezier_align(BezTriple *bezt) 
+{
+	/* Sets selected bezier handles to type 'align' 
+	 */
+	if(bezt->f1) bezt->h1= HD_ALIGN;
+	if(bezt->f3) bezt->h2= HD_ALIGN;
+	return 0;
+}
+
+int vis_edit_icu_bez(EditIpo *ei) {
+	/* A 4 part test for an EditIpo :
+	 *   is it a) visible
+	 *         b) in edit mode
+	 *         c) does it contain an Ipo Curve
+	 *         d) does that ipo curve have a bezier
+	 *
+	 * (The reason why I don't just use the macro
+	 * is I need a pointer to a function.)
+	 */
+	return ISPOIN4(ei, flag & IPO_VISIBLE, flag & IPO_EDIT, icu, icu->bezt);
+}
+
+void sethandles_ipo_keys(Ipo *ipo, int code)
+{
+	/* this function lets you set bezier handles all to
+	 * one type for some Ipo's (e.g. with hotkeys through
+	 * the action window).
+	 */ 
+
 	/* code==1: set autohandle */
 	/* code==2: set vectorhandle */
 	/* als code==3 (HD_ALIGN) toggelt het, vectorhandles worden HD_FREE */
-	EditIpo *ei;
-	BezTriple *bezt;
-	int a, b, ok=0;
+	
+	switch(code) {
+	case 1:
+		/*** Set to auto ***/
+		ipo_keys_bezier_loop(ipo, set_bezier_auto,
+							 calchandles_ipocurve);
+		break;
+	case 2:
+		/*** Set to vector ***/
+		ipo_keys_bezier_loop(ipo, set_bezier_vector,
+                         calchandles_ipocurve);
+		break;
+	default:
+		if ( ipo_keys_bezier_loop(ipo, bezier_isfree, NULL) ) {
+			/*** Set to free ***/
+			ipo_keys_bezier_loop(ipo, set_bezier_free,
+                           calchandles_ipocurve);
+		}
+		else {
+			/*** Set to align ***/
+			ipo_keys_bezier_loop(ipo, set_bezier_align,
+                           calchandles_ipocurve);
+		}
+		break;
+	}
+
+
+}
+
+void sethandles_ipo(int code)
+{
+	/* this function lets you set bezier handles all to
+	 * one type for some selected keys in edit mode in the
+	 * IPO window (e.g. with hotkeys)
+	 */ 
+
+	/* code==1: set autohandle */
+	/* code==2: set vectorhandle */
+	/* als code==3 (HD_ALIGN) toggelt het, vectorhandles worden HD_FREE */
 
 	if(G.sipo->ipo && G.sipo->ipo->id.lib) return;
 
-	if(code==1 || code==2) {
-		ei= G.sipo->editipo;
-		for(a=0; a<G.sipo->totipo; a++, ei++) {
-			if ISPOIN4(ei, flag & IPO_VISIBLE, flag & IPO_EDIT, icu, icu->bezt) {
-				bezt= ei->icu->bezt;
-				b= ei->icu->totvert;
-				while(b--) {
-					if(bezt->f1 || bezt->f3) {
-						if(bezt->f1) bezt->h1= code;
-						if(bezt->f3) bezt->h2= code;
-						
-						if(bezt->h1!=bezt->h2) {
-							if ELEM(bezt->h1, HD_ALIGN, HD_AUTO) bezt->h1= HD_FREE;
-							if ELEM(bezt->h2, HD_ALIGN, HD_AUTO) bezt->h2= HD_FREE;
-						}
-					}
-					bezt++;
-				}
-				calchandles_ipocurve(ei->icu);
-			}
+	switch(code) {
+	case 1:
+		/*** Set to auto ***/
+		selected_bezier_loop(vis_edit_icu_bez, set_bezier_auto,
+                         calchandles_ipocurve);
+		break;
+	case 2:
+		/*** Set to vector ***/
+		selected_bezier_loop(vis_edit_icu_bez, set_bezier_vector,
+                         calchandles_ipocurve);
+		break;
+	default:
+		if (selected_bezier_loop(vis_edit_icu_bez, bezier_isfree, NULL) ) {
+			/*** Set to free ***/
+			selected_bezier_loop(vis_edit_icu_bez, set_bezier_free,
+								 calchandles_ipocurve);
 		}
+		else {
+			/*** Set to align ***/
+			selected_bezier_loop(vis_edit_icu_bez, set_bezier_align,
+								 calchandles_ipocurve);
+		}
+		break;
 	}
-	else {
-		/* is er 1 handle NIET vrij: alles vrijmaken, else ALIGNED maken */
-		
-		ei= G.sipo->editipo;
-		for(a=0; a<G.sipo->totipo; a++, ei++) {
-			if ISPOIN4(ei, flag & IPO_VISIBLE, flag & IPO_EDIT, icu, icu->bezt) {
-				bezt= ei->icu->bezt;
-				b= ei->icu->totvert;
-				while(b--) {
-					if(bezt->f1 && bezt->h1) ok= 1;
-					if(bezt->f3 && bezt->h2) ok= 1;
-					if(ok) break;
-					bezt++;
-				}
-			}
-		}
-		if(ok) ok= HD_FREE;
-		else ok= HD_ALIGN;
-		
-		ei= G.sipo->editipo;
-		for(a=0; a<G.sipo->totipo; a++, ei++) {
-			if ISPOIN4(ei, flag & IPO_VISIBLE, flag & IPO_EDIT, icu, icu->bezt) {
-				bezt= ei->icu->bezt;
-				b= ei->icu->totvert;
-				while(b--) {
-					if(bezt->f1) bezt->h1= ok;
-					if(bezt->f3 ) bezt->h2= ok;
-	
-					bezt++;
-				}
-				calchandles_ipocurve(ei->icu);
-			}
-		}
-	}
+
 	editipo_changed(G.sipo, 1);
 }
+
 
 void set_ipotype()
 {

@@ -1310,6 +1310,35 @@ static void delete_actionchannels (void)
 	allqueue(REDRAWNLA, 0);
 
 }
+
+static void sethandles_actionchannel_keys(int code)
+{
+	bAction *act;
+	bActionChannel *chan;
+
+	/* Get the selected action, exit if none are selected 
+	 */
+	act = G.saction->action;
+	if (!act)
+		return;
+
+	/* Loop through the channels and set the beziers
+	 * of the selected keys based on the integer code
+	 */
+	for (chan = act->chanbase.first; chan; chan=chan->next){
+		sethandles_ipo_keys(chan->ipo, code);
+	}
+
+	/* Clean up and redraw stuff
+	 */
+	remake_action_ipos (act);
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWNLA, 0);
+}
+
+
 void winqreadactionspace(unsigned short event, short val, char ascii)
 {
 	SpaceAction *saction;
@@ -1375,6 +1404,16 @@ void winqreadactionspace(unsigned short event, short val, char ascii)
 				allqueue (REDRAWIPO, 0);
 			}
 			break;
+
+			/*** set the Ipo handles ***/
+		case VKEY:
+			sethandles_actionchannel_keys(HD_VECT);
+			break;
+		case HKEY:
+			if(G.qual & LR_SHIFTKEY) sethandles_actionchannel_keys(HD_AUTO);
+			else sethandles_actionchannel_keys(HD_ALIGN);
+			break;
+ 
 		case BKEY:
 			borderselect_action();
 			break;
