@@ -5952,7 +5952,9 @@ void transform(int mode)
 								sprintf(str, "Sizex: %.3f   Sizey: %.3f  Sizez: >%.3f<", sizelo[0], sizelo[1], sizelo[2]);
 							}
 						}
-						else
+						else if (axismode) 
+							sprintf(str, "Local Sizex: %.3f   Sizey: %.3f  Sizez: %.3f", sizelo[0], sizelo[1], sizelo[2]);
+						else 
 							sprintf(str, "Sizex: %.3f   Sizey: %.3f  Sizez: %.3f", sizelo[0], sizelo[1], sizelo[2]);
 					}
 					else if (mode=='S') {

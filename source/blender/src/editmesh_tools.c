@@ -1946,6 +1946,8 @@ if(efa1->v1== *v2) {
 		*/
 	}
 	else {
+		*v3= *v4= NULL;
+		
 		printf("error in givequadverts()\n");
 		return;
 	}
