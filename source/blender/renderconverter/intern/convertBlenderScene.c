@@ -1329,8 +1329,9 @@ static void init_render_mesh(Object *ob)
 		dl= me->disp.first;
 
 		/* Force a displist rebuild if this is a subsurf and we have a different subdiv level */
-
-		if((dl==NULL) || ((me->subdiv != me->subdivr))) {
+		/* also when object is in editmode, displist ordering for editmode is different, giving orco probs */
+		
+		if((dl==NULL) || ((me->subdiv != me->subdivr)) || (ob==G.obedit)) {
 			/* prevent subsurf called again for duplicate use of mesh, tface pointers change */
 			if(dl==NULL || (me->subdivdone-1)!=me->subdivr) {
 				DispList *dlVerts;
@@ -2685,7 +2686,7 @@ void RE_freeRotateBlenderScene(void)
 		a++;
 	}
 
-	/* free orco. check all obejcts because of duplis and sets */
+	/* free orco. check all objects because of duplis and sets */
 	ob= G.main->object.first;
 	while(ob) {
 
@@ -2702,7 +2703,7 @@ void RE_freeRotateBlenderScene(void)
 				MEM_freeN(me->orco);
 				me->orco= 0;
 			}
-			if (mesh_uses_displist(me) && ((me->subdiv!=me->subdivr) || (ob->effect.first != NULL) ) ) { 
+			if (mesh_uses_displist(me) && ((me->subdiv!=me->subdivr) || (ob->effect.first != NULL) || ob==G.obedit) ) { 
 			    /* Need to recalc for effects since they are time dependant */
 				makeDispList(ob);  /* XXX this should be replaced with proper caching */
 				me->subdivdone= 0;	/* needed to prevent multiple used meshes being recalculated */

@@ -750,6 +750,20 @@ void add_mball_oopslinks(MetaBall *mb, Oops *oops, short flag)
 	}
 }
 
+void add_lamp_oopslinks(Lamp *la, Oops *oops, short flag)
+{
+	int a;
+	
+	if(flag & OOPS_TE) {
+		for(a=0; a<6; a++) {
+			if(la->mtex[a]) {
+				add_oopslink("tex", oops, ID_TE, &(la->mtex[a]->tex), 0.0, (float)(0.5*OOPSY));
+			}
+		}
+	}
+}
+
+
 Oops *add_test_oops(void *id)	/* incl links */
 {
 	Oops *oops;
@@ -793,8 +807,8 @@ Oops *add_test_oops(void *id)	/* incl links */
 		add_mball_oopslinks((MetaBall *)id, oops, G.soops->visiflag);
 		break;
 	case ID_LA:
-		/* still do textures */
 		la= (Lamp *)id;
+		add_lamp_oopslinks(la, oops, G.soops->visiflag);
 		if(la->ipo) if(G.soops->visiflag & OOPS_IP) add_oopslink("ipo", oops, ID_IP, &la->ipo, OOPSX, (float)(0.3*OOPSY));
 		break;	 
 	case ID_IP:
@@ -969,6 +983,7 @@ void build_oops()
 						if(ob->mat[a]) {
 							oops= add_test_oops(ob->mat[a]);
 							if(G.soops->visiflag & OOPS_TE) add_texture_oops(ob->mat[a]);
+							if(G.soops->visiflag & OOPS_IP) add_test_oops(ob->mat[a]->ipo);
 						}
 					}
 				}
@@ -987,6 +1002,7 @@ void build_oops()
 								if(me->mat[a]) {
 									oops= add_test_oops(me->mat[a]);
 									if(G.soops->visiflag & OOPS_TE) add_texture_oops(me->mat[a]);
+									if(G.soops->visiflag & OOPS_IP) add_test_oops(me->mat[a]->ipo);
 								}
 							}
 						}
@@ -1003,6 +1019,7 @@ void build_oops()
 								if(cu->mat[a]) {
 									oops= add_test_oops(cu->mat[a]);
 									if(G.soops->visiflag & OOPS_TE) add_texture_oops(cu->mat[a]);
+									if(G.soops->visiflag & OOPS_IP) add_test_oops(cu->mat[a]->ipo);
 								}
 							}
 						}
@@ -1020,12 +1037,20 @@ void build_oops()
 								if(mb->mat[a]) {
 									oops= add_test_oops(mb->mat[a]);
 									if(G.soops->visiflag & OOPS_TE) add_texture_oops(mb->mat[a]);
+									if(G.soops->visiflag & OOPS_IP) add_test_oops(mb->mat[a]->ipo);
 								}
 							}
 						}
 					}
 					else if(type==ID_LA && G.soops->visiflag & OOPS_LA) {
+						Lamp *la= ob->data;
 						oops= add_test_oops(ob->data);
+						if(G.soops->visiflag & OOPS_IP) add_test_oops(la->ipo);
+						if(G.soops->visiflag & OOPS_TE) {
+							for(a=0; a<6; a++) {
+								if(la->mtex[a]) add_test_oops(la->mtex[a]->tex);
+							}
+						}
 					}
 				}
 			}

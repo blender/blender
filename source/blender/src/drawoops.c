@@ -157,16 +157,21 @@ void draw_oopslink(Oops *oops)
 			give_oopslink_line(oops, ol, vec[0], vec[3]);
 			
 			dist= 0.5*VecLenf(vec[0], vec[3]);
-			
+
 			/* check ol->xof and yof for direction */
-			if(ol->xof <= 0.0) {
+			if(ol->xof == 0.0) {
 				vec[1][0]= vec[0][0]-dist;
+				vec[1][1]= vec[0][1];
+			}
+			else if(ol->xof==OOPSX) {
+				vec[1][0]= vec[0][0]+dist;
 				vec[1][1]= vec[0][1];
 			}
 			else {
 				vec[1][0]= vec[0][0];
 				vec[1][1]= vec[0][1]+dist;
 			}
+			
 			/* v3 is always pointing down */
 			vec[2][0]= vec[3][0];
 			vec[2][1]= vec[3][1] - dist;
