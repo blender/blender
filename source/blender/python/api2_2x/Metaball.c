@@ -64,6 +64,32 @@ PyTypeObject Metaball_Type =
 		0,                                      /* tp_members */
 	};
 
+
+PyTypeObject Metaelem_Type =
+	{
+		PyObject_HEAD_INIT(NULL)
+		0,                                      /* ob_size */
+		"Metaelem",                               /* tp_name */
+		sizeof (BPy_Metaelem),                      /* tp_basicsize */
+		0,                                      /* tp_itemsize */
+		/* methods */
+		(destructor)MetaelemDeAlloc,              /* tp_dealloc */
+		0,                 /* tp_print */
+		(getattrfunc)MetaelemGetAttr,             /* tp_getattr */
+		(setattrfunc)MetaelemSetAttr,             /* tp_setattr */
+		0,                                      /* tp_compare */
+		(reprfunc)MetaelemRepr,                   /* tp_repr */
+		0,                                      /* tp_as_number */
+		0,                                      /* tp_as_sequence */
+		0,                                      /* tp_as_mapping */
+		0,                                      /* tp_as_hash */
+		0,0,0,0,0,0,
+		0,                                      /* tp_doc */ 
+		0,0,0,0,0,0,
+		BPy_Metaelem_methods,                       /* tp_methods */
+		0,                                      /* tp_members */
+	};
+
 /*****************************************************************************/
 /* Function:              M_Metaball_New                                     */
 /* Python equivalent:     Blender.Metaball.New                               */
@@ -102,6 +128,7 @@ static PyObject *M_Metaball_New(PyObject *self, PyObject *args)
   }
   return (PyObject *)pymball;
 }
+
 
 /*****************************************************************************/
 /* Function:              M_Metaball_Get                                     */
@@ -267,6 +294,9 @@ static PyObject *Metaball_setName(BPy_Metaball *self,PyObject*args)
 }
 
 
+
+
+
 static PyObject *Metaball_getBbox(BPy_Metaball *self)
 {
 	int i,j;
@@ -296,6 +326,7 @@ static PyObject *Metaball_getNMetaElems(BPy_Metaball *self)
     }
   return (PyInt_FromLong(i) );
 }
+
 
 
 
@@ -351,12 +382,33 @@ static PyObject *Metaball_setrot(BPy_Metaball *self,PyObject*args)
 
 static PyObject *Metaball_getsize(BPy_Metaball *self)
 {
-  PyObject* l = PyList_New(0);
+  PyObject* l = PyList_New(0); 
+
   PyList_Append( l, PyFloat_FromDouble(self->metaball->size[0]));
   PyList_Append( l, PyFloat_FromDouble(self->metaball->size[1]));
   PyList_Append( l, PyFloat_FromDouble(self->metaball->size[2]));
   return l;
 }
+
+
+
+
+static PyObject *Metaball_getMetaElemList(BPy_Metaball *self)
+{	
+	MetaElem *ptr;
+  PyObject* l = PyList_New(0);
+  ptr = self->metaball->elems.first;
+  if(!ptr)  return l ;
+	while(ptr)
+		{	
+BPy_Metaelem *found_melem=(BPy_Metaelem*)PyObject_NEW(BPy_Metaelem,&Metaelem_Type);
+			found_melem->metaelem = ptr;
+      PyList_Append (l,   (PyObject *)found_melem);
+			ptr = ptr->next;
+		}
+  return l;
+}
+
 
 static PyObject *Metaball_setsize(BPy_Metaball *self,PyObject*args)
 {	
@@ -492,9 +544,9 @@ static PyObject *Metaball_setMetadata(BPy_Metaball *self,PyObject*args)
 	MetaElem *ptr;
 
   if (!PyArg_ParseTuple(args, "sif", &name,&num,&floatval))
-return (EXPP_ReturnPyObjError (PyExc_TypeError, \
-				   "expected string,int,int float  arguments"));
+return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected string, int, float arguments"));
 	intval = (int)floatval;
+	printf("%f %d %s %d\n",floatval,intval,name,num);
   /*jump to the num-th MetaElem*/
   ptr = self->metaball->elems.first;
   if(!ptr) 
@@ -507,9 +559,8 @@ return (EXPP_ReturnPyObjError (PyExc_TypeError, \
     }
   if(!strcmp(name,"type"))
     {ptr->type=intval;return (PyInt_FromLong(intval));}
-    {ptr->pad=intval;return (PyInt_FromLong(intval));}
   if(!strcmp(name,"x"))
-    {ptr->x=floatval;return (PyFloat_FromDouble(floatval));}
+    {ptr->x=floatval;printf("%p %f\n",ptr,floatval);return (PyFloat_FromDouble(floatval));}
   if(!strcmp(name,"y"))
     {ptr->y=floatval;return (PyFloat_FromDouble(floatval));}
   if(!strcmp(name,"z"))
@@ -714,13 +765,7 @@ static PyObject *Metaball_setMetalen(BPy_Metaball *self,PyObject*args)
 
   Py_INCREF(Py_None);
   return Py_None;
-
 }
-
-
-
-
-
 
 
 
@@ -733,14 +778,21 @@ static void MetaballDeAlloc (BPy_Metaball *self)
 {
   PyObject_DEL (self);
 }
-/*
-static int MetaballPrint (BPy_Metaball *self, FILE *fp, int flags)
-{
-  fprintf(fp, "[MetaBall \"%s\"]", self->metaball->id.name+2);
-  return 0;
 
+
+/*****************************************************************************/
+/* Function:    MetaelemDeAlloc                                              */
+/* Description: This is a callback function for the BPy_Metaelem type. It is   */
+/*              the destructor function.                                     */
+/*****************************************************************************/
+static void MetaelemDeAlloc (BPy_Metaelem *self)
+{
+  PyObject_DEL (self);
 }
-*/
+
+
+
+
 /*****************************************************************************/
 /* Function:    MetaballGetAttr                                              */
 /* Description: This is a callback function for the BPy_Metaball type. It is   */
@@ -756,6 +808,8 @@ if (strcmp (name, "loc") == 0)return  Metaball_getloc (self);
 if (strcmp (name, "size") == 0)return  Metaball_getsize (self);
   return Py_FindMethod(BPy_Metaball_methods, (PyObject *)self, name);
 }
+
+
 
 /*******************************************************************************/
 /* Function:    MetaballSetAttr                                                */
@@ -795,6 +849,121 @@ static int MetaballSetAttr (BPy_Metaball *self, char *name, PyObject *value)
   return (EXPP_ReturnIntError (PyExc_KeyError,"attribute not found"));
 }
 
+
+
+
+
+
+
+
+static PyObject *Metaelem_getdims(BPy_Metaelem *self)
+{
+  PyObject* l = PyList_New(0);
+  PyList_Append( l, PyFloat_FromDouble(self->metaelem->expx));
+  PyList_Append( l, PyFloat_FromDouble(self->metaelem->expy));
+  PyList_Append( l, PyFloat_FromDouble(self->metaelem->expz));
+  return l;
+}
+
+
+static PyObject *Metaelem_setdims(BPy_Metaelem *self,PyObject*args)
+{
+
+	PyObject *listargs=0;
+  if (!PyArg_ParseTuple(args, "O", &listargs))
+    return (EXPP_ReturnPyObjError(PyExc_TypeError,"expected a list"));
+  if (!PyList_Check(listargs))
+    return (EXPP_ReturnPyObjError(PyExc_TypeError,"expected a list"));
+	self->metaelem->expx = PyFloat_AsDouble(PyList_GetItem(listargs,0));
+	self->metaelem->expy = PyFloat_AsDouble(PyList_GetItem(listargs,1));
+	self->metaelem->expz = PyFloat_AsDouble(PyList_GetItem(listargs,2));
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+
+
+static PyObject *Metaelem_getcoords(BPy_Metaelem *self)
+{
+  PyObject* l = PyList_New(0);
+  PyList_Append( l, PyFloat_FromDouble(self->metaelem->x));
+  PyList_Append( l, PyFloat_FromDouble(self->metaelem->y));
+  PyList_Append( l, PyFloat_FromDouble(self->metaelem->z));
+  return l;
+}
+
+
+static PyObject *Metaelem_setcoords(BPy_Metaelem *self,PyObject*args)
+{
+
+	PyObject *listargs=0;
+  if (!PyArg_ParseTuple(args, "O", &listargs))
+    return (EXPP_ReturnPyObjError(PyExc_TypeError,"expected a list"));
+  if (!PyList_Check(listargs))
+    return (EXPP_ReturnPyObjError(PyExc_TypeError,"expected a list"));
+	self->metaelem->x = PyFloat_AsDouble(PyList_GetItem(listargs,0));
+	self->metaelem->y = PyFloat_AsDouble(PyList_GetItem(listargs,1));
+	self->metaelem->z = PyFloat_AsDouble(PyList_GetItem(listargs,2));
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+
+/*****************************************************************************/
+/* Function:    MetaelemGetAttr                                              */
+/* Description: This is a callback function for the BPy_Metaelem type. It is   */
+/*              the function that accesses BPy_Metaelem "member variables" and */
+/*              methods.                                                     */
+/*****************************************************************************/
+static PyObject *MetaelemGetAttr (BPy_Metaelem *self, char *name)
+{
+
+if (!strcmp (name, "dims") )return  Metaelem_getdims (self);
+if (!strcmp (name, "coords") )return  Metaelem_getcoords (self);
+if (!strcmp (name, "rad") )return  PyFloat_FromDouble(self->metaelem->rad);
+if (!strcmp (name, "stif") )return  PyFloat_FromDouble(self->metaelem->s);
+  return Py_FindMethod(BPy_Metaelem_methods, (PyObject *)self, name);
+}
+
+
+
+/*******************************************************************************/
+/* Function:    MetaelemSetAttr                                                */
+/* Description: This is a callback function for the BPy_Metaelem type. It is the */
+/*              function that sets Metaelem Data attributes (member variables).*/
+/*******************************************************************************/
+static int MetaelemSetAttr (BPy_Metaelem *self, char *name, PyObject *value)
+{
+ 
+  if (!strcmp (name, "coords")) 
+		{ 
+PyObject *valtuple  = Py_BuildValue("(O)", value);
+  if (!valtuple) 
+		return EXPP_ReturnIntError(PyExc_MemoryError,"MetaelemSetAttr: couldn't create PyTuple");
+			Metaelem_setcoords (self, valtuple);
+			return 0;
+		}
+  if (!strcmp (name, "dims")) 
+		{ 
+PyObject *valtuple  = Py_BuildValue("(O)", value);
+  if (!valtuple) 
+		return EXPP_ReturnIntError(PyExc_MemoryError,"MetaelemSetAttr: couldn't create PyTuple");
+			Metaelem_setdims (self, valtuple);
+			return 0;
+		}
+  if (!strcmp (name, "rad")) 
+		{
+			self->metaelem->rad = PyFloat_AsDouble(value);
+			return 0;
+		}
+  if (!strcmp (name, "stif")) 
+		{
+			self->metaelem->s = PyFloat_AsDouble(value);
+			return 0;
+		}
+  return (EXPP_ReturnIntError (PyExc_KeyError,"attribute not found"));
+}
+
 /*****************************************************************************/
 /* Function:    MetaballRepr                                                  */
 /* Description: This is a callback function for the BPy_Metaball type. It       */
@@ -804,4 +973,16 @@ static PyObject *MetaballRepr (BPy_Metaball *self)
 {
   return PyString_FromFormat("[Metaball \"%s\"]", self->metaball->id.name+2);
 }
+
+
+/*****************************************************************************/
+/* Function:    MetaelemRepr                                                  */
+/* Description: This is a callback function for the BPy_Metaelem type. It       */
+/*              builds a meaninful string to represent metaelem objects.      */
+/*****************************************************************************/
+static PyObject *MetaelemRepr (BPy_Metaelem *self)
+{
+  return PyString_FromString("Metaelem");
+}
+
 

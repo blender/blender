@@ -109,6 +109,21 @@ typedef struct
 BPy_Metaball;
 
 /*****************************************************************************/
+/* Metaelem Data                                                             */
+/*****************************************************************************/
+extern PyTypeObject Metaelem_Type;
+
+#define BPy_Metaelem_Check(v) ((v)->ob_type==&Metaelem_Type)
+
+/* Python BPy_Metaelem structure definition */
+typedef struct
+{
+  PyObject_HEAD			/* required py macro */
+  MetaElem * metaelem;
+}
+BPy_Metaelem;
+
+/*****************************************************************************/
 /* Effect Data                                                             */
 /*****************************************************************************/
 extern PyTypeObject Effect_Type;

@@ -82,6 +82,7 @@ struct PyMethodDef M_Metaball_methods[] = {
 /*****************************************************************************/
 /* Python BPy_Metaball methods declarations:                                     */
 /*****************************************************************************/
+static PyObject *Metaball_getMetaElemList(BPy_Metaball *self);
 static PyObject *Metaball_addMetaelem(BPy_Metaball *self,PyObject*args);
 static PyObject *Metaball_getBbox(BPy_Metaball *self);
 static PyObject *Metaball_getName(BPy_Metaball *self);
@@ -121,6 +122,10 @@ static PyMethodDef BPy_Metaball_methods[] = {
 	/* name, method, flags, doc */
   {"getName", (PyCFunction)Metaball_getName,\
    METH_NOARGS, "() - Return Metaball  name"},
+
+  {"getMetaElemList", (PyCFunction)Metaball_getMetaElemList,\
+   METH_NOARGS, "() - Return Metaelems list"},
+
   {"addMetaelem", (PyCFunction)Metaball_addMetaelem,\
    METH_VARARGS, "() -Adds a metaelem to the metaball"},
   {"setName", (PyCFunction)Metaball_setName,\
@@ -181,7 +186,13 @@ static PyMethodDef BPy_Metaball_methods[] = {
 	 METH_NOARGS, "() - Gets Metaball size values"},
   {"setsize", (PyCFunction)Metaball_setsize , \
 	 METH_VARARGS, "(f f f) - Sets Metaball size values"},
-	/*end of MetaElem data*/
+	{NULL, NULL, 0, NULL}
+};
+
+/*****************************************************************************/
+/* Python BPy_Metaelem methods table:                                            */
+/*****************************************************************************/
+static PyMethodDef BPy_Metaelem_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
@@ -189,10 +200,17 @@ static PyMethodDef BPy_Metaball_methods[] = {
 /* Python Metaball_Type callback function prototypes:                          */
 /*****************************************************************************/
 static void MetaballDeAlloc (BPy_Metaball *self);
-//static int MetaballPrint (BPy_Metaball *self, FILE *fp, int flags);
 static int MetaballSetAttr (BPy_Metaball *self, char *name, PyObject *v);
 static PyObject *MetaballGetAttr (BPy_Metaball *self, char *name);
 static PyObject *MetaballRepr (BPy_Metaball *self);
+
+/*****************************************************************************/
+/* Python Metaelem_Type callback function prototypes:                          */
+/*****************************************************************************/
+static void MetaelemDeAlloc (BPy_Metaelem *self);
+static int MetaelemSetAttr (BPy_Metaelem *self, char *name, PyObject *v);
+static PyObject *MetaelemGetAttr (BPy_Metaelem *self, char *name);
+static PyObject *MetaelemRepr (BPy_Metaelem *self);
 
 
 #endif /* EXPP_METABALL_H */
