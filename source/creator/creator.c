@@ -86,6 +86,7 @@
 #include "SYS_System.h"
 
 #include <signal.h>
+
 #ifdef __FreeBSD__
   #ifndef __OpenBSD__
     #include <floatingpoint.h>
@@ -125,6 +126,25 @@ static void fpe_handler(int sig)
 {
 	// printf("SIGFPE trapped\n");
 }
+
+/* handling ctrl-c event in console */
+static void blender_esc(int sig)
+{
+	static int count = 0;
+	
+	G.afbreek = 1;	/* forces render loop to read queue, not sure if its needed */
+	
+	if (sig == 2) {
+		if (count) {
+			printf("\nBlender killed\n");
+			exit(2);
+		}
+		printf("\nSent an internal break event. Press ^C again to kill Blender\n");
+		count++;
+	}
+}
+
+
 
 static void print_help(void)
 {
@@ -202,6 +222,7 @@ int main(int argc, char **argv)
 			argv[1]= firstfilebuf;
 		}
 	}
+	
 #endif
 
 #ifdef __FreeBSD__
@@ -294,6 +315,10 @@ int main(int argc, char **argv)
 #ifdef __sgi
 	setuid(getuid()); /* end superuser */
 #endif
+
+	/* for all platforms, even windos has it! */
+	if(G.background) signal(SIGINT, blender_esc);	/* ctrl c out bg render */
+
 
 	RE_init_render_data();	/* must be called here because R.winpos from default file */
 	
