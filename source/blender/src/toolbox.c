@@ -1691,7 +1691,7 @@ static TBitem tb_edit[]= {
 
 static TBitem tb_curve_edit_seg[]= {
 {	0, "Subdivide", 		0, NULL},
-{	0, "Switch directoin", 	1, NULL},
+{	0, "Switch Direction", 	1, NULL},
 {  -1, "", 			0, do_view3d_edit_curve_segmentsmenu}};
 
 static TBitem tb_curve_edit_cv[]= {
