@@ -629,11 +629,9 @@ static void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, 
 	
 }
 
-/* 'icon' for panel header */
+/* triangle 'icon' for panel header */
 static void ui_draw_tria_icon(float x, float y, float aspect, char dir)
 {
-
-	
 	BIF_ThemeColor(TH_TEXT_HI);
 	
 	if(dir=='h') {
@@ -642,6 +640,35 @@ static void ui_draw_tria_icon(float x, float y, float aspect, char dir)
 	else {
 		ui_draw_anti_tria( x-2, y+8,  x+9-2, y+8, x+4.75-2, y+1);	
 	}
+}
+
+static void ui_draw_anti_x(float x1, float y1, float x2, float y2)
+{
+
+	/* set antialias line */
+	glEnable( GL_LINE_SMOOTH );
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+
+	glLineWidth(2.0);
+	
+	fdrawline(x1, y1, x2, y2);
+	fdrawline(x1, y2, x2, y1);
+	
+	glLineWidth(1.0);
+	
+	glDisable( GL_LINE_SMOOTH );
+	glDisable( GL_BLEND );
+	
+}
+
+/* x 'icon' for panel header */
+static void ui_draw_x_icon(float x, float y)
+{
+	BIF_ThemeColor(TH_TEXT_HI);
+
+	ui_draw_anti_x( x, y, x+9.375, y+9.375);
+
 }
 
 #if 0
@@ -838,6 +865,16 @@ void ui_draw_panel(uiBlock *block)
 			glEnable(GL_BLEND);
 			BIF_ThemeColor4(TH_PANEL);
 			glRectf(block->minx, block->miny, block->maxx, block->maxy);
+			
+			glColor4ub(0, 0, 0, 40);
+			
+			fdrawline(block->minx+2, block->miny-1, block->maxx+1, block->miny-1);
+			fdrawline(block->maxx+1, block->miny-1, block->maxx+1, block->maxy+7);
+			
+			glColor4ub(0, 0, 0, 10);
+			
+			fdrawline(block->minx+3, block->miny-2, block->maxx+2, block->miny-2);
+			fdrawline(block->maxx+2, block->miny-2, block->maxx+2, block->maxy+6);	
 
 			glDisable(GL_BLEND);
 		}
@@ -849,7 +886,7 @@ void ui_draw_panel(uiBlock *block)
 			glEnable(GL_BLEND);
 			BIF_ThemeColor4(TH_PANEL);
 			glRectf(block->minx, block->miny, block->maxx, block->maxy);
-
+	
 			glDisable(GL_BLEND);
 		}
 		
@@ -881,10 +918,14 @@ void ui_draw_panel(uiBlock *block)
 	
 	ofsx= 6;
 	if(panel->control & UI_PNL_CLOSE) {
+	
+		ui_draw_x_icon(block->minx+2+ofsx, block->maxy+5);
+		/*
 		glRasterPos2f(block->minx+4, block->maxy+3);
 		if(block->aspect>1.1) glPixelZoom(1.0/block->aspect, 1.0/block->aspect);
 		BIF_draw_icon(ICON_PANEL_CLOSE);
 		if(block->aspect>1.1) glPixelZoom(1.0, 1.0);
+		*/
 		ofsx= 22;
 	}
 
