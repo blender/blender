@@ -1,3 +1,4 @@
+#
 # $Id$
 #
 # ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -19,42 +20,18 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# The Original Code is Copyright (C) 2002 by Wouter van Heyst
+# The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
 # All rights reserved.
 #
-# The Original Code is: revision 1.1
+# The Original Code is: all of this file.
 #
-# Contributor(s): Hans Lambermont
+# Contributor(s): none yet.
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
 #
-# Toplevel Makefile for blender. Bounces make to subdirectories.
-# Available targets: 'all' 'debug' 'release'
+# Bounces make to subdirectories.
 
-# If the user wants to override some of the build
-# vars they can put it in the file user-def.mk which
-# will get included if it exists (please do not commit
-# user-def.mk to cvs).
+SOURCEDIR = source/blender/python
+DIRS = api2_2x
 
-sinclude user-def.mk
-
-# To try the experimental new python stuff, uncomment the
-# following line, or put it uncommented in user-def.mk:
-# export EXPYTHON=true
-
-export NANBLENDERHOME=$(shell pwd)
-MAKEFLAGS=-I$(NANBLENDERHOME)/source --no-print-directory
-
-SOURCEDIR = blender
-ifeq ($(FREE_WINDOWS),true)
-    DIRS ?= dlltool intern source po
-endif
-
-DIRS ?= extern intern source po
-include source/nan_subdirs.mk
-
-.PHONY: release
-release:
-	@echo "====> $(MAKE) $@ in $(SOURCEDIR)/$@" ;\
-	    $(MAKE) -C $@ $@ || exit 1;
-
+include nan_subdirs.mk

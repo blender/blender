@@ -37,7 +37,13 @@ DIRS = blenloader
 DIRS += deflate inflate encrypt decrypt
 DIRS += writestreamglue readstreamglue writeblenfile readblenfile
 DIRS += avi imbuf img render radiosity blenlib blenkernel blenpluginapi
-DIRS += bpython makesdna src renderconverter
+DIRS += makesdna src renderconverter
+
+ifeq ($(EXPYTHON), true)
+    DIRS += python
+else
+    DIRS += bpython
+endif
 
 ifeq ($(INTERNATIONAL), true)
 	DIRS += ftfont

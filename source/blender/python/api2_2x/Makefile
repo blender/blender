@@ -1,3 +1,4 @@
+#
 # $Id$
 #
 # ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -19,42 +20,35 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# The Original Code is Copyright (C) 2002 by Wouter van Heyst
+# The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
 # All rights reserved.
 #
-# The Original Code is: revision 1.1
+# The Original Code is: all of this file.
 #
-# Contributor(s): Hans Lambermont
+# Contributor(s): none yet.
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
 #
-# Toplevel Makefile for blender. Bounces make to subdirectories.
-# Available targets: 'all' 'debug' 'release'
+#
 
-# If the user wants to override some of the build
-# vars they can put it in the file user-def.mk which
-# will get included if it exists (please do not commit
-# user-def.mk to cvs).
+LIBNAME = python
+DIR = $(OCGDIR)/blender/python
 
-sinclude user-def.mk
+CSRCS ?= $(wildcard *.c) $(wildcard ../*.c)
 
-# To try the experimental new python stuff, uncomment the
-# following line, or put it uncommented in user-def.mk:
-# export EXPYTHON=true
+include nan_compile.mk
 
-export NANBLENDERHOME=$(shell pwd)
-MAKEFLAGS=-I$(NANBLENDERHOME)/source --no-print-directory
-
-SOURCEDIR = blender
-ifeq ($(FREE_WINDOWS),true)
-    DIRS ?= dlltool intern source po
+ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris windows"))
+    CFLAGS += -funsigned-char
 endif
 
-DIRS ?= extern intern source po
-include source/nan_subdirs.mk
+CFLAGS += $(LEVEL_1_C_WARNINGS)
 
-.PHONY: release
-release:
-	@echo "====> $(MAKE) $@ in $(SOURCEDIR)/$@" ;\
-	    $(MAKE) -C $@ $@ || exit 1;
 
+CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+CPPFLAGS += -I../../makesdna
+CPPFLAGS += -I../../blenkernel
+CPPFLAGS += -I../../blenlib
+CPPFLAGS += -I../../include
+CPPFLAGS += -I$(NAN_BMFONT)/include
+CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
