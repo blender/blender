@@ -520,8 +520,9 @@ float testshadowbuf(struct ShadBuf *shb, float *rco, float inp)  	/* return 1.0:
 
 	for(a=num;a>0;a--) {
 		/* instead of jit i tried random: ugly! */
-		xs= xs1 + xres*j[0];
-		ys= ys1 + yres*j[1];
+		/* note: the plus 0.5 gives best sampling results, jit used to go from 0-1 */
+		xs= xs1 + xres*(j[0] + 0.5);
+		ys= ys1 + yres*(j[1] + 0.5);
 		j+=2;
 		
 		aantal+= readshadowbuf(shb, xs, ys, zs);
