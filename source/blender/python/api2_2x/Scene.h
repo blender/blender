@@ -37,7 +37,7 @@
 #include <DNA_scene_types.h>
 
 /* The Scene PyType Object defined in Scene.c */
-PyTypeObject Scene_Type;
+extern PyTypeObject Scene_Type;
 
 #define BPy_Scene_Check(v) \
     ((v)->ob_type == &Scene_Type)

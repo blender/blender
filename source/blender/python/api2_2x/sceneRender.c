@@ -64,7 +64,7 @@
 #define PY_SKYDOME	1
 #define PY_FULL	 2
 
-RE_Render R;
+extern RE_Render R;
 
 //---------------------------------------Render prototypes-------------
 static PyObject *M_Render_CloseRenderWindow( PyObject * self );

@@ -48,10 +48,10 @@
 #include "Image.h"
 
 /* EXPP PyType Objects */
-PyTypeObject NMesh_Type;
-PyTypeObject NMFace_Type;
-PyTypeObject NMVert_Type;
-PyTypeObject NMCol_Type;
+extern PyTypeObject NMesh_Type;
+extern PyTypeObject NMFace_Type;
+extern PyTypeObject NMVert_Type;
+extern PyTypeObject NMCol_Type;
 
 
 struct BPy_Object;
