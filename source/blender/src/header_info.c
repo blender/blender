@@ -496,10 +496,6 @@ void do_info_buttons(unsigned short event)
 		}
 
 		break;
-	case B_FILEMENU:
-		tbox_setmain(9);
-		toolbox();
-		break;
 	}
 }
 
@@ -1119,7 +1115,6 @@ static uiBlock *info_add_metamenu(void *arg_unused)
 
 void do_info_addmenu(void *arg, int event)
 {
-printf("event %d\n", event);
 	switch(event) {		
 		case 0:
 			/* Mesh */
@@ -1746,11 +1741,6 @@ void info_buttons(void)
 
 	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;
-	
-	if(curarea->headbutlen + 4*XIC < curarea->winx) {
-		uiDefIconBut(block, BUT, B_FILEMENU, ICON_HELP,
-			(short)(curarea->winx-XIC-2), 0,XIC,YIC,
-			0, 0, 0, 0, 0, "Displays Toolbox menu (SPACE)");
 
 #ifdef _WIN32	// FULLSCREEN
 	if(U.uiflag & FLIPFULLSCREEN) {
@@ -1763,8 +1753,6 @@ void info_buttons(void)
 				0, 0, 0, 0, 0, "Toggles Blender to fullscreen mode");/* dir		*/
 	}
 #endif
-	
-	}
 	
 	uiDrawBlock(block);
 }

@@ -1754,8 +1754,9 @@ static void editing_panel_links(Object *ob)
 			alone= B_LATTALONE;
 			local= B_LATTLOCAL;
 		}
+		uiBlockSetCol(block, TH_BUT_SETTING2);
 		xco= std_libbuttons(block, 143, 180, 0, NULL, browse, id, idfrom, &(G.buts->menunr), alone, local, 0, 0, B_KEEPDATA);
-			
+		uiBlockSetCol(block, TH_AUTO);	
 	}
 	if(ob) {
 		but = uiDefBut(block, TEX, B_IDNAME, "OB:",	xco, 180, 454-xco, YIC, ob->id.name+2, 0.0, 19.0, 0, 0, "Displays Active Object name. Click to change.");

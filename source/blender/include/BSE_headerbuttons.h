@@ -112,4 +112,14 @@ void do_info_add_surfacemenu(void *arg, int event);
 void do_info_add_metamenu(void *arg, int event);
 void do_info_addmenu(void *arg, int event);
 
+/* header_view3d.c */
+void do_view3d_select_meshmenu(void *arg, int event);
+void do_view3d_select_curvemenu(void *arg, int event);
+void do_view3d_edit_mesh_normalsmenu(void *arg, int event);
+void do_view3d_edit_mesh_verticesmenu(void *arg, int event);
+void do_view3d_edit_mesh_edgesmenu(void *arg, int event);
+void do_view3d_edit_curve_segmentsmenu(void *arg, int event);
+
+
+
 #endif /*  BSE_HEADERBUTTONS_H */

@@ -559,7 +559,7 @@ static uiBlock *view3d_select_objectmenu(void *arg_unused)
 	return block;
 }
 
-static void do_view3d_select_meshmenu(void *arg, int event)
+void do_view3d_select_meshmenu(void *arg, int event)
 {
 //	extern void borderselect(void);
 
@@ -575,9 +575,7 @@ static void do_view3d_select_meshmenu(void *arg, int event)
 			selectswap_mesh();
 			break;
 		case 4: /* select linked vertices */
-			G.qual |= LR_CTRLKEY;
-			selectconnected_mesh();
-			G.qual &= ~LR_CTRLKEY;
+			selectconnected_mesh(LR_CTRLKEY);
 			break;
 		case 5: /* select random */
 			// selectrandom_mesh();
@@ -608,8 +606,8 @@ static uiBlock *view3d_select_meshmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Faceloop|Shift R",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Random Vertices...",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Connected Vertices|Ctrl L",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+//	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Random Vertices...",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Linked Vertices|Ctrl L",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 		
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -623,7 +621,7 @@ static uiBlock *view3d_select_meshmenu(void *arg_unused)
 	return block;
 }
 
-static void do_view3d_select_curvemenu(void *arg, int event)
+void do_view3d_select_curvemenu(void *arg, int event)
 {
 //	extern void borderselect(void);
 
@@ -687,7 +685,6 @@ static uiBlock *view3d_select_curvemenu(void *arg_unused)
 
 static void do_view3d_select_metaballmenu(void *arg, int event)
 {
-//XXX  extern void borderselect(void);
 
 	switch(event) {
 		case 0: /* border select */
@@ -1009,7 +1006,7 @@ static void do_view3d_edit_objectmenu(void *arg, int event)
 	switch(event) {
 	 
 	case 0: /* transform	properties*/
-			blenderqread(NKEY, 1);
+		mainqenter(NKEY, 1);
 		break;
 	case 1: /* delete */
 		delete_context_selected();
@@ -1196,7 +1193,7 @@ static uiBlock *view3d_edit_mesh_undohistorymenu(void *arg_unused)
 	return block;
 }
 
-static void do_view3d_edit_mesh_verticesmenu(void *arg, int event)
+void do_view3d_edit_mesh_verticesmenu(void *arg, int event)
 {
 	extern float doublimit;
 	
@@ -1250,7 +1247,7 @@ static uiBlock *view3d_edit_mesh_verticesmenu(void *arg_unused)
 	return block;
 }
 
-static void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
+void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 {
 	extern short editbutflag;
 	float fac;
@@ -1279,6 +1276,9 @@ static void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 	case 4: /* Loop subdivide */
 		loop('c');
 		break;
+	case 5: /* Make Edge/Face */
+		addedgevlak_mesh();
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -1291,6 +1291,8 @@ static uiBlock *view3d_edit_mesh_edgesmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_mesh_edgesmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_edit_mesh_edgesmenu, NULL);
 	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Edge/Face|F",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Loop Subdivide...|Ctrl R",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Knife Subdivide...|Shift K",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	
@@ -1326,7 +1328,10 @@ static void do_view3d_edit_mesh_facesmenu(void *arg, int event)
 	case 4: /* Flip triangle edges */
 		edge_flip();
 		break;
-		}
+	case 5: /* Make Edge/Face */
+		addedgevlak_mesh();
+		break;
+	}
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -1338,6 +1343,7 @@ static uiBlock *view3d_edit_mesh_facesmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_mesh_facesmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_edit_mesh_facesmenu, NULL);
 	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Edge/Face|F",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Fill|Shift F",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Beauty Fill|Alt F",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	
@@ -1352,7 +1358,7 @@ static uiBlock *view3d_edit_mesh_facesmenu(void *arg_unused)
 	return block;
 }
 
-static void do_view3d_edit_mesh_normalsmenu(void *arg, int event)
+void do_view3d_edit_mesh_normalsmenu(void *arg, int event)
 {
 	switch(event) {
 	case 0: /* flip */
@@ -1414,9 +1420,9 @@ static uiBlock *view3d_edit_mesh_showhidemenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_mesh_showhidemenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_edit_mesh_showhidemenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hidden Vertices",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Selected Vertices|H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Deselected Vertices|Shift H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hidden|Alt H",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Selected|H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Deselected|Shift H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -1446,9 +1452,6 @@ static void do_view3d_edit_meshmenu(void *arg, int event)
 		break;
 	case 6: /* duplicate */
 		duplicate_context_selected();
-		break;
-	case 7: /* Make Edge/Face */
-		addedgevlak_mesh();
 		break;
 	case 8: /* delete */
 		delete_context_selected();
@@ -1584,12 +1587,10 @@ static uiBlock *view3d_edit_curve_controlpointsmenu(void *arg_unused)
 		
 		uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 		
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Autmatic|Shift H",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Toggle Free/Aligned|H",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Vector|V",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 		
-		uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-		
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Smooth|Shift H",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 	}
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Vertex Parent|Ctrl P",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	
@@ -1598,7 +1599,7 @@ static uiBlock *view3d_edit_curve_controlpointsmenu(void *arg_unused)
 	return block;
 }
 
-static void do_view3d_edit_curve_segmentsmenu(void *arg, int event)
+void do_view3d_edit_curve_segmentsmenu(void *arg, int event)
 {
 	switch(event) {
 	case 0: /* subdivide */
@@ -1651,8 +1652,8 @@ static uiBlock *view3d_edit_curve_showhidemenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_curve_showhidemenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_edit_curve_showhidemenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hidden Control Points|Alt H",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Selected Control Points|H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hidden|Alt H",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Selected|H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
 	if (OBACT->type == OB_SURF) uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Deselected Control Points|Shift H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
 	
 
@@ -1668,7 +1669,7 @@ static void do_view3d_edit_curvemenu(void *arg, int event)
 		remake_editNurb();
 		break;
 	case 1: /* transformation properties */
-		blenderqread(NKEY, 1);
+		mainqenter(NKEY, 1);
 		break;
 	case 2: /* insert keyframe */
 		common_insertkey();
@@ -1718,11 +1719,11 @@ static uiBlock *view3d_edit_curvemenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_curvemenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_view3d_edit_curvemenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Editing|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reload Original|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Transform Properties...|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties...|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Snap...|Shift S",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -2041,7 +2042,7 @@ static void do_view3d_edit_armaturemenu(void *arg, int event)
 		remake_editArmature();
 		break;
 	case 1: /* transformation properties */
-		blenderqread(NKEY, 1);
+		mainqenter(NKEY, 1);
 		break;
 	case 2: /* snap */
 		snapmenu();
@@ -2077,7 +2078,7 @@ static uiBlock *view3d_edit_armaturemenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Transform Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Snap...|Shift S",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -2146,7 +2147,7 @@ static void do_view3d_pose_armaturemenu(void *arg, int event)
 	switch(event) {
 	
 	case 0: /* transform properties */
-		blenderqread(NKEY, 1);
+		mainqenter(NKEY, 1);
 		break;
 	case 1: /* copy current pose */
 		copy_posebuf();
@@ -2172,7 +2173,7 @@ static uiBlock *view3d_pose_armaturemenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_pose_armaturemenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_view3d_pose_armaturemenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Transform Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBlockBut(block, view3d_pose_armature_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");

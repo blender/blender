@@ -58,6 +58,7 @@
 
 #include "DNA_image_types.h"
 #include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
@@ -69,6 +70,8 @@
 
 #include "BKE_plugin_types.h"
 #include "BKE_utildefines.h"
+#include "BKE_mesh.h"
+#include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 
@@ -97,6 +100,7 @@
 #include "BSE_editipo.h"
 #include "BSE_buttons.h"
 #include "BSE_filesel.h"
+#include "BSE_edit.h"
 #include "BSE_headerbuttons.h"
 
 #include "IMB_imbuf.h"
@@ -1539,14 +1543,14 @@ static void tb_do_hotkey(void *arg, int event)
 	else if(event & TB_PAD) {
 		event &= ~TB_PAD;
 		switch(event) {
-		case '0': event= PAD0; break;
-		case '5': event= PAD5; break;
-		case '/': event= PADSLASHKEY; break;
-		case '.': event= PADPERIOD; break;
-		case '*': event= PADASTERKEY; break;
-		case 'h': event= HOMEKEY; break;
-		case 'u': event= PAGEUPKEY; break;
-		case 'd': event= PAGEDOWNKEY; break;
+		case '0': key= PAD0; break;
+		case '5': key= PAD5; break;
+		case '/': key= PADSLASHKEY; break;
+		case '.': key= PADPERIOD; break;
+		case '*': key= PADASTERKEY; break;
+		case 'h': key= HOMEKEY; break;
+		case 'u': key= PAGEUPKEY; break;
+		case 'd': key= PAGEDOWNKEY; break;
 		}
 	}
 	else asciitoraw(event, &key, &qual2);
@@ -1571,18 +1575,120 @@ static TBitem tb_object_select[]= {
 {  -1, "", 			0, tb_do_hotkey}};
 
 
+static TBitem tb_mesh_select[]= {
+{	0, "Border Select|B", 	1, NULL},
+{	0, "SEPR", 				0, NULL},
+{	0, "(De)select All|A", 	2, NULL},
+{	0, "Inverse", 	3, NULL},
+{	0, "SEPR", 				0, NULL},
+{	0, "Face Loop|Shift R", 	4, NULL},
+{	0, "Linked Vertices|Ctrl L", 5, NULL},
+{  -1, "", 			0, do_view3d_select_meshmenu}};
+
+
+static TBitem tb_curve_select[]= {
+{	0, "Border Select|B", 	0, NULL},
+{	0, "SEPR", 				0, NULL},
+{	0, "(De)select All|A", 	2, NULL},
+{	0, "Inverse", 			3, NULL},
+{	0, "Row", 			5, NULL},
+{  -1, "", 				0, do_view3d_select_curvemenu}};
+
+static TBitem tb__select[]= {
+{	0, "Border Select|B", 	'b', NULL},
+{	0, "(De)select All|A", 	'a', NULL},
+{  -1, "", 			0, tb_do_hotkey}};
+
+
 /* *************Edit ********** */
+
+static TBitem tb_edit[]= {
+{	0, "Exit Editmode|Tab", 	TB_TAB, NULL},
+{  -1, "", 			0, tb_do_hotkey}};
+
+static TBitem tb_edit_hide[]= {
+{	0, "Show Hidden|Alt H", 		TB_ALT|'h', 		NULL},
+{	0, "Hide Selected|H", 			'h', 		NULL},
+{	0, "Hide Deselected|Shift H", 	'H', 		NULL},
+{  -1, "", 			0, tb_do_hotkey}};
+
+static TBitem tb_curve_edit_seg[]= {
+{	0, "Subdivide", 		0, NULL},
+{	0, "Switch directoin", 	1, NULL},
+{  -1, "", 			0, do_view3d_edit_curve_segmentsmenu}};
+
+static TBitem tb_curve_edit_cv[]= {
+{	0, "Tilt|T", 	't', NULL},
+{	0, "Clear Tilt|Alt T", 			TB_ALT|'t', NULL},
+{	0, "SEPR", 								0, NULL},
+{	0, "Automatic|Shift H", 		'H', NULL},
+{	0, "Toggle Free/Aligned|H", 	'h', NULL},
+{	0, "Vector|V", 					TB_ALT|'t', NULL},
+{	0, "SEPR", 								0, NULL},
+{	0, "Make Vertex Parent|Ctrl P", TB_CTRL|'p', NULL},
+{  -1, "", 			0, tb_do_hotkey}};
+
+
+static TBitem tb_curve_edit[]= {
+{	0, "Exit Editmode|Tab", 	TB_TAB, NULL},
+{	0, "Extrude|E", 		'e', 		NULL},
+{	0, "Make Segment|F", 	'f', 		NULL},
+{	0, "Toggle Cyclic|F", 	'c', 		NULL},
+{	0, "SEPR", 								0, NULL},
+{	0, "Control Points", 	0, 		tb_curve_edit_cv},
+{	0, "Segments", 	0, 		tb_curve_edit_seg},
+{	0, "SEPR", 								0, NULL},
+{	0, "Show/Hide", 	0, 		tb_curve_edit_seg},
+{  -1, "", 			0, tb_do_hotkey}};
+
+
+static TBitem tb_mesh_edit_vertex[]= {
+{	0, "Merge...|Alt M", 		5, NULL},
+{	0, "Split|Y", 				4, 		NULL},
+{	0, "Separate|P", 			3, 		NULL},
+{	0, "Smooth|Alt M", 			2, NULL},
+{	0, "Remove Doubles|Alt M", 			1, NULL},
+{	0, "Make Vertex Parent|Ctrl P", 	0, NULL},
+{  -1, "", 			0, do_view3d_edit_mesh_verticesmenu}};
+
+static TBitem tb_mesh_edit_edge[]= {
+{	0, "Make Edge/Face|F", 			5, 		NULL},
+{	0, "Loop SubdivideCtrl R", 		4, 		NULL},
+{	0, "Knife Subdivide...|Shift K", 	3, 		NULL},
+{	0, "SEPR", 								0, NULL},
+{	0, "Subdivide", 			2, 		NULL},
+{	0, "Subdivide Fractal", 	1, 		NULL},
+{	0, "Subdivide Smooth", 		0, 		NULL},
+{  -1, "", 			0, do_view3d_edit_mesh_edgesmenu}};
+
+static TBitem tb_mesh_edit_face[]= {
+{	0, "Make Edge/Face|F", 			'f', 		NULL},
+{	0, "Fill|Shift F", 				'F', 		NULL},
+{	0, "Beaty Fill|Alt F", 			TB_ALT|'f', 		NULL},
+{	0, "Convert to Triangles|Ctrl T", 	TB_CTRL|'t', 		NULL},
+{	0, "Convert to Quads|Alt J", 		TB_ALT|'j', 		NULL},
+{	0, "Flip Triangle Edges|Ctrl F", 	TB_CTRL|'f', 		NULL},
+{  -1, "", 			0, tb_do_hotkey}};
+
+
+static TBitem tb_mesh_edit_normal[]= {
+{	0, "Flip", 				1, 		NULL},
+{	0, "Recalc Inside", 	1, 		NULL},
+{	0, "Recalc Outside", 	1, 		NULL},
+{  -1, "", 			0, do_view3d_edit_mesh_normalsmenu}};
 
 
 static TBitem tb_mesh_edit[]= {
 {	0, "Exit Editmode|Tab", 	TB_TAB, NULL},
 {	0, "Undo|U", 			'u', 		NULL},
 {	0, "Redo|Shift U", 		'U', 		NULL},
-{	0, "Make Edge/Face|F", 	'f', 		NULL},
 {	0, "Extrude|E", 	'e', 		NULL},
-{	0, "Split|Y", 	'y', 		NULL},
-{	0, "Separate|P", 	'p', 		NULL},
-{	0, "Tools Menu|W", 	'w', 		NULL},
+{	0, "Vertices", 		0, 		tb_mesh_edit_vertex},
+{	0, "Edges", 		0, 		tb_mesh_edit_edge},
+{	0, "Faces", 		0, 		tb_mesh_edit_face},
+{	0, "Normals", 		0, 		tb_mesh_edit_normal},
+{	0, "SEPR", 			0, NULL},
+{	0, "Show/Hide", 	0, 		tb_edit_hide},
 {  -1, "", 			0, tb_do_hotkey}};
 
 
@@ -1595,25 +1701,50 @@ static TBitem tb_object_ipo[]= {
 
 static TBitem tb_object_edit[]= {
 {	0, "Enter Editmode|Tab", 	TB_TAB, NULL},
+{	0, "SEPR", 								0, NULL},
 {	0, "Insert Key...|I", 	'i', NULL},
 {	0, "Object Keys", 	0, tb_object_ipo},
+{	0, "SEPR", 								0, NULL},
 {	0, "Boolean...|W", 			'w', NULL},
 {	0, "Join Objects|Ctrl J", 	TB_CTRL|'j', NULL},
-{	0, "Convert Object...|Alt C", 'i', NULL},
+{	0, "Convert Object...|Alt C", TB_ALT|'c', NULL},
 {  -1, "", 			0, tb_do_hotkey}};
 
 
-/* *************Mesh ********** */
+/* ************* Type  ********** */
+
+static void tb_do_mesh(void *arg, int event){
+	Mesh *me= get_mesh(OBACT);
+	switch(event) {
+	case 1: duplicate_context_selected(); break;
+	case 2: delete_context_selected(); break;
+	case 3: G.f ^= G_DRAWEDGES; break;
+	case 4: G.f ^= G_DRAWFACES; break;
+	case 5: G.f ^= G_DRAWNORMALS; break;
+	case 6: me->flag ^= ME_SUBSURF; makeDispList(OBACT); break;
+	case 7: me->flag ^= ME_OPT_EDGES; makeDispList(OBACT); break;
+	}
+	addqueue(curarea->win, REDRAW, 1);
+}
 
 static TBitem tb_mesh[]= {
+{	0, "Duplicate|Shift D", 		1, 		NULL},
+{	0, "Delete|X", 					2, 		NULL},
+{	0, "SEPR", 						0, NULL},
+{	0, "Show/Hide Edges", 			3, 		NULL},
+{	0, "Show/Hide Faces", 			4, 		NULL},
+{	0, "Show/Hide Normals", 		5, 		NULL},
+{	0, "SEPR", 						0, NULL},
+{	0, "Subdivision Surface", 		6, 		NULL},
+{	0, "Subd.Surf. Optimal", 		7, 		NULL},
+{  -1, "", 			0, tb_do_mesh}};
+
+static TBitem tb_obdata[]= {
 {	0, "Duplicate|Shift D", 		'D', 		NULL},
 {	0, "Delete|X", 					'x', 		NULL},
 
 {  -1, "", 			0, tb_do_hotkey}};
 
-
-
-/* *************Object ********** */
 
 static TBitem tb_object[]= {
 {	0, "Duplicate|Shift D", 		'D', 		NULL},
@@ -1626,6 +1757,7 @@ static TBitem tb_object[]= {
 {	0, "Clear Parent|Alt P", 		TB_ALT|'p', NULL},
 {	0, "Make Track|Ctrl T", 		TB_CTRL|'t', NULL},
 {	0, "Clear Track|Alt T", 		TB_ALT|'t', NULL},
+{	0, "SEPR", 								0, NULL},
 {	0, "Copy Properties...|Ctrl C", TB_CTRL|'c', NULL},
 {	0, "Move to Layer...|M", 		'm', NULL},
 {  -1, "", 			0, tb_do_hotkey}};
@@ -1662,17 +1794,44 @@ static TBitem tb_view[]= {
 /* *************TRANSFORM ********** */
 
 static TBitem tb_transform[]= {
-{	0, "Grabber|g", 'g', NULL},
-{	0, "Rotate|r", 	'r', NULL},
-{	0, "Scale|s", 	's', NULL},
-{	0, "SEPR", 		0, NULL},
+{	0, "Grabber|g", 	'g', NULL},
+{	0, "Rotate|r", 		'r', NULL},
+{	0, "Scale|s", 		's', NULL},
+{	0, "SEPR", 					0, NULL},
 {	ICON_MENU_PANEL, "Properties|n", 'n', NULL},
-{	0, "Snap...|Shift S", 'S', NULL},
-{	0, "SEPR", 		0, NULL},
-{	0, "Clear Location", TB_ALT|'g', NULL},
-{	0, "Clear Rotation", TB_ALT|'r', NULL},
-{	0, "Clear Size", 	TB_ALT|'s', NULL},
+{	0, "Snap...|Shift S", 		'S', NULL},
+{	0, "SEPR", 					0, NULL},
+{	0, "Clear Location", 		TB_ALT|'g', NULL},
+{	0, "Clear Rotation", 		TB_ALT|'r', NULL},
+{	0, "Clear Size", 			TB_ALT|'s', NULL},
+{	0, "Apply Rot/Size|Ctrl A", TB_CTRL|'a', NULL},
+{	0, "Apply Deform|Shift Ctrl A", 	TB_CTRL|'A', NULL},
 {  -1, "", 			0, tb_do_hotkey}};
+
+static TBitem tb_transform_editmode1[]= {
+{	0, "Grabber|g", 	'g', NULL},
+{	0, "Rotate|r", 		'r', NULL},
+{	0, "Scale|s", 		's', NULL},
+{	0, "SEPR", 					0, NULL},
+{	0, "Shrink/Fatten|Alt S", TB_ALT|'s', NULL},
+{	0, "Shear|Ctrl S", TB_CTRL|'s', NULL},
+{	0, "Warp|Shift W", 	'W', NULL},
+{	0, "SEPR", 					0, NULL},
+{	ICON_MENU_PANEL, "Properties|n", 'n', NULL},
+{	0, "Snap...|Shift S", 		'S', NULL},
+{	0, "Proportional Edit|O", 	'o', 		NULL},
+{  -1, "", 			0, tb_do_hotkey}};
+
+
+static TBitem tb_transform_editmode2[]= {
+{	0, "Grabber|g", 	'g', NULL},
+{	0, "Rotate|r", 		'r', NULL},
+{	0, "Scale|s", 		's', NULL},
+{	0, "SEPR", 					0, NULL},
+{	ICON_MENU_PANEL, "Properties|n", 'n', NULL},
+{	0, "Snap...|Shift S", 		'S', NULL},
+{  -1, "", 			0, tb_do_hotkey}};
+
 
 /* *************ADD ********** */
 
@@ -1730,12 +1889,8 @@ static TBitem tb_add[]= {
 {	0, "Lattice", 	9, NULL},
 {  -1, "", 			0, do_info_addmenu}};
 
-static TBitem tb_test[]= {
-{	0, "test", 	0, NULL},
-{	0, "test", 	1, NULL},
-{	0, "test", 	2, NULL},
-{	0, "test", 3, NULL},
-{	0, "test", 	4, NULL},
+static TBitem tb_empty[]= {
+{	0, "Nothing...", 	0, NULL},
 {  -1, "", 		0, NULL}};
 
 
@@ -1822,20 +1977,45 @@ void toolbox_n(void)
 		if(G.obedit) {
 			if(G.obedit->type==OB_MESH) {
 				menu1= tb_mesh; str1= "Mesh";
-				menu2= addmenu_mesh; str2= "Add";
-				menu4= tb_mesh_edit; str4= "Edit";
+				menu2= addmenu_mesh; 
+				menu3= tb_mesh_select;
+				menu4= tb_mesh_edit; 
+				menu5= tb_transform_editmode1;
 			}
 			else if(G.obedit->type==OB_CURVE) {
-				menu1= tb_test; str1= "Curve";
-				menu2= addmenu_curve; str2= "Add";
+				menu1= tb_obdata; str1= "Curve";
+				menu2= addmenu_curve;
+				menu3= tb_curve_select;
+				menu4= tb_curve_edit;
+				menu5= tb_transform_editmode1;
 			}
 			else if(G.obedit->type==OB_SURF) {
-				menu1= tb_test; str1= "Surface";
-				menu2= addmenu_surf; str2= "Add";
+				menu1= tb_obdata; str1= "Surface";
+				menu2= addmenu_surf; 
+				menu3= tb_curve_select;
+				menu4= tb_curve_edit;
+				menu5= tb_transform_editmode1;
 			}
 			else if(G.obedit->type==OB_MBALL) {
-				menu1= tb_test; str1= "Meta";
-				menu2= addmenu_meta; str2= "Add";
+				menu1= tb_obdata; str1= "Meta";
+				menu2= addmenu_meta;
+				menu3= tb__select;
+				menu4= tb_edit;
+				menu5= tb_transform_editmode2;
+			}
+			else if(G.obedit->type==OB_ARMATURE) {
+				menu1= tb_obdata;str1= "Armature";
+				menu2= tb_empty;
+				menu3= tb__select;
+				menu4= tb_edit;
+				menu5= tb_transform_editmode2;
+			}
+			else if(G.obedit->type==OB_LATTICE) {
+				menu1= tb_empty;str1= "Lattice";
+				menu2= tb_empty;
+				menu3= tb__select;
+				menu4= tb_edit;
+				menu5= tb_transform_editmode1;
 			}
 			
 		}
@@ -1848,6 +2028,16 @@ void toolbox_n(void)
 	
 	/* create the main buttons menu */
 	if(tot==6) {
+	
+		/* check if it fits */
+		if(mval[0]-1.5*dx+tb_mainx < 6) mval[0]= 6 + 1.5*dx -tb_mainx;
+		else if(mval[0]+1.5*dx+tb_mainx > G.curscreen->sizex-6) 
+			mval[0]= G.curscreen->sizex-6-1.5*dx-tb_mainx;
+
+		if(mval[1]-20+tb_mainy < 6) mval[1]= 6+20 -tb_mainy;
+		else if(mval[1]+20+tb_mainy > G.curscreen->sizey-6) 
+			mval[1]= G.curscreen->sizey-6-20-tb_mainy;
+	
 		but=uiDefBlockBut(block, tb_makemenu, menu1, str1,	mval[0]-1.5*dx+tb_mainx,mval[1]+tb_mainy, dx, 19, "");
 		uiButSetFlag(but, UI_MAKE_TOP|UI_MAKE_RIGHT);
 		uiButSetFunc(but, store_main, (void *)dx, (void *)-5);
@@ -1879,5 +2069,10 @@ void toolbox_n(void)
 	mywinset(curarea->win);
 }
 
-
+void toolbox_n_add(void)
+{
+	tb_mainx= 0;
+	tb_mainy= -5;
+	toolbox_n();
+}
 

@@ -2719,7 +2719,7 @@ static void selectconnectedAll(void)
 
 }
 
-void selectconnected_mesh(void)
+void selectconnected_mesh(int qual)
 {
 	EditVert *eve,*v1,*v2,*act= 0;
 	EditEdge *eed;
@@ -2727,14 +2727,14 @@ void selectconnected_mesh(void)
 
 	if(G.eded.first==0) return;
 
-	if(G.qual & LR_CTRLKEY) {
+	if(qual & LR_CTRLKEY) {
 		selectconnectedAll();
 		return;
 	}
 
 	sel= 3;
-	if(G.qual & LR_SHIFTKEY) sel=2;
-
+	if(qual & LR_SHIFTKEY) sel=2;
+	
 	act= findnearestvert(sel-2);
 	if(act==0) {
 		error(" Nothing indicated ");

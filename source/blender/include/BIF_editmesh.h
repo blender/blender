@@ -105,7 +105,7 @@ void righthandfaces(int select);
 
 void mouse_mesh(void);
 
-void selectconnected_mesh(void);
+void selectconnected_mesh(int qual);
 short extrudeflag(short flag,short type);
 void rotateflag(short flag, float *cent, float rotmat[][3]);
 void translateflag(short flag, float *vec);

@@ -878,8 +878,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case AKEY:
 				if(G.qual & LR_CTRLKEY) apply_object();	// also with shift!
 				else if((G.qual==LR_SHIFTKEY)) {
-					tbox_setmain(0);
-					toolbox();
+					toolbox_n_add();
 				}
 				else {
 					if(G.obedit) {
