@@ -1046,37 +1046,37 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 	/* WINDOW size (sch='scherm' dutch for screen...) */
 	R.r.xsch= (R.r.size*R.r.xsch)/100;
 	R.r.ysch= (R.r.size*R.r.ysch)/100;
-
+	
 	R.afmx= R.r.xsch/2;
 	R.afmy= R.r.ysch/2;
-
+	
 	/* to be sure: when a premature return (rectx can differ from xsch) */
 	R.rectx= R.r.xsch;
 	R.recty= R.r.ysch;
-
+	
 	/* IS RENDERING ALLOWED? */
-
+	
 	/* forbidden combination */
 	if((R.r.mode & R_BORDER) && (R.r.mode & R_PANORAMA)) {
 		error("No border allowed for Panorama");
 		G.afbreek= 1;
 		return;
 	}
-
+	
 	
 	if(R.r.xparts*R.r.yparts>64) {
 		error("No more than 64 parts");
 		G.afbreek= 1;
 		return;
 	}
-
+	
 	if(R.r.yparts>1 && (R.r.mode & R_PANORAMA)) {
 		error("No Y-Parts allowed for Panorama");
 		G.afbreek= 1;
 		return;
 	}
-
-
+	
+	
 	/* TEST BACKBUF */
 	/* If an image is specified for use as backdrop, that image is loaded    */
 	/* here.                                                                 */
@@ -1084,15 +1084,15 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 		if(R.r.alphamode == R_ADDSKY) {
 			strcpy(name, R.r.backbuf);
 			BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
-
+			
 			if(R.backbuf) {
 				R.backbuf->id.us--;
 				bima= R.backbuf;
 			}
 			else bima= 0;
-
+			
 			R.backbuf= add_image(name);
-
+			
 			if(bima && bima->id.us<1) {
 				free_image_buffers(bima);
 			}
@@ -1105,49 +1105,49 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 			}
 		}
 	}
-
-
+	
+	
 	usegamtab= 0; /* see also further */
-
+	
 	if(R.r.mode & (R_OSA|R_MBLUR)) {
 		R.osa= R.r.osa;
 		if(R.osa>16) R.osa= 16;
-
+		
 		init_render_jit(R.osa);
 		RE_init_filt_mask();
-
+		
 		/* this value sometimes is reset temporally, for example in transp zbuf */
 		if(R.r.mode & R_GAMMA) {
 			if((R.r.mode & R_OSA)) usegamtab= 1;
 		}
 	}
 	else R.osa= 0;
-
+	
 	/* when rendered without camera object */
 	/* it has to done here because of envmaps */
 	R.near= 0.1;
 	R.far= 1000.0;
-
-
+	
+	
 	if(R.afmx<1 || R.afmy<1) {
 		error("Image too small");
 		return;
 	}
 	R.ycor= ( (float)R.r.yasp)/( (float)R.r.xasp);
-
+	
 	start_time= PIL_check_seconds_timer();
-
+	
 	if(R.r.scemode & R_DOSEQ) {
 		R.rectx= R.r.xsch;
 		R.recty= R.r.ysch;
-
+		
 		if(R.rectot) MEM_freeN(R.rectot);
 		R.rectot= (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
-
+		
 		RE_local_timecursor((G.scene->r.cfra));
-
+		
 		if(RE_local_test_break()==0) do_render_seq();
-
+		
 		/* display */
 		if(R.rectot) RE_local_render_display(0, R.recty-1,
 											 R.rectx, R.recty,
@@ -1156,10 +1156,10 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 	else if(R.r.scemode & R_OGL) {
 		R.rectx= R.r.xsch;
 		R.recty= R.r.ysch;
-
+		
 		if(R.rectot) MEM_freeN(R.rectot);
 		R.rectot= (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
-
+		
 		RE_local_init_render_display();
 		drawview3d_render(ogl_render_view3d);
 	}
@@ -1167,33 +1167,34 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 		if(G.scene->camera==0) {
 			G.scene->camera= scene_find_camera(G.scene);
 		}
-
+		
 		if(G.scene->camera==0) {
 			error("No camera");
 			G.afbreek=1;
 			return;
 		}
 		else {
-
+			
 			if(G.scene->camera->type==OB_CAMERA) {
 				Camera *cam= G.scene->camera->data;
 				if(cam->type==CAM_ORTHO) R.r.mode |= R_ORTHO;
 			}
-
+			
 			render(); /* returns with complete rect xsch-ysch */
 		}
 	}
-
+	
 	/* display again: fields/seq/parts/pano etc */
 	if(R.rectot) {
 		RE_local_init_render_display();
 		RE_local_render_display(0, R.recty-1,
-								R.rectx, R.recty,
-								R.rectot);
+			R.rectx, R.recty,
+			R.rectot);
 	}
 	else RE_local_clear_render_display(R.win);
-
-	RE_local_printrenderinfo((PIL_check_seconds_timer() - start_time), -1);
+	
+	if ((G.scene->r.scemode & R_OGL)==0) /* header gets scrabled if renderwindow holds OGL context */	
+		RE_local_printrenderinfo((PIL_check_seconds_timer() - start_time), -1);
 	
 	/* restore variables */
 	//R.osatex= 0;
