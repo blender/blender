@@ -176,10 +176,11 @@ static unsigned int KX_Mcol2uint_new(MCol col)
 	/* color has to be converted without endian sensitivity. So no shifting! */
 	unsigned int temp=0;
 	unsigned char *cp= (unsigned char *)&temp;
-	cp[0]= col.r;
-	cp[1]= col.g;
-	cp[2]= col.b;
-	cp[3]= col.a;
+	unsigned char *src = (unsigned char *) &col;
+	cp[0]= src[3]; // red
+	cp[1]= src[2]; // green
+	cp[2]= src[1]; // blue
+	cp[3]= src[0]; // Alpha
 	return temp;
 }
 
