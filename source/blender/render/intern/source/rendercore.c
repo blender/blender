@@ -2475,6 +2475,10 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 				ray_trace(&shi, &shr, mask);
 			}
 		}
+		else {
+			// doesnt look 'correct', but is better for preview, plus envmaps dont raytrace this
+			if(shi.mat->mode & MA_RAYTRANSP) shr.alpha= 1.0;
+		}
 		
 		VecAddf(col, shr.diff, shr.spec);
 		

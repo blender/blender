@@ -502,10 +502,13 @@ void render_envmap(EnvMap *env)
 void make_envmaps()
 {
 	Tex *tex;
-	int do_init= 0, depth= 0;
+	int do_init= 0, depth= 0, trace;
 	
 	if (!(R.r.mode & R_ENVMAP)) return;
-
+	
+	/* we dont raytrace, disabling the flag will cause ray_transp render solid */
+	trace= (R.r.mode & R_RAYTRACE);
+	R.r.mode &= ~R_RAYTRACE;
 
 	/* 5 = hardcoded max recursion level */
 	while(depth<5) {
@@ -556,6 +559,9 @@ void make_envmaps()
 		RE_local_clear_render_display(R.win);
 		allqueue(REDRAWBUTSSHADING, 0);			// bad!
 	}	
+	// restore
+	R.r.mode |= trace;
+
 }
 
 /* ------------------------------------------------------------------------- */

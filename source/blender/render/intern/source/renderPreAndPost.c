@@ -81,6 +81,7 @@ void prepareScene()
 
 		/* octree */
 		if(R.r.mode & R_RAYTRACE) makeoctree();
+
 	}
 }
 
