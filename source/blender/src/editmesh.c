@@ -999,6 +999,7 @@ void make_editMesh_real(Mesh *me)
 	for(a=0; a<tot; a++, mvert++) {
 		eve= addvertlist(mvert->co);
 		evlist[a]= eve;
+		eve->f |= (mvert->flag & 1);
 		eve->no[0]= mvert->no[0]/32767.0;
 		eve->no[1]= mvert->no[1]/32767.0;
 		eve->no[2]= mvert->no[2]/32767.0;
@@ -1324,6 +1325,7 @@ void load_editMesh_real(Mesh *me)
 			
 			mvert->flag= 0;
 			if(eve->f1==1) mvert->flag |= ME_SPHERETEST;
+			mvert->flag |= (eve->f & 1);
 			
 			eve= eve->next;
 			mvert++;
@@ -1761,9 +1763,6 @@ void righthandfaces(int select)	/* makes faces righthand turning */
 
 	waitcursor(1);
 	
-	if (select==2) undo_push_mesh("Recalc normals inside");
-	if (select==1) undo_push_mesh("Recalc normals outside");
-
 	eed= G.eded.first;
 	while(eed) {
 		eed->f= 0;

@@ -1070,10 +1070,16 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						break;
 					case OB_MESH: 
 						if(G.qual & LR_SHIFTKEY) {
-							if(okee("Recalc normals inside")) righthandfaces(2);
+							if(okee("Recalc normals inside")) {
+								undo_push_mesh("Recalc normals inside");
+								righthandfaces(2);
+							}
 						}
 						else {
-							if(okee("Recalc normals outside")) righthandfaces(1);
+							if(okee("Recalc normals outside")) {
+								undo_push_mesh("Recalc normals outside");
+								righthandfaces(1);
+							}
 						}
 						break;
 					}
