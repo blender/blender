@@ -758,29 +758,10 @@ static int hypermesh_get_nlines(HyperMesh *hme) {
 	return n;
 }
 
-static int editface_is_hidden(EditVlak *ef) {
-	return (ef->v1->h || ef->v2->h || ef->v3->h || (ef->v4 && ef->v4->h));
-}
-
-static int hypermesh_get_nhidden(HyperMesh *hme) {
-	int count= 0;
-
-		/* hme->orig_me==NULL if we are working on an editmesh */
-	if (!hme->orig_me) {
-		HyperFace *f;
-	
-		for (f= hme->faces; f; f= f->next)
-			if (editface_is_hidden(f->orig.ef))
-				count++;
-	}
-	
-	return count;
-}
-
 /* flag is me->flag, for handles and 'optim' */
 static DispList *hypermesh_to_displist(HyperMesh *hme, short flag) {
 	int nverts= hypermesh_get_nverts(hme);
-	int nfaces= hypermesh_get_nfaces(hme) + hypermesh_get_nlines(hme) - hypermesh_get_nhidden(hme);
+	int nfaces= hypermesh_get_nfaces(hme) + hypermesh_get_nlines(hme);
 	DispList *dl= MEM_callocN(sizeof(*dl), "dl");
 	DispListMesh *dlm= MEM_callocN(sizeof(*dlm), "dlmesh");
 	HyperFace *f;
@@ -832,9 +813,6 @@ static DispList *hypermesh_to_displist(HyperMesh *hme, short flag) {
 	
 	mf= dlm->mface;
 	for (i=0, f= hme->faces; f; i++, f= f->next) {
-		if (!hme->orig_me && editface_is_hidden(f->orig.ef))
-			continue;
-			
 			/* There is a complicated dependancy here:
 			 * After a subdivision the points that were shifted will always be
 			 * first in the hme->verts list (because they are added last, but to
