@@ -261,6 +261,7 @@ elif sys.platform == 'win32':
     defines = ['WIN32', '_CONSOLE']
     defines += ['WITH_QUICKTIME']
     defines += ['_LIB', 'USE_OPENAL']
+    defines += ['FTGL_LIBRARY_STATIC']
     warn_flags = []
     platform_libs = [ 'qtmlClient', 'soundsystem',
                      'ws2_32', 'dxguid', 'vfw32', 'winmm',
