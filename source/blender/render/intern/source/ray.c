@@ -1484,8 +1484,10 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 	isec.vlrorig= vlr;
 
 	if( d3dda(&isec) ) {
+		
 		shi.mask= mask;
 		shi.osatex= osatex;
+		
 		shade_ray(&isec, &shi, &shr);
 		
 		if(depth>0) {
@@ -1755,6 +1757,9 @@ static void ray_trace_shadow_tra(Isect *is, int depth)
 	if( d3dda(is)) {
 		float col[4];
 		/* we got a face */
+		
+		shi.mask= 1;
+		shi.osatex= 0;
 		
 		shade_ray(is, &shi, &shr);
 		
