@@ -419,7 +419,7 @@ extern Object workob;
 #define OB_SB_EDGES		4
 #define OB_SB_QUADS		8
 #define OB_SB_POSTDEF	16
-
+#define OB_SB_REDO		32
 
 #ifdef __cplusplus
 }

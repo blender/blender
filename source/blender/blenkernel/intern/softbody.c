@@ -668,7 +668,7 @@ static int get_scalar_from_named_vertexgroup(Object *ob, char *name, int vertID,
 			/* Lets see if this vert is in the weight group */
 			for (i=0; i<dv->totweight; i++){
 				if (dv->dw[i].def_nr == groupindex){
-					*target=dv->dw[i].weight; /* got it ! */
+					*target= dv->dw[i].weight; /* got it ! */
 					return 0;
 				}
 			}
@@ -696,16 +696,19 @@ static void mesh_to_softbody(Object *ob)
 	sb= ob->soft;	
 	bp= sb->bpoint;
 	for(a=me->totvert; a>0; a--, mvert++, bp++) {
+		
 		VECCOPY(bp->pos, mvert->co);
 		Mat4MulVecfl(ob->obmat, bp->pos);  // yep, sofbody is global coords
 		VECCOPY(bp->origS, bp->pos);
 		VECCOPY(bp->origE, bp->pos);
 		VECCOPY(bp->origT, bp->pos);
+		
 		bp->vec[0]= bp->vec[1]= bp->vec[2]= 0.0;
 		bp->weight= 1.0;
 		bp->goal= 0.5;
-		bp->nofsprings=0;
-		bp->springs=NULL;
+		bp->nofsprings= 0;
+		bp->springs= NULL;
+		
 		if (1) { /* switch to vg scalars*/
 			/* get scalar values needed  *per vertex* from vertex group functions,
 			   so we can *paint* them nicly .. 
@@ -717,12 +720,13 @@ static void mesh_to_softbody(Object *ob)
 			char name[32] = "SOFTGOAL";
 			float temp;
 			
-			error = get_scalar_from_named_vertexgroup(ob,name,me->totvert - a,&temp);
+			error = get_scalar_from_named_vertexgroup(ob, name, me->totvert - a, &temp);
 			if (!error) bp->goal = temp;
 			if (bp->goal < sb->mingoal) bp->goal = sb->mingoal;
 			if (bp->goal > sb->maxgoal) bp->goal = sb->maxgoal;
 			/* a little ad hoc changing the goal control to be less *sharp* */
 			bp->goal = (float)pow(bp->goal,4.0f);
+			
 			/* to proove the concept
 			this would enable per vertex *mass painting*
 			strcpy(name,"SOFTMASS");
@@ -755,6 +759,7 @@ static void mesh_to_softbody(Object *ob)
 
 		build_bps_springlist(ob); /* big mesh optimization */
 	}
+	
 }
 
 /* copies current sofbody position in mesh, so do this within modifier stacks! */
@@ -870,6 +875,7 @@ void sbObjectToSoftbody(Object *ob)
 	}
 	
 	if(ob->soft) ob->soft->ctime= bsystem_time(ob, NULL, (float)G.scene->r.cfra, 0.0);
+	ob->softflag &= ~OB_SB_REDO;
 }
 
 /* reset all motion */
@@ -904,10 +910,11 @@ void sbObjectStep(Object *ob, float framenr)
 	float ctime, forcetime;
 	float err;
 
-	/* just to be nice we allow full init */
-	if(ob->soft==NULL) sbObjectToSoftbody(ob);
-	/* this is after reading new file, or acceptable as signal to refresh */
-	else if(ob->soft->totpoint==0) sbObjectToSoftbody(ob);
+	/* remake softbody if: */
+	if( (ob->softflag & OB_SB_REDO) ||		// signal after weightpainting
+		(ob->soft==NULL) ||					// just to be nice we allow full init
+		(ob->soft->totpoint==0) ) 			// after reading new file, or acceptable as signal to refresh
+			sbObjectToSoftbody(ob);
 	
 	sb= ob->soft;
 	

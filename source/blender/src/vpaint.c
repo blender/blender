@@ -59,10 +59,11 @@
 #include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_utildefines.h"
-#include "BKE_mesh.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
+#include "BKE_mesh.h"
+#include "BKE_object.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_graphics.h"
 #include "BIF_interface.h"
@@ -930,6 +931,8 @@ void weight_paint(void)
 	}
 	
 	makeDispList(ob);
+	// this flag is event for softbody to refresh weightpaint values
+	if(ob->soft) ob->softflag |= OB_SB_REDO;
 	
 	allqueue(REDRAWVIEW3D, 0);
 
