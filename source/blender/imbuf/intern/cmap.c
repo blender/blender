@@ -414,7 +414,7 @@ short IMB_converttocmap(struct ImBuf *ibuf)
 	unsigned int *coltab;
 	short *deltab=0, cbits;
 	int i;
-	int mincol, mask;
+	int mincol, mask = 0;
 	struct ImBuf * abuf = 0;
 	unsigned int * rect, * arect;
 	
