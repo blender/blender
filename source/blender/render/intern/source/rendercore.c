@@ -1939,7 +1939,17 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 				float shad[4];
 				
 				/* single sided? */
-				if( vlr->n[0]*lv[0] + vlr->n[1]*lv[1] + vlr->n[2]*lv[2] > -0.01) {
+				inpr= vlr->n[0]*lv[0] + vlr->n[1]*lv[1] + vlr->n[2]*lv[2];
+
+				if(lar->type==LA_SPOT) {
+					float dot;
+					Normalise(lv);
+					dot= lv[0]*lar->vec[0]+lv[1]*lar->vec[1]+lv[2]*lar->vec[2];
+					if(dot<lar->spotsi) inpr= -1.0;
+				}
+				
+				/* single sided? */
+				if( inpr > -0.01) {
 					ray_shadow(shi, lar, shad);
 					shadfac[3]+= shad[3];
 					ir+= 1.0;
