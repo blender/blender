@@ -2064,6 +2064,8 @@ static int unlink_existingMeshData( Mesh * mesh )
 	EXPP_unlink_mesh( mesh );
 	if( mesh->mvert )
 		MEM_freeN( mesh->mvert );
+	if( mesh->medge )
+		MEM_freeN( mesh->medge );
 	if( mesh->mface )
 		MEM_freeN( mesh->mface );
 	if( mesh->mcol )
@@ -2171,6 +2173,7 @@ static int convert_NMeshToMesh( Mesh * mesh, BPy_NMesh * nmesh )
 	int i, j;
 
 	mesh->mvert = NULL;
+	mesh->medge = NULL;
 	mesh->mface = NULL;
 	mesh->mcol = NULL;
 	mesh->msticky = NULL;
