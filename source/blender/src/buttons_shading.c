@@ -884,9 +884,9 @@ static void texture_panel_wood(Tex *tex)
 	uiDefButS(block, ROW, B_TEXPRV, "BandNoise",	160, 180, 75, 18, &tex->stype, 2.0, 2.0, 0, 0, "Adds noise to standard wood"); 
 	uiDefButS(block, ROW, B_TEXPRV, "RingNoise",	235, 180, 75, 18, &tex->stype, 2.0, 3.0, 0, 0, "Adds noise to rings");
 	
-	uiDefButS(block, ROW, B_TEXPRV, "Sin",			10, 160, 50, 19, &tex->noisebasis2, 8.0, 0.0, 0, 0, "Uses a sine wave to produce bands."); 
-	uiDefButS(block, ROW, B_TEXPRV, "Saw",			60, 160, 50, 19, &tex->noisebasis2, 8.0, 1.0, 0, 0, "Uses a saw wave to produce bands."); 
-	uiDefButS(block, ROW, B_TEXPRV, "Tri",			110, 160, 50, 19, &tex->noisebasis2, 8.0, 2.0, 0, 0, "Uses a triangle wave to produce bands.");
+	uiDefButS(block, ROW, B_TEXPRV, "Sin",			10, 160, 50, 19, &tex->noisebasis2, 8.0, 0.0, 0, 0, "Uses a sine wave to produce bands"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Saw",			60, 160, 50, 19, &tex->noisebasis2, 8.0, 1.0, 0, 0, "Uses a saw wave to produce bands"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Tri",			110, 160, 50, 19, &tex->noisebasis2, 8.0, 2.0, 0, 0, "Uses a triangle wave to produce bands");
 	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	160, 160, 75, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Generates soft noise");
 	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	235, 160, 75, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Generates hard noise");
 	
@@ -947,9 +947,9 @@ static void texture_panel_marble(Tex *tex)
 	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	10, 160, 150, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Generates soft noise");
 	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	160, 160, 150, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Generates hard noise");
 	
-	uiDefButS(block, ROW, B_TEXPRV, "Sin",			10, 140, 100, 18, &tex->noisebasis2, 8.0, 0.0, 0, 0, "Uses soft marble"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Saw",			110, 140, 100, 18, &tex->noisebasis2, 8.0, 1.0, 0, 0, "Uses more clearly defined marble"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Tri",			210, 140, 100, 18, &tex->noisebasis2, 8.0, 2.0, 0, 0, "Uses very clearly defined marble"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Sin",			10, 140, 100, 18, &tex->noisebasis2, 8.0, 0.0, 0, 0, "Uses a sine wave to produce bands."); 
+	uiDefButS(block, ROW, B_TEXPRV, "Saw",			110, 140, 100, 18, &tex->noisebasis2, 8.0, 1.0, 0, 0, "Uses a saw wave to produce bands"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Tri",			210, 140, 100, 18, &tex->noisebasis2, 8.0, 2.0, 0, 0, "Uses a triangle wave to produce bands"); 
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 110, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets scaling for noise input");
