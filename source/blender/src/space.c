@@ -877,11 +877,14 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else make_local();
 				}
 				break;
-			case MKEY:
-				if((G.obedit) && (G.qual & LR_ALTKEY)) 
-					mergemenu();
-				else movetolayer();
-				break;
+ 			case MKEY:
+				if((G.obedit) && (G.qual & LR_ALTKEY)) {
+					if(G.obedit->type==OB_MESH) mergemenu();
+				}
+				else {
+				     	movetolayer();
+				}
+ 				break;
 			case NKEY:
 				if(G.obedit) {
 					switch (G.obedit->type){
