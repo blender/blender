@@ -46,6 +46,7 @@ all:
 	$(MAKE) -C $(DISTDIR)
     endif
     ifeq ($(OS),windows)
+	[ -d $(DISTDIR)/lib ] || mkdir $(DISTDIR)/lib
 	# compile with MSVC
 	mv $(USERSETTINGS) $(TEMPSETTINGS)
 	cat $(TEMPSETTINGS) | sed s/unix-gcc/msvc/ > $(USERSETTINGS)
