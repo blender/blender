@@ -121,6 +121,8 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_BGPICCLEAR	1005
 #define B_BGPICTEXCLEAR	1006
 
+#define B_OBJECTPANELROT 1007
+
 /* *********************** */
 #define B_LAMPBUTS		1200
 

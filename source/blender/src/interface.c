@@ -2078,7 +2078,6 @@ static void ui_draw_but(uiBut *but)
 {
 	double value;
 	float fac, x1, y1, x2, y2, *fp;
-	short a;
 	char colr, colg, colb;
 	
 	if(but==0) return;
@@ -5520,28 +5519,6 @@ uiBlock *uiGetBlock(char *name, ScrArea *sa)
 	return NULL;
 }
 
-static char *ui_block_cut_str(uiBlock *block, char *str, short okwidth)
-{
-	short width, ofs=strlen(str);
-	static char str1[128];
-	
-	if(ofs>127) return str;
-	
-	width= block->aspect*BIF_GetStringWidth(block->curfont, str, (U.transopts & TR_BUTTONS));
-
-	if(width <= okwidth) return str;
-	strcpy(str1, str);
-	
-	while(width > okwidth && ofs>0) {
-		ofs--;
-		str1[ofs]= 0;
-		
-		width= block->aspect*BIF_GetStringWidth(block->curfont, str1, 0);
-		
-		if(width < 10) break;
-	}
-	return str1;
-}
 
 static void ui_check_but(uiBut *but)
 {
@@ -6608,6 +6585,30 @@ static void ui_set_panel_pattern(char dir)
 	if(dir=='h') glPolygonStipple(path);	
 	else glPolygonStipple(patv);	
 }
+
+static char *ui_block_cut_str(uiBlock *block, char *str, short okwidth)
+{
+	short width, ofs=strlen(str);
+	static char str1[128];
+	
+	if(ofs>127) return str;
+	
+	width= block->aspect*BIF_GetStringWidth(block->curfont, str, (U.transopts & TR_BUTTONS));
+
+	if(width <= okwidth) return str;
+	strcpy(str1, str);
+	
+	while(width > okwidth && ofs>0) {
+		ofs--;
+		str1[ofs]= 0;
+		
+		width= block->aspect*BIF_GetStringWidth(block->curfont, str1, 0);
+		
+		if(width < 10) break;
+	}
+	return str1;
+}
+
 
 #define PNL_ICON 	20
 #define PNL_DRAGGER	20

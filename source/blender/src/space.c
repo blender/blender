@@ -163,20 +163,21 @@ void free_soundspace(SpaceSound *ssound);
 /* don't know yet how the handlers will evolve, for simplicity
    i choose for an array with eventcodes, this saves in a file!
    */
-void add_blockhandler(ScrArea *sa, short eventcode)
+void add_blockhandler(ScrArea *sa, short eventcode, short val)
 {
 	SpaceLink *sl= sa->spacedata.first;
 	short a;
 	
 	// find empty spot
-	for(a=0; a<SPACE_MAXHANDLER; a++) {
+	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
 		if( sl->blockhandler[a]==eventcode );
 		else if( sl->blockhandler[a]==0) {
 			sl->blockhandler[a]= eventcode;
+			sl->blockhandler[a+1]= val;
 			break;
 		}
 	}
-	if(a==SPACE_MAXHANDLER) printf("error; max blockhandlers reached!\n");
+	if(a==SPACE_MAXHANDLER) printf("error; max (4) blockhandlers reached!\n");
 }
 
 void rem_blockhandler(ScrArea *sa, short eventcode)
@@ -184,7 +185,7 @@ void rem_blockhandler(ScrArea *sa, short eventcode)
 	SpaceLink *sl= sa->spacedata.first;
 	short a;
 	
-	for(a=0; a<SPACE_MAXHANDLER; a++) {
+	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
 		if( sl->blockhandler[a]==eventcode) {
 			sl->blockhandler[a]= 0;
 			break;
@@ -1058,7 +1059,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
  				break;
 			case NKEY:
-				if(G.obedit) {
+				if(G.obedit && (G.qual & LR_CTRLKEY)) {
 					switch (G.obedit->type){
 					case OB_ARMATURE:
 						if (okee("Recalc bone roll angles")) auto_align_armature();
@@ -1072,6 +1073,12 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						}
 						break;
 					}
+					allqueue(REDRAWVIEW3D, 0);
+				}
+				else {
+					if(G.obedit);
+					else add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, HANDLER_MOUSEPOS);
+					
 					allqueue(REDRAWVIEW3D, 0);
 				}
 				break;

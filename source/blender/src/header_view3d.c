@@ -280,8 +280,11 @@ static void do_view3d_viewmenu(void *arg, int event)
 	case 13: /* Play Back Animation */
 		play_anim(0);
 		break;
-	case 14: /* Backdrop and settings Panel */
-		add_blockhandler(curarea, VIEW3D_HANDLER_SETTINGS);
+	case 14: /* Backdrop Panel */
+		add_blockhandler(curarea, VIEW3D_HANDLER_BACKGROUND, 0);
+		break;
+	case 15: /* View  Panel */
+		add_blockhandler(curarea, VIEW3D_HANDLER_VIEW, 0);
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -297,7 +300,7 @@ static uiBlock *view3d_viewmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_view3d_viewmenu, NULL);
 	uiBlockSetCol(block, MENUCOL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BUTS, "Backdrop and Settings Panel",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BUTS, "Backdrop and Settings",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	if ((G.vd->viewbut == 0) && !(G.vd->persp == 2)) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "User",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
@@ -915,6 +918,10 @@ static void do_view3d_edit_objectmenu(void *arg, int event)
 	case 12: /* snap */
 		snapmenu();
 		break;
+
+	case 15: /* Object Panel */
+		add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, 0);
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -928,10 +935,14 @@ static uiBlock *view3d_edit_objectmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_view3d_edit_objectmenu, NULL);
 	uiBlockSetCol(block, MENUCOL);
 	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BUTS, "Object attributes|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 15, "");
+	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
 	//uiDefIconTextBlockBut(block, 0, NULL, ICON_RIGHTARROW_THIN, "Move", 0, yco-=20, 120, 19, "");
 	//uiDefIconTextBlockBut(block, 0, NULL, ICON_RIGHTARROW_THIN, "Rotate", 0, yco-=20, 120, 19, "");
 	//uiDefIconTextBlockBut(block, 0, NULL, ICON_RIGHTARROW_THIN, "Scale", 0, yco-=20, 120, 19, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Transform Properties...|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	// uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Transform Properties...|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+
 	uiDefIconTextBlockBut(block, view3d_edit_object_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Snap...|Shift S",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
 	
@@ -2860,7 +2871,7 @@ void view3d_buttons(void)
 	xco+= 128;
 	
 	/* DRAWTYPE */
-	uiDefIconTextButC(block, ICONTEXTROW,B_REDR, ICON_BBOX, drawtype_pup(), xco,0,XIC+10,YIC, &(G.vd->drawtype), 1.0, 5.0, 0, 0, "Viewport Shading: boundbox/wire/solid/shaded (ZKEY, SHIFT+Z)");
+	uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_BBOX, drawtype_pup(), xco,0,XIC+10,YIC, &(G.vd->drawtype), 1.0, 5.0, 0, 0, "Viewport Shading: boundbox/wire/solid/shaded (ZKEY, SHIFT+Z)");
 
 	// uiDefIconButS(block, ICONROW, B_REDR, ICON_BBOX,	xco,0,XIC+10,YIC, &(G.vd->drawtype), 1.0, 5.0, 0, 0, "Drawtype: boundbox/wire/solid/shaded (ZKEY, SHIFT+Z)");
 

@@ -759,8 +759,10 @@ int blenderqread(unsigned short event, short val)
 		if(textediting==0 && textspace==0 ) {
 			if(G.qual & LR_CTRLKEY);
 			else if(G.qual==0 || (G.qual & LR_SHIFTKEY)) {
-				clever_numbuts();
-				return 0;
+				if(curarea->spacetype!=SPACE_VIEW3D) {
+					clever_numbuts();
+					return 0;
+				}
 			}
 		}
 		break;
