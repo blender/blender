@@ -452,7 +452,7 @@ void count_object(Object *ob, int sel)
 		if(me) {
 			int totvert, totface;
 				/* hack, should be getting displistmesh from a central function */
-			if (mesh_uses_displist(me) && ((DispList*)me->disp.first)->type==DL_MESH) {
+			if (mesh_uses_displist(me) && me->disp.first && ((DispList*)me->disp.first)->type==DL_MESH) {
 				DispListMesh *dlm= ((DispList*)me->disp.first)->mesh;
 				totvert= dlm->totvert;
 				totface= dlm->totface;
