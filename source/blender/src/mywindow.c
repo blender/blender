@@ -121,6 +121,7 @@ void mywindow_build_and_set_renderwin( int orx, int ory, int sizex, int sizey)
 {
 
 	swinarray[2]= &renderwindow;
+	curswin= 2; /* myortho2 needs this to be set */
 
 	renderwindow.xmin= orx;
 	renderwindow.ymin= ory;
@@ -133,10 +134,8 @@ void mywindow_build_and_set_renderwin( int orx, int ory, int sizex, int sizey)
 
 	glGetFloatv(GL_PROJECTION_MATRIX, (float *)renderwindow.winmat);
 	glGetFloatv(GL_MODELVIEW_MATRIX, (float *)renderwindow.viewmat);
-	
 	mywinset(2);
 
-	curswin= 2;
 }
 
 /* ------------------------------------------------------------------------- */
