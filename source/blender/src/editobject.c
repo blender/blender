@@ -4121,7 +4121,7 @@ static void constline(float *center, float *dir, char axis, float axismat[][3])
 {
 	extern void make_axis_color(char *col, char *col2, char axis);	// drawview.c
 	float v1[3], v2[3], v3[3];
-	char col[3], col2[2];
+	char col[3], col2[3];
 	
 	if(G.obedit) mymultmatrix(G.obedit->obmat);	// sets opengl viewing
 
