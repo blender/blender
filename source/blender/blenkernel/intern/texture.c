@@ -348,6 +348,14 @@ void default_tex(Tex *tex)
 	tex->gfac= 1.0;
 	tex->bfac= 1.0;
 
+        if (tex->env) {
+           tex->env->stype=ENV_STATIC;
+           tex->env->clipsta=0.1;
+           tex->env->clipend=100;
+           tex->env->cuberes=100;
+           tex->env->depth=0;
+        }
+
         pit = tex->plugin;
         if (pit) {
              varstr= pit->varstr;
