@@ -29,14 +29,8 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 /**
- * @file	GHOST_SystemX11.h
- * Declaration of GHOST_SystemX11 class.
- */
-
-/**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
+ * @file	GHOST_TimerManager.h
+ * Declaration of GHOST_TimerManager class.
  */
 
 #ifndef _GHOST_TIMER_MANAGER_H_

@@ -29,8 +29,8 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 /**
- * @file	GHOST_SystemCarbon.h
- * Declaration of GHOST_SystemCarbon class.
+ * @file	GHOST_SystemX11.h
+ * Declaration of GHOST_SystemX11 class.
  */
 
 #ifndef _GHOST_SYSTEM_X11_H_
