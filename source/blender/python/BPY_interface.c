@@ -146,11 +146,13 @@ void BPY_end_python(void)
   return;
 }
 
-void syspath_append(PyObject *dir)
+void syspath_append(char *dirname)
 {
-  PyObject *mod_sys, *dict, *path;
+  PyObject *mod_sys, *dict, *path, *dir;
 
   PyErr_Clear();
+
+	dir = Py_BuildValue("s", dirname);
 
   mod_sys = PyImport_ImportModule("sys"); /* new ref */
   dict = PyModule_GetDict(mod_sys);       /* borrowed ref */
@@ -198,18 +200,12 @@ void init_syspath(void)
     if (execdir[n-1] == '.') n--; /*fix for when run as ./blender */
     execdir[n] = '\0';
 
-    p = Py_BuildValue("s", execdir);
-    syspath_append(p);  /* append to module search path */
+    syspath_append(execdir);  /* append to module search path */
 
     /* set Blender.sys.progname */
   }
   else
     printf ("Warning: could not determine argv[0] path\n");
-
-  if (U.pythondir && U.pythondir[0] != '\0') {
-    p = Py_BuildValue("s", U.pythondir);
-    syspath_append(p);  /* append to module search path */
-  }
 
   /* 
    * bring in the site module so we can add 
@@ -236,7 +232,7 @@ void init_syspath(void)
       for (index = 0; index < size; index++) {
 	item  = PySequence_GetItem (p, index);  /* new ref */
 	if( item )
-	  syspath_append (item);
+	  syspath_append (PyString_AsString(item));
       }
     }
     Py_DECREF(mod);
@@ -273,7 +269,9 @@ void init_syspath(void)
 /*****************************************************************************/
 void BPY_post_start_python(void)
 {
-  syspath_append(Py_BuildValue("s", U.pythondir));
+  if (U.pythondir && U.pythondir[0] != '\0')
+    syspath_append(U.pythondir);  /* append to module search path */
+
 	BPyMenu_Init(0); /* get dynamic menus (registered scripts) data */
 }
 

@@ -289,6 +289,12 @@ class Object:
     returned.
     """
 
+  def getSize():
+    """
+    Returns the object's size.
+    @return: (SizeX, SizeY, SizeZ)
+    """
+
   def getTracked():
     """
     Returns the object's tracked object.
@@ -421,7 +427,18 @@ class Object:
     @type name: String
     @param name: The new name for the object.
     """
- 
+
+  def setSize(x, y, z):
+    """
+    Sets the object's size.
+    @type x: float
+    @param x: The X size multiplier.
+    @type y: float
+    @param y: The Y size multiplier.
+    @type z: float
+    @param z: The Z size multiplier.
+    """
+
   def shareFrom(object):
     """
     Link data of self with object specified in the argument. This works only

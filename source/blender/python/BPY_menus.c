@@ -52,6 +52,7 @@
 #include <direct.h>
 #endif 
 
+#include "BKE_global.h"
 #include "BKE_utildefines.h"
 #include "BLI_blenlib.h"
 #include "MEM_guardedalloc.h"
@@ -64,6 +65,8 @@
 #include <errno.h>
 
 #define BPYMENU_DATAFILE "Bpymenus"
+
+static int DEBUG;
 
 /* BPyMenuTable holds all registered pymenus, as linked lists for each menu
  * where they can appear (see PYMENUHOOKS enum in BPY_menus.h).
@@ -231,11 +234,13 @@ static BPyMenu *bpymenu_AddEntry (short group, short version, char *name,
 			next = menu->next;
 		}
 		else { /* they are in the same dir */
-			printf("\nWarning: script %s's menu name is already in use.\n", fname);
-			printf ("Edit the script and change its Name: '%s' field, please.\n"
+			if (DEBUG) {
+				printf("\nWarning: script %s's menu name is already in use.\n", fname);
+				printf ("Edit the script and change its Name: '%s' field, please.\n"
 							"Note: if you really want two scripts in the same menu with\n"
 							"the same name, keep one in the default dir and the other in\n"
 							"the user defined dir, where it will take precedence.\n", name);
+			}
 			return NULL;
 		}
 	}
@@ -309,7 +314,7 @@ static int bpymenu_CreateFromFile (void)
 	fp = fopen(line, "rb");
 
 	if (!fp) {
-		printf("BPyMenus error: couldn't open config file %s.\n", line);
+		if (DEBUG) printf("BPyMenus error: couldn't open config file %s.\n", line);
 		return -1;
 	}
 
@@ -340,7 +345,7 @@ static int bpymenu_CreateFromFile (void)
 
 		if (parsing == 1) { /* got menu group string */
 			group = bpymenu_group_atoi(w1);
-			if (group < 0) { /* invalid type */
+			if (group < 0 && DEBUG) { /* invalid type */
 				printf("BPyMenus error parsing config file: wrong group: %s, "
 					"will use 'Misc'.\n", w1);
 			}
@@ -395,7 +400,7 @@ static void bpymenu_WriteDataFile(void)
 
 	fp = fopen(fname, "w");
 	if (!fp) {
-		printf("BPyMenus error: couldn't write %s file.", fname);
+		if (DEBUG) printf("BPyMenus error: couldn't write %s file.", fname);
 		return;
 	}
 
@@ -498,7 +503,7 @@ static int bpymenu_CreateFromDir (char *dirname, int whichdir)
 		fp = fopen(str, "rb");
 
 		if (!fp) {
-			printf("BPyMenus error: couldn't open %s.\n", str);
+			if (DEBUG) printf("BPyMenus error: couldn't open %s.\n", str);
 			continue;
 		}
 
@@ -542,7 +547,7 @@ static int bpymenu_CreateFromDir (char *dirname, int whichdir)
 		/* first the name: */
 		res = fscanf(fp, "%[^']'%[^'\r\n]'\n", w, name);
 		if ((res != 2) || (w[0] != 'n' && w[0] != 'N')) {
-			printf("BPyMenus error: wrong 'name' line in %s.\n", str);
+			if (DEBUG) printf("BPyMenus error: wrong 'name' line in %s.\n", str);
 			goto discard;
 		}
 
@@ -551,26 +556,26 @@ static int bpymenu_CreateFromDir (char *dirname, int whichdir)
 		/* minimal Blender version: */
 		res = fscanf(fp, "%s %d\n", w, &version);
 		if ((res != 2) || (w[0] != 'b' && w[0] != 'B')) {
-			printf("BPyMenus error: wrong 'blender' line in %s.\n", str);
+			if (DEBUG) printf("BPyMenus error: wrong 'blender' line in %s.\n", str);
 			goto discard;
 		}
 
 		/* the group: */
 		res = fscanf(fp, "%[^']'%[^'\r\n]'\n", w, line);
 		if ((res != 2) || (w[0] != 'g' && w[0] != 'G')) {
-			printf("BPyMenus error: wrong 'group' line in %s.\n", str);
+			if (DEBUG) printf("BPyMenus error: wrong 'group' line in %s.\n", str);
 			goto discard;
 		}
 
 		res = bpymenu_group_atoi(line);
 		if (res < 0) {
-			printf("BPyMenus error: unknown 'group' %s in %s.\n", line, str);
+			if (DEBUG) printf("BPyMenus error: unknown 'group' %s in %s.\n", line, str);
 			goto discard;
 		}
 
 		pymenu = bpymenu_AddEntry(res, (short)version, name, fname, whichdir, NULL);
 		if (!pymenu) {
-			printf("BPyMenus error: couldn't create entry for %s.\n", str);
+			if (DEBUG) printf("BPyMenus error: couldn't create entry for %s.\n", str);
 			fclose(fp);
 			closedir(dir);
 			return -2;
@@ -617,7 +622,7 @@ static int bpymenu_GetStatMTime(char *name, int is_file, time_t* mtime)
 
 /* BPyMenu_Init:
  * import the bpython menus data to Blender, either from:
- * - the BPYMENU_DATAFILE file (~/Bpymenus) or
+ * - the BPYMENU_DATAFILE file (?/.blender/Bpymenus) or
  * - the scripts dir(s), case newer than the datafile (then update the file).
  * then fill the bpymenu table with this data.
  * if param usedir != 0, then the data is recreated from the dir(s) anyway.
@@ -629,6 +634,8 @@ int BPyMenu_Init(int usedir)
 	char *upydir = U.pythondir;
 	time_t tdir1, tdir2, tfile;
 	int res1, res2, resf = 0;
+
+	DEBUG = G.f & G_DEBUG; /* is Blender in debug mode (started with -d) ? */
 
 	/* init global bpymenu table (it is a list of pointers to struct BPyMenus
 	 * for each available group: import, export, etc.) */
@@ -643,20 +650,23 @@ int BPyMenu_Init(int usedir)
 
 	if (res1 < 0) {
 		tdir1 = 0;
-		printf ("\nDefault scripts dir: %s:\n%s\n", dirname, strerror(errno));
-		if (upydir)
-			printf("Getting scripts menu data from user defined dir: %s.\n",upydir);
+		if (DEBUG) {
+			printf ("\nDefault scripts dir: %s:\n%s\n", dirname, strerror(errno));
+			if (upydir)
+				printf("Getting scripts menu data from user defined dir: %s.\n",upydir);
+		}
 	}
+	else { syspath_append(dirname); }
 
 	if (upydir) {
 		res2 = bpymenu_GetStatMTime(U.pythondir, 0, &tdir2);
 
 		if (res2 < 0) {
 			tdir2 = 0;
-			printf("\nUser defined scripts dir: %s:\n%s.\n", upydir, strerror(errno));
+			if (DEBUG) printf("\nUser defined scripts dir: %s:\n%s.\n", upydir, strerror(errno));
 			if (res1 < 0) {
-			printf ("To have scripts in menus, please add them to the default "
-							"scripts dir: %s\n"
+			if (DEBUG) printf ("To have scripts in menus, please add them to the"
+							"default scripts dir: %s\n"
 							"and/or go to 'Info window -> File Paths tab' and set a valid\n"
 							"path for the user defined scripts dir.\n", dirname);
 			return -1;
@@ -666,12 +676,14 @@ int BPyMenu_Init(int usedir)
 	else res2 = -1;
 
 	if ((res1 < 0) && (res2 < 0)) {
-		printf ("\nCannot register scripts in menus, no scripts dir available."
-						"\nExpected default dir in %s .\n", dirname);
+		if (DEBUG) {
+			printf ("\nCannot register scripts in menus, no scripts dir"
+							" available.\nExpected default dir in %s .\n", dirname);
+		}
 		return -1;
 	}
 
-	printf("\nRegistering scripts in Blender menus ...\n\n");
+	if (DEBUG) printf("\nRegistering scripts in Blender menus ...\n\n");
 
 	if (!usedir) { /* if we're not forced to use the dir */
 		BLI_make_file_string("/", fname, bpymenu_gethome(), BPYMENU_DATAFILE);
@@ -683,13 +695,16 @@ int BPyMenu_Init(int usedir)
 
 	if ((tfile > tdir1) && (tfile > tdir2) && !resf) { /* file is newer */
 		resf = bpymenu_CreateFromFile(); /* -1 if an error occurred */
-		if (!resf) printf("Getting menu data for scripts from file: %s\n\n", fname);
+		if (!resf && DEBUG)
+			printf("Getting menu data for scripts from file: %s\n\n", fname);
 	}
 	else resf = -1; /* -1 to use dirs: didn't use file or it was corrupted */
 
 	if (resf == -1) { /* use dirs */
-		printf("Getting menu data for scripts from dir(s):\n%s\n", dirname);
-		if (upydir) printf("%s\n", upydir);
+		if (DEBUG) {
+			printf("Getting menu data for scripts from dir(s):\n%s\n", dirname);
+			if (upydir) printf("%s\n", upydir);
+		}
 		if (res1 == 0) bpymenu_CreateFromDir(dirname, 0);
 		if (res2 == 0) bpymenu_CreateFromDir(U.pythondir, 1);
 
@@ -699,7 +714,7 @@ int BPyMenu_Init(int usedir)
 
 		/* if we got, recreate the file */
 		if (res1 < PYMENU_TOTAL) bpymenu_WriteDataFile();
-		else {
+		else if (DEBUG) {
 			printf ("\nWarning: Registering scripts in menus -- no info found.\n"
 							"Either your scripts dirs have no .py scripts or the scripts\n"
 						 	"don't have a header with registration data.\n"

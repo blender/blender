@@ -40,7 +40,9 @@
 /*****************************************************************************/
 /* Python API function prototypes for the sys module.                        */
 /*****************************************************************************/
+static PyObject *M_sys_basename (PyObject *self, PyObject *args);
 static PyObject *M_sys_dirname (PyObject *self, PyObject *args);
+static PyObject *M_sys_splitext (PyObject *self, PyObject *args);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.      */
@@ -50,16 +52,26 @@ static PyObject *M_sys_dirname (PyObject *self, PyObject *args);
 static char M_sys_doc[] =
 "The Blender.sys submodule\n\
 \n\
-This is a minimal sys module kept for compatibility.  It may also still be\n\
-useful for users without full Python installations.\n";
+This is a minimal system module to supply simple functionality available\n\
+in the default Python module os.";
 
-static char M_sys_dirname_doc[] = "";
+static char M_sys_basename_doc[]="(path) - Split 'path' in dir and filename.\n\
+Return the filename.";
+
+static char M_sys_dirname_doc[]="(path) - Split 'path' in dir and filename.\n\
+Return the dir.";
+
+static char M_sys_splitext_doc[]="(path) - Split 'path' in root and \
+extension:\n/this/that/file.ext -> ('/this/that/file','.ext').\n\
+Return the pair (root, extension).";
 
 /*****************************************************************************/
 /* Python method structure definition for Blender.sys module:                */
 /*****************************************************************************/
 struct PyMethodDef M_sys_methods[] = {
+  {"basename",    M_sys_basename,        METH_VARARGS, M_sys_basename_doc},
   {"dirname",     M_sys_dirname,         METH_VARARGS, M_sys_dirname_doc},
+  {"splitext",    M_sys_splitext,        METH_VARARGS, M_sys_splitext_doc},
   {NULL, NULL, 0, NULL}
 };
 

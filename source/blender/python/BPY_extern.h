@@ -73,3 +73,4 @@ void BPY_clear_script(struct Script *script);
 void BPY_free_finished_script(struct Script *script);
 
 void init_syspath(void);
+void syspath_append(char *dir);

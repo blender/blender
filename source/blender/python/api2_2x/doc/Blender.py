@@ -8,7 +8,7 @@
 # -n "Blender" --no-private --no-frames Blender.py \
 # Types.py Scene.py Object.py NMesh.py Material.py Camera.py Lamp.py \
 # Armature.py Metaball.py Effect.py Curve.py Ipo.py World.py BGL.py Window.py \
-# Draw.py Image.py Text.py Lattice.py Texture.py
+# Draw.py Image.py Text.py Lattice.py Texture.py Registry.py Sys.py
 
 """
 The main Blender module.
@@ -40,6 +40,7 @@ The Blender Python API Reference
   - L{Types}
   - L{Window}
   - L{World}
+  - L{sys<Sys>}
 
  Introduction:
  -------------
@@ -55,8 +56,8 @@ The Blender Python API Reference
  open-source language.
 
 @author: The Blender Python Team
-@requires: Blender 2.31 or newer.
-@version: 0.3
+@requires: Blender 2.32 or newer.
+@version: 0.4
 @see: U{www.blender.org<http://www.blender.org>}
 @see: U{projects.blender.org<http://projects.blender.org>}
 @see: U{www.python.org<http://www.python.org>}
@@ -65,7 +66,7 @@ The Blender Python API Reference
 
 def Set (request, data):
   """
-  Update settings in Blender
+  Update settings in Blender.
   @type request: string
   @param request: The setting to change:
       - 'curframe': the current animation frame
@@ -89,19 +90,11 @@ def Get (request):
 
 def Redraw ():
   """
-  Redraw all 3D windows
+  Redraw all 3D windows.
   """
 
 def ReleaseGlobalDict (bool = None):
   """
-  Define whether the global Python Interpreter dictionary should be cleared
-  after the script is run.  Default is to clear (non-zero bool).
-  @type bool: an int, actually
-  @param bool: The flag to release (non-zero bool) or not (bool = 0) the dict.
-      if no argument is passed, this function simply returns the current
-      behavior.
-  @rtype: int
-  @return: A bool value (0 or 1) telling the current behavior.
-  @warn: This function was added as a test and there's a good chance that it
-     won't be kept in the future, in favor of a better method.
+  @depreciated: this function doesn't work anymore and will be removed. 
+      Look at the L{Registry} submodule for a better alternative.
   """
