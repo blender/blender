@@ -41,5 +41,4 @@ CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I../../kernel/gen_system
-CPPFLAGS += -I../Ketsji
 
