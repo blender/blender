@@ -11,7 +11,7 @@ root_build_dir = '..' + os.sep + 'build' + os.sep + sys.platform + os.sep
 # don't want to put scons-generated .sconsign files in the source tree, but in
 # the root_build_dir, we have to create that dir ourselves before SCons tries
 # to access/create the file containing .sconsign data.
-if os.path.isdir (root_build_dir) == False:
+if os.path.isdir (root_build_dir) == 0:
     os.makedirs (root_build_dir)
 
 # User configurable options file. This can be controlled by the user by running
