@@ -797,7 +797,7 @@ void tbox_embossbox(short x1, short y1, short x2, short y2, short type)
 }
 
 
-void tbox_drawelem_body(x, y, type)
+void tbox_drawelem_body( int x, int y, int type)
 {
 	int x1 = 0, y1, x2 = 0, y2;
 	
@@ -816,7 +816,7 @@ void tbox_drawelem_body(x, y, type)
 	
 }
 
-void tbox_drawelem_text(x, y, type)
+void tbox_drawelem_text( int x, int y, int type)
 {
 	int x1 = 0, y1, x2 = 0, y2, len1, len2;
 	
