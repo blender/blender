@@ -37,8 +37,8 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
-# PROP Intermediate_Dir "Release"
+# PROP Output_Dir "..\..\..\..\obj\windows\intern\bsp\"
+# PROP Intermediate_Dir "..\..\..\..\obj\windows\intern\bsp\"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
@@ -50,10 +50,10 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"Release\libbsp.lib"
+# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\bsp\libbsp.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	COPY "..\..\extern\*.h" "..\..\..\..\lib\windows\bsp\include\"	ECHO Copying lib	COPY "Release\libbsp.lib" "..\..\..\..\lib\windows\bsp\lib\libbsp.a"	ECHO Done
+PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\bsp\include md ..\..\..\..\lib\windows\bsp\include	IF NOT EXIST ..\..\..\..\lib\windows\bsp\lib\ md ..\..\..\..\lib\windows\bsp\lib\	ECHO Copying header files	COPY "..\..\extern\*.h" "..\..\..\..\lib\windows\bsp\include\"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\bsp\libbsp.lib" "..\..\..\..\lib\windows\bsp\lib\libbsp.a"	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "bsplib - Win32 Debug"
@@ -65,8 +65,8 @@ PostBuild_Cmds=ECHO Copying header files	COPY "..\..\extern\*.h" "..\..\..\..\li
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "Debug"
-# PROP Intermediate_Dir "Debug"
+# PROP Output_Dir "..\..\..\..\obj\windows\intern\bsp\debug"
+# PROP Intermediate_Dir "..\..\..\..\obj\windows\intern\bsp\debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
@@ -79,10 +79,10 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"Debug\libbsp.lib"
+# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\bsp\debug\libbsp.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	COPY "..\..\extern\*.h" "..\..\..\..\lib\windows\bsp\include\"	ECHO Copying lib	COPY "Debug\libbsp.lib" "..\..\..\..\lib\windows\bsp\lib\debug\libbsp.a"	ECHO Copying Debug info.	COPY "Debug\vc60.*" "..\..\..\..\lib\windows\bsp\lib\debug\"	ECHO Done
+PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\bsp\include md ..\..\..\..\lib\windows\bsp\include	IF NOT EXIST ..\..\..\..\lib\windows\bsp\lib\debug md ..\..\..\..\lib\windows\bsp\lib\debug	ECHO Copying header files	COPY "..\..\extern\*.h" "..\..\..\..\lib\windows\bsp\include\"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\bsp\debug\libbsp.lib" "..\..\..\..\lib\windows\bsp\lib\debug\libbsp.a"	ECHO Copying Debug info.	COPY "..\..\..\..\obj\windows\intern\bsp\debug\vc60.*" "..\..\..\..\lib\windows\bsp\lib\debug\"	ECHO Done
 # End Special Build Tool
 
 !ENDIF 

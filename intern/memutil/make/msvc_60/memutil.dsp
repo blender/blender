@@ -37,8 +37,8 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "../../../../../obj/windows/intern/memutil"
-# PROP Intermediate_Dir "../../../../../obj/windows/intern/memutil"
+# PROP Output_Dir "..\..\..\..\obj\windows\intern\memutil\"
+# PROP Intermediate_Dir "..\..\..\..\obj\windows\intern\memutil\"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
@@ -50,10 +50,10 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"Release\memutil.lib"
+# ADD LIB32 /nologo
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	COPY "..\..\*.h" "..\..\..\..\lib\windows\memutil\include"	ECHO Copying lib	COPY "Release\memutil.lib" "..\..\..\..\lib\windows\memutil\lib\memutil.a"	ECHO Done
+PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\memutil\include md ..\..\..\..\lib\windows\memutil\include	IF NOT EXIST ..\..\..\..\lib\windows\memutil\lib\ md ..\..\..\..\lib\windows\memutil\lib\	ECHO Copying header files	COPY "..\..\*.h" "..\..\..\..\lib\windows\memutil\include"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\memutil\memutil.lib" "..\..\..\..\lib\windows\memutil\lib\memutil.a"	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "memutil - Win32 Debug"
@@ -65,8 +65,8 @@ PostBuild_Cmds=ECHO Copying header files	COPY "..\..\*.h" "..\..\..\..\lib\windo
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "../../../../../obj/windows/intern/memutil/debug"
-# PROP Intermediate_Dir "../../../../../obj/windows/intern/memutil/debug"
+# PROP Output_Dir "..\..\..\..\obj\windows\intern\memutil\debug"
+# PROP Intermediate_Dir "..\..\..\..\obj\windows\intern\memutil\debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
@@ -78,10 +78,10 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"Debug\memutil.lib"
+# ADD LIB32 /nologo
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	COPY "..\..\*.h" "..\..\..\..\lib\windows\memutil\include"	ECHO Copying lib	COPY "Debug\memutil.lib" "..\..\..\..\lib\windows\memutil\lib\debug\memutil.a"	ECHO Copying Debug info.	COPY "Debug\vc60.*" "..\..\..\..\lib\windows\memutil\lib\debug\"	ECHO Done
+PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\memutil\include md ..\..\..\..\lib\windows\memutil\include	IF NOT EXIST ..\..\..\..\lib\windows\memutil\lib\debug md ..\..\..\..\lib\windows\memutil\lib\debug	ECHO Copying header files	COPY "..\..\*.h" "..\..\..\..\lib\windows\memutil\include"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\memutil\debug\memutil.lib" "..\..\..\..\lib\windows\memutil\lib\debug\memutil.a"	ECHO Copying Debug info.	COPY "..\..\..\..\obj\windows\intern\memutil\debug\vc60.*" "..\..\..\..\lib\windows\memutil\lib\debug\"	ECHO Done
 # End Special Build Tool
 
 !ENDIF 

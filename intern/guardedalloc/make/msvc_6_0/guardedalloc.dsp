@@ -1,24 +1,24 @@
-# Microsoft Developer Studio Project File - Name="string" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="guardedalloc" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** DO NOT EDIT **
 
 # TARGTYPE "Win32 (x86) Static Library" 0x0104
 
-CFG=string - Win32 Debug
+CFG=guardedalloc - Win32 Debug
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
-!MESSAGE NMAKE /f "string.mak".
+!MESSAGE NMAKE /f "guardedalloc.mak".
 !MESSAGE 
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "string.mak" CFG="string - Win32 Debug"
+!MESSAGE NMAKE /f "guardedalloc.mak" CFG="guardedalloc - Win32 Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "string - Win32 Release" (based on "Win32 (x86) Static Library")
-!MESSAGE "string - Win32 Debug" (based on "Win32 (x86) Static Library")
+!MESSAGE "guardedalloc - Win32 Release" (based on "Win32 (x86) Static Library")
+!MESSAGE "guardedalloc - Win32 Debug" (based on "Win32 (x86) Static Library")
 !MESSAGE 
 
 # Begin Project
@@ -28,7 +28,7 @@ CFG=string - Win32 Debug
 CPP=cl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "string - Win32 Release"
+!IF  "$(CFG)" == "guardedalloc - Win32 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -37,12 +37,12 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "..\..\..\..\obj\windows\intern\string"
-# PROP Intermediate_Dir "..\..\..\..\obj\windows\intern\string"
+# PROP Output_Dir "..\..\..\..\obj\windows\intern\guardedalloc\"
+# PROP Intermediate_Dir "..\..\..\..\obj\windows\intern\guardedalloc\"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "../.." /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I "..\.." /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -53,10 +53,10 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\string\include md ..\..\..\..\lib\windows\string\include	IF NOT EXIST ..\..\..\..\lib\windows\string\lib md ..\..\..\..\lib\windows\string\lib	IF NOT EXIST ..\..\..\..\lib\windows\string\lib\debug md ..\..\..\..\lib\windows\string\lib\debug	ECHO Copying header files	COPY "..\..\*.h"  "..\..\..\..\lib\windows\string\include"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\string\string.lib" "..\..\..\..\\lib\windows\string\lib\libstring.a"	ECHO Done
+PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\guardedalloc\include md ..\..\..\..\lib\windows\guardedalloc\include	IF NOT EXIST ..\..\..\..\lib\windows\guardedalloc\lib\ md ..\..\..\..\lib\windows\guardedalloc\lib\	ECHO Copying header files	COPY "..\..\*.h" "..\..\..\..\lib\windows\guardedalloc\include"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\guardedalloc\guardedalloc.lib" "..\..\..\..\lib\windows\guardedalloc\lib\libguardedalloc.a"	ECHO Done
 # End Special Build Tool
 
-!ELSEIF  "$(CFG)" == "string - Win32 Debug"
+!ELSEIF  "$(CFG)" == "guardedalloc - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -65,12 +65,12 @@ PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\st
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "../../../../obj/windows/intern/string/debug"
-# PROP Intermediate_Dir "../../../../obj/windows/intern/string/debug"
+# PROP Output_Dir "..\..\..\..\obj\windows\intern\guardedalloc\debug"
+# PROP Intermediate_Dir "..\..\..\..\obj\windows\intern\guardedalloc\debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "../.." /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\.." /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -81,40 +81,32 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\string\include md ..\..\..\..\lib\windows\string\include	IF NOT EXIST ..\..\..\..\lib\windows\string\lib\debug md ..\..\..\..\lib\windows\string\lib\debug	ECHO Copying header files	COPY "..\..\*.h"  "..\..\..\..\lib\windows\string\include"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\string\debug\string.lib" "..\..\..\..\lib\windows\string\lib\debug\libstring.a"	ECHO Done
+PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\guardedalloc\include md ..\..\..\..\lib\windows\guardedalloc\include	IF NOT EXIST ..\..\..\..\lib\windows\guardedalloc\lib\debug md ..\..\..\..\lib\windows\guardedalloc\lib\debug	ECHO Copying header files	COPY "..\..\*.h" "..\..\..\..\lib\windows\guardedalloc\include"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\guardedalloc\debug\guardedalloc.lib" "..\..\..\..\lib\windows\guardedalloc\lib\debug\libguardedalloc.a"	ECHO Done
 # End Special Build Tool
 
 !ENDIF 
 
 # Begin Target
 
-# Name "string - Win32 Release"
-# Name "string - Win32 Debug"
+# Name "guardedalloc - Win32 Release"
+# Name "guardedalloc - Win32 Debug"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=..\..\intern\STR_String.cpp
+SOURCE=..\..\intern\mallocn.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
-# Begin Group "intern"
-
-# PROP Default_Filter ""
-# End Group
 # Begin Group "extern"
 
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\STR_HashedString.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\STR_String.h
+SOURCE=..\..\MEM_guardedalloc.h
 # End Source File
 # End Group
 # End Group

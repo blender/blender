@@ -37,8 +37,8 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
-# PROP Intermediate_Dir "Release"
+# PROP Output_Dir "..\..\..\..\obj\windows\intern\moto\"
+# PROP Intermediate_Dir "..\..\..\..\obj\windows\intern\moto\"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
@@ -51,10 +51,10 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"Release\libmoto.lib"
+# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\moto\libmoto.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	COPY "..\..\include\*.h" "..\..\..\..\lib\windows\moto\include"	ECHO Copying lib	COPY "Release\libmoto.lib" "..\..\..\..\lib\windows\moto\lib\libmoto.a"	ECHO Done
+PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\moto\include md ..\..\..\..\lib\windows\moto\include	IF NOT EXIST ..\..\..\..\lib\windows\moto\lib\ md ..\..\..\..\lib\windows\moto\lib\	ECHO Copying header files	COPY "..\..\include\*.h" "..\..\..\..\lib\windows\moto\include"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\moto\libmoto.lib" "..\..\..\..\lib\windows\moto\lib\libmoto.a"	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "MoTo - Win32 Debug"
@@ -66,8 +66,8 @@ PostBuild_Cmds=ECHO Copying header files	COPY "..\..\include\*.h" "..\..\..\..\l
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "Debug"
-# PROP Intermediate_Dir "Debug"
+# PROP Output_Dir "..\..\..\..\obj\windows\intern\moto\debug"
+# PROP Intermediate_Dir "..\..\..\..\obj\windows\intern\moto\debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
@@ -80,10 +80,10 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"Debug\libmoto.lib"
+# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\moto\debug\libmoto.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	COPY "..\..\include\*.h" "..\..\..\..\lib\windows\moto\include"	ECHO Copying lib	COPY "Debug\libmoto.lib" "..\..\..\..\lib\windows\moto\lib\debug\libmoto.a"	ECHO Copying Debug info.	COPY "Debug\vc60.*" "..\..\..\..\lib\windows\moto\lib\debug\"	ECHO Done
+PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\moto\include md ..\..\..\..\lib\windows\moto\include	IF NOT EXIST ..\..\..\..\lib\windows\moto\lib\debug md ..\..\..\..\lib\windows\moto\lib\debug	ECHO Copying header files	COPY "..\..\include\*.h" "..\..\..\..\lib\windows\moto\include"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\moto\debug\libmoto.lib" "..\..\..\..\lib\windows\moto\lib\debug\libmoto.a"	ECHO Copying Debug info.	COPY "..\..\..\..\obj\windows\intern\moto\debug\vc60.*" "..\..\..\..\lib\windows\moto\lib\debug\"	ECHO Done
 # End Special Build Tool
 
 !ENDIF 

@@ -37,8 +37,8 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
-# PROP Intermediate_Dir "Release"
+# PROP Output_Dir "..\..\..\..\obj\windows\intern\container"
+# PROP Intermediate_Dir "..\..\..\..\obj\windows\intern\container"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
@@ -50,10 +50,10 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"Release\libcontainer.lib"
+# ADD LIB32 /nologo /out:"../../../../obj/windows/intern/container/libcontainer.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	COPY "..\..\*.h" "..\..\..\..\lib\windows\container\include\"	ECHO Copying lib	COPY "Release\libcontainer.lib" "..\..\..\..\lib\windows\container\lib\libcontainer.a"	ECHO Done
+PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\container\include md ..\..\..\..\lib\windows\container\include	IF NOT EXIST ..\..\..\..\lib\windows\container\lib\ md ..\..\..\..\lib\windows\container\lib\	ECHO Copying header files	COPY "..\..\*.h" "..\..\..\..\lib\windows\container\include\"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\container\libcontainer.lib" "..\..\..\..\lib\windows\container\lib\libcontainer.a"	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "container - Win32 Debug"
@@ -65,8 +65,8 @@ PostBuild_Cmds=ECHO Copying header files	COPY "..\..\*.h" "..\..\..\..\lib\windo
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "Debug"
-# PROP Intermediate_Dir "Debug"
+# PROP Output_Dir "..\..\..\..\obj\windows\intern\container\debug"
+# PROP Intermediate_Dir "..\..\..\..\obj\windows\intern\container\debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
@@ -78,10 +78,10 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"Debug\libcontainer.lib"
+# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\container\debug\libcontainer.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	COPY "..\..\*.h" "..\..\..\..\lib\windows\container\include\"	ECHO Copying lib	COPY "Debug\libcontainer.lib" "..\..\..\..\lib\windows\container\lib\debug\libcontainer.a"	ECHO Copying Debug info.	COPY "Debug\vc60.*" "..\..\..\..\lib\windows\container\lib\debug\"	ECHO Done
+PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\container\include md ..\..\..\..\lib\windows\container\include	IF NOT EXIST ..\..\..\..\lib\windows\container\lib\debug md ..\..\..\..\lib\windows\container\lib\debug	ECHO Copying header files	COPY "..\..\*.h" "..\..\..\..\lib\windows\container\include\"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\container\debug" "..\..\..\..\lib\windows\container\lib\debug\libcontainer.a"	ECHO Copying Debug info.	COPY "..\..\..\..\obj\windows\intern\container\debug\vc60.*" "..\..\..\..\lib\windows\container\lib\debug\"	ECHO Done
 # End Special Build Tool
 
 !ENDIF 

@@ -37,8 +37,8 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
-# PROP Intermediate_Dir "Release"
+# PROP Output_Dir "..\..\..\..\obj\windows\intern\iksolver"
+# PROP Intermediate_Dir "..\..\..\..\obj\windows\intern\iksolver"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
@@ -51,7 +51,11 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"..\..\lib\windows\release\iksolver_rmtd.lib"
+# ADD LIB32 /nologo
+# Begin Special Build Tool
+SOURCE="$(InputPath)"
+PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\iksolver\include md ..\..\..\..\lib\windows\iksolver\include	IF NOT EXIST ..\..\..\..\lib\windows\iksolver\lib\ md ..\..\..\..\lib\windows\iksolver\lib\	ECHO Copying header files	COPY "..\..\extern\*.h" "..\..\..\..\lib\windows\iksolver\include"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\iksolver\iksolver.lib" "..\..\..\..\lib\windows\iksolver\lib\libiksolver.a"	ECHO Done
+# End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "iksolver - Win32 Debug"
 
@@ -62,8 +66,8 @@ LIB32=link.exe -lib
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "Debug"
-# PROP Intermediate_Dir "Debug"
+# PROP Output_Dir "..\..\..\..\obj\windows\intern\iksolver\debug"
+# PROP Intermediate_Dir "..\..\..\..\obj\windows\intern\iksolver\debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
@@ -76,7 +80,11 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"..\..\lib\windows\debug\iksolver_dmtd.lib"
+# ADD LIB32 /nologo
+# Begin Special Build Tool
+SOURCE="$(InputPath)"
+PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\iksolver\include md ..\..\..\..\lib\windows\iksolver\include	IF NOT EXIST ..\..\..\..\lib\windows\iksolver\lib\debug md ..\..\..\..\lib\windows\iksolver\lib\debug	ECHO Copying header files	COPY "..\..\extern\*.h" "..\..\..\..\lib\windows\iksolver\include"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\iksolver\debug\iksolver.lib" "..\..\..\..\lib\windows\iksolver\lib\debug\libiksolver.a"	ECHO Done
+# End Special Build Tool
 
 !ENDIF 
 
