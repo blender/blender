@@ -32,7 +32,7 @@
 #
 
 LIBNAME = SoundSystem
-DIR = $(OCGDIR)/gameengine/$(LIBNAME)
+DIR = $(OCGDIR)/intern/$(LIBNAME)
 ALLTARGETS = $(OBJS) $(DIR)/$(DEBUG_DIR)SoundSystem
 
 include nan_compile.mk
@@ -40,13 +40,12 @@ include nan_compile.mk
 CPPFLAGS += $(NAN_LEVEL_1_WARNINGS)
 
 CPPFLAGS += -I$(NAN_MOTO)/include
-CPPFLAGS += -I../../../kernel/gen_system
 CPPFLAGS += -I.. -I../SND_BlenderWaveCache -I../SND_OpenAL
 
 TESTLIB = $(OCGDIR)/gameengine/OpenALSoundSystem/$(DEBUG_DIR)libOpenALSoundSystem.a
 TESTLIB += $(OCGDIR)/gameengine/BlenderWaveCache/$(DEBUG_DIR)libBlenderWaveCache.a
 TESTLIB += $(OCGDIR)/kernel/gen_system/$(DEBUG_DIR)libgen_system.a
-TESTLIB += $(OCGDIR)/gameengine/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
+TESTLIB += $(OCGDIR)/intern/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
 TESTLIB += $(NAN_OPENAL)/lib/libopenal.a
 
 $(DIR)/$(DEBUG_DIR)SoundSystem: $(OBJS) $(TESTLIB)

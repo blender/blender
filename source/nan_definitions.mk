@@ -66,6 +66,7 @@ all debug::
     export NAN_GUARDEDALLOC ?= $(LCGDIR)/guardedalloc
     export NAN_IKSOLVER ?= $(LCGDIR)/iksolver
     export NAN_BSP ?= $(LCGDIR)/bsp
+    export NAN_SOUNDSYSTEM ?= $(LCGDIR)/SoundSystem
     export NAN_STRING ?= $(LCGDIR)/string
     export NAN_MEMUTIL ?= $(LCGDIR)/memutil
     export NAN_CONTAINER ?= $(LCGDIR)/container

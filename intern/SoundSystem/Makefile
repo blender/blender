@@ -33,7 +33,8 @@
 
 include nan_definitions.mk
 
-SOURCEDIR = source/gameengine/SoundSystem
+LIBNAME = soundsystem
+SOURCEDIR = intern/SoundSystem
 DIR = $(OCGDIR)/SoundSystem
 DIRS = intern
 DIRS += dummy
@@ -55,3 +56,18 @@ ifeq ($(OS),$(findstring $(OS), "linux"))
 endif
 
 include nan_subdirs.mk
+
+install: all debug
+	@[ -d $(NAN_SOUNDSYSTEM) ] || mkdir $(NAN_SOUNDSYSTEM)
+	@[ -d $(NAN_SOUNDSYSTEM)/include ] || mkdir $(NAN_SOUNDSYSTEM)/include
+	@[ -d $(NAN_SOUNDSYSTEM)/lib ] || mkdir $(NAN_SOUNDSYSTEM)/lib
+	@[ -d $(NAN_SOUNDSYSTEM)/lib/debug ] || mkdir $(NAN_SOUNDSYSTEM)/lib/debug
+	@../tools/cpifdiff.sh $(DIR)/libsoundsystem.a $(NAN_SOUNDSYSTEM)/lib/
+	@../tools/cpifdiff.sh $(DIR)/debug/libsoundsystem.a $(NAN_SOUNDSYSTEM)/lib/debug/
+ifeq ($(OS),darwin)
+	ranlib $(NAN_SOUNDSYSTEM)/lib/libsoundsystem.a
+	ranlib $(NAN_SOUNDSYSTEM)/lib/debug/libsoundsystem.a
+endif
+	@../tools/cpifdiff.sh extern/*.h $(NAN_SOUNDSYSTEM)/include/
+
+
