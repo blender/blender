@@ -506,27 +506,28 @@ void GHOST_WindowWin32::loadCursor(bool visible, GHOST_TStandardCursor cursor) c
 		bool success = true;
 		LPCSTR id;
 		switch (cursor) {
-			case GHOST_kStandardCursorDefault:				id = IDC_ARROW;
-			case GHOST_kStandardCursorRightArrow:			id = IDC_ARROW;		break;
-			case GHOST_kStandardCursorLeftArrow:			id = IDC_ARROW;		break;
-			case GHOST_kStandardCursorInfo:					id = IDC_SIZEALL;	break;	// Four-pointed arrow pointing north, south, east, and west
-			case GHOST_kStandardCursorDestroy:				id = IDC_NO;		break;	// Slashed circle
-			case GHOST_kStandardCursorHelp:					id = IDC_HELP;		break;	// Arrow and question mark
-			case GHOST_kStandardCursorCycle:				id = IDC_NO;		break;	// Slashed circle
-			case GHOST_kStandardCursorSpray:				id = IDC_SIZEALL;	break;	// Four-pointed arrow pointing north, south, east, and west
-			case GHOST_kStandardCursorWait:					id = IDC_WAIT;		break;	// Hourglass
-			case GHOST_kStandardCursorText:					id = IDC_IBEAM;		break;	// I-beam
-			case GHOST_kStandardCursorCrosshair:			id = IDC_CROSS;		break;	// Crosshair
-			case GHOST_kStandardCursorUpDown:				id = IDC_SIZENS;	break;	// Double-pointed arrow pointing north and south
-			case GHOST_kStandardCursorLeftRight:			id = IDC_SIZEWE;	break;	// Double-pointed arrow pointing west and east
-			case GHOST_kStandardCursorTopSide:				id = IDC_UPARROW;	break;	// Vertical arrow
-			case GHOST_kStandardCursorBottomSide:			id = IDC_SIZENS;	break;
-			case GHOST_kStandardCursorLeftSide:				id = IDC_SIZEWE;	break;
-			case GHOST_kStandardCursorTopLeftCorner:		id = IDC_SIZENWSE;	break;
-			case GHOST_kStandardCursorTopRightCorner:		id = IDC_SIZENESW;	break;
+			case GHOST_kStandardCursorDefault:		id = IDC_ARROW; 	break;
+			case GHOST_kStandardCursorRightArrow:		id = IDC_ARROW;		break;
+			case GHOST_kStandardCursorLeftArrow:		id = IDC_ARROW;		break;
+			case GHOST_kStandardCursorInfo:			id = IDC_SIZEALL;	break;	// Four-pointed arrow pointing north, south, east, and west
+			case GHOST_kStandardCursorDestroy:		id = IDC_NO;		break;	// Slashed circle
+			case GHOST_kStandardCursorHelp:			id = IDC_HELP;		break;	// Arrow and question mark
+			case GHOST_kStandardCursorCycle:		id = IDC_NO;		break;	// Slashed circle
+			case GHOST_kStandardCursorSpray:		id = IDC_SIZEALL;	break;	// Four-pointed arrow pointing north, south, east, and west
+			case GHOST_kStandardCursorWait:			id = IDC_WAIT;		break;	// Hourglass
+			case GHOST_kStandardCursorText:			id = IDC_IBEAM;		break;	// I-beam
+			case GHOST_kStandardCursorCrosshair:		id = IDC_CROSS;		break;	// Crosshair
+			case GHOST_kStandardCursorUpDown:		id = IDC_SIZENS;	break;	// Double-pointed arrow pointing north and south
+			case GHOST_kStandardCursorLeftRight:		id = IDC_SIZEWE;	break;	// Double-pointed arrow pointing west and east
+			case GHOST_kStandardCursorTopSide:		id = IDC_UPARROW;	break;	// Vertical arrow
+			case GHOST_kStandardCursorBottomSide:		id = IDC_SIZENS;	break;
+			case GHOST_kStandardCursorLeftSide:		id = IDC_SIZEWE;	break;
+			case GHOST_kStandardCursorTopLeftCorner:	id = IDC_SIZENWSE;	break;
+			case GHOST_kStandardCursorTopRightCorner:	id = IDC_SIZENESW;	break;
 			case GHOST_kStandardCursorBottomRightCorner:	id = IDC_SIZENWSE;	break;
-			case GHOST_kStandardCursorBottomLeftCorner:		id = IDC_SIZENESW;	break;
-		default:
+			case GHOST_kStandardCursorBottomLeftCorner:	id = IDC_SIZENESW;	break;
+			case GHOST_kStandardCursorPencil:		id = IDC_CROSS; 	break;
+			default:
 			success = false;
 		}
 		

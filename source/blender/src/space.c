@@ -974,7 +974,10 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case KKEY:
 				if(G.obedit) {
-					if(G.obedit->type==OB_SURF) printknots();
+					if (G.qual & LR_SHIFTKEY ){
+						if (G.obedit->type==OB_MESH) KnifeSubdivide();
+					}
+					else if(G.obedit->type==OB_SURF) printknots();
 				}
 				else {
 					if(G.qual & LR_SHIFTKEY) {

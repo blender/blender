@@ -600,6 +600,7 @@ getStandardCursor(
 	GtoX(GHOST_kStandardCursorTopRightCorner, XC_top_right_corner); break;
 	GtoX(GHOST_kStandardCursorBottomRightCorner, XC_bottom_right_corner); break;
 	GtoX(GHOST_kStandardCursorBottomLeftCorner, XC_bottom_left_corner); break;
+	GtoX(GHOST_kStandardCursorPencil, XC_pencil); break;
 	default:
 		xcursor_id = 0;
 	}

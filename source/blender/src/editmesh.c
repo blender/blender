@@ -2833,19 +2833,22 @@ void hashvert_flag(int flag)
 	MEM_freeN(sortblock);
 }
 
-static unsigned int cpack_half(unsigned int col1, unsigned int col2)
+static unsigned int cpack_fact(unsigned int col1, unsigned int col2, float fact)
 {
 	char *cp1, *cp2, *cp;
 	unsigned int col=0;
+	float fact1;
 	
+	fact1=1-fact; /*result is fact% col1 and (1-fact) % col2 */
+		
 	cp1= (char *)&col1;
 	cp2= (char *)&col2;
 	cp=  (char *)&col;
 	
-	cp[0]= (cp1[0]+cp2[0])>>1;
-	cp[1]= (cp1[1]+cp2[1])>>1;
-	cp[2]= (cp1[2]+cp2[2])>>1;
-	cp[3]= (cp1[3]+cp2[3])>>1;
+	cp[0]= fact*cp1[0]+fact1*cp2[0];
+	cp[1]= fact*cp1[1]+fact1*cp2[1];
+	cp[2]= fact*cp1[2]+fact1*cp2[2];
+	cp[3]= fact*cp1[3]+fact1*cp2[3];
 	
 	return col;
 }
@@ -2870,14 +2873,15 @@ static void set_wuv(int tot, EditVlak *evl, int v1, int v2, int v3, int v4)
 	float *uv, uvo[4][2];
 	unsigned int *col, colo[4], col1, col2;
 	int a, v;
-	
-	memcpy(uvo, evl->uv, sizeof(uvo));
-	uv= evl->uv[0];
-
-	memcpy(colo, evl->col, sizeof(colo));
-	col= evl->col;
-	
-	if(tot==4) {
+						/* Numbers corespond to verts (corner points), 	*/
+						/* edge->vn's (center edges), the Center 	*/
+	memcpy(uvo, evl->uv, sizeof(uvo));	/* And the quincunx points of a face 		*/
+	uv= evl->uv[0];				/* as shown here:     				*/
+						/*           2         5          1		*/
+	memcpy(colo, evl->col, sizeof(colo));	/*		 10         13     		*/
+	col= evl->col;				/* 	     6		9	   8		*/
+						/*		 11	    12    		*/
+	if(tot==4) {				/*	     3		7	   4            */
 		for(a=0; a<4; a++, uv+=2, col++) {
 			if(a==0) v= v1;
 			else if(a==1) v= v2;
@@ -2893,17 +2897,48 @@ static void set_wuv(int tot, EditVlak *evl, int v1, int v2, int v3, int v4)
 			}
 			else if(v==8) {
 				uv_half(uv, uvo[3], uvo[0]);
-				*col= cpack_half(colo[3], colo[0]);
+				*col= cpack_fact(colo[3], colo[0], 0.5);
 			}
 			else if(v==9) {
 				uv_quart(uv, uvo[0]);
-				col1= cpack_half(colo[1], colo[0]);
-				col2= cpack_half(colo[2], colo[3]);
-				*col= cpack_half(col1, col2);
+				col1= cpack_fact(colo[1], colo[0], 0.5);
+				col2= cpack_fact(colo[2], colo[3], 0.5);
+				*col= cpack_fact(col1, col2, 0.5);
 			}
-			else {
+			/* Cases for adjacent edge square subdivide  Real voodoo */
+			/* 1/2 closest corner + 1/4 adjacent corners */
+			else if (v==10){ /* case test==3 in subdivideflag() */	
+				uv[0]=(2*uvo[1][0]+uvo[0][0]+uvo[2][0])/4;
+				uv[1]=(2*uvo[1][1]+uvo[0][1]+uvo[2][1])/4;
+				col1= cpack_fact(colo[1], colo[0], 0.75);
+				col2= cpack_fact(colo[2], colo[3], 0.75);
+				*col= cpack_fact(col1, col2, 0.75);	
+			}
+			else if (v==11) { /* case of test==6 */
+				uv[0]=(2*uvo[2][0]+uvo[1][0]+uvo[3][0])/4;
+				uv[1]=(2*uvo[2][1]+uvo[1][1]+uvo[3][1])/4;
+				col1= cpack_fact(colo[1], colo[0], 0.75);
+				col2= cpack_fact(colo[2], colo[3], 0.75);
+				*col= cpack_fact(col1, col2, 0.25);	
+			}
+			else if (v==12) { /* case of test==12 */
+				uv[0]=(2*uvo[3][0]+uvo[2][0]+uvo[0][0])/4;
+				uv[1]=(2*uvo[3][1]+uvo[2][1]+uvo[0][1])/4;
+				col1= cpack_fact(colo[1], colo[0], 0.25);
+				col2= cpack_fact(colo[2], colo[3], 0.25);
+				*col= cpack_fact(col1, col2, 0.25);
+			}
+			else if (v==13) { /* case of test==9 */
+				uv[0]=(2*uvo[0][0]+uvo[1][0]+uvo[3][0])/4;
+				uv[1]=(2*uvo[0][1]+uvo[1][1]+uvo[3][1])/4;
+				col1= cpack_fact(colo[1], colo[0], 0.25);
+				col2= cpack_fact(colo[2], colo[3], 0.25);
+				*col= cpack_fact(col1, col2, 0.75);
+			}
+			/* default for consecutive verts*/
+			else { 
 				uv_half(uv, uvo[v-5], uvo[v-4]);
-				*col= cpack_half(colo[v-5], colo[v-4]);
+				*col= cpack_fact(colo[v-5], colo[v-4], 0.5);
 			}
 		}
 	}
@@ -2920,11 +2955,11 @@ static void set_wuv(int tot, EditVlak *evl, int v1, int v2, int v3, int v4)
 			}
 			else if(v==7) {
 				uv_half(uv, uvo[2], uvo[0]);
-				*col= cpack_half(colo[2], colo[0]);
+				*col= cpack_fact(colo[2], colo[0], 0.5);
 			}
 			else {
 				uv_half(uv, uvo[v-5], uvo[v-4]);
-				*col= cpack_half(colo[v-5], colo[v-4]);
+				*col= cpack_fact(colo[v-5], colo[v-4], 0.5);
 			}
 		}
 	}
@@ -2961,20 +2996,19 @@ static void addvlak_subdiv(EditVlak *evl, int val1, int val2, int val3, int val4
 	EditVlak *w;
 	EditVert *v1, *v2, *v3, *v4;
 	
-	if(val1==9) v1= eve;
+	if(val1>=9) v1= eve;
 	else v1= vert_from_number(evl, val1);
 	
-	if(val2==9) v2= eve;
+	if(val2>=9) v2= eve;
 	else v2= vert_from_number(evl, val2);
 
-	if(val3==9) v3= eve;
+	if(val3>=9) v3= eve;
 	else v3= vert_from_number(evl, val3);
 
-	if(val4==9) v4= eve;
+	if(val4>=9) v4= eve;
 	else v4= vert_from_number(evl, val4);
 	
 	w= addvlaklist(v1, v2, v3, v4, evl);
-
 	if(w) {
 		if(evl->v4) set_wuv(4, w, val1, val2, val3, val4);
 		else set_wuv(3, w, val1, val2, val3, val4);
@@ -3050,7 +3084,7 @@ void subdivideflag(int flag, float rad, int beauty)
 	EditVert *eve;
 	EditEdge *eed, *e1, *e2, *e3, *e4, *nexted;
 	EditVlak *evl;
-	float fac, vec[3], vec1[3], len1, len2, len3;
+	float fac, vec[3], vec1[3], len1, len2, len3, percent;
 	short test;
 	
 	if(beauty & B_SMOOTH) {
@@ -3063,11 +3097,9 @@ void subdivideflag(int flag, float rad, int beauty)
 
 	/* edgeflags */
 	eed= G.eded.first;
-	while(eed) {
-		
+	while((eed) && !(beauty & B_KNIFE)) {	
 		if( (eed->v1->f & flag) && (eed->v2->f & flag) ) eed->f= flag;
-		else eed->f= 0;
-		
+		else eed->f= 0;	
 		eed= eed->next;
 	}
 	
@@ -3101,7 +3133,6 @@ void subdivideflag(int flag, float rad, int beauty)
 					}
 				}
 				else {
-
 					/* area */
 					len1= AreaT3Dfl(evl->v1->co, evl->v2->co, evl->v3->co);
 					if(len1 <= doublimit) {
@@ -3110,7 +3141,6 @@ void subdivideflag(int flag, float rad, int beauty)
 						evl->e3->f = 0;
 					}
 					else {
-	
 						len1= VecLenf(evl->v1->co, evl->v2->co) ;
 						len2= VecLenf(evl->v2->co, evl->v3->co) ;
 						len3= VecLenf(evl->v3->co, evl->v1->co) ;
@@ -3141,10 +3171,13 @@ void subdivideflag(int flag, float rad, int beauty)
 	eed= G.eded.first;
 	while(eed) {
 		if(eed->f & flag) {
+		
+			if (beauty & B_PERCENTSUBD) percent=(float)(eed->f1)/32768.0;
+			else percent=0.5;
 			
-			vec[0]= (eed->v1->co[0]+eed->v2->co[0])/2.0;
-			vec[1]= (eed->v1->co[1]+eed->v2->co[1])/2.0;
-			vec[2]= (eed->v1->co[2]+eed->v2->co[2])/2.0;
+			vec[0]= (1-percent)*eed->v1->co[0] + percent*eed->v2->co[0];
+			vec[1]= (1-percent)*eed->v1->co[1] + percent*eed->v2->co[1];
+			vec[2]= (1-percent)*eed->v1->co[2] + percent*eed->v2->co[2];
 
 			if(rad > 0.0) {   /* subdivide sphere */
 				Normalise(vec);
@@ -3203,9 +3236,8 @@ void subdivideflag(int flag, float rad, int beauty)
 				test+= 8; 
 				e4->f= 1;
 			}
-			
 			if(test) {
-				if(evl->v4==0) {
+				if(evl->v4==0) {  /* All the permutations of 3 edges*/
 					if((test & 3)==3) addvlak_subdiv(evl, 2, 2+4, 1+4, 0, 0);
 					if((test & 6)==6) addvlak_subdiv(evl, 3, 3+4, 2+4, 0, 0);
 					if((test & 5)==5) addvlak_subdiv(evl, 1, 1+4, 3+4, 0, 0);
@@ -3251,9 +3283,9 @@ void subdivideflag(int flag, float rad, int beauty)
 					evl->e3= addedgelist(evl->v3, evl->v1);
 					
 				}
-				else {
+				else {  /* All the permutations of 4 faces */
 					if(test==15) {
-						/* add a new point */
+						/* add a new point in center */
 						CalcCent4f(vec, evl->v1->co, evl->v2->co, evl->v3->co, evl->v4->co);
 						
 						if(beauty & B_SMOOTH) {
@@ -3262,7 +3294,7 @@ void subdivideflag(int flag, float rad, int beauty)
 						eve= addvertlist(vec);
 						
 						eve->f |= flag;
-
+						
 						addvlak_subdiv(evl, 2, 2+4, 9, 1+4, eve);
 						addvlak_subdiv(evl, 3, 3+4, 9, 2+4, eve);
 						addvlak_subdiv(evl, 4, 4+4, 9, 3+4, eve);
@@ -3272,13 +3304,13 @@ void subdivideflag(int flag, float rad, int beauty)
 						evl->v4= e4->vn;
 						set_wuv(4, evl, 1, 1+4, 9, 4+4);
 					}
-					else {
-						if((test & 3)==3) addvlak_subdiv(evl, 1+4, 2, 2+4, 0, 0);
-						if((test & 6)==6) addvlak_subdiv(evl, 2+4, 3, 3+4, 0, 0);
-						if((test & 12)==12) addvlak_subdiv(evl, 3+4, 4, 4+4, 0, 0);
-						if((test & 9)==9) addvlak_subdiv(evl, 4+4, 1, 1+4, 0, 0);
+					else { 
+						if(((test & 3)==3)&&(test!=3)) addvlak_subdiv(evl, 1+4, 2, 2+4, 0, 0);
+						if(((test & 6)==6)&&(test!=6)) addvlak_subdiv(evl, 2+4, 3, 3+4, 0, 0);
+						if(((test & 12)==12)&&(test!=12)) addvlak_subdiv(evl, 3+4, 4, 4+4, 0, 0);
+						if(((test & 9)==9)&&(test!=9)) addvlak_subdiv(evl, 4+4, 1, 1+4, 0, 0);
 						
-						if(test==1) {
+						if(test==1) { /* Edge 1 has new vert */
 							addvlak_subdiv(evl, 1+4, 2, 3, 0, 0);
 							addvlak_subdiv(evl, 1+4, 3, 4, 0, 0);
 							evl->v2= e1->vn;
@@ -3286,14 +3318,14 @@ void subdivideflag(int flag, float rad, int beauty)
 							evl->v4= 0;
 							set_wuv(4, evl, 1, 1+4, 4, 0);
 						}
-						else if(test==2) {
+						else if(test==2) { /* Edge 2 has new vert */
 							addvlak_subdiv(evl, 2+4, 3, 4, 0, 0);
 							addvlak_subdiv(evl, 2+4, 4, 1, 0, 0);
 							evl->v3= e2->vn;
 							evl->v4= 0;
 							set_wuv(4, evl, 1, 2, 2+4, 0);
 						}
-						else if(test==4) {
+						else if(test==4) { /* Edge 3 has new vert */
 							addvlak_subdiv(evl, 3+4, 4, 1, 0, 0);
 							addvlak_subdiv(evl, 3+4, 1, 2, 0, 0);
 							evl->v1= evl->v2;
@@ -3302,7 +3334,7 @@ void subdivideflag(int flag, float rad, int beauty)
 							evl->v4= 0;
 							set_wuv(4, evl, 2, 3, 3+4, 0);
 						}
-						else if(test==8) {
+						else if(test==8) { /* Edge 4 has new vert */
 							addvlak_subdiv(evl, 4+4, 1, 2, 0, 0);
 							addvlak_subdiv(evl, 4+4, 2, 3, 0, 0);
 							evl->v1= evl->v3;
@@ -3311,71 +3343,110 @@ void subdivideflag(int flag, float rad, int beauty)
 							evl->v4= 0;
 							set_wuv(4, evl, 3, 4, 4+4, 0);
 						}
-						else if(test==3) {
-							addvlak_subdiv(evl, 1+4, 2+4, 4, 0, 0);
-							addvlak_subdiv(evl, 2+4, 3, 4, 0, 0);
-							evl->v2= e1->vn;
-							evl->v3= evl->v4;
-							evl->v4= 0;
-							set_wuv(4, evl, 1, 1+4, 4, 0);
+						else if(test==3) { /*edge 1&2 */
+							/* make new vert in center of new edge */	
+							vec[0]=(e1->vn->co[0]+e2->vn->co[0])/2;
+							vec[1]=(e1->vn->co[1]+e2->vn->co[1])/2;
+							vec[2]=(e1->vn->co[2]+e2->vn->co[2])/2;
+							eve= addvertlist(vec);
+							eve->f |= flag;
+							/* Add new faces */
+							addvlak_subdiv(evl, 4, 10, 2+4, 3, eve);
+							addvlak_subdiv(evl, 4, 1, 1+4, 10, eve);	
+							/* orig face becomes small corner */
+							evl->v1=e1->vn;
+							//evl->v2=evl->v2;
+							evl->v3=e2->vn;
+							evl->v4=eve;
+							
+							set_wuv(4, evl, 1+4, 2, 2+4, 10);
 						}
-						else if(test==6) {
-							addvlak_subdiv(evl, 2+4, 3+4, 1, 0, 0);
-							addvlak_subdiv(evl, 3+4, 4, 1, 0, 0);
-							evl->v3= e2->vn;
-							evl->v4= 0;
-							set_wuv(4, evl, 1, 2, 2+4, 0);
+						else if(test==6) { /* 2&3 */
+							/* make new vert in center of new edge */	
+							vec[0]=(e2->vn->co[0]+e3->vn->co[0])/2;
+							vec[1]=(e2->vn->co[1]+e3->vn->co[1])/2;
+							vec[2]=(e2->vn->co[2]+e3->vn->co[2])/2;
+							eve= addvertlist(vec);
+							eve->f |= flag;
+							/*New faces*/
+							addvlak_subdiv(evl, 1, 11, 3+4, 4, eve);
+							addvlak_subdiv(evl, 1, 2, 2+4, 11, eve);
+							/* orig face becomes small corner */
+							evl->v1=e2->vn;
+							evl->v2=evl->v3;
+							evl->v3=e3->vn;
+							evl->v4=eve;
+							
+							set_wuv(4, evl, 2+4, 3, 3+4, 11);
 						}
-						else if(test==12) {
-							addvlak_subdiv(evl, 3+4, 4+4, 2, 0, 0);
-							addvlak_subdiv(evl, 4+4, 1, 2, 0, 0);
-							evl->v1= evl->v2;
-							evl->v2= evl->v3;
-							evl->v3= e3->vn;
-							evl->v4= 0;
-							set_wuv(4, evl, 2, 3, 3+4, 0);
+						else if(test==12) { /* 3&4 */
+							/* make new vert in center of new edge */	
+							vec[0]=(e3->vn->co[0]+e4->vn->co[0])/2;
+							vec[1]=(e3->vn->co[1]+e4->vn->co[1])/2;
+							vec[2]=(e3->vn->co[2]+e4->vn->co[2])/2;
+							eve= addvertlist(vec);
+							eve->f |= flag;
+							/*New Faces*/
+							addvlak_subdiv(evl, 2, 12, 4+4, 1, eve);
+							addvlak_subdiv(evl, 2, 3, 3+4, 12, eve); 
+							/* orig face becomes small corner */
+							evl->v1=e3->vn;
+							evl->v2=evl->v4;
+							evl->v3=e4->vn;
+							evl->v4=eve;
+							
+							set_wuv(4, evl, 3+4, 4, 4+4, 12);
 						}
-						else if(test==9) {
-							addvlak_subdiv(evl, 4+4, 1+4, 3, 0, 0);
-							addvlak_subdiv(evl, 1+4, 2, 3, 0, 0);
-							evl->v1= evl->v3;
-							evl->v2= evl->v4;
-							evl->v3= e4->vn;
-							evl->v4= 0;
-							set_wuv(4, evl, 3, 4, 4+4, 0);
+						else if(test==9) { /* 4&1 */
+							/* make new vert in center of new edge */	
+							vec[0]=(e1->vn->co[0]+e4->vn->co[0])/2;
+							vec[1]=(e1->vn->co[1]+e4->vn->co[1])/2;
+							vec[2]=(e1->vn->co[2]+e4->vn->co[2])/2;
+							eve= addvertlist(vec);
+							eve->f |= flag;
+							/*New Faces*/
+							addvlak_subdiv(evl, 3, 13, 1+4, 2, eve);
+							addvlak_subdiv(evl, 3, 4,  4+4, 13, eve);
+							/* orig face becomes small corner */
+							evl->v2=evl->v1;
+							evl->v1=e4->vn;
+							evl->v3=e1->vn;
+							evl->v4=eve;
+							
+							set_wuv(4, evl, 4+4, 1, 1+4, 13);
 						}
-						else if(test==5) {
+						else if(test==5) { /* 1&3 */
 							addvlak_subdiv(evl, 1+4, 2, 3, 3+4, 0);
 							evl->v2= e1->vn;
 							evl->v3= e3->vn;
 							set_wuv(4, evl, 1, 1+4, 3+4, 4);
 						}
-						else if(test==10) {
+						else if(test==10) { /* 2&4 */
 							addvlak_subdiv(evl, 2+4, 3, 4, 4+4, 0);
 							evl->v3= e2->vn;
 							evl->v4= e4->vn;
 							set_wuv(4, evl, 1, 2, 2+4, 4+4);
-						}
-						
-						else if(test==7) {
+						}/* Unfortunately, there is no way to avoid tris on 1 or 3 edges*/
+						else if(test==7) { /*1,2&3 */
 							addvlak_subdiv(evl, 1+4, 2+4, 3+4, 0, 0);
 							evl->v2= e1->vn;
 							evl->v3= e3->vn;
 							set_wuv(4, evl, 1, 1+4, 3+4, 4);
 						}
-						else if(test==14) {
+						
+						else if(test==14) { /* 2,3&4 */
 							addvlak_subdiv(evl, 2+4, 3+4, 4+4, 0, 0);
 							evl->v3= e2->vn;
 							evl->v4= e4->vn;
 							set_wuv(4, evl, 1, 2, 2+4, 4+4);
 						}
-						else if(test==13) {
+						else if(test==13) {/* 1,3&4 */
 							addvlak_subdiv(evl, 3+4, 4+4, 1+4, 0, 0);
 							evl->v4= e3->vn;
 							evl->v1= e1->vn;
 							set_wuv(4, evl, 1+4, 3, 3, 3+4);
 						}
-						else if(test==11) {
+						else if(test==11) { /* 1,2,&4 */
 							addvlak_subdiv(evl, 4+4, 1+4, 2+4, 0, 0);
 							evl->v1= e4->vn;
 							evl->v2= e2->vn;
@@ -3383,7 +3454,7 @@ void subdivideflag(int flag, float rad, int beauty)
 						}
 					}
 					evl->e1= addedgelist(evl->v1, evl->v2);
-					evl->e2= addedgelist(evl->v2, evl->v3);
+					evl->e2= addedgelist(evl->v2, evl->v3);					
 					if(evl->v4) evl->e3= addedgelist(evl->v3, evl->v4);
 					else evl->e3= addedgelist(evl->v3, evl->v1);
 					if(evl->v4) evl->e4= addedgelist(evl->v4, evl->v1);
@@ -6527,3 +6598,293 @@ void editmesh_align_view_to_selected(View3D *v3d, int axis)
 		view3d_align_axis_to_vector(v3d, axis, norm);
 	}
 }
+
+/*  
+
+Read a trail of mouse coords and return them as an array of CutCurve structs
+len returns number of mouse coords read before commiting with RETKEY   
+It is up to the caller to free the block when done with it,
+
+this doesn't belong here.....
+ */
+
+CutCurve *get_mouse_trail(int *len){
+
+	CutCurve *curve,*temp;
+	short event, val, ldown=0, restart=0, rubberband=0;
+	short  mval[2], lockaxis=0, lockx=0, locky=0, lastx=0, lasty=0;
+	int i=0, j, blocks=1, lasti=0;
+	
+	*len=0;
+	curve=(CutCurve *)MEM_callocN(1024*sizeof(CutCurve), "MouseTrail");
+
+	if (!curve) {
+		printf("failed to allocate memory in get_mouse_trail()\n");
+		return(NULL);
+	}
+	mywinset(curarea->win);
+	glDrawBuffer(GL_FRONT);
+	persp(0);
+	event=extern_qread(&val);
+	while((event != RETKEY ) && (event != RIGHTMOUSE) ){  
+		event=extern_qread(&val);	/* Enter or RMB indicates finish */
+		
+		if (event==ESCKEY){
+			for(j=1;j<i;j++) sdrawXORline(curve[j-1].x, curve[j-1].y, curve[j].x, curve[j].y );
+			if (curve) MEM_freeN(curve);
+			*len=0;
+			return(NULL);
+			break;
+		}	
+		
+		if (rubberband)  { /* rubberband mode, undraw last rubberband */
+			sdrawXORline(curve[i-1].x, curve[i-1].y,mval[0], mval[1]); 
+			glFlush();
+			rubberband=0;
+		}
+		
+		getmouseco_areawin(mval);
+		
+		if (lockaxis==1) mval[1]=locky;
+		if (lockaxis==2) mval[0]=lockx;
+		
+		if ( ((i==0) || (mval[0]!=curve[i-1].x) || (mval[1]!=curve[i-1].y))
+			&& (get_mbut() & L_MOUSE) ){ /* record changes only, if LMB down */
+			
+			lastx=curve[i].x=mval[0];
+			lasty=curve[i].y=mval[1];
+			
+			lockaxis=0;
+			
+			i++; 
+			
+			ldown=1;
+			if (restart) { 
+				for(j=1;j<i;j++) sdrawXORline(curve[j-1].x, curve[j-1].y, curve[j].x, curve[j].y);
+				if (rubberband) sdrawXORline(curve[j].x, curve[j].y, mval[0], mval[1]);
+				glFlush();
+				rubberband=0;
+				lasti=i=0;
+				restart=0;
+				ldown=0;
+			}
+		}
+		
+		if ((event==MIDDLEMOUSE)&&(get_mbut()&M_MOUSE)&&(i)){/*MMB Down*/
+		/*determine which axis to lock to, or clear if locked */
+			if (lockaxis) lockaxis=0;
+			else if (abs(curve[i-1].x-mval[0]) > abs(curve[i-1].y-mval[1])) lockaxis=1;
+			else lockaxis=2;
+			
+			if (lockaxis) {
+				lockx=lastx;
+				locky=lasty;
+			}
+		}
+		
+		if ((i>1)&&(i!=lasti)) {  /*Draw recorded part of curve */
+			sdrawXORline(curve[i-2].x, curve[i-2].y, curve[i-1].x, curve[i-1].y);
+			glFlush();
+		}
+		
+		if ((i==lasti)&&(i>0)) { /*Draw rubberband */
+			sdrawXORline(curve[i-1].x, curve[i-1].y,mval[0], mval[1]);
+			glFlush();
+			rubberband=1;
+		}
+		lasti=i;
+
+		if (i>=blocks*1024) { /* reallocate data if out of room */
+			temp=curve;
+			curve=(CutCurve *)MEM_callocN((blocks+1)*1024*sizeof(CutCurve), "MouseTrail");
+			if (!curve) {
+				printf("failed to re-allocate memory in get_mouse_trail()\n");
+				return(NULL);
+			}
+			memcpy(curve, temp, blocks*1024*sizeof(CutCurve));
+			blocks++;
+			MEM_freeN(temp);
+		}
+	}
+	for(j=1;j<i;j++) {
+		sdrawXORline(curve[j-1].x, curve[j-1].y, curve[j].x, curve[j].y );
+	}
+	glFlush();
+	*len=i;
+	return(curve);
+}
+
+/* ******************************************************************** */
+/* Knife Subdivide Tool.  Subdivides edges intersected by a mouse trail
+	drawn by user.
+	
+	Currently mapped to KKey when in MeshEdit mode.
+	Usage:
+		Hit K, 
+		Hold LMB down to draw path, hit RETKEY.
+		ESC cancels as expected.
+   
+	Contributed by Robert Wenzlaff (Det. Thorn).
+*/
+
+void KnifeSubdivide(){
+
+	int oldcursor, len=0;
+	short isect=0, mode=0;
+	CutCurve *curve;		
+	EditEdge *eed; 	
+	
+	if (G.obedit==0) return;
+	
+	/* Set a knife cursor here ??? */
+	oldcursor=get_cursor();
+	set_cursor(CURSOR_PENCIL); 
+	
+	calc_meshverts_ext();  /*Update screen coords for current window */
+	
+	curve=get_mouse_trail(&len);
+	
+	if (curve) mode=pupmenu("Cut Type %t|Intersect%x1|50%%x2|");
+	
+	if (curve && len && mode){
+		eed= G.eded.first;		
+		while(eed) {	
+			if((eed->v1->f)&&(eed->v2->f)){
+				isect=seg_intersect(eed, curve, len);
+				if (isect) eed->f=1;
+				else eed->f=0;
+				eed->f1=isect;
+				//printf("isect=%i\n", isect);
+			}
+			else {
+				eed->f=0;
+				eed->f1=0;
+			}
+			eed= eed->next;
+		}
+		
+		if (mode==1) subdivideflag(1, 0, B_KNIFE|B_PERCENTSUBD);
+		else if (mode==2) subdivideflag(1, 0, B_KNIFE);
+		
+		addqueue(curarea->win,  REDRAW, 1);
+		
+		eed=G.eded.first;
+		while(eed){
+			eed->f=0;
+			eed->f1=0;
+			eed=eed->next;
+		}	
+	}
+	/* Return ot old cursor and flags...*/
+	set_cursor(oldcursor);
+	if (curve) MEM_freeN(curve);
+}
+
+/* seg_intersect() Determines if and where a mouse trail intersects an EditEdge */
+
+short seg_intersect(EditEdge *e, CutCurve *c, int len){
+#define MAXSLOPE 100000
+	short isect=0;
+	float  x11, y11, x12=0, y12=0, x2max, x2min, y2max;
+	float  y2min, dist, lastdist=0, xdiff2, xdiff1;
+	float  m1, b1, m2, b2, x21, x22, y21, y22, xi;
+	float  yi, x1min, x1max, y1max, y1min, perc=0; 
+	float  scr[2], co[4];
+	int  i;
+	
+	/* Get screen coords of verts (v->xs and v->ys clip if off screen */
+	VECCOPY(co, e->v1->co);
+	co[3]= 1.0;
+	Mat4MulVec4fl(G.obedit->obmat, co);
+	project_float(co, scr);
+	x21=scr[0];
+	y21=scr[1];
+	
+	VECCOPY(co, e->v2->co);
+	co[3]= 1.0;
+	Mat4MulVec4fl(G.obedit->obmat, co);
+	project_float(co, scr);
+	x22=scr[0];
+	y22=scr[1];
+	
+	xdiff2=(x22-x21);  
+	if (xdiff2) {
+		m2=(y22-y21)/xdiff2;
+		b2= ((x22*y21)-(x21*y22))/xdiff2;
+	}
+	else {
+		m2=MAXSLOPE;  /* Verticle slope  */
+		b2=x22;      
+	}
+	for (i=0; i<len; i++){
+		if (i>0){
+			x11=x12;
+			y11=y12;
+		}
+		else {
+			x11=c[i].x;
+			y11=c[i].y;
+		}
+		x12=c[i].x;
+		y12=c[i].y;
+
+		/* Perp. Distance from point to line */
+		if (m2!=MAXSLOPE) dist=(y12-m2*x12-b2);/* /sqrt(m2*m2+1); Only looking for */
+						       /* change in sign.  Skip extra math */	
+		else dist=x22-x12;	
+		
+		if (i==0) lastdist=dist;
+		
+		/* if dist changes sign, and intersect point in edge's Bound Box*/
+		if ((lastdist*dist)<=0){
+			xdiff1=(x12-x11); /* Equation of line between last 2 points */
+			if (xdiff1){
+				m1=(y12-y11)/xdiff1;
+				b1= ((x12*y11)-(x11*y12))/xdiff1;
+			}
+			else{
+				m1=MAXSLOPE;
+				b1=x12;
+			}
+			x2max=MAX2(x21,x22)+0.001; /* prevent missed edges   */
+			x2min=MIN2(x21,x22)-0.001; /* due to round off error */
+			y2max=MAX2(y21,y22)+0.001;
+			y2min=MIN2(y21,y22)-0.001;
+			
+			/* Found an intersect,  calc intersect point */
+			if (m1==m2){ 		/* co-incident lines */
+						/* cut at 50% of overlap area*/
+				x1max=MAX2(x11, x12);
+				x1min=MIN2(x11, x12);
+				xi= (MIN2(x2max,x1max)+MAX2(x2min,x1min))/2.0;	
+				
+				y1max=MAX2(y11, y12);
+				y1min=MIN2(y11, y12);
+				yi= (MIN2(y2max,y1max)+MAX2(y2min,y1min))/2.0;
+			}			
+			else if (m2==MAXSLOPE){ 
+				xi=x22;
+				yi=m1*x22+b1;
+			}
+			else if (m1==MAXSLOPE){ 
+				xi=x12;
+				yi=m2*x12+b2;
+			}
+			else {
+				xi=(b1-b2)/(m2-m1);
+				yi=(b1*m2-m1*b2)/(m2-m1);
+			}
+			
+			/* Intersect inside bounding box of edge?*/
+			if ((xi>=x2min)&&(xi<=x2max)&&(yi<=y2max)&&(yi>=y2min)){
+				if ((m2<=1.0)&&(m2>=-1.0)) perc = (xi-x21)/(x22-x21);	
+				else perc=(yi-y21)/(y22-y21); /*lower slope more accurate*/
+				isect=32768.0*(perc+0.0000153); 
+				break;
+			}
+		}	
+		lastdist=dist;
+	}
+	return(isect);
+} 
+

@@ -48,6 +48,17 @@ void vertexsmooth(void);
 void make_sticky(void);
 void deselectall_mesh(void);
 
+/* For Knife subdivide */
+typedef struct CutCurve {
+	short  x; 
+	short  y;
+} CutCurve;
+
+void KnifeSubdivide(void);
+CutCurve *get_mouse_trail(int * length);
+short seg_intersect(struct EditEdge * e, CutCurve *c, int len);
+/* End Knife Subdiv */
+
 	/** Aligns the selected TFace's of @a me to the @a v3d,
 	 * using the given axis (0-2). Can give a user error.
 	 */

@@ -225,6 +225,22 @@ void project_short_noclip(float *vec, short *adr)
 	}
 }
 
+void project_float(float *vec, float *adr)
+{
+	float fx, fy, vec4[4];
+
+	adr[0]= 3200.0;
+	VECCOPY(vec4, vec);
+	vec4[3]= 1.0;
+	
+	Mat4MulVec4fl(G.vd->persmat, vec4);
+
+	if( vec4[3]>0.1 ) {
+		adr[0]= (curarea->winx/2.0)+(curarea->winx/2.0)*vec4[0]/vec4[3];	
+		adr[1]= (curarea->winy/2.0)+(curarea->winy/2.0)*vec4[1]/vec4[3];
+	}
+}
+
 int boundbox_clip(float obmat[][4], BoundBox *bb)
 {
 	/* return 1: draw */
