@@ -344,6 +344,7 @@ void BIF_all_preview_changed(void)
 /* signal all previews in current screen of current type */
 void BIF_preview_changed(SpaceButs *sbuts)
 {
+
 	/* can be called when no buttonswindow visible */
 	if(sbuts) {
 		ScrArea *sa;

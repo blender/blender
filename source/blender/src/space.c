@@ -1538,8 +1538,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else if(G.f & G_VERTEXPAINT)
 						vpaint_undo();
 					else {
-						if(U.uiflag & USER_GLOBALUNDO) BIF_undo();
-						else single_user();
+						single_user();
 					}
 				}
 				else if(G.qual==LR_SHIFTKEY)

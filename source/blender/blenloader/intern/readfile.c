@@ -2569,7 +2569,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 						if(v3d->bgpic) {
 							v3d->bgpic->ima= newlibadr_us(fd, sc->id.lib, v3d->bgpic->ima);
 							v3d->bgpic->tex= newlibadr_us(fd, sc->id.lib, v3d->bgpic->tex);
-							v3d->bgpic->rect= 0;
+							v3d->bgpic->rect= NULL;
 						}
 						if(v3d->localvd) {
 							v3d->localvd->camera= newlibadr(fd, sc->id.lib, v3d->localvd->camera);
@@ -2712,8 +2712,7 @@ void lib_link_screen_restore(Main *newmain, char mode, Scene *curscene)
 				else if(sl->spacetype==SPACE_BUTS) {
 					SpaceButs *sbuts= (SpaceButs *)sl;
 					sbuts->lockpoin= NULL;
-					if(sbuts->rect) MEM_freeN(sbuts->rect);
-					sbuts->rect= NULL;
+					sbuts->cury= 0;	// we leave rect, for nicer redraws
 				}
 				else if(sl->spacetype==SPACE_FILE) {
 					SpaceFile *sfile= (SpaceFile *)sl;
