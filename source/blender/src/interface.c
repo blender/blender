@@ -478,7 +478,9 @@ void uiTextBoundsBlock(uiBlock *block, int addval)
 	bt= block->buttons.first;
 	while(bt) {
 		if(bt->type!=SEPR) {
-			j= BIF_GetStringWidth(bt->font, bt->drawstr, (U.transopts & USER_TR_BUTTONS));
+			int transopts= (U.transopts & USER_TR_BUTTONS);
+			if(bt->type==TEX || bt->type==IDPOIN) transopts= 0;
+			j= BIF_GetStringWidth(bt->font, bt->drawstr, transopts);
 
 			if(j > i) i = j;
 		}
@@ -1360,7 +1362,7 @@ static int ui_do_but_TEX(uiBut *but)
 	BLI_strncpy(backstr, but->drawstr, UI_MAX_DRAW_STR);
 	but->pos= strlen(backstr)-but->ofs;
 
-	while((but->aspect*BIF_GetStringWidth(but->font, backstr+but->ofs, (U.transopts & USER_TR_BUTTONS)) + but->x1) > mval[0]) {
+	while((but->aspect*BIF_GetStringWidth(but->font, backstr+but->ofs, 0) + but->x1) > mval[0]) {
 		if (but->pos <= 0) break;
 		but->pos--;
 		backstr[but->pos+but->ofs] = 0;
@@ -3986,10 +3988,13 @@ void ui_check_but(uiBut *but)
 	ID *id;
 	double value;
 	float okwidth;
+	int transopts= (U.transopts & USER_TR_BUTTONS);
 	short pos;
 	
 	ui_is_but_sel(but);
 	
+	if(but->type==TEX || but->type==IDPOIN) transopts= 0;
+
 	/* test for min and max, icon sliders, etc */
 	switch( but->type ) {
 		case NUM:
@@ -4104,7 +4109,7 @@ void ui_check_but(uiBut *but)
 	}
 
 	if(but->drawstr[0]) {
-		but->strwidth= but->aspect*BIF_GetStringWidth(but->font, but->drawstr, (U.transopts & USER_TR_BUTTONS));
+		but->strwidth= but->aspect*BIF_GetStringWidth(but->font, but->drawstr, transopts);
 		// here should be check for less space for icon offsets...
 		if(but->type==MENU) okwidth -= 20;
 	}
@@ -4126,7 +4131,7 @@ void ui_check_but(uiBut *but)
 			but->ofs++;
 	
 			if(but->drawstr[but->ofs]) 
-				but->strwidth= but->aspect*BIF_GetStringWidth(but->font, but->drawstr+but->ofs, (U.transopts & USER_TR_BUTTONS));
+				but->strwidth= but->aspect*BIF_GetStringWidth(but->font, but->drawstr+but->ofs, transopts);
 			else but->strwidth= 0;
 	
 			/* textbut exception */

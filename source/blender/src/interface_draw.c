@@ -1472,6 +1472,8 @@ static void ui_draw_text_icon(uiBut *but)
 			}	
 		}
 		if(but->drawstr[0]!=0) {
+			int transopts;
+			
 			// cut string in 2 parts
 			cpoin= strchr(but->drawstr, '|');
 			if(cpoin) *cpoin= 0;
@@ -1526,7 +1528,9 @@ static void ui_draw_text_icon(uiBut *but)
 			if(but->type==LABEL && but->min!=0.0) BIF_ThemeColor(TH_BUT_TEXT_HI);
 		
 			ui_rasterpos_safe(x, (but->y1+but->y2- 9.0)/2.0, but->aspect);
-			BIF_DrawString(but->font, but->drawstr+but->ofs, (U.transopts & USER_TR_BUTTONS));
+			if(but->type==TEX || but->type==IDPOIN) transopts= 0;	// no translation, of course!
+			else transopts= (U.transopts & USER_TR_BUTTONS);
+			BIF_DrawString(but->font, but->drawstr+but->ofs, transopts);
 
 			/* part text right aligned */
 			if(cpoin) {
