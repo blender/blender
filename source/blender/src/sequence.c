@@ -129,7 +129,7 @@ void open_plugin_seq(PluginSeq *pis, char *seqname)
 				MEM_freeN(info);
 
 				cp= PIL_dynlib_find_symbol(pis->handle, "seqname");
-				if(cp) strcpy(cp, seqname);
+				if(cp) strncpy(cp, seqname, 21);
 			} else {
 				printf ("Plugin returned unrecognized version number\n");
 				return;
@@ -146,7 +146,7 @@ PluginSeq *add_plugin_seq(char *str, char *seqname)
 
 	pis= MEM_callocN(sizeof(PluginSeq), "PluginSeq");
 
-	strcpy(pis->name, str);
+	strncpy(pis->name, str, FILE_MAXDIR+FILE_MAXFILE);
 	open_plugin_seq(pis, seqname);
 
 	if(pis->doit==0) {
@@ -1647,7 +1647,7 @@ void do_effect(int cfra, Sequence *seq, StripElem *se)
 			if(seq->plugin->cfra) *(seq->plugin->cfra)= frame_to_float(CFRA);
 
 			cp= PIL_dynlib_find_symbol(seq->plugin->handle, "seqname");
-			if(cp) strcpy(cp, seq->name+2);
+			if(cp) strncpy(cp, seq->name+2, 22);
 
 			if (seq->plugin->version<=2) {
 				if(se1->ibuf) IMB_convert_rgba_to_abgr(se1->ibuf->x*se1->ibuf->y, se1->ibuf->rect);
@@ -1800,7 +1800,7 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 	Scene *oldsce;
 	unsigned int *rectot;
 	int oldx, oldy, oldcfra, doseq;
-	char name[FILE_MAXDIR];
+	char name[FILE_MAXDIR+FILE_MAXFILE];
 
 	if(seqar==NULL) return;
 	
@@ -1886,8 +1886,8 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 							/* if playanim or render: no waitcursor */
 							if((G.f & G_PLAYANIM)==0) waitcursor(1);
 
-							strcpy(name, seq->strip->dir);
-							strcat(name, se->name);
+							strncpy(name, seq->strip->dir, FILE_MAXDIR-1);
+							strncat(name, se->name, FILE_MAXFILE);
 							BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
 							se->ibuf= IMB_loadiffname(name, IB_rect);
 
@@ -1913,8 +1913,8 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 							if((G.f & G_PLAYANIM)==0) waitcursor(1);
 
 							if(seq->anim==0) {
-								strcpy(name, seq->strip->dir);
-								strcat(name, seq->strip->stripdata->name);
+								strncpy(name, seq->strip->dir, FILE_MAXDIR-1);
+								strncat(name, seq->strip->stripdata->name, FILE_MAXFILE-1);
 								BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
 
 								seq->anim = openanim(name, IB_rect);

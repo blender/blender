@@ -95,8 +95,8 @@
 #include "mydevice.h"
 
 Sequence *last_seq=0;
-char last_imagename[80]= "/";
-char last_sounddir[80]= "";
+char last_imagename[FILE_MAXDIR+FILE_MAXFILE]= "/";
+char last_sounddir[FILE_MAXDIR+FILE_MAXFILE]= "";
 
 /*  void transform_seq(int mode); already in BIF_editseq.h */
 
@@ -382,12 +382,12 @@ void mouse_select_seq(void)
 
 		if ((seq->type == SEQ_IMAGE) || (seq->type == SEQ_MOVIE)) {
 			if(seq->strip) {
-				strcpy(last_imagename, seq->strip->dir);
+				strncpy(last_imagename, seq->strip->dir, FILE_MAXDIR-1);
 			}
 		} else
 		if (seq->type == SEQ_SOUND) {
 			if(seq->strip) {
-				strcpy(last_sounddir, seq->strip->dir);
+				strncpy(last_sounddir, seq->strip->dir, FILE_MAXDIR-1);
 			}
 		}
 
@@ -486,13 +486,13 @@ static Sequence *sfile_to_sequence(SpaceFile *sfile, int cfra, int machine, int 
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
 	strip->len= totsel;
 	strip->us= 1;
-	strcpy(strip->dir, sfile->dir);
+	strncpy(strip->dir, sfile->dir, FILE_MAXDIR-1);
 	strip->stripdata= se= MEM_callocN(totsel*sizeof(StripElem), "stripelem");
 
 	for(a=0; a<sfile->totfile; a++) {
 		if(sfile->filelist[a].flags & ACTIVE) {
 			if( (sfile->filelist[a].type & S_IFDIR)==0 ) {
-				strcpy(se->name, sfile->filelist[a].relname);
+				strncpy(se->name, sfile->filelist[a].relname, FILE_MAXFILE-1);
 				se->ok= 1;
 				se++;
 			}
@@ -500,12 +500,12 @@ static Sequence *sfile_to_sequence(SpaceFile *sfile, int cfra, int machine, int 
 	}
 	/* no selected file: */
 	if(totsel==1 && se==strip->stripdata) {
-		strcpy(se->name, sfile->file);
+		strncpy(se->name, sfile->file, FILE_MAXFILE-1);
 		se->ok= 1;
 	}
 
 	/* last active name */
-	strcpy(last_imagename, seq->strip->dir);
+	strncpy(last_imagename, seq->strip->dir, FILE_MAXDIR-1);
 
 	return seq;
 }
@@ -517,12 +517,12 @@ static void sfile_to_mv_sequence(SpaceFile *sfile, int cfra, int machine)
 	Strip *strip;
 	StripElem *se;
 	int totframe, a;
-	char str[256];
+	char str[FILE_MAXDIR+FILE_MAXFILE];
 
 	totframe= 0;
 
-	strcpy(str, sfile->dir);
-	strcat(str, sfile->file);
+	strncpy(str, sfile->dir, FILE_MAXDIR-1);
+	strncat(str, sfile->file, FILE_MAXDIR-1);
 
 	/* is it a movie? */
 	anim = openanim(str, IB_rect);
@@ -545,11 +545,11 @@ static void sfile_to_mv_sequence(SpaceFile *sfile, int cfra, int machine)
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
 	strip->len= totframe;
 	strip->us= 1;
-	strcpy(strip->dir, sfile->dir);
+	strncpy(strip->dir, sfile->dir, FILE_MAXDIR-1);
 	strip->stripdata= se= MEM_callocN(totframe*sizeof(StripElem), "stripelem");
 
 	/* name movie in first strip */
-	strcpy(se->name, sfile->file);
+	strncpy(se->name, sfile->file, FILE_MAXFILE-1);
 
 	for(a=1; a<=totframe; a++, se++) {
 		se->ok= 1;
@@ -557,7 +557,7 @@ static void sfile_to_mv_sequence(SpaceFile *sfile, int cfra, int machine)
 	}
 
 	/* last active name */
-	strcpy(last_imagename, seq->strip->dir);
+	strncpy(last_imagename, seq->strip->dir, FILE_MAXDIR-1);
 }
 
 static Sequence *sfile_to_snd_sequence(SpaceFile *sfile, int cfra, int machine)
@@ -572,8 +572,8 @@ static Sequence *sfile_to_snd_sequence(SpaceFile *sfile, int cfra, int machine)
 
 	totframe= 0.0;
 
-	strcpy(str, sfile->dir);
-	strcat(str, sfile->file);
+	strncpy(str, sfile->dir, FILE_MAXDIR-1);
+	strncat(str, sfile->file, FILE_MAXFILE-1);
 
 	sound= sound_new_sound(str);
 	if (!sound || sound->sample->type == SAMPLE_INVALID) {
@@ -602,11 +602,11 @@ static Sequence *sfile_to_snd_sequence(SpaceFile *sfile, int cfra, int machine)
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
 	strip->len= totframe;
 	strip->us= 1;
-	strcpy(strip->dir, sfile->dir);
+	strncpy(strip->dir, sfile->dir, FILE_MAXDIR-1);
 	strip->stripdata= se= MEM_callocN(totframe*sizeof(StripElem), "stripelem");
 
 	/* name sound in first strip */
-	strcpy(se->name, sfile->file);
+	strncpy(se->name, sfile->file, FILE_MAXFILE-1);
 
 	for(a=1; a<=totframe; a++, se++) {
 		se->ok= 2; /* why? */
@@ -615,7 +615,7 @@ static Sequence *sfile_to_snd_sequence(SpaceFile *sfile, int cfra, int machine)
 	}
 
 	/* last active name */
-	strcpy(last_sounddir, seq->strip->dir);
+	strncpy(last_sounddir, seq->strip->dir, FILE_MAXDIR-1);
 
 	return seq;
 }
@@ -655,7 +655,7 @@ static void add_image_strips(char *name)
 	for(a=0; a<totfile; a++) {
 		if(files[a].flags & ACTIVE) {
 			if( (files[a].type & S_IFDIR) ) {
-				strcat(sfile->dir, files[a].relname);
+				strncat(sfile->dir, files[a].relname, FILE_MAXFILE-1);
 				strcat(sfile->dir,"/");
 				read_dir(sfile);
 
@@ -1113,7 +1113,7 @@ void add_sequence(int type)
 
 		break;
 	case 103:
-		if (!last_sounddir[0]) strcpy(last_sounddir, U.sounddir);
+		if (!last_sounddir[0]) strncpy(last_sounddir, U.sounddir, FILE_MAXDIR-1);
 		activate_fileselect(FILE_SPECIAL, "Select Wav", last_sounddir, add_sound_strip);
 		break;
 	}

@@ -1654,8 +1654,10 @@ static int ui_do_but_NUM(uiBut *but)
 					temp= floor(tempf+.5);
 					
 					if(tempf==but->min || tempf==but->max);
-					else if(qual & LR_CTRLKEY) temp= 10*(temp/10);
-					
+					else if(qual & LR_CTRLKEY) {
+						if(qual & LR_SHIFTKEY) temp= 100*(temp/100);
+						else temp= 10*(temp/10);
+					}
 					if( temp>=but->min && temp<=but->max) {
 					
 						value= ui_get_but_val(but);
@@ -1676,10 +1678,18 @@ static int ui_do_but_NUM(uiBut *but)
 				else {
 					temp= 0;
 					if(qual & LR_CTRLKEY) {
-						if(tempf==but->min || tempf==but->max);
-						else if(but->max-but->min < 2.10) tempf= 0.1*floor(10*tempf);
-						else if(but->max-but->min < 21.0) tempf= floor(tempf);
-						else tempf= 10.0*floor(tempf/10.0);
+						if(qual & LR_SHIFTKEY) {
+							if(tempf==but->min || tempf==but->max);
+							else if(but->max-but->min < 2.10) tempf= 0.01*floor(100.0*tempf);
+							else if(but->max-but->min < 21.0) tempf= 0.1*floor(10.0*tempf);
+							else tempf= floor(tempf);
+						}
+						else {
+							if(tempf==but->min || tempf==but->max);
+							else if(but->max-but->min < 2.10) tempf= 0.1*floor(10*tempf);
+							else if(but->max-but->min < 21.0) tempf= floor(tempf);
+							else tempf= 10.0*floor(tempf/10.0);
+						}
 					}
 	
 					if( tempf>=but->min && tempf<=but->max) {
@@ -1947,9 +1957,17 @@ static int ui_do_but_SLI(uiBut *but)
 			if(tempf==but->min || tempf==but->max);
 			else if( but->pointype==FLO ) {
 
-				if(but->max-but->min < 2.10) tempf= 0.1*floor(10*tempf);
-				else if(but->max-but->min < 21.0) tempf= floor(tempf);
-				else tempf= 10.0*floor(tempf/10.0);
+				if(qual & LR_SHIFTKEY) {
+					if(tempf==but->min || tempf==but->max);
+					else if(but->max-but->min < 2.10) tempf= 0.01*floor(100.0*tempf);
+					else if(but->max-but->min < 21.0) tempf= 0.1*floor(10.0*tempf);
+					else tempf= floor(tempf);
+				}
+				else {
+					if(but->max-but->min < 2.10) tempf= 0.1*floor(10*tempf);
+					else if(but->max-but->min < 21.0) tempf= floor(tempf);
+					else tempf= 10.0*floor(tempf/10.0);
+				}
 			}
 			else {
 				temp= 10*(temp/10);

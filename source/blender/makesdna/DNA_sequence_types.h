@@ -42,8 +42,10 @@
 struct Ipo;
 struct Scene;
 
+/* strlens; 80= FILE_MAXFILE, 160= FILE_MAXDIR */
+
 typedef struct StripElem {
-	char name[40];
+	char name[80];
 	struct ImBuf *ibuf;
 	struct StripElem *se1, *se2, *se3;
 	short ok, nr;
@@ -55,7 +57,7 @@ typedef struct Strip {
 	struct Strip *next, *prev;
 	short rt, len, us, done;
 	StripElem *stripdata;
-	char dir[80];
+	char dir[160];
 	short orx, ory;
 	int pad;
 
@@ -63,7 +65,7 @@ typedef struct Strip {
 
 
 typedef struct PluginSeq {
-	char name[80];
+	char name[256];
 	void *handle;
 
 	char *pname;

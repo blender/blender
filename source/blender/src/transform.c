@@ -1998,7 +1998,7 @@ int Resize(TransInfo *t, short mval[2])
 
 	/* for manipulator, center handle, the scaling can't be done relative to center */
 	if( (t->flag & T_USES_MANIPULATOR) && t->con.mode==0) {
-		ratio = 1.0f - ((t->center2d[0] - mval[0]) + (t->center2d[1] - mval[1]))/100.0f;
+		ratio = 1.0f - ((t->imval[0] - mval[0]) + (t->imval[1] - mval[1]))/100.0f;
 	}
 	else {
 		ratio = (float)sqrt( (float)

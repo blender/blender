@@ -526,7 +526,7 @@ static void draw_extra_seqinfo(void)
 
 	/* NAME */
 	glRasterPos3f(xco,  0.3, 0.0);
-	strcpy(str, give_seqname(last_seq));
+	strncpy(str, give_seqname(last_seq), 255);
 	BMF_DrawString(G.font, str);
 	xco += xfac*BMF_GetStringWidth(G.font, str) +30.0*xfac;
 
@@ -710,8 +710,8 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 
 		if(last_seq->type==SEQ_WIPE){
 			WipeVars *wipe = (WipeVars *)last_seq->effectdata;
-			char formatstring[1024];
-			strcpy(formatstring, "Transition Type %t|Single Wipe%x0|Double Wipe %x1|Iris Wipe %x4|Clock Wipe %x5");
+			char formatstring[256];
+			strncpy(formatstring, "Transition Type %t|Single Wipe%x0|Double Wipe %x1|Iris Wipe %x4|Clock Wipe %x5", 255);
 			uiDefButS(block, MENU,SEQ_BUT_EFFECT, formatstring,	10,90,220,22, &wipe->wipetype, 0, 0, 0, 0, "What type of wipe should be performed");
 			uiDefButF(block, NUM,SEQ_BUT_EFFECT,"Blur:",	10,65,220,22, &wipe->edgeWidth,0.0,1.0, 1, 2, "The percent width of the blur edge");
 			switch(wipe->wipetype){ /*Skip Types that do not require angle*/
