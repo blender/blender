@@ -406,6 +406,13 @@ static short detect_constraint_loop (Object *owner, const char* substring, int d
 							break;
 						}
 						
+						if ( (data->tar == owner) &&
+							 (!get_named_bone(get_armature(owner), 
+											  data->subtarget))) {
+							curcon->flag |= CONSTRAINT_DISABLE;
+							result = 1;
+							break;
+						}
 						if (add_constraint_element (data->tar, data->subtarget, owner, substring)){
 							curcon->flag |= CONSTRAINT_DISABLE;
 							result = 1;
@@ -429,6 +436,13 @@ static short detect_constraint_loop (Object *owner, const char* substring, int d
 							break;
 						}
 						
+						if ( (data->tar == owner) &&
+							 (!get_named_bone(get_armature(owner), 
+											  data->subtarget))) {
+							curcon->flag |= CONSTRAINT_DISABLE;
+							result = 1;
+							break;
+						}
 						if (add_constraint_element (data->tar, data->subtarget, owner, substring)){
 							curcon->flag |= CONSTRAINT_DISABLE;
 							result = 1;
@@ -452,6 +466,13 @@ static short detect_constraint_loop (Object *owner, const char* substring, int d
 							break;
 						}
 						
+						if ( (data->tar == owner) &&
+							 (!get_named_bone(get_armature(owner), 
+											  data->subtarget))) {
+							curcon->flag |= CONSTRAINT_DISABLE;
+							result = 1;
+							break;
+						}
 						if (add_constraint_element (data->tar, data->subtarget, owner, substring)){
 							curcon->flag |= CONSTRAINT_DISABLE;
 							result = 1;
@@ -481,8 +502,6 @@ static short detect_constraint_loop (Object *owner, const char* substring, int d
 							result = 1;
 							break;
 						}
-
-						
 						if (add_constraint_element (data->tar, data->subtarget, owner, substring)){
 							curcon->flag |= CONSTRAINT_DISABLE;
 							result = 1;
@@ -505,6 +524,13 @@ static short detect_constraint_loop (Object *owner, const char* substring, int d
 							break;
 						}
 						
+						if ( (data->tar == owner) &&
+							 (!get_named_bone(get_armature(owner), 
+											  data->subtarget))) {
+							curcon->flag |= CONSTRAINT_DISABLE;
+							result = 1;
+							break;
+						}
 						if (typefrom != CONSTRAINT_TYPE_TRACKTO && typefrom != CONSTRAINT_TYPE_LOCKTRACK){
 							if (add_constraint_element (data->tar, data->subtarget, owner, substring)){
 								curcon->flag |= CONSTRAINT_DISABLE;
@@ -546,6 +572,13 @@ static short detect_constraint_loop (Object *owner, const char* substring, int d
 							break;
 						}
 						
+						if ( (data->tar == owner) &&
+							 (!get_named_bone(get_armature(owner), 
+											  data->subtarget))) {
+							curcon->flag |= CONSTRAINT_DISABLE;
+							result = 1;
+							break;
+						}
 						if (typefrom != CONSTRAINT_TYPE_TRACKTO && typefrom != CONSTRAINT_TYPE_LOCKTRACK){
 							if (add_constraint_element (data->tar, data->subtarget, owner, substring)){
 								curcon->flag |= CONSTRAINT_DISABLE;
@@ -587,6 +620,13 @@ static short detect_constraint_loop (Object *owner, const char* substring, int d
 							break;
 						}
 
+						if ( (data->tar == owner) &&
+							 (!get_named_bone(get_armature(owner), 
+											  data->subtarget))) {
+							curcon->flag |= CONSTRAINT_DISABLE;
+							result = 1;
+							break;
+						}
 						if (detect_constraint_loop (data->tar, data->subtarget, disable, CONSTRAINT_TYPE_LOCKTRACK)){
 							curcon->flag |= CONSTRAINT_DISABLE;
 							result = 1;
