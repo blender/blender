@@ -528,9 +528,9 @@ static void py_slider_update(void *butv, void *data2_unused)
 
 	g_window_redrawn = 0;
 	curarea->win_swap= WIN_BACK_OK; 
-	UIfrontbuf = 1; 
+	//UIfrontbuf = 1; 
 	spacetext_do_pywin_buttons(curarea->spacedata.first, uiButGetRetVal(but));
-	UIfrontbuf = 0;
+	//UIfrontbuf = 0;
 
 	if (!g_window_redrawn) /* if Redraw already called */
 		Windowmodule_Redraw(0, Py_BuildValue("(i)", SPACE_VIEW3D));
