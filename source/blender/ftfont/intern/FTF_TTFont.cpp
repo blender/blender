@@ -41,13 +41,12 @@
 #include "libintl.h"
 #include "BLI_blenlib.h"
 
-#ifdef __APPLE__
-#include <libgen.h>
-#endif
-
 #include "../FTF_Settings.h"
 
 #include "FTF_TTFont.h"
+
+#include "BKE_utildefines.h"
+#include "BLI_blenlib.h"
 
 #define DOMAIN_NAME "blender"
 
@@ -56,8 +55,6 @@
 //#define FONT_PATH_DEFAULT ".bfont.ttf"
 
 #define FTF_MAX_STR_SIZE 256
-
-extern char bprogname[];
 
 int utf8towchar(wchar_t *w, char *c)
 {
@@ -104,7 +101,7 @@ int utf8towchar(wchar_t *w, char *c)
 FTF_TTFont::FTF_TTFont(void)
 {	
 #ifdef __APPLE__
-	char tmp[1024];
+	char *bundlepath;
 #endif
 
 	font=NULL;
@@ -117,33 +114,26 @@ FTF_TTFont::FTF_TTFont(void)
 #define LOCALEDIR "/usr/share/locale"
 #endif
 
-	BLI_make_file_string("/", messagepath, BLI_gethome(), ".blender/locale");
-printf("1. %s\n", messagepath);
-	if (BLI_exist(messagepath) == NULL) {	// locale not in home dir
+	strcpy(messagepath, ".blender/locale");
 
-		strcpy(messagepath, ".blender/locale");
-printf("2. %s\n", messagepath);
-		if(BLI_exist(messagepath) == NULL) {	// locale not in current dir
-
-			strcpy(messagepath, LOCALEDIR);
-printf("3. %s\n", messagepath);
-			if(BLI_exist(messagepath) == NULL) {	// locale not in LOCALEDIR
-
-
+	if (BLI_exist(messagepath) == NULL) {	// locale not in current dir
+		BLI_make_file_string("/", messagepath, BLI_gethome(), ".blender/locale");
+		
+		if(BLI_exist(messagepath) == NULL) {	// locale not in home dir
 #ifdef __APPLE__
-				/* message catalogs are stored inside the application bundle */
-				strcpy(tmp, dirname(bprogname));
-				strcat(tmp, "/../Resources/message");
-				realpath(tmp, messagepath);
-printf("4. %s\n", messagepath);
-				if(BLI_exist(messagepath) == NULL) {	// locale not in bundle dir
+			/* message catalogs are stored inside the application bundle */
+			bundlepath = BLI_getbundle();
+			strcpy(messagepath, bundlepath);
+			strcat(messagepath, "/Contents/Resources/locale");
+			if(BLI_exist(messagepath) == NULL) { // locale not in bundle (now that's odd..)
 #endif
-					
+				strcpy(messagepath, LOCALEDIR);
+
+				if(BLI_exist(messagepath) == NULL) {	// locale not in LOCALEDIR
 					strcpy(messagepath, "message");		// old compatibility as last
-printf("5. %s\n", messagepath);
 				}
 #ifdef __APPLE__
-			} // heh
+			}
 #endif
 		}
 	}
@@ -193,12 +183,9 @@ void FTF_TTFont::SetLanguage(char* str)
 	gettext_putenv(envstr);
 #else
 	putenv(envstr);
-	setlocale(LC_ALL, str);	
 #endif
 #else
-	char *locreturn;
-	
-	locreturn = setlocale(LC_ALL, str);
+	char *locreturn = setlocale(LC_ALL, str);
 	if (locreturn == NULL) {
 		printf("could not change language to %s\n", str);
 	}

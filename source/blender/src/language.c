@@ -128,7 +128,7 @@ void lang_setlanguage(void) {
 	LANGMenuEntry *lme;
 
 	lme = find_language(U.language);
-	if(lme)	FTF_SetLanguage(lme->code);
+	if(lme) FTF_SetLanguage(lme->code);
 	else FTF_SetLanguage("en_US");
 }
 
@@ -154,11 +154,14 @@ void set_interface_font(char *str) {
 void start_interface_font(void) {
 	char tstr[FILE_MAXDIR+FILE_MAXFILE];
 	int result = 0;
-
+#ifdef __APPLE__
+	char *bundlepath;
+#endif
+	
 	/* hack to find out if we have saved language/font settings.
 	   if not, set defaults and try .bfont.tff --phase */
 	
-	if(U.fontsize != 0) {	// we have saved user settings
+	if(U.fontsize != 0) { // we have saved user settings
 		// try load the font from the font dir
 		BLI_make_file_string("/", tstr, U.fontdir, U.fontname);
 		result = FTF_SetFont(tstr, U.fontsize);
@@ -170,9 +173,20 @@ void start_interface_font(void) {
 		U.language= 0;
 		U.fontsize= 11;
 		U.encoding= 0;
+
+#ifdef __APPLE__
+		bundlepath = BLI_getbundle();
+		strcpy(tstr, bundlepath);
+		strcat(tstr, "/Contents/Resources/");
+		strcat(tstr, ".bfont.ttf");
+		result = FTF_SetFont(tstr, U.fontsize);
+
+		sprintf(U.fontname, ".blender/.bfont.ttf\0");
+#else
 		sprintf(U.fontname, ".blender/.bfont.ttf\0");
 
 		result = FTF_SetFont(U.fontname, U.fontsize);
+#endif
 	}
 
 	if(result) {
@@ -250,15 +264,22 @@ void puplang_insert_entry(char *line)
 int read_languagefile(void) {
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 	LinkNode *l, *lines;
-
+	
 	/* .Blanguages */
-
 	BLI_make_file_string("/", name, BLI_gethome(), ".Blanguages");
+
 	lines= BLI_read_file_as_lines(name);
 
 	if(lines == NULL) {
-		/* If not found in home, try .blender dir */
-		strcpy(name, ".blender\\.Blanguages");
+		/* If not found in home, try current dir 
+		 * (Resources folder of app bundle on OS X) */
+#ifdef __APPLE__
+		char *bundlePath = BLI_getbundle();
+		strcpy(name, bundlePath);
+		strcat(name, "/Contents/Resources/.Blanguages");
+#else
+		strcpy(name, ".blender/.Blanguages");
+#endif
 		lines= BLI_read_file_as_lines(name);
 
 		if(lines == NULL) {
