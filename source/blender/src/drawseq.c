@@ -644,7 +644,7 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 	block= uiNewBlock(&curarea->uiblocks, "seq_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(SEQ_HANDLER_PROPERTIES);  // for close and esc
-	if(uiNewPanel(curarea, block, "Transform Properties", "Seq", 10, 230, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Strip Properties", "Seq", 10, 230, 318, 204)==0) return;
 
 	if(last_seq==NULL) return;
 
@@ -653,7 +653,7 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 		VarStruct *varstr;
 		int a, xco, yco;
 
-		uiDefBut(block, LABEL, 0, "Striptype: Plugin", 10,50,70,20, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "Type: Plugin", 10,50,70,20, 0, 0, 0, 0, 0, "");
 
 		pis= last_seq->plugin;
 		if(pis->vars==0) return;
@@ -670,28 +670,28 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 	}
 	else if(last_seq->type==SEQ_IMAGE) {
 
-		uiDefBut(block, LABEL, 0, "Striptype: Image", 10,140,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, 0, "Stripname: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
+		uiDefBut(block, LABEL, 0, "Type: Image", 10,140,150,20, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, TEX, 0, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
 
 	}
 	else if(last_seq->type==SEQ_META) {
 
-		uiDefBut(block, LABEL, 0, "Striptype: Meta", 10,140,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, 0, "Stripname: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
+		uiDefBut(block, LABEL, 0, "Type: Meta", 10,140,150,20, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, TEX, 0, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
 
 	}
 	else if(last_seq->type==SEQ_SCENE) {
 
-		uiDefBut(block, LABEL, 0, "Striptype: Scene", 10,140,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, 0, "Stripname: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
+		uiDefBut(block, LABEL, 0, "Type: Scene", 10,140,150,20, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, TEX, 0, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
 
 	}
 	else if(last_seq->type==SEQ_MOVIE) {
 
 		if(last_seq->mul==0.0) last_seq->mul= 1.0;
 
-		uiDefBut(block, LABEL, 0, "Striptype: Movie", 10,140,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, 0, "Stripname: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
+		uiDefBut(block, LABEL, 0, "Type: Movie", 10,140,150,20, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, TEX, 0, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
 
 		uiDefButS(block, TOG|BIT|4, SEQ_BUT_MOVIE, "FilterY ", 10,90,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "");
 		uiDefButF(block, NUM, SEQ_BUT_MOVIE, "Mul:", 10,70,150,19, &last_seq->mul, 0.001, 5.0, 100, 0, "");
@@ -699,21 +699,21 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 	}
 	else if(last_seq->type==SEQ_SOUND) {
 
-		uiDefBut(block, LABEL, 0, "Striptype: Audio", 10,140,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, 0, "Stripname: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
+		uiDefBut(block, LABEL, 0, "Type: Audio", 10,140,150,20, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, TEX, 0, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
 
 		uiDefButS(block, TOG|BIT|5, 0, "Mute", 10,90,120,19, &last_seq->flag, 0.0, 21.0, 100, 0, "");
 		uiDefButF(block, NUM, SEQ_BUT_MOVIE, "Gain (dB):", 10,70,150,19, &last_seq->level, -96.0, 6.0, 100, 0, "");
 		uiDefButF(block, NUM, SEQ_BUT_MOVIE, "Pan:", 	10,50,150,19, &last_seq->pan, -1.0, 1.0, 100, 0, "");
 	}
 	else if(last_seq->type>=SEQ_EFFECT) {
-		uiDefBut(block, LABEL, 0, "Striptype: Effect", 10,140,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, 0, "Stripname: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
+		uiDefBut(block, LABEL, 0, "Type: Effect", 10,140,150,20, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, TEX, 0, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
 
 		if(last_seq->type==SEQ_SWEEP){
 			SweepVars *sweep = (SweepVars *)last_seq->effectdata;
 			char formatstring[1024];
-			strcpy(formatstring, "Select Sweep Type %t|Single Wipe%x0|Double Wipe %x1|Iris Wipe %x4|Clock Wipe %x5");
+			strcpy(formatstring, "Transition Type %t|Single Wipe%x0|Double Wipe %x1|Iris Wipe %x4|Clock Wipe %x5");
 			uiDefButS(block, MENU,SEQ_BUT_EFFECT | B_NOP, formatstring,	10,90,220,22, &sweep->sweeptype, 0, 0, 0, 0, "What type of sweep should be performed");
 			uiDefButF(block, NUM,SEQ_BUT_EFFECT| B_NOP,"Blur:",	10,65,220,22, &sweep->edgeWidth,0.0,1.0, 1, 2, "The percent width of the blur edge");
 			switch(sweep->sweeptype){ /*Skip Types that do not require angle*/

@@ -1715,6 +1715,8 @@ static TBitem tb_mesh_edit_edge[]= {
 {	0, "SEPR", 								0, NULL},
 {	0, "Mark Seam|Ctrl E", 			7, 		NULL},
 {	0, "Clear Seam|Ctrl E", 		8, 		NULL},
+{	0, "SEPR", 								0, NULL},
+{	0, "Crease SubSurf|Shift E",	9, 		NULL},
 {  -1, "", 			0, do_view3d_edit_mesh_edgesmenu}};
 
 static TBitem tb_mesh_edit_face[]= {

@@ -1944,6 +1944,9 @@ void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 	case 8: /* Clear Seam */
 		editmesh_mark_seam(1);
 		break;
+	case 9: /* Cease SubSurf */
+		transform('e');
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -1952,6 +1955,8 @@ static uiBlock *view3d_edit_mesh_edgesmenu(void *arg_unused)
 {
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
+	
+	Mesh *me= get_mesh(OBACT);
 
 	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_mesh_edgesmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_edit_mesh_edgesmenu, NULL);
@@ -1974,6 +1979,11 @@ static uiBlock *view3d_edit_mesh_edgesmenu(void *arg_unused)
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mark Seam|Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Seam|Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
+
+	if (me->flag & ME_SUBSURF) {
+		uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Crease SubSurf|Shift E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
+	}
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
