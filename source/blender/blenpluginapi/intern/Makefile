@@ -44,7 +44,7 @@ ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris"))
     CFLAGS += -shared
 endif
 
-CPPFLAGS += $(LEVEL_2_C_WARNINGS)
+CPPFLAGS += $(LEVEL_2_CPP_WARNINGS)
 
 # path to our own external headerfiles. On win2k this needs to be
 # longer, to avoid the util.h include problem
