@@ -9038,8 +9038,8 @@ void select_non_manifold(void)
 	eed= G.eded.first;
 	while(eed) {
 		if (eed->f1 != 2) {
-			eed->v1->f |= 1;
-			eed->v2->f |= 1;
+			if (!eed->v1->h) eed->v1->f |= 1;
+			if (!eed->v2->h) eed->v2->f |= 1;
 		}
 		eed= eed->next;
 	}
@@ -9048,7 +9048,7 @@ void select_non_manifold(void)
 	eve= G.edve.first;
 	while(eve) {
 		if (eve->f1 == 0) {
-			eve->f |= 1;
+			if (!eve->h) eve->f |= 1;
 		}
 		eve= eve->next;
 	}
@@ -9082,7 +9082,7 @@ void select_more(void)
 	eve= G.edve.first;
 	while(eve) {
 		if (eve->f1 == 1)
-			eve->f |= 1;
+			if (!eve->h) eve->f |= 1;
 
 		eve= eve->next;
 	}
@@ -9127,9 +9127,9 @@ void select_less(void)
 
 		/* if one of the verts on the edge is deselected, 
 		 * deselect the other */
-		if (~eed->v1->f & 1)
+		if ( !(eed->v1->h) && (~eed->v1->f & 1) )
 			eed->v2->f1 |= 4;
-		if (~eed->v2->f & 1)
+		if ( !(eed->v2->h) && (~eed->v2->f & 1) )
 			eed->v1->f1 |= 4;
 
 		eed= eed->next;
