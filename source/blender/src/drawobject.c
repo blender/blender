@@ -1780,12 +1780,12 @@ static void drawmeshsolid(Object *ob, float *nors)
 		glDisable(GL_LIGHTING);
 		glShadeModel(GL_FLAT);
 		
-		if(ob==G.obedit) {
-			calc_meshverts();
+		//if(ob==G.obedit) {
+		//	calc_meshverts();
 		
-			tekenvertices(0);
-			tekenvertices(1);
-		}
+		//	tekenvertices(0);
+		//	tekenvertices(1);
+		//}
 	}
 	else {		/* [nors] should never be zero, but is weak code... the displist 
 				   system needs a make over (ton)
@@ -3369,7 +3369,7 @@ static void drawWireExtra(Object *ob, ListBase *lb)
 static void draw_extra_wire(Object *ob) 
 {
 	Curve *cu;
-	
+
 	switch(ob->type) {
 	case OB_MESH:
 		drawWireExtra(ob, NULL);
@@ -3544,8 +3544,8 @@ void draw_object(Base *base)
 
 		dtx= ob->dtx;
 		if(G.obedit==ob) {
-			if(dtx & OB_TEXSPACE) dtx= OB_TEXSPACE;
-			else dtx= 0;
+			// the only 2 extra drawtypes alowed in editmode
+			dtx= dtx & (OB_DRAWWIRE|OB_TEXSPACE);
 		}
 		
 		if(G.f & G_DRAW_EXT) {
@@ -3593,6 +3593,7 @@ void draw_object(Base *base)
 					else {
 						drawmeshsolid(ob, 0);
 					}
+					dtx |= OB_DRAWWIRE;	// draws edges, transp faces, subsurf handles, vertices
 				}
 				if(ob==G.obedit && (G.f & G_PROPORTIONAL)) draw_prop_circle();
 			}
@@ -3689,9 +3690,8 @@ void draw_object(Base *base)
 			BMF_DrawString(G.font, ob->id.name+2);
 		}
 		if(dtx & OB_DRAWIMAGE) drawDispListwire(&ob->disp);
+		if((dtx & OB_DRAWWIRE) && dt>=OB_SOLID) draw_extra_wire(ob);
 	}
-	// dtx is set at zero in editmode, but we want this one!
-	if(ob->dtx & OB_DRAWWIRE && dt>=OB_SOLID) draw_extra_wire(ob);
 
 	if(dt<OB_SHADED) {
 		if((ob->gameflag & OB_ACTOR) && (ob->gameflag & OB_DYNAMIC)) {
