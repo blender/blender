@@ -1856,7 +1856,7 @@ static void drawmeshsolid(Object *ob, float *nors)
 		
 		dl= find_displist(&ob->disp, DL_VERTS);
 		if(dl) extverts= dl->verts;
-	
+		
 		glBegin(GL_QUADS);
 		glmode= GL_QUADS;
 		
@@ -4369,7 +4369,7 @@ void draw_object(Base *base)
 			else if(dt==OB_BOUNDBOX) draw_bounding_volume(ob);
 			else if(dt==OB_WIRE || me->totface==0) drawmeshwire(ob);
 			else if(ma && (ma->mode & MA_HALO)) drawmeshwire(ob);
-			else if(G.f & G_FACESELECT || (G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID)) {
+			else if( (ob==OBACT && (G.f & G_FACESELECT)) || (G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID)) {
 				draw_tface_mesh(ob, ob->data, dt);
 			}
 			else drawDispList(ob, dt);

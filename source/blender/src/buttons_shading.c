@@ -2483,8 +2483,11 @@ void do_matbuts(unsigned short event)
 		break;
 	case B_MATHALO:
 		/* when halo is disabled, clear star flag, this is the same as MA_FACETEXTURE <blush> */
+		/* same for 'xtreme alpha' which is 'only shadow' */
 		ma= G.buts->lockpoin;
-		if((ma->mode & MA_HALO)==0) ma->mode &= ~MA_STAR;
+		if((ma->mode & MA_HALO)==0) {
+			ma->mode &= ~(MA_STAR|MA_HALO_XALPHA);
+		}
 		BIF_preview_changed(G.buts);
 		allqueue(REDRAWBUTSSHADING, 0);
 		shade_buttons_change_3d();
