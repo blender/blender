@@ -80,6 +80,8 @@
 #include "blendef.h" 
 #include "interface.h"
 
+#define TEXTXLOC	38
+
 /* locals */
 void drawtextspace(void);
 void winqreadtextspace(unsigned short event, short val, char ascii);
@@ -192,7 +194,10 @@ static int text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int dra
 	}
 
 	if (cshift && r==0) return 0;
-	else return r+TXT_OFFSET;
+	else if (st->showlinenrs)
+		return r+TXT_OFFSET+TEXTXLOC;
+	else
+		return r+TXT_OFFSET;
 }
 
 static void set_cursor_to_pos (SpaceText *st, int x, int y, int sel) 
@@ -217,7 +222,11 @@ static void set_cursor_to_pos (SpaceText *st, int x, int y, int sel)
 		while (y++ != 0) if((*linep)->prev) *linep= (*linep)->prev;
 	}
 
-	x-= TXT_OFFSET;
+	if(st->showlinenrs)
+		x-= TXT_OFFSET+TEXTXLOC;
+	else
+		x-= TXT_OFFSET;
+
 	if (x<0) x= 0;
 	x = (x/spacetext_get_fontwidth(st)) + st->left;
 	
@@ -279,14 +288,26 @@ static void draw_cursor(SpaceText *st) {
 
 		glColor3f(0.75, 0.44, 0.44);
 
+		if(st->showlinenrs)
+			if (!x) x= TXT_OFFSET + TEXTXLOC -4;
+		else
+			if (!x) x= TXT_OFFSET - 4;
+
 		if (!x) x= TXT_OFFSET-10;
 		while (linef && linef != linel) {
 			h= txt_get_span(text->lines.first, linef) - st->top;
 			if (h>st->viewlines) break;
 			
 			glRecti(x, curarea->winy-st->lheight*(h)-2, curarea->winx, curarea->winy-st->lheight*(h+1)-2);
-			glRecti(TXT_OFFSET-10, curarea->winy-st->lheight*(h+1)-2, TXT_OFFSET, curarea->winy-st->lheight*(h+2)-2);
-			x= TXT_OFFSET;
+			if(st->showlinenrs)
+				glRecti(TXT_OFFSET+TEXTXLOC-4, curarea->winy-st->lheight*(h+1)-2, TXT_OFFSET+TEXTXLOC, curarea->winy-st->lheight*(h+2)-2);
+			else
+				glRecti(TXT_OFFSET-4, curarea->winy-st->lheight*(h+1)-2, TXT_OFFSET, curarea->winy-st->lheight*(h+2)-2);
+
+			if(st->showlinenrs)
+				x= TXT_OFFSET + TEXTXLOC;
+			else
+				x= TXT_OFFSET;
 			
 			linef= linef->next;
 		}
@@ -295,6 +316,10 @@ static void draw_cursor(SpaceText *st) {
 
 		i= text_draw(st, linel->line, st->left, charl, 0, 0, 0);
 		if(i) glRecti(x, curarea->winy-st->lheight*(h)-2, i, curarea->winy-st->lheight*(h+1)-2);
+// draw cursor in selection
+//		h= txt_get_span(text->lines.first, text->curl) - st->top;
+//		glColor3f(1.0, 0.0, 0.0);
+//		glRecti(x2-1, curarea->winy-st->lheight*(h)-2, x2+1, curarea->winy-st->lheight*(h+1)-2);
 	}
 
 	glColor3f(0.0, 0.0, 0.0);
@@ -512,6 +537,8 @@ void drawtextspace(void)
 	Text *text;
 	int i;
 	TextLine *tmp;
+	char linenr[12];
+	int linecount = 0;
 
 	if (BPY_spacetext_is_pywin(st)) {
 		BPY_spacetext_do_pywin_draw(st);
@@ -532,15 +559,39 @@ void drawtextspace(void)
 	if(st->lheight) st->viewlines= (int) curarea->winy/st->lheight;
 	else st->viewlines= 0;
 	
+	if(st->showlinenrs) {
+		cpack(C_DERK);
+//weird bug where glRect draws one pixel off when window is fullscreen
+//nvidia related !!!
+//		if(curarea->full)
+//			glRecti(23,  0, (st->lheight==15)?63:59,  curarea->winy - 2);
+//		else
+			glRecti(24,  0, (st->lheight==15)?64:60,  curarea->winy - 2);
+	}
+
 	glColor3f(0.0, 0.0, 0.0);
 
 	draw_cursor(st);
 
 	tmp= text->lines.first;
-	for (i= 0; i<st->top && tmp; i++)
+	for (i= 0; i<st->top && tmp; i++) {
 		tmp= tmp->next;
-	for (i=0; i<st->viewlines && tmp; i++, tmp= tmp->next)
-		text_draw(st, tmp->line, st->left, 0, 1, TXT_OFFSET, curarea->winy-st->lheight*(i+1));
+		linecount++;
+	}
+	for (i=0; i<st->viewlines && tmp; i++, tmp= tmp->next) {
+		if(st->showlinenrs) {
+			if(((float)(i + linecount + 1)/10000.0) < 1.0) {
+				sprintf(linenr, "%04d", i + linecount + 1);
+				glRasterPos2i(TXT_OFFSET - 7, curarea->winy-st->lheight*(i+1));
+			} else {
+				sprintf(linenr, "%05d", i + linecount + 1);
+				glRasterPos2i(TXT_OFFSET - 11, curarea->winy-st->lheight*(i+1));
+			}
+			BMF_DrawString(spacetext_get_font(st), linenr);
+			text_draw(st, tmp->line, st->left, 0, 1, TXT_OFFSET + TEXTXLOC, curarea->winy-st->lheight*(i+1));
+		} else
+			text_draw(st, tmp->line, st->left, 0, 1, TXT_OFFSET, curarea->winy-st->lheight*(i+1));
+	}
 
 	draw_textscroll(st);
 
