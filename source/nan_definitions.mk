@@ -275,7 +275,11 @@ endif
     export ID = $(shell whoami)
     export HOST = $(shell hostname -s)
     export NAN_PYTHON ?= /usr
+      ifeq ($(CPU),ia64)
+    export NAN_PYTHON_VERSION ?= 2.2
+      else
     export NAN_PYTHON_VERSION ?= 2.3
+      endif
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_OPENAL ?= /usr
     export NAN_FMOD ?= $(LCGDIR)/fmod
