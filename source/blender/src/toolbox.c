@@ -506,7 +506,7 @@ void bgnpupdraw(int startx, int starty, int endx, int endy)
 	oldcursor= get_cursor();
 	set_cursor(CURSOR_STD);
 	
-	tbfontyofs= (TBOXH-11)/2;	/* toolbox, hier stond ooit getheigh */
+	tbfontyofs= (TBOXH-11)/2 +2;	/* toolbox, hier stond ooit getheigh */
 }
 
 void endpupdraw(void)
