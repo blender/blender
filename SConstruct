@@ -232,7 +232,7 @@ elif string.find (sys.platform, 'irix') != -1:
     sdl_cflags = ''
     sdl_include = irix_precomp + '/sdl/include/SDL'
     link_env.Append (LIBS=['libSDL.a'])
-    link_env.Append (LIBPATH=[irix_precomp + '/sdl/lib'])
+    link_env.Append (LIBPATH=['/usr/lib32/mips3', irix_precomp + '/sdl/lib'])
     python_libpath = irix_precomp + '/python/lib/python2.2/config'
     python_include = irix_precomp + '/python/include/python2.2'
     python_lib = 'python2.2'
@@ -243,11 +243,14 @@ elif string.find (sys.platform, 'irix') != -1:
     platform_libpath = [irix_precomp + '/png/lib',
                         irix_precomp + '/jpeg/lib',
                         '/usr/lib32', '/lib/freeware/lib32']
-    platform_linkflags = ['-mips3']
+    platform_linkflags = ['-mips3', '-n32']
     extra_includes = [irix_precomp + '/jpeg/include',
                       irix_precomp + '/png/include',
                       '/usr/freeware/include',
                       '/usr/include']
+    solid_include = irix_precomp + '/solid/include'
+    ode_include = irix_precomp + '/ode/include'
+
 
 elif string.find (sys.platform, 'hp-ux') != -1:
     window_system = 'X11'
