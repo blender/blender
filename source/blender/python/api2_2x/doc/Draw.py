@@ -152,13 +152,14 @@ def PupMenu(name, maxrow = None):
   L{Menu}: options are followed by a format code and separated by the '|'
   character.  Valid format codes are:
     - %t - The option should be used as the title of the pop-up;
-    - %l - insert a separating line;
+    - %l - insert a separating line (only works if 'maxrow' isn't given);
     - %xB{N} - Chosen this option, PupMenu should return the integer B{N}.
 
   Example::
-    name = "OK?%t|QUIT BLENDER"  # if no %xN integer is set, indices start from 1
+    name = "OK?%t|QUIT BLENDER"  # if no %xN int is set, indices start from 1
     result = Draw.PupMenu(name)
-    if result: Draw.PupMenu("Do you really think we'd let scripts close Blender?%t|Yes|No")
+    if result:
+      Draw.PupMenu("Really?%t|Yes|No")
 
   @type name: string
   @param name: The format string to define the contents of the button.

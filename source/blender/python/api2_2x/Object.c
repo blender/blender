@@ -97,6 +97,8 @@ static PyObject *Object_getName (BPy_Object *self);
 static PyObject *Object_getParent (BPy_Object *self);
 static PyObject *Object_getTracked (BPy_Object *self);
 static PyObject *Object_getType (BPy_Object *self);
+static PyObject *Object_getBoundBox (BPy_Object *self);
+static PyObject *Object_makeDisplayList (BPy_Object *self);
 static PyObject *Object_link (BPy_Object *self, PyObject *args);
 static PyObject *Object_makeParent (BPy_Object *self, PyObject *args);
 static PyObject *Object_materialUsage (BPy_Object *self, PyObject *args);
@@ -148,6 +150,12 @@ e.g. Mesh"},
         "Returns the object's tracked object"},
     {"getType",          (PyCFunction)Object_getType,          METH_NOARGS,
         "Returns type of string of Object"},
+    {"getBoundBox",      (PyCFunction)Object_getBoundBox,      METH_NOARGS,
+        "Returns the object's bounding box"},
+    {"makeDisplayList",  (PyCFunction)Object_makeDisplayList,  METH_NOARGS,
+        "Update this object's Display List. Some changes like turning \n\
+'SubSurf' on for a mesh need this method (followed by a Redraw) to \n\
+show the changes on the 3d window."},
     {"link",             (PyCFunction)Object_link,             METH_VARARGS,
         "Links Object with data provided in the argument. The data must \n\
 match the Object's type, so you cannot link a Lamp to a Mesh type object."},
@@ -320,55 +328,6 @@ PyObject *M_Object_New(PyObject *self, PyObject *args)
     object->gameflag = OB_PROP;
     
     object->lay = 1; // Layer, by default visible
-
-    switch(type)
-    {
-        case OB_ARMATURE:
-        /* TODO: Do we need to add something to G? (see the OB_LAMP case) */
-            object->data = add_armature();
-            break;
-        case OB_CAMERA:
-        /* TODO: Do we need to add something to G? (see the OB_LAMP case) */
-            object->data = add_camera();
-            break;
-        case OB_CURVE:
-            object->data = add_curve(OB_CURVE);
-            G.totcurve++;
-            break;
-        case OB_LAMP:
-            object->data = add_lamp();
-            G.totlamp++;
-            break;
-        case OB_MESH:
-            object->data = add_mesh();
-            G.totmesh++;
-            break;
-
-    /* TODO the following types will be supported later
-        case OB_SURF:
-            object->data = add_curve(OB_SURF);
-            G.totcurve++;
-            break;
-        case OB_FONT:
-            object->data = add_curve(OB_FONT);
-            break;
-        case OB_MBALL:
-            object->data = add_mball();
-            break;
-        case OB_IKA:
-            object->data = add_ika();
-            object->dt = OB_WIRE;
-            break;
-        case OB_LATTICE:
-            object->data = (void *)add_lattice();
-            object->dt = OB_WIRE;
-            break;
-        case OB_WAVE:
-            object->data = add_wave();
-            break;
-    */
-    }
-
     G.totobj++;
 
     /* Create a Python object from it. */
@@ -534,8 +493,8 @@ PyObject *Object_Init (void)
 static PyObject *Object_buildParts (BPy_Object *self)
 {
 void build_particle_system(Object *ob);
-	struct Object *obj = self->object;
-	build_particle_system( obj);
+  struct Object *obj = self->object;
+  build_particle_system( obj);
   Py_INCREF (Py_None);
             return (Py_None);
 }
@@ -572,49 +531,98 @@ static PyObject *Object_clrParent (BPy_Object *self, PyObject *args)
 static PyObject *Object_getData (BPy_Object *self)
 {
     PyObject  * data_object;
+    Object * object = self->object;
 
     /* If there's no data associated to the Object, then there's nothing to */
     /* return. */
-    if (self->object->data == NULL)
+    if (object->data == NULL)
     {
-        Py_INCREF (Py_None);
-        return (Py_None);
+      switch(object->type)
+      {
+        case OB_ARMATURE:
+        /* TODO: Do we need to add something to G? (see the OB_LAMP case) */
+            object->data = add_armature();
+            break;
+        case OB_CAMERA:
+        /* TODO: Do we need to add something to G? (see the OB_LAMP case) */
+            object->data = add_camera();
+            break;
+        case OB_CURVE:
+            object->data = add_curve(OB_CURVE);
+            G.totcurve++;
+            break;
+        case OB_LAMP:
+            object->data = add_lamp();
+            G.totlamp++;
+            break;
+        case OB_MESH:
+            object->data = add_mesh();
+            G.totmesh++;
+            break;
+
+      /* TODO the following types will be supported later
+        case OB_SURF:
+            object->data = add_curve(OB_SURF);
+            G.totcurve++;
+            break;
+        case OB_FONT:
+            object->data = add_curve(OB_FONT);
+            break;
+        case OB_MBALL:
+            object->data = add_mball();
+            break;
+        case OB_IKA:
+            object->data = add_ika();
+            object->dt = OB_WIRE;
+            break;
+        case OB_LATTICE:
+            object->data = (void *)add_lattice();
+            object->dt = OB_WIRE;
+            break;
+        case OB_WAVE:
+            object->data = add_wave();
+            break;
+      */
+        default:
+          Py_INCREF (Py_None);
+          return (Py_None);
+      }
     }
 
     data_object = NULL;
 
-    switch (self->object->type)
+    switch (object->type)
     {
         case OB_ARMATURE:
-            data_object = Armature_CreatePyObject (self->object->data);
+            data_object = Armature_CreatePyObject (object->data);
             break;
         case OB_CAMERA:
-            data_object = Camera_CreatePyObject (self->object->data);
+            data_object = Camera_CreatePyObject (object->data);
             break;
         case OB_CURVE:
-            data_object = Curve_CreatePyObject (self->object->data);
+            data_object = Curve_CreatePyObject (object->data);
             break;
         case ID_IM:
-            data_object = Image_CreatePyObject (self->object->data);
+            data_object = Image_CreatePyObject (object->data);
             break;
         case ID_IP:
-            data_object = Ipo_CreatePyObject (self->object->data);
+            data_object = Ipo_CreatePyObject (object->data);
             break;
         case OB_LAMP:
-            data_object = Lamp_CreatePyObject (self->object->data);
+            data_object = Lamp_CreatePyObject (object->data);
             break;
         case ID_MA:
             break;
         case OB_MESH:
-            data_object = NMesh_CreatePyObject (self->object->data, self->object);
+            data_object = NMesh_CreatePyObject (object->data, object);
             break;
         case ID_OB:
-            data_object = Object_CreatePyObject (self->object->data);
+            data_object = Object_CreatePyObject (object->data);
             break;
         case ID_SCE:
             break;
         case ID_TXT:
-            data_object = Text_CreatePyObject (self->object->data);
+            data_object = Text_CreatePyObject (object->data);
             break;
         case ID_WO:
             break;
@@ -781,6 +789,70 @@ static PyObject *Object_getType (BPy_Object *self)
     }
 }
 
+static PyObject *Object_getBoundBox (BPy_Object *self)
+{
+  int i;
+  float *vec = NULL;
+  PyObject *vector, *bbox;
+
+  if (!self->object->data)
+    return EXPP_ReturnPyObjError (PyExc_AttributeError,
+      "This object isn't linked to any object data (mesh, curve, etc) yet");
+
+  if (!self->object->bb) {
+    Mesh *me;
+    Curve *curve;
+    switch (self->object->type) {
+      case OB_MESH:
+        me = self->object->data;
+        if (!me->bb) tex_space_mesh(me);
+        vec = (float *)me->bb->vec;
+        break;
+      case OB_CURVE:
+      case OB_FONT:
+      case OB_SURF:
+        curve = self->object->data;
+        if (!curve->bb) tex_space_curve(curve);
+        vec = (float *)curve->bb->vec;
+        break;
+      default:
+        Py_INCREF (Py_None);
+        return Py_None;
+    }
+  }
+  else vec = (float *)self->object->bb->vec;
+
+  if (!vec)
+    return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+          "couldn't retrieve bounding box data");
+
+  bbox = PyList_New(8);
+
+  if (!bbox)
+    return EXPP_ReturnPyObjError (PyExc_MemoryError,
+          "couldn't create pylist");
+
+  for (i = 0; i < 8; i++) {
+    vector = newVectorObject(vec, 3);
+    PyList_SET_ITEM(bbox, i, vector);
+    vec += 3;
+  }
+
+  return bbox;
+}
+
+static PyObject *Object_makeDisplayList (BPy_Object *self)
+{
+  Object *ob = self->object;
+
+  if (ob->type == OB_FONT) text_to_curve(ob, 0);
+
+  makeDispList(ob);
+
+  Py_INCREF (Py_None);
+  return Py_None;
+}
+
 static PyObject *Object_link (BPy_Object *self, PyObject *args)
 {
     PyObject    * py_data;
@@ -801,7 +873,7 @@ static PyObject *Object_link (BPy_Object *self, PyObject *args)
     if (Curve_CheckPyObject (py_data))
         data = (void *)Curve_FromPyObject (py_data);
     if (NMesh_CheckPyObject (py_data))
-        data = (void *)NMesh_FromPyObject (py_data, self->object);
+        data = (void *)Mesh_FromPyObject (py_data, self->object);
 
     /* have we set data to something good? */
     if( !data )
@@ -1216,20 +1288,20 @@ struct Object* Object_FromPyObject (PyObject *py_obj)
 /*****************************************************************************/
 Object * GetObjectByName (char * name)
 {
-	Object	* obj_iter;
+  Object  * obj_iter;
 
-	obj_iter = G.main->object.first;
-	while (obj_iter)
-	{
-		if (StringEqual (name, GetIdName (&(obj_iter->id))))
-		{
-			return (obj_iter);
-		}
-		obj_iter = obj_iter->id.next;
-	}
+  obj_iter = G.main->object.first;
+  while (obj_iter)
+  {
+    if (StringEqual (name, GetIdName (&(obj_iter->id))))
+    {
+      return (obj_iter);
+    }
+    obj_iter = obj_iter->id.next;
+  }
 
-	/* There is no object with the given name */
-	return (NULL);
+  /* There is no object with the given name */
+  return (NULL);
 }
 
 /*****************************************************************************/
@@ -1329,22 +1401,22 @@ static PyObject* Object_getAttr (BPy_Object *obj, char *name)
         return (NULL);
     }
     if (StringEqual (name, "Layer"))
-			return (PyInt_FromLong(object->lay));
+      return (PyInt_FromLong(object->lay));
     if (StringEqual (name, "parent"))
     {
         if (object->parent)
             return (Object_CreatePyObject (object->parent));
         else 
-		{
-			Py_INCREF (Py_None);
-			return (Py_None);
-		}
+    {
+      Py_INCREF (Py_None);
+      return (Py_None);
+    }
     }
 
     if (StringEqual (name, "track"))
-			return (Object_CreatePyObject (object->track));
+      return (Object_CreatePyObject (object->track));
     if (StringEqual (name, "data"))
-			return (Object_getData (obj));
+      return (Object_getData (obj));
     if (StringEqual (name, "ipo"))
     {
         if (object->ipo == NULL)

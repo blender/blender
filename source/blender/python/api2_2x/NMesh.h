@@ -69,6 +69,12 @@
 #include "gen_utils.h"
 #include "modules.h"
 
+/* EXPP Mesh defines */
+
+#define EXPP_NMESH_MODE_NOPUNOFLIP  ME_NOPUNOFLIP
+#define EXPP_NMESH_MODE_TWOSIDED    ME_TWOSIDED
+#define EXPP_NMESH_MODE_AUTOSMOOTH  ME_AUTOSMOOTH
+#define EXPP_NMESH_MODE_SUBSURF     ME_SUBSURF
 
 /* EXPP PyType Objects */
 
@@ -151,11 +157,14 @@ bone name and the weight.";
 
 static char NMesh_update_doc[] = "(recalc_normals = 0) - updates the Mesh.\n\
 if recalc_normals is given and is equal to 1, normal vectors are recalculated.";
-/*
-static char NMesh_asMesh_doc[] = "returns free Mesh datablock object from NMesh";
 
-static char NMesh_link_doc[] = "(object) - Links NMesh data with Object 'object'";
-*/
+static char NMesh_getMode_doc[] =
+"() - get the mode flags of this nmesh as an or'ed int value.";
+
+static char NMesh_setMode_doc[] =
+"(none to 4 strings) - set the mode flags of this nmesh.\n\
+() - unset all flags.";
+
 static char M_NMesh_New_doc[] =
 "() - returns a new, empty NMesh mesh object\n";
 
@@ -213,12 +222,13 @@ typedef struct {
 typedef struct {
 	PyObject_HEAD
 	Mesh *mesh;
-  Object *object; /* object the mesh is linked to (can be NULL) */
+  Object *object; /* for vertex grouping info, since it's stored on the object */
 	PyObject *name;
 	PyObject *materials;
 	PyObject *verts;
 	PyObject *faces;
   int sel_face; /*@ XXX remove */
+	short mode; /* see the EXPP_NMESH_* defines in the beginning of this file */
 	char flags;
 
 #define NMESH_HASMCOL	1<<0

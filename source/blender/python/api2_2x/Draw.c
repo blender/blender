@@ -670,6 +670,27 @@ static PyObject *Method_Text (PyObject *self, PyObject *args)
   return PyInt_FromLong (BMF_GetStringWidth (font, text));
 }
 
+static PyObject *Method_PupMenu (PyObject *self, PyObject *args)
+{
+  char *text;
+  int maxrow = -1;
+  PyObject *ret;
+
+  if (!PyArg_ParseTuple(args, "s|i", &text, &maxrow))
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+            "expected a string and optionally an int as arguments");
+
+  if (maxrow >= 0)
+    ret = PyInt_FromLong (pupmenu_col (text, maxrow));
+  else
+    ret = PyInt_FromLong (pupmenu (text));
+
+  if (ret) return ret;
+
+  return EXPP_ReturnPyObjError (PyExc_MemoryError,
+            "couldn't create a PyInt"); 
+}
+
 PyObject *Draw_Init (void) 
 {
   PyObject *submodule, *dict;

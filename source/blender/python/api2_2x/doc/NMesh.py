@@ -28,9 +28,15 @@ Example::
     v.co[2] *= 2.5
   me.update()                      # update the real mesh in Blender
 
+@type Modes: readonly dictionary
 @type FaceFlags: readonly dictionary
 @type FaceModes: readonly dictionary
 @type FaceTranspModes: readonly dictionary
+@var Modes: The available mesh modes.
+    - NOVNORMALSFLIP - no flipping of vertex normals during render.
+    - TWOSIDED - double sided mesh.
+    - AUTOSMOOTH - turn auto smoothing of faces "on".
+    - SUBSURF - turn Catmull-Clark subdivision of surfaces "on".
 @var FaceFlags: The available face selection flags.
     - SELECT - selected.
     - HIDE - hidden.
@@ -89,9 +95,11 @@ def Face(vertexList = None):
   @return: A new NMFace object.
   """
 
-def New():
+def New(name = 'Mesh'):
   """
   Create a new mesh object.
+  @type name: string
+  @param name: An optional name for the created mesh.
   rtype: NMesh
   @return: A new (B{empty}) NMesh object.
   """
@@ -223,6 +231,7 @@ class NMesh:
   @cvar verts: The list of NMesh vertices (NMVerts).
   @cvar users: The number of Objects using (linked to) this mesh.
   @cvar faces: The list of NMesh faces (NMFaces).
+  @cvar mode:  The mode flags for this mesh.  See L{setMode}
   """
 
   def addMaterial(material):
@@ -347,4 +356,24 @@ class NMesh:
     @type recalc_normals: int
     @param recalc_normals: If given and equal to 1, the vertex normals are
         recalculated.
+    """
+
+  def getMode():
+    """
+    Get this mesh's mode flags.
+    @rtype: int
+    @return: Or'ed value.  See L{Modes}.
+    """
+
+  def setMode(m = None, m1=None, m2=None, m3=None):
+    """
+    Set the mode flags for this mesh.  Given mode strings turn the mode "on".
+    Modes not passed in are turned "off", so setMode() (without arguments)
+    unsets all mode flags.
+    @type m: string
+    @param m: mode string.  From none to 4 can be given:
+       - "NoVNormalsFlip"
+       - "TwoSided"
+       - "AutoSmooth"
+       - "SubSurf"
     """

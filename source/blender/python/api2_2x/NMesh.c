@@ -886,12 +886,14 @@ static PyObject *NMesh_getVertexInfluences(PyObject *self, PyObject *args)
 Mesh *Mesh_fromNMesh(BPy_NMesh *nmesh)
 {
   Mesh *mesh = NULL;
-  mesh = add_mesh(); /* us == 1, should we zero it for all added objs ? */
+  mesh = add_mesh();
 
   if (!mesh)
     EXPP_ReturnPyObjError(PyExc_RuntimeError,
              "FATAL: could not create mesh object");
 
+  mesh->id.us = 0; /* no user yet */
+  G.totmesh++;
   convert_NMeshToMesh(mesh, nmesh);
 
   return mesh;
@@ -905,9 +907,52 @@ PyObject *NMesh_link(PyObject *self, PyObject *args)
       return EXPP_ReturnPyErrorObj (PyExc_TypeError,
             "NMesh can only be linked to Objects");
 
-  bl_obj->data = (PyObject *)self;  do this function later */
+  bl_obj->data = (PyObject *)self;*/
+
+/* Better use object.link(nmesh), no need for this nmesh.link(object) */
 
   return EXPP_incr_ret(Py_None);
+}
+
+static PyObject *NMesh_getMode (BPy_NMesh *self)
+{
+  PyObject *attr = PyInt_FromLong (self->mode);
+
+  if (attr) return attr;
+
+  return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+             "couldn't get NMesh.mode attribute");
+}
+
+static PyObject *NMesh_setMode (PyObject *self, PyObject *args)
+{
+  BPy_NMesh *nmesh = (BPy_NMesh *)self;
+  char *m[4] = {NULL, NULL, NULL, NULL};
+  short i, mode = 0;
+
+  if (!PyArg_ParseTuple(args, "|ssss", &m[0], &m[1], &m[2], &m[3]))
+    return EXPP_ReturnPyObjError (PyExc_AttributeError,
+               "expected from none to 4 strings as argument(s)");
+
+  for (i = 0; i < 4; i++) {
+    if (!m[i]) break;
+    if (strcmp(m[i], "NoVNormalsFlip") == 0)
+      mode |= EXPP_NMESH_MODE_NOPUNOFLIP;
+    else if (strcmp(m[i], "TwoSided") == 0)
+      mode |= EXPP_NMESH_MODE_TWOSIDED;
+    else if (strcmp(m[i], "AutoSmooth") == 0)
+      mode |= EXPP_NMESH_MODE_AUTOSMOOTH;
+    else if (strcmp(m[i], "SubSurf") == 0)
+      mode |= EXPP_NMESH_MODE_SUBSURF;
+    else
+      return EXPP_ReturnPyObjError (PyExc_AttributeError,
+               "unknown NMesh mode");
+  }
+
+  nmesh->mode = mode;
+
+  Py_INCREF (Py_None);
+  return Py_None;
 }
 
 #undef MethodDef
@@ -925,6 +970,8 @@ static struct PyMethodDef NMesh_methods[] =
   MethodDef(insertKey),
   MethodDef(removeAllKeys),
   MethodDef(update),
+  {"getMode", (PyCFunction)NMesh_getMode, METH_NOARGS, NMesh_getMode_doc},
+  MethodDef(setMode),
   {NULL, NULL}
 };
 
@@ -935,7 +982,10 @@ static PyObject *NMesh_getattr(PyObject *self, char *name)
   if (strcmp(name, "name") == 0) 
     return EXPP_incr_ret(me->name);
 
-  else if (strcmp(name, "block_type") == 0)
+  else if (strcmp(name, "mode") == 0)
+    return PyInt_FromLong(me->mode);
+
+  else if (strcmp(name, "block_type") == 0) /* for compatibility */
     return PyString_FromString("NMesh");
 
   else if (strcmp(name, "materials") == 0)
@@ -948,7 +998,7 @@ static PyObject *NMesh_getattr(PyObject *self, char *name)
     if (me->mesh) {
       return PyInt_FromLong(me->mesh->id.us); 
     }
-    else { // it's a free mesh:
+    else { /* it's a free mesh: */
       return Py_BuildValue("i", 0); 
     }
   }
@@ -975,6 +1025,20 @@ static int NMesh_setattr(PyObject *self, char *name, PyObject *v)
 
     Py_DECREF (me->name);
     me->name = EXPP_incr_ret(v);
+  }
+
+  else if (!strcmp(name, "mode")) {
+    short mode;
+
+    if (!PyInt_Check(v))
+      return EXPP_ReturnIntError (PyExc_TypeError,
+              "expected int argument");
+
+    mode = (short)PyInt_AsLong(v);
+    if (mode >= 0) me->mode = mode;
+    else
+      return EXPP_ReturnIntError (PyExc_ValueError,
+              "expected positive int argument");
   }
 
   else if (!strcmp(name, "verts") || !strcmp(name, "faces") ||
@@ -1058,7 +1122,7 @@ static BPy_NMFace *nmface_from_data(BPy_NMesh *mesh, int vidxs[4],
     newf->image = NULL;
     newf->uv = PyList_New(0); 
   } 
-  
+
   newf->mat_nr = mat_nr;
   newf->smooth = flag & ME_SMOOTH;
 
@@ -1142,7 +1206,7 @@ static PyObject *new_NMesh_internal(Mesh *oldmesh,
 {
   BPy_NMesh *me = PyObject_NEW (BPy_NMesh, &NMesh_Type);
   me->flags = 0;
-  me->object = NULL; /* not linked to any object in particular yet */
+  me->object = NULL; /* not linked to any object yet */
 
   if (!oldmesh) {
     me->name = EXPP_incr_ret(Py_None);
@@ -1177,7 +1241,8 @@ static PyObject *new_NMesh_internal(Mesh *oldmesh,
     else {
       me->name = PyString_FromString(oldmesh->id.name+2);
       me->mesh = oldmesh;
-      
+      me->mode = oldmesh->flag; /* yes, we save the mesh flags in nmesh->mode */
+
       mfaceints = NULL;
       msticky = oldmesh->msticky;
       mverts = oldmesh->mvert;
@@ -1235,7 +1300,22 @@ PyObject *new_NMesh(Mesh *oldmesh)
 
 static PyObject *M_NMesh_New(PyObject *self, PyObject *args) 
 {
-  return new_NMesh(NULL);
+  char *name = NULL;
+  PyObject *ret = NULL;
+
+  if (!PyArg_ParseTuple(args, "|s", &name))
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+              "expected nothing or a string as argument");
+
+  ret = new_NMesh(NULL);
+
+  if (ret && name) {
+    BPy_NMesh *nmesh = (BPy_NMesh *)ret;
+    Py_DECREF (nmesh->name);
+    nmesh->name = PyString_FromString(name);
+  }
+
+  return ret;
 }
 
 static PyObject *M_NMesh_GetRaw(PyObject *self, PyObject *args) 
@@ -1256,6 +1336,8 @@ static PyObject *M_NMesh_GetRaw(PyObject *self, PyObject *args)
   return new_NMesh(oldmesh);
 }
 
+/* Note: NMesh.GetRawFromObject gets the display list mesh from Blender:
+ * the vertices are already transformed / deformed. */
 static PyObject *M_NMesh_GetRawFromObject(PyObject *self, PyObject *args) 
 {
   char *name;
@@ -1285,7 +1367,7 @@ static PyObject *M_NMesh_GetRawFromObject(PyObject *self, PyObject *args)
       nmesh = new_NMesh(me);
   }
 
-/* hack: to mark that (deformed) mesh is readonly, so the update function
+/* @hack: to mark that (deformed) mesh is readonly, so the update function
  * will not try to write it. */
 
   ((BPy_NMesh *) nmesh)->mesh = 0;
@@ -1586,6 +1668,9 @@ static int convert_NMeshToMesh (Mesh *mesh, BPy_NMesh *nmesh)
   mesh->tface = NULL;
   mesh->mat = NULL;
 
+  /* Minor note: we used 'mode' because 'flag' was already used internally by nmesh */
+  mesh->flag = nmesh->mode;
+
   /*@ material assignment moved to PutRaw */
   mesh->totvert = PySequence_Length(nmesh->verts);
   if (mesh->totvert) {
@@ -1723,18 +1808,30 @@ static PyObject *M_NMesh_PutRaw(PyObject *self, PyObject *args)
 
   if (name) 
     mesh = (Mesh *)GetIdFromList(&(G.main->mesh), name);
- 
-  if(!mesh || mesh->id.us == 0) {
+
+  if (!mesh) {
     ob = add_object(OB_MESH);
+
     if (!ob) {
       PyErr_SetString(PyExc_RuntimeError,
-                      "Fatal: could not create mesh object");
+             "Fatal: could not create mesh object");
+    return 0;
+    }
+
+    mesh = (Mesh *)ob->data;
+  }
+
+  else if (mesh->id.us == 0) {
+    ob = add_object(OB_EMPTY); /* we already have a mesh */
+
+    if (!ob) {
+      PyErr_SetString(PyExc_RuntimeError,
+             "Fatal: could not create mesh object");
       return 0;
     }
-    if (mesh)
-      set_mesh(ob, mesh);
-    else
-      mesh = (Mesh *)ob->data;
+
+    ob->type = OB_MESH;
+    set_mesh(ob, mesh); /* also does id.us++ */
   }
 
   if (name) new_id(&(G.main->mesh), &mesh->id, name);
@@ -1752,7 +1849,7 @@ static PyObject *M_NMesh_PutRaw(PyObject *self, PyObject *args)
   if (!during_script())
     allqueue(REDRAWVIEW3D, 0);
 
-  // OK...this requires some explanation:
+  // @OK...this requires some explanation:
   // Materials can be assigned two ways:
   // a) to the object data (in this case, the mesh)
   // b) to the Object
@@ -1791,8 +1888,6 @@ static PyObject *M_NMesh_PutRaw(PyObject *self, PyObject *args)
   {#func, M_NMesh_##func, METH_VARARGS, M_NMesh_##func##_doc}
 
 static struct PyMethodDef M_NMesh_methods[] = {
-/*@ These should be: Mesh.Col, Mesh.Vert, Mesh.Face in fure */
-/* -- for ownership reasons */
   MethodDef(Col),
   MethodDef(Vert),
   MethodDef(Face),
@@ -1802,6 +1897,23 @@ static struct PyMethodDef M_NMesh_methods[] = {
   MethodDef(PutRaw),
   {NULL, NULL}
 };
+
+static PyObject *M_NMesh_Modes (void)
+{
+  PyObject *Modes = M_constant_New();
+
+  if (Modes) {
+    BPy_constant *d = (BPy_constant *)Modes;
+
+    constant_insert(d, "NOVNORMALSFLIP",
+										PyInt_FromLong(EXPP_NMESH_MODE_NOPUNOFLIP));
+    constant_insert(d, "TWOSIDED", PyInt_FromLong(EXPP_NMESH_MODE_TWOSIDED));
+    constant_insert(d, "AUTOSMOOTH",PyInt_FromLong(EXPP_NMESH_MODE_AUTOSMOOTH));
+    constant_insert(d, "SUBSURF", PyInt_FromLong(EXPP_NMESH_MODE_SUBSURF));
+  }
+
+  return Modes;
+}
 
 #undef EXPP_ADDCONST
 #define EXPP_ADDCONST(dict, name) \
@@ -1868,6 +1980,7 @@ PyObject *NMesh_Init (void)
 {
   PyObject *submodule;
 
+  PyObject *Modes = M_NMesh_Modes ();
   PyObject *FaceFlags = M_NMesh_FaceFlagsDict ();
   PyObject *FaceModes = M_NMesh_FaceModesDict ();
   PyObject *FaceTranspModes = M_NMesh_FaceTranspModesDict ();
@@ -1879,10 +1992,11 @@ PyObject *NMesh_Init (void)
 
   submodule = Py_InitModule3("Blender.NMesh", M_NMesh_methods, M_NMesh_doc);
 
-  if (FaceFlags) PyModule_AddObject (submodule, "FaceFlags" , FaceFlags);
-  if (FaceModes) PyModule_AddObject (submodule, "FaceModes" , FaceModes);
+  if (Modes) PyModule_AddObject (submodule, "Modes", Modes);
+  if (FaceFlags) PyModule_AddObject (submodule, "FaceFlags", FaceFlags);
+  if (FaceModes) PyModule_AddObject (submodule, "FaceModes", FaceModes);
   if (FaceTranspModes)
-          PyModule_AddObject (submodule, "FaceTranspModes" , FaceTranspModes);
+          PyModule_AddObject (submodule, "FaceTranspModes", FaceTranspModes);
 
   g_nmeshmodule = submodule;
   return submodule;
@@ -1904,7 +2018,7 @@ int NMesh_CheckPyObject (PyObject *pyobj)
   return (pyobj->ob_type == &NMesh_Type);
 }
 
-Mesh *NMesh_FromPyObject (PyObject *pyobj, Object *ob)
+Mesh *Mesh_FromPyObject (PyObject *pyobj, Object *ob)
 {
   if (pyobj->ob_type == &NMesh_Type) {
     Mesh *mesh;
@@ -1921,6 +2035,9 @@ Mesh *NMesh_FromPyObject (PyObject *pyobj, Object *ob)
     }
 
     nmesh->object = ob; /* linking for vgrouping methods */
+
+    if (nmesh->name && nmesh->name != Py_None)
+      new_id(&(G.main->mesh), &mesh->id, PyString_AsString(nmesh->name));
 
     mesh_update(mesh);
     return mesh;

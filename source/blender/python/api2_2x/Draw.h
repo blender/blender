@@ -123,8 +123,9 @@ static void exit_pydraw(SpaceText *st);
 static void exec_callback(SpaceText *st, PyObject *callback, PyObject *args);
 void BPY_spacetext_do_pywin_draw(SpaceText *st);
 static void spacetext_do_pywin_buttons(SpaceText *st, unsigned short event);
-void BPY_spacetext_do_pywin_event(SpaceText *st, unsigned short event, short val);
-int BPY_spacetext_is_pywin(SpaceText *st);
+void BPY_spacetext_do_pywin_event(SpaceText *st,
+								unsigned short event, short val);
+int BPY_spacetext_is_pywin(SpaceText *sc);
 
 static char Method_Exit_doc[] = 
 "() - Exit the windowing interface";
@@ -278,6 +279,20 @@ NEW! - This function now returns the width of the drawn string.";
 static PyObject *Method_GetStringWidth (PyObject *self, PyObject *args);
 static PyObject *Method_Text (PyObject *self, PyObject *args);
 
+static char Method_PupMenu_doc[] =
+"(string, maxrow = None) - Display a pop-up menu at the screen.\n\
+The contents of the pop-up are specified through the 'string' argument,\n\
+like with Draw.Menu.\n\
+'maxrow' is an optional int to control how many rows the pop-up should have.\n\
+Options are followed by a format code and separated\n\
+by the '|' (pipe) character.\n\
+Valid format codes are\n\
+  %t - The option should be used as the title\n\
+  %xN - The option should set the integer N in the button value.\n\n\
+Ex: Draw.PupMenu('OK?%t|QUIT BLENDER') # should be familiar ...";
+
+static PyObject *Method_PupMenu (PyObject *self, PyObject *args);
+
 #define _MethodDef(func, prefix) \
   {#func, prefix##_##func, METH_VARARGS, prefix##_##func##_doc}
 
@@ -296,11 +311,9 @@ static struct PyMethodDef Draw_methods[] = {
   MethodDef(Scrollbar),
   MethodDef(Number),
   MethodDef(String),
-
   MethodDef(GetStringWidth),
-
   MethodDef(Text),
-
+	MethodDef(PupMenu),
   MethodDef(Exit),
   MethodDef(Redraw),
   MethodDef(Draw),

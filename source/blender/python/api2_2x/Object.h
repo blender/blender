@@ -43,6 +43,8 @@
 #include <BKE_mesh.h>
 #include <BKE_object.h>
 #include <BKE_scene.h>
+#include <BKE_displist.h> /* for makeDispList */
+#include <BKE_font.h> /* for text_to_font */
 #include <BLI_arithb.h>
 #include <BLI_blenlib.h>
 #include <DNA_armature_types.h>
