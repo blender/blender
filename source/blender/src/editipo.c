@@ -339,6 +339,16 @@ void getname_mat_ei(int nr, char *str)
 			strcpy(str, "Translu"); break;
 		case MA_RAYM:
 			strcpy(str, "RayMir"); break;
+		case MA_FRESMIR:
+			strcpy(str, "FresMir"); break;
+		case MA_FRESMIRI:
+			strcpy(str, "FresMirI"); break;
+		case MA_FRESTRA:
+			strcpy(str, "FresTra"); break;
+		case MA_FRESTRAI:
+			strcpy(str, "FresTraI"); break;
+		case MA_ADD:
+			strcpy(str, "TraGlow"); break;
 		default:
 			str[0]= 0;
 		}
@@ -1002,7 +1012,7 @@ void make_mat_editipo(SpaceIpo *si)
 			if(ei->adrcode==MA_MODE) ei->disptype= IPO_DISPBITS;
 		}
 		
-		ei->col= ipo_rainbow(a, WO_TOTIPO);
+		ei->col= ipo_rainbow(a, MA_TOTIPO);
 		
 		len= strlen(ei->name);
 		if(len) {
@@ -1043,7 +1053,7 @@ void make_world_editipo(SpaceIpo *si)
 			if(ei->adrcode==MA_MODE) ei->disptype= IPO_DISPBITS;
 		}
 		
-		ei->col= ipo_rainbow(a, MA_TOTIPO);
+		ei->col= ipo_rainbow(a, WO_TOTIPO);
 		
 		len= strlen(ei->name);
 		if(len) {
@@ -1271,12 +1281,10 @@ void make_editipo()
 
 	if(G.sipo->editipo==0) return;
 	
-	/* rowbut for VISIBLE select */
-	G.sipo->rowbut= 0;
 	ei= G.sipo->editipo;
 	for(a=0; a<G.sipo->totipo; a++, ei++) {
 		
-		if(ei->flag & IPO_VISIBLE) G.sipo->rowbut |= (1<<a);
+		if(ei->flag & IPO_VISIBLE) ei->flag |= (1<<IPO_IS_SELECTED);
 		
 		if(ei->icu) ei->icu->flag= ei->flag;
 	}
@@ -1423,15 +1431,15 @@ void update_editipo_flags()
 {
 	EditIpo *ei;
 	IpoKey *ik;
-	unsigned int flag;
+	short flag;/*unsigned int flag;*/
 	int a;
 	
 	ei= G.sipo->editipo;
 	if(ei) {
 		for(a=0; a<G.sipo->totipo; a++, ei++) {
 			ei->flag &= ~IPO_VISIBLE;
-			flag= (1<<a);
-			if( G.sipo->rowbut & flag ) ei->flag |= IPO_VISIBLE;
+			flag= (1<<IPO_IS_SELECTED);
+			if( ei->flag & flag ) ei->flag |= IPO_VISIBLE;
 			
 			if(ei->icu) ei->icu->flag= ei->flag;
 			
@@ -1590,14 +1598,13 @@ void swap_visible_editipo()
 	
 	get_status_editipo();
 	
-	G.sipo->rowbut= 0;
 	
 	ei= G.sipo->editipo;
 	for(a=0; a<G.sipo->totipo; a++) {
 		if(totipo_vis==0) {
 			if(ei->icu) {
 				ei->flag |= IPO_VISIBLE;
-				G.sipo->rowbut |= (1<<a);
+				ei->flag |= (1<<IPO_IS_SELECTED);
 			}
 		}
 		else ei->flag &= ~IPO_VISIBLE;
@@ -1791,8 +1798,16 @@ void move_to_frame()
 
 void do_ipowin_buts(short event)
 {
+	EditIpo *ei = 0;
+	int a;
 	if((G.qual & LR_SHIFTKEY)==0) {
-		G.sipo->rowbut= (1<<event);
+		if(event>G.sipo->totipo) return;
+		ei = G.sipo->editipo;
+		for(a=0; a<G.sipo->totipo; a++) {
+			if(a==event) ei->flag |= (1<<IPO_IS_SELECTED);
+			else ei->flag &= ~(1<<IPO_IS_SELECTED);
+			ei++;
+		}
 	}
 	scrarea_queue_winredraw(curarea);
 	
@@ -1830,7 +1845,7 @@ void do_ipo_selectbuttons()
 		if(ei->icu) {
 			if((ei->flag & IPO_VISIBLE)==0) {
 				ei->flag |= IPO_VISIBLE;
-				G.sipo->rowbut |= (1<<nr);
+				ei->flag |= (1<<IPO_IS_SELECTED);
 			}
 	
 			if((G.qual & LR_SHIFTKEY)==0) {
@@ -3685,7 +3700,7 @@ void common_insertkey()
 				id= G.buts->lockpoin;
 				ma= G.buts->lockpoin;
 				if(id) {
-					event= pupmenu("Insert Key %t|RGB%x0|Alpha%x1|Halo Size%x2|Mode %x3|All Color%x10|Ofs%x12|Size%x13|All Mapping%x11");
+					event= pupmenu("Insert Key %t|RGB%x0|Alpha%x1|Halo Size%x2|Mode %x3|All Color%x10|All Mirror%x14|Ofs%x12|Size%x13|All Mapping%x11");
 					if(event== -1) return;
 					
 					map= texchannel_to_adrcode(ma->texact);
@@ -3715,7 +3730,14 @@ void common_insertkey()
 						insertkey(id, MA_HARD);
 						insertkey(id, MA_MODE);
 						insertkey(id, MA_TRANSLU);
+						insertkey(id, MA_ADD);
+					}
+					if(event==14) {
 						insertkey(id, MA_RAYM);
+						insertkey(id, MA_FRESMIR);
+						insertkey(id, MA_FRESMIRI);
+						insertkey(id, MA_FRESTRA);
+						insertkey(id, MA_FRESTRAI);
 					}
 					if(event==12 || event==11) {
 						insertkey(id, map+MAP_OFS_X);
@@ -3818,9 +3840,9 @@ void common_insertkey()
 			}
 		}
 		else if(G.buts->mainb==CONTEXT_OBJECT) {
-		    int tab= G.buts->tab[CONTEXT_OBJECT];
+			int tab= G.buts->tab[CONTEXT_OBJECT];
+			ob= OBACT;
 			if(tab==TAB_OBJECT_EFFECTS) {
-				ob= OBACT;
 				if(ob && ob->type==OB_MESH) {
 					id= (ID *) (ob);
 					if(id) {

@@ -114,7 +114,7 @@ typedef short IPO_Channel;
 
 /* ******************** */
 
-#define MA_TOTIPO	35
+#define MA_TOTIPO	40
 
 #define MA_COL_R	1
 #define MA_COL_G	2
@@ -137,6 +137,11 @@ typedef short IPO_Channel;
 #define MA_HASIZE	19
 #define MA_TRANSLU	20
 #define MA_RAYM		21
+#define MA_FRESMIR	22
+#define MA_FRESMIRI	23
+#define MA_FRESTRA	24
+#define MA_FRESTRAI	25
+#define MA_ADD		26
 
 #define MA_MAP1		0x20
 #define MA_MAP2		0x40
@@ -309,6 +314,8 @@ typedef short IPO_Channel;
 #define IPO_SELECT		2
 #define IPO_EDIT		4
 #define IPO_LOCK		8
+
+#define IPO_IS_SELECTED	6 /* note, this is number of bit! */
 
 #endif
 

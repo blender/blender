@@ -107,6 +107,7 @@ int ma_ar[MA_TOTIPO]= {
 	MA_REF, MA_ALPHA, MA_EMIT, MA_AMB, 
 	MA_SPEC, MA_HARD, MA_SPTR, MA_IOR, 
 	MA_MODE, MA_HASIZE, MA_TRANSLU, MA_RAYM,
+	MA_FRESMIR, MA_FRESMIRI, MA_FRESTRA, MA_FRESTRAI, MA_ADD,
 	
 	MA_MAP1+MAP_OFS_X, MA_MAP1+MAP_OFS_Y, MA_MAP1+MAP_OFS_Z, 
 	MA_MAP1+MAP_SIZE_X, MA_MAP1+MAP_SIZE_Y, MA_MAP1+MAP_SIZE_Z, 
@@ -1078,6 +1079,16 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			poin= &(ma->translucency); break;
 		case MA_RAYM:
 			poin= &(ma->ray_mirror); break;
+		case MA_FRESMIR:
+			poin= &(ma->fresnel_mir); break;
+		case MA_FRESMIRI:
+			poin= &(ma->fresnel_mir_i); break;
+		case MA_FRESTRA:
+			poin= &(ma->fresnel_tra); break;
+		case MA_FRESTRAI:
+			poin= &(ma->fresnel_tra_i); break;
+		case MA_ADD:
+			poin= &(ma->add); break;
 		}
 		
 		if(poin==0) {
@@ -1272,12 +1283,28 @@ void set_icu_vars(IpoCurve *icu)
 				icu->ymax= 2.0; break;
 			case MA_MODE:
 				icu->ipo= IPO_CONST;
-				icu->vartype= IPO_BITS;
-				break;
-				
+				icu->vartype= IPO_BITS; break;
+			case MA_RAYM:
+				icu->ymax= 1.0; break;
+			case MA_TRANSLU:
+				icu->ymax= 1.0; break;
+			case MA_IOR:
+				icu->ymin= 1.0;
+				icu->ymax= 3.0; break;
+			case MA_FRESMIR:
+				icu->ymax= 5.0; break;
+			case MA_FRESMIRI:
+				icu->ymin= 1.0;
+				icu->ymax= 5.0; break;
+			case MA_FRESTRA:
+				icu->ymax= 5.0; break;
+			case MA_FRESTRAI:
+				icu->ymin= 1.0;
+				icu->ymax= 5.0; break;
+			case MA_ADD:
+				icu->ymax= 1.0; break;
 			default:
-				icu->ymax= 1.0;
-				break;
+				icu->ymax= 1.0; break;
 			}
 		}
 		else {
