@@ -1249,7 +1249,7 @@ static void init_render_mesh(Object *ob)
 
 	/* object_deform changes imat! */
 	do_puno= mesh_modifier(ob, 's');
-
+	
 	paf = give_parteff(ob);
 	if(paf) {
 		if(paf->flag & PAF_STATIC) render_static_particle_system(ob, paf);
@@ -1294,9 +1294,9 @@ static void init_render_mesh(Object *ob)
 
 		/* Force a displist rebuild if this is a subsurf and we have a different subdiv level */
 
-		if((dl==0) || ((me->subdiv != me->subdivr))) {
+		if((dl==NULL) || ((me->subdiv != me->subdivr))) {
 			/* prevent subsurf called again for duplicate use of mesh, tface pointers change */
-			if((me->subdivdone-1)!=me->subdivr) {
+			if(dl==NULL || (me->subdivdone-1)!=me->subdivr) {
 				DispList *dlVerts;
 
 				dlVerts= find_displist(&ob->disp, DL_VERTS);
