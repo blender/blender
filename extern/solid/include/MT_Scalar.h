@@ -25,6 +25,9 @@
 #define MT_SCALAR_H
 
 #include <cmath>
+#if defined (__sun__) || defined ( __sun ) || defined (__sparc) || defined (__sparc__)
+#include <math.h>
+#endif
 
 #undef max
 
