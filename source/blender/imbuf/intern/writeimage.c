@@ -69,7 +69,8 @@ short IMB_saveiff(struct ImBuf *ibuf,char *naam,int flags)
 
 	/* Put formats that take a filename here */
 	if (IS_jpg(ibuf)) {
-		return imb_savejpeg(ibuf, naam, flags);
+		if(imb_savejpeg(ibuf, naam, flags)) return (0);
+		else return (TRUE);
 	}
 
 	file = open(naam, O_BINARY | O_RDWR | O_CREAT | O_TRUNC, 0666);
