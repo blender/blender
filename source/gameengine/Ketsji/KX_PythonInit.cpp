@@ -54,7 +54,12 @@
 #include "KX_Scene.h"
 #include "SND_DeviceManager.h"
 
-#include "BPY_extern.h"
+// FIXME: Enable for access to blender python modules.  This is disabled because
+// python has dependencies on a lot of other modules and is a pain to link.
+//#define USE_BLENDER_PYTHON
+#ifdef USE_BLENDER_PYTHON
+//#include "BPY_extern.h"
+#endif 
 
 static void setSandbox(TPythonSecurityLevel level);
 
@@ -88,17 +93,16 @@ static PyObject* gPyGetRandomFloat(PyObject* self,
 
 
 
-MT_Point3 GlobalConvertPythonPylist(PyObject* pylist)
+void GlobalConvertPythonPylist(PyObject* pylist, MT_Vector3 &pos)
 {
 	bool error=false;
-	MT_Point3 pos;
 	if (pylist->ob_type == &CListValue::Type)
 	{
 		CListValue* listval = (CListValue*) pylist;
-		if (listval->GetCount() == 3)
+		unsigned int numitems = listval->GetCount();
+		if (numitems <= 3)
 		{
-			int index;
-			for (index=0;index<3;index++)
+			for (unsigned int index=0;index<numitems;index++)
 			{
 				pos[index] = listval->GetValue(index)->GetNumber();
 			}
@@ -111,11 +115,10 @@ MT_Point3 GlobalConvertPythonPylist(PyObject* pylist)
 	{
 		
 		// assert the list is long enough...
-		int numitems = PyList_Size(pylist);
-		if (numitems == 3)
+		unsigned int numitems = PyList_Size(pylist);
+		if (numitems <= 3)
 		{
-			int index;
-			for (index=0;index<3;index++)
+			for (unsigned int index=0;index<numitems;index++)
 			{
 				pos[index] = PyFloat_AsDouble(PyList_GetItem(pylist,index));
 			}
@@ -126,29 +129,69 @@ MT_Point3 GlobalConvertPythonPylist(PyObject* pylist)
 		}
 
 	}
-	return pos;
+}
+
+void GlobalConvertPythonPylist(PyObject* pylist, MT_Vector4 &vec)
+{
+	bool error=false;
+	if (pylist->ob_type == &CListValue::Type)
+	{
+		CListValue* listval = (CListValue*) pylist;
+		unsigned int numitems = listval->GetCount();
+		if (numitems <= 4)
+		{
+			for (unsigned index=0;index<numitems;index++)
+			{
+				vec[index] = listval->GetValue(index)->GetNumber();
+			}
+		} else
+		{
+			error = true;
+		}
+		
+	} else
+	{
+		// assert the list is long enough...
+		unsigned int numitems = PyList_Size(pylist);
+		if (numitems <= 4)
+		{
+			for (unsigned index=0;index<numitems;index++)
+			{
+				vec[index] = PyFloat_AsDouble(PyList_GetItem(pylist,index));
+			}
+		}
+		else
+		{
+			error = true;
+		}
+
+	}
 }
 
 
-
-MT_Point3 GlobalConvertPythonVectorArg(PyObject* args)
+void GlobalConvertPythonVectorArg(PyObject* args, MT_Vector3 &pos)
 {
-	MT_Point3 pos(0,0,0);
 	PyObject* pylist;
 	PyArg_ParseTuple(args,"O",&pylist);
 
-	pos	= GlobalConvertPythonPylist(pylist);
-
-	return pos;
+	GlobalConvertPythonPylist(pylist, pos);
 }
 
+void GlobalConvertPythonVectorArg(PyObject* args, MT_Vector4 &vec)
+{
+	PyObject* pylist;
+	PyArg_ParseTuple(args,"O",&pylist);
+
+	GlobalConvertPythonPylist(pylist, vec);
+}
 
 
 static PyObject* gPySetGravity(PyObject* self,
 										 PyObject* args, 
 										 PyObject* kwds)
 {
-	MT_Vector3 vec = GlobalConvertPythonVectorArg(args);
+	MT_Vector3 vec = MT_Vector3(0., 0., 0.);
+	GlobalConvertPythonVectorArg(args, vec);
 
 	if (gp_KetsjiScene)
 		gp_KetsjiScene->SetGravity(vec);
@@ -331,11 +374,12 @@ static PyObject* gPySetBackgroundColor(PyObject* self,
 										 PyObject* kwds)
 {
 	
-	MT_Vector3 vec = GlobalConvertPythonVectorArg(args);
+	MT_Vector4 vec = MT_Vector4(0., 0., 0.3, 0.);
+	GlobalConvertPythonVectorArg(args, vec);
 
 	if (gp_Canvas)
 	{
-		gp_Rasterizer->SetBackColor(vec[0],vec[1],vec[2],0.0);
+		gp_Rasterizer->SetBackColor(vec[0], vec[1], vec[2], vec[3]);
 	}
    Py_Return;
 }
@@ -347,11 +391,12 @@ static PyObject* gPySetMistColor(PyObject* self,
 										 PyObject* kwds)
 {
 	
-	MT_Vector3 vec = GlobalConvertPythonVectorArg(args);
+	MT_Vector3 vec = MT_Vector3(0., 0., 0.);
+	GlobalConvertPythonVectorArg(args, vec);
 
 	if (gp_Rasterizer)
 	{
-		gp_Rasterizer->SetFogColor(vec[0],vec[1],vec[2]);
+		gp_Rasterizer->SetFogColor(vec[0], vec[1], vec[2]);
 	}
    Py_Return;
 }
@@ -551,7 +596,7 @@ PyObject *KXpy_import(PyObject *self, PyObject *args)
 	    return NULL;
 
 	/* check for builtin modules */
-    m = PyImport_AddModule("sys");
+	m = PyImport_AddModule("sys");
 	l = PyObject_GetAttrString(m, "builtin_module_names");
 	n = PyString_FromString(name);
 	
@@ -629,7 +674,11 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 	Py_SetProgramName(pname.Ptr());
 	Py_NoSiteFlag=1;
 	Py_FrozenFlag=1;
+#ifndef USE_BLENDER_PYTHON
+	Py_Initialize();
+#else
 	BPY_start_python();
+#endif
 	setSandbox(level);
 
 	PyObject* moduleobj = PyImport_AddModule("__main__");
@@ -640,7 +689,11 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 
 void exitGamePythonScripting()
 {
+#ifndef USE_BLENDER_PYTHON
+	Py_Finalize();
+#else
 	BPY_end_python();
+#endif
 }
 
 
