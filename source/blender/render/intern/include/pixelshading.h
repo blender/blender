@@ -48,19 +48,19 @@
  * t[2] - jitter mask                     
  * t[3] - type ZB_POLY or ZB_HALO
  * t[4] - max. distance
+ * mask is pixel coverage in bits
  * @return pointer to the object
  */
-void *renderPixel(float x, float y, int *t);
+void *renderPixel(float x, float y, int *t, int mask);
 
-/**
- * Spothalos on otherwise empty pixels.
- */
-void renderSpotHaloPixel(float x, float y, float* colbuf);
+void *renderHaloPixel(float x, float y, int haloNr) ;
 
-/**
- * Set the sky blending to the indicated type.
- */
+
 void setSkyBlendingMode(enum RE_SkyAlphaBlendingType mode);
+void shadeHaloFloat(HaloRen *har, 
+					float *col, unsigned int zz, 
+					float dist, float xn, 
+					float yn, short flarec);
 
 /**
  * Get the sky blending mode.
@@ -71,47 +71,10 @@ enum RE_SkyAlphaBlendingType getSkyBlendingMode(void);
  */
 void renderSkyPixelFloat(float x, float y);
 
-/* ------------------------------------------------------------------------- */
-/* All these are supposed to be internal. I should move these to a separate  */
-/* header.                                                                   */
-
-/**
- * Determine colour for pixel at SCS x,y for face <vlaknr>. Result end up in
- * <collector>
- * @return pointer to this object's VlakRen
- */
-void *renderFacePixel(float x, float y, int vlaknr);
-
-/**
- * Render this pixel for halo haloNr. Leave result in <collector>.
- * @return pointer to this object's HaloRen
- */
-void *renderHaloPixel(float x, float y, int haloNr);
-
-/**
- * Shade the halo at the given location
- */
-void shadeHaloFloat(HaloRen *har, float *col, unsigned int zz, 
-					float dist, float xn, float yn, short flarec);
-
-/**
- * Shade a sky pixel on a certain line, into collector[4]
- * The x-coordinate (y as well, actually) are communicated through
- * R.view[3]
- */
-void shadeSkyPixel(float x, float y);
-
-void shadeSpotHaloPixelFloat(float *col);
-void spotHaloFloat(struct LampRen *lar, float *view, float *intens);
-void shadeLampLusFloat(void);
-
-/* this should be replaced by shadeSpotHaloPixelFloat(), but there's         */
-/* something completely fucked up here with the arith.                       */
-/*  void renderspothaloFix(unsigned short *col); */
-void renderspothaloFix(float *col); 
-
 /* used by shadeSkyPixel: */
-void shadeSkyPixelFloat(float y);
+void shadeSkyPixelFloat(float y, float *view);
+void renderSpotHaloPixel(float x, float y, float *target);
+void shadeSkyPixel(float fx, float fy);
 void fillBackgroundImage(float x, float y);
 
 /* ------------------------------------------------------------------------- */

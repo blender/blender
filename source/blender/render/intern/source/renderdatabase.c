@@ -58,6 +58,7 @@
  */
 
 #include <math.h>
+#include <string.h>
 #include "MEM_guardedalloc.h"
 #include "BLI_arithb.h"
 

@@ -472,13 +472,10 @@ void RE_make_existing_file(char *name)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-/* code for holographic hack, used in the neogeo days. SHould be removed (ton) */
-
-extern float holoofs;	/* render.c */
 void RE_setwindowclip(int mode, int jmode)
 {
 	Camera *cam=0;
-	float lens, fac, minx, miny, maxx, maxy;
+	float lens, minx, miny, maxx, maxy;
 	float xd, yd, afmx, afmy;
 
 	if(G.scene->camera==0) return;
@@ -552,24 +549,6 @@ void RE_setwindowclip(int mode, int jmode)
 		xd= jit[jmode % R.osa][0];
 		yd= R.ycor*jit[jmode % R.osa][1];
 
-	}
-
-	if(G.special1 & G_HOLO) {
-		if(G.scene->camera->type==OB_CAMERA) {
-			cam= G.scene->camera->data;
-			if(cam->flag & CAM_HOLO2) {
-				
-				if(cam->netend==0.0) cam->netend= (G.scene->r.efra);
-				
-				fac= ((G.scene->r.cfra)-1.0)/(cam->netend)-0.5;
-				fac*= (R.rectx);
-				fac*= cam->hololen1;
-
-				holoofs= -fac;
-				minx-= fac;
-				maxx-= fac;
-			}
-		}
 	}
 
 	minx= R.pixsize*(minx+xd);
@@ -694,27 +673,6 @@ void addparttorect(short nr, Part *part)
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
  
-void RE_holoview()
-{
-	Camera *cam;
-	float dist, fac, fy, fz;
-
-	if(G.scene==0 || G.scene->camera==0) return;
-
-	if(G.scene->camera->type==OB_CAMERA) {
-		cam= G.scene->camera->data;
-		if(cam->flag & (CAM_HOLO1|CAM_HOLO2)) {
-			fy= G.scene->camera->loc[1];
-			fz= G.scene->camera->loc[2];
-			dist= cam->hololen*sqrt( fy*fy+ fz*fz );
-
-			fac= ((G.scene->r.cfra)-(G.scene->r.sfra))/((float)((G.scene->r.efra)-(G.scene->r.sfra)));
-
-			G.scene->camera->loc[0]= -dist+ 2*fac*dist;
-		}
-	}
-}
-
 void add_to_blurbuf(int blur)
 {
 	static unsigned int *blurrect= 0;
@@ -818,17 +776,13 @@ void oldRenderLoop(void)  /* here the PART and FIELD loops */
 
 		/* INIT */
 		BLI_srand( 2*(G.scene->r.cfra)+fi);
-	
-
-		R.vlaknr= -1;
+			
 		R.flag|= R_RENDERING;
 		if(fi==1) R.flag |= R_SEC_FIELD;
 	
-
 		/* MOTIONBLUR loop */
 		if(R.r.mode & R_MBLUR) blur= R.osa;
 		else blur= 1;
-
 	
 		while(blur--) {
 
@@ -1210,9 +1164,6 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 
 	RE_local_printrenderinfo((PIL_check_seconds_timer() - start_time), -1);
 	
-	/* restore variables */
-	R.osatex= 0;
-	R.vlr= 0;	/* at cubemap */
 	R.flag= 0;
 }
 

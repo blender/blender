@@ -683,7 +683,8 @@ static void read_videoscape_nurbs(char *str)
 static void read_videoscape(char *str)
 {
 	int file, type;
-	unsigned int val, numlen;
+	unsigned int val;
+	unsigned short numlen;
 	char name[FILE_MAXDIR+FILE_MAXFILE], head[FILE_MAXFILE], tail[FILE_MAXFILE];
 	
 	strcpy(name, str);
@@ -2234,7 +2235,7 @@ void write_videoscape(char *str)
 {
 	Base *base;
 	int file, val, lampdone=0;
-	unsigned int numlen;
+	unsigned short numlen;
 	char head[FILE_MAXFILE], tail[FILE_MAXFILE];
 	
 	if(BLI_testextensie(str,".trace")) str[ strlen(str)-6]= 0;

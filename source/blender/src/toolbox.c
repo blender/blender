@@ -61,6 +61,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
@@ -106,8 +107,6 @@
 
 #include "mydevice.h"
 #include "blendef.h"
-#include "render.h"
-
 
 static int tbx1, tbx2, tby1, tby2, tbfontyofs, tbmain=0;
 static int tbmemx=TBOXX/2, tbmemy=(TBOXEL-0.5)*TBOXH, tboldwin, addmode= 0;

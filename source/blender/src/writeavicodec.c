@@ -53,7 +53,6 @@
 #include "DNA_userdef_types.h"
 
 #include "render_types.h"
-#include "render.h"
 
 #include "BKE_global.h"
 #include "BKE_scene.h"

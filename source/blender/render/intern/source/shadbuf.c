@@ -77,7 +77,7 @@ float *give_jitter_tab(int samp);
 /* ------------------------------------------------------------------------- */
 
 
-void initshadowbuf(LampRen *lar, float mat[][4])
+void RE_initshadowbuf(LampRen *lar, float mat[][4])
 {
 	struct ShadBuf *shb;
 	float hoek, temp, viewinv[4][4];
@@ -436,7 +436,7 @@ float readshadowbuf(struct ShadBuf *shb, int xs, int ys, int zs)	/* return 1.0 :
 }
 
 
-float testshadowbuf(struct ShadBuf *shb, float inp)  	/* return 1.0: no shadow at all */
+float testshadowbuf(struct ShadBuf *shb, float *rco, float inp)  	/* return 1.0: no shadow at all */
 {
 	float fac, co[4], dx[3], dy[3], aantal=0;
 	float xs1,ys1, siz, *j, xres, yres;
@@ -451,7 +451,7 @@ float testshadowbuf(struct ShadBuf *shb, float inp)  	/* return 1.0: no shadow a
 
 	/* rotate renderco en osaco */
 	siz= 0.5*(float)shb->size;
-	VECCOPY(co, R.co);
+	VECCOPY(co, rco);
 	co[3]= 1.0;
 
 	MTC_Mat4MulVec4fl(shb->persmat, co);	/* rational hom co */
@@ -483,17 +483,17 @@ float testshadowbuf(struct ShadBuf *shb, float inp)  	/* return 1.0: no shadow a
 		return readshadowbuf(shb,(int)xs1, (int)ys1, zs);
 	}
 
-	co[0]= R.co[0]+O.dxco[0];
-	co[1]= R.co[1]+O.dxco[1];
-	co[2]= R.co[2]+O.dxco[2];
+	co[0]= rco[0]+O.dxco[0];
+	co[1]= rco[1]+O.dxco[1];
+	co[2]= rco[2]+O.dxco[2];
 	co[3]= 1.0;
 	MTC_Mat4MulVec4fl(shb->persmat,co);	/* rational hom co */
 	dx[0]= xs1- siz*(1.0+co[0]/co[3]);
 	dx[1]= ys1- siz*(1.0+co[1]/co[3]);
 
-	co[0]= R.co[0]+O.dyco[0];
-	co[1]= R.co[1]+O.dyco[1];
-	co[2]= R.co[2]+O.dyco[2];
+	co[0]= rco[0]+O.dyco[0];
+	co[1]= rco[1]+O.dyco[1];
+	co[2]= rco[2]+O.dyco[2];
 	co[3]= 1.0;
 	MTC_Mat4MulVec4fl(shb->persmat,co);	/* rational hom co */
 	dy[0]= xs1- siz*(1.0+co[0]/co[3]);

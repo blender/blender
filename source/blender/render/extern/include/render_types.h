@@ -51,13 +51,20 @@
 
 /* ------------------------------------------------------------------------- */
 
-typedef struct RE_Render
+/* localized renderloop data */
+typedef struct ShadeInput
 {
+	struct Material *mat, *matren;
+	struct VlakRen *vlr;
 	float co[3];
 	float lo[3], gl[3], uv[3], ref[3], orn[3], winco[3], sticky[3], vcol[3], rad[3];
-	float itot, i, ic, rgb, norm;
-	float vn[3], view[3], *vno, refcol[4];
+	float vn[3], view[3], refcol[4];
+	short osatex;
+} ShadeInput;
 
+/* here only stuff to initalize the render itself */
+typedef struct RE_Render
+{
 	float grvec[3], inprz, inprh;
 	float imat[3][3];
 
@@ -65,7 +72,7 @@ typedef struct RE_Render
 	float persmat[4][4], persinv[4][4];
 	float winmat[4][4];
 	
-	short flag, osatex, osa, rt;
+	short flag, osa, rt, pad;
 	/**
 	 * Screen sizes and positions, in pixels
 	 */
@@ -89,12 +96,6 @@ typedef struct RE_Render
 	
 	int totvlak, totvert, tothalo, totlamp;
 
-	/* internal: these two are a sort of cache for the render pipe */
-	struct VlakRen *vlr;
-	int vlaknr;
-	
-	/* external */
-	struct Material *mat, *matren;
 	/* internal, fortunately */
 	struct LampRen **la;
 	struct VlakRen **blovl;

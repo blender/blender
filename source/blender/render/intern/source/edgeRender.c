@@ -54,6 +54,7 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 #include <limits.h>       /* INT_MIN,MAX are used here                       */ 
 #include <stdio.h>
 
@@ -381,7 +382,7 @@ void renderEdges(char *colourRect)
 	rz3= rz2 + bufWidth;
 
 	if (same_mat_redux) {
-		matptr_low = matBuffer;
+		matptr_low = (int *) matBuffer;
 		matptr_cent = matptr_low + bufWidth;
 		matptr_high = matptr_cent + bufWidth;
 	}

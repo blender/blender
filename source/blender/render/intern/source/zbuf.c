@@ -2170,25 +2170,24 @@ int vergzvlak(const void *a1, const void *a2)
 	return 0;
 }
 
-void shadetrapixel(float x, float y, int vlak, int mask)
+void shadetrapixel(float x, float y, int vlak, int mask, unsigned short *shortcol)
 {
 	if( (vlak & 0x7FFFFF) > R.totvlak) {
 		printf("error in shadetrapixel nr: %d\n", (vlak & 0x7FFFFF));
 		return;
 	}
 
-	shadepixel(x, y, vlak, mask);
+	shadepixel_short(x, y, vlak, mask, shortcol);
 }
 
 extern unsigned short usegamtab;
-extern unsigned short shortcol[4];
 void abufsetrow(int y)
 {
 	APixstr *ap, *apn;
 	float xs, ys;
 	int x, part, a, b, zrow[100][3], totvlak, alpha[32], tempgam, nr, intcol[4];
 	int sval, tempRf;
-	unsigned short *col, tempcol[4], sampcol[16*4], *scol;
+	unsigned short *col, shortcol[4], tempcol[4], sampcol[16*4], *scol;
 	
 	if(y<0) return;
 	if(R.osa>16) {
@@ -2253,7 +2252,7 @@ void abufsetrow(int y)
 				else {
 					xs= x; ys= y;
 				}
-				shadetrapixel(xs, ys, ap->p[0], ap->mask[0]);
+				shadetrapixel(xs, ys, ap->p[0], ap->mask[0], shortcol);
 	
 				nr= count_mask(ap->mask[0]);
 				if( (R.r.mode & R_OSA) && nr<R.osa) {
@@ -2297,7 +2296,7 @@ void abufsetrow(int y)
 					else {
 						xs= x; ys= y;
 					}
-					shadetrapixel(xs, ys, zrow[totvlak][1], 0xFFFF);
+					shadetrapixel(xs, ys, zrow[totvlak][1], 0xFFFF, shortcol);
 					
 					a= count_mask(zrow[totvlak][2]);
 					if( (R.r.mode & R_OSA ) && a<R.osa) {
@@ -2305,20 +2304,20 @@ void abufsetrow(int y)
 							memset(sampcol, 0, 4*2*R.osa);
 							sval= addtosampcol(sampcol, shortcol, zrow[totvlak][2]);
 
-                     /* sval==0: alpha completely full */
-                     while( (sval != 0) && (totvlak>0) ) {
-                       a= count_mask(zrow[totvlak-1][2]);
-                       if(a==R.osa) break;
-                       totvlak--;
-                       
-                       b= centmask[ zrow[totvlak][2] ];
-                       
-                       xs= (float)x+centLut[b & 15];
-                       ys= (float)y+centLut[b>>4];
-                       
-                       shadetrapixel(xs, ys, zrow[totvlak][1], zrow[totvlak][2]);
-                       sval= addtosampcol(sampcol, shortcol, zrow[totvlak][2]);
-                     }
+							/* sval==0: alpha completely full */
+							while( (sval != 0) && (totvlak>0) ) {
+								a= count_mask(zrow[totvlak-1][2]);
+								if(a==R.osa) break;
+								totvlak--;
+							
+								b= centmask[ zrow[totvlak][2] ];
+							
+								xs= (float)x+centLut[b & 15];
+								ys= (float)y+centLut[b>>4];
+							
+								shadetrapixel(xs, ys, zrow[totvlak][1], zrow[totvlak][2], shortcol);
+								sval= addtosampcol(sampcol, shortcol, zrow[totvlak][2]);
+							}
 							scol= sampcol;
 							intcol[0]= scol[0]; intcol[1]= scol[1];
 							intcol[2]= scol[2]; intcol[3]= scol[3];
@@ -2345,7 +2344,7 @@ void abufsetrow(int y)
 						}
 					}	
 					else addAlphaUnderShort(col, shortcol);
-					
+							
 					if(col[3]>=0xFFF0) break;
 				}
 			}
@@ -2353,7 +2352,7 @@ void abufsetrow(int y)
 	}
 	
 	usegamtab= tempgam;
-   R.flag= tempRf;
+	R.flag= tempRf;
 }
 
 /* end of zbuf.c */

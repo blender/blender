@@ -42,7 +42,6 @@
 #include "shadbuf.h"
 #include "envmap.h"
 #include "renderHelp.h"
-#include "shadowBuffer.h"
 #include "radio.h"
 
 #ifdef HAVE_CONFIG_H
@@ -67,17 +66,7 @@ void prepareScene()
 	/* SHADOW BUFFER */
 	for(a=0; a<R.totlamp; a++) {
 		if(RE_local_test_break()) break;
-		/* Again, switch between old and new shadowing system. The
-         * buffer objects were initially created in
-         * blenderWorldManipulation.c */
-		if (R.r.mode & R_UNIFIED) {
-			if (R.la[a]->shadowBufOb) {
-				RE_buildShadowBuffer(R.la[a]->shadowBufOb,
-									 R.la[a]);
-			}
-		} else {
-			if(R.la[a]->shb) makeshadowbuf(R.la[a]);
-		}
+		if(R.la[a]->shb) makeshadowbuf(R.la[a]);
 	}
 
 	/* RADIO */

@@ -85,34 +85,12 @@ struct View3D;
 
 
 /* ------------------------------------------------------------------------- */
-/* Needed for the outside world referring to shadowbuffers                   */
+/* shadbuf.c (1)                                                           */
 /* ------------------------------------------------------------------------- */
 
-#ifndef RE_SHADOWBUFFERHANDLE
-#define RE_SHADOWBUFFERHANDLE
-#define RE_DECLARE_HANDLE(name) typedef struct name##__ { int unused; } *name
-	RE_DECLARE_HANDLE(RE_ShadowBufferHandle);
-#endif
-		
-	/**
-	 * Create a new, empty shadow buffer with certain settings.
-	 *
-	 * @param mode 0 is a dummy buffer, 1 is the old buffer for
-	 * c-based shadowing, 2 is the old buffer with c++ refit , 2 is a
-	 * deep buffer
-	 */
-	extern RE_ShadowBufferHandle RE_createShadowBuffer(struct LampRen *lar,
-													   float mat[][4],
-													   int mode);
-
-	/**
-	 * Delete a shadow buffer.
-	 * @param shb handle to the buffer to be released
-	 */
-	extern void RE_deleteShadowBuffer(RE_ShadowBufferHandle shb);
+void RE_initshadowbuf(struct LampRen *lar, float mat[][4]);
 
 
-	
 /* ------------------------------------------------------------------------- */
 /* initrender (14)                                                           */
 /* ------------------------------------------------------------------------- */
@@ -140,7 +118,6 @@ void    RE_setwindowclip(int mode, int jmode);
 void    RE_animrender(struct View3D *ogl_render_view3d);
 void    RE_free_render_data(void);
 void    RE_free_filt_mask(void);
-void    RE_holoview(void);
 void    RE_init_filt_mask(void);
 void    RE_init_render_data(void);
 void    RE_jitterate1(float *jit1, float *jit2, int num, float rad1);
@@ -174,7 +151,30 @@ void    RE_zbufferall_radio(struct RadView *vw, struct RNode **rg_elem, int rg_t
 
 
 /* ------------------------------------------------------------------------- */
-/* envmap (5)                                                                   */
+/* texture                                                                    */
+/* ------------------------------------------------------------------------- */
+struct MTex;
+struct Tex;
+
+void init_render_textures(void);
+void end_render_textures(void);
+void init_render_texture(struct Tex *tex);
+void end_render_texture(struct Tex *tex);
+
+void tubemap(float x, float y, float z, float *adr1, float *adr2);
+void spheremap(float x, float y, float z, float *adr1, float *adr2);
+
+void do_material_tex(ShadeInput *shi);
+void externtex(struct MTex *mtex, float *vec);
+void externtexcol(struct MTex *mtex, float *orco, char *col);
+void do_lamp_tex(struct LampRen *la, float *lavec, ShadeInput *shi);
+void do_sky_tex(float *);
+
+int multitex(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex);
+
+
+/* ------------------------------------------------------------------------- */
+/* envmap (4)                                                                   */
 /* ------------------------------------------------------------------------- */
 	struct EnvMap;
 	struct Tex;
@@ -183,8 +183,6 @@ void    RE_free_envmap(struct EnvMap *env);
 struct EnvMap *RE_add_envmap(void);
 /* these two maybe not external? yes, they are, for texture.c */
 struct EnvMap *RE_copy_envmap(struct EnvMap *env);
-/* (used in texture.c) */
-int     RE_envmaptex(struct Tex *tex, float *texvec, float *dxt, float *dyt);
 
 	/* --------------------------------------------------------------------- */
 	/* rendercore (2)                                                        */
@@ -195,9 +193,6 @@ int     RE_envmaptex(struct Tex *tex, float *texvec, float *dxt, float *dyt);
 	float Toon_Spec( float *n, float *l, float *v, float size, float smooth);
 	float OrenNayar_Diff(float *n, float *l, float *v, float rough);
 	float Toon_Diff( float *n, float *l, float *v, float size, float smooth);
-
-	/* maybe not external */
-	void    RE_calc_R_ref(void);
 
 	/* --------------------------------------------------------------------- */
 	/* renderdatabase (3)                                                    */
@@ -257,7 +252,7 @@ int     RE_envmaptex(struct Tex *tex, float *texvec, float *dxt, float *dyt);
 
 	/* patch for the external if, to support the split for the ui */
 	void RE_addalphaAddfac(char *doel, char *bron, char addfac);
-	void RE_sky(char *col); 
+	void RE_sky(float *view, char *col); 
 	void RE_renderflare(struct HaloRen *har); 
 	/**
 	 * Shade the pixel at xn, yn for halo har, and write the result to col. 

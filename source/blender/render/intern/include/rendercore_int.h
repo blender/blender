@@ -38,8 +38,7 @@
 #include "zbuf_types.h"
 #include "render_types.h"
 
-void    do_lamphalo_tex(LampRen *lar, float *p1, float *p2, float *intens);
-void    spothalo(struct LampRen *lar, float *view, float *intens);
+void    spothalo(struct LampRen *lar, ShadeInput *shi, float *intens);
 void    add_filt_mask(unsigned int mask, unsigned short *col, unsigned int *rb1, unsigned int *rb2, unsigned int *rb3);
 void    addps(long *rd, int vlak, unsigned int z, short ronde);
 PixStr *addpsmain(void);

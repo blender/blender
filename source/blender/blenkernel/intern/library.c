@@ -514,7 +514,7 @@ void free_main(Main *mainvar)
 		ListBase *lb= lbarray[a];
 		ID *id;
 		
-		while (id= lb->first) {
+		while ( (id= lb->first) ) {
 			free_libblock(lb, id);
 		}
 	}
@@ -810,7 +810,7 @@ int new_id(ListBase *lb, ID *id, char *tname)
 			return (new_id(lb, id, left));
 		}
 		/* this format specifier is from hell... */
-		sprintf(id->name+2, "%s.%0.3d", left, nr);
+		sprintf(id->name+2, "%s.%.3d", left, nr);
 	}
 	
 	sort_alpha_id(lb, id);	

@@ -37,6 +37,7 @@
 #include "render_types.h"
 
 struct HaloRen;
+struct ShadeInput;
 
 typedef struct ShadeResult 
 {
@@ -46,18 +47,21 @@ typedef struct ShadeResult
 
 } ShadeResult;
 
-
 float   mistfactor(float *co);	/* dist en hoogte, return alpha */
-void renderspothalo(unsigned short *col);
-void render_lighting_halo(struct HaloRen *har, float *colf);
-unsigned int    calchalo_z(struct HaloRen *har, unsigned int zz);
-void shade_color(ShadeResult *shr);
-void shade_lamp_loop(int mask, ShadeResult *shr);
-float fresnel_fac(float *view, float *vn, float fresnel);
 
+void 	render_lighting_halo(struct HaloRen *har, float *colf);
+unsigned int    calchalo_z(struct HaloRen *har, unsigned int zz);
+void add_halo_flare(void);
+
+void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, int i3);
+
+void shade_color(struct ShadeInput *shi, ShadeResult *shr);
+void shade_lamp_loop(struct ShadeInput *shi, ShadeResult *shr, int mask);
+
+float fresnel_fac(float *view, float *vn, float fresnel);
+void calc_R_ref(struct ShadeInput *shi);
 float spec(float inp, int hard);
 
-void add_halo_flare(void);
 
 /**
  * Apply the background (sky). Depending on the active alphamode and
@@ -96,7 +100,8 @@ void zbufshadeDA(void);	/* Delta Accum Pixel Struct */
 /**
  * Also called in: zbuf.c
  */
-void shadepixel(float x, float y, int vlaknr, int mask);
+void *shadepixel(float x, float y, int vlaknr, int mask, float *col);
+void shadepixel_short(float x, float y, int vlaknr, int mask, unsigned short *shortcol);
 
 /**
  * Shade the pixel at xn, yn for halo har, and write the result to col. 

@@ -544,7 +544,7 @@ void setwinmatrixview3d(rctf *rect)		/* rect: for picking */
 {
 	Camera *cam=0;
 	float d, near, far, winx = 0.0, winy = 0.0;
-	float lens, dfac, tfac, fac, x1, y1, x2, y2;
+	float lens, dfac, fac, x1, y1, x2, y2;
 	short orth;
 	
 	lens= G.vd->lens;
@@ -615,21 +615,7 @@ void setwinmatrixview3d(rctf *rect)		/* rect: for picking */
 		x2= -x1;
 		y1= -dfac*(winy/fac);
 		y2= -y1;
-		
-		if(G.vd->persp==2 && (G.special1 & G_HOLO)) {
-			if(cam && (cam->flag & CAM_HOLO2)) {
-				tfac= fac/4.0;	/* the fac is 1280/640 corrected for obszoom */
 
-				if(cam->netend==0.0) cam->netend= EFRA;
-				fac= (G.scene->r.cfra-1.0)/(cam->netend)-0.5;
-				
-				fac*= tfac*(x2-x1);
-				fac*= ( cam->hololen1 );
-				x1-= fac;
-				x2-= fac;
-			}
-		}
-		
 		orth= 0;
 	}
 
@@ -690,8 +676,6 @@ void obmat_to_viewmat(Object *ob)
 void setviewmatrixview3d()
 {
 	Camera *cam;
-
-	if(G.special1 & G_HOLO) RE_holoview();
 
 	if(G.vd->persp>=2) {	    /* obs/camera */
 		if(G.vd->camera) {

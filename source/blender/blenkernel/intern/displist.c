@@ -46,9 +46,6 @@
 #endif
 #include "MEM_guardedalloc.h"
 
-#include "nla.h" /* For __NLA: Please do not remove yet */
-#include "render.h"
-
 #include "IMB_imbuf_types.h"
 
 #include "DNA_texture_types.h"
@@ -87,6 +84,10 @@
 #include "BKE_lattice.h"
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
+
+#include "nla.h" /* For __NLA: Please do not remove yet */
+#include "render.h"
+
 
 /***/
 
@@ -226,8 +227,6 @@ static void initfastshade(void)
 	FastLamp *fl;
 	float mat[4][4];
 
-	R.vlr= 0;
-	
 	init_render_world();
 	
 	if(fastlamplist) return;
@@ -301,16 +300,18 @@ void freefastshade()
 
 static void fastshade(float *co, float *nor, float *orco, Material *ma, char *col1, char *col2, char *vertcol)
 {
+	ShadeInput shi;
 	FastLamp *fl;
 	float i, t, inp, soft, inpr, inpg, inpb, isr=0, isg=0, isb=0, lv[3], view[3], lampdist, ld;
 	float inpr1, inpg1, inpb1, isr1=0, isg1=0, isb1=0;
 	int a, back;
 
 	if(ma==0) return;
-	R.mat= ma;
-	R.matren= ma->ren;
-	ma= R.matren;
-
+	shi.mat= ma;
+	shi.matren= ma->ren;
+	shi.vlr= NULL;	// have to do this!
+	ma= shi.matren;
+	
 	if(ma->mode & MA_VERTEXCOLP) {
 		if(vertcol) {
 			ma->r= vertcol[3]/255.0;
@@ -320,41 +321,41 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 	}
 	
 	if(ma->texco) {
-		VECCOPY(R.lo, orco);
-		VECCOPY(R.vn, nor);
+		VECCOPY(shi.lo, orco);
+		VECCOPY(shi.vn, nor);
 		
 		if(ma->texco & TEXCO_GLOB) {
-			VECCOPY(R.gl, R.lo);
+			VECCOPY(shi.gl, shi.lo);
 		}
 		if(ma->texco & TEXCO_WINDOW) {
-			VECCOPY(R.winco, R.lo);
+			VECCOPY(shi.winco, shi.lo);
 		}
 		if(ma->texco & TEXCO_STICKY) {
-			VECCOPY(R.sticky, R.lo);
+			VECCOPY(shi.sticky, shi.lo);
 		}
 		if(ma->texco & TEXCO_UV) {
-			VECCOPY(R.uv, R.lo);
+			VECCOPY(shi.uv, shi.lo);
 		}
 		if(ma->texco & TEXCO_OBJECT) {
-			VECCOPY(R.co, R.lo);
+			VECCOPY(shi.co, shi.lo);
 		}
 		if(ma->texco & TEXCO_NORM) {
-			VECCOPY(R.orn, R.vn);
+			VECCOPY(shi.orn, shi.vn);
 		}
 		if(ma->texco & TEXCO_REFL) {
 			
-			inp= 2.0*(R.vn[2]);
-			R.ref[0]= (inp*R.vn[0]);
-			R.ref[1]= (inp*R.vn[1]);
-			R.ref[2]= (-1.0+inp*R.vn[2]);
+			inp= 2.0*(shi.vn[2]);
+			shi.ref[0]= (inp*shi.vn[0]);
+			shi.ref[1]= (inp*shi.vn[1]);
+			shi.ref[2]= (-1.0+inp*shi.vn[2]);
 		}
 
 		if(ma->mode & MA_VERTEXCOLP) {
-			R.mat->r= ma->r;
-			R.mat->g= ma->g;
-			R.mat->b= ma->b;
+			shi.mat->r= ma->r;
+			shi.mat->g= ma->g;
+			shi.mat->b= ma->b;
 		}
-		do_material_tex();
+		do_material_tex(&shi);
 	}
 
 	if(ma->mode & MA_SHLESS) {

@@ -271,25 +271,19 @@ void unifiedRenderingLoop(void)  /* here the PART en FIELD loops */
 		R.afmy/= 2;
 		R.r.yasp*= 2;
 		R.ycor= ( (float)R.r.yasp)/( (float)R.r.xasp);
-
 	}
 
-	
 	for(fi=0; fi<fields; fi++) {
 
 		/* INIT */
 		BLI_srand( 2*(G.scene->r.cfra)+fi);
 	
-
-		R.vlaknr= -1;
 		R.flag|= R_RENDERING;
 		if(fi==1) R.flag |= R_SEC_FIELD;
 	
-
 		/* MOTIONBLUR loop */
 		if(R.r.mode & R_MBLUR) blur= R.osa;
 		else blur= 1;
-
 	
 		while(blur--) {
 

@@ -634,7 +634,7 @@ static void set_dxtdyt(float *dxts, float *dyts, float *dxt, float *dyt, int fac
 /* ------------------------------------------------------------------------- */
 
 extern float Tin, Ta, Tr, Tg, Tb; /* texture.c */
-int RE_envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt)
+int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex)
 {
 	/* texvec should be the already reflected normal */
 	EnvMap *env;
@@ -665,7 +665,7 @@ int RE_envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt)
 	face= envcube_isect(vec, sco);
 	tex->ima= env->cube[face];
 	
-	if(R.osatex) {
+	if(osatex) {
 		MTC_Mat4Mul3Vecfl(env->object->imat, dxt);
 		MTC_Mat4Mul3Vecfl(env->object->imat, dyt);
 		

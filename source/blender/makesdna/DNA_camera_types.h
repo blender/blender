@@ -48,9 +48,7 @@ typedef struct Camera {
 	
 	short type, flag, drawzoom, hold;
 	float clipsta, clipend;
-	float netsta, netend;			/* network camera (obsolete -ton) */
 	float lens, drawsize;
-	float hololen, hololen1; /* obsolete (ton) */
 	
 	struct Ipo *ipo;
 	
@@ -66,9 +64,6 @@ typedef struct Camera {
 /* flag */
 #define CAM_SHOWLIMITS	1
 #define CAM_SHOWMIST	2
-
-#define CAM_HOLO1		16
-#define CAM_HOLO2		32
 
 #ifdef __cplusplus
 }

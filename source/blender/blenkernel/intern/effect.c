@@ -59,11 +59,12 @@
 #include "BKE_key.h"
 #include "BKE_ipo.h"
 #include "BKE_screen.h"
-#include "BKE_texture.h"
 #include "BKE_blender.h"
 #include "BKE_object.h"
 #include "BKE_displist.h"
 #include "BKE_lattice.h"
+
+#include "render.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

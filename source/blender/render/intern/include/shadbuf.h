@@ -37,14 +37,6 @@
 
 #include "render_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/** Init memory for old-style shodow buffers. */
-void initshadowbuf(struct LampRen *lar, float mat[][4]);
-
-
 /**
  * Calculates shadowbuffers for a vector of shadow-giving lamps
  * @param lar The vector of lamps
@@ -60,7 +52,7 @@ void makeshadowbuf(LampRen *lar);
  * @param inp The inproduct between viewvector and ?
  *
  */
-float testshadowbuf(struct ShadBuf *shb, float inp);	
+float testshadowbuf(struct ShadBuf *shb, float *rco, float inp);	
 
 /**
  * Determines the shadow factor for lamp <lar>, between <p1>
@@ -68,9 +60,6 @@ float testshadowbuf(struct ShadBuf *shb, float inp);
  */
 float shadow_halo(LampRen *lar, float *p1, float *p2);
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* SHADBUF_EXT_H */
 

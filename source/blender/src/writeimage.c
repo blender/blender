@@ -35,9 +35,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h" // EnvMap{}
 #include "DNA_image_types.h" // Image{}
-#include "render.h"
 #include "BKE_utildefines.h" // ELEM
 #include "BIF_writeimage.h"
+#include "render.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

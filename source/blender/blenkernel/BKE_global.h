@@ -244,7 +244,6 @@ typedef struct Global {
 #define B_ENDIAN	0
 
 /* G.special1 */
-#define G_HOLO		1
 
 /* Memory is allocated where? blender.c */
 extern Global G;

@@ -122,7 +122,7 @@ extern char *centmask;       /* compute its colour on a point _on_ the face. */
                              /* guarantee we use valid coordinates.          */
 
 /* unsorted */
-extern float holoofs, fmask[256];
+extern float fmask[256];
 extern unsigned short usegamtab, shortcol[4], 
 	*mask1[9], *mask2[9],/*   *igamtab1, */ *igamtab2/*,   *gamtab */;
 
@@ -225,7 +225,7 @@ void zBufShadeAdvanced()
     y = 0;
     while ( (y < bufferHeight) && keepLooping) {
 		calcZBufLine(y);
-		R.vlaknr= -1; /* huh? why reset this counter? for shadePixel!        */
+
 		renderZBufLine(y);
 		transferColourBufferToOutput(y);
 		
@@ -435,10 +435,10 @@ int composeStack(int zrow[RE_MAX_FACES_PER_PIXEL][RE_PIXELFIELDSIZE],
         ys= (float)y+centLut[i >> 4];
         
         /* stack face ----------- */
-		stack[ptr].data     = renderPixel(xs, ys, zrow[totvlak]);
+		stack[ptr].mask     = zrow[totvlak][RE_MASK];
+		stack[ptr].data     = renderPixel(xs, ys, zrow[totvlak], stack[ptr].mask);
 		stack[ptr].faceType = zrow[totvlak][RE_TYPE];
         cpFloatColV(collector, stack[ptr].colour);
-		stack[ptr].mask     = zrow[totvlak][RE_MASK];
 
 		/* This is done so that spothalos are properly overlayed on halos    */
 		/* maybe we need to check the colour here...                         */
@@ -1468,9 +1468,10 @@ void eraseColBuf(RE_COLBUFTYPE *buf) {
 
 /* ------------------------------------------------------------------------- */
 
-int calcDepth(float x, float y, void* data, int type)
+int calcDepth(float x, float y, void *data, int type)
 {
-    
+    float view[3];
+	
     if (type & RE_POLY) {
         VlakRen* vlr = (VlakRen*) data;
         VertRen* v1;
@@ -1483,31 +1484,28 @@ int calcDepth(float x, float y, void* data, int type)
         dvlak= v1->co[0]*vlr->n[0]+v1->co[1]*vlr->n[1]+v1->co[2]*vlr->n[2]; 
         
         /* jitter has been added to x, y ! */
-        /* view vector R.view: screen coords */
-        if( (G.special1 & G_HOLO) && 
-            ((Camera *)G.scene->camera->data)->flag & CAM_HOLO2) {
-            R.view[0]= (x+(R.xstart) + 0.5  +holoofs);
-        } else R.view[0]= (x+(R.xstart) + 0.5  );
+        /* view vector view: screen coords */
+		view[0]= (x+(R.xstart) + 0.5  );
         
         if(R.flag & R_SEC_FIELD) {
-            if(R.r.mode & R_ODDFIELD) R.view[1]= (y + R.ystart)*R.ycor;
-            else R.view[1]= (y+R.ystart + 1.0)*R.ycor;
-        } else R.view[1]= (y+R.ystart  + 0.5 )*R.ycor;
+            if(R.r.mode & R_ODDFIELD) view[1]= (y + R.ystart)*R.ycor;
+            else view[1]= (y+R.ystart + 1.0)*R.ycor;
+        } else view[1]= (y+R.ystart  + 0.5 )*R.ycor;
         
 
 		/* for pano, another rotation in the xz plane is needed.... */
 
         /* this is ok, in WCS */
-        R.view[2]= -R.viewfac;  /* distance to viewplane */
+        view[2]= -R.viewfac;  /* distance to viewplane */
         
         /* face normal dot view vector: but how can this work? */
-		deler = MTC_dot3Float(vlr->n, R.view);
+		deler = MTC_dot3Float(vlr->n, view);
         if (deler!=0.0) fac = dvlak/deler;
         else fac = 0.0;
         
         /* indices are wrong.... but gives almost the right value? */
-        hoco_z =  (fac*R.view[2]) * R.winmat[2][2] + R.winmat[3][2]; 
-        hoco_w =  (fac*R.view[2]) * R.winmat[2][3] + R.winmat[3][3]; 
+        hoco_z =  (fac*view[2]) * R.winmat[2][2] + R.winmat[3][2]; 
+        hoco_w =  (fac*view[2]) * R.winmat[2][3] + R.winmat[3][3]; 
         
         zbuf_co = 0x7FFFFFFF*(hoco_z/hoco_w);            
         

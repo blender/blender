@@ -1883,32 +1883,12 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 			}
 		}
 	}
-
-	if( (R.r.mode & R_SHADOW) && (lar->mode & LA_SHAD)
-		&& (la->type==LA_SPOT) && doshadbuf ) {
+	
+	if( (R.r.mode & R_SHADOW) && (lar->mode & LA_SHAD) && (la->type==LA_SPOT) && doshadbuf ) {
 		/* Per lamp, one shadow buffer is made. */
-		if (R.r.mode & R_UNIFIED) {
-			int mode;
-			/* For the UR, I want to stick to the cpp version. I can
-             * put a switch here for the different shadow buffers. At
-             * this point, the type of shadow buffer is
-             * determined. The actual calculations are done during the
-             * render pre operations. */
-			if (lar->mode & LA_DEEP_SHADOW) {
-				mode = 0; /* dummy, for testing */
-			} else if (2) {
-				mode = 2; /* old-style buffer */
-			}
-			lar->shadowBufOb = (void*) RE_createShadowBuffer(lar,
-															 ob->obmat,
-															 mode);
-		} else {
-			RE_createShadowBuffer(lar,
-								  ob->obmat,
-								  1); /* mode = 1 is old buffer */
-		}
+		RE_initshadowbuf(lar, ob->obmat);
 	}
-
+	
 	lar->org= MEM_dupallocN(lar);
 }
 
@@ -2704,12 +2684,6 @@ void RE_freeRotateBlenderScene(void)
 	/* FREE */
 
 	for(a=0; a<R.totlamp; a++) {
-
-		/* for the shadow buf object integration */
-		if (R.la[a]->shadowBufOb) {
-			RE_deleteShadowBuffer((RE_ShadowBufferHandle) R.la[a]->shadowBufOb);
-		}
-		
 		if(R.la[a]->shb) {
 			shb= R.la[a]->shb;
 			v= (shb->size*shb->size)/256;
@@ -2820,8 +2794,6 @@ void RE_rotateBlenderScene(void)
 		ob->ctime= -123.456;
 		ob= ob->id.next;
 	}
-
-	if(G.special1 & G_HOLO) RE_holoview();
 
 	/* because of optimal calculation tracking/lattices/etc: and extra where_is_ob here */
 

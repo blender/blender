@@ -356,9 +356,6 @@ void *add_camera()
 	cam->clipsta= 0.1f;
 	cam->clipend= 100.0f;
 	cam->drawsize= 0.5f;
-	cam->netsta= 0.5f;
-	cam->netend= 10.0f;
-	cam->hold= 50;
 	
 	return cam;
 }

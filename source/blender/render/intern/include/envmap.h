@@ -41,6 +41,7 @@
  * (initrender.c)
  */
 void make_envmaps(void);
+int     envmaptex(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex);
 
 #endif /* ENVMAP_EXT_H */
 

@@ -59,29 +59,6 @@ struct MTex *add_mtex(void);
 struct Tex *copy_texture(struct Tex *tex);
 void make_local_texture(struct Tex *tex);
 void autotexname(struct Tex *tex);
-void init_render_texture(struct Tex *tex);
-void init_render_textures(void);
-void end_render_texture(struct Tex *tex);
-void end_render_textures(void);
-int clouds(struct Tex *tex, float *texvec);
-int blend(struct Tex *tex, float *texvec);
-int wood(struct Tex *tex, float *texvec);
-int marble(struct Tex *tex, float *texvec);
-int magic(struct Tex *tex, float *texvec);
-int stucci(struct Tex *tex, float *texvec);
-int texnoise(struct Tex *tex);
-int plugintex(struct Tex *tex, float *texvec, float *dxt, float *dyt);
-void tubemap(float x, float y, float z, float *adr1, float *adr2);
-void spheremap(float x, float y, float z, float *adr1, float *adr2);
-void do_2d_mapping(struct MTex *mtex, float *t, float *dxt, float *dyt);
-int multitex(struct Tex *tex, float *texvec, float *dxt, float *dyt);
-void do_material_tex(void);
-void do_halo_tex(struct HaloRen *har, float xn, float yn, float *colf);
-void do_sky_tex(void);
-void do_lamp_tex(struct LampRen *la, float *lavec);
-void externtex(struct MTex *mtex, float *vec);
-void externtexcol(struct MTex *mtex, float *orco, char *col);
-void render_realtime_texture(void);           
 
 #endif
 
