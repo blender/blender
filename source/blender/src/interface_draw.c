@@ -1350,6 +1350,15 @@ static void ui_shadowbox(float minx, float miny, float maxx, float maxy, float s
 	glShadeModel(GL_FLAT);
 }
 
+void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, float maxy)
+{
+	/* accumulated outline boxes to make shade not linear, is more pleasant */
+	ui_shadowbox(minx, miny, maxx, maxy, 6.0, (30*alpha)>>8);
+	ui_shadowbox(minx, miny, maxx, maxy, 4.0, (70*alpha)>>8);
+	ui_shadowbox(minx, miny, maxx, maxy, 2.0, (100*alpha)>>8);
+	
+}
+
 // background for pulldowns, pullups, and other drawing temporal menus....
 // has to be made themable still (now only color)
 
@@ -1373,6 +1382,8 @@ void uiDrawMenuBox(float minx, float miny, float maxx, float maxy, short flag)
 	glRectf(minx, miny, maxx, maxy);
 	glDisable(GL_BLEND);
 }
+
+
 
 /* pulldown menu item */
 static void ui_draw_pulldown_item(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)

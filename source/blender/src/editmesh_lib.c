@@ -227,6 +227,7 @@ void EM_set_flag_all(int flag)
 	
 }
 
+/* flush for changes in vertices only */
 void EM_deselect_flush(void)
 {
 	EditMesh *em = G.editMesh;

@@ -1477,13 +1477,15 @@ void select_more(void)
 		}
 	}
 
-	/* new selected edges */
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		if(eed->h==0) {
-			if(eed->v1->f1 && eed->v2->f1) EM_select_edge(eed, 1);
+	/* new selected edges, but not in facemode */
+	if(G.scene->selectmode <= SCE_SELECT_EDGE) {
+		
+		for(eed= em->edges.first; eed; eed= eed->next) {
+			if(eed->h==0) {
+				if(eed->v1->f1 && eed->v2->f1) EM_select_edge(eed, 1);
+			}
 		}
 	}
-
 	/* new selected faces */
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		if(efa->h==0) {
@@ -1500,81 +1502,64 @@ void select_more(void)
 void select_less(void)
 {
 	EditMesh *em = G.editMesh;
-	EditVert *eve;
 	EditEdge *eed;
 	EditFace *efa;
 
-	/* eve->f1 & 1 => isolated   */
-	/* eve->f1 & 2 => on an edge */
-	/* eve->f1 & 4 => shares edge with a deselected vert */ 
-	/* eve->f1 & 8 => at most one neighbor */ 
+	if(G.scene->selectmode <= SCE_SELECT_EDGE) {
+		/* eed->f1 == 1:  edge with a selected and deselected vert */ 
 
-	for(eve= em->verts.first; eve; eve= eve->next) {
-		/* assume vert is isolated unless proven otherwise, */
-		/* assume at most one neighbor too */
-		eve->f1 = 1 | 8;
+		for(eed= em->edges.first; eed; eed= eed->next) {
+			eed->f1= 0;
+			if(eed->h==0) {
+				
+				if ( !(eed->v1->f & SELECT) && (eed->v2->f & SELECT) ) 
+					eed->f1= 1;
+				if ( (eed->v1->f & SELECT) && !(eed->v2->f & SELECT) ) 
+					eed->f1= 1;
+			}
+		}
+		
+		/* deselect edges with flag set */
+		for(eed= em->edges.first; eed; eed= eed->next) {
+			if (eed->h==0 && eed->f1 == 1) {
+				EM_select_edge(eed, 0);
+			}
+		}
+		EM_deselect_flush();
+		
 	}
+	else {
+		/* deselect faces with 1 or more deselect edges */
+		/* eed->f1 == mixed selection edge */
+		for(eed= em->edges.first; eed; eed= eed->next) eed->f1= 0;
 
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		eed->f1= 0;
-		if(eed->h==0) {
-			/* this will count how many faces are connected to
-			* this edge */
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->h==0) {
+				if(efa->f & SELECT) {
+					efa->e1->f1 |= 1;
+					efa->e2->f1 |= 1;
+					efa->e3->f1 |= 1;
+					if(efa->e4) efa->e4->f1 |= 1;
+				}
+				else {
+					efa->e1->f1 |= 2;
+					efa->e2->f1 |= 2;
+					efa->e3->f1 |= 2;
+					if(efa->e4) efa->e4->f1 |= 2;
+				}
+			}
+		}
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->h==0) {
+				if(efa->e1->f1==3 || efa->e2->f1==3 || efa->e3->f1==3 || (efa->e4 && efa->e4->f1==3)) { 
+					EM_select_face(efa, 0);
+				}
+			}
+		}
+		EM_selectmode_flush();
+		
+	}
 	
-			/* if vert wasn't isolated, it now has more than one neighbor */
-			if (~eed->v1->f1 & 1) eed->v1->f1 &= ~8;
-			if (~eed->v2->f1 & 1) eed->v2->f1 &= ~8;
-	
-			/* verts on edge are clearly not isolated */
-			eed->v1->f1 &= ~1;
-			eed->v2->f1 &= ~1;
-	
-			/* if one of the verts on the edge is deselected, 
-			* deselect the other */
-			if ( (~eed->v1->f & SELECT) )
-				eed->v2->f1 |= 4;
-			if ( (~eed->v2->f & SELECT) )
-				eed->v1->f1 |= 4;
-		}
-	}
-
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		/* increase face count for edges */
-		if(efa->h==0) {
-			++efa->e1->f1;
-			++efa->e2->f1;
-			++efa->e3->f1;
-			if (efa->e4) ++efa->e4->f1;	
-		}
-	}
-
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		/* if the edge has only one neighboring face, then
-		 * deselect attached verts */
-		if (eed->h==0 && eed->f1 == 1) {
-			eed->v1->f1 |= 2;
-			eed->v2->f1 |= 2;
-		}
-	}
-
-	/* deselect verts */
-	for(eve= em->verts.first; eve; eve= eve->next) {
-		if (eve->f1) {
-			eve->f &= ~SELECT;
-		}
-	}
-
-	/* now rebuild selection state for edges & faces */
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		if(eed->v1->f1 && eed->v2->f1) EM_select_edge(eed, 0);
-	}
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		if(efa->h==0) {
-			if(efa->v1->f1 && efa->v2->f1 && efa->v3->f1 && (efa->v4==NULL || efa->v4->f1)) 
-				EM_select_face(efa, 0);
-		}
-	}
-
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 }

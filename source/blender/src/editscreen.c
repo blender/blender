@@ -631,6 +631,7 @@ int is_allowed_to_change_screen(bScreen *new)
 
 void splash(void *data, int datasize, char *string)
 {
+	extern void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, float maxy);
 	ImBuf *bbuf;
 	int oldwin;
 	short val;
@@ -657,14 +658,7 @@ void splash(void *data, int datasize, char *string)
 		}
 		glDrawBuffer(GL_FRONT);
 		
-		/*
-		// this dims the whole screen a bit. I didn't like it afterall
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glColor4f(0.0,0.0,0.0,0.3);
-		glRecti(0, 0, G.curscreen->sizex, G.curscreen->sizey);
-		glDisable(GL_BLEND);
-		*/
+		uiDrawBoxShadow(200, (prefsizx-bbuf->x)/2, (prefsizy-bbuf->y)/2, (prefsizx+bbuf->x)/2, (prefsizy+bbuf->y)/2);
 		
 		glRasterPos2i((prefsizx-bbuf->x)/2, (prefsizy-bbuf->y)/2);	
 		glDrawPixels(bbuf->x, bbuf->y, GL_RGBA, GL_UNSIGNED_BYTE, bbuf->rect);
