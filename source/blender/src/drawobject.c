@@ -2339,7 +2339,7 @@ static void drawmeshwire(Object *ob)
 
 	if(ob==G.obedit || (G.obedit && ob->data==G.obedit->data)) {
 		
-		if( (me->flag & ME_OPT_EDGES) && (me->flag & ME_SUBSURF)) handles= 1;
+		if( (me->flag & ME_OPT_EDGES) && (me->flag & ME_SUBSURF) && me->subdiv) handles= 1;
 		
 		if(handles==0 && (G.f & (G_FACESELECT+G_DRAWFACES))) {	/* faces */
 			char col1[4], col2[4];
