@@ -1176,7 +1176,7 @@ void yafrayFileRender_t::writeLamps()
 		}
 		else if (is_sphereL) {
 			// spherelight
-			int psm=0, sm = lamp->samp*lamp->samp;
+			int psm=0, sm = lamp->ray_samp*lamp->ray_samp;
 			if (sm>=25) psm = sm/5;
 			ostr	<< " radius=\"" << lamp->YF_ltradius << "\""
 						<< " samples=\"" << sm << "\""

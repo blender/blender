@@ -1061,7 +1061,7 @@ void yafrayPluginRender_t::writeAreaLamp(LampRen* lamp, int num, float iview[4][
 	if (!R.r.GIphotons) 
 	{
 		int psm=0, sm = lamp->ray_totsamp;
-		if (sm>=64) psm = sm/4;
+		if (sm>=25) psm = sm/5;
 		params["samples"]=yafray::parameter_t(sm);
 		params["psamples"]=yafray::parameter_t(psm);
 	}
@@ -1188,7 +1188,7 @@ void yafrayPluginRender_t::writeLamps()
 		}
 		else if (is_sphereL) {
 			// spherelight
-			int psm=0, sm = lamp->samp*lamp->samp;
+			int psm=0, sm = lamp->ray_samp*lamp->ray_samp;
 			if (sm>=25) psm = sm/5;
 			params["radius"] = yafray::parameter_t(lamp->YF_ltradius);
 			params["samples"] = yafray::parameter_t(sm);
