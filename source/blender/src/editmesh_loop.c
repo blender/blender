@@ -786,14 +786,11 @@ void loopoperations(char mode)
 {
 	EditMesh *em = G.editMesh;
 	EditVert* look = NULL;
-
 	EditEdge *start, *eed, *opposite,*currente, *oldstart;
 	EditEdge **tagged = NULL,**taggedsrch = NULL,*close;
-
 	EditFace *efa,**percentfacesloop = NULL, *currentvl,  *formervl;	
-
 	short lastface=0, foundedge=0, c=0, tri=0, side=1, totface=0, searching=1, event=0, noface=1;
-	short skip,nextpos,percentfaces;
+	short skip,nextpos,percentfaces, dist=50;
 
 	int i=0,ect=0,j=0,k=0,cut,smooth,timesthrough=0,inset = 0;
 
@@ -816,43 +813,44 @@ void loopoperations(char mode)
 		side=noface=1;
 		lastface=foundedge=c=tri=totface=0;		
 				
-		start=findnearestvisibleedge();
-				
+		//start=findnearestvisibleedge();
+		dist= 50;
+		start= findnearestedge(&dist);
+		
+		/* used flags in the code:
+		   vertex->f & 2: in findnearestvisibleedge
+		   edge->f2 : subdiv codes
+		   efa->f1 : subdiv codes
+		*/
+		
 		/* If the edge doesn't belong to a face, it's not a valid starting edge */
 		/* and only accept starting edge if it is part of at least one visible face */
 		if(start){
-			start->f |= 16;
+			start->f2 |= 16;
 			efa=em->faces.first;
 			while(efa){
-				if(efa->e1->f & 16){
-					/* since this edge is on the face, check if the face has any hidden verts */
-					if( !efa->v1->h && !efa->v2->h &&  !efa->v3->h && (efa->v4==NULL || !efa->v4->h)  ){
+				/* since this edge is on the face, check if the face is hidden */
+				if( efa->h==0  ){
+					if(efa->e1->f2 & 16){
 						noface=0;
-						efa->e1->f &= ~16;
+						efa->e1->f2 &= ~16;
+					}
+					else if(efa->e2->f2 & 16){					
+						noface=0;
+						efa->e2->f2 &= ~16;
+					}
+					else if(efa->e3->f2 & 16){					
+						noface=0;
+						efa->e3->f2 &= ~16;
+					}
+					else if(efa->e4 && (efa->e4->f2 & 16)){					
+						noface=0;
+						efa->e4->f2 &= ~16;
 					}
 				}
-				else if(efa->e2->f & 16){					
-					if( !efa->v1->h && !efa->v2->h &&  !efa->v3->h && (efa->v4==NULL || !efa->v4->h)  ){
-						noface=0;
-						efa->e2->f &= ~16;
-					}
-				}
-				else if(efa->e3->f & 16){					
-					if( !efa->v1->h && !efa->v2->h &&  !efa->v3->h && (efa->v4==NULL || !efa->v4->h)  ){
-						noface=0;
-						efa->e3->f &= ~16;
-					}
-				}
-				else if(efa->e4 && (efa->e4->f & 16)){					
-					if( !efa->v1->h && !efa->v2->h &&  !efa->v3->h && (efa->v4==NULL || !efa->v4->h)  ){
-						noface=0;
-						efa->e4->f &= ~16;
-					}
-				}
-				
 				efa=efa->next;
 			}			
-		}				
+		}
 				
 		/* Did we find anything that is selectable? */
 		if(start && !noface && (oldstart==NULL || start!=oldstart)){
@@ -862,19 +860,19 @@ void loopoperations(char mode)
 			
 			/* Clear flags */
 			for(eed=em->edges.first; eed; eed=eed->next){			
-				eed->f &= ~(2|4|8|32|64);
-				eed->v1->f &= ~(2|8|16);
+				eed->f2 &= ~(2|4|8|32|64);
+				eed->v1->f &= ~(2|8|16); // xxxx
 				eed->v2->f &= ~(2|8|16);				
 			}
 			
 			for(efa= em->faces.first; efa; efa=efa->next){			
-				efa->f &= ~(4|8);
+				efa->f1 &= ~(4|8);
 				totface++;				
 			}
 					
 			/* Tag the starting edge */
-			start->f |= (2|4|8|64);				
-			start->v1->f |= 2;
+			start->f2 |= (2|4|8|64);				
+			start->v1->f |= 2;  /* xxxx */
 			start->v2->f |= 2;		
 			
 			currente=start;						
@@ -889,41 +887,41 @@ void loopoperations(char mode)
 									
 					if(!(efa->v4)){	/* Exception for triangular faces */
 						
-						if((efa->e1->f | efa->e2->f | efa->e3->f) & 2){
-							if(!(efa->f & 4)){								
+						if((efa->e1->f2 | efa->e2->f2 | efa->e3->f2) & 2){
+							if(!(efa->f1 & 4)){								
 								tri=1;
 								currentvl=efa;
-								if(side==1) efa->f |= 4;
+								if(side==1) efa->f1 |= 4;
 							}
 						}						
 					}
 					else{
 						
-						if((efa->e1->f | efa->e2->f | efa->e3->f | efa->e4->f) & 2){
+						if((efa->e1->f2 | efa->e2->f2 | efa->e3->f2 | efa->e4->f2) & 2){
 							
 							if(c==0){	/* just pick a face, doesn't matter wich side of the edge we go to */
-								if(!(efa->f & 4)){
+								if(!(efa->f1 & 4)){
 									
-									if(!(efa->e1->v1->f & 2) && !(efa->e1->v2->f & 2)){
-										if(efa->e1->v1->h==0 && efa->e1->v2->h==0){
+									if(!(efa->e1->v1->f & 2) && !(efa->e1->v2->f & 2)){ // xxxxx
+										if(efa->e1->h==0){
 											opposite=efa->e1;														
 											foundedge=1;
 										}
 									}
-									else if(!(efa->e2->v1->f & 2) && !(efa->e2->v2->f & 2)){
-										if(efa->e2->v1->h==0 && efa->e2->v2->h==0){
+									else if(!(efa->e2->v1->f & 2) && !(efa->e2->v2->f & 2)){ // xxxx
+										if(efa->e2->h==0){
 											opposite=efa->e2;
 											foundedge=1;
 										}
 									}
 									else if(!(efa->e3->v1->f & 2) && !(efa->e3->v2->f & 2)){
-										if(efa->e3->v1->h==0 && efa->e3->v2->h==0){
+										if(efa->e3->h==0){
 											opposite=efa->e3;
 											foundedge=1;
 										}
 									}
 									else if(!(efa->e4->v1->f & 2) && !(efa->e4->v2->f & 2)){
-										if(efa->e4->v1->h==0 && efa->e4->v2->h==0){
+										if(efa->e4->h==0){
 											opposite=efa->e4;
 											foundedge=1;
 										}
@@ -934,7 +932,7 @@ void loopoperations(char mode)
 										formervl=efa;
 									
 										/* mark this side of the edge so we know in which direction we went */
-										if(side==1) efa->f |= 4;
+										if(side==1) efa->f1 |= 4;
 									}
 								}
 							}
@@ -942,25 +940,25 @@ void loopoperations(char mode)
 								if(efa!=formervl){	/* prevent going backwards in the loop */
 								
 									if(!(efa->e1->v1->f & 2) && !(efa->e1->v2->f & 2)){
-										if(efa->e1->v1->h==0 && efa->e1->v2->h==0){
+										if(efa->e1->h==0){
 											opposite=efa->e1;														
 											foundedge=1;
 										}
 									}
 									else if(!(efa->e2->v1->f & 2) && !(efa->e2->v2->f & 2)){
-										if(efa->e2->v1->h==0 && efa->e2->v2->h==0){
+										if(efa->e2->h==0){
 											opposite=efa->e2;
 											foundedge=1;
 										}
 									}
 									else if(!(efa->e3->v1->f & 2) && !(efa->e3->v2->f & 2)){
-										if(efa->e3->v1->h==0 && efa->e3->v2->h==0){
+										if(efa->e3->h==0){
 											opposite=efa->e3;
 											foundedge=1;
 										}
 									}
 									else if(!(efa->e4->v1->f & 2) && !(efa->e4->v2->f & 2)){
-										if(efa->e4->v1->h==0 && efa->e4->v2->h==0){
+										if(efa->e4->h==0){
 											opposite=efa->e4;
 											foundedge=1;
 										}
@@ -979,14 +977,14 @@ void loopoperations(char mode)
 				/*----------Decisions-----------------------------*/
 				if(foundedge){
 					/* mark the edge and face as done */					
-					currente->f |= 8;
-					currentvl->f |= 8;
+					currente->f2 |= 8;
+					currentvl->f1 |= 8;
 
-					if(opposite->f & 4) lastface=1;	/* found the starting edge! close loop */								
+					if(opposite->f2 & 4) lastface=1;	/* found the starting edge! close loop */								
 					else{
 						/* un-set the testflags */
-						currente->f &= ~2;
-						currente->v1->f &= ~2;
+						currente->f2 &= ~2;
+						currente->v1->f &= ~2; // xxxx
 						currente->v2->f &= ~2;							
 						
 						/* set the opposite edge to be the current edge */				
@@ -996,21 +994,21 @@ void loopoperations(char mode)
 						formervl=currentvl;
 						
 						/* set the testflags */
-						currente->f |= 2;
-						currente->v1->f |= 2;
+						currente->f2 |= 2;
+						currente->v1->f |= 2; // xxxx
 						currente->v2->f |= 2;			
 					}
 					c++;
 				}
 				else{	
 					/* un-set the testflags */
-					currente->f &= ~2;
-					currente->v1->f &= ~2;
+					currente->f2 &= ~2;
+					currente->v1->f &= ~2; // xxxx
 					currente->v2->f &= ~2;
 					
 					/* mark the edge and face as done */
-					currente->f |= 8;
-					currentvl->f |= 8;
+					currente->f2 |= 8;
+					currentvl->f1 |= 8;
 					
 					
 												
@@ -1020,8 +1018,8 @@ void loopoperations(char mode)
 					if(side==1){						
 						if(tri)tri=0;
 						currente=start;
-						currente->f |= 2;
-						currente->v1->f |= 2;
+						currente->f2 |= 2;
+						currente->v1->f |= 2; // xxxx
 						currente->v2->f |= 2;					
 						side++;
 						c=0;
@@ -1051,23 +1049,23 @@ void loopoperations(char mode)
 			if(mode==LOOP_SELECT){
 				efa= em->faces.first;
 				while(efa){
-					if(efa->f & 8){
+					if(efa->f1 & 8){
 						
-						if(!(efa->e1->f & 8)){
+						if(!(efa->e1->f2 & 8)){
 							glBegin(GL_LINES);							
 							glVertex3fv(efa->e1->v1->co);
 							glVertex3fv(efa->e1->v2->co);
 							glEnd();	
 						}
 						
-						if(!(efa->e2->f & 8)){
+						if(!(efa->e2->f2 & 8)){
 							glBegin(GL_LINES);							
 							glVertex3fv(efa->e2->v1->co);
 							glVertex3fv(efa->e2->v2->co);
 							glEnd();	
 						}
 						
-						if(!(efa->e3->f & 8)){
+						if(!(efa->e3->f2 & 8)){
 							glBegin(GL_LINES);							
 							glVertex3fv(efa->e3->v1->co);
 							glVertex3fv(efa->e3->v2->co);
@@ -1075,7 +1073,7 @@ void loopoperations(char mode)
 						}
 						
 						if(efa->e4){
-							if(!(efa->e4->f & 8)){
+							if(!(efa->e4->f2 & 8)){
 								glBegin(GL_LINES);							
 								glVertex3fv(efa->e4->v1->co);
 								glVertex3fv(efa->e4->v2->co);
@@ -1090,60 +1088,60 @@ void loopoperations(char mode)
 			if(mode==LOOP_CUT){
 				efa= em->faces.first;
 				while(efa){
-					if(efa->f & 8){
+					if(efa->f1 & 8){
 						float cen[2][3];
 						int a=0;						
 						
-						efa->v1->f &= ~8;
+						efa->v1->f &= ~8; // xxx
 						efa->v2->f &= ~8;
 						efa->v3->f &= ~8;
 						if(efa->v4)efa->v4->f &= ~8;
 					
-						if(efa->e1->f & 8){
+						if(efa->e1->f2 & 8){
 							cen[a][0]= (efa->e1->v1->co[0] + efa->e1->v2->co[0])/2.0;
 							cen[a][1]= (efa->e1->v1->co[1] + efa->e1->v2->co[1])/2.0;
 							cen[a][2]= (efa->e1->v1->co[2] + efa->e1->v2->co[2])/2.0;
 							
-							efa->e1->v1->f |= 8;
+							efa->e1->v1->f |= 8; // xxx
 							efa->e1->v2->f |= 8;
 							
 							a++;
 						}
-						if((efa->e2->f & 8) && a!=2){
+						if((efa->e2->f2 & 8) && a!=2){
 							cen[a][0]= (efa->e2->v1->co[0] + efa->e2->v2->co[0])/2.0;
 							cen[a][1]= (efa->e2->v1->co[1] + efa->e2->v2->co[1])/2.0;
 							cen[a][2]= (efa->e2->v1->co[2] + efa->e2->v2->co[2])/2.0;
 							
-							efa->e2->v1->f |= 8;
+							efa->e2->v1->f |= 8; // xxx
 							efa->e2->v2->f |= 8;
 							
 							a++;
 						}
-						if((efa->e3->f & 8) && a!=2){
+						if((efa->e3->f2 & 8) && a!=2){
 							cen[a][0]= (efa->e3->v1->co[0] + efa->e3->v2->co[0])/2.0;
 							cen[a][1]= (efa->e3->v1->co[1] + efa->e3->v2->co[1])/2.0;
 							cen[a][2]= (efa->e3->v1->co[2] + efa->e3->v2->co[2])/2.0;
 							
-							efa->e3->v1->f |= 8;
+							efa->e3->v1->f |= 8; // xxx
 							efa->e3->v2->f |= 8;
 							
 							a++;
 						}
 						
 						if(efa->e4){
-							if((efa->e4->f & 8) && a!=2){
+							if((efa->e4->f2 & 8) && a!=2){
 								cen[a][0]= (efa->e4->v1->co[0] + efa->e4->v2->co[0])/2.0;
 								cen[a][1]= (efa->e4->v1->co[1] + efa->e4->v2->co[1])/2.0;
 								cen[a][2]= (efa->e4->v1->co[2] + efa->e4->v2->co[2])/2.0;
 								
-								efa->e4->v1->f |= 8;
+								efa->e4->v1->f |= 8; // xxx
 								efa->e4->v2->f |= 8;
 							
 								a++;
 							}
 						}
 						else{	/* if it's a triangular face, set the remaining vertex as the cutcurve coordinate */														
-								if(!(efa->v1->f & 8) && efa->v1->h==0){
+								if(!(efa->v1->f & 8) && efa->v1->h==0){ // xxx
 									cen[a][0]= efa->v1->co[0];
 									cen[a][1]= efa->v1->co[1];
 									cen[a][2]= efa->v1->co[2];
@@ -1177,7 +1175,7 @@ void loopoperations(char mode)
 				
 				eed=em->edges.first; 
 				while(eed){
-					if(eed->f & 64){
+					if(eed->f2 & 64){
 						glBegin(GL_LINES);
 						glColor3ub(200, 255, 200);
 						glVertex3fv(eed->v1->co);
@@ -1220,22 +1218,13 @@ void loopoperations(char mode)
 		/* If this is a unmodified select, clear the selection */
 		if(!(G.qual & LR_SHIFTKEY) && !(G.qual & LR_ALTKEY)){
 			for(efa= em->faces.first;efa;efa=efa->next){
-				// note: !1 is zero.... (ton)
-				efa->v1->f &= !1;
-				efa->v2->f &= !1;
-				efa->v3->f &= !1;
-				if(efa->v4)efa->v4->f &= !1;	
 				EM_select_face(efa, 0);	// and this is correct deselect face		
 			}
 		}
 		/* Alt was not pressed, so add to the selection */
 		if(!(G.qual & LR_ALTKEY)){
 			for(efa= em->faces.first;efa;efa=efa->next){
-				if(efa->f & 8){
-					efa->v1->f |= 1;
-					efa->v2->f |= 1;
-					efa->v3->f |= 1;
-					if(efa->v4) efa->v4->f |= 1;
+				if(efa->f1 & 8){
 					EM_select_face(efa, 1);	// and this is correct select face
 				}
 			}
@@ -1244,11 +1233,7 @@ void loopoperations(char mode)
 		else
 		{
 			for(efa= em->faces.first;efa;efa=efa->next){
-				if(efa->f & 8){
-					efa->v1->f &= !1;
-					efa->v2->f &= !1;
-					efa->v3->f &= !1;
-					if(efa->v4)efa->v4->f &= !1;
+				if(efa->f1 & 8){
 					EM_select_face(efa, 0);	// this is correct deselect face
 				}
 			}
@@ -1262,7 +1247,7 @@ void loopoperations(char mode)
 		
 		/* count the number of edges in the loop */		
 		for(eed=em->edges.first; eed; eed = eed->next){
-			if(eed->f & 8)
+			if(eed->f2 & 8)
 				ect++;
 		}		
 		
@@ -1275,13 +1260,14 @@ void loopoperations(char mode)
 		}
 		ect = 0;
 		for(eed=em->edges.first; eed; eed = eed->next){
-			if(eed->f & 8)
+			if(eed->f2 & 8)
 			{
 				if(eed->h==0){
-					eed->v1->f |= 1;
-					eed->v2->f |= 1;
+					eed->v1->f |= SELECT;
+					eed->v2->f |= SELECT;
+					eed->f |= SELECT;
 					tagged[ect] = eed;
-					eed->f &= ~(32);
+					eed->f2 &= ~(32);
 					ect++;
 				}
 			}			
@@ -1295,7 +1281,7 @@ void loopoperations(char mode)
 				if(taggedsrch[i]==NULL)break;
 				for(j=0;j<ect;j++){			 /*Look through the list of tagged verts for connected edges*/
 					int addededge = 0;
-					if(taggedsrch[i]->f & 32)        /*If this edgee is marked as flipped, use vert 2*/
+					if(taggedsrch[i]->f2 & 32)        /*If this edgee is marked as flipped, use vert 2*/
 						look = taggedsrch[i]->v2;
 					else							 /*else use vert 1*/
 						look = taggedsrch[i]->v1;
@@ -1319,7 +1305,7 @@ void loopoperations(char mode)
 						while(nextpos < ect){ /*Find the first open spot in the search array*/
 							if(taggedsrch[nextpos] == NULL){
 								taggedsrch[nextpos] = tagged[j]; /*put tagged[j] in it*/
-								taggedsrch[nextpos]->f |= 32;
+								taggedsrch[nextpos]->f2 |= 32;
 								addededge = 1;
 								break;
 							}
@@ -1358,7 +1344,7 @@ void loopoperations(char mode)
 		/* Count the Number of Faces in the selected loop*/
 		percentfaces = 0;
 		for(efa= em->faces.first; efa ;efa=efa->next){
-			if(efa->f & 8)
+			if(efa->f1 & 8)
 			 {
 				percentfaces++;	
 			 }
@@ -1370,7 +1356,7 @@ void loopoperations(char mode)
 		/* put those faces in the array */
 		i=0;
 		for(efa= em->faces.first; efa ;efa=efa->next){
-			 if(efa->f & 8)
+			 if(efa->f1 & 8)
 			 {
 				percentfacesloop[i] = efa;	
 				i++;
@@ -1396,7 +1382,7 @@ void loopoperations(char mode)
 			for(i=0;i<percentfaces;i++){
 				efa = percentfacesloop[i];
 				for(eed = em->edges.first; eed; eed=eed->next){
-					if(eed->f & 64){	/* color the starting edge */			
+					if(eed->f2 & 64){	/* color the starting edge */			
 						glBegin(GL_LINES);
 												
 						glColor3ub(200, 255, 200);
@@ -1409,7 +1395,7 @@ void loopoperations(char mode)
 						glBegin(GL_POINTS);
 						glColor3ub(255,0,255);
 						
-						if(eed->f & 32)
+						if(eed->f2 & 32)
 							glVertex3fv(eed->v2->co);			
 						else
 							glVertex3fv(eed->v1->co);
@@ -1425,33 +1411,33 @@ void loopoperations(char mode)
 				
 				if(!inset){
 					glColor3ub(0,255,255);
-					if(efa->f & 8)
+					if(efa->f1 & 8)
 					{
 						float cen[2][3];
 						int a=0;					
 						
-						efa->v1->f &= ~8;
+						efa->v1->f &= ~8; // xxx
 						efa->v2->f &= ~8;
 						efa->v3->f &= ~8;
 						if(efa->v4)efa->v4->f &= ~8;
 						
-						if(efa->e1->f & 8){
+						if(efa->e1->f2 & 8){
 							float pct;
-							if(efa->e1->f & 32)
+							if(efa->e1->f2 & 32)
 								pct = 1-percentcut;
 							else
 								pct = percentcut;
 							cen[a][0]= efa->e1->v1->co[0] - ((efa->e1->v1->co[0] - efa->e1->v2->co[0]) * (pct));
 							cen[a][1]= efa->e1->v1->co[1] - ((efa->e1->v1->co[1] - efa->e1->v2->co[1]) * (pct));
 							cen[a][2]= efa->e1->v1->co[2] - ((efa->e1->v1->co[2] - efa->e1->v2->co[2]) * (pct));
-							efa->e1->v1->f |= 8;
+							efa->e1->v1->f |= 8; // xxx
 							efa->e1->v2->f |= 8;
 							a++;
 						}
-						if((efa->e2->f & 8) && a!=2)
+						if((efa->e2->f2 & 8) && a!=2)
 						{
 							float pct;
-							if(efa->e2->f & 32)
+							if(efa->e2->f2 & 32)
 								pct = 1-percentcut;
 							else
 								pct = percentcut;
@@ -1459,14 +1445,14 @@ void loopoperations(char mode)
 							cen[a][1]= efa->e2->v1->co[1] - ((efa->e2->v1->co[1] - efa->e2->v2->co[1]) * (pct));
 							cen[a][2]= efa->e2->v1->co[2] - ((efa->e2->v1->co[2] - efa->e2->v2->co[2]) * (pct));
 
-							efa->e2->v1->f |= 8;
+							efa->e2->v1->f |= 8; // xxx
 							efa->e2->v2->f |= 8;
 							
 							a++;
 						}
-						if((efa->e3->f & 8) && a!=2){
+						if((efa->e3->f2 & 8) && a!=2){
 							float pct;
-							if(efa->e3->f & 32)
+							if(efa->e3->f2 & 32)
 								pct = 1-percentcut;
 							else
 								pct = percentcut;
@@ -1474,16 +1460,16 @@ void loopoperations(char mode)
 							cen[a][1]= efa->e3->v1->co[1] - ((efa->e3->v1->co[1] - efa->e3->v2->co[1]) * (pct));
 							cen[a][2]= efa->e3->v1->co[2] - ((efa->e3->v1->co[2] - efa->e3->v2->co[2]) * (pct));
 
-							efa->e3->v1->f |= 8;
+							efa->e3->v1->f |= 8; // xxx
 							efa->e3->v2->f |= 8;
 							
 							a++;
 						}
 							
 						if(efa->e4){
-							if((efa->e4->f & 8) && a!=2){
+							if((efa->e4->f2 & 8) && a!=2){
 								float pct;
-								if(efa->e4->f & 32)
+								if(efa->e4->f2 & 32)
 									pct = 1-percentcut;
 								else
 									pct = percentcut;
@@ -1491,26 +1477,26 @@ void loopoperations(char mode)
 								cen[a][1]= efa->e4->v1->co[1] - ((efa->e4->v1->co[1] - efa->e4->v2->co[1]) * (pct));
 								cen[a][2]= efa->e4->v1->co[2] - ((efa->e4->v1->co[2] - efa->e4->v2->co[2]) * (pct));
 
-								efa->e4->v1->f |= 8;
+								efa->e4->v1->f |= 8; // xxx
 								efa->e4->v2->f |= 8;
 							
 								a++;
 							}
 						}
 						else {	/* if it's a triangular face, set the remaining vertex as the cutcurve coordinate */
-							if(!(efa->v1->f & 8) && efa->v1->h==0){
+							if(!(efa->v1->f & 8) && efa->v1->h==0){ // xxx
 								cen[a][0]= efa->v1->co[0];
 								cen[a][1]= efa->v1->co[1];
 								cen[a][2]= efa->v1->co[2];
 								a++;								
 							}
-							else if(!(efa->v2->f & 8) && efa->v2->h==0){
+							else if(!(efa->v2->f & 8) && efa->v2->h==0){ // xxx
 								cen[a][0]= efa->v2->co[0];
 								cen[a][1]= efa->v2->co[1];
 								cen[a][2]= efa->v2->co[2];
 								a++;								
 							}
-							else if(!(efa->v3->f & 8) && efa->v3->h==0){
+							else if(!(efa->v3->f & 8) && efa->v3->h==0){ // xxx
 								cen[a][0]= efa->v3->co[0];
 								cen[a][1]= efa->v3->co[1];
 								cen[a][2]= efa->v3->co[2];
@@ -1530,17 +1516,17 @@ void loopoperations(char mode)
 				}/* end preview line drawing */			
 				else{
 					glColor3ub(0,128,255);
-					if(efa->f & 8)
+					if(efa->f1 & 8)
 					{
 						float cen[2][3];
 						int a=0;					
 						
-						efa->v1->f &= ~8;
+						efa->v1->f &= ~8; // xxx
 						efa->v2->f &= ~8;
 						efa->v3->f &= ~8;
 						if(efa->v4)efa->v4->f &= ~8;
 						
-						if(efa->e1->f & 8){							
+						if(efa->e1->f2 & 8){							
 							float nlen,npct;
 							
 							nlen = sqrt((efa->e1->v1->co[0] - efa->e1->v2->co[0])*(efa->e1->v1->co[0] - efa->e1->v2->co[0])+
@@ -1548,18 +1534,18 @@ void loopoperations(char mode)
 										(efa->e1->v1->co[2] - efa->e1->v2->co[2])*(efa->e1->v1->co[2] - efa->e1->v2->co[2]));
 							npct = (percentcut*slen)/nlen;
 							if(npct >= 1) npct = 1;
-							if(efa->e1->f & 32)	npct = 1-npct;
+							if(efa->e1->f2 & 32)	npct = 1-npct;
 
 							cen[a][0]= efa->e1->v1->co[0] - ((efa->e1->v1->co[0] - efa->e1->v2->co[0]) * (npct));
 							cen[a][1]= efa->e1->v1->co[1] - ((efa->e1->v1->co[1] - efa->e1->v2->co[1]) * (npct));
 							cen[a][2]= efa->e1->v1->co[2] - ((efa->e1->v1->co[2] - efa->e1->v2->co[2]) * (npct));
 
 							efa->e1->f1 = 32768*(npct);
-							efa->e1->v1->f |= 8;
+							efa->e1->v1->f |= 8; // xxx
 							efa->e1->v2->f |= 8;
 							a++;
 						}
-						if((efa->e2->f & 8) && a!=2)
+						if((efa->e2->f2 & 8) && a!=2)
 						{
 							float nlen,npct;
 							
@@ -1568,18 +1554,18 @@ void loopoperations(char mode)
 										(efa->e2->v1->co[2] - efa->e2->v2->co[2])*(efa->e2->v1->co[2] - efa->e2->v2->co[2]));
 							npct = (percentcut*slen)/nlen;
 							if(npct >= 1) npct = 1;
-							if(efa->e2->f & 32)	npct = 1-npct;
+							if(efa->e2->f2 & 32)	npct = 1-npct;
 
 							cen[a][0]= efa->e2->v1->co[0] - ((efa->e2->v1->co[0] - efa->e2->v2->co[0]) * (npct));
 							cen[a][1]= efa->e2->v1->co[1] - ((efa->e2->v1->co[1] - efa->e2->v2->co[1]) * (npct));
 							cen[a][2]= efa->e2->v1->co[2] - ((efa->e2->v1->co[2] - efa->e2->v2->co[2]) * (npct));
 
 							efa->e2->f1 = 32768*(npct);								
-							efa->e2->v1->f |= 8;
+							efa->e2->v1->f |= 8; // xxx
 							efa->e2->v2->f |= 8;
 							a++;
 						}
-						if((efa->e3->f & 8) && a!=2){
+						if((efa->e3->f2 & 8) && a!=2){
 							float nlen,npct;
 							
 							nlen = sqrt((efa->e3->v1->co[0] - efa->e3->v2->co[0])*(efa->e3->v1->co[0] - efa->e3->v2->co[0])+
@@ -1587,20 +1573,20 @@ void loopoperations(char mode)
 										(efa->e3->v1->co[2] - efa->e3->v2->co[2])*(efa->e3->v1->co[2] - efa->e3->v2->co[2]));
 							npct = (percentcut*slen)/nlen;
 							if(npct >= 1) npct = 1;
-							if(efa->e3->f & 32)	npct = 1-npct;
+							if(efa->e3->f2 & 32)	npct = 1-npct;
 
 							cen[a][0]= efa->e3->v1->co[0] - ((efa->e3->v1->co[0] - efa->e3->v2->co[0]) * (npct));
 							cen[a][1]= efa->e3->v1->co[1] - ((efa->e3->v1->co[1] - efa->e3->v2->co[1]) * (npct));
 							cen[a][2]= efa->e3->v1->co[2] - ((efa->e3->v1->co[2] - efa->e3->v2->co[2]) * (npct));
 
 							efa->e3->f1 = 32768*(npct);								
-							efa->e3->v1->f |= 8;
+							efa->e3->v1->f |= 8; // xxx
 							efa->e3->v2->f |= 8;
 							a++;
 						}
 							
 						if(efa->e4){
-							if((efa->e4->f & 8) && a!=2){
+							if((efa->e4->f2 & 8) && a!=2){
 								float nlen,npct;
 								
 								nlen = sqrt((efa->e4->v1->co[0] - efa->e4->v2->co[0])*(efa->e4->v1->co[0] - efa->e4->v2->co[0])+
@@ -1608,32 +1594,32 @@ void loopoperations(char mode)
 											(efa->e4->v1->co[2] - efa->e4->v2->co[2])*(efa->e4->v1->co[2] - efa->e4->v2->co[2]));
 							npct = (percentcut*slen)/nlen;
 							if(npct >= 1) npct = 1;
-							if(efa->e4->f & 32)	npct = 1-npct;
+							if(efa->e4->f2 & 32)	npct = 1-npct;
 
 								cen[a][0]= efa->e4->v1->co[0] - ((efa->e4->v1->co[0] - efa->e4->v2->co[0]) * (npct));
 								cen[a][1]= efa->e4->v1->co[1] - ((efa->e4->v1->co[1] - efa->e4->v2->co[1]) * (npct));
 								cen[a][2]= efa->e4->v1->co[2] - ((efa->e4->v1->co[2] - efa->e4->v2->co[2]) * (npct));
 
 								efa->e4->f1 = 32768*(npct);									
-								efa->e4->v1->f |= 8;
+								efa->e4->v1->f |= 8; // xxx
 								efa->e4->v2->f |= 8;
 								a++;
 							}
 						}
 						else {	/* if it's a triangular face, set the remaining vertex as the cutcurve coordinate */
-							if(!(efa->v1->f & 8) && efa->v1->h==0){
+							if(!(efa->v1->f & 8) && efa->v1->h==0){ // xxx
 								cen[a][0]= efa->v1->co[0];
 								cen[a][1]= efa->v1->co[1];
 								cen[a][2]= efa->v1->co[2];
 								a++;								
 							}
-							else if(!(efa->v2->f & 8) && efa->v2->h==0){
+							else if(!(efa->v2->f & 8) && efa->v2->h==0){ // xxx
 								cen[a][0]= efa->v2->co[0];
 								cen[a][1]= efa->v2->co[1];
 								cen[a][2]= efa->v2->co[2];
 								a++;								
 							}
-							else if(!(efa->v3->f & 8) && efa->v3->h==0){
+							else if(!(efa->v3->f & 8) && efa->v3->h==0){ // xxx
 								cen[a][0]= efa->v3->co[0];
 								cen[a][1]= efa->v3->co[1];
 								cen[a][2]= efa->v3->co[2];
@@ -1679,10 +1665,10 @@ void loopoperations(char mode)
 				{
 						int ct;
 						for(ct = 0; ct < ect; ct++){
-							if(tagged[ct]->f & 32) 
-								tagged[ct]->f &= ~32;
+							if(tagged[ct]->f2 & 32) 
+								tagged[ct]->f2 &= ~32;
 							else
-								tagged[ct]->f |= 32;
+								tagged[ct]->f2 |= 32;
 						}
 				}
 
@@ -1728,7 +1714,7 @@ void loopoperations(char mode)
 						
 			percentcut=labda;		
 			
-			if(start->f & 32)
+			if(start->f2 & 32)
 				percentcut = 1.0-percentcut;
 
 		if(cut == 2){
@@ -1776,15 +1762,12 @@ void loopoperations(char mode)
 					percentcut = 0.9999;
 				else if(percentcut == 0.0)
 					percentcut = 0.0001;
-				if(eed->f & 8){
-					if(eed->f & 32)/* Need to offset by a const. (0.5/32768) for consistant roundoff */
+				if(eed->f2 & 8){
+					if(eed->f2 & 32)/* Need to offset by a const. (0.5/32768) for consistant roundoff */
 						eed->f1 = 32768*(1.0-percentcut - 0.0000153);
 					else
 						eed->f1 = 32768*(percentcut + 0.0000153);
 				}
-				
-				/* because of hack in subdivideflag (ton) */
-				eed->f2= eed->f;
 			}
 		}
 	/*-------------------------------------*/
@@ -1795,11 +1778,15 @@ void loopoperations(char mode)
 				subdivideflag(8, 0, B_KNIFE | B_PERCENTSUBD); /* B_KNIFE tells subdivide that edgeflags are already set */
 			
 			for(eed = em->edges.first; eed; eed=eed->next){							
-				if(eed->v1->f & 16) eed->v1->f |= 1;
-				else eed->v1->f &= ~1;
+				if(eed->v1->f & 16) eed->v1->f |= SELECT; //
+				else eed->v1->f &= ~SELECT;
 				
-				if(eed->v2->f & 16) eed->v2->f |= 1;
-				else eed->v2->f &= ~1;
+				if(eed->v2->f & 16) eed->v2->f |= SELECT;
+				else eed->v2->f &= ~SELECT;
+				
+				/* proper edge select state, needed because subdivide still doesnt do it OK */
+				if(eed->v1->f & eed->v2->f & SELECT) eed->f |= SELECT;
+				else eed->f &= ~SELECT;
 			}			
 		}
 	}
@@ -1809,17 +1796,20 @@ void loopoperations(char mode)
 
 	/* Clear flags */		
 	for(eed = em->edges.first; eed; eed=eed->next){	
-		eed->f &= ~(2|4|8|32|64);
-		eed->v1->f &= ~(2|16);
+		eed->f2 &= ~(2|4|8|32|64);
+		eed->v1->f &= ~(2|16); // xxx
 		eed->v2->f &= ~(2|16);		
 	}
 	
 	for(efa= em->faces.first; efa; efa=efa->next){
-		efa->f &= ~(4|8);
+		efa->f1 &= ~(4|8);
+
+		/* proper face select state, needed because subdivide still doesnt do it OK */
+		if( faceselectedAND(efa, SELECT) ) efa->f |= SELECT;
+		else efa->f &= ~SELECT;
 	}
 	
 	// flushes vertex -> edge -> face selection
-	// this actually can be wrong.... but I can't fix above code! (ton)
 	EM_select_flush();
 	
 	countall();

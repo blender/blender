@@ -4577,10 +4577,8 @@ void draw_object_backbufsel(Object *ob)
 			
 			bglPolygonOffset(1.0);
 			
-			// we draw edges in face mode too, for looptool
-			if(G.scene->selectmode & (SCE_SELECT_EDGE|SCE_SELECT_FACE)) 
-				em_wireoffs= bbs_mesh_wire(ob, em_solidoffs);
-			else em_wireoffs= em_solidoffs;
+			// we draw edges always, for loop (select) tools
+			em_wireoffs= bbs_mesh_wire(ob, em_solidoffs);
 			
 			if(G.scene->selectmode & SCE_SELECT_VERTEX) 
 				em_vertoffs= bbs_mesh_verts(ob, em_wireoffs);
