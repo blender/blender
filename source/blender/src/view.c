@@ -117,7 +117,7 @@ void persp(int a)
 		mygetmatrix(G.vd->viewmat1); 
 	}
 	else if(a== PERSP_WIN) {		// only set
-		myortho2(-0.5, (float)(curarea->winx)-.05, -0.5, (float)(curarea->winy)-0.5);
+		myortho2(-0.5, (float)(curarea->winx)-0.5, -0.5, (float)(curarea->winy)-0.5);
 		glLoadIdentity();
 	}
 	else if(a== PERSP_VIEW) {
