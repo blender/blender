@@ -118,7 +118,6 @@
 #include "BDR_editcurve.h"
 #include "BDR_editface.h"
 #include "BDR_editobject.h"
-#include "BDR_isect.h"
 #include "BDR_vpaint.h"
 
 #include "BSE_drawview.h"
@@ -179,7 +178,7 @@ extern VPaint Gvp;         /* from vpaint */
 /* Local vars ---------------------------------------------------------- */
 short bgpicmode=0, near=1000, far=1000;
 short degr= 90, step= 9, turn= 1, editbutflag= 1;
-float hspeed=.1, prspeed=0.0, prlen=0.0, doublimit= 0.001;
+float hspeed=0.1f, prspeed=0.0f, prlen=0.0f, doublimit= 0.001f;
 int decim_faces=0;
 
 #ifdef __NLA
@@ -401,7 +400,6 @@ enum {
 #define B_FASTERDRAW	2078
 #define B_VERTEXNOISE	2079
 #define B_VERTEXSMOOTH	2080
-#define B_INTERSECTMESH	2081
 #define B_MAKESTICKY	2082
 #define B_MAKEVERTCOL	2083
 
@@ -573,7 +571,7 @@ static void draw_buttons_edge(int win, float x1)
 
 	bwin_getsinglematrix(win, winmat);
 	bwin_getsize(win, &w, &h);
-	asp= 2.0/(w*winmat[0][0]);
+	asp= (float)(2.0/(w*winmat[0][0]));
 
 	glColor3ub(0,0,0);
 	fdrawline(x1, -1000, x1, 2000);
@@ -1457,9 +1455,6 @@ void do_meshbuts(unsigned short event)
 	case B_TOSPHERE:
 		vertices_to_sphere();
 		break;
-	case B_INTERSECTMESH:
-		intersect_mesh();
-		break;
 	case B_VERTEXNOISE:
 		vertexnoise();
 		break;
@@ -1580,7 +1575,6 @@ void meshbuts(void)
 	uiDefButS(block, TOG|BIT|2, 0, "Beauty",	847,by-=20,94,19, &editbutflag, 0, 0, 0, 0, "Split face in halves");
 	uiBlockSetCol(block, BUTSALMON);
 
-	uiDefBut(block, BUT, B_INTERSECTMESH, "Intersect",		847,by-=19,94,18, 0, 0, 0, 0, 0, "Intersect selected faces");
 	uiDefBut(block, BUT,B_SPLIT,"Split",			847,by-=19,94,18, 0, 0, 0, 0, 0, "Split msh without removing faces");
 	uiDefBut(block, BUT,B_TOSPHERE,"To Sphere",	847,by-=19,94,18, 0, 0, 0, 0, 0, "Blow vertices up into spherical shape");
 	uiDefBut(block, BUT,B_SUBDIV,"Subdivide",	847,by-=19,94,18, 0, 0, 0, 0, 0, "Split face in quarters");
