@@ -307,7 +307,6 @@ void SND_Scene::UpdateActiveObects()
 		
 		if (id >= 0)
 		{
-			bool juststartedplaying = false;
 #ifdef USE_FMOD
 			// fmod wants these set before playing the sample
 			if (pObject->IsModified())
@@ -323,7 +322,6 @@ void SND_Scene::UpdateActiveObects()
 				pObject->SetPlaystate(SND_PLAYING);
 				pObject->InitRunning();
 //				printf("start play: %d\n", tijd);
-				juststartedplaying = true;
 			}
 #endif
 			if (pObject->Is3D())

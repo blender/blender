@@ -97,14 +97,13 @@ bool SND_AudioDevice::GetNewId(SND_SoundObject* pObject)
 	printf("SND_AudioDevice::GetNewId\n");
 #endif
 
-	bool result;
+	bool result = false;
 
 	// first, get the oldest (the first) idobject
 	SND_IdObject* pIdObject = (SND_IdObject*)m_idObjectList.getHead();
 
 	if (pIdObject->isTail())
 	{
-		result = false;
 	}
 	else
 	{

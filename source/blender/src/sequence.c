@@ -32,6 +32,7 @@
 
 #include <string.h>
 #include <math.h>
+#include <stdlib.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -989,7 +990,7 @@ float check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
    /*some future stuff
    float hyp3,hyp4,b4,b5	   
    */
-   float temp1,temp2,temp3,temp4,hold; //some placeholder variables
+   float temp1,temp2,temp3,temp4; //some placeholder variables
    float halfx = xo/2;
    float halfy = yo/2;
    float widthf,output=0;
@@ -1293,7 +1294,7 @@ void RVBlurBitmap2 ( unsigned char* map, int width,int height,float blur,
 	float	*filter=NULL;
 	int	x,y,i,fx,fy;
 	int	index, ix, halfWidth;
-	float	fval, k, weight, curColor[3], curColor2[3];
+	float	fval, k, curColor[3], curColor2[3], weight=0;
 
 	/*	If we're not really blurring, bail out */
 	if (blur<=0)

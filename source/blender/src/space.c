@@ -270,7 +270,6 @@ void copy_view3d_lock(short val)
 void handle_view3d_around()
 {
 	bScreen *sc;
-	int bit;
 	
 	if ((U.uiflag & USER_LOCKAROUND)==0) return;
 	

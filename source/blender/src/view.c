@@ -1146,3 +1146,4 @@ void view3d_align_axis_to_vector(View3D *v3d, int axisidx, float vec[3])
 	v3d->view= 0;
 	if (v3d->persp>=2) v3d->persp= 0; /* switch out of camera mode */
 }
+

@@ -136,7 +136,6 @@ blo_read_runtime(
 	BlendReadError *error_r) 
 {
 	BlendFileData *bfd= NULL;
-	void *filedata= NULL;
 	int fd, actualsize, datastart;
 	char buf[8];
 

@@ -58,7 +58,6 @@ bool BL_MeshDeformer::Apply(RAS_IPolyMaterial *mat)
 	vecVertexArray	array;
 	vecIndexArrays	mvarray;
 	vecIndexArrays	diarray;
-	float co[3];
 	
 	RAS_TexVert *tv;
 	MVert	*mvert;
