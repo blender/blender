@@ -1201,6 +1201,7 @@ def preparedist():
 		
 	os.makedirs("dist/.blender/bpydata")
 	shutil.copy("release/bpydata/readme.txt", "dist/.blender/bpydata/readme.txt")
+	shutil.copy("release/bpydata/KUlang.txt", "dist/.blender/bpydata/KUlang.txt")
 	
 	os.chdir("release")
 	shutil.copytree("scripts/", "../dist/.blender/scripts")
@@ -1239,7 +1240,7 @@ def finalisedist(zipname):
 		return 0
 	
 	shutil.copy("dist/" + zipname, zipname)
-	shutil.rmtree("dist")
+	#shutil.rmtree("dist")
 	
 	return 1
 
@@ -1510,6 +1511,16 @@ def donsis(env, target, source):
 	scriptstring = string.join(scriptlist, "\n  ")
 	scriptstring += "\n\n"
 	nsis_cnt = string.replace(nsis_cnt, "[SCRIPTCONTS]", scriptstring)
+	
+	# do bpycontents
+	bpydatalist = []
+	bpydatadir = os.listdir(startdir + "\\dist\\.blender\\bpydata")
+	for bpydataitem in bpydatadir:
+		if os.path.isdir(startdir + "\\dist\\.blender\\bpydata\\" + bpydataitem) == 0:
+			bpydatalist.append("File " + startdir + "\\dist\\.blender\\bpydata\\" + bpydataitem)
+	bpydatastring = string.join(bpydatalist, "\n  ")
+	bpydatastring += "\n\n"
+	nsis_cnt = string.replace(nsis_cnt, "[BPYCONTS]", bpydatastring)
 	
 	# do dotblender
 	dotblendlist = []

@@ -245,7 +245,7 @@ Section "Blender-VERSION (required)" SecCopyUI
   SetOutPath $BLENDERHOME\.blender\scripts
   [SCRIPTCONTS]
   SetOutPath $BLENDERHOME\.blender\bpydata
-  File DISTDIR\.blender\bpydata\readme.txt
+  [BPYCONTS]
   
   ; Language files
   [LANGUAGECONTS]
