@@ -605,7 +605,7 @@ void calculateCenterMedian(TransInfo *t)
 			break;
 		}
 	}
-	VecMulf(partial, 1.0f / t->total);
+	VecMulf(partial, 1.0f / i);
 	VECCOPY(t->center, partial);
 
 	if (t->flag & (T_EDIT|T_POSE)) {
