@@ -3154,14 +3154,16 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 				if(but->flag & UI_MOUSE_OVER) {
 					if( (but->flag & UI_ACTIVE)==0) {
 						but->flag |= UI_ACTIVE;
-						if(but->type != LABEL) ui_draw_but(but);
+						if(but->type != LABEL &&
+							but->embossfunc != ui_emboss_N) ui_draw_but(but);
 					}
 				}
 				/* hilite case 2 */
 				if(but->flag & UI_ACTIVE) {
 					if( (but->flag & UI_MOUSE_OVER)==0) {
 						but->flag &= ~UI_ACTIVE;
-						if(but->type != LABEL) ui_draw_but(but);
+						if(but->type != LABEL &&
+							but->embossfunc != ui_emboss_N) ui_draw_but(but);
 					}
 					if(but->flag & UI_ACTIVE) active= 1;
 				}

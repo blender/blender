@@ -2405,7 +2405,7 @@ void gamebuts(void)
 	xco= 375; yco= 170; width= 230;
 
 	uiBlockSetCol(block, BUTGREY);
-	uiBlockSetEmboss(block, UI_EMBOSSM);
+	uiBlockSetEmboss(block, UI_EMBOSSP);
 	uiDefBlockBut(block, sensor_menu, NULL, "Sensors", xco-10, yco+35, 80, 19, "");
 	uiBlockSetCol(block, BUTGREEN);
 	uiBlockSetEmboss(block, UI_EMBOSSX);
@@ -2479,7 +2479,7 @@ void gamebuts(void)
 	xco= 675; yco= 170; width= 230;
 
 	uiBlockSetCol(block, BUTGREY);
-	uiBlockSetEmboss(block, UI_EMBOSSM);
+	uiBlockSetEmboss(block, UI_EMBOSSP);
 	uiDefBlockBut(block, controller_menu, NULL, "Controllers", xco-10, yco+35, 100, 19, "");
 	uiBlockSetCol(block, BUTGREEN);
 	uiBlockSetEmboss(block, UI_EMBOSSX);
@@ -2554,7 +2554,7 @@ void gamebuts(void)
 	xco= 985; yco= 170; width= 280;
 	
 	uiBlockSetCol(block, BUTGREY);
-	uiBlockSetEmboss(block, UI_EMBOSSM);
+	uiBlockSetEmboss(block, UI_EMBOSSP);
 	uiDefBlockBut(block, actuator_menu, NULL, "Actuators", xco-10, yco+35, 100, 19, "");
 	uiBlockSetCol(block, BUTGREEN);
 	uiBlockSetEmboss(block, UI_EMBOSSX);
