@@ -55,13 +55,13 @@
 int IMB_ispic(char *name)
 {
 	struct stat st;
-	int fp, buf[10];
+	int fp, buf[64];
 	int ofs = 0;
 	
 	if (ib_stat(name,&st) == -1) return(0);
 	if (((st.st_mode) & S_IFMT) == S_IFREG){
 		if ((fp = open(name,O_BINARY|O_RDONLY)) >= 0){
-			if (read(fp,buf,32)==32){
+			if (read(fp,buf,64)==64){
 				close(fp);
 				if (buf[ofs] == CAT) ofs += 3;
 				if (buf[ofs] == FORM){
@@ -83,8 +83,9 @@ int IMB_ispic(char *name)
 					/* if ((BIG_LONG(buf[0]) == 0x10000000) && ((BIG_LONG(buf[1]) & 0xf0ffffff) == 0)) return(TIM); */
 
 				}
-				if (imb_is_a_png(buf)) return(PNG);
-				if (imb_is_a_targa(buf)) return(TGA);
+				if (imb_is_a_png(buf))		return(PNG);
+				if (imb_is_a_targa(buf))	return(TGA);
+				if (imb_is_a_bmp(buf))		return(BMP);
 				return(FALSE);
 			}
 			close(fp);
