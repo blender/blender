@@ -59,7 +59,7 @@
 #include <fcntl.h>
 
 /* untill openal gets unified we need this hack for non-windows systems */
-#ifndef WIN32
+#if !defined(WIN32) && !defined(ALC_MAJOR_VERSION)
 
 #include <malloc.h>
 
