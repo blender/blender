@@ -367,7 +367,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		uiButSetFunc(but, constraint_changed_func, con, NULL);
 		con->otype = con->type;
 		
-		but = uiDefBut(block, TEX, B_CONSTRAINT_REDRAW, "", *xco+120, *yco-1, 135, 19, con->name, 0.0, 32.0, 0.0, 0.0, "Constraint name"); 
+		but = uiDefBut(block, TEX, B_CONSTRAINT_REDRAW, "", *xco+120, *yco-1, 135, 19, con->name, 0.0, 29.0, 0.0, 0.0, "Constraint name"); 
 		uiButSetFunc(but, verify_constraint_name_func, con, NULL);
 	}	
 	else{
