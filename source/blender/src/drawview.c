@@ -1245,10 +1245,10 @@ void do_viewbuts(unsigned short event)
 		
 	case B_BGPICBROWSE:
 		if(vd->bgpic) {
-			if (G.buts->menunr==-2) {
-				activate_databrowse((ID*) vd->bgpic->ima, ID_IM, 0, B_BGPICBROWSE, &G.buts->menunr, do_viewbuts);
-			} else if (G.buts->menunr>0) {
-				Image *newima= (Image*) BLI_findlink(&G.main->image, G.buts->menunr-1);
+			if (vd->menunr==-2) {
+				activate_databrowse((ID*) vd->bgpic->ima, ID_IM, 0, B_BGPICBROWSE, &vd->menunr, do_viewbuts);
+			} else if (vd->menunr>0) {
+				Image *newima= (Image*) BLI_findlink(&G.main->image, vd->menunr-1);
 
 				if (newima)
 					view3d_change_bgpic_ima(vd, newima);
@@ -1263,10 +1263,10 @@ void do_viewbuts(unsigned short event)
 		
 	case B_BGPICTEX:
 		if (vd->bgpic) {
-			if (G.buts->texnr==-2) {
-				activate_databrowse((ID*) vd->bgpic->tex, ID_TE, 0, B_BGPICTEX, &G.buts->texnr, do_viewbuts);
-			} else if (G.buts->texnr>0) {
-				Tex *newtex= (Tex*) BLI_findlink(&G.main->tex, G.buts->texnr-1);
+			if (vd->texnr==-2) {
+				activate_databrowse((ID*) vd->bgpic->tex, ID_TE, 0, B_BGPICTEX, &vd->texnr, do_viewbuts);
+			} else if (vd->texnr>0) {
+				Tex *newtex= (Tex*) BLI_findlink(&G.main->tex, vd->texnr-1);
 				
 				if (newtex)
 					view3d_change_bgpic_tex(vd, newtex);
@@ -1426,10 +1426,10 @@ static void view3d_panel_background(cntrl)	// VIEW3D_HANDLER_BACKGROUND
 		uiDefButF(block, NUM, REDRAWVIEW3D, "Size:", 		160,160,150,20, &vd->bgpic->size, 0.1, 250.0, 100, 0, "Set the size for the width of the BackGroundPic");
 		
 		id= (ID *)vd->bgpic->ima;
-		IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->image), id, &(G.buts->menunr));
+		IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->image), id, &(vd->menunr));
 		if(strp[0]) {
 			uiBlockBeginAlign(block);
-			uiDefButS(block, MENU, B_BGPICBROWSE, strp, 	10,130,20,20, &(G.buts->menunr), 0, 0, 0, 0, "Browse");
+			uiDefButS(block, MENU, B_BGPICBROWSE, strp, 	10,130,20,20, &(vd->menunr), 0, 0, 0, 0, "Browse");
 		
 			if(vd->bgpic->ima)  {
 				uiDefBut(block, TEX,	    0,"BGpic: ",		30,130,260,20,&vd->bgpic->ima->name,0.0,100.0, 0, 0, "The Selected BackGroundPic");
@@ -1445,13 +1445,11 @@ static void view3d_panel_background(cntrl)	// VIEW3D_HANDLER_BACKGROUND
 		uiDefButF(block, NUM, B_DIFF, "Center X: ",	10,70,140,20,&vd->bgpic->xof, -20.0,20.0, 10, 2, "Set the BackGroundPic X Offset");
 		uiDefButF(block, NUM, B_DIFF, "Center Y: ",	160,70,140,20,&vd->bgpic->yof, -20.0,20.0, 10, 2, "Set the BackGroundPic Y Offset");
 
-		/* There is a bug here ... (what bug? where? what is this? - zr) */
-		/* (ton) the use of G.buts->texnr is hackish */
 		/* texture block: */
 		id= (ID *)vd->bgpic->tex;
-		IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->tex), id, &(G.buts->texnr));
+		IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->tex), id, &(vd->texnr));
 		if (strp[0]) 
-			uiDefButS(block, MENU, B_BGPICTEX, strp,			10, 50, 20,20, &(G.buts->texnr), 0, 0, 0, 0, "Select texture for animated backgroundimage");
+			uiDefButS(block, MENU, B_BGPICTEX, strp,			10, 50, 20,20, &(vd->texnr), 0, 0, 0, 0, "Select texture for animated backgroundimage");
 		MEM_freeN(strp);
 		
 		if (id) {

@@ -104,8 +104,7 @@ typedef struct View3D {
 	short mxo, myo;
 
 	short gridlines, viewbut;
-	short modeselect, pad4, pad5, pad6;
-	int	pad2, pad3;
+	short modeselect, menunr, texnr, pad1;
 } View3D;
 
 /* View3D->flag */
