@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\lib\windows\python\include\python2.2&quot;;&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)intern\bmfont&quot;;&quot;$(SolutionDir)source\blender\renderconverter&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;;&quot;$(SolutionDir)source\blender\avi&quot;;&quot;$(SolutionDir)source\blender\blenloader&quot;;&quot;$(SolutionDir)source\blender&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\python&quot;;&quot;$(SolutionDir)source\blender\blenlib\intern&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\lib\windows\python\include\python2.2&quot;;&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)intern\bmfont&quot;;&quot;$(SolutionDir)source\blender\renderconverter&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;;&quot;$(SolutionDir)source\blender\avi&quot;;&quot;$(SolutionDir)source\blender\blenloader&quot;;&quot;$(SolutionDir)source\blender&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\python&quot;;&quot;$(SolutionDir)source\blender\blenlib\intern&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;"
 				PreprocessorDefinitions="WIN32,_LIB,FUTURE_PYTHON_API"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -68,7 +68,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\lib\windows\python\include\python2.2&quot;;&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)intern\bmfont&quot;;&quot;$(SolutionDir)source\blender\renderconverter&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;;&quot;$(SolutionDir)source\blender\avi&quot;;&quot;$(SolutionDir)source\blender\blenloader&quot;;&quot;$(SolutionDir)source\blender&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\python&quot;;&quot;$(SolutionDir)source\blender\blenlib\intern&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\lib\windows\python\include\python2.2&quot;;&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)intern\bmfont&quot;;&quot;$(SolutionDir)source\blender\renderconverter&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;;&quot;$(SolutionDir)source\blender\avi&quot;;&quot;$(SolutionDir)source\blender\blenloader&quot;;&quot;$(SolutionDir)source\blender&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\python&quot;;&quot;$(SolutionDir)source\blender\blenlib\intern&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB,FUTURE_PYTHON_API"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -185,6 +185,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Scene.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\sceneRender.c">
 			</File>
 			<File
 				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Sys.c">
@@ -309,6 +312,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Scene.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\sceneRender.h">
 			</File>
 			<File
 				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Sys.h">
