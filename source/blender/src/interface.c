@@ -1860,6 +1860,14 @@ static int ui_do_but_TEX(uiBut *but)
 			else if(dev==PADENTER || dev==RETKEY) {
 				break;
 			}
+                        else if(dev==DELKEY) {
+                                if(but->pos>=0 && but->pos<strlen(str)) {
+                                        for(x=but->pos; x<=strlen(str); x++)
+                                                str[x]= str[x+1];
+                                        str[--len]='\0';
+                                        dodraw= 1;
+                                }
+                        }
 			else if(dev==BACKSPACEKEY) {
 				if(len!=0) {
 					if(get_qual() & LR_SHIFTKEY) {
