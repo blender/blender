@@ -9,7 +9,19 @@ Scene
 This module provides access to B{Scenes} in Blender.
 
 Example::
-
+  import Blender
+  from Blender import Scene, Object, Camera
+  #
+  camdata = Camera.New('ortho')           # create new camera data
+  camdata.setName('newCam')
+  camdata.setLens(16.0)
+  camobj = Object.New('Camera')           # create a new camera object
+  camobj.link(camdata)                    # link data to object
+  scene = Scene.New('NewScene')           # create a new scene
+  scene.link(camobj)                      # link object to scene
+  scene.frameSettings(1, 100 ,1)          # set start, end and current frames
+  scene.setWinSize(640, 480)              # set the render window dimensions
+  scene.makeCurrent()                     # make this the current scene
 """
 
 def New (name = 'Scene'):
@@ -71,7 +83,7 @@ class Scene:
     """
     Get the current x,y resolution of the render window.  These are the
     dimensions of the image created by the Blender Renderer.
-    @rtype: list
+    @rtype: list of two ints
     @return: [width, height].
     """
 
@@ -79,7 +91,7 @@ class Scene:
     """
     Set the width and height of the render window.  These are the dimensions
     of the image created by the Blender Renderer.
-    @type dimensions: list
+    @type dimensions: list of two ints
     @param dimensions: The new [width, height] values.
     """
 

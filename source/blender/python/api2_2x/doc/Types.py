@@ -7,24 +7,23 @@ The Blender.Types submodule
 This module is a dictionary of Blender Python types, for type checking.
 
 Example::
-
- import Blender
- from Blender import Types, Object, NMesh, Camera, Lamp
- #
- objs = Object.Get() # a list of all objects in the current scene
- for o in objs:
-   print
-   print o, type(o)
-   data = o.getData()
-   print type(data)
-   if type(data) == Types.NMeshType:
-     if len(data.verts):
-       print "its vertices are obviously of type:", type(data.verts[0])
-     print "and its faces:", Types.NMFaceType
-   elif type(data) == Types.CameraType:
-     print "It's a Camera."
-   elif type(data) == Types.LampType:
-     print "Let there be light!"
+  import Blender
+  from Blender import Types, Object, NMesh, Camera, Lamp
+  #
+  objs = Object.Get() # a list of all objects in the current scene
+  for o in objs:
+    print
+    print o, type(o)
+    data = o.getData()
+    print type(data)
+    if type(data) == Types.NMeshType:
+      if len(data.verts):
+        print "its vertices are obviously of type:", type(data.verts[0])
+      print "and its faces:", Types.NMFaceType
+    elif type(data) == Types.CameraType:
+      print "It's a Camera."
+    elif type(data) == Types.LampType:
+      print "Let there be light!"
 
 @var ObjectType: Blender Object. The base object, linked to its specific data
      at its .data member variable.

@@ -5,15 +5,14 @@ The Blender.World submodule
 
 INTRODUCTION
 
-The module world allows you to access all the data of an world.
-Example::
+The module world allows you to access all the data of a Blender World.
 
+Example::
   import Blender
-	w = Blender.Get('World') #assume there exists a world named "world"
-	print w.GetName()
-	w.hor = [1,1,.2]
-	print w.Gethor()
-	
+  w = Blender.Get('World') #assume there exists a world named "world"
+  print w.getName()
+  w.hor = [1,1,.2]
+  print w.getHor()	
 """
 
 def New (name):

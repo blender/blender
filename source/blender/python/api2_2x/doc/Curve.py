@@ -9,13 +9,12 @@ Curve Data
 This module provides access to B{Curve Data} objects in Blender.
 
 Example::
-
   from Blender import Curve, Object, Scene
-  c = Curve.New().     # create new  curve data
-  cur = Scene.getCurrent().    # get current scene
-  ob = Object.New('Curve').  # make curve object
-  ob.link(c).                      # link curve data with this object
-  cur.link(ob).                    # link object into scene
+  c = Curve.New()             # create new  curve data
+  cur = Scene.getCurrent()    # get current scene
+  ob = Object.New('Curve')    # make curve object
+  ob.link(c)                  # link curve data with this object
+  cur.link(ob)                # link object into scene
 """
 
 def New ( name = 'CurData'):

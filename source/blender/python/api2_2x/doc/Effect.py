@@ -19,8 +19,8 @@ effect, which can be a wave, particle or build effect. The python API follows
 this structure : the Effect module grants access to (the few) data which
 are shared between all effects. It has three submodules : Wave, Build, Particle
 , which grant r/w access to the real parameters of these effects.
-Example::
 
+Example::
   import Blender
 """
 

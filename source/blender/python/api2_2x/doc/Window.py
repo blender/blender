@@ -50,11 +50,27 @@ DrawProgressBar::
 
   DrawProgressBar (1.0, "Finished loading")
 
+
+@type Types: readonly dictionary
+@var Types: The available Window Types.
+    - VIEW3D
+    - IPO
+    - OOPS
+    - BUTS
+    - FILE
+    - IMAGE
+    - INFO
+    - SEQ
+    - IMASEL
+    - SOUND
+    - ACTION
+    - TEXT
+    - NLA
 """
 
 def Redraw ():
   """
-  Force a redraw of a specific Window Type (see Window.Types).
+  Force a redraw of a specific Window Type (see L{Types}).
   """
 
 def RedrawAll ():

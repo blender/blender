@@ -6,10 +6,9 @@ The Blender.Metaball submodule
 This module provides access to the B{Metaball Data} in Blender.
 
 Example::
-
   import Blender
-  scene = Blencer.Scene.getCurrent ()   # get the current scene
-  ob = Blender.Metaball.New ('mball')    # make  metaball
+  scene = Blender.Scene.getCurrent ()   # get the current scene
+  ob = Blender.Metaball.New ('mball')   # make  metaball
 """
 
 def New (name):

@@ -99,4 +99,6 @@ def ReleaseGlobalDict (bool = None):
       behavior.
   @rtype: int
   @return: A bool value (0 or 1) telling the current behavior.
+  @warn: This function was added as a test and there's a good chance that it
+     won't be kept in the future, in favor of a better method.
   """

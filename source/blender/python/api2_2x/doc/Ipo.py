@@ -7,13 +7,12 @@ This module provides access to the Ipo Data in Blender.
 
 
 Example::
-
   import Blender
   ob = Blender.Ipo.Get('ipo')    # retreives an ipo object
-	ob.setName('ipo1')
-	print ob.name
-	print ipo.getRctf()
-	ipo.setRctf(1,2,3,4)
+  ob.setName('ipo1')
+  print ob.name
+  print ipo.getRctf()
+  ipo.setRctf(1,2,3,4)
 	
 """
 
