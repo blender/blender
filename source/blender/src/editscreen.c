@@ -323,27 +323,29 @@ int area_is_active_area(ScrArea *area)
 
 void scrarea_do_headdraw(ScrArea *area)
 {
-	areawinset(area->headwin);
-
-	headerbox(area_is_active_area(area), area->winx+100);
-
-	switch(area->spacetype) {
-	case SPACE_FILE:	file_buttons();		break;
-	case SPACE_INFO:	info_buttons();		break;
-	case SPACE_VIEW3D:	view3d_buttons();	break;
-	case SPACE_IPO:		ipo_buttons();		break;
-	case SPACE_BUTS:	buts_buttons();		break;
-	case SPACE_SEQ:		seq_buttons();		break;
-	case SPACE_IMAGE:	image_buttons();	break;
-	case SPACE_IMASEL:	imasel_buttons();	break;
-	case SPACE_OOPS:	oops_buttons();		break;
-	case SPACE_TEXT:	text_buttons();		break;
-	case SPACE_SOUND:	sound_buttons();	break;
-	case SPACE_ACTION:	action_buttons();	break;
-	case SPACE_NLA:		nla_buttons();		break;
+	if (area->headertype) {
+		areawinset(area->headwin);
+	
+		headerbox(area_is_active_area(area), area->winx+100);
+	
+		switch(area->spacetype) {
+		case SPACE_FILE:	file_buttons();		break;
+		case SPACE_INFO:	info_buttons();		break;
+		case SPACE_VIEW3D:	view3d_buttons();	break;
+		case SPACE_IPO:		ipo_buttons();		break;
+		case SPACE_BUTS:	buts_buttons();		break;
+		case SPACE_SEQ:		seq_buttons();		break;
+		case SPACE_IMAGE:	image_buttons();	break;
+		case SPACE_IMASEL:	imasel_buttons();	break;
+		case SPACE_OOPS:	oops_buttons();		break;
+		case SPACE_TEXT:	text_buttons();		break;
+		case SPACE_SOUND:	sound_buttons();	break;
+		case SPACE_ACTION:	action_buttons();	break;
+		case SPACE_NLA:		nla_buttons();		break;
+		}
+	
+		area->head_swap= WIN_BACK_OK;
 	}
-
-	area->head_swap= WIN_BACK_OK;
 }
 void scrarea_do_headchange(ScrArea *area)
 {
@@ -351,7 +353,7 @@ void scrarea_do_headchange(ScrArea *area)
 
 	if (area->headertype==HEADERDOWN) {
 		bwin_ortho2(area->headwin, 0.5+ofs, area->headrct.xmax-area->headrct.xmin-0.5+ofs, +0.6, area->headrct.ymax-area->headrct.ymin+0.6);
-	} else {
+	} else if (area->headertype==HEADERTOP) {
 		bwin_ortho2(area->headwin, -0.5+ofs, area->headrct.xmax-area->headrct.xmin-0.5+ofs, -0.5, area->headrct.ymax-area->headrct.ymin-0.5);
 	}
 }
