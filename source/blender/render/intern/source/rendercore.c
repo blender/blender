@@ -118,7 +118,7 @@ float mistfactor(float zcor, float *co)	/* dist en height, return alpha */
 		}
 	}
 
-	return (1.0-fac)* (1-R.wrld.misi);	
+	return (1.0-fac)* (1.0-R.wrld.misi);	
 }
 
 /* external for preview only */

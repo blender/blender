@@ -513,7 +513,7 @@ void zbuflineAc(int zvlnr, float *vec1, float *vec2)
 		vergz= v1[2];
 		vergz-= Azvoordeel;
 		dz= (v2[2]-v1[2])/dx;
-		if(vergz>0x70000000 && dz>0) maxtest= 1;		// prevent overflow
+		if(vergz>0x50000000 && dz>0) maxtest= 1;		// prevent overflow
 		
 		rectz= (int *)(Arectz+R.rectx*(oldy-Aminy) +start);
 		ap= (APixbuf+ R.rectx*(oldy-Aminy) +start);
@@ -552,8 +552,8 @@ void zbuflineAc(int zvlnr, float *vec1, float *vec2)
 			}
 			
 			v1[1]+= dy;
-			vergz+= dz;
-			if(maxtest && vergz<0) vergz= 0x7FFFFFF0;
+			if(maxtest && (vergz > 0x7FFFFFF0 - dz)) vergz= 0x7FFFFFF0;
+			else vergz+= dz;
 		}
 	}
 	else {
@@ -582,7 +582,7 @@ void zbuflineAc(int zvlnr, float *vec1, float *vec2)
 		vergz= v1[2];
 		vergz-= Azvoordeel;
 		dz= (v2[2]-v1[2])/dy;
-		if(vergz>0x70000000 && dz>0) maxtest= 1;		// prevent overflow
+		if(vergz>0x50000000 && dz>0) maxtest= 1;		// prevent overflow
 
 		rectz= (int *)( Arectz+ (start-Aminy)*R.rectx+ oldx );
 		ap= (APixbuf+ R.rectx*(start-Aminy) +oldx);
@@ -621,8 +621,8 @@ void zbuflineAc(int zvlnr, float *vec1, float *vec2)
 			}
 			
 			v1[0]+= dx;
-			vergz+= dz;
-			if(maxtest && vergz<0) vergz= 0x7FFFFFF0;
+			if(maxtest && (vergz > 0x7FFFFFF0 - dz)) vergz= 0x7FFFFFF0;
+			else vergz+= dz;
 		}
 	}
 }
@@ -683,7 +683,7 @@ void zbufline(int zvlnr, float *vec1, float *vec2)
 		
 		vergz= floor(v1[2]);
 		dz= floor((v2[2]-v1[2])/dx);
-		if(vergz>0x70000000 && dz>0) maxtest= 1;		// prevent overflow
+		if(vergz>0x50000000 && dz>0) maxtest= 1;		// prevent overflow
 		
 		rectz= R.rectz+ oldy*R.rectx+ start;
 		rectp= R.rectot+ oldy*R.rectx+ start;
@@ -708,8 +708,9 @@ void zbufline(int zvlnr, float *vec1, float *vec2)
 			}
 			
 			v1[1]+= dy;
-			vergz+= dz;
-			if(maxtest && vergz<0) vergz= 0x7FFFFFF0;
+			
+			if(maxtest && (vergz > 0x7FFFFFF0 - dz)) vergz= 0x7FFFFFF0;
+			else vergz+= dz;
 		}
 	}
 	else {
@@ -734,7 +735,7 @@ void zbufline(int zvlnr, float *vec1, float *vec2)
 		
 		vergz= floor(v1[2]);
 		dz= floor((v2[2]-v1[2])/dy);
-		if(vergz>0x70000000 && dz>0) maxtest= 1;		// prevent overflow
+		if(vergz>0x50000000 && dz>0) maxtest= 1;		// prevent overflow
 		
 		rectz= R.rectz+ start*R.rectx+ oldx;
 		rectp= R.rectot+ start*R.rectx+ oldx;
@@ -759,8 +760,8 @@ void zbufline(int zvlnr, float *vec1, float *vec2)
 			}
 			
 			v1[0]+= dx;
-			vergz+= dz;
-			if(maxtest && vergz<0) vergz= 0x7FFFFFF0;
+			if(maxtest && (vergz > 0x7FFFFFF0 - dz)) vergz= 0x7FFFFFF0;
+			else vergz+= dz;
 		}
 	}
 }
