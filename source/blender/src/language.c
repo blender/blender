@@ -67,32 +67,16 @@ static LANGMenuEntry *langmenu= 0;
 static int tot_lang = 0;
 #endif // INTERNATIONAL
 
-int BIF_DrawString(BMF_Font* font, char *str, int translate, int col)
+
+int BIF_DrawString(BMF_Font* font, char *str, int translate)
 {
 
 #ifdef INTERNATIONAL
 	if(G.ui_international == TRUE)
 		if(translate)
-			return FTF_DrawString(str, FTF_USE_GETTEXT | FTF_INPUT_UTF8, col);
+			return FTF_DrawString(str, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
 		else
-			return FTF_DrawString(str, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, col);
-	else
-		return BMF_DrawString(font, str);
-#else
-	return BMF_DrawString(font, str);
-#endif
-
-}
-
-int BIF_DrawStringRGB(BMF_Font* font, char *str, int translate, float r, float g, float b)
-{
-
-#ifdef INTERNATIONAL
-	if(G.ui_international == TRUE)
-		if(translate)
-			return FTF_DrawStringRGB(str, FTF_USE_GETTEXT | FTF_INPUT_UTF8, r, g, b);
-		else
-			return FTF_DrawStringRGB(str, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, r, g, b);
+			return FTF_DrawString(str, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
 	else
 		return BMF_DrawString(font, str);
 #else

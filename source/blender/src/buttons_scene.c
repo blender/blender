@@ -264,10 +264,9 @@ static void sound_panel_listener()
 	int xco= 100, yco=100, mixrate;
 	char mixrateinfo[256];
 	
-	block= uiNewBlock(&curarea->uiblocks, "sound_panel_listener", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "sound_panel_listener", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Listener", "Sound", 320, 0, 318, 204)==0) return;
 
-	uiBlockSetCol(block, BUTGREY);
 	mixrate = sound_get_mixrate();
 	sprintf(mixrateinfo, "Game Mixrate: %d Hz", mixrate);
 	uiDefBut(block, LABEL, 0, mixrateinfo, xco,yco,295,20, 0, 0, 0, 0, 0, "");
@@ -295,7 +294,7 @@ static void sound_panel_sequencer()
 	short xco, yco;
 	char mixrateinfo[256];
 	
-	block= uiNewBlock(&curarea->uiblocks, "sound_panel_sequencer", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "sound_panel_sequencer", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Sequencer", "Sound", 640, 0, 318, 204)==0) return;
 
 	/* audio sequence engine settings ------------------------------------------------------------------ */
@@ -310,14 +309,11 @@ static void sound_panel_sequencer()
 	uiDefBut(block, LABEL, 0, mixrateinfo, xco,yco,295,20, 0, 0, 0, 0, 0, "");
 
 	yco -= 25;		
-	uiBlockSetCol(block, BUTGREY);
 	uiDefButI(block, ROW, B_SOUND_RATECHANGED, "44.1 kHz",	xco,yco,75,20, &G.scene->audio.mixrate, 2.0, 44100.0, 0, 0, "Mix at 44.1 kHz");
 	uiDefButI(block, ROW, B_SOUND_RATECHANGED, "48.0 kHz",		xco+80,yco,75,20, &G.scene->audio.mixrate, 2.0, 48000.0, 0, 0, "Mix at 48 kHz");
-	uiBlockSetCol(block, BUTSALMON);
 	uiDefBut(block, BUT, B_SOUND_RECALC, "Recalc",		xco+160,yco,75,20, 0, 0, 0, 0, 0, "Recalculate samples");
 
 	yco -= 25;
-	uiBlockSetCol(block, BUTGREEN);
 	uiDefButS(block, TOG|BIT|1, B_SOUND_CHANGED, "Sync",	xco,yco,115,20, &G.scene->audio.flag, 0, 0, 0, 0, "Use sample clock for syncing animation to audio");
 	uiDefButS(block, TOG|BIT|2, B_SOUND_CHANGED, "Scrub",		xco+120,yco,115,20, &G.scene->audio.flag, 0, 0, 0, 0, "Scrub when changing frames");
 
@@ -325,7 +321,6 @@ static void sound_panel_sequencer()
 	uiDefBut(block, LABEL, 0, "Main mix", xco,yco,295,20, 0, 0, 0, 0, 0, "");
 
 	yco -= 25;		
-	uiBlockSetCol(block, BUTGREY);
 	uiDefButF(block, NUMSLI, B_SOUND_CHANGED, "Main (dB): ",
 		xco,yco,235,24,&G.scene->audio.main, -24.0, 6.0, 0, 0, "Set the audio master gain/attenuation in dB");
 
@@ -333,7 +328,6 @@ static void sound_panel_sequencer()
 	uiDefButS(block, TOG|BIT|0, 0, "Mute",	xco,yco,235,24, &G.scene->audio.flag, 0, 0, 0, 0, "Mute audio from sequencer");		
 	
 	yco -= 35;
-	uiBlockSetCol(block, BUTSALMON);
 	uiDefBut(block, BUT, B_SOUND_MIXDOWN, "MIXDOWN",	xco,yco,235,24, 0, 0, 0, 0, 0, "Create WAV file from sequenced audio");
 	
 }
@@ -346,7 +340,7 @@ static void sound_panel_sound(bSound *sound)
 	bSample *sample;
 	char *strp, str[32], ch[256];
 
-	block= uiNewBlock(&curarea->uiblocks, "sound_panel_sound", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "sound_panel_sound", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Sound", "Sound", 0, 0, 318, 204)==0) return;
 	
 	uiDefBut(block, LABEL, 0, "Blender Sound block",10,180,195,20, 0, 0, 0, 0, 0, "");
@@ -394,14 +388,10 @@ static void sound_panel_sound(bSound *sound)
 		uiDefIconButI(block, TOG|BIT|0, B_SOUND_UNPACK_SAMPLE, ICON_PACKAGE,
 			285, 120,25,24, &packdummy, 0, 0, 0, 0,"Pack/Unpack this sample");
 		
-		uiBlockSetCol(block, BUTSALMON);
 		uiDefBut(block, BUT, B_SOUND_LOAD_SAMPLE, "Load sample", 10, 95,150,24, 0, 0, 0, 0, 0, "Load a different sample file");
 
-		uiBlockSetCol(block, BUTPURPLE);
 		uiDefBut(block, BUT, B_SOUND_PLAY_SAMPLE, "Play", 	160, 95, 150, 24, 0, 0.0, 0, 0, 0, "Playback sample using settings below");
 		
-
-		uiBlockSetCol(block, BUTGREY);
 		uiDefButF(block, NUMSLI, B_SOUND_CHANGED, "Volume: ",
 			10,70,150,20, &sound->volume, 0.0, 1.0, 0, 0, "Set the volume of this sound");
 
@@ -409,7 +399,6 @@ static void sound_panel_sound(bSound *sound)
 			160,70,150,20, &sound->pitch, -12.0, 12.0, 0, 0, "Set the pitch of this sound");
 
 		/* looping */
-		uiBlockSetCol(block, BUTGREEN);
 		uiDefButI(block, TOG|BIT|SOUND_FLAGS_LOOP_BIT, B_SOUND_REDRAW, "Loop",
 			10, 50, 95, 20, &sound->flags, 0.0, 0.0, 0, 0, "Toggle between looping on/off");
 
@@ -423,12 +412,10 @@ static void sound_panel_sound(bSound *sound)
 		/* 3D settings ------------------------------------------------------------------ */
 
 		if (sound->sample->channels == 1) {
-			uiBlockSetCol(block, BUTGREEN);
 			uiDefButI(block, TOG|BIT|SOUND_FLAGS_3D_BIT, B_SOUND_REDRAW, "3D Sound",
 				10, 10, 90, 20, &sound->flags, 0, 0, 0, 0, "Turns 3D sound on");
 			
 			if (sound->flags & SOUND_FLAGS_3D) {
-				uiBlockSetCol(block, BUTGREY);
 				uiDefButF(block, NUMSLI, B_SOUND_CHANGED, "Scale: ",
 					100,10,210,20, &sound->attenuation, 0.0, 5.0, 1.0, 0, "Sets the surround scaling factor for this sound");
 				
@@ -796,53 +783,29 @@ static uiBlock *edge_render_menu(void *arg_unused)
 {
 	uiBlock *block;
 	
-	block= uiNewBlock(&curarea->uiblocks,
-			  "edge render", UI_EMBOSSX, UI_HELV,
-			  curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "edge render", UI_EMBOSS, UI_HELV, curarea->win);
 		
 	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "",
-/* 		 285, -20, 230, 100, NULL, */
-		 285, -20, 230, 120, NULL,
-		 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "",  285, -20, 230, 120, NULL,  0, 0, 0, 0, "");
 	
-	uiDefButS(block, NUM, 0,"Eint:",
-		  295,50,70,19,
-		  &G.scene->r.edgeint, 0.0, 255.0, 0, 0,
+	uiDefButS(block, NUM, 0,"Eint:",  295,50,70,19,  &G.scene->r.edgeint, 0.0, 255.0, 0, 0,
 		  "Sets edge intensity for Toon shading");
-	uiBlockSetCol(block, BUTGREEN);
-	uiDefButI(block, TOG, 0,"Shift",
-		  365,50,70,19,
-		  &G.compat, 0, 0, 0, 0,
+	uiDefButI(block, TOG, 0,"Shift", 365,50,70,19,  &G.compat, 0, 0, 0, 0,
 		  "For unified renderer: use old offsets for edges");
-	uiDefButI(block, TOG, 0,"All",		435,50,70,19,
-		  &G.notonlysolid, 0, 0, 0, 0,
-		  "For unified renderer: also consider transparent "
-		  "faces for toon shading");
+	uiDefButI(block, TOG, 0,"All",		435,50,70,19,  &G.notonlysolid, 0, 0, 0, 0,
+		  "For unified renderer: also consider transparent faces for toon shading");
 
 	/* colour settings for the toon shading */
-	uiBlockSetCol(block, BUTGREY);
-	uiDefButF(block, COL, B_EDGECOLSLI, "",
-		  295,-10,30,60,
-		  &(G.scene->r.edgeR), 0, 0, 0, 0,
-		  "");
+	uiDefButF(block, COL, B_EDGECOLSLI, "", 295,-10,30,60,  &(G.scene->r.edgeR), 0, 0, 0, 0, "");
 	
-	uiDefButF(block, NUMSLI, 0, "R ",
-		  325, 30, 180,19,
-		  &G.scene->r.edgeR, 0.0, 1.0, B_EDGECOLSLI, 0,
+	uiDefButF(block, NUMSLI, 0, "R ",   325, 30, 180,19,   &G.scene->r.edgeR, 0.0, 1.0, B_EDGECOLSLI, 0,
 		  "For unified renderer: Colour for edges in toon shading mode.");
-	uiDefButF(block, NUMSLI, 0, "G ",
-		  325, 10, 180,19,
-		  &G.scene->r.edgeG, 0.0, 1.0, B_EDGECOLSLI, 0,
+	uiDefButF(block, NUMSLI, 0, "G ",  325, 10, 180,19,  &G.scene->r.edgeG, 0.0, 1.0, B_EDGECOLSLI, 0,
 		  "For unified renderer: Colour for edges in toon shading mode.");
-	uiDefButF(block, NUMSLI, 0, "B ",
-		  325, -10, 180,19,
-		  &G.scene->r.edgeB, 0.0, 1.0, B_EDGECOLSLI, 0,
+	uiDefButF(block, NUMSLI, 0, "B ",  325, -10, 180,19,  &G.scene->r.edgeB, 0.0, 1.0, B_EDGECOLSLI, 0,
 		  "For unified renderer: Colour for edges in toon shading mode.");
 
-	uiDefButS(block, NUM, 0,"AntiShift",
-		  365,70,140,19,
-		  &(G.scene->r.same_mat_redux), 0, 255.0, 0, 0,
+	uiDefButS(block, NUM, 0,"AntiShift",   365,70,140,19,  &(G.scene->r.same_mat_redux), 0, 255.0, 0, 0,
 		  "For unified renderer: reduce intensity on boundaries "
 		  "with identical materials with this number.");
 	
@@ -855,17 +818,14 @@ static uiBlock *post_render_menu(void *arg_unused)
 {
 	uiBlock *block;
 	
-	block= uiNewBlock(&curarea->uiblocks, "post render", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "post render", UI_EMBOSS, UI_HELV, curarea->win);
 		
 	/* use this for a fake extra empy space around the buttons */
 	uiDefBut(block, LABEL, 0, "",			-10, 10, 200, 80, NULL, 0, 0, 0, 0, "");
 	
-	uiDefButF(block, NUMSLI, 0,"Add:",		0,60,180,19,
-			 &G.scene->r.postadd, -1.0, 1.0, 0, 0, "");
-	uiDefButF(block, NUMSLI, 0,"Mul:",		0,40,180,19,
-			 &G.scene->r.postmul, 0.01, 4.0, 0, 0, "");
-	uiDefButF(block, NUMSLI, 0,"Gamma:",		0,20,180,19,
-			 &G.scene->r.postgamma, 0.2, 2.0, 0, 0, "");
+	uiDefButF(block, NUMSLI, 0,"Add:",		0,60,180,19,  &G.scene->r.postadd, -1.0, 1.0, 0, 0, "");
+	uiDefButF(block, NUMSLI, 0,"Mul:",		0,40,180,19,  &G.scene->r.postmul, 0.01, 4.0, 0, 0, "");
+	uiDefButF(block, NUMSLI, 0,"Gamma:",		0,20,180,19,  &G.scene->r.postgamma, 0.2, 2.0, 0, 0, "");
 
 	uiBlockSetDirection(block, UI_TOP);
 	
@@ -879,7 +839,7 @@ static uiBlock *framing_render_menu(void *arg_unused)
 	short yco = 60, xco = 0;
 	int randomcolorindex = 1234;
 
-	block= uiNewBlock(&curarea->uiblocks, "framing_options", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "framing_options", UI_EMBOSS, UI_HELV, curarea->win);
 
 	/* use this for a fake extra empy space around the buttons */
 	uiDefBut(block, LABEL, 0, "",			-10, -10, 300, 100, NULL, 0, 0, 0, 0, "");
@@ -989,7 +949,7 @@ static void render_panel_output()
 	char *strp;
 
 
-	block= uiNewBlock(&curarea->uiblocks, "render_panel_output", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "render_panel_output", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Output", "Render", 0, 0, 318, 204)==0) return;
 	
 	uiDefBut(block, TEX,0,"",				30, 170, 268, 19,G.scene->r.pic, 0.0,79.0, 0, 0, "Directory/name to save rendered Pics to");
@@ -999,10 +959,8 @@ static void render_panel_output()
 	uiDefBut(block, TEX,0,"",				30, 125, 268, 19,G.scene->r.ftype,0.0,79.0, 0, 0, "Image to use with FTYPE Image type");
 	uiDefBut(block, BUT,B_FS_FTYPE," ",		15, 125, 10, 19, 0, 0, 0, 0, 0, "Open Fileselect to get Ftype image");
 	uiDefIconBut(block, BUT, B_CLEARSET, ICON_X, 131, 95, 20, 19, 0, 0, 0, 0, 0, "Remove Set link");
-	uiBlockSetCol(block, BUTSALMON);
 	uiDefBut(block, BUT,B_IS_BACKBUF," ",	8, 148, 10, 19, 0, 0, 0, 0, 0, "Open Imageselect to get Backbuf image");
 	uiDefBut(block, BUT,B_IS_FTYPE," ",		8, 125, 10, 19, 0, 0, 0, 0, 0, "Open Imageselect to get Ftype image");
-	uiBlockSetCol(block, BUTGREY);
 
 	/* SET BUTTON */
 	id= (ID *)G.scene->set;
@@ -1011,7 +969,7 @@ static void render_panel_output()
 		uiDefButS(block, MENU, B_SETBROWSE, strp, 8, 96, 20, 19, &(G.buts->menunr), 0, 0, 0, 0, "Scene to link as a Set");
 	MEM_freeN(strp);
 
-	uiBlockSetCol(block, BUTBLUE);
+	uiBlockSetCol(block, TH_BUT_SETTING1);
 
 	if(G.scene->set) {
 		uiSetButLock(1, NULL);
@@ -1022,7 +980,7 @@ static void render_panel_output()
 
 	uiDefButS(block, TOG|BIT|0, 0,"Backbuf",	8, 70, 62, 19, &G.scene->r.bufflag, 0, 0, 0, 0, "Enable/Disable use of Backbuf image");	
 	
-	uiBlockSetCol(block, BUTGREY);
+	uiBlockSetCol(block, TH_AUTO);
 			
 	for(b=0; b<3; b++) 
 		for(a=0; a<3; a++)
@@ -1053,14 +1011,10 @@ static void render_panel_render()
 	uiBlock *block;
 
 
-	block= uiNewBlock(&curarea->uiblocks, "render_panel_render", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "render_panel_render", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Render", "Render", 320, 0, 318, 204)==0) return;
 
-	uiBlockSetCol(block, BUTSALMON);
-	
  	uiDefBut(block, BUT,B_DORENDER,"RENDER",	369,142,192,47, 0, 0, 0, 0, 0, "Start the rendering");
-	
-	uiBlockSetCol(block, BUTGREY);
 	
 	uiDefButS(block, TOG|BIT|0, 0, "OSA",		369,114,124,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");
 	uiDefButF(block, NUM,B_DIFF,"Bf:",							495,90,65,20,&G.scene->r.blurfac, 0.01, 5.0, 10, 0, "Sets motion blur factor");
@@ -1078,7 +1032,6 @@ static void render_panel_render()
 	uiDefButS(block, ROW,800,"Premul",	410,11,54,24,&G.scene->r.alphamode,3.0,1.0, 0, 0, "Multiply alpha in advance");
 	uiDefButS(block, ROW,800,"Key",		467,11,44,24,&G.scene->r.alphamode,3.0,2.0, 0, 0, "Alpha and colour values remain unchanged");
 
-	uiBlockSetCol(block, BUTGREY);
 	uiDefButS(block, TOG|BIT|1,0,"Shadow",	565,167,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
 	uiDefButS(block, TOG|BIT|4,0,"EnvMap",	626,167,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable environment map renering");
 	uiDefButS(block, TOG|BIT|10,0,"Pano",	565,142,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable panorama rendering (output width is multiplied by Xparts)");
@@ -1105,19 +1058,17 @@ static void render_panel_anim()
 	uiBlock *block;
 
 
-	block= uiNewBlock(&curarea->uiblocks, "render_panel_anim", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "render_panel_anim", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Anim", "Render", 640, 0, 318, 204)==0) return;
 
 
-	uiBlockSetCol(block, BUTSALMON);
 	uiDefBut(block, BUT,B_DOANIM,"ANIM",		692,142,192,47, 0, 0, 0, 0, 0, "Start rendering a sequence");
 	
-	uiBlockSetCol(block, BUTBLUE);
-
+	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiDefButS(block, TOG|BIT|0, 0, "Do Sequence",	692,114,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Enables sequence output rendering (Default: 3D rendering)");
 	uiDefButS(block, TOG|BIT|1, 0, "Render Daemon",	692,90,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Let external network render current scene");
 	
-	uiBlockSetCol(block, BUTGREY);
+	uiBlockSetCol(block, TH_AUTO);
 	uiDefBut(block, BUT,B_PLAYANIM, "PLAY",	692,40,94,33, 0, 0, 0, 0, 0, "Play animation of rendered images/avi (searches Pics: field)");
 	uiDefButS(block, NUM, B_RTCHANGED, "rt:",	790,40,95,33, &G.rt, 0.0, 256.0, 0, 0, "General testing/debug button");
 
@@ -1132,7 +1083,7 @@ static void render_panel_format()
 	int yofs;
 
 
-	block= uiNewBlock(&curarea->uiblocks, "render_panel_format", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "render_panel_format", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Format", "Render", 960, 0, 318, 204)==0) return;
 
 	uiDefBlockBut(block, framing_render_menu, NULL, "Game framing settings |>> ", 892, 169, 227, 20, "Display game framing settings");
@@ -1148,15 +1099,11 @@ static void render_panel_format()
 #ifdef __sgi
 	yofs = 76;
 	uiDefButS(block, NUM,B_DIFF,"MaxSize:", 892,32,165,20, &G.scene->r.maximsize, 0.0, 500.0, 0, 0, "Maximum size per frame to save in an SGI movie");
-	uiBlockSetCol(block, BUTGREEN);
 	uiDefButS(block, TOG|BIT|12,0,"Cosmo", 1059,32,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Attempt to save SGI movies using Cosmo hardware");
-	uiBlockSetCol(block, BUTGREY);
 #endif
 
 	uiDefButS(block, MENU,B_FILETYPEMENU,imagetype_pup(),	892,yofs,174,20, &G.scene->r.imtype, 0, 0, 0, 0, "Images are saved in this file format");
-	uiBlockSetCol(block, BUTGREEN);
 	uiDefButS(block, TOG|BIT|11,0, "Crop",          1068,yofs,51,20, &G.scene->r.mode, 0, 0, 0, 0, "Exclude border rendering from total image");
-	uiBlockSetCol(block, BUTGREY);
 
 	yofs -= 22;
 
@@ -1246,7 +1193,7 @@ void anim_panels()
 	uiBlock *block;
 	
 	
-	block= uiNewBlock(&curarea->uiblocks, "anim_panels", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "anim_panels", UI_EMBOSS, UI_HELV, curarea->win);
 
 	uiDefButS(block, NUM,REDRAWSEQ,"Sta:",	320,17,93,27,&G.scene->r.sfra,1.0,18000.0, 0, 0, "Specify the start frame of the animation");
 	uiDefButS(block, NUM,REDRAWSEQ,"End:",	416,17,95,27,&G.scene->r.efra,1.0,18000.0, 0, 0, "Specify the end frame of the animation");
@@ -1256,7 +1203,6 @@ void anim_panels()
 
 	uiDefButS(block, NUM,REDRAWSEQ,"Frs/sec:",   320,47,93,19, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
 	
-	uiBlockSetCol(block, BUTGREEN);
 	uiDefButS(block, TOG|BIT|1, B_SOUND_CHANGED, "Sync",	416,47,95,19, &G.scene->audio.flag, 0, 0, 0, 0, "Use sample clock for syncing animation to audio");
 
 

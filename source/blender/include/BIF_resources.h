@@ -258,87 +258,41 @@ typedef enum {
 #define BIFNICONIDS			(BIFICONID_LAST-BIFICONID_FIRST + 1)
 } BIFIconID;
 
-typedef enum {
-#define BIFCOLORSHADE_FIRST	(COLORSHADE_DARK)
-	COLORSHADE_DARK,
-	COLORSHADE_GREY,
-	COLORSHADE_LGREY,
-	COLORSHADE_LMEDIUM,
-	COLORSHADE_MEDIUM,
-	COLORSHADE_HILITE,
-	COLORSHADE_LIGHT,
-	COLORSHADE_WHITE,
-	
-#define BIFCOLORSHADE_LAST	(COLORSHADE_WHITE)
-#define BIFNCOLORSHADES		(BIFCOLORSHADE_LAST-BIFCOLORSHADE_FIRST + 1)
-} BIFColorShade;
-
-typedef enum {
-#define BIFCOLORID_FIRST	(BUTGREY)
-	BUTGREY,
-	BUTGREEN,
-	BUTBLUE,
-	BUTSALMON,
-	MIDGREY,
-	BUTPURPLE,
-	BUTYELLOW,
-	REDALERT,
-	BUTRUST,
-	BUTWHITE,
-	BUTDBLUE,
-	BUTPINK,
-	BUTDPINK,
-	BUTMACTIVE,
-
-	ACTIONBUTCOL,
-	NUMBUTCOL,
-	TEXBUTCOL,
-	TOGBUTCOL,
-	SLIDERCOL,
-	TABCOL,
-	MENUCOL,
-	MENUACTIVECOL,
-
-	BUTIPO,
-	BUTAUDIO,
-	BUTCAMERA,
-	BUTRANDOM,
-	BUTEDITOBJECT,
-	BUTPROPERTY,
-	BUTSCENE,
-	BUTMOTION,
-	BUTMESSAGE,
-	BUTACTION,
-	BUTCD,
-	BUTGAME,
-	BUTVISIBILITY,
-	BUTYUCK,
-	BUTSEASICK,
-	BUTCHOKE,
-	
-	HEADERCOL,
-	HEADERCOLSEL,
-	
-	BUTIMPERIAL,
-#define BIFCOLORID_LAST		(BUTIMPERIAL)
-#define BIFNCOLORIDS		(BIFCOLORID_LAST-BIFCOLORID_FIRST + 1)
-} BIFColorID;
-
 
 /* ---------- theme ----------- */
 
-// uibutton colors
-
-
-#define TH_THEMEUI	99
-
-// common colors among spaces
-
 enum {
-	TH_BACK	= 100,
+	TH_AUTO,	/* for buttons, to signal automatic color assignment */
+	
+// uibutton colors
+	TH_BUT_NEUTRAL,
+	TH_BUT_ACTION,
+	TH_BUT_SETTING,
+	TH_BUT_SETTING1,
+	TH_BUT_SETTING2,
+	TH_BUT_NUM,
+	TH_BUT_TEXTFIELD,
+	TH_BUT_POPUP,
+	TH_BUT_TEXT,
+	TH_BUT_TEXT_HI,
+	TH_MENU_BACK,
+	TH_MENU_ITEM,
+	TH_MENU_HILITE,
+	TH_MENU_TEXT,
+	TH_MENU_TEXT_HI,
+	
+	TH_BUT_DRAWTYPE,
+	
+	TH_REDALERT,
+	
+	TH_THEMEUI,
+// common colors among spaces
+	
+	TH_BACK,
 	TH_TEXT,
 	TH_TEXT_HI,
 	TH_HEADER,
+	TH_HEADERDESEL,
 	TH_PANEL,
 	TH_SHADE1,
 	TH_SHADE2,
@@ -377,7 +331,8 @@ void 	BIF_ThemeColorShade(int colorid, int offset);
 void 	BIF_ThemeColorBlend(int colorid1, int colorid2, float fac);
 
 // returns one value, not scaled
-float 	BIF_GetThemeColorf(int colorid);
+float 	BIF_GetThemeValuef(int colorid);
+int 	BIF_GetThemeValue(int colorid);
 
 // get three color values, scaled to 0.0-1.0 range
 void 	BIF_GetThemeColor3fv(int colorid, float *col);
@@ -398,9 +353,7 @@ void	BIF_resources_free		(void);
 int		BIF_get_icon_width		(BIFIconID icon);
 int		BIF_get_icon_height		(BIFIconID icon);
 void	BIF_draw_icon			(BIFIconID icon);
-void	BIF_draw_icon_blended	(BIFIconID icon, BIFColorID color, BIFColorShade shade);
-
-void	BIF_set_color			(BIFColorID color, BIFColorShade shade);
+void	BIF_draw_icon_blended	(BIFIconID icon, int colorid, int shade);
 
 /* only for buttons in theme editor! */
 char 	*BIF_ThemeGetColorPtr(struct bTheme *btheme, int spacetype, int colorid);

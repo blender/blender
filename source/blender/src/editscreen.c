@@ -303,8 +303,8 @@ void headerbox(ScrArea *area)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	if(area_is_active_area(area)) BIF_ThemeColor(TH_HEADER);
-	else BIF_ThemeColorShade(TH_HEADER, -20);
-	
+	else BIF_ThemeColor(TH_HEADERDESEL);
+
 	/* weird values here... is because of window matrix that centres buttons */
 	if(area->headertype==HEADERTOP) {
 		uiSetRoundBox(3);

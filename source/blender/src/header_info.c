@@ -592,7 +592,6 @@ static uiBlock *info_file_optionsmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "runtime_options", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_file_optionsmenu, NULL);
 	uiBlockSetXOfs(block,-40);	// offset to parent button
-	uiBlockSetCol(block, MENUCOL);
 	
 	/* flags are case-values */
 	uiDefBut(block, BUTM, 1, "Compress File",	xco, yco-=20, 100, 19, NULL, 0.0, 0.0, 0, G_FILE_COMPRESS_BIT, "Enables file compression");
@@ -606,7 +605,7 @@ static uiBlock *info_file_optionsmenu(void *arg_unused)
 	
 	yco= 0;
 	xco -= 20;
-	uiBlockSetEmboss(block, UI_EMBOSSW);
+	uiBlockSetEmboss(block, UI_EMBOSSM);
 	uiBlockSetButmFunc(block, NULL, NULL);
 	/* flags are defines */
 	uiDefIconButI(block, ICONTOG|BIT|G_FILE_COMPRESS_BIT, 0, ICON_CHECKBOX_DEHLT, xco, yco-=20, 19, 19, &G.fileflags, 0.0, 0.0, 0, 0, "");
@@ -626,8 +625,7 @@ static uiBlock *info_runtime_optionsmenu(void *arg_unused)
 
 	block= uiNewBlock(&curarea->uiblocks, "add_surfacemenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetXOfs(block, -40);  // offset to parent button
-	uiBlockSetCol(block, MENUCOL);
-	uiBlockSetEmboss(block, UI_EMBOSSW);
+	uiBlockSetEmboss(block, UI_EMBOSSM);
 
 	uiDefBut(block, LABEL, 0, "Size options:",		xco, yco-=20, 114, 19, 0, 0.0, 0.0, 0, 0, "");
 	uiDefButS(block, NUM, 0, "X:",		xco+19, yco-=20, 95, 19,		&G.scene->r.xplay, 10.0, 2000.0, 0, 0, "Displays current X screen/window resolution. Click to change.");
@@ -688,7 +686,6 @@ static uiBlock *info_file_importmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "importmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_file_importmenu, NULL);
 	//uiBlockSetXOfs(block, -50);  // offset to parent button
-	uiBlockSetCol(block, MENUCOL);
 	
 	uiDefBut(block, BUTM, 1, "Python scripts go here somehow!",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 
@@ -731,7 +728,6 @@ static uiBlock *info_file_exportmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "exportmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_file_exportmenu, NULL);
 	//uiBlockSetXOfs(block, -50);  // offset to parent button
-	uiBlockSetCol(block, MENUCOL);
 	
 	uiDefBut(block, BUTM, 1, "VRML 1.0...|Ctrl F2",		0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, 1, "DXF...|Shift F2",		0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -839,7 +835,6 @@ static uiBlock *info_filemenu(void *arg_unused)
 
 	block= uiNewBlock(&curarea->uiblocks, "info_filemenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_info_filemenu, NULL);
-	uiBlockSetCol(block, MENUCOL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "New|Ctrl X",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Open...|F1",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -939,7 +934,6 @@ static uiBlock *info_add_meshmenu(void *arg_unused)
 	
 	block= uiNewBlock(&curarea->uiblocks, "add_meshmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_add_meshmenu, NULL);
-	uiBlockSetCol(block, MENUCOL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Plane|",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cube|",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -996,7 +990,6 @@ static uiBlock *info_add_curvemenu(void *arg_unused)
 	
 	block= uiNewBlock(&curarea->uiblocks, "add_curvemenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_add_curvemenu, NULL);
-	uiBlockSetCol(block, MENUCOL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Bezier Curve|",	0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Bezier Circle|",	0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -1053,7 +1046,6 @@ static uiBlock *info_add_surfacemenu(void *arg_unused)
 	
 	block= uiNewBlock(&curarea->uiblocks, "add_surfacemenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_add_surfacemenu, NULL);
-	uiBlockSetCol(block, MENUCOL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "NURBS Curve|",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "NURBS Circle|",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -1106,7 +1098,6 @@ static uiBlock *info_add_metamenu(void *arg_unused)
 	
 	block= uiNewBlock(&curarea->uiblocks, "add_metamenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_add_metamenu, NULL);
-	uiBlockSetCol(block, MENUCOL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1,"Meta Ball|",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Meta Tube|",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -1176,7 +1167,6 @@ static uiBlock *info_addmenu(void *arg_unused)
 
 	block= uiNewBlock(&curarea->uiblocks, "addmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_info_addmenu, NULL);
-	uiBlockSetCol(block, MENUCOL);
 	
 	uiDefIconTextBlockBut(block, info_add_meshmenu, NULL, ICON_RIGHTARROW_THIN, "Mesh", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, info_add_curvemenu, NULL, ICON_RIGHTARROW_THIN, "Curve", 0, yco-=20, 120, 19, "");
@@ -1224,7 +1214,6 @@ static uiBlock *info_gamemenu(void *arg_unused)
 	
 	block= uiNewBlock(&curarea->uiblocks, "gamemenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_info_gamemenu, NULL);
-	uiBlockSetCol(block, MENUCOL);
 	
 	uiDefIconTextBut(block, BUTM, B_STARTGAME, ICON_BLANK1,	"Start Game|P",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -1350,7 +1339,6 @@ static uiBlock *info_timelinemenu(void *arg_unused)
 
 	block= uiNewBlock(&curarea->uiblocks, "timelinemenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_info_timelinemenu, NULL);
-	uiBlockSetCol(block, MENUCOL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Keyframes|K",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show and Select Keyframes|Shift K",0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
@@ -1473,7 +1461,6 @@ static uiBlock *info_rendermenu(void *arg_unused)
 	
 	block= uiNewBlock(&curarea->uiblocks, "rendermenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_info_rendermenu, NULL);
-	uiBlockSetCol(block, MENUCOL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Render Current Frame|F12",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Render Animation",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -1523,7 +1510,6 @@ static uiBlock *info_help_websitesmenu(void *arg_unused)
 
 	block= uiNewBlock(&curarea->uiblocks, "info_help_websitesmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_help_websitesmenu, NULL);
-	uiBlockSetCol(block, MENUCOL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Blender Website *",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Blender E-shop *",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -1580,7 +1566,6 @@ static uiBlock *info_helpmenu(void *arg_unused)
 	
 	block= uiNewBlock(&curarea->uiblocks, "info_helpmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_info_helpmenu, NULL);
-	uiBlockSetCol(block, MENUCOL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "-- Placeholders only --",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	
@@ -1665,23 +1650,23 @@ static void info_text(int x, int y)
 
 	glRasterPos2i(x, y);
 
-	BIF_DrawString(G.font, headerstr, (U.transopts & TR_MENUS), 0);
+	BIF_DrawString(G.font, headerstr, (U.transopts & TR_MENUS));
 		
 	glRasterPos2i(x+122,	y);
 
-	BIF_DrawString(G.font, infostr, (U.transopts & TR_MENUS), 0);
+	BIF_DrawString(G.font, infostr, (U.transopts & TR_MENUS));
 }
 
 void info_buttons(void)
 {
 	uiBlock *block;
 	short xco= 42;
-	char naam[20];
 	int xmax;
 
-	sprintf(naam, "header %d", curarea->headwin);	
-	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSSN, UI_HELV, curarea->headwin);
-	uiBlockSetCol(block, BUTGREY);
+	block= uiNewBlock(&curarea->uiblocks, "header info", UI_EMBOSSN, UI_HELV, curarea->headwin);
+
+	if(area_is_active_area(curarea)) uiBlockSetCol(block, TH_HEADER);
+	else uiBlockSetCol(block, TH_HEADERDESEL);
 	
 	if(U.uiflag & FLIPINFOMENU) {
 		uiDefIconButS(block, TOG|BIT|6, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_RIGHT,
@@ -1697,10 +1682,7 @@ void info_buttons(void)
 	if(U.uiflag & FLIPINFOMENU) {
 	} else {
 		uiBlockSetEmboss(block, UI_EMBOSSP);
-		if(area_is_active_area(curarea)) uiBlockSetCol(block, HEADERCOLSEL);	
-		else uiBlockSetCol(block, HEADERCOL);	
 
-		
 		/* the 'xmax - 3' rather than xmax is to prevent some weird flickering where the highlighted
 		 * menu is drawn wider than it should be. The ypos of -1 is to make it properly fill the
 		 * height of the header */
@@ -1731,19 +1713,16 @@ void info_buttons(void)
 	}
 
 	/* pack icon indicates a packed file */
-	uiBlockSetCol(block, BUTGREY);
 	
 	if (G.fileflags & G_AUTOPACK) {
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		uiDefIconBut(block, LABEL, 0, ICON_PACKAGE, xco, 0, XIC, YIC, &G.fileflags, 0.0, 0.0, 0, 0, "Indicates this is a Packed file. See File menu.");
 		xco += XIC;
-		uiBlockSetEmboss(block, UI_EMBOSSX);
 	}
 
-	uiBlockSetEmboss(block, UI_EMBOSSX);
-	
 	if (curarea->full == 0) {
 		curarea->butspacetype= SPACE_INFO;
+		uiBlockSetEmboss(block, UI_EMBOSS);
 		uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 8,0,XIC+10,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
 		
 		/* STD SCREEN BUTTONS */
@@ -1761,13 +1740,7 @@ void info_buttons(void)
 	
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	uiDefIconBut(block, BUT, B_SHOWSPLASH, ICON_BLENDER, xco+7, 0,XIC,YIC, 0, 0, 0, 0, 0, "Click to display Splash Screen");
-	uiBlockSetEmboss(block, UI_EMBOSSX);
 
-/*
-	uiBlockSetEmboss(block, UI_EMBOSSN);
-	uiDefIconBut(block, LABEL, 0, ICON_PUBLISHER, xco+125, 0,XIC,YIC, 0, 0, 0, 0, 0, "");
-	uiBlockSetEmboss(block, UI_EMBOSSX);
-*/
 	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;
 	

@@ -104,8 +104,10 @@ void file_buttons(void)
 	sfile= curarea->spacedata.first;
 
 	sprintf(naam, "header %d", curarea->headwin);
-	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSSX, UI_HELV, curarea->headwin);
-	uiBlockSetCol(block, BUTGREY);
+	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSS, UI_HELV, curarea->headwin);
+
+	if(area_is_active_area(curarea)) uiBlockSetCol(block, TH_HEADER);
+	else uiBlockSetCol(block, TH_HEADERDESEL);
 
 	curarea->butspacetype= SPACE_FILE;
 	
@@ -128,7 +130,7 @@ void file_buttons(void)
 	cpack(0x0);
 	glRasterPos2i(xco+=XIC+10,	5);
 
-	BIF_DrawString(uiBlockGetCurFont(block), sfile->title, (U.transopts & TR_BUTTONS), 0);
+	BIF_DrawString(uiBlockGetCurFont(block), sfile->title, (U.transopts & TR_BUTTONS));
 	xco+= BIF_GetStringWidth(G.font, sfile->title, (U.transopts & TR_BUTTONS));
 	
 	uiDefIconButS(block, ICONTOG|BIT|0, B_SORTFILELIST, ICON_LONGDISPLAY,xco+=XIC,0,XIC,YIC, &sfile->flag, 0, 0, 0, 0, "Toggles long info");
@@ -151,7 +153,7 @@ void file_buttons(void)
 		cpack(0x0);
 		glRasterPos2i(xco,	5);
 
-		BIF_DrawString(uiBlockGetCurFont(block), naam, 0, 0);
+		BIF_DrawString(uiBlockGetCurFont(block), naam, 0);
 	}
 	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;

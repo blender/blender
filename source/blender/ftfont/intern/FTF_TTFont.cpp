@@ -225,12 +225,12 @@ int FTF_TTFont::GetSize(void)
 
 int FTF_TTFont::Ascender(void)
 {
-	return font->Ascender();
+	return (int)font->Ascender();
 }
 
 int FTF_TTFont::Descender(void)
 {
-	return font->Descender();
+	return (int)font->Descender();
 }
 
 
@@ -240,8 +240,9 @@ int FTF_TTFont::TransConvString(char* str, char* ustr, unsigned int flag)
 }
 
 
-float FTF_TTFont::DrawString(char* str, unsigned int flag, int select)
+float FTF_TTFont::DrawString(char* str, unsigned int flag)
 {
+	float color[4];
 	wchar_t wstr[FTF_MAX_STR_SIZE-1]={'\0'};
 	int len=0;
   
@@ -250,37 +251,11 @@ float FTF_TTFont::DrawString(char* str, unsigned int flag, int select)
 	else 
 		len=utf8towchar(wstr,str);
 
-	if(!select) {
-		glPixelTransferf(GL_RED_SCALE, 0.0);
-		glPixelTransferf(GL_GREEN_SCALE, 0.0);
-		glPixelTransferf(GL_BLUE_SCALE, 0.0);
-	}
+	glGetFloatv(GL_CURRENT_COLOR, color);
 	
-	font->Render(wstr);
-  
-	if(!select) {
-		glPixelTransferf(GL_RED_SCALE, 1.0);
-		glPixelTransferf(GL_GREEN_SCALE, 1.0);
-		glPixelTransferf(GL_BLUE_SCALE, 1.0);
-	}
-
-	return font->Advance(wstr);
-}
-
-
-float FTF_TTFont::DrawStringRGB(char* str, unsigned int flag, float r, float g, float b)
-{
-	wchar_t wstr[FTF_MAX_STR_SIZE-1]={'\0'};
-	int len=0;
-  
-	if (FTF_USE_GETTEXT & flag) 
-		len=utf8towchar(wstr,gettext(str));
-	else 
-		len=utf8towchar(wstr,str);
-
-	glPixelTransferf(GL_RED_SCALE, r);
-	glPixelTransferf(GL_GREEN_SCALE, g);
-	glPixelTransferf(GL_BLUE_SCALE, b);
+	glPixelTransferf(GL_RED_SCALE, color[0]);
+	glPixelTransferf(GL_GREEN_SCALE, color[1]);
+	glPixelTransferf(GL_BLUE_SCALE, color[2]);
 	
 	font->Render(wstr);
   

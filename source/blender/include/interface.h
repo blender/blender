@@ -128,16 +128,18 @@ struct uiBut {
 	void *func_arg1;
 	void *func_arg2;
 
-	void (*embossfunc)(BIFColorID, float, float, float, float, float, int);
+	void (*embossfunc)(int , int , float, float, float, float, float, int);
+	void (*sliderfunc)(int , float, float, float, float, float, float, int);
 
 	uiLink *link;
 	
 	char *tip, *lockstr;
 
-	BIFColorID col;
+	int themecol;	/* themecolor id */
 	void *font;
 
 	BIFIconID icon;
+	short but_align;	/* aligning buttons, horiz/vertical */
 	short lock, win;
 	short iconadd;
 
@@ -179,7 +181,8 @@ struct uiBlock {
 	/* extra draw function for custom blocks */
 	void (*drawextra)();
 
-	BIFColorID col;
+	int themecol;	/* themecolor id */
+	short but_align;	/* aligning buttons, horiz/vertical */
 	short font;	/* indices */
 	int afterval;
 	void *curfont;
@@ -195,6 +198,7 @@ struct uiBlock {
 
 /* interface.c */
 extern void ui_check_but(uiBut *but);
+extern double ui_get_but_val(uiBut *but);
 extern void ui_autofill(uiBlock *block);
 extern void ui_graphics_to_window(int win, float *x, float *y);
 extern void ui_window_to_graphics(int win, float *x, float *y);
@@ -203,7 +207,9 @@ extern void ui_window_to_graphics(int win, float *x, float *y);
 extern void ui_draw_panel(uiBlock *block);
 extern void ui_do_panel(uiBlock *block, uiEvent *uevent);
 
-
+/* interface_draw.c */
+extern void ui_set_embossfunc(uiBut *but, int drawtype);
+extern void ui_draw_but(uiBut *but);
 
 
 #endif

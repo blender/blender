@@ -61,10 +61,15 @@
 #include "blendef.h"	// CLAMP
 #include "datatoc.h"
 
+/* global for themes */
+static bTheme *theme_active=NULL;
+static int theme_spacetype= SPACE_VIEW3D;
+
 typedef struct {
 	unsigned char *data;
 	int w, h;
 } Icon;
+
 
 static Icon *icon_from_data(unsigned char *rect, int w, int h, int rowstride)
 {
@@ -81,10 +86,14 @@ static void icon_draw(Icon *icon)
 {
 	glDrawPixels(icon->w, icon->h, GL_RGBA, GL_UNSIGNED_BYTE, icon->data);
 }
+
+#if 0
+
 static unsigned char colclamp(int val)
 {
 	return (val<0)?(0):((val>255)?255:val);
 }
+
 static void icon_draw_blended(Icon *icon, unsigned char blendcol[3])
 {
 	unsigned char temprect[20*21*4];	/* XXX, not so safe */
@@ -113,67 +122,41 @@ static void icon_draw_blended(Icon *icon, unsigned char blendcol[3])
 
 	glDrawPixels(icon->w, icon->h, GL_RGBA, GL_UNSIGNED_BYTE, temprect);
 }
+#endif
+
+static void icon_draw_blended(Icon *icon, char *blendcol, int shade)
+{
+	float r, g, b;
+	
+	r= (-shade + (float)blendcol[0])/180.0;
+	g= (-shade + (float)blendcol[1])/180.0;
+	b= (-shade + (float)blendcol[2])/180.0;
+	
+//	glPixelTransferf(GL_RED_SCALE, r>0.0?r:0.0);
+//	glPixelTransferf(GL_GREEN_SCALE, g>0.0?g:0.0);
+//	glPixelTransferf(GL_BLUE_SCALE, b>0.0?b:0.0);
+
+	if(shade < 0) {
+		r= (128+shade)/128.0;
+		glPixelTransferf(GL_ALPHA_SCALE, r);
+	}
+
+	glDrawPixels(icon->w, icon->h, GL_RGBA, GL_UNSIGNED_BYTE, icon->data);
+
+//	glPixelTransferf(GL_RED_SCALE, 1.0);
+//	glPixelTransferf(GL_GREEN_SCALE, 1.0);
+//	glPixelTransferf(GL_BLUE_SCALE, 1.0);
+	glPixelTransferf(GL_ALPHA_SCALE, 1.0);
+
+}
+
+
 static void icon_free(Icon *icon)
 {
 	MEM_freeN(icon->data);
 	MEM_freeN(icon);
 }
 
-/***/
-
-typedef struct {
-	unsigned char cols[BIFNCOLORSHADES][3];
-} Color;
-
-static Color *common_colors_arr= NULL;
-
-static unsigned char *get_color(BIFColorID colorid, BIFColorShade shade)
-{
-	int coloridx= colorid-BIFCOLORID_FIRST;
-	int shadeidx= shade-BIFCOLORSHADE_FIRST;
-	
-	if (coloridx>=0 && coloridx<BIFNCOLORIDS && shadeidx>=0 && shadeidx<BIFNCOLORSHADES) {
-		return common_colors_arr[coloridx].cols[shadeidx];
-	} else {
-		static unsigned char errorcol[3]= {0xFF, 0x33, 0x33};
-
-		return errorcol;
-	}
-}
-
-void BIF_set_color(BIFColorID colorid, BIFColorShade shade)
-{
-	glColor3ubv(get_color(colorid, shade));
-}
-
-static void rgbaCCol_addNT(unsigned char *t, unsigned char *a, int N)
-{
-	t[0]= colclamp(a[0]+N);
-	t[1]= colclamp(a[1]+N);
-	t[2]= colclamp(a[2]+N);
-	
-}
-static void def_col(BIFColorID colorid, unsigned char r, unsigned char g, unsigned char b)
-{
-	int coloridx= colorid-BIFCOLORID_FIRST;
-	if (coloridx>=0 && coloridx<BIFNCOLORIDS) {
-		unsigned char col[3];
-
-		col[0]= r, col[1]= g, col[2]= b;
-		rgbaCCol_addNT(get_color(colorid, COLORSHADE_WHITE),	col, 80);
-		rgbaCCol_addNT(get_color(colorid, COLORSHADE_LIGHT),	col, 45);
-		rgbaCCol_addNT(get_color(colorid, COLORSHADE_HILITE),	col, 25);
-		rgbaCCol_addNT(get_color(colorid, COLORSHADE_LMEDIUM),	col, 10);
-		rgbaCCol_addNT(get_color(colorid, COLORSHADE_MEDIUM),	col, 0);
-		rgbaCCol_addNT(get_color(colorid, COLORSHADE_LGREY),	col, -20);
-		rgbaCCol_addNT(get_color(colorid, COLORSHADE_GREY),	col, -45);
-		rgbaCCol_addNT(get_color(colorid, COLORSHADE_DARK),	col, -80);
-	} else {
-		printf("def_col: Internal error, bad color ID: %d\n", colorid);
-	}
-}
-
-/***/
 
 static Icon **common_icons_arr= NULL;
 
@@ -199,14 +182,18 @@ void BIF_draw_icon(BIFIconID icon)
 {
 	icon_draw(get_icon(icon));
 }
-void BIF_draw_icon_blended(BIFIconID icon, BIFColorID color, BIFColorShade shade)
+
+void BIF_draw_icon_blended(BIFIconID icon, int colorid, int shade)
 {
-	icon_draw_blended(get_icon(icon), get_color(color, shade));
+	char *cp= BIF_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
+	icon_draw_blended(get_icon(icon), cp, shade);
 }
+
 int BIF_get_icon_width(BIFIconID icon)
 {
 	return get_icon(icon)->w;
 }
+
 int BIF_get_icon_height(BIFIconID icon)
 {
 	return get_icon(icon)->h;
@@ -246,7 +233,6 @@ void BIF_resources_init(void)
 	int x, y;
 
 	common_icons_arr= MEM_mallocN(sizeof(*common_icons_arr)*BIFNICONIDS, "common_icons");
-	common_colors_arr= MEM_mallocN(sizeof(*common_colors_arr)*BIFNCOLORIDS, "common_colors");
 
 	for (y=0; y<10; y++) {
 		for (x=0; x<21; x++) {
@@ -274,60 +260,13 @@ void BIF_resources_init(void)
 		}
 	}
 
-	IMB_freeImBuf(bbuf);
-
-	def_col(BUTGREY,		0x90,0x90,0x90);
-	def_col(BUTGREEN,		0x88,0xA0,0xA4);
-	def_col(BUTBLUE,		0xA0,0xA0,0xB0);
-	def_col(BUTSALMON,		0xB0,0xA0,0x90);
-	def_col(MIDGREY,		0xB0,0xB0,0xB0);	
-	def_col(BUTPURPLE,		0xA2,0x98,0xA9);
-	def_col(BUTYELLOW,		0xB2,0xB2,0x99);
-	def_col(BUTRUST,		0x80,0x70,0x70);
-	def_col(REDALERT,		0xB0,0x40,0x40);
-	def_col(BUTWHITE,		0xD0,0xD0,0xD0);
-	def_col(BUTDBLUE,		0x80,0x80,0xA0);
-	def_col(BUTDPINK,		0xAA,0x88,0x55);
-	def_col(BUTPINK,		0xE8,0xBD,0xA7);
-	def_col(BUTMACTIVE,		0x30,0x30,0x30);
-
-	def_col(ACTIONBUTCOL,	0x88,0x88,0x88);
-	def_col(NUMBUTCOL,		0x88,0x88,0x88);
-	def_col(TEXBUTCOL,		0x88,0x88,0x88);
-	def_col(TOGBUTCOL,		0x88,0x88,0x88);
-	def_col(SLIDERCOL,		0x88,0x88,0x88);
-	def_col(TABCOL,			0x88,0x88,0x88);
-	def_col(MENUCOL,		0xCF,0xCF,0xCF);
-	def_col(MENUACTIVECOL,	0x80,0x80,0x80);
-
-	def_col(BUTIPO,			0xB0,0xB0,0x99);
-	def_col(BUTAUDIO,		0xB0,0xA0,0x90);
-	def_col(BUTCAMERA,		0x99,0xB2,0xA5);
-	def_col(BUTRANDOM,		0xA9,0x9A,0x98);
-	def_col(BUTEDITOBJECT,	0xA2,0x98,0xA9);
-	def_col(BUTPROPERTY,	0xA0,0xA0,0xB0);
-	def_col(BUTSCENE,		0x99,0x99,0xB2);
-	def_col(BUTMOTION,		0x98,0xA7,0xA9);
-	def_col(BUTMESSAGE,		0x88,0xA0,0x94);
-	def_col(BUTACTION,		0xB2,0xA9,0x99);
-	def_col(BUTVISIBILITY,	0xB2,0xA9,0x99);
-	def_col(BUTCD,			0xB0,0x95,0x90);
-	def_col(BUTGAME,		0x99,0xB2,0x9C);
-	def_col(BUTYUCK,		0xB0,0x99,0xB0);
-	def_col(BUTSEASICK,		0x99,0xB0,0xB0);
-	def_col(BUTCHOKE,		0x88,0x94,0xA0);
-	def_col(BUTIMPERIAL,	0x94,0x88,0xA0);
-	
-	def_col(HEADERCOL,		165, 165, 165);
-	def_col(HEADERCOLSEL,	185, 185, 185);
-	
+	IMB_freeImBuf(bbuf);	
 }
 
 void BIF_resources_free(void)
 {
 	free_common_icons();
 
-	MEM_freeN(common_colors_arr);
 	MEM_freeN(common_icons_arr);
 	
 }
@@ -337,17 +276,58 @@ void BIF_resources_free(void)
 /*    THEMES */
 /* ******************************************************** */
 
-
 char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 {
 	ThemeSpace *ts= NULL;
-	char error[3]={240, 0, 240};
+	static char error[3]={240, 0, 240};
+	static char alert[3]={240, 60, 60};
+	static char headerdesel[3];
+	
 	char *cp= error;
 	
 	if(btheme) {
+	
 		// first check for ui buttons theme
 		if(colorid < TH_THEMEUI) {
+		
+			switch(colorid) {
+			case TH_BUT_NEUTRAL:
+				cp= btheme->tui.neutral; break;
+			case TH_BUT_ACTION:
+				cp= btheme->tui.action; break;
+			case TH_BUT_SETTING:
+				cp= btheme->tui.setting; break;
+			case TH_BUT_SETTING1:
+				cp= btheme->tui.setting1; break;
+			case TH_BUT_SETTING2:
+				cp= btheme->tui.setting2; break;
+			case TH_BUT_NUM:
+				cp= btheme->tui.num; break;
+			case TH_BUT_TEXTFIELD:
+				cp= btheme->tui.textfield; break;
+			case TH_BUT_POPUP:
+				cp= btheme->tui.popup; break;
+			case TH_BUT_TEXT:
+				cp= btheme->tui.text; break;
+			case TH_BUT_TEXT_HI:
+				cp= btheme->tui.text_hi; break;
+			case TH_MENU_BACK:
+				cp= btheme->tui.menu_back; break;
+			case TH_MENU_ITEM:
+				cp= btheme->tui.menu_item; break;
+			case TH_MENU_HILITE:
+				cp= btheme->tui.menu_hilite; break;
+			case TH_MENU_TEXT:
+				cp= btheme->tui.menu_text; break;
+			case TH_MENU_TEXT_HI:
+				cp= btheme->tui.menu_text_hi; break;
 			
+			case TH_BUT_DRAWTYPE:
+				cp= &btheme->tui.but_drawtype; break;
+			
+			case TH_REDALERT:
+				cp= alert; break;
+			}
 		}
 		else {
 		
@@ -378,6 +358,14 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->text_hi; break;
 			case TH_HEADER:
 				cp= ts->header; break;
+			case TH_HEADERDESEL:
+				/* we calculate a dynamic builtin header deselect color, also for pulldowns... */
+				cp= ts->header; 
+				headerdesel[0]= cp[0]>20?cp[0]-20:0;
+				headerdesel[1]= cp[1]>20?cp[1]-20:0;
+				headerdesel[2]= cp[2]>20?cp[2]-20:0;
+				cp= headerdesel;
+				break;
 			case TH_PANEL:
 				cp= ts->panel; break;
 			case TH_SHADE1:
@@ -439,8 +427,26 @@ void BIF_InitTheme(void)
 	}
 	
 	BIF_SetTheme(NULL);	// make sure the global used in this file is set
-	
+
 	/* UI buttons (todo) */
+	SETCOL(btheme->tui.neutral, 	0xA0,0xA0,0xA0, 255);
+	SETCOL(btheme->tui.action, 		0xB0,0xA0,0x90, 255);
+	SETCOL(btheme->tui.setting, 	0x88,0xA0,0xA4, 255);
+	SETCOL(btheme->tui.setting1, 	0xA0,0xA0,0xB0, 255);
+	SETCOL(btheme->tui.setting2, 	0xA2,0x98,0xA9, 255);
+	SETCOL(btheme->tui.num,		 	0x90,0x90,0x90, 255);
+	SETCOL(btheme->tui.textfield,	0x90,0x90,0x90, 255);
+	SETCOL(btheme->tui.popup,		0xB2,0xB2,0xA9, 255);
+	
+	SETCOL(btheme->tui.text,		0,0,0, 255);
+	SETCOL(btheme->tui.text_hi, 	255, 255, 255, 255);
+	
+	SETCOL(btheme->tui.menu_back, 	0xCF,0xCF,0xCF, 255);
+	SETCOL(btheme->tui.menu_item, 	0xDA,0xDA,0xDA, 255);
+	SETCOL(btheme->tui.menu_hilite, 0x7F,0x7F,0x7F, 255);
+	SETCOL(btheme->tui.menu_text, 	0, 0, 0, 255);
+	SETCOL(btheme->tui.menu_text_hi, 255, 255, 255, 255);
+	btheme->tui.but_drawtype= 1;
 	
 	/* space view3d */
 	SETCOL(btheme->tv3d.back, 	115, 115, 115, 255);
@@ -518,13 +524,30 @@ char *BIF_ThemeColorsPup(int spacetype)
 	char str[32];
 	
 	if(spacetype==0) {
-		strcpy(cp, "Not Yet");
+		sprintf(str, "Neutral %%x%d|", TH_BUT_NEUTRAL); strcat(cp, str);
+		sprintf(str, "Action %%x%d|", TH_BUT_ACTION); strcat(cp, str);
+		sprintf(str, "Setting %%x%d|", TH_BUT_SETTING); strcat(cp, str);
+		sprintf(str, "Special Setting 1%%x%d|", TH_BUT_SETTING1); strcat(cp, str);
+		sprintf(str, "Special Setting 2 %%x%d|", TH_BUT_SETTING2); strcat(cp, str);
+		sprintf(str, "Number Input %%x%d|", TH_BUT_NUM); strcat(cp, str);
+		sprintf(str, "Text Input %%x%d|", TH_BUT_TEXTFIELD); strcat(cp, str);
+		sprintf(str, "Popup %%x%d|", TH_BUT_POPUP); strcat(cp, str);
+		sprintf(str, "Text %%x%d|", TH_BUT_TEXT); strcat(cp, str);
+		sprintf(str, "Text hilight %%x%d|", TH_BUT_TEXT_HI); strcat(cp, str);
+			strcat(cp,"%l|");
+		sprintf(str, "Menu Background %%x%d|", TH_MENU_BACK); strcat(cp, str);
+		sprintf(str, "Menu Item %%x%d|", TH_MENU_ITEM); strcat(cp, str);
+		sprintf(str, "Menu Item hilight %%x%d|", TH_MENU_HILITE); strcat(cp, str);
+		sprintf(str, "Menu Text %%x%d|", TH_MENU_TEXT); strcat(cp, str);
+		sprintf(str, "Menu Text hilight %%x%d|", TH_MENU_TEXT_HI); strcat(cp, str);
+		strcat(cp,"%l|");
+		sprintf(str, "Drawtype %%x%d|", TH_BUT_DRAWTYPE); strcat(cp, str);
 	}
 	else {
 		// first defaults for each space
 		sprintf(str, "Background %%x%d|", TH_BACK); strcat(cp, str);
 		sprintf(str, "Text %%x%d|", TH_TEXT); strcat(cp, str);
-		sprintf(str, "Text Hilite %%x%d|", TH_TEXT_HI); strcat(cp, str);
+		sprintf(str, "Text hilight %%x%d|", TH_TEXT_HI); strcat(cp, str);
 		sprintf(str, "Header %%x%d|", TH_HEADER); strcat(cp, str);
 		
 		if(spacetype==SPACE_VIEW3D) {
@@ -561,9 +584,6 @@ char *BIF_ThemeColorsPup(int spacetype)
 	}
 	return cp;
 }
-
-static bTheme *theme_active=NULL;
-static int theme_spacetype= SPACE_VIEW3D;
 
 void BIF_SetTheme(ScrArea *sa)
 {
@@ -634,7 +654,7 @@ void BIF_ThemeColorBlend(int colorid1, int colorid2, float fac)
 
 
 // get individual values, not scaled
-float BIF_GetThemeColorf(int colorid)
+float BIF_GetThemeValuef(int colorid)
 {
 	char *cp;
 	
@@ -642,6 +662,17 @@ float BIF_GetThemeColorf(int colorid)
 	return ((float)cp[0]);
 
 }
+
+// get individual values, not scaled
+int BIF_GetThemeValue(int colorid)
+{
+	char *cp;
+	
+	cp= BIF_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
+	return ((int) cp[0]);
+
+}
+
 
 // get the color, range 0.0-1.0
 void BIF_GetThemeColor3fv(int colorid, float *col)

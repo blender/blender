@@ -1071,7 +1071,7 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	
 	if(ob==NULL) return;
 
-	block= uiNewBlock(&curarea->uiblocks, "view3d_panel_object", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "view3d_panel_object", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(VIEW3D_HANDLER_OBJECT);  // for close and esc
 	if(uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 204)==0) return;
@@ -1112,7 +1112,7 @@ static void view3d_panel_settings(cntrl)	// VIEW3D_HANDLER_BACKGROUND
 	
 	vd= G.vd;
 
-	block= uiNewBlock(&curarea->uiblocks, "view3d_panel_settings", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "view3d_panel_settings", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
 	uiSetPanelHandler(VIEW3D_HANDLER_BACKGROUND);  // for close and esc
 	if(uiNewPanel(curarea, block, "Backdrop and settings", "View3d", 10, 10, 318, 204)==0) return;
@@ -1124,9 +1124,7 @@ static void view3d_panel_settings(cntrl)	// VIEW3D_HANDLER_BACKGROUND
 			vd->bgpic->blend= 0.5;
 		}
 	}
-	uiBlockSetCol(block, BUTGREEN);
 	uiDefButS(block, TOG|BIT|1, REDRAWVIEW3D, "BackGroundPic",	10,160,150,20 , &vd->flag, 0, 0, 0, 0, "Display a picture in the 3D background");
-	uiBlockSetCol(block, BUTGREY);
 	
 	if(vd->bgpic) {
 		
@@ -1142,9 +1140,7 @@ static void view3d_panel_settings(cntrl)	// VIEW3D_HANDLER_BACKGROUND
 			uiDefBut(block, TEX,	    0,"BGpic: ",		30,140,260,19,&vd->bgpic->ima->name,0.0,100.0, 0, 0, "The Selected BackGroundPic");
 			uiDefIconBut(block, BUT, B_BGPICCLEAR, ICON_X, 	290,140,20,19, 0, 0, 0, 0, 0, "Remove background image link");
 		}
-		uiBlockSetCol(block, BUTSALMON);
 		uiDefBut(block, BUT,	    B_LOADBGPIC, "LOAD",	10,120,100,19, 0, 0, 0, 0, 0, "Specify the BackGroundPic");
-		uiBlockSetCol(block, BUTGREY);
 		uiDefButF(block, NUMSLI, B_BLENDBGPIC, "Blend:",	120,120,190,19,&vd->bgpic->blend, 0.0,1.0, 0, 0, "Set the BackGroundPic transparency");
 		
 		/* There is a bug here ... (what bug? where? what is this? - zr) */

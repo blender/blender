@@ -228,8 +228,6 @@ void draw_scriptlink(uiBlock *block, ScriptLink *script, int sx, int sy, int sce
 {
 	char str[256];
 
-	uiBlockSetCol(block, BUTGREY);
-
 	if (script->totscript) {
 		strcpy(str, "FrameChanged%x 1|");
 		strcat(str, "Redraw%x 4|");
@@ -244,8 +242,6 @@ void draw_scriptlink(uiBlock *block, ScriptLink *script, int sx, int sy, int sce
 
 	sprintf(str,"%d Scr:", script->totscript);
 	uiDefButS(block, NUM, REDRAWBUTSSCRIPT, str, (short)(sx+140), (short)sy-20,60,19, &script->actscript, 1, script->totscript, 0, 0, "Total / Active Script link (LeftMouse + Drag to change)");
-
-	uiBlockSetCol(block, BUTSALMON);
 
 	if (scene) {
 		if (script->totscript<32767) 
@@ -276,7 +272,7 @@ static void  script_panel_scriptlink(void)
 	Material *ma;
 	int xco = 10;
 	
-	block= uiNewBlock(&curarea->uiblocks, "script_panel_scriptlink", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "script_panel_scriptlink", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Scriptlinks", "Script", 0, 0, 318, 204)==0) return;
 	
 	

@@ -843,7 +843,7 @@ void tbox_drawelem_text(x, y, type)
 		}
 		
 		glRasterPos2i(x1+5, y1+tbfontyofs);
-		BIF_DrawString(G.font, tbstr, (U.transopts & TR_MENUS), (type==0 || type==2)?0:1);
+		BIF_DrawString(G.font, tbstr, (U.transopts & TR_MENUS));
 		
 		if(keystr && keystr[0]) {
 			if(type & 1) {
@@ -852,12 +852,12 @@ void tbox_drawelem_text(x, y, type)
 				glRecti(x2-len2-2,  y1+2,  x2-3,  y2-2);
 				ColorFunc(TBOXWHITE);
 				glRasterPos2i(x2-len2,  y1+tbfontyofs);
-				BIF_DrawString(G.font, keystr, (U.transopts & TR_MENUS), 1);
+				BIF_DrawString(G.font, keystr, (U.transopts & TR_MENUS));
 			}
 			else {
 				ColorFunc(TBOXBLACK);
 				glRasterPos2i(x2-len2,  y1+tbfontyofs);
-				BIF_DrawString(G.font, keystr, (U.transopts & TR_MENUS), 0);
+				BIF_DrawString(G.font, keystr, (U.transopts & TR_MENUS));
 			}
 		}
 	}
@@ -1113,7 +1113,7 @@ short button(short *var, short min, short max, char *str)
 	if(mval[0]>G.curscreen->sizex) mval[0]= G.curscreen->sizex-10;
 	if(mval[1]>G.curscreen->sizey) mval[1]= G.curscreen->sizey-10;
 
-	block= uiNewBlock(&listb, "button", UI_EMBOSSX, UI_HELV, G.curscreen->mainwin);
+	block= uiNewBlock(&listb, "button", UI_EMBOSS, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|
 				   UI_BLOCK_ENTER_OK);
 
@@ -1147,7 +1147,7 @@ short sbutton(char *var, float min, float max, char *str)
 	if(mval[0]>G.curscreen->sizex) mval[0]= G.curscreen->sizex-10;
 	if(mval[1]>G.curscreen->sizey) mval[1]= G.curscreen->sizey-10;
 
-	block= uiNewBlock(&listb, "button", UI_EMBOSSX, UI_HELV, G.curscreen->mainwin);
+	block= uiNewBlock(&listb, "button", UI_EMBOSS, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1);
 
 	x1=mval[0]-150; 
@@ -1180,7 +1180,7 @@ short fbutton(float *var, float min, float max, char *str)
 	if(mval[0]>G.curscreen->sizex) mval[0]= G.curscreen->sizex-10;
 	if(mval[1]>G.curscreen->sizey) mval[1]= G.curscreen->sizey-10;
 
-	block= uiNewBlock(&listb, "button", UI_EMBOSSX, UI_HELV, G.curscreen->mainwin);
+	block= uiNewBlock(&listb, "button", UI_EMBOSS, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1);
 
 	x1=mval[0]-150; 
@@ -1222,7 +1222,7 @@ int movetolayer_buts(unsigned int *lay)
 	x1= pivot[0]-sizex+10; 
 	y1= pivot[1]-sizey/2; 
 
-	block= uiNewBlock(&listb, "button", UI_EMBOSSX, UI_HELV, G.curscreen->mainwin);
+	block= uiNewBlock(&listb, "button", UI_EMBOSS, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT|UI_BLOCK_RET_1);
 	
 	dx= (sizex-5)/12;
@@ -1275,7 +1275,7 @@ void draw_numbuts_tip(char *str, int x1, int y1, int x2, int y2)
 	temp= 0;
 	while( BIF_GetStringWidth(G.fonts, str+temp, (U.transopts & TR_BUTTONS))>(x2 - x1-24)) temp++;
 	glRasterPos2i(x1+16, y2-30);
-	BIF_DrawString(G.fonts, str+temp, (U.transopts & TR_BUTTONS), 0);
+	BIF_DrawString(G.fonts, str+temp, (U.transopts & TR_BUTTONS));
 }
 
 int do_clever_numbuts(char *name, int tot, int winevent)
@@ -1305,7 +1305,7 @@ int do_clever_numbuts(char *name, int tot, int winevent)
 	x1= mval[0]-sizex/2; 
 	y2= mval[1]+sizey/2;
 	
-	block= uiNewBlock(&listb, "numbuts", UI_EMBOSSX, UI_HELV, G.curscreen->mainwin);
+	block= uiNewBlock(&listb, "numbuts", UI_EMBOSS, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_ENTER_OK);
 	
 	/* WATCH IT: TEX BUTTON EXCEPTION */

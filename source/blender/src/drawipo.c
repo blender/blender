@@ -761,7 +761,6 @@ static void draw_ipobuts(SpaceIpo *sipo)
 	
 	sprintf(naam, "ipowin %d", area->win);
 	block= uiNewBlock(&area->uiblocks, naam, UI_EMBOSSN, UI_HELV, area->win);
-	uiBlockSetCol(block, BUTRUST);
 	
 	ei= sipo->editipo;
 	y= area->winy-30+sipo->butofs;

@@ -284,23 +284,23 @@ static void get_constraint_typestring (char *str, bConstraint *con)
 	}
 }
 
-static BIFColorID get_constraint_col(bConstraint *con)
+static int get_constraint_col(bConstraint *con)
 {
 	switch (con->type) {
 	case CONSTRAINT_TYPE_NULL:
-		return BUTWHITE;
+		return TH_BUT_NEUTRAL;
 	case CONSTRAINT_TYPE_KINEMATIC:
-		return BUTPURPLE;
+		return TH_BUT_SETTING2;
 	case CONSTRAINT_TYPE_TRACKTO:
-		return BUTGREEN;
+		return TH_BUT_SETTING;
 	case CONSTRAINT_TYPE_ROTLIKE:
-		return BUTBLUE;
+		return TH_BUT_SETTING1;
 	case CONSTRAINT_TYPE_LOCLIKE:
-		return BUTYELLOW;
+		return TH_BUT_POPUP;
 	case CONSTRAINT_TYPE_ACTION:
-		return BUTPINK;
+		return TH_BUT_ACTION;
 	default:
-		return REDALERT;
+		return TH_REDALERT;
 	}
 }
 
@@ -309,27 +309,25 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	uiBut *but;
 	char typestr[64];
 	short height, width = 238;
-	BIFColorID curCol;
+	int curCol;
 
 	/* there is something weird in this function... opengl draw (glrects) doesnt match the buttons... */
 
-	uiBlockSetEmboss(block, UI_EMBOSSW);
+	uiBlockSetEmboss(block, UI_EMBOSSM);
 
 	get_constraint_typestring (typestr, con);
 
 	curCol = get_constraint_col(con);
 	/* Draw constraint header */
-	uiBlockSetCol(block, BUTSALMON);
 
 	but = uiDefIconBut(block, BUT, B_CONSTRAINT_REDRAW, ICON_X, *xco, *yco, 20, 20, list, 0.0, 0.0, 0.0, 0.0, "Delete constraint");
 
 	uiButSetFunc(but, del_constraint_func, con, list);
 
 	if (con->flag & CONSTRAINT_EXPAND) {
-		uiBlockSetCol(block, BUTYELLOW);
 		
 		if (con->flag & CONSTRAINT_DISABLE)
-			uiBlockSetCol(block, REDALERT);
+			uiBlockSetCol(block, TH_REDALERT);
 		
 		if (type==TARGET_BONE)
 			but = uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Bone Constraint%t|Track To%x2|IK Solver%x3|Copy Rotation%x8|Copy Location%x9|Action%x12|Null%x0", *xco+20, *yco, 100, 20, &con->type, 0.0, 0.0, 0.0, 0.0, "Constraint type"); 
@@ -344,14 +342,13 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	}	
 	else{
 		uiBlockSetEmboss(block, UI_EMBOSSP);
-		uiBlockSetCol(block, BUTGREY);
 
 		if (con->flag & CONSTRAINT_DISABLE) {
-			uiBlockSetCol(block, REDALERT);
-			BIF_set_color(REDALERT, COLORSHADE_MEDIUM);
+			uiBlockSetCol(block, TH_REDALERT);
+			BIF_ThemeColor(TH_REDALERT);
 		}
 		else
-			BIF_set_color(curCol, COLORSHADE_MEDIUM);
+			BIF_ThemeColor(curCol);
 
 		glRects(*xco+34, *yco-12, *xco+266, *yco+5);
 		
@@ -361,9 +358,9 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		uiButSetFunc(but, move_constraint_func, con, NULL);
 	}
 
-	uiBlockSetCol(block, BUTGREY);	
+	uiBlockSetCol(block, TH_AUTO);	
 	
-	uiBlockSetEmboss(block, UI_EMBOSSW);
+	uiBlockSetEmboss(block, UI_EMBOSSM);
 	uiDefIconButS(block, ICONTOG|BIT|CONSTRAINT_EXPAND_BIT, B_CONSTRAINT_REDRAW, ICON_RIGHTARROW, *xco+248, *yco, 20, 20, &con->flag, 0.0, 0.0, 0.0, 0.0, "Collapse");
 
 
@@ -390,7 +387,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 			bArmature *arm;
 
 			height = 86;
-			BIF_set_color(curCol, COLORSHADE_MEDIUM);
+			BIF_ThemeColor(curCol);
 			glRects(*xco+34, *yco-height-16, *xco+width+24, *yco-14);
 			uiEmboss((float)*xco+34, (float)*yco-height-16, (float)*xco+width+24, (float)*yco-14, 1);
 
@@ -422,7 +419,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 			bLocateLikeConstraint *data = con->data;
 			bArmature *arm;
 			height = 66;
-			BIF_set_color(curCol, COLORSHADE_MEDIUM);
+			BIF_ThemeColor(curCol);
 			glRects(*xco+34, *yco-height-16, *xco+width+24, *yco-14);
 			uiEmboss((float)*xco+34, (float)*yco-height-16, (float)*xco+width+24, (float)*yco-14, 1);
 
@@ -447,7 +444,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 			bRotateLikeConstraint *data = con->data;
 			bArmature *arm;
 			height = 46;
-			BIF_set_color(curCol, COLORSHADE_MEDIUM);
+			BIF_ThemeColor(curCol);
 			glRects(*xco+34, *yco-height-16, *xco+width+24, *yco-14);
 			uiEmboss((float)*xco+34, (float)*yco-height-16, (float)*xco+width+24, (float)*yco-14, 1);
 
@@ -468,7 +465,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 			bArmature *arm;
 			
 			height = 66;
-			BIF_set_color(curCol, COLORSHADE_MEDIUM);
+			BIF_ThemeColor(curCol);
 			glRects(*xco+34, *yco-height-16, *xco+width+24, *yco-14);
 			uiEmboss((float)*xco+34, (float)*yco-height-16, (float)*xco+width+24, (float)*yco-14, 1);
 			
@@ -489,7 +486,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	case CONSTRAINT_TYPE_NULL:
 		{
 			height = 20;
-			BIF_set_color(curCol, COLORSHADE_MEDIUM);
+			BIF_ThemeColor(curCol);
 			glRects(*xco+34, *yco-height-16, *xco+width+24, *yco-14);
 			uiEmboss((float)*xco+34, (float)*yco-height-16, (float)*xco+width+24, (float)*yco-14, 1);
 		}
@@ -500,7 +497,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 			bArmature *arm;
 
 			height = 46;
-			BIF_set_color(curCol, COLORSHADE_MEDIUM);
+			BIF_ThemeColor(curCol);
 			glRects(*xco+34, *yco-height-16, *xco+width+24, *yco-14);
 			uiEmboss((float)*xco+34, (float)*yco-height-16, (float)*xco+width+24, (float)*yco-14, 1);
 			
@@ -592,7 +589,7 @@ static void object_panel_constraint(void)
 	short xco, yco, type;
 	char ownerstr[64];
 	
-	block= uiNewBlock(&curarea->uiblocks, "object_panel_constraint", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_constraint", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Effects", "Object");
 	if(uiNewPanel(curarea, block, "Constraints", "Object", 640, 0, 318, 204)==0) return;
 
@@ -604,7 +601,6 @@ static void object_panel_constraint(void)
 	
 	if (conlist) {
 		 
-		uiBlockSetCol(block, BUTSALMON);
 		uiDefBut(block, BUT, B_CONSTRAINT_ADD, "Add", 10, 190, 95, 20, 0, 0.0, 0, 0, 0,"Add new constraint");
 		
 		/* Go through the list of constraints and draw them */
@@ -907,7 +903,7 @@ void object_panel_draw(Object *ob)
 	int xco, a, dx, dy;
 	
 	
-	block= uiNewBlock(&curarea->uiblocks, "object_panel_draw", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_draw", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Draw", "Object", 320, 0, 318, 204)==0) return;
 
 	/* LAYERS */
@@ -925,7 +921,6 @@ void object_panel_draw(Object *ob)
 	id= ob->data;
 	if(id && id->lib) uiSetButLock(1, "Can't edit library data");
 
-	uiBlockSetCol(block, BUTGREY);
 	uiDefBut(block, LABEL, 0, "Drawtype",						28,200,100,18, 0, 0, 0, 0, 0, "");
 	uiDefButC(block, MENU, REDRAWVIEW3D, "Drawtype%t|Bounds %x1|Wire %x2|Solid %x3|Shaded %x4",	
 																28,180,100,18, &ob->dt, 0, 0, 0, 0, "Sets the drawing type of the active object");
@@ -938,7 +933,6 @@ void object_panel_draw(Object *ob)
 	uiDefButC(block, TOG|BIT|2, REDRAWVIEW3D, "TexSpace",	28, 60, 100, 18, &ob->dtx, 0, 0, 0, 0, "Displays the active object's texture space");
 	uiDefButC(block, TOG|BIT|3, REDRAWVIEW3D, "Name",		28, 40, 100, 18, &ob->dtx, 0, 0, 0, 0, "Displays the active object's name");
 	
-	uiBlockSetCol(block, BUTGREY);
 	
 }
 
@@ -1136,11 +1130,9 @@ void object_panel_effects(Object *ob)
 	int a;
 	short x, y;
 	
-	block= uiNewBlock(&curarea->uiblocks, "object_panel_effects", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_effects", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Effects", "Object", 640, 0, 418, 204)==0) return;
 
-	uiBlockSetCol(block, BUTSALMON);
-	
 	/* EFFECTS */
 	
 	if (ob->type == OB_MESH) {
@@ -1148,8 +1140,6 @@ void object_panel_effects(Object *ob)
 		uiDefBut(block, BUT, B_DELEFFECT, "Delete", 676,187,62,27, 0, 0, 0, 0, 0, "Delete the effect");
 	}
 
-	uiBlockSetCol(block, BUTGREY);
-	
 	/* select effs */
 	eff= ob->effect.first;
 	a= 0;
@@ -1186,12 +1176,10 @@ void object_panel_effects(Object *ob)
 			
 			wav= (WaveEff *)eff;
 			
-			uiBlockSetCol(block, BUTGREEN);
 			uiDefButS(block, TOG|BIT|1, B_CALCEFFECT, "X",		782,135,54,23, &wav->flag, 0, 0, 0, 0, "Enable X axis");
 			uiDefButS(block, TOG|BIT|2, B_CALCEFFECT, "Y",		840,135,47,23, &wav->flag, 0, 0, 0, 0, "Enable Y axis");
 			uiDefButS(block, TOG|BIT|3, B_CALCEFFECT, "Cycl",		890,135,111,23, &wav->flag, 0, 0, 0, 0, "Enable cyclic wave efefct");
 			
-			uiBlockSetCol(block, BUTGREY);
 			uiDefButF(block, NUM, B_CALCEFFECT, "Sta x:",		550,135,113,24, &wav->startx, -100.0, 100.0, 100, 0, "Starting position for the X axis");
 			uiDefButF(block, NUM, B_CALCEFFECT, "Sta y:",		665,135,104,24, &wav->starty, -100.0, 100.0, 100, 0, "Starting position for the Y axis");
 			
@@ -1212,9 +1200,7 @@ void object_panel_effects(Object *ob)
 			paf= (PartEff *)eff;
 			
 			uiDefBut(block, BUT, B_RECALCAL, "RecalcAll", 741,187,67,27, 0, 0, 0, 0, 0, "Update the particle system");
-			uiBlockSetCol(block, BUTGREEN);
 			uiDefButS(block, TOG|BIT|2, B_CALCEFFECT, "Static",	825,187,67,27, &paf->flag, 0, 0, 0, 0, "Make static particles");
-			uiBlockSetCol(block, BUTGREY);
 			
 			uiDefButI(block, NUM, B_CALCEFFECT, "Tot:",		550,146,91,20, &paf->totpart, 1.0, 100000.0, 0, 0, "Set the total number of particles");
 			if(paf->flag & PAF_STATIC) {
@@ -1227,9 +1213,7 @@ void object_panel_effects(Object *ob)
 			uiDefButF(block, NUM, B_CALCEFFECT, "Life:",		831,146,88,20, &paf->lifetime, 1.0, 9000.0, 100, 0, "Specify the life span of the particles");
 			uiDefButI(block, NUM, B_CALCEFFECT, "Keys:",		922,146,80,20, &paf->totkey, 1.0, 32.0, 0, 0, "Specify the number of key positions");
 			
-			uiBlockSetCol(block, BUTGREEN);
 			uiDefButS(block, NUM, B_REDR,		"CurMul:",		550,124,91,20, &paf->curmult, 0.0, 3.0, 0, 0, "Multiply the particles");
-			uiBlockSetCol(block, BUTGREY);
 			uiDefButS(block, NUM, B_CALCEFFECT, "Mat:",		644,124,84,20, paf->mat+paf->curmult, 1.0, 8.0, 0, 0, "Specify the material used for the particles");
 			uiDefButF(block, NUM, B_CALCEFFECT, "Mult:",		730,124,98,20, paf->mult+paf->curmult, 0.0, 1.0, 10, 0, "Probability \"dying\" particle spawns a new one.");
 			uiDefButS(block, NUM, B_CALCEFFECT, "Child:",	922,124,80,20, paf->child+paf->curmult, 1.0, 600.0, 100, 0, "Specify the number of children of a particle that multiply itself");
@@ -1239,30 +1223,28 @@ void object_panel_effects(Object *ob)
 			uiDefButI(block, NUM, B_CALCEFFECT, "Seed:",		652,96,80,20, &paf->seed, 0.0, 255.0, 0, 0, "Set an offset in the random table");
 
 			uiDefButF(block, NUM, B_DIFF,			"VectSize",		885,96,116,20, &paf->vectsize, 0.0, 1.0, 10, 0, "Set the speed for Vect");	
-			uiBlockSetCol(block, BUTGREEN);
 			uiDefButS(block, TOG|BIT|3, B_CALCEFFECT, "Face",				735,96,46,20, &paf->flag, 0, 0, 0, 0, "Emit particles also from faces");
 			uiDefButS(block, TOG|BIT|1, B_CALCEFFECT, "Bspline",			782,96,54,20, &paf->flag, 0, 0, 0, 0, "Use B spline formula for particle interpolation");
 			uiDefButS(block, TOG, REDRAWVIEW3D, "Vect",					837,96,45,20, &paf->stype, 0, 0, 0, 0, "Give the particles a rotation direction");
 			
-			uiBlockSetCol(block, BUTPURPLE);
+			uiBlockSetCol(block, TH_BUT_SETTING2);
 			uiDefButF(block, NUM, B_CALCEFFECT, "Norm:",		550,67,96,20, &paf->normfac, -2.0, 2.0, 10, 0, "Let the mesh give the particle a starting speed");
 			uiDefButF(block, NUM, B_CALCEFFECT, "Ob:",		649,67,86,20, &paf->obfac, -1.0, 1.0, 10, 0, "Let the object give the particle a starting speed");
 			uiDefButF(block, NUM, B_CALCEFFECT, "Rand:",		738,67,86,20, &paf->randfac, 0.0, 2.0, 10, 0, "Give the startingspeed a random variation");
 			uiDefButF(block, NUM, B_CALCEFFECT, "Tex:",		826,67,85,20, &paf->texfac, 0.0, 2.0, 10, 0, "Let the texture give the particle a starting speed");
 			uiDefButF(block, NUM, B_CALCEFFECT, "Damp:",		913,67,89,20, &paf->damp, 0.0, 1.0, 10, 0, "Specify the damping factor");
-
-			uiBlockSetCol(block, BUTGREY);
+			uiBlockSetCol(block, TH_AUTO);
+			
 			uiDefButF(block, NUM, B_CALCEFFECT, "X:",			550,31,72,20, paf->force, -1.0, 1.0, 1, 0, "Specify the X axis of a continues force");
 			uiDefButF(block, NUM, B_CALCEFFECT, "Y:",			624,31,78,20, paf->force+1,-1.0, 1.0, 1, 0, "Specify the Y axis of a continues force");
 			uiDefBut(block, LABEL, 0, "Force:",						550,9,72,20, 0, 1.0, 0, 0, 0, "");
 			uiDefButF(block, NUM, B_CALCEFFECT, "Z:",			623,9,79,20, paf->force+2, -1.0, 1.0, 1, 0, "Specify the Z axis of a continues force");
 
 			uiDefBut(block, LABEL, 0, "Texture:",				722,9,74,20, 0, 1.0, 0, 0, 0, "");
-			uiBlockSetCol(block, BUTGREEN);
 			uiDefButS(block, ROW, B_CALCEFFECT, "Int",		875,9,32,43, &paf->texmap, 14.0, 0.0, 0, 0, "Use texture intensity as a factor for texture force");
 			uiDefButS(block, ROW, B_CALCEFFECT, "RGB",		911,31,45,20, &paf->texmap, 14.0, 1.0, 0, 0, "Use RGB values as a factor for particle speed");
 			uiDefButS(block, ROW, B_CALCEFFECT, "Grad",		958,31,44,20, &paf->texmap, 14.0, 2.0, 0, 0, "Use texture gradient as a factor for particle speed");
-			uiBlockSetCol(block, BUTGREY);
+
 			uiDefButF(block, NUM, B_CALCEFFECT, "Nabla:",		911,9,91,20, &paf->nabla, 0.0001, 1.0, 1, 0, "Specify the dimension of the area for gradient calculation");
 			uiDefButF(block, NUM, B_CALCEFFECT, "X:",			722,31,74,20, paf->defvec, -1.0, 1.0, 1, 0, "Specify the X axis of a force, determined by the texture");
 			uiDefButF(block, NUM, B_CALCEFFECT, "Y:",			798,31,74,20, paf->defvec+1,-1.0, 1.0, 1, 0, "Specify the Y axis of a force, determined by the texture");
@@ -1277,10 +1259,9 @@ static void object_panel_anim(Object *ob)
 	uiBlock *block;
 	char str[32];
 	
-	block= uiNewBlock(&curarea->uiblocks, "object_panel_anim", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_anim", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Anim settings", "Object", 0, 0, 318, 204)==0) return;
 	
-	uiBlockSetCol(block, BUTGREEN);
 	uiDefButC(block, ROW,REDRAWVIEW3D,"TrackX",	27,190,58,17, &ob->trackflag, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
 	uiDefButC(block, ROW,REDRAWVIEW3D,"Y",		85,190,19,17, &ob->trackflag, 12.0, 1.0, 0, 0, "Specify the axis that points to another object");
 	uiDefButC(block, ROW,REDRAWVIEW3D,"Z",		104,190,19,17, &ob->trackflag, 12.0, 2.0, 0, 0, "Specify the axis that points to another object");
@@ -1291,39 +1272,30 @@ static void object_panel_anim(Object *ob)
 	uiDefButC(block, ROW,REDRAWVIEW3D,"Y",		274,190,20,17, &ob->upflag, 13.0, 1.0, 0, 0, "Specify the axis that points up");
 	uiDefButC(block, ROW,REDRAWVIEW3D,"Z",		297,190,19,17, &ob->upflag, 13.0, 2.0, 0, 0, "Specify the axis that points up");
 
-	uiBlockSetCol(block, BUTGREEN);
 	uiDefButC(block, TOG|BIT|0, REDRAWVIEW3D, "Draw Key",		25,160,70,19, &ob->ipoflag, 0, 0, 0, 0, "Draw object as key position");
 	uiDefButC(block, TOG|BIT|1, REDRAWVIEW3D, "Draw Key Sel",	97,160,81,20, &ob->ipoflag, 0, 0, 0, 0, "Limit the drawing of object keys");
 	uiDefButS(block, TOG|BIT|4, 0, "SlowPar",			261,160,56,20, &ob->partype, 0, 0, 0, 0, "Create a delay in the parent relationship");
 	uiDefButC(block, TOG|BIT|7, REDRAWVIEW3D, "Powertrack",	180,160,78,19, &ob->transflag, 0, 0, 0, 0, "Switch objects rotation off");
 
-
-	uiBlockSetCol(block, BUTGREY);
 	uiDefButC(block, TOG|BIT|3, REDRAWVIEW3D, "DupliFrames",	24,128,88,19, &ob->transflag, 0, 0, 0, 0, "Make copy of object for every frame");
 	uiDefButC(block, TOG|BIT|4, REDRAWVIEW3D, "DupliVerts",		114,128,82,19, &ob->transflag, 0, 0, 0, 0, "Duplicate child objects on all vertices");
-	uiBlockSetCol(block, BUTGREEN);
 	uiDefButC(block, TOG|BIT|5, REDRAWVIEW3D, "Rot",		200,128,31,20, &ob->transflag, 0, 0, 0, 0, "Rotate dupli according to facenormal");
 	uiDefButC(block, TOG|BIT|6, REDRAWVIEW3D, "No Speed",	234,128,82,19, &ob->transflag, 0, 0, 0, 0, "Set dupliframes to still, regardless of frame");
 
-	uiBlockSetCol(block, BUTGREY);
 	uiDefButS(block, NUM, REDRAWVIEW3D, "DupSta:",		24,105,141,18, &ob->dupsta, 1.0, 1500.0, 0, 0, "Specify startframe for Dupliframes");
 	uiDefButS(block, NUM, REDRAWVIEW3D, "DupEnd",		24,83,140,19, &ob->dupend, 1.0, 2500.0, 0, 0, "Specify endframe for Dupliframes");
 	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOn:",		169,104,146,19, &ob->dupon, 1.0, 1500.0, 0, 0, "");
 	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOff",		169,82,145,19, &ob->dupoff, 0.0, 1500.0, 0, 0, "");
 
-	uiBlockSetCol(block, BUTGREEN);
 	uiDefButC(block, TOG|BIT|2, REDRAWALL, "Offs Ob",			23,51,56,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on its own objectipo");
 	uiDefButC(block, TOG|BIT|6, REDRAWALL, "Offs Par",			82,51,56,20 , &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the parent");
 	uiDefButC(block, TOG|BIT|7, REDRAWALL, "Offs Particle",		141,51,103,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the particle effect");
 
-	uiBlockSetCol(block, BUTGREY);
 	sprintf(str, "%.4f", prspeed);
 	uiDefBut(block, LABEL, 0, str,							247,40,63,31, 0, 1.0, 0, 0, 0, "");
 	uiDefBut(block, BUT, B_PRINTSPEED,	"PrSpeed",			246,17,67,31, 0, 0, 0, 0, 0, "Print objectspeed");
 
-	uiBlockSetCol(block, BUTGREY);
 	uiDefButF(block, NUM, REDRAWALL, "TimeOffset:",			23,17,114,30, &ob->sf, -9000.0, 9000.0, 100, 0, "Specify an offset in frames");
-	uiBlockSetCol(block, BUTSALMON);
 	uiDefBut(block, BUT, B_AUTOTIMEOFS, "Automatic Time",	139,17,104,31, 0, 0, 0, 0, 0, "Generate automatic timeoffset values for all selected frames");
 		
 #if 0	
@@ -1343,8 +1315,6 @@ static void object_panel_anim(Object *ob)
 		}
 	}
 	
-	uiBlockSetCol(block, BUTGREY);
-	
 		sprintf(str, "%.3f", G.sipo->v2d.tot.xmin);
 		uiDefBut(block, LABEL, 0, str,			1020, 140, 100, 19, 0, 0, 0, 0, 0, "");
 		sprintf(str, "%.3f", G.sipo->v2d.tot.xmax);
@@ -1361,15 +1331,12 @@ static void object_panel_anim(Object *ob)
 		uiDefButF(block, NUM, B_DIFF, "Ymin:",		1020, 80, 100, 19, &G.sipo->tot.ymin, -G.sipo->v2d.max[1], G.sipo->v2d.max[1], 100, 0, "");
 		uiDefButF(block, NUM, B_DIFF, "Ymax:",		1120, 80, 100, 19, &G.sipo->tot.ymax, -G.sipo->v2d.max[1], G.sipo->v2d.max[1], 100, 0, "");
 	
-		uiBlockSetCol(block, BUTSALMON);
 		uiDefBut(block, BUT, B_MUL_IPO,	"SET",		1220,79,50,62, 0, 0, 0, 0, 0, "");
 		
 		
 		/* SPEED BUTTON */
-		uiBlockSetCol(block, BUTGREY);
 		uiDefButF(block, NUM, B_DIFF, "Speed:",		1020,23,164,28, &hspeed, 0.0, 180.0, 1, 0, "");
 		
-		uiBlockSetCol(block, BUTSALMON);
 		uiDefBut(block, BUT, B_SETSPEED,	"SET",		1185,23,83,29, 0, 0, 0, 0, 0, "");
 
 #endif	

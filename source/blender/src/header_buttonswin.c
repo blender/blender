@@ -89,9 +89,6 @@
 
 Material matcopybuf;
 
-static void unique_bone_name(Bone *bone, bArmature *arm);
-static int bonename_exists(Bone *orig, char *name, ListBase *list);
-
 void clear_matcopybuf(void)
 {
 	memset(&matcopybuf, 0, sizeof(Material));
@@ -295,6 +292,7 @@ void buttons_active_id(ID **id, ID **idfrom)
 	}
 }
 
+#if 0
 static void validate_bonebutton(void *bonev, void *data2_unused){
 	Bone *bone= bonev;
 	bArmature *arm;
@@ -302,6 +300,7 @@ static void validate_bonebutton(void *bonev, void *data2_unused){
 	arm = get_armature(G.obpose);
 	unique_bone_name(bone, arm);
 }
+
 
 static int bonename_exists(Bone *orig, char *name, ListBase *list)
 {
@@ -360,7 +359,6 @@ static uiBlock *sbuts_context_menu(void *arg_unused)
 	short yco = 0;
 
 	block= uiNewBlock(&curarea->uiblocks, "context_options", UI_EMBOSSP, UI_HELV, curarea->headwin);
-	uiBlockSetCol(block, MENUCOL);
 
 	/* should be branches from tree */
 	uiDefIconTextButS(block, BUTM, B_REDR, ICON_SCENE_DEHLT, "Scene|F10", 0, yco-=22, 100, 20, &G.buts->mainb, 0.0, 0.0, 0, 0, "");
@@ -380,7 +378,7 @@ static uiBlock *sbuts_context_menu(void *arg_unused)
 
 	return block;
 }
-
+#endif
 
 void buts_buttons(void)
 {
@@ -390,8 +388,10 @@ void buts_buttons(void)
 	char naam[20];
 
 	sprintf(naam, "header %d", curarea->headwin);
-	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSSX, UI_HELV, curarea->headwin);
-	uiBlockSetCol(block, BUTGREY);
+	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSS, UI_HELV, curarea->headwin);
+
+	if(area_is_active_area(curarea)) uiBlockSetCol(block, TH_HEADER);
+	else uiBlockSetCol(block, TH_HEADERDESEL);
 
 	curarea->butspacetype= SPACE_BUTS;
 	
@@ -411,9 +411,6 @@ void buts_buttons(void)
 	
 	/* mainb menu */
 	/* (this could be done later with a dynamic tree and branches, also for python) */
-	uiBlockSetCol(block, MIDGREY);
-	// uiBlockSetEmboss(block, UI_EMBOSSMB);	// menu but
-
 	//{
 	//	char mainbname[8][12]= {" Scene", " Object", " Types", " Shading", " Editing", " Script", " Logic"};
 	//	char mainbicon[8]= {ICON_SCENE_DEHLT, ICON_OBJECT, ICON_BBOX, ICON_MATERIAL_DEHLT, ICON_EDIT, ICON_SCRIPT, ICON_GAME};
@@ -433,7 +430,7 @@ void buts_buttons(void)
 	// if(curarea->headertype==HEADERTOP)  t_base= -3; else t_base= 4;
 	
 	/* select the context to be drawn, per contex/tab the actual context is tested */
-	uiBlockSetEmboss(block, UI_EMBOSSX);	// normal
+	uiBlockSetEmboss(block, UI_EMBOSS);	// normal
 	switch(G.buts->mainb) {
 	case CONTEXT_SCENE:
 		uiDefIconButC(block, ROW, B_REDR,		ICON_SCENE,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_RENDER, 0, 0, "Render buttons ");

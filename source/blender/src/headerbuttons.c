@@ -301,10 +301,10 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 			lb= wich_libbase(G.main, GS(id->name));
 			
 			if(idwasnul) id= NULL;
-			else if(id->us>1) uiBlockSetCol(block, BUTDBLUE);
+			else if(id->us>1) uiBlockSetCol(block, TH_BUT_SETTING1);
 
 			if (pin && *pinpoin) {
-				uiBlockSetCol(block, BUTDPINK);
+				uiBlockSetCol(block, TH_BUT_SETTING2);
 			}
 			
 			if ELEM7( idtype, ID_SCE, ID_SCR, ID_MA, ID_TE, ID_WO, ID_IP, ID_AC) extrastr= "ADD NEW %x 32767";
@@ -375,13 +375,13 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 	if(id) {
 	
 		/* name */
-		if(id->us>1) uiBlockSetCol(block, BUTDBLUE);
+		if(id->us>1) uiBlockSetCol(block, TH_BUT_SETTING1);
 		/* Pinned data ? */
 		if (pin && *pinpoin) {
-			uiBlockSetCol(block, BUTDPINK);
+			uiBlockSetCol(block, TH_BUT_SETTING2);
 		}
 		/* Redalert overrides pin color */
-		if(id->us<=0) uiBlockSetCol(block, REDALERT);
+		if(id->us<=0) uiBlockSetCol(block, TH_REDALERT);
 
 		uiSetButLock(id->lib!=0, "Can't edit library data");
 		

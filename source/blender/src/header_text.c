@@ -192,8 +192,10 @@ void text_buttons(void)
 	if (!st || st->spacetype != SPACE_TEXT) return;
 
 	sprintf(naam, "header %d", curarea->headwin);
-	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSSX, UI_HELV, curarea->headwin);
-	uiBlockSetCol(block, BUTGREY);
+	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSS, UI_HELV, curarea->headwin);
+
+	if(area_is_active_area(curarea)) uiBlockSetCol(block, TH_HEADER);
+	else uiBlockSetCol(block, TH_HEADERDESEL);
 
 	curarea->butspacetype= SPACE_TEXT;
 

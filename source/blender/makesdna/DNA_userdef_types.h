@@ -40,8 +40,24 @@
 // global, button colors
 
 typedef struct ThemeUI {
-	char back[4];
+	char neutral[4];
+	char action[4];
+	char setting[4];
+	char setting1[4];
+	char setting2[4];
+	char num[4];
+	char textfield[4];
+	char popup[4];
 	char text[4];
+	char text_hi[4];
+	char menu_back[4];
+	char menu_item[4];
+	char menu_hilite[4];
+	char menu_text[4];
+	char menu_text_hi[4];
+
+	char but_drawtype, pad;
+	short pad1;
 
 } ThemeUI;
 

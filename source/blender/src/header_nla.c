@@ -106,8 +106,10 @@ void nla_buttons(void)
 	snla= curarea->spacedata.first;
 	
 	sprintf(naam, "header %d", curarea->headwin);
-	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSSX, UI_HELV, curarea->headwin);
-	uiBlockSetCol(block, BUTCHOKE);
+	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSS, UI_HELV, curarea->headwin);
+
+	if(area_is_active_area(curarea)) uiBlockSetCol(block, TH_HEADER);
+	else uiBlockSetCol(block, TH_HEADERDESEL);
 
 	curarea->butspacetype= SPACE_NLA;
 	

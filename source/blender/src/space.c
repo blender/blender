@@ -303,6 +303,7 @@ void space_set_commmandline_options(void) {
 	}
 }
 
+#if GAMEBLENDER == 1
 	/**
 	 * These two routines imported from the gameengine, 
 	 * I suspect a lot of the resetting stuff is cruft
@@ -365,6 +366,7 @@ static void restore_all_scene_cfra(LinkNode *storelist) {
 	
 	BLI_linklist_free(storelist, NULL);
 }
+#endif
 
 void start_game(void)
 {
@@ -1552,7 +1554,7 @@ void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 	int spacetype= 0;
 	static short cur=1, curmain=2;
 	short a, tot=0, isbuiltin= 0;
-	char string[20*32], *strp;
+	char string[20*32], *strp, *col;
 	
 	y3= y2+23;	// exception!
 	
@@ -1585,12 +1587,11 @@ void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 	uiDefButS(block, MENU, B_UPDATE_THEME, string, 			45,y3,200,20, &cur, 0, 0, 0, 0, "Current theme");
 	
 	/* add / delete / name */
-	uiBlockSetCol(block, BUTSALMON);
+
 	if(tot<16)
 		uiDefBut(block, BUT, B_ADD_THEME, "Add", 	45,y2,200,20, NULL, 0, 0, 0, 0, "Makes new copy of this theme");
 	if(tot>1 && isbuiltin==0)
 		uiDefBut(block, BUT, B_DEL_THEME, "Delete", 45,y1,200,20, NULL, 0, 0, 0, 0, "Delete theme");
-	uiBlockSetCol(block, BUTGREY);
 
 	if(isbuiltin) return;
 	
@@ -1600,55 +1601,53 @@ void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 	/* main choices pup */
 	uiDefButS(block, MENU, B_CHANGE_THEME, "UI and Buttons %x1|3D View %x2|Ipo Window %x3|Buttons Window %x4|File Window %x5",
 													255,y2,200,20, &curmain, 0, 0, 0, 0, "Specify theme for...");
-	if(curmain==2) spacetype= SPACE_VIEW3D;
-	if(curmain==3) spacetype= SPACE_IPO;
-	if(curmain==4) spacetype= SPACE_BUTS;
-	if(curmain==5) spacetype= SPACE_FILE;
-
+	if(curmain==1) spacetype= 0;
+	else if(curmain==2) spacetype= SPACE_VIEW3D;
+	else if(curmain==3) spacetype= SPACE_IPO;
+	else if(curmain==4) spacetype= SPACE_BUTS;
+	else if(curmain==5) spacetype= SPACE_FILE;
+	else return; // only needed while coding... when adding themes for more windows
+	
 	/* color choices pup */
-	if(curmain==1) strp= BIF_ThemeColorsPup(0);
+	if(curmain==1) {
+		strp= BIF_ThemeColorsPup(0);
+		if(th_curcol==TH_BACK) th_curcol= TH_BUT_NEUTRAL;  // switching main choices...
+	}
 	else strp= BIF_ThemeColorsPup(spacetype);
+	
 	uiDefButS(block, MENU, B_REDR, strp, 			255,y1,200,20, &th_curcol, 0, 0, 0, 0, "Current color");
 	MEM_freeN(strp);
 	
-	/* always make zero, ugly global... */
-	th_curcol_ptr= NULL;
+	th_curcol_ptr= col= BIF_ThemeGetColorPtr(btheme, spacetype, th_curcol);
+	if(col==NULL) return;
 	
-	/* sliders */
-	if(curmain==1);
-	else {
-		char *col;
-		
-		th_curcol_ptr= col= BIF_ThemeGetColorPtr(btheme, spacetype, th_curcol);
-		
-		if(col && th_curcol==TH_VERTEX_SIZE) {
-			uiDefButC(block, NUMSLI, B_UPDATE_THEME,"Vertex size ",	465,y3,200,20,  col, 1.0, 10.0, B_THEMECOL, 0, "");
-		
-		}
-		else if(col) {
-			uiDefButC(block, NUMSLI, B_UPDATE_THEME,"R ",	465,y3,200,20,  col, 0.0, 255.0, B_THEMECOL, 0, "");
-			uiDefButC(block, NUMSLI, B_UPDATE_THEME,"G ",	465,y2,200,20,  col+1, 0.0, 255.0, B_THEMECOL, 0, "");
-			uiDefButC(block, NUMSLI, B_UPDATE_THEME,"B ",	465,y1,200,20,  col+2, 0.0, 255.0, B_THEMECOL, 0, "");
-
-			uiDefButC(block, COL, B_THEMECOL, "",		675,y1,50,y3-y1+20, col, 0, 0, 0, 0, "");
-			
-			if ELEM3(th_curcol, TH_PANEL, TH_FACE, TH_FACE_SELECT) {
-				uiDefButC(block, NUMSLI, B_UPDATE_THEME,"A ",	465,y3+25,200,20,  col+3, 0.0, 255.0, B_THEMECOL, 0, "");
-			}
-			
-			/* copy paste */
-			uiBlockSetCol(block, BUTSALMON);
-			uiDefBut(block, BUT, B_THEME_COPY, "Copy Color", 	755,y2,120,20, NULL, 0, 0, 0, 0, "Stores current color in buffer");
-			uiDefBut(block, BUT, B_THEME_PASTE, "Paste Color", 	755,y1,120,20, NULL, 0, 0, 0, 0, "Pastes buffer color");
-
-			uiDefButC(block, COL, 0, "",				885,y1,50,y2-y1+20, th_curcol_arr, 0, 0, 0, 0, "");
-			
-		}
+	/* first handle exceptions, special single values, row selection, etc */
+	if(th_curcol==TH_VERTEX_SIZE) {
+		uiDefButC(block, NUMSLI, B_UPDATE_THEME,"Vertex size ",	465,y3,200,20,  col, 1.0, 10.0, 0, 0, "");
 	}
+	else if(th_curcol==TH_BUT_DRAWTYPE) {
+		uiDefButC(block, ROW, B_UPDATE_THEME, "Minimal",	465,y3,200,20,  col, 2.0, 0.0, 0, 0, "");
+		uiDefButC(block, ROW, B_UPDATE_THEME, "Default",	465,y2,200,20,  col, 2.0, 1.0, 0, 0, "");
 	
-	
-	
-	uiClearButLock();
+	}
+	else {
+		uiDefButC(block, NUMSLI, B_UPDATE_THEME,"R ",	465,y3,200,20,  col, 0.0, 255.0, B_THEMECOL, 0, "");
+		uiDefButC(block, NUMSLI, B_UPDATE_THEME,"G ",	465,y2,200,20,  col+1, 0.0, 255.0, B_THEMECOL, 0, "");
+		uiDefButC(block, NUMSLI, B_UPDATE_THEME,"B ",	465,y1,200,20,  col+2, 0.0, 255.0, B_THEMECOL, 0, "");
+
+		uiDefButC(block, COL, B_THEMECOL, "",		675,y1,50,y3-y1+20, col, 0, 0, 0, 0, "");
+		
+		if ELEM3(th_curcol, TH_PANEL, TH_FACE, TH_FACE_SELECT) {
+			uiDefButC(block, NUMSLI, B_UPDATE_THEME,"A ",	465,y3+25,200,20,  col+3, 0.0, 255.0, B_THEMECOL, 0, "");
+		}
+		
+		/* copy paste */
+		uiDefBut(block, BUT, B_THEME_COPY, "Copy Color", 	755,y2,120,20, NULL, 0, 0, 0, 0, "Stores current color in buffer");
+		uiDefBut(block, BUT, B_THEME_PASTE, "Paste Color", 	755,y1,120,20, NULL, 0, 0, 0, 0, "Pastes buffer color");
+
+		uiDefButC(block, COL, 0, "",				885,y1,50,y2-y1+20, th_curcol_arr, 0, 0, 0, 0, "");
+		
+	}
 }
 
 
@@ -1670,7 +1669,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 	myortho2(0.0, 1280.0, 0.0, curarea->winy/fac);
 	
 	sprintf(naam, "infowin %d", curarea->win);
-	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSS, UI_HELV, curarea->win);
 
 
 	dx= (1280-90)/7;	/* spacing for use in equally dividing 'tab' row */
@@ -1704,7 +1703,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 	/* set the colour to blue and draw the main 'tab' controls */
 
-	uiBlockSetCol(block, BUTBLUE);
+	uiBlockSetCol(block, TH_BUT_SETTING1);
 
 	uiDefButI(block, ROW,B_USERPREF,"View & Controls",
 		xpos,ypostab,(short)dx,buth,
@@ -1734,8 +1733,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		(short)(xpos+6*dx),ypostab,(short)dx,buth,
 		&U.userpref,1.0,5.0, 0, 0,"");
 
-	uiBlockSetEmboss(block, UI_EMBOSSX);
-	uiBlockSetCol(block, BUTGREY);
+	uiBlockSetCol(block, TH_AUTO);
 
 	/* end 'tab' controls */
 
@@ -1787,8 +1785,6 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 
 
-		uiBlockSetCol(block, BUTGREEN);
-
 		uiDefBut(block, LABEL,0,"Menu Buttons:",
 			(xpos+edgespace+medprefbut+(3*midspace)+(2*smallprefbut)),y3label,medprefbut,buth,
 			0, 0, 0, 0, 0, "");
@@ -1797,8 +1793,6 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgespace+medprefbut+(3*midspace)+(2*smallprefbut)),y2,smallprefbut,buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Automatic opening of menu buttons");
-
-		uiBlockSetCol(block, BUTGREY);
 
 		uiDefButS(block, NUM, 0, "ThresA:",
 			(xpos+edgespace+medprefbut+(3*midspace)+(2*smallprefbut)),y1,smallprefbut,buth,
@@ -1811,8 +1805,6 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			"Time in 1/10 seconds for auto open sublevels");
 			
 
-		uiBlockSetCol(block, BUTGREEN);
-
 		uiDefButS(block, TOGN|BIT|10, B_DRAWINFO, "Rotate View",
 			(xpos+edgespace+(4*midspace)+(4*medprefbut)),y2,(smallprefbut+2),buth,
 			&(U.flag), 0, 0, 0, 0, "Default action for the middle mouse button");
@@ -1821,8 +1813,6 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgespace+(4*midspace)+(4*medprefbut)+smallprefbut+2),y2,(smallprefbut+2),buth,
 			&(U.flag), 0, 0, 0, 0, "Default action for the middle mouse button");
 
-		uiBlockSetCol(block, BUTGREY);
-		
 		uiDefBut(block, LABEL,0,"Middle mouse button:",
 			(xpos+edgespace+(3*midspace)+(4*medprefbut)),y3label,medprefbut,buth,
 			0, 0, 0, 0, 0, "");
@@ -1837,8 +1827,6 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y3label,medprefbut,buth,
 			0, 0, 0, 0, 0, "");
 
-		uiBlockSetCol(block, BUTGREEN);
-
 		uiDefButS(block, TOG|BIT|5, B_DRAWINFO, "Trackball",
 			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y2,(smallprefbut+2),buth,
 			&(U.flag), 0, 0, 0, 0,
@@ -1848,8 +1836,6 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgespace+(3*midspace)+(3*medprefbut)+smallprefbut+2),y2,(smallprefbut+2),buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Use turntable style rotation with middle mouse button");
-
-		uiBlockSetCol(block, BUTGREY);
 
 		uiDefBut(block, LABEL,0,"Mousewheel:",
 			(xpos+edgespace+(4*midspace)+(5*medprefbut)),y3label,medprefbut,buth,
@@ -1873,8 +1859,6 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			xpos,y3label,medprefbut,buth,
 			0, 0, 0, 0, 0, "");
 
-		uiBlockSetCol(block, BUTGREEN);
-
 		uiDefButS(block, TOGN|BIT|8, B_DRAWINFO, "ObData",
 			(xpos+edgespace),y2,(smallprefbut+2),buth,
 			&(U.flag), 0, 0, 0, 0, "Link new objects' material to the obData block");
@@ -1883,11 +1867,10 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgespace+smallprefbut+2),y2,(smallprefbut+2),buth,
 			&(U.flag), 0, 0, 0, 0, "Link new objects' material to the object block");
 
-		uiBlockSetCol(block, BUTGREY);
-
 		uiDefButS(block, NUMSLI, B_DRAWINFO, "UndoSteps:",
                        (xpos+edgespace+2*smallprefbut+8),y2,(medprefbut+2),buth,
                        &(U.undosteps), 1, 64, 0, 0, "Number of undo steps avail. in Editmode.  Smaller conserves memory.");
+
 
 		uiDefBut(block, LABEL,0,"Auto keyframe on:",
 			(xpos+edgespace+(2*medprefbut)+midspace),y3label,medprefbut,buth,
@@ -1959,13 +1942,9 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 				(xpos+edgespace+medprefbut+midspace),y2,medprefbut,buth,
 				0, 0, 0, 0, 0, "");
 
-			uiBlockSetCol(block, BUTSALMON);
-	
 			uiDefBut(block, BUT, B_LOADUIFONT, "Select Font",
 				xpos,y1,medprefbut,buth,
 				0, 0, 0, 0, 0, "Select a new font for the interface");
-
-			uiBlockSetCol(block, BUTGREY);
 
 
 			uiDefButI(block, MENU|INT, B_SETFONTSIZE, fontsize_pup(),
@@ -2019,14 +1998,10 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			"Enables automatic saving of temporary files");
 
 		if(U.flag & AUTOSAVE) {
-			uiBlockSetCol(block, BUTSALMON);
 
 			uiDefBut(block, BUT, B_LOADTEMP, "Open Recent",
 				(xpos+edgespace),y1,medprefbut,buth,
 				0, 0, 0, 0, 0,"Opens the most recently saved temporary file");
-
-			uiBlockSetCol(block, BUTGREY);
-
 
 			uiDefButI(block, NUM, B_RESETAUTOSAVE, "Minutes:",
 				(xpos+edgespace+medprefbut+midspace),y2,medprefbut,buth,

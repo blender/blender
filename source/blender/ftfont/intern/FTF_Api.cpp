@@ -84,15 +84,10 @@ FTF_EXPORT float FTF_DrawCharacter(char c, unsigned int flag)
 */
 
 
-FTF_EXPORT float FTF_DrawString(char* str, unsigned int flag, int select)
+/* does color too, using glGet */
+FTF_EXPORT float FTF_DrawString(char* str, unsigned int flag)
 {
-	return ttfont.DrawString(str, flag, select);
-}
-
-
-FTF_EXPORT float FTF_DrawStringRGB(char* str, unsigned int flag, float r, float g, float b)
-{
-	return ttfont.DrawStringRGB(str, flag, r, g, b);
+	return ttfont.DrawString(str, flag);
 }
 
 

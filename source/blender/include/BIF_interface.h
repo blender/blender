@@ -38,18 +38,12 @@ struct ListBase;
 struct ScrArea;
 
 /* uiBlock->dt */
-#define UI_EMBOSSX		0	/* Rounded embossed button */
-#define UI_EMBOSSW		1	/* Flat bordered button */
-#define UI_EMBOSSN		2	/* No border */
+#define UI_EMBOSS		0	/* use one of the themes for drawing */
+#define UI_EMBOSSN		1	/* Nothing */
+#define UI_EMBOSSM		2	/* Minimal builtin emboss, also for logic buttons */
+#define UI_EMBOSSP		3	/* Pulldown */
 
-#define UI_EMBOSSM		4	/* Colored Border */
-#define UI_EMBOSSP		5	/* Borderless coloured button */
-#define UI_EMBOSSA		6	/* same as EMBOSSX but with arrows to simulate */
-#define UI_EMBOSSTABL	7
-#define UI_EMBOSSTABM	8
-#define UI_EMBOSSTABR	9
-#define UI_EMBOSST		10
-#define UI_EMBOSSMB		11	/* emboss menu button */
+#define UI_EMBOSSX		0	/* for a python file, which i can't change.... duh! */
 
 /* uiBlock->direction */
 #define UI_TOP		0

@@ -361,8 +361,10 @@ void image_buttons(void)
 	headerbuttons_packdummy = 0;
 		
 	sprintf(naam, "header %d", curarea->headwin);
-	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSSX, UI_HELV, curarea->headwin);
-	uiBlockSetCol(block, BUTBLUE);
+	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSS, UI_HELV, curarea->headwin);
+
+	if(area_is_active_area(curarea)) uiBlockSetCol(block, TH_HEADER);
+	else uiBlockSetCol(block, TH_HEADERDESEL);
 
 	what_image(G.sima);
 
@@ -393,18 +395,18 @@ void image_buttons(void)
 		xco += XIC;
 	}
 	
-	uiBlockSetCol(block, BUTSALMON);
+	uiBlockSetCol(block, TH_AUTO);
 	uiDefBut(block, BUT, B_SIMAGELOAD, "Load",		xco+=XIC,0,2*XIC,YIC, 0, 0, 0, 0, 0, "Loads image - thumbnail view");
 
-	uiBlockSetCol(block, BUTGREY);
+	uiBlockSetCol(block, TH_HEADER);
 	uiDefBut(block, BUT, B_SIMAGELOAD1, "",		(short)(xco+=2*XIC+2),0,10,YIC, 0, 0, 0, 0, 0, "Loads image - file select view");
 	xco+=XIC/2;
 
 	if (G.sima->image) {
-		uiBlockSetCol(block, BUTSALMON);
+		uiBlockSetCol(block, TH_AUTO);
 		uiDefBut(block, BUT, B_SIMAGEREPLACE, "Replace",xco+=XIC,0,(short)(3*XIC),YIC, 0, 0, 0, 0, 0, "Replaces current image - thumbnail view");
 		
-		uiBlockSetCol(block, BUTGREY);
+		uiBlockSetCol(block, TH_HEADER);
 		uiDefBut(block, BUT, B_SIMAGEREPLACE1, "",	(short)(xco+=3*XIC+2),0,10,YIC, 0, 0, 0, 0, 0, "Replaces current image - file select view");
 		xco+=XIC/2;
 	

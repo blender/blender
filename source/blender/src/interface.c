@@ -115,9 +115,6 @@ static uiBut *UIbuttip;
 /* ************* PROTOTYPES ***************** */
 
 static void ui_set_but_val(uiBut *but, double value);
-static double ui_get_but_val(uiBut *but);
-
-
 
 /* ****************************** */
 
@@ -133,6 +130,50 @@ static void uibut_do_func(uiBut *but)
 		but->func(but->func_arg1, but->func_arg2);
 	}
 }
+
+/* ************* window matrix ************** */
+
+
+void ui_graphics_to_window(int win, float *x, float *y)	/* for rectwrite  */
+{
+	float gx, gy;
+	int sx, sy;
+	int getsizex, getsizey;
+
+	bwin_getsize(win, &getsizex, &getsizey);
+	bwin_getsuborigin(win, &sx, &sy);
+
+	gx= *x;
+	gy= *y;
+	*x= sx + getsizex*(0.5+ 0.5*(gx*UIwinmat[0][0]+ gy*UIwinmat[1][0]+ UIwinmat[3][0]));
+	*y= sy + getsizey*(0.5+ 0.5*(gx*UIwinmat[0][1]+ gy*UIwinmat[1][1]+ UIwinmat[3][1]));
+}
+
+
+
+void ui_window_to_graphics(int win, float *x, float *y)	/* for mouse cursor */
+{
+	float a, b, c, d, e, f, px, py;
+	int getsizex, getsizey;
+		
+	bwin_getsize(win, &getsizex, &getsizey);
+
+	a= .5*getsizex*UIwinmat[0][0];
+	b= .5*getsizex*UIwinmat[1][0];
+	c= .5*getsizex*(1.0+UIwinmat[3][0]);
+
+	d= .5*getsizey*UIwinmat[0][1];
+	e= .5*getsizey*UIwinmat[1][1];
+	f= .5*getsizey*(1.0+UIwinmat[3][1]);
+	
+	px= *x;
+	py= *y;
+	
+	*y=  (a*(py-f) + d*(c-px))/(a*e-d*b);
+	*x= (px- b*(*y)- c)/a;
+	
+}
+
 
 /* ************* SAVE UNDER ************ */
 
@@ -185,52 +226,6 @@ static uiSaveUnder *ui_save_under(int x, int y, int sx, int sy)
 }
 
 
-
-
-
-/* ************* DRAW ************** */
-
-
-void ui_graphics_to_window(int win, float *x, float *y)	/* for rectwrite  */
-{
-	float gx, gy;
-	int sx, sy;
-	int getsizex, getsizey;
-
-	bwin_getsize(win, &getsizex, &getsizey);
-	bwin_getsuborigin(win, &sx, &sy);
-
-	gx= *x;
-	gy= *y;
-	*x= sx + getsizex*(0.5+ 0.5*(gx*UIwinmat[0][0]+ gy*UIwinmat[1][0]+ UIwinmat[3][0]));
-	*y= sy + getsizey*(0.5+ 0.5*(gx*UIwinmat[0][1]+ gy*UIwinmat[1][1]+ UIwinmat[3][1]));
-}
-
-
-
-void ui_window_to_graphics(int win, float *x, float *y)	/* for mouse cursor */
-{
-	float a, b, c, d, e, f, px, py;
-	int getsizex, getsizey;
-		
-	bwin_getsize(win, &getsizex, &getsizey);
-
-	a= .5*getsizex*UIwinmat[0][0];
-	b= .5*getsizex*UIwinmat[1][0];
-	c= .5*getsizex*(1.0+UIwinmat[3][0]);
-
-	d= .5*getsizey*UIwinmat[0][1];
-	e= .5*getsizey*UIwinmat[1][1];
-	f= .5*getsizey*(1.0+UIwinmat[3][1]);
-	
-	px= *x;
-	py= *y;
-	
-	*y=  (a*(py-f) + d*(c-px))/(a*e-d*b);
-	*x= (px- b*(*y)- c)/a;
-	
-}
-
 static uiSaveUnder *ui_bgnpupdraw(int startx, int starty, int endx, int endy, int cursor)
 {
 	uiSaveUnder *su;
@@ -280,1820 +275,6 @@ static void ui_endpupdraw(uiSaveUnder *su)
 	}
 	glReadBuffer(GL_BACK);
 	glDrawBuffer(GL_BACK);
-}
-
-
-static void ui_draw_icon(uiBut *but, BIFIconID icon)
-{
-	float xs=0, ys=0;
-	
-	if(but->flag & UI_ICON_LEFT) {
-		if (but->type==BUTM) {
-			xs= but->x1+1.0;
-		}
-		else if ((but->type==ICONROW) || (but->type==ICONTEXTROW)) {
-			xs= but->x1+4.0;
-		}
-		else {
-			xs= but->x1+6.0;
-		}
-		ys= (but->y1+but->y2- BIF_get_icon_height(icon))/2.0;
-	}
-	if(but->flag & UI_ICON_RIGHT) {
-		xs= but->x2-17.0;
-		ys= (but->y1+but->y2- BIF_get_icon_height(icon))/2.0;
-	}
-	if (!((but->flag & UI_ICON_RIGHT) || (but->flag & UI_ICON_LEFT))) {
-		xs= (but->x1+but->x2- BIF_get_icon_width(icon))/2.0;
-		ys= (but->y1+but->y2- BIF_get_icon_height(icon))/2.0;
-	}
-
-	glRasterPos2f(xs, ys);
-
-	if(but->aspect>1.1) glPixelZoom(1.0/but->aspect, 1.0/but->aspect);
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	if(but->flag & UI_SELECT) {
-		if(but->flag & UI_ACTIVE) {
-			BIF_draw_icon_blended(icon, but->col, COLORSHADE_DARK);
-		} else {
-			BIF_draw_icon_blended(icon, but->col, COLORSHADE_GREY);
-		}
-	}
-	else {
-		if ((but->flag & UI_ACTIVE) && but->type==BUTM) {
-			BIF_draw_icon_blended(icon, BUTMACTIVE, COLORSHADE_MEDIUM);
-		} else if (but->flag & UI_ACTIVE) {
-			BIF_draw_icon_blended(icon, but->col, COLORSHADE_HILITE);
-		} else {
-			BIF_draw_icon_blended(icon, but->col, COLORSHADE_MEDIUM);
-		}
-	}
-
-	glBlendFunc(GL_ONE, GL_ZERO);
-	glDisable(GL_BLEND);
-
-	glPixelZoom(1.0, 1.0);
-}
-
-/* not used
-static void ui_draw_outlineX(float x1, float y1, float x2, float y2, float asp1)
-{
-	float vec[2];
-	
-	glBegin(GL_LINE_LOOP);
-	vec[0]= x1+asp1; vec[1]= y1-asp1;
-	glVertex2fv(vec);
-	vec[0]= x2-asp1; 
-	glVertex2fv(vec);
-	vec[0]= x2+asp1; vec[1]= y1+asp1;
-	glVertex2fv(vec);
-	vec[1]= y2-asp1;
-	glVertex2fv(vec);
-	vec[0]= x2-asp1; vec[1]= y2+asp1;
-	glVertex2fv(vec);
-	vec[0]= x1+asp1;
-	glVertex2fv(vec);
-	vec[0]= x1-asp1; vec[1]= y2-asp1;
-	glVertex2fv(vec);
-	vec[1]= y1+asp1;
-	glVertex2fv(vec);
-	glEnd();		
-	
-}
-
-static void ui_emboss_R(BIFColorID bc, float asp, float x1, float y1, float x2, float y2, int flag)
-{
-
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_DARK);
-		else BIF_set_color(bc, COLORSHADE_GREY);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_HILITE);
-		else BIF_set_color(bc, COLORSHADE_MEDIUM);
-	}
-	
-	uiSetRoundBox(15);
-	uiRoundBox(x1, y1, x2, y2, 6);
-	cpack(0x0);
-	uiSetRoundBox(16+15);
-	uiRoundRect(x1, y1, x2, y2, 6);
-	uiSetRoundBox(15);
-}
-
-*/
-
-
-static void ui_emboss_X(BIFColorID bc, float asp, float x1, float y1, float x2, float y2, int flag)
-{
-
-	float asp1;
-	
-	asp1= asp;
-
-	/*x1+= asp1;*/
-	x2-= asp1;	
-	/*y1+= asp1;*/
-	y2-= asp1;
-
-	/* SHADED BUTTON */
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_QUADS);
-	
-
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_MEDIUM);
-		else BIF_set_color(bc, COLORSHADE_LGREY);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LIGHT);
-		else BIF_set_color(bc, COLORSHADE_HILITE);
-	}
-
-	glVertex2f(x1,y1);
-	glVertex2f(x2,y1);
-
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LGREY);
-		else BIF_set_color(bc, COLORSHADE_GREY);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_WHITE);
-		BIF_set_color(bc, COLORSHADE_LIGHT);
-	}
-
-	glVertex2f(x2,(y2-(y2-y1)/3));
-	glVertex2f(x1,(y2-(y2-y1)/3));
-	glEnd();
-	
-
-	glShadeModel(GL_FLAT);
-	glBegin(GL_QUADS);
-	
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LGREY);
-		else BIF_set_color(bc, COLORSHADE_GREY);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_WHITE);
-		BIF_set_color(bc, COLORSHADE_LIGHT);
-	}
-	
-	glVertex2f(x1,(y2-(y2-y1)/3));
-	glVertex2f(x2,(y2-(y2-y1)/3));
-	glVertex2f(x2,y2);
-	glVertex2f(x1,y2);
-
-	glEnd();
-
-	/* END SHADED BUTTON */
-
-	/* OUTER SUNKEN EFFECT */
-	/* left */
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
-	glVertex2f(x1-1,y1);
-	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
-	glVertex2f(x1-1,y2);
-	glEnd();
-	
-	/* right */
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
-	glVertex2f(x2+1,y1);
-	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
-	glVertex2f(x2+1,y2);
-	glEnd();
-
-	/* bottom */
-	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
-	fdrawline(x1, y1-1, x2, y1-1);
-	/* END OUTER SUNKEN EFFECT */
-	
-	/* INNER OUTLINE */
-	glShadeModel(GL_FLAT);
-	
-	/* top */
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_GREY);
-		else BIF_set_color(bc, COLORSHADE_GREY);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_WHITE);
-		BIF_set_color(bc, COLORSHADE_WHITE);
-	}
-
-	fdrawline(x1, (y2-1), x2, y2-1);
-	
-	/* bottom */
-	
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LGREY);
-		else BIF_set_color(bc, COLORSHADE_LGREY);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LMEDIUM);
-		BIF_set_color(bc, COLORSHADE_LMEDIUM);
-	}
-	fdrawline(x1, (y1+1), x2, y1+1);
-
-	/* left */
-	if(!(flag & UI_SELECT)) {
-	                        	
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	BIF_set_color(bc, COLORSHADE_WHITE);
-	glVertex2f(x1+1,y1+2);
-	BIF_set_color(bc, COLORSHADE_LGREY);
-	glVertex2f(x1+1,y2);
-	glEnd();
-	
-	}
-	
-	/* right */
-	if(!(flag & UI_SELECT)) {
-
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	BIF_set_color(bc, COLORSHADE_LGREY);
-	glVertex2f(x2-1,y1+2);
-	BIF_set_color(bc, COLORSHADE_WHITE);
-	glVertex2f(x2-1,y2);
-	glEnd();
-	
-	}
-	/* END INNER OUTLINE */
-	
-	/* OUTER OUTLINE */
-	glShadeModel(GL_FLAT);
-	
-	/* underneath semi-fake-AA */
-	BIF_set_color(BUTGREY, COLORSHADE_GREY);
-	fdrawline(x1, y2, x2, y2);
-	BIF_set_color(BUTGREY, COLORSHADE_MEDIUM);
-	fdrawline(x1, y1, x2, y1);
-
-	/* top */
-	BIF_set_color(BUTGREY, COLORSHADE_DARK);
-	fdrawline(x1+1, y2, x2, y2);
-
-	/* left */
-	fdrawline(x1, y1+1, x1, y2);
-
-	/* right */
-	fdrawline(x2, y1+1, x2, y2);
-	
-	/* bottom */
-	BIF_set_color(BUTGREY, COLORSHADE_DARK);
-	fdrawline(x1+1, y1, x2, y1);
-	/* END OUTER OUTLINE */
-	
-}
-
-static void ui_emboss_TEX(BIFColorID bc, float asp, float x1, float y1, float x2, float y2, int flag)
-{
-
-	float asp1;
-	
-	asp1= asp;
-
-	/*x1+= asp1;*/
-	x2-= asp1;	
-	/*y1+= asp1;*/
-	y2-= asp1;
-
-	/* FLAT TEXT/NUM FIELD */
-	glShadeModel(GL_FLAT);
-	glBegin(GL_QUADS);
-
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LGREY);
-		else BIF_set_color(bc, COLORSHADE_GREY);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_HILITE);
-		else BIF_set_color(bc, COLORSHADE_LMEDIUM);
-	}
-
-	glVertex2f(x1,y1);
-	glVertex2f(x2,y1);
-	glVertex2f(x2,y2);
-	glVertex2f(x1,y2);
-
-	glEnd();
-	/* END FLAT TEXT/NUM FIELD */
-	
-	/* OUTER SUNKEN EFFECT */
-	/* left */
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
-	glVertex2f(x1-1,y1);
-	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
-	glVertex2f(x1-1,y2);
-	glEnd();
-	
-	/* right */
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
-	glVertex2f(x2+1,y1);
-	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
-	glVertex2f(x2+1,y2);
-	glEnd();
-
-	/* bottom */
-	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
-	fdrawline(x1, y1-1, x2, y1-1);
-	/* END OUTER SUNKEN EFFECT */
-
-	/* OUTER OUTLINE */
-	glShadeModel(GL_FLAT);
-	
-	/* underneath semi-fake-AA */
-	BIF_set_color(BUTGREY, COLORSHADE_GREY);
-	fdrawline(x1, y2, x2, y2);
-	BIF_set_color(BUTGREY, COLORSHADE_MEDIUM);
-	fdrawline(x1, y1, x2, y1);
-
-	/* top */
-	BIF_set_color(BUTGREY, COLORSHADE_DARK);
-	fdrawline(x1+1, y2, x2, y2);
-
-	/* left */
-	fdrawline(x1, y1+1, x1, y2);
-
-	/* right */
-	fdrawline(x2, y1+1, x2, y2);
-	
-	/* bottom */
-	BIF_set_color(BUTGREY, COLORSHADE_DARK);
-	fdrawline(x1+1, y1, x2, y1);
-	/* END OUTER OUTLINE */
-}
-
-static void ui_emboss_NUM(BIFColorID bc, float asp, float x1, float y1, float x2, float y2, int flag)
-{
-
-	float asp1;
-
-	asp1= asp;
-
-	/*x1+= asp1;*/
-	x2-= asp1;	
-	/*y1+= asp1;*/
-	y2-= asp1;
-
-	/* FLAT TEXT/NUM FIELD */
-	glShadeModel(GL_FLAT);
-	glBegin(GL_QUADS);
-
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LGREY);
-		else BIF_set_color(bc, COLORSHADE_GREY);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_HILITE);
-		else BIF_set_color(bc, COLORSHADE_LMEDIUM);
-	}
-
-	glVertex2f(x1,y1);
-	glVertex2f(x2,y1);
-	glVertex2f(x2,y2);
-	glVertex2f(x1,y2);
-
-	glEnd();
-	/* END FLAT TEXT/NUM FIELD */
-	
-	/* OUTER SUNKEN EFFECT */
-	/* left */
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
-	glVertex2f(x1-1,y1);
-	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
-	glVertex2f(x1-1,y2);
-	glEnd();
-	
-	/* right */
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
-	glVertex2f(x2+1,y1);
-	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
-	glVertex2f(x2+1,y2);
-	glEnd();
-
-	/* bottom */
-	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
-	fdrawline(x1, y1-1, x2, y1-1);
-	/* END OUTER SUNKEN EFFECT */
-
-	/* OUTER OUTLINE */
-	glShadeModel(GL_FLAT);
-	
-	/* underneath semi-fake-AA */
-	BIF_set_color(BUTGREY, COLORSHADE_GREY);
-	fdrawline(x1, y2, x2, y2);
-	BIF_set_color(BUTGREY, COLORSHADE_MEDIUM);
-	fdrawline(x1, y1, x2, y1);
-
-	/* top */
-	BIF_set_color(BUTGREY, COLORSHADE_DARK);
-	fdrawline(x1+1, y2, x2, y2);
-
-	/* left */
-	fdrawline(x1, y1+1, x1, y2);
-
-	/* right */
-	fdrawline(x2, y1+1, x2, y2);
-	
-	/* bottom */
-	BIF_set_color(BUTGREY, COLORSHADE_DARK);
-	fdrawline(x1+1, y1, x2, y1);
-	/* END OUTER OUTLINE */
-
-	/* SIDE ARROWS */
-	/* left */
-	
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_DARK);
-		else BIF_set_color(bc, COLORSHADE_DARK);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_GREY);
-		else BIF_set_color(bc, COLORSHADE_LGREY);
-	}
-
-	glEnable( GL_POLYGON_SMOOTH );
-	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	
-	glShadeModel(GL_FLAT);
-	glBegin(GL_TRIANGLES);
-	
-	glVertex2f((short)x1+5,(short)(y2-(y2-y1)/2));
-	glVertex2f((short)x1+10,(short)(y2-(y2-y1)/2)+4);
-	glVertex2f((short)x1+10,(short)(y2-(y2-y1)/2)-4);
-	glEnd();
-
-	/* right */
-	glShadeModel(GL_FLAT);
-	glBegin(GL_TRIANGLES);
-
-	glVertex2f((short)x2-5,(short)(y2-(y2-y1)/2));
-	glVertex2f((short)x2-10,(short)(y2-(y2-y1)/2)-4);
-	glVertex2f((short)x2-10,(short)(y2-(y2-y1)/2)+4);
-	glEnd();
-	
-	glDisable( GL_BLEND );
-	glDisable( GL_POLYGON_SMOOTH );
-	/* END SIDE ARROWS */
-
-}
-
-static void ui_emboss_MENU(BIFColorID bc, float asp, float x1, float y1, float x2, float y2, int flag)
-{
-
-	float asp1;
-	
-	asp1= asp;
-
-	/*x1+= asp1;*/
-	x2-= asp1;	
-	/*y1+= asp1;*/
-	y2-= asp1;
-
-	/* SHADED BUTTON */
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_QUADS);
-	
-
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LGREY);
-		else BIF_set_color(bc, COLORSHADE_GREY);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LIGHT);
-		else BIF_set_color(bc, COLORSHADE_HILITE);
-	}
-
-	glVertex2f(x1,y1);
-	glVertex2f(x2,y1);
-
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_GREY);
-		else BIF_set_color(bc, COLORSHADE_DARK);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_WHITE);
-		BIF_set_color(bc, COLORSHADE_LIGHT);
-	}
-
-	glVertex2f(x2,(y2-(y2-y1)/3));
-	glVertex2f(x1,(y2-(y2-y1)/3));
-	glEnd();
-	
-
-	glShadeModel(GL_FLAT);
-	glBegin(GL_QUADS);
-	
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_GREY);
-		else BIF_set_color(bc, COLORSHADE_DARK);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_WHITE);
-		BIF_set_color(bc, COLORSHADE_LIGHT);
-	}
-
-	glVertex2f(x1,(y2-(y2-y1)/3));
-	glVertex2f(x2,(y2-(y2-y1)/3));
-	glVertex2f(x2,y2);
-	glVertex2f(x1,y2);
-
-	glEnd();
-	/* END SHADED BUTTON */
-
-	/* OUTER SUNKEN EFFECT */
-	/* left */
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
-	glVertex2f(x1-1,y1);
-	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
-	glVertex2f(x1-1,y2);
-	glEnd();
-	
-	/* right */
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
-	glVertex2f(x2+1,y1);
-	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
-	glVertex2f(x2+1,y2);
-	glEnd();
-
-	/* bottom */
-	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
-	fdrawline(x1, y1-1, x2, y1-1);
-	/* END OUTER SUNKEN EFFECT */
-	
-	/* INNER OUTLINE */
-	glShadeModel(GL_FLAT);
-	
-	/* top */
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_GREY);
-		else BIF_set_color(bc, COLORSHADE_GREY);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_WHITE);
-		BIF_set_color(bc, COLORSHADE_WHITE);
-	}
-
-	fdrawline(x1, (y2-1), x2, y2-1);
-	
-	/* bottom */
-	
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LGREY);
-		else BIF_set_color(bc, COLORSHADE_LGREY);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LMEDIUM);
-		BIF_set_color(bc, COLORSHADE_LMEDIUM);
-	}
-	fdrawline(x1, (y1+1), x2, y1+1);
-
-	/* left */
-	if(!(flag & UI_SELECT)) {
-	                        	
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	BIF_set_color(bc, COLORSHADE_WHITE);
-	glVertex2f(x1+1,y1+2);
-	BIF_set_color(bc, COLORSHADE_LGREY);
-	glVertex2f(x1+1,y2);
-	glEnd();
-	
-	}
-	
-	/* right */
-	if(!(flag & UI_SELECT)) {
-
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	BIF_set_color(bc, COLORSHADE_LGREY);
-	glVertex2f(x2-1,y1+2);
-	BIF_set_color(bc, COLORSHADE_WHITE);
-	glVertex2f(x2-1,y2);
-	glEnd();
-	
-	}
-	/* END INNER OUTLINE */
-	
-	/* OUTER OUTLINE */
-	glShadeModel(GL_FLAT);
-	
-	/* underneath semi-fake-AA */
-	BIF_set_color(BUTGREY, COLORSHADE_GREY);
-	fdrawline(x1, y2, x2, y2);
-	BIF_set_color(BUTGREY, COLORSHADE_MEDIUM);
-	fdrawline(x1, y1, x2, y1);
-
-	/* top */
-	BIF_set_color(BUTGREY, COLORSHADE_DARK);
-	fdrawline(x1+1, y2, x2, y2);
-
-	/* left */
-	fdrawline(x1, y1+1, x1, y2);
-
-	/* right */
-	fdrawline(x2, y1+1, x2, y2);
-	
-	/* bottom */
-	BIF_set_color(BUTGREY, COLORSHADE_DARK);
-	fdrawline(x1+1, y1, x2, y1);
-	/* END OUTER OUTLINE */
-
-	/* DARKENED AREA */
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-	
-	glColor4ub(0, 0, 0, 30);
-	glRectf(x2-18, y1, x2, y2);
-
-	glDisable(GL_BLEND);
-	/* END DARKENED AREA */
-
-	/* MENU DOUBLE-ARROW  */
-	
-	/* set antialias line */
-	BIF_set_color(bc, COLORSHADE_DARK);
-	
-	glEnable( GL_POLYGON_SMOOTH );
-	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	
-	glShadeModel(GL_FLAT);
-	glBegin(GL_TRIANGLES);
-	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2)+1);
-	glVertex2f((short)x2-12,(short)(y2-(y2-y1)/2)+1);
-	glVertex2f((short)x2-8,(short)(y2-(y2-y1)/2)+4);
-	glEnd();
-		
-	glBegin(GL_TRIANGLES);
-	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2) -1);
-	glVertex2f((short)x2-12,(short)(y2-(y2-y1)/2) -1);
-	glVertex2f((short)x2-8,(short)(y2-(y2-y1)/2) -4);
-	glEnd();
-	
-	glDisable( GL_BLEND );
-	glDisable( GL_POLYGON_SMOOTH );
-	/* MENU DOUBLE-ARROW */
-
-}
-
-static void ui_emboss_ICONROW(BIFColorID bc, float asp, float x1, float y1, float x2, float y2, int flag)
-{
-
-	float asp1;
-	
-	asp1= asp;
-
-	/*x1+= asp1;*/
-	x2-= asp1;	
-	/*y1+= asp1;*/
-	y2-= asp1;
-
-	/* SHADED BUTTON */
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_QUADS);
-	
-
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_MEDIUM);
-		else BIF_set_color(bc, COLORSHADE_LGREY);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LIGHT);
-		else BIF_set_color(bc, COLORSHADE_HILITE);
-	}
-
-	glVertex2f(x1,y1);
-	glVertex2f(x2,y1);
-
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LGREY);
-		else BIF_set_color(bc, COLORSHADE_GREY);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_WHITE);
-		BIF_set_color(bc, COLORSHADE_LIGHT);
-	}
-
-	glVertex2f(x2,(y2-(y2-y1)/3));
-	glVertex2f(x1,(y2-(y2-y1)/3));
-	glEnd();
-	
-
-	glShadeModel(GL_FLAT);
-	glBegin(GL_QUADS);
-	
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LGREY);
-		else BIF_set_color(bc, COLORSHADE_GREY);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_WHITE);
-		BIF_set_color(bc, COLORSHADE_LIGHT);
-	}
-
-	glVertex2f(x1,(y2-(y2-y1)/3));
-	glVertex2f(x2,(y2-(y2-y1)/3));
-	glVertex2f(x2,y2);
-	glVertex2f(x1,y2);
-
-	glEnd();
-	/* END SHADED BUTTON */
-
-	/* OUTER SUNKEN EFFECT */
-	/* left */
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
-	glVertex2f(x1-1,y1);
-	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
-	glVertex2f(x1-1,y2);
-	glEnd();
-	
-	/* right */
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
-	glVertex2f(x2+1,y1);
-	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
-	glVertex2f(x2+1,y2);
-	glEnd();
-
-	/* bottom */
-	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
-	fdrawline(x1, y1-1, x2, y1-1);
-	/* END OUTER SUNKEN EFFECT */
-	
-	/* INNER OUTLINE */
-	glShadeModel(GL_FLAT);
-	
-	/* top */
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_GREY);
-		else BIF_set_color(bc, COLORSHADE_GREY);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_WHITE);
-		BIF_set_color(bc, COLORSHADE_WHITE);
-	}
-
-	fdrawline(x1, (y2-1), x2, y2-1);
-	
-	/* bottom */
-	
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LGREY);
-		else BIF_set_color(bc, COLORSHADE_LGREY);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LMEDIUM);
-		BIF_set_color(bc, COLORSHADE_LMEDIUM);
-	}
-	fdrawline(x1, (y1+1), x2, y1+1);
-
-	/* left */
-	if(!(flag & UI_SELECT)) {
-	                        	
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	BIF_set_color(bc, COLORSHADE_WHITE);
-	glVertex2f(x1+1,y1+2);
-	BIF_set_color(bc, COLORSHADE_LGREY);
-	glVertex2f(x1+1,y2);
-	glEnd();
-	
-	}
-	
-	/* right */
-	if(!(flag & UI_SELECT)) {
-
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	BIF_set_color(bc, COLORSHADE_LGREY);
-	glVertex2f(x2-1,y1+2);
-	BIF_set_color(bc, COLORSHADE_WHITE);
-	glVertex2f(x2-1,y2);
-	glEnd();
-	
-	}
-	/* END INNER OUTLINE */
-	
-	/* OUTER OUTLINE */
-	glShadeModel(GL_FLAT);
-	
-	/* underneath semi-fake-AA */
-	BIF_set_color(BUTGREY, COLORSHADE_GREY);
-	fdrawline(x1, y2, x2, y2);
-	BIF_set_color(BUTGREY, COLORSHADE_MEDIUM);
-	fdrawline(x1, y1, x2, y1);
-
-	/* top */
-	BIF_set_color(BUTGREY, COLORSHADE_DARK);
-	fdrawline(x1+1, y2, x2, y2);
-
-	/* left */
-	fdrawline(x1, y1+1, x1, y2);
-
-	/* right */
-	fdrawline(x2, y1+1, x2, y2);
-	
-	/* bottom */
-	BIF_set_color(BUTGREY, COLORSHADE_DARK);
-	fdrawline(x1+1, y1, x2, y1);
-	/* END OUTER OUTLINE */
-
-	/* DARKENED AREA */
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-	
-	glColor4ub(0, 0, 0, 30);
-	glRectf(x2-9, y1, x2, y2);
-
-	glDisable(GL_BLEND);
-	/* END DARKENED AREA */
-
-	/* MENU DOUBLE-ARROW  */
-	
-	/* set antialias line */
-	BIF_set_color(bc, COLORSHADE_DARK);
-	
-	glEnable( GL_POLYGON_SMOOTH );
-	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	
-	glShadeModel(GL_FLAT);
-	glBegin(GL_TRIANGLES);
-	glVertex2f((short)x2-2,(short)(y2-(y2-y1)/2)+1);
-	glVertex2f((short)x2-6,(short)(y2-(y2-y1)/2)+1);
-	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2)+4);
-	glEnd();
-		
-	glBegin(GL_TRIANGLES);
-	glVertex2f((short)x2-2,(short)(y2-(y2-y1)/2) -1);
-	glVertex2f((short)x2-6,(short)(y2-(y2-y1)/2) -1);
-	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2) -4);
-	glEnd();
-	
-	glDisable( GL_BLEND );
-	glDisable( GL_POLYGON_SMOOTH );
-	/* MENU DOUBLE-ARROW */
-
-}
-
-static void ui_emboss_TABL(BIFColorID bc, float asp, float x1, float y1, float x2, float y2, int flag)
-{
-
-	float asp1;
-	
-	asp1= asp;
-
-	/*x1+= asp1;*/
-	x2-= asp1;	
-	/*y1+= asp1;*/
-	y2-= asp1;
-
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_QUADS);
-	
-
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LMEDIUM);
-		else BIF_set_color(bc, COLORSHADE_MEDIUM);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LMEDIUM);
-		else BIF_set_color(bc, COLORSHADE_MEDIUM);
-	}
-
-	
-	//BIF_set_color(bc, COLORSHADE_MEDIUM);
-
-	glVertex2f(x1,y1);
-	glVertex2f(x2,y1);
-
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LGREY);
-		else BIF_set_color(bc, COLORSHADE_GREY);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_WHITE);
-		BIF_set_color(bc, COLORSHADE_LIGHT);
-	}
-
-
-	//BIF_set_color(bc, COLORSHADE_LIGHT);
-
-	//glVertex2f(x2,(y1+(y2-y1)/2));
-	glVertex2f(x2,(y2-(y2-y1)/3));
-	glVertex2f(x1,(y2-(y2-y1)/3));
-	glEnd();
-	
-
-	glShadeModel(GL_FLAT);
-	glBegin(GL_QUADS);
-	
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_GREY);
-		else BIF_set_color(bc, COLORSHADE_GREY);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LIGHT);
-		BIF_set_color(bc, COLORSHADE_LIGHT);
-	}
-
-	//BIF_set_color(bc, COLORSHADE_LIGHT);
-
-	glVertex2f(x1,(y2-(y2-y1)/3));
-	glVertex2f(x2,(y2-(y2-y1)/3));
-	glVertex2f(x2,y2);
-	glVertex2f(x1,y2);
-
-	glEnd();
-
-
-	/* inner outline */
-	glShadeModel(GL_FLAT);
-	
-	/* top */
-	
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_GREY);
-		else BIF_set_color(bc, COLORSHADE_GREY);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_WHITE);
-		BIF_set_color(bc, COLORSHADE_WHITE);
-	}
-
-	fdrawline(x1, (y2-1), x2, y2-1);
-
-
-	/* left */
-	if(!(flag & UI_SELECT)) {
-	                        	
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	BIF_set_color(bc, COLORSHADE_WHITE);
-	glVertex2f(x1+1,y1-1);
-	BIF_set_color(bc, COLORSHADE_MEDIUM);
-	glVertex2f(x1+1,y2);
-	glEnd();
-	
-	}
-	
-	/* right */
-	
-	if(!(flag & UI_SELECT)) {
-
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	BIF_set_color(bc, COLORSHADE_MEDIUM);
-	glVertex2f(x2-1,y1+2);
-	BIF_set_color(bc, COLORSHADE_WHITE);
-	glVertex2f(x2-1,y2);
-	glEnd();
-	
-	}
-
-	/* outer outline */
-	glShadeModel(GL_FLAT);
-	
-	/* underneath semi-fake-AA */
-	BIF_set_color(BUTGREY, COLORSHADE_GREY);
-	fdrawline(x1, y2, x2, y2);
-	BIF_set_color(BUTGREY, COLORSHADE_MEDIUM);
-	fdrawline(x1, y1, x2, y1);
-
-	/* top */
-	BIF_set_color(BUTGREY, COLORSHADE_DARK);
-	fdrawline(x1+1, y2, x2, y2);
-
-	/* left */
-	fdrawline(x1, y1, x1, y2);
-
-	/* right */
-	fdrawline(x2, y1, x2, y2);
-
-	/* outer sunken effect */
-	/* left */
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
-	glVertex2f(x1-1,y1);
-	BIF_set_color(BUTGREY, COLORSHADE_MEDIUM);
-	glVertex2f(x1-1,y2);
-	glEnd();
-	
-
-	glShadeModel(GL_FLAT);
-
-}
-static void ui_emboss_TABM(BIFColorID bc, float asp, float x1, float y1, float x2, float y2, int flag)
-{
-}
-static void ui_emboss_TABR(BIFColorID bc, float asp, float x1, float y1, float x2, float y2, int flag)
-{
-}
-
-
-void uiEmboss(float x1, float y1, float x2, float y2, int sel)
-{
-	
-	/* below */
-	if(sel) glColor3ub(200,200,200);
-	else glColor3ub(50,50,50);
-	fdrawline(x1, y1, x2, y1);
-
-	/* right */
-	fdrawline(x2, y1, x2, y2);
-	
-	/* top */
-	if(sel) glColor3ub(50,50,50);
-	else glColor3ub(200,200,200);
-	fdrawline(x1, y2, x2, y2);
-
-	/* left */
-	fdrawline(x1, y1, x1, y2);
-	
-}
-
-/* super minimal button as used in logic menu */
-static void ui_emboss_W(BIFColorID bc, float asp, float x1, float y1, float x2, float y2, int flag)
-{
-	
-	x1+= asp;
-	x2-= asp;
-	y1+= asp;
-	y2-= asp;
-
-	/* paper */
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_DARK);
-		else BIF_set_color(bc, COLORSHADE_GREY);
-	}
-	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_HILITE);
-		else BIF_set_color(bc, COLORSHADE_MEDIUM);
-	}
-	
-	glRectf(x1, y1, x2, y2);
-
-	if(flag & UI_SELECT) {
-		BIF_set_color(bc, COLORSHADE_LIGHT);
-		
-		/* below */
-		fdrawline(x1, y1, x2, y1);
-
-		/* right */
-		fdrawline(x2, y1, x2, y2);
-	}
-	else if(flag & UI_ACTIVE) {
-		BIF_set_color(bc, COLORSHADE_WHITE);
-
-		/* top */
-		fdrawline(x1, y2, x2, y2);
-	
-		/* left */
-		fdrawline(x1, y1, x1, y2);
-	}
-}
-
-
-/* minimal for menus */
-static void ui_emboss_M(BIFColorID bc, float asp, float x1, float y1, float x2, float y2, int flag)
-{
-	x1+= 1.0;
-	y1+= 1.0;
-	x2-= 1.0+asp;
-	y2-= 1.0+asp;
-	
-	
-	BIF_set_color(bc, COLORSHADE_WHITE);
-		
-	fdrawbox(x1, y1, x2, y2);
-
-	/* 
-	if(flag & UI_SELECT) {
-		BIF_set_color(bc, COLORSHADE_LIGHT);
-		
-
-		fdrawline(x1, y1, x2, y1);
-
-
-		fdrawline(x2, y1, x2, y2);
-	}
-	else if(flag & UI_ACTIVE) {
-		BIF_set_color(bc, COLORSHADE_WHITE);
-
-
-		fdrawline(x1, y2, x2, y2);
-	
-
-		fdrawline(x1, y1, x1, y2);
-	}
-	else {
-		BIF_set_color(bc, COLORSHADE_MEDIUM);
-		
-		fdrawbox(x1, y1, x2, y2);
-	}
-	*/
-}
-
-
-/* nothing! */
-static void ui_emboss_N(BIFColorID bc, float asp, float x1, float y1, float x2, float y2, int sel)
-{
-}
-
-/* pulldown menu */
-static void ui_emboss_P(BIFColorID bc, float asp, float x1, float y1, float x2, float y2, int flag)
-{
-
-	if(flag & UI_ACTIVE) {
-		BIF_set_color(bc, COLORSHADE_DARK);
-		glRectf(x1-1, y1, x2+2, y2);
-
-	} else {
-		BIF_set_color(bc, COLORSHADE_LMEDIUM);
-		glRectf(x1-1, y1, x2+2, y2);
-	}
-
-	glDisable(GL_BLEND);
-
-}
-
-static void ui_emboss_slider(uiBut *but, float fac)
-{
-	float x1, x2, y1, y2, ymid, yc;
-
-	x1= but->x1; x2= but->x2;
-	y1= but->y1; y2= but->y2;
-	
-	/* the slider background line */
-	ymid= (y1+y2)/2.0;
-	yc= 1.7*but->aspect;	// height of center line
-
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_QUADS);
-
-	if(but->flag & UI_ACTIVE) 
-		BIF_set_color(BUTGREY, COLORSHADE_LMEDIUM);
-	else 
-		BIF_set_color(BUTGREY, COLORSHADE_MEDIUM);
-	
-	
-	glVertex2f(x1,   ymid-yc);
-	glVertex2f(x2, ymid-yc);
-
-	if(but->flag & UI_ACTIVE) 
-		BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
-	else 
-		BIF_set_color(BUTGREY, COLORSHADE_LMEDIUM);
-
-	glVertex2f(x2, ymid+yc);
-	glVertex2f(x1,   ymid+yc);
-
-	glEnd();
-
-	BIF_set_color(but->col, COLORSHADE_DARK);
-	fdrawline(x1+1, ymid-yc, x2, ymid-yc);
-	
-	/* the movable slider */
-	if(but->flag & UI_SELECT) BIF_set_color(but->col, COLORSHADE_WHITE);
-	else BIF_set_color(but->col, COLORSHADE_GREY);
-
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_QUADS);
-
-	BIF_set_color(BUTGREY, COLORSHADE_GREY);
-
-	glVertex2f(x1,     y1+2.5);
-	glVertex2f(x1+fac, y1+2.5);
-
-	BIF_set_color(BUTGREY, COLORSHADE_MEDIUM);
-
-	glVertex2f(x1+fac, y2-2.5);
-	glVertex2f(x1,     y2-2.5);
-
-	glEnd();
-	
-
-	/* slider handle center */
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_QUADS);
-
-	BIF_set_color(BUTGREY, COLORSHADE_MEDIUM);
-	glVertex2f(x1+fac-3, y1+2);
-	glVertex2f(x1+fac, y1+4);
-	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
-	glVertex2f(x1+fac, y2-2);
-	glVertex2f(x1+fac-3, y2-2);
-
-	glEnd();
-	
-	/* slider handle left bevel */
-	BIF_set_color(BUTGREY, COLORSHADE_WHITE);
-	fdrawline(x1+fac-3, y2-2, x1+fac-3, y1+2);
-	
-	/* slider handle right bevel */
-	BIF_set_color(BUTGREY, COLORSHADE_GREY);
-	fdrawline(x1+fac, y2-2, x1+fac, y1+2);
-
-	glShadeModel(GL_FLAT);
-}
-
-static void ui_draw_but_BUT(uiBut *but)
-{
-	float x=0.0;
-	
-	/* check for button text label */
-	if (but->type == ICONTEXTROW) {
-		but->embossfunc = ui_emboss_ICONROW;
-		but->flag |= UI_ICON_LEFT;
-		ui_draw_icon(but, (BIFIconID) (but->icon+but->iconadd));
-	} else if (but->type == ICONROW) {
-		but->flag |= UI_ICON_LEFT;
-		but->embossfunc = ui_emboss_ICONROW;
-	}
-	
-	but->embossfunc(but->col, but->aspect, but->x1, but->y1, but->x2, but->y2, but->flag);
-	
-	if(but->embossfunc==ui_emboss_TABL) {
-		but->flag |= UI_TEXT_LEFT;
-		but->flag |= UI_ICON_RIGHT;
-		but->flag &= ~UI_ICON_LEFT;
-	}
-	
-	//but->flag |= UI_TEXT_LEFT;
-
-	/* check for button text label */
-	if (but->type == ICONTEXTROW) {
-		ui_draw_icon(but, (BIFIconID) (but->icon+but->iconadd));
-	}
-	else if(but->drawstr[0]!=0) {
-  
-		/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
-		 * and offset the text label to accomodate it 
-		 */
-		if ( but->flag & UI_HAS_ICON) {
-			if (but->flag & UI_ICON_LEFT) {
-				ui_draw_icon(but, but->icon);
-
-				if(but->flag & UI_TEXT_LEFT) x= but->x1+24.0;
-				else x= (but->x1+but->x2-but->strwidth+1)/2.0;
-			} else if (but->flag & UI_ICON_RIGHT) {
-				ui_draw_icon(but, but->icon);
-
-				if(but->flag & UI_TEXT_LEFT) x= but->x1+4.0;
-				else x= (but->x1+but->x2-but->strwidth+1)/2.0;
-			}
-		}
-		else {
-			if(but->flag & UI_TEXT_LEFT) x= but->x1+4.0;
-			else x= (but->x1+but->x2-but->strwidth+1)/2.0;
-		}
-		
-		if(but->flag & UI_SELECT) {
-			glColor3ub(255,255,255);
-		} else {
-			glColor3ub(0,0,0);
-		}
-
-		glRasterPos2f( x, (but->y1+but->y2- 9.0)/2.0);
-
-		BIF_DrawString(but->font, but->drawstr+but->ofs, (U.transopts & TR_BUTTONS), but->flag & UI_SELECT);
-	}
-	/* if there's no text label, then check to see if there's an icon only and draw it */
-	else if( but->flag & UI_HAS_ICON ) {
-		ui_draw_icon(but, (BIFIconID) (but->icon+but->iconadd));
-	}
-}
-
-static void ui_draw_but_MENU(uiBut *but)
-{
-	float x;
-
-	but->embossfunc = ui_emboss_MENU;
-
-	but->embossfunc(but->col, but->aspect, but->x1, but->y1, but->x2, but->y2, but->flag);
-
-	but->flag |= UI_TEXT_LEFT;
-
-	/* check for button text label */
-	if (but->type == ICONTEXTROW) {
-		ui_draw_icon(but, (BIFIconID) (but->icon+but->iconadd));
-	}
-	else if(but->drawstr[0]!=0) {
-		
-		/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
-		and offset the text label to accomodate it */
-	        if ( (but->flag & UI_HAS_ICON) && (but->flag & UI_ICON_LEFT) ) {
-			ui_draw_icon(but, but->icon);
-
-			if(but->flag & UI_TEXT_LEFT) x= but->x1+28.0;
-			else x= (but->x1+but->x2-but->strwidth+1)/2.0;
-		}
-		else {
-		        if(but->flag & UI_TEXT_LEFT) x= but->x1+4.0;
-			else x= (but->x1+but->x2-but->strwidth+1)/2.0;
-		}
-		
-		if(but->flag & UI_SELECT) {
-			glColor3ub(255,255,255);
-		} else {
-			glColor3ub(0,0,0);
-		}
-
-		glRasterPos2f( x, (but->y1+but->y2- 9.0)/2.0);
-
-		BIF_DrawString(but->font, but->drawstr+but->ofs, (U.transopts & TR_BUTTONS), but->flag & UI_SELECT);
-	}
-	/* if there's no text label, then check to see if there's an icon only and draw it */
-	else if( but->flag & UI_HAS_ICON ) {
-		ui_draw_icon(but, (BIFIconID) (but->icon+but->iconadd));
-	}
-}
-
-static void ui_draw_but_TOG3(uiBut *but)
-{
-	float x, r, g, b;
-
-	but->embossfunc(but->col, but->aspect, but->x1, but->y1, but->x2, but->y2, but->flag);
-	
-	if( but->flag & UI_HAS_ICON ) {
-		ui_draw_icon(but, but->icon);
-	}
-	else if(but->drawstr[0]!=0) {
-		if(but->flag & UI_SELECT) {
-			int ok= 0;
-			
-			if( but->pointype==CHA ) {
-				if( BTST( *(but->poin+2), but->bitnr )) ok= 1;
-			}
-			else if( but->pointype ==SHO ) {
-				short *sp= (short *)but->poin;
-				if( BTST( sp[1], but->bitnr )) ok= 1;
-			}
-			
-			if (ok) {
-				glColor3ub(255, 255, 0);
-				r= g= 1.0;
-				b= 0.0;
-			} else {
-				glColor3ub(255, 255, 255);
-				r= g= b= 1.0;
-			}
-		} else {
-			glColor3ub(0, 0, 0);
-			r= g= b= 0.0;
-		}
-
-		if(but->flag & UI_TEXT_LEFT) x= but->x1+4.0;
-		else x= (but->x1+but->x2-but->strwidth+1)/2.0;
-		
-		glRasterPos2f( x, (but->y1+but->y2- 9.0)/2.0);
-		
-		BIF_DrawStringRGB(but->font, but->drawstr+but->ofs, (U.transopts & TR_BUTTONS), r, g, b);
-	}
-}
-
-static void ui_draw_but_TEX(uiBut *but)
-{
-	float x;
-	short pos, sel, t;
-	char ch;
-	
-	sel= but->flag & UI_SELECT;
-	
-	but->embossfunc = ui_emboss_TEX;
-	but->embossfunc(but->col, but->aspect, but->x1, but->y1, but->x2, but->y2, sel);
-	
-	/* draw cursor */
-	if(but->pos != -1) {
-		
-		pos= but->pos+strlen(but->str);
-		if(pos >= but->ofs) {
-			ch= but->drawstr[pos];
-			but->drawstr[pos]= 0;
-
-			t= but->aspect*BIF_GetStringWidth(but->font, but->drawstr+but->ofs, (U.transopts & TR_BUTTONS)) + 3;
-
-			but->drawstr[pos]= ch;
-			glColor3ub(255,0,0);
-
-			glRects(but->x1+t, but->y1+2, but->x1+t+3, but->y2-2);
-		}	
-	}
-	if(but->drawstr[0]!=0) {
-		/* make text white if selected (editing) */
-		if (but->flag & UI_SELECT) glColor3ub(255,255,255);
-		else glColor3ub(0,0,0);
-
-		if(but->flag & UI_TEXT_LEFT) x= but->x1+4.0;
-		else x= (but->x1+but->x2-but->strwidth+1)/2.0;
-		
-		glRasterPos2f( x, (but->y1+but->y2- 9.0)/2.0);
-		
-		/* last arg determines text black (0) or whilte (1) */
-		BIF_DrawString(but->font, but->drawstr+but->ofs, (U.transopts & TR_BUTTONS), but->flag & UI_SELECT);
-	}
-}
-
-static void ui_draw_but_NUM(uiBut *but)
-{
-	
-	float x;
-	but->embossfunc = ui_emboss_NUM;
-
-	but->embossfunc(but->col, but->aspect, but->x1, but->y1, but->x2, but->y2, but->flag);
-
-	/* check for button text label */
-	if (but->type == ICONTEXTROW) {
-		ui_draw_icon(but, (BIFIconID) (but->icon+but->iconadd));
-	}
-	else if(but->drawstr[0]!=0) {
-		
-		/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
-		and offset the text label to accomodate it */
-	        if ( (but->flag & UI_HAS_ICON) && (but->flag & UI_ICON_LEFT) ) {
-			ui_draw_icon(but, but->icon);
-
-			if(but->flag & UI_TEXT_LEFT) x= but->x1+24.0;
-			else x= (but->x1+but->x2-but->strwidth+1)/2.0;
-		}
-		else {
-		        if(but->flag & UI_TEXT_LEFT) x= but->x1+4.0;
-			else x= (but->x1+but->x2-but->strwidth+1)/2.0;
-		}
-		
-		if(but->flag & UI_SELECT) {
-			glColor3ub(255,255,255);
-		} else {
-			glColor3ub(0,0,0);
-		}
-
-		glRasterPos2f( x, (but->y1+but->y2- 9.0)/2.0);
-
-		BIF_DrawString(but->font, but->drawstr+but->ofs, (U.transopts & TR_BUTTONS), but->flag & UI_SELECT);
-	}
-	/* if there's no text label, then check to see if there's an icon only and draw it */
-	else if( but->flag & UI_HAS_ICON ) {
-		ui_draw_icon(but, (BIFIconID) (but->icon+but->iconadd));
-	}
-
-}
-
-static void ui_draw_but_BUTM(uiBut *but)
-{
-	float x=0;
-	short len;
-	char *cpoin;
-	int sel;
-
-	if (but->type == MENU) {
-		but->embossfunc = ui_emboss_MENU;
-	}
-	
-	but->embossfunc(but->col, but->aspect, but->x1, but->y1, but->x2, but->y2, but->flag);
-
-	/* check for button text label */
-	if(but->drawstr[0]!=0) {
-		
-		cpoin= strchr(but->drawstr, '|');
-		if(cpoin) *cpoin= 0;
-
-		if(but->embossfunc==ui_emboss_P) {
-			if(but->flag & UI_ACTIVE) {
-				glColor3ub(255,255,255);
-				sel = 1;
-			} else {
-				glColor3ub(0,0,0);
-				sel = 0;
-			}
-		}
-		else {
-			glColor3ub(0,0,0);
-			sel = 0;
-		}
-
-		/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
-		and offset the text label to accomodate it */
-		if ( but->flag & UI_HAS_ICON ) {
-		        if (but->flag & UI_ICON_LEFT ) {
-				ui_draw_icon(but, but->icon);
-
-				x= but->x1+22.0;
-			} else if (but->flag & UI_ICON_RIGHT) {
-				ui_draw_icon(but, but->icon);
-
-				x= but->x1+4.0;
-			}
-		}
-		else {
-		        x= but->x1+4.0;
-		}
-
-		glRasterPos2f( x, (but->y1+but->y2- 9.0)/2.0);
-
-		BIF_DrawString(but->font, but->drawstr, (U.transopts & TR_BUTTONS), sel);
-		
-		if(cpoin) {
-			len= BIF_GetStringWidth(but->font, cpoin+1, (U.transopts & TR_BUTTONS));
-			glRasterPos2f( but->x2 - len*but->aspect-3, (but->y1+but->y2- 9.0)/2.0);
-			BIF_DrawString(but->font, cpoin+1, (U.transopts & TR_BUTTONS), but->flag & UI_ACTIVE);
-			*cpoin= '|';
-		}
-	}
-	/* if there's no text label, then check to see if there's an icon only and draw it */
-	else if( but->flag & UI_HAS_ICON ) {
-		ui_draw_icon(but, but->icon);
-	}
-}
-
-static void ui_draw_but_LABEL(uiBut *but)
-{
-	float x;
-	int sel;
-
-	sel= but->min!=0.0;
-
-	if(sel) glColor3ub(255,255,255);
-	else glColor3ub(0,0,0);
-	
-	/* check for button text label */
-	if(but->drawstr[0]!=0) {
-
-	   /* If there's an icon too (made with uiDefIconTextBut) then draw the icon
-		and offset the text label to accomodate it */
-		if ( (but->flag & UI_HAS_ICON) && (but->flag & UI_ICON_LEFT) ) {
-			ui_draw_icon(but, but->icon);
-
-			if(but->flag & UI_TEXT_LEFT) x= but->x1+24.0;
-			else x= (but->x1+but->x2-but->strwidth+1)/2.0;
-		}
-		else {
-		        if(but->flag & UI_TEXT_LEFT) x= but->x1+4.0;
-			else x= (but->x1+but->x2-but->strwidth+1)/2.0;
-		}
-
-		glRasterPos2f( x, (but->y1+but->y2- 9.0)/2.0);
-
-		BIF_DrawString(but->font, but->drawstr+but->ofs, (U.transopts & TR_BUTTONS), sel);
-	}
-	/* if there's no text label, then check to see if there's an icon only and draw it */
-	else if( but->flag & UI_HAS_ICON ) {
-		ui_draw_icon(but, but->icon);
-	}
-}
-
-static void ui_draw_but_SEPR(uiBut *but)
-{
-	//float y= (but->y1+but->y2)/2.0;
-
-	BIF_set_color(but->col, COLORSHADE_MEDIUM);
-	glRectf(but->x1-2, but->y1-1, but->x2+2, but->y2);
-
-}
-
-static void ui_draw_but_LINK(uiBut *but)
-{
-	ui_draw_icon(but, but->icon);
-}
-
-
-static void ui_draw_but(uiBut *but)
-{
-	double value;
-	float fac, x1, y1, x2, y2, *fp;
-	char colr, colg, colb;
-	
-	if(but==0) return;
-
-	if(but->block->frontbuf==UI_NEED_DRAW_FRONT) {
-		but->block->frontbuf= UI_HAS_DRAW_FRONT;
-	
-		glDrawBuffer(GL_FRONT);
-		if(but->win==curarea->headwin) curarea->head_swap= WIN_FRONT_OK;
-		else curarea->win_swap= WIN_FRONT_OK;
-	}
-	
-	switch (but->type) {
-
-	case BUT: 
-	case ROW: 
-	case TOG:
-	case TOGR: 
-	case TOGN:
-	case ICONTOG:
-	case KEYEVT:
-	case IDPOIN:
-	case ICONROW:
-	case ICONTEXTROW:
-		ui_draw_but_BUT(but);
-		break;
-	
-	case NUM:
-		ui_draw_but_NUM(but);
-		break;
-	
-	case TEX:
-		ui_draw_but_TEX(but);
-		break;
-	
-	case BUTM:
-	case BLOCK:
-		ui_draw_but_BUTM(but);
-		break;
-	
-	case MENU:
-		ui_draw_but_MENU(but);
-		break;
-	
-	case NUMSLI:
-	case HSVSLI:
-	
-		ui_draw_but_BUT(but);
-		
-		/* the slider */
-
-		x1= but->x1; x2= but->x2;
-		y1= but->y1; y2= but->y2;
-		
-		but->x1= (but->x1+but->x2)/2;
-		but->x2-= 5.0*but->aspect;
-
-		but->y1+= 2.0*but->aspect;
-		but->y2-= 2.0*but->aspect;
-		
-		value= ui_get_but_val(but);
-		fac= (value-but->min)*(but->x2-but->x1)/(but->max - but->min);
-		ui_emboss_slider(but, fac);
-		
-		but->x1= x1; but->x2= x2;
-		but->y1= y1; but->y2= y2;
-		
-		break;
-		
-	case TOG3:
-		ui_draw_but_TOG3(but);
-		break;
-
-	case LABEL:
-		ui_draw_but_LABEL(but);
-		break;
-
-	case SLI:
-		break;
-
-	case SCROLL:
-		break;
-		
-	case SEPR:
-		ui_draw_but_SEPR(but);
-		break;
-		
-	case COL:
-		
-		if( but->pointype==FLO ) {
-			fp= (float *)but->poin;
-			colr= floor(255.0*fp[0]+0.5);
-			colg= floor(255.0*fp[1]+0.5);
-			colb= floor(255.0*fp[2]+0.5);
-		}
-		else {
-			char *cp= (char *)but->poin;
-			colr= cp[0];
-			colg= cp[1];
-			colb= cp[2];
-		}
-		glColor3ub(colr,  colg,  colb);
-		glRectf((but->x1), (but->y1), (but->x2), (but->y2));
-		glColor3ub(0,  0,  0);
-		fdrawbox((but->x1), (but->y1), (but->x2), (but->y2));
-		break;
-
-	case LINK:
-		ui_draw_but_LINK(but);
-		break;
-
-	case INLINK:
-		ui_draw_but_LINK(but);
-		break;
-	}
-}
-
-
-
-void uiDrawMenuBox(float minx, float miny, float maxx, float maxy)
-{
-	BIF_set_color(MENUCOL, COLORSHADE_MEDIUM);
-
-	glRectf(minx, miny, maxx, maxy);
-	
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-
-	glColor4ub(0, 0, 0, 100);
-	fdrawline(minx+4, miny, maxx+1, miny);
-	fdrawline(maxx+1, miny, maxx+1, maxy-4);
-	
-	glColor4ub(0, 0, 0, 80);
-	fdrawline(minx+4, miny-1, maxx+1, miny-1);
-	fdrawline(maxx+1, miny-1, maxx+1, maxy-4);
-
-	glColor4ub(0, 0, 0, 55);
-	fdrawline(minx+4, miny-2, maxx+2, miny-2);
-	fdrawline(maxx+2, miny-2, maxx+2, maxy-4);
-
-	glColor4ub(0, 0, 0, 35);
-	fdrawline(minx+4, miny-3, maxx+3, miny-3);
-	fdrawline(maxx+3, miny-3, maxx+3, maxy-4);
-
-	glColor4ub(0, 0, 0, 20);
-	fdrawline(minx+4, miny-4, maxx+4, miny-4);
-	fdrawline(maxx+4, miny-4, maxx+4, maxy-4);
-
-	glDisable(GL_BLEND);
-	
-	/* below */
-	//glColor3ub(0,0,0);
-	//fdrawline(minx, miny, maxx, miny);
-
-	/* right */
-	//fdrawline(maxx, miny, maxx, maxy);
-	
-	/* top */
-	//glColor3ub(255,255,255);
-	//fdrawline(minx, maxy, maxx, maxy);
-
-	/* left */
-	//fdrawline(minx, miny, minx, maxy);
-
-}
-
-static void ui_draw_linkline(uiBut *but, uiLinkLine *line)
-{
-	float vec1[2], vec2[2];
-
-	if(line->from==NULL || line->to==NULL) return;
-	
-	if(but->block->frontbuf==UI_NEED_DRAW_FRONT) {
-		but->block->frontbuf= UI_HAS_DRAW_FRONT;
-	
-		glDrawBuffer(GL_FRONT);
-		if(but->win==curarea->headwin) curarea->head_swap= WIN_FRONT_OK;
-		else curarea->win_swap= WIN_FRONT_OK;
-	}
-
-	vec1[0]= (line->from->x1+line->from->x2)/2.0;
-	vec1[1]= (line->from->y1+line->from->y2)/2.0;
-	vec2[0]= (line->to->x1+line->to->x2)/2.0;
-	vec2[1]= (line->to->y1+line->to->y2)/2.0;
-	
-	if(line->flag & UI_SELECT) BIF_set_color(but->col, COLORSHADE_LIGHT);
-	else glColor3ub(0,0,0);
-	fdrawline(vec1[0], vec1[1], vec2[0], vec2[1]);
-}
-
-static void ui_draw_links(uiBlock *block)
-{
-	uiBut *but;
-	uiLinkLine *line;
-	
-	but= block->buttons.first;
-	while(but) {
-		if(but->type==LINK && but->link) {
-			line= but->link->lines.first;
-			while(line) {
-				ui_draw_linkline(but, line);
-				line= line->next;
-			}
-		}
-		but= but->next;
-	}	
 }
 
 
@@ -2346,6 +527,55 @@ void ui_autofill(uiBlock *block)
 	block->autofill= 0;
 }
 
+/* ************** LINK LINE DRAWING  ************* */
+
+/* link line drawing is not part of buttons or theme.. so we stick with it here */
+
+static void ui_draw_linkline(uiBut *but, uiLinkLine *line)
+{
+	float vec1[2], vec2[2];
+
+	if(line->from==NULL || line->to==NULL) return;
+	
+	if(but->block->frontbuf==UI_NEED_DRAW_FRONT) {
+		but->block->frontbuf= UI_HAS_DRAW_FRONT;
+	
+		glDrawBuffer(GL_FRONT);
+		if(but->win==curarea->headwin) curarea->head_swap= WIN_FRONT_OK;
+		else curarea->win_swap= WIN_FRONT_OK;
+	}
+
+	vec1[0]= (line->from->x1+line->from->x2)/2.0;
+	vec1[1]= (line->from->y1+line->from->y2)/2.0;
+	vec2[0]= (line->to->x1+line->to->x2)/2.0;
+	vec2[1]= (line->to->y1+line->to->y2)/2.0;
+	
+	if(line->flag & UI_SELECT) BIF_ThemeColorShade(but->themecol, 80);
+	else glColor3ub(0,0,0);
+	fdrawline(vec1[0], vec1[1], vec2[0], vec2[1]);
+}
+
+static void ui_draw_links(uiBlock *block)
+{
+	uiBut *but;
+	uiLinkLine *line;
+	
+	but= block->buttons.first;
+	while(but) {
+		if(but->type==LINK && but->link) {
+			line= but->link->lines.first;
+			while(line) {
+				ui_draw_linkline(but, line);
+				line= line->next;
+			}
+		}
+		but= but->next;
+	}	
+}
+
+/* ************** BLOCK DRAWING FUNCTION ************* */
+
+
 void uiDrawBlock(uiBlock *block)
 {
 	uiBut *but;
@@ -2356,7 +586,6 @@ void uiDrawBlock(uiBlock *block)
 	uiPanelPush(block); // panel matrix
 	
 	if(block->flag & UI_BLOCK_LOOP) {
-		BIF_set_color(block->col, COLORSHADE_HILITE);
 		uiDrawMenuBox(block->minx, block->miny, block->maxx, block->maxy);
 	}
 	else if(block->panel) ui_draw_panel(block);
@@ -2513,148 +742,6 @@ static void ui_warp_pointer(short x, short y)
 	#endif
 }
 
-#if 0
-static int ui_do_but_MENUo(uiBut *but)
-{
-	uiBlock *block;
-	ListBase listb={NULL, NULL};
-	double fvalue;
-	int width, height, a, xmax, ymax, starty, endx, endy;
-	short startx;
-	int columns=1, rows=0, boxh, event;
-	short  x1, y1;
-	short mval[2], mousemove[2];
-	MenuData *md;
-
-	but->flag |= UI_SELECT;
-	ui_draw_but(but);
-
-	block= uiNewBlock(&listb, "menu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
-	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
-	uiBlockSetCol(block, MENUCOL);
-	
-	md= decompose_menu_string(but->str);
-
-	/* columns and row calculation */
-	columns= (md->nitems+20)/20;
-	if (columns<1) columns= 1;
-	
-	rows= (int) md->nitems/columns;
-	if (rows<1) rows= 1;
-	
-	while (rows*columns<md->nitems) rows++;
-		
-	/* size and location */
-	if(md->title)
-		width= 2*strlen(md->title)+BIF_GetStringWidth(block->curfont, md->title, (U.transopts & TR_MENUS));
-	else
-		width= 0;
-
-	for(a=0; a<md->nitems; a++) {
-		xmax= BIF_GetStringWidth(block->curfont, md->items[a].str, (U.transopts & TR_MENUS));
-		if(xmax>width) width= xmax;
-	}
-
-	width+= 10;
-	if (width<50) width=50;
-
-	boxh= TBOXH;
-	
-	height= rows*boxh;
-	if (md->title) height+= boxh;
-	
-	xmax = G.curscreen->sizex;
-	ymax = G.curscreen->sizey;
-
-	getmouseco_sc(mval);
-	
-	/* find active item */
-	fvalue= ui_get_but_val(but);
-	for(a=0; a<md->nitems; a++) {
-		if( md->items[a].retval== (int)fvalue ) break;
-	}
-	/* no active item? */
-	if(a==md->nitems) {
-		if(md->title) a= -1;
-		else a= 0;
-	}
-
-	if(a>0) startx = mval[0]-width/2 - ((int)(a)/rows)*width;
-	else startx= mval[0]-width/2;
-	starty = mval[1]-height + boxh/2 + ((a)%rows)*boxh;
-
-	if (md->title) starty+= boxh;
-	
-	mousemove[0]= mousemove[1]= 0;
-	
-	if(startx<10) {
-		mousemove[0]= 10-startx;
-		startx= 10;
-	}
-	if(starty<10) {
-		mousemove[1]= 10-starty;
-		starty= 10;
-	}
-	
-	endx= startx+width*columns;
-	endy= starty+height;
-	
-	if(endx>xmax) {
-		mousemove[0]= xmax-endx-10;
-		endx= xmax-10;
-		startx= endx-width*columns;
-	}
-	if(endy>ymax) {
-		mousemove[1]= ymax-endy-10;
-		endy= ymax-10;
-		starty= endy-height;
-	}
-
-	ui_warp_pointer(mval[0]+mousemove[0], mval[1]+mousemove[1]);
-
-	mousemove[0]= mval[0];
-	mousemove[1]= mval[1];
-
-	/* here we go! */
-
-	if(md->title) {
-		uiBut *bt;
-		uiSetCurFont(block, block->font+1);
-		bt= uiDefBut(block, LABEL, 0, md->title, startx, (short)(starty+rows*boxh), (short)width, (short)boxh, NULL, 0.0, 0.0, 0, 0, "");
-		uiSetCurFont(block, block->font);
-		bt->flag= UI_TEXT_LEFT;
-	}
-
-	for(a=0; a<md->nitems; a++) {
-
-		x1= startx + width*((int)a/rows);
-		y1= starty - boxh*(a%rows) + (rows-1)*boxh; 
-
-		if (strcmp(md->items[a].str, "%l")==0) {
-			uiDefBut(block, SEPR, B_NOP, "", x1, y1,(short)(width-(rows>1)), (short)(boxh-1), NULL, 0.0, 0.0, 0, 0, "");
-		}
-		else {
-			uiDefBut(block, BUTM|but->pointype, but->retval, md->items[a].str, x1, y1,(short)(width-(rows>1)), (short)(boxh-1), but->poin, (float) md->items[a].retval, 0.0, 0, 0, "");
-		}
-	}
-	
-	uiBoundsBlock(block, 3);
-
-	event= uiDoBlocks(&listb, 0);
-	
-	menudata_free(md);
-	
-	if((event & UI_RETURN_OUT)==0) ui_warp_pointer(mousemove[0], mousemove[1]);
-	
-	but->flag &= ~UI_SELECT;
-	ui_check_but(but);
-	ui_draw_but(but);
-	
-	uibut_do_func(but);
-
-	return event;	
-}
-#endif
 
 static int ui_do_but_MENU(uiBut *but)
 {
@@ -2673,7 +760,6 @@ static int ui_do_but_MENU(uiBut *but)
 
 	block= uiNewBlock(&listb, "menu", UI_EMBOSSP, UI_HELV, but->win);
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
-	uiBlockSetCol(block, MENUCOL);
 	
 	md= decompose_menu_string(but->str);
 
@@ -3328,7 +1414,6 @@ static int ui_do_but_ICONROW(uiBut *but)
 	/* here we go! */
 	block= uiNewBlock(&listb, "menu", UI_EMBOSSP, UI_HELV, but->win);
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
-	uiBlockSetCol(block, MENUCOL);
 	
 	for(a=(int)but->min; a<=(int)but->max; a++) {
 		uiDefIconBut(block, BUTM|but->pointype, but->retval, but->icon+(a-but->min), 0, (short)(18*a), (short)(but->x2-but->x1-4), 18, but->poin, (float)a, 0.0, 0, 0, "");
@@ -3361,7 +1446,7 @@ static int ui_do_but_ICONTEXTROW(uiBut *but)
 
 	block= uiNewBlock(&listb, "menu", UI_EMBOSSP, UI_HELV, but->win);
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
-	uiBlockSetCol(block, MENUCOL);
+
 	md= decompose_menu_string(but->str);
 
 	/* size and location */
@@ -4446,7 +2531,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 				if(but->flag & UI_MOUSE_OVER) {
 					if( (but->flag & UI_ACTIVE)==0) {
 						but->flag |= UI_ACTIVE;
-						if(but->type != LABEL && but->embossfunc != ui_emboss_N) ui_draw_but(but);
+						if(but->type != LABEL /* && but->embossfunc != ui_emboss_N */) ui_draw_but(but);
 					}
 				}
 				/* hilite case 2 */
@@ -4455,7 +2540,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 						/* we dont clear active flag until mouse move, for Menu buttons to remain showing active item when opened */
 						if (uevent->event==MOUSEY) {
 							but->flag &= ~UI_ACTIVE;
-							if(but->type != LABEL && but->embossfunc != ui_emboss_N) ui_draw_but(but);
+							if(but->type != LABEL /* && but->embossfunc != ui_emboss_N */) ui_draw_but(but);
 						}
 					}
 					else if(but->type==BLOCK || but->type==MENU) {	// automatic opens block button (pulldown)
@@ -4666,7 +2751,7 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 	
 	glColor3ub(0,0,0);
 	glRasterPos2f( x1+3, y1+4);
-	BIF_DrawString(but->font, but->tip, (U.transopts & TR_TOOLTIPS), 0);
+	BIF_DrawString(but->font, but->tip, (U.transopts & TR_TOOLTIPS));
 	
 	glFinish();		/* to show it in the frontbuffer */
 	return su;
@@ -4879,7 +2964,7 @@ int uiDoBlocks(ListBase *lb, int event)
 /* ************** DATA *************** */
 
 
-static double ui_get_but_val(uiBut *but)
+double ui_get_but_val(uiBut *but)
 {
 	void *poin;
 	double value = 0.0;
@@ -5072,8 +3157,8 @@ uiBlock *uiNewBlock(ListBase *lb, char *name, short dt, short font, short win)
 	   this is because the 'mainwin' pup menu's */
 	block->winq= mywinget();
 	block->dt= dt;
-	block->col= BUTGREY;
-
+	block->themecol= TH_AUTO;
+	
 		/* aspect */
 	bwin_getsinglematrix(win, block->winmat);
 
@@ -5264,6 +3349,36 @@ void ui_check_but(uiBut *but)
 	}
 }
 
+static int ui_auto_themecol(uiBut *but)
+{
+
+	switch(but->type) {
+	case BUT:
+		return TH_BUT_ACTION;
+	case ROW:
+	case TOG:
+	case TOG3:
+	case TOGR:
+	case TOGN:
+		return TH_BUT_SETTING;
+	case SLI:
+	case NUM:
+	case NUMSLI:
+	case HSVSLI:
+		return TH_BUT_NUM;
+	case TEX:
+		return TH_BUT_TEXTFIELD;
+	case BLOCK:
+	case MENU:
+	case BUTM:
+		// (weak!) detect if it is a blockloop
+		if(UIbuttip) return TH_MENU_ITEM;
+		return TH_BUT_POPUP;
+	default:
+		return TH_BUT_NEUTRAL;
+	}
+}
+
 static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short x1, short y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  char *tip)
 {
 	uiBut *but;
@@ -5272,7 +3387,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	if(type & BUTPOIN) {		/* a pointer is required */
 		if(poin==0) {
 				/* if pointer is zero, button is removed and not drawn */
-			BIF_set_color(block->col, COLORSHADE_MEDIUM);
+			BIF_ThemeColor(block->themecol);
 			glRects(x1,  y1,  x1+x2,  y1+y2);
 			return NULL;
 		}
@@ -5314,8 +3429,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	but->tip= tip;
 	
 	but->font= block->curfont;
-	but->col= block->col;
-
+	
 	but->lock= UIlock;
 	but->lockstr= UIlockstr;
 
@@ -5323,6 +3437,9 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	but->win= block->win;
 	but->block= block;		// pointer back, used for frontbuffer status
 
+	if(block->themecol==TH_AUTO) but->themecol= ui_auto_themecol(but);
+	else but->themecol= block->themecol;
+	
 	if (but->type==BUTM) {
 		but->butm_func= block->butm_func;
 		but->butm_func_arg= block->butm_func_arg;
@@ -5332,16 +3449,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 		but->func_arg2= block->func_arg2;
 	}
 
-	if(block->dt==UI_EMBOSSX) but->embossfunc= ui_emboss_X;
-	else if(block->dt==UI_EMBOSSW) but->embossfunc= ui_emboss_W;
-	else if(block->dt==UI_EMBOSSM) but->embossfunc= ui_emboss_M;
-	else if(block->dt==UI_EMBOSSP) but->embossfunc= ui_emboss_P;
-	else if(block->dt==UI_EMBOSST) but->embossfunc= ui_emboss_TABL;
-	else if(block->dt==UI_EMBOSSTABL) but->embossfunc= ui_emboss_TABL;
-	else if(block->dt==UI_EMBOSSTABM) but->embossfunc= ui_emboss_TABM;
-	else if(block->dt==UI_EMBOSSTABR) but->embossfunc= ui_emboss_TABR;
-	else if(block->dt==UI_EMBOSSMB) but->embossfunc= ui_emboss_MENU;
-	else but->embossfunc= ui_emboss_N;
+	ui_set_embossfunc(but, block->dt);
 	
 	but->pos= -1;	/* cursor invisible */
 
@@ -5355,7 +3463,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 		}
 	}
 	
-	if ELEM6(but->type, HSVSLI , NUMSLI, TEX, LABEL, IDPOIN, BLOCK) {
+	if ELEM8(but->type, HSVSLI , NUMSLI, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM) {
 		but->flag |= UI_TEXT_LEFT;
 	}
 	
@@ -5489,11 +3597,11 @@ int uiBlocksGetYMin(ListBase *lb)
 
 int uiBlockGetCol(uiBlock *block)
 {
-	return block->col;
+	return block->themecol;
 }
 void uiBlockSetCol(uiBlock *block, int col)
 {
-	block->col= col;
+	block->themecol= col;
 }
 void uiBlockSetEmboss(uiBlock *block, int emboss)
 {
@@ -5630,7 +3738,6 @@ short pupmenu(char *instr)
 	/* block stuff first, need to know the font */
 	block= uiNewBlock(&listb, "menu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_NUMSELECT);
-	uiBlockSetCol(block, MENUCOL);
 	
 	md= decompose_menu_string(instr);
 
@@ -5742,7 +3849,6 @@ short pupmenu_col(char *instr, int maxrow)
 	
 	block= uiNewBlock(&listb, "menu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT);
-	uiBlockSetCol(block, MENUCOL);
 	
 	md= decompose_menu_string(instr);
 

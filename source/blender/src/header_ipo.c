@@ -63,6 +63,8 @@
 #include "BIF_interface.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
+#include "BIF_space.h"
+
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -207,8 +209,10 @@ void ipo_buttons(void)
 	char naam[20];
 
 	sprintf(naam, "header %d", curarea->headwin);
-	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSSX, UI_HELV, curarea->headwin);
-	uiBlockSetCol(block, BUTSALMON);
+	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSS, UI_HELV, curarea->headwin);
+
+	if(area_is_active_area(curarea)) uiBlockSetCol(block, TH_HEADER);
+	else uiBlockSetCol(block, TH_HEADERDESEL);
 
 	curarea->butspacetype= SPACE_IPO;
 

@@ -628,7 +628,7 @@ static void texture_panel_plugin(Tex *tex)
 	PluginTex *pit;
 	short xco, yco, a;
 	
-	block= uiNewBlock(&curarea->uiblocks, "texture_panel_plugin", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_plugin", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Plugin", "Texture", 640, 0, 318, 204)==0) return;
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
@@ -636,12 +636,10 @@ static void texture_panel_plugin(Tex *tex)
 		
 		pit= tex->plugin;
 
-		uiBlockSetCol(block, BUTGREEN);
 		for(a=0; a<pit->stypes; a++) {
 			uiDefButS(block, ROW, B_MATPRV, pit->stnames+16*a, (350+75*a), 170, 75, 18, &tex->stype, 2.0, (float)a, 0, 0, "");
 		}
 		
-		uiBlockSetCol(block, BUTGREY);
 		varstr= pit->varstr;
 		if(varstr) {
 			for(a=0; a<pit->vars; a++, varstr++) {
@@ -654,7 +652,6 @@ static void texture_panel_plugin(Tex *tex)
 		uiDefBut(block, TEX, B_NAMEPLUGIN, "",		350,130,290,24, pit->name, 0.0, 159.0, 0, 0, "");
 	}
 
-	uiBlockSetCol(block, BUTSALMON);
 	uiDefBut(block, BUT, B_LOADPLUGIN, "Load Plugin", 350,150,137,24, 0, 0, 0, 0, 0, "");
 			
 }
@@ -664,11 +661,10 @@ static void texture_panel_magic(Tex *tex)
 {
 	uiBlock *block;
 	
-	block= uiNewBlock(&curarea->uiblocks, "texture_panel_magic", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_magic", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Magic", "Texture", 640, 0, 318, 204)==0) return;
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
-	uiBlockSetCol(block, BUTGREY);
 	uiDefButF(block, NUM, B_MATPRV, "Size :",		10, 110, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Set the dimension of the pattern");
 	uiDefButS(block, NUM, B_MATPRV, "Depth:",		10, 90, 150, 19, &tex->noisedepth, 0.0, 10.0, 0, 0, "Set the depth of the pattern");
 	uiDefButF(block, NUM, B_MATPRV, "Turbulence:",	10, 70, 150, 19, &tex->turbul, 0.0, 200.0, 10, 0, "Set the strength of the pattern");
@@ -678,11 +674,10 @@ static void texture_panel_blend(Tex *tex)
 {
 	uiBlock *block;
 	
-	block= uiNewBlock(&curarea->uiblocks, "texture_panel_blend", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_blend", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Blend", "Texture", 640, 0, 318, 204)==0) return;
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
-	uiBlockSetCol(block, BUTGREEN);	
 	uiDefButS(block, ROW, B_MATPRV, "Lin",		10, 180, 75, 19, &tex->stype, 2.0, 0.0, 0, 0, "Use a linear progresion"); 
 	uiDefButS(block, ROW, B_MATPRV, "Quad",		85, 180, 75, 19, &tex->stype, 2.0, 1.0, 0, 0, "Use a quadratic progression"); 
 	uiDefButS(block, ROW, B_MATPRV, "Ease",		160, 180, 75, 19, &tex->stype, 2.0, 2.0, 0, 0, ""); 
@@ -700,11 +695,10 @@ static void texture_panel_wood(Tex *tex)
 {
 	uiBlock *block;
 	
-	block= uiNewBlock(&curarea->uiblocks, "texture_panel_wood", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_wood", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Wood", "Texture", 640, 0, 318, 204)==0) return;
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
-	uiBlockSetCol(block, BUTGREEN);	
 	uiDefButS(block, ROW, B_MATPRV, "Bands",		10, 180, 75, 18, &tex->stype, 2.0, 0.0, 0, 0, "Use standard wood texture"); 
 	uiDefButS(block, ROW, B_MATPRV, "Rings",		85, 180, 75, 18, &tex->stype, 2.0, 1.0, 0, 0, "Use wood rings"); 
 	uiDefButS(block, ROW, B_MATPRV, "BandNoise",	160, 180, 75, 18, &tex->stype, 2.0, 2.0, 0, 0, "Add noise to standard wood"); 
@@ -713,7 +707,6 @@ static void texture_panel_wood(Tex *tex)
 	uiDefButS(block, ROW, B_MATPRV, "Soft noise",	10, 160, 75, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Use soft noise");
 	uiDefButS(block, ROW, B_MATPRV, "Hard noise",	85, 160, 75, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Use hard noise");
 
-	uiBlockSetCol(block, BUTGREY);	
 	uiDefButF(block, NUM, B_MATPRV, "NoiseSize :",	10, 130, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Set the dimension of the noise table");
 	uiDefButF(block, NUM, B_MATPRV, "Turbulence:",	160, 130, 150, 19, &tex->turbul, 0.0, 200.0, 10, 0, "Set the turbulence of the bandnoise and ringnoise types");
 
@@ -724,18 +717,16 @@ static void texture_panel_stucci(Tex *tex)
 {
 	uiBlock *block;
 	
-	block= uiNewBlock(&curarea->uiblocks, "texture_panel_stucci", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_stucci", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Stucci", "Texture", 640, 0, 318, 204)==0) return;
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
-	uiBlockSetCol(block, BUTGREEN);
 	uiDefButS(block, ROW, B_MATPRV, "Plastic",		10, 180, 100, 19, &tex->stype, 2.0, 0.0, 0, 0, "Use standard stucci");
 	uiDefButS(block, ROW, B_MATPRV, "Wall In",		110, 180, 100, 19, &tex->stype, 2.0, 1.0, 0, 0, "Set start value"); 
 	uiDefButS(block, ROW, B_MATPRV, "Wall Out",		210, 180, 100, 19, &tex->stype, 2.0, 2.0, 0, 0, "Set end value"); 
 	uiDefButS(block, ROW, B_MATPRV, "Soft noise",	10, 160, 100, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Use soft noise");
 	uiDefButS(block, ROW, B_MATPRV, "Hard noise",	110, 160, 100, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Use hard noise");
 
-	uiBlockSetCol(block, BUTGREY);	
 	uiDefButF(block, NUM, B_MATPRV, "NoiseSize :",	10, 110, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Set the dimension of the noise table");
 	uiDefButF(block, NUM, B_MATPRV, "Turbulence:",	10, 90, 150, 19, &tex->turbul, 0.0, 200.0, 10, 0, "Set the depth of the stucci");
 }
@@ -744,11 +735,10 @@ static void texture_panel_marble(Tex *tex)
 {
 	uiBlock *block;
 	
-	block= uiNewBlock(&curarea->uiblocks, "texture_panel_marble", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_marble", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Marble", "Texture", 640, 0, 318, 204)==0) return;
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
-	uiBlockSetCol(block, BUTGREEN);	
 	uiDefButS(block, ROW, B_MATPRV, "Soft",			10, 180, 75, 18, &tex->stype, 2.0, 0.0, 0, 0, "Use soft marble"); 
 	uiDefButS(block, ROW, B_MATPRV, "Sharp",		85, 180, 75, 18, &tex->stype, 2.0, 1.0, 0, 0, "Use more clearly defined marble"); 
 	uiDefButS(block, ROW, B_MATPRV, "Sharper",		160, 180, 75, 18, &tex->stype, 2.0, 2.0, 0, 0, "Use very clear defined marble"); 
@@ -756,7 +746,6 @@ static void texture_panel_marble(Tex *tex)
 	uiDefButS(block, ROW, B_MATPRV, "Soft noise",	10, 160, 100, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Use soft noise");
 	uiDefButS(block, ROW, B_MATPRV, "Hard noise",	110, 160, 100, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Use hard noise");
 
-	uiBlockSetCol(block, BUTGREY);	
 	uiDefButF(block, NUM, B_MATPRV, "NoiseSize :",	10, 110, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Set the dimension of the noise table");
 	uiDefButS(block, NUM, B_MATPRV, "NoiseDepth:",	10, 90, 150, 19, &tex->noisedepth, 0.0, 6.0, 0, 0, "Set the depth of the marble calculation");
 	uiDefButF(block, NUM, B_MATPRV, "Turbulence:",	10, 70, 150, 19, &tex->turbul, 0.0, 200.0, 10, 0, "Set the turbulence of the sine bands");
@@ -768,17 +757,15 @@ static void texture_panel_clouds(Tex *tex)
 {
 	uiBlock *block;
 	
-	block= uiNewBlock(&curarea->uiblocks, "texture_panel_clouds", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_clouds", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Clouds", "Texture", 640, 0, 318, 204)==0) return;
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
-	uiBlockSetCol(block, BUTGREEN);	
 	uiDefButS(block, ROW, B_MATPRV, "Default",		10, 180, 70, 18, &tex->stype, 2.0, 0.0, 0, 0, "Use standard noise"); 
 	uiDefButS(block, ROW, B_MATPRV, "Color",		80, 180, 70, 18, &tex->stype, 2.0, 1.0, 0, 0, "Let Noise give RGB value"); 
 	uiDefButS(block, ROW, B_MATPRV, "Soft noise",	155, 180, 75, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Use soft noise");
 	uiDefButS(block, ROW, B_MATPRV, "Hard noise",	230, 180, 80, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Use hard noise");
 
-	uiBlockSetCol(block, BUTGREY);	
 	uiDefButF(block, NUM, B_MATPRV, "NoiseSize :",	10, 130, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Set the dimension of the noise table");
 	uiDefButS(block, NUM, B_MATPRV, "NoiseDepth:",	160, 130, 150, 19, &tex->noisedepth, 0.0, 6.0, 0, 0, "Set the depth of the cloud calculation");
 
@@ -793,7 +780,7 @@ static void texture_panel_envmap(Tex *tex)
 	short a, xco, yco, dx, dy;
 	char *strp, str[32];
 	
-	block= uiNewBlock(&curarea->uiblocks, "texture_panel_envmap", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_envmap", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Envmap", "Texture", 640, 0, 318, 204)==0) return;
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
@@ -804,49 +791,41 @@ static void texture_panel_envmap(Tex *tex)
 	if(tex->env) {
 		env= tex->env;
 		
-		uiBlockSetCol(block, BUTGREEN);
 		uiDefButS(block, ROW, B_REDR, 	"Static", 	10, 180, 100, 19, &env->stype, 2.0, 0.0, 0, 0, "Calculate map only once");
 		uiDefButS(block, ROW, B_REDR, 	"Anim", 	110, 180, 100, 19, &env->stype, 2.0, 1.0, 0, 0, "Calculate map each rendering");
 		uiDefButS(block, ROW, B_ENV_FREE, "Load", 	210, 180, 100, 19, &env->stype, 2.0, 2.0, 0, 0, "Load map from disk");
 		
 		if(env->stype==ENV_LOAD) {
 			/* file input */
-			uiBlockSetCol(block, BUTGREY);
 			id= (ID *)tex->ima;
 			IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->image), id, &(G.buts->menunr));
 			if(strp[0])
 				uiDefButS(block, MENU, B_TEXIMABROWSE, strp, 10,135,23,20, &(G.buts->menunr), 0, 0, 0, 0, "Browse");
 			MEM_freeN(strp);
 		
-			uiBlockSetCol(block, BUTSALMON);
 			uiDefBut(block, BUT, B_LOADTEXIMA1, "Load Image", 10,115,130,20, 0, 0, 0, 0, 0, "Load image - file view");
-			uiBlockSetCol(block, BUTPURPLE);
+			uiBlockSetCol(block, TH_BUT_SETTING2);
 			uiDefBut(block, BUT, B_LOADTEXIMA, "", 		140,115,20,20, 0, 0, 0, 0, 0, "Load image - thumb view");
+			uiBlockSetCol(block, TH_AUTO);
 		
 			if(tex->ima) {
 				uiDefBut(block, TEX, B_NAMEIMA, "",			35,135,255,20, tex->ima->name, 0.0, 79.0, 0, 0, "Texture name");
 				sprintf(str, "%d", tex->ima->id.us);
 				uiDefBut(block, BUT, 0, str,				290,135,20,20, 0, 0, 0, 0, 0, "Number of users");
-				uiBlockSetCol(block, BUTSALMON);
 				uiDefBut(block, BUT, B_RELOADIMA, "Reload",	230,115,80,20, 0, 0, 0, 0, 0, "Reload");
 			
 				if (tex->ima->packedfile) packdummy = 1;
 				else packdummy = 0;
 				
-				uiBlockSetCol(block, BUTGREY);
 				uiDefIconButI(block, TOG|BIT|0, B_PACKIMA, ICON_PACKAGE, 205,115,24,20, &packdummy, 0, 0, 0, 0, "Pack/Unpack this Image");
 			}
 		}
 		else {
-			uiBlockSetCol(block, BUTSALMON);
 			uiDefBut(block, BUT, B_ENV_FREE, "Free Data", 	10,135,100,20, 0, 0, 0, 0, 0, "Release all images associated with environment map");
-			uiBlockSetCol(block, BUTGREY);
 			uiDefBut(block, BUT, B_ENV_SAVE, "Save EnvMap", 110,135,100,20, 0, 0, 0, 0, 0, "Save environment map");
-			uiBlockSetCol(block, BUTSALMON);
 			uiDefBut(block, BUT, B_ENV_FREE_ALL, "Free all EnvMaps", 210,135,100,20, 0, 0, 0, 0, 0, "Frees all rendered environment maps");
 		}
 
-		uiBlockSetCol(block, BUTGREY);
 		uiDefIDPoinBut(block, test_obpoin_but, B_ENV_OB, "Ob:",	10,90,150,20, &(env->object), "Object name");
 		if(env->stype!=ENV_LOAD) 
 			uiDefButS(block, NUM, B_ENV_FREE, 	"CubeRes", 		160,90,150,20, &env->cuberes, 50, 2048.0, 0, 0, "Set the resolution in pixels");
@@ -877,7 +856,7 @@ static void texture_panel_image1(Tex *tex)
 	uiBlock *block;
 	char str[32];
 	
-	block= uiNewBlock(&curarea->uiblocks, "texture_panel1", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel1", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Crop and Anim", "Texture", 960, 0, 318, 204)==0) return;
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
@@ -908,7 +887,6 @@ static void texture_panel_image1(Tex *tex)
 		uiDefButS(block, NUM, B_MATPRV, "Fra:",		802,10,73,19, &(tex->fradur[3][0]), 0.0, 18000.0, 0, 0, "Montage mode: frame start");
 		uiDefButS(block, NUM, B_MATPRV, "",			879,10,37,19, &(tex->fradur[3][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
 	
-		uiBlockSetCol(block, BUTGREEN);
 		uiDefButS(block, TOG|BIT|6, 0, "Cyclic",		743,60,48,19, &tex->imaflag, 0, 0, 0, 0, "Repeat animation image");
 	}
 }
@@ -920,13 +898,11 @@ static void texture_panel_image(Tex *tex)
 	ID *id;
 	char *strp, str[32];
 	
-	block= uiNewBlock(&curarea->uiblocks, "texture_panel_image", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_image", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Image", "Texture", 640, 0, 318, 204)==0) return;
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
 	/* types */
-	uiBlockSetCol(block, BUTGREEN);
-	
 	uiDefButS(block, TOG|BIT|0, 0, "InterPol",			10, 180, 75, 18, &tex->imaflag, 0, 0, 0, 0, "Interpolate pixels of the image");
 	uiDefButS(block, TOG|BIT|1, B_MATPRV, "UseAlpha",	85, 180, 75, 18, &tex->imaflag, 0, 0, 0, 0, "Use the alpha layer");
 	uiDefButS(block, TOG|BIT|5, B_MATPRV, "CalcAlpha",	160, 180, 75, 18, &tex->imaflag, 0, 0, 0, 0, "Calculate an alpha based on the RGB");
@@ -940,31 +916,26 @@ static void texture_panel_image(Tex *tex)
 	uiDefButS(block, TOG|BIT|10, 0, "StField",			260, 160, 50, 18, &tex->imaflag, 0, 0, 0, 0, "");
 
 	/* file input */
-	uiBlockSetCol(block, BUTGREY);
 	id= (ID *)tex->ima;
 	IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->image), id, &(G.buts->menunr));
 	if(strp[0])
 		uiDefButS(block, MENU, B_TEXIMABROWSE, strp, 10,135,23,20, &(G.buts->menunr), 0, 0, 0, 0, "Browse");
 	MEM_freeN(strp);
 
-	uiBlockSetCol(block, BUTSALMON);
 	uiDefBut(block, BUT, B_LOADTEXIMA1, "Load Image", 10,115,130,20, 0, 0, 0, 0, 0, "Load image - file view");
-	uiBlockSetCol(block, BUTPURPLE);
+	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiDefBut(block, BUT, B_LOADTEXIMA, "", 		140,115,20,20, 0, 0, 0, 0, 0, "Load image - thumb view");
-
-	uiBlockSetCol(block, BUTGREY);
+	uiBlockSetCol(block, TH_AUTO);
 
 	if(tex->ima) {
 		uiDefBut(block, TEX, B_NAMEIMA, "",			35,135,255,20, tex->ima->name, 0.0, 79.0, 0, 0, "Texture name");
 		sprintf(str, "%d", tex->ima->id.us);
 		uiDefBut(block, BUT, 0, str,				290,135,20,20, 0, 0, 0, 0, 0, "Number of users");
-		uiBlockSetCol(block, BUTSALMON);
 		uiDefBut(block, BUT, B_RELOADIMA, "Reload",	230,115,80,20, 0, 0, 0, 0, 0, "Reload");
 	
 		if (tex->ima->packedfile) packdummy = 1;
 		else packdummy = 0;
 		
-		uiBlockSetCol(block, BUTGREY);
 		uiDefIconButI(block, TOG|BIT|0, B_PACKIMA, ICON_PACKAGE, 205,115,24,20, &packdummy, 0, 0, 0, 0, "Pack/Unpack this Image");
 	}
 
@@ -972,13 +943,11 @@ static void texture_panel_image(Tex *tex)
 	
 	uiDefButF(block, NUM, B_MATPRV, "Filter :",	10,92,135,19, &tex->filtersize, 0.1, 25.0, 0, 0, "Set the filter size used by mipmap and interpol");
 	
-	uiBlockSetCol(block, BUTGREEN);
 	uiDefButS(block, ROW, 0, "Extend",			10,70,75,19, &tex->extend, 4.0, 1.0, 0, 0, "Extend the colour of the edge");
 	uiDefButS(block, ROW, 0, "Clip",			85,70,75,19, &tex->extend, 4.0, 2.0, 0, 0, "Return alpha 0.0 outside image");
 	uiDefButS(block, ROW, 0, "ClipCube",		160,70,75,19, &tex->extend, 4.0, 4.0, 0, 0, "Return alpha 0.0 outside cubeshaped area around image");
 	uiDefButS(block, ROW, 0, "Repeat",			235,70,75,19, &tex->extend, 4.0, 3.0, 0, 0, "Repeat image horizontally and vertically");
 
-	uiBlockSetCol(block, BUTGREY);
 	uiDefButS(block, NUM, B_MATPRV, "Xrepeat:",	10,50,150,19, &tex->xrepeat, 1.0, 512.0, 0, 0, "Set the degree of repetition in the X direction");
 	uiDefButS(block, NUM, B_MATPRV, "Yrepeat:",	160,50,150,19, &tex->yrepeat, 1.0, 512.0, 0, 0, "Set the degree of repetition in the Y direction");
 
@@ -1005,33 +974,27 @@ static void texture_panel_colors(Tex *tex)
 	uiBlock *block;
 	CBData *cbd;
 	
-	block= uiNewBlock(&curarea->uiblocks, "texture_panel_colors", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_colors", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Texture", "Texture");
 	if(uiNewPanel(curarea, block, "Colors", "Texture", 1280, 0, 318, 204)==0) return;
 		
 	
 	/* COLORBAND */
-	uiBlockSetCol(block, BUTSALMON);
 	uiDefButS(block, TOG|BIT|0, B_COLORBAND, "Colorband",10,180,100,20, &tex->flag, 0, 0, 0, 0, "Use colorband");
 
 	if(tex->flag & TEX_COLORBAND) {
 		uiDefBut(block, BUT, B_ADDCOLORBAND, "Add",		110,180,50,20, 0, 0, 0, 0, 0, "Add new colour to the colorband");
-		uiBlockSetCol(block, BUTGREY);
 		uiDefButS(block, NUM, B_REDR,		"Cur:",		160,180,100,20, &tex->coba->cur, 0.0, (float)(tex->coba->tot-1), 0, 0, "The active colour from the colorband");
-		uiBlockSetCol(block, BUTSALMON);
 		uiDefBut(block, BUT, B_DELCOLORBAND, "Del",		260,180,50,20, 0, 0, 0, 0, 0, "Delete the active colour");
-		uiBlockSetCol(block, BUTGREY);
 		uiDefBut(block, LABEL, B_DOCOLORBAND, "", 		10,150,300,20, 0, 0, 0, 0, 0, "Colorband"); /* only for event! */
 		
 		uiBlockSetDrawExtraFunc(block, drawcolorband_cb);
 		cbd= tex->coba->data + tex->coba->cur;
 		
 		uiDefButF(block, NUM, B_CALCCBAND, "Pos",	10,120,80,20, &cbd->pos, 0.0, 1.0, 10, 0, "Set the position of the active colour");
-		uiBlockSetCol(block, BUTGREEN);
 		uiDefButS(block, ROW, B_MATPRV, "E",		90,120,20,20, &tex->coba->ipotype, 5.0, 1.0, 0, 0, "Interpolation type Ease");
 		uiDefButS(block, ROW, B_MATPRV, "L",		110,120,20,20, &tex->coba->ipotype, 5.0, 0.0, 0, 0, "Interpolation type Linear");
 		uiDefButS(block, ROW, B_MATPRV, "S",		130,120,20,20, &tex->coba->ipotype, 5.0, 2.0, 0, 0, "Interpolation type Spline");
-		uiBlockSetCol(block, BUTGREY);
 		uiDefButF(block, COL, B_BANDCOL, "",		150,120,30,20, &(cbd->r), 0, 0, 0, 0, "");
 		uiDefButF(block, NUMSLI, B_MATPRV, "A ",	180,120,130,20, &cbd->a, 0.0, 1.0, 0, 0, "Set the alpha value");
 		
@@ -1042,7 +1005,6 @@ static void texture_panel_colors(Tex *tex)
 	}
 
 	/* RGB-BRICON */
-	uiBlockSetCol(block, BUTGREY);
 	if((tex->flag & TEX_COLORBAND)==0) {
 		uiDefButF(block, NUMSLI, B_MATPRV, "R ",		60,80,200,20, &tex->rfac, 0.0, 2.0, 0, 0, "Set the red value");
 		uiDefButF(block, NUMSLI, B_MATPRV, "G ",		60,60,200,20, &tex->gfac, 0.0, 2.0, 0, 0, "Set the green value");
@@ -1064,13 +1026,13 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 	char str[32], *strp;
 	
 
-	block= uiNewBlock(&curarea->uiblocks, "texture_panel_texture", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_texture", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Texture", "Texture", 320, 0, 318, 204)==0) return;
 
 	/* first do the browse but */
 	buttons_active_id(&id, &idfrom);
 
-	uiBlockSetCol(block, BUTPURPLE);
+	uiBlockSetCol(block, TH_BUT_SETTING1);
 	if(ma) {
 		std_libbuttons(block, 10, 180, 0, NULL, B_TEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
 	}
@@ -1080,7 +1042,7 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 	else if(la) {
 		std_libbuttons(block, 10, 180, 0, NULL, B_LTEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
 	}
-
+	uiBlockSetCol(block, TH_AUTO);
 
 	/* From button: removed */
 
@@ -1116,8 +1078,6 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 		Tex *tex= mtex->tex;
 		int xco;
 
-		uiBlockSetCol(block, BUTGREEN);
-		
 		uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 		xco= 275;
 		uiDefButS(block, ROW, B_TEXTYPE, texstr[0],			160, 110, 70, 20, &tex->type, 1.0, 0.0, 0, 0, "Default");
@@ -1148,7 +1108,7 @@ static void texture_panel_preview(int preview)
 {
 	uiBlock *block;
 	
-	block= uiNewBlock(&curarea->uiblocks, "texture_panel_preview", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_preview", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Preview", "Texture", 0, 0, 318, 204)==0) return;
 	
 	if(preview) uiBlockSetDrawExtraFunc(block, BIF_previewdraw);
@@ -1156,8 +1116,6 @@ static void texture_panel_preview(int preview)
 	// label to force a boundbox for buttons not to be centered
 	uiDefBut(block, LABEL, 0, " ",	20,20,10,10, 0, 0, 0, 0, 0, "");
 	
-	uiBlockSetCol(block, BUTGREEN);
-
 	uiDefButC(block, ROW, B_TEXREDR_PRV, "Mat",		200,175,80,25, &G.buts->texfrom, 3.0, 0.0, 0, 0, "Display the texture of the active material");
 	uiDefButC(block, ROW, B_TEXREDR_PRV, "World",	200,150,80,25, &G.buts->texfrom, 3.0, 1.0, 0, 0, "Display the texture of the world block");
 	uiDefButC(block, ROW, B_TEXREDR_PRV, "Lamp",	200,125,80,25, &G.buts->texfrom, 3.0, 2.0, 0, 0, "Display the texture of the lamp");
@@ -1298,33 +1256,32 @@ static void radio_panel_calculation(Radio *rad, int flag)
 {
 	uiBlock *block;
 	
-	block= uiNewBlock(&curarea->uiblocks, "radio_panel_calculation", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "radio_panel_calculation", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Calculation", "Radio", 640, 0, 318, 204)==0) return;
 	uiAutoBlock(block, 10, 10, 300, 200, UI_BLOCK_ROWS);
 
-	if(flag == RAD_PHASE_PATCHES) uiBlockSetCol(block, BUTSALMON);
+	if(flag != RAD_PHASE_PATCHES) uiBlockSetCol(block, TH_BUT_NEUTRAL);
 	uiDefBut(block,  BUT, B_RAD_GO, "GO",					0, 0, 10, 15, NULL, 0, 0, 0, 0, "Start the radiosity simulation");
 
-	uiBlockSetCol(block, BUTGREY);
+	uiBlockSetCol(block, TH_AUTO);
 	uiDefButS(block,  NUM, 0, "SubSh Patch:", 				1, 0, 10, 10, &rad->subshootp, 0.0, 10.0, 0, 0, "Set the number of times the environment is tested to detect pathes");
 	uiDefButS(block,  NUM, 0, "SubSh Element:", 			1, 0, 10, 10, &rad->subshoote, 0.0, 10.0, 0, 0, "Set the number of times the environment is tested to detect elements");
 
-	if(flag == RAD_PHASE_PATCHES) uiBlockSetCol(block, BUTSALMON);
-	else uiBlockSetCol(block, BUTGREY);
+	if(flag != RAD_PHASE_PATCHES) uiBlockSetCol(block, TH_BUT_NEUTRAL);
 	uiDefBut(block,  BUT, B_RAD_SHOOTE, "Subdiv Shoot Element", 2, 0, 10, 10, NULL, 0, 0, 0, 0, "For pre-subdivision, detect high energy changes and subdivide Elements");
 	uiDefBut(block,  BUT, B_RAD_SHOOTP, "Subdiv Shoot Patch",	2, 0, 10, 10, NULL, 0, 0, 0, 0, "For pre-subdivision, Detect high energy changes and subdivide Patches");
 
-	uiBlockSetCol(block, BUTGREY);
+	uiBlockSetCol(block, TH_AUTO);
 	uiDefButI(block,  NUM, 0, "MaxEl:",						3, 0, 10, 10, &rad->maxnode, 1.0, 250000.0, 0, 0, "Set the maximum allowed number of elements");
 	uiDefButS(block,  NUM, 0, "Max Subdiv Shoot:", 			3, 0, 10, 10, &rad->maxsublamp, 1.0, 250.0, 0, 0, "Set the maximum number of initial shoot patches that are evaluated");
 
-	if(flag & RAD_PHASE_FACES) uiBlockSetCol(block, BUTSALMON);
-	else uiBlockSetCol(block, BUTGREY);
+	if(flag & RAD_PHASE_FACES);
+	else uiBlockSetCol(block, TH_BUT_NEUTRAL);
 	uiDefBut(block,  BUT, B_RAD_FACEFILT, "FaceFilter",		4, 0, 10, 10, NULL, 0, 0, 0, 0, "Force an extra smoothing");
 	uiDefBut(block,  BUT, B_RAD_NODEFILT, "Element Filter",	4, 0, 10, 10, NULL, 0, 0, 0, 0, "Filter elements to remove aliasing artefacts");
 
 	uiDefBut(block,  BUT, B_RAD_NODELIM, "RemoveDoubles",	5, 0, 30, 10, NULL, 0.0, 50.0, 0, 0, "Join elements which differ less than 'Lim'");
-	uiBlockSetCol(block, BUTGREY);
+	uiBlockSetCol(block, TH_AUTO);
 	uiDefButS(block,  NUM, 0, "Lim:",						5, 0, 10, 10, &rad->nodelim, 0.0, 50.0, 0, 0, "Set the range for removing doubles");
 
 
@@ -1334,40 +1291,34 @@ static void radio_panel_tool(Radio *rad, int flag)
 {
 	uiBlock *block;
 	
-	block= uiNewBlock(&curarea->uiblocks, "radio_panel_tool", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "radio_panel_tool", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Radio Tool", "Radio", 320, 0, 318, 204)==0) return;
 	uiAutoBlock(block, 10, 10, 300, 200, UI_BLOCK_ROWS);
 
-	if(flag & RAD_PHASE_PATCHES) uiBlockSetCol(block, BUTPURPLE);
-	else uiBlockSetCol(block, BUTSALMON);
+	if(flag & RAD_PHASE_PATCHES) uiBlockSetCol(block, TH_BUT_SETTING2);
 	uiDefBut(block,  BUT, B_RAD_COLLECT, "Collect Meshes",	0, 0, 10, 15, NULL, 0, 0, 0, 0, "Convert selected and visible meshes to patches");
 
-	if(flag & RAD_PHASE_PATCHES) uiBlockSetCol(block, BUTSALMON);
-	else uiBlockSetCol(block, BUTGREY);
+	if(flag & RAD_PHASE_PATCHES)uiBlockSetCol(block, TH_AUTO);
+	else uiBlockSetCol(block, TH_BUT_NEUTRAL);
 	uiDefBut(block,  BUT, B_RAD_FREE, "Free Radio Data",	0, 0, 10, 15, NULL, 0, 0, 0, 0, "Release all memory used by Radiosity");	
 
-	if(flag & RAD_PHASE_FACES) uiBlockSetCol(block, BUTSALMON);
-	else uiBlockSetCol(block, BUTGREY);
+	if(flag & RAD_PHASE_FACES) uiBlockSetCol(block, TH_AUTO);
+	else uiBlockSetCol(block, TH_BUT_NEUTRAL);
 	uiDefBut(block,  BUT, B_RAD_REPLACE, "Replace Meshes",	1, 0, 10, 12, NULL, 0, 0, 0, 0, "Convert meshes to Mesh objects with vertex colours, changing input-meshes");
 	uiDefBut(block,  BUT, B_RAD_ADDMESH, "Add new Meshes",	1, 0, 10, 12, NULL, 0, 0, 0, 0, "Convert meshes to Mesh objects with vertex colours, unchanging input-meshes");
 
-	uiBlockSetCol(block, BUTGREEN);
+	uiBlockSetCol(block, TH_AUTO);
 	uiDefButS(block,  ROW, B_RAD_DRAW, "Wire",			2, 0, 10, 10, &rad->drawtype, 0.0, 0.0, 0, 0, "Enable wireframe drawmode");
 	uiDefButS(block,  ROW, B_RAD_DRAW, "Solid",			2, 0, 10, 10, &rad->drawtype, 0.0, 1.0, 0, 0, "Enable solid drawmode");
 	uiDefButS(block,  ROW, B_RAD_DRAW, "Gour",			2, 0, 10, 10, &rad->drawtype, 0.0, 2.0, 0, 0, "Enable Gourad drawmode");
-	uiBlockSetCol(block, BUTGREY);
 	uiDefButS(block,  TOG|BIT|0, B_RAD_DRAW, "ShowLim", 2, 0, 10, 10, &rad->flag, 0, 0, 0, 0, "Visualize patch and element limits");
 	uiDefButS(block,  TOG|BIT|1, B_RAD_DRAW, "Z",		2, 0, 3, 10, &rad->flag, 0, 0, 0, 0, "Draw limits different");
 
-	uiBlockSetCol(block, BUTGREY);
 	uiDefButS(block,  NUM, B_RAD_LIMITS, "ElMax:", 		3, 0, 10, 10, &rad->elma, 1.0, 500.0, 0, 0, "Set maximum size of an element");
 	uiDefButS(block,  NUM, B_RAD_LIMITS, "ElMin:", 		3, 0, 10, 10, &rad->elmi, 1.0, 100.0, 0, 0, "Set minimum size of an element");
 	uiDefButS(block,  NUM, B_RAD_LIMITS, "PaMax:", 		3, 0, 10, 10, &rad->pama, 10.0, 1000.0, 0, 0, "Set maximum size of a patch");
 	uiDefButS(block,  NUM, B_RAD_LIMITS, "PaMin:", 		3, 0, 10, 10, &rad->pami, 10.0, 1000.0, 0, 0, "Set minimum size of a patch");
 
-
-
-	uiBlockSetCol(block, BUTSALMON);
 	uiDefBut(block,  BUT, B_RAD_INIT, "Limit Subdivide", 5, 0, 10, 10, NULL, 0, 0, 0, 0, "Subdivide patches");
 }
 
@@ -1376,11 +1327,10 @@ static void radio_panel_render(Radio *rad)
 {
 	uiBlock *block;
 	
-	block= uiNewBlock(&curarea->uiblocks, "radio_panel_render", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "radio_panel_render", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Radio Render", "Radio", 0, 0, 318, 204)==0) return;
 	uiAutoBlock(block, 210, 30, 230, 150, UI_BLOCK_ROWS);
 
-	uiBlockSetCol(block, BUTGREY);
 	uiDefButS(block,  NUMSLI, B_RAD_LIMITS, "Hemires:", 0, 0, 10, 10, &rad->hemires, 100.0, 1000.0, 100, 0, "Set the size of a hemicube");
 	uiDefButS(block,  NUM, 0, "Max Iterations:", 		2, 0, 10, 15, &rad->maxiter, 0.0, 10000.0, 0, 0, "Maximum number of radiosity rounds");
 	uiDefButF(block,  NUM, B_RAD_FAC, "Mult:",			3, 0, 10, 15, &rad->radfac, 0.001, 250.0, 100, 0, "Mulitply the energy values");
@@ -1417,7 +1367,7 @@ static void world_panel_mapto(World *wrld)
 	uiBlock *block;
 	MTex *mtex;
 	
-	block= uiNewBlock(&curarea->uiblocks, "world_panel_mapto", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "world_panel_mapto", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Texture and Input", "World");
 	if(uiNewPanel(curarea, block, "Map To", "World", 1280, 0, 318, 204)==0) return;
 
@@ -1442,13 +1392,11 @@ static void world_panel_mapto(World *wrld)
 	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",		920,10,163,18, &(mtex->def_var), 0.0, 1.0, 0, 0, "The value that an intensity texture blends with the current value");
 	
 	/* MAP TO */
-	uiBlockSetCol(block, BUTGREEN);
 	uiDefButS(block, TOG|BIT|0, B_MATPRV, "Blend",		1087,166,81,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture work on the colour progression in the sky");
 	uiDefButS(block, TOG|BIT|1, B_MATPRV, "Hori",		1172,166,81,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture work on the colour of the horizon");
 	uiDefButS(block, TOG|BIT|2, B_MATPRV, "ZenUp",		1087,147,81,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture work on the colour of the zenith above");
 	uiDefButS(block, TOG|BIT|3, B_MATPRV, "ZenDo",		1172,147,81,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture work on the colour of the zenith below");
 	
-	uiBlockSetCol(block, BUTGREY);
 	uiDefButS(block, ROW, B_MATPRV, "Blend",			1087,114,48,18, &(mtex->blendtype), 9.0, (float)MTEX_BLEND, 0, 0, "The texture blends the values");
 	uiDefButS(block, ROW, B_MATPRV, "Mul",			1136,114,44,18, &(mtex->blendtype), 9.0, (float)MTEX_MUL, 0, 0, "The texture multiplies the values");
 	uiDefButS(block, ROW, B_MATPRV, "Add",			1182,114,41,18, &(mtex->blendtype), 9.0, (float)MTEX_ADD, 0, 0, "The texture adds the values");
@@ -1468,13 +1416,13 @@ static void world_panel_texture(World *wrld)
 	int a, loos;
 	char str[64], *strp;
 	
-	block= uiNewBlock(&curarea->uiblocks, "world_panel_texture", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "world_panel_texture", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Texture and Input", "World", 960, 0, 318, 204)==0) return;
 
 	uiSetButLock(wrld->id.lib!=0, "Can't edit library data");
 
 	/* TEX CHANNELS */
-	uiBlockSetCol(block, BUTGREY);
+	uiBlockSetCol(block, TH_BUT_NEUTRAL);
 	
 	for(a= 0; a<6; a++) {
 		mtex= wrld->mtex[a];
@@ -1492,6 +1440,7 @@ static void world_panel_texture(World *wrld)
 	}
 	
 	/* TEXTUREBLOCK SELECT */
+	uiBlockSetCol(block, TH_BUT_SETTING2);
 	id= (ID *)mtex->tex;
 	IDnames_to_pupstring(&strp, NULL, "ADD NEW %x 32767", &(G.main->tex), id, &(G.buts->texnr));
 	uiDefButS(block, MENU, B_WTEXBROWSE, strp, 100,140,20,19, &(G.buts->texnr), 0, 0, 0, 0, "Browse");
@@ -1506,19 +1455,17 @@ static void world_panel_texture(World *wrld)
 			if(wrld->id.lib) uiDefIconBut(block, BUT, 0, ICON_DATALIB,	1019,146,21,19, 0, 0, 0, 0, 0, "");
 			else uiDefIconBut(block, BUT, 0, ICON_PARLIB,	219,140,21,19, 0, 0, 0, 0, 0, "");	
 		}
-		uiBlockSetCol(block, BUTSALMON);
+		uiBlockSetCol(block, TH_AUTO);
 		uiDefBut(block, BUT, B_TEXCLEARWORLD, "Clear", 122, 140, 72, 19, 0, 0, 0, 0, 0, "Erase link to texture");
-		uiBlockSetCol(block, BUTGREY);
 	}
+	uiBlockSetCol(block, TH_AUTO);
 	
 
 	/* TEXCO */
-	uiBlockSetCol(block, BUTGREEN);
 	uiDefButS(block, ROW, B_MATPRV, "View",			100,110,50,19, &(mtex->texco), 4.0, (float)TEXCO_VIEW, 0, 0, "Pass camera view vector on to the texture");
 	uiDefButS(block, ROW, B_MATPRV, "Object",		150,110,50,19, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "The name of the object used as a source for texture coordinates");
 	uiDefIDPoinBut(block, test_obpoin_but, B_MATPRV, "", 100,110,100,19, &(mtex->object), "");
 	
-	uiBlockSetCol(block, BUTGREY);	
 	uiDefButF(block, NUM, B_MATPRV, "dX",		100,50,100,18, mtex->ofs, -20.0, 20.0, 10, 0, "Set the extra translation of the texture coordinate");
 	uiDefButF(block, NUM, B_MATPRV, "dY",		100,30,100,18, mtex->ofs+1, -20.0, 20.0, 10, 0, "Set the extra translation of the texture coordinate");
 	uiDefButF(block, NUM, B_MATPRV, "dZ",		100,10,100,18, mtex->ofs+2, -20.0, 20.0, 10, 0, "Set the extra translation of the texture coordinate");
@@ -1533,7 +1480,7 @@ static void world_panel_mistaph(World *wrld)
 {
 	uiBlock *block;
 	
-	block= uiNewBlock(&curarea->uiblocks, "world_panel_mistaph", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "world_panel_mistaph", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Mist Stars Physics", "World", 640, 0, 318, 204)==0) return;
 
 	uiSetButLock(wrld->id.lib!=0, "Can't edit library data");
@@ -1545,23 +1492,23 @@ static void world_panel_mistaph(World *wrld)
 	uiDefButF(block, NUMSLI,0, "Grav ", 150,180,150,19,	&(wrld->gravity), 0.0, 25.0, 0, 0,  "Gravitation constant of the game world.");
 
 
-	uiBlockSetCol(block, BUTBLUE);
+	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiDefButS(block, TOG|BIT|0,REDRAWVIEW3D,"Mist",	10,110,140,19, &wrld->mode, 0, 0, 0, 0, "Enable mist");
+	uiBlockSetCol(block, TH_AUTO);
 
-	uiBlockSetCol(block, BUTGREEN);
 	uiDefButS(block, ROW, B_DIFF, "Qua", 10, 90, 40, 19, &wrld->mistype, 1.0, 0.0, 0, 0, "Use quadratic progression");
 	uiDefButS(block, ROW, B_DIFF, "Lin", 50, 90, 50, 19, &wrld->mistype, 1.0, 1.0, 0, 0, "Use linear progression");
 	uiDefButS(block, ROW, B_DIFF, "Sqr", 100, 90, 50, 19, &wrld->mistype, 1.0, 2.0, 0, 0, "Use inverse quadratic progression");
 	
-	uiBlockSetCol(block, BUTGREY);
 	uiDefButF(block, NUM,REDRAWVIEW3D, "Sta:",10,70,140,19, &wrld->miststa, 0.0, 1000.0, 10, 0, "Specify the starting distance of the mist");
 	uiDefButF(block, NUM,REDRAWVIEW3D, "Di:",10,50,140,19, &wrld->mistdist, 0.0,1000.0, 10, 00, "Specify the depth of the mist");
 	uiDefButF(block, NUM,B_DIFF,"Hi:",		10,30,140,19, &wrld->misthi,0.0,100.0, 10, 0, "Specify the factor for a less dense mist with increasing height");
 	uiDefButF(block, NUMSLI, 0, "Misi",		10,10,140,19,	&(wrld->misi), 0., 1.0, 0, 0, "Set the mist intensity");
 
-	uiBlockSetCol(block, BUTBLUE);
+	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiDefButS(block, TOG|BIT|1,B_DIFF,	"Stars",160,110,140,19, &wrld->mode, 0, 0, 0, 0, "Enable stars");
-	uiBlockSetCol(block, BUTGREY);
+	uiBlockSetCol(block, TH_AUTO);
+	
 	uiDefButF(block, NUM,B_DIFF,"StarDist:",	160,70,140,19, &(wrld->stardist), 2.0, 1000.0, 100, 0, "Specify the average distance between two stars");
 	uiDefButF(block, NUM,B_DIFF,"MinDist:",		160,50,140,19, &(wrld->starmindist), 0.0, 1000.0, 100, 0, "Specify the minimum distance to the camera");
 	uiDefButF(block, NUMSLI,B_DIFF,"Size:",		160,30,140,19, &(wrld->starsize), 0.0, 10.0, 10, 0, "Specify the average screen dimension");
@@ -1576,19 +1523,19 @@ static void world_panel_world(World *wrld)
 	ID *id, *idfrom;
 	short xco;
 	
-	block= uiNewBlock(&curarea->uiblocks, "world_panel_world", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "world_panel_world", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "World", "World", 320, 0, 318, 204)==0) return;
 
 	/* first do the browse but */
 	buttons_active_id(&id, &idfrom);
 
-	uiBlockSetCol(block, BUTPURPLE);
+	uiBlockSetCol(block, TH_BUT_SETTING2);
 	xco= std_libbuttons(block, 10, 180, 0, NULL, B_WORLDBROWSE, id, idfrom, &(G.buts->menunr), B_WORLDALONE, B_WORLDLOCAL, B_WORLDDELETE, 0, B_KEEPDATA);
 
 	if(wrld==NULL) return;
 	
 	uiSetButLock(wrld->id.lib!=0, "Can't edit library data");
-	uiBlockSetCol(block, BUTGREY);
+	uiBlockSetCol(block, TH_AUTO);
 
 	uiDefButF(block, COL, B_COLHOR, "",			10,150,150,19, &wrld->horr, 0, 0, 0, 0, "");
 	uiDefButF(block, NUMSLI,B_MATPRV,"HoR ",	10,130,150,19,	&(wrld->horr), 0.0, 1.0, B_COLHOR,0, "The amount of red of the horizon colour");
@@ -1613,7 +1560,7 @@ static void world_panel_preview(World *wrld)
 	uiBlock *block;
 	
 	/* name "Preview" is abused to detect previewrender offset panel */
-	block= uiNewBlock(&curarea->uiblocks, "world_panel_preview", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "world_panel_preview", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Preview", "World", 0, 0, 318, 204)==0) return;
 	
 	if(wrld==NULL) return;
@@ -1624,8 +1571,6 @@ static void world_panel_preview(World *wrld)
 
 	// label to force a boundbox for buttons not to be centered
 	uiDefBut(block, LABEL, 0, " ",	20,20,10,10, 0, 0, 0, 0, 0, "");
-
-	uiBlockSetCol(block, BUTGREEN);
 
 	uiDefButS(block, TOG|BIT|1,B_MATPRV,"Real",	200,175,80,25, &wrld->skytype, 0, 0, 0, 0, "Render background with real horizon");
 	uiDefButS(block, TOG|BIT|0,B_MATPRV,"Blend",200,150,80,19, &wrld->skytype, 0, 0, 0, 0, "Render background with natural progression");
@@ -1679,7 +1624,7 @@ static void lamp_panel_mapto(Object *ob, Lamp *la)
 	uiBlock *block;
 	MTex *mtex;
 	
-	block= uiNewBlock(&curarea->uiblocks, "lamp_panel_mapto", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "lamp_panel_mapto", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Texture and Input", "Lamp");
 	if(uiNewPanel(curarea, block, "Map To", "Lamp", 1280, 0, 318, 204)==0) return;
 
@@ -1704,10 +1649,8 @@ static void lamp_panel_mapto(Object *ob, Lamp *la)
 	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",		920,10,163,18, &(mtex->def_var), 0.0, 1.0, 0, 0, "Set the value the texture blends with");
 	
 	/* MAP TO */
-	uiBlockSetCol(block, BUTGREEN);
 	uiDefButS(block, TOG|BIT|0, B_MATPRV, "Col",		1107,166,81,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture affect the colour of the lamp");
 	
-	uiBlockSetCol(block, BUTGREY);
 	uiDefButS(block, ROW, B_MATPRV, "Blend",			1087,114,48,18, &(mtex->blendtype), 9.0, (float)MTEX_BLEND, 0, 0, "Mix the values");
 	uiDefButS(block, ROW, B_MATPRV, "Mul",			1136,114,44,18, &(mtex->blendtype), 9.0, (float)MTEX_MUL, 0, 0, "Multiply the values");
 	uiDefButS(block, ROW, B_MATPRV, "Add",			1182,114,41,18, &(mtex->blendtype), 9.0, (float)MTEX_ADD, 0, 0, "Add the values");
@@ -1728,13 +1671,13 @@ static void lamp_panel_texture(Object *ob, Lamp *la)
 	int a, loos;
 	char *strp, str[64];
 	
-	block= uiNewBlock(&curarea->uiblocks, "lamp_panel_texture", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "lamp_panel_texture", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Texture and Input", "Lamp", 960, 0, 318, 204)==0) return;
 
 	uiSetButLock(la->id.lib!=0, "Can't edit library data");
 
 	/* TEX CHANNELS */
-	uiBlockSetCol(block, BUTGREY);
+	uiBlockSetCol(block, TH_BUT_NEUTRAL);
 	for(a= 0; a<6; a++) {
 		mtex= la->mtex[a];
 		if(mtex && mtex->tex) splitIDname(mtex->tex->id.name+2, str, &loos);
@@ -1751,6 +1694,7 @@ static void lamp_panel_texture(Object *ob, Lamp *la)
 	}
 
 	/* TEXTUREBLOK SELECT */
+	uiBlockSetCol(block, TH_BUT_SETTING2);
 	id= (ID *)mtex->tex;
 	IDnames_to_pupstring(&strp, NULL, "ADD NEW %x 32767", &(G.main->tex), id, &(G.buts->texnr));
 	
@@ -1767,19 +1711,17 @@ static void lamp_panel_texture(Object *ob, Lamp *la)
 			if(la->id.lib) uiDefIconBut(block, BUT, 0, ICON_DATALIB,	219,140,21,19, 0, 0, 0, 0, 0, "");
 			else uiDefIconBut(block, BUT, 0, ICON_PARLIB,	219,140,21,19, 0, 0, 0, 0, 0, "");	
 		}
-		uiBlockSetCol(block, BUTSALMON);
+		uiBlockSetCol(block, TH_AUTO);
 		uiDefBut(block, BUT, B_TEXCLEARLAMP, "Clear", 122, 140, 72, 19, 0, 0, 0, 0, 0, "Erase link to texture");
-		uiBlockSetCol(block, BUTGREY);
 	}
 
 	/* TEXCO */
-	uiBlockSetCol(block, BUTGREEN);
+	uiBlockSetCol(block, TH_AUTO);
 	uiDefButS(block, ROW, B_MATPRV, "Glob",			100,110,60,20, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Generate texture coordinates from global coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "View",			160,110,70,20, &(mtex->texco), 4.0, (float)TEXCO_VIEW, 0, 0, "Generate texture coordinates from view coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "Object",		230,110,70,20, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Use linked object's coordinates for texture coordinates");
 	uiDefIDPoinBut(block, test_obpoin_but, B_MATPRV, "", 100,90,200,20, &(mtex->object), "");
 	
-	uiBlockSetCol(block, BUTGREY);	
 	uiDefButF(block, NUM, B_MATPRV, "dX",		100,50,100,18, mtex->ofs, -20.0, 20.0, 10, 0, "Set the extra translation of the texture coordinate");
 	uiDefButF(block, NUM, B_MATPRV, "dY",		100,30,100,18, mtex->ofs+1, -20.0, 20.0, 10, 0, "Set the extra translation of the texture coordinate");
 	uiDefButF(block, NUM, B_MATPRV, "dZ",		100,10,100,18, mtex->ofs+2, -20.0, 20.0, 10, 0, "Set the extra translation of the texture coordinate");
@@ -1794,7 +1736,7 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 	uiBlock *block;
 	float grid=0.0;
 	
-	block= uiNewBlock(&curarea->uiblocks, "lamp_panel_spot", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "lamp_panel_spot", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Spot", "Lamp", 640, 0, 318, 204)==0) return;
 
 	if(G.vd) grid= G.vd->grid; 
@@ -1802,13 +1744,13 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 
 	uiSetButLock(la->id.lib!=0, "Can't edit library data");
 
-	uiBlockSetCol(block, BUTBLUE);
+	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiDefButS(block, TOG|BIT|0, REDRAWVIEW3D, "Shadows",10,150,80,19,&la->mode, 0, 0, 0, 0, "Let lamp produce shadows");
 	uiDefButS(block, TOG|BIT|5, 0,"OnlyShadow",			10,130,80,19,&la->mode, 0, 0, 0, 0, "Render shadow only");
 	uiDefButS(block, TOG|BIT|7, B_LAMPREDRAW,"Square",	10,90,80,19,&la->mode, 0, 0, 0, 0, "Use square spotbundles");
  	uiDefButS(block, TOG|BIT|1, 0,"Halo",				10,50,80,19,&la->mode, 0, 0, 0, 0, "Render spotlights with a volumetric halo"); 
 
-	uiBlockSetCol(block, BUTGREY);
+	uiBlockSetCol(block, TH_AUTO);
 	uiDefButF(block, NUMSLI,B_LAMPREDRAW,"SpotSi ",	100,180,200,19,&la->spotsize, 1.0, 180.0, 0, 0, "Set the angle of the spot beam in degrees");
 	uiDefButF(block, NUMSLI,B_MATPRV,"SpotBl ",		100,160,200,19,&la->spotblend, 0.0, 1.0, 0, 0, "Set the softness of the spot edge");
 	uiDefButF(block, NUMSLI,0,"HaloInt ",			100,130,200,19,&la->haint, 0.0, 5.0, 0, 0, "Set the intensity of the spot halo");
@@ -1835,7 +1777,7 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	float grid= 0.0;
 	short xco;
 	
-	block= uiNewBlock(&curarea->uiblocks, "lamp_panel_lamp", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "lamp_panel_lamp", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Lamp", "Lamp", 320, 0, 318, 204)==0) return;
 
 	if(G.vd) grid= G.vd->grid; 
@@ -1846,13 +1788,13 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	/* first do the browse but */
 	buttons_active_id(&id, &idfrom);
 
-	uiBlockSetCol(block, BUTPURPLE);
+	uiBlockSetCol(block, TH_BUT_SETTING2);
 	xco= std_libbuttons(block, 8, 180, 0, NULL, B_LAMPBROWSE, id, (ID *)ob, &(G.buts->menunr), B_LAMPALONE, B_LAMPLOCAL, 0, 0, 0);	
 
-	uiBlockSetCol(block, BUTGREY);
+	uiBlockSetCol(block, TH_AUTO);
 	uiDefButF(block, NUM,B_LAMPREDRAW,"Dist:",xco+10,180,104,20,&la->dist, 0.01, 5000.0, 100, 0, "Set the distance value");
 
-	uiBlockSetCol(block, BUTBLUE);
+	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiDefButS(block, TOG|BIT|3, B_MATPRV,"Quad",		10,150,100,19,&la->mode, 0, 0, 0, 0, "Use inverse quadratic proportion");
 	uiDefButS(block, TOG|BIT|6, REDRAWVIEW3D,"Sphere",	10,130,100,19,&la->mode, 0, 0, 0, 0, "Lamp only shines inside a sphere");
 	uiDefButS(block, TOG|BIT|2, 0,"Layer",				10,90,100,19,&la->mode, 0, 0, 0, 0, "Illuminate objects in the same layer only");
@@ -1861,7 +1803,7 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	uiDefButS(block, TOG|BIT|12, 0,"No Specular",		10,10,100,19,&la->mode, 0, 0, 0, 0, "No specular shading of material");
 
 
-	uiBlockSetCol(block, BUTGREY);
+	uiBlockSetCol(block, TH_AUTO);
 	uiDefButF(block, NUMSLI,B_MATPRV,"Energy ",	120,150,180,20, &(la->energy), 0.0, 10.0, 0, 0, "Set the intensity of the light");
 
 	uiDefButF(block, NUMSLI,B_MATPRV,"R ",		120,120,180,20,&la->r, 0.0, 1.0, B_COLLAMP, 0, "Set the red component of the light");
@@ -1880,7 +1822,7 @@ static void lamp_panel_preview(Object *ob, Lamp *la)
 	uiBlock *block;
 	
 	/* name "Preview" is abused to detect previewrender offset panel */
-	block= uiNewBlock(&curarea->uiblocks, "lamp_panel_preview", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "lamp_panel_preview", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Preview", "Lamp", 0, 0, 318, 204)==0) return;
 	
 	uiSetButLock(la->id.lib!=0, "Can't edit library data");
@@ -1890,7 +1832,6 @@ static void lamp_panel_preview(Object *ob, Lamp *la)
 	// label to force a boundbox for buttons not to be centered
 	uiDefBut(block, LABEL, 0, " ",	20,20,10,10, 0, 0, 0, 0, 0, "");
 
-	uiBlockSetCol(block, BUTGREEN);
 	uiDefButS(block, ROW,B_LAMPREDRAW,"Lamp",	200,175,80,25,&la->type,1.0,(float)LA_LOCAL, 0, 0, "Use a point light source");
 	uiDefButS(block, ROW,B_LAMPREDRAW,"Spot",	200,150,80,25,&la->type,1.0,(float)LA_SPOT, 0, 0, "Restrict lamp to conical space");
 	uiDefButS(block, ROW,B_LAMPREDRAW,"Sun",	200,125,80,25,&la->type,1.0,(float)LA_SUN, 0, 0, "Light shines from constant direction");
@@ -1977,7 +1918,7 @@ static void material_panel_map_to(Material *ma)
 	uiBlock *block;
 	MTex *mtex;
 	
-	block= uiNewBlock(&curarea->uiblocks, "material_panel_map_to", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "material_panel_map_to", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Texture", "Material");
 	if(uiNewPanel(curarea, block, "Map To", "Material", 1600, 0, 318, 204)==0) return;
 
@@ -1995,13 +1936,11 @@ static void material_panel_map_to(Material *ma)
 	uiDefButF(block, COL, B_MTEXCOL, "",				900,100,163,12, &(mtex->r), 0, 0, 0, 0, "Browse datablocks");
 
 	if(ma->colormodel==MA_HSV) {
-		uiBlockSetCol(block, BUTPURPLE);
+		uiBlockSetCol(block, TH_BUT_SETTING1);
 		uiDefButF(block, HSVSLI, B_MATPRV, "H ",			900,80,163,18, &(mtex->r), 0.0, 0.9999, B_MTEXCOL, 0, "");
-		uiBlockSetCol(block, BUTPURPLE);
 		uiDefButF(block, HSVSLI, B_MATPRV, "S ",			900,60,163,18, &(mtex->r), 0.0001, 1.0, B_MTEXCOL, 0, "");
-		uiBlockSetCol(block, BUTPURPLE);
 		uiDefButF(block, HSVSLI, B_MATPRV, "V ",			900,40,163,18, &(mtex->r), 0.0001, 1.0, B_MTEXCOL, 0, "");
-		uiBlockSetCol(block, BUTGREY);
+		uiBlockSetCol(block, TH_AUTO);
 	}
 	else {
 		uiDefButF(block, NUMSLI, B_MATPRV, "R ",			900,80,163,18, &(mtex->r), 0.0, 1.0, B_MTEXCOL, 0, "Set the amount of red the intensity texture blends with");
@@ -2012,7 +1951,6 @@ static void material_panel_map_to(Material *ma)
 	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",		900,10,163,18, &(mtex->def_var), 0.0, 1.0, 0, 0, "Set the value the texture blends with the current value");
 	
 	/* MAP TO */
-	uiBlockSetCol(block, BUTGREEN);
 	uiDefButS(block, TOG|BIT|0, B_MATPRV, "Col",	900,166,35,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture affect basic colour of the material");
 	uiDefButS(block, TOG3|BIT|1, B_MATPRV, "Nor",	935,166,35,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture affect the rendered normal");
 	uiDefButS(block, TOG|BIT|2, B_MATPRV, "Csp",	970,166,40,18, &(mtex->mapto), 0, 0, 0, 0, "Let the texture affect the specularity colour");
@@ -2025,7 +1963,6 @@ static void material_panel_map_to(Material *ma)
 	
 /* 	uiDefButS(block, TOG|BIT|3, B_MATPRV, "Alpha Mix",1087,114,100,18, &(mtex->texflag), 0, 0, 0, 0); ,""*/
 
-	uiBlockSetCol(block, BUTGREY);
 	uiDefButS(block, ROW, B_MATPRV, "Mix",			1087,94,48,18, &(mtex->blendtype), 9.0, (float)MTEX_BLEND, 0, 0, "The texture blends the values or colour");
 	uiDefButS(block, ROW, B_MATPRV, "Mul",			1136,94,44,18, &(mtex->blendtype), 9.0, (float)MTEX_MUL, 0, 0, "The texture multiplies the values or colour");
 	uiDefButS(block, ROW, B_MATPRV, "Add",			1182,94,41,18, &(mtex->blendtype), 9.0, (float)MTEX_ADD, 0, 0, "The texture adds the values or colour");
@@ -2045,7 +1982,7 @@ static void material_panel_map_input(Material *ma)
 	int a, xco;
 	char str[32];
 	
-	block= uiNewBlock(&curarea->uiblocks, "material_panel_map_input", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "material_panel_map_input", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Texture", "Material");
 	if(uiNewPanel(curarea, block, "Map Input", "Material", 1280, 0, 318, 204)==0) return;
 
@@ -2056,7 +1993,6 @@ static void material_panel_map_input(Material *ma)
 	}
 	
 	/* TEXCO */
-	uiBlockSetCol(block, BUTGREEN);
 	uiDefButS(block, ROW, B_MATPRV, "UV",			630,166,40,18, &(mtex->texco), 4.0, (float)TEXCO_UV, 0, 0, "Use UV coordinates for texture coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "Object",		670,166,75,18, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Use linked object's coordinates for texture coordinates");
 	uiDefIDPoinBut(block, test_obpoin_but, B_MATPRV, "",745,166,163,18, &(mtex->object), "");
@@ -2067,8 +2003,6 @@ static void material_panel_map_input(Material *ma)
 	uiDefButS(block, ROW, B_MATPRV, "Win",			775,146,45,18, &(mtex->texco), 4.0, (float)TEXCO_WINDOW, 0, 0, "Use screen coordinates as texture coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "Nor",			820,146,44,18, &(mtex->texco), 4.0, (float)TEXCO_NORM, 0, 0, "Use normal vector as texture coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "Refl",			864,146,44,18, &(mtex->texco), 4.0, (float)TEXCO_REFL, 0, 0, "Use reflection vector as texture coordinates");
-	
-	uiBlockSetCol(block, BUTGREY);
 	
 	/* COORDS */
 	uiDefButC(block, ROW, B_MATPRV, "Flat",			666,114,48,18, &(mtex->mapping), 5.0, (float)MTEX_FLAT, 0, 0, "Map X and Y coordinates directly");
@@ -2109,11 +2043,11 @@ static void material_panel_texture(Material *ma)
 	int a, xco;
 	char str[64], *strp;
 	
-	block= uiNewBlock(&curarea->uiblocks, "material_panel_texture", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "material_panel_texture", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Texture", "Material", 960, 0, 318, 204)==0) return;
 
 	/* TEX CHANNELS */
-	uiBlockSetCol(block, BUTGREY);
+	uiBlockSetCol(block, TH_BUT_NEUTRAL);
 	xco= 665;
 	for(a= 0; a<8; a++) {
 		mtex= ma->mtex[a];
@@ -2124,12 +2058,12 @@ static void material_panel_texture(Material *ma)
 		xco+= 65;
 	}
 	
+	
 	uiDefIconBut(block, BUT, B_MTEXCOPY, ICON_COPYUP,	100,180,23,21, 0, 0, 0, 0, 0, "Copy the mapping settings to the buffer");
 	uiDefIconBut(block, BUT, B_MTEXPASTE, ICON_PASTEUP,	125,180,23,21, 0, 0, 0, 0, 0, "Paste the mapping settings from the buffer");
 
-	uiBlockSetCol(block, BUTGREEN);
+	uiBlockSetCol(block, TH_AUTO);
 	uiDefButC(block, TOG, B_MATPRV, "SepTex", 		160, 180, 100, 20, &(ma->septex), 0, 0, 0, 0, "Render only use active texture channel");
-	uiBlockSetCol(block, BUTGREY);
 	
 	mtex= ma->mtex[ ma->texact ];
 	if(mtex==0) {
@@ -2138,6 +2072,7 @@ static void material_panel_texture(Material *ma)
 	}
 
 	/* TEXTUREBLOK SELECT */
+	uiBlockSetCol(block, TH_BUT_SETTING2);
 	if(G.main->tex.first==0)
 		id= NULL;
 	else
@@ -2155,25 +2090,25 @@ static void material_panel_texture(Material *ma)
 			if(ma->id.lib) uiDefIconBut(block, BUT, 0, ICON_DATALIB,	219,130,21,20, 0, 0, 0, 0, 0, "");
 			else uiDefIconBut(block, BUT, 0, ICON_PARLIB,	219,130,21,20, 0, 0, 0, 0, 0, "");		
 		}
-		uiBlockSetCol(block, BUTSALMON);
+		uiBlockSetCol(block, TH_AUTO);
 		uiDefBut(block, BUT, B_TEXCLEAR, "Clear", 122, 130, 72, 20, 0, 0, 0, 0, 0, "Erase link to datablock");
-		uiBlockSetCol(block, BUTGREY);
 	}
 	
+	uiBlockSetCol(block, TH_AUTO);
 }
 
 static void material_panel_shading(Material *ma)
 {
 	uiBlock *block;
 	
-	block= uiNewBlock(&curarea->uiblocks, "material_panel_shading", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "material_panel_shading", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Shaders", "Material", 640, 0, 318, 204)==0) return;
 
-	uiBlockSetCol(block, BUTPURPLE);
+	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiDefButI(block, TOG|BIT|5, B_MATPRV_DRAW, "Halo",	245,180,65,18, &(ma->mode), 0, 0, 0, 0, "Render as a halo");
+	uiBlockSetCol(block, TH_AUTO);
 
 	if(ma->mode & MA_HALO) {
-		uiBlockSetCol(block, BUTGREY);
 		uiDefButF(block, NUM, B_MATPRV, "HaloSize: ",		10,155,190,18, &(ma->hasize), 0.0, 100.0, 10, 0, "Set the dimension of the halo");
 		uiDefButS(block, NUMSLI, B_MATPRV, "Hard ",			10,135,190,18, &(ma->har), 1.0, 127.0, 0, 0, "Set the hardness of the halo");
 		uiDefButF(block, NUMSLI, B_MATPRV, "Add  ",			10,115,190,18, &(ma->add), 0.0, 1.0, 0, 0, "Strength of the add effect");
@@ -2189,7 +2124,7 @@ static void material_panel_shading(Material *ma)
 			uiDefButC(block, NUM, B_MATPRV, "Fl.seed: ",		10,10,90,18, &(ma->seed2), 0.0, 255.0, 0, 0, "Specify an offset in the seed table");
 			uiDefButS(block, NUM, B_MATPRV, "Flares: ",			100,10,100,18, &(ma->flarec), 1.0, 32.0, 0, 0, "Set the nuber of subflares");
 		}
-		uiBlockSetCol(block, BUTBLUE);
+		uiBlockSetCol(block, TH_BUT_SETTING1);
 		
 		uiDefButI(block, TOG|BIT|15, B_MATPRV_DRAW, "Flare",		245,142,65,28, &(ma->mode), 0, 0, 0, 0, "Render halo as a lensflare");
 		uiDefButI(block, TOG|BIT|8, B_MATPRV, "Rings",		245,123,65, 18, &(ma->mode), 0, 0, 0, 0, "Render rings over basic halo");
@@ -2205,7 +2140,6 @@ static void material_panel_shading(Material *ma)
 		char *str2= "Specular Shader%t|CookTorr %x0|Phong %x1|Blinn %x2|Toon %x3";
 		
 		/* diff shader buttons */
-		uiBlockSetCol(block, BUTGREY);
 		uiDefButS(block, MENU, B_MATPRV_DRAW, str1,		9, 155,78,19, &(ma->diff_shader), 0.0, 0.0, 0, 0, "Set a diffuse shader");
 		uiDefButF(block, NUMSLI, B_MATPRV, "Ref   ",	90,155,150,19, &(ma->ref), 0.0, 1.0, 0, 0, "Set the amount of reflection");
 
@@ -2236,7 +2170,7 @@ static void material_panel_shading(Material *ma)
 		uiDefButF(block, NUMSLI, B_MATPRV, "Add ",		9,10,117,19, &(ma->add), 0.0, 1.0, 0, 0, "Glow factor for transparant");
 		uiDefButF(block, NUM, 0, "Zoffs:",				133,10,110,19, &(ma->zoffs), 0.0, 10.0, 0, 0, "Give face an artificial offset");
 	
-		uiBlockSetCol(block, BUTBLUE);
+		uiBlockSetCol(block, TH_BUT_SETTING1);
 	
 		uiDefButI(block, TOG|BIT|0, 0,	"Traceable",		245,161,65,18, &(ma->mode), 0, 0, 0, 0, "Make material visible for shadow lamps");
 		uiDefButI(block, TOG|BIT|1, 0,	"Shadow",			245,142,65,18, &(ma->mode), 0, 0, 0, 0, "Enable material for shadows");
@@ -2261,13 +2195,13 @@ static void material_panel_material(Object *ob, Material *ma)
 	int rgbsel = 0, xco= 0;
 	char str[30];
 	
-	block= uiNewBlock(&curarea->uiblocks, "material_panel_material", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "material_panel_material", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Material", "Material", 320, 0, 318, 204)==0) return;
 
 	/* first do the browse but */
 	buttons_active_id(&id, &idfrom);
 
-	uiBlockSetCol(block, BUTPURPLE);
+	uiBlockSetCol(block, TH_BUT_SETTING2);
 	xco= std_libbuttons(block, 8, 200, 0, NULL, B_MATBROWSE, id, idfrom, &(G.buts->menunr), B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
 
 	uiDefIconBut(block, BUT, B_MATCOPY, ICON_COPYUP,	xco+=XIC,198,XIC,YIC, 0, 0, 0, 0, 0, "Copies Material to the buffer");
@@ -2277,14 +2211,14 @@ static void material_panel_material(Object *ob, Material *ma)
 	if(ob->actcol==0) ob->actcol= 1;	/* because of TOG|BIT button */
 	
 	/* indicate which one is linking a material */
-	uiBlockSetCol(block, BUTSALMON);
+	uiBlockSetCol(block, TH_BUT_ACTION);
 	uiDefButS(block, TOG|BIT|(ob->actcol-1), B_MATFROM, "OB",	125,174,32,20, &ob->colbits, 0, 0, 0, 0, "Link material to object");
 	idn= ob->data;
 	strncpy(str, idn->name, 2);
 	str[2]= 0;
-	uiBlockSetCol(block, BUTGREEN);
+	uiBlockSetCol(block, TH_BUT_SETTING);
 	uiDefButS(block, TOGN|BIT|(ob->actcol-1), B_MATFROM, str,	158,174,32,20, &ob->colbits, 0, 0, 0, 0, "Show the block the material is linked to");
-	uiBlockSetCol(block, BUTGREY);
+	uiBlockSetCol(block, TH_AUTO);
 	
 	/* id is the block from which the material is used */
 	if( BTST(ob->colbits, ob->actcol-1) ) id= (ID *)ob;
@@ -2316,24 +2250,21 @@ static void material_panel_material(Object *ob, Material *ma)
 
 		uiDefButF(block, NUM, 0,	 "Fh Damp ",		8,120,100,20, &ma->xyfrict, 0.0, 1.0, 10, 0, "Damping of the Fh spring force");
 		uiDefButF(block, NUM, 0, "Fh Dist ",			8,98 ,100,20, &ma->fhdist, 0.0, 20.0, 10, 0, "Height of the Fh area");
-		uiBlockSetCol(block, BUTGREEN);
 		uiDefButS(block, TOG|BIT|1, 0, "Fh Norm",		8,76 ,100,20, &ma->dynamode, 0.0, 0.0, 0, 0, "Add a horizontal spring force on slopes");
-		uiBlockSetCol(block, BUTGREY);
 	}
 	else {
 		if(!(ma->mode & MA_HALO)) {
-			uiBlockSetCol(block, BUTBLUE);
+			uiBlockSetCol(block, TH_BUT_SETTING1);
 			uiDefButI(block, TOG|BIT|4, B_REDR,	"VCol Light",	8,146,75,20, &(ma->mode), 0, 0, 0, 0, "Add vertex colours as extra light");
 			uiDefButI(block, TOG|BIT|7, B_REDR, "VCol Paint",	85,146,72,20, &(ma->mode), 0, 0, 0, 0, "Replace basic colours with vertex colours");
 			uiDefButI(block, TOG|BIT|11, B_REDR, "TexFace",		160,146,62,20, &(ma->mode), 0, 0, 0, 0, "UV-Editor assigned texture gives color and texture info for the faces");
 			uiDefButI(block, TOG|BIT|2, B_MATPRV, "Shadeless",	223,146,80,20, &(ma->mode), 0, 0, 0, 0, "Make material insensitive to light or shadow");
 		}
-		uiBlockSetCol(block, BUTGREY);
+		uiBlockSetCol(block, TH_AUTO);
 		uiDefButF(block, COL, B_MATCOL, "",		8,115,72,24, &(ma->r), 0, 0, 0, 0, "");
 		uiDefButF(block, COL, B_SPECCOL, "",	8,88,72,24, &(ma->specr), 0, 0, 0, 0, "");
 		uiDefButF(block, COL, B_MIRCOL, "",		8,61,72,24, &(ma->mirr), 0, 0, 0, 0, "");
 	
-		uiBlockSetCol(block, BUTGREEN);
 		if(ma->mode & MA_HALO) {
 			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Halo",		83,115,40,25, &(ma->rgbsel), 2.0, 0.0, 0, 0, "Mix the colour of the halo with the RGB sliders");
 			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Line",		83,88,40,25, &(ma->rgbsel), 2.0, 1.0, 0, 0, "Mix the colour of the lines with the RGB sliders");
@@ -2344,7 +2275,6 @@ static void material_panel_material(Object *ob, Material *ma)
 			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Spe",			83,88,40,25, &(ma->rgbsel), 2.0, 1.0, 0, 0, "Set the colour of the specularity");
 			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Mir",			83,61,40,25, &(ma->rgbsel), 2.0, 2.0, 0, 0, "Use mirror colour");
 		}
-		uiBlockSetCol(block, BUTGREY);
 		
 		if(ma->rgbsel==0) {colpoin= &(ma->r); rgbsel= B_MATCOL;}
 		else if(ma->rgbsel==1) {colpoin= &(ma->specr); rgbsel= B_SPECCOL;}
@@ -2352,11 +2282,11 @@ static void material_panel_material(Object *ob, Material *ma)
 		
 		if(ma->rgbsel==0 && (ma->mode & (MA_VERTEXCOLP|MA_FACETEXTURE) && !(ma->mode & MA_HALO)));
 		else if(ma->colormodel==MA_HSV) {
-			uiBlockSetCol(block, BUTPURPLE);
+			uiBlockSetCol(block, TH_BUT_SETTING1);
 			uiDefButF(block, HSVSLI, B_MATPRV, "H ",		128,120,175,20, colpoin, 0.0, 0.9999, rgbsel, 0, "");
 			uiDefButF(block, HSVSLI, B_MATPRV, "S ",		128,98,175,20, colpoin, 0.0001, 1.0, rgbsel, 0, "");
 			uiDefButF(block, HSVSLI, B_MATPRV, "V ",		128,76,175,20, colpoin, 0.0001, 1.0, rgbsel, 0, "");
-			uiBlockSetCol(block, BUTGREY);
+			uiBlockSetCol(block, TH_AUTO);
 		}
 		else {
 			uiDefButF(block, NUMSLI, B_MATPRV, "R ",		128,120,175,20, colpoin, 0.0, 1.0, rgbsel, 0, "");
@@ -2368,7 +2298,6 @@ static void material_panel_material(Object *ob, Material *ma)
 		uiDefButF(block, NUMSLI, B_MATPRV, "SpecTra ",		128,32,175,20, &(ma->spectra), 0.0, 1.0, 0, 0, "Make specular areas opaque");
 		
 	}
-	uiBlockSetCol(block, BUTGREEN);
 	uiDefButS(block, ROW, REDRAWBUTSSHADING, "RGB",			8,32,35,20, &(ma->colormodel), 1.0, (float)MA_RGB, 0, 0, "Create colour by red, green and blue");
 	uiDefButS(block, ROW, REDRAWBUTSSHADING, "HSV",			43,32,35,20, &(ma->colormodel), 1.0, (float)MA_HSV, 0, 0, "Mix colour with hue, saturation and value");
 	uiDefButS(block, TOG|BIT|0, REDRAWBUTSSHADING, "DYN",	78,32,45,20, &(ma->dynamode), 0.0, 0.0, 0, 0, "Adjust parameters for dynamics options");
@@ -2380,7 +2309,7 @@ static void material_panel_preview(Material *ma)
 	uiBlock *block;
 	
 	/* name "Preview" is abused to detect previewrender offset panel */
-	block= uiNewBlock(&curarea->uiblocks, "material_panel_preview", UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "material_panel_preview", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Preview", "Material", 0, 0, 318, 204)==0) return;
 	
 	if(ma) {
@@ -2388,7 +2317,7 @@ static void material_panel_preview(Material *ma)
 	
 		// label to force a boundbox for buttons not to be centered
 		uiDefBut(block, LABEL, 0, " ",	20,20,10,10, 0, 0, 0, 0, 0, "");
-	
+		uiBlockSetCol(block, TH_BUT_NEUTRAL);
 		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATPLANE,		210,180,25,22, &(ma->pr_type), 10, 0, 0, 0, "");
 		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE,		210,150,25,22, &(ma->pr_type), 10, 1, 0, 0, "");
 		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATCUBE,		210,120,25,22, &(ma->pr_type), 10, 2, 0, 0, "");

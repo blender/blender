@@ -97,56 +97,6 @@ static void stow_unstow(uiBlock *block);
 
 /* --------- generic helper drawng calls ---------------- */
 
-/* supposes you draw the actual box atop of this. */
-void uiSoftShadow(float minx, float miny, float maxx, float maxy, float rad, int alpha)
-{
-
-	glShadeModel(GL_SMOOTH);
-	glEnable(GL_BLEND);
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	
-	/* quads start left-top, clockwise */
-	
-	/* left */
-	glBegin(GL_POLYGON);
-	glColor4ub(0, 0, 0, 0);
-	glVertex2f( minx-rad, maxy-rad);
-	glColor4ub(0, 0, 0, alpha);
-	glVertex2f( minx+rad, maxy-rad);
-	glColor4ub(0, 0, 0, alpha);
-	glVertex2f( minx+rad, miny+rad);
-	glColor4ub(0, 0, 0, 0);
-	glVertex2f( minx-rad, miny-rad);
-	glEnd();
-
-	/* bottom */
-	glBegin(GL_POLYGON);
-	glColor4ub(0, 0, 0, alpha);
-	glVertex2f( minx+rad, miny+rad);
-	glColor4ub(0, 0, 0, alpha);
-	glVertex2f( maxx-rad, miny+rad);
-	glColor4ub(0, 0, 0, 0);
-	glVertex2f( maxx+rad, miny-rad);
-	glColor4ub(0, 0, 0, 0);
-	glVertex2f( minx-rad, miny-rad);
-	glEnd();
-
-	/* right */
-	glBegin(GL_POLYGON);
-	glColor4ub(0, 0, 0, alpha);
-	glVertex2f( maxx-rad, maxy-rad);
-	glColor4ub(0, 0, 0, 0);
-	glVertex2f( maxx+rad, maxy-rad);
-	glColor4ub(0, 0, 0, 0);
-	glVertex2f( maxx+rad, miny-rad);
-	glColor4ub(0, 0, 0, alpha);
-	glVertex2f( maxx-rad, miny+rad);
-	glEnd();
-
-	glDisable(GL_BLEND);
-	glShadeModel(GL_FLAT);
-}
-
 
 #define UI_RB_ALPHA 16
 static int roundboxtype= 15;
@@ -764,7 +714,7 @@ static void ui_draw_panel_header(uiBlock *block)
 
 		BIF_ThemeColor(TH_TEXT_HI);
 		glRasterPos2f(4+block->minx+pnl_icons, block->maxy+5);
-		BIF_DrawString(block->curfont, block->panel->panelname, (U.transopts & TR_BUTTONS), 1);
+		BIF_DrawString(block->curfont, block->panel->panelname, (U.transopts & TR_BUTTONS));
 		return;
 	}
 	
@@ -782,7 +732,7 @@ static void ui_draw_panel_header(uiBlock *block)
 			BIF_ThemeColor(TH_TEXT);
 			glRasterPos2f(16+pnl_icons+a*width, panel->sizey+4);
 			str= ui_block_cut_str(block, pa->panelname, (short)(width-10));
-			BIF_DrawString(block->curfont, str, (U.transopts & TR_BUTTONS), 0);
+			BIF_DrawString(block->curfont, str, (U.transopts & TR_BUTTONS));
 
 			a++;
 		}
@@ -795,7 +745,7 @@ static void ui_draw_panel_header(uiBlock *block)
 			BIF_ThemeColor(TH_TEXT_HI);
 			glRasterPos2f(16+pnl_icons+a*width, panel->sizey+4);
 			str= ui_block_cut_str(block, pa->panelname, (short)(width-10));
-			BIF_DrawString(block->curfont, str, (U.transopts & TR_BUTTONS), 1);
+			BIF_DrawString(block->curfont, str, (U.transopts & TR_BUTTONS));
 				
 			a++;
 		}
@@ -833,7 +783,7 @@ void ui_draw_panel(uiBlock *block)
 		if(panel->control & UI_PNL_CLOSE) ofsx+= PNL_ICON;
 		BIF_ThemeColor(TH_TEXT_HI);
 		glRasterPos2f(4+block->minx+ofsx, block->maxy+5);
-		BIF_DrawString(block->curfont, panel->panelname, (U.transopts & TR_BUTTONS), 1);
+		BIF_DrawString(block->curfont, panel->panelname, (U.transopts & TR_BUTTONS));
 
 		//  border
 		if(panel->flag & PNL_SELECT) {
@@ -863,7 +813,7 @@ void ui_draw_panel(uiBlock *block)
 			str[0]= panel->panelname[a];
 			if( isupper(str[0]) ) {
 				glRasterPos2f(block->minx+5, block->maxy-ofs);
-				BIF_DrawString(block->curfont, str, 0, 1);
+				BIF_DrawString(block->curfont, str, 0);
 				ofs+= 15;
 			}
 		}

@@ -68,13 +68,11 @@ public:
 	int TransConvString(char* str, char* ustr, unsigned int flag);
 
 	/**
-	 * Draws a string at the current raster position.
+	 * Draws a string at the current raster position in current opengl color.
 	 * @param str	The string to draw.
 	 * @param flag	Whether use gettext and UTF8 or system encoding.
 	 */
-	float DrawString(char* str, unsigned int flag, int select);
-//	float DrawString(char* str, unsigned char r, unsigned char g, unsigned char b, unsigned int flag);
-	float DrawStringRGB(char* str, unsigned int flag, float r, float g, float b);
+	float DrawString(char* str, unsigned int flag);
 
 	float GetStringWidth(char* str, unsigned int flag);
 

@@ -1164,8 +1164,7 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 
 	/* HEADER */
 	sprintf(name, "win %d", curarea->win);
-	block= uiNewBlock(&curarea->uiblocks, name, UI_EMBOSSX, UI_HELV, curarea->win);
-	uiBlockSetCol(block, BUTGREY);
+	block= uiNewBlock(&curarea->uiblocks, name, UI_EMBOSS, UI_HELV, curarea->win);
 	
 	uiSetButLock( sfile->type==FILE_MAIN && sfile->returnfunc, NULL);
 

@@ -732,7 +732,7 @@ static void tekenvertslatt(short sel)
 	float size;
 	int a, uxt, u, vxt, v, wxt, w;
 
-	size= BIF_GetThemeColorf(TH_VERTEX_SIZE);
+	size= BIF_GetThemeValuef(TH_VERTEX_SIZE);
 	glPointSize(size);
 
 	if(sel) BIF_ThemeColor(TH_VERTEX_SELECT);
@@ -1036,7 +1036,7 @@ void tekenvertices(short sel)
 	EditVert *eve;
 	float size;
 	
-	size= BIF_GetThemeColorf(TH_VERTEX_SIZE);
+	size= BIF_GetThemeValuef(TH_VERTEX_SIZE);
 	glPointSize(size);
 	
 	if(sel) BIF_ThemeColor(TH_VERTEX_SELECT);
@@ -2788,7 +2788,7 @@ static void tekenvertsN(Nurb *nu, short sel)
 	if(sel) BIF_ThemeColor(TH_VERTEX_SELECT);
 	else BIF_ThemeColor(TH_VERTEX);
 
-	size= BIF_GetThemeColorf(TH_VERTEX_SIZE);
+	size= BIF_GetThemeValuef(TH_VERTEX_SIZE);
 	glPointSize(size);
 	
 	glBegin(GL_POINTS);

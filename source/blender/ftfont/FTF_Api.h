@@ -88,16 +88,8 @@ FTF_EXPORT void FTF_TransConvString(char* str, char* ustr, unsigned int flag);
  * @param mode flag to forward to FTF_TransConvString()
  * @return Width drawing
  */
-FTF_EXPORT float FTF_DrawString(char* str, unsigned int flag, int select);
+FTF_EXPORT float FTF_DrawString(char* str, unsigned int flag);
 
-/**
- * Draws a string at the current raster postion with rgb coloring.
- * @param str The string to draw
- * @param rgb Floats to manipulate the the glyph pixmap coloring.
- * @param mode flag to forward to FTF_TransConvString()
- * @return Width drawing
- */
-FTF_EXPORT float FTF_DrawStringRGB(char* str, unsigned int flag, float r, float g, float b);
 
 /**
  * Get a character width

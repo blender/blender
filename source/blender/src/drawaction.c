@@ -129,13 +129,11 @@ void meshactionbuts(SpaceAction *saction, Key *key)
 
     sprintf(str, "actionbuttonswin %d", curarea->win);
     block= uiNewBlock (&curarea->uiblocks, str, 
-                       UI_EMBOSSX, UI_HELV, curarea->win);
+                       UI_EMBOSS, UI_HELV, curarea->win);
 
 	x = NAMEWIDTH + 1;
     y = key->totkey*(CHANNELHEIGHT+CHANNELSKIP) 
 	  - CHANNELHEIGHT/2  - G.v2d->cur.ymin;
-
-    uiBlockSetCol(block, BUTGREY);
 
 	/* make the little 'open the sliders' widget */
     glColor3f(RVKBGCOL); 
@@ -168,7 +166,7 @@ void meshactionbuts(SpaceAction *saction, Key *key)
 		/* sliders are open so draw them */
 		glColor3f(RVKBGCOL); 
 		glRects(NAMEWIDTH,  0,  NAMEWIDTH+SLIDERWIDTH,  curarea->winy);
-		uiBlockSetEmboss(block, UI_EMBOSSX);
+		uiBlockSetEmboss(block, UI_EMBOSS);
 		for (i=1 ; i < key->totkey ; ++ i) {
 			make_rvk_slider(block, key, i, 
 							x, y, SLIDERWIDTH-2, CHANNELHEIGHT-1);

@@ -213,8 +213,8 @@ void project_short_noclip(float *vec, short *adr)
 
 void project_float(float *vec, float *adr)
 {
-	float fx, fy, vec4[4];
-
+	float vec4[4];
+	
 	adr[0]= 3200.0;
 	VECCOPY(vec4, vec);
 	vec4[3]= 1.0;

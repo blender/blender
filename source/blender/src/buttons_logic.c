@@ -872,27 +872,27 @@ static ID **get_selected_and_linked_obs(short *count, short scavisflag)
 }
 
 
-static BIFColorID get_col_sensor(int type)
+static int get_col_sensor(int type)
 {
 	switch(type) {
-	case SENS_ALWAYS:		return BUTACTION;
-	case SENS_TOUCH:		return BUTCAMERA;
-	case SENS_COLLISION:	return BUTCAMERA;
-	case SENS_NEAR:			return BUTRANDOM; 
-	case SENS_KEYBOARD:		return BUTIPO;
-	case SENS_PROPERTY:		return BUTPROPERTY;
-	case SENS_MOUSE:		return BUTAUDIO;
-	case SENS_RADAR:		return BUTEDITOBJECT;
-	case SENS_RANDOM:		return BUTSCENE;
-	case SENS_RAY:			return BUTMOTION;
-	case SENS_MESSAGE:		return BUTMESSAGE;
-	default:				return BUTGREY;
+	case SENS_ALWAYS:		return TH_BUT_ACTION;
+	case SENS_TOUCH:		return TH_BUT_NEUTRAL;
+	case SENS_COLLISION:	return TH_BUT_SETTING;
+	case SENS_NEAR:			return TH_BUT_SETTING1; 
+	case SENS_KEYBOARD:		return TH_BUT_SETTING2;
+	case SENS_PROPERTY:		return TH_BUT_NUM;
+	case SENS_MOUSE:		return TH_BUT_TEXTFIELD;
+	case SENS_RADAR:		return TH_BUT_POPUP;
+	case SENS_RANDOM:		return TH_BUT_NEUTRAL;
+	case SENS_RAY:			return TH_BUT_SETTING1;
+	case SENS_MESSAGE:		return TH_BUT_SETTING2;
+	default:				return TH_BUT_NEUTRAL;
 	}
 }
 static void set_col_sensor(int type, int medium)
 {
-	BIFColorID col= get_col_sensor(type);
-	BIF_set_color(col, medium?COLORSHADE_LIGHT:COLORSHADE_MEDIUM);
+	int col= get_col_sensor(type);
+	BIF_ThemeColorShade(col, medium?30:0);
 }
 
 /**
@@ -943,7 +943,7 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 	
 	/* yco is at the top of the rect, draw downwards */
 	
-	uiBlockSetEmboss(block, UI_EMBOSSW);
+	uiBlockSetEmboss(block, UI_EMBOSSM);
 	
 	set_col_sensor(sens->type, 0);
 	
@@ -1091,7 +1091,7 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			uiDefBut(block, LABEL, 0, "Hold",	  xco, yco-68, 40, 19, NULL, 0, 0, 0, 0, "");
 			
 			/* part of line 1 */
-			uiBlockSetCol(block, BUTPURPLE);
+			uiBlockSetCol(block, TH_BUT_SETTING2);
 			uiDefButS(block, TOG|BIT|0, 0, "All keys",	  xco+40+(width/2), yco-44, (width/2)-50, 19,
 				&ks->type, 0, 0, 0, 0, "");
 			
@@ -1260,7 +1260,7 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 	}
 	
 	uiBlockSetEmboss(block, UI_EMBOSSM);
-	uiBlockSetCol(block, BUTGREY);
+	uiBlockSetCol(block, TH_AUTO);
 	
 	return yco-4;
 }
@@ -1273,13 +1273,13 @@ static short draw_controllerbuttons(bController *cont, uiBlock *block, short xco
 	bPythonCont *pc;
 	short ysize;
 	
-	uiBlockSetEmboss(block, UI_EMBOSSW);
+	uiBlockSetEmboss(block, UI_EMBOSSM);
 	
 	switch (cont->type) {
 	case CONT_EXPRESSION:
 		ysize= 28;
 
-		BIF_set_color(BUTPROPERTY, COLORSHADE_GREY);
+		BIF_ThemeColor(TH_BUT_SETTING);
 		glRects(xco, yco-ysize, xco+width, yco);
 		uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 		
@@ -1298,7 +1298,7 @@ static short draw_controllerbuttons(bController *cont, uiBlock *block, short xco
 		if(cont->data==NULL) init_controller(cont);
 		pc= cont->data;
 		
-		BIF_set_color(BUTMESSAGE, COLORSHADE_GREY);
+		BIF_ThemeColor(TH_BUT_SETTING1);
 		glRects(xco, yco-ysize, xco+width, yco);
 		uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 
@@ -1310,7 +1310,7 @@ static short draw_controllerbuttons(bController *cont, uiBlock *block, short xco
 	default:
 		ysize= 4;
 
-		BIF_set_color(BUTIPO, COLORSHADE_GREY);
+		BIF_ThemeColor(TH_BUT_NEUTRAL);
 		glRects(xco, yco-ysize, xco+width, yco);
 		uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 		
@@ -1318,39 +1318,37 @@ static short draw_controllerbuttons(bController *cont, uiBlock *block, short xco
 	}
 	
 	uiBlockSetEmboss(block, UI_EMBOSSM);
-	uiBlockSetCol(block, BUTGREY);
+	uiBlockSetCol(block, TH_AUTO);
 
 	return yco;
 }
 
-static BIFColorID get_col_actuator(int type)
+static int get_col_actuator(int type)
 {
 	switch(type) {
-	case ACT_ACTION:		return BUTACTION;
-	case ACT_OBJECT:		return BUTMOTION;
-	case ACT_IPO:			return BUTIPO;
-	case ACT_PROPERTY:		return BUTPROPERTY;
-	case ACT_SOUND:			return BUTAUDIO;
-	case ACT_CD:			return BUTCD;
-	case ACT_CAMERA: 		return BUTCAMERA;
-	case ACT_EDIT_OBJECT: 	return BUTEDITOBJECT;
-	case ACT_GROUP:			return BUTYELLOW;
-	case ACT_RANDOM:		return BUTRANDOM;
-	case ACT_SCENE:			return BUTSCENE;
-	case ACT_MESSAGE:		return BUTMESSAGE;
-	case ACT_GAME:			return BUTGAME;
-	case ACT_VISIBILITY:			return BUTVISIBILITY;
-	default:				return BUTGREY;
+	case ACT_ACTION:		return TH_BUT_ACTION;
+	case ACT_OBJECT:		return TH_BUT_NEUTRAL;
+	case ACT_IPO:			return TH_BUT_SETTING;
+	case ACT_PROPERTY:		return TH_BUT_SETTING1;
+	case ACT_SOUND:			return TH_BUT_SETTING2;
+	case ACT_CD:			return TH_BUT_NUM;
+	case ACT_CAMERA: 		return TH_BUT_TEXTFIELD;
+	case ACT_EDIT_OBJECT: 	return TH_BUT_POPUP;
+	case ACT_GROUP:			return TH_BUT_ACTION;
+	case ACT_RANDOM:		return TH_BUT_NEUTRAL;
+	case ACT_SCENE:			return TH_BUT_SETTING;
+	case ACT_MESSAGE:		return TH_BUT_SETTING1;
+	case ACT_GAME:			return TH_BUT_SETTING2;
+	case ACT_VISIBILITY:	return TH_BUT_NUM;
+	case ACT_CONSTRAINT:	return TH_BUT_ACTION;
+	default:				return TH_BUT_NEUTRAL;
 	}
 }
 static void set_col_actuator(int item, int medium) 
 {
-	if (item==ACT_CONSTRAINT) {
-		BIF_set_color(BUTRUST, medium?COLORSHADE_HILITE:COLORSHADE_MEDIUM);
-	} else {
-		BIFColorID col= get_col_actuator(item);
-		BIF_set_color(col, medium?COLORSHADE_MEDIUM:COLORSHADE_GREY);
-	}
+	int col= get_col_actuator(item);
+	BIF_ThemeColorShade(col, medium?30:10);
+	
 }
 
 static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, short yco, short width)
@@ -1377,7 +1375,7 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 	int myline;
 
 	/* yco is at the top of the rect, draw downwards */
-	uiBlockSetEmboss(block, UI_EMBOSSW);
+	uiBlockSetEmboss(block, UI_EMBOSSM);
 	set_col_actuator(act->type, 0);
 	
 	switch (act->type)
@@ -1388,7 +1386,6 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 			
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
-			uiBlockSetCol(block, BUTGREY);
 			
 			oa = act->data;
 			wval = (width-100)/3;
@@ -1423,7 +1420,6 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 			uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-125, wval, 19, oa->angularvelocity+1, -10000.0, 10000.0, 10, 0, "");
 			uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-125, wval, 19, oa->angularvelocity+2, -10000.0, 10000.0, 10, 0, "");
 			
-			uiBlockSetCol(block, BUTGREEN);
 			uiDefButI(block, TOG|BIT|0, 0, "L",		xco+45+3*wval, yco-22, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
 			uiDefButI(block, TOG|BIT|1, 0, "L",		xco+45+3*wval, yco-41, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
 			uiDefButI(block, TOG|BIT|2, 0, "L",		xco+45+3*wval, yco-64, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
@@ -1431,9 +1427,7 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 			uiDefButI(block, TOG|BIT|4, 0, "L",		xco+45+3*wval, yco-106, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
 			uiDefButI(block, TOG|BIT|5, 0, "L",		xco+45+3*wval, yco-125, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
 			
-			uiBlockSetCol(block, BUTGREEN);
 			uiDefButI(block, TOG|BIT|6, 0, "add",xco+45+3*wval+15, yco-106, 35, 19, &oa->flag, 0.0, 0.0, 0, 0, "Toggles between ADD and SET linV");
-			uiBlockSetCol(block, BUTGREY);
 			
 			yco-= ysize;
 			break;
@@ -1453,7 +1447,6 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 			aa = act->data;
 			wval = (width-60)/3;
 			
-			uiBlockSetCol(block, BUTGREY);
 			//		str= "Action types   %t|Play %x0|Ping Pong %x1|Flipper %x2|Loop Stop %x3|Loop End %x4|Property %x6";
 #ifdef __NLA_ACTION_BY_MOTION_ACTUATOR
 			str= "Action types   %t|Play %x0|Flipper %x2|Loop Stop %x3|Loop End %x4|Property %x6|Displacement %x7";
@@ -1503,18 +1496,15 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 			str = "Ipo types   %t|Play %x0|Ping Pong %x1|Flipper %x2|Loop Stop %x3|Loop End %x4|Property %x6";
 			
 			uiDefButS(block, MENU, B_REDR, str,		xco+20, yco-24, width-40 - (width-40)/3, 19, &ia->type, 0, 0, 0, 0, "");
-			uiBlockSetCol(block, BUTGREEN);
 			uiDefButS(block, TOG|BIT|ACT_IPOCHILD_BIT, B_REDR, 
 				"Child",	xco+20+0.666*(width-40), yco-24, (width-40)/3, 19, 
 				&ia->flag, 0, 0, 0, 0, 
 				"Add all children Objects as well");
-			uiBlockSetCol(block, BUTGREY);
 			/* 
 			Key2key was disabled.... the settings below should not be reused without 
 			thought, because they interfere with other variables.
 			
 			  if(ia->type==ACT_IPO_KEY2KEY) {
-			  uiBlockSetCol(block, BUTGREEN);
 			  
 				uiDefButS(block, TOG|BIT|0, 0, "Prev", xco+20, yco-44, (width-40)/3, 19, &ia->flag, 0, 0, 0, 0, "Play backwards");
 				uiDefButS(block, TOG|BIT|1, 0, "Cycl", xco+20+(width-40)/3, yco-44, (width-40)/3, 19, &ia->flag, 0, 0, 0, 0, "Play cyclic");
@@ -1539,7 +1529,6 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 					&ia->end, 0.0, 18000.0, 0, 0, 
 					"End frame");
 				
-				uiBlockSetCol(block, BUTGREEN);
 				uiDefButS(block, TOG|BIT|ACT_IPOFORCE_BIT, B_REDR, 
 					"Force", xco+width-78, yco-44, 43, 19, 
 					&ia->flag, 0, 0, 0, 0, 
@@ -1735,9 +1724,7 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 	 
 			uiDefIDPoinBut(block, test_obpoin_but, 1, "OB:",		xco+10, yco-44, (width-20)/2, 19, &(eoa->ob), "Track to this Object");
 			uiDefButI(block, NUM, 0, "Time:",	xco+10+(width-20)/2, yco-44, (width-20)/2-40, 19, &eoa->time, 0.0, 2000.0, 0, 0, "Duration the tracking takes");
-			uiBlockSetCol(block, BUTGREEN);
 			uiDefButS(block, TOG, 0, "3D",	xco+width-50, yco-44, 40, 19, &eoa->flag, 0.0, 0.0, 0, 0, "Enable 3D tracking");
-			uiBlockSetCol(block, BUTGREY);
 		}
 		
 		str= "Edit Object %t|Add Object %x0|End Object %x1|Replace Mesh %x2|Track to %x3";
@@ -2113,7 +2100,6 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 	}
 
 	uiBlockSetEmboss(block, UI_EMBOSSM);
-	uiBlockSetCol(block, BUTGREY);
 
 	return yco-4;
 }
@@ -2154,7 +2140,6 @@ static uiBlock *sensor_menu(void *arg_unused)
 	
 	block= uiNewBlock(&curarea->uiblocks, "filemenu", UI_EMBOSSP, UI_HELV, curarea->win);
 	uiBlockSetButmFunc(block, do_sensor_menu, NULL);
-	uiBlockSetCol(block, MENUCOL);
 	
 	uiDefBut(block, BUTM, 1, "Show Objects",	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, 1, "Hide Objects",	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -2203,7 +2188,6 @@ static uiBlock *controller_menu(void *arg_unused)
 	
 	block= uiNewBlock(&curarea->uiblocks, "filemenu", UI_EMBOSSP, UI_HELV, curarea->win);
 	uiBlockSetButmFunc(block, do_controller_menu, NULL);
-	uiBlockSetCol(block, MENUCOL);
 	
 	uiDefBut(block, BUTM, 1, "Show Objects",	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, 1, "Hide Objects",	0,(short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -2252,7 +2236,6 @@ static uiBlock *actuator_menu(void *arg_unused)
 	
 	block= uiNewBlock(&curarea->uiblocks, "filemenu", UI_EMBOSSP, UI_HELV, curarea->win);
 	uiBlockSetButmFunc(block, do_actuator_menu, NULL);
-	uiBlockSetCol(block, MENUCOL);
 	
 	uiDefBut(block, BUTM, 1, "Show Objects",	0, (short)(xco-=20), 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, 1, "Hide Objects",	0, (short)(xco-=20), 160, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -2292,12 +2275,10 @@ void logic_buts(void)
 	uiSetButLock(ob->id.lib!=0, "Can't edit library data");
 
 	sprintf(name, "buttonswin %d", curarea->win);
-	block= uiNewBlock(&curarea->uiblocks, name, UI_EMBOSSX, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, name, UI_EMBOSS, UI_HELV, curarea->win);
 	
-	uiBlockSetCol(block, BUTPURPLE);
-	// uiDefButI(block, TOG|BIT|0, B_REDR, "X",
-	//		 15,205,10,19, &ob->gameflag2, 0, 0, 0, 0,
-	//		 "Toggle to always ignore activity culling.");
+	uiBlockSetCol(block, TH_BUT_SETTING2);
+
 	uiDefButI(block, TOG|BIT|2, B_REDR, "Actor",
 			 25,205,60,19, &ob->gameflag, 0, 0, 0, 0,
 			 "Objects that are evaluated by the engine ");
@@ -2313,8 +2294,6 @@ void logic_buts(void)
 			uiDefButI(block, TOG|BIT|6, B_DIFF, "Do Fh",		10,185,50,19, &ob->gameflag, 0, 0, 0, 0, "Use Fh settings in Materials");
 			uiDefButI(block, TOG|BIT|7, B_DIFF, "Rot Fh",	60,185,50,19, &ob->gameflag, 0, 0, 0, 0, "Use face normal to rotate Object");
 	
-			uiBlockSetCol(block, BUTGREY);
-
 			uiDefButF(block, NUM, B_DIFF, "Mass:",			110, 185, 80, 19, &ob->mass, 0.01, 100.0, 10, 0, "The mass of the Object");
 			uiDefButF(block, NUM, REDRAWVIEW3D, "Size:",		190, 185, 80, 19, &ob->inertia, 0.01, 10.0, 10, 0, "Bounding sphere size");
 			uiDefButF(block, NUM, B_DIFF, "Form:",			270, 185, 80, 19, &ob->formfactor, 0.01, 100.0, 10, 0, "Form factor");
@@ -2339,7 +2318,7 @@ void logic_buts(void)
 				 "Relative friction coefficient in the z-direction.");
 	}
 	
-	uiBlockSetCol(block, BUTSALMON);
+	uiBlockSetCol(block, TH_AUTO);
 	uiDefBut(block, BUT, B_ADD_PROP, "ADD property",		10, 110, 340, 24,
 			 NULL, 0.0, 100.0, 100, 0,
 			 "");
@@ -2350,10 +2329,8 @@ void logic_buts(void)
 	prop= ob->prop.first;
 	while(prop) {
 		
-		uiBlockSetCol(block, BUTSALMON);
 		but= uiDefBut(block, BUT, 1, "Del",		10, (short)(90-20*a), 40, 19, NULL, 0.0, 0.0, 1, (float)a, "");
 		uiButSetFunc(but, del_property, prop, NULL);
-		uiBlockSetCol(block, BUTGREY);
 		uiDefButS(block, MENU, B_CHANGE_PROP, pupstr,		50, (short)(90-20*a), 60, 19, &prop->type, 0, 0, 0, 0, "");
 		but= uiDefBut(block, TEX, 1, "Name:",					110, (short)(90-20*a), 105, 19, prop->name, 0, 31, 0, 0, "");
 		uiButSetFunc(but, make_unique_prop_names_cb, prop->name, (void*) 1);
@@ -2365,10 +2342,8 @@ void logic_buts(void)
 		}
 
 		if(prop->type==PROP_BOOL) {
-			uiBlockSetCol(block, BUTGREEN);
 			uiDefButI(block, TOG|BIT|0, B_REDR, "True",		215, (short)(90-20*a), 55, 19, &prop->data, 0, 0, 0, 0, "");
 			uiDefButI(block, TOGN|BIT|0, B_REDR, "False",	270, (short)(90-20*a), 55, 19, &prop->data, 0, 0, 0, 0, "");
-			uiBlockSetCol(block, BUTGREY);
 		}
 		else if(prop->type==PROP_INT) 
 			uiDefButI(block, NUM, butreturn, "",			215, (short)(90-20*a), 110, 19, &prop->data, -10000, 10000, 0, 0, "");
@@ -2392,11 +2367,9 @@ void logic_buts(void)
 	/* ******************************* */
 	xco= 375; yco= 170; width= 230;
 
-	uiBlockSetCol(block, BUTGREY);
 	uiBlockSetEmboss(block, UI_EMBOSSP);
 	uiDefBlockBut(block, sensor_menu, NULL, "Sensors", xco-10, yco+35, 80, 19, "");
-	uiBlockSetCol(block, BUTGREEN);
-	uiBlockSetEmboss(block, UI_EMBOSSX);
+	uiBlockSetEmboss(block, UI_EMBOSS);
 	uiDefButS(block, TOG|BIT|0, B_REDR, "Sel", xco+110, yco+35, (width-100)/3, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show all selected Objects");
 	uiDefButS(block, TOG|BIT|1, B_REDR, "Act", xco+110+(width-100)/3, yco+35, (width-100)/3, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show active Object");
 	uiDefButS(block, TOG|BIT|2, B_REDR, "Link", xco+110+2*(width-100)/3, yco+35, (width-100)/3, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show linked Objects to Controller");
@@ -2409,13 +2382,10 @@ void logic_buts(void)
 		if( (ob->scavisflag & OB_VIS_SENS) == 0) continue;
 		
 		/* presume it is only objects for now */
-		uiBlockSetEmboss(block, UI_EMBOSSX);
-		uiBlockSetCol(block, BUTGREY);
+		uiBlockSetEmboss(block, UI_EMBOSS);
 		if(ob->sensors.first) uiSetCurFont(block, UI_HELVB);
-		uiBlockSetCol(block, MIDGREY);
 		uiDefButS(block, TOG|BIT|6, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), 19, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide sensors");
 		if(ob->sensors.first) uiSetCurFont(block, UI_HELV);
-		uiBlockSetCol(block, BUTSALMON);
 		uiDefButS(block, TOG|BIT|8, B_ADD_SENS, "Add",(short)(xco+width-40), yco, 50, 19, &ob->scaflag, 0, 0, 0, 0, "Add a new Sensor");
 		yco-=20;
 		
@@ -2423,23 +2393,18 @@ void logic_buts(void)
 			
 			sens= ob->sensors.first;
 			while(sens) {
-				uiBlockSetEmboss(block, UI_EMBOSSW);
-				uiBlockSetCol(block, BUTSALMON);
+				uiBlockSetEmboss(block, UI_EMBOSSM);
 				uiDefIconButS(block, TOG|BIT|1, B_DEL_SENS, ICON_X,	xco, yco, 22, 19, &sens->flag, 0, 0, 0, 0, "Delete Sensor");
-				uiBlockSetCol(block, BUTGREY);
 				uiDefIconButS(block, ICONTOG|BIT|0, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, 19, &sens->flag, 0, 0, 0, 0, "Sensor settings");
 
 				ycoo= yco;
 				if(sens->flag & SENS_SHOW)
 				{
-					uiBlockSetCol(block, BUTYELLOW);
-
 					uiDefButS(block, MENU, B_CHANGE_SENS, sensor_pup(),	(short)(xco+22), yco, 100, 19, &sens->type, 0, 0, 0, 0, "Sensor type");
 					but= uiDefBut(block, TEX, 1, "", (short)(xco+122), yco, (short)(width-144), 19, sens->name, 0, 31, 0, 0, "Sensor name");
 					uiButSetFunc(but, make_unique_prop_names_cb, sens->name, (void*) 0);
 
 					sens->otype= sens->type;
-					uiBlockSetCol(block, BUTGREY);
 					yco= draw_sensorbuttons(sens, block, xco, yco, width,ob->id.name);
 					if(yco-6 < ycoo) ycoo= (yco+ycoo-20)/2;
 				}
@@ -2466,11 +2431,9 @@ void logic_buts(void)
 	/* ******************************* */
 	xco= 675; yco= 170; width= 230;
 
-	uiBlockSetCol(block, BUTGREY);
 	uiBlockSetEmboss(block, UI_EMBOSSP);
 	uiDefBlockBut(block, controller_menu, NULL, "Controllers", xco-10, yco+35, 100, 19, "");
-	uiBlockSetCol(block, BUTGREEN);
-	uiBlockSetEmboss(block, UI_EMBOSSX);
+	uiBlockSetEmboss(block, UI_EMBOSS);
 	uiDefButS(block, TOG|BIT|3, B_REDR, "Sel", xco+110, yco+35, (width-100)/3, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show all selected Objects");
 	uiDefButS(block, TOG|BIT|4, B_REDR, "Act", xco+110+(width-100)/3, yco+35, (width-100)/3, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show active Object");
 	uiDefButS(block, TOG|BIT|5, B_REDR, "Link", xco+110+2*(width-100)/3, yco+35, (width-100)/3, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show linked Objects to Sensor/Actuator");
@@ -2484,10 +2447,8 @@ void logic_buts(void)
 		if( (ob->scavisflag & OB_VIS_CONT) == 0) continue;
 
 		/* presume it is only objects for now */
-		uiBlockSetEmboss(block, UI_EMBOSSX);
-		uiBlockSetCol(block, BUTSALMON);
+		uiBlockSetEmboss(block, UI_EMBOSS);
 		uiDefButS(block, TOG|BIT|9, B_ADD_CONT, "Add",(short)(xco+width-40), yco, 50, 19, &ob->scaflag, 0, 0, 0, 0, "Add a new Controller");
-		uiBlockSetCol(block, MIDGREY);
 		if(ob->controllers.first) uiSetCurFont(block, UI_HELVB);
 		uiDefButS(block, TOG|BIT|11, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), 19, &ob->scaflag, 0, 0, 0, 0, "Active Object name");
 		if(ob->controllers.first) uiSetCurFont(block, UI_HELV);
@@ -2497,19 +2458,15 @@ void logic_buts(void)
 		
 			cont= ob->controllers.first;
 			while(cont) {
-				uiBlockSetEmboss(block, UI_EMBOSSW);
-				uiBlockSetCol(block, BUTSALMON);
+				uiBlockSetEmboss(block, UI_EMBOSSM);
 				uiDefIconButS(block, TOG|BIT|1, B_DEL_CONT, ICON_X,	xco, yco, 22, 19, &cont->flag, 0, 0, 0, 0, "Delete Controller");
-				uiBlockSetCol(block, BUTGREY);
 				uiDefIconButS(block, ICONTOG|BIT|0, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, 19, &cont->flag, 0, 0, 0, 0, "Controller settings");
 		
 				if(cont->flag & CONT_SHOW) {
-					uiBlockSetCol(block, BUTYELLOW);
 					cont->otype= cont->type;
 					uiDefButS(block, MENU, B_CHANGE_CONT, controller_pup(),(short)(xco+22), yco, 100, 19, &cont->type, 0, 0, 0, 0, "Controller type");
 					but= uiDefBut(block, TEX, 1, "", (short)(xco+122), yco, (short)(width-144), 19, cont->name, 0, 31, 0, 0, "Controller name");
 					uiButSetFunc(but, make_unique_prop_names_cb, cont->name, (void*) 0);
-					uiBlockSetCol(block, BUTGREY);
 		
 					ycoo= yco;
 					yco= draw_controllerbuttons(cont, block, xco, yco, width);
@@ -2541,11 +2498,9 @@ void logic_buts(void)
 	/* ******************************* */
 	xco= 985; yco= 170; width= 280;
 	
-	uiBlockSetCol(block, BUTGREY);
 	uiBlockSetEmboss(block, UI_EMBOSSP);
 	uiDefBlockBut(block, actuator_menu, NULL, "Actuators", xco-10, yco+35, 100, 19, "");
-	uiBlockSetCol(block, BUTGREEN);
-	uiBlockSetEmboss(block, UI_EMBOSSX);
+	uiBlockSetEmboss(block, UI_EMBOSS);
 	uiDefButS(block, TOG|BIT|6, B_REDR, "Sel", xco+110, yco+35, (width-110)/3, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show all selected Objects");
 	uiDefButS(block, TOG|BIT|7, B_REDR, "Act", xco+110+(width-110)/3, yco+35, (width-110)/3, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show active Object");
 	uiDefButS(block, TOG|BIT|8, B_REDR, "Link", xco+110+2*(width-110)/3, yco+35, (width-110)/3, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show linked Objects to Controller");
@@ -2557,13 +2512,10 @@ void logic_buts(void)
 		if( (ob->scavisflag & OB_VIS_ACT) == 0) continue;
 
 		/* presume it is only objects for now */
-		uiBlockSetEmboss(block, UI_EMBOSSX);
-		uiBlockSetCol(block, BUTGREY);
+		uiBlockSetEmboss(block, UI_EMBOSS);
 		if(ob->actuators.first) uiSetCurFont(block, UI_HELVB);
-		uiBlockSetCol(block, MIDGREY);
 		uiDefButS(block, TOG|BIT|7, B_REDR, ob->id.name+2,(short)(xco-10), yco,(short)(width-30), 19, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide actuators");
 		if(ob->actuators.first) uiSetCurFont(block, UI_HELV);
-		uiBlockSetCol(block, BUTSALMON);
 		uiDefButS(block, TOG|BIT|10, B_ADD_ACT, "Add",(short)(xco+width-40), yco, 50, 19, &ob->scaflag, 0, 0, 0, 0, "Add a new Actuator");
 		yco-=20;
 		
@@ -2571,19 +2523,15 @@ void logic_buts(void)
 			
 			act= ob->actuators.first;
 			while(act) {
-				uiBlockSetEmboss(block, UI_EMBOSSW);
-				uiBlockSetCol(block, BUTSALMON);
+				uiBlockSetEmboss(block, UI_EMBOSSM);
 				uiDefIconButS(block, TOG|BIT|1, B_DEL_ACT, ICON_X,	xco, yco, 22, 19, &act->flag, 0, 0, 0, 0, "Delete Actuator");
-				uiBlockSetCol(block, BUTGREY);
 				uiDefIconButS(block, ICONTOG|BIT|0, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, 19, &act->flag, 0, 0, 0, 0, "Actuator settings");
 
 				if(act->flag & ACT_SHOW) {
-					uiBlockSetCol(block, BUTYELLOW);
 					act->otype= act->type;
 					uiDefButS(block, MENU, B_CHANGE_ACT, actuator_pup(ob),	(short)(xco+22), yco, 100, 19, &act->type, 0, 0, 0, 0, "Actuator type");
 					but= uiDefBut(block, TEX, 1, "", (short)(xco+122), yco, (short)(width-144), 19, act->name, 0, 31, 0, 0, "Actuator name");
 					uiButSetFunc(but, make_unique_prop_names_cb, act->name, (void*) 0);
-					uiBlockSetCol(block, BUTGREY);
 
 					ycoo= yco;
 					yco= draw_actuatorbuttons(act, block, xco, yco, width);
