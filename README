@@ -205,7 +205,11 @@ update your system, you might want to add a symbolic link in the
 $NANBLENDERHOME/lib/ directory. For example, if you work on a 6.2 kernel:
 ln -s darwin-6.1-powerpc darwin-6.2-powerpc
 
-Step 4: 
+Step 4:
+cd /System/Library/Frameworks/OpenGL.framework/
+ln -s Headers GL
+
+Step 5: 
 Start the build process by building Blender's "intern" libraries. Navigate to 
 $NANBLENDERHOME/intern and type make. This will build the intern libaries which
 will be installed into the $NANBLENDERHOME/lib/darwin-6.1-powerpc (thanks to 
@@ -213,16 +217,16 @@ the symbolic link).
 Now you can choose how to build Blender itself; using the Makefiles or the 
 Project Builder project.
 
-Step 5 METHOD 1:
+Step 6 METHOD 1:
 Navigate to $NANBLENDERHOME/source and type make. 
 
-Step 5 METHOD 3:
+Step 6 METHOD 3:
 The project Builder project can be found in the directory:
 $NANBLENDERHOME/projectfiles/pb_2_0_1
 Start Project Builder open the blender.pbproj project, choose a target (blender
 or player) and build.
 
-Step 6:
+Step 7:
 Although the Makefiles in the intern directory run ranlib on the libraries 
 built, the gcc linker complains about ranlib not being run. Until there is a
 solution, you will need to run ranlib by hand once in a while when the make 
