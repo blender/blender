@@ -365,8 +365,7 @@ void insert_meshkey(Mesh *me)
 
 	if(me->key==0) {
 		me->key= add_key( (ID *)me);
-		rel = pupmenu("Relative Vertex Keys? %t|Yes Please! %x1"
-					  "|Naw, the other kind %x2");
+		rel = pupmenu("Insert Vertex Keys %t|Relative keys %x1|Absolute keys %x2");
 		switch (rel) {
 		case 1:
 			me->key->type = KEY_RELATIVE;
