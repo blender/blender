@@ -36,15 +36,9 @@
 #include "MyGlutMouseHandler.h"
 #include "MyGlutKeyHandler.h"
 #include "MT_Transform.h"
-#ifdef USE_QUATERNIONS
 #	include "IK_Qsolver.h"
 #	include "../intern/IK_QChain.h"
 #	include "../intern/IK_QSolver_Class.h"
-#else 
-#	include "IK_solver.h"
-#	include "../intern/IK_Chain.h"
-#	include "../intern/IK_Solver_Class.h"
-#endif
 #include <GL/glut.h>
 
 class ChainDrawer : public GlutDrawer
