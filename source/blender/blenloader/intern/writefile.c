@@ -1490,7 +1490,7 @@ static void write_global(WriteData *wd)
 	fg.curscene= G.scene;
 	fg.displaymode= R.displaymode;
 	fg.winpos= R.winpos;
-	fg.fileflags= G.fileflags;
+	fg.fileflags= (G.fileflags & ~G_FILE_NO_UI);	// prevent to save this, is not good convention, and feature with concerns...
 	fg.globalf= G.f;
 
 	writestruct(wd, GLOB, "FileGlobal", 1, &fg);

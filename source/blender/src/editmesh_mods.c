@@ -380,7 +380,7 @@ static EditVert *findnearestvert_f(short *dist, short sel)
 	getmouseco_areawin(mval);
 	eve= acto->next;
 	while(eve) {
-		if(eve->h==0) {
+		if(eve->h==0 && eve->xs!=3200) {
 			temp= abs(mval[0]- eve->xs)+ abs(mval[1]- eve->ys);
 			if( (eve->f & 1)==sel ) temp+=5;
 			if(temp< *dist) {
@@ -395,7 +395,7 @@ static EditVert *findnearestvert_f(short *dist, short sel)
 	if(*dist>3) {
 		eve= em->verts.first;
 		while(eve) {
-			if(eve->h==0) {
+			if(eve->h==0 && eve->xs!=3200) {
 				temp= abs(mval[0]- eve->xs)+ abs(mval[1]- eve->ys);
 				if( (eve->f & 1)==sel ) temp+=5;
 				if(temp< *dist) {
@@ -465,12 +465,7 @@ static EditEdge *findnearestedge_f(short *dist)
 	if(em->edges.first==NULL) return NULL;
 	else eed= em->edges.first;	
 	
-	/* reset flags */	
-	for(eve=em->verts.first; eve; eve=eve->next){
-		eve->f &= ~2;
-	}	
-		
-	calc_meshverts_ext_f2();     	/*sets (eve->f & 2) for vertices that aren't visible*/
+	calc_meshverts_ext_f2();     	/* sets/clears (eve->f & 2) for vertices that aren't visible */
 
 	getmouseco_areawin(mval);
 	closest=NULL;
