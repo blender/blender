@@ -6600,18 +6600,17 @@ void view3d_buttons(void)
 	uiDefIconTextButS(block, MENU, B_MODESELECT, (G.vd->modeselect),view3d_modeselect_pup() ,	
 																xco,0,120,20, &(G.vd->modeselect), 0, 0, 0, 0, "Mode:");
 	
-	xco+= 120;
-	xco +=14;
+	xco+= 130;
 	
-	//uiDefIconTextButS(block, MENU, REDRAWVIEW3D, (ICON_BBOX+G.vd->drawtype-1), "Viewport Shading%t|Bounding Box %x1|Wireframe %x2|Solid %x3|Shaded %x4|Textured %x5",	
-	//															xco,0,124,20, &(G.vd->drawtype), 0, 0, 0, 0, "Viewport Shading");
+	/* DRAWTYPE */
+	uiDefIconButS(block, ICONROW, B_REDR, ICON_BBOX,	xco,0,XIC,YIC, &(G.vd->drawtype), 1.0, 5.0, 0, 0, "Drawtype: boundbox/wire/solid/shaded (ZKEY, SHIFT+Z)");
+
+	// uiDefIconTextButS(block, MENU, REDRAWVIEW3D, (ICON_BBOX+G.vd->drawtype-1), "Viewport Shading%t|Bounding Box %x1|Wireframe %x2|Solid %x3|Shaded %x4|Textured %x5",	
+	//														xco,0,124,20, &(G.vd->drawtype), 0, 0, 0, 0, "Viewport Shading");
+	//	uiDefButS(block, MENU, REDRAWVIEW3D, "Viewport Shading%t|Bounding Box %x1|Wireframe %x2|Solid %x3|Shaded %x4|Textured %x5",	
+	//																xco,0,110,20, &(G.vd->drawtype), 0, 0, 0, 0, "Viewport Shading");
 	
-	uiDefButS(block, MENU, REDRAWVIEW3D, "Viewport Shading%t|Bounding Box %x1|Wireframe %x2|Solid %x3|Shaded %x4|Textured %x5",	
-																xco,0,110,20, &(G.vd->drawtype), 0, 0, 0, 0, "Viewport Shading");
-	
-	xco+=110;
-	
-	xco+= 14;
+	xco+= XIC+10;
 	/* LAYERS */
 	if(G.vd->localview==0) {
 		
@@ -6630,10 +6629,11 @@ void view3d_buttons(void)
 	else xco+= (10+1)*(XIC/2)+10+4;
 
 	/* VIEWMOVE */
-
+	/*
 	uiDefIconButI(block, TOG, B_VIEWTRANS, ICON_VIEWMOVE,	xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Translates view (SHIFT+MiddleMouse)");
 	uiDefIconButI(block, TOG, B_VIEWZOOM, ICON_VIEWZOOM,	xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zooms view (CTRL+MiddleMouse)");
-
+	*/
+	
 	/* around */
 	xco+= XIC/2;
 	uiDefIconButS(block, ROW, 1, ICON_ROTATE,	xco+=XIC,0,XIC,YIC, &G.vd->around, 3.0, 0.0, 0, 0, "Enables Rotation or Scaling around boundbox center (COMMAKEY)");
@@ -6641,9 +6641,6 @@ void view3d_buttons(void)
 	uiDefIconButS(block, ROW, 1, ICON_CURSOR,	xco+=XIC,0,XIC,YIC, &G.vd->around, 3.0, 1.0, 0, 0, "Enables Rotation or Scaling around cursor (DOTKEY)");
 	uiDefIconButS(block, ROW, 1, ICON_ROTATECOLLECTION,	xco+=XIC,0,XIC,YIC, &G.vd->around, 3.0, 2.0, 0, 0, "Enables Rotation or Scaling around individual object centers");
 
-	
-	
-	
 	if(G.vd->bgpic) {
 		xco+= XIC/2;
 		uiDefIconButS(block, TOG|BIT|1, B_REDR, ICON_IMAGE_COL,	xco+=XIC,0,XIC,YIC, &G.vd->flag, 0, 0, 0, 0, "Displays a Background picture");
@@ -7034,11 +7031,11 @@ void buttons_active_id(ID **id, ID **idfrom)
 		else if(tab==TAB_SHADING_TEX) {
 			MTex *mtex;
 			
-//			if(G.buts->mainbo != G.buts->mainb) {
-//				if(G.buts->mainbo==BUTS_LAMP) G.buts->texfrom= 2;
-//				else if(G.buts->mainbo==BUTS_WORLD) G.buts->texfrom= 1;
-//				else if(G.buts->mainbo==BUTS_MAT) G.buts->texfrom= 0;
-//			}
+			if(G.buts->mainbo==G.buts->mainb && G.buts->tabo!=tab) {
+				if(G.buts->tabo==TAB_SHADING_LAMP) G.buts->texfrom= 2;
+				else if(G.buts->tabo==TAB_SHADING_WORLD) G.buts->texfrom= 1;
+				else if(G.buts->tabo==TAB_SHADING_MAT) G.buts->texfrom= 0;
+			}
 	
 			if(G.buts->texfrom==0) {
 				if(ob && ob->type<OB_LAMP && ob->type) {
@@ -7228,14 +7225,14 @@ void buts_buttons(void)
 	/* mainb menu */
 	/* (this could be done later with a dynamic tree and branches, also for python) */
 	uiBlockSetCol(block, MIDGREY);
-	uiBlockSetEmboss(block, UI_EMBOSST);
+	uiBlockSetEmboss(block, UI_EMBOSSMB);	// menu but
 
 	{
 		char mainbname[8][12]= {" Scene", " Object", " Types", " Shading", " Editing", " Script", " Logic"};
 		char mainbicon[8]= {ICON_SCENE_DEHLT, ICON_OBJECT, ICON_BBOX, ICON_MATERIAL_DEHLT, ICON_EDIT, ICON_SCRIPT, ICON_GAME};
-		uiBut *but= uiDefIconTextBlockBut(block, sbuts_context_menu, NULL, mainbicon[G.buts->mainb], mainbname[G.buts->mainb], xco, 0, 80, YIC, "Set main context for button panels");
+		uiBut *but= uiDefIconTextBlockBut(block, sbuts_context_menu, NULL, mainbicon[G.buts->mainb], mainbname[G.buts->mainb], xco, 0, 90, YIC, "Set main context for button panels");
 		uiButClearFlag(but, UI_ICON_RIGHT); // this type has both flags set, and draws icon right.. uhh
-		xco+= 80-XIC+10;
+		xco+= 90-XIC+10;
 	}
 	
 	/* select the context to be drawn, per contex/tab the actual context is tested */
@@ -7447,7 +7444,9 @@ void buts_buttons(void)
 	xco+= 80;
 #endif
 
+	// memory for finding which texture you'd like to see
 	G.buts->mainbo= G.buts->mainb;
+	G.buts->tabo= G.buts->tab[G.buts->mainb];
 
 	/* always do as last */
 	uiDrawBlock(block);

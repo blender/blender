@@ -209,7 +209,7 @@ struct uiBlock {
 	int afterval;
 	void *curfont;
 	
-	short autofill, flag, win, winq, direction, dt, frontbuf;  //frontbuf see below
+	short autofill, flag, win, winq, direction, dt, frontbuf, auto_open;  //frontbuf see below
 	void *saveunder;
 	
 	float xofs, yofs;  	// offset to parent button
@@ -541,11 +541,11 @@ static void ui_emboss_X(BIFColorID bc, float asp, float x1, float y1, float x2, 
 	
 
 	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LGREY);
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_MEDIUM);
 		else BIF_set_color(bc, COLORSHADE_LGREY);
 	}
 	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_HILITE);
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LIGHT);
 		else BIF_set_color(bc, COLORSHADE_HILITE);
 	}
 
@@ -553,11 +553,11 @@ static void ui_emboss_X(BIFColorID bc, float asp, float x1, float y1, float x2, 
 	glVertex2f(x2,y1);
 
 	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_GREY);
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LGREY);
 		else BIF_set_color(bc, COLORSHADE_GREY);
 	}
 	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LIGHT);
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_WHITE);
 		BIF_set_color(bc, COLORSHADE_LIGHT);
 	}
 
@@ -570,20 +570,21 @@ static void ui_emboss_X(BIFColorID bc, float asp, float x1, float y1, float x2, 
 	glBegin(GL_QUADS);
 	
 	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_GREY);
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LGREY);
 		else BIF_set_color(bc, COLORSHADE_GREY);
 	}
 	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LIGHT);
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_WHITE);
 		BIF_set_color(bc, COLORSHADE_LIGHT);
 	}
-
+	
 	glVertex2f(x1,(y2-(y2-y1)/3));
 	glVertex2f(x2,(y2-(y2-y1)/3));
 	glVertex2f(x2,y2);
 	glVertex2f(x1,y2);
 
 	glEnd();
+
 	/* END SHADED BUTTON */
 
 	/* OUTER SUNKEN EFFECT */
@@ -707,11 +708,11 @@ static void ui_emboss_TEX(BIFColorID bc, float asp, float x1, float y1, float x2
 	glBegin(GL_QUADS);
 
 	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LGREY);
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_MEDIUM);
 		else BIF_set_color(bc, COLORSHADE_LGREY);
 	}
 	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LMEDIUM);
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_HILITE);
 		else BIF_set_color(bc, COLORSHADE_LMEDIUM);
 	}
 
@@ -789,11 +790,11 @@ static void ui_emboss_NUM(BIFColorID bc, float asp, float x1, float y1, float x2
 	glBegin(GL_QUADS);
 
 	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LGREY);
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_MEDIUM);
 		else BIF_set_color(bc, COLORSHADE_LGREY);
 	}
 	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LMEDIUM);
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_HILITE);
 		else BIF_set_color(bc, COLORSHADE_LMEDIUM);
 	}
 
@@ -911,11 +912,11 @@ static void ui_emboss_MENU(BIFColorID bc, float asp, float x1, float y1, float x
 	
 
 	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LGREY);
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_MEDIUM);
 		else BIF_set_color(bc, COLORSHADE_LGREY);
 	}
 	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_HILITE);
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LIGHT);
 		else BIF_set_color(bc, COLORSHADE_HILITE);
 	}
 
@@ -923,11 +924,11 @@ static void ui_emboss_MENU(BIFColorID bc, float asp, float x1, float y1, float x
 	glVertex2f(x2,y1);
 
 	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_GREY);
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LGREY);
 		else BIF_set_color(bc, COLORSHADE_GREY);
 	}
 	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LIGHT);
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_WHITE);
 		BIF_set_color(bc, COLORSHADE_LIGHT);
 	}
 
@@ -940,11 +941,11 @@ static void ui_emboss_MENU(BIFColorID bc, float asp, float x1, float y1, float x
 	glBegin(GL_QUADS);
 	
 	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_GREY);
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LGREY);
 		else BIF_set_color(bc, COLORSHADE_GREY);
 	}
 	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LIGHT);
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_WHITE);
 		BIF_set_color(bc, COLORSHADE_LIGHT);
 	}
 
@@ -1106,11 +1107,11 @@ static void ui_emboss_TABL(BIFColorID bc, float asp, float x1, float y1, float x
 	
 
 	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_MEDIUM);
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LMEDIUM);
 		else BIF_set_color(bc, COLORSHADE_MEDIUM);
 	}
 	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_MEDIUM);
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LMEDIUM);
 		else BIF_set_color(bc, COLORSHADE_MEDIUM);
 	}
 
@@ -1121,11 +1122,11 @@ static void ui_emboss_TABL(BIFColorID bc, float asp, float x1, float y1, float x
 	glVertex2f(x2,y1);
 
 	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_GREY);
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LGREY);
 		else BIF_set_color(bc, COLORSHADE_GREY);
 	}
 	else {
-		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_LIGHT);
+		if(flag & UI_ACTIVE) BIF_set_color(bc, COLORSHADE_WHITE);
 		BIF_set_color(bc, COLORSHADE_LIGHT);
 	}
 
@@ -1432,12 +1433,19 @@ static void ui_emboss_slider(uiBut *but, float fac)
 	glShadeModel(GL_SMOOTH);
 	glBegin(GL_QUADS);
 
-	BIF_set_color(BUTGREY, COLORSHADE_MEDIUM);
-
+	if(but->flag & UI_ACTIVE) 
+		BIF_set_color(BUTGREY, COLORSHADE_LMEDIUM);
+	else 
+		BIF_set_color(BUTGREY, COLORSHADE_MEDIUM);
+	
+	
 	glVertex2f(x1,y1-4);
 	glVertex2f(x2-h,y1-4);
 
-	BIF_set_color(BUTGREY, COLORSHADE_HILITE);
+	if(but->flag & UI_ACTIVE) 
+		BIF_set_color(BUTGREY, COLORSHADE_LIGHT);
+	else 
+		BIF_set_color(BUTGREY, COLORSHADE_HILITE);
 
 	glVertex2f(x2-h,y2+2);
 	glVertex2f(x1,y2+2);
@@ -2095,6 +2103,14 @@ static int roundboxtype= 15;
 void uiSetRoundBox(int type)
 {
 	roundboxtype= type;
+	
+	/* flags to set which corners will become rounded:
+
+	1------2
+	|      |
+	8------4
+	*/
+	
 }
 
 void gl_round_box_topshade(float minx, float miny, float maxx, float maxy, float rad)
@@ -2800,7 +2816,7 @@ static void ui_warp_pointer(short x, short y)
 	#endif
 }
 
-static int ui_do_but_MENU(uiBut *but)
+static int ui_do_but_MENUo(uiBut *but)
 {
 	uiBlock *block;
 	ListBase listb={NULL, NULL};
@@ -2940,6 +2956,110 @@ static int ui_do_but_MENU(uiBut *but)
 
 	return event;	
 }
+
+static int ui_do_but_MENU(uiBut *but)
+{
+	uiBlock *block;
+	ListBase listb={NULL, NULL};
+	double fvalue;
+	int width, height, a, xmax, starty;
+	short startx;
+	int columns=1, rows=0, boxh, event;
+	short  x1, y1;
+	short mval[2];
+	MenuData *md;
+
+	but->flag |= UI_SELECT;
+	ui_draw_but(but);
+
+	block= uiNewBlock(&listb, "menu", UI_EMBOSSP, UI_HELV, but->win);
+	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
+	uiBlockSetCol(block, MENUCOL);
+	
+	md= decompose_menu_string(but->str);
+
+	/* columns and row calculation */
+	columns= (md->nitems+20)/20;
+	if (columns<1) columns= 1;
+	
+	rows= (int) md->nitems/columns;
+	if (rows<1) rows= 1;
+	
+	while (rows*columns<md->nitems) rows++;
+		
+	/* size and location */
+	if(md->title)
+		width= 2*strlen(md->title)+BIF_GetStringWidth(block->curfont, md->title, (U.transopts & TR_MENUS));
+	else
+		width= 0;
+
+	for(a=0; a<md->nitems; a++) {
+		xmax= BIF_GetStringWidth(block->curfont, md->items[a].str, (U.transopts & TR_MENUS));
+		if(xmax>width) width= xmax;
+	}
+
+	width+= 10;
+	if (width<50) width=50;
+
+	boxh= TBOXH;
+	
+	height= rows*boxh;
+	if (md->title) height+= boxh;
+	
+	getmouseco_sc(mval);
+	
+	/* find active item */
+	fvalue= ui_get_but_val(but);
+	for(a=0; a<md->nitems; a++) {
+		if( md->items[a].retval== (int)fvalue ) break;
+	}
+	/* no active item? */
+	if(a==md->nitems) {
+		if(md->title) a= -1;
+		else a= 0;
+	}
+
+	/* here we go! */
+	startx= but->x1;
+	starty= but->y1;
+	
+	if(md->title) {
+		uiBut *bt;
+		uiSetCurFont(block, block->font+1);
+		bt= uiDefBut(block, LABEL, 0, md->title, startx, (short)(starty+rows*boxh), (short)width, (short)boxh, NULL, 0.0, 0.0, 0, 0, "");
+		uiSetCurFont(block, block->font);
+		bt->flag= UI_TEXT_LEFT;
+	}
+
+	for(a=0; a<md->nitems; a++) {
+
+		x1= but->x1 + width*((int)a/rows);
+		y1= but->y1 - boxh*(a%rows) + (rows-1)*boxh; 
+
+		if (strcmp(md->items[a].str, "%l")==0) {
+			uiDefBut(block, SEPR, B_NOP, "", x1, y1,(short)(width-(rows>1)), (short)(boxh-1), NULL, 0.0, 0.0, 0, 0, "");
+		}
+		else {
+			uiDefBut(block, BUTM|but->pointype, but->retval, md->items[a].str, x1, y1,(short)(width-(rows>1)), (short)(boxh-1), but->poin, (float) md->items[a].retval, 0.0, 0, 0, "");
+		}
+	}
+	
+	ui_positionblock(block, but);
+	block->win= G.curscreen->mainwin;
+	event= uiDoBlocks(&listb, 0);
+	
+	menudata_free(md);
+	
+	but->flag &= ~UI_SELECT;
+	ui_check_but(but);
+	ui_draw_but(but);
+	
+	uibut_do_func(but);
+
+	return event;	
+}
+
+
 
 /* ************* EVENTS ************* */
 
@@ -4215,7 +4335,10 @@ static int ui_do_button(uiBlock *block, uiBut *but, uiEvent *uevent)
 		break;
 	
 	case BLOCK:
-		if(uevent->val) retval= ui_do_but_BLOCK(but);
+		if(uevent->val) {
+			retval= ui_do_but_BLOCK(but);
+			block->auto_open= 1;
+		}
 		break;
 
 	case BUTM:
@@ -4606,11 +4729,15 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 						but->flag &= ~UI_ACTIVE;
 						if(but->type != LABEL && but->embossfunc != ui_emboss_N) ui_draw_but(but);
 					}
-					else if(but->type==BLOCK ) {	// automatic opens block button (pulldown)
+					else if(but->type==BLOCK || but->type==MENU) {	// automatic opens block button (pulldown)
 						int time;
-						for (time= 0; time<10; time++) {
+						
+						if(block->auto_open) time= 7;
+						else time= 0;
+						
+						for (; time<10; time++) {
 							if (anyqtest()) break;
-							else PIL_sleep_ms(20);
+							else PIL_sleep_ms(40);
 						}
 						if(time==10) ui_do_button(block, but, uevent);
 					}
@@ -4908,7 +5035,8 @@ int uiDoBlocks(ListBase *lb, int event)
 		if(block==NULL || (block->flag & UI_BLOCK_LOOP)==0) cont= 0;
 		
 		while( (block= lb->first) && (block->flag & UI_BLOCK_LOOP)) {
-				
+			block->auto_open= 1;
+			
 			/* this here, for menu buts */
 			if(block->flag & UI_BLOCK_REDRAW) {
 
@@ -5421,6 +5549,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	else if(block->dt==UI_EMBOSSTABL) but->embossfunc= ui_emboss_TABL;
 	else if(block->dt==UI_EMBOSSTABM) but->embossfunc= ui_emboss_TABM;
 	else if(block->dt==UI_EMBOSSTABR) but->embossfunc= ui_emboss_TABR;
+	else if(block->dt==UI_EMBOSSMB) but->embossfunc= ui_emboss_MENU;
 	else but->embossfunc= ui_emboss_N;
 	
 	but->pos= -1;	/* cursor invisible */

@@ -336,7 +336,7 @@ void do_butspace(unsigned short event)
 		//do_latticebuts(event);
 	}
 	else if(event<=B_GAMEBUTS) {
-		//do_gamebuts(event);
+		do_gamebuts(event);	// editsca.c
 	}
 	else if(event<=B_FPAINTBUTS) {
 		//do_fpaintbuts(event);

@@ -93,7 +93,7 @@ typedef struct SpaceButs {
 	struct ScrArea *area;
 
 	short cursens, curact;
-	short align, pad2;		/* align for panels */
+	short align, tabo;		/* align for panels, tab is old tab */
 	View2D v2d;
 	
 	short mainb, menunr;	/* texnr and menunr have to remain shorts */

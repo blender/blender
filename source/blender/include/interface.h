@@ -125,6 +125,7 @@
 #define UI_EMBOSSTABM	8
 #define UI_EMBOSSTABR	9
 #define UI_EMBOSST		10
+#define UI_EMBOSSMB		11	/* emboss menu button */
 
 /* uiBlock->direction */
 #define UI_TOP		0

@@ -124,7 +124,8 @@ static unsigned char *get_color(BIFColorID colorid, BIFColorShade shade)
 {
 	int coloridx= colorid-BIFCOLORID_FIRST;
 	int shadeidx= shade-BIFCOLORSHADE_FIRST;
-	if (coloridx>=0 && coloridx<BIFNCOLORIDS && shadeidx>=0&& shadeidx<BIFNCOLORSHADES) {
+	
+	if (coloridx>=0 && coloridx<BIFNCOLORIDS && shadeidx>=0 && shadeidx<BIFNCOLORSHADES) {
 		return common_colors_arr[coloridx].cols[shadeidx];
 	} else {
 		static unsigned char errorcol[3]= {0xFF, 0x33, 0x33};
@@ -143,6 +144,7 @@ static void rgbaCCol_addNT(unsigned char *t, unsigned char *a, int N)
 	t[0]= colclamp(a[0]+N);
 	t[1]= colclamp(a[1]+N);
 	t[2]= colclamp(a[2]+N);
+	
 }
 static void def_col(BIFColorID colorid, unsigned char r, unsigned char g, unsigned char b)
 {
@@ -151,9 +153,9 @@ static void def_col(BIFColorID colorid, unsigned char r, unsigned char g, unsign
 		unsigned char col[3];
 
 		col[0]= r, col[1]= g, col[2]= b;
-		rgbaCCol_addNT(get_color(colorid, COLORSHADE_WHITE),	col, 60);
-		rgbaCCol_addNT(get_color(colorid, COLORSHADE_LIGHT),	col, 35);
-		rgbaCCol_addNT(get_color(colorid, COLORSHADE_HILITE),	col, 20);
+		rgbaCCol_addNT(get_color(colorid, COLORSHADE_WHITE),	col, 70);
+		rgbaCCol_addNT(get_color(colorid, COLORSHADE_LIGHT),	col, 45);
+		rgbaCCol_addNT(get_color(colorid, COLORSHADE_HILITE),	col, 25);
 		rgbaCCol_addNT(get_color(colorid, COLORSHADE_LMEDIUM),	col, 10);
 		rgbaCCol_addNT(get_color(colorid, COLORSHADE_MEDIUM),	col, 0);
 		rgbaCCol_addNT(get_color(colorid, COLORSHADE_LGREY),	col, -20);

@@ -910,7 +910,7 @@ static BIFColorID get_col_sensor(int type)
 static void set_col_sensor(int type, int medium)
 {
 	BIFColorID col= get_col_sensor(type);
-	BIF_set_color(col, medium?COLORSHADE_MEDIUM:COLORSHADE_GREY);
+	BIF_set_color(col, medium?COLORSHADE_LIGHT:COLORSHADE_MEDIUM);
 }
 
 /**
@@ -2172,6 +2172,7 @@ static uiBlock *sensor_menu(void *arg_unused)
 	
 	block= uiNewBlock(&curarea->uiblocks, "filemenu", UI_EMBOSSP, UI_HELV, curarea->win);
 	uiBlockSetButmFunc(block, do_sensor_menu, NULL);
+	uiBlockSetCol(block, MENUCOL);
 	
 	uiDefBut(block, BUTM, 1, "Show Objects",	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, 1, "Hide Objects",	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -2220,6 +2221,7 @@ static uiBlock *controller_menu(void *arg_unused)
 	
 	block= uiNewBlock(&curarea->uiblocks, "filemenu", UI_EMBOSSP, UI_HELV, curarea->win);
 	uiBlockSetButmFunc(block, do_controller_menu, NULL);
+	uiBlockSetCol(block, MENUCOL);
 	
 	uiDefBut(block, BUTM, 1, "Show Objects",	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, 1, "Hide Objects",	0,(short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -2268,6 +2270,7 @@ static uiBlock *actuator_menu(void *arg_unused)
 	
 	block= uiNewBlock(&curarea->uiblocks, "filemenu", UI_EMBOSSP, UI_HELV, curarea->win);
 	uiBlockSetButmFunc(block, do_actuator_menu, NULL);
+	uiBlockSetCol(block, MENUCOL);
 	
 	uiDefBut(block, BUTM, 1, "Show Objects",	0, (short)(xco-=20), 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, 1, "Hide Objects",	0, (short)(xco-=20), 160, 19, NULL, 0.0, 0.0, 1, 1, "");
