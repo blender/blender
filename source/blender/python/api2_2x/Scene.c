@@ -908,9 +908,7 @@ static PyObject *Scene_GetAttr (BPy_Scene *self, char *name)
     attr = PyString_FromString(self->scene->id.name+2);
 
   else if (strcmp(name, "__members__") == 0) {
-    attr = Py_BuildValue("[s,s,s,s,s,s,s,s,s]",
-                    "name", "type", "mode", "lens", "clipStart",
-                    "clipEnd", "drawSize", "Types", "Modes");
+    attr = Py_BuildValue("[s]", "name");
   }
 
   if (!attr)
