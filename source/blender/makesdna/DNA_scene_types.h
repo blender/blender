@@ -323,7 +323,8 @@ typedef struct Scene {
 #define R_AVIJPEG	16
 #define R_PNG		17
 #define R_AVICODEC	18
-#define R_QUICKTIME 19
+#define R_QUICKTIME 	19
+#define R_BMP		20
 
 
 /* **************** RENDER ********************* */

@@ -48,42 +48,32 @@
 #include <config.h>
 #endif
 
-// some code copied from article on microsoft.com, copied
-// here for enhanced BMP support in the future
-// http://www.microsoft.com/msj/defaultframe.asp?page=/msj/0197/mfcp1/mfcp1.htm&nav=/msj/0197/newnav.htm
-
-/*
-LPBYTE CDib::GetBits()
- {
-   return (LPBYTE)m_pbmih + // start of bitmap +
-     m_pbmih->biSize +      // size of header +
-     GetNumPaletteColors()  // (num colors *
-       *sizeof(RGBQUAD);    // size each entry)
- }
-
-UINT CDib::GetNumPaletteColors()
- {
-    UINT nColors=m_pbmih->biClrUsed;
-    if (nColors==0 && m_pbmih->biBitCount<=8)
-       nColors = 1<<m_pbmih->biBitCount;
-    return nColors;
- }
-
+/* some code copied from article on microsoft.com, copied
+  here for enhanced BMP support in the future
+  http://www.microsoft.com/msj/defaultframe.asp?page=/msj/0197/mfcp1/mfcp1.htm&nav=/msj/0197/newnav.htm
 */
 
 typedef struct BMPINFOHEADER{
 	unsigned int	biSize;
-	int				biWidth;
-	int				biHeight;
+	unsigned int	biWidth;
+	unsigned int	biHeight;
 	unsigned short	biPlanes;
 	unsigned short	biBitCount;
 	unsigned int	biCompression;
 	unsigned int	biSizeImage;
-	int				biXPelsPerMeter;
-	int				biYPelsPerMeter;
+	unsigned int	biXPelsPerMeter;
+	unsigned int	biYPelsPerMeter;
 	unsigned int	biClrUsed;
 	unsigned int	biClrImportant;
 } BMPINFOHEADER;
+
+typedef struct BMPHEADER {
+	unsigned short biType;
+	unsigned int biSize;
+	unsigned short biRes1;
+	unsigned short biRes2;
+	unsigned int biOffBits;
+} BMPHEADER;
 
 #define BMP_FILEHEADER_SIZE 14
 
@@ -95,15 +85,16 @@ static int checkbmp(unsigned char *mem)
 
 	if (mem) {
 		if ((mem[0] == 'B') && (mem[1] == 'M')) {
-			// skip fileheader
+			/* skip fileheader */
 			mem += BMP_FILEHEADER_SIZE;
+		} else {
 		}
 
-		// for systems where an int needs to be 4 bytes aligned
+		/* for systems where an int needs to be 4 bytes aligned */
 		memcpy(&bmi, mem, sizeof(bmi));
 
 		u = LITTLE_LONG(bmi.biSize);
-		// we only support uncompressed 24 or 32 bits images for now
+		/* we only support uncompressed 24 or 32 bits images for now */
 		if (u >= sizeof(BMPINFOHEADER)) {
 			if ((bmi.biCompression == 0) && (bmi.biClrUsed == 0)) {
 				u = LITTLE_SHORT(bmi.biBitCount);
@@ -133,11 +124,11 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, int size, int flags)
 	if (checkbmp(mem) == 0) return(0);
 
 	if ((mem[0] == 'B') && (mem[1] == 'M')) {
-		// skip fileheader
+		/* skip fileheader */
 		mem += BMP_FILEHEADER_SIZE;
 	}
 
-	// for systems where an int needs to be 4 bytes aligned
+	/* for systems where an int needs to be 4 bytes aligned */
 	memcpy(&bmi, mem, sizeof(bmi));
 
 	skip = LITTLE_LONG(bmi.biSize);
@@ -145,7 +136,10 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, int size, int flags)
 	y = LITTLE_LONG(bmi.biHeight);
 	depth = LITTLE_SHORT(bmi.biBitCount);
 
-	// printf("skip: %d, x: %d y: %d, depth: %d (%x)\n", skip, x, y, depth, bmi.biBitCount);
+	/* printf("skip: %d, x: %d y: %d, depth: %d (%x)\n", skip, x, y, 
+		depth, bmi.biBitCount); */
+	printf("skip: %d, x: %d y: %d, depth: %d (%x)\n", skip, x, y, 
+		depth, bmi.biBitCount);
 	if (flags & IB_test) {
 		ibuf = IMB_allocImBuf(x, y, depth, 0, 0);
 	} else {
@@ -191,3 +185,65 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, int size, int flags)
 	return(ibuf);
 }
 
+/* Couple of helper functions for writing our data */
+int putIntLSB(unsigned int ui,FILE *ofile) { 
+   putc((ui>>0)&0xFF,ofile); 
+   putc((ui>>8)&0xFF,ofile); 
+   putc((ui>>16)&0xFF,ofile); 
+   return putc((ui>>24)&0xFF,ofile); 
+}
+
+int putShortLSB(unsigned short us,FILE *ofile) { 
+   putc((us>>0)&0xFF,ofile); 
+   return putc((us>>8)&0xFF,ofile); 
+} 
+
+/* Found write info at http://users.ece.gatech.edu/~slabaugh/personal/c/bitmapUnix.c */
+short imb_savebmp(struct ImBuf *ibuf, int outfile, int flags) {
+
+   BMPINFOHEADER infoheader;
+   int bytesize, extrabytes, x, y, t, ptr;
+   uchar *data;
+   FILE *ofile;
+
+   extrabytes = (4 - ibuf->x % 4) % 4;
+printf("extrabytes = %d\n",extrabytes);
+   bytesize = (ibuf->x + extrabytes) * ibuf->y;
+
+   data = (uchar *) ibuf->rect;
+   ofile = fdopen(outfile,"ab");
+
+   putShortLSB(19778,ofile); /* "BM" */
+   putIntLSB(0,ofile); /* This can be 0 for BI_RGB bitmaps */
+   putShortLSB(0,ofile); /* Res1 */
+   putShortLSB(0,ofile); /* Res2 */
+   putIntLSB(BMP_FILEHEADER_SIZE + sizeof(infoheader),ofile); 
+
+   putIntLSB(sizeof(infoheader),ofile);
+   putIntLSB(ibuf->x,ofile);
+   putIntLSB(ibuf->y,ofile);
+   putShortLSB(1,ofile);
+   putShortLSB(24,ofile);
+   putIntLSB(0,ofile);
+   putIntLSB(bytesize,ofile);
+   putIntLSB(0,ofile);
+   putIntLSB(0,ofile);
+   putIntLSB(0,ofile);
+   putIntLSB(0,ofile);
+
+   /* Need to write out padded image data in bgr format */
+   for (y=0;y<ibuf->y;y++) {
+      for (x=0;x<ibuf->x;x++) {
+
+         ptr=(x + y * ibuf->x) * 4;
+         if (putc(data[ptr+2],ofile) == EOF) return 0;
+         if (putc(data[ptr+1],ofile) == EOF) return 0;
+         if (putc(data[ptr],ofile) == EOF) return 0;
+
+      }
+      /* add padding here */
+      for (t=0;t<extrabytes;t++) if (putc(0,ofile) == EOF) return 0;
+   }
+printf("x = %d y = %d\n",x,y);
+   return 1;
+}

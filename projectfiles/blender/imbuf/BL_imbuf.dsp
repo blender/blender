@@ -163,7 +163,7 @@ SOURCE=..\..\..\source\blender\imbuf\intern\bitplanes.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\imbuf\intern\bmp_decode.c
+SOURCE=..\..\..\source\blender\imbuf\intern\bmp.c
 # End Source File
 # Begin Source File
 

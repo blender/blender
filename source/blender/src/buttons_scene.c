@@ -877,6 +877,7 @@ static char *imagetype_pup(void)
 #endif
 
 	strcat(formatstring, "|%s %%x%d");	// add space for PNG
+	strcat(formatstring, "|%s %%x%d");	// add space for BMP
 
 #ifdef _WIN32
 	strcat(formatstring, "|%s %%x%d");	// add space for AVI Codec
@@ -900,6 +901,7 @@ static char *imagetype_pup(void)
 			"Targa",          R_TARGA,
 			"Targa Raw",      R_RAWTGA,
 			"PNG",            R_PNG,
+			"BMP",            R_BMP,
 			"Jpeg",           R_JPEG90,
 			"HamX",           R_HAMX,
 			"Iris",           R_IRIS,
@@ -917,6 +919,7 @@ static char *imagetype_pup(void)
 			"Targa",          R_TARGA,
 			"Targa Raw",      R_RAWTGA,
 			"PNG",            R_PNG,
+			"BMP",            R_BMP,
 			"Jpeg",           R_JPEG90,
 			"HamX",           R_HAMX,
 			"Iris",           R_IRIS,

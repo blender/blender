@@ -21,7 +21,20 @@ Add your hooks to read and write the image format these go in
 
 Step 3: 
 Add in IS_openexr to blender/source/blender/imbuf/IMB_imbuf_types.h
+Add in R_openexr to source/blender/makesdna/DNA_scene_types.h
 
-Step 4: 
-Add any external library info to the build process.
+Step 4:
+Add your hooks to the gui.
+source/blender/src/buttons_scene.c
+source/blender/src/toets.c
+source/blender/src/writeimage.c
+
+Step 5: 
+Alter the build process:
+For autoconf you need to edit blender/source/blender/imbuf/Makefile.am
+and add in your additional files.
+For msvp you need to edit blender/projectfiles/blender/imbuf/BL_imbuf.dsp
+and add in your additional files.
+If you have any external library info you will also need to add that 
+to the various build processes.
 

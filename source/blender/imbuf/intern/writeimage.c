@@ -91,6 +91,14 @@ short IMB_saveiff(struct ImBuf *ibuf,char *naam,int flags)
 		}
 	}
 
+        if (IS_bmp(ibuf)) {
+                ok = imb_savebmp(ibuf,file,flags);
+                if (ok) {
+                        close (file);
+                        return (ok);
+                }
+        }
+
 	if (IS_tga(ibuf)) {
 		ok = imb_savetarga(ibuf,file,flags);
 		if (ok) {
