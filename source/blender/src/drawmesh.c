@@ -747,8 +747,8 @@ static int set_gl_light(Object *ob)
 						glLightfv(GL_LIGHT0+count, GL_POSITION, vec); 
 						glLightf(GL_LIGHT0+count, GL_CONSTANT_ATTENUATION, 1.0);
 						glLightf(GL_LIGHT0+count, GL_LINEAR_ATTENUATION, la->att1/la->dist);
-						/* without this next line it looks backward compatible. attennuation still is acceptable */
-						/* glLightf(GL_LIGHT0+count, GL_QUADRATIC_ATTENUATION, la->att2/(la->dist*la->dist)); */
+						/* post 2.25 engine supports quad lights */
+						glLightf(GL_LIGHT0+count, GL_QUADRATIC_ATTENUATION, la->att2/(la->dist*la->dist));
 						
 						if(la->type==LA_SPOT) {
 							vec[0]= -base->object->obmat[2][0];
