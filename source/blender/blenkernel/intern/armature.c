@@ -887,11 +887,27 @@ void make_boneMatrixvr (float outmatrix[][4],float delta[3], float roll)
 
 	/*	Find Axis & Amount for bone matrix*/
 	Crossf (axis,target,nor);
-	Normalise (axis);
-	theta=(float) acos (Inpf (target,nor));
 
-	/*	Make Bone matrix*/
-	VecRotToMat3(axis, theta, bMatrix);
+	if (Inpf(axis,axis) > 0.0000000000001) {
+		/* if nor is *not* a multiple of target ... */
+		Normalise (axis);
+		theta=(float) acos (Inpf (target,nor));
+
+		/*	Make Bone matrix*/
+		VecRotToMat3(axis, theta, bMatrix);
+	}
+	else {
+		/* if nor is a multiple of target ... */
+		float updown;
+
+		/* point same direction, or opposite? */
+		updown = ( Inpf (target,nor) > 0 ) ? 1.0 : -1.0;
+
+		/* I think this should work ... */
+		bMatrix[0][0]=updown; bMatrix[0][1]=0.0;    bMatrix[0][2]=0.0;
+		bMatrix[1][0]=0.0;    bMatrix[1][1]=updown; bMatrix[1][2]=0.0;
+		bMatrix[2][0]=0.0;    bMatrix[2][1]=0.0;    bMatrix[2][2]=1.0;
+	}
 
 	/*	Make Roll matrix*/
 	VecRotToMat3(nor, roll, rMatrix);
