@@ -2177,39 +2177,40 @@ static void do_palette1_cb(void *bt1, void *col1)
 	glFlush(); // flush display in subloops
 }
 
-/* color picker, Gimp version. mode: 't' = RGB buttons on top */
+/* color picker, Gimp version. mode: 't' = RGB buttons on top, popup */
 /* col = read/write to, hsv/old = memory for temporal use */
 void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, char mode)
 {
 	uiBut *bt;
 	float h;
-	int a;
+	int a, retval=B_NOP;
 
 	if(mode=='t') {
 		// safety, put in beginning otherwise tooltips wont work
-		uiDefBut(block, LABEL, B_NOP, "",	-DPICK,-DPICK, FPICK+3*DPICK+BPICK, FPICK+4*DPICK+BPICK+40, NULL, 0.0, 0.0, 0, 0, "");
+		retval= 0;	// prevents event that closes popup
+		uiDefBut(block, LABEL, 0, "",	-DPICK,-DPICK, FPICK+3*DPICK+BPICK, FPICK+4*DPICK+BPICK+40, NULL, 0.0, 0.0, 0, 0, "");
 	}
-	
+
 	VECCOPY(old, col);	// old color stored there, for palette_cb to work
 	
 	// the cube intersection
-	bt= uiDefButF(block, HSVCUBE, B_NOP, "",	0,DPICK+BPICK,FPICK,FPICK, col, 0.0, 0.0, 2, 0, "");
+	bt= uiDefButF(block, HSVCUBE, retval, "",	0,DPICK+BPICK,FPICK,FPICK, col, 0.0, 0.0, 2, 0, "");
 	uiButSetFlag(bt, UI_NO_HILITE);
 
-	bt= uiDefButF(block, HSVCUBE, B_NOP, "",	0,0,FPICK,BPICK, col, 0.0, 0.0, 3, 0, "");
+	bt= uiDefButF(block, HSVCUBE, retval, "",	0,0,FPICK,BPICK, col, 0.0, 0.0, 3, 0, "");
 	uiButSetFlag(bt, UI_NO_HILITE);
 
 	// palette
-	bt=uiDefButF(block, COL, B_NOP, "",		FPICK+DPICK, 0, BPICK,BPICK, old, 0.0, 0.0, -1, 0, "Old color, click to restore");
+	bt=uiDefButF(block, COL, retval, "",		FPICK+DPICK, 0, BPICK,BPICK, old, 0.0, 0.0, -1, 0, "Old color, click to restore");
 	uiButSetFunc(bt, do_palette_cb, bt, col);
-	uiDefButF(block, COL, B_NOP, "",		FPICK+DPICK, BPICK+DPICK, BPICK,60-BPICK-DPICK, col, 0.0, 0.0, -1, 0, "Active color");
+	uiDefButF(block, COL, retval, "",		FPICK+DPICK, BPICK+DPICK, BPICK,60-BPICK-DPICK, col, 0.0, 0.0, -1, 0, "Active color");
 
 	h= (DPICK+BPICK+FPICK-64)/(UI_PALETTE_TOT/2.0);
 	uiBlockBeginAlign(block);
 	for(a= -1+UI_PALETTE_TOT/2; a>=0; a--) {
-		bt= uiDefButF(block, COL, B_NOP, "",	FPICK+DPICK, 65.0+(float)a*h, BPICK/2, h, palette[a+UI_PALETTE_TOT/2], 0.0, 0.0, -1, 0, "Click to choose, hold CTRL to store in palette");
+		bt= uiDefButF(block, COL, retval, "",	FPICK+DPICK, 65.0+(float)a*h, BPICK/2, h, palette[a+UI_PALETTE_TOT/2], 0.0, 0.0, -1, 0, "Click to choose, hold CTRL to store in palette");
 		uiButSetFunc(bt, do_palette_cb, bt, col);
-		bt= uiDefButF(block, COL, B_NOP, "",	FPICK+DPICK+BPICK/2, 65.0+(float)a*h, BPICK/2, h, palette[a], 0.0, 0.0, -1, 0, "Click to choose, hold CTRL to store in palette");		
+		bt= uiDefButF(block, COL, retval, "",	FPICK+DPICK+BPICK/2, 65.0+(float)a*h, BPICK/2, h, palette[a], 0.0, 0.0, -1, 0, "Click to choose, hold CTRL to store in palette");		
 		uiButSetFunc(bt, do_palette_cb, bt, col);
 	}
 	uiBlockEndAlign(block);
@@ -2219,37 +2220,37 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 
 	if(mode=='t') {  // on top
 		h= (FPICK+DPICK+BPICK)/3.0;
-		bt= uiDefButF(block, NUM, B_NOP, "R ",	0, BPICK+2*DPICK+FPICK+20, h,20, col, 0.0, 1.0, 10, 2, "");
+		bt= uiDefButF(block, NUM, retval, "R ",	0, BPICK+2*DPICK+FPICK+20, h,20, col, 0.0, 1.0, 10, 2, "");
 		uiButSetFunc(bt, do_palette1_cb, bt, col);
-		bt= uiDefButF(block, NUM, B_NOP, "G ",	h, BPICK+2*DPICK+FPICK+20, h,20, col+1, 0.0, 1.0, 10, 2, "");
+		bt= uiDefButF(block, NUM, retval, "G ",	h, BPICK+2*DPICK+FPICK+20, h,20, col+1, 0.0, 1.0, 10, 2, "");
 		uiButSetFunc(bt, do_palette1_cb, bt, col);
-		bt= uiDefButF(block, NUM, B_NOP, "B ",	2*h, BPICK+2*DPICK+FPICK+20, h,20, col+2, 0.0, 1.0, 10, 2, "");
+		bt= uiDefButF(block, NUM, retval, "B ",	2*h, BPICK+2*DPICK+FPICK+20, h,20, col+2, 0.0, 1.0, 10, 2, "");
 		uiButSetFunc(bt, do_palette1_cb, bt, col);
 	
-		bt= uiDefButF(block, NUM, B_NOP, "H ",	0, BPICK+2*DPICK+FPICK, h,20, hsv, 0.0, 1.0, 10, 2, "");
+		bt= uiDefButF(block, NUM, retval, "H ",	0, BPICK+2*DPICK+FPICK, h,20, hsv, 0.0, 1.0, 10, 2, "");
 		uiButSetFunc(bt, do_palette1_cb, bt, col);
-		bt= uiDefButF(block, NUM, B_NOP, "S ",	h, BPICK+2*DPICK+FPICK, h,20, hsv+1, 0.0, 1.0, 10, 2, "");
+		bt= uiDefButF(block, NUM, retval, "S ",	h, BPICK+2*DPICK+FPICK, h,20, hsv+1, 0.0, 1.0, 10, 2, "");
 		uiButSetFunc(bt, do_palette1_cb, bt, col);
-		bt= uiDefButF(block, NUM, B_NOP, "V ",	2*h, BPICK+2*DPICK+FPICK, h,20, hsv+2, 0.0, 1.0, 10, 2, "");
+		bt= uiDefButF(block, NUM, retval, "V ",	2*h, BPICK+2*DPICK+FPICK, h,20, hsv+2, 0.0, 1.0, 10, 2, "");
 		uiButSetFunc(bt, do_palette1_cb, bt, col);
 	}
 	else {  // on side
 		float offs= FPICK+2*DPICK+BPICK;
 		
 		uiBlockBeginAlign(block);
-		bt= uiDefButF(block, NUM, B_NOP, "R ",	offs, 110, 80,20, col, 0.0, 1.0, 10, 2, "");
+		bt= uiDefButF(block, NUM, retval, "R ",	offs, 110, 80,20, col, 0.0, 1.0, 10, 2, "");
 		uiButSetFunc(bt, do_palette1_cb, bt, col);
-		bt= uiDefButF(block, NUM, B_NOP, "G ",	offs, 90, 80,20, col+1, 0.0, 1.0, 10, 2, "");
+		bt= uiDefButF(block, NUM, retval, "G ",	offs, 90, 80,20, col+1, 0.0, 1.0, 10, 2, "");
 		uiButSetFunc(bt, do_palette1_cb, bt, col);
-		bt= uiDefButF(block, NUM, B_NOP, "B ",	offs, 70, 80,20, col+2, 0.0, 1.0, 10, 2, "");
+		bt= uiDefButF(block, NUM, retval, "B ",	offs, 70, 80,20, col+2, 0.0, 1.0, 10, 2, "");
 		uiButSetFunc(bt, do_palette1_cb, bt, col);
 		
 		uiBlockBeginAlign(block);
-		bt= uiDefButF(block, NUM, B_NOP, "H ",	offs, 40, 80,20, hsv, 0.0, 1.0, 10, 2, "");
+		bt= uiDefButF(block, NUM, retval, "H ",	offs, 40, 80,20, hsv, 0.0, 1.0, 10, 2, "");
 		uiButSetFunc(bt, do_palette1_cb, bt, col);
-		bt= uiDefButF(block, NUM, B_NOP, "S ",	offs, 20, 80,20, hsv+1, 0.0, 1.0, 10, 2, "");
+		bt= uiDefButF(block, NUM, retval, "S ",	offs, 20, 80,20, hsv+1, 0.0, 1.0, 10, 2, "");
 		uiButSetFunc(bt, do_palette1_cb, bt, col);
-		bt= uiDefButF(block, NUM, B_NOP, "V ",	offs, 0, 80,20, hsv+2, 0.0, 1.0, 10, 2, "");
+		bt= uiDefButF(block, NUM, retval, "V ",	offs, 0, 80,20, hsv+2, 0.0, 1.0, 10, 2, "");
 		uiButSetFunc(bt, do_palette1_cb, bt, col);
 		uiBlockEndAlign(block);
 	}
@@ -2332,8 +2333,8 @@ static int ui_do_but_HSVCUBE(uiBut *but)
 		}
 		else BIF_wait_for_statechange();
 	}
-	
-	return but->retval;;
+
+	return but->retval;
 }
 
 
@@ -3080,6 +3081,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 					/* when mouse outside, don't do button */
 					if(inside || uevent->event!=LEFTMOUSE) {
 						butevent= ui_do_button(block, but, uevent);
+						
 						if(butevent) addqueue(block->winq, UI_BUT_EVENT, (short)butevent);
 
 						/* i doubt about the next line! */

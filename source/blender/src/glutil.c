@@ -449,7 +449,7 @@ void bglVertex3fv(float *vec)
 	case GL_POINTS:
 		if(pointhack) {
 			glRasterPos3fv(vec);
-			glBitmap(pointhack, pointhack, (float)pointhack/2, pointhack/2, 0.0, 0.0, Squaredot);
+			glBitmap(pointhack, pointhack, (float)pointhack/2.0, (float)pointhack/2.0, 0.0, 0.0, Squaredot);
 		}
 		else glVertex3fv(vec);
 		break;
