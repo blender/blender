@@ -119,10 +119,10 @@ static void calc_tw_center(float *co)
 }
 
 /* callback */
-static void stats_pose(ListBase *lb)
+static void stats_pose(ListBase *lb, float *normal, float *plane)
 {
 	Bone *bone;
-	float vec[3];
+	float vec[3], mat[4][4];
 	
 	for(bone= lb->first; bone; bone= bone->next) {
 		if (bone->flag & BONE_SELECTED) {
@@ -133,10 +133,16 @@ static void stats_pose(ListBase *lb)
 				get_bone_root_pos (bone, vec, 1);
 				
 				calc_tw_center(vec);
+				where_is_bone(G.obpose, bone);
+				get_objectspace_bone_matrix(bone, mat, 1, 1);	// points in negative Y o_O
+					
+				VecAddf(normal, normal, mat[2]);
+				VecAddf(plane, plane, mat[1]);
+				
 				return;	// see above function
 			}
 		}
-		stats_pose(&bone->childbase);
+		stats_pose(&bone->childbase, normal, plane);
 	}
 }
 
@@ -149,13 +155,8 @@ static int calc_manipulator(ScrArea *sa)
 	View3D *v3d= sa->spacedata.first;
 	Base *base;
 	Object *ob=NULL;
-	Nurb *nu;
-	BezTriple *bezt;
-	BPoint *bp;
-	MetaElem *ml;
-	EditVert *eve;
-//	EditFace *efa;
-	EditBone *ebo;
+	float normal[3]={0.0, 0.0, 0.0};
+	float plane[3]={0.0, 0.0, 0.0};
 	int a, totsel=0;
 	
 	/* transform widget matrix */
@@ -170,16 +171,28 @@ static int calc_manipulator(ScrArea *sa)
 		
 		if(G.obedit->type==OB_MESH) {
 			EditMesh *em = G.editMesh;
-			eve= em->verts.first;
-			while(eve) {
+			EditVert *eve;
+			
+			for(eve= em->verts.first; eve; eve= eve->next) {
 				if(eve->f & SELECT) {
 					totsel++;
 					calc_tw_center(eve->co);
 				}
-				eve= eve->next;
+			}
+			if(G.vd->twmode == V3D_MANIPULATOR_NORMAL) {
+				EditFace *efa;
+				float vec[3];
+				for(efa= em->faces.first; efa; efa= efa->next) {
+					if(efa->f & SELECT) {
+						VecAddf(normal, normal, efa->n);
+						VecSubf(vec, efa->v2->co, efa->v1->co);
+						VecAddf(plane, plane, vec);
+					}
+				}
 			}
 		}
 		else if (G.obedit->type==OB_ARMATURE){
+			EditBone *ebo;
 			for (ebo=G.edbo.first;ebo;ebo=ebo->next){
 				
 				//	If this is an IK child and it's parent is being moved, don't count as selected
@@ -197,6 +210,10 @@ static int calc_manipulator(ScrArea *sa)
 			}
 		}
 		else if ELEM3(G.obedit->type, OB_CURVE, OB_SURF, OB_FONT) {
+			Nurb *nu;
+			BezTriple *bezt;
+			BPoint *bp;
+			
 			nu= editNurb.first;
 			while(nu) {
 				if((nu->type & 7)==CU_BEZIER) {
@@ -235,7 +252,8 @@ static int calc_manipulator(ScrArea *sa)
 		else if(G.obedit->type==OB_MBALL) {
 			/* editmball.c */
 			extern ListBase editelems;  /* go away ! */
-			
+			MetaElem *ml;
+		
 			ml= editelems.first;
 			while(ml) {
 				if(ml->flag & SELECT) {
@@ -246,6 +264,7 @@ static int calc_manipulator(ScrArea *sa)
 			}
 		}
 		else if(G.obedit->type==OB_LATTICE) {
+			BPoint *bp;
 			bp= editLatt->def;
 			
 			a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
@@ -269,11 +288,17 @@ static int calc_manipulator(ScrArea *sa)
 	else if(G.obpose) {
 		bArmature *arm= G.obpose->data;
 		
+		ob= G.obpose;
+		Trans.mode= TFM_ROTATION;	// mislead counting bones... bah
+		
 		/* count total */
 		count_bone_select(&arm->bonebase, &totsel);
 		if(totsel) {
 			/* recursive get stats */
-			stats_pose(&arm->bonebase);
+			stats_pose(&arm->bonebase, normal, plane);
+			
+			//VecMulf(normal, -1.0);
+			VecMulf(plane, -1.0);
 			
 			VecMulf(G.scene->twcent, 1.0f/(float)totsel);	// centroid!
 			Mat4MulVecfl(G.obpose->obmat, G.scene->twcent);
@@ -286,7 +311,7 @@ static int calc_manipulator(ScrArea *sa)
 	}
 	else {
 		
-		/* we need the one selected object */
+		/* we need the one selected object, if its not active */
 		ob= OBACT;
 		if(ob && !(ob->flag & SELECT)) ob= NULL;
 		
@@ -310,11 +335,36 @@ static int calc_manipulator(ScrArea *sa)
 	}
 	
 	/* global, local or normal orientation? */
-	if(ob) {
-		// local....
-		if(totsel==1 || v3d->around==V3D_LOCAL || G.obedit || G.obpose) {
-			Mat4CpyMat4(v3d->twmat, ob->obmat);
-			Mat4Ortho(v3d->twmat);
+	if(ob && totsel) {
+		
+		switch(v3d->twmode) {
+		case V3D_MANIPULATOR_GLOBAL:
+			break;
+			
+		case V3D_MANIPULATOR_NORMAL:
+			if(G.obedit || G.obpose) {
+				if(normal[0]!=0.0 || normal[1]!=0.0 || normal[2]!=0.0) {
+					float mat[3][3];
+					
+					Normalise(normal);
+					Normalise(plane);
+					VECCOPY(mat[2], normal);
+					Crossf(mat[0], normal, plane);
+					Crossf(mat[1], mat[2], mat[0]);
+					
+					Mat4MulMat43(v3d->twmat, ob->obmat, mat);
+					Mat4Ortho(v3d->twmat);
+					
+					break;
+				}
+			}
+			/* no break we define 'normal' as 'local' in Object mode */
+		case V3D_MANIPULATOR_LOCAL:
+			if(totsel==1 || v3d->around==V3D_LOCAL || G.obedit || G.obpose) {
+				Mat4CpyMat4(v3d->twmat, ob->obmat);
+				Mat4Ortho(v3d->twmat);
+			}
+			break;
 		}		
 	}
 	   
@@ -677,6 +727,8 @@ static void draw_manipulator_rotate(float mat[][4])
 		
 		glEnable(GL_LIGHTING);
 		BIF_GetThemeColor3fv(TH_TRANSFORM, vec);
+		if(G.vd->twmode == V3D_MANIPULATOR_LOCAL) {vec[0]+= 0.25; vec[1]+=0.25; vec[2]+=0.25;}
+		else if(G.vd->twmode == V3D_MANIPULATOR_NORMAL) {vec[0]-= 0.2; vec[1]-=0.2; vec[2]-=0.2;}
 		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, vec);
 		
 		VECCOPY(vec, offset);
@@ -905,7 +957,10 @@ static void draw_manipulator_scale(float mat[][4])
 	
 	/* center cube, do not add to selection when shift is pressed (planar constraint)  */
 	if( (G.f & G_PICKSEL) && (G.qual & LR_SHIFTKEY)==0) glLoadName(MAN_SCALE_C);
+	
 	BIF_GetThemeColor3fv(TH_TRANSFORM, vec);
+	if(G.vd->twmode == V3D_MANIPULATOR_LOCAL) {vec[0]+= 0.25; vec[1]+=0.25; vec[2]+=0.25;}
+	else if(G.vd->twmode == V3D_MANIPULATOR_NORMAL) {vec[0]-= 0.2; vec[1]-=0.2; vec[2]-=0.2;}
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, vec);
 	
 	drawsolidcube(cusize);
@@ -1044,9 +1099,12 @@ static void draw_manipulator_translate(float mat[][4])
 	
 	/* center sphere, do not add to selection when shift is pressed (planar constraint) */
 	if( (G.f & G_PICKSEL) && (G.qual & LR_SHIFTKEY)==0) glLoadName(MAN_TRANS_C);
+	
 	BIF_GetThemeColor3fv(TH_TRANSFORM, vec);
+	if(G.vd->twmode == V3D_MANIPULATOR_LOCAL) {vec[0]+= 0.25; vec[1]+=0.25; vec[2]+=0.25;}
+	else if(G.vd->twmode == V3D_MANIPULATOR_NORMAL) {vec[0]-= 0.2; vec[1]-=0.2; vec[2]-=0.2;}
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, vec);
-
+	
 	gluSphere(qobj, cywid, 8, 6); 
 	
 	/* Z Cone */
@@ -1233,12 +1291,15 @@ int BIF_do_manipulator(ScrArea *sa)
 	// warning, Gval is ugly global defining how it draws, don't set it before doing select calls!
 	val= manipulator_selectbuf(sa, 0.5*(float)U.tw_hotspot);
 	if(val) {
+		short mvalo[2], mval[2];
+		
 		Gval= manipulator_selectbuf(sa, 0.2*(float)U.tw_hotspot);
 		if(Gval) val= Gval;
 		else Gval= val;
-	}
-
-	switch(val) {
+		
+		getmouseco_areawin(mvalo);
+		
+		switch(val) {
 		case MAN_TRANS_C:
 			ManipulatorTransform(TFM_TRANSLATION);
 			break;
@@ -1248,7 +1309,7 @@ int BIF_do_manipulator(ScrArea *sa)
 				BIF_setDualAxisConstraint(v3d->twmat[1], v3d->twmat[2]);
 			}
 			else
-				BIF_setSingleAxisConstraint(v3d->twmat[0], " ");
+				BIF_setSingleAxisConstraint(v3d->twmat[0], " dX");
 			ManipulatorTransform(TFM_TRANSLATION);
 			break;
 		case MAN_TRANS_Y:
@@ -1257,7 +1318,7 @@ int BIF_do_manipulator(ScrArea *sa)
 				BIF_setDualAxisConstraint(v3d->twmat[0], v3d->twmat[2]);
 			}
 			else
-				BIF_setSingleAxisConstraint(v3d->twmat[1], " ");
+				BIF_setSingleAxisConstraint(v3d->twmat[1], " dY");
 			ManipulatorTransform(TFM_TRANSLATION);
 			break;
 		case MAN_TRANS_Z:
@@ -1266,7 +1327,7 @@ int BIF_do_manipulator(ScrArea *sa)
 				BIF_setDualAxisConstraint(v3d->twmat[0], v3d->twmat[1]);
 			}
 			else
-				BIF_setSingleAxisConstraint(v3d->twmat[2], " ");
+				BIF_setSingleAxisConstraint(v3d->twmat[2], " dZ");
 			ManipulatorTransform(TFM_TRANSLATION);
 			break;
 			
@@ -1279,7 +1340,7 @@ int BIF_do_manipulator(ScrArea *sa)
 				BIF_setDualAxisConstraint(v3d->twmat[1], v3d->twmat[2]);
 			}
 			else
-				BIF_setSingleAxisConstraint(v3d->twmat[0], " ");
+				BIF_setSingleAxisConstraint(v3d->twmat[0], " SizeX");
 			ManipulatorTransform(TFM_RESIZE);
 			break;
 		case MAN_SCALE_Y:
@@ -1288,7 +1349,7 @@ int BIF_do_manipulator(ScrArea *sa)
 				BIF_setDualAxisConstraint(v3d->twmat[0], v3d->twmat[2]);
 			}
 			else
-				BIF_setSingleAxisConstraint(v3d->twmat[1], " ");
+				BIF_setSingleAxisConstraint(v3d->twmat[1], " SizeY");
 			ManipulatorTransform(TFM_RESIZE);
 			break;
 		case MAN_SCALE_Z:
@@ -1297,20 +1358,20 @@ int BIF_do_manipulator(ScrArea *sa)
 				BIF_setDualAxisConstraint(v3d->twmat[0], v3d->twmat[1]);
 			}
 			else
-				BIF_setSingleAxisConstraint(v3d->twmat[2], " ");
+				BIF_setSingleAxisConstraint(v3d->twmat[2], " SizeZ");
 			ManipulatorTransform(TFM_RESIZE);
 			break;
 		
 		case MAN_ROT_X:
-			BIF_setSingleAxisConstraint(v3d->twmat[0], " ");
+			BIF_setSingleAxisConstraint(v3d->twmat[0], " RotX");
 			ManipulatorTransform(TFM_ROTATION);
 			break;
 		case MAN_ROT_Y:
-			BIF_setSingleAxisConstraint(v3d->twmat[1], " ");
+			BIF_setSingleAxisConstraint(v3d->twmat[1], " RotY");
 			ManipulatorTransform(TFM_ROTATION);
 			break;
 		case MAN_ROT_Z:
-			BIF_setSingleAxisConstraint(v3d->twmat[2], " ");
+			BIF_setSingleAxisConstraint(v3d->twmat[2], " RotZ");
 			ManipulatorTransform(TFM_ROTATION);
 			break;
 		case MAN_ROT_T:
@@ -1319,8 +1380,22 @@ int BIF_do_manipulator(ScrArea *sa)
 		case MAN_ROT_V:
 			ManipulatorTransform(TFM_ROTATION);
 			break;
+		}
+		
+		/* cycling orientation modus */
+		getmouseco_areawin(mval);
+		if(mvalo[0]==mval[0] && mvalo[1]==mval[1]) {
+			if(v3d->twmode==V3D_MANIPULATOR_GLOBAL)
+				v3d->twmode= V3D_MANIPULATOR_LOCAL;
+			else if(v3d->twmode==V3D_MANIPULATOR_LOCAL)
+				if(G.obedit || G.obpose) v3d->twmode= V3D_MANIPULATOR_NORMAL;
+				else v3d->twmode= V3D_MANIPULATOR_GLOBAL;
+			else if(v3d->twmode==V3D_MANIPULATOR_NORMAL)
+				v3d->twmode= V3D_MANIPULATOR_GLOBAL;
+			
+		}
+		
 	}
-	
 	Gval= 0xFFFF;
 	
 	return val;
