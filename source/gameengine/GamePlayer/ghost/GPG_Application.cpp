@@ -228,6 +228,10 @@ bool GPG_Application::processEvent(GHOST_IEvent* event)
 		case GHOST_kEventButtonUp:
 			handled = handleButton(event, false);
 			break;
+			
+		case GHOST_kEventWheel:
+			handled = handleWheel(event);
+			break;
 
 		case GHOST_kEventCursorMove:
 			handled = handleCursorMove(event);
@@ -562,6 +566,24 @@ void GPG_Application::exitEngine()
 	m_engineInitialized = false;
 }
 
+bool GPG_Application::handleWheel(GHOST_IEvent* event)
+{
+	bool handled = false;
+	assert(event);
+	if (m_mouse) 
+	{
+		GHOST_TEventDataPtr eventData = ((GHOST_IEvent*)event)->getData();
+		GHOST_TEventWheelData* wheelData = static_cast<GHOST_TEventWheelData*>(eventData);
+		GPC_MouseDevice::TButtonId button;
+		if (wheelData->z > 0)
+			button = GPC_MouseDevice::buttonWheelUp;
+		else
+			button = GPC_MouseDevice::buttonWheelDown;
+		m_mouse->ConvertButtonEvent(button, true);
+		handled = true;
+	}
+	return handled;
+}
 
 bool GPG_Application::handleButton(GHOST_IEvent* event, bool isDown)
 {

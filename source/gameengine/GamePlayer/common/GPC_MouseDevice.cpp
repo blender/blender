@@ -107,6 +107,12 @@ bool GPC_MouseDevice::ConvertButtonEvent(TButtonId button, bool isDown)
 	case buttonRight:
 		result = ConvertEvent(KX_RIGHTMOUSE, isDown);
 		break;
+	case buttonWheelUp:
+		result = ConvertEvent(KX_WHEELUPMOUSE, isDown);
+		break;
+	case buttonWheelDown:
+		result = ConvertEvent(KX_WHEELDOWNMOUSE, isDown);
+		break;
 	default:
 		// Should not happen!
 		break;

@@ -73,6 +73,12 @@ SCA_MouseSensor::SCA_MouseSensor(SCA_MouseManager* eventmgr,
 	case KX_MOUSESENSORMODE_RIGHTBUTTON:
 		m_hotkey = SCA_IInputDevice::KX_RIGHTMOUSE;
 		break;
+	case KX_MOUSESENSORMODE_WHEELUP:
+		m_hotkey = SCA_IInputDevice::KX_WHEELUPMOUSE;
+		break;
+	case KX_MOUSESENSORMODE_WHEELDOWN:
+		m_hotkey = SCA_IInputDevice::KX_WHEELDOWNMOUSE;
+		break;
 	default:
 		; /* ignore, no hotkey */
 	}
@@ -141,6 +147,8 @@ bool SCA_MouseSensor::Evaluate(CValue* event)
 	case KX_MOUSESENSORMODE_LEFTBUTTON:
 	case KX_MOUSESENSORMODE_MIDDLEBUTTON:
 	case KX_MOUSESENSORMODE_RIGHTBUTTON:
+	case KX_MOUSESENSORMODE_WHEELUP:
+	case KX_MOUSESENSORMODE_WHEELDOWN:
 		{
 			const SCA_InputEvent& event = mousedev->GetEventValue(m_hotkey);
 			if (event.m_status == SCA_InputEvent::KX_JUSTACTIVATED)

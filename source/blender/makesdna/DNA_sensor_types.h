@@ -219,6 +219,8 @@ typedef struct bSensor {
 #define BL_SENS_MOUSE_LEFT_BUTTON    1
 #define BL_SENS_MOUSE_MIDDLE_BUTTON  2
 #define BL_SENS_MOUSE_RIGHT_BUTTON   4
+#define BL_SENS_MOUSE_WHEEL_UP       5
+#define BL_SENS_MOUSE_WHEEL_DOWN     6
 #define BL_SENS_MOUSE_MOVEMENT       8
 #define BL_SENS_MOUSE_MOUSEOVER      16
 

@@ -104,11 +104,13 @@ void BL_ConvertSensors(struct Object* blenderobject,
 	
 	/* The reverse table. In order to not confuse ourselves, we      */
 	/* immediately convert all events that come in to KX codes.      */
-	gReverseKeyTranslateTable[LEFTMOUSE			] =	SCA_IInputDevice::KX_LEFTMOUSE;	  		
-	gReverseKeyTranslateTable[MIDDLEMOUSE		] =	SCA_IInputDevice::KX_MIDDLEMOUSE;	  		
-	gReverseKeyTranslateTable[RIGHTMOUSE		] =	SCA_IInputDevice::KX_RIGHTMOUSE;	  		
-	gReverseKeyTranslateTable[MOUSEX			] = SCA_IInputDevice::KX_MOUSEX;	  		
-	gReverseKeyTranslateTable[MOUSEY			] =	SCA_IInputDevice::KX_MOUSEY;	  		
+	gReverseKeyTranslateTable[LEFTMOUSE			] =	SCA_IInputDevice::KX_LEFTMOUSE;
+	gReverseKeyTranslateTable[MIDDLEMOUSE		] =	SCA_IInputDevice::KX_MIDDLEMOUSE;
+	gReverseKeyTranslateTable[RIGHTMOUSE		] =	SCA_IInputDevice::KX_RIGHTMOUSE;
+	gReverseKeyTranslateTable[WHEELUPMOUSE		] =	SCA_IInputDevice::KX_WHEELUPMOUSE;
+	gReverseKeyTranslateTable[WHEELDOWNMOUSE	] =	SCA_IInputDevice::KX_WHEELDOWNMOUSE;
+	gReverseKeyTranslateTable[MOUSEX			] = SCA_IInputDevice::KX_MOUSEX;
+	gReverseKeyTranslateTable[MOUSEY			] =	SCA_IInputDevice::KX_MOUSEY;
 	
 	// TIMERS                                                                                                  
 	
@@ -429,6 +431,12 @@ void BL_ConvertSensors(struct Object* blenderobject,
 						break;
 					case BL_SENS_MOUSE_RIGHT_BUTTON:
 						keytype = SCA_MouseSensor::KX_MOUSESENSORMODE_RIGHTBUTTON;
+						break;
+					case BL_SENS_MOUSE_WHEEL_UP:
+						keytype = SCA_MouseSensor::KX_MOUSESENSORMODE_WHEELUP;
+						break;
+					case BL_SENS_MOUSE_WHEEL_DOWN:
+						keytype = SCA_MouseSensor::KX_MOUSESENSORMODE_WHEELDOWN;
 						break;
 					case BL_SENS_MOUSE_MOVEMENT:
 						keytype = SCA_MouseSensor::KX_MOUSESENSORMODE_MOVEMENT;

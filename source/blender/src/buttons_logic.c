@@ -1189,7 +1189,7 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			/* Line 2: type selection. The number are a bit mangled to get
 			* proper compatibility with older .blend files. */
 			str= "Type %t|Left button %x1|Middle button %x2|"
-				"Right button %x4|Movement %x8|Mouse over %x16"; 
+				"Right button %x4|Wheel Up %x5|Wheel Down %x6|Movement %x8|Mouse over %x16"; 
 			uiDefButS(block, MENU, B_REDR, str, xco+10, yco-44, width-20, 19,
 				&ms->type, 0, 31, 0, 0,
 				"Specify the type of event this mouse sensor should trigger on.");

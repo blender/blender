@@ -59,11 +59,13 @@ public:
 			
 			/* The reverse table. In order to not confuse ourselves, we      */
 			/* immediately convert all events that come in to KX codes.      */
-			m_reverseKeyTranslateTable[LEFTMOUSE			] =	KX_LEFTMOUSE		;	  		
-			m_reverseKeyTranslateTable[MIDDLEMOUSE			] =	KX_MIDDLEMOUSE		;	  		
-			m_reverseKeyTranslateTable[RIGHTMOUSE			] =	KX_RIGHTMOUSE		;	  		
-			m_reverseKeyTranslateTable[MOUSEX				] = KX_MOUSEX			;	  		
-			m_reverseKeyTranslateTable[MOUSEY				] =	KX_MOUSEY			;	  		
+			m_reverseKeyTranslateTable[LEFTMOUSE			] =	KX_LEFTMOUSE		;
+			m_reverseKeyTranslateTable[MIDDLEMOUSE			] =	KX_MIDDLEMOUSE		;
+			m_reverseKeyTranslateTable[RIGHTMOUSE			] =	KX_RIGHTMOUSE		;
+			m_reverseKeyTranslateTable[WHEELUPMOUSE			] =	KX_WHEELUPMOUSE		;
+			m_reverseKeyTranslateTable[WHEELDOWNMOUSE		] =	KX_WHEELDOWNMOUSE	;
+			m_reverseKeyTranslateTable[MOUSEX			] =	KX_MOUSEX		;
+			m_reverseKeyTranslateTable[MOUSEY			] =	KX_MOUSEY		;
                                                                                                                    
 			// TIMERS                                                                                                  
 

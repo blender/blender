@@ -67,6 +67,7 @@ public:
 			void StopGameEngine();
 
 protected:
+	bool	handleWheel(GHOST_IEvent* event);
 	bool	handleButton(GHOST_IEvent* event, bool isDown);
 	bool	handleCursorMove(GHOST_IEvent* event);
 	bool	handleKey(GHOST_IEvent* event, bool isDown);

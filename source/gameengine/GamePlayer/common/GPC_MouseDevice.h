@@ -53,7 +53,9 @@ public:
 	typedef enum {
 		buttonLeft,
 		buttonMiddle,
-		buttonRight
+		buttonRight,
+		buttonWheelUp,
+		buttonWheelDown
 	} TButtonId;
 
 	GPC_MouseDevice();
