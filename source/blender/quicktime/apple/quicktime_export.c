@@ -77,7 +77,10 @@ DONE:
 #endif /* _WIN32 */
 
 #ifdef __APPLE__
-#undef NDEBUG
+/* evil */
+#ifndef __AIFF__
+#define __AIFF__
+#endif
 #include <QuickTime/Movies.h>
 #include <QuickTime/QuicktimeComponents.h>
 #include <fcntl.h> /* open() */
