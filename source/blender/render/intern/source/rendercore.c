@@ -2411,12 +2411,15 @@ static int do_renderlineDA(void *poin)
 	struct renderlineDA *rl= poin;
 	PixStr *ps;
 	float xs, ys;
-	float fcol[4], *acol=NULL;
+	float fcol[4], *acol=NULL, *rb1, *rb2, *rb3;
 	long *rd= rl->rd;
 	int zbuf, samp, curmask, face, mask, fullmask;
 	int b, x, full_osa;
 		
 	fullmask= (1<<R.osa)-1;
+	rb1= rl->rb1;
+	rb2= rl->rb2;
+	rb3= rl->rb3;
 	
 	if(R.flag & R_ZTRA) {		/* zbuf tra */
 		abufsetrow(rl->acol, rl->y); 
@@ -2462,7 +2465,7 @@ static int do_renderlineDA(void *poin)
 							fcol[1]= gammaCorrect(fcol[1]);
 							fcol[2]= gammaCorrect(fcol[2]);
 						}
-						add_filt_fmask(1<<samp, fcol, rl->rb1, rl->rb2, rl->rb3);
+						add_filt_fmask(1<<samp, fcol, rb1, rb2, rb3);
 					}
 				}
 			}
@@ -2482,7 +2485,7 @@ static int do_renderlineDA(void *poin)
 					fcol[1]= gammaCorrect(fcol[1]);
 					fcol[2]= gammaCorrect(fcol[2]);
 				}
-				add_filt_fmask(curmask, fcol, rl->rb1, rl->rb2, rl->rb3);
+				add_filt_fmask(curmask, fcol, rb1, rb2, rb3);
 			}
 			
 			mask |= curmask;
@@ -2491,14 +2494,10 @@ static int do_renderlineDA(void *poin)
 			else ps= ps->next;
 		}
 		
-		rl->rb1+=4; 
-		rl->rb2+=4; 
-		rl->rb3+=4;
+		rb1+=4; 
+		rb2+=4; 
+		rb3+=4;
 		if(acol) acol+=4;
-	}
-
-	if(R.flag & R_HALO) {
-		scanlinehaloPS(rl->rz, rl->rd, rl->rb2-4*R.rectx + 4, rl->y);
 	}
 
 	return 1;
@@ -2632,8 +2631,14 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 			else do_renderlineDA(&rl1);
 			
 		}
-		/* convert 4x32 bits buffer to 4x8, this can't be threaded due to gauss */
 		if(y>0) {
+			/* halos are alpha-added, not in thread loop (yet) because of gauss mask */
+			if(R.flag & R_HALO) {
+				/* one scanline older... */
+				scanlinehaloPS(rz-R.rectx, rd-R.rectx, rowbuf3+4, y-1);
+			}
+			
+			/* convert 4x32 bits buffer to 4x8, this can't be threaded due to gauss */
 			transferColourBufferToOutput(rowbuf3+4, y-1);
 			if(R.rectftot) {
 				memcpy(rf, rowbuf3+4, 4*sizeof(float)*R.rectx);
