@@ -32,16 +32,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include <iostream.h>
 #include "BoolValue.h"
 #include "SCA_KeyboardManager.h"
 #include "SCA_KeyboardSensor.h"
 #include "IntValue.h"
 #include <vector>
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 SCA_KeyboardManager::SCA_KeyboardManager(SCA_LogicManager* logicmgr,
 										 SCA_IInputDevice* inputdev)
