@@ -1141,7 +1141,7 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	char name[20];
 	char *menu;
 
-	myortho2(-0.5, sa->winx-0.5, -0.5, sa->winy-0.5);
+	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
 
 	BIF_GetThemeColor3fv(TH_HEADER, col);	// basic undrawn color is border
 	glClearColor(col[0], col[1], col[2], 0.0); 
@@ -1197,7 +1197,7 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	/* others diskfree etc ? */
 	scrarea_queue_headredraw(curarea);	
 	
-	myortho2(-0.5, (float)(sa->winx)-0.5, -0.5, (float)(sa->winy)-0.5);
+	myortho2(-0.375, (float)(sa->winx)-0.375, -0.375, (float)(sa->winy)-0.375);
 	draw_area_emboss(sa);
 	
 	curarea->win_swap= WIN_BACK_OK;

@@ -427,15 +427,11 @@ void mywinposition(int winid, int xmin, int xmax, int ymin, int ymax) /* watch: 
 void bwin_ortho(int winid, float x1, float x2, float y1, float y2, float n, float f)
 {
 	bWindow *bwin= bwin_from_winid(winid);
-	float offs= 0.125;
 	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	// in blender it's always called with -0.5... according to opengl
-	// manual it should be (-)0.375 for correctness. 
-	
-	//offs= 0.01*G.rt;
-	glOrtho(x1+offs, x2+offs, y1+offs, y2+offs, n, f);
+
+	glOrtho(x1, x2, y1, y2, n, f);
 
 	glGetFloatv(GL_PROJECTION_MATRIX, (float *)bwin->winmat);
 	glMatrixMode(GL_MODELVIEW);

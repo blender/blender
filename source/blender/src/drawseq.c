@@ -646,7 +646,7 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 	mywinset(curarea->win);
 
 	/* ortho at pixel level curarea */
-	myortho2(-0.5, curarea->winx-0.5, -0.5, curarea->winy-0.5);
+	myortho2(-0.375, curarea->winx-0.375, -0.375, curarea->winy-0.375);
 
 	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
 		if(G.v2d->scroll) {

@@ -516,7 +516,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	
 		calc_image_view(G.sima, 'f');	/* float */
 	}
-	myortho2(-0.5, sa->winx-0.5, -0.5, sa->winy-0.5);
+	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
 	draw_area_emboss(sa);
 	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 }

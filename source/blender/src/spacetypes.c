@@ -124,7 +124,7 @@ void scrarea_do_winchange(ScrArea *area)
 		st->winchange(area, area->spacedata.first);
 	} else {
 		if (!BLI_rcti_is_empty(&area->winrct)) {
-			bwin_ortho2(area->win, -0.5, area->winrct.xmax-area->winrct.xmin-0.5, -0.5, area->winrct.ymax-area->winrct.ymin-0.5);
+			bwin_ortho2(area->win, -0.375, area->winrct.xmax-area->winrct.xmin-0.375, -0.375, area->winrct.ymax-area->winrct.ymin-0.375);
 			glLoadIdentity();
 		}
 	}

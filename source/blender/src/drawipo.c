@@ -1676,7 +1676,7 @@ void drawipospace(ScrArea *sa, void *spacedata)
 		if(sa->winx>SCROLLB+10 && sa->winy>SCROLLH+10) {
 			
 			/* ortho at pixel level sa */
-			myortho2(-0.5, sa->winx-0.5, -0.5, sa->winy-0.5);
+			myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
 			
 			if(v2d->scroll) {
 				drawscroll(disptype);
@@ -1691,7 +1691,7 @@ void drawipospace(ScrArea *sa, void *spacedata)
 		draw_ipogrid();
 	}
 	
-	myortho2(-0.5, sa->winx-0.5, -0.5, sa->winy-0.5);
+	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
 	draw_area_emboss(sa);
 
 	/* it is important to end a view in a transform compatible with buttons */

@@ -552,7 +552,7 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	BIF_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	myortho2(-0.5, (float)(sa->winx)-0.5, -0.5, (float)(sa->winy)-0.5);
+	myortho2(-0.375, (float)(sa->winx)-0.375, -0.375, (float)(sa->winy)-0.375);
 
 	draw_area_emboss(sa);
 

@@ -423,7 +423,7 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 
 	
 	/* ortho at pixel level curarea */
-	myortho2(-0.5, sa->winx-0.5, -0.5, sa->winy-0.5);
+	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
 	if(G.v2d->scroll) {	
 		drawscroll(0);		
 	}

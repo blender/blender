@@ -125,7 +125,7 @@ void meshactionbuts(SpaceAction *saction, Key *key)
 	 * correctly *grumble*
 	 */
 	mywinset(curarea->win);
-	myortho2(-0.5, curarea->winx-0.5, -0.5, curarea->winy-0.5);
+	myortho2(-0.375, curarea->winx-0.375, -0.375, curarea->winy-0.375);
 
     sprintf(str, "actionbuttonswin %d", curarea->win);
     block= uiNewBlock (&curarea->uiblocks, str, 
@@ -615,7 +615,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	/* Draw scroll */
 	mywinset(curarea->win);	// reset scissor too
 	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
-      myortho2(-0.5, curarea->winx-0.5, -0.5, curarea->winy-0.5);
+      myortho2(-0.375, curarea->winx-0.375, -0.375, curarea->winy-0.375);
       if(G.v2d->scroll) drawscroll(0);
 	}
 
@@ -630,7 +630,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	}
 
 	mywinset(curarea->win);	// reset scissor too
-	myortho2(-0.5, curarea->winx-0.5, -0.5, curarea->winy-0.5);
+	myortho2(-0.375, curarea->winx-0.375, -0.375, curarea->winy-0.375);
 	draw_area_emboss(sa);
 	curarea->win_swap= WIN_BACK_OK;
 }

@@ -366,9 +366,9 @@ void scrarea_do_headchange(ScrArea *area)
 	float ofs= area->headbutofs;
 
 	if (area->headertype==HEADERDOWN) {
-		bwin_ortho2(area->headwin, -0.5+ofs, area->headrct.xmax-area->headrct.xmin-0.5+ofs, -3.5, area->headrct.ymax-area->headrct.ymin-3.5);
+		bwin_ortho2(area->headwin, -0.375+ofs, area->headrct.xmax-area->headrct.xmin-0.375+ofs, -3.375, area->headrct.ymax-area->headrct.ymin-3.375);
 	} else if (area->headertype==HEADERTOP) {
-		bwin_ortho2(area->headwin, -0.5+ofs, area->headrct.xmax-area->headrct.xmin-0.5+ofs, -2.5, area->headrct.ymax-area->headrct.ymin-2.5);
+		bwin_ortho2(area->headwin, -0.375+ofs, area->headrct.xmax-area->headrct.xmin-0.375+ofs, -2.375, area->headrct.ymax-area->headrct.ymin-2.375);
 	}
 }
 
@@ -1780,7 +1780,7 @@ static bScreen *addscreen(char *name)		/* use setprefsize() if you want somethin
 	
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		myortho2(-0.5, sc->sizex-0.5, -0.5, sc->sizey-0.5);
+		myortho2(-0.375, sc->sizex-0.375, -0.375, sc->sizey-0.375);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
@@ -2930,7 +2930,7 @@ void drawscreen(void)
 	ScrArea *sa;
 
 	mywinset(G.curscreen->mainwin);
-	myortho2(-0.5, (float)G.curscreen->sizex-0.5, -0.5, (float)G.curscreen->sizey-0.5);
+	myortho2(-0.375, (float)G.curscreen->sizex-0.375, -0.375, (float)G.curscreen->sizey-0.375);
 
 	sa= G.curscreen->areabase.first;
 	while(sa) {

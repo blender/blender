@@ -142,7 +142,7 @@ void viewgate(short sx, short sy, short ex, short ey)
 	wx = curarea->winrct.xmin; wy = curarea->winrct.ymin;
 	glViewport(wx+sx, wy+sy, (wx+ex )-(wx+sx)+1, (wy+ey )-(wy+sy)+1); 
 	glScissor(wx+sx, wy+sy, (wx+ex )-(wx+sx)+1, (wy+ey )-(wy+sy)+1);
-	myortho2((float)sx-0.5 , (float)ex-0.5, (float)sy-0.5, (float)ey-0.5);
+	myortho2((float)sx-0.375 , (float)ex-0.375, (float)sy-0.375, (float)ey-0.375);
 }	
 	
 void areaview (void) 
@@ -151,7 +151,7 @@ void areaview (void)
 	wx = curarea->winrct.xmin; wy = curarea->winrct.ymin;
 	glViewport(wx,  wy, curarea->winx, curarea->winy); 
 	glScissor(wx,  wy, curarea->winx, curarea->winy); 
-	myortho2(-0.5, (float)(curarea->winx)-0.5, -0.5, (float)(curarea->winy)-0.5);
+	myortho2(-0.375, (float)(curarea->winx)-0.375, -0.375, (float)(curarea->winy)-0.375);
 
 }
 		
@@ -867,7 +867,7 @@ void drawimaselspace(ScrArea *sa, void *spacedata)
 	simasel= curarea->spacedata.first;
 	
 	/* ortho: xmin xmax, ymin, ymax! */
-	myortho2(-0.5, (float)(curarea->winx)-0.5, -0.5, (float)(curarea->winy)-0.5);
+	myortho2(-0.375, (float)(curarea->winx)-0.375, -0.375, (float)(curarea->winy)-0.375);
 	
 	if (simasel->fase == 0){
 		checkdir(simasel->dir);
