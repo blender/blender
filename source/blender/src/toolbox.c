@@ -1916,6 +1916,9 @@ static TBitem tb_transform_scaleaxis[]= {
 
 static void tb_do_transform_clearapply(void *arg, int event)
 {
+	Object *ob;
+	ob= OBACT;
+	
 	switch(event)
 	{
 	    case 0: /* clear location */
@@ -1931,7 +1934,12 @@ static void tb_do_transform_clearapply(void *arg, int event)
 			apply_object();
 			break;
 		case 4: /* apply deformation */
-			make_duplilist_real();
+			if (ob->parent && ob->parent->type==OB_LATTICE) apply_lattice();
+			else error("The active object is not the child of a lattice");
+			break;
+		case 5: /* make duplicates real */
+			if (ob->transflag & OB_DUPLI) make_duplilist_real();
+			else error("The active object does not have dupliverts");
 			break;
 	}
 }
@@ -1943,7 +1951,7 @@ static TBitem tb_transform_clearapply[]= {
 {	0, "SEPR", 					0, NULL},
 {	0, "Apply Size/Rotation|Ctrl A", 3, NULL},
 {	0, "Apply Deformation|Shift Ctrl A", 4, NULL},
-{	0, "Make Duplicates Real|Shift Ctrl A", 4, NULL},
+{	0, "Make Duplicates Real|Shift Ctrl A", 5, NULL},
 {  -1, "", 			0, tb_do_transform_clearapply}};
 
 static TBitem tb_transform_snap[]= {
