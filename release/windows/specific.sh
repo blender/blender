@@ -33,11 +33,11 @@
 # OS specific stuff for the package, only to be executed by ../Makefile
 
 # Create ^M in readme.txt
-perl -p -e 's/\r/\r\n/' $DISTDIR/README > $DISTDIR/readme.txt
+awk '{printf("%s\r\n", $0);}' $DISTDIR/README > $DISTDIR/Readme.txt
 rm -f $DISTDIR/README
 
 # Create ^M in copyright.txt
-perl -p -e 's/\r/\r\n/' $DISTDIR/copyright.txt > $DISTDIR/aCopyright.txt
+awk '{printf("%s\r\n", $0);}' $DISTDIR/copyright.txt > $DISTDIR/aCopyright.txt
 rm -f $DISTDIR/copyright.txt
 mv -f $DISTDIR/aCopyright.txt $DISTDIR/Copyright.txt
 # PS. the whole aCopyright kludge is because of windows being braindead
@@ -46,6 +46,11 @@ mv -f $DISTDIR/aCopyright.txt $DISTDIR/Copyright.txt
 # Stupid windows needs the . removed :
 PVERS=`echo $NAN_PYTHON_VERSION | sed 's/\.//'`
 cp -f $NAN_PYTHON/lib/python$PVERS.dll $DISTDIR/python$PVERS.dll
+chmod +x $DISTDIR/python$PVERS.dll
+
+# Add fmod DLL to package
+# cp -f $NAN_FMOD/lib/fmod.dll $DISTDIR/fmod.dll
+# chmod +x $DISTDIR/fmod.dll
 
 # Add the Help.url to the ditribution
 cp -f extra/Help.url $DISTDIR/

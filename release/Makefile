@@ -34,7 +34,7 @@ include nan_definitions.mk
 VERSION := $(shell cat VERSION)
 
 BLENDNAME=blender-$(VERSION)-$(CONFIG_GUESS)$(TYPE)
-DISTDIR=$(NAN_OBJDIR)/$(BLENDNAME)
+export DISTDIR=$(NAN_OBJDIR)/$(BLENDNAME)
 
 all:
     ifeq ($(OS),beos)
