@@ -4529,25 +4529,28 @@ static int bbs_mesh_solid(Object *ob, int facecol)
 		Mesh *me= ob->data;
 		MVert *mvert;
 		MFace *mface;
-		int a, totface;
+		TFace *tface;
+		int a, totface, hastface, i;
 		
 		mvert= me->mvert;
 		mface= me->mface;
+		tface= me->tface;
+		hastface = (me->tface != NULL);
 		totface= me->totface;
 		
 		glBegin(GL_QUADS);
 		glmode= GL_QUADS;
 		
-		for(a=0; a<totface; a++, mface++) {
+		for(a=0; a<totface; a++, mface++, tface++) {
 			if(mface->v3) {
+				if(facecol) {
+					if(hastface && tface->flag & TF_HIDE) continue;
+					i= index_to_framebuffer(a+1);
+					cpack(i);
+				}
 
 				if(mface->v4) {if(glmode==GL_TRIANGLES) {glmode= GL_QUADS; glEnd(); glBegin(GL_QUADS);}}
 				else {if(glmode==GL_QUADS) {glmode= GL_TRIANGLES; glEnd(); glBegin(GL_TRIANGLES);}}
-					
-				if(facecol) {
-					int i= index_to_framebuffer(a+1);
-					cpack(i);
-				}
 				
 				glVertex3fv( (mvert+mface->v1)->co );
 				glVertex3fv( (mvert+mface->v2)->co );
