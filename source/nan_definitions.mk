@@ -286,9 +286,8 @@ all debug::
     export HOST = $(shell hostname)
     export NAN_PYTHON ?= /usr/local
     export NAN_PYTHON_VERSION ?= 2.2
-    export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-    export NAN_MXTEXTTOOLS ?= $(shell $(NAN_PYTHON_BINARY) -c \
-        'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so
+    export NAN_PYTHON_BINARY ?=
+    export NAN_MXTEXTTOOLS ?=
     export NAN_OPENAL ?= /usr/local
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= /usr/local
@@ -296,7 +295,7 @@ all debug::
     export NAN_SDL ?= /usr/local
     export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_OPENSSL ?= /usr/local/ssl
-    export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
+    export NAN_TERRAPLAY ?=
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= /usr
     export NAN_NSPR ?= $(LCGDIR)/nspr
