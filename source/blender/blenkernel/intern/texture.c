@@ -1526,9 +1526,9 @@ void do_material_tex()
 				}
 			}
 			else {
-				if(rgbnor & TEX_RGB) Ta*= stencilTin;
-				else if(rgbnor & TEX_NOR) Tnor*= stencilTin;
-				else Tin*= stencilTin;
+				Ta*= stencilTin;
+				Tnor*= stencilTin;
+				Tin*= stencilTin;
 			}
 
 			if(tex->nor && (rgbnor & TEX_NOR)==0) {
