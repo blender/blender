@@ -92,6 +92,7 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
+#include "BIF_cursors.h"
 
 #include "BSE_drawview.h"
 #include "BSE_headerbuttons.h"
@@ -490,6 +491,7 @@ void BIF_init(void)
 
 	initscreen();	/* for (visuele) speed, this first, then setscreen */
 	initbuttons();
+	InitCursorData();
 	
 	init_draw_rects();	/* drawobject.c */
 	BIF_read_homefile(); 

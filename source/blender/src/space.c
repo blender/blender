@@ -2070,19 +2070,30 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 
 		uiDefBut(block, LABEL,0,"Mousewheel:",
-			(xpos+edgespace+(4*midspace)+(5*medprefbut)),y3label,medprefbut,buth,
+			(xpos+edgespace+(4*midspace)+(5*medprefbut)),y3label,smallprefbut+15,buth,
 			0, 0, 0, 0, 0, "");
 		uiDefButS(block, TOG|BIT|2, 0, "Invert Wheel Zoom",
-			(xpos+edgespace+(5*midspace)+(5*medprefbut)),y1,medprefbut,buth,
+			(xpos+edgespace+(5*midspace)+(5*medprefbut)),y1,smallprefbut+15,buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Swaps mouse wheel zoom direction");
 
 
 		uiDefButI(block, NUM, 0, "Scroll Lines:",
-			(xpos+edgespace+(5*midspace)+(5*medprefbut)),y2,medprefbut,buth,
+			(xpos+edgespace+(5*midspace)+(5*medprefbut)),y2,smallprefbut+15,buth,
 			&U.wheellinescroll, 0.0, 32.0, 0, 0,
 			"The number of lines scrolled at a time with the mouse wheel");
-
+		
+#ifndef __APPLE__	
+		uiDefBut(block, LABEL,0,"Cursor:",
+			(xpos+edgespace+(5*midspace)+(5*medprefbut)+smallprefbut+15),y3label,smallprefbut,buth,
+			0, 0, 0, 0, 0, "");		
+		uiDefButS(block, TOG|BIT|0, 0, "Large",
+			(xpos+edgespace+(6*midspace)+(5*medprefbut)+smallprefbut+15),y2,smallprefbut,buth,
+			&(U.curssize), 0, 0, 0, 0,
+			"Use Large cursors when available.");
+#else 
+		U.curssize=0; /*Small Cursor always for OSX for now */
+#endif
 
 	} else if (U.userpref == 1) { /* edit methods */
 

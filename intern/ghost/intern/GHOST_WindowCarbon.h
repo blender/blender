@@ -243,6 +243,9 @@ protected:
 	 * Sets the cursor shape on the window using
 	 * native window system calls.
 	 */
+	virtual GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 *bitmap, GHOST_TUns8 *mask,
+					int sizex, int sizey, int hotX, int hotY, int fg_color, int bg_color);
+					
 	virtual GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2], GHOST_TUns8 mask[16][2], int hotX, int hotY);
     
     /**

@@ -149,6 +149,12 @@ public:
 												GHOST_TUns8 mask[16][2], 
 												int hotX, 
 												int hotY);
+												
+	virtual GHOST_TSuccess setCustomCursorShape(GHOST_TUns8 *bitmap, 
+												GHOST_TUns8 *mask, 
+												int sizex, int sizey,
+												int hotX,  int hotY,
+												int fg_color, int bg_color);
 	
 	/**
 	 * Returns the visibility state of the cursor.
@@ -226,8 +232,11 @@ protected:
 	 * Sets the cursor shape on the window using
 	 * native window system calls.
 	 */
-	virtual GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2], GHOST_TUns8 mask[16][2], int hotX, int hotY) = 0;
-
+	virtual GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2], GHOST_TUns8 mask[16][2],
+							 int hotX, int hotY) = 0;
+	
+	virtual GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 *bitmap, GHOST_TUns8 *mask, 
+						int szx, int szy, int hotX, int hotY, int fg, int bg) = 0;
 	/** The the of drawing context installed in this window. */
 	GHOST_TDrawingContextType m_drawingContextType;
 	

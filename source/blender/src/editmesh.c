@@ -65,6 +65,7 @@
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 
+
 #include "BKE_utildefines.h"
 #include "BKE_key.h"
 #include "BKE_object.h"
@@ -87,6 +88,7 @@
 #include "BIF_mywindow.h"
 #include "BIF_resources.h"
 #include "BIF_glutil.h"
+#include "BIF_cursors.h"
 
 #include "BSE_view.h"
 #include "BSE_edit.h"
@@ -4981,7 +4983,7 @@ void addedgevlak_mesh(void)
 	
 		CalcNormFloat(evl->v1->co, evl->v2->co, evl->v3->co, evl->n);
 
-		inp= evl->n[0]*G.vd->viewmat[0][2] + evl->n[1]*G.vd->viewmat[1][2] + evl->n[2]*G.vd->viewmat[2][2];
+					inp= evl->n[0]*G.vd->viewmat[0][2] + evl->n[1]*G.vd->viewmat[1][2] + evl->n[2]*G.vd->viewmat[2][2];
 
 		if(inp < 0.0) flipvlak(evl);
 	}
@@ -7407,24 +7409,10 @@ CutCurve *get_mouse_trail(int *len, char mode){
 void KnifeSubdivide(char mode){
 
 	int oldcursor, len=0;
-	short isect=0;
+	short isect=0, aligned=0;
 	CutCurve *curve;		
 	EditEdge *eed; 
 	Window *win;	
-	/* Remove this from here when cursor support finished */
-	unsigned char bitmap[16][2]={
-        {0x00, 0x00 } , {0x00, 0x00 } , {0x00, 0x10 } , {0x00, 0x2c } ,
-        {0x00, 0x5a } , {0x00, 0x34 } , {0x00, 0x2a } , {0x00, 0x17 } ,
-        {0x80, 0x06 } , {0x40, 0x03 } , {0xa0, 0x03 } , {0xd0, 0x01 } ,
-        {0x68, 0x00 } , {0x1c, 0x00 } , {0x06, 0x00 } , {0x00, 0x00 }
-	};
-
-	unsigned char mask[16][2]={
-        {0x00, 0x60 } , {0x00, 0xf0 } , {0x00, 0xfc } , {0x00, 0xfe } ,
-        {0x00, 0xfe } , {0x00, 0x7e } , {0x00, 0x7f } , {0x80, 0x3f } ,
-        {0xc0, 0x0e } , {0x60, 0x07 } , {0xb0, 0x07 } , {0xd8, 0x03 } ,
-        {0xec, 0x01 } , {0x7e, 0x00 } , {0x1f, 0x00 } , {0x07, 0x00 }
-	};
 	
 	if (G.obedit==0) return;
 	
@@ -7440,10 +7428,10 @@ void KnifeSubdivide(char mode){
 	
 	/* Set a knife cursor here */
 	oldcursor=get_cursor();
-	//set_cursor(CURSOR_PENCIL); 
+
 	win=winlay_get_active_window();
-	window_set_custom_cursor(win, mask, bitmap, 0, 15);
-	//GHOST_SetCustomCursorShape(win->ghostwin, mask, bitmap, 0, 15);
+	
+	SetBlenderCursor(BC_KNIFECURSOR);
 	
 	curve=get_mouse_trail(&len, TRAIL_MIXED);
 	

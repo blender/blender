@@ -602,6 +602,15 @@ GHOST_TSuccess GHOST_WindowCarbon::setWindowCursorShape(GHOST_TStandardCursor sh
 	return GHOST_kSuccess;
 }
 
+/** Reverse the bits in a GHOST_TUns8 */
+static GHOST_TUns8 uns8ReverseBits(GHOST_TUns8 ch)
+{
+	ch= ((ch>>1)&0x55) | ((ch<<1)&0xAA);
+	ch= ((ch>>2)&0x33) | ((ch<<2)&0xCC);
+	ch= ((ch>>4)&0x0F) | ((ch<<4)&0xF0);
+	return ch;
+}
+
 /** Reverse the bits in a GHOST_TUns16 */
 static GHOST_TUns16 uns16ReverseBits(GHOST_TUns16 shrt)
 {
@@ -612,7 +621,8 @@ static GHOST_TUns16 uns16ReverseBits(GHOST_TUns16 shrt)
 	return shrt;
 }
 
-GHOST_TSuccess GHOST_WindowCarbon::setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2], GHOST_TUns8 mask[16][2], int hotX, int hotY)
+GHOST_TSuccess GHOST_WindowCarbon::setWindowCustomCursorShape(GHOST_TUns8 *bitmap, GHOST_TUns8 *mask,
+					int sizex, int sizey, int hotX, int hotY, int fg_color, int bg_color)
 {
 	int y;
 	
@@ -625,8 +635,8 @@ GHOST_TSuccess GHOST_WindowCarbon::setWindowCustomCursorShape(GHOST_TUns8 bitmap
 	if (!m_customCursor) return GHOST_kFailure;
 	
 	for (y=0; y<16; y++) {
-		m_customCursor->data[y] = uns16ReverseBits((bitmap[y][0]<<0) | (bitmap[y][1]<<8));
-		m_customCursor->mask[y] = uns16ReverseBits((mask[y][0]<<0) | (mask[y][1]<<8));
+		m_customCursor->data[y] = uns16ReverseBits((bitmap[2*y]<<0) | (bitmap[2*y+1]<<8));
+		m_customCursor->mask[y] = uns16ReverseBits((mask[2*y]<<0) | (mask[2*y+1]<<8));
 	}
 	
 	m_customCursor->hotSpot.h = hotX;
@@ -637,4 +647,10 @@ GHOST_TSuccess GHOST_WindowCarbon::setWindowCustomCursorShape(GHOST_TUns8 bitmap
 	}
 	
 	return GHOST_kSuccess;
+}
+
+GHOST_TSuccess GHOST_WindowCarbon::setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2], 
+												GHOST_TUns8 mask[16][2], int hotX, int hotY)
+{
+	setWindowCustomCursorShape((GHOST_TUns8*)bitmap, (GHOST_TUns8*) mask, 16, 16, hotX, hotY, 0, 1);
 }

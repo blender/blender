@@ -120,11 +120,11 @@ ifeq ($(OS),linux)
     CC	= gcc
     CCC	= g++
 #    CFLAGS	+= -pipe
-    CFLAGS	+= -pipe -fPIC
-    CCFLAGS	+= -pipe -fPIC
+    CFLAGS	+= -pipe -fPIC -ggdb -march=athlon-xp -ffast-math -msse -mmmx 
+    CCFLAGS	+= -pipe -fPIC -ggdb -march=athlon-xp -ffast-math -msse -mmmx
 #    CCFLAGS	+= -pipe
-    REL_CFLAGS	+= -O2
-    REL_CCFLAGS	+= -O2
+    REL_CFLAGS	+= -O3
+    REL_CCFLAGS	+= -O3
     NAN_DEPEND = true
   ifeq ($(CPU),alpha)
     CFLAGS += -mieee

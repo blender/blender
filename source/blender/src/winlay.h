@@ -31,6 +31,8 @@
  */
 
 /* Abstract window operations */
+
+#include "GHOST_C-api.h"
 	
 typedef struct _Window Window;
 typedef void	(*WindowHandlerFP)	(Window *win, void *user_data, short evt, short val, char ascii);
@@ -79,3 +81,29 @@ void	winlay_process_events	(int wait_for_event);
 
 void	winlay_get_screensize	(int *width_r, int *height_r);
 
+
+struct _Window {
+	GHOST_WindowHandle	ghostwin;
+	
+		/* Handler and private data for handler */
+	WindowHandlerFP		handler;
+	void				*user_data;
+	
+		/* Window state */
+	int		size[2], position[2];
+	int		active, visible;
+	
+		/* Last known mouse/button/qualifier state */
+	int		lmouse[2];
+	int		lqual;		/* (LR_SHFTKEY, LR_CTRLKEY, LR_ALTKEY) */
+	int		lmbut;		/* (L_MOUSE, M_MOUSE, R_MOUSE) */
+	int		commandqual;
+
+		/* Tracks the faked mouse button, if non-zero it is
+		 * the event number of the last faked button.
+		 */
+	int		faked_mbut;
+
+	GHOST_TimerTaskHandle	timer;
+	int						timer_event;
+};

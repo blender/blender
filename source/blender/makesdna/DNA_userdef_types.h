@@ -140,7 +140,8 @@ typedef struct UserDef {
 	short menuthreshold1, menuthreshold2;
 	char fontname[256];		// FILE_MAXDIR+FILE length
 	struct ListBase themes;
-	short undosteps, pad0;
+	short undosteps;
+	short curssize;
 	short tb_leftmouse, tb_rightmouse;
 	struct SolidLight light[3];
 } UserDef;

@@ -236,6 +236,22 @@ protected:
 		int hotX, 
 		int hotY
 	);
+	
+	/**
+	 * Sets the cursor shape on the window using
+	 * native window system calls (Arbitrary size/color).
+	 */
+		GHOST_TSuccess
+	setWindowCustomCursorShape(
+		GHOST_TUns8 *bitmap, 
+		GHOST_TUns8 *mask, 
+		int sizex, 
+		int sizey,
+		int hotX, 
+		int hotY,
+		int fg_color, 
+		int bg_color
+	);
 
 private :
 

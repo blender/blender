@@ -167,31 +167,6 @@ static int convert_key(GHOST_TKey key) {
 
 	/***/
 	
-struct _Window {
-	GHOST_WindowHandle	ghostwin;
-	
-		/* Handler and private data for handler */
-	WindowHandlerFP		handler;
-	void				*user_data;
-	
-		/* Window state */
-	int		size[2], position[2];
-	int		active, visible;
-	
-		/* Last known mouse/button/qualifier state */
-	int		lmouse[2];
-	int		lqual;		/* (LR_SHFTKEY, LR_CTRLKEY, LR_ALTKEY) */
-	int		lmbut;		/* (L_MOUSE, M_MOUSE, R_MOUSE) */
-	int		commandqual;
-
-		/* Tracks the faked mouse button, if non-zero it is
-		 * the event number of the last faked button.
-		 */
-	int		faked_mbut;
-
-	GHOST_TimerTaskHandle	timer;
-	int						timer_event;
-};
 
 static Window *window_new(GHOST_WindowHandle ghostwin)
 {

@@ -684,6 +684,24 @@ setWindowCustomCursorShape(
 	int hotX, 
 	int hotY
 ){
+
+setWindowCustomCursorShape((GHOST_TUns8*)bitmap, (GHOST_TUns8*)mask, 
+									16, 16, hotX, hotY, 0, 1);
+
+}
+
+	GHOST_TSuccess
+GHOST_WindowX11::
+setWindowCustomCursorShape(	
+	GHOST_TUns8 *bitmap, 
+	GHOST_TUns8 *mask, 
+	int sizex, 
+	int sizey, 
+	int hotX, 
+	int hotY, 
+	int fg_color, 
+	int bg_color
+){
 	Pixmap bitmap_pix, mask_pix;
 	XColor fg, bg;
 	
@@ -696,8 +714,8 @@ setWindowCustomCursorShape(
 		XFreeCursor(m_display, m_custom_cursor);
 	}
 
-	bitmap_pix = XCreateBitmapFromData(m_display,  m_window, (char*) bitmap, 16, 16);
-	mask_pix = XCreateBitmapFromData(m_display, m_window, (char*) mask, 16, 16);
+	bitmap_pix = XCreateBitmapFromData(m_display,  m_window, (char*) bitmap, sizex, sizey);
+	mask_pix = XCreateBitmapFromData(m_display, m_window, (char*) mask, sizex, sizey);
 		
 	m_custom_cursor = XCreatePixmapCursor(m_display, bitmap_pix, mask_pix, &fg, &bg, hotX, hotY);
 	XDefineCursor(m_display, m_window, m_custom_cursor);

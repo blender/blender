@@ -560,6 +560,15 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCursorShape(GHOST_TStandardCursor cur
 	return GHOST_kSuccess;
 }
 
+/** Reverse the bits in a GHOST_TUns8 */
+static GHOST_TUns8 uns8ReverseBits(GHOST_TUns8 ch)
+{
+	ch= ((ch>>1)&0x55) | ((ch<<1)&0xAA);
+	ch= ((ch>>2)&0x33) | ((ch<<2)&0xCC);
+	ch= ((ch>>4)&0x0F) | ((ch<<4)&0xF0);
+	return ch;
+}
+
 /** Reverse the bits in a GHOST_TUns16 */
 static GHOST_TUns16 uns16ReverseBits(GHOST_TUns16 shrt)
 {
@@ -569,13 +578,26 @@ static GHOST_TUns16 uns16ReverseBits(GHOST_TUns16 shrt)
 	shrt= ((shrt>>8)&0x00FF) | ((shrt<<8)&0xFF00);
 	return shrt;
 }
+GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2], 
+					GHOST_TUns8 mask[16][2], int hotX, int hotY)
+{
+	setWindowCustomCursorShape((GHOST_TUns8*)bitmap, (GHOST_TUns8*)mask, 
+									16, 16, hotX, hotY, 0, 1);
 
-GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2], GHOST_TUns8 mask[16][2], int hotX, int hotY)
+}
+
+GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(GHOST_TUns8 *bitmap, 
+					GHOST_TUns8 *mask, int sixeX, int sizeY, int hotX, int hotY, 
+					int fg_color, int bg_color)
 {
 	GHOST_TUns32 andData[32];
 	GHOST_TUns32 xorData[32];
-	int y;
-
+	GHOST_TUns32 fullBitRow, fullMaskRow;
+	int x, y, cols;
+	
+	cols=sizeX/8; /* Num of whole bytes per row (width of bm/mask) */
+	if (sizeX%8) cols++;
+	
 	if (m_customCursor) {
 		DestroyCursor(m_customCursor);
 		m_customCursor = NULL;
@@ -584,10 +606,15 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(GHOST_TUns8 bitmap[
 	memset(&andData, 0xFF, sizeof(andData));
 	memset(&xorData, 0, sizeof(xorData));
 
-	for (y=0; y<16; y++) {
-		GHOST_TUns32 fullBitRow = uns16ReverseBits((bitmap[y][0]<<8) | (bitmap[y][1]<<0));
-		GHOST_TUns32 fullMaskRow = uns16ReverseBits((mask[y][0]<<8) | (mask[y][1]<<0));
-
+	for (y=0; y<sizeY; y++) {
+		fullBitRow=0;
+		fullMaskRow=0;
+		for (x=cols-1; x>=0; x--){
+			fullBitRow<<=8;
+			fullMaskRow<<=8;
+			fullBitRow  |= uns8ReverseBits(bitmap[cols*y + x]);
+			fullMaskRow |= uns8ReverseBits(  mask[cols*y + x]);
+		}
 		xorData[y]= fullBitRow & fullMaskRow;
 		andData[y]= ~fullMaskRow;
 	}
