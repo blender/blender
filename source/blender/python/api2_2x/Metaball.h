@@ -32,6 +32,10 @@
 #ifndef EXPP_METABALL_H
 #define EXPP_METABALL_H
 
+#if defined(WIN32) && !defined (FP_INFINITE)
+	#define FP_INFINITE 1
+#endif
+
 #include <Python.h>
 
 #include <BKE_main.h>
