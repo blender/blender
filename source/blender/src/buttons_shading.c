@@ -1531,8 +1531,10 @@ static void world_panel_mistaph(World *wrld)
 	uiSetButLock(wrld->id.lib!=0, "Can't edit library data");
 
 #if GAMEBLENDER == 1
-	uiDefBut(block, MENU|SHO, 1, "Physics %t|None %x1|Sumo %x2|ODE %x3 |Dynamo %x4|",	
-			10,180,140,19, &wrld->physicsEngine, 0, 0, 0, 0, "Physics Engine");
+	uiDefButI(block, MENU, 1, 
+			  "Physics %t|None %x1|Sumo %x2|ODE %x3 |Dynamo %x4|",	
+			  10,180,140,19, &wrld->physicsEngine, 0, 0, 0, 0, 
+			  "Physics Engine");
 	
 	/* Gravitation for the game worlds */
 	uiDefButF(block, NUMSLI,0, "Grav ", 150,180,150,19,	&(wrld->gravity), 0.0, 25.0, 0, 0,  "Sets the gravitation constant of the game world");
