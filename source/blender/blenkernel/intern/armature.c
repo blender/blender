@@ -1197,11 +1197,12 @@ void make_displists_by_armature (Object *ob)
 		for (base= G.scene->base.first; base; base= base->next){
 			if ((ob==base->object->parent) && (base->lay & G.scene->lay))
 				if ((base->object->partype==PARSKEL) || (base->object->type==OB_MBALL))
-					freedisplist(&base->object->disp);		
+					makeDispList(base->object);
 		}
 	}
 /*
 (ton) changed this; now a free displist is sufficient, drawobject.c will make disp
+(ton) changed it back... doesnt work yet, do it after release
 */
 
 }	

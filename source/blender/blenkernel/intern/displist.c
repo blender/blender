@@ -2331,6 +2331,7 @@ void test_all_displists(void)
 	Base *base;
 	Object *ob;
 	unsigned int lay;
+	int makedisp;
 	
 	/* background */	
 	lay= G.scene->lay;
@@ -2339,6 +2340,7 @@ void test_all_displists(void)
 	while(base) {
 		if(base->lay & lay) {
 			ob= base->object;
+			makedisp= 0;
 			
 			if(ob->type==OB_MBALL && (ob->ipo || ob->parent)) {
 				// find metaball object holding the displist
@@ -2349,24 +2351,23 @@ void test_all_displists(void)
 				if(ob->disp.first == NULL) {
 					ob= find_basis_mball(ob);
 				}
-				freedisplist(&ob->disp);
+				makedisp= 1;
 			}
 			else if(ob->parent) {
 				
 				if (ob->parent->type == OB_LATTICE)
-					freedisplist_object(ob);
-				else if ((ob->parent->type == OB_IKA) && (ob->partype == PARSKEL))
-					freedisplist_object(ob);
+					makedisp= 1;
 				else if ((ob->parent->type==OB_ARMATURE) && (ob->partype == PARSKEL))
-					freedisplist_object(ob);
+					makedisp= 1;
 				else if ((ob->parent->type==OB_CURVE) && (ob->partype == PARSKEL))
-					freedisplist_object(ob);
+					makedisp= 1;
 			}
 
 			if(ob->hooks.first) {
 				ObHook *hook;
 				for(hook= ob->hooks.first; hook; hook= hook->next) {
-					if(hook->parent) freedisplist_object(ob);
+					if(hook->parent) 
+						makedisp= 1;
 					break;
 				}
 			}
@@ -2378,14 +2379,14 @@ void test_all_displists(void)
 				if(ob!=G.obedit) {
 					Curve *cu= ob->data;
 					
-					if(cu->key ) freedisplist_object(ob); //makeDispList(ob);
+					if(cu->key ) makedisp= 1;
 					if(cu->bevobj) {
 						Curve *cu1= cu->bevobj->data;
-						if(cu1->key ) freedisplist_object(ob);
+						if(cu1->key ) makedisp= 1;
 					}
 					if(cu->taperobj) {
 						Curve *cu1= cu->taperobj->data;
-						if(cu1->key ) freedisplist_object(ob);
+						if(cu1->key ) makedisp= 1;
 					}
 				}
 			}
@@ -2394,7 +2395,7 @@ void test_all_displists(void)
 				if(cu->textoncurve) {
 					if( ((Curve *)cu->textoncurve->data)->key ) {
 						text_to_curve(ob, 0);
-						freedisplist_object(ob); //makeDispList(ob);
+						makedisp= 1;
 					}
 				}
 			}
@@ -2403,7 +2404,7 @@ void test_all_displists(void)
 					Effect *eff= ob->effect.first;
 					while(eff) {
 						if(eff->type==EFF_WAVE) {
-							freedisplist_object(ob);
+							makedisp= 1;
 							break;
 						}
 						eff= eff->next;
@@ -2411,10 +2412,10 @@ void test_all_displists(void)
 				}
 				if(ob!=G.obedit) {
 					if(( ((Mesh *)(ob->data))->key )) 
-						freedisplist_object(ob);
+						makedisp= 1;
 				}
 			}
-
+			if(makedisp) makeDispList(ob);
 		}
 		if(base->next==0 && G.scene->set && base==G.scene->base.last) base= G.scene->set->base.first;
 		else base= base->next;
