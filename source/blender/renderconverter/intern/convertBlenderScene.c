@@ -166,10 +166,10 @@ u	|     |  F1 |  F2 |
 
 extern unsigned char hash[512];
 
-/* - er moet een 'vast' aantal sterren gegenereerd worden tussen near en far.
- * - alle sterren moeten bij voorkeur op de far liggen en uitsluitend in
- *   helderheid / kleur verschillen.
- * - 
+/* there must be a 'fixed' amount of stars generated between
+ *         near and far
+ * all stars must by preference lie on the far and solely
+ *        differ in clarity/color
  */
 
 void RE_make_stars(void (*initfunc)(void),
