@@ -2542,7 +2542,7 @@ void auto_align_armature(void)
 /* Sets the roll value of selected bones so that their zaxes point upwards */
 {
 	EditBone *ebone;
-	float	xaxis[3]={1.0, 0.0, 0.0}, yaxis[3], zaxis[3]={0.0, 0.0, 1.0}, ytest[3]={0.0, -1.0, 0.0};
+	float	xaxis[3]={1.0, 0.0, 0.0}, yaxis[3], zaxis[3]={0.0, 0.0, 1.0};
 	float	targetmat[4][4], imat[4][4];
 	float	curmat[4][4], diffmat[4][4];
 	float	delta[3];
@@ -2572,3 +2572,4 @@ void auto_align_armature(void)
 		}
 	}
 } 
+

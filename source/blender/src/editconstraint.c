@@ -124,7 +124,6 @@ void unique_constraint_name (bConstraint *con, ListBase *list){
 static int is_child_of_ex(Object *owner, const char *ownersubstr, Object *parent, const char *parsubstr)
 {
 	Object *curob;
-	int working = 1;
 	Bone *bone = NULL;
 	Bone *parbone= NULL;
 
@@ -751,3 +750,4 @@ bConstraintChannel *add_new_constraint_channel(const char* name)
 	
 	return chan;
 }
+

@@ -74,7 +74,6 @@ setRotation(
 MT_ExpMap::
 getRotation(
 ) const {
-    bool  rep=0;
     MT_Scalar  cosp, sinp, theta;
 
 	MT_Quaternion q;

@@ -219,7 +219,6 @@ static void draw_nlastrips(SpaceNla *snla)
 	rcti scr_rct;
 	gla2DDrawInfo *di;
 	Base *base;
-	int	offset = 0;
 	bConstraintChannel *conchan;
 	
 	float	y;
@@ -521,3 +520,4 @@ int nla_filter (Base* base, int flags)
 
 	else return 0;
 }
+

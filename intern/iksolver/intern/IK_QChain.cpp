@@ -149,7 +149,6 @@ ComputeJacobian(
 	// compute the transposed jacobian first
 
 	int n;
-	int i = 0;
 
 	for (n= 0; n < num_segs; n++) {
 #if 0
@@ -258,23 +257,4 @@ MaxExtension(
 	}
 	return output;
 }
-
-	
-
-
-
-
-
-
-
-
-
-
-	
-
-
-
-
-
-
 

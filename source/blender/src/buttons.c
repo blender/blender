@@ -6497,7 +6497,6 @@ static void activate_constraint_ipo_func (void *arg1v, void *unused)
 	bConstraint *con = arg1v;
 	bConstraintChannel *chan;
 	ListBase *conbase;
-	Ipo *ipo = NULL;
 
 	get_constraint_client(NULL, NULL, NULL);
 
@@ -6525,7 +6524,6 @@ static void activate_constraint_ipo_func (void *arg1v, void *unused)
 
 	allqueue(REDRAWIPO, 0);
 	allqueue(REDRAWNLA, 0);
-
 }
 
 static void del_constraint_func (void *arg1v, void *arg2v)

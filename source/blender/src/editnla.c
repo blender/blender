@@ -397,7 +397,6 @@ static void add_nlablock(short mval[2])
 	Base *base;
 	bAction *act=NULL;
 	bActionStrip *strip;
-	int	foundsel=0;
 	float ymin, ymax;
 	float x, y;
 	rctf	rectf;
