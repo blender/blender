@@ -752,6 +752,18 @@ static void append_afterqueue(void)
 	}
 }
 
+/* check for event in afterqueue, used in force_draw in space.c */
+int afterqtest(short win, unsigned short evt)
+{
+	int a;
+	
+	for(a=0; a<nafterqitems; a++) {
+		if(afterqueue[a][0]==win && afterqueue[a][1]==evt) return 1;
+	}
+	return 0;
+}
+
+
 static char ext_load_str[256]= {0, 0};
 void add_readfile_event(char *filename)
 {	
@@ -1812,12 +1824,6 @@ static bScreen *addscreen(char *name)		/* use setprefsize() if you want somethin
 		init_mainwin();
 		mywinset(1);
 	
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		myortho2(-0.375, sc->sizex-0.375, -0.375, sc->sizey-0.375);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-
 		/* for visual speed, but still needed? */
 		glClearColor(.55, .55, .55, 0.0);
 		glClear(GL_COLOR_BUFFER_BIT);

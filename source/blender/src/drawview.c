@@ -904,7 +904,6 @@ void backdrawview3d(int test)
 			return;
 		}
 	}
-	
 	persp(PERSP_VIEW);
 	
 #ifdef __APPLE__
@@ -1914,8 +1913,12 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	}
 	// test for backbuf select
 	if(G.obedit && G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
+		extern int afterqtest(short win, unsigned short evt);	//editscreen.c
+
 		G.vd->flag |= V3D_NEEDBACKBUFDRAW;
-		addafterqueue(curarea->win, BACKBUFDRAW, 1);
+		if(afterqtest(curarea->win, BACKBUFDRAW)==0) {
+			addafterqueue(curarea->win, BACKBUFDRAW, 1);
+		}
 	}
 
 

@@ -1794,9 +1794,7 @@ void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if( cfra!=CFRA ) {
 						CFRA= cfra;
 						update_for_newframe();
-						force_draw_plus(SPACE_VIEW3D);
-						force_draw_plus(SPACE_ACTION);
-						force_draw_plus(SPACE_BUTS);	/* To make constraint sliders redraw */
+						force_draw_all();/* To make constraint sliders redraw */
 					}
 				
 				} while(get_mbut() & mousebut);
@@ -4436,6 +4434,7 @@ void allspace(unsigned short event, short val)
 void force_draw()
 {
 	/* draws alle areas that something identical to curarea */
+	extern int afterqtest(short win, unsigned short evt);	//editscreen.c
 	ScrArea *tempsa, *sa;
 
 	scrarea_do_windraw(curarea);
@@ -4465,10 +4464,24 @@ void force_draw()
 		}
 		sa= sa->next;
 	}
-	if(curarea!=tempsa) areawinset(tempsa->win);
 	
 	screen_swapbuffers();
 
+#ifndef __APPLE__
+	/* de the afterqueuetest for backbuf draw */
+	sa= G.curscreen->areabase.first;
+	while(sa) {
+		if(sa->spacetype==SPACE_VIEW3D) {
+			if(afterqtest(sa->win, BACKBUFDRAW)) {
+				areawinset(sa->win);
+				backdrawview3d(0);
+			}
+		}
+		sa= sa->next;
+	}
+#endif
+	if(curarea!=tempsa) areawinset(tempsa->win);
+	
 }
 
 void force_draw_plus(int type)

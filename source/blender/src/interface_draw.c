@@ -1358,7 +1358,7 @@ static void ui_draw_text_icon(uiBut *but)
 		ui_draw_icon(but, (BIFIconID) (but->icon+but->iconadd));
 	}
 	else if(but->drawstr[0]!=0) {
-		
+
 		// text button cursor
 		if(but->pos != -1) {
 			short t, pos, ch;
@@ -1428,8 +1428,8 @@ static void ui_draw_text_icon(uiBut *but)
 		
 		/* LABEL button exception */
 		if(but->type==LABEL && but->min!=0.0) BIF_ThemeColor(TH_BUT_TEXT_HI);
-		
-		glRasterPos2f( 0.375+floor(x), 0.375+floor((but->y1+but->y2- 9.0)/2.0));
+	
+		glRasterPos2f( floor(x), floor((but->y1+but->y2- 9.0)/2.0));
 		BIF_DrawString(but->font, but->drawstr+but->ofs, (U.transopts & USER_TR_BUTTONS));
 
 		/* part text right aligned */

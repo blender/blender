@@ -96,7 +96,7 @@ void mywindow_init_mainwin(Window *win, int orx, int ory, int sizex, int sizey)
 	mainwindow.ymax= ory+sizey-1;
 	mainwindow.qevents= NULL;
 
-	myortho2(-0.5, (float)sizex-0.5, -0.5, (float)sizey-0.5);
+	myortho2(-0.375, (float)sizex-0.375, -0.375, (float)sizey-0.375);
 	glLoadIdentity();
 		
 	glGetFloatv(GL_PROJECTION_MATRIX, (float *)mainwindow.winmat);
@@ -128,7 +128,7 @@ void mywindow_build_and_set_renderwin( int orx, int ory, int sizex, int sizey)
 	renderwindow.ymax= ory+sizey-1;
 	renderwindow.qevents= NULL;
 
-	myortho2(-0.5, (float)sizex-0.5, -0.5, (float)sizey-0.5);
+	myortho2(-0.375, (float)sizex-0.375, -0.375, (float)sizey-0.375);
 	glLoadIdentity();
 
 	glGetFloatv(GL_PROJECTION_MATRIX, (float *)renderwindow.winmat);
