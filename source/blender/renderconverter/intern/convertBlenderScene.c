@@ -36,6 +36,7 @@
 #define DL_CYCLIC_U 1
 #define DL_CYCLIC_V 2
 
+
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -159,7 +160,7 @@ static void displace_render_vert(ShadeInput *shi, VertRen *vr, float *scale);
 /* ------------------------------------------------------------------------- */
 
 #define UVTOINDEX(u,v) (startvlak + (u) * sizev + (v))
-#define GETNORMAL(face,normal) CalcNormFloat4(face->v4->co, face->v3->co, face->v2->co, face->v1->co, normal)
+#define GETNORMAL(face,normal) CalcNormFloat4(face->v1->co, face->v2->co, face->v3->co, face->v4->co, normal)
 /*
 
 NOTE THAT U/V COORDINATES ARE SOMETIMES SWAPPED !!
@@ -1799,7 +1800,6 @@ static void init_render_surf(Object *ob)
 	int sizeu, sizev;
 	VlakRen *vlr1, *vlr2, *vlr3;
 	float n2[3], vn[3];
-	int index;
 #endif
 
 	cu= ob->data;
@@ -1961,12 +1961,6 @@ static void init_render_surf(Object *ob)
 
 			/* process generic surface */
 			for(u = 0; u < sizeu - 1; u++) {
-
-/*				DL_SURFINDEX(dl->flag & DL_CYCLIC_U, dl->flag & DL_CYCLIC_V, dl->nr, dl->parts);
-				DL_SURFINDEX(0, 0, dl->nr, dl->parts);
-*/
-
-
 /*
 				
 			^	()----p4----p3----()
@@ -1998,7 +1992,7 @@ static void init_render_surf(Object *ob)
 //					if(flen!=0.0) {
 						vlr= RE_findOrAddVlak(R.totvlak++);
 						vlr->ob= ob;
-						vlr->v1= v1; vlr->v2= v2; vlr->v3= v3; vlr->v4= v4;
+						vlr->v1= v4; vlr->v2= v3; vlr->v3= v2; vlr->v4= v1;		// note, displists for nurbs are again opposite, tsk tsk
 						VECCOPY(vlr->n, n1);
 						vlr->lay= ob->lay;
 						vlr->mat= matar[ dl->col];
@@ -2024,8 +2018,6 @@ static void init_render_surf(Object *ob)
 				for (v = 0; v < sizev; v++)
 				{
 					/* optimize! :*/
-					index = startvlak + v;
-					// vlr= RE_findOrAddVlak(index + (sizeu-1) * sizev);
 					vlr= RE_findOrAddVlak(UVTOINDEX(sizeu - 1, v));
 					GETNORMAL(vlr, n1);
 					vlr1= RE_findOrAddVlak(UVTOINDEX(0, v));
@@ -2041,12 +2033,9 @@ static void init_render_surf(Object *ob)
 				for (u = 0; u < sizeu; u++)
 				{
 					/* optimize! :*/
-					index = startvlak + u * sizev;
-					//vlr= RE_findOrAddVlak(index);
 					vlr= RE_findOrAddVlak(UVTOINDEX(u, 0));
 					GETNORMAL(vlr, n1);
 					vlr1= RE_findOrAddVlak(UVTOINDEX(u, sizev-1));
-					// vlr1= RE_findOrAddVlak(index + (sizev - 1));
 					GETNORMAL(vlr1, n2);
 					VecAddf(vlr1->v2->n, vlr1->v2->n, n1);
 					VecAddf(vlr1->v3->n, vlr1->v3->n, n1);
@@ -2071,7 +2060,7 @@ static void init_render_surf(Object *ob)
 			normals of the surrounding faces to all of the duplicates of []
 			*/
 
-			if (dl->flag & DL_CYCLIC_U && dl->flag & DL_CYCLIC_V)
+			if ((dl->flag & DL_CYCLIC_U) && (dl->flag & DL_CYCLIC_V))
 			{
 				vlr= RE_findOrAddVlak(UVTOINDEX(sizeu - 1, sizev - 1)); /* (m,n) */
 				GETNORMAL(vlr, n1);
@@ -2755,34 +2744,71 @@ static void set_fullsample_flag(void)
 	}
 }
 
+/* 10 times larger than normal epsilon, test it on default nurbs sphere with ray_transp */
+#define FLT_EPSILON 1.19209290e-06F
+
+
 static void check_non_flat_quads(void)
 {
 	VlakRen *vlr, *vlr1;
+	VertRen *v1, *v2, *v3, *v4;
 	float nor[3], xn, flen;
 	int a;
 
 	for(a=R.totvlak-1; a>=0; a--) {
 		vlr= RE_findOrAddVlak(a);
 		
-		/* Face is divided along edge with the least gradient 		*/
-		/* Flagged with R_DIVIDE_24 if divide is from vert 2 to 4 	*/
-		/* 		4---3		4---3 */
-		/*		|\ 1|	or  |1 /| */
-		/*		|0\ |		|/ 0| */
-		/*		1---2		1---2 	0 = orig face, 1 = new face */
-		
-		/* test if rendering as a quad or triangle */
-		if(vlr->v4) {
-
-			if(vlr->mat->mode & MA_WIRE);
+		/* test if rendering as a quad or triangle, skip wire */
+		if(vlr->v4 && (vlr->mat->mode & MA_WIRE)==0) {
+			
+			/* check if quad is actually triangle */
+			v1= vlr->v1;
+			v2= vlr->v2;
+			v3= vlr->v3;
+			v4= vlr->v4;
+			VECSUB(nor, v1->co, v2->co);
+			if( ABS(nor[0])<FLT_EPSILON &&  ABS(nor[1])<FLT_EPSILON && ABS(nor[2])<FLT_EPSILON ) {
+				vlr->v1= v2;
+				vlr->v2= v3;
+				vlr->v3= v4;
+				vlr->v4= NULL;
+			}
 			else {
+				VECSUB(nor, v2->co, v3->co);
+				if( ABS(nor[0])<FLT_EPSILON &&  ABS(nor[1])<FLT_EPSILON && ABS(nor[2])<FLT_EPSILON ) {
+					vlr->v2= v3;
+					vlr->v3= v4;
+					vlr->v4= NULL;
+				}
+				else {
+					VECSUB(nor, v3->co, v4->co);
+					if( ABS(nor[0])<FLT_EPSILON &&  ABS(nor[1])<FLT_EPSILON && ABS(nor[2])<FLT_EPSILON ) {
+						vlr->v4= NULL;
+					}
+					else {
+						VECSUB(nor, v4->co, v1->co);
+						if( ABS(nor[0])<FLT_EPSILON &&  ABS(nor[1])<FLT_EPSILON && ABS(nor[2])<FLT_EPSILON ) {
+							vlr->v4= NULL;
+						}
+					}
+				}
+			}
+			
+			if(vlr->v4) {
+				
+				/* Face is divided along edge with the least gradient 		*/
+				/* Flagged with R_DIVIDE_24 if divide is from vert 2 to 4 	*/
+				/* 		4---3		4---3 */
+				/*		|\ 1|	or  |1 /| */
+				/*		|0\ |		|/ 0| */
+				/*		1---2		1---2 	0 = orig face, 1 = new face */
 				
 				/* render normals are inverted in render! we calculate normal of single tria here */
 				flen= CalcNormFloat(vlr->v4->co, vlr->v3->co, vlr->v1->co, nor);
 				if(flen==0.0) CalcNormFloat(vlr->v4->co, vlr->v2->co, vlr->v1->co, nor);
 				
 				xn= nor[0]*vlr->n[0] + nor[1]*vlr->n[1] + nor[2]*vlr->n[2];
-				if(fabs(xn) < 0.99995 ) {	// checked on noisy fractal grid
+				if(ABS(xn) < 0.99995 ) {	// checked on noisy fractal grid
 					float d1, d2;
 					
 					vlr1= RE_findOrAddVlak(R.totvlak++);

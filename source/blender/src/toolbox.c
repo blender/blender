@@ -1692,7 +1692,7 @@ static TBitem tb_curve_edit[]= {
 {	0, "Extrude|E", 		'e', 		NULL},
 {	0, "Duplicate|Shift D", 'D', 		NULL},
 {	0, "Make Segment|F", 	'f', 		NULL},
-{	0, "Toggle Cyclic|F", 	'c', 		NULL},
+{	0, "Toggle Cyclic|C", 	'c', 		NULL},
 {	0, "Delete...|X", 		'x', 		NULL},
 {	0, "SEPR", 								0, NULL},
 {	0, "Control Points", 	0, 		tb_curve_edit_cv},

@@ -4555,8 +4555,14 @@ static void do_versions(Main *main)
 	}
 	if(main->versionfile <= 234) {
 		Scene *sce;
+		World *wo;
 		bScreen *sc;
 		int set_zbuf_sel=0;
+		
+		// force sumo engine to be active
+		for (wo = main->world.first; wo; wo= wo->id.next) {
+			if(wo->physicsEngine==0) wo->physicsEngine = 2;
+		}
 		
 		for (sce= main->scene.first; sce; sce= sce->id.next) {
 			if(sce->selectmode==0) {
