@@ -193,16 +193,16 @@ void RE_make_stars(void (*initfunc)(void),
 	double dblrand, hlfrand;
 	float vec[4], fx, fy, fz;
 	float fac, starmindist, clipend;
-	float mat[4][4], stargrid, maxrand, force, alpha;
+	float mat[4][4], stargrid, maxrand, maxjit, force, alpha;
 /* 	float loc_far_var, loc_near_var; */
-	int x, y, z, sx, sy, sz, ex, ey, ez, maxjit, done = 0;
+	int x, y, z, sx, sy, sz, ex, ey, ez, done = 0;
 	Camera * camera;
 
 	if(initfunc) R.wrld= *(G.scene->world);
 
 	stargrid = R.wrld.stardist;		/* distance between stars */
 	maxrand = 2.0;						/* amount a star can be shifted (in grid units) */
-	maxjit = (256.0* R.wrld.starcolnoise);			/* amount a color is being shifted */
+	maxjit = (R.wrld.starcolnoise);			/* amount a color is being shifted */
 
 /* 	loc_far_var = R.far; */
 /* 	loc_near_var = R.near; */
@@ -299,7 +299,7 @@ void RE_make_stars(void (*initfunc)(void),
 						if (har) {
 							har->alfa = sqrt(sqrt(alpha));
 							har->add= 255;
-							har->r = har->g = har->b = 255;
+							har->r = har->g = har->b = 1.0;
 							if (maxjit) {
 								har->r += ((maxjit * BLI_drand()) ) - maxjit;
 								har->g += ((maxjit * BLI_drand()) ) - maxjit;
