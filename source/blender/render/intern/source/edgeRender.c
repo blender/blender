@@ -86,7 +86,7 @@ char edgeRender_c[] = "$Id$";
 
  /* These function pointers are used for z buffer filling.    */
 extern void (*zbuffunc)(float *, float *, float *);
-extern void (*zbuflinefunc)(float *v1, float *v2); 
+extern void (*zbuflinefunc)(float *, float *); 
 extern float Zmulx, Zmuly;   /* Some kind of scale?                          */
 extern float Zjitx,Zjity;    /* The x,y values for jitter offset             */
 extern unsigned int Zvlnr;           /* Face rendering pointer and counter: these    */
@@ -890,18 +890,18 @@ void fillEdgeRenderEdge(float *vec1, float *vec2)
 		yoffset = oldy;
 		xoffset = start;
 		
-		if(dy<0) ofs= -imWidth;
-		else ofs= imWidth;
+		if(dy<0) ofs= -1;
+		else ofs= 1;
 
 		liney = yoffset;
 		linex = xoffset;
 		
-		for(x= start; x<=end; x++, xoffset++) {
+		for(x= start; x<=end; x++, linex++) {
 			
 			y= floor(v1[1]);
 			if(y!=oldy) {
 				oldy= y;
-				liney++;
+				liney+= ofs;
 			}
 			
 			if(x>=0 && y>=Aminy && y<=Amaxy) {
