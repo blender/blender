@@ -708,7 +708,7 @@ float shadow_halo(LampRen *lar, float *p1, float *p2)
 		zf= zf1 + labda*(zf2-zf1);
 		count+= 1.0;
 
-		if(zf<= 0.0) lightcount += 1.0;	/* close to the spot */
+		if(zf<= -1.0) lightcount += 1.0;	/* close to the spot */
 		else {
 		
 			/* make sure, behind the clipend we extend halolines. */
