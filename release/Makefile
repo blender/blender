@@ -118,6 +118,10 @@ endif
     else
 	@cp $(OCGDIR)/bin/blender$(EXT0) $(DISTDIR)/blender$(EXT0)
     endif
+	@if [ -f $(OCGDIR)/bin/blenderplayer$(EXTO) ]; then \
+		cp $(OCGDIR)/bin/blenderplayer$(EXTO) \
+			$(DISTDIR)/blenderplayer$(EXTO) ; \
+	fi
     endif
 
 ifneq ($(NOPLUGINS),true)
