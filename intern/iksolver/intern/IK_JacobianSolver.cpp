@@ -134,7 +134,7 @@ ComputeInverseJacobian(
 	m_svd_w = 0;
 	m_svd_v = 0;
 
-	TNT::SVD(m_svd_u,m_svd_w,m_svd_v);	
+	TNT::SVD_a(m_svd_u,m_svd_w,m_svd_v);	
 
 	// invert the SVD and compute inverse
 
