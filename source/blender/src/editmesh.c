@@ -1231,13 +1231,20 @@ void load_editMesh(void)
 
 	if(actkey) do_spec_key(me->key);
 	
-	/* te be sure: clear ->vn pointers */
+	/* to be sure: clear ->vn pointers */
 	eve= em->verts.first;
 	while(eve) {
 		eve->vn= 0;
 		eve= eve->next;
 	}
-
+	
+	/* clear deform or shade displists of all users */
+	if(me->id.us>1) {
+		Base *base;
+		for(base= G.scene->base.first; base; base= base->next) {
+			if(base->object->data==me) freedisplist(&base->object->disp);
+		}
+	}
 	/* we do make displist here for dependencies (like particles) */
 	if (mesh_uses_displist(me)) makeDispList(G.obedit);
 	

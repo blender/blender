@@ -1139,7 +1139,7 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	glClearColor(col[0], col[1], col[2], 0.0); 
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	sfile= curarea->spacedata.first;	
+	sfile= sa->spacedata.first;	
 	if(sfile->filelist==NULL) {
 		read_dir(sfile);
 		
@@ -1154,8 +1154,8 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	else calc_file_rcts(sfile);
 
 	/* HEADER */
-	sprintf(name, "win %d", curarea->win);
-	block= uiNewBlock(&curarea->uiblocks, name, UI_EMBOSS, UI_HELV, curarea->win);
+	sprintf(name, "win %d", sa->win);
+	block= uiNewBlock(&sa->uiblocks, name, UI_EMBOSS, UI_HELV, sa->win);
 	
 	uiSetButLock( sfile->type==FILE_MAIN && sfile->returnfunc, NULL);
 
@@ -1187,12 +1187,12 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	draw_filetext(sfile);
 	
 	/* others diskfree etc ? */
-	scrarea_queue_headredraw(curarea);	
+	scrarea_queue_headredraw(sa);	
 	
 	myortho2(-0.375, (float)(sa->winx)-0.375, -0.375, (float)(sa->winy)-0.375);
 	draw_area_emboss(sa);
 	
-	curarea->win_swap= WIN_BACK_OK;
+	sa->win_swap= WIN_BACK_OK;
 }
 
 static void do_filescroll(SpaceFile *sfile)

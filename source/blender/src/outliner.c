@@ -1363,7 +1363,7 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 /* event can enterkey, then it opens/closes */
 void outliner_mouse_event(ScrArea *sa, short event)
 {
-	SpaceOops *soops= curarea->spacedata.first;
+	SpaceOops *soops= sa->spacedata.first;
 	TreeElement *te;
 	float fmval[2];
 	short mval[2];
@@ -2223,12 +2223,12 @@ void draw_outliner(ScrArea *sa, SpaceOops *soops)
 	int sizey;
 	short ofsx, ofsy;
 	
-	calc_scrollrcts(G.v2d, curarea->winx, curarea->winy);
+	calc_scrollrcts(G.v2d, sa->winx, sa->winy);
 
-	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
+	if(sa->winx>SCROLLB+10 && sa->winy>SCROLLH+10) {
 		if(G.v2d->scroll) {	
-			ofsx= curarea->winrct.xmin;	/* because mywin */
-			ofsy= curarea->winrct.ymin;
+			ofsx= sa->winrct.xmin;	/* because mywin */
+			ofsy= sa->winrct.ymin;
 			glViewport(ofsx+G.v2d->mask.xmin,  ofsy+G.v2d->mask.ymin, ( ofsx+G.v2d->mask.xmax-1)-(ofsx+G.v2d->mask.xmin)+1, ( ofsy+G.v2d->mask.ymax-1)-( ofsy+G.v2d->mask.ymin)+1); 
 			glScissor(ofsx+G.v2d->mask.xmin,  ofsy+G.v2d->mask.ymin, ( ofsx+G.v2d->mask.xmax-1)-(ofsx+G.v2d->mask.xmin)+1, ( ofsy+G.v2d->mask.ymax-1)-( ofsy+G.v2d->mask.ymin)+1);
 		}
@@ -2243,7 +2243,7 @@ void draw_outliner(ScrArea *sa, SpaceOops *soops)
 	G.v2d->tot.xmax= (G.v2d->mask.xmax-G.v2d->mask.xmin);
 	G.v2d->tot.ymax= 0.0;
 	G.v2d->tot.ymin= -sizey*OL_H;
-	test_view2d(G.v2d, curarea->winx, curarea->winy);
+	test_view2d(G.v2d, sa->winx, sa->winy);
 
 	// align on top window if cur bigger than tot
 	if(G.v2d->cur.ymax-G.v2d->cur.ymin > sizey*OL_H) {
@@ -2263,7 +2263,7 @@ void draw_outliner(ScrArea *sa, SpaceOops *soops)
 	/* ortho corrected */
 	myortho2(G.v2d->cur.xmin-SCROLLB-0.375, G.v2d->cur.xmax-0.375, G.v2d->cur.ymin-0.375, G.v2d->cur.ymax-0.375);
 	
-	block= uiNewBlock(&curarea->uiblocks, "outliner buttons", UI_EMBOSS, UI_HELV, sa->win);
+	block= uiNewBlock(&sa->uiblocks, "outliner buttons", UI_EMBOSS, UI_HELV, sa->win);
 	outliner_buttons(block, soops, &soops->tree);
 	uiDrawBlock(block);
 	
