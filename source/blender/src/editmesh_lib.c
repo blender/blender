@@ -221,9 +221,9 @@ void EM_set_flag_all(int flag)
 	EditEdge *eed;
 	EditFace *efa;
 	
-	for (eve= em->verts.first; eve; eve= eve->next) eve->f |= flag;
-	for (eed= em->edges.first; eed; eed= eed->next) eed->f |= flag;
-	for (efa= em->faces.first; efa; efa= efa->next) efa->f |= flag;
+	for (eve= em->verts.first; eve; eve= eve->next) if(eve->h==0) eve->f |= flag;
+	for (eed= em->edges.first; eed; eed= eed->next) if(eed->h==0) eed->f |= flag;
+	for (efa= em->faces.first; efa; efa= efa->next) if(efa->h==0) efa->f |= flag;
 	
 }
 
