@@ -2149,17 +2149,80 @@ static void borderselect_function(void (*select_func)(bAction *act,
 	
 }
 
+static void clever_keyblock_names(Key *key, short* mval){
+    int        but=0, i, keynum;
+    char       str[64];
+	float      x;
+	KeyBlock   *kb;
+	/* get the keynum cooresponding to the y value
+	 * of the mouse pointer, return if this is
+	 * an invalid key number (and we don't deal
+	 * with the speed ipo).
+	 */
+
+    keynum = get_nearest_key_num(key, mval, &x);
+    if ( (keynum < 1) || (keynum >= key->totkey) )
+        return;
+
+	kb= key->block.first;
+	for (i=0; i<keynum; ++i) kb = kb->next; 
+
+	if (kb->name[0] == '\0') {
+		sprintf(str, "Key %d", keynum);
+	}
+	else {
+		strcpy(str, kb->name);
+	}
+
+	if ( (kb->slidermin >= kb->slidermax) ) {
+		kb->slidermin = 0.0;
+		kb->slidermax = 1.0;
+	}
+
+    add_numbut(but++, TEX, "KB: ", 0, 24, str, 
+               "Does this really need a tool tip?");
+	add_numbut(but++, NUM|FLO, "Slider min:", 
+			   -10000, kb->slidermax, &kb->slidermin, 0);
+	add_numbut(but++, NUM|FLO, "Slider max:", 
+			   kb->slidermin, 10000, &kb->slidermax, 0);
+
+    if (do_clever_numbuts(str, but, REDRAW)) {
+		strcpy(kb->name, str);
+        allqueue (REDRAWACTION, 0);
+		allspace(REMAKEIPO, 0);
+        allqueue (REDRAWIPO, 0);
+	}
+
+	
+}
+
+static void numbuts_action(void)
+{
+	/* now called from action window event loop, plus reacts on mouseclick */
+	/* removed Hos grunts for that reason! :) (ton) */
+    Key *key;
+    short mval[2];
+
+    if ( (key = get_action_mesh_key()) ) {
+        getmouseco_areawin (mval);
+		if (mval[0]<NAMEWIDTH) {
+			clever_keyblock_names(key, mval);
+		}
+    }
+}
+
 void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
-	unsigned short event= evt->event;
-	short val= evt->val;
+	extern void do_actionbuts(unsigned short event); // drawaction.c
 	SpaceAction *saction;
 	bAction	*act;
-	int doredraw= 0;
-	short	mval[2];
-	float dx,dy;
-	int	cfra;
 	Key *key;
+	float dx,dy;
+	int doredraw= 0;
+	int	cfra;
+	short	mval[2];
+	unsigned short event= evt->event;
+	short val= evt->val;
 
 	if(curarea->win==0) return;
 
@@ -2178,67 +2241,10 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		switch(event) {
 		case UI_BUT_EVENT:
-			do_butspace(val); // abuse!
+			do_actionbuts(val); 	// window itself
 			break;
 		case HOMEKEY:
-			do_action_buttons(B_ACTHOME);
-			break;
-
-		case CKEY:
-			/* scroll the window so the current
-			 * frame is in the center.
-			 */
-			center_currframe();
-			break;
-
-		case DKEY:
-			if (key) {
-				if (G.qual & LR_SHIFTKEY && mval[0]>ACTWIDTH) {
-					duplicate_meshchannel_keys(key);
-				}
-			}
-			else {
-				if (G.qual & LR_SHIFTKEY && mval[0]>ACTWIDTH){
-					duplicate_actionchannel_keys();
-					remake_action_ipos(act);
-				}
-			}
-			break;
-
-		case DELKEY:
-
-		case XKEY:
-			if (key) {
-				delete_meshchannel_keys(key);
-			}
-			else {
-				if (mval[0]<NAMEWIDTH)
-					delete_actionchannels ();
-				else
-					delete_actionchannel_keys ();
-			}
-			break;
-
-		case GKEY:
-			if (mval[0]>=ACTWIDTH) {
-				if (key) {
-					transform_meshchannel_keys('g', key);
-				}
-				else {
-					transform_actionchannel_keys ('g');
-				}
-			}
-			break;
-
-		case SKEY:
-			if (mval[0]>=ACTWIDTH) {
-				if (key) {
-					transform_meshchannel_keys('s', key);
-				}
-				else {
-					transform_actionchannel_keys ('s');
-				}
-			}
+			do_action_buttons(B_ACTHOME);	// header
 			break;
 
 		case AKEY:
@@ -2267,44 +2273,6 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					allqueue(REDRAWNLA, 0);
 					allqueue (REDRAWIPO, 0);
 				}
-			}
-			break;
-
-		case VKEY:
-			if (key) {
-				sethandles_meshchannel_keys(HD_VECT, key);
-				/* to do */
-			}
-			else {
-				sethandles_actionchannel_keys(HD_VECT);
-			}
-			break;
-		case HKEY:
-			if (key) {
-				if(G.qual & LR_SHIFTKEY) {
-					sethandles_meshchannel_keys(HD_AUTO, key);
-				}
-				else { 
-					sethandles_meshchannel_keys(HD_ALIGN, key);
-				}
-			}
-			else {
-				if(G.qual & LR_SHIFTKEY) {
-					sethandles_actionchannel_keys(HD_AUTO);
-				}
-				else { 
-					sethandles_actionchannel_keys(HD_ALIGN);
-				}
-			}
-			break;
-
-			/*** set the Ipo type  ***/
-		case TKEY:
-			if (key) {
-				/* to do */
-			}
-			else {
-				set_ipotype_actionchannels(SET_IPO_POPUP);
 			}
 			break;
 
@@ -2353,6 +2321,111 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 
+		case CKEY:
+			/* scroll the window so the current
+			 * frame is in the center.
+			 */
+			center_currframe();
+			break;
+
+		case DKEY:
+			if (key) {
+				if (G.qual & LR_SHIFTKEY && mval[0]>ACTWIDTH) {
+					duplicate_meshchannel_keys(key);
+				}
+			}
+			else {
+				if (G.qual & LR_SHIFTKEY && mval[0]>ACTWIDTH){
+					duplicate_actionchannel_keys();
+					remake_action_ipos(act);
+				}
+			}
+			break;
+
+		case GKEY:
+			if (mval[0]>=ACTWIDTH) {
+				if (key) {
+					transform_meshchannel_keys('g', key);
+				}
+				else {
+					transform_actionchannel_keys ('g');
+				}
+			}
+			break;
+
+		case HKEY:
+			if (key) {
+				if(G.qual & LR_SHIFTKEY) {
+					sethandles_meshchannel_keys(HD_AUTO, key);
+				}
+				else { 
+					sethandles_meshchannel_keys(HD_ALIGN, key);
+				}
+			}
+			else {
+				if(G.qual & LR_SHIFTKEY) {
+					sethandles_actionchannel_keys(HD_AUTO);
+				}
+				else { 
+					sethandles_actionchannel_keys(HD_ALIGN);
+				}
+			}
+			break;
+		
+		case NKEY:
+			if(G.qual==0) {
+				numbuts_action();
+				
+				/* no panel (yet). current numbuts are not easy to put in panel... */
+				//add_blockhandler(curarea, ACTION_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
+				//scrarea_queue_winredraw(curarea);
+			}
+			break;
+			
+		case SKEY:
+			if (mval[0]>=ACTWIDTH) {
+				if (key) {
+					transform_meshchannel_keys('s', key);
+				}
+				else {
+					transform_actionchannel_keys ('s');
+				}
+			}
+			break;
+
+			/*** set the Ipo type  ***/
+		case TKEY:
+			if (key) {
+				/* to do */
+			}
+			else {
+				set_ipotype_actionchannels(SET_IPO_POPUP);
+			}
+			break;
+
+		case VKEY:
+			if (key) {
+				sethandles_meshchannel_keys(HD_VECT, key);
+				/* to do */
+			}
+			else {
+				sethandles_actionchannel_keys(HD_VECT);
+			}
+			break;
+
+		case DELKEY:
+		case XKEY:
+			if (key) {
+				delete_meshchannel_keys(key);
+			}
+			else {
+				if (mval[0]<NAMEWIDTH)
+					delete_actionchannels ();
+				else
+					delete_actionchannel_keys ();
+			}
+			break;
+
 		case LEFTMOUSE:
 			if (mval[0]>ACTWIDTH){
 				do {
@@ -2380,12 +2453,13 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			 * channel or constraint channel
 			 */
 			if (mval[0]<NAMEWIDTH) {
-				if(G.qual & LR_SHIFTKEY)
-					mouse_actionchannels(act, mval, NULL, 
-										 SELECT_INVERT);
-				else
-					mouse_actionchannels(act, mval, NULL, 
-										 SELECT_REPLACE);
+				if(act) {
+					if(G.qual & LR_SHIFTKEY)
+						mouse_actionchannels(act, mval, NULL,  SELECT_INVERT);
+					else
+						mouse_actionchannels(act, mval, NULL,  SELECT_REPLACE);
+				}
+				else numbuts_action();
 			}
 			else if (mval[0]>ACTWIDTH) {
 
@@ -2494,71 +2568,4 @@ int get_nearest_key_num(Key *key, short *mval, float *x) {
     return (num + 1);
 }
 
-static void clever_keyblock_names(Key *key, short* mval){
-    int        but=0, i, keynum;
-    char       str[64];
-	float      x;
-	KeyBlock   *kb;
-	/* get the keynum cooresponding to the y value
-	 * of the mouse pointer, return if this is
-	 * an invalid key number (and we don't deal
-	 * with the speed ipo).
-	 */
 
-    keynum = get_nearest_key_num(key, mval, &x);
-    if ( (keynum < 1) || (keynum >= key->totkey) )
-        return;
-
-	kb= key->block.first;
-	for (i=0; i<keynum; ++i) kb = kb->next; 
-
-	if (kb->name[0] == '\0') {
-		sprintf(str, "Key %d", keynum);
-	}
-	else {
-		strcpy(str, kb->name);
-	}
-
-	if ( (kb->slidermin >= kb->slidermax) ) {
-		kb->slidermin = 0.0;
-		kb->slidermax = 1.0;
-	}
-
-    add_numbut(but++, TEX, "KB: ", 0, 24, str, 
-               "Does this really need a tool tip?");
-	add_numbut(but++, NUM|FLO, "Slider min:", 
-			   -10000, kb->slidermax, &kb->slidermin, 0);
-	add_numbut(but++, NUM|FLO, "Slider max:", 
-			   kb->slidermin, 10000, &kb->slidermax, 0);
-
-    if (do_clever_numbuts(str, but, REDRAW)) {
-		strcpy(kb->name, str);
-        allqueue (REDRAWACTION, 0);
-        allqueue (REDRAWIPO, 0);
-	}
-
-	
-}
-
-void stupid_damn_numbuts_action(void){
-    /* I think this function might have been
-     * deemed clever if it could have been
-     * called from the event processing
-     * routine in this file -- rather than having
-     * to go from the NKEY event from blenderqread
-     * in toets.c (which returns 0 so nobody else
-     * can use the NKEY) then into the clever_numbuts
-     * routine in toolbox.c, the finally to this
-     * function. Grumble, grumble, grumble ...
-     */
-
-    Key *key;
-    short mval[2];
-
-    if ( (key = get_action_mesh_key()) ) {
-        getmouseco_areawin (mval);
-		if (mval[0]<NAMEWIDTH) {
-			clever_keyblock_names(key, mval);
-		}
-    }
-}

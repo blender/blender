@@ -907,6 +907,7 @@ void make_cu_editipo(SpaceIpo *si)
 void make_key_editipo(SpaceIpo *si)
 {
 	Key *key;
+	KeyBlock *kb=NULL;
 	EditIpo *ei;
 	int a;
 	
@@ -914,8 +915,12 @@ void make_key_editipo(SpaceIpo *si)
 	
 	si->totipo= KEY_TOTIPO;
 	
-	for(a=0; a<KEY_TOTIPO; a++) {
-		getname_key_ei(key_ar[a], ei->name);
+	key= (Key *)G.sipo->from;
+	if(key) kb= key->block.first;
+	
+	for(a=0; a<KEY_TOTIPO; a++, ei++) {
+		if(kb && kb->name[0] != 0) strncpy(ei->name, kb->name, 32);	// length both same
+		else getname_key_ei(key_ar[a], ei->name);
 		ei->adrcode= key_ar[a];
 		
 		ei->col= ipo_rainbow(a, KEY_TOTIPO);
@@ -926,11 +931,10 @@ void make_key_editipo(SpaceIpo *si)
 		}
 		else if(a==0) ei->flag |= IPO_VISIBLE;
 		 
-		ei++;
+		if(kb) kb= kb->next;
 	}
 	
 	ei= si->editipo;
-	key= (Key *)G.sipo->from;
 	if(key && key->type==KEY_RELATIVE) {
 		strcpy(ei->name, "----");
 	}
@@ -4934,142 +4938,6 @@ void transform_ipo(int mode)
 	editipo_changed(G.sipo, 1);
 
 	MEM_freeN(transmain);
-}
-
-void clever_numbuts_ipo()
-{
-	BezTriple *bezt=0, *bezt1;
-	Key *key;
-	KeyBlock *kb;
-	EditIpo *ei;
-	float far, delta[3], old[3];
-	int a, b, scale10=0, totbut=2;
-
-	if(G.sipo->ipo && G.sipo->ipo->id.lib) return;
-	if(G.sipo->editipo==0) return;
-	
-	/* which vertices are involved */
-	get_status_editipo();
-
-	if(G.qual & LR_SHIFTKEY) totbut= 1;
-
-	if(G.vd==0) far= 10000.0;
-	else far= (float)(MAX2(G.vd->far, 10000.0));
-
-	if(totipo_vertsel) {
-
-		ei= G.sipo->editipo;
-		for(a=0; a<G.sipo->totipo; a++, ei++) {
-			
-			if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
-				if( (ei->flag & IPO_EDIT) || G.sipo->showkey) {
-
-					if(ei->icu->bezt) {
-						bezt1= ei->icu->bezt;
-						b= ei->icu->totvert;
-						while(b--) {
-							if(BEZSELECTED(bezt1)) {
-								bezt= bezt1;
-								break;
-							}
-							bezt1++;
-						}
-						
-					}
-				}
-			}
-			if(bezt) break;
-		}
-		
-		if(bezt==0) return;
-
-		if(bezt->f2 & 1) {
-			
-			VECCOPY(old, bezt->vec[1]);
-			
-			if(totipo_vis==1 && G.sipo->blocktype==ID_OB) {
-				if ELEM4(ei->icu->adrcode, OB_TIME, OB_ROT_X, OB_ROT_Y, OB_ROT_Z) scale10= 1;
-				if ELEM3(ei->icu->adrcode, OB_DROT_X, OB_DROT_Y, OB_DROT_Z) scale10= 1;
-			}
-			if(scale10) bezt->vec[1][1]*= 10.0;
-
-			add_numbut(0, NUM|FLO, "LocX:", -1000, 10000, bezt->vec[1], 0);
-			if(totbut==2) add_numbut(1, NUM|FLO, "LocY:", -far, far, bezt->vec[1]+1, 0);
-			do_clever_numbuts("Active BezierPoint", totbut, REDRAW);
-
-			if(scale10) bezt->vec[1][1]/= 10.0;
-
-			VecSubf(delta, bezt->vec[1], old);
-			VECCOPY(bezt->vec[1], old);
-			
-			/* apply */
-			ei= G.sipo->editipo;
-			for(a=0; a<G.sipo->totipo; a++, ei++) {
-				if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
-					if( (ei->flag & IPO_EDIT) || G.sipo->showkey) {
-						if(ei->icu->bezt) {
-							bezt= ei->icu->bezt;
-							b= ei->icu->totvert;
-							while(b--) {
-								if(bezt->f2 & 1) {
-									bezt->vec[0][0]+= delta[0];
-									bezt->vec[1][0]+= delta[0];
-									bezt->vec[2][0]+= delta[0];
-
-									bezt->vec[0][1]+= delta[1];
-									bezt->vec[1][1]+= delta[1];
-									bezt->vec[2][1]+= delta[1];
-								}
-								bezt++;
-							}
-						}
-					}
-				}
-			}
-
-			ei= G.sipo->editipo;
-			for(a=0; a<G.sipo->totipo; a++, ei++) {
-				if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
-					sort_time_ipocurve(ei->icu);
-					testhandles_ipocurve(ei->icu);
-				}
-			}
-
-		}
-		else if(bezt->f1 & 1) {
-			add_numbut(0, NUM|FLO, "LocX:", -1000, 10000, bezt->vec[0], 0);
-			if(totbut==2) add_numbut(1, NUM|FLO, "LocY:", -far, far, bezt->vec[0]+1, 0);
-		
-			do_clever_numbuts("Active HandlePoint", totbut, REDRAW);
-		}
-		else if(bezt->f3 & 1) {
-			add_numbut(0, NUM|FLO, "LocX:", -1000, 10000, bezt->vec[0], 0);
-			if(totbut==2) add_numbut(1, NUM|FLO, "LocY:", -far, far, bezt->vec[2]+1, 0);
-		
-			do_clever_numbuts("Active HandlePoint", totbut, REDRAW);
-		}
-
-		editipo_changed(G.sipo, 1);
-	}
-	else {
-		
-		if(G.sipo->blocktype==ID_KE) {
-			key= (Key *)G.sipo->from;
-			
-			if(key==0) return;
-			
-			kb= key->block.first;
-			while(kb) {
-				if(kb->flag & SELECT) break;
-				kb= kb->next;
-			}			
-			if(kb && G.sipo->rowbut&1) {
-				add_numbut(0, NUM|FLO, "Pos:", -100, 100, &kb->pos, 0);
-				do_clever_numbuts("Active Key", 1, REDRAW);		
-				sort_keys(key);
-			}
-		}
-	}
 }
 
 void filter_sampledata(float *data, int sfra, int efra)

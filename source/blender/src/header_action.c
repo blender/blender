@@ -132,6 +132,7 @@ void do_action_buttons(unsigned short event)
 			G.v2d->cur.ymin=-SCROLLB;
 
 			if (!G.saction->action){	// here the mesh rvk?
+				G.v2d->cur.xmax=0;
 				G.v2d->cur.xmax=100;
 			}
 			else {
@@ -678,7 +679,7 @@ void action_buttons(void)
 
 	uiBlockSetEmboss(block, UI_EMBOSSX);
 	
-	if (!get_action_mesh_key()) {
+	if (G.saction->action) {
 		/* NAME ETC */
 		ob=OBACT;
 		from = (ID*) ob;

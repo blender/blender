@@ -73,6 +73,7 @@
 #include "BIF_screen.h"
 #include "BIF_interface.h"
 #include "BIF_mywindow.h"
+#include "BIF_space.h"
 
 #include "BDR_editcurve.h"
 #include "BSE_view.h"
@@ -114,6 +115,7 @@ void meshactionbuts(SpaceAction *saction, Key *key)
 	char          str[64];
 	float	        x, y;
 	uiBlock       *block;
+	uiBut 		  *but;
 
 #define XIC 20
 #define YIC 20
@@ -146,20 +148,26 @@ void meshactionbuts(SpaceAction *saction, Key *key)
 
 	if (!showsliders) {
 		ACTWIDTH = NAMEWIDTH;
-		uiDefIconButS(block, TOG, B_FLIPINFOMENU, 
+		but=uiDefIconButS(block, TOG, B_REDR, 
 					  ICON_DISCLOSURE_TRI_RIGHT,
 					  NAMEWIDTH - XIC - 5, y + CHANNELHEIGHT,
 					  XIC,YIC-2,
 					  &(showsliders), 0, 0, 0, 0, 
 					  "Show action window sliders");
+		// no hilite, the winmatrix is not correct later on...
+		uiButSetFlag(but, UI_NO_HILITE);
+
 	}
 	else {
-		uiDefIconButS(block, TOG, B_FLIPINFOMENU, 
+		but= uiDefIconButS(block, TOG, B_REDR, 
 					  ICON_DISCLOSURE_TRI_DOWN,
 					  NAMEWIDTH - XIC - 5, y + CHANNELHEIGHT,
 					  XIC,YIC-2,
 					  &(showsliders), 0, 0, 0, 0, 
 					  "Hide action window sliders");
+		// no hilite, the winmatrix is not correct later on...
+		uiButSetFlag(but, UI_NO_HILITE);
+					  
 		ACTWIDTH = NAMEWIDTH + SLIDERWIDTH;
 
 		/* sliders are open so draw them */
@@ -251,7 +259,8 @@ static void draw_action_channel_names(bAction	*act)
 }
 
 
-static void draw_action_mesh_names(Key *key) {
+static void draw_action_mesh_names(Key *key) 
+{
 	/* draws the names of the rvk keys in the
 	 * left side of the action window
 	 */
@@ -325,21 +334,18 @@ static void draw_channel_names(void)
 	glColor3ub(0x00, 0x00, 0x00);
 
 	act=G.saction->action;
-	
-	
+
 	if (act) {
 		/* if there is a selected action then
 		 * draw the channel names
 		 */
 		draw_action_channel_names(act);
 	}
-	else {
-	    if ( (key = get_action_mesh_key()) ) {
-            /* if there is a mesh selected with rvk's,
-             * then draw the RVK names
-             */
-            draw_action_mesh_names(key);
-        }
+	if ( (key = get_action_mesh_key()) ) {
+		/* if there is a mesh selected with rvk's,
+			* then draw the RVK names
+			*/
+		draw_action_mesh_names(key);
     }
 
     myortho2(0,	NAMEWIDTH, 0, (ofsy+G.v2d->mask.ymax) -
@@ -522,6 +528,54 @@ static void draw_mesh_strips(SpaceAction *saction, Key *key)
 	glaEnd2DDraw(di);
 }
 
+/* ********* action panel *********** */
+
+
+void do_actionbuts(unsigned short event)
+{
+	switch(event) {
+	case REDRAWVIEW3D:
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+	case B_REDR:
+		allqueue(REDRAWACTION, 0);
+		break;
+	}
+}
+
+
+static void action_panel_properties(short cntrl)	// ACTION_HANDLER_PROPERTIES
+{
+	uiBlock *block;
+
+	block= uiNewBlock(&curarea->uiblocks, "action_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
+	uiSetPanelHandler(ACTION_HANDLER_PROPERTIES);  // for close and esc
+	if(uiNewPanel(curarea, block, "Transform Properties", "Action", 10, 230, 318, 204)==0) return;
+
+	uiDefBut(block, LABEL, 0, "test text",		10,180,300,19, 0, 0, 0, 0, 0, "");
+
+}
+
+static void action_blockhandlers(ScrArea *sa)
+{
+	SpaceAction *sact= sa->spacedata.first;
+	short a;
+	
+	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
+		switch(sact->blockhandler[a]) {
+
+		case IMAGE_HANDLER_PROPERTIES:
+			action_panel_properties(sact->blockhandler[a+1]);
+			break;
+		
+		}
+		/* clear action value for event */
+		sact->blockhandler[a+1]= 0;
+	}
+	uiDrawBlocksPanels(sa, 0);
+}
+
 void drawactionspace(ScrArea *sa, void *spacedata)
 {
 	short ofsx = 0, ofsy = 0;
@@ -531,6 +585,9 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 
 	if (!G.saction)
 		return;
+
+	/* warning; blocks need to be freed each time, handlers dont remove  */
+	uiFreeBlocksWin(&sa->uiblocks, sa->win);
 
 	if (!G.saction->pin) {
 		if (OBACT)
@@ -552,7 +609,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 		maxymin = key->totkey*(CHANNELHEIGHT+CHANNELSKIP);
 		if (G.v2d->cur.ymin > maxymin) G.v2d->cur.ymin = maxymin;
 	}
-	
+
 	/* Lets make sure the width of the left hand of the screen
 	 * is set to an appropriate value based on whether sliders
 	 * are showing of not
@@ -582,6 +639,8 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
+	bwin_clear_viewmat(sa->win);	/* clear buttons view */
+	glLoadIdentity();
 
 	/*	Draw backdrop */
 	calc_ipogrid();	
@@ -631,6 +690,11 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	mywinset(curarea->win);	// reset scissor too
 	myortho2(-0.375, curarea->winx-0.375, -0.375, curarea->winy-0.375);
 	draw_area_emboss(sa);
+
+	/* it is important to end a view in a transform compatible with buttons */
+	bwin_scalematrix(sa->win, G.saction->blockscale, G.saction->blockscale, G.saction->blockscale);
+	action_blockhandlers(sa);
+
 	curarea->win_swap= WIN_BACK_OK;
 }
 

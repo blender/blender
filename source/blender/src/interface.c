@@ -2519,6 +2519,13 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	}		
 
 	ui_set_ftf_font(block);	// sets just a pointer in ftf lib... the button dont have ftf handles
+	
+	// added this for panels in windows with buttons... 
+	// maybe speed optimize should require test
+	if((block->flag & UI_BLOCK_LOOP)==0) {
+		bwin_load_winmatrix(block->win, block->winmat);
+		glLoadIdentity();
+	}
 
 	Mat4CpyMat4(UIwinmat, block->winmat);
 	uiPanelPush(block); // push matrix; no return without pop!

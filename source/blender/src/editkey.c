@@ -278,6 +278,9 @@ void make_rvk_slider(uiBlock *block, Key *key, int keynum,
 				  meshslidervals+keynum, min, max, 10, 2,
 				  "Slider to control rvk");
 	uiButSetFunc(but, rvk_slider_func, key, keynums+keynum);
+	// no hilite, the winmatrix is not correct later on...
+	uiButSetFlag(but, UI_NO_HILITE);
+
 }
 
 static void default_key_ipo(Key *key)

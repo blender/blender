@@ -811,6 +811,7 @@ int blenderqread(unsigned short event, short val)
 				if(curarea->spacetype==SPACE_VIEW3D);		// is new panel, in view3d queue
 				else if(curarea->spacetype==SPACE_IPO);			// is new panel, in ipo queue
 				else if(curarea->spacetype==SPACE_IMAGE);			// is new panel, in ipo queue
+				else if(curarea->spacetype==SPACE_ACTION);			// is new panel
 				else {
 					clever_numbuts();
 					return 0;

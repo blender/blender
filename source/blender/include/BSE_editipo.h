@@ -131,7 +131,6 @@ void nextkey_ipo(int dir);
 void nextkey_obipo(int dir);
 void remake_ipo_transverts(struct TransVert *transmain, float *dvec, int tot);
 void transform_ipo(int mode);
-void clever_numbuts_ipo(void);
 void filter_sampledata(float *data, int sfra, int efra);
 void sampledata_to_ipocurve(float *data, int sfra, int efra, struct IpoCurve *icu);
 void ipo_record(void);    

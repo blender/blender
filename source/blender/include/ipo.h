@@ -47,7 +47,7 @@ typedef struct IpoKey {
 } IpoKey;
 
 typedef struct EditIpo {
-	char name[12];
+	char name[32];
 	IpoCurve *icu;
 	short adrcode, flag;
 	short disptype, rt;

@@ -85,6 +85,8 @@ typedef struct SpaceAction {
 	float blockscale;
 	struct ScrArea *area;
 
+	short blockhandler[8];
+
 	View2D v2d;	
 	bAction		*action;
 	int	flag;

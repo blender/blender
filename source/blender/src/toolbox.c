@@ -1412,59 +1412,26 @@ void clever_numbuts(void)
 	char str[128];
 	
 	if(curarea->spacetype==SPACE_VIEW3D) {
-		lim= 1000.0*MAX2(1.0, G.vd->grid);
-
-		if(G.obpose){
-			if (G.obpose->type == OB_ARMATURE) clever_numbuts_posearmature();
-		}
-		else if(G.obedit==0) {
-			ob= OBACT;
-			if(ob==0) return;
-
-			add_numbut(0, NUM|FLO, "LocX:", -lim, lim, ob->loc, 0);
-			add_numbut(1, NUM|FLO, "LocY:", -lim, lim, ob->loc+1, 0);
-			add_numbut(2, NUM|FLO, "LocZ:", -lim, lim, ob->loc+2, 0);
-			
-			add_numbut(3, NUM|FLO, "RotX:", -10.0*lim, 10.0*lim, ob->rot, 0);
-			add_numbut(4, NUM|FLO, "RotY:", -10.0*lim, 10.0*lim, ob->rot+1, 0);
-			add_numbut(5, NUM|FLO, "RotZ:", -10.0*lim, 10.0*lim, ob->rot+2, 0);
-			
-			add_numbut(6, NUM|FLO, "SizeX:", -lim, lim, ob->size, 0);
-			add_numbut(7, NUM|FLO, "SizeY:", -lim, lim, ob->size+1, 0);
-			add_numbut(8, NUM|FLO, "SizeZ:", -lim, lim, ob->size+2, 0);
-			
-			sprintf(str, "Active Object: %s", ob->id.name+2);
-			do_clever_numbuts(str, 9, REDRAW);
-
-		}
-		else if(G.obedit->type==OB_MESH) clever_numbuts_mesh();
-		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) clever_numbuts_curve();
-		else if (G.obedit->type==OB_ARMATURE) clever_numbuts_armature();
 	}
 	else if(curarea->spacetype==SPACE_NLA){
 		clever_numbuts_nla();
 	}
 	else if(curarea->spacetype==SPACE_IPO) {
-		clever_numbuts_ipo();
 	}
 	else if(curarea->spacetype==SPACE_SEQ) {
 		clever_numbuts_seq();
 	}
 	else if(curarea->spacetype==SPACE_IMAGE) {
-		//clever_numbuts_sima();
 	}
 	else if(curarea->spacetype==SPACE_IMASEL) {
 		clever_numbuts_imasel();
 	}
 	else if(curarea->spacetype==SPACE_BUTS){
-		// clever_numbuts_buts();
 	}
 	else if(curarea->spacetype==SPACE_OOPS) {
 		clever_numbuts_oops();
 	}
 	else if(curarea->spacetype==SPACE_ACTION){
-		void stupid_damn_numbuts_action(void);	// editaction.c
-		stupid_damn_numbuts_action();
 	}
 	else if(curarea->spacetype==SPACE_FILE) {
 		clever_numbuts_filesel();

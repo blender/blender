@@ -35,6 +35,8 @@
 
 struct BezTriple;
 
+// warn these structs are still in ipo.h!
+
 typedef struct IpoKey {
 	struct IpoKey *next, *prev;
 	short flag, rt;
@@ -43,7 +45,7 @@ typedef struct IpoKey {
 } IpoKey;
 
 typedef struct EditIpo {
-	char name[12];
+	char name[32];	// same length as keyblock->name
 	IpoCurve *icu;
 	short adrcode, flag;
 	short disptype, rt;
