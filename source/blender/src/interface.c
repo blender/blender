@@ -2065,12 +2065,11 @@ static int ui_do_but_LINK(uiBlock *block, uiBut *but)
 	return 0;
 }
 
-/* picker sizes S size, D spacer, B button/pallette height  */
+/* picker sizes S hsize, F full size, D spacer, B button/pallette height  */
 #define SPICK	110.0
+#define FPICK	180.0
 #define DPICK	6.0
 #define BPICK	24.0
-
-static short pick_mode=0;
 
 #define UI_PALETTE_TOT 16
 static float palette[UI_PALETTE_TOT][3]= {
@@ -2180,7 +2179,7 @@ static void do_palette1_cb(void *bt1, void *bt2)
 }
 
 /* color picker, cube version */
-static int ui_do_but_COL(uiBut *but)
+static int ui_do_but_COL1(uiBut *but)
 {
 	uiBlock *block;
 	uiBut *bt;
@@ -2235,12 +2234,6 @@ static int ui_do_but_COL(uiBut *but)
 	bt= uiDefButF(block, NUM, 0, "V ",	DPICK+1.5*SPICK,BPICK+DPICK+SPICK-60,SPICK/2,20, hsv+2, 0.0, 1.0, 10, 2, "");
 	uiButSetFunc(bt, do_palette1_cb, bt, but);
 
-	//uiBlockBeginAlign(block);
-	//uiDefButS(block, ROW, 	0, "Paste to color",	DPICK+SPICK, BPICK+DPICK+20, SPICK,20, &pick_mode, 0.0, 0.0, 0, 0, "Clicks in palette pastes to active color");
-	//uiDefButS(block, ROW, 	0, "Copy to palette",DPICK+SPICK, BPICK+DPICK, SPICK,20, &pick_mode, 0.0, 1.0, 0, 0, "Clicks in palette copies from active color");
-	//uiBlockEndAlign(block);
-	
-
 	// safety 
 	uiDefBut(block, LABEL, 0, "",	-DPICK,-DPICK,2*SPICK+3*DPICK,2*SPICK+4*DPICK+BPICK, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -2251,6 +2244,79 @@ static int ui_do_but_COL(uiBut *but)
 	event= uiDoBlocks(&listb, 0);
 	
 	return but->retval;
+}
+
+/* color picker, Gimp version */
+static int ui_do_but_COL(uiBut *but)
+{
+	uiBlock *block;
+	uiBut *bt;
+	ListBase listb={NULL, NULL};
+	float oldcol[3], col[3], hsv[3], h;
+	int a;
+	short event;
+	
+	// signal to prevent calling up color picker
+	if(but->a1 == -1 || but->pointype!=FLO) {
+		uibut_do_func(but);
+		return 0;
+	}
+	
+	block= uiNewBlock(&listb, "colorpicker", UI_EMBOSSP, UI_HELV, but->win);
+	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
+	block->themecol= TH_BUT_NUM;
+	
+	ui_get_but_vectorf(but, col);
+	VECCOPY(oldcol, col);
+	
+	// the cube intersection
+	bt= uiDefButF(block, HSVCUBE, 0, "",	0,DPICK+BPICK,FPICK,FPICK, (float *)but->poin, 0.0, 0.0, 2, 0, "");
+	uiButSetFlag(bt, UI_NO_HILITE);
+
+	bt= uiDefButF(block, HSVCUBE, 0, "",	0,0,FPICK,BPICK, (float *)but->poin, 0.0, 0.0, 3, 0, "");
+	uiButSetFlag(bt, UI_NO_HILITE);
+
+	// palette
+	uiDefButF(block, COL, 0, "",		FPICK+DPICK, 0, BPICK,BPICK, oldcol, 0.0, 0.0, -1, 0, "");
+	uiDefButF(block, COL, 0, "",		FPICK+DPICK, BPICK+DPICK, BPICK,60-BPICK-DPICK, col, 0.0, 0.0, -1, 0, "");
+
+	h= (DPICK+BPICK+FPICK-64)/(UI_PALETTE_TOT/2.0);
+	for(a=0; a<UI_PALETTE_TOT/2; a++) {
+		bt= uiDefButF(block, COL, 0, "",	FPICK+DPICK, 65.0+(float)a*h, BPICK/2, h, palette[a+UI_PALETTE_TOT/2], 0.0, 0.0, -1, 0, "");
+		uiButSetFunc(bt, do_palette_cb, bt, but);
+		bt= uiDefButF(block, COL, 0, "",	FPICK+DPICK+BPICK/2, 65.0+(float)a*h, BPICK/2, h, palette[a], 0.0, 0.0, -1, 0, "");		
+		uiButSetFunc(bt, do_palette_cb, bt, but);
+	}
+
+	// buttons
+	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
+
+	h= (FPICK+DPICK+BPICK)/3.0;
+	bt= uiDefButF(block, NUM, 0, "R ",	0, BPICK+2*DPICK+FPICK+20, h,20, col, 0.0, 1.0, 10, 2, "");
+	uiButSetFunc(bt, do_palette1_cb, bt, but);
+	bt= uiDefButF(block, NUM, 0, "G ",	h, BPICK+2*DPICK+FPICK+20, h,20, col+1, 0.0, 1.0, 10, 2, "");
+	uiButSetFunc(bt, do_palette1_cb, bt, but);
+	bt= uiDefButF(block, NUM, 0, "B ",	2*h, BPICK+2*DPICK+FPICK+20, h,20, col+2, 0.0, 1.0, 10, 2, "");
+	uiButSetFunc(bt, do_palette1_cb, bt, but);
+
+	bt= uiDefButF(block, NUM, 0, "H ",	0, BPICK+2*DPICK+FPICK, h,20, hsv, 0.0, 1.0, 10, 2, "");
+	uiButSetFunc(bt, do_palette1_cb, bt, but);
+	bt= uiDefButF(block, NUM, 0, "S ",	h, BPICK+2*DPICK+FPICK, h,20, hsv+1, 0.0, 1.0, 10, 2, "");
+	uiButSetFunc(bt, do_palette1_cb, bt, but);
+	bt= uiDefButF(block, NUM, 0, "V ",	2*h, BPICK+2*DPICK+FPICK, h,20, hsv+2, 0.0, 1.0, 10, 2, "");
+	uiButSetFunc(bt, do_palette1_cb, bt, but);
+
+	// safety 
+	uiDefBut(block, LABEL, 0, "",	-DPICK,-DPICK, FPICK+3*DPICK+BPICK, FPICK+4*DPICK+BPICK+40, NULL, 0.0, 0.0, 0, 0, "");
+
+	/* and lets go */
+	block->direction= UI_TOP;
+	ui_positionblock(block, but);
+	block->win= G.curscreen->mainwin;
+	event= uiDoBlocks(&listb, 0);
+	
+	return but->retval;
+
 }
 
 static int ui_do_but_HSVCUBE(uiBut *but)
@@ -2279,10 +2345,13 @@ static int ui_do_but_HSVCUBE(uiBut *but)
 			/* assign position to color */
 			ui_get_but_vectorf(but, col);
 			rgb_to_hsv(col[0], col[1], col[2], &h, &s, &v);
+			if(v==0.0) v= 0.001;
+			if(s==0.0) s= 0.001;
 			
 			if(but->a1==0) hsv_to_rgb(x, s, y, col, col+1, col+2);
 			else if(but->a1==1) hsv_to_rgb(x, y, v, col, col+1, col+2);
-			else hsv_to_rgb(h, y, x, col, col+1, col+2);
+			else if(but->a1==2) hsv_to_rgb(h, y, x, col, col+1, col+2);
+			else hsv_to_rgb(x, s, v, col, col+1, col+2);
 			
 			ui_set_but_vectorf(but, col);
 			

@@ -1518,12 +1518,19 @@ static void ui_draw_but_HSVCUBE(uiBut *but)
 		hsv_to_rgb(0.0, 1.0, v,   &col1[3][0], &col1[3][1], &col1[3][2]);
 		x= h; y= s;
 	}
-	else {	// S and V vary
+	else if(but->a1==2) {	// S and V vary
 		hsv_to_rgb(h, 0.0, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
 		hsv_to_rgb(h, 0.333, 0.0, &col1[1][0], &col1[1][1], &col1[1][2]);
 		hsv_to_rgb(h, 0.666, 0.0, &col1[2][0], &col1[2][1], &col1[2][2]);
 		hsv_to_rgb(h, 1.0, 0.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
 		x= v; y= s;
+	}
+	else {		// only hue slider
+		hsv_to_rgb(0.0, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
+		VECCOPY(col1[1], col1[0]);
+		VECCOPY(col1[2], col1[0]);
+		VECCOPY(col1[3], col1[0]);
+		x= h; y= 0.5;
 	}
 	
 	for(dx=0.0; dx<1.0; dx+= 0.05) {
@@ -1546,11 +1553,17 @@ static void ui_draw_but_HSVCUBE(uiBut *but)
 			hsv_to_rgb(dx, 0.666, v, &col1[2][0], &col1[2][1], &col1[2][2]);
 			hsv_to_rgb(dx, 1.0, v,   &col1[3][0], &col1[3][1], &col1[3][2]);
 		}
-		else {	// S and V vary
+		else if(but->a1==2) {	// S and V vary
 			hsv_to_rgb(h, 0.0, dx,   &col1[0][0], &col1[0][1], &col1[0][2]);
 			hsv_to_rgb(h, 0.333, dx, &col1[1][0], &col1[1][1], &col1[1][2]);
 			hsv_to_rgb(h, 0.666, dx, &col1[2][0], &col1[2][1], &col1[2][2]);
 			hsv_to_rgb(h, 1.0, dx,   &col1[3][0], &col1[3][1], &col1[3][2]);
+		}
+		else {	// only H
+			hsv_to_rgb(dx, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
+			VECCOPY(col1[1], col1[0]);
+			VECCOPY(col1[2], col1[0]);
+			VECCOPY(col1[3], col1[0]);
 		}
 		
 		// rect
