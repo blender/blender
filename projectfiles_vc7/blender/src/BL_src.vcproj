@@ -442,6 +442,18 @@
 				RelativePath="..\..\..\source\blender\src\toolbox.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\transform.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\transform_constraints.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\transform_generics.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\transform_numinput.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\unwrapper.c">
 			</File>
 			<File
@@ -513,6 +525,18 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\butspace.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\transform.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\transform_constraints.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\transform_generics.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\transform_numinput.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\winlay.h">
