@@ -2,6 +2,21 @@ Welcome to the fun world of opensource.
 
 To help you get started do the following before starting:
 
+You will want to downlod the following external packages:
+
+openssl:  http://www.openssl.org
+python:  http://www.python.org
+nspr:  ftp://ftp.mozilla.org/pub/nspr/releases
+libjpeg:  http://www.ijg.org/
+libpng:  http://www.libpng.org/pub/png/
+zlib:   http://www.gzip.org/zlib/
+openal:  http://www.openal.org/home/
+(maye be needed for openal)sdl: http://www.libsdl.org/index.php
+smpeg: http://www.lokigames.com/development/smpeg.php3
+
+If you do not have GL you will also need mesa:
+http://www.mesa3d.org
+
 --------------UNIX TIPS---------------------------------------
 Assuming your using tcsh/csh do the following before compiling.
 #Set this to wherever you have extracted the source.
