@@ -53,7 +53,7 @@ CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I..
 
 # stuff needed by quicktime_[import|export].c
-CPPFLAGS += -I../../readstreamglue -I../../imbuf/intern -I../../imbuf 
+CPPFLAGS += -I../../blenloader -I../../imbuf/intern -I../../imbuf 
 CPPFLAGS += -I../../blenlib -I../../makesdna -I../../include -I../../avi 
 CPPFLAGS += -I../../blenkernel -I../../render/extern/include
 
