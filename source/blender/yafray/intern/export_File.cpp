@@ -164,7 +164,7 @@ bool yafrayFileRender_t::writeRender()
 
 	if (hasworld) ostr << "\tbackground_name=\"world_background\"\n";
 
-	ostr << "\tAA_pixelwidth=\"2\" AA_threshold=\"0.06\" bias=\"0.0001\" >\n";
+	ostr << "\tAA_pixelwidth=\"1\" AA_threshold=\"0.05\" bias=\"0.001\" >\n";
 
 	ostr << "\t<outfile value=\"" << imgout << "\" />\n";
 
@@ -1113,7 +1113,7 @@ void yafrayFileRender_t::writePathlight()
 	{
 		ostr << "<light type=\"globalphotonlight\" name=\"gpm\" photons=\""<<R.r.GIphotoncount<<"\""<<endl;
 		ostr << "\tradius=\"" <<R.r.GIphotonradius << "\" depth=\""<< ((R.r.GIdepth>2) ? (R.r.GIdepth-1) : 1)
-				 << "\" search=\""<< R.r.GImixphotons<<"\" >"<<endl;
+				 << "\" caus_depth=\""<<R.r.GIcausdepth<< "\" search=\""<< R.r.GImixphotons<<"\" >"<<endl;
 		ostr << "</light>"<<endl;
 	}
 	ostr << "<light type=\"pathlight\" name=\"path_LT\" power=\"" << R.r.GIpower << "\" ";
@@ -1134,7 +1134,7 @@ void yafrayFileRender_t::writePathlight()
 		float sbase = 2.0*atan(0.5/(mainCamLens/(aspect*32.0)))/float(R.r.xsch);
 		ostr << " cache=\"on\" use_QMC=\"on\" \n";
 		ostr << " cache_size=\"" << sbase*R.r.GIpixelspersample << "\" shadow_threshold=\"" <<
-			1.0 - R.r.GIshadowquality << "\" search=\"85\" gradient=\"" <<
+			1.0 - R.r.GIshadowquality << "\" grid=\"82\" search=\"35\" gradient=\"" <<
 			((R.r.GIgradient)? "on" : "off") << "\" >\n";
 	}
 	else
