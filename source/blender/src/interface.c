@@ -655,6 +655,7 @@ void uiDrawBlock(uiBlock *block)
 typedef struct {
 	char *str;
 	int retval;
+	int icon;
 } MenuEntry;
 
 typedef struct {
@@ -681,7 +682,7 @@ static void menudata_set_title(MenuData *md, char *title) {
 		md->title= title;
 }
 
-static void menudata_add_item(MenuData *md, char *str, int retval) {
+static void menudata_add_item(MenuData *md, char *str, int retval, int icon) {
 	if (md->nitems==md->itemssize) {
 		int nsize= md->itemssize?(md->itemssize<<1):1;
 		MenuEntry *oitems= md->items;
@@ -697,6 +698,7 @@ static void menudata_add_item(MenuData *md, char *str, int retval) {
 	
 	md->items[md->nitems].str= str;
 	md->items[md->nitems].retval= retval;
+	md->items[md->nitems].icon= icon;
 	md->nitems++;
 }
 
@@ -724,7 +726,7 @@ static MenuData *decompose_menu_string(char *str)
 	char *instr= BLI_strdup(str);
 	MenuData *md= menudata_new(instr);
 	char *nitem= NULL, *s= instr;
-	int nretval= 1, nitem_is_title= 0;
+	int nicon=0, nretval= 1, nitem_is_title= 0;
 	
 	while (1) {
 		char c= *s;
@@ -743,6 +745,9 @@ static MenuData *decompose_menu_string(char *str)
 			} else if (s[1]=='l') {
 				nitem= "%l";
 				s++;
+			} else if (s[1]=='i') {
+				nicon= atoi(s+2);
+				s++;
 			}
 		} else if (c=='|' || c=='\0') {
 			if (nitem) {
@@ -752,11 +757,12 @@ static MenuData *decompose_menu_string(char *str)
 					menudata_set_title(md, nitem);
 					nitem_is_title= 0;
 				} else {
-					menudata_add_item(md, nitem, nretval);
+					menudata_add_item(md, nitem, nretval, nicon);
 					nretval= md->nitems+1;
 				} 
 				
 				nitem= NULL;
+				nicon= 0;
 			}
 			
 			if (c=='\0')
@@ -877,6 +883,10 @@ static int ui_do_but_MENU(uiBut *but)
 
 		if (strcmp(md->items[md->nitems-a-1].str, "%l")==0) {
 			uiDefBut(block, SEPR, B_NOP, "", x1, y1,(short)(width-(rows>1)), (short)(boxh-1), NULL, 0.0, 0.0, 0, 0, "");
+		}
+		else if(md->items[md->nitems-a-1].icon) {
+			uiBut *bt= uiDefIconTextBut(block, BUTM|but->pointype, but->retval, md->items[md->nitems-a-1].icon ,md->items[md->nitems-a-1].str, x1, y1,(short)(width-(rows>1)), (short)(boxh-1), but->poin, (float) md->items[md->nitems-a-1].retval, 0.0, 0, 0, "");
+			if(active==a) bt->flag |= UI_ACTIVE;
 		}
 		else {
 			uiBut *bt= uiDefBut(block, BUTM|but->pointype, but->retval, md->items[md->nitems-a-1].str, x1, y1,(short)(width-(rows>1)), (short)(boxh-1), but->poin, (float) md->items[md->nitems-a-1].retval, 0.0, 0, 0, "");

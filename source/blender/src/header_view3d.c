@@ -120,8 +120,8 @@
  * This can be cleaned when I make some new 'mode' icons.
  */
 
-#define V3D_OBJECTMODE_SEL				ICON_ORTHO
-#define V3D_EDITMODE_SEL					ICON_EDITMODE_HLT
+#define V3D_OBJECTMODE_SEL				ICON_OBJECT
+#define V3D_EDITMODE_SEL				ICON_EDITMODE_HLT
 #define V3D_FACESELECTMODE_SEL		ICON_FACESEL_HLT
 #define V3D_VERTEXPAINTMODE_SEL		ICON_VPAINT_HLT
 #define V3D_TEXTUREPAINTMODE_SEL	ICON_TPAINT_HLT
@@ -2504,81 +2504,45 @@ static uiBlock *view3d_faceselmenu(void *arg_unused)
 static char *view3d_modeselect_pup(void)
 {
 	static char string[1024];
-	char formatstring[1024];
-
-	strcpy(formatstring, "Mode: %%t");
+	char formatstr[1024];
+	char tempstr[1024];
 	
-	strcat(formatstring, "|%s %%x%d");	// add space in the menu for Object
+	strcpy(string, "Mode: %t");
+	strcpy(formatstr, "|%s %%x%d %%i%d");
 	
-	/* if active object is an armature */
-	if (OBACT && OBACT->type==OB_ARMATURE) {
-		strcat(formatstring, "|%s %%x%d");	// add space in the menu for pose
-	}
-	
-	/* if active object is a mesh */
-	if (OBACT && OBACT->type == OB_MESH) {
-		strcat(formatstring, "|%s %%x%d|%s %%x%d|%s %%x%d");	// add space in the menu for faceselect, vertex paint, texture paint
-		
-		/* if active mesh has an armature */
-		if ((((Mesh*)(OBACT->data))->dvert)) {
-			strcat(formatstring, "|%s %%x%d");	// add space in the menu for weight paint
-		}
-	}
+	sprintf(tempstr, formatstr, "Object Mode", V3D_OBJECTMODE_SEL, ICON_OBJECT);
+	strcat(string, tempstr);
 	
 	/* if active object is editable */
 	if (OBACT && ((OBACT->type == OB_MESH) || (OBACT->type == OB_ARMATURE)
-	|| (OBACT->type == OB_CURVE) || (OBACT->type == OB_SURF) || (OBACT->type == OB_FONT)
-	|| (OBACT->type == OB_MBALL) || (OBACT->type == OB_LATTICE))) {
-		strcat(formatstring, "|%s %%x%d");	// add space in the menu for Edit
+		|| (OBACT->type == OB_CURVE) || (OBACT->type == OB_SURF) || (OBACT->type == OB_FONT)
+		|| (OBACT->type == OB_MBALL) || (OBACT->type == OB_LATTICE))) {
+		
+		sprintf(tempstr, formatstr, "Edit Mode", V3D_EDITMODE_SEL, ICON_EDITMODE_HLT);
+		strcat(string, tempstr);
 	}
-	
-	/*
-	 * fill in the spaces in the menu with appropriate mode choices depending on active object
-	 */
 
+	if (OBACT && OBACT->type == OB_MESH) {
+	
+		sprintf(tempstr, formatstr, "UV FaceSelect", V3D_FACESELECTMODE_SEL, ICON_FACESEL_HLT);
+		strcat(string, tempstr);
+		sprintf(tempstr, formatstr, "Vertex Paint", V3D_VERTEXPAINTMODE_SEL, ICON_VPAINT_HLT);
+		strcat(string, tempstr);
+		sprintf(tempstr, formatstr, "Texture Paint", V3D_TEXTUREPAINTMODE_SEL, ICON_TPAINT_HLT);
+		strcat(string, tempstr);
+
+	
+		if ( ((Mesh*)(OBACT->data))->dvert)  {
+			sprintf(tempstr, formatstr, "Texture Paint", V3D_WEIGHTPAINTMODE_SEL, ICON_WPAINT_HLT);
+			strcat(string, tempstr);
+		}
+	}
+
+	
 	/* if active object is an armature */
 	if (OBACT && OBACT->type==OB_ARMATURE) {
-		sprintf(string, formatstring,
-		"Object Mode",						V3D_OBJECTMODE_SEL,
-		"Edit Mode",						V3D_EDITMODE_SEL,
-		"Pose Mode",						V3D_POSEMODE_SEL
-		);
-	}
-	/* if active object is a mesh with armature */
-	else if ((OBACT && OBACT->type == OB_MESH) && ((((Mesh*)(OBACT->data))->dvert))) {
-		sprintf(string, formatstring,
-		"Object Mode",						V3D_OBJECTMODE_SEL,
-		"Edit Mode",						V3D_EDITMODE_SEL,
-		"Face Select",			V3D_FACESELECTMODE_SEL,
-		"Vertex Paint",			V3D_VERTEXPAINTMODE_SEL,
-		"Texture Paint",		V3D_TEXTUREPAINTMODE_SEL,
-		"Weight Paint",			V3D_WEIGHTPAINTMODE_SEL 
-		);
-	}
-	/* if active object is a mesh */
-	else if (OBACT && OBACT->type == OB_MESH) {
-		sprintf(string, formatstring,
-		"Object Mode",						V3D_OBJECTMODE_SEL,
-		"Edit Mode",						V3D_EDITMODE_SEL,
-		"Face Select",			V3D_FACESELECTMODE_SEL,
-		"Vertex Paint",			V3D_VERTEXPAINTMODE_SEL,
-		"Texture Paint",		V3D_TEXTUREPAINTMODE_SEL
-		);
-	} 
-	/* if active object is editable */
-	else if (OBACT && ((OBACT->type == OB_MESH) || (OBACT->type == OB_ARMATURE)
-	|| (OBACT->type == OB_CURVE) || (OBACT->type == OB_SURF) || (OBACT->type == OB_FONT)
-	|| (OBACT->type == OB_MBALL) || (OBACT->type == OB_LATTICE))) {
-		sprintf(string, formatstring,
-		"Object Mode",						V3D_OBJECTMODE_SEL,
-		"Edit Mode",						V3D_EDITMODE_SEL
-		);
-	}
-	/* if active object is not editable */
-	else {
-		sprintf(string, formatstring,
-		"Object Mode",						V3D_OBJECTMODE_SEL
-		);
+		sprintf(tempstr, formatstr, "Pose Mode", V3D_POSEMODE_SEL, ICON_POSE_HLT);
+		strcat(string, tempstr);
 	}
 	
 	return (string);

@@ -447,56 +447,56 @@ static char *ipo_modeselect_pup(void)
 	char tmpstr[1024];
 	char formatstring[1024];
 
-	strcpy(string, "Display IPO type: %t");
+	strcpy(string, "Ipo type: %t");
 	
-	strcpy(formatstring, "|%s %%x%d");
+	strcpy(formatstring, "|%s %%x%d %%i%d");
 
 	if(OBACT) {
-		sprintf(tmpstr,formatstring,"Object",ID_OB);
+		sprintf(tmpstr,formatstring,"Object",ID_OB, ICON_OBJECT);
 		strcat(string,tmpstr);
 	}
 
 	if(OBACT && give_current_material(OBACT, OBACT->actcol)) { // check for material
-		sprintf(tmpstr,formatstring,"Material",ID_MA);
+		sprintf(tmpstr,formatstring,"Material",ID_MA, ICON_MATERIAL);
 		strcat(string,tmpstr);
 	}
 
 	if(G.scene->world) {
-		sprintf(tmpstr,formatstring,"World",ID_WO);
+		sprintf(tmpstr,formatstring,"World",ID_WO, ICON_WORLD);
 		strcat(string,tmpstr);
 	}
 
 	if(OBACT && OBACT->type==OB_CURVE) {
-		sprintf(tmpstr,formatstring,"Curve",ID_WO);
+		sprintf(tmpstr,formatstring,"Curve",ID_CU, ICON_CURVE);
 		strcat(string,tmpstr);
 	}
 
 	if(OBACT && OBACT->type==OB_CAMERA) {
-		sprintf(tmpstr,formatstring,"Camera",ID_CA);
+		sprintf(tmpstr,formatstring,"Camera",ID_CA, ICON_CAMERA);
 		strcat(string,tmpstr);
 	}
 	
 	if(OBACT && OBACT->type==OB_LAMP) {
-		sprintf(tmpstr,formatstring,"Lamp",ID_LA);
+		sprintf(tmpstr,formatstring,"Lamp",ID_LA, ICON_LAMP);
 		strcat(string,tmpstr);
 	}
 
 	if(OBACT){
 		if ELEM4(OBACT->type, OB_MESH, OB_CURVE, OB_SURF, OB_LATTICE) {
-			sprintf(tmpstr,formatstring,"Vertex",ID_KE);
+			sprintf(tmpstr,formatstring,"Vertex",ID_KE, ICON_EDIT);
 			strcat(string,tmpstr);
 		}
 		if (OBACT->action){
-			sprintf(tmpstr,formatstring,"Action",ID_AC);
+			sprintf(tmpstr,formatstring,"Action",ID_AC, ICON_ACTION);
 			strcat(string,tmpstr);
 		}
 #ifdef __CON_IPO
-		sprintf(tmpstr,formatstring,"Constraint",IPO_CO);
+		sprintf(tmpstr,formatstring,"Constraint",IPO_CO, ICON_CONSTRAINT);
 		strcat(string,tmpstr);
 #endif
 	}
 
-	sprintf(tmpstr,formatstring,"Sequence",ID_SEQ);
+	sprintf(tmpstr,formatstring,"Sequence",ID_SEQ, ICON_SEQUENCE);
 	strcat(string,tmpstr);
 
 
@@ -628,7 +628,7 @@ void ipo_buttons(void)
 	uiBlock *block;
 	short xco,xmax;
 	char naam[20];
-	int icon;
+	int icon=0;
 
 	sprintf(naam, "header %d", curarea->headwin);
 	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSS, UI_HELV, curarea->headwin);
@@ -682,7 +682,6 @@ void ipo_buttons(void)
 	uiSetButLock(G.sipo->pin, "Can't change because of pinned data");
 	
 	ob= OBACT;
-	xco+= 10;
 
 	if (G.sipo->blocktype == ID_OB)
 		icon = ICON_OBJECT;
@@ -705,9 +704,10 @@ void ipo_buttons(void)
 	else if (G.sipo->blocktype == ID_SEQ)
 		icon = ICON_SEQUENCE;
 
-	uiDefIconTextButS(block, MENU, B_IPOMAIN, icon, ipo_modeselect_pup(), xco,0,120,20, &(G.sipo->blocktype), 0, 0, 0, 0, "Display IPO type");
+	xco+= 5;
+	uiDefIconTextButS(block, MENU, B_IPOMAIN, icon, ipo_modeselect_pup(), xco,0,100,20, &(G.sipo->blocktype), 0, 0, 0, 0, "Display IPO type");
 
-	xco += 110;
+	xco += 85;
 
 	if(G.sipo->blocktype==ID_MA) {
 		uiDefButS(block, NUM, B_IPOMAIN, "",	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active Material texture. Click to change.");
@@ -747,8 +747,7 @@ void ipo_buttons(void)
 	xco+=XIC/2;
 	
 	uiClearButLock();
-	/* ZOOM en BORDER */
-	uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zooms view (CTRL+MiddleMouse)");
+	/* ZOOMBORDER */
 	uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms view to area");
 	
 	/* draw LOCK */
