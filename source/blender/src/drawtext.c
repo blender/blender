@@ -944,7 +944,6 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	char ascii= evt->ascii;
 	SpaceText *st= curarea->spacedata.first;
 	Text *text= st->text;
-	char *py_filename;
 	int do_draw=0, p;
 
 	if (BPY_spacetext_is_pywin(st)) {

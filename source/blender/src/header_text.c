@@ -64,6 +64,7 @@
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
+#include "BIF_toolbox.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -373,8 +374,6 @@ static uiBlock *text_editmenu_selectmenu(void *arg_unused)
 /* Edit menu */
 static uiBlock *text_editmenu(void *arg_unused)
 {
-	SpaceText *st= curarea->spacedata.first;
-	Text *text= st->text;
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 

@@ -40,6 +40,7 @@ extern "C" {
 
 struct Text;
 struct TextLine;
+struct SpaceText;
 
 void			free_text		(struct Text *text);
 void 			txt_set_undostate	(int u);
@@ -83,7 +84,10 @@ void	txt_do_redo			(struct Text *text);
 void	txt_split_curline	(struct Text *text);
 void	txt_backspace_char	(struct Text *text);
 int		txt_add_char		(struct Text *text, char add);
-
+void	txt_find_panel		(struct SpaceText *st, int again);
+void	run_python_script	(struct SpaceText *st);
+int	jumptoline_interactive	(struct SpaceText *st);
+void	txt_export_to_object	(struct Text *text);
 
 /* Undo opcodes */
 
