@@ -121,7 +121,7 @@ ECHO Done
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\..\..\lib\windows\sdl\lib;..\..\..\lib\windows\ode\lib;..\..\..\lib\windows\zlib\lib;..\..\..\lib\windows\png\lib;..\..\..\lib\windows\jpeg\lib;..\..\..\lib\windows\gettext\lib;..\..\..\lib\windows\freetype\lib;..\..\..\lib\windows\python\lib;..\..\..\lib\windows\openal\lib;..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\build\msvc_7\libs\intern\debug;..\..\..\build\msvc_7\libs\extern\debug"
-				IgnoreDefaultLibraryNames="libc.lib, libcmt.lib, msvcrt.lib, libcd.lib, msvcrtd.lib"
+				IgnoreDefaultLibraryNames="libc.lib, libcmt.lib, msvcrt.lib, libcd.lib"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="..\..\..\build\msvc_7\libs\debug\blender.pdb"
 				SubSystem="1"/>
