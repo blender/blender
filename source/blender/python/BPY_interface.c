@@ -36,18 +36,23 @@
 
 #include <MEM_guardedalloc.h>
 
+#include <BKE_global.h>
+#include <BKE_main.h>
 #include <BKE_text.h>
+#include <DNA_camera_types.h>
 #include <DNA_ID.h>
+#include <DNA_lamp_types.h>
+#include <DNA_material_types.h>
+#include <DNA_object_types.h>
+#include <DNA_scene_types.h>
 #include <DNA_scriptlink_types.h>
 #include <DNA_space_types.h>
 #include <DNA_text_types.h>
+#include <DNA_world_types.h>
 
-#include <BPY_extern.h>
+#include "BPY_extern.h"
 
 #include "api2_2x/interface.h"
-/* unfortunately the following #include is needed because of some missing */
-/* functionality in BKE/DNA */
-/* #include "api2_2x/gen_utils.h" */
 
 /*****************************************************************************/
 /* Structure definitions                                                     */
@@ -70,6 +75,7 @@ PyObject * RunPython(Text *text, PyObject *globaldict);
 char *     GetName(Text *text);
 PyObject * CreateGlobalDictionary (void);
 void       ReleaseGlobalDictionary (PyObject * dict);
+void       DoAllScriptsFromList (ListBase * list, short event);
 
 /*****************************************************************************/
 /* Description: This function will initialise Python and all the implemented */
@@ -163,12 +169,22 @@ void BPY_clear_bad_scriptlinks(struct Text *byebye)
 }
 
 /*****************************************************************************/
-/* Description:                                                              */
-/* Notes:       Not implemented yet                                          */
+/* Description: Loop through all scripts of a list of object types, and      */
+/*              execute these scripts.                                       */
+/*              For the scene, only the current active scene the scripts are */
+/*              executed (if any).                                           */
 /*****************************************************************************/
 void BPY_do_all_scripts(short event)
 {
 	printf ("In BPY_do_all_scripts(event=%d)\n",event);
+
+	DoAllScriptsFromList (&(G.main->object), event);
+	DoAllScriptsFromList (&(G.main->lamp), event);
+	DoAllScriptsFromList (&(G.main->camera), event);
+	DoAllScriptsFromList (&(G.main->mat), event);
+	DoAllScriptsFromList (&(G.main->world), event);
+
+	BPY_do_pyscript (&(G.scene->id), event);
 	return;
 }
 
@@ -323,5 +339,23 @@ void ReleaseGlobalDictionary (PyObject * dict)
 {
 	PyDict_Clear (dict);
 	Py_DECREF (dict);		/* Release dictionary. */
+}
+
+/*****************************************************************************/
+/* Description: This function runs all scripts (if any) present in the       */
+/*              list argument. The event by which the function has been      */
+/*              called, is passed in the event argument.                     */
+/*****************************************************************************/
+void DoAllScriptsFromList (ListBase * list, short event)
+{
+	ID       * id;
+
+	id = list->first;
+
+	while (id != NULL)
+	{
+		BPY_do_pyscript (id, event);
+		id = id->next;
+	}
 }
 
