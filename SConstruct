@@ -5,6 +5,9 @@ import sys
 from distutils import sysconfig
 import SCons.Script
 
+appname = ''
+playername = ''
+
 if hex(sys.hexversion) < 0x2030000:
 	print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
 	print
@@ -16,6 +19,13 @@ if hex(sys.hexversion) < 0x2030000:
 if sys.platform != 'win32':
 	sys.stdout = os.popen("tee build.log", "w")
 	sys.stderr = sys.stdout
+	
+if sys.platform == 'darwin':
+	appname = 'blender'
+	playername = 'blenderplayer'
+else:
+	appname = 'blender$PROGSUFFIX'
+	playername = 'blenderplayer$PROGSUFFIX'
 
 # This is a flag to determine whether to read all sconscripts and
 # set up the build environments or not
@@ -155,12 +165,14 @@ elif sys.platform == 'darwin':
     fink_path = '/sw/'
     # TODO : try -mpowerpc -mpowerpc-gopt -mpowerpc-gfxopt optims
     #           doing actual profiling
-    extra_flags = ['-pipe', '-fPIC', '-funsigned-char', '-ffast-math']
+    extra_flags = ['-pipe', '-fPIC', '-funsigned-char', '-ffast-math', '-mpowerpc' , '-malign-natural']
+
+#'-force_cpusubtype_ALL', '-mpowerpc-gpopt', 
     cxxflags = []
-    defines = ['_THREAD_SAFE', 'MT_NDEBUG']
+    defines = ['_THREAD_SAFE']
     if use_quicktime == 'true':
         defines += ['WITH_QUICKTIME']
-    warn_flags = ['-Wall', '-W']
+    warn_flags = ['-Wall']    # , '-W'
     release_flags = ['-O3']
     debug_flags = ['-g']
     window_system = 'CARBON'
@@ -939,6 +951,7 @@ if enable_clean==0: # only read SConscripts when not cleaning, this to cut overh
 	link_env = library_env.Copy ()
 	link_env.Append (LIBPATH=libpath)
 
+
 def common_libs(env):
 	"""
 	Append to env all libraries that are common to Blender and Blenderplayer
@@ -1233,6 +1246,81 @@ def add2arc(arc, file):
 	else:
 		arc.add(file)
 
+		
+def appit(target, source, env):
+	if sys.platform == 'darwin':
+		import shutil
+		import commands
+		import os.path
+						
+		target = 'blender' 
+		sourceinfo = "source/darwin/%s.app/Contents/Info.plist"%target
+		targetinfo = "%s.app/Contents/Info.plist"%target
+
+		cmd = '%s.app'%target
+		if os.path.isdir(cmd):
+			shutil.rmtree('%s.app'%target)
+		shutil.copytree("source/darwin/%s.app"%target, '%s.app'%target)
+		cmd = "cat %s | sed s/VERSION/`cat release/VERSION`/ | sed s/DATE/`date +'%%Y-%%b-%%d'`/ > %s"%(sourceinfo,targetinfo)
+		commands.getoutput(cmd)
+		cmd = 'cp %s %s.app/Contents/MacOS/%s'%(target, target, target)
+		commands.getoutput(cmd)
+		cmd = 'strip -u -r %s.app/Contents/MacOS/%s'%(target, target)
+		commands.getoutput(cmd)
+		cmd = '%s.app/Contents/Resources/'%target
+		shutil.copy('bin/.blender/.bfont.ttf', cmd)
+		shutil.copy('bin/.blender/.Blanguages', cmd)
+		cmd = 'cp -R bin/.blender/locale %s.app/Contents/Resources/'%target
+		commands.getoutput(cmd)
+		cmd = 'cp -R release/bpydata %s.app/Contents/Resources/'%target + \
+		commands.getoutput(cmd)
+		cmd = 'cp -R release/scripts %s.app/Contents/Resources/'%target + \
+		commands.getoutput(cmd)
+		cmd = 'cp -R release/plugins %s.app/Contents/Resources/'%target 
+		commands.getoutput(cmd)
+		cmd = 'chmod +x  %s.app/Contents/MacOS/%s'%(target, target)
+		commands.getoutput(cmd)
+		cmd = 'find %s.app -name CVS -prune -exec rm -rf {} \;'%target
+		commands.getoutput(cmd)
+		cmd = 'find %s.app -name .DS_Store -exec rm -rf {} \;'%target
+		commands.getoutput(cmd)
+		
+		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
+			target = 'blenderplayer' 
+			sourceinfo = "source/darwin/%s.app/Contents/Info.plist"%target
+			targetinfo = "%s.app/Contents/Info.plist"%target
+
+			cmd = '%s.app'%target
+			if os.path.isdir(cmd):
+				shutil.rmtree('%s.app'%target)
+			shutil.copytree("source/darwin/%s.app"%target, '%s.app'%target)
+			cmd = "cat %s | sed s/VERSION/`cat release/VERSION`/ | sed s/DATE/`date +'%%Y-%%b-%%d'`/ > %s"%(sourceinfo,targetinfo)
+			commands.getoutput(cmd)
+			cmd = 'cp %s %s.app/Contents/MacOS/%s'%(target, target, target)
+			commands.getoutput(cmd)
+			cmd = 'strip -u -r %s.app/Contents/MacOS/%s'%(target, target)
+			commands.getoutput(cmd)
+			cmd = '%s.app/Contents/Resources/'%target
+			shutil.copy('bin/.blender/.bfont.ttf', cmd)
+			shutil.copy('bin/.blender/.Blanguages', cmd)
+			cmd = 'cp -R bin/.blender/locale %s.app/Contents/Resources/'%target
+			commands.getoutput(cmd)
+			cmd = 'cp -R release/bpydata %s.app/Contents/Resources/'%target + \
+			commands.getoutput(cmd)
+			cmd = 'cp -R release/scripts %s.app/Contents/Resources/'%target + \
+			commands.getoutput(cmd)
+			cmd = 'cp -R release/plugins %s.app/Contents/Resources/'%target 
+			commands.getoutput(cmd)
+			cmd = 'chmod +x  %s.app/Contents/MacOS/%s'%(target, target)
+			commands.getoutput(cmd)
+			cmd = 'find %s.app -name CVS -prune -exec rm -rf {} \;'%target
+			commands.getoutput(cmd)
+			cmd = 'find %s.app -name .DS_Store -exec rm -rf {} \;'%target
+			commands.getoutput(cmd)
+		
+	else:
+		print "This target is for the Os X platform only"
+
 def zipit(env, target, source):
 	try:
 		if sys.platform == 'win32':
@@ -1448,7 +1536,7 @@ def BlenderNSIS(target):
 			inst_env.Depends(nsis_inst, 'blenderplayer$PROGSUFFIX')
 		inst_env.Alias("wininst", nsis_inst)
 	else:
-		print "This target is for the win32 platform only"
+		print "This target is for the win32 platform only "
 
 def BlenderRelease(target):
 	"""
@@ -1457,43 +1545,29 @@ def BlenderRelease(target):
 	target = Name of package to make (string)
 	eg: BlenderRelease('blender')
 	"""
+	
 	if sys.platform == 'darwin':
-		bundle = Environment ()
-		target = 'blender'
-		blender_app = target
-		bundle.Depends ('#/%s.app/Contents/Info.plist'%target, blender_app)
-		bundle.Command ('#/%s.app/Contents/Info.plist'%target,
-				'#/source/darwin/%s.app/Contents/Info.plist'%target,
-				"rm -rf %s.app && "%target + \
-				"cp -R source/darwin/%s.app . && "%target +
-				"cat $SOURCE | sed s/VERSION/`cat release/VERSION`/ | \
-						sed s/DATE/`date +'%Y-%b-%d'`/ \
-						> $TARGET && " + \
-				'cp -p %s %s.app/Contents/MacOS/%s && '%(target, target, target) + \
-				'strip -u -r %s.app/Contents/MacOS/%s && '%(target, target) + \
-				'cp bin/.blender/.bfont.ttf %s.app/Contents/Resources/ && '%target + \
-				'cp bin/.blender/.Blanguages %s.app/Contents/Resources/ && '%target + \
-				'cp -R bin/.blender/locale %s.app/Contents/Resources/ && '%target + \
-				'cp -R release/bpydata %s.app/Contents/Resources/ && '%target + \
-				'cp -R release/scripts %s.app/Contents/Resources/ && '%target + \
-				'cp -R release/plugins %s.app/Contents/Resources/ && '%target + \
-				'chmod +x $TARGET && ' + \
-				'find %s.app -name CVS -prune -exec rm -rf {} \; && '%target +
-				'find %s.app -name .DS_Store -exec rm -rf {} \;'%target)
+		app_env = Environment()
+		Mappit = app_env.Command('appit', appname, appit)
+		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
+			app_env.Depends(Mappit, playername)
+		app_env.Alias("release", Mappit)
 	elif sys.platform in ['win32', 'linux2', 'linux-i386']:
 		release_env = Environment()
-		releaseit = release_env.Command('blenderrelease', 'blender$PROGSUFFIX', zipit)
+		releaseit = release_env.Command('blenderrelease', appname, zipit)
 		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
-			release_env.Depends(releaseit, 'blenderplayer$PROGSUFFIX')
+			release_env.Depends(releaseit, playername)
 		release_env.Alias("release", releaseit)
 	else:
 		release_env = Environment()
-		releaseit = release_env.Command('blender.tar.gz', 'blender$PROGSUFFIX', printadd)
+		releaseit = release_env.Command('blender.tar.gz', appname, printadd)
 		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
-			release_env.Depends(releaseit, 'blenderplayer$PROGSUFFIX')
+			release_env.Depends(releaseit, playername)
 		release_env.Alias("release", releaseit)
 
 if enable_clean == 0:
+
+	
 	if user_options_dict['BUILD_BLENDER_DYNAMIC'] == 1:
 		dy_blender = link_env.Copy ()
 		if sys.platform=='win32':
@@ -1571,25 +1645,30 @@ if enable_clean == 0:
 				'bscmake /nologo /n /oblenderplayer.bsc @'+browser_tmp,
 				'del '+browser_tmp])
 
-	release_target = env.Alias("release", BlenderRelease('blender$PROGSUFFIX'))
-	default_target = env.Alias("default", BlenderDefault('blender$PROGSUFFIX'))
-	wininst_target = env.Alias("winist", BlenderNSIS('blender$PROGSUFFIX'))
+	release_target = env.Alias("release", BlenderRelease(appname))
+	default_target = env.Alias("default", BlenderDefault(appname))
+	wininst_target = env.Alias("winist", BlenderNSIS(appname))
+		
 else: # only clean target to prevent any building
 	clean_target = env.Alias("clean", DoClean(root_build_dir))
 	Default("clean")
 
 if enable_clean == 0: # only set up dependencies when not cleaning
-	Default("default")
+	if sys.platform == 'darwin':
+		Default("release")
+	else:
+		Default("default")
 
 	if sys.platform == 'win32':
 		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
-			env.Depends(wininst_target, 'blenderplayer$PROGSUFFIX')
-		env.Depends(wininst_target, 'blender$PROGSUFFIX')
+			env.Depends(wininst_target, playername)
+		env.Depends(wininst_target, appname)
 	
 	if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
-		env.Depends(release_target, 'blenderplayer$PROGSUFFIX')
-	env.Depends(release_target, 'blender$PROGSUFFIX')
+		env.Depends(release_target, playername)
+	env.Depends(release_target, appname)
 	
 	if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
-		env.Depends(default_target, 'blenderplayer$PROGSUFFIX')
-	env.Depends(default_target, 'blender$PROGSUFFIX')
+		env.Depends(default_target, playername)
+	env.Depends(default_target, appname)
+	
