@@ -562,12 +562,7 @@ void drawtextspace(void)
 	
 	if(st->showlinenrs) {
 		cpack(C_DERK);
-//weird bug where glRect draws one pixel off when window is fullscreen
-//nvidia related !!!
-//		if(curarea->full)
-//			glRecti(23,  0, (st->lheight==15)?63:59,  curarea->winy - 2);
-//		else
-			glRecti(24,  0, (st->lheight==15)?64:60,  curarea->winy - 2);
+		glRecti(23,  0, (st->lheight==15)?63:59,  curarea->winy - 2);
 	}
 
 	glColor3f(0.0, 0.0, 0.0);

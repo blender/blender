@@ -56,7 +56,7 @@
 int IMB_ispic(char *name)
 {
 	struct stat st;
-	int fp, buf[64];
+	int fp, buf[16];
 	int ofs = 0;
 	
 	if (ib_stat(name,&st) == -1) return(0);
