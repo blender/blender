@@ -26,7 +26,7 @@
 	<key>CFBundleExecutable</key>
 	<string>blenderplayer</string>
 	<key>CFBundleGetInfoString</key>
-	<string>VERSION, DATE, Copyright NaN Technologies BV</string>
+	<string>VERSION, DATE, Blender Foundation</string>
 	<key>CFBundleIconFile</key>
 	<string>blender player icon.icns</string>
 	<key>CFBundleIdentifier</key>
@@ -42,6 +42,6 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>VERSION, DATE, Copyright NaN Technologies BV</string>
+	<string>VERSION, DATE, Blender Foundation</string>
 </dict>
 </plist>

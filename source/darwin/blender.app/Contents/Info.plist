@@ -22,11 +22,11 @@
 	<string>com.nantechnologies.blender</string>
 	
 	<key>CFBundleVersion</key>
-	<string>VERSION, DATE, Copyright NaN Technologies BV</string>
+	<string>VERSION, DATE, Blender Foundation</string>
 	<key>CFBundleShortVersionString</key>
 	<string>VERSION</string>
 	<key>CFBundleGetInfoString</key>
-	<string>VERSION, DATE, Copyright NaN Technologies BV</string>
+	<string>VERSION, DATE, Blender Foundation</string>
 
 	<key>CFBundleDocumentTypes</key>
 	<array>
