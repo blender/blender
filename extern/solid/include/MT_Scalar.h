@@ -45,6 +45,24 @@ struct Scalar_traits<float> {
 	static float max() { return FLT_MAX; }
 	
 	static float random() { return float(GEN_rand()) / float(GEN_RAND_MAX); }
+#if defined (__sun) || defined (__sun__) || defined (__sparc) || defined (__APPLE__)
+	static float sqrt(float x) { return ::sqrt(x); } 
+	static float abs(float x) { return ::fabs(x); } 
+
+	static float cos(float x) { return ::cos(x); } 
+	static float sin(float x) { return ::sin(x); } 
+	static float tan(float x) { return ::tan(x); } 
+
+	static float acos(float x) { return ::acos(x); } 
+	static float asin(float x) { return ::asin(x); } 
+	static float atan(float x) { return ::atan(x); } 
+	static float atan2(float x, float y) { return ::atan2(x, y); } 
+
+	static float exp(float x) { return ::exp(x); } 
+	static float log(float x) { return ::log(x); } 
+	static float pow(float x, float y) { return ::pow(x, y); } 
+
+#else
 	static float sqrt(float x) { return ::sqrtf(x); } 
 	static float abs(float x) { return ::fabsf(x); } 
 
@@ -60,6 +78,7 @@ struct Scalar_traits<float> {
 	static float exp(float x) { return ::expf(x); } 
 	static float log(float x) { return ::logf(x); } 
 	static float pow(float x, float y) { return ::powf(x, y); } 
+#endif
 };
 
 template<>
