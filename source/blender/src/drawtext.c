@@ -995,21 +995,21 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	text= st->text;
 	
 	if (!text) {
-			if (event==RIGHTMOUSE) {
-				switch (pupmenu("File %t|New %x0|Open... %x1")) {
-				case 0:
-					st->text= add_empty_text();
-					st->top= 0;
-				
-					allqueue(REDRAWTEXT, 0);
-					allqueue(REDRAWHEADERS, 0);
-					break;
-				case 1:
-					activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE", G.sce, add_text_fs);
-					break;
-				}
+		if (event==RIGHTMOUSE) {
+			switch (pupmenu("File %t|New %x0|Open... %x1")) {
+			case 0:
+				st->text= add_empty_text();
+				st->top= 0;
+			
+				allqueue(REDRAWTEXT, 0);
+				allqueue(REDRAWHEADERS, 0);
+				break;
+			case 1:
+				activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE", G.sce, add_text_fs);
+				break;
 			}
-			if (val && !ELEM(G.qual, 0, LR_SHIFTKEY)) {
+		}
+		if (val && !ELEM(G.qual, 0, LR_SHIFTKEY)) {
 			if (event==FKEY && (G.qual & LR_ALTKEY) && (G.qual & LR_SHIFTKEY)) {
 				switch (pupmenu("File %t|New %x0|Open... %x1")) {
 				case 0:
@@ -1022,12 +1022,21 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				case 1:
 					activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE", G.sce, add_text_fs);
 					break;
+				}
+			} 
+			else if (event==QKEY) {
+					if(okee("QUIT BLENDER")) exit_usiblender();
 			}
-		} else if (event==QKEY) {
-				if(okee("QUIT BLENDER")) exit_usiblender();
+			else if (event==NKEY) {
+				if (G.qual & LR_ALTKEY) {
+					st->text= add_empty_text();
+					st->top= 0;
+				
+					allqueue(REDRAWTEXT, 0);
+					allqueue(REDRAWHEADERS, 0);
+				}
 			}
 		}
-		
 		return;
 	}
 	
@@ -1273,11 +1282,11 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		case NKEY:
 			if (G.qual & LR_ALTKEY) {
-					st->text= add_empty_text();
-					st->top= 0;
-				
-					allqueue(REDRAWTEXT, 0);
-					allqueue(REDRAWHEADERS, 0);
+				st->text= add_empty_text();
+				st->top= 0;
+			
+				allqueue(REDRAWTEXT, 0);
+				allqueue(REDRAWHEADERS, 0);
 
 			}
 			break;
