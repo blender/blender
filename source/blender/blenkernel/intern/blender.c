@@ -205,7 +205,7 @@ void initglobals(void)
 	G.order= 1;
 	G.order= (((char*)&G.order)[0])?L_ENDIAN:B_ENDIAN;
 
-	sprintf(versionstr, "www.blender.nl %d", G.version);
+	sprintf(versionstr, "www.blender.org %d", G.version);
 
 	clear_workob();	/* object.c */
 }
