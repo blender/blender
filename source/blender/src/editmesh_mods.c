@@ -135,7 +135,7 @@ int EM_zbuffer_visible(float *co, short xs, short ys)
 	
 	glReadPixels(curarea->winrct.xmin+xs,  curarea->winrct.ymin+ys, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT,  &zval);
 					
-					//printf("my proj %f zbuf %f mydiff %f\n", vec4[2], zval, vec4[2]-zval);
+				//	printf("my proj %f zbuf %f mydiff %f\n", vec4[2], zval, vec4[2]-zval);
 	if( vec4[2] > zval) return 0;
 	return 1;
 }

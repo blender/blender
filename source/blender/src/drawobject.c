@@ -1118,6 +1118,8 @@ static void draw_vertices(short sel)
 	/* if not V3D_ZBUF_SELECT: */
 	/* draws in zbuffer mode twice, to show invisible vertices transparent */
 
+	if(G.zbuf) glDepthMask(0);		// disable write in zbuffer, zbuf select
+
 	size= BIF_GetThemeValuef(TH_VERTEX_SIZE);
 	fsize= BIF_GetThemeValuef(TH_FACEDOT_SIZE);
 	if(sel) {
@@ -1228,6 +1230,7 @@ static void draw_vertices(short sel)
 		bglEnd();
 	}
 
+	if(G.zbuf) glDepthMask(1);
 	glPointSize(1.0);
 }
 
