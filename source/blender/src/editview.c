@@ -674,7 +674,7 @@ void borderselect(void)
 				
 				calc_meshverts_ext();	/* drawobject.c */
 				eve= G.edve.first;
-				while(eve) {
+				while(eve) {		
 					if(eve->h==0 && eve->xs>rect.xmin && eve->xs<rect.xmax) {
 						if(eve->ys>rect.ymin && eve->ys<rect.ymax) {
 							if(val==LEFTMOUSE) eve->f|= 1;
@@ -683,8 +683,7 @@ void borderselect(void)
 					}
 					eve= eve->next;
 				}
-				if(val!=LEFTMOUSE) tekenvertices_ext(0);
-				tekenvertices_ext(1);
+				allqueue(REDRAWVIEW3D, 0);
 				
 			}
 			else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {

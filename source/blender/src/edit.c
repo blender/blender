@@ -138,7 +138,7 @@ int get_border(rcti *rect, short col)
 	mywinset(curarea->win);
 	
 	glDrawBuffer(GL_FRONT);
-	persp(0);
+	persp(PERSP_WIN);
 	initgrabz(0.0, 0.0, 0.0);
 	
 	getmouseco_areawin(mvalo);
@@ -150,9 +150,9 @@ int get_border(rcti *rect, short col)
 	while(TRUE) {
 	
 		/* for when a renderwindow is open, and a mouse cursor activates it */
-		persp(1);
+		persp(PERSP_VIEW);
 		mywinset(curarea->win);
-		persp(0);
+		persp(PERSP_WIN);
 		
 		/* selection loop while mouse pressed */
 		getmouseco_areawin(mval);
@@ -218,9 +218,9 @@ int get_border(rcti *rect, short col)
 			event= extern_qread(&val);
 			
 			/* still because of the renderwindow... */
-			persp(1);
+			persp(PERSP_VIEW);
 			mywinset(curarea->win);
-			persp(0);
+			persp(PERSP_WIN);
 				
 			if(val==0) {
 				if(event==ESCKEY) {
@@ -307,7 +307,7 @@ int get_border(rcti *rect, short col)
 	glReadBuffer(GL_BACK);
 	glDrawBuffer(GL_BACK);
 
-	persp(1);
+	persp(PERSP_VIEW);
 	
 	/* pressed B again ? -> brush select */
 	if(event==BKEY) {
@@ -335,7 +335,7 @@ void draw_sel_circle(short *mval, short *mvalo, float rad, float rado, int selec
 		return;
 	}
 
-	persp(0);
+	persp(PERSP_WIN);
 	glDrawBuffer(GL_FRONT);
 
 	/* draw circle */
@@ -349,7 +349,7 @@ void draw_sel_circle(short *mval, short *mvalo, float rad, float rado, int selec
 	}
 
 	glFlush();
-	persp(1);
+	persp(PERSP_VIEW);
 	glDrawBuffer(GL_BACK);
 	
 	no_mvalo= 0;

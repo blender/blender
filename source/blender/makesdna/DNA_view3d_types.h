@@ -71,6 +71,10 @@ typedef struct View3D {
 	float viewinv[4][4];
 	float persmat[4][4];
 	float persinv[4][4];
+	
+	float winmat1[4][4];  // persp(1) storage, for swap matrices
+	float viewmat1[4][4];
+	
 	float viewquat[4], dist;
 
 	/**

@@ -258,7 +258,7 @@ void helpline(float *vec)
 	getmouseco_areawin(mval);
 	project_short_noclip(vecrot, mval1);
 
-	persp(0);
+	persp(PERSP_WIN);
 	
 	glDrawBuffer(GL_FRONT);
 	
@@ -271,7 +271,7 @@ void helpline(float *vec)
 	glEnd();
 	setlinestyle(0);
 	
-	persp(1);
+	persp(PERSP_VIEW);
 	glFinish(); // flush display for frontbuffer
 	glDrawBuffer(GL_BACK);
 }
@@ -944,6 +944,8 @@ void calc_meshverts_ext(void)
 {
 
 	areawinset(curarea->win);
+	persp(PERSP_VIEW);
+	
 	mymultmatrix(G.obedit->obmat);
 	calc_meshverts();
 	myloadmatrix(G.vd->viewmat);

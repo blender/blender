@@ -39,9 +39,13 @@ struct BoundBox;
 struct View3D;
 struct ScrArea;
 
-void persp3d(struct View3D *v3d, int a);
+#define PERSP_WIN	0
+#define PERSP_VIEW	1
+#define PERSP_STORE	2
+
 void persp_general(int a);
 void persp(int a);
+
 void initgrabz(float x, float y, float z);
 void window_to_3d(float *vec, short mx, short my);
 void project_short(float *vec, short *adr);

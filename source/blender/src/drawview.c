@@ -446,7 +446,7 @@ static void drawgrid(void)
 		}
 	}
 	
-	persp(0);
+	persp(PERSP_WIN);
 
 	cpack(0x606060);
 	
@@ -480,7 +480,7 @@ static void drawgrid(void)
 
 	fdrawline(x,  0.0,  x,  (float)curarea->winy); 
 
-	persp(1);
+	persp(PERSP_VIEW);
 	setlinestyle(0);
 }
 
@@ -1081,7 +1081,6 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	Object *ob;
 	
 	setwinmatrixview3d(0);	/* 0= no pick rect */
-
 	setviewmatrixview3d();
 
 	Mat4MulMat4(G.vd->persmat, G.vd->viewmat, curarea->winmat);
@@ -1107,6 +1106,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	}
 	
 	myloadmatrix(G.vd->viewmat);
+	persp(PERSP_STORE);  // store correct view for persp(PERSP_VIEW) calls
 
 	if(G.vd->view==0 || G.vd->persp!=0) {
 		drawfloor();
@@ -1260,7 +1260,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		glDisable(GL_DEPTH_TEST);
 	}
 
-	persp(0);
+	persp(PERSP_WIN);  // set ortho
 	
 	if(G.vd->persp>1) drawviewborder();
 	drawcursor();
@@ -1275,6 +1275,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 
 	bwin_scalematrix(sa->win, G.vd->blockscale, G.vd->blockscale, G.vd->blockscale);
 	view3d_blockhandlers(sa);
+
 
 	curarea->win_swap= WIN_BACK_OK;
 	

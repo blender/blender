@@ -84,25 +84,6 @@
 
 #define TRACKBALLSIZE  (1.1)
 
-void persp3d(View3D *v3d, int a)
-{
-	ScrArea *area= v3d->area;
-	
-		/* only 3D windows */
-	if(a== 0) {
-		bwin_get_winmatrix(area->win, area->winmat);
-		glMatrixMode(GL_MODELVIEW);
-		bwin_ortho2(area->win, -0.5, (float)(area->winx)-.05, -0.5, (float)(area->winy)-0.5);
-		glLoadIdentity();
-	}
-	else if(a== 1) {
-		glMatrixMode(GL_PROJECTION);
-		bwin_load_winmatrix(area->win, area->winmat);
-		glMatrixMode(GL_MODELVIEW);
-		bwin_load_viewmatrix(area->win, v3d->viewmat);
-	}
-}
-
 void persp_general(int a)
 {
 	/* for all window types, not 3D */
@@ -129,18 +110,23 @@ void persp(int a)
 	/* only 3D windows */
 
 	if(curarea->spacetype!=SPACE_VIEW3D) persp_general(a);
-	else if(a== 0) {
+	else if(a == PERSP_STORE) {		// only store
 		glMatrixMode(GL_PROJECTION);
-		mygetmatrix(curarea->winmat);
+		mygetmatrix(G.vd->winmat1);	
 		glMatrixMode(GL_MODELVIEW);
+		mygetmatrix(G.vd->viewmat1); 
+	}
+	else if(a== PERSP_WIN) {		// only set
 		myortho2(-0.5, (float)(curarea->winx)-.05, -0.5, (float)(curarea->winy)-0.5);
 		glLoadIdentity();
 	}
-	else if(a== 1) {
+	else if(a== PERSP_VIEW) {
 		glMatrixMode(GL_PROJECTION);
-		myloadmatrix(curarea->winmat);
-		glMatrixMode(GL_MODELVIEW);
-		myloadmatrix(G.vd->viewmat);
+		myloadmatrix(G.vd->winmat1); // put back
+		Mat4CpyMat4(curarea->winmat, G.vd->winmat1); // to be sure? 
+		glMatrixMode(GL_MODELVIEW); 
+		myloadmatrix(G.vd->viewmat); // put back
+		
 	}
 }
 

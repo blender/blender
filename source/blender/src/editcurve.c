@@ -191,7 +191,7 @@ static void printweightsNurb(void)
 
 	if(G.obedit==0) return;
 
-	persp(0);
+	persp(PERSP_WIN);
 
 	glDrawBuffer(GL_FRONT); 
 
@@ -224,7 +224,7 @@ static void printweightsNurb(void)
 	}
 
 	glDrawBuffer(GL_BACK); 
-	persp(1);
+	persp(PERSP_VIEW);
 }
 #endif
 

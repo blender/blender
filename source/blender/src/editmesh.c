@@ -6623,7 +6623,9 @@ CutCurve *get_mouse_trail(int *len){
 	}
 	mywinset(curarea->win);
 	glDrawBuffer(GL_FRONT);
-	persp(0);
+
+	persp(PERSP_WIN);
+
 	event=extern_qread(&val);
 	while((event != RETKEY ) && (event != RIGHTMOUSE) ){  
 		event=extern_qread(&val);	/* Enter or RMB indicates finish */
@@ -6708,8 +6710,12 @@ CutCurve *get_mouse_trail(int *len){
 	for(j=1;j<i;j++) {
 		sdrawXORline(curve[j-1].x, curve[j-1].y, curve[j].x, curve[j].y );
 	}
+
 	glFlush();
+	persp(PERSP_VIEW);
+
 	*len=i;
+
 	return(curve);
 }
 
