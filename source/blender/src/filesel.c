@@ -505,13 +505,17 @@ void test_flags_file(SpaceFile *sfile)
 		if(sfile->type==FILE_BLENDER || sfile->type==FILE_LOADLIB) {
 			if(BLO_has_bfile_extension(file->relname)) {
 				file->flags |= BLENDERFILE;
+				
 				if(sfile->type==FILE_LOADLIB) {
-					file->type &= ~S_IFMT;
-					file->type |= S_IFDIR;
+					char name[FILE_MAXDIR+FILE_MAXFILE];
+					strcpy(name, sfile->dir);
+					strcat(name, file->relname);
+					/* prevent current file being used as acceptable dir */
+					if (BLI_streq(G.main->name, name)==0) {
+						file->type &= ~S_IFMT;
+						file->type |= S_IFDIR;
+					}
 				}
-			}
-			else if(BLI_testextensie(file->relname, ".psx")) {
-				file->flags |= PSXFILE;
 			}
 		} else if (sfile->type==FILE_SPECIAL){
 			if(BLI_testextensie(file->relname, ".py")) {
@@ -2203,7 +2207,7 @@ static int is_a_library(SpaceFile *sfile, char *dir, char *group)
 	len= strlen(dir);
 	if(len<7) return 0;
 	if( dir[len-1] != '/' && dir[len-1] != '\\') return 0;
-	
+		
 	group[0]= 0;
 	dir[len-1]= 0;
 
