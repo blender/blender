@@ -286,55 +286,60 @@ void glaDrawPixelsTex(float x, float y, int img_w, int img_h, void *rect)
 void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, void *rect)
 {
 	unsigned char *uc_rect= (unsigned char*) rect;
-	float origin_x= 0.375;
-	float origin_y= 0.375;
 
-		/* Trivial case */
-	if (x>=origin_x && y>=origin_y) {
-		glRasterPos2f(x, y);
-		glDrawPixels(img_w, img_h, GL_RGBA, GL_UNSIGNED_BYTE, uc_rect);
-	} else {
-		int old_row_length= glaGetOneInteger(GL_UNPACK_ROW_LENGTH);
-		float xzoom= glaGetOneFloat(GL_ZOOM_X);
-		float yzoom= glaGetOneFloat(GL_ZOOM_Y);
+	float xzoom= glaGetOneFloat(GL_ZOOM_X);
+	float yzoom= glaGetOneFloat(GL_ZOOM_Y);
 		
-			/* The pixel space coordinate of the intersection of
-			 * the [zoomed] image with the origin.
-			 */
-		float ix= (origin_x-x)/xzoom;
-		float iy= (origin_y-y)/yzoom;
+		/* The pixel space coordinate of the intersection of
+		 * the [zoomed] image with the origin.
+		 */
+	float ix= -x/xzoom;
+	float iy= -y/yzoom;
 	
-			/* The maximum pixel amounts the image can cropped
-			 * without exceeding the origin.
-			 */
-		int off_x= floor((ix>origin_x)?ix:origin_x);
-		int off_y= floor((iy>origin_y)?iy:origin_y);
+		/* The maximum pixel amounts the image can be cropped
+		 * at the lower left without exceeding the origin.
+		 */
+	int off_x= floor(max(ix, 0));
+	int off_y= floor(max(iy, 0));
 		
-			/* The zoomed space coordinate of the raster
-			 * position.
-			 */
-		float rast_x= x + off_x*xzoom;
-		float rast_y= y + off_y*yzoom;
+		/* The zoomed space coordinate of the raster position 
+		 * (starting at the lower left most unclipped pixel).
+		 */
+	float rast_x= x + off_x*xzoom;
+	float rast_y= y + off_y*yzoom;
 
-			/* We cannot zoom in larger than window size. 
-			 * Let's assume that window size is 4 pixels minimum (ton) 
-			 */
-		if(xzoom>4.0 || yzoom>4.0) {
-			GLfloat scissor[4];
-			glGetFloatv(GL_SCISSOR_BOX, scissor);
-			
-			if( scissor[2] <= xzoom && scissor[3] <= floor(yzoom) ) {
-				printf("GL error; Zoomed in too far\n");
-				return;
-			}
+	GLfloat scissor[4];
+	int draw_w, draw_h;
+
+		/* Determine the smallest number of pixels we need to draw
+		 * before the image would go off the upper right corner.
+		 * 
+		 * It may seem this is just an optimization but some graphics 
+		 * cards (ATI) freak out if there is a large zoom factor and
+		 * a large number of pixels off the screen (probably at some
+		 * level the number of image pixels to draw is getting multiplied
+		 * by the zoom and then clamped). Making sure we draw the
+		 * fewest pixels possible keeps everyone mostly happy (still
+		 * fails if we zoom in on one really huge pixel so that it
+		 * covers the entire screen).
+		 */
+	glGetFloatv(GL_SCISSOR_BOX, scissor);
+	draw_w = min(img_w-off_x, ceil((scissor[2]-rast_x)/xzoom));
+	draw_h = min(img_h-off_y, ceil((scissor[3]-rast_y)/yzoom));
+
+	if (draw_w>0 && draw_h>0) {
+		int old_row_length = glaGetOneInteger(GL_UNPACK_ROW_LENGTH);
+
+			/* Don't use safe RasterPos (slower) if we can avoid it. */
+		if (rast_x>=0 && rast_y>=0) {
+			glRasterPos2f(rast_x, rast_y);
+		} else {
+			glaRasterPosSafe2f(rast_x, rast_y, 0, 0);
 		}
-		
-		if (off_x<img_w && off_y<img_h) {
-			glaRasterPosSafe2f(rast_x, rast_y, origin_x, origin_y);
-			glPixelStorei(GL_UNPACK_ROW_LENGTH, img_w);
-			glDrawPixels(img_w-off_x, img_h-off_y, GL_RGBA, GL_UNSIGNED_BYTE, uc_rect+off_y*img_w*4+off_x*4);
-			glPixelStorei(GL_UNPACK_ROW_LENGTH,  old_row_length);
-		}
+
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, img_w);
+		glDrawPixels(draw_w, draw_h, GL_RGBA, GL_UNSIGNED_BYTE, uc_rect + (off_y*img_w + off_x)*4);
+		glPixelStorei(GL_UNPACK_ROW_LENGTH,  old_row_length);
 	}
 }
 
