@@ -36,7 +36,7 @@ public:
 	ODEPhysicsEnvironment();
 	virtual		~ODEPhysicsEnvironment();
 // Perform an integration step of duration 'timeStep'.
-	virtual	void		proceed(double	timeStep);
+	virtual	bool		proceed(double	timeStep);
 	virtual	void		setGravity(float x,float y,float z);
 	virtual int			createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,
 			float pivotX,float pivotY,float pivotZ,

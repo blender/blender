@@ -55,7 +55,7 @@ ODEPhysicsEnvironment::~ODEPhysicsEnvironment()
 	dWorldDestroy (m_OdeWorld);
 }
 
-void ODEPhysicsEnvironment::proceed(double timeStep)
+bool ODEPhysicsEnvironment::proceed(double timeStep)
 {
 	// ode collision update
 	dSpaceCollide (m_OdeSpace,this,&ODEPhysicsEnvironment::OdeNearCallback);
@@ -67,6 +67,8 @@ void ODEPhysicsEnvironment::proceed(double timeStep)
 	
 	//clear collision points
 	this->ClearOdeContactGroup();
+	
+	return true;
 }
 
 void ODEPhysicsEnvironment::setGravity(float x,float y,float z)
