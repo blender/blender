@@ -279,9 +279,9 @@ void BIF_resources_free(void)
 char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 {
 	ThemeSpace *ts= NULL;
-	static char error[3]={240, 0, 240};
-	static char alert[3]={240, 60, 60};
-	static char headerdesel[3];
+	static char error[4]={240, 0, 240, 255};
+	static char alert[4]={240, 60, 60, 255};
+	static char headerdesel[4]={0,0,0,255};
 	
 	char *cp= error;
 	

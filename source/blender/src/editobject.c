@@ -126,6 +126,7 @@
 #include "BIF_editoops.h"
 #include "BIF_editview.h"
 #include "BIF_editarmature.h"
+#include "BIF_resources.h"
 
 #include "BSE_edit.h"
 #include "BSE_editaction.h"
@@ -3133,14 +3134,13 @@ void draw_prop_circle()
 	float tmat[4][4], imat[4][4];
 	
 	if(G.moving) {
-		setlinestyle(1);
-		cpack(0x303030);
+
+		BIF_ThemeColor(TH_GRID);
+
 		mygetmatrix(tmat);
 		Mat4Invert(imat, tmat);
-		setlinestyle(2);
+
  		drawcircball(prop_cent, prop_size, imat);
-		myloadmatrix(G.vd->viewmat);
-		setlinestyle(0);
 	}
 }
 

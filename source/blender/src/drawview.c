@@ -157,20 +157,26 @@ void setalpha_bgpic(BGpic *bgpic)
 
 
 static float light_pos1[] = { -0.3, 0.3, 0.90, 0.0 }; 
-/*  static float light_pos2[] = { 0.3, -0.3, -0.90, 0.0 };  never used? */
+//static float light_pos2[] = { 0.5, 0.5, 0.10, 0.0 }; // never used?
 
 void default_gl_light(void)
 {
 	float mat_specular[] = { 0.5, 0.5, 0.5, 1.0 };
 	float light_col1[] = { 0.8, 0.8, 0.8, 0.0 }; 
-
+	//float light_col2[] = { 0.4, 0.4, 0.8, 0.0 }; 
+	
 	int a;
-		
+
 	glLightfv(GL_LIGHT0, GL_POSITION, light_pos1); 
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_col1); 
 	glLightfv(GL_LIGHT0, GL_SPECULAR, mat_specular); 
 
+	//glLightfv(GL_LIGHT1, GL_POSITION, light_pos2); 
+	//glLightfv(GL_LIGHT1, GL_DIFFUSE, light_col2); 
+	//glLightfv(GL_LIGHT1, GL_SPECULAR, mat_specular); 
+
 	glEnable(GL_LIGHT0);
+	//glEnable(GL_LIGHT1);
 	for(a=1; a<8; a++) glDisable(GL_LIGHT0+a);
 	glDisable(GL_LIGHTING);
 

@@ -1995,11 +1995,9 @@ static void tekenvertices_special(int mode, EditVert *act) /* teken = draw */
 	/* for special cases:
 	 * mode 0: deselect the selected ones, draw then, except act
 	 * mode 1: only draw act
+	 * only for visual speed, after it redraws all
 	 */
-	ScrArea *tempsa, *sa;
-	View3D *vd;
 	EditVert *eve;
-	float mat[4][4];
 	int doit=0;
 	
 	/* first test if there are special vertices */
@@ -2025,44 +2023,24 @@ static void tekenvertices_special(int mode, EditVert *act) /* teken = draw */
 	if(doit==0) return;
 	
 	if(G.f & (G_FACESELECT+G_DRAWFACES)) {
-		scrarea_queue_winredraw(curarea);
+		allqueue(REDRAWVIEW3D, 0);
 		return;
 	}
 	
-	if(G.zbuf) glDisable(GL_DEPTH_TEST);
-	
 	glDrawBuffer(GL_FRONT);
 
-	/* check all views */
-	tempsa= curarea;
-	sa= G.curscreen->areabase.first;
-	while(sa) {
-		if(sa->spacetype==SPACE_VIEW3D) {
-			vd= sa->spacedata.first;
-			if(G.obedit->lay & vd->lay) {
-				areawinset(sa->win);
-				persp(PERSP_VIEW);
-				mymultmatrix(G.obedit->obmat);
+	/* only this view */
 
-				MTC_Mat4SwapMat4(G.vd->persmat, mat);
-				mygetsingmatrix(G.vd->persmat);
-			
-				tekenvertices(0);
-				tekenvertices(1);
-				
-				MTC_Mat4SwapMat4(G.vd->persmat, mat);
+	persp(PERSP_VIEW);
+	mymultmatrix(G.obedit->obmat);
 
-				sa->win_swap= WIN_FRONT_OK;
-				
-				myloadmatrix(G.vd->viewmat);
-			}
-		}
-		sa= sa->next;
-	}
-	if(curarea!=tempsa) areawinset(tempsa->win);
+	tekenvertices(0);
+	tekenvertices(1);
 	
+	myloadmatrix(G.vd->viewmat);
+
 	glDrawBuffer(GL_BACK);
-	if(G.zbuf) glEnable(GL_DEPTH_TEST);
+	
 }
 
 static EditEdge *findnearestedge()

@@ -421,6 +421,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	glClearColor(.1875, .1875, .1875, 0.0); 
 	glClear(GL_COLOR_BUFFER_BIT);
 
+
 	curarea->win_swap= WIN_BACK_OK;
 	
 	xmin= curarea->winrct.xmin; xmax= curarea->winrct.xmax;
@@ -442,77 +443,79 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 		cpack(0x404040);
 		glRectf(0.0, 0.0, 1.0, 1.0);
 		draw_tfaces();
-		
-		return;
 	}
-
-	/* calc location */
-	x1= xmin+(curarea->winx-G.sima->zoom*ibuf->x)/2;
-	y1= ymin+(curarea->winy-G.sima->zoom*ibuf->y)/2;
-
-	x1-= G.sima->zoom*G.sima->xof;
-	y1-= G.sima->zoom*G.sima->yof;
-
+	else {
+		/* calc location */
+		x1= xmin+(curarea->winx-G.sima->zoom*ibuf->x)/2;
+		y1= ymin+(curarea->winy-G.sima->zoom*ibuf->y)/2;
 	
-	if(G.sima->flag & SI_EDITTILE) {
-		rectwrite_part(xmin, ymin, xmax, ymax, x1, y1, ibuf->x, ibuf->y, (float)G.sima->zoom, (float)G.sima->zoom, ibuf->rect);
+		x1-= G.sima->zoom*G.sima->xof;
+		y1-= G.sima->zoom*G.sima->yof;
+	
 		
-		dx= ibuf->x/G.sima->image->xrep;
-		dy= ibuf->y/G.sima->image->yrep;
-		sy= (G.sima->curtile / G.sima->image->xrep);
-		sx= G.sima->curtile - sy*G.sima->image->xrep;
-
-		sx*= dx;
-		sy*= dy;
-		
-		calc_image_view(G.sima, 'p');	/* pixel */
-		myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
-		
-		cpack(0x0);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); glRects(sx,  sy,  sx+dx-1,  sy+dy-1); glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		cpack(0xFFFFFF);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); glRects(sx+1,  sy+1,  sx+dx,  sy+dy); glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	}
-	else if(G.sima->mode==SI_TEXTURE) {
-		if(G.sima->image->tpageflag & IMA_TILES) {
-			
-			
-			/* just leave this a while */
-			if(G.sima->image->xrep<1) return;
-			if(G.sima->image->yrep<1) return;
-			
-			if(G.sima->curtile >= G.sima->image->xrep*G.sima->image->yrep) 
-				G.sima->curtile = G.sima->image->xrep*G.sima->image->yrep - 1; 
+		if(G.sima->flag & SI_EDITTILE) {
+			rectwrite_part(xmin, ymin, xmax, ymax, x1, y1, ibuf->x, ibuf->y, (float)G.sima->zoom, (float)G.sima->zoom, ibuf->rect);
 			
 			dx= ibuf->x/G.sima->image->xrep;
 			dy= ibuf->y/G.sima->image->yrep;
-			
 			sy= (G.sima->curtile / G.sima->image->xrep);
 			sx= G.sima->curtile - sy*G.sima->image->xrep;
 	
 			sx*= dx;
 			sy*= dy;
 			
-			rect= get_part_from_ibuf(ibuf, sx, sy, sx+dx, sy+dy);
+			calc_image_view(G.sima, 'p');	/* pixel */
+			myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 			
-			/* rect= ibuf->rect; */
-			for(sy= 0; sy+dy<=ibuf->y; sy+= dy) {
-				for(sx= 0; sx+dx<=ibuf->x; sx+= dx) {
-					
-					rectwrite_part(xmin, ymin, xmax, ymax, 
-						x1+sx*G.sima->zoom, y1+sy*G.sima->zoom, dx, dy, (float)G.sima->zoom, (float)G.sima->zoom, rect);
-				}
-			}
-			
-			MEM_freeN(rect);
+			cpack(0x0);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); glRects(sx,  sy,  sx+dx-1,  sy+dy-1); glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			cpack(0xFFFFFF);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); glRects(sx+1,  sy+1,  sx+dx,  sy+dy); glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
-		else 
-			rectwrite_part(xmin, ymin, xmax, ymax, x1, y1, ibuf->x, ibuf->y, (float)G.sima->zoom,(float)G.sima->zoom, ibuf->rect);
+		else if(G.sima->mode==SI_TEXTURE) {
+			if(G.sima->image->tpageflag & IMA_TILES) {
+				
+				
+				/* just leave this a while */
+				if(G.sima->image->xrep<1) return;
+				if(G.sima->image->yrep<1) return;
+				
+				if(G.sima->curtile >= G.sima->image->xrep*G.sima->image->yrep) 
+					G.sima->curtile = G.sima->image->xrep*G.sima->image->yrep - 1; 
+				
+				dx= ibuf->x/G.sima->image->xrep;
+				dy= ibuf->y/G.sima->image->yrep;
+				
+				sy= (G.sima->curtile / G.sima->image->xrep);
+				sx= G.sima->curtile - sy*G.sima->image->xrep;
+		
+				sx*= dx;
+				sy*= dy;
+				
+				rect= get_part_from_ibuf(ibuf, sx, sy, sx+dx, sy+dy);
+				
+				/* rect= ibuf->rect; */
+				for(sy= 0; sy+dy<=ibuf->y; sy+= dy) {
+					for(sx= 0; sx+dx<=ibuf->x; sx+= dx) {
+						
+						rectwrite_part(xmin, ymin, xmax, ymax, 
+							x1+sx*G.sima->zoom, y1+sy*G.sima->zoom, dx, dy, (float)G.sima->zoom, (float)G.sima->zoom, rect);
+					}
+				}
+				
+				MEM_freeN(rect);
+			}
+			else 
+				rectwrite_part(xmin, ymin, xmax, ymax, x1, y1, ibuf->x, ibuf->y, (float)G.sima->zoom,(float)G.sima->zoom, ibuf->rect);
+		
+			draw_tfaces();
+		}
 	
-		draw_tfaces();
+		calc_image_view(G.sima, 'f');	/* float */
 	}
-
-	calc_image_view(G.sima, 'f');	/* float */
+	myortho2(-0.5, sa->winx-0.5, -0.5, sa->winy-0.5);
+	draw_area_emboss(sa);
+	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 }
 
 void image_viewmove(void)

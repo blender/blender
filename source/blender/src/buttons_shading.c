@@ -1042,7 +1042,7 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 	else if(la) {
 		std_libbuttons(block, 10, 180, 0, NULL, B_LTEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
 	}
-	uiBlockSetCol(block, TH_AUTO);
+	uiBlockSetCol(block, TH_BUT_NEUTRAL);
 
 	/* From button: removed */
 
@@ -1073,6 +1073,8 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 		
 	}
 
+	uiBlockSetCol(block, TH_AUTO);
+
 	/* TYPES */
 	if(mtex && mtex->tex) {
 		Tex *tex= mtex->tex;
@@ -1080,10 +1082,10 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 
 		uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 		xco= 275;
-		uiDefButS(block, ROW, B_TEXTYPE, texstr[0],			160, 110, 70, 20, &tex->type, 1.0, 0.0, 0, 0, "Default");
+		uiDefButS(block, ROW, B_TEXTYPE, texstr[0],			160, 150, 70, 20, &tex->type, 1.0, 0.0, 0, 0, "Default");
 
-		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_IMAGE],	160, 90, 70, 20, &tex->type, 1.0, (float)TEX_IMAGE, 0, 0, "Use image texture");
-		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_ENVMAP],240, 90, 70, 20, &tex->type, 1.0, (float)TEX_ENVMAP, 0, 0, "Use environment maps");
+		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_IMAGE],	160, 110, 70, 20, &tex->type, 1.0, (float)TEX_IMAGE, 0, 0, "Use image texture");
+		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_ENVMAP],240, 110, 70, 20, &tex->type, 1.0, (float)TEX_ENVMAP, 0, 0, "Use environment maps");
 
 		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_CLOUDS],160, 70, 70, 20, &tex->type, 1.0, (float)TEX_CLOUDS, 0, 0, "Use clouds texture");
 		uiDefButS(block, ROW, B_TEXTYPE, texstr[TEX_MARBLE],240, 70, 70, 20, &tex->type, 1.0, (float)TEX_MARBLE, 0, 0, "Use marble texture");

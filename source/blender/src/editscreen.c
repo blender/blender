@@ -272,6 +272,7 @@ void areawinset(short win)
 		case SPACE_IMAGE:
 			G.sima= curarea->spacedata.first;
 			G.v2d= &G.sima->v2d;
+			break;
 		case SPACE_SOUND:
 			G.ssound= curarea->spacedata.first;
 			G.v2d= &G.ssound->v2d;
