@@ -75,7 +75,7 @@ private :
 	 * Remember the number of subscriptions.
 	 * if 0, delete the device
 	 */
-	static int m_subscriptions;;
+	static int m_subscriptions;
 };
 
 #endif //__SND_DEVICEMANAGER_H
