@@ -2861,9 +2861,9 @@ void shadepixel_short(float x, float y, int vlaknr, int mask, unsigned short *sh
 	if(R.r.dither_intensity!=0.0) {
 		short dither_value = (short)((BLI_frand() -.5)*R.r.dither_intensity*256.0);
 		/* no dither for color 0 or 255, is OK. intensity is <= 2.0 */
-		if(shortcol[0]>255 || shortcol[0] < 65280) shortcol[0]+= dither_value;
-		if(shortcol[1]>255 || shortcol[1] < 65280) shortcol[1]+= dither_value;
-		if(shortcol[2]>255 || shortcol[2] < 65280) shortcol[2]+= dither_value;
+		if(shortcol[0]>255 && shortcol[0] < 65280) shortcol[0]+= dither_value;
+		if(shortcol[1]>255 && shortcol[1] < 65280) shortcol[1]+= dither_value;
+		if(shortcol[2]>255 && shortcol[2] < 65280) shortcol[2]+= dither_value;
 	}	
 	
 }
