@@ -3855,45 +3855,93 @@ void make_trans_verts(float *min, float *max, int mode)
 	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
-	TransVert *tv;
+	TransVert *tv=NULL;
 	MetaElem *ml;
 	EditVert *eve;
 	int a;
 	EditBone	*ebo;
-	tottrans= 0;
+	
+	tottrans= 0; // global!
 	
 	INIT_MINMAX(min, max);
 	centroid[0]=centroid[1]=centroid[2]= 0.0;
 	
-	countall();
-	if(mode) tottrans= G.totvert;
-	else tottrans= G.totvertsel;
-	
-	if(G.totvertsel==0) {
-		tottrans= 0;
-		return;
+	/* note for transform refactor: dont rely on countall anymore... its ancient */
+	/* I skip it for editmesh now (ton) */
+	if(em==NULL) {
+		countall();
+		if(mode) tottrans= G.totvert;
+		else tottrans= G.totvertsel;
+		
+		if(G.totvertsel==0) {
+			tottrans= 0;
+			return;
+		}
+		tv=transvmain= MEM_callocN(tottrans*sizeof(TransVert), "maketransverts");
 	}
 	
-	tv=transvmain= MEM_callocN(tottrans*sizeof(TransVert), "maketransverts");
-	
-	/* we count again because of hide */
+	/* we count again because of hide (old, not for mesh!) */
 	tottrans= 0;
 	
 	if(G.obedit->type==OB_MESH) {
-		eve= em->verts.first;
-		while(eve) {
-			if(eve->h==0) {
-				if(mode==1 || (eve->f & SELECT)) {
+		int proptrans= 0;
+		
+		// transform now requires awareness for select mode, so we tag the f1 flags in verts
+		tottrans= 0;
+		if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+			for(eve= em->verts.first; eve; eve= eve->next) {
+				if(eve->h==0 && (eve->f & SELECT)) {
+					eve->f1= SELECT;
+					tottrans++;
+				}
+				else eve->f1= 0;
+			}
+		}
+		else if(G.scene->selectmode & SCE_SELECT_EDGE) {
+			EditEdge *eed;
+			for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
+			for(eed= em->edges.first; eed; eed= eed->next) {
+				if(eed->h==0 && (eed->f & SELECT)) eed->v1->f1= eed->v2->f1= SELECT;
+			}
+			for(eve= em->verts.first; eve; eve= eve->next) if(eve->f1) tottrans++;
+		}
+		else {
+			EditFace *efa;
+			for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
+			for(efa= em->faces.first; efa; efa= efa->next) {
+				if(efa->h==0 && (efa->f & SELECT)) {
+					efa->v1->f1= efa->v2->f1= efa->v3->f1= SELECT;
+					if(efa->v4) efa->v4->f1= SELECT;
+				}
+			}
+			for(eve= em->verts.first; eve; eve= eve->next) if(eve->f1) tottrans++;
+		}
+		
+		/* proportional edit exception... */
+		if(mode==1 && tottrans) {
+			for(eve= em->verts.first; eve; eve= eve->next) {
+				if(eve->h==0) {
+					eve->f1 |= 2;
+					proptrans++;
+				}
+			}
+			if(proptrans>tottrans) tottrans= proptrans;
+		}
+		
+		/* and now make transverts */
+		if(tottrans) {
+			tv=transvmain= MEM_callocN(tottrans*sizeof(TransVert), "maketransverts");
+
+			for(eve= em->verts.first; eve; eve= eve->next) {
+				if(eve->f1) {
 					VECCOPY(tv->oldloc, eve->co);
 					tv->loc= eve->co;
 					if(eve->no[0]!=0.0 || eve->no[1]!=0.0 ||eve->no[2]!=0.0)
-						tv->nor= eve->no;
-					tv->flag= eve->f & 1;
+						tv->nor= eve->no; // note this is a hackish signal (ton)
+					tv->flag= eve->f1 & SELECT;
 					tv++;
-					tottrans++;
 				}
 			}
-			eve= eve->next;
 		}
 	}
 	else if (G.obedit->type==OB_ARMATURE){
@@ -4014,7 +4062,7 @@ void make_trans_verts(float *min, float *max, int mode)
 	/* cent etc */
 	tv= transvmain;
 	for(a=0; a<tottrans; a++, tv++) {
-		if(tv->flag) {
+		if(tv->flag & SELECT) {
 			centroid[0]+= tv->oldloc[0];
 			centroid[1]+= tv->oldloc[1];
 			centroid[2]+= tv->oldloc[2];
