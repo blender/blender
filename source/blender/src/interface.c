@@ -212,6 +212,17 @@ void ui_end_overdraw(OverDraw *od);
 
 */
 
+static void myglCopyPixels(int a, int b, int c, int d, int e)
+{
+	if(G.rt==2) {
+		unsigned int *buf= MEM_mallocN(4*c*d, "temp glcopypixels");
+		glReadPixels(a, b, c, d, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+		glDrawPixels(c, d, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+		MEM_freeN(buf);
+	}
+	else glCopyPixels(a, b, c, d, e);
+}
+
 typedef struct {
 	short x, y, sx, sy, oldwin;
 	unsigned int *rect;
@@ -260,9 +271,10 @@ static void ui_flush_overdraw(uiOverDraw *od)
 
 	if(od==NULL) return;
 	glDisable(GL_DITHER);
+	glReadBuffer(GL_BACK);
 	glDrawBuffer(GL_FRONT);
 	glRasterPos2s(od->x, od->y);
-	glCopyPixels(od->x, od->y, od->sx, od->sy, GL_COLOR);
+	myglCopyPixels(od->x, od->y, od->sx, od->sy, GL_COLOR);
 	glEnable(GL_DITHER);
 	glFlush();
 	glDrawBuffer(GL_BACK);
@@ -320,9 +332,10 @@ void ui_block_flush_back(uiBlock *block)
 		mywinset(G.curscreen->mainwin);
 		
 		glDisable(GL_DITHER);
+		glReadBuffer(GL_BACK);
 		glDrawBuffer(GL_FRONT);
 		glRasterPos2i(minx, miny);
-		glCopyPixels(minx, miny, sizex, sizey, GL_COLOR);
+		myglCopyPixels(minx, miny, sizex, sizey, GL_COLOR);
 		glEnable(GL_DITHER);
 		glFlush();
 		glDrawBuffer(GL_BACK);
