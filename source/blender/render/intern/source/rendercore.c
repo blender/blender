@@ -1910,46 +1910,44 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			lv[1]= shi->co[1]-lar->co[1];
 			lv[2]= shi->co[2]-lar->co[2];
 
-			if(lar->shb) {
+			if(lar->type==LA_SPOT) {
 				/* only test within spotbundel */
-				Normalise(lv);
-				inpr= lv[0]*lar->vec[0]+lv[1]*lar->vec[1]+lv[2]*lar->vec[2];
-				if(inpr>lar->spotsi) {
-					
-					inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
-					
-					i = testshadowbuf(lar->shb, shi->co, inp);
-					
-					t= inpr - lar->spotsi;
-					if(t<lar->spotbl && lar->spotbl!=0.0) {
-						t/= lar->spotbl;
-						t*= t;
-						i= t*i+(1.0-t);
+				if(lar->shb || (lar->mode & LA_SHAD_RAY)) {
+
+					Normalise(lv);
+					inpr= lv[0]*lar->vec[0]+lv[1]*lar->vec[1]+lv[2]*lar->vec[2];
+					if(inpr>lar->spotsi) {
+						
+						inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
+						
+						if(lar->shb) i = testshadowbuf(lar->shb, shi->co, inp);
+						else {
+							float shad[4];
+							ray_shadow(shi, lar, shad);
+							i= shad[3];
+						}
+						
+						t= inpr - lar->spotsi;
+						if(t<lar->spotbl && lar->spotbl!=0.0) {
+							t/= lar->spotbl;
+							t*= t;
+							i= t*i+(1.0-t);
+						}
+						
+						shadfac[3]+= i;
+						ir+= 1.0;
 					}
-					
-					shadfac[3]+= i;
-					ir+= 1.0;
-				}
-				else {
-					shadfac[3]+= 1.0;
-					ir+= 1.0;
+					else {
+						shadfac[3]+= 1.0;
+						ir+= 1.0;
+					}
 				}
 			}
 			else if(lar->mode & LA_SHAD_RAY) {
 				float shad[4];
 				
 				/* single sided? */
-				inpr= vlr->n[0]*lv[0] + vlr->n[1]*lv[1] + vlr->n[2]*lv[2];
-
-				if(lar->type==LA_SPOT) {
-					float dot;
-					Normalise(lv);
-					dot= lv[0]*lar->vec[0]+lv[1]*lar->vec[1]+lv[2]*lar->vec[2];
-					if(dot<lar->spotsi) inpr= -1.0;
-				}
-				
-				/* single sided? */
-				if( inpr > -0.01) {
+				if( vlr->n[0]*lv[0] + vlr->n[1]*lv[1] + vlr->n[2]*lv[2] > -0.01) {
 					ray_shadow(shi, lar, shad);
 					shadfac[3]+= shad[3];
 					ir+= 1.0;
