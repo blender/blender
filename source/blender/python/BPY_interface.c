@@ -143,8 +143,6 @@ void BPY_start_python( int argc, char **argv )
 	 */
 
 	if( first_time ) { /* so it only prints msg on first_time */
-		printf( "Checking for Python install...\n" );
-		fflush( stdout );
 	}
 
 	Py_Initialize(  );
@@ -252,8 +250,6 @@ void init_syspath( int first_time )
 		PyObject *item;
 		int size = 0;
 		int index;
-
-		if( first_time ) printf( "Installed Python found!\n" );
 
 		/* get the value of 'sitedirs' from the module */
 
