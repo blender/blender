@@ -3995,7 +3995,8 @@ void nla_buttons(void)
 
 	/* draw LOCK */
 	xco+= XIC/2;
-	uiDefIconButS(block, ICONTOG, 1, ICON_UNLOCKED,	xco+=XIC,0,XIC,YIC, &(G.snla->lock), 0, 0, 0, 0, "Toggles forced redraw of other windows to reflect changes in real time");
+
+	uiDefIconButS(block, ICONTOG, 1, ICON_UNLOCKED,	xco+=XIC,0,XIC,YIC, &(snla->lock), 0, 0, 0, 0, "Toggles forced redraw of other windows to reflect changes in real time");
 
 	uiDrawBlock(block);}
 
@@ -4745,10 +4746,9 @@ void buts_buttons(void)
 	/* choice menu */
 	xco+= 2*XIC;
 	uiDefIconButS(block, ROW, B_REDR,			ICON_EYE,	xco+=XIC, 0, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_VIEW, 0, 0, "View buttons");
-	if(ob && ob->type==OB_LAMP)
-		uiDefIconButS(block, ROW, B_BUTSPREVIEW,		ICON_LAMP,	xco+=30, 0, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_LAMP, 0, 0, "Lamp buttons (F4)");
-	else
-		uiDefIconButS(block, ROW, B_BUTSPREVIEW,		ICON_MATERIAL,	xco+=30, 0, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_MAT, 0, 0, "Material buttons (F5)");
+	
+	uiDefIconButS(block, ROW, B_BUTSPREVIEW,		ICON_LAMP,	xco+=30, 0, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_LAMP, 0, 0, "Lamp buttons (F4)");
+	uiDefIconButS(block, ROW, B_BUTSPREVIEW,		ICON_MATERIAL,	xco+=30, 0, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_MAT, 0, 0, "Material buttons (F5)");
 	uiDefIconButS(block, ROW, B_BUTSPREVIEW,		ICON_TEXTURE,	xco+=30, 0, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_TEX, 0, 0, "Texture buttons (F6)");
 	uiDefIconButS(block, ROW, B_REDR,			ICON_ANIM,	xco+=30, 0, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_ANIM, 0, 0, "Animation buttons (F7)");
 	uiDefIconButS(block, ROW, B_REDR,			ICON_GAME,	xco+=30, 0, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_GAME, 0, 0, "Realtime buttons (F8)");
