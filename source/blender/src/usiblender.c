@@ -135,6 +135,8 @@ void BIF_read_file(char *name)
 		BKE_read_file(name, NULL); 
 	}
 
+	mainwindow_set_filename_to_title(G.main->name);
+
 	sound_initialize_sounds();
 
 	winqueue_break= 1;	/* leave queues everywhere */
@@ -392,7 +394,9 @@ void BIF_write_file(char *target)
 		
 	if (BLO_write_file(di, G.fileflags, &err)) {
 		strcpy(G.sce, di);
-		strcpy(G.main->name, di);	/* is guarenteed current file */
+		strcpy(G.main->name, di);	/* is guaranteed current file */
+
+		mainwindow_set_filename_to_title(G.main->name);
 
 		G.save_over = 1;
 

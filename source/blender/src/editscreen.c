@@ -1160,12 +1160,29 @@ void mainwindow_toggle_fullscreen(int fullscreen){
 void mainwindow_raise(void) {
 	window_raise(mainwin);
 }
+
 void mainwindow_make_active(void) {
 	window_make_active(mainwin);
 }
+
 void mainwindow_close(void) {
 	window_destroy(mainwin);
 	mainwin= NULL;
+}
+
+void mainwindow_set_filename_to_title(char *filename) {
+	char str[FILE_MAXDIR + FILE_MAXFILE];
+	char dir[FILE_MAXDIR];
+	char file[FILE_MAXFILE];
+
+	BLI_split_dirfile(filename, dir, file);
+
+	if(BLI_streq(file, ".B.blend") || filename[0] =='\0')
+		sprintf(str, "Blender");
+	else
+		sprintf(str, "Blender [%s]", filename);
+
+	window_set_title(mainwin, str);
 }
 
 /* *********  AREAS  ************* */
