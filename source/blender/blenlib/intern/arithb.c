@@ -1719,7 +1719,7 @@ float VecLenf( float *v1, float *v2)
 
 float VecLength(float *v)
 {
-	return (float) sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]
+	return (float) sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
 }
 
 void VecAddf(float *v, float *v1, float *v2)
