@@ -122,12 +122,6 @@ struct anim;
  *
  * @attention Defined in cmap.c
  */
-void cspace(struct ImBuf *ibuf, float mat[][4]);
-
-/**
- *
- * @attention Defined in cmap.c
- */
 void IMB_freeImBufdata(void);
 
 /**
@@ -168,12 +162,6 @@ struct ImBuf *IMB_loadiffname(char *naam, int flags);
 
 /**
  *
- * @attention Defined in readimage.c
- */
-void freezbufImBuf(struct ImBuf * ibuf);
-
-/**
- *
  * @attention Defined in allocimbuf.c
  */
 void IMB_freeImBuf(struct ImBuf * ibuf);
@@ -196,7 +184,7 @@ struct ImBuf *IMB_dupImBuf(struct ImBuf *ibuf1);
  *
  * @attention Defined in allocimbuf.c
  */
-short IMB_addzbufImBuf(struct ImBuf * ibuf);
+short addzbufImBuf(struct ImBuf * ibuf);
 
 /**
  *
@@ -490,12 +478,6 @@ extern float rgb_to_bw[4][4];
  * @attention Defined in rotate.c
  */
 void IMB_flipy(struct ImBuf * ibuf);
-
-/**
- *
- * @attention Defined in anim.c
- */
-void IMB_init_movie_pointers(void);
 
 /**
  *
