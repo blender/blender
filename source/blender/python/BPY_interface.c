@@ -476,8 +476,8 @@ void BPY_do_pyscript(struct ID *id, short event)
 
   for (index = 0; index < scriptlink->totscript; index++)
   {
-    printf ("scriptnr: %d\tevent=%d, flag[index]=%d\n", index,
-        event, scriptlink->flag[index]);
+    /*printf ("scriptnr: %d\tevent=%d, flag[index]=%d\n", index,
+			event, scriptlink->flag[index]);*/
     if ((scriptlink->flag[index] == event) &&
         (scriptlink->scripts[index] != NULL))
     {
