@@ -1054,7 +1054,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if(G.qual) {
 						if(G.qual & LR_CTRLKEY) make_parent();
 					}
-					else if(G.obedit->type==OB_MESH) separate_mesh();
+					else if(G.obedit->type==OB_MESH) separatemenu();
 					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) separate_nurb();
 				}
 				else if(G.qual & LR_CTRLKEY) make_parent();

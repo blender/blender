@@ -1362,4 +1362,70 @@ void face_draw()
 	allqueue(REDRAWIMAGE, 0);
 	allqueue(REDRAWHEADERS, 0);
 }
+
+ /* Selects all faces which have the same uv-texture as the active face 
+ * @author	Roel Spruit
+ * @return	Void
+ * Errors:	- Active object not in this layer
+ *		- No active face or active face has no UV-texture			
+ */
+void get_same_uv(void)
+{
+	Object *ob;
+	Mesh *me;
+	TFace *tface;	
+	short a, foundtex=0;
+	Image *ima;
+	char uvname[160];
+	
+	ob = OBACT;
+	if (!(ob->lay & G.vd->lay)) {
+		error("Active object not in this layer!");
+		return;
+	}
+	me = get_mesh(ob);
+	
+		
+	/* Search for the active face with a UV-Texture */
+	tface = me->tface;
+	a = me->totface;
+	while (a--) {		
+		if(tface->flag & TF_ACTIVE){			
+			ima=tface->tpage;
+			if(ima && ima->name){
+				strcpy(uvname,ima->name);			
+				a=0;
+				foundtex=1;
+			}
+		}
+		tface++;
+	}		
+	
+	if(!foundtex) {
+		error("No active face or active face has no UV-texture");
+		return;
+	}
+
+	/* select everything with the same texture */
+	tface = me->tface;
+	a = me->totface;
+	while (a--) {		
+		ima=tface->tpage;
+		if(ima && ima->name){
+			if(!strcmp(ima->name, uvname)){
+				tface->flag |= TF_SELECT;
+			}
+			else tface->flag &= ~TF_SELECT;
+		}
+		else tface->flag &= ~TF_SELECT;
+		tface++;
+	}
+	
+
+	
+	/* image window redraw */
+	allqueue(REDRAWIMAGE, 0);
+	allqueue(REDRAWBUTSGAME, 0);
+	allqueue(REDRAWVIEW3D, 0);
+}
 #endif /* NAN_TPT */

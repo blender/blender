@@ -140,6 +140,7 @@
 #include "BDR_editobject.h"
 #include "BDR_drawobject.h"
 #include "BDR_editcurve.h"
+#include "BDR_editface.h"
 
 #include "render.h"
 #include <time.h>
@@ -1396,7 +1397,7 @@ void special_editmenu(void)
 			
 			if(me==0 || me->tface==0) return;
 			
-			nr= pupmenu("Specials%t|Set     Tex%x1|         Shared%x2|         Light%x3|         Invisible%x4|         Collision%x5|Clr     Tex%x6|         Shared%x7|         Light%x8|         Invisible%x9|         Collision%x10");
+			nr= pupmenu("Specials%t|Set     Tex%x1|         Shared%x2|         Light%x3|         Invisible%x4|         Collision%x5|Clr     Tex%x6|         Shared%x7|         Light%x8|         Invisible%x9|         Collision%x10|Sel     Same UV%x11");
 	
 			for(a=me->totface, tface= me->tface; a>0; a--, tface++) {
 				if(tface->flag & SELECT) {
@@ -1423,6 +1424,8 @@ void special_editmenu(void)
 						tface->mode &= ~TF_INVISIBLE; break;
 					case 10:
 						tface->mode &= ~TF_DYNAMIC; break;
+					case 11:
+						get_same_uv(); break;
 					}
 				}
 			}

@@ -51,7 +51,8 @@ void face_borderselect(void);
 float CalcNormUV(float *a, float *b, float *c);
 void uv_autocalc_tface(void);
 void set_faceselect(void);
-void face_draw(void);   
+void face_draw(void);
+void get_same_uv(void);  
 
 #endif /* BDR_EDITFACE_H */
 

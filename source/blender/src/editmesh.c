@@ -3607,6 +3607,25 @@ void split_mesh(void)
 	makeDispList(G.obedit);
 }
 
+
+void separatemenu(void)
+{
+	short event;
+
+	event = pupmenu("Separate %t|Selected%x1|All loose parts%x2");
+
+	switch (event) {
+
+		case 1: 
+	    		separate_mesh();		    
+	    		break;
+		case 2:	    	    	    
+			separate_mesh_loose();	    	    
+			break;
+	}
+}
+
+
 void separate_mesh(void)
 {
 	EditVert *eve, *v1;
@@ -3619,9 +3638,7 @@ void separate_mesh(void)
 	float trans[9];
 	int ok, flag;
 	
-	TEST_EDITMESH
-	
-	if(okee("Separate")==0) return;
+	TEST_EDITMESH	
 
 	waitcursor(1);
 	
@@ -3743,6 +3760,203 @@ void separate_mesh(void)
 	makeDispList(G.obedit);
 
 }
+
+void separate_mesh_loose(void)
+{
+	EditVert *eve, *v1;
+	EditEdge *eed, *e1;
+	EditVlak *evl, *vl1;
+	Object *oldob;
+	Mesh *me, *men;
+	Base *base, *oldbase;
+	ListBase edve, eded, edvl;
+	float trans[9];
+	int ok, vertsep=0, flag;	
+	short sel,toggle=0, done=0, check=1, loop=0;
+		
+	TEST_EDITMESH
+	waitcursor(1);	
+	
+	/* we are going to abuse the system as follows:
+	 * 1. add a duplicate object: this will be the new one, we remember old pointer
+	 * 2: then do a split if needed.
+	 * 3. put apart: all NOT selected verts, edges, faces
+	 * 4. call loadobeditdata(): this will be the new object
+	 * 5. freelist en oude verts, eds, vlakken weer terughalen
+	 */
+			
+	
+			
+	while(!done){		
+		vertsep=check=1;
+		
+		countall();
+		
+		me= get_mesh(G.obedit);
+		if(me->key) {
+			error("Can't separate with vertex keys");
+			return;
+		}		
+		
+		/* make only obedit selected */
+		base= FIRSTBASE;
+		while(base) {
+			if(base->lay & G.vd->lay) {
+				if(base->object==G.obedit) base->flag |= SELECT;
+				else base->flag &= ~SELECT;
+			}
+			base= base->next;
+		}		
+		
+		/*--------- Select connected-----------*/		
+		//sel= 3;
+		/* clear test flags */
+		eve= G.edve.first;
+		while(eve) {
+			eve->f&= ~1;			
+			eve= eve->next;
+		}
+		
+		/* Select a random vert to start with */
+		eve= G.edve.first;
+		eve->f |= 1;
+		
+		while(check==1) {
+			check= 0;			
+			eed= G.eded.first;			
+			while(eed) {				
+				if(eed->h==0) {
+					if(eed->v1->f & 1) {
+						if( (eed->v2->f & 1)==0 ) {
+							eed->v2->f |= 1;
+							vertsep++;
+							check= 1;
+						}
+					}
+					else if(eed->v2->f & 1) {
+						if( (eed->v1->f & 1)==0 ) {
+							eed->v1->f |= 1;
+							vertsep++;
+							check= 1;
+						}
+					}
+				}
+				eed= eed->next;				
+			}
+		}		
+		/*----------End of select connected--------*/
+		
+		
+		/* If the amount of vertices that is about to be split == the total amount 
+		   of verts in the mesh, it means that there is only 1 unconnected object, so we don't have to separate
+		*/
+		if(G.totvert==vertsep)done=1;				
+		else{			
+			/* Test for splitting: Separate selected */
+			ok= 0;
+			eed= G.eded.first;
+			while(eed) {
+				flag= (eed->v1->f & 1)+(eed->v2->f & 1);
+				if(flag==1) {
+					ok= 1;
+					break;
+				}
+				eed= eed->next;
+			}
+			if(ok) {
+				/* SPLIT: first make duplicate */
+				adduplicateflag(1);
+				/* SPLIT: old faces have 3x flag 128 set, delete these ones */
+				delvlakflag(128);
+			}	
+			
+			
+			
+			/* set apart: everything that is not selected */
+			edve.first= edve.last= eded.first= eded.last= edvl.first= edvl.last= 0;
+			eve= G.edve.first;
+			while(eve) {
+				v1= eve->next;
+				if((eve->f & 1)==0) {
+					BLI_remlink(&G.edve, eve);
+					BLI_addtail(&edve, eve);
+				}
+				eve= v1;
+			}
+			eed= G.eded.first;
+			while(eed) {
+				e1= eed->next;
+				if( (eed->v1->f & 1)==0 || (eed->v2->f & 1)==0 ) {
+					BLI_remlink(&G.eded, eed);
+					BLI_addtail(&eded, eed);
+				}
+				eed= e1;
+			}
+			evl= G.edvl.first;
+			while(evl) {
+				vl1= evl->next;
+				if( (evl->v1->f & 1)==0 || (evl->v2->f & 1)==0 || (evl->v3->f & 1)==0 ) {
+					BLI_remlink(&G.edvl, evl);
+					BLI_addtail(&edvl, evl);
+				}
+				evl= vl1;
+			}
+			
+			oldob= G.obedit;
+			oldbase= BASACT;
+			
+			trans[0]=trans[1]=trans[2]=trans[3]=trans[4]=trans[5]= 0.0;
+			trans[6]=trans[7]=trans[8]= 1.0;
+			G.qual |= LR_ALTKEY;	/* patch to make sure we get a linked duplicate */
+			adduplicate(trans);
+			G.qual &= ~LR_ALTKEY;
+			
+			G.obedit= BASACT->object;	/* basact was set in adduplicate()  */
+		
+			men= copy_mesh(me);
+			set_mesh(G.obedit, men);
+			/* because new mesh is a copy: reduce user count */
+			men->id.us--;
+			
+			load_editMesh();
+			
+			BASACT->flag &= ~SELECT;
+			
+			makeDispList(G.obedit);
+			free_editMesh();
+			
+			G.edve= edve;
+			G.eded= eded;
+			G.edvl= edvl;
+			
+			/* hashedges are freed now, make new! */
+			eed= G.eded.first;
+			while(eed) {
+				if( findedgelist(eed->v1, eed->v2)==NULL )
+					insert_hashedge(eed);
+				eed= eed->next;
+			}
+			
+			G.obedit= oldob;
+			BASACT= oldbase;
+			BASACT->flag |= SELECT;	
+					
+		}		
+	}
+	
+	/* unselect the vertices that we (ab)used for the separation*/
+	eve= G.edve.first;
+	while(eve) {
+		eve->f&= ~1;			
+		eve= eve->next;
+	}
+	
+	waitcursor(0);
+	countall();
+	allqueue(REDRAWVIEW3D, 0);
+	makeDispList(G.obedit);	
+}
+
 
 void extrude_repeat_mesh(int steps, float offs)
 {

@@ -95,7 +95,11 @@ void adduplicateflag(int flag);
 void extrude_mesh(void);
 void adduplicate_mesh(void);
 void split_mesh(void);
+
+void separatemenu(void);
 void separate_mesh(void);
+void separate_mesh_loose(void);
+
 void extrude_repeat_mesh(int steps, float offs);
 void spin_mesh(int steps,int degr,float *dvec, int mode);
 void screw_mesh(int steps,int turns);
