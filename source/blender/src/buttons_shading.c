@@ -2287,18 +2287,16 @@ static void material_panel_material(Object *ob, Material *ma)
 	
 	if(ob->actcol==0) ob->actcol= 1;	/* because of TOG|BIT button */
 	
-	/* indicate which one is linking a material */
-	if( id == NULL ) return;
 
 	uiBlockBeginAlign(block);
 
-	uiSetButLock(id->lib!=0, "Can't edit library data");
-	
-	strncpy(str, id->name, 2);
-	str[2]= ':'; str[3]= 0;
-	but= uiDefBut(block, TEX, B_IDNAME, str,		8,174,115,20, id->name+2, 0.0, 18.0, 0, 0, "Show the block the material is linked to");
-	uiButSetFunc(but, test_idbutton_cb, id->name, NULL);
-
+	/* indicate which one is linking a material */
+	if(id) {
+		strncpy(str, id->name, 2);
+		str[2]= ':'; str[3]= 0;
+		but= uiDefBut(block, TEX, B_IDNAME, str,		8,174,115,20, id->name+2, 0.0, 18.0, 0, 0, "Show the block the material is linked to");
+		uiButSetFunc(but, test_idbutton_cb, id->name, NULL);
+	}
 	uiBlockSetCol(block, TH_BUT_ACTION);
 	uiDefButS(block, TOG|BIT|(ob->actcol-1), B_MATFROM, "OB",	125,174,32,20, &ob->colbits, 0, 0, 0, 0, "Link material to object");
 	idn= ob->data;
@@ -2308,6 +2306,9 @@ static void material_panel_material(Object *ob, Material *ma)
 	uiDefButS(block, TOGN|BIT|(ob->actcol-1), B_MATFROM, str,	158,174,32,20, &ob->colbits, 0, 0, 0, 0, "Show the block the material is linked to");
 	uiBlockSetCol(block, TH_AUTO);
 	
+	if( id == NULL ) return;
+	uiSetButLock(id->lib!=0, "Can't edit library data");
+
 	/* id is the block from which the material is used */
 	if( BTST(ob->colbits, ob->actcol-1) ) id= (ID *)ob;
 	else id= ob->data;

@@ -461,6 +461,9 @@ void myortho(float x1, float x2, float y1, float y2, float n, float f)
 
 void myortho2(float x1, float x2, float y1, float y2)
 {
+	/* prevent opengl from generating errors */
+	if(x1==x2) x2+=1.0;
+	if(y1==y2) y2+=1.0;
 	bwin_ortho(curswin, x1, x2, y1, y2, -1, 1);
 }
 

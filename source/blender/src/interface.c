@@ -634,9 +634,11 @@ void uiDrawBlock(uiBlock *block)
 {
 	uiBut *but;
 
+	/* handle pending stuff */
 	if(block->autofill) ui_autofill(block);
 	if(block->minx==0.0 && block->maxx==0.0) uiBoundsBlock(block, 0);
-
+	if(block->flag & UI_BUT_ALIGN) uiBlockEndAlign(block);
+	
 	uiPanelPush(block); // panel matrix
 	
 	if(block->flag & UI_BLOCK_LOOP) {
