@@ -1485,7 +1485,7 @@ void do_material_tex(ShadeInput *shi)
 					mat_col= shi->matren;
 				}
 				if(mtex->mapto & MAP_COLSPEC) {
-					texture_rgb_blend(&shi->matren->specr, tcol, &mat_col->specr, Tin, mtex->colfac, mtex->blendtype);
+					texture_rgb_blend(&shi->matren->specr, tcol, &mat_colspec->specr, Tin, mtex->colfac, mtex->blendtype);
 					mat_colspec= shi->matren;
 				}
 				if(mtex->mapto & MAP_COLMIR) {
@@ -1499,7 +1499,7 @@ void do_material_tex(ShadeInput *shi)
 						shi->refcol[3]= fact*tcol[2] + facm*shi->refcol[3];
 					}
 					else {
-						texture_rgb_blend(&shi->matren->mirr, tcol, &mat_col->mirr, Tin, mtex->colfac, mtex->blendtype);
+						texture_rgb_blend(&shi->matren->mirr, tcol, &mat_colmir->mirr, Tin, mtex->colfac, mtex->blendtype);
 					}
 					mat_colmir= shi->matren;
 				}
@@ -1586,7 +1586,7 @@ void do_material_tex(ShadeInput *shi)
 				if(mtex->mapto & MAP_SPEC) {
 					int flip= mtex->maptoneg & MAP_SPEC;
 					
-					shi->matren->spec= texture_value_blend(mtex->def_var, mat_ref->spec, Tin, mtex->varfac, mtex->blendtype, flip);
+					shi->matren->spec= texture_value_blend(mtex->def_var, mat_spec->spec, Tin, mtex->varfac, mtex->blendtype, flip);
 
 					if(shi->matren->spec<0.0) shi->matren->spec= 0.0;
 					mat_spec= shi->matren;
@@ -1594,7 +1594,7 @@ void do_material_tex(ShadeInput *shi)
 				if(mtex->mapto & MAP_EMIT) {
 					int flip= mtex->maptoneg & MAP_EMIT;
 
-					shi->matren->emit= texture_value_blend(mtex->def_var, mat_ref->emit, Tin, mtex->varfac, mtex->blendtype, flip);
+					shi->matren->emit= texture_value_blend(mtex->def_var, mat_emit->emit, Tin, mtex->varfac, mtex->blendtype, flip);
 
 					if(shi->matren->emit<0.0) shi->matren->emit= 0.0;
 					mat_emit= shi->matren;
@@ -1602,7 +1602,7 @@ void do_material_tex(ShadeInput *shi)
 				if(mtex->mapto & MAP_ALPHA) {
 					int flip= mtex->maptoneg & MAP_ALPHA;
 
-					shi->matren->alpha= texture_value_blend(mtex->def_var, mat_ref->alpha, Tin, mtex->varfac, mtex->blendtype, flip);
+					shi->matren->alpha= texture_value_blend(mtex->def_var, mat_alpha->alpha, Tin, mtex->varfac, mtex->blendtype, flip);
 						
 					if(shi->matren->alpha<0.0) shi->matren->alpha= 0.0;
 					else if(shi->matren->alpha>1.0) shi->matren->alpha= 1.0;
@@ -1612,7 +1612,7 @@ void do_material_tex(ShadeInput *shi)
 					int flip= mtex->maptoneg & MAP_HAR;
 					float har;  // have to map to 0-1
 					
-					har= ((float)mat_ref->har)/128.0;
+					har= ((float)mat_har->har)/128.0;
 					har= 128.0*texture_value_blend(mtex->def_var, har, Tin, mtex->varfac, mtex->blendtype, flip);
 					
 					if(har<1.0) shi->matren->har= 1; 
@@ -1623,7 +1623,7 @@ void do_material_tex(ShadeInput *shi)
 				if(mtex->mapto & MAP_RAYMIRR) {
 					int flip= mtex->maptoneg & MAP_RAYMIRR;
 
-					shi->matren->ray_mirror= texture_value_blend(mtex->def_var, mat_ref->ray_mirror, Tin, mtex->varfac, mtex->blendtype, flip);
+					shi->matren->ray_mirror= texture_value_blend(mtex->def_var, mat_ray_mirr->ray_mirror, Tin, mtex->varfac, mtex->blendtype, flip);
 
 					if(shi->matren->ray_mirror<0.0) shi->matren->ray_mirror= 0.0;
 					else if(shi->matren->ray_mirror>1.0) shi->matren->ray_mirror= 1.0;
@@ -1632,7 +1632,7 @@ void do_material_tex(ShadeInput *shi)
 				if(mtex->mapto & MAP_TRANSLU) {
 					int flip= mtex->maptoneg & MAP_TRANSLU;
 
-					shi->matren->translucency= texture_value_blend(mtex->def_var, mat_ref->translucency, Tin, mtex->varfac, mtex->blendtype, flip);
+					shi->matren->translucency= texture_value_blend(mtex->def_var, mat_translu->translucency, Tin, mtex->varfac, mtex->blendtype, flip);
 
 					if(shi->matren->translucency<0.0) shi->matren->translucency= 0.0;
 					else if(shi->matren->translucency>1.0) shi->matren->translucency= 1.0;
@@ -1641,7 +1641,7 @@ void do_material_tex(ShadeInput *shi)
 				if(mtex->mapto & MAP_AMB) {
 					int flip= mtex->maptoneg & MAP_AMB;
 
-					shi->matren->amb= texture_value_blend(mtex->def_var, mat_ref->amb, Tin, mtex->varfac, mtex->blendtype, flip);
+					shi->matren->amb= texture_value_blend(mtex->def_var, mat_amb->amb, Tin, mtex->varfac, mtex->blendtype, flip);
 
 					if(shi->matren->amb<0.0) shi->matren->amb= 0.0;
 					else if(shi->matren->amb>1.0) shi->matren->amb= 1.0;
