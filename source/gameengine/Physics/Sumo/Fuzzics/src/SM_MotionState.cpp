@@ -29,7 +29,7 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
+#include <MT_Scalar.h>
 #include <MT_Vector3.h>
 #include <MT_Quaternion.h>
  
@@ -56,15 +56,47 @@ void SM_MotionState::integrateForward(MT_Scalar timeStep, const SM_MotionState &
 	m_orn.normalize();
 }
 
+/*
+// Newtonian lerp: interpolate based on Newtonian motion
+void SM_MotionState::nlerp(const SM_MotionState &prev, const SM_MotionState &next)
+{
+	MT_Scalar dt = next.getTime() - prev.getTime();
+	MT_Scalar t = getTime() - prev.getTime();
+	MT_Vector3 dx = next.getPosition() - prev.getPosition();
+	MT_Vector3 a = dx/(dt*dt) - prev.getLinearVelocity()/dt;
+	
+	m_pos = prev.getPosition() + prev.getLinearVelocity()*t + a*t*t;
+}
+*/
+
+void SM_MotionState::lerp(const SM_MotionState &prev, const SM_MotionState &next)
+{
+	MT_Scalar dt = next.getTime() - prev.getTime();
+	if (MT_fuzzyZero(dt))
+	{
+		*this = next;
+		return;
+	}
+	
+	MT_Scalar x = (getTime() - prev.getTime())/dt;
+	
+	m_pos = x*next.getPosition() + (1-x)*prev.getPosition();
+	
+	m_orn = prev.getOrientation().slerp(next.getOrientation(), 1-x);
+	
+	m_lin_vel = x*next.getLinearVelocity() + (1-x)*prev.getLinearVelocity();
+	m_ang_vel = x*next.getAngularVelocity() + (1-x)*prev.getAngularVelocity();
+}
+
 void SM_MotionState::lerp(MT_Scalar t, const SM_MotionState &other)
 {
 	MT_Scalar x = (t - getTime())/(other.getTime() - getTime());
-	m_pos = x*m_pos + (1-x)*other.getPosition();
+	m_pos = (1-x)*m_pos + x*other.getPosition();
 	
-	m_orn = m_orn.slerp(other.getOrientation(), x);
+	m_orn =  other.getOrientation().slerp(m_orn, x);
 	
-	m_lin_vel = x*m_lin_vel + (1-x)*other.getLinearVelocity();
-	m_ang_vel = x*m_ang_vel + (1-x)*other.getAngularVelocity();
+	m_lin_vel = (1-x)*m_lin_vel + x*other.getLinearVelocity();
+	m_ang_vel = (1-x)*m_ang_vel + x*other.getAngularVelocity();
 	
 	m_time = t;
 }

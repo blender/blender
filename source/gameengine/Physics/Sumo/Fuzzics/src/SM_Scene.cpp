@@ -54,7 +54,7 @@ SM_Scene::SM_Scene() :
 	m_secondaryRespTable(DT_CreateRespTable()),
 	m_fixRespTable(DT_CreateRespTable()),
 	m_forceField(0.0, 0.0, 0.0),
-	m_lastTime(-1.0)
+	m_frames(0)
 {
 	for (int i = 0 ; i < NUM_RESPONSE; i++)
 	{
@@ -83,8 +83,8 @@ SM_Scene::SM_Scene() :
 	
 	/* Fh Object */
 	DT_AddPairResponse(m_respTable, m_ResponseClass[FH_RESPONSE], m_ResponseClass[SENSOR_RESPONSE], 0, DT_NO_RESPONSE, this);
-	DT_AddPairResponse(m_respTable, m_ResponseClass[FH_RESPONSE], m_ResponseClass[STATIC_RESPONSE], SM_FhObject::ray_hit, DT_BROAD_RESPONSE, this);
-	DT_AddPairResponse(m_respTable, m_ResponseClass[FH_RESPONSE], m_ResponseClass[OBJECT_RESPONSE], SM_FhObject::ray_hit, DT_BROAD_RESPONSE, this);
+	DT_AddPairResponse(m_respTable, m_ResponseClass[FH_RESPONSE], m_ResponseClass[STATIC_RESPONSE], SM_FhObject::ray_hit, DT_SIMPLE_RESPONSE, this);
+	DT_AddPairResponse(m_respTable, m_ResponseClass[FH_RESPONSE], m_ResponseClass[OBJECT_RESPONSE], SM_FhObject::ray_hit, DT_SIMPLE_RESPONSE, this);
 	DT_AddPairResponse(m_respTable, m_ResponseClass[FH_RESPONSE], m_ResponseClass[FH_RESPONSE], 0, DT_NO_RESPONSE, this);
 	
 	/* Object (Fix Pass) */
@@ -177,27 +177,31 @@ void SM_Scene::endFrame()
 		(*i)->clearForce();
 }
 
-bool SM_Scene::proceed(MT_Scalar curtime, MT_Scalar ticrate) {
-	if (m_lastTime < 0.0)
+bool SM_Scene::proceed(MT_Scalar curtime, MT_Scalar ticrate) 
+{
+	if (!m_frames)
 	{
-		m_lastTime = curtime;
-		return false;
+		if (ticrate > 0.)
+			m_frames = (unsigned int)(curtime*ticrate + 1.0);
+		else
+			m_frames = (unsigned int)(curtime*65536.0);
 	}
-		
+	
 	// Divide the timeStep into a number of subsamples of size roughly 
 	// equal to subS (might be a little smaller).
-	MT_Scalar timeStep = curtime - m_lastTime;
 	MT_Scalar subStep;
 	int num_samples;
 	
+	// Compute the number of steps to do this update.
 	if (ticrate > 0.0)
 	{
+		// Fixed time step
 		subStep = 1.0/ticrate;
-		num_samples = int(timeStep * ticrate);
+		num_samples = (unsigned int)(curtime*ticrate + 1.0) - m_frames;
 	
 		if (num_samples > 4)
 		{
-			std::cout << "Dropping physics frames! step: " << timeStep << " frames:" << num_samples << std::endl;
+			std::cout << "Dropping physics frames! frames:" << num_samples << std::endl;
 			num_samples /= 4;
 			subStep *= 4.0;
 		}
@@ -206,76 +210,70 @@ bool SM_Scene::proceed(MT_Scalar curtime, MT_Scalar ticrate) {
 	{
 		// Variable time step. (old update)
 		// Integrate at least 100 Hz
+		MT_Scalar timeStep = curtime - m_frames/65536.0;
 		subStep = timeStep > 0.01 ? 0.01 : timeStep;
 		num_samples = int(timeStep * 0.01);
 		if (num_samples < 1)
 			num_samples = 1;
 	}
 	
+	// Do a physics timestep.
 	T_ObjectList::iterator i;
-	
-	// No timestep! (should do a mini update)
-	if (num_samples <= 0)
+	if (num_samples > 0)
 	{
-		// Apply a forcefield (such as gravity)
-#if 0
-		for (i = m_objectList.begin(); i != m_objectList.end(); ++i) 
+		// Do the integration steps per object.
+		for (int step = 0; step != num_samples; ++step) 
 		{
-			//(*i)->applyForceField(m_forceField);
-			//(*i)->integrateForces(timeStep);
-			// And second we update the object positions by performing
-			// an integration step for each object
-			(*i)->integrateMomentum(timeStep);
-			//(*i)->clearForce();
-		}
-#endif
-		return false;	
-	}
+			MT_Scalar time;
+			if (ticrate > 0.)
+				time = MT_Scalar(m_frames + step + 1) * subStep;
+			else
+				time = MT_Scalar(m_frames)/65536.0 + MT_Scalar(step + 1)*subStep;
+			
+			for (i = m_objectList.begin(); i != m_objectList.end(); ++i) {
+				(*i)->endFrame();
+				// Apply a forcefield (such as gravity)
+				(*i)->integrateForces(subStep);
+				// And second we update the object positions by performing
+				// an integration step for each object
+				(*i)->integrateMomentum(subStep);
+			}
 	
-	m_lastTime += MT_Scalar(num_samples)*subStep;
-	
-	// Do the integration steps per object.
-	int step;
-	for (step = 0; step != num_samples; ++step) {
-
-		for (i = m_objectList.begin(); i != m_objectList.end(); ++i) {
-			// Apply a forcefield (such as gravity)
-			//(*i)->applyForceField(m_forceField);
-			//(*i)->setTimeStep(timeStep);
-			(*i)->integrateForces(subStep);
-			// And second we update the object positions by performing
-			// an integration step for each object
-			(*i)->integrateMomentum(subStep);
-		}
+			// So now first we let the physics scene respond to 
+			// new forces, velocities set externally. 
+			// The collsion and friction impulses are computed here. 
+			// Collision phase
+			DT_Test(m_scene, m_respTable);
 		
-		// I changed the order of the next 2 statements.
-		// Originally objects were first integrated with a call
-		// to proceed(). However if external objects were 
-		// directly manipulating the velocities etc of physics 
-		// objects then the physics environment would not be able 
-		// to react before object positions were updated. --- Laurence.
-
-		// So now first we let the physics scene respond to 
-		// new forces, velocities set externally. 
-		// The collsion and friction impulses are computed here. 
-		DT_Test(m_scene, m_respTable);
-
-	// clear the user set velocities.
-#if 0
-	clearObjectCombinedVelocities();
-#endif
-		DT_Test(m_scene, m_fixRespTable);
-		
-		// Finish this timestep by saving al state information for the next
-		// timestep and clearing the accumulated forces. 
-		for (i = m_objectList.begin(); i != m_objectList.end(); ++i) {
-			(*i)->relax();
-			(*i)->proceedKinematic(subStep);
-			(*i)->saveReactionForce(subStep);
-			//(*i)->clearForce();
+			// Contact phase
+			DT_Test(m_scene, m_fixRespTable);
+			
+			// Finish this timestep by saving al state information for the next
+			// timestep and clearing the accumulated forces. 
+			for (i = m_objectList.begin(); i != m_objectList.end(); ++i) {
+				(*i)->relax();
+				(*i)->proceedKinematic(subStep);
+				(*i)->saveReactionForce(subStep);
+				(*i)->getNextFrame().setTime(time);
+				//(*i)->clearForce();
+			}
 		}
 	}
-	return true;
+
+	if (ticrate > 0)
+	{
+		// Interpolate between time steps.
+		for (i = m_objectList.begin(); i != m_objectList.end(); ++i) 
+			(*i)->interpolate(curtime);
+	
+		m_frames = (unsigned int)(curtime*ticrate + 1.0);
+	}
+	else
+	{
+		m_frames = (unsigned int)(curtime*65536.0);
+	}
+		
+	return num_samples != 0;
 }
 
 void SM_Scene::notifyCollision(SM_Object *obj1, SM_Object *obj2)

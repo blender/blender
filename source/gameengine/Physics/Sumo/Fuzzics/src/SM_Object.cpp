@@ -49,7 +49,95 @@
 
 #include "MT_MinMax.h"
 
-MT_Scalar SM_Object::ImpulseThreshold = -10.;
+MT_Scalar SM_Object::ImpulseThreshold = -0.01;
+
+struct Contact
+{
+	SM_Object *obj1;
+	SM_Object *obj2;
+	MT_Vector3 normal;
+	MT_Point3 pos;
+	
+	// Sort objects by height
+	bool operator()(const Contact *a, const Contact *b)
+	{
+		return a->pos[2] < b->pos[2];
+	}
+	
+	Contact(SM_Object *o1, SM_Object *o2, const MT_Vector3 nor, const MT_Point3 p)
+		: obj1(o1),
+		  obj2(o2),
+		  normal(nor),
+		  pos(p)
+	{
+	}
+	
+	Contact()
+	{
+	}
+	
+	void resolve()
+	{
+		if (obj1->m_static || obj2->m_static)
+		{
+			if (obj1->isDynamic())
+			{
+				if (obj1->m_static && obj2->m_static)
+				{
+					if (obj1->m_static < obj2->m_static)
+					{
+						obj2->m_error -= normal;
+						obj2->m_static = obj1->m_static + 1;
+					}
+					else
+					{
+						obj1->m_error += normal;
+						obj1->m_static = obj2->m_static + 1;
+					}
+				}
+				else
+				{
+					if (obj1->m_static)
+					{
+						obj2->m_error -= normal;
+						obj2->m_static = obj1->m_static + 1;
+					}
+					else
+					{
+						obj1->m_error += normal;
+						obj1->m_static = obj2->m_static + 1;
+					}
+				}
+			}
+			else
+			{
+				obj2->m_error -= normal;
+				obj2->m_static = 1;
+			}
+		}
+		else
+		{
+			// This distinction between dynamic and non-dynamic objects should not be 
+			// necessary. Non-dynamic objects are assumed to have infinite mass.
+			if (obj1->isDynamic()) {
+				MT_Vector3 error = normal * 0.5f;
+				obj1->m_error += error;
+				obj2->m_error -= error;
+			}
+			else {
+				// Same again but now obj1 is non-dynamic
+				obj2->m_error -= normal;
+				obj2->m_static = obj1->m_static + 1;
+			}
+		}
+	
+	}
+		
+	
+	typedef std::set<Contact*, Contact> Set;
+};
+
+static Contact::Set contacts;
 
 SM_Object::SM_Object(
 	DT_ShapeHandle shape, 
@@ -69,9 +157,6 @@ SM_Object::SM_Object(
 	m_scaling(1.0, 1.0, 1.0),
 	m_reaction_impulse(0.0, 0.0, 0.0),
 	m_reaction_force(0.0, 0.0, 0.0),
-	m_kinematic(false),
-	m_prev_kinematic(false),
-	m_is_rigid_body(false),
 	m_lin_mom(0.0, 0.0, 0.0),
 	m_ang_mom(0.0, 0.0, 0.0),
 	m_force(0.0, 0.0, 0.0),
@@ -81,7 +166,11 @@ SM_Object::SM_Object(
 	m_combined_ang_vel (0.0, 0.0, 0.0),
 	m_fh_object(0),
 	m_inv_mass(0.0),
-	m_inv_inertia(0., 0., 0.)
+	m_inv_inertia(0., 0., 0.),
+	m_kinematic(false),
+	m_prev_kinematic(false),
+	m_is_rigid_body(false),
+	m_static(0)
 {
 	m_object = DT_CreateObject(this, shape);
 	m_xform.setIdentity();
@@ -108,7 +197,7 @@ integrateForces(
 	MT_Scalar timeStep
 ){
 	if (!m_suspended) {
-		m_prev_state = *this;
+		m_prev_state = getNextFrame();
 		m_prev_state.setLinearVelocity(actualLinVelocity());
 		m_prev_state.setAngularVelocity(actualAngVelocity());
 		if (isDynamic()) {
@@ -119,8 +208,8 @@ integrateForces(
 			m_lin_mom *= pow(m_shapeProps->m_lin_drag, timeStep);
 			m_ang_mom *= pow(m_shapeProps->m_ang_drag, timeStep);
 			// Set velocities according momentum
-			m_lin_vel = m_lin_mom * m_inv_mass;
-			m_ang_vel = m_inv_inertia_tensor * m_ang_mom;
+			getNextFrame().setLinearVelocity(m_lin_mom * m_inv_mass);
+			getNextFrame().setAngularVelocity(m_inv_inertia_tensor * m_ang_mom);
 		}
 	}	
 
@@ -146,13 +235,13 @@ integrateMomentum(
 //#define BACKWARD
 #ifdef  MIDPOINT
 // Midpoint rule
-		integrateMidpoint(timeStep, m_prev_state, actualLinVelocity(), actualAngVelocity());
+		getNextFrame().integrateMidpoint(timeStep, m_prev_state, actualLinVelocity(), actualAngVelocity());
 #elif defined BACKWARD
 // Backward Euler
-		integrateBackward(timeStep, actualLinVelocity(), actualAngVelocity());
+		getNextFrame().integrateBackward(timeStep, actualLinVelocity(), actualAngVelocity());
 #else 
 // Forward Euler
-		integrateForward(timeStep, m_prev_state);
+		getNextFrame().integrateForward(timeStep, m_prev_state);
 #endif
 
 		calcXform();
@@ -194,7 +283,7 @@ void SM_Object::dynamicCollision(const MT_Point3 &local2,
 		 * if rel_vel_normal < ImpulseThreshold, scale the restitution down.
 		 * This should improve the simulation where the object is stacked.
 		 */
-		restitution *= MT_min(MT_Scalar(1.0), rel_vel_normal/ImpulseThreshold);
+		restitution *= MT_min(MT_Scalar(1.0), m_shapeProps->m_mass*rel_vel_normal/ImpulseThreshold);
 				
 		MT_Scalar impulse = -(1.0 + restitution) * rel_vel_normal;
 		
@@ -207,7 +296,7 @@ void SM_Object::dynamicCollision(const MT_Point3 &local2,
 			 * Apply impulse at the collision point.
 			 * Take rotational inertia into account.
 			 */
-			applyImpulse(local2 + getPosition(), impulse * normal);
+			applyImpulse(local2 + getNextFrame().getPosition(), impulse * normal);
 		} else {
 			/**
 			 * Apply impulse through object centre. (no rotation.)
@@ -244,7 +333,7 @@ void SM_Object::dynamicCollision(const MT_Point3 &local2,
 			 * local coordinates.
 			 */
 
-			MT_Matrix3x3 lcs(m_orn);
+			MT_Matrix3x3 lcs(getNextFrame().getOrientation());
 			
 			/**
 			 * We cannot use m_xform.getBasis() for the matrix, since 
@@ -318,7 +407,7 @@ void SM_Object::dynamicCollision(const MT_Point3 &local2,
 					(invMass + lateral.dot(temp.cross(local2)));
 
 				MT_Scalar friction = MT_min(impulse_lateral, max_friction);
-				applyImpulse(local2 + getPosition(), -lateral * friction);
+				applyImpulse(local2 + getNextFrame().getPosition(), -lateral * friction);
 			}
 			else {
 				MT_Scalar impulse_lateral = rel_vel_lateral / invMass;
@@ -399,8 +488,8 @@ DT_Bool SM_Object::boing(
 	    (obj2->getClientObject() && obj2->getClientObject()->hasCollisionCallback()))
 		scene->notifyCollision(obj1, obj2);
 	
-	local1 -= obj1->getPosition();
-	local2 -= obj2->getPosition();
+	local1 -= obj1->getNextFrame().getPosition();
+	local2 -= obj2->getNextFrame().getPosition();
 	
 	// Calculate collision parameters
 	MT_Vector3 rel_vel        = obj1->getVelocity(local1) - obj2->getVelocity(local2);
@@ -422,7 +511,11 @@ DT_Bool SM_Object::boing(
 		obj1->dynamicCollision(local1, normal, dist, rel_vel, restitution, friction_factor, invMass);
 		
 	if (obj2->isDynamic())
+	{
 		obj2->dynamicCollision(local2, -normal, dist, -rel_vel, restitution, friction_factor, invMass);
+		if (!obj1->isDynamic() || obj1->m_static)
+			obj2->m_static = obj1->m_static + 1;
+	}
 	
 	return DT_CONTINUE;
 }
@@ -466,31 +559,38 @@ DT_Bool SM_Object::fix(
 	if (dist < MT_EPSILON || dist > obj2->m_shapeProps->m_radius*obj2->m_shapeProps->m_radius)
 		return DT_CONTINUE;
 		
-	// This distinction between dynamic and non-dynamic objects should not be 
-	// necessary. Non-dynamic objects are assumed to have infinite mass.
-	if (obj1->isDynamic()) {
-		MT_Vector3 error = normal * 0.5f;
-		obj1->m_error += error;
-		obj2->m_error -= error;
+		
+	if ((obj1->m_static || !obj1->isDynamic()) && obj1->m_static < obj2->m_static)
+	{
+		obj2->m_static = obj1->m_static + 1;
+	} else if (obj2->m_static && obj2->m_static < obj1->m_static)
+	{
+		obj1->m_static = obj2->m_static + 1;
 	}
-	else {
-		// Same again but now obj1 is non-dynamic
-		obj2->m_error -= normal;
-	}
+	
+	contacts.insert(new Contact(obj1, obj2, normal, MT_Point3(local1 + 0.5*(local2 - local1))));
+	
 	
 	return DT_CONTINUE;
 }
 
 void SM_Object::relax(void)
-{ 
+{
+	for (Contact::Set::iterator csit = contacts.begin() ; csit != contacts.end(); ++csit)
+	{
+		(*csit)->resolve();
+		delete (*csit);
+	}
+		
+	contacts.clear();
 	if (m_error.fuzzyZero())
 		return;
 	//std::cout << "SM_Object::relax: { " << m_error << " }" << std::endl;
 	
-	setPosition(getPosition() + m_error); 
+	getNextFrame().setPosition(getNextFrame().getPosition() + m_error); 
 	m_error.setValue(0., 0., 0.); 
-	calcXform();
-	notifyClient();
+	//calcXform();
+	//notifyClient();
 }
 	
 SM_Object::SM_Object() :
@@ -636,15 +736,15 @@ calcXform() {
 	printf("                 m_scaling = { %-0.5f, %-0.5f, %-0.5f }\n",
 		m_scaling[0], m_scaling[1], m_scaling[2]);
 #endif
-	m_xform.setOrigin(getPosition());
-	m_xform.setBasis(MT_Matrix3x3(getOrientation(), m_scaling));
+	m_xform.setOrigin(getNextFrame().getPosition());
+	m_xform.setBasis(MT_Matrix3x3(getNextFrame().getOrientation(), m_scaling));
 	m_xform.getValue(m_ogl_matrix);
 	
 	/* Blender has been known to crash here.
 	   This usually means SM_Object *this has been deleted more than once. */
 	DT_SetMatrixd(m_object, m_ogl_matrix);
 	if (m_fh_object) {
-		m_fh_object->setPosition(getPosition());
+		m_fh_object->setPosition(getNextFrame().getPosition());
 		m_fh_object->calcXform();
 	}
 	updateInvInertiaTensor();
@@ -760,7 +860,8 @@ setPosition(
 	const MT_Point3& pos
 ){
 	m_kinematic = true;
-	SM_MotionState::setPosition(pos);
+	getNextFrame().setPosition(pos);
+	endFrame();
 }
 	
 	void 
@@ -770,7 +871,8 @@ setOrientation(
 ){
 	assert(!orn.fuzzyZero());
 	m_kinematic = true;
-	SM_MotionState::setOrientation(orn);
+	getNextFrame().setOrientation(orn);
+	endFrame();
 }
 
 	void 
@@ -807,10 +909,7 @@ SM_Object::
 addLinearVelocity(
 	const MT_Vector3& lin_vel
 ){
-	m_lin_vel += lin_vel;
-	if (m_shapeProps) {
-		m_lin_mom = m_lin_vel * m_shapeProps->m_mass;
-	}
+	setLinearVelocity(getNextFrame().getLinearVelocity() + lin_vel);
 }
 
 	void 
@@ -818,9 +917,9 @@ SM_Object::
 setLinearVelocity(
 	const MT_Vector3& lin_vel
 ){
-	m_lin_vel = lin_vel;
+	getNextFrame().setLinearVelocity(lin_vel);
 	if (m_shapeProps) {
-		m_lin_mom = m_lin_vel * m_shapeProps->m_mass;
+		m_lin_mom = getNextFrame().getLinearVelocity() * m_shapeProps->m_mass;
 	}
 }
 
@@ -849,9 +948,9 @@ SM_Object::
 setAngularVelocity(
 	const MT_Vector3& ang_vel
 ) {
-	m_ang_vel = ang_vel;
+	getNextFrame().setAngularVelocity(ang_vel);
 	if (m_shapeProps) {
-		m_ang_mom = m_ang_vel * m_shapeProps->m_inertia;
+		m_ang_mom = getNextFrame().getAngularVelocity() * m_shapeProps->m_inertia;
 	}
 }
 
@@ -860,10 +959,7 @@ SM_Object::
 addAngularVelocity(
 	const MT_Vector3& ang_vel
 ) {
-	m_ang_vel += ang_vel;
-	if (m_shapeProps) {
-		m_ang_mom = m_ang_vel * m_shapeProps->m_inertia;
-	}
+	setAngularVelocity(getNextFrame().getAngularVelocity() + ang_vel);
 }
 
 
@@ -896,18 +992,18 @@ resolveCombinedVelocities(
 	if (isDynamic()) {		
 
 #if 1
-		m_lin_vel += lin_vel;
-		m_ang_vel += ang_vel;
+		getNextFrame().setLinearVelocity(getNextFrame().getLinearVelocity() + lin_vel);
+		getNextFrame().setAngularVelocity(getNextFrame().getAngularVelocity() + ang_vel);
 #else
 
 		//compute the component of the physics velocity in the 
 		// direction of the set velocity and set it to zero.
 		MT_Vector3 lin_vel_norm = lin_vel.normalized();
 
-		m_lin_vel -= (m_lin_vel.dot(lin_vel_norm) * lin_vel_norm);
+		setLinearVelocity(getNextFrame().getLinearVelocity() - (getNextFrame().getLinearVelocity().dot(lin_vel_norm) * lin_vel_norm));
 #endif
-		m_lin_mom = m_lin_vel * m_shapeProps->m_mass;
-		m_ang_mom = m_ang_vel * m_shapeProps->m_inertia;
+		m_lin_mom = getNextFrame().getLinearVelocity() * m_shapeProps->m_mass;
+		m_ang_mom = getNextFrame().getAngularVelocity() * m_shapeProps->m_inertia;
 		clearCombinedVelocities();
 
 	}
@@ -970,7 +1066,7 @@ applyImpulse(
 	const MT_Point3& attach, const MT_Vector3& impulse
 ) {
 	applyCenterImpulse(impulse);                          // Change in linear momentum
-	applyAngularImpulse((attach - m_pos).cross(impulse)); // Change in angular momentump
+	applyAngularImpulse((attach - getNextFrame().getPosition()).cross(impulse)); // Change in angular momentump
 }
 
 	void 
@@ -981,7 +1077,7 @@ applyCenterImpulse(
 	if (m_shapeProps) {
 		m_lin_mom          += impulse;
 		m_reaction_impulse += impulse;
-		m_lin_vel           = m_lin_mom * m_inv_mass;
+		getNextFrame().setLinearVelocity(m_lin_mom * m_inv_mass);
 
 		// The linear velocity is immedialtely updated since otherwise
 		// simultaneous collisions will get a double impulse. 
@@ -995,7 +1091,7 @@ applyAngularImpulse(
 ) {
 	if (m_shapeProps) {
 		m_ang_mom += impulse;
-		m_ang_vel = m_inv_inertia_tensor * m_ang_mom;
+		getNextFrame().setAngularVelocity( m_inv_inertia_tensor * m_ang_mom);
 	}
 }
 
@@ -1099,7 +1195,7 @@ const
 SM_Object::
 actualLinVelocity(
 ) const {
-	return m_combined_lin_vel + m_lin_vel;
+	return m_combined_lin_vel + getNextFrame().getLinearVelocity();
 };
 
 const 
@@ -1107,10 +1203,98 @@ const
 SM_Object::
 actualAngVelocity(
 ) const {
-	return m_combined_ang_vel + m_ang_vel;
-};
+	return m_combined_ang_vel + getNextFrame().getAngularVelocity();
+}
 
 
+SM_MotionState&
+SM_Object::
+getCurrentFrame()
+{
+	return m_frames[1];
+}
+
+SM_MotionState&
+SM_Object::
+getPreviousFrame()
+{
+	return m_frames[0];
+}
+
+SM_MotionState &
+SM_Object::
+getNextFrame()
+{
+	return m_frames[2];
+}
+
+const SM_MotionState &
+SM_Object::
+getCurrentFrame() const
+{
+	return m_frames[1];
+}
+
+const SM_MotionState &
+SM_Object::
+getPreviousFrame() const
+{
+	return m_frames[0];
+}
+
+const SM_MotionState &
+SM_Object::
+getNextFrame() const
+{
+	return m_frames[2];
+}
 
 
+const MT_Point3&     
+SM_Object::
+getPosition()        const
+{
+	return m_frames[1].getPosition();
+}
 
+const MT_Quaternion& 
+SM_Object::
+getOrientation()     const
+{
+	return m_frames[1].getOrientation();
+}
+
+const MT_Vector3&    
+SM_Object::
+getLinearVelocity()  const
+{
+	return m_frames[1].getLinearVelocity();
+}
+
+const MT_Vector3&    
+SM_Object::
+getAngularVelocity() const
+{
+	return m_frames[1].getAngularVelocity();
+}
+
+void
+SM_Object::
+interpolate(MT_Scalar timeStep)
+{
+	if (!actualLinVelocity().fuzzyZero() || !actualAngVelocity().fuzzyZero()) 
+	{
+		getCurrentFrame().setTime(timeStep);
+		getCurrentFrame().lerp(getPreviousFrame(), getNextFrame());
+		notifyClient();
+	}
+}
+
+void
+SM_Object::
+endFrame()
+{
+	getPreviousFrame() = getNextFrame();
+	getCurrentFrame() = getNextFrame();
+	m_static = 0;
+}

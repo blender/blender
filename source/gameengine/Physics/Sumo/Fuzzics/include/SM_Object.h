@@ -81,7 +81,8 @@ public:
  * It encapsulates an object in the physics scene, and is responsible
  * for calculating the collision response of objects.
  */
-class SM_Object : public SM_MotionState {
+class SM_Object 
+{
 public:
 	SM_Object() ;
 	SM_Object(
@@ -266,7 +267,29 @@ public:
 	
 	void relax();
 	
+	SM_MotionState &getCurrentFrame();
+	SM_MotionState &getPreviousFrame();
+	SM_MotionState &getNextFrame();
+	
+	const SM_MotionState &getCurrentFrame()   const;
+	const SM_MotionState &getPreviousFrame()  const;
+	const SM_MotionState &getNextFrame()      const;
+
+	// Motion state functions	
+	const MT_Point3&     getPosition()        const;
+	const MT_Quaternion& getOrientation()     const;
+	const MT_Vector3&    getLinearVelocity()  const;
+	const MT_Vector3&    getAngularVelocity() const;
+	
+	MT_Scalar            getTime()            const;
+	
+	void setTime(MT_Scalar time);
+	
+	void interpolate(MT_Scalar timeStep);
+	void endFrame();
+	
 private:
+	friend class Contact;
 	// Tweak parameters
 	static MT_Scalar ImpulseThreshold;
 
@@ -324,14 +347,12 @@ private:
 	MT_Vector3              m_reaction_impulse;      // The accumulated impulse resulting from collisions
 	MT_Vector3              m_reaction_force;        // The reaction force derived from the reaction impulse   
 
-	unsigned int            m_kinematic      : 1;    // Have I been displaced (translated, rotated, scaled) in this frame? 
-	unsigned int            m_prev_kinematic : 1;    // Have I been displaced (translated, rotated, scaled) in the previous frame? 
-	unsigned int            m_is_rigid_body  : 1;    // Should friction give me a change in angular momentum?
-
 	MT_Vector3              m_lin_mom;               // Linear momentum (linear velocity times mass)
 	MT_Vector3              m_ang_mom;               // Angular momentum (angualr velocity times inertia)
 	MT_Vector3              m_force;                 // Force on center of mass (afffects linear momentum)
-	MT_Vector3              m_torque;                // Torque around center of mass (affects angualr momentum)
+	MT_Vector3              m_torque;                // Torque around center of mass (affects angular momentum)
+	
+	SM_MotionState          m_frames[3];             
 	
 	MT_Vector3              m_error;                 // Error in position:- amount object must be moved to prevent intersection with scene
 
@@ -355,6 +376,12 @@ private:
 	MT_Scalar               m_inv_mass;              // 1/mass
 	MT_Vector3              m_inv_inertia;           // [1/inertia_x, 1/inertia_y, 1/inertia_z]
 	MT_Matrix3x3            m_inv_inertia_tensor;    // Inverse Inertia Tensor
+	
+	bool                    m_kinematic;             // Have I been displaced (translated, rotated, scaled) in this frame? 
+	bool                    m_prev_kinematic;        // Have I been displaced (translated, rotated, scaled) in the previous frame? 
+	bool                    m_is_rigid_body;         // Should friction give me a change in angular momentum?
+	int                     m_static;                // temporarily static.
+
 };
 
 #endif
