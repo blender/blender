@@ -38,9 +38,9 @@
 
 sinclude user-def.mk
 
-# To try the experimental new python stuff, uncomment the
-# following line, or put it uncommented in user-def.mk:
-# export EXPYTHON=true
+# To build without openAL, uncomment the following line, or set it as
+# an environment variable, or put it uncommented in user-def.mk:
+# export NAN_NO_OPENAL=true
 
 export NANBLENDERHOME=$(shell pwd)
 MAKEFLAGS=-I$(NANBLENDERHOME)/source --no-print-directory

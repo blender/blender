@@ -343,43 +343,58 @@ ifeq ($(OS),solaris)
 endif
 
 # OpenAL libs are already compiled as shared code! Check FMod if we switch to that. (nzc)
-ifeq ($(OS),$(findstring $(OS), "freebsd linux windows"))
-  ifeq ($(CPU),i386)
-    ifeq ($(OS),freebsd)
-      NAN_SND_LIBS = $(OCGDIR)/intern/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
-      NAN_SND_LIBS += $(OCGDIR)/intern/DummySoundSystem/$(DEBUG_DIR)libDummySoundSystem.a
-      NAN_SND_LIBS += $(OCGDIR)/intern/OpenALSoundSystem/$(DEBUG_DIR)libOpenALSoundSystem.a
-      NAN_SND_LIBS += $(NAN_OPENAL)/lib/libopenal.a
-      NAN_SND_LIBS += $(OCGDIR)/intern/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
-    else
-     NAN_SND_LIBS = $(OCGDIR)/intern/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
-     NAN_SND_LIBS += $(OCGDIR)/intern/DummySoundSystem/$(DEBUG_DIR)libDummySoundSystem.a
-     NAN_SND_LIBS += $(OCGDIR)/intern/OpenALSoundSystem/$(DEBUG_DIR)libOpenALSoundSystem.a
-     NAN_SND_LIBS += $(NAN_OPENAL)/lib/libopenal.a
-     NAN_SND_LIBS += $(OCGDIR)/intern/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
-    endif
-  else
-    ifeq ($(OS),windows)
-      NAN_SND_LIBS = $(OCGDIR)/intern/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
-      NAN_SND_LIBS += $(OCGDIR)/intern/DummySoundSystem/$(DEBUG_DIR)libDummySoundSystem.a
-      NAN_SND_LIBS += $(OCGDIR)/intern/OpenALSoundSystem/$(DEBUG_DIR)libOpenALSoundSystem.a
-      NAN_SND_LIBS += $(NAN_OPENAL)/lib/openal_static.lib
-      NAN_SND_LIBS += $(OCGDIR)/intern/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
-    else
-      NAN_SND_LIBS = $(OCGDIR)/intern/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
-      NAN_SND_LIBS += $(OCGDIR)/intern/DummySoundSystem/$(DEBUG_DIR)libDummySoundSystem.a
-      NAN_SND_LIBS += $(OCGDIR)/intern/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
-    endif
-  endif
+
+
+# Some vars to keep the rest of this section mostly readable
+# in an 80 char term
+SOUNDSYSTEM = $(OCGDIR)/intern/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
+DUMMYSOUND  = $(OCGDIR)/intern/DummySoundSystem/$(DEBUG_DIR)libDummySoundSystem.a
+OPENALSOUND = $(OCGDIR)/intern/OpenALSoundSystem/$(DEBUG_DIR)libOpenALSoundSystem.a
+
+# Some kooky logic going on here ...
+ifeq ($(NAN_NO_OPENAL), true)
+    NAN_SND_LIBS =  $(SOUNDSYSTEM)
+    NAN_SND_LIBS += $(DUMMYSOUND)
+    NAN_SND_LIBS += $(SOUNDSYSTEM)
 else
-  ifeq ($(OS),darwin)
-    NAN_SND_LIBS = $(OCGDIR)/intern/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
-    NAN_SND_LIBS += $(OCGDIR)/intern/DummySoundSystem/$(DEBUG_DIR)libDummySoundSystem.a
-    NAN_SND_LIBS += $(OCGDIR)/intern/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
+  ifeq ($(OS),$(findstring $(OS), "freebsd linux windows"))
+    ifeq ($(CPU),i386)
+      ifeq ($(OS),freebsd)
+        NAN_SND_LIBS =  $(SOUNDSYSTEM)
+        NAN_SND_LIBS += $(DUMMYSOUND)
+        NAN_SND_LIBS += $(OPENALSOUND)
+        NAN_SND_LIBS += $(NAN_OPENAL)/lib/libopenal.a
+        NAN_SND_LIBS += $(SOUNDSYSTEM)
+      else
+        NAN_SND_LIBS =  $(SOUNDSYSTEM)
+        NAN_SND_LIBS += $(DUMMYSOUND)
+        NAN_SND_LIBS += $(OPENALSOUND)
+        NAN_SND_LIBS += $(NAN_OPENAL)/lib/libopenal.a
+        NAN_SND_LIBS += $(SOUNDSYSTEM)
+      endif
+    else
+      ifeq ($(OS),windows)
+        NAN_SND_LIBS =  $(SOUNDSYSTEM)
+        NAN_SND_LIBS += $(DUMMYSOUND)
+        NAN_SND_LIBS += $(OPENALSOUND)
+        NAN_SND_LIBS += $(NAN_OPENAL)/lib/openal_static.lib
+        NAN_SND_LIBS += $(SOUNDSYSTEM)
+      else
+        NAN_SND_LIBS =  $(SOUNDSYSTEM)
+        NAN_SND_LIBS += $(DUMMYSOUND)
+        NAN_SND_LIBS += $(SOUNDSYSTEM)
+      endif
+    endif
   else
-    NAN_SND_LIBS = $(OCGDIR)/intern/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
-    NAN_SND_LIBS += $(OCGDIR)/intern/DummySoundSystem/$(DEBUG_DIR)libDummySoundSystem.a
-    NAN_SND_LIBS += $(OCGDIR)/intern/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
+    ifeq ($(OS),darwin)
+      NAN_SND_LIBS =  $(SOUNDSYSTEM)
+      NAN_SND_LIBS += $(DUMMYSOUND)
+      NAN_SND_LIBS += $(SOUNDSYSTEM)
+    else
+      NAN_SND_LIBS =  $(SOUNDSYSTEM)
+      NAN_SND_LIBS += $(DUMMYSOUND)
+      NAN_SND_LIBS += $(SOUNDSYSTEM)
+    endif
   endif
 endif
 

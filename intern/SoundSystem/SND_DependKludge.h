@@ -34,6 +34,8 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#ifndef NO_SOUND
+
 #  if defined (_WIN32) && !defined(FREE_WINDOWS)
 #define USE_OPENAL
 #elif defined (__linux__)
@@ -55,3 +57,4 @@
 #	endif
 #endif
 
+#endif

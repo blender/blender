@@ -39,20 +39,24 @@ DIR = $(OCGDIR)/$(SOURCEDIR)
 DIRS = intern
 DIRS += dummy
 
-ifeq ($(OS),windows)
-    DIRS += fmod 
-    DIRS += openal
-endif
-#ifeq ($(OS),darwin)
-#    DIRS += fmod 
-#endif
-ifeq ($(OS),freebsd)
-    DIRS += openal
-endif
-ifeq ($(OS),$(findstring $(OS), "linux"))
-  ifeq ($(CPU),i386)
-    DIRS += openal 
+ifneq ($(NAN_NO_OPENAL),true)
+  ifeq ($(OS),windows)
+      DIRS += fmod 
+      DIRS += openal
   endif
+  #ifeq ($(OS),darwin)
+  #    DIRS += fmod 
+  #endif
+  ifeq ($(OS),freebsd)
+    DIRS += openal
+  endif
+  ifeq ($(OS),$(findstring $(OS), "linux"))
+    ifeq ($(CPU),i386)
+      DIRS += openal 
+    endif
+  endif
+else
+  CPPFLAGS += -DNO_SOUND
 endif
 
 include nan_subdirs.mk
