@@ -42,10 +42,6 @@
 		#pragma warning (disable:4786) // suppress stl-MSVC debug info warning
 		#define GHOST_DEBUG
 	#endif // _DEBUG
-#else // WIN32
-	#ifndef NDEBUG
-		#define GHOST_DEBUG
-	#endif // DEBUG
 #endif // WIN32
 
 #ifdef GHOST_DEBUG
