@@ -151,7 +151,10 @@ def zipit(env, target, source):
 		pf = "cygwin"
 	
 	if bs_globals.user_options_dict['BUILD_BINARY'] == 'release':
-		blendname = "blender-" + bs_globals.version + "-" + bs_globals.config_guess
+		if sys.platform == 'cygwin':
+			blendname = "blender-" + bs_globals.version + "-" + pf
+		else:
+			blendname = "blender-" + bs_globals.version + "-" + bs_globals.config_guess
 	else:
 		blendname = "bf_blender_" + pf + "_" + today
 	
