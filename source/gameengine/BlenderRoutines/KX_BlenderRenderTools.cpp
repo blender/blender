@@ -69,6 +69,9 @@
 
 KX_BlenderRenderTools::KX_BlenderRenderTools()
 {
+	glGetIntegerv(GL_MAX_LIGHTS, (GLint*) &m_numgllights);
+	if (m_numgllights < 8)
+		m_numgllights = 8;
 }
 
 /**
@@ -343,16 +346,13 @@ int	KX_BlenderRenderTools::applyLights(int objectlayer)
 		
 	vec[3]= 1.0;
 	
-	for(count=0; count<8; count++)
+	for(count=0; count<m_numgllights; count++)
 		glDisable((GLenum)(GL_LIGHT0+count));
 	
-	count= 0;
-
 	//std::vector<struct	RAS_LightObject*> m_lights;
 	std::vector<struct	RAS_LightObject*>::iterator lit = m_lights.begin();
-
 	
-	for (lit = m_lights.begin(); !(lit==m_lights.end()); ++lit)
+	for (lit = m_lights.begin(), count = 0; !(lit==m_lights.end()) && count < m_numgllights; ++lit)
 	{
 		RAS_LightObject* lightdata = (*lit);
 		if (lightdata->m_layer & objectlayer)
@@ -410,11 +410,9 @@ int	KX_BlenderRenderTools::applyLights(int objectlayer)
 			glLightfv((GLenum)(GL_LIGHT0+count), GL_SPECULAR, vec);
 			glEnable((GLenum)(GL_LIGHT0+count));
 
-			glPopMatrix();
-
 			count++;
-			if(count>7) 
-				break;
+			
+			glPopMatrix();
 		}
 	}
 
@@ -435,3 +433,5 @@ RAS_IPolyMaterial* KX_BlenderRenderTools::CreateBlenderPolyMaterial(
 		ba,matname,tile,tilexrep,tileyrep,mode,transparant,lightlayer
 		,bIsTriangle,clientobject,(struct TFace*)tface);
 }
+
+unsigned int KX_BlenderRenderTools::m_numgllights;

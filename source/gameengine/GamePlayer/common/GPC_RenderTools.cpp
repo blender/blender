@@ -103,6 +103,9 @@
 GPC_RenderTools::GPC_RenderTools()
 {
 	m_font = BMF_GetFont(BMF_kHelvetica10);
+	glGetIntegerv(GL_MAX_LIGHTS, (GLint*) &m_numgllights);
+	if (m_numgllights < 8)
+		m_numgllights = 8;
 }
 
 
@@ -326,16 +329,14 @@ int GPC_RenderTools::applyLights(int objectlayer)
 	
 	vec[3]= 1.0;
 	
-	for(count=0; count<8; count++)
+	for(count=0; count<m_numgllights; count++)
 		glDisable((GLenum)(GL_LIGHT0+count));
 	
-	count= 0;
-
 	//std::vector<struct	RAS_LightObject*> m_lights;
 	std::vector<struct	RAS_LightObject*>::iterator lit = m_lights.begin();
 
 	
-	for (lit = m_lights.begin(); !(lit==m_lights.end()); ++lit)
+	for (lit = m_lights.begin(), count = 0; !(lit==m_lights.end()) && count < m_numgllights; ++lit)
 	{
 		RAS_LightObject* lightdata = (*lit);
 		if (lightdata->m_layer & objectlayer)
@@ -392,12 +393,10 @@ int GPC_RenderTools::applyLights(int objectlayer)
 			glLightfv((GLenum)(GL_LIGHT0+count), GL_DIFFUSE, vec); 
 			glLightfv((GLenum)(GL_LIGHT0+count), GL_SPECULAR, vec);
 			glEnable((GLenum)(GL_LIGHT0+count));
+			
+			count++;
 
 			glPopMatrix();
-
-			count++;
-			if(count>7) 
-				break;
 		}
 	}
 
@@ -511,3 +510,5 @@ void GPC_RenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmatrix,in
 		}
 	}
 }
+
+unsigned int GPC_RenderTools::m_numgllights;

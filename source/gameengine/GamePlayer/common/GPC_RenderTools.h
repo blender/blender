@@ -170,6 +170,7 @@ protected:
 
 
 	BMF_Font* m_font;
+	static unsigned int m_numgllights;
 };
 
 #endif  // __GPC_RENDERTOOLS_H

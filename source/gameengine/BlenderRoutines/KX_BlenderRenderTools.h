@@ -51,7 +51,8 @@ class KX_BlenderRenderTools  : public RAS_IRenderTools
 	void*	m_lastblenderobject;
 	int		m_lastlayer;
 	bool	m_lastlighting;
-
+	static unsigned int m_numgllights;
+	
 public:
 	
 						KX_BlenderRenderTools();
