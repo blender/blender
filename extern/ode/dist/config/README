@@ -1,0 +1,41 @@
+
+variable names used in the per-platform makefile configuration files:
+
+platform stuff
+--------------
+
+WINDOWS			set to 1 if this is a microsoft windows based platform
+
+filesystem stuff and commands
+-----------------------------
+
+THIS_DIR		prefix to run a command from the current directory
+DEL_CMD			the name of the delete command
+
+compiler stuff
+--------------
+
+CC			the C/C++ compiler to use
+OBJ			the object file extension
+C_FLAGS			the standard set of compiler flags
+C_INC			flag to add an include path
+C_OUT			flag to specify the object file output
+C_EXEOUT		flag to specify the executable file output
+C_DEF			flag to add a define
+C_OPT			flag to set the optimization level
+OPT			the optimization level to use
+
+library archiver
+----------------
+
+AR			library archiver command
+RANLIB			ranlib command, if necessary
+LIB_PREFIX		library file prefix
+LIB_SUFFIX		library file suffix
+LINK_OPENGL		link flags to link in windowing stuff and opengl
+LINK_MATH		link flags to link in the system math library
+
+windows specific stuff
+----------------------
+
+RC_RULE			makefile rule to use for the resource compiler

@@ -1,0 +1,18 @@
+Checked out from ODE cvs (http://q12.org) on or around
+Fri Oct 18 14:24:11 GMT 2002
+
+Note that ODE has its own build system. The source/ode/
+directory is traversed by Blender's source/Makefile. However
+source/ode/config/user-settings has to be set correctly
+depending on the target platform. This needs to be done in the
+source/Makefile which determines the proper platform, then copies
+the appropriate platform-specific user-settings.platform file to
+source/ode/config/user-settings. Currently source/ode/user-settings is
+for Linux.
+
+Don't change the source in this directory. This source code is
+maintained on the CVS server at http://q12.org and is provided here
+so that Blender developers can compile ODE without having to separately
+download and install it. This source code can and should periodically
+be synchronized (manually) with the source code at http://q12.org.
+

@@ -1,0 +1,11 @@
+#!/usr/bin/perl
+
+$a = join ('',<STDIN>);
+$a =~ s/\\\n/ /g;		# join continued lines
+$a =~ s/(^\S+:)/$ARGV[0]$1/gm;	# put prefix in front of rules
+$a =~ s/\s+\/\S+/ /g;		# remove absolute path dependencies
+$a =~ s/\s+\n/\n/g;		# remove whitespace at end of lines
+$a =~ s/[ \t]+/ /g;		# clean up interior whitespace
+$a =~ s/ / \\\n  /g;		# put back line continuations
+
+print $a;
