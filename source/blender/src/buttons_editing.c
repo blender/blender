@@ -1215,16 +1215,29 @@ static void parnr_to_editbone_cb(void *bonev, void *arg2_unused)
 	parnr_to_editbone(curBone);
 }
 
-
 static void build_bonestring (char *string, EditBone *bone){
 	EditBone *curBone;
 	EditBone *pBone;
 	int		skip=0;
-	int		index;
+	int		index, numbones, i;
+	char (*qsort_ptr)[32] = NULL;
 
-	sprintf (string, "Parent%%t| %%x%d", -1);	/* That space is there for a reason */
+	sprintf (string, "Parent%%t| %%x%d", -1);	/* That space is there 
+												 * for a reason 
+												 */
 	
-	for (curBone = G.edbo.first, index=0; curBone; curBone=curBone->next, index++){
+	numbones = BLI_countlist(&G.edbo);
+
+	/* 
+	 * This will hold the bone names temporarily so we can sort them
+	 */
+	if (numbones > 0)
+		qsort_ptr = MEM_callocN (numbones * sizeof (qsort_ptr[0]), 
+								 "qsort_ptr");
+
+	numbones = 0;
+	for (curBone = G.edbo.first, index=0; curBone; 
+		 curBone=curBone->next, index++){
 		/* Make sure this is a valid child */
 		if (curBone != bone){
 			skip=0;
@@ -1237,10 +1250,20 @@ static void build_bonestring (char *string, EditBone *bone){
 			
 			if (skip)
 				continue;
-			
-			sprintf (string, "%s|%s%%x%d", string, curBone->name, index);
+
+			sprintf (qsort_ptr[numbones], "|%s%%x%d", curBone->name, index);
+			numbones++;
 		}
 	}
+	qsort (qsort_ptr, numbones, sizeof (qsort_ptr[0]), 
+		   ( int (*)(const void *, const void *) ) strcmp);
+
+	for (i=0; i < numbones; ++i) {
+		sprintf (string, "%s%s", string, qsort_ptr[i]);
+	}
+
+	if (qsort_ptr)
+		MEM_freeN(qsort_ptr);
 }
 
 static void constraint_ebone_name_fix(ListBase *conlist, EditBone *eBone)
@@ -1838,24 +1861,46 @@ static void editing_panel_links(Object *ob)
 		char *s, *menustr;
 		bDeformGroup *dg;
 		int min, index;
+		char (*qsort_ptr)[32] = NULL;
 		
-		uiDefBut(block, LABEL,0,"Vertex Groups",	143,153,130,20, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL,0,"Vertex Groups", 
+				 143,153,130,20, 0, 0, 0, 0, 0, "");
 
 		defCount=BLI_countlist(&ob->defbase);
 
 		if (!defCount) min=0;
 		else min=1;
 		
-		s= menustr = MEM_callocN((32 * defCount)+20, "menustr");
+		if (defCount > 0) {
+			/* 
+			 * This will hold the group names temporarily 
+			 * so we can sort them 
+			 */
+			qsort_ptr = MEM_callocN (defCount * sizeof (qsort_ptr[0]), 
+									 "qsort_ptr");
+			for (index = 1, dg = ob->defbase.first; dg; index++, dg=dg->next) {
+				snprintf (qsort_ptr[index - 1], sizeof (qsort_ptr[0]), 
+						  "%s%%x%d|", dg->name, index);
+			}
 
-		for (index = 1, dg = ob->defbase.first; dg; index++, dg=dg->next) {
-			int cnt= sprintf (s, "%s%%x%d|", dg->name, index);
-			
+			qsort (qsort_ptr, defCount, sizeof (qsort_ptr[0]), 
+				   ( int (*)(const void *, const void *) ) strcmp);
+		}
+
+		s= menustr = MEM_callocN((32 * defCount)+20, "menustr");
+		for (index = 0; index < defCount; index++) {
+			int cnt= sprintf (s, "%s", qsort_ptr[index]);
 			if (cnt>0) s+= cnt;
 		}
-		
+
+		if (qsort_ptr)
+		  MEM_freeN (qsort_ptr);
+
 		uiBlockBeginAlign(block);
-		if (defCount) uiDefButS(block, MENU, REDRAWBUTSEDIT, menustr,	143, 132,18,21, &ob->actdef, min, defCount, 0, 0, "Browses available vertex groups");
+		if (defCount) 
+			uiDefButS(block, MENU, REDRAWBUTSEDIT, menustr,
+					  143, 132,18,21, &ob->actdef, min, defCount, 0, 0, 
+					  "Browses available vertex groups");
 
 		MEM_freeN (menustr);
 
