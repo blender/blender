@@ -28,6 +28,7 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+#define FALSE 0
 
 #ifdef WIN32
 
@@ -295,7 +296,9 @@ MainWindow *mainwindow_new(MultiTestApp *app) {
 	GHOST_SystemHandle sys= multitestapp_get_system(app);
 	GHOST_WindowHandle win;
 	
-	win= GHOST_CreateWindow(sys, "MultiTest:Main", 40, 40, 400, 400, GHOST_kWindowStateNormal, GHOST_kDrawingContextTypeOpenGL);
+	win= GHOST_CreateWindow(sys, "MultiTest:Main", 40, 40, 400, 400, 
+		GHOST_kWindowStateNormal, GHOST_kDrawingContextTypeOpenGL, 
+		FALSE);
 	
 	if (win) {
 		MainWindow *mw= MEM_callocN(sizeof(*mw), "mainwindow_new");
@@ -533,7 +536,9 @@ LoggerWindow *loggerwindow_new(MultiTestApp *app) {
 	GHOST_WindowHandle win;
 	
 	GHOST_GetMainDisplayDimensions(sys, &screensize[0], &screensize[1]);
-	win= GHOST_CreateWindow(sys, "MultiTest:Logger", 40, screensize[1]-432, 800, 300, GHOST_kWindowStateNormal, GHOST_kDrawingContextTypeOpenGL);
+	win= GHOST_CreateWindow(sys, "MultiTest:Logger", 40, screensize[1]-432,
+		800, 300, GHOST_kWindowStateNormal, 
+		GHOST_kDrawingContextTypeOpenGL, FALSE);
 	
 	if (win) {
 		LoggerWindow *lw= MEM_callocN(sizeof(*lw), "loggerwindow_new");
@@ -711,7 +716,9 @@ ExtraWindow *extrawindow_new(MultiTestApp *app) {
 	GHOST_SystemHandle sys= multitestapp_get_system(app);
 	GHOST_WindowHandle win;
 	
-	win= GHOST_CreateWindow(sys, "MultiTest:Extra", 500, 40, 400, 400, GHOST_kWindowStateNormal, GHOST_kDrawingContextTypeOpenGL);
+	win= GHOST_CreateWindow(sys, "MultiTest:Extra", 500, 40, 400, 400, 
+		GHOST_kWindowStateNormal, GHOST_kDrawingContextTypeOpenGL,
+		FALSE);
 	
 	if (win) {
 		ExtraWindow *ew= MEM_callocN(sizeof(*ew), "mainwindow_new");
