@@ -2945,8 +2945,9 @@ void RE_rotateBlenderScene(void)
 				 This is based on the assumption that OB_DONE is only set for duplivert objects,
 				 before scene conversion, there are no other flags set to indicate it's use as far as I know...
 				 A special flag only used by yafray is set to indicate this object is the 'source' object
-				 of which all other duplivert objects are an instance of. */
-			if (R.r.mode & R_YAFRAY) {
+				 of which all other duplivert objects are an instance of.
+				 Correction: NOT done for lamps, these are included as separate objects, see below */
+			if ((ob->type!=OB_LAMP) && (R.r.mode & R_YAFRAY)) {
 				printf("Adding %s to renderlist\n", ob->id.name);
 				ob->flag &= ~OB_DONE;
 				init_render_object(ob);
@@ -2995,8 +2996,9 @@ void RE_rotateBlenderScene(void)
 							if(obd->type!=OB_MBALL) {
 								/* yafray: special handling of duplivert objects for yafray:
 								   only the matrix is stored, together with the source object name.
-									 Since the original object is needed as well, it is included in the renderlist (see above) */
-								if (R.r.mode & R_YAFRAY) {
+									 Since the original object is needed as well, it is included in the renderlist (see above)
+									 correction: NOT done for lamps, these need to be included as normal lamps separately */
+								if ((obd->type!=OB_LAMP) && (R.r.mode & R_YAFRAY)) {
 									printf("Adding dupli matrix for object %s\n", obd->id.name);
 									YAF_addDupliMtx(obd);
 								}
@@ -3218,7 +3220,7 @@ void displace_render_face(VlakRen *vlr, float *scale)
 		/* We want to split the quad along the opposite verts that are */
 		/*	closest in displace value.  This will help smooth edges.   */ 
 		if ( fabs(vlr->v1->accum - vlr->v3->accum) > fabs(vlr->v2->accum - vlr->v4->accum)) 
-				vlr->flag |= R_DIVIDE_24; 
+				vlr->flag |= R_DIVIDE_24;
 		else 	vlr->flag & ~R_DIVIDE_24;
 	}
 }

@@ -1,4 +1,4 @@
-/**  
+/**
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -69,29 +69,37 @@ void prepareScene()
 		if(R.la[a]->shb) makeshadowbuf(R.la[a]);
 	}
 
-	/* RADIO */
-	if(R.r.mode & R_RADIO) do_radio_render();
+	/* yafray: 'direct' radiosity, environment maps and octree init not needed for yafray render */
+	/* although radio mode could be useful at some point, later */
+	if ((R.r.mode & R_YAFRAY)==0) {
 
-	/* ENVIRONMENT MAPS */
-	make_envmaps();
-	
-	/* octree */
-	if(R.r.mode & R_RAYTRACE) makeoctree();
+		/* RADIO */
+		if(R.r.mode & R_RADIO) do_radio_render();
+
+		/* ENVIRONMENT MAPS */
+		make_envmaps();
+
+		/* octree */
+		if(R.r.mode & R_RAYTRACE) makeoctree();
+	}
 }
 
 void finalizeScene(void)
 {
 	extern void freeoctree(void);
-	
+
 	/* Among other things, it releases the shadow buffers. */
 	RE_local_free_renderdata();
-	if(R.r.mode & R_RAYTRACE) freeoctree();
+	/* yafray: freeoctree not needed after yafray render, not initialized, see above */
+	if ((R.r.mode & R_YAFRAY)==0) {
+		if(R.r.mode & R_RAYTRACE) freeoctree();
+	}
 }
 
 
 void doClipping( void (*projectfunc)(float *, float *) )
 {
-	setzbufvlaggen(projectfunc);	
+	setzbufvlaggen(projectfunc);
 }
 
 /* eof */
