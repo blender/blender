@@ -240,7 +240,7 @@ void scanlinesky(char *rect, int y)
 	 * unmangle this shit... */
 	void (*alphafunc)();
 	float fac, u, v, view[3];
-	int dx, x, ofs;
+	int dx, x, dy, ofs;
 	unsigned int col=0, *rt;
 	char *cp, *cp1;
 	
@@ -250,7 +250,7 @@ void scanlinesky(char *rect, int y)
 		
 		cp= (char *)&col;
 		cp[3]= 0;
-		/* raytrace cam change the R.wrld.horr, so we make sure we have the good one */
+		/* raytrace can change the R.wrld.horr, so we make sure we have the good one */
 		if(G.scene->world) {
 			cp[0]= 255.0*G.scene->world->horr;
 			cp[1]= 255.0*G.scene->world->horg;
@@ -296,18 +296,21 @@ void scanlinesky(char *rect, int y)
 				}
 			}
 			/* which scanline/ */
-			y= ((y+R.afmy+R.ystart)*R.backbuf->ibuf->y)/(R.recty);
+			dy= ((y+R.afmy+R.ystart)*R.backbuf->ibuf->y)/(2*R.afmy);
 			
 			if(R.flag & R_SEC_FIELD) {
 				if((R.r.mode & R_ODDFIELD)==0) {
-					if( y<R.backbuf->ibuf->y) y++;
+					if( dy<R.backbuf->ibuf->y) dy++;
 				}
 				else {
-					if( y>0) y--;
+					if( dy>0) dy--;
 				}
 			}
-				
-			rt= (R.backbuf->ibuf->rect + y*R.backbuf->ibuf->x);
+			
+			if(dy<0) dy= 0; 
+			else if(dy>=R.backbuf->ibuf->y) dy= R.backbuf->ibuf->y-1;
+			
+			rt= (R.backbuf->ibuf->rect + dy*R.backbuf->ibuf->x);
 			
 			/* at which location */
 			fac= ((float)R.backbuf->ibuf->x)/(float)(2*R.afmx);
