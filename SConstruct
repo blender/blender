@@ -1043,7 +1043,7 @@ def buildinfo(env, build_type):
 			build_info_file.write("char *build_date=\"%s\";\n"%build_date)
 			build_info_file.write("char *build_time=\"%s\";\n"%build_time)
 			build_info_file.write("char *build_platform=\"win32\";\n")
-			build_info_file.write("char *build_type=\"%s\";\n"%build_type)
+			build_info_file.write("char *build_type=\"dynamic\";\n")
 			build_info_file.close()
 			env.Append (CPPDEFINES = ['NAN_BUILDINFO', 'BUILD_DATE'])
 		else:
