@@ -237,10 +237,16 @@ static void renderwin_reset_view(RenderWin *rw)
 	window_get_size(rw->win, &w, &h);
 	h-= RW_HEADERY;
 	
-		/* at this point the r.rectx/y values are not correct yet */
+	/* at this point the r.rectx/y values are not correct yet */
 	rectx= (G.scene->r.size*G.scene->r.xsch)/100;
 	recty= (G.scene->r.size*G.scene->r.ysch)/100;
-
+	
+	/* crop option makes image smaller */
+	if ((G.scene->r.mode & R_BORDER) && (G.scene->r.mode & R_MOVIECROP)) { 
+		rectx*= (G.scene->r.border.xmax-G.scene->r.border.xmin);
+		recty*= (G.scene->r.border.ymax-G.scene->r.border.ymin);
+	}
+	
 	if(rectx>w || recty>h) {
 		if(rectx-w > recty-h) rw->zoom= ((float)w)/((float)rectx);
 		else rw->zoom= ((float)h)/((float)recty);
@@ -589,6 +595,13 @@ void calc_renderwin_rectangle(int posmask, int renderpos_r[2], int rendersize_r[
 	
 	rendersize_r[0]= (G.scene->r.size*G.scene->r.xsch)/100;
 	rendersize_r[1]= (G.scene->r.size*G.scene->r.ysch)/100;
+	
+	/* crop option makes image smaller */
+	if ((G.scene->r.mode & R_BORDER) && (G.scene->r.mode & R_MOVIECROP)) { 
+		rendersize_r[0]*= (G.scene->r.border.xmax-G.scene->r.border.xmin);
+		rendersize_r[1]*= (G.scene->r.border.ymax-G.scene->r.border.ymin);
+	}
+	
 	if(G.scene->r.mode & R_PANORAMA) {
 		rendersize_r[0]*= G.scene->r.xparts;
 		rendersize_r[1]*= G.scene->r.yparts;
