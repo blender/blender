@@ -59,14 +59,15 @@
 #include "DNA_view3d_types.h"
 
 #include "BKE_bmfont.h"
-#include "BKE_main.h"
-#include "BKE_mesh.h"
-#include "BKE_image.h"
-#include "BKE_property.h"
-#include "BKE_global.h"
 #include "BKE_displist.h"
-#include "BKE_object.h"
+#include "BKE_effect.h"
+#include "BKE_global.h"
+#include "BKE_image.h"
+#include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_mesh.h"
+#include "BKE_object.h"
+#include "BKE_property.h"
 
 #include "BIF_resources.h"
 #include "BIF_gl.h"
@@ -891,7 +892,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 		bProperty *prop = get_property(ob, "Text");
 		int editing= (G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT)) && (ob==((G.scene->basact) ? (G.scene->basact->object) : 0));
 		MVert *mvert=NULL;
-		int totface;
+		int start=0, totface;
 
 		if(mesh_uses_displist(me) && editing==0) {
 			DispList *dl= find_displist(&me->disp, DL_MESH);
@@ -911,7 +912,10 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 			DispList *dl= find_displist(&ob->disp, DL_VERTS);
 			if (dl) extverts= dl->verts;
 			
+			/* although buildvars are not supported in engine, they're in Blender... */
 			totface= me->totface;
+			set_buildvars(ob, &start, &totface);
+
 			mvert= me->mvert;
 			mface= me->mface;
 			tface= me->tface;
@@ -920,7 +924,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 		// tface can be NULL
 		if(tface==NULL) {
 			
-			for (a=0; a<totface; a++) {
+			for (a=start; a<totface; a++) {
 				int v1idx, v2idx, v3idx, v4idx, mf_smooth, matnr;
 				float *v1, *v2, *v3, *v4;
 				MFace *mf= &mface[a];
@@ -979,7 +983,8 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 			}
 		}
 		else {	// has tfaces
-			for (a=0; a<totface; a++, tface++) {
+			tface+= start;
+			for (a=start; a<totface; a++, tface++) {
 				int v1idx, v2idx, v3idx, v4idx, mf_smooth, matnr, badtex;
 				float *v1, *v2, *v3, *v4;
 				MFace *mf= &mface[a];
