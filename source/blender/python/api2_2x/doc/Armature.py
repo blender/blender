@@ -93,6 +93,7 @@ class Bone:
   @cvar quat: This Bone's quaternion.
   @cvar parent: The parent Bone.
   @cvar children: The children bones.
+  @cvar weight: The bone's weight.
   """
 
   def getName():
@@ -136,7 +137,7 @@ class Bone:
   def getQuat():
     """
     Get this Bone's quaternion.
-    @rtype: list of four floats.
+    @rtype: Quaternion object.
     """
 
   def hasParent():
@@ -149,6 +150,12 @@ class Bone:
     """
     Get this Bone's parent Bone, if available.
     @rtype: Blender Bone
+    """
+
+  def getWeight():
+    """
+    Get the bone's weight.
+    @rtype: float
     """
 
   def getChildren():
@@ -217,17 +224,11 @@ class Bone:
     @param z: The new z value.
     """
 
-  def setQuat(real,imag_i,imag_j,imag_k):
+  def setQuat(quat):
     """
-    Set the new quaternion orientation for this Bone.
-    @type real: float
-    @type imag_i: float
-    @type imag_j: float
-    @type imag_k: float
-    @param real: The new quat[0] value.
-    @param imag_i: The new quat[1] value.
-    @param imag_j: The new quat[2] value.
-    @param imag_k: The new quat[3] value.
+    Set the new quaternion for this Bone.
+    @type quat: Quaternion object or PyList of floats
+    @param quat: Can be a Quaternion or PyList of 4 floats.
     """
 
   def setParent(bone):
@@ -235,4 +236,11 @@ class Bone:
     Set the bones's parent in the armature.
     @type bone: PyBone
     @param bone: The Python bone that is the parent to this bone.
+    """
+
+  def setWeight(weight):
+    """
+    Set the bones's weight.
+    @type weight: float
+    @param weight: set the the bone's weight.
     """
