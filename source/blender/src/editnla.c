@@ -856,7 +856,7 @@ static void transform_nlachannel_keys(char mode)
 						deltax = cval[0]-sval[0];
 						fac= deltax;
 						
-						apply_keyb_grid(&fac, 0.0F, 1.0F, 0.1F, U.flag & AUTOGRABGRID);
+						apply_keyb_grid(&fac, 0.0F, 1.0F, 0.1F, U.flag & USER_AUTOGRABGRID);
 						
 						if (tv[i].loc)
 							tv[i].loc[0]+=fac;
@@ -868,7 +868,7 @@ static void transform_nlachannel_keys(char mode)
 						deltax=mvalc[0]-(NLAWIDTH/2+(curarea->winrct.xmax-curarea->winrct.xmin)/2);
 						fac= (float)fabs(deltax/startx);
 						
-						apply_keyb_grid(&fac, 0.0F, 0.2F, 0.1F, U.flag & AUTOSIZEGRID);
+						apply_keyb_grid(&fac, 0.0F, 0.2F, 0.1F, U.flag & USER_AUTOSIZEGRID);
 						
 						if (invert){
 							if (i % 03 == 0){

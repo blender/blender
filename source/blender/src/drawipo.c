@@ -1745,7 +1745,7 @@ int view2dzoom(unsigned short event)
 		* alt-ctrl mousewheel:  zoom x only
 		*/
 		if (event==WHEELUPMOUSE) {
-			if(U.uiflag & WHEELZOOMDIR)
+			if(U.uiflag & USER_WHEELZOOMDIR)
 				wtemp = -0.0375;
 			else
 				wtemp = 0.03;
@@ -1770,7 +1770,7 @@ int view2dzoom(unsigned short event)
 			}
 		}
 		else if (event==WHEELDOWNMOUSE) {
-			if(U.uiflag & WHEELZOOMDIR)
+			if(U.uiflag & USER_WHEELZOOMDIR)
 				wtemp = 0.03;
 			else
 				wtemp = -0.0375;

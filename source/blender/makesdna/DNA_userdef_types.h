@@ -155,72 +155,69 @@ extern UserDef U; /* from usiblender.c !!!! */
 /* ***************** USERDEF ****************** */
 
 /* flag */
-#define AUTOSAVE		1
-#define AUTOGRABGRID	2
-#define AUTOROTGRID		4
-#define AUTOSIZEGRID	8
-#define SCENEGLOBAL		16
-#define TRACKBALL		32
-#define DUPLILINK		64
-#define FSCOLLUM		128
-#define MAT_ON_OB		256
-#define NO_CAPSLOCK		512
-#define VIEWMOVE		1024
-#define TOOLTIPS		2048
-#define TWOBUTTONMOUSE	4096
-#define NONUMPAD		8192
+#define USER_AUTOSAVE			1
+#define USER_AUTOGRABGRID		2
+#define USER_AUTOROTGRID		4
+#define USER_AUTOSIZEGRID		8
+#define USER_SCENEGLOBAL		16
+#define USER_TRACKBALL			32
+#define USER_DUPLILINK			64
+#define USER_FSCOLLUM			128
+#define USER_MAT_ON_OB			256
+#define USER_NO_CAPSLOCK		512
+#define USER_VIEWMOVE			1024
+#define USER_TOOLTIPS			2048
+#define USER_TWOBUTTONMOUSE		4096
+#define USER_NONUMPAD			8192
 
 /* uiflag */
 
-#define	KEYINSERTACT	1
-#define	KEYINSERTOBJ	2
-#define WHEELZOOMDIR	4
-#define FILTERFILEEXTS	8
-#define DRAWVIEWINFO	16
-#define EVTTOCONSOLE	32		// print ghost events, here for tuhopuu compat. --phase
+#define	USER_KEYINSERTACT		1
+#define	USER_KEYINSERTOBJ		2
+#define USER_WHEELZOOMDIR		4
+#define USER_FILTERFILEEXTS		8
+#define USER_DRAWVIEWINFO		16
+#define USER_EVTTOCONSOLE		32		// print ghost events, here for tuhopuu compat. --phase
 								// old flag for hide pulldown was here 
-#define FLIPFULLSCREEN	128
-#define ALLWINCODECS	256
-#define MENUOPENAUTO	512
+#define USER_FLIPFULLSCREEN		128
+#define USER_ALLWINCODECS		256
+#define USER_MENUOPENAUTO		512
 
 /* transopts */
 
-#define	TR_TOOLTIPS		1
-#define	TR_BUTTONS		2
-#define TR_MENUS		4
-#define TR_FILESELECT	8
-#define TR_TEXTEDIT		16
-#define TR_ALL			32
+#define	USER_TR_TOOLTIPS		1
+#define	USER_TR_BUTTONS			2
+#define USER_TR_MENUS			4
+#define USER_TR_FILESELECT		8
+#define USER_TR_TEXTEDIT		16
+#define USER_DOTRANSLATE		32
 
 /* dupflag */
 
-#define DUPMESH			1
-#define DUPCURVE		2
-#define DUPSURF			4
-#define DUPFONT			8
-#define DUPMBALL		16
-#define DUPLAMP			32
-#define DUPIPO			64
-#define DUPMAT			128
-#define DUPTEX			256
-#define	DUPARM			512
-#define	DUPACT			1024
+#define USER_DUP_MESH			1
+#define USER_DUP_CURVE			2
+#define USER_DUP_SURF			4
+#define USER_DUP_FONT			8
+#define USER_DUP_MBALL			16
+#define USER_DUP_LAMP			32
+#define USER_DUP_IPO			64
+#define USER_DUP_MAT			128
+#define USER_DUP_TEX			256
+#define	USER_DUP_ARM			512
+#define	USER_DUP_ACT			1024
 
 /* gameflags */
 
-#define USERDEF_VERTEX_ARRAYS_BIT        0
-#define USERDEF_DISABLE_SOUND_BIT        1
-#define USERDEF_DISABLE_MIPMAP_BIT       2
+#define USER_VERTEX_ARRAYS		1
+#define USER_DISABLE_SOUND		2
+#define USER_DISABLE_MIPMAP		4
 
-#define USERDEF_VERTEX_ARRAYS        (1 << USERDEF_VERTEX_ARRAYS_BIT)
-#define USERDEF_DISABLE_SOUND        (1 << USERDEF_DISABLE_SOUND_BIT)
-#define USERDEF_DISABLE_MIPMAP       (1 << USERDEF_DISABLE_MIPMAP_BIT)
 
 /* vrml flag */
 
-#define USERDEF_VRML_LAYERS		1
-#define USERDEF_VRML_AUTOSCALE	2
-#define USERDEF_VRML_TWOSIDED	4
+#define USER_VRML_LAYERS		1
+#define USER_VRML_AUTOSCALE		2
+#define USER_VRML_TWOSIDED		4
 
 #endif
 

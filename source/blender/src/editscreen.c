@@ -1151,8 +1151,8 @@ void screenmain(void)
 
 #ifdef _WIN32	// FULLSCREEN
 void mainwindow_toggle_fullscreen(int fullscreen){
-	if (fullscreen) U.uiflag |= FLIPFULLSCREEN;
-	else U.uiflag &= ~FLIPFULLSCREEN;
+	if (fullscreen) U.uiflag |= USER_FLIPFULLSCREEN;
+	else U.uiflag &= ~USER_FLIPFULLSCREEN;
 
 	window_toggle_fullscreen(mainwin, fullscreen);
 }
@@ -1726,7 +1726,7 @@ void add_to_mainqueue(Window *win, void *user_data, short evt, short val, char a
 
 	statechanged= 1;
 
-	if (U.flag & NONUMPAD) {
+	if (U.flag & USER_NONUMPAD) {
 		evt= convert_for_nonumpad(evt);
 	}
 

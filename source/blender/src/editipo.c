@@ -4760,7 +4760,7 @@ void transform_ipo(int mode)
 				vec[0]= dvec[0];
 				vec[1]= dvec[1];
 				
-				apply_keyb_grid(vec, 0.0, (float)1.0, (float)0.1, U.flag & AUTOGRABGRID);
+				apply_keyb_grid(vec, 0.0, (float)1.0, (float)0.1, U.flag & USER_AUTOGRABGRID);
 				apply_keyb_grid(vec+1, 0.0, (float)1.0, (float)0.1, 0);
 				
 				tv= transmain;
@@ -4781,8 +4781,8 @@ void transform_ipo(int mode)
 				size[0]*= xref;
 				size[1]*= yref;
 				
-				apply_keyb_grid(size, 0.0, (float)0.2, (float)0.1, U.flag & AUTOSIZEGRID);
-				apply_keyb_grid(size+1, 0.0, (float)0.2, (float)0.1, U.flag & AUTOSIZEGRID);
+				apply_keyb_grid(size, 0.0, (float)0.2, (float)0.1, U.flag & USER_AUTOSIZEGRID);
+				apply_keyb_grid(size+1, 0.0, (float)0.2, (float)0.1, U.flag & USER_AUTOSIZEGRID);
 
 				tv= transmain;
 

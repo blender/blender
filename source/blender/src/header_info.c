@@ -1643,11 +1643,11 @@ static void info_text(int x, int y)
 
 	glRasterPos2i(x, y);
 
-	BIF_DrawString(G.font, headerstr, (U.transopts & TR_MENUS));
+	BIF_DrawString(G.font, headerstr, (U.transopts & USER_TR_MENUS));
 		
 	glRasterPos2i(x+122,	y);
 
-	BIF_DrawString(G.font, infostr, (U.transopts & TR_MENUS));
+	BIF_DrawString(G.font, infostr, (U.transopts & USER_TR_MENUS));
 }
 
 void info_buttons(void)
@@ -1737,7 +1737,7 @@ void info_buttons(void)
 	curarea->headbutlen= xco+2*XIC;
 
 #ifdef _WIN32	// FULLSCREEN
-	if(U.uiflag & FLIPFULLSCREEN) {
+	if(U.uiflag & USER_FLIPFULLSCREEN) {
 		uiDefIconBut(block, BUT, B_FLIPFULLSCREEN, ICON_WINDOW_WINDOW,
 				(short)(curarea->winx-XIC-5), 0,XIC,YIC,
 				0, 0, 0, 0, 0, "Toggles Blender to fullscreen mode");/* dir		*/

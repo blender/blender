@@ -289,7 +289,7 @@ void uiTextBoundsBlock(uiBlock *block, int addval)
 	bt= block->buttons.first;
 	while(bt) {
 		if(bt->type!=SEPR) {
-			j= BIF_GetStringWidth(bt->font, bt->drawstr, (U.transopts & TR_BUTTONS));
+			j= BIF_GetStringWidth(bt->font, bt->drawstr, (U.transopts & USER_TR_BUTTONS));
 
 			if(j > i) i = j;
 		}
@@ -840,12 +840,12 @@ static int ui_do_but_MENU(uiBut *but)
 		
 	/* size and location */
 	if(md->title)
-		width= 1.5*but->aspect*strlen(md->title)+BIF_GetStringWidth(block->curfont, md->title, (U.transopts & TR_MENUS));
+		width= 1.5*but->aspect*strlen(md->title)+BIF_GetStringWidth(block->curfont, md->title, (U.transopts & USER_TR_MENUS));
 	else
 		width= 0;
 
 	for(a=0; a<md->nitems; a++) {
-		xmax= but->aspect*BIF_GetStringWidth(block->curfont, md->items[a].str, (U.transopts & TR_MENUS));
+		xmax= but->aspect*BIF_GetStringWidth(block->curfont, md->items[a].str, (U.transopts & USER_TR_MENUS));
 		if(xmax>width) width= xmax;
 	}
 
@@ -1147,7 +1147,7 @@ static int ui_do_but_TEX(uiBut *but)
 	BLI_strncpy(backstr, but->drawstr, UI_MAX_DRAW_STR);
 	but->pos= strlen(backstr)-but->ofs;
 
-	while((but->aspect*BIF_GetStringWidth(but->font, backstr+but->ofs, (U.transopts & TR_BUTTONS)) + but->x1) > mval[0]) {
+	while((but->aspect*BIF_GetStringWidth(but->font, backstr+but->ofs, (U.transopts & USER_TR_BUTTONS)) + but->x1) > mval[0]) {
 		if (but->pos <= 0) break;
 		but->pos--;
 		backstr[but->pos+but->ofs] = 0;
@@ -1547,12 +1547,12 @@ static int ui_do_but_ICONTEXTROW(uiBut *but)
 	/* size and location */
 	/* expand menu width to fit labels */
 	if(md->title)
-		width= 2*strlen(md->title)+BIF_GetStringWidth(block->curfont, md->title, (U.transopts & TR_MENUS));
+		width= 2*strlen(md->title)+BIF_GetStringWidth(block->curfont, md->title, (U.transopts & USER_TR_MENUS));
 	else
 		width= 0;
 
 	for(a=0; a<md->nitems; a++) {
-		xmax= BIF_GetStringWidth(block->curfont, md->items[a].str, (U.transopts & TR_MENUS));
+		xmax= BIF_GetStringWidth(block->curfont, md->items[a].str, (U.transopts & USER_TR_MENUS));
 		if(xmax>width) width= xmax;
 	}
 
@@ -2693,7 +2693,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 						if(uevent->event!=LEFTMOUSE ) {
 							if(block->auto_open==2) time= 1;	// test for toolbox
 							else if(block->auto_open) time= 5*U.menuthreshold2;
-							else if(U.uiflag & MENUOPENAUTO) time= 5*U.menuthreshold1;
+							else if(U.uiflag & USER_MENUOPENAUTO) time= 5*U.menuthreshold1;
 							else time= -1;
 
 							for (; time>0; time--) {
@@ -2792,7 +2792,7 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 	if(G.ui_international == TRUE) {
 		float llx,lly,llz,urx,ury,urz;  //for FTF_GetBoundingBox()
 
-		if(U.transopts & TR_TOOLTIPS) {
+		if(U.transopts & USER_TR_TOOLTIPS) {
 			FTF_GetBoundingBox(but->tip, &llx,&lly,&llz,&urx,&ury,&urz, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
 
 			x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*FTF_GetStringWidth(but->tip, FTF_USE_GETTEXT | FTF_INPUT_UTF8);  //BMF_GetStringWidth(but->font, but->tip);
@@ -2860,7 +2860,7 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 	
 	glColor3ub(0,0,0);
 	glRasterPos2f( x1+3, y1+4);
-	BIF_DrawString(but->font, but->tip, (U.transopts & TR_TOOLTIPS));
+	BIF_DrawString(but->font, but->tip, (U.transopts & USER_TR_TOOLTIPS));
 	
 	glFinish();		/* to show it in the frontbuffer */
 	return su;
@@ -3036,7 +3036,7 @@ int uiDoBlocks(ListBase *lb, int event)
 			
 			/* tooltip */	
 			if(retval==UI_NOTHING && (uevent.event==MOUSEX || uevent.event==MOUSEY)) {
-				if(U.flag & TOOLTIPS) ui_do_but_tip();
+				if(U.flag & USER_TOOLTIPS) ui_do_but_tip();
 			}
 		}
 		
@@ -3060,7 +3060,7 @@ int uiDoBlocks(ListBase *lb, int event)
 
 	/* tooltip */	
 	if(retval==UI_NOTHING && (uevent.event==MOUSEX || uevent.event==MOUSEY)) {
-		if(U.flag & TOOLTIPS) ui_do_but_tip();
+		if(U.flag & USER_TOOLTIPS) ui_do_but_tip();
 	}
 
 	/* doesnt harm :-) */
@@ -3409,7 +3409,7 @@ void ui_check_but(uiBut *but)
 	}
 
 	if(but->drawstr[0]) {
-		but->strwidth= but->aspect*BIF_GetStringWidth(but->font, but->drawstr, (U.transopts & TR_BUTTONS));
+		but->strwidth= but->aspect*BIF_GetStringWidth(but->font, but->drawstr, (U.transopts & USER_TR_BUTTONS));
 		// here should be check for less space for icon offsets...
 		if(but->type==MENU) okwidth -= 20;
 	}
@@ -3431,7 +3431,7 @@ void ui_check_but(uiBut *but)
 			but->ofs++;
 	
 			if(but->drawstr[but->ofs]) 
-				but->strwidth= but->aspect*BIF_GetStringWidth(but->font, but->drawstr+but->ofs, (U.transopts & TR_BUTTONS));
+				but->strwidth= but->aspect*BIF_GetStringWidth(but->font, but->drawstr+but->ofs, (U.transopts & USER_TR_BUTTONS));
 			else but->strwidth= 0;
 	
 			/* textbut exception */
@@ -4149,12 +4149,12 @@ short pupmenu(char *instr)
 	md= decompose_menu_string(instr);
 
 	/* size and location, title slightly bigger for bold */
-	if(md->title) width= 2*strlen(md->title)+BIF_GetStringWidth(uiBlockGetCurFont(block), md->title, (U.transopts && TR_BUTTONS));
+	if(md->title) width= 2*strlen(md->title)+BIF_GetStringWidth(uiBlockGetCurFont(block), md->title, (U.transopts && USER_TR_BUTTONS));
 	else width= 0;
 	for(a=0; a<md->nitems; a++) {
 		char *name= md->items[a].str;
 		
-		xmax= BIF_GetStringWidth(uiBlockGetCurFont(block), md->items[a].str, (U.transopts && TR_BUTTONS));
+		xmax= BIF_GetStringWidth(uiBlockGetCurFont(block), md->items[a].str, (U.transopts && USER_TR_BUTTONS));
 		if(xmax>width) width= xmax;
 
 		if( strcmp(name, "%l")==0) height+= 6;
@@ -4271,10 +4271,10 @@ short pupmenu_col(char *instr, int maxrow)
 	while (rows*columns<(md->nitems+columns) ) rows++;
 		
 	/* size and location */
-	if(md->title) width= 2*strlen(md->title)+BIF_GetStringWidth(uiBlockGetCurFont(block), md->title, (U.transopts & TR_BUTTONS));
+	if(md->title) width= 2*strlen(md->title)+BIF_GetStringWidth(uiBlockGetCurFont(block), md->title, (U.transopts & USER_TR_BUTTONS));
 	else width= 0;
 	for(a=0; a<md->nitems; a++) {
-		xmax= BIF_GetStringWidth(uiBlockGetCurFont(block), md->items[a].str, (U.transopts & TR_BUTTONS));
+		xmax= BIF_GetStringWidth(uiBlockGetCurFont(block), md->items[a].str, (U.transopts & USER_TR_BUTTONS));
 		if(xmax>width) width= xmax;
 	}
 

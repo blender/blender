@@ -92,7 +92,7 @@ float BIF_GetStringWidth(BMF_Font* font, char *str, int translate)
 
 #ifdef INTERNATIONAL
 	if(G.ui_international == TRUE)
-		if(U.transopts & TR_BUTTONS)
+		if(U.transopts & USER_TR_BUTTONS)
 			rt= FTF_GetStringWidth(str, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
 		else
 			rt= FTF_GetStringWidth(str, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
@@ -245,7 +245,7 @@ void start_interface_font(void) {
 	} else {
 		printf("no font found for international support\n");
 		G.ui_international = FALSE;
-		U.transopts &= ~TR_ALL;
+		U.transopts &= ~USER_DOTRANSLATE;
 		U.fontsize = 0;
 	}
 

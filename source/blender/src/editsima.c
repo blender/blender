@@ -403,8 +403,8 @@ void transform_tface_uv(int mode)
 				
 				dvec2[0]= dvec[0];
 				dvec2[1]= dvec[1];
-				apply_keyb_grid(dvec2, 0.0, 1.0/8.0, 1.0/16.0, U.flag & AUTOGRABGRID);
-				apply_keyb_grid(dvec2+1, 0.0, 1.0/8.0, 1.0/16.0, U.flag & AUTOGRABGRID);
+				apply_keyb_grid(dvec2, 0.0, 1.0/8.0, 1.0/16.0, U.flag & USER_AUTOGRABGRID);
+				apply_keyb_grid(dvec2+1, 0.0, 1.0/8.0, 1.0/16.0, U.flag & USER_AUTOGRABGRID);
 
 				vec[0]= dvec2[0];
 				vec[1]= dvec2[1];
@@ -446,7 +446,7 @@ void transform_tface_uv(int mode)
 					if(G.qual & LR_SHIFTKEY) phi+= dphi/30.0;
 					else phi+= dphi;
 					
-					apply_keyb_grid(&phi, 0.0, (5.0/180)*M_PI, (1.0/180)*M_PI, U.flag & AUTOROTGRID);
+					apply_keyb_grid(&phi, 0.0, (5.0/180)*M_PI, (1.0/180)*M_PI, U.flag & USER_AUTOROTGRID);
 					
 					dx1= dx2; 
 					dy1= dy2;
@@ -482,8 +482,8 @@ void transform_tface_uv(int mode)
 				
 				if(midtog) size[proj]= 1.0;
 				
-				apply_keyb_grid(size, 0.0, 0.1, 0.01, U.flag & AUTOSIZEGRID);
-				apply_keyb_grid(size+1, 0.0, 0.1, 0.01, U.flag & AUTOSIZEGRID);
+				apply_keyb_grid(size, 0.0, 0.1, 0.01, U.flag & USER_AUTOSIZEGRID);
+				apply_keyb_grid(size+1, 0.0, 0.1, 0.01, U.flag & USER_AUTOSIZEGRID);
 
 				size[0]*= xref;
 				size[1]*= yref;

@@ -390,7 +390,7 @@ static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				if (val) {
 					if (win->commandqual) {
 						bbut= win->faked_mbut= RIGHTMOUSE;
-					} else if ((win->lqual & LR_ALTKEY) && (U.flag & TWOBUTTONMOUSE)) {
+					} else if ((win->lqual & LR_ALTKEY) && (U.flag & USER_TWOBUTTONMOUSE)) {
 						/* finally, it actually USES the userpref! :) -intrr */
 						bbut= win->faked_mbut= MIDDLEMOUSE;
 					}

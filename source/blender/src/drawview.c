@@ -1720,7 +1720,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	draw_view_icon();
 
 	ob= OBACT;
-	if(ob!=0 && (U.uiflag & DRAWVIEWINFO)) draw_selected_name(ob->id.name+2);
+	if(ob!=0 && (U.uiflag & USER_DRAWVIEWINFO)) draw_selected_name(ob->id.name+2);
 	
 	draw_area_emboss(sa);
 	
@@ -2358,7 +2358,7 @@ int play_anim(int mode)
 			event= extern_qread(&val);
 			if(event==ESCKEY) break;
 			else if(event==MIDDLEMOUSE) {
-				if(U.flag & VIEWMOVE) {
+				if(U.flag & USER_VIEWMOVE) {
 					if(G.qual & LR_SHIFTKEY) viewmove(0);
 					else if(G.qual & LR_CTRLKEY) viewmove(2);
 					else viewmove(1);

@@ -119,13 +119,13 @@ PyObject *Blender_Get (PyObject *self, PyObject *args)
       dict = PyDict_New ();
 
       PyDict_SetItemString (dict, "twoside",
-                  PyInt_FromLong (U.vrmlflag & USERDEF_VRML_TWOSIDED));
+                  PyInt_FromLong (U.vrmlflag & USER_VRML_TWOSIDED));
 
       PyDict_SetItemString (dict, "layers",
-                  PyInt_FromLong (U.vrmlflag & USERDEF_VRML_LAYERS));
+                  PyInt_FromLong (U.vrmlflag & USER_VRML_LAYERS));
 
       PyDict_SetItemString (dict, "autoscale",
-                  PyInt_FromLong (U.vrmlflag & USERDEF_VRML_AUTOSCALE));
+                  PyInt_FromLong (U.vrmlflag & USER_VRML_AUTOSCALE));
 
       return (dict);
     } /* End 'quick hack' part. */

@@ -134,7 +134,7 @@ int IMB_ispic_name(char *name)
 
 int IMB_ispic(char *filename)
 {
-	if(U.uiflag & FILTERFILEEXTS) {
+	if(U.uiflag & USER_FILTERFILEEXTS) {
 		if (G.have_quicktime){
 			if(		BLI_testextensie(filename, ".jpg")
 				||	BLI_testextensie(filename, ".jpeg")
@@ -248,7 +248,7 @@ int imb_get_anim_type(char * name) {
 int IMB_isanim(char *filename) {
 	int type;
 	
-	if(U.uiflag & FILTERFILEEXTS) {
+	if(U.uiflag & USER_FILTERFILEEXTS) {
 		if (G.have_quicktime){
 			if(		BLI_testextensie(filename, ".avi")
 				||	BLI_testextensie(filename, ".flc")

@@ -633,7 +633,7 @@ Object *add_object(int type)
 	Mat4One(ob->parentinv);
 	Mat4One(ob->obmat);
 	ob->dt= OB_SHADED;
-	if(U.flag & MAT_ON_OB) ob->colbits= -1;
+	if(U.flag & USER_MAT_ON_OB) ob->colbits= -1;
 	
 	if(type==OB_CAMERA || type==OB_LAMP) {
 		ob->trackflag= OB_NEGZ;

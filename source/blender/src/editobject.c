@@ -2138,7 +2138,7 @@ void copy_attr(short event)
 
 					/* Copy the constraint channels over */
 					copy_constraints(&base->object->constraints, &ob->constraints);
-					if (U.dupflag&DUPIPO)
+					if (U.dupflag& USER_DUP_IPO)
 						copy_constraint_channels(&base->object->constraintChannels, &ob->constraintChannels);
 					else
 						clone_constraint_channels (&base->object->constraintChannels, &ob->constraintChannels, NULL);
@@ -3770,7 +3770,7 @@ void special_aftertrans_update(char mode, int flip, short canceled, int keyflags
 		 */
 		clear_bone_nocalc_ob(G.obpose);
 
-		if (U.uiflag & KEYINSERTACT && !canceled){
+		if (U.uiflag & USER_KEYINSERTACT && !canceled){
 			act=G.obpose->action;
 			pose=G.obpose->pose;
 			
@@ -3864,7 +3864,7 @@ void special_aftertrans_update(char mode, int flip, short canceled, int keyflags
 			where_is_object(ob);	/* always do, for track etc. */
 
 			/* Set autokey if necessary */
-			if ((U.uiflag & KEYINSERTOBJ) && (!canceled) && (base->flag & SELECT)){
+			if ((U.uiflag & USER_KEYINSERTOBJ) && (!canceled) && (base->flag & SELECT)){
 				if (keyflags & KEYFLAG_ROT){
 					insertkey(&base->object->id, OB_ROT_X);
 					insertkey(&base->object->id, OB_ROT_Y);
@@ -4224,7 +4224,7 @@ static void view_editmove(unsigned char event)
 				} else {
 					persptoetsen(PAD4);
 				}
-			} else if(U.uiflag & WHEELZOOMDIR) 
+			} else if(U.uiflag & USER_WHEELZOOMDIR) 
 				persptoetsen(PADMINUS);
 			else
 				persptoetsen(PADPLUSKEY);
@@ -4247,7 +4247,7 @@ static void view_editmove(unsigned char event)
 				} else {
 					persptoetsen(PAD6);
 				}
-			} else if(U.uiflag & WHEELZOOMDIR) 
+			} else if(U.uiflag & USER_WHEELZOOMDIR) 
 				persptoetsen(PADPLUSKEY);
 			else
 				persptoetsen(PADMINUS);
@@ -4712,9 +4712,9 @@ void transform(int mode)
 					dvec[1]= 0.1*(dvec[1]-d_dvec[1])+d_dvec[1];
 					dvec[2]= 0.1*(dvec[2]-d_dvec[2])+d_dvec[2];
 				}
-				apply_keyb_grid(dvec, 0.0, G.vd->grid, 0.1*G.vd->grid, gridflag & AUTOGRABGRID);
-				apply_keyb_grid(dvec+1, 0.0, G.vd->grid, 0.1*G.vd->grid, gridflag & AUTOGRABGRID);
-				apply_keyb_grid(dvec+2, 0.0, G.vd->grid, 0.1*G.vd->grid, gridflag & AUTOGRABGRID);
+				apply_keyb_grid(dvec, 0.0, G.vd->grid, 0.1*G.vd->grid, gridflag & USER_AUTOGRABGRID);
+				apply_keyb_grid(dvec+1, 0.0, G.vd->grid, 0.1*G.vd->grid, gridflag & USER_AUTOGRABGRID);
+				apply_keyb_grid(dvec+2, 0.0, G.vd->grid, 0.1*G.vd->grid, gridflag & USER_AUTOGRABGRID);
 
 				if(dvec[0]!=oldval[0] ||dvec[1]!=oldval[1] ||dvec[2]!=oldval[2]) {
 					VECCOPY(oldval, dvec);
@@ -4827,8 +4827,8 @@ void transform(int mode)
 					phi0+= .007*(float)(dy2-dy1);
 					phi1+= .007*(float)(dx1-dx2);
 				
-					apply_keyb_grid(&phi0, 0.0, (5.0/180)*M_PI, (1.0/180)*M_PI, gridflag & AUTOROTGRID);
-					apply_keyb_grid(&phi1, 0.0, (5.0/180)*M_PI, (1.0/180)*M_PI, gridflag & AUTOROTGRID);
+					apply_keyb_grid(&phi0, 0.0, (5.0/180)*M_PI, (1.0/180)*M_PI, gridflag & USER_AUTOROTGRID);
+					apply_keyb_grid(&phi1, 0.0, (5.0/180)*M_PI, (1.0/180)*M_PI, gridflag & USER_AUTOROTGRID);
 
 					if(typemode){
 						VecRotToMat3(rot0, addvec[1]*M_PI/180.0, smat);
@@ -4860,7 +4860,7 @@ void transform(int mode)
 						if(G.qual & LR_SHIFTKEY) phi+= dphi/30.0;
 						else phi+= dphi;
 						
-						apply_keyb_grid(&phi, 0.0, (5.0/180)*M_PI, (1.0/180)*M_PI, gridflag & AUTOROTGRID);
+						apply_keyb_grid(&phi, 0.0, (5.0/180)*M_PI, (1.0/180)*M_PI, gridflag & USER_AUTOROTGRID);
 
 						if(axismode) {
 							if(axismode==XTRANS) vec[0]= -1.0; else vec[0]= 0.0;
@@ -5179,9 +5179,9 @@ void transform(int mode)
 
 
 				/* grid */
-				apply_keyb_grid(size, 0.0, 0.1, 0.01, gridflag & AUTOSIZEGRID);
-				apply_keyb_grid(size+1, 0.0, 0.1, 0.01, gridflag & AUTOSIZEGRID);
-				apply_keyb_grid(size+2, 0.0, 0.1, 0.01, gridflag & AUTOSIZEGRID);
+				apply_keyb_grid(size, 0.0, 0.1, 0.01, gridflag & USER_AUTOSIZEGRID);
+				apply_keyb_grid(size+1, 0.0, 0.1, 0.01, gridflag & USER_AUTOSIZEGRID);
+				apply_keyb_grid(size+2, 0.0, 0.1, 0.01, gridflag & USER_AUTOSIZEGRID);
 				
 				if(transmain) {
 					size[0]= MINSIZE(size[0], 0.001);
@@ -5219,9 +5219,9 @@ void transform(int mode)
 								sizelo[0]= totmat[0][0];	
 								sizelo[1]= totmat[1][1];	
 								sizelo[2]= totmat[2][2];
-								apply_keyb_grid(sizelo, 0.0, 0.1, 0.01, gridflag & AUTOSIZEGRID);
-								apply_keyb_grid(sizelo+1, 0.0, 0.1, 0.01, gridflag & AUTOSIZEGRID);
-								apply_keyb_grid(sizelo+2, 0.0, 0.1, 0.01, gridflag & AUTOSIZEGRID);
+								apply_keyb_grid(sizelo, 0.0, 0.1, 0.01, gridflag & USER_AUTOSIZEGRID);
+								apply_keyb_grid(sizelo+1, 0.0, 0.1, 0.01, gridflag & USER_AUTOSIZEGRID);
+								apply_keyb_grid(sizelo+2, 0.0, 0.1, 0.01, gridflag & USER_AUTOSIZEGRID);
 							} 
 
 								/* x flip */
@@ -6577,7 +6577,7 @@ void adduplicate(float *dtrans)
 
 			/* duplicates using userflags */
 			
-			if(dupflag & DUPIPO) {
+			if(dupflag & USER_DUP_IPO) {
 				id= (ID *)obn->ipo;
 				if(id) {
 					ID_NEW_US( obn->ipo)
@@ -6594,7 +6594,7 @@ void adduplicate(float *dtrans)
 					}
 				}
 			}
-			if(dupflag & DUPACT){
+			if(dupflag & USER_DUP_ACT){
 				id= (ID *)obn->action;
 				if (id){
 					ID_NEW_US(obn->action)
@@ -6605,7 +6605,7 @@ void adduplicate(float *dtrans)
 					id->us--;
 				}
 			}
-			if(dupflag & DUPMAT) {
+			if(dupflag & USER_DUP_MAT) {
 				for(a=0; a<obn->totcol; a++) {
 					id= (ID *)obn->mat[a];
 					if(id) {
@@ -6621,7 +6621,7 @@ void adduplicate(float *dtrans)
 			
 			switch(obn->type) {
 			case OB_MESH:
-				if(dupflag & DUPMESH) {
+				if(dupflag & USER_DUP_MESH) {
 					ID_NEW_US2( obn->data )
 					else {
 						obn->data= copy_mesh(obn->data);
@@ -6631,7 +6631,7 @@ void adduplicate(float *dtrans)
 				}
 				break;
 			case OB_CURVE:
-				if(dupflag & DUPCURVE) {
+				if(dupflag & USER_DUP_CURVE) {
 					ID_NEW_US2(obn->data )
 					else {
 						obn->data= copy_curve(obn->data);
@@ -6642,7 +6642,7 @@ void adduplicate(float *dtrans)
 				}
 				break;
 			case OB_SURF:
-				if(dupflag & DUPSURF) {
+				if(dupflag & USER_DUP_SURF) {
 					ID_NEW_US2( obn->data )
 					else {
 						obn->data= copy_curve(obn->data);
@@ -6653,7 +6653,7 @@ void adduplicate(float *dtrans)
 				}
 				break;
 			case OB_FONT:
-				if(dupflag & DUPFONT) {
+				if(dupflag & USER_DUP_FONT) {
 					ID_NEW_US2( obn->data )
 					else {
 						obn->data= copy_curve(obn->data);
@@ -6664,7 +6664,7 @@ void adduplicate(float *dtrans)
 				}
 				break;
 			case OB_MBALL:
-				if(dupflag & DUPMBALL) {
+				if(dupflag & USER_DUP_MBALL) {
 					ID_NEW_US2(obn->data )
 					else {
 						obn->data= copy_mball(obn->data);
@@ -6674,7 +6674,7 @@ void adduplicate(float *dtrans)
 				}
 				break;
 			case OB_LAMP:
-				if(dupflag & DUPLAMP) {
+				if(dupflag & USER_DUP_LAMP) {
 					ID_NEW_US2(obn->data )
 					else obn->data= copy_lamp(obn->data);
 					id->us--;
@@ -6682,7 +6682,7 @@ void adduplicate(float *dtrans)
 				break;
 
 			case OB_ARMATURE:
-				if(dupflag & DUPARM) {
+				if(dupflag & USER_DUP_ARM) {
 					ID_NEW_US2(obn->data )
 					else {
 						obn->data= copy_armature(obn->data);
@@ -6710,7 +6710,7 @@ void adduplicate(float *dtrans)
 				break;
 			}
 			
-			if(dupflag & DUPMAT) {
+			if(dupflag & USER_DUP_MAT) {
 				matarar= give_matarar(obn);
 				if(didit && matarar) {
 					for(a=0; a<obn->totcol; a++) {
@@ -6763,14 +6763,14 @@ void adduplicate(float *dtrans)
 	}
 
 	/* materials */
-	if( dupflag & DUPMAT) {
+	if( dupflag & USER_DUP_MAT) {
 		mao= G.main->mat.first;
 		while(mao) {
 			if(mao->id.newid) {
 				
 				ma= (Material *)mao->id.newid;
 				
-				if(dupflag & DUPTEX) {
+				if(dupflag & USER_DUP_TEX) {
 					for(a=0; a<8; a++) {
 						if(ma->mtex[a]) {
 							id= (ID *)ma->mtex[a]->tex;

@@ -847,7 +847,7 @@ static void calc_file_rcts(SpaceFile *sfile)
 	if(sfile->collums<1) sfile->collums= 1;
 	else if(sfile->collums>8) sfile->collums= 8;
 
-	if((U.flag & FSCOLLUM)==0) if(sfile->type!=FILE_MAIN) sfile->collums= 1;
+	if((U.flag & USER_FSCOLLUM)==0) if(sfile->type!=FILE_MAIN) sfile->collums= 1;
 	
 	collumwidth= (textrct.xmax-textrct.xmin)/sfile->collums;
 	

@@ -553,7 +553,7 @@ void image_viewzoom(unsigned short event)
 	SpaceImage *sima= curarea->spacedata.first;
 	int width, height;
 
-	if(U.uiflag & WHEELZOOMDIR) {
+	if(U.uiflag & USER_WHEELZOOMDIR) {
 		if (event==WHEELDOWNMOUSE || event == PADPLUSKEY) {
 			sima->zoom *= 2;
 		} else {

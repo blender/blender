@@ -230,7 +230,7 @@ char *windowtype_pup(void)
 int GetButStringLength(char *str) {
 	int rt;
 
-	rt= BIF_GetStringWidth(G.font, str, (U.transopts & TR_BUTTONS));
+	rt= BIF_GetStringWidth(G.font, str, (U.transopts & USER_TR_BUTTONS));
 
 	return rt + 15;
 }
@@ -1407,13 +1407,13 @@ void do_global_buttons(unsigned short event)
 		allqueue(REDRAWINFO, 0);
 		break;
 	case B_SOUNDTOGGLE:
-		SYS_WriteCommandLineInt(SYS_GetSystem(), "noaudio", (U.gameflags & USERDEF_DISABLE_SOUND));
+		SYS_WriteCommandLineInt(SYS_GetSystem(), "noaudio", (U.gameflags & USER_DISABLE_SOUND));
 		break;
 	case B_SHOWSPLASH:
 				show_splash();
 		break;
 	case B_MIPMAPCHANGED:
-		set_mipmap(!(U.gameflags & USERDEF_DISABLE_SOUND));
+		set_mipmap(!(U.gameflags & USER_DISABLE_SOUND));
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_NEWSPACE:
@@ -1437,11 +1437,11 @@ void do_global_buttons(unsigned short event)
 
 #ifdef _WIN32 // FULLSCREEN
 	case B_FLIPFULLSCREEN:
-		if(U.uiflag & FLIPFULLSCREEN)
-			U.uiflag &= ~FLIPFULLSCREEN;
+		if(U.uiflag & USER_FLIPFULLSCREEN)
+			U.uiflag &= ~USER_FLIPFULLSCREEN;
 		else
-			U.uiflag |= FLIPFULLSCREEN;
-		mainwindow_toggle_fullscreen((U.uiflag & FLIPFULLSCREEN));
+			U.uiflag |= USER_FLIPFULLSCREEN;
+		mainwindow_toggle_fullscreen((U.uiflag & USER_FLIPFULLSCREEN));
 		break;
 #endif
 
@@ -1557,7 +1557,7 @@ void do_global_buttons(unsigned short event)
 		break;
 
 	case B_DOLANGUIFONT:	/* is button from space.c  *info* */
-		if(U.transopts & TR_ALL)
+		if(U.transopts & USER_DOTRANSLATE)
 			start_interface_font();
 		else
 			G.ui_international = FALSE;

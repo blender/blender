@@ -847,7 +847,7 @@ void tbox_drawelem_text(x, y, type)
 		}
 		
 		glRasterPos2i(x1+5, y1+tbfontyofs);
-		BIF_DrawString(G.font, tbstr, (U.transopts & TR_MENUS));
+		BIF_DrawString(G.font, tbstr, (U.transopts & USER_TR_MENUS));
 		
 		if(keystr && keystr[0]) {
 			if(type & 1) {
@@ -856,12 +856,12 @@ void tbox_drawelem_text(x, y, type)
 				glRecti(x2-len2-2,  y1+2,  x2-3,  y2-2);
 				ColorFunc(TBOXWHITE);
 				glRasterPos2i(x2-len2,  y1+tbfontyofs);
-				BIF_DrawString(G.font, keystr, (U.transopts & TR_MENUS));
+				BIF_DrawString(G.font, keystr, (U.transopts & USER_TR_MENUS));
 			}
 			else {
 				ColorFunc(TBOXBLACK);
 				glRasterPos2i(x2-len2,  y1+tbfontyofs);
-				BIF_DrawString(G.font, keystr, (U.transopts & TR_MENUS));
+				BIF_DrawString(G.font, keystr, (U.transopts & USER_TR_MENUS));
 			}
 		}
 	}
@@ -1280,9 +1280,9 @@ void draw_numbuts_tip(char *str, int x1, int y1, int x2, int y2)
 	cpack(0x0);
 
 	temp= 0;
-	while( BIF_GetStringWidth(G.fonts, str+temp, (U.transopts & TR_BUTTONS))>(x2 - x1-24)) temp++;
+	while( BIF_GetStringWidth(G.fonts, str+temp, (U.transopts & USER_TR_BUTTONS))>(x2 - x1-24)) temp++;
 	glRasterPos2i(x1+16, y2-30);
-	BIF_DrawString(G.fonts, str+temp, (U.transopts & TR_BUTTONS));
+	BIF_DrawString(G.fonts, str+temp, (U.transopts & USER_TR_BUTTONS));
 }
 
 int do_clever_numbuts(char *name, int tot, int winevent)

@@ -152,7 +152,7 @@ int BIF_read_homefile(void)
 #ifdef _WIN32	// FULLSCREEN
 	static int screenmode = -1;
 
-	screenmode = U.uiflag & FLIPFULLSCREEN;
+	screenmode = U.uiflag & USER_FLIPFULLSCREEN;
 #endif
 
 	BLI_make_file_string(G.sce, tstr, home, ".B.blend");
@@ -182,15 +182,15 @@ int BIF_read_homefile(void)
 			case G_WINDOWSTATE_USERDEF: /* use the usersetting */
 				break;
 			case G_WINDOWSTATE_FULLSCREEN: /* force fullscreen */
-				U.uiflag |= FLIPFULLSCREEN;
+				U.uiflag |= USER_FLIPFULLSCREEN;
 				break;
 			case G_WINDOWSTATE_BORDER: /* force with borders */
-				U.uiflag &= ~FLIPFULLSCREEN;
+				U.uiflag &= ~USER_FLIPFULLSCREEN;
 		}
 
-		if(screenmode != (U.uiflag & FLIPFULLSCREEN)) {
-			mainwindow_toggle_fullscreen ((U.uiflag & FLIPFULLSCREEN));
-			screenmode = (U.uiflag & FLIPFULLSCREEN);
+		if(screenmode != (U.uiflag & USER_FLIPFULLSCREEN)) {
+			mainwindow_toggle_fullscreen ((U.uiflag & USER_FLIPFULLSCREEN));
+			screenmode = (U.uiflag & USER_FLIPFULLSCREEN);
 		}
 #endif
 
@@ -211,18 +211,18 @@ int BIF_read_homefile(void)
 
 			/* patch to set Dupli Armature */
 		if (G.main->versionfile < 220) {
-			U.dupflag |= DUPARM;
+			U.dupflag |= USER_DUP_ARM;
 		}
 
 			/* userdef new option */
 		if (G.main->versionfile <= 222) {
-			U.vrmlflag= USERDEF_VRML_LAYERS;
+			U.vrmlflag= USER_VRML_LAYERS;
 		}
 
 #ifndef __sgi
 		/* startup 2.26 with aa fonts ! */
 		if (G.main->versionfile <= 225) {
-			U.transopts |= TR_ALL;
+			U.transopts |= USER_DOTRANSLATE;
 		}
 #endif
 
@@ -502,7 +502,7 @@ void BIF_init(void)
 #ifdef INTERNATIONAL
 	read_languagefile();
 
-	if(U.transopts & TR_ALL)
+	if(U.transopts & USER_DOTRANSLATE)
 		start_interface_font();
 	else
 		G.ui_international = FALSE;

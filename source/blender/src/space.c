@@ -271,13 +271,13 @@ void space_set_commmandline_options(void) {
 		
 	if ( (syshandle = SYS_GetSystem()) ) {
 		/* User defined settings */
-		a= (U.gameflags & USERDEF_VERTEX_ARRAYS);
+		a= (U.gameflags & USER_VERTEX_ARRAYS);
 		SYS_WriteCommandLineInt(syshandle, "vertexarrays", a);
 
-		a= (U.gameflags & USERDEF_DISABLE_SOUND);
+		a= (U.gameflags & USER_DISABLE_SOUND);
 		SYS_WriteCommandLineInt(syshandle, "noaudio", a);
 
-		a= (U.gameflags & USERDEF_DISABLE_MIPMAP);
+		a= (U.gameflags & USER_DISABLE_MIPMAP);
 		set_mipmap(!a);
 		SYS_WriteCommandLineInt(syshandle, "nomipmap", a);
 
@@ -575,18 +575,18 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case MIDDLEMOUSE:
 				/* use '&' here, because of alt+leftmouse which emulates middlemouse */
-				if(U.flag & VIEWMOVE) {
-					if((G.qual==LR_SHIFTKEY) || ((U.flag & TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_SHIFTKEY))))
+				if(U.flag & USER_VIEWMOVE) {
+					if((G.qual==LR_SHIFTKEY) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_SHIFTKEY))))
 						viewmove(0);
-					else if((G.qual==LR_CTRLKEY) || ((U.flag & TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_CTRLKEY))))
+					else if((G.qual==LR_CTRLKEY) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_CTRLKEY))))
 						viewmove(2);
-					else if((G.qual==0) || ((U.flag & TWOBUTTONMOUSE) && (G.qual==LR_ALTKEY)))
+					else if((G.qual==0) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==LR_ALTKEY)))
 						viewmove(1);
 				}
 				else {
-					if((G.qual==LR_SHIFTKEY) || ((U.flag & TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_SHIFTKEY))))
+					if((G.qual==LR_SHIFTKEY) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_SHIFTKEY))))
 						viewmove(1);
-					else if((G.qual==LR_CTRLKEY) || ((U.flag & TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_CTRLKEY))))
+					else if((G.qual==LR_CTRLKEY) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_CTRLKEY))))
 						viewmove(2);
 					else
 						viewmove(0);
@@ -616,7 +616,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					} else {
 						persptoetsen(PAD4);
 					}
-				} else if(U.uiflag & WHEELZOOMDIR) 
+				} else if(U.uiflag & USER_WHEELZOOMDIR) 
 					persptoetsen(PADMINUS);
 				else
 					persptoetsen(PADPLUSKEY);
@@ -647,7 +647,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					} else {
 						persptoetsen(PAD6);
 					}
-				} else if(U.uiflag & WHEELZOOMDIR) 
+				} else if(U.uiflag & USER_WHEELZOOMDIR) 
 					persptoetsen(PADPLUSKEY);
 				else
 					persptoetsen(PADMINUS);
@@ -708,20 +708,20 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case MIDDLEMOUSE:
 				/* use '&' here, because of alt+leftmouse which emulates middlemouse */
-				if(U.flag & VIEWMOVE) {
-					if((G.qual==LR_SHIFTKEY) || ((U.flag & TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_SHIFTKEY))))
+				if(U.flag & USER_VIEWMOVE) {
+					if((G.qual==LR_SHIFTKEY) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_SHIFTKEY))))
 						viewmove(0);
-					else if((G.qual==LR_CTRLKEY) || ((U.flag & TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_CTRLKEY))))
+					else if((G.qual==LR_CTRLKEY) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_CTRLKEY))))
 						viewmove(2);
-					else if((G.qual==0) || ((U.flag & TWOBUTTONMOUSE) && (G.qual==LR_ALTKEY)))
+					else if((G.qual==0) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==LR_ALTKEY)))
 						viewmove(1);
 				}
 				else {
-					if((G.qual==LR_SHIFTKEY) || ((U.flag & TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_SHIFTKEY))))
+					if((G.qual==LR_SHIFTKEY) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_SHIFTKEY))))
 						viewmove(1);
-					else if((G.qual==LR_CTRLKEY) || ((U.flag & TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_CTRLKEY))))
+					else if((G.qual==LR_CTRLKEY) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_CTRLKEY))))
 						viewmove(2);
-					else if((G.qual==0) || ((U.flag & TWOBUTTONMOUSE) && (G.qual==LR_ALTKEY)))
+					else if((G.qual==0) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==LR_ALTKEY)))
 						viewmove(0);
 				}
 				break;
@@ -777,7 +777,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					} else {
 						persptoetsen(PAD4);
 					}
-				} else if(U.uiflag & WHEELZOOMDIR) 
+				} else if(U.uiflag & USER_WHEELZOOMDIR) 
 					persptoetsen(PADMINUS);
 				else
 					persptoetsen(PADPLUSKEY);
@@ -807,7 +807,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					} else {
 						persptoetsen(PAD6);
 					}
-				} else if(U.uiflag & WHEELZOOMDIR) 
+				} else if(U.uiflag & USER_WHEELZOOMDIR) 
 					persptoetsen(PADPLUSKEY);
 				else
 					persptoetsen(PADMINUS);
@@ -1739,7 +1739,7 @@ void initipo(ScrArea *sa)
 /* ******************** SPACE: INFO ********************** */
 
 void space_mipmap_button_function(int event) {
-	set_mipmap(!(U.gameflags & USERDEF_DISABLE_MIPMAP));
+	set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
 
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -1751,7 +1751,7 @@ void space_sound_button_function(int event)
 
 	if ((syshandle = SYS_GetSystem()))
 	{
-		a = (U.gameflags & USERDEF_DISABLE_SOUND);
+		a = (U.gameflags & USER_DISABLE_SOUND);
 		SYS_WriteCommandLineInt(syshandle, "noaudio", a);
 	}
 }
@@ -1993,17 +1993,17 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			xpos,y3label,medprefbut,buth,
 			0, 0, 0, 0, 0, "");
 		
-		uiDefButS(block, TOG|BIT|11, 0, "ToolTips",
+		uiDefButBitS(block, TOG, USER_TOOLTIPS, 0, "ToolTips",
 			(xpos+edgespace),y2,smallprefbut,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Displays tooltips (help tags) over buttons");
 
-		uiDefButS(block, TOG|BIT|4, B_DRAWINFO, "Object Info",
+		uiDefButBitS(block, TOG, USER_DRAWVIEWINFO, B_DRAWINFO, "Object Info",
 			(xpos+edgespace+midspace+smallprefbut),y2,smallprefbut,buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Displays current object name and frame number in the 3D viewport");
 
-		uiDefButS(block, TOG|BIT|4, 0, "Global Scene",
+		uiDefButBitS(block, TOG, USER_SCENEGLOBAL, 0, "Global Scene",
 			(xpos+edgespace),y1,medprefbut,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Forces the current Scene to be displayed in all Screens");
@@ -2013,17 +2013,17 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgespace+medprefbut),y3label,medprefbut,buth,
 			0, 0, 0, 0, 0, "");
 
-		uiDefButS(block, TOG|BIT|1, 0, "Grab",
+		uiDefButBitS(block, TOG, USER_AUTOGRABGRID, 0, "Grab",
 			(xpos+edgespace+medprefbut+midspace),y2,smallprefbut,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Move objects to grid units");
 
-		uiDefButS(block, TOG|BIT|3, 0, "Size",
+		uiDefButBitS(block, TOG, USER_AUTOSIZEGRID, 0, "Size",
 			(xpos+edgespace+medprefbut+midspace),y1,smallprefbut,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Scale objects to grid units");
 
-		uiDefButS(block, TOG|BIT|2, 0, "Rotate",
+		uiDefButBitS(block, TOG, USER_AUTOROTGRID, 0, "Rotate",
 			(xpos+edgespace+medprefbut+(2*midspace)+smallprefbut),y2,smallprefbut,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Rotate objects to grid units");
@@ -2034,7 +2034,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgespace+medprefbut+(3*midspace)+(2*smallprefbut)),y3label,medprefbut,buth,
 			0, 0, 0, 0, 0, "");
 
-		uiDefButS(block, TOG|BIT|9, 0, "Auto Open",
+		uiDefButBitS(block, TOG, USER_MENUOPENAUTO, 0, "Auto Open",
 			(xpos+edgespace+medprefbut+(3*midspace)+(2*smallprefbut)),y2,smallprefbut,buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Automatic opening of menu buttons");
@@ -2069,30 +2069,30 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgespace+(3*midspace)+(3*medprefbut)+smallprefbut+2),y3label,medprefbut,buth,
 			0, 0, 0, 0, 0, "");
 
-		uiDefButS(block, TOG|BIT|5, B_DRAWINFO, "Trackball",
+		uiDefButBitS(block, TOG, USER_TRACKBALL, B_DRAWINFO, "Trackball",
 			(xpos+edgespace+(3*midspace)+(3*medprefbut)+smallprefbut+2),y2,(smallprefbut+2),buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Use trackball style rotation with middle mouse button");
 
-		uiDefButS(block, TOGN|BIT|5, B_DRAWINFO, "Turntable",
+		uiDefButBitS(block, TOGN, USER_TRACKBALL, B_DRAWINFO, "Turntable",
 			(xpos+edgespace+(3*midspace)+(3*medprefbut)+smallprefbut+2),y1,(smallprefbut+2),buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Use turntable style rotation with middle mouse button");
 
 
 
-		uiDefButS(block, TOGN|BIT|10, B_DRAWINFO, "Rotate View",
+		uiDefButBitS(block, TOGN, USER_VIEWMOVE, B_DRAWINFO, "Rotate View",
 			(xpos+edgespace+(4*midspace)+(4*medprefbut)),y2,(smallprefbut+2),buth,
 			&(U.flag), 0, 0, 0, 0, "Default action for the middle mouse button");
 
-		uiDefButS(block, TOG|BIT|10, B_DRAWINFO, "Pan View",
+		uiDefButBitS(block, TOG, USER_VIEWMOVE, B_DRAWINFO, "Pan View",
 			(xpos+edgespace+(4*midspace)+(4*medprefbut)+smallprefbut+2),y2,(smallprefbut+2),buth,
 			&(U.flag), 0, 0, 0, 0, "Default action for the middle mouse button");
 
 		uiDefBut(block, LABEL,0,"Middle mouse button:",
 			(xpos+edgespace+(3*midspace)+(4*medprefbut)),y3label,medprefbut,buth,
 			0, 0, 0, 0, 0, "");
-		uiDefButS(block, TOG|BIT|12, 0, "Emulate 3 Buttons",
+		uiDefButBitS(block, TOG, USER_TWOBUTTONMOUSE, 0, "Emulate 3 Buttons",
 			(xpos+edgespace+(4*midspace)+(4*medprefbut)),y1,medprefbut,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Emulates a middle mouse button with ALT+LeftMouse");
@@ -2103,7 +2103,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefBut(block, LABEL,0,"Mousewheel:",
 			(xpos+edgespace+(4*midspace)+(5*medprefbut)),y3label,smallprefbut+15,buth,
 			0, 0, 0, 0, 0, "");
-		uiDefButS(block, TOG|BIT|2, 0, "Invert Wheel Zoom",
+		uiDefButBitS(block, TOG, USER_WHEELZOOMDIR, 0, "Invert Wheel Zoom",
 			(xpos+edgespace+(5*midspace)+(5*medprefbut)),y1,smallprefbut+15,buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Swaps mouse wheel zoom direction");
@@ -2133,11 +2133,11 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			xpos,y3label,medprefbut,buth,
 			0, 0, 0, 0, 0, "");
 
-		uiDefButS(block, TOGN|BIT|8, B_DRAWINFO, "ObData",
+		uiDefButBitS(block, TOGN, USER_MAT_ON_OB, B_DRAWINFO, "ObData",
 			(xpos+edgespace),y2,(smallprefbut),buth,
 			&(U.flag), 0, 0, 0, 0, "Link new objects' material to the obData block");
 
-		uiDefButS(block, TOG|BIT|8, B_DRAWINFO, "Object",
+		uiDefButBitS(block, TOG, USER_MAT_ON_OB, B_DRAWINFO, "Object",
 			(xpos+edgespace+midspace+smallprefbut),y2,(smallprefbut),buth,
 			&(U.flag), 0, 0, 0, 0, "Link new objects' material to the object block");
 
@@ -2156,52 +2156,52 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgespace+(2*medprefbut)+midspace),y3label,medprefbut,buth,
 			0, 0, 0, 0, 0, "");
 
-		uiDefButS(block, TOG|BIT|0, 0, "Action",
+		uiDefButBitS(block, TOG, USER_KEYINSERTACT, 0, "Action",
 			(xpos+edgespace+(2*medprefbut)+(2*midspace)),y2,smallprefbut,buth,
 			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion in action ipo curve");
 
-		uiDefButS(block, TOG|BIT|1, 0, "Object",
+		uiDefButBitS(block, TOG, USER_KEYINSERTOBJ, 0, "Object",
 			(xpos+edgespace+(2*medprefbut)+(3*midspace)+smallprefbut),y2,smallprefbut,buth,
 			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion in object ipo curve");
 
 
 
-                uiDefBut(block, LABEL,0,"Duplicate with object:",
+		uiDefBut(block, LABEL,0,"Duplicate with object:",
 			(xpos+edgespace+(3*midspace)+(3*medprefbut)+smallprefbut),y3label,medprefbut,buth,
 			0, 0, 0, 0, 0, "");
 
-		uiDefButS(block, TOG|BIT|0, 0, "Mesh",
+		uiDefButBitS(block, TOG, USER_DUP_MESH, 0, "Mesh",
 			(xpos+edgespace+(4*midspace)+(3*medprefbut)+smallprefbut),y2,smallprefbut,buth,
 			&(U.dupflag), 0, 0, 0, 0, "Causes mesh data to be duplicated with Shift+D");
-		uiDefButS(block, TOG|BIT|9, 0, "Armature",
+		uiDefButBitS(block, TOG, USER_DUP_ARM, 0, "Armature",
 			(xpos+edgespace+(4*midspace)+(3*medprefbut)+smallprefbut),y1,smallprefbut,buth,
 			&(U.dupflag), 0, 0, 0, 0, "Causes armature data to be duplicated with Shift+D");
 
-		uiDefButS(block, TOG|BIT|2, 0, "Surface",
+		uiDefButBitS(block, TOG, USER_DUP_SURF, 0, "Surface",
 			(xpos+edgespace+(5*midspace)+(3*medprefbut)+(2*smallprefbut)),y2,smallprefbut,buth,
 			&(U.dupflag), 0, 0, 0, 0, "Causes surface data to be duplicated with Shift+D");
-		uiDefButS(block, TOG|BIT|5, 0, "Lamp",
+		uiDefButBitS(block, TOG, USER_DUP_LAMP, 0, "Lamp",
 			(xpos+edgespace+(5*midspace)+(3*medprefbut)+(2*smallprefbut)),y1,smallprefbut,buth,
 			&(U.dupflag), 0, 0, 0, 0, "Causes lamp data to be duplicated with Shift+D");
 
-                uiDefButS(block, TOG|BIT|1, 0, "Curve",
+		uiDefButBitS(block, TOG, USER_DUP_CURVE, 0, "Curve",
 			(xpos+edgespace+(6*midspace)+(3*medprefbut)+(3*smallprefbut)),y2,smallprefbut,buth,
 			&(U.dupflag), 0, 0, 0, 0, "Causes curve data to be duplicated with Shift+D");
-		uiDefButS(block, TOG|BIT|7, 0, "Material",
+		uiDefButBitS(block, TOG, USER_DUP_MAT, 0, "Material",
 			(xpos+edgespace+(6*midspace)+(3*medprefbut)+(3*smallprefbut)),y1,smallprefbut,buth,
 			&(U.dupflag), 0, 0, 0, 0, "Causes material data to be duplicated with Shift+D");
 
-		uiDefButS(block, TOG|BIT|3, 0, "Text",
+		uiDefButBitS(block, TOG, USER_DUP_FONT, 0, "Text",
 			(xpos+edgespace+(7*midspace)+(3*medprefbut)+(4*smallprefbut)),y2,smallprefbut,buth,
 			&(U.dupflag), 0, 0, 0, 0, "Causes text data to be duplicated with Shift+D");
-		uiDefButS(block, TOG|BIT|8, 0, "Texture",
+		uiDefButBitS(block, TOG, USER_DUP_TEX, 0, "Texture",
 			(xpos+edgespace+(7*midspace)+(3*medprefbut)+(4*smallprefbut)),y1,smallprefbut,buth,
 			&(U.dupflag), 0, 0, 0, 0, "Causes texture data to be duplicated with Shift+D");
 
-		uiDefButS(block, TOG|BIT|4, 0, "Metaball",
+		uiDefButBitS(block, TOG, USER_DUP_MBALL, 0, "Metaball",
 			(xpos+edgespace+(8*midspace)+(3*medprefbut)+(5*smallprefbut)),y2,smallprefbut,buth,
 			&(U.dupflag), 0, 0, 0, 0, "Causes metaball data to be duplicated with Shift+D");
-		uiDefButS(block, TOG|BIT|6, 0, "Ipo",
+		uiDefButBitS(block, TOG, USER_DUP_IPO, 0, "Ipo",
 			(xpos+edgespace+(8*midspace)+(3*medprefbut)+(5*smallprefbut)),y1,smallprefbut,buth,
 			&(U.dupflag), 0, 0, 0, 0, "Causes ipo data to be duplicated with Shift+D");
 	
@@ -2213,11 +2213,11 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		sprintf(curfont, "Interface Font: ");
 		strcat(curfont,U.fontname);
 
-		uiDefButS(block, TOG|BIT|5, B_DOLANGUIFONT, "International Fonts",
+		uiDefButBitS(block, TOG, USER_DOTRANSLATE, B_DOLANGUIFONT, "International Fonts",
 			xpos,y2,medprefbut,buth,
 			&(U.transopts), 0, 0, 0, 0, "Activate international interface");
 
-		if(U.transopts & TR_ALL) {
+		if(U.transopts & USER_DOTRANSLATE) {
 			uiDefBut(block, LABEL,0,curfont,
 				(xpos+edgespace+medprefbut+midspace),y2,medprefbut,buth,
 				0, 0, 0, 0, 0, "");
@@ -2242,15 +2242,15 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 				0, 0, 0, 0, 0, "");
 */
 
-			uiDefButS(block, TOG|BIT|0, B_SETTRANSBUTS, "Tooltips",
+			uiDefButBitS(block, TOG, USER_TR_TOOLTIPS, B_SETTRANSBUTS, "Tooltips",
 				(xpos+edgespace+(2.2*medprefbut)+(3*midspace)),y1,smallprefbut,buth,
 				&(U.transopts), 0, 0, 0, 0, "Translate tooltips");
 
-			uiDefButS(block, TOG|BIT|1, B_SETTRANSBUTS, "Buttons",
+			uiDefButBitS(block, TOG, USER_TR_BUTTONS, B_SETTRANSBUTS, "Buttons",
 				(xpos+edgespace+(2.2*medprefbut)+(4*midspace)+smallprefbut),y1,smallprefbut,buth,
 				&(U.transopts), 0, 0, 0, 0, "Translate button labels");
 
-			uiDefButS(block, TOG|BIT|2, B_SETTRANSBUTS, "Toolbox",
+			uiDefButBitS(block, TOG, USER_TR_MENUS, B_SETTRANSBUTS, "Toolbox",
 				(xpos+edgespace+(2.2*medprefbut)+(5*midspace)+(2*smallprefbut)),y1,smallprefbut,buth,
 				&(U.transopts), 0, 0, 0, 0, "Translate toolbox menu");
 
@@ -2258,7 +2258,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 				(xpos+edgespace+(2.2*medprefbut)+(3*midspace)),y2,medprefbut+(0.5*medprefbut)+3,buth,
 				&U.language, 0, 0, 0, 0, "Select interface language");
 				
-			/* uiDefButS(block, TOG|BIT|3, B_SETTRANSBUTS, "FTF All windows",
+			/* uiDefButBitS(block, TOG, USER_TR_TEXTEDIT, B_SETTRANSBUTS, "FTF All windows",
 				(xpos+edgespace+(4*medprefbut)+(4*midspace)),y1,medprefbut,buth,
 				&(U.transopts), 0, 0, 0, 0,
 				"Use FTF drawing for fileselect and textwindow "
@@ -2272,12 +2272,12 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 	} else if(U.userpref == 3) { /* auto save */
 
 
-		uiDefButS(block, TOG|BIT|0, B_RESETAUTOSAVE, "Auto Save Temp Files",
+		uiDefButBitS(block, TOG, USER_AUTOSAVE, B_RESETAUTOSAVE, "Auto Save Temp Files",
 			(xpos+edgespace),y2,medprefbut,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Enables automatic saving of temporary files");
 
-		if(U.flag & AUTOSAVE) {
+		if(U.flag & USER_AUTOSAVE) {
 
 			uiDefBut(block, BUT, B_LOADTEMP, "Open Recent",
 				(xpos+edgespace),y1,medprefbut,buth,
@@ -2370,7 +2370,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgespace+(1*midspace)+(1*medprefbut)),y3label,medprefbut,buth,
 			0, 0, 0, 0, 0, "");
 
-		uiDefButS(block, TOG|BIT|8, 0, "Enable all codecs",
+		uiDefButBitS(block, TOG, USER_ALLWINCODECS, 0, "Enable all codecs",
 			(xpos+edgespace+(1*medprefbut)+(1*midspace)),y2,medprefbut,buth,
 			&(U.uiflag), 0, 0, 0, 0, "Allows all codecs for rendering (not guaranteed)");
 #endif
@@ -2379,12 +2379,12 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y3label,medprefbut,buth,
 			0, 0, 0, 0, 0, "");
 
-		uiDefButS(block, TOG|BIT|9, B_U_CAPSLOCK, "Disable Caps Lock",
+		uiDefButBitS(block, TOG, USER_NO_CAPSLOCK, B_U_CAPSLOCK, "Disable Caps Lock",
 			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y1,medprefbut,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Disables the Caps Lock key when entering text");
 
-		uiDefButS(block, TOG|BIT|13, 0, "Emulate Numpad",
+		uiDefButBitS(block, TOG, USER_NONUMPAD, 0, "Emulate Numpad",
 			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y2,medprefbut,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Causes the 1 to 0 keys to act as the numpad (useful for laptops)");
@@ -2394,11 +2394,11 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgespace+(4*midspace)+(4*medprefbut)),y3label,medprefbut,buth,
 			0, 0, 0, 0, 0, "");
 
-		uiDefButI(block, TOG|BIT|USERDEF_DISABLE_SOUND_BIT, B_SOUNDTOGGLE, "Disable Sound",
+		uiDefButBitI(block, TOG, USER_DISABLE_SOUND, B_SOUNDTOGGLE, "Disable Sound",
 			(xpos+edgespace+(4*medprefbut)+(4*midspace)),y2,medprefbut,buth,
 			&(U.gameflags), 0, 0, 0, 0, "Disables sounds from being played");
 
-		uiDefButS(block, TOG|BIT|3, 0, "Filter File Extensions",
+		uiDefButBitS(block, TOG, USER_FILTERFILEEXTS, 0, "Filter File Extensions",
 			(xpos+edgespace+(4*medprefbut)+(4*midspace)),y1,medprefbut,buth,
 			&(U.uiflag), 0, 0, 0, 0, "Display only files with extensions in the image select window");
 
@@ -2407,11 +2407,11 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgespace+(5*midspace)+(5*medprefbut)),y3label,medprefbut,buth,
 			0, 0, 0, 0, 0, "");
 
-		uiDefButI(block, TOGN|BIT|USERDEF_DISABLE_MIPMAP_BIT, B_MIPMAPCHANGED, "Mipmaps",
+		uiDefButBitI(block, TOGN, USER_DISABLE_MIPMAP, B_MIPMAPCHANGED, "Mipmaps",
 			(xpos+edgespace+(5*medprefbut)+(5*midspace)),y2,medprefbut,buth,
 			&(U.gameflags), 0, 0, 0, 0, "Toggles between mipmap textures on (beautiful) and off (fast)");
 
-		uiDefButI(block, TOG|BIT|USERDEF_VERTEX_ARRAYS_BIT, 0, "Vertex Arrays",
+		uiDefButBitI(block, TOG, USER_VERTEX_ARRAYS, 0, "Vertex Arrays",
 			(xpos+edgespace+(5*medprefbut)+(5*midspace)),y1,medprefbut,buth,
 			&(U.gameflags), 0, 0, 0, 0, "Toggles between vertex arrays on (less reliable) and off (more reliable)");
 

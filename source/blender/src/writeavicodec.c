@@ -789,7 +789,7 @@ int get_avicodec_settings(void)
 
 	psdummy = NewBall();
 
-	if(U.uiflag & ALLWINCODECS)
+	if(U.uiflag & USER_ALLWINCODECS)
 		uiFlags = ICMF_CHOOSE_ALLCOMPRESSORS;
 	else
 		uiFlags = ICMF_CHOOSE_KEYFRAME | ICMF_CHOOSE_DATARATE;

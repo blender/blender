@@ -449,7 +449,7 @@ void viewmove(int mode)
 			
 				/* if turntable method, we don't change mvalball[0] */
 			
-				if(U.flag & TRACKBALL) mvalball[0]= mval[0];
+				if(U.flag & USER_TRACKBALL) mvalball[0]= mval[0];
 				mvalball[1]= mval[1];
 				
 				calctrackballvec(&curarea->winrct, mvalball, newvec);
@@ -475,7 +475,7 @@ void viewmove(int mode)
 					
 					QuatMul(G.vd->viewquat, q1, oldquat);
 
-					if( (U.flag & TRACKBALL)==0 ) {
+					if( (U.flag & USER_TRACKBALL)==0 ) {
 					
 						/* rotate around z-axis (mouse x moves)  */
 						

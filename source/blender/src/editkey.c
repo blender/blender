@@ -811,8 +811,8 @@ void move_keys(void)
 			
 			VECCOPY(vec, dvec);
 
-			apply_keyb_grid(vec, 0.0, 1.0, 0.1, U.flag & AUTOGRABGRID);
-			apply_keyb_grid(vec+1, 0.0, 1.0, 0.1, U.flag & AUTOGRABGRID);
+			apply_keyb_grid(vec, 0.0, 1.0, 0.1, U.flag & USER_AUTOGRABGRID);
+			apply_keyb_grid(vec+1, 0.0, 1.0, 0.1, U.flag & USER_AUTOGRABGRID);
 
 			tv= transmain;
 			for(a=0; a<tot; a++, tv++) {

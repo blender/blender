@@ -937,7 +937,7 @@ void paste_posebuf (int flip){
 	/* Safely merge all of the channels in this pose into
 	any existing pose */
 	if (ob->pose){
-		if (U.uiflag & KEYINSERTACT){
+		if (U.uiflag & USER_KEYINSERTACT){
 			/* Display "Avail, all" dialog */
 		}
 		for (chan=g_posebuf->chanbase.first; chan; chan=chan->next){
@@ -955,7 +955,7 @@ void paste_posebuf (int flip){
 
 				temp = set_pose_channel (ob->pose, temp);
 
-				if (U.uiflag & KEYINSERTACT){
+				if (U.uiflag & USER_KEYINSERTACT){
 					/* Set keys on pose */
 					if (chan->flag & POSE_ROT){
 						set_action_key(ob->action, temp, AC_QUAT_X, newchan);
@@ -977,7 +977,7 @@ void paste_posebuf (int flip){
 			}
 		}
 
-		if (U.uiflag & KEYINSERTACT){
+		if (U.uiflag & USER_KEYINSERTACT){
 			remake_action_ipos(ob->action);
 			allqueue (REDRAWIPO, 0);
 			allqueue (REDRAWVIEW3D, 0);
@@ -1200,7 +1200,7 @@ static void transform_actionchannel_keys(char mode)
 						deltax = cval[0]-sval[0];
 						fac= deltax;
 						
-						apply_keyb_grid(&fac, 0.0, 1.0, 0.1, U.flag & AUTOGRABGRID);
+						apply_keyb_grid(&fac, 0.0, 1.0, 0.1, U.flag & USER_AUTOGRABGRID);
 
 						tv[i].loc[0]+=fac;
 						break;
@@ -1209,7 +1209,7 @@ static void transform_actionchannel_keys(char mode)
 						deltax=mvalc[0]-(ACTWIDTH/2+(curarea->winrct.xmax-curarea->winrct.xmin)/2);
 						fac= fabs(deltax/startx);
 						
-						apply_keyb_grid(&fac, 0.0, 0.2, 0.1, U.flag & AUTOSIZEGRID);
+						apply_keyb_grid(&fac, 0.0, 0.2, 0.1, U.flag & USER_AUTOSIZEGRID);
 		
 						if (invert){
 							if (i % 03 == 0){
@@ -1374,7 +1374,7 @@ static void transform_meshchannel_keys(char mode, Key *key)
                         fac= deltax;
 						
                         apply_keyb_grid(&fac, 0.0, 1.0, 0.1, 
-                                        U.flag & AUTOGRABGRID);
+                                        U.flag & USER_AUTOGRABGRID);
 
                         tv[i].loc[0]+=fac;
                         break;
@@ -1386,7 +1386,7 @@ static void transform_meshchannel_keys(char mode, Key *key)
                         fac= fabs(deltax/startx);
 						
                         apply_keyb_grid(&fac, 0.0, 0.2, 0.1, 
-                                        U.flag & AUTOSIZEGRID);
+                                        U.flag & USER_AUTOSIZEGRID);
 		
                         if (invert){
                             if (i % 03 == 0){

@@ -4014,7 +4014,7 @@ static void dxf_read(char *filename)
 						ob->type= OB_MESH;
 	
 						ob->dt= OB_SHADED;
-						if(U.flag & MAT_ON_OB) ob->colbits= -1;
+						if(U.flag & USER_MAT_ON_OB) ob->colbits= -1;
 
 						ob->trackflag= OB_POSY;
 						ob->upflag= OB_POSZ;

@@ -68,7 +68,7 @@ void set_scene(Scene *sce)		/* also see scene.c: set_scene_bg() */
 
 	sc= G.main->screen.first;
 	while(sc) {
-		if((U.flag & SCENEGLOBAL) || sc==G.curscreen) {
+		if((U.flag & USER_SCENEGLOBAL) || sc==G.curscreen) {
 		
 			if(sce != sc->scene) {
 				/* all areas endlocalview */
@@ -89,7 +89,7 @@ void set_scene(Scene *sce)		/* also see scene.c: set_scene_bg() */
 	/* are there cameras in the views that are not in the scene? */
 	sc= G.main->screen.first;
 	while(sc) {
-		if( (U.flag & SCENEGLOBAL) || sc==G.curscreen) {
+		if( (U.flag & USER_SCENEGLOBAL) || sc==G.curscreen) {
 			ScrArea *sa= sc->areabase.first;
 			while(sa) {
 				SpaceLink *sl= sa->spacedata.first;

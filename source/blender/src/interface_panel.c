@@ -672,7 +672,7 @@ static char *ui_block_cut_str(uiBlock *block, char *str, short okwidth)
 	
 	if(ofs>127) return str;
 	
-	width= block->aspect*BIF_GetStringWidth(block->curfont, str, (U.transopts & TR_BUTTONS));
+	width= block->aspect*BIF_GetStringWidth(block->curfont, str, (U.transopts & USER_TR_BUTTONS));
 
 	if(width <= okwidth) return str;
 	strcpy(str1, str);
@@ -721,7 +721,7 @@ static void ui_draw_panel_header(uiBlock *block)
 
 		BIF_ThemeColor(TH_TEXT_HI);
 		glRasterPos2f(4+block->minx+pnl_icons, block->maxy+5);
-		BIF_DrawString(block->curfont, block->panel->panelname, (U.transopts & TR_BUTTONS));
+		BIF_DrawString(block->curfont, block->panel->panelname, (U.transopts & USER_TR_BUTTONS));
 		return;
 	}
 	
@@ -739,7 +739,7 @@ static void ui_draw_panel_header(uiBlock *block)
 			BIF_ThemeColor(TH_TEXT);
 			glRasterPos2f(16+pnl_icons+a*width, panel->sizey+4);
 			str= ui_block_cut_str(block, pa->panelname, (short)(width-10));
-			BIF_DrawString(block->curfont, str, (U.transopts & TR_BUTTONS));
+			BIF_DrawString(block->curfont, str, (U.transopts & USER_TR_BUTTONS));
 
 			a++;
 		}
@@ -752,7 +752,7 @@ static void ui_draw_panel_header(uiBlock *block)
 			BIF_ThemeColor(TH_TEXT_HI);
 			glRasterPos2f(16+pnl_icons+a*width, panel->sizey+4);
 			str= ui_block_cut_str(block, pa->panelname, (short)(width-10));
-			BIF_DrawString(block->curfont, str, (U.transopts & TR_BUTTONS));
+			BIF_DrawString(block->curfont, str, (U.transopts & USER_TR_BUTTONS));
 				
 			a++;
 		}
@@ -785,7 +785,7 @@ void ui_draw_panel(uiBlock *block)
 		if(panel->control & UI_PNL_CLOSE) ofsx+= PNL_ICON;
 		BIF_ThemeColor(TH_TEXT_HI);
 		glRasterPos2f(4+block->minx+ofsx, block->maxy+5);
-		BIF_DrawString(block->curfont, panel->panelname, (U.transopts & TR_BUTTONS));
+		BIF_DrawString(block->curfont, panel->panelname, (U.transopts & USER_TR_BUTTONS));
 
 		//  border
 		if(panel->flag & PNL_SELECT) {

@@ -1369,7 +1369,7 @@ static void ui_draw_text_icon(uiBut *but)
 				ch= but->drawstr[pos];
 				but->drawstr[pos]= 0;
 	
-				t= but->aspect*BIF_GetStringWidth(but->font, but->drawstr+but->ofs, (U.transopts & TR_BUTTONS)) + 3;
+				t= but->aspect*BIF_GetStringWidth(but->font, but->drawstr+but->ofs, (U.transopts & USER_TR_BUTTONS)) + 3;
 	
 				but->drawstr[pos]= ch;
 				glColor3ub(255,0,0);
@@ -1428,13 +1428,13 @@ static void ui_draw_text_icon(uiBut *but)
 		}
 		
 		glRasterPos2f( x, (but->y1+but->y2- 9.0)/2.0);
-		BIF_DrawString(but->font, but->drawstr+but->ofs, (U.transopts & TR_BUTTONS));
+		BIF_DrawString(but->font, but->drawstr+but->ofs, (U.transopts & USER_TR_BUTTONS));
 
 		/* part text right aligned */
 		if(cpoin) {
-			len= BIF_GetStringWidth(but->font, cpoin+1, (U.transopts & TR_BUTTONS));
+			len= BIF_GetStringWidth(but->font, cpoin+1, (U.transopts & USER_TR_BUTTONS));
 			glRasterPos2f( but->x2 - len*but->aspect-3, (but->y1+but->y2- 9.0)/2.0);
-			BIF_DrawString(but->font, cpoin+1, (U.transopts & TR_BUTTONS));
+			BIF_DrawString(but->font, cpoin+1, (U.transopts & USER_TR_BUTTONS));
 			*cpoin= '|';
 		}
 	}
