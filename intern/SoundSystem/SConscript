@@ -1,0 +1,52 @@
+# TODO: Add the options for building with fmod and/or OpenAL
+import sys
+
+soundsys_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+Import ('use_openal')
+Import ('use_fmod')
+Import ('extra_includes')
+
+soundsys_env.Append (CCFLAGS = cflags)
+soundsys_env.Append (CXXFLAGS = cxxflags)
+soundsys_env.Append (CPPDEFINES = defines)
+
+source_files = ['dummy/SND_DummyDevice.cpp',
+                'intern/SND_AudioDevice.cpp',
+                'intern/SND_C-api.cpp',
+                'intern/SND_CDObject.cpp',
+                'intern/SND_DeviceManager.cpp',
+                'intern/SND_IdObject.cpp',
+                'intern/SND_Scene.cpp',
+                'intern/SND_SoundListener.cpp',
+                'intern/SND_SoundObject.cpp',
+                'intern/SND_Utils.cpp',
+                'intern/SND_WaveCache.cpp',
+                'intern/SND_WaveSlot.cpp']
+
+soundsys_env.Append (CPPPATH = ['.',
+                                'intern',
+                                '../moto/include',
+                                '../string',
+                                'dummy',
+                                'openal'])
+
+if use_openal == 'true':
+    source_files += ['openal/SND_OpenALDevice.cpp',
+                     'openal/pthread_cancel.cpp']
+    if sys.platform=='win32':
+        cflags += ' /D_LIB'
+
+if use_fmod == 'true':
+    source_files += ['fmod/SND_FmodDevice.cpp']
+
+if use_openal == 'false' and use_fmod == 'false':
+    soundsys_env.Append (CPPDEFINES = 'NO_SOUND')
+
+soundsys_env.Append (CPPPATH = extra_includes)
+
+soundsys_env.Library (target='#/lib/soundsystem', source=source_files)

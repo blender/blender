@@ -1,0 +1,24 @@
+wrstrgl_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+Import ('extra_includes')
+wrstrgl_env.Append (CCFLAGS = cflags)
+wrstrgl_env.Append (CXXFLAGS = cxxflags)
+wrstrgl_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/BLO_dumpFromMemory.c',
+                'intern/BLO_getPubKey.c',
+                'intern/BLO_streamGlueControl.c',
+                'intern/BLO_writeStreamGlue.c']
+
+wrstrgl_env.Append (CPPPATH = ['.',
+                               '../readstreamglue',
+                               '../deflate',
+                               '../writeblenfile',
+                               '../../kernel/gen_messaging'])
+
+wrstrgl_env.Append (CPPPATH = extra_includes)
+wrstrgl_env.Library (target='#/lib/blender_writestreamglue', source=source_files)

@@ -1,0 +1,18 @@
+makesdna_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+makesdna_env.Append (CCFLAGS = cflags)
+makesdna_env.Append (CXXFLAGS = cxxflags)
+makesdna_env.Append (CPPDEFINES = defines)
+
+objs = []
+
+o = SConscript('intern/SConscript')
+objs.append (o)
+
+makesdna_env.Append (CPPPATH = ['#/intern/guardedalloc'])
+
+makesdna_env.Library (target='#/lib/blender_makesdna', source=objs)

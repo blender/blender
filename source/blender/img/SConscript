@@ -1,0 +1,19 @@
+img_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+img_env.Append (CCFLAGS = cflags)
+img_env.Append (CXXFLAGS = cxxflags)
+img_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/IMG_Api.cpp',
+                'intern/IMG_BrushRGBA32.cpp',
+                'intern/IMG_CanvasRGBA32.cpp',
+                'intern/IMG_Line.cpp',
+                'intern/IMG_Pixmap.cpp',
+                'intern/IMG_PixmapRGBA32.cpp',
+                'intern/IMG_Rect.cpp']
+
+img_env.Library (target='#/lib/blender_img', source=source_files)

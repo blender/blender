@@ -1,0 +1,15 @@
+string_env = Environment ()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+string_env.Append (CCFLAGS = cflags)
+string_env.Append (CXXFLAGS = cxxflags)
+string_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/STR_String.cpp']
+
+string_env.Append (CPPPATH = ['.'])
+
+string_env.Library (target='#/lib/blender_STR', source=source_files)

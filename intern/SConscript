@@ -1,0 +1,11 @@
+SConscript(['SoundSystem/SConscript',
+            'string/SConscript',
+            'ghost/SConscript',
+            'guardedalloc/SConscript',
+            'bmfont/SConscript',
+            'moto/SConscript',
+            'container/SConscript',
+            'memutil/SConscript/',
+            'decimation/SConscript',
+            'bsp/SConscript',
+            'iksolver/SConscript'])

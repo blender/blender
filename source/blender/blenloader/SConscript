@@ -1,0 +1,29 @@
+blenloader_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+blenloader_env.Append (CCFLAGS = cflags)
+blenloader_env.Append (CXXFLAGS = cxxflags)
+blenloader_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/genfile.c',
+                'intern/readblenentry.c',
+                'intern/readfile.c',
+                'intern/writefile.c']
+
+blenloader_env.Append (CPPPATH = ['.',
+                                  '#/intern/guardedalloc',
+                                  '../blenlib',
+                                  '../blenkernel',
+                                  '../makesdna',
+                                  '../readblenfile',
+                                  '../include',
+                                  '../python',
+                                  '../../kernel/gen_messaging',
+                                  '../render/extern/include',
+                                  '../writestreamglue',
+                                  '../readstreamglue'])
+
+blenloader_env.Library (target='#/lib/blender_blenloader', source=source_files)

@@ -1,0 +1,19 @@
+readblenfile_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+readblenfile_env.Append (CCFLAGS = cflags)
+readblenfile_env.Append (CXXFLAGS = cxxflags)
+readblenfile_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/BLO_readblenfile.c']
+
+readblenfile_env.Append (CPPPATH = ['.',
+                                    '../readstreamglue',
+                                    '../blenloader',
+                                    '../blenkernel',
+                                    '../../kernel/gen_messaging'])
+
+readblenfile_env.Library (target='#/lib/blender_readblenfile', source=source_files)

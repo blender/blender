@@ -1,0 +1,60 @@
+blenkernel_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+blenkernel_env.Append (CCFLAGS = cflags)
+blenkernel_env.Append (CXXFLAGS = cxxflags)
+blenkernel_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/constraint.c',
+                'intern/group.c',
+                'intern/material.c',
+                'intern/sca.c',
+                'intern/world.c',
+                'intern/curve.c',
+                'intern/ika.c',
+                'intern/mball.c',
+                'intern/scene.c',
+                'intern/writeavi.c',
+                'intern/action.c',
+                'intern/deform.c',
+                'intern/image.c',
+                'intern/mesh.c',
+                'intern/screen.c',
+                'intern/anim.c',
+                'intern/displist.c',
+                'intern/ipo.c',
+                'intern/nla.c',
+                'intern/sound.c',
+                'intern/armature.c',
+                'intern/effect.c',
+                'intern/key.c',
+                'intern/object.c',
+                'intern/subsurf.c',
+                'intern/blender.c',
+                'intern/exotic.c',
+                'intern/lattice.c',
+                'intern/packedFile.c',
+                'intern/text.c',
+                'intern/script.c',
+                'intern/bmfont.c',
+                'intern/font.c',
+                'intern/library.c',
+                'intern/property.c',
+                'intern/texture.c']
+
+blenkernel_env.Append (CPPPATH = ['.',
+                                  '#/intern/guardedalloc',
+                                  '../include',
+                                  '../blenlib',
+                                  '../makesdna',
+                                  '../python',
+                                  '../render/extern/include',
+                                  '../imbuf',
+                                  '../avi',
+                                  '#/intern/iksolver/extern',
+                                  '../blenloader'])
+
+blenkernel_env.Library (target='#/lib/blender_blenkernel', source=source_files)

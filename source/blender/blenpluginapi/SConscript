@@ -1,0 +1,20 @@
+blenplugin_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+blenplugin_env.Append (CCFLAGS = cflags)
+blenplugin_env.Append (CXXFLAGS = cxxflags)
+blenplugin_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/pluginapi.c']
+
+blenplugin_env.Append (CPPPATH = ['.',
+                                  '..',
+                                  '#/intern/guardedalloc',
+                                  '../blenlib',
+                                  '../imbuf',
+                                  '../makesdna'])
+
+blenplugin_env.Library (target='#/lib/blender_blenpluginapi', source=source_files)

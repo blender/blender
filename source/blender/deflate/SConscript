@@ -1,0 +1,21 @@
+deflate_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+Import ('extra_includes')
+deflate_env.Append (CCFLAGS = cflags)
+deflate_env.Append (CXXFLAGS = cxxflags)
+deflate_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/BLO_deflate.c']
+
+deflate_env.Append (CPPPATH = ['.',
+                               '../../kernel/gen_messaging',
+                               '../writestreamglue',
+                               '../readstreamglue',
+                               '../inflate'])
+
+deflate_env.Append (CPPPATH=extra_includes)
+deflate_env.Library (target='#/lib/blender_deflate', source=source_files)

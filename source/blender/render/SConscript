@@ -1,0 +1,45 @@
+render_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+render_env.Append (CCFLAGS = cflags)
+render_env.Append (CXXFLAGS = cxxflags)
+render_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/source/RE_callbacks.c',
+                'intern/source/edgeRender.c',
+                'intern/source/envmap.c',
+                'intern/source/errorHandler.c',
+                'intern/source/gammaCorrectionTables.c',
+                'intern/source/initrender.c',
+                'intern/source/jitter.c',
+                'intern/source/outerRenderLoop.c',
+                'intern/source/pixelblending.c',
+                'intern/source/pixelshading.c',
+                'intern/source/ray.c',
+                'intern/source/renderHelp.c',
+                'intern/source/renderPreAndPost.c',
+                'intern/source/rendercore.c',
+                'intern/source/renderdatabase.c',
+                'intern/source/shadbuf.c',
+                'intern/source/texture.c',
+                'intern/source/vanillaRenderPipe.c',
+                'intern/source/zbuf.c',
+                'intern/source/zbufferdatastruct.c']
+
+
+render_env.Append (CPPPATH = ['intern/include',
+                              '#/intern/guardedalloc',
+                              '../blenlib',
+                              '../makesdna',
+                              'extern/include',
+                              '../blenkernel',
+                              '../radiosity/extern/include',
+                              '../imbuf',
+                              '../quicktime',
+                              '../include',
+                              '../../kernel/gen_messaging'])
+
+render_env.Library (target='#/lib/blender_render', source=source_files)

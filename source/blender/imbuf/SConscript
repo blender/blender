@@ -1,0 +1,49 @@
+imbuf_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+Import ('extra_includes')
+imbuf_env.Append (CCFLAGS = cflags)
+imbuf_env.Append (CXXFLAGS = cxxflags)
+imbuf_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/allocimbuf.c',
+                'intern/amiga.c',
+                'intern/anim.c',
+                'intern/anim5.c',
+                'intern/antialias.c',
+                'intern/bitplanes.c',
+                'intern/bmp_decode.c',
+                'intern/cmap.c',
+                'intern/cspace.c',
+                'intern/data.c',
+                'intern/dither.c',
+                'intern/divers.c',
+                'intern/filter.c',
+                'intern/ham.c',
+                'intern/hamx.c',
+                'intern/iff.c',
+                'intern/imageprocess.c',
+                'intern/iris.c',
+                'intern/jpeg.c',
+                'intern/png.c',
+                'intern/readimage.c',
+                'intern/rectop.c',
+                'intern/rotate.c',
+                'intern/scaling.c',
+                'intern/targa.c',
+                'intern/util.c',
+                'intern/writeimage.c']
+
+imbuf_env.Append (CPPPATH = ['.',
+                             '../makesdna',
+                             '#/intern/guardedalloc',
+                             '../blenlib',
+                             '../avi',
+                             '../quicktime',
+                             '../blenkernel'])
+
+imbuf_env.Append (CPPPATH = extra_includes)
+imbuf_env.Library (target='#/lib/blender_imbuf', source=source_files)

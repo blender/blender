@@ -1,0 +1,25 @@
+moto_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+moto_env.Append (CCFLAGS = cflags)
+moto_env.Append (CXXFLAGS = cxxflags)
+moto_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/MT_CmMatrix4x4.cpp',
+                'intern/MT_Matrix3x3.cpp',
+                'intern/MT_Matrix4x4.cpp',
+                'intern/MT_Plane3.cpp',
+                'intern/MT_Point3.cpp',
+                'intern/MT_Quaternion.cpp',
+                'intern/MT_Transform.cpp',
+                'intern/MT_Vector2.cpp',
+                'intern/MT_Vector3.cpp',
+                'intern/MT_Vector4.cpp',
+                'intern/MT_random.cpp']
+
+moto_env.Append (CPPPATH = ['include'])
+
+moto_env.Library (target='#/lib/blender_MT', source=source_files)

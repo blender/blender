@@ -1,0 +1,21 @@
+readstrgl_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+Import ('extra_includes')
+readstrgl_env.Append (CCFLAGS = cflags)
+readstrgl_env.Append (CXXFLAGS = cxxflags)
+readstrgl_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/BLO_readStreamGlue.c',
+                'intern/BLO_readStreamGlueLoopBack.c']
+
+readstrgl_env.Append (CPPPATH = ['.',
+                                 '../../kernel/gen_messaging',
+                                 '../blenloader',
+                                 '../inflate'])
+
+readstrgl_env.Append (CPPPATH = extra_includes)
+readstrgl_env.Library (target='#/lib/blender_readstreamglue', source=source_files)

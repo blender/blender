@@ -1,0 +1,26 @@
+dec_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+dec_env.Append (CCFLAGS = cflags)
+dec_env.Append (CXXFLAGS = cxxflags)
+dec_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/LOD_EdgeCollapser.cpp',
+                'intern/LOD_ExternNormalEditor.cpp',
+                'intern/LOD_FaceNormalEditor.cpp',
+                'intern/LOD_ManMesh2.cpp',
+                'intern/LOD_MeshPrimitives.cpp',
+                'intern/LOD_QSDecimator.cpp',
+                'intern/LOD_QuadricEditor.cpp',
+                'intern/LOD_decimation.cpp']
+
+dec_env.Append (CPPPATH = ['intern',
+                           'extern',
+                           '../moto/include',
+                           '../container',
+                           '../memutil'])
+
+dec_env.Library (target='#/lib/blender_LOD', source=source_files)

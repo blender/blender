@@ -1,0 +1,15 @@
+memutil_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+memutil_env.Append (CCFLAGS = cflags)
+memutil_env.Append (CXXFLAGS = cxxflags)
+memutil_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/MEM_RefCountedC-Api.cpp']
+
+memutil_env.Append (CPPPATH = ['.'])
+
+memutil_env.Library (target='#/lib/blender_MEM', source=source_files)

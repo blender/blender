@@ -1,0 +1,22 @@
+renderconv_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+renderconv_env.Append (CCFLAGS = cflags)
+renderconv_env.Append (CXXFLAGS = cxxflags)
+renderconv_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/convertBlenderScene.c']
+
+renderconv_env.Append (CPPPATH = ['.',
+                                  '../blenlib',
+                                  '#/intern/guardedalloc',
+                                  '../makesdna',
+                                  '../blenkernel',
+                                  '../include',
+                                  '../render/extern/include',
+                                  '../python'])
+
+renderconv_env.Library (target='#/lib/blender_renderconverter', source=source_files)

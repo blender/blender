@@ -1,0 +1,15 @@
+cont_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+cont_env.Append (CCFLAGS = cflags)
+cont_env.Append (CXXFLAGS = cxxflags)
+cont_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/CTR_List.cpp']
+
+cont_env.Append (CPPPATH = ['.'])
+
+cont_env.Library (target='#/lib/blender_CTR', source=source_files)

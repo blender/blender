@@ -1,0 +1,22 @@
+wrblenfile_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+Import ('extra_includes')
+wrblenfile_env.Append (CCFLAGS = cflags)
+wrblenfile_env.Append (CXXFLAGS = cxxflags)
+wrblenfile_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/BLO_writeblenfile.c']
+
+wrblenfile_env.Append (CPPPATH = ['.',
+                                  '../../kernel/gen_messaging',
+                                  '../blenloader',
+                                  '../writestreamglue',
+                                  '../readstreamglue',
+                                  '../readblenfile'])
+
+wrblenfile_env.Append (CPPPATH = extra_includes)
+wrblenfile_env.Library (target='#/lib/blender_writeblenfile', source=source_files)

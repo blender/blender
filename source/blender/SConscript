@@ -1,0 +1,28 @@
+Import ('use_quicktime')
+Import ('use_international')
+
+SConscript(['blenloader/SConscript',
+            'deflate/SConscript',
+            'inflate/SConscript',
+            'writestreamglue/SConscript',
+            'readstreamglue/SConscript',
+            'writeblenfile/SConscript',
+            'readblenfile/SConscript',
+            'avi/SConscript',
+            'imbuf/SConscript',
+            'img/SConscript',
+            'render/SConscript',
+            'radiosity/SConscript',
+            'blenlib/SConscript',
+            'blenkernel/SConscript',
+            'blenpluginapi/SConscript',
+            'python/SConscript',
+            'makesdna/SConscript',
+            'src/SConscript',
+            'renderconverter/SConscript'])
+
+if use_international == 'true':
+    SConscript (['ftfont/SConscript'])
+
+if use_quicktime == 'true':
+    SConscript (['quicktime/SConscript'])

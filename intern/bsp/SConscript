@@ -1,0 +1,29 @@
+bsp_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+bsp_env.Append (CCFLAGS = cflags)
+bsp_env.Append (CXXFLAGS = cxxflags)
+bsp_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/BSP_CSGHelper.cpp',
+                'intern/BSP_CSGMesh.cpp',
+                'intern/BSP_CSGMeshBuilder.cpp',
+                'intern/BSP_CSGMeshSplitter.cpp',
+                'intern/BSP_CSGNCMeshSplitter.cpp',
+                'intern/BSP_CSGUserData.cpp',
+                'intern/BSP_FragNode.cpp',
+                'intern/BSP_FragTree.cpp',
+                'intern/BSP_MeshFragment.cpp',
+                'intern/BSP_MeshPrimitives.cpp',
+                'intern/BSP_Triangulate.cpp',
+                'intern/CSG_BooleanOps.cpp']
+
+bsp_env.Append (CPPPATH = ['intern',
+                           '../container',
+                           '../moto/include',
+                           '../memutil'])
+
+bsp_env.Library (target='#/lib/blender_BSP', source=source_files)

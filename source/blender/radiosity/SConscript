@@ -1,0 +1,27 @@
+rad_env = Environment ()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+rad_env.Append (CCFLAGS = cflags)
+rad_env.Append (CXXFLAGS = cxxflags)
+rad_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/source/raddisplay.c',
+                'intern/source/radfactors.c',
+                'intern/source/radrender.c',
+                'intern/source/radio.c',
+                'intern/source/radnode.c',
+                'intern/source/radpostprocess.c',
+                'intern/source/radpreprocess.c']
+
+rad_env.Append (CPPPATH = ['extern/include',
+                           '../blenlib',
+                           '../blenkernel',
+                           '../makesdna',
+                           '../include',
+                           '#/intern/guardedalloc',
+                           '../render/extern/include'])
+
+rad_env.Library (target='#/lib/blender_radiosity', source=source_files)

@@ -1,0 +1,15 @@
+guardal_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+guardal_env.Append (CCFLAGS = cflags)
+guardal_env.Append (CXXFLAGS = cxxflags)
+guardal_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/mallocn.c']
+
+guardal_env.Append (CPPPATH = ['.'])
+
+guardal_env.Library (target='#/lib/blender_guardedalloc', source=source_files)

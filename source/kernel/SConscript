@@ -1,0 +1,22 @@
+kernel_env = Environment ()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+kernel_env.Append (CCFLAGS = cflags)
+kernel_env.Append (CXXFLAGS = cxxflags)
+kernel_env.Append (CPPDEFINES = defines)
+
+source_files = ['gen_messaging/intern/messaging.c',
+                'gen_system/GEN_HashedPtr.cpp',
+                'gen_system/GEN_Matrix4x4.cpp',
+                'gen_system/SYS_SingletonSystem.cpp',
+                'gen_system/SYS_System.cpp']
+
+kernel_env.Append (CPPPATH = ['gen_messaging',
+                              'gen_system',
+                              '#/intern/string',
+                              '#/intern/moto/include'])
+
+kernel_env.Library (target='#/lib/blender_kernel', source=source_files)

@@ -1,0 +1,26 @@
+bmfont_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+bmfont_env.Append (CCFLAGS = cflags)
+bmfont_env.Append (CXXFLAGS = cxxflags)
+bmfont_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/BMF_Api.cpp',
+                'intern/BMF_BitmapFont.cpp',
+                'intern/BMF_font_helv10.cpp',
+                'intern/BMF_font_helv12.cpp',
+                'intern/BMF_font_helvb10.cpp',
+                'intern/BMF_font_helvb12.cpp',
+                'intern/BMF_font_helvb14.cpp',
+                'intern/BMF_font_helvb8.cpp',
+                'intern/BMF_font_scr12.cpp',
+                'intern/BMF_font_scr14.cpp',
+                'intern/BMF_font_scr15.cpp']
+
+bmfont_env.Append (CPPPATH = ['.',
+                              'intern'])
+
+bmfont_env.Library (target='#/lib/blender_BMF', source=source_files)

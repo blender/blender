@@ -1,0 +1,21 @@
+iksolver_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+iksolver_env.Append (CCFLAGS = cflags)
+iksolver_env.Append (CXXFLAGS = cxxflags)
+iksolver_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/IK_QChain.cpp',
+                'intern/IK_QJacobianSolver.cpp',
+                'intern/IK_QSegment.cpp',
+                'intern/IK_Solver.cpp',
+                'intern/MT_ExpMap.cpp']
+
+iksolver_env.Append (CPPPATH = ['intern',
+                                '../moto/include',
+                                '../memutil'])
+
+iksolver_env.Library (target='#/lib/blender_IK', source=source_files)
