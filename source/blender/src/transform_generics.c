@@ -611,6 +611,20 @@ void calculateCenter(TransInfo *t)
 		printf("local\n");
 		break;
 	}
+
+	/* voor panning from cameraview */
+	if(t->flag & T_OBJECT) {
+		if( G.vd->camera==OBACT && G.vd->persp>1) {
+			float axis[3];
+			VECCOPY(axis, G.vd->persinv[2]);
+			Normalise(axis);
+			
+			/* 6.0 = 6 grid units */
+			t->center[0]+= -6.0*axis[0];
+			t->center[1]+= -6.0*axis[1];
+			t->center[2]+= -6.0*axis[2];
+		}
+	}	
 	initgrabz(t->center[0], t->center[1], t->center[2]);
 }
 

@@ -1305,7 +1305,12 @@ void Transform(int mode)
 					break;
 					
 				case MIDDLEMOUSE:
-					initSelectConstraint(&Trans);
+					/* exception for switching to dolly, in camera view */
+					if( (Trans.flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp>1) {
+					//	setLocalConstraint(&Trans, (CON_AXIS2), "along local Z");
+					}
+					else 
+						initSelectConstraint(&Trans);
 					Trans.redraw = 1;
 					break;
 				case ESCKEY:
