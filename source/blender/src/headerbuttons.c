@@ -516,7 +516,6 @@ void update_for_newframe(void)
 	BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
 	do_all_keys();
 	do_all_actions();
-	do_all_armatures();
 	do_all_ikas();
 
 	test_all_displists();
