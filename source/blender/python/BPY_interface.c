@@ -604,7 +604,8 @@ int BPY_menu_do_python( short menutype, int event )
 	char *buffer, *s;
 	char filestr[FILE_MAXDIR + FILE_MAXFILE];
 	char dirname[FILE_MAXDIR];
-	Script *script = G.main->script.first;
+	char scriptname[21];
+	Script *script = NULL;
 	int len;
 
 	pym = BPyMenu_GetEntry( menutype, ( short ) event );
@@ -660,8 +661,17 @@ int BPY_menu_do_python( short menutype, int event )
 		return 0;
 	}
 
+	BLI_strncpy(scriptname, pym->name, 21);
+	len = strlen(scriptname) - 1;
+	/* by convention, scripts that open the file browser or have submenus
+	 * display '...'.  Here we remove them from the datablock name */
+	while ((len > 0) && scriptname[len] == '.') {
+		scriptname[len] = '\0';
+		len--;
+	}
+	
 	/* Create a new script structure and initialize it: */
-	script = alloc_libblock( &G.main->script, ID_SCRIPT, pym->name );
+	script = alloc_libblock( &G.main->script, ID_SCRIPT, scriptname );
 
 	if( !script ) {
 		printf( "couldn't allocate memory for Script struct!" );

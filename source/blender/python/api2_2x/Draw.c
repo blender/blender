@@ -602,30 +602,33 @@ static PyObject *Method_Register( PyObject * self, PyObject * args )
 
 	sc = curarea->spacedata.first;
 
-	/* this is a little confusing: we need to know which script is being executed
-	 * now, so we can preserve its namespace from being deleted.
-	 * There are two possibilities:
-	 * a) One new script was created and the interpreter still hasn't returned
-	 * from executing it.
-	 * b) Any number of scripts were executed but left registered callbacks and
-	 * so were not deleted yet. */
+	/* There are two kinds of scripts:
+	 * a) those that simply run, finish and return control to Blender;
+	 * b) those that do like 'a)' above but leave callbacks for drawing,
+	 * events and button events, with this Method_Register (Draw.Register
+	 * in Python).  These callbacks are called by scriptspaces (Scripts windows).
+	 *
+	 * We need to flag scripts that leave callbacks so their namespaces are
+	 * not deleted when they 'finish' execution, because the callbacks will
+	 * still need the namespace.
+	 */
 
-	/* To find out if we're dealing with a) or b), we start with the last
-	 * created one: */
-	script = G.main->script.last;
+	/* Let's see if this is a new script */
+	script = G.main->script.first;
+	while (script) {
+		if (script->flags & SCRIPT_RUNNING) break;
+		script = script->id.next;
+	}
 
 	if( !script ) {
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Draw.Register: couldn't get pointer to script struct" );
+		/* not new, it's a left callback calling Register again */
+ 		script = sc->script;
+		if( !script ) {
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"Draw.Register: couldn't get pointer to script struct" );
+		}
 	}
-
-	/* if the flag SCRIPT_RUNNING is set, this script is case a): */
-	if( !( script->flags & SCRIPT_RUNNING ) ) {
-		script = sc->script;
-	}
-	/* otherwise it's case b) and the script we want is here: */
-	else
-		sc->script = script;
+	else sc->script = script;
 
 	/* Now we have the right script and can set a lock so its namespace can't be
 	 * deleted for as long as we need it */
@@ -660,7 +663,6 @@ static PyObject *Method_Redraw( PyObject * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected int argument (or nothing)" );
 
-	/* XXX shouldn't we redraw all spacescript wins with this script on ? */
 	if( after )
 		addafterqueue( curarea->win, REDRAW, 1 );
 	else

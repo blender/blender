@@ -18,7 +18,7 @@ __version__ = "2.34 09/20/04"
 __bpydoc__ = """\
 This script exports Blender meshes to AC3D's .ac file format.
 
-AC3D is a simple and affordable commercial 3d modeller also built with OpenGL.
+AC3D is a simple commercial 3d modeller also built with OpenGL.
 The .ac file format is an easy to parse text format well supported,
 for example, by the PLib 3d gaming library (AC3D v3.x).
 
@@ -26,18 +26,19 @@ Supported:<br>
     UV-textured meshes with hierarchy (grouping) information.
 
 Missing:<br>
-    Support for AC3D 4's crease tag (simple, will be added soon).
+    Support for AC3D 4's crease tag (simple, will be added as option for
+the next version of this exporter).
 
 Known issues:<br>
     Models textured with more than one image do not work -- for the
 moment you can separate them in Blender such that each mesh only has one
 image assigned (also see notes below);<br>
     The exporter is slow for large meshes -- faster code was written for the
-TuxKart (http://tuxkart.sf.net) game exporter and will be integrated on a
-future version of this exporter.
+TuxKart (http://tuxkart.sf.net, wiki at http://netpanzer.berlios.de/tuxkart)
+game exporter and will be integrated on a future version of this exporter.
 
 Notes:<br>
-    There is a version of this script by <fix this> that accepts meshes with
+    There is a version of this script, by Ingo Ruhnke, that accepts meshes with
 more than one texture image assigned, check TuxKart's wiki.
 """
 
