@@ -699,8 +699,10 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 
 		/* and now we handle the exception; no space below or to right */
 		if(top==0 && down==0) {
-			// align with bottom of screen 
-			yof= ysize;
+			if(dir1==UI_LEFT || dir1==UI_RIGHT) {
+				// align with bottom of screen 
+				yof= ysize;
+			}
 		}
 		
 		// apply requested offset in the block
