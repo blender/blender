@@ -33,11 +33,11 @@
 #ifndef BIF_LANGUAGE_H
 #define BIF_LANGUAGE_H
 
-int readMultiLingualFiles(void);	/* usiblender.c */
-void languagesmenu_free(void);		/* usiblender.c */
+int  read_languagefile(void);		/* usiblender.c */
+void free_languagemenu(void);		/* usiblender.c */
 
 void set_interface_font(char *str); /* headerbuttons.c */
-void set_ML_interface_font(void);	/* headerbuttons.c */
+void start_interface_font(void);	/* headerbuttons.c */
 void lang_setlanguage(void);		/* usiblender.c */
 
 char *language_pup(void);

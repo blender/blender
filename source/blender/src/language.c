@@ -137,9 +137,7 @@ void set_interface_font(char *str) {
 	char di[FILE_MAXDIR];
 
 	if(FTF_SetFont(str, U.fontsize)) {
-
 		lang_setlanguage();
-
 		BLI_split_dirfile(str, di, U.fontname);
 
 		G.ui_international = TRUE;
@@ -151,12 +149,12 @@ void set_interface_font(char *str) {
 }
 
 
-void set_ML_interface_font(void) {
+void start_interface_font(void) {
 	char tstr[FILE_MAXDIR+FILE_MAXFILE];
 	int result = 0;
 
-	/* dirty hack to find out if we have saved language/font settings,
-	   if not, try default font --phase */
+	/* hack to find out if we have saved language/font settings.
+	   if not, set defaults and try Vera font (or else .bfont.tff) --phase */
 	
 	if(U.fontsize != 0) {
 		BLI_make_file_string("/", tstr, U.fontdir, U.fontname);
@@ -164,21 +162,25 @@ void set_ML_interface_font(void) {
 		result = FTF_SetFont(tstr, U.fontsize);
 	} else {
 		U.language= 0;
-		U.fontsize= 12;
+		U.fontsize= 11;
 		U.encoding= 0;
-		sprintf(U.fontname, ".bfont.ttf\0");
+		sprintf(U.fontname, "Vera.ttf\0");
 
 		result = FTF_SetFont(U.fontname, U.fontsize);
 	}
 
-	if(!result) result = FTF_SetFont(".bfont.ttf", U.fontsize);
-//	printf(" res = %d\n ", result);
+	if(!result) {
+		U.fontsize= 12;
+		sprintf(U.fontname, ".bfont.ttf\0");
+		result = FTF_SetFont(U.fontname, U.fontsize);
+	}
+
 	if(result) {
 		lang_setlanguage();
 
 		G.ui_international = TRUE;
 	} else {
-		printf("no way ftf\n");
+		printf("no font found for international support\n");
 		G.ui_international = FALSE;
 	}
 
@@ -243,7 +245,7 @@ void puplang_insert_entry(char *line)
 }
 
 
-int readMultiLingualFiles(void) {
+int read_languagefile(void) {
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 	LinkNode *l, *lines;
 
@@ -276,7 +278,7 @@ int readMultiLingualFiles(void) {
 }
 
 
-void languagesmenu_free(void)
+void free_languagemenu(void)
 {
 	LANGMenuEntry *lme= langmenu;
 

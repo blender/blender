@@ -166,7 +166,7 @@ int BIF_read_homefile(void)
 {
 	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
 	char *home= BLI_gethome();
-	int success, result;
+	int success;
 
 	BLI_make_file_string(G.sce, tstr, home, ".B.blend");
 	strcpy(scestr, G.sce);	/* temporal store */
@@ -182,20 +182,6 @@ int BIF_read_homefile(void)
 
 		/*  disable autoplay in .B.blend... */
 		G.fileflags &= ~G_FILE_AUTOPLAY;
-
-#ifdef _WIN32	// FULLSCREEN
-		/* choose window startmode */
-		switch (G.windowstate){
-			case G_WINDOWSTATE_USERDEF: /* use the usersetting */
-				break;
-			case G_WINDOWSTATE_FULLSCREEN: /* force fullscreen */
-				U.uiflag |= FLIPFULLSCREEN;
-				break;
-			case G_WINDOWSTATE_BORDER: /* force with borders */
-				U.uiflag &= ~FLIPFULLSCREEN;
-		}
-		mainwindow_toggle_fullscreen ((U.uiflag & FLIPFULLSCREEN));
-#endif
 
 		if (BLI_streq(U.tempdir, "/")) {
 			char *tmp= getenv("TEMP");
@@ -217,24 +203,6 @@ int BIF_read_homefile(void)
 		if (G.main->versionfile <= 222) {
 			U.vrmlflag= USERDEF_VRML_LAYERS;
 		}
-
-#ifdef INTERNATIONAL
-			/* userdef multilanguage options */
-		/*  uncomment with versionchange to 2.27 --phase */
-/*
-		if (G.main->versionfile <= 226) {
-			U.language= 0;
-			U.fontsize= 12;
-			U.encoding= 0;
-			sprintf(U.fontname, ".bfont.ttf");
-		}
-*/
-		if(U.transopts & TR_ALL)
-			set_ML_interface_font();
-		else
-			G.ui_international = FALSE;
-
-#endif // INTERNATIONAL
 
 		space_set_commmandline_options();
 
@@ -488,20 +456,36 @@ void BIF_init(void)
 	init_draw_rects();	/* drawobject.c */
 	init_gl_stuff();	/* drawview.c */
 
-#ifdef INTERNATIONAL
-	readMultiLingualFiles();
-#endif
-
 	BIF_read_homefile(); 
-
 	readBlog();
 	strcpy(G.lib, G.sce);
+
+#ifdef INTERNATIONAL
+	read_languagefile();
+
+	if(U.transopts & TR_ALL)
+		start_interface_font();
+	else
+		G.ui_international = FALSE;
+#endif // INTERNATIONAL
+
+#ifdef _WIN32	// FULLSCREEN
+	/* choose window startmode */
+	switch (G.windowstate){
+		case G_WINDOWSTATE_USERDEF: /* use the usersetting */
+			break;
+		case G_WINDOWSTATE_FULLSCREEN: /* force fullscreen */
+			U.uiflag |= FLIPFULLSCREEN;
+			break;
+		case G_WINDOWSTATE_BORDER: /* force with borders */
+			U.uiflag &= ~FLIPFULLSCREEN;
+	}
+	mainwindow_toggle_fullscreen ((U.uiflag & FLIPFULLSCREEN));
+#endif
 }
 
 /***/
 
-extern unsigned short fullscreen;
-extern unsigned short borderless;
 extern ListBase editNurb;
 extern ListBase editelems;
 
@@ -539,7 +523,7 @@ void exit_usiblender(void)
 
 	fsmenu_free();
 #ifdef INTERNATIONAL
-	languagesmenu_free();
+	free_languagemenu();
 #endif	
 	
 	RE_free_render_data();

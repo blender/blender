@@ -1516,12 +1516,11 @@ void do_global_buttons(unsigned short event)
 
 	case B_DOLANGUIFONT: 	/* is button from space.c  *info* */
 		if(U.transopts & TR_ALL)
-			set_ML_interface_font();
+			start_interface_font();
 		else
 			G.ui_international = FALSE;
 		allqueue(REDRAWALL, 0);
 		break;
-
 #endif
 		
 	case B_FULL:
