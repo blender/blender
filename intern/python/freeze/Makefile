@@ -20,4 +20,5 @@ importer:
 	$(MAKE) -C $(TARGETDIR)
 
 clean:
-	rm *.pyo
+	rm -f *.pyo
+
