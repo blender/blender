@@ -32,6 +32,8 @@
 #
 # OS specific stuff for the package, only to be executed by ../Makefile
 
+SHORTVERS=`echo $VERSION | sed 's/\.//'`
+
 # Create ^M in readme.txt
 awk '{printf("%s\r\n", $0);}' $DISTDIR/README > $DISTDIR/Readme.txt
 rm -f $DISTDIR/README
@@ -46,6 +48,11 @@ mv -f $DISTDIR/aCopyright.txt $DISTDIR/Copyright.txt
 awk '{printf("%s\r\n", $0);}' $DISTDIR/GPL-license.txt > $DISTDIR/temp.txt
 mv -f $DISTDIR/temp.txt $DISTDIR/GPL-license.txt
 
+# Add Release info text
+cp -f ../../Release_$SHORTVERS.txt $DISTDIR/Release_$SHORTVERS.txt
+awk '{printf("%s\r\n", $0);}' $DISTDIR/Release_$SHORTVERS.txt > $DISTDIR/temp.txt
+mv -f $DISTDIR/temp.txt $DISTDIR/Release_$SHORTVERS.txt
+
 # Add Python DLL to package
 # Stupid windows needs the . removed :
 PVERS=`echo $NAN_PYTHON_VERSION | sed 's/\.//'`
@@ -56,8 +63,20 @@ chmod +x $DISTDIR/python$PVERS.dll
 # cp -f $NAN_FMOD/lib/fmod.dll $DISTDIR/fmod.dll
 # chmod +x $DISTDIR/fmod.dll
 
+# Add gettext DLL to package
+cp -f $NAN_GETTEXT/lib/gnu_gettext.dll $DISTDIR/gnu_gettext.dll
+
 # Add the Help.url to the ditribution
 cp -f extra/Help.url $DISTDIR/
+
+# Add the language files to package
+cp -f -R $NAN_OBJDIR/windows/bin/.blender $DISTDIR/
+# Remove the pesky CVS dirs
+find $DISTDIR/.blender -name CVS -prune -exec rm -rf {} \;
+
+# Add .bfont.ttf and .Blanguages
+cp -f $NANBLENDERHOME/bin/.blender/.bfont.ttf $DISTDIR/.blender/.bfont.ttf
+cp -f $NANBLENDERHOME/bin/.blender/.Blanguages $DISTDIR/.blender/.Blanguages
 
 # make the installer package with NSIS
 NSIS="$PROGRAMFILES/NSIS/makensis.exe"
@@ -65,7 +84,6 @@ if (`test -x "$NSIS"`) then
     cd installer
     TEMPFILE=00.blender_tmp.nsi
     DISTDIR=`cygpath -m $DISTDIR`
-    SHORTVERS=`echo $VERSION | sed 's/\.//'`
     # make a installer config for this release
     cat 00.blender.nsi | sed "s|VERSION|$VERSION|g" | sed "s|DISTDIR|$DISTDIR|g" | sed "s|SHORTVERS|$SHORTVERS|g" > $TEMPFILE
     "$NSIS" $TEMPFILE
