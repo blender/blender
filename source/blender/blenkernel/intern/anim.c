@@ -344,7 +344,8 @@ void vertex_duplilist(Scene *sce, Object *par)
 	Base *base;
 	MVert *mvert;
 	Mesh *me;
-	float vec[3], pvec[3], pmat[4][4], mat[3][3], tmat[4][4];
+	DispList *dl;
+	float *extverts=NULL, vec[3], pvec[3], pmat[4][4], mat[3][3], tmat[4][4];
 	float *q2;
 	int lay, totvert, a;
 	
@@ -354,6 +355,9 @@ void vertex_duplilist(Scene *sce, Object *par)
 	
 	lay= G.scene->lay;
 	
+	dl= find_displist(&par->disp, DL_VERTS);
+	if(dl) extverts= dl->verts;
+
 	base= sce->base.first;
 	while(base) {
 
@@ -378,7 +382,13 @@ void vertex_duplilist(Scene *sce, Object *par)
 					for(a=0; a<totvert; a++, mvert++) {
 					
 						/* calc the extra offset for children (wrt. centre parent)  */
-						VECCOPY(vec, mvert->co);
+						if(extverts) {
+							VECCOPY(vec, extverts+3*a);
+						}
+						else {
+							VECCOPY(vec, mvert->co);
+						}
+
 						Mat4MulVecfl(pmat, vec);
 						VecSubf(vec, vec, pmat[3]);
 						VecAddf(vec, vec, ob->obmat[3]);
