@@ -2066,7 +2066,7 @@ static int ui_do_but_LINK(uiBlock *block, uiBut *but)
 }
 
 /* picker sizes S size, D spacer, B button/pallette height  */
-#define SPICK	100.0
+#define SPICK	110.0
 #define DPICK	6.0
 #define BPICK	24.0
 
@@ -2129,7 +2129,7 @@ static void do_palette_cb(void *bt1, void *bt2)
 	ui_get_but_vectorf(but2, col);
 	fp= (float *)but1->poin;
 	
-	if(pick_mode) {
+	if( (get_qual() & LR_CTRLKEY) ) {
 		VECCOPY(fp, col);
 	}
 	else {
@@ -2179,7 +2179,7 @@ static void do_palette1_cb(void *bt1, void *bt2)
 	glFlush(); // flush display in subloops
 }
 
-/* color picker */
+/* color picker, cube version */
 static int ui_do_but_COL(uiBut *but)
 {
 	uiBlock *block;
@@ -2235,10 +2235,10 @@ static int ui_do_but_COL(uiBut *but)
 	bt= uiDefButF(block, NUM, 0, "V ",	DPICK+1.5*SPICK,BPICK+DPICK+SPICK-60,SPICK/2,20, hsv+2, 0.0, 1.0, 10, 2, "");
 	uiButSetFunc(bt, do_palette1_cb, bt, but);
 
-	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, 	0, "Paste to color",	DPICK+SPICK, BPICK+DPICK+20, SPICK,20, &pick_mode, 0.0, 0.0, 0, 0, "Clicks in palette pastes to active color");
-	uiDefButS(block, ROW, 	0, "Copy to palette",DPICK+SPICK, BPICK+DPICK, SPICK,20, &pick_mode, 0.0, 1.0, 0, 0, "Clicks in palette copies from active color");
-	uiBlockEndAlign(block);
+	//uiBlockBeginAlign(block);
+	//uiDefButS(block, ROW, 	0, "Paste to color",	DPICK+SPICK, BPICK+DPICK+20, SPICK,20, &pick_mode, 0.0, 0.0, 0, 0, "Clicks in palette pastes to active color");
+	//uiDefButS(block, ROW, 	0, "Copy to palette",DPICK+SPICK, BPICK+DPICK, SPICK,20, &pick_mode, 0.0, 1.0, 0, 0, "Clicks in palette copies from active color");
+	//uiBlockEndAlign(block);
 	
 
 	// safety 
