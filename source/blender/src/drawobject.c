@@ -1178,8 +1178,11 @@ static void displistmesh_draw_solid(DispListMesh *dlm, int drawsmooth, float *no
 					glBegin(lmode);
 				}
 			
-				if (mf->mat_nr!=lmat_nr)
+				if (mf->mat_nr!=lmat_nr) {
+					glEnd();
 					set_gl_material((lmat_nr= mf->mat_nr)+1);
+					glBegin(lmode);
+				}
 			}
 			
 			if (drawsmooth && lshademodel==GL_FLAT)
@@ -1414,18 +1417,7 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 			else {
 
 				set_gl_material(dl->col+1);
-/*				
-				glBegin(GL_LINES);
-				for(a=0; a<dl->parts*dl->nr; a++) {
-					float nor[3];
-					
-					VECCOPY(nor, data+3*a);
-					glVertex3fv(nor);
-					VecAddf(nor, nor, ndata+3*a);
-					glVertex3fv(nor);
-				}
-				glEnd();
-*/				
+
 				for(a=0; a<dl->parts; a++) {
 					
 					DL_SURFINDEX(dl->flag & 1, dl->flag & 2, dl->nr, dl->parts);
@@ -1846,16 +1838,19 @@ static void drawmeshsolid(Object *ob, float *nors)
 					else {
 						
 						if(mface->mat_nr!=matnr) {
+							glEnd();
+
 							matnr= mface->mat_nr;
 							set_gl_material(matnr+1);
+
+							glBegin(glmode);
 						}
 	
 						if( (me->flag & ME_AUTOSMOOTH)==0 && (mface->flag & ME_SMOOTH)) {
 							if(setsmooth==0) {
 								glEnd();
 								glShadeModel(GL_SMOOTH);
-								if(glmode==GL_TRIANGLES) glBegin(GL_TRIANGLES);
-								else glBegin(GL_QUADS);
+								glBegin(glmode);
 								setsmooth= 1;
 							}
 							n1= (mvert+mface->v1)->no;
@@ -1897,8 +1892,7 @@ static void drawmeshsolid(Object *ob, float *nors)
 							if(setsmooth==1) {
 								glEnd();
 								glShadeModel(GL_FLAT);
-								if(glmode==GL_TRIANGLES) glBegin(GL_TRIANGLES);
-								else glBegin(GL_QUADS);
+								glBegin(glmode);
 								setsmooth= 0;
 							}
 							glNormal3fv(nors);
