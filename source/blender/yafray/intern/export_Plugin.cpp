@@ -108,7 +108,7 @@ static string YafrayPath()
 		string fp=string(alternative[i])+"libyafrayplugin.so";
 		struct stat st;
 		if(stat(fp.c_str(),&st)<0) continue;
-		if(st.st_mode&S_IXOTH) return fp;
+		if(st.st_mode&S_IROTH) return fp;
 	}
 	return "";
 #endif
