@@ -1056,59 +1056,65 @@ static void render_panel_render(void)
 	if(uiNewPanel(curarea, block, "Render", "Render", 320, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT,B_DORENDER,"RENDER",	369, 164, 192,37, 0, 0, 0, 0, 0, "Start the rendering");
+	uiDefBut(block, BUT,B_DORENDER,"RENDER",	369, 164, 191,37, 0, 0, 0, 0, 0, "Start the rendering");
 	/* yafray: on request, render engine menu is back again, and moved to Render panel */
 	uiDefButS(block, MENU, B_REDR, "Rendering Engine %t|Blender Internal %x0|YafRay %x1", 
-												369, 142, 192, 20, &G.scene->r.renderer, 0, 0, 0, 0, "Choose rendering engine");	
+												369, 142, 191, 20, &G.scene->r.renderer, 0, 0, 0, 0, "Choose rendering engine");	
 
 	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG|BIT|0, 0, "OSA",		369,110,122,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");
-	uiDefButS(block, ROW,B_DIFF,"5",			369,86,28,20,&G.scene->r.osa,2.0,5.0, 0, 0, "Sets oversample level to 5");
-	uiDefButS(block, ROW,B_DIFF,"8",			397,86,28,20,&G.scene->r.osa,2.0,8.0, 0, 0, "Sets oversample level to 8 (Recommended)");
-	uiDefButS(block, ROW,B_DIFF,"11",			425,86,33,20,&G.scene->r.osa,2.0,11.0, 0, 0, "Sets oversample level to 11");
-	uiDefButS(block, ROW,B_DIFF,"16",			458,86,33,20,&G.scene->r.osa,2.0,16.0, 0, 0, "Sets oversample level to 16");
+	uiDefButI(block, TOG|BIT|0, 0, "OSA",		369,109,122,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");
+	uiDefButS(block, ROW,B_DIFF,"5",			369,88,29,20,&G.scene->r.osa,2.0,5.0, 0, 0, "Sets oversample level to 5");
+	uiDefButS(block, ROW,B_DIFF,"8",			400,88,29,20,&G.scene->r.osa,2.0,8.0, 0, 0, "Sets oversample level to 8 (Recommended)");
+	uiDefButS(block, ROW,B_DIFF,"11",			431,88,29,20,&G.scene->r.osa,2.0,11.0, 0, 0, "Sets oversample level to 11");
+	uiDefButS(block, ROW,B_DIFF,"16",			462,88,29,20,&G.scene->r.osa,2.0,16.0, 0, 0, "Sets oversample level to 16");
+	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG|BIT|14, 0, "MBLUR",	495,110,66,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Motion Blur calculation");
-	uiDefButF(block, NUM,B_DIFF,"Bf:",			495,86,65,20,&G.scene->r.blurfac, 0.01, 5.0, 10, 2, "Sets motion blur factor");
+	uiDefButI(block, TOG|BIT|14, 0, "MBLUR",	496,109,64,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Motion Blur calculation");
+	uiDefButF(block, NUM,B_DIFF,"Bf:",			496,88,64,20,&G.scene->r.blurfac, 0.01, 5.0, 10, 2, "Sets motion blur factor");
+	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM,B_DIFF,"Xparts:",		369,42,99,31,&G.scene->r.xparts,1.0, 64.0, 0, 0, "Sets the number of horizontal parts to render image in (For panorama sets number of camera slices)");
-	uiDefButS(block, NUM,B_DIFF,"Yparts:",		472,42,86,31,&G.scene->r.yparts,1.0, 64.0, 0, 0, "Sets the number of vertical parts to render image in");
+	uiDefButS(block, NUM,B_DIFF,"Xparts:",		369,46,95,29,&G.scene->r.xparts,1.0, 64.0, 0, 0, "Sets the number of horizontal parts to render image in (For panorama sets number of camera slices)");
+	uiDefButS(block, NUM,B_DIFF,"Yparts:",		465,46,95,29,&G.scene->r.yparts,1.0, 64.0, 0, 0, "Sets the number of vertical parts to render image in");
+	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW,800,"Sky",		369,11,30,24,&G.scene->r.alphamode,3.0,0.0, 0, 0, "Fill background with sky");
-	uiDefButS(block, ROW,800,"Premul",	400,11,50,24,&G.scene->r.alphamode,3.0,1.0, 0, 0, "Multiply alpha in advance");
-	uiDefButS(block, ROW,800,"Key",		450,11,40,24,&G.scene->r.alphamode,3.0,2.0, 0, 0, "Alpha and colour values remain unchanged");
+	uiDefButS(block, ROW,800,"Sky",		369,13,35,20,&G.scene->r.alphamode,3.0,0.0, 0, 0, "Fill background with sky");
+	uiDefButS(block, ROW,800,"Premul",	405,13,50,20,&G.scene->r.alphamode,3.0,1.0, 0, 0, "Multiply alpha in advance");
+	uiDefButS(block, ROW,800,"Key",		456,13,35,20,&G.scene->r.alphamode,3.0,2.0, 0, 0, "Alpha and colour values remain unchanged");
 	uiBlockEndAlign(block);
 	
 	if(G.scene->r.mode & R_RAYTRACE)
-		uiDefButS(block, MENU, B_DIFF,"Octree resolution %t|64 %x64|128 %x128|256 %x256|512 %x512",	495,11,66,24,&G.scene->r.ocres,0.0,0.0, 0, 0, "Octree resolution for ray tracing");
+		uiDefButS(block, MENU, B_DIFF,"Octree resolution %t|64 %x64|128 %x128|256 %x256|512 %x512",	496,13,64,20,&G.scene->r.ocres,0.0,0.0, 0, 0, "Octree resolution for ray tracing");
 
 	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG|BIT|1,0,"Shadow",	565,171,61,30, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
-	uiDefButI(block, TOG|BIT|4,0,"EnvMap",	626,171,61,30, &G.scene->r.mode, 0, 0, 0, 0, "Enable environment map rendering");
-	uiDefButI(block, TOG|BIT|10,0,"Pano",	565,142,41,28, &G.scene->r.mode, 0, 0, 0, 0, "Enable panorama rendering (output width is multiplied by Xparts)");
-	uiDefButI(block, TOG|BIT|16,B_REDR,"Ray",606,142,35,28, &G.scene->r.mode, 0, 0, 0, 0, "Enable ray tracing");
-	uiDefButI(block, TOG|BIT|8,0,"Radio",	641,142,46,28, &G.scene->r.mode, 0, 0, 0, 0, "Enable radiosity rendering");
+	uiDefButI(block, TOG|BIT|1,0,"Shadow",	565,172,60,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
+	uiDefButI(block, TOG|BIT|4,0,"EnvMap",	627,172,60,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable environment map rendering");
+	uiDefButI(block, TOG|BIT|10,0,"Pano",	565,142,40,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable panorama rendering (output width is multiplied by Xparts)");
+	uiDefButI(block, TOG|BIT|16,B_REDR,"Ray",606,142,40,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable ray tracing");
+	uiDefButI(block, TOG|BIT|8,0,"Radio",	647,142,40,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable radiosity rendering");
+	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW,B_DIFF,"100%",			565,110,121,20,&G.scene->r.size,1.0,100.0, 0, 0, "Set render size to defined size");
-	uiDefButS(block, ROW,B_DIFF,"75%",			565,86,36,20,&G.scene->r.size,1.0,75.0, 0, 0, "Set render size to 3/4 of defined size");
-	uiDefButS(block, ROW,B_DIFF,"50%",			604,86,40,20,&G.scene->r.size,1.0,50.0, 0, 0, "Set render size to 1/2 of defined size");
-	uiDefButS(block, ROW,B_DIFF,"25%",			647,86,39,20,&G.scene->r.size,1.0,25.0, 0, 0, "Set render size to 1/4 of defined size");
+	uiDefButS(block, ROW,B_DIFF,"100%",			565,109,122,20,&G.scene->r.size,1.0,100.0, 0, 0, "Set render size to defined size");
+	uiDefButS(block, ROW,B_DIFF,"75%",			565,88,40,20,&G.scene->r.size,1.0,75.0, 0, 0, "Set render size to 3/4 of defined size");
+	uiDefButS(block, ROW,B_DIFF,"50%",			606,88,40,20,&G.scene->r.size,1.0,50.0, 0, 0, "Set render size to 1/2 of defined size");
+	uiDefButS(block, ROW,B_DIFF,"25%",			647,88,40,20,&G.scene->r.size,1.0,25.0, 0, 0, "Set render size to 1/4 of defined size");
+	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG|BIT|6,0,"Fields",  564,50,60,23,&G.scene->r.mode, 0, 0, 0, 0, "Enables field rendering");
-	uiDefButI(block, TOG|BIT|13,0,"Odd",	624,50,40,23,&G.scene->r.mode, 0, 0, 0, 0, "Enables Odd field first rendering (Default: Even field)");
-	uiDefButI(block, TOG|BIT|7,0,"x",		665,50,20,23,&G.scene->r.mode, 0, 0, 0, 0, "Disables time difference in field calculations");
-
-	uiDefButI(block, TOG|BIT|17,0,"Gauss",	564,30,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Gaussian sampling filter for antialiasing");
-	uiDefButF(block, NUM,B_DIFF,"",			624,30,60,20,&G.scene->r.gauss,0.5, 1.5, 100, 2, "Sets the Gaussian filter size");
+	uiDefButI(block, TOG|BIT|6,0,"Fields",  565,55,60,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables field rendering");
+	uiDefButI(block, TOG|BIT|13,0,"Odd",	627,55,39,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Odd field first rendering (Default: Even field)");
+	uiDefButI(block, TOG|BIT|7,0,"X",		668,55,19,20,&G.scene->r.mode, 0, 0, 0, 0, "Disables time difference in field calculations");
 	
-	uiDefButI(block, TOG|BIT|9,REDRAWVIEWCAM, "Border",	564,10,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Render a small cut-out of the image");
-	uiDefButI(block, TOG|BIT|2,0, "Gamma",	624,10,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Enable gamma correction");
 
+	uiDefButI(block, TOG|BIT|17,0,"Gauss",	565,34,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Gaussian sampling filter for antialiasing");
+	uiDefButF(block, NUM,B_DIFF,"",			627,34,60,20,&G.scene->r.gauss,0.5, 1.5, 100, 2, "Sets the Gaussian filter size");
+	
+	uiDefButI(block, TOG|BIT|9,REDRAWVIEWCAM, "Border",	565,13,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Render a small cut-out of the image");
+	uiDefButI(block, TOG|BIT|2,0, "Gamma",	627,13,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Enable gamma correction");
+	uiBlockEndAlign(block);
 
 }
 
