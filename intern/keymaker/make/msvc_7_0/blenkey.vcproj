@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding = "Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="7.00"
+	Name="blenkey"
+	SccProjectName=""
+	SccLocalPath="">
+	<Platforms>
+		<Platform
+			Name="Win32"/>
+	</Platforms>
+	<Configurations>
+		<Configuration
+			Name="Debug|Win32"
+			OutputDirectory=".\..\..\..\..\obj\windows\intern\blenkey\debug"
+			IntermediateDirectory=".\..\..\..\..\obj\windows\intern\blenkey\debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..,..\..\..\..\..\lib\windows\openssl\include,..\..\python"
+				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="5"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\intern\blenkey\debug/blenkey.pch"
+				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\blenkey\debug/"
+				ObjectFile=".\..\..\..\..\obj\windows\intern\blenkey\debug/"
+				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\blenkey\debug/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="4"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\obj\windows\intern\blenkey\debug\libblenkey.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Copying header files
+XCOPY /Y ..\..\blenkey.h ..\..\..\..\..\lib\windows\blenkey\include\
+ECHO Copying lib
+XCOPY /Y ..\..\..\..\obj\windows\intern\blenkey\debug\*.lib ..\..\..\..\..\lib\windows\blenkey\lib\debug\*.a
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory=".\..\..\..\..\obj\windows\intern\blenkey"
+			IntermediateDirectory=".\..\..\..\..\obj\windows\intern\blenkey"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..,..\..\..\..\..\lib\windows\openssl\include,..\..\python"
+				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="4"
+				EnableFunctionLevelLinking="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\intern\blenkey/blenkey.pch"
+				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\blenkey/"
+				ObjectFile=".\..\..\..\..\obj\windows\intern\blenkey/"
+				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\blenkey/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\obj\windows\intern\blenkey\libblenkey.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Copying header files
+XCOPY /Y ..\..\blenkey.h ..\..\..\..\..\lib\windows\blenkey\include\
+ECHO Copying lib
+XCOPY /Y ..\..\..\..\obj\windows\intern\blenkey\*.lib ..\..\..\..\..\lib\windows\blenkey\lib\*.a
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+		</Configuration>
+	</Configurations>
+	<Files>
+		<Filter
+			Name="Source Files"
+			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+			<File
+				RelativePath="..\..\key.c">
+			</File>
+			<File
+				RelativePath="..\..\keyloader.c">
+			</File>
+			<File
+				RelativePath="..\..\mt19937int.c">
+			</File>
+		</Filter>
+		<Filter
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl">
+			<Filter
+				Name="intern"
+				Filter="">
+				<File
+					RelativePath="..\..\key_internal.h">
+				</File>
+				<File
+					RelativePath="..\..\mt19937int.h">
+				</File>
+			</Filter>
+			<Filter
+				Name="extern"
+				Filter="">
+				<File
+					RelativePath="..\..\blenkey.h">
+				</File>
+			</Filter>
+		</Filter>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>

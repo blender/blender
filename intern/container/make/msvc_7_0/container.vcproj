@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding = "Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="7.00"
+	Name="container"
+	SccProjectName=""
+	SccLocalPath="">
+	<Platforms>
+		<Platform
+			Name="Win32"/>
+	</Platforms>
+	<Configurations>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory=".\..\..\..\..\obj\windows\intern\container"
+			IntermediateDirectory=".\..\..\..\..\obj\windows\intern\container"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="2"
+				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\intern\container/container.pch"
+				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\container/"
+				ObjectFile=".\..\..\..\..\obj\windows\intern\container/"
+				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\container/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="../../../../obj/windows/intern/container/libcontainer.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Copying header files
+XCOPY /Y ..\..\*.h ..\..\..\..\..\lib\windows\container\include\
+ECHO Copying lib
+XCOPY /Y ..\..\..\..\obj\windows\intern\container\*.lib ..\..\..\..\..\lib\windows\container\lib\*.a
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1043"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Debug|Win32"
+			OutputDirectory=".\..\..\..\..\obj\windows\intern\container\debug"
+			IntermediateDirectory=".\..\..\..\..\obj\windows\intern\container\debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\intern\container\debug/container.pch"
+				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\container\debug/"
+				ObjectFile=".\..\..\..\..\obj\windows\intern\container\debug/"
+				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\container\debug/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="4"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\obj\windows\intern\container\debug\libcontainer.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Copying header files
+XCOPY /Y ..\..\*.h ..\..\..\..\..\lib\windows\container\include\
+ECHO Copying lib
+XCOPY /Y ..\..\..\..\obj\windows\intern\container\debug\*.lib ..\..\..\..\..\lib\windows\container\lib\debug\*.a
+ECHO Copying Debug info.
+XCOPY /Y ..\..\..\..\obj\windows\intern\container\debug\vc70.* ..\..\..\..\..\lib\windows\container\lib\debug\
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1043"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+		</Configuration>
+	</Configurations>
+	<Files>
+		<Filter
+			Name="intern"
+			Filter="">
+			<File
+				RelativePath="..\..\intern\CTR_List.cpp">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories="../extern,../../;$(NoInherit)"
+						CompileAs="0"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories="../../;$(NoInherit)"
+						CompileAs="0"/>
+				</FileConfiguration>
+			</File>
+		</Filter>
+		<File
+			RelativePath="..\..\CTR_List.h">
+		</File>
+		<File
+			RelativePath="..\..\CTR_Map.h">
+		</File>
+		<File
+			RelativePath="..\..\CTR_TaggedIndex.h">
+		</File>
+		<File
+			RelativePath="..\..\CTR_TaggedSetOps.h">
+		</File>
+		<File
+			RelativePath="..\..\CTR_UHeap.h">
+		</File>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>

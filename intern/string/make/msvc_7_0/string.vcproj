@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding = "Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="7.00"
+	Name="string"
+	SccProjectName=""
+	SccLocalPath="">
+	<Platforms>
+		<Platform
+			Name="Win32"/>
+	</Platforms>
+	<Configurations>
+		<Configuration
+			Name="Debug|Win32"
+			OutputDirectory=".\../../../../obj/windows/intern/string/debug"
+			IntermediateDirectory=".\../../../../obj/windows/intern/string/debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="../.."
+				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile=".\../../../../obj/windows/intern/string/debug/string.pch"
+				AssemblerListingLocation=".\../../../../obj/windows/intern/string/debug/"
+				ObjectFile=".\../../../../obj/windows/intern/string/debug/"
+				ProgramDataBaseFileName=".\../../../../obj/windows/intern/string/debug/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="../../../../obj/windows/intern/string/debug\libstring.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Copying header files
+XCOPY /Y ..\..\*.h  ..\..\..\..\..\lib\windows\string\include\
+ECHO Copying lib
+XCOPY /Y ..\..\..\..\obj\windows\intern\string\debug\*.lib ..\..\..\..\..\lib\windows\string\lib\debug\*.a
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory=".\..\..\..\..\obj\windows\intern\string"
+			IntermediateDirectory=".\..\..\..\..\obj\windows\intern\string"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="../.."
+				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\intern\string/string.pch"
+				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\string/"
+				ObjectFile=".\..\..\..\..\obj\windows\intern\string/"
+				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\string/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\obj\windows\intern\string\libstring.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Copying header files
+XCOPY /Y ..\..\*.h  ..\..\..\..\..\lib\windows\string\include\
+ECHO Copying lib
+XCOPY /Y ..\..\..\..\obj\windows\intern\string\*.lib ..\..\..\..\..\lib\windows\string\lib\*.a
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+		</Configuration>
+	</Configurations>
+	<Files>
+		<Filter
+			Name="Source Files"
+			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+			<File
+				RelativePath="..\..\intern\STR_String.cpp">
+			</File>
+		</Filter>
+		<Filter
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl">
+			<Filter
+				Name="extern"
+				Filter="">
+				<File
+					RelativePath="..\..\STR_HashedString.h">
+				</File>
+				<File
+					RelativePath="..\..\STR_String.h">
+				</File>
+			</Filter>
+		</Filter>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>

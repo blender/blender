@@ -1,0 +1,21 @@
+Microsoft Visual Studio Solution File, Format Version 7.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "python_freeze", "python_freeze_7.vcproj", "{C56F42B2-2959-47F1-A62F-1867EE7D63EF}"
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		ConfigName.0 = Debug
+		ConfigName.1 = Release
+	EndGlobalSection
+	GlobalSection(ProjectDependencies) = postSolution
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{C56F42B2-2959-47F1-A62F-1867EE7D63EF}.Debug.ActiveCfg = Debug|Win32
+		{C56F42B2-2959-47F1-A62F-1867EE7D63EF}.Debug.Build.0 = Debug|Win32
+		{C56F42B2-2959-47F1-A62F-1867EE7D63EF}.Release.ActiveCfg = Release|Win32
+		{C56F42B2-2959-47F1-A62F-1867EE7D63EF}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal
