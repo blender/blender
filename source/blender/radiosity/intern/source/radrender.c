@@ -265,6 +265,7 @@ static void applyformfactors_rr(VlakRen *shoot)
 /* main loop for itterations */
 static void progressiverad_rr()
 {
+	extern void RE_local_timecursor(int);	// RE_callbacks.c
 	VlakRen *shoot;
 	int it= 0;
 	
@@ -279,7 +280,8 @@ static void progressiverad_rr()
 		applyformfactors_rr(shoot);
 	
 		it++;
-		printf("\r Radiosity step %d", it); fflush(stdout);
+		RE_local_timecursor(it);
+		// printf("\r Radiosity step %d", it); fflush(stdout);
 		
 		clear_backface_test_rr();
 		
@@ -288,7 +290,9 @@ static void progressiverad_rr()
 		
 		shoot= findshoot_rr();
 	}
-	printf("\n Unshot energy:%f\n", 1000.0*maxenergy);
+	printf(" Unshot energy:%f\n", 1000.0*maxenergy);
+	
+	RE_local_timecursor((G.scene->r.cfra));
 }
 
 static RadFace *radfaces=NULL;
@@ -476,12 +480,25 @@ static void make_vertex_rad_values()
 	RadFace *rf;
 	int a;
 
+	RG.igamma= 1.0/RG.gamma;
+	RG.radfactor= RG.radfac*pow(64*64, RG.igamma)/128.0; /* compatible with radio-tool */
+
 	/* accumulate vertexcolors */
 	for(a=0; a<R.totvlak; a++) {
 		if((a & 255)==0) vlr= R.blovl[a>>8]; else vlr++;
 		
 		if(vlr->radface) {
 			rf= vlr->radface;
+			
+			/* apply correction */
+			rf->totrad[0]= RG.radfactor*pow( rf->totrad[0], RG.igamma);
+			rf->totrad[1]= RG.radfactor*pow( rf->totrad[1], RG.igamma);
+			rf->totrad[2]= RG.radfactor*pow( rf->totrad[2], RG.igamma);
+			
+			/* correct rf->rad values for color */
+			if(vlr->mat->r > 0.0) rf->totrad[0]/= vlr->mat->r;
+			if(vlr->mat->g > 0.0) rf->totrad[1]/= vlr->mat->g;
+			if(vlr->mat->b > 0.0) rf->totrad[2]/= vlr->mat->b;
 			
 			vecaddfac(vlr->v1->rad, vlr->v1->rad, rf->totrad, rf->area); 
 			vlr->v1->accum+= rf->area;
@@ -497,15 +514,12 @@ static void make_vertex_rad_values()
 	}
 	
 	/* make vertex colors */
-	RG.igamma= 1.0/RG.gamma;
-	RG.radfactor= RG.radfac*pow(64*64, RG.igamma)/128.0; /* compatible with radio-tool */
-
 	for(a=0; a<R.totvert; a++) {
 		if((a & 255)==0) v1= R.blove[a>>8]; else v1++;
 		if(v1->accum>0.0) {
-			v1->rad[0]= RG.radfactor*pow( v1->rad[0]/v1->accum, RG.igamma);
-			v1->rad[1]= RG.radfactor*pow( v1->rad[1]/v1->accum, RG.igamma);
-			v1->rad[2]= RG.radfactor*pow( v1->rad[2]/v1->accum, RG.igamma);			
+			v1->rad[0]/= v1->accum;
+			v1->rad[1]/= v1->accum;
+			v1->rad[2]/= v1->accum;			
 		}
 	}
 

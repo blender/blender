@@ -2034,14 +2034,21 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 	if(shr->spec[1]<0.0) shr->spec[1]= 0.0;
 	if(shr->spec[2]<0.0) shr->spec[2]= 0.0;
 
-	if(shr->diff[0]<0.0) shr->diff[0]= 0.0; else shr->diff[0]*= ma->r;
-	shr->diff[0]+= ma->ambr +ma->amb*shi->rad[0];
 	
-	if(shr->diff[1]<0.0) shr->diff[1]= 0.0; else shr->diff[1]*= ma->g;
-	shr->diff[1]+= ma->ambg +ma->amb*shi->rad[1];
+	shr->diff[0]+= ma->amb*shi->rad[0];
+	shr->diff[0]*= ma->r;
+	shr->diff[0]+= ma->ambr;
+	if(shr->diff[0]<0.0) shr->diff[0]= 0.0;
 	
-	if(shr->diff[2]<0.0) shr->diff[2]= 0.0; else shr->diff[2]*= ma->b;
-	shr->diff[2]+= ma->ambb +ma->amb*shi->rad[2];
+	shr->diff[1]+= ma->amb*shi->rad[1];
+	shr->diff[1]*= ma->g;
+	shr->diff[1]+= ma->ambg;
+	if(shr->diff[1]<0.0) shr->diff[1]= 0.0;
+	
+	shr->diff[2]+= ma->amb*shi->rad[2];
+	shr->diff[2]*= ma->b;
+	shr->diff[2]+= ma->ambb;
+	if(shr->diff[2]<0.0) shr->diff[2]= 0.0;
 	
 	/* refcol is for envmap only */
 	if(shi->refcol[0]!=0.0) {
