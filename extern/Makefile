@@ -34,16 +34,12 @@ include nan_definitions.mk
 
 SOURCEDIR = extern
 DIR = $(OCGDIR)/extern
-DIRS = qhull/src solid
+DIRS = qhull/src solid bFTGL/src
 
 TARGET =
 ifneq ($(OS),irix)
   TARGET=solid
 endif
-
-# include nan_subdirs.mk
-
-# .PHONY: qhull solid solid_with_qhull
 
 all::
 	@[ -d $(OCGDIR)/extern ] || mkdir -p $(OCGDIR)/extern
