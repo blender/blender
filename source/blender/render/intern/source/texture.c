@@ -1219,9 +1219,9 @@ void do_material_tex(ShadeInput *shi)
 					if(mtex->maptoneg & MAP_DISPLACE) tex->norfac= -mtex->norfac;
 					else tex->norfac= mtex->norfac;
 
-					shi->displace[0]+= Tnor*tex->norfac*tex->nor[0];
-					shi->displace[1]+= Tnor*tex->norfac*tex->nor[1];
-					shi->displace[2]+= Tnor*tex->norfac*tex->nor[2];
+					shi->displace[0]+= 0.1f*Tnor*tex->norfac*tex->nor[0];
+					shi->displace[1]+= 0.1f*Tnor*tex->norfac*tex->nor[1];
+					shi->displace[2]+= 0.1f*Tnor*tex->norfac*tex->nor[2];
 				}
 				
 				if(rgbnor & TEX_RGB) {
@@ -1230,10 +1230,10 @@ void do_material_tex(ShadeInput *shi)
 				}
 
 				if(mtex->maptoneg & MAP_DISPLACE) {
-					factt= (0.5-Tin)*mtex->varfac; facmm= 1.0-factt;
+					factt= (0.5-Tin)*mtex->dispfac; facmm= 1.0-factt;
 				}
 				else {
-					factt= (Tin-0.5)*mtex->varfac; facmm= 1.0-factt;
+					factt= (Tin-0.5)*mtex->dispfac; facmm= 1.0-factt;
 				}
 
 				if(mtex->blendtype==MTEX_BLEND) {

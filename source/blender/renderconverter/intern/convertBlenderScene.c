@@ -3031,42 +3031,8 @@ void do_displacement(Object *ob, int startface, int numface, int startvert, int 
 	float min[3]={1e30, 1e30, 1e30}, max[3]={-1e30, -1e30, -1e30};
 	float scale[3]={1.0f, 1.0f, 1.0f}, temp[3], xn;
 	int i, texflag=0, flipnorm;
-	BoundBox *bb; 
-	Mesh *me;
-	Curve *cu;
-	MetaBall *mb; 
 	Object *obt;
-
-	/* Calculate Texture space scale factor */
-	if (ob->type == OB_MESH) {
-		me=(Mesh *)(ob->data);
-		if (me->bb == NULL) tex_space_mesh(me);
-		bb=me->bb;
-		texflag=me->texflag;
-	}
-	else if ((ob->type == OB_CURVE)||(ob->type == OB_SURF)||(ob->type == OB_FONT)) {
-		cu=(Curve *)(ob->data);
-		if (cu->bb == NULL) tex_space_curve(cu);
-		bb=cu->bb;
-		texflag=cu->texflag;
-	}
-	else if (ob->type == OB_MBALL) { /* Metaballs have bb but don't seem to use it */
-		mb=(MetaBall *)(ob->data);
-		if (ob->bb == NULL) ob=find_basis_mball(ob);
-		if (ob->bb == NULL) tex_space_mball(ob);
-		bb=ob->bb;
-		texflag=mb->texflag;
-	}
-	else bb=ob->bb; /* Need to test? */	
-	
-	/* Relative scale of Data  We reat amount of displacement */
-	/* the same as other texture coords.  Scale with data id AutoTexSpace is on. */
-	if ( texflag & 1) { /* Bit 0 = Autotex */
-		for(i=0; i<8; i++){ DO_MINMAX(bb->vec[i], min, max); }
-		VecSubf(scale, max, min);
-		printf("data scale=%f, %f, %f\n", scale[0], scale[1], scale[2]);
-	}
-	
+		
 	/* Object Size with parenting */
 	obt=ob;
 	while(obt){
@@ -3216,9 +3182,9 @@ void displace_render_vert(ShadeInput *shi, VertRen *vr, float *scale)
 	//vr->co[0], vr->co[1], vr->co[2]);
 	
 	/* 0.5 could become button once?  */
-	vr->co[0] += 0.25 * shi->displace[0] * scale[0] ; 
-	vr->co[1] += 0.25 * shi->displace[1] * scale[1] ; 
-	vr->co[2] += 0.25 * shi->displace[2] * scale[2] ; 
+	vr->co[0] +=  shi->displace[0] * scale[0] ; 
+	vr->co[1] +=  shi->displace[1] * scale[1] ; 
+	vr->co[2] +=  shi->displace[2] * scale[2] ; 
 	
 	//printf("after co=%f, %f, %f\n", vr->co[0], vr->co[1], vr->co[2]); 
 

@@ -1441,10 +1441,10 @@ static void world_panel_mapto(World *wrld)
 	uiDefButS(block, ROW, B_MATPRV, "Add",			1182,130,41,19, &(mtex->blendtype), 9.0, (float)MTEX_ADD, 0, 0, "Sets texture to add the values or colour");
 	uiDefButS(block, ROW, B_MATPRV, "Sub",			1226,130,40,19, &(mtex->blendtype), 9.0, (float)MTEX_SUB, 0, 0, "Sets texture to subtract the values or colour");
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "Col ",		1087,50,179,19, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects colour values");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Nor ",		1087,30,179,19, &(mtex->norfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects normal values");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Var ",		1087,10,179,19, &(mtex->varfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects other values");
-
+	uiDefButF(block, NUMSLI, B_MATPRV, "Col  ",		1087,50,179,19, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects colour values");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Nor  ",		1087,30,179,19, &(mtex->norfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects normal values");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Var  ",		1087,10,179,19, &(mtex->varfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects other values");
+	
 }
 
 static void world_panel_texture(World *wrld)
@@ -2137,9 +2137,10 @@ static void material_panel_map_to(Material *ma)
 	uiDefButS(block, ROW, B_MATPRV, "Add",			1182,120,41,18, &(mtex->blendtype), 9.0, (float)MTEX_ADD, 0, 0, "Sets texture to add the values or colour");
 	uiDefButS(block, ROW, B_MATPRV, "Sub",			1226,120,40,18, &(mtex->blendtype), 9.0, (float)MTEX_SUB, 0, 0, "Sets texture to subtract the values or colour");
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "Col ",		1087,50,179,18, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects colour values");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Nor ",		1087,30,179,18, &(mtex->norfac), 0.0, 5.0, 0, 0, "Sets the amount the texture affects normal values");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Var ",		1087,10,179,18, &(mtex->varfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects other values");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Col ",		1087,70,179,18, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects colour values");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Nor ",		1087,50,179,18, &(mtex->norfac), 0.0, 5.0, 0, 0, "Sets the amount the texture affects normal values");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Var ",		1087,30,179,18, &(mtex->varfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects other values");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Disp ",		1087,10,179,19, &(mtex->dispfac), 0.0, 1.0, 0, 0, "Sets the amount the texture displaces the surface");
 	uiBlockEndAlign(block);
 }
 
