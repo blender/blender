@@ -31,10 +31,6 @@
  * KX_MouseFocusSensor determines mouse in/out/over events.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 // This warning tells us about truncation of __long__ stl-generated names.
 // It can occasionally cause DevStudio to have internal compiler warnings.
@@ -152,7 +148,6 @@ bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo* client_info, MT_Point3& hi
 bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 {
 	
-  	bool res = false;
 	m_hitPosition = MT_Vector3(0,0,0);
 	m_hitNormal =	MT_Vector3(1,0,0);
 	MT_Point3 resultpoint;

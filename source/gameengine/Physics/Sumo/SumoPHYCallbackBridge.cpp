@@ -62,5 +62,5 @@ DT_Bool SumoPHYCallbackBridge::SolidToPHY(void *client_object1,
 	return m_phyCallback(m_orgClientData,
 		ctrl1,ctrl2,0);
 
-
 }
+

@@ -36,10 +36,6 @@
 #include "MT_Quaternion.h"
 
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 SumoPhysicsController::SumoPhysicsController(
 				class SM_Scene* sumoScene,
 				class SM_Object* sumoObj,

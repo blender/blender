@@ -177,7 +177,6 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 
 	if (blenderscene)
 	{
-		int i=0;
 	
 		if (blenderscene->world)
 		{

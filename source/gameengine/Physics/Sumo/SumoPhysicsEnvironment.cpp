@@ -36,11 +36,6 @@
 #include "SumoPHYCallbackBridge.h"
 #include <SOLID/SOLID.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
 SumoPhysicsEnvironment::SumoPhysicsEnvironment()
 {
 	m_fixedTimeStep = 1.f/60.f;
@@ -101,7 +96,6 @@ bool		SumoPhysicsEnvironment::proceedDeltaTime(double  curTime,float timeStep)
 	} else
 	{
 		m_currentTime += timeStep;
-		float ticrate = 1.f/timeStep;
 		result = m_sumoScene->proceed(m_currentTime, timeStep);
 	}
 	return result;
@@ -256,5 +250,4 @@ PHY_IPhysicsController* SumoPhysicsEnvironment::CreateConeController(float coner
 
 	return ctrl;
 }
-
 

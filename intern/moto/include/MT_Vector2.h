@@ -52,8 +52,8 @@
 class MT_Vector2 : public MT_Tuple2 {
 public:
     MT_Vector2() {}
-    MT_Vector2(const float *v) : MT_Tuple2(v) {}
-    MT_Vector2(const double *v) : MT_Tuple2(v) {}
+    MT_Vector2(const float *v2) : MT_Tuple2(v2) {}
+    MT_Vector2(const double *v2) : MT_Tuple2(v2) {}
     MT_Vector2(MT_Scalar xx, MT_Scalar yy) : MT_Tuple2(xx, yy) {}
   
     MT_Vector2& operator+=(const MT_Vector2& v);
