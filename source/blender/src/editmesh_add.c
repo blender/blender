@@ -316,6 +316,7 @@ void addedgeface_mesh(void)
 	if(amount==2) {
 		eed= addedgelist(neweve[0], neweve[1], NULL);
 		EM_select_edge(eed, 1);
+		BIF_undo_push("Add edge");
 		allqueue(REDRAWVIEW3D, 0);
 		makeDispList(G.obedit);
 		return;
@@ -378,6 +379,7 @@ void addedgeface_mesh(void)
 		inp= efa->n[0]*G.vd->viewmat[0][2] + efa->n[1]*G.vd->viewmat[1][2] + efa->n[2]*G.vd->viewmat[2][2];
 
 		if(inp < 0.0) flipface(efa);
+		BIF_undo_push("Add face");
 	}
 	
 	countall();
