@@ -1101,7 +1101,7 @@ static void displistmesh_draw_wire(DispListMesh *dlm) {
 	int i;
 	
 	for (i=0; i<dlm->totface; i++) {
-		MFaceInt *mf= &dlm->mface[i];
+		MFace *mf= &dlm->mface[i];
 		
 		if(dlm->flag & ME_OPT_EDGES) {
 			int test= mf->edcode;
@@ -1152,7 +1152,7 @@ static void displistmesh_draw_solid(DispListMesh *dlm, int drawsmooth, float *no
 
 	glBegin(lmode= GL_QUADS);
 	for (i=0; i<dlm->totface; i++) {
-		MFaceInt *mf= &dlm->mface[i];
+		MFace *mf= &dlm->mface[i];
 		
 		if (mf->v3) {
 			int nmode= mf->v4?GL_QUADS:GL_TRIANGLES;
@@ -1205,7 +1205,7 @@ static void displistmesh_draw_shaded(DispListMesh *dlm, unsigned char *vcols1, u
 
 	glBegin(lmode= GL_QUADS);
 	for (i=0; i<dlm->totface; i++) {
-		MFaceInt *mf= &dlm->mface[i];
+		MFace *mf= &dlm->mface[i];
 		
 		if (mf->v3) {
 			int nmode= mf->v4?GL_QUADS:GL_TRIANGLES;

@@ -258,7 +258,7 @@ static void decimate_faces(void)
 		if( LOD_PreprocessMesh(&lod) ) {
 			DispList *dl;
 			DispListMesh *dlm;
-			MFaceInt *mfaceint;
+			MFace *mfaceint;
 			
 			/* we assume the decim_faces tells how much to reduce */
 			
@@ -273,7 +273,7 @@ static void decimate_faces(void)
 			dl->type= DL_MESH;
 			dlm=dl->mesh= MEM_callocN(sizeof(DispListMesh), "dispmesh");
 			dlm->mvert= MEM_callocN(lod.vertex_num*sizeof(MVert), "mvert");
-			dlm->mface= MEM_callocN(lod.face_num*sizeof(MFaceInt), "mface");
+			dlm->mface= MEM_callocN(lod.face_num*sizeof(MFace), "mface");
 			dlm->totvert= lod.vertex_num;
 			dlm->totface= lod.face_num;
 			
@@ -325,7 +325,7 @@ static void decimate_apply(void)
 	DispListMesh *dlm;
 	Mesh *me;
 	MFace *mface;
-	MFaceInt *mfaceint;
+	MFace *mfaceint;
 	int a;
 	
 	if(G.obedit) return;

@@ -1278,7 +1278,7 @@ static void init_render_mesh(Object *ob)
 	VlakRen *vlr, *vlr1;
 	VertRen *ver;
 	Material *ma;
-	MFaceInt *mfaceint = NULL;
+	MFace *mfaceint = NULL;
 	MSticky *ms;
 	PartEff *paf;
 	DispList *dl;

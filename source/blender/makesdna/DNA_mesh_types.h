@@ -45,24 +45,11 @@ struct Mesh;
 struct OcInfo;
 struct bDeformGroup;
 
-/* This little gem is needed to satisfy the curious realms of sdna. On
- * the other hand, it also interferes with sys/types.h, so we get rid
- * of it asap. */
-
 typedef struct MFace {
 	unsigned int v1, v2, v3, v4;
 	char puno, mat_nr;
 	char edcode, flag;
 } MFace;
-
-#undef ushort
-
-typedef struct MFaceInt {
-	int v1, v2, v3, v4;
-	char puno, mat_nr;
-	char edcode, flag;
-} MFaceInt;
-
 
 typedef struct TFace {
 

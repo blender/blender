@@ -768,7 +768,7 @@ static DispListMesh *hypermesh_to_displistmesh(HyperMesh *hme, short flag) {
 	HyperEdge *e;
 	TFace *tfaces;
 	MFace *mfaces;
-	MFaceInt *mf;
+	MFace *mf;
 	int i, j, handles=0;
 
 		/* hme->orig_me==NULL if we are working on an editmesh */

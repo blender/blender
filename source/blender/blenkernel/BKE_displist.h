@@ -63,7 +63,7 @@ struct DispListMesh {
 	int totvert, totface;
 	struct MVert *mvert;
 	struct MCol *mcol;
-	struct MFaceInt *mface;
+	struct MFace *mface;
 	struct TFace *tface;
 	int flag;
 };

@@ -780,7 +780,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 
 	if(dt > OB_SOLID) {
 		bProperty *prop = get_property(ob, "Text");
-		MFaceInt *mfaceint= NULL;
+		MFace *mfaceint= NULL;
 		int editing= (G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT)) && (ob==((G.scene->basact) ? (G.scene->basact->object) : 0));
 		MVert *mvert=NULL;
 		int totface;
@@ -815,7 +815,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 			float *v1, *v2, *v3, *v4;
 
 			if (mfaceint) {
-				MFaceInt *mf= &mfaceint[a];
+				MFace *mf= &mfaceint[a];
 
 				v1idx= mf->v1;
 				v2idx= mf->v2;

@@ -1317,7 +1317,7 @@ static BPy_NMFace *nmface_from_shortdata(BPy_NMesh *mesh,
 }
 
 static BPy_NMFace *nmface_from_intdata(BPy_NMesh *mesh,
-								MFaceInt *face, TFace *tface, MCol *col) 
+								MFace *face, TFace *tface, MCol *col) 
 {
 	int vidxs[4];
 	vidxs[0] = face->v1;
@@ -1390,7 +1390,7 @@ static PyObject *new_NMesh_internal(Mesh *oldmesh,
 	else {
 		MVert *mverts;
 		MSticky *msticky;
-		MFaceInt *mfaceints;
+		MFace *mfaceints;
 		MFace *mfaces;
 		TFace *tfaces;
 		MCol *mcols;
@@ -1452,7 +1452,7 @@ static PyObject *new_NMesh_internal(Mesh *oldmesh,
 			MCol *oldmc = mcols?&mcols[i*4]:NULL;
 
 			if (mfaceints) {			
-				MFaceInt *oldmf = &mfaceints[i];
+				MFace *oldmf = &mfaceints[i];
 				PyList_SetItem (me->faces, i,
 										(PyObject *)nmface_from_intdata(me, oldmf, oldtf, oldmc));
 			}

@@ -130,7 +130,7 @@ DispListMesh *displistmesh_from_editmesh(ListBase *verts, ListBase *edges, ListB
 
 	i=0;
 	for (evl= faces->first; evl; evl= evl->next, i++) {
-		MFaceInt *mfNew= &dlm->mface[i];
+		MFace *mfNew= &dlm->mface[i];
 
 		mfNew->v1= (int) evl->v1->prev;
 		mfNew->v2= (int) evl->v2->prev;
@@ -147,7 +147,7 @@ DispListMesh *displistmesh_from_editmesh(ListBase *verts, ListBase *edges, ListB
 		}
 	}
 	for (eed= edges->first; eed; eed= eed->next, i++) {
-		MFaceInt *mfNew= &dlm->mface[i];
+		MFace *mfNew= &dlm->mface[i];
 
 		mfNew->v1= (int) eed->v1->prev;
 		mfNew->v2= (int) eed->v2->prev;
@@ -185,7 +185,7 @@ DispListMesh *displistmesh_from_mesh(Mesh *me, float *extverts) {
 	}
 	for (i=0; i<dlm->totface; i++) {
 		MFace *mfOld= &((MFace*) me->mface)[i];
-		MFaceInt *mfNew= &dlm->mface[i];
+		MFace *mfNew= &dlm->mface[i];
 
 		mfNew->v1= mfOld->v1;
 		mfNew->v2= mfOld->v2;
@@ -222,13 +222,13 @@ static DispListMesh *displistmesh_copy(DispListMesh *odlm) {
 void displistmesh_calc_vert_normals(DispListMesh *dlm) {
 	MVert *mverts= dlm->mvert;
 	int nmverts= dlm->totvert;
-	MFaceInt *mfaces= dlm->mface;
+	MFace *mfaces= dlm->mface;
 	int nmfaces= dlm->totface;
 	float (*tnorms)[3]= MEM_callocN(nmverts*sizeof(*tnorms), "tnorms");
 	int i;
 	
 	for (i=0; i<nmfaces; i++) {
-		MFaceInt *mf= &mfaces[i];
+		MFace *mf= &mfaces[i];
 		float f_no[3];
 
 		if (!mf->v3)
@@ -275,7 +275,7 @@ void displistmesh_to_mesh(DispListMesh *dlm, Mesh *me) {
 	
 		for (i=0; i<me->totface; i++) {
 			MFace *mf= &mfaces[i];
-			MFaceInt *oldmf= &dlm->mface[i];
+			MFace *oldmf= &dlm->mface[i];
 		
 			mf->v1= oldmf->v1;
 			mf->v2= oldmf->v2;
@@ -716,7 +716,7 @@ void addnormalsDispList(Object *ob, ListBase *lb)
 				dl->nors= MEM_mallocN(sizeof(*dl->nors)*3*dlm->totface, "meshnormals");
 				
 				for (i=0; i<dlm->totface; i++) {
-					MFaceInt *mf= &dlm->mface[i];
+					MFace *mf= &dlm->mface[i];
 					float *no= &dl->nors[i*3];
 					
 					if (mf->v3) {
@@ -904,7 +904,7 @@ void shadeDispList(Object *ob)
 					}		
 			
 					for (i=0; i<dlm->totface; i++) {
-						MFaceInt *mf= &dlm->mface[i];
+						MFace *mf= &dlm->mface[i];
 
 						if (mf->v3) {
 							int j, vidx[4], nverts= mf->v4?4:3;
