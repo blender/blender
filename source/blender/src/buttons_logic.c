@@ -945,7 +945,7 @@ static void draw_default_sensor_header(bSensor *sens,
 	/* value or shift? */
 	uiDefButS(block, TOG, 1, "Inv",
 			 (short)(x + 10 + 0.85 * (w-20)), (short)(y - 19), (short)(0.15 * (w-20)), 19,
-			 &sens->invert, 1.0, SENS_NOT, 0, 0,
+			 &sens->invert, 0.0, 0.0, 0, 0,
 			 "Invert the output of this sensor");
 }
 
