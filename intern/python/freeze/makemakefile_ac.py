@@ -1,11 +1,6 @@
 # Write the actual Makefile.
 ##
-##
-## Customized makemakefile for NaN
-##
-##
-## 1.11.2001, strubi@blender.nl
-##
+## Modified makemakefile for autotools Blender build
 ##
 
 
@@ -25,7 +20,7 @@ def makemakefile(outfp, makevars, files, target):
 	for key in keys:
 		outfp.write("%s=%s\n" % (key, makevars[key]))
 
-        outfp.write("\n\ninclude nan_definitions.mk\n")
+#        outfp.write("\n\ninclude nan_definitions.mk\n")
 	outfp.write("\nall: %s\n\n" % libtarget)
 
 	deps = []
@@ -50,8 +45,9 @@ def makemakefile(outfp, makevars, files, target):
 #	libfiles.remove('M___main__.o') # don't link with __main__
 
 	outfp.write("\n%s: $(OBJS)\n" % (libtarget))
-	outfp.write("\t$(AR) ruv %s%s $(OBJS)\n" % 
-		("$(OCGDIR)/blender/bpython/$(DEBUG_DIR)", targetlib))
+#	outfp.write("\t$(AR) ruv %s%s $(OBJS)\n" % 
+#		("$(OCGDIR)/blender/bpython/$(DEBUG_DIR)", targetlib))
+	outfp.write("\t$(AR) ruv %s $(OBJS)\n" % targetlib)
 
 	outfp.write("\n%s: %s $(OBJS)\n" % (target, mainfile))
 	outfp.write("\t$(CC) %s %s -o %s $(LDLAST)\n" % 
