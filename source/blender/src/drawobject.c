@@ -1526,7 +1526,11 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *baseDM, Derived
 		glEnable(GL_LIGHTING);
 		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
-		cageDM->drawFacesSolid(cageDM, set_gl_material);
+		if (realDM) {
+			realDM->drawFacesSolid(realDM, set_gl_material);
+		} else {
+			baseDM->drawFacesSolid(baseDM, set_gl_material);
+		}
 
 		glFrontFace(GL_CCW);
 		glDisable(GL_LIGHTING);
@@ -3669,7 +3673,7 @@ static int bbs_mesh_wire(Object *ob, int offset)
 	EditEdge *eed;
 	Mesh *me= ob->data;
 	DispList *dl= find_displist(&me->disp, DL_MESH);
-	DispListMesh *dlm= NULL;
+	DispListMesh *dlm= NULL; // DISPLISTKILL
 	int index, b, retval, optimal=0;
 
 	if(dl) dlm= dl->mesh;
@@ -3728,7 +3732,7 @@ static int bbs_mesh_solid(Object *ob, int facecol)
 		Mesh *me= ob->data;
 		EditFace *efa;
 		DispList *dl= find_displist(&me->disp, DL_MESH);
-		DispListMesh *dlm= NULL;
+		DispListMesh *dlm= NULL; // DISPLISTKILL
 		int b;
 		
 		if(dl) dlm= dl->mesh;
