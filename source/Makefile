@@ -444,26 +444,31 @@ ifeq ($(OS),windows)
     SPLIB += $(OCGDIR)/blender/icons/$(DEBUG_DIR)winblender.res
     SPLIB += $(NAN_ZLIB)/lib/libz.a
 
-  ifdef NAN_PLAYERSTATIC
-    PYPLAYERLIB = $(NAN_PYTHON)/static/python20.lib
-    BINTARGETS = blenderplayer
-
-    NAN_SND_LIBS = $(OCGDIR)/intern/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
-    NAN_SND_LIBS += $(OCGDIR)/intern/DummySoundSystem/$(DEBUG_DIR)libDummySoundSystem.a
-    NAN_SND_LIBS += $(OCGDIR)/intern/OpenALSoundSystem/$(DEBUG_DIR)libOpenALSoundSystem.a
-    NAN_SND_LIBS += $(NAN_OPENAL)/lib/openal_static.lib
-    NAN_SND_LIBS += $(OCGDIR)/intern/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
-
-    PYINCLUDEOK := $(shell diff -qbB gameengine/Ketsji/KX_Python.h gameengine/Ketsji/KX_Python_static.h)
-    ifneq (x$(PYINCLUDEOK),x)
-      DUMMY := $(shell cat gameengine/Ketsji/KX_Python_static.h > gameengine/Ketsji/KX_Python.h)
-    endif
-  else
-    PYINCLUDEOK := $(shell diff -qbB gameengine/Ketsji/KX_Python.h gameengine/Ketsji/KX_Python_dynamic.h)
-    ifneq (x$(PYINCLUDEOK),x)
-      DUMMY := $(shell cat gameengine/Ketsji/KX_Python_dynamic.h > gameengine/Ketsji/KX_Python.h)
-    endif
-  endif
+  # This code below seems outdated and doesn't even seem to
+  # apply to the Windows platform. I've commented it 
+  # out until someone can take a good look at it and confirm 
+  # or deny. If it breaks anything blame Chris Burt / Desoto
+  #
+  #ifdef NAN_PLAYERSTATIC
+  #  PYPLAYERLIB = $(NAN_PYTHON)/static/python20.lib
+  #  BINTARGETS = blenderplayer
+  #
+  #  NAN_SND_LIBS = $(OCGDIR)/intern/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
+  #  NAN_SND_LIBS += $(OCGDIR)/intern/DummySoundSystem/$(DEBUG_DIR)libDummySoundSystem.a
+  #  NAN_SND_LIBS += $(OCGDIR)/intern/OpenALSoundSystem/$(DEBUG_DIR)libOpenALSoundSystem.a
+  #  NAN_SND_LIBS += $(NAN_OPENAL)/lib/openal_static.lib
+  #  NAN_SND_LIBS += $(OCGDIR)/intern/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
+  #
+  #  PYINCLUDEOK := $(shell diff -qbB gameengine/Ketsji/KX_Python.h gameengine/Ketsji/KX_Python_static.h)
+  #  ifneq (x$(PYINCLUDEOK),x)
+  #    DUMMY := $(shell cat gameengine/Ketsji/KX_Python_static.h > gameengine/Ketsji/KX_Python.h)
+  #  endif
+  #else
+  #  PYINCLUDEOK := $(shell diff -qbB gameengine/Ketsji/KX_Python.h gameengine/Ketsji/KX_Python_dynamic.h)
+  #  ifneq (x$(PYINCLUDEOK),x)
+  #    DUMMY := $(shell cat gameengine/Ketsji/KX_Python_dynamic.h > gameengine/Ketsji/KX_Python.h)
+  #  endif
+  #endif
 endif
 
 ifeq ($(NAN_JUST_BLENDERDYNAMIC),true)
