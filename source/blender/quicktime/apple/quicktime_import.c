@@ -489,7 +489,7 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 	(**dataref).data = mem;
 	(**dataref).dataLength = size;
 
-	err = OpenADataHandler(dataref,
+	err = OpenADataHandler((Handle)dataref,
 							PointerDataHandlerSubType,
 							nil,
 							(OSType)0,
@@ -501,7 +501,7 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 		goto bail;
 	}
 
-	err = GetGraphicsImporterForDataRef(dataref, PointerDataHandlerSubType, &gImporter);
+	err = GetGraphicsImporterForDataRef((Handle)dataref, PointerDataHandlerSubType, &gImporter);
 	if (err != noErr) {
 		if(QTIME_DEBUG) printf("no graphimport\n");
 		goto bail;

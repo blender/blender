@@ -361,7 +361,6 @@ static void QT_DoAddVideoSamplesToMedia (int frame)
 
 static void QT_EndAddVideoSamplesToMedia (void)
 {
-	
 	SCCompressSequenceEnd(qcdx->theComponent);
 
 	UnlockPixels(qte->thePixMap);
@@ -568,16 +567,15 @@ static void check_renderbutton_framerate(void) {
 int get_qtcodec_settings(void) 
 {
 	OSErr	err = noErr;
-	Component c = 0;
-	ComponentDescription cd;
+//	Component c = 0;
+//	ComponentDescription cd;
 	CodecInfo ci;
 
-	cd.componentType = StandardCompressionType;
-	cd.componentSubType = StandardCompressionSubType;
-	cd.componentManufacturer = 0;
-	cd.componentFlags = 0;
-	cd.componentFlagsMask = 0;
-
+//	cd.componentType = StandardCompressionType;
+//	cd.componentSubType = StandardCompressionSubType;
+//	cd.componentManufacturer = 0;
+//	cd.componentFlags = 0;
+//	cd.componentFlagsMask = 0;
 
 	if(qcdx == NULL) {
 		qcdx = MEM_callocN(sizeof(QuicktimeCodecDataExt), "QuicktimeCodecDataExt");
@@ -587,9 +585,9 @@ int get_qtcodec_settings(void)
 	// configure the standard image compression dialog box
 
 	if (qcdx->theComponent == NULL) {
-//		qcdx->theComponent = OpenDefaultComponent(StandardCompressionType, StandardCompressionSubType);
-		c = FindNextComponent(c, &cd);
-		qcdx->theComponent = OpenComponent(c);
+		qcdx->theComponent = OpenDefaultComponent(StandardCompressionType, StandardCompressionSubType);
+//		c = FindNextComponent(c, &cd);
+//		qcdx->theComponent = OpenComponent(c);
 
 //		qcdx->gSpatialSettings.codecType = nil;     
 		qcdx->gSpatialSettings.codec = anyCodec;         
@@ -619,9 +617,8 @@ int get_qtcodec_settings(void)
 	// put up the dialog box
 
 	err = SCRequestSequenceSettings(qcdx->theComponent);
-
  
-   if (err == scUserCancelled) {
+	if (err == scUserCancelled) {
 		G.afbreek = 1;
 		return 0;
 	}
