@@ -218,14 +218,12 @@ blend_poses (
 				
 				/* Do the transformation blend */
 				for (i=0; i<3; i++){
-                                        if (schan->flag) {
-					   if (POSE_LOC)
+					if (schan->flag & POSE_LOC)
 						dchan->loc[i] = (dchan->loc[i]*dstweight) + (schan->loc[i]*srcweight);
-					   if (POSE_SIZE)
+					if (schan->flag & POSE_SIZE)
 						dchan->size[i] = 1.0f + ((dchan->size[i]-1.0f)*dstweight) + ((schan->size[i]-1.0f)*srcweight);
-					   if (POSE_ROT)
+					if (schan->flag & POSE_ROT)
 						dchan->quat[i+1] = (dquat[i+1]*dstweight) + (squat[i+1]*srcweight);
-                                        }
 				}
 				
 				/* Do one more iteration for the quaternions only and normalize the quaternion if needed */
@@ -852,16 +850,15 @@ bPoseChannel *set_pose_channel (bPose *pose, bPoseChannel *chan){
 	/*	Determine if an equivalent channel exists already */
 	for (curChan=pose->chanbase.first; curChan; curChan=curChan->next){
 		if (!strcmp (curChan->name, chan->name)){
-                        if (chan->flag) {
-			   if (POSE_ROT)
+			if (chan->flag & POSE_ROT)
 				memcpy (curChan->quat, chan->quat, sizeof(chan->quat)); 
-			   if (POSE_SIZE) 
+			if (chan->flag & POSE_SIZE) 
 				memcpy (curChan->size, chan->size, sizeof(chan->size));
-			   if (POSE_LOC)
+			if (chan->flag & POSE_LOC)
 				memcpy (curChan->loc, chan->loc, sizeof(chan->loc));
-			   if (PCHAN_DONE)
+			if (chan->flag & PCHAN_DONE)
 				Mat4CpyMat4 (curChan->obmat, chan->obmat);
-                        }
+
 			curChan->flag |= chan->flag;
 			MEM_freeN (chan);
 			return curChan;
@@ -872,4 +869,5 @@ bPoseChannel *set_pose_channel (bPose *pose, bPoseChannel *chan){
 	return NULL;
 	/* If an equivalent channel doesn't exist, then don't bother setting it. */
 }
+
 
