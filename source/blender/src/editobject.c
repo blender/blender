@@ -5733,10 +5733,20 @@ void transform(int mode)
 				}
 				else size[0]=size[1]=size[2]= (sqrt( (float)((yc-mval[1])*(yc-mval[1])+(mval[0]-xc)*(mval[0]-xc)) ))/sizefac;
 
-				if (typemode){
-					if (numchange[0]) size[0] = addvec[0]; else size[0] = 1;
-					if (numchange[1]) size[1] = addvec[1]; else size[1] = 1;
-					if (numchange[2]) size[2] = addvec[2]; else size[2] = 1;
+				if (mode=='s') {
+					if (typemode){
+						if (numchange[0]) size[0] = addvec[0]; else size[0] = 1;
+						if (numchange[1]) size[1] = addvec[1]; else size[1] = 1;
+						if (numchange[2]) size[2] = addvec[2]; else size[2] = 1;
+					}
+				}
+				else {
+					if (typemode){
+						if (numchange[0])
+							size[0] = size[1] = size[2] = addvec[0];
+						else
+							size[0] = size[1] = size[2] = 1;
+					}
 				}
 
 				if(axismode && mode=='s') {
