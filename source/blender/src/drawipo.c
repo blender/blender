@@ -463,16 +463,21 @@ void test_view2d(View2D *v2d, int winx, int winy)
 		   find which is the best new 'cur' rect. thats why it stores 'old' */
 		if(winx!=v2d->oldwinx) do_x= 1;
 		if(winy!=v2d->oldwiny) do_y= 1;
-		v2d->oldwinx= winx; 
-		v2d->oldwiny= winy;
 		
 		dx= (cur->ymax-cur->ymin)/(cur->xmax-cur->xmin);
 		dy= ((float)winy)/((float)winx);
 		
-		if(do_x==do_y) {
-			if( dy > 1.0) do_x= 0; else do_x= 1;
+		if(do_x==do_y) {	// both sizes change, ctrl+uparrow
+			if(do_x==1 && do_y==1) {
+				if( ABS(winx-v2d->oldwinx)>ABS(winy-v2d->oldwiny)) do_y= 0;
+				else do_x= 0;
+			}
+			else if( dy > 1.0) do_x= 0; else do_x= 1;
 		}
-
+		
+		v2d->oldwinx= winx; 
+		v2d->oldwiny= winy;
+		
 		if( do_x ) {
 			
 			/* portrait window: correct for x */
