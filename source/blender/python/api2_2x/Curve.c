@@ -40,7 +40,7 @@ static PyObject *M_Curve_New(PyObject *self, PyObject *args)
 {
   char buf[24];
   char*name=NULL ;
-  C_Curve    *pycurve; /* for Curve Data object wrapper in Python */
+  BPy_Curve    *pycurve; /* for Curve Data object wrapper in Python */
   Curve      *blcurve = 0; /* for actual Curve Data we create in Blender */
   
   printf ("In Curve_New()\n");
@@ -53,7 +53,7 @@ static PyObject *M_Curve_New(PyObject *self, PyObject *args)
 					return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 														"couldn't create Curve Data in Blender"));
 
-  pycurve = (C_Curve *)PyObject_NEW(C_Curve, &Curve_Type);
+  pycurve = (BPy_Curve *)PyObject_NEW(BPy_Curve, &Curve_Type);
 
      
   if (pycurve == NULL)
@@ -79,7 +79,7 @@ static PyObject *M_Curve_Get(PyObject *self, PyObject *args)
  
   char     *name = NULL;
   Curve   *curv_iter;
-  C_Curve *wanted_curv;
+  BPy_Curve *wanted_curv;
 
   printf ("In Curve_Get()\n");
   if (!PyArg_ParseTuple(args, "|s", &name))//expects nothing or a string
@@ -93,7 +93,7 @@ static PyObject *M_Curve_Get(PyObject *self, PyObject *args)
     while ((curv_iter) && (wanted_curv == NULL)) {
 
       if (strcmp (name, curv_iter->id.name+2) == 0) {
-	wanted_curv = (C_Curve *)PyObject_NEW(C_Curve, &Curve_Type);
+	wanted_curv = (BPy_Curve *)PyObject_NEW(BPy_Curve, &Curve_Type);
 	if (wanted_curv) wanted_curv->curve = curv_iter;
       }
 
@@ -121,7 +121,7 @@ static PyObject *M_Curve_Get(PyObject *self, PyObject *args)
 				       "couldn't create PyList"));
 
     while (curv_iter) {
-C_Curve *found_cur=(C_Curve*)PyObject_NEW(C_Curve,&Curve_Type);
+BPy_Curve *found_cur=(BPy_Curve*)PyObject_NEW(BPy_Curve,&Curve_Type);
 			found_cur->curve = curv_iter;
       PyList_Append (curvlist,  (PyObject *)found_cur);
 
@@ -147,7 +147,7 @@ PyObject *M_Curve_Init (void)
 }
 
 /*****************************************************************************/
-/* Python C_Curve methods:                                                   */
+/* Python BPy_Curve methods:                                                   */
 /* gives access to                                                           */
 /* name, pathlen totcol flag bevresol                                        */
 /* resolu resolv width ext1 ext2                                             */ 
@@ -155,7 +155,7 @@ PyObject *M_Curve_Init (void)
 /*****************************************************************************/
 
 
-static PyObject *Curve_getName(C_Curve *self)
+static PyObject *Curve_getName(BPy_Curve *self)
 {
   PyObject *attr = PyString_FromString(self->curve->id.name+2);
 
@@ -165,7 +165,7 @@ static PyObject *Curve_getName(C_Curve *self)
 													"couldn't get Curve.name attribute"));
 }
 
-static PyObject *Curve_setName(C_Curve *self, PyObject *args)
+static PyObject *Curve_setName(BPy_Curve *self, PyObject *args)
 {
   char*name;
   char buf[50];
@@ -180,7 +180,7 @@ static PyObject *Curve_setName(C_Curve *self, PyObject *args)
   return Py_None;
 }
 
-static PyObject *Curve_getPathLen(C_Curve *self)
+static PyObject *Curve_getPathLen(BPy_Curve *self)
 {
   PyObject *attr = PyInt_FromLong((long)self->curve->pathlen);
 
@@ -191,7 +191,7 @@ static PyObject *Curve_getPathLen(C_Curve *self)
 }
 
 
-static PyObject *Curve_setPathLen(C_Curve *self, PyObject *args)
+static PyObject *Curve_setPathLen(BPy_Curve *self, PyObject *args)
 {
 
   if (!PyArg_ParseTuple(args, "i", &(self->curve->pathlen)))
@@ -203,7 +203,7 @@ static PyObject *Curve_setPathLen(C_Curve *self, PyObject *args)
 }
 
 
-static PyObject *Curve_getTotcol(C_Curve *self)
+static PyObject *Curve_getTotcol(BPy_Curve *self)
 {
   PyObject *attr = PyInt_FromLong((long)self->curve->totcol);
 
@@ -214,7 +214,7 @@ static PyObject *Curve_getTotcol(C_Curve *self)
 }
 
 
-static PyObject *Curve_setTotcol(C_Curve *self, PyObject *args)
+static PyObject *Curve_setTotcol(BPy_Curve *self, PyObject *args)
 {
 
   if (!PyArg_ParseTuple(args, "i", &(self->curve->totcol)))
@@ -226,7 +226,7 @@ static PyObject *Curve_setTotcol(C_Curve *self, PyObject *args)
 }
 
 
-static PyObject *Curve_getMode(C_Curve *self)
+static PyObject *Curve_getMode(BPy_Curve *self)
 {
   PyObject *attr = PyInt_FromLong((long)self->curve->flag);
 
@@ -237,7 +237,7 @@ static PyObject *Curve_getMode(C_Curve *self)
 }
 
 
-static PyObject *Curve_setMode(C_Curve *self, PyObject *args)
+static PyObject *Curve_setMode(BPy_Curve *self, PyObject *args)
 {
 
   if (!PyArg_ParseTuple(args, "i", &(self->curve->flag)))
@@ -249,7 +249,7 @@ static PyObject *Curve_setMode(C_Curve *self, PyObject *args)
 }
 
 
-static PyObject *Curve_getBevresol(C_Curve *self)
+static PyObject *Curve_getBevresol(BPy_Curve *self)
 {
   PyObject *attr = PyInt_FromLong((long)self->curve->bevresol);
 
@@ -260,7 +260,7 @@ static PyObject *Curve_getBevresol(C_Curve *self)
 }
 
 
-static PyObject *Curve_setBevresol(C_Curve *self, PyObject *args)
+static PyObject *Curve_setBevresol(BPy_Curve *self, PyObject *args)
 {
 
   if (!PyArg_ParseTuple(args, "i", &(self->curve->bevresol)))
@@ -272,7 +272,7 @@ static PyObject *Curve_setBevresol(C_Curve *self, PyObject *args)
 }
 
 
-static PyObject *Curve_getResolu(C_Curve *self)
+static PyObject *Curve_getResolu(BPy_Curve *self)
 {
   PyObject *attr = PyInt_FromLong((long)self->curve->resolu);
 
@@ -283,7 +283,7 @@ static PyObject *Curve_getResolu(C_Curve *self)
 }
 
 
-static PyObject *Curve_setResolu(C_Curve *self, PyObject *args)
+static PyObject *Curve_setResolu(BPy_Curve *self, PyObject *args)
 {
 
   if (!PyArg_ParseTuple(args, "i", &(self->curve->resolu)))
@@ -296,7 +296,7 @@ static PyObject *Curve_setResolu(C_Curve *self, PyObject *args)
 
 
 
-static PyObject *Curve_getResolv(C_Curve *self)
+static PyObject *Curve_getResolv(BPy_Curve *self)
 {
   PyObject *attr = PyInt_FromLong((long)self->curve->resolv);
 
@@ -307,7 +307,7 @@ static PyObject *Curve_getResolv(C_Curve *self)
 }
 
 
-static PyObject *Curve_setResolv(C_Curve *self, PyObject *args)
+static PyObject *Curve_setResolv(BPy_Curve *self, PyObject *args)
 {
 
   if (!PyArg_ParseTuple(args, "i", &(self->curve->resolv)))
@@ -320,7 +320,7 @@ static PyObject *Curve_setResolv(C_Curve *self, PyObject *args)
 
 
 
-static PyObject *Curve_getWidth(C_Curve *self)
+static PyObject *Curve_getWidth(BPy_Curve *self)
 {
   PyObject *attr = PyFloat_FromDouble((double)self->curve->width);
 
@@ -331,7 +331,7 @@ static PyObject *Curve_getWidth(C_Curve *self)
 }
 
 
-static PyObject *Curve_setWidth(C_Curve *self, PyObject *args)
+static PyObject *Curve_setWidth(BPy_Curve *self, PyObject *args)
 {
 
   if (!PyArg_ParseTuple(args, "f", &(self->curve->width)))
@@ -343,7 +343,7 @@ static PyObject *Curve_setWidth(C_Curve *self, PyObject *args)
 }
 
 
-static PyObject *Curve_getExt1(C_Curve *self)
+static PyObject *Curve_getExt1(BPy_Curve *self)
 {
   PyObject *attr = PyFloat_FromDouble((double)self->curve->ext1);
 
@@ -354,7 +354,7 @@ static PyObject *Curve_getExt1(C_Curve *self)
 }
 
 
-static PyObject *Curve_setExt1(C_Curve *self, PyObject *args)
+static PyObject *Curve_setExt1(BPy_Curve *self, PyObject *args)
 {
 
   if (!PyArg_ParseTuple(args, "f", &(self->curve->ext1)))
@@ -367,7 +367,7 @@ static PyObject *Curve_setExt1(C_Curve *self, PyObject *args)
 
 
 
-static PyObject *Curve_getExt2(C_Curve *self)
+static PyObject *Curve_getExt2(BPy_Curve *self)
 {
   PyObject *attr = PyFloat_FromDouble((double)self->curve->ext2);
 
@@ -378,7 +378,7 @@ static PyObject *Curve_getExt2(C_Curve *self)
 }
 
 
-static PyObject *Curve_setExt2(C_Curve *self, PyObject *args)
+static PyObject *Curve_setExt2(BPy_Curve *self, PyObject *args)
 {
 
   if (!PyArg_ParseTuple(args, "f", &(self->curve->ext2)))
@@ -391,7 +391,7 @@ static PyObject *Curve_setExt2(C_Curve *self, PyObject *args)
 
 
 
-static PyObject *Curve_setControlPoint(C_Curve *self, PyObject *args)
+static PyObject *Curve_setControlPoint(BPy_Curve *self, PyObject *args)
 {
   Nurb*ptrnurb = self->curve->nurb.first;
   int numcourbe,numpoint,i,j;
@@ -430,7 +430,7 @@ static PyObject *Curve_setControlPoint(C_Curve *self, PyObject *args)
   return Py_None;
 }
 
-static PyObject *Curve_getControlPoint(C_Curve *self, PyObject *args)
+static PyObject *Curve_getControlPoint(BPy_Curve *self, PyObject *args)
 {
   PyObject* liste = PyList_New(0); 
 
@@ -466,7 +466,7 @@ static PyObject *Curve_getControlPoint(C_Curve *self, PyObject *args)
 
 
 
-static PyObject *Curve_getLoc(C_Curve *self)
+static PyObject *Curve_getLoc(BPy_Curve *self)
 {
   int i;
   PyObject* liste = PyList_New(3);
@@ -475,7 +475,7 @@ static PyObject *Curve_getLoc(C_Curve *self)
   return liste;
 }
 
-static PyObject *Curve_setLoc(C_Curve *self, PyObject *args)
+static PyObject *Curve_setLoc(BPy_Curve *self, PyObject *args)
 {
   float x,y,z;
   
@@ -490,7 +490,7 @@ static PyObject *Curve_setLoc(C_Curve *self, PyObject *args)
   return Py_None;
 }
 
-static PyObject *Curve_getRot(C_Curve *self)
+static PyObject *Curve_getRot(BPy_Curve *self)
 {
 
   int i;
@@ -501,7 +501,7 @@ static PyObject *Curve_getRot(C_Curve *self)
 
 }
 
-static PyObject *Curve_setRot(C_Curve *self, PyObject *args)
+static PyObject *Curve_setRot(BPy_Curve *self, PyObject *args)
 {
   float x,y,z;
   
@@ -516,7 +516,7 @@ static PyObject *Curve_setRot(C_Curve *self, PyObject *args)
   return Py_None;
 
 }
-static PyObject *Curve_getSize(C_Curve *self)
+static PyObject *Curve_getSize(BPy_Curve *self)
 {
   int i;
   PyObject* liste = PyList_New(3);
@@ -526,7 +526,7 @@ static PyObject *Curve_getSize(C_Curve *self)
 
 }
 
-static PyObject *Curve_setSize(C_Curve *self, PyObject *args)
+static PyObject *Curve_setSize(BPy_Curve *self, PyObject *args)
 {
   float x,y,z;
   
@@ -547,21 +547,21 @@ static PyObject *Curve_setSize(C_Curve *self, PyObject *args)
 
 /*****************************************************************************/
 /* Function:    CurveDeAlloc                                                 */
-/* Description: This is a callback function for the C_Curve type. It is      */
+/* Description: This is a callback function for the BPy_Curve type. It is      */
 /*              the destructor function.                                     */
 /*****************************************************************************/
-static void CurveDeAlloc (C_Curve *self)
+static void CurveDeAlloc (BPy_Curve *self)
 {
   PyObject_DEL (self);
 }
 
 /*****************************************************************************/
 /* Function:    CurveGetAttr                                                 */
-/* Description: This is a callback function for the C_Curve type. It is      */
-/*              the function that accesses C_Curve "member variables" and    */
+/* Description: This is a callback function for the BPy_Curve type. It is      */
+/*              the function that accesses BPy_Curve "member variables" and    */
 /*              methods.                                                     */
 /*****************************************************************************/
-static PyObject *CurveGetAttr (C_Curve *self, char *name)//getattr
+static PyObject *CurveGetAttr (BPy_Curve *self, char *name)//getattr
 {
   PyObject *attr = Py_None;
 
@@ -597,15 +597,15 @@ static PyObject *CurveGetAttr (C_Curve *self, char *name)//getattr
   if (attr != Py_None) return attr; /* member attribute found, return it */
 
   /* not an attribute, search the methods table */
-  return Py_FindMethod(C_Curve_methods, (PyObject *)self, name);
+  return Py_FindMethod(BPy_Curve_methods, (PyObject *)self, name);
 }
 
 /*****************************************************************************/
 /* Function:    CurveSetAttr                                                 */
-/* Description: This is a callback function for the C_Curve type. It is the  */
+/* Description: This is a callback function for the BPy_Curve type. It is the  */
 /*              function that sets Curve Data attributes (member variables). */
 /*****************************************************************************/
-static int CurveSetAttr (C_Curve *self, char *name, PyObject *value)
+static int CurveSetAttr (BPy_Curve *self, char *name, PyObject *value)
 { PyObject *valtuple; 
   PyObject *error = NULL;
   valtuple = Py_BuildValue("(O)", value);
@@ -651,10 +651,10 @@ static int CurveSetAttr (C_Curve *self, char *name, PyObject *value)
 
 /*****************************************************************************/
 /* Function:    CurvePrint                                                   */
-/* Description: This is a callback function for the C_Curve type. It         */
+/* Description: This is a callback function for the BPy_Curve type. It         */
 /*              builds a meaninful string to 'print' curve objects.          */
 /*****************************************************************************/
-static int CurvePrint(C_Curve *self, FILE *fp, int flags) //print
+static int CurvePrint(BPy_Curve *self, FILE *fp, int flags) //print
 { 
 
   fprintf(fp, "[Curve \"%s\"]\n", self->curve->id.name+2);
@@ -664,10 +664,10 @@ static int CurvePrint(C_Curve *self, FILE *fp, int flags) //print
 
 /*****************************************************************************/
 /* Function:    CurveRepr                                                    */
-/* Description: This is a callback function for the C_Curve type. It         */
+/* Description: This is a callback function for the BPy_Curve type. It         */
 /*              builds a meaninful string to represent curve objects.        */
 /*****************************************************************************/
-static PyObject *CurveRepr (C_Curve *self) //used by 'repr'
+static PyObject *CurveRepr (BPy_Curve *self) //used by 'repr'
 {
  
   return PyString_FromString(self->curve->id.name+2);
@@ -675,11 +675,11 @@ static PyObject *CurveRepr (C_Curve *self) //used by 'repr'
 
 PyObject* CurveCreatePyObject (struct Curve *curve)
 {
- C_Curve    * blen_object;
+ BPy_Curve    * blen_object;
 
     printf ("In CurveCreatePyObject\n");
 
-    blen_object = (C_Curve*)PyObject_NEW (C_Curve, &Curve_Type);
+    blen_object = (BPy_Curve*)PyObject_NEW (BPy_Curve, &Curve_Type);
 
     if (blen_object == NULL)
     {
@@ -698,9 +698,9 @@ return (py_obj->ob_type == &Curve_Type);
 
 struct Curve* CurveFromPyObject (PyObject *py_obj)
 {
- C_Curve    * blen_obj;
+ BPy_Curve    * blen_obj;
 
-    blen_obj = (C_Curve*)py_obj;
+    blen_obj = (BPy_Curve*)py_obj;
     return (blen_obj->curve);
 
 }
