@@ -85,8 +85,8 @@ static PyMethodDef C_BezTriple_methods[] = {
    "(str) - Change BezTriple point coordinates"},
   {"getPoints", (PyCFunction) BezTriple_getPoints, METH_NOARGS,
    "() - return BezTriple knot point x and y coordinates"},
-  {"getTriple", (PyCFunction) BezTriple_getTriple, METH_VARARGS,
-   "() - return list of floating point triplets.  order is H1, knot, H2"},
+  {"getTriple", (PyCFunction) BezTriple_getTriple, METH_NOARGS,
+   "() - return list of 3 floating point triplets.  order is H1, knot, H2"},
   {NULL, NULL, 0, NULL}
 };
 
@@ -169,6 +169,15 @@ BezTriple_getPoints (C_BezTriple * self)
 }
 
 
+/*
+ * BezTriple_getTriple
+ * 
+ * get the coordinate data for a BezTriple.
+ *  returns a list of 3 points.
+ * list order is handle1, knot, handle2.
+ *  each point consists of a list of x,y,z float values.
+ */
+
 static PyObject *
 BezTriple_getTriple (C_BezTriple * self)
 {
@@ -200,7 +209,7 @@ BezTriple_setPoints (C_BezTriple * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "O", &popo))
     return (EXPP_ReturnPyObjError
 	    (PyExc_TypeError, "expected tuple argument"));
-  if (PyTuple_Check (popo) == 0)
+  if (PySequence_Check (popo) == 0)
     {
       puts ("error in   BezTriple_setPoints");
       Py_INCREF (Py_None);
@@ -208,7 +217,12 @@ BezTriple_setPoints (C_BezTriple * self, PyObject * args)
     }
   for (i = 0; i < 2; i++)
     {
-      bezt->vec[1][i] = PyFloat_AsDouble (PyTuple_GetItem (popo, i));
+      PyObject *o = PySequence_GetItem( popo, i );
+      if( !o )
+	printf("\n bad o. o no!\n");
+
+	       /*      bezt->vec[1][i] = PyFloat_AsDouble (PyTuple_GetItem (popo, i));*/
+      bezt->vec[1][i] = PyFloat_AsDouble ( o );
       bezt->vec[0][i] = bezt->vec[1][i] - 1;
       bezt->vec[2][i] = bezt->vec[1][i] + 1;
     }
@@ -230,6 +244,10 @@ BezTripleGetAttr (C_BezTriple * self, char *name)
 {
   if (strcmp (name, "pt") == 0)
     return BezTriple_getPoints (self);
+  else if (strcmp (name, "vec") == 0)
+    return BezTriple_getTriple (self);
+
+  /* look for default methods */
   return Py_FindMethod (C_BezTriple_methods, (PyObject *) self, name);
 }
 

@@ -41,7 +41,7 @@
 
 typedef struct
 {
-  PyObject_HEAD BezTriple * beztriple;
+  PyObject_HEAD BezTriple *beztriple;
 }
 C_BezTriple;
 

@@ -246,6 +246,15 @@ class IpoCurve:
 		@return: the points of the ipo curve.
     """
 
+  def evaluate( time ):
+    """
+                Compute the value of the IpoCurve at a particular time.
+		@type time: float
+		@param time: value along the X axis
+		@rtype: float
+		@return: the Y value of the curve at the given time
+    """
+
 
 class BezTriple:
   """
@@ -271,3 +280,18 @@ class BezTriple:
 		@rtype: PyNone
 		@return: PyNone
     """
+
+  def getTriple():
+      """
+                Returns the x,y,z coordinates for each of the three points that make up a BezierTriple.
+
+		The return list looks like this [ [H1x, H1y, H1z], [Px, Py, Pz], [H2x, H2y, H2z] ] .
+
+		Example::
+		  # where bt is of type BezierTriple
+		  #  and h1, p, and h2 are lists of 3 floats
+		  h1, p, h2 = bt.getTriple()
+		
+		@rtype: list consisting of 3 lists of 3 floats
+ 		@return: handle1, knot, handle2
+       """
