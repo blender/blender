@@ -4892,7 +4892,7 @@ void soundbuts(void)
 
 	yco -= 25;
 	uiBlockSetCol(block, BUTGREEN);
-	uiDefButS(block, TOG|BIT|1, B_SOUND_CHANGED, "Sync",	xco,yco,115,20, &G.scene->audio.flag, 0, 0, 0, 0, "Use sample clock for animation sync");
+	uiDefButS(block, TOG|BIT|1, B_SOUND_CHANGED, "Sync",	xco,yco,115,20, &G.scene->audio.flag, 0, 0, 0, 0, "Use sample clock for syncing animation to audio");
 	uiDefButS(block, TOG|BIT|2, B_SOUND_CHANGED, "Scrub",		xco+120,yco,115,20, &G.scene->audio.flag, 0, 0, 0, 0, "Scrub when changing frames");
 
 	yco -= 25;
@@ -5324,7 +5324,14 @@ void animbuts(void)
 	uiDefButS(block, NUM,B_FRAMEMAP,"Map Old:",	320,69,93,22,&G.scene->r.framapto,1.0,900.0, 0, 0, "Specify old map value in frames");
 	uiDefButS(block, NUM,B_FRAMEMAP,"Map New:",	416,69,95,22,&G.scene->r.images,1.0,900.0, 0, 0, "Specify new map value in frames");
 
-	uiDefButS(block, NUM, 0, "AnimSpeed:",	320,47,192,19, &G.animspeed, 1.0, 9.0, 0, 0, "Set the maximum speed of the animation");
+	uiDefButS(block, NUM,REDRAWSEQ,"Frs/sec:",   320,47,93,19, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
+	
+	uiBlockSetCol(block, BUTGREEN);
+	uiDefButS(block, TOG|BIT|1, B_SOUND_CHANGED, "Sync",	416,47,95,19, &G.scene->audio.flag, 0, 0, 0, 0, "Use sample clock for syncing animation to audio");
+
+/*	intrr: obsoleted, replaced by frs/sec */
+/*	uiDefButS(block, NUM, 0, "AnimSpeed:",	320,47,192,19, &G.animspeed, 1.0, 9.0, 0, 0, "Set the maximum speed of the animation");*/
+
 	
 	ob= OBACT;
 	if(ob) {
@@ -6723,7 +6730,7 @@ void renderbuts(void)
 	} else {
 		uiDefButS(block, NUM,0, "Quality:",           892,yofs,112,20, &G.scene->r.quality, 10.0, 100.0, 0, 0, "Quality setting for JPEG images, AVI Jpeg and SGI movies");
 	}
-	uiDefButS(block, NUM,REDRAWSEQ,"Frs/sec:",   1006,yofs,113,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second, for AVI and Sequence window grid");
+	uiDefButS(block, NUM,REDRAWSEQ,"Frs/sec:",   1006,yofs,113,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
 
 	uiDefButS(block, NUM,REDRAWSEQ,"Sta:",	692,10,94,24, &G.scene->r.sfra,1.0,18000.0, 0, 0, "The start frame of the animation");
 	uiDefButS(block, NUM,REDRAWSEQ,"End:",	790,10,95,24, &G.scene->r.efra,1.0,18000.0, 0, 0, "The end  frame of the animation");
