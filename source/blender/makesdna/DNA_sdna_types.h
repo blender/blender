@@ -34,6 +34,8 @@
 #ifndef DNA_SDNA_H
 #define DNA_SDNA_H
 
+#
+#
 struct SDNA {
 	char *data;
 	int datalen, nr_names;
