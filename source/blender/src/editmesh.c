@@ -2237,8 +2237,8 @@ short extrudeflag(short flag,short type)
 
 	EditVert *eve, *v1, *v2, *v3, *v4, *nextve;
 	EditEdge *eed, *e1, *e2, *e3, *e4, *nexted;
-	EditVlak *evl, *nextvl;
-	short sel=0, deloud= 0;
+	EditVlak *evl, *evl2, *nextvl;
+	short sel=0, deloud= 0, smooth= 0;
 
 	if(G.obedit==0 || get_mesh(G.obedit)==0) return 0;
 
@@ -2269,6 +2269,10 @@ short extrudeflag(short flag,short type)
 	evl= G.edvl.first;
 	while(evl) {
 		evl->f= 0;
+
+		if (evl->flag & ME_SMOOTH) {
+			if (vlakselectedOR(evl, 1)) smooth= 1;
+		}
 		
 		if(vlakselectedAND(evl, flag)) {
 			e1= evl->e1;
@@ -2369,10 +2373,9 @@ short extrudeflag(short flag,short type)
 		if( (eed->f==1 || eed->f==2) ) {
 			if(eed->f1==2) deloud=1;
 			
-			/* that dir thing does work somewhat... */
-			
-			if(eed->dir==1) addvlaklist(eed->v1, eed->v2, eed->v2->vn, eed->v1->vn, NULL);
-			else addvlaklist(eed->v2, eed->v1, eed->v1->vn, eed->v2->vn, NULL);
+			if(eed->dir==1) evl2= addvlaklist(eed->v1, eed->v2, eed->v2->vn, eed->v1->vn, NULL);
+			else evl2= addvlaklist(eed->v2, eed->v1, eed->v1->vn, eed->v2->vn, NULL);
+			if (smooth) evl2->flag |= ME_SMOOTH;
 		}
 
 		eed= nexted;
@@ -2399,13 +2402,13 @@ short extrudeflag(short flag,short type)
 			v3= evl->v3->vn;
 			if(evl->v4) v4= evl->v4->vn; else v4= 0;
 			
-			addvlaklist(v1, v2, v3, v4, evl);
+			evl2= addvlaklist(v1, v2, v3, v4, evl);
 			
 			if(deloud) {
 				BLI_remlink(&G.edvl, evl);
 				freevlak(evl);
 			}
-			
+			if (smooth) evl2->flag |= ME_SMOOTH;			
 		}
 		evl= nextvl;
 	}
