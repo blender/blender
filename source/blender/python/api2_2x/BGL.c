@@ -669,7 +669,7 @@ BGL_Wrap(4, Viewport,           void,     (GLint, GLint, GLsizei, GLsizei))
 /* #endif */
 
 #undef MethodDef
-#define MethodDef(func) {"gl"#func, Method_##func, METH_VARARGS}
+#define MethodDef(func) {"gl"#func, Method_##func, METH_VARARGS, "no string"}
 
 /* So that MethodDef(Accum) becomes:
  * {"glAccum", Method_Accumfunc, METH_VARARGS} */
@@ -995,7 +995,7 @@ static struct PyMethodDef BGL_methods[] = {
 
 /* #endif */
 
-  {NULL, NULL}
+  {NULL, NULL, 0, NULL}
 };
 
 PyObject *BGL_Init(void) 
