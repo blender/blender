@@ -4155,6 +4155,9 @@ static void do_versions(Main *main)
 		Scene *sce;
 
 		while(tex) {	
+			if((tex->flag & (TEX_CHECKER_ODD+TEX_CHECKER_EVEN))==0) {
+				tex->flag |= TEX_CHECKER_ODD;
+			}
 			/* copied from kernel texture.c */
 			if(tex->ns_outscale==0.0) {
 				/* musgrave */

@@ -1098,16 +1098,27 @@ static void texture_panel_image(Tex *tex)
 	
 	uiDefButF(block, NUM, B_TEXPRV, "Filter :",	10,92,150,19, &tex->filtersize, 0.1, 25.0, 0, 0, "Sets the filter size used by mipmap and interpol");
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, 0, "Extend",			10,70,75,19, &tex->extend, 4.0, 1.0, 0, 0, "Extends the colour of the edge pixels");
-	uiDefButS(block, ROW, 0, "Clip",			85,70,75,19, &tex->extend, 4.0, 2.0, 0, 0, "Sets alpha 0.0 outside Image edges");
-	uiDefButS(block, ROW, 0, "ClipCube",		160,70,75,19, &tex->extend, 4.0, 4.0, 0, 0, "Sets alpha to 0.0 outside cubeshaped area around Image");
-	uiDefButS(block, ROW, 0, "Repeat",			235,70,75,19, &tex->extend, 4.0, 3.0, 0, 0, "Causes Image to repeat horizontally and vertically");
-	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, B_TEXPRV, "Xrepeat:",	10,50,150,19, &tex->xrepeat, 1.0, 512.0, 0, 0, "Sets a repetition multiplier in the X direction");
-	uiDefButS(block, NUM, B_TEXPRV, "Yrepeat:",	160,50,150,19, &tex->yrepeat, 1.0, 512.0, 0, 0, "Sets a repetition multiplier in the Y direction");
+	uiDefButS(block, ROW, B_TEXREDR_PRV, "Extend",			10,70,63,19, &tex->extend, 4.0, 1.0, 0, 0, "Extends the colour of the edge pixels");
+	uiDefButS(block, ROW, B_TEXREDR_PRV, "Clip",			73,70,48,19, &tex->extend, 4.0, 2.0, 0, 0, "Sets alpha 0.0 outside Image edges");
+	uiDefButS(block, ROW, B_TEXREDR_PRV, "ClipCube",		121,70,63,19, &tex->extend, 4.0, 4.0, 0, 0, "Sets alpha to 0.0 outside cubeshaped area around Image");
+	uiDefButS(block, ROW, B_TEXREDR_PRV, "Repeat",			184,70,63,19, &tex->extend, 4.0, 3.0, 0, 0, "Causes Image to repeat horizontally and vertically");
+	uiDefButS(block, ROW, B_TEXREDR_PRV, "Checker",			247,70,63,19, &tex->extend, 4.0, 5.0, 0, 0, "Causes Image to repeat in checker pattern");
+
+	if(tex->extend==TEX_REPEAT) {
+		uiBlockBeginAlign(block);
+		uiDefButS(block, NUM, B_TEXPRV, "Xrepeat:",	10,50,150,19, &tex->xrepeat, 1.0, 512.0, 0, 0, "Sets a repetition multiplier in the X direction");
+		uiDefButS(block, NUM, B_TEXPRV, "Yrepeat:",	160,50,150,19, &tex->yrepeat, 1.0, 512.0, 0, 0, "Sets a repetition multiplier in the Y direction");
+	}
+	else if(tex->extend==TEX_CHECKER) {
+		uiBlockBeginAlign(block);
+		uiDefButS(block, TOG|BIT|3, B_TEXPRV, "Odd",	10,50,100,19, &tex->flag, 0.0, 0.0, 0, 0, "Sets odd checker tiles");
+		uiDefButS(block, TOG|BIT|4, B_TEXPRV, "Even",	110,50,100,19, &tex->flag, 0.0, 0.0, 0, 0, "Sets even checker tiles");
+		uiDefButF(block, NUM, B_TEXPRV, "Mortar:",		210,50,100,19, &tex->checkerdist, 0.0, 0.99, 0, 0, "Set checkers distance (like mortar)");
+	}
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_REDR, "MinX ",		10,28,150,19, &tex->cropxmin, -10.0, 10.0, 10, 0, "Sets minimum X value to crop Image");
 	uiDefButF(block, NUM, B_REDR, "MinY ",		10,8,150,19, &tex->cropymin, -10.0, 10.0, 10, 0, "Sets minimum Y value to crop Image");
+
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_REDR, "MaxX ",		160,28,150,19, &tex->cropxmax, -10.0, 10.0, 10, 0, "Sets maximum X value to crop Image");
 	uiDefButF(block, NUM, B_REDR, "MaxY ",		160,8,150,19, &tex->cropymax, -10.0, 10.0, 10, 0, "Sets maximum Y value to crop Image");
@@ -2121,7 +2132,7 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	uiBlockBeginAlign(block);
 	if ELEM(la->type, LA_LOCAL, LA_SPOT) {
 		uiDefButF(block, NUMSLI,B_MATPRV,"Quad1 ",	120,30,180,19,&la->att1, 0.0, 1.0, 0, 0, "Set the linear distance attenuatation for a quad lamp");
-		uiDefButF(block, NUMSLI,B_MATPRV,"Quad2 ",  120,10,180,19,&la->att2, 0.0, 1.0, 0, 0, "Set the qudratic distance attenuatation for a quad lamp");
+		uiDefButF(block, NUMSLI,B_MATPRV,"Quad2 ",  120,10,180,19,&la->att2, 0.0, 1.0, 0, 0, "Set the quadratic distance attenuatation for a quad lamp");
 	}
 	else if(la->type==LA_AREA) {
 		if(la->k==0.0) la->k= 1.0;

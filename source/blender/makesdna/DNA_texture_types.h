@@ -149,6 +149,7 @@ typedef struct Tex {
 	float cropxmin, cropymin, cropxmax, cropymax;
 	short xrepeat, yrepeat;
 	short extend, len;
+	float checkerdist, pad;
 	short frames, offset, sfra, fie_ima;
 	float norfac, *nor;
 	
@@ -224,15 +225,18 @@ typedef struct Tex {
 #define TEX_MORKPATCH	16384
 
 /* flag */
-#define TEX_COLORBAND	1
-#define TEX_FLIPBLEND	2
-#define TEX_NEGALPHA	4
+#define TEX_COLORBAND		1
+#define TEX_FLIPBLEND		2
+#define TEX_NEGALPHA		4
+#define TEX_CHECKER_ODD		8
+#define TEX_CHECKER_EVEN	16
 
 /* extend (starts with 1 because of backward comp.) */
 #define TEX_EXTEND		1
 #define TEX_CLIP		2
 #define TEX_REPEAT		3
 #define TEX_CLIPCUBE	4
+#define TEX_CHECKER		5
 
 /* noisetype */
 #define TEX_NOISESOFT	0

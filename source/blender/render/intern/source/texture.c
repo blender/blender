@@ -895,17 +895,18 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *dxt, float 
 		}
 		
 		/* repeat */
-		if(tex->xrepeat>1) {
-			fx *= tex->xrepeat;
-			if(fx>1.0) fx -= (int)(fx);
-			else if(fx<0.0) fx+= 1-(int)(fx);
+		if(tex->extend==TEX_REPEAT) {
+			if(tex->xrepeat>1) {
+				fx *= tex->xrepeat;
+				if(fx>1.0) fx -= (int)(fx);
+				else if(fx<0.0) fx+= 1-(int)(fx);
+			}
+			if(tex->yrepeat>1) {
+				fy *= tex->yrepeat;
+				if(fy>1.0) fy -= (int)(fy);
+				else if(fy<0.0) fy+= 1-(int)(fy);
+			}
 		}
-		if(tex->yrepeat>1) {
-			fy *= tex->yrepeat;
-			if(fy>1.0) fy -= (int)(fy);
-			else if(fy<0.0) fy+= 1-(int)(fy);
-		}
-		
 		/* crop */
 		if(tex->cropxmin!=0.0 || tex->cropxmax!=1.0) {
 			fac1= tex->cropxmax - tex->cropxmin;
@@ -994,21 +995,22 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *dxt, float 
 		}
 		
 		/* repeat */
-		if(tex->xrepeat>1) {
-			fx *= tex->xrepeat;
-			dxt[0]*= tex->xrepeat;
-			dyt[0]*= tex->xrepeat;
-			if(fx>1.0) fx -= (int)(fx);
-			else if(fx<0.0) fx+= 1-(int)(fx);
+		if(tex->extend==TEX_REPEAT) {
+			if(tex->xrepeat>1) {
+				fx *= tex->xrepeat;
+				dxt[0]*= tex->xrepeat;
+				dyt[0]*= tex->xrepeat;
+				if(fx>1.0) fx -= (int)(fx);
+				else if(fx<0.0) fx+= 1-(int)(fx);
+			}
+			if(tex->yrepeat>1) {
+				fy *= tex->yrepeat;
+				dxt[1]*= tex->yrepeat;
+				dyt[1]*= tex->yrepeat;
+				if(fy>1.0) fy -= (int)(fy);
+				else if(fy<0.0) fy+= 1-(int)(fy);
+			}
 		}
-		if(tex->yrepeat>1) {
-			fy *= tex->yrepeat;
-			dxt[1]*= tex->yrepeat;
-			dyt[1]*= tex->yrepeat;
-			if(fy>1.0) fy -= (int)(fy);
-			else if(fy<0.0) fy+= 1-(int)(fy);
-		}
-		
 		/* crop */
 		if(tex->cropxmin!=0.0 || tex->cropxmax!=1.0) {
 			fac1= tex->cropxmax - tex->cropxmin;

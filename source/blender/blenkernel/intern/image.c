@@ -602,17 +602,15 @@ int imagewrap(Tex *tex, float *texvec)
 	int ofs, x, y;
 	char *rect;
 
+	Tin= Ta= Tr= Tg= Tb= 0.0;
 	ima= tex->ima;
-
 	if(ima==0 || ima->ok== 0) {
-		Tin= Ta= Tr= Tg= Tb= 0.0;
 		return 0;
 	}
 	
 	if(ima->ibuf==0) ima_ibuf_is_nul(tex);
 
 	if (ima->ok) {
-
 		ibuf = ima->ibuf;
 
 		if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) ) {
@@ -628,18 +626,37 @@ int imagewrap(Tex *tex, float *texvec)
 			fy= texvec[1];
 		}
 		
+		if(tex->extend == TEX_CHECKER) {
+			int xs, ys;
+			
+			xs= (int)floor(fx);
+			ys= (int)floor(fy);
+			fx-= xs;
+			fy-= ys;
+
+			if( (tex->flag & TEX_CHECKER_ODD)==0) {
+				if((xs+ys) & 1);else return 0;
+			}
+			if( (tex->flag & TEX_CHECKER_EVEN)==0) {
+				if((xs+ys) & 1) return 0; 
+			}
+			/* scale around center, (0.5, 0.5) */
+			if(tex->checkerdist<1.0) {
+				fx= (fx-0.5)/(1.0-tex->checkerdist) +0.5;
+				fy= (fy-0.5)/(1.0-tex->checkerdist) +0.5;
+			}
+		}
+
 		x = (int)(fx*ibuf->x);
 		y = (int)(fy*ibuf->y);
 
 		if(tex->extend == TEX_CLIPCUBE) {
 			if(x<0 || y<0 || x>=ibuf->x || y>=ibuf->y || texvec[2]<-1.0 || texvec[2]>1.0) {
-				Tin= 0;
 				return 0;
 			}
 		}
-		else if(tex->extend == TEX_CLIP) {
+		else if( tex->extend==TEX_CLIP || tex->extend==TEX_CHECKER) {
 			if(x<0 || y<0 || x>=ibuf->x || y>=ibuf->y) {
-				Tin= 0;
 				return 0;
 			}
 		}
@@ -1308,16 +1325,70 @@ int imagewraposa(Tex *tex, float *texvec, float *dxt, float *dyt)
 		imaprepeat= (tex->extend==TEX_REPEAT);
 		imapextend= (tex->extend==TEX_EXTEND);
 
+		if(tex->extend == TEX_CHECKER) {
+			int xs, ys, xs1, ys1, xs2, ys2, boundary;
+			
+			xs= (int)floor(fx);
+			ys= (int)floor(fy);
+			
+			// both checkers available, no boundary exceptions, checkerdist will eat aliasing
+			if( (tex->flag & TEX_CHECKER_ODD) && (tex->flag & TEX_CHECKER_EVEN) ) {
+				fx-= xs;
+				fy-= ys;
+			}
+			else {
+				
+				xs1= (int)floor(fx-minx);
+				ys1= (int)floor(fy-miny);
+				xs2= (int)floor(fx+minx);
+				ys2= (int)floor(fy+miny);
+				boundary= (xs1!=xs2) || (ys1!=ys2);
+	
+				if(boundary==0) {
+					if( (tex->flag & TEX_CHECKER_ODD)==0) {
+						if((xs+ys) & 1); 
+						else return 0;
+					}
+					if( (tex->flag & TEX_CHECKER_EVEN)==0) {
+						if((xs+ys) & 1) return 0;
+					}
+					fx-= xs;
+					fy-= ys;
+				}
+				else {
+					if(tex->flag & TEX_CHECKER_ODD) {
+						if((xs1+ys) & 1) fx-= xs2;
+						else fx-= xs1;
+						
+						if((ys1+xs) & 1) fy-= ys2;
+						else fy-= ys1;
+					}
+					if(tex->flag & TEX_CHECKER_EVEN) {
+						if((xs1+ys) & 1) fx-= xs1;
+						else fx-= xs2;
+						
+						if((ys1+xs) & 1) fy-= ys1;
+						else fy-= ys2;
+					}
+				}
+			}
+
+			/* scale around center, (0.5, 0.5) */
+			if(tex->checkerdist<1.0) {
+				fx= (fx-0.5)/(1.0-tex->checkerdist) +0.5;
+				fy= (fy-0.5)/(1.0-tex->checkerdist) +0.5;
+				minx/= (1.0-tex->checkerdist);
+				miny/= (1.0-tex->checkerdist);
+			}
+		}
 
 		if(tex->extend == TEX_CLIPCUBE) {
 			if(fx+minx<0.0 || fy+miny<0.0 || fx-minx>1.0 || fy-miny>1.0 || texvec[2]<-1.0 || texvec[2]>1.0) {
-				Tin= 0;
 				return 0;
 			}
 		}
-		else if(tex->extend == TEX_CLIP) {
+		else if(tex->extend==TEX_CLIP || tex->extend==TEX_CHECKER) {
 			if(fx+minx<0.0 || fy+miny<0.0 || fx-minx>1.0 || fy-miny>1.0) {
-				Tin= 0.0;
 				return 0;
 			}
 		}
@@ -1471,7 +1542,7 @@ int imagewraposa(Tex *tex, float *texvec, float *dxt, float *dyt)
 		BRICONRGB;
 		
 		if(tex->imaflag & TEX_CALCALPHA) {
-			Ta= Tin= MAX3(Tr, Tg, Tb);
+			Ta= Tin= Ta*MAX3(Tr, Tg, Tb);
 		}
 		else Tin= Ta;
 		if(tex->flag & TEX_NEGALPHA) Ta= 1.0f-Ta;

@@ -329,6 +329,7 @@ void default_tex(Tex *tex)
 	int a;
 
 	tex->stype= 0;
+	tex->flag= TEX_CHECKER_ODD;
 	tex->imaflag= TEX_INTERPOL+TEX_MIPMAP;
 	tex->extend= TEX_REPEAT;
 	tex->cropxmin= tex->cropymin= 0.0;

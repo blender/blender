@@ -588,15 +588,16 @@ static void texture_preview_pixel(Tex *tex, int x, int y, char *rect)
 		texvec[1]= 0.5+v1*y;
 		
 		/* no coordinate mapping, exception: repeat */
-		if(tex->xrepeat>1) {
-			texvec[0] *= tex->xrepeat;
-			if(texvec[0]>1.0) texvec[0] -= (int)(texvec[0]);
+		if(tex->extend==TEX_REPEAT) {
+			if(tex->xrepeat>1) {
+				texvec[0] *= tex->xrepeat;
+				if(texvec[0]>1.0) texvec[0] -= (int)(texvec[0]);
+			}
+			if(tex->yrepeat>1) {
+				texvec[1] *= tex->yrepeat;
+				if(texvec[1]>1.0) texvec[1] -= (int)(texvec[1]);
+			}
 		}
-		if(tex->yrepeat>1) {
-			texvec[1] *= tex->yrepeat;
-			if(texvec[1]>1.0) texvec[1] -= (int)(texvec[1]);
-		}
-
 	}
 	else if(tex->type==TEX_ENVMAP) {
 		if(tex->env) {
