@@ -128,6 +128,7 @@ static void do_oops_viewmenu(void *arg, int event)
 			if(soops->type==SO_OOPS) soops->type= SO_OUTLINER;
 			else soops->type= SO_OOPS;
 			init_v2d_oops(curarea, soops);
+			test_view2d(G.v2d, curarea->winx, curarea->winy);
 			scrarea_queue_winredraw(curarea);
 		}
 		break;
