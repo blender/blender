@@ -453,8 +453,6 @@ static void initfastshade(void)
 	Mat4Ortho(R.viewinv);
 	Mat4Invert(fviewmat, R.viewinv);
 
-	init_render_material(&defmaterial);
-	
 	/* initrendertexture(); */
 
 	base= G.scene->base.first;
@@ -510,7 +508,6 @@ void freefastshade()
 		
 		MEM_freeN(fl);
 	}
-	end_render_material(&defmaterial);
 }
 
 
