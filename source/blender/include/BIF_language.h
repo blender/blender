@@ -48,5 +48,8 @@ char *fontsize_pup(void);
 int BIF_DrawString(struct BMF_Font* font, char *str, int translate);
 float BIF_GetStringWidth(struct BMF_Font* font, char *str, int translate);
 
+void BIF_RasterPos(float x, float y);
+void refresh_interface_font(void);
+
 #endif /* BIF_LANGUAGE_H */
 

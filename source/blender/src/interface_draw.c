@@ -115,6 +115,8 @@ void ui_rasterpos_safe(float x, float y, float aspect)
 	}
 	
 	if(doit) glRasterPos2f(x, y);
+
+	BIF_RasterPos(x, y);
 }
 
 /* ************** generic embossed rect, for window sliders etc ************* */

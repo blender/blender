@@ -38,6 +38,7 @@
 #define __FTF_TRUETYPE_FONT_H
 
 #include "FTGLPixmapFont.h"
+#include "FTGLTextureFont.h"
 
 #include <stdio.h>
 //#include <iconv.h>
@@ -91,6 +92,13 @@ public:
 
 	void SetEncoding(char* str);
 
+	/**
+	 * functions to communicate with blender ui rasterpos
+	 */
+	void SetPosition(float x, float y);
+	void SetMode(int mode);
+	void SetScale(float fsize);
+
 protected:
 	char messagepath[1024];
 
@@ -98,6 +106,10 @@ protected:
 	char encoding_name[32];
 	char font_name[128];
 	int font_size;
+
+	int	mode;			// 0 = pixmap, 1 = texture
+	float pen_x, pen_y; //rasterpos
+	float fsize;
 
 	/** FTGL's */
 	FTFont* font;	/* active */

@@ -2538,12 +2538,19 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 				(xpos+edgsp+(2.2*mpref)+(3*midsp)),y2,mpref+(0.5*mpref)+3,buth,
 				&U.language, 0, 0, 0, 0, "Select interface language");
 				
-			/* uiDefButBitS(block, TOG, USER_TR_TEXTEDIT, B_SETTRANSBUTS, "FTF All windows",
-				(xpos+edgsp+(4*mpref)+(4*midsp)),y1,mpref,buth,
+			uiDefButBitS(block, TOG, USER_USETEXTUREFONT, B_USETEXTUREFONT, "Use Textured Fonts",
+				(xpos+edgsp+(4*mpref)+(4*midsp)),y2,mpref,buth,
 				&(U.transopts), 0, 0, 0, 0,
-				"Use FTF drawing for fileselect and textwindow "
-				"(under construction)");
-			*/
+				"Use Textured Fonts");
+
+			if(U.transopts & USER_USETEXTUREFONT) {
+				extern float lang_texsize;
+
+				uiDefButF(block, NUM, B_SCALETEXTUREFONT, "Scale Factor",
+					(xpos+edgsp+(4*mpref)+(4*midsp)),y1,mpref,buth,
+					&lang_texsize, 0.2, 2.0, 100, 2, "Tweak scaling for textured font");
+			}
+
 		}
 
 /* end of INTERNATIONAL */

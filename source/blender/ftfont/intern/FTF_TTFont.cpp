@@ -51,6 +51,7 @@
 
 #define FTF_MAX_STR_SIZE 512
 
+
 int utf8towchar(wchar_t *w, char *c)
 {
   int len=0;
@@ -102,6 +103,8 @@ FTF_TTFont::FTF_TTFont(void)
 	font=NULL;
 	fontm= fonts= fontl= NULL;
 	font_size=FONT_SIZE_DEFAULT;
+	mode = FTF_PIXMAPFONT;
+	fsize = 1.0;
 	strcpy(encoding_name, SYSTEM_ENCODING_DEFAULT);
 
 	//set messagepath directory
@@ -153,10 +156,13 @@ FTF_TTFont::~FTF_TTFont(void)
 
 void FTF_TTFont::SetFontSize(char size)
 {
-	if(size=='s') font=fonts;
-	else if(size=='l') font=fontl;
-	else font=fontm;
-
+	if(mode == FTF_PIXMAPFONT) {
+		if(size=='s') font=fonts;
+		else if(size=='l') font=fontl;
+		else font=fontm;
+	} else if(mode == FTF_TEXTUREFONT) {
+		font=fontl;
+	}
 }
 
 int FTF_TTFont::SetFont(const unsigned char* str, int datasize, int fontsize)
@@ -171,34 +177,60 @@ int FTF_TTFont::SetFont(const unsigned char* str, int datasize, int fontsize)
 	fontm= NULL;
 	fontl= NULL;
 
-	if(datasize) font = new FTGLPixmapFont(str, datasize);
-	else font = new FTGLPixmapFont( (char *)str);
+	if(mode == FTF_PIXMAPFONT) {
 
-	err = font->Error();
+		if(datasize) font = new FTGLPixmapFont(str, datasize);
+		else font = new FTGLPixmapFont( (char *)str);
 
-	if(err) {
-		printf("Failed to open font %s\n", str);
-		return 0;
-	} else {
-		
-		fontm= font;
+		err = font->Error();
 
-		if(datasize) fonts = new FTGLPixmapFont(str, datasize);
-		else fonts = new FTGLPixmapFont((char *)str);
-		if(datasize) fontl = new FTGLPixmapFont(str, datasize);
-		else fontl = new FTGLPixmapFont((char *)str);
-		
-		success = fonts->FaceSize(fontsize-2<8?8:fontsize-2);
-		success = fontm->FaceSize(fontsize-1<8?8:fontsize-1);
-		success = fontl->FaceSize(fontsize);
-		if(!success) return 0;
+		if(err) {
+			printf("Failed to open font %s\n", str);
+			return 0;
+		} else {
+			
+			fontm= font;
 
-		success = fonts->CharMap(ft_encoding_unicode);
-		success = fontm->CharMap(ft_encoding_unicode);
-		success = fontl->CharMap(ft_encoding_unicode);
-		if(!success) return 0;
+			if(datasize) fonts = new FTGLPixmapFont(str, datasize);
+			else fonts = new FTGLPixmapFont((char *)str);
+			if(datasize) fontl = new FTGLPixmapFont(str, datasize);
+			else fontl = new FTGLPixmapFont((char *)str);
+			
+			success = fonts->FaceSize(fontsize-2<8?8:fontsize-2);
+			success = fontm->FaceSize(fontsize-1<8?8:fontsize-1);
+			success = fontl->FaceSize(fontsize);
+			if(!success) return 0;
 
-		return 1;
+			success = fonts->CharMap(ft_encoding_unicode);
+			success = fontm->CharMap(ft_encoding_unicode);
+			success = fontl->CharMap(ft_encoding_unicode);
+			if(!success) return 0;
+
+			return 1;
+		}
+
+	} else if(mode == FTF_TEXTUREFONT) {
+
+		if(datasize) font = new FTGLTextureFont(str, datasize);
+		else font = new FTGLTextureFont( (char *)str);
+
+		err = font->Error();
+
+		if(err) {
+			printf("Failed to open font %s\n", str);
+			return 0;
+		} else {
+			
+			fontl= font;
+
+			success = fontl->FaceSize(fontsize);
+			if(!success) return 0;
+
+			success = fontl->CharMap(ft_encoding_unicode);
+			if(!success) return 0;
+
+			return 1;
+		}
 	}
 }
 
@@ -242,9 +274,13 @@ void FTF_TTFont::SetEncoding(char* str)
 
 void FTF_TTFont::SetSize(int size)
 {
-	fonts->FaceSize(size-2<8?8:size-2);
-	fontm->FaceSize(size-1<8?8:size-1);
-	fontl->FaceSize(size);
+	if(mode == FTF_PIXMAPFONT) {
+		fonts->FaceSize(size-2<8?8:size-2);
+		fontm->FaceSize(size-1<8?8:size-1);
+		fontl->FaceSize(size);
+	} else if(mode == FTF_TEXTUREFONT) {
+		fontl->FaceSize(size);
+	}
 
 	font_size = size;
 }
@@ -284,15 +320,33 @@ float FTF_TTFont::DrawString(char* str, unsigned int flag)
 
 	glGetFloatv(GL_CURRENT_COLOR, color);
 	
-	glPixelTransferf(GL_RED_SCALE, color[0]);
-	glPixelTransferf(GL_GREEN_SCALE, color[1]);
-	glPixelTransferf(GL_BLUE_SCALE, color[2]);
-	
-	font->Render(wstr);
+	if(mode == FTF_PIXMAPFONT) {
+
+		glPixelTransferf(GL_RED_SCALE, color[0]);
+		glPixelTransferf(GL_GREEN_SCALE, color[1]);
+		glPixelTransferf(GL_BLUE_SCALE, color[2]);
+
+		font->Render(wstr);
+		
+		glPixelTransferf(GL_RED_SCALE, 1.0);
+		glPixelTransferf(GL_GREEN_SCALE, 1.0);
+		glPixelTransferf(GL_BLUE_SCALE, 1.0);
+
+	} else if(mode == FTF_TEXTUREFONT) {
+
+		glEnable(GL_BLEND);
+		glEnable(GL_TEXTURE_2D);
+		
+		glPushMatrix();
+		glTranslatef(pen_x, pen_y, 0.0);
+		glScalef(fsize, fsize, 1.0);
+
+		font->Render(wstr);
+		glPopMatrix();
   
-	glPixelTransferf(GL_RED_SCALE, 1.0);
-	glPixelTransferf(GL_GREEN_SCALE, 1.0);
-	glPixelTransferf(GL_BLUE_SCALE, 1.0);
+		glDisable(GL_BLEND);
+		glDisable(GL_TEXTURE_2D);
+	}
 
 	return font->Advance(wstr);
 }
@@ -308,7 +362,11 @@ float FTF_TTFont::GetStringWidth(char* str, unsigned int flag)
 	else 
 		len=utf8towchar(wstr,str);
 
-	return font->Advance(wstr);
+	if(mode == FTF_PIXMAPFONT) {
+		return font->Advance(wstr);
+	} else if(mode == FTF_TEXTUREFONT) {
+		return font->Advance(wstr) * fsize;
+	}
 }
 
 
@@ -324,3 +382,24 @@ void FTF_TTFont::GetBoundingBox(char* str, float *llx, float *lly, float *llz, f
 
 	font->BBox(wstr, *llx, *lly, *llz, *urx, *ury, *urz);
 }
+
+
+void FTF_TTFont::SetPosition(float x, float y)
+{
+	pen_x = x;
+	pen_y = y;
+}
+
+
+void FTF_TTFont::SetMode(int m)
+{
+	mode = m;
+}
+
+
+void FTF_TTFont::SetScale(float size)
+{
+	fsize = size;
+}
+
+

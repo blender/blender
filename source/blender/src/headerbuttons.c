@@ -1575,6 +1575,7 @@ void do_global_buttons(unsigned short event)
 		break;
 
 	case B_SETFONTSIZE:		/* is button from space.c  *info* */
+		refresh_interface_font();
 		FTF_SetSize(U.fontsize); 
 		allqueue(REDRAWALL, 0);
 		break;
@@ -1584,11 +1585,37 @@ void do_global_buttons(unsigned short event)
 		break;
 
 	case B_RESTOREFONT:		/* is button from space.c  *info* */
-		U.fontsize= 0;
-		start_interface_font();
-		allqueue(REDRAWALL, 0);
+		{
+			extern float lang_texsize;
+
+			lang_texsize = 1.0;
+			FTF_SetScale(lang_texsize);
+
+			U.fontsize= 0;
+			start_interface_font();
+			allqueue(REDRAWALL, 0);
+		}
 		break;
 		
+	case B_USETEXTUREFONT:		/* is button from space.c  *info* */
+		if(U.transopts & USER_USETEXTUREFONT)
+			FTF_SetMode(FTF_TEXTUREFONT);
+		else
+			FTF_SetMode(FTF_PIXMAPFONT);
+
+		refresh_interface_font();
+		allqueue(REDRAWALL, 0);
+		break;
+
+	case B_SCALETEXTUREFONT:		/* is button from space.c  *info* */
+		{
+			extern float lang_texsize;
+
+			FTF_SetScale(lang_texsize);
+			allqueue(REDRAWALL, 0);
+		}
+		break;
+
 	case B_DOLANGUIFONT:	/* is button from space.c  *info* */
 		if(U.transopts & USER_DOTRANSLATE)
 			start_interface_font();

@@ -155,11 +155,22 @@ FTF_EXPORT void FTF_SetLanguage(char* str)
   _FTF_GetFont()->SetLanguage(str);
 }
 
-/**
-  * added by phase
-  *
-  */
 FTF_EXPORT void FTF_SetEncoding(char* str)
 {
   _FTF_GetFont()->SetEncoding(str);
+}
+
+FTF_EXPORT void FTF_SetPosition(float x, float y)
+{
+  _FTF_GetFont()->SetPosition(x, y);
+}
+
+FTF_EXPORT void FTF_SetMode(int mode)
+{
+  _FTF_GetFont()->SetMode(mode);
+}
+
+FTF_EXPORT void FTF_SetScale(float fsize)
+{
+  _FTF_GetFont()->SetScale(fsize);
 }

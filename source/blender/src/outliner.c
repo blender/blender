@@ -1992,6 +1992,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		if(active==1) BIF_ThemeColor(TH_TEXT_HI); 
 		else BIF_ThemeColor(TH_TEXT);
 		glRasterPos2i(startx+offsx, *starty+5);
+		BIF_RasterPos(startx+offsx, *starty+5);
 		BIF_DrawString(G.font, te->name, 0);
 		
 		offsx+= OL_X + BIF_GetStringWidth(G.font, te->name, 0);

@@ -148,6 +148,10 @@ FTF_EXPORT void FTF_SetLanguage(char* str);
  */
 FTF_EXPORT void FTF_SetEncoding(char* str);
 
+FTF_EXPORT void FTF_SetPosition(float x, float y);
+FTF_EXPORT void FTF_SetMode(int mode);
+FTF_EXPORT void FTF_SetScale(float fsize);
+
 FTF_EXPORT void FTF_End(void);
 
 #ifdef __cplusplus

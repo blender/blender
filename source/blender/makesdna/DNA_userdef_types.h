@@ -204,6 +204,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_TR_FILESELECT		8
 #define USER_TR_TEXTEDIT		16
 #define USER_DOTRANSLATE		32
+#define USER_USETEXTUREFONT		64
 
 /* dupflag */
 

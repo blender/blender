@@ -898,6 +898,7 @@ static void do_info_filemenu(void *arg, int event)
 		
 			BKE_reset_undo();
 			BKE_write_undo("original");	/* save current state */
+			refresh_interface_font();
 		}
 		break;
 	case 31: /* save default settings */
@@ -1820,11 +1821,13 @@ static void info_text(int x, int y)
 	glColor3ub(0, 0, 0);
 
 	glRasterPos2i(x, y);
+	BIF_RasterPos(x, y);
 
 	BIF_DrawString(G.font, headerstr, (U.transopts & USER_TR_MENUS));
 	hsize= BIF_GetStringWidth(G.font, headerstr, (U.transopts & USER_TR_BUTTONS));
 	
 	glRasterPos2i(x+hsize+10,	y);
+	BIF_RasterPos(x+hsize+10,	y);
 
 	BIF_DrawString(G.font, infostr, (U.transopts & USER_TR_MENUS));
 }

@@ -28,6 +28,10 @@
  */
 
 
+#ifdef WIN32
+#include "BLI_winstuff.h"
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 
@@ -40,6 +44,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"	/* linknode */
 
+#include "BIF_gl.h"
 #include "BIF_language.h"
 #include "BIF_space.h"		/* allqueue() */
 #include "BIF_toolbox.h"	/* error() */
@@ -66,20 +71,51 @@ struct _LANGMenuEntry {
 
 static LANGMenuEntry *langmenu= 0;
 static int tot_lang = 0;
+float lang_texsize = 1.0;
+
 #endif // INTERNATIONAL
 
+void BIF_RasterPos(float x, float y)
+{
+#ifdef INTERNATIONAL
+	FTF_SetPosition(x, y);
+#endif // INTERNATIONAL
+}
+
+void refresh_interface_font(void)
+{
+#ifdef INTERNATIONAL
+	if(U.transopts & USER_DOTRANSLATE)
+		start_interface_font();
+	else
+		G.ui_international = FALSE;
+#else // INTERNATIONAL
+	G.ui_international = FALSE;
+#endif
+}
 
 int BIF_DrawString(BMF_Font* font, char *str, int translate)
 {
 
 #ifdef INTERNATIONAL
-	if(G.ui_international == TRUE)
+	if(G.ui_international == TRUE) {
 		if(translate)
 			return FTF_DrawString(str, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
 		else
 			return FTF_DrawString(str, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
-	else
+	} else {
 		return BMF_DrawString(font, str);
+/*
+		glEnable(GL_TEXTURE_2D);
+		glEnable(GL_BLEND);
+		BMF_GetFontTexture(font);??
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		BMF_DrawStringTexture(font, str, pen_x, pen_y, 0.0);
+		glDisable(GL_TEXTURE_2D);
+		glDisable(GL_BLEND);
+		return 0;
+*/
+	}
 #else
 	return BMF_DrawString(font, str);
 #endif

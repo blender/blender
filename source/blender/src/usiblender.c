@@ -215,12 +215,9 @@ static void init_userdef_file(void)
 #ifdef INTERNATIONAL
 	read_languagefile();
 	
-	if(U.transopts & USER_DOTRANSLATE)
-		start_interface_font();
-	else
-		G.ui_international = FALSE;
+	refresh_interface_font();
 #endif // INTERNATIONAL
-	
+
 }
 
 void BIF_read_file(char *name)
@@ -248,6 +245,7 @@ void BIF_read_file(char *name)
 		undo_editmode_clear();
 		BKE_reset_undo();
 		BKE_write_undo("original");	/* save current state */
+		refresh_interface_font();
 	}
 	else BIF_undo_push("Import file");
 }
