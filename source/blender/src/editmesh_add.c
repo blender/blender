@@ -377,7 +377,7 @@ void adduplicate_mesh(void)
 	adduplicateflag(SELECT);
 
 	waitcursor(0);
-	countall();  /* for G.totvert in calc_meshverts() */
+	countall(); 
 	transform('d');
 }
 

@@ -581,6 +581,7 @@ static EditFace *findnearestface(short *dist)
 /* for interactivity, frontbuffer draw in current window */
 static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 {
+	int optimal= subsurf_optimal(G.obedit);
 
 	glDrawBuffer(GL_FRONT);
 
@@ -608,13 +609,13 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 			Mesh *me= G.obedit->data;
 			DispList *dl= find_displist(&me->disp, DL_MESH);
 			DispListMesh *dlm= NULL;
-
+			
 			if(efa->fgonf==0) {
 				if(efa->f & SELECT) BIF_ThemeColor(TH_EDGE_SELECT);
 				else BIF_ThemeColor(TH_WIRE);
 				
 				if(dl) dlm= dl->mesh;
-				if(dlm && (me->flag & ME_OPT_EDGES) && (me->flag & ME_SUBSURF) && me->subdiv) {
+				if(dlm && optimal) {
 					MEdge *medge= dlm->medge;
 					MVert *mvert= dlm->mvert;
 					int b;
@@ -659,10 +660,8 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 			Mesh *me= G.obedit->data;
 			DispList *dl= find_displist(&me->disp, DL_MESH);
 			DispListMesh *dlm= NULL;
-			int optimal=0;
 			
 			if(dl) dlm= dl->mesh;
-			if( (me->flag & ME_OPT_EDGES) && (me->flag & ME_SUBSURF) && me->subdiv) optimal= 1;
 			
 			if(eed->f & SELECT) BIF_ThemeColor(TH_EDGE_SELECT);
 			else BIF_ThemeColor(TH_WIRE);
@@ -698,20 +697,27 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 			else BIF_ThemeColor(TH_VERTEX);
 			
 			bglBegin(GL_POINTS);
-			bglVertex3fv(eed->v1->co);
-			bglVertex3fv(eed->v2->co);
+			if(optimal) {
+				bglVertex3fv(eed->v1->ssco);
+				bglVertex3fv(eed->v2->ssco);
+			} else {
+				bglVertex3fv(eed->v1->co);
+				bglVertex3fv(eed->v2->co);
+			}
 			bglEnd();
 		}
 	}
 	if(eve) {
 		if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+
 			glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));
 			
 			if(eve->f & SELECT) BIF_ThemeColor(TH_VERTEX_SELECT);
 			else BIF_ThemeColor(TH_VERTEX);
 			
 			bglBegin(GL_POINTS);
-			bglVertex3fv(eve->co);
+			if(optimal) bglVertex3fv(eve->ssco);
+			else bglVertex3fv(eve->co);
 			bglEnd();
 		}
 	}

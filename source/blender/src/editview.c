@@ -331,36 +331,36 @@ static void do_lasso_select_mesh(short mcords[][2], short moves, short select)
 	if(G.scene->selectmode & SCE_SELECT_EDGE) {
 		short done= 0;
 		
-		if(bbsel==0) calc_meshverts_ext_f2();	/* doesnt clip, drawobject.c */
+		calc_meshverts_ext_f2();	/* doesnt clip, drawobject.c */
 		index= em_solidoffs;
+		
 		/* two stages, for nice edge select first do 'both points in rect' 
-			unless bbsel is true */
+			also when bbsel is true */
 		for(eed= em->edges.first; eed; eed= eed->next, index++) {
 			if(eed->h==0) {
-				if(bbsel) {
-					if(EM_check_backbuf_border(index)) {
-						EM_select_edge(eed, select);
-						done= 1;
-					}
-				}
-				else if(edge_fully_inside_rect(rect, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {
+				if(edge_fully_inside_rect(rect, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {
 					if(lasso_inside(mcords, moves, eed->v1->xs, eed->v1->ys)) {
 						if(lasso_inside(mcords, moves, eed->v2->xs, eed->v2->ys)) {
-							EM_select_edge(eed, select);
-							done = 1;
+							if(EM_check_backbuf_border(index)) {
+								EM_select_edge(eed, select);
+								done = 1;
+							}
 						}
 					}
 				}
 			}
 		}
 		
-		if(bbsel==0 && done==0) {
+		if(done==0) {
 			index= em_solidoffs;
 			for(eed= em->edges.first; eed; eed= eed->next, index++) {
 				if(eed->h==0) {
-					if(lasso_inside_edge(mcords, moves, &eed->v1->xs, &eed->v2->xs)) {
+					if(bbsel) {
+						if(EM_check_backbuf_border(index))
+							EM_select_edge(eed, select);
+					}
+					else if(lasso_inside_edge(mcords, moves, &eed->v1->xs, &eed->v2->xs)) {
 						EM_select_edge(eed, select);
-						done = 1;
 					}
 				}
 			}
@@ -1094,13 +1094,13 @@ void borderselect(void)
 				if(G.scene->selectmode & SCE_SELECT_EDGE) {
 					short done= 0;
 					
-					if(bbsel==0) calc_meshverts_ext_f2();	/* doesnt clip, drawobject.c */
+					calc_meshverts_ext_f2();	/* doesnt clip, drawobject.c */
 					index= em_solidoffs;
 					/* two stages, for nice edge select first do 'both points in rect'
-					   unless bbsel is true */
+					   also when bbsel is true */
 					for(eed= em->edges.first; eed; eed= eed->next, index++) {
 						if(eed->h==0) {
-							if(bbsel || edge_fully_inside_rect(rect, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {
+							if(edge_fully_inside_rect(rect, eed->v1->xs, eed->v1->ys, eed->v2->xs, eed->v2->ys)) {
 								if(EM_check_backbuf_border(index)) {
 									EM_select_edge(eed, val==LEFTMOUSE);
 									done = 1;
@@ -1108,14 +1108,17 @@ void borderselect(void)
 							}
 						}
 					}
-					
-					if(bbsel==0 && done==0) {
+
+					if(done==0) {
 						index= em_solidoffs;
 						for(eed= em->edges.first; eed; eed= eed->next, index++) {
 							if(eed->h==0) {
-								if(edge_inside_rect(rect, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {
+								if(bbsel) {
+									if(EM_check_backbuf_border(index))
+										EM_select_edge(eed, val==LEFTMOUSE);
+								}
+								else if(edge_inside_rect(rect, eed->v1->xs, eed->v1->ys, eed->v2->xs, eed->v2->ys)) {
 									EM_select_edge(eed, val==LEFTMOUSE);
-									done = 1;
 								}
 							}
 						}

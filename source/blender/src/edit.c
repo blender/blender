@@ -152,11 +152,6 @@ int get_border(rcti *rect, short col)
 
 	while(TRUE) {
 	
-		/* for when a renderwindow is open, and a mouse cursor activates it */
-		persp(PERSP_VIEW);
-		mywinset(curarea->win);
-		persp(PERSP_WIN);
-		
 		/* selection loop while mouse pressed */
 		getmouseco_areawin(mval);
 
@@ -173,6 +168,12 @@ int get_border(rcti *rect, short col)
 		event= extern_qread(&val);
 
 		if(event && val) {
+
+			/* for when a renderwindow is open, and a mouse cursor activates it */
+			persp(PERSP_VIEW);
+			mywinset(curarea->win);
+			persp(PERSP_WIN);
+			
 			if(event==ESCKEY) {
 				retval= 0;
 				break;
@@ -277,12 +278,12 @@ int get_border(rcti *rect, short col)
 			
 			event= extern_qread(&val);
 			
-			/* still because of the renderwindow... */
-			persp(PERSP_VIEW);
-			mywinset(curarea->win);
-			persp(PERSP_WIN);
+			if(event && val==0) {
+				/* still because of the renderwindow... */
+				persp(PERSP_VIEW);
+				mywinset(curarea->win);
+				persp(PERSP_WIN);
 				
-			if(val==0) {
 				if(event==ESCKEY) {
 					retval= 0;
 					break;

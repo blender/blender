@@ -171,7 +171,7 @@ struct _HyperVert {
 	HyperVert *next;
 	
 	float co[3];
-	float *orig;	// if set, pointer to original vertex, for handles
+	EditVert *orig;	// if set, pointer to original vertex
 	HyperVert *nmv;
 	LinkNode *edges, *faces;
 };
@@ -256,7 +256,7 @@ static HyperVert *hyperedge_other_vert(HyperEdge *e, HyperVert *a) {
 	return (a==e->v[0])?e->v[1]:e->v[0];
 }
 
-static HyperVert *hypermesh_add_vert(HyperMesh *hme, float *co, float *orig) {
+static HyperVert *hypermesh_add_vert(HyperMesh *hme, float *co, EditVert *orig) {
 	HyperVert *hv= BLI_memarena_alloc(hme->arena, sizeof(*hv));
 	
 	hv->nmv= NULL;
@@ -454,11 +454,11 @@ static HyperMesh *hypermesh_from_editmesh(EditMesh *em, int subdivLevels) {
 	for (ee= em->edges.first; ee; ee= ee->next) {
 
 		if(ee->v1->f1) {
-			ee->v1->prev= (EditVert*) hypermesh_add_vert(hme, ee->v1->co, ee->v1->co);
+			ee->v1->prev= (EditVert*) hypermesh_add_vert(hme, ee->v1->co, ee->v1);
 			ee->v1->f1= 0;
 		}
 		if(ee->v2->f1) {
-			ee->v2->prev= (EditVert*) hypermesh_add_vert(hme, ee->v2->co, ee->v2->co);
+			ee->v2->prev= (EditVert*) hypermesh_add_vert(hme, ee->v2->co, ee->v2);
 			ee->v2->f1= 0;
 		}
 		if((ee->h & 1)==0) {
@@ -899,16 +899,6 @@ static int hypermesh_get_nverts(HyperMesh *hme) {
 	return count;
 }
 
-static int hypermesh_get_nverts_handles(HyperMesh *hme) {
-	HyperVert *v;
-	int count= 0;
-	
-	for (v= hme->verts; v; v= v->next)
-		if(v->orig) count++;
-	
-	return count;
-}
-
 static int hypermesh_get_nfaces(HyperMesh *hme) {
 	HyperFace *f;
 	int count= 0;
@@ -929,7 +919,7 @@ static int hypermesh_get_nedges(HyperMesh *hme) {
 	return count;
 }
 
-/* flag is me->flag, for handles and 'optim' */
+/* flag is me->flag, for 'optim' */
 static DispListMesh *hypermesh_to_displistmesh(HyperMesh *hme, short flag) {
 	int nverts= hypermesh_get_nverts(hme);
 	int nedges= hypermesh_get_nedges(hme);
@@ -941,7 +931,7 @@ static DispListMesh *hypermesh_to_displistmesh(HyperMesh *hme, short flag) {
 	TFace *tfaces;
 	MEdge *med;
 	MFace *mfaces, *mf;
-	int i, j, handles=0;
+	int i, j;
 
 		/* hme->orig_me==NULL if we are working on an editmesh */
 	if (hme->orig_me) {
@@ -952,14 +942,10 @@ static DispListMesh *hypermesh_to_displistmesh(HyperMesh *hme, short flag) {
 		mfaces= NULL;
 	}
 
-	/* added: handles for editmode */
-	if (hme->orig_me==NULL && (flag & ME_OPT_EDGES)) {
-		handles= hypermesh_get_nverts_handles(hme);
-	}
-	
-	dlm->totvert= nverts+handles;
+	/* removed: handles for editmode. it now stores pointer to subsurfed vertex in editvert */
+	dlm->totvert= nverts;
 	dlm->totface= nfaces;
-	dlm->totedge= nedges+handles;
+	dlm->totedge= nedges;
 	
 	/* calloc for clear flag and nor in mvert */
 	dlm->mvert= MEM_callocN(dlm->totvert*sizeof(*dlm->mvert), "dlm->mvert");
@@ -999,23 +985,11 @@ static DispListMesh *hypermesh_to_displistmesh(HyperMesh *hme, short flag) {
 		if(e->flag & HE_SEAM) med->flag |= ME_SEAM;
 	}
 	
-	/* and we add the handles (med is re-used) */
-	if(handles) {
-		MVert *mv= dlm->mvert+nverts;
-
-		i= nverts;
-		for (v= hme->verts; v; v= v->next) {
-			if(v->orig) {
-				/* new vertex */
-				Vec3Cpy(mv->co, v->orig);
-
-				/* new edge */
-				med->v1= (int) v->nmv;
-				med->v2= i;
-				med->flag = ME_EDGEDRAW;
-				
-				med++; i++; mv++;
-			}
+	/* and we add pointer to subsurfed vertex in editvert */
+	if(hme->orig_me==NULL) {
+		MVert *mv= dlm->mvert;
+		for (v= hme->verts; v; v= v->next, mv++) {
+			if(v->orig) v->orig->ssco= mv->co;
 		}
 	}
 
@@ -1094,7 +1068,7 @@ static DispListMesh *hypermesh_to_displistmesh(HyperMesh *hme, short flag) {
 	return dlm;
 }
 
-/* flag is me->flag, for handles and 'optim' */
+/* flag is me->flag, and 'optim' */
 static DispListMesh *subsurf_subdivide_to_displistmesh(HyperMesh *hme, short subdiv,
 												short flag, short type) {
 	DispListMesh *dlm;

@@ -543,8 +543,7 @@ void extrude_mesh(void)
 	}
 	else {
 		EM_fgon_flags();
-		countall();  /* for G.totvert in calc_meshverts() */
-		calc_meshverts();
+		countall(); 
 		transform('n');
 	}
 

@@ -957,6 +957,16 @@ static void drawlattice(Object *ob)
 
 /* ***************** ******************** */
 
+int subsurf_optimal(Object *ob)
+{
+	if(ob->type==OB_MESH) {
+		Mesh *me= ob->data;
+		if( (me->flag & ME_OPT_EDGES) && (me->flag & ME_SUBSURF) && me->subdiv) return 1;
+	}
+	return 0;
+}
+
+
 void calc_mesh_facedots_ext(void)
 {
 	EditMesh *em = G.editMesh;
@@ -987,7 +997,7 @@ void calc_mesh_facedots_ext(void)
 }
 
 /* window coord, assuming all matrices are set OK */
-void calc_meshverts(void)
+static void calc_meshverts(void)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
@@ -999,12 +1009,15 @@ void calc_meshverts(void)
 	MTC_Mat4SwapMat4(G.vd->persmat, mat);
 	mygetsingmatrix(G.vd->persmat);
 
-	eve= em->verts.first;
-	while(eve) {
-		if(eve->h==0) {
-			project_short(eve->co, &(eve->xs));
+	if(subsurf_optimal(G.obedit)) { // separate loop for speed 
+		for(eve= em->verts.first; eve; eve= eve->next) {
+			if(eve->h==0 && eve->ssco) project_short(eve->ssco, &(eve->xs));
 		}
-		eve= eve->next;
+	}
+	else {
+		for(eve= em->verts.first; eve; eve= eve->next) {
+			if(eve->h==0) project_short(eve->co, &(eve->xs));
+		}
 	}
 	MTC_Mat4SwapMat4(G.vd->persmat, mat);
 }
@@ -1028,6 +1041,7 @@ void calc_meshverts_ext_f2(void)
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	float mat[4][4];
+	int optimal= subsurf_optimal(G.obedit);
 	
 	if(em->verts.first==0) return;
 	eve= em->verts.first;
@@ -1040,15 +1054,15 @@ void calc_meshverts_ext_f2(void)
 	MTC_Mat4SwapMat4(G.vd->persmat, mat);
 	mygetsingmatrix(G.vd->persmat);
 
-	eve= em->verts.first;
-	while(eve) {
+	for(eve= em->verts.first; eve; eve= eve->next) {
 		eve->f &= ~2;
 		if(eve->h==0) {
-			project_short_noclip(eve->co, &(eve->xs));
+			if(optimal && eve->ssco) project_short_noclip(eve->ssco, &(eve->xs));
+			else project_short_noclip(eve->co, &(eve->xs));
+	
 			if( eve->xs >= 0 && eve->ys >= 0 && eve->xs<curarea->winx && eve->ys<curarea->winy);
 			else eve->f |= 2;
 		}
-		eve= eve->next;
 	}
 	
 	/* restore */
@@ -1106,7 +1120,7 @@ void calc_nurbverts_ext(void)
 	
 }
 
-static void draw_vertices(short sel)
+static void draw_vertices(int optimal, int sel)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
@@ -1143,8 +1157,16 @@ static void draw_vertices(short sel)
 				glColor4ub(col[0], col[1], col[2], 100);
 				
 				bglBegin(GL_POINTS);
-				for(eve= em->verts.first; eve; eve= eve->next) {
-					if(eve->h==0 && (eve->f & SELECT)==sel ) bglVertex3fv(eve->co);
+				if(optimal) {
+					for(eve= em->verts.first; eve; eve= eve->next) {
+						if(eve->h==0 && (eve->f & SELECT)==sel ) 
+							if(eve->ssco) bglVertex3fv(eve->ssco);
+					}
+				}
+				else {
+					for(eve= em->verts.first; eve; eve= eve->next) {
+						if(eve->h==0 && (eve->f & SELECT)==sel ) bglVertex3fv(eve->co);
+					}
 				}
 				bglEnd();
 			}
@@ -1172,42 +1194,20 @@ static void draw_vertices(short sel)
 
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 
-		if(0) {// test
-			float mat[4][4], persmat[4][4], vec4[4];
-			float zval;
-			
-			glFinish();	// maybe for pending polygons
-			
-			// remake because of polygon offs
-			glMatrixMode(GL_PROJECTION);
-			glGetFloatv(GL_PROJECTION_MATRIX, (float *)mat);
-			glMatrixMode(GL_MODELVIEW);
-			Mat4MulMat4(persmat, G.vd->viewmat, mat);	
-
-			for(eve= em->verts.first; eve; eve= eve->next) {
-				if(eve->h==0 && (eve->f & SELECT) ) {
-					
-					VECCOPY(vec4, eve->co);
-					vec4[3]= 1.0;
-					Mat4MulVec4fl(persmat, vec4);
-					vec4[2]/= vec4[3];
-					vec4[2]= 0.5 + vec4[2]/2;
-					// test; read 9 pixels
-					glReadPixels(curarea->winrct.xmin+eve->xs,  curarea->winrct.ymin+eve->ys, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT,  &zval);
-					
-					//printf("my proj %f zbuf %f mydiff %f\n", vec4[2], zval, vec4[2]-zval);
-					if( vec4[2]-zval > 0.0) eve->xs= 3200;
-				}
-			}
-		}
-
 		glPointSize(size);
 		glColor3ub(col[0], col[1], col[2]);
 
 		bglBegin(GL_POINTS);
-		for(eve= em->verts.first; eve; eve= eve->next) {
-			if(eve->xs!=3200)
-			if(eve->h==0 && (eve->f & SELECT)==sel ) bglVertex3fv(eve->co);
+		if(optimal) {
+			for(eve= em->verts.first; eve; eve= eve->next) {
+				if(eve->h==0 && (eve->f & SELECT)==sel ) 
+					if(eve->ssco) bglVertex3fv(eve->ssco);
+			}
+		}
+		else {
+			for(eve= em->verts.first; eve; eve= eve->next) {
+				if(eve->h==0 && (eve->f & SELECT)==sel ) bglVertex3fv(eve->co);
+			}
 		}
 		bglEnd();
 		
@@ -2520,7 +2520,7 @@ static void drawmeshwire(Object *ob)
 	EditEdge *eed;
 	EditFace *efa;
 	float fvec[3], *f1, *f2, *f3, *f4, *extverts=NULL;
-	int a, start, end, test, ok, handles=0;
+	int a, start, end, test, ok, optimal=0;
 
 	me= get_mesh(ob);
 
@@ -2529,7 +2529,7 @@ static void drawmeshwire(Object *ob)
 		DispListMesh *dlm= NULL;
 		if(dl) dlm= dl->mesh;
 		
-		if( (me->flag & ME_OPT_EDGES) && (me->flag & ME_SUBSURF) && me->subdiv) handles= 1;
+		optimal= subsurf_optimal(ob);
 		
 		if( (G.f & (G_FACESELECT+G_DRAWFACES))) {	/* transp faces */
 			char col1[4], col2[4];
@@ -2541,7 +2541,7 @@ static void drawmeshwire(Object *ob)
 			glEnable(GL_BLEND);
 			glDepthMask(0);		// disable write in zbuffer, needed for nice transp
 			
-			if(dlm && handles) {
+			if(dlm && optimal) {
 				for(a=0, mface= dlm->mface; a<dlm->totface; a++, mface++) {
 					if(mface->v3) {
 						efa= dlm->editface[a];
@@ -2582,12 +2582,12 @@ static void drawmeshwire(Object *ob)
 		if(mesh_uses_displist(me)) {
 			
 			/* dont draw the subsurf when solid... then this is a 'drawextra' */
-			if(handles==0 && ob->dt>OB_WIRE && G.vd->drawtype>OB_WIRE);
+			if(optimal==0 && ob->dt>OB_WIRE && G.vd->drawtype>OB_WIRE);
 			else {
 				/* don't draw in edge/face mode */
-				if(handles && (G.scene->selectmode & SCE_SELECT_VERTEX)==0);
+				if(optimal && (G.scene->selectmode & SCE_SELECT_VERTEX)==0);
 				else {
-					if(handles) BIF_ThemeColor(TH_WIRE);
+					if(optimal) BIF_ThemeColor(TH_WIRE);
 					else BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
 						
 					drawDispListwire(&me->disp);
@@ -2598,7 +2598,7 @@ static void drawmeshwire(Object *ob)
 		if(G.scene->selectmode == SCE_SELECT_FACE) {
 		
 			glBegin(GL_LINES);
-			if(dlm && handles) {
+			if(dlm && optimal) {
 				MEdge *medge= dlm->medge;
 				MVert *mvert= dlm->mvert;
 				
@@ -2659,7 +2659,7 @@ static void drawmeshwire(Object *ob)
 			}
 			else {
 				glBegin(GL_LINES);
-				if(dlm && handles) {
+				if(dlm && optimal) {
 					MEdge *medge= dlm->medge;
 					MVert *mvert= dlm->mvert;
 					
@@ -2689,7 +2689,7 @@ static void drawmeshwire(Object *ob)
 				glEnd();
 			}
 		}
-		else if(handles==0) {
+		else if(optimal==0) {
 			BIF_ThemeColor(TH_WIRE);
 			glBegin(GL_LINES);
 			for(eed= em->edges.first; eed; eed= eed->next) {
@@ -2703,7 +2703,7 @@ static void drawmeshwire(Object *ob)
 
 		if(G.f & G_DRAWCREASES) drawmeshwire_creases();
 		
-		if(handles==0 && G.f & G_DRAWSEAMS) {
+		if(optimal==0 && G.f & G_DRAWSEAMS) {
 			BIF_ThemeColor(TH_EDGE_SEAM);
 			glLineWidth(2);
 
@@ -2724,8 +2724,8 @@ static void drawmeshwire(Object *ob)
 		
 		calc_meshverts();
 
-		draw_vertices(0);
-		draw_vertices(1);
+		draw_vertices(optimal, 0);
+		draw_vertices(optimal, 1);
 
 		if(G.f & G_DRAWNORMALS) {	/* normals */
 			/*cpack(0xDDDD22);*/
@@ -4099,7 +4099,7 @@ void draw_object(Base *base)
 				else {
 					drawmeshsolid(ob, 0);
 				}
-				dtx |= OB_DRAWWIRE;	// draws edges, transp faces, subsurf handles, vertices
+				dtx |= OB_DRAWWIRE;	// draws edges, transp faces, subsurf optimal, vertices
 			}
 			if(ob==G.obedit && (G.f & G_PROPORTIONAL)) draw_prop_circle();
 		}
@@ -4345,7 +4345,7 @@ void draw_object_ext(Base *base)
 static int bbs_mesh_verts(Object *ob, int offset)
 {
 	EditVert *eve;
-	int a= offset;
+	int a= offset, optimal= subsurf_optimal(ob);
 	
 	glPointSize( BIF_GetThemeValuef(TH_VERTEX_SIZE) );
 	
@@ -4353,7 +4353,8 @@ static int bbs_mesh_verts(Object *ob, int offset)
 	for(eve= G.editMesh->verts.first; eve; eve= eve->next, a++) {
 		if(eve->h==0) {
 			cpack( index_to_framebuffer(a) );
-			bglVertex3fv(eve->co);
+			if(optimal && eve->ssco) bglVertex3fv(eve->ssco);
+			else bglVertex3fv(eve->co);
 		}
 	}
 	bglEnd();
@@ -4372,7 +4373,7 @@ static int bbs_mesh_wire(Object *ob, int offset)
 	int index, b, retval, optimal=0;
 
 	if(dl) dlm= dl->mesh;
-	if( (me->flag & ME_OPT_EDGES) && (me->flag & ME_SUBSURF) && me->subdiv) optimal= 1;
+	optimal= subsurf_optimal(ob);
 	
 	if(dlm && optimal) {
 		MEdge *medge= dlm->medge;

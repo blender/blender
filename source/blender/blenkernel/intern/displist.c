@@ -109,6 +109,7 @@ struct _FastLamp {
 static FastLamp *fastlamplist= NULL;
 static float fviewmat[4][4];
 
+/* only called from subsurf.c when levels is zero */
 DispListMesh *displistmesh_from_editmesh(EditMesh *em) 
 {
 	DispListMesh *dlm= MEM_callocN(sizeof(*dlm),"dlm");
@@ -130,6 +131,7 @@ DispListMesh *displistmesh_from_editmesh(EditMesh *em)
 	for (eve= em->verts.first; eve; eve= eve->next, i++) {
 		MVert *mvNew= &dlm->mvert[i];
 		VECCOPY(mvNew->co, eve->co);
+		eve->ssco= eve->co;		/* no subsurf coordinate, but we add a save pointer in it */
 		eve->prev= (void*) i;	/* hack to fetch indices */
 	}
 
