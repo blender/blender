@@ -4571,7 +4571,7 @@ void apply_keyb_grid(float *val, float fac1, float fac2, float fac3, int invert)
 	}
 }
 
-
+/* exported to transform.c */
 void compatible_eul(float *eul, float *oldrot)
 {
 	float dx, dy, dz;

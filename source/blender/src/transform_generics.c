@@ -221,7 +221,7 @@ void recalcData(TransInfo *t)
 			}
 		}
 		else if (G.obedit->type == OB_MBALL) {
-     		makeDispList(G.obedit);	
+	 		makeDispList(G.obedit);	
   		}   	
 	}
 	else {
@@ -351,14 +351,20 @@ void drawLine(float *center, float *dir, char axis)
 void postTrans (TransInfo *t) 
 {
 	TransDataExtension *tx = t->data->ext;
+	TransData *td;
+	int a;
+	
 	G.moving = 0; // Set moving flag off (display as usual)
 
+	/* since ipokeys are optional on objects, we mallocced them per trans-data */
+	for(a=0, td= t->data; a<t->total; a++, td++) {
+		if(td->tdi) MEM_freeN(td->tdi);
+	}
+	
 	MEM_freeN(t->data);
 	t->data = NULL;
 
-	if (tx) {
-		MEM_freeN(tx);
-	}
+	if (tx) MEM_freeN(tx);
 	
 }
 
@@ -421,38 +427,67 @@ void apply_grid2(float *val, int max_index, float factor, float factor2)
 
 void applyTransObjects(TransInfo *t)
 {
-    TransData *tob;
-	for (tob = t->data; tob < t->data + t->total; tob++) {
-        VECCOPY(tob->iloc, tob->loc);
-		if (tob->ext->rot) {
-			VECCOPY(tob->ext->irot, tob->ext->rot);
+	TransData *td;
+	
+	for (td = t->data; td < t->data + t->total; td++) {
+		VECCOPY(td->iloc, td->loc);
+		if (td->ext->rot) {
+			VECCOPY(td->ext->irot, td->ext->rot);
 		}
-		if (tob->ext->size) {
-			VECCOPY(tob->ext->isize, tob->ext->size);
+		if (td->ext->size) {
+			VECCOPY(td->ext->isize, td->ext->size);
 		}
-    }    
+	}	
 	recalcData(t);
 } 
 
+/* helper for below */
+static void restore_ipokey(float *poin, float *old)
+{
+	if(poin) {
+		poin[0]= old[0];
+		poin[-3]= old[3];
+		poin[3]= old[6];
+	}
+}
+
 void restoreTransObjects(TransInfo *t)
 {
-    TransData *tob;
-	for (tob = t->data; tob < t->data + t->total; tob++) {
-        VECCOPY(tob->loc, tob->iloc);
-		if (tob->ext) {
-			if (tob->ext->rot) {
-				VECCOPY(tob->ext->rot, tob->ext->irot);
+	TransData *td;
+	
+	for (td = t->data; td < t->data + t->total; td++) {
+		VECCOPY(td->loc, td->iloc);
+		
+		if (td->ext) {
+			if (td->ext->rot) {
+				VECCOPY(td->ext->rot, td->ext->irot);
 			}
-			if (tob->ext->size) {
-				VECCOPY(tob->ext->size, tob->ext->isize);
+			if (td->ext->size) {
+				VECCOPY(td->ext->size, td->ext->isize);
 			}
-			if(tob->flag & TD_USEQUAT) {
-				if (tob->ext->quat) {
-					QUATCOPY(tob->ext->quat, tob->ext->iquat);
+			if(td->flag & TD_USEQUAT) {
+				if (td->ext->quat) {
+					QUATCOPY(td->ext->quat, td->ext->iquat);
 				}
 			}
 		}
-    }    
+		if(td->tdi) {
+			TransDataIpokey *tdi= td->tdi;
+			
+			restore_ipokey(tdi->locx, tdi->oldloc);
+			restore_ipokey(tdi->locy, tdi->oldloc+1);
+			restore_ipokey(tdi->locz, tdi->oldloc+2);
+
+			restore_ipokey(tdi->rotx, tdi->oldrot);
+			restore_ipokey(tdi->roty, tdi->oldrot+1);
+			restore_ipokey(tdi->rotz, tdi->oldrot+2);
+			
+			restore_ipokey(tdi->sizex, tdi->oldsize);
+			restore_ipokey(tdi->sizey, tdi->oldsize+1);
+			restore_ipokey(tdi->sizez, tdi->oldsize+2);
+		}
+		
+	}	
 	recalcData(t);
 } 
 

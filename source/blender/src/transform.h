@@ -55,16 +55,30 @@ typedef struct TransCon {
                          /* Apply function pointer for rotation transformation (prototype will change */
 } TransCon;
 
+typedef struct TransDataIpokey {
+	int flag;					/* which keys */
+	float *locx, *locy, *locz;	/* channel pointers */
+	float *rotx, *roty, *rotz;
+	float *quatx, *quaty, *quatz, *quatw;
+	float *sizex, *sizey, *sizez;
+	float oldloc[9];			/* storage old values */
+	float oldrot[9];
+	float oldsize[9];
+	float oldquat[12];
+} TransDataIpokey;
+
 typedef struct TransDataExtension {
+	float drot[3];		 /* Initial object drot */
+	float dsize[3];		 /* Initial object dsize */
     float *rot;          /* Rotation of the data to transform (Faculative)                                 */
     float  irot[3];      /* Initial rotation                                                               */
     float *quat;         /* Rotation quaternion of the data to transform (Faculative)                      */
     float  iquat[4];	 /* Initial rotation quaternion                                                    */
     float *size;         /* Size of the data to transform (Faculative)                                     */
     float  isize[3];	 /* Initial size                                                                   */
-	float  obmat[3][3];	 /* Object matrix */
+	float  obmat[3][3];	 /* Object matrix */  
 
-	void *bone;			/* BWARGH! old transform demanded it, added for now (ton) */
+	void *bone;			/* ARGH! old transform demanded it, added for now (ton) */
 } TransDataExtension;
 
 typedef struct TransData {
@@ -76,7 +90,8 @@ typedef struct TransData {
     float  mtx[3][3];    /* Transformation matrix from data space to global space                          */
     float  smtx[3][3];   /* Transformation matrix from global space to data space                          */
 	struct Object *ob;
-	struct TransDataExtension *ext;
+	TransDataExtension *ext;	/* for objects, poses. 1 single malloc per TransInfo! */
+	TransDataIpokey *tdi;		/* for objects, ipo keys. per transdata a malloc */
     int    flag;         /* Various flags */
 } TransData;
 

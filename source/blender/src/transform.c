@@ -85,10 +85,12 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
+#include "BKE_blender.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_ipo.h"
 #include "BKE_lattice.h"
 #include "BKE_mball.h"
 #include "BKE_object.h"
@@ -96,6 +98,8 @@
 
 #include "BSE_view.h"
 #include "BSE_edit.h"
+#include "BSE_editipo.h"
+#include "BSE_editipo_types.h"
 #include "BDR_editobject.h"		// reset_slowparents()
 
 #include "BLI_arithb.h"
@@ -263,8 +267,10 @@ static void createTransPose(void)
 	/* init trans data */
     td = Trans.data = MEM_mallocN(Trans.total*sizeof(TransData), "TransPoseBone");
     tdx = MEM_mallocN(Trans.total*sizeof(TransDataExtension), "TransPoseBoneExt");
-	for(i=0; i<Trans.total; i++, td++, tdx++) td->ext= tdx;
-	
+	for(i=0; i<Trans.total; i++, td++, tdx++) {
+		td->ext= tdx;
+		td->tdi = NULL;
+	}	
 	/* recursive fill trans data */
 	td= Trans.data;
 	add_pose_transdata(&arm->bonebase, G.obpose, &td);
@@ -304,6 +310,7 @@ static void createTransArmatureVerts(void)
 			Mat3CpyMat3(td->mtx, mtx);
 
 			td->ext = NULL;
+			td->tdi = NULL;
 
 			td->dist = 0.0f;
 			
@@ -318,6 +325,7 @@ static void createTransArmatureVerts(void)
 			Mat3CpyMat3(td->mtx, mtx);
 
 			td->ext = NULL;
+			td->tdi = NULL;
 
 			td->dist = 0.0f;
 		
@@ -356,6 +364,7 @@ static void createTransMBallVerts(void)
 			Mat3CpyMat3(td->mtx, mtx);
 
 			td->ext = tx;
+			td->tdi = NULL;
 
 			tx->size = &ml->expx;
 			tx->isize[0] = ml->expx;
@@ -405,6 +414,7 @@ static void createTransCurveVerts(void)
 						VECCOPY(td->center, td->loc);
 						td->flag= TD_SELECTED;
 						td->ext = NULL;
+						td->tdi = NULL;
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
@@ -420,6 +430,7 @@ static void createTransCurveVerts(void)
 						VECCOPY(td->center, td->loc);
 						td->flag= TD_SELECTED;
 						td->ext = NULL;
+						td->tdi = NULL;
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
@@ -435,6 +446,7 @@ static void createTransCurveVerts(void)
 						VECCOPY(td->center, td->loc);
 						td->flag= TD_SELECTED;
 						td->ext = NULL;
+						td->tdi = NULL;
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
@@ -459,6 +471,7 @@ static void createTransCurveVerts(void)
 						VECCOPY(td->center, td->loc);
 						td->flag= TD_SELECTED;
 						td->ext = NULL;
+						td->tdi = NULL;
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
@@ -512,6 +525,7 @@ static void createTransLatticeVerts(void)
 				Mat3CpyMat3(td->mtx, mtx);
 
 				td->ext = NULL;
+				td->tdi = NULL;
 
 				td->dist = 0.0f;
 
@@ -523,13 +537,14 @@ static void createTransLatticeVerts(void)
 	}
 } 
 
-static void VertsToTransData(TransData *tob, EditVert *eve)
+static void VertsToTransData(TransData *td, EditVert *eve)
 {
-	tob->flag = 0;
-	tob->loc = eve->co;
-	VECCOPY(tob->center, tob->loc);
-	VECCOPY(tob->iloc, tob->loc);
-	tob->ext = NULL;
+	td->flag = 0;
+	td->loc = eve->co;
+	VECCOPY(td->center, td->loc);
+	VECCOPY(td->iloc, td->loc);
+	td->ext = NULL;
+	td->tdi = NULL;
 }
 
 static void createTransEditVerts(void)
@@ -648,9 +663,98 @@ static void createTransEditVerts(void)
 	}
 }
 
+/* **************** IpoKey stuff, for Object TransData ********** */
+
+/* storage of bezier triple. thats why -3 and +3! */
+static void set_tdi_old(float *old, float *poin)
+{
+	old[0]= *(poin);
+	old[3]= *(poin-3);
+	old[6]= *(poin+3);
+}
+
+/* while transforming */
+static void add_tdi_poin(float *poin, float *old, float delta)
+{
+	if(poin) {
+		poin[0]= old[0]+delta;
+		poin[-3]= old[3]+delta;
+		poin[3]= old[6]+delta;
+	}
+}
+
+/* fill ipokey transdata with old vals and pointers */
+static void ipokey_to_transdata(IpoKey *ik, TransData *td)
+{
+	extern int ob_ar[];		// blenkernel ipo.c
+	TransDataIpokey *tdi= td->tdi;
+	BezTriple *bezt;
+	int a, delta= 0;
+	
+	for(a=0; a<OB_TOTIPO; a++) {
+		if(ik->data[a]) {
+			bezt= ik->data[a];
+			
+			switch( ob_ar[a] ) {
+				case OB_LOC_X:
+				case OB_DLOC_X:
+					tdi->locx= &(bezt->vec[1][1]); break;
+				case OB_LOC_Y:
+				case OB_DLOC_Y:
+					tdi->locy= &(bezt->vec[1][1]); break;
+				case OB_LOC_Z:
+				case OB_DLOC_Z:
+					tdi->locz= &(bezt->vec[1][1]); break;
+					
+				case OB_DROT_X:
+					delta= 1;
+				case OB_ROT_X:
+					tdi->rotx= &(bezt->vec[1][1]); break;
+				case OB_DROT_Y:
+					delta= 1;
+				case OB_ROT_Y:
+					tdi->roty= &(bezt->vec[1][1]); break;
+				case OB_DROT_Z:
+					delta= 1;
+				case OB_ROT_Z:
+					tdi->rotz= &(bezt->vec[1][1]); break;
+					
+				case OB_SIZE_X:
+				case OB_DSIZE_X:
+					tdi->sizex= &(bezt->vec[1][1]); break;
+				case OB_SIZE_Y:
+				case OB_DSIZE_Y:
+					tdi->sizey= &(bezt->vec[1][1]); break;
+				case OB_SIZE_Z:
+				case OB_DSIZE_Z:
+					tdi->sizez= &(bezt->vec[1][1]); break;		
+			}	
+		}
+	}
+	
+	/* oldvals for e.g. undo */
+	if(tdi->locx) set_tdi_old(tdi->oldloc, tdi->locx);
+	if(tdi->locy) set_tdi_old(tdi->oldloc+1, tdi->locy);
+	if(tdi->locz) set_tdi_old(tdi->oldloc+2, tdi->locz);
+	
+	/* remember, for mapping curves ('1'=10 degrees)  */
+	if(tdi->rotx) set_tdi_old(tdi->oldrot, tdi->rotx);
+	if(tdi->roty) set_tdi_old(tdi->oldrot+1, tdi->roty);
+	if(tdi->rotz) set_tdi_old(tdi->oldrot+2, tdi->rotz);
+	
+	/* this is not allowed to be dsize! */
+	if(tdi->sizex) set_tdi_old(tdi->oldsize, tdi->sizex);
+	if(tdi->sizey) set_tdi_old(tdi->oldsize+1, tdi->sizey);
+	if(tdi->sizez) set_tdi_old(tdi->oldsize+2, tdi->sizez);
+	
+	tdi->flag= TOB_IPO;
+	if(delta) tdi->flag |= TOB_IPODROT;
+}
+
+
 /* *************************** Object Transform data ******************* */
 
-static void ObjectToTransData(TransData *tob, Object *ob) 
+static void ObjectToTransData(TransData *td, Object *ob) 
 {
 	float obmtx[3][3];
 	Object *tr;
@@ -670,37 +774,39 @@ static void ObjectToTransData(TransData *tob, Object *ob)
 	ob->constraints.first = cfirst;
 	ob->constraints.last = clast;
 
-	tob->ob = ob;
+	td->ob = ob;
 
-	tob->loc = ob->loc;
-	VECCOPY(tob->iloc, tob->loc);
+	td->loc = ob->loc;
+	VECCOPY(td->iloc, td->loc);
 	
-	tob->ext->rot = ob->rot;
-	VECCOPY(tob->ext->irot, ob->rot);
+	td->ext->rot = ob->rot;
+	VECCOPY(td->ext->irot, ob->rot);
+	VECCOPY(td->ext->drot, ob->drot);
 	
-	tob->ext->size = ob->size;
-	VECCOPY(tob->ext->isize, ob->size);
+	td->ext->size = ob->size;
+	VECCOPY(td->ext->isize, ob->size);
+	VECCOPY(td->ext->dsize, ob->dsize);
 
-	VECCOPY(tob->center, ob->obmat[3]);
+	VECCOPY(td->center, ob->obmat[3]);
 
-	Mat3CpyMat4(tob->mtx, ob->obmat);
+	Mat3CpyMat4(td->mtx, ob->obmat);
 
 	object_to_mat3(ob, obmtx);
 
 	/*
 	Mat3CpyMat4(totmat, ob->obmat);
 	Mat3Inv(obinv, totmat);
-	Mat3MulMat3(tob->smtx, obmtx, obinv);
+	Mat3MulMat3(td->smtx, obmtx, obinv);
 	*/
 	if (ob->parent)
 	{
-		Mat3CpyMat4(tob->mtx, ob->parent->obmat);
-		Mat3Inv(tob->smtx, tob->mtx);
+		Mat3CpyMat4(td->mtx, ob->parent->obmat);
+		Mat3Inv(td->smtx, td->mtx);
 	}
 	else
 	{
-		Mat3One(tob->smtx);
-		Mat3One(tob->mtx);
+		Mat3One(td->smtx);
+		Mat3One(td->mtx);
 	}
 }
 
@@ -863,12 +969,13 @@ static void clear_trans_object_base_flags(void)
 
 static void createTransObject(void)
 {
-	TransData *tob = NULL;
+	TransData *td = NULL;
 	TransDataExtension *tx;
 	Object *ob;
 	Base *base;
-	int totsel= 0;
-
+	IpoKey *ik;
+	ListBase elems;
+	
 	/* hackish... but we have to do it somewhere */
 	reset_slowparents();
 	
@@ -877,8 +984,22 @@ static void createTransObject(void)
 	/* count */	
 	for(base= FIRSTBASE; base; base= base->next) {
 		if TESTBASELIB(base) {
-			Trans.total++;
-			totsel++;
+			ob= base->object;
+			
+			/* store ipo keys? */
+			if(ob->ipo && ob->ipo->showkey && (ob->ipoflag & OB_DRAWKEY)) {
+				elems.first= elems.last= NULL;
+				make_ipokey_transform(ob, &elems, 1); /* '1' only selected keys */
+				
+				pushdata(&elems, sizeof(ListBase));
+				
+				for(ik= elems.first; ik; ik= ik->next) Trans.total++;
+
+				if(elems.first==NULL) Trans.total++;
+			}
+			else {
+				Trans.total++;
+			}
 		}
 	}
 
@@ -888,34 +1009,73 @@ static void createTransObject(void)
 		return;
 	}
 	
-	tob = Trans.data = MEM_mallocN(Trans.total*sizeof(TransData), "TransOb");
+	td = Trans.data = MEM_mallocN(Trans.total*sizeof(TransData), "TransOb");
 	tx = MEM_mallocN(Trans.total*sizeof(TransDataExtension), "TransObExtension");
 
 	for(base= FIRSTBASE; base; base= base->next) {
 		if TESTBASELIB(base) {
 			ob= base->object;
 			
-			tob->flag= TD_SELECTED|TD_OBJECT;
+			td->flag= TD_SELECTED|TD_OBJECT;
+			td->ext = tx;
+			td->dist = 0.0f;
 
-			tob->ext = tx;
-
-			ObjectToTransData(tob, ob);
-
-			tob->dist = 0.0f;
-
-			tob++;
+			/* store ipo keys? */
+			if(ob->ipo && ob->ipo->showkey && (ob->ipoflag & OB_DRAWKEY)) {
+				
+				popfirst(&elems);	// bring back pushed listbase
+				
+				if(elems.first) {
+					float cfraont;
+					int ipoflag;
+					
+					base->flag |= BA_DO_IPO+BA_WASSEL;
+					base->flag &= ~SELECT;
+					
+					cfraont= CFRA;
+					set_no_parent_ipo(1);
+					ipoflag= ob->ipoflag;
+					ob->ipoflag &= ~OB_OFFS_OB;
+					
+					pushdata(ob->loc, 7*3*4); // tsk! tsk!
+					
+					for(ik= elems.first; ik; ik= ik->next) {
+						
+						/* weak... this doesn't correct for floating values, giving small errors */
+						CFRA= ik->val/G.scene->r.framelen;
+						
+						do_ob_ipo(ob);
+						ObjectToTransData(td, ob);	// does where_is_object()
+						
+						td->tdi= MEM_callocN(sizeof(TransDataIpokey), "TransDataIpokey");
+						/* also does tdi->flag and oldvals, needs to be after ob_to_transob()! */
+						ipokey_to_transdata(ik, td);
+						
+						td++;
+						tx++;
+						if(ik->next) td->ext= tx;	// prevent corrupting mem!
+					}
+					free_ipokey(&elems);
+					
+					poplast(ob->loc);
+					set_no_parent_ipo(0);
+					
+					CFRA= cfraont;
+					ob->ipoflag= ipoflag;
+				}
+				else {
+					ObjectToTransData(td, ob);
+					td->tdi= NULL;
+				}
+			}
+			else {
+				ObjectToTransData(td, ob);
+				td->tdi= NULL;
+			}
+			td++;
 			tx++;
 		}
 	}
-/*
-	KICK OUT CHILDS OF OBJECTS THAT ARE BEING TRANSFORMED
-	SINCE TRANSFORMATION IS ALREADY APPLIED ON PARENT
-
-	THERE MUST BE A BETTER WAY TO DO THIS
- 
-	Yes there is! For now I copy the baseflag method from old transform (ton)
-*/
-
 }
 
 static void createTransData(void) 
@@ -1346,16 +1506,34 @@ int Resize(TransInfo *t, short mval[2])
 
 			if (td->flag & TD_OBJECT) {
 				float obsizemat[3][3];
-				Mat3MulMat3(obsizemat, tmat, td->smtx);
+				Mat3MulMat3(obsizemat, td->smtx, tmat);
 				Mat3ToSize(obsizemat, fsize);
 			}
 			else {
 				Mat3ToSize(tmat, fsize);
 			}
-			// TEMPORARY NAIVE CODE
-			td->ext->size[0] = td->ext->isize[0] + td->ext->isize[0] * (fsize[0] - 1.0f) * td->factor;
-			td->ext->size[1] = td->ext->isize[1] + td->ext->isize[1] * (fsize[1] - 1.0f) * td->factor;
-			td->ext->size[2] = td->ext->isize[2] + td->ext->isize[2] * (fsize[2] - 1.0f) * td->factor;
+			
+			/* handle ipokeys? */
+			if(td->tdi) {
+				TransDataIpokey *tdi= td->tdi;
+				/* calculate delta size (equal for size and dsize) */
+				
+				// commented out for now
+				vec[0]= (tdi->oldsize[0])*(fsize[0] -1.0f) * td->factor;
+				vec[1]= (tdi->oldsize[1])*(fsize[1] -1.0f) * td->factor;
+				vec[2]= (tdi->oldsize[2])*(fsize[2] -1.0f) * td->factor;
+				
+				add_tdi_poin(tdi->sizex, tdi->oldsize,   vec[0]);
+				add_tdi_poin(tdi->sizey, tdi->oldsize+1, vec[1]);
+				add_tdi_poin(tdi->sizez, tdi->oldsize+2, vec[2]);
+				
+			}
+			else {
+				// TEMPORARY NAIVE CODE
+				td->ext->size[0] = td->ext->isize[0] + td->ext->isize[0] * (fsize[0] - 1.0f) * td->factor;
+				td->ext->size[1] = td->ext->isize[1] + td->ext->isize[1] * (fsize[1] - 1.0f) * td->factor;
+				td->ext->size[2] = td->ext->isize[2] + td->ext->isize[2] * (fsize[2] - 1.0f) * td->factor;
+			}
 		}
 		VecSubf(vec, td->center, t->center);
 
@@ -1591,18 +1769,55 @@ int Rotation(TransInfo *t, short mval[2])
 				Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
 				
 				Mat3ToQuat(fmat, quat);	// Actual transform
-				//printf("Quat %f %f %f %f\n", quat[0], quat[1], quat[2], quat[3]);
 				
 				QuatMul(td->ext->quat, quat, td->ext->iquat);
 			}
 			else {
 				float obmat[3][3];
-				EulToMat3(td->ext->irot, obmat);
-
-				Mat3MulMat3(fmat, mat, obmat);
 				
-				Mat3ToEul(fmat, eul);
-				VECCOPY(td->ext->rot, eul);
+				/* are there ipo keys? */
+				if(td->tdi) {
+					TransDataIpokey *tdi= td->tdi;
+					float rot[3];
+					
+					/* calculate the total rotatation in eulers */
+					VecAddf(eul, td->ext->irot, td->ext->drot);
+					EulToMat3(eul, obmat);
+					/* mat = transform, obmat = object rotation */
+					Mat3MulMat3(fmat, mat, obmat);
+					Mat3ToEul(fmat, eul);
+					compatible_eul(eul, td->ext->irot);
+					
+					/* correct back for delta rot */
+					if(tdi->flag & TOB_IPODROT) {
+						VecSubf(rot, eul, td->ext->irot);
+					}
+					else {
+						VecSubf(rot, eul, td->ext->drot);
+					}
+					
+					VecMulf(rot, 9.0/M_PI_2);
+					VecSubf(rot, rot, tdi->oldrot);
+					
+					add_tdi_poin(tdi->rotx, tdi->oldrot, rot[0]);
+					add_tdi_poin(tdi->roty, tdi->oldrot+1, rot[1]);
+					add_tdi_poin(tdi->rotz, tdi->oldrot+2, rot[2]);
+				}
+				else {
+					
+					/* calculate the total rotatation in eulers */
+					VecAddf(eul, td->ext->irot, td->ext->drot); /* we have to correct for delta rot */
+					EulToMat3(eul, obmat);
+					/* mat = transform, obmat = object rotation */
+					Mat3MulMat3(fmat, mat, obmat);
+					Mat3ToEul(fmat, eul);
+					compatible_eul(eul, td->ext->irot);
+					
+					/* correct back for delta rot */
+					VecSubf(eul, eul, td->ext->drot);
+					/* and apply */
+					VECCOPY(td->ext->rot, eul);
+				}
 			}
 		}
 	}
@@ -1670,10 +1885,16 @@ int Translation(TransInfo *t, short mval[2])
 		}
 
 		Mat3MulVecfl(td->smtx, tvec);
-
 		VecMulf(tvec, td->factor);
-
-		VecAddf(td->loc, td->iloc, tvec);
+		
+		/* transdata ipokey */
+		if(td->tdi) {
+			TransDataIpokey *tdi= td->tdi;
+			add_tdi_poin(tdi->locx, tdi->oldloc, tvec[0]);
+			add_tdi_poin(tdi->locy, tdi->oldloc+1, tvec[1]);
+			add_tdi_poin(tdi->locz, tdi->oldloc+2, tvec[2]);
+		}
+		else VecAddf(td->loc, td->iloc, tvec);
 	}
 
 
