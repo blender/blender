@@ -37,6 +37,7 @@ SOURCEDIR = source/gameengine/GamePlayer
 DIR = $(OCGDIR)/gameengine/GamePlayer
 DIRS = common ghost
 
+ifneq ($(NAN_NO_PLUGIN),true)
 ifeq ($(OS),$(findstring $(OS), "freebsd irix windows"))
 	ifneq ($(FREE_WINDOWS),true)
 	    DIRS += netscape
@@ -53,6 +54,7 @@ ifeq ($(OS),$(findstring $(OS), "solaris"))
   ifeq ($(CPU),sparc)
     DIRS += netscape
   endif
+endif
 endif
 
 include nan_subdirs.mk

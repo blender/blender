@@ -80,7 +80,7 @@
 GEN_Map<GEN_HashedPtr,DT_ShapeHandle> map_gamemesh_to_sumoshape;
 
 // forward declarations
-void	BL_RegisterSumoObject(KX_GameObject* gameobj,class SM_Scene* sumoScene,DT_SceneHandle solidscene,class SM_Object* sumoObj,const char* matname,bool isDynamic,bool isActor);
+void	BL_RegisterSumoObject(KX_GameObject* gameobj,class SM_Scene* sumoScene,DT_SceneHandle solidscene,class SM_Object* sumoObj,const STR_String& matname,bool isDynamic,bool isActor);
 DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj);
 
 
@@ -158,7 +158,7 @@ void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
 		sumoObj->setRigidBody(objprop->m_angular_rigidbody?true:false);
 		
 		objprop->m_isactor = objprop->m_dyna = true;
-		BL_RegisterSumoObject(gameobj,sceneptr,sumoEnv->GetSolidScene(),sumoObj,NULL,true, true);
+		BL_RegisterSumoObject(gameobj,sceneptr,sumoEnv->GetSolidScene(),sumoObj,"",true, true);
 		
 	} 
 	else {
@@ -229,7 +229,7 @@ void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
 					
 					BL_RegisterSumoObject(gameobj,sceneptr,
 						sumoEnv->GetSolidScene(),sumoObj,
-						matname.ReadPtr(),
+						matname,
 						objprop->m_dyna,
 						objprop->m_isactor);
 				}
@@ -251,7 +251,15 @@ void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
 
 
 
-void	BL_RegisterSumoObject(KX_GameObject* gameobj,class SM_Scene* sumoScene,DT_SceneHandle solidscene,class SM_Object* sumoObj,const char* matname,bool isDynamic,bool isActor) {
+void	BL_RegisterSumoObject(
+	KX_GameObject* gameobj,
+	class SM_Scene* sumoScene,
+	DT_SceneHandle solidscene,
+	class SM_Object* sumoObj,
+	const STR_String& matname,
+	bool isDynamic,
+	bool isActor) 
+{
 
 
 
@@ -274,7 +282,7 @@ void	BL_RegisterSumoObject(KX_GameObject* gameobj,class SM_Scene* sumoScene,DT_S
 		//gameobj->GetClientInfo()->m_clientobject = gameobj;
 
 		// store materialname in auxinfo, needed for touchsensors
-		gameobj->getClientInfo()->m_auxilary_info = (matname? (void*)(matname+2) : NULL);
+		gameobj->getClientInfo()->m_auxilary_info = (matname.Length() ? (void*)(matname.ReadPtr()+2) : NULL);
 
 		physicscontroller->SetObject(gameobj->GetSGNode());
 		

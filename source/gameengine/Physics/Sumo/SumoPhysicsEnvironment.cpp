@@ -56,6 +56,7 @@ SumoPhysicsEnvironment::SumoPhysicsEnvironment()
 
 SumoPhysicsEnvironment::~SumoPhysicsEnvironment()
 {
+	std::cout << "delete m_sumoScene " << m_sumoScene << std::endl;
 	delete m_sumoScene;
 	DT_DestroyScene(m_solidScene);
 	//DT_DestroyRespTable(m_respTable);

@@ -92,7 +92,7 @@ vector<NG_NetworkMessage*> NG_LoopBackNetworkDeviceInterface::RetrieveNetworkMes
 	vector<NG_NetworkMessage*> messages;
 	
 	std::deque<NG_NetworkMessage*>::iterator mesit=m_messages[m_currentQueue].begin();
-	for (; !(mesit == m_messages[m_currentQueue].end());mesit++)
+	for (; !(mesit == m_messages[m_currentQueue].end()); ++mesit)
 	{
 
 		// We don't increase the reference count for these messages. We

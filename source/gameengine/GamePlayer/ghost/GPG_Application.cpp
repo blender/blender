@@ -144,10 +144,10 @@ bool GPG_Application::startWindow(STR_String& title,
 	//STR_String title ("Blender Player - GHOST");
 	m_mainWindow = fSystem->createWindow(title, windowLeft, windowTop, windowWidth, windowHeight, GHOST_kWindowStateNormal,
 		GHOST_kDrawingContextTypeOpenGL, stereoVisual);
-    if (!m_mainWindow) {
+	if (!m_mainWindow) {
 		printf("error: could not create main window\n");
-        exit(-1);
-    }
+		exit(-1);
+	}
 
 	/* Check the size of the client rectangle of the window and resize the window
 	 * so that the client rectangle has the size requested.
@@ -396,14 +396,14 @@ bool GPG_Application::startEngine(void)
 	}
 	
 	// Temporary hack to disable banner display for NaN approved content.
-	/*
+	
 	m_canvas->SetBannerDisplayEnabled(true);	
-	Camera* cam;
+/*	Camera* cam;
 	cam = (Camera*)G.scene->camera->data;
 	if (cam) {
-	if (((cam->flag) & 48)==48) {
-	m_canvas->SetBannerDisplayEnabled(false);
-	}
+		if (((cam->flag) & 48)==48) {
+			m_canvas->SetBannerDisplayEnabled(false);
+		}
 	}
 	else {
 	showError(CString("Camera data invalid."));

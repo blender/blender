@@ -77,17 +77,7 @@ public:
 		PyTypeObject* T=&Type) ;
 	virtual ~KX_TouchSensor();
 
-	virtual CValue* GetReplica() {
-		KX_TouchSensor* replica = new KX_TouchSensor(*this);
-		replica->m_colliders = new CListValue();
-		replica->m_bCollision = false;
-		replica->m_bTriggered= false;
-		replica->m_hitObject = NULL;
-		replica->m_bLastTriggered = false;
-		// this will copy properties and so on...
-		CValue::AddDataToReplica(replica);
-		return replica;
-	};
+	virtual CValue* GetReplica();
 	virtual void SynchronizeTransform();
 	virtual bool Evaluate(CValue* event);
 	virtual void ReParent(SCA_IObject* parent);

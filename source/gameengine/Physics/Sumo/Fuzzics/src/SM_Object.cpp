@@ -374,6 +374,8 @@ DT_Bool SM_Object::boing(
 	if (obj2->isDynamic())
 		obj2->dynamicCollision(local2, -normal, dist, -rel_vel, restitution, friction_factor, invMass);
 	
+	//fix(client_data, (void*) obj1, (void*) obj2, coll_data);
+	
 	return DT_CONTINUE;
 }
 
@@ -411,6 +413,9 @@ DT_Bool SM_Object::fix(
 	MT_Point3 local1(p1), local2(p2);
 	// Get collision data from SOLID
 	MT_Vector3 normal(local2 - local1);
+	
+	if (normal.dot(normal) < MT_EPSILON)
+		return DT_CONTINUE;
 
 	// This distinction between dynamic and non-dynamic objects should not be 
 	// necessary. Non-dynamic objects are assumed to have infinite mass.
@@ -439,7 +444,7 @@ DT_Bool SM_Object::fix(
 			MT_Scalar  rel_vel_normal = -0.99*(normal.dot(rel_vel));
 
 			obj2->addLinearVelocity(rel_vel_normal*normal);
-		}
+		} 
 	}
 	
 	return DT_CONTINUE;
@@ -461,9 +466,34 @@ void SM_Object::relax(void)
 	notifyClient();
 }
 	
-SM_Object::SM_Object(
-) {
+SM_Object::SM_Object() :
+	m_dynamicParent(0),
+	m_client_object(0),
+	
+	m_shape(0),
+	m_materialProps(0),
+	m_materialPropsBackup(0),
+	m_shapeProps(0),
+	m_shapePropsBackup(0),
+	m_object(0),
+	m_margin(0.0),
+	m_scaling(1.0, 1.0, 1.0),
+	m_reaction_impulse(0.0, 0.0, 0.0),
+	m_reaction_force(0.0, 0.0, 0.0),
+	m_kinematic(false),
+	m_prev_kinematic(false),
+	m_is_rigid_body(false),
+	m_lin_mom(0.0, 0.0, 0.0),
+	m_ang_mom(0.0, 0.0, 0.0),
+	m_force(0.0, 0.0, 0.0),
+	m_torque(0.0, 0.0, 0.0),
+	m_error(0.0, 0.0, 0.0),
+	m_combined_lin_vel (0.0, 0.0, 0.0),
+	m_combined_ang_vel (0.0, 0.0, 0.0),
+	m_fh_object(0) 
+{
 	// warning no initialization of variables done by moto.
+	std::cout << "SM_Object::SM_Object()" << std::endl;
 }
 
 SM_Object::

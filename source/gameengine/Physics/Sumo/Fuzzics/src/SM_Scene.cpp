@@ -162,8 +162,8 @@ void SM_Scene::remove(SM_Object& object) {
 
 void SM_Scene::proceed(MT_Scalar timeStep, MT_Scalar subSampling) {
 	// Don't waste time...but it's OK to spill a little.
-	if (timeStep < 0.001)
-		return;
+	//if (timeStep < 0.001)
+	//	return;
 
 	// Divide the timeStep into a number of subsamples of size roughly 
 	// equal to subSampling (might be a little smaller).
@@ -208,14 +208,16 @@ void SM_Scene::proceed(MT_Scalar timeStep, MT_Scalar subSampling) {
 #if 0
 	clearObjectCombinedVelocities();
 #endif
-	if (DT_Test(m_scene, m_fixRespTable))
+/*	if (DT_Test(m_scene, m_fixRespTable))
 		for (i = m_objectList.begin(); i != m_objectList.end(); ++i)
-			(*i)->relax(); 
+			(*i)->relax();  */
+	DT_Test(m_scene, m_fixRespTable);
 	
 	// Finish this timestep by saving al state information for the next
 	// timestep and clearing the accumulated forces. 
 
 	for (i = m_objectList.begin(); i != m_objectList.end(); ++i) {
+		(*i)->relax();
 		(*i)->proceedKinematic(timeStep);
 		(*i)->saveReactionForce(timeStep);
 		(*i)->clearForce();

@@ -820,12 +820,8 @@ static KX_LightObject *gamelight_from_blamp(Lamp *la, unsigned int layerflag, KX
 }
 
 static KX_Camera *gamecamera_from_bcamera(Camera *ca, KX_Scene *kxscene, KX_BlenderSceneConverter *converter) {
-	RAS_CameraData camdata;
+	RAS_CameraData camdata(ca->lens, ca->clipsta, ca->clipend, ca->type == CAM_PERSP);
 	KX_Camera *gamecamera;
-	
-	camdata.m_lens= ca->lens;
-	camdata.m_clipend= ca->clipend;
-	camdata.m_clipstart= ca->clipsta;
 	
 	gamecamera= new KX_Camera(kxscene, KX_Scene::m_callbacks, camdata);
 	gamecamera->SetName(ca->id.name + 2);

@@ -37,6 +37,15 @@ struct RAS_CameraData
 	float m_lens;
 	float m_clipstart;
 	float m_clipend;
+	bool m_perspective;
+	
+	RAS_CameraData(float lens = 35., float clipstart = 0.1, float clipend = 100., bool perspective = true) :
+		m_lens(lens),
+		m_clipstart(clipstart),
+		m_clipend(clipend),
+		m_perspective(perspective)
+	{
+	}
 };
 
 #endif //__RAS_CAMERADATA_H

@@ -37,7 +37,7 @@
  */
 struct KX_ClientObjectInfo
 {
-	enum {
+	enum clienttype {
 		STATIC,
 		ACTOR,
 		RESERVED1,
@@ -47,9 +47,13 @@ struct KX_ClientObjectInfo
 	void*		m_clientobject;
 	void*		m_auxilary_info;
 public:
-	KX_ClientObjectInfo(void *clientobject) :
-		m_clientobject(clientobject) 
+	KX_ClientObjectInfo(void *clientobject, clienttype type = STATIC, void *auxilary_info = NULL) :
+		m_type(type),
+		m_clientobject(clientobject),
+		m_auxilary_info(auxilary_info)
 	{}
+	
+	bool isActor() { return m_type <= ACTOR; }
 };
 
 #endif //__KX_CLIENTOBJECT_INFO_H

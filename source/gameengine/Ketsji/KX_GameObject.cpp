@@ -73,8 +73,7 @@ KX_GameObject::KX_GameObject(
 	m_pPhysicsController1(NULL)
 {
 	m_ignore_activity_culling = false;
-	m_pClient_info = new KX_ClientObjectInfo(this);
-	m_pClient_info->m_type = KX_ClientObjectInfo::ACTOR;
+	m_pClient_info = new KX_ClientObjectInfo(this, KX_ClientObjectInfo::ACTOR);
 	m_pSGNode = new SG_Node(this,sgReplicationInfo,callbacks);
 	
 	// define the relationship between this node and it's parent.

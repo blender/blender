@@ -118,7 +118,7 @@ int my_set_tpage(TFace *tface)
 	unsigned int *rect, *bind;
 	int tpx, tpy, tilemode, tileXRep,tileYRep;
 
-	/* afschakelen */
+	/* disable */
 	if(tface==0) {
 		if(lasttface==0) return 0;
 		

@@ -203,7 +203,8 @@ public:
 							float bottom,
 							float top,
 							float frustnear,
-							float frustfar
+							float frustfar,
+							bool perspective
 						);
 
 	virtual void	SetSpecularity(

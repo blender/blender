@@ -71,6 +71,7 @@ SumoPhysicsController::~SumoPhysicsController()
 		m_sumoScene->remove(*m_sumoObj);
 		
 		delete m_sumoObj;
+		m_sumoObj = NULL;
 	}
 }
 

@@ -104,8 +104,8 @@ void usage(char* program)
 	consoleoption = "";
 #endif
 	
-	printf("usage:   %s -w [-p l t w h] %s[-g gamengineoptions] "
-		"-s stereomode filename.blend\n", program, consoleoption);
+	printf("usage:   %s [-w [-p l t w h]] %s[-g gamengineoptions] "
+		"[-s stereomode] filename.blend\n", program, consoleoption);
 	printf("  -w: display in a window\n");
 	printf("  -p: specify window position\n");
 	printf("       l = window left coordinate\n");

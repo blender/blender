@@ -62,8 +62,7 @@ KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
 			 m_ResetMargin(resetmargin)
 
 {
-	m_client_info = new KX_ClientObjectInfo(gameobj);
-	m_client_info->m_type = KX_ClientObjectInfo::NEAR;
+	m_client_info = new KX_ClientObjectInfo(gameobj, KX_ClientObjectInfo::NEAR);
 	
 	DT_ShapeHandle shape = (DT_ShapeHandle) vshape;
 	m_sumoObj = new SM_Object(shape,NULL,NULL,NULL);
@@ -91,9 +90,7 @@ KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
 			 m_ResetMargin(resetmargin)
 
 {
-	m_client_info = new KX_ClientObjectInfo(gameobj);
-	m_client_info->m_type = KX_ClientObjectInfo::NEAR;
-	m_client_info->m_auxilary_info = NULL;
+	m_client_info = new KX_ClientObjectInfo(gameobj, KX_ClientObjectInfo::NEAR);
 	
 	m_sumoObj = new SM_Object(DT_NewSphere(0.0),NULL,NULL,NULL);
 	m_sumoObj->setMargin(m_Margin);
@@ -118,9 +115,7 @@ CValue* KX_NearSensor::GetReplica()
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
 	
-	replica->m_client_info = new KX_ClientObjectInfo(m_client_info->m_clientobject);
-	replica->m_client_info->m_type = KX_ClientObjectInfo::NEAR;
-	replica->m_client_info->m_auxilary_info = NULL;
+	replica->m_client_info = new KX_ClientObjectInfo(m_client_info->m_clientobject, KX_ClientObjectInfo::NEAR);
 	
 	replica->m_sumoObj = new SM_Object(DT_NewSphere(0.0),NULL,NULL,NULL);
 	replica->m_sumoObj->setMargin(m_Margin);

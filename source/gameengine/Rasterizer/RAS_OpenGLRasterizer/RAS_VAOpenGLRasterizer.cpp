@@ -73,10 +73,6 @@ bool RAS_VAOpenGLRasterizer::Init(void)
 	
 	if (result)
 	{
-		// if possible, add extensions to other platforms too, if this
-		// rasterizer becomes messy just derive one for each platform 
-		// (ie. KX_Win32Rasterizer, KX_LinuxRasterizer etc.)
-
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		glDisableClientState(GL_NORMAL_ARRAY);
@@ -187,6 +183,17 @@ void RAS_VAOpenGLRasterizer::IndexPrimitives( const vecVertexArray& vertexarrays
 		glColor3d(0,0,0);
 	}
 	// use glDrawElements to draw each vertexarray
+	static bool doWarning = true;
+	if (vertexarrays.size() > 1 && doWarning)
+	{
+		/* TODO: if vertexarrays.size() == 1 then if we are multitexturing
+		   we can glLockArraysEXT the vertex arrays - GL will be able to cache
+		   the vertex transforms. */
+		std::cout << "# vertex arrays: " << vertexarrays.size() << std::endl;
+		std::cout << "I wondered if this could happen: please inform the proper authorities." << std::endl;
+		doWarning = false;
+	}
+	
 	for (vt=0;vt<vertexarrays.size();vt++)
 	{
 		vertexarray = &((*vertexarrays[vt]) [0]);

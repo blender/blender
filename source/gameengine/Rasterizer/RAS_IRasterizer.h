@@ -94,8 +94,12 @@ public:
 	virtual void	ClearDepthBuffer()=0;
 	virtual void	ClearCachingInfo(void)=0;
 	virtual void	EndFrame()=0;
+	/**
+	 * SetRenderArea sets the render area in the 2d canvas
+	 */
 	virtual void	SetRenderArea()=0;
 
+	// Stereo Functions
 	virtual void	SetStereoMode(const int stereomode)=0;
 	virtual bool	Stereo()=0;
 	virtual void	SetEye(const int eye)=0;
@@ -103,6 +107,20 @@ public:
 	virtual void	SetFocalLength(const float focallength)=0;
 
 	virtual void	SwapBuffers()=0;
+	
+	// Drawing Functions
+	/**
+	 * IndexPrimitives: Renders primitives.
+	 * @param vertexarrays is an array of vertex arrays
+	 * @param indexarrays is an array of index arrays
+	 * @param mode determines the type of primitive stored in the vertex/index arrays:
+	 *              0 triangles
+	 *              1 lines (default)
+	 *              2 quads
+	 * @param polymat (reserved)
+	 * @param useObjectColor will render the object using @param rgbacolor instead of 
+	 *  vertex colours.
+	 */
 	virtual void	IndexPrimitives( const vecVertexArray& vertexarrays,
 							const vecIndexArrays & indexarrays,
 							int mode,
@@ -110,6 +128,10 @@ public:
 							class RAS_IRenderTools* rendertools,
 							bool useObjectColor,
 							const MT_Vector4& rgbacolor)=0;
+	/**
+	 * IndexPrimitivesEx: See IndexPrimitives.
+	 * IndexPrimitivesEx will renormalize faces if @param vertexarrays[i].getFlag() & TV_CALCFACENORMAL
+	 */
 	virtual void	IndexPrimitives_Ex( const vecVertexArray& vertexarrays,
 							const vecIndexArrays & indexarrays,
 							int mode,
@@ -117,6 +139,10 @@ public:
 							class RAS_IRenderTools* rendertools,
 							bool useObjectColor,
 							const MT_Vector4& rgbacolor)=0;
+	/**
+	 * IndexPrimitives_3DText will render text into the polygons.
+	 * The text to be rendered is from @param rendertools client object's text property.
+	 */
 	virtual void	IndexPrimitives_3DText( const vecVertexArray& vertexarrays,
 							const vecIndexArrays & indexarrays,
 							int mode,
@@ -161,12 +187,18 @@ public:
 								 float blue,
 								 float alpha)=0;
 	
+	/**
+	 * @param drawingmode = KX_BOUNDINGBOX, KX_WIREFRAME, KX_SOLID, KX_SHADED or KX_TEXTURED.
+	 */
 	virtual void	SetDrawingMode(int drawingmode)=0;
 	virtual int		GetDrawingMode()=0;
 
 	virtual void	EnableTextures(bool enable)=0;
 	
 	virtual void	SetCullFace(bool enable)=0;
+	/**
+	 * Sets wireframe mode.
+	 */
 	virtual void    SetLines(bool enable)=0;
 
 	virtual double	GetTime()=0;
@@ -177,7 +209,8 @@ public:
 		float bottom,
 		float top,
 		float frustnear,
-		float frustfar
+		float frustfar,
+		bool perspective = true
 	)=0;
 
 	virtual void	SetSpecularity(float specX,

@@ -119,6 +119,19 @@ KX_TouchSensor::~KX_TouchSensor()
 	m_colliders->Release();
 }
 
+CValue* KX_TouchSensor::GetReplica() 
+{
+	KX_TouchSensor* replica = new KX_TouchSensor(*this);
+	replica->m_colliders = new CListValue();
+	replica->m_bCollision = false;
+	replica->m_bTriggered= false;
+	replica->m_hitObject = NULL;
+	replica->m_bLastTriggered = false;
+	// this will copy properties and so on...
+	CValue::AddDataToReplica(replica);
+	return replica;
+}
+
 void	KX_TouchSensor::ReParent(SCA_IObject* parent)
 {
 	KX_GameObject *gameobj = static_cast<KX_GameObject *>(parent);
@@ -159,7 +172,7 @@ DT_Bool    KX_TouchSensor::HandleCollision(void* obj1,void* obj2,const DT_CollDa
 			(KX_GameObject*)client_info->m_clientobject : 
 			NULL);
 	
-	if (gameobj && (gameobj != parent))
+	if (gameobj && (gameobj != parent) && client_info->isActor())
 	{
 		if (!m_colliders->SearchValue(gameobj))
 			m_colliders->Add(gameobj->AddRef());
@@ -171,14 +184,8 @@ DT_Bool    KX_TouchSensor::HandleCollision(void* obj1,void* obj2,const DT_CollDa
 			{
 				if (client_info->m_auxilary_info)
 				{
-					found = (m_touchedpropname == ((char*)client_info->m_auxilary_info));
+					found = (m_touchedpropname == STR_String((char*)client_info->m_auxilary_info));
 				}
-
-				if (found)
-				{
-					int i=0;
-				}
-
 			} else
 			{
 				found = (gameobj->GetProperty(m_touchedpropname) != NULL);

@@ -68,7 +68,7 @@ RAS_OpenGLRasterizer::~RAS_OpenGLRasterizer()
 
 
 
-void Myinit_gl_stuff(void)	
+static void Myinit_gl_stuff(void)	
 {
 	float mat_specular[] = { 0.5, 0.5, 0.5, 1.0 };
 	float mat_shininess[] = { 35.0 };
@@ -259,7 +259,7 @@ void RAS_OpenGLRasterizer::Exit()
 	glClearDepth(1.0); 
 	glClearColor(m_redback, m_greenback, m_blueback, m_alphaback);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDepthMask (GL_TRUE);
+	glDepthMask (GL_TRUE);
 	glDepthFunc(GL_LEQUAL);
 	glBlendFunc(GL_ONE, GL_ZERO);
 
@@ -292,7 +292,7 @@ bool RAS_OpenGLRasterizer::BeginFrame(int drawingmode, double time)
 
 	glShadeModel(GL_SMOOTH);
 
-   m_2DCanvas->BeginFrame();
+	m_2DCanvas->BeginFrame();
 	
 	return true;
 }
@@ -1083,7 +1083,8 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 	float bottom,
 	float top,
 	float frustnear,
-	float frustfar
+	float frustfar,
+	bool perspective
 ){
 	MT_Matrix4x4 result;
 	double mat[16];
@@ -1110,10 +1111,11 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 			}
 			// leave bottom, top, bottom and top untouched
 	}
-
+	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glFrustum(left, right, bottom, top, frustnear, frustfar);
+		
 	glGetDoublev(GL_PROJECTION_MATRIX, mat);
 	result.setValue(mat);
 
