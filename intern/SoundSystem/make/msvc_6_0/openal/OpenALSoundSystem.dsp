@@ -61,13 +61,12 @@ LIB32=link.exe -lib
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "..\..\..\..\obj\windows\intern\soundsystem\openal\debug"
-# PROP Intermediate_Dir "..\..\..\..\obj\windows\intern\soundsystem\openal\debug"
+# PROP Output_Dir "..\..\..\..\..\obj\windows\intern\soundsystem\openal\debug"
+# PROP Intermediate_Dir "..\..\..\..\..\obj\windows\intern\soundsystem\openal\debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\intern" /I "..\..\..\..\SoundSystem" /I "..\..\..\..\moto\include" /I "..\..\..\..\string" /I "..\..\..\..\..\..\lib\windows\openal\include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
-# SUBTRACT CPP /Fr
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\intern" /I "..\..\..\..\SoundSystem" /I "..\..\..\..\SoundSystem\sdl" /I "..\..\..\..\moto\include" /I "..\..\..\..\string" /I "..\..\..\..\..\..\lib\windows\sdl\include" /I "..\..\..\..\..\..\lib\windows\openal\include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
