@@ -2989,12 +2989,12 @@ static void material_panel_material(Object *ob, Material *ma)
 	if(ma->dynamode & MA_DRAW_DYNABUTS) {
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI, 0, "Restitut ",		128,120,175,20, &ma->reflect, 0.0, 1.0, 0, 0, "Elasticity of collisions");
-		uiDefButF(block, NUMSLI, 0, "Friction ",  		128,82 ,175,20, &ma->friction, 0.0, 100.0, 0, 0,   "Coulomb friction coefficient");
-		uiDefButF(block, NUMSLI, 0, "Fh Force ",		128,76 ,175,20, &ma->fh, 0.0, 1.0, 0, 0, "Upward spring force within the Fh area");
-		uiBlockEndAlign(block);
+		uiDefButF(block, NUMSLI, 0, "Friction ",  		128,100 ,175,20, &ma->friction, 0.0, 100.0, 0, 0,   "Coulomb friction coefficient");
+		uiDefButF(block, NUMSLI, 0, "Fh Force ",		128,80 ,175,20, &ma->fh, 0.0, 1.0, 0, 0, "Upward spring force within the Fh area");
+		uiBlockBeginAlign(block);
 		uiDefButF(block, NUM, 0,	 "Fh Damp ",		8,120,100,20, &ma->xyfrict, 0.0, 1.0, 10, 0, "Damping of the Fh spring force");
-		uiDefButF(block, NUM, 0, "Fh Dist ",			8,98 ,100,20, &ma->fhdist, 0.0, 20.0, 10, 0, "Height of the Fh area");
-		uiDefButS(block, TOG|BIT|1, 0, "Fh Norm",		8,76 ,100,20, &ma->dynamode, 0.0, 0.0, 0, 0, "Add a horizontal spring force on slopes");
+		uiDefButF(block, NUM, 0, "Fh Dist ",			8,100 ,100,20, &ma->fhdist, 0.0, 20.0, 10, 0, "Height of the Fh area");
+		uiDefButS(block, TOG|BIT|1, 0, "Fh Norm",		8,80 ,100,20, &ma->dynamode, 0.0, 0.0, 0, 0, "Add a horizontal spring force on slopes");
 	}
 	else {
 		if(!(ma->mode & MA_HALO)) {

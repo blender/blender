@@ -931,7 +931,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 				
 				if(v3idx==0) continue;
 
-				set_draw_settings_cached(0, 0, NULL, 1, ob, matnr, TF_TWOSIDE);
+				set_draw_settings_cached(0, 0, NULL, islight, ob, matnr, TF_TWOSIDE);
 				
 				if (extverts) {
 					v1= extverts+3*v1idx;
