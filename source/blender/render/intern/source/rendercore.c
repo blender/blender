@@ -1887,36 +1887,33 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 			i*= lampdist*ma->ref;
 		}
 
-		/* shadow and spec */
-		if(lampdist> 0.0) {
+		/* shadow and spec, only when inp>0 */
+		if(lampdist> 0.0 && inp>0.0) {
 			
 			if(i>0.0 && (R.r.mode & R_SHADOW)) {
 				if(ma->mode & MA_SHADOW) {
-					/* single sided */
-					if( shi->vlr->n[0]*lv[0] + shi->vlr->n[1]*lv[1] + shi->vlr->n[2]*lv[2] > -0.01) {
 					
-						if(lar->shb) {
-							shadfac[3] = testshadowbuf(lar->shb, shi->co, inp);
-						}
-						else if(lar->mode & LA_SHAD_RAY) {
-							ray_shadow(shi, lar, shadfac, mask);
-						}
-
-						/* warning, here it skips the loop */
-						if(lar->mode & LA_ONLYSHADOW) {
-							
-							shadfac[3]= i*lar->energy*(1.0-shadfac[3]);
-							shr->diff[0] -= shadfac[3];
-							shr->diff[1] -= shadfac[3];
-							shr->diff[2] -= shadfac[3];
-							
-							continue;
-						}
-						
-						if(shadfac[3]==0.0) continue;
-
-						i*= shadfac[3];
+					if(lar->shb) {
+						shadfac[3] = testshadowbuf(lar->shb, shi->co, inp);
 					}
+					else if(lar->mode & LA_SHAD_RAY) {
+						ray_shadow(shi, lar, shadfac, mask);
+					}
+
+					/* warning, here it skips the loop */
+					if(lar->mode & LA_ONLYSHADOW) {
+						
+						shadfac[3]= i*lar->energy*(1.0-shadfac[3]);
+						shr->diff[0] -= shadfac[3];
+						shr->diff[1] -= shadfac[3];
+						shr->diff[2] -= shadfac[3];
+						
+						continue;
+					}
+					
+					if(shadfac[3]==0.0) continue;
+
+					i*= shadfac[3];
 				}
 			}
 		

@@ -991,10 +991,14 @@ static int d3dda(Isect *is)
 
 
 	/* only for shadow! */
-	if(is->mode==DDA_SHADOW && g_oc.vlr_last!=NULL && g_oc.vlr_last!=is->vlrorig) {
-		is->vlr= g_oc.vlr_last;
-		VECSUB(is->vec, is->end, is->start);
-		if(intersection(is)) return 1;
+	if(is->mode==DDA_SHADOW) {
+	
+		/* check with last intersected shadow face */
+		if(g_oc.vlr_last!=NULL && g_oc.vlr_last!=is->vlrorig) {
+			is->vlr= g_oc.vlr_last;
+			VECSUB(is->vec, is->end, is->start);
+			if(intersection(is)) return 1;
+		}
 	}
 	
 	ldx= is->end[0] - is->start[0];
@@ -1781,6 +1785,8 @@ static void ray_trace_shadow_tra(Isect *is, int depth)
 	}
 }
 
+/* not used, test function for ambient occlusion (yaf: pathlight) */
+/* main problem; has to be called within shading loop, giving unwanted recursion */
 int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
 {
 	static int counter=0, only_one= 0;
