@@ -32,8 +32,6 @@
 #ifndef __KX_BLENDERSYSTEM
 #define __KX_BLENDERSYSTEM
 
-#include "blendertimer.h"
-
 /**
  * Blender System embedding. Needed when gameengine runs embedded within Blender.
  */
