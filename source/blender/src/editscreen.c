@@ -566,30 +566,7 @@ void splash(void *data, int datasize, char *string)
 		oldwin = mywinget();
 		mywinset(G.curscreen->mainwin);
 		
-		if (string) {
-			int x, y, maxy;
-			unsigned int *rect;
-			
-			rect = bbuf->rect;
-			maxy = MIN2(bbuf->y, 18);
-
-			for (y = 0; y < maxy; y++) {
-				for (x = 0; x < bbuf->x; x++) {
-					*rect = 0xffffffff;
-					rect++;
-				}
-			}
-		}
 		glDrawBuffer(GL_FRONT);
-		
-		/*
-		// this dims the whole screen a bit. I didn't like it afterall
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glColor4f(0.0,0.0,0.0,0.3);
-		glRecti(0, 0, G.curscreen->sizex, G.curscreen->sizey);
-		glDisable(GL_BLEND);
-		*/
 		
 		glRasterPos2i((prefsizx-bbuf->x)/2, (prefsizy-bbuf->y)/2);	
 		glDrawPixels(bbuf->x, bbuf->y, GL_RGBA, GL_UNSIGNED_BYTE, bbuf->rect);
