@@ -54,6 +54,7 @@
 
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_constraint_types.h" // for drawing constraint
 #include "DNA_effect_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_lamp_types.h"
@@ -70,6 +71,7 @@
 
 #include "BKE_utildefines.h"
 #include "BKE_curve.h"
+#include "BKE_constraint.h" // for the get_constraint_target function
 #include "BKE_object.h"
 #include "BKE_global.h"
 #include "BKE_displist.h"
@@ -3682,6 +3684,8 @@ void draw_object(Base *base)
 	if(G.f & G_SIMULATION) return;
 
 	if((G.f & (G_BACKBUFSEL+G_PICKSEL))==0) {
+		ListBase *list;
+
 		/* help lines and so */
 		if(ob->parent && (ob->parent->lay & G.vd->lay)) {
 			setlinestyle(3);
@@ -3692,6 +3696,25 @@ void draw_object(Base *base)
 			setlinestyle(0);
 		}
 		
+		/* Drawing the constraint lines */
+		list = &ob->constraints;
+		if (list){
+			bConstraint *curcon;
+			float size[3], tmat[4][4];
+
+			for (curcon = list->first; curcon; curcon=curcon->next){
+				if ((curcon->flag & CONSTRAINT_EXPAND)&&(curcon->type!=CONSTRAINT_TYPE_NULL)){
+					get_constraint_target(curcon, TARGET_OBJECT, NULL, tmat, size, bsystem_time(ob, 0, (float)(G.scene->r.cfra), ob->sf));
+					setlinestyle(3);
+					glBegin(GL_LINES);
+					glVertex3fv(tmat[3]);
+					glVertex3fv(ob->obmat[3]);
+					glEnd();
+					setlinestyle(0);
+				}
+			}
+		}
+
 		/* object centers */
 		if(G.zbuf) glDisable(GL_DEPTH_TEST);
 		if(ob->type == OB_LAMP) {
