@@ -1046,7 +1046,7 @@ void yafrayFileRender_t::writeLamps()
 		float pwr;
 		if (lamp->mode & LA_SPHERE) {
 			// best approx. as used in LFexport script (LF d.f.m. 4pi?)
-			pwr = lamp->dist*(lamp->dist+1)*0.25*M_1_PI;
+			pwr = lamp->dist*(lamp->dist+1)*(0.25/M_PI);
 			//decay = 2;
 		}
 		else {
