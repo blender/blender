@@ -511,6 +511,7 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 			if(dir2==UI_RIGHT) block->safety.xmax= block->maxx+3; 
 			if(dir2==UI_LEFT) block->safety.xmin= block->minx-3; 
 		}
+		block->direction= dir1|dir2;
 	}
 	else {
 		block->safety.xmin= block->minx-40;
@@ -2553,6 +2554,10 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	}
 	
 	switch(uevent->event) {
+	case LEFTARROWKEY:	// later on implement opening/closing sublevels of pupmenus
+	case RIGHTARROWKEY:
+		break;
+		
 	case PAD8: case PAD2:
 	case UPARROWKEY:
 	case DOWNARROWKEY:
@@ -2579,14 +2584,16 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 						but->flag &= ~UI_ACTIVE;
 						ui_draw_but(but);
 	
-						bt= ui_but_prev(but);
-						if(bt && event==UPARROWKEY) {
-							bt->flag |= UI_ACTIVE;
-							ui_draw_but(bt);
-							break;
+						if(event==UPARROWKEY) {
+							if(block->direction & UI_TOP) bt= ui_but_next(but);
+							else bt= ui_but_prev(but);
 						}
-						bt= ui_but_next(but);
-						if(bt && event==DOWNARROWKEY) {
+						else {
+							if(block->direction & UI_TOP) bt= ui_but_prev(but);
+							else bt= ui_but_next(but);
+						}
+						
+						if(bt) {
 							bt->flag |= UI_ACTIVE;
 							ui_draw_but(bt);
 							break;
@@ -2598,9 +2605,14 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 				/* nothing done */
 				if(but==NULL) {
 				
-					if(event==UPARROWKEY) but= ui_but_last(block);
-					else but= ui_but_first(block);
-					
+					if(event==UPARROWKEY) {
+						if(block->direction & UI_TOP) but= ui_but_first(block);
+						else but= ui_but_last(block);
+					}
+					else {
+						if(block->direction & UI_TOP) but= ui_but_last(block);
+						else but= ui_but_first(block);
+					}
 					if(but) {
 						but->flag |= UI_ACTIVE;
 						ui_draw_but(but);
@@ -4018,7 +4030,8 @@ void uiBlockSetDirection(uiBlock *block, int direction)
 }
 void uiBlockFlipOrder(uiBlock *block)
 {
-	uiBut *but;
+	ListBase lb;
+	uiBut *but, *next;
 	float centy, miny=10000, maxy= -10000;
 
 	for(but= block->buttons.first; but; but= but->next) {
@@ -4032,6 +4045,17 @@ void uiBlockFlipOrder(uiBlock *block)
 		but->y2 = centy-(but->y2-centy);
 		SWAP(float, but->y1, but->y2);
 	}
+	
+	/* also flip order in block itself, for example for arrowkey */
+	lb.first= lb.last= NULL;
+	but= block->buttons.first;
+	while(but) {
+		next= but->next;
+		BLI_remlink(&block->buttons, but);
+		BLI_addtail(&lb, but);
+		but= next;
+	}
+	block->buttons= lb;
 }
 
 
