@@ -167,6 +167,7 @@ typedef struct Global {
 #define G_WEIGHTPAINT	32768	/* __NLA */
 #define G_TEXTUREPAINT	65536
 #define G_NOFROZEN	(1 << 17) // frozen modules inactive
+#define G_DRAWEDGES	(1 << 18)
 
 /* G.fileflags */
 

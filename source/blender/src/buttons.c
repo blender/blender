@@ -1676,6 +1676,7 @@ void meshbuts(void)
 	uiDefButF(block, NUM,		  REDRAWVIEW3D, "NSize:",		1090, 90, 164, 19, &editbutsize, 0.001, 2.0, 10, 0, "Set the length of the face normals");
 	uiDefButI(block, TOG|BIT|6, REDRAWVIEW3D, "Draw Normals",	1090,70,164,19, &G.f, 0, 0, 0, 0, "Draw face normals");
 	uiDefButI(block, TOG|BIT|7, REDRAWVIEW3D, "Draw Faces",	1090,50,164,19, &G.f, 0, 0, 0, 0, "Draw faces");
+	uiDefButI(block, TOG|BIT|18, REDRAWVIEW3D, "Draw Edges", 1090,30,164,19, &G.f, 0, 0, 0, 0, "Draw edges");
 	uiDefButI(block, TOG|BIT|11, 0, "All edges",				1090,10,164,19, &G.f, 0, 0, 0, 0, "Draw edges normally, without optimisation");
 
 	uiDrawBlock(block);

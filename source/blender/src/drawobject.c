@@ -2409,18 +2409,35 @@ static void drawmeshwire(Object *ob)
 		}
 		cpack(0x0);
 		
-		eed= G.eded.first;
-
-		glBegin(GL_LINES);
-		while(eed) {
-			if(eed->h==0) {
-				glVertex3fv(eed->v1->co);
-				glVertex3fv(eed->v2->co);
+		if(G.f & G_DRAWEDGES) {	/* Use edge Highlighting */
+			glShadeModel(GL_SMOOTH);
+			
+			eed= G.eded.first;
+			glBegin(GL_LINES);
+			while(eed) {
+				if(eed->h==0) {
+					if(eed->v1->f & 1) cpack(0x559999); else cpack(0x0);
+					glVertex3fv(eed->v1->co);
+					if(eed->v2->f & 1) cpack(0x559999); else cpack(0x0);
+					glVertex3fv(eed->v2->co);
+				}
+				eed= eed->next;
 			}
-			eed= eed->next;
+			glEnd();
+			glShadeModel(GL_FLAT);
 		}
-		glEnd();
-		
+		else {
+			eed= G.eded.first;
+			glBegin(GL_LINES);
+			while(eed) {
+				if(eed->h==0) {
+					glVertex3fv(eed->v1->co);
+					glVertex3fv(eed->v2->co);
+				}
+				eed= eed->next;
+			}
+			glEnd();
+		}
 		if(ob!=G.obedit) return;
 		
 		calc_meshverts();
@@ -2458,35 +2475,52 @@ static void drawmeshwire(Object *ob)
 		}
 		if(G.f & (G_FACESELECT+G_DRAWFACES)) {	/* faces */
 			
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_BLEND);
+
 			evl= G.edvl.first;
 			while(evl) {
 				if(evl->v1->h==0 && evl->v2->h==0 && evl->v3->h==0) {
 					
-					if(vlakselectedAND(evl, 1)) cpack(0x559999);
-					else cpack(0x664466);
-				
-					if(evl->v4 && evl->v4->h==0) {
+					if(1) {
+						if(vlakselectedAND(evl, 1)) glColor4ub(200, 100, 200, 60);
+						else glColor4ub(0, 50, 150, 30);
+						
+						glBegin(evl->v4?GL_QUADS:GL_TRIANGLES);
+						glVertex3fv(evl->v1->co);
+						glVertex3fv(evl->v2->co);
+						glVertex3fv(evl->v3->co);
+						if(evl->v4) glVertex3fv(evl->v4->co);
+						glEnd();
+						
+					} else {
+						if(vlakselectedAND(evl, 1)) cpack(0x559999);
+						else cpack(0x664466);
 					
-						CalcCent4f(cent, evl->v1->co, evl->v2->co, evl->v3->co, evl->v4->co);
-						glBegin(GL_LINE_LOOP);
-							VecMidf(fvec, cent, evl->v1->co); glVertex3fv(fvec);
-							VecMidf(fvec, cent, evl->v2->co); glVertex3fv(fvec);
-							VecMidf(fvec, cent, evl->v3->co); glVertex3fv(fvec);
-							VecMidf(fvec, cent, evl->v4->co); glVertex3fv(fvec);
-						glEnd();
-					}
-					else {
-
-						CalcCent3f(cent, evl->v1->co, evl->v2->co, evl->v3->co);
-						glBegin(GL_LINE_LOOP);
-							VecMidf(fvec, cent, evl->v1->co); glVertex3fv(fvec);
-							VecMidf(fvec, cent, evl->v2->co); glVertex3fv(fvec);
-							VecMidf(fvec, cent, evl->v3->co); glVertex3fv(fvec);
-						glEnd();
+						if(evl->v4 && evl->v4->h==0) {
+						
+							CalcCent4f(cent, evl->v1->co, evl->v2->co, evl->v3->co, evl->v4->co);
+							glBegin(GL_LINE_LOOP);
+								VecMidf(fvec, cent, evl->v1->co); glVertex3fv(fvec);
+								VecMidf(fvec, cent, evl->v2->co); glVertex3fv(fvec);
+								VecMidf(fvec, cent, evl->v3->co); glVertex3fv(fvec);
+								VecMidf(fvec, cent, evl->v4->co); glVertex3fv(fvec);
+							glEnd();
+						}
+						else {
+	
+							CalcCent3f(cent, evl->v1->co, evl->v2->co, evl->v3->co);
+							glBegin(GL_LINE_LOOP);
+								VecMidf(fvec, cent, evl->v1->co); glVertex3fv(fvec);
+								VecMidf(fvec, cent, evl->v2->co); glVertex3fv(fvec);
+								VecMidf(fvec, cent, evl->v3->co); glVertex3fv(fvec);
+							glEnd();
+						}
 					}
 				}
 				evl= evl->next;
 			}
+			glDisable(GL_BLEND);
 		}
 	}
 	else {

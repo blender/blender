@@ -2033,24 +2033,96 @@ static void tekenvertices_special(int mode, EditVert *act) /* teken = draw */
 	if(G.zbuf) glEnable(GL_DEPTH_TEST);
 }
 
+static void edge_select(void)
+{
+	EditEdge *closest=0, *eed=0;
+	short found=0, mval[2];
+	float distance[2], v1[2], v2[2], mval2[2];
+	
+	calc_meshverts_ext_f2();     /*sets (eve->f & 2) for vertices that aren't visible*/
+	
+	if(G.eded.first==0) return;
+	eed=G.eded.first;
+	
+	getmouseco_areawin(mval);
+	mval2[0] = (float)mval[0];    /* cast to float because of the pdist function only taking floats...*/
+	mval2[1] = (float)mval[1];
+	
+	while(eed) {       /*compare the distance to the rest of the edges and find the closest one*/
+		if( !((eed->v1->f & 2) && (eed->v2->f & 2))){ /* Are both vertices of the edge invisible? then don't select the edge*/
+			v1[0] = eed->v1->xs;   /* oh great! the screencoordinates are not an array....grrrr*/
+			v1[1] = eed->v1->ys;
+			v2[0] = eed->v2->xs;
+			v2[1] = eed->v2->ys;
+			
+			distance[1] = PdistVL2Dfl(mval2, v1, v2);
+			
+			if(distance[1]<50){    /* TODO: make this maximum selecting distance selectable (the same with vertice select?) */
+				if(found) {              //do we have to compare it to other distances?
+					if (distance[1]<distance[0]){
+						distance[0]=distance[1];
+						closest=eed;  /*save the current closest edge*/
+					}
+				} else {
+					distance[0]=distance[1];
+					closest=eed;
+					found=1;
+				}
+			}
+		}
+		eed= eed->next;
+	}
+	
+	if(found){         /* Did we find anything that is selectable?*/
+
+		if( (G.qual & LR_SHIFTKEY)==0) {
+			EditVert *eve;
+			
+			/* deselectall */
+			for(eve= G.edve.first; eve; eve= eve->next) eve->f&= ~1;
+
+			/* select edge */
+			closest->v1->f |= 1;
+			closest->v2->f |= 1;
+		}
+		else {
+			/*  both of the vertices are selected: deselect both*/
+			if((closest->v1->f & 1) && (closest->v2->f & 1) ){  
+				closest->v1->f &= ~1;
+				closest->v2->f &= ~1;
+			}
+			else { 
+				/* select them */
+				closest->v1->f |= 1;
+				closest->v2->f |= 1;
+			}
+		}
+		allqueue(REDRAWVIEW3D, 0);
+	}
+}
+
 void mouse_mesh(void)
 {
 	EditVert *act=0;
 
-	act= findnearestvert(1);
-	if(act) {
-		
-		if((G.qual & LR_SHIFTKEY)==0) {
-			tekenvertices_special(0, act);
+	if(G.qual & LR_ALTKEY) edge_select();
+	else {
+	
+		act= findnearestvert(1);
+		if(act) {
+			
+			if((G.qual & LR_SHIFTKEY)==0) {
+				tekenvertices_special(0, act);
+			}
+			if( (act->f & 1)==0) act->f+= 1;
+			else if(G.qual & LR_SHIFTKEY) act->f-= 1;
+	
+			tekenvertices_special(1, act);
+			countall();
 		}
-		if( (act->f & 1)==0) act->f+= 1;
-		else if(G.qual & LR_SHIFTKEY) act->f-= 1;
-
-		tekenvertices_special(1, act);
-		countall();
+	
+		rightmouse_transform();
 	}
-
-	rightmouse_transform();
 }
 
 static void selectconnectedAll(void)
@@ -2092,7 +2164,6 @@ static void selectconnectedAll(void)
 	tekenvertices_ext(1);
 
 }
-
 
 void selectconnected_mesh(void)
 {
