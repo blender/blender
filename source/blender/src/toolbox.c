@@ -1725,7 +1725,7 @@ static TBitem tb_mesh_edit_vertex[]= {
 {	0, "Split|Y", 				4, 		NULL},
 {	0, "Separate|P", 			3, 		NULL},
 {	0, "SEPR",					0, NULL},
-{	0, "Smooth|Alt M", 			2, NULL},
+{	0, "Smooth|W, 0", 			2, NULL},
 {	0, "Remove Doubles|Alt M", 			1, NULL},
 {	0, "SEPR",					0, NULL},
 {	0, "Make Vertex Parent|Ctrl P", 	0, NULL},
