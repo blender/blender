@@ -1,5 +1,5 @@
-/* 
- *
+/*  
+ *  $Id$
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Alex Mole, Nathan Letwory
+ * Contributor(s): Alex Mole, Nathan Letwory, Joilnen B. Leite
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -99,6 +99,11 @@
 #define EXPP_TEX_STYPE_MUS_HYBRIDMF         2
 #define EXPP_TEX_STYPE_MUS_FBM              3
 #define EXPP_TEX_STYPE_MUS_HTERRAIN         4
+/* voronoi stype */
+#define EXPP_TEX_STYPE_VN_INT              0
+#define EXPP_TEX_STYPE_VN_COL1             1
+#define EXPP_TEX_STYPE_VN_COL2             2
+#define EXPP_TEX_STYPE_VN_COL3             3
 
 #define EXPP_TEX_FLAG_COLORBAND             TEX_COLORBAND
 #define EXPP_TEX_FLAG_FLIPBLEND             TEX_FLIPBLEND
@@ -142,6 +147,29 @@
 #define EXPP_TEX_MAPTO_HARD                 MAP_HAR
 #define EXPP_TEX_MAPTO_ALPHA                MAP_ALPHA
 #define EXPP_TEX_MAPTO_EMIT                 MAP_EMIT
+#define EXPP_TEX_MAPTO_RAYMIR               MAP_RAYMIRR
+#define EXPP_TEX_MAPTO_DISP                 MAP_DISPLACE
+#define EXPP_TEX_MAPTO_TRANSLU              MAP_TRANSLU
+#define EXPP_TEX_MAPTO_AMB                  MAP_AMB
+
+#define EXPP_TEX_STYPE_DN_BLENDER          TEX_BLENDER		
+#define EXPP_TEX_STYPE_DN_PERLIN           TEX_STDPERLIN	
+#define EXPP_TEX_STYPE_DN_IMPROVEPERLIN    TEX_NEWPERLIN 
+#define EXPP_TEX_STYPE_DN_VORONOIF1        TEX_VORONOI_F1	
+#define EXPP_TEX_STYPE_DN_VORONOIF2        TEX_VORONOI_F2	
+#define EXPP_TEX_STYPE_DN_VORONOIF3        TEX_VORONOI_F3	
+#define EXPP_TEX_STYPE_DN_VORONOIF4        TEX_VORONOI_F4	
+#define EXPP_TEX_STYPE_DN_VORONOIF2F1      TEX_VORONOI_F2F1 
+#define EXPP_TEX_STYPE_DN_VORONOICRACKLE   TEX_VORONOI_CRACKLE 
+#define EXPP_TEX_STYPE_DN_CELLNOISE        TEX_CELLNOISE 
+
+#define EXPP_TEX_STYPE_VN_TEX_DISTANCE	         TEX_DISTANCE	
+#define EXPP_TEX_STYPE_VN_TEX_DISTANCE_SQUARED   TEX_DISTANCE_SQUARED 
+#define EXPP_TEX_STYPE_VN_TEX_MANHATTAN	         TEX_MANHATTAN			 
+#define EXPP_TEX_STYPE_VN_TEX_CHEBYCHEV	         TEX_CHEBYCHEV 	 
+#define EXPP_TEX_STYPE_VN_TEX_MINKOVSKY_HALF	 TEX_MINKOVSKY_HALF
+#define EXPP_TEX_STYPE_VN_TEX_MINKOVSKY_FOUR	 TEX_MINKOVSKY_FOUR
+#define EXPP_TEX_STYPE_VN_TEX_MINKOVSKY          TEX_MINKOVSKY
 
 /****************************************************************************/
 /* Texture String->Int maps                                                 */
@@ -167,7 +195,7 @@ static const EXPP_map_pair tex_type_map[] = {
 
 static const EXPP_map_pair tex_flag_map[] = {
     /* we don't support this yet! */
-/*    { "ColorBand",  EXPP_TEX_FLAG_COLORBAND },  */
+/*  { "ColorBand",  EXPP_TEX_FLAG_COLORBAND },  */
     { "FlipBlend",  EXPP_TEX_FLAG_FLIPBLEND },
     { "NegAlpha",   EXPP_TEX_FLAG_NEGALPHA },
     { NULL, 0 }
@@ -247,12 +275,48 @@ static const EXPP_map_pair tex_stype_envmap_map[] = {
 };
 
 static const EXPP_map_pair tex_stype_musg_map[] = {
-    { "Default",            0},
+    { "Default",            0 },
     { "MultiFractal",       EXPP_TEX_STYPE_MUS_MFRACTAL },
     { "HeteroTerrain",      EXPP_TEX_STYPE_MUS_HTERRAIN },
     { "RidgedMultiFractal", EXPP_TEX_STYPE_MUS_RIDGEDMF },
     { "HybridMultiFractal", EXPP_TEX_STYPE_MUS_HYBRIDMF },
     { "fBM",                EXPP_TEX_STYPE_MUS_FBM },
+    { NULL , 0 }
+};
+
+static const EXPP_map_pair tex_stype_distortednoise_map[] = {
+    { "Default",           0 },
+    { "BlenderOriginal",   EXPP_TEX_STYPE_DN_BLENDER }, 
+    { "OriginalPerlin",    EXPP_TEX_STYPE_DN_PERLIN },       
+    { "ImprovedPerlin",    EXPP_TEX_STYPE_DN_IMPROVEPERLIN }, 
+    { "VoronoiF1",         EXPP_TEX_STYPE_DN_VORONOIF1 },     
+    { "VoronoiF2",         EXPP_TEX_STYPE_DN_VORONOIF2 },    
+    { "VoronoiF3",         EXPP_TEX_STYPE_DN_VORONOIF3 },    
+    { "VoronoiF4",         EXPP_TEX_STYPE_DN_VORONOIF4 },    
+    { "VoronoiF2-F1",      EXPP_TEX_STYPE_DN_VORONOIF2F1 },  
+    { "VoronoiCrackle",    EXPP_TEX_STYPE_DN_VORONOICRACKLE }, 
+    { "CellNoise",         EXPP_TEX_STYPE_DN_CELLNOISE },
+    { NULL , 0 }
+};
+
+static const EXPP_map_pair tex_stype_voronoi_map[] = {
+    { "Default",           0 },
+    { "Int",               EXPP_TEX_STYPE_VN_INT },
+    { "Col1",              EXPP_TEX_STYPE_VN_COL1 },
+    { "Col2",              EXPP_TEX_STYPE_VN_COL2 },
+    { "Col3",              EXPP_TEX_STYPE_VN_COL3 },
+    { NULL , 0 }
+};
+
+static const EXPP_map_pair tex_distance_voronoi_map[] = {
+    { "Default",           0 },
+    { "Distance",           EXPP_TEX_STYPE_VN_TEX_DISTANCE },
+    { "DistanceSquared",    EXPP_TEX_STYPE_VN_TEX_DISTANCE_SQUARED },
+    { "Manhattan",          EXPP_TEX_STYPE_VN_TEX_MANHATTAN }, 
+    { "Chebychev",          EXPP_TEX_STYPE_VN_TEX_CHEBYCHEV }, 
+    { "MinkovskyHalf",      EXPP_TEX_STYPE_VN_TEX_MINKOVSKY_HALF }, 
+    { "MinkovskyFour",      EXPP_TEX_STYPE_VN_TEX_MINKOVSKY_FOUR }, 
+    { "Minkovsky",          EXPP_TEX_STYPE_VN_TEX_MINKOVSKY }, 
     { NULL , 0 }
 };
 
@@ -268,7 +332,10 @@ static const EXPP_map_pair *tex_stype_map[] = {
     tex_stype_default_map,    /* image */
     tex_stype_default_map,    /* plugin */
     tex_stype_envmap_map,
-    tex_stype_musg_map        /* musgrave */
+    tex_stype_musg_map,        /* musgrave */
+    tex_stype_voronoi_map,     /* voronoi */
+    tex_stype_distortednoise_map,   /* distorted noise */
+    tex_distance_voronoi_map
 };
 
 
@@ -310,7 +377,7 @@ struct PyMethodDef M_Texture_methods[] = {
 };
 
 /*****************************************************************************/
-/* Python BPy_Texture methods declarations:                                   */
+/* Python BPy_Texture methods declarations:                                  */
 /*****************************************************************************/
 #define GETFUNC(name)   static PyObject *Texture_##name(BPy_Texture *self)
 #define SETFUNC(name)   static PyObject *Texture_##name(BPy_Texture *self,   \
@@ -345,6 +412,8 @@ SETFUNC (setName);
 SETFUNC (setNoiseDepth);
 SETFUNC (setNoiseSize);
 SETFUNC (setNoiseType);
+SETFUNC (setNoiseBasis);   /* special case used for ".noisebasis or noisebasis2 = ...  */
+SETFUNC (setDistNoise);    /* special case used for ".noisebasis = ...  */ 
 SETFUNC (setRepeat);
 SETFUNC (setRGBCol);
 SETFUNC (setSType);
@@ -352,9 +421,11 @@ SETFUNC (setIntSType);      /* special case used for ".stype = ..." */
 SETFUNC (setType);
 SETFUNC (setIntType);       /* special case used for ".type = ..." */
 SETFUNC (setTurbulence);
+SETFUNC (setDistMetric);
+SETFUNC (setDistAmnt);
 
 /*****************************************************************************/
-/* Python BPy_Texture methods table:                                          */
+/* Python BPy_Texture methods table:                                         */
 /*****************************************************************************/
 static PyMethodDef BPy_Texture_methods[] = {
  /* name, method, flags, doc */
@@ -388,6 +459,12 @@ static PyMethodDef BPy_Texture_methods[] = {
                             "(s) - Set Texture stype"},
   {"setType", (PyCFunction)Texture_setType, METH_VARARGS,
                             "(s) - Set Texture type"},
+  {"setNoiseBasis", (PyCFunction)Texture_setNoiseBasis, METH_VARARGS,
+                            "(s) - Set Noise basis"},
+  {"setDistNoise", (PyCFunction)Texture_setDistNoise, METH_VARARGS,
+                            "(s) - Set Dist Noise"},
+  {"setDistMetric", (PyCFunction)Texture_setDistMetric, METH_VARARGS,
+                            "(s) - Set Dist Metric"},
   {NULL, NULL, 0, NULL}
 };
 
@@ -587,6 +664,27 @@ static PyObject *M_Texture_STypesDict (void)
         EXPP_ADDCONST(MUS_HYBRIDMF);
         EXPP_ADDCONST(MUS_FBM);
         EXPP_ADDCONST(MUS_HTERRAIN);
+	EXPP_ADDCONST(DN_BLENDER);
+	EXPP_ADDCONST(DN_PERLIN); 
+	EXPP_ADDCONST(DN_IMPROVEPERLIN);
+	EXPP_ADDCONST(DN_VORONOIF1);
+	EXPP_ADDCONST(DN_VORONOIF2);
+	EXPP_ADDCONST(DN_VORONOIF3);
+	EXPP_ADDCONST(DN_VORONOIF4);
+	EXPP_ADDCONST(DN_VORONOIF2F1);
+	EXPP_ADDCONST(DN_VORONOICRACKLE);
+	EXPP_ADDCONST(DN_CELLNOISE);
+	EXPP_ADDCONST(VN_INT);
+	EXPP_ADDCONST(VN_COL1);
+	EXPP_ADDCONST(VN_COL2);
+	EXPP_ADDCONST(VN_COL3);
+	EXPP_ADDCONST(VN_TEX_DISTANCE);
+        EXPP_ADDCONST(VN_TEX_DISTANCE_SQUARED);
+        EXPP_ADDCONST(VN_TEX_MANHATTAN);
+        EXPP_ADDCONST(VN_TEX_CHEBYCHEV);
+        EXPP_ADDCONST(VN_TEX_MINKOVSKY_HALF);
+        EXPP_ADDCONST(VN_TEX_MINKOVSKY_FOUR);
+        EXPP_ADDCONST(VN_TEX_MINKOVSKY);
     }
     return STypes;
 }
@@ -634,6 +732,10 @@ static PyObject *M_Texture_MapToDict (void)
         EXPP_ADDCONST(HARD);
         EXPP_ADDCONST(ALPHA);
         EXPP_ADDCONST(EMIT);
+        EXPP_ADDCONST(RAYMIR);
+        EXPP_ADDCONST(AMB);
+        EXPP_ADDCONST(TRANSLU);
+        EXPP_ADDCONST(DISP);
     }
     return MapTo;
 }
@@ -839,7 +941,6 @@ static PyObject *Texture_getType(BPy_Texture *self)
     return attr;
 }
 
-
 static PyObject *Texture_setAnimFrames(BPy_Texture *self, PyObject *args)
 {
     int frames;
@@ -856,7 +957,6 @@ static PyObject *Texture_setAnimFrames(BPy_Texture *self, PyObject *args)
     Py_INCREF (Py_None);
     return Py_None;
 }
-
 
 static PyObject *Texture_setAnimLength(BPy_Texture *self, PyObject *args)
 {
@@ -1248,6 +1348,44 @@ static PyObject *Texture_setNoiseType(BPy_Texture *self, PyObject *args)
     return Py_None;
 }
 
+static PyObject *Texture_setNoiseBasis(BPy_Texture *self, PyObject *args)
+{
+    char *nbasis;
+
+    if (!PyArg_ParseTuple(args, "s", &nbasis))
+        return EXPP_ReturnPyObjError (PyExc_TypeError,
+                                           "expected string argument");
+    if ( self->texture->type==EXPP_TEX_TYPE_MUSGRAVE &&
+	 EXPP_map_getShortVal (tex_stype_map[EXPP_TEX_TYPE_DISTNOISE],
+                                            nbasis, &self->texture->noisebasis));
+    else if(self->texture->type==EXPP_TEX_TYPE_DISTNOISE &&
+       	 !EXPP_map_getShortVal (tex_stype_map[EXPP_TEX_TYPE_DISTNOISE],
+                                            nbasis, &self->texture->noisebasis2))
+	 return EXPP_ReturnPyObjError (PyExc_ValueError, 
+                                                "invalid noise basis");
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+/* Distorted Noise */
+static PyObject *Texture_setDistNoise(BPy_Texture *self, PyObject *args)
+{
+    char *nbasis;
+
+    if (!PyArg_ParseTuple(args, "s", &nbasis))
+        return EXPP_ReturnPyObjError (PyExc_TypeError,
+                                           "expected string argument");
+    if ( self->texture->type==EXPP_TEX_TYPE_DISTNOISE &&
+	 !EXPP_map_getShortVal (tex_stype_map[EXPP_TEX_TYPE_DISTNOISE],
+                                            nbasis, &self->texture->noisebasis))
+        return EXPP_ReturnPyObjError (PyExc_ValueError, 
+                                                "invalid noise basis");
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static PyObject *Texture_setRepeat(BPy_Texture *self, PyObject *args)
 {
     int repeat[2];
@@ -1298,7 +1436,13 @@ static PyObject *Texture_setSType(BPy_Texture *self, PyObject *args)
                                            "expected string argument");
 
     /* can we really trust texture->type? */
-    if (!EXPP_map_getShortVal (tex_stype_map[self->texture->type], 
+    if((self->texture->type==EXPP_TEX_TYPE_VORONOI &&
+		    EXPP_map_getShortVal (tex_stype_map[self->texture->type],
+			    stype, &self->texture->vn_coltype)));
+    else if((self->texture->type==EXPP_TEX_TYPE_MUSGRAVE &&
+	            EXPP_map_getShortVal (tex_stype_map[EXPP_TEX_TYPE_DISTNOISE],
+			    stype, &self->texture->noisebasis))); 
+    else if (!EXPP_map_getShortVal (tex_stype_map[self->texture->type], 
                                             stype, &self->texture->stype))
         return EXPP_ReturnPyObjError (PyExc_ValueError, 
                                                 "invalid texture stype");
@@ -1360,6 +1504,75 @@ static PyObject *Texture_setType(BPy_Texture *self, PyObject *args)
     return Py_None;
 }
 
+
+static PyObject *Texture_setHFrac(BPy_Texture *self, PyObject *args)
+{
+    float mg_H;
+    if (!PyArg_ParseTuple(args, "f", &mg_H))
+        return EXPP_ReturnPyObjError (PyExc_TypeError,
+                                        "expected a float");
+
+    if (mg_H<0 || mg_H>2)
+        return EXPP_ReturnPyObjError (PyExc_ValueError,
+                           "turbulence must be in range [0,2]");
+
+    self->texture->mg_H = mg_H;
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject *Texture_setLacunarity(BPy_Texture *self, PyObject *args)
+{
+    float mg_lac;
+    if (!PyArg_ParseTuple(args, "f", &mg_lac))
+        return EXPP_ReturnPyObjError (PyExc_TypeError,
+                                        "expected a float");
+
+    if (mg_lac<0 || mg_lac>6)
+        return EXPP_ReturnPyObjError (PyExc_ValueError,
+                           "lacunarity must be in range [0,6]");
+
+    self->texture->mg_lacunarity = mg_lac;
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject *Texture_setOcts(BPy_Texture *self, PyObject *args)
+{
+    float mg_oct;
+    if (!PyArg_ParseTuple(args, "f", &mg_oct))
+        return EXPP_ReturnPyObjError (PyExc_TypeError,
+                                        "expected a float");
+
+    if (mg_oct<0 || mg_oct>8)
+        return EXPP_ReturnPyObjError (PyExc_ValueError,
+                           "turbulence must be in range [0,8]");
+
+    self->texture->mg_octaves = mg_oct;
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject *Texture_setiScale(BPy_Texture *self, PyObject *args)
+{
+    float ns_osc;
+    if (!PyArg_ParseTuple(args, "f", &ns_osc))
+        return EXPP_ReturnPyObjError (PyExc_TypeError,
+                                        "expected a float");
+
+    if (ns_osc<0 || ns_osc>10)
+        return EXPP_ReturnPyObjError (PyExc_ValueError,
+                           "turbulence must be in range [0,10]");
+
+    self->texture->ns_outscale = ns_osc;
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static PyObject *Texture_setIntType(BPy_Texture *self, PyObject *args)
 {
     int type = 0;
@@ -1373,6 +1586,126 @@ static PyObject *Texture_setIntType(BPy_Texture *self, PyObject *args)
     
     self->texture->type = type;
     
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject *Texture_setDistMetric(BPy_Texture *self, PyObject *args)
+{
+    char *dist = NULL;
+
+    if (!PyArg_ParseTuple(args, "s", &dist))
+        return EXPP_ReturnPyObjError (PyExc_TypeError,
+                                           "expected string argument");
+       /* can we really trust texture->type? */
+    if(self->texture->type==EXPP_TEX_TYPE_VORONOI &&
+		    !EXPP_map_getShortVal (tex_stype_map[self->texture->type+2],
+			    dist, &self->texture->vn_distm))
+         	return EXPP_ReturnPyObjError (PyExc_ValueError, 
+                                                "invalid dist metric type");
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject *Texture_setExp(BPy_Texture *self, PyObject *args)
+{
+    float vn_mexp;
+    if (!PyArg_ParseTuple(args, "f", &vn_mexp))
+        return EXPP_ReturnPyObjError (PyExc_TypeError,
+                                        "expected a float");
+
+    if (vn_mexp<0 || vn_mexp>10)
+        return EXPP_ReturnPyObjError (PyExc_ValueError,
+                           "Exp  must be in range [0,10]");
+
+    self->texture->vn_mexp = vn_mexp;
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject *Texture_setW1(BPy_Texture *self, PyObject *args)
+{
+    float vn_w1;
+    if (!PyArg_ParseTuple(args, "f", &vn_w1))
+        return EXPP_ReturnPyObjError (PyExc_TypeError,
+                                        "expected a float");
+
+    if (vn_w1<-2 || vn_w1>2)
+        return EXPP_ReturnPyObjError (PyExc_ValueError,
+                           "Exp  must be in range [0,10]");
+
+    self->texture->vn_w1= vn_w1;
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject *Texture_setW2(BPy_Texture *self, PyObject *args)
+{
+    float vn_w2;
+    if (!PyArg_ParseTuple(args, "f", &vn_w2))
+        return EXPP_ReturnPyObjError (PyExc_TypeError,
+                                        "expected a float");
+
+    if (vn_w2<-2 || vn_w2>2)
+        return EXPP_ReturnPyObjError (PyExc_ValueError,
+                           "Exp  must be in range [0,10]");
+
+    self->texture->vn_w2= vn_w2;
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject *Texture_setW3(BPy_Texture *self, PyObject *args)
+{
+    float vn_w3;
+    if (!PyArg_ParseTuple(args, "f", &vn_w3))
+        return EXPP_ReturnPyObjError (PyExc_TypeError,
+                                        "expected a float");
+
+    if (vn_w3<-2 || vn_w3>2)
+        return EXPP_ReturnPyObjError (PyExc_ValueError,
+                           "Exp  must be in range [0,10]");
+
+    self->texture->vn_w3= vn_w3;
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject *Texture_setW4(BPy_Texture *self, PyObject *args)
+{
+    float vn_w4;
+    if (!PyArg_ParseTuple(args, "f", &vn_w4))
+        return EXPP_ReturnPyObjError (PyExc_TypeError,
+                                        "expected a float");
+
+    if (vn_w4<-2 || vn_w4>2)
+        return EXPP_ReturnPyObjError (PyExc_ValueError,
+                           "Exp  must be in range [0,10]");
+
+    self->texture->vn_w4= vn_w4;
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject *Texture_setDistAmnt(BPy_Texture *self, PyObject *args)
+{
+    float dist_amount;
+    if (!PyArg_ParseTuple(args, "f", &dist_amount))
+        return EXPP_ReturnPyObjError (PyExc_TypeError,
+                                        "expected a float");
+
+    if (dist_amount<0 || dist_amount>10)
+        return EXPP_ReturnPyObjError (PyExc_ValueError,
+                           "Exp  must be in range [0,10]");
+
+    self->texture->dist_amount= dist_amount;
+
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -1443,15 +1776,36 @@ static PyObject *Texture_getAttr (BPy_Texture *self, char *name)
         attr = PyFloat_FromDouble (tex->turbul);
     else if (STREQ(name, "type"))
         attr = PyInt_FromLong (tex->type);
+    else if (STREQ(name, "hFracDim"))
+        attr = PyInt_FromLong (tex->mg_H);
+    else if (STREQ(name, "lacunarity"))
+        attr = PyFloat_FromDouble(tex->mg_lacunarity);
+    else if (STREQ(name, "octs"))
+        attr = PyFloat_FromDouble(tex->mg_octaves);
+    else if (STREQ(name, "iSacale"))
+        attr = PyFloat_FromDouble(tex->ns_outscale);
+    else if (STREQ(name, "exp"))
+        attr = PyFloat_FromDouble(tex->vn_mexp);
+    else if (STREQ(name, "weight1"))
+        attr = PyFloat_FromDouble(tex->vn_w1);
+    else if (STREQ(name, "weight2"))
+        attr = PyFloat_FromDouble(tex->vn_w2);
+    else if (STREQ(name, "weight3"))
+        attr = PyFloat_FromDouble(tex->vn_w3);
+    else if (STREQ(name, "weight4"))
+        attr = PyFloat_FromDouble(tex->vn_w4);
+    else if (STREQ(name, "distAmnt"))
+        attr = PyFloat_FromDouble(tex->vn_w4);
 
-    
-    else if (STREQ(name, "__members__"))
+     else if (STREQ(name, "__members__"))
         attr = Py_BuildValue("[s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s]", 
                 "animFrames", "animLength", "animMontage", "animOffset",
                 "animStart", "brightness", "contrast", "crop", "extend",
                 "fieldsPerImage", "filterSize", "flags", "image", 
                 "imageFlags", "name", "noiseDepth", "noiseSize", "noiseType",
-                "repeat", "rgbCol", "stype", "turbulence", "type");
+                "repeat", "rgbCol", "stype", "turbulence", "type", "hFracDim",
+		"lacunarity", "octs", "iScale","exp", "weight1", "weight2",
+	       	"weight3", "weight4", "distAmnt");
 
     if (!attr)
         return EXPP_ReturnPyObjError (PyExc_MemoryError,
@@ -1523,7 +1877,28 @@ static int Texture_setAttr (BPy_Texture *self, char *name, PyObject *value)
         error = Texture_setTurbulence(self, valtuple);
     else if (STREQ(name, "type"))
         error = Texture_setIntType(self, valtuple);
-    
+    else if (STREQ(name, "hFracDim"))
+        error = Texture_setHFrac(self, valtuple);
+    else if (STREQ(name, "lacunarity"))
+        error = Texture_setLacunarity (self, valtuple);
+    else if (STREQ(name, "octs"))
+        error = Texture_setOcts (self, valtuple);
+    else if (STREQ(name, "iScale"))
+        error = Texture_setiScale(self, valtuple); 
+    else if (STREQ(name, "exp"))
+        error = Texture_setExp(self, valtuple);
+    else if (STREQ(name, "weight1"))
+        error = Texture_setW1(self, valtuple);
+    else if (STREQ(name, "weight2"))
+        error = Texture_setW2(self, valtuple);
+    else if (STREQ(name, "weight3"))
+        error = Texture_setW3(self, valtuple);
+    else if (STREQ(name, "weight4"))
+        error = Texture_setW4(self, valtuple);
+    else if (STREQ(name, "distAmnt"))
+        error = Texture_setDistAmnt(self, valtuple);
+
+
     else { 
         /* Error */
         Py_DECREF(valtuple);
