@@ -114,7 +114,7 @@ void image_replace(Image *old, Image *new)
 	TFace *tface;
 	Mesh *me;
 	int a, rep=0;
- 
+
 	new->tpageflag= old->tpageflag;
 	new->twsta= old->twsta;
 	new->twend= old->twend;
@@ -557,14 +557,14 @@ static void do_image_imagemenu(void *arg, int event)
 		else
 			activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name, load_space_image);
 		break;
-	case 1:
+	case 1: /* Replace */
 		if(G.sima->image) strcpy(name, G.sima->image->name);
 		else strcpy(name, U.textudir);
 		
 		if(G.qual==LR_CTRLKEY)
-			activate_imageselect(FILE_SPECIAL, "Replace Image", name, load_space_image);
+			activate_imageselect(FILE_SPECIAL, "Replace Image", name, replace_space_image);
 		else
-			activate_fileselect(FILE_SPECIAL, "Replace Image", name, load_space_image);
+			activate_fileselect(FILE_SPECIAL, "Replace Image", name, replace_space_image);
 		break;
 	case 2: /* Pack Image */
 		ima = G.sima->image;
@@ -755,8 +755,6 @@ static uiBlock *image_uvs_propfalloffmenu(void *arg_unused)
 
 static void do_image_uvs_transformmenu(void *arg, int event)
 {
-	extern int prop_mode;
-	
 	switch(event) {
 	case 0: /* Grab */
 		transform_tface_uv('g');
@@ -780,7 +778,6 @@ static uiBlock *image_uvs_transformmenu(void *arg_unused)
 {
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
-	extern int prop_mode;
 
 	block= uiNewBlock(&curarea->uiblocks, "image_uvs_transformmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_image_uvs_transformmenu, NULL);
