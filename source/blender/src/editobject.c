@@ -3579,15 +3579,20 @@ void compatible_eul(float *eul, float *oldrot)
 
 void headerprint(char *str)
 {
-	areawinset(curarea->headwin);
-	
-	headerbox(curarea);
-	cpack(0x0);
-	glRasterPos2i(20+curarea->headbutofs,  6);
-	BMF_DrawString(G.font, str);
-	
-	curarea->head_swap= WIN_BACK_OK;
-	areawinset(curarea->win);
+	if(curarea->headertype) {
+		areawinset(curarea->headwin);
+		
+		headerbox(curarea);
+		cpack(0x0);
+		glRasterPos2i(20+curarea->headbutofs,  6);
+		BMF_DrawString(G.font, str);
+		
+		curarea->head_swap= WIN_BACK_OK;
+		areawinset(curarea->win);
+	}
+	else {
+		// dunno... thats for later (ton)
+	}
 }
 
 void add_ipo_tob_poin(float *poin, float *old, float delta)
