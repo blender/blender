@@ -1456,12 +1456,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case PKEY:
 				
 				if(G.obedit) {
-#ifdef USE_ZREXPMESH
-					if(G.obedit->type==OB_MESH && G.qual==LR_ALTKEY) {
-						extern void pymesh_edit_menu(void);
-						pymesh_edit_menu();
-					} else
-#endif
 					if(G.qual==LR_CTRLKEY || G.qual==(LR_SHIFTKEY|LR_CTRLKEY))
 						make_parent();
 					else if((G.qual==0) && G.obedit->type==OB_MESH)
