@@ -369,6 +369,72 @@ static float linetriangle(float p1[3], float p2[3], float v0[3], float v1[3], fl
     return t;
 }
 
+static void get_vortex(float opco[], float opno[], float speed[], float cur_time, unsigned int par_layer)
+{
+	/* Particle vortex code */
+	/* Modifies the force on a particle according to its  */
+	/* distance from mesh vertices set to attract / repel */
+	Object *ob;
+	Base *base;
+	float vect_to_vert[3];
+	float force_vec[3];
+	float f_force, distance;
+	float obloc[3];
+	float force_val, ffall_val;
+	short cur_frame;
+
+	/* Cycle through objects, get total of (1/(vortex_strength * dist^vortex_power)) */
+	/* Check for min distance here? */
+	base = G.scene->base.first;
+	while (base) {
+		if(base->lay & par_layer) {
+			ob= base->object;
+			if(ob->pd && ob->pd->forcefield & 2) {
+
+				/* Need to set r.cfra for paths (investigate, ton) */
+				cur_frame = G.scene->r.cfra;
+				G.scene->r.cfra = (short)cur_time;
+				where_is_object_time(ob, cur_time);
+				G.scene->r.cfra = cur_frame;
+				
+				/* only use center of object */
+				obloc[0] = ob->obmat[3][0];
+				obloc[1] = ob->obmat[3][1];
+				obloc[2] = ob->obmat[3][2];
+				
+				/* Get IPO force strength and fall off values here */
+				if (has_ipo_code(ob->ipo, OB_PD_FSTR))
+					force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, cur_time);
+				else 
+					force_val = ob->pd->f_strength;
+
+				if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
+					ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, cur_time);
+				else 
+					ffall_val = ob->pd->f_power;
+
+				/* Now calculate the vortex force */
+				VecSubf(vect_to_vert, obloc, opco);
+
+				distance = Normalise(vect_to_vert);
+
+				Crossf(force_vec, ob->obmat[2], vect_to_vert);
+				Normalise(force_vec);
+
+				/* Limit minimum distance to vertex so that */
+				/* the force is not too big */
+				if (distance < 0.001) distance = 0.001;
+				f_force = (force_val)*(1/(100 * pow((double)distance, (double)ffall_val)));
+				speed[0] -= (force_vec[0] * f_force );
+				speed[1] -= (force_vec[1] * f_force );
+				speed[2] -= (force_vec[2] * f_force );
+
+			}
+		}
+		base = base->next;
+	}
+}
+
 static void get_forcefield(float opco[], float force[], float cur_time, unsigned int par_layer)
 {
 	/* Particle gravity code */
@@ -388,7 +454,7 @@ static void get_forcefield(float opco[], float force[], float cur_time, unsigned
 	while (base) {
 		if(base->lay & par_layer) {
 			ob= base->object;
-			if(ob->pd && ob->pd->forcefield) {
+			if(ob->pd && ob->pd->forcefield & 1) {
 
 				/* Need to set r.cfra for paths (investigate, ton) */
 				cur_frame = G.scene->r.cfra;
@@ -723,7 +789,7 @@ void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *
 	Particle *pa, *opa = NULL;
 	float damp, deltalife, life;
 	float cur_time;
-	float opco[3], opno[3], npco[3], npno[3], new_force[3];
+	float opco[3], opno[3], npco[3], npno[3], new_force[3], new_speed[3];
 	int b, rt1, rt2, deflected, deflection, finish_defs, def_count;
 	int last_ob, last_fc, same_fc;
 
@@ -761,15 +827,19 @@ void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *
 		new_force[0] = force[0];
 		new_force[1] = force[1];
 		new_force[2] = force[2];
+		new_speed[0] = 0.0;
+		new_speed[1] = 0.0;
+		new_speed[2] = 0.0;
 
 		/* Check force field */
 		cur_time = pa->time;
 		get_forcefield(opco, new_force, cur_time, par_layer);
+		get_vortex(opco, opa->no, new_speed, cur_time, par_layer);
 
 		/* new location */
-		pa->co[0]= opa->co[0] + deltalife*opa->no[0];
-		pa->co[1]= opa->co[1] + deltalife*opa->no[1];
-		pa->co[2]= opa->co[2] + deltalife*opa->no[2];
+		pa->co[0]= opa->co[0] + deltalife * (opa->no[0] + new_speed[0] + 0.5*new_force[0]);
+		pa->co[1]= opa->co[1] + deltalife * (opa->no[1] + new_speed[1] + 0.5*new_force[1]);
+		pa->co[2]= opa->co[2] + deltalife * (opa->no[2] + new_speed[2] + 0.5*new_force[2]);
 
 		/* new speed */
 		pa->no[0]= opa->no[0] + deltalife*new_force[0];
