@@ -111,6 +111,8 @@ void	KX_ConvertSumoObject(	class	KX_GameObject* gameobj,
 	struct	KX_ObjectProperties*	objprop);
 	
 void	KX_ClearSumoSharedShapes();
+bool KX_ReInstanceShapeFromMesh(RAS_MeshObject* meshobj);
+
 #endif
 
 #endif //KX_CONVERTPHYSICSOBJECTS

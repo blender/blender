@@ -596,6 +596,9 @@ struct RAS_MeshObject::fronttoback
 
 void RAS_MeshObject::SortPolygons(const MT_Transform &transform)
 {
+	if (!m_zsort)
+		return;
+		
 	// Extract camera Z plane...
 	const MT_Vector3 pnorm(transform.getBasis()[2]);
 	const MT_Scalar pval = transform.getOrigin()[2];
@@ -665,6 +668,7 @@ void RAS_MeshObject::SchedulePolygons(const MT_Transform &transform, int drawing
 					,poly->GetMaterial()->GetPolyMaterial());
 				
 			}
+			m_zsort = false;
 		}
 		else
 		{
@@ -683,9 +687,4 @@ void RAS_MeshObject::SchedulePolygons(const MT_Transform &transform, int drawing
 
 		m_bModified = false;
 	} 
-	
-	if (m_zsort && drawingmode >= RAS_IRasterizer::KX_SOLID)
-	{
-		SortPolygons(transform);
-	}
 }

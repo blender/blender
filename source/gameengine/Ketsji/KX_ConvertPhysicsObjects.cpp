@@ -77,13 +77,31 @@
 
 #include "KX_SumoPhysicsController.h"
 
+struct KX_PhysicsInstance
+{
+	DT_VertexBaseHandle	m_vertexbase;
+	int			m_vtxarray;
+	RAS_IPolyMaterial*	m_material;
+	
+	KX_PhysicsInstance(DT_VertexBaseHandle vertex_base, int vtxarray, RAS_IPolyMaterial* mat)
+		: m_vertexbase(vertex_base),
+		  m_vtxarray(vtxarray),
+		  m_material(mat)
+	{
+	}
+	
+	~KX_PhysicsInstance()
+	{
+		DT_DeleteVertexBase(m_vertexbase);
+	}
+};
+
 static GEN_Map<GEN_HashedPtr,DT_ShapeHandle> map_gamemesh_to_sumoshape;
-static GEN_Map<GEN_HashedPtr, DT_VertexBaseHandle> map_gamemesh_to_vertex_base_handle;
+static GEN_Map<GEN_HashedPtr, KX_PhysicsInstance*> map_gamemesh_to_instance;
 
 // forward declarations
 static void	BL_RegisterSumoObject(KX_GameObject* gameobj,class SM_Scene* sumoScene,class SM_Object* sumoObj,const STR_String& matname,bool isDynamic,bool isActor);
 static DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj, bool polytope);
-
 
 void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
 				RAS_MeshObject* meshobj,
@@ -339,7 +357,7 @@ static DT_ShapeHandle InstancePhysicsComplex(RAS_MeshObject* meshobj, int vtxarr
 	//DT_VertexIndices(indices.size(), &indices[0]);
 	DT_EndComplexShape();
 	
-	map_gamemesh_to_vertex_base_handle.insert(GEN_HashedPtr(meshobj), vertex_base);
+	map_gamemesh_to_instance.insert(GEN_HashedPtr(meshobj), new KX_PhysicsInstance(vertex_base, vtxarray, mat));
 	return shape;
 }
 
@@ -371,20 +389,20 @@ static DT_ShapeHandle InstancePhysicsPolytope(RAS_MeshObject* meshobj, int vtxar
 	DT_VertexIndices(indices.size(), &indices[0]);
 	DT_EndPolytope();
 	
-	map_gamemesh_to_vertex_base_handle.insert(GEN_HashedPtr(meshobj), vertex_base);
+	map_gamemesh_to_instance.insert(GEN_HashedPtr(meshobj), new KX_PhysicsInstance(vertex_base, vtxarray, mat));
 	return shape;
 }
 
 // This will have to be a method in a class somewhere...
 // Update SOLID with a changed physics mesh.
 // not used... yet.
-bool ReInstanceShapeFromMesh(RAS_MeshObject* meshobj, int vtxarray, RAS_IPolyMaterial *mat)
+bool KX_ReInstanceShapeFromMesh(RAS_MeshObject* meshobj)
 {
-	DT_VertexBaseHandle *vertex_base = map_gamemesh_to_vertex_base_handle[GEN_HashedPtr(meshobj)];
-	if (vertex_base)
+	KX_PhysicsInstance *instance = *map_gamemesh_to_instance[GEN_HashedPtr(meshobj)];
+	if (instance)
 	{
-		const RAS_TexVert *vertex_array = &((*meshobj->GetVertexCache(mat)[vtxarray])[0]);
-		DT_ChangeVertexBase(*vertex_base, vertex_array[0].getLocalXYZ());
+		const RAS_TexVert *vertex_array = &((*meshobj->GetVertexCache(instance->m_material)[instance->m_vtxarray])[0]);
+		DT_ChangeVertexBase(instance->m_vertexbase, vertex_array[0].getLocalXYZ());
 		return true;
 	}
 	return false;
@@ -554,15 +572,11 @@ void	KX_ClearSumoSharedShapes()
 	
 	map_gamemesh_to_sumoshape.clear();
 	
-	for (i=0; i < map_gamemesh_to_vertex_base_handle.size(); i++)
-		DT_DeleteVertexBase(*map_gamemesh_to_vertex_base_handle.at(i));
+	for (i=0; i < map_gamemesh_to_instance.size(); i++)
+		delete *map_gamemesh_to_instance.at(i);
 	
-	map_gamemesh_to_vertex_base_handle.clear();
+	map_gamemesh_to_instance.clear();
 }
-
-
-
-
 
 #endif //USE_SUMO_SOLID
 

@@ -201,8 +201,14 @@ void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRa
 
 	/* __NLA Do the deformation */
 	if (ms.m_pDeformer)
+	{
 		ms.m_pDeformer->Apply(m_material);
+	//	KX_ReInstanceShapeFromMesh(ms.m_mesh); // Recompute the physics mesh. (Can't call KX_* from RAS_)
+	}
 	/* End __NLA */
+	
+	if (rasty->GetDrawingMode() >= RAS_IRasterizer::KX_SOLID)
+		ms.m_mesh->SortPolygons(cameratrans*MT_Transform(ms.m_OpenGLMatrix));
 
 	rendertools->PushMatrix();
 	rendertools->applyTransform(rasty,ms.m_OpenGLMatrix,m_material->GetDrawingMode());
