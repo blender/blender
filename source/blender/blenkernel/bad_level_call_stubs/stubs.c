@@ -34,6 +34,7 @@
 
 #include "BLI_blenlib.h"
 #include "DNA_material_types.h"
+#include "DNA_script_types.h"
 #include "BKE_bad_level_calls.h"
 
 #ifdef HAVE_CONFIG_H
