@@ -155,8 +155,8 @@ int checkAppleVideoCard() {
 		inError[0] = 16;
 		inText[0] = 28;
 				
-		fprintf(stderr, " vram is %i. not enough, aborting\n", maxvram);
-		StandardAlert (   kAlertStopAlert,  &inError,&inText,NULL,&junkHit);
+		fprintf(stderr, " vram is %li . not enough, aborting\n", maxvram);
+		StandardAlert (   kAlertStopAlert, (ConstStr255Param) &inError, (ConstStr255Param)&inText,NULL,&junkHit);
 		abort();
 	}
 	CGLDestroyRendererInfo (rend);
@@ -661,6 +661,10 @@ static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 			window_handle(win, RESHAPE, 1);
 			break;
 		}
+		case GHOST_kEventUnknown:
+		case GHOST_kEventQuit:
+		case GHOST_kNumEventTypes:
+			break;
 	}
 	}
 	

@@ -110,10 +110,12 @@ static void print_help();
 static void print_version();
 
 
-/* defined is ghostwinlay , we can't include carbon here, conflict with DNA */
-#ifdef __APPLE
+/* defined in ghostwinlay and winlay, we can't include carbon here, conflict with DNA */
+#ifdef __APPLE__
 extern int checkAppleVideoCard();
 extern void getMacAvailableBounds(short *top, short *left, short *bottom, short *right);
+extern void	winlay_get_screensize(int *width_r, int *height_r);
+extern void	winlay_process_events(int wait_for_event);
 #endif
 
 
@@ -127,10 +129,12 @@ char bprogname[FILE_MAXDIR+FILE_MAXFILE]; /* from blenpluginapi:pluginapi.c */
 /* Initialise callbacks for the modules that need them */
 void setCallbacks(void); 
 
+#ifndef __APPLE__
 static void fpe_handler(int sig)
 {
 	// printf("SIGFPE trapped\n");
 }
+#endif
 
 /* handling ctrl-c event in console */
 static void blender_esc(int sig)
@@ -224,14 +228,12 @@ int main(int argc, char **argv)
 
 		argc= 1;
 
-        /* first let us check if we are hardware accelerated and with VRAM >= 16 Mo */
+        /* first let us check if we are hardware accelerated and with VRAM > 16 Mo */
         
         if (checkAppleVideoCard()) {
 			short top, left, bottom, right;
 			
 			winlay_get_screensize(&scr_x, &scr_y); 
-			/*  let sneak under topbar 
-            setprefsize(1, 1, scr_x-2, scr_y-24);*/
 			getMacAvailableBounds(&top, &left, &bottom, &right);
 			setprefsize(left +10,scr_y - bottom +10,right-left -20,bottom - 64);
 
