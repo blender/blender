@@ -294,7 +294,21 @@ void yafrayFileRender_t::writeTextures()
 					ostr << "<shader type=\"image\" name=\"" << blendtex->first << "\" >\n";
 					ostr << "\t<attributes>\n";
 					// image->name is full path
-					ostr << "\t\t<filename value=\"" << ima->name << "\" />\n";
+#ifdef WIN32
+          // add drive character if not in texpath, using blender executable location as reference
+          string texpath = ima->name;
+          int sp = texpath.find_first_of(":");
+          if (sp==-1) {
+            extern char bprogname[];
+            string blpath = bprogname;
+            sp = blpath.find_first_of(":");
+            if (sp!=-1) texpath = blpath.substr(0, sp+1) + texpath;
+          }
+#else
+          string texpath = ima->name;
+#endif
+
+					ostr << "\t\t<filename value=\"" << texpath << "\" />\n";
 					ostr << "\t</attributes>\n";
 					ostr << "</shader>\n\n";
 					xmlfile << ostr.str();
