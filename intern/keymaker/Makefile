@@ -71,7 +71,7 @@ install: all debug
 	@[ -d $(LCGDIR)/$(LIBNAME) ] || mkdir $(LCGDIR)/$(LIBNAME)
 	@[ -d $(LCGDIR)/$(LIBNAME)/include ] || mkdir $(LCGDIR)/$(LIBNAME)/include
 	@[ -d $(LCGDIR)/$(LIBNAME)/lib ] || mkdir $(LCGDIR)/$(LIBNAME)/lib
-	@../tools/cpifdiff.sh blenkey.h $(LCGDIR)/$(LIBNAME)/include/blenkey.h
+	@../tools/cpifdiff.sh blenkey.h $(LCGDIR)/$(LIBNAME)/include/
 	@../tools/cpifdiff.sh $(LIB_a) $(LCGDIR)/$(LIBNAME)/lib/
 ifeq ($(OS),darwin)
 	ranlib $(LCGDIR)/$(LIBNAME)/lib/lib$(LIBNAME).a
