@@ -229,6 +229,7 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 								   topoint[1]/topoint[3], 
 								   topoint[2]/topoint[3]); 
 	m_prevTargetPoint = topoint3;
+	m_prevSourcePoint = frompoint3;
 	
 	/* 2. Get the object from SuMO*/
 	/* Shoot! Beware that the first argument here is an

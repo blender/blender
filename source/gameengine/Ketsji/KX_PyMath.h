@@ -56,6 +56,12 @@ MT_Point3 MT_Point3FromPyList(PyObject* pylist);
  * Converts a python list to an MT_Vector4
  */
 MT_Vector4 MT_Vector4FromPyList(PyObject* pylist);
+
+/**
+ * Converts a python list to an MT_Quaternion
+ */
+MT_Quaternion MT_QuaternionFromPyList(PyObject* pylist);
+
 /**
  * Converts a python list of lists to an MT_Matrix4x4.
  * Any object that supports the sequence protocol will work.
@@ -75,5 +81,26 @@ MT_Matrix3x3 MT_Matrix3x3FromPyObject(PyObject *pymat);
  * Converts an MT_Matrix4x4 to a python object.
  */
 PyObject* PyObjectFromMT_Matrix4x4(const MT_Matrix4x4 &mat);
+
+/**
+ * Converts an MT_Matrix3x3 to a python object.
+ */
+PyObject* PyObjectFromMT_Matrix3x3(const MT_Matrix3x3 &mat);
+
+/**
+ * Converts an MT_Vector3 to a python object.
+ */
+PyObject* PyObjectFromMT_Vector3(const MT_Vector3 &vec);
+
+/**
+ * Converts an MT_Vector3 to a python object.
+ */
+PyObject* PyObjectFromMT_Point3(const MT_Point3 &pos);
+
+/**
+ * True if the given PyObject can be converted to an MT_Matrix
+ * @param rank = 3 (for MT_Matrix3x3) or 4 (for MT_Matrix4x4)
+ */
+bool PyObject_IsMT_Matrix(PyObject *pymat, unsigned int rank);
 
 #endif

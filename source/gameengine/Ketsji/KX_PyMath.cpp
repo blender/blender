@@ -177,6 +177,49 @@ MT_Vector4 MT_Vector4FromPyList(PyObject* pylist)
 	return vec;
 }
 
+MT_Quaternion MT_QuaternionFromPyList(PyObject* pylist)
+{
+	MT_Quaternion vec(0., 0., 0., 1.);
+	bool error=false;
+	if (pylist->ob_type == &CListValue::Type)
+	{
+		CListValue* listval = (CListValue*) pylist;
+		unsigned int numitems = listval->GetCount();
+		if (numitems <= 4)
+		{
+			for (unsigned index=0;index<numitems;index++)
+			{
+				vec[index] = listval->GetValue(index)->GetNumber();
+			}
+		} else
+		{
+			error = true;
+		}
+		
+	} else
+	{
+		// assert the list is long enough...
+		unsigned int numitems = PySequence_Size(pylist);
+		if (numitems <= 4)
+		{
+			for (unsigned index=0;index<numitems;index++)
+			{
+				PyObject *item = PySequence_GetItem(pylist,index); /* new ref */
+				vec[index] = PyFloat_AsDouble(item);
+				Py_DECREF(item);
+			}
+		}
+		else
+		{
+			error = true;
+		}
+	}
+	if (error)
+		PyErr_SetString(PyExc_TypeError, "Expected list of four items for Quaternion argument.");
+	return vec;
+}
+
+
 MT_Matrix4x4 MT_Matrix4x4FromPyObject(PyObject *pymat)
 {
 	MT_Matrix4x4 mat;
@@ -205,12 +248,79 @@ MT_Matrix4x4 MT_Matrix4x4FromPyObject(PyObject *pymat)
 	return mat;
 }
 
+bool PyObject_IsMT_Matrix(PyObject *pymat, unsigned int rank)
+{
+	if (!pymat)
+		return false;
+		
+	unsigned int x, y;
+	if (pymat->ob_type == &CListValue::Type)
+	{
+		CListValue* listval = (CListValue*) pymat;
+		if (listval->GetCount() == rank)
+		{
+			for (y = 0; y < rank; y++)
+			{
+				CListValue* vecval = (CListValue*)listval->GetValue(y);
+				if (vecval->GetCount() != rank)
+					return false;
+			}
+			return true;
+		}
+		return false;
+	} else if (PySequence_Check(pymat))
+	{
+		unsigned int rows = PySequence_Size(pymat);
+		if (rows != rank)
+			return false;
+		
+		for (y = 0; y < rank; y++)
+		{
+			PyObject *pyrow = PySequence_GetItem(pymat, y); /* new ref */
+			if (PySequence_Check(pyrow))
+			{
+				if (PySequence_Size(pyrow) != rank)
+				{
+					Py_DECREF(pyrow);
+					return false;
+				}
+			}
+			Py_DECREF(pyrow);
+		}
+		return true;
+	}
+	return false;
+}
+
 MT_Matrix3x3 MT_Matrix3x3FromPyObject(PyObject *pymat)
 {
 	MT_Matrix3x3 mat;
 	bool error = false;
 	mat.setIdentity();
-	if (PySequence_Check(pymat))
+	if (pymat->ob_type == &CListValue::Type)
+	{
+		unsigned int row, col;
+		CListValue* listval = (CListValue*) pymat;
+		if (listval->GetCount() == 3)
+		{
+			for (row=0;row<3;row++) // each row has a 3-vector [x,y,z]
+			{
+				CListValue* vecval = (CListValue*)listval->GetValue(row);
+				for (col=0;col<3 && col < vecval->GetCount();col++)
+				{
+					mat[row][col] = vecval->GetValue(col)->GetNumber();
+					
+				}
+			}
+		}
+		else
+		{
+			error = true;
+			if (error)
+				PyErr_SetString(PyExc_TypeError, "Expected list of three items for 3x3 matrix argument.");
+
+		}
+	} else if (PySequence_Check(pymat))
 	{
 		unsigned int rows = PySequence_Size(pymat);
 		for (unsigned int y = 0; y < rows && y < 3; y++)
@@ -236,9 +346,28 @@ MT_Matrix3x3 MT_Matrix3x3FromPyObject(PyObject *pymat)
 PyObject* PyObjectFromMT_Matrix4x4(const MT_Matrix4x4 &mat)
 {
 	return Py_BuildValue("[[ffff][ffff][ffff][ffff]]",
-		PyFloat_FromDouble(mat[0][0]), PyFloat_FromDouble(mat[0][1]), PyFloat_FromDouble(mat[0][2]), PyFloat_FromDouble(mat[0][3]), 
-		PyFloat_FromDouble(mat[1][0]), PyFloat_FromDouble(mat[1][1]), PyFloat_FromDouble(mat[1][2]), PyFloat_FromDouble(mat[1][3]), 
-		PyFloat_FromDouble(mat[2][0]), PyFloat_FromDouble(mat[2][1]), PyFloat_FromDouble(mat[2][2]), PyFloat_FromDouble(mat[2][3]), 
-		PyFloat_FromDouble(mat[3][0]), PyFloat_FromDouble(mat[3][1]), PyFloat_FromDouble(mat[3][2]), PyFloat_FromDouble(mat[3][3]));
+		mat[0][0], mat[0][1], mat[0][2], mat[0][3], 
+		mat[1][0], mat[1][1], mat[1][2], mat[1][3], 
+		mat[2][0], mat[2][1], mat[2][2], mat[2][3], 
+		mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
 }
 
+PyObject* PyObjectFromMT_Matrix3x3(const MT_Matrix3x3 &mat)
+{
+	return Py_BuildValue("[[fff][fff][fff]]",
+		mat[0][0], mat[0][1], mat[0][2], 
+		mat[1][0], mat[1][1], mat[1][2], 
+		mat[2][0], mat[2][1], mat[2][2]);
+}
+
+PyObject* PyObjectFromMT_Vector3(const MT_Vector3 &vec)
+{
+	return Py_BuildValue("[fff]", 
+		vec[0], vec[1], vec[2]);
+}
+
+PyObject* PyObjectFromMT_Point3(const MT_Point3 &pos)
+{
+	return Py_BuildValue("[fff]",
+		pos[0], pos[1], pos[2]);
+}

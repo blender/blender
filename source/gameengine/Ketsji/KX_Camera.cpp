@@ -257,11 +257,11 @@ void KX_Camera::ExtractFrustumSphere()
 	
 	// Compute centre
 	m_frustum_centre = MT_Point3(0., 0.,
-		(nearpoint.dot(nearpoint) - farpoint.dot(farpoint))/(2.0*(m_camdata.m_clipend - m_camdata.m_clipstart)));
+		-(nearpoint.dot(nearpoint) - farpoint.dot(farpoint))/(2.0*(m_camdata.m_clipend - m_camdata.m_clipstart)));
 	m_frustum_radius = m_frustum_centre.distance(farpoint);
 	
 	// Transform to world space.
-	m_frustum_centre = GetCameraToWorld()(m_frustum_centre);
+	m_frustum_centre = GetWorldToCamera()(m_frustum_centre);
 	
 	m_set_frustum_centre = true;
 }
@@ -474,12 +474,14 @@ int KX_Camera::_setattr(const STR_String &attr, PyObject *pyvalue)
 		}
 	}
 	
-	if (attr == "projection_matrix")
+	if (PyObject_IsMT_Matrix(pyvalue, 4))
 	{
-		PysetProjectionMatrix((PyObject*) this, pyvalue, NULL);
-		return 0;
+		if (attr == "projection_matrix")
+		{
+			SetProjectionMatrix(MT_Matrix4x4FromPyObject(pyvalue));
+			return 0;
+		}
 	}
-	
 	return KX_GameObject::_setattr(attr, pyvalue);
 }
 

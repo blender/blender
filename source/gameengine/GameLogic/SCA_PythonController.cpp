@@ -183,8 +183,9 @@ PyMethodDef SCA_PythonController::Methods[] = {
 	{"getSensors", (PyCFunction) SCA_PythonController::sPyGetSensors, 
 	METH_VARARGS, SCA_PythonController::GetSensors_doc},
 	{"getSensor", (PyCFunction) SCA_PythonController::sPyGetSensor, 
-	METH_VARARGS, SCA_PythonController::GetSensor_doc}
-	,
+	METH_VARARGS, SCA_PythonController::GetSensor_doc},
+	{"getScript", (PyCFunction) SCA_PythonController::sPyGetScript, METH_VARARGS},
+	{"setScript", (PyCFunction) SCA_PythonController::sPySetScript, METH_VARARGS},
 	{NULL,NULL} //Sentinel
 };
 

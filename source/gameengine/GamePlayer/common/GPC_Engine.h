@@ -102,7 +102,7 @@ public:
 public:
 	GPC_Engine(char *customLoadingAnimation,
 			int foregroundColor, int backgroundColor, int frameRate);
-	~GPC_Engine();
+	virtual ~GPC_Engine();
 	// Initialize() functions are not put here since they have
 	// different prototypes for Unix and Windows
 	void StartLoadingAnimation();
