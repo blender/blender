@@ -3972,7 +3972,6 @@ static void do_versions(Main *main)
 		while(wrld) {
 			if(wrld->range==0.0) {
 				wrld->range= 1.0/wrld->exposure;
-				wrld->exposure= 0.0;
 			}
 			wrld= wrld->id.next;
 		}

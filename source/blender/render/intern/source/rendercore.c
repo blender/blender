@@ -2464,7 +2464,7 @@ temp_y= floor(y);
 		VecAddf(col, shr.diff, shr.spec);
 		
 		/* exposure correction */
-		if(R.wrld.exposure!=0.0 || R.wrld.range!=1.0) {
+		if(R.wrld.exp!=0.0 || R.wrld.range!=1.0) {
 			if((shi.matren->mode & MA_SHLESS)==0) {
 				col[0]= R.wrld.linfac*(1.0-exp( col[0]*R.wrld.logfac) );
 				col[1]= R.wrld.linfac*(1.0-exp( col[1]*R.wrld.logfac) );

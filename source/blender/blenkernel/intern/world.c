@@ -90,8 +90,8 @@ World *add_world(char *name)
 	wrld->starsize= 2.0f;
 	wrld->gravity= 9.8f;
 	
-	wrld->exposure= 0.0f;
-	wrld->range= 1.0f;
+	wrld->exp= 0.0f;
+	wrld->exposure=wrld->range= 1.0f;
 
 	return wrld;
 }
@@ -201,10 +201,10 @@ void init_render_world()
 	}
 	else {
 		memset(&R.wrld, 0, sizeof(World));
-		R.wrld.exposure= 0.0;
+		R.wrld.exp= 0.0;
 		R.wrld.range= 1.0;
 	}
 
-	R.wrld.linfac= 1.0 + pow((2.0*R.wrld.exposure + 0.5), -10);
+	R.wrld.linfac= 1.0 + pow((2.0*R.wrld.exp + 0.5), -10);
 	R.wrld.logfac= log( (R.wrld.linfac-1.0)/R.wrld.linfac )/R.wrld.range;
 }

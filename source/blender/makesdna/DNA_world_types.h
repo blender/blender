@@ -58,10 +58,11 @@ typedef struct World {
 	unsigned int fastcol;	
 	
 	/**
-	 * New exposure/range control. linfac & logfac are constants... don't belong in
+	 * Exposure= mult factor. unused now, but maybe back later. Kept in to be upward compat.
+	 * New is exp/range control. linfac & logfac are constants... don't belong in
 	 * file, but allocating 8 bytes for temp mem isnt useful either.
 	 */
-	float exposure, range;	
+	float exposure, exp, range;	
 	float linfac, logfac;
 
 	/**
@@ -93,7 +94,6 @@ typedef struct World {
 	short dofsta, dofend, dofmin, dofmax;
 
 	int physicsEngine;
-	int pad;
 
 	struct Ipo *ipo;
 	struct MTex *mtex[8];

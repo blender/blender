@@ -1606,7 +1606,7 @@ static void world_panel_world(World *wrld)
 
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButF(block, NUMSLI,0, "Exp ",			160,30,145,19,	&(wrld->exposure), 0.0, 1.0, 0, 2, "Sets amount of exponential color correction for light");
+	uiDefButF(block, NUMSLI,0, "Exp ",			160,30,145,19,	&(wrld->exp), 0.0, 1.0, 0, 2, "Sets amount of exponential color correction for light");
 	uiDefButF(block, NUMSLI,0, "Range ",		160,10,145,19,	&(wrld->range), 0.2, 5.0, 0, 2, "Sets the color amount that will be mapped on color 1.0");
 
 
