@@ -75,6 +75,11 @@ all debug::
     export NAN_GHOST ?= $(LCGDIR)/ghost
     export NAN_TEST_VERBOSITY ?= 1
     export NAN_BMFONT ?= $(LCGDIR)/bmfont
+    ifeq ($(FREE_WINDOWS), true)
+      export NAN_FTGL ?= $(LCGDIR)/gcc/ftgl
+    else
+      export NAN_FTGL ?= $(LCGDIR)/ftgl
+    endif
 	export NAN_SDL ?= $(shell sdl-config --prefix)
 	export NAN_SDLLIBS ?= $(shell sdl-config --libs)
 	export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
@@ -101,14 +106,8 @@ all debug::
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_FREETYPE ?= $(LCGDIR)/freetype
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
-	ifeq ($(FREE_WINDOWS), true)
-      export NAN_FTGL ?= $(LCGDIR)/gcc/ftgl
-    else
-      export NAN_FTGL ?= $(LCGDIR)/ftgl
-    endif
 	export NAN_SDLLIBS ?= $(shell sdl-config --libs)
 	export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
-
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
