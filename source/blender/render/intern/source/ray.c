@@ -52,10 +52,6 @@
 #define DDA_SHADOW 0
 #define DDA_MIRROR 1
 
-#ifdef WIN32
-#define bzero(a,b) memset(a, 0, b)
-#endif
-
 /* ********** structs *************** */
 
 typedef struct Octree {
@@ -236,7 +232,7 @@ static void ocwrite(VlakRen *vlr, short x, short y, short z, float rtf[][3])
 	br= addbranch(br,oc3);
 	br= addbranch(br,oc4);
 	no= (Node *)br->b[oc5];
-	if(no==NULL) br->b[oc5]= (Branch *)no= addnode();
+	if(no==NULL) br->b[oc5]= (Branch *)(no= addnode());
 
 	while(no->next) no= no->next;
 
@@ -398,8 +394,8 @@ void makeoctree()
 
 	ocmax= ocmin+3;
 
-	bzero(g_oc.adrnode, sizeof(g_oc.adrnode));
-	bzero(g_oc.adrbranch, sizeof(g_oc.adrbranch));
+	memset(g_oc.adrnode, 0, sizeof(g_oc.adrnode));
+	memset(g_oc.adrbranch, 0, sizeof(g_oc.adrbranch));
 
 	branchcount=0;
 	nodecount=0;
@@ -469,7 +465,7 @@ void makeoctree()
 				}
 			}
 			
-			bzero(ocvlak, sizeof(ocvlak));
+			memset(ocvlak, 0, sizeof(ocvlak));
 			
 			for(c=0;c<3;c++) {
 				oc1= rts[0][c];
@@ -1329,6 +1325,14 @@ static void shade_ray(Isect *is, int mask)
 			}
 			if(R.vlr->tface) render_realtime_texture();
 		}
+		if(R.matren->texco & TEXCO_REFL) {
+			/* R.vn dot R.view */
+			float i= -2.0*(R.vn[0]*R.view[0]+R.vn[1]*R.view[1]+R.vn[2]*R.view[2]);
+		
+			R.ref[0]= (R.view[0]+i*R.vn[0]);
+			R.ref[1]= (R.view[1]+i*R.vn[1]);
+			R.ref[2]= (R.view[2]+i*R.vn[2]);
+		}
 	}
 	else {
 		VECCOPY(R.vn, R.vlr->n);
@@ -1499,38 +1503,22 @@ static void *jitter_cube(int resol)
 /* extern call from render loop */
 void ray_mirror(int mask)
 {
-	extern unsigned short shortcol[4];
-	float col[4];
 	float i, vec[3];
 	
-	col[0]= shortcol[0]/65535.0;
-	col[1]= shortcol[1]/65535.0;
-	col[2]= shortcol[2]/65535.0;
-
 	if(R.r.mode & R_OSA) {
-		extern int usegamtab;
 		VlakRen *vlr;
-		float accum[3], rco[3], rvno[3], memcol[3], ref[3], dxref[3], dyref[3];
+		float accum[3], rco[3], rvno[3], col[3], ref[3], dxref[3], dyref[3];
 		float div= 0.0;
-		int j, gamtab;
+		int j;
 		
-		/* ungamma col! */
-		if(usegamtab) {
-			col[0]= sqrt(col[0]);
-			col[1]= sqrt(col[1]);
-			col[2]= sqrt(col[2]);
-		}
 		accum[0]= accum[1]= accum[2]= 0.0;
 		
 		/* store variables which change during tracing */
 		VECCOPY(rco, R.co);
 		VECCOPY(rvno, R.vno);
-		VECCOPY(memcol, col);
 		VECCOPY(ref, R.ref);
 		VECCOPY(dxref, O.dxref);
 		VECCOPY(dyref, O.dyref);
-		gamtab= usegamtab;
-		usegamtab= 0;
 		vlr= R.vlr;
 
 		for(j=0; j<R.osa; j++) {
@@ -1553,28 +1541,23 @@ void ray_mirror(int mask)
 				R.co[2]+= (jit[j][0]-0.5)*O.dxco[2] + (jit[j][1]-0.5)*O.dyco[2] ;
 				
 				/* we use a new mask here, only shadow uses it */
-				traceray(R.mat->ray_mirror, R.mat->ray_depth, R.co, vec, col, 1<<j);
+				/* result in accum, this is copied to R.refcol for shade_lamp_loop */
+				traceray(1.0, R.mat->ray_depth, R.co, vec, col, 1<<j);
 				
 				VecAddf(accum, accum, col);
 				div+= 1.0;
 
 				/* restore */
 				VECCOPY(R.co, rco);
-				VECCOPY(col, memcol);
 				R.vlr= vlr;
 				R.mat= vlr->mat;
 				R.matren= R.mat->ren;
 			}
 		}
-		usegamtab= gamtab;
-		col[0]= accum[0]/div;
-		col[1]= accum[1]/div;
-		col[2]= accum[2]/div;
-		if(usegamtab) {
-			col[0]*= col[0];
-			col[1]*= col[1];
-			col[2]*= col[2];
-		}
+		R.refcol[0]= R.mat->ray_mirror;
+		R.refcol[1]= R.mat->ray_mirror*accum[0]/div;
+		R.refcol[2]= R.mat->ray_mirror*accum[1]/div;
+		R.refcol[3]= R.mat->ray_mirror*accum[2]/div;
 	}
 	else {
 		i= -2.0*(R.vn[0]*R.view[0]+R.vn[1]*R.view[1]+R.vn[2]*R.view[2]);
@@ -1593,15 +1576,16 @@ void ray_mirror(int mask)
 				vec[2]-= i*R.vno[2];
 			}
 		}
-
-		traceray(R.mat->ray_mirror, R.mat->ray_depth, R.co, vec, col, mask);
+		
+		/* result in r.refcol, this is added in shade_lamp_loop */
+		i= R.mat->ray_mirror;
+		traceray(1.0, R.mat->ray_depth, R.co, vec, R.refcol+1, mask);
+		R.refcol[0]= i;
+		R.refcol[1]*= i;
+		R.refcol[2]*= i;
+		R.refcol[3]*= i;
+		
 	}
-	
-	shortcol[0]= (col[0]>=1.0?65535:col[0]*65535.0);
-	shortcol[1]= (col[1]>=1.0?65535:col[1]*65535.0);
-	shortcol[2]= (col[2]>=1.0?65535:col[2]*65535.0);
-
-
 }
 
 /* extern call from shade_lamp_loop */

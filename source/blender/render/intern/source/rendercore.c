@@ -1359,7 +1359,7 @@ float CookTorr_Spec(float *n, float *l, float *v, int hard)
 float Blinn_Spec(float *n, float *l, float *v, float refrac, float spec_power )
 {
 	float i, nh, nv, nl, vh, h[3];
-	float a, b, c, g, p, f, ang;
+	float a, b, c, g=0.0, p, f, ang;
 
 	if(refrac < 1.0) return 0.0;
 	if(spec_power == 0.0) return 0.0;
@@ -1616,21 +1616,12 @@ void shade_lamp_loop(int mask)
 		ma->b= R.vcol[2];
 	}
 
-	/* mirror reflection colour textures (envmap) */
-	R.refcol[0]= R.refcol[1]= R.refcol[2]= R.refcol[3]= 0.0;
-
 	if(ma->texco) {
-
-		if(ma->texco & TEXCO_REFL) {
-			RE_calc_R_ref();
-		}
-		
 		if(ma->mode & (MA_VERTEXCOLP|MA_FACETEXTURE)) {
 			R.mat->r= R.vcol[0];
 			R.mat->g= R.vcol[1];
 			R.mat->b= R.vcol[2];
 		}
-
 		do_material_tex();
 	}
 	
@@ -1900,6 +1891,20 @@ void shade_lamp_loop(int mask)
 		}
 	}
 
+	/* Result of ray_mirror() is written in R.refcol. 
+	   Ugly is that this function is called from within ray_mirror as well */
+	if(R.r.mode & R_RAYTRACE) {
+		if(ma->ray_mirror!=0.0) {
+			static int only_once= 1;
+			if(only_once) {
+				extern void ray_mirror(int);
+				only_once= 0;
+				ray_mirror(mask);
+				only_once= 1;
+			}
+		}
+	}
+	
 	if(R.refcol[0]==0.0) {
 		a= 65535.0*( ma->r*ir +ma->ambr +isr +ma->amb*R.rad[0]);
 		if(a>65535) a=65535; else if(a<0) a= 0;
@@ -2280,7 +2285,12 @@ void shadepixel(float x, float y, int vlaknr, int mask)
 				}
 				if(vlr->tface) render_realtime_texture();
 			}
-			
+
+			if(R.matren->texco & TEXCO_REFL) {
+				/* mirror reflection colour textures (envmap) */
+				
+				RE_calc_R_ref();
+			}
 			
 			/* after this the u and v AND O.dxuv and O.dyuv are incorrect */
 			if(R.matren->texco & TEXCO_STICKY) {
@@ -2320,6 +2330,9 @@ void shadepixel(float x, float y, int vlaknr, int mask)
 			VECCOPY(R.vn, vlr->n);
 			R.rad[0]= R.rad[1]= R.rad[2]= 0.0;
 		}
+		/* always reset */
+		R.refcol[0]= R.refcol[1]= R.refcol[2]= R.refcol[3]= 0.0;
+		
 		if(R.matren->texco & TEXCO_WINDOW) {
 			R.winco[0]= (x+(R.xstart))/(float)R.afmx;
 			R.winco[1]= (y+(R.ystart))/(float)R.afmy;
@@ -2333,12 +2346,6 @@ void shadepixel(float x, float y, int vlaknr, int mask)
 		}
 		else alpha= 1.0;
 
-		/* RAYTRACE IS BACK HERE! */
-		if(R.r.mode & R_RAYTRACE) {
-			extern void ray_mirror(int);
-			if(R.matren->ray_mirror!=0.0) ray_mirror(mask);
-		}
-		
 		if(R.matren->alpha!=1.0 || alpha!=1.0) {
 			fac= alpha*(R.matren->alpha);
 			
