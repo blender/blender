@@ -1021,16 +1021,9 @@ void shadeLampLusFloat()
 	}
 	
 	if(ma->mode & MA_SHLESS) {
-		if( (ma->mode & (MA_VERTEXCOL+MA_VERTEXCOLP+MA_FACETEXTURE) )) {
-			ir= R.vcol[0]*ma->r;
-			ig= R.vcol[1]*ma->g;
-			ib= R.vcol[2]*ma->b;
-		}
-		else {
-			ir= ma->r; /* apparently stored as [0,1]? */
-			ig= ma->g;
-			ib= ma->b;
-		}
+		ir= ma->r; /* apparently stored as [0,1]? */
+		ig= ma->g;
+		ib= ma->b;
 
 		collector[0] = ir; /* no clipping, no alpha */
 		collector[1] = ig;
