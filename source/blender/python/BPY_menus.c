@@ -946,9 +946,18 @@ int BPyMenu_Init( int usedir )
 	for( i = 0; i < PYMENU_TOTAL; i++ )
 		BPyMenuTable[i] = NULL;
 
-	if( U.pythondir[0] == '\0' ||
-			strcmp(U.pythondir, "/") == 0 || strcmp(U.pythondir, "//") == 0)
-	{
+	if( DEBUG )
+		fprintf(stdout, "\nRegistering scripts in Blender menus ...\n\n" );
+
+	if( U.pythondir[0] == '\0') {
+		upydir = NULL;
+	}
+	else if (strcmp(U.pythondir, "/") == 0 || strcmp(U.pythondir, "//") == 0) {
+		/* these are not accepted to prevent possible slight slowdowns on startup;
+		 * they should not be used as user defined scripts dir, anyway, also from
+		 * speed considerations, since they'd not be dedicated scripts dirs */
+		if (DEBUG) fprintf(stderr,
+			"BPyMenus: invalid user defined Python scripts dir: \"/\" or \"//\".\n");
 		upydir = NULL;
 	}
 	else {
@@ -968,7 +977,7 @@ int BPyMenu_Init( int usedir )
 				fprintf(stderr,
 					"\nDefault scripts dir: %s:\n%s\n", dirname, strerror(errno));
 				if( upydir )
-					fprintf(stderr,
+					fprintf(stdout,
 						"Getting scripts menu data from user defined dir: %s.\n",
 						upythondir );
 			}
@@ -981,6 +990,7 @@ int BPyMenu_Init( int usedir )
 
 		if( stat_dir2 < 0 ) {
 			time_dir2 = 0;
+			upydir = NULL;
 			if( DEBUG )
 				fprintf(stderr, "\nUser defined scripts dir: %s:\n%s.\n",
 					upythondir, strerror( errno ) );
@@ -990,7 +1000,7 @@ int BPyMenu_Init( int usedir )
 To have scripts in menus, please add them to the default scripts dir:\n\
 %s\n\
 and / or go to 'Info window -> File Paths tab' and set a valid path for\n\
-the user defined scripts dir.\n", dirname );
+the user defined Python scripts dir.\n", dirname );
 				return -1;
 			}
 		}
@@ -1004,9 +1014,6 @@ the user defined scripts dir.\n", dirname );
 		}
 		return -1;
 	}
-
-	if( DEBUG )
-		fprintf(stderr, "\nRegistering scripts in Blender menus ...\n\n" );
 
 	if (usedir) stat_file = -1;
 	else { /* if we're not forced to use the dir */
@@ -1025,8 +1032,8 @@ the user defined scripts dir.\n", dirname );
 			{	/* file is newer */
 				stat_file = bpymenu_CreateFromFile(  );	/* -1 if an error occurred */
 				if( !stat_file && DEBUG )
-					fprintf(stderr,
-						"Getting menu data for scripts from file: %s\n\n", fname );
+					fprintf(stdout,
+						"Getting menu data for scripts from file:\n%s\n\n", fname );
 			}
 			else stat_file = -1;
 		}
@@ -1035,11 +1042,11 @@ the user defined scripts dir.\n", dirname );
 
 	if( stat_file == -1 ) {	/* use dirs */
 		if( DEBUG ) {
-			fprintf(stderr,
+			fprintf(stdout,
 				"Getting menu data for scripts from dir(s):\ndefault: %s\n", dirname );
 			if( upydir )
-				fprintf(stderr, "user defined: %s", upythondir );
-			fprintf(stderr, "\n");
+				fprintf(stdout, "user defined: %s\n", upythondir );
+			fprintf(stdout, "\n");
 		}
 		if( stat_dir1 == 0 ) {
 			i = bpymenu_ParseDir( dirname, NULL, 0 );

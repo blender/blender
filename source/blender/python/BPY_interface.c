@@ -306,18 +306,28 @@ that dir info is available.
 ****************************************************************************/
 void BPY_post_start_python( void )
 {
-	PyObject *result, *dict;
 	char dirpath[FILE_MAXDIR];
 	char *sdir = NULL;
 
 	if(U.pythondir[0] != '\0' ) {
 		char modpath[FILE_MAXDIR];
+		int upyslen = strlen(U.pythondir);
+
+		/* check if user pydir ends with a slash and, if so, remove the slash
+		 * (for eventual implementations of c library's stat function that might
+		 * not like it) */
+		if (upyslen > 2) { /* avoids doing anything if dir == '//' */
+			char ending = U.pythondir[upyslen - 1];
+
+			if (ending == '/' || ending == '\\')
+				U.pythondir[upyslen - 1] = '\0';
+		}
 
 		BLI_strncpy(dirpath, U.pythondir, FILE_MAXDIR);
 		BLI_convertstringcode(dirpath, G.sce, 0);
 		syspath_append(dirpath);	/* append to module search path */
 
-		BLI_make_file_string("/", modpath, dirpath, "bpymodules/");
+		BLI_make_file_string("/", modpath, dirpath, "bpymodules");
 		if (BLI_exists(modpath)) syspath_append(modpath);
 	}
 
@@ -326,25 +336,13 @@ void BPY_post_start_python( void )
 
 		syspath_append(sdir);
 
-		BLI_make_file_string("/", dirpath, sdir, "bpymodules/");
+		BLI_make_file_string("/", dirpath, sdir, "bpymodules");
 		if (BLI_exists(dirpath)) syspath_append(dirpath);
 	}
 
 	BPyMenu_Init( 0 );	/* get dynamic menus (registered scripts) data */
 
-	dict = PyDict_New(  );
-
-	/* here we check if the user has (some of) the expected modules */
-	if( dict ) {
-		char *s = "import chunk, gzip, math, os, struct, string";
-		result = PyRun_String( s, Py_eval_input, dict, dict );
-		if( !result ) {
-			PyErr_Clear(  );
-			/*XXX print msg about this, point to readme.html */
-		} else
-			Py_DECREF( result );
-		Py_DECREF( dict );
-	}
+	return;
 }
 
 /****************************************************************************

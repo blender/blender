@@ -228,7 +228,7 @@ static PyObject *Blender_Get( PyObject * self, PyObject * args )
 		char *sdir = bpy_gethome(1);
 
 		if (sdir) {
-			BLI_make_file_string( "/", datadir, sdir, "bpydata/" );
+			BLI_make_file_string( "/", datadir, sdir, "bpydata" );
 			if( BLI_exists( datadir ) )
 				ret = PyString_FromString( datadir );
 		}
@@ -244,7 +244,7 @@ static PyObject *Blender_Get( PyObject * self, PyObject * args )
 			if (BLI_exists(upydir)) {
 				char udatadir[FILE_MAXDIR];
 
-				BLI_make_file_string("/", udatadir, upydir, "bpydata/");
+				BLI_make_file_string("/", udatadir, upydir, "bpydata");
 
 				if (BLI_exists(udatadir))
 					ret = PyString_FromString(udatadir);

@@ -138,6 +138,8 @@ static uiBlock *script_scriptsmenu(void *arg_unused)
 		uiDefIconTextBlockBut(block, script_scripts_submenus, (void *)i, ICON_RIGHTARROW_THIN, BPyMenu_group_itoa(i), 0, yco-=20, menuwidth, 19, "");
 	}
 
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Update Menus", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "Use when a scripts folder or its contents are modified");
 
 	if(curarea->headertype==HEADERTOP) {

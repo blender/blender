@@ -81,12 +81,12 @@ char *bpy_gethome(int append_scriptsdir)
 	if( strstr( s, ".blender" ) )
 		PyOS_snprintf( homedir, FILE_MAXDIR, s );
 	else
-		BLI_make_file_string( "/", homedir, s, ".blender/" );
+		BLI_make_file_string( "/", homedir, s, ".blender" );
 
 	/* if userhome/.blender/ exists, return it */
 	if( BLI_exists( homedir ) ) {
 		if (append_scriptsdir) {
-			BLI_make_file_string("/", scriptsdir, homedir, "scripts/");
+			BLI_make_file_string("/", scriptsdir, homedir, "scripts");
 			if (BLI_exists (scriptsdir)) return scriptsdir;
 		}
 		else return homedir;
@@ -99,11 +99,11 @@ char *bpy_gethome(int append_scriptsdir)
 	i = s - bprogname + 1;
 
 	PyOS_snprintf( bprogdir, i, bprogname );
-	BLI_make_file_string( "/", homedir, bprogdir, ".blender/" );
+	BLI_make_file_string( "/", homedir, bprogdir, ".blender" );
 
 	if (BLI_exists(homedir)) {
 		if (append_scriptsdir) {
-			BLI_make_file_string("/", scriptsdir, homedir, "scripts/");
+			BLI_make_file_string("/", scriptsdir, homedir, "scripts");
 			if (BLI_exists(scriptsdir)) return scriptsdir;
 		}
 		else return homedir;
@@ -111,7 +111,7 @@ char *bpy_gethome(int append_scriptsdir)
 
 	/* last try for scripts dir: blender in cvs dir, scripts/ inside release/: */
 	if (append_scriptsdir) {
-		BLI_make_file_string("/", scriptsdir, bprogdir, "release/scripts/");
+		BLI_make_file_string("/", scriptsdir, bprogdir, "release/scripts");
 		if (BLI_exists(scriptsdir)) return scriptsdir;
 	}
 
