@@ -35,7 +35,7 @@
 LIBNAME = ghost
 SOURCEDIR = intern/$(LIBNAME)/test
 DIR = $(OCGDIR)/$(SOURCEDIR)
-DIRS = gears
+DIRS = gears multitest
 
 include nan_subdirs.mk
 
