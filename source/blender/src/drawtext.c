@@ -1000,7 +1000,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 		}
 		if (val && !ELEM(G.qual, 0, LR_SHIFTKEY)) {
-			if (event==FKEY && (G.qual & LR_ALTKEY) && (G.qual & LR_SHIFTKEY)) {
+			if (event==FKEY && G.qual == (LR_ALTKEY|LR_SHIFTKEY)) {
 				switch (pupmenu("File %t|New %x0|Open... %x1")) {
 				case 0:
 					st->text= add_empty_text();
@@ -1088,54 +1088,36 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 	} else if (val) {
 		switch (event) {
-		case FKEY:
-			if (G.qual == (LR_ALTKEY|LR_SHIFTKEY)) {
-				p= pupmenu("File %t|New %x0|Open... %x1|Save %x2|Save As...%x3");
-
-				switch(p) {
-				case 0:
-					st->text= add_empty_text();
-					st->top= 0;
-					
-					allqueue(REDRAWTEXT, 0);
-					allqueue(REDRAWHEADERS, 0);
-					break;
-
-				case 1:
-					activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE", G.sce, add_text_fs);
-					break;
-
-				case 3:
-					text->flags |= TXT_ISMEM;
-					
-				case 2:
-					txt_write_file(text);
-					do_draw= 1;
-					break;
-
-				default:
-					break;
-				}
-			} else if (G.qual & LR_ALTKEY) {
-					if (txt_has_sel(text) && !(G.qual & LR_CTRLKEY)) {
-					txt_find_panel(st,0);
-				} else if (!last_txt_find_string || (G.qual & LR_CTRLKEY)) {
-					txt_find_panel(st,1);
-				}
-	
+		case AKEY:
+			if (G.qual & LR_ALTKEY) {
+				txt_move_bol(text, G.qual & LR_SHIFTKEY);
+				do_draw= 1;
+				pop_space_text(st);
+			} else if (G.qual & LR_CTRLKEY) {
+				txt_sel_all(text);
 				do_draw= 1;
 			}
-			
-			break;
+			break; /* BREAK A */
+		case CKEY:
+			if (G.qual & LR_ALTKEY || G.qual & LR_CTRLKEY) {
+				if(G.qual & LR_SHIFTKEY)
+					txt_copy_clipboard(text);
+				else
+					txt_copy_sel(text);
 
+				do_draw= 1;	
+			}
+			break; /* BREAK C */
+		case DKEY:
+			if (G.qual == LR_CTRLKEY) {
+				txt_delete_char(text);
+				do_draw= 1;
+				pop_space_text(st);
+			}
+			break; /* BREAK D */
 		case EKEY:
 			if (G.qual == (LR_ALTKEY|LR_SHIFTKEY)) {
-				p= pupmenu("Edit %t|"
-							"Cut %x0|"
-							"Copy %x1|"
-							"Paste %x2|"
-							"Print Cut Buffer %x3");
-				switch(p) {
+				switch(pupmenu("Edit %t|Cut %x0|Copy %x1|Paste %x2|Print Cut Buffer %x3")) {
 				case 0:
 					txt_cut_sel(text);
 					do_draw= 1;
@@ -1153,41 +1135,92 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					break;
 				}
 			}
-			break;
-
-		case VKEY:
-			if (G.qual == (LR_ALTKEY| LR_SHIFTKEY)) {
-				p= pupmenu("View %t|"
-							"Top of File %x0|"
-							"Bottom of File %x1|"
-							"Page Up %x2|"
-							"Page Down %x3");
-				switch(p) {
+			else if (G.qual == LR_CTRLKEY || G.qual == (LR_CTRLKEY|LR_SHIFTKEY)) {
+				txt_move_eol(text, G.qual & LR_SHIFTKEY);
+				do_draw= 1;
+				pop_space_text(st);
+			}
+			break; /* BREAK E */
+		case FKEY:
+			if (G.qual == (LR_ALTKEY|LR_SHIFTKEY)) {
+				switch(pupmenu("File %t|New %x0|Open... %x1|Save %x2|Save As...%x3")) {
 				case 0:
-					txt_move_bof(text, 0);
-					do_draw= 1;
-					pop_space_text(st);
-					break;
+					st->text= add_empty_text();
+					st->top= 0;
 					
+					allqueue(REDRAWTEXT, 0);
+					allqueue(REDRAWHEADERS, 0);
+					break;
 				case 1:
-					txt_move_eof(text, 0);
-					do_draw= 1;
-					pop_space_text(st);
+					activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE", G.sce, add_text_fs);
 					break;
-					
-				case 2:
-					screen_skip(st, -st->viewlines);
-					do_draw= 1;
-					break;
-					
 				case 3:
-					screen_skip(st, st->viewlines);
+					text->flags |= TXT_ISMEM;
+				case 2:
+					txt_write_file(text);
 					do_draw= 1;
 					break;
 				}
 			}
-			break;
+			else if (G.qual == LR_ALTKEY) {
+				if (txt_has_sel(text)) {
+					txt_find_panel(st,0);
+					do_draw= 1;
+				}
+			}
+			else if (G.qual == (LR_ALTKEY|LR_CTRLKEY)) {
+				if (!last_txt_find_string) {
+					txt_find_panel(st,1);
+					do_draw= 1;
+				}
+			}
+			break; /* BREAK F */
+		case JKEY:
+			if (G.qual == LR_ALTKEY) {
+				do_draw= jumptoline_interactive(st);
+			}
+			break; /* BREAK J */
+		case MKEY:
+			if (G.qual == LR_ALTKEY) {
+				txt_export_to_object(text);
+				do_draw= 1;	
+			}
+			break; /* BREAK M */
+		case NKEY:
+			if (G.qual == LR_ALTKEY) {
+				st->text= add_empty_text();
+				st->top= 0;
+			
+				allqueue(REDRAWTEXT, 0);
+				allqueue(REDRAWHEADERS, 0);
 
+			}
+			break; /* BREAK N */
+		case OKEY:
+			if (G.qual == LR_ALTKEY) {
+				activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE", G.sce, add_text_fs);
+			}
+			break; /* BREAK O */
+		case PKEY:
+			if (G.qual == LR_ALTKEY) {
+				run_python_script(st);
+				do_draw= 1;
+			}
+			break; /* BREAK P */
+		case QKEY:
+			if(okee("QUIT BLENDER")) exit_usiblender();
+			break; /* BREAK Q */
+		case RKEY:
+			if (G.qual == LR_ALTKEY) {
+			    if (text->compiled) BPY_free_compiled_text(text);
+			        text->compiled = NULL;
+				if (okee("Reopen Text")) {
+					if (!reopen_text(text))
+						error("Could not reopen file");
+				}
+				do_draw= 1;	
+			}
+			break; /* BREAK R */
 		case SKEY:
 			if (G.qual == (LR_ALTKEY|LR_SHIFTKEY)) {
 				p= pupmenu("Select %t|"
@@ -1210,112 +1243,15 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					break;
 				}
 			}
-			break;
-			
-		case QKEY:
-			if(okee("QUIT BLENDER")) exit_usiblender();
-			break;
-		}
-
-		switch(event) {
-		case AKEY:
-			if (G.qual & LR_ALTKEY) {
-				txt_move_bol(text, G.qual & LR_SHIFTKEY);
-				do_draw= 1;
-				pop_space_text(st);
-			} else if (G.qual & LR_CTRLKEY) {
-				txt_sel_all(text);
-				do_draw= 1;
-			}
-			break;
-
-		case CKEY:
-			if (G.qual & LR_ALTKEY || G.qual & LR_CTRLKEY) {
-				if(G.qual & LR_SHIFTKEY)
-					txt_copy_clipboard(text);
-				else
-					txt_copy_sel(text);
-
-				do_draw= 1;	
-			}
-			break;
-
-		case DKEY:
-			if (G.qual == LR_CTRLKEY) {
-				txt_delete_char(text);
-				do_draw= 1;
-				pop_space_text(st);
-			}
-			break;
-
-		case EKEY:
-			if (G.qual == LR_CTRLKEY) {
-				txt_move_eol(text, G.qual & LR_SHIFTKEY);
-				do_draw= 1;
-				pop_space_text(st);
-			}
-			break;
-
-		case JKEY:
-			if (G.qual == LR_ALTKEY) {
-				do_draw= jumptoline_interactive(st);
-			}
-			break;
-
-		case OKEY:
-			if (G.qual == LR_ALTKEY) {
-				activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE", G.sce, add_text_fs);
-			}
-			break;
-			
-		case MKEY:
-			if (G.qual == LR_ALTKEY) {
-				txt_export_to_object(text);
-				do_draw= 1;	
-			}
-			break;
-
-		case NKEY:
-			if (G.qual == LR_ALTKEY) {
-				st->text= add_empty_text();
-				st->top= 0;
-			
-				allqueue(REDRAWTEXT, 0);
-				allqueue(REDRAWHEADERS, 0);
-
-			}
-			break;
-
-		case PKEY:
-			if (G.qual == LR_ALTKEY) {
-				run_python_script(st);
-				do_draw= 1;
-			}
-			break;
-			
-		case RKEY:
-			if (G.qual == LR_ALTKEY) {
-			    if (text->compiled) BPY_free_compiled_text(text);
-			        text->compiled = NULL;
-				if (okee("Reopen Text")) {
-					if (!reopen_text(text)) {
-						error("Could not reopen file");
-					}
-				}
-				do_draw= 1;	
-			}
-			break;
-		
-		case SKEY:
-			if (G.qual & LR_ALTKEY) {
+			else if (G.qual & LR_ALTKEY) {
+				/* Event treatment CANNOT enter this if
 				if (G.qual & LR_SHIFTKEY) 
 					if (text) text->flags |= TXT_ISMEM;
-					
+				*/
 				txt_write_file(text);
 				do_draw= 1;
 			}
-			break;
-			
+			break; /* BREAK S */
 		case UKEY:
 			//txt_print_undo(text); //debug buffer in console
 			if (G.qual == (LR_ALTKEY|LR_SHIFTKEY)) {
@@ -1326,20 +1262,41 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				txt_do_undo(text);
 				do_draw= 1;
 			}
-			break;
-
+			break; /* BREAK U */
 		case VKEY:
-			if (G.qual & LR_ALTKEY || G.qual & LR_CTRLKEY) {
-				if(G.qual & LR_SHIFTKEY)
+			if (G.qual == (LR_ALTKEY| LR_SHIFTKEY)) {
+				switch(pupmenu("View %t|Top of File %x0|Bottom of File %x1|Page Up %x2|Page Down %x3")) {
+				case 0:
+					txt_move_bof(text, 0);
+					do_draw= 1;
+					pop_space_text(st);
+					break;
+				case 1:
+					txt_move_eof(text, 0);
+					do_draw= 1;
+					pop_space_text(st);
+					break;
+				case 2:
+					screen_skip(st, -st->viewlines);
+					do_draw= 1;
+					break;
+				case 3:
+					screen_skip(st, st->viewlines);
+					do_draw= 1;
+					break;
+				}
+			}
+			/* Support for both Alt-V and Ctrl-V for Paste, for backward compatibility reasons */
+			else if (G.qual & LR_ALTKEY || G.qual & LR_CTRLKEY) {
+				/* Throwing in the Shift modifier Paste from the OS clipboard */
+				if (G.qual & LR_SHIFTKEY)
 					txt_paste_clipboard(text);
 				else
 					txt_paste(text);
-
 				do_draw= 1;	
 				pop_space_text(st);
 			}
-			break;
-
+			break; /* BREAK V */
 		case XKEY:
 			if (G.qual == LR_ALTKEY || G.qual == LR_CTRLKEY) {
 				txt_cut_sel(text);
@@ -1347,92 +1304,78 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				pop_space_text(st);
 			}
 			break;
-		
 		case ZKEY:
 			if (G.qual & LR_ALTKEY || G.qual & LR_CTRLKEY) {
 				if (G.qual & LR_SHIFTKEY) {
 					txt_do_redo(text);
-					do_draw= 1;
 				} else {
 					txt_do_undo(text);
-					do_draw= 1;
 				}
+				do_draw= 1;
 			}
 			break;
-
 		case TABKEY:
 			txt_add_char(text, '\t');
 			pop_space_text(st);
 			do_draw= 1;
 			break;
-
 		case RETKEY:
 			txt_split_curline(text);
 			do_draw= 1;
 			pop_space_text(st);
 			break;
-
 		case BACKSPACEKEY:
 			txt_backspace_char(text);
 			do_draw= 1;
 			pop_space_text(st);
 			break;
-
 		case DELKEY:
 			txt_delete_char(text);
 			do_draw= 1;
 			pop_space_text(st);
 			break;
-
 		case DOWNARROWKEY:
 			txt_move_down(text, G.qual & LR_SHIFTKEY);
 			do_draw= 1;
 			pop_space_text(st);
 			break;
-
 		case LEFTARROWKEY:
 			txt_move_left(text, G.qual & LR_SHIFTKEY);
 			do_draw= 1;
 			pop_space_text(st);
 			break;
-
 		case RIGHTARROWKEY:
 			txt_move_right(text, G.qual & LR_SHIFTKEY);
 			do_draw= 1;
 			pop_space_text(st);
 			break;
-
 		case UPARROWKEY:
 			txt_move_up(text, G.qual & LR_SHIFTKEY);
 			do_draw= 1;
 			pop_space_text(st);
 			break;
-
 		case PAGEDOWNKEY:
 			screen_skip(st, st->viewlines);
 			do_draw= 1;
 			break;
-
 		case PAGEUPKEY:
 			screen_skip(st, -st->viewlines);
 			do_draw= 1;
 			break;
-
 		case HOMEKEY:
 			txt_move_bol(text, G.qual & LR_SHIFTKEY);
 			do_draw= 1;
+			pop_space_text(st);
 			break;
-			
 		case ENDKEY:
 			txt_move_eol(text, G.qual & LR_SHIFTKEY);
 			do_draw= 1;
+			pop_space_text(st);
 			break;
-									
 		case WHEELUPMOUSE:
 			screen_skip(st, -U.wheellinescroll);
 			do_draw= 1;
 			break;
-
 		case WHEELDOWNMOUSE:
 			screen_skip(st, U.wheellinescroll);
 			do_draw= 1;
