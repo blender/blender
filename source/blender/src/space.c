@@ -469,6 +469,68 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else if(G.qual & LR_CTRLKEY) viewmove(2);
 					else viewmove(0);
 				}
+			case WHEELUPMOUSE:
+				/* Regular:   Zoom in */
+				/* Shift:     Scroll up */
+				/* Ctrl:      Scroll right */
+				/* Alt-Shift: Rotate up */
+				/* Alt-Ctrl:  Rotate right */
+
+				if( G.qual & LR_SHIFTKEY ) {
+					if( G.qual & LR_ALTKEY ) { 
+						G.qual &= ~LR_SHIFTKEY;
+						persptoetsen(PAD2);
+						G.qual |= LR_SHIFTKEY;
+					} else {
+						persptoetsen(PAD2);
+					}
+				} else if( G.qual & LR_CTRLKEY ) {
+					if( G.qual & LR_ALTKEY ) { 
+						G.qual &= ~LR_CTRLKEY;
+						persptoetsen(PAD4);
+						G.qual |= LR_CTRLKEY;
+					} else {
+						persptoetsen(PAD4);
+					}
+				} else if(U.uiflag & WHEELZOOMDIR) 
+					persptoetsen(PADMINUS);
+				else
+					persptoetsen(PADPLUSKEY);
+
+				doredraw= 1;
+				break;
+
+			case WHEELDOWNMOUSE:
+				/* Regular:   Zoom out */
+				/* Shift:     Scroll down */
+				/* Ctrl:      Scroll left */
+				/* Alt-Shift: Rotate down */
+				/* Alt-Ctrl:  Rotate left */
+
+				if( G.qual & LR_SHIFTKEY ) {
+					if( G.qual & LR_ALTKEY ) { 
+						G.qual &= ~LR_SHIFTKEY;
+						persptoetsen(PAD8);
+						G.qual |= LR_SHIFTKEY;
+					} else {
+						persptoetsen(PAD8);
+					}
+				} else if( G.qual & LR_CTRLKEY ) {
+					if( G.qual & LR_ALTKEY ) { 
+						G.qual &= ~LR_CTRLKEY;
+						persptoetsen(PAD6);
+						G.qual |= LR_CTRLKEY;
+					} else {
+						persptoetsen(PAD6);
+					}
+				} else if(U.uiflag & WHEELZOOMDIR) 
+					persptoetsen(PADPLUSKEY);
+				else
+					persptoetsen(PADMINUS);
+				
+				doredraw= 1;
+				break;
+
 			case UKEY:
 				if(G.qual & LR_ALTKEY) {
 					remake_editText();
