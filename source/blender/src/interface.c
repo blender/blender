@@ -890,7 +890,7 @@ static int ui_do_but_MENU(uiBut *but)
 	for(a=0; a<md->nitems; a++) {
 		
 		x1= but->x1 + width*((int)(md->nitems-a-1)/rows);
-		y1= but->y1 - boxh*(a%rows) + (rows-1)*boxh; 
+		y1= but->y1 - boxh*(rows - ((md->nitems - a - 1)%rows)) + (rows*boxh);
 
 		if (strcmp(md->items[md->nitems-a-1].str, "%l")==0) {
 			uiDefBut(block, SEPR, B_NOP, "", x1, y1,(short)(width-(rows>1)), (short)(boxh-1), NULL, 0.0, 0.0, 0, 0, "");
