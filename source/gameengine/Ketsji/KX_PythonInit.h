@@ -46,8 +46,9 @@ extern bool gUseVisibilityTemp;
 PyObject*	initGameLogic(class KX_Scene* ketsjiscene);
 PyObject*	initGameKeys();
 PyObject*	initRasterizer(class RAS_IRasterizer* rasty,class RAS_ICanvas* canvas);
+PyObject*	initGamePlayerPythonScripting(const STR_String& progname, TPythonSecurityLevel level);
+void		exitGamePlayerPythonScripting();
 PyObject*	initGamePythonScripting(const STR_String& progname, TPythonSecurityLevel level);
-void		exitGamePythonScripting();
 void		exitGamePythonScripting();
 void PHY_SetActiveScene(class KX_Scene* scene);
 

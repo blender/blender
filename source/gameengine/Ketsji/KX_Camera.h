@@ -82,6 +82,10 @@ protected:
 	 * regenerated.
 	 */
 	bool         m_dirty;
+	/**
+	 * true if the frustum planes have been normalised.
+	 */
+	bool         m_normalised;
 	
 	/**
 	 * View Frustum clip planes.
@@ -98,6 +102,13 @@ protected:
 	 * true if this camera has a valid projection matrix.
 	 */
 	bool         m_set_projection_matrix;
+	
+	/**
+	 * The centre point of the frustum.
+	 */
+	MT_Point3    m_frustum_centre;
+	MT_Scalar    m_frustum_radius;
+	bool         m_set_frustum_centre;
 
 	/**
 	 * Python module doc string.
@@ -108,11 +119,19 @@ protected:
 	 * Extracts the camera clip frames from the projection and world-to-camera matrices.
 	 */
 	void ExtractClipPlanes();
+	/**
+	 * Normalise the camera clip frames.
+	 */
+	void NormaliseClipPlanes();
+	/**
+	 * Extracts the bound sphere of the view frustum.
+	 */
+	void ExtractFrustumSphere();
 public:
 
 	typedef enum { INSIDE, INTERSECT, OUTSIDE } ;
 
-	KX_Camera(void* sgReplicationInfo,SG_Callbacks callbacks,const RAS_CameraData& camdata, bool frustum_culling = true);
+	KX_Camera(void* sgReplicationInfo,SG_Callbacks callbacks,const RAS_CameraData& camdata, bool frustum_culling = true, PyTypeObject *T = &Type);
 	virtual ~KX_Camera();
 	
 	MT_Transform		GetWorldToCamera() const;

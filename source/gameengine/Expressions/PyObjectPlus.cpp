@@ -102,6 +102,9 @@ PyParentObject PyObjectPlus::Parents[] = {&PyObjectPlus::Type, NULL};
 ------------------------------*/
 PyObject *PyObjectPlus::_getattr(const STR_String& attr)
 {
+	if (attr == "__doc__" && GetType()->tp_doc)
+		return PyString_FromString(GetType()->tp_doc);
+
   //if (streq(attr, "type"))
   //  return Py_BuildValue("s", (*(GetParents()))->tp_name);
 

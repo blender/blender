@@ -42,13 +42,16 @@
 KX_Camera::KX_Camera(void* sgReplicationInfo,
 					 SG_Callbacks callbacks,
 					 const RAS_CameraData& camdata,
-					 bool frustum_culling)
+					 bool frustum_culling,
+					 PyTypeObject *T)
 					:
-					KX_GameObject(sgReplicationInfo,callbacks),
+					KX_GameObject(sgReplicationInfo,callbacks,T),
 					m_camdata(camdata),
 					m_dirty(true),
+					m_normalised(false),
 					m_frustum_culling(frustum_culling),
-					m_set_projection_matrix(false)
+					m_set_projection_matrix(false),
+					m_set_frustum_centre(false)
 {
 	// setting a name would be nice...
 	m_name = "cam";
@@ -56,7 +59,6 @@ KX_Camera::KX_Camera(void* sgReplicationInfo,
 	m_modelview_matrix.setIdentity();
 	SetProperty("camera",new CIntValue(1));
 }
-
 
 
 KX_Camera::~KX_Camera()
@@ -131,6 +133,7 @@ void KX_Camera::SetProjectionMatrix(const MT_Matrix4x4 & mat)
 	m_projection_matrix = mat;
 	m_dirty = true;
 	m_set_projection_matrix = true;
+	m_set_frustum_centre = false;
 }
 
 
@@ -142,6 +145,7 @@ void KX_Camera::SetModelviewMatrix(const MT_Matrix4x4 & mat)
 {
 	m_modelview_matrix = mat;
 	m_dirty = true;
+	m_set_frustum_centre = false;
 }
 
 
@@ -201,6 +205,9 @@ RAS_CameraData*	KX_Camera::GetCameraData()
 
 void KX_Camera::ExtractClipPlanes()
 {
+	if (!m_dirty)
+		return;
+
 	MT_Matrix4x4 m = m_projection_matrix * GetWorldToCamera();
 	// Left clip plane
 	m_planes[0] = m[3] + m[0];
@@ -216,12 +223,52 @@ void KX_Camera::ExtractClipPlanes()
 	m_planes[5] = m[3] - m[2];
 	
 	m_dirty = false;
+	m_normalised = false;
+}
+
+void KX_Camera::NormaliseClipPlanes()
+{
+	if (m_normalised)
+		return;
+	
+	for (unsigned int p = 0; p < 6; p++)
+		m_planes[p] /= sqrt(m_planes[p][0]*m_planes[p][0] + m_planes[p][1]*m_planes[p][1] + m_planes[p][2]*m_planes[p][2]);
+	
+	m_normalised = true;
+}
+
+void KX_Camera::ExtractFrustumSphere()
+{
+	if (m_set_frustum_centre)
+		return;
+
+	// The most extreme points on the near and far plane. (normalised device coords)
+	MT_Vector4 hnear(1., 1., 0., 1.), hfar(1., 1., 1., 1.);
+	MT_Matrix4x4 clip_camcs_matrix = m_projection_matrix;
+	clip_camcs_matrix.invert();
+	
+	// Transform to hom camera local space
+	hnear = clip_camcs_matrix*hnear;
+	hfar = clip_camcs_matrix*hfar;
+	
+	// Tranform to 3d camera local space.
+	MT_Point3 near(hnear[0]/hnear[3], hnear[1]/hnear[3], hnear[2]/hnear[3]);
+	MT_Point3 far(hfar[0]/hfar[3], hfar[1]/hfar[3], hfar[2]/hfar[3]);
+	
+	// Compute centre
+	m_frustum_centre = MT_Point3(0., 0.,
+		(near.dot(near) - far.dot(far))/(2.0*(m_camdata.m_clipend - m_camdata.m_clipstart)));
+	m_frustum_radius = m_frustum_centre.distance(far);
+	
+	// Transform to world space.
+	m_frustum_centre = GetCameraToWorld()(m_frustum_centre);
+	
+	m_set_frustum_centre = true;
 }
 
 bool KX_Camera::PointInsideFrustum(const MT_Point3& x)
 {
-	if (m_dirty)
-		ExtractClipPlanes();
+	ExtractClipPlanes();
 	
 	for( unsigned int i = 0; i < 6 ; i++ )
 	{
@@ -233,26 +280,30 @@ bool KX_Camera::PointInsideFrustum(const MT_Point3& x)
 
 int KX_Camera::BoxInsideFrustum(const MT_Point3 *box)
 {
-	if (m_dirty)
-		ExtractClipPlanes();
+	ExtractClipPlanes();
 	
 	unsigned int insideCount = 0;
+	// 6 view frustum planes
 	for( unsigned int p = 0; p < 6 ; p++ )
 	{
 		unsigned int behindCount = 0;
+		// 8 box verticies.
 		for (unsigned int v = 0; v < 8 ; v++)
 		{
 			if (m_planes[p][0]*box[v][0] + m_planes[p][1]*box[v][1] + m_planes[p][2]*box[v][2] + m_planes[p][3] < 0.)
 				behindCount++;
 		}
 		
+		// 8 points behind this plane
 		if (behindCount == 8)
 			return OUTSIDE;
 
+		// Every box vertex is on the front side of this plane
 		if (!behindCount)
 			insideCount++;
 	}
 	
+	// All box verticies are on the front side of all frustum planes.
 	if (insideCount == 6)
 		return INSIDE;
 	
@@ -261,16 +312,28 @@ int KX_Camera::BoxInsideFrustum(const MT_Point3 *box)
 
 int KX_Camera::SphereInsideFrustum(const MT_Point3& centre, const MT_Scalar &radius)
 {
+	ExtractFrustumSphere();
+	if (centre.distance2(m_frustum_centre) > (radius + m_frustum_radius)*(radius + m_frustum_radius))
+		return OUTSIDE;
+
+	unsigned int p;
+	ExtractClipPlanes();
+	NormaliseClipPlanes();
+		
 	MT_Scalar distance;
-	for (unsigned int p = 0; p < 6; p++)
+	int intersect = INSIDE;
+	// distance:  <-------- OUTSIDE -----|----- INTERSECT -----0----- INTERSECT -----|----- INSIDE -------->
+	//                                -radius                                      radius
+	for (p = 0; p < 6; p++)
 	{
 		distance = m_planes[p][0]*centre[0] + m_planes[p][1]*centre[1] + m_planes[p][2]*centre[2] + m_planes[p][3];
-		if (distance < -radius)
+		if (fabs(distance) <= radius)
+			intersect = INTERSECT;
+		else if (distance < -radius)
 			return OUTSIDE;
-		if (fabs(distance) < radius)
-			return INTERSECT;
 	}
-	return INSIDE;
+	
+	return intersect;
 }
 
 bool KX_Camera::GetFrustumCulling() const
@@ -352,28 +415,28 @@ PyParentObject KX_Camera::Parents[] = {
 PyObject* KX_Camera::_getattr(const STR_String& attr)
 {
 	if (attr == "INSIDE")
-		return PyInt_FromLong(INSIDE);
+		return PyInt_FromLong(INSIDE); /* new ref */
 	if (attr == "OUTSIDE")
-		return PyInt_FromLong(OUTSIDE);
+		return PyInt_FromLong(OUTSIDE); /* new ref */
 	if (attr == "INTERSECT")
-		return PyInt_FromLong(INTERSECT);
+		return PyInt_FromLong(INTERSECT); /* new ref */
 	
 	if (attr == "lens")
-		return PyFloat_FromDouble(GetLens());
+		return PyFloat_FromDouble(GetLens()); /* new ref */
 	if (attr == "near")
-		return PyFloat_FromDouble(GetCameraNear());
+		return PyFloat_FromDouble(GetCameraNear()); /* new ref */
 	if (attr == "far")
-		return PyFloat_FromDouble(GetCameraFar());
+		return PyFloat_FromDouble(GetCameraFar()); /* new ref */
 	if (attr == "frustum_culling")
-		return PyInt_FromLong(m_frustum_culling);
+		return PyInt_FromLong(m_frustum_culling); /* new ref */
 	if (attr == "projection_matrix")
-		return PyObjectFromMT_Matrix4x4(GetProjectionMatrix());
+		return PyObjectFromMT_Matrix4x4(GetProjectionMatrix()); /* new ref */
 	if (attr == "modelview_matrix")
-		return PyObjectFromMT_Matrix4x4(GetModelviewMatrix());
+		return PyObjectFromMT_Matrix4x4(GetModelviewMatrix()); /* new ref */
 	if (attr == "camera_to_world")
-		return PyObjectFromMT_Matrix4x4(GetCameraToWorld());
+		return PyObjectFromMT_Matrix4x4(GetCameraToWorld()); /* new ref */
 	if (attr == "world_to_camera")
-		return PyObjectFromMT_Matrix4x4(GetWorldToCamera());
+		return PyObjectFromMT_Matrix4x4(GetWorldToCamera()); /* new ref */
 	
 	_getattr_up(KX_GameObject);
 }
@@ -446,15 +509,15 @@ KX_PYMETHODDEF_DOC(KX_Camera, sphereInsideFrustum,
 		if (PyErr_Occurred())
 		{
 			PyErr_SetString(PyExc_TypeError, "Expected list for argument centre.");
-			return Py_None;
+			Py_Return;
 		}
 		
-		return PyInt_FromLong(SphereInsideFrustum(centre, radius));
+		return PyInt_FromLong(SphereInsideFrustum(centre, radius)); /* new ref */
 	}
 
 	PyErr_SetString(PyExc_TypeError, "Expected arguments: (centre, radius)");
 	
-	return Py_None;
+	Py_Return;
 }
 
 KX_PYMETHODDEF_DOC(KX_Camera, boxInsideFrustum,
@@ -489,25 +552,27 @@ KX_PYMETHODDEF_DOC(KX_Camera, boxInsideFrustum,
 		if (num_points != 8)
 		{
 			PyErr_Format(PyExc_TypeError, "Expected eight (8) points, got %d", num_points);
-			return Py_None;
+			Py_Return;
 		}
 		
 		MT_Point3 box[8];
 		for (unsigned int p = 0; p < 8 ; p++)
 		{
-			box[p] = MT_Point3FromPyList(PySequence_GetItem(pybox, p));
+			PyObject *item = PySequence_GetItem(pybox, p); /* new ref */
+			box[p] = MT_Point3FromPyList(item);
+			Py_DECREF(item);
 			if (PyErr_Occurred())
 			{
-				return Py_None;
+				Py_Return;
 			}
 		}
 		
-		return PyInt_FromLong(BoxInsideFrustum(box));
+		return PyInt_FromLong(BoxInsideFrustum(box)); /* new ref */
 	}
 	
 	PyErr_SetString(PyExc_TypeError, "Expected argument: list of points.");
 	
-	return Py_None;
+	Py_Return;
 }
 
 KX_PYMETHODDEF_DOC(KX_Camera, pointInsideFrustum,
@@ -531,13 +596,13 @@ KX_PYMETHODDEF_DOC(KX_Camera, pointInsideFrustum,
 	{
 		MT_Point3 point = MT_Point3FromPyList(pypoint);
 		if (PyErr_Occurred())
-			return Py_None;
+			Py_Return;
 			
-		return PyInt_FromLong(PointInsideFrustum(point));
+		return PyInt_FromLong(PointInsideFrustum(point)); /* new ref */
 	}
 	
 	PyErr_SetString(PyExc_TypeError, "Expected point argument.");
-	return Py_None;
+	Py_Return;
 }
 
 KX_PYMETHODDEF_DOC(KX_Camera, getCameraToWorld,
@@ -546,7 +611,7 @@ KX_PYMETHODDEF_DOC(KX_Camera, getCameraToWorld,
 "\tie: [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])\n"
 )
 {
-	return PyObjectFromMT_Matrix4x4(GetCameraToWorld());
+	return PyObjectFromMT_Matrix4x4(GetCameraToWorld()); /* new ref */
 }
 
 KX_PYMETHODDEF_DOC(KX_Camera, getWorldToCamera,
@@ -555,7 +620,7 @@ KX_PYMETHODDEF_DOC(KX_Camera, getWorldToCamera,
 "\tie: [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])\n"
 )
 {
-	return PyObjectFromMT_Matrix4x4(GetWorldToCamera());
+	return PyObjectFromMT_Matrix4x4(GetWorldToCamera()); /* new ref */
 }
 
 KX_PYMETHODDEF_DOC(KX_Camera, getProjectionMatrix,
@@ -564,7 +629,7 @@ KX_PYMETHODDEF_DOC(KX_Camera, getProjectionMatrix,
 "\tie: [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])\n"
 )
 {
-	return PyObjectFromMT_Matrix4x4(GetProjectionMatrix());
+	return PyObjectFromMT_Matrix4x4(GetProjectionMatrix()); /* new ref */
 }
 
 KX_PYMETHODDEF_DOC(KX_Camera, setProjectionMatrix,
@@ -615,13 +680,13 @@ KX_PYMETHODDEF_DOC(KX_Camera, setProjectionMatrix,
 		MT_Matrix4x4 mat = MT_Matrix4x4FromPyObject(pymat);
 		if (PyErr_Occurred())
 		{
-			return Py_None;
+			Py_Return;
 		}
 		
 		SetProjectionMatrix(mat);
-		return Py_None;
+		Py_Return;
 	}
 
 	PyErr_SetString(PyExc_TypeError, "Expected 4x4 list as matrix argument.");
-	return Py_None;
+	Py_Return;
 }

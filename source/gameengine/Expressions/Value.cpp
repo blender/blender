@@ -653,7 +653,7 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 		int numitems = PyList_Size(pyobj);
 		for (i=0;i<numitems;i++)
 		{
-			PyObject* listitem = PyList_GetItem(pyobj,i);
+			PyObject* listitem = PyList_GetItem(pyobj,i); /* borrowed ref */
 			CValue* listitemval = ConvertPythonToValue(listitem);
 			if (listitemval)
 			{

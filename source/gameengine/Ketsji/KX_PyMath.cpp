@@ -69,12 +69,14 @@ MT_Vector3 MT_Vector3FromPyList(PyObject* pylist)
 	} else
 	{
 		// assert the list is long enough...
-		unsigned int numitems = PyList_Size(pylist);
+		unsigned int numitems = PySequence_Size(pylist);
 		if (numitems <= 3)
 		{
 			for (unsigned int index=0;index<numitems;index++)
 			{
-				vec[index] = PyFloat_AsDouble(PyList_GetItem(pylist,index));
+				PyObject *item = PySequence_GetItem(pylist,index); /* new ref */
+				vec[index] = PyFloat_AsDouble(item);
+				Py_DECREF(item);
 			}
 		}
 		else
@@ -111,12 +113,14 @@ MT_Point3 MT_Point3FromPyList(PyObject* pylist)
 	} else
 	{
 		// assert the list is long enough...
-		unsigned int numitems = PyList_Size(pylist);
+		unsigned int numitems = PySequence_Size(pylist);
 		if (numitems <= 3)
 		{
 			for (unsigned int index=0;index<numitems;index++)
 			{
-				point[index] = PyFloat_AsDouble(PyList_GetItem(pylist,index));
+				PyObject *item = PySequence_GetItem(pylist,index); /* new ref */
+				point[index] = PyFloat_AsDouble(item);
+				Py_DECREF(item);
 			}
 		}
 		else
@@ -153,12 +157,14 @@ MT_Vector4 MT_Vector4FromPyList(PyObject* pylist)
 	} else
 	{
 		// assert the list is long enough...
-		unsigned int numitems = PyList_Size(pylist);
+		unsigned int numitems = PySequence_Size(pylist);
 		if (numitems <= 4)
 		{
 			for (unsigned index=0;index<numitems;index++)
 			{
-				vec[index] = PyFloat_AsDouble(PyList_GetItem(pylist,index));
+				PyObject *item = PySequence_GetItem(pylist,index); /* new ref */
+				vec[index] = PyFloat_AsDouble(item);
+				Py_DECREF(item);
 			}
 		}
 		else
@@ -181,15 +187,18 @@ MT_Matrix4x4 MT_Matrix4x4FromPyObject(PyObject *pymat)
 		unsigned int rows = PySequence_Size(pymat);
 		for (unsigned int y = 0; y < rows && y < 4; y++)
 		{
-			PyObject *pyrow = PySequence_GetItem(pymat, y);
+			PyObject *pyrow = PySequence_GetItem(pymat, y); /* new ref */
 			if (PySequence_Check(pyrow))
 			{
 				unsigned int cols = PySequence_Size(pyrow);
 				for( unsigned int x = 0; x < cols && x < 4; x++)
 				{
-					mat[y][x] = PyFloat_AsDouble(PySequence_GetItem(pyrow, x));
+					PyObject *item = PySequence_GetItem(pyrow, x); /* new ref */
+					mat[y][x] = PyFloat_AsDouble(item);
+					Py_DECREF(item);
 				}
 			}
+			Py_DECREF(pyrow);
 		}
 	}
 	 
@@ -206,15 +215,18 @@ MT_Matrix3x3 MT_Matrix3x3FromPyObject(PyObject *pymat)
 		unsigned int rows = PySequence_Size(pymat);
 		for (unsigned int y = 0; y < rows && y < 3; y++)
 		{
-			PyObject *pyrow = PySequence_GetItem(pymat, y);
+			PyObject *pyrow = PySequence_GetItem(pymat, y); /* new ref */
 			if (PySequence_Check(pyrow))
 			{
 				unsigned int cols = PySequence_Size(pyrow);
 				for( unsigned int x = 0; x < cols && x < 3; x++)
 				{
-					mat[y][x] = PyFloat_AsDouble(PySequence_GetItem(pyrow, x));
+					PyObject *pyitem = PySequence_GetItem(pyrow, x); /* new ref */
+					mat[y][x] = PyFloat_AsDouble(pyitem);
+					Py_DECREF(pyitem);
 				}
 			}
+			Py_DECREF(pyrow);
 		}
 	}
 	 
@@ -223,16 +235,10 @@ MT_Matrix3x3 MT_Matrix3x3FromPyObject(PyObject *pymat)
 
 PyObject* PyObjectFromMT_Matrix4x4(const MT_Matrix4x4 &mat)
 {
-	PyObject *pymat = PyList_New(0);
-	for (unsigned int y = 0; y < 4; y++)
-	{
-		PyObject *row = PyList_New(0);
-		for( unsigned int x = 0; x < 4; x++ )
-		{
-			PyList_Append(row, PyFloat_FromDouble(mat[y][x]));
-		}
-		PyList_Append(pymat, row);
-	}
-	return pymat;
+	return Py_BuildValue("[[ffff][ffff][ffff][ffff]]",
+		PyFloat_FromDouble(mat[0][0]), PyFloat_FromDouble(mat[0][1]), PyFloat_FromDouble(mat[0][2]), PyFloat_FromDouble(mat[0][3]), 
+		PyFloat_FromDouble(mat[1][0]), PyFloat_FromDouble(mat[1][1]), PyFloat_FromDouble(mat[1][2]), PyFloat_FromDouble(mat[1][3]), 
+		PyFloat_FromDouble(mat[2][0]), PyFloat_FromDouble(mat[2][1]), PyFloat_FromDouble(mat[2][2]), PyFloat_FromDouble(mat[2][3]), 
+		PyFloat_FromDouble(mat[3][0]), PyFloat_FromDouble(mat[3][1]), PyFloat_FromDouble(mat[3][2]), PyFloat_FromDouble(mat[3][3]));
 }
 

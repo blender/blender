@@ -594,19 +594,40 @@ void setSandbox(TPythonSecurityLevel level)
 	}
 }
 
+/**
+ * Python is not initialised.
+ */
+PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecurityLevel level)
+{
+	STR_String pname = progname;
+	Py_SetProgramName(pname.Ptr());
+	Py_NoSiteFlag=1;
+	Py_FrozenFlag=1;
+	Py_Initialize();
 
+	//importBlenderModules()
+	
+	setSandbox(level);
 
+	PyObject* moduleobj = PyImport_AddModule("__main__");
+	return PyModule_GetDict(moduleobj);
+}
+
+void exitGamePlayerPythonScripting()
+{
+	Py_Finalize();
+}
+
+/**
+ * Python is already initialized.
+ */
 PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLevel level)
 {
 	STR_String pname = progname;
 	Py_SetProgramName(pname.Ptr());
 	Py_NoSiteFlag=1;
 	Py_FrozenFlag=1;
-#ifndef USE_BLENDER_PYTHON
-	Py_Initialize();
-#else
-	BPY_start_python();
-#endif
+
 	setSandbox(level);
 
 	PyObject* moduleobj = PyImport_AddModule("__main__");
@@ -617,11 +638,6 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 
 void exitGamePythonScripting()
 {
-#ifndef USE_BLENDER_PYTHON
-	Py_Finalize();
-#else
-	BPY_end_python();
-#endif
 }
 
 
