@@ -1053,8 +1053,8 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 
 	/* CHANNELS */
 	uiBlockBeginAlign(block, 'v');
-	yco= 10;
-	for(a= 7; a>=0; a--) {
+	yco= 150;
+	for(a= 0; a<8; a++) {
 		
 		if(ma) mt= ma->mtex[a];
 		else if(wrld && a<6)  mt= wrld->mtex[a];
@@ -1066,15 +1066,15 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 
 		if(ma) {
 			uiDefButC(block, ROW, B_TEXCHANNEL, str,	10,yco,140,19, &(ma->texact), 0.0, (float)a, 0, 0, "Linked channel");
-			yco+= 20;
+			yco-= 20;
 		}
 		else if(wrld && a<6) {
 			uiDefButS(block, ROW, B_TEXCHANNEL, str,	10,yco,140,19, &(wrld->texact), 0.0, (float)a, 0, 0, "");
-			yco+= 20;
+			yco-= 20;
 		}
 		else if(la && a<6) {
 			uiDefButS(block, ROW, B_TEXCHANNEL, str,	10,yco,140,19, &(la->texact), 0.0, (float)a, 0, 0, "");
-			yco+= 20;
+			yco-= 20;
 		}
 	}
 	uiBlockEndAlign(block);
@@ -2318,6 +2318,7 @@ static void material_panel_material(Object *ob, Material *ma)
 	sprintf(str, "%d Mat", ob->totcol);
 	if(ob->totcol) min= 1.0; else min= 0.0;
 	uiDefButC(block, NUM, B_ACTCOL, str,			191,174,114,20, &(ob->actcol), min, (float)ob->totcol, 0, 0, "Number of materials on object / Active material");
+	uiBlockEndAlign(block);
 	
 	if(ob->totcol==0) return;
 
