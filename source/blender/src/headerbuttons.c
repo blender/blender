@@ -2709,6 +2709,13 @@ static uiBlock *info_filemenu(void *arg_unused)
 
 static void do_info_editmenu(void *arg, int event)
 {
+	/* needed to check for valid selected objects */
+	Base *base;
+	Object *ob;
+
+	base= BASACT;
+	ob= base->object;
+
 	switch(event) {
 		
 	case 0:
@@ -2763,32 +2770,49 @@ static void do_info_editmenu(void *arg, int event)
 		break;
 	case 9:
 		/* Shear */
-		if (!G.obedit) {
-			enter_editmode();
-			/* ### put these into a deselectall_gen() */
-			if(G.obedit->type==OB_MESH) deselectall_mesh();
-			else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) deselectall_nurb();
-			else if(G.obedit->type==OB_MBALL) deselectall_mball();
-			else if(G.obedit->type==OB_LATTICE) deselectall_Latt();
-			/* ### */
-		}	
+		/* check that a valid object is selected to prevent crash */
+		if ((ob->type==OB_LAMP) || (ob->type==OB_EMPTY) || (ob->type==OB_FONT) || (ob->type==OB_CAMERA)) {
+			error("Only editable 3D objects can be sheared");
+		}
+		else {
+			if (!G.obedit) {
+				enter_editmode();
+				/* ### put these into a deselectall_gen() */
+				if(G.obedit->type==OB_MESH) deselectall_mesh();
+				else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) deselectall_nurb();
+				else if(G.obedit->type==OB_MBALL) deselectall_mball();
+				else if(G.obedit->type==OB_LATTICE) deselectall_Latt();
+				else if(G.obedit->type==OB_ARMATURE) deselectall_armature();
+				/* ### */
+			}
+			if(select_area(SPACE_VIEW3D)) {
+				transform('S');
+			}
+		}
 		if(select_area(SPACE_VIEW3D)) {
 			transform('S');
 		}
 		break;
 	case 10:
 		/* Warp/Bend */
-		if (!G.obedit) {
-			enter_editmode();
-			/* ### put these into a deselectall_gen() */
-			if(G.obedit->type==OB_MESH) deselectall_mesh();
-			else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) deselectall_nurb();
-			else if(G.obedit->type==OB_MBALL) deselectall_mball();
-			else if(G.obedit->type==OB_LATTICE) deselectall_Latt();
-			/* ### */
-		}	
-		if(select_area(SPACE_VIEW3D)) {
-			transform('w');
+		/* check that a valid object is selected to prevent crash */
+		if ((ob->type==OB_LAMP) || (ob->type==OB_EMPTY) || (ob->type==OB_FONT) || (ob->type==OB_CAMERA)) {
+			error("Only editable 3D objects can be warped");
+		}
+		else {
+			if (!G.obedit) {
+				enter_editmode();
+				/* ### put these into a deselectall_gen() */
+				if(G.obedit->type==OB_MESH) deselectall_mesh();
+				else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) deselectall_nurb();
+				else if(G.obedit->type==OB_MBALL) deselectall_mball();
+				else if(G.obedit->type==OB_LATTICE) deselectall_Latt();
+				else if(G.obedit->type==OB_ARMATURE) deselectall_armature();
+				/* ### */
+			}
+			if(select_area(SPACE_VIEW3D)) {
+				transform('w');
+			}
 		}
 		break;
 	case 11:
