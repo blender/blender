@@ -2167,13 +2167,13 @@ void extern_set_butspace(int fkey)
 	
 	sbuts= sa->spacedata.first;
 	
-	if(fkey==F4KEY) sbuts->mainb= BUTS_LAMP;
-	else if(fkey==F5KEY) sbuts->mainb= BUTS_MAT;
-	else if(fkey==F6KEY) sbuts->mainb= BUTS_TEX;
-	else if(fkey==F7KEY) sbuts->mainb= BUTS_ANIM;
-	else if(fkey==F8KEY) sbuts->mainb= BUTS_GAME;
-	else if(fkey==F9KEY) sbuts->mainb= BUTS_EDIT;
-	else if(fkey==F10KEY) sbuts->mainb= BUTS_RENDER;
+	if(fkey==F4KEY) sbuts->mainb= CONTEXT_LOGIC;
+	else if(fkey==F5KEY) sbuts->mainb= CONTEXT_SHADING;
+	else if(fkey==F6KEY) sbuts->mainb= CONTEXT_SCRIPT;
+	else if(fkey==F7KEY) sbuts->mainb= CONTEXT_TYPES;
+	else if(fkey==F8KEY) sbuts->mainb= CONTEXT_OBJECT;
+	else if(fkey==F9KEY) sbuts->mainb= CONTEXT_EDITING;
+	else if(fkey==F10KEY) sbuts->mainb= CONTEXT_SCENE;
 
 	scrarea_queue_headredraw(sa);
 	scrarea_queue_winredraw(sa);

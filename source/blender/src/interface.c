@@ -2469,8 +2469,8 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 	block->minx-= 2.0; block->miny-= 2.0;
 	block->maxx+= 2.0; block->maxy+= 2.0;
 	
-	xsize= block->maxx - block->minx;
-	ysize= block->maxy - block->miny;
+	xsize= block->maxx - block->minx+4; // 4 for shadow
+	ysize= block->maxy - block->miny+4;
 	
 	if(but) {
 		rctf butrct;
@@ -2503,17 +2503,21 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 		if(dir1==UI_LEFT || dir1==UI_RIGHT) dir2= UI_DOWN;
 		if(dir1==UI_TOP || dir1==UI_DOWN) dir2= UI_LEFT;
 		
-		if(dir1==UI_LEFT && left==0) dir1= UI_RIGHT;
-		if(dir1==UI_RIGHT && right==0) dir1= UI_LEFT;
+		/* no space at all? dont change */
+		if(left || right) {
+			if(dir1==UI_LEFT && left==0) dir1= UI_RIGHT;
+			if(dir1==UI_RIGHT && right==0) dir1= UI_LEFT;
 			/* this is aligning, not append! */
-		if(dir2==UI_LEFT && right==0) dir2= UI_RIGHT;
-		if(dir2==UI_RIGHT && left==0) dir2= UI_LEFT;
+			if(dir2==UI_LEFT && right==0) dir2= UI_RIGHT;
+			if(dir2==UI_RIGHT && left==0) dir2= UI_LEFT;
+		}
+		if(down || top) {
+			if(dir1==UI_TOP && top==0) dir1= UI_DOWN;
+			if(dir1==UI_DOWN && down==0) dir1= UI_TOP;
+			if(dir2==UI_TOP && top==0) dir2= UI_DOWN;
+			if(dir2==UI_DOWN && down==0) dir2= UI_TOP;
+		}
 		
-		if(dir1==UI_TOP && top==0) dir1= UI_DOWN;
-		if(dir1==UI_DOWN && down==0) dir1= UI_TOP;
-		if(dir2==UI_TOP && top==0) dir2= UI_DOWN;
-		if(dir2==UI_DOWN && down==0) dir2= UI_TOP;
-
 		if(dir1==UI_LEFT) {
 			xof= but->x1 - block->maxx;
 			if(dir2==UI_TOP) yof= but->y1 - block->miny;
@@ -5579,6 +5583,25 @@ void uiBlockSetDirection(uiBlock *block, int direction)
 {
 	block->direction= direction;
 }
+void uiBlockFlipOrder(uiBlock *block)
+{
+	uiBut *but;
+	float centy, miny=10000, maxy= -10000;
+
+	for(but= block->buttons.first; but; but= but->next) {
+		if(but->y1 < miny) miny= but->y1;
+		if(but->y2 > maxy) maxy= but->y2;
+	}
+	/* mirror trick */
+	centy= (miny+maxy)/2.0;
+	for(but= block->buttons.first; but; but= but->next) {
+		but->y1 = centy-(but->y1-centy);
+		but->y2 = centy-(but->y2-centy);
+		SWAP(float, but->y1, but->y2);
+	}
+}
+
+
 void uiBlockSetFlag(uiBlock *block, int flag)
 {
 	block->flag= flag;
@@ -5595,6 +5618,10 @@ void* uiBlockGetCurFont(uiBlock *block)
 void uiButSetFlag(uiBut *but, int flag)
 {
 	but->flag|= flag;
+}
+void uiButClearFlag(uiBut *but, int flag)
+{
+	but->flag&= ~flag;
 }
 
 int uiButGetRetVal(uiBut *but)
@@ -5630,15 +5657,16 @@ void uiDefIDPoinBut(uiBlock *block, uiIDPoinFuncFP func, int retval, char *str, 
 	ui_check_but(but);
 }
 
-void uiDefBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, char *str, short x1, short y1, short x2, short y2, char *tip)
+uiBut *uiDefBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, char *str, short x1, short y1, short x2, short y2, char *tip)
 {
 	uiBut *but= ui_def_but(block, BLOCK, 0, str, x1, y1, x2, y2, arg, 0.0, 0.0, 0.0, 0.0, tip);
 	but->block_func= func;
 	ui_check_but(but);
+	return but;
 }
 
 /* Block button containing both string label and icon */
-void uiDefIconTextBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip)
+uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip)
 {
 	uiBut *but= ui_def_but(block, BLOCK, 0, str, x1, y1, x2, y2, arg, 0.0, 0.0, 0.0, 0.0, tip);
 	
@@ -5650,6 +5678,8 @@ void uiDefIconTextBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, int ic
 
 	but->block_func= func;
 	ui_check_but(but);
+	
+	return but;
 }
 
 void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip)

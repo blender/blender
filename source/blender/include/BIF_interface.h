@@ -101,10 +101,9 @@ void uiDefIDPoinBut(struct uiBlock *block,
 						void *idpp, char *tip);
 
 typedef uiBlock* (*uiBlockFuncFP)	(void *arg1);
-void uiDefBlockBut(uiBlock *block, uiBlockFuncFP func, void *func_arg1, char *str, short x1, short y1, short x2, short y2, char *tip);
+uiBut *uiDefBlockBut(uiBlock *block, uiBlockFuncFP func, void *func_arg1, char *str, short x1, short y1, short x2, short y2, char *tip);
 
-void uiDefIconBlockBut(uiBlock *block, uiBlockFuncFP func, void *func_arg1, int icon, short x1, short y1, short x2, short y2, char *tip);
-void uiDefIconTextBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip);
+uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip);
 
 void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip);
 
@@ -124,12 +123,14 @@ void*	uiBlockGetCurFont	(uiBlock *block);
 void	uiBlockSetCol		(uiBlock *block, int col);
 void	uiBlockSetEmboss	(uiBlock *block, int emboss);
 void	uiBlockSetDirection	(uiBlock *block, int direction);
+void 	uiBlockFlipOrder	(uiBlock *block);
 void	uiBlockSetFlag		(uiBlock *block, int flag);
 void	uiBlockSetXOfs		(uiBlock *block, int xofs);
 
 int		uiButGetRetVal		(uiBut *but);
 
 void	uiButSetFlag		(uiBut *but, int flag);
+void	uiButClearFlag		(uiBut *but, int flag);
 
 void	uiBlockSetButmFunc	(uiBlock *block, void (*butmfunc)(void *arg, int but_a2), void *arg);
 
