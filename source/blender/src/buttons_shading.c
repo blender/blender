@@ -1946,6 +1946,13 @@ void do_matbuts(unsigned short event)
 		BIF_preview_changed(G.buts);
 		allqueue(REDRAWBUTSSHADING, 0);
 		break;
+	case B_MATHALO:
+		/* when halo is disabled, clear star flag, this is the same as MA_FACETEXTURE <blush> */
+		ma= G.buts->lockpoin;
+		if((ma->mode & MA_HALO)==0) ma->mode &= ~MA_STAR;
+		BIF_preview_changed(G.buts);
+		allqueue(REDRAWBUTSSHADING, 0);
+		break;
 	case B_TEXCLEAR:
 		ma= G.buts->lockpoin;
 		mtex= ma->mtex[(int) ma->texact ];
@@ -2207,7 +2214,7 @@ static void material_panel_shading(Material *ma)
 	if(uiNewPanel(curarea, block, "Shaders", "Material", 640, 0, 318, 204)==0) return;
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButI(block, TOG|BIT|5, B_MATPRV_DRAW, "Halo",	245,180,65,18, &(ma->mode), 0, 0, 0, 0, "Render as a halo");
+	uiDefButI(block, TOG|BIT|5, B_MATHALO, "Halo",	245,180,65,18, &(ma->mode), 0, 0, 0, 0, "Render as a halo");
 	uiBlockSetCol(block, TH_AUTO);
 
 	if(ma->mode & MA_HALO) {
