@@ -31,6 +31,7 @@
  */
 
 #include <math.h>
+#include <string.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -837,7 +838,6 @@ void weight_paint(void)
 				if(indexar[0]) totindex= 1;
 				else totindex= 0;
 			}
-			
 			MTC_Mat4SwapMat4(G.vd->persmat, mat);
 			
 			if(Gvp.flag & VP_COLINDEX) {
