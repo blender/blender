@@ -1070,9 +1070,11 @@ void mesh_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 		index= em_wireoffs;
 		for(eve= em->verts.first; eve; eve= eve->next, index++) {
 			if(eve->h==0) {
-				if(bbsel && EM_check_backbuf_border(index)) {
-					if(selecting==LEFTMOUSE) eve->f|= 1;
-					else eve->f&= 254;
+				if(bbsel) {
+					if(EM_check_backbuf_border(index)) {
+						if(selecting==LEFTMOUSE) eve->f|= 1;
+						else eve->f&= 254;
+					}
 				}
 				else {
 					x= eve->xs-mval[0];
@@ -1106,8 +1108,10 @@ void mesh_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 		index= 1;
 		for(efa= em->faces.first; efa; efa= efa->next, index++) {
 			if(efa->h==0) {
-				if(bbsel && EM_check_backbuf_border(index)) {
-					EM_select_face_fgon(efa, selecting==LEFTMOUSE);
+				if(bbsel) {
+					if(EM_check_backbuf_border(index)) {
+						EM_select_face_fgon(efa, selecting==LEFTMOUSE);
+					}
 				}
 				else {
 					x= efa->xs-mval[0];
