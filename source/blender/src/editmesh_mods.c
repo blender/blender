@@ -704,32 +704,6 @@ static int unified_findnearest(EditVert **eve, EditEdge **eed, EditFace **efa)
 	return (*eve || *eed || *efa);
 }
 
-void EM_select_face_fgon(EditFace *efa, int val)
-{
-	EditMesh *em = G.editMesh;
-	short index=0;
-	
-	if(efa->fgonf==0) EM_select_face(efa, val);
-	else {
-		if(efa->e1->fgoni) index= efa->e1->fgoni;
-		if(efa->e2->fgoni) index= efa->e2->fgoni;
-		if(efa->e3->fgoni) index= efa->e3->fgoni;
-		if(efa->v4 && efa->e4->fgoni) index= efa->e4->fgoni;
-		
-		if(index==0) printf("wrong fgon select\n");
-		
-		// select all ngon faces with index
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->fgonf) {
-				if(efa->e1->fgoni==index || efa->e2->fgoni==index || 
-				   efa->e3->fgoni==index || (efa->e4 && efa->e4->fgoni==index) ) {
-				   EM_select_face(efa, val);
-				}
-			}
-		}
-	}
-}
-
 /* ****************  LOOP SELECTS *************** */
 
 /* selects quads in loop direction of indicated edge */

@@ -110,6 +110,34 @@ void EM_select_edge(EditEdge *eed, int sel)
 	}
 }
 
+void EM_select_face_fgon(EditFace *efa, int val)
+{
+	EditMesh *em = G.editMesh;
+	short index=0;
+	
+	if(efa->fgonf==0) EM_select_face(efa, val);
+	else {
+		if(efa->e1->fgoni) index= efa->e1->fgoni;
+		if(efa->e2->fgoni) index= efa->e2->fgoni;
+		if(efa->e3->fgoni) index= efa->e3->fgoni;
+		if(efa->v4 && efa->e4->fgoni) index= efa->e4->fgoni;
+		
+		if(index==0) printf("wrong fgon select\n");
+		
+		// select all ngon faces with index
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->fgonf) {
+				if(efa->e1->fgoni==index || efa->e2->fgoni==index || 
+				   efa->e3->fgoni==index || (efa->e4 && efa->e4->fgoni==index) ) {
+					EM_select_face(efa, val);
+				}
+			}
+		}
+	}
+}
+
+
+/* only vertices */
 int faceselectedOR(EditFace *efa, int flag)
 {
 	
@@ -225,6 +253,77 @@ void EM_select_flush(void)
 	}
 }
 
+/* when vertices or edges can be selected, also make fgon consistant */
+static void check_fgons_selection()
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa, *efan;
+	EditEdge *eed;
+	ListBase *lbar;
+	int sel, desel, index, totfgon= 0;
+	
+	/* count amount of fgons */
+	for(eed= em->edges.first; eed; eed= eed->next) 
+		if(eed->fgoni>totfgon) totfgon= eed->fgoni;
+	
+	if(totfgon==0) return;
+	
+	lbar= MEM_callocN((totfgon+1)*sizeof(ListBase), "listbase array");
+	
+	/* put all fgons in lbar */
+	for(efa= em->faces.first; efa; efa= efan) {
+		efan= efa->next;
+		index= efa->e1->fgoni;
+		if(index==0) index= efa->e2->fgoni;
+		if(index==0) index= efa->e3->fgoni;
+		if(index==0 && efa->e4) index= efa->e4->fgoni;
+		if(index) {
+			BLI_remlink(&em->faces, efa);
+			BLI_addtail(&lbar[index], efa);
+		}
+	}
+	
+	/* now check the fgons */
+	for(index=1; index<=totfgon; index++) {
+		/* we count on vertices/faces/edges being set OK, so we only have to set ngon itself */
+		sel= desel= 0;
+		for(efa= lbar[index].first; efa; efa= efa->next) {
+			if(efa->e1->fgoni==0) {
+				if(efa->e1->f & SELECT) sel++;
+				else desel++;
+			}
+			if(efa->e2->fgoni==0) {
+				if(efa->e2->f & SELECT) sel++;
+				else desel++;
+			}
+			if(efa->e3->fgoni==0) {
+				if(efa->e3->f & SELECT) sel++;
+				else desel++;
+			}
+			if(efa->e4 && efa->e4->fgoni==0) {
+				if(efa->e4->f & SELECT) sel++;
+				else desel++;
+			}
+			
+			if(sel && desel) break;
+		}
+		printf("fgon %d sel %d desel %d\n", index, sel, desel);
+		if(sel && desel) sel= 0;
+		else if(sel) sel= 1;
+		else sel= 0;
+		
+		/* select/deselect and put back */
+		for(efa= lbar[index].first; efa; efa= efa->next) {
+			if(sel) efa->f |= SELECT;
+			else efa->f &= ~SELECT;
+		}
+		addlisttolist(&em->faces, &lbar[index]);
+	}
+	
+	MEM_freeN(lbar);
+}
+
+
 /* flush to edges & faces */
 
 /* based on select mode it selects edges/faces 
@@ -267,8 +366,7 @@ void EM_selectmode_flush(void)
 				else efa->f &= ~SELECT;
 			}
 		}
-	}
-
+	}	
 	// make sure selected faces have selected edges too, for extrude (hack?)
 	else if(G.scene->selectmode & SCE_SELECT_FACE) {
 		for(efa= em->faces.first; efa; efa= efa->next) {
@@ -280,6 +378,8 @@ void EM_selectmode_flush(void)
 			}
 		}
 	}
+	check_fgons_selection();
+
 }
 
 /* when switching select mode, makes sure selection is consistant for editing */
