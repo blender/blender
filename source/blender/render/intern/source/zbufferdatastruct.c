@@ -70,7 +70,7 @@
 
 /* if defined: all jittersamples are stored individually. _very_ serious     */
 /* performance hit ! also gives some buffer size problems in big scenes      */
-#define RE_INDIVIDUAL_SUBPIXELS
+// #define RE_INDIVIDUAL_SUBPIXELS
 
 /* ------------------------------------------------------------------------- */
 
@@ -183,6 +183,12 @@ void insertObject(int apteller,
 {
 	/* Guard the insertion if needed? */
   	RE_APixstrExt* apn = &APixbufExt[apteller]; 
+	int all_subpixels= 0;
+	
+	if(obtype==RE_POLY) {
+		VlakRen *vlr= RE_findOrAddVlak( (obindex-1) & 0x7FFFFF);
+		if(vlr->flag & R_FULL_OSA) all_subpixels= 1;
+	}
 	
 	while(apn) {
 		if(apn->t[0] == RE_NONE) {
@@ -191,56 +197,56 @@ void insertObject(int apteller,
 			apn->mask[0] = mask;   
 			break; 
 		}
-#ifndef RE_INDIVIDUAL_SUBPIXELS
-		if((apn->p[0] == obindex) && (apn->t[0] & obtype)) {
-			if(dist < apn->zmin[0]) apn->zmin[0] = dist;
-			else if(dist > apn->zmax[0]) apn->zmax[0] = dist;
-			apn->mask[0]|= mask; 
-			break; 
-		} 
-#endif
+		if(all_subpixels==0) {
+			if((apn->p[0] == obindex) && (apn->t[0] & obtype)) {
+				if(dist < apn->zmin[0]) apn->zmin[0] = dist;
+				else if(dist > apn->zmax[0]) apn->zmax[0] = dist;
+				apn->mask[0]|= mask; 
+				break; 
+			} 
+		}
 		if(apn->t[1] == RE_NONE) {
 			apn->p[1] = obindex; apn->t[1] = obtype;
 			apn->zmin[1] = dist; apn->zmax[1] = dist;
 			apn->mask[1] = mask;   
 			break; 
 		}
-#ifndef RE_INDIVIDUAL_SUBPIXELS
-		if((apn->p[1] == obindex) && (apn->t[1] & obtype)) {
-			if(dist < apn->zmin[1]) apn->zmin[1] = dist;
-			else if(dist > apn->zmax[1]) apn->zmax[1] = dist;
-			apn->mask[1]|= mask; 
-			break; 
-		} 
-#endif
+		if(all_subpixels==0) {
+			if((apn->p[1] == obindex) && (apn->t[1] & obtype)) {
+				if(dist < apn->zmin[1]) apn->zmin[1] = dist;
+				else if(dist > apn->zmax[1]) apn->zmax[1] = dist;
+				apn->mask[1]|= mask; 
+				break; 
+			} 
+		}
 		if(apn->t[2] == RE_NONE) {
 			apn->p[2] = obindex; apn->t[2] = obtype;
 			apn->zmin[2] = dist; apn->zmax[2] = dist;
 			apn->mask[2] = mask;   
 			break; 
 		}
-#ifndef RE_INDIVIDUAL_SUBPIXELS
-		if((apn->p[2] == obindex) && (apn->t[2] & obtype)) {
-			if(dist < apn->zmin[2]) apn->zmin[2] = dist;
-			else if(dist > apn->zmax[2]) apn->zmax[2] = dist;
-			apn->mask[2]|= mask; 
-			break; 
-		} 
-#endif
+		if(all_subpixels==0) {
+			if((apn->p[2] == obindex) && (apn->t[2] & obtype)) {
+				if(dist < apn->zmin[2]) apn->zmin[2] = dist;
+				else if(dist > apn->zmax[2]) apn->zmax[2] = dist;
+				apn->mask[2]|= mask; 
+				break; 
+			} 
+		}
 		if(apn->t[3] == RE_NONE) {
 			apn->p[3] = obindex; apn->t[3] = obtype;
 			apn->zmin[3] = dist; apn->zmax[3] = dist;
 			apn->mask[3] = mask;   
 			break; 
 		}
-#ifndef RE_INDIVIDUAL_SUBPIXELS
-		if((apn->p[3] == obindex) && (apn->t[3] & obtype)) {
-			if(dist < apn->zmin[3]) apn->zmin[3] = dist;
-			else if(dist > apn->zmax[3]) apn->zmax[3] = dist;
-			apn->mask[3]|= mask; 
-			break; 
-		} 
-#endif
+		if(all_subpixels==0) {
+			if((apn->p[3] == obindex) && (apn->t[3] & obtype)) {
+				if(dist < apn->zmin[3]) apn->zmin[3] = dist;
+				else if(dist > apn->zmax[3]) apn->zmax[3] = dist;
+				apn->mask[3]|= mask; 
+				break; 
+			} 
+		}
 		if(apn->next==0) apn->next= addpseA();
 		apn= apn->next;
 	}				

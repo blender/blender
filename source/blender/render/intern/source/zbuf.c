@@ -2161,33 +2161,43 @@ int vergzvlak(const void *a1, const void *a2)
 	return 0;
 }
 
-void shadetrapixel(float x, float y, int vlak, int mask, unsigned short *shortcol)
+void shadetrapixel(float x, float y, int face, int mask, unsigned short *shortcol)
 {
 	
-	if( (vlak & 0x7FFFFF) > R.totvlak) {
-		printf("error in shadetrapixel nr: %d\n", (vlak & 0x7FFFFF));
+	if( (face & 0x7FFFFF) > R.totvlak) {
+		printf("error in shadetrapixel nr: %d\n", (face & 0x7FFFFF));
 		return;
 	}
 	if(R.r.mode & R_OSA) {
+		VlakRen *vlr= RE_findOrAddVlak( (face-1) & 0x7FFFFF);
 		int intcol[4]={0,0,0,0};
 		int a, tot=0;
 		
-		for(a=0; a<R.osa; a++) {
-			if(mask & (1<<a)) {
-				shadepixel_short(x+jit[a][0], y+jit[a][1], vlak, 1<<a, shortcol);
-				intcol[0]+= shortcol[0];
-				intcol[1]+= shortcol[1];
-				intcol[2]+= shortcol[2];
-				intcol[3]+= shortcol[3];
-				tot++;
+		if(vlr->flag & R_FULL_OSA) {
+			for(a=0; a<R.osa; a++) {
+				if(mask & (1<<a)) {
+					shadepixel_short(x+jit[a][0], y+jit[a][1], face, 1<<a, shortcol);
+					intcol[0]+= shortcol[0];
+					intcol[1]+= shortcol[1];
+					intcol[2]+= shortcol[2];
+					intcol[3]+= shortcol[3];
+					tot++;
+				}
 			}
+			shortcol[0]= intcol[0]/tot;
+			shortcol[1]= intcol[1]/tot;
+			shortcol[2]= intcol[2]/tot;
+			shortcol[3]= intcol[3]/tot;
 		}
-		shortcol[0]= intcol[0]/tot;
-		shortcol[1]= intcol[1]/tot;
-		shortcol[2]= intcol[2]/tot;
-		shortcol[3]= intcol[3]/tot;
+		else {
+			int b= centmask[mask];
+			x= x+centLut[b & 15];
+			y= y+centLut[b>>4];
+			shadepixel_short(x, y, face, mask, shortcol);
+	
+		}
 	}
-	else shadepixel_short(x, y, vlak, mask, shortcol);
+	else shadepixel_short(x, y, face, mask, shortcol);
 }
 
 extern unsigned short usegamtab;
@@ -2290,7 +2300,7 @@ void abufsetrow(int y)
 				while(totvlak>0) {
 					totvlak--;
 					
-					shadetrapixel((float)x, (float)y, zrow[totvlak][1], 0xFFFF, shortcol);
+					shadetrapixel((float)x, (float)y, zrow[totvlak][1], zrow[totvlak][2], shortcol);
 					
 					a= count_mask(zrow[totvlak][2]);
 					if( (R.r.mode & R_OSA ) && a<R.osa) {

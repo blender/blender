@@ -3095,7 +3095,6 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 {
 	extern float Zjitx,Zjity;
 	PixStr *ps;
-	VlakRen *vlr;
 	float xd, yd, xs, ys;
 	unsigned int *rz, *rp, *rt, mask, fullmask;
 	unsigned int  *rowbuf1, *rowbuf2, *rowbuf3, *rb1, *rb2, *rb3;
@@ -3185,87 +3184,60 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 		if(y<R.recty) {
 			for(x=0; x<R.rectx; x++, rd++) {
 				int samp, curmask, face;
+				int full_osa, face0;
 				
 				if( IS_A_POINTER_CODE(*rd))
 					ps= (PixStr *) POINTER_FROM_CODE(*rd);
 				else ps= NULL;
 				
-				if(0) {
-					for(samp=0; samp<R.osa; samp++) {
-						curmask= 1<<samp;
+				if(ps) face0= ps->vlak0;
+				else face0= (int)*rd;
+				mask= 0;
+				
+				/* complex loop, because first pixelstruct has a vlak0, without mask */
+				while(TRUE) {
 					
-						if(ps) {
-							PixStr *ps1= ps;
-							while(ps1) {
-								if(ps1->mask & curmask) break;
-								ps1= ps1->next;
+					if(ps==NULL) {
+						face= face0;
+						curmask= (~mask) & fullmask;
+					}
+					else {
+						face= ps->vlak;
+						curmask= ps->mask;
+					}
+					
+					/* check osa level */
+					if(face==0) full_osa= 0;
+					else {
+						VlakRen *vlr= RE_findOrAddVlak( (face-1) & 0x7FFFFF);
+						full_osa= (vlr->flag & R_FULL_OSA);
+					}
+					
+					if(full_osa) {
+						for(samp=0; samp<R.osa; samp++) {
+							if(curmask & (1<<samp)) {
+								xs= (float)x + jit[samp][0];
+								ys= (float)y + jit[samp][1];
+								shadepixel_short(xs, ys, face, curmask, shortcol);
+			
+								if(shortcol[3]) add_filt_mask(1<<samp, shortcol, rb1, rb2, rb3);
 							}
-							if(ps1) face= ps1->vlak;
-							else face= ps->vlak0;
 						}
-						else face= (int)*rd;
-	
-						xs= (float)x + jit[samp][0];
-						ys= (float)y + jit[samp][1];
+					}
+					else {
+						b= centmask[curmask];
+						xs= (float)x+centLut[b & 15];
+						ys= (float)y+centLut[b>>4];
 						shadepixel_short(xs, ys, face, curmask, shortcol);
-	
+
 						if(shortcol[3]) add_filt_mask(curmask, shortcol, rb1, rb2, rb3);
 					}
-				}
-				else {	/* do collected faces together */
-					int full_osa, face0;
 					
-					if(ps) face0= ps->vlak0;
-					else face0= (int)*rd;
-					mask= 0;
+					mask |= curmask;
 					
-					/* complex loop, because first pixelstruct has a vlak0, without mask */
-					while(TRUE) {
-						
-						if(ps==NULL) {
-							face= face0;
-							curmask= (~mask) & fullmask;
-						}
-						else {
-							face= ps->vlak;
-							curmask= ps->mask;
-						}
-						
-						/* check osa level */
-						if(face==0) full_osa= 0;
-						else {
-							vlr= RE_findOrAddVlak( (face-1) & 0x7FFFFF);
-							full_osa= (vlr->flag & R_FULL_OSA);
-						}
-						
-						if(full_osa) {
-							for(samp=0; samp<R.osa; samp++) {
-								if(curmask & (1<<samp)) {
-									xs= (float)x + jit[samp][0];
-									ys= (float)y + jit[samp][1];
-									shadepixel_short(xs, ys, face, curmask, shortcol);
-				
-									if(shortcol[3]) add_filt_mask(1<<samp, shortcol, rb1, rb2, rb3);
-								}
-							}
-						}
-						else {
-							b= centmask[curmask];
-							xs= (float)x+centLut[b & 15];
-							ys= (float)y+centLut[b>>4];
-							shadepixel_short(xs, ys, face, curmask, shortcol);
-	
-							if(shortcol[3]) add_filt_mask(curmask, shortcol, rb1, rb2, rb3);
-						}
-						
-						mask |= curmask;
-						
-						if(ps==NULL) break;
-						else ps= ps->next;
-					}
-
+					if(ps==NULL) break;
+					else ps= ps->next;
 				}
-
 				rb1+=4; 
 				rb2+=4; 
 				rb3+=4;
