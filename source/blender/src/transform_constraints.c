@@ -666,17 +666,14 @@ void BIF_drawConstraint(void)
 
 		if (tc->mode & CON_AXIS0) {
 			draw_manipulator_ext(curarea, t->mode, 'x', 0, tc->center, tc->mtx);
-			draw_manipulator_ext(curarea, t->mode, 'x', 2, tc->center, tc->mtx);
 //			drawLine(tc->center, tc->mtx[0], 'x', DRAWLIGHT);
 		}
 		if (tc->mode & CON_AXIS1) {
 			draw_manipulator_ext(curarea, t->mode, 'y', 0, tc->center, tc->mtx);
-			draw_manipulator_ext(curarea, t->mode, 'y', 2, tc->center, tc->mtx);
 //			drawLine(tc->center, tc->mtx[1], 'y', DRAWLIGHT);
 		}
 		if (tc->mode & CON_AXIS2) {
 			draw_manipulator_ext(curarea, t->mode, 'z', 0, tc->center, tc->mtx);
-			draw_manipulator_ext(curarea, t->mode, 'z', 2, tc->center, tc->mtx);
 //			drawLine(tc->center, tc->mtx[2], 'z', DRAWLIGHT);
 		}
 	}
