@@ -125,7 +125,7 @@ STRIP_FROM_PATH        =
 # to NO (the default) then the documentation will be excluded. 
 # Set it to YES to include the internal documentation.
 
-INTERNAL_DOCS          = NO
+INTERNAL_DOCS          = YES
 
 # Setting the STRIP_CODE_COMMENTS tag to YES (the default) will instruct 
 # doxygen to hide any special comment blocks from generated source code 
@@ -308,7 +308,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT =  doxygen.main ../source/creator/ ../source/blender/src/B.blend.c ../source/blender/src/blenderbuttons.c ../source/blender/readblenfile/intern/BLO_readblenfile.c ../intern/ghost/GHOST_C-api.h ../source/blender/imbuf/
+INPUT =  doxygen.main ../source/creator/ ../source/blender/src/B.blend.c ../source/blender/src/blenderbuttons.c ../source/blender/readblenfile/intern/BLO_readblenfile.c ../intern/ghost/GHOST_C-api.h ../source/blender/imbuf/ ../source/blender/src/mainqueue.c
 
 # cmccad - The following lines are directories which will eventually be included:
 #
