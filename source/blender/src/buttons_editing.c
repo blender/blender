@@ -107,6 +107,7 @@
 #include "mydevice.h"
 #include "blendef.h"
 
+#include "BKE_action.h"
 #include "BKE_anim.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
@@ -1255,6 +1256,8 @@ static void validate_editbonebutton(EditBone *eBone){
 	bAction		*act=NULL;
 	bActionChannel *chan;
 	Base *base;
+	bPose        *pose;
+	bPoseChannel *pchan;
 
 	/* Separate the bone from the G.edbo */
 	prev=eBone->prev;
@@ -1269,18 +1272,30 @@ static void validate_editbonebutton(EditBone *eBone){
 	else
 		BLI_addhead (&G.edbo, eBone);
 
-	/* Rename channel if necessary */
+	/* Rename *action* channel if necessary */
 	if (G.obedit)
 		act = G.obedit->action;
 
 	if (act && !act->id.lib){
-		//	Find the appropriate channel
+		/*	Find the appropriate channel
+		 */
 		for (chan = act->chanbase.first; chan; chan=chan->next){
 			if (!strcmp (chan->name, eBone->oldname)){
 				strcpy (chan->name, eBone->name);
 			}
 		}
 		allqueue(REDRAWACTION, 0);
+	}
+
+	/* Rename the *pose* channel, if it exists (thus making sure
+	 * that the constraints are still valid) 
+	 */
+	pose = G.obedit->pose;
+	if (pose) {
+		pchan = get_pose_channel(pose, eBone->oldname);
+		if (pchan) {
+			strcpy (pchan->name, eBone->name);
+		}
 	}
 
 	/* Update the parenting info of any users */
@@ -1305,7 +1320,6 @@ static void validate_editbonebutton(EditBone *eBone){
 		switch (ob->type){
 			case OB_ARMATURE:
 				if (ob->pose){
-					bPoseChannel *pchan;
 					for (pchan = ob->pose->chanbase.first; pchan; 
 						 pchan=pchan->next){
 						conlist = &pchan->constraints;
