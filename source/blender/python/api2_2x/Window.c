@@ -123,18 +123,26 @@ static PyObject *M_Window_QRedrawAll(PyObject *self, PyObject *args)
 static void getSelectedFile(char *name)
 {
   if (EXPP_FS_PyCallback) {
+	  SpaceText *st= curarea->spacedata.first;
+
     PyObject_CallFunction((PyObject *)EXPP_FS_PyCallback, "s", name);
-    EXPP_FS_PyCallback = NULL;
+
+		EXPP_FS_PyCallback = NULL;
+		st->flags &= ST_CLEAR_NAMESPACE; /* free global dictionary */
   }
 }
 
 static PyObject *M_Window_FileSelector(PyObject *self, PyObject *args)
 {
   char *title = "SELECT FILE";
+	SpaceText *st = curarea->spacedata.first;
+
   if (!PyArg_ParseTuple(args, "O!|s",
                         &PyFunction_Type, &EXPP_FS_PyCallback, &title))
     return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-      "\nexpected a callback function (and optionally a string) as argument(s)"));
+    "\nexpected a callback function (and optionally a string) as argument(s)"));
+
+	st->flags &= ~ST_CLEAR_NAMESPACE; /* hold global dictionary */
 
   activate_fileselect(FILE_BLENDER, title, G.sce, getSelectedFile);
 
@@ -145,10 +153,14 @@ static PyObject *M_Window_FileSelector(PyObject *self, PyObject *args)
 static PyObject *M_Window_ImageSelector(PyObject *self, PyObject *args)
 {
   char *title = "SELECT IMAGE";
+	SpaceText *st = curarea->spacedata.first;
+
   if (!PyArg_ParseTuple(args, "O!|s",
                         &PyFunction_Type, &EXPP_FS_PyCallback, &title))
     return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-      "\nexpected a callback function (and optionally a string) as argument(s)"));
+    "\nexpected a callback function (and optionally a string) as argument(s)"));
+
+	st->flags &= ~ST_CLEAR_NAMESPACE; /* hold global dictionary */
 
   activate_imageselect(FILE_BLENDER, title, G.sce, getSelectedFile);
 

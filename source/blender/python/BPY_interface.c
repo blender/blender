@@ -222,7 +222,7 @@ struct _object *BPY_txt_do_python(struct SpaceText* st)
 {
   PyObject *dict, *ret;
 
-  printf ("In BPY_txt_do_python\n");
+  printf ("\nIn BPY_txt_do_python\n");
 
   if (!st->text) return NULL;
 
@@ -230,7 +230,7 @@ struct _object *BPY_txt_do_python(struct SpaceText* st)
  * the script with a clean global dictionary or should keep the current one,
  * possibly already "polluted" by other calls to the Python Interpreter.
  * The default is to use a clean one.  To change this the script writer must
- * call Blender.releaseGlobalDict(bool), with bool != 0, in the script */
+ * call Blender.releaseGlobalDict(bool), with bool == 0, in the script */
 
   if (EXPP_releaseGlobalDict) {
     printf("Using a clean Global Dictionary.\n");

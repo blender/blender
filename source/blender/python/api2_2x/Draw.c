@@ -36,6 +36,10 @@
 
 #include "Draw.h"
 
+/* declared in ../BPY_extern.h,
+ * used to control global dictionary persistence: */
+extern short EXPP_releaseGlobalDict;
+
 static void Button_dealloc(PyObject *self)
 {
 	Button *but = (Button*)self;
@@ -192,21 +196,21 @@ int BPY_spacetext_is_pywin(SpaceText *st)
 static PyObject *Method_Exit (PyObject *self, PyObject *args)
 {	
 	SpaceText *st= curarea->spacedata.first;
-#ifdef CLEAR_NAMESPACE	
-	PyObject *d;
-#endif
+
 	if (!PyArg_ParseTuple(args, ""))
 					return EXPP_ReturnPyObjError (PyExc_AttributeError,
 									"expected empty argument list");
 
 	exit_pydraw(st);
-#ifdef CLEAR_NAMESPACE	
-	d = st->py_globaldict; /* The current window's global namespace dictionary */
-	if (d) {
-		PyDict_Clear(d);
-		Py_DECREF(d); /* release dictionary */
+
+	if (EXPP_releaseGlobalDict) {
+		PyObject *d = st->py_globaldict;
+		/* d is the current window's global namespace dictionary */
+	  if (d) {
+		  PyDict_Clear(d);
+		  Py_DECREF(d); /* release dictionary */
+	  }
 	}	
-#endif
 
 	return EXPP_incr_ret (Py_None);
 }
