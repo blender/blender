@@ -2300,6 +2300,17 @@ void init_seqspace(ScrArea *sa)
 extern void drawactionspace(ScrArea *sa, void *spacedata);
 extern void winqreadactionspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 
+static void changeactionspace(ScrArea *sa, void *spacedata)
+{
+	if(G.v2d==0) return;
+
+	/* action space uses weird matrices... local calculated in a function */
+	
+	// test_view2d(G.v2d, curarea->winx, curarea->winy);
+	// myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
+}
+
+
 void init_actionspace(ScrArea *sa)
 {
 	SpaceAction *saction;
@@ -3389,7 +3400,7 @@ SpaceType *spaceaction_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("Action");
-		spacetype_set_winfuncs(st, drawactionspace, changeview2dspace, winqreadactionspace);
+		spacetype_set_winfuncs(st, drawactionspace, changeactionspace, winqreadactionspace);
 	}
 
 	return st;
