@@ -4130,6 +4130,7 @@ void draw_object(Base *base)
 		/* check for need for displist (it's zero when parent, key, or hook changed) */
 		if(ob->disp.first==NULL) {
 			if(ob->parent && ob->partype==PARSKEL) makeDispList(ob);
+			else if(ob->parent && ob->parent->type==OB_LATTICE) makeDispList(ob);
 			else if(ob->hooks.first) makeDispList(ob);
 			else if(ob->softflag) makeDispList(ob);
 			else if(me->disp.first==NULL && mesh_uses_displist(me)) makeDispList(ob);

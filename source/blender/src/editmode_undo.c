@@ -173,7 +173,7 @@ void undo_editmode_push(char *name, void (*freedata)(void *),
 
 	/* copy  */
 	curundo->undodata= curundo->from_editmode();
-	
+	curundo->ob= G.obedit;
 	curundo->id= G.obedit->id;
 }
 
