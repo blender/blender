@@ -3,7 +3,7 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
-Project: "BMF_bmfont"=..\..\bmfont\make\msvc_6_0\BMF_bmfont.dsp - Package Owner=<4>
+Project: "MoTo"="..\..\moto\make\msvc_6_0\MoTo.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -15,7 +15,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "MoTo"=..\..\moto\make\msvc_6_0\MoTo.dsp - Package Owner=<4>
+Project: "blenkey"="..\..\keymaker\make\msvc_6_0\blenkey.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -27,7 +27,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "blenkey"=..\..\keymaker\make\msvc_6_0\blenkey.dsp - Package Owner=<4>
+Project: "bmfont"="..\..\bmfont\make\msvc_6_0\bmfont.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -39,19 +39,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "bmfont"=..\..\bmfont\make\msvc_6_0\bmfont.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "bsplib"=..\..\bsp\make\msvc6_0\bsplib.dsp - Package Owner=<4>
+Project: "bsplib"="..\..\bsp\make\msvc6_0\bsplib.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -72,7 +60,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "build_install_all"=.\build_install_all.dsp - Package Owner=<4>
+Project: "build_install_all"=".\build_install_all.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -114,13 +102,13 @@ Package=<4>
     Project_Dep_Name blenkey
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name BMF_bmfont
+    Project_Dep_Name python_freeze
     End Project Dependency
 }}}
 
 ###############################################################################
 
-Project: "container"=..\..\container\make\msvc_6_0\container.dsp - Package Owner=<4>
+Project: "container"="..\..\container\make\msvc_6_0\container.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -132,7 +120,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "decimation"=..\..\decimation\make\msvc_6_0\decimation.dsp - Package Owner=<4>
+Project: "decimation"="..\..\decimation\make\msvc_6_0\decimation.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -153,7 +141,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "ghost"=..\..\ghost\make\msvc\ghost.dsp - Package Owner=<4>
+Project: "ghost"="..\..\ghost\make\msvc\ghost.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -168,7 +156,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "guardedalloc"=..\..\guardedalloc\make\msvc_6_0\guardedalloc.dsp - Package Owner=<4>
+Project: "guardedalloc"="..\..\guardedalloc\make\msvc_6_0\guardedalloc.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -180,7 +168,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "iksolver"=..\..\iksolver\make\msvc_6_0\iksolver.dsp - Package Owner=<4>
+Project: "iksolver"="..\..\iksolver\make\msvc_6_0\iksolver.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -192,7 +180,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "memutil"=..\..\memutil\make\msvc_60\memutil.dsp - Package Owner=<4>
+Project: "memutil"="..\..\memutil\make\msvc_60\memutil.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -204,7 +192,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "python_freeze"=..\..\python\freeze\python_freeze.dsp - Package Owner=<4>
+Project: "python_freeze"="..\..\python\freeze\python_freeze.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -216,7 +204,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "string"=..\..\string\make\msvc_6_0\string.dsp - Package Owner=<4>
+Project: "string"="..\..\string\make\msvc_6_0\string.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
