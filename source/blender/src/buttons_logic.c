@@ -1613,29 +1613,25 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 			
-			if(G.main->sound.first)
-			{
+			if(G.main->sound.first) {
 				IDnames_to_pupstring(&str, "Sound files", NULL, &(G.main->sound), (ID *)sa->sound, &(sa->sndnr));
 				/* reset this value, it is for handling the event */
 				sa->sndnr = 0;
 				uiDefButS(block, MENU, B_SOUNDACT_BROWSE, str, xco+10,yco-22,20,19, &(sa->sndnr), 0, 0, 0, 0, "");	
 
-				if(sa->sound)
-				{
+				if(sa->sound) {
 					char dummy_str[] = "Sound mode %t|Play Stop %x0|Play End %x1|Loop Stop %x2|Loop End %x3|Loop Ping Pong Stop %x5|Loop Ping Pong %x4";
 					uiDefBut(block, TEX, B_IDNAME, "SO:",xco+30,yco-22,width-40,19, sa->sound->id.name+2,    0.0, 18.0, 0, 0, "");
 					uiDefButS(block, MENU, 1, dummy_str,xco+10,yco-44,width-20, 19, &sa->type, 0.0, 0.0, 0, 0, "");
 					uiDefButF(block, NUM, 0, "Volume:", xco+10,yco-66,wval, 19, &sa->sound->volume, 0.0,  1.0, 0, 0, "Sets the volume of this sound");
 					uiDefButF(block, NUM, 0, "Pitch:",xco+wval+10,yco-66,wval, 19, &sa->sound->pitch,-12.0, 12.0, 0, 0, "Sets the pitch of this sound");
 				}
+				MEM_freeN(str);
 			} 
-			else
-			{
+			else {
 				uiDefBut(block, LABEL, 0, "Use Sound window (F10) to load samples", xco, yco-24, width, 19, NULL, 0, 0, 0, 0, "");
 			}
-			
-			MEM_freeN(str);
-		
+					
 			yco-= ysize;
 			
 			break;
@@ -1646,31 +1642,26 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 				"Volume %x3|Stop %x4|Pause %x5|Resume %x6";
 			cda = act->data;
 
-			if (cda)
-			{
-				if (cda->track == 0)
-				{
+			if (cda) {
+				if (cda->track == 0) {
 					cda->track = 1;
 					cda->volume = 1;
 					cda->type = ACT_CD_PLAY_ALL;
 				}
 				
-				if (cda->type == ACT_CD_PLAY_TRACK || cda->type == ACT_CD_LOOP_TRACK)
-				{
+				if (cda->type == ACT_CD_PLAY_TRACK || cda->type == ACT_CD_LOOP_TRACK) {
 					ysize = 48;
 					glRects(xco, yco-ysize, xco+width, yco);
 					uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 					uiDefButS(block, NUM, 0, "Track:", xco+10,yco-44,width-20, 19, &cda->track, 1, 99, 0, 0, "Select the track to be played");
 				}
-				else if (cda->type == ACT_CD_VOLUME)
-				{
+				else if (cda->type == ACT_CD_VOLUME) {
 					ysize = 48;
 					glRects(xco, yco-ysize, xco+width, yco);
 					uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 					uiDefButF(block, NUM, 0, "Volume:", xco+10,yco-44,width-20, 19, &cda->volume, 0, 1, 0, 0, "Set the volume for CD playback");
 				}
-				else
-				{
+				else {
 					ysize = 28;
 					glRects(xco, yco-ysize, xco+width, yco);
 					uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
