@@ -786,28 +786,33 @@ static uiBlock *edge_render_menu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "edge render", UI_EMBOSS, UI_HELV, curarea->win);
 		
 	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "",  285, -20, 230, 120, NULL,  0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "",  285, -20, 230, 125, NULL,  0, 0, 0, 0, "");
 	
-	uiDefButS(block, NUM, 0,"Eint:",  295,50,70,19,  &G.scene->r.edgeint, 0.0, 255.0, 0, 0,
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM, 0,"Eint:",  	370,75,135,19,  &G.scene->r.edgeint, 0.0, 255.0, 0, 0,
 		  "Sets edge intensity for Toon shading");
-	uiDefButI(block, TOG, 0,"Shift", 365,50,70,19,  &G.compat, 0, 0, 0, 0,
-		  "For unified renderer: use old offsets for edges");
-	uiDefButI(block, TOG, 0,"All",		435,50,70,19,  &G.notonlysolid, 0, 0, 0, 0,
-		  "For unified renderer: also consider transparent faces for toon shading");
-
-	/* colour settings for the toon shading */
-	uiDefButF(block, COL, 0, "", 295,-10,30,60,  &(G.scene->r.edgeR), 0, 0, 0, B_EDGECOLSLI, "");
-	
-	uiDefButF(block, NUMSLI, 0, "R ",   325, 30, 180,19,   &G.scene->r.edgeR, 0.0, 1.0, B_EDGECOLSLI, 0,
-		  "For unified renderer: Colour for edges in toon shading mode.");
-	uiDefButF(block, NUMSLI, 0, "G ",  325, 10, 180,19,  &G.scene->r.edgeG, 0.0, 1.0, B_EDGECOLSLI, 0,
-		  "For unified renderer: Colour for edges in toon shading mode.");
-	uiDefButF(block, NUMSLI, 0, "B ",  325, -10, 180,19,  &G.scene->r.edgeB, 0.0, 1.0, B_EDGECOLSLI, 0,
-		  "For unified renderer: Colour for edges in toon shading mode.");
-
-	uiDefButS(block, NUM, 0,"AntiShift",   365,70,140,19,  &(G.scene->r.same_mat_redux), 0, 255.0, 0, 0,
+	uiDefButS(block, NUM, 0,"AntiShift",370,55,135,19,  &(G.scene->r.same_mat_redux), 0, 255.0, 0, 0,
 		  "For unified renderer: reduce intensity on boundaries "
 		  "with identical materials with this number.");
+
+	uiBlockBeginAlign(block);
+	uiDefButI(block, TOG, 0,"Shift", 	295,75,70,19,  &G.compat, 0, 0, 0, 0,
+		  "For unified renderer: use old offsets for edges");
+	uiDefButI(block, TOG, 0,"All",		295,55,70,19,  &G.notonlysolid, 0, 0, 0, 0,
+		  "For unified renderer: also consider transparent faces for toon shading");
+	uiBlockEndAlign(block);
+	
+	/* colour settings for the toon shading */
+	uiDefButF(block, COL, 0, "", 		295,-10,30,60,  &(G.scene->r.edgeR), 0, 0, 0, B_EDGECOLSLI, "");
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, 0, "R ",   330, 30, 175,19,   &G.scene->r.edgeR, 0.0, 1.0, B_EDGECOLSLI, 0,
+		  "For unified renderer: Colour for edges in toon shading mode.");
+	uiDefButF(block, NUMSLI, 0, "G ",  	330, 10, 175,19,  &G.scene->r.edgeG, 0.0, 1.0, B_EDGECOLSLI, 0,
+		  "For unified renderer: Colour for edges in toon shading mode.");
+	uiDefButF(block, NUMSLI, 0, "B ",  	330, -10, 175,19,  &G.scene->r.edgeB, 0.0, 1.0, B_EDGECOLSLI, 0,
+		  "For unified renderer: Colour for edges in toon shading mode.");
+
 	
 	uiBlockSetDirection(block, UI_TOP);
 	
@@ -836,29 +841,32 @@ static uiBlock *post_render_menu(void *arg_unused)
 static uiBlock *framing_render_menu(void *arg_unused)
 {
 	uiBlock *block;
-	short yco = 60, xco = 0;
+	short yco = 65, xco = 0;
 	int randomcolorindex = 1234;
 
 	block= uiNewBlock(&curarea->uiblocks, "framing_options", UI_EMBOSS, UI_HELV, curarea->win);
 
 	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "",			-10, -10, 300, 100, NULL, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "",			-10, -10, 300, 105, NULL, 0, 0, 0, 0, "");
 
 	uiDefBut(block, LABEL, B_NOP, "Framing:", xco, yco, 68,19, 0, 0, 0, 0, 0, "");
-	uiDefButC(block, ROW, 0, "Stretch",	xco += 70, yco, 68, 19, &G.scene->framing.type, 1.0, SCE_GAMEFRAMING_SCALE , 0, 0, "Stretch or squeeze the viewport to fill the display window");
-	uiDefButC(block, ROW, 0, "Expose",	xco += 70, yco, 68, 19, &G.scene->framing.type, 1.0, SCE_GAMEFRAMING_EXTEND, 0, 0, "Show the entire viewport in the display window, viewing more horizontally or vertically");
+	uiBlockBeginAlign(block);
+	uiDefButC(block, ROW, 0, "Stretch",		xco += 70, yco, 68, 19, &G.scene->framing.type, 1.0, SCE_GAMEFRAMING_SCALE , 0, 0, "Stretch or squeeze the viewport to fill the display window");
+	uiDefButC(block, ROW, 0, "Expose",		xco += 70, yco, 68, 19, &G.scene->framing.type, 1.0, SCE_GAMEFRAMING_EXTEND, 0, 0, "Show the entire viewport in the display window, viewing more horizontally or vertically");
 	uiDefButC(block, ROW, 0, "Bars",	    xco += 70, yco, 68, 19, &G.scene->framing.type, 1.0, SCE_GAMEFRAMING_BARS  , 0, 0, "Show the entire viewport in the display window, using bar horizontally or vertically");
-
-	yco -= 20;
-	xco = 35;
+	uiBlockEndAlign(block);
+	
+	yco -= 25;
+	xco = 40;
 
 	uiDefButF(block, COL, 0, "",                0, yco - 58 + 18, 33, 58, &G.scene->framing.col[0], 0, 0, 0, randomcolorindex, "");
 
-	uiDefButF(block, NUMSLI, 0, "R ", xco,yco,243,18, &G.scene->framing.col[0], 0.0, 1.0, randomcolorindex, 0, "Set the red component of the bars");
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, 0, "R ", xco,yco,238,19, &G.scene->framing.col[0], 0.0, 1.0, randomcolorindex, 0, "Set the red component of the bars");
 	yco -= 20;
-	uiDefButF(block, NUMSLI, 0, "G ", xco,yco,243,18, &G.scene->framing.col[1], 0.0, 1.0, randomcolorindex, 0, "Set the green component of the bars");
+	uiDefButF(block, NUMSLI, 0, "G ", xco,yco,238,19, &G.scene->framing.col[1], 0.0, 1.0, randomcolorindex, 0, "Set the green component of the bars");
 	yco -= 20;
-	uiDefButF(block, NUMSLI, 0, "B ", xco,yco,243,18, &G.scene->framing.col[2], 0.0, 1.0, randomcolorindex, 0, "Set the blue component of the bars");
+	uiDefButF(block, NUMSLI, 0, "B ", xco,yco,238,19, &G.scene->framing.col[2], 0.0, 1.0, randomcolorindex, 0, "Set the blue component of the bars");
 
 	uiBlockSetDirection(block, UI_TOP);
 
