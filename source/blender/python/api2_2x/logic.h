@@ -17,38 +17,41 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano, Alex Mole
+ * Contributor(s): Joseph Gilbert
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#ifndef EXPP_TYPES_H
-#define EXPP_TYPES_H
+#ifndef EXPP_LOGIC_H
+#define EXPP_LOGIC_H
 
 #include "Python.h"
+#include <DNA_property_types.h>
 
-extern PyTypeObject Action_Type, Armature_Type;
-extern PyTypeObject BezTriple_Type, Bone_Type, Build_Type, Button_Type;
-extern PyTypeObject Camera_Type, Curve_Type;
-extern PyTypeObject Effect_Type;
-extern PyTypeObject Image_Type, Ipo_Type, IpoCurve_Type;
-extern PyTypeObject Lamp_Type, Lattice_Type;
-extern PyTypeObject Material_Type, Metaball_Type, MTex_Type;
-extern PyTypeObject NMFace_Type, NMVert_Type, NMCol_Type, NMesh_Type;
-extern PyTypeObject Object_Type;
-extern PyTypeObject Particle_Type;
-extern PyTypeObject Scene_Type, RenderData_Type;
-extern PyTypeObject Text_Type, Texture_Type;
-extern PyTypeObject Wave_Type, World_Type;
-extern PyTypeObject property_Type;
-extern PyTypeObject buffer_Type, constant_Type, euler_Type;
-extern PyTypeObject matrix_Type, quaternion_Type, rgbTuple_Type, vector_Type;
+//--------------------------Python BPy_Property structure definition.---------------------
+typedef struct{
+	PyObject_HEAD  
+	//reference to property data if object linked
+	bProperty *property; 
+	//list of vars that define the property
+	char *name;	
+	PyObject *data;
+	short type;
+}BPy_Property;
 
-#endif /* EXPP_TYPES_H */
+//------------------------------visible prototypes----------------------------------------------
+PyObject *Property_CreatePyObject (struct bProperty *prop);
+int Property_CheckPyObject (PyObject * py_obj);
+bProperty *Property_FromPyObject (PyObject * py_obj);
+PyObject * newPropertyObject (char *name, PyObject *data, int type);
+int updatePyProperty(BPy_Property *self);
+int updateProperyData(BPy_Property *self);
+
+#endif

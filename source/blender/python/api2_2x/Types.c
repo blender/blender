@@ -81,6 +81,7 @@ void types_InitAll(void)
 	quaternion_Type.ob_type = &PyType_Type;
 	rgbTuple_Type.ob_type = &PyType_Type;
 	vector_Type.ob_type = &PyType_Type;
+	property_Type.ob_type = &PyType_Type;
 }
 
 /*****************************************************************************/
@@ -139,6 +140,7 @@ PyObject *Types_Init (void)
 	PyDict_SetItemString(dict, "quaternionType",	(PyObject *)&quaternion_Type);
 	PyDict_SetItemString(dict, "BezTripleType", (PyObject *)&BezTriple_Type);
 	PyDict_SetItemString(dict, "ActionType", (PyObject *)&Action_Type);
+	PyDict_SetItemString(dict, "propertyType", (PyObject *)&property_Type);
 
 	return submodule;
 }

@@ -35,11 +35,15 @@
 
 #include "Object.h"
 #include "NLA.h"
+#include "logic.h"
 #include <blendef.h>
 #include <DNA_scene_types.h>
+#include <DNA_property_types.h>
 #include <BSE_edit.h>
+#include <BKE_property.h>
 #include <BKE_mball.h>
 #include <BIF_editview.h>
+
 
 /*****************************************************************************/
 /* Python API function prototypes for the Blender module.					 */
@@ -131,6 +135,12 @@ static PyObject *Object_setSize (BPy_Object *self, PyObject *args);
 static PyObject *Object_setTimeOffset (BPy_Object *self, PyObject *args);
 static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args);
 static PyObject *Object_Select (BPy_Object *self, PyObject *args);
+static PyObject *Object_getAllProperties (BPy_Object *self);
+static PyObject *Object_addProperty(BPy_Object *self, PyObject *args);
+static PyObject *Object_removeProperty(BPy_Object *self, PyObject *args);
+static PyObject *Object_getProperty(BPy_Object *self, PyObject *args);
+static PyObject *Object_removeAllProperties(BPy_Object *self);
+static PyObject *Object_copyAllPropertiesTo(BPy_Object *self, PyObject *args);
 
 /*****************************************************************************/
 /* Python BPy_Object methods table:											   */
@@ -237,6 +247,18 @@ works only if self and the object specified are of the same type."},
 	"(Blender Ipo) - Sets the object's ipo"},
   {"clearIpo", (PyCFunction)Object_clearIpo, METH_NOARGS,
 	"() - Unlink ipo from this object"},
+  {"getAllProperties", (PyCFunction)Object_getAllProperties, METH_NOARGS,
+  "() - Get all the properties from this object"},
+  {"addProperty", (PyCFunction)Object_addProperty, METH_VARARGS,
+  "() - Add a property to this object"},
+  {"removeProperty", (PyCFunction)Object_removeProperty, METH_VARARGS,
+  "() - Remove a property from  this object"},
+  {"getProperty", (PyCFunction)Object_getProperty, METH_VARARGS,
+  "() - Get a property from this object by name"},
+   {"removeAllProperties", (PyCFunction)Object_removeAllProperties, METH_NOARGS,
+  "() - removeAll a properties from this object"},
+   {"copyAllPropertiesTo", (PyCFunction)Object_copyAllPropertiesTo, METH_VARARGS,
+  "() - copy all properties from this object to another object"},
   {NULL, NULL, 0, NULL}
 };
 
@@ -1665,6 +1687,175 @@ static PyObject *Object_Select (BPy_Object *self, PyObject *args)
 	return (Py_None);
 }
 
+static PyObject *Object_getAllProperties(BPy_Object *self)
+{
+	PyObject *prop_list;
+	bProperty *prop= NULL;
+
+	prop_list = PyList_New(0);
+
+	prop = self->object->prop.first;
+	while(prop){
+		PyList_Append(prop_list, Property_CreatePyObject(prop));
+		prop = prop->next;
+	}
+	return prop_list;
+}
+
+static PyObject *Object_getProperty(BPy_Object *self, PyObject *args)
+{
+	char *prop_name = NULL;
+	bProperty *prop= NULL;
+	PyObject *py_prop = Py_None;
+
+	if(!PyArg_ParseTuple (args, "s", &prop_name)){
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,	
+			"expected a string"));
+	}
+
+	prop = get_property(self->object, prop_name);
+	if(prop){
+		py_prop = Property_CreatePyObject(prop);
+	}else{
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,	
+			"couldn't find the property...."));
+	}
+	return py_prop;
+}
+
+static PyObject *Object_addProperty(BPy_Object *self, PyObject *args)
+{
+	bProperty *prop = NULL;
+	char *prop_name = NULL;
+	PyObject *prop_data = Py_None;
+	char *prop_type = NULL;
+	short type = -1;
+	BPy_Property *py_prop = NULL;
+
+	if (PyObject_Length (args) == 3 || PyObject_Length (args) == 2){
+		if (!PyArg_ParseTuple (args, "sO|s", &prop_name, &prop_data, &prop_type)){
+			return (EXPP_ReturnPyObjError (PyExc_AttributeError,	
+				"unable to get string, data, and optional string"));
+		}
+	}else if (PyObject_Length (args) == 1){
+		if (!PyArg_ParseTuple (args, "O!", &property_Type, &py_prop)){
+			return (EXPP_ReturnPyObjError (PyExc_AttributeError,	
+				"unable to get Property"));
+		}
+		if(py_prop->property != NULL){
+				return (EXPP_ReturnPyObjError (PyExc_AttributeError,	
+					"Property is already added to an object"));
+		}
+	}else{
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,	
+						"expected 1,2 or 3 arguments"));
+	}
+
+	//parse property type
+	if(!py_prop){
+		if(prop_type){
+			if(BLI_streq(prop_type, "BOOL"))                type = PROP_BOOL;
+			else if (BLI_streq(prop_type, "INT"))           type = PROP_INT;
+			else if (BLI_streq(prop_type, "FLOAT"))     type = PROP_FLOAT;
+			else if (BLI_streq(prop_type, "TIME"))        type = PROP_TIME;
+			else if (BLI_streq(prop_type, "STRING"))  type = PROP_STRING;
+			else return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
+					"BOOL, INT, FLOAT, TIME or STRING expected"));
+		}else{
+			//use the default
+			if(PyInt_Check(prop_data))                 type = PROP_INT;
+			else if (PyFloat_Check(prop_data))    type = PROP_FLOAT;
+			else if (PyString_Check(prop_data))  type = PROP_STRING;
+		}
+	}else{
+		type = py_prop->type;
+	}
+
+	//initialize a new bProperty of the specified type
+	prop = new_property(type);
+
+	//parse data
+	if(!py_prop){
+		BLI_strncpy(prop->name, prop_name, 32);
+		if(PyInt_Check(prop_data)){
+			*((int*)&prop->data) = (int)PyInt_AsLong(prop_data);
+		}else if (PyFloat_Check(prop_data)){
+			*((float *)&prop->data) = (float)PyFloat_AsDouble(prop_data);
+		}else if (PyString_Check(prop_data)){
+			BLI_strncpy(prop->poin, PyString_AsString(prop_data), MAX_PROPSTRING);
+		}
+	}else{
+		py_prop->property = prop;
+		if(!updateProperyData(py_prop)){
+			return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
+					"Could not update property data - error"));
+		}
+	}
+
+	//add to property listbase for the object
+	BLI_addtail(&self->object->prop, prop);
+
+	return EXPP_incr_ret  (Py_None);
+}
+
+static PyObject *Object_removeProperty(BPy_Object *self, PyObject *args)
+{
+	char *prop_name = NULL;
+	BPy_Property *py_prop = NULL;
+	bProperty *prop = NULL;
+
+	// we have property and no optional arg
+	if (!PyArg_ParseTuple (args, "O!", &property_Type, &py_prop)){
+		if(!PyArg_ParseTuple (args, "s", &prop_name)){
+			return (EXPP_ReturnPyObjError (PyExc_AttributeError,	
+				"expected a Property or a string"));
+		}
+	}
+
+	//remove the link, free the data, and update the py struct
+	if(py_prop){
+		BLI_remlink(&self->object->prop, py_prop->property);
+		if(updatePyProperty(py_prop)){
+			free_property(py_prop->property);
+			py_prop->property = NULL;
+		}
+	}else{
+		prop = get_property(self->object, prop_name);
+		if(prop){
+			BLI_remlink(&self->object->prop, prop);
+			free_property(prop);
+		}
+	}
+	return EXPP_incr_ret  (Py_None);
+}
+
+static PyObject *Object_removeAllProperties(BPy_Object *self)
+{
+	free_properties(&self->object->prop);
+	return EXPP_incr_ret  (Py_None);
+}
+
+static PyObject *Object_copyAllPropertiesTo(BPy_Object *self, PyObject *args)
+{
+	PyObject *dest = Py_None;
+	bProperty *prop = NULL;
+	bProperty *propn = NULL;
+
+	if (!PyArg_ParseTuple (args, "O!", &Object_Type, &dest)){
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,	
+			"expected an Object"));
+	}
+
+	//make a copy of all it's properties
+	prop = self->object->prop.first;
+	while(prop) {
+		propn= copy_property(prop);
+		BLI_addtail(&((BPy_Object*)dest)->object->prop, propn);
+		prop= prop->next;
+	}
+
+	return EXPP_incr_ret  (Py_None);
+}
 
 /*****************************************************************************/
 /* Function:	Object_CreatePyObject										 */
@@ -2116,4 +2307,3 @@ static PyObject *Object_repr (BPy_Object *self)
 {
   return PyString_FromFormat("[Object \"%s\"]", self->object->id.name+2);
 }
-
