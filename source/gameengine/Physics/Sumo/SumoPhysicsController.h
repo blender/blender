@@ -52,7 +52,6 @@ class SumoPhysicsController : public PHY_IPhysicsController , public SM_Callback
 public:
 	SumoPhysicsController(
 				class SM_Scene* sumoScene,
-				DT_SceneHandle solidscene,
 				class SM_Object* sumoObj,
 				class PHY_IMotionState* motionstate,
 				bool dyna); 
@@ -139,29 +138,28 @@ public:
 
 
 private:
-	class SM_Object*	m_sumoObj;
-	class SM_Scene*		m_sumoScene; // needed for replication
-	DT_SceneHandle		m_solidscene;
+	class SM_Object*		m_sumoObj;
+	class SM_Scene*			m_sumoScene; // needed for replication
 	bool				m_bFirstTime;
 	bool				m_bDyna;
 
-	float						m_friction;
-	float						m_restitution;
+	float				m_friction;
+	float				m_restitution;
 
 
-	bool						m_suspendDynamics;
+	bool				m_suspendDynamics;
 
-	bool						m_firstTime;
-	bool						m_bFullRigidBody;
-	bool						m_bPhantom;				// special flag for objects that are not affected by physics 'resolver'
+	bool				m_firstTime;
+	bool				m_bFullRigidBody;
+	bool				m_bPhantom;				// special flag for objects that are not affected by physics 'resolver'
 
 	// data to calculate fake velocities for kinematic objects (non-dynas)
-	bool						m_bKinematic;
-	bool						m_bPrevKinematic;
+	bool				m_bKinematic;
+	bool				m_bPrevKinematic;
 	
-	float						m_lastTime;
+	float				m_lastTime;
 
-	class	PHY_IMotionState*			m_MotionState;
+	class	PHY_IMotionState*	m_MotionState;
 	
 };
 

@@ -83,16 +83,24 @@ SM_Object::SM_Object(
 	m_error(0.0, 0.0, 0.0),
 	m_combined_lin_vel (0.0, 0.0, 0.0),
 	m_combined_ang_vel (0.0, 0.0, 0.0),
-	m_fh_object(0)
+	m_fh_object(0),
+	m_inv_mass(0.0),
+	m_inv_inertia(0., 0., 0.)
 {
 	m_xform.setIdentity();
 	m_xform.getValue(m_ogl_matrix);
-	if (shapeProps && 
-		(shapeProps->m_do_fh || shapeProps->m_do_rot_fh)) {
-		DT_Vector3 zero = {0., 0., 0.}, ray = {0.0, 0.0, -10.0};
-		m_fh_object = new SM_FhObject(DT_NewLineSegment(zero, ray), MT_Vector3(ray), this);
-		//printf("SM_Object:: WARNING! fh disabled.\n");
+	if (shapeProps)
+	{ 
+		if (shapeProps->m_do_fh || shapeProps->m_do_rot_fh) 
+		{
+			DT_Vector3 zero = {0., 0., 0.}, ray = {0.0, 0.0, -10.0};
+			m_fh_object = new SM_FhObject(DT_NewLineSegment(zero, ray), MT_Vector3(ray), this);
+			//printf("SM_Object:: WARNING! fh disabled.\n");
+		}
+		m_inv_mass = 1. / shapeProps->m_mass;
+		m_inv_inertia = MT_Vector3(1./shapeProps->m_inertia[0], 1./shapeProps->m_inertia[1], 1./shapeProps->m_inertia[2]);
 	}
+	updateInvInertiaTensor();
 	m_suspended = false;
 }
 
@@ -113,8 +121,8 @@ integrateForces(
 			m_lin_mom *= pow(m_shapeProps->m_lin_drag, timeStep);
 			m_ang_mom *= pow(m_shapeProps->m_ang_drag, timeStep);
 			// Set velocities according momentum
-			m_lin_vel = m_lin_mom / m_shapeProps->m_mass;
-			m_ang_vel = m_ang_mom / m_shapeProps->m_inertia;
+			m_lin_vel = m_lin_mom * m_inv_mass;
+			m_ang_vel = m_inv_inertia_tensor * m_ang_mom;
 		}
 	}	
 
@@ -182,8 +190,15 @@ void SM_Object::dynamicCollision(const MT_Point3 &local2,
 			restitution = 0.0;
 		}
 				
-		MT_Scalar impulse = -(1.0 + restitution) * rel_vel_normal / invMass;
-		applyCenterImpulse( impulse * normal); 
+		MT_Scalar impulse = -(1.0 + restitution) * rel_vel_normal;
+		
+		if (isRigidBody())
+		{
+			MT_Vector3 temp = getInvInertiaTensor() * local2.cross(normal);  
+			applyImpulse(local2 + m_pos, (impulse / (invMass + normal.dot(temp.cross(local2)))) * normal);
+		} else {
+			applyCenterImpulse( ( impulse / invMass ) * normal ); 
+		}
 	   	
 		// The friction part starts here!!!!!!!!
 
@@ -276,7 +291,7 @@ void SM_Object::dynamicCollision(const MT_Point3 &local2,
 				// For rigid bodies we take the inertia into account, 
 				// since the friction impulse is going to change the
 				// angular momentum as well.
-				MT_Vector3 temp = getInvInertia() * local2.cross(lateral);
+				MT_Vector3 temp = getInvInertiaTensor() * local2.cross(lateral);
 				MT_Scalar impulse_lateral = rel_vel_lateral /
 					(invMass + lateral.dot(temp.cross(local2)));
 
@@ -621,6 +636,7 @@ calcXform() {
 		m_fh_object->setPosition(m_pos);
 		m_fh_object->calcXform();
 	}
+	updateInvInertiaTensor();
 #ifdef SM_DEBUG_XFORM
 	printf("\n               | %-0.5f %-0.5f %-0.5f %-0.5f |\n",
 		m_ogl_matrix[0], m_ogl_matrix[4], m_ogl_matrix[ 8], m_ogl_matrix[12]);
@@ -631,6 +647,12 @@ calcXform() {
 	printf(  "               | %-0.5f %-0.5f %-0.5f %-0.5f |\n\n",
 		m_ogl_matrix[3], m_ogl_matrix[7], m_ogl_matrix[11], m_ogl_matrix[15]);
 #endif
+}
+
+	void 
+SM_Object::updateInvInertiaTensor() 
+{
+	m_inv_inertia_tensor = m_xform.getBasis().scaled(m_inv_inertia[0], m_inv_inertia[1], m_inv_inertia[2]) * m_xform.getBasis().transposed();
 }
 
 // Call callbacks to notify the client of a change of placement
@@ -886,16 +908,23 @@ resolveCombinedVelocities(
 SM_Object::
 getInvMass(
 ) const { 
-	return m_shapeProps ? 1.0 / m_shapeProps->m_mass : 0.0;
+	return m_inv_mass;
 	// OPT: cache the result of this division rather than compute it each call
 }
 
-	MT_Scalar 
+	const MT_Vector3&
 SM_Object::
 getInvInertia(
 ) const { 
-	return m_shapeProps ? 1.0 / m_shapeProps->m_inertia : 0.0;
+	return m_inv_inertia;
 	// OPT: cache the result of this division rather than compute it each call
+}
+
+	const MT_Matrix3x3&
+SM_Object::
+getInvInertiaTensor(
+) const { 
+	return m_inv_inertia_tensor; 
 }
 
 	void 
@@ -941,7 +970,7 @@ applyCenterImpulse(
 	if (m_shapeProps) {
 		m_lin_mom          += impulse;
 		m_reaction_impulse += impulse;
-		m_lin_vel           = m_lin_mom / m_shapeProps->m_mass;
+		m_lin_vel           = m_lin_mom * m_inv_mass;
 
 		// The linear velocity is immedialtely updated since otherwise
 		// simultaneous collisions will get a double impulse. 
@@ -955,7 +984,7 @@ applyAngularImpulse(
 ) {
 	if (m_shapeProps) {
 		m_ang_mom += impulse;
-		m_ang_vel = m_ang_mom / m_shapeProps->m_inertia;
+		m_ang_vel = m_inv_inertia_tensor * m_ang_mom;
 	}
 }
 

@@ -47,7 +47,7 @@ class SM_FhObject;
 struct SM_ShapeProps {
 	MT_Scalar  m_mass;                  // Total mass
 	MT_Scalar  m_radius;                // Bound sphere size
-	MT_Scalar  m_inertia;               // Inertia, should be a tensor some time 
+	MT_Vector3 m_inertia;               // Inertia, should be a tensor some time 
 	MT_Scalar  m_lin_drag;              // Linear drag (air, water) 0 = concrete, 1 = vacuum 
 	MT_Scalar  m_ang_drag;              // Angular drag
 	MT_Scalar  m_friction_scaling[3];   // Scaling for anisotropic friction. Component in range [0, 1]   
@@ -71,14 +71,14 @@ struct SM_MaterialProps {
 
 class SM_Object : public SM_MotionState {
 public:
-    SM_Object() ;
-    SM_Object(
+	SM_Object() ;
+	SM_Object(
 		DT_ShapeHandle shape, 
 		const SM_MaterialProps *materialProps,
 		const SM_ShapeProps *shapeProps,
 		SM_Object *dynamicParent
 	);
-    virtual ~SM_Object();
+	virtual ~SM_Object();
 
 	bool isDynamic() const;  
 
@@ -106,6 +106,8 @@ public:
 
 	void calcXform();
 	void notifyClient();
+	void updateInvInertiaTensor();
+
     
 	// Save the current state information for use in the 
 	// velocity computation in the next frame.  
@@ -116,20 +118,20 @@ public:
 	
 	void clearForce() ;
 
-    void clearMomentum() ;
-
-    void setMargin(MT_Scalar margin) ;
-
-    MT_Scalar getMargin() const ;
-    
-    const SM_MaterialProps *getMaterialProps() const ;
-
+	void clearMomentum() ;
+	
+	void setMargin(MT_Scalar margin) ;
+	
+	MT_Scalar getMargin() const ;
+	
+	const SM_MaterialProps *getMaterialProps() const ;
+	
 	const SM_ShapeProps *getShapeProps() const ;
-
-    void setPosition(const MT_Point3& pos);
-    void setOrientation(const MT_Quaternion& orn);
-    void setScaling(const MT_Vector3& scaling);
-
+	
+	void setPosition(const MT_Point3& pos);
+	void setOrientation(const MT_Quaternion& orn);
+	void setScaling(const MT_Vector3& scaling);
+	
 
 	/**
 	 * set an external velocity. This velocity complements
@@ -140,12 +142,12 @@ public:
 	 */
 
 
-    void setExternalLinearVelocity(const MT_Vector3& lin_vel) ;
+	void setExternalLinearVelocity(const MT_Vector3& lin_vel) ;
 	void addExternalLinearVelocity(const MT_Vector3& lin_vel) ;
 
 	/** Override the physics velocity */
 
-    void addLinearVelocity(const MT_Vector3& lin_vel);
+	void addLinearVelocity(const MT_Vector3& lin_vel);
 	void setLinearVelocity(const MT_Vector3& lin_vel);
 
 	/**
@@ -155,8 +157,8 @@ public:
 	 * is not subject to friction or damping.
 	 */
 
-    void setExternalAngularVelocity(const MT_Vector3& ang_vel) ;
-    void addExternalAngularVelocity(const MT_Vector3& ang_vel);
+	void setExternalAngularVelocity(const MT_Vector3& ang_vel) ;
+	void addExternalAngularVelocity(const MT_Vector3& ang_vel);
 
 	/** Override the physics angular velocity */
 
@@ -181,22 +183,24 @@ public:
 
 	MT_Scalar getInvMass() const;
 
-	MT_Scalar getInvInertia() const ;
+	const MT_Vector3& getInvInertia() const ;
+	
+	const MT_Matrix3x3& getInvInertiaTensor() const;
 
-    void applyForceField(const MT_Vector3& accel) ;
-
-    void applyCenterForce(const MT_Vector3& force) ;
-
-    void applyTorque(const MT_Vector3& torque) ;
-
-    void applyImpulse(const MT_Point3& attach, const MT_Vector3& impulse) ;
-
-    void applyCenterImpulse(const MT_Vector3& impulse);
-
-    void applyAngularImpulse(const MT_Vector3& impulse);
-
-    MT_Point3 getWorldCoord(const MT_Point3& local) const;
-    MT_Point3 getLocalCoord(const MT_Point3& world) const;
+	void applyForceField(const MT_Vector3& accel) ;
+	
+	void applyCenterForce(const MT_Vector3& force) ;
+	
+	void applyTorque(const MT_Vector3& torque) ;
+	
+	void applyImpulse(const MT_Point3& attach, const MT_Vector3& impulse) ;
+	
+	void applyCenterImpulse(const MT_Vector3& impulse);
+	
+	void applyAngularImpulse(const MT_Vector3& impulse);
+	
+	MT_Point3 getWorldCoord(const MT_Point3& local) const;
+	MT_Point3 getLocalCoord(const MT_Point3& world) const;
     
 	MT_Vector3 getVelocity(const MT_Point3& local) const;
 
@@ -334,6 +338,11 @@ private:
 
 	SM_FhObject            *m_fh_object;             // The ray object used for Fh
 	bool                    m_suspended;             // Is this object frozen?
+	
+	// Mass properties
+	MT_Scalar               m_inv_mass;              // 1/mass
+	MT_Vector3              m_inv_inertia;           // [1/inertia_x, 1/inertia_y, 1/inertia_z]
+	MT_Matrix3x3            m_inv_inertia_tensor;    // Inverse Inertia Tensor
 };
 
 #endif

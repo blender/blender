@@ -41,7 +41,6 @@
 
 SumoPhysicsController::SumoPhysicsController(
 				class SM_Scene* sumoScene,
-				DT_SceneHandle solidscene,
 				class SM_Object* sumoObj,
 				class PHY_IMotionState* motionstate,
 
@@ -49,7 +48,6 @@ SumoPhysicsController::SumoPhysicsController(
 		: 
 		m_sumoObj(sumoObj) , 
 		m_sumoScene(sumoScene),
-		m_solidscene(solidscene),
 		m_bFirstTime(true),
 		m_bDyna(dyna),
 		m_MotionState(motionstate)
@@ -155,8 +153,6 @@ void SumoPhysicsController::GetWorldScaling(MT_Vector3& scale)
 		// kinematic methods
 void		SumoPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dlocZ,bool local)
 {
-
-	
 	if (m_sumoObj)
 	{
 		MT_Matrix3x3 mat;
@@ -172,7 +168,6 @@ void		SumoPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dlo
 }
 void		SumoPhysicsController::RelativeRotate(const float drot[12],bool local)
 {
-
 	if (m_sumoObj )
 	{
 		MT_Matrix3x3 drotmat(drot);
@@ -186,10 +181,7 @@ void		SumoPhysicsController::RelativeRotate(const float drot[12],bool local)
 }
 void		SumoPhysicsController::setOrientation(float quatImag0,float quatImag1,float quatImag2,float quatReal)
 {
-//	float orn [4]={quatImag0,quatImag1,quatImag2,quatReal};
-//	MT_Quaternion quat;
 	m_sumoObj->setOrientation(MT_Quaternion(quatImag0,quatImag1,quatImag2,quatReal));
-	
 }
 
 void		SumoPhysicsController::getOrientation(float &quatImag0,float &quatImag1,float &quatImag2,float &quatReal)
@@ -205,6 +197,7 @@ void		SumoPhysicsController::setPosition(float posX,float posY,float posZ)
 {
 	m_sumoObj->setPosition(MT_Point3(posX,posY,posZ));
 }
+
 void		SumoPhysicsController::setScaling(float scaleX,float scaleY,float scaleZ)
 {
 	m_sumoObj->setScaling(MT_Vector3(scaleX,scaleY,scaleZ));
@@ -220,10 +213,9 @@ void		SumoPhysicsController::ApplyTorque(float torqueX,float torqueY,float torqu
 		MT_Matrix3x3 orn;
 		GetWorldOrientation(orn);
 		m_sumoObj->applyTorque(local ?
-							   orn * torque :
-							   torque);
+			orn * torque :
+			torque);
 	}
-
 }
 
 void		SumoPhysicsController::ApplyForce(float forceX,float forceY,float forceZ,bool local)
@@ -236,11 +228,9 @@ void		SumoPhysicsController::ApplyForce(float forceX,float forceY,float forceZ,b
 		GetWorldOrientation(orn);
 
 		m_sumoObj->applyCenterForce(local ?
-							   orn * force :
-							   force);
-		
+						orn * force :
+						force);
 	}
-
 }
 
 void		SumoPhysicsController::SetAngularVelocity(float ang_velX,float ang_velY,float ang_velZ,bool local)
@@ -253,9 +243,8 @@ void		SumoPhysicsController::SetAngularVelocity(float ang_velX,float ang_velY,fl
 		GetWorldOrientation(orn);
 
 		m_sumoObj->setAngularVelocity(local ?
-							   orn * ang_vel :
-							   ang_vel);
-		
+						orn * ang_vel :
+						ang_vel);
 	}
 }
 	
@@ -299,12 +288,12 @@ void		SumoPhysicsController::SuspendDynamics()
 	m_suspendDynamics=true;
 		
 	if (m_sumoObj)
-		{
-			m_sumoObj->suspendDynamics();
-			m_sumoObj->setLinearVelocity(MT_Vector3(0,0,0));
-			m_sumoObj->setAngularVelocity(MT_Vector3(0,0,0));
-			m_sumoObj->calcXform();
-		}
+	{
+		m_sumoObj->suspendDynamics();
+		m_sumoObj->setLinearVelocity(MT_Vector3(0,0,0));
+		m_sumoObj->setAngularVelocity(MT_Vector3(0,0,0));
+		m_sumoObj->calcXform();
+	}
 }
 
 void		SumoPhysicsController::RestoreDynamics()
@@ -315,14 +304,12 @@ void		SumoPhysicsController::RestoreDynamics()
 	{
 		m_sumoObj->restoreDynamics();
 	}
-
-
 }
 
 
-	/**  
-		reading out information from physics
-	*/
+/**  
+	reading out information from physics
+*/
 void		SumoPhysicsController::GetLinearVelocity(float& linvX,float& linvY,float& linvZ)
 {
 	if (m_sumoObj)
@@ -340,9 +327,10 @@ void		SumoPhysicsController::GetLinearVelocity(float& linvX,float& linvY,float& 
 		linvZ = 0.f;
 	}
 }
-	/** 
-		GetVelocity parameters are in geometric coordinates (Origin is not center of mass!).
-	*/
+
+/** 
+	GetVelocity parameters are in geometric coordinates (Origin is not center of mass!).
+*/
 void		SumoPhysicsController::GetVelocity(const float posX,const float posY,const float posZ,float& linvX,float& linvY,float& linvZ)
 {
 	if (m_sumoObj)
@@ -363,21 +351,18 @@ void		SumoPhysicsController::GetVelocity(const float posX,const float posY,const
 	}
 }
 
-
 void		SumoPhysicsController::getReactionForce(float& forceX,float& forceY,float& forceZ)
 {
 	const MT_Vector3& force = m_sumoObj->getReactionForce();
 	forceX = force[0];
 	forceY = force[1];
 	forceZ = force[2];
-
-
 }
+
 void		SumoPhysicsController::setRigidBody(bool rigid)
 {
 	m_sumoObj->setRigidBody(rigid);
 }
-		
 
 void		SumoPhysicsController::PostProcessReplica(class PHY_IMotionState* motionstate,class PHY_IPhysicsController* parentctrl)
 {
@@ -425,13 +410,11 @@ void	SumoPhysicsController::WriteMotionStateToDynamics(bool nondynaonly)
 
 void SumoPhysicsController::do_me()
 {
-
 	const MT_Point3& pos = m_sumoObj->getPosition();
 	const MT_Quaternion& orn = m_sumoObj->getOrientation();
 
 	m_MotionState->setWorldPosition(pos[0],pos[1],pos[2]);
 	m_MotionState->setWorldOrientation(orn[0],orn[1],orn[2],orn[3]);
-
 }
 
 

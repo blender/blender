@@ -38,7 +38,7 @@
 #include <config.h>
 #endif
 
-#include <SOLID/SOLID.h>
+//#include <SOLID/SOLID.h>
 
 const MT_Scalar UpperBoundForFuzzicsIntegrator = 0.01;
 // At least 100Hz (isn't this CPU hungry ?)
@@ -46,9 +46,6 @@ const MT_Scalar UpperBoundForFuzzicsIntegrator = 0.01;
 
 SumoPhysicsEnvironment::SumoPhysicsEnvironment()
 {
-	// seperate collision scene for events
-	m_solidScene = DT_CreateScene();
-
 	m_sumoScene = new SM_Scene();
 }
 
@@ -56,10 +53,7 @@ SumoPhysicsEnvironment::SumoPhysicsEnvironment()
 
 SumoPhysicsEnvironment::~SumoPhysicsEnvironment()
 {
-	std::cout << "delete m_sumoScene " << m_sumoScene << std::endl;
 	delete m_sumoScene;
-	DT_DestroyScene(m_solidScene);
-	//DT_DestroyRespTable(m_respTable);
 }
 
 void SumoPhysicsEnvironment::proceed(double timeStep)
@@ -70,23 +64,20 @@ void SumoPhysicsEnvironment::proceed(double timeStep)
 void SumoPhysicsEnvironment::setGravity(float x,float y,float z)
 {
 	m_sumoScene->setForceField(MT_Vector3(x,y,z));
-
 }
 
-
-
-
-
-int			SumoPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,
-		float pivotX,float pivotY,float pivotZ,float axisX,float axisY,float axisZ)
+int SumoPhysicsEnvironment::createConstraint(
+	class PHY_IPhysicsController* ctrl,
+	class PHY_IPhysicsController* ctrl2,
+	PHY_ConstraintType type,
+	float pivotX,float pivotY,float pivotZ,
+	float axisX,float axisY,float axisZ)
 {
-
 	int constraintid = 0;
 	return constraintid;
-
 }
 
-void		SumoPhysicsEnvironment::removeConstraint(int constraintid)
+void SumoPhysicsEnvironment::removeConstraint(int constraintid)
 {
 	if (constraintid)
 	{

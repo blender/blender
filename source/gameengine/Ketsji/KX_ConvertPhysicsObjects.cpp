@@ -80,7 +80,7 @@
 GEN_Map<GEN_HashedPtr,DT_ShapeHandle> map_gamemesh_to_sumoshape;
 
 // forward declarations
-void	BL_RegisterSumoObject(KX_GameObject* gameobj,class SM_Scene* sumoScene,DT_SceneHandle solidscene,class SM_Object* sumoObj,const STR_String& matname,bool isDynamic,bool isActor);
+void	BL_RegisterSumoObject(KX_GameObject* gameobj,class SM_Scene* sumoScene,class SM_Object* sumoObj,const STR_String& matname,bool isDynamic,bool isActor);
 DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj);
 
 
@@ -102,7 +102,7 @@ void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
 	smprop->m_friction_scaling[0]  = kxshapeprops->m_friction_scaling[0];
 	smprop->m_friction_scaling[1]  = kxshapeprops->m_friction_scaling[1];
 	smprop->m_friction_scaling[2]  = kxshapeprops->m_friction_scaling[2];
-	smprop->m_inertia = kxshapeprops->m_inertia;
+	smprop->m_inertia = MT_Vector3(1., 1., 1.) * kxshapeprops->m_inertia;
 	smprop->m_lin_drag = kxshapeprops->m_lin_drag;
 	smprop->m_mass = kxshapeprops->m_mass;
 	smprop->m_radius = objprop->m_radius;
@@ -131,6 +131,8 @@ void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
 		{
 			case KX_BOUNDBOX:
 				shape = DT_NewBox(objprop->m_boundobject.box.m_extends[0], objprop->m_boundobject.box.m_extends[1], objprop->m_boundobject.box.m_extends[2]);
+				smprop->m_inertia.scale(objprop->m_boundobject.box.m_extends[0], objprop->m_boundobject.box.m_extends[1], objprop->m_boundobject.box.m_extends[2]);
+				smprop->m_inertia /= (objprop->m_boundobject.box.m_extends[0] + objprop->m_boundobject.box.m_extends[1] + objprop->m_boundobject.box.m_extends[2]) / 3.;
 				break;
 			case KX_BOUNDCYLINDER:
 				shape = DT_NewCylinder(objprop->m_radius, objprop->m_boundobject.c.m_height);
@@ -158,7 +160,7 @@ void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
 		sumoObj->setRigidBody(objprop->m_angular_rigidbody?true:false);
 		
 		objprop->m_isactor = objprop->m_dyna = true;
-		BL_RegisterSumoObject(gameobj,sceneptr,sumoEnv->GetSolidScene(),sumoObj,"",true, true);
+		BL_RegisterSumoObject(gameobj,sceneptr,sumoObj,"",true, true);
 		
 	} 
 	else {
@@ -228,7 +230,7 @@ void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
 
 					
 					BL_RegisterSumoObject(gameobj,sceneptr,
-						sumoEnv->GetSolidScene(),sumoObj,
+						sumoObj,
 						matname,
 						objprop->m_dyna,
 						objprop->m_isactor);
@@ -254,21 +256,15 @@ void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
 void	BL_RegisterSumoObject(
 	KX_GameObject* gameobj,
 	class SM_Scene* sumoScene,
-	DT_SceneHandle solidscene,
 	class SM_Object* sumoObj,
 	const STR_String& matname,
 	bool isDynamic,
 	bool isActor) 
 {
-
-
-
-		//gameobj->SetDynamic(isDynamic);
-
 		PHY_IMotionState* motionstate = new KX_MotionState(gameobj->GetSGNode());
 
 		// need easy access, not via 'node' etc.
-		KX_SumoPhysicsController* physicscontroller = new KX_SumoPhysicsController(sumoScene,solidscene,sumoObj,motionstate,isDynamic);
+		KX_SumoPhysicsController* physicscontroller = new KX_SumoPhysicsController(sumoScene,sumoObj,motionstate,isDynamic);
 		gameobj->SetPhysicsController(physicscontroller);
 		physicscontroller->setClientInfo(gameobj);
 		
@@ -279,16 +275,12 @@ void	BL_RegisterSumoObject(
 		gameobj->GetSGNode()->AddSGController(physicscontroller);
 
 		gameobj->getClientInfo()->m_type = (isActor ? KX_ClientObjectInfo::ACTOR : KX_ClientObjectInfo::STATIC);
-		//gameobj->GetClientInfo()->m_clientobject = gameobj;
 
 		// store materialname in auxinfo, needed for touchsensors
 		gameobj->getClientInfo()->m_auxilary_info = (matname.Length() ? (void*)(matname.ReadPtr()+2) : NULL);
 
 		physicscontroller->SetObject(gameobj->GetSGNode());
-		
-		//gameobj->SetDynamicsScaling(MT_Vector3(1.0, 1.0, 1.0));
-
-};
+}
 
 DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj)
 {

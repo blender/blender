@@ -54,12 +54,12 @@ class KX_SumoPhysicsController : public KX_IPhysicsController,
 public:
 	KX_SumoPhysicsController(
 		class SM_Scene* sumoScene,
-		DT_SceneHandle solidscene,
+/*		DT_SceneHandle solidscene, */
 		class SM_Object* sumoObj,	
 		class PHY_IMotionState* motionstate
 		,bool dyna) 
 		: KX_IPhysicsController(dyna,NULL) ,
-		  SumoPhysicsController(sumoScene,solidscene,sumoObj,motionstate,dyna)
+		  SumoPhysicsController(sumoScene,/*solidscene,*/sumoObj,motionstate,dyna)
 	{
 	};
 	virtual ~KX_SumoPhysicsController();

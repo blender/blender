@@ -33,7 +33,6 @@
 #define _SUMOPhysicsEnvironment
 
 #include "PHY_IPhysicsEnvironment.h"
-#include <SOLID/SOLID.h>
 
 /**
 *	Physics Environment takes care of stepping the simulation and is a container for physics entities (rigidbodies,constraints, materials etc.)
@@ -43,8 +42,6 @@ class SumoPhysicsEnvironment : public PHY_IPhysicsEnvironment
 {
 
 	class SM_Scene*	m_sumoScene;
-	
-	DT_SceneHandle		m_solidScene;
 
 public:
 	SumoPhysicsEnvironment();
@@ -52,7 +49,7 @@ public:
 // Perform an integration step of duration 'timeStep'.
 	virtual	void		proceed(double	timeStep);
 	virtual	void		setGravity(float x,float y,float z);
-	virtual int			createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,
+	virtual int		createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,
 			float pivotX,float pivotY,float pivotZ,
 			float axisX,float axisY,float axisZ);
 
@@ -65,11 +62,6 @@ public:
 	SM_Scene* GetSumoScene()
 	{
 		return m_sumoScene;
-	}
-
-	DT_SceneHandle		GetSolidScene()
-	{
-		return m_solidScene;
 	}
 
 private:
