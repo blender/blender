@@ -1148,7 +1148,7 @@ static void createTransObject(void)
 static void createTransData(TransInfo *t) 
 {
 	if( t->mode & TFM_TEX) {
-		t->flag &= T_TEXTURE;
+		t->flag |= T_TEXTURE;
 		createTransTexspace();
 		t->mode &= ~TFM_TEX;	// now becoming normal grab/rot/scale
 	}
@@ -1157,7 +1157,7 @@ static void createTransData(TransInfo *t)
 		createTransPose();
 	}
 	else if (G.obedit) {
-		t->flag &= T_EDIT;
+		t->flag |= T_EDIT;
 		if (G.obedit->type == OB_MESH) {
 			createTransEditVerts();	
    		}
@@ -1185,7 +1185,7 @@ static void createTransData(TransInfo *t)
 	}
 	else {
 		createTransObject();
-		t->flag &= T_OBJECT;
+		t->flag |= T_OBJECT;
 	}
 }
 
