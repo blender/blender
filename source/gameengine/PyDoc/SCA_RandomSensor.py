@@ -1,3 +1,4 @@
+# $Id$
 # Documentation for SCA_RandomSensor
 from SCA_ISensor import *
 

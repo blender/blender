@@ -1,3 +1,4 @@
+# $Id$
 # Documentation for KX_MeshProxy
 
 class KX_MeshProxy:

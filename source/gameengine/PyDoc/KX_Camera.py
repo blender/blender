@@ -1,3 +1,4 @@
+# $Id$
 # Documentation for Camera game objects.
 from KX_GameObject import *
 
@@ -128,7 +129,7 @@ class KX_Camera(KX_GameObject):
 		Sets the camera's projection matrix.
 		
 		You should use normalised device coordinates for the clipping planes:
-		left = -1.0, right = 1.0, top = 1.0, bottom = -1.0, near = 0.0, far = 1.0
+		left = -1.0, right = 1.0, top = 1.0, bottom = -1.0, near = cam.near, far = cam.far
 		
 		@type matrix: 4x4 matrix.
 		@param matrix: The new projection matrix for this camera.
@@ -137,41 +138,31 @@ class KX_Camera(KX_GameObject):
 		@verbatim{
 		import GameLogic
 		
-		# Scale a matrix
-		def Scale(matrix, scalar):
-			for row in matrix:
-				for col in row:
-					col = col * scalar
-		
 		# Generate an identiy matrix.
 		def Identity():
 			return [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]
 		
 		# Generate a perspective projection matrix
-		def Perspective():
-			m = Identity()
-			m[0][0] = m[0][2] = 2.0
-			m[1][1] = m[1][2] = 2.0
-			m[2][2] = m[2][3] = -1.0
-			m[3][2] = -1.0
-			m[3][3] = 0.0
-			return m
+		def Perspective(cam):
+			return [[cam.near, 0.0     ,  0.0                                  ,  0.0                                      ],
+			        [0.0     , cam.near,  0.0                                  ,  0.0                                      ],
+				[0.0     , 0.0     , -(cam.far+cam.near)/(cam.far-cam.near), -2.0*cam.far*cam.near/(cam.far - cam.near)],
+				[0.0     , 0.0     , -1.0                                  ,  0.0                                      ]]
 		
 		# Generate an orthographic projection matrix
-		# You will need to Scale this matrix.
-		def Orthographic():
-			m = Identity()
-			m[0][0] = 2.0
-			m[0][3] = 0.0
-			m[1][1] = 2.0
-			m[1][3] = 0.0
-			m[2][2] = 1.0
-			m[2][3] = 1.0
-			m[3][3] = 1.0
-			return m
+		# You will need to scale the camera
+		def Orthographic(cam):
+			return [[1.0/cam.scaling[0], 0.0               ,  0.0                   ,  0.0                                  ],
+				[0.0               , 1.0/cam.scaling[1],  0.0                   ,  0.0                                  ],
+				[0.0               , 0.0               , -2.0/(cam.far-cam.near), -(cam.far+cam.near)/(cam.far-cam.near)],
+				[0.0               , 0.0               ,  0.0                   ,  1.0                                  ]]
 		
 		# Generate an isometric projection matrix
 		def Isometric():
+			return [[0.866, 0.0  , 0.866, 0.0],
+			        [0.25 , 0.866,-0.25 , 0.0],
+				[0.0  , 0.0  ,-1.0  , 0.0],
+				[0.0  , 0.0  , 0.0  , 1.0]]
 			m = Identity()
 			m[0][0] = m[0][2] = m[1][1] = 0.8660254037844386
 			m[1][0] = 0.25

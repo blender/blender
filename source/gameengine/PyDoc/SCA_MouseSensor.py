@@ -1,3 +1,4 @@
+# $Id$
 # Documentation for SCA_MouseSensor
 from SCA_ISensor import *
 

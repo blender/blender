@@ -42,6 +42,7 @@
 #include "MT_Vector3.h"
 #include "MT_Vector4.h"
 #include "MT_Matrix4x4.h"
+#include "MT_Point2.h"
 
 #include "ListValue.h"
 
@@ -131,6 +132,50 @@ MT_Point3 MT_Point3FromPyList(PyObject* pylist)
 	}
 	if (error)
 		PyErr_SetString(PyExc_TypeError, "Expected list of three items for point argument.");
+
+	return point;
+}
+
+MT_Point2 MT_Point2FromPyList(PyObject* pylist)
+{
+	MT_Point2 point(0., 0.);
+	bool error=false;
+	if (pylist->ob_type == &CListValue::Type)
+	{
+		CListValue* listval = (CListValue*) pylist;
+		unsigned int numitems = listval->GetCount();
+		if (numitems <= 2)
+		{
+			for (unsigned int index=0;index<numitems;index++)
+			{
+				point[index] = listval->GetValue(index)->GetNumber();
+			}
+		}	else
+		{
+			error = true;
+		}
+		
+	} else
+	{
+		// assert the list is long enough...
+		unsigned int numitems = PySequence_Size(pylist);
+		if (numitems <= 2)
+		{
+			for (unsigned int index=0;index<numitems;index++)
+			{
+				PyObject *item = PySequence_GetItem(pylist,index); /* new ref */
+				point[index] = PyFloat_AsDouble(item);
+				Py_DECREF(item);
+			}
+		}
+		else
+		{
+			error = true;
+		}
+
+	}
+	if (error)
+		PyErr_SetString(PyExc_TypeError, "Expected list of twos items for point argument.");
 
 	return point;
 }
@@ -360,6 +405,12 @@ PyObject* PyObjectFromMT_Matrix3x3(const MT_Matrix3x3 &mat)
 		mat[2][0], mat[2][1], mat[2][2]);
 }
 
+PyObject* PyObjectFromMT_Vector4(const MT_Vector4 &vec)
+{
+	return Py_BuildValue("[ffff]", 
+		vec[0], vec[1], vec[2], vec[3]);
+}
+
 PyObject* PyObjectFromMT_Vector3(const MT_Vector3 &vec)
 {
 	return Py_BuildValue("[fff]", 
@@ -370,4 +421,9 @@ PyObject* PyObjectFromMT_Point3(const MT_Point3 &pos)
 {
 	return Py_BuildValue("[fff]",
 		pos[0], pos[1], pos[2]);
+}
+
+PyObject* PyObjectFromMT_Point2(const MT_Point2 &pos)
+{
+	return Py_BuildValue("[ff]", pos[0], pos[1]);
 }

@@ -37,6 +37,7 @@
 class KX_VertexProxy	: public SCA_IObject
 {
 	Py_Header;
+protected:
 
 	class RAS_TexVert*	m_vertex;
 public:
@@ -56,6 +57,7 @@ public:
 
 // stuff for python integration
 	virtual PyObject* _getattr(const STR_String& attr);
+	virtual int    KX_VertexProxy::_setattr(const STR_String& attr, PyObject *pyvalue);
 
 	KX_PYMETHOD(KX_VertexProxy,GetXYZ);
 	KX_PYMETHOD(KX_VertexProxy,SetXYZ);

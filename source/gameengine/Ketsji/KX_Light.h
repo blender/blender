@@ -37,14 +37,20 @@
 
 class KX_LightObject : public KX_GameObject
 {
+	Py_Header;
+protected:
 	RAS_LightObject		m_lightobj;
 	class RAS_IRenderTools*	m_rendertools;	//needed for registering and replication of lightobj
+	static char		doc[];
 
 public:
-	KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,class RAS_IRenderTools* rendertools,const struct RAS_LightObject&	lightobj);
+	KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,class RAS_IRenderTools* rendertools,const struct RAS_LightObject&	lightobj, PyTypeObject *T = &Type);
 	virtual ~KX_LightObject();
 	virtual CValue*		GetReplica();
 	RAS_LightObject*	GetLightData() { return &m_lightobj;}
+	
+	virtual PyObject* _getattr(const STR_String& attr); /* lens, near, far, projection_matrix */
+	virtual int       _setattr(const STR_String& attr, PyObject *pyvalue);
 };
 
 #endif //__KX_LIGHT

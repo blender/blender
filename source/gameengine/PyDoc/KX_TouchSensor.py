@@ -1,3 +1,4 @@
+# $Id$
 # Documentation for KX_TouchSensor
 from SCA_ISensor import *
 

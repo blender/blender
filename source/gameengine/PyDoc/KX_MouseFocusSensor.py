@@ -1,3 +1,4 @@
+# $Id$
 # Documentation for KX_MouseFocusSensor
 from SCA_MouseSensor import *
 

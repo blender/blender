@@ -1,3 +1,4 @@
+# $Id$
 """
 Documentation for the GameKeys module.
 

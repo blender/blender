@@ -1,3 +1,4 @@
+# $Id$
 # Documentation for game objects
 
 class KX_GameObject:

@@ -1,3 +1,4 @@
+# $Id$
 # Documentation for KX_RaySensor
 from SCA_ISensor import *
 

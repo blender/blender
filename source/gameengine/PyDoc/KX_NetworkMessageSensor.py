@@ -1,3 +1,4 @@
+# $Id$
 # Documentation for KX_NetworkMessageSensor
 from SCA_ISensor import *
 

@@ -34,11 +34,12 @@
 #ifndef __KX_PYMATH_H__
 #define __KX_PYMATH_H__
 
-#include "MT_Vector3.h"
+#include "MT_Point2.h"
 #include "MT_Point3.h"
+#include "MT_Vector3.h"
 #include "MT_Vector4.h"
-#include "MT_Matrix4x4.h"
 #include "MT_Matrix3x3.h"
+#include "MT_Matrix4x4.h"
 
 #include "KX_Python.h"
 
@@ -56,6 +57,11 @@ MT_Point3 MT_Point3FromPyList(PyObject* pylist);
  * Converts a python list to an MT_Vector4
  */
 MT_Vector4 MT_Vector4FromPyList(PyObject* pylist);
+
+/**
+ * Converts a python list to an MT_Vector2
+ */
+MT_Point2 MT_Point2FromPyList(PyObject* pylist);
 
 /**
  * Converts a python list to an MT_Quaternion
@@ -93,10 +99,20 @@ PyObject* PyObjectFromMT_Matrix3x3(const MT_Matrix3x3 &mat);
 PyObject* PyObjectFromMT_Vector3(const MT_Vector3 &vec);
 
 /**
+ * Converts an MT_Vector4 to a python object
+ */
+PyObject* PyObjectFromMT_Vector4(const MT_Vector4 &vec);
+
+/**
  * Converts an MT_Vector3 to a python object.
  */
 PyObject* PyObjectFromMT_Point3(const MT_Point3 &pos);
 
+/**
+ * Converts an MT_Point2 to a python object.
+ */
+PyObject* PyObjectFromMT_Point2(const MT_Point2 &vec);
+ 
 /**
  * True if the given PyObject can be converted to an MT_Matrix
  * @param rank = 3 (for MT_Matrix3x3) or 4 (for MT_Matrix4x4)

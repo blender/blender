@@ -1,3 +1,4 @@
+# $Id$
 # Documentation for SCA_PropertySensor
 from SCA_ISensor import *
 

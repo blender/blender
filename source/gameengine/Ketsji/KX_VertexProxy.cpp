@@ -36,6 +36,8 @@
 #include <config.h>
 #endif
 
+#include "KX_PyMath.h"
+
 PyTypeObject KX_VertexProxy::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
 	0,
@@ -77,10 +79,157 @@ PyMethodDef KX_VertexProxy::Methods[] = {
 PyObject*
 KX_VertexProxy::_getattr(const STR_String& attr)
 {
+  if (attr == "XYZ")
+  	return PyObjectFromMT_Vector3(m_vertex->getLocalXYZ());
+
+  if (attr == "UV")
+  	return PyObjectFromMT_Point2(MT_Point2(m_vertex->getUV1()));
+
+  if (attr == "colour" || attr == "color")
+  {
+  	unsigned int icol = m_vertex->getRGBA();
+  	unsigned char *colp = (unsigned char *) &icol;
+	MT_Vector4 colour(colp[0], colp[1], colp[2], colp[3]);
+	colour /= 255.0;
+  	return PyObjectFromMT_Vector4(colour);
+  }
+  
+  if (attr == "normal")
+  {
+  	MT_Vector3 normal(m_vertex->getNormal()[0], m_vertex->getNormal()[1], m_vertex->getNormal()[2]);
+  	return PyObjectFromMT_Vector3(normal/32767.);
+  }
+
+  // pos
+  if (attr == "x")
+  	return PyFloat_FromDouble(m_vertex->getLocalXYZ()[0]);
+  if (attr == "y")
+  	return PyFloat_FromDouble(m_vertex->getLocalXYZ()[1]);
+  if (attr == "z")
+  	return PyFloat_FromDouble(m_vertex->getLocalXYZ()[2]);
+
+  // Col
+  if (attr == "r")
+  	return PyFloat_FromDouble(((unsigned char*)m_vertex->getRGBA())[0]/255.0);
+  if (attr == "g")
+  	return PyFloat_FromDouble(((unsigned char*)m_vertex->getRGBA())[1]/255.0);
+  if (attr == "b")
+  	return PyFloat_FromDouble(((unsigned char*)m_vertex->getRGBA())[2]/255.0);
+  if (attr == "a")
+  	return PyFloat_FromDouble(((unsigned char*)m_vertex->getRGBA())[3]/255.0);
+
+  // UV
+  if (attr == "u")
+  	return PyFloat_FromDouble(m_vertex->getUV1()[0]);
+  if (attr == "v")
+  	return PyFloat_FromDouble(m_vertex->getUV1()[1]);
+
   _getattr_up(SCA_IObject);
 }
 
+int    KX_VertexProxy::_setattr(const STR_String& attr, PyObject *pyvalue)
+{
+  if (PySequence_Check(pyvalue))
+  {
+  	if (attr == "XYZ")
+	{
+		m_vertex->SetXYZ(MT_Point3FromPyList(pyvalue));
+		return 0;
+	}
+	
+	if (attr == "UV")
+	{
+		m_vertex->SetUV(MT_Point2FromPyList(pyvalue));
+		return 0;
+	}
+	
+	if (attr == "colour" || attr == "color")
+	{
+		m_vertex->SetRGBA(MT_Vector4FromPyList(pyvalue));
+		return 0;
+	}
+	
+	if (attr == "normal")
+	{
+		m_vertex->SetNormal(MT_Vector3FromPyList(pyvalue));
+		return 0;
+	}
+  }
+  
+  if (PyFloat_Check(pyvalue))
+  {
+  	float val = PyFloat_AsDouble(pyvalue);
+  	// pos
+	MT_Point3 pos(m_vertex->getLocalXYZ());
+  	if (attr == "x")
+	{
+		pos.x() = val;
+		m_vertex->SetXYZ(pos);
+		return 0;
+	}
+	
+  	if (attr == "y")
+	{
+		pos.y() = val;
+		m_vertex->SetXYZ(pos);
+		return 0;
+	}
+	
+	if (attr == "z")
+	{
+		pos.z() = val;
+		m_vertex->SetXYZ(pos);
+		return 0;
+	}
+	
+	// uv
+	MT_Point2 uv = m_vertex->getUV1();
+	if (attr == "u")
+	{
+		uv[0] = val;
+		m_vertex->SetUV(uv);
+		return 0;
+	}
 
+	if (attr == "v")
+	{
+		uv[1] = val;
+		m_vertex->SetUV(uv);
+		return 0;
+	}
+	
+	// col
+	unsigned int icol = m_vertex->getRGBA();
+	unsigned char *cp = (unsigned char*) &icol;
+	val *= 255.0;
+	if (attr == "r")
+	{
+		cp[0] = (unsigned char) val;
+		m_vertex->SetRGBA(icol);
+		return 0;
+	}
+	if (attr == "g")
+	{
+		cp[1] = (unsigned char) val;
+		m_vertex->SetRGBA(icol);
+		return 0;
+	}
+	if (attr == "b")
+	{
+		cp[2] = (unsigned char) val;
+		m_vertex->SetRGBA(icol);
+		return 0;
+	}
+	if (attr == "a")
+	{
+		cp[3] = (unsigned char) val;
+		m_vertex->SetRGBA(icol);
+		return 0;
+	}
+  }
+  
+  return SCA_IObject::_setattr(attr, pyvalue);
+}
 
 KX_VertexProxy::KX_VertexProxy(RAS_TexVert* vertex)
 :m_vertex(vertex)

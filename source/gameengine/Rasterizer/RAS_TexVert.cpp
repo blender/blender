@@ -60,6 +60,15 @@ const MT_Point3& RAS_TexVert::xyz()
 	return g_pt3;
 }
 
+void RAS_TexVert::SetRGBA(const MT_Vector4& rgba)
+{
+	unsigned char *colp = (unsigned char*) &m_rgba;
+	colp[0] = rgba[0]*255.0;
+	colp[1] = rgba[1]*255.0;
+	colp[2] = rgba[2]*255.0;
+	colp[3] = rgba[3]*255.0;
+}
+
 #ifndef RAS_TexVert_INLINE
 
 void RAS_TexVert::SetXYZ(const MT_Point3& xyz)

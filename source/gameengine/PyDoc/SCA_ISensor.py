@@ -1,3 +1,4 @@
+# $Id$
 # Documentation for SCA_ISensor
 from SCA_ILogicBrick import *
 

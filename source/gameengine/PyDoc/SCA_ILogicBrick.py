@@ -1,3 +1,4 @@
+# $Id$
 # Documentation for the logic brick base class SCA_ILogicBrick
 from KX_GameObject import *
 

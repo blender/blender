@@ -1,3 +1,4 @@
+# $Id$
 # Documentation for SCA_PythonController
 from SCA_ILogicBrick import *
 

@@ -124,6 +124,7 @@ public:
 	void				SetFlag(const short flag);
 	
 #endif
+	void				SetRGBA(const MT_Vector4& rgba);
 	const MT_Point3&	xyz();
 
 	// compare two vertices, and return TRUE if both are almost identical (they can be shared)

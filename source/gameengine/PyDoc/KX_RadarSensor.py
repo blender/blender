@@ -1,3 +1,4 @@
+# $Id$
 # Documentation for KX_RadarSensor
 from KX_NearSensor import *
 

@@ -1,3 +1,4 @@
+# $Id$
 # Documentation for CD Actuator
 from SCA_ILogicBrick import *
 

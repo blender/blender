@@ -1,3 +1,4 @@
+# $Id$
 # Documentation for KX_NearSensor
 from KX_TouchSensor import *
 
