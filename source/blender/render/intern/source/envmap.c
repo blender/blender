@@ -641,14 +641,14 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 	int face, face1;
 	
 	env= tex->env;
-	if(env==0 || env->object==0) {
+	if(env==NULL || (env->stype!=ENV_LOAD && env->object==NULL)) {
 		texres->tin= 0.0;
 		return 0;
 	}
 	if(env->stype==ENV_LOAD) {
 		env->ima= tex->ima;
 		if(env->ima && env->ima->ok) {
-			if(env->ima->ibuf==0) ima_ibuf_is_nul(tex);
+			if(env->ima->ibuf==NULL) ima_ibuf_is_nul(tex);
 			if(env->ima->ok && env->ok==0) envmap_split_ima(env);
 		}
 	}
@@ -659,18 +659,23 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 		return 0;
 	}
 	
-	/* rotate to envmap space */
+	/* rotate to envmap space, if object is set */
 	VECCOPY(vec, texvec);
-	MTC_Mat4Mul3Vecfl(env->object->imat, vec);
+	if(env->object) MTC_Mat4Mul3Vecfl(env->object->imat, vec);
+	else MTC_Mat4Mul3Vecfl(R.viewinv, vec);
 	
 	face= envcube_isect(vec, sco);
 	tex->ima= env->cube[face];
 	
 	if(osatex) {
-
-		MTC_Mat4Mul3Vecfl(env->object->imat, dxt);
-		MTC_Mat4Mul3Vecfl(env->object->imat, dyt);
-		
+		if(env->object) {
+			MTC_Mat4Mul3Vecfl(env->object->imat, dxt);
+			MTC_Mat4Mul3Vecfl(env->object->imat, dyt);
+		}
+		else {
+			MTC_Mat4Mul3Vecfl(R.viewinv, dxt);
+			MTC_Mat4Mul3Vecfl(R.viewinv, dyt);
+		}
 		set_dxtdyt(dxts, dyts, dxt, dyt, face);
 		imagewraposa(tex, sco, dxts, dyts, texres);
 		

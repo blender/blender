@@ -777,7 +777,7 @@ void do_texbuts(unsigned short event)
 			BIF_all_preview_changed();
 			if ELEM(tex->env->object->type, OB_CAMERA, OB_LAMP) {
 				error("Camera or Lamp not allowed");
-				tex->env->object= 0;
+				tex->env->object= NULL;
 			}
 		}
 		break;
@@ -882,10 +882,13 @@ static void texture_panel_wood(Tex *tex)
 	uiDefButS(block, ROW, B_TEXPRV, "Bands",		10, 180, 75, 18, &tex->stype, 2.0, 0.0, 0, 0, "Uses standard wood texture in bands"); 
 	uiDefButS(block, ROW, B_TEXPRV, "Rings",		85, 180, 75, 18, &tex->stype, 2.0, 1.0, 0, 0, "Uses wood texture in rings"); 
 	uiDefButS(block, ROW, B_TEXPRV, "BandNoise",	160, 180, 75, 18, &tex->stype, 2.0, 2.0, 0, 0, "Adds noise to standard wood"); 
-	uiDefButS(block, ROW, B_TEXPRV, "RingNoise",	235, 180, 75, 18, &tex->stype, 2.0, 3.0, 0, 0, "Adds noise to rings"); 
-
-	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	10, 160, 150, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Generates soft noise");
-	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	160, 160, 150, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Generates hard noise");
+	uiDefButS(block, ROW, B_TEXPRV, "RingNoise",	235, 180, 75, 18, &tex->stype, 2.0, 3.0, 0, 0, "Adds noise to rings");
+	
+	uiDefButS(block, ROW, B_TEXPRV, "Sin",			10, 160, 50, 19, &tex->noisebasis2, 8.0, 0.0, 0, 0, "Uses a sine wave to produce bands."); 
+	uiDefButS(block, ROW, B_TEXPRV, "Saw",			60, 160, 50, 19, &tex->noisebasis2, 8.0, 1.0, 0, 0, "Uses a saw wave to produce bands."); 
+	uiDefButS(block, ROW, B_TEXPRV, "Tri",			110, 160, 50, 19, &tex->noisebasis2, 8.0, 2.0, 0, 0, "Uses a triangle wave to produce bands.");
+	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	160, 160, 75, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Generates soft noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	235, 160, 75, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Generates hard noise");
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 130, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets scaling for noise input");
@@ -1104,7 +1107,7 @@ static void texture_panel_envmap(Tex *tex)
 	if(uiNewPanel(curarea, block, "Envmap", "Texture", 640, 0, 318, 204)==0) return;
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
-	if(tex->env==0) {
+	if(tex->env==NULL) {
 		tex->env= RE_add_envmap();
 		tex->env->object= OBACT;
 	}
@@ -2600,7 +2603,7 @@ static void material_panel_map_to(Material *ma)
 	uiDefButS(block, TOG|BIT|0, B_MATPRV, "Col",		10,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect basic colour of the material");
 	uiDefButS(block, TOG3|BIT|1, B_MATPRV, "Nor",		50,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the rendered normal");
 	uiDefButS(block, TOG|BIT|2, B_MATPRV, "Csp",		90,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the specularity colour");
-	uiDefButS(block, TOG|BIT|3, B_MATPRV, "Cmir",		130,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affext the mirror colour");
+	uiDefButS(block, TOG|BIT|3, B_MATPRV, "Cmir",		130,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the mirror colour");
 	uiDefButS(block, TOG3|BIT|4, B_MATPRV, "Ref",		180,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of the materials reflectivity");
 	uiDefButS(block, TOG3|BIT|5, B_MATPRV, "Spec",		220,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of specularity");
 	uiDefButS(block, TOG3|BIT|11, B_MATPRV, "Amb",		270,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of ambient");
