@@ -636,7 +636,9 @@ static void drawfloor(void)
 	vert[2]= 0.0;
 
 	if(vd->gridlines<3) return;
-
+	
+	if(G.zbuf && G.obedit) glDepthMask(0);	// for zbuffer-select
+	
 	gridlines= vd->gridlines/2;
 	grid= gridlines*vd->grid;
 	
@@ -735,6 +737,8 @@ static void drawfloor(void)
 		glVertex3fv(vert);
 		glEnd();
 	}
+
+	if(G.zbuf && G.obedit) glDepthMask(1);	
 
 }
 

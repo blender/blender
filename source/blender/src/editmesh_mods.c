@@ -105,7 +105,7 @@ int EM_zbuffer_visible(float *co, short xs, short ys)
 	static float persmat[4][4];
 	float zval, vec4[4];
 	
-	if(G.vd->drawtype<OB_SOLID && (G.vd->flag & V3D_ZBUF_SELECT)==0) return 1;
+	if(G.vd->drawtype<OB_SOLID || (G.vd->flag & V3D_ZBUF_SELECT)==0) return 1;
 	
 	if(co==NULL) {	// init
 		float pmat[4][4], vmat[4][4];
