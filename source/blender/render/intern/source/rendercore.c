@@ -1500,46 +1500,29 @@ void calc_R_ref(ShadeInput *shi)
 
 }
 
-float fresnel_fac(float *view, float *vn, float ior)
+float fresnel_fac(float *view, float *vn, float ior, float fac)
 {
 	float rf, t1, t2;
 	
-	if(ior==1.0) return 1.0;
-
-	t1= (view[0]*vn[0] + view[1]*vn[1] + view[2]*vn[2]);
-	if(t1>0.0) t1= 1.0+t1;
-	else t1 = 1.0-t1;
+	if(fac==0.0) return 1.0;
 	
-	t2 = t1*t1;
-	t2= (ior + (1.0-ior)*t2*t2*t1);
-
-	if(t2<0.0) return 0.0;
-	else if(t2>1.0) return 1.0;
-	return t2;
-}
-#if 0
-/* correctness fresnel, schlick approx */
-float fresnel_fac1(float *view, float *vn, float ior)
-{
-	float rf, t1, t2;
-	
-	if(ior==1.0) return 1.0;
-
-	rf = ((ior-1)/(ior+1));
+	rf = ((ior-1.0)/(ior+1.0));
 	rf*= rf;
-	
+
 	t1= (view[0]*vn[0] + view[1]*vn[1] + view[2]*vn[2]);
 	if(t1>0.0) t1= 1.0-t1;
 	else t1 = 1.0+t1;
 	
-	t2 = t1*t1;
-	t2= (rf + (1.0-rf)*t2*t2*t1);
+	if(fac==5.0) {
+		t2 = t1*t1;
+		t2= rf + (1.0-rf)*t1*t2*t2;
+	}
+	else t2= rf + (1.0-rf)*pow(t1, fac);
 
 	if(t2<0.0) return 0.0;
 	else if(t2>1.0) return 1.0;
 	return t2;
 }
-#endif
 
 void shade_color(ShadeInput *shi, ShadeResult *shr)
 {
@@ -1564,7 +1547,7 @@ void shade_color(ShadeInput *shi, ShadeResult *shr)
 
 	if(ma->mode & (MA_ZTRA|MA_RAYTRANSP)) {
 		if(ma->fresnel_tra!=1.0) 
-			ma->alpha*= fresnel_fac(shi->view, shi->vn, ma->fresnel_tra);
+			ma->alpha*= fresnel_fac(shi->view, shi->vn, ma->ang, ma->fresnel_tra);
 	}
 
 	shr->diff[0]= ma->r;
@@ -1896,7 +1879,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 
 	if(ma->mode & (MA_ZTRA|MA_RAYTRANSP)) {
 		if(ma->fresnel_tra!=1.0) 
-			ma->alpha*= fresnel_fac(shi->view, shi->vn, ma->fresnel_tra);
+			ma->alpha*= fresnel_fac(shi->view, shi->vn, ma->ang, ma->fresnel_tra);
 
 		if(ma->spectra!=0.0) {
 

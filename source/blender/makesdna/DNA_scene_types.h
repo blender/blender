@@ -200,12 +200,12 @@ typedef struct RenderData {
 
 	/** For unified renderer: reduce intensity on boundaries with
 	 * identical materials with this number.*/
-	short same_mat_redux, pad_3[2];
+	short same_mat_redux;
 	
 	/**
 	 * The gamma for the normal rendering. Used when doing
 	 * oversampling, to correctly blend subpixels to pixels.  */
-	float gamma;
+	float gamma, gauss;
 	/** post-production settings. Don't really belong here */
 	float postmul, postgamma, postadd, postigamma;
 	
@@ -282,6 +282,7 @@ typedef struct Scene {
 #define R_MBLUR			0x4000
 #define R_UNIFIED       0x8000
 #define R_RAYTRACE      0x10000
+#define R_GAUSS      	0x20000
 
 /* scemode */
 #define R_DOSEQ			0x0001

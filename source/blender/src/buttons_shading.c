@@ -2025,9 +2025,7 @@ void do_matbuts(unsigned short event)
 	case B_MATRAYTRANSP:
 		ma= G.buts->lockpoin;
 		if(ma) {
-			// set ztra when you disable ray-tra, is nicer
-			if(ma->mode & MA_RAYTRANSP) ma->mode &= ~MA_ZTRA;
-			else ma->mode |= MA_ZTRA;
+			ma->mode &= ~MA_ZTRA;
 			allqueue(REDRAWBUTSSHADING, 0);
 			BIF_preview_changed(G.buts);
 		}
@@ -2256,7 +2254,7 @@ static void material_panel_tramir(Material *ma)
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, B_MATPRV, "RayMir ",	10,180,200,19, &(ma->ray_mirror), 0.0, 1.0, 100, 2, "Sets the amount mirror reflection for raytrace");
 	uiDefButI(block, TOG|BIT|18, B_MATPRV,"Ray Mirror",210,180,100,19, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for mirror reflection rendering");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,160,200,19, &(ma->fresnel_mir), 1.0, 1.5, 10, 2, "Amount of Fresnel for mirror reflection");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,160,200,19, &(ma->fresnel_mir), 0.0, 5.0, 100, 2, "Power of Fresnel for mirror reflection");
 	uiDefButS(block, NUM, B_MATPRV, "Depth:",		210,160,100,19, &(ma->ray_depth), 0.0, 10.0, 100, 0, "Amount of inter-reflections calculated maximal ");
 
 	uiBlockBeginAlign(block);
@@ -2266,7 +2264,7 @@ static void material_panel_tramir(Material *ma)
 	uiDefButF(block, NUMSLI, B_MATPRV, "IOR ",		10,110,200,19, &(ma->ang), 1.0, 3.0, 100, 2, "Sets the angular index of refraction for raytrace");
 	uiDefButI(block, TOG|BIT|17, B_MATRAYTRANSP,"Ray Transp",210,110,100,19, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for transparency rendering");
 
-	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,90,200,19, &(ma->fresnel_tra), 1.0, 1.5, 10, 2, "Amount of Fresnel for transparency");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,90,200,19, &(ma->fresnel_tra), 0.0, 5.0, 100, 2, "Power of Fresnel for transparency");
 	uiDefButS(block, NUM, B_MATPRV, "Depth:",		210,90,100,19, &(ma->ray_depth_tra), 0.0, 10.0, 100, 0, "Amount of refractions calculated maximal ");
 
 	uiBlockBeginAlign(block);

@@ -58,7 +58,7 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 void shade_color(struct ShadeInput *shi, ShadeResult *shr);
 void shade_lamp_loop(struct ShadeInput *shi, ShadeResult *shr, int mask);
 
-float fresnel_fac(float *view, float *vn, float fresnel);
+float fresnel_fac(float *view, float *vn, float fresnel, float fac);
 void calc_R_ref(struct ShadeInput *shi);
 float spec(float inp, int hard);
 

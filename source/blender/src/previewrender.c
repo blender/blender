@@ -701,7 +701,7 @@ static void refraction_prv(int *x, int *y, float *n, float index)
 
 static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *rect, int smooth)
 {
-	extern float fresnel_fac(float *view, float *vn, float fresnel);
+	extern float fresnel_fac(float *view, float *vn, float ior, float fac);
 	Material *mat;
 	float v1,inp, inprspec=0, isr=0.0, isb=0.0, isg=0.0;
 	float ir=0.0, ib=0.0, ig=0.0;
@@ -860,7 +860,7 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 			/* scale */
 			div= (0.85*shi->ref[1]);
 			
-			shi->refcol[0]= mat->ray_mirror*fresnel_fac(view, shi->vn, mat->fresnel_mir);
+			shi->refcol[0]= mat->ray_mirror*fresnel_fac(view, shi->vn, mat->ang, mat->fresnel_mir);
 
 			if(div<0.0) {
 				/* minus 0.5 prevents too many small tiles in distance */
@@ -907,7 +907,7 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 	
 	if(mat->mode & (MA_ZTRA|MA_RAYTRANSP)) 
 		if(mat->fresnel_tra!=0.0) 
-			alpha*= fresnel_fac(view, shi->vn, mat->fresnel_tra);
+			alpha*= fresnel_fac(view, shi->vn, mat->ang, mat->fresnel_tra);
 	
 		/* ztra shade */
 	if(mat->spectra!=0.0) {

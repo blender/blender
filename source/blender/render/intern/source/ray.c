@@ -1366,7 +1366,7 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 
 			if(shi.matren->mode & MA_RAYMIRROR) {
 				f= shi.matren->ray_mirror;
-				if(f!=0.0) f*= fresnel_fac(shi.view, shi.vn, shi.matren->fresnel_mir);
+				if(f!=0.0) f*= fresnel_fac(shi.view, shi.vn, shi.matren->ang, shi.matren->fresnel_mir);
 			}
 			else f= 0.0;
 			
@@ -1619,7 +1619,7 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr, int mask)
 		
 		if(do_mir) {
 		
-			i= shi->matren->ray_mirror*fresnel_fac(shi->view, shi->vn, shi->matren->fresnel_mir);
+			i= shi->matren->ray_mirror*fresnel_fac(shi->view, shi->vn, shi->matren->ang, shi->matren->fresnel_mir);
 			if(i!=0.0) {
 				fr= shi->matren->mirr;
 				fg= shi->matren->mirg;

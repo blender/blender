@@ -168,8 +168,11 @@ void RE_free_render_data()
 
 float  calc_weight(float *weight, int i, int j)
 {
-	float x, y, dist, totw= 0.0;
+	float x, y, dist, totw= 0.0, fac;
 	int a;
+
+	fac= R.r.gauss*R.r.gauss;
+	fac*= fac;
 
 	for(a=0; a<R.osa; a++) {
 		x= jit[a][0]-0.5+ i;
@@ -179,15 +182,15 @@ float  calc_weight(float *weight, int i, int j)
 		weight[a]= 0.0;
 
 		/* gaussian weighting has been cancelled */
-		//if(R.r.mode & R_GAUSS) {
-		//	if(dist<1.5) {
-		//		x = dist*1.5;
-		//		weight[a]= (1.0/exp(x*x) - 1.0/exp(1.5*1.5*1.5*1.5));
-		//	}
-		//}
-		//else {
+		if(R.r.mode & R_GAUSS) {
+			if(dist<R.r.gauss) {
+				x = dist*R.r.gauss;
+				weight[a]= (1.0/exp(x*x) - 1.0/exp(fac));
+			}
+		}
+		else {
 			if(i==0 && j==0) weight[a]= 1.0;
-		//}
+		}
 
 		totw+= weight[a];
 

@@ -3931,13 +3931,14 @@ static void do_versions(Main *main)
 	}	
 	if(main->versionfile <= 231) {	
 		Material *ma= main->mat.first;
+		Scene *sce;
 		while(ma) {
 			if(ma->ang==0.0) {
 				ma->ang= 1.0;
 				ma->ray_depth= 2;
 				ma->ray_depth_tra= 2;
-				ma->fresnel_tra= 1.0;
-				ma->fresnel_mir= 1.0;
+				ma->fresnel_tra= 0.0;
+				ma->fresnel_mir= 0.0;
 			}
 			else if(ma->ang<1.0) {		// temporal, because of IOR & fresnel change
 				ma-> ang= 1.0/ma->ang;
@@ -3945,6 +3946,11 @@ static void do_versions(Main *main)
 				ma->fresnel_mir= ma->ang;
 			}
 			ma= ma->id.next;
+		}
+		sce= main->scene.first;
+		while(sce) {
+			if(sce->r.gauss==0.0) sce->r.gauss= 1.0;
+			sce= sce->id.next;
 		}
 	}
 	/* don't forget to set version number in blender.c! */
