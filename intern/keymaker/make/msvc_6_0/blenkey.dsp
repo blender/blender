@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "..\.." /I "..\..\..\..\lib\windows\openssl\include" /I "..\..\python" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I "..\.." /I "..\..\..\..\..\lib\windows\openssl\include" /I "..\..\python" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -53,7 +53,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\blenkey\libblenkey.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\blenkey.h ..\..\..\..\lib\windows\blenkey\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\blenkey\*.lib ..\..\..\..\lib\windows\blenkey\lib\*.a	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\blenkey.h ..\..\..\..\..\lib\windows\blenkey\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\blenkey\*.lib ..\..\..\..\..\lib\windows\blenkey\lib\*.a	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "blenkey - Win32 Debug"
@@ -70,7 +70,7 @@ PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\blenkey.h ..\..\..\..\li
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\.." /I "..\..\..\..\lib\windows\openssl\include" /I "..\..\python" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\.." /I "..\..\..\..\..\lib\windows\openssl\include" /I "..\..\python" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -81,7 +81,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\blenkey\debug\libblenkey.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\blenkey.h ..\..\..\..\lib\windows\blenkey\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\blenkey\debug\*.lib ..\..\..\..\lib\windows\blenkey\lib\debug\*.a
+PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\blenkey.h ..\..\..\..\..\lib\windows\blenkey\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\blenkey\debug\*.lib ..\..\..\..\..\lib\windows\blenkey\lib\debug\*.a
 # End Special Build Tool
 
 !ENDIF 

@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "../.." /I "../../../../lib/windows/string/include" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "../.." /I "../../../../../lib/windows/string/include" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -54,7 +54,7 @@ LIB32=link.exe -lib
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Copying GHOST files library (release target) to lib tree.
-PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\*.h ..\..\..\..\lib\windows\ghost\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\ghost\*.lib ..\..\..\..\lib\windows\ghost\lib\*.a	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\*.h ..\..\..\..\..\lib\windows\ghost\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\ghost\*.lib ..\..\..\..\..\lib\windows\ghost\lib\*.a	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "ghost - Win32 Debug"
@@ -71,7 +71,7 @@ PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\*.h ..\..\..\..\lib\wind
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "../.." /I "../../../../lib/windows/string/include" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /FR /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "../.." /I "../../../../../lib/windows/string/include" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /FR /YX /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -83,7 +83,7 @@ LIB32=link.exe -lib
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Copying GHOST files library (debug target) to lib tree.
-PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\*.h ..\..\..\..\lib\windows\ghost\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\ghost\debug\*.lib ..\..\..\..\lib\windows\ghost\lib\debug\*.a	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\*.h ..\..\..\..\..\lib\windows\ghost\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\ghost\debug\*.lib ..\..\..\..\..\lib\windows\ghost\lib\debug\*.a	ECHO Done
 # End Special Build Tool
 
 !ENDIF 

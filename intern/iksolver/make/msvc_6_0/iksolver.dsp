@@ -54,7 +54,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\iksolver\libiksolver.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\extern\*.h ..\..\..\..\lib\windows\iksolver\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\iksolver\*.lib ..\..\..\..\lib\windows\iksolver\lib\*.a	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\lib\windows\iksolver\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\iksolver\*.lib ..\..\..\..\..\lib\windows\iksolver\lib\*.a	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "iksolver - Win32 Debug"
@@ -83,7 +83,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\iksolver\debug\libiksolver.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\extern\*.h ..\..\..\..\lib\windows\iksolver\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\iksolver\debug\*.lib ..\..\..\..\lib\windows\iksolver\lib\debug\*.a	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\lib\windows\iksolver\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\iksolver\debug\*.lib ..\..\..\..\..\lib\windows\iksolver\lib\debug\*.a	ECHO Done
 # End Special Build Tool
 
 !ENDIF 

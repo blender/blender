@@ -42,8 +42,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /Ob2 /I "..\..\..\..\lib\windows\container\include\\" /I "..\..\..\..\lib\windows\memutil\include\\" /I "..\..\..\..\lib\windows\moto\include\\" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /FD /c
-# SUBTRACT CPP /YX
+# ADD CPP /nologo /W3 /GX /O2 /Ob2 /I "..\..\..\..\..\lib\windows\container\include\\" /I "..\..\..\..\..\lib\windows\memutil\include\\" /I "..\..\..\..\..\lib\windows\moto\include\\" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /FD /c
 # ADD BASE RSC /l 0x413 /d "NDEBUG"
 # ADD RSC /l 0x413 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -54,7 +53,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\decimation\libdecimation.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\extern\*.h ..\..\..\..\lib\windows\decimation\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\decimation\*.lib ..\..\..\..\lib\windows\decimation\lib\*.a	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\lib\windows\decimation\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\decimation\*.lib ..\..\..\..\..\lib\windows\decimation\lib\*.a	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "decimation - Win32 Debug"
@@ -71,8 +70,7 @@ PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\extern\*.h ..\..\..\..\l
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /W4 /Gm /GX /ZI /Od /I "..\..\..\..\lib\windows\container\include\\" /I "..\..\..\..\lib\windows\memutil\include\\" /I "..\..\..\..\lib\windows\moto\include\\" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /FD /GZ /c
-# SUBTRACT CPP /YX
+# ADD CPP /nologo /W4 /Gm /GX /ZI /Od /I "..\..\..\..\..\lib\windows\container\include\\" /I "..\..\..\..\..\lib\windows\memutil\include\\" /I "..\..\..\..\..\lib\windows\moto\include\\" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /FD /GZ /c
 # ADD BASE RSC /l 0x413 /d "_DEBUG"
 # ADD RSC /l 0x413 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -83,7 +81,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\decimation\debug\libdecimation.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\extern\*.h ..\..\..\..\lib\windows\decimation\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\decimation\debug\*.lib ..\..\..\..\lib\windows\decimation\lib\debug\*.a	ECHO Copying Debug info.	XCOPY /Y ..\..\..\..\obj\windows\intern\decimation\debug\vc60.* ..\..\..\..\lib\windows\decimation\lib\debug\	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\lib\windows\decimation\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\decimation\debug\*.lib ..\..\..\..\..\lib\windows\decimation\lib\debug\*.a	ECHO Copying Debug info.	XCOPY /Y ..\..\..\..\obj\windows\intern\decimation\debug\vc60.* ..\..\..\..\..\lib\windows\decimation\lib\debug\	ECHO Done
 # End Special Build Tool
 
 !ENDIF 

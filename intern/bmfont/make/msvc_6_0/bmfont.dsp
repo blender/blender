@@ -54,7 +54,7 @@ LIB32=link.exe -lib
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Copying BMFONT files library (release target) to lib tree.
-PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\*.h ..\..\..\..\lib\windows\bmfont\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\bmfont\*.lib ..\..\..\..\lib\windows\bmfont\lib\*.a	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\*.h ..\..\..\..\..\lib\windows\bmfont\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\bmfont\*.lib ..\..\..\..\..\lib\windows\bmfont\lib\*.a	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "bmfont - Win32 Debug"
@@ -83,7 +83,7 @@ LIB32=link.exe -lib
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Copying BMFONT files library (debug target) to lib tree.
-PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\*.h ..\..\..\..\lib\windows\bmfont\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\bmfont\debug\*.lib ..\..\..\..\lib\windows\bmfont\lib\debug\*.a	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\*.h ..\..\..\..\..\lib\windows\bmfont\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\bmfont\debug\*.lib ..\..\..\..\..\lib\windows\bmfont\lib\debug\*.a	ECHO Done
 # End Special Build Tool
 
 !ENDIF 
