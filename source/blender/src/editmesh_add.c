@@ -189,6 +189,7 @@ static void make_fgon(void)
 			}
 		}
 		allqueue(REDRAWVIEW3D, 0);
+		EM_fgon_flags();	// redo flags and indices for fgons
 		makeDispList(G.obedit);
 		BIF_undo_push("Clear FGon");
 		return;
