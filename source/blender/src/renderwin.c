@@ -352,11 +352,11 @@ static void renderwin_handler(Window *win, void *user_data, short evt, short val
 	} 
 	else if (evt==REDRAW) {
 		renderwin_draw(rw, 0);
-#ifndef __APPLE__
+// #ifndef __APPLE__
 	} 
 	else if (evt==WINCLOSE) {
 		BIF_close_render_display();
-#endif
+// #endif
 	} 
 	else if (evt==INPUTCHANGE) {
 		rw->active= val;
@@ -785,9 +785,9 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 		renderwin_init_display_cb();
 	} 
 	else {
-#ifndef __APPLE__		
+// #ifndef __APPLE__		
 		BIF_close_render_display();
-#endif
+// #endif
 		RE_set_initrenderdisplay_callback(renderview_init_display_cb);
 		RE_set_clearrenderdisplay_callback(NULL);
 		RE_set_renderdisplay_callback(renderview_progress_display_cb);
