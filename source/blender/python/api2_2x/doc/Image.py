@@ -6,7 +6,7 @@ The Blender.Image submodule.
 Image
 =====
 
-B{New}: L{Image.reload}.
+B{New}: L{Image.reload}, L{Image.getBindCode}.
 
 This module provides access to B{Image} objects in Blender.
 
@@ -67,6 +67,7 @@ class Image:
      axis.
   @cvar yrep: Texture tiling: the number of repetitions in the y (vertical)
      axis.
+  @cvar bindcode: Texture's bind code (readonly).
   """
 
   def getName():
@@ -106,6 +107,14 @@ class Image:
     This is for texture tiling.
     @rtype: int
     """
+
+  def getBindCode():
+    """
+    Get the Image's bindcode.  This is for texture loading using BGL calls,
+    see for example L{BGL.glBindTexture}.
+    @rtype: int
+    """
+
   def reload():
     """
     Reloads this image from the filesystem.  If used within a loop you need to

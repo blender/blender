@@ -143,7 +143,7 @@ def glBitmap(width, height, xorig, yorig, xmove, ymove, bitmap):
   @param width, height: Specify the pixel width and height of the bitmap image.
   @type xorig,yorig: float
   @param xorig,yorig: Specify the location of the origin in the bitmap image. The origin is measured
-  from the lower left cornere of the bitmap, with right and up beigng the positive axes.
+  from the lower left corner of the bitmap, with right and up beigng the positive axes.
   @type xmove,ymove: float
   @param xmove,ymove: Specify the x and y offsets to be added to the current raster position after 
   the bitmap is drawn. 

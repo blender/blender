@@ -3,7 +3,7 @@
 """ Registration info for Blender menus: <- these words are ignored
 Name: 'Rvk1 to Rvk2'
 Blender: 232
-Group: 'Animation'
+Group: 'Mesh'
 Tip: 'Copy deform data (not surf. subdiv) of active obj to rvk of the 2nd selected obj.'
 """
 
@@ -104,7 +104,7 @@ def rvk2rvk():
 
     Blender.Redraw()
   except:
-    print 'problem  : not object selected or not mesh' 
+    Draw.PupMenu('Error| You need to select two meshes.') 
   
 
 rvk2rvk()

@@ -19,6 +19,9 @@ Tip: 'All the hotkeys.'
 # ce script est proposé sous licence GPL pour etre associe
 # a la distribution de Blender 2.33 et suivant
 # --------------------------------------------------------------------------
+# this script is released under GPL licence
+# for the Blender 2.33 scripts package
+# --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # Copyright (C) 2003, 2004: Jean-Michel Soler
