@@ -589,9 +589,11 @@ void exit_usiblender(void)
 	printf("\nBlender quit\n");
 
 #ifdef WIN32   
-	// when debugging enter infinite loop to enable   
-	// reading the printouts...   
-	while(G.f & G_DEBUG) {PIL_sleep_ms(10);}   
+	/* ask user to press enter when in debug mode */
+	if(G.f & G_DEBUG) {
+		printf("press enter key to exit...\n\n");
+		getchar();
+	}
 #endif 
 
 
