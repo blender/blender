@@ -1202,7 +1202,7 @@ void face_draw()
 	TFace *face, *face_old = 0;
 	short xy[2], xy_old[2];
 	//int a, index;
-	Image *img, *img_old;
+	Image *img, *img_old = 0;
 	IMG_BrushPtr brush;
 	IMG_CanvasPtr canvas = 0;
 	int rowBytes;
