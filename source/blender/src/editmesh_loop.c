@@ -1770,17 +1770,21 @@ void loopoperations(char mode)
 	if(cut){
 		/* Now that we have selected a cut %, mark the edges for cutting. */
 		if(!inset){
-			for(eed = em->edges.first; eed; eed=eed->next){		
-			   		if(percentcut == 1.0)
-						percentcut = 0.9999;
-					else if(percentcut == 0.0)
-						percentcut = 0.0001;
-					if(eed->f & 8){
-						if(eed->f & 32)/* Need to offset by a const. (0.5/32768) for consistant roundoff */
-							eed->f1 = 32768*(1.0-percentcut - 0.0000153);
-						else
-							eed->f1 = 32768*(percentcut + 0.0000153);
-					}				
+
+			for(eed = em->edges.first; eed; eed=eed->next){
+				if(percentcut == 1.0)
+					percentcut = 0.9999;
+				else if(percentcut == 0.0)
+					percentcut = 0.0001;
+				if(eed->f & 8){
+					if(eed->f & 32)/* Need to offset by a const. (0.5/32768) for consistant roundoff */
+						eed->f1 = 32768*(1.0-percentcut - 0.0000153);
+					else
+						eed->f1 = 32768*(percentcut + 0.0000153);
+				}
+				
+				/* because of hack in subdivideflag (ton) */
+				eed->f2= eed->f;
 			}
 		}
 	/*-------------------------------------*/

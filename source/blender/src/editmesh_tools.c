@@ -1325,11 +1325,13 @@ void subdivideflag(int flag, float rad, int beauty)
 	}
 
 	/* edgeflags */
-	eed= em->edges.first;
-	while((eed) && !(beauty & B_KNIFE)) {	
-		if( (eed->v1->f & flag) && (eed->v2->f & flag) ) eed->f2= flag;
-		else eed->f2= 0;	
-		eed= eed->next;
+	if((beauty & B_KNIFE)==0) {		// knife option sets own flags
+		eed= em->edges.first;
+		while(eed) {	
+			if( (eed->v1->f & flag) && (eed->v2->f & flag) ) eed->f2= flag;
+			else eed->f2= 0;	
+			eed= eed->next;
+		}
 	}
 	
 	/* if beauty: test for area and clear edge flags of 'ugly' edges */
