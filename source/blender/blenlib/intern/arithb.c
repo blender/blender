@@ -93,8 +93,8 @@ float Normalise(float *n)
 	float d;
 	
 	d= n[0]*n[0]+n[1]*n[1]+n[2]*n[2];
-	/* FLT_EPSILON is too large! A larger value causes normalise errors in a scaled down utah teapot */
-	if(d>0.0000000000001) {
+	/* A larger value causes normalise errors in a scaled down models with camera xtreme close */
+	if(d>1.0e-35F) {
 		d= (float)sqrt(d);
 
 		n[0]/=d; 
