@@ -351,8 +351,8 @@ else
   ifeq ($(OS),darwin)
     NAN_SND_LIBS = $(OCGDIR)/gameengine/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
     NAN_SND_LIBS += $(OCGDIR)/gameengine/DummySoundSystem/$(DEBUG_DIR)libDummySoundSystem.a
-    NAN_SND_LIBS += $(OCGDIR)/gameengine/FmodSoundSystem/$(DEBUG_DIR)libFmodSoundSystem.a
-    NAN_SND_LIBS += $(NAN_FMOD)/lib/libfmod.a
+#    NAN_SND_LIBS += $(OCGDIR)/gameengine/FmodSoundSystem/$(DEBUG_DIR)libFmodSoundSystem.a
+#    NAN_SND_LIBS += $(NAN_FMOD)/lib/libfmod.a
     NAN_SND_LIBS += $(OCGDIR)/gameengine/SoundSystem/$(DEBUG_DIR)libSoundSystem.a
   else
     NAN_SND_LIBS = $(OCGDIR)/gameengine/SoundSystem/$(DEBUG_DIR)libSoundSystem.a

@@ -42,9 +42,9 @@ ifeq ($(OS),windows)
     DIRS += fmod 
     DIRS += openal
 endif
-ifeq ($(OS),darwin)
-    DIRS += fmod 
-endif
+#ifeq ($(OS),darwin)
+#    DIRS += fmod 
+#endif
 ifeq ($(OS),freebsd)
     DIRS += openal
 endif

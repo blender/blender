@@ -42,8 +42,10 @@
 #	endif
 #elif defined (__FreeBSD__)
 #	define USE_OPENAL
+/*
 #elif defined (__APPLE__)
 #	define USE_FMOD
+*/
 #else
 #	ifdef USE_OPENAL
 #		undef USE_OPENAL
