@@ -52,6 +52,7 @@ void drawcamera(struct Object *ob);
 void calc_lattverts_ext(void);
 void calc_meshverts(void);
 void calc_meshverts_ext(void);
+void calc_meshverts_ext_f2(void);
 void calc_nurbverts_ext(void);
 void tekenvertices(short sel);
 void tekenvertices_ext(int mode);

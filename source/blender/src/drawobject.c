@@ -916,6 +916,7 @@ static void drawlattice(Object *ob)
 
 /* ***************** ******************** */
 
+/* window coord, assuming all matrices are set OK */
 void calc_meshverts(void)
 {
 	EditVert *eve;
@@ -937,6 +938,7 @@ void calc_meshverts(void)
 	MTC_Mat4SwapMat4(G.vd->persmat, mat);
 }
 
+/* window coord for current window, sets matrices temporal */
 void calc_meshverts_ext(void)
 {
 
@@ -946,6 +948,40 @@ void calc_meshverts_ext(void)
 	myloadmatrix(G.vd->viewmat);
 	
 }
+
+/* window coord for current window, sets matrices temporal, sets (eve->f & 2) when not visible */
+void calc_meshverts_ext_f2(void)
+{
+	EditVert *eve;
+	float mat[4][4];
+	
+	/* matrices */
+	areawinset(curarea->win);
+	mymultmatrix(G.obedit->obmat);
+	
+	if(G.edve.first==0) return;
+	eve= G.edve.first;
+
+	MTC_Mat4SwapMat4(G.vd->persmat, mat);
+	mygetsingmatrix(G.vd->persmat);
+
+	eve= G.edve.first;
+	while(eve) {
+		eve->f &= ~2;
+		if(eve->h==0) {
+			project_short_noclip(eve->co, &(eve->xs));
+			if( eve->xs >= 0 && eve->ys >= 0 && eve->xs<curarea->winx && eve->ys<curarea->winy);
+			else eve->f |= 2;
+		}
+		eve= eve->next;
+	}
+	
+	/* restore */
+	MTC_Mat4SwapMat4(G.vd->persmat, mat);
+	myloadmatrix(G.vd->viewmat);
+	
+}
+
 
 static void calc_Nurbverts(Nurb *nurb)
 {
