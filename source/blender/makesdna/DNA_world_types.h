@@ -91,8 +91,13 @@ typedef struct World {
 	float starsize, starmindist;
 	float stardist, starcolnoise;
 	
+	/* unused now: DOF */
 	short dofsta, dofend, dofmin, dofmax;
-
+	
+	/* ambient occlusion */
+	float aodist, aodistfac;
+	short aomode, aosamp, aomix, aototsamp;
+	
 	int physicsEngine;
 
 	struct Ipo *ipo;
@@ -117,6 +122,17 @@ typedef struct World {
 #define WO_STARS               2
 #define WO_DOF                 4
 #define WO_ACTIVITY_CULLING	   8
+#define WO_AMB_OCC	   		  16
+
+/* aomix */
+#define WO_AOADD	0
+#define WO_AOSUB	1
+#define WO_AOADDSUB	2
+
+/* aomode (use distances & random sampling modes) */
+#define WO_AODIST		1
+#define WO_AORNDSMP		2
+
 
 /* mapto */
 #define WOMAP_BLEND		1

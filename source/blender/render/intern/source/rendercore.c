@@ -1640,6 +1640,24 @@ void shade_color(ShadeInput *shi, ShadeResult *shr)
 	shr->alpha= ma->alpha;
 }
 
+static void ambient_occlusion(World *wrld, ShadeInput *shi, ShadeResult *shr)
+{
+	float f, shadfac[4];
+	
+	if(wrld->mode & WO_AMB_OCC) {
+		ray_ao(shi, wrld, shadfac);
+
+		if (wrld->aomix==WO_AOADDSUB) shadfac[3] = 2.0*shadfac[3]-1.0;
+		else if (wrld->aomix==WO_AOSUB) shadfac[3] = -(1.0-shadfac[3]);
+
+		f= shadfac[3]*shi->matren->amb;
+		shr->diff[0] += f;
+		shr->diff[1] += f;
+		shr->diff[2] += f;
+	}
+}
+
+
 /* mask is used to define the amount of rays/samples */
 void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 {
@@ -1746,6 +1764,8 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 		shr->diff[2]= ma->emit+shi->vcol[2];
 	}
 	else shr->diff[0]= shr->diff[1]= shr->diff[2]= ma->emit;
+
+	ambient_occlusion(&R.wrld, shi, shr);
 
 	for(a=0; a<R.totlamp; a++) {
 		lar= R.la[a];

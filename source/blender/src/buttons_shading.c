@@ -1688,6 +1688,44 @@ static void world_panel_mistaph(World *wrld)
 
 }
 
+static void world_panel_amb_occ(World *wrld)
+{
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "world_panel_amb_oc", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Mist / Stars / Physics", "World");
+	if(uiNewPanel(curarea, block, "Amb Occ", "World", 320, 0, 318, 204)==0) return;
+
+	uiBlockSetCol(block, TH_BUT_SETTING1);
+	uiDefButS(block, TOG|BIT|4,B_REDR,	"Ambient Occlusion",10,150,300,19, &wrld->mode, 0, 0, 0, 0, "Toggles starfield generation");
+	uiBlockSetCol(block, TH_AUTO);
+
+	if(wrld->mode & WO_AMB_OCC) {
+
+		/* aolight: samples */
+		uiBlockBeginAlign(block);
+		uiDefButS(block, NUM, 0, "Samples:", 10, 120, 150, 19, &wrld->aosamp, 1.0, 16.0, 100, 0, "Sets the number of samples used for AO  (actual number: squared)");
+		/* enable/disable total random sampling */
+		uiDefButS(block, TOG|BIT|1, 0, "Random Sampling", 160, 120, 150, 19, &wrld->aomode, 0, 0, 0, 0, "When enabled, total random sampling will be used for an even noisier effect");
+		uiBlockEndAlign(block);
+
+		uiDefButF(block, NUM, 0, "Dist:", 10, 95, 150, 19, &wrld->aodist, 0.001, 5000.0, 100, 0, "Sets length of AO rays, defines how far away other faces give occlusion effect");
+
+		uiBlockBeginAlign(block);
+		uiDefButS(block, TOG|BIT|0, B_REDR, "Use Distances", 10, 70, 150, 19, &wrld->aomode, 0, 0, 0, 0, "When enabled, distances to objects will be used to attenuate shadows");
+		/* distance attenuation factor */
+		if (wrld->aomode & WO_AODIST)
+			uiDefButF(block, NUM, 0, "DistF:", 160, 70, 150, 19, &wrld->aodistfac, 0.00001, 10.0, 100, 0, "Distance factor, the higher, the 'shorter' the shadows");
+
+		/* result mix modes */
+		uiBlockBeginAlign(block);
+		uiDefButS(block, ROW, B_REDR, "Add", 10, 45, 100, 20, &wrld->aomix, 1.0, (float)WO_AOADD, 0, 0, "adds light/shadows");
+		uiDefButS(block, ROW, B_REDR, "Sub", 110, 45, 100, 20, &wrld->aomix, 1.0, (float)WO_AOSUB, 0, 0, "subtracts light/shadows (needs at least one normal light to make anything visible)");
+		uiDefButS(block, ROW, B_REDR, "Both", 210, 45, 100, 20, &wrld->aomix, 1.0, (float)WO_AOADDSUB, 0, 0, "both lightens & darkens");
+	}
+
+}
+
 static void world_panel_world(World *wrld)
 {
 	uiBlock *block;
@@ -2757,6 +2795,7 @@ void world_panels()
 
 	if(wrld) {
 		world_panel_mistaph(wrld);
+		world_panel_amb_occ(wrld);
 		world_panel_texture(wrld);
 		world_panel_mapto(wrld);
 	}

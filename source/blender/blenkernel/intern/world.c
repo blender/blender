@@ -198,6 +198,11 @@ void init_render_world()
 				R.wrld.miststa+= (float)fabs(R.viewmat[3][2]);
 			}
 		}
+		
+		/* ambient occlusion */
+		R.wrld.aototsamp= R.wrld.aosamp*R.wrld.aosamp;
+		
+		
 	}
 	else {
 		memset(&R.wrld, 0, sizeof(World));

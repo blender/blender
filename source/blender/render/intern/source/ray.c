@@ -425,8 +425,8 @@ void freeoctree(void)
 	
 
 //	printf("branches %d nodes %d\n", branchcount, nodecount);
-//	printf("raycount %d \n", raycount);	
-//	printf("ray coherent %d \n", coherent_ray);
+	printf("raycount %d \n", raycount);	
+	printf("ray coherent %d \n", coherent_ray);
 //	printf("accepted %d rejected %d\n", accepted, rejected);
 
 	branchcount= 0;
@@ -1843,6 +1843,102 @@ int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
 	only_one= 0;
 	return 1;
 }
+
+/* aolight: function to create random unit sphere vectors for total random sampling */
+#include <BLI_rand.h>
+void RandomSpherical(float *v)
+{
+	float r;
+	v[2] = 2.f*BLI_frand()-1.f;
+	if ((r = 1.f - v[2]*v[2])>0.f) {
+		float a = 6.283185307f*BLI_frand();
+		r = sqrt(r);
+		v[0] = r * cos(a);
+		v[1] = r * sin(a);
+	}
+	else v[2] = 1.f;
+}
+
+
+/* extern call from shade_lamp_loop, ambient occlusion calculus */
+void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
+{
+	Isect isec;
+	float nrm[3], vec[3], ru[3], rv[3];
+	float d, z1, z2, sqz1, sz2, cz2, sh=0;
+	int grid = wrld->aosamp;
+	float gdiv = 1.0/grid;
+	float gdiv2p = gdiv*2.0*M_PI;
+	float maxdist = wrld->aodist;
+	int x, y;
+	int j=0;
+
+	VECCOPY(isec.start, shi->co);
+	isec.vlrorig= shi->vlr;
+	isec.mode= DDA_SHADOW;
+	coh_test= 0;		// reset coherence optimize
+
+	VECCOPY(nrm, shi->vn);
+	if ((nrm[0]==0.0) && (nrm[1]==0.0)) {
+		if (nrm[2]<0) ru[0]=-1; else ru[0]=1;
+		ru[1] = ru[2] = 0;
+		rv[0] = rv[2] = 0;
+		rv[1] = 1;
+	}
+	else {
+		ru[0] = nrm[1];
+		ru[1] = -nrm[0];
+		ru[2] = 0.0;
+		d = ru[0]*ru[0] + ru[1]*ru[1];
+		if (d!=0) {
+			d = 1.0/sqrt(d);
+			ru[0] *= d;
+			ru[1] *= d;
+		}
+		Crossf(rv, nrm, ru);
+	}
+
+	for (x=0;x<grid;x++) {
+		for (y=0;y<grid;y++) {
+			if (wrld->aomode & WO_AORNDSMP) {
+				/* total random sampling */
+				RandomSpherical(vec);
+				if ((vec[0]*nrm[0] + vec[1]*nrm[1] + vec[2]*nrm[2]) < 0.0) {
+					vec[0] = -vec[0];
+					vec[1] = -vec[1];
+					vec[2] = -vec[2];
+				}
+			}
+			else {
+				/* stratified uniform sampling */
+				z1 = (x + BLI_frand()) * gdiv;
+				z2 = (y + BLI_frand()) * gdiv2p;
+				if ((sqz1 = 1.0-z1*z1)<0) sqz1=0; else sqz1=sqrt(sqz1);
+				sz2 = sin(z2);
+				cz2 = cos(z2);
+				vec[0] = sqz1*(cz2*ru[0] + sz2*rv[0]) + nrm[0]*z1;
+				vec[1] = sqz1*(cz2*ru[1] + sz2*rv[1]) + nrm[1]*z1;
+				vec[2] = sqz1*(cz2*ru[2] + sz2*rv[2]) + nrm[2]*z1;
+			}
+			isec.end[0] = shi->co[0] - maxdist*vec[0];
+			isec.end[1] = shi->co[1] - maxdist*vec[1];
+			isec.end[2] = shi->co[2] - maxdist*vec[2];
+			if (R.r.mode & R_OSA) {
+				isec.start[0]= shi->co[0] + (jit[j][0]-0.5)*O.dxco[0] + (jit[j][1]-0.5)*O.dyco[0] ;
+				isec.start[1]= shi->co[1] + (jit[j][0]-0.5)*O.dxco[1] + (jit[j][1]-0.5)*O.dyco[1] ;
+				isec.start[2]= shi->co[2] + (jit[j][0]-0.5)*O.dxco[2] + (jit[j][1]-0.5)*O.dyco[2] ;
+				j = ((j+1) % R.osa);
+			}
+			if (d3dda(&isec)) {
+				if (wrld->aomode & WO_AODIST) sh+=exp(-isec.labda*wrld->aodistfac); else sh+=1.0;
+			}
+		}
+	}
+
+	shadfac[3] = 1.0 - (sh/(float)wrld->aototsamp);
+
+}
+
 
 
 /* extern call from shade_lamp_loop */

@@ -75,6 +75,7 @@ float spec(float inp, int hard);
 
 extern void ray_shadow(ShadeInput *, LampRen *, float *, int);
 extern void ray_trace(ShadeInput *, ShadeResult *, int);
+extern void ray_ao(ShadeInput *, World *, float *);
 
 /**
  * Apply the background (sky). Depending on the active alphamode and

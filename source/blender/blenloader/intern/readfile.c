@@ -4119,6 +4119,7 @@ static void do_versions(Main *main)
 	}
 	if(main->versionfile <= 232) {	
 		Tex *tex= main->tex.first;
+		World *wrld= main->world.first;
 		
 		while(tex) {	
 			/* copied from kernel texture.c */
@@ -4138,6 +4139,13 @@ static void do_versions(Main *main)
 			
 			tex= tex->id.next;
 		}
+		
+		while(wrld) {
+			if(wrld->aodist==0.0) wrld->aodist= 10.0;
+			if(wrld->aosamp==0.0) wrld->aosamp= 5;
+			wrld= wrld->id.next;
+		}
+		
 	}	
 	
 	
