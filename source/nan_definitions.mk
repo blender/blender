@@ -142,7 +142,7 @@ all debug::
     export NAN_ZLIB ?= $(LCGDIR)/zlib
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_FREETYPE ?= /sw
-    export NAN_GETTEXT ?= /sw
+    export NAN_GETTEXT ?= $(LCGDIR)/gettext
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
