@@ -1,4 +1,8 @@
-/**
+/* util.c
+ *
+ * various string, file, list operations.
+ *
+ *
  * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -28,7 +32,7 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
- * Diverse string, file, list operations.
+ * 
  */
 
 #include <stdio.h>
@@ -104,7 +108,7 @@ int BLI_stringdec(char *string, char *kop, char *staart, unsigned short *numlen)
 	
 	if (len == len2) {
 		if (len > 4) {
-			/* .jf0 en .jf1 voor jstreams afvangen */
+			/* handle .jf0 en .jf1 for jstreams */
 			if (strncasecmp(string + len - 4, ".jf", 3) == 0) len -= 4;
 			else if (strncasecmp(string + len - 4, ".tga", 4) == 0) len -= 4;
 			else if (strncasecmp(string + len - 4, ".jpg", 4) == 0) len -= 4;
@@ -180,7 +184,7 @@ void BLI_newname(char * name, int add)
 	
 	pic = BLI_stringdec(name, head, tail, &digits);
 	
-	/* gaan we van 100 -> 99 of van 10 naar 9 */
+	/* are we going from 100 -> 99 or from 10 -> 9 */
 	if (add < 0 && digits < 4 && digits > 0) {
 		int i, exp;
 		exp = 1;
@@ -258,17 +262,17 @@ void BLI_insertlink(ListBase *listbase, void *vprevlink, void *vnewlink)
 {
 	struct Link *prevlink= vprevlink, *newlink= vnewlink;
 
-	/* newlink komt na prevlink */
+	/* newlink comes after prevlink */
 
 	if (newlink == 0) return;
 	if (listbase == 0) return;
 
-	if(listbase->first==0) { /* lege lijst */
+	if(listbase->first==0) { /* empty list */
 		listbase->first= newlink;
 		listbase->last= newlink;
 		return;
 	}
-	if (prevlink== 0) {	/* inserten voor eerste element */
+	if (prevlink== 0) {	/* insert before first element */
 		newlink->next= listbase->first;
 		newlink->prev= 0;
 		newlink->next->prev= newlink;
@@ -276,7 +280,7 @@ void BLI_insertlink(ListBase *listbase, void *vprevlink, void *vnewlink)
 		return;
 	}
 
-	if (listbase->last== prevlink) /* aan einde lijst */
+	if (listbase->last== prevlink) /* at end of list */
 		listbase->last = newlink;
 
 	newlink->next= prevlink->next;
@@ -289,17 +293,17 @@ void BLI_insertlinkbefore(ListBase *listbase, void *vnextlink, void *vnewlink)
 {
 	struct Link *nextlink= vnextlink, *newlink= vnewlink;
 
-	/* newlink komt voor nextlink */
+	/* newlink before nextlink */
 
 	if (newlink == 0) return;
 	if (listbase == 0) return;
 
-	if(listbase->first==0) { /* lege lijst */
+	if(listbase->first==0) { /* empty list */
 		listbase->first= newlink;
 		listbase->last= newlink;
 		return;
 	}
-	if (nextlink== 0) {	/* inserten aan einde lijst */
+	if (nextlink== 0) {	/* insert at end of list */
 		newlink->prev= listbase->last;
 		newlink->next= 0;
 		((struct Link *)listbase->last)->next= newlink;
@@ -307,7 +311,7 @@ void BLI_insertlinkbefore(ListBase *listbase, void *vnextlink, void *vnewlink)
 		return;
 	}
 
-	if (listbase->first== nextlink) /* aan begin lijst */
+	if (listbase->first== nextlink) /* at beginning of list */
 		listbase->first = newlink;
 
 	newlink->next= nextlink;

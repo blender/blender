@@ -34,7 +34,7 @@
 
 #include <sys/types.h>
 #include <stdio.h>
-#include <stdlib.h>			/* voorkomt dat je bij malloc type moet aangeven */
+#include <stdlib.h>	
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -95,7 +95,6 @@ struct statfs {
 #include <pwd.h>
 #endif
 
-/* MAART: #ifndef __FreeBSD__ */
 #if !defined(__FreeBSD__) && !defined(__APPLE__)
 #include <malloc.h>
 #endif
@@ -144,7 +143,7 @@ char *BLI_getwdN(char *dir)
 
 int BLI_compare(struct direntry *entry1, struct direntry *entry2)
 {
-	/* type is gelijk aan stat.st_mode */
+	/* type is equal to stat.st_mode */
 
 	if (S_ISDIR(entry1->type)){
 		if (S_ISDIR(entry2->type)==0) return (-1);

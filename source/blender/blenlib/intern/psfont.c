@@ -232,7 +232,7 @@ static int fakemax;
 
 static float beztol = 100.0;
 
-/* extern: uit de libfm */
+/* extern: from libfm */
 
 static char *my_subrs[MAXSUBRS];
 static unsigned int my_sublen[MAXSUBRS];
@@ -550,7 +550,7 @@ static short STDvsISO [][2] = {
 	0304, 0224, /* tilde */
 };
 
-/* from objfont.c de rest zit in lfm_s !!*/
+/* from objfont.c, rest is in lfm_s !!*/
 
 /* START 5.2 */
 
@@ -1306,7 +1306,7 @@ static void append_poly_offset(short ofsx, short ofsy, short * data)
 	while(1) {
 		switch(chardata[nshorts++] = *data++) {
 		case PO_BGNLOOP:
-			nshorts --;	/* voor de eerste keer */
+			nshorts --;	/* for the first time */
 			break;
 		case PO_RETENDLOOP:
 		case PO_RET:
@@ -1831,7 +1831,7 @@ static int docommand(int cmd)
 					}
 				}
 
-				/* i.p.v. the sidebearing[c1] moet misschen thesidebearing gebruikt worden */
+				/* instead of the sidebearing[c1] maybe thesidebearing should be used */
 
 				dy1 = pop();
 				dx1 = pop() + sidebearing[c1] - sidebearing[c2];
@@ -1965,7 +1965,7 @@ static VFontData *objfnt_to_vfontdata(objfnt *fnt)
 	}
 
 	vfd= MEM_callocN(sizeof(*vfd), "VFontData");
-	scale = 10.0/(float)fnt->scale;	/* na IRIX 6.2, schaal klopte niet meer */
+	scale = 10.0/(float)fnt->scale;	/* after IRIX 6.2, scaling went wrong */
 
 	for (i = 0; i < MAX_VF_CHARS; i++) {
 		cd = getchardesc(fnt, i);
@@ -1975,7 +1975,7 @@ static VFontData *objfnt_to_vfontdata(objfnt *fnt)
 			_data = data = cd->data;
 
 			do{
-				/* eerst even tellen */
+				/* count first */
 				_data = data;
 				count = 0;
 				ready = stop = 0;
@@ -2011,7 +2011,7 @@ static VFontData *objfnt_to_vfontdata(objfnt *fnt)
 				if ((count>0) && last[0] == first[0] && last[1] == first[1]) meet = 1;
 				else meet = 0;
 
-				/* is er meer dan 1 uniek punt ?*/
+				/* is there more than 1 unique point ?*/
 
 				if (count - meet > 0) {
 					data = _data;
@@ -2026,7 +2026,7 @@ static VFontData *objfnt_to_vfontdata(objfnt *fnt)
 						nu->bezt = bezt;
 						stop = 0;
 
-						/* punten inlezen */
+						/* read points */
 						do {
 							switch(*data++){
 							case SP_MOVETO:
@@ -2073,10 +2073,10 @@ static VFontData *objfnt_to_vfontdata(objfnt *fnt)
 						} while (stop == 0);
 
 						if (meet) {
-							/* kopieer handles */
+							/* copy handles */
 							nu->bezt->vec[0][0] = bezt->vec[0][0];
 							nu->bezt->vec[0][1] = bezt->vec[0][1];
-							/* en vergeet laatste punt */
+							/* and forget last point */
 							nu->pntsu--;
 						}
 						else {
@@ -2091,7 +2091,7 @@ static VFontData *objfnt_to_vfontdata(objfnt *fnt)
 							bezt->h2= bez2->h1= HD_VECT;
 						}
 						
-						/* verboden handle combinaties */
+						/* forbidden handle combinations */
 						a= nu->pntsu;
 						bezt= nu->bezt;
 						while(a--) {

@@ -1,5 +1,6 @@
-
-/*	formules voor blender  	
+/* arithb.c
+ *
+ * simple math for blender code
  *
  * sort of cleaned up mar-01 nzc
  *
@@ -229,8 +230,8 @@ int Mat4Invert(float inverse[][4], const float mat[][4])
 #ifdef TEST_ACTIVE
 void Mat4InvertSimp(float inverse[][4], const float mat[][4])
 {
-	/* alleen HOEK bewarende Matrices */
-	/* gebaseerd op GG IV pag 205 */
+	/* only for Matrices that have a rotation */
+	/* based at GG IV pag 205 */
 	float scale;
 	
 	scale= mat[0][0]*mat[0][0] + mat[1][0]*mat[1][0] + mat[2][0]*mat[2][0];
@@ -238,7 +239,7 @@ void Mat4InvertSimp(float inverse[][4], const float mat[][4])
 	
 	scale= 1.0/scale;
 	
-	/* transpose en scale */
+	/* transpose and scale */
 	inverse[0][0]= scale*mat[0][0];
 	inverse[1][0]= scale*mat[0][1];
 	inverse[2][0]= scale*mat[0][2];
@@ -382,7 +383,7 @@ void Mat4Adj(float out[][4], const float in[][4])	/* out = ADJ(in) */
 	out[3][3]  =   Det3x3( a1, a2, a3, b1, b2, b3, c1, c2, c3);
 }
 
-void Mat4InvGG(float out[][4], const float in[][4])	/* van Graphic Gems I, out= INV(in)  */
+void Mat4InvGG(float out[][4], const float in[][4])	/* from Graphic Gems I, out= INV(in)  */
 {
 	int i, j;
 	float det;
@@ -403,7 +404,7 @@ void Mat4InvGG(float out[][4], const float in[][4])	/* van Graphic Gems I, out= 
 		for(j=0; j<4; j++)
 			out[i][j] = out[i][j] / det;
 
-	/* de laatste factor is niet altijd 1. Hierdoor moet eigenlijk nog gedeeld worden */
+	/* the last factor is not always 1. For that reason an extra division should be implemented? */
 }
 
 
@@ -412,10 +413,10 @@ void Mat3Inv(float m1[][3], const float m2[][3])
 	short a,b;
 	float det;
 
-	/* eerst adjoint */
+	/* calc adjoint */
 	Mat3Adj(m1,m2);
 
-	/* dan det oude mat! */
+	/* then determinant old matrix! */
 	det= m2[0][0]* (m2[1][1]*m2[2][2] - m2[1][2]*m2[2][1])
 	    -m2[1][0]* (m2[0][1]*m2[2][2] - m2[0][2]*m2[2][1])
 	    +m2[2][0]* (m2[0][1]*m2[1][2] - m2[0][2]*m2[1][1]);
@@ -886,11 +887,11 @@ void Mat4MulFloat(float *m, float f)
 {
 	int i;
 
-	for(i=0;i<12;i++) m[i]*=f;	/* tot 12 tellen: zonder vector */
+	for(i=0;i<12;i++) m[i]*=f;	/* count to 12: without vector component */
 }
 
 
-void Mat4MulFloat3(float *m, float f)		/* alleen de scale component */
+void Mat4MulFloat3(float *m, float f)		/* only scale component */
 {
 	int i,j;
 
@@ -1053,14 +1054,14 @@ void QuatToMat4(const float *q, float m[][4])
 	m[3][3]= 1.0f;
 }
 
-void Mat3ToQuat(const float wmat[][3], float *q)		/* uit Sig.Proc.85 pag 253 */
+void Mat3ToQuat(const float wmat[][3], float *q)		/* from Sig.Proc.85 pag 253 */
 {
 	double tr, s;
 	float mat[3][3];
 
-	/* voor de netheid: op kopie werken */
+	/* work on a copy */
 	Mat3CpyMat3(mat, wmat);
-	Mat3Ortho(mat);			/* dit moet EN op eind NormalQuat */
+	Mat3Ortho(mat);			/* this is needed AND a NormalQuat in the end */
 	
 	tr= 0.25*(1.0+mat[0][0]+mat[1][1]+mat[2][2]);
 	
@@ -1104,13 +1105,13 @@ void Mat3ToQuat_is_ok(const float wmat[][3], float *q)
 {
 	float mat[3][3], matr[3][3], matn[3][3], q1[4], q2[4], hoek, si, co, nor[3];
 
-	/* voor de netheid: op kopie werken */
+	/* work on a copy */
 	Mat3CpyMat3(mat, wmat);
 	Mat3Ortho(mat);
 	
-	/* roteer z-as matrix op z-as */
+	/* rotate z-axis of matrix to z-axis */
 
-	nor[0] = mat[2][1];		/* uitprodukt met (0,0,1) */
+	nor[0] = mat[2][1];		/* cross product with (0,0,1) */
 	nor[1] =  -mat[2][0];
 	nor[2] = 0.0;
 	Normalise(nor);
@@ -1121,16 +1122,16 @@ void Mat3ToQuat_is_ok(const float wmat[][3], float *q)
 	co= (float)cos(hoek);
 	si= (float)sin(hoek);
 	q1[0]= co;
-	q1[1]= -nor[0]*si;		/* hier negatief, waarom is een raadsel */
+	q1[1]= -nor[0]*si;		/* negative here, but why? */
 	q1[2]= -nor[1]*si;
 	q1[3]= -nor[2]*si;
 
-	/* roteer x-as van mat terug volgens inverse q1 */
+	/* rotate back x-axis from mat, using inverse q1 */
 	QuatToMat3(q1, matr);
 	Mat3Inv(matn, matr);
 	Mat3MulVecfl(matn, mat[0]);
 	
-	/* en zet de x-asssen gelijk */
+	/* and align x-axes */
 	hoek= (float)(0.5*atan2(mat[0][1], mat[0][0]));
 	
 	co= (float)cos(hoek);
@@ -1180,7 +1181,7 @@ float *vectoquat(const float *vec, short axis, short upflag)
 	static float q1[4];
 	float q2[4], nor[3], *fp, mat[3][3], hoek, si, co, x2, y2, z2, len1;
 	
-	/* eerst roteer naar as */
+	/* first rotate to axis */
 	if(axis>2) {	
 		x2= vec[0] ; y2= vec[1] ; z2= vec[2];
 		axis-= 3;
@@ -1199,7 +1200,7 @@ float *vectoquat(const float *vec, short axis, short upflag)
 	 * problem is a rotation of an Y axis to the negative Y-axis for example.
 	 */
 
-	if(axis==0) {	/* x-as */
+	if(axis==0) {	/* x-axis */
 		nor[0]= 0.0;
 		nor[1]= -z2;
 		nor[2]= y2;
@@ -1210,7 +1211,7 @@ float *vectoquat(const float *vec, short axis, short upflag)
 
 		co= x2;
 	}
-	else if(axis==1) {	/* y-as */
+	else if(axis==1) {	/* y-axis */
 		nor[0]= z2;
 		nor[1]= 0.0;
 		nor[2]= -x2;
@@ -1221,7 +1222,7 @@ float *vectoquat(const float *vec, short axis, short upflag)
 		
 		co= y2;
 	}
-	else {			/* z-as */
+	else {			/* z-axis */
 		nor[0]= -y2;
 		nor[1]= x2;
 		nor[2]= 0.0;
@@ -1278,7 +1279,7 @@ void VecUpMat3old(const float *vec, float mat[][3], short axis)
 	float inp, up[3];
 	short cox = 0, coy = 0, coz = 0;
 	
-	/* up varieeren heeft geen zin, is eigenlijk helemaal geen up!
+	/* using different up's is not useful, infact there is no real 'up'!
 	 */
 
 	up[0]= 0.0;
@@ -1324,10 +1325,9 @@ void VecUpMat3(float *vec, float mat[][3], short axis)
 {
 	float inp;
 	short cox = 0, coy = 0, coz = 0;
-	
-	/* up varieeren heeft geen zin, is eigenlijk helemaal geen up!
-	 * zie VecUpMat3old
-	 */
+
+	/* using different up's is not useful, infact there is no real 'up'!
+	*/
 
 	if(axis==0) {
 		cox= 0; coy= 1; coz= 2;		/* Y up Z tr */
@@ -1368,7 +1368,7 @@ void VecUpMat3(float *vec, float mat[][3], short axis)
 }
 
 
-/* **************** VIEW / PROJEKTIE ********************************  */
+/* **************** VIEW / PROJECTION ********************************  */
 
 
 void i_ortho(
@@ -1640,7 +1640,7 @@ int VecCompare(const float *v1, const float *v2, float limit)
 	return 0;
 }
 
-void CalcNormShort(const short *v1, const short *v2, const short *v3, float *n) /* is ook uitprodukt */
+void CalcNormShort(const short *v1, const short *v2, const short *v3, float *n) /* is also cross product */
 {
 	float n1[3],n2[3];
 
@@ -1738,9 +1738,10 @@ double Sqrt3d(double d)
 	if(d<0) return -exp(log(-d)/3);
 	else return exp(log(d)/3);
 }
-							 /* afstand v1 tot lijn v2-v3 */
-float DistVL2Dfl(const float *v1,const float *v2,const float *v3)   /* met formule van Hesse :GEEN LIJNSTUK! */
-{
+
+/* distance v1 to line v2-v3 */
+/* using Hesse formula, NO LINE PIECE! */
+float DistVL2Dfl(const float *v1,const float *v2,const float *v3)  {
 	float a[2],deler;
 
 	a[0]= v2[1]-v3[1];
@@ -1752,7 +1753,8 @@ float DistVL2Dfl(const float *v1,const float *v2,const float *v3)   /* met formu
 
 }
 
-float PdistVL2Dfl(const float *v1,const float *v2,const float *v3)  /* PointDist: WEL LIJNSTUK */
+/* distance v1 to line-piece v2-v3 */
+float PdistVL2Dfl(const float *v1,const float *v2,const float *v3) 
 {
 	float labda, rc[2], pt[2], len;
 	
@@ -2156,10 +2158,10 @@ void Mat4ToSize(const float mat[][4], float *size)
 
 void triatoquat(const float *v1, const float *v2, const float *v3, float *quat)
 {
-	/* denkbeeldige x-as, y-as driehoek wordt geroteerd */
+	/* imaginary x-axis, y-axis triangle is being rotated */
 	float vec[3], q1[4], q2[4], n[3], si, co, hoek, mat[3][3], imat[3][3];
 	
-	/* eerst z-as op vlaknormaal */
+	/* move z-axis to face-normal */
 	CalcNormFloat(v1, v2, v3, vec);
 
 	n[0]= vec[1];
@@ -2177,13 +2179,13 @@ void triatoquat(const float *v1, const float *v2, const float *v3, float *quat)
 	q1[2]= n[1]*si;
 	q1[3]= 0.0f;
 	
-	/* v1-v2 lijn terug roteren */
+	/* rotate back line v1-v2 */
 	QuatToMat3(q1, mat);
 	Mat3Inv(imat, mat);
 	VecSubf(vec, v2, v1);
 	Mat3MulVecfl(imat, vec);
 
-	/* welke hoek maakt deze lijn met x-as? */
+	/* what angle has this line with x-axis? */
 	vec[2]= 0.0;
 	Normalise(vec);
 
@@ -2310,9 +2312,10 @@ void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 	*lv = v;
 }
 
-/* Bij afspraak is cpack een getal dat als 0xFFaa66 of zo kan worden uitgedrukt. Is dus gevoelig voor endian. 
- * Met deze define wordt het altijd goed afgebeeld
- */
+
+/* we define a 'cpack' here as a (3 byte color code) number that can be expressed like 0xFFAA66 or so.
+   for that reason it is sensitive for endianness... with this function it works correctly
+*/
 
 unsigned int hsv_to_cpack(float h, float s, float v)
 {

@@ -208,7 +208,7 @@ float BLI_turbulence1(float noisesize, float x, float y, float z, int nr)
 
 
 
-/* ********************* VAN PERLIN HIMSELF: ******************** */
+/* ********************* FROM PERLIN HIMSELF: ******************** */
 
 
 static char p[512+2]= {
@@ -368,7 +368,7 @@ float turbulence_perlin(float *point, float lofreq, float hifreq)
 
 
 
-/* *************** AANROEPEN ALS: *************** */
+/* *************** CALL AS: *************** */
 
 float BLI_hnoisep(float noisesize, float x, float y, float z)
 {
