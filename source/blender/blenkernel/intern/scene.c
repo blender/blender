@@ -393,9 +393,12 @@ void set_scene_bg(Scene *sce)
 		
 		base->object->lay= base->lay;
 		
+		/* group patch... */
 		base->flag &= ~OB_FROMGROUP;
 		flag= base->object->flag & OB_FROMGROUP;
 		base->flag |= flag;
+		
+		base->object->flag= base->flag;
 		
 		base->object->ctime= -1234567.0;	/* force ipo to be calculated later */
 		base= base->next;

@@ -3339,6 +3339,45 @@ static int ob_from_decimator(Object *ob)
 	return 0;
 }
 
+/* draws wire outline */
+static void drawSolidSelect(Object *ob, ListBase *lb) 
+{
+
+	if(ob->flag & SELECT) {
+		if(ob==OBACT) BIF_ThemeColor(TH_ACTIVE);
+		else BIF_ThemeColor(TH_SELECT);
+	}
+	else return; //BIF_ThemeColor(TH_WIRE);
+
+	glLineWidth(2.0);
+	glDepthMask(0);
+	
+	if(ob->type==OB_MESH) drawmeshwire(ob);
+	else drawDispListwire(lb);
+
+	glLineWidth(1.0);
+	glDepthMask(1);
+}
+
+static void draw_solid_select(Object *ob) 
+{
+	Curve *cu;
+
+	switch(ob->type) {
+	case OB_MESH:
+		drawSolidSelect(ob, NULL);
+		break;
+	case OB_CURVE:
+	case OB_SURF:
+		cu= ob->data;
+		if(boundbox_clip(ob->obmat, cu->bb)) drawSolidSelect(ob, &cu->disp);
+		break;
+	case OB_MBALL:
+		drawSolidSelect(ob, &ob->disp);
+		break;
+	}
+}
+
 
 static void drawWireExtra(Object *ob, ListBase *lb) 
 {
@@ -3572,6 +3611,9 @@ void draw_object(Base *base)
 		}
 	}
 	else {
+		
+		/* draw outline for selected solid objects */
+		if(dt>OB_WIRE && ob!=G.obedit && (G.f & G_BACKBUFSEL)==0) draw_solid_select(ob);
 
 		switch( ob->type) {
 			
