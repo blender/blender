@@ -62,8 +62,10 @@
 
 /* ********** structs *************** */
 
+#define BRANCH_ARRAY 1024
+
 typedef struct Octree {
-	struct Branch *adrbranch[256];
+	struct Branch *adrbranch[BRANCH_ARRAY];
 	struct Node *adrnode[4096];
 	float ocsize;	/* ocsize: mult factor,  max size octree */
 	float ocfacx,ocfacy,ocfacz;
@@ -199,7 +201,7 @@ static Branch *addbranch(Branch *br, short oc)
 	if(g_oc.adrbranch[branchcount>>12]==NULL)
 		g_oc.adrbranch[branchcount>>12]= MEM_callocN(4096*sizeof(Branch),"addbranch");
 
-	if(branchcount>= 256*4096) {
+	if(branchcount>= BRANCH_ARRAY*4096) {
 		printf("error; octree branches full\n");
 		branchcount=0;
 	}
