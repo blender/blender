@@ -1281,9 +1281,9 @@ static void init_render_mball(Object *ob)
 /* convert */
 static void init_render_mesh(Object *ob)
 {
-	MFace *mface;
-	MVert *mvert;
 	Mesh *me;
+	MVert *mvert;
+	MFace *mface;
 	VlakRen *vlr, *vlr1;
 	VertRen *ver;
 	Material *ma;
@@ -1485,7 +1485,7 @@ static void init_render_mesh(Object *ob)
 						vertcol= NULL;
 					}
 				}
-				
+
 				for(a=start; a<end; a++) {
 					int v1, v2, v3, v4, edcode, flag;
 					
@@ -1558,6 +1558,29 @@ static void init_render_mesh(Object *ob)
 					mface++;
 					if(tface) tface++;
 				}
+			}
+		}
+		
+		/* exception... we do edges for wire mode. potential conflict when faces exist... */
+		end= dlm?dlm->totedge:me->totedge;
+		ma= give_render_material(ob, 1);
+		if(end && (ma->mode & MA_WIRE)) {
+			MEdge *medge;
+			medge= dlm?dlm->medge:me->medge;
+			for(a1=0; a1<end; a1++, medge++) {
+				vlr= RE_findOrAddVlak(R.totvlak++);
+				vlr->ob= ob;
+				vlr->v1= RE_findOrAddVert(vertofs+medge->v1);
+				vlr->v2= RE_findOrAddVert(vertofs+medge->v2);
+				vlr->v3= vlr->v2;
+				vlr->v4= NULL;
+				
+				vlr->n[0]=vlr->n[1]=vlr->n[2]= 0.0;
+				
+				vlr->mat= ma;
+				vlr->flag= 0;
+				vlr->ec= ME_V1V2;
+				vlr->lay= ob->lay;
 			}
 		}
 	}
