@@ -1070,13 +1070,11 @@ void screenmain(void)
 			} else {
 				extern char datatoc_splash_jpg[];
 				extern int datatoc_splash_jpg_size;
-				extern char datatoc_ton[];
-				extern int datatoc_tonize;
 
 				if (! ((G.main->versionfile >= G.version)
 				       || G.save_over)) {
-					splash((void *)datatoc_ton,
-					       datatoc_tonize, NULL);
+					splash((void *)datatoc_splash_jpg,
+					       datatoc_splash_jpg_size, NULL);
 				}
 			}
 			firsttime = 0;

@@ -121,8 +121,6 @@ void BIF_read_file(char *name)
 {
 	extern short winqueue_break; /* editscreen.c */
 	struct BLO_SignerInfo *info;
-	extern char datatoc_ton[];
-	extern int datatoc_tonize;
 	extern char datatoc_splash_jpg[];
 	extern int datatoc_splash_jpg_size;
 	char infostring[400];
@@ -137,7 +135,7 @@ void BIF_read_file(char *name)
 	info = BLO_getSignerInfo();
 	if (BLO_isValidSignerInfo(info)) {
 		sprintf(infostring, "File signed by: %s // %s", info->name, info->email);
-		splash((void *)datatoc_ton, datatoc_tonize, infostring);
+		splash((void *)datatoc_splash_jpg, datatoc_splash_jpg_size, infostring);
 	}
 	BLO_clrSignerInfo(info);
 
