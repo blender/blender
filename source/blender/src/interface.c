@@ -2835,7 +2835,8 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 {
 	uiSaveUnder *su;
 	float x1, x2, y1, y2;
-	
+
+		
 #ifdef INTERNATIONAL
 	if(G.ui_international == TRUE) {
 		float llx,lly,llz,urx,ury,urz;  //for FTF_GetBoundingBox()
@@ -2844,20 +2845,20 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 			FTF_GetBoundingBox(but->tip, &llx,&lly,&llz,&urx,&ury,&urz, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
 
 			x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*FTF_GetStringWidth(but->tip, FTF_USE_GETTEXT | FTF_INPUT_UTF8);  //BMF_GetStringWidth(but->font, but->tip);
-			y1= but->y1-(ury+FTF_GetSize()); y2= but->y1;
+			y1= but->y1-(ury+FTF_GetSize())-16; y2= but->y1-8;
 		} else {
 			FTF_GetBoundingBox(but->tip, &llx,&lly,&llz,&urx,&ury,&urz, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
 
 			x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*FTF_GetStringWidth(but->tip, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);  //BMF_GetStringWidth(but->font, but->tip);
-			y1= but->y1-(ury+FTF_GetSize()); y2= but->y1;
+			y1= but->y1-(ury+FTF_GetSize())-16; y2= but->y1-8;
 		}
 	} else {
   		x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*BMF_GetStringWidth(but->font, but->tip);
-  		y1= but->y1-19; y2= but->y1+2;
+  		y1= but->y1-35; y2= but->y1-6;
 	}
 #else
   	x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*BMF_GetStringWidth(but->font, but->tip);
-  	y1= but->y1-19; y2= but->y1-2;
+  	y1= but->y1-35; y2= but->y1-10;
 #endif
 
 	/* for pulldown menus it doesnt work */
@@ -2885,7 +2886,6 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 
 	su= ui_bgnpupdraw((int)(x1-1), (int)(y1-2), (int)(x2+4), (int)(y2+4), 0);
 
-	
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 
@@ -2907,7 +2907,7 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 	glRectf(x1, y1, x2, y2);
 	
 	glColor3ub(0,0,0);
-	glRasterPos2f( x1+3, y1+4);
+	glRasterPos2f( x1+3, y1+5);
 	BIF_DrawString(but->font, but->tip, (U.transopts & USER_TR_TOOLTIPS));
 	
 	glFinish();		/* to show it in the frontbuffer */
