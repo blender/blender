@@ -1679,6 +1679,8 @@ static uiBlock *info_helpmenu(void *arg_unused)
 }
 
 /************************** END MAIN MENU *****************************/
+/* ugly global yes, for renderwin.c to write to */
+char info_time_str[32]="";
 
 static void info_text(int x, int y)
 {
@@ -1691,15 +1693,14 @@ static void info_text(int x, int y)
 	char *headerstr;
 	int hsize;
 
-
 	if(G.obedit) {
 		sprintf(infostr,"Ve:%d-%d | Fa:%d-%d | Mem:%.2fM ",
 		G.totvertsel, G.totvert, G.totfacesel, G.totface,
 		(mem_in_use>>10)/1024.0);
 	}
 	else {
-		sprintf(infostr,"Ve:%d | Fa:%d | Ob:%d-%d | La:%d | Mem:%.2fM | ",
-			G.totvert, G.totface, G.totobj, G.totobjsel, G.totlamp,  (mem_in_use>>10)/1024.0);
+		sprintf(infostr,"Ve:%d | Fa:%d | Ob:%d-%d | La:%d | Mem:%.2fM | Time:%s | ",
+			G.totvert, G.totface, G.totobj, G.totobjsel, G.totlamp,  (mem_in_use>>10)/1024.0, info_time_str);
 	}
 	ob= OBACT;
 	if(ob) {

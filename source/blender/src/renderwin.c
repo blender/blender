@@ -669,12 +669,13 @@ static void renderview_progress_display_cb(int y1, int y2, int w, int h, unsigne
 static void printrenderinfo_cb(double time, int sample)
 {
 	extern int mem_in_use;
+	extern char info_time_str[32];	// header_info.c
 	float megs_used_memory= mem_in_use/(1024.0*1024.0);
-	char str[300], tstr[32], *spos= str;
+	char str[300], *spos= str;
 		
-	timestr(time, tstr);
+	timestr(time, info_time_str);
 	spos+= sprintf(spos, "RENDER  Fra:%d  Ve:%d Fa:%d La:%d", (G.scene->r.cfra), R.totvert, R.totvlak, R.totlamp);
-	spos+= sprintf(spos, "Mem:%.2fM Time:%s ", megs_used_memory, tstr);
+	spos+= sprintf(spos, "Mem:%.2fM Time:%s ", megs_used_memory, info_time_str);
 
 	if (R.r.mode & R_FIELDS) {
 		spos+= sprintf(spos, "Field %c ", (R.flag&R_SEC_FIELD)?'B':'A');
@@ -848,7 +849,7 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 
 	G.afbreek= 0;
 	end_test_break_callback();
-
+	
 	/* in dispiew it will destroy the image otherwise
 	   window_make_active() raises window at osx and sends redraws */
 	if(R.displaymode==R_DISPLAYWIN) mainwindow_make_active();
