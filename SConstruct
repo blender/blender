@@ -90,7 +90,7 @@ if sys.platform == 'linux2' or sys.platform == 'linux-i386':
 	opengl_lib = ['GL', 'GLU']
 	opengl_static = ['/usr/lib/libGL.a', '/usr/lib/libGLU.a']
 	opengl_libpath = ['/usr/lib', '/usr/X11R6/lib']
-	opengl_include = ['/usr/include']
+	opengl_include = ['/usr/include', '/usr/X11R6/include']
 	# SDL library information
 	sdl_env.ParseConfig ('sdl-config --cflags --libs')
 	sdl_cflags = sdl_env.Dictionary()['CCFLAGS']
