@@ -1443,7 +1443,7 @@ float init_meta(Object *ob)	/* return totsize */
 	char obname[32];
 	
 	Mat4Invert(obinv, ob->obmat);
-	totelem= 0;
+	a= 0;
 	
 	splitIDname(ob->id.name+2, obname, &obnr);
 	
@@ -1483,8 +1483,7 @@ float init_meta(Object *ob)	/* return totsize */
 					
 				}
 			}
-			while(ml && totelem<MB_MAXELEM) {
-				a= totelem;
+			while(ml) {
 				
 				/* make a copy because of duplicates */
 				mainb[a]= new_pgn_element(sizeof(MetaElem));
@@ -1497,7 +1496,7 @@ float init_meta(Object *ob)	/* return totsize */
 				mainb[a]->imat= (float*) imat;
 				
 				ml= ml->next;
-				totelem++;
+				a++;
 				
 			}
 		}
@@ -1546,7 +1545,10 @@ void metaball_polygonize(Object *ob)
 {
 	PROCESS mbproc;
 	MetaBall *mb;
+	MetaElem *ml;
 	DispList *dl;
+	Object *bob;
+	Base *base;
 	int a, nr_cubes;
 	float *ve, *no, totsize, width;
 	
@@ -1558,8 +1560,26 @@ void metaball_polygonize(Object *ob)
 	thresh= mb->thresh;
 	
 	if(G.moving && mb->flag==MB_UPDATE_FAST) return;
-	
-	mainb= MEM_mallocN(sizeof(void *)*MB_MAXELEM, "mainb");
+
+	/* recount all MetaElems */
+	totelem= 0;
+	next_object(0, 0, 0);
+	while(next_object(1, &base, &bob)) {
+		if(bob->type==OB_MBALL) {
+			if(bob==G.obedit)
+				ml= editelems.first;
+			else {
+				mb= bob->data;
+				ml= mb->elems.first;
+			}
+			while(ml){
+				totelem++;
+				ml= ml->next;
+			}
+		}
+	}
+
+	mainb= MEM_mallocN(sizeof(void *)*totelem, "mainb");
 	
 	totsize= init_meta(ob);
 	if(totelem==0) {
