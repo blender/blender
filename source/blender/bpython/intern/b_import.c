@@ -62,14 +62,17 @@
 PyObject *importText(char *name)
 {
 	Text *text;
-	char txtname[IDNAME];
+	char *txtname;
 	char *buf = NULL;
+	int namelen = strlen(name);
 
+	txtname = malloc(namelen+3+1);
+	if (!txtname) {
+		return NULL;
+	}
 
-	// TODO debug for too long names !
-
-	strncpy(txtname, name, IDNAME-4);
-	strcat(txtname, ".py"); 
+	memcpy(txtname, name, namelen);
+	memcpy(&txtname[namelen], ".py", 4);
 	
 	text = (Text*) getGlobal()->main->text.first;
 	while(text)
@@ -79,6 +82,7 @@ PyObject *importText(char *name)
 		text = text->id.next;
 	}
 	if (!text) {
+		free(txtname);
 		return NULL;
 	}
 
@@ -90,10 +94,12 @@ PyObject *importText(char *name)
 		{
 			PyErr_Print();
 			BPY_free_compiled_text(text);
+			free(txtname);
 			return NULL;
 		}	
 	}	
 	BPY_debug(("import from TextBuffer: %s\n", txtname));
+	free(txtname);
 	return PyImport_ExecCodeModule(name, text->compiled);
 }
 
