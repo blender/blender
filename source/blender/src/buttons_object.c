@@ -68,9 +68,7 @@
 #include "BIF_glutil.h"
 #include "BIF_interface.h"
 #include "BIF_toolbox.h"
-#include "BIF_editmesh.h"
 #include "BDR_editcurve.h"
-#include "BDR_editface.h"
 #include "BDR_drawobject.h"
 
 #include "BIF_butspace.h"

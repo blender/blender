@@ -407,7 +407,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 			if(G.obedit->type == OB_MESH) {
 				efa= em->faces.first;
 				while(efa) {
-					if( faceselectedAND(efa, 1) ) {
+					if(efa->f & SELECT) {
 						if(index== -1) index= efa->mat_nr;
 						else if(index!=efa->mat_nr) {
 							error("Mixed colors");
@@ -451,7 +451,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 			if(G.obedit->type == OB_MESH) {
 				efa= em->faces.first;
 				while(efa) {
-					if( faceselectedAND(efa, 1) )
+					if(efa->f & SELECT)
 						efa->mat_nr= G.obedit->actcol-1;
 					efa= efa->next;
 				}
@@ -564,7 +564,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 			if(G.obedit->type == OB_MESH) {
 				efa= em->faces.first;
 				while(efa) {
-					if( faceselectedAND(efa, 1) ) {
+					if(efa->f & SELECT) {
 						if(event==B_SETSMOOTH) efa->flag |= ME_SMOOTH;
 						else efa->flag &= ~ME_SMOOTH;
 					}

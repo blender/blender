@@ -683,7 +683,6 @@ static int edge_fully_inside_rect(rcti rect, short x1, short y1, short x2, short
 	
 }
 
-
 static int edge_inside_rect(rcti rect, short x1, short y1, short x2, short y2)
 {
 	int d1, d2, d3, d4;
@@ -709,6 +708,29 @@ static int edge_inside_rect(rcti rect, short x1, short y1, short x2, short y2)
 	
 	return 1;
 }
+
+static int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, short x2, short y2)
+{
+	int radsq= rad*rad;
+	float v1[2], v2[2], v3[2];
+	
+	// check points in circle itself
+	if( (x1-centx)*(x1-centx) + (y1-centy)*(y1-centy) <= radsq ) return 1;
+	if( (x2-centx)*(x2-centx) + (y2-centy)*(y2-centy) <= radsq ) return 1;
+	
+	// pointdistline
+	v3[0]= centx;
+	v3[1]= centy;
+	v1[0]= x1;
+	v1[1]= y1;
+	v2[0]= x2;
+	v2[1]= y2;
+	
+	if( PdistVL2Dfl(v3, v1, v2) < (float)rad ) return 1;
+	
+	return 0;
+}
+
 
 /**
  * Does the 'borderselect' command. (Select verts based on selecting with a 
@@ -811,7 +833,7 @@ void borderselect(void)
 					for(efa= em->faces.first; efa; efa= efa->next) {
 						if(efa->h==0 && efa->xs>rect.xmin && efa->xs<rect.xmax) {
 							if(efa->ys>rect.ymin && efa->ys<rect.ymax) {
-								EM_select_face(efa, val==LEFTMOUSE);
+								EM_select_face_fgon(efa, val==LEFTMOUSE);
 							}
 						}
 					}
@@ -995,7 +1017,7 @@ void borderselect(void)
 		allqueue(REDRAWINFO, 0);
 	}
 
-	BIF_undo_push("Border select");
+	if(val) BIF_undo_push("Border select");
 	
 } /* end of borderselect() */
 
@@ -1014,22 +1036,55 @@ void mesh_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
+	EditEdge *eed;
+	EditFace *efa;
 	float x, y, r;
 
-	calc_meshverts_ext();	/* drawobject.c */
-	eve= em->verts.first;
-	while(eve) {
-		if(eve->h==0) {
-			x= eve->xs-mval[0];
-			y= eve->ys-mval[1];
-			r= sqrt(x*x+y*y);
-			if(r<=rad) {
-				if(selecting==LEFTMOUSE) eve->f|= 1;
-				else eve->f&= 254;
+	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+		calc_meshverts_ext();	/* drawobject.c */
+		eve= em->verts.first;
+		while(eve) {
+			if(eve->h==0) {
+				x= eve->xs-mval[0];
+				y= eve->ys-mval[1];
+				r= sqrt(x*x+y*y);
+				if(r<=rad) {
+					if(selecting==LEFTMOUSE) eve->f|= 1;
+					else eve->f&= 254;
+				}
+			}
+			eve= eve->next;
+		}
+	}
+
+	if(G.scene->selectmode & SCE_SELECT_EDGE) {
+		calc_meshverts_ext_f2();	/* doesnt clip, drawobject.c */
+		
+		/* two stages, for nice edge select first do 'both points in rect' */
+		for(eed= em->edges.first; eed; eed= eed->next) {
+			if(eed->h==0) {
+				if( edge_inside_circle(mval[0], mval[1], (short)rad, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {
+					EM_select_edge(eed, selecting==LEFTMOUSE);
+				}
 			}
 		}
-		eve= eve->next;
 	}
+	
+	if(G.scene->selectmode & SCE_SELECT_FACE) {
+		calc_mesh_facedots_ext();
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->h==0) {
+				x= efa->xs-mval[0];
+				y= efa->ys-mval[1];
+				r= sqrt(x*x+y*y);
+				if(r<=rad) {
+					EM_select_face_fgon(efa, selecting==LEFTMOUSE);
+				}
+			}
+		}
+	}
+				
+	EM_selectmode_flush();
 
 	draw_sel_circle(0, 0, 0, 0, 0);	/* signal */
 	force_draw();

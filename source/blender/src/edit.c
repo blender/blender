@@ -437,7 +437,7 @@ void circle_selectCB(select_CBfunc callback)
 	
 	/* clear circle */
 	draw_sel_circle(0, mvalo, 0, rad, 1);
-
+	BIF_undo_push("Circle Select");
 	countall();
 	allqueue(REDRAWINFO, 0);
 }

@@ -844,13 +844,13 @@ void delete_mesh(void)
 		efa= em->faces.first;
 		while(efa) {
 			nextvl= efa->next;
-			/* delete only faces with 2 or more vertices selected */
+			/* delete only faces with 1 or more edges selected */
 			count= 0;
-			if(efa->v1->f & SELECT) count++;
-			if(efa->v2->f & SELECT) count++;
-			if(efa->v3->f & SELECT) count++;
-			if(efa->v4 && (efa->v4->f & SELECT)) count++;
-			if(count>1) {
+			if(efa->e1->f & SELECT) count++;
+			if(efa->e2->f & SELECT) count++;
+			if(efa->e3->f & SELECT) count++;
+			if(efa->e4 && (efa->e4->f & SELECT)) count++;
+			if(count) {
 				BLI_remlink(&em->faces, efa);
 				free_editface(efa);
 			}
@@ -859,7 +859,7 @@ void delete_mesh(void)
 		eed= em->edges.first;
 		while(eed) {
 			nexted= eed->next;
-			if( (eed->v1->f & SELECT) && (eed->v2->f & SELECT) ) {
+			if(eed->f & SELECT) {
 				remedge(eed);
 				free_editedge(eed);
 			}
@@ -883,29 +883,30 @@ void delete_mesh(void)
 	} 
 	else if(event==1) {
 		str= "Erase Edges";
-		eed= em->edges.first;
-		while(eed) {
-			nexted= eed->next;
-			if( (eed->v1->f & SELECT) && (eed->v2->f & SELECT) ) {
-				remedge(eed);
-				free_editedge(eed);
-			}
-			eed= nexted;
-		}
+		// faces first
 		efa= em->faces.first;
 		while(efa) {
 			nextvl= efa->next;
 			event=0;
-			if( efa->v1->f & SELECT) event++;
-			if( efa->v2->f & SELECT) event++;
-			if( efa->v3->f & SELECT) event++;
-			if(efa->v4 && (efa->v4->f & SELECT)) event++;
+			if( efa->e1->f & SELECT) event++;
+			if( efa->e2->f & SELECT) event++;
+			if( efa->e3->f & SELECT) event++;
+			if(efa->e4 && (efa->e4->f & SELECT)) event++;
 			
-			if(event>1) {
+			if(event) {
 				BLI_remlink(&em->faces, efa);
 				free_editface(efa);
 			}
 			efa= nextvl;
+		}
+		eed= em->edges.first;
+		while(eed) {
+			nexted= eed->next;
+			if(eed->f & SELECT) {
+				remedge(eed);
+				free_editedge(eed);
+			}
+			eed= nexted;
 		}
 		/* to remove loose vertices: */
 		eed= em->edges.first;
@@ -917,7 +918,7 @@ void delete_mesh(void)
 		eve= em->verts.first;
 		while(eve) {
 			nextve= eve->next;
-			if(eve->f & 1) {
+			if(eve->f & SELECT) {
 				BLI_remlink(&em->verts,eve);
 				free_editvert(eve);
 			}
@@ -940,7 +941,7 @@ void delete_mesh(void)
 		efa= em->faces.first;
 		while(efa) {
 			nextvl= efa->next;
-			if(faceselectedAND(efa, 1)) {
+			if(efa->f & SELECT) {
 				BLI_remlink(&em->faces, efa);
 				free_editface(efa);
 			}
@@ -1040,7 +1041,7 @@ void fill_mesh(void)
 	BLI_end_edgefill();
 
 	waitcursor(0);
-
+	EM_select_flush();
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);

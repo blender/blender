@@ -89,6 +89,9 @@ extern void flip_editnormals(void);
 extern void vertexnormals(int testflip);
 
 /* ******************* editmesh_mods.c */
+
+extern void EM_select_face_fgon(struct EditFace *efa, int sel);
+
 extern void vertexnoise(void);
 extern void vertexsmooth(void);
 extern void righthandfaces(int select);

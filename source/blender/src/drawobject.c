@@ -2661,10 +2661,8 @@ static void drawmeshwire(Object *ob)
 			
 			efa= em->faces.first;
 			while(efa) {
-				if(efa->h==0) {
-					if(efa->v4) CalcCent4f(fvec, efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
-					else CalcCent3f(fvec, efa->v1->co, efa->v2->co, efa->v3->co);
-
+				if(efa->h==0 && efa->fgonf!=EM_FGON) {
+					VECCOPY(fvec, efa->cent);
 					glVertex3fv(fvec);
 					fvec[0]+= editbutsize*efa->n[0];
 					fvec[1]+= editbutsize*efa->n[1];
