@@ -54,6 +54,8 @@
 #include "KX_Scene.h"
 #include "SND_DeviceManager.h"
 
+#include "KX_PyMath.h"
+
 // FIXME: Enable for access to blender python modules.  This is disabled because
 // python has dependencies on a lot of other modules and is a pain to link.
 //#define USE_BLENDER_PYTHON
@@ -93,80 +95,6 @@ static PyObject* gPyGetRandomFloat(PyObject* self,
 
 
 
-void GlobalConvertPythonPylist(PyObject* pylist, MT_Vector3 &pos)
-{
-	bool error=false;
-	if (pylist->ob_type == &CListValue::Type)
-	{
-		CListValue* listval = (CListValue*) pylist;
-		unsigned int numitems = listval->GetCount();
-		if (numitems <= 3)
-		{
-			for (unsigned int index=0;index<numitems;index++)
-			{
-				pos[index] = listval->GetValue(index)->GetNumber();
-			}
-		}	else
-		{
-			error = true;
-		}
-		
-	} else
-	{
-		
-		// assert the list is long enough...
-		unsigned int numitems = PyList_Size(pylist);
-		if (numitems <= 3)
-		{
-			for (unsigned int index=0;index<numitems;index++)
-			{
-				pos[index] = PyFloat_AsDouble(PyList_GetItem(pylist,index));
-			}
-		}
-		else
-		{
-			error = true;
-		}
-
-	}
-}
-
-void GlobalConvertPythonPylist(PyObject* pylist, MT_Vector4 &vec)
-{
-	bool error=false;
-	if (pylist->ob_type == &CListValue::Type)
-	{
-		CListValue* listval = (CListValue*) pylist;
-		unsigned int numitems = listval->GetCount();
-		if (numitems <= 4)
-		{
-			for (unsigned index=0;index<numitems;index++)
-			{
-				vec[index] = listval->GetValue(index)->GetNumber();
-			}
-		} else
-		{
-			error = true;
-		}
-		
-	} else
-	{
-		// assert the list is long enough...
-		unsigned int numitems = PyList_Size(pylist);
-		if (numitems <= 4)
-		{
-			for (unsigned index=0;index<numitems;index++)
-			{
-				vec[index] = PyFloat_AsDouble(PyList_GetItem(pylist,index));
-			}
-		}
-		else
-		{
-			error = true;
-		}
-
-	}
-}
 
 
 void GlobalConvertPythonVectorArg(PyObject* args, MT_Vector3 &pos)
@@ -174,7 +102,7 @@ void GlobalConvertPythonVectorArg(PyObject* args, MT_Vector3 &pos)
 	PyObject* pylist;
 	PyArg_ParseTuple(args,"O",&pylist);
 
-	GlobalConvertPythonPylist(pylist, pos);
+	pos = MT_Vector3FromPyList(pylist);
 }
 
 void GlobalConvertPythonVectorArg(PyObject* args, MT_Vector4 &vec)
@@ -182,7 +110,7 @@ void GlobalConvertPythonVectorArg(PyObject* args, MT_Vector4 &vec)
 	PyObject* pylist;
 	PyArg_ParseTuple(args,"O",&pylist);
 
-	GlobalConvertPythonPylist(pylist, vec);
+	vec = MT_Vector4FromPyList(pylist);
 }
 
 
