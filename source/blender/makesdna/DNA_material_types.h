@@ -56,9 +56,9 @@ typedef struct Material {
 	
 	float amb, emit, ang, spectra, ray_mirror;
 	float alpha, ref, spec, zoffs, add;
-	float kfac; /* for transparent solids */
-	float fresnel_mir, falloff_mir;
-	float fresnel_tra, falloff_tra;
+	float translucency;
+	float fresnel_mir;
+	float fresnel_tra;
 	short ray_depth, ray_depth_tra;
 	short har;
 	char seed1, seed2;
@@ -128,6 +128,7 @@ typedef struct Material {
 #define MA_RADIO		0x10000
 #define MA_RAYTRANSP	0x20000
 #define MA_RAYMIRROR	0x40000
+#define MA_SHADOW_TRA	0x80000
 
 /* diff_shader */
 #define MA_DIFF_LAMBERT		0

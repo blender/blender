@@ -47,11 +47,16 @@
 #include "render.h"
 #include "render_intern.h"
 #include "rendercore.h"
+#include "pixelblending.h"
 #include "jitter.h"
 
 #define OCRES	64
+
 #define DDA_SHADOW 0
 #define DDA_MIRROR 1
+#define DDA_SHADOW_TRA 2
+
+#define DEPTH_SHADOW_TRA  10
 
 /* ********** structs *************** */
 
@@ -70,8 +75,9 @@ typedef struct Isect {
 	float start[3], end[3];
 	float labda, u, v;
 	struct VlakRen *vlr, *vlrcontr;
-	short isect, mode;	/* mode: DDA_SHADOW or DDA_MIRROR */
+	short isect, mode;	/* mode: DDA_SHADOW or DDA_MIRROR or DDA_SHADOW_TRA */
 	float ddalabda;
+	float col[4];		/* RGBA for shadow_tra */
 } Isect;
 
 typedef struct Branch
@@ -1340,7 +1346,8 @@ static void shade_ray(Isect *is, int mask, ShadeResult *shr)
 		VECCOPY(R.vn, R.vlr->n);
 	}
 
-	shade_lamp_loop(mask, shr);	
+	if(is->mode==DDA_SHADOW_TRA) shade_color(shr);
+	else shade_lamp_loop(mask, shr);	
 
 	if(flip) {	
 		R.vlr->n[0]= -R.vlr->n[0];
@@ -1355,8 +1362,8 @@ static void refraction(float *refract, float *n, float *view, float index)
 	float dot, fac;
 
 	VECCOPY(refract, view);
-	if(index==0.0) return;
-
+	index= 1.0/index;
+	
 	dot= view[0]*n[0] + view[1]*n[1] + view[2]*n[2];
 
 	if(dot>0.0) {
@@ -1483,7 +1490,7 @@ static void traceray(short depth, float *start, float *vec, float *col, int mask
 
 			if(R.mat->mode & MA_RAYMIRROR) {
 				f= R.mat->ray_mirror;
-				if(f!=0.0) f*= fresnel_fac(R.view, R.vn, R.mat->fresnel_mir, R.mat->falloff_mir);
+				if(f!=0.0) f*= fresnel_fac(R.view, R.vn, R.mat->fresnel_mir);
 			}
 			else f= 0.0;
 			
@@ -1781,7 +1788,7 @@ void ray_trace(int mask, ShadeResult *shr)
 		
 		if(do_mir) {
 		
-			i= R.mat->ray_mirror*fresnel_fac(R.view, R.vn, R.mat->fresnel_mir, R.mat->falloff_mir);
+			i= R.mat->ray_mirror*fresnel_fac(R.view, R.vn, R.mat->fresnel_mir);
 			if(i!=0.0) {
 				fr= R.mat->mirr;
 				fg= R.mat->mirg;
@@ -1807,13 +1814,81 @@ void ray_trace(int mask, ShadeResult *shr)
 	}
 }
 
+/* no premul here! */
+static void addAlphaLight(float *old, float *over)
+{
+	float div= old[3]+over[3];
+
+	if(div > 0.0001) {
+		old[0]= (over[3]*over[0] + old[3]*old[0])/div;
+		old[1]= (over[3]*over[1] + old[3]*old[1])/div;
+		old[2]= (over[3]*over[2] + old[3]*old[2])/div;
+	}
+	old[3]= over[3] + (1-over[3])*old[3];
+
+}
+
+static int ray_trace_shadow_tra(Isect *isec, int depth)
+{
+	/* ray to lamp, find first face that intersects, check alpha properties,
+	   if it has alpha<1  continue. exit when alpha is full */
+	ShadeResult shr;
+	
+	if( d3dda(isec)) {
+		VlakRen *vlr=NULL;
+		float col[4], rvn[3], view[3], rco[3], ref[3];
+		/* we got a face */
+		
+			/* store variables which change during tracing */
+		if(depth==DEPTH_SHADOW_TRA) {
+			vlr= R.vlr;
+			VECCOPY(view, R.view);
+			VECCOPY(rco, R.co);
+			VECCOPY(rvn, R.vn);
+			VECCOPY(ref, R.ref);
+		}
+
+		/* set up view vector */
+		VecSubf(R.view, isec->end, isec->start);
+		Normalise(R.view);
+			
+		shade_ray(isec, 0, &shr);
+		
+		/* add color */
+		VECCOPY(col, shr.diff);
+		col[3]= shr.alpha;
+		addAlphaLight(isec->col, col);
+
+		if(depth>0 && isec->col[3]<1.0) {
+			VECCOPY(isec->start, R.co);
+			ray_trace_shadow_tra(isec, depth-1);
+		}
+		else if(isec->col[3]>1.0) isec->col[3]= 1.0;
+
+			/* restore variables which change during tracing */
+		if(depth==DEPTH_SHADOW_TRA) {
+			VECCOPY(R.view, view);
+			VECCOPY(R.co, rco);
+			VECCOPY(R.ref, ref);
+			VECCOPY(R.vn, rvn);
+			R.vlr= vlr;
+			R.mat= vlr->mat;
+			R.matren= R.mat->ren;
+		}
+	}
+	return 0;
+}
+
 /* extern call from shade_lamp_loop */
-float ray_shadow(LampRen *lar, int mask)
+void ray_shadow(LampRen *lar, float *shadfac, int mask)
 {
 	Isect isec;
 	float fac, div=0.0, lampco[3];
 
-	isec.mode= DDA_SHADOW;
+	if(R.mat->mode & MA_SHADOW_TRA)  isec.mode= DDA_SHADOW_TRA;
+	else isec.mode= DDA_SHADOW;
+	
+	shadfac[3]= 1.0;	// 1=full light
 	
 	if(lar->type==LA_SUN || lar->type==LA_HEMI) {
 		lampco[0]= R.co[0] - g_oc.ocsize*lar->vec[0];
@@ -1826,24 +1901,57 @@ float ray_shadow(LampRen *lar, int mask)
 	
 	if(lar->ray_samp<2) {
 		if(R.r.mode & R_OSA) {
+			float accum[4]={0.0, 0.0, 0.0, 0.0};
 			int j;
+			
 			fac= 0.0;
+			
 			for(j=0; j<R.osa; j++) {
 				if(mask & 1<<j) {
 					isec.start[0]= R.co[0] + (jit[j][0]-0.5)*O.dxco[0] + (jit[j][1]-0.5)*O.dyco[0] ;
 					isec.start[1]= R.co[1] + (jit[j][0]-0.5)*O.dxco[1] + (jit[j][1]-0.5)*O.dyco[1] ;
 					isec.start[2]= R.co[2] + (jit[j][0]-0.5)*O.dxco[2] + (jit[j][1]-0.5)*O.dyco[2] ;
 					VECCOPY(isec.end, lampco);
-					if( d3dda(&isec) ) fac+= 1.0;
+					if(isec.mode==DDA_SHADOW_TRA) {
+						isec.col[0]= isec.col[1]= isec.col[2]=  1.0;
+						isec.col[3]= 0.0;	//alpha
+
+						ray_trace_shadow_tra(&isec, DEPTH_SHADOW_TRA);
+						
+						accum[0]+= isec.col[0]; accum[1]+= isec.col[1];
+						accum[2]+= isec.col[2]; accum[3]+= isec.col[3];
+					}
+					else if( d3dda(&isec) ) fac+= 1.0;
 					div+= 1.0;
 				}
 			}
-			return fac/div;
+			if(isec.mode==DDA_SHADOW_TRA) {
+					// alpha to 'light'
+				accum[3]/= div;
+				shadfac[3]= 1.0-accum[3];
+				shadfac[0]= shadfac[3]+accum[0]*accum[3]/div;
+				shadfac[1]= shadfac[3]+accum[1]*accum[3]/div;
+				shadfac[2]= shadfac[3]+accum[2]*accum[3]/div;
+			}
+			else shadfac[3]= 1.0-fac/div;
 		}
 		else {
 			VECCOPY(isec.start, R.co);
 			VECCOPY(isec.end, lampco);
-			if( d3dda(&isec)) return 1.0;
+			if(isec.mode==DDA_SHADOW_TRA) {
+				isec.col[0]= isec.col[1]= isec.col[2]=  1.0;
+				isec.col[3]= 0.0;	//alpha
+
+				ray_trace_shadow_tra(&isec, DEPTH_SHADOW_TRA);
+
+				VECCOPY(shadfac, isec.col);
+					// alpha to 'light'
+				shadfac[3]= 1.0-isec.col[3];
+				shadfac[0]= shadfac[3]+shadfac[0]*isec.col[3];
+				shadfac[1]= shadfac[3]+shadfac[1]*isec.col[3];
+				shadfac[2]= shadfac[3]+shadfac[2]*isec.col[3];
+			}
+			else if( d3dda(&isec)) shadfac[3]= 0.0;
 		}
 	}
 	else {
@@ -1881,8 +1989,7 @@ float ray_shadow(LampRen *lar, int mask)
 			}
 			jitlamp+= 3;
 		}
-		return fac/div;
+		shadfac[3]= 1.0-fac/div;
 	}
-	return 0.0;
 }
 

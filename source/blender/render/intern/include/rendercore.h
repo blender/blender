@@ -51,8 +51,9 @@ float   mistfactor(float *co);	/* dist en hoogte, return alpha */
 void renderspothalo(unsigned short *col);
 void render_lighting_halo(struct HaloRen *har, float *colf);
 unsigned int    calchalo_z(struct HaloRen *har, unsigned int zz);
+void shade_color(ShadeResult *shr);
 void shade_lamp_loop(int mask, ShadeResult *shr);
-float fresnel_fac(float *view, float *vn, float fresnel, float falloff);
+float fresnel_fac(float *view, float *vn, float fresnel);
 
 float spec(float inp, int hard);
 

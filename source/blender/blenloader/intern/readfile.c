@@ -3936,8 +3936,13 @@ static void do_versions(Main *main)
 				ma->ang= 1.0;
 				ma->ray_depth= 2;
 				ma->ray_depth_tra= 2;
-				ma->falloff_mir= 1.0;
-				ma->falloff_tra= 1.0;
+				ma->fresnel_tra= 1.0;
+				ma->fresnel_mir= 1.0;
+			}
+			else if(ma->ang<1.0) {		// temporal, because of IOR & fresnel change
+				ma-> ang= 1.0/ma->ang;
+				ma->fresnel_tra= ma->ang;
+				ma->fresnel_mir= ma->ang;
 			}
 			ma= ma->id.next;
 		}

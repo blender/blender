@@ -679,9 +679,8 @@ static void refraction_prv(int *x, int *y, float *n, float index)
 {
 	float dot, fac, view[3], len;
 
-
-	if(index==0.0) return;
-
+	index= 1.0/index;
+	
 	view[0]= index*(float)*x;
 	view[1]= ((float)*y)/index;
 	view[2]= 20.0;
@@ -708,7 +707,7 @@ static void refraction_prv(int *x, int *y, float *n, float index)
 
 static void shade_preview_pixel(float *vec, int x, int y,char *rect, int smooth)
 {
-	extern float fresnel_fac(float *view, float *vn, float fresnel, float falloff);
+	extern float fresnel_fac(float *view, float *vn, float fresnel);
 	Material *mat;
 	float v1,inp, inprspec=0, isr=0.0, isb=0.0, isg=0.0;
 	float ir=0.0, ib=0.0, ig=0.0;
@@ -863,7 +862,7 @@ static void shade_preview_pixel(float *vec, int x, int y,char *rect, int smooth)
 			/* scale */
 			div= (0.85*R.ref[1]);
 			
-			R.refcol[0]= mat->ray_mirror*fresnel_fac(view, R.vn, mat->fresnel_mir, mat->falloff_mir);;
+			R.refcol[0]= mat->ray_mirror*fresnel_fac(view, R.vn, mat->fresnel_mir);
 
 			if(div<0.0) {
 				/* minus 0.5 prevents too many small tiles in distance */
@@ -910,7 +909,7 @@ static void shade_preview_pixel(float *vec, int x, int y,char *rect, int smooth)
 	
 	if(mat->mode & (MA_ZTRA|MA_RAYTRANSP)) 
 		if(mat->fresnel_tra!=0.0) 
-			alpha*= fresnel_fac(view, R.vn, mat->fresnel_tra, mat->falloff_tra);
+			alpha*= fresnel_fac(view, R.vn, mat->fresnel_tra);
 	
 		/* ztra shade */
 	if(mat->spectra!=0.0) {
@@ -1123,7 +1122,7 @@ void BIF_previewrender(SpaceButs *sbuts)
 					xsq= x*x;
 					if(mat->pr_type==MA_SPHERE) {
 					
-						if(xsq+ysq < radsq) {
+						if(xsq+ysq <= radsq) {
 							R.vn[0]= x;
 							R.vn[1]= y;
 							R.vn[2]= sqrt( (float)(radsq-xsq-ysq) );

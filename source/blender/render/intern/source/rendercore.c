@@ -1552,14 +1552,55 @@ void RE_calc_R_ref()
 
 }
 
-float fresnel_fac(float *view, float *vn, float fresnel, float falloff)
+float fresnel_fac(float *view, float *vn, float ior)
 {
-	float fac= fabs(view[0]*vn[0] + view[1]*vn[1] + view[2]*vn[2]);
+	float t1, t2;
+	
+	if(ior==1.0) return 1.0;
 
-	if(falloff>0.0) fac= pow(fac, falloff); else fac= 1.0;
-	if(fac>1.0) fac= 1.0;
-		
-	return (1.0 - fresnel*fac);
+	t1= (view[0]*vn[0] + view[1]*vn[1] + view[2]*vn[2]);
+	if(t1>0.0) t1= 1.0+t1;
+	else t1 = 1.0-t1;
+	
+	t2 = t1*t1;
+	
+	t2= ior + (1.0-ior)*t2*t2*t1;
+
+	if(t2<0.0) return 0.0;
+	else if(t2>1.0) return 1.0;
+	return t2;
+}
+
+void shade_color(ShadeResult *shr)
+{
+	Material *ma= R.matren;
+
+	if(ma->mode & (MA_VERTEXCOLP|MA_FACETEXTURE)) {
+		ma->r= R.vcol[0];
+		ma->g= R.vcol[1];
+		ma->b= R.vcol[2];
+	}
+	
+	ma->alpha= R.mat->alpha;	// copy to render material, for fresnel and spectra
+
+	if(ma->texco) {
+		if(ma->mode & (MA_VERTEXCOLP|MA_FACETEXTURE)) {
+			R.mat->r= R.vcol[0];
+			R.mat->g= R.vcol[1];
+			R.mat->b= R.vcol[2];
+		}
+		do_material_tex();
+	}
+
+	if(ma->mode & (MA_ZTRA|MA_RAYTRANSP)) {
+		if(ma->fresnel_tra!=1.0) 
+			ma->alpha*= fresnel_fac(R.view, R.vn, ma->fresnel_tra);
+	}
+
+	shr->diff[0]= ma->r;
+	shr->diff[1]= ma->g;
+	shr->diff[2]= ma->b;
+	shr->alpha= ma->alpha;
 }
 
 /* mask is used to define the amount of rays/samples */
@@ -1568,7 +1609,7 @@ void shade_lamp_loop(int mask, ShadeResult *shr)
 	LampRen *lar;
 	Material *ma;
 	float i, inp, inpr, t, lv[3], lampdist, ld = 0;
-	float lvrot[3], *vn, *view, shadfac, soft;
+	float lvrot[3], *vn, *view, shadfac[4], soft;	// shadfac = rgba
 	int a;
 
 	vn= R.vn;
@@ -1581,7 +1622,7 @@ void shade_lamp_loop(int mask, ShadeResult *shr)
 	if(ma->mode & MA_ONLYSHADOW) {
 		float ir;
 		
-		shadfac= ir= 0.0;
+		shadfac[3]= ir= 0.0;
 		for(a=0; a<R.totlamp; a++) {
 			lar= R.la[a];
 			
@@ -1607,17 +1648,17 @@ void shade_lamp_loop(int mask, ShadeResult *shr)
 						i= t*i+(1.0-t);
 					}
 					
-					shadfac+= i;
+					shadfac[3]+= i;
 					ir+= 1.0;
 				}
 				else {
-					shadfac+= 1.0;
+					shadfac[3]+= 1.0;
 					ir+= 1.0;
 				}
 			}
 		}
-		if(ir>0.0) shadfac/= ir;
-		shr->alpha= (R.mat->alpha)*(1.0-shadfac);
+		if(ir>0.0) shadfac[3]/= ir;
+		shr->alpha= (R.mat->alpha)*(1.0-shadfac[3]);
 		
 		return;
 	}
@@ -1701,6 +1742,10 @@ void shade_lamp_loop(int mask, ShadeResult *shr)
 		
 		if(lar->mode & LA_TEXTURE)  do_lamp_tex(lar, lv);
 
+		/* init transp shadow */
+		shadfac[3]= 1.0;
+		if(ma->mode & MA_SHADOW_TRA) shadfac[0]= shadfac[1]= shadfac[2]= 1.0;
+
 		if(lar->type==LA_SPOT) {
 			
 			if(lar->mode & LA_SQUARE) {
@@ -1741,12 +1786,12 @@ void shade_lamp_loop(int mask, ShadeResult *shr)
 						inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
 						if(inp>0.0) {
 							/* testshadowbuf==0.0 : 100% shadow */
-							shadfac = 1.0 - testshadowbuf(lar->shb, inp);
-							if(shadfac>0.0) {
-								shadfac*= inp*soft*lar->energy;
-								shr->diff[0] -= shadfac;
-								shr->diff[1] -= shadfac;
-								shr->diff[2] -= shadfac;
+							shadfac[3] = 1.0 - testshadowbuf(lar->shb, inp);
+							if(shadfac[3]>0.0) {
+								shadfac[3]*= inp*soft*lar->energy;
+								shr->diff[0] -= shadfac[3];
+								shr->diff[1] -= shadfac[3];
+								shr->diff[2] -= shadfac[3];
 								
 								continue;
 							}
@@ -1793,22 +1838,23 @@ void shade_lamp_loop(int mask, ShadeResult *shr)
 
 		/* shadow and spec */
 		if(inp> -0.41) {			/* heuristic value */
-			shadfac= 1.0;
+			
 			if(i>0.0 && (R.r.mode & R_SHADOW)) {
 				if(ma->mode & MA_SHADOW) {
 					
 					if(lar->shb) {
-						shadfac = testshadowbuf(lar->shb, inp);
-						if(shadfac==0.0) continue;
-						i*= shadfac;
+						shadfac[3] = testshadowbuf(lar->shb, inp);
+						if(shadfac[3]==0.0) continue;
+						i*= shadfac[3];
 					}
 					else if(lar->mode & LA_SHAD_RAY) {
 						if(R.r.mode & R_RAYTRACE) {
-							extern float ray_shadow(LampRen *, int);
+							extern void ray_shadow(LampRen *, float *, int);
 							/* hurms, single sided? */
 							if( R.vlr->n[0]*lv[0] + R.vlr->n[1]*lv[1] + R.vlr->n[2]*lv[2] > -0.01) {
-								shadfac= (1.0-ray_shadow(lar, mask));
-								i*= shadfac;
+								ray_shadow(lar, shadfac, mask);
+								if(shadfac[3]==0.0) continue;
+								i*= shadfac[3];
 							}
 						}
 					}
@@ -1816,7 +1862,7 @@ void shade_lamp_loop(int mask, ShadeResult *shr)
 			}
 		
 			/* specularity */
-			if(shadfac>0.0 && ma->spec!=0.0 && !(lar->mode & LA_NO_SPEC)) {
+			if(shadfac[3]>0.0 && ma->spec!=0.0 && !(lar->mode & LA_NO_SPEC)) {
 				
 				if(lar->type==LA_HEMI) {
 					/* hemi uses no spec shaders (yet) */
@@ -1833,7 +1879,7 @@ void shade_lamp_loop(int mask, ShadeResult *shr)
 						t= 0.5*t+0.5;
 					}
 					
-					t= ma->spec*spec(t, ma->har);
+					t= shadfac[3]*ma->spec*spec(t, ma->har);
 					shr->spec[0]+= t*(lar->r * ma->specr);
 					shr->spec[1]+= t*(lar->g * ma->specg);
 					shr->spec[2]+= t*(lar->b * ma->specb);
@@ -1851,7 +1897,7 @@ void shade_lamp_loop(int mask, ShadeResult *shr)
 					else 
 						specfac= Toon_Spec(vn, lv, view, ma->param[2], ma->param[3]);
 					
-					t= shadfac*ma->spec*lampdist*specfac;
+					t= shadfac[3]*ma->spec*lampdist*specfac;
 					
 					shr->spec[0]+= t*(lar->r * ma->specr);
 					shr->spec[1]+= t*(lar->g * ma->specg);
@@ -1862,15 +1908,22 @@ void shade_lamp_loop(int mask, ShadeResult *shr)
 		
 		/* in case 'no diffuse' we still do most calculus, spec can be in shadow */
 		if(i>0.0 && !(lar->mode & LA_NO_DIFF)) {
-			shr->diff[0]+= i*lar->r;
-			shr->diff[1]+= i*lar->g;
-			shr->diff[2]+= i*lar->b;
+			if(ma->mode & MA_SHADOW_TRA) {
+				shr->diff[0]+= i*shadfac[0]*lar->r;
+				shr->diff[1]+= i*shadfac[1]*lar->g;
+				shr->diff[2]+= i*shadfac[2]*lar->b;
+			}
+			else {
+				shr->diff[0]+= i*lar->r;
+				shr->diff[1]+= i*lar->g;
+				shr->diff[2]+= i*lar->b;
+			}
 		}
 	}
 
 	if(ma->mode & (MA_ZTRA|MA_RAYTRANSP)) {
-		if(ma->fresnel_tra!=0.0) 
-			ma->alpha*= fresnel_fac(R.view, R.vn, ma->fresnel_tra, ma->falloff_tra);
+		if(ma->fresnel_tra!=1.0) 
+			ma->alpha*= fresnel_fac(R.view, R.vn, ma->fresnel_tra);
 
 		if(ma->spectra!=0.0) {
 

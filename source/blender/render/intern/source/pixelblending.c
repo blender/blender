@@ -243,45 +243,18 @@ void addAlphaOverFloat(float *dest, float *source)
     float c;
     float mul;
     
-    /* I may want to disable this clipping */
-#ifdef RE_FLOAT_COLOUR_CLIPPING
-    if( (source[3] >  RE_FULL_COLOUR_FLOAT) ) {
-        dest[0] = source[0];
-        dest[1] = source[1];
-        dest[2] = source[2];
-        dest[3] = source[3];
-        return;
-    }
-#endif
-
 	mul= 1.0 - source[3];
 
 	c= (mul*dest[0]) + source[0];
-#ifdef RE_FLOAT_COLOUR_CLIPPING
-	if(c >= RE_FULL_COLOUR_FLOAT) dest[0] = RE_UNITY_COLOUR_FLOAT; 
-	else 
-#endif
        dest[0]= c;
    
 	c= (mul*dest[1]) + source[1];
-#ifdef RE_FLOAT_COLOUR_CLIPPING
-	if(c >= RE_FULL_COLOUR_FLOAT) dest[1] = RE_UNITY_COLOUR_FLOAT; 
-	else 
-#endif
        dest[1]= c;
 
 	c= (mul*dest[2]) + source[2];
-#ifdef RE_FLOAT_COLOUR_CLIPPING
-	if(c >= RE_FULL_COLOUR_FLOAT) dest[2] = RE_UNITY_COLOUR_FLOAT; 
-	else 
-#endif
        dest[2]= c;
 
 	c= (mul*dest[3]) + source[3];
-#ifdef RE_ALPHA_CLIPPING
-	if(c >= RE_FULL_COLOUR_FLOAT) dest[3] = RE_UNITY_COLOUR_FLOAT; 
-	else 
-#endif
        dest[3]= c;
 
 } /* end of void addAlphaOverFloat(float *doel, float *bron) */
@@ -295,10 +268,6 @@ void addAlphaUnderFloat(float *dest, float *source)
     float c;
     float mul;
     
-    /* I may want to disable this clipping */
-#ifdef RE_FLOAT_COLOUR_CLIPPING
-    if( dest[3] >= RE_FULL_COLOUR_FLOAT) return;
-#endif
     if( (-RE_EMPTY_COLOUR_FLOAT < dest[3])
         && (dest[3] <  RE_EMPTY_COLOUR_FLOAT) ) {	
         dest[0] = source[0];
@@ -311,31 +280,15 @@ void addAlphaUnderFloat(float *dest, float *source)
 	mul= 1.0 - dest[3];
 
 	c= (mul*source[0]) + dest[0];
-#ifdef RE_FLOAT_COLOUR_CLIPPING
-	if(c >= RE_FULL_COLOUR_FLOAT) dest[0] = RE_UNITY_COLOUR_FLOAT; 
-	else 
-#endif
        dest[0]= c;
    
 	c= (mul*source[1]) + dest[1];
-#ifdef RE_FLOAT_COLOUR_CLIPPING
-	if(c >= RE_FULL_COLOUR_FLOAT) dest[1] = RE_UNITY_COLOUR_FLOAT; 
-	else 
-#endif
        dest[1]= c;
 
 	c= (mul*source[2]) + dest[2];
-#ifdef RE_FLOAT_COLOUR_CLIPPING
-	if(c >= RE_FULL_COLOUR_FLOAT) dest[2] = RE_UNITY_COLOUR_FLOAT; 
-	else 
-#endif
        dest[2]= c;
 
 	c= (mul*source[3]) + dest[3];
-#ifdef RE_ALPHA_CLIPPING
-	if(c >= RE_FULL_COLOUR_FLOAT) dest[3] = RE_UNITY_COLOUR_FLOAT; 
-	else 
-#endif
        dest[3]= c;
 
 } /* end of void addAlphaUnderFloat(float *doel, float *bron) */

@@ -108,8 +108,8 @@ void init_material(Material *ma)
 	ma->ang= 1.0;
 	ma->ray_depth= 2;
 	ma->ray_depth_tra= 2;
-	ma->falloff_mir= 1.0;
-	ma->falloff_tra= 1.0;
+	ma->fresnel_mir= 1.0;
+	ma->fresnel_tra= 1.0;
 	
 	ma->mode= MA_TRACEBLE+MA_SHADOW+MA_RADIO;	
 }

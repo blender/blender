@@ -2025,7 +2025,9 @@ void do_matbuts(unsigned short event)
 	case B_MATRAYTRANSP:
 		ma= G.buts->lockpoin;
 		if(ma) {
-			ma->mode &= ~MA_ZTRA;
+			// set ztra when you disable ray-tra, is nicer
+			if(ma->mode & MA_RAYTRANSP) ma->mode &= ~MA_ZTRA;
+			else ma->mode |= MA_ZTRA;
 			allqueue(REDRAWBUTSSHADING, 0);
 			BIF_preview_changed(G.buts);
 		}
@@ -2250,21 +2252,19 @@ static void material_panel_raytrace(Material *ma)
 	if(uiNewPanel(curarea, block, "Raytrace", "Material", 640, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "RayMir ",	10,160,200,19, &(ma->ray_mirror), 0.0, 1.0, 0, 2, "Sets the amount mirror reflection for raytrace");
-	uiDefButS(block, NUM, B_MATPRV, "Depth:",		210,160,100,19, &(ma->ray_depth), 0.0, 6.0, 0, 0, "Amount of inter-reflections calculated maximal ");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,140,200,19, &(ma->fresnel_mir), 0.0, 1.0, 0, 2, "Sets Fresnel falloff for mirror reflection");
-	uiDefButF(block, NUM, B_MATPRV, "Falloff ",	210,140,100,19, &(ma->falloff_mir), 0.0, 5.0, 0, 2, "Sets the falloff strength of Fresnel");
+	uiDefButF(block, NUMSLI, B_MATPRV, "RayMir ",	10,160,200,19, &(ma->ray_mirror), 0.0, 1.0, 100, 2, "Sets the amount mirror reflection for raytrace");
+	uiDefButI(block, TOG|BIT|18, B_MATPRV,"Ray Mirror",210,160,100,19, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for mirror reflection rendering");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,140,200,19, &(ma->fresnel_mir), 1.0, 1.5, 10, 2, "Amount of Fresnel for mirror reflection");
+	uiDefButS(block, NUM, B_MATPRV, "Depth:",		210,140,100,19, &(ma->ray_depth), 0.0, 10.0, 100, 0, "Amount of inter-reflections calculated maximal ");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "Ang Index ",10,80,200,19, &(ma->ang), 0.0, 1.0, 0, 2, "Sets the angular index of refraction for raytrace");
-	uiDefButS(block, NUM, B_MATPRV, "Depth:",		210,80,100,19, &(ma->ray_depth_tra), 0.0, 6.0, 0, 0, "Amount of refractions calculated maximal ");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,60,200,19, &(ma->fresnel_tra), 0.0, 1.0, 0, 2, "Sets Fresnel falloff for transparency");
-	uiDefButF(block, NUM, B_MATPRV, "Falloff ",		210,60,100,19, &(ma->falloff_tra), 0.0, 5.0, 0, 2, "Sets the falloff strength of Fresnel");
+	uiDefButF(block, NUMSLI, B_MATPRV, "IOR ",		10,100,200,19, &(ma->ang), 1.0, 3.0, 100, 2, "Sets the angular index of refraction for raytrace");
+	uiDefButI(block, TOG|BIT|17, B_MATRAYTRANSP,"Ray Transp",210,100,100,19, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for transparency rendering");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,80,200,19, &(ma->fresnel_tra), 1.0, 1.5, 10, 2, "Amount of Fresnel for transparency");
+	uiDefButS(block, NUM, B_MATPRV, "Depth:",		210,80,100,19, &(ma->ray_depth_tra), 0.0, 10.0, 100, 0, "Amount of refractions calculated maximal ");
 	uiBlockEndAlign(block);
 
-	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButI(block, TOG|BIT|18, B_MATPRV,	"Ray Mirror",	160,185,150,19, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for mirror reflection rendering");
-	uiDefButI(block, TOG|BIT|17, B_MATRAYTRANSP,"Ray Transp",160,105,150,19, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for transparency rendering");
+	uiDefButI(block, TOG|BIT|19, B_MATRAYTRANSP,"Transp Shadow",160,40,150,19, &(ma->mode), 0, 0, 0, 0, "Enables transparent shadows based at material color and alpha");
 
 }
 
