@@ -98,8 +98,11 @@ install: package
 	@# possible overruling .txt text documents
 	@[ ! -d $(CONFIG_GUESS)/text ] || \
 	    cp -f $(CONFIG_GUESS)/text/*.txt $(DISTDIR)
+#on OS X the contents of the .blender dir is already inside the bundle
+ifneq ($(OS), darwin)
 	@[ ! -d $(OCGDIR)/bin/.blender ] || \
 		cp -a $(OCGDIR)/bin/.blender $(DISTDIR)
+endif
 
 # Python scripts removed for 2.14
 #@echo "----> Copy python scripts"
