@@ -2502,15 +2502,15 @@ void inner_play_anim_loop(int init, int mode)
 
 	set_timecursor(CFRA);
 
-	clear_all_constraints();
-	do_all_ipos();
-	BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
-	do_all_keys();
-	do_all_actions();
-	do_all_ikas();
+	//clear_all_constraints();
+	//do_all_ipos();
+	//BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
+	//do_all_keys();
+	//do_all_actions();
+	//do_all_ikas();
+	update_for_newframe_muted();
 
-
-	test_all_displists();
+	//test_all_displists();
 #ifdef NAN_LINEAR_PHYSICS	
 	update_anim_sumo();
 	

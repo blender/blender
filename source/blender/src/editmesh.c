@@ -1300,7 +1300,6 @@ void separate_mesh(void)
 	Base *base, *oldbase;
 	ListBase edve, eded, edvl;
 	float trans[9];
-	int ok, flag;
 	
 	TEST_EDITMESH	
 
@@ -1332,23 +1331,14 @@ void separate_mesh(void)
 		base= base->next;
 	}
 	
-	/* test for split */
-	ok= 0;
-	eed= em->edges.first;
-	while(eed) {
-		flag= (eed->v1->f & SELECT)+(eed->v2->f & SELECT);
-		if(flag==SELECT) {
-			ok= 1;
-			break;
-		}
-		eed= eed->next;
-	}
-	if(ok) {
-		/* SPLIT: first make duplicate */
-		adduplicateflag(SELECT);
-		/* SPLIT: old faces have 3x flag 128 set, delete these ones */
-		delfaceflag(128);
-	}
+	/* no test for split, split doesn't split when a loose part is selected */
+	/* SPLIT: first make duplicate */
+	adduplicateflag(SELECT);
+	/* SPLIT: old faces have 3x flag 128 set, delete these ones */
+	delfaceflag(128);
+	
+	/* since we do tricky things with verts/edges/faces, this makes sure all is selected coherent */
+	EM_selectmode_set();
 	
 	/* set apart: everything that is not selected */
 	edve.first= edve.last= eded.first= eded.last= edvl.first= edvl.last= 0;
@@ -1438,7 +1428,7 @@ void separate_mesh_loose(void)
 	Base *base, *oldbase;
 	ListBase edve, eded, edvl;
 	float trans[9];
-	int ok, vertsep=0, flag;	
+	int vertsep=0;	
 	short done=0, check=1;
 		
 	TEST_EDITMESH
@@ -1514,23 +1504,7 @@ void separate_mesh_loose(void)
 		*/
 		if(G.totvert==vertsep) done=1;				
 		else{			
-			/* Test for splitting: Separate selected */
-			ok= 0;
-			eed= em->edges.first;
-			while(eed) {
-				flag= (eed->v1->f & SELECT)+(eed->v2->f & SELECT);
-				if(flag==SELECT) {
-					ok= 1;
-					break;
-				}
-				eed= eed->next;
-			}
-			if(ok) {
-				/* SPLIT: first make duplicate */
-				adduplicateflag(SELECT);
-				/* SPLIT: old faces have 3x flag 128 set, delete these ones */
-				delfaceflag(128);
-			}	
+			/* No splitting: select connected goes fine */
 			
 			EM_select_flush();	// from verts->edges->faces
 

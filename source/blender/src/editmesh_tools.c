@@ -578,7 +578,7 @@ void split_mesh(void)
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);
-	BIF_undo_push("Hash");
+	BIF_undo_push("Split");
 
 }
 
