@@ -42,6 +42,7 @@ all:
 	    [ $$? -eq 0 ] || patch < patchfile.FreeBSD )
     endif
     ifeq ($(OS),$(findstring $(OS), "freebsd linux"))
+	[ -d $(DISTDIR)/lib ] || mkdir $(DISTDIR)/lib
 	$(MAKE) -C $(DISTDIR)
     endif
     ifeq ($(OS),windows)
