@@ -64,7 +64,6 @@ if (`test -x "$NSIS"`) then
     SHORTVERS=`echo $VERSION | sed 's/\.//'`
     # make a installer config for this release
     cat 00.blender.nsi | sed "s|VERSION|$VERSION|g" | sed "s|DISTDIR|$DISTDIR|g" | sed "s|SHORTVERS|$SHORTVERS|g" > $TEMPFILE
-    cat 00.blender.nsi | sed "s|VERSION|$VERSION|g" | sed "s|DISTDIR|$DISTDIR|g" | sed "s|SHORTVERS|$SHORTVERS|g" | less
     "$NSIS" $TEMPFILE
     rm $TEMPFILE
 fi

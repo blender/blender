@@ -81,4 +81,5 @@ Section "Uninstall"
   RMDir "$SMPROGRAMS\Blender Foundation\Blender-VERSION"
   RMDir "$SMPROGRAMS\Blender Foundation"
   RMDir "$INSTDIR"
+  RMDir "$INSTDIR\.."
 SectionEnd
