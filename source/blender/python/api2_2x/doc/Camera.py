@@ -64,6 +64,13 @@ class Camera:
     Get the name of this Camera Data object.
     @rtype: string
     """
+  def getIpo():
+    """
+    Retreives the Ipo (if any) of a camera object
+    @rtype: Ipo object
+    @return:  the Ipo  of the camera object.
+    """
+
 
   def setName(name):
     """

@@ -55,6 +55,17 @@ class Ipo:
 		@rtype: string
 		@return: the name of the Ipo.
     """
+  def getCurve(curvename):
+    """
+		Returns the IpoCurve with the given name.
+		The possible values for curvename are R,G,B,SpecR,SpecG,SpecB,MirR,MirG,MirB,Ref,Alpha,Emit,Amb,Spec,Hard,SpTra,Ang,Mode,HaSize,OfsX,OfsY,OfsZ,SizeX,SizeY,SizeZ,TexR,TexG,TexB,DefVar,Col,Nor,Var(Material Ipo)
+		HorR,HorG,HorB,ZenR,ZenG,ZenB,Expos,Misi,MisDi,MisSta,MisHi,StaR,StaG,StaB,StarDi,StarSi,OfsX,OfsY,OfsZ,SizeX,SizeY,SizeZ,TexR,TexG,TexB,DefVar,Col,Nor,Var (World Ipo)
+		LocX,LocY,LocZ,dLocX,dLocY,dLocZ,RotX,RotY,RotZ,dRotX,dRotY,dRotZ,SizeX,SizeY,SizeZ,dSizeX,dSizeY,dSizeZ,Layer,Time,ColR,ColG,ColB,ColA (Object Ipo)
+		Lens,ClSta,ClEnd (Camera Ipo)
+		@type curvename : string
+		@rtype: IpoCurve object
+		@return: the corresponding IpoCurve, or None.
+    """
   def setName(newname):
     """
 		Sets the name of the Ipo.

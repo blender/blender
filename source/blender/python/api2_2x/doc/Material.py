@@ -115,6 +115,13 @@ class Material:
    that range: if val < Min, then val = Min, if val > Max, then val = Max.
  """
 
+
+  def getIpo():
+    """
+    Retreives the Ipo (if any) of an material object
+    @rtype: Ipo object
+    @return:  the Ipo  of the material object.
+    """
   def getName():
     """
     Get the name of this Material object.

@@ -61,6 +61,13 @@ class World:
     @return:  the name of the world object.
     """
 
+  def getIpo():
+    """
+    Retreives the Ipo (if any) of an world object
+    @rtype: Ipo object
+    @return:  the Ipo  of the world object.
+    """
+
 	
   def setName(name):
     """
