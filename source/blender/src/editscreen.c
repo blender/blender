@@ -918,7 +918,7 @@ static ScrArea *screen_find_area_for_pt(bScreen *sc, short *mval)
 
 void screenmain(void)
 {
-	int has_input= 1;
+	int has_input= 0;	/* was one, why! (ton) */
 	int firsttime = 1;
 	
 	while (1) {
@@ -934,7 +934,7 @@ void screenmain(void)
 			event= screen_qread(&val, &ascii);
 		}
 		
-		window_make_active(mainwin);
+		//window_make_active(mainwin); (removed, ton)
 
 		if (event==INPUTCHANGE) {
 			has_input= val;
@@ -977,7 +977,8 @@ void screenmain(void)
 				areawinset(G.curscreen->winakt);
 				set_cursor(choose_cursor(g_activearea));
 			}
-		} else {
+		} 
+		else {
 			if (g_activearea) {
 				scrarea_queue_headredraw(g_activearea);
 			}
@@ -1087,7 +1088,7 @@ void screenmain(void)
 				towin= 0;
 			}
 		}
-		
+
 		if (towin && event) {
 			if (blenderqread(event, val))
 				addqueue_ext(G.curscreen->winakt, event, val, ascii);

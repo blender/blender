@@ -391,10 +391,10 @@ static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private) {
 			GHOST_ScreenToClient(win->ghostwin, cd->x, cd->y, &cx, &cy);
 			win->lmouse[0]= cx;
 			win->lmouse[1]= (win->size[1]-1) - cy;
-
+			
 			window_handle(win, MOUSEX, win->lmouse[0]);
 			window_handle(win, MOUSEY, win->lmouse[1]);
-			
+
 			break;
 		}
 		case GHOST_kEventButtonDown:

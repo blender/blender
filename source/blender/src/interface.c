@@ -68,6 +68,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_vec_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_utildefines.h"
@@ -211,7 +212,8 @@ struct uiBlock {
 	short autofill, flag, win, winq, direction, dt, frontbuf;  //frontbuf see below
 	void *saveunder;
 	
-	float xofs, yofs;  // offset to parent button
+	float xofs, yofs;  	// offset to parent button
+	rctf parentrct;		// for pulldowns, rect the mouse is allowed outside of menu (parent button)
 };
 
 /* block->frontbuf: (only internal here), to nice localize the old global var uiFrontBuf */
@@ -2323,10 +2325,6 @@ void uiDrawMenuBox(float minx, float miny, float maxx, float maxy)
 	fdrawline(minx+4, miny-4, maxx+4, miny-4);
 	fdrawline(maxx+4, miny-4, maxx+4, maxy-4);
 
-	glColor4ub(0, 0, 0, 10);
-	fdrawline(minx+4, miny-5, maxx+5, miny-5);
-	fdrawline(maxx+5, miny-5, maxx+5, maxy-4);
-
 	glDisable(GL_BLEND);
 	
 	/* below */
@@ -2494,6 +2492,7 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 
 		ui_graphics_to_window(block->win, &butrct.xmin, &butrct.ymin);
 		ui_graphics_to_window(block->win, &butrct.xmax, &butrct.ymax);
+		block->parentrct= butrct;	// will use that for pulldowns later
 
 		if( butrct.xmin-xsize > 0.0) left= 1;
 		if( butrct.xmax+xsize < G.curscreen->sizex) right= 1;
@@ -4364,7 +4363,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 
 	/* filter some unwanted events */
 	if(uevent==0 || uevent->event==LEFTSHIFTKEY || uevent->event==RIGHTSHIFTKEY) return UI_NOTHING;
-
+	
 	if(block->flag & UI_BLOCK_ENTER_OK) {
 		if(uevent->event == RETKEY && uevent->val) {
 			// printf("qual: %d %d %d\n", uevent->qual, get_qual(), G.qual);
@@ -4517,6 +4516,14 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 						but->flag &= ~UI_ACTIVE;
 						if(but->type != LABEL && but->embossfunc != ui_emboss_N) ui_draw_but(but);
 					}
+					else if(but->type==BLOCK ) {	// automatic opens block button (pulldown)
+						int time;
+						for (time= 0; time<10; time++) {
+							if (anyqtest()) break;
+							else PIL_sleep_ms(20);
+						}
+						if(time==10) ui_do_button(block, but, uevent);
+					}
 					if(but->flag & UI_ACTIVE) active= 1;
 				}
 				
@@ -4576,16 +4583,24 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 		if((uevent->event==RETKEY || uevent->event==PADENTER) && uevent->val==1) return UI_RETURN_OK;
 		
 		/* check outside */
-		if(block->direction==UI_RIGHT) count= 140; else count= 40;
-		if(uevent->mval[0]<block->minx-count) return UI_RETURN_OUT;
+		if(block->parentrct.xmax != 0.0) {
+			/* strict check, and include the parent rect */
+			if( BLI_in_rctf(&block->parentrct, (float)uevent->mval[0], (float)uevent->mval[1])==0) {
+				if(uevent->mval[0]<block->minx-10) return UI_RETURN_OUT;
+				if(uevent->mval[1]<block->miny-10) return UI_RETURN_OUT;
 		
-		if(uevent->mval[1]<block->miny-40) return UI_RETURN_OUT;
-
-		if(block->direction==UI_LEFT) count= 140; else count= 40;
-		if(uevent->mval[0]>block->maxx+count) return UI_RETURN_OUT;
-
-		if(uevent->mval[1]>block->maxy+40) return UI_RETURN_OUT;
-		
+				if(uevent->mval[0]>block->maxx+10) return UI_RETURN_OUT;
+				if(uevent->mval[1]>block->maxy+10) return UI_RETURN_OUT;
+			}
+		}
+		else {
+			/* for popups without parent button */
+			if(uevent->mval[0]<block->minx-40) return UI_RETURN_OUT;
+			if(uevent->mval[1]<block->miny-40) return UI_RETURN_OUT;
+	
+			if(uevent->mval[0]>block->maxx+40) return UI_RETURN_OUT;
+			if(uevent->mval[1]>block->maxy+40) return UI_RETURN_OUT;
+		}
 	}
 
 	return retval;
@@ -4729,6 +4744,9 @@ int uiDoBlocks(ListBase *lb, int event)
 	int retval= UI_NOTHING, cont= 1, dopop=0;
 
 	if(lb->first==0) return UI_NOTHING;
+	
+	/* for every pixel both x and y events are generated, overloads the system! */
+	if(event==MOUSEX) return UI_NOTHING;
 		
 	UIbuttip= NULL;
 	UIafterfunc= NULL;	/* to prevent infinite loops, this shouldnt be a global! */
@@ -4796,7 +4814,7 @@ int uiDoBlocks(ListBase *lb, int event)
 			if(block->flag & UI_BLOCK_REDRAW) {
 
 				if( block->flag & UI_BLOCK_LOOP) {
-					block->saveunder= ui_bgnpupdraw((int)block->minx-1, (int)block->miny-4, (int)block->maxx+4, (int)block->maxy+1, 1);
+					block->saveunder= ui_bgnpupdraw((int)block->minx-1, (int)block->miny-6, (int)block->maxx+6, (int)block->maxy+1, 1);
 					block->frontbuf= UI_HAS_DRAW_FRONT;
 				}
 				uiDrawBlock(block);
