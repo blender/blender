@@ -2248,7 +2248,14 @@ void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case MKEY:
 			if(G.qual & LR_ALTKEY) un_meta();
-			else make_meta();
+			else {
+				if ((last_seq) && (last_seq->type == SEQ_SOUND)) 
+				{
+					last_seq->flag ^= SEQ_MUTE;
+					doredraw = 1;
+				}
+				else make_meta();
+			}
 			break;
 		case SKEY:
 			if(G.qual & LR_SHIFTKEY) seq_snapmenu();

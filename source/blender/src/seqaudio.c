@@ -203,12 +203,8 @@ void audio_levels(Uint8 *buf, int len, float db, float facf, float pan)
 	
 	for (i=0; i<len; i+=4) {
 		sample = (signed short*)(buf+i);
-		sample[1] = (short) ((float)sample[0] * facl);
-		sample[0] = (short) ((float)sample[1] * facr);
-/*		if (G.order==B_ENDIAN) {
-			sample[0] = ((((sample[0]) & 0xff00) >> 8) | ((sample[0]) & 0x00ff) << 8);
-			sample[1] = ((((sample[1]) & 0xff00) >> 8) | ((sample[1]) & 0x00ff) << 8);
-		}*/
+		sample[0] = (short) ((float)sample[0] * facl);
+		sample[1] = (short) ((float)sample[1] * facr);
 	}
 }
 
