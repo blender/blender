@@ -205,7 +205,7 @@ static PyObject *MetaballRepr (C_Metaball *self);
 /*****************************************************************************/
 /* Python Metaball_Type structure definition:                                  */
 /*****************************************************************************/
-static PyTypeObject Metaball_Type =
+PyTypeObject Metaball_Type =
 	{
 		PyObject_HEAD_INIT(NULL)
 		0,                                      /* ob_size */
