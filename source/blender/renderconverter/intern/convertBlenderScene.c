@@ -2528,6 +2528,7 @@ static void init_render_curve(Object *ob)
 			for(a=0; a<dl->parts; a++, index+=3) {
 
 				vlr= RE_findOrAddVlak(R.totvlak++);
+				vlr->ob = ob;	/* yafray: correction for curve rendering, obptr was not set */
 				vlr->v1= RE_findOrAddVert(startvert+index[0]);
 				vlr->v2= RE_findOrAddVert(startvert+index[1]);
 				vlr->v3= RE_findOrAddVert(startvert+index[2]);
@@ -2953,11 +2954,18 @@ void RE_rotateBlenderScene(void)
 					free_duplilist();
 				}
 				else {
-					/* yafray: if there are linked data objects (except lamps),
+					/* yafray: if there are linked data objects (except lamps or empties),
 					   yafray only needs to know about one, the rest can be instanciated.
 					   The dupliMtx list is used for this purpose */
 					if (R.r.renderer==R_YAFRAY) {
-						if ((ob->type!=OB_LAMP) && (YAF_objectKnownData(ob)))
+						/* Special case, parent object dupli's: ignore lattices */
+						if (ob->parent) {
+							if ((ob->parent->type!=OB_LATTICE) && (YAF_objectKnownData(ob)))
+								printf("From parent: Added dupli matrix for linked data object %s\n", ob->id.name);
+							else
+								init_render_object(ob);
+						}
+						else if ((ob->type!=OB_EMPTY) && (ob->type!=OB_LAMP) && (YAF_objectKnownData(ob)))
 							printf("Added dupli matrix for linked data object %s\n", ob->id.name);
 						else
 							init_render_object(ob);
