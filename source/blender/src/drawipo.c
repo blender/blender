@@ -872,7 +872,6 @@ static void draw_ipovertices(int sel)
 	if(G.f & G_PICKSEL) return;
 	
 	glPointSize(3.0);
-	glBegin(GL_POINTS);
 	
 	ei= G.sipo->editipo;
 	for(nr=0; nr<G.sipo->totipo; nr++, ei++) {
@@ -889,6 +888,14 @@ static void draw_ipovertices(int sel)
 			}
 			
 			cpack(col);
+
+
+			/* We can't change the color in the middle of
+			 * GL_POINTS because then Blender will segfault
+			 * on TNT2 / Linux with NVidia's drivers
+			 * (at least up to ver. 4349) */		
+			
+			glBegin(GL_POINTS);
 			
 			bezt= ei->icu->bezt;
 			a= ei->icu->totvert;
@@ -935,10 +942,11 @@ static void draw_ipovertices(int sel)
 				
 				bezt++;
 			}
+
+			glEnd();
 		}
 	}
 	
-	glEnd();
 	glPointSize(1.0);
 }
 
