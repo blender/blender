@@ -338,6 +338,11 @@ void uiBoundsBlock(uiBlock *block, int addval)
 		block->maxx += addval;
 		block->maxy += addval;
 	}
+
+	block->safety.xmin= block->minx-40;
+	block->safety.ymin= block->miny-40;
+	block->safety.xmax= block->maxx+40;
+	block->safety.ymax= block->maxy+40;
 }
 
 static void ui_positionblock(uiBlock *block, uiBut *but)
