@@ -27,7 +27,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Robert Wenzlaff
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  * 
@@ -49,6 +49,10 @@
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+
+/* RPW 11-21-2002 */
+#include "DNA_scene_types.h"
+/* RPW - End */
 
 static AviMovie *avi=NULL;
 static int sframe;
@@ -88,7 +92,10 @@ void start_avi(void)
 	
 	avi = MEM_mallocN (sizeof(AviMovie), "avimovie");
 
-	if (R.r.imtype != AVI_FORMAT_MJPEG) format = AVI_FORMAT_AVI_RGB;
+	/* RPW 11-21-2002 
+	 if (R.r.imtype != AVI_FORMAT_MJPEG) format = AVI_FORMAT_AVI_RGB;
+	*/
+	if (R.r.imtype != R_AVIJPEG ) format = AVI_FORMAT_AVI_RGB;
 	else format = AVI_FORMAT_MJPEG;
 
 	if (AVI_open_compress (name, avi, 1, format) != AVI_ERROR_NONE) {
