@@ -599,9 +599,6 @@ void do_render_panels(unsigned short event)
 	case B_SELECTCODEC:
 #if defined (_WIN32) || defined (__APPLE__)
 		if ((G.scene->r.imtype == R_QUICKTIME)) { /* || (G.scene->r.qtcodecdata)) */
-#ifdef __APPLE__
-			notice("Warning: the 'Options' button in the next dialog causes a freeze...");
-#endif /* __APPLE__ */
 			get_qtcodec_settings();
 		}
 #ifdef _WIN32
