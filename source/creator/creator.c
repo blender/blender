@@ -107,6 +107,7 @@ extern char * build_type;
 
 /*	Local Function prototypes */
 static void print_help();
+static void print_version();
 
 /* for the callbacks: */
 
@@ -139,7 +140,10 @@ static void blender_esc(int sig)
 	}
 }
 
-
+static void print_version(void)
+{
+	printf ("Blender %d.%02d\n", G.version/100, G.version%100);
+}
 
 static void print_help(void)
 {
@@ -181,6 +185,7 @@ static void print_help(void)
 #ifdef WIN32
 	printf ("  -R\t\tRegister .blend extension\n");
 #endif
+	printf ("  -v\t\tPrint Blender version and exit\n");
 }
 
 
@@ -258,6 +263,12 @@ int main(int argc, char **argv)
 			exit(0);
 		}
 
+		/* Handle long version request */
+		if (!strcmp(argv[a], "--version")){
+			print_version();
+			exit(0);
+		}
+
 		/* Handle -* switches */
 		else if(argv[a][0] == '-') {
 			switch(argv[a][1]) {
@@ -301,7 +312,11 @@ int main(int argc, char **argv)
 			case 'h':			
 				print_help();
 				exit(0);
-								
+			
+			case 'v':
+				print_version();
+				exit(0);
+
 			default:
 				break;
 			}
