@@ -374,6 +374,9 @@
 				RelativePath="..\..\..\source\blender\src\oops.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\outliner.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\playanim.c">
 			</File>
 			<File
@@ -469,6 +472,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\BIF_language.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\include\BIF_outliner.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\BIF_previewrender.h">
