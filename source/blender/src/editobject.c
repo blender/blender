@@ -734,7 +734,7 @@ void make_parent(void)
 			while(base) {
 				if TESTBASELIB(base) {
 					if(base!=BASACT) {
-						float cmat[4][4], vec[3], size[3];
+						float cmat[4][4], vec[3], size[3], tmpvec[3];
 
 						con = add_new_constraint(CONSTRAINT_TYPE_FOLLOWPATH);
 						strcpy (con->name, "AutoPath");
@@ -745,7 +745,10 @@ void make_parent(void)
 						add_constraint_to_object(con, base->object);
 
 						get_constraint_target(con, TARGET_OBJECT, NULL, cmat, size, G.scene->r.cfra - base->object->sf);
-						VecSubf(vec, &base->object->obmat[3], cmat[3]);
+						tmpvec[0] = base->object->obmat[3][0];
+						tmpvec[1] = base->object->obmat[3][1];
+						tmpvec[2] = base->object->obmat[3][2];
+						VecSubf(vec, tmpvec, cmat[3]);
 
 						base->object->loc[0] = vec[0];
 						base->object->loc[1] = vec[1];
@@ -3846,7 +3849,7 @@ void transform(int mode)
 	float *curs, dx1, dx2, dy1, dy2, eul[3], quat[4], rot[3], phi0, phi1, deler, rad = 0.0;
 	float sizefac, size[3], sizelo[3], smat[3][3], xref=1.0, yref=1.0, zref= 1.0;
 	float si, co, dist, startomtrekfac = 0.0, omtrekfac, oldval[3];
-	int axismode=0, time, fast=0, a, midtog=0, firsttime=1, proj= 0, fout= 0, cameragrab= 0, gridflag;
+	int axismode=0, time, fast=0, a, midtog=0, firsttime=1, fout= 0, cameragrab= 0, gridflag;
 	unsigned short event=0;
 	short mval[2], afbreek=0, doit, xn, yn, xc, yc, xo, yo = 0, val;
 	char str[100];
@@ -4093,10 +4096,15 @@ void transform(int mode)
 			firsttime= 0;
 			
 			if(mode=='g' || mode=='G') {
-				
+				char gmode[10] = "";
+
 				keyflags |= KEYFLAG_LOC;
+
+				if (axismode==XTRANSLOCAL) strcpy(gmode, "Local X: ");
+				if (axismode==YTRANSLOCAL) strcpy(gmode, "Local Y: ");
+				if (axismode==ZTRANSLOCAL) strcpy(gmode, "Local Z: ");
 				
-				if(midtog) {
+				if(axismode) {
 					if(cameragrab) {
 						dx1= 0.002*(mval[1]-yn)*G.vd->grid;
 						dvec[0]-= dx1*G.vd->viewinv[2][0];
@@ -4106,9 +4114,9 @@ void transform(int mode)
 					}
 					else {
 						window_to_3d(dvec, mval[0]-xn, mval[1]-yn);
-						if(proj==0) dvec[1]=dvec[2]= 0.0;
-						if(proj==1) dvec[0]=dvec[2]= 0.0;
-						if(proj==2) dvec[0]=dvec[1]= 0.0;
+						if(axismode==XTRANS) dvec[1]=dvec[2]= 0.0;
+						if(axismode==YTRANS) dvec[0]=dvec[2]= 0.0;
+						if(axismode==ZTRANS) dvec[0]=dvec[1]= 0.0;
 					}
 				}
 				else window_to_3d(dvec, mval[0]-xn, mval[1]-yn);
@@ -4130,6 +4138,13 @@ void transform(int mode)
 					if (G.obedit) {
 						VECCOPY(dvecp, dvec);
 						Mat3MulVecfl(imat, dvecp);
+						if(axismode==XTRANSLOCAL) dvecp[1]=dvecp[2]=0;
+						if(axismode==YTRANSLOCAL) dvecp[0]=dvecp[2]=0;
+						if(axismode==ZTRANSLOCAL) dvecp[0]=dvecp[1]=0;
+						if(axismode&TRANSLOCAL){
+							VECCOPY(dvec, dvecp);
+							Mat3MulVecfl(omat, dvec);
+						}
 					}
 
 					
@@ -4139,6 +4154,13 @@ void transform(int mode)
 					for(a=0; a<tottrans; a++, tob++, tv++) {
 						
 						if(transmain) {
+							float tvec[3];
+
+							VECCOPY(tvec, dvec);
+							if(axismode==XTRANSLOCAL) Projf(dvec, tvec, tob->axismat[0]);
+							if(axismode==YTRANSLOCAL) Projf(dvec, tvec, tob->axismat[1]);
+							if(axismode==ZTRANSLOCAL) Projf(dvec, tvec, tob->axismat[2]);
+							
 							VECCOPY(dvecp, dvec);
 							
 							if(transmode==TRANS_TEX) Mat3MulVecfl(tob->obinv, dvecp);
@@ -4448,25 +4470,33 @@ void transform(int mode)
 				}
 				else size[0]=size[1]=size[2]= (sqrt( (float)((yc-mval[1])*(yc-mval[1])+(mval[0]-xc)*(mval[0]-xc)) ))/sizefac;
 				
-				if(midtog && mode=='s') {
-					/* shear has no midtog */
-					if(proj==0) size[1]=size[2]= 1.0;
-					if(proj==1) size[0]=size[2]= 1.0;
-					if(proj==2) size[1]=size[0]= 1.0;
+				if(axismode && mode=='s') {
+					/* shear has no axismode */
+					if (!(G.obedit)){
+						if(axismode==XTRANS) axismode = XTRANSLOCAL;
+						if(axismode==YTRANS) axismode = YTRANSLOCAL;
+						if(axismode==ZTRANS) axismode = ZTRANSLOCAL;
+					}
+					if(axismode==XTRANS) size[1]=size[2]= 1.0;
+					if(axismode==YTRANS) size[0]=size[2]= 1.0;
+					if(axismode==ZTRANS) size[1]=size[0]= 1.0;
+					if(axismode==XTRANSLOCAL) size[1]=size[2]= 1.0;
+					if(axismode==YTRANSLOCAL) size[0]=size[2]= 1.0;
+					if(axismode==ZTRANSLOCAL) size[1]=size[0]= 1.0;
 				}
 
-/* X en Y flip, there are 2 methods: at  |**| removing comments makes flips local */
+/* X en Y flip, there are 2 methods: at  |**| removing comments makes flips local
 
-/**/			/* if(transvmain) { */
+				if(transvmain) {
 	
-						/* x flip */
+						// x flip
 					val= test_midtog_proj(mval[0]+10, mval[1], mval);
 					size[val]*= xref;
-						/* y flip */
+						// y flip
 					val= test_midtog_proj(mval[0], mval[1]+10, mval);
 					size[val]*= yref;
 					
-/**/			/* } */
+				} */
 
 
 				/* grid */
@@ -4587,8 +4617,12 @@ void transform(int mode)
 								Mat3MulMat3(smat, imat, totmat);
 							}
 							else {
-								Mat3MulMat3(totmat, mat, omat);
-								Mat3MulMat3(smat, imat, totmat);
+								if (axismode & TRANSLOCAL)
+									Mat3CpyMat3(smat, mat);
+								else {
+									Mat3MulMat3(totmat, imat, mat);
+									Mat3MulMat3(smat, totmat, omat);
+								}
 							}
 							
 							if(mode=='N' && tv->nor!=NULL) {
@@ -4784,12 +4818,29 @@ void transform(int mode)
 				case MIDDLEMOUSE:
 					midtog= ~midtog;
 					if(midtog) {
+						int proj;
+
 						proj= test_midtog_proj(xn, yn, mval);
+						if (proj==0)
+							axismode=XTRANS;
+						if (proj==1)
+							axismode=YTRANS;
+						if (proj==2)
+							axismode=ZTRANS;
+
 						phi0= phi1= 0.0;
 						if(cameragrab) {
 							dvec[0]= dvec[1]= dvec[2]= 0.0;
 						}
 					}
+					else
+						axismode = 0;
+
+/* typety type code
+					if ((mode == 'r') || (mode == 'R')){
+						if (midtog){ax = 1;}
+						else{ax = 0;}
+					}*/
 					firsttime= 1;
 					break;
 				case GKEY:
