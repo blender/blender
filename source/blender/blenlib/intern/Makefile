@@ -48,4 +48,6 @@ CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I..
 # path to the guarded memory allocator
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
-
+# path to freetype font stuff
+CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
+CPPFLAGS += -I../../include/

@@ -58,6 +58,8 @@ CPPFLAGS += -I../../bpython/include
 CPPFLAGS += -I../../avi
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
+CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
+
 # we still refer to /include a bit...
 CPPFLAGS += -I../../include
 
