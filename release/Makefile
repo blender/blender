@@ -94,7 +94,7 @@ package: version makedirs
 
 install: package
 	@#echo "****> Install text"
-	@cp text/README $(DISTDIR)
+	@cp text/blender.html $(DISTDIR)
 	@cp text/*.txt $(DISTDIR)
 	@echo "----> Make Config dir .blender"
 	@mkdir -p $(CONFDIR)
