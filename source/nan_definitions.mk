@@ -51,8 +51,15 @@ all debug::
 
     export NAN_LIBDIR ?= $(NANBLENDERHOME)/lib
     export NAN_OBJDIR ?= $(NANBLENDERHOME)/obj
+
+  ifeq ($(OS),freebsd)
+    export NAN_PYTHON ?= /usr/local/include/python
+    export NAN_PYTHON_VERSION ?= 2.2
+  else
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_PYTHON_VERSION ?= 2.0
+  endif
+
   ifeq ($(OS),freebsd)
     export NAN_PYTHON_BINARY ?= 
     export NAN_MXTEXTTOOLS ?= 
@@ -60,11 +67,33 @@ all debug::
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_MXTEXTTOOLS ?= $(shell $(NAN_PYTHON_BINARY) -c 'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so 
   endif
+
+  ifeq ($(OS),freebsd)
+    export NAN_OPENAL ?= /usr/local
+  else
     export NAN_OPENAL ?= $(LCGDIR)/openal
+  endif
+
     export NAN_FMOD ?= $(LCGDIR)/fmod
+
+  ifeq ($(OS),freebsd)
+    export NAN_JPEG ?= /usr/local
+  else
     export NAN_JPEG ?= $(LCGDIR)/jpeg
+  endif
+
+  ifeq ($(OS),freebsd)
+    export NAN_PNG ?= /usr/local
+  else
     export NAN_PNG ?= $(LCGDIR)/png
+  endif
+
+  ifeq ($(OS),freebsd)
+    export NAN_SDL ?= /usr/local
+  else
     export NAN_SDL ?= $(LCGDIR)/sdl
+  endif
+
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_MOTO ?= $(LCGDIR)/moto
@@ -89,7 +118,13 @@ all debug::
     export NAN_IMG ?= $(LCGDIR)/img
     export NAN_GHOST ?= $(LCGDIR)/ghost
     export NAN_TEST_VERBOSITY ?= 1
+
+  ifeq ($(OS),freebsd)
+    export NAN_ZLIB ?= /usr
+  else
     export NAN_ZLIB ?= $(LCGDIR)/zlib
+  endif
+
     export NAN_BMFONT ?= $(LCGDIR)/bmfont
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -98,7 +133,11 @@ all debug::
     export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
     # Will fall back to look in NAN_MOZILLA_INC/nspr and NAN_MOZILLA_LIB
     # if this is not set.
+  ifeq ($(OS),freebsd)
+    export NAN_NSPR ?= /usr/local
+  else
     export NAN_NSPR ?= $(LCGDIR)/nspr
+  endif
 
     export NAN_BUILDINFO = true
 
@@ -123,7 +162,7 @@ all debug::
     export NAN_JPEG = /sw
     export NAN_PNG = /sw
     export NAN_ODE = $(LCGDIR)/ode
- 	# Override common python settings so that the python that comes with 
+	# Override common python settings so that the python that comes with 
 	# OSX 10.2 in /usr/local/ is used.
     export NAN_PYTHON = /usr/local
     export NAN_PYTHON_VERSION = 2.2
