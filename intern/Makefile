@@ -32,7 +32,7 @@
 
 SOURCEDIR = intern
 
-include nan_subdirs.mk
+# include nan_subdirs.mk
 
 ALLDIRS = string ghost guardedalloc bmfont moto container memutil
 ALLDIRS += decimation iksolver keymaker bsp
