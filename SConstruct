@@ -207,8 +207,8 @@ elif sys.platform == 'cygwin':
     release_flags = ['-O2']
     debug_flags = ['-O2', '-g']
     extra_flags = ['-pipe', '-mno-cygwin', '-mwindows', '-funsigned-char']
-    defines = ['FREE_WINDOWS', 'NDEBUG']
     cxxflags = []
+    defines = ['FREE_WINDOWS', 'NDEBUG']
     warn_flags = ['-Wall', '-Wno-char-subscripts']
     platform_libs = ['png', 'jpeg', 'netapi32',
                      'opengl32', 'glu32', 'winmm',
@@ -221,6 +221,19 @@ elif sys.platform == 'cygwin':
     z_lib = ['z']
     z_libpath = ['/usr/lib']
     z_include = ['/usr/include']
+    # png library information
+    png_lib = ['png']
+    png_libpath = ['/usr/lib']
+    png_include = ['/usr/include']
+    # jpeg library information
+    jpeg_lib = ['jpeg']
+    jpeg_libpath = ['/usr/lib']
+    jpeg_include = ['/usr/include']
+    # OpenGL library information
+    opengl_lib = ['GL', 'GLU']
+    opengl_static = ['/usr/lib/libGL.a', '/usr/lib/libGLU.a']
+    opengl_libpath = ['/usr/lib', '/usr/X11R6/lib']
+    opengl_include = ['/usr/include']
     # SDL specific stuff.
     sdl_env.ParseConfig ('sdl-config --cflags --libs')
     sdl_cflags = sdl_env.Dictionary()['CCFLAGS']
@@ -228,11 +241,22 @@ elif sys.platform == 'cygwin':
     sdl_libpath = sdl_env.Dictionary()['LIBPATH']
     sdl_lib = sdl_env.Dictionary()['LIBS']
     #sdl_cflags = '-DWIN32'
-    # Python variables.
-    python_include = sysconfig.get_python_inc ()
-    python_libpath = sysconfig.get_python_lib (0, 1) + '/config'
-    python_lib = 'python%d.%d' % sys.version_info[0:2]
-    python_linkflags = []
+    # SOLID library information
+    solid_lib = []                                              # TODO
+    solid_libpath = []                                          # TODO
+    solid_include = ['#extern/solid']
+    qhull_lib = []                                              # TODO
+    qhull_libpath = []                                          # TODO
+    qhull_include = ['#extern/qhull/include']
+    # ODE library information
+    ode_lib = ['ode']
+    ode_libpath = ['#../lib/linux-glibc2.2.5-i386/ode/lib']
+    ode_include = ['#../lib/linux-glibc2.2.5-i386/ode/include']
+    # Python library information
+    python_lib = ['python%d.%d' % sys.version_info[0:2]]
+    python_libpath = [sysconfig.get_python_lib (0, 1) + '/config']
+    python_include = [sysconfig.get_python_inc ()]
+    python_linkflags = Split (sysconfig.get_config_var('LINKFORSHARED'))
     # International stuff
     ftgl_lib = ['ftgl']
     ftgl_libpath = ['#../lib/windows/ftgl/lib']
