@@ -58,7 +58,6 @@ CPPFLAGS += -I../../blenloader
 
 CPPFLAGS += -I../../deflate
 CPPFLAGS += -I../../encrypt
-CPPFLAGS += -I../../sign
 
 CPPFLAGS += -I$(NAN_OPENSSL)/include
 

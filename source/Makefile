@@ -186,7 +186,6 @@ endif
     PULIB += $(OCGDIR)/blender/deflate/$(DEBUG_DIR)libdeflate.a
     PULIB += $(OCGDIR)/blender/encrypt/$(DEBUG_DIR)libencrypt.a
     PULIB += $(OCGDIR)/blender/decrypt/$(DEBUG_DIR)libdecrypt.a
-    PULIB += $(OCGDIR)/blender/sign/$(DEBUG_DIR)libsign.a
     PULIB += $(OCGDIR)/blender/verify/$(DEBUG_DIR)libverify.a
     PULIB += $(OCGDIR)/blender/writeblenfile/$(DEBUG_DIR)libwriteblenfile.a
     PULIB += $(OCGDIR)/blender/writestreamglue/$(DEBUG_DIR)libwritestreamglue.a
