@@ -2084,10 +2084,12 @@ static void material_panel_map_to(Material *ma)
 	uiDefButS(block, TOG|BIT|3, B_MATPRV, "Cmir",	1119,180,73,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affext the mirror colour");
 	uiDefButS(block, TOG3|BIT|4, B_MATPRV, "Ref",	1192,180,74,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of the materials reflectivity");
 
-	uiDefButS(block, TOG3|BIT|5, B_MATPRV, "Spec",	900,160,91,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of specularity");
-	uiDefButS(block, TOG3|BIT|8, B_MATPRV, "Hard",	991,160,92,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the hardness value");
-	uiDefButS(block, TOG3|BIT|7, B_MATPRV, "Alpha",	1083,160,91,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the alpha value");
-	uiDefButS(block, TOG3|BIT|6, B_MATPRV, "Emit",	1174,160,92,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
+	uiDefButS(block, TOG3|BIT|5, B_MATPRV, "Spec",	900,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of specularity");
+	uiDefButS(block, TOG3|BIT|8, B_MATPRV, "Hard",	960,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the hardness value");
+	uiDefButS(block, TOG3|BIT|9, B_MATPRV, "RayMir",1020,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the ray-mirror value");
+	uiDefButS(block, TOG3|BIT|7, B_MATPRV, "Alpha",	1080,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the alpha value");
+	uiDefButS(block, TOG3|BIT|6, B_MATPRV, "Emit",	1140,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
+	uiDefButS(block, TOG3|BIT|10, B_MATPRV, "Translu",1200,160,63,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the translucency value");
 	
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_MATPRV, "Mix",			1087,120,48,18, &(mtex->blendtype), 9.0, (float)MTEX_BLEND, 0, 0, "Sets texture to blend the values or colour");
@@ -2243,28 +2245,40 @@ static void material_panel_texture(Material *ma)
 	uiBlockSetCol(block, TH_AUTO);
 }
 
-static void material_panel_raytrace(Material *ma)
+static void material_panel_tramir(Material *ma)
 {
 	uiBlock *block;
 	
-	block= uiNewBlock(&curarea->uiblocks, "material_panel_raytrace", UI_EMBOSS, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "material_panel_tramir", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Shaders", "Material");
-	if(uiNewPanel(curarea, block, "Raytrace", "Material", 640, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Mirror Transp", "Material", 640, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "RayMir ",	10,160,200,19, &(ma->ray_mirror), 0.0, 1.0, 100, 2, "Sets the amount mirror reflection for raytrace");
-	uiDefButI(block, TOG|BIT|18, B_MATPRV,"Ray Mirror",210,160,100,19, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for mirror reflection rendering");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,140,200,19, &(ma->fresnel_mir), 1.0, 1.5, 10, 2, "Amount of Fresnel for mirror reflection");
-	uiDefButS(block, NUM, B_MATPRV, "Depth:",		210,140,100,19, &(ma->ray_depth), 0.0, 10.0, 100, 0, "Amount of inter-reflections calculated maximal ");
+	uiDefButF(block, NUMSLI, B_MATPRV, "RayMir ",	10,180,200,19, &(ma->ray_mirror), 0.0, 1.0, 100, 2, "Sets the amount mirror reflection for raytrace");
+	uiDefButI(block, TOG|BIT|18, B_MATPRV,"Ray Mirror",210,180,100,19, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for mirror reflection rendering");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,160,200,19, &(ma->fresnel_mir), 1.0, 1.5, 10, 2, "Amount of Fresnel for mirror reflection");
+	uiDefButS(block, NUM, B_MATPRV, "Depth:",		210,160,100,19, &(ma->ray_depth), 0.0, 10.0, 100, 0, "Amount of inter-reflections calculated maximal ");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "IOR ",		10,100,200,19, &(ma->ang), 1.0, 3.0, 100, 2, "Sets the angular index of refraction for raytrace");
-	uiDefButI(block, TOG|BIT|17, B_MATRAYTRANSP,"Ray Transp",210,100,100,19, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for transparency rendering");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,80,200,19, &(ma->fresnel_tra), 1.0, 1.5, 10, 2, "Amount of Fresnel for transparency");
-	uiDefButS(block, NUM, B_MATPRV, "Depth:",		210,80,100,19, &(ma->ray_depth_tra), 0.0, 10.0, 100, 0, "Amount of refractions calculated maximal ");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Alpha ",		10,130,200,19, &(ma->alpha), 0.0, 1.0, 0, 0, "Sets the material's opacity and transparency mix");
+	uiDefButI(block, TOG|BIT|6, B_MATZTRANSP,"ZTransp",	210,130,100,19, &(ma->mode), 0, 0, 0, 0, "Enables Z-Buffering of transparent faces");
+
+	uiDefButF(block, NUMSLI, B_MATPRV, "IOR ",		10,110,200,19, &(ma->ang), 1.0, 3.0, 100, 2, "Sets the angular index of refraction for raytrace");
+	uiDefButI(block, TOG|BIT|17, B_MATRAYTRANSP,"Ray Transp",210,110,100,19, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for transparency rendering");
+
+	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,90,200,19, &(ma->fresnel_tra), 1.0, 1.5, 10, 2, "Amount of Fresnel for transparency");
+	uiDefButS(block, NUM, B_MATPRV, "Depth:",		210,90,100,19, &(ma->ray_depth_tra), 0.0, 10.0, 100, 0, "Amount of refractions calculated maximal ");
+
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, B_MATPRV, "SpecTra ",	10,60,150,19, &(ma->spectra), 0.0, 1.0, 0, 0, "Makes specular areas opaque on transparent materials");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Add ",		160,60,150,19, &(ma->add), 0.0, 1.0, 0, 0, "Sets a glow factor for transparant materials");
+
+	uiBlockBeginAlign(block);
+	uiDefButI(block, TOG|BIT|10, 0,	"OnlyShadow",	10,10,100,19, &(ma->mode), 0, 0, 0, 0, "Renders shadows falling on material only");
+	uiDefButI(block, TOG|BIT|14, 0,	"No Mist",		110,10,100,19, &(ma->mode), 0, 0, 0, 0, "Sets the material to ignore mist values");
+	uiDefButI(block, TOG|BIT|9, 0,	"Env",			210,10,100,19, &(ma->mode), 0, 0, 0, 0, "Causes faces to render with alpha zero: allows sky/backdrop to show through");
 	uiBlockEndAlign(block);
 
-	uiDefButI(block, TOG|BIT|19, B_MATRAYTRANSP,"Transp Shadow",160,40,150,19, &(ma->mode), 0, 0, 0, 0, "Enables transparent shadows based at material color and alpha");
 
 }
 
@@ -2298,7 +2312,7 @@ static void material_panel_shading(Material *ma)
 		uiBlockSetCol(block, TH_BUT_SETTING1);
 		
 		uiBlockBeginAlign(block);
-		uiDefButI(block, TOG|BIT|15, B_MATPRV_DRAW, "Flare",		245,142,65,28, &(ma->mode), 0, 0, 0, 0, "Renders halo as a lensflare");
+		uiDefButI(block, TOG|BIT|15, B_MATPRV_DRAW, "Flare",245,142,65,28, &(ma->mode), 0, 0, 0, 0, "Renders halo as a lensflare");
 		uiDefButI(block, TOG|BIT|8, B_MATPRV, "Rings",		245,123,65, 18, &(ma->mode), 0, 0, 0, 0, "Renders rings over halo");
 		uiDefButI(block, TOG|BIT|9, B_MATPRV, "Lines",		245,104,65, 18, &(ma->mode), 0, 0, 0, 0, "Renders star shaped lines over halo");
 		uiDefButI(block, TOG|BIT|11, B_MATPRV, "Star",		245,85,65, 18, &(ma->mode), 0, 0, 0, 0, "Renders halo as a star");
@@ -2339,26 +2353,24 @@ static void material_panel_shading(Material *ma)
 			uiDefButF(block, NUMSLI, B_MATPRV, "Size:",	90, 100,150,19, &(ma->param[2]), 0.0, 1.53, 0, 0, "Sets the size of specular toon area");
 			uiDefButF(block, NUMSLI, B_MATPRV, "Smooth:",90, 80,150,19, &(ma->param[3]), 0.0, 1.0, 0, 0, "Sets the smoothness of specular toon area");
 		}
-		uiBlockEndAlign(block);
 		
 		/* default shading variables */
-		uiDefButF(block, NUMSLI, B_MATPRV, "Amb ",		9,30,117,19, &(ma->amb), 0.0, 1.0, 0, 0, "Sets the amount of global ambient color the material receives");
-		uiDefButF(block, NUMSLI, B_MATPRV, "Emit ",		133,30,110,19, &(ma->emit), 0.0, 1.0, 0, 0, "Sets the amount of light the material emits");
-		uiDefButF(block, NUMSLI, B_MATPRV, "Add ",		9,10,117,19, &(ma->add), 0.0, 1.0, 0, 0, "Sets a glow factor for transparant materials");
-		uiDefButF(block, NUM, 0, "Zoffs:",				133,10,110,19, &(ma->zoffs), 0.0, 10.0, 0, 0, "Gives faces an artificial offset in the Z buffer");
-	
-		uiBlockSetCol(block, TH_BUT_SETTING1);
 		uiBlockBeginAlign(block);
-		uiDefButI(block, TOG|BIT|0, 0,	"Traceable",		245,161,65,18, &(ma->mode), 0, 0, 0, 0, "Makes material cast shadows in spotlights");
-		uiDefButI(block, TOG|BIT|1, 0,	"Shadow",			245,142,65,18, &(ma->mode), 0, 0, 0, 0, "Makes material receive shadows from spotlights");
-		uiDefButI(block, TOG|BIT|16, 0,	"Radio",			245,123,65,18, &(ma->mode), 0, 0, 0, 0, "Enables material for radiosty rendering");
-		uiDefButI(block, TOG|BIT|3, 0,	"Wire",				245,104,65,18, &(ma->mode), 0, 0, 0, 0, "Renders only the edges of faces as a wireframe");
-		uiDefButI(block, TOG|BIT|6, B_MATZTRANSP,"ZTransp",	245,85, 65,18, &(ma->mode), 0, 0, 0, 0, "Enables Z-Buffering of transparent faces");
-		uiDefButI(block, TOG|BIT|9, 0,	"Env",				245,66, 65,18, &(ma->mode), 0, 0, 0, 0, "Causes faces to disappear: allows world to show through");
-		uiDefButI(block, TOG|BIT|10, 0,	"OnlyShadow",		245,47, 65,18, &(ma->mode), 0, 0, 0, 0, "Renders shadows falling on material only");
-		uiDefButI(block, TOG|BIT|14, 0,	"No Mist",			245,28, 65,18, &(ma->mode), 0, 0, 0, 0, "Sets the material to ignore mist values");
-		uiDefButI(block, TOG|BIT|8, 0,	"ZInvert",			245,9, 65,18, &(ma->mode), 0, 0, 0, 0, "Renders material's faces with inverted Z Buffer");
+		uiDefButF(block, NUMSLI, 0, "Translucency ",	9,30,301,19, &(ma->translucency), 0.0, 1.0, 100, 2, "Amount of diffuse shading of the back side");
+		uiDefButF(block, NUMSLI, B_MATPRV, "Amb ",		9,10,150,19, &(ma->amb), 0.0, 1.0, 0, 0, "Sets the amount of global ambient color the material receives");
+		uiDefButF(block, NUMSLI, B_MATPRV, "Emit ",		160,10,150,19, &(ma->emit), 0.0, 1.0, 0, 0, "Sets the amount of light the material emits");
 		uiBlockEndAlign(block);
+
+		uiBlockSetCol(block, TH_BUT_SETTING1);
+		uiDefButI(block, TOG|BIT|0, 0,	"Traceable",		245,140,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material cast shadows in spotlights");
+
+		uiBlockBeginAlign(block);
+		uiDefButI(block, TOG|BIT|1, 0,	"Shadow",			245,110,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material receive shadows from spotlights");
+		uiDefButI(block, TOG|BIT|19, 0, "TraShadow",		245,90,65,19, &(ma->mode), 0, 0, 0, 0, "Recieves transparent shadows based at material color and alpha");
+		uiBlockEndAlign(block);
+
+		uiDefButI(block, TOG|BIT|16, 0,	"Radio",			245,60,65,19, &(ma->mode), 0, 0, 0, 0, "Enables material for radiosty rendering");
+
 	}
 
 }
@@ -2439,24 +2451,29 @@ static void material_panel_material(Object *ob, Material *ma)
 			uiDefButI(block, TOG|BIT|7, B_REDR, "VCol Paint",	85,146,72,20, &(ma->mode), 0, 0, 0, 0, "Replaces material's colours with vertex colours");
 			uiDefButI(block, TOG|BIT|11, B_REDR, "TexFace",		160,146,62,20, &(ma->mode), 0, 0, 0, 0, "Sets UV-Editor assigned texture as color and texture info for faces");
 			uiDefButI(block, TOG|BIT|2, B_MATPRV, "Shadeless",	223,146,80,20, &(ma->mode), 0, 0, 0, 0, "Makes material insensitive to light or shadow");
-			uiBlockEndAlign(block);
+			uiBlockSetCol(block, TH_AUTO);
+			uiDefButF(block, NUM, 0, "Zoffs:",					8,127,120,19, &(ma->zoffs), 0.0, 10.0, 0, 0, "Gives faces an artificial offset in the Z buffer");
+			uiBlockSetCol(block, TH_BUT_SETTING1);
+			uiDefButI(block, TOG|BIT|3, 0,	"Wire",				128,127,96,19, &(ma->mode), 0, 0, 0, 0, "Renders only the edges of faces as a wireframe");
+			uiDefButI(block, TOG|BIT|8, 0,	"ZInvert",			224,127,79,19, &(ma->mode), 0, 0, 0, 0, "Renders material's faces with inverted Z Buffer");
+
 		}
 		uiBlockSetCol(block, TH_AUTO);
 		uiBlockBeginAlign(block);
-		uiDefButF(block, COL, B_MATCOL, "",		8,115,72,24, &(ma->r), 0, 0, 0, 0, "");
-		uiDefButF(block, COL, B_SPECCOL, "",	8,88,72,24, &(ma->specr), 0, 0, 0, 0, "");
-		uiDefButF(block, COL, B_MIRCOL, "",		8,61,72,24, &(ma->mirr), 0, 0, 0, 0, "");
+		uiDefButF(block, COL, B_MATCOL, "",		8,97,72,20, &(ma->r), 0, 0, 0, 0, "");
+		uiDefButF(block, COL, B_SPECCOL, "",	8,77,72,20, &(ma->specr), 0, 0, 0, 0, "");
+		uiDefButF(block, COL, B_MIRCOL, "",		8,57,72,20, &(ma->mirr), 0, 0, 0, 0, "");
 	
 		uiBlockBeginAlign(block);
 		if(ma->mode & MA_HALO) {
-			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Halo",		83,115,40,25, &(ma->rgbsel), 2.0, 0.0, 0, 0, "Sets the colour of the halo with the RGB sliders");
-			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Line",		83,88,40,25, &(ma->rgbsel), 2.0, 1.0, 0, 0, "Sets the colour of the lines with the RGB sliders");
-			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Ring",		83,61,40,25, &(ma->rgbsel), 2.0, 2.0, 0, 0, "Sets the colour of the rings with the RGB sliders");
+			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Halo",		83,97,40,20, &(ma->rgbsel), 2.0, 0.0, 0, 0, "Sets the colour of the halo with the RGB sliders");
+			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Line",		83,77,40,20, &(ma->rgbsel), 2.0, 1.0, 0, 0, "Sets the colour of the lines with the RGB sliders");
+			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Ring",		83,57,40,20, &(ma->rgbsel), 2.0, 2.0, 0, 0, "Sets the colour of the rings with the RGB sliders");
 		}
 		else {
-			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Col",			83,115,40,25, &(ma->rgbsel), 2.0, 0.0, 0, 0, "Sets the basic colour of the material");
-			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Spe",			83,88,40,25, &(ma->rgbsel), 2.0, 1.0, 0, 0, "Sets the specular colour of the material");
-			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Mir",			83,61,40,25, &(ma->rgbsel), 2.0, 2.0, 0, 0, "Sets the mirror colour of the material");
+			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Col",			83,97,40,20, &(ma->rgbsel), 2.0, 0.0, 0, 0, "Sets the basic colour of the material");
+			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Spe",			83,77,40,20, &(ma->rgbsel), 2.0, 1.0, 0, 0, "Sets the specular colour of the material");
+			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Mir",			83,57,40,20, &(ma->rgbsel), 2.0, 2.0, 0, 0, "Sets the mirror colour of the material");
 		}
 		
 		if(ma->rgbsel==0) {colpoin= &(ma->r); rgbsel= B_MATCOL;}
@@ -2467,27 +2484,26 @@ static void material_panel_material(Object *ob, Material *ma)
 		else if(ma->colormodel==MA_HSV) {
 			uiBlockSetCol(block, TH_BUT_SETTING1);
 			uiBlockBeginAlign(block);
-			uiDefButF(block, HSVSLI, B_MATPRV, "H ",		128,120,175,19, colpoin, 0.0, 0.9999, rgbsel, 0, "");
-			uiDefButF(block, HSVSLI, B_MATPRV, "S ",		128,100,175,19, colpoin, 0.0001, 1.0, rgbsel, 0, "");
-			uiDefButF(block, HSVSLI, B_MATPRV, "V ",		128,80,175,19, colpoin, 0.0001, 1.0, rgbsel, 0, "");
+			uiDefButF(block, HSVSLI, B_MATPRV, "H ",		128,97,175,19, colpoin, 0.0, 0.9999, rgbsel, 0, "");
+			uiDefButF(block, HSVSLI, B_MATPRV, "S ",		128,77,175,19, colpoin, 0.0001, 1.0, rgbsel, 0, "");
+			uiDefButF(block, HSVSLI, B_MATPRV, "V ",		128,57,175,19, colpoin, 0.0001, 1.0, rgbsel, 0, "");
 			uiBlockSetCol(block, TH_AUTO);
 		}
 		else {
 			uiBlockBeginAlign(block);
-			uiDefButF(block, NUMSLI, B_MATPRV, "R ",		128,120,175,19, colpoin, 0.0, 1.0, rgbsel, 0, "");
-			uiDefButF(block, NUMSLI, B_MATPRV, "G ",		128,100,175,19, colpoin+1, 0.0, 1.0, rgbsel, 0, "");
-			uiDefButF(block, NUMSLI, B_MATPRV, "B ",		128,80,175,19, colpoin+2, 0.0, 1.0, rgbsel, 0, "");
+			uiDefButF(block, NUMSLI, B_MATPRV, "R ",		128,97,175,19, colpoin, 0.0, 1.0, rgbsel, 0, "");
+			uiDefButF(block, NUMSLI, B_MATPRV, "G ",		128,77,175,19, colpoin+1, 0.0, 1.0, rgbsel, 0, "");
+			uiDefButF(block, NUMSLI, B_MATPRV, "B ",		128,57,175,19, colpoin+2, 0.0, 1.0, rgbsel, 0, "");
 		}
-		uiBlockBeginAlign(block);
-		uiDefButF(block, NUMSLI, B_MATPRV, "Alpha ",		128,52,175,19, &(ma->alpha), 0.0, 1.0, 0, 0, "Sets the material's opacity and transparency mix");
-		uiDefButF(block, NUMSLI, B_MATPRV, "SpecTra ",		128,32,175,19, &(ma->spectra), 0.0, 1.0, 0, 0, "Makes specular areas opaque on transparent materials");
+		uiBlockEndAlign(block);
+		uiDefButF(block, NUMSLI, B_MATPRV, "A ",			128,30,175,19, &ma->alpha, 0.0, 1.0, 0, 0, "Alpha");
 		
 	}
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, REDRAWBUTSSHADING, "RGB",			8,32,35,20, &(ma->colormodel), 1.0, (float)MA_RGB, 0, 0, "Creates colour using red, green and blue");
-	uiDefButS(block, ROW, REDRAWBUTSSHADING, "HSV",			43,32,35,20, &(ma->colormodel), 1.0, (float)MA_HSV, 0, 0, "Creates colour using hue, saturation and value");
-	uiDefButS(block, TOG|BIT|0, REDRAWBUTSSHADING, "DYN",	78,32,45,20, &(ma->dynamode), 0.0, 0.0, 0, 0, "Adjusts parameters for dynamics options");
-	uiBlockEndAlign(block);
+	uiDefButS(block, ROW, REDRAWBUTSSHADING, "RGB",			8,30,38,19, &(ma->colormodel), 1.0, (float)MA_RGB, 0, 0, "Creates colour using red, green and blue");
+	uiDefButS(block, ROW, REDRAWBUTSSHADING, "HSV",			46,30,38,19, &(ma->colormodel), 1.0, (float)MA_HSV, 0, 0, "Creates colour using hue, saturation and value");
+	uiDefButS(block, TOG|BIT|0, REDRAWBUTSSHADING, "DYN",	84,30,39,19, &(ma->dynamode), 0.0, 0.0, 0, 0, "Adjusts parameters for dynamics options");
+
 }
 
 static void material_panel_preview(Material *ma)
@@ -2530,7 +2546,7 @@ void material_panels()
 		
 		if(ma) {
 			material_panel_shading(ma);
-			material_panel_raytrace(ma);
+			material_panel_tramir(ma);
 			material_panel_texture(ma);
 			
 			mtex= ma->mtex[ ma->texact ];

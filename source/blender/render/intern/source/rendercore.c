@@ -1949,6 +1949,7 @@ void shade_lamp_loop(int mask, ShadeResult *shr)
 	if(shr->diff[2]<0.0) shr->diff[2]= 0.0; else shr->diff[2]*= ma->b;
 	shr->diff[2]+= ma->ambb +ma->amb*R.rad[2];
 	
+	/* refcol is for envmap only */
 	if(R.refcol[0]!=0.0) {
 		shr->diff[0]= ma->mirr*R.refcol[1] + (1.0 - ma->mirr*R.refcol[0])*shr->diff[0];
 		shr->diff[1]= ma->mirg*R.refcol[2] + (1.0 - ma->mirg*R.refcol[0])*shr->diff[1];
@@ -2362,6 +2363,17 @@ void shadepixel(float x, float y, int vlaknr, int mask)
 		}
 	
 		shade_lamp_loop(mask, &shr);
+		if(R.matren->translucency!=0.0) {
+			ShadeResult shr_t;
+			VecMulf(R.vn, -1.0);
+			VecMulf(R.vlr->n, -1.0);
+			shade_lamp_loop(mask, &shr_t);
+			shr.diff[0]+= R.matren->translucency*shr_t.diff[0];
+			shr.diff[1]+= R.matren->translucency*shr_t.diff[1];
+			shr.diff[2]+= R.matren->translucency*shr_t.diff[2];
+			VecMulf(R.vn, -1.0);
+			VecMulf(R.vlr->n, -1.0);
+		}
 		
 		if(R.r.mode & R_RAYTRACE) {
 			if(R.matren->ray_mirror!=0.0 || (R.mat->mode & MA_RAYTRANSP && shr.alpha!=1.0)) {

@@ -1172,7 +1172,7 @@ static void shade_ray(Isect *is, int mask, ShadeResult *shr)
 	
 	/* face normal, check for flip */
 	R.vno= R.vlr->n;
-	if((R.mat->mode & MA_RAYTRANSP)==0) {
+	if((R.matren->mode & MA_RAYTRANSP)==0) {
 		l= R.vlr->n[0]*R.view[0]+R.vlr->n[1]*R.view[1]+R.vlr->n[2]*R.view[2];
 		if(l<0.0) {	
 			flip= 1;
@@ -1347,8 +1347,23 @@ static void shade_ray(Isect *is, int mask, ShadeResult *shr)
 	}
 
 	if(is->mode==DDA_SHADOW_TRA) shade_color(shr);
-	else shade_lamp_loop(mask, shr);	
+	else {
 
+		shade_lamp_loop(mask, shr);	
+
+		if(R.matren->translucency!=0.0) {
+			ShadeResult shr_t;
+			VecMulf(R.vn, -1.0);
+			VecMulf(R.vlr->n, -1.0);
+			shade_lamp_loop(mask, &shr_t);
+			shr->diff[0]+= R.matren->translucency*shr_t.diff[0];
+			shr->diff[1]+= R.matren->translucency*shr_t.diff[1];
+			shr->diff[2]+= R.matren->translucency*shr_t.diff[2];
+			VecMulf(R.vn, -1.0);
+			VecMulf(R.vlr->n, -1.0);
+		}
+	}
+	
 	if(flip) {	
 		R.vlr->n[0]= -R.vlr->n[0];
 		R.vlr->n[1]= -R.vlr->n[1];
@@ -1488,21 +1503,21 @@ static void traceray(short depth, float *start, float *vec, float *col, int mask
 		
 		if(depth>0) {
 
-			if(R.mat->mode & MA_RAYMIRROR) {
-				f= R.mat->ray_mirror;
-				if(f!=0.0) f*= fresnel_fac(R.view, R.vn, R.mat->fresnel_mir);
+			if(R.matren->mode & MA_RAYMIRROR) {
+				f= R.matren->ray_mirror;
+				if(f!=0.0) f*= fresnel_fac(R.view, R.vn, R.matren->fresnel_mir);
 			}
 			else f= 0.0;
 			
 			/* have to do it here, make local vars... */
-			fr= R.mat->mirr;
-			fg= R.mat->mirg;
-			fb= R.mat->mirb;
+			fr= R.matren->mirr;
+			fg= R.matren->mirg;
+			fb= R.matren->mirb;
 		
-			if(R.mat->mode & MA_RAYTRANSP && shr.alpha!=1.0) {
+			if(R.matren->mode & MA_RAYTRANSP && shr.alpha!=1.0) {
 				float f, f1, refract[3], tracol[3];
 				
-				refraction(refract, R.vn, R.view, R.mat->ang);
+				refraction(refract, R.vn, R.view, R.matren->ang);
 				traceray(depth-1, R.co, refract, tracol, mask);
 				
 				f= shr.alpha; f1= 1.0-f;
@@ -1653,8 +1668,8 @@ void ray_trace(int mask, ShadeResult *shr)
 	float i, f, f1, fr, fg, fb, vec[3], mircol[3], tracol[3];
 	int do_tra, do_mir;
 	
-	do_tra= ((R.mat->mode & MA_RAYTRANSP) && shr->alpha!=1.0);
-	do_mir= ((R.mat->mode & MA_RAYMIRROR) && R.mat->ray_mirror!=0.0);
+	do_tra= ((R.matren->mode & MA_RAYTRANSP) && shr->alpha!=1.0);
+	do_mir= ((R.matren->mode & MA_RAYMIRROR) && R.matren->ray_mirror!=0.0);
 	vlr= R.vlr;
 	
 	if(R.r.mode & R_OSA) {
@@ -1662,7 +1677,7 @@ void ray_trace(int mask, ShadeResult *shr)
 		float accur[3], refract[3], divr=0.0, div= 0.0;
 		int j;
 		
-		if(do_tra) calc_dx_dy_refract(refract, R.vn, R.view, R.mat->ang);
+		if(do_tra) calc_dx_dy_refract(refract, R.vn, R.view, R.matren->ang);
 		
 		accum[0]= accum[1]= accum[2]= 0.0;
 		accur[0]= accur[1]= accur[2]= 0.0;
@@ -1685,7 +1700,7 @@ void ray_trace(int mask, ShadeResult *shr)
 					R.co[1]+= (jit[j][0]-0.5)*O.dxco[1] + (jit[j][1]-0.5)*O.dyco[1] ;
 					R.co[2]+= (jit[j][0]-0.5)*O.dxco[2] + (jit[j][1]-0.5)*O.dyco[2] ;
 
-					traceray(R.mat->ray_depth_tra, R.co, vec, tracol, mask);
+					traceray(R.matren->ray_depth_tra, R.co, vec, tracol, mask);
 					
 					VecAddf(accur, accur, tracol);
 					divr+= 1.0;
@@ -1717,7 +1732,7 @@ void ray_trace(int mask, ShadeResult *shr)
 					
 					/* we use a new mask here, only shadow uses it */
 					/* result in accum, this is copied to shade_lamp_loop */
-					traceray(R.mat->ray_depth, R.co, vec, mircol, 1<<j);
+					traceray(R.matren->ray_depth, R.co, vec, mircol, 1<<j);
 					
 					VecAddf(accum, accum, mircol);
 					div+= 1.0;
@@ -1740,10 +1755,10 @@ void ray_trace(int mask, ShadeResult *shr)
 		}
 		
 		if(div!=0.0) {
-			i= R.mat->ray_mirror;
-			fr= R.mat->mirr;
-			fg= R.mat->mirg;
-			fb= R.mat->mirb;
+			i= R.matren->ray_mirror;
+			fr= R.matren->mirr;
+			fg= R.matren->mirg;
+			fb= R.matren->mirb;
 	
 			/* result */
 			f= i*fr*(1.0-shr->spec[0]);	f1= 1.0-i; f/= div;
@@ -1767,8 +1782,8 @@ void ray_trace(int mask, ShadeResult *shr)
 			VECCOPY(rvn, R.vn);
 			VECCOPY(ref, R.ref);
 
-			refraction(refract, R.vn, R.view, R.mat->ang);
-			traceray(R.mat->ray_depth_tra, R.co, refract, tracol, mask);
+			refraction(refract, R.vn, R.view, R.matren->ang);
+			traceray(R.matren->ray_depth_tra, R.co, refract, tracol, mask);
 			
 			f= shr->alpha; f1= 1.0-f;
 			shr->diff[0]= f*shr->diff[0] + f1*tracol[0];
@@ -1788,18 +1803,18 @@ void ray_trace(int mask, ShadeResult *shr)
 		
 		if(do_mir) {
 		
-			i= R.mat->ray_mirror*fresnel_fac(R.view, R.vn, R.mat->fresnel_mir);
+			i= R.matren->ray_mirror*fresnel_fac(R.view, R.vn, R.matren->fresnel_mir);
 			if(i!=0.0) {
-				fr= R.mat->mirr;
-				fg= R.mat->mirg;
-				fb= R.mat->mirb;
+				fr= R.matren->mirr;
+				fg= R.matren->mirg;
+				fb= R.matren->mirb;
 	
 				if(R.vlr->flag & R_SMOOTH) 
 					reflection(vec, R.vn, R.view, R.vlr->n);
 				else
 					reflection(vec, R.vn, R.view, NULL);
 		
-				traceray(R.mat->ray_depth, R.co, vec, mircol, mask);
+				traceray(R.matren->ray_depth, R.co, vec, mircol, mask);
 				
 				f= i*fr*(1.0-shr->spec[0]);	f1= 1.0-i;
 				shr->diff[0]= f*mircol[0] + f1*shr->diff[0];
@@ -1885,7 +1900,7 @@ void ray_shadow(LampRen *lar, float *shadfac, int mask)
 	Isect isec;
 	float fac, div=0.0, lampco[3];
 
-	if(R.mat->mode & MA_SHADOW_TRA)  isec.mode= DDA_SHADOW_TRA;
+	if(R.matren->mode & MA_SHADOW_TRA)  isec.mode= DDA_SHADOW_TRA;
 	else isec.mode= DDA_SHADOW;
 	
 	shadfac[3]= 1.0;	// 1=full light

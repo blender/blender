@@ -1349,7 +1349,7 @@ void do_material_tex()
 {
 	Object *ob;
 	Material *mat_col, *mat_colspec, *mat_colmir, *mat_ref;
-	Material *mat_spec, *mat_har, *mat_emit, *mat_alpha;
+	Material *mat_spec, *mat_har, *mat_emit, *mat_alpha, *mat_ray_mirr, *mat_translu;
 	MTex *mtex;
 	Tex *tex;
 	float *co = NULL, *dx = NULL, *dy = NULL, fact, 
@@ -1359,7 +1359,7 @@ void do_material_tex()
 
 	/* here: test flag if there's a tex (todo) */
 	
-	mat_col=mat_colspec=mat_colmir=mat_ref=mat_spec=mat_har=mat_emit=mat_alpha= R.mat;
+	mat_col=mat_colspec=mat_colmir=mat_ref=mat_spec=mat_har=mat_emit=mat_alpha=mat_ray_mirr=mat_translu= R.mat;
 	
 	for(tex_nr=0; tex_nr<8; tex_nr++) {
 		
@@ -1612,11 +1612,17 @@ void do_material_tex()
 				}
 				if(mtex->mapto & MAP_COLMIR) {
 					if(mtex->blendtype==MTEX_BLEND) {
-						R.refcol[0]= fact + facm*R.refcol[0];
-						
-						R.refcol[1]= fact*Tr + facm*R.refcol[1];
-						R.refcol[2]= fact*Tg + facm*R.refcol[2];
-						R.refcol[3]= fact*Tb + facm*R.refcol[3];
+						// exception for envmap only
+						if(tex->type==TEX_ENVMAP) {
+							R.refcol[0]= fact + facm*R.refcol[0];
+							R.refcol[1]= fact*Tr + facm*R.refcol[1];
+							R.refcol[2]= fact*Tg + facm*R.refcol[2];
+							R.refcol[3]= fact*Tb + facm*R.refcol[3];
+						} else {
+							R.matren->mirr= fact*Tr + facm*mat_colmir->mirr;
+							R.matren->mirg= fact*Tg + facm*mat_colmir->mirg;
+							R.matren->mirb= fact*Tb + facm*mat_colmir->mirb;
+						}
 					}
 					else if(mtex->blendtype==MTEX_MUL) {
 						R.matren->mirr= (facm+fact*Tr)*mat_colmir->mirr;
@@ -1734,6 +1740,36 @@ void do_material_tex()
 						if(R.matren->har<1) R.matren->har= 1;
 					}
 					mat_har= R.matren;
+				}
+				if(mtex->mapto & MAP_RAYMIRR) {
+					if(mtex->maptoneg & MAP_RAYMIRR) {factt= facm; facmm= fact;}
+					else {factt= fact; facmm= facm;}
+					
+					if(mtex->blendtype==MTEX_BLEND)
+						R.matren->ray_mirror= factt*mtex->def_var+ facmm*mat_ray_mirr->ray_mirror;
+					else if(mtex->blendtype==MTEX_MUL)
+						R.matren->ray_mirror= (facmul+factt)*mat_ray_mirr->ray_mirror;
+					else {
+						R.matren->ray_mirror= factt+mat_ray_mirr->ray_mirror;
+						if(R.matren->ray_mirror<0.0) R.matren->ray_mirror= 0.0;
+						else if(R.matren->ray_mirror>1.0) R.matren->ray_mirror= 1.0;
+					}
+					mat_ray_mirr= R.matren;
+				}
+				if(mtex->mapto & MAP_TRANSLU) {
+					if(mtex->maptoneg & MAP_TRANSLU) {factt= facm; facmm= fact;}
+					else {factt= fact; facmm= facm;}
+					
+					if(mtex->blendtype==MTEX_BLEND)
+						R.matren->translucency= factt*mtex->def_var+ facmm*mat_translu->translucency;
+					else if(mtex->blendtype==MTEX_MUL)
+						R.matren->translucency= (facmul+factt)*mat_translu->translucency;
+					else {
+						R.matren->translucency= factt+mat_translu->translucency;
+						if(R.matren->translucency<0.0) R.matren->translucency= 0.0;
+						else if(R.matren->translucency>1.0) R.matren->translucency= 1.0;
+					}
+					mat_translu= R.matren;
 				}
 			}
 		}
