@@ -500,6 +500,7 @@ PyTypeObject Texture_Type = {
 	0, 0, 0, 0, 0, 0,
 	BPy_Texture_methods,	/* tp_methods */
 	0,			/* tp_members */
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 
 static PyObject *M_Texture_New( PyObject * self, PyObject * args,
@@ -2015,10 +2016,8 @@ static PyObject *Texture_clearIpo( BPy_Texture * self )
 			id->us--;
 		tex->ipo = NULL;
 
-		Py_INCREF( Py_True );
-		return Py_True;
+		return EXPP_incr_ret_True();
 	}
 
-	Py_INCREF( Py_False );	/* no ipo found */
-	return Py_False;
+	return EXPP_incr_ret_False(); /* no ipo found */
 }

@@ -85,6 +85,7 @@ PyTypeObject property_Type = {
 	0, 0, 0, 0, 0, 0,
 	BPy_Property_methods,	/* tp_methods */
 	0,			/* tp_members */
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 //--------------- Property module internal callbacks-------------------
 
@@ -98,9 +99,9 @@ int updatePyProperty( BPy_Property * self )
 		self->type = self->property->type;
 		if( self->property->type == PROP_BOOL ) {
 			if( *( ( int * ) &self->property->poin ) ) {
-				self->data = EXPP_incr_ret( Py_True );
+				self->data = EXPP_incr_ret_True();
 			} else {
-				self->data = EXPP_incr_ret( Py_False );
+				self->data = EXPP_incr_ret_False();
 			}
 		} else if( self->property->type == PROP_INT ) {
 			self->data = PyInt_FromLong( self->property->data );
@@ -430,9 +431,9 @@ static PyObject *Property_getData( BPy_Property * self )
 	} else {
 		if( self->property->type == PROP_BOOL ) {
 			if( self->property->data )
-				attr = EXPP_incr_ret( Py_True );
+				attr = EXPP_incr_ret_True();
 			else
-				attr = EXPP_incr_ret( Py_False );
+				attr = EXPP_incr_ret_False();
 		} else if( self->property->type == PROP_INT ) {
 			attr = PyInt_FromLong( self->property->data );
 		} else if( self->property->type == PROP_FLOAT ||

@@ -51,6 +51,9 @@
 #include "Lattice.h"
 #include "modules.h"
 
+/* only used for oops location get/set at the moment */
+#include "DNA_oops_types.h" 
+#include "DNA_space_types.h"
 
 /*****************************************************************************/
 /* Python API function prototypes for the Blender module.		 */
@@ -340,6 +343,7 @@ PyTypeObject Object_Type = {
 	0, 0, 0, 0, 0, 0,
 	BPy_Object_methods,	/* tp_methods */
 	0,			/* tp_members */
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 
 /*****************************************************************************/
@@ -608,12 +612,10 @@ static PyObject *Object_clearIpo( BPy_Object * self )
 			id->us--;
 		ob->ipo = NULL;
 
-		Py_INCREF( Py_True );
-		return Py_True;
+		return EXPP_incr_ret_True();
 	}
 
-	Py_INCREF( Py_False );	/* no ipo found */
-	return Py_False;
+	return EXPP_incr_ret_False(); /* no ipo found */
 }
 
 static PyObject *Object_clrParent( BPy_Object * self, PyObject * args )
@@ -856,11 +858,9 @@ static PyObject *Object_isSelected( BPy_Object * self )
 	while( base ) {
 		if( base->object == self->object ) {
 			if( base->flag & SELECT ) {
-				Py_INCREF( Py_True );
-				return Py_True;
+				return EXPP_incr_ret_True();
 			} else {
-				Py_INCREF( Py_False );
-				return Py_False;
+				return EXPP_incr_ret_False();
 			}
 		}
 		base = base->next;
@@ -2221,6 +2221,20 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 		return ( Py_BuildValue( "s", object->id.name + 2 ) );
 	if( StringEqual( name, "sel" ) )
 		return ( Object_isSelected( obj ) );
+	if (StringEqual (name, "oopsLoc")) {
+		if (G.soops) {
+      Oops *oops= G.soops->oops.first;
+      while(oops) {
+        if(oops->type==ID_OB) {
+          if ((Object *)oops->id == object) {
+            return (Py_BuildValue ("ff", oops->x, oops->y));
+          }
+        }
+        oops= oops->next;
+      }
+    }
+		return EXPP_incr_ret( Py_None );
+	}
 
 	/* not an attribute, search the methods table */
 	return Py_FindMethod( BPy_Object_methods, ( PyObject * ) obj, name );
@@ -2422,16 +2436,28 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 		else
 			return ( 0 );
 	}
-
 	if( StringEqual( name, "sel" ) ) {
 		if( Object_Select( obj, valtuple ) != Py_None )
 			return ( -1 );
 		else
 			return ( 0 );
 	}
+	if (StringEqual (name, "oopsLoc")) {
+		if (G.soops) {
+			Oops *oops= G.soops->oops.first;
+			while(oops) {
+				if(oops->type==ID_OB) {
+					if ((Object *)oops->id == object) {
+						return (!PyArg_ParseTuple  (value, "ff", &(oops->x),&(oops->y)));
+					}
+				}
+				oops= oops->next;
+			}
+		}
+		return 0;
+	}
 
-	printf( "Unknown variable.\n" );
-	return ( 0 );
+	return EXPP_ReturnIntError( PyExc_KeyError, "attribute not found" );
 }
 
 /*****************************************************************************/

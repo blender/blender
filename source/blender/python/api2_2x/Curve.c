@@ -1067,9 +1067,10 @@ static PyObject *Curve_isNurb( BPy_Curve * self, PyObject * args )
 static PyObject *Curve_isCyclic( BPy_Curve * self, PyObject * args )
 {
 	int curve_num = 0;	/* default value */
-	int is_cyclic;
+	/* unused:*/
+	/* int is_cyclic;
+	 * PyObject *ret_val;*/
 	Nurb *ptrnurb;
-	PyObject *ret_val;
 	int i;
 
 	/* parse and check input args */
@@ -1096,11 +1097,9 @@ static PyObject *Curve_isCyclic( BPy_Curve * self, PyObject * args )
 	}
 
 	if(  ptrnurb->flagu & CU_CYCLIC ){
-		Py_INCREF( Py_True );
-		return Py_True;
+		return EXPP_incr_ret_True();
 	} else {
-		Py_INCREF( Py_False );
-		return Py_False;
+		return EXPP_incr_ret_False();
 	}
 }
 

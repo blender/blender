@@ -64,6 +64,8 @@ float EXPP_ClampFloat( float value, float min, float max );
 int EXPP_ClampInt( int value, int min, int max );
 
 PyObject *EXPP_incr_ret( PyObject * object );
+PyObject *EXPP_incr_ret_True(void);
+PyObject *EXPP_incr_ret_False(void);
 PyObject *EXPP_ReturnPyObjError( PyObject * type, char *error_msg );
 int EXPP_ReturnIntError( PyObject * type, char *error_msg );
 

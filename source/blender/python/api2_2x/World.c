@@ -241,6 +241,7 @@ PyTypeObject World_Type = {
 	0, 0, 0, 0, 0, 0,
 	BPy_World_methods,	/* tp_methods */
 	0,			/* tp_members */
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 
 /**
@@ -480,12 +481,10 @@ static PyObject *World_clearIpo( BPy_World * self )
 			id->us--;
 		world->ipo = NULL;
 
-		Py_INCREF( Py_True );
-		return Py_True;
+		return EXPP_incr_ret_True();
 	}
 
-	Py_INCREF( Py_False );	/* no ipo found */
-	return Py_False;
+	return EXPP_incr_ret_False(); /* no ipo found */
 }
 
 /**

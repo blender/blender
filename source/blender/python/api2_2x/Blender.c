@@ -511,18 +511,16 @@ void M_Blender_Init( void )
 
 	g_blenderdict = NULL;
 
-	/* TODO: create a docstring for the Blender module */
-	module = Py_InitModule3( "Blender", Blender_methods, NULL );
+	module = Py_InitModule3( "Blender", Blender_methods,
+		"The main Blender module" );
 
 	types_InitAll(  );	/* set all our pytypes to &PyType_Type */
 
 	dict = PyModule_GetDict( module );
 	g_blenderdict = dict;
 
-	Py_INCREF( Py_False );
-	PyDict_SetItemString( dict, "bylink", Py_False );
-	Py_INCREF( Py_None );
-	PyDict_SetItemString( dict, "link", Py_None );
+	PyDict_SetItemString( dict, "bylink", EXPP_incr_ret_False() );
+	PyDict_SetItemString( dict, "link", EXPP_incr_ret ( Py_None ) );
 	PyDict_SetItemString( dict, "event", PyString_FromString( "" ) );
 
 	PyDict_SetItemString( dict, "Types", Types_Init(  ) );

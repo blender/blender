@@ -26,7 +26,7 @@
  * This is a new part of Blender.
  *
  * Contributor(s): Willian P. Germano, Michel Selten, Alex Mole,
- * Alexander Szakaly
+ * Alexander Szakaly, Campbell Barton
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -46,6 +46,10 @@
 
 #include "Material.h"
 #include "Ipo.h"
+
+/* only used for .oopsLoc at the moment */
+#include "DNA_oops_types.h"
+#include "DNA_space_types.h"
 
 /*****************************************************************************/
 /* Python BPy_Material defaults: */
@@ -670,6 +674,7 @@ PyTypeObject Material_Type = {
 	0, 0, 0, 0, 0, 0,
 	BPy_Material_methods,	/* tp_methods */
 	0,			/* tp_members */
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, /* up to tp_del to avoid a warning */
 };
 
 /*****************************************************************************/
@@ -1217,12 +1222,10 @@ static PyObject *Material_clearIpo( BPy_Material * self )
 			id->us--;
 		mat->ipo = NULL;
 
-		Py_INCREF( Py_True );
-		return Py_True;
+		return EXPP_incr_ret_True();
 	}
 
-	Py_INCREF( Py_False );	/* no ipo found */
-	return Py_False;
+	return EXPP_incr_ret_False(); /* no ipo found */
 }
 
 static PyObject *Material_setName( BPy_Material * self, PyObject * args )
@@ -1998,10 +2001,44 @@ static PyObject *Material_getAttr( BPy_Material * self, char *name )
 	else if( strcmp( name, "users" ) == 0 )
 		attr = PyInt_FromLong( ( double ) self->material->
 					   id.us );
+  else if (strcmp(name, "oopsLoc") == 0) {
+    if (G.soops) { 
+      Oops *oops= G.soops->oops.first;
+      while(oops) {
+        if(oops->type==ID_MA) {
+          if ((Material *)oops->id == self->material) {
+            return (Py_BuildValue ("ff", oops->x, oops->y));
+          }
+        }
+        oops= oops->next;
+      }
+    }
+    Py_INCREF (Py_None);
+    return (Py_None);
+  }
+  /* Select in the oops view only since its a mesh */
+  else if (strcmp(name, "oopsSel") == 0) {
+    if (G.soops) {
+      Oops *oops= G.soops->oops.first;
+      while(oops) {
+        if(oops->type==ID_MA) {
+          if ((Material *)oops->id == self->material) {
+            if (oops->flag & SELECT)
+							return EXPP_incr_ret_True();
+            else
+							return EXPP_incr_ret_False();
+          }
+        }
+        oops= oops->next;
+      }
+    }
+    Py_INCREF (Py_None);
+		return (Py_None);    
+  }    
 	else if( strcmp( name, "__members__" ) == 0 ) {
-		attr =		/* 28 items */
+		attr =		/* 30 items */
 			Py_BuildValue
-			( "[s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s]",
+			( "[s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s]",
 			  "name", "mode", "rgbCol", "specCol", "mirCol", "R",
 			  "G", "B", "alpha", "amb", "emit", "ref", "spec",
 			  "specTransp", "add", "zOffset", "haloSize",
@@ -2009,7 +2046,7 @@ static PyObject *Material_getAttr( BPy_Material * self, char *name )
 			  "subSize", "hard", "nFlares", "nStars", "nLines",
 			  "nRings", "rayMirr", "rayMirrDepth", "fresnelDepth",
 			  "fresnelDepthFac", "IOR", "transDepth",
-			  "fresnelTrans", "fresnelTransFac", "users" );
+			  "fresnelTrans", "fresnelTransFac", "users", "oopsLoc", "oopsSel" );
 	}
 
 	if( !attr )
@@ -2129,7 +2166,46 @@ static int Material_setAttr( BPy_Material * self, char *name,
 		error = Material_setFresnelTrans( self, valtuple );
 	else if( strcmp( name, "fresnelTransFac" ) == 0 )
 		error = Material_setFresnelTransFac( self, valtuple );
-
+  else if (strcmp (name, "oopsLoc") == 0) {
+    if (G.soops) {
+      Oops *oops= G.soops->oops.first;
+      while(oops) {
+        if(oops->type==ID_MA) {
+          if ((Material *)oops->id == self->material) {
+            if (!PyArg_ParseTuple  (value, "ff", &(oops->x),&(oops->y)))
+							PyErr_SetString(PyExc_AttributeError,
+								"expected two floats as arguments");
+            break;
+          }
+        }
+        oops= oops->next;
+      }
+			if (!oops)
+				PyErr_SetString(PyExc_RuntimeError,
+					"couldn't find oopsLoc data for this material!");
+			else error = EXPP_incr_ret (Py_None);
+    }
+  }
+  /* Select in the oops view only since its a mesh */
+  else if (strcmp (name, "oopsSel") == 0) {
+    int sel;
+    if (!PyArg_Parse (value, "i", &sel))
+      PyErr_SetString (PyExc_TypeError, "expected an integer, 0 or 1");
+		else if (G.soops) {
+      Oops *oops= G.soops->oops.first;
+      while(oops) {
+        if(oops->type==ID_MA) {
+          if ((Material *)oops->id == self->material) {
+            if(sel == 0) oops->flag &= ~SELECT;
+            else oops->flag |= SELECT;
+            break;
+          }
+        }
+        oops= oops->next;
+      }
+    	error = EXPP_incr_ret (Py_None);
+    }
+  }	
 	else {			/* Error */
 		Py_DECREF( valtuple );
 		return ( EXPP_ReturnIntError( PyExc_AttributeError, name ) );

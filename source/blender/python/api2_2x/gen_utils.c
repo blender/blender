@@ -126,6 +126,20 @@ PyObject *EXPP_incr_ret( PyObject * object )
 	return ( object );
 }
 
+/* return Py_False - to avoid warnings, we use the fact that
+ * 0 == False in Python: */
+PyObject *EXPP_incr_ret_False()
+{
+	return Py_BuildValue("i", 0);
+}
+
+/* return Py_True - to avoid warnings, we use the fact that
+ * 1 == True in Python: */
+PyObject *EXPP_incr_ret_True()
+{
+	return Py_BuildValue("i", 1);
+}
+
 /*****************************************************************************/
 /* Description: This function maps the event identifier to a string.	  */
 /*****************************************************************************/

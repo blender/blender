@@ -341,6 +341,7 @@ PyTypeObject Lamp_Type = {
 	0, 0, 0, 0, 0, 0,
 	BPy_Lamp_methods,	/* tp_methods */
 	0,			/* tp_members */
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 
 /*****************************************************************************/
@@ -1527,10 +1528,8 @@ static PyObject *Lamp_clearIpo( BPy_Lamp * self )
 			id->us--;
 		lamp->ipo = NULL;
 
-		Py_INCREF( Py_True );
-		return Py_True;
+		return EXPP_incr_ret_True();
 	}
 
-	Py_INCREF( Py_False );	/* no ipo found */
-	return Py_False;
+	return EXPP_incr_ret_False(); /* no ipo found */
 }

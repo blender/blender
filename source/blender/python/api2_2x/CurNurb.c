@@ -194,7 +194,7 @@ static PyObject *CurNurb_repr( BPy_CurNurb * self )
 	return PyString_FromFormat( "[CurNurb \"%d\"]", self->nurb->type );
 }
 
-
+/* XXX Can't this be simply removed? */
 static PyObject *M_CurNurb_New( PyObject * self, PyObject * args )
 {
 	return ( PyObject * ) 0;
@@ -419,11 +419,9 @@ static PyObject *CurNurb_isNurb( BPy_CurNurb * self )
 	 */
 
 	if( self->nurb->bp ) {
-		Py_INCREF( Py_True );
-		return Py_True;
+		return EXPP_incr_ret_True();
 	} else {
-		Py_INCREF( Py_False );
-		return ( Py_False );
+		return EXPP_incr_ret_False();
 	}
 }
 
@@ -437,11 +435,9 @@ static PyObject *CurNurb_isCyclic( BPy_CurNurb * self )
         /* supposing that the flagu is always set */ 
 
 	if( self->nurb->flagu & CU_CYCLIC ) {
-		Py_INCREF( Py_True );
-		return Py_True;
+		return EXPP_incr_ret_True();
 	} else {
-		Py_INCREF( Py_False );
-		return ( Py_False );
+		return EXPP_incr_ret_False();
 	}
 }
 

@@ -41,6 +41,7 @@
 #include <BKE_image.h>
 #include <BIF_drawimage.h>
 #include <BLI_blenlib.h>
+#include <DNA_space_types.h> /* FILE_MAXDIR = 160 */
 #include <IMB_imbuf_types.h>	/* for the IB_rect define */
 #include <BIF_gl.h>
 #include "gen_utils.h"
@@ -62,8 +63,8 @@
 /*****************************************************************************/
 /* Python API function prototypes for the Image module.	 */
 /*****************************************************************************/
-static PyObject *M_Image_New( PyObject * self, PyObject * args,
-			      PyObject * keywords );
+/*static PyObject *M_Image_New( PyObject * self, PyObject * args,
+			      PyObject * keywords );*/
 static PyObject *M_Image_Get( PyObject * self, PyObject * args );
 static PyObject *M_Image_Load( PyObject * self, PyObject * args );
 
@@ -74,8 +75,8 @@ static PyObject *M_Image_Load( PyObject * self, PyObject * args );
 /*****************************************************************************/
 static char M_Image_doc[] = "The Blender Image module\n\n";
 
-static char M_Image_New_doc[] =
-	"() - return a new Image object -- unimplemented";
+/*static char M_Image_New_doc[] =
+	"() - return a new Image object -- unimplemented";*/
 
 static char M_Image_Get_doc[] =
 	"(name) - return the image with the name 'name', \
@@ -90,8 +91,8 @@ returns None if not found.\n";
 /* Python method structure definition for Blender.Image module:		 */
 /*****************************************************************************/
 struct PyMethodDef M_Image_methods[] = {
-	{"New", ( PyCFunction ) M_Image_New, METH_VARARGS | METH_KEYWORDS,
-	 M_Image_New_doc},
+	/*{"New", ( PyCFunction ) M_Image_New, METH_VARARGS | METH_KEYWORDS,
+	 M_Image_New_doc},*/
 	{"Get", M_Image_Get, METH_VARARGS, M_Image_Get_doc},
 	{"get", M_Image_Get, METH_VARARGS, M_Image_Get_doc},
 	{"Load", M_Image_Load, METH_VARARGS, M_Image_Load_doc},
@@ -99,18 +100,16 @@ struct PyMethodDef M_Image_methods[] = {
 };
 
 /*****************************************************************************/
-/* Function:	M_Image_New	 */
+/* Function:	M_Image_New	 (unimplemented) */
 /* Python equivalent:		Blender.Image.New    */
 /*****************************************************************************/
-static PyObject *M_Image_New( PyObject * self, PyObject * args,
-			      PyObject * keywords )
+/*static PyObject *M_Image_New( PyObject * self, PyObject * args,
+	PyObject * keywords )
 {
-	printf( "In Image_New() - unimplemented in 2.25\n" );
-
 	Py_INCREF( Py_None );
 	return Py_None;
 }
-
+*/
 /*****************************************************************************/
 /* Function:		M_Image_Get	 */
 /* Python equivalent:	Blender.Image.Get   */
@@ -326,6 +325,7 @@ PyTypeObject Image_Type = {
 	0, 0, 0, 0, 0, 0,
 	BPy_Image_methods,	/* tp_methods */
 	0,			/* tp_members */
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, /* up to tp_del, to avoid a warning */
 };
 
 /*****************************************************************************/
@@ -552,15 +552,19 @@ static PyObject *Image_setName( BPy_Image * self, PyObject * args )
 static PyObject *Image_setFilename( BPy_Image * self, PyObject * args )
 {
 	char *name;
-	char buf[160];
+	int namelen = 0;
 
-	if( !PyArg_ParseTuple( args, "s", &name ) )
+	/* max len is FILE_MAXDIR = 160 chars like done in DNA_image_types.h */
+
+	if( !PyArg_ParseTuple( args, "s#", &name, &namelen ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-			"expected string argument" ) );
+			"expected a string argument" ) );
 
-	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
+	if( namelen >= 160)
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+			"string argument is limited to 160 chars at most" ) );
 
-	strcpy(self->image->name, buf);
+	PyOS_snprintf( self->image->name, FILE_MAXDIR * sizeof( char ), "%s", name );
 
 	Py_INCREF( Py_None );
 	return Py_None;

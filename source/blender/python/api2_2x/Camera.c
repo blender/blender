@@ -213,6 +213,7 @@ PyTypeObject Camera_Type = {
 	0, 0, 0, 0, 0, 0,
 	BPy_Camera_methods,	/* tp_methods */
 	0,			/* tp_members */
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 
 static PyObject *M_Camera_New( PyObject * self, PyObject * args,
@@ -555,12 +556,10 @@ static PyObject *Camera_clearIpo( BPy_Camera * self )
 			id->us--;
 		cam->ipo = NULL;
 
-		Py_INCREF( Py_True );
-		return Py_True;
+		return EXPP_incr_ret_True();
 	}
 
-	Py_INCREF( Py_False );	/* no ipo found */
-	return Py_False;
+	return EXPP_incr_ret_False(); /* no ipo found */
 }
 
 static PyObject *Camera_setName( BPy_Camera * self, PyObject * args )

@@ -195,6 +195,7 @@ PyTypeObject Bone_Type = {
 	0, 0, 0, 0, 0, 0,
 	BPy_Bone_methods,	/* tp_methods */
 	0,			/* tp_members */
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 
 //--------------- Bone Module Init-----------------------------
@@ -901,20 +902,16 @@ static PyObject *Bone_hasParent( BPy_Bone * self )
 	if( !self->bone ) {	//test to see if linked to armature
 		//use python vars
 		if( BLI_streq( self->parent, parent_str ) ) {
-			Py_INCREF( Py_False );
-			return Py_False;
+			return EXPP_incr_ret_False();
 		} else {
-			Py_INCREF( Py_True );
-			return Py_True;
+			return EXPP_incr_ret_True();
 		}
 	} else {
 		//use bone datastruct
 		if( self->bone->parent ) {
-			Py_INCREF( Py_True );
-			return Py_True;
+			return EXPP_incr_ret_True();
 		} else {
-			Py_INCREF( Py_False );
-			return Py_False;
+			return EXPP_incr_ret_False();
 		}
 	}
 }
@@ -1653,20 +1650,16 @@ static PyObject *Bone_hasIK( BPy_Bone * self )
 	if( !self->bone ) {	//test to see if linked to armature
 		//use python vars
 		if( self->flag & BONE_IK_TOPARENT ) {
-			Py_INCREF( Py_True );
-			return Py_True;
+			return EXPP_incr_ret_True();
 		} else {
-			Py_INCREF( Py_False );
-			return Py_False;
+			return EXPP_incr_ret_False();
 		}
 	} else {
 		//use bone datastruct
 		if( self->bone->flag & BONE_IK_TOPARENT ) {
-			Py_INCREF( Py_True );
-			return Py_True;
+			return EXPP_incr_ret_True();
 		} else {
-			Py_INCREF( Py_False );
-			return Py_False;
+			return EXPP_incr_ret_False();
 		}
 	}
 	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,

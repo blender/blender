@@ -26,7 +26,7 @@
  * This is a new part of Blender.
  *
  * Contributor(s): Willian P. Germano, Jordi Rovira i Bonet, Joseph Gilbert,
- * Bala Gi, Alexander Szakaly, Stephane Soppera
+ * Bala Gi, Alexander Szakaly, Stephane Soppera, Campbell Barton
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -66,6 +66,9 @@
 #include "constant.h"
 #include "gen_utils.h"
 
+/* only used for ob.oopsloc at the moment */
+#include "DNA_oops_types.h"
+#include "DNA_space_types.h"
 
 /* EXPP Mesh defines */
 
@@ -402,6 +405,8 @@ PyTypeObject NMCol_Type = {
 	0,			/* tp_as_sequence */
 	0,			/* tp_as_mapping */
 	0,			/* tp_hash */
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0, /* up to tp_del to avoid a warning */
 };
 
 /*****************************/
@@ -691,6 +696,7 @@ static PySequenceMethods NMFace_SeqMethods = {
 	( intintargfunc ) NMFace_slice,	/* sq_slice */
 	( intobjargproc ) 0,	/* sq_ass_item */
 	( intintobjargproc ) 0,	/* sq_ass_slice */
+	0,0,0,
 };
 
 PyTypeObject NMFace_Type = {
@@ -709,6 +715,8 @@ PyTypeObject NMFace_Type = {
 	&NMFace_SeqMethods,	/*tp_as_sequence */
 	0,			/*tp_as_mapping */
 	0,			/*tp_hash */
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, /* up to tp_del to avoid a warning */
 };
 
 static BPy_NMVert *newvert( float *co )
@@ -883,6 +891,7 @@ static PySequenceMethods NMVert_SeqMethods = {
 	( intintargfunc ) NMVert_slice,	/* sq_slice */
 	( intobjargproc ) NMVert_ass_item,	/* sq_ass_item */
 	( intintobjargproc ) NMVert_ass_slice,	/* sq_ass_slice */
+	0,0,0,
 };
 
 PyTypeObject NMVert_Type = {
@@ -900,6 +909,8 @@ PyTypeObject NMVert_Type = {
 	( reprfunc ) 0,		/*tp_repr */
 	0,			/*tp_as_number */
 	&NMVert_SeqMethods,	/*tp_as_sequence */
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0, /* tp_del */
 };
 
 
@@ -998,12 +1009,10 @@ PyTypeObject NMEdge_Type = {
 	( printfunc ) 0,	/*tp_print */
 	( getattrfunc ) NMEdge_getattr,	/*tp_getattr */
 	( setattrfunc ) NMEdge_setattr,	/*tp_setattr */
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,
 };
-
-
-
-
-
 
 static void NMesh_dealloc( PyObject * self )
 {
@@ -1104,12 +1113,12 @@ static PyObject *NMesh_removeAllKeys( PyObject * self, PyObject * args )
 					      "this function expects no arguments" );
 
 	if( !me || !me->key )
-		return EXPP_incr_ret( Py_False );
+		return EXPP_incr_ret_False();
 
 	me->key->id.us--;
 	me->key = 0;
 
-	return EXPP_incr_ret( Py_True );
+	return EXPP_incr_ret_True();
 }
 
 static PyObject *NMesh_insertKey( PyObject * self, PyObject * args )
@@ -1215,9 +1224,9 @@ static PyObject *NMesh_hasVertexUV( PyObject * self, PyObject * args )
 	}
 
 	if( me->flags & NMESH_HASVERTUV )
-		return EXPP_incr_ret( Py_True );
+		return EXPP_incr_ret_True();
 	else
-		return EXPP_incr_ret( Py_False );
+		return EXPP_incr_ret_False();
 }
 
 static PyObject *NMesh_hasFaceUV( PyObject * self, PyObject * args )
@@ -1241,9 +1250,9 @@ static PyObject *NMesh_hasFaceUV( PyObject * self, PyObject * args )
 	}
 
 	if( me->flags & NMESH_HASFACEUV )
-		return EXPP_incr_ret( Py_True );
+		return EXPP_incr_ret_True();
 	else
-		return EXPP_incr_ret( Py_False );
+		return EXPP_incr_ret_False();
 }
 
 static PyObject *NMesh_hasVertexColours( PyObject * self, PyObject * args )
@@ -1267,9 +1276,9 @@ static PyObject *NMesh_hasVertexColours( PyObject * self, PyObject * args )
 	}
 
 	if( me->flags & NMESH_HASMCOL )
-		return EXPP_incr_ret( Py_True );
+		return EXPP_incr_ret_True();
 	else
-		return EXPP_incr_ret( Py_False );
+		return EXPP_incr_ret_False();
 }
 
 static PyObject *NMesh_update( PyObject *self, PyObject *a, PyObject *kwd )
@@ -1626,11 +1635,45 @@ static PyObject *NMesh_getattr( PyObject * self, char *name )
     else
       return EXPP_incr_ret( Py_None );
   }
+	else if (strcmp(name, "oopsLoc") == 0) {
+    if (G.soops) { 
+			Oops *oops = G.soops->oops.first;
+      while(oops) {
+        if(oops->type==ID_ME) {
+          if ((Mesh *)oops->id == me->mesh) {
+            return (Py_BuildValue ("ff", oops->x, oops->y));
+          }
+        }
+        oops = oops->next;
+      }      
+    }
+    Py_INCREF (Py_None);
+    return (Py_None);
+  }
+  /* Select in the oops view only since it's a mesh */
+  else if (strcmp(name, "oopsSel") == 0) {
+    if (G.soops) {
+      Oops *oops = G.soops->oops.first;
+      while(oops) {
+        if(oops->type==ID_ME) {
+          if ((Mesh *)oops->id == me->mesh) {
+            if (oops->flag & SELECT) {
+							return EXPP_incr_ret_True();
+            } else {
+							return EXPP_incr_ret_False();
+            }
+          }
+        }
+        oops = oops->next;
+      }
+    }
+    return EXPP_incr_ret(Py_None);
+  }	
 	else if( strcmp( name, "__members__" ) == 0 )
-		return Py_BuildValue( "[s,s,s,s,s,s,s,s]",
+		return Py_BuildValue( "[s,s,s,s,s,s,s,s,s,s]",
 				      "name", "materials", "verts", "users",
 				      "faces", "maxSmoothAngle",
-				      "subdivLevels", "edges" );
+				      "subdivLevels", "edges", "oopsLoc", "oopsSel" );
 
 	return Py_FindMethod( NMesh_methods, ( PyObject * ) self, name );
 }
@@ -1744,6 +1787,41 @@ static int NMesh_setattr( PyObject * self, char *name, PyObject * v )
       return EXPP_ReturnIntError( PyExc_RuntimeError, 
                "mesh has no edge information" );
   }
+  else if (!strcmp(name, "oopsLoc")) {
+    if (G.soops) {
+      Oops *oops = G.soops->oops.first;
+      while(oops) {
+        if(oops->type==ID_ME) {
+          if ((Mesh *)oops->id == me->mesh) {
+            return (!PyArg_ParseTuple  (v, "ff", &(oops->x),&(oops->y)));
+          }
+        }
+        oops = oops->next;
+      }
+    }
+    return 0;
+  }
+  /* Select in the oops view only since its a mesh */
+  else if (!strcmp(name, "oopsSel")) {
+    int sel;
+    if (!PyArg_Parse (v, "i", &sel))
+      return EXPP_ReturnIntError 
+        (PyExc_TypeError, "expected an integer, 0 or 1");
+    if (G.soops) {
+      Oops *oops = G.soops->oops.first;
+      while(oops) {
+        if(oops->type==ID_ME) {
+          if ((Mesh *)oops->id == me->mesh) {
+            if(sel == 0) oops->flag &= ~SELECT;
+            else oops->flag |= SELECT;
+            return 0;
+          }
+        }
+        oops = oops->next;
+      }
+    }
+    return 0;
+  }
 	else
 		return EXPP_ReturnIntError( PyExc_AttributeError, name );
 
@@ -1760,11 +1838,12 @@ PyTypeObject NMesh_Type = {
 	( printfunc ) 0,	/*tp_print */
 	( getattrfunc ) NMesh_getattr,	/*tp_getattr */
 	( setattrfunc ) NMesh_setattr,	/*tp_setattr */
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 
 static BPy_NMFace *nmface_from_data( BPy_NMesh * mesh, int vidxs[4],
-				     char mat_nr, char flag, TFace * tface,
-				     MCol * col )
+	char mat_nr, char flag, TFace * tface, MCol * col )
 {
 	BPy_NMFace *newf = PyObject_NEW( BPy_NMFace, &NMFace_Type );
 	int i, len;
