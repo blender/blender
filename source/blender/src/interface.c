@@ -288,7 +288,7 @@ static uiSaveUnder *ui_save_under(int x, int y, int sx, int sy)
 /* ************* DRAW ************** */
 
 
-static void ui_graphics_to_window(int win, float *x, float *y)	/* voor rectwrite b.v. */
+static void ui_graphics_to_window(int win, float *x, float *y)	/* for rectwrite  */
 {
 	float gx, gy;
 	int sx, sy;
@@ -305,7 +305,7 @@ static void ui_graphics_to_window(int win, float *x, float *y)	/* voor rectwrite
 
 
 
-static void ui_window_to_graphics(int win, float *x, float *y)	/* voor muiscursor b.v. */
+static void ui_window_to_graphics(int win, float *x, float *y)	/* for mouse cursor */
 {
 	float a, b, c, d, e, f, px, py;
 	int getsizex, getsizey;
@@ -343,7 +343,7 @@ static uiSaveUnder *ui_bgnpupdraw(int startx, int starty, int endx, int endy, in
 
 	mywinset(G.curscreen->mainwin);
 	
-	/* pietsje groter, 1 pixel aan de rand */
+	/* tinsy bit larger, 1 pixel on the edge */
 	
 	glReadBuffer(GL_FRONT);
 	glDrawBuffer(GL_FRONT);
@@ -650,7 +650,7 @@ static void ui_emboss_slider(uiBut *but, float fac)
 	glColor3ub(0,0,0);
 	ui_draw_outlineX(but->x1+1, but->y1+1, but->x2-1, but->y2-1, but->aspect);
 
-	/* het blokje */
+	/* the box */
 	if(but->flag & UI_SELECT) BIF_set_color(but->col, COLORSHADE_LIGHT);
 	else BIF_set_color(but->col, COLORSHADE_GREY);
 	glRects(but->x1+fac, but->y1+1, but->x1+fac+h, but->y2-1);
@@ -886,7 +886,7 @@ static void ui_draw_but(uiBut *but)
 	case ICONROW:
 		ui_draw_but_BUT(but);
 		
-		/* teken pijltjes, icon is standaard RGB */
+		/* draw arriws, icon is standard RGB */
 		a= (but->y1+but->y2)/2;
 		
 		glColor3ub(0,0,0);
@@ -909,7 +909,7 @@ static void ui_draw_but(uiBut *but)
 	
 		ui_draw_but_BUT(but);
 
-		/* als er ruimte is: teken symbooltje */
+		/* when sufficient space: darw symbols */
 		if(but->strwidth+10 < but->x2-but->x1) {
 			int h;
 			
@@ -929,7 +929,7 @@ static void ui_draw_but(uiBut *but)
 	
 		ui_draw_but_BUT(but);
 		
-		/* de slider */
+		/* the slider */
 
 		x1= but->x1; x2= but->x2;
 		y1= but->y1; y2= but->y2;
@@ -2229,7 +2229,7 @@ static int ui_do_but_SLI(uiBut *but)
 			ui_check_but(but);
 			ui_draw_but(but);
 			
-			if(but->a1) {	/* colornummer */
+			if(but->a1) {	/* color number */
 				uiBut *bt= but->prev;
 				while(bt) {
 					if(bt->retval == but->a1) ui_draw_but(bt);
@@ -2253,7 +2253,7 @@ static int ui_do_but_SLI(uiBut *but)
 	}
 
 	
-	if(temp!=32767 && pos==0) {  /* plus 1 of min 1 */
+	if(temp!=32767 && pos==0) {  /* plus 1 or minus 1 */
 		
 		if( but->type==SLI) f= (float)(mval[0]-but->x1)/(but->x2-but->x1-h);
 		else f= (float)(mval[0]- (but->x1+but->x2)/2)/( (but->x2-but->x1)/2 - h);
@@ -2286,8 +2286,8 @@ static int ui_do_but_SLI(uiBut *but)
 static int ui_do_but_NUMSLI(uiBut *but)
 {
 	short mval[2];
-	
-	/* eerste bepalen of het slider is of textbut */
+
+	/* first define if it's a slider or textbut */
 	uiGetMouse(mywinget(), mval);
 	
 	if(mval[0]>= -6+(but->x1+but->x2)/2 ) {	/* slider */
@@ -2631,7 +2631,7 @@ static int ui_do_button(uiBlock *block, uiBut *but, uiEvent *uevent)
 		}
 	} 
 	else {
-		if( but->pointype ) {		/* er is pointer nodig */
+		if( but->pointype ) {		/* er there a pointer needed */
 			if(but->poin==0 ) {
 				printf("DoButton pointer error: %s\n",but->str);
 				return 0;
@@ -3098,7 +3098,7 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 	glColor3ub(0xD0, 0xD0, 0xC0);
 	glRectf(x1, y1, x2, y2);
 	
-	/* below */
+	/* bottom */
 	glColor3ub(0,0,0);
 	fdrawline(x1, y1, x2, y1);
 	/* right */
@@ -3318,7 +3318,7 @@ static void ui_set_but_val(uiBut *but, double value)
 	if(but->pointype==0) return;
 	poin= but->poin;
 
-	/* value is een hsvwaarde: omzetten naar de rgb */
+	/* value is a hsv value: convert to rgb */
 	if( but->type==HSVSLI ) {
 		float h, s, v, *fp= (float *)but->poin;
 		
@@ -3622,9 +3622,9 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	uiBut *but;
 	short slen;
 	
-	if(type & BUTPOIN) {		/* er is pointer nodig */
+	if(type & BUTPOIN) {		/* a pointer is required */
 		if(poin==0) {
-				/* als pointer nul is wordt button gewist en niet gedefinieerd */
+				/* if pointer is zero, button is removed and not drawn */
 			BIF_set_color(block->col, COLORSHADE_MEDIUM);
 			glRects(x1,  y1,  x1+x2,  y1+y2);
 			return NULL;
@@ -3693,7 +3693,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	
 	but->pos= -1;	/* cursor invisible */
 
-	if(but->type==NUM) {	/* spatie toevoegen achter naam */
+	if(but->type==NUM) {	/* add a space to name */
 		slen= strlen(but->str);
 		if(slen>0 && slen<UI_MAX_NAME_STR-2) {
 			if(but->str[slen-1]!=' ') {

@@ -98,7 +98,7 @@ void sdrawXORline4(int nr, int x0, int y0, int x1, int y1)
 	static short old[4][2][2];
 	static char flags[4]= {0, 0, 0, 0};
 	
-		/* automatische onthoud, max 4 lijnen */
+		/* with builtin memory, max 4 lines */
 
 	set_inverted_drawing(1);
 		

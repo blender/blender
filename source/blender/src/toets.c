@@ -28,7 +28,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
- * Algemene toetsen, bijzondere in de space.c
+
+ *
+ *
+ * General blender hot keys (toets = dutch), special hotkeys are in space.c
+ *
  */
 
 #include <string.h>
@@ -108,7 +112,7 @@ void schrijfplaatje(char *name);
 
 void write_imag(char *name)
 {
-	/* vanuit filesel */
+	/* from file select */
 	char str[256];
 
 	strcpy(str, name);
@@ -126,25 +130,24 @@ void write_imag(char *name)
 	}
 }
 
-/* ripped from render module */
-/*  void schrijfplaatje(char *name); */
-
 
 /* From matrix.h: it's really a [4][4]! */
 /* originally in initrender... maybe add fileControl thingy? */
+
+/* should be called write_image(char *name) :-) */
 void schrijfplaatje(char *name)
 {
 	struct ImBuf *ibuf=0;
 	unsigned int *temprect=0;
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 
-	/* Staat RGBA aan? Zo ja: gebruik alphakanaal voor kleur 0 */
+	/* has RGBA been set? If so: use alpha channel for color zero */
 	IMB_alpha_to_col0(FALSE);
 
 	if(R.r.planes == 32) {
-		/* alles met minder dan 50 % alpha -> col 0 */
+		/* everything with less than 50 % alpha -> col 0 */
 		if(R.r.alphamode == R_ALPHAKEY) IMB_alpha_to_col0(2);
-		/* uitsluitend met 0 alpha -> col 0 */
+		/* only when 0 alpha -> col 0 */
 		else IMB_alpha_to_col0(1);
 	}
 
@@ -197,7 +200,7 @@ void schrijfplaatje(char *name)
 			ibuf->ftype= RAWTGA;
 		}
 		else if(R.r.imtype==R_HAMX) {
-			/* kopie maken */
+			/* make copy */
 			temprect= MEM_dupallocN(R.rectot);
 			ibuf->ftype= AN_hamx;
 		}
@@ -287,7 +290,7 @@ void persptoetsen(unsigned short event)
 			if(G.vd->persp>=2) G.vd->persp= perspo;
 		}
 		else if(event==PADMINUS) {
-			/* deze min en max staan ook in viewmove() */
+			/* this min and max is also in viewmove() */
 			if(G.vd->persp==2) {
 					G.vd->camzoom-= 10;
 					if(G.vd->camzoom<-30) G.vd->camzoom= -30;
@@ -341,7 +344,7 @@ void persptoetsen(unsigned short event)
 			if(G.vd->persp>=2) G.vd->persp= perspo;
 		}
 		else if(event==PADMINUS) {
-			/* deze min en max staan ook in viewmove() */
+			/* this min and max is also in viewmove() */
 			if(G.vd->persp==2) {
 				G.vd->camzoom= MAX2(-30, G.vd->camzoom-5);
 			}
@@ -402,7 +405,7 @@ void persptoetsen(unsigned short event)
 		}
 		else if(G.vd->persp<2) {
 			if(event==PAD4 || event==PAD6) {
-				/* z-as */
+				/* z-axis */
 				phi= (float)(M_PI/24.0);
 				if(event==PAD6) phi= -phi;
 				si= (float)sin(phi);
@@ -414,7 +417,7 @@ void persptoetsen(unsigned short event)
 			}
 			if(event==PAD2 || event==PAD8) {
 				
-				/* liggende as */
+				/* horizontal axis */
 				VECCOPY(q1+1, G.vd->viewinv[0]);
 				
 				Normalise(q1+1);
@@ -502,9 +505,8 @@ void BIF_save_rendered_image(void)
 
 int blenderqread(unsigned short event, short val)
 {
-	/* hier alle algemene toetsafhandelingen (niet screen/window/space) */
-	/* return 0: niet aan andere queue's doorgeven */
-/*  	extern char videosc_dir[]; */
+	/* here do the general keys handling (not screen/window/space) */
+	/* return 0: do not pass on to the other queues */
 	extern int textediting;
 	ScrArea *sa;
 	Object *ob;
@@ -672,7 +674,7 @@ int blenderqread(unsigned short event, short val)
 				if(curarea->spacetype==SPACE_IPO) set_editflag_editipo();
 				else if(curarea->spacetype==SPACE_SEQ) enter_meta();
 				else if(G.vd) {
-					/* ook als Alt-E */
+					/* also when Alt-E */
 					if(G.obedit==0) enter_editmode();
 					else exit_editmode(1);
 				}

@@ -110,8 +110,8 @@ MDeformVert *wpaintundobuf=NULL;
 /* Function prototypes */
 int calc_vp_alpha_dl(DispList *disp, MVert *mvert, int vert, short *mval);
 
-/* in tegenstelling tot cpack teken kleuren, zijn de MCOL kleuren (vpaint kleuren) per byte! 
-   en dus endian ongevoelig. Mcol = ABGR!!! Oppassen met cpack functies */
+/* in contradiction to cpack drawing colors, the MCOL colors (vpaint colors) are per byte! 
+   so not endian sensitive. Mcol = ABGR!!! so be cautious with cpack calls */
 
 unsigned int rgba_to_mcol(float r, float g, float b, float a)
 {
@@ -145,8 +145,8 @@ unsigned int vpaint_get_current_col(void)
 
 void do_shared_vertexcol(Mesh *me)
 {
-	/* als geen mcol: niet doen */
-	/* als tface: alleen de betreffende vlakken, anders alles */
+	/* if no mcol: do not do */
+	/* if tface: only the involved faces, otherwise all */
 	MFace *mface;
 	TFace *tface;
 	int a;
@@ -559,7 +559,7 @@ static unsigned int mcol_mul(unsigned int col1, unsigned int col2, int fac)
 	cp2= (char *)&col2;
 	cp=  (char *)&col;
 	
-	/* eerstmullen, dan fac blenden */
+	/* first mul, then blend the fac */
 	cp[0]= 255;
 	cp[1]= (mfac*cp1[1] + fac*((cp2[1]*cp1[1])>>8)  )>>8;
 	cp[2]= (mfac*cp1[2] + fac*((cp2[2]*cp1[2])>>8)  )>>8;
@@ -789,12 +789,12 @@ void weight_paint(void)
 
 //	if(me->tface==NULL && me->mcol==NULL) return;
 	
-	/* imat voor normalen */
+	/* imat for normals */
 	Mat4MulMat4(mat, ob->obmat, G.vd->viewmat);
 	Mat4Invert(imat, mat);
 	Mat3CpyMat4(vpimat, imat);
 	
-	/* projektiematrix laden */
+	/* load projection matrix */
 	mymultmatrix(ob->obmat);
 	mygetsingmatrix(mat);
 	myloadmatrix(G.vd->viewmat);
@@ -819,7 +819,7 @@ void weight_paint(void)
 
 			firsttime= 0;
 
-			/* welke vlakken doen mee */
+			/* which faces are involved */
 			if(Gvp.flag & VP_AREA) {
 				totindex= sample_backbuf_area(mval[0], mval[1]);
 			}
@@ -914,7 +914,7 @@ void weight_paint(void)
 		me->mcol= 0;
 	}
 	
-	/* cirkel wissen */
+	/* clear circle */
 	draw_sel_circle(0, mvalo, 0, Gvp.size, 1);
 	
 	makeDispList(ob);
@@ -948,12 +948,12 @@ void vertex_paint()
 
 	if(me->tface==NULL && me->mcol==NULL) return;
 	
-	/* imat voor normalen */
+	/* imat for normals */
 	Mat4MulMat4(mat, ob->obmat, G.vd->viewmat);
 	Mat4Invert(imat, mat);
 	Mat3CpyMat4(vpimat, imat);
 	
-	/* projektiematrix laden */
+	/* load projection matrix */
 	mymultmatrix(ob->obmat);
 	mygetsingmatrix(mat);
 	myloadmatrix(G.vd->viewmat);
@@ -979,7 +979,7 @@ void vertex_paint()
 
 			firsttime= 0;
 
-			/* welke vlakken doen mee */
+			/* which faces are involved */
 			if(Gvp.flag & VP_AREA) {
 				totindex= sample_backbuf_area(mval[0], mval[1]);
 			}
@@ -1087,7 +1087,7 @@ void vertex_paint()
 		me->mcol= 0;
 	}
 	
-	/* cirkel wissen */
+	/* clear circle */
 	draw_sel_circle(0, mvalo, 0, Gvp.size, 1);
 	
 	allqueue(REDRAWVIEW3D, 0);
@@ -1121,7 +1121,7 @@ void set_wpaint(void)		/* toggle */
 		setcursor_space(SPACE_VIEW3D, CURSOR_VPAINT);
 	}
 	else {
-		freefastshade();	/* voor zekerheid */
+		freefastshade();	/* to be sure */
 		if (ob)
 			makeDispList(ob);
 		if(!(G.f & G_FACESELECT))
@@ -1165,7 +1165,7 @@ void set_vpaint(void)		/* toggle */
 		setcursor_space(SPACE_VIEW3D, CURSOR_VPAINT);
 	}
 	else {
-		freefastshade();	/* voor zekerheid */
+		freefastshade();	/* to be sure */
 		if (ob) makeDispList(ob);
 		if((G.f & G_FACESELECT)==0) setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 	}

@@ -294,7 +294,7 @@ static int compare_name(const void *a1, const void *a2)
 {
 	const struct direntry *entry1=a1, *entry2=a2;
 
-	/* type is gelijk aan stat.st_mode */
+	/* type is is equal to stat.st_mode */
 
 	if (S_ISDIR(entry1->type)){
 		if (S_ISDIR(entry2->type)==0) return (-1);
@@ -315,7 +315,7 @@ static int compare_date(const void *a1, const void *a2)
 {
 	const struct direntry *entry1=a1, *entry2=a2;
 	
-	/* type is gelijk aan stat.st_mode */
+	/* type is equal to stat.st_mode */
 
 	if (S_ISDIR(entry1->type)){
 		if (S_ISDIR(entry2->type)==0) return (-1);
@@ -343,7 +343,7 @@ static int compare_size(const void *a1, const void *a2)
 {
 	const struct direntry *entry1=a1, *entry2=a2;
 
-	/* type is gelijk aan stat.st_mode */
+	/* type is equal to stat.st_mode */
 
 	if (S_ISDIR(entry1->type)){
 		if (S_ISDIR(entry2->type)==0) return (-1);
@@ -396,7 +396,7 @@ void filesel_statistics(SpaceFile *sfile, int *totfile, int *selfile, float *tot
 	}
 }
 
-/* *************** HULPFUNKTIES ******************* */
+/* *************** HELP FUNCTIONS ******************* */
 
 /* This is a really ugly function... its purpose is to
  * take the space file name and clean it up, replacing
@@ -413,7 +413,7 @@ void checkdir(char *dir)
 	strcpy(dir, tmp);
 	
 #ifdef WIN32
-	if(dir[0]=='.') {	/* komt voor, o.a. bij FILE_MAIN */
+	if(dir[0]=='.') {	/* happens for example in FILE_MAIN */
 		dir[0]= '\\';
 		dir[1]= 0;
 		return;
@@ -439,7 +439,7 @@ void checkdir(char *dir)
 		strcpy(start,eind);
 	}
 
-	if(a = strlen(dir)){				/* eerst alle '\\' weghalen aan het eind */
+	if(a = strlen(dir)){				/* remove the '\\' at the end */
 		while(a>0 && dir[a-1] == '\\'){
 			a--;
 			dir[a] = 0;
@@ -448,7 +448,7 @@ void checkdir(char *dir)
 
 	strcat(dir, "\\");
 #else	
-	if(dir[0]=='.') {	/* komt voor, o.a. bij FILE_MAIN */
+	if(dir[0]=='.') {	/* happens, for example in FILE_MAIN */
 		dir[0]= '/';
 		dir[1]= 0;
 		return;
@@ -474,7 +474,7 @@ void checkdir(char *dir)
 		strcpy(start,eind);
 	}
 
-	if( (a = strlen(dir)) ){				/* eerst alle '/' weghalen aan het eind */
+	if( (a = strlen(dir)) ){				/* remove all '/' at the end */
 		while(dir[a-1] == '/'){
 			a--;
 			dir[a] = 0;
@@ -495,7 +495,7 @@ void test_flags_file(SpaceFile *sfile)
 	
 	for(num=0; num<sfile->totfile; num++, file++) {
 		file->flags= 0;
-		file->type= file->s.st_mode;	/* restore het geknoei van hieronder */ 
+		file->type= file->s.st_mode;	/* restore the mess below */ 
 		
 			/* Don't check extensions for directories */ 
 		if (file->type&S_IFDIR)
@@ -633,7 +633,7 @@ void read_dir(SpaceFile *sfile)
 	int num, len;
 	char wdir[FILE_MAXDIR];
 
-	/* sfile->act wordt gebruikt o.a. bij databrowse: dubbele namen van library objecten */
+	/* sfile->act is used for example in databrowse: double names of library objects */
 	sfile->act= -1;
 
 	if(sfile->type==FILE_MAIN) {
@@ -714,20 +714,20 @@ void parent(SpaceFile *sfile)
 	short a;
 	char *dir;
 	
-	/* als databrowse: geen parent */
+	/* if databrowse: no parent */
 	if(sfile->type==FILE_MAIN && sfile->returnfunc) return;
 
 	dir= sfile->dir;
 	
 #ifdef WIN32
-	if(a = strlen(dir)) {				/* eerst alle '/' weghalen aan het eind */
+	if(a = strlen(dir)) {				/* remove all '/' at the end */
 		while(dir[a-1] == '\\') {
 			a--;
 			dir[a] = 0;
 			if (a<=0) break;
 		}
 	}
-	if(a = strlen(dir)) {				/* daarna alles weghalen tot aan '/' */
+	if(a = strlen(dir)) {				/* then remove all until '/' */
 		while(dir[a-1] != '\\') {
 			a--;
 			dir[a] = 0;
@@ -739,14 +739,14 @@ void parent(SpaceFile *sfile)
 	}
 	else if(sfile->type!=FILE_MAIN) strcpy(dir,"\\");
 #else
-	if( (a = strlen(dir)) ) {				/* eerst alle '/' weghalen aan het eind */
+	if( (a = strlen(dir)) ) {				/* remove all '/' at the end */
 		while(dir[a-1] == '/') {
 			a--;
 			dir[a] = 0;
 			if (a<=0) break;
 		}
 	}
-	if( (a = strlen(dir)) ) {				/* daarna alles weghalen tot aan '/' */
+	if( (a = strlen(dir)) ) {				/* then remove until '/' */
 		while(dir[a-1] != '/') {
 			a--;
 			dir[a] = 0;
@@ -829,7 +829,7 @@ static void calc_file_rcts(SpaceFile *sfile)
 	filebuty2= filebuty1+FILESELHEAD/2 -6;
 	
 	
-	/* aantal kolommen */
+	/* amount of collums */
 	len= sfile->maxnamelen+25;
 	
 	if(sfile->type==FILE_MAIN) len+= 100;
@@ -998,12 +998,12 @@ static void printregel(SpaceFile *sfile, struct direntry *files, int x, int y)
 
 static int calc_filesel_regel(SpaceFile *sfile, int nr, int *valx, int *valy)
 {
-	/* sco van de de regel */
+	/* get screen coordinate of a 'regel', dutch for line */
 	int val, coll;
 
 	nr-= sfile->ofs;
 
-	/* aantal regels in de hoogte */
+	/* amount of lines */
 	val= (textrct.ymax-textrct.ymin)/FILESEL_DY;
 	coll= nr/val;
 	nr -= coll*val;
@@ -1088,11 +1088,11 @@ static void draw_filetext(SpaceFile *sfile)
 	if(textrct.ymin+10 >= textrct.ymax) return;
 
 
-	/* kader */
+	/* box */
 	cpack(0x717171);
 	glRecti(textrct.xmin,  textrct.ymin,  textrct.xmax,  textrct.ymax);
 
-	/* kolommen */
+	/* collums */
 	x= textrct.xmin+collumwidth;
 	for(a=1; a<sfile->collums; a++, x+= collumwidth) {
 		cpack(0x303030);
@@ -1103,7 +1103,7 @@ static void draw_filetext(SpaceFile *sfile)
 
 	if(sfile->filelist==0) return;
 	
-	/* test: als muis niet in area staat: de HILITE wissen */
+	/* test: if mouse is not in area: clear HILITE */
 	getmouseco_areawin(mval);
 
 	if(mval[0]<0 || mval[0]>curarea->winx) {
@@ -1119,7 +1119,7 @@ static void draw_filetext(SpaceFile *sfile)
 		printregel(sfile, files, x, y);
 	}
 
-	/* wissen tekenfoutjes, tekst teveel aan de rechterkant: */
+	/* clear drawing errors, with text at the right hand side: */
 	uiEmboss(textrct.xmin, textrct.ymin, textrct.xmax, textrct.ymax, 1);
 	
 	glColor3f(.5625, .5625, .5625);
@@ -1146,7 +1146,7 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 		
 		calc_file_rcts(sfile);
 		
-		/* act berekenen */ 
+		/* calculate act */ 
 		getmouseco_areawin(mval);
 		act= find_active_file(sfile, mval[0], mval[1]);
 		if(act>=0 && act<sfile->totfile)
@@ -1184,7 +1184,7 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	draw_filescroll(sfile);
 	draw_filetext(sfile);
 	
-	/* andere diskfree etc ? */
+	/* others diskfree etc ? */
 	scrarea_queue_headredraw(curarea);	
 	
 	uiDrawBlock(block);
@@ -1199,7 +1199,7 @@ static void do_filescroll(SpaceFile *sfile)
 	calc_file_rcts(sfile);
 	
 	filescrollselect= 1;
-	/* voor mooiigheid */
+	/* for beauty */
 
 	glDrawBuffer(GL_FRONT);
 	draw_filescroll(sfile);
@@ -1233,7 +1233,7 @@ static void do_filescroll(SpaceFile *sfile)
 	}
 	filescrollselect= 0;
 
-	/* voor mooiigheid */
+	/* for beauty */
 	glDrawBuffer(GL_FRONT);
 	draw_filescroll(sfile);
 	glDrawBuffer(GL_BACK);
@@ -1272,7 +1272,7 @@ void activate_fileselect(int type, char *title, char *file, void (*func)(char *)
 	newspace(curarea, SPACE_FILE);
 	scrarea_queue_winredraw(curarea);
 	
-	/* is misschien dubbelop, voor geval area al SPACE_FILE is met andere filename */
+	/* sometime double, when area already is SPACE_FILE with a different file name */
 	addqueue(curarea->headwin, CHANGED, 1);
 	
 
@@ -1284,7 +1284,7 @@ void activate_fileselect(int type, char *title, char *file, void (*func)(char *)
 	sfile->returnfunc= func;
 	sfile->type= type;
 	sfile->ofs= 0;
-	/* sfile->act wordt gebruikt bij databrowse: dubbele namen van library objecten */
+	/* sfile->act is used for databrowse: double names of library objects */
 	sfile->act= -1;
 	
 	if(BLI_convertstringcode(name, G.sce, G.scene->r.cfra)) sfile->flag |= FILE_STRINGCODE;
@@ -1301,7 +1301,7 @@ void activate_fileselect(int type, char *title, char *file, void (*func)(char *)
 			strcat(sfile->dir, "/");
 		}
 
-		/* alles vrijgeven */
+		/* free all */
 		if(sfile->libfiledata) BLO_blendhandle_close(sfile->libfiledata);
 		sfile->libfiledata= 0;
 		
@@ -1310,7 +1310,7 @@ void activate_fileselect(int type, char *title, char *file, void (*func)(char *)
 	else if(type==FILE_LOADLIB) {
 		strcpy(sfile->dir, name);
 		if( is_a_library(sfile, temp, group) ) {
-			/* dit geval is om een reload van library-filelist te veroorzaken */
+			/* to force a reload of the library-filelist */
 			if(sfile->libfiledata==0) {
 				freefilelist(sfile);
 			}
@@ -1322,9 +1322,9 @@ void activate_fileselect(int type, char *title, char *file, void (*func)(char *)
 		}
 	}
 	else {	/* FILE_BLENDER */
-		split_sfile(sfile, name);	/* test ook de filelist */
+		split_sfile(sfile, name);	/* test filelist too */
 		
-		/* vrijgeven: filelist en libfiledata kloppen niet meer */
+		/* free: filelist and libfiledata became incorrect */
 		if(sfile->libfiledata) BLO_blendhandle_close(sfile->libfiledata);
 		sfile->libfiledata= 0;
 	}
@@ -1342,7 +1342,7 @@ void activate_imageselect(int type, char *title, char *file, void (*func)(char *
 	
 	newspace(curarea, SPACE_IMASEL);
 	
-	/* is misschien dubbelop, voor geval area al SPACE_FILE is met andere filename */
+	/* sometimes double, when area is already SPACE_FILE with a different file name */
 	addqueue(curarea->headwin, CHANGED, 1);
 	addqueue(curarea->win, CHANGED, 1);
 
@@ -1427,7 +1427,7 @@ static int getotherdir(void)
 		if(sa!=curarea) {
 			if(sa->spacetype==SPACE_FILE) {
 				
-				/* al een gevonden */
+				/* already found one */
 				if(sfile) return 0;
 		
 				sfile= sa->spacedata.first;
@@ -1449,7 +1449,7 @@ static void reread_other_fs(void)
 {
 	SpaceFile *sfile;
 	
-	/* oppassen: alleen aanroepen als getotherdir goed is afgelopen */
+	/* watch it: only call when getotherdir returned OK */
 	
 	sfile= otherarea->spacedata.first;
 	freefilelist(sfile);
@@ -1459,7 +1459,7 @@ static void reread_other_fs(void)
 
 void free_filesel_spec(char *dir)
 {
-	/* alle filesels met 'dir' worden vrijgegeven */
+	/* all filesels with 'dir' are freed */
 	bScreen *sc;
 		
 	sc= G.main->screen.first;
@@ -1576,7 +1576,7 @@ static void do_filesel_buttons(short event, SpaceFile *sfile)
 	else if(event== 3) {
 		char *selected= fsmenu_get_entry(sfile->menu-1);
 		
-		/* welke string */
+		/* which string */
 		if (selected) {
 			strcpy(sfile->dir, selected);
 			BLI_make_exist(sfile->dir);
@@ -1761,7 +1761,7 @@ static void fs_fake_users(SpaceFile *sfile)
 	ID *id;
 	int a;
 	
-	/* alleen bij F4 DATABROWSE */
+	/* only for F4 DATABROWSE */
 	if(sfile->returnfunc) return;
 	
 	for(a=0; a<sfile->totfile; a++) {
@@ -1811,7 +1811,7 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	sfile= curarea->spacedata.first;
 	if(sfile==0) return;
 	if(sfile->filelist==0) {
-		/* wel buttons doen */
+		/* but do buttons */
 		if(val && event==LEFTMOUSE) {
 			/* FrontbufferButs(TRUE); */
 			/* event= DoButtons(); */
@@ -1826,7 +1826,7 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	calc_file_rcts(sfile);
 	getmouseco_areawin(mval);
 
-	/* om hangen te voorkomen */
+	/* prevent looping */
 	if(selecting && !(get_mbut() & R_MOUSE)) selecting= 0;
 
 	if(val) {
@@ -1860,7 +1860,7 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			else if(mval[0]>textrct.xmin && mval[0]<textrct.xmax && mval[1]>textrct.ymin && mval[1]<textrct.ymax) {
 				
-				/* sfile->act wordt gebruikt bij databrowse: dubbelenamen van library objecten */
+				/* sfile->act is used in databrowse: double names of library objects */
 				
 				sfile->act= act= find_active_file(sfile, mval[0], mval[1]);
 				
@@ -1886,7 +1886,7 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				/* FrontbufferButs(TRUE); */
 				/* event= DoButtons(); */
 				/* FrontbufferButs(FALSE); */
-					/*  NIET de headerbuttons! */
+					/*  NOT the headerbuttons! */
 				/* if(event) do_filesel_buttons(event, sfile);	 */
 			}
 			break;
@@ -1960,7 +1960,7 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				databrowse_replace(sfile, groupname_to_code(sfile->dir));
 				break;
 			}
-			/* doorgeven */
+			/* pass */
 		case MKEY:
 			if(sfile->type==FILE_MAIN) break;
 
@@ -2030,7 +2030,7 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				databrowse_replace(sfile, groupname_to_code(sfile->dir));
 				break;
 			}
-			/* doorgeven aan TKEY! */
+			/* pass to TKEY! */
 			
 		case TKEY:
 			if(sfile->type==FILE_MAIN) break;
@@ -2043,7 +2043,7 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if(event==TKEY) sprintf(str, "Touch");
 			else if(event==RKEY) sprintf(str, "Remove from %s", sfile->dir);
 			
-			qual= G.qual;	/* want na okee() heb je de shift losgelaten */
+			qual= G.qual;	/* because after okee() you released the SHIFT */
 			if (!okee(str)) break;
 			
 			for (i = 0; i <sfile->totfile; i++) {
@@ -2176,8 +2176,8 @@ static int groupname_to_code(char *group)
 
 static int is_a_library(SpaceFile *sfile, char *dir, char *group)
 {
-	/* return ok als een blenderfile, in dir staat de filename,
-	 * in group het type libdata
+	/* return ok when a blenderfile, in dir is the filename,
+	 * in group the type of libdata
 	 */
 	int len;
 	char *fd;
@@ -2226,7 +2226,7 @@ static void do_library_append(SpaceFile *sfile)
 		
 		BLO_library_append(sfile, dir, idcode);
 
-		/* DISPLISTEN */
+		/* DISPLISTS */
 		ob= G.main->object.first;
 		set_displist_onlyzero(1);
 		while(ob) {
@@ -2245,7 +2245,7 @@ static void do_library_append(SpaceFile *sfile)
 		}
 		set_displist_onlyzero(0);
 	
-		/* in sfile->dir staat de HELE libnaam */
+		/* in sfile->dir is the whole lib name */
 		strcpy(G.lib, sfile->dir);
 		
 		if((sfile->flag & FILE_LINK)==0) all_local();
@@ -2258,17 +2258,17 @@ static void library_to_filelist(SpaceFile *sfile)
 	int ok, i, nnames, idcode;
 	LinkNode *l, *names;
 	
-	/* name testen */
+	/* name test */
 	ok= is_a_library(sfile, dir, group);
 	if (!ok) {
-		/* vrijgeven */
+		/* free */
 		if(sfile->libfiledata) BLO_blendhandle_close(sfile->libfiledata);
 		sfile->libfiledata= 0;
 		return;
 	}
 	
-	/* en daar gaat ie */
-	/* voorlopig alleen filedata inlezen als libfiledata==0 */
+	/* there we go */
+	/* for the time being only read filedata when libfiledata==0 */
 	if (sfile->libfiledata==0) {
 		sfile->libfiledata= BLO_blendhandle_from_file(dir);
 		if(sfile->libfiledata==0) return;
@@ -2320,7 +2320,7 @@ static void filesel_select_objects(SpaceFile *sfile)
 	Scene *sce;
 	int a;
 	
-	/* alleen bij F4 DATABROWSE */
+	/* only when F4 DATABROWSE */
 	if(sfile->returnfunc) return;
 	
 	if( strcmp(sfile->dir, "Object/")==0 ) {
@@ -2360,7 +2360,7 @@ static void active_file_object(SpaceFile *sfile)
 {
 	Object *ob;
 	
-	/* alleen bij F4 DATABROWSE */
+	/* only when F4 DATABROWSE */
 	if(sfile->returnfunc) return;
 	
 	if( strcmp(sfile->dir, "Object/")==0 ) {
@@ -2398,7 +2398,7 @@ void main_to_filelist(SpaceFile *sfile)
 	
 	if( sfile->dir[0]==0) {
 		
-		/* directories maken */
+		/* make directories */
 		sfile->totfile= 22;
 		sfile->filelist= (struct direntry *)malloc(sfile->totfile * sizeof(struct direntry));
 		
@@ -2433,7 +2433,7 @@ void main_to_filelist(SpaceFile *sfile)
 	}
 	else {
 
-		/* files maken */
+		/* make files */
 		idcode= groupname_to_code(sfile->dir);
 		
 		lb= wich_libbase(G.main, idcode );
@@ -2512,7 +2512,7 @@ void main_to_filelist(SpaceFile *sfile)
 			id= id->next;
 		}
 		
-		/* alleen qsort van libraryblokken */
+		/* only qsort of libraryblokken */
 		if(totlib>1) {
 			qsort(firstlib, totlib, sizeof(struct direntry), compare_name);
 		}

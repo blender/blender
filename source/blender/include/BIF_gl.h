@@ -47,9 +47,7 @@
 	 * change to a function. - zr
 	 */
 	 
-/* Mij afspraak is cpack een getal dat als 0xFFaa66 of zo kan worden
- * uitgedrukt. Is dus gevoelig voor endian.  Met deze define wordt het
- * altijd goed afgebeeld 
+/* 
  *
  * This define converts a numerical value to the equivalent 24-bit
  * colour, while not being endian-sensitive. On little-endians, this

@@ -668,7 +668,7 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 
 	G.afbreek= 0;
 	if(G.obedit && !(G.scene->r.scemode & R_OGL)) {
-		exit_editmode(0);	/* 0 = geen freedata */
+		exit_editmode(0);	/* 0 = no free data */
 	}
 
 	if(anim) {

@@ -87,7 +87,6 @@ void persp3d(View3D *v3d, int a)
 {
 	ScrArea *area= v3d->area;
 	
-		/* oppasen met optimaliseren: dan laatste mode in area bewaren */
 		/* only 3D windows */
 	if(a== 0) {
 		bwin_get_winmatrix(area->win, area->winmat);
@@ -126,7 +125,6 @@ void persp_general(int a)
 
 void persp(int a)
 {
-	/* oppasen met optimaliseren: dan laatste mode in area bewaren */
 	/* only 3D windows */
 
 	if(curarea->spacetype!=SPACE_VIEW3D) persp_general(a);
@@ -156,7 +154,7 @@ void initgrabz(float x, float y, float z)
 
 void window_to_3d(float *vec, short mx, short my)
 {
-	/* altijd initzgrab aanroepen */
+	/* always call initzgrab */
 	float dx, dy;
 	float fmx, fmy, winx, winy;
 	
@@ -176,7 +174,7 @@ void window_to_3d(float *vec, short mx, short my)
 	vec[2]= (G.vd->persinv[0][2]*dx + G.vd->persinv[1][2]*dy);
 }
 
-void project_short(float *vec, short *adr)	/* clipt */
+void project_short(float *vec, short *adr)	/* clips */
 {
 	float fx, fy, vec4[4];
 
@@ -228,7 +226,7 @@ void project_short_noclip(float *vec, short *adr)
 
 int boundbox_clip(float obmat[][4], BoundBox *bb)
 {
-	/* return 1: afbeelden */
+	/* return 1: draw */
 	
 	float mat[4][4];
 	float vec[4], min, max;
@@ -325,7 +323,7 @@ void sdrawbox(short x1, short y1, short x2, short y2)
 	glEnd();
 }
 
-/* trackball: deze is t.o.v. een 100% bol formule wel zo mooi */
+/* trackball: better one than a full spherical solution */
 
 void calctrackballvecfirst(rcti *area, short *mval, float *vec)
 {
@@ -333,7 +331,7 @@ void calctrackballvecfirst(rcti *area, short *mval, float *vec)
 	
 	radius= TRACKBALLSIZE;
 	
-	/* x en y normaliseren */
+	/* normalise x and y */
 	x= (area->xmax + area->xmin)/2 -mval[0];
 	x/= (float)((area->xmax - area->xmin)/2);
 	y= (area->ymax + area->ymin)/2 -mval[1];
@@ -350,7 +348,7 @@ void calctrackballvecfirst(rcti *area, short *mval, float *vec)
 
 	vec[0]= x;
 	vec[1]= y;
-	vec[2]= -z;		/* jawel! */
+	vec[2]= -z;		/* yah yah! */
 
 	if( fabs(vec[2])>fabs(vec[1]) && fabs(vec[2])>fabs(vec[0]) ) {
 		vec[0]= 0.0;
@@ -392,7 +390,7 @@ void calctrackballvec(rcti *area, short *mval, float *vec)
 
 	vec[0]= x;
 	vec[1]= y;
-	vec[2]= -z;		/* jawel! */
+	vec[2]= -z;		/* yah yah! */
 
 }
 
@@ -410,7 +408,7 @@ void viewmove(int mode)
 	initgrabz(-G.vd->ofs[0], -G.vd->ofs[1], -G.vd->ofs[2]);
 	
 	QUATCOPY(oldquat, G.vd->viewquat);
-	getmouseco_sc(mvalo);		/* werk met screencoordinaten ivm trackball functie */
+	getmouseco_sc(mvalo);		/* work with screen coordinates because of trackball function */
 	calctrackballvec(&curarea->winrct, mvalo, firstvec);
 
 	/* cumultime(0); */
@@ -422,9 +420,9 @@ void viewmove(int mode)
 			
 			if(firsttime) {
 				firsttime= 0;
-				/* wordt hier geroteerd, gezoomd of transleerd */
+				/* are we translating, rotating or zooming? */
 				if(mode==0) {
-					if(G.vd->view!=0) scrarea_queue_headredraw(curarea);	/* voor button */
+					if(G.vd->view!=0) scrarea_queue_headredraw(curarea);	/*for button */
 					G.vd->view= 0;
 				}
 						
@@ -436,7 +434,7 @@ void viewmove(int mode)
 			}
 
 
-			if(mode==0) {	/* viewroteer */
+			if(mode==0) {	/* view rotate */
 				
 				if(U.flag & TRACKBALL) {
 					calctrackballvec(&curarea->winrct, mval, newvec);
@@ -463,7 +461,7 @@ void viewmove(int mode)
 					}
 				}
 				else {
-					/* roteren om z-as (x beweging) en liggende as (y) */
+					/* roteren around z-axis (x moves) and horizontal axis (y) */
 					
 					phi= 2*(mval[0]-mvalo[0]);
 					phi/= (float)curarea->winx;
@@ -472,7 +470,7 @@ void viewmove(int mode)
 					q1[1]= q1[2]= 0.0;
 					q1[3]= si;
 					
-					/* liggende as */
+					/* horizontal axis */
 					VECCOPY(q2+1, G.vd->viewinv[0]);
 					Normalise(q2+1);
 					phi= (mvalo[1]-mval[1]);
@@ -507,11 +505,11 @@ void viewmove(int mode)
 			else if(mode==2) {
 				G.vd->dist*= 1.0+(float)(mvalo[0]-mval[0]+mvalo[1]-mval[1])/1000.0;
 				
-				/* deze limits ook in toets.c */
+				/* these limits are in toets.c too */
 				if(G.vd->dist<0.001*G.vd->grid) G.vd->dist= 0.001*G.vd->grid;
 				if(G.vd->dist>10.0*G.vd->far) G.vd->dist=10.0*G.vd->far;
 				
-				mval[1]= mvalo[1]; /* blijft ie zoomen */
+				mval[1]= mvalo[1]; /* keeps zooming that way */
 				mval[0]= mvalo[0];
 			}
 			
@@ -526,7 +524,7 @@ void viewmove(int mode)
 		}
 		else BIF_wait_for_statechange();
 
-		/* dit moet onderaan, anders pakt de get_mbut het niet op de PC... */
+		/* this in the end, otherwise get_mbut does not work on a PC... */
 		if( !(get_mbut() & (L_MOUSE|M_MOUSE))) break;
 	}
 
@@ -535,7 +533,7 @@ void viewmove(int mode)
 
 short v3d_windowmode=0;
 
-void setwinmatrixview3d(rctf *rect)		/* rect: voor picking */
+void setwinmatrixview3d(rctf *rect)		/* rect: for picking */
 {
 	Camera *cam=0;
 	float d, near, far, winx = 0.0, winy = 0.0;
@@ -613,7 +611,7 @@ void setwinmatrixview3d(rctf *rect)		/* rect: voor picking */
 		
 		if(G.vd->persp==2 && (G.special1 & G_HOLO)) {
 			if(cam && (cam->flag & CAM_HOLO2)) {
-				tfac= fac/4.0;	/* de fac is 1280/640 gecorr voor obszoom */
+				tfac= fac/4.0;	/* the fac is 1280/640 corrected for obszoom */
 
 				if(cam->netend==0.0) cam->netend= EFRA;
 				fac= (G.scene->r.cfra-1.0)/(cam->netend)-0.5;
@@ -676,7 +674,7 @@ void obmat_to_viewmat(Object *ob)
 	Mat4Ortho(bmat);
 	Mat4Invert(G.vd->viewmat, bmat);
 	
-	/* viewquat berekenen, o.a. voor add object */
+	/* view quat calculation, needed for add object */
 	Mat3CpyMat4(tmat, G.vd->viewmat);
 	Mat3ToQuat(tmat, G.vd->viewquat);
 }
@@ -685,7 +683,6 @@ void obmat_to_viewmat(Object *ob)
 void setviewmatrixview3d()
 {
 	Camera *cam;
-/*  	float bepaalphitheta(); */
 
 	if(G.special1 & G_HOLO) RE_holoview();
 
@@ -745,7 +742,7 @@ short selectprojektie(unsigned int *buffer, short x1, short y1, short x2, short 
 
 	glSelectBuffer( MAXPICKBUF, buffer);
 	glRenderMode(GL_SELECT);
-	glInitNames();	/* deze twee fies zijn waarvoor? Anders werkt het niet */
+	glInitNames();	/* these two calls whatfor? It doesnt work otherwise */
 	glPushName(-1);
 	code= 1;
 	
@@ -767,7 +764,7 @@ short selectprojektie(unsigned int *buffer, short x1, short y1, short x2, short 
 			base= base->next;
 		}
 	}
-	glPopName();	/* zie boven (pushname) */
+	glPopName();	/* see above (pushname) */
 	hits= glRenderMode(GL_RENDER);
 	if(hits<0) error("Too many objects in selectbuf");
 
@@ -797,8 +794,8 @@ unsigned int free_localbit()
 	
 	lay= 0;
 	
-	/* soms kunnen we een localview kwijtrijaken: als een area gesloten wordt */
-	/* alle area's aflopen: welke localviews zijn in gebruik */
+	/* sometimes we loose a localview: when an area is closed */
+	/* check all areas: which localviews are in use? */
 	sc= G.main->screen.first;
 	while(sc) {
 		sa= sc->areabase.first;
@@ -901,7 +898,7 @@ void initlocalview()
 		scrarea_queue_winredraw(curarea);
 	}
 	else {
-		/* flags wissen */
+		/* clear flags */
 		base= FIRSTBASE;
 		while(base) {
 			if( base->lay & locallay ) {
@@ -918,7 +915,7 @@ void initlocalview()
 	}
 }
 
-void centreview()	/* localview zonder local! */
+void centreview()	/* like a localview without local! */
 {
 	Base *base;
 	float size, min[3], max[3], afm[3];
@@ -1011,7 +1008,7 @@ void endlocalview(ScrArea *sa)
 		v3d->localvd= 0;
 		v3d->localview= 0;
 
-		/* als in ander window de layers zijn veranderd */
+		/* for when in other window the layers have changed */
 		if(v3d->scenelock) v3d->lay= G.scene->lay;
 		
 		base= FIRSTBASE;
@@ -1026,7 +1023,7 @@ void endlocalview(ScrArea *sa)
 		}
 
 		countall();
-		allqueue(REDRAWVIEW3D, 0);	/* ivm select */
+		allqueue(REDRAWVIEW3D, 0);	/* because of select */
 		
 	}
 }

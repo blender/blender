@@ -550,7 +550,7 @@ void get_next_image(SpaceImaSel *simasel)
 			
 			IMB_converttocmap(ibuf);
 			
-			/* copy ibuf->rect naar ima->pict_rect */ 
+			/* copy ibuf->rect to ima->pict_rect */ 
 			size = ima->dw * ima->dh; if (size > 3968) size = 3968;
 			longtochar(ima->pict_rect, ibuf->rect, size); 
 
@@ -901,8 +901,8 @@ void change_imadir(SpaceImaSel *simasel)
 void check_imasel_copy(SpaceImaSel *simasel)
 {
 
-	/* LET OP: wordt ook gebruikt bij inlezen blender file */
-	/* dingen op nul zetten, opnieuw malloccen etc */
+	/* WATCH IT: also used when reading blender file */
+	/* initialize stuff, malloc, etc */
 	simasel->first_sel_ima	=  0;
 	simasel->hilite_ima	    =  0;
 	simasel->firstdir		=  0;
@@ -916,7 +916,7 @@ void check_imasel_copy(SpaceImaSel *simasel)
 
 void free_imasel(SpaceImaSel *simasel)
 {
-	/* NIET de imasel zelf vrijgeven */
+	/* do not free imasel itself */
 	
 	clear_ima_dir(simasel);
 	IMB_freeImBuf(simasel->cmap);

@@ -124,20 +124,20 @@ static char interpret_move(short mcord[][2], int count)
 	
 	if (count <= 10) return ('g');
 
-	/* van short naar float (tekenen is met shorts) */
+	/* from short to float (drawing is with shorts) */
 	for(j=0; j<count; j++) {
 		mouse[j][0]= mcord[j][0];
 		mouse[j][1]= mcord[j][1];
 	}
 	
-	/* nieuwe opzet:
+	/* new method:
 	 * 
-	 * vanuit eindpunten middelpunt met maximale afstand berekenen
-	 * aan de hand van de hoek wordt s / g / r bepaald
+	 * starting from end points, calculate centre with maximum distance
+	 * dependant at the angle s / g / r is defined
 	 */
 	
 
-	/* filteren */
+	/* filter */
 	
 	for( j = 3 ; j > 0; j--){
 		x1 = mouse[1][0];
@@ -152,7 +152,7 @@ static char interpret_move(short mcord[][2], int count)
 		}
 	}
 
-	/* maak directions overzicht */
+	/* make overview of directions */
 	for (i = 0; i <= count - 2; i++){
 		x1 = mouse[i][0] - mouse[i + 1][0];
 		y1 = mouse[i][1] - mouse[i + 1][1];
@@ -172,7 +172,7 @@ static char interpret_move(short mcord[][2], int count)
 		}
 	}
 	
-	/* alle kruisjes naar rechts halen */
+	/* move all crosses to the right */
 	for (i = 7; i>=0 ; i--){
 		if (dir & 128) dir = (dir << 1) + 1;
 		else break;
@@ -183,9 +183,9 @@ static char interpret_move(short mcord[][2], int count)
 		else break;
 	}
 	
-	/* theorie zegt: 1 richting: rechte lijn
-     * meer aaneengesloten richtingen: cirkel
-     * onderbroken en minstens 1 bit gezet in hoogste 4 bits: size
+	/* in theory: 1 direction: straight line
+     * multiple sequential directions: circle
+     * non-sequential, and 1 bit set in upper 4 bits: size
      */
 	switch(dir){
 	case 1:
@@ -218,7 +218,7 @@ static char interpret_move(short mcord[][2], int count)
 		return ('r');
 		break;
 	default:
-		/* bij size moeten minstens een van de hogere bits gezet zijn */
+		/* for size at least one of the higher bits has to be set */
 		if (dir < 16) return ('r');
 		else return ('s');
 	}
@@ -234,7 +234,7 @@ int gesture(void)
 	short mval[2], val;
 	
 	glDrawBuffer(GL_FRONT);
-	persp(0);	/* heeft ortho op pixelnivo */
+	persp(0);	/*  ortho at pixel level */
 	
 	getmouseco_areawin(mval);
 	
@@ -378,7 +378,7 @@ void deselectall(void)	/* is toggle */
 
 }
 
-static void deselectall_ex(Base *b)   /* ALLES deselect behalve b */
+static void deselectall_ex(Base *b)   /* deselect all except b */
 {
 	Base *base;
 
@@ -389,7 +389,7 @@ static void deselectall_ex(Base *b)   /* ALLES deselect behalve b */
 			
 				base->flag &= ~SELECT;
 				base->object->flag= base->flag;
-				draw_object_ext(base);	/* deze test op layer */
+				draw_object_ext(base);	/* this test for layer */
 			}
 		}
 		base= base->next;
@@ -430,7 +430,7 @@ static unsigned int samplerect(unsigned int *buf, int size, unsigned int dontdo)
 			for(b=0;b<tel;b++) {
 
 				if(*buf && *buf<=maxob && *buf!=dontdo) return *buf;
-				if( *buf==dontdo ) retval= dontdo;	/* als alleen kleur dontdo aanwezig is, wel dontdo teruggeven */
+				if( *buf==dontdo ) retval= dontdo;	/* if only color dontdo is available, still return dontdo */
 				
 				buf+= (dirvec[rc][0]+dirvec[rc][1]);
 
@@ -450,12 +450,12 @@ void set_active_base(Base *base)
 	
 	BASACT= base;
 	
-	/* signalen naar buttons */
+	/* signals to buttons */
 	redraw_test_buttons(base);
 
 	set_active_group();
 	
-	/* signaal naar ipo */
+	/* signal to ipo */
 
 	if (base) {
 		allqueue(REDRAWIPO, base->object->ipowin);
@@ -487,7 +487,7 @@ void mouse_select(void)
 	int temp, a, dist=100;
 	short hits, mval[2];
 
-	/* iedere keer lijst starten vanuit basact */
+	/* always start list from basact */
 	startbase=  FIRSTBASE;
 	if(BASACT && BASACT->next) startbase= BASACT->next;
 
@@ -514,8 +514,8 @@ void mouse_select(void)
 			if(base==0) base= FIRSTBASE;
 			if(base==startbase) break;
 		}
-		
-		/* volledige redraw als */
+
+		/* complete redraw when: */
 		if(G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT)) allqueue(REDRAWVIEW3D, 0);
 		
 	}
@@ -544,7 +544,7 @@ void mouse_select(void)
 	
 	if(basact) {
 		if(G.obedit) {
-			/* alleen select doen */
+			/* only do select */
 			deselectall_ex(BASACT);
 			basact->flag |= SELECT;
 			draw_object_ext(basact);
@@ -781,10 +781,6 @@ void borderselect(void)
 					}
 				}
 				
-					/* XXX, are all these really needed?
-					 * I just copied them from the G.obpose
-					 * OB_ARMATURE section above. - zr
-					 */
 				allqueue(REDRAWBUTSEDIT, 0);
 				allqueue(REDRAWBUTSCONSTRAINT, 0);
 				allqueue(REDRAWACTION, 0);
@@ -836,11 +832,11 @@ void borderselect(void)
 			}
 			allqueue(REDRAWDATASELECT, 0);
 			
-			/* i.v.m. backbufprojektie */
+			/* because backbuf drawing */
 			tel= 1;
 			base= FIRSTBASE;
 			while(base) {
-				/* elke base ivm meerdere windows */
+				/* each base because of multiple windows */
 				base->selcol = ((tel & 0xF00)<<12) 
 					+ ((tel & 0xF0)<<8) 
 					+ ((tel & 0xF)<<4);
@@ -893,7 +889,7 @@ void mesh_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 	}
 	else {
 		if(selecting!=LEFTMOUSE) tekenvertices_ext(0);
-		/* altijd geselecteerde vertices tekenen */
+		/* always draw selected vertices */
 		tekenvertices_ext(1);
 	}
 }
@@ -1037,7 +1033,7 @@ void circle_select(void)
 	
 	while(TRUE) {
 		
-		/* als een renderwindow open is en de muis gaat erin */
+		/* when a renderwindow is open and mouse enters it (activates sometimes) */
 
 		mywinset(curarea->win);
 
@@ -1076,7 +1072,7 @@ void circle_select(void)
 					}
 					else {
 						if(selecting!=LEFTMOUSE) tekenvertices_ext(0);
-						/* altijd geselecteerde vertices tekenen */
+						/* always draw selected vertices */
 						tekenvertices_ext(1);
 					}
 				}
@@ -1191,7 +1187,7 @@ void circle_select(void)
 		}
 	}
 	
-	/* cirkel wissen */
+	/* clear circle */
 	draw_sel_circle(0, mvalo, 0, rad, 1);
 
 	countall();
@@ -1283,7 +1279,7 @@ void fly(void)
 		}
 		if(loop==0) break;
 		
-		/* dvec bepalen */
+		/* define dvec */
 		val= mval[0]-cent[0];
 		if(val>20) val-= 20; else if(val< -20) val+= 20; else val= 0;
 		dvec[0]= 0.000001*val*val;
@@ -1306,7 +1302,7 @@ void fly(void)
 			
 			Mat3CpyMat4(mat, G.vd->viewinv);
 			Mat3MulVecfl(mat, dvec);
-			quat= vectoquat(dvec, 5, 1);	/* track en upflag, niet die van de base: cameraview-berekening gebruikt ze niet */
+			quat= vectoquat(dvec, 5, 1);	/* track and upflag, not from the base: camera view calculation does not use that */
 			
 			QuatToEul(quat, G.vd->camera->rot);
 			

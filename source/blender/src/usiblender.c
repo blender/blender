@@ -135,7 +135,7 @@ void BIF_read_file(char *name)
 	extern char datatoc_splash_jpg[];
 	extern int datatoc_splash_jpg_size;
 	char infostring[400];
-	//hier misschien?
+	//here?
 	//sound_end_all_sounds();
 
 	// first try to read exotic file formats...
@@ -152,7 +152,7 @@ void BIF_read_file(char *name)
 
 	sound_initialize_sounds();
 
-	winqueue_break= 1;	/* overal uit queue's gaan */
+	winqueue_break= 1;	/* leave queues everywhere */
 
 }
 
@@ -163,7 +163,7 @@ int BIF_read_homefile(void)
 	int success;
 
 	BLI_make_file_string(G.sce, tstr, home, ".B.blend");
-	strcpy(scestr, G.sce);	/* even bewaren */
+	strcpy(scestr, G.sce);	/* temporal store */
 	if (BLI_exists(tstr)) {
 		success = BKE_read_file(tstr, NULL);
 	} else {
@@ -177,9 +177,6 @@ int BIF_read_homefile(void)
 		/*  disable autoplay in .B.blend... */
 		G.fileflags &= ~G_FILE_AUTOPLAY;
 			
-		/* holobutton */
-		if (strcmp(G.scene->r.ftype, "*@&#")==0) G.special1= G_HOLO;
-		
 		if (BLI_streq(U.tempdir, "/")) {
 			char *tmp= getenv("TEMP");
 				
@@ -222,7 +219,7 @@ void BIF_read_autosavefile(void)
 	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
 	int save_over;
 
-	strcpy(scestr, G.sce);	/* even bewaren */
+	strcpy(scestr, G.sce);	/* temporal store */
 	
 	get_autosave_location(tstr);
 
@@ -322,7 +319,7 @@ static void do_history(char *name)
 		hisnr--;
 	}
 		
-	/* lijkt dubbelop: maar deze is nodig als hisnr==1 */
+	/* is needed when hisnr==1 */
 	sprintf(tempname1, "%s%d", name, hisnr);
 	
 	if(BLI_rename(name, tempname1))
@@ -358,7 +355,7 @@ void BIF_write_file(char *target)
 	waitcursor(1);
 	
 	if(G.obedit) {
-		exit_editmode(0);	/* 0 = geen freedata */
+		exit_editmode(0);	/* 0 = no free data */
 	}
 	if (G.fileflags & G_AUTOPACK) {
 		packAll();
@@ -368,7 +365,7 @@ void BIF_write_file(char *target)
 		
 	if (BLO_write_file(di, G.fileflags, &err)) {
 		strcpy(G.sce, di);
-		strcpy(G.main->name, di);	/* is gegarandeerd current file */
+		strcpy(G.main->name, di);	/* is guarenteed current file */
 
 		G.save_over = 1;
 
@@ -441,8 +438,6 @@ static void initbuttons(void)
 	G.fonts= BMF_GetFont(BMF_kHelvetica10);
 	G.fontss= BMF_GetFont(BMF_kHelveticaBold8);
 
-	/* IKONEN INLADEN */
-	
 	clear_matcopybuf();
 }
 
@@ -450,12 +445,10 @@ void BIF_init(void)
 {
 	BKE_font_register_builtin(datatoc_Bfont, datatoc_Bfont_size);
 
-	initscreen();	/* voor (visuele) snelheid, dit eerst, dan setscreen */
+	initscreen();	/* for (visuele) speed, this first, then setscreen */
 	initbuttons();
 	init_draw_rects();	/* drawobject.c */
 	init_gl_stuff();	/* drawview.c */
-
-	/* if (I_AM_PUBLISHER) checkhome(); */
 
 	BIF_read_homefile(); 
 
@@ -492,14 +485,14 @@ void exit_usiblender(void)
 	free_editArmature();
 	free_posebuf();
 
-	free_blender();	/* blender.c, doet hele library */
+	free_blender();	/* blender.c, does entire library */
 	free_hashedgetab();
 	free_matcopybuf();
 	free_ipocopybuf();
 	freefastshade();
 	free_vertexpaint();
 	
-	/* editnurb kan blijven bestaan buiten editmode */
+	/* editnurb can remain to exist outside editmode */
 	freeNurblist(&editNurb);
 
 	fsmenu_free();

@@ -101,23 +101,12 @@
 #include "interface.h"
 #include "render.h"
 
-/*   ********  NOTES  ***********	*****************************
-	
-	- Toolbox items zelf invullen
-	- de colormap kleuren staan met comments in de bgntoolbox()
-	- de funktie extern_qread eventueel vervangen
-	- let op de benaming van bijzondere toetsen (NumL etc) 
-	- meelinken: Button.c,  ivm rawcodes
-	
-	*****************************	*****************************
-*/	
-
 
 static int tbx1, tbx2, tby1, tby2, tbfontyofs, tbmain=0;
 static int tbmemx=TBOXX/2, tbmemy=(TBOXEL-0.5)*TBOXH, tboldwin, addmode= 0;
 static int oldcursor;
 
-	/* variabelen per item */
+	/* variables per item */
 static char *tbstr, *tbstr1, *keystr; 	
 static void (*tbfunc)(int);
 static int tbval;
@@ -159,7 +148,7 @@ void tboxSetCallback(Tbox_callbackfunc f)
 
 void tbox_setinfo(int x, int y)
 {
-	/* afhankelijk van tbmain worden vars gezet */
+	/* dependant of tbmain vars are set */
 	tbstr= 0;
 	tbstr1= 0;
 	tbfunc= 0;
@@ -497,7 +486,7 @@ void bgnpupdraw(int startx, int starty, int endx, int endy)
 
 	mywinset(G.curscreen->mainwin);
 	
-	/* pietsje groter, 1 pixel aan de rand */
+	/* tinsy bit larger, 1 pixel on the rand */
 	
 	glReadBuffer(GL_FRONT);
 	glDrawBuffer(GL_FRONT);
@@ -509,7 +498,7 @@ void bgnpupdraw(int startx, int starty, int endx, int endy)
 	oldcursor= get_cursor();
 	set_cursor(CURSOR_STD);
 	
-	tbfontyofs= (TBOXH-11)/2 +2;	/* toolbox, hier stond ooit getheigh */
+	tbfontyofs= (TBOXH-11)/2 +2;	/* for toolbox */
 }
 
 void endpupdraw(void)
@@ -569,8 +558,8 @@ void asciitoraw(int ch, unsigned short *event, unsigned short *qual)
 
 void tbox_execute(void)
 {
-	/* als tbfunc: functie aanroepen */
-	/* als tbstr1 is een string: value tbval in queue stopen */
+	/* if tbfunc: call function */
+	/* if tbstr1 is a string: put value tbval in queue */
 	unsigned short event=0;
 	unsigned short qual1=0, qual2=0;
 
@@ -811,7 +800,7 @@ void tbox_drawelem_text(x, y, type)
 		glColor3ub(240, 240, 240);
 	}
 	
-	/* tekst */
+	/* text */
 	tbox_setinfo(x, y);
 	if(tbstr && tbstr[0]) {
 		len1= 5+BMF_GetStringWidth(G.font, tbstr);
@@ -883,7 +872,7 @@ void drawtoolbox(void)
 
 	tbox_getactive(&actx, &acty);
 
-	/* de background */
+	/* background */
 	for(x=0; x<2; x++) {
 		
 		for(y=0; y<TBOXEL; y++) {
@@ -901,7 +890,7 @@ void drawtoolbox(void)
 		}
 	}
 
-	/* de text */
+	/* text */
 	for(x=0; x<2; x++) {
 		
 		for(y=0; y<TBOXEL; y++) {
@@ -935,7 +924,7 @@ void toolbox(void)
 	drawtoolbox();
 	
 	/* 
-	 *	De aktieve window wordt in queue terug gestopt.
+	 *	The active window will be put back in the queue.
 	 */
 
 	while(1) {
@@ -965,7 +954,7 @@ void toolbox(void)
 					}
 					break;
 				case ESCKEY:
-					/* altkeys: om conflicten met overdraw en stow/push/pop te voorkomen */
+					/* alt keys: to prevent conflicts with over-draw and stow/push/pop at sgis */
 #ifndef MAART
 /* Temporary for making screen dumps (Alt+PrtSc) */
 				case LEFTALTKEY:
@@ -981,7 +970,7 @@ void toolbox(void)
 		
 		tbox_getactive(&actx, &acty);
 		
-		/* muisafhandeling en redraw */
+		/* mouse handling and redraw */
 		if(xo!=actx || yo!=acty) {
 			if(actx==0) {
 				if (acty==0) addmode=0;
@@ -1077,7 +1066,7 @@ int saveover(char *file)
 	return (!BLI_exists(file) || confirm("SAVE OVER", file));
 }
 
-/* ****************** EXTRAATJE **************** */
+/* ****************** EXTRA STUFF **************** */
 
 short button(short *var, short min, short max, char *str)
 {
@@ -1276,7 +1265,7 @@ int do_clever_numbuts(char *name, int tot, int winevent)
 	sizex= 235;
 	sizey= 30+20*(tot+1);
 	
-	/* midden */
+	/* center */
 	if(mval[0]<sizex/2) mval[0]=sizex/2;
 	if(mval[1]<sizey/2) mval[1]=sizey/2;
 	if(mval[0]>G.curscreen->sizex -sizex/2) mval[0]= G.curscreen->sizex -sizex/2;
@@ -1290,8 +1279,8 @@ int do_clever_numbuts(char *name, int tot, int winevent)
 	block= uiNewBlock(&listb, "numbuts", UI_EMBOSSX, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_ENTER_OK);
 	
-	/* LET OP: TEX BUTTON UITZONDERING */
-	/* WAARSCHUWING: ALLEEN EEN ENKELE BITJES-BUTTON MOGELIJK: ER WORDT OP KOPIEDATA GEWERKT! */
+	/* WATCH IT: TEX BUTTON EXCEPTION */
+	/* WARNING: ONLY A SINGLE BIT-BUTTON POSSIBLE: WE WORK AT COPIED DATA! */
 
 	uiDefBut(block, LABEL, 0, name,	(short)(x1+15), (short)(y2-35), (short)(sizex-60), 19, 0, 1.0, 0.0, 0, 0, ""); 
 
@@ -1363,7 +1352,7 @@ void add_numbut(int nr, int type, char *str, float min, float max, void *poin, c
 		strcpy(numbuts[nr].tip, "");
 	
 	
-	/* LET OP: TEX BUTTON UITZONDERING */
+	/*WATCH: TEX BUTTON EXCEPTION */
 	
 	numbpoin[nr]= poin;
 	

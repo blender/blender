@@ -30,6 +30,15 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+
+/* HRMS!!... blender has its own swapbuffers method. for sgi only that worked pretty nice.
+ * but with porting to linux and win, with mesa and opengl variations, it all grow
+ * out of control.
+ * with the introduction of Ghost (2002) we really should bring this back to a single
+ * method again. (ton)
+ */
+
+
 #include <stdlib.h>
 
 #ifdef HAVE_CONFIG_H
@@ -89,9 +98,9 @@ static void screen_swapbuffers_REDRAW(bScreen *sc)
 	ScrArea *sa;
 	int doswap= 0, swap;
 	
-	/* dit is een nieuwe implementatie: uitsluitend met redraws en normale swapbuffer */
+	/* a new implementation: only using redraws and a normal swapbuffer */
 
-	/* allemaal front ok? */
+	/* all areas front ok? */
 	sa= sc->areabase.first;
 	while(sa) {
 		if(sa->win && (sa->win_swap & WIN_FRONT_OK)==0) break;
@@ -123,7 +132,7 @@ static void screen_swapbuffers_REDRAW(bScreen *sc)
 		sa= sa->next;
 	}
 
-	/* de hele backbuffer moet nu OK zijn */
+	/* the whole backbuffer should now be ok */
 	if(doswap) {
 		myswapbuffers();
 	}
@@ -179,10 +188,10 @@ static void screen_swapbuffers_DEBUG_SWAP(bScreen *sc)
 {
 	ScrArea *sa;
 	int doswap= 0, swap;
-	
-	/* dit is een nieuwe implementatie: uitsluitend met redraws en normale swapbuffer */
 
-	/* allemaal front ok? */
+	/* a new implementation: only using redraws and a normal swapbuffer */
+
+	/* all areas front ok? */
 	sa= sc->areabase.first;
 	while(sa) {
 		if(sa->win && (sa->win_swap & WIN_FRONT_OK)==0) break;
@@ -219,7 +228,6 @@ static void screen_swapbuffers_DEBUG_SWAP(bScreen *sc)
 		sa= sa->next;
 	}
 
-	/* de hele backbuffer moet nu OK zijn */
 	if(doswap) {
 		myswapbuffers();
 	}

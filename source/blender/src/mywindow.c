@@ -28,9 +28,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
- * vervanging voor een aantal fie's zoals swinopen, winset,  (zie onder)
- * dit alles omdat GL en X te traag zijn
- * feb: Opengl en toch maar naar X!
+ *
+ *
+ * for compatibility with old iris code, replacement of swinopen, winset, etc
+ * btw: subwindows in X are way too slow, tried it, and choose for my own system... (ton)
+ * 
  */
 
 #include <string.h>
@@ -110,8 +112,6 @@ void mywindow_init_mainwin(Window *win, int orx, int ory, int sizex, int sizey)
 
 /* XXXXXXXXXXXXXXXX very hacky, not allowed to release
  * again after 2.24
- *
- * Nah ha! And you thought you'd be in business that long!
  */
 void mywindow_build_and_set_renderwin(void)
 {
@@ -405,7 +405,7 @@ void mywinclose(int winid)
 	if (curswin==winid) curswin= 0;
 }
 
-void mywinposition(int winid, int xmin, int xmax, int ymin, int ymax) /* let op: andere syntax */
+void mywinposition(int winid, int xmin, int xmax, int ymin, int ymax) /* watch: syntax differs from iris */
 {
 	bWindow *win= bwin_from_winid(winid);
 	
@@ -564,7 +564,7 @@ void myswapbuffers(void)
 }
 
 
-/* *********************** PATTERNS ENZO ***************** */
+/* *********************** PATTERNS ETC ***************** */
 
 void setlinestyle(int nr)
 {
@@ -610,7 +610,7 @@ void my_get_frontbuffer_image(int x, int y, int sx, int sy)
 	}
 
 	#ifdef WIN32
-	/* ander coordinatensysteem! */
+	/* different coord system! */
 	y= (G.curscreen->sizey-y);
 	
 	if(curswin>3) {

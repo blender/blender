@@ -91,7 +91,7 @@
 
 #include "blendef.h"
 #include "mydevice.h"
-#include "interface.h" /* MAART: for button types, pupmenu */
+#include "interface.h" /*  for button types, pupmenu */
 
 Sequence *last_seq=0;
 char last_imagename[80]= "/";
@@ -103,7 +103,7 @@ char last_imagename[80]= "/";
 static int test_overlap_seq(Sequence *);
 static void shuffle_seq(Sequence *);
 
-static void change_plugin_seq(char *str)	/* aangeroepen vanuit fileselect */
+static void change_plugin_seq(char *str)	/* called from fileselect */
 {
 /*  	extern Sequence *last_seq; already done few lines before !!!*/
 	
@@ -171,7 +171,7 @@ Sequence *find_nearest_seq(int *hand)
 				
 				if(seq->type < SEQ_EFFECT) {
 					if( seq->handsize+seq->startdisp >=x ) {
-						/* binnen de driehoek? */
+						/* within triangle? */
 						facx= (x-seq->startdisp)/seq->handsize;
 						if( (y - (int)y) <0.5) {
 							facy= (y - 0.2 - (int)y)/0.3;
@@ -184,7 +184,7 @@ Sequence *find_nearest_seq(int *hand)
 						
 					}
 					else if( -seq->handsize+seq->enddisp <=x ) {
-						/* binnen de driehoek? */
+						/* within triangle? */
 						facx= 1.0 - (seq->enddisp-x)/seq->handsize;
 						if( (y - (int)y) <0.5) {
 							facy= (y - 0.2 - (int)y)/0.3;
@@ -207,7 +207,7 @@ Sequence *find_nearest_seq(int *hand)
 
 void clear_last_seq(void)
 {
-	/* vanuit (bijv) ipo: als ie veranderd is, ook meteen de effecten metzelfde ipo */
+	/* from (example) ipo: when it is changed, also do effects with same ipo */
 	Sequence *seq;
 	Editing *ed;
 	StripElem *se;
@@ -554,15 +554,15 @@ static void add_image_strips(char *name)
 
 	deselect_all_seq();
 	
-	/* is voor restore windowmatrices */
+	/* restore windowmatrices */
 	areawinset(curarea->win);
 	drawseqspace(curarea, curarea->spacedata.first);
 
-	/* sfile zoeken */
+	/* search sfile */
 	sfile= scrarea_find_space_of_type(curarea, SPACE_FILE);
 	if(sfile==0) return;
 
-	/* waar komen ze */
+	/* where will it be */
 	getmouseco_areawin(mval);
 	areamouseco_to_ipoco(G.v2d, mval, &x, &y);
 	cfra= (int)(x+0.5);
@@ -570,7 +570,7 @@ static void add_image_strips(char *name)
 
 	waitcursor(1);
 
-	/* ook inhoud van geselecteerde directories lezen */
+	/* also read contents of directories */
 	files= sfile->filelist;
 	totfile= sfile->totfile;
 	sfile->filelist= 0;
@@ -583,7 +583,7 @@ static void add_image_strips(char *name)
 				strcat(sfile->dir,"/");
 				read_dir(sfile);
 				
-				/* selecteer alles */
+				/* select all */
 				swapselect_file(sfile);
 				
 				if ( sfile_to_sequence(sfile, cfra, machine, 0) ) machine++;
@@ -596,7 +596,7 @@ static void add_image_strips(char *name)
 	sfile->filelist= files;
 	sfile->totfile= totfile;
 	
-	/* directory zelf lezen */
+	/* read directory itself */
 	sfile_to_sequence(sfile, cfra, machine, 1);
 
 	waitcursor(0);
@@ -614,15 +614,15 @@ static void add_movie_strip(char *name)
 
 	deselect_all_seq();
 	
-	/* is voor restore windowmatrices */
+	/* restore windowmatrices */
 	areawinset(curarea->win);
 	drawseqspace(curarea, curarea->spacedata.first);
 
-	/* sfile zoeken */
+	/* search sfile */
 	sfile= scrarea_find_space_of_type(curarea, SPACE_FILE);
 	if(sfile==0) return;
 
-	/* waar komen ze */
+	/* where will it be */
 	getmouseco_areawin(mval);
 	areamouseco_to_ipoco(G.v2d, mval, &x, &y);
 	cfra= (int)(x+0.5);
@@ -630,7 +630,7 @@ static void add_movie_strip(char *name)
 
 	waitcursor(1);
 
-	/* directory zelf lezen */
+	/* read directory itself */
 	sfile_to_mv_sequence(sfile, cfra, machine);
 
 	waitcursor(0);
@@ -648,9 +648,9 @@ static void reload_image_strip(char *name)
 	ed= G.scene->ed;
 
 	if(last_seq==0 || last_seq->type!=SEQ_IMAGE) return;
-	seqact= last_seq;	/* last_seq verandert in alloc_sequence */
+	seqact= last_seq;	/* last_seq changes in alloc_sequence */
 	
-	/* sfile zoeken */
+	/* search sfile */
 	sfile= scrarea_find_space_of_type(curarea, SPACE_FILE);
 	if(sfile==0) return;
 
@@ -712,9 +712,9 @@ static int add_seq_effect(int type)
 	if(G.scene->ed==0) return 0;
 	ed= G.scene->ed;
 
-	/* behalve de last_seq moet er nog een of twee geselecteerde seq zijn */
+	/* apart from last_seq there have to be 2 selected sequences */
 	seq1= seq3= 0;
-	seq2= last_seq;		/* last_seq verandert bij alloc_seq! */
+	seq2= last_seq;		/* last_seq changes with alloc_seq! */
 	seq= ed->seqbasep->first;
 	while(seq) {
 		if(seq->flag & SELECT) {
@@ -730,7 +730,7 @@ static int add_seq_effect(int type)
 		seq= seq->next;
 	}
 	
-	if(type==10) {	/* plugin: minimaal 1 select */
+	if(type==10) {	/* plugin: minimal 1 select */
 		if(seq2==0)  {
 			error("Need minimum one active sequence");
 			return 0;
@@ -748,7 +748,7 @@ static int add_seq_effect(int type)
 	
 	deselect_all_seq();
 
-	/* waar komt ie (cfra is eigenlijk niet nodig) */
+	/* where will it be (cfra is not realy needed) */
 	getmouseco_areawin(mval);
 	areamouseco_to_ipoco(G.v2d, mval, &x, &y);
 	cfra= (int)(x+0.5);
@@ -777,12 +777,11 @@ static int add_seq_effect(int type)
 	return 1;
 }
 
-static void load_plugin_seq(char *str)		/* aangeroepen vanuit fileselect */
+static void load_plugin_seq(char *str)		/* called from fileselect */
 {
-/*  	extern Sequence *last_seq; already present in this file... */
 	Editing *ed;
 	
-	add_seq_effect(10);		/* deze zet last_seq */
+	add_seq_effect(10);		/* this sets last_seq */
 	
 	free_plugin_seq(last_seq->plugin);
 	
@@ -833,7 +832,7 @@ void add_sequence(int type)
 		activate_fileselect(FILE_SPECIAL, "SELECT MOVIE", last_imagename, add_movie_strip);
 		break;
 	case 101:
-		/* nieuwe menu: */
+		/* new menu: */
 		IDnames_to_pupstring(&str, NULL, NULL, &G.main->scene, (ID *)G.scene, &nr);
 
 		event= pupmenu(str);
@@ -850,7 +849,7 @@ void add_sequence(int type)
 				
 				deselect_all_seq();
 				
-				/* waar komt ie ? */
+				/* where ? */
 				getmouseco_areawin(mval);
 				areamouseco_to_ipoco(G.v2d, mval, &x, &y);
 				cfra= (int)(x+0.5);
@@ -914,9 +913,9 @@ void change_sequence(void)
 			else if(event==11) {
 				activate_fileselect(FILE_SPECIAL, "SELECT PLUGIN", U.plugseqdir, change_plugin_seq);				
 			}
-			else if(event==12);	/* recalculate: alleen new_stripdata */
+			else if(event==12);	/* recalculate: only new_stripdata */
 			else {
-				/* voor zekerheid plugin vrijgeven */
+				/* to be sure, free plugin */
 				free_plugin_seq(last_seq->plugin);
 				last_seq->plugin= 0;
 				last_seq->type= event_to_efftype(event);
@@ -999,7 +998,7 @@ void del_seq(void)
 	
 	recurs_del_seq(ed->seqbasep);
 	
-	/* effecten testen */
+	/* test effects */
 	doit= 1;
 	while(doit) {
 		doit= 0;
@@ -1018,17 +1017,17 @@ void del_seq(void)
 		}
 	}
 	
-	/* lengtes en zo updaten */
+	/* updates lengths etc */
 	seq= ed->seqbasep->first;
 	while(seq) {
 		calc_sequence(seq);
 		seq= seq->next;
 	}
 	
-	/* parent meta's vrijgeven */
+	/* free parent metas */
 	ms= ed->metastack.last;
 	while(ms) {
-		ms->parseq->strip->len= 0;		/* forceer nieuwe alloc */
+		ms->parseq->strip->len= 0;		/* force new alloc */
 		calc_sequence(ms->parseq);
 		ms= ms->prev;
 	}
@@ -1088,7 +1087,7 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 				
 				if(seqn->len>0) {
 					seqn->strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
-					/* kopie eerste elem */
+					/* copy first elem */
 					*seqn->strip->stripdata= *seq->strip->stripdata;
 					se= seqn->strip->stripdata;
 					a= seq->len;
@@ -1165,7 +1164,7 @@ int insert_gap(int gap, int cfra)
 	Editing *ed;
 	int done=0;
 	
-	/* alle strips >= cfra opschuiven */
+	/* all strips >= cfra are shifted */
 	ed= G.scene->ed;
 	if(ed==0) return 0;
 	
@@ -1185,10 +1184,9 @@ void touch_seq_files(void)
 {
 	Sequence *seq;
 	Editing *ed;
-/*  	int done=0; */
 	char str[256];
 	
-	/* alle strips movies touchen */
+	/* touch all strips with movies */
 	ed= G.scene->ed;
 	if(ed==0) return;
 	
@@ -1216,7 +1214,6 @@ void set_filter_seq(void)
 {
 	Sequence *seq;
 	Editing *ed;
-/*  	int done=0; */
 	
 	ed= G.scene->ed;
 	if(ed==0) return;
@@ -1273,7 +1270,7 @@ void make_meta(void)
 	ed= G.scene->ed;
 	if(ed==0) return;
 
-	/* is er wel meer dan 1 select */
+	/* is there more than 1 select */
 	tot= 0;
 	seq= ed->seqbasep->first;
 	while(seq) {
@@ -1284,7 +1281,7 @@ void make_meta(void)
 	
 	if(okee("Make Meta")==0) return;
 	
-	/* samenhang testen */
+	/* test relationships */
 	seq= ed->seqbasep->first;
 	while(seq) {
 		if(seq->flag & SELECT) {
@@ -1307,7 +1304,7 @@ void make_meta(void)
 		return;
 	}
 
-	/* alle select uit hoofdlijst halen en in meta stoppen */
+	/* remove all selected from main list, and put in meta */
 
 	seqm= alloc_sequence(1, 1);
 	seqm->type= SEQ_META;
@@ -1355,7 +1352,7 @@ void un_meta(void)
 	BLI_remlink(ed->seqbasep, last_seq);
 	free_sequence(last_seq);
 
-	/* effecten testen */
+	/* test effects */
 	doit= 1;
 	while(doit) {
 		doit= 0;
@@ -1375,7 +1372,7 @@ void un_meta(void)
 	}
 
 
-	/* testen op effects en overlap */
+	/* test for effects and overlap */
 	WHILE_SEQ(ed->seqbasep) {
 		if(seq->flag & SELECT) {
 			seq->flag &= ~SEQ_OVERLAP;
@@ -1406,10 +1403,10 @@ static void exit_meta(void)
 
 	ed->seqbasep= ms->oldbasep;
 
-	/* de hele meta herberekenen */
+	/* recalc entire meta */
 	set_meta_stripdata(ms->parseq);
 
-	/* allemaal herberekenen: de meta kan effecten eraan hebben hangen */
+	/* recalc all: the meta can have effects connected to it */
 	seq= ed->seqbasep->first;
 	while(seq) {
 		calc_sequence(seq);
@@ -1471,9 +1468,9 @@ void transform_seq(int mode)
 	short mval[2], val, xo, yo, xn, yn;
 	char str[32];
 	
-	if(mode!='g') return;	/* vanuit gesture */
+	if(mode!='g') return;	/* from gesture */
 	
-	/* welke seqs doen mee */
+	/* which seqs are involved */
 	ed= G.scene->ed;
 	if(ed==0) return;
 	
@@ -1610,7 +1607,7 @@ void transform_seq(int mode)
 			xo= mval[0];
 			yo= mval[1];
 			
-			/* testen op effect en overlap */
+			/* test for effect and overlap */
 			
 			WHILE_SEQ(ed->seqbasep) {
 				if(seq->flag & SELECT) {
@@ -1683,7 +1680,7 @@ void transform_seq(int mode)
 	}
 	else {
 
-		/* images, effecten en overlap */
+		/* images, effects and overlap */
 		WHILE_SEQ(ed->seqbasep) {
 			if(seq->type == SEQ_META) {
 				calc_sequence(seq);
@@ -1699,7 +1696,7 @@ void transform_seq(int mode)
 		}
 		END_SEQ
 		
-		/* als laatste: */
+		/* as last: */
 		sort_seq();
 	}
 	
@@ -1741,7 +1738,7 @@ void clever_numbuts_seq(void)
 
 		add_numbut(0, TEX, "Name:", 0.0, 21.0, last_seq->name+2, 0);
 		add_numbut(1, TOG|SHO|BIT|4, "FilterY", 0.0, 1.0, &last_seq->flag, 0);
-		/* waarschuwing: alleen een enkele bitjes-button mogelijk: er wordt op kopiedata gewerkt! */
+		/* warning: only a single bit-button possible: we work at copied data! */
 		add_numbut(2, NUM|FLO, "Mul", 0.01, 5.0, &last_seq->mul, 0);
 
 		if( do_clever_numbuts("Movie", 3, REDRAW) ) {
@@ -1779,7 +1776,7 @@ void seq_snapmenu(void)
 
 	/* problem: contents of meta's are all shifted to the same position... */
 
-	/* ook meta's aflopen */
+	/* also check metas */
 	WHILE_SEQ(ed->seqbasep) {
 		if(seq->flag & SELECT) {
 			if(seq->type<SEQ_EFFECT) seq->start= CFRA-seq->startofs+seq->startstill;
@@ -1789,7 +1786,7 @@ void seq_snapmenu(void)
 	END_SEQ
 	
 	
-	/* testen op effects en overlap */
+	/* test for effects and overlap */
 	WHILE_SEQ(ed->seqbasep) {
 		if(seq->flag & SELECT) {
 			seq->flag &= ~SEQ_OVERLAP;
@@ -1805,7 +1802,7 @@ void seq_snapmenu(void)
 	}
 	END_SEQ;
 
-	/* als laatste: */
+	/* as last: */
 	sort_seq();
 		
 	allqueue(REDRAWSEQ, 0);

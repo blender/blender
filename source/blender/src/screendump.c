@@ -111,7 +111,7 @@ void write_screendump(char *name)
 
 void BIF_screendump(void)
 {
-	/* dump pakken van frontbuffer */
+	/* get dump from frontbuffer */
 	int x=0, y=0;
 	char imstr[32];
 	
@@ -147,7 +147,7 @@ void BIF_screendump(void)
 		glReadBuffer(GL_FRONT);
 		glReadPixels(x, y, dumpsx, dumpsy, GL_RGBA, GL_UNSIGNED_BYTE, dumprect);
 	
-		/* filesel openen */
+		/* open filesel */
 		
 		activate_fileselect(FILE_SPECIAL, imstr, G.ima, write_screendump);
 	}	

@@ -28,7 +28,9 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
- * - hier het initialiseren en vrijgeven van SPACE data
+ *
+ *
+ * - here initialize and free and handling SPACE data
  */
 
 #include <string.h>
@@ -161,7 +163,7 @@ void copy_view3d_lock(short val)
 	bScreen *sc;
 	int bit;
 	
-	/* van G.scene naar andere views kopieeren */
+	/* from G.scene copy to the other views */
 	sc= G.main->screen.first;
 	
 	while(sc) {
@@ -211,7 +213,7 @@ void handle_view3d_lock()
 	if (G.vd != NULL) {
 		if(G.vd->localview==0 && G.vd->scenelock && curarea->spacetype==SPACE_VIEW3D) {
 
-			/* naar scene kopieeren */
+			/* copy to scene */
 			G.scene->lay= G.vd->lay;
 			G.scene->camera= G.vd->camera;
 	
@@ -386,7 +388,7 @@ void start_game(void)
 
 static void changeview3dspace(ScrArea *sa, void *spacedata)
 {
-	setwinmatrixview3d(0);	/* 0= geen pick rect */
+	setwinmatrixview3d(0);	/* 0= no pick rect */
 }
 
 	/* Callable from editmode and faceselect mode from the
@@ -438,7 +440,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	float *curs;
 	int doredraw= 0, pupval;
 	
-	if(curarea->win==0) return;	/* hier komtie vanuit sa->headqread() */
+	if(curarea->win==0) return;	/* when it comes from sa->headqread() */
 	if(event==MOUSEY) return;
 	
 	if(val) {
@@ -1062,7 +1064,7 @@ void initview3d(ScrArea *sa)
 	View3D *vd;
 	
 	vd= MEM_callocN(sizeof(View3D), "initview3d");
-	BLI_addhead(&sa->spacedata, vd);	/* addhead! niet addtail */
+	BLI_addhead(&sa->spacedata, vd);	/* addhead! not addtail */
 
 	vd->spacetype= SPACE_VIEW3D;
 	vd->viewquat[0]= 1.0;
@@ -1770,7 +1772,7 @@ void winqreadbutspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 void set_rects_butspace(SpaceButs *buts)
 {
-	/* buts space loopt van (0,0) tot (1280, 228) */
+	/* buts space goes from (0,0) to (1280, 228) */
 
 	buts->v2d.tot.xmin= 0.0;
 	buts->v2d.tot.ymin= 0.0;
@@ -1811,7 +1813,7 @@ void init_butspace(ScrArea *sa)
 	buts->spacetype= SPACE_BUTS;
 	buts->scaflag= BUTS_SENS_LINK|BUTS_SENS_ACT|BUTS_CONT_ACT|BUTS_ACT_ACT|BUTS_ACT_LINK;
 
-	/* set_rects doet alleen defaults, zodat na het filezen de cur niet verandert */
+	/* set_rects only does defaults, so after reading a file the cur has not changed */
 	set_rects_butspace(buts);
 	buts->v2d.cur= buts->v2d.tot;
 }
@@ -1821,10 +1823,10 @@ void extern_set_butspace(int fkey)
 	ScrArea *sa;
 	SpaceButs *sbuts;
 	
-	/* als een ftoets ingedrukt: de dichtsbijzijnde buttonwindow wordt gezet */
+	/* when a f-key pressed: closest button window is initialized */
 	if(curarea->spacetype==SPACE_BUTS) sa= curarea;
 	else {
-		/* area vinden */
+		/* find area */
 		sa= G.curscreen->areabase.first;
 		while(sa) {
 			if(sa->spacetype==SPACE_BUTS) break;
@@ -2030,7 +2032,7 @@ void init_seqspace(ScrArea *sa)
 	sseq->spacetype= SPACE_SEQ;
 	sseq->zoom= 1;
 	
-	/* seq space loopt van (0,8) tot (250, 0) */
+	/* seq space goes from (0,8) to (250, 0) */
 
 	sseq->v2d.tot.xmin= 0.0;
 	sseq->v2d.tot.ymin= 0.0;
@@ -2189,7 +2191,7 @@ void init_soundspace(ScrArea *sa)
 
 	ssound->spacetype= SPACE_SOUND;
 	
-	/* sound space loopt van (0,8) tot (250, 0) */
+	/* sound space goes from (0,8) to (250, 0) */
 
 	ssound->v2d.tot.xmin= -4.0;
 	ssound->v2d.tot.ymin= -4.0;
@@ -2262,7 +2264,7 @@ void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 			
 				brush = IMG_BrushCreate(Gvp.size, Gvp.size, Gvp.r, Gvp.g, Gvp.b, Gvp.a);
-				/* MAART: skipx is not set most of the times. Make a guess. */
+				/* skipx is not set most of the times. Make a guess. */
 				rowBytes = sima->image->ibuf->skipx ? sima->image->ibuf->skipx : sima->image->ibuf->x * 4;
 				canvas = IMG_CanvasCreateFromPtr(sima->image->ibuf->rect, sima->image->ibuf->x, sima->image->ibuf->y, rowBytes);
 
@@ -2375,7 +2377,7 @@ extern void drawimaselspace(ScrArea *sa, void *spacedata);
 extern void winqreadimaselspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 
 
-/* alles naar imasel.c */
+/* everything to imasel.c */
 
 
 /* ******************** SPACE: OOPS ********************** */
@@ -2599,7 +2601,7 @@ void newspace(ScrArea *sa, int type)
 	}
 
 		
-	/* uitzondering: filespace */
+	/* exception: filespace */
 	if(curarea->spacetype==SPACE_FILE) {
 		SpaceFile *sfile= curarea->spacedata.first;
 		
@@ -2613,7 +2615,7 @@ void newspace(ScrArea *sa, int type)
 		sfile->title[0]= 0;
 		if(sfile->filelist) test_flags_file(sfile);
 	}
-	/* uitzondering: imasel space */
+	/* exception: imasel space */
 	else if(curarea->spacetype==SPACE_IMASEL) {
 		SpaceImaSel *simasel= curarea->spacedata.first;
 		simasel->returnfunc= 0;
@@ -2681,7 +2683,7 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 
 	duplicatelist(lb1, lb2);
 	
-	/* lb1 is kopie van lb2, van lb2 geven we de filelist vrij */
+	/* lb1 is kopie from lb2, from lb2 we free the file list */
 	
 	sl= lb2->first;
 	while(sl) {
@@ -2736,7 +2738,7 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 		sl= sl->next;
 	}
 
-	/* nog een keer: van oude View3D de localview restoren (ivm full) */
+	/* again: from old View3D restore localview (because full) */
 	sl= lb2->first;
 	while(sl) {
 		if(sl->spacetype==SPACE_VIEW3D) {
@@ -2752,7 +2754,7 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 	}
 }
 
-/* wordt overal aangeroepen */
+/* is called everywhere in blender */
 void allqueue(unsigned short event, short val)
 {
 	ScrArea *sa;
@@ -3056,7 +3058,7 @@ void allspace(unsigned short event, short val)
 
 void force_draw()
 {
-	/* alle area's die (ongeveer) zelfde laten zien als curarea */
+	/* draws alle areas that something identical to curarea */
 	ScrArea *tempsa, *sa;
 
 	scrarea_do_windraw(curarea);
@@ -3094,7 +3096,7 @@ void force_draw()
 
 void force_draw_plus(int type)
 {
-	/* alle area's die (ongeveer) zelfde laten zien als curarea EN areas van 'type' */
+	/* draws all areas that show something like curarea AND areas of 'type' */
 	ScrArea *tempsa, *sa;
 
 	scrarea_do_windraw(curarea); 
@@ -3117,7 +3119,7 @@ void force_draw_plus(int type)
 
 void force_draw_all(void)
 {
-	/* alle area's die (ongeveer) zelfde laten zien als curarea EN areas van 'type' */
+	/* redraws all */
 	ScrArea *tempsa, *sa;
 
 	drawscreen();

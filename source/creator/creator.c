@@ -237,7 +237,7 @@ int main(int argc, char **argv)
 	syshandle = SYS_GetSystem();
 	GEN_init_messaging_system();
 
-	/* eerste testen op background */
+	/* first test for background */
 	G.f |= G_SCENESCRIPT; /* scenescript always set! */
 	for(a=1; a<argc; a++) {
 
@@ -298,10 +298,10 @@ int main(int argc, char **argv)
 	}
 
 #ifdef __sgi
-	setuid(getuid()); /* einde superuser */
+	setuid(getuid()); /* end superuser */
 #endif
 
-	RE_init_render_data();	/* moet vooraan staan ivm R.winpos uit defaultfile */
+	RE_init_render_data();	/* must be called here because R.winpos from default file */
 	
 	if(G.background==0) {
 		for(a=1; a<argc; a++) {
@@ -409,7 +409,7 @@ int main(int argc, char **argv)
 			G.have_quicktime = TRUE;
 #endif /* WITH_QUICKTIME */
 
-		/* OK we zijn er klaar voor */
+		/* OK we are ready for it */
 
 	for(a=1; a<argc; a++) {
 		if (G.afbreek==1) break;

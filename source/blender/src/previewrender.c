@@ -267,7 +267,7 @@ static void display_pr_scanline(unsigned int *rect, int recty)
 	
 	rect+= (recty-2)*PR_RECTX;
 
-	/* iets meer uitvergroten in y om GL/mesa bugje te verhelpen */
+	/* enlarge a bit in the y direction, to avoid GL/mesa bug */
 	glPixelZoom(pr_facx, pr_facy);
 
 	glRasterPos2f( (float)PR_XMIN+0.5, 1.0+(float)PR_YMIN + (recty*PR_FACY) );
@@ -404,7 +404,7 @@ static void lamp_preview_pixel(LampRen *la, int x, int y, char *rect)
 		else {
 			t= inpr-t;
 			if(t<la->spotbl && la->spotbl!=0.0) {
-				/* zachte gebied */
+				/* soft area */
 				i= t/la->spotbl;
 				t= i*i;
 				i= t*i;
@@ -540,7 +540,7 @@ static void texture_preview_pixel(Tex *tex, int x, int y, char *rect)
 		texvec[0]= 0.5+v1*x;
 		texvec[1]= 0.5+v1*y;
 		
-		/* geen coordmapping, uitzondering: repeat */
+		/* no coordinate mapping, exception: repeat */
 		if(tex->xrepeat>1) {
 			texvec[0] *= tex->xrepeat;
 			if(texvec[0]>1.0) texvec[0] -= (int)(texvec[0]);
@@ -585,7 +585,7 @@ static void texture_preview_pixel(Tex *tex, int x, int y, char *rect)
 		texvec[2]= 0.0;
 	}
 	
-	/* geeft geen Tin terug */
+	/* does not return Tin */
 	if(tex->type==TEX_STUCCI) {
 		tex->nor= R.vn;
 		R.vn[0]= 1.0;
@@ -659,7 +659,7 @@ static void shade_preview_pixel(float *vec,
 	
 	R.refcol[0]= R.refcol[1]= R.refcol[2]= R.refcol[3]= 0.0;
 
-	/* texture afhandeling */
+	/* texture handling */
 	if(mat->texco) {
 		
 		VECCOPY(R.lo, vec);
@@ -838,7 +838,7 @@ void BIF_previewrender(SpaceButs *sbuts)
 	if ELEM4(sbuts->mainb, BUTS_MAT, BUTS_TEX, BUTS_LAMP, BUTS_WORLD);
 	else return;
 	
-	har.flarec= 0;	/* verderop test op postrender flare */
+	har.flarec= 0;	/* below is a test for postrender flare */
 	
 	if(qtest()) {
 		addafterqueue(curarea->win, RENDERPREVIEW, 1);
@@ -895,12 +895,12 @@ void BIF_previewrender(SpaceButs *sbuts)
 		if(ob==0 || ob->type!=OB_LAMP) return;
 		la= ob->data;
 		init_render_world();
-		init_render_textures();	/* ze mogen niet twee keer!! (brightness) */
+		init_render_textures();	/* do not do it twice!! (brightness) */
 		R.totlamp= 0;
 		RE_add_render_lamp(ob, 0);	/* 0=no shadbuf */
 		lar= R.la[0];
 		
-		/* uitzonderingen: */
+		/* exceptions: */
 		lar->spottexfac= 1.0;
 		lar->spotsi= cos( M_PI/3.0 );
 		lar->spotbl= (1.0-lar->spotsi)*la->spotblend;

@@ -3,8 +3,8 @@
  * 
  * All rights reserved.
  * 
- * Contact:      blender@blender.nl   
- * Information:  http://www.blender.nl
+ * Contact:      info@blender.org   
+ * Information:  http://www.blender.org
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions

@@ -211,8 +211,8 @@ static int std_libbuttons(uiBlock *block,
 extern char versionstr[]; /* from blender.c */
 /*  extern                void add_text_fs(char *file);  *//* from text.c, BIF_text.h*/
 
- /* LET OP:  alle headerbuttons voor zelfde window steeds zelfde naam
-  *			event B_REDR is standaard redraw
+ /* WATCH IT:  always give all headerbuttons for same window the same name
+  *			event B_REDR is a standard redraw
   *
   */
 
@@ -292,7 +292,7 @@ static int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin, int 
 	if(browse) {
 		if(id==0) {
 			idwasnul= 1;
-			/* alleen de browse button */
+			/* only the browse button */
 			ob= OBACT;
 			if(curarea->spacetype==SPACE_IMAGE) {
 				id= G.main->image.first;
@@ -308,7 +308,7 @@ static int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin, int 
 			}
 			else if(curarea->spacetype==SPACE_IPO) {
 				id= G.main->ipo.first;
-				/* testen op ipotype */
+				/* test for ipotype */
 				while(id) {
 					ipo= (Ipo *)id;
 					if(G.sipo->blocktype==ipo->blocktype) break;
@@ -634,7 +634,7 @@ void do_global_buttons(unsigned short event)
 	
 	ob= OBACT;
 	
-	id= 0;	/* id op nul voor texbrowse */
+	id= 0;	/* id at null for texbrowse */
 	
 
 	switch(event) {
@@ -822,7 +822,7 @@ void do_global_buttons(unsigned short event)
 			}
 			else {	/* from lamp */
 				la= ob->data;
-				if(la && ob->type==OB_LAMP) {	/* voor zekerheid */
+				if(la && ob->type==OB_LAMP) {	/* to be sure */
 					mtex= la->mtex[ la->texact ];
 					if(mtex) {
 						if(mtex->tex) mtex->tex->id.us--;
@@ -1142,7 +1142,7 @@ void do_global_buttons(unsigned short event)
 		}
 
 		if(G.buts->menunr < 0) break;
-		/* geen lock */
+		/* no lock */
 			
 		wrld= G.scene->world;
 		nr= 1;
@@ -1241,7 +1241,7 @@ void do_global_buttons(unsigned short event)
 		}
 		break;
 	case B_LAMPBROWSE:
-		/* geen lock */
+		/* no lock */
 		if(ob==0) return;
 		if(ob->type!=OB_LAMP) return;
 
@@ -1263,7 +1263,7 @@ void do_global_buttons(unsigned short event)
 			nr++;
 			idtest= idtest->next;
 		}
-		if(idtest==0) {	/* geen new lamp */
+		if(idtest==0) {	/* no new lamp */
 			return;
 		}
 		if(idtest!=id) {
@@ -1386,7 +1386,7 @@ void do_global_buttons(unsigned short event)
 	case B_NEWSPACE:
 		newspace(curarea, curarea->butspacetype);
 		break;
-	case B_LOADTEMP: 	/* is button uit space.c */
+	case B_LOADTEMP: 	/* is button from space.c */
 		BIF_read_autosavefile();
 		break;
 
@@ -1394,13 +1394,13 @@ void do_global_buttons(unsigned short event)
 		allqueue(REDRAWINFO, 0);
 //		BIF_printf("userpref %d\n", U.userpref);
 		break;
-	case B_DRAWINFO: 	/* is button uit space.c  *info* */
+	case B_DRAWINFO: 	/* is button from space.c  *info* */
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 
 	/* Fileselect windows for user preferences file paths */
 
-	case B_FONTDIRFILESEL: 	/* is button uit space.c  *info* */
+	case B_FONTDIRFILESEL: 	/* is button from space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
 			sa= closest_bigger_area();
 			areawinset(sa->win);
@@ -1409,7 +1409,7 @@ void do_global_buttons(unsigned short event)
 		activate_fileselect(FILE_SPECIAL, "SELECT FONT PATH", U.fontdir, filesel_u_fontdir);
 		break;
 
-	case B_TEXTUDIRFILESEL: 	/* is button uit space.c  *info* */
+	case B_TEXTUDIRFILESEL: 	/* is button from space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
 			sa= closest_bigger_area();
 			areawinset(sa->win);
@@ -1418,7 +1418,7 @@ void do_global_buttons(unsigned short event)
 		activate_fileselect(FILE_SPECIAL, "SELECT TEXTURE PATH", U.textudir, filesel_u_textudir);
 		break;
 	
-	case B_PLUGTEXDIRFILESEL: 	/* is button uit space.c  *info* */
+	case B_PLUGTEXDIRFILESEL: 	/* is button form space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
 			sa= closest_bigger_area();
 			areawinset(sa->win);
@@ -1427,7 +1427,7 @@ void do_global_buttons(unsigned short event)
 		activate_fileselect(FILE_SPECIAL, "SELECT TEX PLUGIN PATH", U.plugtexdir, filesel_u_plugtexdir);
 		break;
 	
-	case B_PLUGSEQDIRFILESEL: 	/* is button uit space.c  *info* */
+	case B_PLUGSEQDIRFILESEL: 	/* is button from space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
 			sa= closest_bigger_area();
 			areawinset(sa->win);
@@ -1436,7 +1436,7 @@ void do_global_buttons(unsigned short event)
 		activate_fileselect(FILE_SPECIAL, "SELECT SEQ PLUGIN PATH", U.plugseqdir, filesel_u_plugseqdir);
 		break;
 	
-	case B_RENDERDIRFILESEL: 	/* is button uit space.c  *info* */
+	case B_RENDERDIRFILESEL: 	/* is button from space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
 			sa= closest_bigger_area();
 			areawinset(sa->win);
@@ -1445,7 +1445,7 @@ void do_global_buttons(unsigned short event)
 		activate_fileselect(FILE_SPECIAL, "SELECT RENDER PATH", U.renderdir, filesel_u_renderdir);
 		break;
 	
-	case B_PYTHONDIRFILESEL: 	/* is button uit space.c  *info* */
+	case B_PYTHONDIRFILESEL: 	/* is button from space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
 			sa= closest_bigger_area();
 			areawinset(sa->win);
@@ -1454,7 +1454,7 @@ void do_global_buttons(unsigned short event)
 		activate_fileselect(FILE_SPECIAL, "SELECT SCRIPT PATH", U.pythondir, filesel_u_pythondir);
 		break;
 
-	case B_SOUNDDIRFILESEL: 	/* is button uit space.c  *info* */
+	case B_SOUNDDIRFILESEL: 	/* is button from space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
 			sa= closest_bigger_area();
 			areawinset(sa->win);
@@ -1463,7 +1463,7 @@ void do_global_buttons(unsigned short event)
 		activate_fileselect(FILE_SPECIAL, "SELECT SOUND PATH", U.sounddir, filesel_u_sounddir);
 		break;
 
-	case B_TEMPDIRFILESEL: 	/* is button uit space.c  *info* */
+	case B_TEMPDIRFILESEL: 	/* is button from space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
 			sa= closest_bigger_area();
 			areawinset(sa->win);
@@ -1476,7 +1476,7 @@ void do_global_buttons(unsigned short event)
 
 
 #ifdef INTERNATIONAL
-	case B_LOADUIFONT: 	/* is button uit space.c  *info* */
+	case B_LOADUIFONT: 	/* is button from space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
 			sa= closest_bigger_area();
 			areawinset(sa->win);
@@ -1485,21 +1485,21 @@ void do_global_buttons(unsigned short event)
 		activate_fileselect(FILE_SPECIAL, "LOAD UI FONT", buf, set_interface_font);
 		break;
 
-	case B_SETLANGUAGE: 	/* is button uit space.c  *info* */
+	case B_SETLANGUAGE: 	/* is button from space.c  *info* */
 		lang_setlanguage();
 		allqueue(REDRAWALL, 0);
 		break;
 
-	case B_SETFONTSIZE: 	/* is button uit space.c  *info* */
+	case B_SETFONTSIZE: 	/* is button from space.c  *info* */
 		FTF_SetSize(U.fontsize);
 		allqueue(REDRAWALL, 0);
 		break;
 		
-	case B_SETTRANSBUTS: 	/* is button uit space.c  *info* */
+	case B_SETTRANSBUTS: 	/* is button from space.c  *info* */
 		allqueue(REDRAWALL, 0);
 		break;
 
-	case B_SETENCODING: 	/* is button uit space.c  *info* */
+	case B_SETENCODING: 	/* is button from space.c  *info* */
 		lang_setencoding();
 		allqueue(REDRAWALL, 0);
 		break;
@@ -1519,12 +1519,12 @@ void do_global_buttons(unsigned short event)
 		if (OBACT && OBACT->type==OB_MBALL)
 			makeDispList(OBACT);
 			
-		/* redraw omdat naam veranderd is: nieuwe pup */
+		/* redraw because name has changed: new pup */
 		scrarea_queue_headredraw(curarea);
 		allqueue(REDRAWBUTSHEAD, 0);
 		allqueue(REDRAWINFO, 1);
 		allqueue(REDRAWOOPS, 1);
-		/* naam scene ook in set PUPmenu */
+		/* name scene also in set PUPmenu */
 		if ELEM(curarea->spacetype, SPACE_BUTS, SPACE_INFO) allqueue(REDRAWBUTSALL, 0);
 
 		allqueue(REDRAWHEADERS, 0);
@@ -1572,8 +1572,8 @@ void do_global_buttons2(short event)
 	ID *idfrom;	
 	bAction *act;
 
-	/* algemeen: Single User mag als from==LOCAL 
-	 *			 Make Local mag als (from==LOCAL && id==LIB)
+	/* general:  Single User is allowed when from==LOCAL 
+	 *			 Make Local is allowed when (from==LOCAL && id==LIB)
 	 */
 	
 	ob= OBACT;
@@ -2024,9 +2024,9 @@ int buttons_do_unpack()
 
 Scene *copy_scene(Scene *sce, int level)
 {
-	/* level 0: alle objects shared
-	 * level 1: alle objectdata shared
-	 * level 2: volledige kopie
+	/* level 0: al objects shared
+	 * level 1: al object-data shared
+	 * level 2: full copy
 	 */
 	Scene *scen;
 	Base *base, *obase;
@@ -2127,22 +2127,22 @@ void do_info_buttons(unsigned short event)
 			nr++;
 			sc= sc->id.next;
 		}
-		/* laatste item: NEW SCREEN */
+		/* last item: NEW SCREEN */
 		if(sc==0) {
 			duplicate_screen();
 		}
 		break;
 	case B_INFODELSCR:
-		/* dit event alleen met buttons doen, zodoende nooit vanuit full aanroepbaar */
+		/* do this event only with buttons, so it can never be called with full-window */
 
 		if(G.curscreen->id.prev) sc= G.curscreen->id.prev;
 		else if(G.curscreen->id.next) sc= G.curscreen->id.next;
 		else return;
 		if(okee("Delete current screen")) {
-			/* vind nieuwe G.curscreen */
+			/* find new G.curscreen */
 			
 			oldscreen= G.curscreen;
-			setscreen(sc);		/* deze test of sc een full heeft */
+			setscreen(sc);		/* this test if sc has a full */
 			unlink_screen(oldscreen);
 			free_libblock(&G.main->screen, oldscreen);
 		}
@@ -2175,7 +2175,7 @@ void do_info_buttons(unsigned short event)
 			nr++;
 			sce= sce->id.next;
 		}
-		/* laatste item: NEW SCENE */
+		/* last item: NEW SCENE */
 		if(sce==0) {
 			nr= pupmenu("Add scene%t|Empty|Link Objects|Link ObData|Full Copy");
 			if(nr<= 0) return;
@@ -2196,17 +2196,17 @@ void do_info_buttons(unsigned short event)
 		else return;
 		if(okee("Delete current scene")) {
 			
-			/* alle sets aflopen */
+			/* check all sets */
 			sce1= G.main->scene.first;
 			while(sce1) {
 				if(sce1->set == G.scene) sce1->set= 0;
 				sce1= sce1->id.next;
 			}
 			
-			/* alle sequences aflopen */
+			/* check all sequences */
 			clear_scene_in_allseqs(G.scene);
 			
-			/* alle schermen */
+			/* al screens */
 			sc= G.main->screen.first;
 			while(sc) {
 				if(sc->scene == G.scene) sc->scene= sce;
@@ -3294,7 +3294,7 @@ static void info_text(int x, int y)
 		fac3 = 0.9;
 	} else {
 		hsize = 124;
-		/* promise! Never change these lines again! */
+		/* promise! Never change these lines again! (zr & ton did!) */
 		fac1= fabs(hashvectf[ 2*G.version+4]);
 		fac2= 0.5+0.1*hashvectf[ G.version+3];
 		fac3= 0.7;
@@ -3385,7 +3385,7 @@ void info_buttons(void)
 	uiDefIconBut(block, LABEL, 0, ICON_PUBLISHER, xco+125, 0,XIC,YIC, 0, 0, 0, 0, 0, "");
 	uiBlockSetEmboss(block, UI_EMBOSSX);
 
-	/* altijd als laatste doen */
+	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;
 	
 	if(curarea->headbutlen + 4*XIC < curarea->winx) {
@@ -3447,7 +3447,7 @@ void seq_buttons()
 	/* IMAGE */
 	uiDefIconButS(block, TOG, B_REDR, ICON_IMAGE_COL,	xco+=XIC,0,XIC,YIC, &sseq->mainb, 0, 0, 0, 0, "Toggles image display");
 
-	/* ZOOM en BORDER */
+	/* ZOOM and BORDER */
 	xco+= XIC;
 	uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zoom view (CTRL+MiddleMouse)");
 	uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zoom view to area");
@@ -3466,7 +3466,7 @@ void do_view3d_buttons(short event)
 {
 	int bit;
 
-	/* pas op: als curarea->win niet bestaat, afvangen als direkt tekenroutines worden aangeroepen */
+	/* watch it: if curarea->win does not exist, check that when calling direct drawing routines */
 
 	switch(event) {
 	case B_HOME:
@@ -3475,7 +3475,7 @@ void do_view3d_buttons(short event)
 	case B_SCENELOCK:
 		if(G.vd->scenelock) {
 			G.vd->lay= G.scene->lay;
-			/* layact zoeken */
+			/* seek for layact */
 			bit= 0;
 			while(bit<32) {
 				if(G.vd->lay & (1<<bit)) {
@@ -3662,7 +3662,7 @@ void do_view3d_buttons(short event)
 		if(event>=B_LAY && event<B_LAY+31) {
 			if(G.vd->lay!=0 && (G.qual & LR_SHIFTKEY)) {
 				
-				/* wel actieve layer zoeken */
+				/* but do find active layer */
 				
 				bit= event-B_LAY;
 				if( G.vd->lay & (1<<bit)) G.vd->layact= 1<<bit;
@@ -3727,10 +3727,10 @@ void do_layer_buttons(short event)
 		}
 		do_view3d_buttons(event+B_LAY);
 	}
-	/* redraw lijkt dubbelop: wordt in queue netjes afgehandeld */
+	/* redraw seems double: but the queue nicely handles that */
 	scrarea_queue_headredraw(curarea);
 	
-	if(curarea->spacetype==SPACE_OOPS) allqueue(REDRAWVIEW3D, 1);	/* 1==ook headwin */
+	if(curarea->spacetype==SPACE_OOPS) allqueue(REDRAWVIEW3D, 1);	/* 1==also do headwin */
 	
 }
 
@@ -3904,7 +3904,7 @@ void view3d_buttons(void)
 	uiDefIconButS(block, ICONROW, B_PERSP, ICON_ORTHO,	xco+=XIC,0,XIC,YIC, &(G.vd->persp), 0.0, 2.0, 0, 0, "Perspective mode (NumPad 5, Numpad 0)");
 	
 	xco+= XIC/2;
-	/* AANZICHT */
+	/* VIEW */
 	
 	if(G.vd->view==7) G.vd->viewbut= 1;
 	else if(G.vd->view==1) G.vd->viewbut= 2;
@@ -4053,7 +4053,7 @@ void do_ipo_buttons(short event)
 			v2d->tot.xmax= EFRA;
 		}
 
-		/* beetje uitzoomen */
+		/* zoom out a bit */
 		dx= 0.10*(v2d->tot.xmax-v2d->tot.xmin);
 		dy= 0.10*(v2d->tot.ymax-v2d->tot.ymin);
 		
@@ -4114,7 +4114,7 @@ void do_ipo_buttons(short event)
 
 		break;
 	case B_IPOSHOWKEY:
-		/* waarde omkeren vanwege winqread */
+		/* reverse value because of winqread */
 		G.sipo->showkey= 1-G.sipo->showkey;
 		ipo_toggle_showkey();
 		scrarea_queue_headredraw(curarea);
@@ -4145,7 +4145,7 @@ void ipo_buttons(void)
 	curarea->butspacetype= SPACE_IPO;
 	uiDefIconButC(block, ICONROW,B_NEWSPACE, ICON_VIEW3D, 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current window type ");
 
-	test_editipo();	/* test of huidige editipo klopt, make_editipo zet de v2d->cur */
+	test_editipo();	/* test if current editipo is OK, make_editipo sets v2d->cur */
 
 		/* FULL WINDOW en HOME */
 	xco= 25;
@@ -4243,7 +4243,7 @@ void ipo_buttons(void)
 	/* draw LOCK */
 	uiDefIconButS(block, ICONTOG, 1, ICON_UNLOCKED,	xco+=XIC,0,XIC,YIC, &(G.sipo->lock), 0, 0, 0, 0, "Lock redraw of other windows while editing");
 
-	/* altijd als laatste doen */
+	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;
 
 	uiDrawBlock(block);
@@ -4313,7 +4313,7 @@ void do_buts_buttons(short event)
 	case B_MATPASTE:
 		if(matcopied && G.buts->lockpoin) {
 			ma= G.buts->lockpoin;
-			/* vrijgeven huidige mat */
+			/* free current mat */
 			for(a=0; a<8; a++) {
 				mtex= ma->mtex[a];
 				if(mtex && mtex->tex) mtex->tex->id.us--;
@@ -4529,7 +4529,7 @@ void buts_buttons(void)
 	/* HOME */
 	uiDefIconBut(block, BUT, B_BUTSHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Home (HOMEKEY)");
 	
-	/* keuzemenu */
+	/* choice menu */
 	xco+= 2*XIC;
 	uiDefIconButS(block, ROW, B_REDR,			ICON_EYE,	xco+=XIC, 0, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_VIEW, 0, 0, "View buttons");
 	uiDefIconButS(block, ROW, B_BUTSPREVIEW,		ICON_LAMP,	xco+=30, 0, 30, YIC, &(G.buts->mainb), 1.0, (float)BUTS_LAMP, 0, 0, "Lamp buttons (F4)");
@@ -4714,7 +4714,7 @@ void buts_buttons(void)
 
 	G.buts->mainbo= G.buts->mainb;
 
-	/* altijd als laatste doen */
+	/* always do as last */
 	uiDrawBlock(block);
 	curarea->headbutlen= xco;
 }
@@ -4799,7 +4799,7 @@ void file_buttons(void)
 		glRasterPos2i(xco,  5);
 		BMF_DrawString(uiBlockGetCurFont(block), naam);
 	}
-	/* altijd als laatste doen */
+	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;
 	
 	uiDrawBlock(block);
@@ -4864,7 +4864,7 @@ void oops_buttons(void)
 	uiDefIconBut(block, BUT, B_OOPSHOME, ICON_HOME,	(short)(xco+=XIC),0,XIC,YIC, 0, 0, 0, 0, 0, "Home (HOMEKEY)");	
 	xco+= XIC;
 	
-	/* ZOOM en BORDER */
+	/* ZOOM and BORDER */
 	xco+= XIC;
 	uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	(short)(xco+=XIC),0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zoom view (CTRL+MiddleMouse)");
 	uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	(short)(xco+=XIC),0,XIC,YIC, 0, 0, 0, 0, 0, "Zoom view to area");
@@ -4885,7 +4885,7 @@ void oops_buttons(void)
 	uiDefIconButS(block, TOG|BIT|12, B_NEWOOPS, ICON_IMAGE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Display Image data");
 	uiDefIconButS(block, TOG|BIT|11, B_NEWOOPS, ICON_LIBRARY_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Display Library data");
 
-	/* naam */
+	/* name */
 	if(G.soops->lockpoin) {
 		oops= G.soops->lockpoin;
 		if(oops->type==ID_LI) strcpy(naam, ((Library *)oops->id)->name);
@@ -4897,7 +4897,7 @@ void oops_buttons(void)
 
 	}
 
-	/* altijd als laatste doen */
+	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;
 	
 	uiDrawBlock(block);
@@ -5214,7 +5214,7 @@ void do_sound_buttons(unsigned short event)
 				idtest= idtest->next;
 			}
 
-			if(idtest==0) {	/* geen new */
+			if(idtest==0) {	/* no new */
 				return;
 			}
 		
@@ -5330,7 +5330,7 @@ void sound_buttons(void)
 /* ******************** SOUND  ********************** */
 /* ******************** IMAGE ********************** */
 
-void load_space_image(char *str)	/* aangeroepen vanuit fileselect */
+void load_space_image(char *str)	/* called from fileselect */
 {
 	Image *ima=0;
 	
@@ -5344,7 +5344,7 @@ void load_space_image(char *str)	/* aangeroepen vanuit fileselect */
 		
 		G.sima->image= ima;
 		
-		free_image_buffers(ima);	/* forceer opnieuw inlezen */
+		free_image_buffers(ima);	/* force read again */
 		ima->ok= 1;
 		image_changed(G.sima, 0);
 		
@@ -5388,7 +5388,7 @@ void image_replace(Image *old, Image *new)
 	else error("Nothing replaced");
 }
 
-void replace_space_image(char *str)		/* aangeroepen vanuit fileselect */
+void replace_space_image(char *str)		/* called from fileselect */
 {
 	Image *ima=0;
 	
@@ -5406,9 +5406,9 @@ void replace_space_image(char *str)		/* aangeroepen vanuit fileselect */
 		
 		G.sima->image= ima;
 		
-		free_image_buffers(ima);	/* forceer opnieuw inlezen */
+		free_image_buffers(ima);	/* force read again */
 		ima->ok= 1;
-		/* replace kent ook toe: */
+		/* replace also assigns: */
 		image_changed(G.sima, 0);
 		
 	}
@@ -5478,7 +5478,7 @@ void do_image_buttons(unsigned short event)
 			nr++;
 			idtest= idtest->next;
 		}
-		if(idtest==0) {	/* geen new */
+		if(idtest==0) {	/* no new */
 			return;
 		}
 	
@@ -5487,7 +5487,7 @@ void do_image_buttons(unsigned short event)
 			if(idtest->us==0) idtest->us= 1;
 			allqueue(REDRAWIMAGE, 0);
 		}
-		image_changed(G.sima, 0);	/* ook als image gelijk is: assign! 0==geen tileflag */
+		image_changed(G.sima, 0);	/* also when image is the same: assign! 0==no tileflag */
 		
 		break;
 	case B_SIMAGELOAD:
@@ -5523,7 +5523,7 @@ void do_image_buttons(unsigned short event)
 		break;
 
 	case B_SIMAGEDRAW1:
-		image_changed(G.sima, 2);		/* 2: alleen tileflag */
+		image_changed(G.sima, 2);		/* 2: only tileflag */
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWIMAGE, 0);
 		break;
@@ -5743,9 +5743,9 @@ void imasel_buttons(void)
 	uiDefIconButS(block, TOG|BIT|0, B_REDR, ICON_BPIBFOLDERGREY, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "");/* dir   */
 	uiDefIconButS(block, TOG|BIT|1, B_REDR, ICON_INFO, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "");/* info  */
 	uiDefIconButS(block, TOG|BIT|2, B_REDR, ICON_IMAGE_COL, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "");/* image */
-	uiDefIconButS(block, TOG|BIT|3, B_REDR, ICON_MAGNIFY, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "");/* loep */
+	uiDefIconButS(block, TOG|BIT|3, B_REDR, ICON_MAGNIFY, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "");/* magnify */
 	
-	/* altijd als laatste doen */
+	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;
 
 	uiDrawBlock(block);
@@ -5753,7 +5753,7 @@ void imasel_buttons(void)
 
 /* ********************** IMASEL ****************************** */
 
-/* ******************** ALGEMEEN ********************** */
+/* ******************** GENERAL ********************** */
 
 void do_headerbuttons(short event)
 {

@@ -707,7 +707,7 @@ void playanim(int argc, char **argv)
 			pupdate_time();
 					
 			if (picture && next) {
-				/* altijd minstens 1 stap zetten */
+				/* always at least set one step */
 				while (picture){
 					if (next < 0) picture = picture->prev;
 					else picture = picture->next;

@@ -219,7 +219,7 @@ static void be_square_tface_uv(Mesh *me)
 	MFace *mface;
 	int a;
 	
-	/* als 1 punt select: doit (met het select punt) */
+	/* if 1 vertex selected: doit (with the selected vertex) */
 	for(a=me->totface, mface= me->mface, tface= me->tface; a>0; a--, tface++, mface++) {
 		if(mface->v4) {
 			if(tface->flag & TF_SELECT) {
@@ -323,7 +323,7 @@ void transform_tface_uv(int mode)
 	else {
 		xim= yim= 256;
 	}
-	/* welke vertices doen mee */
+	/* which vertices are involved */
 	
 	for(a=me->totface, tface= me->tface, mface= me->mface; a>0; a--, tface++, mface++) {
 		if((tface->flag & TF_SELECT) && mface->v3) {

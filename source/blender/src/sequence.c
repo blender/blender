@@ -70,21 +70,21 @@
 #include "BSE_headerbuttons.h"
 #include "BSE_sequence.h"
 
-#include "interface.h" /* MAART: for INT and FLO types */
+#include "interface.h" /* for INT and FLO types */
 #include "blendef.h"
 #include "render.h"
 
 Sequence *seq_arr[MAXSEQ+1];
 int seqrectx, seqrecty;
 
-/* Alle support voor plugin sequences: */
+/* support for plugin sequences: */
 
 void open_plugin_seq(PluginSeq *pis, char *seqname)
 {
 	int (*version)();
 	char *cp;
 	
-	/* voor zekerheid: (hier wordt op getest) */
+	/* to be sure: (is tested for) */
 	pis->doit= 0;
 	pis->pname= 0;
 	pis->varstr= 0;
@@ -158,7 +158,7 @@ PluginSeq *add_plugin_seq(char *str, char *seqname)
 		return 0;
 	}
 	
-	/* default waardes */
+	/* default values */
 	varstr= pis->varstr;
 	for(a=0; a<pis->vars; a++, varstr++) {
 		if( (varstr->type & FLO)==FLO)
@@ -175,7 +175,7 @@ void free_plugin_seq(PluginSeq *pis)
 
 	if(pis==0) return;
 	
-	/* geen PIL_dynlib_close: dezelfde plugin kan meerdere keren geopend zijn: 1 handle */
+	/* no PIL_dynlib_close: same plugin can be opened multiple times with 1 handle */
 	MEM_freeN(pis);	
 }
 
@@ -306,23 +306,23 @@ void calc_sequence(Sequence *seq)
 	Sequence *seqm;
 	int min, max;
 	
-	/* eerst recursief alle meta's aflopen */
+	/* check all metas recursively */
 	seqm= seq->seqbase.first;
 	while(seqm) {
 		if(seqm->seqbase.first) calc_sequence(seqm);
 		seqm= seqm->next;
 	}
 	
-	/* effecten: en meta automatische start en end */
+	/* effects and meta: automatic start and end */
 	
 	if(seq->type & SEQ_EFFECT) {
 		/* pointers */
 		if(seq->seq2==0) seq->seq2= seq->seq1;
 		if(seq->seq3==0) seq->seq3= seq->seq1;
 	
-		/* effecten gaan van seq1 -> seq2: testen */
+		/* effecten go from seq1 -> seq2: test */
 		
-		/* we nemen de grootste start en de kleinste eind */
+		/* we take the largest start and smallest end */
 		
 		// seq->start= seq->startdisp= MAX2(seq->seq1->startdisp, seq->seq2->startdisp);
 		// seq->enddisp= MIN2(seq->seq1->enddisp, seq->seq2->enddisp);
@@ -375,7 +375,7 @@ void calc_sequence(Sequence *seq)
 
 void sort_seq()
 {
-	/* alle strips in soort bij elkaar en op volgorde van machine */
+	/* all strips together per kind, and in order of y location ("machine") */
 	ListBase seqbase, effbase;
 	Editing *ed;
 	Sequence *seq, *seqt;
@@ -424,7 +424,7 @@ void clear_scene_in_allseqs(Scene *sce)
 	Editing *ed;
 	Sequence *seq;
 	
-	/* als er een scene delete is: alle seqs testen */
+	/* when a scene is deleted: test all seqs */
 	
 	sce1= G.main->scene.first;
 	while(sce1) {
@@ -464,7 +464,7 @@ void do_alphaover_effect(float facf0, float facf1, int x, int y, unsigned int *r
 		x= xo;
 		while(x--) {
 			
-			/* rt = rt1 over rt2  (alpha van rt1) */	
+			/* rt = rt1 over rt2  (alpha from rt1) */	
 			
 			fac= fac2;
 			mfac= 256 - ( (fac2*rt1[3])>>8 );
@@ -529,10 +529,10 @@ void do_alphaunder_effect(float facf0, float facf1, int x, int y, unsigned int *
 		x= xo;
 		while(x--) {
 			
-			/* rt = rt1 under rt2  (alpha van rt2) */
+			/* rt = rt1 under rt2  (alpha from rt2) */
 			
-			/* deze ingewikkelde optimalisering is omdat 
-			 * de 'skybuf' ingecrosst kan worden
+			/* this complex optimalisation is because the 
+			 * 'skybuf' can be crossed in
 			 */
 			if(rt2[3]==0 && fac2==256) *( (unsigned int *)rt) = *( (unsigned int *)rt1);
 			else if(rt2[3]==255) *( (unsigned int *)rt) = *( (unsigned int *)rt2);
@@ -818,7 +818,7 @@ void do_drop_effect(float facf0, float facf1, int x, int y, unsigned int *rect2i
 	memcpy(out, rt1, sizeof(int)*YOFF*width);
 }
 
-						/* L E T  O P:  rect2 en rect1 omgekeerd */
+						/* WATCH:  rect2 and rect1 reversed */
 void do_drop_effect2(float facf0, float facf1, int x, int y, unsigned int *rect2, unsigned int *rect1, unsigned int *out)
 {
 	int col, xo, yo, temp, fac1, fac3;
@@ -923,7 +923,7 @@ void do_mul_effect(float facf0, float facf1, int x, int y, unsigned int *rect1, 
 	fac1= (int)(256.0*facf0);
 	fac3= (int)(256.0*facf1);
 	
-	/* formule:
+	/* formula:
 	 *		fac*(a*b) + (1-fac)*a  => fac*a*(b-1)+a
 	 */
 	
@@ -1005,7 +1005,7 @@ void do_effect(int cfra, Sequence *seq, StripElem *se)
 		return;
 	}
 	
-	/* als metastrip: andere se's */
+	/* if metastrip: other se's */
 	if(se->se1->ok==2) se1= se->se1->se1;
 	else se1= se->se1;
 
@@ -1152,7 +1152,7 @@ void set_meta_stripdata(Sequence *seqm)
 	StripElem *se;
 	int a, cfra, b;
 	
-	/* zet alle ->se1 pointers in stripdata, dan kan daar de ibuf uitgelezen */
+	/* sets all ->se1 pointers in stripdata, to read the ibuf from it */
 	
 	ed= G.scene->ed;
 	if(ed==0) return;
@@ -1165,7 +1165,7 @@ void set_meta_stripdata(Sequence *seqm)
 		cfra= a+seqm->start;
 		if(evaluate_seq_frame(cfra)) {
 			
-			/* we nemen de hoogste effectstrip of de laagste imagestrip/metastrip */
+			/* we take the upper effect strip or the lowest imagestrip/metastrip */
 			seqim= seqeff= 0;
 			
 			for(b=1; b<MAXSEQ; b++) {
@@ -1197,7 +1197,7 @@ void set_meta_stripdata(Sequence *seqm)
 
 
 
-/* HULPFUNKTIES VOOR GIVE_IBUF_SEQ */
+/* HELP FUNCTIONS FOR GIVE_IBUF_SEQ */
 
 void do_seq_count_cfra(ListBase *seqbase, int *totseq, int cfra)
 {
@@ -1232,7 +1232,7 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 	seq= seqbase->first;
 	while(seq) {
 		
-		/* op nul zetten ivm free_imbuf_seq... */
+		/* set at zero because free_imbuf_seq... */
 		seq->curelem= 0;
 		
 		if(seq->startdisp <=cfra && seq->enddisp > cfra) {
@@ -1258,7 +1258,7 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 				}
 				else if(seq->type & SEQ_EFFECT) {
 				
-					/* testen of image te klein is: opnieuw maken */
+					/* test if image is too small: reload */
 					if(se->ibuf) {
 						if(se->ibuf->x < seqrectx || se->ibuf->y < seqrecty) {
 							IMB_freeImBuf(se->ibuf);
@@ -1266,7 +1266,7 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 						}
 					}
 					
-					/* moet het effect (opnieuw) berekend? */
+					/* does the effect should be recalculated? */
 					
 					if(se->ibuf==0 || (se->se1 != seq->seq1->curelem) || (se->se2 != seq->seq2->curelem) || (se->se3 != seq->seq3->curelem)) {
 						se->se1= seq->seq1->curelem;
@@ -1278,7 +1278,7 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 						do_effect(cfra, seq, se);
 					}
 					
-					/* size testen */
+					/* test size */
 					if(se->ibuf) {
 						if(se->ibuf->x != seqrectx || se->ibuf->y != seqrecty ) {
 							if(G.scene->r.mode & R_OSA) 
@@ -1291,7 +1291,7 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 				else if(seq->type < SEQ_EFFECT) {
 					
 					if(se->ibuf) {
-						/* testen of image te klein is: opnieuw laden */
+						/* test if image too small: reload */
 						if(se->ibuf->x < seqrectx || se->ibuf->y < seqrecty) {
 							IMB_freeImBuf(se->ibuf);
 							se->ibuf= 0;
@@ -1302,7 +1302,7 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 					if(seq->type==SEQ_IMAGE) {
 						if(se->ok && se->ibuf==0) {
 						
-							/* als playanim of render: geen waitcursor doen */
+							/* if playanim or render: no waitcursor */
 							if((G.f & G_PLAYANIM)==0) waitcursor(1);
 						
 							strcpy(name, seq->strip->dir);
@@ -1323,7 +1323,7 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 					else if(seq->type==SEQ_MOVIE) {
 						if(se->ok && se->ibuf==0) {
 						
-							/* als playanim of render: geen waitcursor doen */
+							/* if playanim r render: no waitcursor */
 							if((G.f & G_PLAYANIM)==0) waitcursor(1);
 						
 							if(seq->anim==0) {
@@ -1355,17 +1355,17 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 						oldsce= G.scene;
 						set_scene_bg(seq->scene);
 						
-						/* oneindige lus voorkomen */
+						/* prevent eternal loop */
 						doseq= G.scene->r.scemode & R_DOSEQ;
 						G.scene->r.scemode &= ~R_DOSEQ;
 						
-						/* vanalles bewaren */
+						/* store stuffies */
 						oldcfra= CFRA; CFRA= seq->sfra + se->nr;
 						waitcursor(1);
 						
 						rectot= R.rectot; R.rectot= 0;
 						oldx= R.rectx; oldy= R.recty;
-						/* dit is nodig omdat de huidige 3D window niet de layers mag leveren, alsof het background render is */
+						/* needed because current 3D window cannot define the layers, like in a background render */
 						vd= G.vd;
 						G.vd= 0;
 						
@@ -1408,7 +1408,7 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 						R.r.imtype= G.scene->r.imtype;
 					}
 					
-					/* size testen */
+					/* size test */
 					if(se->ibuf) {
 						if(se->ibuf->x != seqrectx || se->ibuf->y != seqrecty ) {
 						
@@ -1448,9 +1448,9 @@ ImBuf *give_ibuf_seq(int cfra)
 	StripElem *se;
 	int seqnr, totseq;
 
-	/* we maken recursief een 'stack' van sequences, deze is ook
-	 * gesorteerd en kan gewoon doorlopen worden.
-	 * Deze methode is vooral ontwikkeld voor stills voor en achter meta's
+	/* we make recursively a 'stack' of sequences, these are
+	 * sorted nicely as well.
+	 * this method has been developed especially for stills before or after metas
 	 */
 
 	totseq= 0;
@@ -1465,10 +1465,10 @@ ImBuf *give_ibuf_seq(int cfra)
 	seqrecty= (G.scene->r.size*G.scene->r.ysch)/100;
 
 
-	/* tseqar is nodig omdat in do_build_... de pointer verandert */
+	/* tseqar is neede because in do_build_... the pointer changes */
 	seqar= tseqar= MEM_callocN(sizeof(void *)*totseq, "seqar");
 	
-	/* deze fie laadt en maakt ook de ibufs */
+	/* this call loads and makes the ibufs */
 	do_build_seqar_cfra(ed->seqbasep, &seqar, cfra);
 	seqar= tseqar;
 	
@@ -1479,7 +1479,7 @@ ImBuf *give_ibuf_seq(int cfra)
 		if(se) {
 			if(seq->type==SEQ_META) {
 				
-				/* onderste strip! */
+				/* bottom strip! */
 				if(seqfirst==0) seqfirst= seq;
 				else if(seqfirst->depth > seq->depth) seqfirst= seq;
 				else if(seqfirst->machine > seq->machine) seqfirst= seq;
@@ -1487,7 +1487,7 @@ ImBuf *give_ibuf_seq(int cfra)
 			}
 			else if(seq->type & SEQ_EFFECT) {
 				
-				/* bovenste strip! */
+				/* top strip! */
 				if(seqfirst==0) seqfirst= seq;
 				else if(seqfirst->depth > seq->depth) seqfirst= seq;
 				else if(seqfirst->machine < seq->machine) seqfirst= seq;
@@ -1496,7 +1496,7 @@ ImBuf *give_ibuf_seq(int cfra)
 			}
 			else if(seq->type < SEQ_EFFECT) {	/* images */
 				
-				/* onderste strip! zodat je bovenin altijd hulptroep kan bewaren */
+				/* bottom strip! a feature that allows you to store junk in locations above */
 				
 				if(seqfirst==0) seqfirst= seq;
 				else if(seqfirst->depth > seq->depth) seqfirst= seq;
@@ -1630,7 +1630,7 @@ void do_render_seq()
 /*  	static ImBuf *lastibuf=0; */
 	ImBuf *ibuf;
 	
-	/* plaatje in R.rectot kopieeren */
+	/* copy image into R.rectot */
 	
 	G.f |= G_PLAYANIM;	/* waitcursor patch */
 	

@@ -30,13 +30,13 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-	/* TBOXX: breedte in pixels */
+	/* TBOXX: width in pixels */
 #define TBOXXL  80
 #define TBOXXR  170
 #define TBOXX	(TBOXXL+TBOXXR)
-	/* TBOXEL: aantal elementen onder elkaar */
+	/* TBOXEL: amount of element vertically */
 #define TBOXEL	14
-	/* TBOXH: hoogte van 1 element */
+	/* TBOXH: height of 1 element */
 #define TBOXH	20
 #define TBOXY	TBOXH*TBOXEL
 

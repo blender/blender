@@ -42,12 +42,12 @@
 #define MAXFLOAT  ((float)3.40282347e+38)
 #endif
 
-#include <float.h>	/* deze moet een keer naar de blender.h */
+#include <float.h>	
 
 
 
 
-/* **************** ALGEMEEN ********************* */
+/* **************** GENERAL ********************* */
 
 #define VECCOPY(v1,v2) 		{*(v1)= *(v2); *(v1+1)= *(v2+1); *(v1+2)= *(v2+2);}
 #define QUATCOPY(v1,v2) 	{*(v1)= *(v2); *(v1+1)= *(v2+1); *(v1+2)= *(v2+2); *(v1+3)= *(v2+3);}
@@ -134,7 +134,7 @@
 #define FNT_HAEBERLI 2
 
 
-/* isect en scanfill */
+/* isect and scanfill */
 #define COMPLIMIT	0.0003
 
 
@@ -142,7 +142,7 @@
 
 
 #define MAXLAMP		256
-/* max lengte material array, 16 vanwege bitjes in matfrom */
+/* max length material array, 16 because of bits in matfrom */
 #define MAXPICKBUF	2000
 #define MAXSEQ		32
 /*  in Image struct */
@@ -182,7 +182,7 @@
 #define B_TEXALONE		47
 #define B_MESHALONE		48
 #define B_CURVEALONE	49
-/* EVENT < 50: alone's en locals */
+/* EVENT < 50: alones en locals */
 
 #define B_KEEPDATA			60
 #define B_CONSOLETOG		61
@@ -226,7 +226,7 @@
 /* VIEW3D: 100 */
 #define B_HOME			101
 #define B_LAY			102
-/* pasop: codes 102-132 in gebuik voor layers */
+/* watch: codes 102-132 in in use for layers */
 #define B_AUTOKEY		139
 #define B_SCENELOCK		140
 #define B_LOCALVIEW		141
@@ -266,7 +266,7 @@
 #define B_NEWOOPS		253
 
 /* INFO: 300 */
-/* pas op: ook in filesel.c en editobject.c */
+/* watch: also in filesel.c and editobject.c */
 #define B_INFOSCR		301
 #define B_INFODELSCR	302
 #define B_INFOSCE		304
@@ -318,7 +318,7 @@
 #define B_MESHTYPE		405
 
 /* IMASEL: 450 */
-/* in de imasel.h */
+/* in imasel.h */
 
 /* TEXT: 500 */
 #define B_TEXTBROWSE	501

@@ -93,11 +93,11 @@ Oops *find_oops(ID *id)
 {
 	Oops *oops;
 
-	/* op zoek naar een oops met dit ID */
+	/* searching for an oops with this ID */
 	oops= G.soops->oops.first;
 	while(oops) {
 		if(oops->id == id) {
-			/* deze fout kwam een keer voor. beveiliging kan geen kwaad */
+			/* this error once happened. securing it doesnt harm */
 			if(oops->type != GS(id->name)) oops->id= 0;
 			else break;
 		}
@@ -108,7 +108,7 @@ Oops *find_oops(ID *id)
 
 int test_oops(Oops *oops)
 {
-	/* test of de eigen ID block nog bestaat */
+	/* test if own ID block still exists */
 	ListBase *lb;
 	ID *id;
 	
@@ -129,7 +129,7 @@ int test_oops(Oops *oops)
 
 void test_oopslinko(OopsLink *ol)
 {
-	/* test of links bestaan */
+	/* test if links exist */
 	Oops *oops;
 	ListBase *lb;
 	ID *id, *from;
@@ -149,11 +149,11 @@ void test_oopslinko(OopsLink *ol)
 	}
 	
 	if(id==0) {
-		/* ID bestaat niet meer */
+		/* ID does not exist anymore */
 		*ol->idfrom= 0;
 	}
 	else {
-		/* op zoek naar een oops met dit ID */
+		/* search for oops with this ID */
 		oops= G.soops->oops.first;
 		while(oops) {
 			if(oops->id == id) break;
@@ -166,7 +166,7 @@ void test_oopslinko(OopsLink *ol)
 
 void test_oopslink(OopsLink *ol)
 {
-	/* test of links bestaan */
+	/* test if links exist */
 	Oops *oops;
 	ID *from;
 	
@@ -177,7 +177,7 @@ void test_oopslink(OopsLink *ol)
 
 	if(from==0) return;
 	
-	/* op zoek naar een oops met dit ID */
+	/* search for oops with this ID */
 	oops= G.soops->oops.first;
 	while(oops) {
 		if(oops->id == from) break;
@@ -195,7 +195,7 @@ OopsLink *add_oopslink(char *name, Oops *oops, short type, void *from, float xof
 	
 	if(G.soops==0) return NULL;
 	
-	/* testen offie al bestaat: een andere manier mag ook (linkbuffer) */
+	/* testing if it exsists:  */
 	/* ol= oops->link.first; */
 	/* while(ol) { */
 	/* 	if(ol->idfrom == from) { */
@@ -210,7 +210,7 @@ OopsLink *add_oopslink(char *name, Oops *oops, short type, void *from, float xof
 	
 	if(* ((int *)from) == 0) return NULL;
 	
-	/* nieuwe maken */
+	/* make new */
 	ol= MEM_callocN(sizeof(OopsLink), "oopslink");
 
 	BLI_addtail(&oops->link, ol);
@@ -236,7 +236,7 @@ int oops_test_overlap(Oops *test)
 
 	oops= G.soops->oops.first;
 	while(oops) {
-		if(oops!=test) {	/* niet op hide testen: is slechts tijdelijke flag */
+		if(oops!=test) {	/* do net test for hide: is only a temporal flag */
 			
 			ro.xmin= oops->x;
 			ro.xmax= (float)(oops->x+OOPSX);
@@ -264,7 +264,7 @@ int oops_test_overlaphide(Oops *test)
 
 	oops= G.soops->oops.first;
 	while(oops) {
-		if(oops->hide==0 && oops!=test) {	/* wel op hide testen, niet gebruiken tijdens build_oops */
+		if(oops->hide==0 && oops!=test) {	/* do test for hide, but not use it during build_oops */
 			
 			ro.xmin= oops->x;
 			ro.xmax= (float)(oops->x+OOPSX);
@@ -320,7 +320,7 @@ void shuffle_oops()
 	int go= 1, tot=0, dir=1, type1, type2;
 	
 	
-	/* we nemen twee oopsen, berkekenen de 'beauty' en de verwisselde beauty */
+	/* we take two oopses, calc the 'beauty' and the exchanged beauty */
 	
 	if(G.soops==0) return;
 	
@@ -328,9 +328,9 @@ void shuffle_oops()
 	
 	waitcursor(1);
 	
-	/* om de zaak 100% OK en snel te doen: voegen tijdelijk
-	 * aan de ooplinklijst - per oops - de 'from' links ook in.
-	 * Wel weer vrijgeven!
+	/* to make it 100% OK and fast: temporal insert
+	 * to the ooplinklist - per oops - the 'from' links.
+	 * Don't forget to free!
 	 */
 	
 	oops= G.soops->oops.first;
@@ -360,7 +360,7 @@ void shuffle_oops()
 		while(oops) {
 			
 			if(oops->link.first && oops->hide==0 && (oops->flag & SELECT)) {
-				/* vind een goed verwisselbaar paar */
+				/* find a good exchangable pair */
 				olen= oopslink_totlen(oops);
 				
 				if(dir) o2= oops->prev;
@@ -407,7 +407,7 @@ void shuffle_oops()
 	}
 	waitcursor(0);
 	
-	/* from links vrijgeven */
+	/* free the from links */
 	oops= G.soops->oops.first;
 	while(oops) {
 		if(oops->hide==0) {
@@ -554,7 +554,7 @@ void new_oops_location(Oops *new)
 	
 	correct_oops_y(new);
 	
-	/* vanuit centrum vrije plek vinden */
+	/* find from center free location */
 	dirvec[cnt & 3][0]= 1.2*OOPSX;
 	dirvec[cnt & 3][1]= 0;
 	cnt++;
@@ -621,7 +621,7 @@ void new_oops_location(Oops *new)
 }
 
 
-void free_oops(Oops *oops)	/* ook oops zelf */
+void free_oops(Oops *oops)	/* also oops itself */
 {
 	BLI_freelistN(&oops->link);
 	MEM_freeN(oops);
@@ -754,7 +754,7 @@ Oops *add_test_oops(void *id)	/* incl links */
 	
 	if(id==0) return NULL;
 	
-	/* eerst test ofie al bestaat */
+	/* test if it exists */
 	oops= find_oops(id);
 	
 	if(oops) {
@@ -788,7 +788,7 @@ Oops *add_test_oops(void *id)	/* incl links */
 		add_mball_oopslinks((MetaBall *)id, oops, G.soops->visiflag);
 		break;
 	case ID_LA:
-		/* textures nog doen */
+		/* still do textures */
 		la= (Lamp *)id;
 		if(la->ipo) if(G.soops->visiflag & OOPS_IP) add_oopslink("ipo", oops, ID_IP, &la->ipo, OOPSX, (float)(0.3*OOPSY));
 		break;	 
@@ -827,7 +827,7 @@ void build_oops()
 	Object *ob;
 	short a, type;
 	
-	/* altijd alles bouwen! */
+	/* always build it all! */
 
 	if(G.soops==0) return;	
 	
@@ -837,14 +837,14 @@ void build_oops()
 		oops->hide= 1;
 		oops->flag &= ~OOPS_REFER;
 		
-		BLI_freelistN(&oops->link);	/* veel veiliger */
+		BLI_freelistN(&oops->link);	/* much safer */
 		
 		oops= oops->next;
 	}
 
-	/* oopsen maken,is ook testen of ie al bestaat */
+	/* make oops, includes testing for existance */
 
-	/* altijd */	
+	/* awlays */	
 	if(G.soops->visiflag & OOPS_LI) {
 		Library *li= G.main->library.first;
 		while(li) {
@@ -853,7 +853,7 @@ void build_oops()
 		}
 	}
 	
-	/* rest op twee manieren: of alles (OOPS_SCE) of alleen gebruikt in deze scene */
+	/* the rest in 2 ways: or everything (OOPS_SCE) or only the ones in this scene */
 	
 	if(G.soops->visiflag & OOPS_SCE) {
 		Scene *sce= G.main->scene.first;
@@ -947,7 +947,7 @@ void build_oops()
 	}
 	else {
 		
-		/* alleen blokken uit huidige scene */
+		/* only blocks from this scene */
 		
 		base= FIRSTBASE;
 		while(base) {
@@ -1031,7 +1031,7 @@ void build_oops()
 	
 
 
-	/* links testen */
+	/* test links */
 	oops= G.soops->oops.first;
 	while(oops) {
 		if(oops->hide==0) {	
