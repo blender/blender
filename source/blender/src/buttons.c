@@ -7465,7 +7465,7 @@ void redraw_test_buttons(Base *new)
 			
 			if(buts->mainb==BUTS_LAMP) {
 				// change type automatically
-				if(new->object->type!=OB_LAMP) {
+				if(new && new->object->type!=OB_LAMP) {
 					buts->mainb= BUTS_MAT;
 					allqueue(REDRAWBUTSMAT, 0);
 				}
@@ -7474,7 +7474,7 @@ void redraw_test_buttons(Base *new)
 			}
 			else if(buts->mainb==BUTS_MAT) {
 				// change type automatically
-				if(new->object->type==OB_LAMP) {
+				if(new && new->object->type==OB_LAMP) {
 					buts->mainb= BUTS_LAMP;
 					allqueue(REDRAWBUTSLAMP, 0);
 				}
