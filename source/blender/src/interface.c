@@ -2816,7 +2816,7 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 		}
 	} else {
   		x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*BMF_GetStringWidth(but->font, but->tip);
-  		y1= but->y1-19; y2= but->y1-2;
+  		y1= but->y1-19; y2= but->y1+2;
 	}
 #else
   	x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*BMF_GetStringWidth(but->font, but->tip);
