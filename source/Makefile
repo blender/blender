@@ -147,6 +147,7 @@ PYPLAYERLIB ?= $(PYLIB)
     else
       ifeq ($(OS), irix)
         COMLIB += $(NAN_FREETYPE)/lib32/libfreetype.a
+        COMLIB += $(NAN_SDL)/lib/libSDL.a
       else
         COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
       endif
@@ -332,7 +333,6 @@ ifeq ($(OS),solaris)
     PULIB += $(NAN_ZLIB)/lib/libz.a
     SPLIB += $(NAN_ZLIB)/lib/libz.a
 endif
-
 
 # OpenAL libs are already compiled as shared code! Check FMod if we switch to that. (nzc)
 ifeq ($(OS),$(findstring $(OS), "freebsd linux windows"))
