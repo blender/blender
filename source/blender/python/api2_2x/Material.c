@@ -383,6 +383,10 @@ static PyObject *Material_clearTexture(BPy_Material *self, PyObject *args);
 static PyObject *Material_setColorComponent(BPy_Material *self, char *key,
 								PyObject *args);
 
+static PyObject *Material_getScriptLinks(BPy_Material *self, PyObject *args);
+static PyObject *Material_addScriptLink(BPy_Material *self, PyObject *args);
+static PyObject *Material_clearScriptLinks(BPy_Material *self);
+
 /*****************************************************************************/
 /* Python BPy_Material methods table:																				 */
 /*****************************************************************************/
@@ -500,9 +504,19 @@ static PyMethodDef BPy_Material_methods[] = {
 	{"setNRings", (PyCFunction)Material_setNRings, METH_VARARGS,
 			"(i) - Set Material's number of rings in halo - [0, 24]"},
 	{"setTexture", (PyCFunction)Material_setTexture, METH_VARARGS,
-		   "(n,tex,texco=0,mapto=0) - Set numbered texture to tex"},
+			 "(n,tex,texco=0,mapto=0) - Set numbered texture to tex"},
 	{"clearTexture", (PyCFunction)Material_clearTexture, METH_VARARGS,
 			"(n) - Remove texture from numbered slot"},
+	{"getScriptLinks", (PyCFunction)Material_getScriptLinks, METH_VARARGS,
+			"(eventname) - Get a list of this material's scriptlinks (Text names) "
+			"of the given type\n"
+	"(eventname) - string: FrameChanged or Redraw."},
+	{"addScriptLink", (PyCFunction)Material_addScriptLink, METH_VARARGS,
+			"(text, evt) - Add a new material scriptlink.\n"
+	"(text) - string: an existing Blender Text name;\n"
+	"(evt) string: FrameChanged or Redraw."},
+	{"clearScriptLinks", (PyCFunction)Material_clearScriptLinks, METH_NOARGS,
+			"() - Delete all scriptlinks from this material."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -892,32 +906,32 @@ static PyObject *Material_getNRings(BPy_Material *self)
 
 static PyObject *Material_getTextures(BPy_Material *self)
 {
-  int i;
-  struct MTex *mtex;
-  PyObject *t[8];
-  PyObject *tuple;
-  
-  /* build a texture list */
-  for (i=0; i<8; ++i) {
-    mtex = self->material->mtex[i];
-    
-    if (mtex) {
-      t[i] = MTex_CreatePyObject (mtex);
-    }
-    else {
-      Py_INCREF (Py_None);
-      t[i] = Py_None;
-    }
-  }
+	int i;
+	struct MTex *mtex;
+	PyObject *t[8];
+	PyObject *tuple;
+	
+	/* build a texture list */
+	for (i=0; i<8; ++i) {
+		mtex = self->material->mtex[i];
+		
+		if (mtex) {
+			t[i] = MTex_CreatePyObject (mtex);
+		}
+		else {
+			Py_INCREF (Py_None);
+			t[i] = Py_None;
+		}
+	}
 
-  /* turn the array into a tuple */
-  tuple = Py_BuildValue ("NNNNNNNN", t[0], t[1], t[2], t[3], 
-                                     t[4], t[5], t[6], t[7]);
+	/* turn the array into a tuple */
+	tuple = Py_BuildValue ("NNNNNNNN", t[0], t[1], t[2], t[3], 
+																		 t[4], t[5], t[6], t[7]);
 	if (!tuple) 
 		return EXPP_ReturnPyObjError(PyExc_MemoryError,
 												 "Material_getTextures: couldn't create PyTuple");
 
-  return tuple;
+	return tuple;
 }
 
 static PyObject *Material_setIpo(BPy_Material *self, PyObject *args)
@@ -1396,61 +1410,100 @@ static PyObject *Material_setNRings(BPy_Material *self, PyObject *args)
 
 static PyObject *Material_setTexture(BPy_Material *self, PyObject *args)
 {
-  int texnum;
-  PyObject *pytex;
-  Tex *bltex;
-  int texco=TEXCO_ORCO, mapto=MAP_COL;
+	int texnum;
+	PyObject *pytex;
+	Tex *bltex;
+	int texco=TEXCO_ORCO, mapto=MAP_COL;
 
-  if (!PyArg_ParseTuple(args, "iO!|ii", &texnum, &Texture_Type, &pytex,
-                                        &texco, &mapto))
-    return EXPP_ReturnPyObjError (PyExc_TypeError,
-                    "expected int in [0,7] and Texture");
-  if ((texnum<0) || (texnum>=8))
-    return EXPP_ReturnPyObjError (PyExc_TypeError,
-                    "expected int in [0,7] and Texture");
-  
-  bltex = Texture_FromPyObject (pytex);
-  
-  if (!self->material->mtex[texnum]) {
-    /* there isn't an mtex for this slot so we need to make one */
-    self->material->mtex[texnum] = add_mtex ();
-  }
-  else {
-    /* we already had a texture here so deal with the old one first */
-    self->material->mtex[texnum]->tex->id.us--;
-  }
-  
-  self->material->mtex[texnum]->tex = bltex;
-  id_us_plus (&bltex->id);
-  self->material->mtex[texnum]->texco = texco;
-  self->material->mtex[texnum]->mapto = mapto;
+	if (!PyArg_ParseTuple(args, "iO!|ii", &texnum, &Texture_Type, &pytex,
+																				&texco, &mapto))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+										"expected int in [0,7] and Texture");
+	if ((texnum<0) || (texnum>=8))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+										"expected int in [0,7] and Texture");
+	
+	bltex = Texture_FromPyObject (pytex);
+	
+	if (!self->material->mtex[texnum]) {
+		/* there isn't an mtex for this slot so we need to make one */
+		self->material->mtex[texnum] = add_mtex ();
+	}
+	else {
+		/* we already had a texture here so deal with the old one first */
+		self->material->mtex[texnum]->tex->id.us--;
+	}
+	
+	self->material->mtex[texnum]->tex = bltex;
+	id_us_plus (&bltex->id);
+	self->material->mtex[texnum]->texco = texco;
+	self->material->mtex[texnum]->mapto = mapto;
 
-  Py_INCREF(Py_None);
-  return Py_None;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 static PyObject *Material_clearTexture(BPy_Material *self, PyObject *args)
 {
-  int texnum;
-  struct MTex *mtex;
+	int texnum;
+	struct MTex *mtex;
 
-  if (!PyArg_ParseTuple(args, "i", &texnum))
-    return EXPP_ReturnPyObjError (PyExc_TypeError,
-                    "expected int in [0,7]");
-  if ((texnum<0) || (texnum>=8))
-    return EXPP_ReturnPyObjError (PyExc_TypeError,
-                    "expected int in [0,7]");
-  
-  mtex = self->material->mtex[texnum];
-  if (mtex) {
-    if (mtex->tex)
-      mtex->tex->id.us--;
-    MEM_freeN (mtex);    
-    self->material->mtex[texnum] = NULL;
-  }
-  
-  Py_INCREF(Py_None);
-  return Py_None;
+	if (!PyArg_ParseTuple(args, "i", &texnum))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+										"expected int in [0,7]");
+	if ((texnum<0) || (texnum>=8))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+										"expected int in [0,7]");
+	
+	mtex = self->material->mtex[texnum];
+	if (mtex) {
+		if (mtex->tex)
+			mtex->tex->id.us--;
+		MEM_freeN (mtex);		 
+		self->material->mtex[texnum] = NULL;
+	}
+	
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+/* mat.addScriptLink */
+static PyObject *Material_addScriptLink (BPy_Material *self, PyObject *args)
+{
+	Material *mat = self->material;
+	ScriptLink *slink = NULL;
+
+	slink = &(mat)->scriptlink;
+
+	if (!EXPP_addScriptLink(slink, args, 0))
+		return EXPP_incr_ret (Py_None);
+	else return NULL;
+}
+
+/* mat.clearScriptLinks */
+static PyObject *Material_clearScriptLinks (BPy_Material *self)
+{
+	Material *mat = self->material;
+	ScriptLink *slink = NULL;
+
+	slink = &(mat)->scriptlink;
+
+	return EXPP_incr_ret(Py_BuildValue("i", EXPP_clearScriptLinks (slink)));
+}
+
+/* mat.getScriptLinks */
+static PyObject *Material_getScriptLinks (BPy_Material *self, PyObject *args)
+{
+	Material *mat = self->material;
+	ScriptLink *slink = NULL;
+	PyObject *ret = NULL;
+
+	slink = &(mat)->scriptlink;
+
+	ret = EXPP_getScriptLinks(slink, args, 0);
+
+	if (ret) return ret;
+	else return NULL;
 }
 
 /*****************************************************************************/

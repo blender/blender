@@ -62,8 +62,8 @@ The Blender Python API Reference
  open-source language.
 
 @author: The Blender Python Team
-@requires: Blender 2.33+ or newer.
-@version: 2.33a-cvs
+@requires: Blender 2.34 or newer.
+@version: 2.34
 @see: U{www.blender.org<http://www.blender.org>}
 @see: U{projects.blender.org<http://projects.blender.org>}
 @see: U{www.python.org<http://www.python.org>}
@@ -113,6 +113,20 @@ def Load (filename = None):
   @warn: loading a new .blend file removes the current data in Blender.  For
      safety, this function saves the current data as an autosave file in
      the temporary dir used by Blender before loading the new file.
+  """
+
+def Save (filename, overwrite = 0):
+  """
+  Save a Blender .blend file with the current program data.
+  @type filename: string
+  @param filename: the pathname for the desired .blend file.  If it doesn't
+      contain ".blend", this extension is automatically appended.
+  @type overwrite: int (bool)
+  @param overwrite: if non-zero, file 'filename' will be overwritten if it
+      already exists.  By default existing files are not overwritten (an error
+      is returned).
+
+  @note: the substring ".B.blend" is not accepted inside 'filename'.
   """
 
 def Quit ():

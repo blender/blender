@@ -3,6 +3,8 @@
 """
 The Blender.Material submodule.
 
+B{New}: scriptLink methods: L{Material.getScriptLinks}, ...
+
 Material 
 ========
 
@@ -496,5 +498,32 @@ class Material:
     """
     Get this Material's Texture list.
     @rtype: list of MTex
-    @return: a list of Blender MTex objects.  None is returned for each empty texture slot.
+    @return: a list of Blender MTex objects.  None is returned for each empty
+        texture slot.
+    """
+
+  def getScriptLinks (event):
+    """
+    Get a list with this Material's script links of type 'event'.
+    @type event: string
+    @param event: "FrameChanged" or "Redraw".
+    @rtype: list
+    @return: a list with Blender L{Text} names (the script links of the given
+        'event' type) or None if there are no script links at all.
+    """
+
+  def clearScriptLinks ():
+    """
+    Delete all this Material's script links.
+    @rtype: bool
+    @return: 0 if some internal problem occurred or 1 if successful.
+    """
+
+  def addScriptLink (text, event):
+    """
+    Add a new script link to this Material.
+    @type text: string
+    @param text: the name of an existing Blender L{Text}.
+    @type event: string
+    @param event: "FrameChanged" or "Redraw".
     """

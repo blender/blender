@@ -36,12 +36,13 @@
 #include <Python.h>
 #include <stdio.h>
 
+#include <DNA_ID.h>
+#include <BKE_library.h> /* for all_local */
 #include "BKE_displist.h" /* for set_displist_onlyzero */
 #include "BKE_font.h" /* for text_to_curve */
-#include "BKE_library.h" /* for all_local */
-#include "BLO_readfile.h"
-#include "BLI_linklist.h"
-#include "MEM_guardedalloc.h"
+#include <BLO_readfile.h>
+#include <BLI_linklist.h>
+#include <MEM_guardedalloc.h>
 
 #include "gen_utils.h"
 #include "modules.h"

@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -60,7 +60,7 @@ PyObject *PythonIncRef (PyObject *object);
 char * event_to_name (short event);
 
 float EXPP_ClampFloat (float value, float min, float max);
-int   EXPP_ClampInt (int value, int min, int max);
+int		EXPP_ClampInt (int value, int min, int max);
 
 PyObject *EXPP_incr_ret (PyObject *object);
 PyObject *EXPP_ReturnPyObjError (PyObject * type, char * error_msg);
@@ -71,16 +71,21 @@ PyObject *EXPP_tuple_repr(PyObject *self, int size);
 
 /* mapping utilities - see Texture.c for an example of how to use these */
 typedef struct {
-    const char *sval;
-    int ival;
+		const char *sval;
+		int ival;
 } EXPP_map_pair;
 
 /* maps must end with a pair that has NULL as sval */
 int EXPP_map_getIntVal (const EXPP_map_pair *map, 
-                                        const char *sval, int *ival);
+																				const char *sval, int *ival);
 int EXPP_map_getShortVal (const EXPP_map_pair *map, 
-                                        const char *sval, short *ival);
+																				const char *sval, short *ival);
 int EXPP_map_getStrVal (const EXPP_map_pair *map,
-                                        int ival, const char **sval);
+																				int ival, const char **sval);
+
+/* scriplinks-related: */
+PyObject *EXPP_getScriptLinks (ScriptLink *slink, PyObject *args, int is_scene);
+int EXPP_clearScriptLinks (ScriptLink *slink);
+int EXPP_addScriptLink (ScriptLink *slink, PyObject *args, int is_scene);
 
 #endif /* EXPP_gen_utils_h */

@@ -98,7 +98,9 @@ static PyObject *Scene_getChildren(BPy_Scene *self);
 static PyObject *Scene_getCurrentCamera(BPy_Scene *self);
 static PyObject *Scene_setCurrentCamera(BPy_Scene *self, PyObject *args);
 static PyObject *Scene_getRenderingContext(BPy_Scene *self);
-static PyObject *Scene_getScriptlinks(BPy_Scene *self, PyObject *args);
+static PyObject *Scene_getScriptLinks(BPy_Scene *self, PyObject *args);
+static PyObject *Scene_addScriptLink(BPy_Scene *self, PyObject *args);
+static PyObject *Scene_clearScriptLinks(BPy_Scene *self);
 
 //deprecated methods
 static PyObject *Scene_currentFrame(BPy_Scene *self, PyObject *args);
@@ -122,55 +124,62 @@ static PyMethodDef BPy_Scene_methods[] = {
 	{"getName", (PyCFunction)Scene_getName, METH_NOARGS,
 			"() - Return Scene name"},
 	{"setName", (PyCFunction)Scene_setName, METH_VARARGS,
-					"(str) - Change Scene name"},
+			"(str) - Change Scene name"},
 	{"copy",		(PyCFunction)Scene_copy, METH_VARARGS,
-					"(duplicate_objects = 1) - Return a copy of this scene\n"
+			"(duplicate_objects = 1) - Return a copy of this scene\n"
 	"The optional argument duplicate_objects defines how the scene\n"
 	"children are duplicated:\n\t0: Link Objects\n\t1: Link Object Data"
 	"\n\t2: Full copy\n"},
 	{"makeCurrent", (PyCFunction)Scene_makeCurrent, METH_NOARGS,
-					"() - Make self the current scene"},
+			"() - Make self the current scene"},
 	{"update", (PyCFunction)Scene_update, METH_VARARGS,
-					"(full = 0) - Update scene self.\n"
-					"full = 0: sort the base list of objects."
-					"full = 1: full update -- also regroups, does ipos, ikas, keys"},
+			"(full = 0) - Update scene self.\n"
+			"full = 0: sort the base list of objects."
+			"full = 1: full update -- also regroups, does ipos, ikas, keys"},
 	{"link", (PyCFunction)Scene_link, METH_VARARGS,
-					"(obj) - Link Object obj to this scene"},
+			"(obj) - Link Object obj to this scene"},
 	{"unlink", (PyCFunction)Scene_unlink, METH_VARARGS,
-					"(obj) - Unlink Object obj from this scene"},
+			"(obj) - Unlink Object obj from this scene"},
 	{"getChildren", (PyCFunction)Scene_getChildren, METH_NOARGS,
-					"() - Return list of all objects linked to scene self"},
+			"() - Return list of all objects linked to scene self"},
 	{"getCurrentCamera", (PyCFunction)Scene_getCurrentCamera, METH_NOARGS,
-					"() - Return current active Camera"},
-	{"getScriptlinks", (PyCFunction)Scene_getScriptlinks, METH_VARARGS,
-					"(eventname) - Get a list of this scene's scriptlinks (Text names) of the given type\n"
+			"() - Return current active Camera"},
+	{"getScriptLinks", (PyCFunction)Scene_getScriptLinks, METH_VARARGS,
+			"(eventname) - Get a list of this scene's scriptlinks (Text names) "
+			"of the given type\n"
 	"(eventname) - string: FrameChanged, OnLoad or Redraw."},
+	{"addScriptLink", (PyCFunction)Scene_addScriptLink, METH_VARARGS,
+			"(text, evt) - Add a new scene scriptlink.\n"
+	"(text) - string: an existing Blender Text name;\n"
+	"(evt) string: FrameChanged, OnLoad or Redraw."},
+	{"clearScriptLinks", (PyCFunction)Scene_clearScriptLinks, METH_NOARGS,
+			"() - Delete all scriptlinks from this scene."},
 	{"setCurrentCamera", (PyCFunction)Scene_setCurrentCamera, METH_VARARGS,
-					"() - Set the currently active Camera"},
+			"() - Set the currently active Camera"},
 	//DEPRECATED
 	{"getWinSize", (PyCFunction)Scene_getWinSize, METH_NOARGS,
 			"() - Return Render window [x,y] dimensions"},
 	{"setWinSize", (PyCFunction)Scene_setWinSize, METH_VARARGS,
-					"(str) - Change Render window [x,y] dimensions"},
+			"(str) - Change Render window [x,y] dimensions"},
 	{"startFrame", (PyCFunction)Scene_startFrame, METH_VARARGS,
-					"(frame) - If frame is given, the start frame is set and"
-									"\nreturned in any case"},
+			"(frame) - If frame is given, the start frame is set and"
+			"\nreturned in any case"},
 	{"endFrame", (PyCFunction)Scene_endFrame, METH_VARARGS,
-					"(frame) - If frame is given, the end frame is set and"
-									"\nreturned in any case"},
+			"(frame) - If frame is given, the end frame is set and"
+			"\nreturned in any case"},
 	{"frameSettings", (PyCFunction)Scene_frameSettings, METH_VARARGS,
-					"(start, end, current) - Sets or retrieves the Scene's frame"
-					" settings.\nIf the frame arguments are specified, they are set. "
-					"A tuple (start, end, current) is returned in any case."},
+			"(start, end, current) - Sets or retrieves the Scene's frame"
+			" settings.\nIf the frame arguments are specified, they are set. "
+			"A tuple (start, end, current) is returned in any case."},
 	{"getRenderdir", (PyCFunction)Scene_getRenderdir, METH_NOARGS,
-					"() - Return directory where rendered images are saved to"},
+			"() - Return directory where rendered images are saved to"},
 	{"getBackbufdir", (PyCFunction)Scene_getBackbufdir, METH_NOARGS,
-					"() - Return location of the backbuffer image"},
+			"() - Return location of the backbuffer image"},
 	{"getRenderingContext", (PyCFunction)Scene_getRenderingContext, METH_NOARGS,
-					"() - Get the rendering context for the scene and return it as a BPy_RenderData"},
+			"() - Get the rendering context for the scene and return it as a BPy_RenderData"},
 	{"currentFrame", (PyCFunction)Scene_currentFrame, METH_VARARGS,
-					"(frame) - If frame is given, the current frame is set and"
-									"\nreturned in any case"},
+			"(frame) - If frame is given, the current frame is set and"
+			"\nreturned in any case"},
 	{NULL, NULL, 0, NULL}
 };
 //-----------------------BPy_Scene method def-------------------------------------------------------------------------
@@ -726,57 +735,60 @@ static PyObject *Scene_getRenderingContext (BPy_Scene *self)
 {	
 	if (!self->scene)
 		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-						"Blender Scene was deleted!");
+			"Blender Scene was deleted!");
 
 	return RenderData_CreatePyObject(self->scene);
 }
 
-/* Scene.getScriptlinks */
-static PyObject *Scene_getScriptlinks (BPy_Scene *self, PyObject *args)
+/* scene.addScriptLink */
+static PyObject *Scene_addScriptLink (BPy_Scene *self, PyObject *args)
 {
 	Scene *scene = self->scene;
-	char *eventname = NULL;
-	int event = 0;
-	ScriptLink *slink = &(scene)->scriptlink;
+	ScriptLink *slink = NULL;
 
 	if (!scene)
 		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-						"Blender Scene was deleted!");
+			"Blender Scene was deleted!");
 
-	if (!PyArg_ParseTuple(args, "s", &eventname))
-		return EXPP_ReturnPyObjError (PyExc_TypeError,
-						"expected event name (string) as argument");
+	slink = &(scene)->scriptlink;
 
-	if (!strcmp(eventname, "FrameChanged"))
-		event = SCRIPT_FRAMECHANGED;
-	else if (!strcmp(eventname, "OnLoad"))
-		event = SCRIPT_ONLOAD;
-	else if (!strcmp(eventname, "Redraw"))
-		event = SCRIPT_REDRAW;
-	else
-		return EXPP_ReturnPyObjError (PyExc_AttributeError,
-						"unknown event");
+	if (!EXPP_addScriptLink(slink, args, 1))
+		return EXPP_incr_ret (Py_None);
+	else return NULL;
+}
 
-	/* actually !scriptlink shouldn't happen ... */
-	if (!slink || !slink->totscript) {
-		Py_INCREF(Py_None);
-		return Py_None;
-	}
-	else {
-		PyObject *list = PyList_New(0);
-		int i;
+/* scene.clearScriptLinks */
+static PyObject *Scene_clearScriptLinks (BPy_Scene *self)
+{
+	Scene *scene = self->scene;
+	ScriptLink *slink = NULL;
 
-		if (!list)
-			return EXPP_ReturnPyObjError (PyExc_MemoryError,
-				"couldn't create PyList!");
+	if (!scene)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+			"Blender Scene was deleted!");
 
-		for (i = 0; i < slink->totscript; i++) {
-			if ((slink->flag[i] == event) && slink->scripts[i])
-				PyList_Append(list, PyString_FromString(slink->scripts[i]->name+2));
-		}
+	slink = &(scene)->scriptlink;
 
-		return list;
-	}
+	return EXPP_incr_ret(Py_BuildValue("i", EXPP_clearScriptLinks (slink)));
+}
+
+/* scene.getScriptLinks */
+static PyObject *Scene_getScriptLinks (BPy_Scene *self, PyObject *args)
+{
+	Scene *scene = self->scene;
+	ScriptLink *slink = NULL;
+	PyObject *ret = NULL;
+
+	if (!scene)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+			"Blender Scene was deleted!");
+
+	slink = &(scene)->scriptlink;
+
+	ret = EXPP_getScriptLinks(slink, args, 1);
+
+	if (ret) return ret;
+	else return NULL;
 }
 
 /*****************************************************************************/
@@ -786,47 +798,47 @@ static PyObject *Scene_getScriptlinks (BPy_Scene *self, PyObject *args)
 static PyObject *Scene_getRenderdir (BPy_Scene *self)
 {
 		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-			"Depricated:use RenderData.getRenderPath()");
+			"Deprecated:use RenderData.getRenderPath()");
 }
 //-----------------------Scene.getBackbufdir ()----------------------------------------------------------------------
 static PyObject *Scene_getBackbufdir (BPy_Scene *self)
 {
 		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-			"Depricated:use RenderData.getBackbufPath()");
+			"Deprecated:use RenderData.getBackbufPath()");
 }
 //-----------------------Scene.startFrame ()----------------------------------------------------------------------
 static PyObject *Scene_startFrame (BPy_Scene *self, PyObject *args)
 {
 		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-			"Depricated:use RenderData.startFrame()");
+			"Deprecated:use RenderData.startFrame()");
 }
 //-----------------------Scene.endFrame ()----------------------------------------------------------------------
 static PyObject *Scene_endFrame (BPy_Scene *self, PyObject *args)
 {
 		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-			"Depricated:use RenderData.endFrame()");
+			"Deprecated:use RenderData.endFrame()");
 }
 //-----------------------Scene.getWinSize ()----------------------------------------------------------------------
 static PyObject *Scene_getWinSize(BPy_Scene *self)
 {
 		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-			"Depricated:use RenderData.imageSizeX() and RenderData.imageSizeY");
+			"Deprecated:use RenderData.imageSizeX() and RenderData.imageSizeY");
 }
 //-----------------------Scene.setWinSize()----------------------------------------------------------------------
 static PyObject *Scene_setWinSize(BPy_Scene *self, PyObject *args)
 {
 		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-			"Depricated:use RenderData.imageSizeX() and RenderData.imageSizeY");
+			"Deprecated:use RenderData.imageSizeX() and RenderData.imageSizeY");
 }
 //-----------------------Scene.frameSettings()----------------------------------------------------------------------
 static PyObject *Scene_frameSettings (BPy_Scene *self, PyObject *args)
 {	
 		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-			"Depricated:use RenderData.startFrame(),  RenderData.endFrame, RenderData.currentFrame");
+			"Deprecated:use RenderData.startFrame(),  RenderData.endFrame, RenderData.currentFrame");
 }
 //-----------------------Scene.currentFrame()-----------------------------------------------------------------------------------------
 static PyObject *Scene_currentFrame (BPy_Scene *self, PyObject *args)
 {
 		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-			"Depricated:use RenderData.currentFrame");
+			"Deprecated:use RenderData.currentFrame");
 }

@@ -34,7 +34,9 @@
 
 #include <BIF_usiblender.h>
 #include <BLI_blenlib.h>
+#include <BLO_writefile.h>
 #include <BKE_global.h>
+#include <BKE_packedFile.h>
 #include <BPI_script.h>
 #include <BSE_headerbuttons.h>
 #include <DNA_ID.h>
@@ -61,6 +63,7 @@ static PyObject *Blender_Redraw(PyObject *self, PyObject *args);
 static PyObject *Blender_ReleaseGlobalDict(PyObject *self, PyObject *args);
 static PyObject *Blender_Quit(PyObject *self);
 static PyObject *Blender_Load(PyObject *self, PyObject *args);
+static PyObject *Blender_Save(PyObject *self, PyObject *args);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.			 */
@@ -94,7 +97,7 @@ static char Blender_Quit_doc[] =
 "() - Quit Blender.  The current data is saved as 'quit.blend' before leaving.";
 
 static char Blender_Load_doc[] =
-"(filename) - Load the given .blend file.  If succesful, the script is ended\n\
+"(filename) - Load the given .blend file.  If successful, the script is ended\n\
 immediately.\n\
 Notes:\n\
 1 - () - an empty argument loads the default .B.blend file;\n\
@@ -103,6 +106,10 @@ Notes:\n\
 3 - The current data is always preserved as an autosave file, for safety;\n\
 4 - This function only works if the script where it's executed is the\n\
 only one running.";
+
+static char Blender_Save_doc[] =
+"(filename) - Save a .blend file with the given filename.\n\
+(filename) - A file pathname that should not contain \".B.blend\" in it.";
 
 /*****************************************************************************/
 /* Python method structure definition.																			 */
@@ -113,6 +120,7 @@ static struct PyMethodDef Blender_methods[] = {
 	{"Redraw", Blender_Redraw, METH_VARARGS, Blender_Redraw_doc},
 	{"Quit",	 (PyCFunction)Blender_Quit, METH_NOARGS, Blender_Quit_doc},
 	{"Load", Blender_Load, METH_VARARGS, Blender_Load_doc},
+	{"Save", Blender_Save, METH_VARARGS, Blender_Save_doc},
 	{"ReleaseGlobalDict", &Blender_ReleaseGlobalDict,
 		METH_VARARGS, Blender_ReleaseGlobalDict_doc},
  	{NULL, NULL, 0, NULL}
@@ -325,6 +333,55 @@ static PyObject *Blender_Load(PyObject *self, PyObject *args)
 		BIF_read_homefile();
 	else
 		BIF_read_file(fname);
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+static PyObject *Blender_Save(PyObject *self, PyObject *args)
+{
+	char *fname = NULL;
+	char savefname[FILE_MAXFILE];
+	int overwrite = 0, len = 0;
+	char *error = NULL;
+	Library *li;
+
+	if (!PyArg_ParseTuple(args, "s|i", &fname, &overwrite))
+		return EXPP_ReturnPyObjError(PyExc_TypeError,
+			"expected filename and optional int (overwrite flag) as arguments");
+
+	for (li = G.main->library.first; li; li = li->id.next) {
+		if (BLI_streq(li->name, fname)) {
+			return EXPP_ReturnPyObjError(PyExc_AttributeError,
+				"cannot overwrite used library");
+		}
+	}
+	
+	/* for safety, any filename with .B.blend is considered the default one
+	 * and not accepted here. */
+	if (strstr(fname, ".B.blend"))
+		return EXPP_ReturnPyObjError(PyExc_AttributeError,
+			"filename can't contain the substring \".B.blend\" in it.");
+
+	len = strlen(fname);
+
+	if (len > FILE_MAXFILE - 7) /* 6+1 for eventual .blend added below */
+		return EXPP_ReturnPyObjError(PyExc_AttributeError,
+			"filename is too long!");
+	else
+		BLI_strncpy(savefname, fname, len + 1);
+
+	if (!strstr(fname, ".blend"))
+		BLI_strncpy(savefname + len, ".blend", 7); /* 7: BLI_strncpy adds '\0'*/
+
+	if (BLI_exists(savefname) && !overwrite)
+		return EXPP_ReturnPyObjError(PyExc_AttributeError,
+			"file already exists and overwrite flag was not given.");
+
+	if (G.fileflags & G_AUTOPACK) packAll();
+
+	if (!BLO_write_file(savefname, G.fileflags, &error))
+		return EXPP_ReturnPyObjError(PyExc_SystemError, error);
 
 	Py_INCREF(Py_None);
 	return Py_None;

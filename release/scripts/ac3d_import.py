@@ -419,4 +419,4 @@ class AC3DImport:
 def filesel_callback(filename):
   test = AC3DImport(filename)
 
-Blender.Window.FileSelector(filesel_callback, "Import AC3D")
+Blender.Window.FileSelector(filesel_callback, "Import AC3D", "*.ac")

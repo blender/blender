@@ -48,7 +48,7 @@ def Open (filename):
   @type filename: string
   @param filename: The filename of a Blender file.
   @rtype: bool
-  @return: 1 if succesful, 0 otherwise.
+  @return: 1 if successful, 0 otherwise.
   """
 
 def Close ():

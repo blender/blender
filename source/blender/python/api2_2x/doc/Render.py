@@ -87,38 +87,7 @@ class RenderData:
   =====================
     This object gives access to Scene rendering contexts in Blender.
   """
-  
-  def getRenderdir():
-    """
-    @warn: B{Depricated}: use RenderData.getRenderPath()
-    """
-
-  def getBackbufdir():
-    """
-    @warn: B{Depricated}: use RenderData.getBackbufPath()
-    """
-
-  def getChildren():
-    """
-    Get all objects linked to this Scene.
-    @rtype: list of Blender Objects
-    @return: A list with all Blender Objects linked to this Scene.
-    """
-
-  def getCurrentCamera():
-    """
-    Get the currently active Camera for this Scene.
-    @rtype: Blender Camera
-    @return: The currently active Camera.
-    """
-
-  def setCurrentCamera(camera):
-    """
-    Set the currently active Camera in this Scene.
-    @type camera: Blender Camera
-    @param camera: The new active Camera.
-    """
-
+ 
   def render():
     """
     Render the scene.

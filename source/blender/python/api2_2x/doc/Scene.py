@@ -3,6 +3,8 @@
 """
 The Blender.Scene submodule.
 
+B{New}: scriptLink methods: L{Scene.getScriptLinks}, ...
+
 Scene
 =====
 
@@ -91,12 +93,12 @@ class Scene:
 
   def getWinSize():
     """
-    @warn: B{Depricated}: use RenderData.imageSizeX() and RenderData.imageSizeY()
+    @warn: B{Deprecated}: use RenderData.imageSizeX() and RenderData.imageSizeY()
     """
 
   def setWinSize(dimensions):
     """
-    @warn: B{Depricated}: use RenderData.imageSizeX() and RenderData.imageSizeY
+    @warn: B{Deprecated}: use RenderData.imageSizeX() and RenderData.imageSizeY
     """
 
   def copy(duplicate_objects = 1):
@@ -113,22 +115,22 @@ class Scene:
 
   def startFrame(frame = None):
     """
-    @warn: B{Depricated}: use RenderData.startFrame()
+    @warn: B{Deprecated}: use RenderData.startFrame()
     """
 
   def endFrame(frame = None):
     """
-    @warn: B{Depricated}: use RenderData.endFrame()
+    @warn: B{Deprecated}: use RenderData.endFrame()
     """
 
   def currentFrame(frame = None):
     """
-    @warn: B{Depricated}: use RenderData.currentFrame
+    @warn: B{Deprecated}: use RenderData.currentFrame
     """
 
   def frameSettings(start = None, end = None, current = None):
     """
-    @warn: B{Depricated}: use RenderData.startFrame(),  RenderData.endFrame, RenderData.currentFrame
+    @warn: B{Deprecated}: use RenderData.startFrame(),  RenderData.endFrame, RenderData.currentFrame
     """
 
   def makeCurrent():
@@ -147,6 +149,37 @@ class Scene:
         The "full" update is a recent addition to this method.
     """
 
+  def getRenderdir():
+    """
+    @warn: B{Deprecated}: use RenderData.getRenderPath()
+    """
+
+  def getBackbufdir():
+    """
+    @warn: B{Deprecated}: use RenderData.getBackbufPath()
+    """
+
+  def getChildren():
+    """
+    Get all objects linked to this Scene.
+    @rtype: list of Blender Objects
+    @return: A list with all Blender Objects linked to this Scene.
+    """
+
+  def getCurrentCamera():
+    """
+    Get the currently active Camera for this Scene.
+    @rtype: Blender Camera
+    @return: The currently active Camera.
+    """
+
+  def setCurrentCamera(camera):
+    """
+    Set the currently active Camera in this Scene.
+    @type camera: Blender Camera
+    @param camera: The new active Camera.
+    """
+
   def link(object):
     """
     Link an Object to this Scene.
@@ -159,4 +192,30 @@ class Scene:
     Unlink an Object from this Scene.
     @type object: Blender Object
     @param object: A Blender Object.
+    """
+
+  def getScriptLinks (event):
+    """
+    Get a list with this Scene's script links of type 'event'.
+    @type event: string
+    @param event: "FrameChanged", "OnLoad" or "Redraw".
+    @rtype: list
+    @return: a list with Blender L{Text} names (the script links of the given
+        'event' type) or None if there are no script links at all.
+    """
+
+  def clearScriptLinks ():
+    """
+    Delete all this Scene's script links.
+    @rtype: bool
+    @return: 0 if some internal problem occurred or 1 if successful.
+    """
+
+  def addScriptLink (text, event):
+    """
+    Add a new script link to this Scene.
+    @type text: string
+    @param text: the name of an existing Blender L{Text}.
+    @type event: string
+    @param event: "FrameChanged", "OnLoad" or "Redraw".
     """

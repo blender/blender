@@ -349,7 +349,7 @@ class NMesh:
     """
     Remove all mesh keys stored in this mesh.
     @rtype: bool
-    @return: True if succesful or False if this NMesh wasn't linked to a real
+    @return: True if successful or False if this NMesh wasn't linked to a real
        Blender Mesh yet (or was, but the Mesh had no keys).
     @warn: Currently the mesh keys from meshs that are grabbed with
        NMesh.GetRaw() or .GetRawFromObject() are preserved, so if you want to
