@@ -191,30 +191,25 @@ int EXPP_check_sequence_consistency(PyObject *seq, PyTypeObject *against)
 
 PyObject *EXPP_tuple_repr(PyObject *self, int size)
 {
-	PyObject *repr, *comma, *item;
+	PyObject *repr, *item;
 	int i;
 
 /*@	note: a value must be built because the list is decrefed!
  * otherwise we have nirvana pointers inside python.. */
 
-	repr = PyString_FromString("(");
+	repr = PyString_FromString("");
 	if (!repr) return 0;
 
 	item = PySequence_GetItem(self, 0); 
 	PyString_ConcatAndDel(&repr, PyObject_Repr(item));
 	Py_DECREF(item);
 
-	comma = PyString_FromString(", ");
-
 	for (i = 1; i < size; i++) {
-		PyString_Concat(&repr, comma);
 		item = PySequence_GetItem(self, i);
 		PyString_ConcatAndDel(&repr, PyObject_Repr(item));
 		Py_DECREF(item);
 	}
 
-	PyString_ConcatAndDel(&repr, PyString_FromString(")"));
-	Py_DECREF(comma);
 
 	return repr;
 

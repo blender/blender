@@ -701,17 +701,8 @@ static PyObject *Object_getInverseMatrix (BPy_Object *self)
     Object  * ob;
 
     ob = self->object;
-    printf ("----Before inverse----\n");
-    printf ("%f, %f, %f, %f\n", ob->obmat[0][0], ob->obmat[0][1], ob->obmat[0][2], ob->obmat[0][3]);
-    printf ("%f, %f, %f, %f\n", ob->obmat[1][0], ob->obmat[1][1], ob->obmat[1][2], ob->obmat[1][3]);
-    printf ("%f, %f, %f, %f\n", ob->obmat[2][0], ob->obmat[2][1], ob->obmat[2][2], ob->obmat[2][3]);
-    printf ("%f, %f, %f, %f\n", ob->obmat[3][0], ob->obmat[3][1], ob->obmat[3][2], ob->obmat[3][3]);
+
     Mat4Invert (inverse, self->object->obmat);
-    printf ("-----After inverse-----\n");
-    printf ("%f, %f, %f, %f\n", inverse[0][0], inverse[0][1], inverse[0][2], inverse[0][3]);
-    printf ("%f, %f, %f, %f\n", inverse[1][0], inverse[1][1], inverse[1][2], inverse[1][3]);
-    printf ("%f, %f, %f, %f\n", inverse[2][0], inverse[2][1], inverse[2][2], inverse[2][3]);
-    printf ("%f, %f, %f, %f\n", inverse[3][0], inverse[3][1], inverse[3][2], inverse[3][3]);
 
     return (newMatrixObject (inverse));
 }

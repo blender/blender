@@ -146,7 +146,12 @@ static int Vector_ass_slice(VectorObject *self, int begin, int end, PyObject *se
 
 static PyObject *Vector_repr (VectorObject *self)
 {
-  return EXPP_tuple_repr((PyObject *) self, self->size);
+  char  buffer[100];
+
+  sprintf (buffer, "[%.3f, %.3f, %.3f, %.3f]\n",
+           self->vec[0], self->vec[1], self->vec[2], self->vec[3]);
+
+  return PyString_FromString (buffer);
 }
 
 static PySequenceMethods Vector_SeqMethods =
