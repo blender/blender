@@ -496,8 +496,22 @@ char *BLI_gethome(void) {
 		if(ret) {
 			if (BLI_exists(ret)) return ret;
 		}
-		
-		// add user profile support for WIN 2K / NT
+
+		BLI_getInstallationDir(dir);
+
+		if (BLI_exists(dir))
+		{
+			strcat(dir,"/.blender/");
+			return(dir);
+		}
+
+		/* 
+		   everything below this point to be removed -
+		   blender should use the same %HOME% across
+		   all versions of Windows... (aphex)
+		*/
+				
+		/* add user profile support for WIN 2K / NT */
 		ret = getenv("USERPROFILE");
 		if (ret) {
 			if (BLI_exists(ret)) { /* from fop, also below... */
@@ -510,6 +524,11 @@ char *BLI_gethome(void) {
 				}
 			}
 		}
+
+		/* 
+		   Saving in the Windows dir is less than desirable. 
+		   Use as a last resort ONLY! (aphex)
+		*/
 		
 		ret = getenv("WINDOWS");		
 		if (ret) {
@@ -521,7 +540,7 @@ char *BLI_gethome(void) {
 			if(BLI_exists(ret)) return ret;
 		}
 		
-		return "C:\\Temp";	
+		return "C:\\Temp";	/* sheesh! bad, bad, bad! (aphex) */
 	#endif
 }
 
