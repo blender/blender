@@ -178,7 +178,7 @@ static void check_persistant(SpaceOops *soops, TreeElement *te, ID *id, short ty
 	tselem= ts->data;
 	for(a=0; a<ts->usedelem; a++, tselem++) {
 		if(tselem->id==id && tselem->used==0) {
-			if(type==0 ||(tselem->type==type && tselem->nr==nr)) {
+			if((type==0 && tselem->type==0) ||(tselem->type==type && tselem->nr==nr)) {
 				te->store_index= a;
 				tselem->used= 1;
 				return;
@@ -582,6 +582,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				if(G.obedit && G.obedit->data==arm) {
 					EditBone *ebone;
 					TreeElement *ten;
+					
 					for (ebone = G.edbo.first; ebone; ebone=ebone->next, a++) {
 						ten= outliner_add_element(soops, &te->subtree, id, te, TSE_EBONE, a);
 						ten->directdata= ebone;
@@ -624,6 +625,7 @@ static void outliner_add_bone(SpaceOops *soops, ListBase *lb, ID *id, Bone *curB
 	(*a)++;
 	te->name= curBone->name;
 	te->directdata= curBone;
+
 	for(curBone= curBone->childbase.first; curBone; curBone=curBone->next) {
 		outliner_add_bone(soops, &te->subtree, id, curBone, te, a);
 	}
