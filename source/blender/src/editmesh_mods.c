@@ -905,7 +905,7 @@ static void edgeloop_select(EditEdge *starteed, int select)
 	for(eed= em->edges.first; eed; eed= eed->next) {
 		eed->f1= 0;
 		eed->f2= 0;
-		if(eed->h==0) {
+		if((eed->h & 1)==0) {	// fgon edges add to valence too
 			eed->v1->f1++; eed->v2->f1++;
 		}
 	}
