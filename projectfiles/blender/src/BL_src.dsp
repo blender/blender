@@ -443,6 +443,10 @@ SOURCE=..\..\..\source\blender\src\oops.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\outliner.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\playanim.c
 # End Source File
 # Begin Source File
