@@ -443,11 +443,11 @@ static HyperMesh *hypermesh_from_editmesh(EditMesh *em, int subdivLevels) {
 		 */
 	for (ee= em->edges.first; ee; ee= ee->next) {
 
-		if(ee->v1->h==0 && ee->v1->f1) {
+		if(ee->v1->f1) {
 			ee->v1->prev= (EditVert*) hypermesh_add_vert(hme, ee->v1->co, ee->v1->co);
 			ee->v1->f1= 0;
 		}
-		if(ee->v2->h==0 && ee->v2->f1) {
+		if(ee->v2->f1) {
 			ee->v2->prev= (EditVert*) hypermesh_add_vert(hme, ee->v2->co, ee->v2->co);
 			ee->v2->f1= 0;
 		}
