@@ -780,6 +780,7 @@ void transform_tface_uv(int mode)
 			tv->loc[1]= tv->oldloc[1];
 		}
 	}
+
 	MEM_freeN(transmain);
 	
 	if(mode=='g') if(G.sima->flag & SI_BE_SQUARE) be_square_tface_uv(me);
@@ -789,6 +790,10 @@ void transform_tface_uv(int mode)
 	
 	makeDispList(OBACT);
 	allqueue(REDRAWVIEW3D, 0);
+
+	if(event!=ESCKEY && event!=RIGHTMOUSE)
+		BIF_undo_push("Transform UV");
+
 	scrarea_queue_headredraw(curarea);
 	scrarea_queue_winredraw(curarea);
 }
@@ -857,6 +862,8 @@ void mirrormenu_tface_uv(void)
 
 	if(mode==1) mirror_tface_uv('x');
 	else if(mode==2) mirror_tface_uv('y');
+
+	BIF_undo_push("Mirror UV");
 }
 
 
@@ -893,6 +900,7 @@ void select_swap_tface_uv(void)
 		}
 	}
 	
+	BIF_undo_push("Select swap UV");
 	allqueue(REDRAWIMAGE, 0);
 }
 
@@ -1142,6 +1150,7 @@ void mouse_select_sima(void)
 	
 	force_draw();
 	
+	BIF_undo_push("Select UV");
 	std_rmouse_transform(transform_tface_uv);
 }
 
@@ -1192,6 +1201,7 @@ void borderselect_sima(void)
 			}
 							
 		}
+		BIF_undo_push("Border select UV");
 		scrarea_queue_winredraw(curarea);
 	}
 }
@@ -1367,6 +1377,7 @@ void hide_tface_uv(int swap)
 			}
 		}
 	}
+	BIF_undo_push("Hide UV");
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
 }
@@ -1387,6 +1398,7 @@ void reveal_tface_uv(void)
 			if(!(tface->flag & TF_SELECT))
 				tface->flag |= (TF_SELECT|TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
 	
+	BIF_undo_push("Reveil UV");
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
 }
@@ -1526,6 +1538,7 @@ void stitch_uv_tface(int mode)
 	if(G.sima->flag & SI_BE_SQUARE) be_square_tface_uv(me);
 	if(G.sima->flag & SI_CLIP_UV) tface_do_clip();
 
+	BIF_undo_push("Stitch UV");
 	allqueue(REDRAWVIEW3D, 0);
 	scrarea_queue_winredraw(curarea);
 }
@@ -1632,6 +1645,7 @@ void select_linked_tface_uv(void)
 	}
 	MEM_freeN(sortblock);
 
+	BIF_undo_push("Select linked UV");
 	scrarea_queue_winredraw(curarea);
 }
 
@@ -1658,6 +1672,7 @@ void unlink_selection(void)
 		}
 	}
 	
+	BIF_undo_push("Unlink UV selection");
 	scrarea_queue_winredraw(curarea);
 }
 
@@ -1713,6 +1728,8 @@ void pin_tface_uv(int mode)
 			}
 		}
 	}
+	
+	BIF_undo_push("Pin UV");
 	scrarea_queue_winredraw(curarea);
 }
 

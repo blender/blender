@@ -112,7 +112,7 @@ void load_space_image(char *str)	/* called from fileselect */
 		image_changed(G.sima, 0);
 
 	}
-
+	BIF_undo_push("Load image UV");
 	allqueue(REDRAWIMAGE, 0);
 }
 
@@ -175,6 +175,7 @@ void replace_space_image(char *str)		/* called from fileselect */
 		image_changed(G.sima, 0);
 
 	}
+	BIF_undo_push("Replace image UV");
 	allqueue(REDRAWIMAGE, 0);
 }
 
@@ -252,6 +253,7 @@ void do_image_buttons(unsigned short event)
 		}
 		/* also when image is the same: assign! 0==no tileflag: */
 		image_changed(G.sima, 0);
+		BIF_undo_push("Assign image UV");
 
 		break;
 	case B_SIMAGELOAD:
@@ -627,6 +629,7 @@ static void do_image_imagemenu(void *arg, int event)
 				}
 			}
 		}
+		BIF_undo_push("Pack image");
 		allqueue(REDRAWBUTSSHADING, 0);
 		allqueue(REDRAWHEADERS, 0);
 		break;
@@ -647,6 +650,7 @@ static void do_image_imagemenu(void *arg, int event)
 				error("There are no packed images to unpack");
 			}
 		}
+		BIF_undo_push("Unpack image");
 		allqueue(REDRAWBUTSSHADING, 0);
 		allqueue(REDRAWHEADERS, 0);
 		break;

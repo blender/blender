@@ -653,13 +653,12 @@ void BIF_undo(void)
 			
 	}
 	else {
-		if (G.f & G_FACESELECT)
-			;
-		else if(G.f & G_WEIGHTPAINT)
+		if(G.f & G_WEIGHTPAINT)
 			wpaint_undo();
 		else if(G.f & G_VERTEXPAINT)
 			vpaint_undo();
 		else {
+			/* now also in faceselect mode */
 			if(U.uiflag & USER_GLOBALUNDO) BKE_undo_step(1);
 		}
 	}
@@ -677,13 +676,12 @@ void BIF_redo(void)
 	
 	}
 	else {
-		if (G.f & G_FACESELECT)
-			;
-		else if(G.f & G_WEIGHTPAINT)
+		if(G.f & G_WEIGHTPAINT)
 			wpaint_undo();
 		else if(G.f & G_VERTEXPAINT)
 			vpaint_undo();
 		else {
+			/* includes faceselect now */
 			if(U.uiflag & USER_GLOBALUNDO) BKE_undo_step(-1);
 		}
 	}
@@ -702,9 +700,7 @@ void BIF_undo_menu(void)
 		allqueue(REDRAWALL, 0);
 	}
 	else {
-		if (G.f & G_FACESELECT)
-			;
-		else if(G.f & G_WEIGHTPAINT)
+		if(G.f & G_WEIGHTPAINT)
 			;
 		else if(G.f & G_VERTEXPAINT)
 			;

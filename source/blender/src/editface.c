@@ -608,6 +608,7 @@ void reveal_tface()
 		tface++;
 	}
 
+	BIF_undo_push("Reveil UV face");
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
 }
@@ -644,6 +645,7 @@ void hide_tface()
 		
 		tface++;
 	}
+	BIF_undo_push("Hide UV face");
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
 	
@@ -713,6 +715,7 @@ void select_linked_tfaces()
 	}
 	MEM_freeN(cpmain);
 	
+	BIF_undo_push("Select linked UV face");
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
 }
@@ -745,6 +748,8 @@ void deselectall_tface()
 		}
 		tface++;
 	}
+
+	BIF_undo_push("(De)select all UV face");
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
 }
@@ -769,6 +774,7 @@ void selectswap_tface(void)
 		tface++;
 	}
 
+	BIF_undo_push("Select swap UV face");
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
 }
@@ -834,6 +840,7 @@ void rotate_uv_tface()
 		mface++;
 	}
 	
+	BIF_undo_push("Rotate UV face");
 	makeDispList(OBACT);
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
@@ -935,6 +942,8 @@ void face_select()
 	lasttface = tsel;
 	
 	/* image window redraw */
+	
+	BIF_undo_push("Select UV face");
 	allqueue(REDRAWIMAGE, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWVIEW3D, 0);
@@ -1090,6 +1099,9 @@ void uv_autocalc_tface()
 	case UV_LSCM_MAPPING:
 		unwrap_lscm(); break;
 	}
+	
+	if(mode>0) BIF_undo_push("UV calculation");
+
 }
 
 void set_faceselect()	/* toggle */
@@ -1118,11 +1130,13 @@ void set_faceselect()	/* toggle */
 			set_lasttface();
 			set_seamtface(); /* set TF_SEAM flags in tface */
 		}
+		BIF_undo_push("Set UV Faceselect");
 	}
 	else if((G.f & (G_WEIGHTPAINT|G_VERTEXPAINT|G_TEXTUREPAINT))==0) {
 		if(me) reveal_tface();
 		setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 		makeDispList(ob);
+		BIF_undo_push("End UV Faceselect");
 	}
 	countall();
 }
@@ -1538,6 +1552,7 @@ void face_draw()
 
 	persp(PERSP_WIN);
 
+	BIF_undo_push("UV face draw");
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
 	allqueue(REDRAWHEADERS, 0);
@@ -1604,6 +1619,7 @@ void get_same_uv(void)
 
 	
 	/* image window redraw */
+	BIF_undo_push("Get same UV");
 	allqueue(REDRAWIMAGE, 0);
 	allqueue(REDRAWVIEW3D, 0);
 }
