@@ -284,7 +284,7 @@ static void constraint_target_to_mat4 (Object *ob, const char *substring, float 
 {
 
 	/*	Update the location of the target object */
-	where_is_object_time (ob, ctime);	
+	//where_is_object_time (ob, ctime);	
 
 	/*	Case OBJECT */
 	if (!strlen(substring)){
@@ -377,6 +377,8 @@ short get_constraint_target (bConstraint *con, short ownertype, void* ownerdata,
 				curBone = (Bone*)ownerdata;
 				
 				if (data->tar){
+					/*	Update the location of the target object */
+					where_is_object_time (data->tar, ctime);	
 					constraint_target_to_mat4(data->tar, data->subtarget, tempmat, size, ctime);
 					valid=1;
 				}
@@ -451,6 +453,8 @@ short get_constraint_target (bConstraint *con, short ownertype, void* ownerdata,
 			bLocateLikeConstraint *data = (bLocateLikeConstraint*)con->data;
 
 			if (data->tar){
+				/*	Update the location of the target object */
+				where_is_object_time (data->tar, ctime);	
 				constraint_target_to_mat4(data->tar, data->subtarget, mat, size, ctime);
 				valid=1;
 			}
@@ -464,6 +468,8 @@ short get_constraint_target (bConstraint *con, short ownertype, void* ownerdata,
 			data = (bRotateLikeConstraint*)con->data;
 
 			if (data->tar){
+				/*	Update the location of the target object */
+				where_is_object_time (data->tar, ctime);	
 				constraint_target_to_mat4(data->tar, data->subtarget, mat, size, ctime);
 				valid=1;
 			}
@@ -490,6 +496,8 @@ short get_constraint_target (bConstraint *con, short ownertype, void* ownerdata,
 			data = (bTrackToConstraint*)con->data;
 
 			if (data->tar){
+				/*	Update the location of the target object */
+				where_is_object_time (data->tar, ctime);	
 				constraint_target_to_mat4(data->tar, data->subtarget, mat, size, ctime);
 				valid=1;
 			}

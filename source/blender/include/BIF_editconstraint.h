@@ -48,7 +48,7 @@ typedef struct ConstraintElement{
 } ConstraintElement;
 
 struct bConstraintChannel *add_new_constraint_channel(const char *name);
-struct bConstraint * add_new_constraint(int type);
+struct bConstraint * add_new_constraint(char type);
 void add_influence_key_to_constraint (struct bConstraint *con);
 void add_constraint_to_object(struct bConstraint *con, struct Object *ob);
 void add_constraint_to_client(struct bConstraint *con);

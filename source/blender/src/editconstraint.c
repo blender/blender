@@ -69,7 +69,7 @@
 #endif
 
 static short add_constraint_element (Object *owner, const char *substring, Object *parent, const char *parentstring);
-static short detect_constraint_loop (Object *owner, const char* substring, int disable);
+static short detect_constraint_loop (Object *owner, const char* substring, int disable, char type);
 static void test_bonelist_constraints (Object *owner, ListBase *list);
 static void clear_object_constraint_loop_flags(Object *ob);
 //static int is_child_of(struct Object *owner, struct Object *parent);
@@ -277,7 +277,7 @@ int test_constraints (Object *owner, const char *substring, int disable)
 	g_conObj = owner;
 	g_conString = substring;
 
-	if (detect_constraint_loop (owner, substring, disable))
+	if (detect_constraint_loop (owner, substring, disable, 0))
 		return 1;
 	else
 		return 0;
@@ -285,7 +285,7 @@ int test_constraints (Object *owner, const char *substring, int disable)
 /*	free_constraint_elements();	*/
 }
 
-static short detect_constraint_loop (Object *owner, const char* substring, int disable)
+static short detect_constraint_loop (Object *owner, const char* substring, int disable, char typefrom)
 {
 
 	bConstraint *curcon;
@@ -365,13 +365,13 @@ static short detect_constraint_loop (Object *owner, const char* substring, int d
 				if (bone->parent){
 					if (add_constraint_element (owner, bone->parent->name, NULL, NULL))
 						return 1;
-					if (detect_constraint_loop (owner, bone->parent->name, disable))
+					if (detect_constraint_loop (owner, bone->parent->name, disable, 0))
 						return 1;
 				}
 				else{
 					if (add_constraint_element (owner, "", NULL, NULL))
 						return 1;
-					if (detect_constraint_loop (owner, "", disable))
+					if (detect_constraint_loop (owner, "", disable, 0))
 						return 1;
 				}
 			}
@@ -412,7 +412,7 @@ static short detect_constraint_loop (Object *owner, const char* substring, int d
 							break;
 							//		return 1;
 						}
-						if (detect_constraint_loop (data->tar, data->subtarget, disable)){
+						if (detect_constraint_loop (data->tar, data->subtarget, disable, CONSTRAINT_TYPE_ACTION)){
 							curcon->flag |= CONSTRAINT_DISABLE;
 							result = 1;
 							break;
@@ -435,7 +435,7 @@ static short detect_constraint_loop (Object *owner, const char* substring, int d
 							break;
 							//		return 1;
 						}
-						if (detect_constraint_loop (data->tar, data->subtarget, disable)){
+						if (detect_constraint_loop (data->tar, data->subtarget, disable, CONSTRAINT_TYPE_LOCLIKE)){
 							curcon->flag |= CONSTRAINT_DISABLE;
 							result = 1;
 							break;
@@ -458,7 +458,7 @@ static short detect_constraint_loop (Object *owner, const char* substring, int d
 							break;
 							//		return 1;
 						}
-						if (detect_constraint_loop (data->tar, data->subtarget, disable)){
+						if (detect_constraint_loop (data->tar, data->subtarget, disable, CONSTRAINT_TYPE_ROTLIKE)){
 							curcon->flag |= CONSTRAINT_DISABLE;
 							result = 1;
 							break;
@@ -480,7 +480,7 @@ static short detect_constraint_loop (Object *owner, const char* substring, int d
 							break;
 							//	return 1;
 						}
-						if (detect_constraint_loop (data->tar, data->subtarget, disable)){
+						if (detect_constraint_loop (data->tar, data->subtarget, disable, CONSTRAINT_TYPE_KINEMATIC)){
 							curcon->flag |= CONSTRAINT_DISABLE;
 							result = 1;
 							break;
@@ -493,13 +493,15 @@ static short detect_constraint_loop (Object *owner, const char* substring, int d
 						bTrackToConstraint *data = curcon->data;
 						if (!exist_object(data->tar)) data->tar = NULL;
 						
-						if (add_constraint_element (data->tar, data->subtarget, owner, substring)){
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-							//	return 1;
+						if (typefrom != CONSTRAINT_TYPE_TRACKTO && typefrom != CONSTRAINT_TYPE_LOCKTRACK){
+							if (add_constraint_element (data->tar, data->subtarget, owner, substring)){
+								curcon->flag |= CONSTRAINT_DISABLE;
+								result = 1;
+								break;
+								//	return 1;
+							}
 						}
-						if (detect_constraint_loop (data->tar, data->subtarget, disable)){
+						if (detect_constraint_loop (data->tar, data->subtarget, disable, CONSTRAINT_TYPE_TRACKTO)){
 							curcon->flag |= CONSTRAINT_DISABLE;
 							result = 1;
 							break;
@@ -528,13 +530,15 @@ static short detect_constraint_loop (Object *owner, const char* substring, int d
 							break;
 						}
 						
-						if (add_constraint_element (data->tar, data->subtarget, owner, substring)){
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-							//		return 1;
+						if (typefrom != CONSTRAINT_TYPE_TRACKTO && typefrom != CONSTRAINT_TYPE_LOCKTRACK){
+							if (add_constraint_element (data->tar, data->subtarget, owner, substring)){
+								curcon->flag |= CONSTRAINT_DISABLE;
+								result = 1;
+								break;
+								//		return 1;
+							}
 						}
-						if (detect_constraint_loop (data->tar, data->subtarget, disable)){
+						if (detect_constraint_loop (data->tar, data->subtarget, disable, CONSTRAINT_TYPE_LOCKTRACK)){
 							curcon->flag |= CONSTRAINT_DISABLE;
 							result = 1;
 							break;
@@ -565,6 +569,18 @@ static short detect_constraint_loop (Object *owner, const char* substring, int d
 						if (data->tar->type != OB_CURVE){
 							data->tar = NULL;
 							break;
+						}
+						if (add_constraint_element (data->tar, "", owner, substring)){
+							curcon->flag |= CONSTRAINT_DISABLE;
+							result = 1;
+							break;
+							//		return 1;
+						}
+						if (detect_constraint_loop (data->tar, "", disable, CONSTRAINT_TYPE_FOLLOWPATH)){
+							curcon->flag |= CONSTRAINT_DISABLE;
+							result = 1;
+							break;
+							//		return 1;
 						}
 						if (data->upflag==data->trackflag){
 							curcon->flag |= CONSTRAINT_DISABLE;
@@ -695,7 +711,7 @@ ListBase *get_constraint_client(char *name, short *clientType, void **clientdata
 	return list;
 }
 
-bConstraint * add_new_constraint(int type)
+bConstraint * add_new_constraint(char type)
 {
 	bConstraint *con;
 
