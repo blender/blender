@@ -178,7 +178,7 @@ Sets a control point "},
 /*  Python Curve_Type callback function prototypes:                           */
 /*****************************************************************************/
 static void CurveDeAlloc (BPy_Curve *msh);
-static int CurvePrint (BPy_Curve *msh, FILE *fp, int flags);
+//static int CurvePrint (BPy_Curve *msh, FILE *fp, int flags);
 static int CurveSetAttr (BPy_Curve *msh, char *name, PyObject *v);
 static PyObject *CurveGetAttr (BPy_Curve *msh, char *name);
 static PyObject *CurveRepr (BPy_Curve *msh);
@@ -199,7 +199,7 @@ PyTypeObject Curve_Type =
   0,                                      /* tp_itemsize */
   /* methods */
   (destructor)CurveDeAlloc,              /* tp_dealloc */
-  (printfunc)CurvePrint,                 /* tp_print */
+  0,                 /* tp_print */
   (getattrfunc)CurveGetAttr,             /* tp_getattr */
   (setattrfunc)CurveSetAttr,             /* tp_setattr */
   0,                                      /* tp_compare */

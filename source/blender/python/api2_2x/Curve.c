@@ -651,6 +651,7 @@ static int CurveSetAttr (BPy_Curve *self, char *name, PyObject *value)
 /* Description: This is a callback function for the BPy_Curve type. It         */
 /*              builds a meaninful string to 'print' curve objects.          */
 /*****************************************************************************/
+/*
 static int CurvePrint(BPy_Curve *self, FILE *fp, int flags) //print
 { 
 
@@ -658,6 +659,7 @@ static int CurvePrint(BPy_Curve *self, FILE *fp, int flags) //print
   	
   return 0;
 }
+*/
 
 /*****************************************************************************/
 /* Function:    CurveRepr                                                    */
@@ -667,7 +669,7 @@ static int CurvePrint(BPy_Curve *self, FILE *fp, int flags) //print
 static PyObject *CurveRepr (BPy_Curve *self) //used by 'repr'
 {
  
-  return PyString_FromString(self->curve->id.name+2);
+  return PyString_FromFormat("[Curve \"%s\"]", self->curve->id.name+2);
 }
 
 PyObject* CurveCreatePyObject (struct Curve *curve)
