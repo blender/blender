@@ -669,7 +669,11 @@ static void ccgDM_drawEdges(DerivedMesh *dm) {
 
 	for (; !ccgEdgeIterator_isStopped(ei); ccgEdgeIterator_next(ei)) {
 		CCGEdge *e = ccgEdgeIterator_getCurrent(ei);
+		EditEdge *eed= ccgSubSurf_getEdgeEdgeHandle(ss, e);
 		float (*edgeData)[3] = ccgSubSurf_getEdgeDataArray(ss, e);
+
+		if (eed->h!=0)
+			continue;
 
 		if (ccgdm->ss->useAging && !(G.f&G_BACKBUFSEL)) {
 			int ageCol = 255-ccgSubSurf_getEdgeAge(ss, e)*4;
@@ -690,7 +694,11 @@ static void ccgDM_drawEdges(DerivedMesh *dm) {
 
 	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
 		CCGFace *f= ccgFaceIterator_getCurrent(fi);
+		EditFace *efa= ccgSubSurf_getFaceFaceHandle(ss, f);
 		int S, x, y, numVerts= ccgSubSurf_getFaceNumVerts(ss, f);
+
+		if (efa->h!=0)
+			continue;
 
 		for (S=0; S<numVerts; S++) {
 			float (*faceGridData)[3] = ccgSubSurf_getFaceGridDataArray(ss, f, S);
