@@ -1246,8 +1246,10 @@ void load_editMesh_real(Mesh *me, int undo)
 	else mvert= MEM_callocN(G.totvert*sizeof(MVert), "loadeditMesh vert");
 
 	/* new Edge block */
-	if(me->medge && totedge) {
-		medge= MEM_callocN(totedge*sizeof(MEdge), "loadeditMesh edge");
+	if(totedge) {
+		Mesh *mesh= G.obedit->data;
+		if(mesh->medge==NULL) totedge= 0;	// if edges get added is defined by orig mesh, not undo mesh
+		else medge= MEM_callocN(totedge*sizeof(MEdge), "loadeditMesh edge");
 	}
 	
 	/* new Face block */
@@ -8380,110 +8382,113 @@ void LoopMenu(){ /* Called by KKey */
 
 Mesh *undo_new_mesh(void)
 {
-       return(MEM_callocN(sizeof(Mesh), "undo_mesh"));
+	return(MEM_callocN(sizeof(Mesh), "undo_mesh"));
 }
 
 void undo_free_mesh(Mesh *me)
 {
-       if(me->mat) MEM_freeN(me->mat);
-       if(me->orco) MEM_freeN(me->orco);
-       if(me->mface) MEM_freeN(me->mface);
-       if(me->tface) MEM_freeN(me->tface);
-       if(me->mvert) MEM_freeN(me->mvert);
-       if(me->dvert) free_dverts(me->dvert, me->totvert);
-       if(me->mcol) MEM_freeN(me->mcol);
-       if(me->msticky) MEM_freeN(me->msticky);
-       if(me->bb) MEM_freeN(me->bb);
-       if(me->disp.first) freedisplist(&me->disp);
-       MEM_freeN(me);
+	if(me->mat) MEM_freeN(me->mat);
+	if(me->orco) MEM_freeN(me->orco);
+	if(me->mvert) MEM_freeN(me->mvert);
+	if(me->medge) MEM_freeN(me->medge);
+	if(me->mface) MEM_freeN(me->mface);
+	if(me->tface) MEM_freeN(me->tface);
+	if(me->dvert) free_dverts(me->dvert, me->totvert);
+	if(me->mcol) MEM_freeN(me->mcol);
+	if(me->msticky) MEM_freeN(me->msticky);
+	if(me->bb) MEM_freeN(me->bb);
+	if(me->disp.first) freedisplist(&me->disp);
+	MEM_freeN(me);
 }
 
 
 void undo_push_mesh(char *name)
 {
-       Mesh *me;
-       int i;
+	Mesh *me;
+	int i;
 
-       countall();
+	countall();
 
-       G.undo_edit_level++;
+	G.undo_edit_level++;
 
-       if (G.undo_edit_level<0) {
-               printf("undo: ERROR: G.undo_edit_level negative\n");
-               return;
-       }
+	if (G.undo_edit_level<0) {
+		printf("undo: ERROR: G.undo_edit_level negative\n");
+		return;
+	}
 
 
-       if (G.undo_edit[G.undo_edit_level].datablock != 0) {
-               undo_free_mesh(G.undo_edit[G.undo_edit_level].datablock);
-       }
-       if (strcmp(name, "U")!=0) {
-               for (i=G.undo_edit_level+1; i<(U.undosteps-1); i++) {
-                       if (G.undo_edit[i].datablock != 0) {
-                               undo_free_mesh(G.undo_edit[i].datablock);
-                               G.undo_edit[i].datablock= 0;
-                       }
-               }
-               G.undo_edit_highest= G.undo_edit_level;
-       }
+	if (G.undo_edit[G.undo_edit_level].datablock != 0) {
+		undo_free_mesh(G.undo_edit[G.undo_edit_level].datablock);
+	}
+	if (strcmp(name, "U")!=0) {
+		for (i=G.undo_edit_level+1; i<(U.undosteps-1); i++) {
+			if (G.undo_edit[i].datablock != 0) {
+				undo_free_mesh(G.undo_edit[i].datablock);
+				G.undo_edit[i].datablock= 0;
+			}
+		}
+		G.undo_edit_highest= G.undo_edit_level;
+	}
 
-       me= undo_new_mesh();
+	me= undo_new_mesh();
 
-       if (G.undo_edit_level>=U.undosteps) {
-               G.undo_edit_level--;
-               undo_free_mesh((Mesh*)G.undo_edit[0].datablock);
-               G.undo_edit[0].datablock= 0;
-               for (i=0; i<(U.undosteps-1); i++) {
-                       G.undo_edit[i]= G.undo_edit[i+1];
-               }
-       }
+	if (G.undo_edit_level>=U.undosteps) {
+		G.undo_edit_level--;
+		undo_free_mesh((Mesh*)G.undo_edit[0].datablock);
+		G.undo_edit[0].datablock= 0;
+		for (i=0; i<(U.undosteps-1); i++) {
+			G.undo_edit[i]= G.undo_edit[i+1];
+		}
+	}
 
-       if (strcmp(name, "U")!=0) strcpy(G.undo_edit[G.undo_edit_level].name, name);
-       //printf("undo: saving block: %d [%s]\n", G.undo_edit_level, G.undo_edit[G.undo_edit_level].name);
+	if (strcmp(name, "U")!=0) strcpy(G.undo_edit[G.undo_edit_level].name, name);
+	//printf("undo: saving block: %d [%s]\n", G.undo_edit_level, G.undo_edit[G.undo_edit_level].name);
 
-       G.undo_edit[G.undo_edit_level].datablock= (void*)me;
-       load_editMesh_real(me, 1);
+	G.undo_edit[G.undo_edit_level].datablock= (void*)me;
+	load_editMesh_real(me, 1);
 }
 
 void undo_pop_mesh(int steps)  /* steps == 1 is one step */
 {
-       if (G.undo_edit_level > (steps-2)) {
+	if (G.undo_edit_level > (steps-2)) {
 		undo_push_mesh("U");
 		G.undo_edit_level-= steps;
-//printf("undo: restoring block: %d [%s]\n", G.undo_edit_level, G.undo_edit[G.undo_edit_level].name);    -
-               make_editMesh_real((Mesh*)G.undo_edit[G.undo_edit_level].datablock);
-               allqueue(REDRAWVIEW3D, 0);
-               makeDispList(G.obedit);
-               G.undo_edit_level--;
-       } else error("No more steps to undo");
+
+		//printf("undo: restoring block: %d [%s]\n", G.undo_edit_level, G.undo_edit[G.undo_edit_level].name);    -
+		make_editMesh_real((Mesh*)G.undo_edit[G.undo_edit_level].datablock);
+		allqueue(REDRAWVIEW3D, 0);
+		makeDispList(G.obedit);
+		G.undo_edit_level--;
+	} else error("No more steps to undo");
 }
 
 
 void undo_redo_mesh(void)
 {
-       if ( (G.undo_edit[G.undo_edit_level+2].datablock) &&
-            ( (G.undo_edit_level+1) <= G.undo_edit_highest ) ) {
-               G.undo_edit_level++;
-               //printf("redo: restoring block: %d [%s]\n", G.undo_edit_level+1, G.undo_edit[G.undo_edit_level+1].name);-
-               make_editMesh_real((Mesh*)G.undo_edit[G.undo_edit_level+1].datablock);
-               allqueue(REDRAWVIEW3D, 0);
-               makeDispList(G.obedit);
-       } else error("No more steps to redo");
+	if ( (G.undo_edit[G.undo_edit_level+2].datablock) &&
+		( (G.undo_edit_level+1) <= G.undo_edit_highest ) ) {
+		G.undo_edit_level++;
+
+		//printf("redo: restoring block: %d [%s]\n", G.undo_edit_level+1, G.undo_edit[G.undo_edit_level+1].name);-
+		make_editMesh_real((Mesh*)G.undo_edit[G.undo_edit_level+1].datablock);
+		allqueue(REDRAWVIEW3D, 0);
+		makeDispList(G.obedit);
+	} else error("No more steps to redo");
 }
 
 void undo_clear_mesh(void)
 {
-       int i;
-       Mesh *me;
+	int i;
+	Mesh *me;
 
-       for (i=0; i<=UNDO_EDIT_MAX; i++) {
-               me= (Mesh*) G.undo_edit[i].datablock;
-               if (me) {
-                       //printf("undo: freeing %d\n", i);
-                       undo_free_mesh(me);
-                       G.undo_edit[i].datablock= 0;
-               }
-       }
+	for (i=0; i<=UNDO_EDIT_MAX; i++) {
+		me= (Mesh*) G.undo_edit[i].datablock;
+		if (me) {
+			//printf("undo: freeing %d\n", i);
+			undo_free_mesh(me);
+			G.undo_edit[i].datablock= 0;
+		}
+	}
 }
 
 void undo_menu_mesh(void)
@@ -8498,8 +8503,8 @@ void undo_menu_mesh(void)
 	strcat(menu, "|All changes%x1|%l");
 	
 	for (i=G.undo_edit_level; i>=0; i--) {
-			snprintf(temp, 64, "|%s%%x%d", G.undo_edit[i].name, i+2);
-			strcat(menu, temp);
+		snprintf(temp, 64, "|%s%%x%d", G.undo_edit[i].name, i+2);
+		strcat(menu, temp);
 	}
 
 	event=pupmenu_col(menu, 20);
@@ -8545,7 +8550,8 @@ void bevel_displace_vec(float *midvec, float *v1, float *v2, float *v3, float d,
 	Lots of sqrts which would not be good for a real time algo
 	Using the mid  point of the extrapolation of both sides 
 	Useless for coplanar quads, but that doesn't happen too often */
-void fix_bevel_wrap(float *midvec, float *v1, float *v2, float *v3, float *v4, float d, float no[3]) {
+void fix_bevel_wrap(float *midvec, float *v1, float *v2, float *v3, float *v4, float d, float no[3]) 
+{
 	float a[3], b[3], c[3], l_a, l_b, l_c, s_a, s_b, s_c, Pos1[3], Pos2[3], Dir[3];
 
 	VecSubf(a, v3, v2);
@@ -8580,7 +8586,8 @@ void fix_bevel_wrap(float *midvec, float *v1, float *v2, float *v3, float *v4, f
 }
 
 
-char detect_wrap(float *o_v1, float *o_v2, float *v1, float *v2, float *no) {
+char detect_wrap(float *o_v1, float *o_v2, float *v1, float *v2, float *no) 
+{
 	float o_a[3], a[3], o_c[3], c[3];
 
 	VecSubf(o_a, o_v1, o_v2);
@@ -8597,7 +8604,8 @@ char detect_wrap(float *o_v1, float *o_v2, float *v1, float *v2, float *no) {
 
 // Detects and fix a quad wrapping after the resize
 // Arguments are the orginal verts followed by the final verts and then the bevel size and the normal
-void fix_bevel_quad_wrap(float *o_v1, float *o_v2, float *o_v3, float *o_v4, float *v1, float *v2, float *v3, float *v4, float d, float *no) {
+void fix_bevel_quad_wrap(float *o_v1, float *o_v2, float *o_v3, float *o_v4, float *v1, float *v2, float *v3, float *v4, float d, float *no) 
+{
 	float vec[3];
 	char wrap[4];
 	
@@ -8670,7 +8678,8 @@ void fix_bevel_quad_wrap(float *o_v1, float *o_v2, float *o_v3, float *o_v4, flo
 // Detects and fix a tri wrapping after the resize
 // Arguments are the orginal verts followed by the final verts and the normal
 // Triangles cannot wrap partially (not in this situation
-void fix_bevel_tri_wrap(float *o_v1, float *o_v2, float *o_v3, float *v1, float *v2, float *v3, float *no) {
+void fix_bevel_tri_wrap(float *o_v1, float *o_v2, float *o_v3, float *v1, float *v2, float *v3, float *no) 
+{
 	if (detect_wrap(o_v1, o_v2, v1, v2, no)) {
 		float vec[3];
 		VecAddf(vec, o_v1, o_v2);
