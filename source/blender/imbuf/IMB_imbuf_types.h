@@ -72,7 +72,7 @@ typedef struct ImBuf{
 	unsigned int	**planes;	/**< bitplanes */
 	int	flags;		/**< Controls which components should exist. */
 	int	mall;		/**< what is malloced internal, and can be freed */
-	short	xorig:		/**< X origin.  What is this relative to? */
+	short	xorig;		/**< X origin.  What is this relative to? */
 	short	yorig;		/**< Y origin.  What is this relative to? */
 	char	name[1023];		/**< The file name */
 	char	namenull;		/**< What does this do?*/
