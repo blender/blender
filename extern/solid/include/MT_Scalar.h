@@ -24,15 +24,17 @@
 #ifndef MT_SCALAR_H
 #define MT_SCALAR_H
 
-#include <cmath>
-#if defined (__sun__) || defined ( __sun ) || defined (__sparc) || defined (__sparc__)
+#if defined (__sun__) || defined ( __sun ) || defined (__sparc) || defined (__sparc__) || defined (__sgi)
 #include <math.h>
+#include <float.h>
+#else
+#include <cmath>
+#include <cstdlib>
+#include <cfloat>
 #endif
 
 #undef max
 
-#include <cstdlib>
-#include <cfloat>
 #include "SOLID_types.h"
 
 #include "GEN_MinMax.h"

@@ -24,7 +24,11 @@
 #ifndef DT_ARRAY_H
 #define DT_ARRAY_H
 
+#if defined (__sgi)
+#include <assert.h>
+#else
 #include <cassert>
+#endif
 
 template <typename Data, typename Size = size_t>
 class DT_Array {

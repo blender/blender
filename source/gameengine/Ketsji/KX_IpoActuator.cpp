@@ -32,7 +32,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#if defined (__sgi)
+#include <math.h>
+#else
 #include <cmath>
+#endif
  
 #include "KX_IpoActuator.h"
 #include "KX_GameObject.h"

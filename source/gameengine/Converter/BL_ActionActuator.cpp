@@ -30,7 +30,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
+#if defined (__sgi)
+#include <math.h>
+#else
 #include <cmath>
+#endif
 
 #include "SCA_LogicManager.h"
 #include "BL_ActionActuator.h"

@@ -24,7 +24,12 @@
 #ifndef TUPLE3_H
 #define TUPLE3_H
 
+#if defined (__sgi)
+#include <assert.h>
+#else
 #include <cassert>
+#endif
+
 #include <iostream>
 
 namespace MT {

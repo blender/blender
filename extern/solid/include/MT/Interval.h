@@ -24,7 +24,12 @@
 #ifndef INTERVAL_H
 #define INTERVAL_H
 
+#if defined (__sgi)
+#include <assert.h>
+#else
 #include <cassert>
+#endif
+
 #include <iostream>
 #include <algorithm>
 

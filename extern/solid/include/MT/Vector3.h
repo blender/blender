@@ -24,7 +24,11 @@
 #ifndef VECTOR3_H
 #define VECTOR3_H
 
+#if defined (__sgi)
+#include <assert.h>
+#else
 #include <cassert>
+#endif
 
 #include "Tuple3.h"
 

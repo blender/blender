@@ -24,7 +24,11 @@
 #ifndef QUATERNION_H
 #define QUATERNION_H
 
+#if defined (__sgi)
+#include <assert.h>
+#else
 #include <cassert>
+#endif
 
 #include "Tuple4.h"
 #include "Vector3.h"

@@ -24,7 +24,11 @@
 #ifndef MATRIX3X3_H
 #define MATRIX3X3_H
 
+#if defined (__sgi)
+#include <assert.h>
+#else
 #include <cassert>
+#endif
 
 #include "Vector3.h"
 #include "Quaternion.h"
