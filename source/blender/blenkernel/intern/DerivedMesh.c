@@ -985,7 +985,11 @@ DerivedMesh *mesh_get_derived(Object *ob)
 	if (mesh_uses_displist(me)) {
 		build_mesh_data(ob);
 
-		return me->derived;
+		if(G.obedit && me==G.obedit->data) {
+			return G.editMesh->derived;
+		} else {
+			return me->derived;
+		}
 	} 
 
 	return NULL;
@@ -996,13 +1000,18 @@ DerivedMesh *mesh_get_derived_render(Object *ob, int *needsFree)
 	Mesh *me= ob->data;
 
 	if (mesh_uses_displist(me)) {
+			// XXX, assumes was created earlier... is this for sure?
 		if (me->subdiv==me->subdivr) {
 			*needsFree = 0;
-			return me->derived;
+			if(G.obedit && me==G.obedit->data) {
+				return G.editMesh->derived;
+			} else {
+				return me->derived;
+			}
 		} else {
 			*needsFree = 1;
 			if(G.obedit && me==G.obedit->data) {
-				return subsurf_make_derived_from_editmesh(G.editMesh, me->subdivr, me->subsurftype);
+				return subsurf_make_derived_from_editmesh(G.editMesh, me->subdivr, me->subsurftype, NULL);
 			} else {
 				return subsurf_make_derived_from_mesh(me, me->subdivr);
 			}

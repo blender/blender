@@ -63,6 +63,7 @@
 #include "BKE_key.h"
 #include "BKE_object.h"
 #include "BKE_displist.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -448,6 +449,11 @@ void free_editMesh(EditMesh *em)
 	if(em->verts.first) free_vertlist(&em->verts);
 	if(em->edges.first) free_edgelist(&em->edges);
 	if(em->faces.first) free_facelist(&em->faces);
+
+	if(em->derived) {
+		em->derived->release(em->derived);
+		em->derived= NULL;
+	}
 
 	/* DEBUG: hashtabs are slowest part of enter/exit editmode. here a testprint */
 #if 0

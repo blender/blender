@@ -30,8 +30,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifdef USE_CCGSUBSURFLIB
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -64,6 +62,7 @@
 typedef struct _SubSurf {
 	CCGSubSurf *subSurf;
 
+	int useAging;
 	int controlType;
 #define SUBSURF_CONTROLTYPE_MESH		1
 #define SUBSURF_CONTROLTYPE_EDITMESH	2
@@ -134,12 +133,19 @@ static void arena_release(CCGAllocatorHDL a) {
 
 static CCGSubSurf *_getSubSurf(SubSurf *ss, int subdivLevels) {
 	CCGMeshIFC ifc;
+	CCGSubSurf *ccgSS;
 	CCGAllocatorIFC allocatorIFC, *allocatorIFCp;
 	CCGAllocatorHDL allocator;
 
-	ifc.vertUserSize = 4;
-	ifc.edgeUserSize = 8;
-	ifc.faceUserSize = 4;
+	if (ss->useAging) {
+		ifc.vertUserSize = 8;
+		ifc.edgeUserSize = 12;
+		ifc.faceUserSize = 8;
+	} else {
+		ifc.vertUserSize = 4;
+		ifc.edgeUserSize = 8;
+		ifc.faceUserSize = 4;
+	}
 	ifc.vertDataSize= 12;
 	ifc.vertDataZero= _subsurfNew_meshIFC_vertDataZero;
 	ifc.vertDataEqual= _subsurfNew_meshIFC_vertDataEqual;
@@ -156,12 +162,19 @@ static CCGSubSurf *_getSubSurf(SubSurf *ss, int subdivLevels) {
 	allocatorIFCp = &allocatorIFC;
 	allocator = BLI_memarena_new((1<<16));
 
-	return ccgSubSurf_new(&ifc, ss, subdivLevels, allocatorIFCp, allocator);
+	ccgSS = ccgSubSurf_new(&ifc, ss, subdivLevels, allocatorIFCp, allocator);
+
+	if (ss->useAging) {
+		ccgSubSurf_setUseAgeCounts(ccgSS, 1, 4, 8, 4);
+	}
+
+	return ccgSS;
 }
 
-static SubSurf *subSurf_fromEditmesh(EditMesh *em, int subdivLevels) {
+static SubSurf *subSurf_fromEditmesh(EditMesh *em, int subdivLevels, int useAging) {
 	SubSurf *ss= MEM_mallocN(sizeof(*ss), "ss");
 
+	ss->useAging = useAging;
 	ss->controlType= SUBSURF_CONTROLTYPE_EDITMESH;
 	ss->subSurf= _getSubSurf(ss, subdivLevels);
 	ss->em = em;
@@ -826,8 +839,14 @@ static void ccgDM_drawMappedVertsEM(DerivedMesh *dm, int (*setDrawOptions)(void 
 		CCGVert *v = ccgVertIterator_getCurrent(vi);
 		EditVert *vert = ccgSubSurf_getVertVertHandle(ss,v);
 
-		if (setDrawOptions(userData, vert))
+		if (setDrawOptions(userData, vert)) {
+			if (ccgdm->ss->useAging) {
+				int ageCol = 255-ccgSubSurf_getVertAge(ss, v)*4;
+				glColor3ub(0, ageCol>0?ageCol:0, 0);
+			}
+
 			bglVertex3fv(ccgSubSurf_getVertData(ss, v));
+		}
 	}
 	bglEnd();
 
@@ -861,6 +880,11 @@ static void ccgDM_drawMappedEdgesEM(DerivedMesh *dm, int (*setDrawOptions)(void 
 
 		glBegin(GL_LINE_STRIP);
 		if (!setDrawOptions || setDrawOptions(userData, edge)) {
+			if (ccgdm->ss->useAging) {
+				int ageCol = 255-ccgSubSurf_getEdgeAge(ss, e)*4;
+				glColor3ub(0, ageCol>0?ageCol:0, 0);
+			}
+
 			for (i=0; i<edgeSize-1; i++) {
 				glVertex3fv(edgeData[i]);
 				glVertex3fv(edgeData[i+1]);
@@ -886,6 +910,12 @@ static void ccgDM_drawMappedEdgesInterpEM(DerivedMesh *dm, int (*setDrawOptions)
 		if (!setDrawOptions || setDrawOptions(userData, edge)) {
 			for (i=0; i<edgeSize; i++) {
 				setDrawInterpOptions(userData, edge, (float) i/(edgeSize-1));
+
+				if (ccgdm->ss->useAging) {
+					int ageCol = 255-ccgSubSurf_getEdgeAge(ss, e)*4;
+					glColor3ub(0, ageCol>0?ageCol:0, 0);
+				}
+
 				glVertex3fv(edgeData[i]);
 			}
 		}
@@ -930,7 +960,7 @@ static void ccgDM_release(DerivedMesh *dm) {
 	MEM_freeN(ccgdm);
 }
 
-static DerivedMesh *getCCGDerivedMesh(SubSurf *ss) {
+static CCGDerivedMesh *getCCGDerivedMesh(SubSurf *ss) {
 	CCGDerivedMesh *ccgdm = MEM_mallocN(sizeof(*ccgdm), "dm");
 
 	ccgdm->dm.getNumVerts = ccgDM_getNumVerts;
@@ -956,15 +986,19 @@ static DerivedMesh *getCCGDerivedMesh(SubSurf *ss) {
 	
 	ccgdm->ss = ss;
 
-	return (DerivedMesh*) ccgdm;
+	return ccgdm;
 }
 
 /***/
 
-DerivedMesh *subsurf_ccg_make_derived_from_editmesh(EditMesh *em, int subdivLevels) {
+DerivedMesh *subsurf_ccg_make_derived_from_editmesh(EditMesh *em, int subdivLevels, DerivedMesh *oldDerived) {
 #if 0
 	SubSurf *ss= subSurf_fromEditmesh(em, subdivLevels);
 	DispListMesh *dlm;
+
+	if (oldDerived) {
+		oldDerived->release(oldDerived);
+	}
 
 	subSurf_sync(ss);
 
@@ -973,12 +1007,25 @@ DerivedMesh *subsurf_ccg_make_derived_from_editmesh(EditMesh *em, int subdivLeve
 	subSurf_free(ss);
 
 	return derivedmesh_from_displistmesh(em, dlm);
-#else
+#elif 0
 	SubSurf *ss= subSurf_fromEditmesh(em, subdivLevels);
 
 	subSurf_sync(ss);
 
 	return getCCGDerivedMesh(ss);
+#else
+	CCGDerivedMesh *ccgdm;
+
+	if (oldDerived) {
+		ccgdm= (CCGDerivedMesh*) oldDerived;
+	} else {
+		SubSurf *ss= subSurf_fromEditmesh(em, subdivLevels, G.rt==52);
+		ccgdm= getCCGDerivedMesh(ss);
+	}
+
+	subSurf_sync(ccgdm->ss);
+
+	return (DerivedMesh*) ccgdm;
 #endif
 }
 
@@ -994,5 +1041,3 @@ DerivedMesh *subsurf_ccg_make_derived_from_mesh(Mesh *me, int subdivLevels) {
 	
 	return derivedmesh_from_displistmesh(NULL, dlm);
 }
-
-#endif

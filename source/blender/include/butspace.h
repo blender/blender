@@ -373,7 +373,7 @@ enum {
 #define B_CU3D			2120
 #define B_SETRESOLU		2121
 #define B_SETW4			2122
-
+#define B_SUBSURFTYPE	2123
 
 /* *********************** */
 #define B_FONTBUTS		2300

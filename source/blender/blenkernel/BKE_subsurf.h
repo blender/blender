@@ -36,13 +36,11 @@ struct Object;
 struct DerivedMesh;
 struct EditMesh;
 
-struct DerivedMesh *subsurf_make_derived_from_editmesh(struct EditMesh *em, int subdivLevels, short type);
+struct DerivedMesh *subsurf_make_derived_from_editmesh(struct EditMesh *em, int subdivLevels, short type, struct DerivedMesh *oldDerived);
 struct DerivedMesh *subsurf_make_derived_from_mesh(struct Mesh *me, int subdivLevels);
 
-#ifdef USE_CCGSUBSURFLIB
-struct DerivedMesh *subsurf_ccg_make_derived_from_editmesh(struct EditMesh *em, int subdivLevels);
+struct DerivedMesh *subsurf_ccg_make_derived_from_editmesh(struct EditMesh *em, int subdivLevels, struct DerivedMesh *oldDerived);
 struct DerivedMesh *subsurf_ccg_make_derived_from_mesh(struct Mesh *me, int subdivLevels);
-#endif
 
 void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3]);
 

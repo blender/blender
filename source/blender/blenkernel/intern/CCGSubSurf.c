@@ -1,5 +1,3 @@
-#ifdef USE_CCGSUBSURFLIB
-
 /* $Id$ */
 
 #include <stdlib.h>
@@ -2089,5 +2087,3 @@ int ccgSubSurf_getNumFinalFaces(CCGSubSurf *ss) {
 	int numFinalFaces = ss->numGrids*((gridSize-1)*(gridSize-1));
 	return numFinalFaces;
 }
-
-#endif

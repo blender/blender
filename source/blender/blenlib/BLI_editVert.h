@@ -38,6 +38,8 @@
 #ifndef BLI_EDITVERT_H
 #define BLI_EDITVERT_H
 
+struct DerivedMesh;
+
 /* note; changing this also might affect the undo copy in editmesh.c */
 typedef struct EditVert
 {
@@ -99,6 +101,7 @@ typedef struct EditMesh
 	EditEdge *alledges, *curedge;
 	EditFace *allfaces, *curface;
 	
+	struct DerivedMesh *derived;
 } EditMesh;
 
 #endif
