@@ -75,12 +75,20 @@ const EventTypeSpec	kEvents[] =
 	{ kEventClassMouse, kEventMouseDragged },
 	{ kEventClassMouse, kEventMouseWheelMoved },
 	
+	{ kEventClassWindow, kEventWindowClickZoomRgn } ,  /* for new zoom behaviour */ 
+	{ kEventClassWindow, kEventWindowZoom },  /* for new zoom behaviour */ 
+	{ kEventClassWindow, kEventWindowExpand } ,  /* for new zoom behaviour */ 
+	{ kEventClassWindow, kEventWindowExpandAll },  /* for new zoom behaviour */ 
+
 	{ kEventClassWindow, kEventWindowClose },
 	{ kEventClassWindow, kEventWindowActivated },
 	{ kEventClassWindow, kEventWindowDeactivated },
 	{ kEventClassWindow, kEventWindowUpdate },
 	{ kEventClassWindow, kEventWindowBoundsChanged }
+	
 };
+
+
 
 static GHOST_TButtonMask convertButton(EventMouseButton button)
 {
@@ -385,7 +393,9 @@ GHOST_IWindow* GHOST_SystemCarbon::createWindow(
 )
 {
     GHOST_IWindow* window = 0;
-    window = new GHOST_WindowCarbon (title, left, top, width, height, state, type);
+
+	window = new GHOST_WindowCarbon (title, left, top, width, height, state, type);
+
     if (window) {
         if (window->getValid()) {
             // Store the pointer to the window 
@@ -633,7 +643,7 @@ OSStatus GHOST_SystemCarbon::handleWindowEvent(EventRef event)
 		return err;
 	}
 
-	if (!getFullScreen()) {
+	//if (!getFullScreen()) {
 		err = noErr;
 		switch(::GetEventKind(event)) 
 		{
@@ -664,7 +674,7 @@ OSStatus GHOST_SystemCarbon::handleWindowEvent(EventRef event)
 				err = eventNotHandledErr;
 				break;
 		}
-	}
+//	}
 	//else {
 		//window = (GHOST_WindowCarbon*) m_windowManager->getFullScreenWindow();
 		//GHOST_PRINT("GHOST_SystemCarbon::handleWindowEvent(): full-screen window event, " << window << "\n");
@@ -770,7 +780,7 @@ OSStatus GHOST_SystemCarbon::handleKeyEvent(EventRef event)
 			key = convertKey(rawCode);
 			ascii= convertRomanToLatin(ascii);
 			
-			if (key!=GHOST_kKeyUnknown) {
+	//		if (key!=GHOST_kKeyUnknown) {
 				GHOST_TEventType type;
 				if (kind == kEventRawKeyDown) {
 					type = GHOST_kEventKeyDown;
@@ -780,7 +790,7 @@ OSStatus GHOST_SystemCarbon::handleKeyEvent(EventRef event)
 					type = GHOST_kEventKeyUp;
 				}
 				pushEvent( new GHOST_EventKey( getMilliSeconds(), type, window, key, ascii) );
-			}
+//			}
 			break;
 	
 		case kEventRawKeyModifiersChanged: 
@@ -817,13 +827,13 @@ bool GHOST_SystemCarbon::handleMouseDown(EventRef event)
 	short				part;
 	BitMap 				screenBits;
     bool 				handled = true;
-    GHOST_IWindow* 		ghostWindow;
+    GHOST_WindowCarbon* ghostWindow;
     Point 				mousePos = {0 , 0};
 	
 	::GetEventParameter(event, kEventParamMouseLocation, typeQDPoint, NULL, sizeof(Point), NULL, &mousePos);
 	
 	part = ::FindWindow(mousePos, &window);
-	ghostWindow = (GHOST_IWindow*) ::GetWRefCon(window);
+	ghostWindow = (GHOST_WindowCarbon*) ::GetWRefCon(window);
 	
 	switch (part) {
 		case inMenuBar:
@@ -880,7 +890,25 @@ bool GHOST_SystemCarbon::handleMouseDown(EventRef event)
 		case inZoomOut:
 			GHOST_ASSERT(ghostWindow, "GHOST_SystemCarbon::handleMouseEvent: ghostWindow==0");
 			if (::TrackBox(window, mousePos, part)) {
-				::ZoomWindow(window, part, true);
+				int macState;
+				
+				macState = ghostWindow->getMac_windowState();
+				if ( macState== 0)
+					::ZoomWindow(window, part, true);
+				else 
+					if (macState == 2) { // always ok
+							::ZoomWindow(window, part, true);
+							ghostWindow->setMac_windowState(1);
+						} else { // need to force size again
+							GHOST_TUns32 scr_x,scr_y;
+						
+							ghostWindow->setMac_windowState(2);
+						
+							this->getMainDisplayDimensions(scr_x,scr_y);
+							::SizeWindow (window, scr_x,scr_y-22,false);
+							::MoveWindow (window, 1,22,true);
+						}
+
 			}
 			break;
 

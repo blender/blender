@@ -66,7 +66,32 @@ AGL_DEPTH_SIZE,		16,
 AGL_NONE,
 };
 
+
+
 WindowRef ugly_hack=NULL;
+
+const EventTypeSpec	kWEvents[] = {
+	{ kEventClassWindow, kEventWindowZoom },  /* for new zoom behaviour */ 
+};
+
+static OSStatus myWEventHandlerProc(EventHandlerCallRef handler, EventRef event, void* userData) {
+	WindowRef mywindow;
+	GHOST_WindowCarbon *ghost_window;
+	OSStatus err;
+	int theState;
+	
+	if (::GetEventKind(event) == kEventWindowZoom) {
+		err =  ::GetEventParameter (event,kEventParamDirectObject,typeWindowRef,NULL,sizeof(mywindow),NULL, &mywindow);
+		ghost_window = (GHOST_WindowCarbon *) GetWRefCon(mywindow);
+		theState = ghost_window->getMac_windowState();
+		if (theState == 1) 
+			ghost_window->setMac_windowState(2);
+		else if (theState == 2)
+			ghost_window->setMac_windowState(1);
+
+	}
+	return eventNotHandledErr;
+}
 
 GHOST_WindowCarbon::GHOST_WindowCarbon(
 	const STR_String& title,
@@ -86,21 +111,36 @@ GHOST_WindowCarbon::GHOST_WindowCarbon(
 	m_fullScreenDirty(false)
 {
     Str255 title255;
+	OSStatus err;
+	
+	if (state >= 8 ) {
+		state = state - 8;
+		setMac_windowState(2);
+	} else 
+		setMac_windowState(0);
 
 	if (state != GHOST_kWindowStateFullScreen) {
         Rect bnds = { top, left, top+height, left+width };
         Boolean visible = (state == GHOST_kWindowStateNormal) || (state == GHOST_kWindowStateMaximized);
         gen2mac(title, title255);
         
-        m_windowRef = ::NewCWindow(
-            nil,							// Storage 
-            &bnds,							// Bounding rectangle of the window
-            title255,						// Title of the window
-            visible,						// Window initially visible
-            kWindowFullZoomGrowDocumentProc, //kWindowGrowDocumentProc,		// procID
-            (WindowRef)-1L,					// Put window before all other windows
-            true,							// Window has minimize box
-            (SInt32)this);					// Store a pointer to the class in the refCon
+		err =  ::CreateNewWindow( kDocumentWindowClass,
+								 kWindowStandardDocumentAttributes+kWindowLiveResizeAttribute,
+								 &bnds,
+								 &m_windowRef);
+		if ( err != noErr) {
+			fprintf(stderr," error creating window %i \n",err);
+		} else {
+			//void *handler = &GHOST_WindowCarbon::myWEventHandlerProc;
+			
+			::SetWRefCon(m_windowRef,(SInt32)this);
+			err = InstallWindowEventHandler (m_windowRef, myWEventHandlerProc, GetEventTypeCount(kWEvents), kWEvents,NULL,NULL); 
+			if ( err != noErr) {
+				fprintf(stderr," error creating handler %i \n",err);
+			} else {
+				::TransitionWindow (m_windowRef,kWindowZoomTransitionEffect,kWindowShowTransitionAction,NULL);
+			}
+		}
         if (m_windowRef) {
             m_grafPtr = ::GetWindowPort(m_windowRef);
             setDrawingContextType(type);
@@ -653,4 +693,15 @@ GHOST_TSuccess GHOST_WindowCarbon::setWindowCustomCursorShape(GHOST_TUns8 bitmap
 												GHOST_TUns8 mask[16][2], int hotX, int hotY)
 {
 	setWindowCustomCursorShape((GHOST_TUns8*)bitmap, (GHOST_TUns8*) mask, 16, 16, hotX, hotY, 0, 1);
+}
+
+
+void GHOST_WindowCarbon::setMac_windowState(short value)
+{
+	mac_windowState = value;
+}
+
+short GHOST_WindowCarbon::getMac_windowState()
+{
+	return mac_windowState;
 }

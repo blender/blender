@@ -109,11 +109,19 @@ extern char * build_type;
 static void print_help();
 static void print_version();
 
+
+/* defined is ghostwinlay , we can't include carbon here, conflict with DNA */
+#ifdef __APPLE
+extern int checkAppleVideoCard();
+#endif
+
+
 /* for the callbacks: */
 
 extern int pluginapi_force_ref(void);  /* from blenpluginapi:pluginapi.c */
 
 char bprogname[FILE_MAXDIR+FILE_MAXFILE]; /* from blenpluginapi:pluginapi.c */
+
 
 /* Initialise callbacks for the modules that need them */
 void setCallbacks(void); 
@@ -214,9 +222,18 @@ int main(int argc, char **argv)
 
 		argc= 1;
 
+        /* first let us check if we are hardware accelerated and with VRAM >= 16 Mo */
+        
+        if (checkAppleVideoCard()) {
+            winlay_get_screensize(&scr_x, &scr_y);
+            /* let sneak under topbar */ 
+            setprefsize(1, 1, scr_x-2, scr_y-24);
+
+        } else {
 		/* 40 + 684 + (headers) 22 + 22 = 768, the powerbook screen height */
 		setprefsize(120, 40, 850, 684);
-
+        }
+    
 		winlay_get_screensize(&scr_x, &scr_y);
 		winlay_process_events(0);
 		if (GHOST_HACK_getFirstFile(firstfilebuf)) {

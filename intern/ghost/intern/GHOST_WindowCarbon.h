@@ -207,6 +207,11 @@ public:
      */
     virtual bool getFullScreenDirty();
 
+		/* accessor for fullscreen window */
+	virtual void setMac_windowState(short value);
+	virtual short getMac_windowState();
+
+
 protected:
 	/**
 	 * Tries to install a rendering context in this window.
@@ -261,7 +266,7 @@ protected:
      * @param out	The converted string object.
      */
     virtual void mac2gen(const Str255 in, STR_String& out) const;
-
+	
     WindowRef m_windowRef;
     CGrafPtr m_grafPtr;
     AGLContext m_aglCtx;
@@ -273,6 +278,20 @@ protected:
     
     /** When running in full-screen this tells whether to refresh the window. */
     bool m_fullScreenDirty;
+	
+	/** specific MacOs X full screen window setting as we use partially system mechanism 
+	    values :      0       not maximizable default
+		              1       normal state
+					  2		  maximized state
+	
+	     this will be reworked when rebuilding GHOST carbon to use new OS X apis 
+		in order to be unified with GHOST fullscreen/maximised settings
+		 
+		 (lukep)
+    **/
+		 
+	short mac_windowState;
+	
 
     /**
      * The width/height of the size rectangle in the lower right corner of a 

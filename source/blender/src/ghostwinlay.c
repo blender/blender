@@ -64,6 +64,9 @@
 
 #include "winlay.h"
 
+#ifdef __APPLE__
+#include <OpenGL/OpenGL.h>
+#endif
 ///
 
 struct _Window {
@@ -93,6 +96,55 @@ struct _Window {
 };
 
 ///
+
+#ifdef __APPLE__
+
+/* to avoid killing small end comps, we want to allow
+   blender to start maximised if all the followings are true :
+		- Renderer is OpenGL capable
+		- Hardware acceleration
+		- VRAM > 8 Mo
+		*/
+		
+static int macPrefState = 0;
+		
+int checkAppleVideoCard() {
+	long theErr;
+	unsigned long display_mask;
+	CGLRendererInfoObj rend;
+	long nrend;
+	int j;
+	long value;
+	
+	display_mask = CGDisplayIDToOpenGLDisplayMask (CGMainDisplayID() );	
+	
+	theErr = CGLQueryRendererInfo( display_mask, &rend, &nrend);
+	if (theErr == 0) {
+		theErr = CGLDescribeRenderer (rend, 0, kCGLRPRendererCount, &nrend);
+		if (theErr == 0) {
+			for (j = 0; j < nrend; j++) {
+				theErr = CGLDescribeRenderer (rend, j, kCGLRPAccelerated, &value); 
+				if ((theErr == 0) && (value != 0)) {
+					theErr = CGLDescribeRenderer (rend, j, kCGLRPCompliant, &value); 
+					if ((theErr == 0) && (value != 0)) {
+						theErr = CGLDescribeRenderer (rend, j, kCGLRPVideoMemory, &value); 
+						if ((theErr == 0) && (value >= 10000000)) {
+							/*fprintf(stderr,"make it big\n");*/
+							CGLDestroyRendererInfo (rend);
+							macPrefState = 8;
+							return 1;
+						}
+					}
+				}
+			}
+		}
+	}
+	CGLDestroyRendererInfo (rend);
+	return 0;
+}
+
+#endif
+
 
 static GHOST_SystemHandle g_system= 0;
 
@@ -251,6 +303,7 @@ Window *window_open(char *title, int posx, int posy, int sizex, int sizey, int s
 		inital_state= start_maximized?GHOST_kWindowStateMaximized:GHOST_kWindowStateNormal;
 #else			// APPLE
 	inital_state= start_maximized?GHOST_kWindowStateMaximized:GHOST_kWindowStateNormal;
+	inital_state += macPrefState;
 #endif
 #endif
 
