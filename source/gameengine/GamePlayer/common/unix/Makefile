@@ -43,7 +43,12 @@ CPPFLAGS += -I$(NAN_STRING)/include
 
 CPPFLAGS += -I..
 CPPFLAGS += -I../../netscape/src/ketsji
-CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
+ifeq ($(OS),$(findstring $(OS), "freebsd"))
+    CPPFLAGS += -I$(NAN_PYTHON)$(NAN_PYTHON_VERSION)
+else
+    CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
+endif
+
 
 # Game Engine
 CPPFLAGS += -I../../../../gameengine/Converter

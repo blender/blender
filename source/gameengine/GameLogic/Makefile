@@ -41,7 +41,12 @@ CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 CPPFLAGS += -I../Expressions 
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_MOTO)/include
-CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
+ifeq ($(OS),$(findstring $(OS), "freebsd"))
+    CPPFLAGS += -I$(NAN_PYTHON)$(NAN_PYTHON_VERSION)
+else
+    CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
+endif
+
 CPPFLAGS += -I../../kernel/gen_system
 
 

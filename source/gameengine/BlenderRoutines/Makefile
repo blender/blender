@@ -71,5 +71,9 @@ ifeq ($(OS),windows)
     CPPFLAGS += -I../../blender
 endif
 
-CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
+ifeq ($(OS),freebsd)
+    CPPFLAGS += -I$(NAN_PYTHON)$(NAN_PYTHON_VERSION)
+else
+    CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
+endif
 
