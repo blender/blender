@@ -552,7 +552,7 @@ static void previewflare(SpaceButs *sbuts, HaloRen *har, unsigned int *rect)
 	uiBlock *block;
 	float ycor;
 	unsigned int *rectot;
-	int afmx, afmy, rectx, recty;
+	int afmx, afmy, rectx, recty, y;
 	
 	block= uiFindOpenPanelBlockName(&curarea->uiblocks, "Preview");
 	if(block==NULL) return;
@@ -565,6 +565,8 @@ static void previewflare(SpaceButs *sbuts, HaloRen *har, unsigned int *rect)
 	afmy= R.afmy;
 	rectot= R.rectot;
 
+	R.r.postmul= R.r.postgamma= R.r.postsat= 1.0;
+	R.r.posthue= R.r.postadd= 0.0;
 	R.ycor= 1.0;
 	R.rectx= PR_RECTX;	
 	R.recty= PR_RECTY;
@@ -575,13 +577,13 @@ static void previewflare(SpaceButs *sbuts, HaloRen *har, unsigned int *rect)
 	waitcursor(1);
 	RE_renderflare(har);
 	waitcursor(0);
-	// not sure why, either waitcursor or renderflare screws up
-	areawinset(curarea->win);
+	// not sure why, either waitcursor or renderflare screws up (disabled then)
+	//areawinset(curarea->win);
 	
-	uiPanelPush(block);
-	BIF_previewdraw();
-	uiPanelPop(block);
-	
+	/* draw can just be this way, all settings are OK */
+	for (y=0; y<PR_RECTY; y++) {
+		display_pr_scanline(sbuts->rect, y);
+	}
 	
 	/* temps */
 	R.ycor= ycor;

@@ -2866,7 +2866,7 @@ static void renderhalo(HaloRen *har)	/* postprocess version */
 	
 			rectt= R.rectot+ R.rectx*miny;
 			rectft= R.rectftot+ 4*R.rectx*miny;
-				
+
 			for(y=miny; y<maxy; y++) {
 	
 				rt= rectt+minx;
@@ -2881,7 +2881,7 @@ static void renderhalo(HaloRen *har)	/* postprocess version */
 					dist= xsq+ysq;
 					if(dist<har->radsq) {
 						
-						shadeHaloFloat(har, colf, 0, dist, xn, yn, har->flarec);
+						shadeHaloFloat(har, colf, 0x7FFFFF, dist, xn, yn, har->flarec);
 						if(R.rectftot) addalphaAddfacFloat(rtf, colf, har->add);
 						else {
 							std_floatcol_to_charcol(colf, col);
@@ -2927,10 +2927,10 @@ void RE_renderflare(HaloRen *har)
 	
 	har->rad= rad*ma->flaresize*visifac;
 	har->radsq= har->rad*har->rad;
-	har->zs= 0.0;
+	har->zs= fla.zs= 0;
 	
 	har->alfa= alfa*visifac;
-	
+
 	renderhalo(har);
 	
 	/* next halo's: the flares */
