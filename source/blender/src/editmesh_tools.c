@@ -964,7 +964,7 @@ void fill_mesh(void)
 	EditMesh *em = G.editMesh;
 	EditVert *eve,*v1;
 	EditEdge *eed,*e1,*nexted;
-	EditFace *efa,*nextvl;
+	EditFace *efa,*nextvl, *efan;
 	short ok;
 
 	if(G.obedit==0 || (G.obedit->type!=OB_MESH)) return;
@@ -992,7 +992,7 @@ void fill_mesh(void)
 		}
 		eed= eed->next;
 	}
-	/* from all selected faces: remove vertices and edges verwijderen to prevent doubles */
+	/* from all selected faces: remove vertices and edges to prevent doubles */
 	/* all edges add values, faces subtract,
 	   then remove edges with vertices ->h<2 */
 	efa= em->faces.first;
@@ -1031,7 +1031,8 @@ void fill_mesh(void)
 	if(ok) {
 		efa= fillfacebase.first;
 		while(efa) {
-			addfacelist(efa->v1->vn, efa->v2->vn, efa->v3->vn, 0, efa, NULL);
+			efan= addfacelist(efa->v3->vn, efa->v2->vn, efa->v1->vn, 0, efa, NULL); // normals default pointing up
+			EM_select_face(efan, 1);
 			efa= efa->next;
 		}
 	}
@@ -1781,7 +1782,7 @@ static int collect_quadedges(EVPTuple *efaa, EditEdge *eed, EditFace *efa)
 	while(eed) {
 		eed->f2= 0;
 		eed->f1= 0;
-		if( (eed->v1->f & 1) && (eed->v2->f & 1) ) {
+		if( eed->f & SELECT ) {
 			eed->vn= (EditVert *) (&efaa[i]);
 			i++;
 		}
@@ -1798,7 +1799,7 @@ static int collect_quadedges(EVPTuple *efaa, EditEdge *eed, EditFace *efa)
 	while(efa) {
 		efa->f1= 0;
 		if(efa->v4==0) {  /* if triangle */
-			if(faceselectedAND(efa, 1)) {
+			if(efa->f & SELECT) {
 				
 				e1= efa->e1;
 				e2= efa->e2;
@@ -2146,6 +2147,8 @@ void beauty_fill(void)
 
     MEM_freeN(efaar);
 
+	EM_select_flush();
+	
     allqueue(REDRAWVIEW3D, 0);
     makeDispList(G.obedit);
 	BIF_undo_push("Beauty Fill");
