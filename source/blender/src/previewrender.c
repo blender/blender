@@ -1098,7 +1098,7 @@ void BIF_previewrender(SpaceButs *sbuts)
 		draw_tex_crop(sbuts->lockpoin);
 	
 	glDrawBuffer(GL_BACK);
-	uiPanelPush(block);
+	uiPanelPop(block);
 
 	BIF_previewdraw();
 	

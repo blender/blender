@@ -133,7 +133,7 @@ void add_primitiveMball(int dummy_argument)
 
 	/* if no obedit: new object and enter editmode */
 	if(G.obedit==0) {
-		add_object(OB_MBALL);
+		add_object_draw(OB_MBALL);
 		base_init_from_view3d(BASACT, G.vd);
 		G.obedit= BASACT->object;
 		

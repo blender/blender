@@ -3768,7 +3768,7 @@ void add_primitiveCurve(int stype)
 	
 	/* if no obedit: new object and enter editmode */
 	if(G.obedit==0) {
-		add_object(OB_CURVE);
+		add_object_draw(OB_CURVE);
 		base_init_from_view3d(BASACT, G.vd);
 		G.obedit= BASACT->object;
 		
@@ -3812,7 +3812,7 @@ void add_primitiveNurb(int type)
 
 	/* if no obedit: new object and enter editmode */
 	if(G.obedit==0) {
-		add_object(OB_SURF);
+		add_object_draw(OB_SURF);
 		base_init_from_view3d(BASACT, G.vd);
 		G.obedit= BASACT->object;
 		

@@ -6087,6 +6087,16 @@ short pupmenu_col(char *instr, int maxrow)
 
 /* ************** panels ************* */
 
+static void copy_panel_offset(Panel *pa, Panel *papar)
+{
+	/* with respect to sizes... papar is parent */
+
+	pa->ofsx= papar->ofsx;
+	pa->ofsy= papar->ofsy + papar->sizey-pa->sizey;
+}
+
+
+
 /* ugly global... but will be NULLed after each 'newPanel' call */
 static char *panel_tabbed=NULL, *group_tabbed=NULL;
 
@@ -6146,6 +6156,7 @@ int uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int 
 					if( strncmp(panel_tabbed, papar->panelname, UI_MAX_NAME_STR)==0) {
 						if( strncmp(group_tabbed, papar->tabname, UI_MAX_NAME_STR)==0) {
 							pa->paneltab= papar;
+							copy_panel_offset(pa, papar);
 							break;
 						}
 					}
@@ -6386,7 +6397,7 @@ static void ui_draw_panel_tabs(uiBlock *block)
 			/* active tab */
 			uiSetRoundBox(12);
 			glColor3ub(160, 160, 167);
-			uiRoundBox(PNL_SAFETY+1+a*width, pa->sizey-PNL_HEADER, PNL_SAFETY-1+(a+1)*width, pa->sizey, 10);
+			uiRoundBox(PNL_SAFETY+1+a*width, panel->sizey-PNL_HEADER, PNL_SAFETY-1+(a+1)*width, panel->sizey, 10);
 
 			glColor3ub(240,240,240);
 			glRasterPos2f(PNL_SAFETY+7+a*width, panel->sizey-PNL_HEADER+5);
@@ -6398,10 +6409,10 @@ static void ui_draw_panel_tabs(uiBlock *block)
 			/* not active tab */
 			uiSetRoundBox(12);
 			glColor3ub(180, 180, 187);
-			uiRoundBox(PNL_SAFETY+1+a*width, pa->sizey-PNL_HEADER, PNL_SAFETY-1+(a+1)*width, pa->sizey, 10);
+			uiRoundBox(PNL_SAFETY+1+a*width, panel->sizey-PNL_HEADER, PNL_SAFETY-1+(a+1)*width, panel->sizey, 10);
 			
 			glColor3ub(140, 140, 140);
-			fdrawline(PNL_SAFETY+1+a*width, pa->sizey, PNL_SAFETY-1+(a+1)*width, pa->sizey);
+			fdrawline(PNL_SAFETY+1+a*width, panel->sizey, PNL_SAFETY-1+(a+1)*width, panel->sizey);
 			
 			glColor3ub(85,85,85);
 			glRasterPos2f(PNL_SAFETY+7+a*width, panel->sizey-PNL_HEADER+5);
@@ -6508,6 +6519,7 @@ static void ui_redraw_select_panel(ScrArea *sa)
 
 /* ------------ panel alignment ---------------- */
 
+
 /* this function is needed because uiBlock and Panel itself dont
 change sizey or location when closed */
 static int get_panel_real_ofsy(Panel *pa)
@@ -6580,11 +6592,12 @@ int uiAlignPanelStep(ScrArea *sa, float fac)
 	else
 		qsort(panelsort, tot, sizeof(PanelSort), find_leftmost_panel);
 
-	/* now we fill in copied panels the desired location */
-	/* default startloc current view2d topleft corner */
 	ps= panelsort;
-	ps->pa->ofsx= sbuts->v2d.tot.xmin;
-	ps->pa->ofsy= sbuts->v2d.tot.ymax- ps->pa->sizey-PNL_HEADER;
+
+	/* no smart other default start loc! this keeps switching f5/f6/etc compatible */
+	ps->pa->ofsx= 0;
+	ps->pa->ofsy= 0;
+	
 	for(a=0 ; a<tot-1; a++, ps++) {
 		psnext= ps+1;
 		
@@ -6614,8 +6627,7 @@ int uiAlignPanelStep(ScrArea *sa, float fac)
 	/* copy locations to tabs */
 	for(pa= sa->panels.first; pa; pa= pa->next) {
 		if(pa->paneltab && pa->active) {
-			pa->ofsx= pa->paneltab->ofsx;
-			pa->ofsy= pa->paneltab->ofsy;
+			copy_panel_offset(pa, pa->paneltab);
 		}
 	}
 
@@ -6770,8 +6782,7 @@ static void test_add_new_tabs(ScrArea *sa)
 		pa= sa->panels.first;
 		while(pa) {
 			if(pa->paneltab==pasel) {
-				pa->ofsx= pasel->ofsx;
-				pa->ofsy= pasel->ofsy;
+				copy_panel_offset(pa, pasel);
 			}
 			pa= pa->next;
 		}
@@ -6783,14 +6794,13 @@ static void test_add_new_tabs(ScrArea *sa)
 	palap->paneltab= pasel;
 	
 	/* the selected panel gets coords of overlapped one */
-	pasel->ofsx= palap->ofsx;
-	pasel->ofsy= palap->ofsy;
+	copy_panel_offset(pasel, palap);
+
 	/* and its tabs */
 	pa= sa->panels.first;
 	while(pa) {
 		if(pa->paneltab == pasel) {
-			pa->ofsx = palap->ofsx;
-			pa->ofsy = palap->ofsy;
+			copy_panel_offset(pa, palap);
 		}
 		pa= pa->next;
 	}
@@ -6837,7 +6847,7 @@ static void ui_drag_panel(uiBlock *block)
 			dy= (mval[1]-mvalo[1]) & ~(PNL_GRID-1);
 		}
 		
-		if(dx!=dxo || dy!=dyo || first) {
+		if(dx!=dxo || dy!=dyo || first || sbuts->align) {
 			dxo= dx; dyo= dy;		
 			first= 0;
 			
@@ -6866,6 +6876,9 @@ static void ui_drag_panel(uiBlock *block)
 			
 			/* restore */
 			Mat4CpyMat4(UIwinmat, block->winmat);
+			
+			/* idle for align */
+			if(dx==dxo && dy==dyo) PIL_sleep_ms(30);
 		}
 		/* idle for this poor code */
 		else PIL_sleep_ms(30);

@@ -615,7 +615,7 @@ void add_primitiveFont(int dummy_argument)
 	if (G.obedit && G.obedit->type==OB_FONT) return;
 	check_editmode(OB_FONT);
 	
-	add_object(OB_FONT);
+	add_object_draw(OB_FONT);
 	base_init_from_view3d(BASACT, G.vd);
 	G.obedit= BASACT->object;
 	where_is_object(G.obedit);

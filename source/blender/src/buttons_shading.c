@@ -169,7 +169,7 @@ void material_panel_map_to(Material *ma)
 	
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_map_to", UI_EMBOSSX, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Texture", "Material");
-	if(uiNewPanel(curarea, block, "Map To", "Material", 1530, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Map To", "Material", 1600, 0, 318, 204)==0) return;
 
 	mtex= ma->mtex[ ma->texact ];
 	if(mtex==0) {
@@ -237,7 +237,7 @@ void material_panel_map_input(Material *ma)
 	
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_map_input", UI_EMBOSSX, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Texture", "Material");
-	if(uiNewPanel(curarea, block, "Map Input", "Material", 1210, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Map Input", "Material", 1280, 0, 318, 204)==0) return;
 
 	mtex= ma->mtex[ ma->texact ];
 	if(mtex==0) {
@@ -300,7 +300,7 @@ void material_panel_texture(Material *ma)
 	char str[64], *strp;
 	
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_texture", UI_EMBOSSX, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Texture", "Material", 890, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Texture", "Material", 960, 0, 318, 204)==0) return;
 
 	/* TEX CHANNELS */
 	uiBlockSetCol(block, BUTGREY);
@@ -357,7 +357,7 @@ void material_panel_shading(Material *ma)
 	uiBlock *block;
 	
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_shading", UI_EMBOSSX, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Shaders", "Material", 570, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Shaders", "Material", 640, 0, 318, 204)==0) return;
 
 	uiBlockSetCol(block, BUTPURPLE);
 	uiDefButI(block, TOG|BIT|5, B_MATPRV_DRAW, "Halo",	245,180,65,18, &(ma->mode), 0, 0, 0, 0, "Render as a halo");
@@ -452,7 +452,7 @@ void material_panel_material(Object *ob, Material *ma)
 	char str[30];
 	
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_material", UI_EMBOSSX, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Material", "Material", 250, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Material", "Material", 320, 0, 318, 204)==0) return;
 
 	/* first do the browse but */
 	buttons_active_id(&id, &idfrom);
@@ -569,7 +569,7 @@ void material_panel_preview(Material *ma)
 	
 	/* name "Preview" is abused to detect previewrender offset panel */
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_preview", UI_EMBOSSX, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Preview", "Material", 0, 0, 248, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Preview", "Material", 0, 0, 318, 204)==0) return;
 	
 	if(ma) {
 		uiBlockSetDrawExtraFunc(block, BIF_previewdraw);
