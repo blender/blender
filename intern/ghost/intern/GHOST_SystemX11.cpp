@@ -71,6 +71,7 @@
 #include "GHOST_EventCursor.h"
 #include "GHOST_EventKey.h"
 #include "GHOST_EventButton.h"
+#include "GHOST_EventWheel.h"
 #include "GHOST_DisplayManagerX11.h"
 
 #include "GHOST_Debug.h"
@@ -380,7 +381,19 @@ processEvent(
 			
 		break;
 		}
+
 		case ButtonPress:
+		{
+			/* process wheel mouse events and break */
+			if (xe->xbutton.button == 4) {
+				g_event = new GHOST_EventWheel(getMilliSeconds(), window, 1);
+				break;
+			}
+			if (xe->xbutton.button == 5) {
+				g_event = new GHOST_EventWheel(getMilliSeconds(), window, -1);
+				break;
+			}
+		}
 		case ButtonRelease:
 		{
 
