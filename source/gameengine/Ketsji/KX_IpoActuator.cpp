@@ -128,17 +128,52 @@ void KX_IpoActuator::SetEnd(float endtime)
 	m_endframe=endtime;
 }
 
+bool KX_IpoActuator::ClampLocalTime()
+{
+	if (m_startframe < m_endframe)
+	{
+		if (m_localtime < m_startframe)
+		{
+			m_localtime = m_startframe;
+			return true;
+		} 
+		else if (m_localtime > m_endframe)
+		{
+			m_localtime = m_endframe;
+			return true;
+		}
+	} else {
+		if (m_localtime > m_startframe)
+		{
+			m_localtime = m_startframe;
+			return true;
+		}
+		else if (m_localtime < m_endframe)
+		{
+			m_localtime = m_endframe;
+			return true;
+		}
+	}
+	return false;
+}
+
 void KX_IpoActuator::SetStartTime(float curtime)
 {
+	float direction = m_startframe < m_endframe ? 1.0 : -1.0;
+	
 	if (m_direction > 0)
-		m_starttime = curtime - (m_localtime - m_startframe)/KX_FIXED_FRAME_PER_SEC;
+		m_starttime = curtime - direction*(m_localtime - m_startframe)/KX_FIXED_FRAME_PER_SEC;
 	else
-		m_starttime = curtime - (m_endframe - m_localtime)/KX_FIXED_FRAME_PER_SEC;
+		m_starttime = curtime - direction*(m_endframe - m_localtime)/KX_FIXED_FRAME_PER_SEC;
 }
 
 void KX_IpoActuator::SetLocalTime(float curtime)
 {
 	float delta_time = (curtime - m_starttime)*KX_FIXED_FRAME_PER_SEC;
+	
+	if (m_endframe < m_startframe)
+		delta_time = -delta_time;
+
 	if (m_direction > 0)
 		m_localtime = m_startframe + delta_time;
 	else
@@ -190,9 +225,8 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 			SetLocalTime(curtime);
 		
 			/* Perform clamping */
-			if ((m_localtime*start_smaller_then_end)>(m_endframe*start_smaller_then_end))
-				m_localtime=m_endframe;
-
+			ClampLocalTime();
+			
 			CIpoAction ipoaction(
 				(KX_GameObject*)GetParent(), 
 				m_localtime, 
@@ -215,19 +249,12 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 			result = false;
 		else
 			SetLocalTime(curtime);
-		
-		if (m_localtime*start_smaller_then_end < m_startframe*start_smaller_then_end)
+			
+		if (ClampLocalTime())
 		{
-			m_localtime = m_startframe;
 			result = false;
-			m_direction = 1;
+			m_direction = -m_direction;
 		}
-		else if (m_localtime*start_smaller_then_end > m_endframe*start_smaller_then_end)
-		{
-			m_localtime = m_endframe;
-			result = false;
-			m_direction = -1;
-		} 
 		
 		CIpoAction ipoaction(
 			(KX_GameObject*) GetParent(),
@@ -251,17 +278,10 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 		}
 
 		SetLocalTime(curtime);
-
-		if (m_localtime*start_smaller_then_end > m_endframe*start_smaller_then_end)
-		{
-			m_localtime = m_endframe;
-		} 
-		else if (m_localtime*start_smaller_then_end < m_startframe*start_smaller_then_end)
-		{
-			m_localtime = m_startframe;
-			result = false;
-		}
 		
+		if (ClampLocalTime() && m_localtime == m_startframe)
+			result = false;
+			
 		CIpoAction ipoaction(
 			(KX_GameObject*) GetParent(),
 			m_localtime,
@@ -296,7 +316,8 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 		if (bNegativeEvent && m_localtime == m_startframe){
 			result = false;
 		} 
-		else{
+		else
+		{
 			if (m_localtime*start_smaller_then_end < m_endframe*start_smaller_then_end)
 			{
 				SetLocalTime(curtime);

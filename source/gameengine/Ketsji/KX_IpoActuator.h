@@ -47,6 +47,9 @@ private:
 	/** Computes the current frame from the current time
 	    and the IPO start time. */
 	void SetLocalTime(float curtime);
+	/** Ensures the current frame is between the start and
+	    end frames. */
+	bool ClampLocalTime();
 
 protected:
 	bool	m_bNegativeEvent;
@@ -63,6 +66,7 @@ protected:
 	/** Current active frame of the ipo. */
 	float   m_localtime;
 	
+	/** The time this ipo started at. */
 	float	m_starttime;
 
 	/** play backwards or forwards? (positive means forward). */
