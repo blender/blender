@@ -361,7 +361,8 @@ static void add_nlablock(short mval[2])
 	short event;
 	char *str;
 	short nr;
-	
+	bConstraintChannel *conchan=NULL;
+
 	areamouseco_to_ipoco(G.v2d, mval, &x, &y);
 	
 	mval[0]-=7;
@@ -369,7 +370,7 @@ static void add_nlablock(short mval[2])
 	
 	mval[0]+=14;
 	areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
-	
+
 	ymax = count_nla_levels();	
 	ymax*=(NLACHANNELHEIGHT + NLACHANNELSKIP);
 	
@@ -377,26 +378,34 @@ static void add_nlablock(short mval[2])
 		/* Handle object ipo selection */
 		if (nla_filter(base, 0)){
 			
-			/* STUPID STUPID STUPID */
+			/* Area that encloses object name (or ipo) */
 			ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
-			
-			/* Handle object ipos */
+
+			/* Area that encloses constraint channels */
+			for (conchan=base->object->constraintChannels.first; 
+				 conchan; conchan=conchan->next){
+				ymin-=(NLACHANNELHEIGHT+NLACHANNELSKIP);
+			}
+
+			if (base->object->type==OB_ARMATURE){
+				/* Area that encloses selected action, if
+				 * present
+				 */
+				if (base->object->action)
+					ymin-=(NLACHANNELHEIGHT+NLACHANNELSKIP);
+
+				/* Area that encloses nla strips */
+				ymin-=(NLACHANNELHEIGHT+NLACHANNELSKIP)*
+					(BLI_countlist(&base->object->nlastrips));
+			}
+
+			/* Test to see the mouse is in an armature area */
 			if (base->object->type==OB_ARMATURE){
 				if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)))
 					break;		
 			}
 			
 			ymax=ymin;
-			
-			/* Handle action ipos & Action strips */
-			if (base->object->type==OB_ARMATURE){
-				ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP)*(BLI_countlist(&base->object->nlastrips) + 1);
-				if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)))
-					break;
-				ymax=ymin;
-				
-				
-			}			
 		}
 	}	
 	
@@ -1210,7 +1219,8 @@ static Base *get_nearest_nlastrip (bActionStrip **rstrip, short *sel)
 	rctf	rectf;
 	float ymin, ymax;
 	bActionStrip *strip, *firststrip=NULL, *foundstrip=NULL;
-	
+	bConstraintChannel *conchan=NULL;
+
 	getmouseco_areawin (mval);
 	
 	mval[0]-=7;
@@ -1227,12 +1237,17 @@ static Base *get_nearest_nlastrip (bActionStrip **rstrip, short *sel)
 			/* Skip object ipos */
 			//	if (base->object->ipo)
 			ymax-=(NLACHANNELHEIGHT+NLACHANNELSKIP);
-			
+
+			/* Skip constraint channels */
+			for (conchan=base->object->constraintChannels.first; 
+				 conchan; conchan=conchan->next){
+				ymax-=(NLACHANNELHEIGHT+NLACHANNELSKIP);
+			}
+
 			if (base->object->type==OB_ARMATURE){
 				/* Skip action ipos */
 				if (base->object->action)
 					ymax-=(NLACHANNELHEIGHT+NLACHANNELSKIP);
-				
 				for (strip=base->object->nlastrips.first; strip; strip=strip->next){
 					ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
 					/* Do Ytest */
