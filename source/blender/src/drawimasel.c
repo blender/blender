@@ -54,6 +54,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "BKE_global.h"
+
 #include "BIF_fsmenu.h"
 #include "BIF_gl.h"
 #include "BIF_resources.h"
@@ -62,6 +63,8 @@
 #include "BIF_imasel.h"
 #include "BIF_mywindow.h"
 #include "BIF_space.h"
+#include "BIF_resources.h"
+
 #include "BSE_drawimasel.h"
 #include "BSE_filesel.h"
 
@@ -430,11 +433,13 @@ void draw_sima_area(SpaceImaSel *simasel)
 	uiBlock *block;
 	OneSelectableIma *ima;
 	ImaDir      *direntry;
+	float col[3];
 	int   i, info;
 	short sx, sy, ex, ey, sc;
 	char naam[256], infostr[256];
 	
-	glClearColor(0.4375, 0.4375, 0.4375, 0.0);
+	BIF_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	sprintf(naam, "win %d", curarea->win);
@@ -443,7 +448,7 @@ void draw_sima_area(SpaceImaSel *simasel)
 	
 	if (simasel->desx >  0){
 		/*  DIR ENTRYS */
-		cpack(C_DERK);
+		BIF_ThemeColorShade(TH_SHADE1, -70);
 		glRecti(simasel->dssx,  simasel->dssy,  simasel->dsex,  simasel->dsey);
 		glRecti(simasel->desx,  simasel->desy,  simasel->deex,  simasel->deey);
 	
@@ -456,7 +461,7 @@ void draw_sima_area(SpaceImaSel *simasel)
 			ex = simasel->dirsli_ex-2;
 			ey = simasel->dirsli_ey-2;
 			
-			cpack(C_BACK);
+			BIF_ThemeColor(TH_SHADE1); 
 			
 			glRecti(sx,  sy,  ex,  ey);
 			uiEmboss(sx, sy, ex,ey,0);
@@ -532,7 +537,7 @@ void draw_sima_area(SpaceImaSel *simasel)
 	if (simasel->fesx >  0) {
 		int extrabutsize;
 		
-		cpack(C_DARK);
+		BIF_ThemeColorShade(TH_SHADE1, -80);
 
 		glRecti(simasel->fssx,  simasel->fssy,  simasel->fsex,  simasel->fsey);
 
@@ -547,7 +552,7 @@ void draw_sima_area(SpaceImaSel *simasel)
 			ex = simasel->imasli_ex;
 			ey = simasel->imasli_ey;
 			
-			cpack(C_BACK);
+			BIF_ThemeColor(TH_SHADE1); 
 
 			glRecti(sx,  sy,  ex,  ey);
 			uiEmboss(sx, sy, ex, ey, 1);
@@ -589,7 +594,8 @@ void draw_sima_area(SpaceImaSel *simasel)
 				sx = ima->sx; sy = ima->sy + sc;
 				ex = ima->ex; ey = ima->ey + sc;
 				
-				if (ima->anim == 0) cpack(C_DARK); else cpack(C_DERK);
+				if (ima->anim == 0) BIF_ThemeColorShade(TH_SHADE1, -80);
+				else BIF_ThemeColorShade(TH_SHADE1, -70);
 				
 				glRecti(sx, sy,  ex, ey);
 				uiEmboss(sx-1,sy-1, ex+1,ey+1, 1);
@@ -628,9 +634,6 @@ void draw_sima_area(SpaceImaSel *simasel)
 					ex = sx + 2*(ima->ex - ima->sx);
 					ey = sy + 2*(ima->ey - ima->sy);
 					
-					/* cpack(C_DERK); */
-					/* uiEmboss(sx-8,sy-8, ex+8,ey+8, 1); */
-					/* glRecti(sx-7, sy-7,  ex+7, ey+7); */
 					uiEmboss(sx-1,sy-1, ex+1,ey+1, 0);
 				
 					if(OLD_IMASEL) {
@@ -649,7 +652,7 @@ void draw_sima_area(SpaceImaSel *simasel)
 		
 		/* INFO */
 		if (simasel->infsx > 0){
-			cpack(C_DARK);
+			BIF_ThemeColorShade(TH_SHADE1, -80);
 
 			glRecti(simasel->infsx,  simasel->infsy,  simasel->infex,  simasel->infey);
 			uiEmboss(simasel->infsx, simasel->infsy, simasel->infex, simasel->infey,1);

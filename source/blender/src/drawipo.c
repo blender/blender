@@ -1214,7 +1214,7 @@ static void draw_cfra(SpaceIpo *sipo)
 	vec[0]*= G.scene->r.framelen;
 	
 	vec[1]= v2d->cur.ymin;
-	BIF_ThemeColor(TH_HILITE);
+	glColor3ub(0x60, 0xc0, 0x40);	// no theme, should be global color once...
 	glLineWidth(2.0);
 	
 	glBegin(GL_LINE_STRIP);

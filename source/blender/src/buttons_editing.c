@@ -816,6 +816,8 @@ void do_curvebuts(unsigned short event)
 				nu= nu->next;
 			}
 		}
+		makeDispList(G.obedit);
+		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_SETRESOLU:
 		if(ob->type==OB_CURVE) {
@@ -1932,7 +1934,7 @@ static void editing_panel_mesh_texface(void)
 	extern TFace *lasttface;
 	
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_texface", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Texture face", "Editing", 640, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Texture face", "Editing", 960, 0, 318, 204)==0) return;
 
 	set_lasttface();	// checks for ob type
 	if(lasttface) {
@@ -1990,11 +1992,12 @@ void editing_panels()
 			editing_panel_mesh_tools(ob, ob->data); // no editmode!
 			editing_panel_mesh_tools1(ob, ob->data); // no editmode!
 		}
-		else if(G.f & G_FACESELECT) {
-			editing_panel_mesh_texface();
-		}
-		else if(G.f & (G_VERTEXPAINT | G_TEXTUREPAINT) ) {
-			editing_panel_mesh_paint();
+		else {
+			if(G.f & G_FACESELECT)
+				editing_panel_mesh_texface();
+			
+			if(G.f & (G_VERTEXPAINT | G_TEXTUREPAINT) )
+				editing_panel_mesh_paint();
 		}
 		break;
 		

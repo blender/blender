@@ -57,6 +57,7 @@
 #include "BIF_mywindow.h"
 #include "BIF_screen.h"
 #include "BIF_editsound.h"
+#include "BIF_resources.h"
 
 #include "BSE_drawipo.h"
 #include "BMF_Api.h"
@@ -191,12 +192,13 @@ static void draw_cfra_sound(SpaceSound *ssound)
 	
 }
 
-
 void drawsoundspace(ScrArea *sa, void *spacedata)
 {
+	float col[3];
 	short ofsx, ofsy;
 	
-	glClearColor(.6275, .6275, .6275, 0.0); 
+	BIF_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	calc_scrollrcts(G.v2d, curarea->winx, curarea->winy);

@@ -344,6 +344,33 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 			case SPACE_FILE:
 				ts= &btheme->tfile;
 				break;
+			case SPACE_NLA:
+				ts= &btheme->tnla;
+				break;
+			case SPACE_ACTION:
+				ts= &btheme->tact;
+				break;
+			case SPACE_SEQ:
+				ts= &btheme->tseq;
+				break;
+			case SPACE_IMAGE:
+				ts= &btheme->tima;
+				break;
+			case SPACE_IMASEL:
+				ts= &btheme->timasel;
+				break;
+			case SPACE_TEXT:
+				ts= &btheme->text;
+				break;
+			case SPACE_OOPS:
+				ts= &btheme->toops;
+				break;
+			case SPACE_SOUND:
+				ts= &btheme->tsnd;
+				break;
+			case SPACE_INFO:
+				ts= &btheme->tinfo;
+				break;
 			default:
 				ts= &btheme->tv3d;
 				break;
@@ -491,7 +518,7 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tipo.shade2,  0x7f, 0x70, 0x70, 100);
 	SETCOL(btheme->tipo.vertex, 0xff, 0x70, 0xff, 255);
 	SETCOL(btheme->tipo.vertex_select, 0xff, 0xff, 0x70, 255);
-	SETCOL(btheme->tipo.hilite, 0x60, 0xc0, 0x40, 255); // green cfra line
+	SETCOL(btheme->tipo.hilite, 0x60, 0xc0, 0x40, 255); 
 
 	/* space file */
 	/* to have something initialized */
@@ -502,19 +529,66 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tfile.header, 182, 182, 182, 255);
 	SETCOL(btheme->tfile.hilite, 0xA0, 0xA0, 0xD0, 255); // selected files
 
-	btheme->tinfo= btheme->tv3d;
 	
+	/* space action */
+	btheme->tact= btheme->tv3d;
+	SETCOL(btheme->tact.back, 	153, 153, 153, 255);
+	SETCOL(btheme->tact.text, 	0, 0, 0, 255);
+	SETCOL(btheme->tact.text_hi, 255, 255, 255, 255);
+	SETCOL(btheme->tact.header, 182, 182, 182, 255);
+	SETCOL(btheme->tact.grid,  94, 94, 94, 255);
+	SETCOL(btheme->tact.face,  140, 150, 160, 255);	// RVK
+	SETCOL(btheme->tact.shade1,  140, 140, 140, 255);		// sliders
+	SETCOL(btheme->tact.shade2,  0x55, 0x22, 0x11, 100);	// bar
+	SETCOL(btheme->tact.hilite,  0x11, 0x22, 0x55, 100);	// bar
+
+	/* space nla */
+	btheme->tnla= btheme->tv3d;
+	SETCOL(btheme->tnla.back, 	153, 153, 153, 255);
+	SETCOL(btheme->tnla.text, 	0, 0, 0, 255);
+	SETCOL(btheme->tnla.text_hi, 255, 255, 255, 255);
+	SETCOL(btheme->tnla.header, 182, 182, 182, 255);
+	SETCOL(btheme->tnla.grid,  94, 94, 94, 255);	
+	SETCOL(btheme->tnla.shade1,  140, 140, 140, 255);		// sliders
+	SETCOL(btheme->tnla.shade2,  0x55, 0x22, 0x11, 100);	// bar
+	SETCOL(btheme->tnla.hilite,  0x11, 0x22, 0x55, 100);	// bar
+	
+	/* space seq */
+	btheme->tseq= btheme->tv3d;
+	SETCOL(btheme->tnla.back, 	110, 110, 110, 255);
+
+	/* space image */
+	btheme->tima= btheme->tv3d;
+	SETCOL(btheme->tima.back, 	53, 53, 53, 255);
+	SETCOL(btheme->tima.vertex, 0xff, 0x70, 0xff, 255);
+	SETCOL(btheme->tima.vertex_select, 0xff, 0xff, 0x70, 255);
+
+	/* space imageselect */
+	btheme->timasel= btheme->tv3d;
+	SETCOL(btheme->timasel.back, 	110, 110, 110, 255);
+	SETCOL(btheme->timasel.shade1, 	0xaa, 0xaa, 0xba, 255);
+
+	/* space text */
+	btheme->text= btheme->tv3d;
+	SETCOL(btheme->text.back, 	153, 153, 153, 255);
+	SETCOL(btheme->text.shade1, 	143, 143, 143, 255);
+	SETCOL(btheme->text.shade2, 	0xc6, 0x77, 0x77, 255);
+	SETCOL(btheme->text.hilite, 	255, 0, 0, 255);
+
+	/* space oops */
+	btheme->toops= btheme->tv3d;
+	SETCOL(btheme->toops.back, 	140, 140, 140, 255);
+
+	/* space info */
+	btheme->tinfo= btheme->tv3d;
+	SETCOL(btheme->tinfo.back, 	153, 153, 153, 255);
+
+	/* space sound */
 	btheme->tsnd= btheme->tv3d;
+	SETCOL(btheme->tsnd.back, 	158, 158, 158, 255);
+	SETCOL(btheme->tsnd.shade1,  140, 140, 140, 255);		// sliders
 	SETCOL(btheme->tsnd.grid,0x70, 0x70, 0x60, 255);
 	
-	btheme->tact= btheme->tv3d;
-	btheme->tnla= btheme->tv3d;
-	btheme->tseq= btheme->tv3d;
-	btheme->tima= btheme->tv3d;
-	btheme->timasel= btheme->tv3d;
-	btheme->text= btheme->tv3d;
-	btheme->toops= btheme->tv3d;
-
 
 }
 
@@ -562,24 +636,49 @@ char *BIF_ThemeColorsPup(int spacetype)
 			sprintf(str, "Vertex %%x%d|", TH_VERTEX); strcat(cp, str);
 			sprintf(str, "Vertex Selected %%x%d|", TH_VERTEX_SELECT); strcat(cp, str);
 			sprintf(str, "Vertex Size %%x%d|", TH_VERTEX_SIZE); strcat(cp, str);
-			//sprintf(str, "Edge %%x%d|", TH_EDGE); strcat(cp, str);
 			sprintf(str, "Edge Selected %%x%d|", TH_EDGE_SELECT); strcat(cp, str);
 			sprintf(str, "Face %%x%d|", TH_FACE); strcat(cp, str);
-			// last item without '|'
 			sprintf(str, "Face Selected %%x%d", TH_FACE_SELECT); strcat(cp, str);
 		}
 		else if(spacetype==SPACE_IPO) {
 			sprintf(str, "Panel %%x%d|", TH_PANEL); strcat(cp, str);
 			strcat(cp,"%l|");
-			sprintf(str, "Main Shade %%x%d|", TH_SHADE1); strcat(cp, str);
-			sprintf(str, "Alt Shade %%x%d|", TH_SHADE2); strcat(cp, str);
+			sprintf(str, "Window Sliders %%x%d|", TH_SHADE1); strcat(cp, str);
+			sprintf(str, "Buttons back %%x%d|", TH_SHADE2); strcat(cp, str);
 			sprintf(str, "Vertex %%x%d|", TH_VERTEX); strcat(cp, str);
 			sprintf(str, "Vertex Selected %%x%d|", TH_VERTEX_SELECT); strcat(cp, str);
-			sprintf(str, "Current frame %%x%d", TH_HILITE); strcat(cp, str);
-			// last item without '|'
 		}
 		else if(spacetype==SPACE_FILE) {
 			sprintf(str, "Selected file %%x%d", TH_HILITE); strcat(cp, str);
+		}
+		else if(spacetype==SPACE_NLA) {
+			//sprintf(str, "Panel %%x%d|", TH_PANEL); strcat(cp, str);
+			strcat(cp,"%l|");
+			sprintf(str, "View Sliders %%x%d|", TH_SHADE1); strcat(cp, str);
+			sprintf(str, "Bars %%x%d|", TH_SHADE2); strcat(cp, str);
+			sprintf(str, "Bars selected %%x%d|", TH_HILITE); strcat(cp, str);
+		}
+		else if(spacetype==SPACE_ACTION) {
+			//sprintf(str, "Panel %%x%d|", TH_PANEL); strcat(cp, str);
+			strcat(cp,"%l|");
+			sprintf(str, "RVK sliders %%x%d|", TH_FACE); strcat(cp, str);
+			sprintf(str, "View Sliders %%x%d|", TH_SHADE1); strcat(cp, str);
+			sprintf(str, "Bars %%x%d|", TH_SHADE2); strcat(cp, str);
+			sprintf(str, "Bars selected %%x%d|", TH_HILITE); strcat(cp, str);
+		}
+		else if(spacetype==SPACE_SEQ) {
+			sprintf(str, "Window sliders %%x%d|", TH_SHADE1); strcat(cp, str);
+		}
+		else if(spacetype==SPACE_SOUND) {
+			sprintf(str, "Window slider %%x%d|", TH_SHADE1); strcat(cp, str);
+		}
+		else if(spacetype==SPACE_IMASEL) {
+			sprintf(str, "Main Shade %%x%d|", TH_SHADE1); strcat(cp, str);
+		}
+		else if(spacetype==SPACE_TEXT) {
+			sprintf(str, "Scroll bar %%x%d|", TH_SHADE1); strcat(cp, str);
+			sprintf(str, "Selected text %%x%d|", TH_SHADE2); strcat(cp, str);
+			sprintf(str, "Cursor %%x%d|", TH_HILITE); strcat(cp, str);
 		}
 	}
 	return cp;

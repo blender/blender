@@ -115,7 +115,7 @@ void meshactionbuts(SpaceAction *saction, Key *key)
 	char          str[64];
 	float	        x, y;
 	uiBlock       *block;
-#define RVKBGCOL .6, .65, .7
+
 #define XIC 20
 #define YIC 20
 
@@ -136,7 +136,7 @@ void meshactionbuts(SpaceAction *saction, Key *key)
 	  - CHANNELHEIGHT/2  - G.v2d->cur.ymin;
 
 	/* make the little 'open the sliders' widget */
-    glColor3f(RVKBGCOL); 
+    BIF_ThemeColor(TH_FACE); // this slot was open...
 	glRects(2,            y + 2*CHANNELHEIGHT - 2,  
 			ACTWIDTH - 2, y + CHANNELHEIGHT + 2);
 	glColor3ub(0, 0, 0);
@@ -164,7 +164,8 @@ void meshactionbuts(SpaceAction *saction, Key *key)
 		ACTWIDTH = NAMEWIDTH + SLIDERWIDTH;
 
 		/* sliders are open so draw them */
-		glColor3f(RVKBGCOL); 
+		BIF_ThemeColor(TH_FACE); 
+
 		glRects(NAMEWIDTH,  0,  NAMEWIDTH+SLIDERWIDTH,  curarea->winy);
 		uiBlockSetEmboss(block, UI_EMBOSS);
 		for (i=1 ; i < key->totkey ; ++ i) {
@@ -214,39 +215,40 @@ void draw_cfra_action(void)
 }
 
 
-static void draw_action_channel_names(bAction	*act) {
+static void draw_action_channel_names(bAction	*act) 
+{
     bActionChannel *chan;
     bConstraintChannel *conchan;
     float	x, y;
 
     x = 0.0;
-		y= count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
+	y= count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
 
-		for (chan=act->chanbase.first; chan; chan=chan->next){
-        glColor3ub(0xAA, 0xAA, 0xAA);
-        glRectf(x,  y-CHANNELHEIGHT/2,  (float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
-
-        if (chan->flag & ACHAN_SELECTED)
-            glColor3ub(255, 255, 255);
-        else
-            glColor3ub(0, 0, 0);
-        glRasterPos2f(x+8,  y-4);
-        BMF_DrawString(G.font, chan->name);
-        y-=CHANNELHEIGHT+CHANNELSKIP;
-
-        /* Draw constraint channels */
-        for (conchan=chan->constraintChannels.first; 
-             conchan; conchan=conchan->next){
-            if (conchan->flag & CONSTRAINT_CHANNEL_SELECT)
-                glColor3ub(255, 255, 255);
-            else
-                glColor3ub(0, 0, 0);
+	for (chan=act->chanbase.first; chan; chan=chan->next){
+		BIF_ThemeColorShade(TH_HEADER, 20);
+		glRectf(x,  y-CHANNELHEIGHT/2,  (float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
+	
+		if (chan->flag & ACHAN_SELECTED)
+			BIF_ThemeColor(TH_TEXT_HI);
+		else
+			BIF_ThemeColor(TH_TEXT);
+		glRasterPos2f(x+8,  y-4);
+		BMF_DrawString(G.font, chan->name);
+		y-=CHANNELHEIGHT+CHANNELSKIP;
+	
+		/* Draw constraint channels */
+		for (conchan=chan->constraintChannels.first; 
+				conchan; conchan=conchan->next){
+			if (conchan->flag & CONSTRAINT_CHANNEL_SELECT)
+				BIF_ThemeColor(TH_TEXT_HI);
+			else
+				BIF_ThemeColor(TH_TEXT);
 				
-            glRasterPos2f(x+32,  y-4);
-            BMF_DrawString(G.font, conchan->name);
-            y-=CHANNELHEIGHT+CHANNELSKIP;
-        }
+			glRasterPos2f(x+32,  y-4);
+			BMF_DrawString(G.font, conchan->name);
+			y-=CHANNELHEIGHT+CHANNELSKIP;
 		}
+	}
 }
 
 
@@ -295,9 +297,9 @@ static void draw_action_mesh_names(Key *key) {
 static void draw_channel_names(void) 
 {
 	short ofsx, ofsy = 0; 
-	float y;
 	bAction	*act;
 	Key *key;
+	float col[3];
 
 	myortho2(0,	NAMEWIDTH, G.v2d->cur.ymin, G.v2d->cur.ymax);	//	Scaling
 
@@ -315,7 +317,8 @@ static void draw_channel_names(void)
 		}
 	}
 	
-	glClearColor(.8, .8, .8, 0.0); 
+	BIF_GetThemeColor3fv(TH_HEADER, col);
+	glClearColor(col[0], col[1], col[2], 0.0); 
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	/* Clip to the scrollable area */
@@ -342,47 +345,6 @@ static void draw_channel_names(void)
 
     myortho2(0,	NAMEWIDTH, 0, (ofsy+G.v2d->mask.ymax) -
               (ofsy+G.v2d->mask.ymin-SCROLLB));	//	Scaling
-
-    glShadeModel(GL_SMOOTH);
- 
-    y=9;
-
-    /* Draw sexy shaded block thingies
-	   Reevan: if you start developing this stuff again
-	   you can have your blend's back
-	   
-    glEnable (GL_BLEND);
-    glBegin(GL_QUAD_STRIP);
-    glColor4ub (0xCC,0xCC,0xCC,0x00);
-    glVertex2f (0,SCROLLB*2-y);
-    glVertex2f (NAMEWIDTH,SCROLLB*2-y);
-
-    glColor4ub (0xCC,0xCC,0xCC,0xFF);
-    glVertex2f (0,SCROLLB-y);
-    glVertex2f (NAMEWIDTH,SCROLLB-y);
-
-    glColor4ub (0xCC,0xCC,0xCC,0xFF);
-    glVertex2f (0,0-y);
-    glVertex2f (NAMEWIDTH,0-y);
-
-    glEnd();
-	*/
-
-    /*	y=( ofsy+G.v2d->mask.ymax)-( ofsy+G.v2d->mask.ymin-SCROLLB);
-
-        glBegin(GL_QUAD_STRIP);
-        glColor4ub (0x88,0x88,0x88,0xFF);
-        glVertex2f (0,y);
-        glVertex2f (NAMEWIDTH,y);
-        glColor4ub (0x88,0x88,0x88,0x00);
-        glVertex2f (0,y-SCROLLB);
-        glVertex2f (NAMEWIDTH,y-SCROLLB);
-	
-        glEnd();
-    */
-    glDisable (GL_BLEND);
-
-    glShadeModel(GL_FLAT);
 
 }
 
@@ -445,6 +407,10 @@ static void draw_channel_strips(SpaceAction *saction)
 	bActionChannel *chan;
 	bConstraintChannel *conchan;
 	float	y;
+	char col1[3], col2[3];
+	
+	BIF_GetThemeColor3ubv(TH_SHADE2, col2);
+	BIF_GetThemeColor3ubv(TH_HILITE, col1);
 
 	act= saction->action;
 	if (!act)
@@ -464,12 +430,12 @@ static void draw_channel_strips(SpaceAction *saction)
 		gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
 
 		glEnable(GL_BLEND);
-		if (chan->flag & ACHAN_SELECTED) glColor4b(0x11, 0x22, 0x55, 0x22);
-		else glColor4b(0x55, 0x22, 0x11, 0x22);
+		if (chan->flag & ACHAN_SELECTED) glColor4b(col1[0], col1[1], col1[2], 0x22);
+		else glColor4b(col2[0], col2[1], col2[2], 0x22);
 		glRectf(0,  channel_y-CHANNELHEIGHT/2,  frame1_x,  channel_y+CHANNELHEIGHT/2);
 
-		if (chan->flag & ACHAN_SELECTED) glColor4b(0x11, 0x22, 0x55, 0x44);
-		else glColor4b(0x55, 0x22, 0x11, 0x44);
+		if (chan->flag & ACHAN_SELECTED) glColor4b(col1[0], col1[1], col1[2], 0x44);
+		else glColor4b(col2[0], col2[1], col2[2], 0x44);
 		glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2);
 		glDisable(GL_BLEND);
 	
@@ -483,12 +449,12 @@ static void draw_channel_strips(SpaceAction *saction)
 		for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
 			gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
 			glEnable(GL_BLEND);
-			if (conchan->flag & ACHAN_SELECTED) glColor4b(0x11, 0x22, 0x55, 0x22);
-			else glColor4b(0x55, 0x22, 0x11, 0x22);
+			if (conchan->flag & ACHAN_SELECTED) glColor4b(col1[0], col1[1], col1[2], 0x22);
+			else glColor4b(col2[0], col2[1], col2[2], 0x22);
 			glRectf(0,  channel_y-CHANNELHEIGHT/2+4,  frame1_x,  channel_y+CHANNELHEIGHT/2-4);
 			
-			if (conchan->flag & ACHAN_SELECTED) glColor4b(0x11, 0x22, 0x55, 0x44);
-			else glColor4b(0x55, 0x22, 0x11, 0x44);
+			if (conchan->flag & ACHAN_SELECTED) glColor4b(col1[0], col1[1], col1[2], 0x44);
+			else glColor4b(col2[0], col2[1], col2[2], 0x44);
 			glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2+4,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2-4);
 			glDisable(GL_BLEND);
 			
@@ -508,6 +474,10 @@ static void draw_mesh_strips(SpaceAction *saction, Key *key)
 	gla2DDrawInfo *di;
 	float	y, ybase;
 	IpoCurve *icu;
+	char col1[3], col2[3];
+	
+	BIF_GetThemeColor3ubv(TH_SHADE2, col2);
+	BIF_GetThemeColor3ubv(TH_HILITE, col1);
 
 	if (!key->ipo) return;
 
@@ -534,13 +504,13 @@ static void draw_mesh_strips(SpaceAction *saction, Key *key)
 		 * get a desaturated orange background
 		 */
 		glEnable(GL_BLEND);
-		glColor4b(0x55, 0x22, 0x11, 0x22);
+		glColor4b(col2[0], col2[1], col2[2], 0x22);
 		glRectf(0,        channel_y-CHANNELHEIGHT/2,  
 				frame1_x, channel_y+CHANNELHEIGHT/2);
 
 		/* frames one and higher get a saturated orange background
 		 */
-		glColor4b(0x55, 0x22, 0x11, 0x44);
+		glColor4b(col2[0], col2[1], col2[2], 0x44);
 		glRectf(frame1_x,         channel_y-CHANNELHEIGHT/2,  
 				G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2);
 		glDisable(GL_BLEND);
@@ -555,9 +525,9 @@ static void draw_mesh_strips(SpaceAction *saction, Key *key)
 
 void drawactionspace(ScrArea *sa, void *spacedata)
 {
-
 	short ofsx = 0, ofsy = 0;
 	Key *key;
+	float col[3];
 	short maxymin;
 
 	if (!G.saction)
@@ -608,7 +578,8 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 		}
 	}
 
-	glClearColor(.45, .45, .45, 0.0); 
+	BIF_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);

@@ -69,6 +69,7 @@
 #include "BIF_screen.h"
 #include "BIF_mywindow.h"
 #include "BIF_drawimage.h"
+#include "BIF_resources.h"
 
 /* Modules used */
 #include "mydevice.h"
@@ -305,7 +306,6 @@ void draw_tfaces(void)
 	TFace *tface;
 	MFace *mface;
 	Mesh *me;
-	unsigned int col;
 	int a;
 	
 	glPointSize(2.0);
@@ -335,7 +335,8 @@ void draw_tfaces(void)
 					setlinestyle(2);
 					/* colors: R=x G=y */
 					
-					if(tface->flag & TF_ACTIVE) cpack(0xFF00); else cpack(0xFFFFFF);
+					if(tface->flag & TF_ACTIVE) cpack(0xFF00); 
+					else cpack(0xFFFFFF);
 	
 					glBegin(GL_LINE_STRIP);
 						glVertex2fv( tface->uv[0] );
@@ -361,21 +362,21 @@ void draw_tfaces(void)
 					
 					glBegin(GL_POINTS);
 					
-					if(tface->flag & TF_SEL1) col= 0x77FFFF; else col= 0xFF70FF;
-					cpack(col);
+					if(tface->flag & TF_SEL1) BIF_ThemeColor(TH_VERTEX_SELECT); 
+					else BIF_ThemeColor(TH_VERTEX); 
 					glVertex2fv(tface->uv[0]);
 					
-					if(tface->flag & TF_SEL2) col= 0x77FFFF; else col= 0xFF70FF;
-					cpack(col);
+					if(tface->flag & TF_SEL2) BIF_ThemeColor(TH_VERTEX_SELECT); 
+					else BIF_ThemeColor(TH_VERTEX); 
 					glVertex2fv(tface->uv[1]);
 					
-					if(tface->flag & TF_SEL3) col= 0x77FFFF; else col= 0xFF70FF;
-					cpack(col);
+					if(tface->flag & TF_SEL3) BIF_ThemeColor(TH_VERTEX_SELECT); 
+					else BIF_ThemeColor(TH_VERTEX); 
 					glVertex2fv(tface->uv[2]);
 					
 					if(mface->v4) {
-						if(tface->flag & TF_SEL4) col= 0x77FFFF; else col= 0xFF70FF;
-						cpack(col);
+						if(tface->flag & TF_SEL4) BIF_ThemeColor(TH_VERTEX_SELECT); 
+						else BIF_ThemeColor(TH_VERTEX); 
 						glVertex2fv(tface->uv[3]);
 					}
 					glEnd();
@@ -414,11 +415,13 @@ static unsigned int *get_part_from_ibuf(ImBuf *ibuf, short startx, short starty,
 void drawimagespace(ScrArea *sa, void *spacedata)
 {
 	ImBuf *ibuf= NULL;
+	float col[3];
 	unsigned int *rect;
 	int x1, y1, xmin, xmax, ymin, ymax;
 	short sx, sy, dx, dy;
 	
-	glClearColor(.1875, .1875, .1875, 0.0); 
+	BIF_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 

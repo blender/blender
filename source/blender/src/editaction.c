@@ -2339,6 +2339,28 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 
+		case LEFTMOUSE:
+			if (mval[0]>ACTWIDTH){
+				do {
+					getmouseco_areawin(mval);
+					
+					areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
+					
+					cfra= (int)dx;
+					if(cfra< 1) cfra= 1;
+					
+					if( cfra!=CFRA ) {
+						CFRA= cfra;
+						update_for_newframe();
+						force_draw_plus(SPACE_VIEW3D);
+						force_draw_plus(SPACE_IPO);
+						force_draw_plus(SPACE_BUTS);
+					}
+					
+				} while(get_mbut()&L_MOUSE);
+				break;
+			}
+			/* no break here, we allow leftmouse click too */
 		case RIGHTMOUSE:
 			/* Right clicking in the channel area selects the
 			 * channel or constraint channel
@@ -2398,28 +2420,6 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 
-		case LEFTMOUSE:
-			if (mval[0]>ACTWIDTH){
-				do {
-					getmouseco_areawin(mval);
-					
-					areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
-					
-					cfra= (int)dx;
-					if(cfra< 1) cfra= 1;
-					
-					if( cfra!=CFRA ) {
-						CFRA= cfra;
-						update_for_newframe();
-						force_draw_plus(SPACE_VIEW3D);
-						force_draw_plus(SPACE_IPO);
-						force_draw_plus(SPACE_BUTS);
-					}
-					
-				} while(get_mbut()&L_MOUSE);
-			}
-			
-			break;
 		case MIDDLEMOUSE:
 		case WHEELUPMOUSE:
 		case WHEELDOWNMOUSE:

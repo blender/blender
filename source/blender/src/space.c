@@ -1605,13 +1605,24 @@ void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 	uiDefBut(block, TEX, B_NAME_THEME, "", 			255,y3,200,20, btheme->name, 1.0, 30.0, 0, 0, "Rename theme");
 
 	/* main choices pup */
-	uiDefButS(block, MENU, B_CHANGE_THEME, "UI and Buttons %x1|3D View %x2|Ipo Window %x3|Buttons Window %x4|File Window %x5",
+	uiDefButS(block, MENU, B_CHANGE_THEME, "UI and Buttons %x1|3D View %x2|Ipo Curve Editor %x3|Action Editor %x4|"
+		"NLA Editor %x5|UV/Image Editor %x6|Sequence Editor %x7|Sound Editor %x8|Text Editor %x9|User Preferences %x10|"
+		"OOPS Schematic %x11|Buttons Window %x12|File Window %x13|Image Browser %x14",
 													255,y2,200,20, &curmain, 0, 0, 0, 0, "Specify theme for...");
 	if(curmain==1) spacetype= 0;
 	else if(curmain==2) spacetype= SPACE_VIEW3D;
 	else if(curmain==3) spacetype= SPACE_IPO;
-	else if(curmain==4) spacetype= SPACE_BUTS;
-	else if(curmain==5) spacetype= SPACE_FILE;
+	else if(curmain==4) spacetype= SPACE_ACTION;
+	else if(curmain==5) spacetype= SPACE_NLA;
+	else if(curmain==6) spacetype= SPACE_IMAGE;
+	else if(curmain==7) spacetype= SPACE_SEQ;
+	else if(curmain==8) spacetype= SPACE_SOUND;
+	else if(curmain==9) spacetype= SPACE_TEXT;
+	else if(curmain==10) spacetype= SPACE_INFO;
+	else if(curmain==11) spacetype= SPACE_OOPS;
+	else if(curmain==12) spacetype= SPACE_BUTS;
+	else if(curmain==13) spacetype= SPACE_FILE;
+	else if(curmain==14) spacetype= SPACE_IMASEL;
 	else return; // only needed while coding... when adding themes for more windows
 	
 	/* color choices pup */
@@ -1660,7 +1671,7 @@ void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 void drawinfospace(ScrArea *sa, void *spacedata)
 {
 	uiBlock *block;
-	float fac;
+	float fac, col[3];
 	short xpos, ypos, ypostab,  buth, rspace, dx, y1, y2, y3, y4, y2label, y3label, y4label;
 	short smallprefbut, medprefbut, largeprefbut, smfileselbut;
 	short edgespace, midspace;
@@ -1668,7 +1679,8 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 	if(curarea->win==0) return;
 
-	glClearColor(0.6, 0.6, 0.6, 0.0); 
+	BIF_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	fac= ((float)curarea->winx)/1280.0;

@@ -91,6 +91,7 @@ static void draw_nlatree(void)
 	float	x, y;
 	bActionStrip *strip;
 	bConstraintChannel *conchan;
+	float col[3];
 
 	myortho2(0,	NLAWIDTH, G.v2d->cur.ymin, G.v2d->cur.ymax);	//	Scaling
 
@@ -104,7 +105,8 @@ static void draw_nlatree(void)
 		}
 	}
 	
-	glClearColor(.6, .6, .6, 0.0); 
+	BIF_GetThemeColor3fv(TH_HEADER, col);
+	glClearColor(col[0], col[1], col[2], 0.0); 
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	/* Clip to the scrollable area */
@@ -120,14 +122,14 @@ static void draw_nlatree(void)
 	
 	for (base=G.scene->base.first; base; base=base->next){
 		if (nla_filter(base, 0)){		
-			cpack (0xAAAAAA);
+			BIF_ThemeColorShade(TH_HEADER, 20);
 			glRectf(x,  y-NLACHANNELHEIGHT/2,  (float)NLAWIDTH,  y+NLACHANNELHEIGHT/2);
 
 			/* Draw the name / ipo timeline*/
 			if (TESTBASE_SAFE(base))
-				cpack(0xFFFFFF);
+				BIF_ThemeColor(TH_TEXT_HI);
 			else
-				cpack (0x000000);
+				BIF_ThemeColor(TH_TEXT);
 			glRasterPos2f(x+16,  y-4);
 
 			BMF_DrawString(G.font, base->object->id.name+2);
@@ -135,13 +137,13 @@ static void draw_nlatree(void)
 			/* Draw the constraint ipos */
 			for (conchan = base->object->constraintChannels.first; conchan; conchan=conchan->next){
 				y-=NLACHANNELHEIGHT+NLACHANNELSKIP;
-				cpack (0x888888);
+				BIF_ThemeColorShade(TH_HEADER, -30);
 				glRectf(x+16,  y-NLACHANNELHEIGHT/2,  (float)NLAWIDTH,  y+NLACHANNELHEIGHT/2);
 				
 				if (conchan->flag & CONSTRAINT_CHANNEL_SELECT)
-					cpack(0xFFFFFF);
+					BIF_ThemeColor(TH_TEXT_HI);
 				else
-					cpack (0x000000);
+					BIF_ThemeColor(TH_TEXT);
 
 				glRasterPos2f(x+32,  y-4);
 				BMF_DrawString(G.font, conchan->name);
@@ -154,13 +156,13 @@ static void draw_nlatree(void)
 				y-=NLACHANNELHEIGHT+NLACHANNELSKIP;
 				
 				if (base->object->action){
-					cpack (0x888888);
+					BIF_ThemeColorShade(TH_HEADER, -30);
 					glRectf(x+16,  y-NLACHANNELHEIGHT/2,  (float)NLAWIDTH,  y+NLACHANNELHEIGHT/2);
 
 					if (TESTBASE_SAFE(base))
-						cpack(0xFFFFFF);
+						BIF_ThemeColor(TH_TEXT_HI);
 					else
-						cpack (0x000000);
+						BIF_ThemeColor(TH_TEXT);
 					glRasterPos2f(x+32,  y-4);
 					BMF_DrawString(G.font, base->object->action->id.name+2);
 				}
@@ -170,13 +172,13 @@ static void draw_nlatree(void)
 			/* Draw the nla strips */
 			if (base->object->type==OB_ARMATURE){
 				for (strip = base->object->nlastrips.first; strip; strip=strip->next){
-					cpack (0x666666);
+					BIF_ThemeColorShade(TH_HEADER, -50);
 					glRectf(x+32,  y-NLACHANNELHEIGHT/2,  (float)NLAWIDTH,  y+NLACHANNELHEIGHT/2);
 
 					if (TESTBASE_SAFE(base))
-						cpack(0xFFFFFF);
+						BIF_ThemeColor(TH_TEXT_HI);
 					else
-						cpack (0x000000);
+						BIF_ThemeColor(TH_TEXT);
 
 	// why this test? check freeing mem when deleting strips? (ton)
 					if(strip->act) {
@@ -191,33 +193,6 @@ static void draw_nlatree(void)
 	}
 	
 	myortho2(0,	NLAWIDTH, 0, ( ofsy+G.v2d->mask.ymax)-( ofsy+G.v2d->mask.ymin-SCROLLB));	//	Scaling
-
-	glShadeModel(GL_SMOOTH);
- 
-	y=9;
-
-#if 1
-	/* Draw sexy shaded block thingies */
-	glEnable (GL_BLEND);
-	glBegin(GL_QUAD_STRIP);
-	glColor4ub (0x99,0x99,0x99,0x00);
-	glVertex2f (0,SCROLLB*2-y);
-	glVertex2f (NLAWIDTH,SCROLLB*2-y);
-
-	glColor4ub (0x99,0x99,0x99,0xFF);
-	glVertex2f (0,SCROLLB-y);
-	glVertex2f (NLAWIDTH,SCROLLB-y);
-
-	glColor4ub (0x99,0x99,0x99,0xFF);
-	glVertex2f (0,0-y);
-	glVertex2f (NLAWIDTH,0-y);
-
-	glEnd();
-
-	glDisable (GL_BLEND);
-#endif
-
-	glShadeModel(GL_FLAT);
 }
 
 static void draw_nlastrips(SpaceNla *snla)
@@ -226,8 +201,11 @@ static void draw_nlastrips(SpaceNla *snla)
 	gla2DDrawInfo *di;
 	Base *base;
 	bConstraintChannel *conchan;
-	
 	float	y;
+	char col1[3], col2[3];
+	
+	BIF_GetThemeColor3ubv(TH_SHADE2, col2);
+	BIF_GetThemeColor3ubv(TH_HILITE, col1);
 	
 	/* Draw strips */
 
@@ -251,18 +229,18 @@ static void draw_nlastrips(SpaceNla *snla)
 			/* Draw the field */
 			glEnable (GL_BLEND);
 			if (TESTBASE_SAFE(base))
-				glColor4b (0x11, 0x22, 0x55, 0x22);
+				glColor4b (col1[0], col1[1], col1[2], 0x22);
 			else
-				glColor4b (0x55, 0x22, 0x11, 0x22);
+				glColor4b (col2[0], col2[1], col2[2], 0x22);
 			
 			gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
 			glRectf(0,  channel_y-NLACHANNELHEIGHT/2,  frame1_x,  channel_y+NLACHANNELHEIGHT/2);
 			
 			
 			if (TESTBASE_SAFE(base))
-				glColor4b (0x11, 0x22, 0x55, 0x44);
+				glColor4b (col1[0], col1[1], col1[2], 0x44);
 			else
-				glColor4b (0x55, 0x22, 0x11, 0x44);
+				glColor4b (col2[0], col2[1], col2[2], 0x44);
 			glRectf(frame1_x,  channel_y-NLACHANNELHEIGHT/2,   G.v2d->hor.xmax,  channel_y+NLACHANNELHEIGHT/2);
 			
 			glDisable (GL_BLEND);
@@ -275,18 +253,18 @@ static void draw_nlastrips(SpaceNla *snla)
 			for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next){
 				glEnable (GL_BLEND);
 				if (conchan->flag & CONSTRAINT_CHANNEL_SELECT)
-					glColor4b (0x11, 0x22, 0x55, 0x22);
+					glColor4b (col1[0], col1[1], col1[2], 0x22);
 				else
-					glColor4b (0x55, 0x22, 0x11, 0x22);
+					glColor4b (col2[0], col2[1], col2[2], 0x22);
 				
 				gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
 				glRectf(0,  channel_y-NLACHANNELHEIGHT/2+4,  frame1_x,  channel_y+NLACHANNELHEIGHT/2-4);
 				
 				
 				if (conchan->flag & CONSTRAINT_CHANNEL_SELECT)
-					glColor4b (0x11, 0x22, 0x55, 0x44);
+					glColor4b (col1[0], col1[1], col1[2], 0x44);
 				else
-					glColor4b (0x55, 0x22, 0x11, 0x44);
+					glColor4b (col2[0], col2[1], col2[2], 0x44);
 				glRectf(frame1_x,  channel_y-NLACHANNELHEIGHT/2+4,   G.v2d->hor.xmax,  channel_y+NLACHANNELHEIGHT/2-4);
 				
 				glDisable (GL_BLEND);
@@ -307,17 +285,17 @@ static void draw_nlastrips(SpaceNla *snla)
 			/* Draw the field */
 			glEnable (GL_BLEND);
 			if (TESTBASE_SAFE(base))
-				glColor4ub (0x11, 0x22, 0x55, 0x22);
+				glColor4ub (col1[0], col1[1], col1[2], 0x22);
 			else
-				glColor4ub (0x55, 0x22, 0x11, 0x22);
+				glColor4ub (col2[0], col2[1], col2[2], 0x22);
 			gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
 			glRectf(0,  channel_y-NLACHANNELHEIGHT/2+4,  frame1_x,  channel_y+NLACHANNELHEIGHT/2-4);
 			
 			
 			if (TESTBASE_SAFE(base))
-				glColor4ub (0x11, 0x22, 0x55, 0x44);
+				glColor4ub (col1[0], col1[1], col1[2], 0x44);
 			else
-				glColor4ub (0x55, 0x22, 0x11, 0x44);
+				glColor4ub (col2[0], col2[1], col2[2], 0x44);
 			glRectf(frame1_x,  channel_y-NLACHANNELHEIGHT/2+4,   G.v2d->hor.xmax,  channel_y+NLACHANNELHEIGHT/2-4);
 			
 			glDisable (GL_BLEND);
@@ -334,14 +312,14 @@ static void draw_nlastrips(SpaceNla *snla)
 			for (strip=ob->nlastrips.first; strip; strip=strip->next){
 				int stripstart, stripend;
 				int blendstart, blendend;
-				unsigned char r,g,b;
+				unsigned char r, g, b;
 				
 				/* Draw rect */
 				if (strip->flag & ACTSTRIP_SELECT){
-					r = 0xFF; g=0xFF; b=0xAA;
+					r= 0xff; g= 0xff; b= 0xaa;
 				}
 				else{
-					r = 0xE4; g=0x9C; b=0xC6;
+					r= 0xe4; g= 0x9c; b= 0xc6;
 				}
 				
 				glColor4ub (r, g, b, 0xFF);
@@ -431,6 +409,7 @@ static void draw_nlastrips(SpaceNla *snla)
 
 void drawnlaspace(ScrArea *sa, void *spacedata)
 {
+	float col[3];
 	short ofsx = 0, ofsy = 0;
 	
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) ;
@@ -446,7 +425,8 @@ void drawnlaspace(ScrArea *sa, void *spacedata)
 		}
 	}
 	
-	glClearColor(.45, .45, .45, 0.0); 
+	BIF_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);

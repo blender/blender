@@ -183,16 +183,6 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				allqueue (REDRAWIPO, 0);
 			}
 			break;
-		case RIGHTMOUSE:
-			if (mval[0]>=NLAWIDTH) {
-				if(G.qual & LR_SHIFTKEY)
-					mouse_nla(SELECT_INVERT);
-				else
-					mouse_nla(SELECT_REPLACE);
-			}
-			else
-				mouse_nlachannels(mval);
-			break;
 		case LEFTMOUSE:
 			if (mval[0]>NLAWIDTH){
 				do {
@@ -211,8 +201,18 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 					
 				} while(get_mbut()&L_MOUSE);
+				break;
 			}
-			
+			/* no break here, we allow leftmouse select */
+		case RIGHTMOUSE:
+			if (mval[0]>=NLAWIDTH) {
+				if(G.qual & LR_SHIFTKEY)
+					mouse_nla(SELECT_INVERT);
+				else
+					mouse_nla(SELECT_REPLACE);
+			}
+			else
+				mouse_nlachannels(mval);
 			break;
 		case MIDDLEMOUSE:
 		case WHEELUPMOUSE:

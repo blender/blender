@@ -66,6 +66,7 @@
 #include "BIF_drawseq.h"
 #include "BIF_editseq.h"
 #include "BIF_drawimage.h"
+#include "BIF_resources.h"
 
 #include "BSE_view.h"
 #include "BSE_drawipo.h"
@@ -495,7 +496,7 @@ static void draw_extra_seqinfo(void)
 	xfac/= (float)(G.v2d->mask.xmax-G.v2d->mask.xmin);
 	xco= G.v2d->cur.xmin+40*xfac;
 	
-	cpack(0);
+	BIF_ThemeColor(TH_TEXT);
 	
 	/* NAME */
 	glRasterPos3f(xco,  0.3, 0.0);
@@ -582,6 +583,7 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 	SpaceSeq *sseq;
 	Editing *ed;
 	Sequence *seq;
+	float col[3];
 	int ofsx, ofsy;
 
 	ed= G.scene->ed;
@@ -591,9 +593,10 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 		draw_image_seq();
 		return;
 	}
-
-	if(ed && ed->metastack.first) glClearColor(0.5, 0.5, 0.4, 0.0);
-	else glClearColor(.40625, .40625, .40625, 0.0);
+	
+	BIF_GetThemeColor3fv(TH_BACK, col);
+	if(ed && ed->metastack.first) glClearColor(col[0], col[1], col[2]-1.0, 0.0);
+	else glClearColor(col[0], col[1], col[2], 0.0);
 	
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -611,7 +614,7 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 
 	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 	
-	cpack(0x585858);
+	BIF_ThemeColorShade(TH_BACK, -20);
 	glRectf(G.v2d->cur.xmin,  0.0,  G.v2d->cur.xmax,  1.0);
 	
 	boundbox_seq();

@@ -66,6 +66,7 @@
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_mywindow.h"
+#include "BIF_resources.h"
 
 /*  #include "BIF_drawoops.h" bad name :(*/
 #include "BIF_oops.h"
@@ -368,9 +369,11 @@ void draw_oops(Oops *oops)
 void drawoopsspace(ScrArea *sa, void *spacedata)
 {
 	Oops *oops;
+	float col[3];
 	int ofsx, ofsy;
 	
-	glClearColor(0.55, 0.55, 0.55, 0.0);
+	BIF_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	if(G.soops==0) return;	
 

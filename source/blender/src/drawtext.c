@@ -77,6 +77,7 @@
 #include "BIF_toolbox.h"
 #include "BIF_space.h"
 #include "BIF_mywindow.h"
+#include "BIF_resources.h"
 
 #include "BSE_filesel.h"
 
@@ -252,7 +253,7 @@ static void draw_cursor(SpaceText *st) {
 		if (x) {
 			h= txt_get_span(text->lines.first, text->curl) - st->top;
 
-			glColor3f(1.0, 0.0, 0.0);
+			BIF_ThemeColor(TH_HILITE);
 			
 			glRecti(x-1, curarea->winy-st->lheight*(h)-2, x+1, curarea->winy-st->lheight*(h+1)-2);
 		}
@@ -289,7 +290,7 @@ static void draw_cursor(SpaceText *st) {
 	
 		x= text_draw(st, linef->line, st->left, charf, 0, 0, 0);
 
-		glColor3f(0.75, 0.44, 0.44);
+		BIF_ThemeColor(TH_SHADE2);
 
 		if(st->showlinenrs) {
 			if (!x) x= TXT_OFFSET + TEXTXLOC -4;
@@ -321,10 +322,7 @@ static void draw_cursor(SpaceText *st) {
 
 		i= text_draw(st, linel->line, st->left, charl, 0, 0, 0);
 		if(i) glRecti(x, curarea->winy-st->lheight*(h)-2, i, curarea->winy-st->lheight*(h+1)-2);
-// draw cursor in selection
-//		h= txt_get_span(text->lines.first, text->curl) - st->top;
-//		glColor3f(1.0, 0.0, 0.0);
-//		glRecti(x2-1, curarea->winy-st->lheight*(h)-2, x2+1, curarea->winy-st->lheight*(h+1)-2);
+
 	}
 
 	glColor3f(0.0, 0.0, 0.0);
@@ -379,14 +377,14 @@ static void draw_textscroll(SpaceText *st)
 
 	calc_text_rcts(st);
 	
-	cpack(0x707070);
+	BIF_ThemeColorShade(TH_SHADE1, -20);
 	glRecti(2, 2, 20, curarea->winy-6);
 	uiEmboss(2, 2, 20, curarea->winy-6, 1);
 
-	cpack(0x909090);
+	BIF_ThemeColor(TH_SHADE1);
 	glRecti(st->txtbar.xmin, st->txtbar.ymin, st->txtbar.xmax, st->txtbar.ymax);
 
-	cpack(0x7777c6);
+	BIF_ThemeColor(TH_SHADE2);
 	glRecti(st->txtscroll.xmin, st->txtscroll.ymin, st->txtscroll.xmax, st->txtscroll.ymax);
 
 	uiEmboss(st->txtbar.xmin, st->txtbar.ymin, st->txtbar.xmax, st->txtbar.ymax, st->flags & ST_SCROLL_SELECT);
@@ -543,6 +541,7 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	int i;
 	TextLine *tmp;
 	char linenr[12];
+	float col[3];
 	int linecount = 0;
 
 	if (BPY_spacetext_is_pywin(st)) {
@@ -550,7 +549,8 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 		return;
 	}
 	
-	glClearColor(0.6, 0.6,  0.6, 1.0);
+	BIF_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	myortho2(-0.5, (float)(sa->winx)-.05, -0.5, (float)(sa->winy)-0.5);
 
