@@ -360,18 +360,7 @@ typedef struct Scene {
 #define RAD_PHASE_PATCHES	1
 #define RAD_PHASE_FACES		2
 
-/* base->flag and ob->flag */
-#define BA_WASSEL			2
-#define BA_PARSEL			4
-#define BA_WHERE_UPDATE		8
-#define BA_DISP_UPDATE		16
-#define BA_DO_IPO			32
-#define BA_FROMSET			128
-#define OB_DO_IMAT			256
-#define OB_FROMDUPLI		512
-#define OB_DONE				1024
-#define OB_RADIO			2048
-#define OB_FROMGROUP		4096
+/* base->flag is in DNA_object_types.h */
 
 /* sce->flag */
 #define SCE_ADDSCENAME		1

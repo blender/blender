@@ -35,6 +35,7 @@
 #ifndef BKE_DISPLIST_H
 #define BKE_DISPLIST_H
 
+/* dl->type */
 #define DL_POLY                 0
 #define DL_SEGM                 1
 #define DL_SURF                 2
@@ -46,7 +47,9 @@
 #define DL_NORS                 8
 #define DL_MESH					9
 
-/* EVIL: #define DL_SURFINDEX(cyclu, cyclv, sizeu, sizev) */
+/* dl->flag */
+#define DL_CYCL_U		1
+#define DL_CYCL_V		2
 
 /* prototypes */
 

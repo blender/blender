@@ -790,7 +790,7 @@ void addnormalsDispList(Object *ob, ListBase *lb)
 				
 				for(a=0; a<dl->parts; a++) {
 	
-					DL_SURFINDEX(dl->flag & 1, dl->flag & 2, dl->nr, dl->parts);
+					DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
 	
 					v1= vdata+ 3*p1; 
 					n1= ndata+ 3*p1;
@@ -850,6 +850,7 @@ void shadeDispList(Object *ob)
 	
 	Mat4Invert(tmat, mat);
 	Mat3CpyMat4(imat, tmat);
+	if(ob->transflag & OB_NEG_SCALE) Mat3MulFloat((float *)imat, -1.0);
 	
 	/* we extract dl_verts, deform info */
 	dldeform= find_displist(&ob->disp, DL_VERTS);
@@ -1543,7 +1544,7 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 	dl= dispbase->first;
 	while(dl) {
 		if(dl->type==DL_SURF) {
-			if(dl->flag==2) {
+			if(dl->flag == DL_CYCL_V) {
 				if(cu->flag & CU_BACK) {
 					dlnew= MEM_callocN(sizeof(DispList), "filldisp");
 					BLI_addtail(&front, dlnew);
@@ -1644,7 +1645,7 @@ void makeDispList(Object *ob)
 	if(ob==0) return;
 	if(ob->flag & OB_FROMDUPLI) return;
 	freedisplist(&(ob->disp));
-
+	
 	if(ob->type==OB_MESH) {
 		me= ob->data;
 
@@ -1736,14 +1737,14 @@ void makeDispList(Object *ob)
 						if(draw==0) {
 							dl->parts= nu->pntsv;
 							dl->nr= nu->pntsu;
-							if(nu->flagu & 1) dl->flag|= 1;
-							if(nu->flagv & 1) dl->flag|= 2;
+							if(nu->flagu & 1) dl->flag|= DL_CYCL_U;
+							if(nu->flagv & 1) dl->flag|= DL_CYCL_V;
 						}
 						else {
 							dl->parts= nu->resolu;	/* in reverse, because makeNurbfaces works that way */
 							dl->nr= nu->resolv;
-							if(nu->flagv & 1) dl->flag|= 1;	/* reverse too! */
-							if(nu->flagu & 1) dl->flag|= 2;
+							if(nu->flagv & 1) dl->flag|= DL_CYCL_U;	/* reverse too! */
+							if(nu->flagu & 1) dl->flag|= DL_CYCL_V;
 						}
 						dl->col= nu->mat_nr;
 	
@@ -1837,8 +1838,8 @@ void makeDispList(Object *ob)
 
 						dl->type= DL_SURF;
 						dl->flag= 0;
-						if(dlb->type==DL_POLY) dl->flag++;
-						if(bl->poly>=0) dl->flag+=2;
+						if(dlb->type==DL_POLY) dl->flag |= DL_CYCL_U;
+						if(bl->poly>=0) dl->flag |= DL_CYCL_V;
 
 						dl->parts= bl->nr;
 						dl->nr= dlb->nr;
@@ -1897,6 +1898,7 @@ void makeDispList(Object *ob)
 		tex_space_curve(cu);
 
 	}
+	
 }
 
 

@@ -1297,7 +1297,7 @@ static void drawDispListwire(ListBase *dlbase)
 			parts= dl->parts;
 			while(parts--) {
 				nr= dl->nr;
-				if(dl->flag & 1) glBegin(GL_LINE_LOOP);
+				if(dl->flag & DL_CYCL_U) glBegin(GL_LINE_LOOP);
 				else glBegin(GL_LINE_STRIP);
 
 				while(nr--) {
@@ -1311,7 +1311,7 @@ static void drawDispListwire(ListBase *dlbase)
 			while(nr--) {
 				data= (  dl->verts )+3*nr;
 				parts= dl->parts;
-				if(dl->flag & 2) glBegin(GL_LINE_LOOP);
+				if(dl->flag & DL_CYCL_V) glBegin(GL_LINE_LOOP);
 				else glBegin(GL_LINE_STRIP);
 				
 				while(parts--) {
@@ -1374,9 +1374,14 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 	int drawsmooth= !(G.f & G_BACKBUFSEL);
 	
 	if(lb==0) return;
+	
+	/* drawsmooth abused here, except for Mesh this draws with smooth default */
 	if (drawsmooth) {
 		glShadeModel(GL_SMOOTH);
 		glEnable(GL_LIGHTING);
+		
+		if(ob->transflag & OB_NEG_SCALE) glFrontFace(GL_CW);
+		else glFrontFace(GL_CCW);
 	}
 	
 	dl= lb->first;
@@ -1389,7 +1394,7 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 			if(!drawsmooth) {
 				for(a=0; a<dl->parts; a++) {
 	
-					DL_SURFINDEX(dl->flag & 1, dl->flag & 2, dl->nr, dl->parts);
+					DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
 	
 					v1= data+ 3*p1; 
 					v2= data+ 3*p2;
@@ -1420,7 +1425,7 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 
 				for(a=0; a<dl->parts; a++) {
 					
-					DL_SURFINDEX(dl->flag & 1, dl->flag & 2, dl->nr, dl->parts);
+					DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
 					
 					v1= data+ 3*p1; 
 					v2= data+ 3*p2;
@@ -1560,6 +1565,7 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 	if(drawsmooth) {
 		glShadeModel(GL_FLAT);
 		glDisable(GL_LIGHTING);
+		glFrontFace(GL_CCW);
 	}
 }
 
@@ -1588,7 +1594,7 @@ static void drawDispListshaded(ListBase *lb, Object *ob)
 
 			for(a=0; a<dl->parts; a++) {
 
-				DL_SURFINDEX(dl->flag & 1, dl->flag & 2, dl->nr, dl->parts);
+				DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
 
 				v1= data+ 3*p1; 
 				v2= data+ 3*p2;
@@ -1714,7 +1720,11 @@ static void drawmeshsolid(Object *ob, float *nors)
 	if( (G.f & G_BACKBUFSEL)==0 ) {
 		glEnable(GL_LIGHTING);
 		init_gl_materials(ob);
+
 		two_sided( me->flag & ME_TWOSIDED );
+
+		if(ob->transflag & OB_NEG_SCALE) glFrontFace(GL_CW);
+		else glFrontFace(GL_CCW);
 	}
 
 	mface= me->mface;
@@ -1917,7 +1927,7 @@ static void drawmeshsolid(Object *ob, float *nors)
 		glDisable(GL_CULL_FACE);
 	}
 	glDisable(GL_LIGHTING);
-
+	glFrontFace(GL_CCW);
 }
 
 static void drawmeshshaded(Object *ob, unsigned int *col1, unsigned int *col2)

@@ -193,14 +193,8 @@ extern Object workob;
 
 /* **************** OBJECT ********************* */
 
-/* used many places... should be specialized */
+/* used many places... should be specialized  */
 #define SELECT			1
-#define ACTIVE			2
-#define GONNA_MOVE     32 /* temporary, for figuring what stuff needs
-						   * updating during transform due to parenting
-						   * or constraints... do not rely on this value
-						   * unless you are me (CW).
-						   */
 
 /* type */
 #define OB_EMPTY		0
@@ -235,6 +229,7 @@ extern Object workob;
 /* char! transflag */
 #define OB_OFFS_LOCAL	1
 #define OB_QUAT			2
+#define OB_NEG_SCALE	4
 #define OB_DUPLI		(8+16)
 #define OB_DUPLIFRAMES	8
 #define OB_DUPLIVERTS	16
@@ -291,12 +286,14 @@ extern Object workob;
 #define OB_BOUND_POLYH		4
 
 /* also needed for base!!!!! or rather, thy interfere....*/
-/* base->flag en ob->flag */
+/* base->flag and ob->flag */
 #define BA_WASSEL			2
 #define BA_PARSEL			4
 #define BA_WHERE_UPDATE		8
 #define BA_DISP_UPDATE		16
 #define BA_DO_IPO			32
+#define OB_GONNA_MOVE		32
+
 #define BA_FROMSET			128
 #define OB_DO_IMAT			256
 #define OB_FROMDUPLI		512

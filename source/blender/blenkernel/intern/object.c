@@ -1178,7 +1178,7 @@ void where_is_object_time(Object *ob, float ctime)
 {
 	Object *par;
 	float *fp1, *fp2, slowmat[4][4] = MAT4_UNITY;
-	float stime, fac1, fac2;
+	float stime, fac1, fac2, vec[3];
 	int a;
 	int pop; 
 	
@@ -1258,6 +1258,11 @@ void where_is_object_time(Object *ob, float ctime)
 	if(ob->scriptlink.totscript && !during_script()) {
 		BPY_do_pyscript((ID *)ob, SCRIPT_REDRAW);
 	}
+	
+	/* set negative scale flag in object */
+	Crossf(vec, ob->obmat[0], ob->obmat[1]);
+	if( Inpf(vec, ob->obmat[2]) < 0.0 ) ob->transflag |= OB_NEG_SCALE;
+	else ob->transflag &= ~OB_NEG_SCALE;
 }
 
 static void solve_parenting (Object *ob, Object *par, float slowmat[][4], int simul)

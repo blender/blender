@@ -118,9 +118,12 @@
 #define FILESELHEAD		60
 #define FILESEL_DY		16
 
+/* for events */
 #define NOTACTIVE			0
 #define ACTIVATE			1
 #define INACTIVATE			2
+/* for state of file */
+#define ACTIVE				2
 
 #define STARTSWITH(x, y) (strncmp(x, y, sizeof(x) - 1) == 0)
 

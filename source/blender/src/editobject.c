@@ -2913,13 +2913,13 @@ void clear_gonna_move(void) {
 
 	/* clear the gonna move flag */
 	for (base= FIRSTBASE; base; base= base->next) {
-		base->object->flag &= ~GONNA_MOVE;
+		base->object->flag &= ~OB_GONNA_MOVE;
 	}
 }
 
 int is_parent_gonna_move(Object *ob) {
 	if ( (ob->parent) &&
-		 (ob->parent->flag & GONNA_MOVE) ) {
+		 (ob->parent->flag & OB_GONNA_MOVE) ) {
 		return 1;
 	}
 	return 0;
@@ -2932,7 +2932,7 @@ int is_constraint_target_gonna_move(Object *ob) {
 
 	for (con = ob->constraints.first; con; con=con->next) {
 		if ( (tarOb = get_con_target(con)) ) {
-			if (tarOb->flag & GONNA_MOVE )
+			if (tarOb->flag & OB_GONNA_MOVE )
 				return 1;
 		}
 	}
@@ -2941,7 +2941,7 @@ int is_constraint_target_gonna_move(Object *ob) {
 		for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
 			for (con = chan->constraints.first; con; con=con->next) {
 				if ( (tarOb = get_con_target(con)) ) {
-					if (tarOb->flag & GONNA_MOVE )
+					if (tarOb->flag & OB_GONNA_MOVE )
 						return 1;
 				}
 			}
@@ -2963,19 +2963,19 @@ void flag_moving_objects(void) {
 		oldnumgonnamove = numgonnamove;
 		numgonnamove = 0;
 		for (base= FIRSTBASE; base; base= base->next) {
-			if (base->object->flag & GONNA_MOVE) {
+			if (base->object->flag & OB_GONNA_MOVE) {
 				++numgonnamove;
 			}
 			else if (base->flag & SELECT) {
-				base->object->flag |= GONNA_MOVE;
+				base->object->flag |= OB_GONNA_MOVE;
 				++numgonnamove;
 			}
 			else if (is_parent_gonna_move(base->object)) {
-				base->object->flag |= GONNA_MOVE;
+				base->object->flag |= OB_GONNA_MOVE;
 				++numgonnamove;
 			}
 			else if (is_constraint_target_gonna_move(base->object)) {
-				base->object->flag |= GONNA_MOVE;
+				base->object->flag |= OB_GONNA_MOVE;
 				++numgonnamove;
 			}
 		}
@@ -3007,8 +3007,8 @@ static int pose_do_update_flag(Object *ob) {
 				for (base= FIRSTBASE; base; base= base->next) {
 					if (is_ob_constraint_target(base->object, 
 												&chan->constraints)) {
-						if( (base->object->flag & GONNA_MOVE) || 
-							(ob->flag & GONNA_MOVE)) {
+						if( (base->object->flag & OB_GONNA_MOVE) || 
+							(ob->flag & OB_GONNA_MOVE)) {
 							Bone *bone;
 							/* If this armature is selected, or if the
 							 * object that is the target of a constraint
