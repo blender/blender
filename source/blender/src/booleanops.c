@@ -637,7 +637,7 @@ ConvertCSGDescriptorsToMeshObject(
 	if (face_it == NULL || vertex_it == NULL || props == NULL || me == NULL) {
 		return 0;
 	}
-	if (vertex_it->num_elements > 65000) return 0;
+	if (vertex_it->num_elements > MESH_MAX_VERTS) return 0;
 
 	// initialize the face structure for readback
 	

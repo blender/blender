@@ -211,5 +211,6 @@ typedef struct Mesh {
 #define ME_SPHERETEMP	4
 #define ME_HIDE			16
 
-#endif
+#define MESH_MAX_VERTS 2000000000L
 
+#endif

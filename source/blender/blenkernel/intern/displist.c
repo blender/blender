@@ -262,7 +262,7 @@ void displistmesh_to_mesh(DispListMesh *dlm, Mesh *me) {
 	MFace *mfaces;
 	int i;
 	
-	if (dlm->totvert>65000) {
+	if (dlm->totvert>MESH_MAX_VERTS) {
 		error("Too many vertices");
 	} else {
 		me->totface= dlm->totface;

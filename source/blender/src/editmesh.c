@@ -7059,7 +7059,7 @@ void join_mesh(void)
 	/* that way the active object is always selected */ 
 	if(ok==0) return;
 	
-	if(totvert==0 || totvert>2000000000L) return;
+	if(totvert==0 || totvert>MESH_MAX_VERTS) return;
 	
 	if(okee("Join selected Meshes")==0) return;
 	

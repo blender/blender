@@ -158,7 +158,7 @@ static void read_videoscape_mesh(char *str)
 		return;
 	}
 	
-	if(verts>2000000000L) {
+	if(verts>MESH_MAX_VERTS) {
 		error("too many vertices");
 		fclose(fp);
 		return;
@@ -202,7 +202,7 @@ static void read_videoscape_mesh(char *str)
 		}
 	}
 	
-	if(totedge+tottria+totquad>2000000000L) {
+	if(totedge+tottria+totquad>MESH_MAX_VERTS) {
 		printf(" var1: %d, var2: %d, var3: %d \n", totedge, tottria, totquad);
 		error("too many faces");
 		MEM_freeN(vertdata);
@@ -375,7 +375,7 @@ static void read_radiogour(char *str)
 		return;
 	}
 	
-	if(verts>2000000000L) {
+	if(verts>MESH_MAX_VERTS) {
 		error("too many vertices");
 		fclose(fp);
 		return;
@@ -410,7 +410,7 @@ static void read_radiogour(char *str)
 		
 	}
 	
-	if(totedge+tottria+totquad>2000000000L) {
+	if(totedge+tottria+totquad>MESH_MAX_VERTS) {
 		printf(" var1: %d, var2: %d, var3: %d \n", totedge, tottria, totquad);
 		error("too many faces");
 		MEM_freeN(vertdata);
@@ -1673,8 +1673,8 @@ static void displist_to_mesh(DispList *dlfirst)
 	if(totvert==0) {
 		return;
 	}
-	if(totvert>=2000000000L || tottria>=2000000000L) {
-		if (totvert>=2000000000L) {
+	if(totvert>MESH_MAX_VERTS || tottria>=MESH_MAX_VERTS) {
+		if (totvert>=MESH_MAX_VERTS) {
 			error("Too many vertices (%d)", totvert);
 		} else {
 			error("Too many faces (%d)", tottria);
@@ -3285,7 +3285,8 @@ static void dxf_read_line(int noob) {
 	/* Check to see if we need to make a new object */
 
 	if(!lwasline || strcmp(layname, oldllay)!=0) dxf_close_line();
-	if(linemhold != NULL && linemhold->totvert>2000000000L) dxf_close_line();
+	if(linemhold != NULL && linemhold->totvert>MESH_MAX_VERTS) 
+		dxf_close_line();
 					
 	if (linemhold==NULL) {
 		if (noob) {
@@ -3433,7 +3434,8 @@ static void dxf_read_polyline(int noob) {
 
 	if (flag&1) {
 		if(!lwasp2d || strcmp(layname, oldplay)!=0) dxf_close_2dpoly();
-		if(p2dmhold != NULL && p2dmhold->totvert>2000000000L) dxf_close_2dpoly();
+		if(p2dmhold != NULL && p2dmhold->totvert>MESH_MAX_VERTS)
+			dxf_close_2dpoly();
 
 		if (p2dmhold==NULL) {
 			if (noob) {
@@ -3593,7 +3595,7 @@ static void dxf_read_polyline(int noob) {
 				me->totvert++;
 				
 				/* If we are nearing the limit scan to the next entry */
-				if(me->totvert > 2000000000L) 
+				if(me->totvert > MESH_MAX_VERTS) 
 					while(group_isnt(0, "SEQEND")) read_group(id, val);
 		
 				vtmp= MEM_callocN(me->totvert*sizeof(MVert), "mverts");
@@ -3773,7 +3775,8 @@ static void dxf_read_3dface(int noob)
 	/* Check to see if we need to make a new object */
 
 	if(!lwasf3d || strcmp(layname, oldflay)!=0) dxf_close_3dface();
-	if(f3dmhold != NULL && f3dmhold->totvert>2000000000L) dxf_close_3dface();
+	if(f3dmhold != NULL && f3dmhold->totvert>MESH_MAX_VERTS)
+		dxf_close_3dface();
 	
 	if(nverts<3) {
 		error("(3DF) Error parsing dxf, not enough vertices near line %d", dxf_line);
