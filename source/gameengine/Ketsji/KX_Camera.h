@@ -96,10 +96,12 @@ public:
 	void				SetModelviewMatrix(const MT_Matrix4x4 & mat);
 		
 	/** Gets the projection matrix that is used by the rasterizer. */
-	void				GetProjectionMatrix(MT_Matrix4x4 & mat);
+	const MT_Matrix4x4&		GetProjectionMatrix();
 	
-	/** Gets the modelview matrix that is used by the rasterizer. */
-	void				GetModelviewMatrix(MT_Matrix4x4 & mat);
+	/** Gets the modelview matrix that is used by the rasterizer. 
+	 *  @warning If the Camera is a dynamic object then this method may return garbage.  Use GetCameraToWorld() instead.
+	 */
+	const MT_Matrix4x4&		GetModelviewMatrix();
 
 	/** Gets the focal lenght. */
 	float				GetLens();

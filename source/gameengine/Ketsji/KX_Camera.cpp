@@ -46,6 +46,8 @@ KX_Camera::KX_Camera(void* sgReplicationInfo,
 {
 	// setting a name would be nice...
 	m_name = "cam";
+	m_projection_matrix.setIdentity();
+	m_modelview_matrix.setIdentity();
 	SetProperty("camera",new CIntValue(1));
 }
 
@@ -138,9 +140,9 @@ void KX_Camera::SetModelviewMatrix(const MT_Matrix4x4 & mat)
 /**
 * Gets the projection matrix that is used by the rasterizer.
 */
-void KX_Camera::GetProjectionMatrix(MT_Matrix4x4 & mat)
+const MT_Matrix4x4& KX_Camera::GetProjectionMatrix()
 {
-	mat = m_projection_matrix;
+	return m_projection_matrix;
 }
 
 
@@ -148,9 +150,9 @@ void KX_Camera::GetProjectionMatrix(MT_Matrix4x4 & mat)
 /**
 * Gets the modelview matrix that is used by the rasterizer.
 */
-void KX_Camera::GetModelviewMatrix(MT_Matrix4x4 & mat)
+const MT_Matrix4x4& KX_Camera::GetModelviewMatrix()
 {
-	mat = m_modelview_matrix;
+	return m_modelview_matrix;
 }
 
 

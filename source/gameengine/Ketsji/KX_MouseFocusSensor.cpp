@@ -208,14 +208,11 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 	);
 
 	/* camera to world  */
-	MT_Matrix4x4 camcs_wcs_matrix;
-	cam->GetModelviewMatrix(camcs_wcs_matrix);
-  	camcs_wcs_matrix.invert();
+	MT_Matrix4x4 camcs_wcs_matrix = MT_Matrix4x4(cam->GetCameraToWorld());
 
-	MT_Matrix4x4 clip_camcs_matrix;
 	/* badly defined, the first time round.... I wonder why... I might
 	 * want to guard against floating point errors here.*/
-	cam->GetProjectionMatrix(clip_camcs_matrix);
+	MT_Matrix4x4 clip_camcs_matrix = MT_Matrix4x4(cam->GetProjectionMatrix());
 	clip_camcs_matrix.invert();
 
 	/* shoot-points: clip to cam to wcs . win to clip was already done.*/
@@ -223,7 +220,7 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 	topoint   = clip_camcs_matrix * topoint;
 	frompoint = camcs_wcs_matrix * frompoint;
 	topoint   = camcs_wcs_matrix * topoint;
-
+	
 	/* from hom wcs to 3d wcs: */
 	MT_Point3 frompoint3 = MT_Point3(frompoint[0]/frompoint[3], 
 									 frompoint[1]/frompoint[3], 
