@@ -1177,6 +1177,7 @@ void hide_mesh(int swap)
 	EditVert *eve;
 	EditEdge *eed;
 	EditFace *efa;
+	int a;
 	
 	if(G.obedit==0) return;
 
@@ -1184,6 +1185,7 @@ void hide_mesh(int swap)
 	/*  - vertex hidden, always means edge is hidden too
 		- edge hidden, always means face is hidden too
 		- face hidden, only set face hide
+		- then only flush back down what's absolute hidden
 	*/
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 		for(eve= em->verts.first; eve; eve= eve->next) {
@@ -1234,6 +1236,35 @@ void hide_mesh(int swap)
 		}
 	}
 	
+	/* flush down, only whats 100% hidden */
+	for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
+	for(eed= em->edges.first; eed; eed= eed->next) eed->f1= 0;
+	
+	if(G.scene->selectmode & SCE_SELECT_FACE) {
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->h) a= 1; else a= 2;
+			efa->e1->f1 |= a;
+			efa->e2->f1 |= a;
+			efa->e3->f1 |= a;
+			if(efa->e4) efa->e4->f1 |= a;
+		}
+	}
+	
+	if(G.scene->selectmode >= SCE_SELECT_EDGE) {
+		for(eed= em->edges.first; eed; eed= eed->next) {
+			if(eed->f1==1) eed->h= 1;
+			if(eed->h) a= 1; else a= 2;
+			eed->v1->f1 |= a;
+			eed->v2->f1 |= a;
+		}
+	}
+
+	if(G.scene->selectmode >= SCE_SELECT_VERTEX) {
+		for(eve= em->verts.first; eve; eve= eve->next) {
+			if(eve->f1==1) eve->h= 1;
+		}
+	}
+		
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);
 	BIF_undo_push("Hide");
@@ -1269,6 +1300,8 @@ void reveal_mesh(void)
 			efa->f |= SELECT;
 		}
 	}
+	
+	EM_select_flush();
 	
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);
