@@ -174,24 +174,21 @@ char *get_filename(int argc, char **argv) {
 #endif // !_APPLE
 }
 
-BlendFileData *load_game_data(char *progname, char *filename) {
+static BlendFileData *load_game_data(char *progname, char *filename = NULL) {
 	BlendReadError error;
 	BlendFileData *bfd = NULL;
 	
 	/* try to load ourself, will only work if we are a runtime */
 	if (blo_is_a_runtime(progname)) {
 		bfd= blo_read_runtime(progname, &error);
-	}
-	if (bfd) {
-		bfd->type= BLENFILETYPE_RUNTIME;
-		strcpy(bfd->main->name, progname);
-	} else {
-		if (filename) {
-			return load_game_data(filename, NULL);
-//			bfd= BLO_read_from_file(filename, &error);
+		if (bfd) {
+			bfd->type= BLENFILETYPE_RUNTIME;
+			strcpy(bfd->main->name, progname);
 		}
+	} else {
+		bfd= BLO_read_from_file(progname, &error);
 	}
-	
+ 	
 	/*
 	if (bfd && bfd->type == BLENFILETYPE_BLEND) {
 		BLO_blendfiledata_free(bfd);
@@ -200,8 +197,9 @@ BlendFileData *load_game_data(char *progname, char *filename) {
 	}
 	*/
 	
-	if (!bfd) {
-		if (filename) {
+	if (!bfd && filename) {
+		bfd = load_game_data(filename);
+		if (!bfd) {
 			printf("Loading %s failed: %s\n", filename, BLO_bre_as_string(error));
 		}
 	}
@@ -435,7 +433,7 @@ int main(int argc, char** argv)
 						strcpy(basedpath, exitstring.Ptr());
 						BLI_convertstringcode(basedpath, pathname, 0);
 						
-						bfd = load_game_data(NULL, basedpath);
+						bfd = load_game_data(basedpath);
 					}
 					else
 					{
