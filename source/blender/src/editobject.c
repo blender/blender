@@ -3696,6 +3696,18 @@ void special_trans_update(int keyflags)
 			if(cu->flag & CU_3D) makeBevelList(G.obedit);
 			
 			calc_curvepath(G.obedit);
+			
+			base= FIRSTBASE;
+			while(base) {
+				if(base->lay & G.vd->lay) {
+					if(base->object->type==OB_CURVE) {
+						Curve *cu= base->object->data;
+						if(G.obedit==cu->bevobj || G.obedit==cu->taperobj)
+							makeDispList(base->object);
+					}
+				}
+				base= base->next;
+			}
 		}
 		else if(G.obedit->type==OB_ARMATURE){
 			EditBone *ebo;
