@@ -423,7 +423,7 @@ void BIF_write_homefile(void)
 	char dir[FILE_MAXDIR+FILE_MAXFILE];
 	BLI_getInstallationDir(dir);
 
-	strcat(dir,".blender/");
+	strcat(dir,"/.blender/");
 
 	BLI_make_file_string("/", tstr, dir, ".B.blend");
 #else

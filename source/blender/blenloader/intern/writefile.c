@@ -1612,7 +1612,7 @@ int BLO_write_file(char *dir, int write_flags, char **error_r)
 	BLI_getInstallationDir(tmpdir);
 
 	if(BLI_exists(tmpdir))
-		strcat(tmpdir,".blender/");
+		strcat(tmpdir,"/.blender/");
 
 	BLI_make_file_string(G.sce, userfilename, tmpdir, ".B.blend");
 #else

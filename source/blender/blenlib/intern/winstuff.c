@@ -51,9 +51,12 @@
 int BLI_getInstallationDir( char * str ) {
 	char dir[FILE_MAXDIR];
 	char file[FILE_MAXFILE];
+	int a;
 	
 	GetModuleFileName(NULL,str,FILE_MAXDIR+FILE_MAXFILE);
 	BLI_split_dirfile(str,dir,file);
+	a = strlen(dir);
+	if(dir[a-1] == '\\') dir[a-1]=0;
 	
 	strcpy(str,dir);
 	
