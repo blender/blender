@@ -323,6 +323,7 @@ int audio_init(SDL_AudioSpec *desired)
 
 	if ( SDL_OpenAudio(desired, obtained) < 0 ){
 	  fprintf(stderr, "Couldn't open audio: %s\n", SDL_GetError());
+	  if (obtained) MEM_freeN(obtained);
 	  return 0;
 	}
 	hardware_spec=obtained;
