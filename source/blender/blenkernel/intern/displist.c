@@ -573,14 +573,22 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 
 	if(ma->mode & MA_SHLESS) {
 		if(vertcol && (ma->mode & (MA_VERTEXCOL+MA_VERTEXCOLP))== MA_VERTEXCOL ) {
-			col1[3]= vertcol[3]*shi.r;
-			col1[2]= vertcol[2]*shi.g;
-			col1[1]= vertcol[1]*shi.b;
+			float fac;
+			fac= vertcol[3]*shi.r;
+			col1[3]= fac>=1.0?255:(char)fac;
+			fac= vertcol[2]*shi.g;
+			col1[2]= fac>=1.0?255:(char)fac;
+			fac= vertcol[2]*shi.b;
+			col1[1]= fac>=1.0?255:(char)fac;
 		}
 		else {
-			col1[3]= (255.0*shi.r);
-			col1[2]= (255.0*shi.g);
-			col1[1]= (255.0*shi.b);
+			int fac;
+			fac= (int) (255.0*shi.r);
+			col1[3]= fac>255?255:(char)fac;
+			fac= (int) (255.0*shi.g);
+			col1[2]= fac>255?255:(char)fac;
+			fac= (int) (255.0*shi.b);
+			col1[1]= fac>255?255:(char)fac;
 		}
 		if(col2) {
 			col2[3]= col1[3];
