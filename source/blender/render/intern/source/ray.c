@@ -1005,7 +1005,7 @@ static int d3dda(Isect *is)
 	ldx= is->end[0] - is->start[0];
 	u1= 0.0;
 	u2= 1.0;
-	
+
 	/* clip with octree cube */
 	if(cliptest(-ldx, is->start[0]-g_oc.min[0], &u1,&u2)) {
 		if(cliptest(ldx, g_oc.max[0]-is->start[0], &u1,&u2)) {
@@ -1148,7 +1148,7 @@ static int d3dda(Isect *is)
 			no= ocread(xo, yo, zo);
 			nodecount++;
 			if(no) {
-				if(nodecount>2) coherent= 0;
+				if(nodecount>3) coherent= 0;
 				
 				/* calculate ray intersection with octree node */
 				VECCOPY(vec1, vec2);
@@ -2028,7 +2028,6 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 	float *vec, *nrm, div, sh=0;
 	float maxdist = wrld->aodist;
 	int tot, actual;
-	int j=0;
 
 	VECCOPY(isec.start, shi->co);
 	isec.vlrorig= shi->vlr;
@@ -2063,16 +2062,11 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 			isec.end[0] = shi->co[0] - maxdist*vec[0];
 			isec.end[1] = shi->co[1] - maxdist*vec[1];
 			isec.end[2] = shi->co[2] - maxdist*vec[2];
-			if (R.r.mode & R_OSA) {
-				isec.start[0]= shi->co[0] + (jit[j][0]-0.5)*O.dxco[0] + (jit[j][1]-0.5)*O.dyco[0] ;
-				isec.start[1]= shi->co[1] + (jit[j][0]-0.5)*O.dxco[1] + (jit[j][1]-0.5)*O.dyco[1] ;
-				isec.start[2]= shi->co[2] + (jit[j][0]-0.5)*O.dxco[2] + (jit[j][1]-0.5)*O.dyco[2] ;
-				j = ((j+1) % R.osa);
-			}
 			
 			/* do the trace */
 			if (d3dda(&isec)) {
-				if (wrld->aomode & WO_AODIST) sh+=exp(-isec.labda*wrld->aodistfac); else sh+=1.0;
+				if (wrld->aomode & WO_AODIST) sh+= exp(-isec.labda*wrld->aodistfac); 
+				else sh+= 1.0;
 			}
 			else if(wrld->aocolor!=WO_AOPLAIN) {
 				char skycol[4];
