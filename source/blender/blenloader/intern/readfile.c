@@ -5053,7 +5053,8 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 
 	/* which one do we need? */
 	mainl = blo_find_main(&mainlist, dir);
-
+	mainl->versionfile= fd->fileversion;	// needed for do_version
+	
 	if(totsel==0) {
 		append_named_part(fd, mainl, G.scene, sfile->file, idcode);
 	}
@@ -5138,6 +5139,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					}
 
 					mainptr->curlib->filedata= fd;
+					mainptr->versionfile= fd->fileversion;
 
 					if (!fd)
 						printf("ERROR: can't find lib %s \n", mainptr->curlib->name);
