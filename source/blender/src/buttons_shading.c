@@ -1766,7 +1766,7 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 	uiDefButF(block, NUMSLI,0,"HaloInt ",			100,130,200,19,&la->haint, 0.0, 5.0, 0, 0, "Set the intensity of the spot halo");
 
 
-	uiDefButS(block, NUMSLI,B_SBUFF,"ShadowBuffSize:", 100,110,200,19,	&la->bufsize,512,5120, 0, 0, "Set the size of the shadow buffer");
+	uiDefButS(block, NUM,B_SBUFF,"ShadowBufferSize:", 100,110,200,19,	&la->bufsize,512,5120, 0, 0, "Set the size of the shadow buffer");
 
 	uiDefButF(block, NUM,REDRAWVIEW3D,"ClipSta:",	100,70,100,19,	&la->clipsta, 0.1*grid,1000.0*grid, 10, 0, "Set the shadow map clip start");
 	uiDefButF(block, NUM,REDRAWVIEW3D,"ClipEnd:",	200,70,100,19,&la->clipend, 1.0, 5000.0*grid, 100, 0, "Set the shadow map clip end");
