@@ -504,7 +504,9 @@ unsigned int index_to_framebuffer(int index)
 		i= ((i & 0x7C00)<<9) + ((i & 0x3E0)<<6) + ((i & 0x1F)<<3);
 		i |= 0x070707;
 		break;
-	default:
+	case 24:
+		break;
+	default:	// 18 bits... not enuf
 		i= ((i & 0x3F000)<<6) + ((i & 0xFC0)<<4) + ((i & 0x3F)<<2);
 		i |= 0x030303;
 		break;
@@ -525,7 +527,9 @@ int framebuffer_to_index(unsigned int col)
 	case 15:
 	case 16:
 		return ((col & 0xF80000)>>9) + ((col & 0xF800)>>6) + ((col & 0xF8)>>3);
-	default:
+	case 24:
+		return col & 0xFFFFFF;
+	default: // 18 bits...
 		return ((col & 0xFC0000)>>6) + ((col & 0xFC00)>>4) + ((col & 0xFC)>>2);
 	}		
 }
