@@ -68,6 +68,19 @@ static int createDir(char* name)
 	}
 }
 
+extern "C" { extern char bprogname[]; }
+
+// add drive character if not in path string, using blender executable location as reference
+static void addDrive(string &path)
+{
+	int sp = path.find_first_of(":");
+	if (sp==-1) {
+		string blpath = bprogname;
+		sp = blpath.find_first_of(":");
+		if (sp!=-1) path = blpath.substr(0, sp+1) + path;
+	}
+}
+
 #else
 
 #include <sys/stat.h>
@@ -123,6 +136,10 @@ bool yafrayFileRender_t::initExport()
 #endif
 		}
 		xmlpath = U.yfexportdir;
+#ifdef WIN32
+		// have to add drive char here too, in case win user still wants to set path him/herself
+		addDrive(xmlpath);
+#endif
 	}
 
 #ifdef WIN32
@@ -144,15 +161,15 @@ bool yafrayFileRender_t::initExport()
 	// if no export dir set, or could not create, try to create one in the yafray dir, unless it already exists
 	if (dir_failed) 
 	{
-		string ybdir = command_path + "\\YBtest";
+		string ybdir = command_path + "YBtest";
 		if (createDir(const_cast<char*>(ybdir.c_str()))==0) dir_failed=true; else dir_failed=false;
 		xmlpath = ybdir;
 	}
 #else
-	if(command_path=="")
+	if (command_path=="")
 	{
 		command_path = unixYafrayPath();
-		if(command_path.size()) cout<<"Yafray found at : "<<command_path<<endl;
+		if (command_path.size()) cout << "Yafray found at : " << command_path << endl;
 	}
 #endif
 
@@ -164,6 +181,7 @@ bool yafrayFileRender_t::initExport()
 #else
 	string DLM = "/";
 #endif
+	// remove trailing slash if needed
 	if (xmlpath.find_last_of(DLM)!=(xmlpath.length()-1)) xmlpath += DLM;
 
 	imgout = xmlpath + "YBtest.tga";
@@ -269,7 +287,6 @@ void yafrayFileRender_t::displayImage()
 	fp = NULL;
 }
 
-extern "C" { extern char bprogname[]; }
 
 void yafrayFileRender_t::writeTextures()
 {
@@ -332,19 +349,11 @@ void yafrayFileRender_t::writeTextures()
 					ostr << "<shader type=\"image\" name=\"" << blendtex->first << "\" >\n";
 					ostr << "\t<attributes>\n";
 					// image->name is full path
+					string texpath = ima->name;
 #ifdef WIN32
-          // add drive character if not in texpath, using blender executable location as reference
-          string texpath = ima->name;
-          int sp = texpath.find_first_of(":");
-          if (sp==-1) {
-            string blpath = bprogname;
-            sp = blpath.find_first_of(":");
-            if (sp!=-1) texpath = blpath.substr(0, sp+1) + texpath;
-          }
-#else
-          string texpath = ima->name;
+					// add drive char if not there
+					addDrive(texpath);
 #endif
-
 					ostr << "\t\t<filename value=\"" << texpath << "\" />\n";
 					ostr << "\t</attributes>\n";
 					ostr << "</shader>\n\n";
@@ -1226,9 +1235,12 @@ bool yafrayFileRender_t::writeWorld()
 
 	ostr.str("");
 	ostr << "<background type=\"constant\" name=\"world_background\" >\n";
-	ostr << "\t<color r=\"" << (world->horr * R.r.GIpower) << 
-								"\" g=\"" << (world->horg * R.r.GIpower) << 
-								"\" b=\"" << (world->horb * R.r.GIpower) << "\" />\n";
+	// if no GI used, the GIpower parameter is not always initialized, so in that case ignore it  (have to change method to init yafray vars in Blender)
+	float bg_mult;
+	if (R.r.GImethod==0) bg_mult=1; else bg_mult=R.r.GIpower;
+	ostr << "\t<color r=\"" << (world->horr * bg_mult) << 
+								"\" g=\"" << (world->horg * bg_mult) << 
+								"\" b=\"" << (world->horb * bg_mult) << "\" />\n";
 	ostr << "</background>\n\n";
 	xmlfile << ostr.str();
 
@@ -1243,25 +1255,25 @@ bool yafrayFileRender_t::executeYafray(const string &xmlpath)
 #ifndef WIN32
 	sigset_t yaf,old;
 	sigemptyset(&yaf);
-	sigaddset(&yaf,SIGVTALRM);
-	sigprocmask(SIG_BLOCK,&yaf,&old);
+	sigaddset(&yaf, SIGVTALRM);
+	sigprocmask(SIG_BLOCK, &yaf, &old);
 	int ret=system(command.c_str());
-	sigprocmask(SIG_SETMASK,&old,NULL);
-	if(WIFEXITED(ret))
+	sigprocmask(SIG_SETMASK, &old, NULL);
+	if (WIFEXITED(ret))
 	{
-		if(WEXITSTATUS(ret)) cout<<"Executed -"<<command<<"-"<<endl;
-		switch(WEXITSTATUS(ret))
+		if (WEXITSTATUS(ret)) cout<<"Executed -"<<command<<"-"<<endl;
+		switch (WEXITSTATUS(ret))
 		{
-			case 0: cout<<"Yafray completed successfully\n";return true;
-			case 127: cout<<"Yafray not found\n";return false;
-			case 126: cout<<"Yafray: permission denied\n";return false;
-			default: cout<<"Yafray exited with errors\n";return false;
+			case 0: cout << "Yafray completed successfully\n";  return true;
+			case 127: cout << "Yafray not found\n";  return false;
+			case 126: cout << "Yafray: permission denied\n";  return false;
+			default: cout << "Yafray exited with errors\n";  return false;
 		}
 	}
-	else if(WIFSIGNALED(ret))
-		cout<<"Yafray crashed\n";
+	else if (WIFSIGNALED(ret))
+		cout << "Yafray crashed\n";
 	else
-		cout<<"Unknown error\n";
+		cout << "Unknown error\n";
 	return false;
 #else
 	int ret=system(command.c_str());
