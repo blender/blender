@@ -4857,7 +4857,7 @@ static void dxf_read_3dface(int noob)
 	mface->mat_nr= 0;
 
 	test_index_mface(mface, nverts);
-mface->v4= 0;
+
 	hasbumped=1;
 }
 
