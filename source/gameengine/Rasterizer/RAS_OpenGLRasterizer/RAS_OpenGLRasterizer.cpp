@@ -58,6 +58,8 @@ RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas)
 	m_time(0.0),
 	m_stereomode(RAS_STEREO_NOSTEREO),
 	m_curreye(RAS_STEREO_LEFTEYE),
+	m_eyeseparation(-1.0f),
+	m_focallength(-1.0f),
 	m_noOfScanlines(32),
 	m_materialCachingInfo(0)
 {
@@ -265,7 +267,9 @@ void RAS_OpenGLRasterizer::Exit()
 	glDepthMask (GL_TRUE);
 	glDepthFunc(GL_LEQUAL);
 	glBlendFunc(GL_ONE, GL_ZERO);
-
+	
+	glDisable(GL_POLYGON_STIPPLE);
+	
 	glDisable(GL_LIGHTING);
 	if (bgl::QueryExtension(bgl::_GL_EXT_separate_specular_color) || bgl::QueryVersion(1, 2))
 		glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SINGLE_COLOR);
@@ -273,15 +277,21 @@ void RAS_OpenGLRasterizer::Exit()
 	EndFrame();
 }
 
-
+bool RAS_OpenGLRasterizer::InterlacedStereo() const
+{
+	return m_stereomode == RAS_STEREO_VINTERLACE || m_stereomode == RAS_STEREO_INTERLACED;
+}
 
 bool RAS_OpenGLRasterizer::BeginFrame(int drawingmode, double time)
 {
 	m_time = time;
 	m_drawingmode = drawingmode;
 	
-	m_2DCanvas->ClearColor(m_redback,m_greenback,m_blueback,m_alphaback);
-	m_2DCanvas->ClearBuffer(RAS_ICanvas::COLOR_BUFFER);
+	if (!InterlacedStereo() || m_curreye == RAS_STEREO_LEFTEYE)
+	{
+		m_2DCanvas->ClearColor(m_redback,m_greenback,m_blueback,m_alphaback);
+		m_2DCanvas->ClearBuffer(RAS_ICanvas::COLOR_BUFFER);
+	}
 
 	// Blender camera routine destroys the settings
 	if (m_drawingmode < KX_SOLID)
@@ -459,9 +469,40 @@ void RAS_OpenGLRasterizer::SetEye(StereoEye eye)
 				ClearDepthBuffer();
 			}
 			break;
+		case RAS_STEREO_VINTERLACE:
+		{
+			GLuint pat[32];
+			const unsigned char mask = 0x55;  // 01010101
+			memset(pat, m_curreye == RAS_STEREO_RIGHTEYE?~mask:mask, sizeof(pat));
+			glEnable(GL_POLYGON_STIPPLE);
+			glPolygonStipple((const GLubyte*) pat);
+			if (m_curreye == RAS_STEREO_RIGHTEYE)
+				ClearDepthBuffer();
+			break;
+		}
+		case RAS_STEREO_INTERLACED:
+		{
+			GLuint pat[32];
+			GLuint mask = m_curreye == RAS_STEREO_LEFTEYE?~0:0;
+			for (int y = 0; y < 32; y+=2)
+			{
+				pat[y] = mask;
+				pat[y+1] = ~mask;
+			}
+			glEnable(GL_POLYGON_STIPPLE);
+			glPolygonStipple((const GLubyte*) pat);
+			if (m_curreye == RAS_STEREO_RIGHTEYE)
+				ClearDepthBuffer();
+			break;
+		}
 		default:
 			break;
 	}
+}
+
+RAS_IRasterizer::StereoEye RAS_OpenGLRasterizer::GetEye()
+{
+	return m_curreye;
 }
 
 
@@ -470,10 +511,19 @@ void RAS_OpenGLRasterizer::SetEyeSeparation(float eyeseparation)
 	m_eyeseparation = eyeseparation;
 }
 
+float RAS_OpenGLRasterizer::GetEyeSeparation()
+{
+	return m_eyeseparation;
+}
 
 void RAS_OpenGLRasterizer::SetFocalLength(float focallength)
 {
 	m_focallength = focallength;
+}
+
+float RAS_OpenGLRasterizer::GetFocalLength()
+{
+	return m_focallength;
 }
 
 
@@ -1109,8 +1159,10 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 	{
 			float near_div_focallength;
 			// next 2 params should be specified on command line and in Blender publisher
-			m_focallength = 1.5 * right;  // derived from example
-			m_eyeseparation = 0.18 * right;  // just a guess...
+			if (m_focallength < 0.0f)
+				m_focallength = 1.5 * right;  // derived from example
+			if (m_eyeseparation < 0.0f)
+				m_eyeseparation = 0.18 * right;  // just a guess...
 
 			near_div_focallength = frustnear / m_focallength;
 			switch(m_curreye)

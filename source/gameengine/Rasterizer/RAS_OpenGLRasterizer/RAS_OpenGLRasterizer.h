@@ -74,6 +74,8 @@ class RAS_OpenGLRasterizer : public RAS_IRasterizer
 	float			m_eyeseparation;
 	float			m_focallength;
 	int				m_noOfScanlines;
+	
+	bool			InterlacedStereo() const;
 
 protected:
 	int				m_drawingmode;
@@ -113,8 +115,11 @@ public:
 	virtual void	SetStereoMode(const StereoMode stereomode);
 	virtual bool	Stereo();
 	virtual void	SetEye(const StereoEye eye);
+	virtual StereoEye	GetEye();
 	virtual void	SetEyeSeparation(const float eyeseparation);
+	virtual float	GetEyeSeparation();
 	virtual void	SetFocalLength(const float focallength);
+	virtual float	GetFocalLength();
 
 	virtual void	SwapBuffers();
 	virtual void	IndexPrimitives(

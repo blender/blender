@@ -8,6 +8,8 @@ This document lists what has been changed in the Game Engine Python API.
 Blender CVS
 ------------
 	- Added tic rate methods to L{GameLogic}
+	- Added stereo eye separation and focal length methods to L{Rasterizer}.
+	- Fixed L{Raterizer}.makeScreenshot() method.
 
 Blender 2.34
 ------------

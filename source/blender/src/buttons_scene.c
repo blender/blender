@@ -841,13 +841,13 @@ static uiBlock *post_render_menu(void *arg_unused)
 static uiBlock *framing_render_menu(void *arg_unused)
 {
 	uiBlock *block;
-	short yco = 170, xco = 0;
+	short yco = 190, xco = 0;
 	int randomcolorindex = 1234;
 
 	block= uiNewBlock(&curarea->uiblocks, "framing_options", UI_EMBOSS, UI_HELV, curarea->win);
 
 	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "",			-10, -10, 300, 209, NULL, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "",			-10, -10, 300, 229, NULL, 0, 0, 0, 0, "");
 
 	uiDefBut(block, LABEL, B_NOP, "Framing:", xco, yco, 68,19, 0, 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
@@ -886,12 +886,18 @@ static uiBlock *framing_render_menu(void *arg_unused)
 	 * RAS_STEREO_QUADBUFFERED 2
 	 * RAS_STEREO_ABOVEBELOW	 3
 	 * RAS_STEREO_INTERLACED	 4	 future
+	 * RAS_STEREO_ANAGLYPH		5
+	 * RAS_STEREO_SIDEBYSIDE	6
+	 * RAS_STEREO_VINTERLACE	7
 	 */
-	uiDefBut(block, LABEL, 0, "Stereo:", xco, yco-=30, 68, 19, 0, 0.0, 0.0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, 0, "None", xco+=70, yco, 68, 19, &(G.scene->r.stereomode), 6.0, 1.0, 0, 0, "Disables stereo");
-	uiDefButS(block, ROW, 0, "Pageflip", xco+=70, yco, 68, 19, &(G.scene->r.stereomode), 6.0, 2.0, 0, 0, "Enables hardware pageflip stereo method");
-	uiDefButS(block, ROW, 0, "Syncdouble", xco+=70, yco, 68, 19, &(G.scene->r.stereomode), 6.0, 3.0, 0, 0, "Enables syncdoubling stereo method");
+	uiDefButS(block, ROW, 0, "No Stereo", xco, yco-=30, 88, 19, &(G.scene->r.stereomode), 7.0, 1.0, 0, 0, "Disables stereo");
+	uiDefButS(block, ROW, 0, "Pageflip", xco+=90, yco, 88, 19, &(G.scene->r.stereomode), 7.0, 2.0, 0, 0, "Enables hardware pageflip stereo method");
+	uiDefButS(block, ROW, 0, "Syncdouble", xco+=90, yco, 88, 19, &(G.scene->r.stereomode), 7.0, 3.0, 0, 0, "Enables syncdoubling stereo method");
+	uiDefButS(block, ROW, 0, "Anaglyph", xco-=180, yco-=21, 88, 19, &(G.scene->r.stereomode), 7.0, 5.0, 0, 0, "Enables anaglyph (Red-Blue) stereo method");
+	uiDefButS(block, ROW, 0, "Side by Side", xco+=90, yco, 88, 19, &(G.scene->r.stereomode), 7.0, 6.0, 0, 0, "Enables side by side left and right images");
+	uiDefButS(block, ROW, 0, "V Interlace", xco+=90, yco, 88, 19, &(G.scene->r.stereomode), 7.0, 7.0, 0, 0, "Enables interlaced vertical strips for autostereo display");
+	
 	uiBlockEndAlign(block);
 
 	uiBlockSetDirection(block, UI_TOP);

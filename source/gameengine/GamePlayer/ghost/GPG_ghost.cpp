@@ -124,6 +124,7 @@ void usage(char* program)
 	printf("                   syncdoubling     (Above Below)\n");
 	printf("                   sidebyside       (Left Right)\n");
 	printf("                   anaglyph         (Red-Blue glasses)\n");
+	printf("                   vinterlace       (Vertical interlace for autostereo display)\n");
 	printf("                             depending on the type of stereo you want\n");
 #ifdef _WIN32
 	printf("  -c: keep console window open\n");
@@ -379,6 +380,10 @@ int main(int argc, char** argv)
 				i++;
 				if ((i + 1) < argc)
 				{
+					stereomode = (RAS_IRasterizer::StereoMode) atoi(argv[i]);
+					if (stereomode < RAS_IRasterizer::RAS_STEREO_NOSTEREO || stereomode >= RAS_IRasterizer::RAS_STEREO_MAXSTEREO)
+						stereomode = RAS_IRasterizer::RAS_STEREO_NOSTEREO;
+					
 					if(!strcmp(argv[i], "nostereo"))  // ok, redundant but clear
 						stereomode = RAS_IRasterizer::RAS_STEREO_NOSTEREO;
 					
@@ -395,6 +400,10 @@ int main(int argc, char** argv)
 					
 					if(!strcmp(argv[i], "sidebyside"))
 						stereomode = RAS_IRasterizer::RAS_STEREO_SIDEBYSIDE;
+					
+					if(!strcmp(argv[i], "vinterlace"))
+						stereomode = RAS_IRasterizer::RAS_STEREO_VINTERLACE;
+					
 #if 0
 					// future stuff
 					if(strcmp(argv[i], "stencil")

@@ -341,7 +341,51 @@ static PyObject* gPySetMousePosition(PyObject*,
    Py_Return;
 }
 
+static PyObject* gPySetEyeSeparation(PyObject*,
+						PyObject* args,
+						PyObject*)
+{
+	float sep;
+	if (PyArg_ParseTuple(args, "f", &sep))
+	{
+		if (gp_Rasterizer)
+			gp_Rasterizer->SetEyeSeparation(sep);
+			
+		Py_Return;
+	}
+	
+	return NULL;
+}
 
+static PyObject* gPyGetEyeSeparation(PyObject*, PyObject*, PyObject*)
+{
+	if (gp_Rasterizer)
+		return PyFloat_FromDouble(gp_Rasterizer->GetEyeSeparation());
+	
+	return NULL;
+}
+
+static PyObject* gPySetFocalLength(PyObject*,
+					PyObject* args,
+					PyObject*)
+{
+	float focus;
+	if (PyArg_ParseTuple(args, "f", &focus))
+	{
+		if (gp_Rasterizer)
+			gp_Rasterizer->SetFocalLength(focus);
+		Py_Return;
+	}
+	
+	return NULL;
+}
+
+static PyObject* gPyGetFocalLength(PyObject*, PyObject*, PyObject*)
+{
+	if (gp_Rasterizer)
+		return PyFloat_FromDouble(gp_Rasterizer->GetFocalLength());
+	return NULL;
+}
 
 static PyObject* gPySetBackgroundColor(PyObject*, 
 										 PyObject* args, 
@@ -461,6 +505,10 @@ static struct PyMethodDef rasterizer_methods[] = {
   {"setMistStart",(PyCFunction)gPySetMistStart,METH_VARARGS,"set Mist Start(rgb)"},
   {"setMistEnd",(PyCFunction)gPySetMistEnd,METH_VARARGS,"set Mist End(rgb)"},
   
+  {"setEyeSeparation", (PyCFunction) gPySetEyeSeparation, METH_VARARGS, "set the eye separation for stereo mode"},
+  {"getEyeSeparation", (PyCFunction) gPyGetEyeSeparation, METH_VARARGS, "get the eye separation for stereo mode"},
+  {"setFocalLength", (PyCFunction) gPySetFocalLength, METH_VARARGS, "set the focal length for stereo mode"},
+  {"getFocalLength", (PyCFunction) gPyGetFocalLength, METH_VARARGS, "get the focal length for stereo mode"},
   { NULL, (PyCFunction) NULL, 0, NULL }
 };
 

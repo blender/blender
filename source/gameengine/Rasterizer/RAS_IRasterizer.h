@@ -93,7 +93,10 @@ public:
 			RAS_STEREO_ABOVEBELOW,
 			RAS_STEREO_INTERLACED,
 			RAS_STEREO_ANAGLYPH,
-			RAS_STEREO_SIDEBYSIDE
+			RAS_STEREO_SIDEBYSIDE,
+			RAS_STEREO_VINTERLACE,
+			
+			RAS_STEREO_MAXSTEREO
 	};
 	/**
 	 * Render pass identifiers for stereo.
@@ -157,12 +160,17 @@ public:
 	 * Sets which eye buffer subsequent primitives will be rendered to.
 	 */
 	virtual void	SetEye(const StereoEye eye)=0;
+	virtual StereoEye	GetEye()=0;
 	/**
+	 * Sets the distance between eyes for stereo mode.
 	 */
 	virtual void	SetEyeSeparation(const float eyeseparation)=0;
+	virtual float	GetEyeSeparation() = 0;
 	/**
+	 * Sets the focal length for stereo mode.
 	 */
 	virtual void	SetFocalLength(const float focallength)=0;
+	virtual float	GetFocalLength() = 0;
 	/**
 	 * SwapBuffers swaps the back buffer with the front buffer.
 	 */

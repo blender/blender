@@ -56,6 +56,15 @@ def makeScreenshot(filename):
 	"""
 	Writes a screenshot to the given filename.
 	
+	If filename starts with // the image will be saved relative to the current directory.
+	If the filename contains # it will be replaced with the frame number.
+	
+	The standalone player saves .png files. It does not support colour space conversion 
+	or gamma correction.
+	
+	When run from Blender, makeScreenshot supports Iris, IrisZ, TGA, Raw TGA, PNG, HamX, and Jpeg.
+	Gamma, Colourspace conversion and Jpeg compression are taken from the Render settings panels.
+	
 	@type filename: string
 	"""
 
@@ -106,4 +115,42 @@ def setMistEnd(end):
 	
 	@type end: float
 	"""
+	
+def setEyeSeparation(eyesep):
+	"""
+	Sets the eye separation for stereo mode.
+	
+	@param eyesep: The distance between the left and right eye.
+		If eyesep < 0.0, eye separation will be automatically determined from the projection
+		matrix.
+	@type eyesep: float
+	"""
 
+def getEyeSeparation():
+	"""
+	Gets the current eye separation for stereo mode.
+	
+	If the returned eye separation is < 0.0, the eye separation will be
+	automatically set on the next frame.
+	
+	@rtype: float
+	"""
+	
+def setFocalLength(focallength):
+	"""
+	Sets the focal length for stereo mode.
+	
+	@param focallength: The focal length.  If focallength < 0.0, the focal length will
+		be automatically determined.
+	@type focallength: float
+	"""
+
+def getFocalLength():
+	"""
+	Gets the current focal length for stereo mode.
+	
+	If the returned focal length is < 0.0, the focal length will be
+	automatically set on the next frame.
+	
+	@rtype: float
+	"""
