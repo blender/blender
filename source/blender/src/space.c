@@ -3560,6 +3560,14 @@ void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			transform_oops('s');
 		}
 		break;
+	case PKEY:
+		if((G.qual==LR_CTRLKEY)) {
+			make_parent();
+		} else if((G.qual==LR_ALTKEY)) {
+			clear_parent();
+		}
+		break;
+
 
 	case ONEKEY:
 		do_layer_buttons(0); break;
