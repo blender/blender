@@ -77,6 +77,7 @@ ifeq ($(OS),freebsd)
 endif
 
 ifeq ($(OS),irix)
+    LDFLAGS += -mips3
     LLIBS = -lmovieGL -lGLU -lGL -lXmu -lXext -lX11 -lc -lm -ldmedia
     LLIBS += -lcl -laudio -ldb -lCio -lz
     LLIBS += -lpthread

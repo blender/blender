@@ -224,7 +224,7 @@ all debug::
     export ID = $(shell whoami)
     export HOST = $(shell /usr/bsd/hostname -s)
     export NAN_PYTHON ?= $(LCGDIR)/python
-    export NAN_PYTHON_VERSION ?= 2.1
+    export NAN_PYTHON_VERSION ?= 2.2
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_FMOD ?= $(LCGDIR)/fmod
@@ -235,7 +235,7 @@ all debug::
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= /usr/freeware
-    export NAN_NSPR ?= /usr/local/apps/openblender/nspr/target/dist
+    export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_FREETYPE ?= /usr/freeware
     export NAN_GETTEXT ?= /usr/freeware
 	export NAN_SDLLIBS ?= $(shell sdl-config --libs)
