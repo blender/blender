@@ -391,39 +391,41 @@ void image_buttons(void)
 	}
 	
 	uiBlockSetCol(block, TH_AUTO);
-	uiDefBut(block, BUT, B_SIMAGELOAD, "Load",		xco+=XIC,0,2*XIC,YIC, 0, 0, 0, 0, 0, "Loads image - file select");
-
+	uiDefBut(block, BUT, B_SIMAGELOAD, "Load",		xco, 0, 2*XIC, YIC, 0, 0, 0, 0, 0, "Loads image - file select");
+	xco+= 2*XIC;
+	
 	if (G.sima->image) {
 		uiBlockSetCol(block, TH_AUTO);
-		uiDefBut(block, BUT, B_SIMAGEREPLACE, "Replace",xco+=XIC,0,(short)(3*XIC),YIC, 0, 0, 0, 0, 0, "Replaces current image - file select");
-	
-		uiDefIconButS(block, TOG|BIT|4, 0, ICON_ENVMAP, xco+=XIC,0,XIC,YIC, &G.sima->image->flag, 0, 0, 0, 0, "Uses this image as a reflection map (Ignores UV Coordinates)");
-		xco+=XIC/2;
+		uiDefBut(block, BUT, B_SIMAGEREPLACE, "Replace",xco,0,(short)(3*XIC),YIC, 0, 0, 0, 0, 0, "Replaces current image - file select");
+		xco+= 3.5*XIC;
+		uiDefIconButS(block, TOG|BIT|4, 0, ICON_ENVMAP, xco,0,XIC,YIC, &G.sima->image->flag, 0, 0, 0, 0, "Uses this image as a reflection map (Ignores UV Coordinates)");
 
 		uiDefIconButS(block, TOG|BIT|0, B_SIMAGEDRAW1, ICON_GRID, xco+=XIC,0,XIC,YIC, &G.sima->image->flag, 0, 0, 0, 0, "");
 		uiDefButS(block, NUM, B_SIMAGEDRAW, "",	xco+=XIC,0,XIC,YIC, &G.sima->image->xrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the X direction");
 		uiDefButS(block, NUM, B_SIMAGEDRAW, "",	xco+=XIC,0,XIC,YIC, &G.sima->image->yrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the Y direction");
 	
-		uiDefButS(block, TOG|BIT|1, B_TWINANIM, "Anim", xco+=XIC,0,(short)(2*XIC),YIC, &G.sima->image->tpageflag, 0, 0, 0, 0, "Toggles use of animated texture");
-		uiDefButS(block, NUM, B_TWINANIM, "",	(short)(xco+=2*XIC),0,XIC,YIC, &G.sima->image->twsta, 0.0, 128.0, 0, 0, "Displays the start frame of an animated texture. Click to change.");
+		uiDefButS(block, TOG|BIT|1, B_TWINANIM, "Anim", xco,0,(2*XIC),YIC, &G.sima->image->tpageflag, 0, 0, 0, 0, "Toggles use of animated texture");
+		xco+= XIC;
+		uiDefButS(block, NUM, B_TWINANIM, "",	xco+=XIC,0,XIC,YIC, &G.sima->image->twsta, 0.0, 128.0, 0, 0, "Displays the start frame of an animated texture. Click to change.");
 		uiDefButS(block, NUM, B_TWINANIM, "",	xco+=XIC,0,XIC,YIC, &G.sima->image->twend, 0.0, 128.0, 0, 0, "Displays the end frame of an animated texture. Click to change.");
 //		uiDefButS(block, TOG|BIT|2, 0, "Cycle", xco+=XIC,0,2*XIC,YIC, &G.sima->image->tpageflag, 0, 0, 0, 0, "");
-		uiDefButS(block, NUM, 0, "Speed", xco+=(2*XIC),0,4*XIC,YIC, &G.sima->image->animspeed, 1.0, 100.0, 0, 0, "Displays Speed of the animation in frames per second. Click to change.");
-
+		
+		uiDefButS(block, NUM, 0, "Speed", xco,0,4*XIC,YIC, &G.sima->image->animspeed, 1.0, 100.0, 0, 0, "Displays Speed of the animation in frames per second. Click to change.");
+		xco+= 4.5*XIC;
 #ifdef NAN_TPT
-		xco+= 4*XIC;
-		uiDefIconButS(block, ICONTOG|BIT|3, B_SIMAGEPAINTTOOL, ICON_TPAINT_DEHLT, xco+=XIC,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Enables TexturePaint Mode");
+		
+		uiDefIconButS(block, ICONTOG|BIT|3, B_SIMAGEPAINTTOOL, ICON_TPAINT_DEHLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Enables TexturePaint Mode");
+		xco+= XIC;
 		if (G.sima->image && G.sima->image->ibuf && (G.sima->image->ibuf->userflags & IB_BITMAPDIRTY)) {
-			uiDefBut(block, BUT, B_SIMAGESAVE, "Save",		xco+=XIC,0,2*XIC,YIC, 0, 0, 0, 0, 0, "Saves image");
-			xco += XIC;
+			uiDefBut(block, BUT, B_SIMAGESAVE, "Save",		xco,0,2*XIC,YIC, 0, 0, 0, 0, 0, "Saves image");
+			xco += 2*XIC;
 		}
 #endif /* NAN_TPT */
-		xco+= XIC;
 	}
 
 	/* draw LOCK */
 	xco+= XIC/2;
-	uiDefIconButS(block, ICONTOG, 0, ICON_UNLOCKED,	(short)(xco+=XIC),0,XIC,YIC, &(G.sima->lock), 0, 0, 0, 0, "Toggles forced redraw of other windows to reflect changes in real time");
+	uiDefIconButS(block, ICONTOG, 0, ICON_UNLOCKED,	(short)(xco),0,XIC,YIC, &(G.sima->lock), 0, 0, 0, 0, "Toggles forced redraw of other windows to reflect changes in real time");
 
 	
 	/* Always do this last */
