@@ -333,11 +333,11 @@ EditFace *addfacelist(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, Ed
 
 	/* add face to list and do the edges */
 	if(exampleEdges) {
-		e1= addedgelist(v1, v2, example->e1);
-		e2= addedgelist(v2, v3, example->e2);
-		if(v4) e3= addedgelist(v3, v4, example->e3); 
-		else e3= addedgelist(v3, v1, example->e3);
-		if(v4) e4= addedgelist(v4, v1, example->e4);
+		e1= addedgelist(v1, v2, exampleEdges->e1);
+		e2= addedgelist(v2, v3, exampleEdges->e2);
+		if(v4) e3= addedgelist(v3, v4, exampleEdges->e3); 
+		else e3= addedgelist(v3, v1, exampleEdges->e3);
+		if(v4) e4= addedgelist(v4, v1, exampleEdges->e4);
 	}
 	else {
 		e1= addedgelist(v1, v2, NULL);
