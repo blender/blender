@@ -267,9 +267,7 @@ public:
 private:
 
 	// Tweak parameters
-	static const MT_Scalar ImpulseThreshold = -10.;
-	static const MT_Scalar FixThreshold = 0.01;
-	static const MT_Scalar FixVelocity = 0.01;
+	static MT_Scalar ImpulseThreshold;
 
 	// return the actual linear_velocity of this object this 
 	// is the addition of m_combined_lin_vel and m_lin_vel.

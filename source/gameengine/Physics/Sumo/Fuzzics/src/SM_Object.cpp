@@ -49,6 +49,7 @@
 
 #include "MT_MinMax.h"
 
+MT_Scalar SM_Object::ImpulseThreshold = -10.;
 
 SM_Object::SM_Object(
 	DT_ShapeHandle shape, 
