@@ -99,13 +99,13 @@
 #define VP_SOFT		4
 #define VP_NORMALS	8
 
-#define MAXINDEX	65336
+#define MAXINDEX	512000
 
 VPaint Gvp= {1.0, 1.0, 1.0, 0.2, 25.0, 1.0, 1.0, 0, VP_AREA+VP_SOFT};
 float vpimat[3][3];
-unsigned int *vpaintundobuf=0;
+unsigned int *vpaintundobuf= NULL;
 int totvpaintundo;
-short *indexar= 0;
+int *indexar= NULL;
 
 int totwpaintundo;
 MDeformVert *wpaintundobuf=NULL;
@@ -464,7 +464,7 @@ void sample_vpaint()	/* frontbuf */
 void init_vertexpaint()
 {
 	
-	indexar= MEM_mallocN(sizeof(short)*MAXINDEX + 2, "vertexpaint");
+	indexar= MEM_mallocN(sizeof(int)*MAXINDEX + 2, "vertexpaint");
 }
 
 
@@ -613,7 +613,7 @@ static int sample_backbuf_area(int x, int y)
 	size= (y2-y1)*(x2-x1);
 	if(size<=0) return 0;
 
-	memset(indexar, 0, 2*totvpaintundo+2);	/* plus 2! first element is total */
+	memset(indexar, 0, sizeof(int)*totvpaintundo+2);	/* plus 2! first element is total */
 	
 	while(size--) {
 			
@@ -790,7 +790,7 @@ void weight_paint(void)
 	if(G.obedit) return;
 	if(G.obpose) return;
 	
-	if(indexar==0) init_vertexpaint();
+	if(indexar==NULL) init_vertexpaint();
 	
 	ob= OBACT;
 	me= get_mesh(ob);
@@ -951,7 +951,7 @@ void vertex_paint()
 	if((G.f & G_VERTEXPAINT)==0) return;
 	if(G.obedit) return;
 	
-	if(indexar==0) init_vertexpaint();
+	if(indexar==NULL) init_vertexpaint();
 	
 	ob= OBACT;
 	me= get_mesh(ob);
@@ -1030,7 +1030,7 @@ void vertex_paint()
 					}					
 				}
 			}
-			
+
 			for(index=0; index<totindex; index++) {
 
 				if(indexar[index] && indexar[index]<=me->totface) {
