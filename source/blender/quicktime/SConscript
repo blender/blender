@@ -17,7 +17,7 @@ quicktime_env.Append (CPPPATH = ['.',
                                  '../avi',
                                  '../imbuf',
                                  '../imbuf/intern',
-                                 '../readstreamglue',
+                                 '../blenloader',
                                  '../render/extern/include'])
 
 quicktime_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_quicktime', source=source_files)
