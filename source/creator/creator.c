@@ -30,6 +30,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -204,7 +205,8 @@ int main(int argc, char **argv)
 		
 		argc= 1;
 		
-		setprefsize(170, 100, 900, 768);
+		/* 40 + 684 + (headers) 22 + 22 = 768, the powerbook screen height */
+		setprefsize(120, 40, 850, 684);
 		
 		winlay_get_screensize(&scr_x, &scr_y);
 		winlay_process_events(0);
