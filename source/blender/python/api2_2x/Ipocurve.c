@@ -193,6 +193,10 @@ static PyObject* IpoCurve_getName (C_IpoCurve *self)
 {
 	char * nametab[24] = {"LocX","LocY","LocZ","dLocX","dLocY","dLocZ","RotX","RotY","RotZ","dRotX","dRotY","dRotZ","SizeX","SizeY","SizeZ","dSizeX","dSizeY","dSizeZ","Layer","Time","ColR","ColG","ColB","ColA"};
 
+	if (self->ipocurve->blocktype != ID_OB)
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"This function doesn't support this ipocurve type yet");
+
 	//	printf("IpoCurve_getName %d\n",self->ipocurve->vartype);
 	if (self->ipocurve->adrcode <=0 )
 return PyString_FromString("Index too small");

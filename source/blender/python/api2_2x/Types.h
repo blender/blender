@@ -47,7 +47,7 @@ extern PyTypeObject Curve_Type, Ipo_Type, Metaball_Type;
 extern PyTypeObject Lattice_Type;
 
 extern PyTypeObject vector_Type, buffer_Type, rgbTuple_Type,
-				            constant_Type;
+	constant_Type, BezTriple_Type;
 
 static char M_Types_doc[] =
 "The Blender Types module\n\n\

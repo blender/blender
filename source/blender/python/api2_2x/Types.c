@@ -49,6 +49,7 @@ PyObject *Types_Init (void)
 	constant_Type.ob_type = &PyType_Type;
 	buffer_Type.ob_type = &PyType_Type;
 	Button_Type.ob_type = &PyType_Type;
+	BezTriple_Type.ob_type = &PyType_Type;
 
 	/* Another one that needs to be here: */
 	Text_Type.ob_type = &PyType_Type;
@@ -99,6 +100,7 @@ PyObject *Types_Init (void)
   PyDict_SetItemString(dict, "bufferType",   (PyObject *)&buffer_Type);
   PyDict_SetItemString(dict, "constantType", (PyObject *)&constant_Type);
   PyDict_SetItemString(dict, "rgbTupleType", (PyObject *)&rgbTuple_Type);
+  PyDict_SetItemString(dict, "BezTripleType", (PyObject *)&BezTriple_Type);
 
   return submodule;
 }

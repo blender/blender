@@ -8,7 +8,7 @@ This module provides access to the B{Object Data} in Blender.
 Example::
 
   import Blender
-  scene = Blencer.Scene.getCurrent ()   # get the current scene
+  scene = Blender.Scene.getCurrent ()   # get the current scene
   ob = Blender.Object.New ('Camera')    # make camera object
   cam = Blender.Camera.New ('ortho')    # make ortho camera data object
   ob.link (cam)                         # link camera data with the object
