@@ -376,6 +376,12 @@ class Object:
         Blender.Redraw()
     """
 
+  def getDupliVerts():
+    """
+    Get state of DupliVerts anim propertie
+    @return: a boolean value.
+    """
+
   def link(object):
     """
     Links Object with data provided in the argument. The data must match the
@@ -671,6 +677,12 @@ class Object:
     @param object: Object that will recieve the properties.
     """
 
+  def setDupliVerts(data):
+    """
+    Set state of DupliVerts anim propertie
+    @param data: boolean value True, False, 0 or not 0.
+    """
+
 class Property:
   """
   The Property object
@@ -720,3 +732,4 @@ class Property:
     Get the type for this property.
     @rtype: string
     """
+
