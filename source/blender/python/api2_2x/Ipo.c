@@ -38,7 +38,9 @@
 #include <BKE_library.h>
 #include <BSE_editipo.h>
 #include <BLI_blenlib.h>
-
+#include <BIF_space.h>
+#include <BSE_editipo.h>
+#include <mydevice.h>
 #include <DNA_curve_types.h>
 
 #include "Ipocurve.h"
@@ -448,48 +450,54 @@ static PyObject *Ipo_getNcurves( BPy_Ipo * self )
 	return ( PyInt_FromLong( i ) );
 }
 
+/* 
+   fixme:  all these name validation routines need attention.
+   I just hacked in lots of 'return 1;'s as a temp fix.
+   stiv 6-jan-2004
+*/
+
 int Ipo_laIcuName( char *s, int *param )
 {
 	int ok = 0;
 	if( !strcmp( s, "Energy" ) ) {
 		*param = LA_ENERGY;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "R" ) ) {
 		*param = LA_COL_R;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "G" ) ) {
 		*param = LA_COL_G;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "B" ) ) {
 		*param = LA_COL_B;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Dist" ) ) {
 		*param = LA_DIST;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "SpoSi" ) ) {
 		*param = LA_SPOTSI;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "SpoBl" ) ) {
 		*param = LA_SPOTBL;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Quad1" ) ) {
 		*param = LA_QUAD1;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Quad2" ) ) {
 		*param = LA_QUAD2;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "HaInt" ) ) {
 		*param = LA_HALOINT;
-		ok = 1;
+		return 1;
 	}
 	return ok;
 }
@@ -499,67 +507,67 @@ int Ipo_woIcuName( char *s, int *param )
 	int ok = 0;
 	if( !strcmp( s, "HorR" ) ) {
 		*param = WO_HOR_R;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "HorG" ) ) {
 		*param = WO_HOR_G;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "HorB" ) ) {
 		*param = WO_HOR_B;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "ZenR" ) ) {
 		*param = WO_ZEN_R;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "ZenG" ) ) {
 		*param = WO_ZEN_G;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "ZenB" ) ) {
 		*param = WO_ZEN_B;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Expos" ) ) {
 		*param = WO_EXPOS;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Misi" ) ) {
 		*param = WO_MISI;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "MisDi" ) ) {
 		*param = WO_MISTDI;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "MisHi" ) ) {
 		*param = WO_MISTHI;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "StarR" ) ) {
 		*param = WO_STAR_R;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "StarB" ) ) {
 		*param = WO_STAR_B;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "StarG" ) ) {
 		*param = WO_STAR_G;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "ClSta" ) ) {
 		*param = WO_MISTSTA;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "StarDi" ) ) {
 		*param = WO_STARDIST;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "StarSi" ) ) {
 		*param = WO_STARSIZE;
-		ok = 1;
+		return 1;
 	}
 	return ok;
 }
@@ -569,107 +577,107 @@ int Ipo_maIcuName( char *s, int *param )
 	int ok = 0;
 	if( !strcmp( s, "R" ) ) {
 		*param = MA_COL_R;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "G" ) ) {
 		*param = MA_COL_G;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "B" ) ) {
 		*param = MA_COL_B;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "SpecR" ) ) {
 		*param = MA_SPEC_R;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "SpecG" ) ) {
 		*param = MA_SPEC_G;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "SpecB" ) ) {
 		*param = MA_SPEC_B;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "MirR" ) ) {
 		*param = MA_MIR_R;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "MirG" ) ) {
 		*param = MA_MIR_G;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "MirB" ) ) {
 		*param = MA_MIR_B;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Ref" ) ) {
 		*param = MA_REF;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Alpha" ) ) {
 		*param = MA_ALPHA;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Emit" ) ) {
 		*param = MA_EMIT;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Amb" ) ) {
 		*param = MA_AMB;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Spec" ) ) {
 		*param = MA_SPEC;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Hard" ) ) {
 		*param = MA_HARD;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "SpTra" ) ) {
 		*param = MA_SPTR;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Ior" ) ) {
 		*param = MA_IOR;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Mode" ) ) {
 		*param = MA_MODE;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "HaSize" ) ) {
 		*param = MA_HASIZE;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Translu" ) ) {
 		*param = MA_TRANSLU;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "RayMir" ) ) {
 		*param = MA_RAYM;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "FresMir" ) ) {
 		*param = MA_FRESMIR;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "FresMirI" ) ) {
 		*param = MA_FRESMIRI;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "FresTra" ) ) {
 		*param = MA_FRESTRA;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "FresTraI" ) ) {
 		*param = MA_FRESTRAI;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "TraGlow" ) ) {
 		*param = MA_ADD;
-		ok = 1;
+		return 1;
 	}
 	return ok;
 }
@@ -733,43 +741,43 @@ int Ipo_acIcuName( char *s, int *param )
 	int ok = 0;
 	if( !strcmp( s, "LocX" ) ) {
 		*param = AC_LOC_X;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "LocY" ) ) {
 		*param = AC_LOC_Y;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "LocZ" ) ) {
 		*param = AC_LOC_Z;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "SizeX" ) ) {
 		*param = AC_SIZE_X;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "SizeY" ) ) {
 		*param = AC_SIZE_Y;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "SizeZ" ) ) {
 		*param = AC_SIZE_Z;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "QuatX" ) ) {
 		*param = AC_QUAT_X;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "QuatY" ) ) {
 		*param = AC_QUAT_Y;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "QuatZ" ) ) {
 		*param = AC_QUAT_Z;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "QuatW" ) ) {
 		*param = AC_QUAT_W;
-		ok = 1;
+		return 1;
 	}
 	return ok;
 }
@@ -779,15 +787,15 @@ int Ipo_caIcuName( char *s, int *param )
 	int ok = 0;
 	if( !strcmp( s, "Lens" ) ) {
 		*param = CAM_LENS;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "ClSta" ) ) {
 		*param = CAM_STA;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "ClEnd" ) ) {
 		*param = CAM_END;
-		ok = 1;
+		return 1;
 	}
 	return ok;
 }
@@ -797,87 +805,87 @@ int Ipo_texIcuName( char *s, int *param )
 	int ok = 0;
 	if( !strcmp( s, "NSize" ) ) {
 		*param = TE_NSIZE;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "NDepth" ) ) {
 		*param = TE_NDEPTH;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "NType" ) ) {
 		*param = TE_NTYPE;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Turb" ) ) {
 		*param = TE_TURB;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Vnw1" ) ) {
 		*param = TE_VNW1;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Vnw2" ) ) {
 		*param = TE_VNW2;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Vnw3" ) ) {
 		*param = TE_VNW3;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Vnw4" ) ) {
 		*param = TE_VNW4;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "MinkMExp" ) ) {
 		*param = TE_VNMEXP;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "DistM" ) ) {
 		*param = TE_VN_DISTM;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "ColT" ) ) {
 		*param = TE_VN_COLT;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "iScale" ) ) {
 		*param = TE_ISCA;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "DistA" ) ) {
 		*param = TE_DISTA;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "MgType" ) ) {
 		*param = TE_MG_TYP;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "MgH" ) ) {
 		*param = TE_MGH;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Lacu" ) ) {
 		*param = TE_MG_LAC;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Oct" ) ) {
 		*param = TE_MG_OCT;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "MgOff" ) ) {
 		*param = TE_MG_OFF;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "MgGain" ) ) {
 		*param = TE_MG_GAIN;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "NBase1" ) ) {
 		*param = TE_N_BAS1;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "NBase2" ) ) {
 		*param = TE_N_BAS2;
-		ok = 1;
+		return 1;
 	}
 
 	return ok;
@@ -888,144 +896,154 @@ int Ipo_obIcuName( char *s, int *param )
 	int ok = 0;
 	if( !strcmp( s, "LocX" ) ) {
 		*param = OB_LOC_X;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "LocY" ) ) {
 		*param = OB_LOC_Y;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "LocZ" ) ) {
 		*param = OB_LOC_Z;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "RotX" ) ) {
 		*param = OB_ROT_X;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "RotY" ) ) {
 		*param = OB_ROT_Y;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "RotZ" ) ) {
 		*param = OB_ROT_Z;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "SizeX" ) ) {
 		*param = OB_SIZE_X;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "SizeY" ) ) {
 		*param = OB_SIZE_Y;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "SizeZ" ) ) {
 		*param = OB_SIZE_Z;
-		ok = 1;
+		return 1;
 	}
 
 	if( !strcmp( s, "dLocX" ) ) {
 		*param = OB_DLOC_X;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "dLocY" ) ) {
 		*param = OB_DLOC_Y;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "dLocZ" ) ) {
 		*param = OB_DLOC_Z;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "dRotX" ) ) {
 		*param = OB_DROT_X;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "dRotY" ) ) {
 		*param = OB_DROT_Y;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "dRotZ" ) ) {
 		*param = OB_DROT_Z;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "dSizeX" ) ) {
 		*param = OB_DSIZE_X;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "dSizeY" ) ) {
 		*param = OB_DSIZE_Y;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "dSizeZ" ) ) {
 		*param = OB_DSIZE_Z;
-		ok = 1;
+		return 1;
 	}
 
 	if( !strcmp( s, "Layer" ) ) {
 		*param = OB_LAY;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Time" ) ) {
 		*param = OB_TIME;
-		ok = 1;
+		return 1;
 	}
 
 	if( !strcmp( s, "ColR" ) ) {
 		*param = OB_COL_R;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "ColG" ) ) {
 		*param = OB_COL_G;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "ColB" ) ) {
 		*param = OB_COL_B;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "ColA" ) ) {
 		*param = OB_COL_A;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "FStreng" ) ) {
 		*param = OB_PD_FSTR;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "FFall" ) ) {
 		*param = OB_PD_FFALL;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Damping" ) ) {
 		*param = OB_PD_SDAMP;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "RDamp" ) ) {
 		*param = OB_PD_RDAMP;
-		ok = 1;
+		return 1;
 	}
 	if( !strcmp( s, "Perm" ) ) {
 		*param = OB_PD_PERM;
-		ok = 1;
+		return 1;
 	}
 
 	return ok;
 }
 
+
+/* 
+   Function:  Ipo_addCurve
+   Bpy:       Blender.Ipo.addCurve( 'curname')
+
+   add a new curve to an existing IPO.
+   example:
+   ipo = Blender.Ipo.New('Object','ObIpo')
+   cu = ipo.addCurve('LocX')
+*/
+
 static PyObject *Ipo_addCurve( BPy_Ipo * self, PyObject * args )
 {
-	IpoCurve *get_ipocurve( ID * from, short type, int adrcode,
-				Ipo * useipo );
-	void allspace( unsigned short event, short val );
-	void allqueue( unsigned short event, short val );
-	int param = 0, ok = 0, ipofound = 0;
-	char *s = 0;
+	int param = 0;		/* numeric curve name constant */
+	int ok = 0;
+	int ipofound = 0;
+	char *cur_name = 0;	/* input arg: curve name */
 	Ipo *ipo = 0;
 	IpoCurve *icu = 0;
 	Link *link;
 
-	if( !PyArg_ParseTuple( args, "s", &s ) )
+	if( !PyArg_ParseTuple( args, "s", &cur_name ) )
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_TypeError, "expected string argument" ) );
 
 
+	/* chase down the ipo list looking for ours */
 	link = G.main->ipo.first;
 
 	while( link ) {
@@ -1038,74 +1056,72 @@ static PyObject *Ipo_addCurve( BPy_Ipo * self, PyObject * args )
 	}
 
 	if( ipo && ipofound ) {
-		switch ( ipo->blocktype ) {
-		case ID_OB:
-			ok = Ipo_obIcuName( s, &param );
-			icu = get_ipocurve( NULL, ipo->blocktype, param,
-					    self->ipo );
-			break;
-		case ID_CA:
-			ok = Ipo_caIcuName( s, &param );
-			icu = get_ipocurve( NULL, ipo->blocktype, param,
-					    self->ipo );
-			break;
-		case ID_LA:
-			ok = Ipo_laIcuName( s, &param );
-			icu = get_ipocurve( NULL, ipo->blocktype, param,
-					    self->ipo );
-			break;
-		case ID_TE:
-			ok = Ipo_texIcuName( s, &param );
-			icu = get_ipocurve( NULL, ipo->blocktype, param,
-					    self->ipo );
-			break;
-		case ID_WO:
-			ok = Ipo_woIcuName( s, &param );
-			icu = get_ipocurve( NULL, ipo->blocktype, param,
-					    self->ipo );
-			break;
-		case ID_MA:
-			ok = Ipo_maIcuName( s, &param );
-			icu = get_ipocurve( NULL, ipo->blocktype, param,
-					    self->ipo );
-			break;
-		case ID_AC:
-			ok = Ipo_acIcuName( s, &param );
-			icu = get_ipocurve( NULL, ipo->blocktype, param,
-					    self->ipo );
-			break;
-		case IPO_CO:
-			ok = Ipo_coIcuName( s, &param );
-			icu = get_ipocurve( NULL, ipo->blocktype, param,
-					    self->ipo );
-			break;
-		case ID_CU:
-			ok = Ipo_cuIcuName( s, &param );
-			icu = get_ipocurve( NULL, ipo->blocktype, param,
-					    self->ipo );
-			break;
-		case ID_KE:
-			ok = Ipo_keIcuName( s, &param );
-			icu = get_ipocurve( NULL, ipo->blocktype, param,
-					    self->ipo );
-			break;
-		case ID_SEQ:
-			ok = Ipo_seqIcuName( s, &param );
-			icu = get_ipocurve( NULL, ipo->blocktype, param,
-					    self->ipo );
-			break;
-		}
+		/* ok.  continue */
+	} else {		/* runtime error here:  our ipo not found */
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_RuntimeError, "Ipo not found" ) );
 	}
 
-	if( icu == 0 )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_ValueError, "Not a valid param." ) );
 
-#define REMAKEIPO		1
-#define REDRAWIPO		0x4023
+	/*
+	   depending on the block type, 
+	   check if the input arg curve name is valid 
+	   and set param to numeric value.
+	 */
+	switch ( ipo->blocktype ) {
+	case ID_OB:
+		ok = Ipo_obIcuName( cur_name, &param );
+		break;
+	case ID_CA:
+		ok = Ipo_caIcuName( cur_name, &param );
+		break;
+	case ID_LA:
+		ok = Ipo_laIcuName( cur_name, &param );
+		break;
+	case ID_TE:
+		ok = Ipo_texIcuName( cur_name, &param );
+		break;
+	case ID_WO:
+		ok = Ipo_woIcuName( cur_name, &param );
+		break;
+	case ID_MA:
+		ok = Ipo_maIcuName( cur_name, &param );
+		break;
+	case ID_AC:
+		ok = Ipo_acIcuName( cur_name, &param );
+		break;
+	case IPO_CO:
+		ok = Ipo_coIcuName( cur_name, &param );
+		break;
+	case ID_CU:
+		ok = Ipo_cuIcuName( cur_name, &param );
+		break;
+	case ID_KE:
+		ok = Ipo_keIcuName( cur_name, &param );
+		break;
+	case ID_SEQ:
+		ok = Ipo_seqIcuName( cur_name, &param );
+		break;
+	default:
+		ok = 0;
+	}
+
+	if( !ok )		/* curve type was invalid */
+		return EXPP_ReturnPyObjError
+			( PyExc_NameError, "curve name was invalid" );
+
+	/* ask blender to create the new ipo curve */
+	icu = get_ipocurve( NULL, ipo->blocktype, param, self->ipo );
+
+	if( icu == 0 )		/* could not create curve */
+		return EXPP_ReturnPyObjError
+			( PyExc_RuntimeError,
+			  "blender could not create ipo curve" );
+
 	allspace( REMAKEIPO, 0 );
 	allqueue( REDRAWIPO, 0 );
 
+	/* create a bpy wrapper for the new ipo curve */
 	return IpoCurve_CreatePyObject( icu );
 }
 
@@ -1115,9 +1131,11 @@ static PyObject *Ipo_getCurve( BPy_Ipo * self, PyObject * args )
 {
 	char *str, *str1;
 	IpoCurve *icu = 0;
+
 	if( !PyArg_ParseTuple( args, "s", &str ) )
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_TypeError, "expected string argument" ) );
+
 	for( icu = self->ipo->curve.first; icu; icu = icu->next ) {
 		str1 = GetIpoCurveName( icu );
 		if( !strcmp( str1, str ) )
