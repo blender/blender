@@ -1111,31 +1111,17 @@ int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex)
 
 /* ------------------------------------------------------------------------- */
 
-/* alphatype */
-#define T_ALPHA_PREMUL	1
-#define T_ALPHA_TRANSP	2
-
 /* in = destination, tex = texture, out = previous color */
 /* fact = texture strength, facg = button strength value */
-static void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg, int blendtype, int alphatype)
+static void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg, int blendtype)
 {
 	float facm, col;
 	
 	switch(blendtype) {
 	case MTEX_BLEND:
-		if(alphatype & T_ALPHA_TRANSP) {
-			/* de-premul */
-			if(fact>0.0) fact= facg/fact;
-			facm= 1.0-facg;
-		}
-		else if(alphatype & T_ALPHA_PREMUL) {
-			facm= 1.0- fact*facg;
-			fact= facg;
-		}
-		else {
-			fact*= facg;
-			facm= 1.0-fact;
-		}
+		fact*= facg;
+		facm= 1.0-fact;
+
 		in[0]= (fact*tex[0] + facm*out[0]);
 		in[1]= (fact*tex[1] + facm*out[1]);
 		in[2]= (fact*tex[2] + facm*out[2]);
@@ -1481,7 +1467,6 @@ void do_material_tex(ShadeInput *shi)
 			/* mapping */
 			if(mtex->mapto & (MAP_COL+MAP_COLSPEC+MAP_COLMIR)) {
 				float tcol[3];
-				int alphatype= 0;
 				
 				tcol[0]=Tr; tcol[1]=Tg; tcol[2]=Tb;
 				
@@ -1491,19 +1476,16 @@ void do_material_tex(ShadeInput *shi)
 					tcol[2]= mtex->b;
 				}
 				else if(mtex->mapto & MAP_ALPHA) {
-					alphatype= T_ALPHA_TRANSP;
+					Tin= stencilTin;
 				}
 				else Tin= Ta;
 				
-				if(Talpha) {
-					alphatype |= T_ALPHA_PREMUL;
-				}
 				if(mtex->mapto & MAP_COL) {
-					texture_rgb_blend(&shi->matren->r, tcol, &mat_col->r, Tin, mtex->colfac, mtex->blendtype, alphatype);
+					texture_rgb_blend(&shi->matren->r, tcol, &mat_col->r, Tin, mtex->colfac, mtex->blendtype);
 					mat_col= shi->matren;
 				}
 				if(mtex->mapto & MAP_COLSPEC) {
-					texture_rgb_blend(&shi->matren->specr, tcol, &mat_col->specr, Tin, mtex->colfac, mtex->blendtype, 0);
+					texture_rgb_blend(&shi->matren->specr, tcol, &mat_col->specr, Tin, mtex->colfac, mtex->blendtype);
 					mat_colspec= shi->matren;
 				}
 				if(mtex->mapto & MAP_COLMIR) {
@@ -1517,7 +1499,7 @@ void do_material_tex(ShadeInput *shi)
 						shi->refcol[3]= fact*tcol[2] + facm*shi->refcol[3];
 					}
 					else {
-						texture_rgb_blend(&shi->matren->mirr, tcol, &mat_col->mirr, Tin, mtex->colfac, mtex->blendtype, 0);
+						texture_rgb_blend(&shi->matren->mirr, tcol, &mat_col->mirr, Tin, mtex->colfac, mtex->blendtype);
 					}
 					mat_colmir= shi->matren;
 				}
@@ -1925,7 +1907,7 @@ void do_sky_tex(float *lo)
 				tcol[0]= Tr; tcol[1]= Tg; tcol[2]= Tb;
 
 				if(mtex->mapto & WOMAP_HORIZ) {
-					texture_rgb_blend(&R.wrld.horr, tcol, &wrld_hor->horr, Tin, mtex->colfac, mtex->blendtype, 0);
+					texture_rgb_blend(&R.wrld.horr, tcol, &wrld_hor->horr, Tin, mtex->colfac, mtex->blendtype);
 					wrld_hor= &R.wrld;
 				}
 				if(mtex->mapto & (WOMAP_ZENUP+WOMAP_ZENDOWN)) {
@@ -1939,7 +1921,7 @@ void do_sky_tex(float *lo)
 					else ok= 1;
 					
 					if(ok) {
-						texture_rgb_blend(&R.wrld.zenr, tcol, &wrld_hor->zenr, Tin, mtex->colfac, mtex->blendtype, 0);
+						texture_rgb_blend(&R.wrld.zenr, tcol, &wrld_hor->zenr, Tin, mtex->colfac, mtex->blendtype);
 						wrld_zen= &R.wrld;
 					}
 					else {
@@ -2118,7 +2100,7 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi)
 				col[1]= Tg*la->energy;
 				col[2]= Tb*la->energy;
 				
-				texture_rgb_blend(&la->r, col, &la_col->r, Tin, mtex->colfac, mtex->blendtype, 0);
+				texture_rgb_blend(&la->r, col, &la_col->r, Tin, mtex->colfac, mtex->blendtype);
 
 				la_col= la; /* makes sure first run uses la->org, then la */
 			}
