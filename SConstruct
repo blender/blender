@@ -236,7 +236,7 @@ elif sys.platform == 'cygwin':
     opengl_include = ['/usr/include']
     # SDL specific stuff.
     sdl_env.ParseConfig ('sdl-config --cflags --libs')
-    sdl_cflags = sdl_env.Dictionary()['CCFLAGS']
+    sdl_cflags = []
     sdl_include = sdl_env.Dictionary()['CPPPATH']
     sdl_libpath = sdl_env.Dictionary()['LIBPATH']
     sdl_lib = sdl_env.Dictionary()['LIBS']
