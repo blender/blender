@@ -354,6 +354,7 @@ class ModuleFinder:
         return imp.find_module(name, path)
 
     def report(self):
+        src_list = open ('../frozen/src.list', 'w')
         print
         print "  %-25s %s" % ("Name", "File")
         print "  %-25s %s" % ("----", "----")
@@ -367,6 +368,13 @@ class ModuleFinder:
             else:
                 print "m",
             print "%-25s" % key, m.__file__ or ""
+            # Write the Python filename to the src.list file
+            # This is probably not the best way to do it, but it works :)
+            if m.__file__:
+                if m.__file__[-3:] == '.py':
+                    src_list.write("%s " % m.__file__)
+        src_list.close()
+
 
         # Print missing modules
         keys = self.badmodules.keys()

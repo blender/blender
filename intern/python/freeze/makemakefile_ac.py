@@ -23,20 +23,17 @@ def makemakefile(outfp, makevars, files, target):
 #        outfp.write("\n\ninclude nan_definitions.mk\n")
 	outfp.write("\nall: %s\n\n" % libtarget)
 
-	src_list = open ('../frozen/src.list', 'w')
 	deps = []
 	for i in range(len(files)):
 		file = files[i]
 		if file[-2:] == '.c':
 			base = os.path.basename(file)
 			dest = base[:-2] + '.o'
-			src_list.write("%s " % file)
 		#	outfp.write("%s: %s\n" % (dest, file))
 		#	outfp.write("\t$(CC) $(CFLAGS) -c %s\n" % file)
 			files[i] = dest
 			deps.append(dest)
 
-	src_list.close()
 	mainfile = 'M___main__.o'
 	
 	try:
