@@ -199,12 +199,14 @@ static void decimate_faces(void)
 	me= ob->data;
 
 	/* add warning for vertex col and tfaces */
-	if(me->tface || me->mcol) {
-		if(okee("This will remove UV coordinates and vertexcolors")==0) return;
+	if(me->tface || me->mcol || me->dvert) {
+		if(okee("This will remove UV coordinates, vertexcolors, and deform weights")==0) return;
 		if(me->tface) MEM_freeN(me->tface);
 		if(me->mcol) MEM_freeN(me->mcol);
+		if(me->dvert) free_dverts(me->dvert, me->totvert);
 		me->tface= NULL;
 		me->mcol= NULL;
+		me->dvert= NULL;
 	}
 	
 	/* count number of trias, since decimator doesnt allow quads */
@@ -359,6 +361,10 @@ static void decimate_apply(void)
 			free_editMesh();
 			G.obedit= NULL;
 			tex_space_mesh(me);
+
+			if (mesh_uses_displist(me)) {
+				makeDispList(ob);
+			}
 		}
 		else error("Not a decimated Mesh");
 	}
@@ -372,7 +378,7 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	uiBlock *block;
 	float val;
 	/* Hope to support more than two subsurf algorithms */
-	char subsurfmenu[]="Subsurf Type%t|Catmul Clark%x0|Simple Subdiv.%x1";
+	char subsurfmenu[]="Subsurf Type%t|Catmull-Clark%x0|Simple Subdiv.%x1";
 	
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if( uiNewPanel(curarea, block, "Mesh", "Editing", 320, 0, 318, 204)==0) return;
