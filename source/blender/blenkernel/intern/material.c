@@ -559,7 +559,7 @@ void init_render_material(Material *ma)
 	}
 	if(ma->mode & MA_ZTRA) {
 		/* if(ma->alpha==0.0 || ma->alpha==1.0) */
-		R.flag |= R_ZTRA;
+		if(R.flag & R_RENDERING) R.flag |= R_ZTRA;
 	}
 	if(ma->mode & MA_VERTEXCOLP) ma->mode |= MA_VERTEXCOL; 
 	
