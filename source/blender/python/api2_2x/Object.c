@@ -1223,31 +1223,45 @@ static PyObject *Object_setEuler (BPy_Object *self, PyObject *args)
 	float	rot1;
 	float	rot2;
 	float	rot3;
-	int		status;
+	int	status = 0; /* failure */
 	PyObject* ob;
 
-	if (!PyArg_ParseTuple (args, "O", &ob))
-		return (PythonReturnErrorObject (PyExc_AttributeError,
-				"unknown type passed to function (setEuler)"));
+	/* 
+	   args is either a tuple/list of floats or an euler.
+	   for backward compatibility, we also accept 3 floats.
+	*/
+	   
+	/* do we have 3 floats? */
+	if (PyObject_Length (args) == 3) {
+		status = PyArg_ParseTuple (args, "fff", &rot1, &rot2, &rot3);
+ 	}
+	else{ 	//test to see if it's a list or a euler
+		if ( PyArg_ParseTuple (args, "O", &ob)){
+			if(EulerObject_Check(ob)){
+				rot1 = ((EulerObject*)ob)->eul[0];
+				rot2 = ((EulerObject*)ob)->eul[1];
+				rot3 = ((EulerObject*)ob)->eul[2];
+				status = 1; /* success! */
+			}
+			else if(PySequence_Check(ob ))
+				status = PyArg_ParseTuple (args, "(fff)", 
+							   &rot1, &rot2, &rot3);
+			else{  /* not an euler or tuple */
 
-	//test to see if it's a list or a euler
-	if(PyList_Check(ob)){
-		if (PyObject_Length (args) == 3)
-			status = PyArg_ParseTuple (args, "fff", &rot1, &rot2, &rot3);
-		else
-			status = PyArg_ParseTuple (args, "(fff)", &rot1, &rot2, &rot3);
-		if (!status)
-			return EXPP_ReturnPyObjError (PyExc_AttributeError,
-					"expected list argument of 3 floats");
-   	}else if(EulerObject_Check(ob)){
-		rot1 = ((EulerObject*)ob)->eul[0];
-		rot2 = ((EulerObject*)ob)->eul[1];
-		rot3 = ((EulerObject*)ob)->eul[2];
-	}else{
-		Py_DECREF (ob);
- 		return (PythonReturnErrorObject (PyExc_AttributeError,
-				"expected list of floats or euler"));
+				/* python C api doc says don't decref this */
+				/*Py_DECREF (ob); */
+				
+				status = 0; /* false */
+			}
+		}
+		else{  /* arg parsing failed */
+			status = 0;
+		}
 	}
+		
+	if( !status) /* parsing args failed */
+		return (  EXPP_ReturnPyObjError( PyExc_AttributeError,
+						 "expected euler or list/tuple of 3 floats "));
 
 	self->object->rot[0] = rot1;
 	self->object->rot[1] = rot2;
@@ -1256,6 +1270,7 @@ static PyObject *Object_setEuler (BPy_Object *self, PyObject *args)
 	Py_INCREF (Py_None);
 	return (Py_None);
 }
+
 
 static PyObject *Object_setMatrix (BPy_Object *self, PyObject *args)
 {
