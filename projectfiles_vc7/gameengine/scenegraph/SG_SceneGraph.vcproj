@@ -198,6 +198,9 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
+				RelativePath="..\..\..\source\gameengine\SceneGraph\SG_BBox.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\SceneGraph\SG_Controller.cpp">
 			</File>
 			<File
@@ -209,10 +212,16 @@
 			<File
 				RelativePath="..\..\..\source\gameengine\SceneGraph\SG_Spatial.cpp">
 			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\SceneGraph\SG_Tree.cpp">
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
+			<File
+				RelativePath="..\..\..\source\gameengine\SceneGraph\SG_BBox.h">
+			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\SceneGraph\SG_Controller.h">
 			</File>
@@ -227,6 +236,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\SceneGraph\SG_Spatial.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\SceneGraph\SG_Tree.h">
 			</File>
 		</Filter>
 	</Files>

@@ -129,9 +129,6 @@
 				RelativePath="..\..\..\source\blender\render\intern\source\jitter.c">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\render\intern\source\outerRenderLoop.c">
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\render\intern\source\pixelblending.c">
 			</File>
 			<File
