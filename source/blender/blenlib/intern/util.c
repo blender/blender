@@ -481,7 +481,6 @@ void BLI_splitdirstring(char *di,char *fi)
 }
 
 char *BLI_gethome(void) {
-	
 	#ifdef __BeOS
 		return "/boot/home/";		/* BeOS 4.5: doubleclick at icon doesnt give home env */
 
@@ -495,10 +494,8 @@ char *BLI_gethome(void) {
 
 		ret = getenv("HOME");
 		if(ret) {
-			if (BLI_exists(ret)){
-				strcat(ret,"\.blender");
-				return ret;
-			}
+			sprintf(dir, "%s\.blender", ret);
+			if (BLI_exists(dir)) return dir;
 		}
 				
 		/* add user profile support for WIN 2K / NT */
