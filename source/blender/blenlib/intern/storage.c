@@ -60,7 +60,7 @@
 #include <sys/statfs.h>
 #endif
 
-#ifdef __FreeBSD__
+#ifdef defined (__FreeBSD__) || defined (__OpenBSD__) 
 #include <sys/param.h>
 #include <sys/mount.h>
 #endif
@@ -194,7 +194,7 @@ double BLI_diskfree(char *dir)
 		if (slash) slash[1] = 0;
 	} else strcpy(name,"/");
 
-#if defined __FreeBSD__ || defined linux 
+#if defined (__FreeBSD__) || defined (linux) || defined (__OpenBSD__) 
 	if (statfs(name, &disk)) return(-1);
 #endif
 #ifdef __BeOS

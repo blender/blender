@@ -72,7 +72,7 @@ MODNAME(BLENDERMODULE) -> "_Blender"
 
 // module configuration -- TODO: this should be set later from the Makefile...
 /* commented out by mein@cs.umn.edu default is non static now :)
-#if defined(__FreeBSD__) || defined(__linux__) || defined (__sgi) || defined(__sparc) || defined(__sparc__)
+#if defined(__FreeBSD__) || defined(__linux__) || defined (__sgi) || defined(__sparc) || defined(__sparc__) || defined (__OpenBSD__) 
 #define STATIC_TEXTTOOLS 1
 #endif
 */

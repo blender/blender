@@ -50,12 +50,6 @@
 #include <string.h>
 #include <math.h>
 
-#if !defined(__FreeBSD__) && !defined(__APPLE__)
-
-/*  #include <malloc.h> */ /* _should_ be in stdlib */
-
-#endif
-
 #ifndef WIN32
 #include <sys/mman.h>
 #endif

@@ -81,7 +81,7 @@ typedef unsigned __int64 uint64_t;
 #ifdef _WIN32
 #define htonl(x) correctByteOrder(x)
 #define ntohl(x) correctByteOrder(x)
-#elif defined __FreeBSD__
+#elif defined (__FreeBSD__) || defined (__OpenBSD__) 
 #include <sys/param.h>
 #elif defined (__APPLE__)
 #include <sys/types.h>
