@@ -31,12 +31,10 @@
 #
 #
 
-LIBNAME = logic
-DIR = $(OCGDIR)/gameengine/$(LIBNAME)
-DIRS = Joystick
+LIBNAME = Joystick
+DIR = $(OCGDIR)/gameengine/logic/$(LIBNAME)
 
 include nan_compile.mk
-include nan_subdirs.mk
 
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
@@ -46,4 +44,4 @@ CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 CPPFLAGS += $(NAN_SDLCFLAGS)
 
-CPPFLAGS += -I../../kernel/gen_system
+CPPFLAGS += -I../../../kernel/gen_system
