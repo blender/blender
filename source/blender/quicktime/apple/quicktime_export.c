@@ -139,7 +139,8 @@ typedef struct _QuicktimeExport {
 	ImageDescription	**anImageDescription;
 	ImageSequence		anImageSequence;
 
-	ImBuf		*ibuf;
+	ImBuf		*ibuf;	//for Qtime's Gworld
+	ImBuf		*ibuf2;	//copy of renderdata, to be Y-flipped
 
 } QuicktimeExport;
 
@@ -259,6 +260,7 @@ static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame)
 	OSErr err = noErr;
 
 	qte->ibuf = IMB_allocImBuf (R.rectx, R.recty, 32, IB_rect, 0);
+	qte->ibuf2 = IMB_allocImBuf (R.rectx, R.recty, 32, IB_rect, 0);
 
 	err = NewGWorldFromPtr( &qte->theGWorld,
 							k32ARGBPixelFormat,
@@ -297,21 +299,10 @@ static void QT_DoAddVideoSamplesToMedia (int frame)
 	long	dataSize;
 	Handle	compressedData;
 
-// flip rendered data for quicktime
-// NOTE: we flip the original renderdata !
-	short x,y,backx;
-	unsigned int *top,*bottom,temp;
-
-	x = R.rectx; y = R.recty; backx = x<<1;
-	top = R.rectot; bottom = top + ((y-1) * x);	y >>= 1;
-
-	for(;y>0;y--){
-		for(x = R.rectx; x > 0; x--){
-			temp = *top;
-			*(top++) = *bottom;
-			*(bottom++) = temp;
-		}
-		bottom -= backx;
+// copy and flip the renderdata
+	if(qte->ibuf2) {
+		memcpy(qte->ibuf2->rect, R.rectot, 4*R.rectx*R.recty);
+		IMB_flipy(qte->ibuf2);
 	}
 
 //get pointers to parse bitmapdata
@@ -319,7 +310,7 @@ static void QT_DoAddVideoSamplesToMedia (int frame)
 	imageRect = (**qte->thePixMap).bounds;
 
 	boxsize = R.rectx * R.recty;
-	readPos = (uint32_t *) R.rectot;
+	readPos = (uint32_t *) qte->ibuf2->rect;
 	changePos = (uint32_t *) myPtr;
 
 #ifdef __APPLE__
@@ -366,6 +357,9 @@ static void QT_EndAddVideoSamplesToMedia (void)
 	UnlockPixels(qte->thePixMap);
 	if (qte->theGWorld)	DisposeGWorld (qte->theGWorld);
 	if (qte->ibuf) IMB_freeImBuf(qte->ibuf);
+	if (qte->ibuf2) {
+		IMB_freeImBuf(qte->ibuf2);
+	}
 } 
 
 
@@ -465,9 +459,6 @@ void append_qt(int frame) {
 void end_qt(void) {
 	OSErr err = noErr;
 
-	short x,y,backx;
-	unsigned int *top,*bottom,temp;
-
 	if(qte->theMovie) {
 		QT_EndCreateMyVideoTrack ();
 
@@ -478,20 +469,6 @@ void end_qt(void) {
 		if (qte->resRefNum)	CloseMovieFile (qte->resRefNum);
 
 		DisposeMovie (qte->theMovie);
-
-		//flip back rendered data when done exporting quicktime
-
-		x = R.rectx; y = R.recty; backx = x<<1;
-		top = R.rectot; bottom = top + ((y-1) * x);	y >>= 1;
-
-		for(;y>0;y--){
-			for(x = R.rectx; x > 0; x--){
-				temp = *top;
-				*(top++) = *bottom;
-				*(bottom++) = temp;
-			}
-			bottom -= backx;
-		}
 	}
 
 	if(qte) {
