@@ -219,10 +219,6 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 		// only add valid polygons
 		if (mface->v3)
 		{
-			
-			MT_Vector3 no0(0.0,0.0,0.0),no1(0.0,0.0,0.0),no2(0.0,0.0,0.0),no3(0.0,0.0,0.0);
-			MT_Point3 pt0,pt1,pt2,pt3;
-			
 			MT_Point2 uv0(0.0,0.0),uv1(0.0,0.0),uv2(0.0,0.0),uv3(0.0,0.0);
 			// rgb3 is set from the adjoint face in a square
 			unsigned int rgb0,rgb1,rgb2,rgb3 = 0;
@@ -245,7 +241,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				no3 /= 32767.0;
 			}
 	
-			if((!mface->flag & ME_SMOOTH))
+			if(!(mface->flag & ME_SMOOTH))
 			{
 				MT_Vector3 norm = ((pt1-pt0).cross(pt2-pt0)).safe_normalized();
 				norm[0] = ((int) (10*norm[0]))/10.0;
