@@ -130,7 +130,7 @@ void join_mesh(void)
 	float imat[4][4], cmat[4][4];
 	int a, b, totcol, totedge=0, totvert=0, totface=0, ok=0, vertofs, map[MAXMAT];
 	int hasedges=0;
-	int	i, j, index, haskey=0;
+	int	i, j, index, haskey=0, hasdefgroup=0;
 	bDeformGroup *dg, *odg;
 	MDeformVert *dvert, *dvertmain;
 	
@@ -204,6 +204,8 @@ void join_mesh(void)
 
 				// Join this object's vertex groups to the base one's
 				for (dg=base->object->defbase.first; dg; dg=dg->next){
+					hasdefgroup= 1;
+					
 					/* See if this group exists in the object */
 					for (odg=ob->defbase.first; odg; odg=odg->next){
 						if (!strcmp(odg->name, dg->name)){
@@ -260,7 +262,7 @@ void join_mesh(void)
 	if(me->tface || testSelected_TfaceMesh()) tface= tfacemain= MEM_callocN(totface*4*sizeof(TFace), "joinmesh4");
 	else tfacemain= NULL;
 
-	if(me->dvert)
+	if(me->dvert || hasdefgroup)
 		dvert= dvertmain= MEM_callocN(totvert*sizeof(MDeformVert), "joinmesh5");
 	else dvert=dvertmain= NULL;
 

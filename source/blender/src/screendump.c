@@ -99,7 +99,6 @@ void write_screendump(char *name)
 			}
 			else ibuf->ftype= TGA;	
 			
-			IMB_gamwarp(ibuf, 1.0+G.rt/100.0);
 			if(G.scene->r.planes == 8) IMB_cspace(ibuf, rgb_to_bw);
 			
 			IMB_saveiff(ibuf, name, IB_rect);
