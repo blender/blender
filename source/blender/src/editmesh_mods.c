@@ -1304,21 +1304,21 @@ void reveal_mesh(void)
 			eve->f |= SELECT;
 		}
 	}
-
 	for(eed= em->edges.first; eed; eed= eed->next) {
 		if(eed->h & 1) {
 			eed->h &= ~1;
-			EM_select_edge(eed, 1);
+			if(G.scene->selectmode & SCE_SELECT_VERTEX); 
+			else EM_select_edge(eed, 1);
 		}
 	}
-
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		if(efa->h) {
 			efa->h= 0;
-			EM_select_face(efa, 1);
+			if(G.scene->selectmode & (SCE_SELECT_EDGE|SCE_SELECT_VERTEX)); 
+			else EM_select_face(efa, 1);
 		}
 	}
-	
+
 	EM_fgon_flags();	// redo flags and indices for fgons
 	EM_selectmode_flush();
 	
