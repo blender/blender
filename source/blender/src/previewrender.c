@@ -286,11 +286,12 @@ static void end_previewrect(void)
 static void display_pr_scanline(unsigned int *rect, int recty)
 {
 	
-	if(recty & 1) {
+	/* we do steps of 4 scanlines, doing 2 gives errors on some gfx cards (nvidia geforce) */
+	if( (recty & 3)==3) {
 		
-		rect+= (recty-1)*PR_RECTX;
+		rect+= (recty-3)*PR_RECTX;
 		
-		glaDrawPixelsSafe(prerect.xmin, prerect.ymin + (((float)recty-1.0)*pr_facy), PR_RECTX, 2, rect);
+		glaDrawPixelsSafe(prerect.xmin, prerect.ymin + (((float)recty-3.0)*pr_facy), PR_RECTX, 4, rect);
 		
 	}
 }
