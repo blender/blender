@@ -5,11 +5,15 @@ New Python Functionality in this Version of Blender
 
 This document lists what has been changed in the Game Engine Python API.
 
+Blender 2.36
+------------
+	- Added L{KX_CameraActuator} methods (thanks snail)
+
 Blender 2.35
 ------------
 	- Added tic rate methods to L{GameLogic}
 	- Added stereo eye separation and focal length methods to L{Rasterizer}.
-	- Fixed L{Raterizer}.makeScreenshot() method.
+	- Fixed L{Rasterizer}.makeScreenshot() method.
 	- Added setLogicTicRate() and setPhysicsTicRate() to L{GameLogic}
 
 Blender 2.34

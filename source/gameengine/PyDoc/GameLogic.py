@@ -72,6 +72,9 @@ Documentation for the GameLogic Module.
 		- L{SCA_PropertyActuator}
 		- L{SCA_RandomActuator} 
 	
+	Most logic brick's methods are accessors for the properties available in the logic buttons.
+	Consult the logic bricks documentation for more information on how each logic brick works.
+	
 	There are also methods to access the current L{KX_Scene}::
 		# Get the current scene
 		scene = GameLogic.getCurrentScene()
