@@ -35,8 +35,9 @@
 SHORTVERS=`echo $VERSION | sed 's/\.//'`
 
 # Create ^M in readme.txt
-awk '{printf("%s\r\n", $0);}' $DISTDIR/README > $DISTDIR/Readme.txt
-rm -f $DISTDIR/README
+#awk '{printf("%s\r\n", $0);}' $DISTDIR/README > $DISTDIR/Readme.txt
+#rm -f $DISTDIR/README
+cp -f ../text/Blender.html $DISTDIR/Blender.html
 
 # Create ^M in copyright.txt
 awk '{printf("%s\r\n", $0);}' $DISTDIR/copyright.txt > $DISTDIR/aCopyright.txt
@@ -68,9 +69,6 @@ cp -f $NAN_GETTEXT/lib/gnu_gettext.dll $DISTDIR/gnu_gettext.dll
 
 # Add SDL DLL to package
 cp -f $NAN_SDL/lib/sdl.dll $DISTDIR/sdl.dll
-
-# Add SOLID DLL to package
-cp -f $NAN_SOLID/lib/win32/vc6/solid.dll $DISTDIR/solid.dll
 
 # Add the Help.url to the ditribution
 cp -f extra/Help.url $DISTDIR/

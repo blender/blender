@@ -10,7 +10,7 @@ Name "Blender VERSION"
 
 !define MUI_ABORTWARNING
 
-!define MUI_WELCOMEPAGE_TEXT  "This wizard will guide you through the installation of Blender.\r\n\r\nIt is recommended that you close all other applications before starting Setup.\r\n\r\n"
+!define MUI_WELCOMEPAGE_TEXT  "This wizard will guide you through the installation of Blender.\r\n\r\nIt is recommended that you close all other applications before starting Setup.\r\n\r\nNote to Win2k/XP users: You may require administrator privileges to install Blender successfully."
 !define MUI_WELCOMEFINISHPAGE_BITMAP "01.installer.bmp"
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_BITMAP  "00.header.bmp"
@@ -23,6 +23,7 @@ Name "Blender VERSION"
 !insertmacro MUI_PAGE_COMPONENTS
     
 !insertmacro MUI_PAGE_DIRECTORY
+Page custom DataLocation
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
   
@@ -48,7 +49,7 @@ UninstallIcon "00.installer.ico"
   LangString DESC_Section2 ${LANG_ENGLISH} "Add shortcut items to the Start Menu. (Recommended)"
   LangString DESC_Section3 ${LANG_ENGLISH} "Add a shortcut to Blender on your desktop."
   LangString DESC_Section4 ${LANG_ENGLISH} "Blender can register itself with .blend files to allow double-clicking from Windows Explorer, etc."
-  
+  LangString TEXT_IO_TITLE ${LANG_ENGLISH} "Specify User Data Location"
 ;--------------------------------
 ;Data
 
@@ -151,63 +152,107 @@ Function GetWindowsVersion
 FunctionEnd
 
 Var BLENDERHOME
-Var dirchanged
+Var winversion
 
 Function SetWinXPPath
-  StrCpy $BLENDERHOME "$APPDATA\Blender Foundation\Blender"
+  StrCpy $BLENDERHOME "$PROFILE\Application Data\Blender Foundation\Blender"
 FunctionEnd
 
 Function SetWin9xPath
   StrCpy $BLENDERHOME $INSTDIR
 FunctionEnd
- 
-Function .onInit
 
-  Strcpy $dirchanged '0'
-  
-; Sets $BLENDERHOME to suit Windows version...
-  
-  IfFileExists "$APPDATA\Blender Foundation\Blender\.blender\.bfont.tff" do_win2kXP
-  
+Function .onInit
   Call GetWindowsVersion
   Pop $R0
-  
-  StrCpy $R1 $R0 2
-  StrCmp $R1 "NT" do_win2kxp
-  StrCmp $R0 "2000" do_win2kxp
-  StrCmp $R0 "XP" do_win2kxp
-  StrCmp $R0 "2003" do_win2kxp
-  
-  ;else...
-  Call SetWin9xPath
-  Goto end
-
-  do_win2kXP:
-    Call SetWinXPPath
-    
-  end:
-    
+  Strcpy $winversion $R0
+  !insertmacro MUI_INSTALLOPTIONS_EXTRACT "data.ini"
 FunctionEnd
 
-Function .onInstSuccess
-  Strcmp $dirchanged "0" done
-  MessageBox MB_OK "Please note that your user defaults and python scripts can now found at $BLENDERHOME\.blender. This does not effect the functionality of Blender in any way and can safely be ignored unless you enjoy digging around in your App data directory!"
-done:
-  BringToFront
-FunctionEnd 
+Var HWND
+Var DLGITEM
+Var is2KXP
+
+Function DataLocation
+  !insertmacro MUI_HEADER_TEXT "$(TEXT_IO_TITLE)" ""
+  
+  StrCpy $R1 $winversion 2
+  StrCmp $R1 "NT" do_win2kxp
+  StrCmp $winversion "2000" do_win2kxp
+  StrCmp $winversion "XP" do_win2kxp
+  StrCmp $winversion "2003" do_win2kxp
+  
+  ;else...
+  Strcpy $is2KXP "false"
+  !insertmacro MUI_INSTALLOPTIONS_WRITE "data.ini" "Field 3" "State" 1
+
+  Goto continue
+
+  do_win2kXP:
+    Strcpy $is2KXP "true"
+    
+    !insertmacro MUI_INSTALLOPTIONS_WRITE "data.ini" "Field 2" "State" 1
+    
+  continue: 
+  
+  !insertmacro MUI_INSTALLOPTIONS_INITDIALOG "data.ini"
+  Pop $HWND
+  
+  Strcmp $is2KXP "true" do_dlg
+  
+  ; Disable App Data option on Win9x
+  
+  GetDlgItem $DLGITEM $HWND 1201
+  EnableWindow $DLGITEM 0  
+  
+  do_dlg:
+  
+    !insertmacro MUI_INSTALLOPTIONS_SHOW
+    !insertmacro MUI_INSTALLOPTIONS_READ $R0 "data.ini" "Field 2" "State" ; App Dir
+    Strcmp $R0 1 do_app_data
+    !insertmacro MUI_INSTALLOPTIONS_READ $R0 "data.ini" "Field 3" "State" ; Inst Dir
+    Strcmp $R0 1 do_inst_path
+    !insertmacro MUI_INSTALLOPTIONS_READ $R0 "data.ini" "Field 4" "State" ; Home Dir
+    Strcmp $R0 1 do_home_path
+  
+  Goto end
+  
+  do_app_data:
+    Call SetWinXPPath
+    Goto end
+  do_home_path:
+    ReadEnvStr $BLENDERHOME "HOME"
+    Goto end
+  do_inst_path:
+    Strcmp $is2KXP "true" warning
+    Call SetWin9xPath
+    Goto end
+  warning:
+    IfFileExists "$PROFILE\Application Data\Blender Foundation\Blender\.blender\.bfont.ttf" disp_warning
+    Call SetWin9xPath
+    Goto end
+  disp_warning:
+    MessageBox MB_OK "Please note that user data files have been found in $PROFILE\Application Data\Blender Foundation\Blender. Blender will automatically use these instead of the files in $INSTDIR. Please remove the .blender folder from Application Data if you wish to use this option."
+    Call SetWin9xPath
+  end:
+  
+FunctionEnd
 
 Section "Blender-VERSION (required)" SecCopyUI
   SectionIn RO
+    
+; Sets $BLENDERHOME to suit Windows version...
+
   ; Set output path to the installation directory.
   SetOutPath $INSTDIR
   ; Put file there
   File DISTDIR\blender.exe
-  File DISTDIR\python22.dll
+  File DISTDIR\python23.dll
   File DISTDIR\sdl.dll
-  File DISTDIR\solid.dll
   File DISTDIR\gnu_gettext.dll
   File DISTDIR\Copyright.txt
-  File DISTDIR\Readme.txt
+  File DISTDIR\Blender.html
+  File DISTDIR\python-license.txt
   File DISTDIR\Release_SHORTVERS.txt
   File DISTDIR\GPL-license.txt
   File DISTDIR\Help.url
@@ -215,39 +260,40 @@ Section "Blender-VERSION (required)" SecCopyUI
   SetOutPath $BLENDERHOME\.blender
   File DISTDIR\.blender\.bfont.ttf
   
-  ; If data (particularly .b.blend) exists in $INSTDIR\.blender but the OS is NT/Win2k/XP, copy to new location...
-  
-  IfFileExists "$INSTDIR\.blender\.b.blend" check_version done
-  
-  check_version:
-    StrCmp $BLENDERHOME $INSTDIR done ; Win9x?
-    ; else...
-    CopyFiles /SILENT "$INSTDIR\.blender\.b*" "$BLENDERHOME\.blender"
-    CopyFiles /SILENT "$INSTDIR\.blender\scripts\*.*" "$BLENDERHOME\.blender\scripts"
-    
-    ; Remove the old dir!
-    
-    RMDir /r $INSTDIR\.blender
-    
-    Strcpy $dirchanged '1'
-    
-  done:
-  
   SetOutPath $BLENDERHOME\.blender\scripts
   File DISTDIR\.blender\scripts\ac3d_export.py
   File DISTDIR\.blender\scripts\ac3d_import.py
   File DISTDIR\.blender\scripts\blender2cal3d.py
-  File DISTDIR\.blender\scripts\directxexporter.py
-  File DISTDIR\.blender\scripts\mod_flags.py
+  File DISTDIR\.blender\scripts\bvh_export.py
+  File DISTDIR\.blender\scripts\bvh_import.py
+  File DISTDIR\.blender\scripts\DirectXExporter.py
+  File DISTDIR\.blender\scripts\disp_paint233f.py
+  File DISTDIR\.blender\scripts\fixfromarmature.py
+  File DISTDIR\.blender\scripts\lightwave_export.py
+  File DISTDIR\.blender\scripts\lightwave_import.py
+  File DISTDIR\.blender\scripts\mod_blender.py
   File DISTDIR\.blender\scripts\mod_meshtools.py
+  File DISTDIR\.blender\scripts\nendo_export.py
+  File DISTDIR\.blender\scripts\nendo_import.py
+  File DISTDIR\.blender\scripts\obj_export.py
+  File DISTDIR\.blender\scripts\obj_import.py
   File DISTDIR\.blender\scripts\off_export.py
   File DISTDIR\.blender\scripts\off_import.py
   File DISTDIR\.blender\scripts\radiosity_export.py
   File DISTDIR\.blender\scripts\radiosity_import.py
   File DISTDIR\.blender\scripts\raw_export.py
   File DISTDIR\.blender\scripts\raw_import.py
+  File DISTDIR\.blender\scripts\rvk1_torvk2.py
+  File DISTDIR\.blender\scripts\slp_import.py
+  File DISTDIR\.blender\scripts\sysinfo.py
+  File DISTDIR\.blender\scripts\truespace_export.py
+  File DISTDIR\.blender\scripts\truespace_import.py
+  File DISTDIR\.blender\scripts\unweld044.py
   File DISTDIR\.blender\scripts\uv_export.py
+  File DISTDIR\.blender\scripts\UVpaint05.py
   File DISTDIR\.blender\scripts\videoscape_export.py
+  File DISTDIR\.blender\scripts\wings_export.py
+  File DISTDIR\.blender\scripts\wings_import.py
   File DISTDIR\.blender\scripts\wrl2export.py
   SetOutPath $BLENDERHOME\.blender\bpydata
   File DISTDIR\.blender\bpydata\readme.txt
@@ -279,6 +325,12 @@ Section "Blender-VERSION (required)" SecCopyUI
   File DISTDIR\.blender\locale\zh_cn\LC_MESSAGES\blender.mo
   SetOutPath $BLENDERHOME\.blender\locale\pt_br\LC_MESSAGES
   File DISTDIR\.blender\locale\pt_br\LC_MESSAGES\blender.mo
+  SetOutPath $BLENDERHOME\.blender\locale\hr_HR\LC_MESSAGES
+  File DISTDIR\.blender\locale\hr_HR\LC_MESSAGES\blender.mo
+  SetOutPath $BLENDERHOME\.blender\locale\ru\LC_MESSAGES
+  File DISTDIR\.blender\locale\ru\LC_MESSAGES\blender.mo
+  SetOutPath $BLENDERHOME\.blender\locale\pl\LC_MESSAGES
+  File DISTDIR\.blender\locale\pl\LC_MESSAGES\blender.mo
   
   SetOutPath $INSTDIR
   ; Write the installation path into the registry
@@ -294,7 +346,7 @@ Section "Add Start Menu shortcuts" Section2
   CreateDirectory "$SMPROGRAMS\Blender Foundation\Blender\"
   CreateShortCut "$SMPROGRAMS\Blender Foundation\Blender\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
   CreateShortCut "$SMPROGRAMS\Blender Foundation\Blender\Blender.lnk" "$INSTDIR\Blender.exe" "" "$INSTDIR\blender.exe" 0
-  CreateShortCut "$SMPROGRAMS\Blender Foundation\Blender\Readme.lnk" "$INSTDIR\Readme.txt" "" "" 0
+  CreateShortCut "$SMPROGRAMS\Blender Foundation\Blender\Readme.lnk" "$INSTDIR\Blender.html" "" "" 0
   CreateShortCut "$SMPROGRAMS\Blender Foundation\Blender\Copyright.lnk" "$INSTDIR\Copyright.txt" "" "$INSTDIR\copyright.txt" 0
   CreateShortCut "$SMPROGRAMS\Blender Foundation\Blender\GPL-license.lnk" "$INSTDIR\GPL-license.txt" "" "$INSTDIR\GPL-license.txt" 0
   CreateShortCut "$SMPROGRAMS\Blender Foundation\Blender\Help.lnk" "$INSTDIR\Help.url"
@@ -327,26 +379,26 @@ Section "Uninstall"
   DeleteRegKey HKLM SOFTWARE\BlenderFoundation
   ; remove files
   Delete $INSTDIR\blender.exe
-  Delete $INSTDIR\python22.dll
+  Delete $INSTDIR\python23.dll
   Delete $INSTDIR\sdl.dll
-  Delete $INSTDIR\solid.dll
   Delete $INSTDIR\gnu_gettext.dll
   Delete $INSTDIR\Copyright.txt
-  Delete $INSTDIR\Readme.txt
+  Delete $INSTDIR\Blender.html
   Delete $INSTDIR\GPL-license.txt
+  Delete $INSTDIR\python-license.txt
   Delete $INSTDIR\Release_SHORTVERS.txt
   Delete $INSTDIR\Help.url
   Delete $INSTDIR\uninstall.exe
-  Delete $BLENDERHOME\.blender\.bfont.ttf
-  Delete $BLENDERHOME\.blender\.Blanguages
+  Delete $INSTDIR\.blender\.bfont.ttf
+  Delete $INSTDIR\.blender\.Blanguages
   ; remove shortcuts, if any.
   Delete "$SMPROGRAMS\Blender Foundation\Blender\*.*"
   Delete "$DESKTOP\Blender.lnk"
   ; remove directories used.
-  RMDir /r $BLENDERHOME\.blender\locale 
-  RMDir /r $BLENDERHOME\.blender\scripts
-  RMDir /r $BLENDERHOME\.blender\bpydata
-  RMDir $BLENDERHOME\.blender
+  RMDir /r $INSTDIR\.blender\locale 
+  RMDir /r $INSTDIR\.blender\scripts
+  RMDir /r $INSTDIR\.blender\bpydata
+  RMDir $INSTDIR\.blender
   RMDir "$SMPROGRAMS\Blender Foundation\Blender"
   RMDir "$SMPROGRAMS\Blender Foundation"
   RMDir "$INSTDIR"
