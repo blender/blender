@@ -623,7 +623,7 @@ static PyObject *Method_String (PyObject *self,  PyObject *args)
 static PyObject *Method_GetStringWidth (PyObject *self, PyObject *args)
 {
   char *text;
-  char *font_str = NULL;
+  char *font_str = "normal";
   struct BMF_Font *font;
   PyObject *width;
 
@@ -631,13 +631,12 @@ static PyObject *Method_GetStringWidth (PyObject *self, PyObject *args)
     return EXPP_ReturnPyObjError (PyExc_TypeError,
           "expected one or two string arguments");
 
-  if (!font_str) font = (&G)->font;
-  else if (!strcmp (font_str, "normal")) font = (&G)->font;
+  if (!strcmp (font_str, "normal")) font = (&G)->font;
   else if (!strcmp (font_str, "small" )) font = (&G)->fonts;
   else if (!strcmp (font_str, "tiny"  )) font = (&G)->fontss;
   else
     return EXPP_ReturnPyObjError (PyExc_AttributeError,
-      "\"font\" must be: 'normal' (same as None), 'small' or 'tiny'.");
+      "\"font\" must be: 'normal' (default), 'small' or 'tiny'.");
 
   width = PyInt_FromLong(BMF_GetStringWidth (font, text));
 
@@ -664,11 +663,11 @@ static PyObject *Method_Text (PyObject *self, PyObject *args)
   else if (!strcmp (font_str, "tiny"  )) font = (&G)->fontss;
   else
     return EXPP_ReturnPyObjError (PyExc_AttributeError,
-      "\"font\" must be: 'normal' (same as None), 'small' or 'tiny'.");
+      "\"font\" must be: 'normal' (default), 'small' or 'tiny'.");
 
   BMF_DrawString(font, text);
 
-  return EXPP_incr_ret(Py_None);
+  return PyInt_FromLong (BMF_GetStringWidth (font, text));
 }
 
 PyObject *Draw_Init (void) 

@@ -31,7 +31,7 @@
 
 #include "Sys.h"
 
-static PyObject *g_sysmodule = Py_None; /* pointer to Blender.sys module */
+static PyObject *g_sysmodule = NULL; /* pointer to Blender.sys module */
 
 PyObject *sys_Init (void)
 {

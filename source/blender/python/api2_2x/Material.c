@@ -24,7 +24,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano
+ * Contributor(s): Willian P. Germano, Michel Selten
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -143,7 +143,8 @@ struct PyMethodDef M_Material_methods[] = {
 /* Function:              M_Material_New                                     */
 /* Python equivalent:     Blender.Material.New                               */
 /*****************************************************************************/
-static PyObject *M_Material_New(PyObject *self, PyObject *args, PyObject *keywords)
+static PyObject *M_Material_New(PyObject *self, PyObject *args,
+								PyObject *keywords)
 {
   char        *name = "Mat";
   static char *kwlist[] = {"name", NULL};
@@ -1462,3 +1463,19 @@ int EXPP_synchronizeMaterialLists (Object *object, void *data)
     /* No synchronization is needed; they're of equal length */
     return 1;
 }
+
+void EXPP_incr_mats_us (Material **matlist, int len)
+{
+	int i;
+	Material *mat;
+
+	if (len <= 0) return;
+
+	for (i = 0; i < len; i++) {
+		mat = matlist[i];
+		if (mat) mat->id.us++;
+	}
+
+	return;
+}
+

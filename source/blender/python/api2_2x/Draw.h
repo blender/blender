@@ -266,11 +266,14 @@ new String button\n\n\
 static PyObject *Method_String (PyObject *self,  PyObject *args);
 
 static char Method_GetStringWidth_doc[] =
-"(text) - Return the width in pixels of the given string";
+"(text, font = 'normal') - Return the width in pixels of the given string\n\
+(font) The font type: 'normal' (default), 'small' or 'tiny'.";
 
 static char Method_Text_doc[] =
-"(text) - Draw text onscreen\n\n\
-(text) The text to draw\n";
+"(text, font = 'normal') - Draw text onscreen\n\n\
+(text) The text to draw\n\
+(font) The font type: 'normal' (default), 'small' or 'tiny'.\n\n\
+NEW! - This function now returns the width of the drawn string.";
 
 static PyObject *Method_GetStringWidth (PyObject *self, PyObject *args);
 static PyObject *Method_Text (PyObject *self, PyObject *args);

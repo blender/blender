@@ -36,6 +36,7 @@
 
 #include <DNA_scene_types.h>
 #include <DNA_object_types.h>
+#include <DNA_mesh_types.h>
 #include <DNA_camera_types.h>
 #include <DNA_lamp_types.h>
 #include <DNA_curve_types.h>
@@ -78,8 +79,8 @@ PyObject * Types_Init (void);
 
 /* NMesh Data */
 PyObject * NMesh_Init (void);
-PyObject * NMesh_CreatePyObject (struct Camera *cam);
-Camera   * NMesh_FromPyObject   (PyObject *pyobj);
+PyObject * NMesh_CreatePyObject (Mesh *me);
+Mesh     * NMesh_FromPyObject   (PyObject *pyobj);
 int        NMesh_CheckPyObject  (PyObject *pyobj);
 
 /* Material */
@@ -90,6 +91,7 @@ Material **EXPP_newMaterialList_fromPyList (PyObject *list);
 Material **EXPP_newMaterialList(int len);
 int        EXPP_releaseMaterialList (Material **matlist, int len);
 int        EXPP_synchronizeMaterialLists (Object *object, void *data);
+void       EXPP_incr_mats_us (Material **matlist, int len);
 PyObject * EXPP_PyList_fromMaterialList(Material **matlist, int len);
 
 /* Camera Data */

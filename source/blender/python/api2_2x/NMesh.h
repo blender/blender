@@ -64,7 +64,7 @@
 #include "vector.h"
 #include "constant.h"
 #include "gen_utils.h"
-
+#include "modules.h"
 
 /* EXPP PyType Objects */
 
