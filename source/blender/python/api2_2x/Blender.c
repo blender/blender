@@ -29,10 +29,91 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-//#include "BKE_utildefines.h"
-#include "BIF_usiblender.h"
+#include <Python.h>
+#include <stdio.h>
 
-#include "Blender.h"
+#include <BIF_usiblender.h>
+#include <BLI_blenlib.h>
+#include <BKE_global.h>
+#include <BPI_script.h>
+#include <BSE_headerbuttons.h>
+#include <DNA_ID.h>
+#include <DNA_object_types.h>
+#include <DNA_scene_types.h>
+#include <DNA_screen_types.h> /* for SPACE_VIEW3D */
+#include <DNA_userdef_types.h>
+#include <BKE_ipo.h>
+
+#include "gen_utils.h"
+#include "modules.h"
+
+/* From Window.h, used here by Blender_Redraw */
+PyObject *M_Window_Redraw(PyObject *self, PyObject *args);
+
+/**********************************************************/
+/* Python API function prototypes for the Blender module.	*/
+/**********************************************************/
+static PyObject *Blender_Set (PyObject *self, PyObject *args);
+static PyObject *Blender_Get (PyObject *self, PyObject *args);
+static PyObject *Blender_Redraw(PyObject *self, PyObject *args);
+static PyObject *Blender_ReleaseGlobalDict(PyObject *self, PyObject *args);
+static PyObject *Blender_Quit(PyObject *self);
+static PyObject *Blender_Load(PyObject *self, PyObject *args);
+
+/*****************************************************************************/
+/* The following string definitions are used for documentation strings.			 */
+/* In Python these will be written to the console when doing a							 */
+/* Blender.__doc__																													 */
+/*****************************************************************************/
+static char Blender_Set_doc[] =
+"(request, data) - Update settings in Blender\n\
+\n\
+(request) A string identifying the setting to change\n\
+	'curframe'	- Sets the current frame using the number in data";
+
+static char Blender_Get_doc[] =
+"(request) - Retrieve settings from Blender\n\
+\n\
+(request) A string indentifying the data to be returned\n\
+	'curframe'	- Returns the current animation frame\n\
+	'curtime'	- Returns the current animation time\n\
+	'staframe'	- Returns the start frame of the animation\n\
+	'endframe'	- Returns the end frame of the animation\n\
+	'filename'	- Returns the name of the last file read or written\n\
+	'version'	- Returns the Blender version number";
+
+static char Blender_Redraw_doc[] = "() - Redraw all 3D windows";
+
+static char Blender_ReleaseGlobalDict_doc[] =
+"Deprecated, please use the Blender.Registry module solution instead.";
+
+static char Blender_Quit_doc[] =
+"() - Quit Blender.  The current data is saved as 'quit.blend' before leaving.";
+
+static char Blender_Load_doc[] =
+"(filename) - Load the given .blend file.  If succesful, the script is ended\n\
+immediately.\n\
+Notes:\n\
+1 - () - an empty argument loads the default .B.blend file;\n\
+2 - if the substring '.B.blend' occurs inside 'filename', the default\n\
+.B.blend file is loaded;\n\
+3 - The current data is always preserved as an autosave file, for safety;\n\
+4 - This function only works if the script where it's executed is the\n\
+only one running.";
+
+/*****************************************************************************/
+/* Python method structure definition.																			 */
+/*****************************************************************************/
+static struct PyMethodDef Blender_methods[] = {
+	{"Set",		 Blender_Set, METH_VARARGS, Blender_Set_doc},
+	{"Get",		 Blender_Get, METH_VARARGS, Blender_Get_doc},
+	{"Redraw", Blender_Redraw, METH_VARARGS, Blender_Redraw_doc},
+	{"Quit",	 (PyCFunction)Blender_Quit, METH_NOARGS, Blender_Quit_doc},
+	{"Load", Blender_Load, METH_VARARGS, Blender_Load_doc},
+	{"ReleaseGlobalDict", &Blender_ReleaseGlobalDict,
+		METH_VARARGS, Blender_ReleaseGlobalDict_doc},
+	{NULL, NULL}
+};
 
 /*****************************************************************************/
 /* Global variables																													 */
@@ -43,7 +124,7 @@ PyObject *g_blenderdict;
 /* Function:							Blender_Set																				 */
 /* Python equivalent:			Blender.Set																				 */
 /*****************************************************************************/
-PyObject *Blender_Set (PyObject *self, PyObject *args)
+static PyObject *Blender_Set (PyObject *self, PyObject *args)
 {
 	char			* name;
 	PyObject	* arg;
@@ -79,7 +160,7 @@ PyObject *Blender_Set (PyObject *self, PyObject *args)
 /* Function:							Blender_Get																				 */
 /* Python equivalent:			Blender.Get																				 */
 /*****************************************************************************/
-PyObject *Blender_Get (PyObject *self, PyObject *args)
+static PyObject *Blender_Get (PyObject *self, PyObject *args)
 {
 	PyObject	* object;
 	PyObject	* dict;
@@ -158,7 +239,7 @@ PyObject *Blender_Get (PyObject *self, PyObject *args)
 /* Function:							Blender_Redraw																		 */
 /* Python equivalent:			Blender.Redraw																		 */
 /*****************************************************************************/
-PyObject *Blender_Redraw(PyObject *self, PyObject *args)
+static PyObject *Blender_Redraw(PyObject *self, PyObject *args)
 {
 	int wintype = SPACE_VIEW3D;
 
@@ -176,7 +257,7 @@ PyObject *Blender_Redraw(PyObject *self, PyObject *args)
 /* Python equivalent:			Blender.ReleaseGlobalDict													 */
 /* Description:						Deprecated function.															 */
 /*****************************************************************************/
-PyObject *Blender_ReleaseGlobalDict(PyObject *self, PyObject *args)
+static PyObject *Blender_ReleaseGlobalDict(PyObject *self, PyObject *args)
 {
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -186,9 +267,54 @@ PyObject *Blender_ReleaseGlobalDict(PyObject *self, PyObject *args)
 /* Function:							Blender_Quit																			 */
 /* Python equivalent:			Blender.Quit																			 */
 /*****************************************************************************/
-PyObject *Blender_Quit(PyObject *self)
+static PyObject *Blender_Quit(PyObject *self)
 {
-	exit_usiblender();
+	BIF_write_autosave(); /* save the current data first */
+
+	exit_usiblender(); /* renames last autosave to quit.blend */
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+static PyObject *Blender_Load(PyObject *self, PyObject *args)
+{
+	char *fname = NULL;
+	Script *script = NULL;
+
+	if (!PyArg_ParseTuple(args, "|s", &fname))
+		return EXPP_ReturnPyObjError(PyExc_TypeError,
+			"expected filename string or nothing (for default file) as argument");
+
+	if (fname && !BLI_exists(fname))
+		return EXPP_ReturnPyObjError(PyExc_AttributeError,
+			"requested file doesn't exist!");
+
+	/* We won't let a new .blend file be loaded if there are still other
+	 * scripts running, since loading a new file will close and remove them. */
+
+	if (G.main->script.first != G.main->script.last)
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+			"there are other scripts running at the Scripts win, close them first!");
+
+	/* trick: mark the script so that its script struct won't be freed after
+	 * the script is executed (to avoid a double free warning on exit): */
+	script = G.main->script.first;
+	script->flags |= SCRIPT_GUI;
+
+	BIF_write_autosave(); /* for safety let's preserve the current data */
+
+	/* for safety, any filename with .B.blend is considered the default one.
+	 * It doesn't seem necessary to compare file attributes (like st_ino and
+	 * st_dev, according to the glibc info pages) to find out if the given
+	 * filename, that may have been given with a twisted misgiving path, is the
+	 * default one for sure.  Taking any .B.blend file as the default is good
+	 * enough here.  Note: the default file requires extra clean-up done by
+	 * BIF_read_homefile: freeing the user theme data. */
+	if (!fname || strstr(fname, ".B.blend"))
+		BIF_read_homefile();
+	else
+		BIF_read_file(fname);
 
 	Py_INCREF(Py_None);
 	return Py_None;
