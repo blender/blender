@@ -98,7 +98,8 @@ static ListBase * scanimage(struct ImBuf * ibuf, int dir)
 		step = 1; nextline = ibuf->x;
 		pixels = ibuf->x; lines = ibuf->y;
 		break;
-	case 'v':
+/*	case 'v':  changed so assured values for step etc.. */
+	default:
 		step = ibuf->x; nextline = 1;
 		pixels = ibuf->y; lines = ibuf->x;
 	}
@@ -233,7 +234,8 @@ static void filterimage(struct ImBuf * ibuf, struct ImBuf * cbuf, ListBase * lis
 		step = 1; nextline = ibuf->x;
 		pixels = ibuf->x; lines = ibuf->y;
 		break;
-	case 'v':
+/*	case 'v': changed so have values */
+	default:
 		step = ibuf->x; nextline = 1;
 		pixels = ibuf->y; lines = ibuf->x;
 	}

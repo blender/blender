@@ -455,10 +455,7 @@ struct ImBuf *imb_loadamiga(int *iffmem,int flags)
 		ibuf->mincol = 0;
 		ibuf->maxcol = cmaplen;
 		imb_addcmapImBuf(ibuf);
-		/* this functions needs a 3rd arg: the number of
-         * columns.... why did this work before? */
-/*  		imb_makecolarray(ibuf, cmap); */
-		imb_makecolarray(ibuf, cmap, 0);
+		imb_makecolarray(ibuf, (uchar *)cmap, 0);
 	}
 
 	if (flags & IB_test){

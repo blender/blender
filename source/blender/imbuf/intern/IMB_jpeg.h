@@ -43,7 +43,7 @@
 struct ImBuf;
 struct jpeg_compress_struct;
 
-int imb_save_jpeg(char * name, struct ImBuf * ibuf, int flags);
+int imb_savejpeg(struct ImBuf * ibuf, char * name, int flags);
 struct ImBuf * imb_ibJpegImageFromFilename (char * filename, int flags);
 struct ImBuf * imb_ibJpegImageFromMemory (unsigned char * buffer, int size, int flags);
 

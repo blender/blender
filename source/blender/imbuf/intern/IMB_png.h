@@ -34,7 +34,7 @@
 /**
  * \file IMB_png.h
  * \ingroup imbuf
- * \brief Function declarations for png_decode.c
+ * \brief Function declarations for png.c
  */
 
 #ifndef IMB_PNG_H
@@ -43,7 +43,9 @@
 struct ImBuf;
 
 int imb_is_a_png(void *buf);
-struct ImBuf *imb_png_decode(unsigned char *mem, int size, int flags);
+struct ImBuf *imb_loadpng(unsigned char *mem, int size, int flags);
+
+short imb_savepng(struct ImBuf *ibuf, int file, int flags);
 
 #endif
 

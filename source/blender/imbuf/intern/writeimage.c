@@ -48,6 +48,7 @@
 #include "IMB_ham.h"
 #include "IMB_hamx.h"
 #include "IMB_amiga.h"
+#include "IMB_png.h"
 
 #include "IMB_iff.h"
 #include "IMB_bitplanes.h"
@@ -66,10 +67,11 @@ short IMB_saveiff(struct ImBuf *ibuf,char *naam,int flags)
 	if (ibuf==0) return (FALSE);
 	ibuf->flags = flags;
 
+	/* Put formats that take a filename here */
 	if (IS_jpg(ibuf)) {
-		if (imb_save_jpeg(naam, ibuf, flags)) return (0);
-		else return (TRUE);
+		return imb_savejpeg(ibuf, naam, flags);
 	}
+
 	file = open(naam, O_BINARY | O_RDWR | O_CREAT | O_TRUNC, 0666);
 	if (file < 0) return (FALSE);
 
@@ -79,15 +81,16 @@ short IMB_saveiff(struct ImBuf *ibuf,char *naam,int flags)
 		}
 	}
 
+	/* Put formats that take a filehandle here */
 	if (IS_png(ibuf)) {
-		ok = IMB_png_encode(ibuf,file,flags);
+		ok = imb_savepng(ibuf,file,flags);
 		if (ok) {
 			close (file);
 			return (ok);
 		}
 	}
 
-	if (IS_tga(ibuf) || IS_png(ibuf)) {
+	if (IS_tga(ibuf)) {
 		ok = imb_savetarga(ibuf,file,flags);
 		if (ok) {
 			close (file);

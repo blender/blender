@@ -321,7 +321,7 @@ struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 					rledat = file_data + file_offset;
 					file_offset += lengthtab[y+z*ysize];
 					
-					expandrow(lptr, rledat, 3-z);
+					expandrow((uchar *)lptr, rledat, 3-z);
 					lptr += xsize;
 				}
 			}
@@ -338,8 +338,8 @@ struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 					rledat = file_data + file_offset;
 					file_offset += lengthtab[y+z*ysize];
 					
-					if(z<4) expandrow(lptr, rledat, 3-z);
-					else if(z<8) expandrow(zptr, rledat, 7-z);
+					if(z<4) expandrow((uchar *)lptr, rledat, 3-z);
+					else if(z<8) expandrow((uchar *)zptr, rledat, 7-z);
 				}
 				lptr += xsize;
 				zptr += xsize;
@@ -367,7 +367,7 @@ struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 			
 			for(y = 0; y < ysize; y++) {
 
-				interleaverow(lptr, rledat, 3-z, xsize);
+				interleaverow((uchar *)lptr, rledat, 3-z, xsize);
 				rledat += xsize;
 				
 				lptr += xsize;
@@ -571,15 +571,15 @@ static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, int 
 		for (z = 0; z < zsize; z++) {
 			
 			if (zsize == 1) {
-				lumrow(lptr,lumbuf,xsize);
-				len = compressrow(lumbuf,rlebuf,CHANOFFSET(z),xsize);
+				lumrow((uchar *)lptr,(uchar *)lumbuf,xsize);
+				len = compressrow((uchar *)lumbuf,rlebuf,CHANOFFSET(z),xsize);
 			}
 			else {
 				if(z<4) {
-					len = compressrow(lptr, rlebuf,CHANOFFSET(z),xsize);
+					len = compressrow((uchar *)lptr, rlebuf,CHANOFFSET(z),xsize);
 				}
 				else if(z<8 && zptr) {
-					len = compressrow(zptr, rlebuf,CHANOFFSET(z-4),xsize);
+					len = compressrow((uchar *)zptr, rlebuf,CHANOFFSET(z-4),xsize);
 				}
 			}
 			if(len>rlebuflen) {

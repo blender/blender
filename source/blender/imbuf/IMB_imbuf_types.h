@@ -136,10 +136,10 @@ typedef enum {
  *
  * The bit flag is stored in the ImBuf.ftype variable.
  */
-#define AMI	    (1 << 31)
-#define PNG	    (1 << 30)
-#define Anim	(1 << 29)
-#define TGA	    (1 << 28)
+#define AMI	        (1 << 31)
+#define PNG	        (1 << 30)
+#define Anim	        (1 << 29)
+#define TGA	        (1 << 28)
 #define JPG		(1 << 27)
 #define BMP		(1 << 26)
 #ifdef WITH_QUICKTIME
@@ -152,16 +152,16 @@ typedef enum {
 #define IMAGEMAGICK	(1 << 23)
 #endif
 
-#define RAWTGA	(TGA | 1)
+#define RAWTGA	        (TGA | 1)
 
-#define JPG_STD	(JPG | (0 << 8))
-#define JPG_VID	(JPG | (1 << 8))
-#define JPG_JST	(JPG | (2 << 8))
-#define JPG_MAX	(JPG | (3 << 8))
-#define JPG_MSK	(0xffffff00)
+#define JPG_STD	        (JPG | (0 << 8))
+#define JPG_VID	        (JPG | (1 << 8))
+#define JPG_JST	        (JPG | (2 << 8))
+#define JPG_MAX	        (JPG | (3 << 8))
+#define JPG_MSK	        (0xffffff00)
 
-#define AM_ham	    (0x0800 | AMI)
-#define AM_hbrite   (0x0080 | AMI)
+#define AM_ham	        (0x0800 | AMI)
+#define AM_hbrite       (0x0080 | AMI)
 
 #define C233	1
 #define YUVX	2
@@ -200,7 +200,4 @@ typedef enum {
 /**@}*/
 
 #endif
-
-
-
 

@@ -274,7 +274,7 @@ short imb_converttoham(struct ImBuf *ibuf)
 		imb_convhamx(ibuf, coltab, deltab);
 	} else {
 		for(;y > 0; y--){
-			convhamscanl(x, y, rect, coltab, deltab, ibuf->cbits);
+			convhamscanl(x, y, (uchar *)rect, coltab, deltab, ibuf->cbits);
 			rect += x;
 		}
 	}

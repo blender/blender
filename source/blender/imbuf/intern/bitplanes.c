@@ -75,12 +75,12 @@ static void bptolscanl(unsigned int *buf, int size, unsigned int **list, int nob
 	for (;nobp>0;)
 	{
 		int todo,i;
-		register int bp1, bp2, bp3, data;
+		register int bp1, bp2, bp3, bp4, data;
 		register unsigned int *point;
-		int  bp4, loffset;
+		int loffset;
 		/*register unsigned int bp1, bp2, bp3, bp4;*/
 
-		todo = 0;
+		bp1 = bp2 = bp3 = bp4 = todo = 0;
 		point = buf;
 		loffset = offset;
 

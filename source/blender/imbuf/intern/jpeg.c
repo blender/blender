@@ -613,15 +613,13 @@ static int save_maxjpeg(char * name, struct ImBuf * ibuf)
 }
 
 
-int imb_save_jpeg(char * name, struct ImBuf * ibuf, int flags)
+int imb_savejpeg(struct ImBuf * ibuf, char * name, int flags)
 {
-	int ret;
 	
 	ibuf->flags = flags;
-	if (IS_stdjpg(ibuf)) ret = save_stdjpeg(name, ibuf);
-	else if (IS_jstjpg(ibuf)) ret = save_jstjpeg(name, ibuf);
-	else if (IS_maxjpg(ibuf)) ret = save_maxjpeg(name, ibuf);
-	else ret = save_vidjpeg(name, ibuf);
-	return(ret);
+	if (IS_stdjpg(ibuf)) return save_stdjpeg(name, ibuf);
+	if (IS_jstjpg(ibuf)) return save_jstjpeg(name, ibuf);
+	if (IS_maxjpg(ibuf)) return save_maxjpeg(name, ibuf);
+	return save_vidjpeg(name, ibuf);
 }
 

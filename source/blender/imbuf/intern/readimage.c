@@ -127,7 +127,7 @@ ImBuf *IMB_ibImageFromMemory(int *mem, int size, int flags) {
 #else
 		if(1) {
 #endif
-			ibuf = imb_png_decode((uchar *)mem, size, flags);
+			ibuf = imb_loadpng((uchar *)mem, size, flags);
 			if (ibuf) return(ibuf);
 		}
 
