@@ -8,11 +8,11 @@ INTRODUCTION
 The module effect allows you to access all the data of an effect.
 An effect can modify an object (typically a mesh) in three different ways.
 
-a) the build effect : makes the mesh appear progressivly.
+a) the build effect : makes the mesh appear progressively.
 
 b) the wave effect : waves appear on the mesh (which should be fine-grained)
 
-c) the particle effect : every vertex of the mesh emits particles, which can themselves emit new particles. This effect is the most parametrizable.
+c) the particle effect : every vertex of the mesh emits particles, which can themselves emit new particles. This effect is the most parameterizable.
 
 In the blender internals, the effect object is just a placeholder for the "real"
 effect, which can be a wave, particle or build effect. The python API follows
@@ -92,7 +92,7 @@ class Effect:
 
   def getType():
     """
-    Retreives the type of an effect object
+    Retrieves the type of an effect object
     @rtype: int 
     @return:  the type of an effect object : 0 = build effect;  1 = wave effect;2 = particle effect;
     """
@@ -109,15 +109,22 @@ class Effect:
 
   def getFlag():
     """
-    Retreives the flag of an effect object
+    Retrieves the flag of an effect object.  The flag is a bit-mask.
     @rtype: int 
-    @return:  the flag of an effect object : 0 = build effect;  1 = wave effect;2 = particle effect;
+    @return:  The flag of the effect is a combination of parameters, whose semantics depend upon the effect type.
+      - All types :
+          Bit 0 : set to 1 if the effect is selected in the effects window.
+      - Wave effect :
+          Bits 1,2,3  :  set to 1 if the button "X", "Y" or "Cycl" is clicked.
+      - Particle effect :
+          Bits 1,2,3 :  set to 1 if the button "Bspline", "Static" or "Face" is clicked.
+
     """
 
 	
   def setFlag(newflag):
     """
-    Sets the flag of an effect object
+    Sets the flag of an effect object. See L{getFlag()} for bit values.
     @type newflag: int
     @param newflag: the new flag. 
     @rtype: PyNone
@@ -128,7 +135,7 @@ class Effect:
 
   def getLen():
     """
-    (Build Effect) Retreives the length of an build effect object
+    (Build Effect) Retrieves the length of an build effect object
     @rtype: int 
     @return:  the length of the effect.
     """
@@ -147,7 +154,7 @@ class Effect:
 
   def getSfra():
     """
-    (Build Effect) Retreives the starting frame of an build effect object
+    (Build Effect) Retrieves the starting frame of an build effect object
     @rtype: int 
     @return:  the starting frame of the effect.
     """
@@ -164,7 +171,7 @@ class Effect:
 
   def getStartx():
     """
-    (Wave Effect) Retreives the x-coordinate of the starting point of the wave.
+    (Wave Effect) Retrieves the x-coordinate of the starting point of the wave.
     @rtype: float
     @return:  the x-coordinate of the starting point of the wave.
     """
@@ -183,7 +190,7 @@ class Effect:
 
   def getStarty():
     """
-    (Wave Effect) Retreives the y-coordinate of the starting point of the wave.
+    (Wave Effect) Retrieves the y-coordinate of the starting point of the wave.
     @rtype: float
     @return:  the y-coordinate of the starting point of the wave.
     """
@@ -202,7 +209,7 @@ class Effect:
 
   def getHeight():
     """
-    (Wave Effect) Retreives the height of the wave.
+    (Wave Effect) Retrieves the height of the wave.
     @rtype: float
     @return:  the height of the wave.
     """
@@ -220,7 +227,7 @@ class Effect:
 
   def getWidth():
     """
-    (Wave Effect) Retreives the width of the wave.
+    (Wave Effect) Retrieves the width of the wave.
     @rtype: float
     @return:  the width of the wave.
     """
@@ -237,7 +244,7 @@ class Effect:
 
   def getNarrow():
     """
-    (Wave Effect) Retreives the narrowness of the wave.
+    (Wave Effect) Retrieves the narrowness of the wave.
     @rtype: float
     @return:  the narrowness of the wave.
     """
@@ -254,7 +261,7 @@ class Effect:
 
   def getSpeed():
     """
-    (Wave Effect) Retreives the speed of the wave.
+    (Wave Effect) Retrieves the speed of the wave.
     @rtype: float
     @return:  the speed of the wave.
     """
@@ -272,7 +279,7 @@ class Effect:
 	
   def getMinfac():
     """
-    (Wave Effect) Retreives the minfac of the wave.
+    (Wave Effect) Retrieves the minfac of the wave.
     @rtype: float
     @return:  the minfac of the wave.
     """
@@ -290,7 +297,7 @@ class Effect:
 	
   def getDamp():
     """
-    (Wave Effect) Retreives the damp of the wave.
+    (Wave Effect) Retrieves the damp of the wave.
     @rtype: float
     @return:  the damp of the wave.
     """
@@ -308,7 +315,7 @@ class Effect:
 	
   def getTimeoffs():
     """
-    (Wave Effect) Retreives the time offset of the wave.
+    (Wave Effect) Retrieves the time offset of the wave.
     @rtype: float
     @return:  the time offset of the wave.
     """
@@ -326,7 +333,7 @@ class Effect:
 		
   def getLifetime():
     """
-    (Wave Effect) Retreives the life time of the wave.
+    (Wave Effect) Retrieves the life time of the wave.
     @rtype: float
     @return:  the life time of the wave.
     """
@@ -344,7 +351,7 @@ class Effect:
 
   def getSta():
     """
-    (Particle Effect) Retreives the starting time of a particle effect object
+    (Particle Effect) Retrieves the starting time of a particle effect object
     @rtype: float
     @return:  the starting time of the effect.
     """
@@ -361,7 +368,7 @@ class Effect:
 
   def getEnd():
     """
-    (Particle Effect) Retreives the endr time of a particle effect object
+    (Particle Effect) Retrieves the end time of a particle effect object
     @rtype: float 
     @return:  the end time of the effect.
     """
@@ -378,7 +385,7 @@ class Effect:
 		
   def getLifetime():
     """
-    (Particle Effect) Retreives the lifetime of a particle effect object
+    (Particle Effect) Retrieves the lifetime of a particle effect object
     @rtype: float 
     @return:  the lifetime of the effect.
     """
@@ -395,7 +402,7 @@ class Effect:
 
   def getNormfac():
     """
-    (Particle Effect) Retreives the  normal strength of the particles (relatively to mesh).
+    (Particle Effect) Retrieves the  normal strength of the particles (relatively to mesh).
     @rtype: float 
     @return:  normal strength of the particles (relatively to mesh).
     """
@@ -412,7 +419,7 @@ class Effect:
 		
   def getObfac():
     """
-    (Particle Effect) Retreives the initial strength of the particles relatively to objects.
+    (Particle Effect) Retrieves the initial strength of the particles relatively to objects.
     @rtype: float 
     @return: initial strength of the particles (relatively to mesh).
     """
@@ -429,7 +436,7 @@ class Effect:
 
   def getRandfac():
     """
-    (Particle Effect) Retreives the random  strength applied to the particles.
+    (Particle Effect) Retrieves the random  strength applied to the particles.
     @rtype: float 
     @return: random  strength applied to the particles.
     """
@@ -446,7 +453,7 @@ class Effect:
 
   def getTexfac():
     """
-    (Particle Effect) Retreives the strength applied to the particles from the texture of the object.
+    (Particle Effect) Retrieves the strength applied to the particles from the texture of the object.
     @rtype: float 
     @return: strength applied to the particles from the texture of the object.
     """
@@ -463,7 +470,7 @@ class Effect:
 
   def getRandlife():
     """
-    (Particle Effect) Retreives the  variability of the life of the particles.
+    (Particle Effect) Retrieves the  variability of the life of the particles.
     @rtype: float 
     @return: variability of the life of the particles.
     """
@@ -480,24 +487,24 @@ class Effect:
 
   def getNabla():
     """
-    (Particle Effect) Retreives the sensibility of te particles to the variations of the texture.
+    (Particle Effect) Retrieves the sensibility of the particles to the variations of the texture.
     @rtype: float 
-    @return: sensibility of te particles to the variations of the texture.
+    @return: sensibility of the particles to the variations of the texture.
     """
 
 	
   def setNabla(newnabla):
     """
-    (Particle Effect) Sets the sensibility of te particles to the variations of the texture.
+    (Particle Effect) Sets the sensibility of the particles to the variations of the texture.
     @type newnabla: float
-    @param newnabla: the sensibility of te particles to the variations of the texture.
+    @param newnabla: the sensibility of the particles to the variations of the texture.
     @rtype: PyNone
     @return:  PyNone
     """
 
   def getVectsize():
     """
-    (Particle Effect) Retreives the size of the vector which is associated to the particles.
+    (Particle Effect) Retrieves the size of the vector which is associated to the particles.
     @rtype: float 
     @return: size of the vector which is associated to the particles.
     """
@@ -514,7 +521,7 @@ class Effect:
 
   def getTotpart():
     """
-    (Particle Effect) Retreives the total number of particles.
+    (Particle Effect) Retrieves the total number of particles.
     @rtype: int 
     @return: the total number of particles.
     """
@@ -531,7 +538,7 @@ class Effect:
 
   def getTotkey():
     """
-    (Particle Effect) Retreives the number of keys associated to the particles (kinda degree of freedom)
+    (Particle Effect) Retrieves the number of keys associated to the particles (kind of degree of freedom)
     @rtype: int 
     @return: number of keys associated to the particles.
     """
@@ -548,7 +555,7 @@ class Effect:
 
   def getSeed():
     """
-    (Particle Effect) Retreives the RNG seed.
+    (Particle Effect) Retrieves the RNG seed.
     @rtype: int 
     @return:  RNG seed.
     """
@@ -565,7 +572,7 @@ class Effect:
 
   def getForce():
     """
-    (Particle Effect) Retreives the force applied to the particles.
+    (Particle Effect) Retrieves the force applied to the particles.
     @rtype: list of three floats 
     @return:   force applied to the particles.
     """
@@ -582,7 +589,7 @@ class Effect:
 
   def getMult():
     """
-    (Particle Effect) Retreives the probabilities of a particle having a child.
+    (Particle Effect) Retrieves the probabilities of a particle having a child.
     @rtype: list of 4 floats 
     @return:  probabilities of a particle having a child.
     """
@@ -599,7 +606,7 @@ class Effect:
 		
   def getLife():
     """
-    (Particle Effect) Retreives the average life of the particles (4 generations)
+    (Particle Effect) Retrieves the average life of the particles (4 generations)
     @rtype: list of 4 floats 
     @return: average life of the particles (4 generations)
     """
@@ -616,7 +623,7 @@ class Effect:
 		
   def getChild():
     """
-    (Particle Effect) Retreives the average number of children of the particles (4 generations).
+    (Particle Effect) Retrieves the average number of children of the particles (4 generations).
     @rtype: list of 4 floats 
     @return: average number of children of the particles (4 generations).
     """
@@ -633,7 +640,7 @@ class Effect:
 
   def getMat():
     """
-    (Particle Effect) Retreives the indexes of the materials associated to the particles (4 generations).
+    (Particle Effect) Retrieves the indexes of the materials associated to the particles (4 generations).
     @rtype: list of 4 floats 
     @return: indexes of the materials associated to the particles (4 generations).
     """
@@ -651,7 +658,7 @@ class Effect:
 
   def getDefvec():
     """
-    (Particle Effect) Retreives the x, y and z components of the force defined by the texture.
+    (Particle Effect) Retrieves the x, y and z components of the force defined by the texture.
     @rtype: list of 3 floats 
     @return: x, y and z components of the force defined by the texture.
     """

@@ -4,10 +4,10 @@ EFFECT Module documentation
 INTRODUCTION
 The module effect allows you to access all the data of an effect. 
 An effect can modify an object (typically a mesh) in three different ways.
-    a) the build effect : makes the mesh appear progressivly.
+    a) the build effect : makes the mesh appear progressively.
     b) the wave effect : waves appear on the mesh (which should be fine-grained)
     c) the particle effect : every vertex of the mesh emits particles, 
-which can themselves emit new particles. This effect is the most parametrizable.
+which can themselves emit new particles. This effect is the most parameterizable.
 
 In the blender internals, the effect object is just a placeholder for the "real"
  effect, which can be a wave, particle or build effect. The python API follows 
@@ -41,11 +41,11 @@ The possible values of the type are :
     2 : effect wave.
 
 
-getMode()Retrieves the mode of the Effect Object
+getFlag()Retrieves the flag of the Effect Object
 
-setMode(val:int) :Sets the mode
+setFlag(val:int) :Sets the flag
 
-The mode of the effect is a combination of parameters, whose semantics depend upon the effect type.
+The flag of the effect is a combination of parameters, whose semantics depend upon the effect type.
 All types :
 Bit 0 : set to 1 if the effect is selected in the effects window.
 Wave effect :
@@ -125,7 +125,7 @@ The Object.attr syntax
 Wave attributes can be read/written with the object.attr syntax.
 Example :
 
-w = Blender.Wave.Get("Obname",3) #retreives the 4th effect associated to the object named Obname
+w = Blender.Wave.Get("Obname",3) #retrieves the 4th effect associated to the object named Obname
 a = w.speed  # a is now the value corresponding to the speed of the effect
 w.speed = 42   # the speed of the effect is now equal to 42
 
