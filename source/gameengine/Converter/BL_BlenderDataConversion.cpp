@@ -85,6 +85,7 @@
 
 #include "DNA_action_types.h"
 #include "BKE_main.h"
+#include "BKE_global.h"
 #include "BL_SkinMeshObject.h"
 #include "BL_SkinDeformer.h"
 #include "BL_MeshDeformer.h"
@@ -1283,14 +1284,14 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	/* XXX, glob is the very very wrong place for this
 	 * to be, re-enable once the listener has been moved into
 	 * the scene. */
-#if 0
+#if 1
 	SND_Scene* soundscene = kxscene->GetSoundScene();
 	SND_SoundListener* listener = soundscene->GetListener();
-	if (listener && glob->listener)
+	if (listener && G.listener)
 	{
-		listener->SetDopplerFactor(glob->listener->dopplerfactor);
-		listener->SetDopplerVelocity(glob->listener->dopplervelocity);
-		listener->SetGain(glob->listener->gain);
+		listener->SetDopplerFactor(G.listener->dopplerfactor);
+		listener->SetDopplerVelocity(G.listener->dopplervelocity);
+		listener->SetGain(G.listener->gain);
 	}
 #endif
 
