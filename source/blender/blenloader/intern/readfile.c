@@ -2304,7 +2304,8 @@ static void direct_link_object(FileData *fd, Object *ob)
 	}
 
 	ob->pd= newdataadr(fd, ob->pd);
-
+	ob->soft= NULL;
+	
 	link_list(fd, &ob->prop);
 	prop= ob->prop.first;
 	while(prop) {

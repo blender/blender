@@ -45,12 +45,16 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_curve.h"
 #include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
+#include "BKE_global.h"
 #include "BKE_lattice.h"
+#include "BKE_object.h"
+#include "BKE_softbody.h"
 #include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
@@ -214,6 +218,7 @@ int mesh_modifier(Object *ob, char mode)
 	else if(ob->effect.first);	// weak... particles too
 	else if(ob->parent && ob->parent->type==OB_LATTICE);
 	else if(ob->parent && ob->partype==PARSKEL); 
+	else if(ob->softflag);
 	else return 0;
 	
 	if(me->totvert==0) return 0;
@@ -235,8 +240,14 @@ int mesh_modifier(Object *ob, char mode)
 		}
 		
 		if(ob->effect.first) done |= object_wave(ob);
-
-		/* deform: input mesh, output ob dl_verts. is used by subsurf */
+		
+		if(ob->softflag) {
+			float ctime= bsystem_time(ob, NULL, (float)G.scene->r.cfra, 0.0);
+			done= 1;
+			object_softbody_step(ob, ctime);
+		}
+		
+		/* deform: input mesh, output ob dl_verts. is used by subsurf (output should be in mesh ton!) */
 		done |= object_deform(ob);	
 		
 		/* put deformed vertices in dl->verts, optional subsurf will replace that */

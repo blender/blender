@@ -113,6 +113,7 @@
 #include "BKE_property.h"
 #include "BKE_sca.h"
 #include "BKE_scene.h"
+#include "BKE_softbody.h"
 #include "BKE_subsurf.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
@@ -1547,6 +1548,8 @@ void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do un
 	}
 	scrarea_queue_headredraw(curarea);
 
+	if(ob->softflag) object_to_softbody(ob);
+	
 	if(G.obedit==NULL && freedata==2) 
 		BIF_undo_push("Editmode");
 }

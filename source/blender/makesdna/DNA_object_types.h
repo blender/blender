@@ -51,6 +51,7 @@ struct BoundBox;
 struct Path;
 struct Material;
 struct bConstraintChannel;
+struct SoftBody;
 
 typedef struct bDeformGroup {
 	struct bDeformGroup *next, *prev;
@@ -149,7 +150,7 @@ typedef struct Object {
 	 * For a Sphere, the form factor is by default = 0.4
 	 */
 
-	float formfactor, dummy_1;	
+	float formfactor, springf;		/* springf temp for softbody */
 	float rdamping, sizefac;
 	
 	char dt, dtx;
@@ -185,14 +186,15 @@ typedef struct Object {
 	 * bit 15: Always ignore activity culling 
 	 */
 	int gameflag2;
-	int pad;
+	short softflag, pad;			/* temporal stuff softbody experiment */
 	float anisotropicFriction[3];
 
 	ListBase constraints;
 	ListBase nlastrips;
 	ListBase hooks;
 	
-	PartDeflect *pd;	/* particle deflector/attractor/collision data */
+	PartDeflect *pd;		/* particle deflector/attractor/collision data */
+	struct SoftBody *soft;	/* only runtime, not saved in file! */
 	struct Life *life;
 
 	LBuf lbuf;

@@ -1413,6 +1413,13 @@ static void object_panel_deflectors(Object *ob)
 			uiDefButF(block, NUM, B_DIFF, "Rnd Damping: ",	10,10,200,20, &ob->pd->pdef_rdamp, 0.0, 1.0, 10, 0, "Random variation of damping");
 			uiDefButF(block, NUM, B_DIFF, "Permeability: ",		10,-10,200,20, &ob->pd->pdef_perm, 0.0, 1.0, 10, 0, "Chance that the particle will pass through the mesh");
 		}
+		uiBlockEndAlign(block);
+	}
+
+	if(strncmp(ob->id.name+2, "soft", 4)==0) {
+		uiDefButS(block, TOG|BIT|0, B_DIFF, "Soft Body",	220,160,200,20, &ob->softflag, 0, 0, 0, 0, "Sets object to become soft body");
+		uiDefButF(block, NUM, B_DIFF, "Spring: ",			220,140,200,20, &ob->springf, 0.0, 1.0, 10, 0, "Spring constant");
+		uiDefButF(block, NUM, B_DIFF, "Damp: ",				220,120,200,20, &ob->damping, 0.0, 1.0, 10, 0, "General damping in softbody on point movements");
 	}
 }
 

@@ -101,6 +101,7 @@
 #include "BKE_lattice.h"
 #include "BKE_constraint.h"
 #include "BKE_scene.h"
+#include "BKE_softbody.h"
 
 #include "BPY_extern.h"
 
@@ -211,6 +212,7 @@ void free_object(Object *ob)
 	BPY_free_scriptlink(&ob->scriptlink);
 	
 	if(ob->pd) MEM_freeN(ob->pd);
+	if(ob->soft) free_softbody(ob->soft);
 }
 
 void unlink_object(Object *ob)
@@ -770,6 +772,7 @@ Object *copy_object(Object *ob)
 	
 	obn->disp.first= obn->disp.last= NULL;
 	obn->hooks.first= obn->hooks.last= NULL;
+	obn->soft= NULL;
 	
 	return obn;
 }
