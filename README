@@ -21,8 +21,10 @@ mozilla: http://www.mozilla.org/
 nspr:  ftp://ftp.mozilla.org/pub/nspr/releases
 	(side note: on debian linux you will need mozilla-dev and libnspr-dev)
 
+glut:	http://www.opengl.org/developers/documentation/glut.html
+
 If you do not have GL you will also need mesa:
-http://www.mesa3d.org
+mesa:	http://www.mesa3d.org
 
 *********************************************************************
 *********************************************************************
