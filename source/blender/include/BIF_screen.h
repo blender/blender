@@ -116,6 +116,8 @@ void reset_autosave(void);
 int area_is_active_area(struct ScrArea *area);
 void draw_area_emboss(struct ScrArea *sa);
 
+void headerprint(char *str);
+
 	/***/
 	
 /**

@@ -4511,7 +4511,6 @@ void apply_keyb_grid(float *val, float fac1, float fac2, float fac3, int invert)
 	else {
 		if(fac1!= 0.0) *val= fac1*floor(*val/fac1 +.5);
 	}
-	
 }
 
 
@@ -4575,24 +4574,6 @@ void compatible_eul(float *eul, float *oldrot)
 		if(dz > 0.0) eul[2] -= M_PI; else eul[2]+= M_PI;
 	}
 
-}
-
-void headerprint(char *str)
-{
-	if(curarea->headertype) {
-		areawinset(curarea->headwin);
-		
-		headerbox(curarea);
-		cpack(0x0);
-		glRasterPos2i(20+curarea->headbutofs,  6);
-		BMF_DrawString(G.font, str);
-		
-		curarea->head_swap= WIN_BACK_OK;
-		areawinset(curarea->win);
-	}
-	else {
-		// dunno... thats for later (ton)
-	}
 }
 
 void add_ipo_tob_poin(float *poin, float *old, float delta)
@@ -4850,7 +4831,7 @@ static void constline(float *center, float *dir, char axis, float axismat[][3])
 	}
 	
 	myloadmatrix(G.vd->viewmat);
-	
+
 }
 
 
@@ -5233,6 +5214,7 @@ void transform(int mode)
 			firsttime= 0;
 
 			if(mode=='g' || mode=='G' || mode=='n') {
+				float dot; /* for grab along normal */
 				char gmode[10] = "";
 
 				keyflags |= KEYFLAG_LOC;
@@ -5276,9 +5258,11 @@ void transform(int mode)
 					dvec[1]= 0.1*(dvec[1]-d_dvec[1])+d_dvec[1];
 					dvec[2]= 0.1*(dvec[2]-d_dvec[2])+d_dvec[2];
 				}
-				apply_keyb_grid(dvec, 0.0, G.vd->grid, 0.1*G.vd->grid, gridflag & USER_AUTOGRABGRID);
-				apply_keyb_grid(dvec+1, 0.0, G.vd->grid, 0.1*G.vd->grid, gridflag & USER_AUTOGRABGRID);
-				apply_keyb_grid(dvec+2, 0.0, G.vd->grid, 0.1*G.vd->grid, gridflag & USER_AUTOGRABGRID);
+				if (mode != 'n') {
+					apply_keyb_grid(dvec, 0.0, G.vd->grid, 0.1*G.vd->grid, gridflag & USER_AUTOGRABGRID);
+					apply_keyb_grid(dvec+1, 0.0, G.vd->grid, 0.1*G.vd->grid, gridflag & USER_AUTOGRABGRID);
+					apply_keyb_grid(dvec+2, 0.0, G.vd->grid, 0.1*G.vd->grid, gridflag & USER_AUTOGRABGRID);
+				}
 
 				if(dvec[0]!=oldval[0] ||dvec[1]!=oldval[1] ||dvec[2]!=oldval[2]) {
 					VECCOPY(oldval, dvec);
@@ -5304,6 +5288,13 @@ void transform(int mode)
 						}
 					}
 
+					if(mode=='n') {
+						tv= transvmain;
+						dot= tv->nor[0]*dvecp[0] + tv->nor[1]*dvecp[1] + tv->nor[2]*dvecp[2];
+						apply_keyb_grid(&dot, 0.0, G.vd->grid, 0.1*G.vd->grid, gridflag & USER_AUTOGRABGRID);
+						dvec[0] = dot;
+						dvec[1] = dvec[2] = 0.0;
+					}
 
 					/* apply */
 					tob= transmain;
@@ -5340,9 +5331,9 @@ void transform(int mode)
 								tv->loc[2]= tv->oldloc[2]+tv->fac*dvecp[2];
 							}
 							else if(mode=='n' && tv->nor) {
-								float dot; /* dot product dvec with normal */
+								//float dot; /* dot product dvec with normal */
 								
-								dot= tv->nor[0]*dvecp[0] + tv->nor[1]*dvecp[1] + tv->nor[2]*dvecp[2];
+								//dot= tv->nor[0]*dvecp[0] + tv->nor[1]*dvecp[1] + tv->nor[2]*dvecp[2];
 								tv->loc[0]= tv->oldloc[0]+dot*tv->nor[0];
 								tv->loc[1]= tv->oldloc[1]+dot*tv->nor[1];
 								tv->loc[2]= tv->oldloc[2]+dot*tv->nor[2];
@@ -5352,20 +5343,28 @@ void transform(int mode)
 
 					}
 
-					if (typemode){
-						switch (ax){
-						case 0:
-							sprintf(str, "%sDx: >%.4f<   Dy: %.4f  Dz: %.4f", gmode, dvec[0], dvec[1], dvec[2]);
-							break;
-						case 1:
-							sprintf(str, "%sDx: %.4f   Dy: >%.4f<  Dz: %.4f", gmode, dvec[0], dvec[1], dvec[2]);
-							break;
-						case 2:
-							sprintf(str, "%sDx: %.4f   Dy: %.4f  Dz: >%.4f<", gmode, dvec[0], dvec[1], dvec[2]);
-						}
+					if(mode=='n' && tv->nor) {
+						if (typemode)
+							sprintf(str, "D: >%.4f< Along faces normal", dvec[0]);
+						else
+							sprintf(str, "D: %.4f Along faces normal", dvec[0]);
 					}
-					else
-						sprintf(str, "%sDx: %.4f   Dy: %.4f  Dz: %.4f", gmode, dvec[0], dvec[1], dvec[2]);
+					else {
+						if (typemode){
+							switch (ax){
+							case 0:
+								sprintf(str, "%sDx: >%.4f<   Dy: %.4f  Dz: %.4f", gmode, dvec[0], dvec[1], dvec[2]);
+								break;
+							case 1:
+								sprintf(str, "%sDx: %.4f   Dy: >%.4f<  Dz: %.4f", gmode, dvec[0], dvec[1], dvec[2]);
+								break;
+							case 2:
+								sprintf(str, "%sDx: %.4f   Dy: %.4f  Dz: >%.4f<", gmode, dvec[0], dvec[1], dvec[2]);
+							}
+						}
+						else
+							sprintf(str, "%sDx: %.4f   Dy: %.4f  Dz: %.4f", gmode, dvec[0], dvec[1], dvec[2]);
+					}
 					headerprint(str);
 
 					time= my_clock();
@@ -6402,7 +6401,7 @@ void transform(int mode)
 					{
 						typemode = 1;
 						del = 0;
-						if ((mode == 'S') || (mode == 'w') || (mode == 'C') || (mode == 'N'))
+						if ((mode == 'S') || (mode == 'w') || (mode == 'C') || (mode == 'N') || (mode == 'n'))
 							break;
 						if ((mode != 'r') && (mode != 'R')){
                             if (axismode != 0)
