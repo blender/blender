@@ -316,6 +316,7 @@ char texstr[15][8]= {"None"  , "Clouds" , "Wood",
 #define B_CLEARSET		1617
 #define B_PR_PRESET		1618
 #define B_PR_PANO		1619
+#define B_PR_NTSC		1620
 
 #define B_IS_FTYPE		1622
 #define B_IS_BACKBUF	1623
@@ -5977,6 +5978,7 @@ void do_renderbuts(unsigned short event)
 		G.scene->r.xasp= 54;
 		G.scene->r.yasp= 51;
 		G.scene->r.size= 100;
+		G.scene->r.frs_sec= 25;
 		G.scene->r.mode &= ~R_PANORAMA;
 		G.scene->r.xparts=  G.scene->r.yparts= 1;
 		
@@ -6041,6 +6043,7 @@ void do_renderbuts(unsigned short event)
 		G.scene->r.xasp= 64;
 		G.scene->r.yasp= 45;
 		G.scene->r.size= 100;
+		G.scene->r.frs_sec= 25;
 		G.scene->r.mode &= ~R_PANORAMA;
 		G.scene->r.xparts=  G.scene->r.yparts= 1;
 
@@ -6114,6 +6117,20 @@ void do_renderbuts(unsigned short event)
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		allqueue(REDRAWVIEWCAM, 0);
 		allqueue(REDRAWBUTSRENDER, 0);
+		break;
+	case B_PR_NTSC:
+		G.scene->r.xsch= 720;
+		G.scene->r.ysch= 480;
+		G.scene->r.xasp= 10;
+		G.scene->r.yasp= 11;
+		G.scene->r.size= 100;
+		G.scene->r.frs_sec= 30;
+		G.scene->r.mode &= ~R_PANORAMA;
+		G.scene->r.xparts=  G.scene->r.yparts= 1;
+		
+		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
+		allqueue(REDRAWBUTSRENDER, 0);
+		allqueue(REDRAWVIEWCAM, 0);
 		break;
 
 	case B_SETBROWSE:
@@ -6455,13 +6472,14 @@ void renderbuts(void)
 	uiDefButS(block, NUM,REDRAWVIEWCAM,"AspX:",	892 ,114,112,20, &G.scene->r.xasp, 1.0,200.0, 0, 0, "The horizontal aspect ratio");
 	uiDefButS(block, NUM,REDRAWVIEWCAM,"AspY:",	1007,114,112,20, &G.scene->r.yasp, 1.0,200.0, 0, 0, "The vertical aspect ratio");
 
-	uiDefBut(block, BUT,B_PR_PAL, "PAL",			1146,170,133,18, 0, 0, 0, 0, 0, "Size preset: Image size - 720x576, Aspect ratio - 54x51");
-	uiDefBut(block, BUT,B_PR_PRESET, "Default",	1146,149,133,18, 0, 0, 0, 0, 0, "Same as PAL, with render settings (OSA, Shadows, Fields)");
-	uiDefBut(block, BUT,B_PR_PRV, "Preview",		1146,115,133,18, 0, 0, 0, 0, 0, "Size preset: Image size - 640x512, Render size 50%");
-	uiDefBut(block, BUT,B_PR_PC, "PC",			1146,94,133,18, 0, 0, 0, 0, 0, "Size preset: Image size - 640x480, Aspect ratio - 100x100");
-	uiDefBut(block, BUT,B_PR_PAL169, "PAL 16:9",	1146,73,133,18, 0, 0, 0, 0, 0, "Size preset: Image size - 720x576, Aspect ratio - 64x45");
-	uiDefBut(block, BUT,B_PR_PANO, "PANO",		1146,52,133,18, 0, 0, 0, 0, 0, "Standard panorama settings");
-	uiDefBut(block, BUT,B_PR_FULL, "FULL",		1146,31,133,18, 0, 0, 0, 0, 0, "Size preset: Image size - 1280x1024, Aspect ratio - 1x1");
+	uiDefBut(block, BUT,B_PR_PAL, "PAL",		1146,170,133,18, 0, 0, 0, 0, 0, "Size preset: Image size - 720x576, Aspect ratio - 54x51, 25 fps");
+	uiDefBut(block, BUT,B_PR_NTSC, "NTSC",		1146,150,133,18, 0, 0, 0, 0, 0, "Size preset: Image size - 720x480, Aspect ratio - 10x11, 30 fps");
+	uiDefBut(block, BUT,B_PR_PRESET, "Default",	1146,130,133,18, 0, 0, 0, 0, 0, "Same as PAL, with render settings (OSA, Shadows, Fields)");
+	uiDefBut(block, BUT,B_PR_PRV, "Preview",	1146,110,133,18, 0, 0, 0, 0, 0, "Size preset: Image size - 640x512, Render size 50%");
+	uiDefBut(block, BUT,B_PR_PC, "PC",			1146,90,133,18, 0, 0, 0, 0, 0, "Size preset: Image size - 640x480, Aspect ratio - 100x100");
+	uiDefBut(block, BUT,B_PR_PAL169, "PAL 16:9",1146,70,133,18, 0, 0, 0, 0, 0, "Size preset: Image size - 720x576, Aspect ratio - 64x45");
+	uiDefBut(block, BUT,B_PR_PANO, "PANO",		1146,50,133,18, 0, 0, 0, 0, 0, "Standard panorama settings");
+	uiDefBut(block, BUT,B_PR_FULL, "FULL",		1146,30,133,18, 0, 0, 0, 0, 0, "Size preset: Image size - 1280x1024, Aspect ratio - 1x1");
 	uiDefButS(block, TOG|BIT|15, B_REDR, "Unified Renderer", 1146,10,133,18,
 			 &G.scene->r.mode, 0, 0, 0, 0,
 			 "Use the unified renderer.");
