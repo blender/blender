@@ -6748,11 +6748,11 @@ void std_rmouse_transform(void (*xf_func)(int))
 	while(get_mbut() & mousebut) {
 		getmouseco_areawin(mval);
 		if(abs(mval[0]-xo)+abs(mval[1]-yo) > 10) {
-#ifdef NEWTRANSFORM
-			Transform(TFM_TRANSLATION);
-#else
-			xf_func('g');
-#endif
+			if(curarea->spacetype==SPACE_VIEW3D)
+				Transform(TFM_TRANSLATION);
+			else
+				xf_func('g');
+
 			while(get_mbut() & mousebut) BIF_wait_for_statechange();
 			return;
 		}
