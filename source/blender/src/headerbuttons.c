@@ -2716,11 +2716,11 @@ static uiBlock *info_filemenu(void *arg_unused)
 static void do_info_editmenu(void *arg, int event)
 {
 	/* needed to check for valid selected objects */
-	Base *base;
-	Object *ob;
+	Base *base=NULL;
+	Object *ob=NULL;
 
 	base= BASACT;
-	ob= base->object;
+	if (base) ob= base->object;
 
 	switch(event) {
 		
@@ -2777,7 +2777,8 @@ static void do_info_editmenu(void *arg, int event)
 	case 9:
 		/* Shear */
 		/* check that a valid object is selected to prevent crash */
-		if ((ob->type==OB_LAMP) || (ob->type==OB_EMPTY) || (ob->type==OB_FONT) || (ob->type==OB_CAMERA)) {
+		if (!ob) error ("Only selected objects can be sheared");
+		else if ((ob->type==OB_LAMP) || (ob->type==OB_EMPTY) || (ob->type==OB_FONT) || (ob->type==OB_CAMERA)) {
 			error("Only editable 3D objects can be sheared");
 		}
 		else if ((base->lay & G.vd->lay)==0) {
@@ -2805,7 +2806,8 @@ static void do_info_editmenu(void *arg, int event)
 	case 10:
 		/* Warp/Bend */
 		/* check that a valid object is selected to prevent crash */
-		if ((ob->type==OB_LAMP) || (ob->type==OB_EMPTY) || (ob->type==OB_FONT) || (ob->type==OB_CAMERA)) {
+		if (!ob) error("Only selected objects can be warped");
+		else if ((ob->type==OB_LAMP) || (ob->type==OB_EMPTY) || (ob->type==OB_FONT) || (ob->type==OB_CAMERA)) {
 			error("Only editable 3D objects can be warped");
 		}
 		else if ((base->lay & G.vd->lay)==0) {

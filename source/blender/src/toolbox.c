@@ -568,11 +568,11 @@ void tbox_execute(void)
 	unsigned short qual1=0, qual2=0;
 
 	/* needed to check for valid selected objects */
-	Base *base;
-	Object *ob;
+	Base *base=NULL;
+	Object *ob=NULL;
 
 	base= BASACT;
-	ob= base->object;
+	if (base) ob= base->object;
 
 	if(tbfunc) {
 		tbfunc(tbval);
@@ -598,11 +598,12 @@ void tbox_execute(void)
 		/* ctrl-s (Shear): switch into editmode ### */
 		else if(strcmp(tbstr1, "c|s")==0) {
 			/* check that a valid object is selected to prevent crash */
-		        if ((ob->type==OB_LAMP) || (ob->type==OB_EMPTY) || (ob->type==OB_FONT) || (ob->type==OB_CAMERA)) {
+			if(!ob) error("Only selected objects can be sheared");
+			else if ((ob->type==OB_LAMP) || (ob->type==OB_EMPTY) || (ob->type==OB_FONT) || (ob->type==OB_CAMERA)) {
 				error("Only editable 3D objects can be sheared");
 			}
 			else if ((base->lay & G.vd->lay)==0) {
-				error("Only objects on visible layers can be warped");
+				error("Only objects on visible layers can be sheared");
 			}
 			else {
 				if (!G.obedit) {
@@ -619,8 +620,9 @@ void tbox_execute(void)
 			}
 		}
 		else if(strcmp(tbstr1, "W")==0) {
+			if (!ob) error ("Only selected objects can be warped");
 		        /* check that a valid object is selected to prevent crash */
-			if ((ob->type==OB_LAMP) || (ob->type==OB_EMPTY) || (ob->type==OB_FONT) || (ob->type==OB_CAMERA)) {
+			else if ((ob->type==OB_LAMP) || (ob->type==OB_EMPTY) || (ob->type==OB_FONT) || (ob->type==OB_CAMERA)) {
 				error("Only editable 3D objects can be warped");
 			}
 			else if ((base->lay & G.vd->lay)==0) {
