@@ -4469,6 +4469,7 @@ void transform(int mode)
 	short canceled = 0;
 	TransOb *tob;
 	TransVert *tv;
+	float *edge_creases=NULL;	/* edge transform isnt really supported... */
 	float vec[3], min[3], max[3], dvec[3], d_dvec[3], dvecp[3], rot0[3], rot1[3], rot2[3], axis[3];
 	float totmat[3][3], omat[3][3], imat[3][3], mat[3][3], tmat[3][3], phi, dphi;
 	float oldcurs[3];
@@ -5551,31 +5552,50 @@ void transform(int mode)
 					EditEdge *ee;
 					Mesh *me= G.obedit->data;
 					float mincr=10.0, maxcr= 0.0;
-
+					int tot= 0;
+					
+					/* for esc and calculus */
+					if(edge_creases==NULL) {
+						
+						for(ee = em->edges.first; ee; ee= ee->next, tot++);
+						edge_creases= MEM_mallocN(sizeof(float)*tot, "transform creases");
+						
+						for(tot= 0, ee = em->edges.first; ee; ee= ee->next, tot++)
+							edge_creases[tot]= ee->crease;
+					}
+					
 					/* this is sufficient to invoke edges added in mesh, but only in editmode */
 					if(me->medge==NULL) {
 						me->medge= MEM_callocN(sizeof(MEdge), "fake medge");
 						me->totedge= 1;
 						allqueue(REDRAWBUTSEDIT, 0);
 					}
-
-					dist= (0.005 * (mval[1] - yo));
-
-					ee = em->edges.first;
-					while (ee) {
+					
+					/* we use input method like scaling, but map effictive range to:
+					   scale 1.0-0.5 : crease no change to full sharp
+					   scale 1.0-2.0 : crease no change to full round */
+					dist= (sqrt( (float)((yc-mval[1])*(yc-mval[1])+(mval[0]-xc)*(mval[0]-xc)) ))/sizefac;
+					CLAMP(dist, 0.5, 2.0);
+					if(dist<1.0) dist= 2.0*(dist-0.5);
+					
+					for(tot= 0, ee = em->edges.first; ee; ee= ee->next, tot++) {
 						if ((ee->v1->f & 1) && (ee->v2->f & 1)) {
 							/* this edge is selected */
-							ee->crease += dist;
+							if(dist<1.0) 
+								ee->crease = (1.0 - dist) + dist*edge_creases[tot];
+							else 
+								ee->crease = (2.0-dist)*edge_creases[tot];
+							
 							CLAMP(ee->crease, 0.0, 1.0);
 							if(mincr>ee->crease) mincr= ee->crease;
 							if(maxcr<ee->crease) maxcr= ee->crease;
 						}
-						ee = ee->next;
 					}
 
 					if(mincr==10.0) wrong= 1;
 					else {
-						sprintf(str, "Edge sharpness range: %.3f - %.3f", mincr, maxcr);
+						if(mincr==maxcr) sprintf(str, "Edge sharpness: %.3f", mincr);
+						else sprintf(str, "Edge sharpness range: %.3f - %.3f", mincr, maxcr);
 						headerprint(str);
 
 						if(G.obedit) calc_trans_verts();
@@ -6062,18 +6082,28 @@ void transform(int mode)
 	if(event==ESCKEY || event==RIGHTMOUSE) {
 		canceled=1;
 		G.undo_edit_level--;
-		tv= transvmain;
-		tob= transmain;
-		for(a=0; a<tottrans; a++, tob++, tv++) {
-			if(transmain) {
-				restore_tob(tob);
-			}
-			else {
-				VECCOPY(tv->loc, tv->oldloc);
-				if(tv->val) *(tv->val)= tv->oldval;
-			}
+		
+		if(edge_creases) {	// exception case, edges dont fit in Trans structs...
+			EditEdge *ee;
+			int tot;
+			for(tot= 0, ee = G.editMesh->edges.first; ee; ee= ee->next, tot++)
+				ee->crease= edge_creases[tot];
 		}
-		if(G.obedit) calc_trans_verts();
+		else {
+			
+			tv= transvmain;
+			tob= transmain;
+			for(a=0; a<tottrans; a++, tob++, tv++) {
+				if(transmain) {
+					restore_tob(tob);
+				}
+				else {
+					VECCOPY(tv->loc, tv->oldloc);
+					if(tv->val) *(tv->val)= tv->oldval;
+				}
+			}
+			if(G.obedit) calc_trans_verts();
+		}
 		special_trans_update(keyflags);
 		if (mode == '0') VECCOPY(curs, oldcurs);		
 	}
@@ -6090,10 +6120,11 @@ void transform(int mode)
 	clearbaseflags_for_editing();
 
 	if(transmain) MEM_freeN(transmain);
-	transmain= 0;
+	transmain= NULL;
 	if(transvmain) MEM_freeN(transvmain);
-	transvmain= 0;
-
+	transvmain= NULL;
+	if(edge_creases) MEM_freeN(edge_creases);
+	
 	tottrans= 0;
 }
 

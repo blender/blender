@@ -1997,6 +1997,16 @@ void do_meshbuts(unsigned short event)
 	case B_VERTEXSMOOTH:
 		vertexsmooth();
 		break;
+	case B_DRAWEDGES:
+		G.f &= ~G_DRAWCREASES;
+		allqueue(REDRAWBUTSEDIT, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+	case B_DRAWCREASES:
+		G.f &= ~G_DRAWEDGES;
+		allqueue(REDRAWBUTSEDIT, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		break;
 	}
 	/* WATCH IT: previous events only in editmode! */
 }
@@ -2071,8 +2081,8 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 	uiDefButF(block, NUM,		  REDRAWVIEW3D, "NSize:",		1090, 131, 166, 19, &editbutsize, 0.001, 2.0, 10, 0, "Sets the length to use when displaying face normals");
 	uiDefButI(block, TOG|BIT|6, REDRAWVIEW3D, "Draw Normals",	1090,110,166,19, &G.f, 0, 0, 0, 0, "Displays face normals as lines");
 	uiDefButI(block, TOG|BIT|7, REDRAWVIEW3D, "Draw Faces",		1090,88,166,19, &G.f, 0, 0, 0, 0, "Displays all faces as shades");
-	uiDefButI(block, TOG|BIT|18, REDRAWVIEW3D, "Draw Edges", 	1090,66,166,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights");
-	uiDefButI(block, TOG|BIT|19, REDRAWVIEW3D, "Draw Creases",	1090,44,166,19, &G.f, 0, 0, 0, 0, "Displays creased edges using hilights");
+	uiDefButI(block, TOG|BIT|18, B_DRAWEDGES, "Draw Edges", 	1090,66,166,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights");
+	uiDefButI(block, TOG|BIT|19, B_DRAWCREASES, "Draw Creases",	1090,44,166,19, &G.f, 0, 0, 0, 0, "Displays creased edges using hilights");
 	uiDefButI(block, TOG|BIT|20, REDRAWVIEW3D, "Draw Seams",	1090,22,166,19, &G.f, 0, 0, 0, 0, "Displays UV unwrapping seams");
 	uiDefButI(block, TOG|BIT|11, 0, "All Edges",				1090, 0,166,19, &G.f, 0, 0, 0, 0, "Displays all edges in object mode without optimization");
 	uiBlockEndAlign(block);

@@ -339,6 +339,9 @@ enum {
 #define B_CHROMADEPTH	2084
 #define B_MAKEEDGES		2085
 #define B_DELEDGES		2086
+#define B_DRAWEDGES		2087
+#define B_DRAWCREASES	2088
+
 
 /* *********************** */
 #define B_CURVEBUTS		2200
