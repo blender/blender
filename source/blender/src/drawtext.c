@@ -979,8 +979,9 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	Text *text= st->text;
 	int do_draw=0, p;
 
-	/* smartass code to prevent the events below from not working! */
-	if (!isprint(ascii) || (G.qual & ~LR_SHIFTKEY)) ascii= 0;
+	/* smartass code to prevent the CTRL/ALT events below from not working! */
+	if(!ispunct(ascii)) 
+		if (!isprint(ascii) || (G.qual & ~LR_SHIFTKEY)) ascii= 0;
 
 	text= st->text;
 	
