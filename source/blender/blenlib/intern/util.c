@@ -492,11 +492,24 @@ char *BLI_gethome(void) {
 		static char dir[512];
 		char tmpdir[512];
 
+		/* Check for %HOME% env var */
+
 		ret = getenv("HOME");
 		if(ret) {
 			sprintf(dir, "%s\.blender", ret);
 			if (BLI_exists(dir)) return dir;
 		}
+
+		/* else, check install dir (path containing blender.exe) */
+
+		BLI_getInstallationDir(dir);
+
+		if (BLI_exists(dir))
+		{
+			strcat(dir,"/.blender");
+			if (BLI_exists(dir)) return(dir);
+		}
+
 				
 		/* add user profile support for WIN 2K / NT */
 		ret = getenv("USERPROFILE");
@@ -509,14 +522,6 @@ char *BLI_gethome(void) {
 					if(BLI_exists(dir)) return(dir);
 				}
 			}
-		}
-
-		BLI_getInstallationDir(dir);
-
-		if (BLI_exists(dir))
-		{
-			strcat(dir,"/.blender");
-			if (BLI_exists(dir)) return(dir);
 		}
 
 		/* 
