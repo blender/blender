@@ -55,8 +55,8 @@ all debug::
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_MOTO ?= $(LCGDIR)/moto
     export NAN_SOLID ?= $(SRCHOME)/sumo/SOLID-3.0
-    export NAN_SUMO ?= $(SRCHOME)/sumo
-    export NAN_FUZZICS ?= $(SRCHOME)/sumo/Fuzzics
+    export NAN_SUMO ?= $(SRCHOME)/gameengine/Physics/Sumo
+    export NAN_FUZZICS ?= $(SRCHOME)/gameengine/Physics/Sumo/Fuzzics
     export NAN_ODE ?= $(SRCHOME)/ode
     export NAN_OPENSSL ?= $(LCGDIR)/openssl
     export NAN_BLENKEY ?= $(LCGDIR)/blenkey
