@@ -1093,7 +1093,8 @@ short button(short *var, short min, short max, char *str)
 	if(mval[1]>G.curscreen->sizey) mval[1]= G.curscreen->sizey-10;
 
 	block= uiNewBlock(&listb, "button", UI_EMBOSSX, UI_HELV, G.curscreen->mainwin);
-	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|
+				   UI_BLOCK_ENTER_OK);
 
 	x1=mval[0]-150; 
 	y1=mval[1]-20; 
