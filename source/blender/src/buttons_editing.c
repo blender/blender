@@ -1472,7 +1472,7 @@ static void editing_panel_lattice_type(Object *ob, Lattice *lt)
 	uiBlock *block;
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_lattice_type", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Latice", "Editing", 320, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Lattice", "Editing", 320, 0, 318, 204)==0) return;
 
 
 	uiSetButLock(lt->key!=0, "Not with VertexKeys");
