@@ -1640,7 +1640,7 @@ static TBitem tb_curve_edit[]= {
 {	0, "Control Points", 	0, 		tb_curve_edit_cv},
 {	0, "Segments", 	0, 		tb_curve_edit_seg},
 {	0, "SEPR", 								0, NULL},
-{	0, "Show/Hide", 	0, 		tb_curve_edit_seg},
+{	0, "Show/Hide", 	0, 		tb_edit_hide},
 {  -1, "", 			0, tb_do_hotkey}};
 
 
