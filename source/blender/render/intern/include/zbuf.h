@@ -67,7 +67,7 @@ struct VlakRen;
  * @param y     The height of the rectangle
  * @param val   The value used to fill the rectangle.
  */
-void fillrect(unsigned int *rect, int x, unsigned int y, unsigned int val);
+void fillrect(unsigned int *rect, int x, int y, unsigned int val);
 
 /**
  * Converts a world coordinate into a homogenous coordinate in view
@@ -165,12 +165,12 @@ int vergzvlak(const void *x1, const void *x2);
  * @param c2 
  * @param c3
  */
-void  zbufclip(unsigned int zvlnr, float *f1, float *f2, float *f3, int c1, int c2, int c3);
+void  zbufclip(int zvlnr, float *f1, float *f2, float *f3, int c1, int c2, int c3);
 
 /**
  * same, for edges
  */
-void         zbufclipwire(unsigned int zvlnr, struct VlakRen *vlr); 
+void         zbufclipwire(int zvlnr, struct VlakRen *vlr); 
 
 #ifdef __cplusplus
 }

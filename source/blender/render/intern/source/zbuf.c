@@ -80,8 +80,8 @@ float Zjity; /* Jitter offset in y. When jitter is disabled, this   */
              /* should be 0.5. (used in render.c, zbuf.c)           */
 
 unsigned int Zsample;
-void (*zbuffunc)(unsigned int, float *, float *, float *);
-void (*zbuflinefunc)(unsigned int, float *, float *);
+void (*zbuffunc)(int, float *, float *, float *);
+void (*zbuflinefunc)(int, float *, float *);
 
 APixstr       *APixbuf;      /* Zbuffer: linked list of face indices       */
 int           *Arectz;       /* Zbuffer: distance buffer, almost obsolete  */
@@ -95,7 +95,7 @@ short          apsmteller  = 0;
 /* Functions                                                 */
 /*-----------------------------------------------------------*/ 
 
-void fillrect(unsigned int *rect, int x, unsigned int y, unsigned int val)
+void fillrect(unsigned int *rect, int x, int y, unsigned int val)
 {
 	unsigned int len,*drect;
 
@@ -232,7 +232,7 @@ APixstr *addpsA(void)
  * @param v2 [4 floats, world coordinates] second vertex
  * @param v3 [4 floats, world coordinates] third vertex
  */
-void zbufinvulAc(unsigned int zvlnr, float *v1, float *v2, float *v3)  
+void zbufinvulAc(int zvlnr, float *v1, float *v2, float *v3)  
 {
 	APixstr *ap, *apofs, *apn;
 	double x0,y0,z0,x1,y1,z1,x2,y2,z2,xx1;
@@ -478,7 +478,7 @@ void zbufinvulAc(unsigned int zvlnr, float *v1, float *v2, float *v3)
 	}
 }
 
-void zbuflineAc(unsigned int zvlnr, float *vec1, float *vec2)
+void zbuflineAc(int zvlnr, float *vec1, float *vec2)
 {
 	APixstr *ap, *apn;
 	unsigned int *rectz;
@@ -646,7 +646,7 @@ static void hoco_to_zco(float *zco, float *hoco)
 	zco[2]= 0x7FFFFFFF *(hoco[2]/deler);
 }
 
-void zbufline(unsigned int zvlnr, float *vec1, float *vec2)
+void zbufline(int zvlnr, float *vec1, float *vec2)
 {
 	unsigned int *rectz, *rectp;
 	int start, end, x, y, oldx, oldy, ofs;
@@ -808,7 +808,7 @@ static int clipline(float *v1, float *v2)	/* return 0: do not draw */
 }
 
 
-void zbufclipwire(unsigned int zvlnr, VlakRen *vlr)
+void zbufclipwire(int zvlnr, VlakRen *vlr)
 {
 	float vez[20], *f1, *f2, *f3, *f4= 0,  deler;
 	int c1, c2, c3, c4, ec, and, or;
@@ -940,7 +940,7 @@ void zbufclipwire(unsigned int zvlnr, VlakRen *vlr)
  * @param v2 [4 floats, world coordinates] second vertex
  * @param v3 [4 floats, world coordinates] third vertex
  */
-static void zbufinvulGLinv(unsigned int zvlnr, float *v1, float *v2, float *v3) 
+static void zbufinvulGLinv(int zvlnr, float *v1, float *v2, float *v3) 
 {
 	double x0,y0,z0,x1,y1,z1,x2,y2,z2,xx1;
 	double zxd,zyd,zy0,tmp;
@@ -1170,7 +1170,7 @@ static void zbufinvulGLinv(unsigned int zvlnr, float *v1, float *v2, float *v3)
  * @param v2 [4 floats, world coordinates] second vertex
  * @param v3 [4 floats, world coordinates] third vertex
  */
-static void zbufinvulGL(unsigned int zvlnr, float *v1, float *v2, float *v3)
+static void zbufinvulGL(int zvlnr, float *v1, float *v2, float *v3)
 {
 	double x0,y0,z0;
 	double x1,y1,z1,x2,y2,z2,xx1;
@@ -1391,7 +1391,7 @@ static void zbufinvulGL(unsigned int zvlnr, float *v1, float *v2, float *v3)
  * @param v3 [4 floats, world coordinates] third vertex
  */
 
-static void zbufinvulGL_onlyZ(unsigned int zvlnr, float *v1, float *v2, float *v3) 
+static void zbufinvulGL_onlyZ(int zvlnr, float *v1, float *v2, float *v3) 
 {
 	double x0,y0,z0,x1,y1,z1,x2,y2,z2,xx1;
 	double zxd,zyd,zy0,tmp;
@@ -1744,7 +1744,7 @@ void projectvert(float *v1, float *adr)
 
 /* do zbuffering and clip, f1 f2 f3 are hocos, c1 c2 c3 are clipping flags */
 
-void zbufclip(unsigned int zvlnr, float *f1, float *f2, float *f3, int c1, int c2, int c3)
+void zbufclip(int zvlnr, float *f1, float *f2, float *f3, int c1, int c2, int c3)
 {
 	float deler;
 	float *vlzp[32][3], labda[3][2];
@@ -1828,7 +1828,7 @@ void zbufclip(unsigned int zvlnr, float *f1, float *f2, float *f3, int c1, int c
 			}
 
             /* warning, this should never happen! */
-			if(clve>38) printf("clip overflow: clve clvl %d %d\n",clve,clvl);
+			if(clve>38 || clvl>31) printf("clip overflow: clve clvl %d %d\n",clve,clvl);
 
             /* perspective division */
 			f1=vez;
@@ -1875,7 +1875,7 @@ void zbufferall(void)
 {
 	VlakRen *vlr= NULL;
 	Material *ma=0;
-	unsigned int v, zvlnr;
+	int v, zvlnr;
 	short transp=0, env=0, wire=0;
 
 	Zmulx= ((float)R.rectx)/2.0;
@@ -1945,14 +1945,14 @@ static int hashlist_projectvert(float *v1, float *hoco)
 void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem)
 {
 	float hoco[4][4];
-	unsigned int a, zvlnr;
+	int a, zvlnr;
 	int c1, c2, c3, c4= 0;
 	unsigned int *rectoto, *rectzo;
 	int rectxo, rectyo;
 
 	if(rg_totelem==0) return;
 
-	hashlist_projectvert(0, 0);
+	hashlist_projectvert(NULL, NULL);
 	
 	rectxo= R.rectx;
 	rectyo= R.recty;
@@ -2159,7 +2159,7 @@ static void zbuffer_abuf()
 	Material *ma=0;
 	VlakRen *vlr=NULL;
 	float vec[3], hoco[4], mul, zval, fval;
-	unsigned int v, zvlnr;
+	int v, zvlnr;
 	int len;
 	
 	Zjitx= Zjity= -0.5;

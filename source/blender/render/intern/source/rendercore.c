@@ -34,8 +34,6 @@
 /* External modules: */
 #include "MEM_guardedalloc.h"
 #include "BLI_arithb.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
 #include "MTC_matrixops.h"
 
 #include "BKE_utildefines.h"

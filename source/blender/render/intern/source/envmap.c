@@ -679,6 +679,8 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 		if(texres->ta<1.0) {
 			TexResult texr1, texr2;
 	
+			texr1.nor= texr2.nor= NULL;
+
 			VecAddf(vec, vec, dxt);
 			face1= envcube_isect(vec, sco);
 			VecSubf(vec, vec, dxt);

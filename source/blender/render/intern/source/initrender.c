@@ -82,6 +82,9 @@
 #include "BSE_drawview.h"
 #include "BSE_sequence.h"
 
+#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.h"
+
 #ifdef WITH_QUICKTIME
 #include "quicktime_export.h"
 #endif
@@ -1223,14 +1226,20 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 				R.backbuf->id.us--;
 				bima= R.backbuf;
 			}
-			else bima= 0;
+			else bima= NULL;
 			
 			R.backbuf= add_image(name);
 			
 			if(bima && bima->id.us<1) {
 				free_image_buffers(bima);
 			}
-			if(R.backbuf==0) {
+
+			if(R.backbuf && R.backbuf->ibuf==NULL) {
+				R.backbuf->ibuf= IMB_loadiffname(R.backbuf->name, IB_rect);
+				if(R.backbuf->ibuf==NULL) R.backbuf->ok= 0;
+				else R.backbuf->ok= 1;
+			}
+			if(R.backbuf==NULL || R.backbuf->ok==0) {
 				// error() doesnt work with render window open
 				//error("No backbuf there!");
 				printf("Error: No backbuf %s\n", name);
