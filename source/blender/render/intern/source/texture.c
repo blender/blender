@@ -914,7 +914,7 @@ void do_material_tex(ShadeInput *shi)
 				co= shi->gl; dx= O.dxco; dy= O.dyco;
 			}
 			else if(mtex->texco==TEXCO_UV) {
-				co= shi->uv; dx= O.dxuv; dy= O.dyuv;
+				co= shi->uv; dx= O.dxuv; dy= O.dyuv; 
 			}
 			else if(mtex->texco==TEXCO_WINDOW) {
 				co= shi->winco; dx= O.dxwin; dy= O.dywin;

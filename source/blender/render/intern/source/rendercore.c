@@ -2035,7 +2035,8 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 	   2 1 3
 	*/
 
-// check!!! vlr1->flag |= R_FACE_SPLIT;
+// check!!! 		vlr1->flag |= R_FACE_SPLIT;
+// also check!!! 	vlr1->flag |= R_DIVIDE_24; 
 	
 	if(i1==0) {
 		v1= vlr->v1;

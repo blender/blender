@@ -2816,14 +2816,20 @@ static void check_non_flat_quads(void)
 						vlr1->v2=vlr->v3;
 						vlr1->v3=vlr->v4;
 						vlr->v3 =vlr->v4;
+						
+						vlr1->flag |= R_DIVIDE_24;	
 					}
 					else {
 						vlr1->v1= vlr->v1;
 						vlr1->v2= vlr->v3;
 						vlr1->v3= vlr->v4;
+						
+						vlr1->flag &= ~R_DIVIDE_24;
 					}
 					
-					vlr->v4= vlr1->v4= 0;
+					vlr->v4 = vlr1->v4 = 0;
+				/* so later UV can be pulled from original tface, look for R_DIVIDE_24 for direction */
+					vlr1->tface=vlr->tface; 
 					
 					vlr1->puno= 0;
 					if(vlr->puno & ME_FLIPV1) vlr1->puno |= ME_FLIPV1;
@@ -3123,29 +3129,57 @@ void displace_render_face(VlakRen *vlr, float scale)
 	ShadeInput shi;
 	VertRen vr;
 	float samp1,samp2, samp3, samp4;
-
+	short hasuv=0;
 	/* set up shadeinput struct for multitex() */
 	
 	shi.osatex= 0;		/* signal not to use dx[] and dy[] texture AA vectors */
 	shi.vlr= vlr;		/* current render face */
 	shi.mat= vlr->mat;		/* current input material */
 	shi.matren= shi.mat->ren;	/* material temp block where output is written into */
-
+	
+	/* UV coords must come from face */
+	hasuv = vlr->tface && (shi.matren->texco & TEXCO_UV);
+	if (hasuv) shi.uv[2]=0.0f; 
+		/* I don't think this is used, but seting it just in case */
+		
 	/* Displace the verts, flag is set when done */
+	if (! (vlr->v1->flag)){		/
+		if (hasuv)	{
+			shi.uv[0] = 2*vlr->tface->uv[0][0]-1.0f; /* shi.uv and tface->uv are */
+			shi.uv[1]=  2*vlr->tface->uv[0][1]-1.0f; /* scalled differently 	 */
+		}
+		displace_render_vert(&shi, vlr->v1, scale);
+	}
 	
-	if (! (vlr->v1->flag)) displace_render_vert(&shi, vlr->v1, scale);
+	if (! (vlr->v2->flag)) {
+		if (hasuv)	{
+			shi.uv[0] = 2*vlr->tface->uv[1][0]-1.0f; 
+			shi.uv[1]=  2*vlr->tface->uv[1][1]-1.0f;
+		}
+		displace_render_vert(&shi, vlr->v2, scale);
+	}
 	
-	if (! (vlr->v2->flag)) displace_render_vert(&shi, vlr->v2, scale);
-	
- 	if (! (vlr->v3->flag)) displace_render_vert(&shi, vlr->v3, scale);
+ 	if (! (vlr->v3->flag)) {
+		if (hasuv)	{
+			shi.uv[0] = 2*vlr->tface->uv[2][0]-1.0f; 
+			shi.uv[1]=  2*vlr->tface->uv[2][1]-1.0f;
+		}	 
+		displace_render_vert(&shi, vlr->v3, scale);
+	}
 			
 	if (vlr->v4) {
-		if (! (vlr->v4->flag)) displace_render_vert(&shi, vlr->v4, scale);
-		
+		if (! (vlr->v4->flag)) {
+		 	if (hasuv)	{
+				shi.uv[0] = 2*vlr->tface->uv[3][0]-1.0f; 
+				shi.uv[1]=  2*vlr->tface->uv[3][1]-1.0f;
+			}	
+		 	displace_render_vert(&shi, vlr->v4, scale);
+		}
 		/* We want to split the quad along the opposite verts that are */
 		/*	closest in displace value.  This will help smooth edges.   */ 
-		if ( fabs(vlr->v1->accum-vlr->v3->accum) > fabs(vlr->v2->accum-vlr->v4->accum)) vlr->flag|=R_DIVIDE_24; 
-		else vlr->flag & ~R_DIVIDE_24;
+		if ( fabs(vlr->v1->accum - vlr->v3->accum) > fabs(vlr->v2->accum - vlr->v4->accum)) 
+				vlr->flag |= R_DIVIDE_24; 
+		else 	vlr->flag & ~R_DIVIDE_24;
 	}
 }
 
