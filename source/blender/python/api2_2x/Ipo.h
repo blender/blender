@@ -93,6 +93,7 @@ static PyObject *Ipo_setBlocktype(C_Ipo *self, PyObject *args);
 static PyObject *Ipo_getRctf(C_Ipo *self);
 static PyObject *Ipo_setRctf(C_Ipo *self, PyObject *args);
 
+static PyObject *Ipo_getCurve(C_Ipo *self, PyObject *args);
 static PyObject *Ipo_getCurves(C_Ipo *self);
 static PyObject *Ipo_addCurve(C_Ipo *self, PyObject *args);
 static PyObject *Ipo_getNcurves(C_Ipo *self);
@@ -142,6 +143,8 @@ static PyMethodDef C_Ipo_methods[] = {
   {"setCurveBeztriple", (PyCFunction)Ipo_setCurveBeztriple, METH_VARARGS,
       "() - Return curval"},
   {"getCurves", (PyCFunction)Ipo_getCurves, METH_NOARGS,
+      "() - Return curval"},
+  {"getCurve", (PyCFunction)Ipo_getCurve, METH_VARARGS,
       "() - Return curval"},
   {0}
 };

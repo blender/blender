@@ -53,7 +53,7 @@ static PyObject *M_Ipo_New(PyObject *self, PyObject *args)
 		if (!strcmp(code,"Material"))idcode = ID_MA;
 		if (idcode == -1)
     return (EXPP_ReturnPyObjError (PyExc_TypeError,"Bad code"));
-
+		printf("%d %d %d \n", ID_OB, ID_CA, ID_WO);
   blipo = add_ipo(name,idcode);
 
   if (blipo) 
@@ -264,27 +264,89 @@ static PyObject *Ipo_getNcurves(C_Ipo *self)
 }
 
 
+int num_from_type(char*type,int ipotype)
+{
+	int i = 0,typenumber = -1,tabsize;
+	if (ipotype == ID_OB)
+		{
+	 char*nametab[24] = {"LocX","LocY","LocZ","dLocX","dLocY","dLocZ","RotX","RotY","RotZ","dRotX","dRotY","dRotZ","SizeX","SizeY","SizeZ","dSizeX","dSizeY","dSizeZ","Layer","Time","ColR","ColG","ColB","ColA"};
+			tabsize = 24;
+	for(i = 0;i<tabsize;i++)
+		if(!strcmp(nametab[i],type))
+			typenumber=i+1;
+
+		}
+	if (ipotype == ID_CA)
+		{
+	char*nametab[3] = {"Lens","ClSta","ClEnd"};
+			tabsize = 3;
+	for(i = 0;i<tabsize;i++)
+		if(!strcmp(nametab[i],type))
+			typenumber=i+1;
+		}
+	if (ipotype == ID_WO)
+		{
+	char*nametab[29] = {"HorR","HorG","HorB","ZenR","ZenG","ZenB","Expos","Misi","MisDi","MisSta","MisHi","StaR","StaG","StaB","StarDi","StarSi","OfsX","OfsY","OfsZ","SizeX","SizeY","SizeZ","TexR","TexG","TexB","DefVar","Col","Nor","Var"};
+			tabsize = 29;
+	for(i = 0;i<tabsize;i++)
+		if(!strcmp(nametab[i],type))
+			typenumber=i+1;
+		}
+	if (ipotype == ID_MA)
+		{
+	char*nametab[32] = {"R","G","B","SpecR","SpecG","SpecB","MirR","MirG","MirB","Ref","Alpha","Emit","Amb","Spec","Hard","SpTra","Ang","Mode","HaSize","OfsX","OfsY","OfsZ","SizeX","SizeY","SizeZ","TexR","TexG","TexB","DefVar","Col","Nor","Var"};
+			tabsize = 32;
+	for(i = 0;i<tabsize;i++)
+		if(!strcmp(nametab[i],type))
+			typenumber=i+1;
+		}
+
+	return typenumber;
+}
+
+char* type_from_num(int num,int ipotype)
+{
+	
+	if (ipotype == ID_CA)
+		{
+	char * nametab[3] = {"Lens","ClSta","ClEnd"};
+	return nametab[num-1];
+		}
+	if (ipotype == ID_OB)
+		{
+	char * nametab[24] = {"LocX","LocY","LocZ","dLocX","dLocY","dLocZ","RotX","RotY","RotZ","dRotX","dRotY","dRotZ","SizeX","SizeY","SizeZ","dSizeX","dSizeY","dSizeZ","Layer","Time","ColR","ColG","ColB","ColA"};
+	return nametab[num-1];
+		}
+	if (ipotype == ID_WO)
+		{
+	char*nametab[29] = {"HorR","HorG","HorB","ZenR","ZenG","ZenB","Expos","Misi","MisDi","MisSta","MisHi","StaR","StaG","StaB","StarDi","StarSi","OfsX","OfsY","OfsZ","SizeX","SizeY","SizeZ","TexR","TexG","TexB","DefVar","Col","Nor","Var"};
+	return nametab[num-1];
+		}
+	if (ipotype == ID_MA)
+		{
+	char*nametab[32] = {"R","G","B","SpecR","SpecG","SpecB","MirR","MirG","MirB","Ref","Alpha","Emit","Amb","Spec","Hard","SpTra","Ang","Mode","HaSize","OfsX","OfsY","OfsZ","SizeX","SizeY","SizeZ","TexR","TexG","TexB","DefVar","Col","Nor","Var"};
+	return nametab[num-1];
+		}
+	return 0;
+}
+
 
 static PyObject *Ipo_addCurve(C_Ipo *self, PyObject *args)
 { 
 	void *MEM_callocN(unsigned int len, char *str);
     IpoCurve *ptr;
-	int i = 0,typenumber = -1;
+	int typenumber = -1;
 	char*type = 0;
-	static char *name="mmm";	
-	char * nametab[24] = {"LocX","LocY","LocZ","dLocX","dLocY","dLocZ","RotX","RotY","RotZ","dRotX","dRotY","dRotZ","SizeX","SizeY","SizeZ","dSizeX","dSizeY","dSizeZ","Layer","Time","ColR","ColG","ColB","ColA"};
+	static char *name="mmm";
 
 	if (!PyArg_ParseTuple(args, "s",&type))
 		return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected string argument"));
-	for(i = 0;i<24;i++)
-		if(!strcmp(nametab[i],type))
-			typenumber=i+1;
-
+	typenumber = num_from_type(type,self->ipo->blocktype);
 	if (typenumber == -1)
 		return (EXPP_ReturnPyObjError (PyExc_TypeError, "unknown type"));
 
 	ptr = (IpoCurve*)MEM_callocN(sizeof(IpoCurve),name);
-	ptr->blocktype = 16975;
+	ptr->blocktype = ID_OB;
 	ptr->totvert = 0;
 	ptr->adrcode = typenumber;
 	ptr->ipo = 2;
@@ -295,6 +357,21 @@ static PyObject *Ipo_addCurve(C_Ipo *self, PyObject *args)
 	return IpoCurve_CreatePyObject (ptr);
 }
 
+static PyObject *Ipo_getCurve(C_Ipo *self, PyObject *args)
+{
+	int num = 0 , i = 0;
+	char*str;
+	IpoCurve *icu = 0;
+	if (!PyArg_ParseTuple(args, "s",&str))
+		return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected string argument"));
+	puts(str);
+ for (icu=self->ipo->curve.first; icu; icu=icu->next){
+	 if (!strcmp(type_from_num(icu->adrcode, icu->blocktype),str))return IpoCurve_CreatePyObject(icu);
+        }
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
 
 static PyObject *Ipo_getCurves(C_Ipo *self)
 {
@@ -523,7 +600,7 @@ static int IpoSetAttr (C_Ipo *self, char *name, PyObject *value)
 /*****************************************************************************/
 static PyObject *IpoRepr (C_Ipo *self)
 {
-  return PyString_FromFormat("[Ipo \"%s\"]", self->ipo->id.name+2);
+  return PyString_FromFormat("[Ipo \"%s\" %d]", self->ipo->id.name+2,self->ipo->blocktype);
 }
 
 /* Three Python Ipo_Type helper functions needed by the Object module: */
@@ -536,15 +613,10 @@ static PyObject *IpoRepr (C_Ipo *self)
 PyObject *Ipo_CreatePyObject (Ipo *ipo)
 {
 	C_Ipo *pyipo;
-
 	pyipo = (C_Ipo *)PyObject_NEW (C_Ipo, &Ipo_Type);
-
 	if (!pyipo)
-		return EXPP_ReturnPyObjError (PyExc_MemoryError,
-						"couldn't create C_Ipo object");
-
+		return EXPP_ReturnPyObjError (PyExc_MemoryError,"couldn't create C_Ipo object");
 	pyipo->ipo = ipo;
-
 	return (PyObject *)pyipo;
 }
 
