@@ -477,6 +477,7 @@ static IpoCurve *get_nearest_meshchannel_key (float *index, short *sel)
     /* lets loop through the IpoCurves trying to find the closest
      * bezier
      */
+	if (!key->ipo) return NULL;
     for (icu = key->ipo->curve.first; icu ; icu = icu->next) {
         /* lets not deal with the "speed" Ipo
          */
