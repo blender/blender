@@ -3362,9 +3362,6 @@ static char *around_pup(void)
 	strcat(string, "|Median Point %x3");
 	strcat(string, "|3D Cursor %x1");
 	strcat(string, "|Individual Object Centers %x2");
-	strcat(string, "|%l");
-	strcat(string, "|Median Point (Only Object Centers) %x4");
-	strcat(string, "|3D Cursor (Only Object Centers) %x5");
 	return (string);
 }
 
@@ -3649,7 +3646,9 @@ void do_view3d_buttons(short event)
 		}
 		allqueue(REDRAWVIEW3D, 0);
 		break;
-	
+	case B_AROUND:
+		handle_view3d_around();
+		break;		
 	default:
 
 		if(event>=B_LAY && event<B_LAY+31) {
@@ -3873,7 +3872,7 @@ void view3d_buttons(void)
 	
 	/* around */
 	xco+= XIC+18;
-	uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_ROTATE, around_pup(), xco,0,XIC+10,YIC, &(G.vd->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Period) ");
+	uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(), xco,0,XIC+10,YIC, &(G.vd->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Period) ");
 	/*
 	uiDefIconButS(block, ROW, 1, ICON_ROTATE, xco+=XIC,0,XIC,YIC, &G.vd->around, 3.0, 0.0, 0, 0, "Enables Rotation or Scaling around boundbox center (COMMAKEY)");
 	uiDefIconButS(block, ROW, 1, ICON_ROTATECENTER, xco+=XIC,0,XIC,YIC, &G.vd->around, 3.0, 3.0, 0, 0, "Enables Rotation or Scaling around median point");
@@ -3881,9 +3880,13 @@ void view3d_buttons(void)
 	uiDefIconButS(block, ROW, 1, ICON_ROTATECOLLECTION, xco+=XIC,0,XIC,YIC, &G.vd->around, 3.0, 2.0, 0, 0, "Enables Rotation or Scaling around individual object centers");
 	*/
 	
+	xco+= 18;
 	
+	uiDefIconButS(block, TOG|BIT|10, B_AROUND, ICON_ALIGN,
+				xco+=XIC,0,XIC,YIC,
+				&G.vd->flag, 0, 0, 0, 0, "Translate only (align)");	
 	
-	xco+= XIC+18;
+	xco+= XIC+14;
 	/* LAYERS */
 	if(G.vd->localview==0) {
 		

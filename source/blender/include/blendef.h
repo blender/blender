@@ -247,6 +247,7 @@
 #define	B_TEXTUREPAINT		154
 #define B_WPAINT		155
 #define B_MODESELECT		156
+#define B_AROUND		157
 
 /* IPO: 200 */
 #define B_IPOHOME		201

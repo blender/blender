@@ -126,7 +126,6 @@ static void uv_calc_center_vector(float *result, Object *ob, Mesh *me)
 		}
 		VecMidf(result, min, max);
 		break;
-	case V3D_CURSOR_LOC:
 	case V3D_CURSOR: /*cursor center*/ 
 		cursx= give_cursor();
 		/* shift to objects world */
@@ -135,7 +134,6 @@ static void uv_calc_center_vector(float *result, Object *ob, Mesh *me)
 		result[2]= cursx[2]-ob->obmat[3][2];
 		break;
 	case V3D_LOCAL: /*object center*/
-	case V3D_CENTROID_LOC:
 	case V3D_CENTROID: /* multiple objects centers, only one object here*/
 	default:
 		result[0]= result[1]= result[2]= 0.0;
