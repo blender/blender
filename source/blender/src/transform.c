@@ -103,6 +103,9 @@
 extern ListBase editNurb;
 extern ListBase editelems;
 
+extern void helpline(float *vec);
+
+
 #include "transform.h"
 #include "transform_generics.h"
 #include "transform_constraints.h"
@@ -712,6 +715,10 @@ void Transform(int mode) {
 	float MatI[3][3];
 	unsigned short event;
 
+	/*joeedh -> hopefully may be what makes the old transform() constant*/	
+	areawinset(curarea->win);
+
+
 	Mat3One(MatI);
 
 	/* stupid PET initialisation code */
@@ -762,9 +769,6 @@ void Transform(int mode) {
 	while( qtest() ) {
 		event= extern_qread(&val);
 	}
-
-	/*joeedh -> hopefully may be what makes the old transform() constant*/	
-	areawinset(curarea->win);
 
 	trans.redraw = 1;
 
@@ -964,8 +968,9 @@ int Shear(TransInfo *t, short mval[2]) {
 		if (td->flag & TD_NOACTION)
 			continue;
 		if (G.obedit) {
-			Mat3MulMat3(totmat, tmat, omat);
-			Mat3MulMat3(tmat, td->smtx, totmat);
+			float mat3[3][3];
+			Mat3MulMat3(mat3, totmat, omat);
+			Mat3MulMat3(tmat, td->smtx, mat3);
 		}
 		else {
 			Mat3CpyMat3(tmat, totmat);
@@ -1311,8 +1316,15 @@ int Rotation(TransInfo *t, short mval[2]) {
 /* ************************** TRANSLATION *************************** */
 	
 void initTranslation(TransInfo *t) {
+	int x, y;
 	t->num.idx_max = 2;
 	t->transform = Translation;
+	x = G.vd->area->v1->vec.x;
+	y = G.vd->area->v1->vec.y + (G.vd->area->headwin?28:1);
+	warp_pointer(t->center2d[0] + x, t->center2d[1] + y);
+	
+	t->imval[0] = t->center2d[0];
+	t->imval[1] = t->center2d[1];
 }
 
 int Translation(TransInfo *t, short mval[2]) {
