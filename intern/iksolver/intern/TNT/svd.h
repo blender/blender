@@ -263,12 +263,9 @@ void SVD(MaTRiX &a, VecToR &w,  MaTRiX &v, VecToR &work_space) {
 			w(k)=x;
 		}
 	}
-};
-
-
+}
 
 // A is replaced by the column orthogonal matrix U 
-
 
 template <class MaTRiX, class VecToR >
 void SVD_a( MaTRiX &a, VecToR &w,  MaTRiX &v) {
@@ -468,40 +465,7 @@ void SVD_a( MaTRiX &a, VecToR &w,  MaTRiX &v) {
 		}
 	}
 }
+
 }
 #endif
-
-
-
-
-
-
-
-
-
-
-
-				
-
-	
-
-
-
-
-
-
-
-
-
-
-
-
-					
-
-
-
-
-
-
-	
 
