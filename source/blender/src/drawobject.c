@@ -2273,7 +2273,7 @@ static void drawDispList(Object *ob, int dt)
 		lb= &((Curve *)ob->data)->disp;
 		if(lb->first==0) makeDispList(ob);
 		
-		if(solid && ob!=G.obedit) {
+		if(solid) {
 			dl= lb->first;
 			if(dl==0) return;
 			
@@ -2286,7 +2286,12 @@ static void drawDispList(Object *ob, int dt)
 			
 			index3_nors_incr= 0;
 			
-			if(dt==OB_SHADED) {
+			if( displist_has_faces(lb)==0) {
+				draw_index_wire= 0;
+				drawDispListwire(lb);
+				draw_index_wire= 1;
+			}
+			else if(dt==OB_SHADED) {
 				if(ob->disp.first==0) shadeDispList(ob);
 				drawDispListshaded(lb, ob);
 			}
@@ -3891,7 +3896,8 @@ static void draw_solid_select(Object *ob)
 	case OB_CURVE:
 	case OB_SURF:
 		cu= ob->data;
-		if(boundbox_clip(ob->obmat, cu->bb)) drawSolidSelect(ob, &cu->disp);
+		if(displist_has_faces(&cu->disp)) 
+			if(boundbox_clip(ob->obmat, cu->bb)) drawSolidSelect(ob, &cu->disp);
 		break;
 	case OB_MBALL:
 		drawSolidSelect(ob, &ob->disp);

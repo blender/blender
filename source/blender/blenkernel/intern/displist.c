@@ -397,6 +397,19 @@ DispList *find_displist(ListBase *lb, int type)
 	return 0;
 }
 
+int displist_has_faces(ListBase *lb)
+{
+	DispList *dl;
+	
+	dl= lb->first;
+	while(dl) {
+		if ELEM5(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF, DL_MESH, DL_TRIA)
+			return 1;
+		dl= dl->next;
+	}
+	return 0;
+}
+
 void copy_displist(ListBase *lbn, ListBase *lb)
 {
 	DispList *dln, *dl;
