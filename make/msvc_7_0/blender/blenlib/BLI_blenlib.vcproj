@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\bpython\include,$(SolutionDir)source\blender\makesdna"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\python&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)..\lib\windows\freetype\include&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -67,7 +67,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\bpython\include&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)lib\windows\freetype\include&quot;;&quot;$(SolutionDir)source\blender\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\python&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)..\lib\windows\freetype\include&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,WITH_FREETYPE2"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -113,7 +113,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\bpython\include&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)lib\windows\freetype\include&quot;;&quot;$(SolutionDir)source\blender\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\python&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)..\lib\windows\freetype\include&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,WITH_FREETYPE2"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -159,7 +159,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\bpython\include,$(SolutionDir)source\blender\makesdna"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\python&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)..\lib\windows\freetype\include&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -269,19 +269,19 @@
 				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_blenlib.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_callbacks.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\BLI_callbacks.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\blenlib\intern\BLI_callbacks.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_callbacks.h">
 			</File>
 			<File
 				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_editVert.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_fileops.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\BLI_fileops.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\blenlib\intern\BLI_fileops.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_fileops.h">
 			</File>
 			<File
 				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_ghash.h">
@@ -302,10 +302,10 @@
 				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_noise.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_objfnt.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\BLI_objfnt.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\blenlib\intern\BLI_objfnt.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_objfnt.h">
 			</File>
 			<File
 				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_objfnt_types.h">
@@ -323,25 +323,25 @@
 				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_rct.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_scanfill.h">
-			</File>
-			<File
 				RelativePath="$(SolutionDir)source\blender\blenlib\intern\BLI_scanfill.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_storage.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_scanfill.h">
 			</File>
 			<File
 				RelativePath="$(SolutionDir)source\blender\blenlib\intern\BLI_storage.h">
 			</File>
 			<File
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_storage.h">
+			</File>
+			<File
 				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_storage_types.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_util.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\BLI_util.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\blenlib\intern\BLI_util.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_util.h">
 			</File>
 			<File
 				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_vec_types.h">

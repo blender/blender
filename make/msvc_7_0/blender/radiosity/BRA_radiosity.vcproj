@@ -126,6 +126,9 @@
 			<File
 				RelativePath="$(SolutionDir)source\blender\radiosity\intern\source\radpreprocess.c">
 			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\radiosity\intern\source\radrender.c">
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"

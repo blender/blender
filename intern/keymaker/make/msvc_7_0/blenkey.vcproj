@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..,..\..\..\..\..\lib\windows\openssl\include,..\..\python"
+				AdditionalIncludeDirectories="..\..;..\..\..\..\..\lib\windows\openssl\include;..\..\python"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
@@ -71,7 +71,7 @@ XCOPY /Y ..\..\..\..\obj\windows\intern\blenkey\debug\*.lib ..\..\..\..\..\lib\w
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..,..\..\..\..\..\lib\windows\openssl\include,..\..\python"
+				AdditionalIncludeDirectories="..\..;..\..\..\..\..\lib\windows\openssl\include;..\..\python"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"

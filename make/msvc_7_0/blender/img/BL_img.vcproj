@@ -82,7 +82,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(SolutionDir)lib\windows\blender\img\debug\BL_img.lib"
+				OutputFile="$(SolutionDir)..\lib\windows\blender\img\debug\BL_img.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>

@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\include;$(SolutionDir)source\blender\blenloader;$(SolutionDir)source\blender\streamglue\;$(SolutionDir)source\blender\readblenfile\;$(SolutionDir)source\blender\writeblenfile\;$(SolutionDir)source\blender\deflate\;$(SolutionDir)source\blender\inflate\;$(SolutionDir)lib\windows\zlib\include;$(SolutionDir)source\blender\readblenfile;$(SolutionDir)source\kernel\gen_messaging;$(SolutionDir)source\blender\readstreamglue;$(SolutionDir)source\blender\writestreamglue;$(SolutionDir)source\blender\blenkernel;$(SolutionDir)source\blender\makesdna;$(SolutionDir)source\blender\render\extern\include;$(SolutionDir)source\blender\blenlib;$(SolutionDir)source\blender\bpython\include"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\include;$(SolutionDir)source\blender\blenloader;$(SolutionDir)source\blender\streamglue\;$(SolutionDir)source\blender\readblenfile\;$(SolutionDir)source\blender\writeblenfile\;$(SolutionDir)source\blender\deflate\;$(SolutionDir)source\blender\inflate\;$(SolutionDir)..\lib\windows\zlib\include;$(SolutionDir)source\blender\readblenfile;$(SolutionDir)source\kernel\gen_messaging;$(SolutionDir)source\blender\readstreamglue;$(SolutionDir)source\blender\writestreamglue;$(SolutionDir)source\blender\blenkernel;$(SolutionDir)source\blender\makesdna;$(SolutionDir)source\blender\render\extern\include;$(SolutionDir)source\blender\blenlib;$(SolutionDir)source\blender\python"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -68,7 +68,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender\blenloader,$(SolutionDir)source\blender\streamglue\,$(SolutionDir)source\blender\readblenfile\,$(SolutionDir)source\blender\writeblenfile\,$(SolutionDir)source\blender\deflate\,$(SolutionDir)source\blender\inflate\,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\readblenfile,$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\blender\render\extern\include,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\bpython\include"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender\blenloader,$(SolutionDir)source\blender\streamglue\,$(SolutionDir)source\blender\readblenfile\,$(SolutionDir)source\blender\writeblenfile\,$(SolutionDir)source\blender\deflate\,$(SolutionDir)source\blender\inflate\,$(SolutionDir)..\lib\windows\zlib\include,$(SolutionDir)source\blender\readblenfile,$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\blender\render\extern\include,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\python"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -113,7 +113,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender\blenloader,$(SolutionDir)source\blender\streamglue\,$(SolutionDir)source\blender\readblenfile\,$(SolutionDir)source\blender\writeblenfile\,$(SolutionDir)source\blender\deflate\,$(SolutionDir)source\blender\inflate\,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\readblenfile,$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\blender\render\extern\include,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\bpython\include"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender\blenloader,$(SolutionDir)source\blender\streamglue\,$(SolutionDir)source\blender\readblenfile\,$(SolutionDir)source\blender\writeblenfile\,$(SolutionDir)source\blender\deflate\,$(SolutionDir)source\blender\inflate\,$(SolutionDir)..\lib\windows\zlib\include,$(SolutionDir)source\blender\readblenfile,$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\blender\render\extern\include,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\python"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -158,7 +158,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)source\blender\blenloader,$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender\streamglue\,$(SolutionDir)source\blender\readblenfile\,$(SolutionDir)source\blender\writeblenfile\,$(SolutionDir)source\blender\deflate\,$(SolutionDir)source\blender\inflate\,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\readblenfile,$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\blender\render\extern\include,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\bpython\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\blender\blenloader,$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender\streamglue\,$(SolutionDir)source\blender\readblenfile\,$(SolutionDir)source\blender\writeblenfile\,$(SolutionDir)source\blender\deflate\,$(SolutionDir)source\blender\inflate\,$(SolutionDir)..\lib\windows\zlib\include,$(SolutionDir)source\blender\readblenfile,$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\blender\render\extern\include,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\python"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"

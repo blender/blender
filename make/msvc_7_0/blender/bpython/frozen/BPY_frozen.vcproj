@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\python\include\python2.2"
+				AdditionalIncludeDirectories="$(SolutionDir)..\lib\windows\python\include\python2.2"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB,FUTURE_PYTHON_API"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -39,7 +39,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(SolutionDir)lib\windows\bpython\BPY_frozen.lib"
+				OutputFile="$(SolutionDir)..\lib\windows\bpython\BPY_frozen.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -67,7 +67,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\python\include\python2.2"
+				AdditionalIncludeDirectories="$(SolutionDir)..\lib\windows\python\include\python2.2"
 				PreprocessorDefinitions="WIN32,_LIB,FUTURE_PYTHON_API"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -85,7 +85,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(SolutionDir)lib\windows\bpython\frozen\lib\debug\BPY_frozen.lib"
+				OutputFile="$(SolutionDir)..\lib\windows\bpython\frozen\lib\debug\BPY_frozen.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>

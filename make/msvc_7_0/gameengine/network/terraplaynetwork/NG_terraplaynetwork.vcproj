@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\network,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)lib\windows\terraplay\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\network,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)..\lib\windows\terraplay\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
@@ -69,7 +69,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\network,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)lib\windows\terraplay\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\network,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)..\lib\windows\terraplay\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -114,7 +114,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\network,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)lib\windows\terraplay\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\network,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)..\lib\windows\terraplay\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"
@@ -160,7 +160,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\network,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)lib\windows\terraplay\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\network,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)..\lib\windows\terraplay\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="5"
@@ -207,7 +207,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\network,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)lib\windows\terraplay\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\network,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)..\lib\windows\terraplay\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"

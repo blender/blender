@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\soundsystem\intern,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)intern\string,$(SolutionDir)intern\moto\include,$(SolutionDir)lib\windows\openal\include,$(SolutionDir)source\kernel\gen_system"
+				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\soundsystem\intern,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)intern\string,$(SolutionDir)intern\moto\include,$(SolutionDir)..\lib\windows\openal\include,$(SolutionDir)source\kernel\gen_system"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -67,7 +67,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)source\gameengine\soundsystem\intern,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)intern\string,$(SolutionDir)intern\moto\include,$(SolutionDir)lib\windows\openal\include,$(SolutionDir)source\kernel\gen_system"
+				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)source\gameengine\soundsystem\intern,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)intern\string,$(SolutionDir)intern\moto\include,$(SolutionDir)..\lib\windows\openal\include,$(SolutionDir)source\kernel\gen_system"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
@@ -112,7 +112,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)source\gameengine\soundsystem\intern,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)intern\string,$(SolutionDir)intern\moto\include,$(SolutionDir)lib\windows\openal\include,$(SolutionDir)source\kernel\gen_system"
+				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)source\gameengine\soundsystem\intern,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)intern\string,$(SolutionDir)intern\moto\include,$(SolutionDir)..\lib\windows\openal\include,$(SolutionDir)source\kernel\gen_system"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -157,7 +157,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)source\gameengine\soundsystem\intern,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)intern\string,$(SolutionDir)intern\moto\include,$(SolutionDir)lib\windows\openal\include,$(SolutionDir)source\kernel\gen_system"
+				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)source\gameengine\soundsystem\intern,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)intern\string,$(SolutionDir)intern\moto\include,$(SolutionDir)..\lib\windows\openal\include,$(SolutionDir)source\kernel\gen_system"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"

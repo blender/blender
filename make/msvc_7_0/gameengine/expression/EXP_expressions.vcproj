@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)source\kernel\gen_system"
+				AdditionalIncludeDirectories="$(SolutionDir)..\lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)source\kernel\gen_system"
 				PreprocessorDefinitions="WIN32,_LIB,EXP_PYTHON_EMBEDDING"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -69,7 +69,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\python\include\python2.0,$(SolutionDir)lib\windows\python\include\python2.0,$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)source\kernel\gen_system"
+				AdditionalIncludeDirectories="$(SolutionDir)..\lib\windows\python\include\python2.0,$(SolutionDir)..\lib\windows\python\include\python2.0,$(SolutionDir)..\lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)source\kernel\gen_system"
 				PreprocessorDefinitions="WIN32,_LIB,EXP_PYTHON_EMBEDDING"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -115,7 +115,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\python\include\python2.0,$(SolutionDir)lib\windows\python\include\python2.0,$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)source\kernel\gen_system"
+				AdditionalIncludeDirectories="$(SolutionDir)..\lib\windows\python\include\python2.0,$(SolutionDir)..\lib\windows\python\include\python2.0,$(SolutionDir)..\lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)source\kernel\gen_system"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,EXP_PYTHON_EMBEDDING"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -160,7 +160,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="c:\cygwin\home\stl,$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)source\kernel\gen_system"
+				AdditionalIncludeDirectories="c:\cygwin\home\stl,$(SolutionDir)..\lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)source\kernel\gen_system"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,EXP_PYTHON_EMBEDDING"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -186,7 +186,7 @@
 				Name="VCPostBuildEventTool"
 				CommandLine="ECHO Copying lib
 
-XCOPY /Y $(SolutionDir)obj\windows\gameengine\expressions\*.lib $(SolutionDir)lib\windows\gameengine\expressions\lib\*.lib
+XCOPY /Y $(SolutionDir)obj\windows\gameengine\expressions\*.lib $(SolutionDir)..\lib\windows\gameengine\expressions\lib\*.lib
 
 ECHO Done
 "/>

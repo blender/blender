@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="h:\qtwin\include,$(SolutionDir)source\gameengine\Expressions,$(SolutionDir)source\gameengine\GameLogic,$(SolutionDir)source\gameengine\Ketsji,$(SolutionDir)source\gameengine\Ketsji\KXNetwork,$(SolutionDir)source\gameengine\Network,$(SolutionDir)source\gameengine\Network\LoopBackNetwork,$(SolutionDir)source\gameengine\Rasterizer,$(SolutionDir)source\gameengine\Rasterizer\RAS_OpenGLRasterizer,$(SolutionDir)source\gameengine\SceneGraph,$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)source\sumo\include,$(SolutionDir)intern\moto\include,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)lib\windows\python\include\python2.0"
+				AdditionalIncludeDirectories="h:\qtwin\include,$(SolutionDir)source\gameengine\Expressions,$(SolutionDir)source\gameengine\GameLogic,$(SolutionDir)source\gameengine\Ketsji,$(SolutionDir)source\gameengine\Ketsji\KXNetwork,$(SolutionDir)source\gameengine\Network,$(SolutionDir)source\gameengine\Network\LoopBackNetwork,$(SolutionDir)source\gameengine\Rasterizer,$(SolutionDir)source\gameengine\Rasterizer\RAS_OpenGLRasterizer,$(SolutionDir)source\gameengine\SceneGraph,$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)source\sumo\include,$(SolutionDir)intern\moto\include,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)..\lib\windows\python\include\python2.0"
 				PreprocessorDefinitions="WIN32,NDEBUG,_WINDOWS"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"
@@ -43,7 +43,7 @@
 				OutputFile="$(SolutionDir)obj\windows\gp.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="$(SolutionDir)lib\windows\python\lib\"
+				AdditionalLibraryDirectories="$(SolutionDir)..\lib\windows\python\lib\"
 				ProgramDatabaseFile="$(SolutionDir)obj\windows\gameengine\gameplayer\qt\gp/gp.pdb"
 				SubSystem="2"/>
 			<Tool
@@ -78,7 +78,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="h:\qtwin\include,$(SolutionDir)source\gameengine\Expressions,$(SolutionDir)source\gameengine\GameLogic,$(SolutionDir)source\gameengine\Ketsji,$(SolutionDir)source\gameengine\Ketsji\KXNetwork,$(SolutionDir)source\gameengine\Network,$(SolutionDir)source\gameengine\Network\LoopBackNetwork,$(SolutionDir)source\gameengine\Rasterizer,$(SolutionDir)source\gameengine\Rasterizer\RAS_OpenGLRasterizer,$(SolutionDir)source\gameengine\SceneGraph,$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)source\sumo\include,$(SolutionDir)intern\moto\include,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)lib\windows\python\include\python1.5"
+				AdditionalIncludeDirectories="h:\qtwin\include,$(SolutionDir)source\gameengine\Expressions,$(SolutionDir)source\gameengine\GameLogic,$(SolutionDir)source\gameengine\Ketsji,$(SolutionDir)source\gameengine\Ketsji\KXNetwork,$(SolutionDir)source\gameengine\Network,$(SolutionDir)source\gameengine\Network\LoopBackNetwork,$(SolutionDir)source\gameengine\Rasterizer,$(SolutionDir)source\gameengine\Rasterizer\RAS_OpenGLRasterizer,$(SolutionDir)source\gameengine\SceneGraph,$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)source\sumo\include,$(SolutionDir)intern\moto\include,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)..\lib\windows\python\include\python1.5"
 				PreprocessorDefinitions="_DEBUG,WIN32"
 				RuntimeLibrary="5"
 				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\gameplayer\qt\gp\debug/gp.pch"
@@ -97,7 +97,7 @@
 				OutputFile="$(SolutionDir)obj\windows\debug\gp.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="$(SolutionDir)lib\windows\python\lib\"
+				AdditionalLibraryDirectories="$(SolutionDir)..\lib\windows\python\lib\"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(SolutionDir)obj\windows\gameengine\gameplayer\qt\gp\debug/gp.pdb"
 				SubSystem="2"/>

@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)lib\windows\gettext\include&quot;;&quot;$(SolutionDir)lib\windows\freetype\include&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\blender\ftfont&quot;;&quot;$(SolutionDir)source\blender\ftfont\intern&quot;;&quot;$(SolutionDir)lib\windows\ftgl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\lib\windows\gettext\include&quot;;&quot;$(SolutionDir)..\lib\windows\freetype\include&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\blender\ftfont&quot;;&quot;$(SolutionDir)source\blender\ftfont\intern&quot;;&quot;$(SolutionDir)..\lib\windows\ftgl\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;INTERNATIONAL"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -32,7 +32,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(SolutionDir)lib\windows\ftfont\lib\debug\FTF_ttfont.lib"/>
+				OutputFile="$(SolutionDir)..\lib\windows\ftfont\lib\debug\FTF_ttfont.lib"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
@@ -57,7 +57,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)lib\windows\gettext\include&quot;;&quot;$(SolutionDir)lib\windows\freetype\include&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\blender\ftfont&quot;;&quot;$(SolutionDir)source\blender\ftfont\intern&quot;;&quot;$(SolutionDir)lib\windows\ftgl\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\lib\windows\gettext\include&quot;;&quot;$(SolutionDir)..\lib\windows\freetype\include&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\blender\ftfont&quot;;&quot;$(SolutionDir)source\blender\ftfont\intern&quot;;&quot;$(SolutionDir)..\lib\windows\ftgl\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_WIN32;INTERNATIONAL;WCHAR_T16"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"
@@ -70,7 +70,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(SolutionDir)\lib\windows\ftfont\lib\FTF_ttfont.lib"
+				OutputFile="$(SolutionDir)..\lib\windows\ftfont\lib\FTF_ttfont.lib"
 				AdditionalLibraryDirectories=""/>
 			<Tool
 				Name="VCMIDLTool"/>

@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)source\blender\writestream,$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)intern\keymaker,$(SolutionDir)lib\windows\openssl\include,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\decrypt,$(SolutionDir)source\blender\readstreamglue"
+				AdditionalIncludeDirectories="$(SolutionDir)source\blender\writestream,$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)intern\keymaker,$(SolutionDir)..\lib\windows\openssl\include,$(SolutionDir)..\lib\windows\zlib\include,$(SolutionDir)source\blender\decrypt,$(SolutionDir)source\blender\readstreamglue"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -66,7 +66,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)intern\keymaker,$(SolutionDir)lib\windows\openssl\include,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\decrypt,$(SolutionDir)source\blender\readstreamglue"
+				AdditionalIncludeDirectories="$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)intern\keymaker,$(SolutionDir)..\lib\windows\openssl\include,$(SolutionDir)..\lib\windows\zlib\include,$(SolutionDir)source\blender\decrypt,$(SolutionDir)source\blender\readstreamglue"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -111,7 +111,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)source\blender\writestream,$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)intern\keymaker,$(SolutionDir)lib\windows\openssl\include,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\decrypt,$(SolutionDir)source\blender\readstreamglue"
+				AdditionalIncludeDirectories="$(SolutionDir)source\blender\writestream,$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)intern\keymaker,$(SolutionDir)..\lib\windows\openssl\include,$(SolutionDir)..\lib\windows\zlib\include,$(SolutionDir)source\blender\decrypt,$(SolutionDir)source\blender\readstreamglue"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -156,7 +156,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)source\blender\writestream,$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)intern\keymaker,$(SolutionDir)lib\windows\openssl\include,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\decrypt,$(SolutionDir)source\blender\readstreamglue"
+				AdditionalIncludeDirectories="$(SolutionDir)source\blender\writestream,$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)intern\keymaker,$(SolutionDir)..\lib\windows\openssl\include,$(SolutionDir)..\lib\windows\zlib\include,$(SolutionDir)source\blender\decrypt,$(SolutionDir)source\blender\readstreamglue"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"

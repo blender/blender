@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)source\blender\img&quot;;&quot;$(SolutionDir)source\blender\renderui&quot;;&quot;$(SolutionDir)source\gameengine\soundsystem\&quot;;&quot;$(SolutionDir)lib\windows\python\include\python2.0\&quot;;&quot;$(SolutionDir)intern\bmfont&quot;;&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\renderconverter&quot;;&quot;$(SolutionDir)source\blender\verify&quot;;&quot;$(SolutionDir)source\blender\readstreamglue&quot;;&quot;$(SolutionDir)source\gameengine\soundsystem\snd_openal&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\blender\blenloader&quot;;&quot;$(SolutionDir)source\kernel\gen_system&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\misc&quot;;&quot;$(SolutionDir)source\blender\bpython\include&quot;;&quot;$(SolutionDir)source\blender\radiosity\extern\include&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\gameengine\network&quot;;&quot;$(SolutionDir)intern\decimation\extern&quot;;&quot;$(SolutionDir)source\blender\blenpluginapi\&quot;;&quot;$(SolutionDir)intern\keymaker&quot;;&quot;$(SolutionDir)intern\ghost&quot;;&quot;$(SolutionDir)intern\bsp\extern&quot;;&quot;$(SolutionDir)source\blender\quicktime&quot;;&quot;$(SolutionDir)lib\windows\quicktime\include&quot;;&quot;$(SolutionDir)lib\windows\gettext\include&quot;;&quot;$(SolutionDir)lib\windows\freetype\include&quot;;&quot;$(SolutionDir)lib\windows\ftgl\include&quot;;&quot;$(SolutionDir)source\blender\ftfont&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)source\blender\img&quot;;&quot;$(SolutionDir)source\blender\renderui&quot;;&quot;$(SolutionDir)..\lib\windows\soundsystem\include&quot;;&quot;$(SolutionDir)..\lib\windows\python\include\python2.0\&quot;;&quot;$(SolutionDir)intern\bmfont&quot;;&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\renderconverter&quot;;&quot;$(SolutionDir)source\blender\verify&quot;;&quot;$(SolutionDir)source\blender\readstreamglue&quot;;&quot;$(SolutionDir)source\gameengine\soundsystem\snd_openal&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\blender\blenloader&quot;;&quot;$(SolutionDir)source\kernel\gen_system&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\misc&quot;;&quot;$(SolutionDir)source\blender\python&quot;;&quot;$(SolutionDir)source\blender\radiosity\extern\include&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\gameengine\network&quot;;&quot;$(SolutionDir)intern\decimation\extern&quot;;&quot;$(SolutionDir)source\blender\blenpluginapi\&quot;;&quot;$(SolutionDir)intern\keymaker&quot;;&quot;$(SolutionDir)intern\ghost&quot;;&quot;$(SolutionDir)intern\bsp\extern&quot;;&quot;$(SolutionDir)source\blender\quicktime&quot;;&quot;$(SolutionDir)..\lib\windows\sdl\include&quot;;&quot;$(SolutionDir)..\lib\windows\quicktime\include&quot;;&quot;$(SolutionDir)..\lib\windows\gettext\include&quot;;&quot;$(SolutionDir)..\lib\windows\freetype\include&quot;;&quot;$(SolutionDir)..\lib\windows\ftgl\include&quot;;&quot;$(SolutionDir)source\blender\ftfont&quot;"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;_CONSOLE;WITH_QUICKTIME;INTERNATIONAL"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -67,7 +67,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)source\blender\img&quot;;&quot;$(SolutionDir)source\blender\renderui&quot;;&quot;$(SolutionDir)source\gameengine\soundsystem\&quot;;&quot;$(SolutionDir)lib\windows\python\include\python2.0\&quot;;&quot;$(SolutionDir)intern\bmfont&quot;;&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\renderconverter&quot;;&quot;$(SolutionDir)source\blender\verify&quot;;&quot;$(SolutionDir)source\blender\readstreamglue&quot;;&quot;$(SolutionDir)source\gameengine\soundsystem\snd_openal&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\blender\blenloader&quot;;&quot;$(SolutionDir)source\kernel\gen_system&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\misc&quot;;&quot;$(SolutionDir)source\blender\bpython\include&quot;;&quot;$(SolutionDir)source\blender\radiosity\extern\include&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\gameengine\network&quot;;&quot;$(SolutionDir)intern\decimation\extern&quot;;&quot;$(SolutionDir)source\blender\blenpluginapi\&quot;;&quot;$(SolutionDir)intern\keymaker&quot;;&quot;$(SolutionDir)intern\ghost&quot;;&quot;$(SolutionDir)intern\bsp\extern&quot;;&quot;$(SolutionDir)source\blender\quicktime&quot;;&quot;$(SolutionDir)lib\windows\quicktime\include&quot;;&quot;$(SolutionDir)lib\windows\gettext\include&quot;;&quot;$(SolutionDir)lib\windows\freetype\include&quot;;&quot;$(SolutionDir)lib\windows\ftgl\include&quot;;&quot;$(SolutionDir)source\blender\ftfont&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)source\blender\img&quot;;&quot;$(SolutionDir)source\blender\renderui&quot;;&quot;$(SolutionDir)..\lib\windows\soundsystem\include&quot;;&quot;$(SolutionDir)..\lib\windows\python\include\python2.0\&quot;;&quot;$(SolutionDir)intern\bmfont&quot;;&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\renderconverter&quot;;&quot;$(SolutionDir)source\blender\verify&quot;;&quot;$(SolutionDir)source\blender\readstreamglue&quot;;&quot;$(SolutionDir)source\gameengine\soundsystem\snd_openal&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\blender\blenloader&quot;;&quot;$(SolutionDir)source\kernel\gen_system&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\misc&quot;;&quot;$(SolutionDir)source\blender\python&quot;;&quot;$(SolutionDir)source\blender\radiosity\extern\include&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\gameengine\network&quot;;&quot;$(SolutionDir)intern\decimation\extern&quot;;&quot;$(SolutionDir)source\blender\blenpluginapi\&quot;;&quot;$(SolutionDir)intern\keymaker&quot;;&quot;$(SolutionDir)intern\ghost&quot;;&quot;$(SolutionDir)intern\bsp\extern&quot;;&quot;$(SolutionDir)source\blender\quicktime&quot;;&quot;$(SolutionDir)..\lib\windows\sdl\include&quot;;&quot;$(SolutionDir)..\lib\windows\quicktime\include&quot;;&quot;$(SolutionDir)..\lib\windows\gettext\include&quot;;&quot;$(SolutionDir)..\lib\windows\freetype\include&quot;;&quot;$(SolutionDir)..\lib\windows\ftgl\include&quot;;&quot;$(SolutionDir)source\blender\ftfont&quot;"
 				PreprocessorDefinitions="WIN32,_LIB,_CONSOLE,WITH_QUICKTIME,INTERNATIONAL"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -85,7 +85,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(SolutionDir)lib\windows\blender\src\debug\BL_src.lib"
+				OutputFile="$(SolutionDir)..\lib\windows\blender\src\debug\BL_src.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -123,7 +123,25 @@
 				RelativePath="$(SolutionDir)source\blender\src\booleanops_mesh.c">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\src\buttons.c">
+				RelativePath="..\..\..\..\source\blender\src\butspace.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\src\buttons_editing.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\src\buttons_logic.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\src\buttons_object.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\src\buttons_scene.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\src\buttons_script.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\src\buttons_shading.c">
 			</File>
 			<File
 				RelativePath="$(SolutionDir)source\blender\src\cmap.tga.c">
@@ -132,7 +150,22 @@
 				RelativePath="$(SolutionDir)source\blender\src\cmovie.tga.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\dna.c">
+				RelativePath="..\..\..\..\source\blender\src\cursors.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\makesdna\intern\dna.c">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="$(SolutionDir)source\blender\src\drawaction.c">
@@ -160,6 +193,9 @@
 			</File>
 			<File
 				RelativePath="$(SolutionDir)source\blender\src\drawscene.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\src\drawscript.c">
 			</File>
 			<File
 				RelativePath="$(SolutionDir)source\blender\src\drawseq.c">
@@ -231,9 +267,6 @@
 				RelativePath="$(SolutionDir)source\blender\src\editoops.c">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\src\editsca.c">
-			</File>
-			<File
 				RelativePath="$(SolutionDir)source\blender\src\editscreen.c">
 			</File>
 			<File
@@ -261,6 +294,48 @@
 				RelativePath="$(SolutionDir)source\blender\src\glutil.c">
 			</File>
 			<File
+				RelativePath="..\..\..\..\source\blender\src\header_action.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\src\header_buttonswin.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\src\header_filesel.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\src\header_image.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\src\header_imasel.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\src\header_info.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\src\header_ipo.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\src\header_nla.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\src\header_oops.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\src\header_script.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\src\header_seq.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\src\header_sound.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\src\header_text.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\src\header_view3d.c">
+			</File>
+			<File
 				RelativePath="$(SolutionDir)source\blender\src\headerbuttons.c">
 			</File>
 			<File
@@ -268,6 +343,12 @@
 			</File>
 			<File
 				RelativePath="$(SolutionDir)source\blender\src\interface.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\src\interface_draw.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\src\interface_panel.c">
 			</File>
 			<File
 				RelativePath="$(SolutionDir)source\blender\src\keyval.c">
@@ -307,6 +388,9 @@
 			</File>
 			<File
 				RelativePath="$(SolutionDir)source\blender\src\screendump.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\src\seqaudio.c">
 			</File>
 			<File
 				RelativePath="$(SolutionDir)source\blender\src\sequence.c">

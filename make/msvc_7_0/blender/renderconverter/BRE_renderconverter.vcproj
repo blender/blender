@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\bpython\include,$(SolutionDir)source\blender\misc,$(SolutionDir)source\blender\renderconverter,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\render\extern\include"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\python,$(SolutionDir)source\blender\misc,$(SolutionDir)source\blender\renderconverter,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\render\extern\include"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -68,7 +68,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\bpython\include,$(SolutionDir)source\blender\misc,$(SolutionDir)source\blender\renderconverter,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\render\extern\include"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\python,$(SolutionDir)source\blender\misc,$(SolutionDir)source\blender\renderconverter,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\render\extern\include"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"

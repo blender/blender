@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\renderui,$(SolutionDir)source\gameengine\soundsystem\,$(SolutionDir)lib\windows\python\include\python2.2\,$(SolutionDir)source\blender\renderconverter,$(SolutionDir)source\blender\verify,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\gameengine\soundsystem\snd_openal,$(SolutionDir)source\blender\imbuf,$(SolutionDir)source\blender\blenloader,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\misc,$(SolutionDir)source\blender\bpython\include,$(SolutionDir)source\blender\radiosity\extern\include,$(SolutionDir)source\blender\render\extern\include,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\gameengine\network,$(SolutionDir)lib\windows\decimation\include,$(SolutionDir)source\blender\blenpluginapi\,$(SolutionDir)intern\keymaker"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\renderui,$(SolutionDir)source\gameengine\soundsystem\,$(SolutionDir)..\lib\windows\python\include\python2.2\,$(SolutionDir)source\blender\renderconverter,$(SolutionDir)source\blender\verify,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\gameengine\soundsystem\snd_openal,$(SolutionDir)source\blender\imbuf,$(SolutionDir)source\blender\blenloader,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\misc,$(SolutionDir)source\blender\python,$(SolutionDir)source\blender\radiosity\extern\include,$(SolutionDir)source\blender\render\extern\include,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\gameengine\network,$(SolutionDir)..\lib\windows\decimation\include,$(SolutionDir)source\blender\blenpluginapi\,$(SolutionDir)intern\keymaker"
 				PreprocessorDefinitions="WIN32,_LIB,_CONSOLE,NAN_GAME,GAME"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -40,7 +40,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(SolutionDir)lib\windows\blender\src\debug\BL_src_pub.lib"
+				OutputFile="$(SolutionDir)..\lib\windows\blender\src\debug\BL_src_pub.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -68,7 +68,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\renderui,$(SolutionDir)source\gameengine\soundsystem\,$(SolutionDir)lib\windows\python\include\python2.2\,$(SolutionDir)source\blender\renderconverter,$(SolutionDir)source\blender\verify,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\gameengine\soundsystem\snd_openal,$(SolutionDir)source\blender\imbuf,$(SolutionDir)source\blender\blenloader,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\misc,$(SolutionDir)source\blender\bpython\include,$(SolutionDir)source\blender\radiosity\extern\include,$(SolutionDir)source\blender\render\extern\include,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\gameengine\network,$(SolutionDir)lib\windows\decimation\include,$(SolutionDir)source\blender\blenpluginapi\,$(SolutionDir)intern\keymaker"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\renderui,$(SolutionDir)source\gameengine\soundsystem\,$(SolutionDir)..\lib\windows\python\include\python2.2\,$(SolutionDir)source\blender\renderconverter,$(SolutionDir)source\blender\verify,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\gameengine\soundsystem\snd_openal,$(SolutionDir)source\blender\imbuf,$(SolutionDir)source\blender\blenloader,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\misc,$(SolutionDir)source\blender\python,$(SolutionDir)source\blender\radiosity\extern\include,$(SolutionDir)source\blender\render\extern\include,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\gameengine\network,$(SolutionDir)..\lib\windows\decimation\include,$(SolutionDir)source\blender\blenpluginapi\,$(SolutionDir)intern\keymaker"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,_CONSOLE,NAN_GAME,GAME"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"

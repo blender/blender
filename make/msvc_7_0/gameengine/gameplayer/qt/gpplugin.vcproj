@@ -20,7 +20,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="h:\qtwin\include,$(SolutionDir)source\gameengine\Expressions,$(SolutionDir)source\gameengine\GameLogic,$(SolutionDir)source\gameengine\Ketsji,$(SolutionDir)source\gameengine\Ketsji\KXNetwork,$(SolutionDir)source\gameengine\Network,$(SolutionDir)source\gameengine\Network\LoopBackNetwork,$(SolutionDir)source\gameengine\Rasterizer,$(SolutionDir)source\gameengine\Rasterizer\RAS_OpenGLRasterizer,$(SolutionDir)source\gameengine\SceneGraph,$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)source\sumo\include,$(SolutionDir)intern\moto\include,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)lib\windows\python\include\python1.5"
+				AdditionalIncludeDirectories="h:\qtwin\include,$(SolutionDir)source\gameengine\Expressions,$(SolutionDir)source\gameengine\GameLogic,$(SolutionDir)source\gameengine\Ketsji,$(SolutionDir)source\gameengine\Ketsji\KXNetwork,$(SolutionDir)source\gameengine\Network,$(SolutionDir)source\gameengine\Network\LoopBackNetwork,$(SolutionDir)source\gameengine\Rasterizer,$(SolutionDir)source\gameengine\Rasterizer\RAS_OpenGLRasterizer,$(SolutionDir)source\gameengine\SceneGraph,$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)source\sumo\include,$(SolutionDir)intern\moto\include,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)..\lib\windows\python\include\python1.5"
 				PreprocessorDefinitions="WIN32;PLUGIN;_DEBUG"
 				RuntimeLibrary="1"
 				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\gameplayer\qt\gpplugin\debug/gpplugin.pch"
@@ -40,7 +40,7 @@
 				OutputFile="$(SolutionDir)obj\windows\debug\npWebGP.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="$(SolutionDir)lib\windows\python\lib"
+				AdditionalLibraryDirectories="$(SolutionDir)..\lib\windows\python\lib"
 				ModuleDefinitionFile="$(SolutionDir)source\gameengine\GamePlayer\Qt\GP.def"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(SolutionDir)obj\windows\gameengine\gameplayer\qt\gpplugin\debug/npWebGP.pdb"
@@ -78,7 +78,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="h:\qtwin\include,$(SolutionDir)source\gameengine\Expressions,$(SolutionDir)source\gameengine\GameLogic,$(SolutionDir)source\gameengine\Ketsji,$(SolutionDir)source\gameengine\Ketsji\KXNetwork,$(SolutionDir)source\gameengine\Network,$(SolutionDir)source\gameengine\Network\LoopBackNetwork,$(SolutionDir)source\gameengine\Rasterizer,$(SolutionDir)source\gameengine\Rasterizer\RAS_OpenGLRasterizer,$(SolutionDir)source\gameengine\SceneGraph,$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)source\sumo\include,$(SolutionDir)intern\moto\include,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)lib\windows\python\include\python2.0"
+				AdditionalIncludeDirectories="h:\qtwin\include,$(SolutionDir)source\gameengine\Expressions,$(SolutionDir)source\gameengine\GameLogic,$(SolutionDir)source\gameengine\Ketsji,$(SolutionDir)source\gameengine\Ketsji\KXNetwork,$(SolutionDir)source\gameengine\Network,$(SolutionDir)source\gameengine\Network\LoopBackNetwork,$(SolutionDir)source\gameengine\Rasterizer,$(SolutionDir)source\gameengine\Rasterizer\RAS_OpenGLRasterizer,$(SolutionDir)source\gameengine\SceneGraph,$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)source\sumo\include,$(SolutionDir)intern\moto\include,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)..\lib\windows\python\include\python2.0"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;GPPLUGIN_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -100,7 +100,7 @@
 				OutputFile="$(SolutionDir)obj\windows\npWebGP.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="$(SolutionDir)lib\windows\python\lib\"
+				AdditionalLibraryDirectories="$(SolutionDir)..\lib\windows\python\lib\"
 				ProgramDatabaseFile="$(SolutionDir)obj\windows\gameengine\gameplayer\qt\gpplugin/npWebGP.pdb"
 				ImportLibrary="$(SolutionDir)obj\windows\gameengine\gameplayer\qt\gpplugin/npWebGP.lib"/>
 			<Tool

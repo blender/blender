@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)lib/windows/python/include/python2.0,$(SolutionDir)source/blender/encrypt,$(SolutionDir)source/blender/blenkernel,$(SolutionDir)source/blender/makesdna,$(SolutionDir)source/blender/blenlib,$(SolutionDir)source/blender/blenloader,$(SolutionDir)source/blender/render/extern/include,$(SolutionDir)source/gameengine/Rasterizer,$(SolutionDir)lib\windows\sdl\SDL-1.1.7\include,$(SolutionDir)source/gameengine/GameLogic,$(SolutionDir)source\sumo\include,$(SolutionDir)intern\moto\include,$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source/blender/imbuf,$(SolutionDir)source/gameengine/SoundSystem,$(SolutionDir)source/gameengine/SoundSystem/SND_OpenAL,$(SolutionDir)source/gameengine/Ketsji,$(SolutionDir)source/gameengine/Expressions,$(SolutionDir)source/gameengine/SceneGraph,$(SolutionDir)source/gameengine/ketsji/kxnetwork,$(SolutionDir)source/gameengine/network,$(SolutionDir)source/gameengine/network/loopbacknetwork,$(SolutionDir)source/gameengine/GamePlayer/common,$(SolutionDir)lib/windows/iksolver/include,$(SolutionDir)source/gameengine/SoundSystem/SND_Dummy"
+				AdditionalIncludeDirectories="$(SolutionDir)..\lib/windows/python/include/python2.0,$(SolutionDir)source/blender/encrypt,$(SolutionDir)source/blender/blenkernel,$(SolutionDir)source/blender/makesdna,$(SolutionDir)source/blender/blenlib,$(SolutionDir)source/blender/blenloader,$(SolutionDir)source/blender/render/extern/include,$(SolutionDir)source/gameengine/Rasterizer,$(SolutionDir)..\lib\windows\sdl\SDL-1.1.7\include,$(SolutionDir)source/gameengine/GameLogic,$(SolutionDir)source\sumo\include,$(SolutionDir)intern\moto\include,$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source/blender/imbuf,$(SolutionDir)source/gameengine/SoundSystem,$(SolutionDir)source/gameengine/SoundSystem/SND_OpenAL,$(SolutionDir)source/gameengine/Ketsji,$(SolutionDir)source/gameengine/Expressions,$(SolutionDir)source/gameengine/SceneGraph,$(SolutionDir)source/gameengine/ketsji/kxnetwork,$(SolutionDir)source/gameengine/network,$(SolutionDir)source/gameengine/network/loopbacknetwork,$(SolutionDir)source/gameengine/GamePlayer/common,$(SolutionDir)..\lib/windows/iksolver/include,$(SolutionDir)source/gameengine/SoundSystem/SND_Dummy"
 				PreprocessorDefinitions="WIN32,NDEBUG,_CONSOLE"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"
@@ -44,7 +44,7 @@
 				OutputFile="$(SolutionDir)obj\windows\BlenderLoader.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="$(SolutionDir)lib/windows/moto/lib,$(SolutionDir)lib\windows\guardedalloc\lib,$(SolutionDir)lib/windows/python/lib,$(SolutionDir)lib/windows/jpeg/lib,$(SolutionDir)lib/windows/sdl/SDL-1.1.7\Lib"
+				AdditionalLibraryDirectories="$(SolutionDir)..\lib/windows/moto/lib,$(SolutionDir)..\lib\windows\guardedalloc\lib,$(SolutionDir)..\lib/windows/python/lib,$(SolutionDir)..\lib/windows/jpeg/lib,$(SolutionDir)..\lib/windows/sdl/SDL-1.1.7\Lib"
 				ProgramDatabaseFile="$(SolutionDir)obj\windows\gameengine\gameplayer\BlenderLoader/BlenderLoader.pdb"
 				SubSystem="1"/>
 			<Tool
@@ -76,7 +76,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)lib/windows/python/include/python1.5,$(SolutionDir)source/blender/encrypt,$(SolutionDir)source/blender/blenkernel,$(SolutionDir)source/blender/makesdna,$(SolutionDir)source/blender/blenlib,$(SolutionDir)source/blender/blenloader,$(SolutionDir)source/blender/render/extern/include,$(SolutionDir)source/gameengine/Rasterizer,$(SolutionDir)lib\windows\sdl\SDL-1.1.7\include,$(SolutionDir)source/gameengine/GameLogic,$(SolutionDir)source\sumo\include,$(SolutionDir)intern\moto\include,$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)../../../../../source/blender/imbuf,$(SolutionDir)../../../../../source/gameengine/SoundSystem,source/gameengine/SoundSystem/SND_OpenAL,$(SolutionDir)source/gameengine/Ketsji,$(SolutionDir)source/gameengine/Expressions,$(SolutionDir)source/gameengine/SceneGraph,$(SolutionDir)source/gameengine/ketsji/kxnetwork,$(SolutionDir)source/gameengine/network,$(SolutionDir)source/gameengine/network/loopbacknetwork,$(SolutionDir)source/gameengine/GamePlayer/common,$(SolutionDir)lib/windows/iksolver/include"
+				AdditionalIncludeDirectories="$(SolutionDir)..\lib/windows/python/include/python1.5,$(SolutionDir)source/blender/encrypt,$(SolutionDir)source/blender/blenkernel,$(SolutionDir)source/blender/makesdna,$(SolutionDir)source/blender/blenlib,$(SolutionDir)source/blender/blenloader,$(SolutionDir)source/blender/render/extern/include,$(SolutionDir)source/gameengine/Rasterizer,$(SolutionDir)..\lib\windows\sdl\SDL-1.1.7\include,$(SolutionDir)source/gameengine/GameLogic,$(SolutionDir)source\sumo\include,$(SolutionDir)intern\moto\include,$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)../../../../../source/blender/imbuf,$(SolutionDir)../../../../../source/gameengine/SoundSystem,source/gameengine/SoundSystem/SND_OpenAL,$(SolutionDir)source/gameengine/Ketsji,$(SolutionDir)source/gameengine/Expressions,$(SolutionDir)source/gameengine/SceneGraph,$(SolutionDir)source/gameengine/ketsji/kxnetwork,$(SolutionDir)source/gameengine/network,$(SolutionDir)source/gameengine/network/loopbacknetwork,$(SolutionDir)source/gameengine/GamePlayer/common,$(SolutionDir)..\lib/windows/iksolver/include"
 				PreprocessorDefinitions="WIN32,_DEBUG,_CONSOLE"
 				StringPooling="TRUE"
 				RuntimeLibrary="5"
@@ -99,7 +99,7 @@
 				OutputFile="$(SolutionDir)obj\windows\profile\BlenderLoader.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="$(SolutionDir)lib\windows\guardedalloc\lib,$(SolutionDir)lib/windows/python/lib,$(SolutionDir)lib/windows/jpeg/lib,$(SolutionDir)lib/windows/sdl/SDL-1.1.7\Lib"
+				AdditionalLibraryDirectories="$(SolutionDir)..\lib\windows\guardedalloc\lib,$(SolutionDir)..\lib/windows/python/lib,$(SolutionDir)..\lib/windows/jpeg/lib,$(SolutionDir)..\lib/windows/sdl/SDL-1.1.7\Lib"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile=".\BlenderLoader___Win32_Profile/BlenderLoader.pdb"
 				SubSystem="1"/>
@@ -132,7 +132,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)lib/windows/python/include/python1.5,$(SolutionDir)source/blender/encrypt,$(SolutionDir)source/blender/blenkernel,$(SolutionDir)source/blender/makesdna,$(SolutionDir)source/blender/blenlib,$(SolutionDir)source/blender/blenloader,$(SolutionDir)source/blender/render/extern/include,$(SolutionDir)source/gameengine/Rasterizer,lib\windows\sdl\SDL-1.1.7\include,$(SolutionDir)source/gameengine/GameLogic,$(SolutionDir)source\sumo\include,$(SolutionDir)intern\moto\include,$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source/blender/imbuf,$(SolutionDir)source/gameengine/SoundSystem,$(SolutionDir)source/gameengine/SoundSystem/SND_OpenAL,$(SolutionDir)source/gameengine/Ketsji,$(SolutionDir)source/gameengine/Expressions,$(SolutionDir)source/gameengine/SceneGraph,$(SolutionDir)source/gameengine/ketsji/kxnetwork,$(SolutionDir)source/gameengine/network,$(SolutionDir)source/gameengine/network/loopbacknetwork,$(SolutionDir)source/gameengine/GamePlayer/common,$(SolutionDir)lib/windows/iksolver/include"
+				AdditionalIncludeDirectories="$(SolutionDir)..\lib/windows/python/include/python1.5,$(SolutionDir)source/blender/encrypt,$(SolutionDir)source/blender/blenkernel,$(SolutionDir)source/blender/makesdna,$(SolutionDir)source/blender/blenlib,$(SolutionDir)source/blender/blenloader,$(SolutionDir)source/blender/render/extern/include,$(SolutionDir)source/gameengine/Rasterizer,lib\windows\sdl\SDL-1.1.7\include,$(SolutionDir)source/gameengine/GameLogic,$(SolutionDir)source\sumo\include,$(SolutionDir)intern\moto\include,$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source/blender/imbuf,$(SolutionDir)source/gameengine/SoundSystem,$(SolutionDir)source/gameengine/SoundSystem/SND_OpenAL,$(SolutionDir)source/gameengine/Ketsji,$(SolutionDir)source/gameengine/Expressions,$(SolutionDir)source/gameengine/SceneGraph,$(SolutionDir)source/gameengine/ketsji/kxnetwork,$(SolutionDir)source/gameengine/network,$(SolutionDir)source/gameengine/network/loopbacknetwork,$(SolutionDir)source/gameengine/GamePlayer/common,$(SolutionDir)..\lib/windows/iksolver/include"
 				PreprocessorDefinitions="WIN32,_DEBUG,_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
@@ -155,7 +155,7 @@
 				OutputFile="$(SolutionDir)obj\windows\debug\BlenderLoader.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="$(SolutionDir)lib\windows\guardedalloc\lib,$(SolutionDir)lib/windows/python/lib,$(SolutionDir)lib/windows/jpeg/lib,$(SolutionDir)lib/windows/sdl/SDL-1.1.7\Lib"
+				AdditionalLibraryDirectories="$(SolutionDir)..\lib\windows\guardedalloc\lib,$(SolutionDir)..\lib/windows/python/lib,$(SolutionDir)..\lib/windows/jpeg/lib,$(SolutionDir)..\lib/windows/sdl/SDL-1.1.7\Lib"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(SolutionDir)obj\windows\gameengine\gameplayer\BlenderLoader\debug/BlenderLoader.pdb"
 				SubSystem="1"/>
@@ -219,37 +219,37 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
 		</Filter>
 		<File
-			RelativePath="$(SolutionDir)lib\windows\openal\lib\alc\ALc.obj">
+			RelativePath="$(SolutionDir)..\lib\windows\openal\lib\alc\ALc.obj">
 		</File>
 		<File
-			RelativePath="$(SolutionDir)lib\windows\openal\lib\alu\ALu.obj">
+			RelativePath="$(SolutionDir)..\lib\windows\openal\lib\alu\ALu.obj">
 		</File>
 		<File
-			RelativePath="$(SolutionDir)lib\windows\openal\lib\alut\ALut.obj">
+			RelativePath="$(SolutionDir)..\lib\windows\openal\lib\alut\ALut.obj">
 		</File>
 		<File
-			RelativePath="$(SolutionDir)lib\windows\openal\lib\OpenAL32\OpenAL32.obj">
+			RelativePath="$(SolutionDir)..\lib\windows\openal\lib\OpenAL32\OpenAL32.obj">
 		</File>
 		<File
-			RelativePath="$(SolutionDir)lib\windows\openal\lib\OpenAL32\alBuffer.obj">
+			RelativePath="$(SolutionDir)..\lib\windows\openal\lib\OpenAL32\alBuffer.obj">
 		</File>
 		<File
-			RelativePath="$(SolutionDir)lib\windows\openal\lib\OpenAL32\alEax.obj">
+			RelativePath="$(SolutionDir)..\lib\windows\openal\lib\OpenAL32\alEax.obj">
 		</File>
 		<File
-			RelativePath="$(SolutionDir)lib\windows\openal\lib\OpenAL32\alError.obj">
+			RelativePath="$(SolutionDir)..\lib\windows\openal\lib\OpenAL32\alError.obj">
 		</File>
 		<File
-			RelativePath="$(SolutionDir)lib\windows\openal\lib\OpenAL32\alExtension.obj">
+			RelativePath="$(SolutionDir)..\lib\windows\openal\lib\OpenAL32\alExtension.obj">
 		</File>
 		<File
-			RelativePath="$(SolutionDir)lib\windows\openal\lib\OpenAL32\alListener.obj">
+			RelativePath="$(SolutionDir)..\lib\windows\openal\lib\OpenAL32\alListener.obj">
 		</File>
 		<File
-			RelativePath="$(SolutionDir)lib\windows\openal\lib\OpenAL32\alSource.obj">
+			RelativePath="$(SolutionDir)..\lib\windows\openal\lib\OpenAL32\alSource.obj">
 		</File>
 		<File
-			RelativePath="$(SolutionDir)lib\windows\openal\lib\OpenAL32\alState.obj">
+			RelativePath="$(SolutionDir)..\lib\windows\openal\lib\OpenAL32\alState.obj">
 		</File>
 	</Files>
 	<Globals>

@@ -23,9 +23,7 @@
 				Name="VCMIDLTool"/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="Python freeze"
-				CommandLine="ECHO Freezing Blender Python code
-python.exe -S -O ..\..\python\freeze\freeze.py -d -D -x os -x pprint -I ../../python/modules -o ../../../source/blender/bpython/frozen ../../python/modules/VRMLmain.py"/>
+				ExcludedFromBuild="FALSE"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 		</Configuration>

@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging;$(SolutionDir)source\blender\inflate;$(SolutionDir)lib\windows\zlib\include;$(SolutionDir)source\blender\readstreamglue;$(SolutionDir)source\blender\writestreamglue"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging;$(SolutionDir)source\blender\inflate;$(SolutionDir)..\lib\windows\zlib\include;$(SolutionDir)source\blender\readstreamglue;$(SolutionDir)source\blender\writestreamglue"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -67,7 +67,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\inflate,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\writestreamglue"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\inflate,$(SolutionDir)..\lib\windows\zlib\include,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\writestreamglue"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -112,7 +112,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\inflate,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\writestreamglue"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\inflate,$(SolutionDir)..\lib\windows\zlib\include,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\writestreamglue"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -157,7 +157,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\inflate,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\writestreamglue"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\inflate,$(SolutionDir)..\lib\windows\zlib\include,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\writestreamglue"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"

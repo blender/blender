@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\kernel\gen_messaging&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\blender\blenloader&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender\misc&quot;;&quot;$(SolutionDir)source\kernel&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\radiosity\extern\include&quot;;&quot;$(SolutionDir)source\blender\render\intern\include&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\blender\bpython\include&quot;;&quot;$(SolutionDir)source\blender&quot;;&quot;$(SolutionDir)lib\windows\quicktime\include&quot;;&quot;$(SolutionDir)source\blender\quicktime&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\kernel\gen_messaging&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\blender\blenloader&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender\misc&quot;;&quot;$(SolutionDir)source\kernel&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\radiosity\extern\include&quot;;&quot;$(SolutionDir)source\blender\render\intern\include&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\blender\python&quot;;&quot;$(SolutionDir)source\blender&quot;;&quot;$(SolutionDir)..\lib\windows\quicktime\include&quot;;&quot;$(SolutionDir)source\blender\quicktime&quot;"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,WITH_QUICKTIME"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -69,7 +69,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\kernel\gen_messaging&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\blender\blenloader&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender\misc&quot;;&quot;$(SolutionDir)source\kernel&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\radiosity\extern\include&quot;;&quot;$(SolutionDir)source\blender\render\intern\include&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\blender\bpython\include&quot;;&quot;$(SolutionDir)source\blender&quot;;&quot;$(SolutionDir)lib\windows\quicktime\include&quot;;&quot;$(SolutionDir)source\blender\quicktime&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\kernel\gen_messaging&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\blender\blenloader&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender\misc&quot;;&quot;$(SolutionDir)source\kernel&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\radiosity\extern\include&quot;;&quot;$(SolutionDir)source\blender\render\intern\include&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\blender\python&quot;;&quot;$(SolutionDir)source\blender&quot;;&quot;$(SolutionDir)..\lib\windows\quicktime\include&quot;;&quot;$(SolutionDir)source\blender\quicktime&quot;"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,WITH_QUICKTIME"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -110,12 +110,6 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="$(SolutionDir)source\blender\render\intern\source\RE_DummyShadowBuffer.cpp">
-			</File>
-			<File
-				RelativePath="$(SolutionDir)source\blender\render\intern\source\RE_basicShadowBuffer.cpp">
-			</File>
-			<File
 				RelativePath="$(SolutionDir)source\blender\render\intern\source\RE_callbacks.c">
 			</File>
 			<File
@@ -146,6 +140,9 @@
 				RelativePath="$(SolutionDir)source\blender\render\intern\source\pixelshading.c">
 			</File>
 			<File
+				RelativePath="..\..\..\..\source\blender\render\intern\source\ray.c">
+			</File>
+			<File
 				RelativePath="$(SolutionDir)source\blender\render\intern\source\renderHelp.c">
 			</File>
 			<File
@@ -161,7 +158,7 @@
 				RelativePath="$(SolutionDir)source\blender\render\intern\source\shadbuf.c">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\render\intern\source\shadowBuffer.cpp">
+				RelativePath="..\..\..\..\source\blender\render\intern\source\texture.c">
 			</File>
 			<File
 				RelativePath="$(SolutionDir)source\blender\render\intern\source\vanillaRenderPipe.c">

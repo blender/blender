@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\readstreamglue\stubs,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\blenloader,$(SolutionDir)source\blender\inflate,$(SolutionDir)source\blender\decrypt,$(SolutionDir)source\blender\verify,$(SolutionDir)intern\keymaker"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\readstreamglue\stubs,$(SolutionDir)..\lib\windows\zlib\include,$(SolutionDir)source\blender\blenloader,$(SolutionDir)source\blender\inflate,$(SolutionDir)source\blender\decrypt,$(SolutionDir)source\blender\verify,$(SolutionDir)intern\keymaker"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -67,7 +67,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\readstreamglue\stubs,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\blenloader,$(SolutionDir)source\blender\inflate,$(SolutionDir)source\blender\decrypt,$(SolutionDir)source\blender\verify,$(SolutionDir)intern\keymaker"
+				AdditionalIncludeDirectories="$(SolutionDir)..\lib\windows\zlib\include,$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\readstreamglue\stubs,$(SolutionDir)..\lib\windows\zlib\include,$(SolutionDir)source\blender\blenloader,$(SolutionDir)source\blender\inflate,$(SolutionDir)source\blender\decrypt,$(SolutionDir)source\blender\verify,$(SolutionDir)intern\keymaker"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -112,7 +112,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\readstreamglue\stubs,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\blenloader,$(SolutionDir)source\blender\inflate,$(SolutionDir)source\blender\decrypt,$(SolutionDir)source\blender\verify,$(SolutionDir)intern\keymaker"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\readstreamglue\stubs,$(SolutionDir)..\lib\windows\zlib\include,$(SolutionDir)source\blender\blenloader,$(SolutionDir)source\blender\inflate,$(SolutionDir)source\blender\decrypt,$(SolutionDir)source\blender\verify,$(SolutionDir)intern\keymaker"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -157,7 +157,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging;$(SolutionDir)source\blender\readstreamglue;$(SolutionDir)source\blender\readstreamglue\stubs;$(SolutionDir)lib\windows\zlib\include;$(SolutionDir)source\blender\blenloader;$(SolutionDir)source\blender\inflate;$(SolutionDir)source\blender\decrypt;$(SolutionDir)source\blender\verify;$(SolutionDir)intern\keymaker"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging;$(SolutionDir)source\blender\readstreamglue;$(SolutionDir)source\blender\readstreamglue\stubs;$(SolutionDir)..\lib\windows\zlib\include;$(SolutionDir)source\blender\blenloader;$(SolutionDir)source\blender\inflate;$(SolutionDir)source\blender\decrypt;$(SolutionDir)source\blender\verify;$(SolutionDir)intern\keymaker"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -196,9 +196,6 @@
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
-			<File
-				RelativePath="$(SolutionDir)source\blender\readstreamglue\intern\BLO_keyStore.c">
-			</File>
 			<File
 				RelativePath="$(SolutionDir)source\blender\readstreamglue\intern\BLO_readStreamGlue.c">
 			</File>

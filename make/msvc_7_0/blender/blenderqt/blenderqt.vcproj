@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)source\blender\readstreamglue&quot;;&quot;$(SolutionDir)source\blender\imbuf\intern&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender\avi&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;;&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\quicktime&quot;;&quot;$(SolutionDir)lib\windows\quicktime\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)source\blender\readstreamglue&quot;;&quot;$(SolutionDir)source\blender\imbuf\intern&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender\avi&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;;&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\quicktime&quot;;&quot;$(SolutionDir)..\lib\windows\quicktime\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;WITH_QUICKTIME;_WIN32"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -32,7 +32,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(SolutionDir)lib\windows\blenderqt\lib\debug\blenderqt.lib"/>
+				OutputFile="$(SolutionDir)..\lib\windows\blenderqt\lib\debug\blenderqt.lib"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
@@ -57,7 +57,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)source\blender\readstreamglue&quot;;&quot;$(SolutionDir)source\blender\imbuf\intern&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender\avi&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;;&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\quicktime&quot;;&quot;$(SolutionDir)lib\windows\quicktime\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)source\blender\readstreamglue&quot;;&quot;$(SolutionDir)source\blender\imbuf\intern&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender\avi&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;;&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\quicktime&quot;;&quot;$(SolutionDir)..\lib\windows\quicktime\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_WIN32;WITH_QUICKTIME"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"
@@ -70,7 +70,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(SolutionDir)lib\windows\blenderqt\lib\blenderqt.lib"/>
+				OutputFile="$(SolutionDir)..\lib\windows\blenderqt\lib\blenderqt.lib"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool

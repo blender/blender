@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)intern\guardedalloc,$(SolutionDir)intern\bmfont,$(SolutionDir)source\blender\renderconverter,$(SolutionDir)source\blender\render\extern\include,$(SolutionDir)source\blender\avi,$(SolutionDir)source\blender\blenloader,$(SolutionDir)source\blender,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\bpython\include,$(SolutionDir)source\blender\blenlib\intern"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\lib\windows\python\include\python2.2&quot;;&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)intern\bmfont&quot;;&quot;$(SolutionDir)source\blender\renderconverter&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;;&quot;$(SolutionDir)source\blender\avi&quot;;&quot;$(SolutionDir)source\blender\blenloader&quot;;&quot;$(SolutionDir)source\blender&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\python&quot;;&quot;$(SolutionDir)source\blender\blenlib\intern&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;"
 				PreprocessorDefinitions="WIN32,_LIB,FUTURE_PYTHON_API"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -41,7 +41,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(SolutionDir)lib\windows\bpython\debug\BPY_python.lib"
+				OutputFile="$(SolutionDir)..\lib\windows\bpython\debug\BPY_python.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -68,7 +68,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)intern\bmfont,$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\renderconverter,$(SolutionDir)source\blender\render\extern\include,$(SolutionDir)source\blender\avi,$(SolutionDir)source\blender\blenloader,$(SolutionDir)source\blender,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\bpython\include,$(SolutionDir)source\blender\blenlib\intern"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\lib\windows\python\include\python2.2&quot;;&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)intern\bmfont&quot;;&quot;$(SolutionDir)source\blender\renderconverter&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;;&quot;$(SolutionDir)source\blender\avi&quot;;&quot;$(SolutionDir)source\blender\blenloader&quot;;&quot;$(SolutionDir)source\blender&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\python&quot;;&quot;$(SolutionDir)source\blender\blenlib\intern&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB,FUTURE_PYTHON_API"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -86,7 +86,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(SolutionDir)lib\windows\bpython\BPY_python.lib"
+				OutputFile="$(SolutionDir)..\lib\windows\bpython\BPY_python.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -109,122 +109,233 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_constobject.c">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Armature.c">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_image.c">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\BGL.c">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_ipo.c">
+				RelativePath="..\..\..\..\..\..\source\blender\python\BPY_interface.c">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_links.c">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\BezTriple.c">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_main.c">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Blender.c">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_object.c">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Bone.c">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_scene.c">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Build.c">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_text.c">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Camera.c">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_tools.c">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Curve.c">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\b_import.c">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Draw.c">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\b_interface.c">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\EXPP_interface.c">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\opy_blender.c">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Effect.c">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\opy_datablock.c">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Image.c">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\opy_draw.c">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Ipo.c">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\opy_matrix.c">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Ipocurve.c">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\opy_nmesh.c">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Lamp.c">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\opy_vector.c">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Lattice.c">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\opy_window.c">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\MTex.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Material.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Metaball.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\NMesh.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Object.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Particle.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Registry.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Scene.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Sys.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Text.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Texture.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Types.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Wave.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Window.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\World.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\constant.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\gen_utils.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\matrix.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\rgbTuple.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\vector.c">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_constobject.h">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Armature.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\include\BPY_extern.h">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\BGL.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_listbase_macro.h">
+				RelativePath="..\..\..\..\..\..\source\blender\python\BPY_extern.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_macros.h">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\BezTriple.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_main.h">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Blender.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_modules.h">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Bone.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\include\BPY_objtypes.h">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Build.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_tools.h">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Camera.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_types.h">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Curve.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_window.h">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Draw.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\api.h">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\EXPP_interface.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\b_import.h">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Effect.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\b_interface.h">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Image.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\opy_datablock.h">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Ipo.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\opy_nmesh.h">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Ipocurve.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\opy_vector.h">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Lamp.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\py_general.h">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Lattice.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\py_gui.h">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\MTex.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\py_object_types.h">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Material.h">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\bpython\intern\py_objects.h">
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Metaball.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\NMesh.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Object.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Particle.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Registry.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Scene.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Sys.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Text.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Texture.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Types.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Wave.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Window.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\World.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\bpy_types.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\constant.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\gen_utils.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\modules.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\rgbTuple.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\vector.h">
 			</File>
 		</Filter>
 	</Files>

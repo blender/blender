@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\glut-3.7\include,$(SolutionDir)source\blender\glut-win,$(SolutionDir)source\blender\"
+				AdditionalIncludeDirectories="$(SolutionDir)..\lib\windows\glut-3.7\include,$(SolutionDir)source\blender\glut-win,$(SolutionDir)source\blender\"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="5"
@@ -69,7 +69,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\glut-3.7\include,$(SolutionDir)source\blender\glut-win,$(SolutionDir)source\blender\"
+				AdditionalIncludeDirectories="$(SolutionDir)..\lib\windows\glut-3.7\include,$(SolutionDir)source\blender\glut-win,$(SolutionDir)source\blender\"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
@@ -116,7 +116,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)source\blender\,$(SolutionDir)lib\windows\glut-3.7\include,$(SolutionDir)source\blender\glut-win"
+				AdditionalIncludeDirectories="$(SolutionDir)source\blender\,$(SolutionDir)..\lib\windows\glut-3.7\include,$(SolutionDir)source\blender\glut-win"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"

@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\avi&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)lib\windows\jpeg\include&quot;;&quot;$(SolutionDir)lib\windows\zlib\include&quot;;&quot;$(SolutionDir)lib\windows\png\include&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)lib\windows\quicktime\include&quot;;&quot;$(SolutionDir)source\blender\quicktime&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\avi&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)..\lib\windows\jpeg\include&quot;;&quot;$(SolutionDir)..\lib\windows\zlib\include&quot;;&quot;$(SolutionDir)..\lib\windows\png\include&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)..\lib\windows\quicktime\include&quot;;&quot;$(SolutionDir)source\blender\quicktime&quot;"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,WITH_QUICKTIME"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -67,7 +67,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\avi,$(SolutionDir)source\blender\imbuf,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\include,$(SolutionDir)lib\windows\jpeg\include,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)lib\windows\png\include,$(SolutionDir)source\blender\makesdna"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\avi,$(SolutionDir)source\blender\imbuf,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\include,$(SolutionDir)..\lib\windows\jpeg\include,$(SolutionDir)..\lib\windows\zlib\include,$(SolutionDir)..\lib\windows\png\include,$(SolutionDir)source\blender\makesdna"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -111,7 +111,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\avi,$(SolutionDir)source\blender\imbuf,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\include,$(SolutionDir)lib\windows\jpeg\include,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)lib\windows\png\include,$(SolutionDir)source\blender\makesdna"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\avi,$(SolutionDir)source\blender\imbuf,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\include,$(SolutionDir)..\lib\windows\jpeg\include,$(SolutionDir)..\lib\windows\zlib\include,$(SolutionDir)..\lib\windows\png\include,$(SolutionDir)source\blender\makesdna"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -156,7 +156,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\avi&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)lib\windows\jpeg\include&quot;;&quot;$(SolutionDir)lib\windows\zlib\include&quot;;&quot;$(SolutionDir)lib\windows\png\include&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)lib\windows\quicktime\include&quot;;&quot;$(SolutionDir)source\blender\quicktime&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\avi&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)..\lib\windows\jpeg\include&quot;;&quot;$(SolutionDir)..\lib\windows\zlib\include&quot;;&quot;$(SolutionDir)..\lib\windows\png\include&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)..\lib\windows\quicktime\include&quot;;&quot;$(SolutionDir)source\blender\quicktime&quot;"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,WITH_QUICKTIME"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -196,6 +196,9 @@
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+			<File
+				RelativePath="..\..\..\..\source\blender\imbuf\intern\IMB_anim.h">
+			</File>
 			<File
 				RelativePath="$(SolutionDir)source\blender\imbuf\intern\allocimbuf.c">
 			</File>
@@ -254,10 +257,7 @@
 				RelativePath="$(SolutionDir)source\blender\imbuf\intern\jpeg.c">
 			</File>
 			<File
-				RelativePath="$(SolutionDir)source\blender\imbuf\intern\png_decode.c">
-			</File>
-			<File
-				RelativePath="$(SolutionDir)source\blender\imbuf\intern\png_encode.c">
+				RelativePath="..\..\..\..\source\blender\imbuf\intern\png.c">
 			</File>
 			<File
 				RelativePath="$(SolutionDir)source\blender\imbuf\intern\readimage.c">

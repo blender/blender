@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)source\gameengine\ketsji,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\gameengine\GameLogic,$(SolutionDir)source\gameengine\expressions,$(SolutionDir)source\gameengine\Network"
+				AdditionalIncludeDirectories="$(SolutionDir)..\lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)source\gameengine\ketsji,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\gameengine\GameLogic,$(SolutionDir)source\gameengine\expressions,$(SolutionDir)source\gameengine\Network"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -67,7 +67,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)source\gameengine\ketsji,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\gameengine\GameLogic,$(SolutionDir)source\gameengine\expressions,$(SolutionDir)source\gameengine\Network"
+				AdditionalIncludeDirectories="$(SolutionDir)..\lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)source\gameengine\ketsji,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\gameengine\GameLogic,$(SolutionDir)source\gameengine\expressions,$(SolutionDir)source\gameengine\Network"
 				PreprocessorDefinitions="WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -114,7 +114,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\python\include\python2.0,$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)source\gameengine\ketsji,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\gameengine\GameLogic,$(SolutionDir)source\gameengine\expressions,$(SolutionDir)source\gameengine\Network"
+				AdditionalIncludeDirectories="$(SolutionDir)..\lib\windows\python\include\python2.0,$(SolutionDir)..\lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)source\gameengine\ketsji,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\gameengine\GameLogic,$(SolutionDir)source\gameengine\expressions,$(SolutionDir)source\gameengine\Network"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -159,7 +159,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)source\gameengine\ketsji,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\gameengine\GameLogic,$(SolutionDir)source\gameengine\expressions,$(SolutionDir)source\gameengine\Network"
+				AdditionalIncludeDirectories="$(SolutionDir)..\lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)source\gameengine\ketsji,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\gameengine\GameLogic,$(SolutionDir)source\gameengine\expressions,$(SolutionDir)source\gameengine\Network"
 				PreprocessorDefinitions="WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"

@@ -44,7 +44,7 @@
 				OutputFile="$(SolutionDir)source\blender\makesdna\intern/DNA_makesdna.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="$(SolutionDir)lib\windows\guardedalloc\lib"
+				AdditionalLibraryDirectories="$(SolutionDir)..\lib\windows\guardedalloc\lib"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="DNA_makesdna.pdb"
 				SubSystem="1"/>
@@ -164,7 +164,7 @@ DNA_makesdna.exe dna.c
 				OutputFile="$(SolutionDir)source\blender\makesdna\intern/DNA_makesdna.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="$(SolutionDir)lib\windows\guardedalloc\lib,$(SolutionDir)obj\windows\blender\blenlib"
+				AdditionalLibraryDirectories="$(SolutionDir)..\lib\windows\guardedalloc\lib,$(SolutionDir)obj\windows\blender\blenlib"
 				ProgramDatabaseFile="DNA_makesdna.pdb"
 				SubSystem="1"/>
 			<Tool
@@ -222,7 +222,7 @@ DNA_makesdna.exe dna.c
 				OutputFile="$(SolutionDir)source\blender\makesdna\intern/DNA_makesdna.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="$(SolutionDir)lib\windows\guardedalloc\lib,$(SolutionDir)obj\windows\blender\blenlib\debug"
+				AdditionalLibraryDirectories="$(SolutionDir)..\lib\windows\guardedalloc\lib,$(SolutionDir)obj\windows\blender\blenlib\debug"
 				IgnoreDefaultLibraryNames="libc.lib"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="DNA_makesdna.pdb"
