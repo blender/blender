@@ -463,13 +463,11 @@ void make_orco_displist_mesh(Object *ob, int subdivlvl)
 	
 	me->orco= MEM_mallocN(dlm->totvert*3*sizeof(float), "mesh displist orco");
 		
-	for (i=0; i<dlm->totvert; i++) {
-		float *fp= &me->orco[i*3];
-		VECCOPY(fp, dlm->mvert[i].co);
-	}
-		
 	for(i=0; i<dlm->totvert; i++) {
 		float *fp= &me->orco[i*3];
+
+		VECCOPY(fp, dlm->mvert[i].co);
+
 		fp[0]= (fp[0]-me->loc[0])/me->size[0];
 		fp[1]= (fp[1]-me->loc[1])/me->size[1];
 		fp[2]= (fp[2]-me->loc[2])/me->size[2];

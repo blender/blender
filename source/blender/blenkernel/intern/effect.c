@@ -435,7 +435,7 @@ void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *
 void init_mv_jit(float *jit, int num)
 {
 	float *jit2, x, rad1, rad2, rad3;
-	int i;
+	int i, num2;
 
 	if(num==0) return;
 
@@ -445,7 +445,8 @@ void init_mv_jit(float *jit, int num)
 
 	BLI_srand(31415926 + num);
 	x= 0;
-	for(i=0; i<2*num; i+=2) {
+        num2 = 2 * num;
+	for(i=0; i<num2; i+=2) {
 	
 		jit[i]= x+ (float)(rad1*(0.5-BLI_drand()));
 		jit[i+1]= ((float)i/2)/num +(float)(rad1*(0.5-BLI_drand()));

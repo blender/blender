@@ -280,7 +280,7 @@ void calc_latt_deform(float *co)
 	Lattice *lt;
 	float fu, du, u, v, w, tu[4], tv[4], tw[4];
 	float *fpw, *fpv, *fpu, vec[3];
-	int ui, vi, wi, uu, vv, ww;
+	int ui, vi, wi, uu, vv, ww, end, end2;
 	
 	if(latticedata==0) return;
 	
@@ -329,7 +329,8 @@ void calc_latt_deform(float *co)
 		wi= 0;
 	}
 	
-	for(ww= wi-1; ww<=wi+2; ww++) {
+        end = wi+2;
+	for(ww= wi-1; ww<=end; ww++) {
 		w= tw[ww-wi+1];
 		
 		if(w!=0.0) {
@@ -339,7 +340,8 @@ void calc_latt_deform(float *co)
 			}
 			else fpw= latticedata;
 			
-			for(vv= vi-1; vv<=vi+2; vv++) {
+                        end2 = vi+2;
+			for(vv= vi-1; vv<=end; vv++) {
 				v= w*tv[vv-vi+1];
 				
 				if(v!=0.0) {

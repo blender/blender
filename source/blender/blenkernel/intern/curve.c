@@ -86,27 +86,30 @@ int cu_isectLL(float *v1, float *v2, float *v3, float *v4,
 old[] and new[] can be the same ! */
 int copyintoExtendedArray(float *old, int oldx, int oldy, float *new, int newx, int newy)
 {
-	int x, y;
+	int x, y, ttt, ooo;
 	float *oldp, *newp;
+        
 	if (newx < oldx || newy < oldy) return 0;
 	
 		
 	for (y = newy - 1; y >= oldy; y--) {	
+                ttt = y * newx;
 		for (x = newx - 1; x >= 0; x--) {
-			newp = new + 3 * (y * newx + x);
+			newp = new + 3 * (ttt + x);
 			newp[0] = 0.0; newp[1] = 0.0; newp[2] = 0.0;
 		}
 	}	
 
 	for (; y >= 0; y--) {
-		
+		ttt = y * newx;
+                ooo = y * oldx;
 		for (x = newx - 1; x >= oldx; x--) {	
-			newp = new + 3 * (y * newx + x);
+			newp = new + 3 * (ttt + x);
 			newp[0] = 0.0; newp[1] = 0.0; newp[2] = 0.0;
 		}
 		for (; x  >= 0; x--) {
-			oldp = old + 3 * (y * oldx + x);
-			newp = new + 3 * (y * newx + x);
+			oldp = old + 3 * (ooo + x);
+			newp = new + 3 * (ttt + x);
 			VECCOPY(newp, oldp);
 		}
 	}
@@ -525,10 +528,12 @@ void extend_spline(float * pnts, int in, int out)
 {
 	float *_pnts;
 	double * add;
-	int i, j, k;
+	int i, j, k, in2;
 
 	_pnts = pnts;
 	add = (double*)MEM_mallocN((in)* sizeof(double), "extend_spline");
+
+        in2 = in -1;
 
 	for (k = 3; k > 0; k--){
 		pnts = _pnts;
@@ -540,8 +545,8 @@ void extend_spline(float * pnts, int in, int out)
 		}
 
 		/* inverse forward differencen */
-		for (i = 0; i < in - 1; i++){
-			for (j = in - 1; j > i; j--){
+		for (i = 0; i < in2; i++){
+			for (j = in2; j > i; j--){
 				add[j] -= add[j - 1];
 			}
 		}
@@ -550,7 +555,7 @@ void extend_spline(float * pnts, int in, int out)
 		for (i = out; i > 0; i--){
 			*pnts = (float)(add[0]);
 			pnts += 3;
-			for (j = 0; j < in - 1; j++){
+			for (j = 0; j < in2; j++){
 				add[j] += add[j+1];
 			}
 		}
@@ -567,16 +572,18 @@ void calcknots(float *knots, short aantal, short order, short type)
 /* aantal, order, type;	 0: uniform, 1: endpoints, 2: bezier */
 {
 	float k;
-	int a;
+	int a, t;
 
+        t = aantal+order;
 	if(type==0) {
-		for(a=0;a<aantal+order;a++) {
+
+		for(a=0;a<t;a++) {
 			knots[a]= (float)a;
 		}
 	}
 	else if(type==1) {
 		k= 0.0;
-		for(a=1;a<=aantal+order;a++) {
+		for(a=1;a<=t;a++) {
 			knots[a-1]= k;
 			if(a>=order && a<=aantal) k+= 1.0;
 		}
@@ -584,14 +591,14 @@ void calcknots(float *knots, short aantal, short order, short type)
 	else if(type==2) {
 		if(order==4) {
 			k= 0.34;
-			for(a=0;a<aantal+order;a++) {
+			for(a=0;a<t;a++) {
 				knots[a]= (float)floor(k);
 				k+= (1.0/3.0);
 			}
 		}
 		else if(order==3) {
 			k= 0.6;
-			for(a=0;a<aantal+order;a++) {
+			for(a=0;a<t;a++) {
 				if(a>=order && a<=aantal) k+= (0.5);
 				knots[a]= (float)floor(k);
 			}
@@ -602,21 +609,23 @@ void calcknots(float *knots, short aantal, short order, short type)
 void makecyclicknots(float *knots, short pnts, short order)
 /* pnts, order: aantal pnts NIET gecorrigeerd voor cyclic */
 {
-	int a, b;
+	int a, b, order2, c;
 
 	if(knots==0) return;
+        order2=order-1;
 
 	/* eerst lange rijen (order -1) dezelfde knots aan uiteinde verwijderen */
 	if(order>2) {
-		b= pnts+order-1;
-		for(a=1; a<order-1; a++) {
+		b= pnts+order2;
+		for(a=1; a<order2; a++) {
 			if(knots[b]!= knots[b-a]) break;
 		}
-		if(a==order-1) knots[pnts+order-2]+= 1.0;
+		if(a==order2) knots[pnts+order-2]+= 1.0;
 	}
 
 	b= order;
-	for(a=pnts+order-1; a<pnts+order+order-1; a++) {
+        c=pnts + order + order2;
+	for(a=pnts+order2; a<c; a++) {
 		knots[a]= knots[a-1]+ (knots[b]-knots[b-1]);
 		b--;
 	}
@@ -650,23 +659,25 @@ void makeknots(Nurb *nu, short uv, short type)	/* 0: uniform, 1: endpoints, 2: b
 void basisNurb(float t, short order, short pnts, float *knots, float *basis, int *start, int *end)
 {
 	float d, e;
-	int i, i1 = 0, i2 = 0 ,j, orderpluspnts;
+	int i, i1 = 0, i2 = 0 ,j, orderpluspnts, opp2, o2;
 
 	orderpluspnts= order+pnts;
+        opp2 = orderpluspnts-1;
 
 	/* this is for float inaccuracy */
 	if(t < knots[0]) t= knots[0];
-	else if(t > knots[orderpluspnts-1]) t= knots[orderpluspnts-1];
+	else if(t > knots[opp2]) t= knots[opp2];
 
 	/* dit stuk is order '1' */
-	for(i=0;i<orderpluspnts-1;i++) {
+        o2 = order + 1;
+	for(i=0;i<opp2;i++) {
 		if(knots[i]!=knots[i+1] && t>= knots[i] && t<=knots[i+1]) {
 			basis[i]= 1.0;
-			i1= i-order+1;
+			i1= i-o2;
 			if(i1<0) i1= 0;
 			i2= i;
 			i++;
-			while(i<orderpluspnts-1) {
+			while(i<opp2) {
 				basis[i]= 0.0;
 				i++;
 			}
@@ -681,7 +692,7 @@ void basisNurb(float t, short order, short pnts, float *knots, float *basis, int
 	/* dit is order 2,3,... */
 	for(j=2; j<=order; j++) {
 
-		if(i2+j>= orderpluspnts) i2= orderpluspnts-j-1;
+		if(i2+j>= orderpluspnts) i2= opp2-j;
 
 		for(i= i1; i<=i2; i++) {
 			if(basis[i]!=0.0)

@@ -70,7 +70,7 @@ void free_path(Path *path)
 void calc_curvepath(Object *ob)
 {
 	BevList *bl;
-	BevPoint *bevp, *bevpn, *bevpfirst, *bevplast;
+	BevPoint *bevp, *bevpn, *bevpfirst, *bevplast, *tempbevp;
 	Curve *cu;
 	Nurb *nu;
 	Path *path;
@@ -125,9 +125,10 @@ void calc_curvepath(Object *ob)
 			z= bevpfirst->z - bevp->z;
 		}
 		else {
-			x= (bevp+1)->x - bevp->x;
-			y= (bevp+1)->y - bevp->y;
-			z= (bevp+1)->z - bevp->z;
+                        tempbevp = bevp+1;
+			x= (tempbevp)->x - bevp->x;
+			y= (tempbevp)->y - bevp->y;
+			z= (tempbevp)->z - bevp->z;
 		}
 		*fp= *(fp-1)+ (float)sqrt(x*x+y*y+z*z);
 		
@@ -146,10 +147,11 @@ void calc_curvepath(Object *ob)
 	fp= dist+1;
 	maxdist= dist+tot;
 	fac= 1.0f/((float)path->len-1.0f);
+        fac = fac * path->totdist;
 
 	for(a=0; a<path->len; a++) {
 		
-		d= ((float)a)*fac*path->totdist;
+		d= ((float)a)*fac;
 		
 		/* we zoeken plek 'd' in het array */
 		while((d>= *fp) && fp<maxdist) {

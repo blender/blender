@@ -891,7 +891,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 	struct IvNode *iv, *ivp, *ivn;
 	char *maindata, *md, *cpa;
 	float *index, *data, *fp;
-	int file, filelen, count, face, nr = 0;
+	int file, filelen, count, lll, face, nr = 0;
 	int skipdata, ok, a, b, tot, first, colnr, coordtype, polytype, *idata;
 	struct DispList *dl;
 	
@@ -1106,7 +1106,8 @@ static void read_inventor(char *str, struct ListBase *listb)
 				/* tel het aantal lijnen */
 				tot= 0;
 				index= iv->data[0];
-				for(a=0; a<iv->datalen[0]-1; a++) {
+                                lll = iv->datalen[0]-1;
+				for(a=0; a<lll; a++) {
 					if(index[0]!= -1 && index[1]!= -1) tot++;
 					index++;
 				}
@@ -1121,7 +1122,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 				data= (float *)(dl+1);
 				
 				index= iv->data[0];
-				for(a=0; a<iv->datalen[0]-1; a++) {
+				for(a=0; a<lll; a++) {
 					if(index[0]!= -1 && index[1]!= -1) {
 						read_iv_index(data, ivp->data[0], index, 2, coordtype);
 						data+= 6;
@@ -1252,7 +1253,8 @@ static void read_inventor(char *str, struct ListBase *listb)
 					}
 						
 					/* indices */
-					for(b=0; b<index[0]-2; b++) {
+                                        lll = index[0] - 2;
+					for(b=0; b<lll; b++) {
 						idata[0]= first;
 						idata[1]= first+1;
 						idata[2]= first+2;
@@ -1287,7 +1289,8 @@ static void read_inventor(char *str, struct ListBase *listb)
 				/* tel het aantal driehoeken */
 				face= 0;
 				index= iv->data[0];
-				for(a=0; a<iv->datalen[0]-2; a++) {
+                                lll = iv->datalen[0]-2;
+				for(a=0; lll; a++) {
 					if(index[0]!= -1 && index[1]!= -1 && index[2]!= -1) face++;
 					index++;
 				}
@@ -1319,8 +1322,8 @@ static void read_inventor(char *str, struct ListBase *listb)
 					index= iv->data[0];
 					idata= dl->index;
 					first= 1;
-					
-					for(a=0; a<iv->datalen[0]-2; a++) {
+					lll=iv->datalen[0]-2;
+					for(a=0; a<lll; a++) {
 						
 						if(index[0]!= -1 && index[1]!= -1 && index[2]!= -1) {
 	
@@ -1364,7 +1367,8 @@ static void read_inventor(char *str, struct ListBase *listb)
 				/* tel het aantal driehoeken */
 				face= 0;
 				index= iv->data[0];
-				for(a=0; a<iv->datalen[0]-2; a++) {
+                                lll=iv->datalen[0]-2;
+				for(a=0; a<lll; a++) {
 					if(index[0]!= -1 && index[1]!= -1 && index[2]!= -1) face++;
 					index++;
 				}
@@ -1395,7 +1399,8 @@ static void read_inventor(char *str, struct ListBase *listb)
 				index= iv->data[0];
 				idata= dl->index;
 				
-				for(a=iv->datalen[0]-2; a>0; a--) {
+                                lll=iv->datalen[0]-2;
+				for(a=lll; a>0; a--) {
 				
 					if(index[0]!= -1 && index[1]!= -1 && index[2]!= -1) {
 						idata[0]= (int) index[0];
