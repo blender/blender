@@ -1,307 +1,45 @@
 Welcome to the fun world of open-source.
 
-This file is to help you get started using the source and will hopefully
-answer most questions.  If you do have any problems with these instructions,
-post a message to the Forums on www.blender.org, or visit us at #blendersauce
-on irc.freenode.net
-
-Here are some links to external packages you may or may not need:
-
-python:      http://www.python.org
-mxtexttools: http://www.egenix.com/files/python/mxTextTools.html (python lib)
-libjpeg:     http://www.ijg.org/
-libpng:      http://www.libpng.org/pub/png/
-zlib:        http://www.gzip.org/zlib/
-ode:         http://opende.sourceforge.net/
-openal:      http://www.openal.org/home/		(for linux/windows)
-    sdl:     http://www.libsdl.org/index.php (for openal)
-    smpeg:   http://www.lokigames.com/development/smpeg.php3 (for openal)
-fmod: http://www.fmod.org/
-
-mozilla: http://www.mozilla.org/
-nspr:  ftp://ftp.mozilla.org/pub/nspr/releases
-	(side note: on debian linux you will need mozilla-dev and libnspr-dev)
-
-glut:    http://www.opengl.org/developers/documentation/glut.html
-
-If you do not have GL you will also need mesa:
-mesa:    http://www.mesa3d.org
-
-For the translations to other languages than English you will need gettext,
-freetype2 and FTGL. Note that these translations are not complete yet, some
-time after the release of 2.27 they will be made available for download also.
-We welcome feedback about the translated user interface, and even contributions
-to the translation effort :)
-
-gettext:     http://www.gnu.org/software/gettext/
-freetype2:   http://www.freetype.org/
-FTGL:        http://homepages.paradise.net.nz/henryj/code/#FTGL
-
-FTGL needs a small patch to get glyphs with the right colour in the cache
---- FTGL/src/FTPixmapGlyph.cpp.orig	2003-05-10 16:07:45.000000000 +0200
-+++ FTGL/src/FTPixmapGlyph.cpp	2003-05-10 16:09:19.000000000 +0200
-@@ -33,3 +33,3 @@
-         // Get the current glColor.
-         float ftglColour[4];
--        glGetFloatv( GL_CURRENT_COLOR, ftglColour);
-+        ftglColour[0] = ftglColour[1] = ftglColour[2] = ftglColour[3] = 1.0;
+For instructions on building and installing Blender, please see the file named
+INSTALL.
 
 
-You may also need to modify the typedef for GLUTesselatorFunction in 
-src/FTVectoriser.cpp if your on an undefined system.  To do that
-check the following link to find out various platform identifiers.
-http://www.blender.org/modules/documentation/intranet/conventions/codingstyleguide.html#3_2
+---------------------.Blanguages and the .blender directory---------------------
 
-*********************************************************************
-*********************************************************************
-We are in the process of moving things over to automake/autoconf
-The old makefiles are still in place and will work.  
-If you want to get a working blender skip down to the next section 
-and use this readme as a guide.
+The .blender directory holds various data files for Blender.
+In the 2.28a release those are the .Blanguages file containing a list of
+translations, the translations themselves and a default ttf font.
 
-If you want to play with the new autoconf environment take a look at 
-doc/autoconfig.txt
+Blender checks for the presence of this directory in several locations:
+	- the current directory
+	- your home directory
+	- On OSX, the blender bundle is also checked 
+	- On Windows, the installation dir is checked.
 
-*********************************************************************
-*********************************************************************
-
---Notes on compiling mxTextTools----------------------------------------------
-To get the latest version to compile on my machine I had to
-edit mxSetup.py and remove /usr/include from INCLPATH for it to build
-properly.
-(after doing this you need to edit blender/source/Makefile and
-fix the pointer to it I'm still working on automating this)
-
---------------Basic Makefile TIPS---------------------------------------
-Edit source/nan_definitions.mk to fit your environment, be sure to edit the
-block matching your OS. You will want to change variables like 
-NAN_JPEG, NAN_PNG etc. to point to where you have those installed.
-
-If you want to integrate the game-engine in Blender, you might want
-to uncomment the following line in nan_compile.mk:
-#CFLAGS += -DGAMEBLENDER=1
-The define is disabled by default because there are still some
-problems with this at the moment.
-
-After adjusting things for your environment run 'make' (or use the nice hmake
-script at blender/source/tools/hmake/hmake)
-
-----------------------WINDOWS TIPS--------------------------------------
-
-When building Blender on Windows you have three choices:
-METHOD 1. Build using the old NaN Makefiles.
-METHOD 2. Build using the new automake/autoconf files
-METHOD 3. Use Microsoft Visual Studio project files
-
-These directions are for method 3. Method 1 was used in Nan in combination 
-with Cygwin. I don't know if somebody ever tried method 2.
-
-If you are using Method 1 and or 2 with cygwin you need to set FREE_WINDOWS 
-to true you can do this with: export FREE_WINDOWS=true
-
-EXTERNAL LIBARIES
-All external libraries that Blender depends on are found in CVS in 
-precompiled form. If you did not already do so, check out 
-blender/lib/windows from CVS. If you prefer to build or download those 
-libraries yourself, there are some directions below.
-
-INTERN LIBRARIES:
-The first thing you need to do is to build the Blender "intern" libraries.
-You need to have Python installed on your machine.
-
-Open the workspace in the $NANBLENDERHOME/intern/make/msvc_6_0 directory.
-Build the "build_install_all" project. This will build all the intern libraries
-and installs them in the $NANBLENDERHOME/lib/windows directory.
-
-If the post build step (copying the libraries to their destinations) fails,
-this is probably due to the fact that MSVC can't find the XCOPY command as 
-happened to me on an XP system. MSVC has it's own PATH that you can set through
-the options. Open options from the menu: Tools->Options. Go to the directories
-tab and select "Executable files" from the drop down menu. Now add you SYSTEM32
-directory.
-
-The last project build is the python_freeze project that will freeze python code
-for compilation and linking with Blender's C code. At the moment, this should be
-automatic except that batch file probably does not find Python. If this is the
-case, follow the same procedure as was mentioned above for the XCOPY command
-to add Python to your path.
-
-BUILDING BLENDER
-
-Open the workspace $NANBLENDERHOME/projectfiles/blender/blender.dsw
-
-This contains the following three main projects:
-blender           Builds the main executable
-GP_ghost          Builds the stand-alone game player
-GP_axctl          Builds the ActiveX control
-
-Choose the project you want to build and hit F7. If all is well it should build
-with a lot of warnings but no errors.
-
-BUILDING/DOWNLOADING EXTERNAL LIBRARIES
-If you don't want to use the precompiled libraries you can download and/or
-build them yourself. Here are some directions.
-
-JPEG:
-BINARY LIBRARY:
-Go to sourceforge.net, navigate to the GnuWin32 project and download 
-libjpeg-6b-lib.zip. Rename the unzipped directory "jpeg" and copy it to the 
-$NANBLENDERHOME/lib/windows directory.
-FROM SOURCES:
-Download the jpeg sources from http://www.ijg.org/. Go into the source 
-directory and copy the file jconfig.vc to jconfig.h. Now start a command box
-and run nmake /f makefile.vc (assuming nmake is in your path, if not run the
-vcvars32.bat batch file located in the VC98/Bin directory of the MSVC 
-installation directory first).
-Copy these include files: jconfig.h, jerror.h, jmorecfg.h, jpeglib.h
-from the build directory to the lib tree in this directory:
-$NANBLENDERHOME/lib/windows/jpeg/include
-The file libjpeg.lib should be copied to:
-$NANBLENDERHOME/lib/windows/jpeg/lib
-
-PNG:
-Go to sourceforge.net, navigate to the GnuWin32 project and download 
-libpng-1.2.4-1-lib.zip. Rename the unzipped directory "png" and copy it to the 
-$NANBLENDERHOME/lib/windows directory.
-
-ZLIB:
-Go to sourceforge.net, navigate to the GnuWin32 project and download 
-zlib-1.1.4-lib.zip. Rename the unzipped directory "zlib" and copy it to the 
-$NANBLENDERHOME/lib/windows directory.
+If you get a 'File ".Blanguages" not found' warning, try to copy the .blender
+dir to one of these locations (your home directory being recommended).
 
 
-----------------------Mac OSX TIPS--------------------------------------
-When building Blender on OSX you have three choices:
-METHOD 1. Build using the old NaN Makefiles.
-METHOD 2. Build using the new automake/autoconf files
-METHOD 3. Use the Project Builder project
 
-METHOD 1 and 3
-The first 4 steps are th same for methods 1 and 3. Only the actual Blender 
-build step number 5 is different.
+-------------------------------------Links--------------------------------------
 
-Step1:
-If you want to follow method 1 and 3, follow the instructions above to set the
-environment variables. You don't need to edit the Makefiles. They should work
-out of the box in combinations with some external libraries that should be on
-your system in a fixed location. 
+Getting Involved:
+http://www.blender.org/docs/get_involved.html
 
-Step 2:
-You can use the package installer fink (http://fink.sourceforge.net/) for some
-of the external libraries:
-1. jpeg    (fink install libjpeg)
-2. png     (fink install libpng3)
-3. cvs	   (fixes some bugs in the shipped cvs: fink install cvs)
-4. python22 ((addes the static lib for python) fink install python22)
-	You will probably want to select python-nox when
-	it asks you.
-5. freetype (fink install freetype2)
+Community:
+http://www.blender3d.org/Community/
 
-After you have done this you should install the mx lib from:
-http://www.egenix.com/files/python/mxTextTools.html
+Main blender development site:
+http://www.blender.org/
 
-(we are currently in the process removing mxTextTools from Blender)
+The Blender project homepage:
+http://projects.blender.org/projects/bf-blender/
 
-Step 3:
-The rest of the external libraries are present in CVS in binary format so you
-don't have to download them. Precompiled libraries are found in CVS in 
-directory:
-$NANBLENDERHOME/lib/darwin-6.1-powerpc
-If you are not running on a darwing kernel 6.1 (which is likely if you auto-
-update your system, you might want to add a symbolic link in the 
-$NANBLENDERHOME/lib/ directory. For example, if you work on a 6.2 kernel:
-ln -s darwin-6.1-powerpc darwin-6.2-powerpc
+Documentation:
+http://www.blender.org/modules.php?op=modload&name=documentation&file=index
 
-Step 4: 
-Start the build process by building Blender's "intern" libraries. Navigate to 
-$NANBLENDERHOME/intern and type make. This will build the intern libaries which
-will be installed into the $NANBLENDERHOME/lib/darwin-6.1-powerpc (thanks to 
-the symbolic link).
-Now you can choose how to build Blender itself; using the Makefiles or the 
-Project Builder project.
+Bug tracker:
+http://projects.blender.org/tracker/?atid=125&group_id=9&func=browse
 
-Step 5 METHOD 1:
-Navigate to $NANBLENDERHOME/source and type make. 
-
-Step 5 METHOD 3:
-The project Builder project can be found in the directory:
-$NANBLENDERHOME/projectfiles/pb_2_0_1
-Start Project Builder open the blender.pbproj project, choose a target (blender
-or player) and build.
-
-Step 6:
-Although the Makefiles in the intern directory run ranlib on the libraries 
-built, the gcc linker complains about ranlib not being run. Until there is a
-solution, you will need to run ranlib by hand once in a while when the make 
-breaks. Luckily, the error message lists the full path of the file to run 
-ranlib on... Anybody out there with a real solution? I guess the problem arises
-from copying the files from one location to the other...
-
-
-BUILDING EXTERNAL LIBRARIES
-If you don't want to use the precompiled libraries you can download and/or
-build them yourself. Here are some directions.
-
-PYTHON:
-Mac OSX 10.2 (Jaguar) now comes with Python (2.2.1) pre-installed. This is fine
-for producing the "frozen" Python code found in the intern directory. However,
-the installation does not contain the python library to link against (at least
-I could not find it). You could use fink to install Python but that Python 
-installation depends on X being installed and that is a large installation.
-
-If you prefer the easy way: download Python 2.2.2 from http://www.python.org.
-Follow the instructions to in the documentation to install it on your box. If
-you run OSX 10.2 it should install just fine. Basically a configure and a 
-"make" will do the job. The result is a Python library that should be copied to
-the library tree together with the associated header files.
-
-Create the following  directories:
-$NANBLENDERHOME/lib/darwin-6.1-powerpc/python/include/python2.2
-$NANBLENDERHOME/lib/darwin-6.1-powerpc/python/lib/python2.2/config
-Now copy the include files and the libpython2.2.a library to those locations.
-
-ODE:
-Ode is currently included in the source tree of Blender. This might change in
-the close future. But for now you don't need to download Ode.
-If you want to build ODE yourself, you'll have to edit a config file of ODE first.
-go to $NANBLENDERHOME/extern/ode/dist/config and edit the file "user-settings" so 
-that platform is equal to osx (PLATFORM=osx).
-
-QUICKTIME:
-In order to compile Blender with QuickTime support enabled, you need to have the 
-QuickTime 6 SDK installed (see http://developer.apple.com/quicktime/). This extra
-step is only necessary if you're using a version of MacOS X prior to 10.2.
-When using the new automake system, QuickTime support can be enabled by passing
-the "--enable-quicktime=yes" flag to ./configure. When building with the original 
-NaN Makefiles, QuickTime support is enabled automatically.
-----------------------NetBSD TIPS--------------------------------------
-NetBSD (and other platforms using pkgsrc)
-
-Quick Install
-
-cd /usr/pkgsrc/graphics/blender
-make install
-
-In-depth Instructions
-
-NetBSD's Packages Collection provides for easy installation from 
-source on a multitude of platforms (NetBSD, Linux, OpenBSD, FreeBSD, 
-Darwin, Irix).  You should be able to compile and install Blender 
-easily by simply changing into the directory 
-/usr/pkgsrc/graphics/blender and issuing the command 'make install'.  
-This will automatically download the sources, verify their integrity, 
-download and install all necessary dependencies and build and install 
-Blender.  Please see for details:
-	http://www.netbsd.org/Documentation/software/packages.html
-	http://www.netbsd.org/Documentation/pkgsrc/
-
-
-Note that there are a few flags you can set to compile in support for 
-additional packages.  Search /usr/pkgsrc/mk/bsd.pkg.defaults.mk for 
-"BLENDER" variables and set them according to your preference in 
-/etc/mk.conf
-
-If you experience problems building the package, please use send-pr(1)
-
-on your NetBSD system or submit a proble report via:
- http://www.netbsd.org/cgi-bin/sendpr.cgi?gndb=netbsd
+Feature request tracker:
+http://projects.blender.org/tracker/?atid=128&group_id=9&func=browse
