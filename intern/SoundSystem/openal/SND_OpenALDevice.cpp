@@ -369,6 +369,9 @@ SND_WaveSlot* SND_OpenALDevice::LoadSample(const STR_String& name,
 				int samplerate, numberofsamples, frequency;  // openal_2.14+
 #endif
 				
+				/* Give them some safe defaults just incase */
+				bitrate = numberofchannels = 0;
+
 				/* load the sample from memory? */
 				if (size && memlocation)
 				{
