@@ -264,6 +264,13 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 	}
 	
 	if (rw->info_text) {
+		float w;
+		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_BLEND);
+		w=186.0*strlen(rw->info_text)/30;
+		glColor4f(.5,.5,.5,.25);
+		glRectf(0.0,0.0,w,30.0);
+		glDisable(GL_BLEND);
 		glColor3ub(255, 255, 255);
 		glRasterPos2i(10, 10);
 		BMF_DrawString(G.font, rw->info_text);
