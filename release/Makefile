@@ -116,7 +116,7 @@ endif
 	@cp $(OCGDIR)/bin/blenderstatic$(EXT0) $(DISTDIR)/blender$(EXT0)
     else
     ifeq ($(OS),darwin)
-	@cp -r $(OCGDIR)/bin/blender$(EXT0) $(DISTDIR)/blender$(EXT0)
+	@cp -r $(OCGDIR)/bin/blender$(EXT0) $(DISTDIR)/Blender$(EXT0)
     else
 	@cp $(OCGDIR)/bin/blender$(EXT0) $(DISTDIR)/blender$(EXT0)
     endif
