@@ -132,13 +132,15 @@ static void exec_callback(SpaceScript *sc, PyObject *callback, PyObject *args)
 	PyObject *result = PyObject_CallObject (callback, args);
 
 	if (result == NULL && sc->script) { /* errors in the script */
-		if (sc->script->filename == NULL) { /* if it's a Blender Text script */
+		if (sc->script->lastspace == SPACE_TEXT) {/*if it can be an ALT+P script*/
 			Text *text = G.main->text.first;
 			while (text) { /* find it and free its compiled code */
-				if (!strcmp(text->id.name+2, sc->script->id.name+2))
+				if (!strcmp(text->id.name+2, sc->script->id.name+2)) {
 					BPY_free_compiled_text(text);
+					break;
+				}
+				text = text->id.next;
 			}
-			text = text->id.next;
 		}
 		exit_pydraw(sc, 1);
 	}

@@ -42,7 +42,7 @@ struct ScriptLink; /* defined in DNA_scriptlink_types.h  */
 struct ListBase;   /* defined in DNA_listBase.h          */
 struct SpaceText;  /* defined in DNA_space_types.h       */
 struct SpaceScript;/* defined in DNA_space_types.h       */
-struct Script;     /* defined in DNA_script_types.h       */
+struct Script;     /* defined in BPI_script.h            */
 /*
 struct _object;  // forward declaration for PyObject !
 */

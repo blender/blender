@@ -1,7 +1,9 @@
-/* script.c
+/* blenkernel/script.c
  *
  *
  * $Id$
+ *
+ * Function(s) related to struct script management.
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -32,11 +34,10 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "MEM_guardedalloc.h"
-
-#include "DNA_script_types.h"
-
 #include "BKE_script.h"
+#include "BPI_script.h"
+
+#include "MEM_guardedalloc.h"
 
 /*
 #include "BLI_blenlib.h"

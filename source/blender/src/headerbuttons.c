@@ -78,7 +78,6 @@
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_script_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
@@ -149,6 +148,8 @@
 #include "BIF_previewrender.h"
 #include "BIF_writeimage.h"
 #include "BIF_butspace.h"
+
+#include "BPI_script.h"
 
 #include "BSE_edit.h"
 #include "BSE_filesel.h"

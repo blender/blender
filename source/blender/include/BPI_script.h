@@ -1,7 +1,10 @@
 /**
- * blenlib/DNA_script_types.h (mar-2001 nzc)
+ * include/BPI_script.h (jan-2004 ianwill)
  *	
- * $Id$ 
+ * $Id$
+ *
+ * Header for BPython's script structure. BPI: Blender Python external include
+ * file.
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -32,16 +35,14 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifndef DNA_SCRIPT_TYPES_H
-#define DNA_SCRIPT_TYPES_H
+#ifndef BPI_SCRIPT_H
+#define BPI_SCRIPT_H
 
-#include "DNA_listBase.h"
+//#include "DNA_listBase.h"
 #include "DNA_ID.h"
 
 typedef struct Script {
 	ID id;
-
-	char *filename; /* NULL for Blender Text scripts */
 
 	void *py_draw;
 	void *py_event;
@@ -66,4 +67,4 @@ typedef struct Script {
 #define SCRIPT_GUI			0x02
 #define SCRIPT_FILESEL	0x04
 
-#endif /* DNA_SCRIPT_TYPES_H */
+#endif /* BPI_SCRIPT_H */

@@ -55,7 +55,6 @@
 #include "DNA_ID.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_script_types.h"
 
 #include "BIF_interface.h"
 #include "BIF_resources.h"
@@ -68,6 +67,7 @@
 #include "BKE_sca.h"
 #include "BSE_filesel.h"
 
+#include "BPI_script.h"
 #include "BPY_extern.h"
 #include "BPY_menus.h"
 

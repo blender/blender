@@ -36,6 +36,8 @@
 #include <BKE_global.h>
 #include <BKE_library.h>
 #include <BKE_main.h>
+#include <BPI_script.h>
+
 #include <DNA_ID.h>
 #include <DNA_camera_types.h>
 #include <DNA_lamp_types.h>
@@ -43,7 +45,6 @@
 #include <DNA_object_types.h>
 #include <DNA_scene_types.h>
 #include <DNA_screen_types.h>
-#include <DNA_script_types.h>
 #include <DNA_scriptlink_types.h>
 #include <DNA_space_types.h>
 #include <DNA_world_types.h>

@@ -71,7 +71,6 @@
 #include "DNA_screen_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_text_types.h"
-#include "DNA_script_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_group_types.h"
 #include "DNA_armature_types.h"
@@ -105,6 +104,7 @@
 #include "BKE_lattice.h"
 #include "BKE_armature.h"
 #include "BKE_action.h"
+#include "BPI_script.h"
 
 #define MAX_IDPUP		30	/* was 24 */
 #define MAX_LIBARRAY	100 /* was 30 */

@@ -50,6 +50,8 @@
 #include <BKE_main.h>
 #include <BKE_text.h>
 #include <BKE_utildefines.h>
+#include <BPI_script.h>
+
 #include <DNA_camera_types.h>
 #include <DNA_ID.h>
 #include <DNA_lamp_types.h>
@@ -57,7 +59,6 @@
 #include <DNA_object_types.h>
 #include <DNA_scene_types.h>
 #include <DNA_screen_types.h>
-#include <DNA_script_types.h>
 #include <DNA_scriptlink_types.h>
 #include <DNA_space_types.h>
 #include <DNA_text_types.h>
@@ -419,7 +420,6 @@ int BPY_txt_do_python(struct SpaceText* st)
 	}
 
 	script->id.us = 1;
-	script->filename = NULL; /* it's a Blender Text script */
 	script->flags = SCRIPT_RUNNING;
 	script->py_draw = NULL;
 	script->py_event = NULL;
@@ -549,7 +549,6 @@ int BPY_menu_do_python(short menutype, int event)
 	}
 
 	script->id.us = 1;
-	script->filename = NULL; /* it's a Blender Text script */
 	script->flags = SCRIPT_RUNNING;
 	script->py_draw = NULL;
 	script->py_event = NULL;
@@ -635,9 +634,6 @@ void BPY_free_compiled_text(struct Text* text)
 void BPY_free_finished_script(Script *script)
 {
 	if (!script) return;
-
-	if (script->lastspace != SPACE_SCRIPT)
-		newspace (curarea, script->lastspace);
 
 	free_libblock(&G.main->script, script);
 	return;

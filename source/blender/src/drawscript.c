@@ -50,7 +50,6 @@
 
 #include "BLI_blenlib.h"
 
-#include "DNA_script_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
@@ -60,6 +59,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
+#include "BPI_script.h"
 #include "BPY_extern.h"
 
 #include "BIF_gl.h"
@@ -111,8 +111,12 @@ void winqreadscriptspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *
 	if (script) {
 		BPY_spacescript_do_pywin_event(sc, event, val);
 
-		if (!script->flags) /* finished with this script, let's free it */
+		if (!script->flags) {/* finished with this script, let's free it */
+			if (script->lastspace != SPACE_SCRIPT)
+				newspace (curarea, script->lastspace);
 			BPY_free_finished_script(script);
+			sc->script = NULL;
+		}
 	}
 	else {
 		if (event == QKEY)

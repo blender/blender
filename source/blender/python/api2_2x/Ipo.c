@@ -279,11 +279,11 @@ static PyObject *Ipo_addCurve(BPy_Ipo *self, PyObject *args)
 	IpoCurve *get_ipocurve(ID *from, short type, int adrcode, Ipo *useipo);
 	void allspace(unsigned short event, short val) ;
 	void allqueue(unsigned short event, short val);
-	int param,ok = 0;
+	int param = 0,ok = 0;
 	char*s = 0;
 	IpoCurve*icu;
  	Link		* link;
-	struct Object	* object;
+	struct Object	* object = NULL;
 
   if (!PyArg_ParseTuple(args, "s",&s))
     return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected string argument"));

@@ -71,7 +71,6 @@
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_script_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
 
@@ -96,6 +95,7 @@
 #include "BLO_readfile.h"
 
 #include "BDR_editcurve.h"
+#include "BPI_script.h"
 #include "BSE_filesel.h"
 #include "BSE_view.h"
 

@@ -40,10 +40,11 @@
 
 #include <BKE_global.h>
 #include <BKE_main.h>
+#include <BPI_script.h>
+
 #include <DNA_ID.h>
 #include <DNA_object_types.h>
 #include <DNA_material_types.h>
-#include <DNA_script_types.h>
 #include <DNA_scriptlink_types.h>
 #include <DNA_listBase.h>
 

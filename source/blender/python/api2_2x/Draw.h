@@ -46,7 +46,6 @@
 #include "BMF_Api.h"
 
 #include "DNA_screen_types.h"
-#include "DNA_script_types.h"
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
 
@@ -58,6 +57,8 @@
 #include "BIF_space.h"
 #include "BIF_interface.h"
 #include "BIF_mywindow.h"
+
+#include "BPI_script.h" /* script struct */
 
 #include "interface.h"
 #include "mydevice.h"  /*@ for all the event constants */
