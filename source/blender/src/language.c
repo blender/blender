@@ -237,9 +237,8 @@ void start_interface_font(void) {
 		strncpy(U.fontname, tstr, 255);		
 		
 #elif defined (WIN32)
-		strcat(tstr, BLI_gethome());
+		strcpy(tstr, BLI_gethome());
 		strcat(tstr, "/.bfont.ttf\0");
-		printf("path: %s\n", tstr);
 		result = FTF_SetFont(tstr, U.fontsize);
 
 		sprintf(U.fontname, "/.bfont.ttf\0");
