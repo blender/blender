@@ -49,6 +49,7 @@
 
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -76,6 +77,7 @@
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
 #include "BIF_editarmature.h"
+#include "BIF_editconstraint.h"
 #include "BIF_poseobject.h"
 #include "BIF_mywindow.h"
 #include "BIF_editdeform.h"
@@ -1970,8 +1972,52 @@ void addvert_armature(void)
 }
 
 
+EditBone *get_named_editbone(char *name)
+{
+	EditBone  *eBone;
+
+	if (name)
+		for (eBone=G.edbo.first; eBone; eBone=eBone->next){
+			if (!strcmp (name, eBone->name))
+				return eBone;
+		}
+
+	return NULL;
+}
+
+void update_dup_subtarget(EditBone *dupBone)
+{
+	/* If an edit bone has been duplicated, lets
+	 * update it's constraints if the subtarget
+	 * they point to has also been duplicated
+	 */
+	EditBone     *oldtarget, *newtarget;
+	bPoseChannel *chan;
+	bConstraint  *curcon;
+	ListBase     *conlist;
+	char         *subname;
 
 
+	if ( (chan = get_pose_channel(OBACT->pose, dupBone->name)) )
+		if ( (conlist = &chan->constraints) )
+			for (curcon = conlist->first; curcon; curcon=curcon->next) {
+				/* does this constraint have a subtarget in
+				 * this armature?
+				 */
+				subname = get_con_subtarget_name(curcon, G.obedit);
+				oldtarget = get_named_editbone(subname);
+				if (oldtarget)
+					/* was the subtarget bone duplicated too? If
+					 * so, update the constraint to point at the 
+					 * duplicate of the old subtarget.
+					 */
+					if (oldtarget->flag & BONE_SELECTED){
+						newtarget = (EditBone*) oldtarget->temp;
+						strcpy(subname, newtarget->name);
+					}
+			}
+	
+}
 
 void adduplicate_armature(void)
 {
@@ -2003,6 +2049,27 @@ void adduplicate_armature(void)
 			BLI_addtail (&G.edbo, eBone);
 			if (!firstDup)
 				firstDup=eBone;
+
+			/* Lets duplicate the list of constraits that the
+			 * current bone has.
+			 */
+			if (OBACT->pose) {
+				bPoseChannel *chanold, *channew;
+				ListBase     *listold, *listnew;
+
+				chanold = get_pose_channel (OBACT->pose, curBone->name);
+				if (chanold) {
+					listold = &chanold->constraints;
+					if (listold){
+						channew = 
+							verify_pose_channel(OBACT->pose, eBone->name);
+						if (channew) {
+							listnew = &channew->constraints;
+							copy_constraints (listnew, listold);
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -2039,6 +2106,10 @@ void adduplicate_armature(void)
 				eBone->parent=(EditBone*) curBone->parent; 
 				eBone->flag &= ~BONE_IK_TOPARENT;
 			}
+
+			/* Lets try to fix any constraint subtargets that might
+			   have been duplicated */
+			update_dup_subtarget(eBone);
 			 
 		}
 	} 
