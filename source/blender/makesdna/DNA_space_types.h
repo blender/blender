@@ -215,7 +215,8 @@ typedef struct SpaceText {
 	
 	int font_id;	
 	int lheight;
-	int left, pad2;
+	int left;
+	int showlinenrs;
 	
 	float pix_per_line;
 

@@ -1823,6 +1823,7 @@ void init_textspace(ScrArea *sa)
 	
 	st->font_id= 5;
 	st->lheight= 12;
+	st->showlinenrs= 0;
 	
 	st->top= 0;
 }
