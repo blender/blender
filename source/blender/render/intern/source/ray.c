@@ -101,7 +101,7 @@ static Octree g_oc;	/* can be scene pointer or so later... */
 
 /* just for statistics */
 static int raycount, branchcount, nodecount;
-static int maxnodeface=0, accepted, rejected;
+static int accepted, rejected;
 
 
 /* **************** ocval method ******************* */
@@ -761,13 +761,10 @@ static int testnode(Isect *is, Node *no, int x, int y, int z)
 	OcVal ocval, *ov;
 	
 	if(is->mode==DDA_SHADOW) {
-		// int count= 0;
+		
 		vlr= no->v[0];
 		while(vlr) {
 		
-			//count++;
-			//if(count>maxnodeface) maxnodeface= count;
-			
 			if(raycount != vlr->raycount) {
 				
 				if(ocvaldone==0) {
@@ -779,6 +776,7 @@ static int testnode(Isect *is, Node *no, int x, int y, int z)
 				if( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) ) { 
 					//accepted++;
 					is->vlr= vlr;
+
 					if(intersection(is)) {
 						g_oc.vlr_last= vlr;
 						return 1;
@@ -848,13 +846,16 @@ static Node *ocread(int x, int y, int z)
 	Branch *br;
 	int oc1, diff;
 
+	/* outside of octree check, reset */
+	if( (x & ~(OCRES-1)) ||  (y & ~(OCRES-1)) ||  (z & ~(OCRES-1)) ) {
+		xo=OCRES; yo=OCRES; zo=OCRES;
+		return NULL;
+	}
+	
 	diff= (xo ^ x) | (yo ^ y) | (zo ^ z);
 
 	if(diff>mdiff) {
 		
-		/* outside of octree check */
-		if( (x & ~(OCRES-1)) ||  (y & ~(OCRES-1)) ||  (z & ~(OCRES-1)) ) return NULL;
-	
 		xo=x; yo=y; zo=z;
 		x<<=2;
 		y<<=1;
@@ -939,7 +940,7 @@ static int d3dda(Isect *is)
 	is->vlrcontr= NULL;	/*  to check shared edge */
 
 	/* only for shadow! */
-	if(is->mode==DDA_SHADOW && g_oc.vlr_last && g_oc.vlr_last!=R.vlr) {
+	if(is->mode==DDA_SHADOW && g_oc.vlr_last!=NULL && g_oc.vlr_last!=R.vlr) {
 		is->vlr= g_oc.vlr_last;
 		if(intersection(is)) return 1;
 	}
@@ -974,7 +975,11 @@ static int d3dda(Isect *is)
 			}
 		}
 	}
+
 	if(c1==0) return 0;
+
+	/* reset static variables in ocread */
+	ocread(OCRES, OCRES, OCRES);
 
 	/* setup 3dda to traverse octree */
 	ox1= (is->start[0]-g_oc.min[0])*g_oc.ocfacx;
@@ -994,7 +999,7 @@ static int d3dda(Isect *is)
 	if(ocx1==ocx2 && ocy1==ocy2 && ocz1==ocz2) {
 		/* no calc, this is store */
 		calc_ocval_ray(NULL, ox1, oy1, oz1, ox2, oy2, oz2);
-		
+
 		no= ocread(ocx1, ocy1, ocz1);
 		if(no) {
 			is->ddalabda= 1.0;
