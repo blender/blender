@@ -123,6 +123,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Camera.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\charRGBA.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\constant.c
 # End Source File
 # Begin Source File
@@ -279,6 +283,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Window.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\windowTheme.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\World.c
 # End Source File
 # End Group
@@ -324,6 +332,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Build.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\Camera.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\charRGBA.h
 # End Source File
 # Begin Source File
 
@@ -472,6 +484,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Wave.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\Window.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\windowTheme.h
 # End Source File
 # Begin Source File
 
