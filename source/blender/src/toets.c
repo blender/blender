@@ -391,8 +391,10 @@ void persptoetsen(unsigned short event)
 			if(G.vd->camera) {
 				G.vd->persp= 2;
 				G.vd->view= 0;
+				if(G.qual & LR_SHIFTKEY) {
+					setcameratoview3d();
+				}				
 			}
-			
 		}
 		else if(event==PAD9) {
 			countall();

@@ -711,6 +711,26 @@ void setviewmatrixview3d()
 	}
 }
 
+void setcameratoview3d()
+{
+	Object *ob;
+	float dvec[3];
+
+	ob= G.vd->camera;
+	dvec[0]= G.vd->dist*G.vd->viewinv[2][0];
+	dvec[1]= G.vd->dist*G.vd->viewinv[2][1];
+	dvec[2]= G.vd->dist*G.vd->viewinv[2][2];					
+	VECCOPY(ob->loc, dvec);
+	VecSubf(ob->loc, ob->loc, G.vd->ofs);
+	G.vd->viewquat[0]= -G.vd->viewquat[0];
+	if (ob->transflag & OB_QUAT) {
+		QUATCOPY(ob->quat, G.vd->viewquat);
+	} else {
+		QuatToEul(G.vd->viewquat, ob->rot);
+	}
+	G.vd->viewquat[0]= -G.vd->viewquat[0];
+}
+
 /* IGLuint-> GLuint*/
 short selectprojektie(unsigned int *buffer, short x1, short y1, short x2, short y2)
 {
