@@ -2315,6 +2315,9 @@ static void do_view3d_edit_curve_controlpointsmenu(void *arg, int event)
 	case 6: /* add hook */
 		add_hook();
 		break;
+	case 7:
+		separate_nurb();
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -2330,13 +2333,15 @@ static uiBlock *view3d_edit_curve_controlpointsmenu(void *arg_unused)
 	if (OBACT->type == OB_CURVE) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Tilt|T",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Tilt|Alt T",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Separate|P",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 		
 		uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 		
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Automatic|Shift H",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Toggle Free/Aligned|H",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Vector|V",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-		
+
+		uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");		
 	}
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Vertex Parent|Ctrl P",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Hook|Ctrl H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");

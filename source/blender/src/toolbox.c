@@ -1678,6 +1678,7 @@ static TBitem tb_curve_edit_seg[]= {
 static TBitem tb_curve_edit_cv[]= {
 {	0, "Tilt|T", 	't', NULL},
 {	0, "Clear Tilt|Alt T", 			TB_ALT|'t', NULL},
+{	0, "Separate|P", 	'p', NULL},
 {	0, "SEPR", 								0, NULL},
 {	0, "Automatic|Shift H", 		'H', NULL},
 {	0, "Toggle Free/Aligned|H", 	'h', NULL},
