@@ -106,6 +106,8 @@ void	selectconnected_armature(void);
 void	selectconnected_posearmature(void);
 void	select_bone_by_name (struct bArmature *arm, char *name, int select);
 void    unique_editbone_name (char* name);
+void    attach_bone_to_parent(EditBone *bone);
+void    attach_bone_to_parent_cb(void *bonev, void *arg2_unused);
 
 struct	Bone *get_first_selected_bone (void);
 void auto_align_armature(void);

@@ -1705,6 +1705,34 @@ static void add_bone_input (Object *ob)
 
 }
 
+void attach_bone_to_parent_cb(void *bonev, void *arg2_unused)
+{
+	EditBone *curBone= bonev;
+	attach_bone_to_parent(curBone);
+}
+
+void attach_bone_to_parent(EditBone *bone)
+{
+	EditBone *curbone;
+
+	if (bone->flag & BONE_IK_TOPARENT) {
+
+		/* See if there are any other bones that refer to the same 
+		 * parent and disconnect them 
+		 */
+		for (curbone = G.edbo.first; curbone; curbone=curbone->next){
+			if (curbone!=bone){
+				if (curbone->parent && 
+					(curbone->parent == bone->parent) && 
+					(curbone->flag & BONE_IK_TOPARENT))
+					curbone->flag &= ~BONE_IK_TOPARENT;
+			}
+		}
+
+        /* Attach this bone to its parent */
+		VECCOPY(bone->head, bone->parent->tail);
+	}
+}
 
 void deselectall_armature(void)
 /*	Actually, it toggles selection, deselecting

@@ -1188,34 +1188,6 @@ static int editbone_to_parnr (EditBone *bone)
 	return -1;
 }
 
-
-
-static void attach_bone_to_parent(EditBone *bone)
-{
-	EditBone *curbone;
-
-	if (bone->flag & BONE_IK_TOPARENT) {
-
-	/* See if there are any other bones that refer to the same parent and disconnect them */
-		for (curbone = G.edbo.first; curbone; curbone=curbone->next){
-			if (curbone!=bone){
-				if (curbone->parent && (curbone->parent == bone->parent) && (curbone->flag & BONE_IK_TOPARENT))
-					curbone->flag &= ~BONE_IK_TOPARENT;
-			}
-		}
-
-	/* Attach this bone to its parent */
-		VECCOPY(bone->head, bone->parent->tail);
-	}
-
-}
-
-static void attach_bone_to_parent_cb(void *bonev, void *arg2_unused)
-{
-	EditBone *curBone= bonev;
-	attach_bone_to_parent(curBone);
-}
-
 static void parnr_to_editbone(EditBone *bone)
 {
 	if (bone->parNr == -1){
@@ -1262,6 +1234,20 @@ static void build_bonestring (char *string, EditBone *bone){
 	}
 }
 
+static void constraint_ebone_name_fix(ListBase *conlist, EditBone *eBone)
+{
+
+	bConstraint *curcon;
+	char *subtarget;
+
+	for (curcon = conlist->first; curcon; curcon=curcon->next){
+		subtarget = get_con_subtarget_name(curcon, G.obedit);
+		if (subtarget)
+			if (!strcmp(subtarget,eBone->oldname) )
+				strcpy(subtarget, eBone->name);
+	}
+}
+
 static void validate_editbonebutton(EditBone *eBone){
 	EditBone	*prev;
 	bAction		*act=NULL;
@@ -1300,12 +1286,35 @@ static void validate_editbonebutton(EditBone *eBone){
 
 	for (base = G.scene->base.first; base; base=base->next){
 		Object *ob = base->object;
+		ListBase *conlist;
 
 		/* See if an object is parented to this armature */
-		if (ob->parent && ob->partype==PARBONE && (ob->parent->type==OB_ARMATURE) && (ob->parent->data == G.obedit->data)){
+		if (ob->parent && ob->partype==PARBONE && 
+			(ob->parent->type==OB_ARMATURE) && 
+			(ob->parent->data == G.obedit->data)){
 			if (!strcmp(ob->parsubstr, eBone->oldname))
 				strcpy(ob->parsubstr, eBone->name);
 		}
+
+		/* Update any constraints to use the new bone name */
+		conlist = &ob->constraints;
+		constraint_ebone_name_fix(conlist, eBone);
+
+		switch (ob->type){
+			case OB_ARMATURE:
+				if (ob->pose){
+					bPoseChannel *pchan;
+					for (pchan = ob->pose->chanbase.first; pchan; 
+						 pchan=pchan->next){
+						conlist = &pchan->constraints;
+						constraint_ebone_name_fix(conlist, eBone);
+					}
+				}
+				break;
+			default:
+				break;
+        }
+		
 	}
 
 	exit_editmode(0);	/* To ensure new names make it to the edit armature */
