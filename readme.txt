@@ -1,8 +1,9 @@
 Welcome to the fun world of open-source.
 
-To help you get started, do the following before starting:
+This file is to help you get started using the source and will hopefully
+answer most questions.
 
-You will want to download the following external packages:
+Here are some links to external packages you may or maynot need:
 
 openssl:  http://www.openssl.org
 python:  http://www.python.org
@@ -10,14 +11,15 @@ nspr:  ftp://ftp.mozilla.org/pub/nspr/releases
 libjpeg:  http://www.ijg.org/
 libpng:  http://www.libpng.org/pub/png/
 zlib:   http://www.gzip.org/zlib/
-openal:  http://www.openal.org/home/
-(may be needed for openal)sdl: http://www.libsdl.org/index.php
-smpeg: http://www.lokigames.com/development/smpeg.php3
+openal:  http://www.openal.org/home/		(for linux/windows)
+	sdl: http://www.libsdl.org/index.php (for openal)
+	smpeg: http://www.lokigames.com/development/smpeg.php3 (for openal)
+fmod: http://www.fmod.org/
 
 If you do not have GL you will also need mesa:
 http://www.mesa3d.org
 
---------------UNIX TIPS---------------------------------------
+--------------Basic Makefile TIPS---------------------------------------
 Assuming you are using tcsh/csh do the following before compiling.
 #Set this to wherever you have extracted the source.
 setenv NANBLENDERHOME `pwd`
@@ -33,9 +35,13 @@ Then edit source/nan_definitions.mk to fit you're environment.
 (You'll want to change things like NAN_OPENSSL,NAN_JPEG, NAN_PNG etc.. 
 to point to where you have it installed)
 
+If you tried to just have a go at making stuff you might wind up with
+an empty file /tmp/.nanguess
+You need to remove the empty file and re run it after you have
+setup the NANBLENDERHOME variable.
+
 After that cd $NANBLENDERHOME/intern 
-make		(If you have errors just make; make install in the dirs
-		 listed in the makefile)
+make
 make install
 
 Then cd $NANBLENDERHOME/intern/python/freeze 
