@@ -1297,7 +1297,7 @@ static int draw_dm_edges_seams__setDrawOptions(void *userData, void *edge)
 }
 static void draw_dm_edges_seams(DerivedMesh *dm)
 {
-	dm->drawMappedVertsEM(dm, draw_dm_edges_seams__setDrawOptions, NULL);
+	dm->drawMappedEdgesEM(dm, draw_dm_edges_seams__setDrawOptions, NULL);
 }
 
 	/* Draw faces with color set based on selection */
