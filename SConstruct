@@ -999,14 +999,21 @@ def player_libs(env):
 	"""
 	env.Append (LIBS=['GPG_ghost',
 			'GPC_common'])
-			
+
 def player_libs2(env):
 	"""
 	Link order shenannigans: these libs are added after common_libs
 	"""
 	env.Append (LIBS=['blender_blenkernel_blc',
 			'soundsystem'])
-			
+
+def winblenderres(env):
+	"""
+	build the windows icon resource file
+	"""
+	if sys.platform == 'win32':
+		env.RES(['source/icons/winblender.rc'])
+
 def system_libs(env):
 	"""
 	System libraries: Python, SDL, PNG, JPEG, Gettext, OpenAL, Carbon
@@ -1046,8 +1053,6 @@ def system_libs(env):
 			env.Append (LINKFLAGS='QuickTime')
 	else:
 		env.Append (LINKFLAGS=user_options_dict['PLATFORM_LINKFLAGS'])
-	if sys.platform == 'win32':
-		env.RES(['source/icons/winblender.rc'])
 	env.BuildDir (root_build_dir, '.', duplicate=0)
 
 def buildinfo(env, build_type):
@@ -1109,6 +1114,8 @@ def BlenderBundle(target):
 
 if user_options_dict['BUILD_BLENDER_DYNAMIC'] == 1:
 	dy_blender = link_env.Copy ()
+	if sys.platform=='win32':
+		winblenderres(dy_blender)
 	blender_libs(dy_blender)
 	common_libs(dy_blender)
 	international_libs(dy_blender)
@@ -1128,6 +1135,8 @@ if user_options_dict['BUILD_BLENDER_DYNAMIC'] == 1:
 
 if user_options_dict['BUILD_BLENDER_STATIC'] == 1:
 	st_blender = link_env.Copy ()
+	if sys.platform=='win32':
+		winblenderres(st_blender)
 	blender_libs(st_blender)
 	common_libs(st_blender)
 	international_libs(st_blender)
