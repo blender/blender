@@ -207,7 +207,13 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 	);
 
 	/* camera to world  */
-	MT_Matrix4x4 camcs_wcs_matrix = MT_Matrix4x4(cam->GetCameraToWorld());
+	MT_Transform wcs_camcs_tranform = cam->GetWorldToCamera();
+	if (!cam->GetCameraData()->m_perspective)
+		wcs_camcs_tranform.getOrigin()[2] *= 100.0;
+	MT_Transform cams_wcs_transform;
+	cams_wcs_transform.invert(wcs_camcs_tranform);
+	
+	MT_Matrix4x4 camcs_wcs_matrix = MT_Matrix4x4(cams_wcs_transform);
 
 	/* badly defined, the first time round.... I wonder why... I might
 	 * want to guard against floating point errors here.*/
