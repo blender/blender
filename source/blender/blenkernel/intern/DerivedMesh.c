@@ -485,7 +485,25 @@ static void emDM_drawFacesEM(DerivedMesh *dm, int useColor, unsigned char *baseC
 		}
 	}
 }
+static int emDM_drawMappedEdgesEMSelect(DerivedMesh *dm, void (*setColor)(int index), int offset)
+{
+	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditEdge *eed;
+	int i;
 
+	i = offset;
+	glBegin(GL_LINES);
+	for(eed= emdm->em->edges.first; eed; eed= eed->next, i++) {
+		if (eed->h==0) {
+			setColor(i);
+			glVertex3fv(eed->v1->co);
+			glVertex3fv(eed->v2->co);
+		}
+	}
+	glEnd();
+
+	return i;
+}
 static void emDM_drawFacesSolid(DerivedMesh *dm, void (*setMaterial)(int))
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
@@ -542,6 +560,7 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em)
 	emdm->dm.drawLooseEdges = NULL;
 	emdm->dm.drawMappedEdgeEM = emDM_drawMappedEdgeEM;
 	emdm->dm.drawMappedEdgesEM = emDM_drawMappedEdgesEM;
+	emdm->dm.drawMappedEdgesEMSelect = emDM_drawMappedEdgesEMSelect;
 
 	emdm->dm.drawFacesSolid = emDM_drawFacesSolid;
 	emdm->dm.drawFacesColored = NULL;
@@ -642,6 +661,35 @@ static void ssDM_drawMappedEdgesEM(DerivedMesh *dm, int useColor, unsigned char 
 		}
 	}
 	glEnd();
+}
+static int ssDM_drawMappedEdgesEMSelect(DerivedMesh *dm, void (*setColor)(int index), int offset)
+{
+	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
+	DispListMesh *dlm = ssdm->dlm;
+	int i, endOffset;
+	MVert *mvert= dlm->mvert;
+	MEdge *medge= dlm->medge;
+	EditEdge *eed;
+
+	i = offset;
+	for(eed= ssdm->em->edges.first; eed; eed= eed->next)
+		eed->vn= (EditVert*) i++;
+	endOffset = i;
+
+	glBegin(GL_LINES);
+	for (i=0; i<dlm->totedge; i++, medge++) {
+		if(medge->flag & ME_EDGEDRAW) {
+			EditEdge *eed= dlm->editedge[i];
+			if(eed && eed->h==0) {
+				setColor((int) eed->vn);
+				glVertex3fv(mvert[medge->v1].co); 
+				glVertex3fv(mvert[medge->v2].co);
+			}
+		}
+	}
+	glEnd();
+
+	return endOffset;
 }
 static void ssDM_drawVerts(DerivedMesh *dm)
 {
@@ -857,6 +905,7 @@ static DerivedMesh *getSSDerivedMesh(EditMesh *em, DispListMesh *dlm, float *nor
 	ssdm->dm.drawLooseEdges = ssDM_drawLooseEdges;
 	ssdm->dm.drawMappedEdgeEM = ssDM_drawMappedEdgeEM;
 	ssdm->dm.drawMappedEdgesEM = ssDM_drawMappedEdgesEM;
+	ssdm->dm.drawMappedEdgesEMSelect = ssDM_drawMappedEdgesEMSelect;
 
 	ssdm->dm.drawFacesSolid = ssDM_drawFacesSolid;
 	ssdm->dm.drawFacesColored = ssDM_drawFacesColored;
@@ -930,4 +979,19 @@ DerivedMesh *mesh_get_base_derived(Object *ob)
 		DispList *dl = find_displist(&ob->disp, DL_VERTS);
 		return getMeshDerivedMesh(ob, dl?dl->verts:NULL, meDL?meDL->nors:NULL);
 	}
+}
+
+DerivedMesh *mesh_get_cage_derived(struct Object *ob)
+{
+	Mesh *me= ob->data;
+	DerivedMesh *dm;
+
+	if (me->flag&ME_OPT_EDGES) {
+		dm = mesh_get_derived(ob);
+	}
+	if (!dm) {
+		dm = mesh_get_base_derived(ob);
+	}
+
+	return dm;
 }

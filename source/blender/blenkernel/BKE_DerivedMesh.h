@@ -33,6 +33,14 @@
 #ifndef BKE_DERIVEDMESH_H
 #define BKE_DERIVEDMESH_H
 
+/* TODO (Probably)
+ *
+ *  o Make drawMapped* functions take a predicate function that
+ *    determines whether to draw the edge (this predicate can
+ *    also set color, etc). This will be slightly more general 
+ *    and allow some of the functions to be collapsed.
+ */
+
 struct Object;
 struct DispListMesh;
 
@@ -88,6 +96,7 @@ struct DerivedMesh {
 			 *  o If useColor==2, set color based on mapped (EditVert->f&SELECT)
 			 *     - Should interpolate as nicely as possible across edge.
 			 *  o If onlySeams, only draw if mapped (EditEdge->seam)
+			 *  o Only if mapped EditEdge->h==0
 			 */
 	void (*drawMappedEdgesEM)(DerivedMesh *dm, int useColor, unsigned char *baseCol, unsigned char *selCol, int onlySeams);
 
@@ -96,11 +105,24 @@ struct DerivedMesh {
 			 */
 	void (*drawFacesEM)(DerivedMesh *dm, int useColor, unsigned char *baseCol, unsigned char *selCol);
 
+			/* Draw mapped edges as lines
+			 *  o Call setColor(offset+index) for each edge, where index is the
+			 *    edge's index in the EditMesh. Return offset+count where count
+			 *    is the total number of mapped edges.
+			 *  o Only if mapped EditEdge->h==0
+			 */
+	int (*drawMappedEdgesEMSelect)(DerivedMesh *dm, void (*setColor)(int index), int offset);
+
 	void (*release)(DerivedMesh *dm);
 };
 
 DerivedMesh *mesh_get_derived(struct Object *ob);
 DerivedMesh *mesh_get_base_derived(struct Object *ob);
+
+	/* Utility function, just chooses appropriate DerivedMesh based
+	 * on mesh flags.
+	 */
+DerivedMesh *mesh_get_cage_derived(struct Object *ob);
 
 #endif
 
