@@ -44,6 +44,9 @@
 #include <config.h>
 #endif
 
+#define FALSE 0
+#define TRUE 1
+
 #if defined(WIN32) || defined(__APPLE__)
 #ifdef WIN32
 #include <windows.h>
@@ -75,7 +78,7 @@ static void drawGL()
 	GLint x = 10, y = 10;
 
 	::glRasterPos2i(x, y);
-	BMF_FontPtr font = BMF_GetFont(BMF_kHelvetica10);
+	BMF_Font *font = BMF_GetFont(BMF_kHelvetica10);
 	BMF_DrawString(font, "Helvetica 10 point");
 	y += 14;
 	::glRasterPos2i(x, y);
@@ -148,7 +151,7 @@ Application::Application(GHOST_ISystem* system)
 
 	// Create the main window
 	STR_String title1 ("gears - main window");
-	m_mainWindow = system->createWindow(title1, 10, 64, 320, 200, GHOST_kWindowStateNormal, GHOST_kDrawingContextTypeOpenGL);
+	m_mainWindow = system->createWindow(title1, 10, 64, 320, 200, GHOST_kWindowStateNormal, GHOST_kDrawingContextTypeOpenGL,FALSE);
     if (!m_mainWindow) {
 		std::cout << "could not create main window\n";
         exit(-1);
@@ -163,15 +166,13 @@ bool Application::processEvent(GHOST_IEvent* event)
 	switch (event->getType()) {
 	case GHOST_kEventWindowClose:
 		{
-		GHOST_TEventWindowData* windowData = (GHOST_TEventWindowData*)((GHOST_IEvent*)event)->getData();
-		GHOST_IWindow* window = windowData->window;
-		if (window == m_mainWindow) {
+		GHOST_IWindow* window2 = event->getWindow();
+		if (window2 == m_mainWindow) {
 			exit(0);
+		} else {
+			m_system->disposeWindow(window2);
 		}
-		else {
-			m_system->disposeWindow(window);
-		}
-		}
+ 		}
 		break;
 
 	case GHOST_kEventWindowActivate:
@@ -182,13 +183,12 @@ bool Application::processEvent(GHOST_IEvent* event)
 		break;
 	case GHOST_kEventWindowUpdate:
 		{
-			GHOST_TEventWindowData* windowData = (GHOST_TEventWindowData*)((GHOST_IEvent*)event)->getData();
-			GHOST_IWindow* window = windowData->window;
-			if (!m_system->validWindow(window)) break;
+			GHOST_IWindow* window2 = event->getWindow();
+			if (!m_system->validWindow(window2)) break;
 			{
-				setViewPortGL(window);
+				setViewPortGL(window2);
 				drawGL();
-				window->swapBuffers();
+				window2->swapBuffers();
 			}
 		}
 		break;
@@ -216,7 +216,7 @@ int main(int /*argc*/, char** /*argv*/)
 
 		// Enter main loop
 		while (!app.m_exitRequested) {
-			fSystem->processEvents();
+			fSystem->processEvents(TRUE);
 			fSystem->dispatchEvents();
 		}
 	}
