@@ -456,7 +456,7 @@ void calc_renderwin_rectangle(int posmask, int renderpos_r[2], int rendersize_r[
 	}
 		
 	renderpos_r[0]= 60 + (scr_w-90-rendersize_r[0])*(ndc_x*0.5 + 0.5);
-	renderpos_r[1]= 60 + (scr_h-90-rendersize_r[1])*(ndc_y*0.5 + 0.5);
+	renderpos_r[1]= 30 + (scr_h-90-rendersize_r[1])*(ndc_y*0.5 + 0.5);
 }
 	
 static void open_renderwin(int winpos[2], int winsize[2])
