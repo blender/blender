@@ -64,6 +64,8 @@ gp_common_env.Append( CPPPATH = ['.',
 
 gp_common_env.Append (CPPPATH = user_options_dict['PYTHON_INCLUDE'])
 gp_common_env.Append (CPPPATH = user_options_dict['SOLID_INCLUDE'])
+gp_common_env.Append (CPPPATH = user_options_dict['PNG_INCLUDE'])
+gp_common_env.Append (CPPPATH = user_options_dict['Z_INCLUDE'])
 
 if sys.platform=='win32':
     gp_common_env.Append (CXXFLAGS = ['/GR'])
