@@ -2178,7 +2178,7 @@ static void do_palette1_cb(void *bt1, void *col1)
 	glFlush(); // flush display in subloops
 }
 
-/* color picker, Gimp version. mode: 't' = RGB buttons on top, popup */
+/* color picker, Gimp version. mode: 'f' = floating panel, 'p' =  popup */
 /* col = read/write to, hsv/old = memory for temporal use */
 void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, char mode)
 {
@@ -2186,10 +2186,9 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 	float h;
 	int a, retval=B_NOP;
 
-	if(mode=='t') {
+	if(mode=='p') {
 		// safety, put in beginning otherwise tooltips wont work
 		retval= 0;	// prevents event that closes popup
-		uiDefBut(block, LABEL, 0, "",	-DPICK,-DPICK, FPICK+3*DPICK+BPICK, FPICK+4*DPICK+BPICK+40, NULL, 0.0, 0.0, 0, 0, "");
 	}
 
 	VECCOPY(old, col);	// old color stored there, for palette_cb to work
@@ -2219,42 +2218,24 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 	// buttons
 	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
 
-	if(mode=='t') {  // on top
-		h= (FPICK+DPICK+BPICK)/3.0;
-		bt= uiDefButF(block, NUM, retval, "R ",	0, BPICK+2*DPICK+FPICK+20, h,20, col, 0.0, 1.0, 10, 2, "");
-		uiButSetFunc(bt, do_palette1_cb, bt, col);
-		bt= uiDefButF(block, NUM, retval, "G ",	h, BPICK+2*DPICK+FPICK+20, h,20, col+1, 0.0, 1.0, 10, 2, "");
-		uiButSetFunc(bt, do_palette1_cb, bt, col);
-		bt= uiDefButF(block, NUM, retval, "B ",	2*h, BPICK+2*DPICK+FPICK+20, h,20, col+2, 0.0, 1.0, 10, 2, "");
-		uiButSetFunc(bt, do_palette1_cb, bt, col);
+	float offs= FPICK+2*DPICK+BPICK;
+
+	uiBlockBeginAlign(block);
+	bt= uiDefButF(block, NUM, retval, "R ",	offs, 110, 80,20, col, 0.0, 1.0, 10, 2, "");
+	uiButSetFunc(bt, do_palette1_cb, bt, col);
+	bt= uiDefButF(block, NUM, retval, "G ",	offs, 90, 80,20, col+1, 0.0, 1.0, 10, 2, "");
+	uiButSetFunc(bt, do_palette1_cb, bt, col);
+	bt= uiDefButF(block, NUM, retval, "B ",	offs, 70, 80,20, col+2, 0.0, 1.0, 10, 2, "");
+	uiButSetFunc(bt, do_palette1_cb, bt, col);
 	
-		bt= uiDefButF(block, NUM, retval, "H ",	0, BPICK+2*DPICK+FPICK, h,20, hsv, 0.0, 1.0, 10, 2, "");
-		uiButSetFunc(bt, do_palette1_cb, bt, col);
-		bt= uiDefButF(block, NUM, retval, "S ",	h, BPICK+2*DPICK+FPICK, h,20, hsv+1, 0.0, 1.0, 10, 2, "");
-		uiButSetFunc(bt, do_palette1_cb, bt, col);
-		bt= uiDefButF(block, NUM, retval, "V ",	2*h, BPICK+2*DPICK+FPICK, h,20, hsv+2, 0.0, 1.0, 10, 2, "");
-		uiButSetFunc(bt, do_palette1_cb, bt, col);
-	}
-	else {  // on side
-		float offs= FPICK+2*DPICK+BPICK;
-		
-		uiBlockBeginAlign(block);
-		bt= uiDefButF(block, NUM, retval, "R ",	offs, 110, 80,20, col, 0.0, 1.0, 10, 2, "");
-		uiButSetFunc(bt, do_palette1_cb, bt, col);
-		bt= uiDefButF(block, NUM, retval, "G ",	offs, 90, 80,20, col+1, 0.0, 1.0, 10, 2, "");
-		uiButSetFunc(bt, do_palette1_cb, bt, col);
-		bt= uiDefButF(block, NUM, retval, "B ",	offs, 70, 80,20, col+2, 0.0, 1.0, 10, 2, "");
-		uiButSetFunc(bt, do_palette1_cb, bt, col);
-		
-		uiBlockBeginAlign(block);
-		bt= uiDefButF(block, NUM, retval, "H ",	offs, 40, 80,20, hsv, 0.0, 1.0, 10, 2, "");
-		uiButSetFunc(bt, do_palette1_cb, bt, col);
-		bt= uiDefButF(block, NUM, retval, "S ",	offs, 20, 80,20, hsv+1, 0.0, 1.0, 10, 2, "");
-		uiButSetFunc(bt, do_palette1_cb, bt, col);
-		bt= uiDefButF(block, NUM, retval, "V ",	offs, 0, 80,20, hsv+2, 0.0, 1.0, 10, 2, "");
-		uiButSetFunc(bt, do_palette1_cb, bt, col);
-		uiBlockEndAlign(block);
-	}
+	uiBlockBeginAlign(block);
+	bt= uiDefButF(block, NUM, retval, "H ",	offs, 40, 80,20, hsv, 0.0, 1.0, 10, 2, "");
+	uiButSetFunc(bt, do_palette1_cb, bt, col);
+	bt= uiDefButF(block, NUM, retval, "S ",	offs, 20, 80,20, hsv+1, 0.0, 1.0, 10, 2, "");
+	uiButSetFunc(bt, do_palette1_cb, bt, col);
+	bt= uiDefButF(block, NUM, retval, "V ",	offs, 0, 80,20, hsv+2, 0.0, 1.0, 10, 2, "");
+	uiButSetFunc(bt, do_palette1_cb, bt, col);
+	uiBlockEndAlign(block);
 }
 
 
@@ -2281,11 +2262,11 @@ static int ui_do_but_COL(uiBut *but)
 	}
 	else poin= (float *)but->poin;
 	
-	block= uiNewBlock(&listb, "colorpicker", UI_EMBOSSP, UI_HELV, but->win);
+	block= uiNewBlock(&listb, "colorpicker", UI_EMBOSSX, UI_HELV, but->win);
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW;
 	block->themecol= TH_BUT_NUM;
 	
-	uiBlockPickerButtons(block, poin, hsv, old, 't');
+	uiBlockPickerButtons(block, poin, hsv, old, 'p');
 
 	/* and lets go */
 	block->direction= UI_TOP;

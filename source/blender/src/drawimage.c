@@ -803,7 +803,7 @@ static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 	if(uiNewPanel(curarea, block, "Paint", "Image", 10, 230, 318, 204)==0)
 		return;
 
-	uiBlockPickerButtons(block, &Gvp.r, hsv, old, 'r');	/* 'r' is for numbuts on right */
+	uiBlockPickerButtons(block, &Gvp.r, hsv, old, 'f');	/* 'f' is for floating panel */
 
 	//	offset= FPICK+2*DPICK+BPICK in interface.c... this goes wrong when defines change
 	uiBlockBeginAlign(block);
