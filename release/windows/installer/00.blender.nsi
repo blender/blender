@@ -20,8 +20,8 @@ LicenseText "Please read and agree to the license below:"
 LicenseData "DISTDIR\Copyright.txt"
 
 Function .onInstSuccess
-	MessageBox MB_YESNO "Blender was successfully setup on your computer. Do you wish to start Blender now and register itself with .blend files?" IDNO NoThanks
-		ExecShell "open" '"$INSTDIR\blender.exe"' "-R"
+	MessageBox MB_YESNO "Blender was successfully setup on your computer. $\rDo you wish to start Blender now ?" IDNO NoThanks
+		ExecShell "open" '"$INSTDIR\blender.exe"'
 	NoThanks:
 FunctionEnd
 
@@ -38,6 +38,7 @@ Section "Blender-VERSION (required)"
   File DISTDIR\python22.dll
   File DISTDIR\Copyright.txt
   File DISTDIR\Readme.txt
+  File DISTDIR\GPL-license.txt
   File DISTDIR\Help.url
   ; Write the installation path into the registry
   WriteRegStr HKLM SOFTWARE\BlenderFoundation "Install_Dir" "$INSTDIR"
@@ -49,16 +50,25 @@ SectionEnd
 
 SectionDivider
 
-Section "Start Menu Shortcuts"
+Section "Add Start Menu shortcuts"
   CreateDirectory "$SMPROGRAMS\Blender Foundation\Blender-VERSION\"
   CreateShortCut "$SMPROGRAMS\Blender Foundation\Blender-VERSION\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
   CreateShortCut "$SMPROGRAMS\Blender Foundation\Blender-VERSION\Blender.lnk" "$INSTDIR\Blender.exe" "" "$INSTDIR\blender.exe" 0
   CreateShortCut "$SMPROGRAMS\Blender Foundation\Blender-VERSION\Readme.lnk" "$INSTDIR\Readme.txt" "" "" 0
   CreateShortCut "$SMPROGRAMS\Blender Foundation\Blender-VERSION\Copyright.lnk" "$INSTDIR\Copyright.txt" "" "$INSTDIR\copyright.txt" 0
+  CreateShortCut "$SMPROGRAMS\Blender Foundation\Blender-VERSION\GPL-license.lnk" "$INSTDIR\GPL-license.txt" "" "$INSTDIR\GPL-license.txt" 0
   CreateShortCut "$SMPROGRAMS\Blender Foundation\Blender-VERSION\Help.lnk" "$INSTDIR\Help.url"
-  MessageBox MB_YESNO "Do you wish to create a shortcut on your desktop?" IDNO NoDeskShortcut
-      CreateShortCut "$DESKTOP\Blender-VERSION.lnk" "$INSTDIR\blender.exe" "" "$INSTDIR\blender.exe" 0
-  NoDeskShortcut:
+  ; MessageBox MB_YESNO "Do you wish to create a shortcut on your desktop?" IDNO NoDeskShortcut
+  ;     CreateShortCut "$DESKTOP\Blender-VERSION.lnk" "$INSTDIR\blender.exe" "" "$INSTDIR\blender.exe" 0
+  ; NoDeskShortcut:
+SectionEnd
+
+Section "Add Desktop Blender-VERSION shortcut"
+  CreateShortCut "$DESKTOP\Blender-VERSION.lnk" "$INSTDIR\blender.exe" "" "$INSTDIR\blender.exe" 0
+SectionEnd
+
+Section "Open .blend files with Blender-VERSION"
+  ExecShell "open" '"$INSTDIR\blender.exe"' "-R -b"
 SectionEnd
 
 UninstallText "This will uninstall Blender VERSION. Hit next to continue."
@@ -72,6 +82,7 @@ Section "Uninstall"
   Delete $INSTDIR\python22.dll
   Delete $INSTDIR\Copyright.txt
   Delete $INSTDIR\Readme.txt
+  Delete $INSTDIR\GPL-license.txt
   Delete $INSTDIR\Help.url
   Delete $INSTDIR\uninstall.exe
   ; remove shortcuts, if any.
