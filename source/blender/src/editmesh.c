@@ -1238,9 +1238,8 @@ void load_editMesh(void)
 		eve= eve->next;
 	}
 
-	/* displists of all users, including this one */
-	freedisplist(&me->disp);
-	freedisplist(&G.obedit->disp);
+	/* we do make displist here for dependencies (like particles) */
+	if (mesh_uses_displist(me)) makeDispList(G.obedit);
 	
 	/* sticky */
 	if(me->msticky) {

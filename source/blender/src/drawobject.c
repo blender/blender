@@ -4243,12 +4243,12 @@ void draw_object(Base *base)
 			else drawDispList(ob, dt);
 		}
 		
-		if( (ob!=G.obedit) && ((G.f & (G_PICKSEL)) == 0) ) {
+		if( ob!=G.obedit) {
 			paf = give_parteff(ob);
 			if( paf ) {
 				if(col) cpack(0xFFFFFF);	/* for visibility */
 				if(paf->flag & PAF_STATIC) draw_static_particle_system(ob, paf);
-				else draw_particle_system(ob, paf);
+				else if((G.f & G_PICKSEL) == 0) draw_particle_system(ob, paf);	// selection errors happen to easy
 				if(col) cpack(col);
 			}
 		}
