@@ -2749,7 +2749,13 @@ void lib_link_screen_restore(Main *newmain, char mode, Scene *curscene)
 						for(base= sc->scene->base.first; base; base= base->next) {
 							if(base->lay & v3d->lay) break;
 						}
-						if(base==NULL) endlocalview(sa);
+						if(base==NULL) {
+							v3d->lay= v3d->localvd->lay;
+							v3d->layact= v3d->localvd->layact;
+							MEM_freeN(v3d->localvd);
+							v3d->localvd= NULL;
+							v3d->localview= 0;
+						}
 					}
 					else if(v3d->scenelock) v3d->lay= sc->scene->lay;
 					
