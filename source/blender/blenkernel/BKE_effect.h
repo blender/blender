@@ -60,7 +60,7 @@ void init_mv_jit(float *jit, int num,int seed2);
 void give_mesh_mvert(struct Mesh *me, int nr, float *co, short *no,int seed2);
 void build_particle_system(struct Object *ob);
 void calc_wave_deform(struct WaveEff *wav, float ctime, float *co);
-void object_wave(struct Object *ob);                            
+int object_wave(struct Object *ob);                            
 
 #endif
 

@@ -51,6 +51,7 @@
 #include "DNA_texture_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_effect_types.h"
 #include "DNA_listBase.h"
 #include "DNA_lamp_types.h"
 #include "DNA_object_types.h"
@@ -1759,8 +1760,6 @@ void makeDispList(Object *ob)
 			mesh_modifier(ob, 's');
 		}
 		
-		if(ob->effect.first) object_wave(ob);
-		
 		if (mesh_uses_displist(me)) {  /* subsurf */
 			DispListMesh *dlm;
 
@@ -1782,6 +1781,7 @@ void makeDispList(Object *ob)
 		}
 		
 		if(ob!=G.obedit) mesh_modifier(ob, 'e');
+		
 	}
 	else if(ob->type==OB_MBALL) {
 		
@@ -2395,7 +2395,16 @@ void test_all_displists(void)
 				}
 			}
 			else if(ob->type==OB_MESH) {
-				if(ob->effect.first) object_wave(ob);
+				if(ob->effect.first) {
+					Effect *eff= ob->effect.first;
+					while(eff) {
+						if(eff->type==EFF_WAVE) {
+							freedisplist_object(ob);
+							break;
+						}
+						eff= eff->next;
+					}
+				}
 				if(ob!=G.obedit) {
 					if(( ((Mesh *)(ob->data))->key )||(ob->effect.first)) 
 						freedisplist_object(ob); //makeDispList(ob);

@@ -40,6 +40,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_curve_types.h"
+#include "DNA_effect_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -48,6 +49,7 @@
 #include "BKE_curve.h"
 #include "BKE_deform.h"
 #include "BKE_displist.h"
+#include "BKE_effect.h"
 #include "BKE_lattice.h"
 #include "BKE_utildefines.h"
 
@@ -209,6 +211,7 @@ int mesh_modifier(Object *ob, char mode)
 	
 	/* conditions if it's needed */
 	if(ob->hooks.first);
+	else if(ob->effect.first);	// weak... particles too
 	else if(ob->parent && ob->parent->type==OB_LATTICE);
 	else if(ob->parent && ob->partype==PARSKEL); 
 	else return 0;
@@ -231,6 +234,8 @@ int mesh_modifier(Object *ob, char mode)
 			}
 		}
 		
+		if(ob->effect.first) done |= object_wave(ob);
+
 		/* deform: input mesh, output ob dl_verts. is used by subsurf */
 		done |= object_deform(ob);	
 		
@@ -251,6 +256,7 @@ int mesh_modifier(Object *ob, char mode)
 				}
 			}
 		}
+		
 	}
 	else { // end
 		if(mvert) {

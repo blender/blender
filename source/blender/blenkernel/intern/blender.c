@@ -75,7 +75,6 @@
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
-#include "BKE_effect.h"
 #include "BKE_curve.h"
 #include "BKE_font.h"
 
@@ -344,10 +343,6 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 		if(ob->type==OB_FONT) {
 			Curve *cu= ob->data;
 			if(cu->nurb.first==0) text_to_curve(ob, 0);
-		}
-		else if(ob->type==OB_MESH) {
-			makeDispList(ob);
-			if(ob->effect.first) object_wave(ob);
 		}
 	}
 	

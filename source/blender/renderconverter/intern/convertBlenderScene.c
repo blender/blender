@@ -1268,14 +1268,6 @@ static void init_render_mesh(Object *ob)
 
 	if(me->key) do_puno= 1;
 
-	if(ob->effect.first) {
-		Effect *eff= ob->effect.first;
-		while(eff) {
-			if(eff->type==EFF_WAVE) do_puno= 1;
-			eff= eff->next;
-		}
-	}
-
 	if(me->orco==0) {
 		need_orco= 0;
 		for(a=1; a<=ob->totcol; a++) {

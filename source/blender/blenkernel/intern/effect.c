@@ -1424,14 +1424,16 @@ void calc_wave_deform(WaveEff *wav, float ctime, float *co)
 	}
 }
 
-void object_wave(Object *ob)
+/* return 1 if deformed
+   Note: it works on mvert now, so assumes to be callied in modifier stack \
+*/
+int object_wave(Object *ob)
 {
 	WaveEff *wav;
-	DispList *dl;
 	Mesh *me;
 	MVert *mvert;
-	float *fp, ctime;
-	int a, first;
+	float ctime;
+	int a;
 	
 	/* is there a wave */
 	wav= ob->effect.first;
@@ -1439,19 +1441,13 @@ void object_wave(Object *ob)
 		if(wav->type==EFF_WAVE) break;
 		wav= wav->next;
 	}
-	if(wav==0) return;
+	if(wav==NULL) return 0;
 	
 	if(ob->type==OB_MESH) {
 
 		ctime= bsystem_time(ob, 0, (float)G.scene->r.cfra, 0.0);
-		first= 1;
 		
 		me= ob->data;
-		dl= find_displist_create(&ob->disp, DL_VERTS);
-
-		if(dl->verts) MEM_freeN(dl->verts);
-		dl->nr= me->totvert;
-		dl->verts= MEM_mallocN(3*sizeof(float)*me->totvert, "wave");
 
 		wav= ob->effect.first;
 		while(wav) {
@@ -1462,15 +1458,13 @@ void object_wave(Object *ob)
 				if(wav->damp==0) wav->damp= 10.0f;
 				
 				mvert= me->mvert;
-				fp= dl->verts;
 				
-				for(a=0; a<me->totvert; a++, mvert++, fp+=3) {
-					if(first) VECCOPY(fp, mvert->co);
-					calc_wave_deform(wav, ctime, fp);
+				for(a=0; a<me->totvert; a++, mvert++) {
+					calc_wave_deform(wav, ctime, mvert->co);
 				}
-				first= 0;
 			}
 			wav= wav->next;
 		}
 	}
+	return 1;
 }
