@@ -755,7 +755,7 @@ void wpaint_undo (void){
 	makeDispList(OBACT);
 	scrarea_do_windraw(curarea);
 	
-};
+}
 
 void copy_wpaint_undo (MDeformVert *dverts, int dcount){
 	if (wpaintundobuf)
@@ -764,7 +764,7 @@ void copy_wpaint_undo (MDeformVert *dverts, int dcount){
 	wpaintundobuf = MEM_mallocN (sizeof(MDeformVert)*dcount, "wpaintundo");
 	totwpaintundo = dcount;
 	copy_dverts (wpaintundobuf, dverts, dcount);
-};
+}
 
 void weight_paint(void)
 {

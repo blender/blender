@@ -75,7 +75,7 @@ CSG_DestroyBlenderMeshInternals(
 ) {
 	// Free face and vertex iterators.
 	FreeMeshDescriptors(&(mesh->m_face_iterator),&(mesh->m_vertex_iterator));		
-};
+}
 
 
 static
@@ -261,7 +261,7 @@ CSG_PerformOp(
 	output->m_destroy_func = CSG_DestroyCSGMeshInternals;
 
 	return 1;
-};
+}
 
 	int
 NewBooleanMeshTest(
@@ -303,4 +303,5 @@ NewBooleanMeshTest(
 	CSG_DestroyMeshDescriptor(&output3);
 
 	return 1;
-};
+}
+

@@ -99,7 +99,7 @@ VertexIt_Destruct(
 	iterator->Step = NULL;
 	iterator->num_elements = 0;
 
-};		
+}		
 
 static
 	int
@@ -203,7 +203,7 @@ FaceIt_Destruct(
 	iterator->Reset = NULL;
 	iterator->Step = NULL;
 	iterator->num_elements = 0;
-};
+}
 
 
 static
@@ -214,7 +214,7 @@ FaceIt_Done(
 	// assume CSG_IteratorPtr is of the correct type.
 	FaceIt * iterator = (FaceIt *)it;
 	return(iterator->pos >= iterator->mesh->totface);
-};
+}
 
 static
 	void
@@ -269,7 +269,7 @@ FaceIt_Fill(
 			fvdata->color[3] = (float) ((tface->col[i] >> 0) & 0xff);
 		}
 	}
-};
+}
 
 
 static
@@ -279,7 +279,7 @@ FaceIt_Step(
 ) {
 	FaceIt * face_it = (FaceIt *)it;		
 	face_it->pos ++;
-};
+}
 
 static
 	void
@@ -317,7 +317,7 @@ FaceIt_Construct(
 	output->Reset = FaceIt_Reset;
 	output->num_elements = it->mesh->totface;
 	output->it = it;
-};
+}
 
 
 /**
@@ -604,7 +604,7 @@ AddNewBlenderMesh(
 	ob_new->type= OB_MESH;
 
 	return ob_new;
-};
+}
 
 /**
  *

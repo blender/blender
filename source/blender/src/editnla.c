@@ -592,7 +592,7 @@ void init_nlaspace(ScrArea *sa)
 	snla->v2d.keeptot= 0;
 	
 	snla->lock = 0;
-};
+}
 
 void deselect_nlachannel_keys (int test)
 {
