@@ -2112,7 +2112,7 @@ void zbuffer_abuf()
 					}
 				}
 			}
-			if(!(v % 256) && RE_local_test_break()) break; /*RPW, HOS */
+			if(RE_local_test_break()) break; 
 		}
 		
 		if((R.r.mode & R_OSA)==0) break;

@@ -39,6 +39,11 @@
 
 #ifdef WIN32
 #include "BLI_winstuff.h"
+#else
+ /* for signal callback, not (fully) supported at windows */
+#include <sys/time.h>
+#include <signal.h>
+
 #endif
 
 #include "BLI_blenlib.h"
@@ -601,23 +606,6 @@ static void renderview_progress_display_cb(int y1, int y2, int w, int h, unsigne
 /* -------------- callbacks for render loop: interactivity ----------------------- */
 
 
-/* callback for break rendering process */
-static int test_break(void)
-{
-	if (!G.afbreek) {
-		if (blender_test_break()) {
-			;
-		} else if (render_win) {
-			winlay_process_events(0);
-			// render_win can be closed in winlay_process_events()
-			if (render_win == 0 || (render_win->flags & RW_FLAGS_ESCAPE))
-				G.afbreek= 1;
-		}
-	}
-	
-	return G.afbreek;
-}
-
 /* callback for print info in top header in interface */
 static void printrenderinfo_cb(double time, int sample)
 {
@@ -638,6 +626,115 @@ static void printrenderinfo_cb(double time, int sample)
 	
 	screen_draw_info_text(G.curscreen, str);
 }
+
+/* -------------- callback system to allow ESC from rendering ----------------------- */
+
+#ifdef _WIN32
+/* we use the SetTimer here */
+
+static int test_break()
+{
+
+	if(G.afbreek==2) { /* code for testing queue */
+
+		G.afbreek= 0;
+
+		blender_test_break(); /* tests blender interface */
+
+		if (G.afbreek==0 && render_win) { /* tests window */
+			winlay_process_events(0);
+			// render_win can be closed in winlay_process_events()
+			if (render_win == 0 || (render_win->flags & RW_FLAGS_ESCAPE))
+				G.afbreek= 1;
+		}
+	}
+
+	if(G.afbreek==1) return 1;
+	else return 0;
+}
+
+
+static void init_test_break_callback()
+{
+	;
+}
+
+static void end_test_break_callback()
+{
+	;
+}
+
+#else
+/* all other OS's support signal(SIGVTALRM) */
+
+/* this function can be called anywhere during render, it should not eat resources
+   or cpu time, can be called a million times or so
+*/
+
+static int test_break()
+{
+	short val;
+
+	if(G.afbreek==2) { /* code for testing queue */
+
+		G.afbreek= 0;
+
+		blender_test_break(); /* tests blender interface */
+
+		if (G.afbreek==0 && render_win) { /* tests window */
+			winlay_process_events(0);
+			// render_win can be closed in winlay_process_events()
+			if (render_win == 0 || (render_win->flags & RW_FLAGS_ESCAPE))
+				G.afbreek= 1;
+		}
+	}
+
+	if(G.afbreek==1) return 1;
+	else return 0;
+}
+
+/* this function goes in the signal() callback */
+static void interruptESC(int sig)
+{
+
+	if(G.afbreek==0) G.afbreek= 2;	/* code for read queue */
+
+	/* call again, timer was reset */
+	signal(SIGVTALRM, interruptESC);
+}
+
+
+static void init_test_break_callback()
+{
+
+	struct itimerval tmevalue;
+
+	tmevalue.it_interval.tv_sec = 0;
+	tmevalue.it_interval.tv_usec = 250000;
+	/* wanneer de eerste ? */
+	tmevalue.it_value.tv_sec = 0;
+	tmevalue.it_value.tv_usec = 10000;
+
+	signal(SIGVTALRM, interruptESC);
+	setitimer(ITIMER_VIRTUAL, &tmevalue, 0);
+
+}
+
+static void end_test_break_callback()
+{
+	struct itimerval tmevalue;
+
+	tmevalue.it_value.tv_sec = 0;
+	tmevalue.it_value.tv_usec = 0;
+	setitimer(ITIMER_VIRTUAL, &tmevalue, 0);
+	signal(SIGVTALRM, SIG_IGN);
+
+}
+
+
+#endif
+
+
 
 /* -------------- callbacks for render loop: init & run! ----------------------- */
 
@@ -664,7 +761,9 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 		RE_set_renderdisplay_callback(renderview_progress_display_cb);
 	}
 
+	init_test_break_callback();
 	RE_set_test_break_callback(test_break);
+	
 	RE_set_timecursor_callback(set_timecursor);
 	RE_set_printrenderinfo_callback(printrenderinfo_cb);
 	
@@ -691,7 +790,7 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 	free_filesel_spec(G.scene->r.pic);
 
 	G.afbreek= 0;
-
+	end_test_break_callback();
 	mainwindow_make_active();
 }
 

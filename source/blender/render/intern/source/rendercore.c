@@ -1052,10 +1052,8 @@ void scanlinehaloPS(unsigned int *rectz, long *rectdelta, unsigned int *rectt, s
 		if((a & 255)==0) har= R.bloha[a>>8];
 		else har++;
 
-		if( !(a % 256) && RE_local_test_break() ) break;  /* Hos, RPW - fix slow render bug, */
-													/* !(loopvar%256) keeps checking for */
-													/* ESC too often and bogging down render */
-													/* (Based on discovery by Rob Haarsma) */
+		if(RE_local_test_break() ) break;
+		
 		if(ys>har->maxy);
 		else if(ys<har->miny);
 		else {
@@ -1161,7 +1159,7 @@ void scanlinehalo(unsigned int *rectz, unsigned int *rectt, short ys)
 		if((a & 255)==0) har= R.bloha[a>>8];
 		else har++;
 
-		if( !(a % 256) && RE_local_test_break() ) break; /* Hos, RPW, fixes Slow Render Bug */
+		if(RE_local_test_break() ) break; 
 
 		if(ys>har->maxy);
 		else if(ys<har->miny);
@@ -1215,7 +1213,7 @@ void halovert()
 		if((a & 255)==0) har= R.bloha[a>>8];
 		else har++;
 
-		if( !(a % 256) && RE_local_test_break() ) break; /* Hos, RPW, fixes slow render bug */
+		if(RE_local_test_break() ) break; 
 
 		if(har->maxy<0);
 		else if(R.recty<har->miny);
@@ -1269,7 +1267,7 @@ void halovert()
 					rectt+= R.rectx;
 					rectz+= R.rectx;
 					
-					if( !(y % 256) && RE_local_test_break() ) break; /* Hos,RPW, Fixes slow render bug */
+					if(RE_local_test_break() ) break; 
 				}
 
 			}
@@ -2477,7 +2475,7 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 			/* 1 is for osa */
 		if(R.r.mode & R_EDGE) edge_enhance();
 		
-		if( !(v % 256) && RE_local_test_break()) break; /*Hos,RPW, fixes slow render bug*/
+		if(RE_local_test_break()) break;
 	}
 	if(R.flag & (R_ZTRA+R_HALO) ) {	 /* to get back correct values of zbuffer Z for transp and halos */
 		xd= jit[0][0];
@@ -2609,7 +2607,7 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 			}
 			rz+= R.rectx;
 		}
-		if(!(y % 256) && RE_local_test_break()) break; /* Hos,RPW, fixes slow render bug */
+		if(RE_local_test_break()) break; 
 	}
 
 	if( (R.r.mode & R_EDGE) && RE_local_test_break()==0) {
@@ -2708,7 +2706,7 @@ void zbufshade(void)
 									R.rectot);
 		}
 		
-		if(!(y % 256) && RE_local_test_break()) break; /*Hos,RPW, Fixes Slow render bug */
+		if(RE_local_test_break()) break; 
 	}
 
 	if(R.flag & R_ZTRA) endaccumbuf();
@@ -2771,7 +2769,7 @@ void renderhalo(HaloRen *har)	/* postprocess version */
 	
 				rectt+= R.rectx;
 				
-				if( !(y % 256) && RE_local_test_break()) break; /* Hos,RPW, fixes slow render bug */
+				if(RE_local_test_break()) break; 
 			}
 	
 		}
