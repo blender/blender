@@ -1598,8 +1598,7 @@ void do_global_buttons(unsigned short event)
 		allqueue(REDRAWINFO, 1);
 		allqueue(REDRAWOOPS, 1);
 		/* name scene also in set PUPmenu */
-		if ELEM(curarea->spacetype, SPACE_BUTS, SPACE_INFO) allqueue(REDRAWBUTSALL, 0);
-
+		allqueue(REDRAWBUTSALL, 0);
 		allqueue(REDRAWHEADERS, 0);
 
 		break;

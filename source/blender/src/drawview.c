@@ -1478,6 +1478,7 @@ void do_viewbuts(unsigned short event)
 static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 {
 	uiBlock *block;
+	uiBut *bt;
 	Object *ob= OBACT;
 	float lim;
 	
@@ -1496,7 +1497,9 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 		uiBlockSetFlag(block, UI_BLOCK_FRONTBUFFER);	// force old style frontbuffer draw
 	}
 	else {
-		uiDefBut(block, TEX, B_IDNAME, "OB: ",	10,180,140,20, ob->id.name+2, 0.0, 19.0, 0, 0, "");
+		bt= uiDefBut(block, TEX, B_IDNAME, "OB: ",	10,180,140,20, ob->id.name+2, 0.0, 19.0, 0, 0, "");
+		uiButSetFunc(bt, test_idbutton_cb, ob->id.name, NULL);
+
 		uiDefIDPoinBut(block, test_obpoin_but, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
 	}
 

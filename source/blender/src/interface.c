@@ -417,6 +417,48 @@ void ui_block_set_flush(uiBlock *block, uiBut *but)
 	}
 }
 
+/* ******************* copy and paste ********************  */
+
+/* c = copy, v = paste */
+static void ui_but_copy_paste(uiBut *but, char mode)
+{
+	static char str[256]="";
+	static double butval=0.0;
+	
+	if ELEM3(but->type, NUM, NUMSLI, HSVSLI) {
+	
+		if(mode=='c') {
+			butval= ui_get_but_val(but);
+		}
+		else {
+			ui_set_but_val(but, butval);
+			ui_check_but(but);
+		}
+	}
+	else if(but->type==TEX) {
+		
+		if(mode=='c') {
+			strncpy(str, but->poin, but->max);
+		}
+		else {
+			strncpy(but->poin, str, but->max);
+			uibut_do_func(but);
+			ui_check_but(but);
+		}
+	}
+	else if(but->type==IDPOIN) {
+		
+		if(mode=='c') {
+			ID *id= *but->idpoin_idpp;
+			if(id) strncpy(str, id->name+2, 22);
+		}
+		else {
+			but->idpoin_func(str, but->idpoin_idpp);
+			ui_check_but(but);
+		}
+	}
+	
+}
 
 /* ******************* block calc ************************* */
 
@@ -3177,7 +3219,30 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 			if(but->retval==uevent->val) but->flag |= UI_ACTIVE;
 		}
 		break;
+	case VKEY:
+	case CKEY:
+		if(uevent->val && (uevent->qual & (LR_CTRLKEY|LR_COMMANDKEY))) {
+			for(but= block->buttons.first; but; but= but->next) {
+				if(but->type!=LABEL) {
+					if(but->flag & UI_ACTIVE) {
+						if(uevent->event==VKEY) ui_but_copy_paste(but, 'v');
+						else ui_but_copy_paste(but, 'c');
 
+						ui_draw_but(but);
+						
+						if(but->retval) addqueue(block->winq, UI_BUT_EVENT, (short)but->retval);
+						BIF_undo_push(but->str);
+						
+						if( (block->flag & UI_BLOCK_LOOP) && but->type==BLOCK);
+						else if(but->retval) retval= UI_RETURN_OK;
+						
+						break;
+					}
+				}
+			}
+		}
+		break;
+		
 	case PADENTER:
 	case RETKEY:	// prevent treating this as mousemove. for example when you enter at popup 
 		if(block->flag & UI_BLOCK_LOOP) break;
@@ -3544,7 +3609,8 @@ int uiDoBlocks(ListBase *lb, int event)
 			}
 			
 			uevent.event= extern_qread(&uevent.val);
-			
+			uevent.qual= G.qual;
+
 			if(uevent.event) {
 				block->in_use= 1; // bit awkward, but now we can detect if frontbuf flush should be set
 				retval= ui_do_block(block, &uevent);
@@ -3906,6 +3972,36 @@ void ui_check_but(uiBut *but)
 	
 	ui_is_but_sel(but);
 	
+	/* test for min and max, icon sliders, etc */
+	switch( but->type ) {
+		case NUM:
+		case SLI:
+		case SCROLL:
+		case NUMSLI:
+		case HSVSLI:
+			value= ui_get_but_val(but);
+			if(value < but->min) value= but->min;
+				if(value > but->max) value= but->max;
+					ui_set_but_val(but, value);
+			break;
+			
+		case ICONTOG: 
+			if(but->flag & UI_SELECT) but->iconadd= 1;
+			else but->iconadd= 0;
+			break;
+			
+		case ICONROW:
+			value= ui_get_but_val(but);
+			but->iconadd= (int)value- (int)(but->min);
+			break;
+			
+		case ICONTEXTROW:
+			value= ui_get_but_val(but);
+			but->iconadd= (int)value- (int)(but->min);
+			break;
+	}
+	
+	
 	/* safety is 4 to enable small number buttons (like 'users') */
 	if(but->type==NUMSLI || but->type==HSVSLI) 
 		okwidth= -4 + (but->x2 - but->x1)/2.0;
@@ -4040,36 +4136,6 @@ void ui_check_but(uiBut *but)
 				but->ofs= 0;
 			}
 		}
-	}
-	
-	/* test for min and max, icon sliders, etc */
-	
-	switch( but->type ) {
-	case NUM:
-	case SLI:
-	case SCROLL:
-	case NUMSLI:
-	case HSVSLI:
-		value= ui_get_but_val(but);
-		if(value < but->min) value= but->min;
-		if(value > but->max) value= but->max;
-		ui_set_but_val(but, value);
-		break;
-		
-	case ICONTOG: 
-		if(but->flag & UI_SELECT) but->iconadd= 1;
-		else but->iconadd= 0;
-		break;
-		
-	case ICONROW:
-		value= ui_get_but_val(but);
-		but->iconadd= (int)value- (int)(but->min);
-		break;
-
-	case ICONTEXTROW:
-		value= ui_get_but_val(but);
-		but->iconadd= (int)value- (int)(but->min);
-		break;
 	}
 }
 
