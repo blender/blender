@@ -619,6 +619,7 @@ void do_texbuts(unsigned short event)
 			if(pit && pit->callback) {
 				pit->callback(event - B_PLUGBUT);
 				BIF_all_preview_changed();
+				allqueue(REDRAWBUTSSHADING, 0);
 			}
 		}
 	}
@@ -640,7 +641,7 @@ static void texture_panel_plugin(Tex *tex)
 		pit= tex->plugin;
 		
 		for(a=0; a<pit->stypes; a++) {
-			uiDefButS(block, ROW, B_TEXPRV, pit->stnames+16*a, (76*a), 152, 75, 20, &tex->stype, 2.0, (float)a, 0, 0, "");
+			uiDefButS(block, ROW, B_TEXREDR_PRV, pit->stnames+16*a, (76*a), 152, 75, 20, &tex->stype, 2.0, (float)a, 0, 0, "");
 		}
 		
 		varstr= pit->varstr;
