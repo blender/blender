@@ -39,6 +39,7 @@ void load_editLatt(void);
 void remake_editLatt(void);
 void deselectall_Latt(void);
 void mouse_lattice(void);
+void undo_push_lattice(char *name);
 
 #endif
 

@@ -636,6 +636,8 @@ void BIF_undo_push(char *str)
 			undo_push_font(str);
 		else if (G.obedit->type==OB_MBALL)
 			undo_push_mball(str);
+		else if (G.obedit->type==OB_LATTICE)
+			undo_push_lattice(str);
 	}
 	else {
 		if(U.uiflag & USER_GLOBALUNDO) 
@@ -646,7 +648,7 @@ void BIF_undo_push(char *str)
 void BIF_undo(void)
 {	
 	if(G.obedit) {
-		if ELEM5(G.obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL)
+		if ELEM6(G.obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE)
 			undo_editmode_step(1);
 	}
 	else {
@@ -664,7 +666,7 @@ void BIF_undo(void)
 void BIF_redo(void)
 {
 	if(G.obedit) {
-		if ELEM5(G.obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL)
+		if ELEM6(G.obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE)
 			undo_editmode_step(-1);
 	}
 	else {
@@ -682,13 +684,8 @@ void BIF_redo(void)
 void BIF_undo_menu(void)
 {
 	if(G.obedit) {
-		if(G.obedit->type==OB_MESH)
+		if ELEM6(G.obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE)
 			undo_editmode_menu();
-		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
-			undo_editmode_menu();
-		else if (G.obedit->type==OB_MBALL)
-			undo_editmode_menu();
-		
 		allqueue(REDRAWALL, 0);
 	}
 	else {
@@ -1516,13 +1513,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 					else if(G.obedit->type==OB_ARMATURE)
 						remake_editArmature();
-					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
+					else if ELEM4(G.obedit->type, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE) {
 						if(G.qual==0) BIF_undo(); else BIF_redo();
 					}
-					else if(G.obedit->type==OB_LATTICE)
-						remake_editLatt();
 				}
-				else if((G.qual==0)){
+				else if((G.qual==0)) {
 					if (G.f & G_FACESELECT)
 						uv_autocalc_tface();
 					else if(G.f & G_WEIGHTPAINT)

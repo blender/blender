@@ -32,6 +32,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 
 #ifdef HAVE_CONFIG_H
@@ -58,11 +59,12 @@
 #include "BKE_lattice.h"
 #include "BKE_global.h"
 
-#include "BIF_toolbox.h"
 #include "BIF_space.h"
 #include "BIF_screen.h"
 #include "BIF_editlattice.h"
+#include "BIF_editmode_undo.h"
 #include "BIF_editkey.h"
+#include "BIF_toolbox.h"
 
 #include "BSE_edit.h"
 
@@ -130,10 +132,10 @@ void make_editLatt(void)
 	}
 
 	editLatt= MEM_dupallocN(lt);
-	
 	editLatt->def= MEM_dupallocN(lt->def);
 	
 	setflagsLatt(0);
+	BIF_undo_push("original");
 }
 
 
@@ -199,6 +201,8 @@ void remake_editLatt(void)
 	make_editLatt();
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
+
+	BIF_undo_push("Reload original");
 }
 
 
@@ -217,12 +221,15 @@ void deselectall_Latt(void)
 		if(bp->hide==0) {
 			if(bp->f1) {
 				setflagsLatt(0);
+				BIF_undo_push("(De)select all");
 				return;
 			}
 		}
 		bp++;
 	}
 	setflagsLatt(1);
+
+	BIF_undo_push("(De)select all");
 }
 
 
@@ -285,8 +292,52 @@ void mouse_lattice(void)
 		}
 
 		countall();
+		BIF_undo_push("Select");
 	}
 
 	rightmouse_transform();
 	
 }
+
+
+/* **************** undo for lattice object ************** */
+
+static void undoLatt_to_editLatt(void *defv)
+{
+	Base *base;
+	int a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+
+	memcpy(editLatt->def, defv, a*sizeof(BPoint));
+	
+	base= FIRSTBASE;
+	while(base) {
+		if(base->lay & G.vd->lay) {
+			if(base->object->parent==G.obedit) {
+				makeDispList(base->object);
+			}
+		}
+		base= base->next;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static void *editLatt_to_undoLatt(void)
+{
+	
+	return MEM_dupallocN(editLatt->def);
+}
+
+static void free_undoLatt(void *defv)
+{
+	MEM_freeN(defv);
+}
+
+/* and this is all the undo system needs to know */
+void undo_push_lattice(char *name)
+{
+	undo_editmode_push(name, free_undoLatt, undoLatt_to_editLatt, editLatt_to_undoLatt);
+}
+
+
+
+/***/
