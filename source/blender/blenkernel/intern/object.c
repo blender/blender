@@ -992,12 +992,18 @@ void ob_parcurve(Object *ob, Object *par, float mat[][4])
 {
 	Curve *cu;
 	float q[4], vec[4], dir[3], *quat, x1, ctime;
+	float timeoffs= 0.0;
 	
 	Mat4One(mat);
 	
 	cu= par->data;
-	if(cu->path==0 || cu->path->data==0) calc_curvepath(par);
-	if(cu->path==0) return;
+	if(cu->path==NULL || cu->path->data==NULL) calc_curvepath(par);
+	if(cu->path==NULL) return;
+	
+	/* exception, timeoffset is regarded as distance offset */
+	if(cu->flag & CU_OFFS_PATHDIST) {
+		SWAP(float, timeoffs, ob->sf);
+	}
 	
 	/* catch exceptions: curve paths used as a duplicator */
 	if(enable_cu_speed) {
@@ -1014,7 +1020,16 @@ void ob_parcurve(Object *ob, Object *par, float mat[][4])
 		
 		CLAMP(ctime, 0.0, 1.0);
 	}
+	
+	/* time calculus is correct, now apply distance offset */
+	if(cu->flag & CU_OFFS_PATHDIST) {
+		ctime += timeoffs/cu->path->totdist;
 
+		/* restore */
+		SWAP(float, timeoffs, ob->sf);
+	}
+	
+	
 	/* vec: 4 items! */
  	if( where_on_path(par, ctime, vec, dir) ) {
 

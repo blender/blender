@@ -1262,16 +1262,19 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 		if(ob->type==OB_CURVE) {
 			extern float prlen;		// buttons_object.c, should be moved....
 			char str[32];
+			
+			sprintf(str, "%.4f", prlen);
+			uiDefBut(block, BUT, B_PRINTLEN,		"PrintLen",	600,135,75,19, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, str,						675,135,75,19, 0, 1.0, 0, 0, 0, "");
+			
 			uiBlockBeginAlign(block);
 			uiDefButS(block, NUM, B_RECALCPATH, "PathLen:",			600,50,150,19, &cu->pathlen, 1.0, 9000.0, 0, 0, "If no speed Ipo was set, the amount of frames of the path");
 			uiDefButS(block, TOG|BIT|3, B_RECALCPATH, "CurvePath",	600,30,75,19 , &cu->flag, 0, 0, 0, 0, "Enables curve to become translation path");
 			uiDefButS(block, TOG|BIT|4, REDRAWVIEW3D, "CurveFollow",675,30,75,19, &cu->flag, 0, 0, 0, 0, "Makes curve path children to rotate along path");
 			uiDefButS(block, TOG|BIT|7, B_CURVECHECK, "CurveStretch", 600,10,150,19, &cu->flag, 0, 0, 0, 0, "Option for curve-deform: makes deformed child to stretch along entire path");
+			uiDefButS(block, TOG|BIT|8, REDRAWVIEW3D, "PathDist Offs", 600,-10,150,19, &cu->flag, 0, 0, 0, 0, "Children will use TimeOffs value as path distance offset");
 
 			uiBlockEndAlign(block);
-			sprintf(str, "%.4f", prlen);
-			uiDefBut(block, BUT, B_PRINTLEN,		"PrintLen",	600,-10,75,19, 0, 0, 0, 0, 0, "");
-			uiDefBut(block, LABEL, 0, str,						675,-10,75,19, 0, 1.0, 0, 0, 0, "");
 		}
 
 		uiBlockBeginAlign(block);
