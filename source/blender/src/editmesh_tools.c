@@ -1752,12 +1752,12 @@ void subdivideflag(int flag, float rad, int beauty)
 	makeDispList(G.obedit);
 }
 
-static int count_edges(EditEdge *ed)
+static int count_selected_edges(EditEdge *ed)
 {
 	int totedge = 0;
 	while(ed) {
 		ed->vn= 0;
-		if( (ed->v1->f & 1) && (ed->v2->f & 1) ) totedge++;
+		if( ed->f & SELECT ) totedge++;
 		ed= ed->next;
 	}
 	return totedge;
@@ -2006,7 +2006,9 @@ void beauty_fill(void)
 		*               - if true: remedge,  addedge, all edges at the edge get new face pointers
 		*/
 	
-    totedge = count_edges(em->edges.first);
+	EM_selectmode_flush();	// makes sure in selectmode 'face' the edges of selected faces are selected too 
+
+    totedge = count_selected_edges(em->edges.first);
     if(totedge==0) return;
 
     if(okee("Beautify fill")==0) return;
@@ -2172,8 +2174,9 @@ void join_triangles(void)
 	float *uv[4];
 	unsigned int col[4];
 
-
-	totedge = count_edges(em->edges.first);
+	EM_selectmode_flush();	// makes sure in selectmode 'face' the edges of selected faces are selected too 
+	
+	totedge = count_selected_edges(em->edges.first);
 	if(totedge==0) return;
 
 	efaar= (EVPTuple *) MEM_callocN(totedge * sizeof(EVPTuple), "jointris");
@@ -2268,7 +2271,9 @@ void edge_flip(void)
 						- if true: remedge,  addedge, all edges at the edge get new face pointers
 	 */
 
-	totedge = count_edges(em->edges.first);
+	EM_selectmode_flush();	// makes sure in selectmode 'face' the edges of selected faces are selected too 
+
+	totedge = count_selected_edges(em->edges.first);
 	if(totedge==0) return;
 
 	/* temporary array for : edge -> face[1], face[2] */
@@ -2310,7 +2315,7 @@ void edge_flip(void)
 					if( convex(v1->co, v2->co, v3->co, v4->co) > 0.01) {
 						if(exist_face(v1, v2, v3, v4)==0) {
 							w = addfacelist(v1, v2, v3, 0, efaa[1], NULL); /* outch this may break seams */ 
-							
+							EM_select_face(w, 1);
 							untag_edges(w);
 
 							UVCOPY(w->tf.uv[0], uv[0]);
@@ -2320,6 +2325,7 @@ void edge_flip(void)
 							w->tf.col[0] = col[0]; w->tf.col[1] = col[1]; w->tf.col[2] = col[2]; 
 							
 							w = addfacelist(v1, v3, v4, 0, efaa[1], NULL); /* outch this may break seams */
+							EM_select_face(w, 1);
 							untag_edges(w);
 
 							UVCOPY(w->tf.uv[0], uv[0]);
@@ -2345,7 +2351,7 @@ void edge_flip(void)
 	/* clear tagged edges and faces: */
 	free_tagged_edgelist(em->edges.first);
 	free_tagged_facelist(em->faces.first);
-		
+	
 	MEM_freeN(efaar);
 	
 	allqueue(REDRAWVIEW3D, 0);
@@ -2365,7 +2371,7 @@ static void edge_rotate(EditEdge *eed)
 	for(efa = em->faces.first;efa;efa = efa->next){
 		if((efa->e1 == eed || efa->e2 == eed) || (efa->e3 == eed || efa->e4 == eed)){
 			if(facecount == 2){
-				scrarea_do_windraw(curarea);
+				scrarea_do_windraw(curarea);  /// what is this for? (ton)
 				screen_swapbuffers();
 				return;
 			}
@@ -2582,7 +2588,10 @@ static void edge_rotate(EditEdge *eed)
 	else if(fac1 == 4)
 		newFace[0]->e4->f2 |= 2;
 	
-	
+	/* added this for proper select flags, probably whats below is obsolete then */
+	EM_select_face(newFace[0], 1);
+	EM_select_face(newFace[1], 1);
+
 	/* mark the f1's of the verts for re-selection */
 	faces[0][(p1+1)%fac1]->f1 |= 1;
 	faces[1][(p3+1)%fac2]->f1 |= 1;	
@@ -2625,7 +2634,7 @@ void edge_rotate_selected()
 			eed = eed->next;
 			continue;
 		}
-		if(eed->v1->f & 1 && eed->v2->f & 1){
+		if(eed->f & SELECT){	// changed this... (ton)
 			temp = eed;
 			eed = eed->next;
 			edge_rotate(temp);	
@@ -2633,21 +2642,12 @@ void edge_rotate_selected()
 			eed = eed->next;
 
 	}
-	/* clear all selections */
-	for(ev = G.editMesh->verts.first;ev;ev = ev->next)
-		ev->f &= ~1;
-	
-	/*set new selections*/
-	for(ev = G.editMesh->verts.first;ev;ev = ev->next){
-		if(ev->f1 & 1)
-			ev->f |= 1;
-	}
 		
 	/*clear new edge flags*/
 	for(eed = G.editMesh->edges.first; eed; eed = eed->next)
 		eed->f2 &= ~2;
 
-	/* flush selected vertices to edges/faces */
+	/* flush selected vertices (again) to edges/faces */
 	EM_select_flush();
 	
 	allqueue(REDRAWVIEW3D, 0);

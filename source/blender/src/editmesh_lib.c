@@ -370,12 +370,7 @@ void EM_selectmode_flush(void)
 	// make sure selected faces have selected edges too, for extrude (hack?)
 	else if(G.scene->selectmode & SCE_SELECT_FACE) {
 		for(efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->f & SELECT) {
-				efa->e1->f |= SELECT;
-				efa->e2->f |= SELECT;
-				efa->e3->f |= SELECT;
-				if(efa->e4) efa->e4->f |= SELECT;
-			}
+			if(efa->f & SELECT) EM_select_face(efa, 1);
 		}
 	}
 	check_fgons_selection();
@@ -1306,7 +1301,7 @@ int compareface(EditFace *vl1, EditFace *vl2)
 	return 0;
 }
 
-int exist_face(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4)
+EditFace *exist_face(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa, efatest;
@@ -1318,10 +1313,10 @@ int exist_face(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4)
 	
 	efa= em->faces.first;
 	while(efa) {
-		if(compareface(&efatest, efa)) return 1;
+		if(compareface(&efatest, efa)) return efa;
 		efa= efa->next;
 	}
-	return 0;
+	return NULL;
 }
 
 

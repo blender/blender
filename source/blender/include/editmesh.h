@@ -68,7 +68,7 @@ extern void EM_hide_reset(void);
 extern int faceselectedOR(EditFace *efa, int flag);
 extern int faceselectedAND(EditFace *efa, int flag);
 
-extern int exist_face(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4);
+extern EditFace *exist_face(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4);
 extern void flipface(EditFace *efa); // flips for normal direction
 extern int compareface(EditFace *vl1, EditFace *vl2);
 

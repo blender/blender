@@ -337,17 +337,27 @@ void addedgeface_mesh(void)
 	}
 	else if(amount==4) {
 		if(exist_face(neweve[0], neweve[1], neweve[2], neweve[3])==0) {
+			int tria= 0;
+			
+			/* remove trias if they exist, 4 cases.... */
+			if(exist_face(neweve[0], neweve[1], neweve[2], NULL)) tria++;
+			if(exist_face(neweve[0], neweve[1], neweve[3], NULL)) tria++;
+			if(exist_face(neweve[0], neweve[2], neweve[3], NULL)) tria++;
+			if(exist_face(neweve[1], neweve[2], neweve[3], NULL)) tria++;
 		
-			con1= convex(neweve[0]->co, neweve[1]->co, neweve[2]->co, neweve[3]->co);
-			con2= convex(neweve[0]->co, neweve[2]->co, neweve[3]->co, neweve[1]->co);
-			con3= convex(neweve[0]->co, neweve[3]->co, neweve[1]->co, neweve[2]->co);
+			if(tria==2) join_triangles();
+			else {
+				con1= convex(neweve[0]->co, neweve[1]->co, neweve[2]->co, neweve[3]->co);
+				con2= convex(neweve[0]->co, neweve[2]->co, neweve[3]->co, neweve[1]->co);
+				con3= convex(neweve[0]->co, neweve[3]->co, neweve[1]->co, neweve[2]->co);
 
-			if(con1>=con2 && con1>=con3)
-				efa= addfacelist(neweve[0], neweve[1], neweve[2], neweve[3], NULL, NULL);
-			else if(con2>=con1 && con2>=con3)
-				efa= addfacelist(neweve[0], neweve[2], neweve[3], neweve[1], NULL, NULL);
-			else 
-				efa= addfacelist(neweve[0], neweve[2], neweve[1], neweve[3], NULL, NULL);
+				if(con1>=con2 && con1>=con3)
+					efa= addfacelist(neweve[0], neweve[1], neweve[2], neweve[3], NULL, NULL);
+				else if(con2>=con1 && con2>=con3)
+					efa= addfacelist(neweve[0], neweve[2], neweve[3], neweve[1], NULL, NULL);
+				else 
+					efa= addfacelist(neweve[0], neweve[2], neweve[1], neweve[3], NULL, NULL);
+			}
 
 		}
 		else error("The selected vertices already form a face");
