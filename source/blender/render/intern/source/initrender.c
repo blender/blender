@@ -993,6 +993,7 @@ static void mainRenderLoop(void)  /* here the PART and FIELD loops */
 					zBufShadeAdvanced();
 				}
 				else {
+					if(R.rectz) MEM_freeN(R.rectz);
 					R.rectz =  (unsigned int *)MEM_mallocN(sizeof(int)*R.rectx*R.recty, "rectz");
 
 					if(R.r.mode & R_OSA) zbufshadeDA();

@@ -901,8 +901,6 @@ float bsystem_time(Object *ob, Object *par, float cfra, float ofs)
 {
 	/* returns float ( see frame_to_float in ipo.c) */
 
-	if(no_speed_curve==0) if(ob && ob->ipo) cfra= calc_ipo_time(ob->ipo, cfra);
-	
 	/* 2nd field */
 	if(R.flag & R_SEC_FIELD) {
 		if(R.r.mode & R_FIELDSTILL); else cfra+= .5;
@@ -917,6 +915,8 @@ float bsystem_time(Object *ob, Object *par, float cfra, float ofs)
 		/* global time */
 		cfra*= G.scene->r.framelen;	
 	}
+	
+	if(no_speed_curve==0) if(ob && ob->ipo) cfra= calc_ipo_time(ob->ipo, cfra);
 	
 	/* ofset frames */
 	if(ob && (ob->ipoflag & OB_OFFS_PARENT)) {

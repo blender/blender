@@ -70,7 +70,6 @@
 #include "DNA_object_types.h"
 #include "DNA_radio_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_sound_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_vfont_types.h"
@@ -96,7 +95,6 @@
 #include "BIF_editdeform.h"
 #include "BIF_editfont.h"
 #include "BIF_editmesh.h"
-#include "BIF_editsound.h"
 #include "BIF_interface.h"
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
@@ -129,7 +127,6 @@
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
-#include "BKE_sound.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
