@@ -42,7 +42,7 @@
 
 #define MAXLAMP		32765
 /* max length material array, 16 because of bits in matfrom */
-#define MAXPICKBUF      2000
+#define MAXPICKBUF      10000
 #define MAXSEQ          32
 /*  in Image struct */
 #define MAXMIPMAP       10

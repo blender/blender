@@ -828,7 +828,7 @@ short selectprojektie(unsigned int *buffer, short x1, short y1, short x2, short 
 	}
 	glPopName();	/* see above (pushname) */
 	hits= glRenderMode(GL_RENDER);
-	if(hits<0) error("Too many objects in selectbuf");
+	if(hits<0) error("Too many objects in select buffer");
 
 	G.f &= ~G_PICKSEL;
 	setwinmatrixview3d(0);
