@@ -1,6 +1,8 @@
 import sys
 # Import the C flags set in the SConstruct file
 Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
 Import ('platform_libs')
 Import ('platform_libpath')
 Import ('platform_linkflags')
@@ -21,19 +23,20 @@ if sys.platform=='win32':
 # TODO: make sure the makesdna program does not get installed on the system.
 source_files = ['makesdna.c']
 
-include_paths = ['#/intern/guardedalloc',
-                 '..']
-
 makesdna_tool = Environment (CCFLAGS='-DBASE_HEADER="\\"source/blender/makesdna/\\"" ')
 
-makesdna_tool.Append (CCFLAGS=cflags)
-makesdna_tool.Append (LIBS=platform_libs)
-makesdna_tool.Append (LIBPATH=platform_libpath)
-makesdna_tool.Append (LINKFLAGS=platform_linkflags)
-makesdna_tool.Append (CPPPATH=include_paths)
-makesdna_tool.Append (LIBPATH='#/lib')
-makesdna_tool.Append (LIBS='blender_guardedalloc')
-makesdna_tool.Program (target='makesdna', source=source_files)
+makesdna_tool.Append (CPPPATH = ['#/intern/guardedalloc',
+                                 '..'])
+
+makesdna_tool.Append (CCFLAGS = cflags)
+makesdna_tool.Append (CXXFLAGS = cxxflags)
+makesdna_tool.Append (CPPDEFINES = defines)
+makesdna_tool.Append (LIBS = platform_libs)
+makesdna_tool.Append (LIBPATH = platform_libpath)
+makesdna_tool.Append (LINKFLAGS = platform_linkflags)
+makesdna_tool.Append (LIBPATH = '#/lib')
+makesdna_tool.Append (LIBS = 'blender_guardedalloc')
+makesdna_tool.Program (target = 'makesdna', source = source_files)
 
 dna = Environment ()
 dna_dict = dna.Dictionary()
