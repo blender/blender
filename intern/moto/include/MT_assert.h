@@ -32,17 +32,17 @@
 #ifndef MT_ASSERT_H
 #define MT_ASSERT_H
 
-#ifdef	MT_DEBUG
+#ifdef	MT_NDEBUG
+
+#define MT_assert(predicate) ((void)0)
+
+#else 
 
 #include <assert.h>
 
 #define MT_assert(predicate) assert(predicate)
 
-#else 
-
-#define MT_assert(predicate) ((void)0)
-
-#endif /* MT_DEBUG */
+#endif /* MT_NDEBUG */
 
 #endif
 
