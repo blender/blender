@@ -515,6 +515,22 @@ SOURCE=..\..\..\source\blender\src\toolbox.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\transform.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\transform_constraints.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\transform_generics.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\transform_numinput.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\unwrapper.c
 # End Source File
 # Begin Source File
@@ -612,6 +628,22 @@ SOURCE=..\..\..\source\blender\include\butspace.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\include\editmesh.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\transform.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\transform_constraints.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\transform_generics.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\transform_numinput.h
 # End Source File
 # Begin Source File
 
