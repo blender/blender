@@ -47,9 +47,10 @@ all::
 ifeq ($(APPLICATION), blender)
 	@echo "---> copying message files"
 	@cp -R $(NANBLENDERHOME)/bin/.blender/locale $(DIR)/bin/$(APPLICATION).app/Contents/Resources
-	@echo "---> copying .Blanguages and .bfont.ttf"
+	@echo "---> copying .Blanguages"
 	@cp $(NANBLENDERHOME)/bin/.blender/.Blanguages $(DIR)/bin/$(APPLICATION).app/Contents/Resources
-	@cp $(NANBLENDERHOME)/bin/.blender/.bfont.ttf $(DIR)/bin/$(APPLICATION).app/Contents/Resources
+	@echo "---> copying .blender/ scripts"
+	@cp -R $(NANBLENDERHOME)/bin/.blender $(DIR)/bin/$(APPLICATION).app/Contents/MacOS
 endif
 	@echo "---> removing CVS directories and Mac hidden files from distribution"
 	@find $(DIR)/bin/$(APPLICATION).app -name CVS -prune -exec rm -rf {} \;

@@ -37,7 +37,7 @@ CPPFLAGS ?= $(NAN_CPPFLAGS)
 
 # common parts ---------------------------------------------------
 
-# Uncomment next line to enable integrated game engine
+# Uncomment next lines to enable integrated game engine
 CFLAGS  += -DGAMEBLENDER=1
 CFLAGS  += -DUSE_SUMO_SOLID
 CCFLAGS += -DUSE_SUMO_SOLID
@@ -78,7 +78,7 @@ endif
 ifeq ($(OS),darwin)
     CC	= gcc
     CCC	= g++
-    CFLAGS	+= -pipe -fPIC -ffast-math -mcpu=7450 -mtune=7450
+    CFLAGS	+= -pipe -fPIC -ffast-math
     CCFLAGS	+= -pipe -fPIC
     REL_CFLAGS	+= -O2
     REL_CCFLAGS	+= -O2

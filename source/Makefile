@@ -88,9 +88,9 @@ PYPLAYERLIB ?= $(PYLIB)
     GRPLIB += $(OCGDIR)/blender/render/$(DEBUG_DIR)librender.a
     GRPLIB += $(OCGDIR)/blender/radiosity/$(DEBUG_DIR)libradiosity.a
     GRPLIB += $(NAN_OPENNL)/lib/$(DEBUG_DIR)libopennl.a
-    GRPLIB += $(NAN_SUPERLU)/lib/$(DEBUG_DIR)libsuperlu.a
-
+    GRPLIB += $(NAN_SUPERLU)/lib/$(DEBUG_DIR)libsuperlu.a	
     GRPLIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
+
 
 # nlin: the reason that some libraries appear more than once below is
 # to handle circular dependencies in linking among libraries... some
@@ -282,10 +282,12 @@ endif
 ifeq ($(OS),darwin)
     BINTARGETS = blenderdynamic.app
     BINTARGETS += blenderplayer.app
-    PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
-    # Next line would enable MxTextTools (for VRML2 import) 
-    # but results in a link error
-    # PYLIB += $(NAN_MXTEXTTOOLS) 
+
+    ifdef PY_FRAMEWORK
+        PYLIB = -framework Python
+    else 
+        PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
+    endif
 endif
 
 ifeq ($(OS),freebsd)
