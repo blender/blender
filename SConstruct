@@ -10,8 +10,8 @@ root_build_dir = '..' + os.sep + 'build' + os.sep
 config_file = 'config.opts'
 version='2.32'
 
-sdl_cenv = Environment ()
-sdl_lenv = Environment ()
+sdl_env = Environment ()
+freetype_env = Environment ()
 link_env = Environment ()
 env = Environment ()
 
@@ -51,12 +51,11 @@ if sys.platform == 'linux2':
     opengl_libpath = ['/usr/lib', '/usr/X11R6/lib']
     opengl_include = ['/usr/include']
     # SDL library information
-    sdl_cenv.ParseConfig ('sdl-config --cflags')
-    sdl_lenv.ParseConfig ('sdl-config --libs')
-    sdl_cflags = sdl_cenv.Dictionary()['CCFLAGS']
-    sdl_include = sdl_cenv.Dictionary()['CPPPATH']
-    sdl_libpath = sdl_lenv.Dictionary()['LIBPATH']
-    sdl_lib = sdl_lenv.Dictionary()['LIBS']
+    sdl_env.ParseConfig ('sdl-config --cflags --libs')
+    sdl_cflags = sdl_env.Dictionary()['CCFLAGS']
+    sdl_include = sdl_env.Dictionary()['CPPPATH']
+    sdl_libpath = sdl_env.Dictionary()['LIBPATH']
+    sdl_lib = sdl_env.Dictionary()['LIBS']
     # SOLID library information
     solid_lib = []                                              # TODO
     solid_libpath = []                                          # TODO
@@ -76,9 +75,10 @@ if sys.platform == 'linux2':
     ftgl_lib = ['ftgl']
     ftgl_libpath = ['#../lib/linux-glibc2.2.5-i386/ftgl/lib']
     ftgl_include = ['#../lib/linux-glibc2.2.5-i386/ftgl/include']
-    freetype_lib = ['freetype']
-    freetype_libpath = ['#../lib/linux-glibc2.2.5-i386/freetype/lib']
-    freetype_include = ['#../lib/linux-glibc2.2.5-i386/freetype/include']
+    freetype_env.ParseConfig ('pkg-config --cflags --libs freetype2')
+    freetype_lib = freetype_env.Dictionary()['LIBS']
+    freetype_libpath = freetype_env.Dictionary()['LIBPATH']
+    freetype_include = freetype_env.Dictionary()['CPPPATH']
     gettext_lib = []
     gettext_libpath = []
     gettext_include = []
@@ -122,16 +122,13 @@ elif sys.platform == 'darwin':
     opengl_libpath = []
     opengl_include = []
     # SDL specific stuff.
-    sdl_cenv.ParseConfig ('sdl-config --cflags')
-    sdl_lenv.ParseConfig ('sdl-config --libs')
-    sdl_cdict = sdl_cenv.Dictionary()
-    sdl_ldict = sdl_lenv.Dictionary()
-    sdl_cflags = string.join(sdl_cdict['CCFLAGS'])
+    sdl_env.ParseConfig ('sdl-config --cflags --libs')
+    sdl_cflags = sdl_env.Dictionary()['CCFLAGS']
     # Want to use precompiled libraries?
     if use_precomp == 'true':
-        sdl_ldict['LIBS'] = ['libSDL.a']
-        sdl_ldict['LIBPATH'] = [darwin_precomp + '/sdl/lib']
-        sdl_cdict['CPPPATH'] = [darwin_precomp + '/sdl/include']
+        sdl_include = [darwin_precomp + '/sdl/include']
+        sdl_libpath = [darwin_precomp + '/sdl/lib']
+        sdl_lib = ['libSDL.a']
 
     platform_libs = ['stdc++'] 
     extra_includes = ['/sw/include']
@@ -190,11 +187,12 @@ elif sys.platform == 'cygwin':
     z_libpath = ['/usr/lib']
     z_include = ['/usr/include']
     # SDL specific stuff.
-    sdl_cenv.ParseConfig ('sdl-config --cflags')
-    sdl_lenv.ParseConfig ('sdl-config --libs')
-    sdl_cdict = sdl_cenv.Dictionary()
-    sdl_ldict = sdl_lenv.Dictionary()
-    sdl_cflags = '-DWIN32'
+    sdl_env.ParseConfig ('sdl-config --cflags --libs')
+    sdl_cflags = sdl_env.Dictionary()['CCFLAGS']
+    sdl_include = sdl_env.Dictionary()['CPPPATH']
+    sdl_libpath = sdl_env.Dictionary()['LIBPATH']
+    sdl_lib = sdl_env.Dictionary()['LIBS']
+    #sdl_cflags = '-DWIN32'
     # We need to force the Cygwin environment to use the g++ linker.
     link_env.Replace (CC='g++')
     # Python variables.
@@ -344,12 +342,11 @@ elif string.find (sys.platform, 'sunos') != -1:
     opengl_libpath = []
     opengl_include = []
     # SDL library information
-    sdl_cenv.ParseConfig ('sdl-config --cflags')
-    sdl_lenv.ParseConfig ('sdl-config --libs')
-    sdl_cflags = sdl_cenv.Dictionary()['CCFLAGS']
-    sdl_include = sdl_cenv.Dictionary()['CPPPATH']
-    sdl_libpath = sdl_lenv.Dictionary()['LIBPATH']
-    sdl_lib = sdl_lenv.Dictionary()['LIBS']
+    sdl_env.ParseConfig ('sdl-config --cflags --libs')
+    sdl_cflags = sdl_env.Dictionary()['CCFLAGS']
+    sdl_include = sdl_env.Dictionary()['CPPPATH']
+    sdl_libpath = sdl_env.Dictionary()['LIBPATH']
+    sdl_lib = sdl_env.Dictionary()['LIBS']
     # SOLID library information
     solid_lib = []                                              # TODO
     solid_libpath = []                                          # TODO
@@ -687,11 +684,12 @@ link_env.Append (LIBPATH=libpath)
 link_env.Append (CPPDEFINES=defines)
 
 if user_options_dict['USE_INTERNATIONAL'] == 1:
+    link_env.Append (LIBS=user_options_dict['FREETYPE_LIBRARY'])
+    link_env.Append (LIBPATH=user_options_dict['FREETYPE_LIBPATH'])
     link_env.Append (LIBS=['blender_FTF'])
     link_env.Append (LIBS=user_options_dict['FTGL_LIBRARY'])
     link_env.Append (LIBPATH=user_options_dict['FTGL_LIBPATH'])
     link_env.Append (LIBS=user_options_dict['FREETYPE_LIBRARY'])
-    link_env.Append (LIBPATH=user_options_dict['FREETYPE_LIBPATH'])
 if user_options_dict['USE_QUICKTIME'] == 1:
     link_env.Append (LIBS=['blender_quicktime'])
 if user_options_dict['BUILD_GAMEENGINE'] == 1:
