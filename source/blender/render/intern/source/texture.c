@@ -173,7 +173,7 @@ void init_render_textures()
 
 void end_render_texture(Tex *tex)
 {
-	
+
 
 }
 
@@ -182,45 +182,13 @@ void end_render_texture(Tex *tex)
 void end_render_textures()
 {
 	Tex *tex;
-	
+
 	tex= G.main->tex.first;
 	while(tex) {
 		if(tex->id.us) end_render_texture(tex);
 		tex= tex->id.next;
 	}
-	
-}
 
-
-/* ************************** */
-
-static int clouds(Tex *tex, float *texvec)
-{
-	float (*turbfunc)(float, float, float, float, int);
-
-	if(tex->noisetype==TEX_NOISESOFT) turbfunc= BLI_turbulence;
-	else turbfunc= BLI_turbulence1;
-	
-	Tin= turbfunc(tex->noisesize, texvec[0], texvec[1], texvec[2], tex->noisedepth);
-
-	if(tex->stype==1) {
-
-		Tr= Tin;
-		Tg= turbfunc(tex->noisesize, texvec[1], texvec[0], texvec[2], tex->noisedepth);
-
-		Tb= turbfunc(tex->noisesize,texvec[1],texvec[2],texvec[0], tex->noisedepth);
-		
-		BRICONRGB;
-		Ta= 1.0;
-		
-		return 1;
-	}
-	
-	BRICON;
-
-	if(tex->flag & TEX_COLORBAND)  return do_colorband(tex->coba);
-		
-	return 0;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -228,7 +196,7 @@ static int clouds(Tex *tex, float *texvec)
 static int blend(Tex *tex, float *texvec)
 {
 	float x, y, t;
-	
+
 	if(tex->flag & TEX_FLIPBLEND) {
 		x= texvec[1];
 		y= texvec[0];
@@ -237,7 +205,7 @@ static int blend(Tex *tex, float *texvec)
 		x= texvec[0];
 		y= texvec[1];
 	}
-	
+
 	if(tex->stype==0) {	/* lin */
 		Tin= (1.0+x)/2.0;
 	}
@@ -263,7 +231,7 @@ static int blend(Tex *tex, float *texvec)
 		if(Tin<0.0) Tin= 0.0;
 		if(tex->stype==5) Tin*= Tin;  /* halo */
 	}
-	
+
 	BRICON;
 	if(tex->flag & TEX_COLORBAND)  return do_colorband(tex->coba);
 
@@ -271,65 +239,130 @@ static int blend(Tex *tex, float *texvec)
 }
 
 /* ------------------------------------------------------------------------- */
+/* ************************************************************************* */
+/* clouds, wood & marble updated to do proper bumpmapping */
+/* 0.025 seems reasonable value for offset */
+#define B_OFFS 0.025
+
+static int clouds(Tex *tex, float *texvec)
+{
+	float (*turbfunc)(float, float, float, float, int);
+	int rv=0;	/* return value, int:0, col:1, nor:2, everything:3 */
+
+	if (tex->noisetype==TEX_NOISESOFT) turbfunc = BLI_turbulence;
+	else turbfunc = BLI_turbulence1;
+
+	Tin = turbfunc(tex->noisesize, texvec[0], texvec[1], texvec[2], tex->noisedepth);
+
+	if (tex->nor!=NULL) {
+		/* calculate bumpnormal */
+		tex->nor[0] = Tin - turbfunc(tex->noisesize, texvec[0] + B_OFFS, texvec[1], texvec[2], tex->noisedepth);
+		tex->nor[1] = Tin - turbfunc(tex->noisesize, texvec[0], texvec[1] + B_OFFS, texvec[2], tex->noisedepth);
+		tex->nor[2] = Tin - turbfunc(tex->noisesize, texvec[0], texvec[1], texvec[2] + B_OFFS, tex->noisedepth);
+		rv += 2;
+	}
+
+	if (tex->stype==1) {
+		/* in this case, int. value should really be computed from color,
+		   and bumpnormal from that, would be too slow, looks ok as is */
+		Tr = Tin;
+		Tg = turbfunc(tex->noisesize, texvec[1], texvec[0], texvec[2], tex->noisedepth);
+		Tb = turbfunc(tex->noisesize, texvec[1], texvec[2], texvec[0], tex->noisedepth);
+		BRICONRGB;
+		Ta = 1.0;
+		return (rv+1);
+	}
+
+	BRICON;
+
+	if (tex->flag & TEX_COLORBAND)  return (rv + do_colorband(tex->coba));
+
+	return rv;
+
+}
+
+/* computes basic wood intensity value at x,y,z */
+static float wood_int(Tex *tex, float x, float y, float z)
+{
+	float (*noisefunc)(float, float, float, float);
+	float wi=0;
+
+	if (tex->noisetype==TEX_NOISESOFT) noisefunc = BLI_hnoise;
+	else noisefunc = BLI_hnoisep;
+
+	if (tex->stype==0)
+		wi = 0.5 + 0.5*sin((x + y + z)*10.0);
+	else if (tex->stype==1)
+		wi = 0.5 + 0.5*sin(sqrt(x*x + y*y + z*z)*20.0);
+	else if (tex->stype==2) {
+		wi = noisefunc(tex->noisesize, x, y, z);
+		wi = 0.5 + 0.5*sin(tex->turbul*wi + (x + y + z)*10.0);
+	}
+	else if (tex->stype==3) {
+		wi = noisefunc(tex->noisesize, x, y, z);
+		wi = 0.5 + 0.5*sin(tex->turbul*wi + (sqrt(x*x + y*y + z*z))*20.0);
+	}
+
+	return wi;
+}
 
 static int wood(Tex *tex, float *texvec)
 {
-	float (*noisefunc)(float, float, float, float);
+	int rv=0;	/* return value, int:0, col:1, nor:2, everything:3 */
 
-	if(tex->noisetype==TEX_NOISESOFT) noisefunc= BLI_hnoise;
-	else noisefunc= BLI_hnoisep;
+	Tin = wood_int(tex, texvec[0], texvec[1], texvec[2]);
+	if (tex->nor!=NULL) {
+		/* calculate bumpnormal */
+		tex->nor[0] = Tin - wood_int(tex, texvec[0] + B_OFFS, texvec[1], texvec[2]);
+		tex->nor[1] = Tin - wood_int(tex, texvec[0], texvec[1] + B_OFFS, texvec[2]);
+		tex->nor[2] = Tin - wood_int(tex, texvec[0], texvec[1], texvec[2] + B_OFFS);
+		rv += 2;
+	}
 
-	
-	if(tex->stype==0) {
-		Tin= 0.5+0.5*sin( (texvec[0]+texvec[1]+texvec[2])*10.0 );
-	}
-	else if(tex->stype==1) {
-		Tin= 0.5+0.5*sin( sqrt(texvec[0]*texvec[0]+texvec[1]*texvec[1]+texvec[2]*texvec[2])*20.0 );
-	}
-	else if(tex->stype==2) {
-		Tin= noisefunc(tex->noisesize, texvec[0], texvec[1], texvec[2]);
-		Tin= 0.5+ 0.5*sin(tex->turbul*Tin+(texvec[0]+texvec[1]+texvec[2])*10.0);
-	}
-	else if(tex->stype==3) {
-		Tin= noisefunc(tex->noisesize, texvec[0], texvec[1], texvec[2]);
-		Tin= 0.5+ 0.5*sin(tex->turbul*Tin+(sqrt(texvec[0]*texvec[0]+texvec[1]*texvec[1]+texvec[2]*texvec[2]))*20.0);
-	}
-	
-	
 	BRICON;
-	if(tex->flag & TEX_COLORBAND)  return do_colorband(tex->coba);
-	
-	return 0;
+	if (tex->flag & TEX_COLORBAND)  return (rv + do_colorband(tex->coba));
+
+	return rv;
 }
 
-/* ------------------------------------------------------------------------- */
+/* computes basic marble intensity at x,y,z */
+static float marble_int(Tex *tex, float x, float y, float z)
+{
+	float n, mi;
+	float (*turbfunc)(float, float, float, float, int);
+
+	if (tex->noisetype==TEX_NOISESOFT) turbfunc = BLI_turbulence;
+	else turbfunc = BLI_turbulence1;
+
+	n = 5.0 * (x + y + z);
+
+	mi = 0.5 + 0.5 * sin(n + tex->turbul*turbfunc(tex->noisesize, x, y, z, tex->noisedepth));
+	if (tex->stype>=1) {
+		mi = sqrt(mi);
+		if (tex->stype==2) mi = sqrt(mi);
+	}
+
+	return mi;
+}
 
 static int marble(Tex *tex, float *texvec)
 {
-	float n;
-	float (*turbfunc)(float, float, float, float, int);
+	int rv=0;	/* return value, int:0, col:1, nor:2, everything:3 */
 
-	if(tex->noisetype==TEX_NOISESOFT) turbfunc= BLI_turbulence;
-	else turbfunc= BLI_turbulence1;
-	
-	n= 5.0*(texvec[0]+texvec[1]+texvec[2]);
+	Tin = marble_int(tex, texvec[0], texvec[1], texvec[2]);
 
-	Tin = 0.5+0.5*sin(n+tex->turbul*turbfunc(tex->noisesize, texvec[0],texvec[1],texvec[2], tex->noisedepth));
-
-	switch (tex->stype) {
-	case 1:
-		Tin= sqrt(Tin);
-		break;
-	case 2:
-		Tin= sqrt(Tin);
-		Tin= sqrt(Tin);
-		break;
+	if (tex->nor!=NULL) {
+		/* calculate bumpnormal */
+		tex->nor[0] = Tin - marble_int(tex, texvec[0] + B_OFFS, texvec[1], texvec[2]);
+		tex->nor[1] = Tin - marble_int(tex, texvec[0], texvec[1] + B_OFFS, texvec[2]);
+		tex->nor[2] = Tin - marble_int(tex, texvec[0], texvec[1], texvec[2] + B_OFFS);
+		rv += 2;
 	}
-	
+
 	BRICON;
-	if(tex->flag & TEX_COLORBAND)  return do_colorband(tex->coba);
-	
-	return 0;
+	if (tex->flag & TEX_COLORBAND)  return (rv + do_colorband(tex->coba));
+
+	return rv;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -341,7 +374,7 @@ static int magic(Tex *tex, float *texvec)
 
 	n= tex->noisedepth;
 	turb= tex->turbul/5.0;
-	
+
 	x=  sin( ( texvec[0]+texvec[1]+texvec[2])*5.0 );
 	y=  cos( (-texvec[0]+texvec[1]-texvec[2])*5.0 );
 	z= -cos( (-texvec[0]-texvec[1]+texvec[2])*5.0 );
@@ -419,7 +452,7 @@ static int stucci(Tex *tex, float *texvec)
 	else noisefunc= BLI_hnoisep;
 
 	ofs= tex->turbul/200.0;
-	
+
 	b2= noisefunc(tex->noisesize, texvec[0], texvec[1], texvec[2]);
 	if(tex->stype) ofs*=(b2*b2);
 	vec[0]= b2-noisefunc(tex->noisesize, texvec[0]+ofs, texvec[1], texvec[2]);
@@ -436,7 +469,7 @@ static int stucci(Tex *tex, float *texvec)
 		tex->nor[1]= -vec[1];
 		tex->nor[2]= -vec[2];
 	}
-	
+
 	return 2;
 }
 
@@ -471,13 +504,13 @@ static int plugintex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex
 {
 	PluginTex *pit;
 	int rgbnor=0;
-	
+
 	Tin= 0.0;
 
 	pit= tex->plugin;
 	if(pit && pit->doit) {
 		if(tex->nor) {
-			VECCOPY(pit->result+5, tex->nor); 
+			VECCOPY(pit->result+5, tex->nor);
 		}
 		if(osatex) rgbnor= ((TexDoit)pit->doit)(tex->stype, pit->data, texvec, dxt, dyt);
 		else rgbnor= ((TexDoit)pit->doit)(tex->stype, pit->data, texvec, 0, 0);
@@ -531,7 +564,7 @@ void spheremap(float x, float y, float z, float *adr1, float *adr2)
 		
 		if(x==0.0 && y==0.0) *adr1= 0.0;	/* othwise domain error */
 		else *adr1 = (1.0 - atan2(x,y)/M_PI )/2.0;
-		
+
 		z/=len;
 		*adr2 = 1.0- saacos(z)/M_PI;
 	}
@@ -551,7 +584,7 @@ static int cubemap_glob(MTex *mtex, VlakRen *vlr, float x, float y, float z, flo
 		VECCOPY(nor, vlr->n);
 	}
 	MTC_Mat4Mul3Vecfl(R.viewinv, nor);
-	
+
 	x1= fabs(nor[0]);
 	y1= fabs(nor[1]);
 	z1= fabs(nor[2]);
@@ -942,11 +975,11 @@ void do_material_tex(ShadeInput *shi)
 				norvec[0]= norvec[1]= norvec[2]= 0.0;
 			}
 			else tex->nor= NULL;
-			
+
 			if(tex->type==TEX_IMAGE) {
-				
+
 				/* new: first swap coords, then map, then trans/scale */
-				
+
 				/* placement */
 				if(mtex->projx) texvec[0]= co[mtex->projx-1];
 				else texvec[0]= 0.0;
@@ -975,7 +1008,7 @@ void do_material_tex(ShadeInput *shi)
 				}
 
 				do_2d_mapping(mtex, texvec, shi->vlr, dxt, dyt);
-				
+
 				/* translate and scale */
 				texvec[0]= mtex->size[0]*(texvec[0]-0.5) +mtex->ofs[0]+0.5;
 				texvec[1]= mtex->size[1]*(texvec[1]-0.5) +mtex->ofs[1]+0.5;
@@ -991,13 +1024,13 @@ void do_material_tex(ShadeInput *shi)
 				/* placement */
 				if(mtex->projx) texvec[0]= mtex->size[0]*(co[mtex->projx-1]+mtex->ofs[0]);
 				else texvec[0]= mtex->size[0]*(mtex->ofs[0]);
-				
+
 				if(mtex->projy) texvec[1]= mtex->size[1]*(co[mtex->projy-1]+mtex->ofs[1]);
 				else texvec[1]= mtex->size[1]*(mtex->ofs[1]);
-				
+
 				if(mtex->projz) texvec[2]= mtex->size[2]*(co[mtex->projz-1]+mtex->ofs[2]);
 				else texvec[2]= mtex->size[2]*(mtex->ofs[2]);
-				
+
 				if(shi->osatex) {
 					if(mtex->projx) {
 						dxt[0]= mtex->size[0]*dx[mtex->projx-1];
@@ -1018,9 +1051,9 @@ void do_material_tex(ShadeInput *shi)
 			}
 
 			rgbnor= multitex(tex, texvec, dxt, dyt, shi->osatex);
-			
+
 			/* texture output */
-			
+
 			if( (rgbnor & TEX_RGB) && (mtex->texflag & MTEX_RGBTOINT)) {
 				Tin= (0.35*Tr+0.45*Tg+0.2*Tb);
 				rgbnor-= 1;
@@ -1062,7 +1095,7 @@ void do_material_tex(ShadeInput *shi)
 					float co= 0.5*cos(Tin-0.5);
 					float si= 0.5*sin(Tin-0.5);
 					float f1, f2;
-					
+
 					f1= shi->vn[0];
 					f2= shi->vn[1];
 					tex->nor[0]= f1*co+f2*si;
@@ -1074,10 +1107,10 @@ void do_material_tex(ShadeInput *shi)
 				}
 			}
 
-			
+
 			/* mapping */
 			if(mtex->mapto & (MAP_COL+MAP_COLSPEC+MAP_COLMIR)) {
-				
+
 				if((rgbnor & TEX_RGB)==0) {
 					Tr= mtex->r;
 					Tg= mtex->g;
@@ -1178,7 +1211,7 @@ void do_material_tex(ShadeInput *shi)
 					calc_R_ref(shi);
 				}
 			}
-			
+
 			if( mtex->mapto & MAP_DISPLACE ) {
 				/* we check for == here, not '&', to limit it to stucci for now */
 				/* otherwise image texture bump is used, which is plain ugly */
@@ -1186,7 +1219,7 @@ void do_material_tex(ShadeInput *shi)
 					if(tex->nor) {
 						if(mtex->maptoneg & MAP_DISPLACE) tex->norfac= -mtex->norfac;
 						else tex->norfac= mtex->norfac;
-	
+
 						shi->displace[0]+= Tnor*tex->norfac*tex->nor[0];
 						shi->displace[1]+= Tnor*tex->norfac*tex->nor[1];
 						shi->displace[2]+= Tnor*tex->norfac*tex->nor[2];
@@ -1204,7 +1237,7 @@ void do_material_tex(ShadeInput *shi)
 					else {
 						factt= (Tin-0.5)*mtex->varfac; facmm= 1.0-factt;
 					}
-					
+
 					if(mtex->blendtype==MTEX_BLEND) {
 						shi->displace[0]= factt*shi->vn[0] + facmm*shi->displace[0];
 						shi->displace[1]= factt*shi->vn[1] + facmm*shi->displace[1];
@@ -1230,7 +1263,7 @@ void do_material_tex(ShadeInput *shi)
 					if(Talpha) Tin= Ta;
 					else Tin= (0.35*Tr+0.45*Tg+0.2*Tb);
 				}
-				
+
 				fact= Tin*mtex->varfac;
 				facm= 1.0-fact;
 				if(mtex->blendtype==MTEX_MUL) facmul= 1.0-mtex->varfac;
@@ -1239,7 +1272,7 @@ void do_material_tex(ShadeInput *shi)
 				if(mtex->mapto & MAP_REF) {
 					if(mtex->maptoneg & MAP_REF) {factt= facm; facmm= fact;}
 					else {factt= fact; facmm= facm;}
-					
+
 					if(mtex->blendtype==MTEX_BLEND)
 						shi->matren->ref= factt*mtex->def_var+ facmm*mat_ref->ref;
 					else if(mtex->blendtype==MTEX_MUL)
@@ -1253,7 +1286,7 @@ void do_material_tex(ShadeInput *shi)
 				if(mtex->mapto & MAP_SPEC) {
 					if(mtex->maptoneg & MAP_SPEC) {factt= facm; facmm= fact;}
 					else {factt= fact; facmm= facm;}
-					
+
 					if(mtex->blendtype==MTEX_BLEND)
 						shi->matren->spec= factt*mtex->def_var+ facmm*mat_spec->spec;
 					else if(mtex->blendtype==MTEX_MUL)
@@ -1267,7 +1300,7 @@ void do_material_tex(ShadeInput *shi)
 				if(mtex->mapto & MAP_EMIT) {
 					if(mtex->maptoneg & MAP_EMIT) {factt= facm; facmm= fact;}
 					else {factt= fact; facmm= facm;}
-					
+
 					if(mtex->blendtype==MTEX_BLEND)
 						shi->matren->emit= factt*mtex->def_var+ facmm*mat_emit->emit;
 					else if(mtex->blendtype==MTEX_MUL)
@@ -1281,7 +1314,7 @@ void do_material_tex(ShadeInput *shi)
 				if(mtex->mapto & MAP_ALPHA) {
 					if(mtex->maptoneg & MAP_ALPHA) {factt= facm; facmm= fact;}
 					else {factt= fact; facmm= facm;}
-					
+
 					if(mtex->blendtype==MTEX_BLEND)
 						shi->matren->alpha= factt*mtex->def_var+ facmm*mat_alpha->alpha;
 					else if(mtex->blendtype==MTEX_MUL)
@@ -1296,7 +1329,7 @@ void do_material_tex(ShadeInput *shi)
 				if(mtex->mapto & MAP_HAR) {
 					if(mtex->maptoneg & MAP_HAR) {factt= facm; facmm= fact;}
 					else {factt= fact; facmm= facm;}
-					
+
 					if(mtex->blendtype==MTEX_BLEND) {
 						shi->matren->har= 128.0*factt*mtex->def_var+ facmm*mat_har->har;
 					} else if(mtex->blendtype==MTEX_MUL) {
@@ -1310,7 +1343,7 @@ void do_material_tex(ShadeInput *shi)
 				if(mtex->mapto & MAP_RAYMIRR) {
 					if(mtex->maptoneg & MAP_RAYMIRR) {factt= facm; facmm= fact;}
 					else {factt= fact; facmm= facm;}
-					
+
 					if(mtex->blendtype==MTEX_BLEND)
 						shi->matren->ray_mirror= factt*mtex->def_var+ facmm*mat_ray_mirr->ray_mirror;
 					else if(mtex->blendtype==MTEX_MUL)
@@ -1325,7 +1358,7 @@ void do_material_tex(ShadeInput *shi)
 				if(mtex->mapto & MAP_TRANSLU) {
 					if(mtex->maptoneg & MAP_TRANSLU) {factt= facm; facmm= fact;}
 					else {factt= fact; facmm= facm;}
-					
+
 					if(mtex->blendtype==MTEX_BLEND)
 						shi->matren->translucency= factt*mtex->def_var+ facmm*mat_translu->translucency;
 					else if(mtex->blendtype==MTEX_MUL)
