@@ -2288,7 +2288,7 @@ void make_trans_bones (char mode)
 	where_is_armature (G.obpose);
 
 	/*	Allocate memory for the transformation record */
-	tottrans= count_bones (arm, BONE_SELECTED, 0);
+	tottrans= count_bones (arm, BONE_SELECTED, 1);
 
 	if (!tottrans)
 		return;
