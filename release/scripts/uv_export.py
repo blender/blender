@@ -7,8 +7,8 @@ Group: 'UV'
 Tooltip: 'Export the UV face layout of the selected object to a .TGA file'
 """ 
 
-__author__ = "Martin (Theeth) Poirier"
-__url__ = ("blender", "elysiun")
+__author__ = "Martin 'theeth' Poirier"
+__url__ = ("http://www.blender.org", "http://www.elysiun.com")
 __version__ = "1.3a"
 
 __bpydoc__ = """\
@@ -27,6 +27,7 @@ use object's name and more.
 
 Notes:<br>
     Jean-Michel Soler (jms) wrote TGA functions used by this script.
+    Zaz added the default path code and Selected Face option.
 """
 
 

@@ -7,8 +7,8 @@ Group: 'Mesh'
 Tooltip: 'Create fixed copies of deformed meshes'
 """ 
 
-__author__ = "Martin Poirier"
-__url__ = ("blender", "elysiun")
+__author__ = "Martin 'theeth' Poirier"
+__url__ = ("http://www.blender.org", "http://www.elysiun.com")
 __version__ = "1.5 09/21/04"
 
 __bpydoc__ = """\
@@ -17,7 +17,8 @@ This script creates "raw" copies of deformed meshes.
 Usage:
 
 Select the mesh(es) and run this script.  A fixed copy of each selected mesh
-will be created, with the word "_deformed" appended to its name.
+will be created, with the word "_deformed" appended to its name. If an object with
+the same name already exists, it appends a number at the end as Blender itself does.
 
 Meshes in Blender can be deformed by armatures, lattices, curve objects and subdivision, but this will only change its appearance on screen and rendered
 images -- the actual mesh data is still simpler, with vertices in an original
