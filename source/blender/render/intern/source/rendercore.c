@@ -1457,9 +1457,10 @@ float Toon_Diff( float *n, float *l, float *v, float size, float smooth )
 }
 
 /* Oren Nayar diffuse */
+/* nl is either dot product, or return value of area light */
 float OrenNayar_Diff_i(float nl, float *n, float *l, float *v, float rough )
 {
-	float i, nh, nv, vh, h[3];
+	float i, nh, nv, vh, realnl, h[3];
 	float a, b, t, A, B;
 	float Lit_A, View_A, Lit_B[3], View_B[3];
 	
@@ -1474,18 +1475,19 @@ float OrenNayar_Diff_i(float nl, float *n, float *l, float *v, float rough )
 	nv= n[0]*v[0]+n[1]*v[1]+n[2]*v[2]; /* Dot product between surface normal and view vector */
 	if(nv<=0.0) nv= 0.0;
 	
-	/* Dot product between surface normal and light vector */
-	if(nl<0.0) nl= 0.0;
+	realnl= n[0]*l[0]+n[1]*l[1]+n[2]*l[2]; /* Dot product between surface normal and light vector */
+	if(realnl<=0.0) return 0.0;
+	if(nl<0.0) nl= 0.0;		/* value from area light */
 	
 	vh= v[0]*h[0]+v[1]*h[1]+v[2]*h[2]; /* Dot product between view vector and halfway vector */
 	if(vh<=0.0) vh= 0.0;
 	
-	Lit_A = acos( nl );
+	Lit_A = acos(realnl);
 	View_A = acos( nv );
 	
-	Lit_B[0] = l[0] - (nl * n[0]);
-	Lit_B[1] = l[1] - (nl * n[1]);
-	Lit_B[2] = l[2] - (nl * n[2]);
+	Lit_B[0] = l[0] - (realnl * n[0]);
+	Lit_B[1] = l[1] - (realnl * n[1]);
+	Lit_B[2] = l[2] - (realnl * n[2]);
 	Normalise( Lit_B );
 	
 	View_B[0] = v[0] - (nv * n[0]);
@@ -1508,6 +1510,8 @@ float OrenNayar_Diff_i(float nl, float *n, float *l, float *v, float rough )
 	A = 1 - (0.5 * ((rough * rough) / ((rough * rough) + 0.33)));
 	B = 0.45 * ((rough * rough) / ((rough * rough) + 0.09));
 	
+	b*= 0.95;	/* prevent tangens from shooting to inf, nl here can be not a dot product here. */
+				/* overflow only happens with extreme size area light, and higher roughness */
 	i = nl * ( A + ( B * t * sin(a) * tan(b) ) );
 	
 	return i;
