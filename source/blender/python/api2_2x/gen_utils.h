@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -34,7 +35,7 @@
 
 #include <Python.h>
 #include "compile.h"
-#include "eval.h" /* for PyEval_GetLocals */
+#include "eval.h"		/* for PyEval_GetLocals */
 #include <stdio.h>
 #include <string.h>
 
@@ -50,24 +51,24 @@
 
 #define Py_PI  3.14159265358979323846
 
-int StringEqual (const char * string1, const char * string2);
-char * GetIdName (ID *id);
-ID *GetIdFromList(ListBase *list, char *name);
+int StringEqual( const char *string1, const char *string2 );
+char *GetIdName( ID * id );
+ID *GetIdFromList( ListBase * list, char *name );
 
-PyObject *PythonReturnErrorObject (PyObject * type, char * error_msg);
-PyObject *PythonIncRef (PyObject *object);
+PyObject *PythonReturnErrorObject( PyObject * type, char *error_msg );
+PyObject *PythonIncRef( PyObject * object );
 
-char * event_to_name (short event);
+char *event_to_name( short event );
 
-float EXPP_ClampFloat (float value, float min, float max);
-int	EXPP_ClampInt (int value, int min, int max);
+float EXPP_ClampFloat( float value, float min, float max );
+int EXPP_ClampInt( int value, int min, int max );
 
-PyObject *EXPP_incr_ret (PyObject *object);
-PyObject *EXPP_ReturnPyObjError (PyObject * type, char * error_msg);
-int EXPP_ReturnIntError (PyObject *type, char *error_msg);
+PyObject *EXPP_incr_ret( PyObject * object );
+PyObject *EXPP_ReturnPyObjError( PyObject * type, char *error_msg );
+int EXPP_ReturnIntError( PyObject * type, char *error_msg );
 
-int EXPP_check_sequence_consistency (PyObject *seq, PyTypeObject *against);
-PyObject *EXPP_tuple_repr(PyObject *self, int size);
+int EXPP_check_sequence_consistency( PyObject * seq, PyTypeObject * against );
+PyObject *EXPP_tuple_repr( PyObject * self, int size );
 
 /* mapping utilities - see Texture.c for an example of how to use these */
 typedef struct {
@@ -76,18 +77,19 @@ typedef struct {
 } EXPP_map_pair;
 
 /* maps must end with a pair that has NULL as sval */
-int EXPP_map_getIntVal (const EXPP_map_pair *map, 
-	const char *sval, int *ival);
-int EXPP_map_case_getIntVal (const EXPP_map_pair *map, 
-	const char *sval, int *ival);
-int EXPP_map_getShortVal (const EXPP_map_pair *map, 
-	const char *sval, short *ival);
-int EXPP_map_getStrVal (const EXPP_map_pair *map,
-	int ival, const char **sval);
+int EXPP_map_getIntVal( const EXPP_map_pair * map,
+			const char *sval, int *ival );
+int EXPP_map_case_getIntVal( const EXPP_map_pair * map,
+			     const char *sval, int *ival );
+int EXPP_map_getShortVal( const EXPP_map_pair * map,
+			  const char *sval, short *ival );
+int EXPP_map_getStrVal( const EXPP_map_pair * map,
+			int ival, const char **sval );
 
 /* scriplinks-related: */
-PyObject *EXPP_getScriptLinks (ScriptLink *slink, PyObject *args, int is_scene);
-int EXPP_clearScriptLinks (ScriptLink *slink);
-int EXPP_addScriptLink (ScriptLink *slink, PyObject *args, int is_scene);
+PyObject *EXPP_getScriptLinks( ScriptLink * slink, PyObject * args,
+			       int is_scene );
+int EXPP_clearScriptLinks( ScriptLink * slink );
+int EXPP_addScriptLink( ScriptLink * slink, PyObject * args, int is_scene );
 
-#endif /* EXPP_gen_utils_h */
+#endif				/* EXPP_gen_utils_h */

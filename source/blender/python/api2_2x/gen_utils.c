@@ -30,7 +30,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include <strings.h> /*for strcasecmp */
+#include <strings.h>		/*for strcasecmp */
 #include <DNA_text_types.h>
 #include <MEM_guardedalloc.h>
 
@@ -38,132 +38,137 @@
 #include "constant.h"
 
 /*****************************************************************************/
-/* Description: This function clamps an int to the given interval						 */
-/*							[min, max].																									 */
+/* Description: This function clamps an int to the given interval	  */
+/*							[min, max].	   */
 /*****************************************************************************/
-int EXPP_ClampInt (int value, int min, int max)
+int EXPP_ClampInt( int value, int min, int max )
 {
-	if (value < min) return min;
-	else if (value > max) return max;
+	if( value < min )
+		return min;
+	else if( value > max )
+		return max;
 	return value;
 }
 
 /*****************************************************************************/
-/* Description: This function clamps a float to the given interval					 */
-/*							[min, max].																									 */
+/* Description: This function clamps a float to the given interval	 */
+/*							[min, max].	 */
 /*****************************************************************************/
-float EXPP_ClampFloat (float value, float min, float max)
+float EXPP_ClampFloat( float value, float min, float max )
 {
-	if (value < min) return min;
-	else if (value > max) return max;
+	if( value < min )
+		return min;
+	else if( value > max )
+		return max;
 	return value;
 }
 
 /*****************************************************************************/
 /* Description: This function returns true if both given strings are equal,  */
-/*							otherwise it returns false.																	 */
+/*		otherwise it returns false.				*/
 /*****************************************************************************/
-int StringEqual (const char * string1, const char * string2)
+int StringEqual( const char *string1, const char *string2 )
 {
-	return (strcmp(string1, string2)==0);
+	return ( strcmp( string1, string2 ) == 0 );
 }
 
 /*****************************************************************************/
-/* Description: This function returns the name of the given ID struct				 */
-/*							without the Object type identifying characters prepended.		 */
+/* Description: This function returns the name of the given ID struct	 */
+/*		 without the Object type identifying characters prepended.   */
 /*****************************************************************************/
-char * GetIdName (ID *id)
+char *GetIdName( ID * id )
 {
-	return ((id->name)+2);
+	return ( ( id->name ) + 2 );
 }
 
 /*****************************************************************************/
-/* Description: This function returns the ID of the object with given name	 */
-/*							from a given list.																					 */
+/* Description: This function returns the ID of the object with given name   */
+/*		from a given list.				            */
 /*****************************************************************************/
-ID *GetIdFromList(ListBase *list, char *name)
+ID *GetIdFromList( ListBase * list, char *name )
 {
 	ID *id = list->first;
 
-	while (id) {
-		if(strcmp(name, id->name+2) == 0) break;
-			id= id->next;
+	while( id ) {
+		if( strcmp( name, id->name + 2 ) == 0 )
+			break;
+		id = id->next;
 	}
 
 	return id;
 }
 
 /*****************************************************************************/
-/* Description: These functions set an internal string with the given type	 */
-/*							and error_msg arguments.																		 */
+/* Description: These functions set an internal string with the given type   */
+/*		  and error_msg arguments.				     */
 /*****************************************************************************/
 
-PyObject *EXPP_ReturnPyObjError (PyObject * type, char * error_msg)
-{ /* same as above, just to change its name smoothly */
-	PyErr_SetString (type, error_msg);
+PyObject *EXPP_ReturnPyObjError( PyObject * type, char *error_msg )
+{				/* same as above, just to change its name smoothly */
+	PyErr_SetString( type, error_msg );
 	return NULL;
 }
 
-int EXPP_ReturnIntError (PyObject *type, char *error_msg)
+int EXPP_ReturnIntError( PyObject * type, char *error_msg )
 {
-	PyErr_SetString (type, error_msg);
+	PyErr_SetString( type, error_msg );
 	return -1;
 }
 
 /*****************************************************************************/
-/* Description: This function increments the reference count of the given		 */
-/*							Python object (usually Py_None) and returns it.							 */
+/* Description: This function increments the reference count of the given   */
+/*			 Python object (usually Py_None) and returns it.    */
 /*****************************************************************************/
 
-PyObject *EXPP_incr_ret (PyObject *object)
+PyObject *EXPP_incr_ret( PyObject * object )
 {
-	Py_INCREF (object);
-	return (object);
+	Py_INCREF( object );
+	return ( object );
 }
 
 /*****************************************************************************/
-/* Description: This function maps the event identifier to a string.				 */
+/* Description: This function maps the event identifier to a string.	  */
 /*****************************************************************************/
-char * event_to_name(short event)
+char *event_to_name( short event )
 {
-	switch (event)
-	{
-		case SCRIPT_FRAMECHANGED:
-			return "FrameChanged";
-		case SCRIPT_ONLOAD:
-			return "OnLoad";
-		case SCRIPT_ONSAVE:
-			return "OnSave";
-		case SCRIPT_REDRAW:
-			return "Redraw";
-		default:
-			return "Unknown";
+	switch ( event ) {
+	case SCRIPT_FRAMECHANGED:
+		return "FrameChanged";
+	case SCRIPT_ONLOAD:
+		return "OnLoad";
+	case SCRIPT_ONSAVE:
+		return "OnSave";
+	case SCRIPT_REDRAW:
+		return "Redraw";
+	default:
+		return "Unknown";
 	}
-}	
+}
 
 /*****************************************************************************/
-/* Description: Checks whether all objects in a PySequence are of a same		 */
-/*							given type.  Returns 0 if not, 1 on success.								 */
+/* Description: Checks whether all objects in a PySequence are of a same  */
+/*		given type.  Returns 0 if not, 1 on success.		 */
 /*****************************************************************************/
-int EXPP_check_sequence_consistency(PyObject *seq, PyTypeObject *against)
+int EXPP_check_sequence_consistency( PyObject * seq, PyTypeObject * against )
 {
 	PyObject *ob;
-	int len = PySequence_Length(seq);
+	int len = PySequence_Length( seq );
 	int i, result = 1;
 
-	for (i = 0; i < len; i++) {
-		ob = PySequence_GetItem(seq, i);
-		if (ob == Py_None) result = 2;
-		else if (ob->ob_type != against) {
-			Py_DECREF(ob);
+	for( i = 0; i < len; i++ ) {
+		ob = PySequence_GetItem( seq, i );
+		if( ob == Py_None )
+			result = 2;
+		else if( ob->ob_type != against ) {
+			Py_DECREF( ob );
 			return 0;
 		}
-		Py_DECREF(ob);
+		Py_DECREF( ob );
 	}
-	return result; /* 1 if all of 'against' type, 2 if there are (also) Nones */
+	return result;		/* 1 if all of 'against' type, 2 if there are (also) Nones */
 }
 
-PyObject *EXPP_tuple_repr(PyObject *self, int size)
+PyObject *EXPP_tuple_repr( PyObject * self, int size )
 {
 	PyObject *repr, *item;
 	int i;
@@ -171,17 +176,18 @@ PyObject *EXPP_tuple_repr(PyObject *self, int size)
 /*@	note: a value must be built because the list is decrefed!
  * otherwise we have nirvana pointers inside python.. */
 
-	repr = PyString_FromString("");
-	if (!repr) return 0;
+	repr = PyString_FromString( "" );
+	if( !repr )
+		return 0;
 
-	item = PySequence_GetItem(self, 0); 
-	PyString_ConcatAndDel(&repr, PyObject_Repr(item));
-	Py_DECREF(item);
+	item = PySequence_GetItem( self, 0 );
+	PyString_ConcatAndDel( &repr, PyObject_Repr( item ) );
+	Py_DECREF( item );
 
-	for (i = 1; i < size; i++) {
-		item = PySequence_GetItem(self, i);
-		PyString_ConcatAndDel(&repr, PyObject_Repr(item));
-		Py_DECREF(item);
+	for( i = 1; i < size; i++ ) {
+		item = PySequence_GetItem( self, i );
+		PyString_ConcatAndDel( &repr, PyObject_Repr( item ) );
+		Py_DECREF( item );
 	}
 
 	return repr;
@@ -189,73 +195,67 @@ PyObject *EXPP_tuple_repr(PyObject *self, int size)
 
 /****************************************************************************/
 /* Description: searches through a map for a pair with a given name. If the */
-/*							pair is present, its ival is stored in *ival and nonzero is */
-/*							returned. If the pair is absent, zero is returned.					*/
+/*		 pair is present, its ival is stored in *ival and nonzero is */
+/*		 returned. If the pair is absent, zero is returned.	*/
 /****************************************************************************/
-int EXPP_map_getIntVal (const EXPP_map_pair *map, const char *sval, int *ival)
+int EXPP_map_getIntVal( const EXPP_map_pair * map, const char *sval,
+			int *ival )
 {
-		while (map->sval)
-		{
-				if (StringEqual(sval, map->sval))
-				{
-						*ival = map->ival;
-						return 1;
-				}
-				++map;
+	while( map->sval ) {
+		if( StringEqual( sval, map->sval ) ) {
+			*ival = map->ival;
+			return 1;
 		}
-		return 0;
+		++map;
+	}
+	return 0;
 }
 
 /* same as above, but string case is ignored */
-int EXPP_map_case_getIntVal (const EXPP_map_pair *map, const char *sval,
-	int *ival)
+int EXPP_map_case_getIntVal( const EXPP_map_pair * map, const char *sval,
+			     int *ival )
 {
-		while (map->sval)
-		{
-				if (!strcasecmp(sval, map->sval))
-				{
-						*ival = map->ival;
-						return 1;
-				}
-				++map;
+	while( map->sval ) {
+		if( !strcasecmp( sval, map->sval ) ) {
+			*ival = map->ival;
+			return 1;
 		}
-		return 0;
+		++map;
+	}
+	return 0;
 }
 
 /****************************************************************************/
 /* Description: searches through a map for a pair with a given name. If the */
-/*							pair is present, its ival is stored in *ival and nonzero is */
-/*							returned. If the pair is absent, zero is returned.					*/
-/* note: this function is identical to EXPP_map_getIntVal except that the		*/
-/*			 output is stored in a short value.																	*/
+/*		 pair is present, its ival is stored in *ival and nonzero is */
+/*	     	returned. If the pair is absent, zero is returned.	     */
+/* note: this function is identical to EXPP_map_getIntVal except that the  */
+/*		output is stored in a short value.	                   */
 /****************************************************************************/
-int EXPP_map_getShortVal (const EXPP_map_pair *map, 
-																				const char *sval, short *ival)
+int EXPP_map_getShortVal( const EXPP_map_pair * map,
+			  const char *sval, short *ival )
 {
-		while (map->sval)
-		{
-				if (StringEqual(sval, map->sval))
-				{
-						*ival = map->ival;
-						return 1;
-				}
-				++map;
+	while( map->sval ) {
+		if( StringEqual( sval, map->sval ) ) {
+			*ival = map->ival;
+			return 1;
 		}
-		return 0;
+		++map;
+	}
+	return 0;
 }
 
 /****************************************************************************/
 /* Description: searches through a map for a pair with a given ival. If the */
-/*							pair is present, a pointer to its name is stored in *sval		*/
-/*							and nonzero is returned. If the pair is absent, zero is			*/
-/*							returned.																										*/
+/*		pair is present, a pointer to its name is stored in *sval */
+/*		and nonzero is returned. If the pair is absent, zero is	*/
+/*		returned.		                                */
 /****************************************************************************/
-int EXPP_map_getStrVal (const EXPP_map_pair *map, int ival, const char **sval)
+int EXPP_map_getStrVal( const EXPP_map_pair * map, int ival,
+			const char **sval )
 {
-	while (map->sval)
-	{
-		if (ival == map->ival)
-		{
+	while( map->sval ) {
+		if( ival == map->ival ) {
 			*sval = map->sval;
 			return 1;
 		}
@@ -267,61 +267,67 @@ int EXPP_map_getStrVal (const EXPP_map_pair *map, int ival, const char **sval)
 /************************************************************************/
 /* Scriptlink-related functions, used by scene, object, etc. bpyobjects */
 /************************************************************************/
-PyObject *EXPP_getScriptLinks (ScriptLink *slink, PyObject *args, int is_scene)
+PyObject *EXPP_getScriptLinks( ScriptLink * slink, PyObject * args,
+			       int is_scene )
 {
 	PyObject *list = NULL;
 	char *eventname = NULL;
 	int i, event = 0;
 
 	/* actually !scriptlink shouldn't happen ... */
-	if (!slink || !slink->totscript)
-		return EXPP_incr_ret (Py_None);
+	if( !slink || !slink->totscript )
+		return EXPP_incr_ret( Py_None );
 
-	if (!PyArg_ParseTuple(args, "s", &eventname))
-		return EXPP_ReturnPyObjError (PyExc_TypeError,
-			"expected event name (string) as argument");
+	if( !PyArg_ParseTuple( args, "s", &eventname ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected event name (string) as argument" );
 
-	list = PyList_New(0);
-	if (!list)
-		return EXPP_ReturnPyObjError (PyExc_MemoryError,
-			"couldn't create PyList!");
+	list = PyList_New( 0 );
+	if( !list )
+		return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					      "couldn't create PyList!" );
 
-	if (!strcmp(eventname, "FrameChanged"))
+	if( !strcmp( eventname, "FrameChanged" ) )
 		event = SCRIPT_FRAMECHANGED;
-	else if (!strcmp(eventname, "Redraw"))
+	else if( !strcmp( eventname, "Redraw" ) )
 		event = SCRIPT_REDRAW;
-	else if (is_scene && !strcmp(eventname, "OnLoad"))
+	else if( is_scene && !strcmp( eventname, "OnLoad" ) )
 		event = SCRIPT_ONLOAD;
-	else if (is_scene && !strcmp(eventname, "OnSave"))
+	else if( is_scene && !strcmp( eventname, "OnSave" ) )
 		event = SCRIPT_ONSAVE;
 	else
-		return EXPP_ReturnPyObjError (PyExc_AttributeError,
-						"invalid event name");
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "invalid event name" );
 
-	for (i = 0; i < slink->totscript; i++) {
-		if ((slink->flag[i] == event) && slink->scripts[i])
-			PyList_Append(list, PyString_FromString(slink->scripts[i]->name+2));
+	for( i = 0; i < slink->totscript; i++ ) {
+		if( ( slink->flag[i] == event ) && slink->scripts[i] )
+			PyList_Append( list,
+				       PyString_FromString( slink->scripts[i]->
+							    name + 2 ) );
 	}
 
 	return list;
 }
 
-int EXPP_clearScriptLinks (ScriptLink *slink)
+int EXPP_clearScriptLinks( ScriptLink * slink )
 {
 	/* actually !scriptlink shouldn't happen ... */
-	if (!slink || !slink->totscript) return -1;
+	if( !slink || !slink->totscript )
+		return -1;
 
-	if (slink->scripts) MEM_freeN(slink->scripts);
-	if (slink->flag) MEM_freeN(slink->flag);
+	if( slink->scripts )
+		MEM_freeN( slink->scripts );
+	if( slink->flag )
+		MEM_freeN( slink->flag );
 
 	slink->scripts = NULL;
 	slink->flag = NULL;
 	slink->totscript = slink->actscript = 0;
 
-	return 0; /* normal return */
+	return 0;		/* normal return */
 }
 
-int EXPP_addScriptLink (ScriptLink *slink, PyObject *args, int is_scene)
+int EXPP_addScriptLink( ScriptLink * slink, PyObject * args, int is_scene )
 {
 	int event = 0, found_txt = 0;
 	void *stmp = NULL, *ftmp = NULL;
@@ -330,59 +336,66 @@ int EXPP_addScriptLink (ScriptLink *slink, PyObject *args, int is_scene)
 	char *eventname = NULL;
 
 	/* !scriptlink shouldn't happen ... */
-	if (!slink) {
-		return EXPP_ReturnIntError (PyExc_RuntimeError,
-			"internal error: no scriptlink!");
+	if( !slink ) {
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+					    "internal error: no scriptlink!" );
 	}
 
-	if (!PyArg_ParseTuple(args, "ss", &textname, &eventname))
-		return EXPP_ReturnIntError (PyExc_TypeError,
-			"expected two strings as arguments");
+	if( !PyArg_ParseTuple( args, "ss", &textname, &eventname ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					    "expected two strings as arguments" );
 
-	while (bltxt) {
-		if (!strcmp(bltxt->id.name+2, textname)) {
+	while( bltxt ) {
+		if( !strcmp( bltxt->id.name + 2, textname ) ) {
 			found_txt = 1;
 			break;
 		}
 		bltxt = bltxt->id.next;
 	}
 
-	if (!found_txt)
-		return EXPP_ReturnIntError (PyExc_AttributeError,
-			"no such Blender Text.");
+	if( !found_txt )
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+					    "no such Blender Text." );
 
-	if (!strcmp(eventname, "FrameChanged"))
+	if( !strcmp( eventname, "FrameChanged" ) )
 		event = SCRIPT_FRAMECHANGED;
-	else if (!strcmp(eventname, "Redraw"))
+	else if( !strcmp( eventname, "Redraw" ) )
 		event = SCRIPT_REDRAW;
-	else if (is_scene && !strcmp(eventname, "OnLoad"))
+	else if( is_scene && !strcmp( eventname, "OnLoad" ) )
 		event = SCRIPT_ONLOAD;
-	else if (is_scene && !strcmp(eventname, "OnSave"))
+	else if( is_scene && !strcmp( eventname, "OnSave" ) )
 		event = SCRIPT_ONSAVE;
 	else
-		return EXPP_ReturnIntError (PyExc_AttributeError,
-						"invalid event name.");
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+					    "invalid event name." );
 
-	stmp= slink->scripts;
-	slink->scripts= MEM_mallocN(sizeof(ID*)*(slink->totscript+1), "bpySlinkL");
+	stmp = slink->scripts;
+	slink->scripts =
+		MEM_mallocN( sizeof( ID * ) * ( slink->totscript + 1 ),
+			     "bpySlinkL" );
 
-	ftmp= slink->flag;
-	slink->flag= MEM_mallocN(sizeof(short*)*(slink->totscript+1), "bpySlinkF");
-	
-	if (slink->totscript) {
-		memcpy(slink->scripts, stmp, sizeof(ID*)*(slink->totscript));
-		MEM_freeN(stmp);
+	ftmp = slink->flag;
+	slink->flag =
+		MEM_mallocN( sizeof( short * ) * ( slink->totscript + 1 ),
+			     "bpySlinkF" );
 
-		memcpy(slink->flag, ftmp, sizeof(short)*(slink->totscript));
-		MEM_freeN(ftmp);
+	if( slink->totscript ) {
+		memcpy( slink->scripts, stmp,
+			sizeof( ID * ) * ( slink->totscript ) );
+		MEM_freeN( stmp );
+
+		memcpy( slink->flag, ftmp,
+			sizeof( short ) * ( slink->totscript ) );
+		MEM_freeN( ftmp );
 	}
 
-	slink->scripts[slink->totscript] = (ID*)bltxt;
-	slink->flag[slink->totscript]= event;
+	slink->scripts[slink->totscript] = ( ID * ) bltxt;
+	slink->flag[slink->totscript] = event;
 
 	slink->totscript++;
-				
-	if (slink->actscript < 1) slink->actscript = 1;
 
-	return 0; /* normal exit */
+	if( slink->actscript < 1 )
+		slink->actscript = 1;
+
+	return 0;		/* normal exit */
 }

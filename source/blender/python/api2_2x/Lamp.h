@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -32,4 +33,4 @@
 #ifndef EXPP_LAMP_H
 #define EXPP_LAMP_H
 
-#endif /* EXPP_LAMP_H */
+#endif				/* EXPP_LAMP_H */

@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -34,4 +35,4 @@
 
 #include "bpy_types.h"
 
-#endif /* EXPP_CURVE_H */
+#endif				/* EXPP_CURVE_H */

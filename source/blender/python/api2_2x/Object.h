@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -44,8 +45,8 @@
 #include <BKE_mesh.h>
 #include <BKE_object.h>
 #include <BKE_scene.h>
-#include <BKE_displist.h> /* for makeDispList */
-#include <BKE_font.h> /* for text_to_font */
+#include <BKE_displist.h>	/* for makeDispList */
+#include <BKE_font.h>		/* for text_to_font */
 #include <BLI_arithb.h>
 #include <BLI_blenlib.h>
 #include <DNA_armature_types.h>
@@ -70,16 +71,15 @@
 extern PyTypeObject Object_Type;
 
 #define BPy_Object_Check(v) \
-    ((v)->ob_type == &Object_Type) /* for type checking */
+    ((v)->ob_type == &Object_Type)	/* for type checking */
 
 /*****************************************************************************/
-/* Python BPy_Object structure definition.                                     */
+/* Python BPy_Object structure definition.                                  */
 /*****************************************************************************/
 typedef struct {
-    PyObject_HEAD
-    struct Object   * object;
+	PyObject_HEAD struct Object *object;
 } BPy_Object;
 
-int EXPP_add_obdata(struct Object *object);
+int EXPP_add_obdata( struct Object *object );
 
-#endif /* EXPP_OBJECT_H */
+#endif				/* EXPP_OBJECT_H */

@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -40,21 +41,20 @@
 /* Python BPy_Image structure definition                                     */
 /*****************************************************************************/
 typedef struct {
-  PyObject_HEAD
-  Image *image;
+	PyObject_HEAD Image * image;
 
 } BPy_Image;
 
-extern PyTypeObject Image_Type; /* The Image PyType Object */ 
+extern PyTypeObject Image_Type;	/* The Image PyType Object */
 
-#define BPy_Image_Check(v)  ((v)->ob_type == &Image_Type)/*for type checking*/
+#define BPy_Image_Check(v)  ((v)->ob_type == &Image_Type)	/*for type checking */
 
 /*****************************************************************************/
 /* Module Blender.Image - public functions                                   */
 /*****************************************************************************/
-PyObject *Image_Init (void);
-PyObject *Image_CreatePyObject (Image *image);
-int       Image_CheckPyObject (PyObject *pyobj);
-Image    *Image_FromPyObject (PyObject *pyobj);
+PyObject *Image_Init( void );
+PyObject *Image_CreatePyObject( Image * image );
+int Image_CheckPyObject( PyObject * pyobj );
+Image *Image_FromPyObject( PyObject * pyobj );
 
-#endif /* EXPP_IMAGE_H */
+#endif				/* EXPP_IMAGE_H */

@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -37,16 +38,14 @@
 #include <DNA_scene_types.h>
 
 /* BPy_Radio declaration */
-typedef struct
-{
-  PyObject_HEAD
-  struct Radio *radio;
-  struct Scene *scene;
-}BPy_Radio;
+typedef struct {
+	PyObject_HEAD struct Radio *radio;
+	struct Scene *scene;
+} BPy_Radio;
 
-PyObject *Radio_Init (void);
+PyObject *Radio_Init( void );
 
-PyObject *Radio_CreatePyObject (struct Scene * scene);
-int Radio_CheckPyObject (PyObject * py_obj);
+PyObject *Radio_CreatePyObject( struct Scene *scene );
+int Radio_CheckPyObject( PyObject * py_obj );
 
-#endif /* EXPP_SCENERADIO_H */
+#endif				/* EXPP_SCENERADIO_H */

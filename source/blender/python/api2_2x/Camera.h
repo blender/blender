@@ -1,4 +1,5 @@
-/* 
+/*
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -61,4 +62,4 @@
 
 
 
-#endif /* EXPP_CAMERA_H */
+#endif				/* EXPP_CAMERA_H */

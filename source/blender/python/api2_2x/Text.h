@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -31,4 +32,4 @@
 
 #ifndef EXPP_TEXT_H
 #define EXPP_TEXT_H
-#endif /* EXPP_TEXT_H */
+#endif				/* EXPP_TEXT_H */

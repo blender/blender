@@ -36,111 +36,112 @@
 /* Function:              M_Registry_Keys                                    */
 /* Python equivalent:     Blender.Registry.Keys                              */
 /*****************************************************************************/
-PyObject *M_Registry_Keys (PyObject *self)
+PyObject *M_Registry_Keys( PyObject * self )
 {
-  PyObject *pydict = NULL;
+	PyObject *pydict = NULL;
 
-  if (!bpy_registryDict)
-    return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-              "No Registry dictionary found!");
+	if( !bpy_registryDict )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "No Registry dictionary found!" );
 
-  pydict = PyDict_Keys (bpy_registryDict);
+	pydict = PyDict_Keys( bpy_registryDict );
 
-  if (!pydict)
-    return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-              "Registry_Keys: couldn't get keys");
+	if( !pydict )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Registry_Keys: couldn't get keys" );
 
-  return pydict;
+	return pydict;
 }
 
 /*****************************************************************************/
 /* Function:              M_Registry_GetKey                                  */
 /* Python equivalent:     Blender.Registry.GetKey                            */
 /*****************************************************************************/
-static PyObject *M_Registry_GetKey (PyObject *self, PyObject *args)
+static PyObject *M_Registry_GetKey( PyObject * self, PyObject * args )
 {
-  PyObject *pyentry = NULL;
-  PyObject *pydict = NULL;
+	PyObject *pyentry = NULL;
+	PyObject *pydict = NULL;
 
-  if (!bpy_registryDict)
-    return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-              "No Registry dictionary found!");
+	if( !bpy_registryDict )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "No Registry dictionary found!" );
 
-  if (!PyArg_ParseTuple (args, "O!", &PyString_Type, &pyentry))
-    return EXPP_ReturnPyObjError (PyExc_AttributeError,
-            "expected a string");
+	if( !PyArg_ParseTuple( args, "O!", &PyString_Type, &pyentry ) )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "expected a string" );
 
-  pydict = PyDict_GetItem (bpy_registryDict, pyentry); /* borrowed ... */
+	pydict = PyDict_GetItem( bpy_registryDict, pyentry );	/* borrowed ... */
 
-  if (!pydict)
+	if( !pydict )
 /*    return EXPP_ReturnPyObjError (PyExc_KeyError,
             "no such key in the Registry"); */
-		pydict = Py_None; /* better to return None than an error */
+		pydict = Py_None;	/* better to return None than an error */
 
-  Py_INCREF (pydict); /* ... so we incref it */
-  /* should we copy the dict instead? */
-  return pydict;
+	Py_INCREF( pydict );	/* ... so we incref it */
+	/* should we copy the dict instead? */
+	return pydict;
 }
 
 /*****************************************************************************/
 /* Function:              M_Registry_SetKey                                  */
 /* Python equivalent:     Blender.Registry.SetKey                            */
 /*****************************************************************************/
-static PyObject *M_Registry_SetKey (PyObject *self, PyObject *args)
+static PyObject *M_Registry_SetKey( PyObject * self, PyObject * args )
 {
-  PyObject *pystr = NULL;
-  PyObject *pydict = NULL;
+	PyObject *pystr = NULL;
+	PyObject *pydict = NULL;
 
-  if (!bpy_registryDict)
-    return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-              "No Registry dictionary found!");
+	if( !bpy_registryDict )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "No Registry dictionary found!" );
 
-  if (!PyArg_ParseTuple (args, "O!O!",
-                         &PyString_Type, &pystr, &PyDict_Type, &pydict))
-    return EXPP_ReturnPyObjError (PyExc_AttributeError,
-            "expected a string and a dictionary");
+	if( !PyArg_ParseTuple( args, "O!O!",
+			       &PyString_Type, &pystr, &PyDict_Type,
+			       &pydict ) )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "expected a string and a dictionary" );
 
-  if (PyDict_SetItem (bpy_registryDict, pystr, pydict)) /* 0 on success */
-    return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-            "Registry_SetKey: couldn't update the Registry dict");
+	if( PyDict_SetItem( bpy_registryDict, pystr, pydict ) )	/* 0 on success */
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Registry_SetKey: couldn't update the Registry dict" );
 
-  Py_INCREF(Py_None);
-  return Py_None;
+	Py_INCREF( Py_None );
+	return Py_None;
 }
 
 /*****************************************************************************/
 /* Function:              M_Registry_RemoveKey                               */
 /* Python equivalent:     Blender.Registry.RemoveKey                         */
 /*****************************************************************************/
-static PyObject *M_Registry_RemoveKey (PyObject *self, PyObject *args)
+static PyObject *M_Registry_RemoveKey( PyObject * self, PyObject * args )
 {
-  PyObject *pystr = NULL;
+	PyObject *pystr = NULL;
 
-  if (!bpy_registryDict)
-    return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-              "No Registry dictionary found!");
+	if( !bpy_registryDict )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "No Registry dictionary found!" );
 
-  if (!PyArg_ParseTuple (args, "O!", &PyString_Type, &pystr)) 
-    return EXPP_ReturnPyObjError (PyExc_AttributeError,
-            "expected a string");
+	if( !PyArg_ParseTuple( args, "O!", &PyString_Type, &pystr ) )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "expected a string" );
 
-  if (PyDict_DelItem (bpy_registryDict, pystr)) /* returns 0 on success */
-    return EXPP_ReturnPyObjError (PyExc_KeyError,
-            "no such key in the Registry");
+	if( PyDict_DelItem( bpy_registryDict, pystr ) )	/* returns 0 on success */
+		return EXPP_ReturnPyObjError( PyExc_KeyError,
+					      "no such key in the Registry" );
 
-	Py_INCREF (Py_None);
+	Py_INCREF( Py_None );
 	return Py_None;
 }
 
 /*****************************************************************************/
 /* Function:              Registry_Init                                      */
 /*****************************************************************************/
-PyObject *Registry_Init (void)
+PyObject *Registry_Init( void )
 {
-  PyObject  *submodule;
+	PyObject *submodule;
 
-  submodule = Py_InitModule3("Blender.Registry", M_Registry_methods,
-                  M_Registry_doc);
+	submodule = Py_InitModule3( "Blender.Registry", M_Registry_methods,
+				    M_Registry_doc );
 
-  return submodule;
+	return submodule;
 }

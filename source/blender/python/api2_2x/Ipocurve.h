@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -38,12 +39,10 @@
 /*****************************************************************************/
 /* Python C_IpoCurve structure definition:                                   */
 /*****************************************************************************/
-typedef struct
-{
-  PyObject_HEAD			/* required macro */
-  IpoCurve * ipocurve;
-}
-C_IpoCurve;
+typedef struct {
+	PyObject_HEAD		/* required macro */
+	IpoCurve * ipocurve;
+} C_IpoCurve;
 
 
-#endif /* EXPP_IPOCURVE_H */
+#endif				/* EXPP_IPOCURVE_H */

@@ -1,4 +1,5 @@
 /*
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -49,8 +50,8 @@
 /*****************************************************************************/
 /* Python API function prototypes for the Effect module.                     */
 /*****************************************************************************/
-PyObject *M_Effect_New (PyObject *self, PyObject *args);
-PyObject *M_Effect_Get (PyObject *self, PyObject *args);
+PyObject *M_Effect_New( PyObject * self, PyObject * args );
+PyObject *M_Effect_Get( PyObject * self, PyObject * args );
 
 
 
@@ -63,13 +64,13 @@ PyObject *M_Effect_Get (PyObject *self, PyObject *args);
 /*****************************************************************************/
 /* Python Effect_Type callback function prototypes:                          */
 /*****************************************************************************/
-void EffectDeAlloc (BPy_Effect *msh);
+void EffectDeAlloc( BPy_Effect * msh );
 //int EffectPrint (BPy_Effect *msh, FILE *fp, int flags);
-int EffectSetAttr (BPy_Effect *msh, char *name, PyObject *v);
-PyObject *EffectGetAttr (BPy_Effect *msh, char *name);
-PyObject *EffectRepr (BPy_Effect *msh);
-PyObject* EffectCreatePyObject (struct Effect *effect);
-int EffectCheckPyObject (PyObject *py_obj);
-struct Effect* EffectFromPyObject (PyObject *py_obj);
+int EffectSetAttr( BPy_Effect * msh, char *name, PyObject * v );
+PyObject *EffectGetAttr( BPy_Effect * msh, char *name );
+PyObject *EffectRepr( BPy_Effect * msh );
+PyObject *EffectCreatePyObject( struct Effect *effect );
+int EffectCheckPyObject( PyObject * py_obj );
+struct Effect *EffectFromPyObject( PyObject * py_obj );
 
-#endif /* EXPP_EFFECT_H */
+#endif				/* EXPP_EFFECT_H */

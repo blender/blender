@@ -1,4 +1,8 @@
-/* * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+
+/* 
+ * $Id$
+ *
+ * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -50,16 +54,14 @@
 #define EulerObject_Check(v) ((v)->ob_type == &euler_Type)
 
 typedef struct {
-	PyObject_VAR_HEAD
-	float * eul;
+	PyObject_VAR_HEAD float *eul;
 } EulerObject;
 
 //prototypes
-PyObject *newEulerObject(float *eul);
-PyObject *Euler_Zero(EulerObject *self);
-PyObject *Euler_Unique(EulerObject *self);
-PyObject *Euler_ToMatrix(EulerObject *self);
-PyObject *Euler_ToQuat(EulerObject *self);
+PyObject *newEulerObject( float *eul );
+PyObject *Euler_Zero( EulerObject * self );
+PyObject *Euler_Unique( EulerObject * self );
+PyObject *Euler_ToMatrix( EulerObject * self );
+PyObject *Euler_ToQuat( EulerObject * self );
 
-#endif /* EXPP_euler_h */
-
+#endif				/* EXPP_euler_h */

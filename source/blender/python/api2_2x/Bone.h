@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -38,39 +39,39 @@
 #include "quat.h"
 #include "matrix.h"
 
-//--------------------------Python BPy_Bone structure definition.---------------------
-typedef struct{
-	PyObject_HEAD  
-	//reference to data if bone is linked to an armature
-	Bone *bone; 
+//--------------------------Python BPy_Bone structure definition.-------
+typedef struct {
+	PyObject_HEAD
+		//reference to data if bone is linked to an armature
+	Bone * bone;
 	//list of vars that define the boneclass
-	char *name;	
+	char *name;
 	char *parent;
-	float roll;	
+	float roll;
 	int flag;
 	int boneclass;
 	float dist;
 	float weight;
-	VectorObject  *head;		
-	VectorObject  *tail;		
-	VectorObject  *loc;
-	VectorObject  *dloc;
-	VectorObject  *size;
-	VectorObject  *dsize;
+	VectorObject *head;
+	VectorObject *tail;
+	VectorObject *loc;
+	VectorObject *dloc;
+	VectorObject *size;
+	VectorObject *dsize;
 	QuaternionObject *quat;
 	QuaternionObject *dquat;
 	MatrixObject *obmat;
 	MatrixObject *parmat;
 	MatrixObject *defmat;
 	MatrixObject *irestmat;
-	MatrixObject *posemat;	
-}BPy_Bone;
+	MatrixObject *posemat;
+} BPy_Bone;
 
-//------------------------------visible prototypes----------------------------------------------
-PyObject *Bone_CreatePyObject (struct Bone *obj);
-int Bone_CheckPyObject (PyObject * py_obj);
-Bone *Bone_FromPyObject (PyObject * py_obj);
-PyObject *Bone_Init (void);
-int updateBoneData(BPy_Bone *self, Bone *parent);
+//------------------------------visible prototypes----------------------
+PyObject *Bone_CreatePyObject( struct Bone *obj );
+int Bone_CheckPyObject( PyObject * py_obj );
+Bone *Bone_FromPyObject( PyObject * py_obj );
+PyObject *Bone_Init( void );
+int updateBoneData( BPy_Bone * self, Bone * parent );
 
 #endif

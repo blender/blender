@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -53,10 +54,10 @@ PyObject *bpy_registryDict = NULL;
 /*****************************************************************************/
 /* Python API function prototypes for the Registry module.                   */
 /*****************************************************************************/
-static PyObject *M_Registry_Keys (PyObject *self);
-static PyObject *M_Registry_GetKey (PyObject *self, PyObject *args);
-static PyObject *M_Registry_SetKey (PyObject *self, PyObject *args);
-static PyObject *M_Registry_RemoveKey (PyObject *self, PyObject *args);
+static PyObject *M_Registry_Keys( PyObject * self );
+static PyObject *M_Registry_GetKey( PyObject * self, PyObject * args );
+static PyObject *M_Registry_SetKey( PyObject * self, PyObject * args );
+static PyObject *M_Registry_RemoveKey( PyObject * self, PyObject * args );
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.      */
@@ -64,36 +65,38 @@ static PyObject *M_Registry_RemoveKey (PyObject *self, PyObject *args);
 /* Blender.Registry.__doc__                                                  */
 /*****************************************************************************/
 char M_Registry_doc[] =
-"The Blender Registry module (persistent data cache)\n\n\
+	"The Blender Registry module (persistent data cache)\n\n\
     Use this module to store configuration data that a script can reload\n\
     when it is executed again.\n";
 
 char M_Registry_Keys_doc[] =
-"() - Get all keys in the Registry dictionary.\n\n\
+	"() - Get all keys in the Registry dictionary.\n\n\
     Each key references another dict with saved data from a specific script.\n";
 
 char M_Registry_GetKey_doc[] =
-"(name) - Get a specific entry (dict) from the Registry dictionary\n\
+	"(name) - Get a specific entry (dict) from the Registry dictionary\n\
  (name) - a string that references a specific script.\n";
 
 char M_Registry_SetKey_doc[] =
-"(key, dict) - Store an entry in the Registry dictionary.\n\
+	"(key, dict) - Store an entry in the Registry dictionary.\n\
     If an entry with the same 'key' already exists, it is substituted.\n\
  (key) - the string to use as a key for the dict being saved.\n\
  (dict) - a dictionary with the data to be stored.\n";
 
 char M_Registry_RemoveKey_doc[] =
-"(key) - Remove the dict with key 'key' from the Registry.\n";
+	"(key) - Remove the dict with key 'key' from the Registry.\n";
 
 /*****************************************************************************/
 /* Python method structure definition for Blender.Registry module:           */
 /*****************************************************************************/
 struct PyMethodDef M_Registry_methods[] = {
-  {"Keys", (PyCFunction)M_Registry_Keys, METH_VARARGS, M_Registry_Keys_doc},
-  {"GetKey", M_Registry_GetKey, METH_VARARGS, M_Registry_GetKey_doc},
-  {"SetKey", M_Registry_SetKey, METH_VARARGS, M_Registry_SetKey_doc},
-  {"RemoveKey", M_Registry_RemoveKey, METH_VARARGS, M_Registry_RemoveKey_doc},
-  {NULL, NULL, 0, NULL}
+	{"Keys", ( PyCFunction ) M_Registry_Keys, METH_VARARGS,
+	 M_Registry_Keys_doc},
+	{"GetKey", M_Registry_GetKey, METH_VARARGS, M_Registry_GetKey_doc},
+	{"SetKey", M_Registry_SetKey, METH_VARARGS, M_Registry_SetKey_doc},
+	{"RemoveKey", M_Registry_RemoveKey, METH_VARARGS,
+	 M_Registry_RemoveKey_doc},
+	{NULL, NULL, 0, NULL}
 };
 
-#endif /* EXPP_REGISTRY_H */
+#endif				/* EXPP_REGISTRY_H */

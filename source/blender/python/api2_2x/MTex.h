@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -42,11 +43,10 @@
 /*****************************************************************************/
 
 typedef struct {
-  PyObject_HEAD
-  MTex *mtex;
+	PyObject_HEAD MTex * mtex;
 } BPy_MTex;
 
-extern PyTypeObject MTex_Type; 
+extern PyTypeObject MTex_Type;
 
 #define BPy_MTex_Check(v)  ((v)->ob_type == &MTex_Type)
 
@@ -55,11 +55,10 @@ extern PyTypeObject MTex_Type;
 /* Module Blender.Texture.MTex - public functions                            */
 /*****************************************************************************/
 
-PyObject *MTex_Init (void);
-PyObject* MTex_CreatePyObject (struct MTex *obj);
-int MTex_CheckPyObject (PyObject *py_obj);
-MTex* MTex_FromPyObject (PyObject *py_obj);
+PyObject *MTex_Init( void );
+PyObject *MTex_CreatePyObject( struct MTex *obj );
+int MTex_CheckPyObject( PyObject * py_obj );
+MTex *MTex_FromPyObject( PyObject * py_obj );
 
 
-#endif  /* EXPP_MTEX_H */
-
+#endif				/* EXPP_MTEX_H */

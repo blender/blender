@@ -42,8 +42,8 @@
 #include "gen_utils.h"
 #include "modules.h"
 
-void initBlenderApi2_2x (void)
+void initBlenderApi2_2x( void )
 {
 	g_blenderdict = NULL;
-	M_Blender_Init ();
+	M_Blender_Init(  );
 }

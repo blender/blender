@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -38,12 +39,10 @@
 /*****************************************************************************/
 /* Python BPy_Ipo structure definition:                                     */
 /*****************************************************************************/
-typedef struct
-{
-  PyObject_HEAD			/* required macro */
-  Ipo * ipo;
-}
-BPy_Ipo;
+typedef struct {
+	PyObject_HEAD		/* required macro */
+	Ipo * ipo;
+} BPy_Ipo;
 
 
-#endif /* EXPP_IPO_H */
+#endif				/* EXPP_IPO_H */

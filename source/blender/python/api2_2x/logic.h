@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -35,23 +36,23 @@
 #include "Python.h"
 #include <DNA_property_types.h>
 
-//--------------------------Python BPy_Property structure definition.---------------------
-typedef struct{
-	PyObject_HEAD  
-	//reference to property data if object linked
-	bProperty *property; 
+//--------------------------Python BPy_Property structure definition.----
+typedef struct {
+	PyObject_HEAD
+		//reference to property data if object linked
+	bProperty * property;
 	//list of vars that define the property
-	char *name;	
+	char *name;
 	PyObject *data;
 	short type;
-}BPy_Property;
+} BPy_Property;
 
-//------------------------------visible prototypes----------------------------------------------
-PyObject *Property_CreatePyObject (struct bProperty *prop);
-int Property_CheckPyObject (PyObject * py_obj);
-bProperty *Property_FromPyObject (PyObject * py_obj);
-PyObject * newPropertyObject (char *name, PyObject *data, int type);
-int updatePyProperty(BPy_Property *self);
-int updateProperyData(BPy_Property *self);
+//------------------------------visible prototypes-----------------------
+PyObject *Property_CreatePyObject( struct bProperty *prop );
+int Property_CheckPyObject( PyObject * py_obj );
+bProperty *Property_FromPyObject( PyObject * py_obj );
+PyObject *newPropertyObject( char *name, PyObject * data, int type );
+int updatePyProperty( BPy_Property * self );
+int updateProperyData( BPy_Property * self );
 
 #endif

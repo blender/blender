@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -35,17 +36,15 @@
 #include <Python.h>
 #include <DNA_scene_types.h>
 
-//------------------------------------Struct definitions----------------------------------------------------------------------
-typedef struct
-{
-  PyObject_HEAD
-  struct RenderData *renderContext;
-  Scene *scene;
-}BPy_RenderData;
-//------------------------------------Visible prototypes-------------------------------------------------------------------
-PyObject *Render_Init (void);
+//------------------------------------Struct definitions-------
+typedef struct {
+	PyObject_HEAD struct RenderData *renderContext;
+	Scene *scene;
+} BPy_RenderData;
+//------------------------------------Visible prototypes-------
+PyObject *Render_Init( void );
 
-PyObject *RenderData_CreatePyObject (struct Scene * scene);
-int RenderData_CheckPyObject (PyObject * py_obj);
+PyObject *RenderData_CreatePyObject( struct Scene *scene );
+int RenderData_CheckPyObject( PyObject * py_obj );
 
-#endif /* EXPP_SCENERENDER_H */
+#endif				/* EXPP_SCENERENDER_H */

@@ -37,9 +37,9 @@
 #include <stdio.h>
 
 #include <DNA_ID.h>
-#include <BKE_library.h> /* for all_local */
-#include "BKE_displist.h" /* for set_displist_onlyzero */
-#include "BKE_font.h" /* for text_to_curve */
+#include <BKE_library.h>	/* for all_local */
+#include "BKE_displist.h"	/* for set_displist_onlyzero */
+#include "BKE_font.h"		/* for text_to_curve */
 #include <BLO_readfile.h>
 #include <BLI_linklist.h>
 #include <MEM_guardedalloc.h>
@@ -50,45 +50,44 @@
 /**
  * Global variables.
  */
-static BlendHandle *bpy_openlib; /* ptr to the open .blend file */
-static char *bpy_openlibname; /* its pathname */
+static BlendHandle *bpy_openlib;	/* ptr to the open .blend file */
+static char *bpy_openlibname;	/* its pathname */
 
 /**
  * Function prototypes for the Library submodule.
  */
-static PyObject *M_Library_Open(PyObject *self, PyObject *args);
-static PyObject *M_Library_Close(PyObject *self);
-static PyObject *M_Library_GetName(PyObject *self);
-static PyObject *M_Library_Update(PyObject *self);
-static PyObject *M_Library_Datablocks(PyObject *self, PyObject *args);
-static PyObject *M_Library_Load(PyObject *self, PyObject *args);
-static PyObject *M_Library_LinkableGroups(PyObject *self);
+static PyObject *M_Library_Open( PyObject * self, PyObject * args );
+static PyObject *M_Library_Close( PyObject * self );
+static PyObject *M_Library_GetName( PyObject * self );
+static PyObject *M_Library_Update( PyObject * self );
+static PyObject *M_Library_Datablocks( PyObject * self, PyObject * args );
+static PyObject *M_Library_Load( PyObject * self, PyObject * args );
+static PyObject *M_Library_LinkableGroups( PyObject * self );
 
 /**
  * Module doc strings.
- */	
-static char M_Library_doc[]=
-"The Blender.Library submodule:\n\n\
+ */
+static char M_Library_doc[] = "The Blender.Library submodule:\n\n\
 This module gives access to .blend files, using them as libraries of\n\
 data that can be loaded into the current scene in Blender.";
 
 static char Library_Open_doc[] =
-"(filename) - Open the given .blend file for access to its objects.\n\
+	"(filename) - Open the given .blend file for access to its objects.\n\
 If another library file is still open, it's closed automatically.";
 
 static char Library_Close_doc[] =
-"() - Close the currently open library file, if any.";
+	"() - Close the currently open library file, if any.";
 
 static char Library_GetName_doc[] =
-"() - Get the filename of the currently open library file, if any.";
+	"() - Get the filename of the currently open library file, if any.";
 
 static char Library_Datablocks_doc[] =
-"(datablock) - List all datablocks of the given type in the currently\n\
+	"(datablock) - List all datablocks of the given type in the currently\n\
 open library file.\n\
 (datablock) - datablock name as a string: Object, Mesh, etc.";
 
 static char Library_Load_doc[] =
-"(name, datablock [,update = 1]) - Append object 'name' of type 'datablock'\n\
+	"(name, datablock [,update = 1]) - Append object 'name' of type 'datablock'\n\
 from the open library file to the current scene.\n\
 (name) - (str) the name of the object.\n\
 (datablock) - (str) the datablock of the object.\n\
@@ -97,27 +96,31 @@ links are updated.  This is slow, set it to zero if you have more than one\n\
 object to load, then call Library.Update() after loading them all.";
 
 static char Library_Update_doc[] =
-"() - Update the current scene, linking all loaded library objects and\n\
+	"() - Update the current scene, linking all loaded library objects and\n\
 remaking all display lists.  This is slow, call it only once after loading\n\
 all objects (load each of them with update = 0:\n\
 Library.Load(name, datablock, 0), or the update will be automatic, repeated\n\
 for each loaded object.";
 
 static char Library_LinkableGroups_doc[] =
-"() - Get all linkable groups from the open .blend library file.";
+	"() - Get all linkable groups from the open .blend library file.";
 
 /**
  * Python method structure definition for Blender.Library submodule.
  */
 struct PyMethodDef M_Library_methods[] = {
 	{"Open", M_Library_Open, METH_VARARGS, Library_Open_doc},
-	{"Close",(PyCFunction)M_Library_Close, METH_NOARGS, Library_Close_doc},
-	{"GetName",(PyCFunction)M_Library_GetName, METH_NOARGS, Library_GetName_doc},
-	{"Update",(PyCFunction)M_Library_Update, METH_NOARGS, Library_Update_doc},
-	{"Datablocks", M_Library_Datablocks, METH_VARARGS, Library_Datablocks_doc},
+	{"Close", ( PyCFunction ) M_Library_Close, METH_NOARGS,
+	 Library_Close_doc},
+	{"GetName", ( PyCFunction ) M_Library_GetName, METH_NOARGS,
+	 Library_GetName_doc},
+	{"Update", ( PyCFunction ) M_Library_Update, METH_NOARGS,
+	 Library_Update_doc},
+	{"Datablocks", M_Library_Datablocks, METH_VARARGS,
+	 Library_Datablocks_doc},
 	{"Load", M_Library_Load, METH_VARARGS, Library_Load_doc},
-	{"LinkableGroups",(PyCFunction)M_Library_LinkableGroups,
-		METH_NOARGS, Library_LinkableGroups_doc},
+	{"LinkableGroups", ( PyCFunction ) M_Library_LinkableGroups,
+	 METH_NOARGS, Library_LinkableGroups_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -128,51 +131,52 @@ struct PyMethodDef M_Library_methods[] = {
  * Only one can be open at a time, so this function also closes
  * the previously opened file, if any.
  */
-PyObject *M_Library_Open(PyObject *self, PyObject *args)
+PyObject *M_Library_Open( PyObject * self, PyObject * args )
 {
 	char *fname = NULL;
 	int len = 0;
 
-	if (!PyArg_ParseTuple (args, "s", &fname)) {
-		return EXPP_ReturnPyObjError (PyExc_TypeError,
-			"expected a .blend filename");
+	if( !PyArg_ParseTuple( args, "s", &fname ) ) {
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected a .blend filename" );
 	}
 
-	if (bpy_openlib) {
-		M_Library_Close(self);
-		Py_DECREF(Py_None); /* incref'ed by above function */
+	if( bpy_openlib ) {
+		M_Library_Close( self );
+		Py_DECREF( Py_None );	/* incref'ed by above function */
 	}
 
-	bpy_openlib = BLO_blendhandle_from_file(fname);
+	bpy_openlib = BLO_blendhandle_from_file( fname );
 
-	if (!bpy_openlib) return Py_BuildValue("i", 0);
+	if( !bpy_openlib )
+		return Py_BuildValue( "i", 0 );
 
-	len = strlen(fname) + 1; /* +1 for terminating '\0' */
+	len = strlen( fname ) + 1;	/* +1 for terminating '\0' */
 
-	bpy_openlibname = MEM_mallocN(len, "bpy_openlibname");
+	bpy_openlibname = MEM_mallocN( len, "bpy_openlibname" );
 
-	if (bpy_openlibname)
-		PyOS_snprintf (bpy_openlibname, len, "%s", fname);
+	if( bpy_openlibname )
+		PyOS_snprintf( bpy_openlibname, len, "%s", fname );
 
-	return Py_BuildValue("i", 1);
+	return Py_BuildValue( "i", 1 );
 }
 
 /**
  * Close the current .blend file, if any.
  */
-PyObject *M_Library_Close(PyObject *self)
+PyObject *M_Library_Close( PyObject * self )
 {
-	if (bpy_openlib) {
-		BLO_blendhandle_close(bpy_openlib);
+	if( bpy_openlib ) {
+		BLO_blendhandle_close( bpy_openlib );
 		bpy_openlib = NULL;
 	}
 
-	if (bpy_openlibname) {
-		MEM_freeN (bpy_openlibname);
+	if( bpy_openlibname ) {
+		MEM_freeN( bpy_openlibname );
 		bpy_openlibname = NULL;
 	}
 
-	Py_INCREF(Py_None);
+	Py_INCREF( Py_None );
 	return Py_None;
 }
 
@@ -180,15 +184,15 @@ PyObject *M_Library_Close(PyObject *self)
  * helper function for 'atexit' clean-ups, used by BPY_end_python,
  * declared in EXPP_interface.h.
  */
-void EXPP_Library_Close(void)
+void EXPP_Library_Close( void )
 {
-	if (bpy_openlib) {
-		BLO_blendhandle_close(bpy_openlib);
+	if( bpy_openlib ) {
+		BLO_blendhandle_close( bpy_openlib );
 		bpy_openlib = NULL;
 	}
 
-	if (bpy_openlibname) {
-		MEM_freeN (bpy_openlibname);
+	if( bpy_openlibname ) {
+		MEM_freeN( bpy_openlibname );
 		bpy_openlibname = NULL;
 	}
 }
@@ -196,12 +200,12 @@ void EXPP_Library_Close(void)
 /**
  * Get the filename of the currently open library file, if any.
  */
-PyObject *M_Library_GetName(PyObject *self)
+PyObject *M_Library_GetName( PyObject * self )
 {
-	if (bpy_openlib && bpy_openlibname)
-		return Py_BuildValue("s", bpy_openlibname);
+	if( bpy_openlib && bpy_openlibname )
+		return Py_BuildValue( "s", bpy_openlibname );
 
-	Py_INCREF (Py_None);
+	Py_INCREF( Py_None );
 	return Py_None;
 }
 
@@ -209,44 +213,46 @@ PyObject *M_Library_GetName(PyObject *self)
  * Return a list with all items of a given datablock type
  * (like 'Object', 'Mesh', etc.) in the open library file.
  */
-PyObject *M_Library_Datablocks(PyObject *self, PyObject *args)
+PyObject *M_Library_Datablocks( PyObject * self, PyObject * args )
 {
 	char *name = NULL;
 	int blocktype = 0;
 	LinkNode *l = NULL, *names = NULL;
 	PyObject *list = NULL;
 
-	if (!bpy_openlib) {
-		return EXPP_ReturnPyObjError(PyExc_IOError,
-			"no library file: open one first with Blender.Lib_Open(filename)");
+	if( !bpy_openlib ) {
+		return EXPP_ReturnPyObjError( PyExc_IOError,
+					      "no library file: open one first with Blender.Lib_Open(filename)" );
 	}
 
-	if (!PyArg_ParseTuple (args, "s", &name)) {
-		return EXPP_ReturnPyObjError (PyExc_TypeError,
-			"expected a string (datablock type) as argument.");
+	if( !PyArg_ParseTuple( args, "s", &name ) ) {
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected a string (datablock type) as argument." );
 	}
 
-	blocktype = (int)BLO_idcode_from_name(name);
+	blocktype = ( int ) BLO_idcode_from_name( name );
 
-	if (!blocktype) {
-		return EXPP_ReturnPyObjError (PyExc_NameError,
-			"no such Blender datablock type");
+	if( !blocktype ) {
+		return EXPP_ReturnPyObjError( PyExc_NameError,
+					      "no such Blender datablock type" );
 	}
 
-	names = BLO_blendhandle_get_datablock_names(bpy_openlib, blocktype);
+	names = BLO_blendhandle_get_datablock_names( bpy_openlib, blocktype );
 
-	if (names) {
+	if( names ) {
 		int counter = 0;
-		list = PyList_New(BLI_linklist_length(names));
-		for (l = names; l; l = l->next) {
-			PyList_SET_ITEM(list, counter, Py_BuildValue("s", (char *)l->link));
+		list = PyList_New( BLI_linklist_length( names ) );
+		for( l = names; l; l = l->next ) {
+			PyList_SET_ITEM( list, counter,
+					 Py_BuildValue( "s",
+							( char * ) l->link ) );
 			counter++;
 		}
-		BLI_linklist_free(names, free); /* free linklist *and* each node's data */
+		BLI_linklist_free( names, free );	/* free linklist *and* each node's data */
 		return list;
 	}
 
-	Py_INCREF (Py_None);
+	Py_INCREF( Py_None );
 	return Py_None;
 }
 
@@ -254,30 +260,32 @@ PyObject *M_Library_Datablocks(PyObject *self, PyObject *args)
  * Return a list with the names of all linkable groups in the
  * open library file.
  */
-PyObject *M_Library_LinkableGroups(PyObject *self)
+PyObject *M_Library_LinkableGroups( PyObject * self )
 {
 	LinkNode *l = NULL, *names = NULL;
 	PyObject *list = NULL;
 
-	if (!bpy_openlib) {
-		return EXPP_ReturnPyObjError(PyExc_IOError,
-			"no library file: open one first with Blender.Lib_Open(filename)");
+	if( !bpy_openlib ) {
+		return EXPP_ReturnPyObjError( PyExc_IOError,
+					      "no library file: open one first with Blender.Lib_Open(filename)" );
 	}
 
-	names = BLO_blendhandle_get_linkable_groups(bpy_openlib);
+	names = BLO_blendhandle_get_linkable_groups( bpy_openlib );
 
-	if (names) {
+	if( names ) {
 		int counter = 0;
-		list = PyList_New(BLI_linklist_length(names));
-		for (l = names; l; l = l->next) {
-			PyList_SET_ITEM(list, counter, Py_BuildValue("s", (char *)l->link));
+		list = PyList_New( BLI_linklist_length( names ) );
+		for( l = names; l; l = l->next ) {
+			PyList_SET_ITEM( list, counter,
+					 Py_BuildValue( "s",
+							( char * ) l->link ) );
 			counter++;
 		}
-		BLI_linklist_free(names, free); /* free linklist *and* each node's data */
+		BLI_linklist_free( names, free );	/* free linklist *and* each node's data */
 		return list;
 	}
 
-	Py_INCREF (Py_None);
+	Py_INCREF( Py_None );
 	return Py_None;
 }
 
@@ -285,81 +293,84 @@ PyObject *M_Library_LinkableGroups(PyObject *self)
  * Load (append) a given datablock of a given datablock type
  * to the current scene.
  */
-PyObject *M_Library_Load(PyObject *self, PyObject *args)
+PyObject *M_Library_Load( PyObject * self, PyObject * args )
 {
 	char *name = NULL;
 	char *base = NULL;
 	int update = 1;
 	int blocktype = 0;
 
-	if (!bpy_openlib) {
-		return EXPP_ReturnPyObjError(PyExc_IOError,
-			"no library file: you need to open one, first.");
+	if( !bpy_openlib ) {
+		return EXPP_ReturnPyObjError( PyExc_IOError,
+					      "no library file: you need to open one, first." );
 	}
 
-	if (!PyArg_ParseTuple (args, "ss|i", &name, &base, &update)) {
-		return EXPP_ReturnPyObjError (PyExc_TypeError,
-			"expected two strings as arguments.");
+	if( !PyArg_ParseTuple( args, "ss|i", &name, &base, &update ) ) {
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected two strings as arguments." );
 	}
 
-	blocktype = (int)BLO_idcode_from_name(base);
+	blocktype = ( int ) BLO_idcode_from_name( base );
 
-	if (!blocktype) {
-		return EXPP_ReturnPyObjError (PyExc_NameError,
-			"no such Blender datablock type");
+	if( !blocktype ) {
+		return EXPP_ReturnPyObjError( PyExc_NameError,
+					      "no such Blender datablock type" );
 	}
 
-	BLO_script_library_append(bpy_openlib, bpy_openlibname, name, blocktype);
+	BLO_script_library_append( bpy_openlib, bpy_openlibname, name,
+				   blocktype );
 
-	if (update) {
-		M_Library_Update(self);
-		Py_DECREF(Py_None); /* incref'ed by above function */
+	if( update ) {
+		M_Library_Update( self );
+		Py_DECREF( Py_None );	/* incref'ed by above function */
 	}
 
-	Py_INCREF (Py_None);
+	Py_INCREF( Py_None );
 	return Py_None;
 }
 
 /**
  * Update all links and remake displists.
  */
-PyObject *M_Library_Update(PyObject *self)
-{ /* code adapted from do_library_append in src/filesel.c: */ 
+PyObject *M_Library_Update( PyObject * self )
+{				/* code adapted from do_library_append in src/filesel.c: */
 	Object *ob = NULL;
 	Library *lib = NULL;
 
 	ob = G.main->object.first;
-	set_displist_onlyzero(1);
-	while (ob) {
-		if (ob->id.lib) {
-			if (ob->type==OB_FONT) {
-				Curve *cu= ob->data;
-				if (cu->nurb.first==0) text_to_curve(ob, 0);
+	set_displist_onlyzero( 1 );
+	while( ob ) {
+		if( ob->id.lib ) {
+			if( ob->type == OB_FONT ) {
+				Curve *cu = ob->data;
+				if( cu->nurb.first == 0 )
+					text_to_curve( ob, 0 );
 			}
-			makeDispList(ob);
-		}
-		else {
-			if (ob->type == OB_MESH && ob->parent && ob->parent->type == OB_LATTICE)
-				makeDispList(ob);
+			makeDispList( ob );
+		} else {
+			if( ob->type == OB_MESH && ob->parent
+			    && ob->parent->type == OB_LATTICE )
+				makeDispList( ob );
 		}
 
 		ob = ob->id.next;
 	}
-	set_displist_onlyzero(0);
+	set_displist_onlyzero( 0 );
 
-	if (bpy_openlibname) {
-		strcpy(G.lib, bpy_openlibname);
+	if( bpy_openlibname ) {
+		strcpy( G.lib, bpy_openlibname );
 
 		/* and now find the latest append lib file */
 		lib = G.main->library.first;
-		while (lib) {
-			if (strcmp(bpy_openlibname, lib->name) == 0) break;
+		while( lib ) {
+			if( strcmp( bpy_openlibname, lib->name ) == 0 )
+				break;
 			lib = lib->id.next;
 		}
-		all_local(lib);
+		all_local( lib );
 	}
 
-	Py_INCREF (Py_None);
+	Py_INCREF( Py_None );
 	return Py_None;
 }
 
@@ -368,11 +379,12 @@ PyObject *M_Library_Update(PyObject *self)
  * Called by Blender_Init in Blender.c .
  * @return the registered submodule.
  */
-PyObject *Library_Init (void)
+PyObject *Library_Init( void )
 {
 	PyObject *submod;
 
-	submod = Py_InitModule3("Blender.Library", M_Library_methods, M_Library_doc);
+	submod = Py_InitModule3( "Blender.Library", M_Library_methods,
+				 M_Library_doc );
 
 	return submod;
 }

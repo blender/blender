@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -36,15 +37,13 @@
 #include <DNA_curve_types.h>
 
 /*****************************************************************************/
-/* Python C_BezTriple structure definition:                                     */
+/* Python C_BezTriple structure definition:              */
 /*****************************************************************************/
 
-typedef struct
-{
-  PyObject_HEAD  /* required python macro */
-  BezTriple *beztriple;
-}
-C_BezTriple;
+typedef struct {
+	PyObject_HEAD		/* required python macro */
+	BezTriple * beztriple;
+} C_BezTriple;
 
 
-#endif /* EXPP_BEZTRIPLE_H */
+#endif				/* EXPP_BEZTRIPLE_H */

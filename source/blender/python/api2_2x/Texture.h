@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -44,11 +45,10 @@
 /*****************************************************************************/
 
 typedef struct {
-  PyObject_HEAD
-  Tex *texture;
+	PyObject_HEAD Tex * texture;
 } BPy_Texture;
 
-extern PyTypeObject Texture_Type; 
+extern PyTypeObject Texture_Type;
 
 #define BPy_Texture_Check(v)  ((v)->ob_type == &Texture_Type)
 
@@ -57,11 +57,10 @@ extern PyTypeObject Texture_Type;
 /* Module Blender.Texture - public functions                                 */
 /*****************************************************************************/
 
-PyObject * Texture_Init(void);
-PyObject * Texture_CreatePyObject(struct Tex *tex);
-int        Texture_CheckPyObject(PyObject *pyobj);
-Tex      * Texture_FromPyObject (PyObject *pyobj);
+PyObject *Texture_Init( void );
+PyObject *Texture_CreatePyObject( struct Tex *tex );
+int Texture_CheckPyObject( PyObject * pyobj );
+Tex *Texture_FromPyObject( PyObject * pyobj );
 
 
-#endif /* EXPP_TEXTURE_H */
-
+#endif				/* EXPP_TEXTURE_H */

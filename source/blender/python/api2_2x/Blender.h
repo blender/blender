@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -31,4 +32,4 @@
 
 #ifndef EXPP_BLENDER_H
 #define EXPP_BLENDER_H
-#endif /* EXPP_BLENDER_H */
+#endif				/* EXPP_BLENDER_H */

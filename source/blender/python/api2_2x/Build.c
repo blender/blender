@@ -44,18 +44,18 @@
 #include <stdio.h>
 
 /*****************************************************************************/
-/* Python BPy_Build methods table:                                             */
+/* Python BPy_Build methods table:                                           */
 /*****************************************************************************/
 static PyMethodDef BPy_Build_methods[] = {
-  {"getLen", (PyCFunction) Build_getLen,
-   METH_NOARGS, "()-Return Build len"},
-  {"setLen", (PyCFunction) Build_setLen, METH_VARARGS,
-   "()- Sets Build len"},
-  {"getSfra", (PyCFunction) Build_getSfra,
-   METH_NOARGS, "()-Return Build sfra"},
-  {"setSfra", (PyCFunction) Build_setSfra, METH_VARARGS,
-   "()- Sets Build sfra"},
-  {NULL, NULL, 0, NULL}
+	{"getLen", ( PyCFunction ) Build_getLen,
+	 METH_NOARGS, "()-Return Build len"},
+	{"setLen", ( PyCFunction ) Build_setLen, METH_VARARGS,
+	 "()- Sets Build len"},
+	{"getSfra", ( PyCFunction ) Build_getSfra,
+	 METH_NOARGS, "()-Return Build sfra"},
+	{"setSfra", ( PyCFunction ) Build_setSfra, METH_VARARGS,
+	 "()- Sets Build sfra"},
+	{NULL, NULL, 0, NULL}
 };
 
 
@@ -63,26 +63,27 @@ static PyMethodDef BPy_Build_methods[] = {
 /* Python Build_Type structure definition:                                   */
 /*****************************************************************************/
 PyTypeObject Build_Type = {
-  PyObject_HEAD_INIT (NULL) 0,	/* ob_size */
-  "Build",			/* tp_name */
-  sizeof (BPy_Build),		/* tp_basicsize */
-  0,				/* tp_itemsize */
-  /* methods */
-  (destructor) BuildDeAlloc,	/* tp_dealloc */
-  0,				/* tp_print */
-  (getattrfunc) BuildGetAttr,	/* tp_getattr */
-  (setattrfunc) BuildSetAttr,	/* tp_setattr */
-  0,				/* tp_compare */
-  (reprfunc) BuildRepr,		/* tp_repr */
-  0,				/* tp_as_number */
-  0,				/* tp_as_sequence */
-  0,				/* tp_as_mapping */
-  0,				/* tp_as_hash */
-  0, 0, 0, 0, 0, 0,
-  0,				/* tp_doc */
-  0, 0, 0, 0, 0, 0,
-  BPy_Build_methods,		/* tp_methods */
-  0,				/* tp_members */
+	PyObject_HEAD_INIT( NULL ) 
+	0,	/* ob_size */
+	"Build",		/* tp_name */
+	sizeof( BPy_Build ),	/* tp_basicsize */
+	0,			/* tp_itemsize */
+	/* methods */
+	( destructor ) BuildDeAlloc,	/* tp_dealloc */
+	0,			/* tp_print */
+	( getattrfunc ) BuildGetAttr,	/* tp_getattr */
+	( setattrfunc ) BuildSetAttr,	/* tp_setattr */
+	0,			/* tp_compare */
+	( reprfunc ) BuildRepr,	/* tp_repr */
+	0,			/* tp_as_number */
+	0,			/* tp_as_sequence */
+	0,			/* tp_as_mapping */
+	0,			/* tp_as_hash */
+	0, 0, 0, 0, 0, 0,
+	0,			/* tp_doc */
+	0, 0, 0, 0, 0, 0,
+	BPy_Build_methods,	/* tp_methods */
+	0,			/* tp_members */
 };
 
 
@@ -108,224 +109,215 @@ static char M_Build_Get_doc[] = "Build.Get (name = None):\n\
 /* Function:              M_Build_New                                        */
 /* Python equivalent:     Blender.Effect.Build.New                           */
 /*****************************************************************************/
-PyObject *
-M_Build_New (PyObject * self, PyObject * args)
+PyObject *M_Build_New( PyObject * self, PyObject * args )
 {
-  int type = EFF_BUILD;
-  BPy_Effect *pyeffect;
-  Effect *bleffect = 0;
+	int type = EFF_BUILD;
+	BPy_Effect *pyeffect;
+	Effect *bleffect = 0;
 
 
-  bleffect = add_effect (type);
-  if (bleffect == NULL)
-    return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-				   "couldn't create Effect Data in Blender"));
+	bleffect = add_effect( type );
+	if( bleffect == NULL )
+		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+						"couldn't create Effect Data in Blender" ) );
 
-  pyeffect = (BPy_Effect *) PyObject_NEW (BPy_Effect, &Effect_Type);
+	pyeffect = ( BPy_Effect * ) PyObject_NEW( BPy_Effect, &Effect_Type );
 
 
-  if (pyeffect == NULL)
-    return (EXPP_ReturnPyObjError (PyExc_MemoryError,
-				   "couldn't create Effect Data object"));
+	if( pyeffect == NULL )
+		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
+						"couldn't create Effect Data object" ) );
 
-  pyeffect->effect = bleffect;
+	pyeffect->effect = bleffect;
 
-  return (PyObject *) pyeffect;
-  return 0;
+	return ( PyObject * ) pyeffect;
+	return 0;
 }
 
 /*****************************************************************************/
 /* Function:              M_Build_Get                                        */
 /* Python equivalent:     Blender.Effect.Build.Get                           */
 /*****************************************************************************/
-PyObject *
-M_Build_Get (PyObject * self, PyObject * args)
+PyObject *M_Build_Get( PyObject * self, PyObject * args )
 {
-  /*arguments : string object name
-     int : position of effect in the obj's effect list  */
-  char *name = 0;
-  Object *object_iter;
-  Effect *eff;
-  BPy_Build *wanted_eff;
-  int num, i;
-  if (!PyArg_ParseTuple (args, "si", &name, &num))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-				   "expected string int argument"));
+	/*arguments : string object name
+	   int : position of effect in the obj's effect list  */
+	char *name = 0;
+	Object *object_iter;
+	Effect *eff;
+	BPy_Build *wanted_eff;
+	int num, i;
+	if( !PyArg_ParseTuple( args, "si", &name, &num ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"expected string int argument" ) );
 
-  object_iter = G.main->object.first;
-  if (!object_iter)
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-				   "Scene contains no object"));
+	object_iter = G.main->object.first;
+	if( !object_iter )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"Scene contains no object" ) );
 
-  while (object_iter)
-    {
-      if (strcmp (name, object_iter->id.name + 2))
-	{
-	  object_iter = object_iter->id.next;
-	  continue;
+	while( object_iter ) {
+		if( strcmp( name, object_iter->id.name + 2 ) ) {
+			object_iter = object_iter->id.next;
+			continue;
+		}
+
+
+		if( object_iter->effect.first != NULL ) {
+			eff = object_iter->effect.first;
+			for( i = 0; i < num; i++ ) {
+				if( eff->type != EFF_BUILD )
+					continue;
+				eff = eff->next;
+				if( !eff )
+					return ( EXPP_ReturnPyObjError
+						 ( PyExc_AttributeError,
+						   "object not created" ) );
+			}
+			wanted_eff =
+				( BPy_Build * ) PyObject_NEW( BPy_Build,
+							      &Build_Type );
+			wanted_eff->build = eff;
+			return ( PyObject * ) wanted_eff;
+		}
+		object_iter = object_iter->id.next;
 	}
-
-
-      if (object_iter->effect.first != NULL)
-	{
-	  eff = object_iter->effect.first;
-	  for (i = 0; i < num; i++)
-	    {
-	      if (eff->type != EFF_BUILD)
-		continue;
-	      eff = eff->next;
-	      if (!eff)
-		return (EXPP_ReturnPyObjError
-			(PyExc_AttributeError, "object not created"));
-	    }
-	  wanted_eff = (BPy_Build *) PyObject_NEW (BPy_Build, &Build_Type);
-	  wanted_eff->build = eff;
-	  return (PyObject *) wanted_eff;
-	}
-      object_iter = object_iter->id.next;
-    }
-  Py_INCREF (Py_None);
-  return Py_None;
+	Py_INCREF( Py_None );
+	return Py_None;
 }
 
 
 
 struct PyMethodDef M_Build_methods[] = {
-  {"New", (PyCFunction) M_Build_New, METH_VARARGS, M_Build_New_doc},
-  {"Get", M_Build_Get, METH_VARARGS, M_Build_Get_doc},
-  {"get", M_Build_Get, METH_VARARGS, M_Build_Get_doc},
-  {NULL, NULL, 0, NULL}
+	{"New", ( PyCFunction ) M_Build_New, METH_VARARGS, M_Build_New_doc},
+	{"Get", M_Build_Get, METH_VARARGS, M_Build_Get_doc},
+	{"get", M_Build_Get, METH_VARARGS, M_Build_Get_doc},
+	{NULL, NULL, 0, NULL}
 };
 
 /*****************************************************************************/
 /* Function:              Build_Init                                         */
 /*****************************************************************************/
 
-PyObject *
-Build_Init (void)
+PyObject *Build_Init( void )
 {
-  PyObject *submodule;
+	PyObject *submodule;
 
-  Build_Type.ob_type = &PyType_Type;
-  submodule = Py_InitModule3 ("Blender.Build", M_Build_methods, M_Build_doc);
-  return (submodule);
+	Build_Type.ob_type = &PyType_Type;
+	submodule =
+		Py_InitModule3( "Blender.Build", M_Build_methods,
+				M_Build_doc );
+	return ( submodule );
 }
 
 /*****************************************************************************/
-/* Python BPy_Build methods:                                                  */
+/* Python BPy_Build methods:                                                */
 /*****************************************************************************/
 
-PyObject *
-Build_getLen (BPy_Build * self)
+PyObject *Build_getLen( BPy_Build * self )
 {
-  BuildEff *ptr = (BuildEff *) self->build;
-  return PyFloat_FromDouble (ptr->len);
+	BuildEff *ptr = ( BuildEff * ) self->build;
+	return PyFloat_FromDouble( ptr->len );
 }
 
 
-PyObject *
-Build_setLen (BPy_Build * self, PyObject * args)
+PyObject *Build_setLen( BPy_Build * self, PyObject * args )
 {
-  BuildEff *ptr = (BuildEff *) self->build;
-  float val = 0;
-  if (!PyArg_ParseTuple (args, "f", &val))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-				   "expected float argument"));
-  ptr->len = val;
-  Py_INCREF (Py_None);
-  return Py_None;
+	BuildEff *ptr = ( BuildEff * ) self->build;
+	float val = 0;
+	if( !PyArg_ParseTuple( args, "f", &val ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"expected float argument" ) );
+	ptr->len = val;
+	Py_INCREF( Py_None );
+	return Py_None;
 }
 
 
-PyObject *
-Build_getSfra (BPy_Build * self)
+PyObject *Build_getSfra( BPy_Build * self )
 {
-  BuildEff *ptr = (BuildEff *) self->build;
-  return PyFloat_FromDouble (ptr->sfra);
+	BuildEff *ptr = ( BuildEff * ) self->build;
+	return PyFloat_FromDouble( ptr->sfra );
 }
 
-PyObject *
-Build_setSfra (BPy_Build * self, PyObject * args)
+PyObject *Build_setSfra( BPy_Build * self, PyObject * args )
 {
-  BuildEff *ptr = (BuildEff *) self->build;
-  float val = 0;
-  if (!PyArg_ParseTuple (args, "f", &val))
-    return (EXPP_ReturnPyObjError
-	    (PyExc_AttributeError, "expected float argument"));
+	BuildEff *ptr = ( BuildEff * ) self->build;
+	float val = 0;
+	if( !PyArg_ParseTuple( args, "f", &val ) )
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_AttributeError, "expected float argument" ) );
 
-  ptr->sfra = val;
-  Py_INCREF (Py_None);
-  return Py_None;
+	ptr->sfra = val;
+	Py_INCREF( Py_None );
+	return Py_None;
 }
 
 /*****************************************************************************/
 /* Function:    BuildDeAlloc                                                 */
-/* Description: This is a callback function for the BPy_Build type. It is      */
+/* Description: This is a callback function for the BPy_Build type. It is    */
 /*              the destructor function.                                     */
 /*****************************************************************************/
-void
-BuildDeAlloc (BPy_Build * self)
+void BuildDeAlloc( BPy_Build * self )
 {
-  BuildEff *ptr = (BuildEff *) self;
-  PyObject_DEL (ptr);
+	BuildEff *ptr = ( BuildEff * ) self;
+	PyObject_DEL( ptr );
 }
 
 /*****************************************************************************/
 /* Function:    BuildGetAttr                                                 */
-/* Description: This is a callback function for the BPy_Build type. It is      */
-/*              the function that accesses BPy_Build "member variables" and    */
+/* Description: This is a callback function for the BPy_Build type. It is    */
+/*              the function that accesses BPy_Build "member variables" and  */
 /*              methods.                                                     */
 /*****************************************************************************/
 
-PyObject *
-BuildGetAttr (BPy_Build * self, char *name)
+PyObject *BuildGetAttr( BPy_Build * self, char *name )
 {
-  if (!strcmp (name, "sfra"))
-    return Build_getSfra (self);
-  if (!strcmp (name, "len"))
-    return Build_getLen (self);
-  return Py_FindMethod (BPy_Build_methods, (PyObject *) self, name);
+	if( !strcmp( name, "sfra" ) )
+		return Build_getSfra( self );
+	if( !strcmp( name, "len" ) )
+		return Build_getLen( self );
+	return Py_FindMethod( BPy_Build_methods, ( PyObject * ) self, name );
 }
 
 /*****************************************************************************/
-/* Function:    BuildSetAttr                                                  */
-/* Description: This is a callback function for the BPy_Build type. It is the   */
-/*              function that sets Build Data attributes (member variables).  */
+/* Function:    BuildSetAttr                                                 */
+/* Description: This is a callback function for the BPy_Build type. It   */
+/*              sets Build Data attributes (member variables).  */
 /*****************************************************************************/
-int
-BuildSetAttr (BPy_Build * self, char *name, PyObject * value)
+int BuildSetAttr( BPy_Build * self, char *name, PyObject * value )
 {
-  PyObject *valtuple;
-  PyObject *error = NULL;
-  valtuple = Py_BuildValue ("(N)", value);
+	PyObject *valtuple;
+	PyObject *error = NULL;
+	valtuple = Py_BuildValue( "(N)", value );
 
-  if (!valtuple)
-    return EXPP_ReturnIntError (PyExc_MemoryError,
-				"CameraSetAttr: couldn't create PyTuple");
+	if( !valtuple )
+		return EXPP_ReturnIntError( PyExc_MemoryError,
+					    "CameraSetAttr: couldn't create PyTuple" );
 
-  if (!strcmp (name, "sfra"))
-    error = Build_setSfra (self, valtuple);
-  else if (!strcmp (name, "len"))
-    error = Build_setLen (self, valtuple);
+	if( !strcmp( name, "sfra" ) )
+		error = Build_setSfra( self, valtuple );
+	else if( !strcmp( name, "len" ) )
+		error = Build_setLen( self, valtuple );
 
-  else
-    {
-      Py_DECREF (valtuple);
-      return (EXPP_ReturnIntError (PyExc_KeyError, "attribute not found"));
-    }
+	else {
+		Py_DECREF( valtuple );
+		return ( EXPP_ReturnIntError
+			 ( PyExc_KeyError, "attribute not found" ) );
+	}
 
-  /*  Py_DECREF(valtuple); */
+	/*  Py_DECREF(valtuple); */
 
-  if (error != Py_None)
-    return -1;
+	if( error != Py_None )
+		return -1;
 
-  Py_DECREF (Py_None);
-  return 0;
+	Py_DECREF( Py_None );
+	return 0;
 }
 
 /*****************************************************************************/
 /* Function:    BuildPrint                                                   */
-/* Description: This is a callback function for the BPy_Build type. It         */
+/* Description: This is a callback function for the BPy_Build type. It       */
 /*              builds a meaninful string to 'print' build objects.          */
 /*****************************************************************************/
 /*
@@ -336,45 +328,40 @@ int BuildPrint(BPy_Build *self, FILE *fp, int flags)
 */
 /*****************************************************************************/
 /* Function:    BuildRepr                                                    */
-/* Description: This is a callback function for the BPy_Build type. It         */
+/* Description: This is a callback function for the BPy_Build type. It       */
 /*              builds a meaninful string to represent build objects.        */
 /*****************************************************************************/
-PyObject *
-BuildRepr (BPy_Build * self)
+PyObject *BuildRepr( BPy_Build * self )
 {
-  return PyString_FromString ("Build effect");
+	return PyString_FromString( "Build effect" );
 }
 
-PyObject *
-BuildCreatePyObject (struct Effect * build)
+PyObject *BuildCreatePyObject( struct Effect * build )
 {
-  BPy_Build *blen_object;
+	BPy_Build *blen_object;
 
 
-  blen_object = (BPy_Build *) PyObject_NEW (BPy_Build, &Build_Type);
+	blen_object = ( BPy_Build * ) PyObject_NEW( BPy_Build, &Build_Type );
 
-  if (blen_object == NULL)
-    {
-      return (NULL);
-    }
-  blen_object->build = build;
-  return ((PyObject *) blen_object);
+	if( blen_object == NULL ) {
+		return ( NULL );
+	}
+	blen_object->build = build;
+	return ( ( PyObject * ) blen_object );
 
 }
 
-int
-BuildCheckPyObject (PyObject * py_obj)
+int BuildCheckPyObject( PyObject * py_obj )
 {
-  return (py_obj->ob_type == &Build_Type);
+	return ( py_obj->ob_type == &Build_Type );
 }
 
 
-struct Build *
-BuildFromPyObject (PyObject * py_obj)
+struct Build *BuildFromPyObject( PyObject * py_obj )
 {
-  BPy_Build *blen_obj;
+	BPy_Build *blen_obj;
 
-  blen_obj = (BPy_Build *) py_obj;
-  return ((struct Build *) blen_obj->build);
+	blen_obj = ( BPy_Build * ) py_obj;
+	return ( ( struct Build * ) blen_obj->build );
 
 }

@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -60,7 +61,7 @@
 #include "BIF_mywindow.h"
 
 #include "interface.h"
-#include "mydevice.h"  /*@ for all the event constants */
+#include "mydevice.h"		/*@ for all the event constants */
 
 #include "Python.h"
 
@@ -71,30 +72,29 @@
 /*@ For Python access to OpenGL functions requiring a pointer. */
 
 typedef struct _Buffer {
-  PyObject_VAR_HEAD
+	PyObject_VAR_HEAD PyObject * parent;
 
-  PyObject *parent;
-  
-  int type; /* GL_BYTE, GL_SHORT, GL_INT, GL_FLOAT */
-  int ndimensions;
-  int *dimensions;
-  
-  union {
-    char  *asbyte;
-    short *asshort;
-    int   *asint;
-    float *asfloat;
+	int type;		/* GL_BYTE, GL_SHORT, GL_INT, GL_FLOAT */
+	int ndimensions;
+	int *dimensions;
 
-    void  *asvoid;
-  } buf;
+	union {
+		char *asbyte;
+		short *asshort;
+		int *asint;
+		float *asfloat;
+
+		void *asvoid;
+	} buf;
 } Buffer;
 
-static int type_size(int type);
-static Buffer *make_buffer(int type, int ndimensions, int *dimensions);
-static int Buffer_ass_slice(PyObject *self, int begin, int end, PyObject *seq);
+static int type_size( int type );
+static Buffer *make_buffer( int type, int ndimensions, int *dimensions );
+static int Buffer_ass_slice( PyObject * self, int begin, int end,
+			     PyObject * seq );
 
-static char Method_Buffer_doc[]=
-"(type, dimensions, [template]) - Create a new Buffer object\n\n\
+static char Method_Buffer_doc[] =
+	"(type, dimensions, [template]) - Create a new Buffer object\n\n\
 (type) - The format to store data in\n\
 (dimensions) - An int or sequence specifying the dimensions of the buffer\n\
 [template] - A sequence of matching dimensions to the buffer to be created\n\
@@ -109,46 +109,47 @@ For example, passing [100, 100] will create a 2 dimensional\n\
 square buffer. Passing [16, 16, 32] will create a 3 dimensional\n\
 buffer which is twice as deep as it is wide or high.";
 
-static PyObject *Method_Buffer (PyObject *self, PyObject *args);
+static PyObject *Method_Buffer( PyObject * self, PyObject * args );
 
 /* Buffer sequence methods */
 
-static int Buffer_len(PyObject *self);
-static PyObject *Buffer_item(PyObject *self, int i);
-static PyObject *Buffer_slice(PyObject *self, int begin, int end);
-static int Buffer_ass_item(PyObject *self, int i, PyObject *v);
-static int Buffer_ass_slice(PyObject *self, int begin, int end, PyObject *seq);
+static int Buffer_len( PyObject * self );
+static PyObject *Buffer_item( PyObject * self, int i );
+static PyObject *Buffer_slice( PyObject * self, int begin, int end );
+static int Buffer_ass_item( PyObject * self, int i, PyObject * v );
+static int Buffer_ass_slice( PyObject * self, int begin, int end,
+			     PyObject * seq );
 
 static PySequenceMethods Buffer_SeqMethods = {
-  (inquiry)           Buffer_len,       /*sq_length*/
-  (binaryfunc)        0,                /*sq_concat*/
-  (intargfunc)        0,                /*sq_repeat*/
-  (intargfunc)        Buffer_item,      /*sq_item*/
-  (intintargfunc)     Buffer_slice,     /*sq_slice*/
-  (intobjargproc)     Buffer_ass_item,  /*sq_ass_item*/
-  (intintobjargproc)  Buffer_ass_slice, /*sq_ass_slice*/
+	( inquiry ) Buffer_len,	/*sq_length */
+	( binaryfunc ) 0,	/*sq_concat */
+	( intargfunc ) 0,	/*sq_repeat */
+	( intargfunc ) Buffer_item,	/*sq_item */
+	( intintargfunc ) Buffer_slice,	/*sq_slice */
+	( intobjargproc ) Buffer_ass_item,	/*sq_ass_item */
+	( intintobjargproc ) Buffer_ass_slice,	/*sq_ass_slice */
 };
 
-static void Buffer_dealloc(PyObject *self);
-static PyObject *Buffer_tolist(PyObject *self);
-static PyObject *Buffer_dimensions(PyObject *self);
-static PyObject *Buffer_getattr(PyObject *self, char *name);
-static PyObject *Buffer_repr(PyObject *self);
+static void Buffer_dealloc( PyObject * self );
+static PyObject *Buffer_tolist( PyObject * self );
+static PyObject *Buffer_dimensions( PyObject * self );
+static PyObject *Buffer_getattr( PyObject * self, char *name );
+static PyObject *Buffer_repr( PyObject * self );
 
 PyTypeObject buffer_Type = {
-  PyObject_HEAD_INIT(NULL)
-  0,                            /*ob_size*/
-  "buffer",                     /*tp_name*/
-  sizeof(Buffer),               /*tp_basicsize*/
-  0,                            /*tp_itemsize*/
-  (destructor) Buffer_dealloc,  /*tp_dealloc*/
-  (printfunc)  0,               /*tp_print*/
-  (getattrfunc) Buffer_getattr, /*tp_getattr*/
-  (setattrfunc) 0,              /*tp_setattr*/
-  (cmpfunc) 0,                  /*tp_compare*/
-  (reprfunc) Buffer_repr,       /*tp_repr*/
-  0,                            /*tp_as_number*/
-  &Buffer_SeqMethods,           /*tp_as_sequence*/
+	PyObject_HEAD_INIT( NULL )      /* required python macro */
+	0,	/*ob_size */
+	"buffer",		/*tp_name */
+	sizeof( Buffer ),	/*tp_basicsize */
+	0,			/*tp_itemsize */
+	( destructor ) Buffer_dealloc,	/*tp_dealloc */
+	( printfunc ) 0,	/*tp_print */
+	( getattrfunc ) Buffer_getattr,	/*tp_getattr */
+	( setattrfunc ) 0,	/*tp_setattr */
+	( cmpfunc ) 0,		/*tp_compare */
+	( reprfunc ) Buffer_repr,	/*tp_repr */
+	0,			/*tp_as_number */
+	&Buffer_SeqMethods,	/*tp_as_sequence */
 };
 
 /* #ifndef __APPLE__ */
@@ -173,7 +174,7 @@ PyTypeObject buffer_Type = {
 /* TYPE_def is the C initialization of the variable */
 
 #define void_str      ""
-#define void_var(num)   
+#define void_var(num)
 #define void_ref(num)   &bgl_var##num
 #define void_def(num)   char bgl_var##num
 
@@ -252,7 +253,7 @@ PyTypeObject buffer_Type = {
  * Py_ArgParse doesn't grok writing into unsigned variables, 
  * so we use signed everything (even stuff that should be unsigned.
  */
- 
+
 /* typedef unsigned int GLenum; */
 #define GLenum_str      "i"
 #define GLenum_var(num)   bgl_var##num
@@ -387,28 +388,28 @@ PyTypeObject buffer_Type = {
 #define arg_str9(a1, a2, a3, a4, a5, a6, a7, a8, a9)arg_str8(a1, a2, a3, a4, a5, a6, a7, a8) a9##_str
 #define arg_str10(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)arg_str9(a1, a2, a3, a4, a5, a6, a7, a8, a9) a10##_str
 
-#define ret_def_void  
-#define ret_set_void  
+#define ret_def_void
+#define ret_set_void
 #define ret_ret_void    return EXPP_incr_ret(Py_None)
 
 #define ret_def_GLint   int ret_int
-#define ret_set_GLint   ret_int= 
+#define ret_set_GLint   ret_int=
 #define ret_ret_GLint   return PyInt_FromLong(ret_int);
 
 #define ret_def_GLuint    unsigned int ret_uint
-#define ret_set_GLuint    ret_uint= 
+#define ret_set_GLuint    ret_uint=
 #define ret_ret_GLuint    return PyInt_FromLong((long) ret_uint);
 
 #define ret_def_GLenum    unsigned int ret_uint
-#define ret_set_GLenum    ret_uint= 
+#define ret_set_GLenum    ret_uint=
 #define ret_ret_GLenum    return PyInt_FromLong((long) ret_uint);
 
 #define ret_def_GLboolean unsigned char ret_bool
-#define ret_set_GLboolean ret_bool= 
+#define ret_set_GLboolean ret_bool=
 #define ret_ret_GLboolean return PyInt_FromLong((long) ret_bool);
 
 #define ret_def_GLstring  const unsigned char *ret_str;
-#define ret_set_GLstring  ret_str= 
+#define ret_set_GLstring  ret_str=
 #define ret_ret_GLstring  return PyString_FromString(ret_str);
 
 #define BGL_Wrap(nargs, funcname, ret, arg_list) \
@@ -431,4 +432,4 @@ static PyObject *Method_##funcname (PyObject *self, PyObject *args) {\
 
 /* #endif */
 
-PyObject *BGL_Init(void); 
+PyObject *BGL_Init( void );

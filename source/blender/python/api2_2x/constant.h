@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -43,20 +44,19 @@
 /*****************************************************************************/
 /* Python API function prototypes for the constant module.                   */
 /*****************************************************************************/
-PyObject *M_constant_New (void);
+PyObject *M_constant_New( void );
 
 /*****************************************************************************/
 /* Python BPy_constant structure definition:                                 */
 /*****************************************************************************/
 typedef struct {
-  PyObject_HEAD
-  PyObject *dict;
+	PyObject_HEAD PyObject * dict;
 
 } BPy_constant;
 
 /*****************************************************************************/
 /* Python BPy_constant methods declarations:                                 */
 /*****************************************************************************/
-int constant_insert(BPy_constant *self, char *name, PyObject *value);
+int constant_insert( BPy_constant * self, char *name, PyObject * value );
 
-#endif /* EXPP_constant_H */
+#endif				/* EXPP_constant_H */

@@ -1,4 +1,5 @@
 /* 
+ * $Id:*
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -34,4 +35,4 @@
 #ifndef EXPP_WINDOW_H
 #define EXPP_WINDOW_H
 
-#endif /* EXPP_WINDOW_H */
+#endif				/* EXPP_WINDOW_H */

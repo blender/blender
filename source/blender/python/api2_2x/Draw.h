@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -44,40 +45,36 @@
 #include "modules.h"
 
 /* From Window.h, used here by py_slider_update() */
-PyObject *M_Window_Redraw (PyObject * self, PyObject * args);
+PyObject *M_Window_Redraw( PyObject * self, PyObject * args );
 
 
-void initDraw (void);
+void initDraw( void );
 
 /* 
  * Button Object stuct 
  */
 
-typedef struct _Button
-{
-  PyObject_VAR_HEAD		/* required Py Macro */
-  int type;	/*@ 1 == int, 2 == float, 3 == string */
-  unsigned int slen; /*@ length of string (if type == 3) */
-  union
-  {
-    int asint;
-    float asfloat;
-    char *asstr;
-  }
-  val;
-  char *tooltip;
-}
-Button;
+typedef struct _Button {
+	PyObject_VAR_HEAD	/* required Py Macro */
+	int type;		/*@ 1 == int, 2 == float, 3 == string */
+	unsigned int slen;	/*@ length of string (if type == 3) */
+	union {
+		int asint;
+		float asfloat;
+		char *asstr;
+	} val;
+	char *tooltip;
+} Button;
 
 
 /* 
  * these are declared in ../BPY_extern.h 
 */
-void BPY_spacescript_do_pywin_draw (SpaceScript * sc);
-void BPY_spacescript_do_pywin_event (SpaceScript * sc,
-				     unsigned short event, short val);
-void BPY_free_compiled_text (Text * text);
+void BPY_spacescript_do_pywin_draw( SpaceScript * sc );
+void BPY_spacescript_do_pywin_event( SpaceScript * sc,
+				     unsigned short event, short val );
+void BPY_free_compiled_text( Text * text );
 
-PyObject *M_Draw_Init (void);
+PyObject *M_Draw_Init( void );
 
-#endif /* EXPP_DRAW_H */
+#endif				/* EXPP_DRAW_H */

@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -36,18 +37,15 @@
 #include <DNA_action_types.h>
 
 /** NLA module initialization function. */
-PyObject *NLA_Init (void);
+PyObject *NLA_Init( void );
 
 /** Python BPy_NLA structure definition. */
-typedef struct
-{
-  PyObject_HEAD
-  bAction *action;
-}
-BPy_Action;
+typedef struct {
+	PyObject_HEAD bAction * action;
+} BPy_Action;
 
-PyObject *Action_CreatePyObject (struct bAction *action);
-int Action_CheckPyObject (PyObject * py_obj);
-bAction *Action_FromPyObject (PyObject * py_obj);
+PyObject *Action_CreatePyObject( struct bAction *action );
+int Action_CheckPyObject( PyObject * py_obj );
+bAction *Action_FromPyObject( PyObject * py_obj );
 
 #endif

@@ -48,97 +48,96 @@
 /*****************************************************************************/
 /* Python BPy_MTex methods declarations:                                     */
 /*****************************************************************************/
-static PyObject *MTex_setTex(BPy_MTex *self, PyObject *args);
+static PyObject *MTex_setTex( BPy_MTex * self, PyObject * args );
 
 /*****************************************************************************/
 /* Python method structure definition for Blender.Texture.MTex module:       */
 /*****************************************************************************/
 struct PyMethodDef M_MTex_methods[] = {
-    {NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL}
 };
 
 /*****************************************************************************/
 /* Python BPy_MTex methods table:                                            */
 /*****************************************************************************/
 static PyMethodDef BPy_MTex_methods[] = {
- /* name, method, flags, doc */
-  {"setTex", (PyCFunction)MTex_setTex, METH_VARARGS,
-                            "(i) - Set MTex Texture"},
-  {NULL, NULL,0, NULL}
+	/* name, method, flags, doc */
+	{"setTex", ( PyCFunction ) MTex_setTex, METH_VARARGS,
+	 "(i) - Set MTex Texture"},
+	{NULL, NULL, 0, NULL}
 };
 
 /*****************************************************************************/
 /* Python MTex_Type callback function prototypes:                            */
 /*****************************************************************************/
-static void MTex_dealloc (BPy_MTex *self);
-static int MTex_setAttr (BPy_MTex *self, char *name, PyObject *v);
-static int MTex_compare (BPy_MTex *a, BPy_MTex *b);
-static PyObject *MTex_getAttr (BPy_MTex *self, char *name);
-static PyObject *MTex_repr (BPy_MTex *self);
+static void MTex_dealloc( BPy_MTex * self );
+static int MTex_setAttr( BPy_MTex * self, char *name, PyObject * v );
+static int MTex_compare( BPy_MTex * a, BPy_MTex * b );
+static PyObject *MTex_getAttr( BPy_MTex * self, char *name );
+static PyObject *MTex_repr( BPy_MTex * self );
 
 
 /*****************************************************************************/
 /* Python MTex_Type structure definition:                                    */
 /*****************************************************************************/
-PyTypeObject MTex_Type =
-{
-    PyObject_HEAD_INIT(NULL)
-    0,                              /* ob_size */
-    "Blender MTex",                 /* tp_name */
-    sizeof (BPy_MTex),              /* tp_basicsize */
-    0,                              /* tp_itemsize */
-    /* methods */
-    (destructor)MTex_dealloc,       /* tp_dealloc */
-    0,                              /* tp_print */
-    (getattrfunc)MTex_getAttr,      /* tp_getattr */
-    (setattrfunc)MTex_setAttr,      /* tp_setattr */
-    (cmpfunc)MTex_compare,          /* tp_compare */
-    (reprfunc)MTex_repr,            /* tp_repr */
-    0,                              /* tp_as_number */
-    0,                              /* tp_as_sequence */
-    0,                              /* tp_as_mapping */
-    0,                              /* tp_as_hash */
-    0,0,0,0,0,0,
-    0,                              /* tp_doc */ 
-    0,0,0,0,0,0,
-    0,                              /* tp_methods */
-    0,                              /* tp_members */
+PyTypeObject MTex_Type = {
+	PyObject_HEAD_INIT( NULL ) 
+	0,	/* ob_size */
+	"Blender MTex",		/* tp_name */
+	sizeof( BPy_MTex ),	/* tp_basicsize */
+	0,			/* tp_itemsize */
+	/* methods */
+	( destructor ) MTex_dealloc,	/* tp_dealloc */
+	0,			/* tp_print */
+	( getattrfunc ) MTex_getAttr,	/* tp_getattr */
+	( setattrfunc ) MTex_setAttr,	/* tp_setattr */
+	( cmpfunc ) MTex_compare,	/* tp_compare */
+	( reprfunc ) MTex_repr,	/* tp_repr */
+	0,			/* tp_as_number */
+	0,			/* tp_as_sequence */
+	0,			/* tp_as_mapping */
+	0,			/* tp_as_hash */
+	0, 0, 0, 0, 0, 0,
+	0,			/* tp_doc */
+	0, 0, 0, 0, 0, 0,
+	0,			/* tp_methods */
+	0,			/* tp_members */
 };
 
 
-PyObject *MTex_Init (void)
+PyObject *MTex_Init( void )
 {
-    PyObject *submodule;
-    
-    MTex_Type.ob_type = &PyType_Type;
+	PyObject *submodule;
 
-    submodule = Py_InitModule("Blender.Texture.MTex", M_MTex_methods);
-    
-    return submodule;
+	MTex_Type.ob_type = &PyType_Type;
+
+	submodule = Py_InitModule( "Blender.Texture.MTex", M_MTex_methods );
+
+	return submodule;
 }
 
-PyObject *MTex_CreatePyObject (MTex *mtex)
+PyObject *MTex_CreatePyObject( MTex * mtex )
 {
-    BPy_MTex *pymtex;
+	BPy_MTex *pymtex;
 
-    pymtex = (BPy_MTex *) PyObject_NEW (BPy_MTex, &MTex_Type);
-    if (!pymtex)
-        return EXPP_ReturnPyObjError (PyExc_MemoryError,
-                                  "couldn't create BPy_MTex PyObject");
+	pymtex = ( BPy_MTex * ) PyObject_NEW( BPy_MTex, &MTex_Type );
+	if( !pymtex )
+		return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					      "couldn't create BPy_MTex PyObject" );
 
-    pymtex->mtex = mtex;
-    return (PyObject *) pymtex;
+	pymtex->mtex = mtex;
+	return ( PyObject * ) pymtex;
 }
 
-MTex *MTex_FromPyObject (PyObject *pyobj)
+MTex *MTex_FromPyObject( PyObject * pyobj )
 {
-    return ((BPy_MTex *)pyobj)->mtex;
+	return ( ( BPy_MTex * ) pyobj )->mtex;
 }
 
 
-int MTex_CheckPyObject (PyObject *pyobj)
+int MTex_CheckPyObject( PyObject * pyobj )
 {
-    return (pyobj->ob_type == &MTex_Type);
+	return ( pyobj->ob_type == &MTex_Type );
 }
 
 
@@ -146,111 +145,104 @@ int MTex_CheckPyObject (PyObject *pyobj)
 /* Python BPy_MTex methods:                                                  */
 /*****************************************************************************/
 
-static PyObject *MTex_setTex(BPy_MTex *self, PyObject *args)
+static PyObject *MTex_setTex( BPy_MTex * self, PyObject * args )
 {
-    BPy_Texture *pytex = NULL;
-    if (!PyArg_ParseTuple(args, "O!", &Texture_Type, &pytex))
-        return EXPP_ReturnPyObjError (PyExc_TypeError,
-                                           "expected Texture argument");
+	BPy_Texture *pytex = NULL;
+	if( !PyArg_ParseTuple( args, "O!", &Texture_Type, &pytex ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected Texture argument" );
 
-    if (self->mtex->tex)
-        self->mtex->tex->id.us--;
-    
-    self->mtex->tex = Texture_FromPyObject((PyObject*)pytex);
+	if( self->mtex->tex )
+		self->mtex->tex->id.us--;
 
-    Py_INCREF(Py_None);
-    return Py_None;
+	self->mtex->tex = Texture_FromPyObject( ( PyObject * ) pytex );
+
+	Py_INCREF( Py_None );
+	return Py_None;
 }
 
-static void MTex_dealloc (BPy_MTex *self)
+static void MTex_dealloc( BPy_MTex * self )
 {
-    PyObject_DEL (self);
+	PyObject_DEL( self );
 }
 
-static PyObject *MTex_getAttr (BPy_MTex *self, char *name)
+static PyObject *MTex_getAttr( BPy_MTex * self, char *name )
 {
-    if (STREQ(name, "tex"))
-    {
-        if (self->mtex->tex)
-            return Texture_CreatePyObject (self->mtex->tex);
-        else
-        {
-            Py_INCREF (Py_None);
-            return Py_None;
-        }        
-    }
-    else if (STREQ(name, "texco"))
-        return PyInt_FromLong(self->mtex->texco);
-    else if (STREQ(name, "mapto"))
-        return PyInt_FromLong(self->mtex->mapto);
-    
-    else if (STREQ(name, "__members__"))
-        return Py_BuildValue("[s,s,s]", "tex", "texco", "mapto");
+	if( STREQ( name, "tex" ) ) {
+		if( self->mtex->tex )
+			return Texture_CreatePyObject( self->mtex->tex );
+		else {
+			Py_INCREF( Py_None );
+			return Py_None;
+		}
+	} else if( STREQ( name, "texco" ) )
+		return PyInt_FromLong( self->mtex->texco );
+	else if( STREQ( name, "mapto" ) )
+		return PyInt_FromLong( self->mtex->mapto );
 
-    /* not an attribute, search the methods table */
-    return Py_FindMethod(BPy_MTex_methods, (PyObject *)self, name);
+	else if( STREQ( name, "__members__" ) )
+		return Py_BuildValue( "[s,s,s]", "tex", "texco", "mapto" );
+
+	/* not an attribute, search the methods table */
+	return Py_FindMethod( BPy_MTex_methods, ( PyObject * ) self, name );
 }
 
-static int MTex_setAttr (BPy_MTex *self, char *name, PyObject *value)
+static int MTex_setAttr( BPy_MTex * self, char *name, PyObject * value )
 {
-    PyObject *valtuple; 
-    PyObject *error = NULL;
+	PyObject *valtuple;
+	PyObject *error = NULL;
 
-    /* Put "value" in a tuple, because we want to pass it to functions  *
-     * that only accept PyTuples.                                       */
-    valtuple = Py_BuildValue("(O)", value);
-    if (!valtuple)
-        return EXPP_ReturnIntError(PyExc_MemoryError,
-                                "MTex_setAttr: couldn't create PyTuple");
+	/* Put "value" in a tuple, because we want to pass it to functions  *
+	 * that only accept PyTuples.                                       */
+	valtuple = Py_BuildValue( "(O)", value );
+	if( !valtuple )
+		return EXPP_ReturnIntError( PyExc_MemoryError,
+					    "MTex_setAttr: couldn't create PyTuple" );
 
-    if (STREQ(name, "tex"))
-        error = MTex_setTex(self, valtuple);
-    else if (STREQ(name, "texco"))
-    {
-        if (PyInt_Check(value))
-        {
-            int texco = PyInt_AsLong(value);
-            /* TODO: sanity-check this input! */
-            self->mtex->texco = texco;
-            Py_INCREF (Py_None); /* because we decref it below */
-            error = Py_None;
-        }            
-    }
-    else if (STREQ(name, "mapto"))
-    {
-        if (PyInt_Check(value))
-        {
-            int mapto = PyInt_AsLong(value);
-            /* TODO: sanity-check this input! */
-            self->mtex->mapto = mapto;
-            Py_INCREF (Py_None); /* because we decref it below */
-            error = Py_None;
-        }            
-    }
-    
-    else { 
-        /* Error */
-        Py_DECREF(valtuple);
-        return EXPP_ReturnIntError (PyExc_KeyError, "attribute not found");
-    }
+	if( STREQ( name, "tex" ) )
+		error = MTex_setTex( self, valtuple );
+	else if( STREQ( name, "texco" ) ) {
+		if( PyInt_Check( value ) ) {
+			int texco = PyInt_AsLong( value );
+			/* TODO: sanity-check this input! */
+			self->mtex->texco = texco;
+			Py_INCREF( Py_None );	/* because we decref it below */
+			error = Py_None;
+		}
+	} else if( STREQ( name, "mapto" ) ) {
+		if( PyInt_Check( value ) ) {
+			int mapto = PyInt_AsLong( value );
+			/* TODO: sanity-check this input! */
+			self->mtex->mapto = mapto;
+			Py_INCREF( Py_None );	/* because we decref it below */
+			error = Py_None;
+		}
+	}
 
-    Py_DECREF (valtuple);
+	else {
+		/* Error */
+		Py_DECREF( valtuple );
+		return EXPP_ReturnIntError( PyExc_KeyError,
+					    "attribute not found" );
+	}
 
-    if (error != Py_None) return -1;
+	Py_DECREF( valtuple );
 
-    /* Py_None was INCREF'd by the set*() function, so we need to DECREF it */
-    Py_DECREF (Py_None);
-    
-    return 0;
+	if( error != Py_None )
+		return -1;
+
+	/* Py_None was INCREF'd by the set*() function, so we need to DECREF it */
+	Py_DECREF( Py_None );
+
+	return 0;
 }
 
-static int MTex_compare (BPy_MTex *a, BPy_MTex *b)
+static int MTex_compare( BPy_MTex * a, BPy_MTex * b )
 {
-    return (a->mtex == b->mtex) ? 0 : -1;
+	return ( a->mtex == b->mtex ) ? 0 : -1;
 }
 
-static PyObject *MTex_repr (BPy_MTex *self)
+static PyObject *MTex_repr( BPy_MTex * self )
 {
-    return PyString_FromFormat("[MTex]");
+	return PyString_FromFormat( "[MTex]" );
 }
-

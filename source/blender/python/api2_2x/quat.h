@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -51,24 +52,22 @@
 #define QuaternionObject_Check(v) ((v)->ob_type == &quaternion_Type)
 
 typedef struct {
-	PyObject_VAR_HEAD
-	float * quat;
+	PyObject_VAR_HEAD float *quat;
 	int flag;
-		//0 - no coercion
-		//1 - coerced from int
-		//2 - coerced from float
+	//0 - no coercion
+	//1 - coerced from int
+	//2 - coerced from float
 } QuaternionObject;
 
 
 //prototypes
-PyObject *newQuaternionObject(float *quat);
-PyObject *Quaternion_Identity(QuaternionObject *self);
-PyObject *Quaternion_Negate(QuaternionObject *self);
-PyObject *Quaternion_Conjugate(QuaternionObject *self);
-PyObject *Quaternion_Inverse(QuaternionObject *self);
-PyObject *Quaternion_Normalize(QuaternionObject *self);
-PyObject *Quaternion_ToEuler(QuaternionObject *self);
-PyObject *Quaternion_ToMatrix(QuaternionObject *self);
+PyObject *newQuaternionObject( float *quat );
+PyObject *Quaternion_Identity( QuaternionObject * self );
+PyObject *Quaternion_Negate( QuaternionObject * self );
+PyObject *Quaternion_Conjugate( QuaternionObject * self );
+PyObject *Quaternion_Inverse( QuaternionObject * self );
+PyObject *Quaternion_Normalize( QuaternionObject * self );
+PyObject *Quaternion_ToEuler( QuaternionObject * self );
+PyObject *Quaternion_ToMatrix( QuaternionObject * self );
 
-#endif /* EXPP_quat_h */
-
+#endif				/* EXPP_quat_h */

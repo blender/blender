@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -48,30 +49,28 @@
 typedef float **ptRow;
 
 typedef struct _Matrix {
-	PyObject_VAR_HEAD
-
-	ptRow matrix;
+	PyObject_VAR_HEAD ptRow matrix;
 	int rowSize;
 	int colSize;
 	int flag;
-		//0 - no coercion
-		//1 - coerced from int
-		//2 - coerced from float
+	//0 - no coercion
+	//1 - coerced from int
+	//2 - coerced from float
 } MatrixObject;
 
 /*****************************************************************************/
-/* Python API function prototypes.												*/
+/* Python API function prototypes.					    */
 /*****************************************************************************/
-PyObject *newMatrixObject(float * mat, int rowSize, int colSize);
-PyObject *Matrix_Zero(MatrixObject *self);
-PyObject *Matrix_Identity(MatrixObject *self);
-PyObject *Matrix_Transpose(MatrixObject *self);
-PyObject *Matrix_Determinant(MatrixObject *self);
-PyObject *Matrix_Invert(MatrixObject *self);
-PyObject *Matrix_TranslationPart(MatrixObject *self);
-PyObject *Matrix_RotationPart(MatrixObject *self);
-PyObject *Matrix_Resize4x4(MatrixObject *self);
-PyObject *Matrix_toEuler(MatrixObject *self);
-PyObject *Matrix_toQuat(MatrixObject *self);
+PyObject *newMatrixObject( float *mat, int rowSize, int colSize );
+PyObject *Matrix_Zero( MatrixObject * self );
+PyObject *Matrix_Identity( MatrixObject * self );
+PyObject *Matrix_Transpose( MatrixObject * self );
+PyObject *Matrix_Determinant( MatrixObject * self );
+PyObject *Matrix_Invert( MatrixObject * self );
+PyObject *Matrix_TranslationPart( MatrixObject * self );
+PyObject *Matrix_RotationPart( MatrixObject * self );
+PyObject *Matrix_Resize4x4( MatrixObject * self );
+PyObject *Matrix_toEuler( MatrixObject * self );
+PyObject *Matrix_toQuat( MatrixObject * self );
 
-#endif /* EXPP_matrix_H */
+#endif				/* EXPP_matrix_H */

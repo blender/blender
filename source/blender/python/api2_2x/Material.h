@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -39,31 +40,31 @@
 #include "rgbTuple.h"
 
 /*****************************************************************************/
-/* Python BPy_Material structure definition:																	 */
+/* Python BPy_Material structure definition:        */
 /*****************************************************************************/
 typedef struct {
-	PyObject_HEAD
-	Material *material;
+	PyObject_HEAD Material * material;
 	BPy_rgbTuple *col, *amb, *spec, *mir;
 
 } BPy_Material;
 
-extern PyTypeObject Material_Type; /* The Material PyType Object */
+extern PyTypeObject Material_Type;	/* The Material PyType Object */
 
 #define BPy_Material_Check(v) \
-		((v)->ob_type == &Material_Type) /* for type checking */
+		((v)->ob_type == &Material_Type)	/* for type checking */
 
 /*****************************************************************************/
-/* Module Blender.Material - public functions																 */
+/* Module Blender.Material - public functions	 */
 /*****************************************************************************/
-PyObject *M_Material_Init (void);
-PyObject *Material_CreatePyObject (Material *mat);
-Material *Material_FromPyObject (PyObject *pyobj);
-int Material_CheckPyObject (PyObject *pyobj);
+PyObject *M_Material_Init( void );
+PyObject *Material_CreatePyObject( Material * mat );
+Material *Material_FromPyObject( PyObject * pyobj );
+int Material_CheckPyObject( PyObject * pyobj );
 
 /* Some functions needed by NMesh.c */
-PyObject  *EXPP_PyList_fromMaterialList (Material **matlist, int len, int all);
-Material **EXPP_newMaterialList_fromPyList (PyObject *list);
-Material **EXPP_newMaterialList(int len);
+PyObject *EXPP_PyList_fromMaterialList( Material ** matlist, int len,
+					int all );
+Material **EXPP_newMaterialList_fromPyList( PyObject * list );
+Material **EXPP_newMaterialList( int len );
 
-#endif /* EXPP_MATERIAL_H */
+#endif				/* EXPP_MATERIAL_H */

@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -53,4 +54,4 @@ extern PyTypeObject property_Type;
 extern PyTypeObject buffer_Type, constant_Type, euler_Type;
 extern PyTypeObject matrix_Type, quaternion_Type, rgbTuple_Type, vector_Type;
 
-#endif /* EXPP_TYPES_H */
+#endif				/* EXPP_TYPES_H */

@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -33,6 +34,6 @@
 
 struct Script;
 
-void initBlenderApi2_2x (void);
-void discardFromBDict (char *key);
-void EXPP_Library_Close (void); /* in Library.c, used by BPY_end_python */
+void initBlenderApi2_2x( void );
+void discardFromBDict( char *key );
+void EXPP_Library_Close( void );   /* in Library.c, used by BPY_end_python */

@@ -38,23 +38,20 @@
 #include <DNA_userdef_types.h>
 
 typedef struct {
-	PyObject_HEAD
-	struct bTheme *theme;
+	PyObject_HEAD struct bTheme *theme;
 	struct ThemeUI *tui;
 
 } BPy_ThemeUI;
 
 typedef struct {
-	PyObject_HEAD
-	struct bTheme *theme;
+	PyObject_HEAD struct bTheme *theme;
 	struct ThemeSpace *tsp;
 
 } BPy_ThemeSpace;
 
 typedef struct {
-	PyObject_HEAD
-	struct bTheme *theme;
+	PyObject_HEAD struct bTheme *theme;
 
 } BPy_Theme;
 
-#endif /* EXPP_WINDOWTHEME_H */
+#endif				/* EXPP_WINDOWTHEME_H */

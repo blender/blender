@@ -45,16 +45,15 @@
 /* Python BPy_charRGBA structure definition: */
 
 typedef struct {
-  PyObject_HEAD
-	char *rgba[4]; /* array of four pointers to chars */
+	PyObject_HEAD char *rgba[4];	/* array of four pointers to chars */
 
 } BPy_charRGBA;
 
 /*****************************************************************************/
 /* Python API function prototypes for the charRGBA helper module.            */
 /*****************************************************************************/
-PyObject *charRGBA_New (char *rgba);
-PyObject *charRGBA_getCol (BPy_charRGBA *self);
-PyObject *charRGBA_setCol (BPy_charRGBA *self, PyObject *args);
+PyObject *charRGBA_New( char *rgba );
+PyObject *charRGBA_getCol( BPy_charRGBA * self );
+PyObject *charRGBA_setCol( BPy_charRGBA * self, PyObject * args );
 
-#endif /* EXPP_charRGBA_H */
+#endif				/* EXPP_charRGBA_H */

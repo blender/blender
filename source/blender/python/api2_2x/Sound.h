@@ -40,18 +40,15 @@
 /* Python BPy_Sound structure definition                                     */
 /*****************************************************************************/
 typedef struct {
-  PyObject_HEAD
-  bSound *sound;
+	PyObject_HEAD bSound * sound;
 } BPy_Sound;
 
 /*****************************************************************************/
 /* Module Blender.Sound - public functions                                   */
 /*****************************************************************************/
-PyObject *Sound_Init (void);
-PyObject *Sound_CreatePyObject (bSound *sound);
-bSound   *Sound_FromPyObject (PyObject *pyobj);
-int	  Sound_CheckPyObject (PyObject *pyobj);
+PyObject *Sound_Init( void );
+PyObject *Sound_CreatePyObject( bSound * sound );
+bSound *Sound_FromPyObject( PyObject * pyobj );
+int Sound_CheckPyObject( PyObject * pyobj );
 
-#endif /* EXPP_SOUND_H */
-
-
+#endif				/* EXPP_SOUND_H */

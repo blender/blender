@@ -50,24 +50,22 @@
 #define VectorObject_Check(v) ((v)->ob_type == &vector_Type)
 
 typedef struct {
-	PyObject_VAR_HEAD
-	float * vec;
+	PyObject_VAR_HEAD float *vec;
 	int size;
 	int flag;
-		//0 - no coercion
-		//1 - coerced from int
-		//2 - coerced from float
-	int delete_pymem;  /* do we need to delete the memory vec points at? */
+	//0 - no coercion
+	//1 - coerced from int
+	//2 - coerced from float
+	int delete_pymem;	/* flag to delete the memory vec points at */
 } VectorObject;
 
 //prototypes
-PyObject *newVectorObject(float *vec, int size);
-PyObject *Vector_Zero(VectorObject *self);
-PyObject *Vector_Normalize(VectorObject *self);
-PyObject *Vector_Negate(VectorObject *self);
-PyObject *Vector_Resize2D(VectorObject *self);
-PyObject *Vector_Resize3D(VectorObject *self);
-PyObject *Vector_Resize4D(VectorObject *self);
+PyObject *newVectorObject( float *vec, int size );
+PyObject *Vector_Zero( VectorObject * self );
+PyObject *Vector_Normalize( VectorObject * self );
+PyObject *Vector_Negate( VectorObject * self );
+PyObject *Vector_Resize2D( VectorObject * self );
+PyObject *Vector_Resize3D( VectorObject * self );
+PyObject *Vector_Resize4D( VectorObject * self );
 
-#endif /* EXPP_vector_h */
-
+#endif				/* EXPP_vector_h */

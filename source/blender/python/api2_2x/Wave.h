@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -48,50 +49,50 @@
 /*****************************************************************************/
 /* Python API function prototypes for the Wave module.                       */
 /*****************************************************************************/
-PyObject *M_Wave_New (PyObject *self, PyObject *args);
-PyObject *M_Wave_Get (PyObject *self, PyObject *args);
+PyObject *M_Wave_New( PyObject * self, PyObject * args );
+PyObject *M_Wave_Get( PyObject * self, PyObject * args );
 
 
 #include"Effect.h"
 /*****************************************************************************/
-/* Python BPy_Wave methods declarations:                                       */
+/* Python BPy_Wave methods declarations:                                    */
 /*****************************************************************************/
-PyObject *Effect_getType(BPy_Effect *self);
-PyObject *Effect_setType(BPy_Effect *self, PyObject *args);
-PyObject *Effect_getFlag(BPy_Effect *self);
-PyObject *Effect_setFlag(BPy_Effect *self, PyObject *args);
-PyObject *Wave_getStartx(BPy_Wave *self);
-PyObject *Wave_setStartx(BPy_Wave *self,PyObject*a);
-PyObject *Wave_getStarty(BPy_Wave *self);
-PyObject *Wave_setStarty(BPy_Wave *self,PyObject*a);
-PyObject *Wave_getHeight(BPy_Wave *self);
-PyObject *Wave_setHeight(BPy_Wave *self,PyObject*a);
-PyObject *Wave_getWidth(BPy_Wave *self);
-PyObject *Wave_setWidth(BPy_Wave *self,PyObject*a);
-PyObject *Wave_getNarrow(BPy_Wave *self);
-PyObject *Wave_setNarrow(BPy_Wave *self,PyObject*a);
-PyObject *Wave_getSpeed(BPy_Wave *self);
-PyObject *Wave_setSpeed(BPy_Wave *self,PyObject*a);
-PyObject *Wave_getMinfac(BPy_Wave *self);
-PyObject *Wave_setMinfac(BPy_Wave *self,PyObject*a);
-PyObject *Wave_getDamp(BPy_Wave *self);
-PyObject *Wave_setDamp(BPy_Wave *self,PyObject*a);
-PyObject *Wave_getTimeoffs(BPy_Wave *self);
-PyObject *Wave_setTimeoffs(BPy_Wave *self,PyObject*a);
-PyObject *Wave_getLifetime(BPy_Wave *self);
-PyObject *Wave_setLifetime(BPy_Wave *self,PyObject*a);
+PyObject *Effect_getType( BPy_Effect * self );
+PyObject *Effect_setType( BPy_Effect * self, PyObject * args );
+PyObject *Effect_getFlag( BPy_Effect * self );
+PyObject *Effect_setFlag( BPy_Effect * self, PyObject * args );
+PyObject *Wave_getStartx( BPy_Wave * self );
+PyObject *Wave_setStartx( BPy_Wave * self, PyObject * a );
+PyObject *Wave_getStarty( BPy_Wave * self );
+PyObject *Wave_setStarty( BPy_Wave * self, PyObject * a );
+PyObject *Wave_getHeight( BPy_Wave * self );
+PyObject *Wave_setHeight( BPy_Wave * self, PyObject * a );
+PyObject *Wave_getWidth( BPy_Wave * self );
+PyObject *Wave_setWidth( BPy_Wave * self, PyObject * a );
+PyObject *Wave_getNarrow( BPy_Wave * self );
+PyObject *Wave_setNarrow( BPy_Wave * self, PyObject * a );
+PyObject *Wave_getSpeed( BPy_Wave * self );
+PyObject *Wave_setSpeed( BPy_Wave * self, PyObject * a );
+PyObject *Wave_getMinfac( BPy_Wave * self );
+PyObject *Wave_setMinfac( BPy_Wave * self, PyObject * a );
+PyObject *Wave_getDamp( BPy_Wave * self );
+PyObject *Wave_setDamp( BPy_Wave * self, PyObject * a );
+PyObject *Wave_getTimeoffs( BPy_Wave * self );
+PyObject *Wave_setTimeoffs( BPy_Wave * self, PyObject * a );
+PyObject *Wave_getLifetime( BPy_Wave * self );
+PyObject *Wave_setLifetime( BPy_Wave * self, PyObject * a );
 
 /*****************************************************************************/
 /* Python Wave_Type callback function prototypes:                            */
 /*****************************************************************************/
-void WaveDeAlloc (BPy_Wave *msh);
-int WavePrint (BPy_Wave *msh, FILE *fp, int flags);
-int WaveSetAttr (BPy_Wave *msh, char *name, PyObject *v);
-PyObject *WaveGetAttr (BPy_Wave *msh, char *name);
-PyObject *WaveRepr (BPy_Wave *msh);
-PyObject* WaveCreatePyObject (struct Effect *wave);
-int WaveCheckPyObject (PyObject *py_obj);
-struct Wave* WaveFromPyObject (PyObject *py_obj);
+void WaveDeAlloc( BPy_Wave * msh );
+int WavePrint( BPy_Wave * msh, FILE * fp, int flags );
+int WaveSetAttr( BPy_Wave * msh, char *name, PyObject * v );
+PyObject *WaveGetAttr( BPy_Wave * msh, char *name );
+PyObject *WaveRepr( BPy_Wave * msh );
+PyObject *WaveCreatePyObject( struct Effect *wave );
+int WaveCheckPyObject( PyObject * py_obj );
+struct Wave *WaveFromPyObject( PyObject * py_obj );
 
 
-#endif /* EXPP_WAVE_H */
+#endif				/* EXPP_WAVE_H */
