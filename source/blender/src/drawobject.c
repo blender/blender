@@ -1696,34 +1696,60 @@ static void drawDispListshaded(ListBase *lb, Object *ob)
 
 /* wrappers for shaded+wire and solid+wire */
 static void drawMeshWireExtra(Object *ob) {
-	GLfloat origwidth;
 	GLint origcolor[4];
 	
-	glGetFloatv(GL_LINE_WIDTH, &origwidth);
 	glGetIntegerv(GL_CURRENT_COLOR, origcolor);
 	
-	glLineWidth(1.2);
+	//glEnable(GL_POLYGON_OFFSET_LINE);
+	//glPolygonOffset(1.0, 1.0); 
+	
+	if(ob->flag & SELECT) {
+		if(ob==OBACT) BIF_ThemeColor(TH_ACTIVE);
+		else BIF_ThemeColor(TH_SELECT);
+	}
+	else BIF_ThemeColor(TH_WIRE);
+	
+	glMatrixMode(GL_PROJECTION);
+	glTranslatef(0, 0, 0.01);
+	glMatrixMode(GL_MODELVIEW);
 
-	cpack(0x4F4F4F);
 	drawmeshwire(ob);
 
+	glMatrixMode(GL_PROJECTION);
+	glTranslatef(0, 0, -0.01);
+	glMatrixMode(GL_MODELVIEW);
+
+	//glDisable(GL_POLYGON_OFFSET_LINE);
+
 	glColor4iv(origcolor);
-	glLineWidth(origwidth);
 }
 
-static void drawDispListWireExtra(ListBase *lb) {
-	GLfloat origwidth;
+static void drawDispListWireExtra(Object *ob, ListBase *lb) {
 	GLint origcolor[4];
 
-	glGetFloatv(GL_LINE_WIDTH, &origwidth);
 	glGetIntegerv(GL_CURRENT_COLOR, origcolor);
 
-	glLineWidth(1.2);
+	//glEnable(GL_POLYGON_OFFSET_LINE);
+	//glPolygonOffset(1.0, 1.0); 
 
-	cpack(0x4F4F4F);
+	if(ob->flag & SELECT) {
+		if(ob==OBACT) BIF_ThemeColor(TH_ACTIVE);
+		else BIF_ThemeColor(TH_SELECT);
+	}
+	else BIF_ThemeColor(TH_WIRE);
+
+	glMatrixMode(GL_PROJECTION);
+	glTranslatef(0, 0, 0.01);
+	glMatrixMode(GL_MODELVIEW);
+
 	drawDispListwire(lb);
 
-	glLineWidth(origwidth);
+	glMatrixMode(GL_PROJECTION);
+	glTranslatef(0, 0, -0.01);
+	glMatrixMode(GL_MODELVIEW);
+
+	//glDisable(GL_POLYGON_OFFSET_LINE);
+
 	glColor4iv(origcolor);
 }
 
@@ -2117,7 +2143,7 @@ static void drawDispList(Object *ob, int dt)
 					init_gl_materials(ob);
 					two_sided(me->flag & ME_TWOSIDED);
 					drawDispListsolid(lb, ob);
-					if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(lb);
+					if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(ob, lb);
 				}
 			}
 			else {
@@ -2193,7 +2219,7 @@ static void drawDispList(Object *ob, int dt)
 				if(dl) {
 					if(mesh_uses_displist(me)) {
 						drawDispListshaded(&me->disp, ob);
-						if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(&me->disp);
+						if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(ob, &me->disp);
 					} else {
 						drawmeshshaded(ob, dl->col1, dl->col2);
 						if(ob->dtx & OB_DRAWWIRE) drawMeshWireExtra(ob);
@@ -2230,13 +2256,13 @@ static void drawDispList(Object *ob, int dt)
 			if(dt==OB_SHADED) {
 				if(ob->disp.first==0) shadeDispList(ob);
 				drawDispListshaded(lb, ob);
-				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(lb);
+				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(ob, lb);
 			}
 			else {
 				init_gl_materials(ob);
 				two_sided(0);
 				drawDispListsolid(lb, ob);
-				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(lb);
+				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(ob, lb);
 
 			}
 			index3_nors_incr= 1;
@@ -2261,14 +2287,14 @@ static void drawDispList(Object *ob, int dt)
 			if(dt==OB_SHADED) {
 				if(ob->disp.first==0) shadeDispList(ob);
 				drawDispListshaded(lb, ob);
-				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(lb);
+				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(ob, lb);
 			}
 			else {
 				init_gl_materials(ob);
 				two_sided(0);
 			
 				drawDispListsolid(lb, ob);
-				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(lb);
+				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(ob, lb);
 			}
 		}
 		else {
@@ -2286,14 +2312,14 @@ static void drawDispList(Object *ob, int dt)
 				dl= lb->first;
 				if(dl && dl->col1==0) shadeDispList(ob);
 				drawDispListshaded(lb, ob);
-				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(lb);
+				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(ob, lb);
 			}
 			else {
 				init_gl_materials(ob);
 				two_sided(0);
 			
 				drawDispListsolid(lb, ob);	
-				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(lb);
+				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(ob, lb);
 			}
 		}
 		else drawDispListwire(lb);
@@ -3588,12 +3614,12 @@ void draw_object(Base *base)
 						drawDispListsolid(&me->disp, ob);
 						/* this seems to be the place where the wire for subsurfs 
 						 * gets drawn.. so we draw an extra wire in grey here (editmode) */
-						if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(&me->disp);
+						if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(ob, &me->disp);
 						drawmeshwire(ob);
 					}
 					else {
 						drawmeshsolid(ob, 0);
-						if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(&me->disp);
+						if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(ob, &me->disp);
 					}
 				}
 				if(ob==G.obedit && (G.f & G_PROPORTIONAL)) draw_prop_circle();

@@ -1162,7 +1162,7 @@ static void view3d_panel_settings(cntrl)	// VIEW3D_HANDLER_BACKGROUND
 	uiDefButS(block, NUM, REDRAWVIEW3D, "GridLines:",		160, 50, 150, 19, &vd->gridlines, 0.0, 100.0, 100, 0, "Set the number of gridlines");
 	uiDefButF(block, NUM, REDRAWVIEW3D, "Lens:",			10, 30, 150, 19, &vd->lens, 10.0, 120.0, 100, 0, "Set the lens for the perspective view");
 	
-	uiDefButF(block, NUM, REDRAWVIEW3D, "ClipStart:",		10, 10, 150, 19, &vd->near, vd->grid, 100.0, 100, 0, "Set startvalue in perspective view mode");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "ClipStart:",		10, 10, 150, 19, &vd->near, vd->grid/10.0, 100.0, 10, 0, "Set startvalue in perspective view mode");
 	uiDefButF(block, NUM, REDRAWVIEW3D, "ClipEnd:",			160, 10, 150, 19, &vd->far, 1.0, 1000.0*vd->grid, 100, 0, "Set endvalue in perspective view mode");
 
 
