@@ -1824,12 +1824,36 @@ int view2dzoom(unsigned short event)
 		}
 		else {
 			getmouseco_areawin(mval);
-			fac= 0.001*(mval[0]-mvalo[0]);
-			dx= fac*(G.v2d->cur.xmax-G.v2d->cur.xmin);
-			fac= 0.001*(mval[1]-mvalo[1]);
-			dy= fac*(G.v2d->cur.ymax-G.v2d->cur.ymin);
+			if(U.viewzoom==USER_ZOOM_SCALE) {
+				float dist;
+				
+				dist = (G.v2d->mask.xmax - G.v2d->mask.xmin)/2.0;
+				dx= 1.0-(fabs(mvalo[0]-dist)+2.0)/(fabs(mval[0]-dist)+2.0);
+				dx*= 0.5*(G.v2d->cur.xmax-G.v2d->cur.xmin);
+
+				dist = (G.v2d->mask.ymax - G.v2d->mask.ymin)/2.0;
+				dy= 1.0-(fabs(mvalo[1]-dist)+2.0)/(fabs(mval[1]-dist)+2.0);
+				dy*= 0.5*(G.v2d->cur.ymax-G.v2d->cur.ymin);
+	
+			}
+			else {
+				fac= 0.01*(mval[0]-mvalo[0]);
+				dx= fac*(G.v2d->cur.xmax-G.v2d->cur.xmin);
+				fac= 0.01*(mval[1]-mvalo[1]);
+				dy= fac*(G.v2d->cur.ymax-G.v2d->cur.ymin);
+				
+				if(U.viewzoom==USER_ZOOM_CONT) {
+					dx/= 20.0;
+					dy/= 20.0;
+				}
+			}
 		}
 		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
+			
+			if(U.viewzoom!=USER_ZOOM_CONT) {
+				mvalo[0]= mval[0];
+				mvalo[1]= mval[1];
+			}
 			
 			G.v2d->cur.xmin+= dx;
 			G.v2d->cur.xmax-= dx;
