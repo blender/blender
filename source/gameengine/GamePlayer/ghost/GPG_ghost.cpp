@@ -107,6 +107,7 @@ void usage(char* program)
 	
 	printf("usage:   %s [-w [-p l t w h]] %s[-g gamengineoptions] "
 		"[-s stereomode] filename.blend\n", program, consoleoption);
+	printf("  -h: Prints this command summary\n");
 	printf("  -w: display in a window\n");
 	printf("  -p: specify window position\n");
 	printf("       l = window left coordinate\n");
@@ -365,6 +366,10 @@ int main(int argc, char** argv)
 					fullScreenParFound = true;
 					i++;
 				}
+				break;
+			case 'h':
+				usage(argv[0]);
+				return 0;
 				break;
 			case 'c':
 				i++;
