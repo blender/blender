@@ -96,6 +96,9 @@ METHOD 3. Use Microsoft Visual Studio project files
 These directions are for method 3. Method 1 was used in Nan in combination 
 with Cygwin. I don't know if somebody ever tried method 2.
 
+If you are using Method 1 and or 2 with cygwin you need to set FREE_WINDOWS 
+to true you can do this with: export FREE_WINDOWS=true
+
 EXTERNAL LIBARIES
 All external libraries that Blender depends on are found in CVS in 
 precompiled form. If you did not already do so, check out 
