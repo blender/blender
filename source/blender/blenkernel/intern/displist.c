@@ -311,6 +311,7 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 	shi.matren= ma->ren;
 	shi.vlr= NULL;	// have to do this!
 	ma= shi.matren;
+	shi.osatex= 0;  // also prevents reading vlr
 	
 	if(ma->mode & MA_VERTEXCOLP) {
 		if(vertcol) {
