@@ -55,7 +55,14 @@ chmod +x $DISTDIR/python$PVERS.dll
 # Add the Help.url to the ditribution
 cp -f extra/Help.url $DISTDIR/
 
-# Copy $DISTDIR for the windows installer
-rm -fr $DISTDIR/../blender-windows
-cp -R $DISTDIR $DISTDIR/../blender-windows
-
+# make the installer package with NSIS
+NSIS="$PROGRAMFILES/NSIS/makensis.exe"
+if (`test -x "$NSIS"`) then
+    cd installer
+    TEMPFILE=00.blender_tmp.nsi
+    DISTDIR=`cygpath -m $DISTDIR`
+    # make a installer config for this release
+    cat 00.blender.nsi | sed "s|VERSION|$VERSION|g" | sed "s|DISTDIR|$DISTDIR|g" | sed "s|SHORTVERS|$PVERS|g" > $TEMPFILE
+    "$NSIS" $TEMPFILE
+    rm $TEMPFILE
+fi
