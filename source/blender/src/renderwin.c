@@ -352,11 +352,9 @@ static void renderwin_handler(Window *win, void *user_data, short evt, short val
 	} 
 	else if (evt==REDRAW) {
 		renderwin_draw(rw, 0);
-// #ifndef __APPLE__
 	} 
 	else if (evt==WINCLOSE) {
 		BIF_close_render_display();
-// #endif
 	} 
 	else if (evt==INPUTCHANGE) {
 		rw->active= val;
@@ -389,7 +387,7 @@ static void renderwin_handler(Window *win, void *user_data, short evt, short val
 			}
 		} 
 		else if (evt==JKEY) {
-			BIF_swap_render_rects();
+			if(R.flag==0) BIF_swap_render_rects();
 		} 
 		else if (evt==ZKEY) {
 			if (rw->flags&RW_FLAGS_OLDZOOM) {
@@ -422,17 +420,20 @@ static void renderwin_handler(Window *win, void *user_data, short evt, short val
 			renderwin_reset_view(rw);
 		} 
 		else if (evt==F3KEY) {
-			mainwindow_raise();
-			mainwindow_make_active();
-			rw->active= 0;
-			areawinset(find_biggest_area()->win);
-			BIF_save_rendered_image();
+			if(R.flag==0) {
+				mainwindow_raise();
+				mainwindow_make_active();
+				rw->active= 0;
+				areawinset(find_biggest_area()->win);
+				BIF_save_rendered_image();
+			}
 		} 
 		else if (evt==F11KEY) {
 			BIF_toggle_render_display();
 		} 
 		else if (evt==F12KEY) {
-			BIF_do_render(0);
+			/* if it's rendering, this flag is set */
+			if(R.flag==0) BIF_do_render(0);
 		}
 	}
 }
@@ -687,8 +688,10 @@ static int test_break()
 		if (G.afbreek==0 && render_win) { /* tests window */
 			winlay_process_events(0);
 			// render_win can be closed in winlay_process_events()
-			if (render_win == 0 || (render_win->flags & RW_FLAGS_ESCAPE))
+			if (render_win == 0 || (render_win->flags & RW_FLAGS_ESCAPE)) {
 				G.afbreek= 1;
+				printf("break true\n");
+			}
 		}
 	}
 
@@ -779,6 +782,10 @@ static void end_test_break_callback()
 
 static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 {
+	
+	/* we set this flag to prevent renderwindow queue to execute another render */
+	R.flag= R_RENDERING;
+
 	if (R.displaymode == R_DISPLAYWIN || force_dispwin) {
 		RE_set_initrenderdisplay_callback(NULL);
 		RE_set_clearrenderdisplay_callback(renderwin_clear_display_cb);
@@ -787,9 +794,7 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 		renderwin_init_display_cb();
 	} 
 	else {
-// #ifndef __APPLE__		
 		BIF_close_render_display();
-// #endif
 		RE_set_initrenderdisplay_callback(renderview_init_display_cb);
 		RE_set_clearrenderdisplay_callback(NULL);
 		RE_set_renderdisplay_callback(renderview_progress_display_cb);
