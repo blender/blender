@@ -1275,7 +1275,8 @@ static void init_render_displist_mesh(Object *ob)
 						
 					vlr->mat= matar[mf->mat_nr];
 					vlr->flag= mf->flag;
-					vlr->ec= mf->edcode;
+					if(dlm->flag & ME_OPT_EDGES) vlr->ec= mf->edcode;
+					else vlr->ec= ME_V1V2|ME_V2V3|ME_V3V4|ME_V4V1; 
 					vlr->puno= mf->puno;
 					
 					if(flipnorm== -1) flipnorm= test_flipnorm(v1->co, v2->co, v3->co, vlr, imat);
