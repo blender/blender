@@ -175,6 +175,9 @@ Var is2KXP
 
 Function DataLocation
   !insertmacro MUI_HEADER_TEXT "$(TEXT_IO_TITLE)" ""
+
+  ; Set default choice
+  !insertmacro MUI_INSTALLOPTIONS_WRITE "data.ini" "Field 3" "State" 1
   
   StrCpy $R1 $winversion 2
   StrCmp $R1 "NT" do_win2kxp
@@ -184,14 +187,11 @@ Function DataLocation
   
   ;else...
   Strcpy $is2KXP "false"
-  !insertmacro MUI_INSTALLOPTIONS_WRITE "data.ini" "Field 3" "State" 1
 
   Goto continue
 
   do_win2kXP:
     Strcpy $is2KXP "true"
-    
-    !insertmacro MUI_INSTALLOPTIONS_WRITE "data.ini" "Field 2" "State" 1
     
   continue: 
   
@@ -224,15 +224,6 @@ Function DataLocation
     ReadEnvStr $BLENDERHOME "HOME"
     Goto end
   do_inst_path:
-    Strcmp $is2KXP "true" warning
-    Call SetWin9xPath
-    Goto end
-  warning:
-    IfFileExists "$PROFILE\Application Data\Blender Foundation\Blender\.blender\.bfont.ttf" disp_warning
-    Call SetWin9xPath
-    Goto end
-  disp_warning:
-    MessageBox MB_OK "Please note that user data files have been found in $PROFILE\Application Data\Blender Foundation\Blender. Blender will automatically use these instead of the files in $INSTDIR. Please remove the .blender folder from Application Data if you wish to use this option."
     Call SetWin9xPath
   end:
   
@@ -256,8 +247,7 @@ Section "Blender-VERSION (required)" SecCopyUI
   SetOutPath $BLENDERHOME\.blender\bpydata
   File DISTDIR\.blender\bpydata\readme.txt
   
-  SetOutPath $BLENDERHOME\.blender\locale\ca\LC_MESSAGES
-  ;File DISTDIR\.blender\locale\ca\LC_MESSAGES\blender.mo
+  ; Language files
   [LANGUAGECONTS]
   
   SetOutPath $INSTDIR

@@ -176,6 +176,9 @@ Var is2KXP
 Function DataLocation
   !insertmacro MUI_HEADER_TEXT "$(TEXT_IO_TITLE)" ""
   
+  ; Set default choice
+  !insertmacro MUI_INSTALLOPTIONS_WRITE "data.ini" "Field 3" "State" 1
+  
   StrCpy $R1 $winversion 2
   StrCmp $R1 "NT" do_win2kxp
   StrCmp $winversion "2000" do_win2kxp
@@ -184,14 +187,11 @@ Function DataLocation
   
   ;else...
   Strcpy $is2KXP "false"
-  !insertmacro MUI_INSTALLOPTIONS_WRITE "data.ini" "Field 3" "State" 1
 
   Goto continue
 
   do_win2kXP:
     Strcpy $is2KXP "true"
-    
-    !insertmacro MUI_INSTALLOPTIONS_WRITE "data.ini" "Field 2" "State" 1
     
   continue: 
   
@@ -224,15 +224,6 @@ Function DataLocation
     ReadEnvStr $BLENDERHOME "HOME"
     Goto end
   do_inst_path:
-    Strcmp $is2KXP "true" warning
-    Call SetWin9xPath
-    Goto end
-  warning:
-    IfFileExists "$PROFILE\Application Data\Blender Foundation\Blender\.blender\.bfont.ttf" disp_warning
-    Call SetWin9xPath
-    Goto end
-  disp_warning:
-    MessageBox MB_OK "Please note that user data files have been found in $PROFILE\Application Data\Blender Foundation\Blender. Blender will automatically use these instead of the files in $INSTDIR. Please remove the .blender folder from Application Data if you wish to use this option."
     Call SetWin9xPath
   end:
   
@@ -263,18 +254,27 @@ Section "Blender-VERSION (required)" SecCopyUI
   SetOutPath $BLENDERHOME\.blender\scripts
   File DISTDIR\.blender\scripts\ac3d_export.py
   File DISTDIR\.blender\scripts\ac3d_import.py
+  File DISTDIR\.blender\scripts\Apply_def.py
+  File DISTDIR\.blender\scripts\batch_name_edit.py
+  File DISTDIR\.blender\scripts\bevel_center.py
   File DISTDIR\.blender\scripts\blender2cal3d.py
   File DISTDIR\.blender\scripts\bvh_export.py
   File DISTDIR\.blender\scripts\bvh_import.py
+  File DISTDIR\.blender\scripts\DirectX8Exporter.py
   File DISTDIR\.blender\scripts\DirectXExporter.py
-  File DISTDIR\.blender\scripts\disp_paint233f.py
+  File DISTDIR\.blender\scripts\disp_paint.py
+  File DISTDIR\.blender\scripts\doc_browser.py
   File DISTDIR\.blender\scripts\fixfromarmature.py
+  File DISTDIR\.blender\scripts\hotkeys.py
+  File DISTDIR\.blender\scripts\kloputils.py
+  File DISTDIR\.blender\scripts\knife.py
   File DISTDIR\.blender\scripts\lightwave_export.py
   File DISTDIR\.blender\scripts\lightwave_import.py
   File DISTDIR\.blender\scripts\mod_blender.py
   File DISTDIR\.blender\scripts\mod_meshtools.py
   File DISTDIR\.blender\scripts\nendo_export.py
   File DISTDIR\.blender\scripts\nendo_import.py
+  File DISTDIR\.blender\scripts\obdatacopier.py
   File DISTDIR\.blender\scripts\obj_export.py
   File DISTDIR\.blender\scripts\obj_import.py
   File DISTDIR\.blender\scripts\off_export.py
@@ -283,7 +283,9 @@ Section "Blender-VERSION (required)" SecCopyUI
   File DISTDIR\.blender\scripts\radiosity_import.py
   File DISTDIR\.blender\scripts\raw_export.py
   File DISTDIR\.blender\scripts\raw_import.py
+  File DISTDIR\.blender\scripts\renameobjectbyblock.py
   File DISTDIR\.blender\scripts\rvk1_torvk2.py
+  File DISTDIR\.blender\scripts\sel_same.py
   File DISTDIR\.blender\scripts\slp_import.py
   File DISTDIR\.blender\scripts\sysinfo.py
   File DISTDIR\.blender\scripts\truespace_export.py
@@ -297,6 +299,7 @@ Section "Blender-VERSION (required)" SecCopyUI
   File DISTDIR\.blender\scripts\wrl2export.py
   SetOutPath $BLENDERHOME\.blender\bpydata
   File DISTDIR\.blender\bpydata\readme.txt
+  File DISTDIR\.blender\bpydata\KUlang.txt
   
   ; Additional Languages files
   SetOutPath $BLENDERHOME\.blender
