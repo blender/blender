@@ -441,6 +441,8 @@ def find(l, x):
 			return 1
 	return 0
 
+
+# Write Prototypes
 ext = ""
 fns = []
 fnlist = []
@@ -473,6 +475,7 @@ for i in glext_h:
 				if (string.lower(line.group(1)) == string.lower(j)):
 					fnlist += [(j, "PFN" + line.group(1) + "PROC")]
 
+# Write link code
 ext = ""
 fns = []
 fnlist = []
@@ -505,6 +508,7 @@ for i in glext_h:
 				if (string.lower(line.group(1)) == string.lower(j)):
 					fnlist += [(j, "PFN" + line.group(1) + "PROC")]
 
+# Write header code
 ext = ""
 fns = []
 fnlist = []
@@ -536,3 +540,89 @@ for i in glext_h:
 			for j in fns:
 				if (string.lower(line.group(1)) == string.lower(j)):
 					fnlist += [(j, "PFN" + line.group(1) + "PROC")]
+
+# Write Python link code
+ext = ""
+extensions = []
+fns = []
+defines = []
+ifdef = 0
+for i in glext_h:
+	line = re.search('^#ifn?def', i)
+	if (line):
+		ifdef = ifdef + 1
+	
+	line = re.search('^#ifndef (GL_.*)', i)
+	if (line):
+		if (not re.search('GL_VERSION.*', line.group(1)) and find(whitelist, line.group(1))):
+			ext = line.group(1)
+	
+	line = re.search('^#endif', i)
+	if (line):
+		ifdef = ifdef - 1
+		if (ifdef == 0 and ext != ""):
+			done = 0
+			for e in range(len(extensions)):
+				if extensions[e][0] == ext:
+					extensions[e] = (ext, defines + extensions[e][1], fns + extensions[e][2])
+					done = 1
+			if not done:
+				extensions = extensions + [(ext, defines, fns)]
+			ext = ""
+			fns = []
+			defines = []
+	if (ext != ""):
+		line = re.search('#define +(GL.*) +(0x.*)', i) # #define GL_ONE_MINUS_CONSTANT_COLOR       0x8002
+		if (line):
+			defines += [(line.group(1), line.group(2))]
+		
+		line = re.search('(.*)(gl.*)(\(.*\));', i) # GLAPI void APIENTRY glMultiTexCoord2f (GLenum, GLfloat, GLfloat);
+		if (line):
+			fns += [(line.group(1), line.group(2), line.group(3))] 
+
+for ext in extensions:
+	if (find(blacklist, ext[0]) or not find(whitelist, ext[0])):
+		continue
+	print "#if defined(" + ext[0] + ")"
+	for fn in ext[2]:
+		line = re.search('gl(.*)', fn[1])
+		# BGL_Wrap(2, RasterPos2f,      void,     (GLfloat, GLfloat))
+		rtype = ""
+		for r in string.split(fn[0]):
+			if r != "GLAPI" and r != "APIENTRY":
+				rtype = rtype + " " + r
+		params = ""
+		for p in string.split(fn[2], ','):
+			pline = re.search('(.*) \*', p)
+			if (pline):
+				p = pline.group(1) + "P"
+			if params == "":
+				params = p
+			else:
+				params = params + "," + p
+		if not params[-1] == ")":
+			params = params + ")"
+		print "BGL_Wrap(" + str(len(string.split(fn[2], ','))) + ", " + line.group(1) + ",\t" + rtype + ",\t" + params + ")"
+	print "#endif"
+	print
+
+for ext in extensions:
+	if (find(blacklist, ext[0]) or not find(whitelist, ext[0])):
+		continue
+	print 'PyDict_SetItemString(dict, "' + ext[0] + '", PyInt_FromLong(_' + ext[0] + '))'
+	print "#if defined(" + ext[0] + ")"
+	print "if (bglQueryExtension(_" + ext[0] + ")) {"
+	if len(ext[2]) > 0:
+		for fn in ext[2]:
+			line = re.search('gl(.*)', fn[1])
+			# MethodDef(Vertex3iv),
+			print "  BGL_AddMethod(" + line.group(1) + ");"
+		print
+	
+	for define in ext[1]:
+		print "  BGL_AddConst(" + define[0] + ");"
+	print
+	
+	print "}"
+	print "#endif"
+	print

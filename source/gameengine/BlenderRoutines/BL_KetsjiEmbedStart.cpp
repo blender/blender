@@ -99,8 +99,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 	STR_String exitstring = "";
 	BlendFileData *bfd= NULL;
 	
-	RAS_GLExtensionManager *extman = new RAS_GLExtensionManager(SYS_GetCommandLineInt(SYS_GetSystem(), "show_extensions", 1));
-	extman->LinkExtensions();
+	bgl::InitExtensions(1);
 
 	do
 	{
@@ -123,7 +122,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		int usevta = SYS_GetCommandLineInt(syshandle,"vertexarrays",1);
 		bool useVertexArrays = (usevta > 0);
 		
-		if (useVertexArrays && extman->QueryVersion(1, 1))
+		if (useVertexArrays && bgl::QueryVersion(1, 1))
 			rasterizer = new RAS_VAOpenGLRasterizer(canvas);
 		else
 			rasterizer = new RAS_OpenGLRasterizer(canvas);
@@ -369,10 +368,5 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		}
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
 
-	if (extman)
-	{
-		delete extman;
-		extman = NULL;
-	}
 	if (bfd) BLO_blendfiledata_free(bfd);
 }
